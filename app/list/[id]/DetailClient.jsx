@@ -12,6 +12,7 @@ import {
   PenLine,
   BarChart3,
   Users,
+  Share2,
 } from 'lucide-react';
 import { LISTS, COLORS } from '@/lib/data';
 import { buildItemLink, getSources, voteKey, dedupeByName } from '@/lib/helpers';
@@ -141,16 +142,48 @@ function ListDetail({ list, viewCount, voteData, userVotes, extras, onBack, onVo
             marginTop: 18,
             display: 'flex',
             alignItems: 'center',
-            gap: 6,
-            fontFamily: 'DM Mono, monospace',
-            fontSize: 10,
-            letterSpacing: '0.2em',
-            textTransform: 'uppercase',
-            color: COLORS.faded,
+            justifyContent: 'space-between',
+            gap: 12,
+            flexWrap: 'wrap',
           }}
         >
-          <Eye size={11} strokeWidth={2} />
-          <span>{viewCount} views</span>
+          <div
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: 6,
+              fontFamily: 'DM Mono, monospace',
+              fontSize: 10,
+              letterSpacing: '0.2em',
+              textTransform: 'uppercase',
+              color: COLORS.faded,
+            }}
+          >
+            <Eye size={11} strokeWidth={2} />
+            <span>{viewCount} views</span>
+          </div>
+          <a
+            href={`/snapshot/${encodeURIComponent(list.id)}`}
+            style={{
+              background: 'transparent',
+              color: COLORS.ink,
+              border: `1.5px solid ${COLORS.ink}`,
+              padding: '8px 14px',
+              fontFamily: 'DM Mono, monospace',
+              fontSize: 10,
+              letterSpacing: '0.18em',
+              textTransform: 'uppercase',
+              fontWeight: 600,
+              cursor: 'pointer',
+              display: 'flex',
+              alignItems: 'center',
+              gap: 6,
+              textDecoration: 'none',
+            }}
+          >
+            <Share2 size={12} strokeWidth={2.5} />
+            Share
+          </a>
         </div>
       </div>
 

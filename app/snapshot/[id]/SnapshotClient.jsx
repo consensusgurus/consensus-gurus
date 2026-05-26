@@ -1,0 +1,533 @@
+'use client';
+import React, { useState, useEffect, useMemo, useRef } from 'react';
+import { useRouter } from 'next/navigation';
+import { ArrowLeft, Download, Copy, Link2, Check } from 'lucide-react';
+import { LISTS, COLORS } from '@/lib/data';
+import { getSources, voteKey, dedupeByName } from '@/lib/helpers';
+import { fetchBootstrap } from '@/lib/api';
+
+const POSTER_W = 1080;
+const POSTER_H = 1350; // 4:5 portrait, Instagram-friendly
+
+export default function SnapshotClient({ listId }) {
+  const router = useRouter();
+  const [voteData, setVoteData] = useState({});
+  const [extras, setExtras] = useState([]);
+  const [userLists, setUserLists] = useState([]);
+  const [loaded, setLoaded] = useState(false);
+  const [mode, setMode] = useState('ai'); // 'ai', 'consensus', or 'vote'
+  const [copied, setCopied] = useState('');
+  const [downloading, setDownloading] = useState(false);
+  const posterRef = useRef(null);
+
+  useEffect(() => {
+    fetchBootstrap().then((data) => {
+      if (data) {
+        setVoteData(data.votes || {});
+        setExtras((data.extras || {})[listId] || []);
+        setUserLists(Array.isArray(data.userLists) ? data.userLists : []);
+      }
+      setLoaded(true);
+    });
+  }, [listId]);
+
+  const list = useMemo(() => {
+    return [...userLists, ...LISTS].find((l) => l.id === listId);
+  }, [userLists, listId]);
+
+  const sources = useMemo(() => (list ? getSources(list) : []), [list]);
+
+  const items = useMemo(() => {
+    if (!list) return [];
+    if (mode === 'vote') {
+      const base = list.vote?.items || [];
+      const all = dedupeByName([...base, ...extras]);
+      const scored = all.map((item, idx) => ({
+        item,
+        score: voteData[voteKey(list.id, item)] || 0,
+        idx,
+      }));
+      scored.sort((a, b) => b.score - a.score || a.idx - b.idx);
+      return scored.slice(0, 10).map((s) => s.item);
+    }
+    const src = sources.find((s) => s.id === mode) || sources[0];
+    return (src?.items || []).slice(0, 10);
+  }, [list, mode, sources, voteData, extras]);
+
+  const modeLabel = useMemo(() => {
+    if (mode === 'vote') return 'Reader Votes';
+    const src = sources.find((s) => s.id === mode);
+    return src?.label || 'Ranked';
+  }, [mode, sources]);
+
+  async function downloadPoster() {
+    if (!posterRef.current) return;
+    setDownloading(true);
+    try {
+      // Dynamic import so html-to-image only loads when needed
+      const { toPng } = await import('html-to-image');
+      const dataUrl = await toPng(posterRef.current, {
+        cacheBust: true,
+        pixelRatio: 2,
+        width: POSTER_W,
+        height: POSTER_H,
+        backgroundColor: COLORS.cream,
+      });
+      const link = document.createElement('a');
+      link.download = `consensus-gurus-${list.id}-${mode}.png`;
+      link.href = dataUrl;
+      link.click();
+    } catch (e) {
+      console.error('Download failed', e);
+      alert('Could not generate image. Try a different browser or take a screenshot instead.');
+    }
+    setDownloading(false);
+  }
+
+  function copyLink() {
+    const url = `${window.location.origin}/list/${encodeURIComponent(listId)}`;
+    navigator.clipboard.writeText(url).then(() => {
+      setCopied('link');
+      setTimeout(() => setCopied(''), 1800);
+    });
+  }
+
+  function copyText() {
+    if (!list) return;
+    const lines = [list.title, `— ${modeLabel} —`, ''];
+    items.forEach((item, i) => {
+      lines.push(`${String(i + 1).padStart(2, '0')}. ${item}`);
+    });
+    lines.push('', `consensusgurus.com/list/${list.id}`);
+    navigator.clipboard.writeText(lines.join('\n')).then(() => {
+      setCopied('text');
+      setTimeout(() => setCopied(''), 1800);
+    });
+  }
+
+  if (!loaded) {
+    return (
+      <div
+        style={{
+          minHeight: '100vh',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          background: COLORS.cream,
+          fontFamily: 'Fraunces, serif',
+          fontStyle: 'italic',
+          fontSize: 18,
+          color: COLORS.faded,
+        }}
+      >
+        loading
+      </div>
+    );
+  }
+
+  if (!list) {
+    return (
+      <div style={{ padding: 48, textAlign: 'center', background: COLORS.cream, minHeight: '100vh' }}>
+        <p style={{ fontFamily: 'Fraunces, serif', fontStyle: 'italic', color: COLORS.faded }}>
+          That list seems to have wandered off.
+        </p>
+        <button
+          onClick={() => router.push('/')}
+          style={{
+            marginTop: 16,
+            background: COLORS.ink,
+            color: COLORS.cream,
+            border: 'none',
+            padding: '10px 20px',
+            fontFamily: 'DM Mono, monospace',
+            fontSize: 11,
+            letterSpacing: '0.2em',
+            textTransform: 'uppercase',
+            cursor: 'pointer',
+          }}
+        >
+          Back home
+        </button>
+      </div>
+    );
+  }
+
+  const modeOptions = [];
+  // AI first if available
+  const ai = sources.find((s) => s.id === 'ai');
+  if (ai) modeOptions.push({ id: 'ai', label: ai.label });
+  // Consensus next if it exists
+  const cons = sources.find((s) => s.id === 'consensus');
+  if (cons) modeOptions.push({ id: 'consensus', label: 'Consensus' });
+  // Then any other named publication sources
+  sources.forEach((s) => {
+    if (s.id !== 'ai' && s.id !== 'consensus') {
+      modeOptions.push({ id: s.id, label: s.label });
+    }
+  });
+  // Always offer reader votes
+  modeOptions.push({ id: 'vote', label: 'Reader Votes' });
+
+  return (
+    <div
+      style={{
+        minHeight: '100vh',
+        background: COLORS.cream,
+        color: COLORS.ink,
+        padding: '24px 16px 64px',
+      }}
+    >
+      <div style={{ maxWidth: 760, margin: '0 auto' }}>
+        <button
+          onClick={() => router.push(`/list/${encodeURIComponent(listId)}`)}
+          style={{
+            background: 'transparent',
+            border: 'none',
+            fontFamily: 'DM Mono, monospace',
+            fontSize: 11,
+            letterSpacing: '0.2em',
+            textTransform: 'uppercase',
+            color: COLORS.ink,
+            cursor: 'pointer',
+            display: 'flex',
+            alignItems: 'center',
+            gap: 6,
+            padding: '8px 0',
+            marginBottom: 12,
+          }}
+        >
+          <ArrowLeft size={14} strokeWidth={2.5} />
+          Back to list
+        </button>
+
+        <h2
+          style={{
+            fontFamily: 'Fraunces, serif',
+            fontWeight: 700,
+            fontStyle: 'italic',
+            fontSize: 24,
+            margin: '0 0 14px',
+            color: COLORS.ink,
+            fontVariationSettings: '"SOFT" 100',
+          }}
+        >
+          Share this list
+        </h2>
+
+        {/* Mode picker */}
+        <div
+          style={{
+            display: 'flex',
+            gap: 6,
+            flexWrap: 'wrap',
+            marginBottom: 18,
+          }}
+        >
+          {modeOptions.map((opt) => {
+            const active = mode === opt.id;
+            return (
+              <button
+                key={opt.id}
+                onClick={() => setMode(opt.id)}
+                style={{
+                  background: active ? COLORS.ink : 'transparent',
+                  color: active ? COLORS.cream : COLORS.ink,
+                  border: `1.5px solid ${COLORS.ink}`,
+                  padding: '6px 12px',
+                  fontFamily: 'DM Mono, monospace',
+                  fontSize: 10,
+                  letterSpacing: '0.16em',
+                  textTransform: 'uppercase',
+                  fontWeight: 600,
+                  cursor: 'pointer',
+                }}
+              >
+                {opt.label}
+              </button>
+            );
+          })}
+        </div>
+
+        {/* Action buttons */}
+        <div
+          style={{
+            display: 'flex',
+            gap: 8,
+            flexWrap: 'wrap',
+            marginBottom: 24,
+          }}
+        >
+          <ActionButton onClick={downloadPoster} disabled={downloading} primary>
+            <Download size={14} strokeWidth={2.5} />
+            {downloading ? 'Generating...' : 'Download poster'}
+          </ActionButton>
+          <ActionButton onClick={copyLink}>
+            {copied === 'link' ? <Check size={14} strokeWidth={2.5} /> : <Link2 size={14} strokeWidth={2.5} />}
+            {copied === 'link' ? 'Copied' : 'Copy link'}
+          </ActionButton>
+          <ActionButton onClick={copyText}>
+            {copied === 'text' ? <Check size={14} strokeWidth={2.5} /> : <Copy size={14} strokeWidth={2.5} />}
+            {copied === 'text' ? 'Copied' : 'Copy as text'}
+          </ActionButton>
+        </div>
+
+        {/* Poster preview - rendered at 1080x1350, but visually scaled to fit screen */}
+        <div
+          style={{
+            background: '#000',
+            padding: 8,
+            borderRadius: 4,
+            display: 'flex',
+            justifyContent: 'center',
+            overflow: 'hidden',
+          }}
+        >
+          <PosterScaler>
+            <Poster ref={posterRef} list={list} items={items} modeLabel={modeLabel} />
+          </PosterScaler>
+        </div>
+
+        <p
+          style={{
+            marginTop: 20,
+            fontFamily: 'DM Mono, monospace',
+            fontSize: 10,
+            letterSpacing: '0.18em',
+            textTransform: 'uppercase',
+            color: COLORS.faded,
+            textAlign: 'center',
+          }}
+        >
+          1080 × 1350 · Instagram / Pinterest portrait
+        </p>
+      </div>
+    </div>
+  );
+}
+
+function ActionButton({ onClick, children, disabled, primary }) {
+  return (
+    <button
+      onClick={onClick}
+      disabled={disabled}
+      style={{
+        background: primary ? COLORS.ink : 'transparent',
+        color: primary ? COLORS.cream : COLORS.ink,
+        border: `1.5px solid ${COLORS.ink}`,
+        padding: '10px 16px',
+        fontFamily: 'DM Mono, monospace',
+        fontSize: 11,
+        letterSpacing: '0.18em',
+        textTransform: 'uppercase',
+        fontWeight: 600,
+        cursor: disabled ? 'wait' : 'pointer',
+        boxShadow: primary ? `3px 3px 0 ${COLORS.ember}` : 'none',
+        display: 'flex',
+        alignItems: 'center',
+        gap: 8,
+        opacity: disabled ? 0.6 : 1,
+      }}
+    >
+      {children}
+    </button>
+  );
+}
+
+/* Wrap the full-size poster in a scaled-down preview that fits the screen. */
+function PosterScaler({ children }) {
+  const [scale, setScale] = useState(0.5);
+  useEffect(() => {
+    function updateScale() {
+      const available = Math.min(window.innerWidth - 60, 720);
+      setScale(available / POSTER_W);
+    }
+    updateScale();
+    window.addEventListener('resize', updateScale);
+    return () => window.removeEventListener('resize', updateScale);
+  }, []);
+  return (
+    <div
+      style={{
+        width: POSTER_W * scale,
+        height: POSTER_H * scale,
+        position: 'relative',
+        overflow: 'hidden',
+      }}
+    >
+      <div
+        style={{
+          transform: `scale(${scale})`,
+          transformOrigin: 'top left',
+          width: POSTER_W,
+          height: POSTER_H,
+          position: 'absolute',
+          top: 0,
+          left: 0,
+        }}
+      >
+        {children}
+      </div>
+    </div>
+  );
+}
+
+/* The actual poster, rendered at full 1080x1350 resolution. */
+const Poster = React.forwardRef(function Poster({ list, items, modeLabel }, ref) {
+  return (
+    <div
+      ref={ref}
+      style={{
+        width: POSTER_W,
+        height: POSTER_H,
+        background: COLORS.cream,
+        color: COLORS.ink,
+        padding: 72,
+        position: 'relative',
+        boxSizing: 'border-box',
+        fontFamily: 'DM Sans, sans-serif',
+        overflow: 'hidden',
+      }}
+    >
+      {/* Top masthead */}
+      <div
+        style={{
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'center',
+          borderBottom: `2px solid ${COLORS.ink}`,
+          paddingBottom: 18,
+          fontFamily: 'DM Mono, monospace',
+          fontSize: 18,
+          letterSpacing: '0.3em',
+          textTransform: 'uppercase',
+          color: COLORS.ink,
+        }}
+      >
+        <span style={{ fontWeight: 600 }}>Consensus Gurus</span>
+        <span style={{ color: COLORS.faded, fontSize: 14 }}>Vol. I</span>
+      </div>
+
+      {/* Category */}
+      <div
+        style={{
+          marginTop: 42,
+          fontFamily: 'DM Mono, monospace',
+          fontSize: 18,
+          letterSpacing: '0.3em',
+          textTransform: 'uppercase',
+          color: COLORS.ember,
+          fontWeight: 600,
+        }}
+      >
+        {list.category} · Top {Math.min(items.length, 10)}
+      </div>
+
+      {/* Title */}
+      <h1
+        style={{
+          fontFamily: 'Fraunces, serif',
+          fontWeight: 900,
+          fontSize: items.length >= 10 ? 88 : 100,
+          lineHeight: 0.92,
+          letterSpacing: '-0.035em',
+          margin: '14px 0 0',
+          color: COLORS.ink,
+          fontVariationSettings: '"SOFT" 100, "WONK" 1',
+          maxWidth: '92%',
+        }}
+      >
+        {list.title}
+      </h1>
+
+      {/* Mode label */}
+      <div
+        style={{
+          marginTop: 20,
+          fontFamily: 'Fraunces, serif',
+          fontStyle: 'italic',
+          fontSize: 26,
+          color: COLORS.faded,
+          paddingLeft: 16,
+          borderLeft: `3px solid ${COLORS.ember}`,
+          lineHeight: 1.3,
+        }}
+      >
+        {modeLabel}
+      </div>
+
+      {/* Items list */}
+      <ol
+        style={{
+          listStyle: 'none',
+          padding: 0,
+          margin: '36px 0 0',
+        }}
+      >
+        {items.map((item, i) => (
+          <li
+            key={i}
+            style={{
+              display: 'flex',
+              alignItems: 'baseline',
+              gap: 24,
+              padding: '14px 0',
+              borderBottom: i < items.length - 1 ? `1px solid ${COLORS.ink}` : 'none',
+            }}
+          >
+            <span
+              style={{
+                fontFamily: 'Fraunces, serif',
+                fontWeight: 900,
+                fontSize: i === 0 ? 64 : 44,
+                color: i === 0 ? COLORS.ember : COLORS.ink,
+                minWidth: 78,
+                lineHeight: 0.9,
+                fontVariationSettings: '"SOFT" 100, "WONK" 1',
+                fontFeatureSettings: '"lnum" 1',
+              }}
+            >
+              {String(i + 1).padStart(2, '0')}
+            </span>
+            <span
+              style={{
+                fontFamily: 'Fraunces, serif',
+                fontSize: i === 0 ? 38 : 30,
+                fontWeight: i === 0 ? 700 : 500,
+                lineHeight: 1.05,
+                letterSpacing: '-0.01em',
+                color: COLORS.ink,
+                flex: 1,
+                fontVariationSettings: '"SOFT" 100',
+              }}
+            >
+              {item}
+            </span>
+          </li>
+        ))}
+      </ol>
+
+      {/* Footer */}
+      <div
+        style={{
+          position: 'absolute',
+          bottom: 56,
+          left: 72,
+          right: 72,
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'center',
+          borderTop: `2px solid ${COLORS.ink}`,
+          paddingTop: 18,
+          fontFamily: 'DM Mono, monospace',
+          fontSize: 16,
+          letterSpacing: '0.22em',
+          textTransform: 'uppercase',
+          color: COLORS.ink,
+        }}
+      >
+        <span>consensusgurus.com</span>
+        <span style={{ color: COLORS.faded }}>vote · share · debate</span>
+      </div>
+    </div>
+  );
+});
