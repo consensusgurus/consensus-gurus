@@ -14,7 +14,6 @@ function SubmitView({ onBack, onSubmit }) {
   const [blurb, setBlurb] = useState('');
   const [criteria, setCriteria] = useState('');
   const [items, setItems] = useState(Array(10).fill(''));
-  const [linkType, setLinkType] = useState('search');
   const [error, setError] = useState('');
   const [submitting, setSubmitting] = useState(false);
 
@@ -38,18 +37,17 @@ function SubmitView({ onBack, onSubmit }) {
   function handleSubmit() {
     setError('');
     if (!title.trim()) return setError('Add a headline for your list');
-    if (!category.trim()) return setError('Add a tag (city, topic, anything)');
-    if (!blurb.trim()) return setError('Add a one-line description');
+
     const cleanItems = items.map((i) => i.trim()).filter(Boolean).map((i) => i.slice(0, 90));
-    if (cleanItems.length < 1) return setError('Add at least one entry');
 
     const newList = {
       id: `user-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 7)}`,
       title: title.trim().slice(0, 90),
-      category: category.trim().slice(0, 40),
+      category: category.trim().slice(0, 40) || 'Reader Pick',
       type: type,
-      linkType: linkType,
-      blurb: blurb.trim().slice(0, 220),
+      // Always use 'search' as link type; admin can change on the backend.
+      linkType: 'search',
+      blurb: blurb.trim().slice(0, 220) || 'A reader-submitted list.',
       isUserSubmitted: true,
       submittedAt: Date.now(),
       defaultSource: 'ai',
@@ -172,13 +170,13 @@ function SubmitView({ onBack, onSubmit }) {
             maxWidth: 560,
           }}
         >
-          Pick any number of entries (one to thirty). Readers can vote each one up or down, and add ones you missed.
+          Only a headline is required. Add as much or as little as you want, and an editor will handle the rest.
         </p>
       </div>
 
       <div style={{ display: 'flex', flexDirection: 'column', gap: 28 }}>
         <div>
-          <label style={labelStyle}>Headline</label>
+          <label style={labelStyle}>Headline (required)</label>
           <input
             style={inputStyle}
             type="text"
@@ -191,7 +189,7 @@ function SubmitView({ onBack, onSubmit }) {
 
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 20 }}>
           <div>
-            <label style={labelStyle}>Tag</label>
+            <label style={labelStyle}>Tag (optional)</label>
             <input
               style={inputStyle}
               type="text"
@@ -202,7 +200,7 @@ function SubmitView({ onBack, onSubmit }) {
             />
           </div>
           <div style={{ position: 'relative' }}>
-            <label style={labelStyle}>Type</label>
+            <label style={labelStyle}>Type (optional)</label>
             <select value={type} onChange={(e) => setType(e.target.value)} style={selectStyle}>
               {TYPES.filter((t) => t.id !== 'all').map((t) => (
                 <option key={t.id} value={t.id}>
@@ -219,7 +217,7 @@ function SubmitView({ onBack, onSubmit }) {
         </div>
 
         <div>
-          <label style={labelStyle}>One-line description</label>
+          <label style={labelStyle}>One-line description (optional)</label>
           <textarea
             style={textareaStyle}
             placeholder="A quick pitch for your readers"
@@ -239,26 +237,6 @@ function SubmitView({ onBack, onSubmit }) {
             value={criteria}
             onChange={(e) => setCriteria(e.target.value)}
             maxLength={140}
-          />
-        </div>
-
-        <div style={{ position: 'relative' }}>
-          <label style={labelStyle}>Link items to</label>
-          <select value={linkType} onChange={(e) => setLinkType(e.target.value)} style={selectStyle}>
-            <option value="search">Google Search (default)</option>
-            <option value="amazon">Amazon (products)</option>
-            <option value="mapsCity">Google Maps + city (places)</option>
-            <option value="maps">Google Maps (places)</option>
-            <option value="booking">Booking.com (hotels)</option>
-            <option value="imdb">IMDB (movies/TV)</option>
-            <option value="goodreads">Goodreads (books)</option>
-            <option value="steam">Steam (games)</option>
-            <option value="wiki">Wikipedia (general)</option>
-          </select>
-          <ChevronDown
-            size={14}
-            strokeWidth={2.5}
-            style={{ position: 'absolute', right: 4, bottom: 12, pointerEvents: 'none', color: COLORS.ink }}
           />
         </div>
 
@@ -285,7 +263,7 @@ function SubmitView({ onBack, onSubmit }) {
                 color: COLORS.ink,
               }}
             >
-              Your picks, in order
+              Your picks, in order (optional)
             </h3>
             <span
               style={{
@@ -296,7 +274,7 @@ function SubmitView({ onBack, onSubmit }) {
                 color: COLORS.faded,
               }}
             >
-              {filledCount} filled · all optional · #1 at top
+              {filledCount} filled · #1 at top
             </span>
           </div>
 
@@ -448,7 +426,7 @@ function SubmitView({ onBack, onSubmit }) {
               opacity: submitting ? 0.6 : 1,
             }}
           >
-            {submitting ? 'Publishing...' : 'Publish list'}
+            {submitting ? 'Sending...' : 'Submit list'}
           </button>
         </div>
 
@@ -463,7 +441,7 @@ function SubmitView({ onBack, onSubmit }) {
             marginTop: 4,
           }}
         >
-          Submitted lists are shared publicly with every reader
+          Submitted lists are reviewed before going live
         </p>
       </div>
     </div>
