@@ -1,17 +1,26 @@
 import './globals.css';
-import { Analytics } from '@vercel/analytics/react';
+
+const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://consensus-gurus.vercel.app';
+
 export const metadata = {
-  title: 'Consensus Gurus | Top Ten Lists from Every Angle',
+  metadataBase: new URL(SITE_URL),
+  title: {
+    default: 'Consensus Gurus | Top Ten Lists from Every Angle',
+    template: '%s | Consensus Gurus',
+  },
   description:
     'Top ten lists scored by AI, by consensus across publications, and by reader vote. Movies, food, travel, products, and more.',
   openGraph: {
     title: 'Consensus Gurus',
-    description: 'Top ten lists from every angle.',
+    description: 'Top ten lists from every angle. AI, consensus, publications, and reader votes.',
     type: 'website',
+    siteName: 'Consensus Gurus',
+    locale: 'en_US',
   },
   twitter: {
     card: 'summary_large_image',
     title: 'Consensus Gurus',
+    description: 'Top ten lists from every angle.',
   },
 };
 
@@ -26,10 +35,7 @@ export default function RootLayout({ children }) {
           rel="stylesheet"
         />
       </head>
-      <body>
-  {children}
-  <Analytics />
-</body>
+      <body>{children}</body>
     </html>
   );
 }
