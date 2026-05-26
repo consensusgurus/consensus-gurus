@@ -60,7 +60,7 @@ export default async function Image({ params }) {
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'space-between',
-            borderBottom: '3px double #1a1a1a',
+            borderBottom: '3px solid #1a1a1a',
             paddingBottom: 14,
             marginBottom: 22,
           }}
