@@ -128,7 +128,7 @@ function Home({ lists, viewCounts, voteData, extras, openList, onSubmit }) {
             color: COLORS.ink,
           }}
         >
-          Top ten lists from every angle. Switch between AI-optimized, consensus across sources, and named publications. Then cast your vote.
+          Top Ten Lists from Every Angle.
         </p>
         <div
           style={{

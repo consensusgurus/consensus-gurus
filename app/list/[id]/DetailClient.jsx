@@ -231,58 +231,30 @@ function ListDetail({ list, viewCount, voteData, userVotes, extras, relatedLists
       {tab === 'source' && showSourceTab ? (
         <>
           {sources.length > 1 ? (
-            <div style={{ marginBottom: 20 }}>
-              <label
-                style={{
-                  fontFamily: 'DM Mono, monospace',
-                  fontSize: 10,
-                  letterSpacing: '0.2em',
-                  textTransform: 'uppercase',
-                  color: COLORS.faded,
-                  marginBottom: 8,
-                  display: 'block',
-                }}
-              >
-                Source
-              </label>
-              <div style={{ position: 'relative', display: 'inline-block', minWidth: 280, maxWidth: '100%' }}>
-                <select
-                  value={activeSourceId}
-                  onChange={(e) => setActiveSourceId(e.target.value)}
-                  style={{
-                    appearance: 'none',
-                    WebkitAppearance: 'none',
-                    background: COLORS.paper,
-                    border: `1.5px solid ${COLORS.ink}`,
-                    padding: '12px 40px 12px 14px',
-                    fontFamily: 'Fraunces, serif',
-                    fontSize: 17,
-                    fontWeight: 600,
-                    color: COLORS.ink,
-                    cursor: 'pointer',
-                    width: '100%',
-                    fontVariationSettings: '"SOFT" 100',
-                  }}
-                >
-                  {sources.map((s) => (
-                    <option key={s.id} value={s.id}>
-                      {s.label}
-                    </option>
-                  ))}
-                </select>
-                <ChevronDown
-                  size={16}
-                  strokeWidth={2.5}
-                  style={{
-                    position: 'absolute',
-                    right: 14,
-                    top: '50%',
-                    transform: 'translateY(-50%)',
-                    pointerEvents: 'none',
-                    color: COLORS.ink,
-                  }}
-                />
-              </div>
+            <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginBottom: 24 }}>
+              {sources.map((s) => {
+                const active = activeSourceId === s.id;
+                return (
+                  <button
+                    key={s.id}
+                    onClick={() => setActiveSourceId(s.id)}
+                    style={{
+                      background: active ? COLORS.ink : 'transparent',
+                      color: active ? COLORS.cream : COLORS.ink,
+                      border: `1.5px solid ${COLORS.ink}`,
+                      padding: '10px 16px',
+                      fontFamily: 'DM Mono, monospace',
+                      fontSize: 11,
+                      letterSpacing: '0.12em',
+                      fontWeight: 600,
+                      cursor: 'pointer',
+                      transition: 'all 0.15s ease',
+                    }}
+                  >
+                    {s.label}
+                  </button>
+                );
+              })}
             </div>
           ) : (
             <div
