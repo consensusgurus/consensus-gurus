@@ -20,6 +20,14 @@ import { fetchBootstrap, postVote, postView, postExtra } from '@/lib/api';
 import Grain from '../../Grain';
 import Footer from '../../Footer';
 
+// Get the effective tag set for a list. If `tags` is provided, use it.
+// Otherwise fall back to [type] for backward compatibility.
+function getListTags(list) {
+  if (Array.isArray(list.tags) && list.tags.length > 0) return list.tags;
+  if (list.type) return [list.type];
+  return [];
+}
+
 function ListDetail({ list, viewCount, voteData, userVotes, extras, relatedLists, onBack, onVote, onAddExtra, onOpenRelated }) {
   const mode = list.mode || 'both';
   const showSourceTab = mode !== 'votes';
@@ -765,13 +773,29 @@ export default function DetailClient({ listId }) {
     return allLists.find((l) => l.id === listId);
   }, [allLists, listId]);
 
-  // Compute related lists: prefer same type, fill from other lists if needed
+  // Compute related lists by counting overlapping tags. Lists that share
+  // more tags are more "related". Fall back to filling remaining slots
+  // with any other lists if we don't have 4 same-tag matches.
   const relatedLists = useMemo(() => {
     if (!list) return [];
-    const sameType = allLists.filter((l) => l.id !== list.id && l.type === list.type);
-    if (sameType.length >= 4) return sameType.slice(0, 4);
-    const others = allLists.filter((l) => l.id !== list.id && l.type !== list.type);
-    return [...sameType, ...others].slice(0, 4);
+    const myTags = new Set(getListTags(list));
+    if (myTags.size === 0) return [];
+
+    const scored = allLists
+      .filter((l) => l.id !== list.id)
+      .map((l) => {
+        const theirTags = getListTags(l);
+        const overlap = theirTags.filter((t) => myTags.has(t)).length;
+        return { list: l, overlap };
+      })
+      .filter((x) => x.overlap > 0)
+      .sort((a, b) => b.overlap - a.overlap);
+
+    if (scored.length >= 4) return scored.slice(0, 4).map((x) => x.list);
+
+    const usedIds = new Set(scored.map((x) => x.list.id));
+    const fillers = allLists.filter((l) => l.id !== list.id && !usedIds.has(l.id));
+    return [...scored.map((x) => x.list), ...fillers].slice(0, 4);
   }, [allLists, list]);
 
   function vote(lId, itemName, direction) {

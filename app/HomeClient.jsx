@@ -16,6 +16,18 @@ import { fetchBootstrap } from '@/lib/api';
 import Grain from './Grain';
 import Footer from './Footer';
 
+// Get the effective tag set for a list. If `tags` is provided, use it.
+// Otherwise fall back to [type] for backward compatibility.
+function getListTags(list) {
+  if (Array.isArray(list.tags) && list.tags.length > 0) return list.tags;
+  if (list.type) return [list.type];
+  return [];
+}
+
+function listHasTag(list, tagId) {
+  return getListTags(list).includes(tagId);
+}
+
 function Home({ lists, viewCounts, voteData, extras, openList, onSubmit }) {
   const [query, setQuery] = useState('');
   const [typeFilter, setTypeFilter] = useState('all');
@@ -23,7 +35,7 @@ function Home({ lists, viewCounts, voteData, extras, openList, onSubmit }) {
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase();
     return lists.filter((list) => {
-      if (typeFilter !== 'all' && list.type !== typeFilter) return false;
+      if (typeFilter !== 'all' && !listHasTag(list, typeFilter)) return false;
       if (!q) return true;
       const hay = [
         list.title,
@@ -50,14 +62,20 @@ function Home({ lists, viewCounts, voteData, extras, openList, onSubmit }) {
   const totalViews = Object.values(viewCounts).reduce((a, b) => a + b, 0);
   const totalVotes = Object.values(voteData).reduce((a, b) => a + Math.abs(b), 0);
 
+  // Count lists per tag (a list can contribute to multiple tag counts)
   const counts = useMemo(() => {
     const out = { all: lists.length };
     TYPES.forEach((t) => {
       if (t.id === 'all') return;
-      out[t.id] = lists.filter((l) => l.type === t.id).length;
+      out[t.id] = lists.filter((l) => listHasTag(l, t.id)).length;
     });
     return out;
   }, [lists]);
+
+  // Only show tag chips that have at least one matching list (skip empty buckets)
+  const visibleTypes = useMemo(() => {
+    return TYPES.filter((t) => t.id === 'all' || (counts[t.id] || 0) > 0);
+  }, [counts]);
 
   return (
     <div style={{ position: 'relative', zIndex: 2 }}>
@@ -189,7 +207,7 @@ function Home({ lists, viewCounts, voteData, extras, openList, onSubmit }) {
         </div>
 
         <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginBottom: 28 }}>
-          {TYPES.map((t) => {
+          {visibleTypes.map((t) => {
             const active = typeFilter === t.id;
             const cnt = counts[t.id] || 0;
             return (
