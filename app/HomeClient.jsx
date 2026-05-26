@@ -50,7 +50,6 @@ function Home({ lists, viewCounts, voteData, extras, openList, onSubmit }) {
   const totalViews = Object.values(viewCounts).reduce((a, b) => a + b, 0);
   const totalVotes = Object.values(voteData).reduce((a, b) => a + Math.abs(b), 0);
 
-  // counts per type for chip badges
   const counts = useMemo(() => {
     const out = { all: lists.length };
     TYPES.forEach((t) => {
@@ -136,13 +135,7 @@ function Home({ lists, viewCounts, voteData, extras, openList, onSubmit }) {
       </header>
 
       <section style={{ padding: '32px 16px 80px', maxWidth: 1200, margin: '0 auto' }}>
-        {/* Search bar */}
-        <div
-          style={{
-            position: 'relative',
-            marginBottom: 18,
-          }}
-        >
+        <div style={{ position: 'relative', marginBottom: 18 }}>
           <Search
             size={16}
             strokeWidth={2.5}
@@ -195,15 +188,7 @@ function Home({ lists, viewCounts, voteData, extras, openList, onSubmit }) {
           )}
         </div>
 
-        {/* Type chips */}
-        <div
-          style={{
-            display: 'flex',
-            gap: 8,
-            flexWrap: 'wrap',
-            marginBottom: 28,
-          }}
-        >
+        <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginBottom: 28 }}>
           {TYPES.map((t) => {
             const active = typeFilter === t.id;
             const cnt = counts[t.id] || 0;
@@ -234,7 +219,6 @@ function Home({ lists, viewCounts, voteData, extras, openList, onSubmit }) {
           })}
         </div>
 
-        {/* Section header */}
         <div
           style={{
             display: 'flex',
@@ -341,8 +325,16 @@ function Home({ lists, viewCounts, voteData, extras, openList, onSubmit }) {
 
 function Tile({ list, rank, views, voteData, extras, onClick }) {
   const [hover, setHover] = useState(false);
+  const mode = list.mode || 'both';
 
-  const topVoted = useMemo(() => {
+  const preview = useMemo(() => {
+    if (mode === 'facts') {
+      const items = list.sources?.ai?.items || [];
+      return {
+        label: 'Top of the list',
+        rows: items.slice(0, 3).map((item) => ({ item, score: null })),
+      };
+    }
     const base = list.vote?.items || [];
     const allItems = dedupeByName([...base, ...extras]);
     const scored = allItems.map((item, idx) => ({
@@ -351,8 +343,11 @@ function Tile({ list, rank, views, voteData, extras, onClick }) {
       origIdx: idx,
     }));
     scored.sort((a, b) => b.score - a.score || a.origIdx - b.origIdx);
-    return scored.slice(0, 3);
-  }, [list, voteData, extras]);
+    return {
+      label: 'Currently topping the votes',
+      rows: scored.slice(0, 3),
+    };
+  }, [list, voteData, extras, mode]);
 
   return (
     <button
@@ -438,7 +433,7 @@ function Tile({ list, rank, views, voteData, extras, onClick }) {
         {list.title}
       </h3>
 
-      {topVoted.length > 0 && (
+      {preview.rows.length > 0 && (
         <>
           <div
             style={{
@@ -450,7 +445,7 @@ function Tile({ list, rank, views, voteData, extras, onClick }) {
               marginBottom: 8,
             }}
           >
-            Currently topping the votes
+            {preview.label}
           </div>
           <ol
             style={{
@@ -461,7 +456,7 @@ function Tile({ list, rank, views, voteData, extras, onClick }) {
               fontSize: 14,
             }}
           >
-            {topVoted.map((t, i) => (
+            {preview.rows.map((t, i) => (
               <li
                 key={i}
                 style={{

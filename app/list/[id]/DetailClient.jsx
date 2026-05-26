@@ -21,8 +21,13 @@ import Grain from '../../Grain';
 import Footer from '../../Footer';
 
 function ListDetail({ list, viewCount, voteData, userVotes, extras, onBack, onVote, onAddExtra }) {
-  const [tab, setTab] = useState('source');
-  const sources = useMemo(() => getSources(list), [list]);
+  const mode = list.mode || 'both';
+  const showSourceTab = mode !== 'votes';
+  const showVoteTab = mode !== 'facts';
+
+  const [tab, setTab] = useState(showSourceTab ? 'source' : 'vote');
+
+  const sources = useMemo(() => (showSourceTab ? getSources(list) : []), [list, showSourceTab]);
   const [activeSourceId, setActiveSourceId] = useState(list.defaultSource || sources[0]?.id);
   const [newItem, setNewItem] = useState('');
   const [addError, setAddError] = useState('');
@@ -30,6 +35,7 @@ function ListDetail({ list, viewCount, voteData, userVotes, extras, onBack, onVo
   const activeSource = sources.find((s) => s.id === activeSourceId) || sources[0];
 
   const sortedVote = useMemo(() => {
+    if (!showVoteTab) return [];
     const base = list.vote?.items || [];
     const all = dedupeByName([...base, ...extras]);
     const scored = all.map((item, idx) => ({
@@ -39,7 +45,7 @@ function ListDetail({ list, viewCount, voteData, userVotes, extras, onBack, onVo
     }));
     scored.sort((a, b) => b.score - a.score || a.origIdx - b.origIdx);
     return scored;
-  }, [list, voteData, extras]);
+  }, [list, voteData, extras, showVoteTab]);
 
   function handleAdd() {
     setAddError('');
@@ -55,6 +61,8 @@ function ListDetail({ list, viewCount, voteData, userVotes, extras, onBack, onVo
     onAddExtra(list.id, trimmed);
     setNewItem('');
   }
+
+  const showBothTabs = showSourceTab && showVoteTab;
 
   return (
     <div style={{ position: 'relative', zIndex: 2, maxWidth: 820, margin: '0 auto', padding: '24px 20px 80px' }}>
@@ -187,31 +195,33 @@ function ListDetail({ list, viewCount, voteData, userVotes, extras, onBack, onVo
         </div>
       </div>
 
-      {/* Tabs */}
-      <div
-        style={{
-          display: 'flex',
-          gap: 0,
-          marginTop: 28,
-          marginBottom: 18,
-          border: `1.5px solid ${COLORS.ink}`,
-        }}
-      >
-        <TabButton
-          active={tab === 'source'}
-          onClick={() => setTab('source')}
-          icon={list.isUserSubmitted ? <PenLine size={14} strokeWidth={2.5} /> : <BarChart3 size={14} strokeWidth={2.5} />}
+      {showBothTabs && (
+        <div
+          style={{
+            display: 'flex',
+            gap: 0,
+            marginTop: 28,
+            marginBottom: 18,
+            border: `1.5px solid ${COLORS.ink}`,
+          }}
         >
-          {list.isUserSubmitted ? 'As Submitted' : 'By the Rankings'}
-        </TabButton>
-        <TabButton active={tab === 'vote'} onClick={() => setTab('vote')} icon={<Users size={14} strokeWidth={2.5} />}>
-          By the People
-        </TabButton>
-      </div>
+          <TabButton
+            active={tab === 'source'}
+            onClick={() => setTab('source')}
+            icon={list.isUserSubmitted ? <PenLine size={14} strokeWidth={2.5} /> : <BarChart3 size={14} strokeWidth={2.5} />}
+          >
+            {list.isUserSubmitted ? 'As Submitted' : 'By the Rankings'}
+          </TabButton>
+          <TabButton active={tab === 'vote'} onClick={() => setTab('vote')} icon={<Users size={14} strokeWidth={2.5} />}>
+            By the People
+          </TabButton>
+        </div>
+      )}
 
-      {tab === 'source' ? (
+      {!showBothTabs && <div style={{ marginTop: 28 }} />}
+
+      {tab === 'source' && showSourceTab ? (
         <>
-          {/* Source selector */}
           {sources.length > 1 ? (
             <div style={{ marginBottom: 20 }}>
               <label
@@ -227,14 +237,7 @@ function ListDetail({ list, viewCount, voteData, userVotes, extras, onBack, onVo
               >
                 Source
               </label>
-              <div
-                style={{
-                  position: 'relative',
-                  display: 'inline-block',
-                  minWidth: 280,
-                  maxWidth: '100%',
-                }}
-              >
+              <div style={{ position: 'relative', display: 'inline-block', minWidth: 280, maxWidth: '100%' }}>
                 <select
                   value={activeSourceId}
                   onChange={(e) => setActiveSourceId(e.target.value)}
@@ -289,7 +292,6 @@ function ListDetail({ list, viewCount, voteData, userVotes, extras, onBack, onVo
             </div>
           )}
 
-          {/* Items list */}
           <ol style={{ margin: 0, padding: 0, listStyle: 'none' }}>
             {(activeSource?.items || []).map((item, i) => (
               <DataRow key={i} rank={i + 1} item={item} list={list} />
@@ -310,9 +312,8 @@ function ListDetail({ list, viewCount, voteData, userVotes, extras, onBack, onVo
             Each entry links out · affiliate links may earn a commission
           </p>
         </>
-      ) : (
+      ) : showVoteTab ? (
         <>
-          {/* Add item */}
           <div
             style={{
               display: 'flex',
@@ -413,7 +414,7 @@ function ListDetail({ list, viewCount, voteData, userVotes, extras, onBack, onVo
             Votes shared across all readers · ties broken by default order
           </p>
         </>
-      )}
+      ) : null}
     </div>
   );
 }
@@ -664,7 +665,6 @@ export default function DetailClient({ listId }) {
     });
   }, [listId]);
 
-  // Increment view count once per page load
   useEffect(() => {
     if (loaded && !viewed) {
       setViewed(true);
@@ -700,7 +700,6 @@ export default function DetailClient({ listId }) {
     if (lowerSet.has(itemName.toLowerCase().trim())) return;
     setExtras((prev) => [...prev, itemName]);
     postExtra(lId, itemName);
-    // Auto-upvote the newly added item
     setTimeout(() => vote(lId, itemName, 1), 0);
   }
 
