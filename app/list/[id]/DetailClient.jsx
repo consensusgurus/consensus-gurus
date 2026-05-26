@@ -20,7 +20,7 @@ import { fetchBootstrap, postVote, postView, postExtra } from '@/lib/api';
 import Grain from '../../Grain';
 import Footer from '../../Footer';
 
-function ListDetail({ list, viewCount, voteData, userVotes, extras, onBack, onVote, onAddExtra }) {
+function ListDetail({ list, viewCount, voteData, userVotes, extras, relatedLists, onBack, onVote, onAddExtra, onOpenRelated }) {
   const mode = list.mode || 'both';
   const showSourceTab = mode !== 'votes';
   const showVoteTab = mode !== 'facts';
@@ -415,6 +415,92 @@ function ListDetail({ list, viewCount, voteData, userVotes, extras, onBack, onVo
           </p>
         </>
       ) : null}
+
+      {/* RELATED LISTS — internal linking for SEO and stickiness */}
+      {relatedLists && relatedLists.length > 0 && (
+        <div
+          style={{
+            marginTop: 60,
+            paddingTop: 32,
+            borderTop: `2px solid ${COLORS.ink}`,
+          }}
+        >
+          <h2
+            style={{
+              fontFamily: 'Fraunces, serif',
+              fontSize: 26,
+              fontWeight: 700,
+              margin: '0 0 20px',
+              fontStyle: 'italic',
+              color: COLORS.ink,
+              fontVariationSettings: '"SOFT" 100',
+            }}
+          >
+            More like this
+          </h2>
+          <div
+            style={{
+              display: 'grid',
+              gridTemplateColumns: 'repeat(auto-fill, minmax(220px, 1fr))',
+              gap: 14,
+            }}
+          >
+            {relatedLists.map((rl) => (
+              <a
+                key={rl.id}
+                href={`/list/${encodeURIComponent(rl.id)}`}
+                onClick={(e) => {
+                  if (onOpenRelated) {
+                    e.preventDefault();
+                    onOpenRelated(rl.id);
+                  }
+                }}
+                style={{
+                  display: 'block',
+                  padding: 18,
+                  background: COLORS.paper,
+                  border: `1.5px solid ${COLORS.ink}`,
+                  textDecoration: 'none',
+                  color: COLORS.ink,
+                  transition: 'all 0.2s ease',
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.transform = 'translate(-2px, -2px)';
+                  e.currentTarget.style.boxShadow = `4px 4px 0 ${COLORS.ember}`;
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.transform = 'none';
+                  e.currentTarget.style.boxShadow = 'none';
+                }}
+              >
+                <div
+                  style={{
+                    fontFamily: 'DM Mono, monospace',
+                    fontSize: 10,
+                    letterSpacing: '0.2em',
+                    textTransform: 'uppercase',
+                    opacity: 0.6,
+                    marginBottom: 8,
+                  }}
+                >
+                  {rl.category}
+                </div>
+                <div
+                  style={{
+                    fontFamily: 'Fraunces, serif',
+                    fontSize: 20,
+                    fontWeight: 700,
+                    lineHeight: 1.1,
+                    fontVariationSettings: '"SOFT" 100',
+                  }}
+                >
+                  {rl.title}
+                </div>
+              </a>
+            ))}
+          </div>
+        </div>
+      )}
     </div>
   );
 }
@@ -673,9 +759,20 @@ export default function DetailClient({ listId }) {
     }
   }, [loaded, viewed, listId]);
 
+  const allLists = useMemo(() => [...userLists, ...LISTS], [userLists]);
+
   const list = useMemo(() => {
-    return [...userLists, ...LISTS].find((l) => l.id === listId);
-  }, [userLists, listId]);
+    return allLists.find((l) => l.id === listId);
+  }, [allLists, listId]);
+
+  // Compute related lists: prefer same type, fill from other lists if needed
+  const relatedLists = useMemo(() => {
+    if (!list) return [];
+    const sameType = allLists.filter((l) => l.id !== list.id && l.type === list.type);
+    if (sameType.length >= 4) return sameType.slice(0, 4);
+    const others = allLists.filter((l) => l.id !== list.id && l.type !== list.type);
+    return [...sameType, ...others].slice(0, 4);
+  }, [allLists, list]);
 
   function vote(lId, itemName, direction) {
     const key = voteKey(lId, itemName);
@@ -705,6 +802,10 @@ export default function DetailClient({ listId }) {
 
   function backHome() {
     router.push('/');
+  }
+
+  function openRelated(id) {
+    router.push(`/list/${encodeURIComponent(id)}`);
   }
 
   return (
@@ -742,9 +843,11 @@ export default function DetailClient({ listId }) {
           voteData={voteData}
           userVotes={userVotes}
           extras={extras}
+          relatedLists={relatedLists}
           onBack={backHome}
           onVote={vote}
           onAddExtra={addExtra}
+          onOpenRelated={openRelated}
         />
       ) : (
         <div style={{ position: 'relative', zIndex: 2, padding: 48, textAlign: 'center' }}>
