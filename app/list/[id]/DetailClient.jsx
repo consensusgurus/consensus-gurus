@@ -509,8 +509,38 @@ function ListDetail({ list, viewCount, voteData, userVotes, extras, relatedLists
           </div>
         </div>
       )}
+
+      {list.publishedDate && (
+        <div
+          style={{
+            marginTop: 48,
+            paddingTop: 18,
+            borderTop: `1px solid ${COLORS.faded}`,
+            fontFamily: 'DM Mono, monospace',
+            fontSize: 9,
+            letterSpacing: '0.18em',
+            textTransform: 'uppercase',
+            color: COLORS.faded,
+            opacity: 0.7,
+            textAlign: 'center',
+          }}
+        >
+          Published {formatPublishedDate(list.publishedDate)}
+        </div>
+      )}
     </div>
   );
+}
+
+function formatPublishedDate(iso) {
+  // iso is 'YYYY-MM-DD'. Render as 'DD Mon YYYY' (e.g. "26 May 2026").
+  try {
+    const [y, m, d] = iso.split('-').map((n) => parseInt(n, 10));
+    const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+    return `${d} ${months[m - 1]} ${y}`;
+  } catch {
+    return iso;
+  }
 }
 
 function TabButton({ active, onClick, icon, children }) {
