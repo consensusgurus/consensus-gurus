@@ -11,7 +11,7 @@ import {
   Search,
 } from 'lucide-react';
 import { LISTS, TYPES, COLORS } from '@/lib/data';
-import { voteKey, dedupeByName } from '@/lib/helpers';
+import { voteKey, dedupeByName, getSources } from '@/lib/helpers';
 import { fetchBootstrap } from '@/lib/api';
 import Grain from './Grain';
 import Footer from './Footer';
@@ -76,6 +76,9 @@ function Home({ lists, viewCounts, voteData, extras, openList, onSubmit }) {
   const visibleTypes = useMemo(() => {
     return TYPES.filter((t) => t.id === 'all' || (counts[t.id] || 0) > 0);
   }, [counts]);
+
+  // Show all lists when no filter/query active
+  const isFiltered = query.trim() !== '' || typeFilter !== 'all';
 
   return (
     <div style={{ position: 'relative', zIndex: 2 }}>
@@ -237,6 +240,57 @@ function Home({ lists, viewCounts, voteData, extras, openList, onSubmit }) {
           })}
         </div>
 
+        {!isFiltered && (
+          <>
+            <div
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                padding: '0 4px 16px',
+                borderBottom: `1px solid ${COLORS.ink}`,
+                marginBottom: 24,
+                gap: 12,
+                flexWrap: 'wrap',
+              }}
+            >
+              <h2
+                style={{
+                  fontFamily: 'Fraunces, serif',
+                  fontSize: 22,
+                  fontWeight: 700,
+                  margin: 0,
+                  fontStyle: 'italic',
+                  color: COLORS.ember,
+                }}
+              >
+                Current Consensus
+              </h2>
+            </div>
+            <div
+              style={{
+                display: 'grid',
+                gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))',
+                gap: 16,
+                marginBottom: 48,
+              }}
+            >
+              {sorted.map((list, idx) => (
+                <Tile
+                  key={`${list.id}-consensus`}
+                  list={list}
+                  rank={idx + 1}
+                  views={viewCounts[list.id] || 0}
+                  voteData={voteData}
+                  extras={extras[list.id] || []}
+                  onClick={() => openList(list.id)}
+                  showConsensus={true}
+                />
+              ))}
+            </div>
+          </>
+        )}
+
         <div
           style={{
             display: 'flex',
@@ -278,42 +332,28 @@ function Home({ lists, viewCounts, voteData, extras, openList, onSubmit }) {
             <button
               onClick={onSubmit}
               style={{
-                background: COLORS.ember,
-                color: COLORS.cream,
-                border: `1.5px solid ${COLORS.ink}`,
-                padding: '8px 14px',
                 fontFamily: 'DM Mono, monospace',
                 fontSize: 10,
                 letterSpacing: '0.18em',
                 textTransform: 'uppercase',
                 fontWeight: 600,
+                padding: '8px 14px',
+                border: `1.5px solid ${COLORS.ink}`,
+                background: 'transparent',
+                color: COLORS.ink,
                 cursor: 'pointer',
                 display: 'flex',
                 alignItems: 'center',
                 gap: 6,
-                boxShadow: `2px 2px 0 ${COLORS.ink}`,
               }}
             >
-              <Plus size={12} strokeWidth={3} />
-              Submit a list
+              <Plus size={14} strokeWidth={2.5} />
+              Submit
             </button>
           </div>
         </div>
 
-        {sorted.length === 0 ? (
-          <div
-            style={{
-              padding: '60px 20px',
-              textAlign: 'center',
-              fontFamily: 'Fraunces, serif',
-              fontStyle: 'italic',
-              fontSize: 18,
-              color: COLORS.faded,
-            }}
-          >
-            Nothing here that matches. Try a different search or filter.
-          </div>
-        ) : (
+        {sorted.length > 0 ? (
           <div
             style={{
               display: 'grid',
@@ -330,8 +370,22 @@ function Home({ lists, viewCounts, voteData, extras, openList, onSubmit }) {
                 voteData={voteData}
                 extras={extras[list.id] || []}
                 onClick={() => openList(list.id)}
+                showConsensus={false}
               />
             ))}
+          </div>
+        ) : (
+          <div
+            style={{
+              textAlign: 'center',
+              padding: '48px 24px',
+              fontFamily: 'Fraunces, serif',
+              fontStyle: 'italic',
+              fontSize: 18,
+              color: COLORS.faded,
+            }}
+          >
+            No lists match that filter.
           </div>
         )}
       </section>
@@ -341,11 +395,28 @@ function Home({ lists, viewCounts, voteData, extras, openList, onSubmit }) {
   );
 }
 
-function Tile({ list, rank, views, voteData, extras, onClick }) {
+function Tile({ list, rank, views, voteData, extras, onClick, showConsensus }) {
   const [hover, setHover] = useState(false);
   const mode = list.mode || 'both';
 
   const preview = useMemo(() => {
+    if (showConsensus) {
+      // Show Consensus ranking instead of vote data
+      const sources = getSources(list, voteData, extras);
+      const consensusSource = sources.find((s) => s.id === 'consensus');
+      if (consensusSource && consensusSource.items.length > 0) {
+        return {
+          label: 'Current Consensus',
+          rows: consensusSource.items.slice(0, 3).map((item) => ({ item, score: null })),
+        };
+      }
+      // Fallback if consensus doesn't exist or is empty
+      return {
+        label: 'Top of the list',
+        rows: [],
+      };
+    }
+
     if (mode === 'facts') {
       const items = list.sources?.ai?.items || [];
       return {
@@ -365,7 +436,7 @@ function Tile({ list, rank, views, voteData, extras, onClick }) {
       label: 'Currently topping the votes',
       rows: scored.slice(0, 3),
     };
-  }, [list, voteData, extras, mode]);
+  }, [list, voteData, extras, mode, showConsensus]);
 
   return (
     <button
