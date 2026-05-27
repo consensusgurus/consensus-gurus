@@ -241,23 +241,36 @@ function createHomepageImageSVG() {
   <!-- Background -->
   <rect width="1200" height="630" fill="#f4ede0"/>
   
-  <!-- Top decorative line -->
-  <line x1="50" y1="80" x2="1150" y2="80" stroke="#282828" stroke-width="2"/>
+  <!-- Top left: VOL. 1 NO. 1 -->
+  <text x="50" y="50" font-family="Arial, sans-serif" font-size="12" fill="#999999" text-anchor="start" letter-spacing="2">VOL. 1 NO. 1</text>
   
-  <!-- CONSENSUS text - using tspan for better rendering -->
-  <text x="600" y="240" font-family="Georgia, serif" font-size="120" font-weight="bold" fill="#282828" text-anchor="middle" letter-spacing="8">CONSENSUS</text>
+  <!-- Top right: EST. 2026 -->
+  <text x="1150" y="50" font-family="Arial, sans-serif" font-size="12" fill="#999999" text-anchor="end" letter-spacing="2">EST. 2026</text>
+  
+  <!-- Top decorative line -->
+  <line x1="50" y1="70" x2="1150" y2="70" stroke="#282828" stroke-width="1"/>
+  
+  <!-- CONSENSUS text -->
+  <text x="600" y="200" font-family="Georgia, serif" font-size="110" font-weight="bold" fill="#282828" text-anchor="middle" letter-spacing="3">CONSENSUS</text>
   
   <!-- gurus text in red italic -->
-  <text x="600" y="330" font-family="Georgia, serif" font-size="90" font-style="italic" fill="#c0392b" text-anchor="middle" letter-spacing="4">gurus</text>
+  <text x="600" y="290" font-family="Georgia, serif" font-size="85" font-style="italic" fill="#c0392b" text-anchor="middle" letter-spacing="2">gurus</text>
   
-  <!-- Tagline -->
-  <text x="600" y="400" font-family="Arial, sans-serif" font-size="28" fill="#282828" text-anchor="middle">Top Ten Lists from Every Angle.</text>
+  <!-- Tagline - "Top Ten Lists from Every Angle" -->
+  <text x="600" y="350" font-family="Arial, sans-serif" font-size="18" fill="#282828" text-anchor="middle">Top Ten Lists from Every Angle</text>
   
   <!-- Bottom decorative line -->
-  <line x1="50" y1="550" x2="1150" y2="550" stroke="#282828" stroke-width="2"/>
+  <line x1="50" y1="520" x2="1150" y2="520" stroke="#282828" stroke-width="1"/>
   
-  <!-- Footer text -->
-  <text x="600" y="615" font-family="monospace" font-size="13" fill="#646464" text-anchor="middle">From consensusgurus.com</text>
+  <!-- Bottom left: Black label -->
+  <rect x="50" y="530" width="160" height="25" fill="#282828" rx="3"/>
+  <text x="130" y="550" font-family="Arial, sans-serif" font-size="13" fill="white" text-anchor="middle" font-weight="bold">Consensus Gurus</text>
+  
+  <!-- Bottom right: VOTE | SHARE | DEBATE -->
+  <text x="1150" y="550" font-family="Arial, sans-serif" font-size="11" fill="#999999" text-anchor="end" letter-spacing="3">VOTE | SHARE | DEBATE</text>
+  
+  <!-- Footer: From consensusgurus.com -->
+  <text x="50" y="615" font-family="Arial, sans-serif" font-size="13" fill="#666666" text-anchor="start">From consensusgurus.com</text>
 </svg>`;
   
   return svg;
