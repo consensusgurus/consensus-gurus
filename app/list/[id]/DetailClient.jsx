@@ -35,8 +35,31 @@ function ListDetail({ list, viewCount, voteData, userVotes, extras, relatedLists
 
   const [tab, setTab] = useState(showSourceTab ? 'source' : 'vote');
 
-  const sources = useMemo(() => (showSourceTab ? getSources(list) : []), [list, showSourceTab]);
-  const [activeSourceId, setActiveSourceId] = useState(list.defaultSource || sources[0]?.id);
+  // Sources now factor in live vote data so the Consensus chip stays accurate
+  // as people vote in real time.
+  const sources = useMemo(
+    () => (showSourceTab ? getSources(list, voteData, extras) : []),
+    [list, voteData, extras, showSourceTab]
+  );
+
+  // Default to Consensus when it exists, otherwise the configured default,
+  // otherwise the first source available.
+  const initialSourceId =
+    sources.find((s) => s.id === 'consensus')?.id ||
+    list.defaultSource ||
+    sources[0]?.id;
+  const [activeSourceId, setActiveSourceId] = useState(initialSourceId);
+
+  // If the source set ever changes (e.g. data swap on related-list click),
+  // keep the selection sensible.
+  useEffect(() => {
+    if (!sources.find((s) => s.id === activeSourceId)) {
+      setActiveSourceId(
+        sources.find((s) => s.id === 'consensus')?.id || sources[0]?.id
+      );
+    }
+  }, [sources, activeSourceId]);
+
   const [newItem, setNewItem] = useState('');
   const [addError, setAddError] = useState('');
 
@@ -234,19 +257,22 @@ function ListDetail({ list, viewCount, voteData, userVotes, extras, relatedLists
             <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginBottom: 24 }}>
               {sources.map((s) => {
                 const active = activeSourceId === s.id;
+                const isConsensus = s.id === 'consensus';
+                const borderColor = isConsensus ? COLORS.ember : COLORS.ink;
+                const activeBg = isConsensus ? COLORS.ember : COLORS.ink;
                 return (
                   <button
                     key={s.id}
                     onClick={() => setActiveSourceId(s.id)}
                     style={{
-                      background: active ? COLORS.ink : 'transparent',
-                      color: active ? COLORS.cream : COLORS.ink,
-                      border: `1.5px solid ${COLORS.ink}`,
+                      background: active ? activeBg : 'transparent',
+                      color: active ? COLORS.cream : (isConsensus ? COLORS.ember : COLORS.ink),
+                      border: `1.5px solid ${borderColor}`,
                       padding: '10px 16px',
                       fontFamily: 'DM Mono, monospace',
                       fontSize: 11,
                       letterSpacing: '0.12em',
-                      fontWeight: 600,
+                      fontWeight: isConsensus ? 700 : 600,
                       cursor: 'pointer',
                       transition: 'all 0.15s ease',
                     }}
