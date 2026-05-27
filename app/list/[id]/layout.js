@@ -12,22 +12,21 @@ export async function generateMetadata({ params }) {
     };
   }
 
-  // Get first 6-10 items from consensus (not fan vote)
+  // Get items 6-10 from consensus (not fan vote)
   const consensusItems = list.sources?.consensus?.items || list.sources?.ai?.items || [];
-  const previewItems = consensusItems.slice(0, 6).join(', ');
-  const itemCount = consensusItems.length;
+  const previewItems = consensusItems.slice(5, 10).join(', ');
 
   return {
     title: `${list.title} | Consensus Gurus`,
-    description: `${list.blurb} Ranked by expert consensus: ${previewItems}${itemCount > 6 ? '...' : ''}`,
+    description: `${list.blurb} Ranked by expert consensus.`,
     openGraph: {
       title: `${list.title} | Consensus Gurus`,
-      description: `6-10 of Consensus: ${previewItems}${itemCount > 6 ? '...' : ''}`,
+      description: `6-10 of Consensus: ${previewItems}`,
       url: `https://consensusgurus.com/list/${list.id}`,
       type: 'website',
       images: [
         {
-          url: `https://consensusgurus.com/og-list-${list.id}.jpg`,
+          url: `/og-list-${list.id}.jpg`,
           width: 1200,
           height: 630,
           alt: `${list.title} - Consensus Gurus`,
@@ -38,7 +37,7 @@ export async function generateMetadata({ params }) {
       card: 'summary_large_image',
       title: `${list.title} | Consensus Gurus`,
       description: `6-10 of Consensus: ${previewItems}`,
-      images: [`https://consensusgurus.com/og-list-${list.id}.jpg`],
+      images: [`/og-list-${list.id}.jpg`],
     },
   };
 }
