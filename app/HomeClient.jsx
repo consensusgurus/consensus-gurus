@@ -54,8 +54,12 @@ function Home({ lists, viewCounts, voteData, extras, openList, onSubmit }) {
   const sorted = useMemo(() => {
     return [...filtered].sort((a, b) => {
       if (sortBy === 'recent') {
-        // Sort by position in original lists (most recent = later in list)
-        return lists.indexOf(b) - lists.indexOf(a);
+        // Sort by publishedDate (most recent first = newest date first)
+        const dateA = new Date(a.publishedDate || '2000-01-01').getTime();
+        const dateB = new Date(b.publishedDate || '2000-01-01').getTime();
+        if (dateB !== dateA) return dateB - dateA;
+        // Fallback to original array order if dates are same
+        return lists.indexOf(a) - lists.indexOf(b);
       }
       // Default: sort by popularity (viewCount)
       const va = viewCounts[a.id] || 0;
