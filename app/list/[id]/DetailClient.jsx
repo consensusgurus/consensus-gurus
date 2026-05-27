@@ -115,7 +115,23 @@ function ListDetail({ list, viewCount, voteData, userVotes, extras, relatedLists
       isTopTen: base.indexOf(item) < 10, // Mark if in original top 10
     }));
     
+    // Sort by votes descending, then by original order
     scored.sort((a, b) => b.score - a.score || a.origIdx - b.origIdx);
+    
+    // If no votes recorded, fall back to consensus ranking
+    const hasAnyVotes = scored.some((s) => s.score !== 0);
+    if (!hasAnyVotes && mode === 'both') {
+      const consensusSource = getSources(list, voteData, extras).find((s) => s.id === 'consensus');
+      if (consensusSource && consensusSource.items.length > 0) {
+        return consensusSource.items.map((item, idx) => ({
+          item,
+          score: 0,
+          origIdx: idx,
+          isTopTen: idx < 10,
+        }));
+      }
+    }
+    
     return scored;
   }, [list, voteData, extras, showVoteTab, mode]);
 
@@ -445,7 +461,7 @@ function ListDetail({ list, viewCount, voteData, userVotes, extras, relatedLists
                   marginBottom: 16,
                 }}
               >
-                All Items
+                {sortedVote.some((item) => item.score !== 0) ? 'By the People' : 'Current Consensus'}
               </div>
 
               <ol style={{ margin: 0, padding: 0, listStyle: 'none', display: 'flex', flexDirection: 'column', gap: 0 }}>
@@ -453,6 +469,7 @@ function ListDetail({ list, viewCount, voteData, userVotes, extras, relatedLists
                   const isSelected = Object.values(voteSelections).includes(entry.item);
                   const selectedSlot = Object.entries(voteSelections).find(([, v]) => v === entry.item)?.[0];
                   const isClickable = activeVoteSlot !== null && !isSelected;
+                  const linksDisabled = activeVoteSlot !== null;
                   
                   return (
                     <li
@@ -496,17 +513,38 @@ function ListDetail({ list, viewCount, voteData, userVotes, extras, relatedLists
                       >
                         {String(idx + 1).padStart(2, '0')}
                       </span>
-                      <span
-                        style={{
-                          flex: 1,
-                          fontFamily: 'Fraunces, serif',
-                          fontSize: 18,
-                          fontWeight: 500,
-                          color: 'inherit',
-                        }}
-                      >
-                        {entry.item}
-                      </span>
+                      <div style={{ flex: 1 }}>
+                        <ItemLink
+                          list={list}
+                          item={entry.item}
+                          style={{
+                            fontFamily: 'Fraunces, serif',
+                            fontSize: 18,
+                            fontWeight: 500,
+                            color: 'inherit',
+                            textDecoration: 'none',
+                            borderBottom: linksDisabled ? 'none' : `1px solid currentColor`,
+                            pointerEvents: linksDisabled ? 'none' : 'auto',
+                            opacity: linksDisabled ? 0.5 : 1,
+                          }}
+                        >
+                          <span>{entry.item}</span>
+                          {!linksDisabled && <ExternalLink size={11} strokeWidth={2} style={{ opacity: 0.4, flexShrink: 0, marginLeft: 4 }} />}
+                        </ItemLink>
+                        <div
+                          style={{
+                            fontFamily: 'DM Mono, monospace',
+                            fontSize: 10,
+                            letterSpacing: '0.15em',
+                            textTransform: 'uppercase',
+                            color: entry.score > 0 ? '#2d5016' : entry.score < 0 ? COLORS.ember : COLORS.faded,
+                            marginTop: 4,
+                            opacity: 'inherit',
+                          }}
+                        >
+                          {entry.score > 0 ? `+${entry.score}` : entry.score} {Math.abs(entry.score) === 1 ? 'point' : 'points'}
+                        </div>
+                      </div>
                     </li>
                   );
                 })}
