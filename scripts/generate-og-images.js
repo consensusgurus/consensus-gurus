@@ -3,27 +3,19 @@
 /**
  * Generate OG preview images for all lists in data.js
  * This runs automatically during Vercel build process
- * Usage: node scripts/generate-og-images.js
+ * Uses Borda scoring to compute actual Consensus for preview
  */
 
 const fs = require('fs');
 const path = require('path');
 const sharp = require('sharp');
 
-// Import lists from data.js
+// Parse data.js
 const dataPath = path.join(__dirname, '../lib/data.js');
 let lists = [];
 
 try {
-  // Read data.js file
   const dataContent = fs.readFileSync(dataPath, 'utf8');
-  
-  // Extract lists using regex
-  const listPattern = /\{\s*id:\s*['"]([^'"]+)['"]/g;
-  const titlePattern = /title:\s*['"]([^'"]+)['"]/;
-  const aiSourcePattern = /ai:\s*\{[^}]*items:\s*\[([\s\S]*?)\]/;
-  
-  // Simple parser for data.js
   const listBlocks = dataContent.split(/(?=\n\s{2}\{)/);
   
   for (const block of listBlocks) {
@@ -31,22 +23,30 @@ try {
     
     const idMatch = block.match(/id:\s*['"]([^'"]+)['"]/);
     const titleMatch = block.match(/title:\s*['"]([^'"]+)['"]/);
-    const aiMatch = block.match(/ai:\s*\{[^}]*items:\s*\[([\s\S]*?)\]/);
     
     if (idMatch && titleMatch) {
-      let items = [];
-      if (aiMatch) {
-        const itemsText = aiMatch[1];
+      const sources = {};
+      const sourcePattern = /(\w+):\s*\{\s*label:\s*['"]([^'"]+)['"][^}]*items:\s*\[([\s\S]*?)\]/g;
+      let sourceMatch;
+      
+      while ((sourceMatch = sourcePattern.exec(block)) !== null) {
+        const sourceId = sourceMatch[1];
+        const label = sourceMatch[2];
+        const itemsText = sourceMatch[3];
+        
+        const items = [];
         const itemMatches = itemsText.match(/['"]([^'"]+)['"]/g);
         if (itemMatches) {
-          items = itemMatches.map(item => item.replace(/['"]/g, '')).slice(0, 5);
+          items.push(...itemMatches.map(item => item.replace(/['"]/g, '')));
         }
+        
+        sources[sourceId] = { label, items };
       }
       
       lists.push({
         id: idMatch[1],
         title: titleMatch[1],
-        items: items
+        sources: sources
       });
     }
   }
@@ -57,78 +57,100 @@ try {
   process.exit(1);
 }
 
-// Create public directory if it doesn't exist
-const publicDir = path.join(__dirname, '../public');
-if (!fs.existsSync(publicDir)) {
-  fs.mkdirSync(publicDir, { recursive: true });
-}
-
 /**
- * Create OG image for a list using SVG
+ * Compute Consensus ranking using Borda scoring
  */
-function createListImageSVG(listId, title, items) {
-  // Word wrap title
-  let titleLines = [];
-  if (title.length > 45) {
-    const words = title.split(' ');
-    let line = '';
-    for (const word of words) {
-      const testLine = line + (line ? ' ' : '') + word;
-      if (testLine.length > 40) {
-        if (line) titleLines.push(line);
-        line = word;
-      } else {
-        line = testLine;
-      }
-    }
-    if (line) titleLines.push(line);
-  } else {
-    titleLines = [title];
+function computeConsensus(list) {
+  const sources = list.sources || {};
+  
+  // Get all publications (exclude 'ai' source)
+  const publications = Object.entries(sources)
+    .filter(([id]) => id !== 'ai')
+    .map(([id, src]) => ({
+      id,
+      label: src.label,
+      items: src.items || []
+    }));
+  
+  if (publications.length === 0) {
+    return sources.ai?.items || [];
   }
   
-  // Truncate items
-  const displayItems = items.slice(0, 3).map((item, i) => ({
-    num: i + 1,
-    text: item.length > 65 ? item.substring(0, 65) + '...' : item
-  }));
+  // Gather universe of all items
+  const universeMap = {};
+  publications.forEach((src) => {
+    src.items.forEach((item) => {
+      const key = item.toLowerCase().trim();
+      if (!universeMap[key]) universeMap[key] = item;
+    });
+  });
   
-  // Build SVG
-  const svg = `<?xml version="1.0" encoding="UTF-8"?>
-<svg width="1200" height="630" xmlns="http://www.w3.org/2000/svg">
-  <defs>
-    <style>
-      .bg { fill: #f4ede0; }
-      .line { stroke: #282828; stroke-width: 2; }
-      .title { font-family: Georgia, serif; font-size: 56px; font-weight: bold; fill: #282828; text-anchor: middle; }
-      .label { font-family: Arial, sans-serif; font-size: 22px; fill: #c0392b; }
-      .item { font-family: Arial, sans-serif; font-size: 22px; fill: #282828; }
-      .footer { font-family: monospace; font-size: 14px; fill: #646464; text-anchor: middle; }
-    </style>
-  </defs>
+  const universe = Object.values(universeMap);
+  if (universe.length === 0) return [];
   
-  <!-- Background -->
-  <rect class="bg" width="1200" height="630"/>
+  // Borda scoring
+  const scores = {};
+  universe.forEach((item) => {
+    scores[item.toLowerCase().trim()] = 0;
+  });
   
-  <!-- Top line -->
-  <line class="line" x1="30" y1="40" x2="1170" y2="40"/>
+  const bordaFromRank = (rank) => {
+    if (rank < 1 || rank > 10) return 0;
+    return 11 - rank;
+  };
   
-  <!-- Title -->
-  ${titleLines.map((line, i) => `<text class="title" x="600" y="${60 + i * 65}">${escapeXml(line)}</text>`).join('\n  ')}
+  // Score each publication
+  publications.forEach((src) => {
+    const pubRanks = {};
+    src.items.forEach((item, idx) => {
+      pubRanks[item.toLowerCase().trim()] = idx + 1;
+    });
+    
+    const rankedKeys = Object.keys(pubRanks);
+    let avgScore = 0;
+    if (rankedKeys.length > 0) {
+      const total = rankedKeys.reduce(
+        (sum, k) => sum + bordaFromRank(pubRanks[k]),
+        0
+      );
+      avgScore = total / rankedKeys.length;
+    }
+    
+    universe.forEach((item) => {
+      const key = item.toLowerCase().trim();
+      if (pubRanks[key] !== undefined) {
+        scores[key] += bordaFromRank(pubRanks[key]);
+      } else {
+        scores[key] += avgScore;
+      }
+    });
+  });
   
-  <!-- Top picks label -->
-  <text class="label" x="50" y="${120 + titleLines.length * 65}">Top picks:</text>
+  // Tie-breaker: appearance count
+  const appearanceCount = {};
+  universe.forEach((item) => {
+    const key = item.toLowerCase().trim();
+    appearanceCount[key] = publications.reduce((n, src) => {
+      return (
+        n +
+        (src.items.some((i) => i.toLowerCase().trim() === key) ? 1 : 0)
+      );
+    }, 0);
+  });
   
-  <!-- Items -->
-  ${displayItems.map((item, i) => `<text class="item" x="70" y="${165 + titleLines.length * 65 + i * 35}">${item.num}. ${escapeXml(item.text)}</text>`).join('\n  ')}
+  // Sort by score, then appearance count, then alphabetically
+  const consensusItems = [...universe]
+    .sort((a, b) => {
+      const ka = a.toLowerCase().trim();
+      const kb = b.toLowerCase().trim();
+      if (scores[kb] !== scores[ka]) return scores[kb] - scores[ka];
+      if (appearanceCount[kb] !== appearanceCount[ka]) {
+        return appearanceCount[kb] - appearanceCount[ka];
+      }
+      return a.localeCompare(b);
+    });
   
-  <!-- Bottom line -->
-  <line class="line" x1="30" y1="590" x2="1170" y2="590"/>
-  
-  <!-- Footer -->
-  <text class="footer" x="600" y="615">Ranked by Expert Consensus | Consensus Gurus</text>
-</svg>`;
-  
-  return svg;
+  return consensusItems;
 }
 
 /**
@@ -145,42 +167,97 @@ function escapeXml(str) {
 }
 
 /**
- * Create homepage OG image using SVG
+ * Create list OG image SVG showing items 6-10 from Consensus
+ */
+function createListImageSVG(list) {
+  const consensusItems = computeConsensus(list);
+  const displayItems = consensusItems.slice(5, 10);
+  
+  // Word wrap title
+  let titleLines = [];
+  if (list.title.length > 45) {
+    const words = list.title.split(' ');
+    let line = '';
+    for (const word of words) {
+      const testLine = line + (line ? ' ' : '') + word;
+      if (testLine.length > 40) {
+        if (line) titleLines.push(line);
+        line = word;
+      } else {
+        line = testLine;
+      }
+    }
+    if (line) titleLines.push(line);
+  } else {
+    titleLines = [list.title];
+  }
+  
+  let yOffset = 60;
+  let titleSvg = '';
+  for (let i = 0; i < titleLines.length; i++) {
+    titleSvg += `  <text x="600" y="${yOffset + i * 65}" font-family="Georgia, serif" font-size="56" font-weight="bold" fill="#282828" text-anchor="middle">${escapeXml(titleLines[i])}</text>\n`;
+  }
+  
+  const labelY = 120 + titleLines.length * 65;
+  let itemsSvg = `  <text x="50" y="${labelY}" font-family="Arial, sans-serif" font-size="22" fill="#c0392b">6-10 of Consensus:</text>\n`;
+  
+  for (let i = 0; i < displayItems.length; i++) {
+    const item = displayItems[i];
+    const text = item.length > 65 ? item.substring(0, 65) + '...' : item;
+    const itemY = labelY + 45 + i * 35;
+    itemsSvg += `  <text x="70" y="${itemY}" font-family="Arial, sans-serif" font-size="22" fill="#282828">${i + 6}. ${escapeXml(text)}</text>\n`;
+  }
+  
+  const svg = `<?xml version="1.0" encoding="UTF-8"?>
+<svg width="1200" height="630" viewBox="0 0 1200 630" xmlns="http://www.w3.org/2000/svg">
+  <!-- Background -->
+  <rect width="1200" height="630" fill="#f4ede0"/>
+  
+  <!-- Top line -->
+  <line x1="30" y1="40" x2="1170" y2="40" stroke="#282828" stroke-width="2"/>
+  
+  <!-- Title -->
+${titleSvg}
+  
+  <!-- Label and items -->
+${itemsSvg}
+  
+  <!-- Bottom line -->
+  <line x1="30" y1="590" x2="1170" y2="590" stroke="#282828" stroke-width="2"/>
+  
+  <!-- Footer -->
+  <text x="600" y="615" font-family="monospace" font-size="14" fill="#646464" text-anchor="middle">Ranked by Expert Consensus | Consensus Gurus</text>
+</svg>`;
+  
+  return svg;
+}
+
+/**
+ * Create homepage OG image SVG
  */
 function createHomepageImageSVG() {
   const svg = `<?xml version="1.0" encoding="UTF-8"?>
-<svg width="1200" height="630" xmlns="http://www.w3.org/2000/svg">
-  <defs>
-    <style>
-      .bg { fill: #f4ede0; }
-      .line { stroke: #282828; stroke-width: 2; }
-      .consensus { font-family: Georgia, serif; font-size: 140px; font-weight: bold; fill: #282828; text-anchor: middle; }
-      .gurus { font-family: Georgia, serif; font-size: 100px; font-style: italic; fill: #c0392b; text-anchor: middle; }
-      .tagline { font-family: Arial, sans-serif; font-size: 32px; fill: #282828; text-anchor: middle; }
-      .descriptor { font-family: monospace; font-size: 18px; fill: #646464; text-anchor: middle; }
-    </style>
-  </defs>
-  
+<svg width="1200" height="630" viewBox="0 0 1200 630" xmlns="http://www.w3.org/2000/svg">
   <!-- Background -->
-  <rect class="bg" width="1200" height="630"/>
+  <rect width="1200" height="630" fill="#f4ede0"/>
   
-  <!-- Top line -->
-  <line class="line" x1="50" y1="80" x2="1150" y2="80"/>
+  <!-- Top decorative line -->
+  <line x1="50" y1="80" x2="1150" y2="80" stroke="#282828" stroke-width="2"/>
   
-  <!-- CONSENSUS text -->
-  <text class="consensus" x="600" y="230">CONSENSUS</text>
+  <!-- CONSENSUS text - using tspan for better rendering -->
+  <text x="600" y="240" font-family="Georgia, serif" font-size="120" font-weight="bold" fill="#282828" text-anchor="middle" letter-spacing="8">CONSENSUS</text>
   
-  <!-- gurus text (italic red) -->
-  <text class="gurus" x="600" y="340">gurus</text>
+  <!-- gurus text in red italic -->
+  <text x="600" y="330" font-family="Georgia, serif" font-size="90" font-style="italic" fill="#c0392b" text-anchor="middle" letter-spacing="4">gurus</text>
   
   <!-- Tagline -->
-  <text class="tagline" x="600" y="410">Top Ten Lists from Every Angle</text>
+  <text x="600" y="400" font-family="Arial, sans-serif" font-size="28" fill="#282828" text-anchor="middle">Top Ten Lists from Every Angle.</text>
   
-  <!-- Descriptor -->
-  <text class="descriptor" x="600" y="470">Curated top-ten lists ranked by expert consensus</text>
+  <!-- Bottom decorative line -->
+  <line x1="50" y1="550" x2="1150" y2="550" stroke="#282828" stroke-width="2"/>
   
-  <!-- Bottom line -->
-  <line class="line" x1="50" y1="550" x2="1150" y2="550"/>
+  <!-- Footer text -->
+  <text x="600" y="615" font-family="monospace" font-size="13" fill="#646464" text-anchor="middle">From consensusgurus.com</text>
 </svg>`;
   
   return svg;
@@ -191,6 +268,11 @@ function createHomepageImageSVG() {
  */
 async function generateImages() {
   console.log('\nGenerating OG preview images...\n');
+  
+  const publicDir = path.join(__dirname, '../public');
+  if (!fs.existsSync(publicDir)) {
+    fs.mkdirSync(publicDir, { recursive: true });
+  }
   
   let successCount = 0;
   let errorCount = 0;
@@ -212,7 +294,7 @@ async function generateImages() {
   // Generate list images
   for (const list of lists) {
     try {
-      const listSvg = createListImageSVG(list.id, list.title, list.items);
+      const listSvg = createListImageSVG(list);
       await sharp(Buffer.from(listSvg))
         .resize(1200, 630, { fit: 'contain', background: { r: 244, g: 237, b: 224 } })
         .jpeg({ quality: 95 })
