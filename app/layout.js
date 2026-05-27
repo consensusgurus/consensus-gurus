@@ -1,55 +1,67 @@
+// app/layout.js - ROOT LAYOUT WITH UPDATED METADATA
+
 import './globals.css';
-import { Analytics } from '@vercel/analytics/next';
-
-const RAW_SITE_URL =
-  process.env.NEXT_PUBLIC_SITE_URL || 'https://consensus-gurus.vercel.app';
-
-// Strip trailing slash and force https
-const SITE_URL = RAW_SITE_URL.replace(/\/+$/, '').replace(/^http:/, 'https:');
 
 export const metadata = {
-  metadataBase: new URL(SITE_URL),
-  title: {
-    default: 'Consensus Gurus | Top Ten Lists from Every Angle',
-    template: '%s | Consensus Gurus',
-  },
-  description:
-    'Top ten lists scored by AI, by consensus across publications, and by reader vote. Movies, food, travel, products, and more.',
-  alternates: {
-    canonical: '/',
-  },
+  // Homepage preview (OG tags)
+  title: 'Consensus Gurus | Top Ten Lists from Every Angle',
+  description: 'Curated top-ten lists ranked by expert consensus. From dive bars to luxury resorts, discover what the experts agree on.',
   openGraph: {
     title: 'Consensus Gurus',
-    description:
-      'Top ten lists from every angle. AI, consensus, publications, and reader votes.',
-    url: '/',
+    description: 'Top Ten Lists from Every Angle. Explore 50+ curated lists ranked by expert consensus.',
+    url: 'https://consensusgurus.com',
     type: 'website',
-    siteName: 'Consensus Gurus',
-    locale: 'en_US',
     images: [
       {
-        url: '/opengraph-image',
+        url: 'https://consensusgurus.com/og-homepage.jpg',
         width: 1200,
         height: 630,
-        alt: 'Consensus Gurus',
+        alt: 'Consensus Gurus - Top Ten Lists from Every Angle',
       },
     ],
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'Consensus Gurus',
-    description: 'Top ten lists from every angle.',
-    images: ['/twitter-image'],
+    title: 'Consensus Gurus | Top Ten Lists from Every Angle',
+    description: 'Curated top-ten lists ranked by expert consensus.',
+    images: ['https://consensusgurus.com/og-homepage.jpg'],
+  },
+  // iOS home screen / web app settings
+  appleWebApp: {
+    capable: false, // CHANGED: Set to false to enable browser mode instead of standalone app
+    statusBarStyle: 'black-translucent',
+    startupImage: {
+      url: 'https://consensusgurus.com/apple-startup.png',
+      media: '(device-width: 375px) and (device-height: 812px)',
+    },
+  },
+  formatDetection: {
+    telephone: false,
+  },
+  viewport: {
+    width: 'device-width',
+    initialScale: 1,
+    maximumScale: 5,
+    userScalable: true, // CHANGED: Enabled user scaling for better browser experience
   },
 };
 
 export default function RootLayout({ children }) {
   return (
     <html lang="en">
-      <body>
-        {children}
-        <Analytics />
-      </body>
+      <head>
+        {/* Fraunces serif font for "Consensus Gurus" branding */}
+        <link
+          href="https://fonts.googleapis.com/css2?family=Fraunces:ital,wght@0,400;0,700;0,900;1,400;1,700&display=swap"
+          rel="stylesheet"
+        />
+        {/* DM Sans and DM Mono for body and UI */}
+        <link
+          href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@300;400;500&family=DM+Sans:wght@400;500;700&display=swap"
+          rel="stylesheet"
+        />
+      </head>
+      <body>{children}</body>
     </html>
   );
 }
