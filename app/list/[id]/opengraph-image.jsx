@@ -16,12 +16,18 @@ function computeConsensus(list) {
   
   // Get all publications (exclude 'ai' source)
   const publications = Object.entries(sources)
-    .filter(([id]) => id !== 'ai')
-    .map(([id, src]) => ({
-      id,
-      label: src.label,
-      items: src.items || []
-    }));
+    .filter(([id]) => id !== 'ai' && id !== 'consensus')
+    .map(([id, src]) => {
+      // src might be an object with { label, items } or just an array
+      if (Array.isArray(src)) {
+        return { id, label: id, items: src };
+      }
+      return {
+        id,
+        label: src?.label || id,
+        items: src?.items || []
+      };
+    });
   
   if (publications.length === 0) {
     return sources.ai?.items || [];
@@ -30,10 +36,14 @@ function computeConsensus(list) {
   // Gather universe of all items
   const universeMap = {};
   publications.forEach((src) => {
-    src.items.forEach((item) => {
-      const key = item.toLowerCase().trim();
-      if (!universeMap[key]) universeMap[key] = item;
-    });
+    if (Array.isArray(src.items)) {
+      src.items.forEach((item) => {
+        if (item) {
+          const key = String(item).toLowerCase().trim();
+          if (!universeMap[key]) universeMap[key] = item;
+        }
+      });
+    }
   });
   
   const universe = Object.values(universeMap);
@@ -42,7 +52,7 @@ function computeConsensus(list) {
   // Borda scoring
   const scores = {};
   universe.forEach((item) => {
-    scores[item.toLowerCase().trim()] = 0;
+    scores[String(item).toLowerCase().trim()] = 0;
   });
   
   const bordaFromRank = (rank) => {
@@ -53,9 +63,13 @@ function computeConsensus(list) {
   // Score each publication
   publications.forEach((src) => {
     const pubRanks = {};
-    src.items.forEach((item, idx) => {
-      pubRanks[item.toLowerCase().trim()] = idx + 1;
-    });
+    if (Array.isArray(src.items)) {
+      src.items.forEach((item, idx) => {
+        if (item) {
+          pubRanks[String(item).toLowerCase().trim()] = idx + 1;
+        }
+      });
+    }
     
     const rankedKeys = Object.keys(pubRanks);
     let avgScore = 0;
@@ -68,7 +82,7 @@ function computeConsensus(list) {
     }
     
     universe.forEach((item) => {
-      const key = item.toLowerCase().trim();
+      const key = String(item).toLowerCase().trim();
       if (pubRanks[key] !== undefined) {
         scores[key] += bordaFromRank(pubRanks[key]);
       } else {
@@ -80,11 +94,11 @@ function computeConsensus(list) {
   // Tie-breaker: appearance count
   const appearanceCount = {};
   universe.forEach((item) => {
-    const key = item.toLowerCase().trim();
+    const key = String(item).toLowerCase().trim();
     appearanceCount[key] = publications.reduce((n, src) => {
       return (
         n +
-        (src.items.some((i) => i.toLowerCase().trim() === key) ? 1 : 0)
+        (Array.isArray(src.items) && src.items.some((i) => i && String(i).toLowerCase().trim() === key) ? 1 : 0)
       );
     }, 0);
   });
@@ -92,13 +106,13 @@ function computeConsensus(list) {
   // Sort by score, then appearance count, then alphabetically
   const consensusItems = [...universe]
     .sort((a, b) => {
-      const ka = a.toLowerCase().trim();
-      const kb = b.toLowerCase().trim();
+      const ka = String(a).toLowerCase().trim();
+      const kb = String(b).toLowerCase().trim();
       if (scores[kb] !== scores[ka]) return scores[kb] - scores[ka];
       if (appearanceCount[kb] !== appearanceCount[ka]) {
         return appearanceCount[kb] - appearanceCount[ka];
       }
-      return a.localeCompare(b);
+      return String(a).localeCompare(String(b));
     });
   
   return consensusItems;
