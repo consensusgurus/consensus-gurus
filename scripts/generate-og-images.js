@@ -8,7 +8,7 @@
 
 const fs = require('fs');
 const path = require('path');
-const { createCanvas } = require('canvas');
+const sharp = require('sharp');
 
 // Import lists from data.js
 const dataPath = path.join(__dirname, '../lib/data.js');
@@ -64,42 +64,17 @@ if (!fs.existsSync(publicDir)) {
 }
 
 /**
- * Create OG image for a list
+ * Create OG image for a list using SVG
  */
-function createListImage(listId, title, items) {
-  const width = 1200;
-  const height = 630;
-  
-  // Create canvas
-  const canvas = createCanvas(width, height);
-  const ctx = canvas.getContext('2d');
-  
-  // Background
-  ctx.fillStyle = '#f4ede0';
-  ctx.fillRect(0, 0, width, height);
-  
-  // Draw decorative top line
-  ctx.strokeStyle = '#282828';
-  ctx.lineWidth = 2;
-  ctx.beginPath();
-  ctx.moveTo(30, 40);
-  ctx.lineTo(1170, 40);
-  ctx.stroke();
-  
-  // Title
-  ctx.fillStyle = '#282828';
-  ctx.font = 'bold 56px "Liberation Serif", serif';
-  ctx.textAlign = 'center';
-  
-  // Word wrap title if needed
+function createListImageSVG(listId, title, items) {
+  // Word wrap title
   let titleLines = [];
   if (title.length > 45) {
     const words = title.split(' ');
     let line = '';
     for (const word of words) {
       const testLine = line + (line ? ' ' : '') + word;
-      const metrics = ctx.measureText(testLine);
-      if (metrics.width > 1100) {
+      if (testLine.length > 40) {
         if (line) titleLines.push(line);
         line = word;
       } else {
@@ -111,102 +86,104 @@ function createListImage(listId, title, items) {
     titleLines = [title];
   }
   
-  // Draw title (max 2 lines)
-  let titleY = 60;
-  for (let i = 0; i < Math.min(titleLines.length, 2); i++) {
-    ctx.fillText(titleLines[i], width / 2, titleY + (i * 65));
-  }
+  // Truncate items
+  const displayItems = items.slice(0, 3).map((item, i) => ({
+    num: i + 1,
+    text: item.length > 65 ? item.substring(0, 65) + '...' : item
+  }));
   
-  let itemsY = titleY + (Math.min(titleLines.length, 2) * 65) + 30;
+  // Build SVG
+  const svg = `<?xml version="1.0" encoding="UTF-8"?>
+<svg width="1200" height="630" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <style>
+      .bg { fill: #f4ede0; }
+      .line { stroke: #282828; stroke-width: 2; }
+      .title { font-family: Georgia, serif; font-size: 56px; font-weight: bold; fill: #282828; text-anchor: middle; }
+      .label { font-family: Arial, sans-serif; font-size: 22px; fill: #c0392b; }
+      .item { font-family: Arial, sans-serif; font-size: 22px; fill: #282828; }
+      .footer { font-family: monospace; font-size: 14px; fill: #646464; text-anchor: middle; }
+    </style>
+  </defs>
   
-  // "Top picks:" label
-  ctx.fillStyle = '#c0392b';
-  ctx.font = '22px "Liberation Sans", sans-serif';
-  ctx.textAlign = 'left';
-  ctx.fillText('Top picks:', 50, itemsY);
+  <!-- Background -->
+  <rect class="bg" width="1200" height="630"/>
   
-  itemsY += 45;
+  <!-- Top line -->
+  <line class="line" x1="30" y1="40" x2="1170" y2="40"/>
   
-  // Items
-  ctx.fillStyle = '#282828';
-  for (let i = 0; i < Math.min(items.length, 3); i++) {
-    let item = items[i];
-    if (item.length > 65) {
-      item = item.substring(0, 65) + '...';
-    }
-    ctx.fillText(`${i + 1}. ${item}`, 70, itemsY);
-    itemsY += 35;
-  }
+  <!-- Title -->
+  ${titleLines.map((line, i) => `<text class="title" x="600" y="${60 + i * 65}">${escapeXml(line)}</text>`).join('\n  ')}
   
-  // Bottom decorative line
-  ctx.strokeStyle = '#282828';
-  ctx.lineWidth = 2;
-  ctx.beginPath();
-  ctx.moveTo(30, 590);
-  ctx.lineTo(1170, 590);
-  ctx.stroke();
+  <!-- Top picks label -->
+  <text class="label" x="50" y="${120 + titleLines.length * 65}">Top picks:</text>
   
-  // Footer
-  ctx.fillStyle = '#646464';
-  ctx.font = '14px "Liberation Mono", monospace';
-  ctx.textAlign = 'center';
-  ctx.fillText('Ranked by Expert Consensus | Consensus Gurus', width / 2, 603);
+  <!-- Items -->
+  ${displayItems.map((item, i) => `<text class="item" x="70" y="${165 + titleLines.length * 65 + i * 35}">${item.num}. ${escapeXml(item.text)}</text>`).join('\n  ')}
   
-  return canvas.toBuffer('image/jpeg', { quality: 0.95 });
+  <!-- Bottom line -->
+  <line class="line" x1="30" y1="590" x2="1170" y2="590"/>
+  
+  <!-- Footer -->
+  <text class="footer" x="600" y="615">Ranked by Expert Consensus | Consensus Gurus</text>
+</svg>`;
+  
+  return svg;
 }
 
 /**
- * Create homepage OG image
+ * Escape XML special characters
  */
-function createHomepageImage() {
-  const width = 1200;
-  const height = 630;
+function escapeXml(str) {
+  return String(str).replace(/[&<>"']/g, (c) => ({
+    '&': '&amp;',
+    '<': '&lt;',
+    '>': '&gt;',
+    '"': '&quot;',
+    "'": '&apos;'
+  }[c]));
+}
+
+/**
+ * Create homepage OG image using SVG
+ */
+function createHomepageImageSVG() {
+  const svg = `<?xml version="1.0" encoding="UTF-8"?>
+<svg width="1200" height="630" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <style>
+      .bg { fill: #f4ede0; }
+      .line { stroke: #282828; stroke-width: 2; }
+      .consensus { font-family: Georgia, serif; font-size: 140px; font-weight: bold; fill: #282828; text-anchor: middle; }
+      .gurus { font-family: Georgia, serif; font-size: 100px; font-style: italic; fill: #c0392b; text-anchor: middle; }
+      .tagline { font-family: Arial, sans-serif; font-size: 32px; fill: #282828; text-anchor: middle; }
+      .descriptor { font-family: monospace; font-size: 18px; fill: #646464; text-anchor: middle; }
+    </style>
+  </defs>
   
-  const canvas = createCanvas(width, height);
-  const ctx = canvas.getContext('2d');
+  <!-- Background -->
+  <rect class="bg" width="1200" height="630"/>
   
-  // Background
-  ctx.fillStyle = '#f4ede0';
-  ctx.fillRect(0, 0, width, height);
+  <!-- Top line -->
+  <line class="line" x1="50" y1="80" x2="1150" y2="80"/>
   
-  // Top line
-  ctx.strokeStyle = '#282828';
-  ctx.lineWidth = 2;
-  ctx.beginPath();
-  ctx.moveTo(50, 80);
-  ctx.lineTo(1150, 80);
-  ctx.stroke();
+  <!-- CONSENSUS text -->
+  <text class="consensus" x="600" y="230">CONSENSUS</text>
   
-  // "CONSENSUS" text
-  ctx.fillStyle = '#282828';
-  ctx.font = 'bold 140px "Liberation Serif", serif';
-  ctx.textAlign = 'center';
-  ctx.fillText('CONSENSUS', width / 2, 230);
+  <!-- gurus text (italic red) -->
+  <text class="gurus" x="600" y="340">gurus</text>
   
-  // "gurus" text in red
-  ctx.fillStyle = '#c0392b';
-  ctx.font = 'italic 100px "Liberation Serif", serif';
-  ctx.fillText('gurus', width / 2, 340);
+  <!-- Tagline -->
+  <text class="tagline" x="600" y="410">Top Ten Lists from Every Angle</text>
   
-  // Tagline
-  ctx.fillStyle = '#282828';
-  ctx.font = '32px "Liberation Sans", sans-serif';
-  ctx.fillText('Top Ten Lists from Every Angle', width / 2, 410);
+  <!-- Descriptor -->
+  <text class="descriptor" x="600" y="470">Curated top-ten lists ranked by expert consensus</text>
   
-  // Descriptor
-  ctx.fillStyle = '#646464';
-  ctx.font = '18px "Liberation Mono", monospace';
-  ctx.fillText('Curated top-ten lists ranked by expert consensus', width / 2, 470);
+  <!-- Bottom line -->
+  <line class="line" x1="50" y1="550" x2="1150" y2="550"/>
+</svg>`;
   
-  // Bottom line
-  ctx.strokeStyle = '#282828';
-  ctx.lineWidth = 2;
-  ctx.beginPath();
-  ctx.moveTo(50, 550);
-  ctx.lineTo(1150, 550);
-  ctx.stroke();
-  
-  return canvas.toBuffer('image/jpeg', { quality: 0.95 });
+  return svg;
 }
 
 /**
@@ -220,8 +197,11 @@ async function generateImages() {
   
   // Generate homepage image
   try {
-    const homepageBuffer = createHomepageImage();
-    fs.writeFileSync(path.join(publicDir, 'og-homepage.jpg'), homepageBuffer);
+    const homepageSvg = createHomepageImageSVG();
+    await sharp(Buffer.from(homepageSvg))
+      .resize(1200, 630, { fit: 'contain', background: { r: 244, g: 237, b: 224 } })
+      .jpeg({ quality: 95 })
+      .toFile(path.join(publicDir, 'og-homepage.jpg'));
     console.log('✓ og-homepage.jpg');
     successCount++;
   } catch (error) {
@@ -232,10 +212,12 @@ async function generateImages() {
   // Generate list images
   for (const list of lists) {
     try {
-      const imageBuffer = createListImage(list.id, list.title, list.items);
-      const filename = `og-list-${list.id}.jpg`;
-      fs.writeFileSync(path.join(publicDir, filename), imageBuffer);
-      console.log(`✓ ${filename}`);
+      const listSvg = createListImageSVG(list.id, list.title, list.items);
+      await sharp(Buffer.from(listSvg))
+        .resize(1200, 630, { fit: 'contain', background: { r: 244, g: 237, b: 224 } })
+        .jpeg({ quality: 95 })
+        .toFile(path.join(publicDir, `og-list-${list.id}.jpg`));
+      console.log(`✓ og-list-${list.id}.jpg`);
       successCount++;
     } catch (error) {
       console.error(`✗ og-list-${list.id}.jpg -`, error.message);
