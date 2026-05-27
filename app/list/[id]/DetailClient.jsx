@@ -36,14 +36,28 @@ function ListDetail({ list, viewCount, voteData, userVotes, extras, relatedLists
   const [tab, setTab] = useState(showSourceTab ? 'source' : 'vote');
 
   // Sources now factor in live vote data so the Consensus chip stays accurate
-  // as people vote in real time.
-  const sources = useMemo(
-    () => (showSourceTab ? getSources(list, voteData, extras) : []),
-    [list, voteData, extras, showSourceTab]
-  );
+  // as people vote in real time. For facts-only lists, use the hardcoded ai source.
+  const sources = useMemo(() => {
+    if (!showSourceTab) return [];
+    
+    // For facts-only lists: use the hardcoded 'ai' source directly
+    if (mode === 'facts') {
+      const aiItems = list.sources?.ai?.items || [];
+      if (aiItems.length > 0) {
+        return [{
+          id: 'ai',
+          label: list.sources?.ai?.label || 'Consensus AI',
+          items: aiItems,
+        }];
+      }
+      return [];
+    }
+    
+    // For 'both' mode lists: compute Consensus from publications
+    return getSources(list, voteData, extras);
+  }, [list, voteData, extras, showSourceTab, mode]);
 
-  // Default to Consensus when it exists, otherwise the configured default,
-  // otherwise the first source available.
+  // Default: Consensus if exists, else configured default, else first available
   const initialSourceId =
     sources.find((s) => s.id === 'consensus')?.id ||
     list.defaultSource ||

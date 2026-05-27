@@ -240,56 +240,7 @@ function Home({ lists, viewCounts, voteData, extras, openList, onSubmit }) {
           })}
         </div>
 
-        {!isFiltered && (
-          <>
-            <div
-              style={{
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'space-between',
-                padding: '0 4px 16px',
-                borderBottom: `1px solid ${COLORS.ink}`,
-                marginBottom: 24,
-                gap: 12,
-                flexWrap: 'wrap',
-              }}
-            >
-              <h2
-                style={{
-                  fontFamily: 'Fraunces, serif',
-                  fontSize: 22,
-                  fontWeight: 700,
-                  margin: 0,
-                  fontStyle: 'italic',
-                  color: COLORS.ember,
-                }}
-              >
-                Current Consensus
-              </h2>
-            </div>
-            <div
-              style={{
-                display: 'grid',
-                gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))',
-                gap: 16,
-                marginBottom: 48,
-              }}
-            >
-              {sorted.map((list, idx) => (
-                <Tile
-                  key={`${list.id}-consensus`}
-                  list={list}
-                  rank={idx + 1}
-                  views={viewCounts[list.id] || 0}
-                  voteData={voteData}
-                  extras={extras[list.id] || []}
-                  onClick={() => openList(list.id)}
-                  showConsensus={true}
-                />
-              ))}
-            </div>
-          </>
-        )}
+
 
         <div
           style={{
@@ -370,7 +321,7 @@ function Home({ lists, viewCounts, voteData, extras, openList, onSubmit }) {
                 voteData={voteData}
                 extras={extras[list.id] || []}
                 onClick={() => openList(list.id)}
-                showConsensus={false}
+                showConsensus={true}
               />
             ))}
           </div>
@@ -400,8 +351,33 @@ function Tile({ list, rank, views, voteData, extras, onClick, showConsensus }) {
   const mode = list.mode || 'both';
 
   const preview = useMemo(() => {
+    // For facts-only lists: always show from sources.ai
+    if (mode === 'facts') {
+      const items = list.sources?.ai?.items || [];
+      return {
+        label: 'Top of the list',
+        rows: items.slice(0, 3).map((item) => ({ item, score: null })),
+      };
+    }
+
+    // For votes-only lists: always show from vote.items ranked by votes
+    if (mode === 'votes') {
+      const base = list.vote?.items || [];
+      const allItems = dedupeByName([...base, ...extras]);
+      const scored = allItems.map((item, idx) => ({
+        item,
+        score: voteData[voteKey(list.id, item)] || 0,
+        origIdx: idx,
+      }));
+      scored.sort((a, b) => b.score - a.score || a.origIdx - b.origIdx);
+      return {
+        label: 'Current ranking by votes',
+        rows: scored.slice(0, 3),
+      };
+    }
+
+    // For 'both' mode lists: show Consensus if requested, else show votes
     if (showConsensus) {
-      // Show Consensus ranking instead of vote data
       const sources = getSources(list, voteData, extras);
       const consensusSource = sources.find((s) => s.id === 'consensus');
       if (consensusSource && consensusSource.items.length > 0) {
@@ -410,20 +386,9 @@ function Tile({ list, rank, views, voteData, extras, onClick, showConsensus }) {
           rows: consensusSource.items.slice(0, 3).map((item) => ({ item, score: null })),
         };
       }
-      // Fallback if consensus doesn't exist or is empty
-      return {
-        label: 'Top of the list',
-        rows: [],
-      };
     }
 
-    if (mode === 'facts') {
-      const items = list.sources?.ai?.items || [];
-      return {
-        label: 'Top of the list',
-        rows: items.slice(0, 3).map((item) => ({ item, score: null })),
-      };
-    }
+    // Default for 'both' mode or consensus fallback: show votes
     const base = list.vote?.items || [];
     const allItems = dedupeByName([...base, ...extras]);
     const scored = allItems.map((item, idx) => ({
