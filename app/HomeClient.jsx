@@ -31,6 +31,7 @@ function listHasTag(list, tagId) {
 function Home({ lists, viewCounts, voteData, extras, openList, onSubmit }) {
   const [query, setQuery] = useState('');
   const [typeFilter, setTypeFilter] = useState('all');
+  const [sortBy, setSortBy] = useState('popularity'); // 'popularity' or 'recent'
 
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase();
@@ -52,12 +53,17 @@ function Home({ lists, viewCounts, voteData, extras, openList, onSubmit }) {
 
   const sorted = useMemo(() => {
     return [...filtered].sort((a, b) => {
+      if (sortBy === 'recent') {
+        // Sort by position in original lists (most recent = later in list)
+        return lists.indexOf(b) - lists.indexOf(a);
+      }
+      // Default: sort by popularity (viewCount)
       const va = viewCounts[a.id] || 0;
       const vb = viewCounts[b.id] || 0;
       if (vb !== va) return vb - va;
       return lists.indexOf(a) - lists.indexOf(b);
     });
-  }, [filtered, viewCounts, lists]);
+  }, [filtered, viewCounts, lists, sortBy]);
 
   const totalViews = Object.values(viewCounts).reduce((a, b) => a + b, 0);
   const totalVotes = Object.values(voteData).reduce((a, b) => a + Math.abs(b), 0);
@@ -240,6 +246,42 @@ function Home({ lists, viewCounts, voteData, extras, openList, onSubmit }) {
           })}
         </div>
 
+        <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginBottom: 28 }}>
+          <button
+            onClick={() => setSortBy('popularity')}
+            style={{
+              background: sortBy === 'popularity' ? COLORS.ink : 'transparent',
+              color: sortBy === 'popularity' ? COLORS.cream : COLORS.ink,
+              border: `1.5px solid ${COLORS.ink}`,
+              padding: '8px 14px',
+              fontFamily: 'DM Mono, monospace',
+              fontSize: 10,
+              letterSpacing: '0.18em',
+              textTransform: 'uppercase',
+              fontWeight: 600,
+              cursor: 'pointer',
+            }}
+          >
+            Popularity
+          </button>
+          <button
+            onClick={() => setSortBy('recent')}
+            style={{
+              background: sortBy === 'recent' ? COLORS.ink : 'transparent',
+              color: sortBy === 'recent' ? COLORS.cream : COLORS.ink,
+              border: `1.5px solid ${COLORS.ink}`,
+              padding: '8px 14px',
+              fontFamily: 'DM Mono, monospace',
+              fontSize: 10,
+              letterSpacing: '0.18em',
+              textTransform: 'uppercase',
+              fontWeight: 600,
+              cursor: 'pointer',
+            }}
+          >
+            Most Recent
+          </button>
+        </div>
 
 
         <div
@@ -266,6 +308,8 @@ function Home({ lists, viewCounts, voteData, extras, openList, onSubmit }) {
           >
             {query || typeFilter !== 'all'
               ? `${sorted.length} ${sorted.length === 1 ? 'list' : 'lists'}`
+              : sortBy === 'recent'
+              ? 'Ranked by most recent'
               : 'Ranked by popularity'}
           </h2>
           <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
