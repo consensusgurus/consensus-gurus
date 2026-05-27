@@ -2,6 +2,7 @@ import DetailClient from './DetailClient';
 import { LISTS } from '@/lib/data';
 
 function getItemNames(items, count) {
+  if (!Array.isArray(items)) return [];
   return items
     .slice(0, count)
     .map((item) => (typeof item === 'string' ? item : item?.name || item?.title || ''))
@@ -10,7 +11,8 @@ function getItemNames(items, count) {
 
 function generateSeoDescription(list) {
   const items = list.sources?.ai?.items || list.vote?.items || [];
-  const top3 = getItemNames(items, 3);
+  const safeItems = Array.isArray(items) ? items : [];
+  const top3 = getItemNames(safeItems, 3);
   const top3Str = top3.join(', ');
 
   const sourceKeys = Object.keys(list.sources || {}).filter((k) => k !== 'ai');
@@ -33,7 +35,8 @@ function generateSeoDescription(list) {
 
 function buildStructuredData(list, baseUrl) {
   const items = list.sources?.ai?.items || list.vote?.items || [];
-  const itemNames = getItemNames(items, 10);
+  const safeItems = Array.isArray(items) ? items : [];
+  const itemNames = getItemNames(safeItems, 10);
 
   if (itemNames.length === 0) return null;
 
@@ -63,8 +66,6 @@ export async function generateMetadata({ params }) {
 
   const url = `/list/${encodeURIComponent(id)}`;
   const description = generateSeoDescription(list);
-  const ogImageUrl = `/list/${encodeURIComponent(id)}/opengraph-image`;
-  const twitterImageUrl = `/list/${encodeURIComponent(id)}/twitter-image`;
 
   return {
     title: list.title,
@@ -76,25 +77,20 @@ export async function generateMetadata({ params }) {
       url,
       type: 'article',
       siteName: 'Consensus Gurus',
-      images: [
-        {
-          url: ogImageUrl,
-          width: 1200,
-          height: 630,
-          alt: `${list.title} ranked list preview`,
-        },
-      ],
     },
     twitter: {
       card: 'summary_large_image',
       title: `${list.title} | Consensus Gurus`,
       description,
-      images: [twitterImageUrl],
     },
   };
 }
 
 export function generateStaticParams() {
+  if (!Array.isArray(LISTS)) {
+    console.error('LISTS IS NOT AN ARRAY:', typeof LISTS, LISTS);
+    return [];
+  }
   return LISTS.map((l) => ({ id: l.id }));
 }
 
