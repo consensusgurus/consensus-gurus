@@ -37,6 +37,8 @@ function ListDetail({ list, viewCount, voteData, userVotes, extras, relatedLists
   const [activeVoteSlot, setActiveVoteSlot] = useState(null);
   const [voteSelections, setVoteSelections] = useState({ 1: null, 2: null, 3: null });
   const [userCurrentVote, setUserCurrentVote] = useState({ 1: null, 2: null, 3: null });
+  const [hasVoted, setHasVoted] = useState(false);
+  const [voteMessage, setVoteMessage] = useState('');
 
   // Sources now factor in live vote data so the Consensus chip stays accurate
   // as people vote in real time. For facts-only lists, use the hardcoded ai source.
@@ -79,6 +81,21 @@ function ListDetail({ list, viewCount, voteData, userVotes, extras, relatedLists
 
   const [newItem, setNewItem] = useState('');
   const [addError, setAddError] = useState('');
+
+  useEffect(() => {
+    // Check if user already voted
+    const alreadyVoted = hasUserVoted(list.id);
+    setHasVoted(alreadyVoted);
+
+    if (alreadyVoted) {
+      // Load their previous vote
+      const previousVote = getUserVoteForList(list.id);
+      if (previousVote) {
+        setUserCurrentVote(previousVote);
+        setVoteMessage('You already voted on this list. Your selections are shown below.');
+      }
+    }
+  }, [list.id]);
 
   const activeSource = sources.find((s) => s.id === activeSourceId) || sources[0];
 
@@ -207,10 +224,20 @@ function ListDetail({ list, viewCount, voteData, userVotes, extras, relatedLists
       onVote(list.id, voteSelections[3], points[3]);
     }
 
+    // Save to localStorage
+    const userVotes = loadUserVotes();
+    userVotes[list.id] = voteSelections;
+    saveUserVotes(userVotes);
+
+    // Set voting cookie to prevent duplicate voting
+    setVoteCookie(list.id);
+    setHasVoted(true);
+
     // Update user's current vote
     setUserCurrentVote(voteSelections);
     setVoteSelections({ 1: null, 2: null, 3: null });
     setActiveVoteSlot(null);
+    setVoteMessage('Vote submitted! You can view the updated rankings on this page.');
   }
 
   const showBothTabs = showSourceTab && showVoteTab;
@@ -440,12 +467,32 @@ function ListDetail({ list, viewCount, voteData, userVotes, extras, relatedLists
         </>
       ) : showVoteTab ? (
         <>
+          {voteMessage && (
+            <div
+              style={{
+                background: hasVoted ? '#ebe2d0' : '#ebe2d0',
+                padding: 16,
+                border: `1.5px solid ${COLORS.ink}`,
+                marginBottom: 24,
+                fontFamily: 'Fraunces, serif',
+                fontStyle: 'italic',
+                fontSize: 14,
+                color: COLORS.ink,
+                borderLeft: `3px solid ${COLORS.ember}`,
+              }}
+            >
+              {voteMessage}
+            </div>
+          )}
+
           <div
             style={{
               display: 'grid',
               gridTemplateColumns: '1fr 1fr',
               gap: 40,
               marginBottom: 40,
+              opacity: hasVoted ? 0.6 : 1,
+              pointerEvents: hasVoted ? 'none' : 'auto',
             }}
           >
             {/* LEFT: All Items List */}
@@ -564,10 +611,62 @@ function ListDetail({ list, viewCount, voteData, userVotes, extras, relatedLists
                   marginBottom: 0,
                 }}
               >
-                Your Picks
+                {hasVoted ? 'Your Vote' : 'Your Picks'}
               </div>
 
-              {/* 1st Place Slot */}
+              {hasVoted && (userCurrentVote[1] || userCurrentVote[2] || userCurrentVote[3]) && (
+                <>
+                  {userCurrentVote[1] && (
+                    <div
+                      style={{
+                        padding: 16,
+                        background: COLORS.ember,
+                        color: COLORS.cream,
+                        border: `1.5px solid ${COLORS.ember}`,
+                        fontFamily: 'Fraunces, serif',
+                        fontSize: 16,
+                        fontWeight: 600,
+                        marginBottom: 12,
+                      }}
+                    >
+                      1st Place (3 pts): {userCurrentVote[1]}
+                    </div>
+                  )}
+                  {userCurrentVote[2] && (
+                    <div
+                      style={{
+                        padding: 16,
+                        background: COLORS.ink,
+                        color: COLORS.cream,
+                        border: `1.5px solid ${COLORS.ink}`,
+                        fontFamily: 'Fraunces, serif',
+                        fontSize: 16,
+                        fontWeight: 600,
+                        marginBottom: 12,
+                      }}
+                    >
+                      2nd Place (2 pts): {userCurrentVote[2]}
+                    </div>
+                  )}
+                  {userCurrentVote[3] && (
+                    <div
+                      style={{
+                        padding: 16,
+                        background: COLORS.faded,
+                        color: COLORS.cream,
+                        border: `1.5px solid ${COLORS.faded}`,
+                        fontFamily: 'Fraunces, serif',
+                        fontSize: 16,
+                        fontWeight: 600,
+                      }}
+                    >
+                      3rd Place (1 pt): {userCurrentVote[3]}
+                    </div>
+                  )}
+                </>
+              )}
+
+              {!hasVoted && (
               <div
                 onClick={() => activateVoteSlot(1)}
                 style={{
@@ -821,7 +920,7 @@ function ListDetail({ list, viewCount, voteData, userVotes, extras, relatedLists
 
               <button
                 onClick={submitVote}
-                disabled={!voteSelections[1] && !voteSelections[2] && !voteSelections[3]}
+                disabled={!voteSelections[1] && !voteSelections[2] && !voteSelections[3] || hasVoted}
                 style={{
                   marginTop: 8,
                   padding: '12px 20px',
@@ -838,7 +937,7 @@ function ListDetail({ list, viewCount, voteData, userVotes, extras, relatedLists
                   transition: 'all 0.2s ease',
                 }}
                 onMouseEnter={(e) => {
-                  if (voteSelections[1] || voteSelections[2] || voteSelections[3]) {
+                  if ((voteSelections[1] || voteSelections[2] || voteSelections[3]) && !hasVoted) {
                     e.currentTarget.style.transform = 'translate(-2px, -2px)';
                     e.currentTarget.style.boxShadow = `4px 4px 0 ${COLORS.ember}`;
                   }
@@ -848,7 +947,7 @@ function ListDetail({ list, viewCount, voteData, userVotes, extras, relatedLists
                   e.currentTarget.style.boxShadow = 'none';
                 }}
               >
-                Submit Your Vote
+                {hasVoted ? 'You Already Voted' : 'Submit Your Vote'}
               </button>
 
               <div
@@ -866,6 +965,7 @@ function ListDetail({ list, viewCount, voteData, userVotes, extras, relatedLists
               >
                 Submit 1, 2, or all 3 picks. You can update your vote anytime.
               </div>
+              )}
             </div>
           </div>
 
@@ -1162,6 +1262,7 @@ function DataRow({ rank, item, list }) {
 }
 
 const USER_VOTES_KEY = 'cg-uservotes';
+const VOTE_COOKIE_PREFIX = 'cg-voted-';
 
 function loadUserVotes() {
   if (typeof window === 'undefined') return {};
@@ -1178,6 +1279,26 @@ function saveUserVotes(votes) {
   try {
     localStorage.setItem(USER_VOTES_KEY, JSON.stringify(votes));
   } catch {}
+}
+
+function hasUserVoted(listId) {
+  if (typeof document === 'undefined') return false;
+  const cookieName = `${VOTE_COOKIE_PREFIX}${listId}`;
+  return document.cookie.split(';').some((c) => c.trim().startsWith(cookieName));
+}
+
+function setVoteCookie(listId) {
+  if (typeof document === 'undefined') return;
+  const cookieName = `${VOTE_COOKIE_PREFIX}${listId}`;
+  // Set cookie to expire in 30 days
+  const date = new Date();
+  date.setTime(date.getTime() + 30 * 24 * 60 * 60 * 1000);
+  document.cookie = `${cookieName}=true; expires=${date.toUTCString()}; path=/`;
+}
+
+function getUserVoteForList(listId) {
+  const userVotes = loadUserVotes();
+  return userVotes[listId] || null;
 }
 
 export default function DetailClient({ listId }) {
