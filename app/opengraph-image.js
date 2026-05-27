@@ -14,126 +14,98 @@ export default async function Image() {
           height: '100%',
           display: 'flex',
           flexDirection: 'column',
-          justifyContent: 'space-between',
-          background: '#f4ead5',
-          padding: '48px 80px',
+          background: '#f4ede0',
+          padding: '56px 96px 48px',
         }}
       >
-        {/* Top bar */}
+        {/* Vol / Est row */}
         <div
           style={{
             display: 'flex',
             justifyContent: 'space-between',
             alignItems: 'center',
-            fontSize: 18,
-            color: '#999',
-            letterSpacing: 3,
+            fontSize: 14,
+            letterSpacing: 4,
             textTransform: 'uppercase',
+            color: '#999',
+            marginBottom: 32,
           }}
         >
-          <div style={{ display: 'flex' }}>VOL. 1 NO. 1</div>
-          <div style={{ display: 'flex' }}>EST. 2026</div>
+          <div style={{ display: 'flex' }}>Vol. I · No. 1</div>
+          <div style={{ display: 'flex' }}>Est. 2026</div>
         </div>
 
-        {/* Center: masthead */}
+        {/* Main title block */}
         <div
           style={{
             display: 'flex',
             flexDirection: 'column',
             alignItems: 'center',
+            flex: 1,
+            justifyContent: 'center',
+            borderTop: '2px solid #282828',
+            borderBottom: '2px solid #282828',
+            paddingTop: 40,
+            paddingBottom: 40,
           }}
         >
+          {/* CONSENSUS */}
           <div
             style={{
               display: 'flex',
-              width: '100%',
-              height: 2,
-              background: '#1a1a1a',
-              marginBottom: 32,
-            }}
-          />
-          <div
-            style={{
-              display: 'flex',
-              fontSize: 108,
-              fontWeight: 700,
-              color: '#1a1a1a',
-              letterSpacing: 6,
-              textTransform: 'uppercase',
-              lineHeight: 1,
-              marginBottom: 8,
+              fontSize: 130,
+              fontWeight: 900,
+              color: '#282828',
+              letterSpacing: -5,
+              lineHeight: 0.85,
+              marginBottom: 4,
             }}
           >
             CONSENSUS
           </div>
+          {/* gurus italic red */}
           <div
             style={{
               display: 'flex',
-              fontSize: 84,
+              fontSize: 130,
+              fontWeight: 900,
               fontStyle: 'italic',
               color: '#c0392b',
-              letterSpacing: 4,
-              lineHeight: 1,
-              marginBottom: 28,
+              letterSpacing: -5,
+              lineHeight: 0.85,
+              marginBottom: 32,
             }}
           >
             gurus
           </div>
+          {/* Tagline */}
           <div
             style={{
               display: 'flex',
-              fontSize: 22,
-              color: '#1a1a1a',
-              letterSpacing: 2,
-              textTransform: 'uppercase',
+              fontSize: 20,
+              color: '#282828',
+              letterSpacing: 1,
             }}
           >
-            Top Ten Lists from Every Angle
+            Top Ten Lists from Every Angle.
           </div>
-          <div
-            style={{
-              display: 'flex',
-              width: '100%',
-              height: 2,
-              background: '#1a1a1a',
-              marginTop: 32,
-            }}
-          />
         </div>
 
-        {/* Bottom bar */}
+        {/* Bottom row */}
         <div
           style={{
             display: 'flex',
             justifyContent: 'space-between',
             alignItems: 'center',
+            marginTop: 28,
+            fontSize: 14,
+            letterSpacing: 4,
+            textTransform: 'uppercase',
+            color: '#999',
           }}
         >
-          <div
-            style={{
-              display: 'flex',
-              background: '#1a1a1a',
-              color: '#f4ead5',
-              fontSize: 18,
-              fontWeight: 700,
-              letterSpacing: 2,
-              padding: '8px 20px',
-              textTransform: 'uppercase',
-            }}
-          >
-            Consensus Gurus
-          </div>
-          <div
-            style={{
-              display: 'flex',
-              fontSize: 16,
-              color: '#999',
-              letterSpacing: 3,
-              textTransform: 'uppercase',
-            }}
-          >
-            VOTE · SHARE · DEBATE
-          </div>
+          <div style={{ display: 'flex' }}>consensusgurus.com</div>
+          <div style={{ display: 'flex' }}>Vote · Share · Debate</div>
         </div>
       </div>
     ),
