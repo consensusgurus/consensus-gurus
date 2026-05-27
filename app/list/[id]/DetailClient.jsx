@@ -667,6 +667,7 @@ function ListDetail({ list, viewCount, voteData, userVotes, extras, relatedLists
               )}
 
               {!hasVoted && (
+              <>
               <div
                 onClick={() => activateVoteSlot(1)}
                 style={{
@@ -965,6 +966,7 @@ function ListDetail({ list, viewCount, voteData, userVotes, extras, relatedLists
               >
                 Submit 1, 2, or all 3 picks. You can update your vote anytime.
               </div>
+              </>
               )}
             </div>
           </div>
