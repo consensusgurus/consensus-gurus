@@ -24,20 +24,11 @@ export async function generateMetadata({ params }) {
       description: `6-10 of Consensus: ${previewItems}`,
       url: `https://consensusgurus.com/list/${list.id}`,
       type: 'website',
-      images: [
-        {
-          url: `/og-list-${list.id}.jpg`,
-          width: 1200,
-          height: 630,
-          alt: `${list.title} - Consensus Gurus`,
-        },
-      ],
     },
     twitter: {
       card: 'summary_large_image',
       title: `${list.title} | Consensus Gurus`,
       description: `6-10 of Consensus: ${previewItems}`,
-      images: [`/og-list-${list.id}.jpg`],
     },
   };
 }

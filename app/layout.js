@@ -3,7 +3,6 @@
 import './globals.css';
 
 export const metadata = {
-  // Homepage preview (OG tags)
   title: 'Consensus Gurus | Top Ten Lists from Every Angle',
   description: 'Curated top-ten lists ranked by expert consensus. From dive bars to luxury resorts, discover what the experts agree on.',
   openGraph: {
@@ -11,20 +10,11 @@ export const metadata = {
     description: 'Curated top-ten lists ranked by expert consensus. From dive bars to luxury resorts, discover what the experts agree on.',
     url: 'https://consensusgurus.com',
     type: 'website',
-    images: [
-      {
-        url: '/og-homepage.jpg',
-        width: 1200,
-        height: 630,
-        alt: 'Consensus Gurus - Top Ten Lists from Every Angle',
-      },
-    ],
   },
   twitter: {
     card: 'summary_large_image',
     title: 'Consensus Gurus | Top Ten Lists from Every Angle',
     description: 'Curated top-ten lists ranked by expert consensus.',
-    images: ['/og-homepage.jpg'],
   },
   // iOS home screen / web app settings
   appleWebApp: {
