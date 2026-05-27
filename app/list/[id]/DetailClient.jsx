@@ -177,6 +177,8 @@ function ListDetail({ list, viewCount, voteData, userVotes, extras, relatedLists
     if (filledSlots.length === 0) return;
 
     // Create vote records with weights: 1st=3, 2nd=2, 3rd=1
+    // Parent component (DetailClient wrapper) must update voteData state
+    // after these API calls succeed so Consensus recalculates
     const points = { 1: 3, 2: 2, 3: 1 };
     
     if (voteSelections[1]) {
