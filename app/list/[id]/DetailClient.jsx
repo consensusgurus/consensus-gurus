@@ -733,7 +733,7 @@ function ListDetail({ list, viewCount, voteData, userVotes, extras, relatedLists
                   >
                     Remove
                   </button>
-                )}
+                )},
                 {activeVoteSlot === 1 && !voteSelections[1] && (
                   <div
                     style={{
