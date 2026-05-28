@@ -51,9 +51,10 @@ function getListTimestamp(list) {
   return 0;
 }
 
-// Deterministic shuffle so "Discover" stays put across re-renders (typing
-// in the search bar, hovering a tile, etc.) but reshuffles when the
-// underlying list collection actually changes.
+// Seeded Fisher-Yates so Discover stays put across re-renders within a
+// single page view (typing in the search bar, hovering a tile) but
+// reshuffles on every fresh page load since the seed comes from
+// Date.now() captured once on mount.
 function seededShuffle(arr, seed) {
   const out = arr.slice();
   let s = seed >>> 0 || 1;
@@ -68,29 +69,24 @@ function seededShuffle(arr, seed) {
   return out;
 }
 
-function hashListIds(lists) {
-  let h = 2166136261;
-  for (const l of lists) {
-    const id = l.id || '';
-    for (let i = 0; i < id.length; i++) {
-      h ^= id.charCodeAt(i);
-      h = Math.imul(h, 16777619);
-    }
-  }
-  return h >>> 0;
-}
-
 function Home({ lists, viewCounts, voteData, extras, openList, onSubmit }) {
   const [query, setQuery] = useState('');
   const [typeFilter, setTypeFilter] = useState('all');
   // Default sort is the shuffled "Discover" view.
   const [sortBy, setSortBy] = useState('discover');
 
-  // Stable shuffle order, recomputed only when the lists collection changes.
+  // Fresh seed per page load — captured once on mount. Stays stable while
+  // the user interacts with the page (so the order doesn't reshuffle
+  // when typing in search), but a reload picks a new seed and a new
+  // order.
+  const [discoverSeed] = useState(
+    () => (Date.now() ^ Math.floor(Math.random() * 0xffffffff)) >>> 0
+  );
+
+  // Recompute shuffle order when the lists collection or seed changes.
   const discoverOrder = useMemo(() => {
-    const seed = hashListIds(lists);
-    return seededShuffle(lists, seed);
-  }, [lists]);
+    return seededShuffle(lists, discoverSeed);
+  }, [lists, discoverSeed]);
 
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase();
