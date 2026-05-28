@@ -420,10 +420,20 @@ function ListDetail({ list, viewCount, voteData, userVotes, extras, relatedLists
                 const isConsensus = s.id === 'consensus';
                 const borderColor = isConsensus ? COLORS.ember : COLORS.ink;
                 const activeBg = isConsensus ? COLORS.ember : COLORS.ink;
+                // When a source button is already selected and the source has a
+                // real URL, a second click opens that source in a new tab.
+                const linkable = active && !!s.url;
                 return (
                   <button
                     key={s.id}
-                    onClick={() => setActiveSourceId(s.id)}
+                    onClick={() => {
+                      if (linkable) {
+                        window.open(s.url, '_blank', 'noopener,noreferrer');
+                      } else {
+                        setActiveSourceId(s.id);
+                      }
+                    }}
+                    title={linkable ? `View source: ${s.label}` : undefined}
                     style={{
                       background: active ? activeBg : 'transparent',
                       color: active ? COLORS.cream : (isConsensus ? COLORS.ember : COLORS.ink),
@@ -437,7 +447,7 @@ function ListDetail({ list, viewCount, voteData, userVotes, extras, relatedLists
                       transition: 'all 0.15s ease',
                     }}
                   >
-                    {s.label}
+                    {s.label}{linkable ? ' ↗' : ''}
                   </button>
                 );
               })}
