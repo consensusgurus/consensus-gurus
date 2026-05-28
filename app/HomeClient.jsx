@@ -28,10 +28,69 @@ function listHasTag(list, tagId) {
   return getListTags(list).includes(tagId);
 }
 
+// Resolve a comparable timestamp for a list, in priority order:
+//   1. publishedAt   (full ISO string on built-in lists)
+//   2. submittedAt   (Supabase timestamptz on reader submissions)
+//   3. publishedDate (legacy date-only field, parsed as noon UTC so it
+//      sorts predictably against full timestamps)
+// Returns a millisecond epoch number. Lists with no timestamp at all
+// get 0 so they end up last in recency sort.
+function getListTimestamp(list) {
+  if (list.publishedAt) {
+    const t = new Date(list.publishedAt).getTime();
+    if (!Number.isNaN(t)) return t;
+  }
+  if (list.submittedAt) {
+    const t = new Date(list.submittedAt).getTime();
+    if (!Number.isNaN(t)) return t;
+  }
+  if (list.publishedDate) {
+    const t = new Date(list.publishedDate + 'T12:00:00Z').getTime();
+    if (!Number.isNaN(t)) return t;
+  }
+  return 0;
+}
+
+// Deterministic shuffle so "Discover" stays put across re-renders (typing
+// in the search bar, hovering a tile, etc.) but reshuffles when the
+// underlying list collection actually changes.
+function seededShuffle(arr, seed) {
+  const out = arr.slice();
+  let s = seed >>> 0 || 1;
+  for (let i = out.length - 1; i > 0; i--) {
+    // xorshift32
+    s ^= s << 13;
+    s ^= s >>> 17;
+    s ^= s << 5;
+    const j = (s >>> 0) % (i + 1);
+    [out[i], out[j]] = [out[j], out[i]];
+  }
+  return out;
+}
+
+function hashListIds(lists) {
+  let h = 2166136261;
+  for (const l of lists) {
+    const id = l.id || '';
+    for (let i = 0; i < id.length; i++) {
+      h ^= id.charCodeAt(i);
+      h = Math.imul(h, 16777619);
+    }
+  }
+  return h >>> 0;
+}
+
 function Home({ lists, viewCounts, voteData, extras, openList, onSubmit }) {
   const [query, setQuery] = useState('');
   const [typeFilter, setTypeFilter] = useState('all');
-  const [sortBy, setSortBy] = useState('popularity'); // 'popularity' or 'recent'
+  // Default sort is the shuffled "Discover" view.
+  const [sortBy, setSortBy] = useState('discover');
+
+  // Stable shuffle order, recomputed only when the lists collection changes.
+  const discoverOrder = useMemo(() => {
+    const seed = hashListIds(lists);
+    return seededShuffle(lists, seed);
+  }, [lists]);
 
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase();
@@ -52,22 +111,27 @@ function Home({ lists, viewCounts, voteData, extras, openList, onSubmit }) {
   }, [lists, query, typeFilter]);
 
   const sorted = useMemo(() => {
+    if (sortBy === 'discover') {
+      // Preserve the precomputed shuffle order; just keep entries that
+      // survived the current filter.
+      const allowed = new Set(filtered);
+      return discoverOrder.filter((l) => allowed.has(l));
+    }
     return [...filtered].sort((a, b) => {
       if (sortBy === 'recent') {
-        // Sort by publishedDate (most recent first = newest date first)
-        const dateA = new Date(a.publishedDate || '2000-01-01').getTime();
-        const dateB = new Date(b.publishedDate || '2000-01-01').getTime();
-        if (dateB !== dateA) return dateB - dateA;
-        // Fallback to original array order if dates are same
+        const ta = getListTimestamp(a);
+        const tb = getListTimestamp(b);
+        if (tb !== ta) return tb - ta;
+        // Same timestamp: fall back to original array order
         return lists.indexOf(a) - lists.indexOf(b);
       }
-      // Default: sort by popularity (viewCount)
+      // 'popularity' (viewCount)
       const va = viewCounts[a.id] || 0;
       const vb = viewCounts[b.id] || 0;
       if (vb !== va) return vb - va;
       return lists.indexOf(a) - lists.indexOf(b);
     });
-  }, [filtered, viewCounts, lists, sortBy]);
+  }, [filtered, viewCounts, lists, sortBy, discoverOrder]);
 
   const totalViews = Object.values(viewCounts).reduce((a, b) => a + b, 0);
   const totalVotes = Object.values(voteData).reduce((a, b) => a + Math.abs(b), 0);
@@ -87,8 +151,28 @@ function Home({ lists, viewCounts, voteData, extras, openList, onSubmit }) {
     return TYPES.filter((t) => t.id === 'all' || (counts[t.id] || 0) > 0);
   }, [counts]);
 
-  // Show all lists when no filter/query active
-  const isFiltered = query.trim() !== '' || typeFilter !== 'all';
+  // Caption shown next to the section heading
+  const subhead =
+    sortBy === 'recent'
+      ? 'most recent first'
+      : sortBy === 'popularity'
+      ? 'most viewed first'
+      : 'a fresh mix every visit';
+
+  const headingLabel =
+    query || typeFilter !== 'all'
+      ? `${sorted.length} ${sorted.length === 1 ? 'list' : 'lists'}`
+      : sortBy === 'recent'
+      ? 'Ranked by most recent'
+      : sortBy === 'popularity'
+      ? 'Ranked by popularity'
+      : 'A fresh mix for you';
+
+  const sortButtons = [
+    { id: 'discover', label: 'Discover' },
+    { id: 'popularity', label: 'Popularity' },
+    { id: 'recent', label: 'Most Recent' },
+  ];
 
   return (
     <div style={{ position: 'relative', zIndex: 2 }}>
@@ -251,40 +335,29 @@ function Home({ lists, viewCounts, voteData, extras, openList, onSubmit }) {
         </div>
 
         <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginBottom: 28 }}>
-          <button
-            onClick={() => setSortBy('popularity')}
-            style={{
-              background: sortBy === 'popularity' ? COLORS.ink : 'transparent',
-              color: sortBy === 'popularity' ? COLORS.cream : COLORS.ink,
-              border: `1.5px solid ${COLORS.ink}`,
-              padding: '8px 14px',
-              fontFamily: 'DM Mono, monospace',
-              fontSize: 10,
-              letterSpacing: '0.18em',
-              textTransform: 'uppercase',
-              fontWeight: 600,
-              cursor: 'pointer',
-            }}
-          >
-            Popularity
-          </button>
-          <button
-            onClick={() => setSortBy('recent')}
-            style={{
-              background: sortBy === 'recent' ? COLORS.ink : 'transparent',
-              color: sortBy === 'recent' ? COLORS.cream : COLORS.ink,
-              border: `1.5px solid ${COLORS.ink}`,
-              padding: '8px 14px',
-              fontFamily: 'DM Mono, monospace',
-              fontSize: 10,
-              letterSpacing: '0.18em',
-              textTransform: 'uppercase',
-              fontWeight: 600,
-              cursor: 'pointer',
-            }}
-          >
-            Most Recent
-          </button>
+          {sortButtons.map((opt) => {
+            const active = sortBy === opt.id;
+            return (
+              <button
+                key={opt.id}
+                onClick={() => setSortBy(opt.id)}
+                style={{
+                  background: active ? COLORS.ink : 'transparent',
+                  color: active ? COLORS.cream : COLORS.ink,
+                  border: `1.5px solid ${COLORS.ink}`,
+                  padding: '8px 14px',
+                  fontFamily: 'DM Mono, monospace',
+                  fontSize: 10,
+                  letterSpacing: '0.18em',
+                  textTransform: 'uppercase',
+                  fontWeight: 600,
+                  cursor: 'pointer',
+                }}
+              >
+                {opt.label}
+              </button>
+            );
+          })}
         </div>
 
 
@@ -310,11 +383,7 @@ function Home({ lists, viewCounts, voteData, extras, openList, onSubmit }) {
               color: COLORS.ink,
             }}
           >
-            {query || typeFilter !== 'all'
-              ? `${sorted.length} ${sorted.length === 1 ? 'list' : 'lists'}`
-              : sortBy === 'recent'
-              ? 'Ranked by most recent'
-              : 'Ranked by popularity'}
+            {headingLabel}
           </h2>
           <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
             <span
@@ -326,7 +395,7 @@ function Home({ lists, viewCounts, voteData, extras, openList, onSubmit }) {
                 color: COLORS.faded,
               }}
             >
-              most viewed first
+              {subhead}
             </span>
             <button
               onClick={onSubmit}
