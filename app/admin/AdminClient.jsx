@@ -2,7 +2,7 @@
 import React, { useState, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { Check, X, Eye, EyeOff, LogOut } from 'lucide-react';
+import { Check, X, Eye, EyeOff, LogOut, Pencil, Trash2 } from 'lucide-react';
 import { COLORS } from '@/lib/data';
 import Grain from '@/app/Grain';
 
@@ -15,9 +15,10 @@ function formatDate(iso) {
   }
 }
 
-export default function AdminClient({ initialLists }) {
+export default function AdminClient({ initialLists, initialExtras = [] }) {
   const router = useRouter();
   const [lists, setLists] = useState(initialLists);
+  const [extras, setExtras] = useState(initialExtras);
   const [tab, setTab] = useState('pending');
   const [busy, setBusy] = useState({});
 
@@ -27,6 +28,10 @@ export default function AdminClient({ initialLists }) {
 
   const pendingCount = useMemo(() => lists.filter((l) => !l.published).length, [lists]);
   const publishedCount = useMemo(() => lists.filter((l) => l.published).length, [lists]);
+  const extrasCount = useMemo(
+    () => extras.reduce((n, g) => n + g.items.length, 0),
+    [extras]
+  );
 
   async function doAction(id, endpoint, optimistic) {
     if (busy[id]) return;
@@ -57,6 +62,86 @@ export default function AdminClient({ initialLists }) {
   function reject(id) {
     if (!confirm('Delete this submission? This cannot be undone.')) return;
     doAction(id, '/api/admin/reject', (prev) => prev.filter((l) => l.id !== id));
+  }
+
+  // ----- Extras (user-submitted items inside curated lists) -----
+
+  async function renameExtra(listId, oldName, newName) {
+    const key = `extra:${listId}:${oldName}`;
+    if (busy[key]) return false;
+    const trimmed = (newName || '').trim();
+    if (!trimmed) return false;
+    if (trimmed === oldName) return true;
+
+    setBusy((b) => ({ ...b, [key]: true }));
+    const res = await fetch('/api/admin/extras/rename', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ listId, oldName, newName: trimmed }),
+    });
+    setBusy((b) => ({ ...b, [key]: false }));
+
+    if (!res.ok) {
+      alert('Rename failed. Please try again.');
+      return false;
+    }
+
+    // Update local state — merge if the new name already exists in the same list.
+    setExtras((prev) =>
+      prev
+        .map((group) => {
+          if (group.listId !== listId) return group;
+          const oldItem = group.items.find((i) => i.name === oldName);
+          const existing = group.items.find((i) => i.name === trimmed);
+          let items;
+          if (existing) {
+            items = group.items
+              .filter((i) => i.name !== oldName)
+              .map((i) =>
+                i.name === trimmed
+                  ? { ...i, score: (i.score || 0) + (oldItem?.score || 0) }
+                  : i
+              );
+          } else {
+            items = group.items.map((i) =>
+              i.name === oldName ? { ...i, name: trimmed } : i
+            );
+          }
+          return { ...group, items };
+        })
+        .filter((g) => g.items.length > 0)
+    );
+    return true;
+  }
+
+  async function deleteExtra(listId, itemName) {
+    if (!confirm(`Delete user-submitted item "${itemName}" from ${listId}? This also clears its votes.`)) {
+      return;
+    }
+    const key = `extra:${listId}:${itemName}`;
+    if (busy[key]) return;
+    setBusy((b) => ({ ...b, [key]: true }));
+    const res = await fetch('/api/admin/extras/delete', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ listId, itemName }),
+    });
+    setBusy((b) => ({ ...b, [key]: false }));
+
+    if (!res.ok) {
+      alert('Delete failed. Please try again.');
+      return;
+    }
+
+    setExtras((prev) =>
+      prev
+        .map((group) =>
+          group.listId === listId
+            ? { ...group, items: group.items.filter((i) => i.name !== itemName) }
+            : group
+        )
+        .filter((g) => g.items.length > 0)
+    );
   }
 
   async function logout() {
@@ -162,9 +247,19 @@ export default function AdminClient({ initialLists }) {
           <TabButton active={tab === 'published'} onClick={() => setTab('published')}>
             Published <span style={{ opacity: 0.6 }}>{publishedCount}</span>
           </TabButton>
+          <TabButton active={tab === 'extras'} onClick={() => setTab('extras')}>
+            By the people <span style={{ opacity: 0.6 }}>{extrasCount}</span>
+          </TabButton>
         </div>
 
-        {filtered.length === 0 ? (
+        {tab === 'extras' ? (
+          <ExtrasPanel
+            extras={extras}
+            busy={busy}
+            onRename={renameExtra}
+            onDelete={deleteExtra}
+          />
+        ) : filtered.length === 0 ? (
           <div
             style={{
               padding: '60px 20px',
@@ -417,4 +512,309 @@ function SubmissionCard({ list, busy, onApprove, onUnpublish, onReject }) {
       </div>
     </div>
   );
+}
+
+// ============================================================================
+// Extras panel — user-submitted items inside curated lists
+// ============================================================================
+
+function ExtrasPanel({ extras, busy, onRename, onDelete }) {
+  const [query, setQuery] = useState('');
+
+  const visibleGroups = useMemo(() => {
+    const q = query.trim().toLowerCase();
+    if (!q) return extras;
+    return extras
+      .map((group) => {
+        if (group.listId.toLowerCase().includes(q)) return group;
+        const items = group.items.filter((i) => i.name.toLowerCase().includes(q));
+        return items.length ? { ...group, items } : null;
+      })
+      .filter(Boolean);
+  }, [extras, query]);
+
+  if (extras.length === 0) {
+    return (
+      <div
+        style={{
+          padding: '60px 20px',
+          textAlign: 'center',
+          fontFamily: 'Fraunces, serif',
+          fontStyle: 'italic',
+          fontSize: 18,
+          color: COLORS.faded,
+          border: `1.5px dashed ${COLORS.ink}`,
+        }}
+      >
+        No reader-submitted items yet.
+      </div>
+    );
+  }
+
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+      <input
+        value={query}
+        onChange={(e) => setQuery(e.target.value)}
+        placeholder="Filter by list id or item name…"
+        style={{
+          width: '100%',
+          padding: '10px 12px',
+          background: COLORS.paper,
+          border: `1.5px solid ${COLORS.ink}`,
+          color: COLORS.ink,
+          fontFamily: 'DM Mono, monospace',
+          fontSize: 12,
+          outline: 'none',
+        }}
+      />
+
+      {visibleGroups.length === 0 ? (
+        <div
+          style={{
+            padding: '40px 20px',
+            textAlign: 'center',
+            fontFamily: 'Fraunces, serif',
+            fontStyle: 'italic',
+            fontSize: 16,
+            color: COLORS.faded,
+            border: `1.5px dashed ${COLORS.ink}`,
+          }}
+        >
+          No matches.
+        </div>
+      ) : (
+        visibleGroups.map((group) => (
+          <ExtrasGroup
+            key={group.listId}
+            group={group}
+            busy={busy}
+            onRename={onRename}
+            onDelete={onDelete}
+          />
+        ))
+      )}
+    </div>
+  );
+}
+
+function ExtrasGroup({ group, busy, onRename, onDelete }) {
+  return (
+    <div
+      style={{
+        background: COLORS.paper,
+        border: `1.5px solid ${COLORS.ink}`,
+        padding: 20,
+      }}
+    >
+      <div
+        style={{
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'flex-start',
+          gap: 12,
+          marginBottom: 16,
+          flexWrap: 'wrap',
+        }}
+      >
+        <div>
+          <div
+            style={{
+              fontFamily: 'DM Mono, monospace',
+              fontSize: 10,
+              letterSpacing: '0.2em',
+              textTransform: 'uppercase',
+              color: COLORS.faded,
+              marginBottom: 4,
+            }}
+          >
+            List
+          </div>
+          <h3
+            style={{
+              fontFamily: 'Fraunces, serif',
+              fontWeight: 700,
+              fontSize: 22,
+              lineHeight: 1.1,
+              margin: 0,
+              color: COLORS.ink,
+              letterSpacing: '-0.01em',
+            }}
+          >
+            {group.listId}
+          </h3>
+        </div>
+        <Link
+          href={`/list/${encodeURIComponent(group.listId)}`}
+          target="_blank"
+          style={{
+            fontFamily: 'DM Mono, monospace',
+            fontSize: 10,
+            letterSpacing: '0.18em',
+            textTransform: 'uppercase',
+            color: COLORS.ink,
+            border: `1.5px solid ${COLORS.ink}`,
+            padding: '6px 10px',
+            textDecoration: 'none',
+          }}
+        >
+          View →
+        </Link>
+      </div>
+
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+        {group.items.map((item) => (
+          <ExtraRow
+            key={item.name}
+            listId={group.listId}
+            item={item}
+            busy={!!busy[`extra:${group.listId}:${item.name}`]}
+            onRename={onRename}
+            onDelete={onDelete}
+          />
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function ExtraRow({ listId, item, busy, onRename, onDelete }) {
+  const [editing, setEditing] = useState(false);
+  const [draft, setDraft] = useState(item.name);
+
+  async function commit() {
+    const ok = await onRename(listId, item.name, draft);
+    if (ok) setEditing(false);
+  }
+
+  function cancel() {
+    setDraft(item.name);
+    setEditing(false);
+  }
+
+  return (
+    <div
+      style={{
+        display: 'flex',
+        alignItems: 'center',
+        gap: 10,
+        padding: '10px 12px',
+        background: COLORS.cream,
+        border: `1px solid ${COLORS.ink}`,
+        flexWrap: 'wrap',
+      }}
+    >
+      <div
+        style={{
+          minWidth: 44,
+          fontFamily: 'DM Mono, monospace',
+          fontSize: 11,
+          letterSpacing: '0.1em',
+          color: item.score >= 0 ? COLORS.forest : COLORS.ember,
+          fontWeight: 700,
+        }}
+      >
+        {item.score > 0 ? `+${item.score}` : item.score}
+      </div>
+
+      {editing ? (
+        <input
+          autoFocus
+          value={draft}
+          onChange={(e) => setDraft(e.target.value)}
+          onKeyDown={(e) => {
+            if (e.key === 'Enter') commit();
+            if (e.key === 'Escape') cancel();
+          }}
+          maxLength={100}
+          style={{
+            flex: 1,
+            minWidth: 200,
+            padding: '6px 8px',
+            border: `1.5px solid ${COLORS.ink}`,
+            background: COLORS.paper,
+            color: COLORS.ink,
+            fontFamily: 'Fraunces, serif',
+            fontSize: 16,
+            outline: 'none',
+          }}
+        />
+      ) : (
+        <div
+          style={{
+            flex: 1,
+            minWidth: 200,
+            fontFamily: 'Fraunces, serif',
+            fontSize: 16,
+            color: COLORS.ink,
+          }}
+        >
+          {item.name}
+        </div>
+      )}
+
+      {editing ? (
+        <>
+          <button
+            onClick={commit}
+            disabled={busy}
+            style={iconButton(COLORS.forest, COLORS.cream, busy)}
+            title="Save"
+          >
+            <Check size={12} strokeWidth={3} />
+            Save
+          </button>
+          <button
+            onClick={cancel}
+            disabled={busy}
+            style={iconButton('transparent', COLORS.ink, busy, COLORS.ink)}
+            title="Cancel"
+          >
+            <X size={12} strokeWidth={3} />
+            Cancel
+          </button>
+        </>
+      ) : (
+        <>
+          <button
+            onClick={() => setEditing(true)}
+            disabled={busy}
+            style={iconButton('transparent', COLORS.ink, busy, COLORS.ink)}
+            title="Rename"
+          >
+            <Pencil size={12} strokeWidth={2.5} />
+            Rename
+          </button>
+          <button
+            onClick={() => onDelete(listId, item.name)}
+            disabled={busy}
+            style={iconButton('transparent', COLORS.ember, busy, COLORS.ember)}
+            title="Delete"
+          >
+            <Trash2 size={12} strokeWidth={2.5} />
+            Delete
+          </button>
+        </>
+      )}
+    </div>
+  );
+}
+
+function iconButton(bg, color, busy, border) {
+  return {
+    background: bg,
+    color,
+    border: `1.5px solid ${border || color}`,
+    padding: '6px 10px',
+    fontFamily: 'DM Mono, monospace',
+    fontSize: 10,
+    letterSpacing: '0.16em',
+    textTransform: 'uppercase',
+    fontWeight: 600,
+    cursor: busy ? 'wait' : 'pointer',
+    opacity: busy ? 0.5 : 1,
+    display: 'flex',
+    alignItems: 'center',
+    gap: 6,
+  };
 }
