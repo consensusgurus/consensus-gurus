@@ -134,21 +134,34 @@ function ListDetail({ list, viewCount, voteData, userVotes, extras, relatedLists
     
     // Sort by votes descending, then by original order
     scored.sort((a, b) => b.score - a.score || a.origIdx - b.origIdx);
-    
-    // If no votes recorded, fall back to consensus ranking
+
+    // If no votes recorded, fall back to consensus ranking — but keep the
+    // full universe of items, not just the top-10 consensus list. Items in
+    // the consensus appear first in consensus order; the rest follow in
+    // their original appearance order.
     const hasAnyVotes = scored.some((s) => s.score !== 0);
     if (!hasAnyVotes && mode === 'both') {
       const consensusSource = getSources(list, voteData, extras).find((s) => s.id === 'consensus');
       if (consensusSource && consensusSource.items.length > 0) {
-        return consensusSource.items.map((item, idx) => ({
-          item,
-          score: 0,
-          origIdx: idx,
+        const consensusRank = {};
+        consensusSource.items.forEach((item, idx) => {
+          consensusRank[item.toLowerCase().trim()] = idx;
+        });
+        scored.sort((a, b) => {
+          const ra = consensusRank[a.item.toLowerCase().trim()];
+          const rb = consensusRank[b.item.toLowerCase().trim()];
+          if (ra !== undefined && rb !== undefined) return ra - rb;
+          if (ra !== undefined) return -1;
+          if (rb !== undefined) return 1;
+          return a.origIdx - b.origIdx;
+        });
+        return scored.map((entry, idx) => ({
+          ...entry,
           isTopTen: idx < 10,
         }));
       }
     }
-    
+
     return scored;
   }, [list, voteData, extras, showVoteTab, mode]);
 
