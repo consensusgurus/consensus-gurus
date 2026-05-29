@@ -35,7 +35,30 @@ export default function SnapshotClient({ listId }) {
     return [...userLists, ...LISTS].find((l) => l.id === listId);
   }, [userLists, listId]);
 
-  const sources = useMemo(() => (list ? getSources(list) : []), [list]);
+  const sources = useMemo(() => {
+    if (!list) return [];
+    // Facts lists: bare 'ai' ranking only (no extra chips).
+    if (list.mode === 'facts') {
+      const aiItems = list.sources?.ai?.items || [];
+      if (aiItems.length > 0) {
+        return [{ id: 'ai', label: list.sources?.ai?.label || 'Consensus AI', items: aiItems }];
+      }
+      return [];
+    }
+    // Scores lists: 'ai' composite ranking + platform chips (Google, Yelp), no voting.
+    if (list.mode === 'scores') {
+      const aiItems = list.sources?.ai?.items || [];
+      const publications = Object.entries(list.sources || {})
+        .filter(([id]) => id !== 'ai')
+        .map(([id, src]) => ({ id, label: src.label, items: src.items, url: src.url }));
+      const out = [];
+      if (aiItems.length > 0) {
+        out.push({ id: 'ai', label: list.sources?.ai?.label || 'Consensus AI', items: aiItems });
+      }
+      return [...out, ...publications];
+    }
+    return getSources(list);
+  }, [list]);
 
   const items = useMemo(() => {
     if (!list) return [];
@@ -165,8 +188,10 @@ export default function SnapshotClient({ listId }) {
       modeOptions.push({ id: s.id, label: s.label });
     }
   });
-  // Always offer reader votes
-  modeOptions.push({ id: 'vote', label: 'Reader Votes' });
+  // Offer reader votes (except facts/composite lists, which don't use voting)
+  if (list.mode !== 'facts' && list.mode !== 'scores') {
+    modeOptions.push({ id: 'vote', label: 'Reader Votes' });
+  }
 
   return (
     <div

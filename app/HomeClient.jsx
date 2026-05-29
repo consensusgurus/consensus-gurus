@@ -465,7 +465,7 @@ function Tile({ list, rank, views, voteData, extras, onClick, showConsensus }) {
 
   const preview = useMemo(() => {
     // For facts-only lists: always show from sources.ai
-    if (mode === 'facts') {
+    if (mode === 'facts' || mode === 'scores') {
       const items = list.sources?.ai?.items || [];
       return {
         label: 'Top of the list',

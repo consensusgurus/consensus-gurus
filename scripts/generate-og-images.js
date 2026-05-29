@@ -63,6 +63,11 @@ try {
 function computeConsensus(list) {
   const sources = list.sources || {};
   
+  // Facts/composite lists rank by the 'ai' composite seed, not Borda.
+  if (list.mode === 'facts' || list.mode === 'scores') {
+    return (sources.ai?.items || []).slice(0, 10);
+  }
+
   // Get all publications (exclude 'ai' source)
   const publications = Object.entries(sources)
     .filter(([id]) => id !== 'ai')

@@ -31,7 +31,7 @@ function getListTags(list) {
 function ListDetail({ list, viewCount, voteData, userVotes, extras, relatedLists, onBack, onVote, onAddExtra, onOpenRelated }) {
   const mode = list.mode || 'both';
   const showSourceTab = mode !== 'votes';
-  const showVoteTab = mode !== 'facts';
+  const showVoteTab = mode !== 'facts' && mode !== 'scores';
 
   const [tab, setTab] = useState(showSourceTab ? 'source' : 'vote');
   const [activeVoteSlot, setActiveVoteSlot] = useState(null);
@@ -45,17 +45,27 @@ function ListDetail({ list, viewCount, voteData, userVotes, extras, relatedLists
   const sources = useMemo(() => {
     if (!showSourceTab) return [];
     
-    // For facts-only lists: use the hardcoded 'ai' source directly
+    // Facts lists: bare ranking from the hardcoded 'ai' source, no other chips.
     if (mode === 'facts') {
       const aiItems = list.sources?.ai?.items || [];
       if (aiItems.length > 0) {
-        return [{
-          id: 'ai',
-          label: list.sources?.ai?.label || 'Consensus AI',
-          items: aiItems,
-        }];
+        return [{ id: 'ai', label: list.sources?.ai?.label || 'Consensus AI', items: aiItems }];
       }
       return [];
+    }
+
+    // Scores lists (e.g. chain rankings): the 'ai' composite ranking first, plus
+    // the raw platform sources (Google, Yelp) as informational chips. No voting.
+    if (mode === 'scores') {
+      const aiItems = list.sources?.ai?.items || [];
+      const publications = Object.entries(list.sources || {})
+        .filter(([id]) => id !== 'ai')
+        .map(([id, src]) => ({ id, label: src.label, items: src.items, url: src.url }));
+      const out = [];
+      if (aiItems.length > 0) {
+        out.push({ id: 'ai', label: list.sources?.ai?.label || 'Consensus AI', items: aiItems });
+      }
+      return [...out, ...publications];
     }
     
     // For 'both' mode lists: compute Consensus from publications
