@@ -14,8 +14,8 @@ export async function POST(request) {
     if (typeof itemName !== 'string' || !itemName.trim()) {
       return NextResponse.json({ error: 'itemName required' }, { status: 400 });
     }
-    if (typeof delta !== 'number' || !Number.isFinite(delta) || Math.abs(delta) > 2) {
-      return NextResponse.json({ error: 'delta must be -2..2' }, { status: 400 });
+    if (typeof delta !== 'number' || !Number.isFinite(delta) || Math.abs(delta) > 3) {
+      return NextResponse.json({ error: 'delta must be -3..3' }, { status: 400 });
     }
     if (listId.length > 100 || itemName.length > 100) {
       return NextResponse.json({ error: 'too long' }, { status: 400 });
