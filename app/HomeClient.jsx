@@ -226,8 +226,9 @@ function Home({ lists, viewCounts, voteData, extras, openList, onSubmit }) {
       </header>
 
       <section style={{ padding: '32px 16px 80px', maxWidth: 1200, margin: '0 auto' }}>
-        <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap', alignItems: 'stretch', marginBottom: 36 }}>
-          <div style={{ position: 'relative', flex: '3 1 240px', minWidth: 200 }}>
+        <style>{`.cg-controls{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:16px;margin-bottom:36px;}.cg-c-search{grid-column:span 2;}@media(max-width:607px){.cg-c-search{grid-column:span 1;}}`}</style>
+        <div className="cg-controls">
+          <div className="cg-c-search" style={{ position: 'relative', minWidth: 0 }}>
             <Search size={16} strokeWidth={2.5} style={{ position: 'absolute', left: 14, top: '50%', transform: 'translateY(-50%)', color: COLORS.faded }} />
             <input
               type="text"
@@ -243,7 +244,7 @@ function Home({ lists, viewCounts, voteData, extras, openList, onSubmit }) {
             )}
           </div>
 
-          <div style={{ position: 'relative', flex: '1 1 150px' }} onClick={(e) => e.stopPropagation()}>
+          <div style={{ position: 'relative', minWidth: 0 }} onClick={(e) => e.stopPropagation()}>
             <button onClick={() => { setCatOpen((o) => !o); setSortOpen(false); }} aria-haspopup="true" aria-expanded={catOpen} style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, background: 'transparent', color: COLORS.ink, border: `1.5px solid ${COLORS.ink}`, padding: '12px 14px', fontFamily: 'DM Mono, monospace', fontSize: 10, letterSpacing: '0.16em', textTransform: 'uppercase', fontWeight: 600, cursor: 'pointer', whiteSpace: 'nowrap' }}>
               <span><span style={{ opacity: 0.6 }}>Category:</span> {(visibleTypes.find((t) => t.id === typeFilter) || {}).label || 'All'}</span>
               <ChevronDown size={14} strokeWidth={2.5} style={{ transform: catOpen ? 'rotate(180deg)' : 'none', transition: 'transform 0.15s' }} />
@@ -263,7 +264,7 @@ function Home({ lists, viewCounts, voteData, extras, openList, onSubmit }) {
             )}
           </div>
 
-          <div style={{ position: 'relative', flex: '1 1 150px' }} onClick={(e) => e.stopPropagation()}>
+          <div style={{ position: 'relative', minWidth: 0 }} onClick={(e) => e.stopPropagation()}>
             <button onClick={() => { setSortOpen((o) => !o); setCatOpen(false); }} aria-haspopup="true" aria-expanded={sortOpen} style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, background: 'transparent', color: COLORS.ink, border: `1.5px solid ${COLORS.ink}`, padding: '12px 14px', fontFamily: 'DM Mono, monospace', fontSize: 10, letterSpacing: '0.16em', textTransform: 'uppercase', fontWeight: 600, cursor: 'pointer', whiteSpace: 'nowrap' }}>
               <span><span style={{ opacity: 0.6 }}>Sort:</span> {(sortButtons.find((o) => o.id === sortBy) || {}).label || 'Discover'}</span>
               <ChevronDown size={14} strokeWidth={2.5} style={{ transform: sortOpen ? 'rotate(180deg)' : 'none', transition: 'transform 0.15s' }} />
