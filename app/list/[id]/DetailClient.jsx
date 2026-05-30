@@ -1259,7 +1259,8 @@ function ItemLink({ list, item, children, style }) {
 }
 
 function DataRow({ rank, item, list, unranked }) {
-  const isTop = rank === 1 && !unranked;
+  // Numbering is forced on for unranked lists too (gold/silver/bronze handled on the homepage tiles).
+  const isTop = rank === 1;
   const showFullSize = rank <= 10;
   return (
     <li
@@ -1276,15 +1277,15 @@ function DataRow({ rank, item, list, unranked }) {
         style={{
           fontFamily: 'Fraunces, serif',
           fontWeight: 900,
-          fontSize: unranked ? 30 : isTop ? 64 : showFullSize ? 44 : 32,
+          fontSize: isTop ? 64 : showFullSize ? 44 : 32,
           lineHeight: 0.85,
-          color: unranked ? COLORS.ember : isTop ? COLORS.ember : rank > 10 ? COLORS.faded : COLORS.ink,
-          minWidth: unranked ? 30 : 70,
+          color: isTop ? COLORS.ember : rank > 10 ? COLORS.faded : COLORS.ink,
+          minWidth: 70,
           fontVariationSettings: '"SOFT" 100, "WONK" 1',
           fontFeatureSettings: '"lnum" 1',
         }}
       >
-        {unranked ? '\u2022' : String(rank).padStart(2, '0')}
+        {String(rank).padStart(2, '0')}
       </span>
       <ItemLink
         list={list}

@@ -503,10 +503,10 @@ function Tile({ list, rank, views, voteData, extras, onClick, showConsensus }) {
                   gap: 8,
                   padding: '4px 0',
                   borderBottom: i < 2 ? `1px dashed ${hover ? COLORS.cream : COLORS.faded}` : 'none',
-                  opacity: i === 0 ? 1 : 0.75,
+                  opacity: 1,
                 }}
               >
-                {i < 3 && list.mode !== 'unranked' ? (
+                {i < 3 ? (
                   <span
                     style={{
                       position: 'relative',
