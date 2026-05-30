@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useRef, useMemo, useEffect } from 'react';
+import { useState, useRef, useMemo, useEffect, forwardRef } from 'react';
 import Link from 'next/link';
 import { ArrowLeft, Search, X, Download, Plus } from 'lucide-react';
 import { COLORS } from '@/lib/data';
@@ -55,15 +55,22 @@ const FORMATS = [
   { key: '4 × 3', cols: 4, rows: 3 },
 ];
 
+// The board is always rendered at this fixed pixel width and captured at that
+// size, then scaled down for on-screen preview. This is what makes the export
+// produce a correct-ratio image on every device — including iOS Safari, where
+// capturing a viewport-sized (responsive) node fails.
+const BOARD_W = 1080;
+
 export default function CreateClient({ lists }) {
   const [format, setFormat] = useState(FORMATS[0]);
   const [tiles, setTiles] = useState(() => Array(4).fill(null));
   const [title, setTitle] = useState('');
-  const [pickIndex, setPickIndex] = useState(null);
   const [query, setQuery] = useState('');
   const [downloading, setDownloading] = useState(false);
   const [voteData, setVoteData] = useState({});
   const [extrasMap, setExtrasMap] = useState({});
+  const [scale, setScale] = useState(0.33);
+  const [boardH, setBoardH] = useState(760);
   const boardRef = useRef(null);
 
   useEffect(() => {
@@ -75,6 +82,23 @@ export default function CreateClient({ lists }) {
     });
   }, []);
 
+  // Fit the fixed-width board to the screen (never upscale past 1:1).
+  useEffect(() => {
+    function fit() {
+      const avail = Math.min(window.innerWidth - 36, BOARD_W);
+      setScale(avail / BOARD_W);
+    }
+    fit();
+    window.addEventListener('resize', fit);
+    return () => window.removeEventListener('resize', fit);
+  }, []);
+
+  // Measure the board's natural height so the scaled preview reserves the
+  // right space and the export captures the full board.
+  useEffect(() => {
+    if (boardRef.current) setBoardH(boardRef.current.offsetHeight);
+  }, [tiles, format, title, voteData, extrasMap, scale]);
+
   function chooseFormat(f) {
     setFormat(f);
     setTiles((prev) => {
@@ -84,60 +108,63 @@ export default function CreateClient({ lists }) {
     });
   }
 
-  function openPicker(i) {
-    setPickIndex(i);
+  // Order-based selection: each pick drops into the next open tile.
+  function addList(list) {
+    setTiles((prev) => {
+      const i = prev.indexOf(null);
+      if (i === -1) return prev;
+      const n = [...prev];
+      n[i] = list;
+      return n;
+    });
     setQuery('');
   }
 
-  function pick(list) {
+  function removeSlot(i) {
     setTiles((prev) => {
       const n = [...prev];
-      n[pickIndex] = list;
+      n[i] = null;
       return n;
     });
-    setPickIndex(null);
-  }
-
-  function clearTile() {
-    setTiles((prev) => {
-      const n = [...prev];
-      n[pickIndex] = null;
-      return n;
-    });
-    setPickIndex(null);
   }
 
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase();
-    if (!q) return lists;
-    return lists.filter((l) => `${l.title} ${l.category}`.toLowerCase().includes(q));
+    if (!q) return [];
+    return lists.filter((l) => `${l.title} ${l.category}`.toLowerCase().includes(q)).slice(0, 40);
   }, [query, lists]);
 
   async function download() {
     if (!boardRef.current) return;
     setDownloading(true);
     try {
+      // Make sure web fonts are ready before snapshotting (iOS otherwise
+      // captures a blank/fallback-font board).
+      if (typeof document !== 'undefined' && document.fonts && document.fonts.ready) {
+        try { await document.fonts.ready; } catch (e) { /* ignore */ }
+      }
       const { toPng } = await import('html-to-image');
-      const dataUrl = await toPng(boardRef.current, {
-        cacheBust: true,
-        pixelRatio: 2,
-        backgroundColor: COLORS.cream,
-      });
+      const h = boardRef.current.offsetHeight;
+      const opts = { cacheBust: true, pixelRatio: 2, width: BOARD_W, height: h, backgroundColor: COLORS.cream };
+      // First pass warms Safari's image/font cache; the second is reliable.
+      await toPng(boardRef.current, opts);
+      const dataUrl = await toPng(boardRef.current, opts);
       const link = document.createElement('a');
       link.download = 'consensus-gurus-grid.png';
       link.href = dataUrl;
       link.click();
     } catch (e) {
       console.error('Download failed', e);
-      alert('Could not generate image. Try a different browser or take a screenshot instead.');
+      alert('Could not generate image. Try again, or take a screenshot of the preview instead.');
     }
     setDownloading(false);
   }
 
   const filledCount = tiles.filter(Boolean).length;
+  const gridFull = filledCount === tiles.length;
 
   return (
-    <div style={{ position: 'relative', zIndex: 2, maxWidth: 1040, margin: '0 auto', padding: '28px 16px 80px' }}>
+    <div style={{ position: 'relative', zIndex: 2, maxWidth: 720, margin: '0 auto', padding: '28px 16px 80px' }}>
       <Link
         href="/"
         style={{
@@ -160,7 +187,7 @@ export default function CreateClient({ lists }) {
         style={{
           fontFamily: 'Fraunces, serif',
           fontWeight: 900,
-          fontSize: 40,
+          fontSize: 38,
           lineHeight: 1,
           letterSpacing: '-0.02em',
           margin: '0 0 8px',
@@ -170,14 +197,12 @@ export default function CreateClient({ lists }) {
         Create Your Own Grid
       </h1>
       <p style={{ fontFamily: 'DM Sans, sans-serif', fontSize: 15, color: COLORS.faded, margin: '0 0 28px', maxWidth: 560 }}>
-        Pick a format, tap a tile to drop in a list, add a title if you like, then download a clean image to share.
+        Pick a format, add lists in order to fill the tiles, drop in a title if you like, then download a clean image to share.
       </p>
 
-      {/* Format chips */}
-      <div style={{ fontFamily: 'DM Mono, monospace', fontSize: 10, letterSpacing: '0.2em', textTransform: 'uppercase', color: COLORS.faded, marginBottom: 8 }}>
-        Format
-      </div>
-      <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap', marginBottom: 24 }}>
+      {/* Step 1 — format */}
+      <SectionLabel>1 · Format</SectionLabel>
+      <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap', marginBottom: 28 }}>
         {FORMATS.map((f) => {
           const active = f.key === format.key;
           return (
@@ -202,10 +227,8 @@ export default function CreateClient({ lists }) {
         })}
       </div>
 
-      {/* Optional title */}
-      <div style={{ fontFamily: 'DM Mono, monospace', fontSize: 10, letterSpacing: '0.2em', textTransform: 'uppercase', color: COLORS.faded, marginBottom: 8 }}>
-        Title (optional)
-      </div>
+      {/* Step 2 — title */}
+      <SectionLabel>2 · Title (optional)</SectionLabel>
       <input
         type="text"
         value={title}
@@ -227,19 +250,159 @@ export default function CreateClient({ lists }) {
         }}
       />
 
-      {/* The board (exported) — subtle header, homepage-style tiles */}
-      <div ref={boardRef} style={{ background: COLORS.cream, border: `2px solid ${COLORS.ink}`, padding: 26, marginBottom: 22 }}>
+      {/* Step 3 — add lists in order */}
+      <SectionLabel>3 · Add lists ({filledCount} of {tiles.length})</SectionLabel>
+      {gridFull ? (
+        <div style={{ padding: '14px 16px', border: `1.5px dashed ${COLORS.faded}`, marginBottom: 16, fontFamily: 'DM Sans, sans-serif', fontSize: 14, color: COLORS.faded }}>
+          All {tiles.length} tiles are filled. Remove one below to swap in a different list.
+        </div>
+      ) : (
+        <>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '13px 16px', background: COLORS.paper, border: `1.5px solid ${COLORS.ink}`, marginBottom: filtered.length ? 0 : 16 }}>
+            <Search size={16} strokeWidth={2.5} style={{ color: COLORS.faded, flex: '0 0 auto' }} />
+            <input
+              type="text"
+              value={query}
+              onChange={(e) => setQuery(e.target.value)}
+              placeholder={`Search lists to fill tile ${filledCount + 1}…`}
+              style={{ flex: 1, minWidth: 0, border: 'none', background: 'transparent', outline: 'none', fontFamily: 'DM Sans, sans-serif', fontSize: 16, color: COLORS.ink }}
+            />
+            {query && (
+              <button onClick={() => setQuery('')} style={{ cursor: 'pointer', background: 'transparent', border: 'none', color: COLORS.faded, display: 'flex', flex: '0 0 auto' }}>
+                <X size={18} strokeWidth={2.5} />
+              </button>
+            )}
+          </div>
+          {filtered.length > 0 && (
+            <div style={{ border: `1.5px solid ${COLORS.ink}`, borderTop: 'none', maxHeight: 320, overflowY: 'auto', marginBottom: 16 }}>
+              {filtered.map((l) => (
+                <button
+                  key={l.id}
+                  onClick={() => addList(l)}
+                  style={{
+                    width: '100%',
+                    textAlign: 'left',
+                    cursor: 'pointer',
+                    padding: '12px 16px',
+                    background: 'transparent',
+                    border: 'none',
+                    borderBottom: `1px solid rgba(122,111,94,0.2)`,
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: 12,
+                  }}
+                >
+                  <Plus size={16} strokeWidth={2.5} style={{ color: COLORS.ember, flex: '0 0 auto' }} />
+                  <span style={{ display: 'flex', flexDirection: 'column', gap: 3, minWidth: 0 }}>
+                    <span style={{ fontFamily: 'DM Mono, monospace', fontSize: 9, letterSpacing: '0.18em', textTransform: 'uppercase', color: COLORS.faded }}>{l.category}</span>
+                    <span style={{ fontFamily: 'Fraunces, serif', fontWeight: 600, fontSize: 17, fontVariationSettings: '"SOFT" 100' }}>{l.title}</span>
+                  </span>
+                </button>
+              ))}
+            </div>
+          )}
+        </>
+      )}
+
+      {/* Ordered slots — tap the × to clear and re-fill in order */}
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 8, marginBottom: 32 }}>
+        {tiles.map((t, i) => (
+          <div
+            key={i}
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: 12,
+              padding: '11px 14px',
+              border: t ? `1.5px solid ${COLORS.ink}` : `1.5px dashed ${COLORS.faded}`,
+              background: t ? COLORS.paper : 'transparent',
+            }}
+          >
+            <span style={{ fontFamily: 'Fraunces, serif', fontWeight: 700, fontSize: 16, width: 22, flex: '0 0 auto', color: t ? COLORS.ink : COLORS.faded }}>{i + 1}</span>
+            {t ? (
+              <>
+                <span style={{ flex: 1, minWidth: 0, fontFamily: 'Fraunces, serif', fontWeight: 600, fontSize: 16, fontVariationSettings: '"SOFT" 100', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{t.title}</span>
+                <button onClick={() => removeSlot(i)} aria-label="Remove" style={{ cursor: 'pointer', background: 'transparent', border: 'none', color: COLORS.faded, display: 'flex', flex: '0 0 auto' }}>
+                  <X size={18} strokeWidth={2.5} />
+                </button>
+              </>
+            ) : (
+              <span style={{ flex: 1, fontFamily: 'DM Mono, monospace', fontSize: 11, letterSpacing: '0.14em', textTransform: 'uppercase', color: COLORS.faded }}>Open tile</span>
+            )}
+          </div>
+        ))}
+      </div>
+
+      {/* Step 4 — preview + export */}
+      <SectionLabel>4 · Preview</SectionLabel>
+      <div style={{ display: 'flex', justifyContent: 'center', overflow: 'hidden', marginBottom: 14 }}>
+        <div style={{ width: BOARD_W * scale, height: boardH * scale, position: 'relative', overflow: 'hidden', pointerEvents: 'none' }}>
+          <div style={{ transform: `scale(${scale})`, transformOrigin: 'top left', position: 'absolute', top: 0, left: 0, width: BOARD_W }}>
+            <Board ref={boardRef} tiles={tiles} format={format} title={title} voteData={voteData} extrasMap={extrasMap} />
+          </div>
+        </div>
+      </div>
+      <p style={{ textAlign: 'center', fontFamily: 'DM Mono, monospace', fontSize: 10, letterSpacing: '0.18em', textTransform: 'uppercase', color: COLORS.faded, margin: '0 0 22px' }}>
+        {BOARD_W} × {Math.round(boardH)} · share-ready PNG
+      </p>
+
+      <div style={{ display: 'flex', alignItems: 'center', gap: 14, flexWrap: 'wrap' }}>
+        <button
+          onClick={download}
+          disabled={downloading || filledCount === 0}
+          style={{
+            cursor: filledCount === 0 ? 'not-allowed' : 'pointer',
+            display: 'inline-flex',
+            alignItems: 'center',
+            gap: 10,
+            fontFamily: 'DM Mono, monospace',
+            fontSize: 13,
+            letterSpacing: '0.14em',
+            textTransform: 'uppercase',
+            padding: '15px 26px',
+            border: `1.5px solid ${COLORS.ink}`,
+            background: filledCount === 0 ? 'transparent' : COLORS.ink,
+            color: filledCount === 0 ? COLORS.faded : COLORS.cream,
+            boxShadow: filledCount === 0 ? 'none' : `3px 3px 0 ${COLORS.ember}`,
+            opacity: downloading ? 0.6 : 1,
+          }}
+        >
+          <Download size={16} strokeWidth={2.5} />
+          {downloading ? 'Generating…' : 'Download image'}
+        </button>
+        <span style={{ fontFamily: 'DM Sans, sans-serif', fontSize: 13, color: COLORS.faded }}>
+          On a phone, press and hold the saved image to share it.
+        </span>
+      </div>
+    </div>
+  );
+}
+
+function SectionLabel({ children }) {
+  return (
+    <div style={{ fontFamily: 'DM Mono, monospace', fontSize: 10, letterSpacing: '0.2em', textTransform: 'uppercase', color: COLORS.faded, marginBottom: 10 }}>
+      {children}
+    </div>
+  );
+}
+
+// Fixed-width export board — homepage-style tiles, subtle header, scaled down
+// for display but captured at full BOARD_W for a crisp, correctly-proportioned
+// share image.
+const Board = forwardRef(function Board({ tiles, format, title, voteData, extrasMap }, ref) {
+  return (
+      <div ref={ref} style={{ width: BOARD_W, boxSizing: 'border-box', background: COLORS.cream, border: `3px solid ${COLORS.ink}`, padding: 44 }}>
         <div
           style={{
             display: 'grid',
             gridTemplateColumns: '1fr auto 1fr',
             alignItems: 'baseline',
-            gap: 12,
-            borderBottom: `1.5px solid ${COLORS.ink}`,
-            paddingBottom: 12,
-            marginBottom: 18,
+            gap: 16,
+            borderBottom: `2px solid ${COLORS.ink}`,
+            paddingBottom: 20,
+            marginBottom: 28,
             fontFamily: 'DM Mono, monospace',
-            fontSize: 10,
+            fontSize: 16,
             letterSpacing: '0.2em',
             textTransform: 'uppercase',
             color: COLORS.faded,
@@ -252,7 +415,7 @@ export default function CreateClient({ lists }) {
               whiteSpace: 'nowrap',
               fontFamily: 'Fraunces, serif',
               fontWeight: 900,
-              fontSize: 20,
+              fontSize: 34,
               lineHeight: 1,
               letterSpacing: '-0.01em',
               textTransform: 'none',
@@ -265,192 +428,64 @@ export default function CreateClient({ lists }) {
           <span style={{ textAlign: 'right' }}>Where Experts Agree</span>
         </div>
 
-        <div style={{ display: 'grid', gridTemplateColumns: `repeat(${format.cols}, minmax(0, 1fr))`, gap: 16, alignItems: 'stretch' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: `repeat(${format.cols}, minmax(0, 1fr))`, gap: 22, alignItems: 'stretch' }}>
           {tiles.map((t, i) => {
             const pv = t ? previewFor(t, voteData, extrasMap[t.id] || []) : null;
             return (
-            <button
-              key={i}
-              onClick={() => openPicker(i)}
-              style={{
-                cursor: 'pointer',
-                textAlign: 'left',
-                fontFamily: 'inherit',
-                boxSizing: 'border-box',
-                height: '100%',
-                minWidth: 0,
-                minHeight: 196,
-                background: t ? COLORS.paper : 'transparent',
-                color: COLORS.ink,
-                border: t ? `1.5px solid ${COLORS.ink}` : `1.5px dashed ${COLORS.faded}`,
-                padding: 20,
-                position: 'relative',
-                display: 'flex',
-                flexDirection: 'column',
-                justifyContent: t ? 'flex-start' : 'center',
-                alignItems: t ? 'stretch' : 'center',
-              }}
-            >
-              {t ? (
-                <>
-                  <div style={{ marginBottom: 14 }}>
-                    <span style={{ fontFamily: 'DM Mono, monospace', fontSize: 10, letterSpacing: '0.2em', textTransform: 'uppercase', opacity: 0.75 }}>{t.category}</span>
-                  </div>
-                  <h3 style={{ fontFamily: 'Fraunces, serif', fontWeight: 700, fontSize: 24, lineHeight: 1.05, letterSpacing: '-0.02em', margin: '0 0 14px', fontVariationSettings: '"SOFT" 100' }}>{t.title}</h3>
-                  <div style={{ fontFamily: 'DM Mono, monospace', fontSize: 10, letterSpacing: '0.15em', textTransform: 'uppercase', opacity: 0.6, marginBottom: 8 }}>{pv.label}</div>
-                  <ol style={{ margin: 0, padding: 0, listStyle: 'none', fontFamily: 'DM Sans, sans-serif', fontSize: 14 }}>
-                    {pv.items.map((it, idx) => (
-                      <li key={idx} style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '4px 0', borderBottom: idx < 2 ? `1px dashed ${COLORS.faded}` : 'none' }}>
-                        {idx < 3 ? (
-                          <span style={{ position: 'relative', width: 22, height: 22, flex: '0 0 auto', display: 'inline-flex', alignItems: 'center', justifyContent: 'center' }}>
-                            <span style={{ position: 'absolute', inset: 0, borderRadius: '50%', background: RANK_MEDALS[idx].fill, opacity: 0.3 }} />
-                            <span style={{ position: 'relative', fontFamily: 'Fraunces, serif', fontWeight: 600, fontSize: 13, color: RANK_MEDALS[idx].num }}>{idx + 1}</span>
-                          </span>
-                        ) : (
-                          <span style={{ fontFamily: 'Fraunces, serif', fontWeight: 600, width: 16, color: COLORS.faded }}>{idx + 1}</span>
-                        )}
-                        <span style={{ flex: 1, minWidth: 0 }}>{it}</span>
-                      </li>
-                    ))}
-                  </ol>
-                </>
-              ) : (
-                <span style={{ display: 'inline-flex', flexDirection: 'column', alignItems: 'center', gap: 6, color: COLORS.faded, fontFamily: 'DM Mono, monospace', fontSize: 11, letterSpacing: '0.14em', textTransform: 'uppercase' }}>
-                  <Plus size={20} strokeWidth={2} />
-                  Add list
-                </span>
-              )}
-            </button>
+              <div
+                key={i}
+                style={{
+                  boxSizing: 'border-box',
+                  height: '100%',
+                  minWidth: 0,
+                  minHeight: 230,
+                  background: t ? COLORS.paper : 'transparent',
+                  color: COLORS.ink,
+                  border: t ? `2px solid ${COLORS.ink}` : `2px dashed ${COLORS.faded}`,
+                  padding: 26,
+                  display: 'flex',
+                  flexDirection: 'column',
+                  justifyContent: t ? 'flex-start' : 'center',
+                  alignItems: t ? 'stretch' : 'center',
+                }}
+              >
+                {t ? (
+                  <>
+                    <div style={{ marginBottom: 16 }}>
+                      <span style={{ fontFamily: 'DM Mono, monospace', fontSize: 15, letterSpacing: '0.2em', textTransform: 'uppercase', opacity: 0.75 }}>{t.category}</span>
+                    </div>
+                    <h3 style={{ fontFamily: 'Fraunces, serif', fontWeight: 700, fontSize: 28, lineHeight: 1.05, letterSpacing: '-0.02em', margin: '0 0 16px', fontVariationSettings: '"SOFT" 100' }}>{t.title}</h3>
+                    <div style={{ fontFamily: 'DM Mono, monospace', fontSize: 13, letterSpacing: '0.15em', textTransform: 'uppercase', opacity: 0.6, marginBottom: 10 }}>{pv.label}</div>
+                    <ol style={{ margin: 0, padding: 0, listStyle: 'none', fontFamily: 'DM Sans, sans-serif', fontSize: 19 }}>
+                      {pv.items.map((it, idx) => (
+                        <li key={idx} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '7px 0', borderBottom: idx < 2 ? `1px dashed ${COLORS.faded}` : 'none' }}>
+                          {idx < 3 ? (
+                            <span style={{ position: 'relative', width: 30, height: 30, flex: '0 0 auto', display: 'inline-flex', alignItems: 'center', justifyContent: 'center' }}>
+                              <span style={{ position: 'absolute', inset: 0, borderRadius: '50%', background: RANK_MEDALS[idx].fill, opacity: 0.3 }} />
+                              <span style={{ position: 'relative', fontFamily: 'Fraunces, serif', fontWeight: 600, fontSize: 17, color: RANK_MEDALS[idx].num }}>{idx + 1}</span>
+                            </span>
+                          ) : (
+                            <span style={{ fontFamily: 'Fraunces, serif', fontWeight: 600, width: 22, color: COLORS.faded }}>{idx + 1}</span>
+                          )}
+                          <span style={{ flex: 1, minWidth: 0 }}>{it}</span>
+                        </li>
+                      ))}
+                    </ol>
+                  </>
+                ) : (
+                  <span style={{ display: 'inline-flex', flexDirection: 'column', alignItems: 'center', gap: 8, color: COLORS.faded, fontFamily: 'DM Mono, monospace', fontSize: 15, letterSpacing: '0.14em', textTransform: 'uppercase' }}>
+                    <Plus size={28} strokeWidth={2} />
+                    Tile {i + 1}
+                  </span>
+                )}
+              </div>
             );
           })}
         </div>
 
-        <div style={{ textAlign: 'center', marginTop: 20, fontFamily: 'DM Mono, monospace', fontSize: 10, letterSpacing: '0.2em', textTransform: 'uppercase', color: COLORS.faded }}>
+        <div style={{ textAlign: 'center', marginTop: 28, fontFamily: 'DM Mono, monospace', fontSize: 14, letterSpacing: '0.2em', textTransform: 'uppercase', color: COLORS.faded }}>
           consensusgurus.com
         </div>
       </div>
-
-      {/* Download */}
-      <button
-        onClick={download}
-        disabled={downloading || filledCount === 0}
-        style={{
-          cursor: filledCount === 0 ? 'not-allowed' : 'pointer',
-          display: 'inline-flex',
-          alignItems: 'center',
-          gap: 10,
-          fontFamily: 'DM Mono, monospace',
-          fontSize: 13,
-          letterSpacing: '0.14em',
-          textTransform: 'uppercase',
-          padding: '15px 26px',
-          border: `1.5px solid ${COLORS.ink}`,
-          background: filledCount === 0 ? 'transparent' : COLORS.ink,
-          color: filledCount === 0 ? COLORS.faded : COLORS.cream,
-          opacity: downloading ? 0.6 : 1,
-        }}
-      >
-        <Download size={16} strokeWidth={2.5} />
-        {downloading ? 'Generating…' : 'Download image'}
-      </button>
-      <span style={{ marginLeft: 14, fontFamily: 'DM Sans, sans-serif', fontSize: 13, color: COLORS.faded }}>
-        {filledCount} of {tiles.length} tiles filled
-      </span>
-
-      {/* Picker overlay */}
-      {pickIndex !== null && (
-        <div
-          onClick={() => setPickIndex(null)}
-          style={{
-            position: 'fixed',
-            inset: 0,
-            zIndex: 50,
-            background: 'rgba(26,22,17,0.55)',
-            display: 'flex',
-            alignItems: 'flex-start',
-            justifyContent: 'center',
-            padding: '6vh 16px',
-          }}
-        >
-          <div
-            onClick={(e) => e.stopPropagation()}
-            style={{
-              width: '100%',
-              maxWidth: 560,
-              maxHeight: '84vh',
-              display: 'flex',
-              flexDirection: 'column',
-              background: COLORS.cream,
-              border: `2px solid ${COLORS.ink}`,
-            }}
-          >
-            <div style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '14px 16px', borderBottom: `1.5px solid ${COLORS.ink}` }}>
-              <Search size={16} strokeWidth={2.5} style={{ color: COLORS.faded }} />
-              <input
-                autoFocus
-                type="text"
-                value={query}
-                onChange={(e) => setQuery(e.target.value)}
-                placeholder="Search lists…"
-                style={{ flex: 1, border: 'none', background: 'transparent', outline: 'none', fontFamily: 'DM Sans, sans-serif', fontSize: 16, color: COLORS.ink }}
-              />
-              <button onClick={() => setPickIndex(null)} style={{ cursor: 'pointer', background: 'transparent', border: 'none', color: COLORS.ink, display: 'flex' }}>
-                <X size={20} strokeWidth={2.5} />
-              </button>
-            </div>
-
-            <div style={{ overflowY: 'auto' }}>
-              {tiles[pickIndex] && (
-                <button
-                  onClick={clearTile}
-                  style={{
-                    width: '100%',
-                    textAlign: 'left',
-                    cursor: 'pointer',
-                    padding: '12px 16px',
-                    background: 'transparent',
-                    border: 'none',
-                    borderBottom: `1px dashed ${COLORS.faded}`,
-                    fontFamily: 'DM Mono, monospace',
-                    fontSize: 11,
-                    letterSpacing: '0.14em',
-                    textTransform: 'uppercase',
-                    color: COLORS.ember,
-                  }}
-                >
-                  Remove from grid
-                </button>
-              )}
-              {filtered.map((l) => (
-                <button
-                  key={l.id}
-                  onClick={() => pick(l)}
-                  style={{
-                    width: '100%',
-                    textAlign: 'left',
-                    cursor: 'pointer',
-                    padding: '12px 16px',
-                    background: 'transparent',
-                    border: 'none',
-                    borderBottom: `1px solid rgba(122,111,94,0.2)`,
-                    display: 'flex',
-                    flexDirection: 'column',
-                    gap: 3,
-                  }}
-                >
-                  <span style={{ fontFamily: 'DM Mono, monospace', fontSize: 9, letterSpacing: '0.18em', textTransform: 'uppercase', color: COLORS.faded }}>{l.category}</span>
-                  <span style={{ fontFamily: 'Fraunces, serif', fontWeight: 600, fontSize: 17, fontVariationSettings: '"SOFT" 100' }}>{l.title}</span>
-                </button>
-              ))}
-              {filtered.length === 0 && (
-                <div style={{ padding: '24px 16px', textAlign: 'center', fontFamily: 'DM Sans, sans-serif', fontSize: 14, color: COLORS.faded }}>
-                  No lists match “{query}”.
-                </div>
-              )}
-            </div>
-          </div>
-        </div>
-      )}
-    </div>
   );
-}
+});
