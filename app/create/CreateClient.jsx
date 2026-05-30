@@ -18,6 +18,7 @@ const FORMATS = [
   { key: '3 × 2', cols: 3, rows: 2 },
   { key: '3 × 3', cols: 3, rows: 3 },
   { key: '3 × 4', cols: 3, rows: 4 },
+  { key: '4 × 3', cols: 4, rows: 3 },
 ];
 
 export default function CreateClient({ lists }) {
@@ -249,7 +250,7 @@ export default function CreateClient({ lists }) {
                     <span style={{ fontFamily: 'DM Mono, monospace', fontSize: 10, letterSpacing: '0.2em', textTransform: 'uppercase', opacity: 0.75 }}>{t.category}</span>
                   </div>
                   <h3 style={{ fontFamily: 'Fraunces, serif', fontWeight: 700, fontSize: 24, lineHeight: 1.05, letterSpacing: '-0.02em', margin: '0 0 14px', fontVariationSettings: '"SOFT" 100' }}>{t.title}</h3>
-                  <div style={{ fontFamily: 'DM Mono, monospace', fontSize: 10, letterSpacing: '0.15em', textTransform: 'uppercase', opacity: 0.6, marginBottom: 8 }}>Current Consensus</div>
+                  <div style={{ fontFamily: 'DM Mono, monospace', fontSize: 10, letterSpacing: '0.15em', textTransform: 'uppercase', opacity: 0.6, marginBottom: 8 }}>{t.label || 'Current Consensus'}</div>
                   <ol style={{ margin: 0, padding: 0, listStyle: 'none', fontFamily: 'DM Sans, sans-serif', fontSize: 14 }}>
                     {t.items.map((it, idx) => (
                       <li key={idx} style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '4px 0', borderBottom: idx < 2 ? `1px dashed ${COLORS.faded}` : 'none' }}>

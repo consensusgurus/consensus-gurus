@@ -39,6 +39,10 @@ function ListDetail({ list, viewCount, voteData, userVotes, extras, relatedLists
   const [userCurrentVote, setUserCurrentVote] = useState({ 1: null, 2: null, 3: null });
   const [hasVoted, setHasVoted] = useState(false);
   const [voteMessage, setVoteMessage] = useState('');
+  const [complainOpen, setComplainOpen] = useState(false);
+  const [complainMsg, setComplainMsg] = useState('');
+  const [complainSent, setComplainSent] = useState(false);
+  const [complainBusy, setComplainBusy] = useState(false);
 
   // Sources now factor in live vote data so the Consensus chip stays accurate
   // as people vote in real time. For facts-only lists, use the hardcoded ai source.
@@ -237,6 +241,22 @@ function ListDetail({ list, viewCount, voteData, userVotes, extras, relatedLists
     setActiveVoteSlot(null);
   }
 
+  async function submitComplaint() {
+    if (complainBusy) return;
+    setComplainBusy(true);
+    try {
+      await fetch('/api/complaints', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ listId: list.id, listTitle: list.title, message: complainMsg.trim() }),
+      });
+    } catch (e) {
+      // swallow — we still acknowledge the request to the reader
+    }
+    setComplainSent(true);
+    setComplainBusy(false);
+  }
+
   function submitVote() {
     // Only submit if at least one slot is filled
     const filledSlots = [voteSelections[1], voteSelections[2], voteSelections[3]].filter(Boolean);
@@ -272,8 +292,6 @@ function ListDetail({ list, viewCount, voteData, userVotes, extras, relatedLists
     setActiveVoteSlot(null);
     setVoteMessage('Vote submitted! You can view the updated rankings on this page.');
   }
-
-  const showBothTabs = showSourceTab && showVoteTab;
 
   return (
     <div style={{ position: 'relative', zIndex: 2, maxWidth: 820, margin: '0 auto', padding: '24px 20px 80px' }}>
@@ -381,55 +399,109 @@ function ListDetail({ list, viewCount, voteData, userVotes, extras, relatedLists
             <Eye size={11} strokeWidth={2} />
             <span>{viewCount} views</span>
           </div>
-          <a
-            href={`/snapshot/${encodeURIComponent(list.id)}`}
-            style={{
-              background: 'transparent',
-              color: COLORS.ink,
-              border: `1.5px solid ${COLORS.ink}`,
-              padding: '8px 14px',
-              fontFamily: 'DM Mono, monospace',
-              fontSize: 10,
-              letterSpacing: '0.18em',
-              textTransform: 'uppercase',
-              fontWeight: 600,
-              cursor: 'pointer',
-              display: 'flex',
-              alignItems: 'center',
-              gap: 6,
-              textDecoration: 'none',
-            }}
-          >
-            <Share2 size={12} strokeWidth={2.5} />
-            Share
-          </a>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap' }}>
+            <button
+              onClick={() => { setComplainSent(false); setComplainOpen(true); }}
+              style={{
+                background: 'transparent',
+                color: COLORS.rust,
+                border: `1.5px dashed ${COLORS.rust}`,
+                padding: '8px 14px',
+                fontFamily: 'DM Mono, monospace',
+                fontSize: 10,
+                letterSpacing: '0.16em',
+                textTransform: 'uppercase',
+                fontWeight: 600,
+                cursor: 'pointer',
+                display: 'flex',
+                alignItems: 'center',
+                gap: 6,
+              }}
+            >
+              <PenLine size={12} strokeWidth={2.5} />
+              Complain / Request New Research
+            </button>
+            <a
+              href={`/snapshot/${encodeURIComponent(list.id)}`}
+              style={{
+                background: 'transparent',
+                color: COLORS.ink,
+                border: `1.5px solid ${COLORS.ink}`,
+                padding: '8px 14px',
+                fontFamily: 'DM Mono, monospace',
+                fontSize: 10,
+                letterSpacing: '0.18em',
+                textTransform: 'uppercase',
+                fontWeight: 600,
+                cursor: 'pointer',
+                display: 'flex',
+                alignItems: 'center',
+                gap: 6,
+                textDecoration: 'none',
+              }}
+            >
+              <Share2 size={12} strokeWidth={2.5} />
+              Share
+            </a>
+          </div>
         </div>
       </div>
 
-      {showBothTabs && (
+      <div style={{ marginTop: 28 }} />
+
+      {complainOpen && (
         <div
-          style={{
-            display: 'flex',
-            gap: 0,
-            marginTop: 28,
-            marginBottom: 18,
-            border: `1.5px solid ${COLORS.ink}`,
-          }}
+          onClick={() => setComplainOpen(false)}
+          style={{ position: 'fixed', inset: 0, zIndex: 60, background: 'rgba(26,22,17,0.55)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '6vh 16px' }}
         >
-          <TabButton
-            active={tab === 'source'}
-            onClick={() => setTab('source')}
-            icon={list.isUserSubmitted ? <PenLine size={14} strokeWidth={2.5} /> : <BarChart3 size={14} strokeWidth={2.5} />}
-          >
-            {list.isUserSubmitted ? 'As Submitted' : 'By the Rankings'}
-          </TabButton>
-          <TabButton active={tab === 'vote'} onClick={() => setTab('vote')} icon={<Users size={14} strokeWidth={2.5} />}>
-            By the People
-          </TabButton>
+          <div onClick={(e) => e.stopPropagation()} style={{ width: '100%', maxWidth: 480, background: COLORS.cream, border: `2px solid ${COLORS.ink}`, padding: 24 }}>
+            {complainSent ? (
+              <>
+                <h3 style={{ fontFamily: 'Fraunces, serif', fontWeight: 700, fontSize: 22, margin: '0 0 10px' }}>Thanks — noted.</h3>
+                <p style={{ fontFamily: 'DM Sans, sans-serif', fontSize: 15, color: COLORS.faded, margin: '0 0 20px' }}>
+                  Your note went to the editors' desk. Flagged lists get re-researched.
+                </p>
+                <button
+                  onClick={() => { setComplainOpen(false); setComplainSent(false); setComplainMsg(''); }}
+                  style={{ cursor: 'pointer', background: COLORS.ink, color: COLORS.cream, border: `1.5px solid ${COLORS.ink}`, padding: '12px 20px', fontFamily: 'DM Mono, monospace', fontSize: 11, letterSpacing: '0.16em', textTransform: 'uppercase', fontWeight: 600 }}
+                >
+                  Close
+                </button>
+              </>
+            ) : (
+              <>
+                <h3 style={{ fontFamily: 'Fraunces, serif', fontWeight: 700, fontSize: 22, margin: '0 0 6px' }}>Complain / Request New Research</h3>
+                <p style={{ fontFamily: 'DM Sans, sans-serif', fontSize: 14, color: COLORS.faded, margin: '0 0 14px' }}>
+                  Think this list is wrong or stale? Tell the editors what to re-research.
+                </p>
+                <textarea
+                  value={complainMsg}
+                  onChange={(e) => setComplainMsg(e.target.value)}
+                  maxLength={1000}
+                  rows={4}
+                  placeholder="What's off about this list? (optional)"
+                  style={{ width: '100%', boxSizing: 'border-box', padding: 12, border: `1.5px solid ${COLORS.ink}`, background: COLORS.paper, fontFamily: 'DM Sans, sans-serif', fontSize: 14, color: COLORS.ink, outline: 'none', resize: 'vertical', marginBottom: 16 }}
+                />
+                <div style={{ display: 'flex', gap: 10, justifyContent: 'flex-end' }}>
+                  <button
+                    onClick={() => setComplainOpen(false)}
+                    style={{ cursor: 'pointer', background: 'transparent', color: COLORS.ink, border: `1.5px solid ${COLORS.ink}`, padding: '10px 18px', fontFamily: 'DM Mono, monospace', fontSize: 11, letterSpacing: '0.14em', textTransform: 'uppercase', fontWeight: 600 }}
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    onClick={submitComplaint}
+                    disabled={complainBusy}
+                    style={{ cursor: 'pointer', background: COLORS.rust, color: COLORS.cream, border: `1.5px solid ${COLORS.rust}`, padding: '10px 18px', fontFamily: 'DM Mono, monospace', fontSize: 11, letterSpacing: '0.14em', textTransform: 'uppercase', fontWeight: 700, opacity: complainBusy ? 0.6 : 1 }}
+                  >
+                    {complainBusy ? 'Sending…' : 'Send to editors'}
+                  </button>
+                </div>
+              </>
+            )}
+          </div>
         </div>
       )}
-
-      {!showBothTabs && <div style={{ marginTop: 28 }} />}
 
       {tab === 'source' && showSourceTab ? (
         <>
@@ -488,6 +560,15 @@ function ListDetail({ list, viewCount, voteData, userVotes, extras, relatedLists
             </div>
           )}
 
+          {showVoteTab && (
+            <button
+              onClick={() => setTab('vote')}
+              style={{ display: 'inline-flex', alignItems: 'center', gap: 8, marginBottom: 24, cursor: 'pointer', background: COLORS.ember, color: COLORS.cream, border: `1.5px solid ${COLORS.ember}`, padding: '12px 22px', fontFamily: 'DM Mono, monospace', fontSize: 12, letterSpacing: '0.16em', textTransform: 'uppercase', fontWeight: 700 }}
+            >
+              <Users size={15} strokeWidth={2.5} /> User Vote
+            </button>
+          )}
+
           <ol style={{ margin: 0, padding: 0, listStyle: 'none' }}>
             {(activeSource?.items || []).map((item, i) => (
               <DataRow key={i} rank={i + 1} item={item} list={list} unranked={mode === 'unranked'} />
@@ -510,6 +591,12 @@ function ListDetail({ list, viewCount, voteData, userVotes, extras, relatedLists
         </>
       ) : showVoteTab ? (
         <>
+          <button
+            onClick={() => setTab('source')}
+            style={{ display: 'inline-flex', alignItems: 'center', gap: 8, marginBottom: 24, cursor: 'pointer', background: 'transparent', color: COLORS.ink, border: `1.5px solid ${COLORS.ink}`, padding: '10px 18px', fontFamily: 'DM Mono, monospace', fontSize: 11, letterSpacing: '0.14em', textTransform: 'uppercase', fontWeight: 600 }}
+          >
+            <ArrowLeft size={14} strokeWidth={2.5} /> Back to Rankings
+          </button>
           {voteMessage && (
             <div
               style={{

@@ -15,10 +15,11 @@ function formatDate(iso) {
   }
 }
 
-export default function AdminClient({ initialLists, initialExtras = [] }) {
+export default function AdminClient({ initialLists, initialExtras = [], initialComplaints = [] }) {
   const router = useRouter();
   const [lists, setLists] = useState(initialLists);
   const [extras, setExtras] = useState(initialExtras);
+  const [complaints, setComplaints] = useState(initialComplaints);
   const [tab, setTab] = useState('pending');
   const [busy, setBusy] = useState({});
 
@@ -32,6 +33,24 @@ export default function AdminClient({ initialLists, initialExtras = [] }) {
     () => extras.reduce((n, g) => n + g.items.length, 0),
     [extras]
   );
+  const complaintsCount = complaints.length;
+
+  async function dismissComplaint(id) {
+    const key = `c-${id}`;
+    if (busy[key]) return;
+    setBusy((b) => ({ ...b, [key]: true }));
+    const res = await fetch('/api/admin/complaints', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ id }),
+    });
+    if (res.ok) {
+      setComplaints((prev) => prev.filter((c) => c.id !== id));
+    } else {
+      alert('Could not dismiss. Try again.');
+    }
+    setBusy((b) => ({ ...b, [key]: false }));
+  }
 
   async function doAction(id, endpoint, optimistic) {
     if (busy[id]) return;
@@ -250,9 +269,14 @@ export default function AdminClient({ initialLists, initialExtras = [] }) {
           <TabButton active={tab === 'extras'} onClick={() => setTab('extras')}>
             By the people <span style={{ opacity: 0.6 }}>{extrasCount}</span>
           </TabButton>
+          <TabButton active={tab === 'complaints'} onClick={() => setTab('complaints')}>
+            Notices <span style={{ opacity: 0.6 }}>{complaintsCount}</span>
+          </TabButton>
         </div>
 
-        {tab === 'extras' ? (
+        {tab === 'complaints' ? (
+          <ComplaintsPanel complaints={complaints} busy={busy} onDismiss={dismissComplaint} />
+        ) : tab === 'extras' ? (
           <ExtrasPanel
             extras={extras}
             busy={busy}
@@ -290,6 +314,70 @@ export default function AdminClient({ initialLists, initialExtras = [] }) {
           </div>
         )}
       </div>
+    </div>
+  );
+}
+
+function ComplaintsPanel({ complaints, busy, onDismiss }) {
+  if (!complaints || complaints.length === 0) {
+    return (
+      <div
+        style={{
+          padding: '60px 20px',
+          textAlign: 'center',
+          fontFamily: 'Fraunces, serif',
+          fontStyle: 'italic',
+          fontSize: 18,
+          color: COLORS.faded,
+          border: `1.5px dashed ${COLORS.ink}`,
+        }}
+      >
+        No reader notices right now.
+      </div>
+    );
+  }
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+      {complaints.map((c) => (
+        <div key={c.id} style={{ border: `1.5px solid ${COLORS.ink}`, padding: 18, background: COLORS.paper }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 12 }}>
+            <div style={{ minWidth: 0 }}>
+              <div style={{ fontFamily: 'DM Mono, monospace', fontSize: 10, letterSpacing: '0.15em', textTransform: 'uppercase', color: COLORS.faded, marginBottom: 4 }}>
+                {formatDate(c.createdAt)}
+              </div>
+              <Link href={`/list/${c.listId}`} style={{ fontFamily: 'Fraunces, serif', fontWeight: 700, fontSize: 18, color: COLORS.ink, textDecoration: 'none' }}>
+                {c.listTitle || c.listId}
+              </Link>
+              {c.message ? (
+                <p style={{ fontFamily: 'DM Sans, sans-serif', fontSize: 14, color: COLORS.ink, margin: '8px 0 0', whiteSpace: 'pre-wrap' }}>{c.message}</p>
+              ) : (
+                <p style={{ fontFamily: 'DM Sans, sans-serif', fontStyle: 'italic', fontSize: 14, color: COLORS.faded, margin: '8px 0 0' }}>
+                  Requested new research (no message left).
+                </p>
+              )}
+            </div>
+            <button
+              onClick={() => onDismiss(c.id)}
+              disabled={!!busy[`c-${c.id}`]}
+              style={{
+                flexShrink: 0,
+                cursor: 'pointer',
+                background: 'transparent',
+                border: `1.5px solid ${COLORS.ink}`,
+                color: COLORS.ink,
+                padding: '8px 14px',
+                fontFamily: 'DM Mono, monospace',
+                fontSize: 10,
+                letterSpacing: '0.15em',
+                textTransform: 'uppercase',
+                fontWeight: 600,
+              }}
+            >
+              Dismiss
+            </button>
+          </div>
+        </div>
+      ))}
     </div>
   );
 }
