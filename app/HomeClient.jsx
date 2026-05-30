@@ -72,6 +72,7 @@ function seededShuffle(arr, seed) {
 function Home({ lists, viewCounts, voteData, extras, openList, onSubmit }) {
   const [query, setQuery] = useState('');
   const [typeFilter, setTypeFilter] = useState('all');
+  const [catOpen, setCatOpen] = useState(false);
   // Default sort is the shuffled "Discover" view.
   const [sortBy, setSortBy] = useState('discover');
 
@@ -87,6 +88,14 @@ function Home({ lists, viewCounts, voteData, extras, openList, onSubmit }) {
   const discoverOrder = useMemo(() => {
     return seededShuffle(lists, discoverSeed);
   }, [lists, discoverSeed]);
+
+  // Close the category dropdown when clicking anywhere outside it.
+  useEffect(() => {
+    if (!catOpen) return undefined;
+    const close = () => setCatOpen(false);
+    document.addEventListener('click', close);
+    return () => document.removeEventListener('click', close);
+  }, [catOpen]);
 
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase();
@@ -246,88 +255,147 @@ function Home({ lists, viewCounts, voteData, extras, openList, onSubmit }) {
       </header>
 
       <section style={{ padding: '32px 16px 80px', maxWidth: 1200, margin: '0 auto' }}>
-        <div style={{ position: 'relative', marginBottom: 18 }}>
-          <Search
-            size={16}
-            strokeWidth={2.5}
-            style={{
-              position: 'absolute',
-              left: 14,
-              top: '50%',
-              transform: 'translateY(-50%)',
-              color: COLORS.faded,
-            }}
-          />
-          <input
-            type="text"
-            value={query}
-            onChange={(e) => setQuery(e.target.value)}
-            placeholder="Search lists, items, cities..."
-            style={{
-              width: '100%',
-              padding: '14px 16px 14px 42px',
-              background: COLORS.paper,
-              border: `1.5px solid ${COLORS.ink}`,
-              fontFamily: 'Fraunces, serif',
-              fontSize: 17,
-              color: COLORS.ink,
-              outline: 'none',
-              fontVariationSettings: '"SOFT" 100',
-            }}
-          />
-          {query && (
-            <button
-              onClick={() => setQuery('')}
-              aria-label="Clear search"
+        <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap', alignItems: 'stretch', marginBottom: 28 }}>
+          <div style={{ position: 'relative', flex: '1 1 260px', maxWidth: 440 }}>
+            <Search
+              size={16}
+              strokeWidth={2.5}
               style={{
                 position: 'absolute',
-                right: 10,
+                left: 14,
                 top: '50%',
                 transform: 'translateY(-50%)',
-                background: 'transparent',
-                border: 'none',
                 color: COLORS.faded,
-                cursor: 'pointer',
-                padding: 6,
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
               }}
-            >
-              <X size={16} strokeWidth={2.5} />
-            </button>
-          )}
-        </div>
-
-        <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginBottom: 28 }}>
-          {visibleTypes.map((t) => {
-            const active = typeFilter === t.id;
-            const cnt = counts[t.id] || 0;
-            return (
+            />
+            <input
+              type="text"
+              value={query}
+              onChange={(e) => setQuery(e.target.value)}
+              placeholder="Search lists, items, cities..."
+              style={{
+                width: '100%',
+                boxSizing: 'border-box',
+                padding: '14px 16px 14px 42px',
+                background: COLORS.paper,
+                border: `1.5px solid ${COLORS.ink}`,
+                fontFamily: 'Fraunces, serif',
+                fontSize: 17,
+                color: COLORS.ink,
+                outline: 'none',
+                fontVariationSettings: '"SOFT" 100',
+              }}
+            />
+            {query && (
               <button
-                key={t.id}
-                onClick={() => setTypeFilter(t.id)}
+                onClick={() => setQuery('')}
+                aria-label="Clear search"
                 style={{
-                  background: active ? COLORS.ink : 'transparent',
-                  color: active ? COLORS.cream : COLORS.ink,
-                  border: `1.5px solid ${COLORS.ink}`,
-                  padding: '8px 14px',
-                  fontFamily: 'DM Mono, monospace',
-                  fontSize: 10,
-                  letterSpacing: '0.18em',
-                  textTransform: 'uppercase',
-                  fontWeight: 600,
+                  position: 'absolute',
+                  right: 10,
+                  top: '50%',
+                  transform: 'translateY(-50%)',
+                  background: 'transparent',
+                  border: 'none',
+                  color: COLORS.faded,
                   cursor: 'pointer',
+                  padding: 6,
                   display: 'flex',
                   alignItems: 'center',
-                  gap: 8,
+                  justifyContent: 'center',
                 }}
               >
-                {t.label}
-                <span style={{ opacity: 0.6 }}>{cnt}</span>
+                <X size={16} strokeWidth={2.5} />
               </button>
-            );
-          })}
+            )}
+          </div>
+
+          <div style={{ position: 'relative' }} onClick={(e) => e.stopPropagation()}>
+            <button
+              onClick={() => setCatOpen((o) => !o)}
+              aria-haspopup="true"
+              aria-expanded={catOpen}
+              style={{
+                height: '100%',
+                display: 'flex',
+                alignItems: 'center',
+                gap: 10,
+                background: COLORS.ink,
+                color: COLORS.cream,
+                border: `1.5px solid ${COLORS.ink}`,
+                padding: '0 16px',
+                fontFamily: 'DM Mono, monospace',
+                fontSize: 10,
+                letterSpacing: '0.18em',
+                textTransform: 'uppercase',
+                fontWeight: 600,
+                cursor: 'pointer',
+                whiteSpace: 'nowrap',
+              }}
+            >
+              <span>
+                <span style={{ opacity: 0.6 }}>Category:</span>{' '}
+                {(visibleTypes.find((t) => t.id === typeFilter) || {}).label || 'All'}
+              </span>
+              <ChevronDown
+                size={14}
+                strokeWidth={2.5}
+                style={{ transform: catOpen ? 'rotate(180deg)' : 'none', transition: 'transform 0.15s' }}
+              />
+            </button>
+            {catOpen && (
+              <div
+                role="menu"
+                style={{
+                  position: 'absolute',
+                  top: 'calc(100% + 6px)',
+                  left: 0,
+                  zIndex: 30,
+                  minWidth: 230,
+                  background: COLORS.cream,
+                  border: `1.5px solid ${COLORS.ink}`,
+                  maxHeight: 360,
+                  overflowY: 'auto',
+                }}
+              >
+                {visibleTypes.map((t, i) => {
+                  const active = typeFilter === t.id;
+                  return (
+                    <button
+                      key={t.id}
+                      role="menuitem"
+                      onClick={() => {
+                        setTypeFilter(t.id);
+                        setCatOpen(false);
+                      }}
+                      style={{
+                        width: '100%',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'space-between',
+                        gap: 16,
+                        background: active ? COLORS.ink : 'transparent',
+                        color: active ? COLORS.cream : COLORS.ink,
+                        border: 'none',
+                        borderTop: i === 0 ? 'none' : `0.5px solid ${COLORS.paper}`,
+                        padding: '10px 14px',
+                        fontFamily: 'DM Mono, monospace',
+                        fontSize: 10,
+                        letterSpacing: '0.18em',
+                        textTransform: 'uppercase',
+                        fontWeight: 600,
+                        cursor: 'pointer',
+                        textAlign: 'left',
+                      }}
+                    >
+                      <span>{t.label}</span>
+                      <span style={{ opacity: 0.6 }}>{counts[t.id] || 0}</span>
+                    </button>
+                  );
+                })}
+              </div>
+            )}
+          </div>
         </div>
 
         <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginBottom: 28 }}>

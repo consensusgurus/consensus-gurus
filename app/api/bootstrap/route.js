@@ -20,7 +20,9 @@ export async function GET() {
     // Vote scores keyed as `${listId}::${itemNameLowerCase}` to match client voteKey()
     const votes = {};
     (votesRes.data || []).forEach((row) => {
-      votes[`${row.list_id}::${row.item_name.toLowerCase().trim()}`] = row.score;
+      // Legacy downvotes from the prior voting system left negative net scores.
+      // Clamp to 0 so they never count toward consensus or display.
+      votes[`${row.list_id}::${row.item_name.toLowerCase().trim()}`] = Math.max(0, row.score);
     });
 
     const views = {};
