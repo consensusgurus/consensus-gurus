@@ -18,7 +18,7 @@ function generateSeoDescription(list) {
   const sourceKeys = Object.keys(list.sources || {}).filter((k) => k !== 'ai');
   const sourceCount = sourceKeys.length;
 
-  if (list.mode === 'facts' || list.mode === 'scores') {
+  if (list.mode === 'facts' || list.mode === 'scores' || list.mode === 'unranked') {
     const sourceLabel = list.sources?.ai?.label || 'authoritative rankings';
     return `${list.title}, ranked by ${sourceLabel}. Includes ${top3Str}. See the full ranking at Consensus Gurus.`;
   }

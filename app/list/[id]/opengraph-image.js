@@ -17,7 +17,7 @@ function computeConsensus(list) {
   const sources = list.sources || {}
   const mode = list.mode || 'both'
 
-  if (mode === 'facts' || mode === 'scores') {
+  if (mode === 'facts' || mode === 'scores' || mode === 'unranked') {
     return (sources.ai && sources.ai.items ? sources.ai.items : []).slice(0, 10)
   }
 
@@ -98,15 +98,24 @@ export default async function Image({ params }) {
     )
   }
 
-  // Use Borda consensus if multiple sources, else fall back to ai items
+  // Load Fraunces (the site masthead serif) so the preview matches the header.
+  let frauncesData = null
+  try {
+    const res = await fetch('https://cdn.jsdelivr.net/npm/@fontsource/fraunces@5.0.20/files/fraunces-latin-900-normal.woff')
+    if (res.ok) frauncesData = await res.arrayBuffer()
+  } catch (e) { frauncesData = null }
+  const fonts = frauncesData ? [{ name: 'Fraunces', data: frauncesData, weight: 900, style: 'normal' }] : []
+  const ff = frauncesData ? 'Fraunces' : 'serif'
+
+  const isUnranked = (list.mode || 'both') === 'unranked'
   const consensusItems = computeConsensus(list)
-  const sliced = consensusItems.slice(5, 10)
-  const previewItems = sliced.slice().reverse()
-  const startPosition = 5 + sliced.length
+  const sliced = isUnranked ? consensusItems.slice(0, 5) : consensusItems.slice(5, 10)
+  const previewItems = isUnranked ? sliced : sliced.slice().reverse()
+  const startPosition = 5 + (isUnranked ? 0 : sliced.length)
 
   return new ImageResponse(
     (
-      <div style={{ width: '100%', height: '100%', display: 'flex', flexDirection: 'column', justifyContent: 'space-between', background: '#f4ead5', padding: '40px 72px' }}>
+      <div style={{ width: '100%', height: '100%', display: 'flex', flexDirection: 'column', justifyContent: 'space-between', background: '#f4ead5', padding: '40px 72px', fontFamily: ff }}>
         <div style={{ display: 'flex', flexDirection: 'column' }}>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', paddingBottom: 12, marginBottom: 18, borderBottom: '1px solid #1a1a1a', boxShadow: 'inset 0 -6px 0 #f4ead5, inset 0 -7px 0 #1a1a1a' }}>
             <div style={{ display: 'flex', fontSize: 24, letterSpacing: 4, textTransform: 'uppercase', color: '#1a1a1a', fontWeight: 600 }}>
@@ -120,7 +129,7 @@ export default async function Image({ params }) {
             {list.title}
           </div>
           <div style={{ display: 'flex', fontSize: 20, color: '#5a5a5a', fontStyle: 'italic', lineHeight: 1.2 }}>
-            Counting down from ten. Top five revealed on site.
+            {isUnranked ? 'A handpicked set. Not ranked \u2014 just the ones worth owning.' : 'Counting down from ten. Top five revealed on site.'}
           </div>
         </div>
 
@@ -130,8 +139,8 @@ export default async function Image({ params }) {
             const name = getItemName(item)
             return (
               <div key={position} style={{ display: 'flex', alignItems: 'center', marginBottom: 2 }}>
-                <div style={{ display: 'flex', fontSize: 36, fontWeight: 700, color: '#c0392b', width: 70, justifyContent: 'flex-end', marginRight: 22, lineHeight: 1.1 }}>
-                  {String(position)}
+                <div style={{ display: 'flex', fontSize: 36, fontWeight: 700, color: '#c0392b', width: isUnranked ? 34 : 70, justifyContent: 'flex-end', marginRight: 22, lineHeight: 1.1 }}>
+                  {isUnranked ? '\u2022' : String(position)}
                 </div>
                 <div style={{ display: 'flex', fontSize: 26, color: '#1a1a1a', fontWeight: 500, maxWidth: 900, lineHeight: 1.1 }}>
                   {name || 'Untitled'}
@@ -142,11 +151,11 @@ export default async function Image({ params }) {
         </div>
 
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', borderTop: '1px solid #c4b896', paddingTop: 12, fontSize: 18, color: '#5a5a5a' }}>
-          <div style={{ display: 'flex' }}>See 5 through 1 at consensusgurus.com</div>
-          <div style={{ display: 'flex', color: '#c0392b', fontWeight: 600 }}>Read the full ranking</div>
+          <div style={{ display: 'flex' }}>{isUnranked ? 'See the full set at consensusgurus.com' : 'See 5 through 1 at consensusgurus.com'}</div>
+          <div style={{ display: 'flex', color: '#c0392b', fontWeight: 600 }}>{isUnranked ? 'Browse the picks' : 'Read the full ranking'}</div>
         </div>
       </div>
     ),
-    { ...size }
+    { ...size, fonts }
   )
 }

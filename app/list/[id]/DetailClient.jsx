@@ -31,7 +31,7 @@ function getListTags(list) {
 function ListDetail({ list, viewCount, voteData, userVotes, extras, relatedLists, onBack, onVote, onAddExtra, onOpenRelated }) {
   const mode = list.mode || 'both';
   const showSourceTab = mode !== 'votes';
-  const showVoteTab = mode !== 'facts' && mode !== 'scores';
+  const showVoteTab = mode !== 'facts' && mode !== 'scores' && mode !== 'unranked';
 
   const [tab, setTab] = useState(showSourceTab ? 'source' : 'vote');
   const [activeVoteSlot, setActiveVoteSlot] = useState(null);
@@ -50,6 +50,16 @@ function ListDetail({ list, viewCount, voteData, userVotes, extras, relatedLists
       const aiItems = list.sources?.ai?.items || [];
       if (aiItems.length > 0) {
         return [{ id: 'ai', label: list.sources?.ai?.label || 'Consensus AI', items: aiItems }];
+      }
+      return [];
+    }
+
+    // Unranked products: a curated, subjective set. No ranking math, no voting —
+    // just the hardcoded 'ai' items shown in the chosen order.
+    if (mode === 'unranked') {
+      const aiItems = list.sources?.ai?.items || [];
+      if (aiItems.length > 0) {
+        return [{ id: 'ai', label: list.sources?.ai?.label || 'Our picks', items: aiItems }];
       }
       return [];
     }
@@ -480,7 +490,7 @@ function ListDetail({ list, viewCount, voteData, userVotes, extras, relatedLists
 
           <ol style={{ margin: 0, padding: 0, listStyle: 'none' }}>
             {(activeSource?.items || []).map((item, i) => (
-              <DataRow key={i} rank={i + 1} item={item} list={list} />
+              <DataRow key={i} rank={i + 1} item={item} list={list} unranked={mode === 'unranked'} />
             ))}
           </ol>
 
@@ -1248,8 +1258,8 @@ function ItemLink({ list, item, children, style }) {
   );
 }
 
-function DataRow({ rank, item, list }) {
-  const isTop = rank === 1;
+function DataRow({ rank, item, list, unranked }) {
+  const isTop = rank === 1 && !unranked;
   const showFullSize = rank <= 10;
   return (
     <li
@@ -1266,15 +1276,15 @@ function DataRow({ rank, item, list }) {
         style={{
           fontFamily: 'Fraunces, serif',
           fontWeight: 900,
-          fontSize: isTop ? 64 : showFullSize ? 44 : 32,
+          fontSize: unranked ? 30 : isTop ? 64 : showFullSize ? 44 : 32,
           lineHeight: 0.85,
-          color: isTop ? COLORS.ember : rank > 10 ? COLORS.faded : COLORS.ink,
-          minWidth: 70,
+          color: unranked ? COLORS.ember : isTop ? COLORS.ember : rank > 10 ? COLORS.faded : COLORS.ink,
+          minWidth: unranked ? 30 : 70,
           fontVariationSettings: '"SOFT" 100, "WONK" 1',
           fontFeatureSettings: '"lnum" 1',
         }}
       >
-        {String(rank).padStart(2, '0')}
+        {unranked ? '\u2022' : String(rank).padStart(2, '0')}
       </span>
       <ItemLink
         list={list}

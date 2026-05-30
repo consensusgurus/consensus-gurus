@@ -38,7 +38,7 @@ export default function SnapshotClient({ listId }) {
   const sources = useMemo(() => {
     if (!list) return [];
     // Facts lists: bare 'ai' ranking only (no extra chips).
-    if (list.mode === 'facts') {
+    if (list.mode === 'facts' || list.mode === 'unranked') {
       const aiItems = list.sources?.ai?.items || [];
       if (aiItems.length > 0) {
         return [{ id: 'ai', label: list.sources?.ai?.label || 'Consensus AI', items: aiItems }];
@@ -189,7 +189,7 @@ export default function SnapshotClient({ listId }) {
     }
   });
   // Offer reader votes (except facts/composite lists, which don't use voting)
-  if (list.mode !== 'facts' && list.mode !== 'scores') {
+  if (list.mode !== 'facts' && list.mode !== 'scores' && list.mode !== 'unranked') {
     modeOptions.push({ id: 'vote', label: 'Reader Votes' });
   }
 

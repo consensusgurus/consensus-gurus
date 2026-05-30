@@ -64,7 +64,7 @@ function computeConsensus(list) {
   const sources = list.sources || {};
   
   // Facts/composite lists rank by the 'ai' composite seed, not Borda.
-  if (list.mode === 'facts' || list.mode === 'scores') {
+  if (list.mode === 'facts' || list.mode === 'scores' || list.mode === 'unranked') {
     return (sources.ai?.items || []).slice(0, 10);
   }
 
