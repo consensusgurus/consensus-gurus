@@ -12,20 +12,20 @@ function getItemName(item) {
   return item.name || item.title || item.label || ''
 }
 
-// Exact Borda scoring logic from helpers.js
+// Borda scoring — mirrors lib/helpers.js getSources exactly.
 function computeConsensus(list) {
   const sources = list.sources || {}
+  const mode = list.mode || 'both'
 
-  const allEntries = Object.entries(sources).map(([id, src]) => ({
-    id,
-    label: src.label,
-    items: src.items || [],
-  }))
+  if (mode === 'facts' || mode === 'scores') {
+    return (sources.ai && sources.ai.items ? sources.ai.items : []).slice(0, 10)
+  }
 
-  const publications = allEntries.filter(s => s.id !== 'ai')
+  const publications = Object.entries(sources)
+    .filter(([id]) => id !== 'ai')
+    .map(([id, src]) => ({ id, items: src.items || [], unordered: src.unordered }))
 
-  if (publications.length === 0) return sources.ai ? (sources.ai.items || []) : []
-  if (publications.length === 1) return publications[0].items
+  if (publications.length === 0) return sources.ai ? (sources.ai.items || []).slice(0, 10) : []
 
   const universeMap = {}
   publications.forEach(src => {
@@ -37,26 +37,31 @@ function computeConsensus(list) {
   })
 
   const universe = Object.values(universeMap)
-  if (universe.length === 0) return sources.ai ? (sources.ai.items || []) : []
+  if (universe.length === 0) return sources.ai ? (sources.ai.items || []).slice(0, 10) : []
 
   const scores = {}
   universe.forEach(item => { scores[item.toLowerCase().trim()] = 0 })
 
   const bordaFromRank = rank => (rank < 1 || rank > 10) ? 0 : 11 - rank
+  const FLAT_UNORDERED = 5.5
 
   publications.forEach(src => {
+    if (src.unordered) {
+      const listed = new Set(src.items.map(i => getItemName(i).toLowerCase().trim()))
+      universe.forEach(item => {
+        const key = item.toLowerCase().trim()
+        if (listed.has(key)) scores[key] += FLAT_UNORDERED
+      })
+      return
+    }
     const pubRanks = {}
     src.items.forEach((item, idx) => {
       const name = getItemName(item)
       if (name) pubRanks[name.toLowerCase().trim()] = idx + 1
     })
-    const rankedKeys = Object.keys(pubRanks)
-    const avgScore = rankedKeys.length > 0
-      ? rankedKeys.reduce((sum, k) => sum + bordaFromRank(pubRanks[k]), 0) / rankedKeys.length
-      : 0
     universe.forEach(item => {
       const key = item.toLowerCase().trim()
-      scores[key] += pubRanks[key] !== undefined ? bordaFromRank(pubRanks[key]) : avgScore
+      if (pubRanks[key] !== undefined) scores[key] += bordaFromRank(pubRanks[key])
     })
   })
 
