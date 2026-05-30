@@ -4,17 +4,17 @@ import './globals.css';
 import { Analytics } from '@vercel/analytics/next';
 
 export const metadata = {
-  title: 'Consensus Gurus | Top Ten Lists from Every Angle',
+  title: 'Consensus Gurus | Where Experts Agree',
   description: 'Curated top-ten lists ranked by expert consensus. From dive bars to luxury resorts, discover what the experts agree on.',
   openGraph: {
-    title: 'Consensus Gurus | Top Ten Lists from Every Angle',
+    title: 'Consensus Gurus | Where Experts Agree',
     description: 'Curated top-ten lists ranked by expert consensus. From dive bars to luxury resorts, discover what the experts agree on.',
     url: 'https://consensusgurus.com',
     type: 'website',
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'Consensus Gurus | Top Ten Lists from Every Angle',
+    title: 'Consensus Gurus | Where Experts Agree',
     description: 'Curated top-ten lists ranked by expert consensus.',
   },
   // iOS home screen / web app settings
