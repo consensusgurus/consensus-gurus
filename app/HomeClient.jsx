@@ -281,11 +281,6 @@ function Home({ lists, viewCounts, voteData, extras, openList, onSubmit }) {
               </div>
             )}
           </div>
-
-          <button onClick={onSubmit} style={{ flex: '1 1 150px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, background: 'transparent', color: COLORS.ink, border: `1.5px solid ${COLORS.ink}`, padding: '12px 14px', fontFamily: 'DM Mono, monospace', fontSize: 10, letterSpacing: '0.16em', textTransform: 'uppercase', fontWeight: 600, cursor: 'pointer', whiteSpace: 'nowrap' }}>
-            <Plus size={14} strokeWidth={2.5} />
-            Submit a list
-          </button>
         </div>
 
         {sorted.length > 0 ? (
