@@ -143,7 +143,6 @@ function Home({ lists, viewCounts, voteData, extras, openList, onSubmit }) {
   }, [filtered, viewCounts, lists, sortBy, discoverOrder]);
 
   const totalViews = Object.values(viewCounts).reduce((a, b) => a + b, 0);
-  const totalVotes = Object.values(voteData).reduce((a, b) => a + Math.abs(b), 0);
 
   // Count lists per tag (a list can contribute to multiple tag counts)
   const counts = useMemo(() => {
@@ -220,8 +219,6 @@ function Home({ lists, viewCounts, voteData, extras, openList, onSubmit }) {
           <span>{lists.length} lists</span>
           <span>·</span>
           <span>{totalViews} visitors</span>
-          <span>·</span>
-          <span>{totalVotes} votes cast</span>
         </div>
       </header>
 
