@@ -181,97 +181,84 @@ export default function CreateClient({ lists }) {
         }}
       />
 
-      {/* The board (exported) — mirrors the homepage masthead + tiles */}
-      <div ref={boardRef} style={{ background: COLORS.cream, border: `2px solid ${COLORS.ink}`, marginBottom: 22 }}>
-        <div style={{ padding: '40px 24px 28px', borderBottom: `2px solid ${COLORS.ink}`, textAlign: 'center' }}>
-          <h1
-            style={{
-              fontFamily: 'Fraunces, serif',
-              fontWeight: 900,
-              fontSize: 'clamp(40px, 8vw, 84px)',
-              lineHeight: 0.85,
-              letterSpacing: '-0.04em',
-              margin: 0,
-              fontVariationSettings: '"SOFT" 100, "WONK" 1',
-              color: COLORS.ink,
-            }}
-          >
-            CONSENSUS
-            <br />
-            <span style={{ fontStyle: 'italic', color: COLORS.ember }}>gurus</span>
-          </h1>
-          <p
-            style={{
-              fontFamily: 'DM Sans, sans-serif',
-              fontSize: 16,
-              maxWidth: 600,
-              margin: '20px auto 0',
-              lineHeight: 1.4,
-              color: COLORS.ink,
-            }}
-          >
-            {title.trim() || 'Where Experts Agree'}
-          </p>
+      {/* The board (exported) — subtle header, homepage-style tiles */}
+      <div ref={boardRef} style={{ background: COLORS.cream, border: `2px solid ${COLORS.ink}`, padding: 26, marginBottom: 22 }}>
+        <div
+          style={{
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'baseline',
+            gap: 12,
+            borderBottom: `1.5px solid ${COLORS.ink}`,
+            paddingBottom: 12,
+            marginBottom: 18,
+            fontFamily: 'DM Mono, monospace',
+            fontSize: 10,
+            letterSpacing: '0.2em',
+            textTransform: 'uppercase',
+            color: COLORS.faded,
+          }}
+        >
+          <span>Consensus Gurus</span>
+          <span style={{ textAlign: 'right' }}>{title.trim() || 'Where Experts Agree'}</span>
         </div>
 
-        <div style={{ padding: 24 }}>
-          <div style={{ display: 'grid', gridTemplateColumns: `repeat(${format.cols}, 1fr)`, gap: 16 }}>
-            {tiles.map((t, i) => (
-              <button
-                key={i}
-                onClick={() => openPicker(i)}
-                style={{
-                  cursor: 'pointer',
-                  textAlign: 'left',
-                  fontFamily: 'inherit',
-                  background: t ? COLORS.paper : 'transparent',
-                  color: COLORS.ink,
-                  border: t ? `1.5px solid ${COLORS.ink}` : `1.5px dashed ${COLORS.faded}`,
-                  padding: 20,
-                  position: 'relative',
-                  minHeight: t ? undefined : 196,
-                  display: t ? 'block' : 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                }}
-              >
-                {t ? (
-                  <>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 14, gap: 8 }}>
-                      <span style={{ fontFamily: 'DM Mono, monospace', fontSize: 10, letterSpacing: '0.2em', textTransform: 'uppercase', opacity: 0.75 }}>{t.category}</span>
-                      <span style={{ fontFamily: 'Fraunces, serif', fontWeight: 900, fontSize: 18, color: COLORS.ember, fontVariationSettings: '"SOFT" 100' }}>#{i + 1}</span>
-                    </div>
-                    <h3 style={{ fontFamily: 'Fraunces, serif', fontWeight: 700, fontSize: 24, lineHeight: 1.05, letterSpacing: '-0.02em', margin: '0 0 14px', fontVariationSettings: '"SOFT" 100' }}>{t.title}</h3>
-                    <div style={{ fontFamily: 'DM Mono, monospace', fontSize: 10, letterSpacing: '0.15em', textTransform: 'uppercase', opacity: 0.6, marginBottom: 8 }}>Current Consensus</div>
-                    <ol style={{ margin: 0, padding: 0, listStyle: 'none', fontFamily: 'DM Sans, sans-serif', fontSize: 14 }}>
-                      {t.items.map((it, idx) => (
-                        <li key={idx} style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '4px 0', borderBottom: idx < 2 ? `1px dashed ${COLORS.faded}` : 'none' }}>
-                          {idx < 3 ? (
-                            <span style={{ position: 'relative', width: 22, height: 22, flex: '0 0 auto', display: 'inline-flex', alignItems: 'center', justifyContent: 'center' }}>
-                              <span style={{ position: 'absolute', inset: 0, borderRadius: '50%', background: RANK_MEDALS[idx].fill, opacity: 0.3 }} />
-                              <span style={{ position: 'relative', fontFamily: 'Fraunces, serif', fontWeight: 600, fontSize: 13, color: RANK_MEDALS[idx].num }}>{idx + 1}</span>
-                            </span>
-                          ) : (
-                            <span style={{ fontFamily: 'Fraunces, serif', fontWeight: 600, width: 16, color: COLORS.faded }}>{idx + 1}</span>
-                          )}
-                          <span style={{ flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{it}</span>
-                        </li>
-                      ))}
-                    </ol>
-                  </>
-                ) : (
-                  <span style={{ display: 'inline-flex', flexDirection: 'column', alignItems: 'center', gap: 6, color: COLORS.faded, fontFamily: 'DM Mono, monospace', fontSize: 11, letterSpacing: '0.14em', textTransform: 'uppercase' }}>
-                    <Plus size={20} strokeWidth={2} />
-                    Add list
-                  </span>
-                )}
-              </button>
-            ))}
-          </div>
+        <div style={{ display: 'grid', gridTemplateColumns: `repeat(${format.cols}, 1fr)`, gap: 16 }}>
+          {tiles.map((t, i) => (
+            <button
+              key={i}
+              onClick={() => openPicker(i)}
+              style={{
+                cursor: 'pointer',
+                textAlign: 'left',
+                fontFamily: 'inherit',
+                background: t ? COLORS.paper : 'transparent',
+                color: COLORS.ink,
+                border: t ? `1.5px solid ${COLORS.ink}` : `1.5px dashed ${COLORS.faded}`,
+                padding: 20,
+                position: 'relative',
+                minHeight: t ? undefined : 196,
+                display: t ? 'block' : 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+              }}
+            >
+              {t ? (
+                <>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 14, gap: 8 }}>
+                    <span style={{ fontFamily: 'DM Mono, monospace', fontSize: 10, letterSpacing: '0.2em', textTransform: 'uppercase', opacity: 0.75 }}>{t.category}</span>
+                    <span style={{ fontFamily: 'Fraunces, serif', fontWeight: 900, fontSize: 18, color: COLORS.ember, fontVariationSettings: '"SOFT" 100' }}>#{i + 1}</span>
+                  </div>
+                  <h3 style={{ fontFamily: 'Fraunces, serif', fontWeight: 700, fontSize: 24, lineHeight: 1.05, letterSpacing: '-0.02em', margin: '0 0 14px', fontVariationSettings: '"SOFT" 100' }}>{t.title}</h3>
+                  <div style={{ fontFamily: 'DM Mono, monospace', fontSize: 10, letterSpacing: '0.15em', textTransform: 'uppercase', opacity: 0.6, marginBottom: 8 }}>Current Consensus</div>
+                  <ol style={{ margin: 0, padding: 0, listStyle: 'none', fontFamily: 'DM Sans, sans-serif', fontSize: 14 }}>
+                    {t.items.map((it, idx) => (
+                      <li key={idx} style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '4px 0', borderBottom: idx < 2 ? `1px dashed ${COLORS.faded}` : 'none' }}>
+                        {idx < 3 ? (
+                          <span style={{ position: 'relative', width: 22, height: 22, flex: '0 0 auto', display: 'inline-flex', alignItems: 'center', justifyContent: 'center' }}>
+                            <span style={{ position: 'absolute', inset: 0, borderRadius: '50%', background: RANK_MEDALS[idx].fill, opacity: 0.3 }} />
+                            <span style={{ position: 'relative', fontFamily: 'Fraunces, serif', fontWeight: 600, fontSize: 13, color: RANK_MEDALS[idx].num }}>{idx + 1}</span>
+                          </span>
+                        ) : (
+                          <span style={{ fontFamily: 'Fraunces, serif', fontWeight: 600, width: 16, color: COLORS.faded }}>{idx + 1}</span>
+                        )}
+                        <span style={{ flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{it}</span>
+                      </li>
+                    ))}
+                  </ol>
+                </>
+              ) : (
+                <span style={{ display: 'inline-flex', flexDirection: 'column', alignItems: 'center', gap: 6, color: COLORS.faded, fontFamily: 'DM Mono, monospace', fontSize: 11, letterSpacing: '0.14em', textTransform: 'uppercase' }}>
+                  <Plus size={20} strokeWidth={2} />
+                  Add list
+                </span>
+              )}
+            </button>
+          ))}
+        </div>
 
-          <div style={{ textAlign: 'center', marginTop: 20, fontFamily: 'DM Mono, monospace', fontSize: 10, letterSpacing: '0.2em', textTransform: 'uppercase', color: COLORS.faded }}>
-            consensusgurus.com
-          </div>
+        <div style={{ textAlign: 'center', marginTop: 20, fontFamily: 'DM Mono, monospace', fontSize: 10, letterSpacing: '0.2em', textTransform: 'uppercase', color: COLORS.faded }}>
+          consensusgurus.com
         </div>
       </div>
 
