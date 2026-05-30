@@ -73,6 +73,7 @@ function Home({ lists, viewCounts, voteData, extras, openList, onSubmit }) {
   const [query, setQuery] = useState('');
   const [typeFilter, setTypeFilter] = useState('all');
   const [catOpen, setCatOpen] = useState(false);
+  const [sortOpen, setSortOpen] = useState(false);
   // Default sort is the shuffled "Discover" view.
   const [sortBy, setSortBy] = useState('discover');
 
@@ -89,13 +90,16 @@ function Home({ lists, viewCounts, voteData, extras, openList, onSubmit }) {
     return seededShuffle(lists, discoverSeed);
   }, [lists, discoverSeed]);
 
-  // Close the category dropdown when clicking anywhere outside it.
+  // Close the category / sort dropdowns when clicking anywhere outside.
   useEffect(() => {
-    if (!catOpen) return undefined;
-    const close = () => setCatOpen(false);
+    if (!catOpen && !sortOpen) return undefined;
+    const close = () => {
+      setCatOpen(false);
+      setSortOpen(false);
+    };
     document.addEventListener('click', close);
     return () => document.removeEventListener('click', close);
-  }, [catOpen]);
+  }, [catOpen, sortOpen]);
 
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase();
@@ -161,8 +165,8 @@ function Home({ lists, viewCounts, voteData, extras, openList, onSubmit }) {
     sortBy === 'recent'
       ? 'most recent first'
       : sortBy === 'popularity'
-      ? 'most viewed first'
-      : 'a fresh mix every visit';
+      ? 'most visited first'
+      : '';
 
   const headingLabel =
     query || typeFilter !== 'all'
@@ -248,7 +252,7 @@ function Home({ lists, viewCounts, voteData, extras, openList, onSubmit }) {
         >
           <span>{lists.length} lists</span>
           <span>·</span>
-          <span>{totalViews} views</span>
+          <span>{totalViews} visitors</span>
           <span>·</span>
           <span>{totalVotes} votes cast</span>
         </div>
@@ -256,17 +260,11 @@ function Home({ lists, viewCounts, voteData, extras, openList, onSubmit }) {
 
       <section style={{ padding: '32px 16px 80px', maxWidth: 1200, margin: '0 auto' }}>
         <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap', alignItems: 'stretch', marginBottom: 28 }}>
-          <div style={{ position: 'relative', flex: '1 1 260px', maxWidth: 440 }}>
+          <div style={{ position: 'relative', flex: '1 1 280px', minWidth: 200 }}>
             <Search
               size={16}
               strokeWidth={2.5}
-              style={{
-                position: 'absolute',
-                left: 14,
-                top: '50%',
-                transform: 'translateY(-50%)',
-                color: COLORS.faded,
-              }}
+              style={{ position: 'absolute', left: 14, top: '50%', transform: 'translateY(-50%)', color: COLORS.faded }}
             />
             <input
               type="text"
@@ -290,138 +288,79 @@ function Home({ lists, viewCounts, voteData, extras, openList, onSubmit }) {
               <button
                 onClick={() => setQuery('')}
                 aria-label="Clear search"
-                style={{
-                  position: 'absolute',
-                  right: 10,
-                  top: '50%',
-                  transform: 'translateY(-50%)',
-                  background: 'transparent',
-                  border: 'none',
-                  color: COLORS.faded,
-                  cursor: 'pointer',
-                  padding: 6,
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                }}
+                style={{ position: 'absolute', right: 10, top: '50%', transform: 'translateY(-50%)', background: 'transparent', border: 'none', color: COLORS.faded, cursor: 'pointer', padding: 6, display: 'flex', alignItems: 'center', justifyContent: 'center' }}
               >
                 <X size={16} strokeWidth={2.5} />
               </button>
             )}
           </div>
 
-          <div style={{ position: 'relative' }} onClick={(e) => e.stopPropagation()}>
-            <button
-              onClick={() => setCatOpen((o) => !o)}
-              aria-haspopup="true"
-              aria-expanded={catOpen}
-              style={{
-                height: '100%',
-                display: 'flex',
-                alignItems: 'center',
-                gap: 10,
-                background: COLORS.ink,
-                color: COLORS.cream,
-                border: `1.5px solid ${COLORS.ink}`,
-                padding: '0 16px',
-                fontFamily: 'DM Mono, monospace',
-                fontSize: 10,
-                letterSpacing: '0.18em',
-                textTransform: 'uppercase',
-                fontWeight: 600,
-                cursor: 'pointer',
-                whiteSpace: 'nowrap',
-              }}
-            >
-              <span>
-                <span style={{ opacity: 0.6 }}>Category:</span>{' '}
-                {(visibleTypes.find((t) => t.id === typeFilter) || {}).label || 'All'}
-              </span>
-              <ChevronDown
-                size={14}
-                strokeWidth={2.5}
-                style={{ transform: catOpen ? 'rotate(180deg)' : 'none', transition: 'transform 0.15s' }}
-              />
-            </button>
-            {catOpen && (
-              <div
-                role="menu"
-                style={{
-                  position: 'absolute',
-                  top: 'calc(100% + 6px)',
-                  left: 0,
-                  zIndex: 30,
-                  minWidth: 230,
-                  background: COLORS.cream,
-                  border: `1.5px solid ${COLORS.ink}`,
-                  maxHeight: 360,
-                  overflowY: 'auto',
-                }}
-              >
-                {visibleTypes.map((t, i) => {
-                  const active = typeFilter === t.id;
-                  return (
-                    <button
-                      key={t.id}
-                      role="menuitem"
-                      onClick={() => {
-                        setTypeFilter(t.id);
-                        setCatOpen(false);
-                      }}
-                      style={{
-                        width: '100%',
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'space-between',
-                        gap: 16,
-                        background: active ? COLORS.ink : 'transparent',
-                        color: active ? COLORS.cream : COLORS.ink,
-                        border: 'none',
-                        borderTop: i === 0 ? 'none' : `0.5px solid ${COLORS.paper}`,
-                        padding: '10px 14px',
-                        fontFamily: 'DM Mono, monospace',
-                        fontSize: 10,
-                        letterSpacing: '0.18em',
-                        textTransform: 'uppercase',
-                        fontWeight: 600,
-                        cursor: 'pointer',
-                        textAlign: 'left',
-                      }}
-                    >
-                      <span>{t.label}</span>
-                      <span style={{ opacity: 0.6 }}>{counts[t.id] || 0}</span>
-                    </button>
-                  );
-                })}
-              </div>
-            )}
-          </div>
-        </div>
-
-        <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginBottom: 28 }}>
-          {sortButtons.map((opt) => {
-            const active = sortBy === opt.id;
-            return (
+          <div style={{ display: 'flex', gap: 10, flexShrink: 0 }}>
+            <div style={{ position: 'relative' }} onClick={(e) => e.stopPropagation()}>
               <button
-                key={opt.id}
-                onClick={() => setSortBy(opt.id)}
-                style={{
-                  background: active ? COLORS.ink : 'transparent',
-                  color: active ? COLORS.cream : COLORS.ink,
-                  border: `1.5px solid ${COLORS.ink}`,
-                  padding: '8px 14px',
-                  fontFamily: 'DM Mono, monospace',
-                  fontSize: 10,
-                  letterSpacing: '0.18em',
-                  textTransform: 'uppercase',
-                  fontWeight: 600,
-                  cursor: 'pointer',
-                }}
+                onClick={() => { setCatOpen((o) => !o); setSortOpen(false); }}
+                aria-haspopup="true"
+                aria-expanded={catOpen}
+                style={{ height: '100%', display: 'flex', alignItems: 'center', gap: 10, background: COLORS.ink, color: COLORS.cream, border: `1.5px solid ${COLORS.ink}`, padding: '0 16px', fontFamily: 'DM Mono, monospace', fontSize: 10, letterSpacing: '0.18em', textTransform: 'uppercase', fontWeight: 600, cursor: 'pointer', whiteSpace: 'nowrap' }}
               >
-                {opt.label}
+                <span>
+                  <span style={{ opacity: 0.6 }}>Category:</span>{' '}
+                  {(visibleTypes.find((t) => t.id === typeFilter) || {}).label || 'All'}
+                </span>
+                <ChevronDown size={14} strokeWidth={2.5} style={{ transform: catOpen ? 'rotate(180deg)' : 'none', transition: 'transform 0.15s' }} />
               </button>
-            );
-          })}
+              {catOpen && (
+                <div role="menu" style={{ position: 'absolute', top: 'calc(100% + 6px)', left: 0, zIndex: 30, minWidth: 230, background: COLORS.cream, border: `1.5px solid ${COLORS.ink}`, maxHeight: 360, overflowY: 'auto' }}>
+                  {visibleTypes.map((t, i) => {
+                    const active = typeFilter === t.id;
+                    return (
+                      <button
+                        key={t.id}
+                        role="menuitem"
+                        onClick={() => { setTypeFilter(t.id); setCatOpen(false); }}
+                        style={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 16, background: active ? COLORS.ink : 'transparent', color: active ? COLORS.cream : COLORS.ink, border: 'none', borderTop: i === 0 ? 'none' : `0.5px solid ${COLORS.paper}`, padding: '10px 14px', fontFamily: 'DM Mono, monospace', fontSize: 10, letterSpacing: '0.18em', textTransform: 'uppercase', fontWeight: 600, cursor: 'pointer', textAlign: 'left' }}
+                      >
+                        <span>{t.label}</span>
+                        <span style={{ opacity: 0.6 }}>{counts[t.id] || 0}</span>
+                      </button>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
+
+            <div style={{ position: 'relative' }} onClick={(e) => e.stopPropagation()}>
+              <button
+                onClick={() => { setSortOpen((o) => !o); setCatOpen(false); }}
+                aria-haspopup="true"
+                aria-expanded={sortOpen}
+                style={{ height: '100%', display: 'flex', alignItems: 'center', gap: 10, background: 'transparent', color: COLORS.ink, border: `1.5px solid ${COLORS.ink}`, padding: '0 16px', fontFamily: 'DM Mono, monospace', fontSize: 10, letterSpacing: '0.18em', textTransform: 'uppercase', fontWeight: 600, cursor: 'pointer', whiteSpace: 'nowrap' }}
+              >
+                <span>
+                  <span style={{ opacity: 0.6 }}>Sort:</span>{' '}
+                  {(sortButtons.find((o) => o.id === sortBy) || {}).label || 'Discover'}
+                </span>
+                <ChevronDown size={14} strokeWidth={2.5} style={{ transform: sortOpen ? 'rotate(180deg)' : 'none', transition: 'transform 0.15s' }} />
+              </button>
+              {sortOpen && (
+                <div role="menu" style={{ position: 'absolute', top: 'calc(100% + 6px)', right: 0, zIndex: 30, minWidth: 180, background: COLORS.cream, border: `1.5px solid ${COLORS.ink}` }}>
+                  {sortButtons.map((opt, i) => {
+                    const active = sortBy === opt.id;
+                    return (
+                      <button
+                        key={opt.id}
+                        role="menuitem"
+                        onClick={() => { setSortBy(opt.id); setSortOpen(false); }}
+                        style={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 16, background: active ? COLORS.ink : 'transparent', color: active ? COLORS.cream : COLORS.ink, border: 'none', borderTop: i === 0 ? 'none' : `0.5px solid ${COLORS.paper}`, padding: '10px 14px', fontFamily: 'DM Mono, monospace', fontSize: 10, letterSpacing: '0.18em', textTransform: 'uppercase', fontWeight: 600, cursor: 'pointer', textAlign: 'left' }}
+                      >
+                        {opt.label}
+                      </button>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
+          </div>
         </div>
 
 
@@ -480,7 +419,7 @@ function Home({ lists, viewCounts, voteData, extras, openList, onSubmit }) {
               }}
             >
               <Plus size={14} strokeWidth={2.5} />
-              Submit
+              Submit a list
             </button>
           </div>
         </div>
@@ -734,7 +673,7 @@ function Tile({ list, rank, views, voteData, extras, onClick, showConsensus }) {
         }}
       >
         <Eye size={12} strokeWidth={2} />
-        <span>{views} views</span>
+        <span>{views} visitors</span>
       </div>
     </button>
   );
