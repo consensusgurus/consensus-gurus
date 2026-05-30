@@ -165,7 +165,7 @@ export default function CreateClient({ lists }) {
         value={title}
         maxLength={60}
         onChange={(e) => setTitle(e.target.value)}
-        placeholder="Where Experts Agree"
+        placeholder="e.g. My Perfect Weekend"
         style={{
           width: '100%',
           boxSizing: 'border-box',
@@ -185,8 +185,8 @@ export default function CreateClient({ lists }) {
       <div ref={boardRef} style={{ background: COLORS.cream, border: `2px solid ${COLORS.ink}`, padding: 26, marginBottom: 22 }}>
         <div
           style={{
-            display: 'flex',
-            justifyContent: 'space-between',
+            display: 'grid',
+            gridTemplateColumns: '1fr auto 1fr',
             alignItems: 'baseline',
             gap: 12,
             borderBottom: `1.5px solid ${COLORS.ink}`,
@@ -199,11 +199,27 @@ export default function CreateClient({ lists }) {
             color: COLORS.faded,
           }}
         >
-          <span>Consensus Gurus</span>
-          <span style={{ textAlign: 'right' }}>{title.trim() || 'Where Experts Agree'}</span>
+          <span style={{ textAlign: 'left' }}>Consensus Gurus</span>
+          <span
+            style={{
+              textAlign: 'center',
+              whiteSpace: 'nowrap',
+              fontFamily: 'Fraunces, serif',
+              fontWeight: 900,
+              fontSize: 20,
+              lineHeight: 1,
+              letterSpacing: '-0.01em',
+              textTransform: 'none',
+              color: COLORS.ink,
+              fontVariationSettings: '"SOFT" 100',
+            }}
+          >
+            {title.trim()}
+          </span>
+          <span style={{ textAlign: 'right' }}>Where Experts Agree</span>
         </div>
 
-        <div style={{ display: 'grid', gridTemplateColumns: `repeat(${format.cols}, 1fr)`, gap: 16 }}>
+        <div style={{ display: 'grid', gridTemplateColumns: `repeat(${format.cols}, minmax(0, 1fr))`, gap: 16, alignItems: 'stretch' }}>
           {tiles.map((t, i) => (
             <button
               key={i}
@@ -212,22 +228,25 @@ export default function CreateClient({ lists }) {
                 cursor: 'pointer',
                 textAlign: 'left',
                 fontFamily: 'inherit',
+                boxSizing: 'border-box',
+                height: '100%',
+                minWidth: 0,
+                minHeight: 196,
                 background: t ? COLORS.paper : 'transparent',
                 color: COLORS.ink,
                 border: t ? `1.5px solid ${COLORS.ink}` : `1.5px dashed ${COLORS.faded}`,
                 padding: 20,
                 position: 'relative',
-                minHeight: t ? undefined : 196,
-                display: t ? 'block' : 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
+                display: 'flex',
+                flexDirection: 'column',
+                justifyContent: t ? 'flex-start' : 'center',
+                alignItems: t ? 'stretch' : 'center',
               }}
             >
               {t ? (
                 <>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 14, gap: 8 }}>
+                  <div style={{ marginBottom: 14 }}>
                     <span style={{ fontFamily: 'DM Mono, monospace', fontSize: 10, letterSpacing: '0.2em', textTransform: 'uppercase', opacity: 0.75 }}>{t.category}</span>
-                    <span style={{ fontFamily: 'Fraunces, serif', fontWeight: 900, fontSize: 18, color: COLORS.ember, fontVariationSettings: '"SOFT" 100' }}>#{i + 1}</span>
                   </div>
                   <h3 style={{ fontFamily: 'Fraunces, serif', fontWeight: 700, fontSize: 24, lineHeight: 1.05, letterSpacing: '-0.02em', margin: '0 0 14px', fontVariationSettings: '"SOFT" 100' }}>{t.title}</h3>
                   <div style={{ fontFamily: 'DM Mono, monospace', fontSize: 10, letterSpacing: '0.15em', textTransform: 'uppercase', opacity: 0.6, marginBottom: 8 }}>Current Consensus</div>
@@ -242,7 +261,7 @@ export default function CreateClient({ lists }) {
                         ) : (
                           <span style={{ fontFamily: 'Fraunces, serif', fontWeight: 600, width: 16, color: COLORS.faded }}>{idx + 1}</span>
                         )}
-                        <span style={{ flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{it}</span>
+                        <span style={{ flex: 1, minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{it}</span>
                       </li>
                     ))}
                   </ol>
