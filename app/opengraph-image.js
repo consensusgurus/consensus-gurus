@@ -86,7 +86,7 @@ export default async function Image() {
               letterSpacing: 1,
             }}
           >
-            Where Experts Agree.
+            Where Experts Agree
           </div>
         </div>
 

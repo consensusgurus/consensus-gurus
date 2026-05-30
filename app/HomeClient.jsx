@@ -201,7 +201,7 @@ function Home({ lists, viewCounts, voteData, extras, openList, onSubmit }) {
             color: COLORS.ink,
           }}
         >
-          Where Experts Agree.
+          Where Experts Agree
         </p>
         <div
           style={{
