@@ -72,6 +72,7 @@ export default function CreateClient({ lists }) {
   const [scale, setScale] = useState(0.33);
   const [boardH, setBoardH] = useState(760);
   const boardRef = useRef(null);
+  const wrapRef = useRef(null);
 
   useEffect(() => {
     fetchBootstrap().then((d) => {
@@ -85,8 +86,10 @@ export default function CreateClient({ lists }) {
   // Fit the fixed-width board to the screen (never upscale past 1:1).
   useEffect(() => {
     function fit() {
-      const avail = Math.min(window.innerWidth - 36, BOARD_W);
-      setScale(avail / BOARD_W);
+      // Scale off the actual preview container width (never the window) so the
+      // fixed-width board fits the page column on both desktop and mobile.
+      const avail = wrapRef.current ? wrapRef.current.clientWidth : Math.min(window.innerWidth - 36, BOARD_W);
+      setScale(Math.min(avail / BOARD_W, 1));
     }
     fit();
     window.addEventListener('resize', fit);
@@ -335,7 +338,7 @@ export default function CreateClient({ lists }) {
 
       {/* Step 4 — preview + export */}
       <SectionLabel>4 · Preview</SectionLabel>
-      <div style={{ display: 'flex', justifyContent: 'center', overflow: 'hidden', marginBottom: 14 }}>
+      <div ref={wrapRef} style={{ display: 'flex', justifyContent: 'center', overflow: 'hidden', marginBottom: 14 }}>
         <div style={{ width: BOARD_W * scale, height: boardH * scale, position: 'relative', overflow: 'hidden', pointerEvents: 'none' }}>
           <div style={{ transform: `scale(${scale})`, transformOrigin: 'top left', position: 'absolute', top: 0, left: 0, width: BOARD_W }}>
             <Board ref={boardRef} tiles={tiles} format={format} title={title} voteData={voteData} extrasMap={extrasMap} />
