@@ -404,12 +404,12 @@ function ListDetail({ list, viewCount, voteData, userVotes, extras, relatedLists
               onClick={() => { setComplainSent(false); setComplainOpen(true); }}
               style={{
                 background: 'transparent',
-                color: COLORS.rust,
-                border: `1.5px dashed ${COLORS.rust}`,
+                color: COLORS.ink,
+                border: `1.5px solid ${COLORS.ink}`,
                 padding: '8px 14px',
                 fontFamily: 'DM Mono, monospace',
                 fontSize: 10,
-                letterSpacing: '0.16em',
+                letterSpacing: '0.18em',
                 textTransform: 'uppercase',
                 fontWeight: 600,
                 cursor: 'pointer',
@@ -419,7 +419,7 @@ function ListDetail({ list, viewCount, voteData, userVotes, extras, relatedLists
               }}
             >
               <PenLine size={12} strokeWidth={2.5} />
-              Complain / Request New Research
+              Request New Research
             </button>
             <a
               href={`/snapshot/${encodeURIComponent(list.id)}`}
@@ -470,7 +470,7 @@ function ListDetail({ list, viewCount, voteData, userVotes, extras, relatedLists
               </>
             ) : (
               <>
-                <h3 style={{ fontFamily: 'Fraunces, serif', fontWeight: 700, fontSize: 22, margin: '0 0 6px' }}>Complain / Request New Research</h3>
+                <h3 style={{ fontFamily: 'Fraunces, serif', fontWeight: 700, fontSize: 22, margin: '0 0 6px' }}>Request New Research</h3>
                 <p style={{ fontFamily: 'DM Sans, sans-serif', fontSize: 14, color: COLORS.faded, margin: '0 0 14px' }}>
                   Think this list is wrong or stale? Tell the editors what to re-research.
                 </p>
@@ -543,6 +543,25 @@ function ListDetail({ list, viewCount, voteData, userVotes, extras, relatedLists
                   </button>
                 );
               })}
+              {showVoteTab && (
+                <button
+                  onClick={() => setTab('vote')}
+                  style={{
+                    background: COLORS.ember,
+                    color: COLORS.cream,
+                    border: `1.5px solid ${COLORS.ember}`,
+                    padding: '10px 16px',
+                    fontFamily: 'DM Mono, monospace',
+                    fontSize: 11,
+                    letterSpacing: '0.12em',
+                    fontWeight: 700,
+                    cursor: 'pointer',
+                    transition: 'all 0.15s ease',
+                  }}
+                >
+                  User Vote
+                </button>
+              )}
             </div>
           ) : (
             <div
@@ -558,15 +577,6 @@ function ListDetail({ list, viewCount, voteData, userVotes, extras, relatedLists
             >
               {activeSource?.label || 'Ranked'}
             </div>
-          )}
-
-          {showVoteTab && (
-            <button
-              onClick={() => setTab('vote')}
-              style={{ display: 'inline-flex', alignItems: 'center', gap: 8, marginBottom: 24, cursor: 'pointer', background: COLORS.ember, color: COLORS.cream, border: `1.5px solid ${COLORS.ember}`, padding: '12px 22px', fontFamily: 'DM Mono, monospace', fontSize: 12, letterSpacing: '0.16em', textTransform: 'uppercase', fontWeight: 700 }}
-            >
-              <Users size={15} strokeWidth={2.5} /> User Vote
-            </button>
           )}
 
           <ol style={{ margin: 0, padding: 0, listStyle: 'none' }}>

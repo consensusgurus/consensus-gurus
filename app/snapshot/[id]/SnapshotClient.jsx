@@ -429,7 +429,7 @@ const Poster = React.forwardRef(function Poster({ list, items, modeLabel }, ref)
         }}
       >
         <span style={{ fontWeight: 600 }}>Consensus Gurus</span>
-        <span style={{ color: COLORS.faded, fontSize: 14 }}>Vol. I</span>
+        <span style={{ color: COLORS.faded, fontSize: 14 }}>Where Experts Agree</span>
       </div>
 
       {/* Category */}
@@ -551,7 +551,6 @@ const Poster = React.forwardRef(function Poster({ list, items, modeLabel }, ref)
         }}
       >
         <span>consensusgurus.com</span>
-        <span style={{ color: COLORS.faded }}>vote · share · debate</span>
       </div>
     </div>
   );
