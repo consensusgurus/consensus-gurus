@@ -1,9 +1,43 @@
 'use client';
 
-import { useState, useRef, useMemo } from 'react';
+import { useState, useRef, useMemo, useEffect } from 'react';
 import Link from 'next/link';
 import { ArrowLeft, Search, X, Download, Plus } from 'lucide-react';
 import { COLORS } from '@/lib/data';
+import { getSources, voteKey, dedupeByName } from '@/lib/helpers';
+import { fetchBootstrap } from '@/lib/api';
+
+// Mirror the homepage tile preview exactly — including live fan votes — so the
+// grid shows the same rows the main page does for each list.
+function previewFor(list, voteData, extrasArr) {
+  const mode = list.mode || 'both';
+  const extras = extrasArr || [];
+
+  function topByVotes() {
+    const base = (list.vote && list.vote.items) || [];
+    const all = dedupeByName([...base, ...extras]);
+    const scored = all.map((item, idx) => ({ item, score: voteData[voteKey(list.id, item)] || 0, idx }));
+    scored.sort((a, b) => b.score - a.score || a.idx - b.idx);
+    return scored.slice(0, 3).map((s) => s.item);
+  }
+
+  if (mode === 'facts' || mode === 'scores' || mode === 'unranked') {
+    return { label: 'Top of the list', items: ((list.sources && list.sources.ai && list.sources.ai.items) || []).slice(0, 3) };
+  }
+  if (mode === 'votes') {
+    return { label: 'Currently topping the votes', items: topByVotes() };
+  }
+  try {
+    const sources = getSources(list, voteData, extras);
+    const consensus = sources.find((s) => s.id === 'consensus');
+    if (consensus && consensus.items.length > 0) {
+      return { label: 'Current Consensus', items: consensus.items.slice(0, 3) };
+    }
+  } catch (e) {
+    // fall through to votes
+  }
+  return { label: 'Currently topping the votes', items: topByVotes() };
+}
 
 // Same gold/silver/bronze medal accents the homepage tiles use.
 const RANK_MEDALS = [
@@ -28,7 +62,18 @@ export default function CreateClient({ lists }) {
   const [pickIndex, setPickIndex] = useState(null);
   const [query, setQuery] = useState('');
   const [downloading, setDownloading] = useState(false);
+  const [voteData, setVoteData] = useState({});
+  const [extrasMap, setExtrasMap] = useState({});
   const boardRef = useRef(null);
+
+  useEffect(() => {
+    fetchBootstrap().then((d) => {
+      if (d) {
+        setVoteData(d.votes || {});
+        setExtrasMap(d.extras || {});
+      }
+    });
+  }, []);
 
   function chooseFormat(f) {
     setFormat(f);
@@ -221,7 +266,9 @@ export default function CreateClient({ lists }) {
         </div>
 
         <div style={{ display: 'grid', gridTemplateColumns: `repeat(${format.cols}, minmax(0, 1fr))`, gap: 16, alignItems: 'stretch' }}>
-          {tiles.map((t, i) => (
+          {tiles.map((t, i) => {
+            const pv = t ? previewFor(t, voteData, extrasMap[t.id] || []) : null;
+            return (
             <button
               key={i}
               onClick={() => openPicker(i)}
@@ -250,9 +297,9 @@ export default function CreateClient({ lists }) {
                     <span style={{ fontFamily: 'DM Mono, monospace', fontSize: 10, letterSpacing: '0.2em', textTransform: 'uppercase', opacity: 0.75 }}>{t.category}</span>
                   </div>
                   <h3 style={{ fontFamily: 'Fraunces, serif', fontWeight: 700, fontSize: 24, lineHeight: 1.05, letterSpacing: '-0.02em', margin: '0 0 14px', fontVariationSettings: '"SOFT" 100' }}>{t.title}</h3>
-                  <div style={{ fontFamily: 'DM Mono, monospace', fontSize: 10, letterSpacing: '0.15em', textTransform: 'uppercase', opacity: 0.6, marginBottom: 8 }}>{t.label || 'Current Consensus'}</div>
+                  <div style={{ fontFamily: 'DM Mono, monospace', fontSize: 10, letterSpacing: '0.15em', textTransform: 'uppercase', opacity: 0.6, marginBottom: 8 }}>{pv.label}</div>
                   <ol style={{ margin: 0, padding: 0, listStyle: 'none', fontFamily: 'DM Sans, sans-serif', fontSize: 14 }}>
-                    {t.items.map((it, idx) => (
+                    {pv.items.map((it, idx) => (
                       <li key={idx} style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '4px 0', borderBottom: idx < 2 ? `1px dashed ${COLORS.faded}` : 'none' }}>
                         {idx < 3 ? (
                           <span style={{ position: 'relative', width: 22, height: 22, flex: '0 0 auto', display: 'inline-flex', alignItems: 'center', justifyContent: 'center' }}>
@@ -274,7 +321,8 @@ export default function CreateClient({ lists }) {
                 </span>
               )}
             </button>
-          ))}
+            );
+          })}
         </div>
 
         <div style={{ textAlign: 'center', marginTop: 20, fontFamily: 'DM Mono, monospace', fontSize: 10, letterSpacing: '0.2em', textTransform: 'uppercase', color: COLORS.faded }}>
