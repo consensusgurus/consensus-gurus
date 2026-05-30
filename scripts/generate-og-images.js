@@ -74,7 +74,8 @@ function computeConsensus(list) {
     .map(([id, src]) => ({
       id,
       label: src.label,
-      items: src.items || []
+      items: src.items || [],
+      unordered: src.unordered
     }));
   
   if (publications.length === 0) {
@@ -104,8 +105,18 @@ function computeConsensus(list) {
     return 11 - rank;
   };
   
+  // Unordered roundups contribute equal flat points to each listed item.
+  const FLAT_UNORDERED = 5.5;
   // Score each publication
   publications.forEach((src) => {
+    if (src.unordered) {
+      const listed = new Set(src.items.map((i) => i.toLowerCase().trim()));
+      universe.forEach((item) => {
+        const key = item.toLowerCase().trim();
+        if (listed.has(key)) scores[key] += FLAT_UNORDERED;
+      });
+      return;
+    }
     const pubRanks = {};
     src.items.forEach((item, idx) => {
       pubRanks[item.toLowerCase().trim()] = idx + 1;
