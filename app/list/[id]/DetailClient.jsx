@@ -397,7 +397,7 @@ function ListDetail({ list, viewCount, voteData, userVotes, extras, relatedLists
             }}
           >
             <Eye size={11} strokeWidth={2} />
-            <span>{viewCount} views</span>
+            <span>{viewCount} visitors</span>
           </div>
           <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap' }}>
             <button
@@ -581,7 +581,7 @@ function ListDetail({ list, viewCount, voteData, userVotes, extras, relatedLists
 
           <ol style={{ margin: 0, padding: 0, listStyle: 'none' }}>
             {(activeSource?.items || []).map((item, i) => (
-              <DataRow key={i} rank={i + 1} item={item} list={list} unranked={mode === 'unranked'} />
+              <DataRow key={i} rank={i + 1} item={item} list={list} unranked={mode === 'unranked' || !!activeSource?.unordered} />
             ))}
           </ol>
 
@@ -1356,41 +1356,61 @@ function ItemLink({ list, item, children, style }) {
 }
 
 function DataRow({ rank, item, list, unranked }) {
-  // Numbering is forced on for unranked lists too (gold/silver/bronze handled on the homepage tiles).
-  const isTop = rank === 1;
+  // Ranked lists number each entry. Unranked lists (a source flagged
+  // `unordered`, or a `mode: 'unranked'` list) show a plain bullet instead,
+  // so the order reads as incidental rather than a ranking.
+  const isTop = !unranked && rank === 1;
   const showFullSize = rank <= 10;
   return (
     <li
       style={{
         display: 'flex',
         alignItems: 'baseline',
-        gap: 18,
+        gap: unranked ? 14 : 18,
         padding: showFullSize ? '20px 0' : '14px 0',
         borderBottom: `1px solid ${COLORS.ink}`,
-        opacity: rank > 10 ? 0.85 : 1,
+        opacity: !unranked && rank > 10 ? 0.85 : 1,
       }}
     >
-      <span
-        style={{
-          fontFamily: 'Fraunces, serif',
-          fontWeight: 900,
-          fontSize: isTop ? 64 : showFullSize ? 44 : 32,
-          lineHeight: 0.85,
-          color: isTop ? COLORS.ember : rank > 10 ? COLORS.faded : COLORS.ink,
-          minWidth: 70,
-          fontVariationSettings: '"SOFT" 100, "WONK" 1',
-          fontFeatureSettings: '"lnum" 1',
-        }}
-      >
-        {String(rank).padStart(2, '0')}
-      </span>
+      {unranked ? (
+        <span
+          aria-hidden="true"
+          style={{
+            fontFamily: 'Fraunces, serif',
+            fontWeight: 900,
+            fontSize: 22,
+            lineHeight: 1,
+            color: COLORS.ember,
+            minWidth: 18,
+            textAlign: 'center',
+            flexShrink: 0,
+          }}
+        >
+          •
+        </span>
+      ) : (
+        <span
+          style={{
+            fontFamily: 'Fraunces, serif',
+            fontWeight: 900,
+            fontSize: isTop ? 64 : showFullSize ? 44 : 32,
+            lineHeight: 0.85,
+            color: isTop ? COLORS.ember : rank > 10 ? COLORS.faded : COLORS.ink,
+            minWidth: 70,
+            fontVariationSettings: '"SOFT" 100, "WONK" 1',
+            fontFeatureSettings: '"lnum" 1',
+          }}
+        >
+          {String(rank).padStart(2, '0')}
+        </span>
+      )}
       <ItemLink
         list={list}
         item={item}
         style={{
           fontFamily: 'Fraunces, serif',
-          fontSize: isTop ? 28 : showFullSize ? 22 : 19,
-          fontWeight: isTop ? 700 : 500,
+          fontSize: unranked ? 20 : isTop ? 28 : showFullSize ? 22 : 19,
+          fontWeight: unranked ? 500 : isTop ? 700 : 500,
           lineHeight: 1.15,
           color: COLORS.ink,
           letterSpacing: '-0.01em',
