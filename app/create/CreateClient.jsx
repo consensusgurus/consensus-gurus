@@ -91,7 +91,7 @@ export default function CreateClient({ lists }) {
   const filledCount = tiles.filter(Boolean).length;
 
   return (
-    <div style={{ position: 'relative', zIndex: 2, maxWidth: 920, margin: '0 auto', padding: '28px 16px 80px' }}>
+    <div style={{ position: 'relative', zIndex: 2, maxWidth: 1040, margin: '0 auto', padding: '28px 16px 80px' }}>
       <Link
         href="/"
         style={{
@@ -261,7 +261,7 @@ export default function CreateClient({ lists }) {
                         ) : (
                           <span style={{ fontFamily: 'Fraunces, serif', fontWeight: 600, width: 16, color: COLORS.faded }}>{idx + 1}</span>
                         )}
-                        <span style={{ flex: 1, minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{it}</span>
+                        <span style={{ flex: 1, minWidth: 0 }}>{it}</span>
                       </li>
                     ))}
                   </ol>
