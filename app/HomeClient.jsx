@@ -16,6 +16,13 @@ import { fetchBootstrap } from '@/lib/api';
 import Grain from './Grain';
 import Footer from './Footer';
 
+// Medal accents for the top-3 consensus rows on homepage tiles only (gold/silver/bronze).
+const RANK_MEDALS = [
+  { fill: '#c9a227', num: '#8a6d12', numHover: '#e7cf73' },
+  { fill: '#9ca3a8', num: '#6b7278', numHover: '#cfd4d8' },
+  { fill: '#a9743f', num: '#7a4f2b', numHover: '#d49a66' },
+];
+
 // Get the effective tag set for a list. If `tags` is provided, use it.
 // Otherwise fall back to [type] for backward compatibility.
 function getListTags(list) {
@@ -492,22 +499,58 @@ function Tile({ list, rank, views, voteData, extras, onClick, showConsensus }) {
                 key={i}
                 style={{
                   display: 'flex',
+                  alignItems: 'center',
                   gap: 8,
                   padding: '4px 0',
                   borderBottom: i < 2 ? `1px dashed ${hover ? COLORS.cream : COLORS.faded}` : 'none',
                   opacity: i === 0 ? 1 : 0.75,
                 }}
               >
-                <span
-                  style={{
-                    fontFamily: 'Fraunces, serif',
-                    fontWeight: 600,
-                    width: 16,
-                    color: hover ? COLORS.cream : COLORS.faded,
-                  }}
-                >
-                  {i + 1}
-                </span>
+                {i < 3 && list.mode !== 'unranked' ? (
+                  <span
+                    style={{
+                      position: 'relative',
+                      width: 22,
+                      height: 22,
+                      flex: '0 0 auto',
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                    }}
+                  >
+                    <span
+                      style={{
+                        position: 'absolute',
+                        inset: 0,
+                        borderRadius: '50%',
+                        background: RANK_MEDALS[i].fill,
+                        opacity: hover ? 0.34 : 0.3,
+                      }}
+                    />
+                    <span
+                      style={{
+                        position: 'relative',
+                        fontFamily: 'Fraunces, serif',
+                        fontWeight: 600,
+                        fontSize: 13,
+                        color: hover ? RANK_MEDALS[i].numHover : RANK_MEDALS[i].num,
+                      }}
+                    >
+                      {i + 1}
+                    </span>
+                  </span>
+                ) : (
+                  <span
+                    style={{
+                      fontFamily: 'Fraunces, serif',
+                      fontWeight: 600,
+                      width: 16,
+                      color: hover ? COLORS.cream : COLORS.faded,
+                    }}
+                  >
+                    {i + 1}
+                  </span>
+                )}
                 <span style={{ flex: 1 }}>{t.item}</span>
               </li>
             ))}
@@ -592,7 +635,7 @@ export default function HomeClient() {
             color: COLORS.faded,
           }}
         >
-          loading the gurus
+          gathering consensus
         </div>
       ) : (
         <Home
