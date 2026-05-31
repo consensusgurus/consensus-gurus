@@ -55,6 +55,10 @@ export default function SnapshotClient({ listId }) {
       if (aiItems.length > 0) {
         out.push({ id: 'ai', label: list.sources?.ai?.label || 'Consensus AI', items: aiItems });
       }
+      // When only one platform (Google OR Yelp, not both) backs the composite,
+      // the composite and that single platform are the SAME data — collapse the
+      // redundant second chip so the share picker shows just one option.
+      if (publications.length <= 1) return out.length > 0 ? out : publications;
       return [...out, ...publications];
     }
     // 'both' mode: compute Consensus the same way the detail page does, factoring

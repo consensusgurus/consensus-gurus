@@ -264,6 +264,8 @@ In `lib/data.js`, copy an existing entry in the `LISTS` array and edit:
 - `blurb` — one-line description
 - `sources` — at least an `ai` source with items
 - `vote.items` — starting order of the vote tab
+
+For `mode: 'scores'` chain lists (e.g. Cava, McDonald's, Sweetgreen), the `ai` source is the composite ranking and the platform sources (`google`, `yelp`) appear as chips. **Rule:** when only ONE platform backs the composite (Google *or* Yelp, not both), the composite and that platform are identical data, so the UI shows a single chip instead of two redundant ones. Provide both `google` and `yelp` only when you actually have two distinct rankings to blend.
 - `links` (optional) — map of `'Item Name': 'https://url'` for per-item overrides
 
 Commit and push. Vercel rebuilds automatically.

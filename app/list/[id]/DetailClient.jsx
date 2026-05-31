@@ -79,9 +79,14 @@ function ListDetail({ list, viewCount, voteData, userVotes, extras, relatedLists
       if (aiItems.length > 0) {
         out.push({ id: 'ai', label: list.sources?.ai?.label || 'Consensus AI', items: aiItems });
       }
+      // When only one platform (Google OR Yelp, not both) backs the composite,
+      // the composite and that single platform are the SAME data — showing two
+      // selection chips is redundant. Collapse to one chip: the composite if we
+      // have it, otherwise the lone platform.
+      if (publications.length <= 1) return out.length > 0 ? out : publications;
       return [...out, ...publications];
     }
-    
+
     // For 'both' mode lists: compute Consensus from publications
     return getSources(list, voteData, extras);
   }, [list, voteData, extras, showSourceTab, mode]);
