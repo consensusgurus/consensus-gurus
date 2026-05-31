@@ -144,7 +144,7 @@ Optional. Omit for default behavior.
 | `'facts'` | Factual/objective list — no voting, Sources tab only |
 | `'scores'` | Composite-ranking list — `ai` ranking + read-only source chips, no voting (chain-city lists) |
 | `'unranked'` | Unranked products — a curated, subjective set shown with no rank numbers, no consensus math, no voting |
-| `'votes'` | Fan vote list — no Sources tab |
+| `'votes'` | Fan vote list — no Sources tab, no Rankings tab. The "Back to Rankings" button on the vote UI is automatically hidden for this mode since there are no rankings to return to. |
 
 ### `links`
 Optional in general, but **required for `mapsCity` lists** (see the linking note under `linkType`). Maps item names to direct URLs. The key must match the exact item-name string, parenthetical and all. When a direct link exists, the site uses it instead of the auto-generated search link.
