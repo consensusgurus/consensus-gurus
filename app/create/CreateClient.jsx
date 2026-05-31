@@ -237,7 +237,7 @@ export default function CreateClient({ lists }) {
         value={title}
         maxLength={60}
         onChange={(e) => setTitle(e.target.value)}
-        placeholder="e.g. My Perfect Weekend"
+        placeholder="e.g. Nashville City Guide"
         style={{
           width: '100%',
           boxSizing: 'border-box',

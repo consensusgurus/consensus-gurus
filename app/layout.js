@@ -4,6 +4,7 @@ import './globals.css';
 import { Analytics } from '@vercel/analytics/next';
 
 export const metadata = {
+  metadataBase: new URL('https://consensusgurus.com'),
   title: 'Consensus Gurus | Where Experts Agree',
   description: 'Curated top-ten lists ranked by expert consensus. From dive bars to luxury resorts, discover what the experts agree on.',
   openGraph: {
@@ -29,12 +30,13 @@ export const metadata = {
   formatDetection: {
     telephone: false,
   },
-  viewport: {
-    width: 'device-width',
-    initialScale: 1,
-    maximumScale: 5,
-    userScalable: true, // CHANGED: Enabled user scaling for better browser experience
-  },
+};
+
+export const viewport = {
+  width: 'device-width',
+  initialScale: 1,
+  maximumScale: 5,
+  userScalable: true, // CHANGED: Enabled user scaling for better browser experience
 };
 
 export default function RootLayout({ children }) {
