@@ -256,6 +256,7 @@ consensus-gurus/
 In `lib/data.js`, copy an existing entry in the `LISTS` array and edit:
 
 - `id` — short slug, no spaces (`'headphones-overear'`)
+- `publishedDate` / `publishedAt` — **use the actual current timestamp** (e.g. `date -u +"%Y-%m-%dT%H:%M:%SZ"`), not a rounded or guessed time. The home page sorts newest-first by `publishedAt`, so a timestamp earlier than an existing list will make a brand-new list appear behind it.
 - `title`
 - `category` — short tag
 - `type` — one of: `food`, `stores`, `travel`, `entertainment`, `tech`, `product`, `other`
