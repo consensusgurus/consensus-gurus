@@ -428,9 +428,6 @@ NEW_COMMIT=$(GIT_AUTHOR_NAME="$GIT_AUTHOR_NAME" GIT_AUTHOR_EMAIL="$GIT_AUTHOR_EM
 git -c credential.helper= push "https://${GITHUB_PAT}@github.com/${GITHUB_REPO}.git" "$NEW_COMMIT:refs/heads/${GITHUB_DEFAULT_BRANCH}"
 ```
 
-After the push, verify at `consensusgurus.com/list/<id>` (a brand-new slug may serve a stale "not found"
-edge cache for a minute; a `?v=N` cache-buster confirms once the build is live).
-
 To commit more than `lib/data.js` in one push (e.g. updating this file too), add each changed file as its own
 blob and fold it into the tree the same way before `commit-tree`.
 
