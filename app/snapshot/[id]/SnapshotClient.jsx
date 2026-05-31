@@ -57,14 +57,33 @@ export default function SnapshotClient({ listId }) {
       }
       return [...out, ...publications];
     }
-    return getSources(list);
-  }, [list]);
+    // 'both' mode: compute Consensus the same way the detail page does, factoring
+    // in live vote data and user-added extras so the shared poster matches the
+    // list page exactly. (Previously called getSources(list) with no vote/extras,
+    // which produced a different top ten that ignored reader votes.)
+    return getSources(list, voteData, extras);
+  }, [list, voteData, extras]);
 
   const items = useMemo(() => {
     if (!list) return [];
     if (mode === 'vote') {
-      const base = list.vote?.items || [];
-      const all = dedupeByName([...base, ...extras]);
+      // Mirror the detail page's reader-vote universe. For 'both' mode lists the
+      // votable pool is vote.items plus every publication item plus user extras,
+      // not just vote.items + extras. Building the same universe here keeps the
+      // shared "Reader Votes" poster consistent with what people see on the list.
+      const listMode = list.mode || 'both';
+      const universeItems = [...(list.vote?.items || [])];
+      if (listMode === 'both') {
+        getSources(list, voteData, extras).forEach((source) => {
+          if (source.id === 'consensus') return; // use publications, not the composite
+          source.items.forEach((item) => {
+            if (!universeItems.some((i) => i.toLowerCase().trim() === item.toLowerCase().trim())) {
+              universeItems.push(item);
+            }
+          });
+        });
+      }
+      const all = dedupeByName([...universeItems, ...extras]);
       const scored = all.map((item, idx) => ({
         item,
         score: voteData[voteKey(list.id, item)] || 0,
