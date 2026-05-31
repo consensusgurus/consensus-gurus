@@ -39,25 +39,20 @@ export const viewport = {
   userScalable: true, // CHANGED: Enabled user scaling for better browser experience
 };
 
+const websiteJsonLd = {
+  '@context': 'https://schema.org',
+  '@type': 'WebSite',
+  name: 'Consensus Gurus',
+  alternateName: 'Consensus Gurus | Where Experts Agree',
+  url: 'https://consensusgurus.com',
+  description: 'Curated top-ten lists ranked by expert consensus. From dive bars to luxury resorts, discover what the experts agree on.',
+};
+
 export default function RootLayout({ children }) {
   return (
     <html lang="en">
       <head>
-        {/* Fraunces serif font for "Consensus Gurus" branding */}
-        <link
-          href="https://fonts.googleapis.com/css2?family=Fraunces:ital,wght@0,400;0,700;0,900;1,400;1,700&display=swap"
-          rel="stylesheet"
-        />
-        {/* DM Sans and DM Mono for body and UI */}
-        <link
-          href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@300;400;500&family=DM+Sans:wght@400;500;700&display=swap"
-          rel="stylesheet"
-        />
-      </head>
-      <body>
-        {children}
-        <Analytics />
-      </body>
-    </html>
-  );
-}
+        {/* WebSite structured data — tells Google our site name for search result display */}
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(websiteJsonLd) }
