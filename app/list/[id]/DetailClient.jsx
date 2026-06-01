@@ -1462,8 +1462,8 @@ function entryPicsConfig(list) {
   const isHotel = type === 'travel' || tags.includes('travel') || tags.includes('luxury');
   const isBar = tags.includes('bars') || tags.includes('nightlife');
   if (isHotel) return { label: 'Property Pics:', links: [['tripadvisor', 'TripAdvisor'], ['google', 'Google']] };
-  if (isBar) return { label: 'Pics:', links: [['yelp', 'Yelp'], ['google', 'Google Reviews']] };
-  return { label: 'Food Pics:', links: [['yelp', 'Yelp'], ['google', 'Google Reviews']] };
+  if (isBar) return { label: 'Pics:', links: [['yelp', 'Yelp'], ['google', 'Google']] };
+  return { label: 'Food Pics:', links: [['yelp', 'Yelp'], ['google', 'Google']] };
 }
 
 function auxChip() {
