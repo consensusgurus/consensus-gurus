@@ -14,13 +14,55 @@ const POSTER_H = 1350; // 4:5 portrait, Instagram-friendly
 // editorial publications keep their own label.
 function constituentLabel(src) {
   const id = (src.id || '').toLowerCase();
-  const label = (src.label || '').toLowerCase();
-  if (id === 'pricing' || label.includes('pricing') || label.includes('nightly rate')) {
+  const raw = src.label || '';
+  const l = raw.toLowerCase();
+  // Pricing proxy
+  if (id === 'pricing' || l.includes('pricing') || l.includes('nightly rate')) {
     return 'Forward Booking Price as a Luxury Proxy';
   }
-  if (id.includes('yelp') || label.includes('yelp')) return 'Yelp Review Score';
-  if (id.includes('google') || label.includes('google')) return 'Google Review Score';
-  return src.label;
+  // Rating / review platforms
+  if (id.includes('yelp') || l.includes('yelp')) return 'Yelp User Reviews';
+  if (id.includes('google') || l.includes('google')) return 'Google User Reviews';
+  if (l.includes('tripadvisor') || l.includes('trip advisor')) return 'Tripadvisor';
+  if (l.includes('booking.com')) return 'Booking.com';
+  if (l.includes('amazon')) return 'Amazon Ratings';
+  // Known publications -> short brand name (avoid long article titles)
+  const MAP = [
+    ['michelin', 'Michelin'],
+    ['infatuation', 'The Infatuation'],
+    ['eater', 'Eater'],
+    ['time out', 'Time Out'],
+    ['timeout', 'Time Out'],
+    ['cond\u00e9 nast', 'Cond\u00e9 Nast Traveler'],
+    ['conde nast', 'Cond\u00e9 Nast Traveler'],
+    ['cntraveler', 'Cond\u00e9 Nast Traveler'],
+    ['travel + leisure', 'Travel + Leisure'],
+    ['travel and leisure', 'Travel + Leisure'],
+    ['robb report', 'Robb Report'],
+    ['forbes', 'Forbes'],
+    ['us news', 'US News'],
+    ['points guy', 'The Points Guy'],
+    ['wirecutter', 'Wirecutter'],
+    ['good housekeeping', 'Good Housekeeping'],
+    ['cnet', 'CNET'],
+    ['serious eats', 'Serious Eats'],
+    ['thrillist', 'Thrillist'],
+    ['new york times', 'New York Times'],
+    ['bon app', 'Bon App\u00e9tit'],
+    ['esquire', 'Esquire'],
+    ['johnny novo', 'Johnny Novo'],
+    ['johnnynovo', 'Johnny Novo'],
+    ['the strategist', 'The Strategist'],
+    ['rolling stone', 'Rolling Stone'],
+    ['pitchfork', 'Pitchfork'],
+  ];
+  for (let i = 0; i < MAP.length; i++) {
+    if (l.includes(MAP[i][0])) return MAP[i][1];
+  }
+  // Fallback: take the part before the first delimiter and strip any year.
+  let s = raw.split(/[\u00b7\u2014|:(]/)[0];
+  s = s.replace(/\b(19|20)\d\d\b/g, '').replace(/\s{2,}/g, ' ').trim();
+  return s || raw;
 }
 
 export default function SnapshotClient({ listId }) {
@@ -30,6 +72,7 @@ export default function SnapshotClient({ listId }) {
   const [userLists, setUserLists] = useState([]);
   const [loaded, setLoaded] = useState(false);
   const [mode, setMode] = useState('ai'); // 'ai', 'consensus', or 'vote'
+  const [modeInit, setModeInit] = useState(false);
   const [copied, setCopied] = useState('');
   const [downloading, setDownloading] = useState(false);
   const posterRef = useRef(null);
@@ -116,7 +159,7 @@ export default function SnapshotClient({ listId }) {
 
   const modeLabel = useMemo(() => {
     if (mode === 'vote') return 'Reader Votes';
-    if (mode === 'consensus') return 'Expert Consensus';
+    if (mode === 'consensus') return 'Consensus';
     const src = sources.find((s) => s.id === mode);
     return src?.label || 'Ranked';
   }, [mode, sources]);
@@ -131,6 +174,15 @@ export default function SnapshotClient({ listId }) {
       .map((s) => constituentLabel(s));
     return dedupeByName(names);
   }, [sources, list]);
+
+  // Default the share preview to the computed Consensus (not the ai seed) when
+  // a consensus exists, so the default poster matches the list's Consensus view.
+  useEffect(() => {
+    if (modeInit || sources.length === 0) return;
+    const hasConsensus = sources.some((s) => s.id === 'consensus');
+    setMode(hasConsensus ? 'consensus' : (sources[0]?.id || 'ai'));
+    setModeInit(true);
+  }, [sources, modeInit]);
 
   async function downloadPoster() {
     if (!posterRef.current) return;
@@ -230,7 +282,7 @@ export default function SnapshotClient({ listId }) {
   if (ai) modeOptions.push({ id: 'ai', label: ai.label });
   // Consensus next if it exists
   const cons = sources.find((s) => s.id === 'consensus');
-  if (cons) modeOptions.push({ id: 'consensus', label: 'Expert Consensus' });
+  if (cons) modeOptions.push({ id: 'consensus', label: 'Consensus' });
   // Then any other named publication sources
   sources.forEach((s) => {
     if (s.id !== 'ai' && s.id !== 'consensus') {
@@ -593,7 +645,7 @@ const Poster = React.forwardRef(function Poster({ list, items, modeLabel, source
             color: COLORS.faded,
           }}
         >
-          <span style={{ fontWeight: 600, color: COLORS.ink }}>Constituent Sources: </span>
+          <span style={{ fontWeight: 600, color: COLORS.ink }}>Sources: </span>
           {sourceNames.join(', ')}
         </div>
       )}

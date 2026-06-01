@@ -35,6 +35,7 @@ function getListTags(list) {
 //     Amazon reviews, booking sites) -- forest green
 //   - pricing: live pricing data -- rust
 const EXPERT_GROUPS = [
+  { key: 'trueexpert', title: 'True Experts', color: COLORS.ember },
   { key: 'publication', title: 'Expert Publications', color: COLORS.ink },
   { key: 'platform', title: 'User Reviews & Ratings', color: COLORS.forest },
   { key: 'pricing', title: 'Pricing Data', color: COLORS.rust },
@@ -42,6 +43,9 @@ const EXPERT_GROUPS = [
 
 // Classify an expert source into one of the EXPERT_GROUPS by id/label.
 function expertGroupKey(src) {
+  // A flagged true-expert source is exceptionally authoritative and gets its
+  // own group, regardless of whether its label mentions ratings/reviews.
+  if (src.trueExpert) return 'trueexpert';
   const id = (src.id || '').toLowerCase();
   const label = (src.label || '').toLowerCase();
   if (id === 'pricing' || label.includes('pricing') || label.includes('nightly rate')) {
@@ -572,7 +576,7 @@ function ListDetail({ list, viewCount, voteData, userVotes, extras, relatedLists
                       transition: 'all 0.15s ease',
                     }}
                   >
-                    Expert Consensus
+                    Consensus
                   </button>
                 );
               })()}
