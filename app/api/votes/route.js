@@ -31,6 +31,18 @@ export async function POST(request) {
       console.error('apply_vote error', error);
       return NextResponse.json({ error: 'db error' }, { status: 500 });
     }
+    // Best-effort: record this vote as an event for the admin vote log.
+    // Non-fatal — a logging failure must never block the vote itself.
+    try {
+      await supabase.from('vote_events').insert({
+        list_id: listId.trim(),
+        item_name: itemName.trim(),
+        delta,
+      });
+    } catch (_) {
+      // ignore logging errors
+    }
+
     return NextResponse.json({ score: data });
   } catch (e) {
     return NextResponse.json({ error: 'invalid request' }, { status: 400 });

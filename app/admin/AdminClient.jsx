@@ -29,11 +29,13 @@ function mapsPlaceUrl(name) {
   return `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(cleaned)}`;
 }
 
-export default function AdminClient({ initialLists, initialExtras = [], initialComplaints = [] }) {
+export default function AdminClient({ initialLists, initialExtras = [], initialComplaints = [], initialVoteStandings = [], initialVoteEvents = [] }) {
   const router = useRouter();
   const [lists, setLists] = useState(initialLists);
   const [extras, setExtras] = useState(initialExtras);
   const [complaints, setComplaints] = useState(initialComplaints);
+  const [voteStandings] = useState(initialVoteStandings);
+  const [voteEvents] = useState(initialVoteEvents);
   const [tab, setTab] = useState('pending');
   const [busy, setBusy] = useState({});
 
@@ -286,9 +288,14 @@ export default function AdminClient({ initialLists, initialExtras = [], initialC
           <TabButton active={tab === 'complaints'} onClick={() => setTab('complaints')}>
             Notices <span style={{ opacity: 0.6 }}>{complaintsCount}</span>
           </TabButton>
+          <TabButton active={tab === 'votes'} onClick={() => setTab('votes')}>
+            Votes <span style={{ opacity: 0.6 }}>{voteStandings.length}</span>
+          </TabButton>
         </div>
 
-        {tab === 'complaints' ? (
+        {tab === 'votes' ? (
+          <VotesPanel standings={voteStandings} events={voteEvents} />
+        ) : tab === 'complaints' ? (
           <ComplaintsPanel complaints={complaints} busy={busy} onDismiss={dismissComplaint} />
         ) : tab === 'extras' ? (
           <ExtrasPanel
@@ -326,6 +333,63 @@ export default function AdminClient({ initialLists, initialExtras = [], initialC
               />
             ))}
           </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
+function VotesPanel({ standings, events }) {
+  const hasStandings = standings && standings.length > 0;
+  const hasEvents = events && events.length > 0;
+  const rowBorder = `1px solid ${COLORS.ink}22`;
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 28 }}>
+      <div>
+        <h3 style={{ fontFamily: 'Fraunces, serif', fontWeight: 700, fontSize: 20, margin: '0 0 12px' }}>Current standings</h3>
+        {hasStandings ? (
+          <div style={{ border: `1.5px solid ${COLORS.ink}` }}>
+            <div style={{ display: 'flex', fontFamily: 'DM Mono, monospace', fontSize: 10, letterSpacing: '0.14em', textTransform: 'uppercase', color: COLORS.faded, padding: '10px 14px', borderBottom: `1.5px solid ${COLORS.ink}` }}>
+              <span style={{ flex: 2 }}>List</span>
+              <span style={{ flex: 2 }}>Item</span>
+              <span style={{ flex: '0 0 70px', textAlign: 'right' }}>Score</span>
+              <span style={{ flex: '0 0 150px', textAlign: 'right' }}>Updated</span>
+            </div>
+            {standings.map((s, i) => (
+              <div key={`${s.listId}::${s.itemName}::${i}`} style={{ display: 'flex', alignItems: 'center', fontFamily: 'DM Sans, sans-serif', fontSize: 13, color: COLORS.ink, padding: '9px 14px', borderBottom: i < standings.length - 1 ? rowBorder : 'none' }}>
+                <span style={{ flex: 2, minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                  <Link href={`/list/${s.listId}`} style={{ color: COLORS.ember, textDecoration: 'none' }}>{s.listId}</Link>
+                </span>
+                <span style={{ flex: 2, minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{s.itemName}</span>
+                <span style={{ flex: '0 0 70px', textAlign: 'right', fontWeight: 700, fontFamily: 'DM Mono, monospace', color: s.score >= 0 ? COLORS.forest : COLORS.ember }}>{s.score >= 0 ? `+${s.score}` : s.score}</span>
+                <span style={{ flex: '0 0 150px', textAlign: 'right', fontFamily: 'DM Mono, monospace', fontSize: 11, color: COLORS.faded }}>{s.updatedAt ? formatDate(s.updatedAt) : '—'}</span>
+              </div>
+            ))}
+          </div>
+        ) : (
+          <p style={{ fontFamily: 'DM Sans, sans-serif', fontStyle: 'italic', fontSize: 14, color: COLORS.faded }}>No votes recorded yet.</p>
+        )}
+      </div>
+      <div>
+        <h3 style={{ fontFamily: 'Fraunces, serif', fontWeight: 700, fontSize: 20, margin: '0 0 4px' }}>Recent vote log</h3>
+        <p style={{ fontFamily: 'DM Sans, sans-serif', fontSize: 13, color: COLORS.faded, margin: '0 0 12px' }}>
+          The {events.length} most recent vote events. Individual events are logged from when the vote log was deployed onward.
+        </p>
+        {hasEvents ? (
+          <div style={{ border: `1.5px solid ${COLORS.ink}` }}>
+            {events.map((e, i) => (
+              <div key={e.id} style={{ display: 'flex', alignItems: 'center', gap: 12, fontFamily: 'DM Sans, sans-serif', fontSize: 13, color: COLORS.ink, padding: '9px 14px', borderBottom: i < events.length - 1 ? rowBorder : 'none' }}>
+                <span style={{ flex: '0 0 150px', fontFamily: 'DM Mono, monospace', fontSize: 11, color: COLORS.faded }}>{formatDate(e.createdAt)}</span>
+                <span style={{ flex: '0 0 44px', fontWeight: 700, fontFamily: 'DM Mono, monospace', color: e.delta >= 0 ? COLORS.forest : COLORS.ember }}>{e.delta > 0 ? `+${e.delta}` : e.delta}</span>
+                <span style={{ flex: 2, minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{e.itemName}</span>
+                <span style={{ flex: 1, minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                  <Link href={`/list/${e.listId}`} style={{ color: COLORS.ember, textDecoration: 'none' }}>{e.listId}</Link>
+                </span>
+              </div>
+            ))}
+          </div>
+        ) : (
+          <p style={{ fontFamily: 'DM Sans, sans-serif', fontStyle: 'italic', fontSize: 14, color: COLORS.faded }}>No vote events logged yet.</p>
         )}
       </div>
     </div>
