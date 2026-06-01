@@ -18,50 +18,53 @@ function constituentLabel(src) {
   const l = raw.toLowerCase();
   // Pricing proxy
   if (id === 'pricing' || l.includes('pricing') || l.includes('nightly rate')) {
-    return 'Forward Booking Price as a Luxury Proxy';
+    return 'Pricing';
   }
   // Rating / review platforms
-  if (id.includes('yelp') || l.includes('yelp')) return 'Yelp User Reviews';
-  if (id.includes('google') || l.includes('google')) return 'Google User Reviews';
+  if (id.includes('yelp') || l.includes('yelp')) return 'Yelp';
+  if (id.includes('google') || l.includes('google')) return 'Google';
   if (l.includes('tripadvisor') || l.includes('trip advisor')) return 'Tripadvisor';
-  if (l.includes('booking.com')) return 'Booking.com';
-  if (l.includes('amazon')) return 'Amazon Ratings';
-  // Known publications -> short brand name (avoid long article titles)
+  if (l.includes('booking.com')) return 'Booking';
+  if (l.includes('amazon')) return 'Amazon';
+  // Known publications -> ultra-short brand name (avoid long article titles)
   const MAP = [
     ['michelin', 'Michelin'],
-    ['infatuation', 'The Infatuation'],
+    ['infatuation', 'Infatuation'],
     ['eater', 'Eater'],
     ['time out', 'Time Out'],
     ['timeout', 'Time Out'],
-    ['cond\u00e9 nast', 'Cond\u00e9 Nast Traveler'],
-    ['conde nast', 'Cond\u00e9 Nast Traveler'],
-    ['cntraveler', 'Cond\u00e9 Nast Traveler'],
-    ['travel + leisure', 'Travel + Leisure'],
-    ['travel and leisure', 'Travel + Leisure'],
+    ['u.s. news', 'US News'],
+    ['us news', 'US News'],
+    ['cond\u00e9 nast', 'Cond\u00e9 Nast'],
+    ['conde nast', 'Cond\u00e9 Nast'],
+    ['cntraveler', 'Cond\u00e9 Nast'],
+    ['travel + leisure', 'T+L'],
+    ['travel and leisure', 'T+L'],
     ['robb report', 'Robb Report'],
     ['forbes', 'Forbes'],
-    ['us news', 'US News'],
-    ['points guy', 'The Points Guy'],
+    ['points guy', 'Points Guy'],
+    ['afar', 'AFAR'],
     ['wirecutter', 'Wirecutter'],
     ['good housekeeping', 'Good Housekeeping'],
     ['cnet', 'CNET'],
     ['serious eats', 'Serious Eats'],
     ['thrillist', 'Thrillist'],
-    ['new york times', 'New York Times'],
+    ['new york times', 'NYT'],
     ['bon app', 'Bon App\u00e9tit'],
     ['esquire', 'Esquire'],
     ['johnny novo', 'Johnny Novo'],
     ['johnnynovo', 'Johnny Novo'],
-    ['the strategist', 'The Strategist'],
+    ['the strategist', 'Strategist'],
     ['rolling stone', 'Rolling Stone'],
     ['pitchfork', 'Pitchfork'],
   ];
   for (let i = 0; i < MAP.length; i++) {
     if (l.includes(MAP[i][0])) return MAP[i][1];
   }
-  // Fallback: take the part before the first delimiter and strip any year.
-  let s = raw.split(/[\u00b7\u2014|:(]/)[0];
+  // Fallback: first token before a delimiter, drop any year, cap length.
+  let s = raw.split(/[\u00b7\u2014|:(,]/)[0];
   s = s.replace(/\b(19|20)\d\d\b/g, '').replace(/\s{2,}/g, ' ').trim();
+  if (s.length > 18) s = s.slice(0, 18).trim();
   return s || raw;
 }
 
@@ -637,11 +640,14 @@ const Poster = React.forwardRef(function Poster({ list, items, modeLabel, source
       {sourceNames && sourceNames.length > 0 && (
         <div
           style={{
-            marginTop: 30,
+            position: 'absolute',
+            left: 72,
+            right: 72,
+            bottom: 124,
             fontFamily: 'DM Mono, monospace',
-            fontSize: 16,
-            letterSpacing: '0.04em',
-            lineHeight: 1.5,
+            fontSize: 14,
+            letterSpacing: '0.02em',
+            lineHeight: 1.4,
             color: COLORS.faded,
           }}
         >
