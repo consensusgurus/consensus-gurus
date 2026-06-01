@@ -1431,8 +1431,6 @@ function auxSearchLocation(locality, list) {
   const anchor = cat && !GENERIC_CATEGORIES.has(cat.toLowerCase()) ? cat : '';
   if (!anchor) return locality;
   if (!locality) return anchor;
-  // Don't append the anchor when the parenthetical already names it
-  // (e.g. locality "South Beach, Miami" with anchor "Miami").
   if (locality.toLowerCase().includes(anchor.toLowerCase())) return locality;
   return `${locality}, ${anchor}`;
 }
@@ -1722,4 +1720,97 @@ export default function DetailClient({ listId }) {
 
     const newVoteData = { ...voteData, [key]: (voteData[key] || 0) + delta };
     const newUserVotes = { ...userVotes };
- 
+    if (newDirection === 0) delete newUserVotes[key];
+    else newUserVotes[key] = newDirection;
+
+    setVoteData(newVoteData);
+    setUserVotes(newUserVotes);
+    saveUserVotes(newUserVotes);
+    postVote(lId, itemName, delta);
+  }
+
+  function addExtra(lId, itemName) {
+    const lowerSet = new Set(extras.map((e) => e.toLowerCase().trim()));
+    if (lowerSet.has(itemName.toLowerCase().trim())) return;
+    setExtras((prev) => [...prev, itemName]);
+    postExtra(lId, itemName);
+    setTimeout(() => vote(lId, itemName, 1), 0);
+  }
+
+  function backHome() {
+    router.push('/');
+  }
+
+  function openRelated(id) {
+    router.push(`/list/${encodeURIComponent(id)}`);
+  }
+
+  return (
+    <div
+      style={{
+        minHeight: '100vh',
+        background: COLORS.cream,
+        color: COLORS.ink,
+        position: 'relative',
+        overflow: 'hidden',
+      }}
+    >
+      <Grain />
+      {!loaded ? (
+        <div
+          style={{
+            position: 'relative',
+            zIndex: 2,
+            minHeight: '100vh',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            fontFamily: 'Fraunces, serif',
+            fontStyle: 'italic',
+            fontSize: 18,
+            color: COLORS.faded,
+          }}
+        >
+          loading the list
+        </div>
+      ) : list ? (
+        <ListDetail
+          list={list}
+          viewCount={viewCount}
+          voteData={voteData}
+          userVotes={userVotes}
+          extras={extras}
+          relatedLists={relatedLists}
+          onBack={backHome}
+          onVote={vote}
+          onAddExtra={addExtra}
+          onOpenRelated={openRelated}
+        />
+      ) : (
+        <div style={{ position: 'relative', zIndex: 2, padding: 48, textAlign: 'center' }}>
+          <p style={{ fontFamily: 'Fraunces, serif', fontStyle: 'italic', color: COLORS.faded }}>
+            That list seems to have wandered off.
+          </p>
+          <button
+            onClick={backHome}
+            style={{
+              marginTop: 16,
+              background: COLORS.ink,
+              color: COLORS.cream,
+              border: 'none',
+              padding: '10px 20px',
+              fontFamily: 'DM Mono, monospace',
+              fontSize: 11,
+              letterSpacing: '0.2em',
+              textTransform: 'uppercase',
+              cursor: 'pointer',
+            }}
+          >
+            Back home
+          </button>
+        </div>
+      )}
+      <Footer />
+    </div>
+  );
+}
