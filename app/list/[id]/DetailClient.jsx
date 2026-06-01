@@ -1395,20 +1395,44 @@ function ItemLink({ list, item, children, style }) {
 // Per-entry link menu (shown on hover for lists that define `itemLinks`).
 // Map comes from the existing mapsCity link; Website from list.itemLinks; the
 // "Food Pics" Yelp/Google links are built from the name + neighborhood.
+//
+// Geography is derived from the list, not hardcoded. The anchor is `list.category`
+// when it names a real place (New York, Boston, Tokyo, Turkey, London ...). For
+// world/continent-scope lists the category is generic ("Travel"), so it is ignored
+// and the item parenthetical — which already carries "(city, country)" at that
+// scope — supplies the geography on its own.
+const GENERIC_CATEGORIES = new Set([
+  'travel', 'tech', 'product', 'products', 'entertainment',
+  'other', 'food', 'food-drink', 'stores', 'nightlife', 'bars', 'luxury',
+]);
+
+function auxSearchLocation(locality, list) {
+  const cat = (list.category || '').trim();
+  const anchor = cat && !GENERIC_CATEGORIES.has(cat.toLowerCase()) ? cat : '';
+  if (!anchor) return locality;
+  if (!locality) return anchor;
+  // Don't append the anchor when the parenthetical already names it
+  // (e.g. locality "South Beach, Miami" with anchor "Miami").
+  if (locality.toLowerCase().includes(anchor.toLowerCase())) return locality;
+  return `${locality}, ${anchor}`;
+}
+
 function buildAuxLinks(name, list) {
   const m = name.match(/^(.*?)\s*\(([^)]*)\)\s*$/);
   const base = (m ? m[1] : name).trim();
   const locality = m ? m[2].trim() : '';
+  const loc = auxSearchLocation(locality, list);
   const yelpDesc = encodeURIComponent(base);
-  const yelpLoc = encodeURIComponent(((locality ? locality + ', ' : '') + 'New York, NY'));
-  const gq = encodeURIComponent((base + ' ' + locality + ' New York NY').replace(/\s+/g, ' ').trim());
+  const yelpLoc = encodeURIComponent(loc);
+  const gq = encodeURIComponent((base + ' ' + loc).replace(/\s+/g, ' ').trim());
+  const tq = encodeURIComponent((base + ' ' + loc).replace(/\s+/g, ' ').trim());
   const website = (list.itemLinks && (list.itemLinks[name] || list.itemLinks[base])) || null;
   return {
     website,
     map: buildItemLink(name, list),
     yelp: `https://www.yelp.com/search?find_desc=${yelpDesc}&find_loc=${yelpLoc}`,
     google: `https://www.google.com/search?q=${gq}&tbm=isch`,
-    tripadvisor: `https://www.tripadvisor.com/Search?q=${encodeURIComponent((base + ' ' + locality + ' New York').replace(/\s+/g, ' ').trim())}`,
+    tripadvisor: `https://www.tripadvisor.com/Search?q=${tq}`,
   };
 }
 
@@ -1735,38 +1759,4 @@ export default function DetailClient({ listId }) {
           viewCount={viewCount}
           voteData={voteData}
           userVotes={userVotes}
-          extras={extras}
-          relatedLists={relatedLists}
-          onBack={backHome}
-          onVote={vote}
-          onAddExtra={addExtra}
-          onOpenRelated={openRelated}
-        />
-      ) : (
-        <div style={{ position: 'relative', zIndex: 2, padding: 48, textAlign: 'center' }}>
-          <p style={{ fontFamily: 'Fraunces, serif', fontStyle: 'italic', color: COLORS.faded }}>
-            That list seems to have wandered off.
-          </p>
-          <button
-            onClick={backHome}
-            style={{
-              marginTop: 16,
-              background: COLORS.ink,
-              color: COLORS.cream,
-              border: 'none',
-              padding: '10px 20px',
-              fontFamily: 'DM Mono, monospace',
-              fontSize: 11,
-              letterSpacing: '0.2em',
-              textTransform: 'uppercase',
-              cursor: 'pointer',
-            }}
-          >
-            Back home
-          </button>
-        </div>
-      )}
-      <Footer />
-    </div>
-  );
-}
+     
