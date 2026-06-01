@@ -534,6 +534,7 @@ const Poster = React.forwardRef(function Poster({ list, items, modeLabel, source
       >
         <span style={{ fontWeight: 600 }}>Consensus Gurus</span>
         <span style={{ color: COLORS.faded, fontSize: 14 }}>Where Experts Agree</span>
+        <span style={{ color: COLORS.faded, fontSize: 14 }}>consensusgurus.com</span>
       </div>
 
       {/* Category */}
@@ -635,19 +636,21 @@ const Poster = React.forwardRef(function Poster({ list, items, modeLabel, source
         ))}
       </ol>
 
-      {/* Constituent sources: faint line listing every source that feeds the
-          consensus, sitting between the last item and the footer bar. */}
+      {/* Sources: below a separator bar at the foot of the poster. The site
+          URL now lives in the top masthead, freeing this space. */}
       {sourceNames && sourceNames.length > 0 && (
         <div
           style={{
             position: 'absolute',
+            bottom: 52,
             left: 72,
             right: 72,
-            bottom: 124,
+            borderTop: `2px solid ${COLORS.ink}`,
+            paddingTop: 18,
             fontFamily: 'DM Mono, monospace',
-            fontSize: 14,
-            letterSpacing: '0.02em',
-            lineHeight: 1.4,
+            fontSize: 17,
+            letterSpacing: '0.03em',
+            lineHeight: 1.45,
             color: COLORS.faded,
           }}
         >
@@ -655,28 +658,6 @@ const Poster = React.forwardRef(function Poster({ list, items, modeLabel, source
           {sourceNames.join(', ')}
         </div>
       )}
-
-      {/* Footer */}
-      <div
-        style={{
-          position: 'absolute',
-          bottom: 56,
-          left: 72,
-          right: 72,
-          display: 'flex',
-          justifyContent: 'space-between',
-          alignItems: 'center',
-          borderTop: `2px solid ${COLORS.ink}`,
-          paddingTop: 18,
-          fontFamily: 'DM Mono, monospace',
-          fontSize: 16,
-          letterSpacing: '0.22em',
-          textTransform: 'uppercase',
-          color: COLORS.ink,
-        }}
-      >
-        <span>consensusgurus.com</span>
-      </div>
     </div>
   );
 });
