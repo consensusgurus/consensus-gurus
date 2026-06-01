@@ -1605,12 +1605,12 @@ function DataRow({ rank, item, list, unranked, showPrice }) {
             <a href={aux.map} target="_blank" rel="noopener noreferrer" style={auxChip()}>
               <MapPin size={11} strokeWidth={2.2} /> Map
             </a>
-            <span style={{ display: 'inline-flex', alignItems: 'center', gap: 7, border: `1.3px solid ${COLORS.faded}`, borderRadius: 4, padding: '4px 9px' }}>
-              <span style={{ textTransform: 'uppercase', color: COLORS.faded }}>{pics.label}</span>
+            <span style={{ display: 'inline-flex', alignItems: 'center', gap: 7, border: `1.3px solid ${COLORS.ink}`, borderRadius: 4, padding: '4px 9px' }}>
+              <span style={{ textTransform: 'uppercase', color: COLORS.ink }}>{pics.label}</span>
               {pics.links.map(([key, label], i) => (
                 <React.Fragment key={key}>
-                  {i > 0 && <span style={{ color: COLORS.faded }}>|</span>}
-                  <a href={aux[key]} target="_blank" rel="noopener noreferrer" style={{ color: COLORS.ember, textDecoration: 'none' }}>{label}</a>
+                  {i > 0 && <span style={{ color: COLORS.ink }}>|</span>}
+                  <a href={aux[key]} target="_blank" rel="noopener noreferrer" style={{ color: COLORS.ink, textDecoration: 'none' }}>{label}</a>
                 </React.Fragment>
               ))}
             </span>
