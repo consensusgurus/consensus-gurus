@@ -5,17 +5,17 @@ import { Analytics } from '@vercel/analytics/next';
 
 export const metadata = {
   metadataBase: new URL('https://consensusgurus.com'),
-  title: 'Consensus Gurus | Where Experts Agree',
+  title: 'Consensus Gurus | Where We All Agree',
   description: 'Curated top-ten lists ranked by expert consensus. From dive bars to luxury resorts, discover what the experts agree on.',
   openGraph: {
-    title: 'Consensus Gurus | Where Experts Agree',
+    title: 'Consensus Gurus | Where We All Agree',
     description: 'Curated top-ten lists ranked by expert consensus. From dive bars to luxury resorts, discover what the experts agree on.',
     url: 'https://consensusgurus.com',
     type: 'website',
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'Consensus Gurus | Where Experts Agree',
+    title: 'Consensus Gurus | Where We All Agree',
     description: 'Curated top-ten lists ranked by expert consensus.',
   },
   appleWebApp: {
@@ -42,7 +42,7 @@ const websiteJsonLd = {
   '@context': 'https://schema.org',
   '@type': 'WebSite',
   name: 'Consensus Gurus',
-  alternateName: 'Consensus Gurus | Where Experts Agree',
+  alternateName: 'Consensus Gurus | Where We All Agree',
   url: 'https://consensusgurus.com',
   description: 'Curated top-ten lists ranked by expert consensus. From dive bars to luxury resorts, discover what the experts agree on.',
 };

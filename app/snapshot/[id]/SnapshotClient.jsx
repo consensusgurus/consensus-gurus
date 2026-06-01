@@ -555,7 +555,7 @@ const Poster = React.forwardRef(function Poster({ list, items, modeLabel, source
         }}
       >
         <span style={{ fontWeight: 600 }}>Consensus Gurus</span>
-        <span style={{ color: COLORS.faded, fontSize: 14 }}>Where Experts Agree</span>
+        <span style={{ color: COLORS.faded, fontSize: 14 }}>Where We All Agree</span>
         <span style={{ color: COLORS.faded, fontSize: 14 }}>consensusgurus.com</span>
       </div>
 
