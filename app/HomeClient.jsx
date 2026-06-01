@@ -232,7 +232,7 @@ function Home({ lists, viewCounts, voteData, extras, trending = {}, openList, on
             color: COLORS.ink,
           }}
         >
-          Where Experts Agree
+          Where We All Agree
         </p>
         <div
           style={{
@@ -248,11 +248,9 @@ function Home({ lists, viewCounts, voteData, extras, trending = {}, openList, on
             flexWrap: 'wrap',
           }}
         >
-          <span>{lists.length} lists</span>
-          <span>·</span>
-          <span>{totalViews} visitors</span>
-          <span>·</span>
-          <span>{totalVotes.toLocaleString()} votes</span>
+          <span style={{ whiteSpace: 'nowrap' }}>{lists.length} lists</span>
+          <span style={{ whiteSpace: 'nowrap' }}><span aria-hidden="true" style={{ opacity: 0.5 }}>·</span> {totalViews.toLocaleString()} visitors</span>
+          <span style={{ whiteSpace: 'nowrap' }}><span aria-hidden="true" style={{ opacity: 0.5 }}>·</span> {totalVotes.toLocaleString()} votes</span>
         </div>
       </header>
 

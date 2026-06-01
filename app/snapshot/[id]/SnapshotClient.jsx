@@ -677,7 +677,7 @@ const Poster = React.forwardRef(function Poster({ list, items, modeLabel, source
           }}
         >
           <span style={{ fontWeight: 600, color: COLORS.ink }}>Sources: </span>
-          {sourceNames.join(', ')}
+          {[...sourceNames, ...(list.mode !== 'facts' && list.mode !== 'scores' && list.mode !== 'unranked' ? ['CG User Vote'] : [])].join(', ')}
         </div>
       )}
     </div>

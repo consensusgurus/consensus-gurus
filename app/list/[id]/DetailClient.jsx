@@ -571,7 +571,7 @@ function ListDetail({ list, viewCount, voteData, userVotes, extras, relatedLists
               }}
             >
               <PenLine size={12} strokeWidth={2.5} />
-              Request New Research
+              Speak With The Manager
             </button>
             <a
               href={`/snapshot/${encodeURIComponent(list.id)}`}
