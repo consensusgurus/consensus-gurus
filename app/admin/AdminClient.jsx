@@ -369,6 +369,14 @@ function ComplaintsPanel({ complaints, busy, onDismiss }) {
                   Requested new research (no message left).
                 </p>
               )}
+              {(c.name || c.email) && (
+                <p style={{ fontFamily: 'DM Mono, monospace', fontSize: 12, color: COLORS.faded, margin: '10px 0 0' }}>
+                  {c.name ? c.name : 'Anonymous'}
+                  {c.email ? (
+                    <> &middot; <a href={`mailto:${c.email}`} style={{ color: COLORS.rust, textDecoration: 'none' }}>{c.email}</a></>
+                  ) : null}
+                </p>
+              )}
             </div>
             <button
               onClick={() => onDismiss(c.id)}

@@ -122,6 +122,8 @@ function ListDetail({ list, viewCount, voteData, userVotes, extras, relatedLists
   const [voteMessage, setVoteMessage] = useState('');
   const [complainOpen, setComplainOpen] = useState(false);
   const [complainMsg, setComplainMsg] = useState('');
+  const [complainName, setComplainName] = useState('');
+  const [complainEmail, setComplainEmail] = useState('');
   const [complainSent, setComplainSent] = useState(false);
   const [complainBusy, setComplainBusy] = useState(false);
   const [sourcesOpen, setSourcesOpen] = useState(false);
@@ -357,7 +359,7 @@ function ListDetail({ list, viewCount, voteData, userVotes, extras, relatedLists
       await fetch('/api/complaints', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ listId: list.id, listTitle: list.title, message: complainMsg.trim() }),
+        body: JSON.stringify({ listId: list.id, listTitle: list.title, message: complainMsg.trim(), name: complainName.trim(), email: complainEmail.trim() }),
       });
     } catch (e) {
       // swallow — we still acknowledge the request to the reader
@@ -614,7 +616,7 @@ function ListDetail({ list, viewCount, voteData, userVotes, extras, relatedLists
                   Your note went to the editors' desk. Flagged lists get re-researched.
                 </p>
                 <button
-                  onClick={() => { setComplainOpen(false); setComplainSent(false); setComplainMsg(''); }}
+                  onClick={() => { setComplainOpen(false); setComplainSent(false); setComplainMsg(''); setComplainName(''); setComplainEmail(''); }}
                   style={{ cursor: 'pointer', background: COLORS.ink, color: COLORS.cream, border: `1.5px solid ${COLORS.ink}`, padding: '12px 20px', fontFamily: 'DM Mono, monospace', fontSize: 11, letterSpacing: '0.16em', textTransform: 'uppercase', fontWeight: 600 }}
                 >
                   Close
@@ -626,6 +628,24 @@ function ListDetail({ list, viewCount, voteData, userVotes, extras, relatedLists
                 <p style={{ fontFamily: 'DM Sans, sans-serif', fontSize: 14, color: COLORS.faded, margin: '0 0 14px' }}>
                   Think this list is wrong or stale? Tell the editors what to re-research.
                 </p>
+                <div style={{ display: 'flex', gap: 10, marginBottom: 10, flexWrap: 'wrap' }}>
+                  <input
+                    type="text"
+                    value={complainName}
+                    onChange={(e) => setComplainName(e.target.value)}
+                    maxLength={120}
+                    placeholder="Name (optional)"
+                    style={{ flex: 1, minWidth: 140, boxSizing: 'border-box', padding: 12, border: `1.5px solid ${COLORS.ink}`, background: COLORS.paper, fontFamily: 'DM Sans, sans-serif', fontSize: 14, color: COLORS.ink, outline: 'none' }}
+                  />
+                  <input
+                    type="email"
+                    value={complainEmail}
+                    onChange={(e) => setComplainEmail(e.target.value)}
+                    maxLength={200}
+                    placeholder="Email (optional)"
+                    style={{ flex: 1, minWidth: 140, boxSizing: 'border-box', padding: 12, border: `1.5px solid ${COLORS.ink}`, background: COLORS.paper, fontFamily: 'DM Sans, sans-serif', fontSize: 14, color: COLORS.ink, outline: 'none' }}
+                  />
+                </div>
                 <textarea
                   value={complainMsg}
                   onChange={(e) => setComplainMsg(e.target.value)}
@@ -1411,8 +1431,6 @@ function auxSearchLocation(locality, list) {
   const anchor = cat && !GENERIC_CATEGORIES.has(cat.toLowerCase()) ? cat : '';
   if (!anchor) return locality;
   if (!locality) return anchor;
-  // Don't append the anchor when the parenthetical already names it
-  // (e.g. locality "South Beach, Miami" with anchor "Miami").
   if (locality.toLowerCase().includes(anchor.toLowerCase())) return locality;
   return `${locality}, ${anchor}`;
 }
@@ -1759,4 +1777,38 @@ export default function DetailClient({ listId }) {
           viewCount={viewCount}
           voteData={voteData}
           userVotes={userVotes}
-     
+          extras={extras}
+          relatedLists={relatedLists}
+          onBack={backHome}
+          onVote={vote}
+          onAddExtra={addExtra}
+          onOpenRelated={openRelated}
+        />
+      ) : (
+        <div style={{ position: 'relative', zIndex: 2, padding: 48, textAlign: 'center' }}>
+          <p style={{ fontFamily: 'Fraunces, serif', fontStyle: 'italic', color: COLORS.faded }}>
+            That list seems to have wandered off.
+          </p>
+          <button
+            onClick={backHome}
+            style={{
+              marginTop: 16,
+              background: COLORS.ink,
+              color: COLORS.cream,
+              border: 'none',
+              padding: '10px 20px',
+              fontFamily: 'DM Mono, monospace',
+              fontSize: 11,
+              letterSpacing: '0.2em',
+              textTransform: 'uppercase',
+              cursor: 'pointer',
+            }}
+          >
+            Back home
+          </button>
+        </div>
+      )}
+      <Footer />
+    </div>
+  );
+}

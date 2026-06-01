@@ -6,6 +6,8 @@ create table if not exists public.complaints (
   list_id     text not null,
   list_title  text,
   message     text,
+  name        text,
+  email       text,
   created_at  timestamptz not null default now()
 );
 

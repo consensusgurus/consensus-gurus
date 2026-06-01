@@ -8,7 +8,7 @@ export const dynamic = 'force-dynamic';
 export async function POST(request) {
   try {
     const body = await request.json();
-    const { listId, listTitle, message } = body || {};
+    const { listId, listTitle, message, name, email } = body || {};
 
     if (typeof listId !== 'string' || !listId.trim()) {
       return NextResponse.json({ error: 'listId required' }, { status: 400 });
@@ -17,11 +17,16 @@ export async function POST(request) {
       return NextResponse.json({ error: 'too long' }, { status: 400 });
     }
     const cleanMessage = typeof message === 'string' ? message.trim().slice(0, 1000) : '';
+    // Name and email are optional contact fields.
+    const cleanName = typeof name === 'string' ? name.trim().slice(0, 120) : '';
+    const cleanEmail = typeof email === 'string' ? email.trim().slice(0, 200) : '';
 
     const { error } = await supabase.from('complaints').insert({
       list_id: listId.trim(),
       list_title: (listTitle || '').toString().slice(0, 200),
       message: cleanMessage,
+      name: cleanName,
+      email: cleanEmail,
     });
 
     if (error) {
