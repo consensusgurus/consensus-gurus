@@ -13,6 +13,8 @@ import {
   BarChart3,
   Users,
   Share2,
+  MapPin,
+  Globe,
 } from 'lucide-react';
 import { LISTS, COLORS } from '@/lib/data';
 import { buildItemLink, getSources, voteKey, dedupeByName } from '@/lib/helpers';
@@ -1390,14 +1392,51 @@ function ItemLink({ list, item, children, style }) {
   );
 }
 
+// Per-entry link menu (shown on hover for lists that define `itemLinks`).
+// Map comes from the existing mapsCity link; Website from list.itemLinks; the
+// "Food Pics" Yelp/Google links are built from the name + neighborhood.
+function buildAuxLinks(name, list) {
+  const m = name.match(/^(.*?)\s*\(([^)]*)\)\s*$/);
+  const base = (m ? m[1] : name).trim();
+  const locality = m ? m[2].trim() : '';
+  const yelpDesc = encodeURIComponent(base);
+  const yelpLoc = encodeURIComponent(((locality ? locality + ', ' : '') + 'New York, NY'));
+  const gq = encodeURIComponent((base + ' ' + locality + ' New York NY').replace(/\s+/g, ' ').trim());
+  const website = (list.itemLinks && (list.itemLinks[name] || list.itemLinks[base])) || null;
+  return {
+    website,
+    map: buildItemLink(name, list),
+    yelp: `https://www.yelp.com/search?find_desc=${yelpDesc}&find_loc=${yelpLoc}`,
+    google: `https://www.google.com/search?q=${gq}`,
+  };
+}
+
+function auxChip() {
+  return {
+    display: 'inline-flex',
+    alignItems: 'center',
+    gap: 5,
+    color: COLORS.ink,
+    border: `1.3px solid ${COLORS.ink}`,
+    borderRadius: 4,
+    padding: '4px 9px',
+    textTransform: 'uppercase',
+    textDecoration: 'none',
+  };
+}
+
 function DataRow({ rank, item, list, unranked }) {
   // Ranked lists number each entry. Unranked lists (a source flagged
   // `unordered`, or a `mode: 'unranked'` list) show a plain bullet instead,
   // so the order reads as incidental rather than a ranking.
   const isTop = !unranked && rank === 1;
   const showFullSize = rank <= 10;
+  const [hover, setHover] = useState(false);
+  const aux = list.itemLinks ? buildAuxLinks(item, list) : null;
   return (
     <li
+      onMouseEnter={() => setHover(true)}
+      onMouseLeave={() => setHover(false)}
       style={{
         display: 'flex',
         alignItems: 'baseline',
@@ -1439,22 +1478,55 @@ function DataRow({ rank, item, list, unranked }) {
           {String(rank).padStart(2, '0')}
         </span>
       )}
-      <ItemLink
-        list={list}
-        item={item}
-        style={{
-          fontFamily: 'Fraunces, serif',
-          fontSize: unranked ? 20 : isTop ? 28 : showFullSize ? 22 : 19,
-          fontWeight: unranked ? 500 : isTop ? 700 : 500,
-          lineHeight: 1.15,
-          color: COLORS.ink,
-          letterSpacing: '-0.01em',
-          flex: 1,
-        }}
-      >
-        <span>{item}</span>
-        <ExternalLink size={isTop ? 14 : 12} strokeWidth={2} style={{ opacity: 0.4, flexShrink: 0 }} />
-      </ItemLink>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 8, flex: 1, minWidth: 0 }}>
+        <ItemLink
+          list={list}
+          item={item}
+          style={{
+            fontFamily: 'Fraunces, serif',
+            fontSize: unranked ? 20 : isTop ? 28 : showFullSize ? 22 : 19,
+            fontWeight: unranked ? 500 : isTop ? 700 : 500,
+            lineHeight: 1.15,
+            color: COLORS.ink,
+            letterSpacing: '-0.01em',
+          }}
+        >
+          <span>{item}</span>
+          <ExternalLink size={isTop ? 14 : 12} strokeWidth={2} style={{ opacity: 0.4, flexShrink: 0 }} />
+        </ItemLink>
+        {aux && (
+          <div
+            style={{
+              maxHeight: hover ? 48 : 0,
+              opacity: hover ? 1 : 0,
+              overflow: 'hidden',
+              transition: 'max-height 0.2s ease, opacity 0.15s ease',
+              display: 'flex',
+              alignItems: 'center',
+              flexWrap: 'wrap',
+              gap: '6px 10px',
+              fontFamily: 'DM Mono, monospace',
+              fontSize: 11,
+              letterSpacing: '0.04em',
+            }}
+          >
+            {aux.website && (
+              <a href={aux.website} target="_blank" rel="noopener noreferrer" style={auxChip()}>
+                <Globe size={11} strokeWidth={2.2} /> Website
+              </a>
+            )}
+            <a href={aux.map} target="_blank" rel="noopener noreferrer" style={auxChip()}>
+              <MapPin size={11} strokeWidth={2.2} /> Map
+            </a>
+            <span style={{ display: 'inline-flex', alignItems: 'center', gap: 7, border: `1.3px solid ${COLORS.faded}`, borderRadius: 4, padding: '4px 9px' }}>
+              <span style={{ textTransform: 'uppercase', color: COLORS.faded }}>Food Pics:</span>
+              <a href={aux.yelp} target="_blank" rel="noopener noreferrer" style={{ color: COLORS.ember, textDecoration: 'none' }}>Yelp</a>
+              <span style={{ color: COLORS.faded }}>|</span>
+              <a href={aux.google} target="_blank" rel="noopener noreferrer" style={{ color: COLORS.ember, textDecoration: 'none' }}>Google Reviews</a>
+            </span>
+          </div>
+        )}
+      </div>
     </li>
   );
 }
