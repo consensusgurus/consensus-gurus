@@ -76,10 +76,16 @@ function constituentLabel(src) {
   for (let i = 0; i < MAP.length; i++) {
     if (l.includes(MAP[i][0])) return MAP[i][1];
   }
-  // Fallback: first token before a delimiter, drop any year, cap length.
+  // Fallback: first token before a delimiter, drop any year, then trim to a
+  // whole-word boundary so a long name is never cut mid-word.
   let s = raw.split(/[\u00b7\u2014|:(,]/)[0];
   s = s.replace(/\b(19|20)\d\d\b/g, '').replace(/\s{2,}/g, ' ').trim();
-  if (s.length > 18) s = s.slice(0, 18).trim();
+  const CAP = 22;
+  if (s.length > CAP) {
+    const cut = s.slice(0, CAP);
+    const sp = cut.lastIndexOf(' ');
+    if (sp > 6) s = cut.slice(0, sp).trim(); // else keep the whole word, uncut
+  }
   return s || raw;
 }
 
