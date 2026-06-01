@@ -573,7 +573,7 @@ function ListDetail({ list, viewCount, voteData, userVotes, extras, relatedLists
               }}
             >
               <PenLine size={12} strokeWidth={2.5} />
-              Comments? Questions?
+              Speak With The Manager
             </button>
             <a
               href={`/snapshot/${encodeURIComponent(list.id)}`}
@@ -624,7 +624,7 @@ function ListDetail({ list, viewCount, voteData, userVotes, extras, relatedLists
               </>
             ) : (
               <>
-                <h3 style={{ fontFamily: 'Fraunces, serif', fontWeight: 700, fontSize: 22, margin: '0 0 6px' }}>Request New Research</h3>
+                <h3 style={{ fontFamily: 'Fraunces, serif', fontWeight: 700, fontSize: 22, margin: '0 0 6px' }}>Comments? Questions?</h3>
                 <p style={{ fontFamily: 'DM Sans, sans-serif', fontSize: 14, color: COLORS.faded, margin: '0 0 14px' }}>
                   Think this list is wrong or stale? Tell the editors what to re-research.
                 </p>
