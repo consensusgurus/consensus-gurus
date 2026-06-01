@@ -2,7 +2,7 @@
 import React, { useState, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { Check, X, Eye, EyeOff, LogOut, Pencil, Trash2 } from 'lucide-react';
+import { Check, X, Eye, EyeOff, LogOut, Pencil, Trash2, MapPin } from 'lucide-react';
 import { COLORS } from '@/lib/data';
 import Grain from '@/app/Grain';
 
@@ -13,6 +13,20 @@ function formatDate(iso) {
   } catch {
     return iso;
   }
+}
+
+// Build a Google Maps "search" URL that resolves to a single place pin.
+// Mirrors lib/helpers.js: strip the characters Maps reads as waypoint
+// separators so a name like "Lucali (Carroll Gardens)" opens a location,
+// not driving directions.
+function mapsPlaceUrl(name) {
+  const cleaned = String(name || '')
+    .replace(/[()]/g, ' ')
+    .replace(/[;,]/g, ' ')
+    .replace(/&/g, ' ')
+    .replace(/\s+/g, ' ')
+    .trim();
+  return `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(cleaned)}`;
 }
 
 export default function AdminClient({ initialLists, initialExtras = [], initialComplaints = [] }) {
@@ -864,6 +878,16 @@ function ExtraRow({ listId, item, busy, onRename, onDelete }) {
         </>
       ) : (
         <>
+          <a
+            href={mapsPlaceUrl(item.name)}
+            target="_blank"
+            rel="noopener noreferrer"
+            style={{ ...iconButton('transparent', COLORS.ink, false, COLORS.ink), textDecoration: 'none' }}
+            title="View place on Google Maps"
+          >
+            <MapPin size={12} strokeWidth={2.5} />
+            Map
+          </a>
           <button
             onClick={() => setEditing(true)}
             disabled={busy}

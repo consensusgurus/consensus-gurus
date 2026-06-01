@@ -23,6 +23,12 @@ serve(async (req) => {
             <p><strong>${record.list_title}</strong></p>
             <p>Message: ${record.message || "No message"}</p>
             <p><a href="https://consensusgurus.com/admin">View in Admin Panel</a></p>`;
+    } else if (table === "extras") {
+      subject = `New Vote Item Submitted: ${record.item_name}`;
+      htmlContent = `<p>New user-submitted vote item:</p>
+            <p><strong>${record.item_name}</strong></p>
+            <p>List: ${record.list_id}</p>
+            <p><a href="https://consensusgurus.com/list/${record.list_id}">View the list</a> &middot; <a href="https://consensusgurus.com/admin">View in Admin Panel</a></p>`;
     }
 
     if (!subject) {

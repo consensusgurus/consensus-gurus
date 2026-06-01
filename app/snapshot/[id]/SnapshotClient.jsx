@@ -182,7 +182,7 @@ export default function SnapshotClient({ listId }) {
   }, [list, mode, sources, voteData, extras]);
 
   const modeLabel = useMemo(() => {
-    if (mode === 'vote') return 'Reader Votes';
+    if (mode === 'vote') return 'Consensus Gurus User Vote';
     if (mode === 'consensus') return 'Consensus';
     const src = sources.find((s) => s.id === mode);
     return src?.label || 'Ranked';
@@ -316,7 +316,7 @@ export default function SnapshotClient({ listId }) {
     .forEach((x) => modeOptions.push({ id: x.s.id, label: x.s.label }));
   // Offer reader votes (except facts/composite lists, which don't use voting)
   if (list.mode !== 'facts' && list.mode !== 'scores' && list.mode !== 'unranked') {
-    modeOptions.push({ id: 'vote', label: 'Reader Votes' });
+    modeOptions.push({ id: 'vote', label: 'Consensus Gurus User Vote' });
   }
 
   return (

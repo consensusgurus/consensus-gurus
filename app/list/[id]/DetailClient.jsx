@@ -114,6 +114,9 @@ function ListDetail({ list, viewCount, voteData, userVotes, extras, relatedLists
   const [voteSelections, setVoteSelections] = useState({ 1: null, 2: null, 3: null });
   const [userCurrentVote, setUserCurrentVote] = useState({ 1: null, 2: null, 3: null });
   const [hasVoted, setHasVoted] = useState(false);
+  // When a reader cast only a partial set (e.g. just a 1st pick), they can come
+  // back later and fill the remaining empty slots. `completing` toggles that mode.
+  const [completing, setCompleting] = useState(false);
   const [voteMessage, setVoteMessage] = useState('');
   const [complainOpen, setComplainOpen] = useState(false);
   const [complainMsg, setComplainMsg] = useState('');
@@ -303,6 +306,8 @@ function ListDetail({ list, viewCount, voteData, userVotes, extras, relatedLists
   }
 
   function activateVoteSlot(slot) {
+    // In completion mode, slots already cast earlier are locked.
+    if (completing && userCurrentVote[slot]) return;
     setActiveVoteSlot(slot);
   }
 
@@ -322,8 +327,12 @@ function ListDetail({ list, viewCount, voteData, userVotes, extras, relatedLists
       [slot]: item,
     }));
 
-    // Move to next slot if available
-    const nextSlot = slot === 1 ? 2 : slot === 2 ? 3 : null;
+    // Move to next slot if available. In completion mode, skip slots that were
+    // already cast earlier and only advance to a still-empty one.
+    let nextSlot = slot === 1 ? 2 : slot === 2 ? 3 : null;
+    if (completing) {
+      nextSlot = [slot + 1, slot + 2].find((s) => s <= 3 && !userCurrentVote[s]) || null;
+    }
     if (nextSlot) {
       setActiveVoteSlot(nextSlot);
     } else {
@@ -389,6 +398,49 @@ function ListDetail({ list, viewCount, voteData, userVotes, extras, relatedLists
     setVoteSelections({ 1: null, 2: null, 3: null });
     setActiveVoteSlot(null);
     setVoteMessage('Vote submitted! You can view the updated rankings on this page.');
+  }
+
+  // Slots the reader left empty when they first voted can be filled later.
+  const emptyVoteSlots = [1, 2, 3].filter((s) => !userCurrentVote[s]);
+  const canCompleteVote = hasVoted && emptyVoteSlots.length > 0;
+
+  function startCompleting() {
+    // Seed selections with the existing vote so cast picks render (locked) and
+    // can't be re-picked from the choices below; focus the first empty slot.
+    setVoteSelections({ ...userCurrentVote });
+    setCompleting(true);
+    setActiveVoteSlot(emptyVoteSlots[0] || null);
+    setVoteMessage('');
+  }
+
+  function cancelCompleting() {
+    setCompleting(false);
+    setVoteSelections({ 1: null, 2: null, 3: null });
+    setActiveVoteSlot(null);
+  }
+
+  function submitCompletion() {
+    const points = { 1: 3, 2: 2, 3: 1 };
+    // Only the slots that were empty before and are now filled count as new votes.
+    const newlyFilled = [1, 2, 3].filter((s) => !userCurrentVote[s] && voteSelections[s]);
+    if (newlyFilled.length === 0) {
+      cancelCompleting();
+      return;
+    }
+    newlyFilled.forEach((s) => onVote(list.id, voteSelections[s], points[s]));
+
+    const merged = { ...userCurrentVote };
+    newlyFilled.forEach((s) => { merged[s] = voteSelections[s]; });
+
+    const userVotes = loadUserVotes();
+    userVotes[list.id] = merged;
+    saveUserVotes(userVotes);
+
+    setUserCurrentVote(merged);
+    setVoteSelections({ 1: null, 2: null, 3: null });
+    setActiveVoteSlot(null);
+    setCompleting(false);
+    setVoteMessage('Thanks! Your remaining picks were added.');
   }
 
   return (
@@ -866,14 +918,20 @@ function ListDetail({ list, viewCount, voteData, userVotes, extras, relatedLists
                 marginBottom: 12,
               }}
             >
-              {hasVoted ? 'Your Vote' : 'Your Picks'}
+              {completing ? 'Complete Your Picks' : hasVoted ? 'Your Vote' : 'Your Picks'}
             </div>
 
-            {!hasVoted ? (
+            {(!hasVoted || completing) ? (
               <>
+                {(() => {
+                  // In completion mode, only newly-filled empty slots count.
+                  const hasNewPick = completing
+                    ? emptyVoteSlots.some((s) => voteSelections[s])
+                    : (voteSelections[1] || voteSelections[2] || voteSelections[3]);
+                  return (
                 <button
-                  onClick={submitVote}
-                  disabled={(!voteSelections[1] && !voteSelections[2] && !voteSelections[3]) || hasVoted}
+                  onClick={completing ? submitCompletion : submitVote}
+                  disabled={!hasNewPick}
                   style={{
                     width: '100%',
                     padding: '14px 20px',
@@ -885,19 +943,23 @@ function ListDetail({ list, viewCount, voteData, userVotes, extras, relatedLists
                     letterSpacing: '0.18em',
                     textTransform: 'uppercase',
                     fontWeight: 700,
-                    cursor: (voteSelections[1] || voteSelections[2] || voteSelections[3]) ? 'pointer' : 'not-allowed',
-                    opacity: (voteSelections[1] || voteSelections[2] || voteSelections[3]) ? 1 : 0.4,
+                    cursor: hasNewPick ? 'pointer' : 'not-allowed',
+                    opacity: hasNewPick ? 1 : 0.4,
                     transition: 'all 0.2s ease',
                   }}
                 >
-                  Submit Your Vote
+                  {completing ? 'Add Remaining Picks' : 'Submit Your Vote'}
                 </button>
+                  );
+                })()}
 
                 <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 8, marginTop: 8 }}>
                   {[1, 2, 3].map((slot) => {
                     const labels = { 1: '1st · 3 pts', 2: '2nd · 2 pts', 3: '3rd · 1 pt' };
                     const val = voteSelections[slot];
                     const isActive = activeVoteSlot === slot;
+                    // A slot cast in an earlier visit is locked during completion.
+                    const locked = completing && !!userCurrentVote[slot];
                     return (
                       <div
                         key={slot}
@@ -908,7 +970,8 @@ function ListDetail({ list, viewCount, voteData, userVotes, extras, relatedLists
                           border: isActive ? `1.5px solid ${COLORS.ember}` : `1.5px solid ${COLORS.ink}`,
                           background: val || isActive ? COLORS.ink : '#ebe2d0',
                           color: val || isActive ? COLORS.cream : COLORS.ink,
-                          cursor: 'pointer',
+                          cursor: locked ? 'default' : 'pointer',
+                          opacity: locked ? 0.7 : 1,
                           transition: 'all 0.2s ease',
                           boxShadow: isActive || val ? `3px 3px 0 ${COLORS.ember}` : 'none',
                           display: 'flex',
@@ -917,12 +980,12 @@ function ListDetail({ list, viewCount, voteData, userVotes, extras, relatedLists
                         }}
                       >
                         <div style={{ fontFamily: 'DM Mono, monospace', fontSize: 9, letterSpacing: '0.1em', textTransform: 'uppercase', fontWeight: 700, opacity: 0.85 }}>
-                          {labels[slot]}
+                          {labels[slot]}{locked ? ' · cast' : ''}
                         </div>
                         <div style={{ fontFamily: 'Fraunces, serif', fontSize: 15, fontWeight: 600, flex: 1, lineHeight: 1.1, fontStyle: val ? 'normal' : 'italic', color: !val && !isActive ? COLORS.faded : 'inherit' }}>
                           {val || (isActive ? 'Tap a choice' : 'Tap to pick')}
                         </div>
-                        {val && (
+                        {val && !locked && (
                           <button
                             onClick={(e) => { e.stopPropagation(); removeVoteSelection(slot); }}
                             style={{ alignSelf: 'flex-start', background: 'transparent', border: 'none', color: 'inherit', cursor: 'pointer', fontFamily: 'DM Mono, monospace', fontSize: 9, letterSpacing: '0.1em', textTransform: 'uppercase', padding: 0, textDecoration: 'underline' }}
@@ -945,8 +1008,18 @@ function ListDetail({ list, viewCount, voteData, userVotes, extras, relatedLists
                     marginTop: 12,
                   }}
                 >
-                  Tap a box, then tap a choice below. Submit 1, 2, or all 3 picks.
+                  {completing
+                    ? 'Fill your remaining picks, then add them to your vote.'
+                    : 'Tap a box, then tap a choice below. Submit 1, 2, or all 3 picks.'}
                 </div>
+                {completing && (
+                  <button
+                    onClick={cancelCompleting}
+                    style={{ marginTop: 8, background: 'transparent', border: 'none', color: COLORS.faded, cursor: 'pointer', fontFamily: 'DM Mono, monospace', fontSize: 10, letterSpacing: '0.12em', textTransform: 'uppercase', padding: 0, textDecoration: 'underline' }}
+                  >
+                    Cancel
+                  </button>
+                )}
               </>
             ) : (
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 8 }}>
@@ -970,6 +1043,28 @@ function ListDetail({ list, viewCount, voteData, userVotes, extras, relatedLists
                 })}
               </div>
             )}
+
+            {canCompleteVote && !completing && (
+              <button
+                onClick={startCompleting}
+                style={{
+                  width: '100%',
+                  marginTop: 10,
+                  padding: '12px 20px',
+                  background: 'transparent',
+                  color: COLORS.ink,
+                  border: `1.5px solid ${COLORS.ink}`,
+                  fontFamily: 'DM Mono, monospace',
+                  fontSize: 11,
+                  letterSpacing: '0.16em',
+                  textTransform: 'uppercase',
+                  fontWeight: 700,
+                  cursor: 'pointer',
+                }}
+              >
+                {emptyVoteSlots.length === 1 ? 'Add your remaining pick' : 'Add your remaining picks'}
+              </button>
+            )}
           </div>
 
           {/* Choices as tiles (no rank numbers) */}
@@ -992,8 +1087,8 @@ function ListDetail({ list, viewCount, voteData, userVotes, extras, relatedLists
               gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))',
               gap: 8,
               marginBottom: 36,
-              opacity: hasVoted ? 0.6 : 1,
-              pointerEvents: hasVoted ? 'none' : 'auto',
+              opacity: (hasVoted && !completing) ? 0.6 : 1,
+              pointerEvents: (hasVoted && !completing) ? 'none' : 'auto',
             }}
           >
             {sortedVote.map((entry) => {
@@ -1071,7 +1166,7 @@ function ListDetail({ list, viewCount, voteData, userVotes, extras, relatedLists
               onKeyDown={(e) => {
                 if (e.key === 'Enter') handleAdd();
               }}
-              placeholder="Add an entry the list is missing..."
+              placeholder="Add an entry"
               maxLength={90}
               style={{
                 flex: 1,
