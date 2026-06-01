@@ -852,490 +852,203 @@ function ListDetail({ list, viewCount, voteData, userVotes, extras, relatedLists
             </div>
           )}
 
+          {/* Your picks: submit button on top spanning the three slots, then
+              the three pick slots in a row. Mobile-friendly stacking. */}
+          <div style={{ marginBottom: 30 }}>
+            <div
+              style={{
+                fontFamily: 'DM Mono, monospace',
+                fontSize: 11,
+                letterSpacing: '0.18em',
+                textTransform: 'uppercase',
+                color: COLORS.faded,
+                fontWeight: 600,
+                marginBottom: 12,
+              }}
+            >
+              {hasVoted ? 'Your Vote' : 'Your Picks'}
+            </div>
+
+            {!hasVoted ? (
+              <>
+                <button
+                  onClick={submitVote}
+                  disabled={(!voteSelections[1] && !voteSelections[2] && !voteSelections[3]) || hasVoted}
+                  style={{
+                    width: '100%',
+                    padding: '14px 20px',
+                    background: COLORS.ember,
+                    color: COLORS.cream,
+                    border: 'none',
+                    fontFamily: 'DM Mono, monospace',
+                    fontSize: 12,
+                    letterSpacing: '0.18em',
+                    textTransform: 'uppercase',
+                    fontWeight: 700,
+                    cursor: (voteSelections[1] || voteSelections[2] || voteSelections[3]) ? 'pointer' : 'not-allowed',
+                    opacity: (voteSelections[1] || voteSelections[2] || voteSelections[3]) ? 1 : 0.4,
+                    transition: 'all 0.2s ease',
+                  }}
+                >
+                  Submit Your Vote
+                </button>
+
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 8, marginTop: 8 }}>
+                  {[1, 2, 3].map((slot) => {
+                    const labels = { 1: '1st · 3 pts', 2: '2nd · 2 pts', 3: '3rd · 1 pt' };
+                    const val = voteSelections[slot];
+                    const isActive = activeVoteSlot === slot;
+                    return (
+                      <div
+                        key={slot}
+                        onClick={() => activateVoteSlot(slot)}
+                        style={{
+                          padding: '12px 12px',
+                          minHeight: 92,
+                          border: isActive ? `1.5px solid ${COLORS.ember}` : `1.5px solid ${COLORS.ink}`,
+                          background: val || isActive ? COLORS.ink : '#ebe2d0',
+                          color: val || isActive ? COLORS.cream : COLORS.ink,
+                          cursor: 'pointer',
+                          transition: 'all 0.2s ease',
+                          boxShadow: isActive || val ? `3px 3px 0 ${COLORS.ember}` : 'none',
+                          display: 'flex',
+                          flexDirection: 'column',
+                          gap: 6,
+                        }}
+                      >
+                        <div style={{ fontFamily: 'DM Mono, monospace', fontSize: 9, letterSpacing: '0.1em', textTransform: 'uppercase', fontWeight: 700, opacity: 0.85 }}>
+                          {labels[slot]}
+                        </div>
+                        <div style={{ fontFamily: 'Fraunces, serif', fontSize: 15, fontWeight: 600, flex: 1, lineHeight: 1.1, fontStyle: val ? 'normal' : 'italic', color: !val && !isActive ? COLORS.faded : 'inherit' }}>
+                          {val || (isActive ? 'Tap a choice' : 'Tap to pick')}
+                        </div>
+                        {val && (
+                          <button
+                            onClick={(e) => { e.stopPropagation(); removeVoteSelection(slot); }}
+                            style={{ alignSelf: 'flex-start', background: 'transparent', border: 'none', color: 'inherit', cursor: 'pointer', fontFamily: 'DM Mono, monospace', fontSize: 9, letterSpacing: '0.1em', textTransform: 'uppercase', padding: 0, textDecoration: 'underline' }}
+                          >
+                            Remove
+                          </button>
+                        )}
+                      </div>
+                    );
+                  })}
+                </div>
+
+                <div
+                  style={{
+                    fontFamily: 'DM Mono, monospace',
+                    fontSize: 10,
+                    letterSpacing: '0.12em',
+                    textTransform: 'uppercase',
+                    color: COLORS.faded,
+                    marginTop: 12,
+                  }}
+                >
+                  Tap a box, then tap a choice below. Submit 1, 2, or all 3 picks.
+                </div>
+              </>
+            ) : (
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 8 }}>
+                {[1, 2, 3].map((slot) => {
+                  const labels = { 1: '1st · 3 pts', 2: '2nd · 2 pts', 3: '3rd · 1 pt' };
+                  const colors = { 1: COLORS.ember, 2: COLORS.ink, 3: COLORS.faded };
+                  const val = userCurrentVote[slot];
+                  if (!val) {
+                    return (
+                      <div key={slot} style={{ padding: '12px', minHeight: 72, border: `1.5px dashed ${COLORS.faded}`, opacity: 0.5, fontFamily: 'DM Mono, monospace', fontSize: 9, letterSpacing: '0.1em', textTransform: 'uppercase', color: COLORS.faded }}>
+                        {labels[slot]}
+                      </div>
+                    );
+                  }
+                  return (
+                    <div key={slot} style={{ padding: '12px', minHeight: 72, background: colors[slot], color: COLORS.cream, border: `1.5px solid ${colors[slot]}`, display: 'flex', flexDirection: 'column', gap: 6 }}>
+                      <div style={{ fontFamily: 'DM Mono, monospace', fontSize: 9, letterSpacing: '0.1em', textTransform: 'uppercase', fontWeight: 700, opacity: 0.85 }}>{labels[slot]}</div>
+                      <div style={{ fontFamily: 'Fraunces, serif', fontSize: 15, fontWeight: 600, lineHeight: 1.1 }}>{val}</div>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+          </div>
+
+          {/* Choices as tiles (no rank numbers) */}
+          <div
+            style={{
+              fontFamily: 'DM Mono, monospace',
+              fontSize: 11,
+              letterSpacing: '0.18em',
+              textTransform: 'uppercase',
+              color: COLORS.faded,
+              fontWeight: 600,
+              marginBottom: 12,
+            }}
+          >
+            {sortedVote.some((item) => item.score !== 0) ? 'By the People' : 'Current Consensus'}
+          </div>
           <div
             style={{
               display: 'grid',
-              gridTemplateColumns: '1fr 1fr',
-              gap: 40,
-              marginBottom: 40,
+              gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))',
+              gap: 8,
+              marginBottom: 36,
               opacity: hasVoted ? 0.6 : 1,
               pointerEvents: hasVoted ? 'none' : 'auto',
             }}
           >
-            {/* LEFT: All Items List */}
-            <div>
-              <div
-                style={{
-                  fontFamily: 'DM Mono, monospace',
-                  fontSize: 11,
-                  letterSpacing: '0.18em',
-                  textTransform: 'uppercase',
-                  color: COLORS.faded,
-                  fontWeight: 600,
-                  marginBottom: 16,
-                }}
-              >
-                {sortedVote.some((item) => item.score !== 0) ? 'By the People' : 'Current Consensus'}
-              </div>
-
-              <ol style={{ margin: 0, padding: 0, listStyle: 'none', display: 'flex', flexDirection: 'column', gap: 0 }}>
-                {sortedVote.map((entry, idx) => {
-                  const isSelected = Object.values(voteSelections).includes(entry.item);
-                  const selectedSlot = Object.entries(voteSelections).find(([, v]) => v === entry.item)?.[0];
-                  const isClickable = activeVoteSlot !== null && !isSelected;
-                  const linksDisabled = activeVoteSlot !== null;
-                  
-                  return (
-                    <li
-                      key={entry.item}
-                      onClick={() => {
-                        if (isClickable) {
-                          selectItemForVote(entry.item, activeVoteSlot);
-                        }
-                      }}
-                      style={{
-                        display: 'flex',
-                        alignItems: 'center',
-                        gap: 12,
-                        padding: '14px 12px',
-                        borderBottom: entry.isTopTen && idx === 0 ? `2px solid ${COLORS.ember}` : `1px solid ${COLORS.ink}`,
-                        cursor: isClickable ? 'pointer' : activeVoteSlot && isSelected ? 'default' : 'default',
-                        transition: 'all 0.2s ease',
-                        background: selectedSlot === '1' ? COLORS.ember : selectedSlot === '2' ? COLORS.ink : selectedSlot === '3' ? COLORS.faded : 'transparent',
-                        color: isSelected ? COLORS.cream : COLORS.ink,
-                        opacity: activeVoteSlot && !isClickable && !isSelected ? 0.4 : 1,
-                        transform: isClickable ? 'translate(2px, 0)' : 'none',
-                      }}
-                      onMouseEnter={(e) => {
-                        if (isClickable) {
-                          e.currentTarget.style.background = '#ebe2d0';
-                        }
-                      }}
-                      onMouseLeave={(e) => {
-                        e.currentTarget.style.background = selectedSlot === '1' ? COLORS.ember : selectedSlot === '2' ? COLORS.ink : selectedSlot === '3' ? COLORS.faded : 'transparent';
-                      }}
-                    >
-                      <span
-                        style={{
-                          fontFamily: 'Fraunces, serif',
-                          fontWeight: 900,
-                          fontSize: entry.isTopTen && idx === 0 ? 44 : 32,
-                          lineHeight: 0.85,
-                          minWidth: 52,
-                          color: 'inherit',
-                        }}
-                      >
-                        {String(idx + 1).padStart(2, '0')}
-                      </span>
-                      <div style={{ flex: 1 }}>
-                        <ItemLink
-                          list={list}
-                          item={entry.item}
-                          style={{
-                            fontFamily: 'Fraunces, serif',
-                            fontSize: 18,
-                            fontWeight: 500,
-                            color: 'inherit',
-                            textDecoration: 'none',
-                            borderBottom: linksDisabled ? 'none' : `1px solid currentColor`,
-                            pointerEvents: linksDisabled ? 'none' : 'auto',
-                            opacity: linksDisabled ? 0.5 : 1,
-                          }}
-                        >
-                          <span>{entry.item}</span>
-                          {!linksDisabled && <ExternalLink size={11} strokeWidth={2} style={{ opacity: 0.4, flexShrink: 0, marginLeft: 4 }} />}
-                        </ItemLink>
-                        <div
-                          style={{
-                            fontFamily: 'DM Mono, monospace',
-                            fontSize: 10,
-                            letterSpacing: '0.15em',
-                            textTransform: 'uppercase',
-                            color: entry.score > 0 ? '#2d5016' : entry.score < 0 ? COLORS.ember : COLORS.faded,
-                            marginTop: 4,
-                            opacity: 'inherit',
-                          }}
-                        >
-                          {entry.score > 0 ? `+${entry.score}` : entry.score} {Math.abs(entry.score) === 1 ? 'point' : 'points'}
-                        </div>
-                      </div>
-                    </li>
-                  );
-                })}
-              </ol>
-            </div>
-
-            {/* RIGHT: Vote Selection Boxes */}
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 24 }}>
-              <div
-                style={{
-                  fontFamily: 'DM Mono, monospace',
-                  fontSize: 11,
-                  letterSpacing: '0.18em',
-                  textTransform: 'uppercase',
-                  color: COLORS.faded,
-                  fontWeight: 600,
-                  marginBottom: 0,
-                }}
-              >
-                {hasVoted ? 'Your Vote' : 'Your Picks'}
-              </div>
-
-              {hasVoted && (userCurrentVote[1] || userCurrentVote[2] || userCurrentVote[3]) && (
-                <>
-                  {userCurrentVote[1] && (
-                    <div
-                      style={{
-                        padding: 16,
-                        background: COLORS.ember,
-                        color: COLORS.cream,
-                        border: `1.5px solid ${COLORS.ember}`,
-                        fontFamily: 'Fraunces, serif',
-                        fontSize: 16,
-                        fontWeight: 600,
-                        marginBottom: 12,
-                      }}
-                    >
-                      1st Place (3 pts): {userCurrentVote[1]}
-                    </div>
-                  )}
-                  {userCurrentVote[2] && (
-                    <div
-                      style={{
-                        padding: 16,
-                        background: COLORS.ink,
-                        color: COLORS.cream,
-                        border: `1.5px solid ${COLORS.ink}`,
-                        fontFamily: 'Fraunces, serif',
-                        fontSize: 16,
-                        fontWeight: 600,
-                        marginBottom: 12,
-                      }}
-                    >
-                      2nd Place (2 pts): {userCurrentVote[2]}
-                    </div>
-                  )}
-                  {userCurrentVote[3] && (
-                    <div
-                      style={{
-                        padding: 16,
-                        background: COLORS.faded,
-                        color: COLORS.cream,
-                        border: `1.5px solid ${COLORS.faded}`,
-                        fontFamily: 'Fraunces, serif',
-                        fontSize: 16,
-                        fontWeight: 600,
-                      }}
-                    >
-                      3rd Place (1 pt): {userCurrentVote[3]}
-                    </div>
-                  )}
-                </>
-              )}
-
-              {!hasVoted && (
-              <>
-              <div
-                onClick={() => activateVoteSlot(1)}
-                style={{
-                  padding: 20,
-                  border: activeVoteSlot === 1 ? `1.5px solid ${COLORS.ember}` : `1.5px solid ${COLORS.ink}`,
-                  background: voteSelections[1] ? COLORS.ink : activeVoteSlot === 1 ? COLORS.ink : '#ebe2d0',
-                  color: voteSelections[1] || activeVoteSlot === 1 ? COLORS.cream : COLORS.ink,
-                  cursor: 'pointer',
-                  transition: 'all 0.2s ease',
-                  boxShadow: activeVoteSlot === 1 ? `4px 4px 0 ${COLORS.ember}` : voteSelections[1] ? `4px 4px 0 ${COLORS.ember}` : 'none',
-                  transform: activeVoteSlot === 1 || voteSelections[1] ? 'translate(-2px, -2px)' : 'none',
-                  display: 'flex',
-                  flexDirection: 'column',
-                  gap: 12,
-                  minHeight: 100,
-                  position: 'relative',
-                }}
-              >
+            {sortedVote.map((entry) => {
+              const isSelected = Object.values(voteSelections).includes(entry.item);
+              const selectedSlot = Object.entries(voteSelections).find(([, v]) => v === entry.item)?.[0];
+              const isClickable = activeVoteSlot !== null && !isSelected;
+              const linksDisabled = activeVoteSlot !== null;
+              const bg = selectedSlot === '1' ? COLORS.ember : selectedSlot === '2' ? COLORS.ink : selectedSlot === '3' ? COLORS.faded : COLORS.paper;
+              return (
                 <div
+                  key={entry.item}
+                  onClick={() => { if (isClickable) selectItemForVote(entry.item, activeVoteSlot); }}
                   style={{
-                    fontFamily: 'DM Mono, monospace',
-                    fontSize: 10,
-                    letterSpacing: '0.18em',
-                    textTransform: 'uppercase',
-                    fontWeight: 600,
-                    opacity: 0.8,
-                  }}
-                >
-                  1st Place · 3 Points
-                </div>
-                <div
-                  style={{
-                    fontFamily: 'Fraunces, serif',
-                    fontSize: 18,
-                    fontWeight: 600,
-                    flex: 1,
                     display: 'flex',
-                    alignItems: 'center',
-                    fontStyle: !voteSelections[1] ? 'italic' : 'normal',
-                    color: !voteSelections[1] && activeVoteSlot !== 1 ? COLORS.faded : 'inherit',
+                    flexDirection: 'column',
+                    gap: 6,
+                    padding: '12px 14px',
+                    border: `1.5px solid ${isSelected ? bg : COLORS.ink}`,
+                    background: isSelected ? bg : COLORS.paper,
+                    color: isSelected ? COLORS.cream : COLORS.ink,
+                    cursor: isClickable ? 'pointer' : 'default',
+                    opacity: activeVoteSlot && !isClickable && !isSelected ? 0.4 : 1,
+                    transition: 'all 0.15s ease',
                   }}
                 >
-                  {voteSelections[1] || 'Click to select'}
-                </div>
-                {voteSelections[1] && (
-                  <button
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      removeVoteSelection(1);
-                    }}
+                  <ItemLink
+                    list={list}
+                    item={entry.item}
                     style={{
-                      alignSelf: 'flex-start',
-                      background: 'transparent',
-                      border: 'none',
+                      fontFamily: 'Fraunces, serif',
+                      fontSize: 17,
+                      fontWeight: 600,
                       color: 'inherit',
-                      cursor: 'pointer',
-                      fontFamily: 'DM Mono, monospace',
-                      fontSize: 10,
-                      letterSpacing: '0.15em',
-                      textTransform: 'uppercase',
-                      padding: '4px 0',
-                      textDecoration: 'underline',
+                      textDecoration: 'none',
+                      lineHeight: 1.15,
+                      pointerEvents: linksDisabled ? 'none' : 'auto',
                     }}
                   >
-                    Remove
-                  </button>
-                )}
-                {activeVoteSlot === 1 && !voteSelections[1] && (
+                    <span>{entry.item}</span>
+                    {!linksDisabled && <ExternalLink size={11} strokeWidth={2} style={{ opacity: 0.4, flexShrink: 0, marginLeft: 4 }} />}
+                  </ItemLink>
                   <div
                     style={{
                       fontFamily: 'DM Mono, monospace',
-                      fontSize: 9,
-                      letterSpacing: '0.15em',
-                      textTransform: 'uppercase',
-                      fontWeight: 600,
-                      color: COLORS.cream,
-                    }}
-                  >
-                    Click list item
-                  </div>
-                )}
-              </div>
-
-              {/* 2nd Place Slot */}
-              <div
-                onClick={() => activateVoteSlot(2)}
-                style={{
-                  padding: 20,
-                  border: activeVoteSlot === 2 ? `1.5px solid ${COLORS.ember}` : `1.5px solid ${COLORS.ink}`,
-                  background: voteSelections[2] ? COLORS.ink : activeVoteSlot === 2 ? COLORS.ink : '#ebe2d0',
-                  color: voteSelections[2] || activeVoteSlot === 2 ? COLORS.cream : COLORS.ink,
-                  cursor: 'pointer',
-                  transition: 'all 0.2s ease',
-                  boxShadow: activeVoteSlot === 2 ? `4px 4px 0 ${COLORS.ember}` : voteSelections[2] ? `4px 4px 0 ${COLORS.ember}` : 'none',
-                  transform: activeVoteSlot === 2 || voteSelections[2] ? 'translate(-2px, -2px)' : 'none',
-                  display: 'flex',
-                  flexDirection: 'column',
-                  gap: 12,
-                  minHeight: 100,
-                  position: 'relative',
-                }}
-              >
-                <div
-                  style={{
-                    fontFamily: 'DM Mono, monospace',
-                    fontSize: 10,
-                    letterSpacing: '0.18em',
-                    textTransform: 'uppercase',
-                    fontWeight: 600,
-                    opacity: 0.8,
-                  }}
-                >
-                  2nd Place · 2 Points
-                </div>
-                <div
-                  style={{
-                    fontFamily: 'Fraunces, serif',
-                    fontSize: 18,
-                    fontWeight: 600,
-                    flex: 1,
-                    display: 'flex',
-                    alignItems: 'center',
-                    fontStyle: !voteSelections[2] ? 'italic' : 'normal',
-                    color: !voteSelections[2] && activeVoteSlot !== 2 ? COLORS.faded : 'inherit',
-                  }}
-                >
-                  {voteSelections[2] || 'Click to select'}
-                </div>
-                {voteSelections[2] && (
-                  <button
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      removeVoteSelection(2);
-                    }}
-                    style={{
-                      alignSelf: 'flex-start',
-                      background: 'transparent',
-                      border: 'none',
-                      color: 'inherit',
-                      cursor: 'pointer',
-                      fontFamily: 'DM Mono, monospace',
                       fontSize: 10,
-                      letterSpacing: '0.15em',
+                      letterSpacing: '0.12em',
                       textTransform: 'uppercase',
-                      padding: '4px 0',
-                      textDecoration: 'underline',
+                      color: isSelected ? COLORS.cream : entry.score > 0 ? '#2d5016' : entry.score < 0 ? COLORS.ember : COLORS.faded,
                     }}
                   >
-                    Remove
-                  </button>
-                )}
-                {activeVoteSlot === 2 && !voteSelections[2] && (
-                  <div
-                    style={{
-                      fontFamily: 'DM Mono, monospace',
-                      fontSize: 9,
-                      letterSpacing: '0.15em',
-                      textTransform: 'uppercase',
-                      fontWeight: 600,
-                      color: COLORS.cream,
-                    }}
-                  >
-                    Click list item
+                    {entry.score > 0 ? `+${entry.score}` : entry.score} {Math.abs(entry.score) === 1 ? 'point' : 'points'}
                   </div>
-                )}
-              </div>
-
-              {/* 3rd Place Slot */}
-              <div
-                onClick={() => activateVoteSlot(3)}
-                style={{
-                  padding: 20,
-                  border: activeVoteSlot === 3 ? `1.5px solid ${COLORS.ember}` : `1.5px solid ${COLORS.ink}`,
-                  background: voteSelections[3] ? COLORS.ink : activeVoteSlot === 3 ? COLORS.ink : '#ebe2d0',
-                  color: voteSelections[3] || activeVoteSlot === 3 ? COLORS.cream : COLORS.ink,
-                  cursor: 'pointer',
-                  transition: 'all 0.2s ease',
-                  boxShadow: activeVoteSlot === 3 ? `4px 4px 0 ${COLORS.ember}` : voteSelections[3] ? `4px 4px 0 ${COLORS.ember}` : 'none',
-                  transform: activeVoteSlot === 3 || voteSelections[3] ? 'translate(-2px, -2px)' : 'none',
-                  display: 'flex',
-                  flexDirection: 'column',
-                  gap: 12,
-                  minHeight: 100,
-                  position: 'relative',
-                }}
-              >
-                <div
-                  style={{
-                    fontFamily: 'DM Mono, monospace',
-                    fontSize: 10,
-                    letterSpacing: '0.18em',
-                    textTransform: 'uppercase',
-                    fontWeight: 600,
-                    opacity: 0.8,
-                  }}
-                >
-                  3rd Place · 1 Point
                 </div>
-                <div
-                  style={{
-                    fontFamily: 'Fraunces, serif',
-                    fontSize: 18,
-                    fontWeight: 600,
-                    flex: 1,
-                    display: 'flex',
-                    alignItems: 'center',
-                    fontStyle: !voteSelections[3] ? 'italic' : 'normal',
-                    color: !voteSelections[3] && activeVoteSlot !== 3 ? COLORS.faded : 'inherit',
-                  }}
-                >
-                  {voteSelections[3] || 'Click to select'}
-                </div>
-                {voteSelections[3] && (
-                  <button
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      removeVoteSelection(3);
-                    }}
-                    style={{
-                      alignSelf: 'flex-start',
-                      background: 'transparent',
-                      border: 'none',
-                      color: 'inherit',
-                      cursor: 'pointer',
-                      fontFamily: 'DM Mono, monospace',
-                      fontSize: 10,
-                      letterSpacing: '0.15em',
-                      textTransform: 'uppercase',
-                      padding: '4px 0',
-                      textDecoration: 'underline',
-                    }}
-                  >
-                    Remove
-                  </button>
-                )}
-                {activeVoteSlot === 3 && !voteSelections[3] && (
-                  <div
-                    style={{
-                      fontFamily: 'DM Mono, monospace',
-                      fontSize: 9,
-                      letterSpacing: '0.15em',
-                      textTransform: 'uppercase',
-                      fontWeight: 600,
-                      color: COLORS.cream,
-                    }}
-                  >
-                    Click list item
-                  </div>
-                )}
-              </div>
-
-              <button
-                onClick={submitVote}
-                disabled={!voteSelections[1] && !voteSelections[2] && !voteSelections[3] || hasVoted}
-                style={{
-                  marginTop: 8,
-                  padding: '12px 20px',
-                  background: COLORS.ink,
-                  color: COLORS.cream,
-                  border: 'none',
-                  fontFamily: 'DM Mono, monospace',
-                  fontSize: 11,
-                  letterSpacing: '0.18em',
-                  textTransform: 'uppercase',
-                  fontWeight: 600,
-                  cursor: voteSelections[1] || voteSelections[2] || voteSelections[3] ? 'pointer' : 'not-allowed',
-                  opacity: voteSelections[1] || voteSelections[2] || voteSelections[3] ? 1 : 0.4,
-                  transition: 'all 0.2s ease',
-                }}
-                onMouseEnter={(e) => {
-                  if ((voteSelections[1] || voteSelections[2] || voteSelections[3]) && !hasVoted) {
-                    e.currentTarget.style.transform = 'translate(-2px, -2px)';
-                    e.currentTarget.style.boxShadow = `4px 4px 0 ${COLORS.ember}`;
-                  }
-                }}
-                onMouseLeave={(e) => {
-                  e.currentTarget.style.transform = 'none';
-                  e.currentTarget.style.boxShadow = 'none';
-                }}
-              >
-                {hasVoted ? 'You Already Voted' : 'Submit Your Vote'}
-              </button>
-
-              <div
-                style={{
-                  fontFamily: 'DM Mono, monospace',
-                  fontSize: 10,
-                  letterSpacing: '0.15em',
-                  textTransform: 'uppercase',
-                  color: COLORS.faded,
-                  textAlign: 'center',
-                  marginTop: 20,
-                  paddingTop: 20,
-                  borderTop: `1px solid ${COLORS.ink}`,
-                }}
-              >
-                Submit 1, 2, or all 3 picks. You can update your vote anytime.
-              </div>
-              </>
-              )}
-            </div>
+              );
+            })}
           </div>
 
           <div
