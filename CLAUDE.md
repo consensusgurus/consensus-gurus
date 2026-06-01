@@ -455,6 +455,18 @@ git -c credential.helper= push "https://${GITHUB_PAT}@github.com/${GITHUB_REPO}.
 To commit more than `lib/data.js` in one push (e.g. updating this file too), add each changed file as its own
 blob and fold it into the tree the same way before `commit-tree`.
 
+**Critical: always use two separate steps to build the new lib tree** — never combine them into one pipe, or you get a double-nested `lib/lib/` tree that breaks Vercel:
+
+```bash
+# CORRECT — two steps:
+LIB_TREE_SHA=$(git ls-tree $BASE_COMMIT lib | awk '{print $3}')       # get SHA of lib tree
+NEW_LIB_TREE=$(git ls-tree $LIB_TREE_SHA | awk -v b="$NEW_BLOB" \
+  '{ if ($4=="data.js") print $1" "$2" "b"\t"$4; else print $1" "$2" "$3"\t"$4 }' | git mktree)
+
+# WRONG — one combined pipe (git ls-tree $BASE_COMMIT lib returns the lib entry itself, not its contents):
+# LIB_TREE=$(git ls-tree $BASE_COMMIT lib | awk ... | git mktree)   ← DO NOT DO THIS
+```
+
 ### Notes & fallback
 
 - **Repo reads can lag right after an edit.** Trust `git show HEAD:lib/data.js` (or `FETCH_HEAD:lib/data.js`)
@@ -609,9 +621,4 @@ A different kind of list: instead of ranking *different* restaurants by editoria
 
 ### Composite score (the headline number)
 Each location displays a single **composite score on a 0–10 scale**, computed from the platform ratings. Two methods, pick per request:
-- **Volume-weighted (default):** `composite = ((G·Gn) + (Y·Yn)) / (Gn + Yn) × 2`, where G/Y are the star ratings and Gn/Yn the review counts. Because Google usually has ~10× Yelp's review volume, this tracks Google closely and rewards locations with a large, consistent sample. This is what `best-run-chipotle-manhattan` uses.
-- **Equal-weight:** simple average of the two star ratings × 2. Gives Yelp equal pull; a harsher-but-real signal. Changes the #1 spot.
-- Round the displayed score to one decimal; sort the list by the *precise* (unrounded) composite so display ties keep a stable, correct order.
-
-### Display format — `Address — Neighborhood — Score/10`
-- Item name = `"<street address> — <neighborhood> — <score>/10"`, e.g. `"129 W 48th St — Midtown — 7.8/10"`. Em-dash separators. The composite is baked into the canonical name and must be byte-identical a
+- **Volume-weighted (default):** `composite = ((G·Gn) + (Y·Yn)) / (Gn + Yn) × 2`, where G/Y are the star ratings and Gn/Yn the review counts. Because Google usually has ~10× Yelp's review volume, this tracks Google
