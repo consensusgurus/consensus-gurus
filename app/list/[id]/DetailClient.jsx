@@ -874,7 +874,19 @@ function ListDetail({ list, viewCount, voteData, userVotes, extras, relatedLists
                 borderLeft: `2px solid ${COLORS.ember}`,
               }}
             >
-              Showing: {activeSource?.label || 'Source'}
+              Showing:{' '}
+              {activeSource?.url ? (
+                <a
+                  href={activeSource.url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  style={{ color: 'inherit', textDecoration: 'underline', textUnderlineOffset: '2px' }}
+                >
+                  {activeSource.label || 'Source'}
+                </a>
+              ) : (
+                activeSource?.label || 'Source'
+              )}
             </div>
           )}
 
