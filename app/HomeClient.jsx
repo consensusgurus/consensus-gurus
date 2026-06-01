@@ -11,7 +11,7 @@ import {
   Search,
 } from 'lucide-react';
 import { LISTS, TYPES, COLORS } from '@/lib/data';
-import { voteKey, dedupeByName, getSources } from '@/lib/helpers';
+import { voteKey, dedupeByName, getSources, stripItemScore } from '@/lib/helpers';
 import { fetchBootstrap } from '@/lib/api';
 import Grain from './Grain';
 import Footer from './Footer';
@@ -576,7 +576,7 @@ function Tile({ list, rank, views, voteData, extras, onClick, showConsensus }) {
                     {i + 1}
                   </span>
                 )}
-                <span style={{ flex: 1 }}>{t.item}</span>
+                <span style={{ flex: 1 }}>{stripItemScore(t.item)}</span>
               </li>
             ))}
           </ol>

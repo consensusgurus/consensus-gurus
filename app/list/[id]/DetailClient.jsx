@@ -860,7 +860,7 @@ function ListDetail({ list, viewCount, voteData, userVotes, extras, relatedLists
 
           <ol style={{ margin: 0, padding: 0, listStyle: 'none' }}>
             {(activeSource?.items || []).map((item, i) => (
-              <DataRow key={i} rank={i + 1} item={item} list={list} unranked={mode === 'unranked' || !!activeSource?.unordered} />
+              <DataRow key={i} rank={i + 1} item={item} list={list} unranked={mode === 'unranked' || !!activeSource?.unordered} showPrice={activeSource?.id === 'pricing'} />
             ))}
           </ol>
 
@@ -1438,12 +1438,21 @@ function auxChip() {
   };
 }
 
-function DataRow({ rank, item, list, unranked }) {
+// Hotel nightly price (list.prices) is shown ONLY on the pricing source view,
+// never in consensus / other source views / the vote tab / the home page.
+function priceDecorate(name, list) {
+  const p = list.prices && list.prices[name];
+  if (!p) return name;
+  return /\)\s*$/.test(name) ? name.replace(/\)\s*$/, `; ${p})`) : `${name} (${p})`;
+}
+
+function DataRow({ rank, item, list, unranked, showPrice }) {
   // Ranked lists number each entry. Unranked lists (a source flagged
   // `unordered`, or a `mode: 'unranked'` list) show a plain bullet instead,
   // so the order reads as incidental rather than a ranking.
   const isTop = !unranked && rank === 1;
   const showFullSize = rank <= 10;
+  const display = showPrice ? priceDecorate(item, list) : item;
   const [hover, setHover] = useState(false);
   const aux = list.itemLinks ? buildAuxLinks(item, list) : null;
   const pics = aux ? entryPicsConfig(list) : null;
@@ -1505,7 +1514,7 @@ function DataRow({ rank, item, list, unranked }) {
             letterSpacing: '-0.01em',
           }}
         >
-          <span>{item}</span>
+          <span>{display}</span>
           <ExternalLink size={isTop ? 14 : 12} strokeWidth={2} style={{ opacity: 0.4, flexShrink: 0 }} />
         </ItemLink>
         {aux && (
