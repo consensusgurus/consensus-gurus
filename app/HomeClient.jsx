@@ -76,7 +76,7 @@ function seededShuffle(arr, seed) {
   return out;
 }
 
-function Home({ lists, viewCounts, voteData, extras, openList, onSubmit }) {
+function Home({ lists, viewCounts, voteData, extras, trending = {}, openList, onSubmit }) {
   const [query, setQuery] = useState('');
   const [typeFilter, setTypeFilter] = useState('all');
   const [catOpen, setCatOpen] = useState(false);
@@ -134,6 +134,12 @@ function Home({ lists, viewCounts, voteData, extras, openList, onSubmit }) {
       return discoverOrder.filter((l) => allowed.has(l));
     }
     return [...filtered].sort((a, b) => {
+      if (sortBy === 'trending') {
+        const ta = trending[a.id] || 0;
+        const tb = trending[b.id] || 0;
+        if (tb !== ta) return tb - ta;
+        return lists.indexOf(a) - lists.indexOf(b);
+      }
       if (sortBy === 'recent') {
         const ta = getListTimestamp(a);
         const tb = getListTimestamp(b);
@@ -147,7 +153,7 @@ function Home({ lists, viewCounts, voteData, extras, openList, onSubmit }) {
       if (vb !== va) return vb - va;
       return lists.indexOf(a) - lists.indexOf(b);
     });
-  }, [filtered, viewCounts, lists, sortBy, discoverOrder]);
+  }, [filtered, viewCounts, trending, lists, sortBy, discoverOrder]);
 
   const totalViews = Object.values(viewCounts).reduce((a, b) => a + b, 0);
 
@@ -186,6 +192,7 @@ function Home({ lists, viewCounts, voteData, extras, openList, onSubmit }) {
 
   const sortButtons = [
     { id: 'discover', label: 'Discover' },
+    { id: 'trending', label: 'Trending' },
     { id: 'popularity', label: 'Most Popular' },
     { id: 'recent', label: 'Most Recently Added' },
   ];
@@ -603,6 +610,7 @@ export default function HomeClient() {
   const router = useRouter();
   const [voteData, setVoteData] = useState({});
   const [viewCounts, setViewCounts] = useState({});
+  const [trending, setTrending] = useState({});
   const [extras, setExtras] = useState({});
   const [userLists, setUserLists] = useState([]);
   const [loaded, setLoaded] = useState(false);
@@ -612,6 +620,7 @@ export default function HomeClient() {
       if (data) {
         setVoteData(data.votes || {});
         setViewCounts(data.views || {});
+        setTrending(data.trending || {});
         setExtras(data.extras || {});
         setUserLists(Array.isArray(data.userLists) ? data.userLists : []);
       }
@@ -663,6 +672,7 @@ export default function HomeClient() {
           viewCounts={viewCounts}
           voteData={voteData}
           extras={extras}
+          trending={trending}
           openList={openList}
           onSubmit={goToSubmit}
         />

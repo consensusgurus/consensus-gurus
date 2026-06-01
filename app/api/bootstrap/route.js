@@ -6,7 +6,7 @@ export const revalidate = 0;
 
 export async function GET() {
   try {
-    const [votesRes, viewsRes, extrasRes, userListsRes] = await Promise.all([
+    const [votesRes, viewsRes, extrasRes, userListsRes, trendingRes] = await Promise.all([
       supabase.from('votes').select('list_id,item_name,score'),
       supabase.from('views').select('list_id,count'),
       supabase.from('extras').select('list_id,item_name'),
@@ -15,6 +15,7 @@ export async function GET() {
         .select('*')
         .eq('published', true)
         .order('submitted_at', { ascending: false }),
+      supabase.rpc('trending_views', { p_hours: 24 }),
     ]);
 
     // Vote scores keyed as `${listId}::${itemNameLowerCase}` to match client voteKey()
@@ -52,11 +53,17 @@ export async function GET() {
       submittedAt: row.submitted_at,
     }));
 
-    return NextResponse.json({ votes, views, extras, userLists });
+    // Rolling-24h view counts per list for the Trending sort.
+    const trending = {};
+    (trendingRes && trendingRes.data ? trendingRes.data : []).forEach((row) => {
+      trending[row.list_id] = Number(row.cnt) || 0;
+    });
+
+    return NextResponse.json({ votes, views, extras, userLists, trending });
   } catch (e) {
     console.error('bootstrap error', e);
     return NextResponse.json(
-      { votes: {}, views: {}, extras: {}, userLists: [] },
+      { votes: {}, views: {}, extras: {}, userLists: [], trending: {} },
       { status: 200 }
     );
   }
