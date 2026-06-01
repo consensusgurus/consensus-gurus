@@ -6,17 +6,17 @@ import { Analytics } from '@vercel/analytics/next';
 export const metadata = {
   metadataBase: new URL('https://consensusgurus.com'),
   title: 'Consensus Gurus | Where We All Agree',
-  description: 'Curated top-ten lists ranked by expert consensus. From dive bars to luxury resorts, discover what the experts agree on.',
+  description: 'Curated top-ten lists ranked by expert consensus and reader votes. From dive bars to luxury resorts, discover what we all agree on.',
   openGraph: {
     title: 'Consensus Gurus | Where We All Agree',
-    description: 'Curated top-ten lists ranked by expert consensus. From dive bars to luxury resorts, discover what the experts agree on.',
+    description: 'Curated top-ten lists ranked by expert consensus and reader votes. From dive bars to luxury resorts, discover what we all agree on.',
     url: 'https://consensusgurus.com',
     type: 'website',
   },
   twitter: {
     card: 'summary_large_image',
     title: 'Consensus Gurus | Where We All Agree',
-    description: 'Curated top-ten lists ranked by expert consensus.',
+    description: 'Curated top-ten lists ranked by expert consensus and reader votes.',
   },
   appleWebApp: {
     capable: false,
@@ -44,7 +44,7 @@ const websiteJsonLd = {
   name: 'Consensus Gurus',
   alternateName: 'Consensus Gurus | Where We All Agree',
   url: 'https://consensusgurus.com',
-  description: 'Curated top-ten lists ranked by expert consensus. From dive bars to luxury resorts, discover what the experts agree on.',
+  description: 'Curated top-ten lists ranked by expert consensus and reader votes. From dive bars to luxury resorts, discover what we all agree on.',
 };
 
 export default function RootLayout({ children }) {
