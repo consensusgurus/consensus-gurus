@@ -259,6 +259,7 @@ Nightly rate is a meaningful proxy for hotel quality — properties that command
   - Rank the pricing source by this multiple, not by absolute dollar figure.
   - For single-region lists where all properties price in the same market context (e.g., Caribbean resorts, European ski chalets, Maldives overwater villas), this adjustment is not needed — absolute USD rates are directly comparable.
 - **Caveat:** the pricing source carries equal Borda weight with any other source. It is one signal among several, not the whole answer. Always combine it with at least two editorial sources.
+- **Displaying the nightly price (do NOT embed it in item names).** Store each item's nightly rate in a `prices` object on the list (`{ 'Jumby Bay Island (Antigua)': '$3,357/n', 'Eden Rock (St. Barths)': 'rate on request' }`) and let the UI append it. The price is shown ONLY when the pricing source is the selected view on the list page (via `priceDecorate` in `DetailClient`), never in the consensus view, the vote tab, the share poster, or the home-page tile. Item names themselves stay clean (`'Jumby Bay Island (Antigua)'`) so the price never leaks into other views and never becomes part of the link/vote key. Re-gathering prices then only touches the `prices` map, not every name.
 
 ### Source requirements
 
@@ -654,6 +655,10 @@ A different kind of list: instead of ranking *different* restaurants by editoria
 - **DoorDash:** reachable, but its search surfaces only one aggregated store per chain per delivery address and requires setting an address per query, so per-store enumeration by address is unreliable. Drop it unless a clean per-store-by-address path appears.
 - **Bing / Apple Maps:** Bing local ratings tend to mirror other platforms; Apple Maps has no clean web surface. Not worth it.
 - If only two solid platforms (Google + Yelp) are obtainable, that is acceptable for this list type — better two real, correctly-attributed sources than a third faked or mis-attributed one.
+
+### Composite score (the headline number)
+
+The per-location composite score (e.g. `7.8/10`) is baked into the chain item name (`'129 W 48th St — Midtown — 7.8/10'`) and shown on the list page, but it is stripped from the **home-page tile** preview via `stripItemScore` so the tiles read cleanly. Keep the score in the name (the list page and share poster rely on it); only the home tile hides it.
 
 ### Composite score (the headline number)
 Each location displays a single **composite score on a 0–10 scale**, computed from the platform ratings. Two methods, pick per request:
