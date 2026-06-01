@@ -9,6 +9,20 @@ import { fetchBootstrap } from '@/lib/api';
 const POSTER_W = 1080;
 const POSTER_H = 1350; // 4:5 portrait, Instagram-friendly
 
+// Friendly display name for a constituent source on the shared poster.
+// Rating platforms and the hotel forward-booking price proxy get clean names;
+// editorial publications keep their own label.
+function constituentLabel(src) {
+  const id = (src.id || '').toLowerCase();
+  const label = (src.label || '').toLowerCase();
+  if (id === 'pricing' || label.includes('pricing') || label.includes('nightly rate')) {
+    return 'Forward Booking Price as a Luxury Proxy';
+  }
+  if (id.includes('yelp') || label.includes('yelp')) return 'Yelp Review Score';
+  if (id.includes('google') || label.includes('google')) return 'Google Review Score';
+  return src.label;
+}
+
 export default function SnapshotClient({ listId }) {
   const router = useRouter();
   const [voteData, setVoteData] = useState({});
@@ -102,9 +116,21 @@ export default function SnapshotClient({ listId }) {
 
   const modeLabel = useMemo(() => {
     if (mode === 'vote') return 'Reader Votes';
+    if (mode === 'consensus') return 'Expert Consensus';
     const src = sources.find((s) => s.id === mode);
     return src?.label || 'Ranked';
   }, [mode, sources]);
+
+  // The publications / rating platforms / pricing that feed the consensus
+  // (everything except the computed consensus and the legacy ai seed). Shown
+  // in faint text on the poster as the "Constituent Sources" line.
+  const constituentSourceNames = useMemo(() => {
+    if (!list) return [];
+    const names = sources
+      .filter((s) => s.id !== 'consensus' && s.id !== 'ai')
+      .map((s) => constituentLabel(s));
+    return dedupeByName(names);
+  }, [sources, list]);
 
   async function downloadPoster() {
     if (!posterRef.current) return;
@@ -204,7 +230,7 @@ export default function SnapshotClient({ listId }) {
   if (ai) modeOptions.push({ id: 'ai', label: ai.label });
   // Consensus next if it exists
   const cons = sources.find((s) => s.id === 'consensus');
-  if (cons) modeOptions.push({ id: 'consensus', label: 'Consensus' });
+  if (cons) modeOptions.push({ id: 'consensus', label: 'Expert Consensus' });
   // Then any other named publication sources
   sources.forEach((s) => {
     if (s.id !== 'ai' && s.id !== 'consensus') {
@@ -331,7 +357,7 @@ export default function SnapshotClient({ listId }) {
           }}
         >
           <PosterScaler>
-            <Poster ref={posterRef} list={list} items={items} modeLabel={modeLabel} />
+            <Poster ref={posterRef} list={list} items={items} modeLabel={modeLabel} sourceNames={constituentSourceNames} />
           </PosterScaler>
         </div>
 
@@ -420,7 +446,7 @@ function PosterScaler({ children }) {
 }
 
 /* The actual poster, rendered at full 1080x1350 resolution. */
-const Poster = React.forwardRef(function Poster({ list, items, modeLabel }, ref) {
+const Poster = React.forwardRef(function Poster({ list, items, modeLabel, sourceNames }, ref) {
   return (
     <div
       ref={ref}
@@ -553,6 +579,24 @@ const Poster = React.forwardRef(function Poster({ list, items, modeLabel }, ref)
           </li>
         ))}
       </ol>
+
+      {/* Constituent sources: faint line listing every source that feeds the
+          consensus, sitting between the last item and the footer bar. */}
+      {sourceNames && sourceNames.length > 0 && (
+        <div
+          style={{
+            marginTop: 30,
+            fontFamily: 'DM Mono, monospace',
+            fontSize: 16,
+            letterSpacing: '0.04em',
+            lineHeight: 1.5,
+            color: COLORS.faded,
+          }}
+        >
+          <span style={{ fontWeight: 600, color: COLORS.ink }}>Constituent Sources: </span>
+          {sourceNames.join(', ')}
+        </div>
+      )}
 
       {/* Footer */}
       <div

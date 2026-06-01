@@ -28,6 +28,35 @@ function getListTags(list) {
   return [];
 }
 
+// Expert source groups shown below the ranked list. Each group gets its own
+// color so the three kinds of source read as visually distinct sets:
+//   - publication: editorial "best of" rankings (Eater, Michelin, etc.) -- ink
+//   - platform: crowd ratings / booking sites (Google, Yelp, TripAdvisor,
+//     Amazon reviews, booking sites) -- forest green
+//   - pricing: live pricing data -- rust
+const EXPERT_GROUPS = [
+  { key: 'publication', title: 'Expert Publications', color: COLORS.ink },
+  { key: 'platform', title: 'User Reviews & Ratings', color: COLORS.forest },
+  { key: 'pricing', title: 'Pricing Data', color: COLORS.rust },
+];
+
+// Classify an expert source into one of the EXPERT_GROUPS by id/label.
+function expertGroupKey(src) {
+  const id = (src.id || '').toLowerCase();
+  const label = (src.label || '').toLowerCase();
+  if (id === 'pricing' || label.includes('pricing') || label.includes('nightly rate')) {
+    return 'pricing';
+  }
+  const platformHints = [
+    'yelp', 'google', 'tripadvisor', 'trip advisor', 'booking', 'expedia',
+    'hotels.com', 'opentable', 'amazon', 'reviews', 'rating',
+  ];
+  if (platformHints.some((h) => id.includes(h.replace(/[^a-z]/g, '')) || label.includes(h))) {
+    return 'platform';
+  }
+  return 'publication';
+}
+
 function ListDetail({ list, viewCount, voteData, userVotes, extras, relatedLists, onBack, onVote, onAddExtra, onOpenRelated }) {
   const mode = list.mode || 'both';
   const showSourceTab = mode !== 'votes';
@@ -127,6 +156,14 @@ function ListDetail({ list, viewCount, voteData, userVotes, extras, relatedLists
   }, [list.id]);
 
   const activeSource = sources.find((s) => s.id === activeSourceId) || sources[0];
+
+  // New layout (for 'both' mode lists that have a computed consensus): two
+  // full-width chips at the top (Expert Consensus + User Vote), and all the
+  // individual expert source buttons moved into grouped, color-coded sets
+  // BELOW the ranked list.
+  const consensusSource = sources.find((s) => s.id === 'consensus');
+  const expertSources = sources.filter((s) => s.id !== 'consensus');
+  const useGroupedLayout = !!consensusSource;
 
   const sortedVote = useMemo(() => {
     if (!showVoteTab) return [];
@@ -510,7 +547,58 @@ function ListDetail({ list, viewCount, voteData, userVotes, extras, relatedLists
 
       {tab === 'source' && showSourceTab ? (
         <>
-          {sources.length > 1 ? (
+          {useGroupedLayout ? (
+            // Two full-width chips spanning the width of the table below:
+            // Expert Consensus (selects the computed consensus) + User Vote.
+            // Each chip fills red when selected, no fill when not.
+            <div style={{ display: 'flex', gap: 8, marginBottom: 24 }}>
+              {(() => {
+                const active = tab === 'source' && activeSourceId === 'consensus';
+                return (
+                  <button
+                    onClick={() => setActiveSourceId('consensus')}
+                    style={{
+                      flex: 1,
+                      background: active ? COLORS.ember : 'transparent',
+                      color: active ? COLORS.cream : COLORS.ember,
+                      border: `1.5px solid ${COLORS.ember}`,
+                      padding: '13px 16px',
+                      fontFamily: 'DM Mono, monospace',
+                      fontSize: 12,
+                      letterSpacing: '0.12em',
+                      textTransform: 'uppercase',
+                      fontWeight: 700,
+                      cursor: 'pointer',
+                      transition: 'all 0.15s ease',
+                    }}
+                  >
+                    Expert Consensus
+                  </button>
+                );
+              })()}
+              {showVoteTab && (
+                <button
+                  onClick={() => setTab('vote')}
+                  style={{
+                    flex: 1,
+                    background: 'transparent',
+                    color: COLORS.ember,
+                    border: `1.5px solid ${COLORS.ember}`,
+                    padding: '13px 16px',
+                    fontFamily: 'DM Mono, monospace',
+                    fontSize: 12,
+                    letterSpacing: '0.12em',
+                    textTransform: 'uppercase',
+                    fontWeight: 700,
+                    cursor: 'pointer',
+                    transition: 'all 0.15s ease',
+                  }}
+                >
+                  User Vote
+                </button>
+              )}
+            </div>
+          ) : sources.length > 1 ? (
             <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginBottom: 24 }}>
               {sources.map((s) => {
                 const active = activeSourceId === s.id;
@@ -584,11 +672,105 @@ function ListDetail({ list, viewCount, voteData, userVotes, extras, relatedLists
             </div>
           )}
 
+          {/* When viewing an individual expert source (not consensus) under the
+              grouped layout, show a small caption so the reader knows which
+              source the ranking below reflects. */}
+          {useGroupedLayout && activeSourceId !== 'consensus' && (
+            <div
+              style={{
+                fontFamily: 'Fraunces, serif',
+                fontStyle: 'italic',
+                fontSize: 14,
+                color: COLORS.faded,
+                marginBottom: 20,
+                marginTop: -8,
+                paddingLeft: 14,
+                borderLeft: `2px solid ${COLORS.ember}`,
+              }}
+            >
+              Showing: {activeSource?.label || 'Source'}
+            </div>
+          )}
+
           <ol style={{ margin: 0, padding: 0, listStyle: 'none' }}>
             {(activeSource?.items || []).map((item, i) => (
               <DataRow key={i} rank={i + 1} item={item} list={list} unranked={mode === 'unranked' || !!activeSource?.unordered} />
             ))}
           </ol>
+
+          {/* Expert source selection buttons, grouped + color-coded, moved
+              below the ranked list so the header stays compact. */}
+          {useGroupedLayout && expertSources.length > 0 && (
+            <div style={{ marginTop: 40, paddingTop: 28, borderTop: `2px solid ${COLORS.ink}` }}>
+              <div
+                style={{
+                  fontFamily: 'DM Mono, monospace',
+                  fontSize: 11,
+                  letterSpacing: '0.2em',
+                  textTransform: 'uppercase',
+                  color: COLORS.ink,
+                  fontWeight: 700,
+                  marginBottom: 18,
+                }}
+              >
+                Compare the Sources
+              </div>
+              {EXPERT_GROUPS.map((group) => {
+                const groupSources = expertSources.filter((s) => expertGroupKey(s) === group.key);
+                if (groupSources.length === 0) return null;
+                return (
+                  <div key={group.key} style={{ marginBottom: 22 }}>
+                    <div
+                      style={{
+                        fontFamily: 'DM Mono, monospace',
+                        fontSize: 10,
+                        letterSpacing: '0.18em',
+                        textTransform: 'uppercase',
+                        color: group.color,
+                        fontWeight: 700,
+                        marginBottom: 10,
+                      }}
+                    >
+                      {group.title}
+                    </div>
+                    <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+                      {groupSources.map((s) => {
+                        const active = activeSourceId === s.id;
+                        const linkable = active && !!s.url;
+                        return (
+                          <button
+                            key={s.id}
+                            onClick={() => {
+                              if (linkable) {
+                                window.open(s.url, '_blank', 'noopener,noreferrer');
+                              } else {
+                                setActiveSourceId(s.id);
+                              }
+                            }}
+                            title={linkable ? `View source: ${s.label}` : undefined}
+                            style={{
+                              background: active ? group.color : 'transparent',
+                              color: active ? COLORS.cream : group.color,
+                              border: `1.5px solid ${group.color}`,
+                              padding: '9px 14px',
+                              fontFamily: 'DM Mono, monospace',
+                              fontSize: 11,
+                              letterSpacing: '0.1em',
+                              fontWeight: 600,
+                              cursor: 'pointer',
+                              transition: 'all 0.15s ease',
+                            }}
+                          >
+                            {s.label}{linkable ? ' \u2197' : ''}
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          )}
 
           <p
             style={{
