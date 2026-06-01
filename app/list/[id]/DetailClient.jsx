@@ -604,15 +604,20 @@ function ListDetail({ list, viewCount, voteData, userVotes, extras, relatedLists
       {tab === 'source' && showSourceTab ? (
         <>
           {useGroupedLayout ? (
-            // Three full-width chips spanning the width of the table below:
-            // Consensus Ranking (the computed list), Consensus Sources (jumps to
-            // the source buttons at the base), and Vote. Each fills red when
+            // Three full-width chips: Consensus Ranking (the computed list),
+            // Consensus Sources (toggles a grouped, color-coded dropdown of all
+            // sources right here at the top), and Vote. Each fills red when
             // active, red outline when not.
-            <div style={{ display: 'flex', gap: 8, marginBottom: 24 }}>
+            <div style={{ marginBottom: 24 }}>
               {(() => {
-                const active = tab === 'source' && activeSourceId === 'consensus';
+                const consActive = tab === 'source' && activeSourceId === 'consensus';
+                const srcActive = sourcesOpen || activeSourceId !== 'consensus';
                 const chipBase = {
                   flex: 1,
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  gap: 6,
                   border: `1.5px solid ${COLORS.ember}`,
                   padding: '13px 10px',
                   fontFamily: 'DM Mono, monospace',
@@ -624,21 +629,19 @@ function ListDetail({ list, viewCount, voteData, userVotes, extras, relatedLists
                   transition: 'all 0.15s ease',
                 };
                 return (
-                  <>
+                  <div style={{ display: 'flex', gap: 8 }}>
                     <button
-                      onClick={() => setActiveSourceId('consensus')}
-                      style={{ ...chipBase, background: active ? COLORS.ember : 'transparent', color: active ? COLORS.cream : COLORS.ember }}
+                      onClick={() => { setActiveSourceId('consensus'); setSourcesOpen(false); }}
+                      style={{ ...chipBase, background: consActive ? COLORS.ember : 'transparent', color: consActive ? COLORS.cream : COLORS.ember }}
                     >
                       Consensus Ranking
                     </button>
                     <button
-                      onClick={() => {
-                        const el = typeof document !== 'undefined' && document.getElementById('expert-sources');
-                        if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
-                      }}
-                      style={{ ...chipBase, background: 'transparent', color: COLORS.ember }}
+                      onClick={() => setSourcesOpen((o) => !o)}
+                      style={{ ...chipBase, background: srcActive ? COLORS.ember : 'transparent', color: srcActive ? COLORS.cream : COLORS.ember }}
                     >
                       Consensus Sources
+                      {sourcesOpen ? <ChevronUp size={14} strokeWidth={2.5} /> : <ChevronDown size={14} strokeWidth={2.5} />}
                     </button>
                     {showVoteTab && (
                       <button
@@ -648,9 +651,64 @@ function ListDetail({ list, viewCount, voteData, userVotes, extras, relatedLists
                         Vote
                       </button>
                     )}
-                  </>
+                  </div>
                 );
               })()}
+
+              {sourcesOpen && (
+                <div style={{ marginTop: 8, border: `1.5px solid ${COLORS.ink}`, background: COLORS.paper }}>
+                  {EXPERT_GROUPS.map((group) => {
+                    const groupSources = expertSources.filter((s) => expertGroupKey(s) === group.key);
+                    if (groupSources.length === 0) return null;
+                    return (
+                      <div key={group.key}>
+                        <div
+                          style={{
+                            fontFamily: 'DM Mono, monospace',
+                            fontSize: 10,
+                            letterSpacing: '0.18em',
+                            textTransform: 'uppercase',
+                            color: COLORS.cream,
+                            background: group.color,
+                            fontWeight: 700,
+                            padding: '7px 16px',
+                          }}
+                        >
+                          {group.title}
+                        </div>
+                        {groupSources.map((s) => {
+                          const active = activeSourceId === s.id;
+                          return (
+                            <button
+                              key={s.id}
+                              onClick={() => { setActiveSourceId(s.id); setSourcesOpen(false); }}
+                              style={{
+                                display: 'block',
+                                width: '100%',
+                                textAlign: 'left',
+                                background: active ? group.color : 'transparent',
+                                color: active ? COLORS.cream : group.color,
+                                border: 'none',
+                                borderLeft: `4px solid ${group.color}`,
+                                borderBottom: `1px solid ${COLORS.cream}`,
+                                padding: '11px 16px',
+                                fontFamily: 'DM Mono, monospace',
+                                fontSize: 12,
+                                letterSpacing: '0.04em',
+                                fontWeight: active ? 700 : 600,
+                                cursor: 'pointer',
+                                transition: 'all 0.12s ease',
+                              }}
+                            >
+                              {s.label}
+                            </button>
+                          );
+                        })}
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
             </div>
           ) : sources.length > 1 ? (
             <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginBottom: 24 }}>
@@ -751,111 +809,6 @@ function ListDetail({ list, viewCount, voteData, userVotes, extras, relatedLists
               <DataRow key={i} rank={i + 1} item={item} list={list} unranked={mode === 'unranked' || !!activeSource?.unordered} />
             ))}
           </ol>
-
-          {/* Expert source selection buttons, grouped + color-coded, moved
-              below the ranked list so the header stays compact. */}
-          {useGroupedLayout && expertSources.length > 0 && (
-            <div id="expert-sources" style={{ marginTop: 40, paddingTop: 28, borderTop: `2px solid ${COLORS.ink}`, scrollMarginTop: 16 }}>
-              <div
-                style={{
-                  fontFamily: 'DM Mono, monospace',
-                  fontSize: 11,
-                  letterSpacing: '0.2em',
-                  textTransform: 'uppercase',
-                  color: COLORS.ink,
-                  fontWeight: 700,
-                  marginBottom: 14,
-                }}
-              >
-                Consensus Sources
-              </div>
-
-              {/* Dropdown: all expert sources, grouped + color-coded. */}
-              <button
-                onClick={() => setSourcesOpen((o) => !o)}
-                style={{
-                  width: '100%',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'space-between',
-                  gap: 10,
-                  background: 'transparent',
-                  color: COLORS.ink,
-                  border: `1.5px solid ${COLORS.ink}`,
-                  padding: '12px 16px',
-                  fontFamily: 'DM Mono, monospace',
-                  fontSize: 12,
-                  letterSpacing: '0.1em',
-                  textTransform: 'uppercase',
-                  fontWeight: 700,
-                  cursor: 'pointer',
-                }}
-              >
-                <span>{activeSourceId === 'consensus' ? 'Select a source to view' : (activeSource?.label || 'Select a source')}</span>
-                {sourcesOpen ? <ChevronUp size={16} strokeWidth={2.5} /> : <ChevronDown size={16} strokeWidth={2.5} />}
-              </button>
-
-              {sourcesOpen && (
-                <div style={{ border: `1.5px solid ${COLORS.ink}`, borderTop: 'none', background: COLORS.paper }}>
-                  {EXPERT_GROUPS.map((group) => {
-                    const groupSources = expertSources.filter((s) => expertGroupKey(s) === group.key);
-                    if (groupSources.length === 0) return null;
-                    return (
-                      <div key={group.key}>
-                        <div
-                          style={{
-                            fontFamily: 'DM Mono, monospace',
-                            fontSize: 10,
-                            letterSpacing: '0.18em',
-                            textTransform: 'uppercase',
-                            color: COLORS.cream,
-                            background: group.color,
-                            fontWeight: 700,
-                            padding: '7px 16px',
-                          }}
-                        >
-                          {group.title}
-                        </div>
-                        {groupSources.map((s) => {
-                          const active = activeSourceId === s.id;
-                          return (
-                            <button
-                              key={s.id}
-                              onClick={() => {
-                                setActiveSourceId(s.id);
-                                setSourcesOpen(false);
-                                const el = typeof document !== 'undefined' && document.getElementById('expert-sources');
-                                if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
-                              }}
-                              style={{
-                                display: 'block',
-                                width: '100%',
-                                textAlign: 'left',
-                                background: active ? group.color : 'transparent',
-                                color: active ? COLORS.cream : group.color,
-                                border: 'none',
-                                borderLeft: `4px solid ${group.color}`,
-                                borderBottom: `1px solid ${COLORS.cream}`,
-                                padding: '11px 16px',
-                                fontFamily: 'DM Mono, monospace',
-                                fontSize: 12,
-                                letterSpacing: '0.04em',
-                                fontWeight: active ? 700 : 600,
-                                cursor: 'pointer',
-                                transition: 'all 0.12s ease',
-                              }}
-                            >
-                              {s.label}
-                            </button>
-                          );
-                        })}
-                      </div>
-                    );
-                  })}
-                </div>
-              )}
-            </div>
-          )}
 
           <p
             style={{
