@@ -168,8 +168,8 @@ function Home({ lists, viewCounts, voteData, extras, openList, onSubmit }) {
 
   const sortButtons = [
     { id: 'discover', label: 'Discover' },
-    { id: 'popularity', label: 'Popularity' },
-    { id: 'recent', label: 'Most Recent' },
+    { id: 'popularity', label: 'Most Popular' },
+    { id: 'recent', label: 'Most Recently Added' },
   ];
 
   return (
