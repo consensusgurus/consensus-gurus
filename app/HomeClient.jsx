@@ -151,6 +151,24 @@ function Home({ lists, viewCounts, voteData, extras, openList, onSubmit }) {
 
   const totalViews = Object.values(viewCounts).reduce((a, b) => a + b, 0);
 
+  // Total votes shown in the header: every expert entry counts as Borda points
+  // (rank 1 = 10, rank 2 = 9 ... rank 10 = 1, nothing beyond), summed across
+  // every expert source on every list (the 'ai' seed is excluded, exactly as in
+  // the consensus scoring), plus the live, continuously-tallied reader votes.
+  const totalVotes = useMemo(() => {
+    let total = 0;
+    lists.forEach((list) => {
+      const src = list.sources || {};
+      Object.keys(src).forEach((sid) => {
+        if (sid === 'ai') return;
+        const items = (src[sid] && src[sid].items) || [];
+        for (let i = 0; i < items.length; i++) total += Math.max(0, 10 - i);
+      });
+    });
+    Object.values(voteData || {}).forEach((v) => { if (v > 0) total += v; });
+    return total;
+  }, [lists, voteData]);
+
   // Count lists per tag (a list can contribute to multiple tag counts)
   const counts = useMemo(() => {
     const out = { all: lists.length };
@@ -226,6 +244,8 @@ function Home({ lists, viewCounts, voteData, extras, openList, onSubmit }) {
           <span>{lists.length} lists</span>
           <span>·</span>
           <span>{totalViews} visitors</span>
+          <span>·</span>
+          <span>{totalVotes.toLocaleString()} votes</span>
         </div>
       </header>
 
