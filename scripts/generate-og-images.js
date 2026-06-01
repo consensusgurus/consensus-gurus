@@ -75,7 +75,9 @@ function computeConsensus(list) {
       id,
       label: src.label,
       items: src.items || [],
-      unordered: src.unordered
+      unordered: src.unordered,
+      trueExpert: src.trueExpert,
+      weight: src.weight
     }));
   
   if (publications.length === 0) {
@@ -107,13 +109,27 @@ function computeConsensus(list) {
   
   // Unordered roundups contribute equal flat points to each listed item.
   const FLAT_UNORDERED = 5.5;
-  // Score each publication
+
+  // Source weighting (kept in sync with lib/helpers.js getSources).
+  // A "true expert" source (`trueExpert: true`) counts for HALF the combined
+  // weight of the other experts, with a floor of 2x one normal expert:
+  // max(2, N_other / 2).
+  const normalWeightTotal = publications
+    .filter((s) => !s.trueExpert)
+    .reduce((sum, s) => sum + (s.weight || 1), 0);
+  const sourceWeight = (src) => {
+    if (src.trueExpert) return Math.max(2, normalWeightTotal / 2);
+    return src.weight || 1;
+  };
+
+  // Score each publication, scaled by its weight.
   publications.forEach((src) => {
+    const w = sourceWeight(src);
     if (src.unordered) {
       const listed = new Set(src.items.map((i) => i.toLowerCase().trim()));
       universe.forEach((item) => {
         const key = item.toLowerCase().trim();
-        if (listed.has(key)) scores[key] += FLAT_UNORDERED;
+        if (listed.has(key)) scores[key] += FLAT_UNORDERED * w;
       });
       return;
     }
@@ -135,9 +151,9 @@ function computeConsensus(list) {
     universe.forEach((item) => {
       const key = item.toLowerCase().trim();
       if (pubRanks[key] !== undefined) {
-        scores[key] += bordaFromRank(pubRanks[key]);
+        scores[key] += bordaFromRank(pubRanks[key]) * w;
       } else {
-        scores[key] += avgScore;
+        scores[key] += avgScore * w;
       }
     });
   });

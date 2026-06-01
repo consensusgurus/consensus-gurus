@@ -31,8 +31,33 @@ The Consensus tab on each list is computed live using **Borda scoring**:
 - Tie-break: by appearance count across sources, then alphabetically.
 - Consensus is always exactly the **top 10** items by Borda score.
 - Expert source lists can have **any number of items** — not limited to 10.
+- A source flagged `"trueExpert": true` is weighted more heavily than a normal expert — see **True Expert Sources** below.
 
 **Key implication:** If an important item is missing from the consensus, the fix is always to improve the expert source data — ensure the item appears in multiple sources at appropriate rank positions. Fan votes alone (at 0.75x) cannot overcome a weak showing across publications.
+
+### True Expert Sources
+
+Some sources are exceptionally authoritative for a topic, and should pull more weight than an ordinary publication. Flag these with `"trueExpert": true` on the source object.
+
+A true expert's Borda contribution is scaled by a weight equal to **half the combined weight of all the other (non-true-expert) experts, with a floor of 2x one normal expert**: `weight = max(2, N_other / 2)`, where `N_other` is the summed weight of the other experts (each normal expert is weight 1). Worked examples:
+
+| Other experts (`N_other`) | True expert counts for |
+|---|---|
+| 1 | 2 (floor) |
+| 2 | 2 (floor) |
+| 3 | 2 (floor) |
+| 4 | 2 (floor) |
+| 5 | 2.5 |
+| 6 | 3 |
+| 8 | 4 |
+
+The floor guarantees a true expert always counts for at least two ordinary experts; beyond that it scales to half the rest of the expert field. Everything else (rank ordering, the `unordered` flat-5.5 rule, the top-10 cutoff, tie-breaks) works exactly as for a normal source — only the per-source multiplier changes. A source may also set an explicit numeric `"weight"` to override the default 1 for fine control.
+
+Implemented in `lib/helpers.js` `getSources` and mirrored in `scripts/generate-og-images.js` (`computeConsensus`) — keep the two in sync.
+
+**Known true experts:**
+
+- **Johnny Novo** (`johnnynovo.com/rankings/...`) — a rigorous, single-author burger ranking with per-establishment ratings. Used as a true expert on `burgers-nyc`. Order his source by the published rating, descending (it is a ranked source, not `unordered`).
 
 ---
 
