@@ -212,6 +212,28 @@ Some categories require a more considered definition of "best":
 
 Read the list title and apply the most natural definition of "best" for that specific category. When in doubt, ask.
 
+### Hotels and resorts: five-star standard
+
+For any list titled "Best Hotels," "Best Resorts," or similar accommodation list:
+- **Default tier is five-star (or equivalent luxury).** This means Forbes Five-Star, AAA Five Diamond, Small Luxury Hotels of the World, Leading Hotels of the World, Relais & Châteaux, or independently acclaimed luxury properties of demonstrably equivalent product and service. No four-star chain hotels, no "boutique-but-budget," no properties that rank well on TripAdvisor popularity but don't meet the luxury threshold.
+- **Exception for niche or underserved destinations.** In destinations where no five-star properties exist (a small island, a remote area), the best genuinely available, critically acclaimed properties qualify. Note this context in the blurb.
+- Off-tier items contaminate the consensus for the whole list. When a source includes non-five-star properties, drop those items from the source before adding it — even if they rank highly in the publication's list.
+- **Large resort complexes are not automatically five-star.** A sprawling all-inclusive or destination-resort-with-condos requires the same scrutiny: does it meet the luxury product and service standard, or is it just large and popular?
+
+### Pricing as a quality signal for hotel and resort lists
+
+Nightly rate is a meaningful proxy for hotel quality — properties that command the highest prices in a market do so because of superior product, service, and demand. Use live pricing as an additional Borda source:
+
+- **Gather live rates 5–6 months out** using Google Hotels or a major booking site, through the connected Chrome browser — never from memory. Use the cheapest available room for a **Tuesday or Wednesday night** in a **non-holiday period** 5–6 months from today. To identify a safe date: count forward 5–6 months, then check that the chosen week is not within 7 days of a major holiday (US Thanksgiving, Christmas/New Year's, Easter, school spring break peak, local national holidays). If it lands too close to a holiday, move one week earlier or later.
+- **Add an ordered `pricing` source** ranked by nightly rate descending (highest rate = rank 1). Label it `'Live Pricing · 5–6 Months Out (Month YYYY)'` — do NOT set `"unordered": true`.
+- **Tiebreak:** when two properties are editorially equivalent across other sources, the higher-priced one wins.
+- **Cost-of-living adjustment for global-scope lists.** A $400/night room in Hanoi and a $400/night room in New York City represent radically different quality levels. For lists spanning multiple countries or regions with substantially different cost-of-living baselines (e.g., "Best Hotels in Asia," "Best Budget Resorts Worldwide"):
+  - Express each property's rate as a **multiple of the local luxury floor** — i.e., the cheapest available five-star hotel in that same destination on the same date.
+  - A hotel priced at 3× its local luxury floor is equivalent to one at 3× the New York luxury floor — both signal exceptional demand and quality within their market.
+  - Rank the pricing source by this multiple, not by absolute dollar figure.
+  - For single-region lists where all properties price in the same market context (e.g., Caribbean resorts, European ski chalets, Maldives overwater villas), this adjustment is not needed — absolute USD rates are directly comparable.
+- **Caveat:** the pricing source carries equal Borda weight with any other source. It is one signal among several, not the whole answer. Always combine it with at least two editorial sources.
+
 ### Source requirements
 
 - Sources must be **real and verifiable**. Web-search to confirm they exist before adding them.
@@ -347,6 +369,8 @@ Site-facing copy — blurbs, titles, categories, and any prose shown on a list p
 - **Do not** treat the `ai` seed source as a real source — it is excluded from Borda by design.
 - **Do not** use `mode: 'facts'` on a list that should have voting.
 - **Do not** include off-tier items in any source — one bad source contaminates the entire consensus.
+- **Do not** include non-five-star properties on a hotel or resort list unless the destination genuinely has no five-star options.
+- **Do not** use absolute nightly rate for cross-region pricing comparisons — normalize against the local luxury floor when regions have very different cost-of-living baselines.
 - **Do not** invent source rankings — research real ones.
 - **Do not** order a source by the order spots appear in the article when the publication ranks by score or number — order Infatuation and other rated guides by their **numeric score, descending**.
 - **Do not** feed an alphabetical or unordered list in as if its order were a quality ranking — find a ranked version, drop it, or label it `(alphabetical)` in the source name.
@@ -553,6 +577,11 @@ blob and fold it into the tree the same way before `commit-tree`.
 | City-level items need parentheses? | Optional but encouraged for neighborhoods |
 | Country/world-level items need parentheses? | Yes — always include city or country |
 | Can a luxury list include mid-tier hotels? | Never |
+| What tier for hotel/resort lists? | Five-star default (Forbes 5-star, AAA 5-diamond, SLH, LHW, R&C, or demonstrably equivalent). Exception only for destinations with no five-star options. |
+| Large resort complex = five-star? | Not automatically — must meet the luxury product/service standard, not just be large or popular. |
+| Use pricing as a rank input for hotels? | Yes — live rates 5–6 months out, non-holiday Tuesday or Wednesday, ordered descending as a `pricing` Borda source. |
+| How to pick a non-holiday pricing date? | Count 5–6 months forward, confirm the chosen week is ≥7 days from any major holiday (Thanksgiving, Christmas/New Year's, Easter, spring-break peak). Move a week if needed. |
+| Pricing comparison across global regions? | Use rate-as-multiple-of-local-luxury-floor (not absolute USD) when regions have very different cost-of-living baselines. Not needed for single-region lists (Caribbean, European ski, etc.). |
 | How recent must sources be? | Within 2–3 years |
 | Should I over-tag or under-tag? | Always over-tag |
 
@@ -585,42 +614,4 @@ Each location displays a single **composite score on a 0–10 scale**, computed 
 - Round the displayed score to one decimal; sort the list by the *precise* (unrounded) composite so display ties keep a stable, correct order.
 
 ### Display format — `Address — Neighborhood — Score/10`
-- Item name = `"<street address> — <neighborhood> — <score>/10"`, e.g. `"129 W 48th St — Midtown — 7.8/10"`. Em-dash separators. The composite is baked into the canonical name and must be byte-identical across the `ai` seed, every source, `vote.items`, and the `links` keys.
-- Neighborhood should be accurate and recognizable; repeats are fine (three "Midtown" entries is honest, forced-unique labels are not).
-- This supersedes the normal `(neighborhood)` parenthetical for this list type — the address is the identity, the neighborhood and score are appended.
-
-### Mode — use `scores` (composite ranking + source chips, no voting). NOT `facts`.
-Set `mode: 'scores'`. This is a custom mode built for these ranking lists: it shows the **volume-weighted composite as the ranking** and surfaces the platform sources (Google, Yelp) as informational **chips**, with **no fan-vote option** — a popularity vote shouldn't override a measured rating.
-
-Do NOT use `facts` for these. The three relevant modes:
-- **`facts`** — bare list: just the ranking from the single `ai` source, **no other chips at all**. For purely factual lists.
-- **`scores`** — `ai` composite ranking **plus** the other sources (Google, Yelp) as selectable chips; **no voting**. This is what chain-city composite lists use.
-- **`both`** (default) — Borda consensus of the sources + reader voting.
-
-How `scores` behaves (shipped May 2026):
-- The **detail page, share/poster page, and OG image all rank by the `ai` composite seed** (its array order). Put the `ai` seed items in composite order — that exact order is what every view shows, so the pages never disagree.
-- The `google` and `yelp` sources render as **selectable chips** beside the composite, each in its own true star-rating order (review-count tiebreak), each with a `url`. They're shown for transparency but do NOT drive the ranking and are not Borda-scored.
-- **No Vote tab / no "Reader Votes" chip** on either the detail or share page.
-- Why not `both`: there the headline is Borda of the sources *plus live votes*, and the detail page counts votes while the share/poster page doesn't — so the pages can disagree and neither matches the printed composite. Why not `facts`: facts shows only the bare ranking with no Google/Yelp chips. `scores` is the middle ground.
-- Label the `ai` source transparently, e.g. `"Composite Score · Google + Yelp, volume-weighted (May 2026)"`. Keep `vote.items` populated (10) for data integrity even though voting is off.
-
-**Implementation note (already shipped):** the `facts` vs `scores` handling lives in `app/list/[id]/DetailClient.jsx`, `app/snapshot/[id]/SnapshotClient.jsx`, `scripts/generate-og-images.js`, `app/HomeClient.jsx`, and `app/list/[id]/page.js`. `facts` = bare `ai` list only; `scores` = `ai` composite ranking + the other sources as read-only chips, with voting suppressed. New chain-city lists only need `mode: 'scores'` plus the sources; no further code changes.
-
-### Links
-Still a `mapsCity` list, so an explicit `links` object is required. Key each by the full `Address — Neighborhood — Score/10` name; the URL is a clean sanitized Maps search built from **just the chain + address** (NOT the score-laden display name), e.g. `https://www.google.com/maps/search/?api=1&query=Chipotle%20129%20W%2048th%20St%20New%20York`. The explicit link wins over the auto-generated one, so the em-dashes and digits in the display name never reach the Maps query.
-
-### Build & validate
-Generate the entry with a script that takes the raw `(address, neighborhood, G, Gn, Y, Yn)` table, computes the composite, sorts, and emits the JS — then `node --check` the assembled file and assert every source/seed/vote name has a matching `links` key. See `staged_list_entries.py` / the build script used for the Chipotle list.
-
-## Unranked Product Lists (`mode: 'unranked'`)
-
-A deliberately different kind of list. Where every other list type produces an *ordered* ranking (Borda consensus, a composite score, or a vote tally), an **unranked** list is a **curated, subjective set of items** — "here are cool/handy/novel things worth owning," presented with **no rank numbers, no consensus math, and no voting**. Use it when ordering the items would be arbitrary or beside the point (e.g. fun single-purpose gadgets). The first one shipped is `unique-time-saving-kitchen-gadgets`.
-
-### When to use it
-- The value is the *collection*, not the order. Picking a #1 would be meaningless or misleading.
-- You want editorial freedom to choose items by feel (cool, handy, novel) rather than by what the most sources happen to agree on. Ignore the consensus calculation entirely.
-- Product round-ups (`linkType: 'amazon'`) are the natural fit, but it works for any `linkType`.
-
-### How to build one
-- Set `mode: 'unranked'`.
-- Put the curated items in the **`ai` sourc
+- Item name = `"<street address> — <neighborhood> — <score>/10"`, e.g. `"129 W 48th St — Midtown — 7.8/10"`. Em-dash separators. The composite is baked into the canonical name and must be byte-identical a
