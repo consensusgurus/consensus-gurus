@@ -392,7 +392,9 @@ Site-facing copy — blurbs, titles, categories, and any prose shown on a list p
 
 ## Per-entry hover link menu (`itemLinks`)
 
-A list opts into the list-page hover menu by adding an `itemLinks` object mapping each exact item name to its official **Website** URL (gathered live, never guessed). When present, hovering a ranked entry reveals: **Website** (from `itemLinks`), **Map** (the existing `mapsCity` link), and a category-specific "pics" group built automatically from the item name + neighborhood:
+**Scope: location-based lists only** (hotels, resorts, restaurants, bars, cafes, beach clubs, venues, and any other place a person physically visits). Non-location lists (products, films, TV, games, books, music, factual rankings, etc.) do NOT get the hover menu, since Map / Website / photo links are meaningless for them. Simply do not add `itemLinks` to those lists.
+
+A location-based list opts into the list-page hover menu by adding an `itemLinks` object mapping each exact item name to its official **Website** URL (gathered live, never guessed). When present, hovering a ranked entry reveals: **Website** (from `itemLinks`), **Map** (the existing `mapsCity` link), and a category-specific "pics" group built automatically from the item name + neighborhood:
 
 - **Food / restaurants (default):** label `Food Pics:` with `Yelp` and `Google`.
 - **Hotels / resorts** (`type: 'travel'`, or a `travel`/`luxury` tag): label `Property Pics:` with `TripAdvisor` and `Google`.
