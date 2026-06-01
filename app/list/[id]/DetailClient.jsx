@@ -41,6 +41,47 @@ const EXPERT_GROUPS = [
   { key: 'pricing', title: 'Pricing Data', color: COLORS.rust },
 ];
 
+// Vote-page ordering: the same universe + ranking the User Vote tab shows, so a
+// "Consensus Gurus User Vote" source matches that page exactly. Items are the
+// vote.items + every publication item + extras, ranked by live votes; with no
+// votes yet it falls back to the consensus order (full universe, not just 10).
+function voteOrderedItems(list, voteData, extras) {
+  const mode = list.mode || 'both';
+  const base = list.vote?.items || [];
+  let universeItems = [...base];
+  if (mode === 'both') {
+    getSources(list, voteData, extras).forEach((source) => {
+      if (source.id !== 'consensus') {
+        source.items.forEach((item) => {
+          if (!universeItems.some((i) => i.toLowerCase().trim() === item.toLowerCase().trim())) {
+            universeItems.push(item);
+          }
+        });
+      }
+    });
+  }
+  const all = dedupeByName([...universeItems, ...(Array.isArray(extras) ? extras : [])]);
+  const scored = all.map((item, idx) => ({ item, score: (voteData || {})[voteKey(list.id, item)] || 0, origIdx: idx }));
+  scored.sort((a, b) => b.score - a.score || a.origIdx - b.origIdx);
+  const hasAnyVotes = scored.some((x) => x.score !== 0);
+  if (!hasAnyVotes && mode === 'both') {
+    const consensusSource = getSources(list, voteData, extras).find((x) => x.id === 'consensus');
+    if (consensusSource && consensusSource.items.length > 0) {
+      const rank = {};
+      consensusSource.items.forEach((item, idx) => { rank[item.toLowerCase().trim()] = idx; });
+      scored.sort((a, b) => {
+        const ra = rank[a.item.toLowerCase().trim()];
+        const rb = rank[b.item.toLowerCase().trim()];
+        if (ra !== undefined && rb !== undefined) return ra - rb;
+        if (ra !== undefined) return -1;
+        if (rb !== undefined) return 1;
+        return a.origIdx - b.origIdx;
+      });
+    }
+  }
+  return scored.map((x) => x.item);
+}
+
 // Classify an expert source into one of the EXPERT_GROUPS by id/label.
 function expertGroupKey(src) {
   // A flagged true-expert source is exceptionally authoritative and gets its
@@ -78,6 +119,7 @@ function ListDetail({ list, viewCount, voteData, userVotes, extras, relatedLists
   const [complainMsg, setComplainMsg] = useState('');
   const [complainSent, setComplainSent] = useState(false);
   const [complainBusy, setComplainBusy] = useState(false);
+  const [sourcesOpen, setSourcesOpen] = useState(false);
 
   // Sources now factor in live vote data so the Consensus chip stays accurate
   // as people vote in real time. For facts-only lists, use the hardcoded ai source.
@@ -126,20 +168,11 @@ function ListDetail({ list, viewCount, voteData, userVotes, extras, relatedLists
     // standalone "Consensus Gurus User Vote" source built from live fan votes,
     // shown as a User Reviews & Ratings source at the base of the page.
     const result = getSources(list, voteData, extras);
-    const universeMap = {};
-    const add = (it) => {
-      const k = (it || '').toLowerCase().trim();
-      if (k && !universeMap[k]) universeMap[k] = it;
+    const cgVote = {
+      id: 'cgvote',
+      label: 'Consensus Gurus User Vote',
+      items: voteOrderedItems(list, voteData, extras),
     };
-    (list.vote?.items || []).forEach(add);
-    result.forEach((src) => { if (src.id !== 'consensus') src.items.forEach(add); });
-    if (Array.isArray(extras)) extras.forEach(add);
-    const voteRanked = Object.values(universeMap)
-      .map((it, idx) => ({ it, idx, score: voteData?.[voteKey(list.id, it)] || 0 }))
-      .sort((a, b) => b.score - a.score || a.idx - b.idx)
-      .slice(0, 10)
-      .map((x) => x.it);
-    const cgVote = { id: 'cgvote', label: 'Consensus Gurus User Vote', items: voteRanked };
     return [...result, cgVote];
   }, [list, voteData, extras, showSourceTab, mode]);
 
@@ -731,65 +764,96 @@ function ListDetail({ list, viewCount, voteData, userVotes, extras, relatedLists
                   textTransform: 'uppercase',
                   color: COLORS.ink,
                   fontWeight: 700,
-                  marginBottom: 18,
+                  marginBottom: 14,
                 }}
               >
                 Consensus Sources
               </div>
-              {EXPERT_GROUPS.map((group) => {
-                const groupSources = expertSources.filter((s) => expertGroupKey(s) === group.key);
-                if (groupSources.length === 0) return null;
-                return (
-                  <div key={group.key} style={{ marginBottom: 22 }}>
-                    <div
-                      style={{
-                        fontFamily: 'DM Mono, monospace',
-                        fontSize: 10,
-                        letterSpacing: '0.18em',
-                        textTransform: 'uppercase',
-                        color: group.color,
-                        fontWeight: 700,
-                        marginBottom: 10,
-                      }}
-                    >
-                      {group.title}
-                    </div>
-                    <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
-                      {groupSources.map((s) => {
-                        const active = activeSourceId === s.id;
-                        const linkable = active && !!s.url;
-                        return (
-                          <button
-                            key={s.id}
-                            onClick={() => {
-                              if (linkable) {
-                                window.open(s.url, '_blank', 'noopener,noreferrer');
-                              } else {
+
+              {/* Dropdown: all expert sources, grouped + color-coded. */}
+              <button
+                onClick={() => setSourcesOpen((o) => !o)}
+                style={{
+                  width: '100%',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'space-between',
+                  gap: 10,
+                  background: 'transparent',
+                  color: COLORS.ink,
+                  border: `1.5px solid ${COLORS.ink}`,
+                  padding: '12px 16px',
+                  fontFamily: 'DM Mono, monospace',
+                  fontSize: 12,
+                  letterSpacing: '0.1em',
+                  textTransform: 'uppercase',
+                  fontWeight: 700,
+                  cursor: 'pointer',
+                }}
+              >
+                <span>{activeSourceId === 'consensus' ? 'Select a source to view' : (activeSource?.label || 'Select a source')}</span>
+                {sourcesOpen ? <ChevronUp size={16} strokeWidth={2.5} /> : <ChevronDown size={16} strokeWidth={2.5} />}
+              </button>
+
+              {sourcesOpen && (
+                <div style={{ border: `1.5px solid ${COLORS.ink}`, borderTop: 'none', background: COLORS.paper }}>
+                  {EXPERT_GROUPS.map((group) => {
+                    const groupSources = expertSources.filter((s) => expertGroupKey(s) === group.key);
+                    if (groupSources.length === 0) return null;
+                    return (
+                      <div key={group.key}>
+                        <div
+                          style={{
+                            fontFamily: 'DM Mono, monospace',
+                            fontSize: 10,
+                            letterSpacing: '0.18em',
+                            textTransform: 'uppercase',
+                            color: COLORS.cream,
+                            background: group.color,
+                            fontWeight: 700,
+                            padding: '7px 16px',
+                          }}
+                        >
+                          {group.title}
+                        </div>
+                        {groupSources.map((s) => {
+                          const active = activeSourceId === s.id;
+                          return (
+                            <button
+                              key={s.id}
+                              onClick={() => {
                                 setActiveSourceId(s.id);
-                              }
-                            }}
-                            title={linkable ? `View source: ${s.label}` : undefined}
-                            style={{
-                              background: active ? group.color : 'transparent',
-                              color: active ? COLORS.cream : group.color,
-                              border: `1.5px solid ${group.color}`,
-                              padding: '9px 14px',
-                              fontFamily: 'DM Mono, monospace',
-                              fontSize: 11,
-                              letterSpacing: '0.1em',
-                              fontWeight: 600,
-                              cursor: 'pointer',
-                              transition: 'all 0.15s ease',
-                            }}
-                          >
-                            {s.label}{linkable ? ' \u2197' : ''}
-                          </button>
-                        );
-                      })}
-                    </div>
-                  </div>
-                );
-              })}
+                                setSourcesOpen(false);
+                                const el = typeof document !== 'undefined' && document.getElementById('expert-sources');
+                                if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                              }}
+                              style={{
+                                display: 'block',
+                                width: '100%',
+                                textAlign: 'left',
+                                background: active ? group.color : 'transparent',
+                                color: active ? COLORS.cream : group.color,
+                                border: 'none',
+                                borderLeft: `4px solid ${group.color}`,
+                                borderBottom: `1px solid ${COLORS.cream}`,
+                                padding: '11px 16px',
+                                fontFamily: 'DM Mono, monospace',
+                                fontSize: 12,
+                                letterSpacing: '0.04em',
+                                fontWeight: active ? 700 : 600,
+                                cursor: 'pointer',
+                                transition: 'all 0.12s ease',
+                              }}
+                            >
+                              {s.label}
+                            </button>
+                          );
+                        })}
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
             </div>
           )}
 
