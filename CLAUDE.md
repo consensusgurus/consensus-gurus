@@ -367,7 +367,7 @@ These refine how to apply the parenthetical rules above. They are universal — 
 Site-facing copy — blurbs, titles, categories, and any prose shown on a list page — follows these rules:
 
 - **Never use the em dash (—) in site copy.** Not in blurbs, not in titles, not anywhere a reader sees. Replace it with a comma, colon, or period. A colon fits when the second part labels or summarizes the first (`Tonkotsu, shio, tsukemen: the Tokyo ramen counters most worth the queue`); a comma fits a trailing modifier (`ranked on sound and craft, not value`); a period fits two independent clauses (`A sense of place raised to an art. Rosewood Hong Kong was named the world's best hotel for 2025.`). Hyphens (`-`) in compound words are fine.
-- **Exception — chain-city composite names.** The single-city chain ranking lists use em-dash separators in the item display name by design (`129 W 48th St — Midtown — 7.8/10`). That is a structured identifier, not prose, so it keeps its em dashes. The ban applies to prose copy only.
+- **Chain-city composite lists use parentheticals like every other list.** Chain item names are `address (neighborhood)` (e.g. `129 W 48th St (Midtown)`), NOT em-dash separators. The composite score is NOT part of the name (see the chain section below). So the em-dash ban applies to chain names too.
 
 ---
 
@@ -658,7 +658,7 @@ A different kind of list: instead of ranking *different* restaurants by editoria
 
 ### Composite score (the headline number)
 
-The per-location composite score (e.g. `7.8/10`) is baked into the chain item name (`'129 W 48th St — Midtown — 7.8/10'`) and shown on the list page, but it is stripped from the **home-page tile** preview via `stripItemScore` so the tiles read cleanly. Keep the score in the name (the list page and share poster rely on it); only the home tile hides it.
+Chain item names are clean parentheticals like every other list (`'129 W 48th St (Midtown)'`), never em-dash separators and never with the score in the name. The per-location composite score is stored in a `scores` object on the list (`{ '129 W 48th St (Midtown)': '7.8' }`) and rendered ONLY on the list page (via `scoreDecorate` in `DetailClient`), appended into the parenthetical as `(Midtown; 7.8)`. It never appears on the home-page tile or the share poster, and is never part of the item name / link key. Re-scoring then only touches the `scores` map, not the names.
 
 ### Composite score (the headline number)
 Each location displays a single **composite score on a 0–10 scale**, computed from the platform ratings. Two methods, pick per request:

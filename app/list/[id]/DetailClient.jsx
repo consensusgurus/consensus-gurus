@@ -1446,13 +1446,21 @@ function priceDecorate(name, list) {
   return /\)\s*$/.test(name) ? name.replace(/\)\s*$/, `; ${p})`) : `${name} (${p})`;
 }
 
+// Chain "best-run" composite score (list.scores) shown as (neighborhood; 7.8),
+// ONLY on the list page, never on the home tile or share poster.
+function scoreDecorate(name, list) {
+  const sc = list.scores && list.scores[name];
+  if (!sc) return name;
+  return /\)\s*$/.test(name) ? name.replace(/\)\s*$/, `; ${sc})`) : `${name} (${sc})`;
+}
+
 function DataRow({ rank, item, list, unranked, showPrice }) {
   // Ranked lists number each entry. Unranked lists (a source flagged
   // `unordered`, or a `mode: 'unranked'` list) show a plain bullet instead,
   // so the order reads as incidental rather than a ranking.
   const isTop = !unranked && rank === 1;
   const showFullSize = rank <= 10;
-  const display = showPrice ? priceDecorate(item, list) : item;
+  const display = showPrice ? priceDecorate(item, list) : (list.scores ? scoreDecorate(item, list) : item);
   const [hover, setHover] = useState(false);
   const aux = list.itemLinks ? buildAuxLinks(item, list) : null;
   const pics = aux ? entryPicsConfig(list) : null;
