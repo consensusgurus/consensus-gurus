@@ -573,7 +573,7 @@ function ListDetail({ list, viewCount, voteData, userVotes, extras, relatedLists
               }}
             >
               <PenLine size={12} strokeWidth={2.5} />
-              Speak With The Manager
+              Comments? Questions?
             </button>
             <a
               href={`/snapshot/${encodeURIComponent(list.id)}`}
