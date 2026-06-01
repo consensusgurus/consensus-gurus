@@ -9,6 +9,21 @@ import { fetchBootstrap } from '@/lib/api';
 const POSTER_W = 1080;
 const POSTER_H = 1350; // 4:5 portrait, Instagram-friendly
 
+// Source ordering tier: lead with the best sources. True experts first, then
+// top-reputation publications, then other publications, then user-ratings
+// platforms (Google/Yelp/etc.), then pricing info last.
+function sourceTier(src) {
+  const id = (src.id || '').toLowerCase();
+  const l = (src.label || '').toLowerCase();
+  if (src.trueExpert) return 0;
+  if (id === 'pricing' || l.includes('pricing') || l.includes('nightly rate')) return 4;
+  const platform = ['yelp', 'google', 'tripadvisor', 'trip advisor', 'booking', 'expedia', 'hotels.com', 'opentable', 'amazon'].some((h) => id.includes(h.replace(/[^a-z]/g, '')) || l.includes(h));
+  if (platform) return 3;
+  const premium = ['michelin', 'infatuation', 'cond', 'leisure', 'cntraveler', 'robb report', 'forbes', 'us news', 'u.s. news', 'new york times', 'nyt'];
+  if (premium.some((k) => l.includes(k))) return 1;
+  return 2;
+}
+
 // Friendly display name for a constituent source on the shared poster.
 // Rating platforms and the hotel forward-booking price proxy get clean names;
 // editorial publications keep their own label.
@@ -172,10 +187,11 @@ export default function SnapshotClient({ listId }) {
   // in faint text on the poster as the "Constituent Sources" line.
   const constituentSourceNames = useMemo(() => {
     if (!list) return [];
-    const names = sources
+    const ordered = sources
       .filter((s) => s.id !== 'consensus' && s.id !== 'ai')
-      .map((s) => constituentLabel(s));
-    return dedupeByName(names);
+      .map((s, i) => ({ s, i, t: sourceTier(s) }))
+      .sort((a, b) => a.t - b.t || a.i - b.i);
+    return dedupeByName(ordered.map((x) => constituentLabel(x.s)));
   }, [sources, list]);
 
   // Default the share preview to the computed Consensus (not the ai seed) when
@@ -286,12 +302,12 @@ export default function SnapshotClient({ listId }) {
   // Consensus next if it exists
   const cons = sources.find((s) => s.id === 'consensus');
   if (cons) modeOptions.push({ id: 'consensus', label: 'Consensus' });
-  // Then any other named publication sources
-  sources.forEach((s) => {
-    if (s.id !== 'ai' && s.id !== 'consensus') {
-      modeOptions.push({ id: s.id, label: s.label });
-    }
-  });
+  // Then the source views, ordered best-first to match the list page.
+  sources
+    .filter((s) => s.id !== 'ai' && s.id !== 'consensus')
+    .map((s, i) => ({ s, i, t: sourceTier(s) }))
+    .sort((a, b) => a.t - b.t || a.i - b.i)
+    .forEach((x) => modeOptions.push({ id: x.s.id, label: x.s.label }));
   // Offer reader votes (except facts/composite lists, which don't use voting)
   if (list.mode !== 'facts' && list.mode !== 'scores' && list.mode !== 'unranked') {
     modeOptions.push({ id: 'vote', label: 'Reader Votes' });

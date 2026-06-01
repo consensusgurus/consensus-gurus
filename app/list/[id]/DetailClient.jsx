@@ -46,6 +46,8 @@ function expertGroupKey(src) {
   // A flagged true-expert source is exceptionally authoritative and gets its
   // own group, regardless of whether its label mentions ratings/reviews.
   if (src.trueExpert) return 'trueexpert';
+  // The live Consensus Gurus fan vote is a user-ratings signal.
+  if ((src.id || '') === 'cgvote') return 'platform';
   const id = (src.id || '').toLowerCase();
   const label = (src.label || '').toLowerCase();
   if (id === 'pricing' || label.includes('pricing') || label.includes('nightly rate')) {
@@ -120,8 +122,25 @@ function ListDetail({ list, viewCount, voteData, userVotes, extras, relatedLists
       return [...out, ...publications];
     }
 
-    // For 'both' mode lists: compute Consensus from publications
-    return getSources(list, voteData, extras);
+    // For 'both' mode lists: compute Consensus from publications, then append a
+    // standalone "Consensus Gurus User Vote" source built from live fan votes,
+    // shown as a User Reviews & Ratings source at the base of the page.
+    const result = getSources(list, voteData, extras);
+    const universeMap = {};
+    const add = (it) => {
+      const k = (it || '').toLowerCase().trim();
+      if (k && !universeMap[k]) universeMap[k] = it;
+    };
+    (list.vote?.items || []).forEach(add);
+    result.forEach((src) => { if (src.id !== 'consensus') src.items.forEach(add); });
+    if (Array.isArray(extras)) extras.forEach(add);
+    const voteRanked = Object.values(universeMap)
+      .map((it, idx) => ({ it, idx, score: voteData?.[voteKey(list.id, it)] || 0 }))
+      .sort((a, b) => b.score - a.score || a.idx - b.idx)
+      .slice(0, 10)
+      .map((x) => x.it);
+    const cgVote = { id: 'cgvote', label: 'Consensus Gurus User Vote', items: voteRanked };
+    return [...result, cgVote];
   }, [list, voteData, extras, showSourceTab, mode]);
 
   // Default: Consensus if exists, else configured default, else first available
@@ -552,55 +571,53 @@ function ListDetail({ list, viewCount, voteData, userVotes, extras, relatedLists
       {tab === 'source' && showSourceTab ? (
         <>
           {useGroupedLayout ? (
-            // Two full-width chips spanning the width of the table below:
-            // Expert Consensus (selects the computed consensus) + User Vote.
-            // Each chip fills red when selected, no fill when not.
+            // Three full-width chips spanning the width of the table below:
+            // Consensus Ranking (the computed list), Consensus Sources (jumps to
+            // the source buttons at the base), and Vote. Each fills red when
+            // active, red outline when not.
             <div style={{ display: 'flex', gap: 8, marginBottom: 24 }}>
               {(() => {
                 const active = tab === 'source' && activeSourceId === 'consensus';
+                const chipBase = {
+                  flex: 1,
+                  border: `1.5px solid ${COLORS.ember}`,
+                  padding: '13px 10px',
+                  fontFamily: 'DM Mono, monospace',
+                  fontSize: 12,
+                  letterSpacing: '0.1em',
+                  textTransform: 'uppercase',
+                  fontWeight: 700,
+                  cursor: 'pointer',
+                  transition: 'all 0.15s ease',
+                };
                 return (
-                  <button
-                    onClick={() => setActiveSourceId('consensus')}
-                    style={{
-                      flex: 1,
-                      background: active ? COLORS.ember : 'transparent',
-                      color: active ? COLORS.cream : COLORS.ember,
-                      border: `1.5px solid ${COLORS.ember}`,
-                      padding: '13px 16px',
-                      fontFamily: 'DM Mono, monospace',
-                      fontSize: 12,
-                      letterSpacing: '0.12em',
-                      textTransform: 'uppercase',
-                      fontWeight: 700,
-                      cursor: 'pointer',
-                      transition: 'all 0.15s ease',
-                    }}
-                  >
-                    Consensus
-                  </button>
+                  <>
+                    <button
+                      onClick={() => setActiveSourceId('consensus')}
+                      style={{ ...chipBase, background: active ? COLORS.ember : 'transparent', color: active ? COLORS.cream : COLORS.ember }}
+                    >
+                      Consensus Ranking
+                    </button>
+                    <button
+                      onClick={() => {
+                        const el = typeof document !== 'undefined' && document.getElementById('expert-sources');
+                        if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                      }}
+                      style={{ ...chipBase, background: 'transparent', color: COLORS.ember }}
+                    >
+                      Consensus Sources
+                    </button>
+                    {showVoteTab && (
+                      <button
+                        onClick={() => setTab('vote')}
+                        style={{ ...chipBase, background: 'transparent', color: COLORS.ember }}
+                      >
+                        Vote
+                      </button>
+                    )}
+                  </>
                 );
               })()}
-              {showVoteTab && (
-                <button
-                  onClick={() => setTab('vote')}
-                  style={{
-                    flex: 1,
-                    background: 'transparent',
-                    color: COLORS.ember,
-                    border: `1.5px solid ${COLORS.ember}`,
-                    padding: '13px 16px',
-                    fontFamily: 'DM Mono, monospace',
-                    fontSize: 12,
-                    letterSpacing: '0.12em',
-                    textTransform: 'uppercase',
-                    fontWeight: 700,
-                    cursor: 'pointer',
-                    transition: 'all 0.15s ease',
-                  }}
-                >
-                  User Vote
-                </button>
-              )}
             </div>
           ) : sources.length > 1 ? (
             <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginBottom: 24 }}>
@@ -705,7 +722,7 @@ function ListDetail({ list, viewCount, voteData, userVotes, extras, relatedLists
           {/* Expert source selection buttons, grouped + color-coded, moved
               below the ranked list so the header stays compact. */}
           {useGroupedLayout && expertSources.length > 0 && (
-            <div style={{ marginTop: 40, paddingTop: 28, borderTop: `2px solid ${COLORS.ink}` }}>
+            <div id="expert-sources" style={{ marginTop: 40, paddingTop: 28, borderTop: `2px solid ${COLORS.ink}`, scrollMarginTop: 16 }}>
               <div
                 style={{
                   fontFamily: 'DM Mono, monospace',
@@ -717,7 +734,7 @@ function ListDetail({ list, viewCount, voteData, userVotes, extras, relatedLists
                   marginBottom: 18,
                 }}
               >
-                Compare the Sources
+                Consensus Sources
               </div>
               {EXPERT_GROUPS.map((group) => {
                 const groupSources = expertSources.filter((s) => expertGroupKey(s) === group.key);
