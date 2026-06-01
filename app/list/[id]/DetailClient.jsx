@@ -1407,8 +1407,21 @@ function buildAuxLinks(name, list) {
     website,
     map: buildItemLink(name, list),
     yelp: `https://www.yelp.com/search?find_desc=${yelpDesc}&find_loc=${yelpLoc}`,
-    google: `https://www.google.com/search?q=${gq}`,
+    google: `https://www.google.com/search?q=${gq}&tbm=isch`,
+    tripadvisor: `https://www.tripadvisor.com/Search?q=${encodeURIComponent((base + ' ' + locality + ' New York').replace(/\s+/g, ' ').trim())}`,
   };
+}
+
+// Per-category "pics" convention for the hover menu: hotels use Property Pics
+// (TripAdvisor + Google), bars use a plain "Pics", everything else Food Pics.
+function entryPicsConfig(list) {
+  const tags = list.tags || [];
+  const type = list.type || '';
+  const isHotel = type === 'travel' || tags.includes('travel') || tags.includes('luxury');
+  const isBar = tags.includes('bars') || tags.includes('nightlife');
+  if (isHotel) return { label: 'Property Pics:', links: [['tripadvisor', 'TripAdvisor'], ['google', 'Google']] };
+  if (isBar) return { label: 'Pics:', links: [['yelp', 'Yelp'], ['google', 'Google Reviews']] };
+  return { label: 'Food Pics:', links: [['yelp', 'Yelp'], ['google', 'Google Reviews']] };
 }
 
 function auxChip() {
@@ -1433,6 +1446,7 @@ function DataRow({ rank, item, list, unranked }) {
   const showFullSize = rank <= 10;
   const [hover, setHover] = useState(false);
   const aux = list.itemLinks ? buildAuxLinks(item, list) : null;
+  const pics = aux ? entryPicsConfig(list) : null;
   return (
     <li
       onMouseEnter={() => setHover(true)}
@@ -1497,7 +1511,7 @@ function DataRow({ rank, item, list, unranked }) {
         {aux && (
           <div
             style={{
-              maxHeight: hover ? 48 : 0,
+              maxHeight: hover ? 220 : 0,
               opacity: hover ? 1 : 0,
               overflow: 'hidden',
               transition: 'max-height 0.2s ease, opacity 0.15s ease',
@@ -1519,10 +1533,13 @@ function DataRow({ rank, item, list, unranked }) {
               <MapPin size={11} strokeWidth={2.2} /> Map
             </a>
             <span style={{ display: 'inline-flex', alignItems: 'center', gap: 7, border: `1.3px solid ${COLORS.faded}`, borderRadius: 4, padding: '4px 9px' }}>
-              <span style={{ textTransform: 'uppercase', color: COLORS.faded }}>Food Pics:</span>
-              <a href={aux.yelp} target="_blank" rel="noopener noreferrer" style={{ color: COLORS.ember, textDecoration: 'none' }}>Yelp</a>
-              <span style={{ color: COLORS.faded }}>|</span>
-              <a href={aux.google} target="_blank" rel="noopener noreferrer" style={{ color: COLORS.ember, textDecoration: 'none' }}>Google Reviews</a>
+              <span style={{ textTransform: 'uppercase', color: COLORS.faded }}>{pics.label}</span>
+              {pics.links.map(([key, label], i) => (
+                <React.Fragment key={key}>
+                  {i > 0 && <span style={{ color: COLORS.faded }}>|</span>}
+                  <a href={aux[key]} target="_blank" rel="noopener noreferrer" style={{ color: COLORS.ember, textDecoration: 'none' }}>{label}</a>
+                </React.Fragment>
+              ))}
             </span>
           </div>
         )}

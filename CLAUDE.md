@@ -389,6 +389,16 @@ Site-facing copy — blurbs, titles, categories, and any prose shown on a list p
 
 ---
 
+## Per-entry hover link menu (`itemLinks`)
+
+A list opts into the list-page hover menu by adding an `itemLinks` object mapping each exact item name to its official **Website** URL (gathered live, never guessed). When present, hovering a ranked entry reveals: **Website** (from `itemLinks`), **Map** (the existing `mapsCity` link), and a category-specific "pics" group built automatically from the item name + neighborhood:
+
+- **Food / restaurants (default):** label `Food Pics:` with `Yelp` and `Google`.
+- **Hotels / resorts** (`type: 'travel'`, or a `travel`/`luxury` tag): label `Property Pics:` with `TripAdvisor` and `Google`.
+- **Bars** (`bars`/`nightlife` tag): label `Pics:` with `Yelp` and `Google`.
+
+The `Google` link defaults to Google **Image** search (`&tbm=isch`) so it lands on photos directly, not a web-results page. Only the Website per item needs gathering; Map / Yelp / Google / TripAdvisor are constructed from the name. Implemented in `buildAuxLinks` and `entryPicsConfig` in `app/list/[id]/DetailClient.jsx`. The reveal uses a generous `max-height` so wrapped chips are not clipped on mobile.
+
 ## Common Mistakes to Avoid
 
 - **Do not** use `booking` as a linkType — it is not used. All places use `mapsCity`.
