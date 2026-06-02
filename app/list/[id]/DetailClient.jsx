@@ -1557,7 +1557,9 @@ function DataRow({ rank, item, list, unranked, showPrice }) {
             fontSize: isTop ? 64 : showFullSize ? 44 : 32,
             lineHeight: 0.85,
             color: isTop ? COLORS.ember : rank > 10 ? COLORS.faded : COLORS.ink,
-            minWidth: 50,
+            width: 50,
+            flexShrink: 0,
+            textAlign: 'left',
             fontVariationSettings: '"SOFT" 100, "WONK" 1',
             fontFeatureSettings: '"lnum" 1',
           }}
