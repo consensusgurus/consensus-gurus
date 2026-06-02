@@ -434,6 +434,17 @@ Apply this to every location list. The key is the same as everywhere else (exact
 - **Google stays a Google Image search** (built from the item name + neighborhood) and is always shown. Only Yelp and TripAdvisor require a stored real URL.
 - Implemented in `buildAuxLinks` in `app/list/[id]/DetailClient.jsx`: `itemYelp`/`itemTripadvisor` supply the chip URL, and a falsy value filters that chip out of the row. Re-gathering only touches `itemYelp`/`itemTripadvisor`, never names/links/vote keys.
 
+### Mandatory build checklist for a NEW location list (do NOT skip any)
+A location list (restaurants, bars, breweries, bagels/bakeries, cafes, hotels, venues) is NOT finished until it has ALL of these, gathered live:
+1. `links` — the sanitized Google Maps URL per item (required for `mapsCity`).
+2. `itemLinks` — each item's **official website**. This is MANDATORY, not optional: a missing `itemLinks` means the hover menu shows no Website chip. (This was wrongly omitted on the first Asheville-breweries and bagels-nyc builds — do not repeat.) Omit only an individual item that has no genuine official site.
+3. `itemYelp` (food/bar) and/or `itemTripadvisor` (hotel/place) — real business-page URLs.
+4. At least one **editorial/expert source** in addition to the Yelp/Google rating sources (see the source rule above).
+Gather each website by searching `"<name> official website"` in the connected browser and taking the first genuine own-domain result; reject Yelp/TripAdvisor/menu-hosts/`*.restaurants-info.com`/delivery apps.
+
+### Getting Yelp / TripAdvisor business-page URLs without hitting their bot walls
+TripAdvisor (and sometimes Yelp) search pages are JS/bot-protected and return nothing when loaded directly. **Do not scrape them directly.** Instead, run a normal **Google search in the connected Chrome** for `"<venue> tripadvisor"` (or `"<venue> yelp"`) and read the `tripadvisor.com/...` (or `yelp.com/biz/...`) link straight out of the Google results — it's easy to confirm it's the property/venue page. Store that real URL in `itemTripadvisor` / `itemYelp`. If even the Google result has no real property page, omit that item (the chip drops and only Google shows).
+
 ### Source labels hyperlink only for publications, not user-rating sources
 - On the list page, the selected-source "Showing:" label and the source buttons link out to the source `url` **only when the source is a real publication**: an editorial "Expert Publication" or a flagged True Expert with an article page.
 - **User-rating sources do NOT hyperlink** even though they carry a `url`: Amazon Reviews, Yelp/Google rating sources, the `pricing` source, and the live fan vote. Their `url` is a search, not an article, so they render as plain text.
