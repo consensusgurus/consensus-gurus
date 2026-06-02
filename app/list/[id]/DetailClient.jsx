@@ -1465,13 +1465,18 @@ function buildAuxLinks(name, list) {
   const yelpLoc = encodeURIComponent(loc);
   const gq = encodeURIComponent((base + ' ' + loc).replace(/\s+/g, ' ').trim());
   const tq = encodeURIComponent((base + ' ' + loc).replace(/\s+/g, ' ').trim());
-  const website = (list.itemLinks && (list.itemLinks[name] || list.itemLinks[base])) || null;
+  const pick = (map) => (map && (map[name] || map[base])) || null;
+  const website = pick(list.itemLinks);
+  // Yelp / TripAdvisor link to the actual business page only when a real URL is
+  // stored for the item; otherwise the chip is omitted and only Google is shown.
+  const yelp = pick(list.itemYelp);
+  const tripadvisor = pick(list.itemTripadvisor);
   return {
     website,
     map: buildItemLink(name, list),
-    yelp: `https://www.yelp.com/search?find_desc=${yelpDesc}&find_loc=${yelpLoc}`,
+    yelp,
     google: `https://www.google.com/search?q=${gq}&tbm=isch`,
-    tripadvisor: `https://www.tripadvisor.com/Search?q=${tq}`,
+    tripadvisor,
   };
 }
 
@@ -1637,7 +1642,7 @@ function DataRow({ rank, item, list, unranked, showPrice }) {
             </a>
             <span style={{ display: 'inline-flex', alignItems: 'center', gap: 7, border: `1.3px solid ${COLORS.ink}`, borderRadius: 4, padding: '4px 9px' }}>
               <span style={{ textTransform: 'uppercase', color: COLORS.ink }}>{pics.label}</span>
-              {pics.links.map(([key, label], i) => (
+              {pics.links.filter(([key]) => aux[key]).map(([key, label], i) => (
                 <React.Fragment key={key}>
                   {i > 0 && <span style={{ color: COLORS.ink }}>|</span>}
                   <a href={aux[key]} target="_blank" rel="noopener noreferrer" style={{ color: COLORS.ink, textDecoration: 'none' }}>{label}</a>
