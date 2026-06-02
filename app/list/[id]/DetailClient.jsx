@@ -1463,7 +1463,11 @@ function buildAuxLinks(name, list) {
   const loc = auxSearchLocation(locality, list);
   const yelpDesc = encodeURIComponent(base);
   const yelpLoc = encodeURIComponent(loc);
-  const gq = encodeURIComponent((base + ' ' + loc).replace(/\s+/g, ' ').trim());
+  // For lists whose title names a specific menu item (Best Burgers, Best Pizza,
+  // Best Pasta...), `picsTerm` holds the singular item word; appending it to the
+  // Google Image query makes the photos show that dish, not the storefront.
+  const picsTerm = (list.picsTerm || '').trim();
+  const gq = encodeURIComponent((base + ' ' + loc + ' ' + picsTerm).replace(/\s+/g, ' ').trim());
   const tq = encodeURIComponent((base + ' ' + loc).replace(/\s+/g, ' ').trim());
   const pick = (map) => (map && (map[name] || map[base])) || null;
   const website = pick(list.itemLinks);
