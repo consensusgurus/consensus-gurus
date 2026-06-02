@@ -44,8 +44,8 @@ const CATEGORIES = [
   // 'any' = belongs if it has any of these tags; 'not' = excluded if it has any of these.
   // Bars carry food-drink/entertainment tags, so Restaurants and Entertainment exclude
   // bars/nightlife to keep a cocktail bar from leaking out of Bars & Nightlife.
-  { id: 'restaurants', label: 'Eating Establishments', any: ['food', 'food-drink'], not: ['bars', 'nightlife'] },
-  { id: 'bars-nightlife', label: 'Drinking Establishments', any: ['bars', 'nightlife'] },
+  { id: 'restaurants', label: 'Eating', any: ['food', 'food-drink'], not: ['bars', 'nightlife'] },
+  { id: 'bars-nightlife', label: 'Drinking', any: ['bars', 'nightlife'] },
   { id: 'travel', label: 'Hotels & Travel', any: ['travel', 'luxury'] },
   { id: 'shops', label: 'Shops & Products', any: ['product', 'tech'] },
   { id: 'entertainment', label: 'Entertainment', any: ['entertainment'] },
