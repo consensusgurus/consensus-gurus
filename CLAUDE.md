@@ -427,6 +427,17 @@ Apply this to every location list. The key is the same as everywhere else (exact
 - **Coverage.** Cover the union of all item names across every source and `vote.items`, minus the omitted ones. A list with most items linked and a few omitted is the normal, finished state.
 - **Re-gathering only touches `itemLinks`,** never the item names, `links`, or vote keys.
 
+### Yelp and TripAdvisor "pics" chips link to the real business page (`itemYelp` / `itemTripadvisor`)
+- The hover menu's Yelp and TripAdvisor chips must link to the **actual business page**, never a Yelp/TripAdvisor search. Store the real page URL per item in an `itemYelp` object (food/bar lists) and/or an `itemTripadvisor` object (hotel/place lists), keyed by the exact item-name string, gathered live through the connected Chrome browser. Never guess a URL.
+- **If an item has no Yelp (or TripAdvisor) page, omit it from that map.** The chip is then dropped for that item and only **Google** shows. It is correct and expected that some items have no Yelp/TripAdvisor entry, so some items show only Google.
+- **Google stays a Google Image search** (built from the item name + neighborhood) and is always shown. Only Yelp and TripAdvisor require a stored real URL.
+- Implemented in `buildAuxLinks` in `app/list/[id]/DetailClient.jsx`: `itemYelp`/`itemTripadvisor` supply the chip URL, and a falsy value filters that chip out of the row. Re-gathering only touches `itemYelp`/`itemTripadvisor`, never names/links/vote keys.
+
+### Source labels hyperlink only for publications, not user-rating sources
+- On the list page, the selected-source "Showing:" label and the source buttons link out to the source `url` **only when the source is a real publication**: an editorial "Expert Publication" or a flagged True Expert with an article page.
+- **User-rating sources do NOT hyperlink** even though they carry a `url`: Amazon Reviews, Yelp/Google rating sources, the `pricing` source, and the live fan vote. Their `url` is a search, not an article, so they render as plain text.
+- Gated by `isPublicationLink` in `DetailClient`, which keys off `expertGroupKey` (links only when the group is `publication` or `trueexpert`).
+
 ## Common Mistakes to Avoid
 
 - **Do not** use `booking` as a linkType — it is not used. All places use `mapsCity`.
