@@ -35,6 +35,27 @@ function listHasTag(list, tagId) {
   return getListTags(list).includes(tagId);
 }
 
+// Browse categories. Each maps to a set of underlying tags so lists never need
+// re-tagging and overlapping tags collapse into one clean filter. 'stores',
+// 'nightlife', 'food' etc. remain on lists as internal tags but are no longer
+// their own browse buckets.
+const CATEGORIES = [
+  { id: 'all', label: 'All' },
+  { id: 'restaurants', label: 'Restaurants', tags: ['food', 'food-drink'] },
+  { id: 'bars-nightlife', label: 'Bars & Nightlife', tags: ['bars', 'nightlife'] },
+  { id: 'travel', label: 'Hotels & Travel', tags: ['travel', 'luxury'] },
+  { id: 'shops', label: 'Shops & Products', tags: ['product', 'tech'] },
+  { id: 'entertainment', label: 'Entertainment', tags: ['entertainment'] },
+  { id: 'misc', label: 'Miscellaneous', tags: ['other'] },
+];
+const CAT_BY_ID = Object.fromEntries(CATEGORIES.map((c) => [c.id, c]));
+function listInCategory(list, catId) {
+  const cat = CAT_BY_ID[catId];
+  if (!cat || cat.id === 'all' || !cat.tags) return true;
+  const tags = getListTags(list);
+  return cat.tags.some((t) => tags.includes(t));
+}
+
 // Resolve a comparable timestamp for a list, in priority order:
 //   1. publishedAt   (full ISO string on built-in lists)
 //   2. submittedAt   (Supabase timestamptz on reader submissions)
@@ -111,7 +132,7 @@ function Home({ lists, viewCounts, voteData, extras, trending = {}, openList, on
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase();
     return lists.filter((list) => {
-      if (typeFilter !== 'all' && !listHasTag(list, typeFilter)) return false;
+      if (typeFilter !== 'all' && !listInCategory(list, typeFilter)) return false;
       if (!q) return true;
       const hay = [
         list.title,
@@ -178,16 +199,16 @@ function Home({ lists, viewCounts, voteData, extras, trending = {}, openList, on
   // Count lists per tag (a list can contribute to multiple tag counts)
   const counts = useMemo(() => {
     const out = { all: lists.length };
-    TYPES.forEach((t) => {
-      if (t.id === 'all') return;
-      out[t.id] = lists.filter((l) => listHasTag(l, t.id)).length;
+    CATEGORIES.forEach((c) => {
+      if (c.id === 'all') return;
+      out[c.id] = lists.filter((l) => listInCategory(l, c.id)).length;
     });
     return out;
   }, [lists]);
 
   // Only show tag chips that have at least one matching list (skip empty buckets)
   const visibleTypes = useMemo(() => {
-    return TYPES.filter((t) => t.id === 'all' || (counts[t.id] || 0) > 0);
+    return CATEGORIES.filter((t) => t.id === 'all' || (counts[t.id] || 0) > 0);
   }, [counts]);
 
   const sortButtons = [
