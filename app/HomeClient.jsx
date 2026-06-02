@@ -724,16 +724,16 @@ function Tile({ list, rank, views, voteData, extras, onClick, showConsensus, fea
               style={{
                 flex: '0 0 auto',
                 border: `1.5px solid ${COLORS.ink}`,
-                padding: '12px 16px',
+                padding: '8px 12px',
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'space-between',
-                gap: 10,
+                gap: 8,
                 cursor: 'pointer',
               }}
             >
-              <span style={{ flex: '1 1 auto', minWidth: 0, fontFamily: 'Fraunces, serif', fontWeight: 700, fontSize: 17, lineHeight: 1.2, fontVariationSettings: '"SOFT" 100' }}>{rl.title}</span>
-              <span style={{ flex: '0 0 auto', fontFamily: 'Fraunces, serif', fontWeight: 700, fontSize: 18 }}>&#8594;</span>
+              <span style={{ flex: '1 1 auto', minWidth: 0, fontFamily: 'Fraunces, serif', fontWeight: 700, fontSize: 14, lineHeight: 1.15, fontVariationSettings: '"SOFT" 100' }}>{rl.title}</span>
+              <span style={{ flex: '0 0 auto', fontFamily: 'Fraunces, serif', fontWeight: 700, fontSize: 14 }}>&#8594;</span>
             </div>
           ))}
         </div>
