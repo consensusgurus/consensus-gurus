@@ -1565,7 +1565,7 @@ function DataRow({ rank, item, list, unranked, showPrice }) {
           {String(rank)}
         </span>
       )}
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 8, flex: 1, minWidth: 0 }}>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 8, flex: 1, minWidth: 0, position: 'relative' }}>
         <ItemLink
           list={list}
           item={item}
@@ -1584,10 +1584,20 @@ function DataRow({ rank, item, list, unranked, showPrice }) {
         {aux && (
           <div
             style={{
-              maxHeight: hover ? 220 : 0,
+              position: 'absolute',
+              top: '100%',
+              left: 0,
+              right: 0,
+              zIndex: 6,
+              marginTop: 4,
+              padding: hover ? '8px 10px' : '0 10px',
+              background: COLORS.cream,
+              boxShadow: hover ? '0 6px 18px rgba(0,0,0,0.14)' : 'none',
               opacity: hover ? 1 : 0,
+              visibility: hover ? 'visible' : 'hidden',
+              pointerEvents: hover ? 'auto' : 'none',
               overflow: 'hidden',
-              transition: 'max-height 0.2s ease, opacity 0.15s ease',
+              transition: 'opacity 0.15s ease',
               display: 'flex',
               alignItems: 'center',
               flexWrap: 'wrap',
