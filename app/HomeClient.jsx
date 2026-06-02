@@ -41,24 +41,19 @@ function listHasTag(list, tagId) {
 // in double-height featured tiles. Returns null when nothing is clearly related.
 function findRelatedLists(list, lists, n) {
   const tags = new Set(getListTags(list));
-  const sameCat = [];
-  const byTags = [];
+  const scored = [];
   for (const other of lists) {
     if (other.id === list.id) continue;
-    let overlap = 0;
-    for (const t of getListTags(other)) if (tags.has(t)) overlap += 1;
-    if (list.category && other.category === list.category) {
-      sameCat.push({ other, score: overlap });
-    } else if (overlap >= 1) {
-      byTags.push({ other, score: overlap });
-    }
+    let score = 0;
+    if (list.category && other.category === list.category) score += 5;
+    for (const t of getListTags(other)) if (tags.has(t)) score += 1;
+    if (list.picsTerm && other.picsTerm) score += 1;
+    scored.push({ other, score });
   }
-  // Prefer same city/topic; only fall back to tag-similarity when no
-  // same-category list exists (so a Boston list never appears under an Austin
-  // one, but a unique-category list still gets relevant suggestions).
-  const pick = sameCat.length ? sameCat : byTags;
-  pick.sort((a, b) => b.score - a.score);
-  return pick.slice(0, n).map((x) => x.other);
+  // Closest-first, and always return up to n so any leftover space can be
+  // filled, even when nothing shares the exact topic.
+  scored.sort((a, b) => b.score - a.score);
+  return scored.slice(0, n).map((x) => x.other);
 }
 
 // Browse categories. Each maps to a set of underlying tags so lists never need
@@ -396,7 +391,7 @@ function Home({ lists, viewCounts, voteData, extras, trending = {}, openList, on
           >
             {sorted.map((list, idx) => {
               const isFeatured = featuredIds.has(list.id);
-              const related = isFeatured ? findRelatedLists(list, lists, 3) : null;
+              const related = findRelatedLists(list, lists, 3);
               return (
                 <Tile
                   key={list.id}
@@ -496,35 +491,45 @@ function Tile({ list, rank, views, voteData, extras, onClick, showConsensus, fea
   // Featured tiles fill their extra height with up to 3 related-list sub-boxes,
   // showing as many as actually fit the leftover vertical space.
   const relatedRef = useRef(null);
-  const [relatedFit, setRelatedFit] = useState(3);
+  const [relatedFit, setRelatedFit] = useState(0);
+  const fitRef = useRef(0);
+  const relKey = (relatedLists || []).map((r) => r.id).join('|');
   useEffect(() => {
-    if (!featured || !relatedLists || relatedLists.length === 0) {
-      setRelatedFit(0);
+    if (!relatedLists || relatedLists.length === 0) {
+      if (fitRef.current !== 0) { fitRef.current = 0; setRelatedFit(0); }
       return undefined;
     }
     const el = relatedRef.current;
     if (!el) return undefined;
+    // The boxes live in an absolutely-positioned inner layer, so they never
+    // change this container's height. That decouples the measurement from the
+    // render and makes the fit calculation loop-free.
     const compute = () => {
-      const ch = el.clientHeight;
-      let used = 0;
+      const node = relatedRef.current;
+      if (!node) return;
+      const avail = node.clientHeight;
+      const inner = node.firstElementChild;
+      const kids = inner ? inner.children : [];
+      let used = 16;
       let fit = 0;
-      const kids = el.children;
       for (let i = 0; i < kids.length; i++) {
         const h = kids[i].offsetHeight;
-        const next = used === 0 ? h : used + 12 + h;
-        if (next <= ch + 1) { used = next; fit += 1; } else break;
+        const next = used + (fit === 0 ? h : 12 + h);
+        if (next <= avail + 1) { used = next; fit += 1; } else break;
       }
-      setRelatedFit(Math.min(fit, relatedLists.length, 3));
+      const want = Math.min(fit, relatedLists.length, 3);
+      if (want !== fitRef.current) { fitRef.current = want; setRelatedFit(want); }
     };
-    compute();
-    const ro = typeof ResizeObserver !== 'undefined' ? new ResizeObserver(compute) : null;
+    const raf = requestAnimationFrame(compute);
+    const ro = typeof ResizeObserver !== 'undefined'
+      ? new ResizeObserver(() => requestAnimationFrame(compute))
+      : null;
     if (ro) ro.observe(el);
-    window.addEventListener('resize', compute);
     return () => {
+      cancelAnimationFrame(raf);
       if (ro) ro.disconnect();
-      window.removeEventListener('resize', compute);
     };
-  }, [featured, relatedLists, preview]);
+  }, [relKey, preview]);
 
   return (
     <button
@@ -712,31 +717,39 @@ function Tile({ list, rank, views, voteData, extras, onClick, showConsensus, fea
         </>
       )}
 
-      {featured && relatedLists && relatedLists.length > 0 && (
-        <div ref={relatedRef} style={{ flex: '1 1 0', minHeight: 0, marginTop: 16, display: 'flex', flexDirection: 'column', gap: 12, overflow: 'hidden' }}>
-          {relatedLists.slice(0, relatedFit).map((rl) => (
-            <div
-              key={rl.id}
-              role="link"
-              tabIndex={0}
-              onClick={(e) => { e.stopPropagation(); if (onOpenRelated) onOpenRelated(rl.id); }}
-              onKeyDown={(e) => { if (e.key === 'Enter') { e.stopPropagation(); if (onOpenRelated) onOpenRelated(rl.id); } }}
-              style={{
-                flex: '0 0 auto',
-                background: '#e3d9c3',
-                border: `1.5px solid ${COLORS.ink}`,
-                padding: '8px 12px',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'space-between',
-                gap: 8,
-                cursor: 'pointer',
-              }}
-            >
-              <span style={{ flex: '1 1 auto', minWidth: 0, fontFamily: 'Fraunces, serif', fontWeight: 700, fontSize: 14, lineHeight: 1.15, fontVariationSettings: '"SOFT" 100' }}>{rl.title}</span>
-              <span style={{ flex: '0 0 auto', fontFamily: 'Fraunces, serif', fontWeight: 700, fontSize: 14 }}>&#8594;</span>
-            </div>
-          ))}
+      {relatedLists && relatedLists.length > 0 && (
+        <div ref={relatedRef} style={{ flex: '1 1 0', minHeight: 0, position: 'relative', overflow: 'hidden' }}>
+          <div style={{ position: 'absolute', top: 16, left: 0, right: 0, display: 'flex', flexDirection: 'column', gap: 12 }}>
+            {relatedLists.slice(0, 3).map((rl, idx) => {
+              const shown = idx < relatedFit;
+              return (
+                <div
+                  key={rl.id}
+                  role="link"
+                  tabIndex={shown ? 0 : -1}
+                  aria-hidden={shown ? undefined : true}
+                  onClick={(e) => { e.stopPropagation(); if (shown && onOpenRelated) onOpenRelated(rl.id); }}
+                  onKeyDown={(e) => { if (e.key === 'Enter') { e.stopPropagation(); if (shown && onOpenRelated) onOpenRelated(rl.id); } }}
+                  style={{
+                    flex: '0 0 auto',
+                    visibility: shown ? 'visible' : 'hidden',
+                    pointerEvents: shown ? 'auto' : 'none',
+                    background: '#e3d9c3',
+                    border: `1.5px solid ${COLORS.ink}`,
+                    padding: '8px 12px',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'space-between',
+                    gap: 8,
+                    cursor: 'pointer',
+                  }}
+                >
+                  <span style={{ flex: '1 1 auto', minWidth: 0, fontFamily: 'Fraunces, serif', fontWeight: 700, fontSize: 14, lineHeight: 1.15, fontVariationSettings: '"SOFT" 100' }}>{rl.title}</span>
+                  <span style={{ flex: '0 0 auto', fontFamily: 'Fraunces, serif', fontWeight: 700, fontSize: 14 }}>&#8594;</span>
+                </div>
+              );
+            })}
+          </div>
         </div>
       )}
 
