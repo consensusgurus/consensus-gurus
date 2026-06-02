@@ -239,7 +239,7 @@ function Home({ lists, viewCounts, voteData, extras, trending = {}, openList, on
             marginTop: 28,
             display: 'flex',
             justifyContent: 'center',
-            gap: 24,
+            gap: '6px 20px',
             fontFamily: 'DM Mono, monospace',
             fontSize: 11,
             letterSpacing: '0.15em',
@@ -249,8 +249,8 @@ function Home({ lists, viewCounts, voteData, extras, trending = {}, openList, on
           }}
         >
           <span style={{ whiteSpace: 'nowrap' }}>{lists.length} lists</span>
-          <span style={{ whiteSpace: 'nowrap' }}><span aria-hidden="true" style={{ opacity: 0.5 }}>·</span> {totalViews.toLocaleString()} visitors</span>
           <span style={{ whiteSpace: 'nowrap' }}><span aria-hidden="true" style={{ opacity: 0.5 }}>·</span> {totalVotes.toLocaleString()} votes</span>
+          <span style={{ whiteSpace: 'nowrap' }}><span aria-hidden="true" style={{ opacity: 0.5 }}>·</span> {totalViews.toLocaleString()} visitors</span>
         </div>
       </header>
 
