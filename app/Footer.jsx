@@ -52,8 +52,8 @@ export default function Footer() {
           <Link href="/" style={{ color: COLORS.ink, textDecoration: 'none' }}>
             Home
           </Link>
-          <Link href="/submit" style={{ color: COLORS.ink, textDecoration: 'none' }}>
-            Submit a list
+          <Link href="/request" style={{ color: COLORS.ink, textDecoration: 'none' }}>
+            Request a list
           </Link>
           <Link href="/create" style={{ color: COLORS.ink, textDecoration: 'none' }}>
             Create Your Own Grid

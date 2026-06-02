@@ -1,10 +1,7 @@
-import SubmitClient from './SubmitClient';
+import { redirect } from 'next/navigation';
 
-export const metadata = {
-  title: 'Submit a List | Consensus Gurus',
-  description: 'Add your own top ten list to Consensus Gurus.',
-};
-
+// The submission flow now lives at /request ("Request a List").
+// Keep /submit working by redirecting any old links/bookmarks.
 export default function SubmitPage() {
-  return <SubmitClient />;
+  redirect('/request');
 }

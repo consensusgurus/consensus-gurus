@@ -16,6 +16,8 @@ serve(async (req) => {
       htmlContent = `<p>New list submitted:</p>
             <p><strong>${record.title}</strong></p>
             <p>Category: ${record.category}</p>
+            <p>Name: ${record.submitter_name || "Not provided"}</p>
+            <p>Email: ${record.submitter_email || "Not provided"}</p>
             <p><a href="https://consensusgurus.com/admin">View in Admin Panel</a></p>`;
     } else if (table === "complaints") {
       subject = `New Research Request: ${record.list_title}`;

@@ -51,6 +51,15 @@ export async function POST(request) {
       return NextResponse.json({ error: 'invalid blurb' }, { status: 400 });
     }
 
+    const submitterName =
+      typeof list.submitterName === 'string' && list.submitterName.trim()
+        ? list.submitterName.trim().slice(0, 80)
+        : null;
+    const submitterEmail =
+      typeof list.submitterEmail === 'string' && list.submitterEmail.trim()
+        ? list.submitterEmail.trim().slice(0, 120)
+        : null;
+
     const { error } = await supabase.from('user_lists').insert({
       id: list.id,
       title: list.title,
@@ -62,6 +71,8 @@ export async function POST(request) {
       sources: list.sources || {},
       vote_items: list.vote?.items || [],
       links: list.links || null,
+      submitter_name: submitterName,
+      submitter_email: submitterEmail,
       published: false,
     });
 
