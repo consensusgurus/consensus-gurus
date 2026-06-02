@@ -45,10 +45,10 @@ const CATEGORIES = [
   // Bars carry food-drink/entertainment tags, so Restaurants and Entertainment exclude
   // bars/nightlife to keep a cocktail bar from leaking out of Bars & Nightlife.
   { id: 'restaurants', label: 'Eating Establishments', any: ['food', 'food-drink'], not: ['bars', 'nightlife'] },
-  { id: 'bars-nightlife', label: 'Bars & Nightlife', any: ['bars', 'nightlife'] },
+  { id: 'bars-nightlife', label: 'Drinking Establishments', any: ['bars', 'nightlife'] },
   { id: 'travel', label: 'Hotels & Travel', any: ['travel', 'luxury'] },
   { id: 'shops', label: 'Shops & Products', any: ['product', 'tech'] },
-  { id: 'entertainment', label: 'Entertainment', any: ['entertainment'], not: ['bars', 'nightlife', 'food', 'food-drink'] },
+  { id: 'entertainment', label: 'Entertainment', any: ['entertainment'] },
   { id: 'misc', label: 'Miscellaneous', any: ['other'] },
 ];
 const CAT_BY_ID = Object.fromEntries(CATEGORIES.map((c) => [c.id, c]));
