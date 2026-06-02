@@ -68,7 +68,7 @@ export default function TermsPage() {
 
       <H2>Governing law</H2>
       <p>
-        These terms are governed by the laws of <strong>[your state or country]</strong>, without regard to its conflict of laws provisions. (Edit this with your jurisdiction before going live.)
+        These terms are governed by the laws of <strong>the United States</strong>, without regard to its conflict of laws provisions.
       </p>
 
       <H2>Contact</H2>
