@@ -40,15 +40,17 @@ function listHasTag(list, tagId) {
 // nudge toward same-kind menu-item lists). Used to fill the extra vertical space
 // in double-height featured tiles. Returns null when nothing is clearly related.
 function findRelatedLists(list, lists, n) {
+  if (!list.category) return [];
   const tags = new Set(getListTags(list));
   const scored = [];
   for (const other of lists) {
     if (other.id === list.id) continue;
-    let score = 0;
-    if (list.category && other.category && list.category === other.category) score += 3;
+    // Same city/topic only, so a Boston list never shows up under an Austin one.
+    if (other.category !== list.category) continue;
+    let score = 1;
     for (const t of getListTags(other)) if (tags.has(t)) score += 1;
-    if (list.picsTerm && other.picsTerm) score += 2;
-    if (score >= 2) scored.push({ other, score });
+    if (list.picsTerm && other.picsTerm) score += 1;
+    scored.push({ other, score });
   }
   scored.sort((a, b) => b.score - a.score);
   return scored.slice(0, n).map((x) => x.other);
@@ -489,7 +491,7 @@ function Tile({ list, rank, views, voteData, extras, onClick, showConsensus, fea
   // Featured tiles fill their extra height with up to 3 related-list sub-boxes,
   // showing as many as actually fit the leftover vertical space.
   const relatedRef = useRef(null);
-  const [relatedFit, setRelatedFit] = useState(1);
+  const [relatedFit, setRelatedFit] = useState(0);
   useEffect(() => {
     if (!featured || !relatedLists || relatedLists.length === 0) return undefined;
     const compute = () => {
@@ -497,7 +499,7 @@ function Tile({ list, rank, views, voteData, extras, onClick, showConsensus, fea
       if (!el) return;
       const per = 52 + 12;
       let n = Math.floor((el.clientHeight + 12) / per);
-      n = Math.max(1, Math.min(relatedLists.length, 3, n));
+      n = Math.max(0, Math.min(relatedLists.length, 3, n));
       setRelatedFit(n);
     };
     compute();
@@ -515,6 +517,7 @@ function Tile({ list, rank, views, voteData, extras, onClick, showConsensus, fea
         gridRow: featured ? 'span 2' : 'auto',
         display: featured ? 'flex' : 'block',
         flexDirection: featured ? 'column' : undefined,
+        minHeight: featured ? 560 : undefined,
         background: hover ? '#e4dbc8' : COLORS.paper,
         color: COLORS.ink,
         border: `1.5px solid ${COLORS.ink}`,
@@ -691,7 +694,7 @@ function Tile({ list, rank, views, voteData, extras, onClick, showConsensus, fea
       )}
 
       {featured && relatedLists && relatedLists.length > 0 && (
-        <div ref={relatedRef} style={{ flex: '1 0 auto', minHeight: 0, marginTop: 16, display: 'flex', flexDirection: 'column', gap: 12, overflow: 'hidden' }}>
+        <div ref={relatedRef} style={{ flex: '1 1 0', minHeight: 0, marginTop: 16, display: 'flex', flexDirection: 'column', gap: 12, overflow: 'hidden' }}>
           {relatedLists.slice(0, relatedFit).map((rl) => (
             <div
               key={rl.id}
@@ -701,7 +704,7 @@ function Tile({ list, rank, views, voteData, extras, onClick, showConsensus, fea
               onKeyDown={(e) => { if (e.key === 'Enter') { e.stopPropagation(); if (onOpenRelated) onOpenRelated(rl.id); } }}
               style={{
                 flex: '1 1 0',
-                minHeight: 52,
+                minHeight: 0,
                 border: `1.5px solid ${COLORS.ink}`,
                 padding: '12px 16px',
                 display: 'flex',
