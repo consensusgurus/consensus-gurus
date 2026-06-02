@@ -41,19 +41,23 @@ function listHasTag(list, tagId) {
 // their own browse buckets.
 const CATEGORIES = [
   { id: 'all', label: 'All' },
-  { id: 'restaurants', label: 'Restaurants', tags: ['food', 'food-drink'] },
-  { id: 'bars-nightlife', label: 'Bars & Nightlife', tags: ['bars', 'nightlife'] },
-  { id: 'travel', label: 'Hotels & Travel', tags: ['travel', 'luxury'] },
-  { id: 'shops', label: 'Shops & Products', tags: ['product', 'tech'] },
-  { id: 'entertainment', label: 'Entertainment', tags: ['entertainment'] },
-  { id: 'misc', label: 'Miscellaneous', tags: ['other'] },
+  // 'any' = belongs if it has any of these tags; 'not' = excluded if it has any of these.
+  // Bars carry food-drink/entertainment tags, so Restaurants and Entertainment exclude
+  // bars/nightlife to keep a cocktail bar from leaking out of Bars & Nightlife.
+  { id: 'restaurants', label: 'Restaurants', any: ['food', 'food-drink'], not: ['bars', 'nightlife'] },
+  { id: 'bars-nightlife', label: 'Bars & Nightlife', any: ['bars', 'nightlife'] },
+  { id: 'travel', label: 'Hotels & Travel', any: ['travel', 'luxury'] },
+  { id: 'shops', label: 'Shops & Products', any: ['product', 'tech'] },
+  { id: 'entertainment', label: 'Entertainment', any: ['entertainment'], not: ['bars', 'nightlife', 'food', 'food-drink'] },
+  { id: 'misc', label: 'Miscellaneous', any: ['other'] },
 ];
 const CAT_BY_ID = Object.fromEntries(CATEGORIES.map((c) => [c.id, c]));
 function listInCategory(list, catId) {
   const cat = CAT_BY_ID[catId];
-  if (!cat || cat.id === 'all' || !cat.tags) return true;
+  if (!cat || cat.id === 'all' || !cat.any) return true;
   const tags = getListTags(list);
-  return cat.tags.some((t) => tags.includes(t));
+  if (cat.not && cat.not.some((t) => tags.includes(t))) return false;
+  return cat.any.some((t) => tags.includes(t));
 }
 
 // Resolve a comparable timestamp for a list, in priority order:
