@@ -1562,7 +1562,7 @@ function DataRow({ rank, item, list, unranked, showPrice }) {
             fontFeatureSettings: '"lnum" 1',
           }}
         >
-          {String(rank).padStart(2, '0')}
+          {String(rank)}
         </span>
       )}
       <div style={{ display: 'flex', flexDirection: 'column', gap: 8, flex: 1, minWidth: 0 }}>
