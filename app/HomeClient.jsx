@@ -470,8 +470,8 @@ function Tile({ list, rank, views, voteData, extras, onClick, showConsensus, fea
       style={{
         cursor: 'pointer',
         gridRow: featured ? 'span 2' : 'auto',
-        background: hover ? COLORS.ink : COLORS.paper,
-        color: hover ? COLORS.cream : COLORS.ink,
+        background: hover ? '#e4dbc8' : COLORS.paper,
+        color: COLORS.ink,
         border: `1.5px solid ${COLORS.ink}`,
         padding: 20,
         textAlign: 'left',
@@ -479,7 +479,7 @@ function Tile({ list, rank, views, voteData, extras, onClick, showConsensus, fea
         position: 'relative',
         fontFamily: 'inherit',
         transform: hover ? 'translate(-2px, -2px)' : 'none',
-        boxShadow: hover ? `4px 4px 0 ${COLORS.ember}` : 'none',
+        boxShadow: hover ? `3px 3px 0 ${COLORS.ember}` : 'none',
       }}
     >
       <div
@@ -507,8 +507,8 @@ function Tile({ list, rank, views, voteData, extras, onClick, showConsensus, fea
           {list.isUserSubmitted && (
             <span
               style={{
-                background: hover ? COLORS.cream : COLORS.ink,
-                color: hover ? COLORS.ink : COLORS.cream,
+                background: COLORS.ink,
+                color: COLORS.cream,
                 padding: '2px 6px',
                 fontSize: 8,
                 letterSpacing: '0.15em',
@@ -578,7 +578,7 @@ function Tile({ list, rank, views, voteData, extras, onClick, showConsensus, fea
                   alignItems: 'center',
                   gap: 8,
                   padding: '4px 0',
-                  borderBottom: i < preview.rows.length - 1 ? `1px dashed ${hover ? COLORS.cream : COLORS.faded}` : 'none',
+                  borderBottom: i < preview.rows.length - 1 ? `1px dashed ${COLORS.faded}` : 'none',
                   opacity: 1,
                 }}
               >
@@ -609,7 +609,7 @@ function Tile({ list, rank, views, voteData, extras, onClick, showConsensus, fea
                         fontFamily: 'Fraunces, serif',
                         fontWeight: 600,
                         fontSize: 13,
-                        color: hover ? RANK_MEDALS[i].numHover : RANK_MEDALS[i].num,
+                        color: RANK_MEDALS[i].num,
                       }}
                     >
                       {i + 1}
@@ -621,7 +621,7 @@ function Tile({ list, rank, views, voteData, extras, onClick, showConsensus, fea
                       fontFamily: 'Fraunces, serif',
                       fontWeight: 600,
                       width: 16,
-                      color: hover ? COLORS.cream : COLORS.faded,
+                      color: COLORS.faded,
                     }}
                   >
                     {i + 1}
@@ -638,7 +638,7 @@ function Tile({ list, rank, views, voteData, extras, onClick, showConsensus, fea
         style={{
           marginTop: 16,
           paddingTop: 12,
-          borderTop: `1px solid ${hover ? COLORS.cream : COLORS.ink}`,
+          borderTop: `1px solid ${COLORS.ink}`,
           display: 'flex',
           alignItems: 'center',
           gap: 6,
