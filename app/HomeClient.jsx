@@ -512,7 +512,7 @@ function Tile({ list, rank, views, voteData, extras, onClick, showConsensus, fea
         style={{
           display: 'flex',
           justifyContent: 'space-between',
-          alignItems: 'flex-start',
+          alignItems: 'center',
           marginBottom: 14,
           gap: 8,
         }}
