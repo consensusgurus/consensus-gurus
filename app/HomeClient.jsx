@@ -147,7 +147,10 @@ function Home({ lists, viewCounts, voteData, extras, trending = {}, openList, on
       ]
         .join(' ')
         .toLowerCase();
-      return hay.includes(q);
+      // Match every word in the query, in any order (so "boston burger"
+      // and "burger boston" both match "Best Burger in Boston").
+      const tokens = q.split(/\s+/).filter(Boolean);
+      return tokens.every((t) => hay.includes(t));
     });
   }, [lists, query, typeFilter]);
 
