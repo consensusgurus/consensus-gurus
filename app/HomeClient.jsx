@@ -723,7 +723,7 @@ function Tile({ list, rank, views, voteData, extras, onClick, showConsensus, fea
               onKeyDown={(e) => { if (e.key === 'Enter') { e.stopPropagation(); if (onOpenRelated) onOpenRelated(rl.id); } }}
               style={{
                 flex: '0 0 auto',
-                background: hover ? COLORS.paper : COLORS.cream,
+                background: '#e3d9c3',
                 border: `1.5px solid ${COLORS.ink}`,
                 padding: '8px 12px',
                 display: 'flex',
