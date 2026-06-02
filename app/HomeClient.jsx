@@ -184,6 +184,20 @@ function Home({ lists, viewCounts, voteData, extras, trending = {}, openList, on
     });
   }, [filtered, viewCounts, trending, lists, sortBy, discoverOrder]);
 
+  // Randomly mark some lists as "featured": double-height tiles that preview the
+  // full top 10 instead of the top 3. A cooldown of 5 guarantees at least 5 lists
+  // between featured tiles, which keeps at most one featured tile per row for any
+  // layout up to 5 columns. Re-randomizes whenever the sorted set changes.
+  const featuredIds = useMemo(() => {
+    const set = new Set();
+    let cooldown = 0;
+    for (let i = 0; i < sorted.length; i++) {
+      if (cooldown > 0) { cooldown--; continue; }
+      if (Math.random() < 0.5) { set.add(sorted[i].id); cooldown = 5; }
+    }
+    return set;
+  }, [sorted]);
+
   const totalViews = Object.values(viewCounts).reduce((a, b) => a + b, 0);
 
   // Total votes shown in the header: every expert entry counts as Borda points
@@ -351,6 +365,7 @@ function Home({ lists, viewCounts, voteData, extras, trending = {}, openList, on
             style={{
               display: 'grid',
               gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))',
+              gridAutoFlow: 'dense',
               gap: 16,
             }}
           >
@@ -364,6 +379,7 @@ function Home({ lists, viewCounts, voteData, extras, trending = {}, openList, on
                 extras={extras[list.id] || []}
                 onClick={() => openList(list.id)}
                 showConsensus={true}
+                featured={featuredIds.has(list.id)}
               />
             ))}
           </div>
@@ -388,17 +404,18 @@ function Home({ lists, viewCounts, voteData, extras, trending = {}, openList, on
   );
 }
 
-function Tile({ list, rank, views, voteData, extras, onClick, showConsensus }) {
+function Tile({ list, rank, views, voteData, extras, onClick, showConsensus, featured }) {
   const [hover, setHover] = useState(false);
   const mode = list.mode || 'both';
 
   const preview = useMemo(() => {
+    const limit = featured ? 10 : 3;
     // For facts-only lists: always show from sources.ai
     if (mode === 'facts' || mode === 'scores' || mode === 'unranked') {
       const items = list.sources?.ai?.items || [];
       return {
         label: 'Top of the list',
-        rows: items.slice(0, 3).map((item) => ({ item, score: null })),
+        rows: items.slice(0, limit).map((item) => ({ item, score: null })),
       };
     }
 
@@ -414,7 +431,7 @@ function Tile({ list, rank, views, voteData, extras, onClick, showConsensus }) {
       scored.sort((a, b) => b.score - a.score || a.origIdx - b.origIdx);
       return {
         label: 'Current ranking by votes',
-        rows: scored.slice(0, 3),
+        rows: scored.slice(0, limit),
       };
     }
 
@@ -425,7 +442,7 @@ function Tile({ list, rank, views, voteData, extras, onClick, showConsensus }) {
       if (consensusSource && consensusSource.items.length > 0) {
         return {
           label: 'Current Consensus',
-          rows: consensusSource.items.slice(0, 3).map((item) => ({ item, score: null })),
+          rows: consensusSource.items.slice(0, limit).map((item) => ({ item, score: null })),
         };
       }
     }
@@ -441,9 +458,9 @@ function Tile({ list, rank, views, voteData, extras, onClick, showConsensus }) {
     scored.sort((a, b) => b.score - a.score || a.origIdx - b.origIdx);
     return {
       label: 'Currently topping the votes',
-      rows: scored.slice(0, 3),
+      rows: scored.slice(0, limit),
     };
-  }, [list, voteData, extras, mode, showConsensus]);
+  }, [list, voteData, extras, mode, showConsensus, featured]);
 
   return (
     <button
@@ -452,6 +469,7 @@ function Tile({ list, rank, views, voteData, extras, onClick, showConsensus }) {
       onMouseLeave={() => setHover(false)}
       style={{
         cursor: 'pointer',
+        gridRow: featured ? 'span 2' : 'auto',
         background: hover ? COLORS.ink : COLORS.paper,
         color: hover ? COLORS.cream : COLORS.ink,
         border: `1.5px solid ${COLORS.ink}`,
@@ -560,7 +578,7 @@ function Tile({ list, rank, views, voteData, extras, onClick, showConsensus }) {
                   alignItems: 'center',
                   gap: 8,
                   padding: '4px 0',
-                  borderBottom: i < 2 ? `1px dashed ${hover ? COLORS.cream : COLORS.faded}` : 'none',
+                  borderBottom: i < preview.rows.length - 1 ? `1px dashed ${hover ? COLORS.cream : COLORS.faded}` : 'none',
                   opacity: 1,
                 }}
               >
