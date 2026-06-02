@@ -448,6 +448,7 @@ A location list (restaurants, bars, breweries, bagels/bakeries, cafes, hotels, v
 2. `itemLinks` — each item's **official website**. This is MANDATORY, not optional: a missing `itemLinks` means the hover menu shows no Website chip. (This was wrongly omitted on the first Asheville-breweries and bagels-nyc builds — do not repeat.) Omit only an individual item that has no genuine official site.
 3. `itemYelp` (food/bar) and/or `itemTripadvisor` (hotel/place) — real business-page URLs.
 4. At least one **editorial/expert source** in addition to the Yelp/Google rating sources (see the source rule above).
+5. **Confirm every business is currently open (not permanently closed) before including it.** Do a quick live check for each item BEFORE adding it — watch for a "Permanently closed" flag on Google/Yelp/Tripadvisor or a closure announcement — and never include a closed place. If a check reveals a closure, drop it everywhere it appears (`ai` seed, every source's `items`, `vote.items`, `links`, `itemLinks`, `itemYelp`/`itemTripadvisor`) and backfill the `ai` seed and `vote.items` to 10 with an open, on-tier replacement (see "Drop permanently-closed locations" above). This applies when enriching or re-touching an existing list too, not just new builds.
 Gather each website by searching `"<name> official website"` in the connected browser and taking the first genuine own-domain result; reject Yelp/TripAdvisor/menu-hosts/`*.restaurants-info.com`/delivery apps.
 
 ### Getting Yelp / TripAdvisor business-page URLs without hitting their bot walls
