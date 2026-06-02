@@ -106,6 +106,15 @@ function expertGroupKey(src) {
   return 'publication';
 }
 
+// A source's label/button links out only when it is a real publication
+// (editorial or true expert). User-rating sources (Amazon, Yelp, Google,
+// pricing, fan vote) carry a search URL, not an article, so they don't link.
+function isPublicationLink(src) {
+  if (!src || !src.url) return false;
+  const g = expertGroupKey(src);
+  return g === 'publication' || g === 'trueexpert';
+}
+
 function ListDetail({ list, viewCount, voteData, userVotes, extras, relatedLists, onBack, onVote, onAddExtra, onOpenRelated }) {
   const mode = list.mode || 'both';
   const showSourceTab = mode !== 'votes';
@@ -793,7 +802,7 @@ function ListDetail({ list, viewCount, voteData, userVotes, extras, relatedLists
                 const activeBg = isConsensus ? COLORS.ember : COLORS.ink;
                 // When a source button is already selected and the source has a
                 // real URL, a second click opens that source in a new tab.
-                const linkable = active && !!s.url;
+                const linkable = active && !!s.url && isPublicationLink(s);
                 return (
                   <button
                     key={s.id}
@@ -875,7 +884,7 @@ function ListDetail({ list, viewCount, voteData, userVotes, extras, relatedLists
               }}
             >
               Showing:{' '}
-              {activeSource?.url ? (
+              {activeSource?.url && isPublicationLink(activeSource) ? (
                 <a
                   href={activeSource.url}
                   target="_blank"
