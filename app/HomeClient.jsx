@@ -496,30 +496,25 @@ function Tile({ list, rank, views, voteData, extras, onClick, showConsensus, fea
   // Featured tiles fill their extra height with up to 3 related-list sub-boxes,
   // showing as many as actually fit the leftover vertical space.
   const relatedRef = useRef(null);
-  const [relatedFit, setRelatedFit] = useState(0);
+  const [relatedFit, setRelatedFit] = useState(3);
   useEffect(() => {
     if (!relatedLists || relatedLists.length === 0) {
-      if (relatedFit !== 0) setRelatedFit(0);
+      setRelatedFit(0);
       return undefined;
     }
     const el = relatedRef.current;
     if (!el) return undefined;
     const compute = () => {
       const ch = el.clientHeight;
-      // Not enough leftover room for even one box -> show none.
-      if (ch < 44) { if (relatedFit !== 0) setRelatedFit(0); return; }
-      const kids = el.children;
-      // There is room but nothing is rendered yet -> render up to 3 to measure.
-      if (kids.length === 0) { setRelatedFit(Math.min(3, relatedLists.length)); return; }
       let used = 0;
       let fit = 0;
+      const kids = el.children;
       for (let i = 0; i < kids.length; i++) {
         const h = kids[i].offsetHeight;
         const next = used === 0 ? h : used + 12 + h;
         if (next <= ch + 1) { used = next; fit += 1; } else break;
       }
-      const want = Math.min(fit, relatedLists.length, 3);
-      if (want !== relatedFit) setRelatedFit(want);
+      setRelatedFit(Math.min(fit, relatedLists.length, 3));
     };
     compute();
     const ro = typeof ResizeObserver !== 'undefined' ? new ResizeObserver(compute) : null;
@@ -529,7 +524,7 @@ function Tile({ list, rank, views, voteData, extras, onClick, showConsensus, fea
       if (ro) ro.disconnect();
       window.removeEventListener('resize', compute);
     };
-  }, [relatedLists, preview, relatedFit]);
+  }, [relatedLists, preview]);
 
   return (
     <button
