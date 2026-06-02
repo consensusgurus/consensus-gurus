@@ -1,5 +1,5 @@
 'use client';
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import {
@@ -39,19 +39,19 @@ function listHasTag(list, tagId) {
 // Pick the most similar list to `list` (same city/category + shared tags, with a
 // nudge toward same-kind menu-item lists). Used to fill the extra vertical space
 // in double-height featured tiles. Returns null when nothing is clearly related.
-function findRelatedList(list, lists) {
+function findRelatedLists(list, lists, n) {
   const tags = new Set(getListTags(list));
-  let best = null;
-  let bestScore = 0;
+  const scored = [];
   for (const other of lists) {
     if (other.id === list.id) continue;
     let score = 0;
     if (list.category && other.category && list.category === other.category) score += 3;
     for (const t of getListTags(other)) if (tags.has(t)) score += 1;
     if (list.picsTerm && other.picsTerm) score += 2;
-    if (score > bestScore) { bestScore = score; best = other; }
+    if (score >= 2) scored.push({ other, score });
   }
-  return bestScore >= 2 ? best : null;
+  scored.sort((a, b) => b.score - a.score);
+  return scored.slice(0, n).map((x) => x.other);
 }
 
 // Browse categories. Each maps to a set of underlying tags so lists never need
@@ -389,7 +389,7 @@ function Home({ lists, viewCounts, voteData, extras, trending = {}, openList, on
           >
             {sorted.map((list, idx) => {
               const isFeatured = featuredIds.has(list.id);
-              const related = isFeatured ? findRelatedList(list, lists) : null;
+              const related = isFeatured ? findRelatedLists(list, lists, 3) : null;
               return (
                 <Tile
                   key={list.id}
@@ -401,8 +401,8 @@ function Home({ lists, viewCounts, voteData, extras, trending = {}, openList, on
                   onClick={() => openList(list.id)}
                   showConsensus={true}
                   featured={isFeatured}
-                  relatedList={related}
-                  onOpenRelated={related ? () => openList(related.id) : undefined}
+                  relatedLists={related}
+                  onOpenRelated={(id) => openList(id)}
                 />
               );
             })}
@@ -428,7 +428,7 @@ function Home({ lists, viewCounts, voteData, extras, trending = {}, openList, on
   );
 }
 
-function Tile({ list, rank, views, voteData, extras, onClick, showConsensus, featured, relatedList, onOpenRelated }) {
+function Tile({ list, rank, views, voteData, extras, onClick, showConsensus, featured, relatedLists, onOpenRelated }) {
   const [hover, setHover] = useState(false);
   const mode = list.mode || 'both';
 
@@ -485,6 +485,25 @@ function Tile({ list, rank, views, voteData, extras, onClick, showConsensus, fea
       rows: scored.slice(0, limit),
     };
   }, [list, voteData, extras, mode, showConsensus, featured]);
+
+  // Featured tiles fill their extra height with up to 3 related-list sub-boxes,
+  // showing as many as actually fit the leftover vertical space.
+  const relatedRef = useRef(null);
+  const [relatedFit, setRelatedFit] = useState(1);
+  useEffect(() => {
+    if (!featured || !relatedLists || relatedLists.length === 0) return undefined;
+    const compute = () => {
+      const el = relatedRef.current;
+      if (!el) return;
+      const per = 52 + 12;
+      let n = Math.floor((el.clientHeight + 12) / per);
+      n = Math.max(1, Math.min(relatedLists.length, 3, n));
+      setRelatedFit(n);
+    };
+    compute();
+    window.addEventListener('resize', compute);
+    return () => window.removeEventListener('resize', compute);
+  }, [featured, relatedLists, preview]);
 
   return (
     <button
@@ -665,26 +684,31 @@ function Tile({ list, rank, views, voteData, extras, onClick, showConsensus, fea
         </>
       )}
 
-      {featured && relatedList && (
-        <div
-          role="link"
-          tabIndex={0}
-          onClick={(e) => { e.stopPropagation(); if (onOpenRelated) onOpenRelated(); }}
-          onKeyDown={(e) => { if (e.key === 'Enter') { e.stopPropagation(); if (onOpenRelated) onOpenRelated(); } }}
-          style={{
-            flex: '1 0 auto',
-            marginTop: 16,
-            border: `1.5px solid ${COLORS.ink}`,
-            padding: '14px 16px',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'space-between',
-            gap: 10,
-            cursor: 'pointer',
-          }}
-        >
-          <span style={{ fontFamily: 'Fraunces, serif', fontWeight: 700, fontSize: 19, lineHeight: 1.05, fontVariationSettings: '"SOFT" 100' }}>{relatedList.title}</span>
-          <span style={{ fontFamily: 'Fraunces, serif', fontWeight: 700, fontSize: 18 }}>&#8594;</span>
+      {featured && relatedLists && relatedLists.length > 0 && (
+        <div ref={relatedRef} style={{ flex: '1 0 auto', minHeight: 0, marginTop: 16, display: 'flex', flexDirection: 'column', gap: 12, overflow: 'hidden' }}>
+          {relatedLists.slice(0, relatedFit).map((rl) => (
+            <div
+              key={rl.id}
+              role="link"
+              tabIndex={0}
+              onClick={(e) => { e.stopPropagation(); if (onOpenRelated) onOpenRelated(rl.id); }}
+              onKeyDown={(e) => { if (e.key === 'Enter') { e.stopPropagation(); if (onOpenRelated) onOpenRelated(rl.id); } }}
+              style={{
+                flex: '1 1 0',
+                minHeight: 52,
+                border: `1.5px solid ${COLORS.ink}`,
+                padding: '12px 16px',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                gap: 10,
+                cursor: 'pointer',
+              }}
+            >
+              <span style={{ fontFamily: 'Fraunces, serif', fontWeight: 700, fontSize: 18, lineHeight: 1.05, fontVariationSettings: '"SOFT" 100' }}>{rl.title}</span>
+              <span style={{ fontFamily: 'Fraunces, serif', fontWeight: 700, fontSize: 18 }}>&#8594;</span>
+            </div>
+          ))}
         </div>
       )}
 
