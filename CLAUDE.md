@@ -382,7 +382,7 @@ Site-facing copy — blurbs, titles, categories, and any prose shown on a list p
 - Auto-generated search URL format: `https://www.amazon.com/s?k=PRODUCT+NAME&tag=cgurus-20`
 - For direct product links (better for conversion), use the ASIN: `https://www.amazon.com/dp/ASIN?tag=cgurus-20`
 - Store direct links in the `links` object, keyed by the exact item name string.
-- If direct links are not available yet, omit the `links` object and add them later.
+- **If an Amazon product page exists, you MUST link to it directly via `/dp/<ASIN>?tag=cgurus-20` — never ship a product or book list with `s?k=` search links as a placeholder or shortcut.** Essentially every in-print book and product has a product page, so a search link is acceptable ONLY for the rare item with no Amazon listing at all (e.g. direct-only / MAP-protected brands). For books, the product page is the **Kindle edition**: find it with an `&i=digital-text` search, read its `data-asin`, and link to `/dp/<ASIN>`. Gather ASINs live via Chrome; do not guess. (This is a hard rule: a list shipped with search links when product pages exist must be fixed.)
 
 ### Amazon reviews as a ranking source (product lists)
 - **Every product list (`linkType: 'amazon'`) should include an Amazon-ratings source as a ranking element**, the same way food & drink lists use Yelp/Google. Amazon star ratings are the buyer-consensus signal for products.
@@ -399,7 +399,7 @@ Site-facing copy — blurbs, titles, categories, and any prose shown on a list p
 - A book may carry BOTH an Amazon rating source and a Goodreads rating source (two user-review signals, like Yelp + Google). Where a book has no Goodreads presence, omit it from that source.
 
 ### Direct Amazon product links (`/dp/<ASIN>`) and live data gathering
-- **Prefer direct product links over search links.** For every product whose Amazon listing can be found, the `links` value should be the canonical product URL `https://www.amazon.com/dp/<ASIN>?tag=cgurus-20`, not a `s?k=` search URL. The `cgurus-20` affiliate tag is all that is needed for attribution.
+- **If an Amazon product page exists, you MUST use the direct product link, not a search link.** For every product/book whose Amazon listing can be found (essentially all of them), the `links` value must be the canonical product URL `https://www.amazon.com/dp/<ASIN>?tag=cgurus-20`, never an `s?k=` search URL. The `cgurus-20` affiliate tag is all that is needed for attribution. A search link is a last resort reserved for items with no product page at all.
 - **Gather the ASIN, rating, review count, and price live through the connected Chrome browser** (read the `data-asin` attribute and the rating/reviews block off the organic, non-sponsored search result you are using). Never guess an ASIN. If a product has no genuine Amazon listing (direct-only / MAP-protected brands such as Nuna, Zoe, La Marzocco, ECM, Lelit, Slayer, etc.), keep a `s?k=` search link for it and omit it from the Amazon-ratings source.
 - **The Amazon Creators API and any client secret are NOT used by the assistant for this.** The browser method above supplies links, ratings, reviews, and ranking with no credential, and the build sandbox cannot reach external APIs anyway. Never store an API secret in the repo and never paste one into chat; keep any credentials file outside `C:\\dev\\consensus-gurus` (e.g. in the OneDrive project folder, gitignored) or, better, in a password manager.
 
