@@ -497,34 +497,42 @@ function Tile({ list, rank, views, voteData, extras, onClick, showConsensus, fea
   // showing as many as actually fit the leftover vertical space.
   const relatedRef = useRef(null);
   const [relatedFit, setRelatedFit] = useState(3);
+  const fitRef = useRef(3);
+  const relKey = (relatedLists || []).map((r) => r.id).join('|');
   useEffect(() => {
     if (!relatedLists || relatedLists.length === 0) {
-      setRelatedFit(0);
+      if (fitRef.current !== 0) { fitRef.current = 0; setRelatedFit(0); }
       return undefined;
     }
     const el = relatedRef.current;
     if (!el) return undefined;
     const compute = () => {
-      const ch = el.clientHeight;
+      const node = relatedRef.current;
+      if (!node) return;
+      const ch = node.clientHeight;
       let used = 0;
       let fit = 0;
-      const kids = el.children;
+      const kids = node.children;
       for (let i = 0; i < kids.length; i++) {
         const h = kids[i].offsetHeight;
         const next = used === 0 ? h : used + 12 + h;
         if (next <= ch + 1) { used = next; fit += 1; } else break;
       }
-      setRelatedFit(Math.min(fit, relatedLists.length, 3));
+      const want = Math.min(fit, relatedLists.length, 3);
+      // Guard: only update when the count actually changes, so a render can
+      // never feed back into another measurement (prevents any blink loop).
+      if (want !== fitRef.current) { fitRef.current = want; setRelatedFit(want); }
     };
-    compute();
-    const ro = typeof ResizeObserver !== 'undefined' ? new ResizeObserver(compute) : null;
+    const raf = requestAnimationFrame(compute);
+    const ro = typeof ResizeObserver !== 'undefined'
+      ? new ResizeObserver(() => requestAnimationFrame(compute))
+      : null;
     if (ro) ro.observe(el);
-    window.addEventListener('resize', compute);
     return () => {
+      cancelAnimationFrame(raf);
       if (ro) ro.disconnect();
-      window.removeEventListener('resize', compute);
     };
-  }, [relatedLists, preview]);
+  }, [relKey, preview]);
 
   return (
     <button
