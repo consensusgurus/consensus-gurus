@@ -1540,7 +1540,7 @@ function DataRow({ rank, item, list, unranked, showPrice }) {
     mq.addEventListener('change', update);
     return () => mq.removeEventListener('change', update);
   }, []);
-  const aux = list.itemLinks ? buildAuxLinks(item, list) : null;
+  const aux = (list.itemLinks || list.itemYelp || list.itemTripadvisor || list.linkType === 'mapsCity') ? buildAuxLinks(item, list) : null;
   const pics = aux ? entryPicsConfig(list) : null;
   return (
     <li
