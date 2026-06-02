@@ -257,7 +257,7 @@ function Home({ lists, viewCounts, voteData, extras, trending = {}, openList, on
       <section style={{ padding: '32px 16px 80px', maxWidth: 1200, margin: '0 auto' }}>
         <style>{`.cg-controls{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:16px;margin-bottom:36px;}.cg-c-search{grid-column:span 2;}@media(max-width:607px){.cg-controls{grid-template-columns:1fr 1fr;}.cg-c-search{grid-column:span 2;}}`}</style>
         <div className="cg-controls">
-          <div className="cg-c-search" style={{ position: 'relative', minWidth: 0 }}>
+          <div className="cg-c-search" style={{ position: 'relative', minWidth: 0, order: 3 }}>
             <Search size={16} strokeWidth={2.5} style={{ position: 'absolute', left: 14, top: '50%', transform: 'translateY(-50%)', color: COLORS.faded }} />
             <input
               type="text"
@@ -273,7 +273,7 @@ function Home({ lists, viewCounts, voteData, extras, trending = {}, openList, on
             )}
           </div>
 
-          <div style={{ position: 'relative', minWidth: 0 }} onClick={(e) => e.stopPropagation()}>
+          <div style={{ position: 'relative', minWidth: 0, order: 2 }} onClick={(e) => e.stopPropagation()}>
             <button onClick={() => { setCatOpen((o) => !o); setSortOpen(false); }} aria-haspopup="true" aria-expanded={catOpen} style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, background: 'transparent', color: COLORS.ink, border: `1.5px solid ${COLORS.ink}`, padding: '12px 14px', fontFamily: 'DM Mono, monospace', fontSize: 10, letterSpacing: '0.16em', textTransform: 'uppercase', fontWeight: 600, cursor: 'pointer', whiteSpace: 'nowrap', overflow: 'hidden' }}>
               <span><span style={{ opacity: 0.6 }}>Category:</span> {(visibleTypes.find((t) => t.id === typeFilter) || {}).label || 'All'}</span>
               <ChevronDown size={14} strokeWidth={2.5} style={{ transform: catOpen ? 'rotate(180deg)' : 'none', transition: 'transform 0.15s' }} />
@@ -293,13 +293,13 @@ function Home({ lists, viewCounts, voteData, extras, trending = {}, openList, on
             )}
           </div>
 
-          <div style={{ position: 'relative', minWidth: 0 }} onClick={(e) => e.stopPropagation()}>
+          <div style={{ position: 'relative', minWidth: 0, order: 1 }} onClick={(e) => e.stopPropagation()}>
             <button onClick={() => { setSortOpen((o) => !o); setCatOpen(false); }} aria-haspopup="true" aria-expanded={sortOpen} style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, background: 'transparent', color: COLORS.ink, border: `1.5px solid ${COLORS.ink}`, padding: '12px 14px', fontFamily: 'DM Mono, monospace', fontSize: 10, letterSpacing: '0.16em', textTransform: 'uppercase', fontWeight: 600, cursor: 'pointer', whiteSpace: 'nowrap', overflow: 'hidden' }}>
               <span><span style={{ opacity: 0.6 }}>Sort:</span> {(sortButtons.find((o) => o.id === sortBy) || {}).label || 'Discover'}</span>
               <ChevronDown size={14} strokeWidth={2.5} style={{ transform: sortOpen ? 'rotate(180deg)' : 'none', transition: 'transform 0.15s' }} />
             </button>
             {sortOpen && (
-              <div role="menu" style={{ position: 'absolute', top: 'calc(100% + 6px)', right: 0, zIndex: 30, minWidth: 180, background: COLORS.cream, border: `1.5px solid ${COLORS.ink}` }}>
+              <div role="menu" style={{ position: 'absolute', top: 'calc(100% + 6px)', left: 0, zIndex: 30, minWidth: 180, background: COLORS.cream, border: `1.5px solid ${COLORS.ink}` }}>
                 {sortButtons.map((opt, i) => {
                   const active = sortBy === opt.id;
                   return (
