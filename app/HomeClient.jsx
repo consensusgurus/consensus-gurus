@@ -668,9 +668,15 @@ function Tile({ list, rank, views, voteData, extras, onClick, showConsensus, fea
                 ) : (
                   <span
                     style={{
+                      width: 22,
+                      height: 22,
+                      flex: '0 0 auto',
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
                       fontFamily: 'Fraunces, serif',
                       fontWeight: 600,
-                      width: 16,
+                      fontSize: 13,
                       color: COLORS.faded,
                     }}
                   >
