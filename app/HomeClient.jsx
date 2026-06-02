@@ -304,7 +304,7 @@ function Home({ lists, viewCounts, voteData, extras, trending = {}, openList, on
               <ChevronDown size={14} strokeWidth={2.5} style={{ transform: catOpen ? 'rotate(180deg)' : 'none', transition: 'transform 0.15s' }} />
             </button>
             {catOpen && (
-              <div role="menu" style={{ position: 'absolute', top: 'calc(100% + 6px)', left: 0, zIndex: 30, minWidth: 220, background: COLORS.cream, border: `1.5px solid ${COLORS.ink}`, maxHeight: 360, overflowY: 'auto' }}>
+              <div role="menu" style={{ position: 'absolute', top: 'calc(100% + 6px)', right: 0, left: 'auto', zIndex: 30, minWidth: 220, maxWidth: 'calc(100vw - 48px)', background: COLORS.cream, border: `1.5px solid ${COLORS.ink}`, maxHeight: 360, overflowY: 'auto' }}>
                 {visibleTypes.map((t, i) => {
                   const active = typeFilter === t.id;
                   return (
