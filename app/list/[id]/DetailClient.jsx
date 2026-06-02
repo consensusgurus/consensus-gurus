@@ -1518,6 +1518,14 @@ function DataRow({ rank, item, list, unranked, showPrice }) {
   const showFullSize = rank <= 10;
   const display = showPrice ? priceDecorate(item, list) : (list.scores ? scoreDecorate(item, list) : item);
   const [hover, setHover] = useState(false);
+  const [isMobile, setIsMobile] = useState(false);
+  useEffect(() => {
+    const mq = window.matchMedia('(max-width: 640px)');
+    const update = () => setIsMobile(mq.matches);
+    update();
+    mq.addEventListener('change', update);
+    return () => mq.removeEventListener('change', update);
+  }, []);
   const aux = list.itemLinks ? buildAuxLinks(item, list) : null;
   const pics = aux ? entryPicsConfig(list) : null;
   return (
@@ -1586,8 +1594,8 @@ function DataRow({ rank, item, list, unranked, showPrice }) {
         {aux && (
           <div
             style={{
-              position: 'absolute',
-              top: '100%',
+              position: isMobile ? 'static' : 'absolute',
+              top: isMobile ? 'auto' : '100%',
               left: 0,
               maxWidth: '100%',
               zIndex: 6,
@@ -1600,8 +1608,8 @@ function DataRow({ rank, item, list, unranked, showPrice }) {
               pointerEvents: hover ? 'auto' : 'none',
               overflow: 'hidden',
               transition: 'opacity 0.15s ease',
-              display: 'inline-flex',
-              width: 'max-content',
+              display: isMobile ? (hover ? 'flex' : 'none') : 'inline-flex',
+              width: isMobile ? '100%' : 'fit-content',
               alignItems: 'center',
               flexWrap: 'wrap',
               gap: '6px 10px',
