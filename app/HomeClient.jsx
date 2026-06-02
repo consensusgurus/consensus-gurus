@@ -396,7 +396,7 @@ function Home({ lists, viewCounts, voteData, extras, trending = {}, openList, on
           >
             {sorted.map((list, idx) => {
               const isFeatured = featuredIds.has(list.id);
-              const related = findRelatedLists(list, lists, 3);
+              const related = isFeatured ? findRelatedLists(list, lists, 3) : null;
               return (
                 <Tile
                   key={list.id}
@@ -497,42 +497,34 @@ function Tile({ list, rank, views, voteData, extras, onClick, showConsensus, fea
   // showing as many as actually fit the leftover vertical space.
   const relatedRef = useRef(null);
   const [relatedFit, setRelatedFit] = useState(3);
-  const fitRef = useRef(3);
-  const relKey = (relatedLists || []).map((r) => r.id).join('|');
   useEffect(() => {
-    if (!relatedLists || relatedLists.length === 0) {
-      if (fitRef.current !== 0) { fitRef.current = 0; setRelatedFit(0); }
+    if (!featured || !relatedLists || relatedLists.length === 0) {
+      setRelatedFit(0);
       return undefined;
     }
     const el = relatedRef.current;
     if (!el) return undefined;
     const compute = () => {
-      const node = relatedRef.current;
-      if (!node) return;
-      const ch = node.clientHeight;
+      const ch = el.clientHeight;
       let used = 0;
       let fit = 0;
-      const kids = node.children;
+      const kids = el.children;
       for (let i = 0; i < kids.length; i++) {
         const h = kids[i].offsetHeight;
         const next = used === 0 ? h : used + 12 + h;
         if (next <= ch + 1) { used = next; fit += 1; } else break;
       }
-      const want = Math.min(fit, relatedLists.length, 3);
-      // Guard: only update when the count actually changes, so a render can
-      // never feed back into another measurement (prevents any blink loop).
-      if (want !== fitRef.current) { fitRef.current = want; setRelatedFit(want); }
+      setRelatedFit(Math.min(fit, relatedLists.length, 3));
     };
-    const raf = requestAnimationFrame(compute);
-    const ro = typeof ResizeObserver !== 'undefined'
-      ? new ResizeObserver(() => requestAnimationFrame(compute))
-      : null;
+    compute();
+    const ro = typeof ResizeObserver !== 'undefined' ? new ResizeObserver(compute) : null;
     if (ro) ro.observe(el);
+    window.addEventListener('resize', compute);
     return () => {
-      cancelAnimationFrame(raf);
       if (ro) ro.disconnect();
+      window.removeEventListener('resize', compute);
     };
-  }, [relKey, preview]);
+  }, [featured, relatedLists, preview]);
 
   return (
     <button
@@ -720,8 +712,8 @@ function Tile({ list, rank, views, voteData, extras, onClick, showConsensus, fea
         </>
       )}
 
-      {relatedLists && relatedLists.length > 0 && (
-        <div ref={relatedRef} style={{ flex: '1 1 0', minHeight: 0, marginTop: relatedFit > 0 ? 16 : 0, display: 'flex', flexDirection: 'column', gap: 12, overflow: 'hidden' }}>
+      {featured && relatedLists && relatedLists.length > 0 && (
+        <div ref={relatedRef} style={{ flex: '1 1 0', minHeight: 0, marginTop: 16, display: 'flex', flexDirection: 'column', gap: 12, overflow: 'hidden' }}>
           {relatedLists.slice(0, relatedFit).map((rl) => (
             <div
               key={rl.id}
