@@ -49,7 +49,7 @@ function findRelatedLists(list, lists, n) {
     for (const t of getListTags(other)) if (tags.has(t)) overlap += 1;
     if (list.category && other.category === list.category) {
       sameCat.push({ other, score: overlap });
-    } else if (overlap >= 2) {
+    } else if (overlap >= 1) {
       byTags.push({ other, score: overlap });
     }
   }
