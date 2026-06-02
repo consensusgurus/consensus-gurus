@@ -36,6 +36,24 @@ function listHasTag(list, tagId) {
   return getListTags(list).includes(tagId);
 }
 
+// Pick the most similar list to `list` (same city/category + shared tags, with a
+// nudge toward same-kind menu-item lists). Used to fill the extra vertical space
+// in double-height featured tiles. Returns null when nothing is clearly related.
+function findRelatedList(list, lists) {
+  const tags = new Set(getListTags(list));
+  let best = null;
+  let bestScore = 0;
+  for (const other of lists) {
+    if (other.id === list.id) continue;
+    let score = 0;
+    if (list.category && other.category && list.category === other.category) score += 3;
+    for (const t of getListTags(other)) if (tags.has(t)) score += 1;
+    if (list.picsTerm && other.picsTerm) score += 2;
+    if (score > bestScore) { bestScore = score; best = other; }
+  }
+  return bestScore >= 2 ? best : null;
+}
+
 // Browse categories. Each maps to a set of underlying tags so lists never need
 // re-tagging and overlapping tags collapse into one clean filter. 'stores',
 // 'nightlife', 'food' etc. remain on lists as internal tags but are no longer
@@ -369,19 +387,25 @@ function Home({ lists, viewCounts, voteData, extras, trending = {}, openList, on
               gap: 16,
             }}
           >
-            {sorted.map((list, idx) => (
-              <Tile
-                key={list.id}
-                list={list}
-                rank={idx + 1}
-                views={viewCounts[list.id] || 0}
-                voteData={voteData}
-                extras={extras[list.id] || []}
-                onClick={() => openList(list.id)}
-                showConsensus={true}
-                featured={featuredIds.has(list.id)}
-              />
-            ))}
+            {sorted.map((list, idx) => {
+              const isFeatured = featuredIds.has(list.id);
+              const related = isFeatured ? findRelatedList(list, lists) : null;
+              return (
+                <Tile
+                  key={list.id}
+                  list={list}
+                  rank={idx + 1}
+                  views={viewCounts[list.id] || 0}
+                  voteData={voteData}
+                  extras={extras[list.id] || []}
+                  onClick={() => openList(list.id)}
+                  showConsensus={true}
+                  featured={isFeatured}
+                  relatedList={related}
+                  onOpenRelated={related ? () => openList(related.id) : undefined}
+                />
+              );
+            })}
           </div>
         ) : (
           <div
@@ -404,7 +428,7 @@ function Home({ lists, viewCounts, voteData, extras, trending = {}, openList, on
   );
 }
 
-function Tile({ list, rank, views, voteData, extras, onClick, showConsensus, featured }) {
+function Tile({ list, rank, views, voteData, extras, onClick, showConsensus, featured, relatedList, onOpenRelated }) {
   const [hover, setHover] = useState(false);
   const mode = list.mode || 'both';
 
@@ -470,6 +494,8 @@ function Tile({ list, rank, views, voteData, extras, onClick, showConsensus, fea
       style={{
         cursor: 'pointer',
         gridRow: featured ? 'span 2' : 'auto',
+        display: featured ? 'flex' : 'block',
+        flexDirection: featured ? 'column' : undefined,
         background: hover ? '#e4dbc8' : COLORS.paper,
         color: COLORS.ink,
         border: `1.5px solid ${COLORS.ink}`,
@@ -502,6 +528,7 @@ function Tile({ list, rank, views, voteData, extras, onClick, showConsensus, fea
             alignItems: 'center',
             gap: 6,
             flexWrap: 'wrap',
+            lineHeight: 1,
           }}
         >
           {list.isUserSubmitted && (
@@ -525,6 +552,7 @@ function Tile({ list, rank, views, voteData, extras, onClick, showConsensus, fea
             fontFamily: 'Fraunces, serif',
             fontWeight: 900,
             fontSize: 18,
+            lineHeight: 1,
             color: COLORS.ember,
             fontVariationSettings: '"SOFT" 100',
           }}
@@ -632,6 +660,29 @@ function Tile({ list, rank, views, voteData, extras, onClick, showConsensus, fea
             ))}
           </ol>
         </>
+      )}
+
+      {featured && relatedList && (
+        <div
+          role="link"
+          tabIndex={0}
+          onClick={(e) => { e.stopPropagation(); if (onOpenRelated) onOpenRelated(); }}
+          onKeyDown={(e) => { if (e.key === 'Enter') { e.stopPropagation(); if (onOpenRelated) onOpenRelated(); } }}
+          style={{
+            flex: '1 0 auto',
+            marginTop: 16,
+            border: `1.5px solid ${COLORS.ink}`,
+            padding: '14px 16px',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            gap: 10,
+            cursor: 'pointer',
+          }}
+        >
+          <span style={{ fontFamily: 'Fraunces, serif', fontWeight: 700, fontSize: 19, lineHeight: 1.05, fontVariationSettings: '"SOFT" 100' }}>{relatedList.title}</span>
+          <span style={{ fontFamily: 'Fraunces, serif', fontWeight: 700, fontSize: 18 }}>&#8594;</span>
+        </div>
       )}
 
       <div
