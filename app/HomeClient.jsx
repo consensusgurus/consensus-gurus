@@ -527,7 +527,10 @@ function Tile({ list, rank, views, voteData, extras, onClick, showConsensus, fea
             display: 'flex',
             alignItems: 'center',
             gap: 6,
-            flexWrap: 'wrap',
+            flexWrap: 'nowrap',
+            whiteSpace: 'nowrap',
+            overflow: 'hidden',
+            minWidth: 0,
             lineHeight: 1,
           }}
         >
