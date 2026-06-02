@@ -259,10 +259,10 @@ function Home({ lists, viewCounts, voteData, extras, trending = {}, openList, on
   }, [counts]);
 
   const sortButtons = [
-    { id: 'discover', label: 'Discover' },
-    { id: 'trending', label: 'Trending' },
-    { id: 'popularity', label: 'Most Popular' },
-    { id: 'recent', label: 'Most Recently Added' },
+    { id: 'discover', label: 'Discover', short: 'Discover' },
+    { id: 'trending', label: 'Trending', short: 'Trending' },
+    { id: 'popularity', label: 'Most Popular', short: 'Popular' },
+    { id: 'recent', label: 'Most Recently Added', short: 'Recent' },
   ];
 
   return (
@@ -363,7 +363,7 @@ function Home({ lists, viewCounts, voteData, extras, trending = {}, openList, on
 
           <div style={{ position: 'relative', minWidth: 0, order: 1 }} onClick={(e) => e.stopPropagation()}>
             <button onClick={() => { setSortOpen((o) => !o); setCatOpen(false); }} aria-haspopup="true" aria-expanded={sortOpen} style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, background: COLORS.ink, color: COLORS.cream, border: `1.5px solid ${COLORS.ink}`, padding: '12px 14px', fontFamily: 'DM Mono, monospace', fontSize: 10, letterSpacing: '0.16em', textTransform: 'uppercase', fontWeight: 600, cursor: 'pointer', whiteSpace: 'nowrap', overflow: 'hidden' }}>
-              <span><span style={{ opacity: 0.6 }}>Sort:</span> {(sortButtons.find((o) => o.id === sortBy) || {}).label || 'Discover'}</span>
+              <span><span style={{ opacity: 0.6 }}>Sort:</span> {(sortButtons.find((o) => o.id === sortBy) || {}).short || 'Discover'}</span>
               <ChevronDown size={14} strokeWidth={2.5} style={{ transform: sortOpen ? 'rotate(180deg)' : 'none', transition: 'transform 0.15s' }} />
             </button>
             {sortOpen && (
