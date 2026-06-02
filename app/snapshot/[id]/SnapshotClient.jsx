@@ -245,7 +245,7 @@ export default function SnapshotClient({ listId }) {
     if (!list) return;
     const lines = [list.title, `— ${modeLabel} —`, ''];
     items.forEach((item, i) => {
-      lines.push(`${String(i + 1).padStart(2, '0')}. ${item}`);
+      lines.push(`${String(i + 1)}. ${item}`);
     });
     lines.push('', `consensusgurus.com/list/${list.id}`);
     navigator.clipboard.writeText(lines.join('\n')).then(() => {
@@ -638,7 +638,7 @@ const Poster = React.forwardRef(function Poster({ list, items, modeLabel, source
                 fontFeatureSettings: '"lnum" 1',
               }}
             >
-              {String(i + 1).padStart(2, '0')}
+              {String(i + 1)}
             </span>
             <span
               style={{
