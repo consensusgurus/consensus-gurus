@@ -1400,14 +1400,13 @@ function TabButton({ active, onClick, icon, children }) {
   );
 }
 
-function ItemLink({ list, item, children, style, onClick, hoverUnderline = true }) {
+function ItemLink({ list, item, children, style }) {
   const href = buildItemLink(item, list);
   return (
     <a
       href={href}
       target="_blank"
       rel="noopener noreferrer sponsored"
-      onClick={onClick}
       style={{
         color: 'inherit',
         textDecoration: 'none',
@@ -1415,11 +1414,10 @@ function ItemLink({ list, item, children, style, onClick, hoverUnderline = true 
         alignItems: 'baseline',
         gap: 6,
         cursor: 'pointer',
-        WebkitTapHighlightColor: 'transparent',
         ...style,
       }}
-      onMouseEnter={hoverUnderline ? (e) => (e.currentTarget.style.textDecoration = 'underline') : undefined}
-      onMouseLeave={hoverUnderline ? (e) => (e.currentTarget.style.textDecoration = 'none') : undefined}
+      onMouseEnter={(e) => (e.currentTarget.style.textDecoration = 'underline')}
+      onMouseLeave={(e) => (e.currentTarget.style.textDecoration = 'none')}
     >
       {children}
     </a>
@@ -1532,8 +1530,8 @@ function DataRow({ rank, item, list, unranked, showPrice }) {
   const pics = aux ? entryPicsConfig(list) : null;
   return (
     <li
-      onMouseEnter={() => { if (!isMobile) setHover(true); }}
-      onMouseLeave={() => { if (!isMobile) setHover(false); }}
+      onMouseEnter={() => setHover(true)}
+      onMouseLeave={() => setHover(false)}
       style={{
         display: 'flex',
         alignItems: 'baseline',
@@ -1541,7 +1539,6 @@ function DataRow({ rank, item, list, unranked, showPrice }) {
         padding: showFullSize ? '20px 0' : '14px 0',
         borderBottom: `1px solid ${COLORS.ink}`,
         opacity: !unranked && rank > 10 ? 0.85 : 1,
-        WebkitTapHighlightColor: 'transparent',
       }}
     >
       {unranked ? (
@@ -1582,8 +1579,6 @@ function DataRow({ rank, item, list, unranked, showPrice }) {
         <ItemLink
           list={list}
           item={item}
-          onClick={isMobile && aux ? (e) => { e.preventDefault(); setHover((o) => !o); } : undefined}
-          hoverUnderline={!isMobile}
           style={{
             fontFamily: 'Fraunces, serif',
             fontSize: unranked ? 20 : isTop ? 28 : showFullSize ? 22 : 19,
@@ -1599,22 +1594,22 @@ function DataRow({ rank, item, list, unranked, showPrice }) {
         {aux && (
           <div
             style={{
-              position: 'absolute',
-              top: '100%',
+              position: isMobile ? 'static' : 'absolute',
+              top: isMobile ? 'auto' : '100%',
               left: 0,
-              width: 'fit-content',
               maxWidth: '100%',
               zIndex: 6,
               marginTop: 4,
               padding: hover ? '8px 10px' : '0 10px',
-              background: COLORS.cream,
-              boxShadow: hover ? '0 6px 18px rgba(0,0,0,0.14)' : 'none',
+              background: isMobile ? 'transparent' : COLORS.cream,
+              boxShadow: isMobile ? 'none' : (hover ? '0 6px 18px rgba(0,0,0,0.14)' : 'none'),
               opacity: hover ? 1 : 0,
               visibility: hover ? 'visible' : 'hidden',
               pointerEvents: hover ? 'auto' : 'none',
               overflow: 'hidden',
               transition: 'opacity 0.15s ease',
-              display: 'inline-flex',
+              display: isMobile ? (hover ? 'flex' : 'none') : 'inline-flex',
+              width: isMobile ? '100%' : 'fit-content',
               alignItems: 'center',
               flexWrap: 'wrap',
               gap: '6px 10px',
