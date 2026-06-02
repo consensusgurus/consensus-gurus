@@ -67,7 +67,7 @@ export default function PrivacyPage() {
 
       <H2>Contact</H2>
       <p>
-        Questions about this policy can be sent to <strong>hello@your-domain.com</strong> (replace with your actual contact email once your domain is live).
+        Questions about this policy can be sent to <strong>consensusgurus@gmail.com</strong>.
       </p>
     </LegalLayout>
   );

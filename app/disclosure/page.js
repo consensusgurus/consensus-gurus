@@ -45,7 +45,7 @@ export default function DisclosurePage() {
 
       <H2>Questions</H2>
       <p>
-        If you have any questions about how the site makes money, contact us at <strong>hello@your-domain.com</strong>.
+        If you have any questions about how the site makes money, contact us at <strong>consensusgurus@gmail.com</strong>.
       </p>
     </LegalLayout>
   );

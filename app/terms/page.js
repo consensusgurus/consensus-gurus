@@ -73,7 +73,7 @@ export default function TermsPage() {
 
       <H2>Contact</H2>
       <p>
-        Questions about these terms can be sent to <strong>hello@your-domain.com</strong>.
+        Questions about these terms can be sent to <strong>consensusgurus@gmail.com</strong>.
       </p>
     </LegalLayout>
   );
