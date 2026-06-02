@@ -394,6 +394,8 @@ Site-facing copy — blurbs, titles, categories, and any prose shown on a list p
 
 **Scope: location-based lists only** (hotels, resorts, restaurants, bars, cafes, beach clubs, venues, and any other place a person physically visits). Non-location lists (products, films, TV, games, books, music, factual rankings, etc.) do NOT get the hover menu, since Map / Website / photo links are meaningless for them. Simply do not add `itemLinks` to those lists.
 
+**REQUIRED on every new location-based list — not optional.** Building a location list (restaurants, bars, hotels, cafes, beach clubs, venues, etc.) is not finished until it carries an `itemLinks` object, gathered live, the same way the `links` object is mandatory. Treat it as a standard build step for all future list searches: after assembling the sources and `links`, gather each item's official website and add `itemLinks` before deploying. The only location lists that legitimately ship without `itemLinks` are ones whose items are not individual businesses with their own site (e.g. a list of *towns* like `best-hamptons-towns`).
+
 A location-based list opts into the list-page hover menu by adding an `itemLinks` object mapping each exact item name to its official **Website** URL (gathered live, never guessed). When present, hovering a ranked entry reveals: **Website** (from `itemLinks`), **Map** (the existing `mapsCity` link), and a category-specific "pics" group built automatically from the item name + neighborhood:
 
 - **Food / restaurants (default):** label `Food Pics:` with `Yelp` and `Google`.
@@ -401,6 +403,17 @@ A location-based list opts into the list-page hover menu by adding an `itemLinks
 - **Bars** (`bars`/`nightlife` tag): label `Pics:` with `Yelp` and `Google`.
 
 The `Google` link defaults to Google **Image** search (`&tbm=isch`) so it lands on photos directly, not a web-results page. Only the Website per item needs gathering; Map / Yelp / Google / TripAdvisor are constructed from the name. Implemented in `buildAuxLinks` and `entryPicsConfig` in `app/list/[id]/DetailClient.jsx`. The reveal uses a generous `max-height` so wrapped chips are not clipped on mobile.
+
+### How to gather the official Website for each item (the no-guessing method)
+
+Apply this to every location list. The key is the same as everywhere else (exact item-name string, parenthetical and all); the value is the establishment's own site.
+
+- **Gather live, never from memory.** Search the web for each item by name plus its neighborhood/city (e.g. `"Buff's Pub Newton MA"`). Take the result that is clearly the establishment's **own** domain.
+- **Accept only the genuine official site.** A restaurant-platform builder subdomain counts as official (e.g. `*.goto-restaurants.com`, `*.hey-restaurants.com`, a brand's own `restaurants.<brand>.com`), as does the host venue's page when the spot lives inside it (a hotel/brewery/food-hall site for a bar or counter within it).
+- **Reject aggregators and non-official hosts** and keep going: Yelp, TripAdvisor, OpenTable/Resy/Tock/Tablecheck/Toast/Clover-online and other reservation/ordering platforms, DoorDash/UberEats/Grubhub/Deliveroo and delivery apps, menu hosts (`*.res-menu.net`, `menuwithpricesonline`, `zmenu`, `allmenus`, etc.), review/guide/blog/news sites, ticket sites, tourism boards, and directory pages. None of these go in `itemLinks`.
+- **Never guess a URL.** If the search surfaces only aggregators/news/blogs and no genuine official site, **omit that item** from `itemLinks` (the hover menu just shows Map + pics for it). It is correct and expected that some items have no entry. Do not invent or pattern-guess a domain.
+- **Coverage.** Cover the union of all item names across every source and `vote.items`, minus the omitted ones. A list with most items linked and a few omitted is the normal, finished state.
+- **Re-gathering only touches `itemLinks`,** never the item names, `links`, or vote keys.
 
 ## Common Mistakes to Avoid
 
@@ -649,19 +662,4 @@ A different kind of list: instead of ranking *different* restaurants by editoria
 - Use the major per-location rating platforms: **Google Maps** and **Yelp** are the reliable, accessible two. Each platform becomes one source; within a source, order the locations by that platform's star rating, descending, with review count as the tiebreak.
 - **Gather the data live through the connected Chrome browser**, not from memory or search snippets (the no-guessing rule applies just as hard here):
   - **Google Maps:** search `Chipotle` with the map centered on the city (URL form `https://www.google.com/maps/search/Chipotle/@LAT,LNG,13z`). Pan to a few neighborhoods (downtown / midtown / uptown) because Maps only returns ~11–20 nearest results per view. Extract each result's rating, review count, and street address from the results feed. Exclude results from other cities/boroughs that bleed in (check the address).
-  - **Yelp:** the search cards show only the neighborhood, not the street address, so they cannot be matched to a Google address directly. Instead open each location's **business page** — the page `<title>` contains the exact address and review count (e.g. `… 180 Reviews - 620 9th Ave, New York …`), and the star rating is in the `[aria-label$="star rating"]` element. Resolve every location's Yelp listing to its real address this way before attributing a rating. Searching Yelp by a specific street address returns the *nearest* store as result #1, which is often a different nearby branch — always confirm via the business-page title, never trust nearest-result matching.
-
-### Sources that don't work for this (learned in practice)
-- **TripAdvisor:** does not maintain per-location pages for fast-food chains — it had a single citywide "Chipotle" listing for all of NYC. Unusable for ranking individual locations. Drop it.
-- **Uber Eats:** hard anti-bot challenge (CAPTCHA) on the search page. Do **not** attempt to bypass bot detection — drop it.
-- **DoorDash:** reachable, but its search surfaces only one aggregated store per chain per delivery address and requires setting an address per query, so per-store enumeration by address is unreliable. Drop it unless a clean per-store-by-address path appears.
-- **Bing / Apple Maps:** Bing local ratings tend to mirror other platforms; Apple Maps has no clean web surface. Not worth it.
-- If only two solid platforms (Google + Yelp) are obtainable, that is acceptable for this list type — better two real, correctly-attributed sources than a third faked or mis-attributed one.
-
-### Composite score (the headline number)
-
-Chain item names are clean parentheticals like every other list (`'129 W 48th St (Midtown)'`), never em-dash separators and never with the score in the name. The per-location composite score is stored in a `scores` object on the list (`{ '129 W 48th St (Midtown)': '7.8' }`) and rendered ONLY on the list page (via `scoreDecorate` in `DetailClient`), appended into the parenthetical as `(Midtown; 7.8)`. It never appears on the home-page tile or the share poster, and is never part of the item name / link key. Re-scoring then only touches the `scores` map, not the names.
-
-### Composite score (the headline number)
-Each location displays a single **composite score on a 0–10 scale**, computed from the platform ratings. Two methods, pick per request:
-- **Volume-weighted (default):** `composite = ((G·Gn) + (Y·Yn)) / (Gn + Yn) × 2`, where G/Y are the star ratings and Gn/Yn the review counts. Because Google usually has ~10× Yelp's review volume, this tracks Google
+  - **Yelp:** the search cards show only the neighborhood, not the street address, so they cannot be matched to a Google address directly. Instead open each location's **business page** — the page `<title>` contains the exact address and revie
