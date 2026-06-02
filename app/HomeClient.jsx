@@ -40,20 +40,25 @@ function listHasTag(list, tagId) {
 // nudge toward same-kind menu-item lists). Used to fill the extra vertical space
 // in double-height featured tiles. Returns null when nothing is clearly related.
 function findRelatedLists(list, lists, n) {
-  if (!list.category) return [];
   const tags = new Set(getListTags(list));
-  const scored = [];
+  const sameCat = [];
+  const byTags = [];
   for (const other of lists) {
     if (other.id === list.id) continue;
-    // Same city/topic only, so a Boston list never shows up under an Austin one.
-    if (other.category !== list.category) continue;
-    let score = 1;
-    for (const t of getListTags(other)) if (tags.has(t)) score += 1;
-    if (list.picsTerm && other.picsTerm) score += 1;
-    scored.push({ other, score });
+    let overlap = 0;
+    for (const t of getListTags(other)) if (tags.has(t)) overlap += 1;
+    if (list.category && other.category === list.category) {
+      sameCat.push({ other, score: overlap });
+    } else if (overlap >= 2) {
+      byTags.push({ other, score: overlap });
+    }
   }
-  scored.sort((a, b) => b.score - a.score);
-  return scored.slice(0, n).map((x) => x.other);
+  // Prefer same city/topic; only fall back to tag-similarity when no
+  // same-category list exists (so a Boston list never appears under an Austin
+  // one, but a unique-category list still gets relevant suggestions).
+  const pick = sameCat.length ? sameCat : byTags;
+  pick.sort((a, b) => b.score - a.score);
+  return pick.slice(0, n).map((x) => x.other);
 }
 
 // Browse categories. Each maps to a set of underlying tags so lists never need
@@ -493,18 +498,25 @@ function Tile({ list, rank, views, voteData, extras, onClick, showConsensus, fea
   const relatedRef = useRef(null);
   const [relatedFit, setRelatedFit] = useState(0);
   useEffect(() => {
-    if (!featured || !relatedLists || relatedLists.length === 0) return undefined;
+    if (!featured || !relatedLists || relatedLists.length === 0) {
+      setRelatedFit(0);
+      return undefined;
+    }
+    const el = relatedRef.current;
+    if (!el) return undefined;
     const compute = () => {
-      const el = relatedRef.current;
-      if (!el) return;
-      const per = 52 + 12;
-      let n = Math.floor((el.clientHeight + 12) / per);
+      let n = Math.floor(el.clientHeight / 72);
       n = Math.max(0, Math.min(relatedLists.length, 3, n));
       setRelatedFit(n);
     };
     compute();
+    const ro = typeof ResizeObserver !== 'undefined' ? new ResizeObserver(compute) : null;
+    if (ro) ro.observe(el);
     window.addEventListener('resize', compute);
-    return () => window.removeEventListener('resize', compute);
+    return () => {
+      if (ro) ro.disconnect();
+      window.removeEventListener('resize', compute);
+    };
   }, [featured, relatedLists, preview]);
 
   return (
@@ -517,7 +529,6 @@ function Tile({ list, rank, views, voteData, extras, onClick, showConsensus, fea
         gridRow: featured ? 'span 2' : 'auto',
         display: featured ? 'flex' : 'block',
         flexDirection: featured ? 'column' : undefined,
-        minHeight: featured ? 560 : undefined,
         background: hover ? '#e4dbc8' : COLORS.paper,
         color: COLORS.ink,
         border: `1.5px solid ${COLORS.ink}`,
@@ -711,11 +722,12 @@ function Tile({ list, rank, views, voteData, extras, onClick, showConsensus, fea
                 alignItems: 'center',
                 justifyContent: 'space-between',
                 gap: 10,
+                overflow: 'hidden',
                 cursor: 'pointer',
               }}
             >
-              <span style={{ fontFamily: 'Fraunces, serif', fontWeight: 700, fontSize: 18, lineHeight: 1.05, fontVariationSettings: '"SOFT" 100' }}>{rl.title}</span>
-              <span style={{ fontFamily: 'Fraunces, serif', fontWeight: 700, fontSize: 18 }}>&#8594;</span>
+              <span style={{ flex: '1 1 auto', minWidth: 0, display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden', fontFamily: 'Fraunces, serif', fontWeight: 700, fontSize: 17, lineHeight: 1.15, fontVariationSettings: '"SOFT" 100' }}>{rl.title}</span>
+              <span style={{ flex: '0 0 auto', fontFamily: 'Fraunces, serif', fontWeight: 700, fontSize: 18 }}>&#8594;</span>
             </div>
           ))}
         </div>
