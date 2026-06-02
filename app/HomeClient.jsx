@@ -496,7 +496,7 @@ function Tile({ list, rank, views, voteData, extras, onClick, showConsensus, fea
   // Featured tiles fill their extra height with up to 3 related-list sub-boxes,
   // showing as many as actually fit the leftover vertical space.
   const relatedRef = useRef(null);
-  const [relatedFit, setRelatedFit] = useState(0);
+  const [relatedFit, setRelatedFit] = useState(3);
   useEffect(() => {
     if (!featured || !relatedLists || relatedLists.length === 0) {
       setRelatedFit(0);
@@ -505,9 +505,16 @@ function Tile({ list, rank, views, voteData, extras, onClick, showConsensus, fea
     const el = relatedRef.current;
     if (!el) return undefined;
     const compute = () => {
-      let n = Math.floor(el.clientHeight / 72);
-      n = Math.max(0, Math.min(relatedLists.length, 3, n));
-      setRelatedFit(n);
+      const ch = el.clientHeight;
+      let used = 0;
+      let fit = 0;
+      const kids = el.children;
+      for (let i = 0; i < kids.length; i++) {
+        const h = kids[i].offsetHeight;
+        const next = used === 0 ? h : used + 12 + h;
+        if (next <= ch + 1) { used = next; fit += 1; } else break;
+      }
+      setRelatedFit(Math.min(fit, relatedLists.length, 3));
     };
     compute();
     const ro = typeof ResizeObserver !== 'undefined' ? new ResizeObserver(compute) : null;
@@ -527,8 +534,9 @@ function Tile({ list, rank, views, voteData, extras, onClick, showConsensus, fea
       style={{
         cursor: 'pointer',
         gridRow: featured ? 'span 2' : 'auto',
-        display: featured ? 'flex' : 'block',
-        flexDirection: featured ? 'column' : undefined,
+        display: 'flex',
+        flexDirection: 'column',
+        justifyContent: 'flex-start',
         background: hover ? '#e4dbc8' : COLORS.paper,
         color: COLORS.ink,
         border: `1.5px solid ${COLORS.ink}`,
@@ -714,19 +722,17 @@ function Tile({ list, rank, views, voteData, extras, onClick, showConsensus, fea
               onClick={(e) => { e.stopPropagation(); if (onOpenRelated) onOpenRelated(rl.id); }}
               onKeyDown={(e) => { if (e.key === 'Enter') { e.stopPropagation(); if (onOpenRelated) onOpenRelated(rl.id); } }}
               style={{
-                flex: '1 1 0',
-                minHeight: 0,
+                flex: '0 0 auto',
                 border: `1.5px solid ${COLORS.ink}`,
                 padding: '12px 16px',
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'space-between',
                 gap: 10,
-                overflow: 'hidden',
                 cursor: 'pointer',
               }}
             >
-              <span style={{ flex: '1 1 auto', minWidth: 0, display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden', fontFamily: 'Fraunces, serif', fontWeight: 700, fontSize: 17, lineHeight: 1.15, fontVariationSettings: '"SOFT" 100' }}>{rl.title}</span>
+              <span style={{ flex: '1 1 auto', minWidth: 0, fontFamily: 'Fraunces, serif', fontWeight: 700, fontSize: 17, lineHeight: 1.2, fontVariationSettings: '"SOFT" 100' }}>{rl.title}</span>
               <span style={{ flex: '0 0 auto', fontFamily: 'Fraunces, serif', fontWeight: 700, fontSize: 18 }}>&#8594;</span>
             </div>
           ))}
