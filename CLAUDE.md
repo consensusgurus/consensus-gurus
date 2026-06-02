@@ -106,9 +106,11 @@ Kebab-case, globally unique. Becomes the URL: `/list/[id]`. Examples: `pizza-nyc
 Always `'YYYY-MM-DD'`. Use today's date for new lists.
 
 ### `publishedAt`
-**Required for new lists.** Full ISO 8601 UTC timestamp, e.g. `'2026-05-28T16:05:09Z'`. The homepage "Most Recent" sort prefers `publishedAt` over `publishedDate`. If `publishedAt` is omitted, the list falls back to noon UTC on `publishedDate`, which ties with every other list published that day and the tiebreaker is original array order — which puts new entries at the BOTTOM of the day, not the top. Always set `publishedAt` to the actual moment Claude is pushing the list so the list appears as the freshest.
+**Required for new lists.** Full ISO 8601 UTC timestamp, e.g. `'2026-05-28T16:05:09Z'`. The homepage "Most Recent" sort prefers `publishedAt` over `publishedDate`. If `publishedAt` is omitted, the list falls back to noon UTC on `publishedDate`, which ties with every other list published that day and the tiebreaker is original array order — which puts new entries at the BOTTOM of the day, not the top.
 
-To get the current UTC timestamp in bash: `date -u +"%Y-%m-%dT%H:%M:%SZ"`.
+**`publishedAt` must be the moment of publication, i.e. captured immediately before the push — never the build/research time.** Generate the timestamp with `date -u` in the SAME step that builds the commit and pushes, AFTER all gathering, editing, and `node --check` are done. Do NOT capture it at the start of a build or reuse one captured earlier; build time can be minutes or hours before the push, which makes the "Most Recent" order wrong. When publishing several lists in one push, give each a DISTINCT timestamp (e.g. one second apart) in the order you want them to appear, newest last-published first — never reuse the same timestamp for multiple lists (that causes ties that fall back to array order). Re-capture `date -u` for every separate push.
+
+To get the current UTC timestamp in bash (run it as part of the deploy step, not earlier): `date -u +"%Y-%m-%dT%H:%M:%SZ"`.
 
 ### `title`
 Must start with **Best**, **Most**, or **Top-Grossing**. Title case. Examples:
