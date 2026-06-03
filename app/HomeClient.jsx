@@ -283,7 +283,7 @@ function Home({ lists, viewCounts, voteData, extras, trending = {}, openList, on
         >
           SOURCE OF
           <br />
-          <span style={{ fontSize: 'clamp(54px, 13.5vw, 158px)', color: COLORS.ember }}>TRUTHS</span>
+          <span style={{ fontFamily: "'DM Serif Display', serif", fontStyle: 'italic', fontWeight: 400, fontSize: 'clamp(56px, 14vw, 162px)', letterSpacing: '0', color: COLORS.ember }}>TRUTHS</span>
         </h1>
         <p
           style={{
