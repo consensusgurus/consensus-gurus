@@ -67,7 +67,7 @@ export default function PrivacyPage() {
 
       <H2>Contact</H2>
       <p>
-        Questions about this policy can be sent to <strong>consensusgurus@gmail.com</strong>.
+        Questions about this policy can be sent to <strong>sourceoftruthsadmin@gmail.com</strong>.
       </p>
     </LegalLayout>
   );
