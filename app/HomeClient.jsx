@@ -295,7 +295,7 @@ function Home({ lists, viewCounts, voteData, extras, trending = {}, openList, on
             color: COLORS.ink,
           }}
         >
-          For All of the Important Aspects of Life
+          For All the Important Aspects of Life
         </p>
         <div
           style={{
@@ -843,7 +843,7 @@ export default function HomeClient() {
             color: COLORS.faded,
           }}
         >
-          gathering consensus
+          seeking truths...
         </div>
       ) : (
         <Home

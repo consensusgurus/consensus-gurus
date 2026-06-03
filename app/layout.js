@@ -5,17 +5,17 @@ import { Analytics } from '@vercel/analytics/next';
 
 export const metadata = {
   metadataBase: new URL('https://sourceoftruths.com'),
-  title: 'Source of Truths | For All of the Important Aspects of Life',
+  title: 'Source of Truths | For All the Important Aspects of Life',
   description: 'Curated top-ten lists ranked by expert consensus and reader votes. From dive bars to luxury resorts, discover what we all agree on.',
   openGraph: {
-    title: 'Source of Truths | For All of the Important Aspects of Life',
+    title: 'Source of Truths | For All the Important Aspects of Life',
     description: 'Curated top-ten lists ranked by expert consensus and reader votes. From dive bars to luxury resorts, discover what we all agree on.',
     url: 'https://sourceoftruths.com',
     type: 'website',
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'Source of Truths | For All of the Important Aspects of Life',
+    title: 'Source of Truths | For All the Important Aspects of Life',
     description: 'Curated top-ten lists ranked by expert consensus and reader votes.',
   },
   appleWebApp: {
@@ -42,7 +42,7 @@ const websiteJsonLd = {
   '@context': 'https://schema.org',
   '@type': 'WebSite',
   name: 'Source of Truths',
-  alternateName: 'Source of Truths | For All of the Important Aspects of Life',
+  alternateName: 'Source of Truths | For All the Important Aspects of Life',
   url: 'https://sourceoftruths.com',
   description: 'Curated top-ten lists ranked by expert consensus and reader votes. From dive bars to luxury resorts, discover what we all agree on.',
 };
