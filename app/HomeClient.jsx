@@ -1,5 +1,5 @@
 'use client';
-import React, { useState, useEffect, useMemo, useRef } from 'react';
+import React, { useState, useEffect, useMemo, useRef, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import {
@@ -488,48 +488,44 @@ function Tile({ list, rank, views, voteData, extras, onClick, showConsensus, fea
     };
   }, [list, voteData, extras, mode, showConsensus, featured]);
 
-  // Featured tiles fill their extra height with up to 3 related-list sub-boxes,
-  // showing as many as actually fit the leftover vertical space.
-  const relatedRef = useRef(null);
+  // Tiles fill their leftover vertical space with up to 3 related-list sub-boxes,
+  // showing as many as actually fit. The boxes live in an absolutely-positioned
+  // inner layer so they never feed back into the container height (loop-free).
+  // A callback ref binds the ResizeObserver to the REAL mounted node, so the fit
+  // recomputes whenever the grid stretches the tile (the prior useRef+useEffect
+  // pattern grabbed a stale/null node and never recomputed past the first paint).
   const [relatedFit, setRelatedFit] = useState(0);
   const fitRef = useRef(0);
-  const relKey = (relatedLists || []).map((r) => r.id).join('|');
-  useEffect(() => {
-    if (!relatedLists || relatedLists.length === 0) {
-      if (fitRef.current !== 0) { fitRef.current = 0; setRelatedFit(0); }
-      return undefined;
+  const relNodeRef = useRef(null);
+  const relRoRef = useRef(null);
+  const relCount = relatedLists ? relatedLists.length : 0;
+  const computeRelFit = useCallback(() => {
+    const node = relNodeRef.current;
+    if (!node) return;
+    const avail = node.clientHeight;
+    const inner = node.firstElementChild;
+    const kids = inner ? inner.children : [];
+    let used = 16;
+    let fit = 0;
+    for (let i = 0; i < kids.length; i++) {
+      const h = kids[i].offsetHeight || 50;
+      const next = used + (fit === 0 ? h : 12 + h);
+      if (next <= avail + 1) { used = next; fit += 1; } else break;
     }
-    const el = relatedRef.current;
-    if (!el) return undefined;
-    // The boxes live in an absolutely-positioned inner layer, so they never
-    // change this container's height. That decouples the measurement from the
-    // render and makes the fit calculation loop-free.
-    const compute = () => {
-      const node = relatedRef.current;
-      if (!node) return;
-      const avail = node.clientHeight;
-      const inner = node.firstElementChild;
-      const kids = inner ? inner.children : [];
-      let used = 16;
-      let fit = 0;
-      for (let i = 0; i < kids.length; i++) {
-        const h = kids[i].offsetHeight;
-        const next = used + (fit === 0 ? h : 12 + h);
-        if (next <= avail + 1) { used = next; fit += 1; } else break;
-      }
-      const want = Math.min(fit, relatedLists.length, 3);
-      if (want !== fitRef.current) { fitRef.current = want; setRelatedFit(want); }
-    };
-    const raf = requestAnimationFrame(compute);
-    const ro = typeof ResizeObserver !== 'undefined'
-      ? new ResizeObserver(() => requestAnimationFrame(compute))
-      : null;
-    if (ro) ro.observe(el);
-    return () => {
-      cancelAnimationFrame(raf);
-      if (ro) ro.disconnect();
-    };
-  }, [relKey, preview]);
+    const want = Math.min(fit, relCount, 3);
+    if (want !== fitRef.current) { fitRef.current = want; setRelatedFit(want); }
+  }, [relCount]);
+  const setRelNode = useCallback((node) => {
+    if (relRoRef.current) { relRoRef.current.disconnect(); relRoRef.current = null; }
+    relNodeRef.current = node;
+    if (node && typeof ResizeObserver !== 'undefined') {
+      const ro = new ResizeObserver(() => requestAnimationFrame(computeRelFit));
+      ro.observe(node);
+      relRoRef.current = ro;
+      requestAnimationFrame(computeRelFit);
+    }
+  }, [computeRelFit]);
+  useEffect(() => { requestAnimationFrame(computeRelFit); }, [computeRelFit, preview]);
 
   return (
     <button
@@ -718,7 +714,7 @@ function Tile({ list, rank, views, voteData, extras, onClick, showConsensus, fea
       )}
 
       {relatedLists && relatedLists.length > 0 && (
-        <div ref={relatedRef} style={{ flex: '1 1 0', minHeight: 0, position: 'relative', overflow: 'hidden' }}>
+        <div ref={setRelNode} style={{ flex: '1 1 0', minHeight: 0, position: 'relative', overflow: 'hidden' }}>
           <div style={{ position: 'absolute', top: 16, left: 0, right: 0, display: 'flex', flexDirection: 'column', gap: 12 }}>
             {relatedLists.slice(0, 3).map((rl, idx) => {
               const shown = idx < relatedFit;
