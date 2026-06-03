@@ -312,23 +312,15 @@ function Home({ lists, viewCounts, voteData, extras, trending = {}, openList, on
             <div style={{ borderBottom: `2px solid ${COLORS.ember}` }} />
           </div>
         </div>
-        <div
-          style={{
-            marginTop: 22,
-            display: 'flex',
-            justifyContent: 'flex-start',
-            gap: '6px 20px',
-            fontFamily: 'DM Mono, monospace',
-            fontSize: 11,
-            letterSpacing: '0.15em',
-            textTransform: 'uppercase',
-            color: COLORS.faded,
-            flexWrap: 'wrap',
-          }}
-        >
-          <span style={{ whiteSpace: 'nowrap' }}>{lists.length} lists</span>
-          <span style={{ whiteSpace: 'nowrap' }}><span aria-hidden="true" style={{ opacity: 0.5 }}>·</span> {totalVotes.toLocaleString()} votes</span>
-          <span style={{ whiteSpace: 'nowrap' }}><span aria-hidden="true" style={{ opacity: 0.5 }}>·</span> {totalViews.toLocaleString()} visitors</span>
+        <style>{`
+          .cg-stats{margin-top:16px;display:flex;justify-content:flex-start;align-items:baseline;flex-wrap:nowrap;white-space:nowrap;gap:16px;font-family:'DM Mono',monospace;font-size:11px;letter-spacing:0.15em;text-transform:uppercase;color:${COLORS.faded};}
+          .cg-stats .cg-dot{opacity:0.5;}
+          @media(max-width:560px){.cg-stats{gap:10px;font-size:clamp(8px,2.7vw,11px);letter-spacing:0.06em;}}
+        `}</style>
+        <div className="cg-stats">
+          <span>{lists.length} lists</span>
+          <span><span aria-hidden="true" className="cg-dot">·</span> {totalVotes.toLocaleString()} votes</span>
+          <span><span aria-hidden="true" className="cg-dot">·</span> {totalViews.toLocaleString()} visitors</span>
         </div>
       </header>
 
