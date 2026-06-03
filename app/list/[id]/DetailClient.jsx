@@ -1554,7 +1554,7 @@ function DataRow({ rank, item, list, unranked, showPrice }) {
         display: 'flex',
         alignItems: 'baseline',
         gap: unranked ? 14 : 18,
-        padding: showFullSize ? '20px 0' : '14px 0',
+        padding: '20px 0',
         borderBottom: `1px solid ${COLORS.ink}`,
         opacity: !unranked && rank > 10 ? 0.85 : 1,
       }}
