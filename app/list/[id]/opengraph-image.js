@@ -126,14 +126,15 @@ export default async function Image({ params }) {
     (
       <div style={{ width: '100%', height: '100%', display: 'flex', flexDirection: 'column', justifyContent: 'space-between', background: '#f4ead5', padding: '40px 72px', fontFamily: ff }}>
         <div style={{ display: 'flex', flexDirection: 'column' }}>
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', paddingBottom: 12, marginBottom: 18, borderBottom: '1px solid #1a1a1a', boxShadow: 'inset 0 -6px 0 #f4ead5, inset 0 -7px 0 #1a1a1a' }}>
-            <div style={{ display: 'flex', alignItems: 'baseline', textTransform: 'uppercase' }}>
-              <div style={{ display: 'flex', fontSize: 24, letterSpacing: 4, color: '#1a1a1a', fontWeight: 600, marginRight: 10 }}>Source of</div>
-              <div style={{ display: 'flex', fontSize: 30, fontFamily: dmFF, fontStyle: 'italic', color: '#c0392b' }}>Truths</div>
+          <div style={{ display: 'flex', flexDirection: 'column', marginBottom: 18 }}>
+            <div style={{ display: 'flex', alignItems: 'flex-end', justifyContent: 'space-between', paddingBottom: 10 }}>
+              <div style={{ display: 'flex', fontSize: 42, color: '#1a1a1a', fontWeight: 700, lineHeight: 1 }}>Source of Truths</div>
+              <div style={{ display: 'flex', fontSize: 18, color: '#c0392b', textTransform: 'uppercase', letterSpacing: 2, fontWeight: 600, paddingBottom: 6 }}>
+                {list.category || 'Top Ten'}
+              </div>
             </div>
-            <div style={{ display: 'flex', fontSize: 18, color: '#c0392b', textTransform: 'uppercase', letterSpacing: 2, fontWeight: 600 }}>
-              {list.category || 'Top Ten'}
-            </div>
+            <div style={{ display: 'flex', width: '100%', height: 1, background: '#1a1a1a' }} />
+            <div style={{ display: 'flex', width: '100%', height: 3, background: '#c0392b', marginTop: 3 }} />
           </div>
           <div style={{ display: 'flex', fontSize: 48, fontWeight: 700, color: '#1a1a1a', lineHeight: 1.05, marginBottom: 6, maxWidth: '94%' }}>
             {list.title}
