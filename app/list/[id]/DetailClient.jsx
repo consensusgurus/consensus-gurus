@@ -515,7 +515,7 @@ function ListDetail({ list, viewCount, voteData, userVotes, extras, relatedLists
             fontFamily: 'Fraunces, serif',
             fontWeight: 900,
             fontSize: 'clamp(40px, 9vw, 76px)',
-            lineHeight: 0.92,
+            lineHeight: 1.04,
             letterSpacing: '-0.03em',
             margin: 0,
             color: COLORS.ink,
