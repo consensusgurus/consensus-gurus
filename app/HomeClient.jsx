@@ -264,44 +264,59 @@ function Home({ lists, viewCounts, voteData, extras, trending = {}, openList, on
     <div style={{ position: 'relative', zIndex: 2 }}>
       <header
         style={{
-          padding: '48px 24px 32px',
-          borderBottom: `2px solid ${COLORS.ink}`,
-          textAlign: 'center',
+          padding: '48px 24px 28px',
+          maxWidth: 1200,
+          margin: '0 auto',
         }}
       >
-        <h1
-          style={{
-            fontFamily: 'Fraunces, serif',
-            fontWeight: 900,
-            fontSize: 'clamp(48px, 12vw, 140px)',
-            lineHeight: 0.85,
-            letterSpacing: '-0.04em',
-            margin: 0,
-            fontVariationSettings: '"SOFT" 100, "WONK" 1',
-            color: COLORS.ink,
-          }}
-        >
-          SOURCE OF
-          <br />
-          <span style={{ fontFamily: "'DM Serif Display', serif", fontStyle: 'italic', fontWeight: 400, fontSize: 'clamp(56px, 14vw, 162px)', letterSpacing: '0', color: COLORS.ember }}>TRUTHS</span>
-        </h1>
-        <p
-          style={{
-            fontFamily: 'DM Sans, sans-serif',
-            fontSize: 16,
-            maxWidth: 560,
-            margin: '24px auto 0',
-            lineHeight: 1.5,
-            color: COLORS.ink,
-          }}
-        >
-          For All the Important Aspects of Life
-        </p>
         <div
           style={{
-            marginTop: 28,
             display: 'flex',
-            justifyContent: 'center',
+            alignItems: 'flex-end',
+            gap: 'clamp(16px, 4vw, 28px)',
+          }}
+        >
+          <h1
+            style={{
+              fontFamily: 'Fraunces, serif',
+              fontWeight: 600,
+              fontSize: 'clamp(40px, 9vw, 84px)',
+              lineHeight: 0.9,
+              letterSpacing: '-0.015em',
+              margin: 0,
+              fontVariationSettings: '"SOFT" 100',
+              color: COLORS.ink,
+              whiteSpace: 'nowrap',
+            }}
+          >
+            Source
+            <br />
+            of Truths
+          </h1>
+          <div style={{ flex: 1, minWidth: 0, marginBottom: 'clamp(8px, 1.4vw, 14px)' }}>
+            <div
+              style={{
+                fontFamily: 'DM Mono, monospace',
+                fontSize: 'clamp(9px, 1.1vw, 11px)',
+                letterSpacing: '0.2em',
+                textTransform: 'uppercase',
+                color: COLORS.faded,
+                textAlign: 'right',
+                marginBottom: 8,
+                lineHeight: 1.4,
+              }}
+            >
+              For all the important aspects of life
+            </div>
+            <div style={{ borderBottom: `1px solid ${COLORS.ink}`, marginBottom: 4 }} />
+            <div style={{ borderBottom: `2px solid ${COLORS.ember}` }} />
+          </div>
+        </div>
+        <div
+          style={{
+            marginTop: 22,
+            display: 'flex',
+            justifyContent: 'flex-start',
             gap: '6px 20px',
             fontFamily: 'DM Mono, monospace',
             fontSize: 11,
