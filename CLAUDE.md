@@ -5,7 +5,7 @@ root of the repo, and Cowork loads it every session, so there is no need to past
 
 ## Setup & site overview
 
-- **Repo (the only folder):** the connected repo, currently `C:\dev\consensus-gurus` (moved off OneDrive to
+- **Repo (the only folder):** the connected repo, currently `C:\dev\source-of-truths` (moved off OneDrive to
   stop sync/lock issues). Everything lives here: the Next.js app, `lib/data.js`, and this file.
 - **Live data file to edit:** `lib/data.js` in this repo. That is the only file that deploys to Vercel.
 - **Stack:** Next.js 14 on Vercel. Supabase stores live votes and view counts (fetched on page load via
@@ -410,7 +410,7 @@ Site-facing copy — blurbs, titles, categories, and any prose shown on a list p
 - **If an Amazon product page exists, you MUST use the direct product link, not a search link.** For every product/book whose Amazon listing can be found (essentially all of them), the `links` value must be the canonical product URL `https://www.amazon.com/dp/<ASIN>?tag=cgurus-20`, never an `s?k=` search URL. The `cgurus-20` affiliate tag is all that is needed for attribution. A search link is a last resort reserved for items with no product page at all.
 - **Edition preference for the product link: Kindle first, then paperback, then hardcover.** A book usually has multiple Amazon ASINs (one per edition). Always link to the **Kindle** edition's `/dp/<ASIN>` when it exists (search `"<title> <author> kindle edition"` and take the `B0…`-prefixed ASIN — Kindle ASINs start with `B0`, print ISBNs are 10 digits). If there is genuinely no Kindle edition, fall back to **paperback**, and only then **hardcover**. Do NOT reuse a print ASIN harvested from an editorial roundup page (those are usually hardcover/paperback) when a Kindle edition exists — gather the Kindle ASIN explicitly. (This was missed once on `sports-memoirs`, where six titles' ASINs came from the Celadon list and pointed at hardcover; they were re-gathered as Kindle.)
 - **Gather the ASIN, rating, review count, and price live through the connected Chrome browser** (read the `data-asin` attribute and the rating/reviews block off the organic, non-sponsored search result you are using). Never guess an ASIN. If a product has no genuine Amazon listing (direct-only / MAP-protected brands such as Nuna, Zoe, La Marzocco, ECM, Lelit, Slayer, etc.), keep a `s?k=` search link for it and omit it from the Amazon-ratings source.
-- **The Amazon Creators API and any client secret are NOT used by the assistant for this.** The browser method above supplies links, ratings, reviews, and ranking with no credential, and the build sandbox cannot reach external APIs anyway. Never store an API secret in the repo and never paste one into chat; keep any credentials file outside `C:\\dev\\consensus-gurus` (e.g. in the OneDrive project folder, gitignored) or, better, in a password manager.
+- **The Amazon Creators API and any client secret are NOT used by the assistant for this.** The browser method above supplies links, ratings, reviews, and ranking with no credential, and the build sandbox cannot reach external APIs anyway. Never store an API secret in the repo and never paste one into chat; keep any credentials file outside `C:\\dev\\source-of-truths` (e.g. in the OneDrive project folder, gitignored) or, better, in a password manager.
 
 ---
 
@@ -496,7 +496,7 @@ TripAdvisor (and sometimes Yelp) search pages are JS/bot-protected and return no
 ## Deploy — Claude pushes directly via the stored PAT (DEFAULT)
 
 Claude deploys by pushing the new `lib/data.js` straight to `origin/main` using a stored fine-grained
-Personal Access Token. The repo now lives **outside OneDrive** (`C:\dev\consensus-gurus`), which is what
+Personal Access Token. The repo now lives **outside OneDrive** (`C:\dev\source-of-truths`), which is what
 makes direct sandbox pushes reliable: the OneDrive mount used to block ref updates and `.git/index.lock`
 removal, and moving off it removes that blocker. Vercel auto-deploys on push (~1 minute).
 
@@ -506,11 +506,11 @@ than handing it back to the user.
 
 ### Session-start preflight (run this first, every new chat)
 
-1. Confirm the connected folder is `C:\dev\consensus-gurus` — the repo that actually contains `.git` and
-   `lib/data.js`. It is NOT the OneDrive "Consensus Gurus" project folder (that one has no `.git` and is the
+1. Confirm the connected folder is `C:\dev\source-of-truths` — the repo that actually contains `.git` and
+   `lib/data.js`. It is NOT the OneDrive "Source of Truths" project folder (that one has no `.git` and is the
    wrong target). The connection persists between sessions; re-connect via the folder picker if it dropped.
 2. Verify the git mount is healthy BEFORE touching anything: in the bash mount run
-   `cd /sessions/<session>/mnt/consensus-gurus && GIT_DISCOVERY_ACROSS_FILESYSTEM=1 git rev-parse HEAD`.
+   `cd /sessions/<session>/mnt/source-of-truths && GIT_DISCOVERY_ACROSS_FILESYSTEM=1 git rev-parse HEAD`.
    If that errors, or `ls .git` shows nothing (the known "broken mount" state where `.git` isn't exposed to
    the sandbox), **restart the session** so the mount remaps cleanly, then re-check. Never push from a
    half-mounted state — the commit could be based on stale or empty tree state.
@@ -522,9 +522,9 @@ Then run the push procedure below.
 
 ### One-time setup (already in place)
 
-- **Repo connected to Cowork:** `C:\dev\consensus-gurus` (re-connect it at the start of a session if needed).
+- **Repo connected to Cowork:** `C:\dev\source-of-truths` (re-connect it at the start of a session if needed).
 - **`.deploy-secrets`** holds the PAT and config and lives OUTSIDE the repo so it is never committed. Format:
-  `GITHUB_PAT=...`, `GITHUB_REPO=consensusgurus/consensus-gurus`, `GITHUB_DEFAULT_BRANCH=main`,
+  `GITHUB_PAT=...`, `GITHUB_REPO=consensusgurus/source-of-truths`, `GITHUB_DEFAULT_BRANCH=main`,
   `GIT_AUTHOR_NAME=...`, `GIT_AUTHOR_EMAIL=...`. Keep it readable from a connected folder (the Projects folder,
   or a gitignored copy in the repo root). Never commit it.
 
@@ -535,7 +535,7 @@ plumbing on the object store and refs instead:
 
 ```bash
 set -e
-cd /sessions/<session>/mnt/consensus-gurus            # bash mount of C:\dev\consensus-gurus
+cd /sessions/<session>/mnt/source-of-truths            # bash mount of C:\dev\source-of-truths
 source "/path/to/.deploy-secrets"                     # load GITHUB_PAT, GITHUB_REPO, etc.
 
 # 1. Base the new commit on origin/main (a direct push does not move local refs, so always fetch first).

@@ -33,14 +33,14 @@ Next.js 14 + Supabase. Runs on Vercel's hobby tier and Supabase's free tier.
 ## Step 1: Local setup
 
 ```bash
-cd consensus-gurus
+cd source-of-truths
 npm install
 ```
 
 ### Create Supabase project
 
 1. Log into Supabase and click **New project**.
-2. Name it `consensus-gurus`, set a strong database password (save it), pick a region, click **Create new project**. Wait about 2 minutes.
+2. Name it `source-of-truths`, set a strong database password (save it), pick a region, click **Create new project**. Wait about 2 minutes.
 3. In the left sidebar click **SQL Editor** then **New query**.
 4. Open `supabase/schema.sql` from this project, copy all of it, paste into the SQL editor, click **Run**. You should see "Success. No rows returned."
 
@@ -120,7 +120,7 @@ That's the moderation loop. Use the **Unpublish** button to pull a list back, or
 
 ## Step 3: Push to GitHub
 
-1. Go to [github.com/new](https://github.com/new). Name the repo `consensus-gurus`. Don't initialize with a README.
+1. Go to [github.com/new](https://github.com/new). Name the repo `source-of-truths`. Don't initialize with a README.
 2. In your terminal:
 
 ```bash
@@ -128,7 +128,7 @@ git init
 git add .
 git commit -m "initial commit"
 git branch -M main
-git remote add origin https://github.com/YOUR-USERNAME/consensus-gurus.git
+git remote add origin https://github.com/YOUR-USERNAME/source-of-truths.git
 git push -u origin main
 ```
 
@@ -137,7 +137,7 @@ git push -u origin main
 ## Step 4: Deploy to Vercel
 
 1. Go to [vercel.com/new](https://vercel.com/new).
-2. Import your `consensus-gurus` repo.
+2. Import your `source-of-truths` repo.
 3. Expand **Environment Variables** and add all four:
    - `NEXT_PUBLIC_SUPABASE_URL`
    - `NEXT_PUBLIC_SUPABASE_ANON_KEY`
@@ -195,7 +195,7 @@ The admin URL is `noindex,nofollow` so it won't appear in search engines, but pi
 ## File layout
 
 ```
-consensus-gurus/
+source-of-truths/
 ├── app/
 │   ├── layout.js              # Root layout with fonts and meta
 │   ├── globals.css            # Base CSS
