@@ -515,17 +515,32 @@ function Tile({ list, rank, views, voteData, extras, onClick, showConsensus, fea
     const want = Math.min(fit, relCount, 3);
     if (want !== fitRef.current) { fitRef.current = want; setRelatedFit(want); }
   }, [relCount]);
+  // Drive the fit calc on BOTH requestAnimationFrame AND setTimeout. rAF is
+  // frozen while a tab is backgrounded (so a tile rendered in a hidden tab would
+  // never get its boxes), whereas setTimeout still fires (throttled) and also
+  // gives layout a beat to settle. We also recompute when the tab becomes
+  // visible again, so a tab loaded in the background fills in on focus.
+  const kickRelFit = useCallback(() => {
+    if (typeof requestAnimationFrame !== 'undefined') requestAnimationFrame(computeRelFit);
+    setTimeout(computeRelFit, 60);
+    setTimeout(computeRelFit, 300);
+  }, [computeRelFit]);
   const setRelNode = useCallback((node) => {
     if (relRoRef.current) { relRoRef.current.disconnect(); relRoRef.current = null; }
     relNodeRef.current = node;
     if (node && typeof ResizeObserver !== 'undefined') {
-      const ro = new ResizeObserver(() => requestAnimationFrame(computeRelFit));
+      const ro = new ResizeObserver(() => kickRelFit());
       ro.observe(node);
       relRoRef.current = ro;
-      requestAnimationFrame(computeRelFit);
     }
-  }, [computeRelFit]);
-  useEffect(() => { requestAnimationFrame(computeRelFit); }, [computeRelFit, preview]);
+    if (node) kickRelFit();
+  }, [kickRelFit]);
+  useEffect(() => {
+    kickRelFit();
+    const onVis = () => { if (!document.hidden) kickRelFit(); };
+    document.addEventListener('visibilitychange', onVis);
+    return () => document.removeEventListener('visibilitychange', onVis);
+  }, [kickRelFit, preview]);
 
   return (
     <button
