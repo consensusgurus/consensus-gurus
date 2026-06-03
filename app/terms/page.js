@@ -1,8 +1,8 @@
 import LegalLayout, { H2 } from '@/app/LegalLayout';
 
 export const metadata = {
-  title: 'Terms of Service | Consensus Gurus',
-  description: 'The rules of the road for using Consensus Gurus.',
+  title: 'Terms of Service | Source of Truths',
+  description: 'The rules of the road for using Source of Truths.',
 };
 
 export default function TermsPage() {
@@ -14,17 +14,17 @@ export default function TermsPage() {
       updated="May 2026"
     >
       <p>
-        These Terms of Service govern your use of Consensus Gurus. By using the site you agree to be bound by them. If you disagree with any part, please do not use the site.
+        These Terms of Service govern your use of Source of Truths. By using the site you agree to be bound by them. If you disagree with any part, please do not use the site.
       </p>
 
       <H2>The service</H2>
       <p>
-        Consensus Gurus publishes top ten lists drawn from AI-generated rankings, named publications, and reader votes. Readers may vote on items, add entries to existing lists, and submit their own lists. The service is provided free of charge.
+        Source of Truths publishes top ten lists drawn from AI-generated rankings, named publications, and reader votes. Readers may vote on items, add entries to existing lists, and submit their own lists. The service is provided free of charge.
       </p>
 
       <H2>Submissions and user content</H2>
       <p>
-        When you submit a list or add an entry, you grant Consensus Gurus a non-exclusive, royalty-free, worldwide license to display, modify, and distribute that content on the site. You retain ownership of what you submit.
+        When you submit a list or add an entry, you grant Source of Truths a non-exclusive, royalty-free, worldwide license to display, modify, and distribute that content on the site. You retain ownership of what you submit.
       </p>
       <p>
         By submitting, you confirm that you have the right to do so, that the content does not infringe anyone's copyright, trademark, or other rights, and that it does not contain anything illegal, defamatory, harassing, sexually explicit, hateful, or otherwise objectionable.
@@ -40,7 +40,7 @@ export default function TermsPage() {
 
       <H2>Affiliate links</H2>
       <p>
-        Many outbound links on the site are affiliate links, meaning we may earn a commission when you click and complete a purchase at the destination merchant. As an Amazon Associate, Consensus Gurus earns from qualifying purchases. Our editorial choices are not driven by commission rates; we link to merchants where commerce makes sense for the kind of list you are reading.
+        Many outbound links on the site are affiliate links, meaning we may earn a commission when you click and complete a purchase at the destination merchant. As an Amazon Associate, Source of Truths earns from qualifying purchases. Our editorial choices are not driven by commission rates; we link to merchants where commerce makes sense for the kind of list you are reading.
       </p>
       <p>
         See the full <a href="/disclosure" style={{ color: 'inherit', textDecoration: 'underline' }}>Affiliate Disclosure</a> for more detail.
@@ -53,7 +53,7 @@ export default function TermsPage() {
 
       <H2>Limitation of liability</H2>
       <p>
-        To the maximum extent permitted by law, Consensus Gurus and its operators will not be liable for any indirect, incidental, special, consequential, or punitive damages, or any loss of profits or revenues, arising from your use of the site.
+        To the maximum extent permitted by law, Source of Truths and its operators will not be liable for any indirect, incidental, special, consequential, or punitive damages, or any loss of profits or revenues, arising from your use of the site.
       </p>
 
       <H2>Third-party services</H2>

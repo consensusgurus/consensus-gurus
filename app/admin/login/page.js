@@ -5,7 +5,7 @@ import LoginClient from './LoginClient';
 export const dynamic = 'force-dynamic';
 
 export const metadata = {
-  title: 'Admin Login | Consensus Gurus',
+  title: 'Admin Login | Source of Truths',
   robots: { index: false, follow: false },
 };
 

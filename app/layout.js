@@ -4,25 +4,25 @@ import './globals.css';
 import { Analytics } from '@vercel/analytics/next';
 
 export const metadata = {
-  metadataBase: new URL('https://consensusgurus.com'),
-  title: 'Consensus Gurus | Where We All Agree',
+  metadataBase: new URL('https://sourceoftruths.com'),
+  title: 'Source of Truths | For All of the Important Aspects of Life',
   description: 'Curated top-ten lists ranked by expert consensus and reader votes. From dive bars to luxury resorts, discover what we all agree on.',
   openGraph: {
-    title: 'Consensus Gurus | Where We All Agree',
+    title: 'Source of Truths | For All of the Important Aspects of Life',
     description: 'Curated top-ten lists ranked by expert consensus and reader votes. From dive bars to luxury resorts, discover what we all agree on.',
-    url: 'https://consensusgurus.com',
+    url: 'https://sourceoftruths.com',
     type: 'website',
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'Consensus Gurus | Where We All Agree',
+    title: 'Source of Truths | For All of the Important Aspects of Life',
     description: 'Curated top-ten lists ranked by expert consensus and reader votes.',
   },
   appleWebApp: {
     capable: false,
     statusBarStyle: 'black-translucent',
     startupImage: {
-      url: 'https://consensusgurus.com/apple-startup.png',
+      url: 'https://sourceoftruths.com/apple-startup.png',
       media: '(device-width: 375px) and (device-height: 812px)',
     },
   },
@@ -41,9 +41,9 @@ export const viewport = {
 const websiteJsonLd = {
   '@context': 'https://schema.org',
   '@type': 'WebSite',
-  name: 'Consensus Gurus',
-  alternateName: 'Consensus Gurus | Where We All Agree',
-  url: 'https://consensusgurus.com',
+  name: 'Source of Truths',
+  alternateName: 'Source of Truths | For All of the Important Aspects of Life',
+  url: 'https://sourceoftruths.com',
   description: 'Curated top-ten lists ranked by expert consensus and reader votes. From dive bars to luxury resorts, discover what we all agree on.',
 };
 

@@ -182,7 +182,7 @@ export default function SnapshotClient({ listId }) {
   }, [list, mode, sources, voteData, extras]);
 
   const modeLabel = useMemo(() => {
-    if (mode === 'vote') return 'Consensus Gurus User Vote';
+    if (mode === 'vote') return 'Source of Truths User Vote';
     if (mode === 'consensus') return 'Consensus';
     const src = sources.find((s) => s.id === mode);
     return src?.label || 'Ranked';
@@ -247,7 +247,7 @@ export default function SnapshotClient({ listId }) {
     items.forEach((item, i) => {
       lines.push(`${String(i + 1)}. ${item}`);
     });
-    lines.push('', `consensusgurus.com/list/${list.id}`);
+    lines.push('', `sourceoftruths.com/list/${list.id}`);
     navigator.clipboard.writeText(lines.join('\n')).then(() => {
       setCopied('text');
       setTimeout(() => setCopied(''), 1800);
@@ -316,7 +316,7 @@ export default function SnapshotClient({ listId }) {
     .forEach((x) => modeOptions.push({ id: x.s.id, label: x.s.label }));
   // Offer reader votes (except facts/composite lists, which don't use voting)
   if (list.mode !== 'facts' && list.mode !== 'scores' && list.mode !== 'unranked') {
-    modeOptions.push({ id: 'vote', label: 'Consensus Gurus User Vote' });
+    modeOptions.push({ id: 'vote', label: 'Source of Truths User Vote' });
   }
 
   return (
@@ -554,9 +554,9 @@ const Poster = React.forwardRef(function Poster({ list, items, modeLabel, source
           color: COLORS.ink,
         }}
       >
-        <span style={{ fontWeight: 600 }}>Consensus Gurus</span>
-        <span style={{ color: COLORS.faded, fontSize: 14 }}>Where We All Agree</span>
-        <span style={{ color: COLORS.faded, fontSize: 14 }}>consensusgurus.com</span>
+        <span style={{ fontWeight: 600 }}>Source of Truths</span>
+        <span style={{ color: COLORS.faded, fontSize: 14 }}>For All of the Important Aspects of Life</span>
+        <span style={{ color: COLORS.faded, fontSize: 14 }}>sourceoftruths.com</span>
       </div>
 
       {/* Category */}

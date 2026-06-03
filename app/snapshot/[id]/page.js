@@ -6,12 +6,12 @@ export async function generateMetadata({ params }) {
   const list = LISTS.find((l) => l.id === id);
   if (list) {
     return {
-      title: `${list.title} — Snapshot | Consensus Gurus`,
+      title: `${list.title} — Snapshot | Source of Truths`,
       description: list.blurb,
       robots: { index: false, follow: false },
     };
   }
-  return { title: 'Snapshot | Consensus Gurus', robots: { index: false, follow: false } };
+  return { title: 'Snapshot | Source of Truths', robots: { index: false, follow: false } };
 }
 
 export function generateStaticParams() {

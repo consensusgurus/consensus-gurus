@@ -1,4 +1,4 @@
-# Consensus Gurus
+# Source of Truths
 
 Top ten lists from every angle. AI Optimized, Consensus, named publications, and reader votes.
 

@@ -1,7 +1,7 @@
 import { LISTS } from '@/lib/data';
 
 export default function sitemap() {
-  const baseUrl = 'https://consensusgurus.com';
+  const baseUrl = 'https://sourceoftruths.com';
 
   const staticPages = [
     { url: baseUrl, lastModified: new Date(), changeFrequency: 'daily', priority: 1.0 },

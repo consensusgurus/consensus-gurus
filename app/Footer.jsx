@@ -35,7 +35,7 @@ export default function Footer() {
             lineHeight: 1.4,
           }}
         >
-          As an Amazon Associate, Consensus Gurus earns from qualifying purchases. Some other outbound links may also be affiliate links.
+          As an Amazon Associate, Source of Truths earns from qualifying purchases. Some other outbound links may also be affiliate links.
         </p>
         <div
           style={{
@@ -77,7 +77,7 @@ export default function Footer() {
             color: COLORS.faded,
           }}
         >
-          © {year} Consensus Gurus
+          © {year} Source of Truths
         </div>
       </div>
     </footer>

@@ -2,7 +2,7 @@ import { ImageResponse } from 'next/og'
 import { LISTS } from '@/lib/data'
 
 export const runtime = 'edge'
-export const alt = 'Consensus Gurus list preview'
+export const alt = 'Source of Truths list preview'
 export const size = { width: 1200, height: 630 }
 export const contentType = 'image/png'
 
@@ -91,7 +91,7 @@ export default async function Image({ params }) {
     return new ImageResponse(
       (
         <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#f4ead5', fontSize: 60, color: '#1a1a1a' }}>
-          <div style={{ display: 'flex' }}>Consensus Gurus</div>
+          <div style={{ display: 'flex' }}>Source of Truths</div>
         </div>
       ),
       { ...size }
@@ -119,7 +119,7 @@ export default async function Image({ params }) {
         <div style={{ display: 'flex', flexDirection: 'column' }}>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', paddingBottom: 12, marginBottom: 18, borderBottom: '1px solid #1a1a1a', boxShadow: 'inset 0 -6px 0 #f4ead5, inset 0 -7px 0 #1a1a1a' }}>
             <div style={{ display: 'flex', fontSize: 24, letterSpacing: 4, textTransform: 'uppercase', color: '#1a1a1a', fontWeight: 600 }}>
-              Consensus Gurus
+              Source of Truths
             </div>
             <div style={{ display: 'flex', fontSize: 18, color: '#c0392b', textTransform: 'uppercase', letterSpacing: 2, fontWeight: 600 }}>
               {list.category || 'Top Ten'}
@@ -151,7 +151,7 @@ export default async function Image({ params }) {
         </div>
 
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', borderTop: '1px solid #c4b896', paddingTop: 12, fontSize: 18, color: '#5a5a5a' }}>
-          <div style={{ display: 'flex' }}>{isUnranked ? 'See the full set at consensusgurus.com' : 'See 5 through 1 at consensusgurus.com'}</div>
+          <div style={{ display: 'flex' }}>{isUnranked ? 'See the full set at sourceoftruths.com' : 'See 5 through 1 at sourceoftruths.com'}</div>
           <div style={{ display: 'flex', color: '#c0392b', fontWeight: 600 }}>{isUnranked ? 'Browse the picks' : 'Read the full ranking'}</div>
         </div>
       </div>

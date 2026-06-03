@@ -411,7 +411,7 @@ const Board = forwardRef(function Board({ tiles, format, title, voteData, extras
             color: COLORS.faded,
           }}
         >
-          <span style={{ textAlign: 'left' }}>Consensus Gurus</span>
+          <span style={{ textAlign: 'left' }}>Source of Truths</span>
           <span
             style={{
               textAlign: 'center',
@@ -428,7 +428,7 @@ const Board = forwardRef(function Board({ tiles, format, title, voteData, extras
           >
             {title.trim()}
           </span>
-          <span style={{ textAlign: 'right' }}>Where We All Agree</span>
+          <span style={{ textAlign: 'right' }}>For All of the Important Aspects of Life</span>
         </div>
 
         <div style={{ display: 'grid', gridTemplateColumns: `repeat(${format.cols}, minmax(0, 1fr))`, gap: 22, alignItems: 'stretch' }}>
@@ -487,7 +487,7 @@ const Board = forwardRef(function Board({ tiles, format, title, voteData, extras
         </div>
 
         <div style={{ textAlign: 'center', marginTop: 28, fontFamily: 'DM Mono, monospace', fontSize: 14, letterSpacing: '0.2em', textTransform: 'uppercase', color: COLORS.faded }}>
-          consensusgurus.com
+          sourceoftruths.com
         </div>
       </div>
   );

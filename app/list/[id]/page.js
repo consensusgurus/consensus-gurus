@@ -20,11 +20,11 @@ function generateSeoDescription(list) {
 
   if (list.mode === 'facts' || list.mode === 'scores' || list.mode === 'unranked') {
     const sourceLabel = list.sources?.ai?.label || 'authoritative rankings';
-    return `${list.title}, ranked by ${sourceLabel}. Includes ${top3Str}. See the full ranking at Consensus Gurus.`;
+    return `${list.title}, ranked by ${sourceLabel}. Includes ${top3Str}. See the full ranking at Source of Truths.`;
   }
 
   if (list.mode === 'votes') {
-    return `${list.title}, ranked by readers. Vote on the picks including ${top3Str}. Cast your vote at Consensus Gurus.`;
+    return `${list.title}, ranked by readers. Vote on the picks including ${top3Str}. Cast your vote at Source of Truths.`;
   }
 
   if (sourceCount >= 2) {
@@ -72,15 +72,15 @@ export async function generateMetadata({ params }) {
     description,
     alternates: { canonical: url },
     openGraph: {
-      title: `${list.title} | Consensus Gurus`,
+      title: `${list.title} | Source of Truths`,
       description,
       url,
       type: 'article',
-      siteName: 'Consensus Gurus',
+      siteName: 'Source of Truths',
     },
     twitter: {
       card: 'summary_large_image',
-      title: `${list.title} | Consensus Gurus`,
+      title: `${list.title} | Source of Truths`,
       description,
     },
   };
@@ -97,7 +97,7 @@ export function generateStaticParams() {
 export default function ListPage({ params }) {
   const id = decodeURIComponent(params.id);
   const list = LISTS.find((l) => l.id === id);
-  const baseUrl = 'https://consensusgurus.com';
+  const baseUrl = 'https://sourceoftruths.com';
   const jsonLd = list ? buildStructuredData(list, baseUrl) : null;
 
   return (

@@ -7,7 +7,7 @@ export async function generateMetadata({ params }) {
 
   if (!list) {
     return {
-      title: 'List Not Found | Consensus Gurus',
+      title: 'List Not Found | Source of Truths',
       description: 'This list could not be found.',
     };
   }
@@ -17,17 +17,17 @@ export async function generateMetadata({ params }) {
   const previewItems = consensusItems.slice(5, 10).join(', ');
 
   return {
-    title: `${list.title} | Consensus Gurus`,
+    title: `${list.title} | Source of Truths`,
     description: `${list.blurb} Ranked by expert consensus.`,
     openGraph: {
-      title: `${list.title} | Consensus Gurus`,
+      title: `${list.title} | Source of Truths`,
       description: `6-10 of Consensus: ${previewItems}`,
-      url: `https://consensusgurus.com/list/${list.id}`,
+      url: `https://sourceoftruths.com/list/${list.id}`,
       type: 'website',
     },
     twitter: {
       card: 'summary_large_image',
-      title: `${list.title} | Consensus Gurus`,
+      title: `${list.title} | Source of Truths`,
       description: `6-10 of Consensus: ${previewItems}`,
     },
   };

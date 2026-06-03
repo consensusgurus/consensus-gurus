@@ -4,7 +4,7 @@ import Footer from '@/app/Footer';
 import { COLORS } from '@/lib/data';
 
 export const metadata = {
-  title: 'Thanks for submitting | Consensus Gurus',
+  title: 'Thanks for submitting | Source of Truths',
 };
 
 export default function ThanksPage() {

@@ -44,7 +44,7 @@ const EXPERT_GROUPS = [
 ];
 
 // Vote-page ordering: the same universe + ranking the User Vote tab shows, so a
-// "Consensus Gurus User Vote" source matches that page exactly. Items are the
+// "Source of Truths User Vote" source matches that page exactly. Items are the
 // vote.items + every publication item + extras, ranked by live votes; with no
 // votes yet it falls back to the consensus order (full universe, not just 10).
 function voteOrderedItems(list, voteData, extras) {
@@ -89,7 +89,7 @@ function expertGroupKey(src) {
   // A flagged true-expert source is exceptionally authoritative and gets its
   // own group, regardless of whether its label mentions ratings/reviews.
   if (src.trueExpert) return 'trueexpert';
-  // The live Consensus Gurus fan vote is a user-ratings signal.
+  // The live Source of Truths fan vote is a user-ratings signal.
   if ((src.id || '') === 'cgvote') return 'platform';
   const id = (src.id || '').toLowerCase();
   const label = (src.label || '').toLowerCase();
@@ -181,12 +181,12 @@ function ListDetail({ list, viewCount, voteData, userVotes, extras, relatedLists
     }
 
     // For 'both' mode lists: compute Consensus from publications, then append a
-    // standalone "Consensus Gurus User Vote" source built from live fan votes,
+    // standalone "Source of Truths User Vote" source built from live fan votes,
     // shown as a User Reviews & Ratings source at the base of the page.
     const result = getSources(list, voteData, extras);
     const cgVote = {
       id: 'cgvote',
-      label: 'Consensus Gurus User Vote',
+      label: 'Source of Truths User Vote',
       items: voteOrderedItems(list, voteData, extras),
     };
     return [...result, cgVote];

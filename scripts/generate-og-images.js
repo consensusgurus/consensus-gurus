@@ -258,7 +258,7 @@ ${itemsSvg}
   <line x1="30" y1="590" x2="1170" y2="590" stroke="#282828" stroke-width="2"/>
   
   <!-- Footer -->
-  <text x="600" y="615" font-family="monospace" font-size="14" fill="#646464" text-anchor="middle">Ranked by Expert Consensus | Consensus Gurus</text>
+  <text x="600" y="615" font-family="monospace" font-size="14" fill="#646464" text-anchor="middle">Ranked by Expert Consensus | Source of Truths</text>
 </svg>`;
   
   return svg;
@@ -283,26 +283,26 @@ function createHomepageImageSVG() {
   <line x1="50" y1="70" x2="1150" y2="70" stroke="#282828" stroke-width="1"/>
   
   <!-- CONSENSUS text -->
-  <text x="600" y="200" font-family="Georgia, serif" font-size="110" font-weight="bold" fill="#282828" text-anchor="middle" letter-spacing="3">CONSENSUS</text>
+  <text x="600" y="200" font-family="Georgia, serif" font-size="64" font-weight="bold" fill="#282828" text-anchor="middle" letter-spacing="3">SOURCE OF TRUTHS</text>
   
   <!-- gurus text in red italic -->
   <text x="600" y="290" font-family="Georgia, serif" font-size="85" font-style="italic" fill="#c0392b" text-anchor="middle" letter-spacing="2">gurus</text>
   
-  <!-- Tagline - "Where We All Agree" -->
-  <text x="600" y="350" font-family="Arial, sans-serif" font-size="18" fill="#282828" text-anchor="middle">Where We All Agree</text>
+  <!-- Tagline - "For All of the Important Aspects of Life" -->
+  <text x="600" y="350" font-family="Arial, sans-serif" font-size="18" fill="#282828" text-anchor="middle">For All of the Important Aspects of Life</text>
   
   <!-- Bottom decorative line -->
   <line x1="50" y1="520" x2="1150" y2="520" stroke="#282828" stroke-width="1"/>
   
   <!-- Bottom left: Black label -->
   <rect x="50" y="530" width="160" height="25" fill="#282828" rx="3"/>
-  <text x="130" y="550" font-family="Arial, sans-serif" font-size="13" fill="white" text-anchor="middle" font-weight="bold">Consensus Gurus</text>
+  <text x="130" y="550" font-family="Arial, sans-serif" font-size="13" fill="white" text-anchor="middle" font-weight="bold">Source of Truths</text>
   
   <!-- Bottom right: VOTE | SHARE | DEBATE -->
   <text x="1150" y="550" font-family="Arial, sans-serif" font-size="11" fill="#999999" text-anchor="end" letter-spacing="3">VOTE | SHARE | DEBATE</text>
   
-  <!-- Footer: From consensusgurus.com -->
-  <text x="50" y="615" font-family="Arial, sans-serif" font-size="13" fill="#666666" text-anchor="start">From consensusgurus.com</text>
+  <!-- Footer: From sourceoftruths.com -->
+  <text x="50" y="615" font-family="Arial, sans-serif" font-size="13" fill="#666666" text-anchor="start">From sourceoftruths.com</text>
 </svg>`;
   
   return svg;

@@ -281,9 +281,9 @@ function Home({ lists, viewCounts, voteData, extras, trending = {}, openList, on
             color: COLORS.ink,
           }}
         >
-          CONSENSUS
+          SOURCE OF
           <br />
-          <span style={{ fontStyle: 'italic', color: COLORS.ember }}>gurus</span>
+          <span style={{ fontStyle: 'italic', color: COLORS.ember }}>truths</span>
         </h1>
         <p
           style={{
@@ -295,7 +295,7 @@ function Home({ lists, viewCounts, voteData, extras, trending = {}, openList, on
             color: COLORS.ink,
           }}
         >
-          Where We All Agree
+          For All of the Important Aspects of Life
         </p>
         <div
           style={{

@@ -1,5 +1,5 @@
 -- =========================================================================
--- Consensus Gurus database schema
+-- Source of Truths database schema
 -- Run this entire file in your Supabase project's SQL Editor.
 -- =========================================================================
 

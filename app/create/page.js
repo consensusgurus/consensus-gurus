@@ -4,7 +4,7 @@ import Footer from '../Footer';
 import Grain from '../Grain';
 
 export const metadata = {
-  title: 'Create Your Own Grid | Consensus Gurus',
+  title: 'Create Your Own Grid | Source of Truths',
   description:
     'Pick a format, fill the tiles with your favorite top-ten lists, and download a clean, shareable grid.',
 };

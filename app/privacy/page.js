@@ -1,8 +1,8 @@
 import LegalLayout, { H2 } from '@/app/LegalLayout';
 
 export const metadata = {
-  title: 'Privacy Policy | Consensus Gurus',
-  description: 'How Consensus Gurus collects and uses information.',
+  title: 'Privacy Policy | Source of Truths',
+  description: 'How Source of Truths collects and uses information.',
 };
 
 export default function PrivacyPage() {
@@ -14,7 +14,7 @@ export default function PrivacyPage() {
       updated="May 2026"
     >
       <p>
-        This Privacy Policy describes how Consensus Gurus ("we", "us", "the site") collects and uses information when you visit. We aim to keep things simple and to collect only what we need to operate the site.
+        This Privacy Policy describes how Source of Truths ("we", "us", "the site") collects and uses information when you visit. We aim to keep things simple and to collect only what we need to operate the site.
       </p>
 
       <H2>What we collect</H2>
@@ -57,7 +57,7 @@ export default function PrivacyPage() {
 
       <H2>Children</H2>
       <p>
-        Consensus Gurus is not directed at children under 13. We do not knowingly collect information from children. If you believe a child has submitted content, please contact us and we will remove it.
+        Source of Truths is not directed at children under 13. We do not knowingly collect information from children. If you believe a child has submitted content, please contact us and we will remove it.
       </p>
 
       <H2>Changes to this policy</H2>
