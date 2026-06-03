@@ -273,17 +273,15 @@ function Home({ lists, viewCounts, voteData, extras, trending = {}, openList, on
           style={{
             fontFamily: 'Fraunces, serif',
             fontWeight: 900,
-            fontSize: 'clamp(48px, 12vw, 140px)',
-            lineHeight: 0.85,
+            lineHeight: 0.82,
             letterSpacing: '-0.04em',
             margin: 0,
             fontVariationSettings: '"SOFT" 100, "WONK" 1',
             color: COLORS.ink,
           }}
         >
-          SOURCE OF
-          <br />
-          <span style={{ fontStyle: 'italic', color: COLORS.ember }}>truths</span>
+          <span style={{ display: 'block', fontSize: 'clamp(18px, 3.4vw, 38px)', fontWeight: 700, letterSpacing: '0.2em', color: COLORS.ink, marginBottom: '0.08em' }}>SOURCE OF</span>
+          <span style={{ display: 'block', fontSize: 'clamp(64px, 16vw, 184px)', color: COLORS.ember }}>TRUTHS</span>
         </h1>
         <p
           style={{
