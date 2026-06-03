@@ -43,14 +43,18 @@ function computeConsensus(list) {
   universe.forEach(item => { scores[item.toLowerCase().trim()] = 0 })
 
   const bordaFromRank = rank => (rank < 1 || rank > 10) ? 0 : 11 - rank
-  const FLAT_UNORDERED = 5.5
+  // Unordered sources: 55-pt budget split across n items, capped at 10/item
+  // (kept in sync with lib/helpers.js)
+  const FLAT_BUDGET = 55
+  const flatUnordered = n => (n > 0 ? Math.min(10, FLAT_BUDGET / n) : 0)
 
   publications.forEach(src => {
     if (src.unordered) {
       const listed = new Set(src.items.map(i => getItemName(i).toLowerCase().trim()))
+      const flat = flatUnordered(listed.size)
       universe.forEach(item => {
         const key = item.toLowerCase().trim()
-        if (listed.has(key)) scores[key] += FLAT_UNORDERED
+        if (listed.has(key)) scores[key] += flat
       })
       return
     }

@@ -51,7 +51,7 @@ A true expert's Borda contribution is scaled by a weight equal to **half the com
 | 6 | 3 |
 | 8 | 4 |
 
-The floor guarantees a true expert always counts for at least two ordinary experts; beyond that it scales to half the rest of the expert field. Everything else (rank ordering, the `unordered` flat-5.5 rule, the top-10 cutoff, tie-breaks) works exactly as for a normal source — only the per-source multiplier changes. A source may also set an explicit numeric `"weight"` to override the default 1 for fine control.
+The floor guarantees a true expert always counts for at least two ordinary experts; beyond that it scales to half the rest of the expert field. Everything else (rank ordering, the `unordered` size-scaled flat rule, the top-10 cutoff, tie-breaks) works exactly as for a normal source — only the per-source multiplier changes. A source may also set an explicit numeric `"weight"` to override the default 1 for fine control.
 
 Implemented in `lib/helpers.js` `getSources` and mirrored in `scripts/generate-og-images.js` (`computeConsensus`) — keep the two in sync.
 
@@ -297,12 +297,15 @@ When a source's order is NOT a ranking (alphabetical, "in no particular order," 
 1. **Label it** so it's transparent: `(alphabetical)` or `(unordered roundup)` in the source `label`.
 2. **Flag it** with `"unordered": true` on the source object. This is what actually changes the scoring — the label alone does nothing.
 
-How the scoring works (implemented in `lib/helpers.js` `getSources` and `scripts/generate-og-images.js`):
+How the scoring works (implemented in `lib/helpers.js` `getSources`, `scripts/generate-og-images.js`, and the OG/Twitter image routes `app/list/[id]/opengraph-image.js` and `app/list/[id]/twitter-image.js` — keep all four in sync):
 - A **ranked** source gives `11 − rank` points: 10 to its #1, 9 to #2, … 1 to #10, 0 beyond.
-- An **unordered** source (`"unordered": true`) gives every item it lists a **flat `5.5` points** (the constant `FLAT_UNORDERED`, the midpoint of the 1–10 scale) and 0 to items it doesn't list. So a spot on an unordered roundup counts as a solid mid-pack endorsement — enough to matter, but not enough on its own to top the consensus (real winners stack points across multiple *ranked* sources).
-- To change the flat value, edit `FLAT_UNORDERED` in both files (keep them in sync).
+- An **unordered** source (`"unordered": true`) gives every item it lists an **equal flat score that scales with the source's size**, and 0 to items it doesn't list. Each unordered source has a fixed **55-point budget** (the total a ranked source hands out: 10+9+…+1), split evenly across its `n` items and **capped at 10 per item**: `flat(n) = min(10, 55 / n)` (the constant `FLAT_BUDGET = 55` and helper `flatUnordered(n)`).
+  - 10 items → the classic 5.5 each (a solid mid-pack endorsement).
+  - More than 10 items → the score degrades proportionately: 16 items → ~3.44 each, 50 items → 1.1, 2000 items → ~0.03. Inclusion on a huge unordered list is a near-meaningless signal, and now scores like one.
+  - Fewer than 10 items → the score grows: 7 items → ~7.86 each, 5 or fewer → capped at 10 each. A tight "best in class" pick is a strong endorsement, but no unordered mention can ever exceed a ranked source's #1 (10 pts).
+- To change the budget or cap, edit `FLAT_BUDGET` / `flatUnordered` in all four files (keep them in sync).
 
-Example (Four Seasons list): The Points Guy's worldwide "16 best" roundup is unordered, so it's labeled `'The Points Guy (unordered roundup)'` with `"unordered": true`; each of its 16 properties gets a flat 5.5, while the five genuinely-ranked sources drive the order.
+Example (Four Seasons list): The Points Guy's worldwide "16 best" roundup is unordered, so it's labeled `'The Points Guy (unordered roundup)'` with `"unordered": true`; each of its 16 properties gets 55/16 ≈ 3.44, while the five genuinely-ranked sources drive the order.
 
 **When unsure how a source is ordered, fetch the actual page and check** — look for scores, rank numbers, or an "in no particular order" disclaimer. If the page is paywalled or JavaScript-only and the real order cannot be read, follow the rule below.
 
@@ -688,7 +691,7 @@ NEW_LIB_TREE=$(git ls-tree $LIB_TREE_SHA | awk -v b="$NEW_BLOB" \
 | Source list length | Any number of items |
 | How do I order items within a source? | By the source's true rank — score descending (Infatuation) or its numbers. Never article order. |
 | Source has scores but lists them out of order? | Sort by numeric score, descending; ties keep page order; unrated last. |
-| Source is alphabetical/unordered? | Find a ranked version, drop it, or label it `(alphabetical)`/`(unordered roundup)` AND set `"unordered": true` (flat 5.5 pts/item, not ranked). |
+| Source is alphabetical/unordered? | Find a ranked version, drop it, or label it `(alphabetical)`/`(unordered roundup)` AND set `"unordered": true` (flat `min(10, 55/n)` pts/item, not ranked). |
 | Source paywalled or JS-only / unreadable? | Don't guess — get it elsewhere, drop it, or substitute. |
 | Consensus output length | Always exactly 10 |
 | Is the seed (`ai`) source used in scoring | No — excluded from Borda |
