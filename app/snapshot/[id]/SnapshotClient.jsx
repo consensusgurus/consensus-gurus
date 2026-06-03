@@ -223,7 +223,7 @@ export default function SnapshotClient({ listId }) {
         backgroundColor: COLORS.cream,
       });
       const link = document.createElement('a');
-      link.download = `consensus-gurus-${list.id}-${mode}.png`;
+      link.download = `source-of-truths-${list.id}-${mode}.png`;
       link.href = dataUrl;
       link.click();
     } catch (e) {

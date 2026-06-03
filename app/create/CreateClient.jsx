@@ -153,7 +153,7 @@ export default function CreateClient({ lists }) {
       await toPng(boardRef.current, opts);
       const dataUrl = await toPng(boardRef.current, opts);
       const link = document.createElement('a');
-      link.download = 'consensus-gurus-grid.png';
+      link.download = 'source-of-truths-grid.png';
       link.href = dataUrl;
       link.click();
     } catch (e) {
