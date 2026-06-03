@@ -1556,7 +1556,6 @@ function DataRow({ rank, item, list, unranked, showPrice }) {
         gap: unranked ? 14 : 18,
         padding: '20px 0',
         borderBottom: `1px solid ${COLORS.ink}`,
-        opacity: !unranked && rank > 10 ? 0.85 : 1,
       }}
     >
       {unranked ? (
@@ -1583,6 +1582,7 @@ function DataRow({ rank, item, list, unranked, showPrice }) {
             fontSize: isTop ? 64 : showFullSize ? 44 : 32,
             lineHeight: 0.85,
             color: isTop ? COLORS.ember : rank > 10 ? COLORS.faded : COLORS.ink,
+            opacity: rank > 10 ? 0.85 : 1,
             width: 50,
             flexShrink: 0,
             textAlign: 'left',
@@ -1604,6 +1604,7 @@ function DataRow({ rank, item, list, unranked, showPrice }) {
             lineHeight: 1.15,
             color: COLORS.ink,
             letterSpacing: '-0.01em',
+            opacity: !unranked && rank > 10 ? 0.85 : 1,
           }}
         >
           <span>{display}</span>
