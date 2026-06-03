@@ -104,8 +104,17 @@ export default async function Image({ params }) {
     const res = await fetch('https://cdn.jsdelivr.net/npm/@fontsource/fraunces@5.0.20/files/fraunces-latin-900-normal.woff')
     if (res.ok) frauncesData = await res.arrayBuffer()
   } catch (e) { frauncesData = null }
-  const fonts = frauncesData ? [{ name: 'Fraunces', data: frauncesData, weight: 900, style: 'normal' }] : []
+  let dmData = null
+  try {
+    const res2 = await fetch('https://cdn.jsdelivr.net/npm/@fontsource/dm-serif-display@5/files/dm-serif-display-latin-400-italic.woff')
+    if (res2.ok) dmData = await res2.arrayBuffer()
+  } catch (e) { dmData = null }
+  const fonts = [
+    ...(frauncesData ? [{ name: 'Fraunces', data: frauncesData, weight: 900, style: 'normal' }] : []),
+    ...(dmData ? [{ name: 'DMSerif', data: dmData, weight: 400, style: 'italic' }] : []),
+  ]
   const ff = frauncesData ? 'Fraunces' : 'serif'
+  const dmFF = dmData ? 'DMSerif' : 'serif'
 
   const isUnranked = (list.mode || 'both') === 'unranked'
   const consensusItems = computeConsensus(list)
@@ -118,8 +127,9 @@ export default async function Image({ params }) {
       <div style={{ width: '100%', height: '100%', display: 'flex', flexDirection: 'column', justifyContent: 'space-between', background: '#f4ead5', padding: '40px 72px', fontFamily: ff }}>
         <div style={{ display: 'flex', flexDirection: 'column' }}>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', paddingBottom: 12, marginBottom: 18, borderBottom: '1px solid #1a1a1a', boxShadow: 'inset 0 -6px 0 #f4ead5, inset 0 -7px 0 #1a1a1a' }}>
-            <div style={{ display: 'flex', fontSize: 24, letterSpacing: 4, textTransform: 'uppercase', color: '#1a1a1a', fontWeight: 600 }}>
-              Source of Truths
+            <div style={{ display: 'flex', alignItems: 'baseline', textTransform: 'uppercase' }}>
+              <div style={{ display: 'flex', fontSize: 24, letterSpacing: 4, color: '#1a1a1a', fontWeight: 600, marginRight: 10 }}>Source of</div>
+              <div style={{ display: 'flex', fontSize: 30, fontFamily: dmFF, fontStyle: 'italic', color: '#c0392b' }}>Truths</div>
             </div>
             <div style={{ display: 'flex', fontSize: 18, color: '#c0392b', textTransform: 'uppercase', letterSpacing: 2, fontWeight: 600 }}>
               {list.category || 'Top Ten'}
