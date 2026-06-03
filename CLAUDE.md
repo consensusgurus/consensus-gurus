@@ -1,6 +1,6 @@
-# Consensus Gurus — Working Instructions & List Creation Rules
+# Source of Truths — Working Instructions & List Creation Rules
 
-This file is the single, auto-loaded source of truth for working on consensusgurus.com. It lives at the
+This file is the single, auto-loaded source of truth for working on sourceoftruths.com. It lives at the
 root of the repo, and Cowork loads it every session, so there is no need to paste anything into chat.
 
 ## Setup & site overview
