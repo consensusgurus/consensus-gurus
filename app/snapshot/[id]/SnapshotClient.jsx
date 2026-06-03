@@ -555,7 +555,7 @@ const Poster = React.forwardRef(function Poster({ list, items, modeLabel, source
         }}
       >
         <span style={{ fontWeight: 600 }}>Source of Truths</span>
-        <span style={{ color: COLORS.faded, fontSize: 14 }}>For All of the Important Aspects of Life</span>
+        <span style={{ color: COLORS.faded, fontSize: 14 }} />
         <span style={{ color: COLORS.faded, fontSize: 14 }}>sourceoftruths.com</span>
       </div>
 
