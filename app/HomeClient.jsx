@@ -734,7 +734,7 @@ function Tile({ list, rank, views, voteData, extras, onClick, showConsensus, fea
                     flex: '0 0 auto',
                     visibility: shown ? 'visible' : 'hidden',
                     pointerEvents: shown ? 'auto' : 'none',
-                    background: '#e3d9c3',
+                    background: hover ? '#d9ccb0' : COLORS.paper,
                     border: `1.5px solid ${COLORS.ink}`,
                     padding: '8px 12px',
                     display: 'flex',
