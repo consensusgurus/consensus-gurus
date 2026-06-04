@@ -616,11 +616,28 @@ and survival and praise its historical accuracy." Do not invent the consensus; i
   ASCII apostrophes, exact parentheticals).
 - Rollout is batched by traffic (view counts from `/api/bootstrap`); ~159 lists total.
 
-### Hero images for the consensus top 3
-- `lib/hero-images.js` maps list ID -> item name -> a path under `/public/heroes/<listId>/<slug>.webp`.
-- Images are pre-optimized WebP, ~640px wide, quality ~70, target 25-60KB. `HeroPhoto` in
-  `ListOverview.jsx` renders them with `loading="lazy"` + `decoding="async"` and falls back to the
-  PhotoBox placeholder if missing or 404ing, so memory/bandwidth cost stays minimal.
+### Hero images for the consensus top 3 (one picture per item, by URL)
+- `lib/hero-images.js` maps list ID -> item name -> `{ src, credit, creditUrl }`. `src` is a **remote
+  https image URL**; the site's built-in image optimizer (next/image, `remotePatterns` in
+  `next.config.js`) fetches, resizes, WebP-converts, and CDN-caches it at request time. **No image
+  bytes are ever stored in the repo or pass through Claude** (the Cowork sandbox cannot download
+  images; that constraint drove this design — do not attempt byte-level acquisition).
+- `credit` is REQUIRED: the photo's source (venue / publication / photographer), rendered as a small
+  overlay caption linking to `creditUrl`. Legacy plain-string local paths still render but carry no
+  credit; replace them as lists are touched.
+- **Dish lists get dish photos** (burgers, wings, tacos, pizza, breakfast sandwiches...): the photo
+  must show the dish at that spot, never the storefront — same logic as `picsTerm`. Venue-type lists
+  (hotels, bars, breweries) use the venue/property shot.
+- **Gathering URLs (fast, via connected Chrome):** Google Images search `"<item> <locality> <dish>"`,
+  click the best candidate to open the preview, then run JS to surface the full-res source URL via the
+  tab title (long URLs in JS results get blocked by the output filter; `document.title='IMG::'+img.src`
+  and reading the tab context is the reliable route):
+  `const imgs=[...document.querySelectorAll('img')].filter(i=>i.naturalWidth>400 && !/google\.com|gstatic/.test(i.src)).sort((a,b)=>b.naturalWidth*b.naturalHeight-a.naturalWidth*a.naturalHeight); if(imgs[0]){document.title='IMG::'+imgs[0].src.slice(0,250);}`
+- Source preference: venue's own site/gallery (credit venue + photographer if named) > editorial
+  (Eater, The Infatuation, Time Out...; credit the publication) > platform photos. Prefer stable CDN
+  hosts. If a URL dies later, the tile silently falls back to the PhotoBox placeholder.
+- If the displayed photo looks wrong/low-res after deploy, swap the URL — never ship a generated
+  placeholder image as if it were a photo.
 
 ### Consensus change alerts (research queue)
 - Tables `consensus_snapshots` + `consensus_alerts` (migration `08_consensus_alerts.sql`).

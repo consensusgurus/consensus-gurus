@@ -1,5 +1,6 @@
 'use client';
 import React, { useState } from 'react';
+import Image from 'next/image';
 import { MapPin, Globe, Camera, ArrowRight, ArrowLeft, Eye, PenLine, Share2, ShoppingBag, ExternalLink } from 'lucide-react';
 import { COLORS } from '@/lib/data';
 import { DESCRIPTIONS } from '@/lib/descriptions';
@@ -156,27 +157,47 @@ function LinkRow({ links, pics, websiteLabel, list }) {
 // Optimized hero photo. Lazy-loaded, async-decoded WebP: the browser only
 // fetches and decodes it when the tile nears the viewport, so memory and
 // bandwidth cost stay minimal. Falls back to PhotoBox if the file 404s.
-function HeroPhoto({ src, alt }) {
+function HeroPhoto({ photo, alt }) {
   const [failed, setFailed] = useState(false);
-  if (failed) return <PhotoBox />;
+  const src = typeof photo === 'string' ? photo : photo?.src;
+  const credit = photo && typeof photo === 'object' ? photo.credit : null;
+  const creditUrl = photo && typeof photo === 'object' ? photo.creditUrl : null;
+  if (!src || failed) return <PhotoBox />;
   return (
-    <img
-      src={src}
-      alt={alt}
-      loading="lazy"
-      decoding="async"
-      width={640}
-      height={480}
-      onError={() => setFailed(true)}
-      style={{
-        width: '100%',
-        height: '100%',
-        minHeight: 200,
-        objectFit: 'cover',
-        display: 'block',
-        flexShrink: 0,
-      }}
-    />
+    <div style={{ position: 'relative', minHeight: 200, flexShrink: 0, overflow: 'hidden' }}>
+      <Image
+        src={src}
+        alt={alt}
+        fill
+        sizes="(max-width: 700px) 100vw, 240px"
+        onError={() => setFailed(true)}
+        style={{ objectFit: 'cover' }}
+      />
+      {credit && (
+        <a
+          href={creditUrl || undefined}
+          target="_blank"
+          rel="noopener noreferrer"
+          style={{
+            position: 'absolute',
+            bottom: 0,
+            right: 0,
+            zIndex: 1,
+            fontFamily: 'DM Mono, monospace',
+            fontSize: 7,
+            letterSpacing: '0.08em',
+            textTransform: 'uppercase',
+            color: 'rgba(244,237,224,0.92)',
+            background: 'rgba(26,22,17,0.55)',
+            padding: '3px 7px',
+            textDecoration: 'none',
+            pointerEvents: creditUrl ? 'auto' : 'none',
+          }}
+        >
+          Photo: {credit}
+        </a>
+      )}
+    </div>
   );
 }
 
@@ -244,7 +265,7 @@ function HeroTile({ item, rank, list, desc, pics }) {
         ...tileChrome,
       }}
     >
-      {heroSrc ? <HeroPhoto src={heroSrc} alt={displayName} /> : <PhotoBox />}
+      {heroSrc ? <HeroPhoto photo={heroSrc} alt={displayName} /> : <PhotoBox />}
       <div
         style={{
           padding: '20px 22px 18px',
