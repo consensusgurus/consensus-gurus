@@ -29,7 +29,7 @@ function mapsPlaceUrl(name) {
   return `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(cleaned)}`;
 }
 
-export default function AdminClient({ initialLists, initialExtras = [], initialComplaints = [], initialVoteStandings = [], initialVoteEvents = [], initialAlerts = [] }) {
+export default function AdminClient({ initialLists, initialExtras = [], initialComplaints = [], initialVoteStandings = [], initialVoteEvents = [], initialAlerts = [], initialViews24h = [] }) {
   const router = useRouter();
   const [lists, setLists] = useState(initialLists);
   const [extras, setExtras] = useState(initialExtras);
@@ -37,6 +37,7 @@ export default function AdminClient({ initialLists, initialExtras = [], initialC
   const [complaints, setComplaints] = useState(initialComplaints);
   const [voteStandings] = useState(initialVoteStandings);
   const [voteEvents] = useState(initialVoteEvents);
+  const [views24h] = useState(initialViews24h);
   const [tab, setTab] = useState('pending');
   const [busy, setBusy] = useState({});
 
@@ -51,6 +52,10 @@ export default function AdminClient({ initialLists, initialExtras = [], initialC
     [extras]
   );
   const complaintsCount = complaints.length;
+  const views24hTotal = useMemo(
+    () => views24h.reduce((n, v) => n + (v.views24h || 0), 0),
+    [views24h]
+  );
 
   async function dismissComplaint(id) {
     const key = `c-${id}`;
@@ -312,9 +317,14 @@ export default function AdminClient({ initialLists, initialExtras = [], initialC
           <TabButton active={tab === 'research'} onClick={() => setTab('research')}>
             Research <span style={{ opacity: 0.6 }}>{alerts.length}</span>
           </TabButton>
+          <TabButton active={tab === 'views'} onClick={() => setTab('views')}>
+            Views <span style={{ opacity: 0.6 }}>{views24hTotal}</span>
+          </TabButton>
         </div>
 
-        {tab === 'research' ? (
+        {tab === 'views' ? (
+          <ViewsPanel views={views24h} total={views24hTotal} />
+        ) : tab === 'research' ? (
           <ResearchPanel alerts={alerts} busy={busy} onResolve={resolveAlert} />
         ) : tab === 'votes' ? (
           <VotesPanel standings={voteStandings} events={voteEvents} />
@@ -358,6 +368,112 @@ export default function AdminClient({ initialLists, initialExtras = [], initialC
           </div>
         )}
       </div>
+    </div>
+  );
+}
+
+// Views panel: per-list visitor counts over the rolling past 24 hours.
+function ViewsPanel({ views, total }) {
+  const [query, setQuery] = useState('');
+
+  const visible = useMemo(() => {
+    const q = query.trim().toLowerCase();
+    if (!q) return views;
+    return views.filter(
+      (v) => v.title.toLowerCase().includes(q) || v.listId.toLowerCase().includes(q)
+    );
+  }, [views, query]);
+
+  if (!views || views.length === 0) {
+    return (
+      <div
+        style={{
+          padding: '60px 20px',
+          textAlign: 'center',
+          fontFamily: 'Fraunces, serif',
+          fontStyle: 'italic',
+          fontSize: 18,
+          color: COLORS.faded,
+          border: `1.5px dashed ${COLORS.ink}`,
+        }}
+      >
+        No view data yet.
+      </div>
+    );
+  }
+
+  const rowBorder = `1px solid ${COLORS.ink}22`;
+  const activeLists = views.filter((v) => v.views24h > 0).length;
+
+  return (
+    <div>
+      <p style={{ fontFamily: 'DM Sans, sans-serif', fontSize: 13, color: COLORS.faded, margin: '0 0 14px' }}>
+        Visitor counts per list page over the rolling past 24 hours, busiest first.
+        {' '}{total} view{total === 1 ? '' : 's'} across {activeLists} list{activeLists === 1 ? '' : 's'}.
+        All-time totals shown for context.
+      </p>
+      <input
+        value={query}
+        onChange={(e) => setQuery(e.target.value)}
+        placeholder="Filter by list title or id…"
+        style={{
+          width: '100%',
+          padding: '10px 12px',
+          background: COLORS.paper,
+          border: `1.5px solid ${COLORS.ink}`,
+          color: COLORS.ink,
+          fontFamily: 'DM Mono, monospace',
+          fontSize: 12,
+          outline: 'none',
+          marginBottom: 16,
+          boxSizing: 'border-box',
+        }}
+      />
+      {visible.length === 0 ? (
+        <div
+          style={{
+            padding: '40px 20px',
+            textAlign: 'center',
+            fontFamily: 'Fraunces, serif',
+            fontStyle: 'italic',
+            fontSize: 16,
+            color: COLORS.faded,
+            border: `1.5px dashed ${COLORS.ink}`,
+          }}
+        >
+          No matches.
+        </div>
+      ) : (
+        <div style={{ border: `1.5px solid ${COLORS.ink}` }}>
+          <div style={{ display: 'flex', fontFamily: 'DM Mono, monospace', fontSize: 10, letterSpacing: '0.14em', textTransform: 'uppercase', color: COLORS.faded, padding: '10px 14px', borderBottom: `1.5px solid ${COLORS.ink}` }}>
+            <span style={{ flex: '0 0 36px' }}>#</span>
+            <span style={{ flex: 3 }}>List</span>
+            <span style={{ flex: '0 0 100px', textAlign: 'right' }}>Last 24h</span>
+            <span style={{ flex: '0 0 100px', textAlign: 'right' }}>All time</span>
+          </div>
+          {visible.map((v, i) => (
+            <div
+              key={v.listId}
+              style={{ display: 'flex', alignItems: 'center', fontFamily: 'DM Sans, sans-serif', fontSize: 13, color: COLORS.ink, padding: '9px 14px', borderBottom: i < visible.length - 1 ? rowBorder : 'none', opacity: v.views24h > 0 ? 1 : 0.55 }}
+            >
+              <span style={{ flex: '0 0 36px', fontFamily: 'DM Mono, monospace', fontSize: 11, color: COLORS.faded }}>
+                {i + 1}
+              </span>
+              <span style={{ flex: 3, minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                <Link href={`/list/${encodeURIComponent(v.listId)}`} target="_blank" style={{ color: COLORS.ink, textDecoration: 'none' }}>
+                  {v.title}
+                </Link>
+              </span>
+              <span style={{ flex: '0 0 100px', textAlign: 'right', fontFamily: 'DM Mono, monospace', fontWeight: 700, color: v.views24h > 0 ? COLORS.ember : COLORS.faded }}>
+                {v.views24h}
+              </span>
+              <span style={{ flex: '0 0 100px', textAlign: 'right', fontFamily: 'DM Mono, monospace', fontSize: 11, color: COLORS.faded }}>
+                {v.viewsTotal}
+              </span>
+            </div>
+          ))}
+        </div>
+      )}
     </div>
   );
 }
