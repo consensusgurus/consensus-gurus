@@ -664,6 +664,20 @@ if (missing.length) throw new Error('Missing descriptions: ' + missing.join(', '
   hosts. If a URL dies later, the tile silently falls back to the PhotoBox placeholder.
 - If the displayed photo looks wrong/low-res after deploy, swap the URL — never ship a generated
   placeholder image as if it were a photo.
+- **MANDATORY aesthetic review — LOOK at every hero photo before shipping it.** Open each candidate
+  full-size in the connected Chrome and visually judge it as a magazine cover editor would. The
+  standard is "postcard-grade": dramatic light or color, a clearly recognizable iconic subject,
+  clean composition. REJECT: drab/grey weather, a half-frame of dirt or scrub, blank stone walls or
+  ruins with no charm, cluttered snapshots, tilted horizons, watermarked stock previews, anything
+  that reads "tourist phone photo." Convenience is not a criterion — never take the first
+  acceptable API/search result without seeing it rendered (a Commons result can be technically
+  fine and visually dull; that mistake shipped a drab rock-wall photo as the Paros hero once).
+  Landscape orientation strongly preferred for the overview tiles. If the first search yields
+  nothing beautiful, change the query (add "aerial", "sunset", "panorama", the iconic landmark
+  name) and keep looking — for famous subjects a stunning shot always exists.
+- **Stable-host check for hotlinked URLs:** prefer images.pexels.com / editorial CDNs /
+  upload.wikimedia.org / venue sites; avoid expiring signed URLs (fbcdn, Instagram CDN,
+  googleusercontent thumbnails) — they die and blank the tile.
 
 ### Consensus change alerts (research queue)
 - Tables `consensus_snapshots` + `consensus_alerts` (migration `08_consensus_alerts.sql`).
