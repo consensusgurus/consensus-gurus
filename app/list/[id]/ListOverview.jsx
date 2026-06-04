@@ -3,6 +3,7 @@ import React, { useState } from 'react';
 import { MapPin, Globe, Camera, ArrowRight, ArrowLeft, Eye, PenLine, Share2, ShoppingBag, ExternalLink } from 'lucide-react';
 import { COLORS } from '@/lib/data';
 import { DESCRIPTIONS } from '@/lib/descriptions';
+import { HERO_IMAGES } from '@/lib/hero-images';
 import { getSources, buildItemLink } from '@/lib/helpers';
 
 // Splits "Name (Locality)" into { displayName, locality }.
@@ -152,6 +153,33 @@ function LinkRow({ links, pics, websiteLabel, list }) {
 }
 
 // Photo placeholder (shown until real heroImages are wired up).
+// Optimized hero photo. Lazy-loaded, async-decoded WebP: the browser only
+// fetches and decodes it when the tile nears the viewport, so memory and
+// bandwidth cost stay minimal. Falls back to PhotoBox if the file 404s.
+function HeroPhoto({ src, alt }) {
+  const [failed, setFailed] = useState(false);
+  if (failed) return <PhotoBox />;
+  return (
+    <img
+      src={src}
+      alt={alt}
+      loading="lazy"
+      decoding="async"
+      width={640}
+      height={480}
+      onError={() => setFailed(true)}
+      style={{
+        width: '100%',
+        height: '100%',
+        minHeight: 200,
+        objectFit: 'cover',
+        display: 'block',
+        flexShrink: 0,
+      }}
+    />
+  );
+}
+
 function PhotoBox({ style }) {
   return (
     <div
@@ -204,6 +232,7 @@ function HeroTile({ item, rank, list, desc, pics }) {
   const { displayName, locality } = parseItem(item);
   const links = buildLinks(item, list);
   const medal = MEDAL_COLORS[rank - 1];
+  const heroSrc = (HERO_IMAGES[list.id] || {})[item];
 
   return (
     <div
@@ -215,7 +244,7 @@ function HeroTile({ item, rank, list, desc, pics }) {
         ...tileChrome,
       }}
     >
-      <PhotoBox />
+      {heroSrc ? <HeroPhoto src={heroSrc} alt={displayName} /> : <PhotoBox />}
       <div
         style={{
           padding: '20px 22px 18px',
