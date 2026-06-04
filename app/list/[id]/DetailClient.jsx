@@ -1520,7 +1520,7 @@ function entryPicsConfig(list) {
   const venueKey = `${list.title || ''} ${list.id || ''}`.toLowerCase();
   const isVenue = /brewer|beach[\s-]?club|winer|distiller/.test(venueKey);
   if (isVenue) return { label: 'Pics:', links: [['yelp', 'Yelp'], ['google', 'Google']] };
-  // Bars / nightlife: "Pics:" — checked before food so that bars carrying
+  // Bars / nightlife: "Pics:" - checked before food so that bars carrying
   // the food-drink tag are not incorrectly labelled "Food Pics:".
   const isBar = tags.includes('bars') || tags.includes('nightlife');
   if (isBar) return { label: 'Pics:', links: [['yelp', 'Yelp'], ['google', 'Google']] };
@@ -1934,4 +1934,14 @@ export default function DetailClient({ listId, view = 'overview' }) {
               fontSize: 11,
               letterSpacing: '0.2em',
               textTransform: 'uppercase',
-              cursor: 'po
+              cursor: 'pointer',
+            }}
+          >
+            Back home
+          </button>
+        </div>
+      )}
+      <Footer />
+    </div>
+  );
+}
