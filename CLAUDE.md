@@ -475,10 +475,14 @@ source.
 
 A location-based list opts into the list-page hover menu by adding an `itemLinks` object mapping each exact item name to its official **Website** URL (gathered live, never guessed). When present, hovering a ranked entry reveals: **Website** (from `itemLinks`), **Map** (the existing `mapsCity` link), and a category-specific "pics" group built automatically from the item name + neighborhood:
 
-- **Food / restaurants (default):** label `Food Pics:` with `Yelp` and `Google`.
-- **Hotels / resorts** (`type: 'travel'`, or a `travel`/`luxury` tag): label `Property Pics:` with `TripAdvisor` and `Google`.
-- **Bars** (`bars`/`nightlife` tag): label `Pics:` with `Yelp` and `Google`.
-- **Venue-first places that are not eating establishments — beach clubs, breweries, wineries, distilleries:** label `Pics:` with `Yelp` and `Google`, never `Food Pics:`. These venues serve food but people don't visit them as restaurants, so a `Food Pics` label is wrong even when the list carries `food`/`food-drink` tags. Detected in `entryPicsConfig` by title/id keyword (`brewer`, `beach club`, `winer`, `distiller`) and checked BEFORE the food/bar/hotel tag logic. When building a new list for another venue type of this kind (e.g. cideries, sake breweries), add its keyword to the regex in `entryPicsConfig` rather than relying on tags.
+**Rule: only explicit food-type restaurant lists (where the point is the meal) get `Food Pics:`. Everything else — bars, beach clubs, breweries, hotels, wineries, distilleries — gets plain `Pics:`.**
+
+The priority order in `entryPicsConfig` (highest to lowest):
+1. **Venue keyword match** (title/id contains `brewer`, `beach club`, `winer`, `distiller`): `Pics:` with `Yelp` and `Google`. Add new venue types here.
+2. **Bars / nightlife** (`bars` or `nightlife` tag): `Pics:` with `Yelp` and `Google`. Checked *before* food so bars carrying the `food-drink` tag are not mislabelled.
+3. **Food venues** (`type: 'food'` OR `food`/`food-drink` tag, and no bar tag): `Food Pics:` with `Yelp` and `Google`. Only reaches this branch if not a bar or venue.
+4. **Hotels / resorts** (`type: 'travel'` or `travel`/`luxury` tag): `Pics:` with `TripAdvisor` and `Google`.
+5. **Default fallback**: `Pics:` with `Yelp` and `Google`.
 
 The `Google` link defaults to Google **Image** search (`&tbm=isch`) so it lands on photos directly, not a web-results page. Only the Website per item needs gathering; Map / Yelp / Google / TripAdvisor are constructed from the name. Implemented in `buildAuxLinks` and `entryPicsConfig` in `app/list/[id]/DetailClient.jsx`. The reveal uses a generous `max-height` so wrapped chips are not clipped on mobile.
 
@@ -819,3 +823,4 @@ if (missing.length) throw new Error('Missing descriptions: ' + missing.join(', '
     },
     eater: {
       lab
+      
