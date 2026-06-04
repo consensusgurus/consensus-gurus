@@ -953,14 +953,6 @@ function ListDetail({ list, viewCount, voteData, userVotes, extras, relatedLists
         </>
       ) : showVoteTab ? (
         <>
-          {mode !== 'votes' && (
-            <button
-              onClick={() => setTab('source')}
-              style={{ display: 'inline-flex', alignItems: 'center', gap: 8, marginBottom: 24, cursor: 'pointer', background: 'transparent', color: COLORS.ink, border: `1.5px solid ${COLORS.ink}`, padding: '10px 18px', fontFamily: 'DM Mono, monospace', fontSize: 11, letterSpacing: '0.14em', textTransform: 'uppercase', fontWeight: 600 }}
-            >
-              <ArrowLeft size={14} strokeWidth={2.5} /> Back to Sources
-            </button>
-          )}
           {voteMessage && (
             <div
               style={{
