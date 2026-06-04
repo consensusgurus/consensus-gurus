@@ -491,7 +491,7 @@ function ListDetail({ list, viewCount, voteData, userVotes, extras, relatedLists
           }}
         >
           <ArrowLeft size={14} strokeWidth={2.5} />
-          Back to all lists
+          Back to detailed list
         </button>
       )}
 
