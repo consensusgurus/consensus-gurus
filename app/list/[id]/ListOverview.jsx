@@ -176,9 +176,11 @@ function PhotoBox({ style }) {
           color: '#9a8e7a',
           position: 'relative',
           zIndex: 1,
+          textAlign: 'center',
+          padding: '0 12px',
         }}
       >
-        Photo
+        Curating a Fancy Photo
       </span>
     </div>
   );
@@ -262,18 +264,17 @@ function HeroTile({ item, rank, list, desc, pics }) {
           >
             {displayName}
           </p>
-          {desc && (
-            <p
-              style={{
-                fontSize: 12,
-                color: '#5a5045',
-                lineHeight: 1.55,
-                margin: '0 0 4px',
-              }}
-            >
-              {desc}
-            </p>
-          )}
+          <p
+            style={{
+              fontSize: 12,
+              color: desc ? '#5a5045' : COLORS.faded,
+              fontStyle: desc ? 'normal' : 'italic',
+              lineHeight: 1.55,
+              margin: '0 0 4px',
+            }}
+          >
+            {desc || 'Wordsmithing a perfect description'}
+          </p>
         </div>
         <LinkRow links={links} pics={pics} websiteLabel="Website" />
       </div>
@@ -345,19 +346,18 @@ function SmallTile({ item, rank, list, desc, pics }) {
       >
         {displayName}
       </p>
-      {desc && (
-        <p
-          style={{
-            fontSize: 11,
-            color: '#5a5045',
-            lineHeight: 1.5,
-            margin: '0 0 10px',
-            flex: 1,
-          }}
-        >
-          {desc}
-        </p>
-      )}
+      <p
+        style={{
+          fontSize: 11,
+          color: desc ? '#5a5045' : COLORS.faded,
+          fontStyle: desc ? 'normal' : 'italic',
+          lineHeight: 1.5,
+          margin: '0 0 10px',
+          flex: 1,
+        }}
+      >
+        {desc || 'Wordsmithing a perfect description'}
+      </p>
       <div style={{ marginTop: 'auto', paddingTop: 10 }}>
         <LinkRow links={links} pics={pics} websiteLabel="Site" />
       </div>
