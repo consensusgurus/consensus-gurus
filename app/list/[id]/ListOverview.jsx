@@ -1,6 +1,6 @@
 'use client';
 import React from 'react';
-import { MapPin, Globe, Camera, ChevronDown, ArrowLeft } from 'lucide-react';
+import { MapPin, Globe, Camera, ArrowRight, ArrowLeft } from 'lucide-react';
 import { COLORS } from '@/lib/data';
 import { DESCRIPTIONS } from '@/lib/descriptions';
 import { getSources, buildItemLink } from '@/lib/helpers';
@@ -18,7 +18,9 @@ const GENERIC_CATEGORIES = new Set([
   'other', 'food', 'food-drink', 'stores', 'nightlife', 'bars', 'luxury',
 ]);
 
-// Build Map / Website / Yelp / TripAdvisor links for one item.
+// Build Map / Website / Yelp / Google-pics / TripAdvisor links for one item.
+// Mirrors buildAuxLinks in DetailClient: Yelp/TripAdvisor only when a real
+// business-page URL is stored; Google is always an image search (picsTerm-aware).
 function buildLinks(name, list) {
   const m = name.match(/^(.*?)\s*\(([^)]*)\)\s*$/);
   const base = m ? m[1].trim() : name;
@@ -30,13 +32,29 @@ function buildLinks(name, list) {
     if (!loc) loc = anchor;
     else if (!loc.toLowerCase().includes(anchor.toLowerCase())) loc = `${loc}, ${anchor}`;
   }
+  const picsTerm = (list.picsTerm || '').trim();
+  const gq = encodeURIComponent((base + ' ' + loc + ' ' + picsTerm).replace(/\s+/g, ' ').trim());
   const pick = (map) => (map && (map[name] || map[base])) || null;
   return {
     map: buildItemLink(name, list),
     website: pick(list.itemLinks),
     yelp: pick(list.itemYelp),
+    google: `https://www.google.com/search?q=${gq}&tbm=isch`,
     tripadvisor: pick(list.itemTripadvisor),
   };
+}
+
+// Per-category "pics" convention — mirrors entryPicsConfig in DetailClient.
+function picsConfig(list) {
+  const tags = list.tags || [];
+  const type = list.type || '';
+  const isFood = type === 'food' || tags.includes('food') || tags.includes('food-drink');
+  const isBar = tags.includes('bars') || tags.includes('nightlife');
+  const isHotel = !isFood && !isBar && (type === 'travel' || tags.includes('travel') || tags.includes('luxury'));
+  if (isFood) return { label: 'Food Pics:', links: [['yelp', 'Yelp'], ['google', 'Google']] };
+  if (isBar) return { label: 'Pics:', links: [['yelp', 'Yelp'], ['google', 'Google']] };
+  if (isHotel) return { label: 'Pics:', links: [['tripadvisor', 'TripAdvisor'], ['google', 'Google']] };
+  return { label: 'Food Pics:', links: [['yelp', 'Yelp'], ['google', 'Google']] };
 }
 
 // Derive top-10 consensus items depending on list mode.
@@ -77,6 +95,47 @@ function linkBtn(primary) {
     cursor: 'pointer',
     whiteSpace: 'nowrap',
   };
+}
+
+// Homepage-style tile chrome: own border, paper background, small gaps between.
+const tileChrome = {
+  background: COLORS.paper,
+  border: `1.5px solid ${COLORS.ink}`,
+};
+
+// Map / Website / pics chip row shared by all tile sizes.
+function LinkRow({ links, pics, websiteLabel }) {
+  return (
+    <div style={{ display: 'flex', gap: 7, flexWrap: 'wrap', alignItems: 'center' }}>
+      <a href={links.map} target="_blank" rel="noopener noreferrer" style={linkBtn(true)}>
+        <MapPin size={9} strokeWidth={2} /> Map
+      </a>
+      {links.website && (
+        <a href={links.website} target="_blank" rel="noopener noreferrer" style={linkBtn(false)}>
+          <Globe size={9} strokeWidth={2} /> {websiteLabel}
+        </a>
+      )}
+      <span
+        style={{
+          fontFamily: 'DM Mono, monospace',
+          fontSize: 8,
+          letterSpacing: '0.13em',
+          textTransform: 'uppercase',
+          color: COLORS.faded,
+          marginLeft: 4,
+        }}
+      >
+        {pics.label}
+      </span>
+      {pics.links.map(([key, label]) =>
+        links[key] ? (
+          <a key={key} href={links[key]} target="_blank" rel="noopener noreferrer" style={linkBtn(false)}>
+            {label}
+          </a>
+        ) : null
+      )}
+    </div>
+  );
 }
 
 // Photo placeholder (shown until real heroImages are wired up).
@@ -126,7 +185,7 @@ function PhotoBox({ style }) {
 }
 
 // Full-width hero tile (used for ranks 1, 2, 3).
-function HeroTile({ item, rank, list, desc, first }) {
+function HeroTile({ item, rank, list, desc, pics }) {
   const { displayName, locality } = parseItem(item);
   const links = buildLinks(item, list);
   const medal = MEDAL_COLORS[rank - 1];
@@ -138,9 +197,7 @@ function HeroTile({ item, rank, list, desc, first }) {
         gridColumn: 'span 2',
         display: 'grid',
         gridTemplateColumns: 'clamp(160px, 30%, 240px) 1fr',
-        border: `1.5px solid ${COLORS.ink}`,
-        borderTop: first ? `1.5px solid ${COLORS.ink}` : 'none',
-        background: '#ebe2d0',
+        ...tileChrome,
       }}
     >
       <PhotoBox />
@@ -218,43 +275,21 @@ function HeroTile({ item, rank, list, desc, first }) {
             </p>
           )}
         </div>
-        <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
-          <a href={links.map} target="_blank" rel="noopener noreferrer" style={linkBtn(true)}>
-            <MapPin size={9} strokeWidth={2} /> Map
-          </a>
-          {links.website && (
-            <a href={links.website} target="_blank" rel="noopener noreferrer" style={linkBtn(false)}>
-              <Globe size={9} strokeWidth={2} /> Website
-            </a>
-          )}
-          {links.yelp && (
-            <a href={links.yelp} target="_blank" rel="noopener noreferrer" style={linkBtn(false)}>
-              Yelp
-            </a>
-          )}
-          {links.tripadvisor && (
-            <a href={links.tripadvisor} target="_blank" rel="noopener noreferrer" style={linkBtn(false)}>
-              TripAdvisor
-            </a>
-          )}
-        </div>
+        <LinkRow links={links} pics={pics} websiteLabel="Website" />
       </div>
     </div>
   );
 }
 
 // Small tile used for ranks 4-9.
-function SmallTile({ item, rank, list, desc, rightCol }) {
+function SmallTile({ item, rank, list, desc, pics }) {
   const { displayName, locality } = parseItem(item);
   const links = buildLinks(item, list);
 
   return (
     <div
       style={{
-        background: '#ebe2d0',
-        border: `1.5px solid ${COLORS.ink}`,
-        borderTop: 'none',
-        borderLeft: rightCol ? 'none' : `1.5px solid ${COLORS.ink}`,
+        ...tileChrome,
         padding: '16px 18px 14px',
         display: 'flex',
         flexDirection: 'column',
@@ -323,32 +358,15 @@ function SmallTile({ item, rank, list, desc, rightCol }) {
           {desc}
         </p>
       )}
-      <div style={{ display: 'flex', gap: 7, flexWrap: 'wrap', marginTop: 'auto', paddingTop: 10 }}>
-        <a href={links.map} target="_blank" rel="noopener noreferrer" style={linkBtn(true)}>
-          <MapPin size={9} strokeWidth={2} /> Map
-        </a>
-        {links.website && (
-          <a href={links.website} target="_blank" rel="noopener noreferrer" style={linkBtn(false)}>
-            <Globe size={9} strokeWidth={2} /> Site
-          </a>
-        )}
-        {links.yelp && (
-          <a href={links.yelp} target="_blank" rel="noopener noreferrer" style={linkBtn(false)}>
-            Yelp
-          </a>
-        )}
-        {links.tripadvisor && (
-          <a href={links.tripadvisor} target="_blank" rel="noopener noreferrer" style={linkBtn(false)}>
-            TripAdvisor
-          </a>
-        )}
+      <div style={{ marginTop: 'auto', paddingTop: 10 }}>
+        <LinkRow links={links} pics={pics} websiteLabel="Site" />
       </div>
     </div>
   );
 }
 
 // Compact single-row bar used for rank 10.
-function CompactTile({ item, rank, list }) {
+function CompactTile({ item, rank, list, pics }) {
   const { displayName, locality } = parseItem(item);
   const links = buildLinks(item, list);
 
@@ -356,9 +374,7 @@ function CompactTile({ item, rank, list }) {
     <div
       style={{
         gridColumn: 'span 2',
-        background: '#ebe2d0',
-        border: `1.5px solid ${COLORS.ink}`,
-        borderTop: 'none',
+        ...tileChrome,
         padding: '13px 18px',
         display: 'flex',
         alignItems: 'center',
@@ -408,33 +424,17 @@ function CompactTile({ item, rank, list }) {
           </span>
         )}
       </div>
-      <div style={{ display: 'flex', gap: 7 }}>
-        <a href={links.map} target="_blank" rel="noopener noreferrer" style={linkBtn(true)}>
-          <MapPin size={9} strokeWidth={2} /> Map
-        </a>
-        {links.website && (
-          <a href={links.website} target="_blank" rel="noopener noreferrer" style={linkBtn(false)}>
-            <Globe size={9} strokeWidth={2} /> Site
-          </a>
-        )}
-        {links.yelp && (
-          <a href={links.yelp} target="_blank" rel="noopener noreferrer" style={linkBtn(false)}>
-            Yelp
-          </a>
-        )}
-        {links.tripadvisor && (
-          <a href={links.tripadvisor} target="_blank" rel="noopener noreferrer" style={linkBtn(false)}>
-            TripAdvisor
-          </a>
-        )}
-      </div>
+      <LinkRow links={links} pics={pics} websiteLabel="Site" />
     </div>
   );
 }
 
-export default function ListOverview({ list, voteData, extras, onBack }) {
+export default function ListOverview({ list, voteData, extras, onBack, onOpenRankings, onOpenVote }) {
   const items = getItems(list, voteData, extras);
   const descs = DESCRIPTIONS[list.id] || {};
+  const pics = picsConfig(list);
+  const mode = list.mode || 'both';
+  const showVote = mode !== 'facts' && mode !== 'scores' && mode !== 'unranked';
 
   if (!items.length) return null;
 
@@ -442,21 +442,17 @@ export default function ListOverview({ list, voteData, extras, onBack }) {
   const gridItems = items.slice(3, 9);
   const tenthItem = items[9];
 
-  function scrollToRankings() {
-    document.getElementById('lov-rankings')?.scrollIntoView({ behavior: 'smooth' });
-  }
-
   return (
     <div style={{ position: 'relative', zIndex: 2, background: COLORS.cream }}>
       <style>{`
-        .lov-grid{display:grid;grid-template-columns:1fr 1fr;}
+        .lov-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;}
         @media(max-width:700px){
           .lov-grid{grid-template-columns:1fr;}
-          .lov-grid>div{grid-column:auto !important;border-left:1.5px solid ${COLORS.ink} !important;}
+          .lov-grid>div{grid-column:auto !important;}
           .lov-hero{grid-template-columns:1fr !important;}
         }
       `}</style>
-      <div style={{ maxWidth: 1200, margin: '0 auto', padding: '28px 24px 0' }}>
+      <div style={{ maxWidth: 920, margin: '0 auto', padding: '28px 20px 0' }}>
         {/* Condensed header */}
         {onBack && (
           <button
@@ -485,7 +481,7 @@ export default function ListOverview({ list, voteData, extras, onBack }) {
             style={{
               fontFamily: 'Fraunces, serif',
               fontWeight: 800,
-              fontSize: 'clamp(30px, 5vw, 54px)',
+              fontSize: 'clamp(30px, 5vw, 50px)',
               lineHeight: 1.02,
               letterSpacing: '-0.02em',
               margin: 0,
@@ -511,6 +507,28 @@ export default function ListOverview({ list, voteData, extras, onBack }) {
             </div>
             <div style={{ borderBottom: `1px solid ${COLORS.ink}`, marginBottom: 4 }} />
             <div style={{ borderBottom: `2px solid ${COLORS.ember}` }} />
+            {showVote && onOpenVote && (
+              <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: 10 }}>
+                <button
+                  onClick={onOpenVote}
+                  style={{
+                    background: COLORS.ember,
+                    color: COLORS.cream,
+                    border: `1.5px solid ${COLORS.ink}`,
+                    padding: '8px 20px',
+                    fontFamily: 'DM Mono, monospace',
+                    fontSize: 10,
+                    letterSpacing: '0.18em',
+                    textTransform: 'uppercase',
+                    fontWeight: 600,
+                    cursor: 'pointer',
+                    boxShadow: `2px 2px 0 ${COLORS.ink}`,
+                  }}
+                >
+                  Vote
+                </button>
+              </div>
+            )}
           </div>
         </div>
         {list.blurb && (
@@ -529,69 +547,69 @@ export default function ListOverview({ list, voteData, extras, onBack }) {
           </p>
         )}
 
-        {/* 2-column grid container */}
+        {/* Tiled grid (homepage aesthetic: own borders, small gaps) */}
         <div className="lov-grid" style={{ marginTop: 26 }}>
-        {/* Ranks 1-3: full-width hero tiles */}
-        {heroItems.map((item, i) => (
-          <HeroTile
-            key={item}
-            item={item}
-            rank={i + 1}
-            list={list}
-            desc={descs[item]}
-            first={i === 0}
-          />
-        ))}
+          {/* Ranks 1-3: full-width hero tiles */}
+          {heroItems.map((item, i) => (
+            <HeroTile
+              key={item}
+              item={item}
+              rank={i + 1}
+              list={list}
+              desc={descs[item]}
+              pics={pics}
+            />
+          ))}
 
-        {/* Ranks 4-9: 2-column small tiles */}
-        {gridItems.map((item, i) => (
-          <SmallTile
-            key={item}
-            item={item}
-            rank={i + 4}
-            list={list}
-            desc={descs[item]}
-            rightCol={i % 2 === 1}
-          />
-        ))}
+          {/* Ranks 4-9: 2-column small tiles */}
+          {gridItems.map((item, i) => (
+            <SmallTile
+              key={item}
+              item={item}
+              rank={i + 4}
+              list={list}
+              desc={descs[item]}
+              pics={pics}
+            />
+          ))}
 
-        {/* Rank 10: compact bar */}
-        {tenthItem && (
-          <CompactTile item={tenthItem} rank={10} list={list} />
-        )}
-      </div>
+          {/* Rank 10: compact bar */}
+          {tenthItem && (
+            <CompactTile item={tenthItem} rank={10} list={list} pics={pics} />
+          )}
+        </div>
 
-      {/* CTA */}
-      <div
-        style={{
-          padding: '26px 0 34px',
-          display: 'flex',
-          justifyContent: 'center',
-        }}
-      >
-        <button
-          onClick={scrollToRankings}
+        {/* CTA to the full rankings page */}
+        <div
           style={{
-            background: COLORS.ink,
-            color: COLORS.cream,
-            border: `1.5px solid ${COLORS.ink}`,
-            padding: '13px 32px',
-            fontFamily: 'DM Mono, monospace',
-            fontSize: 10,
-            letterSpacing: '0.18em',
-            textTransform: 'uppercase',
-            fontWeight: 600,
-            cursor: 'pointer',
+            padding: '26px 0 34px',
             display: 'flex',
-            alignItems: 'center',
-            gap: 10,
-            boxShadow: `3px 3px 0 ${COLORS.ember}`,
+            justifyContent: 'center',
           }}
         >
-          Full Rankings, Source Detail &amp; Voting
-          <ChevronDown size={13} strokeWidth={2.5} />
-        </button>
-      </div>
+          <button
+            onClick={onOpenRankings}
+            style={{
+              background: COLORS.ink,
+              color: COLORS.cream,
+              border: `1.5px solid ${COLORS.ink}`,
+              padding: '13px 32px',
+              fontFamily: 'DM Mono, monospace',
+              fontSize: 10,
+              letterSpacing: '0.18em',
+              textTransform: 'uppercase',
+              fontWeight: 600,
+              cursor: 'pointer',
+              display: 'flex',
+              alignItems: 'center',
+              gap: 10,
+              boxShadow: `3px 3px 0 ${COLORS.ember}`,
+            }}
+          >
+            Full Rankings, Source Detail &amp; Voting
+            <ArrowRight size={13} strokeWidth={2.5} />
+          </button>
+        </div>
       </div>
     </div>
   );

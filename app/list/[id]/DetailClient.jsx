@@ -123,6 +123,13 @@ function ListDetail({ list, viewCount, voteData, userVotes, extras, relatedLists
   const showVoteTab = mode !== 'facts' && mode !== 'scores' && mode !== 'unranked';
 
   const [tab, setTab] = useState(showSourceTab ? 'source' : 'vote');
+  // Deep-link: /list/[id]/rankings#vote opens straight to the Vote tab.
+  useEffect(() => {
+    if (typeof window !== 'undefined' && window.location.hash === '#vote' && showVoteTab) {
+      setTab('vote');
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
   const [activeVoteSlot, setActiveVoteSlot] = useState(null);
   const [voteSelections, setVoteSelections] = useState({ 1: null, 2: null, 3: null });
   const [userCurrentVote, setUserCurrentVote] = useState({ 1: null, 2: null, 3: null });
@@ -483,60 +490,49 @@ function ListDetail({ list, viewCount, voteData, userVotes, extras, relatedLists
         </button>
       )}
 
-      {!compact && <div style={{ borderBottom: `2px solid ${COLORS.ink}`, paddingBottom: 24, marginTop: 20 }}>
-        <div
-          style={{
-            fontFamily: 'DM Mono, monospace',
-            fontSize: 11,
-            letterSpacing: '0.25em',
-            textTransform: 'uppercase',
-            color: COLORS.ember,
-            marginBottom: 12,
-            display: 'flex',
-            alignItems: 'center',
-            gap: 8,
-            flexWrap: 'wrap',
-          }}
-        >
-          {list.isUserSubmitted && (
-            <span
+      {!compact && <div style={{ paddingBottom: 18, marginTop: 8 }}>
+        <div style={{ display: 'flex', alignItems: 'flex-end', gap: 'clamp(16px, 4vw, 28px)' }}>
+          <h1
+            style={{
+              fontFamily: 'Fraunces, serif',
+              fontWeight: 800,
+              fontSize: 'clamp(30px, 5vw, 50px)',
+              lineHeight: 1.02,
+              letterSpacing: '-0.02em',
+              margin: 0,
+              color: COLORS.ink,
+              fontVariationSettings: '"SOFT" 100',
+            }}
+          >
+            {list.title}
+          </h1>
+          <div style={{ flex: 1, minWidth: 120, marginBottom: 6 }}>
+            <div
               style={{
-                background: COLORS.ink,
-                color: COLORS.cream,
-                padding: '3px 7px',
-                fontSize: 9,
+                fontFamily: 'DM Mono, monospace',
+                fontSize: 'clamp(9px, 1.1vw, 11px)',
                 letterSpacing: '0.2em',
-                fontWeight: 700,
+                textTransform: 'uppercase',
+                color: COLORS.ember,
+                textAlign: 'right',
+                marginBottom: 8,
               }}
             >
-              READER SUBMITTED
-            </span>
-          )}
-          <span>{list.category} · Top Ten</span>
+              {list.isUserSubmitted ? 'Reader Submitted · ' : ''}{list.category} · Top Ten
+            </div>
+            <div style={{ borderBottom: `1px solid ${COLORS.ink}`, marginBottom: 4 }} />
+            <div style={{ borderBottom: `2px solid ${COLORS.ember}` }} />
+          </div>
         </div>
-        <h1
-          style={{
-            fontFamily: 'Fraunces, serif',
-            fontWeight: 900,
-            fontSize: 'clamp(40px, 9vw, 76px)',
-            lineHeight: 1.04,
-            letterSpacing: '-0.03em',
-            margin: 0,
-            color: COLORS.ink,
-            fontVariationSettings: '"SOFT" 100',
-          }}
-        >
-          {list.title}
-        </h1>
         <p
           style={{
             fontFamily: 'Fraunces, serif',
             fontStyle: 'italic',
-            fontSize: 18,
+            fontSize: 16,
             lineHeight: 1.45,
-            margin: '16px 0 0',
+            margin: '12px 0 0',
             color: COLORS.faded,
-            maxWidth: 580,
+            maxWidth: 640,
           }}
         >
           {list.blurb}
@@ -1738,7 +1734,7 @@ function getUserVoteForList(listId) {
   return userVotes[listId] || null;
 }
 
-export default function DetailClient({ listId }) {
+export default function DetailClient({ listId, view = 'overview' }) {
   const router = useRouter();
   const [voteData, setVoteData] = useState({});
   const [userVotes, setUserVotes] = useState({});
@@ -1863,33 +1859,7 @@ export default function DetailClient({ listId }) {
           loading the list
         </div>
       ) : list ? (
-        <>
-          <ListOverview list={list} voteData={voteData} extras={extras} onBack={backHome} />
-          <div
-            id="lov-rankings"
-            style={{
-              position: 'relative',
-              zIndex: 2,
-              borderTop: `1.5px solid ${COLORS.ink}`,
-              borderBottom: `2px solid ${COLORS.ember}`,
-              padding: '14px 24px',
-            }}
-          >
-            <span
-              style={{
-                display: 'block',
-                maxWidth: 1200,
-                margin: '0 auto',
-                fontFamily: 'DM Mono, monospace',
-                fontSize: 10,
-                letterSpacing: '0.2em',
-                textTransform: 'uppercase',
-                color: COLORS.faded,
-              }}
-            >
-              Full Rankings, Source Detail &amp; Voting
-            </span>
-          </div>
+        view === 'detail' ? (
           <ListDetail
             list={list}
             viewCount={viewCount}
@@ -1897,13 +1867,21 @@ export default function DetailClient({ listId }) {
             userVotes={userVotes}
             extras={extras}
             relatedLists={relatedLists}
-            onBack={backHome}
+            onBack={() => router.push(`/list/${encodeURIComponent(list.id)}`)}
             onVote={vote}
             onAddExtra={addExtra}
             onOpenRelated={openRelated}
-            compact
           />
-        </>
+        ) : (
+          <ListOverview
+            list={list}
+            voteData={voteData}
+            extras={extras}
+            onBack={backHome}
+            onOpenRankings={() => router.push(`/list/${encodeURIComponent(list.id)}/rankings`)}
+            onOpenVote={() => router.push(`/list/${encodeURIComponent(list.id)}/rankings#vote`)}
+          />
+        )
       ) : (
         <div style={{ position: 'relative', zIndex: 2, padding: 48, textAlign: 'center' }}>
           <p style={{ fontFamily: 'Fraunces, serif', fontStyle: 'italic', color: COLORS.faded }}>
