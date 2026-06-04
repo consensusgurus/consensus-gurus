@@ -596,9 +596,11 @@ The list overview page (`ListOverview.jsx`) renders, for every list, the live co
 1-2 sentence description per item and a hero photo for ranks 1-3. Three systems support this:
 
 **HARD RULE for every NEW list: it must ship with descriptions for all 10 consensus top-10 items
-(`lib/descriptions.js`) AND hero images for the top 3 (`lib/hero-images.js` + optimized WebP under
-`public/heroes/<listId>/`) before deploy.** This applies to all list types, location and non-location
-alike. A new list without its 10 descriptions and 3 hero images is unfinished.
+(`lib/descriptions.js`) AND one hero photo per top-3 item in `lib/hero-images.js` as
+`{ src: <remote https image URL>, credit, creditUrl }` (see "Hero images" below for the URL-gathering
+pipeline) before deploy.** This applies to all list types, location and non-location alike. A new list
+without its 10 descriptions and 3 credited hero photo URLs is unfinished. Never commit image files;
+never ship generated placeholders.
 
 **Product lists (`linkType: 'amazon'`): each item description = a short product description PLUS the
 "Customers say" consensus.** Amazon product pages carry an AI-generated "Customers say" summary of
