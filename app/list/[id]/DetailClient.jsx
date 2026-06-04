@@ -1515,9 +1515,12 @@ function buildAuxLinks(name, list) {
 function entryPicsConfig(list) {
   const tags = list.tags || [];
   const type = list.type || '';
-  // Breweries are drink-first: plain "Pics:", never "Food Pics:".
-  const isBrewery = `${list.title || ''} ${list.id || ''}`.toLowerCase().includes('brewer');
-  if (isBrewery) return { label: 'Pics:', links: [['yelp', 'Yelp'], ['google', 'Google']] };
+  // Venue-first places that are not eating establishments (breweries, beach
+  // clubs, wineries, distilleries): plain "Pics:", never "Food Pics:", even
+  // when the list carries food/food-drink tags.
+  const venueKey = `${list.title || ''} ${list.id || ''}`.toLowerCase();
+  const isVenue = /brewer|beach[\s-]?club|winer|distiller/.test(venueKey);
+  if (isVenue) return { label: 'Pics:', links: [['yelp', 'Yelp'], ['google', 'Google']] };
   const isFood = type === 'food' || tags.includes('food') || tags.includes('food-drink');
   const isBar = tags.includes('bars') || tags.includes('nightlife');
   const isHotel = !isFood && !isBar && (type === 'travel' || tags.includes('travel') || tags.includes('luxury'));
@@ -1927,15 +1930,4 @@ export default function DetailClient({ listId, view = 'overview' }) {
               fontFamily: 'DM Mono, monospace',
               fontSize: 11,
               letterSpacing: '0.2em',
-              textTransform: 'uppercase',
-              cursor: 'pointer',
-            }}
-          >
-            Back home
-          </button>
-        </div>
-      )}
-      <Footer />
-    </div>
-  );
-}
+              textTrans

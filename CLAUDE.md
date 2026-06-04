@@ -428,6 +428,7 @@ A location-based list opts into the list-page hover menu by adding an `itemLinks
 - **Food / restaurants (default):** label `Food Pics:` with `Yelp` and `Google`.
 - **Hotels / resorts** (`type: 'travel'`, or a `travel`/`luxury` tag): label `Property Pics:` with `TripAdvisor` and `Google`.
 - **Bars** (`bars`/`nightlife` tag): label `Pics:` with `Yelp` and `Google`.
+- **Venue-first places that are not eating establishments — beach clubs, breweries, wineries, distilleries:** label `Pics:` with `Yelp` and `Google`, never `Food Pics:`. These venues serve food but people don't visit them as restaurants, so a `Food Pics` label is wrong even when the list carries `food`/`food-drink` tags. Detected in `entryPicsConfig` by title/id keyword (`brewer`, `beach club`, `winer`, `distiller`) and checked BEFORE the food/bar/hotel tag logic. When building a new list for another venue type of this kind (e.g. cideries, sake breweries), add its keyword to the regex in `entryPicsConfig` rather than relying on tags.
 
 The `Google` link defaults to Google **Image** search (`&tbm=isch`) so it lands on photos directly, not a web-results page. Only the Website per item needs gathering; Map / Yelp / Google / TripAdvisor are constructed from the name. Implemented in `buildAuxLinks` and `entryPicsConfig` in `app/list/[id]/DetailClient.jsx`. The reveal uses a generous `max-height` so wrapped chips are not clipped on mobile.
 
@@ -810,14 +811,4 @@ if (missing.length) throw new Error('Missing descriptions: ' + missing.join(', '
 | Use pricing as a rank input for hotels? | Yes — live rates 5–6 months out, non-holiday Tuesday or Wednesday, ordered descending as a `pricing` Borda source. |
 | How to pick a non-holiday pricing date? | Count 5–6 months forward, confirm the chosen week is ≥7 days from any major holiday (Thanksgiving, Christmas/New Year's, Easter, spring-break peak). Move a week if needed. |
 | Pricing comparison across global regions? | Use rate-as-multiple-of-local-luxury-floor (not absolute USD) when regions have very different cost-of-living baselines. Not needed for single-region lists (Caribbean, European ski, etc.). |
-| How recent must sources be? | Within 2–3 years |
-| Should I over-tag or under-tag? | Always over-tag |
-
----
-
-## Single-City Chain Ranking Lists (e.g. "Best-Run Chipotle in Manhattan")
-
-A different kind of list: instead of ranking *different* restaurants by editorial acclaim, this ranks the *individual locations of one chain* within a city by how well each is run, using customer-rating platforms as the sources. The first one built was `best-run-chipotle-manhattan`. These lists follow their own rules, which differ from the editorial-source lists above.
-
-### What "best" means here
-"Best-run" = highest customer satisfaction across rating p
+| H
