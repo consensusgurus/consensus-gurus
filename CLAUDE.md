@@ -616,6 +616,23 @@ and survival and praise its historical accuracy." Do not invent the consensus; i
   ASCII apostrophes, exact parentheticals).
 - Rollout is batched by traffic (view counts from `/api/bootstrap`); ~159 lists total.
 
+**CRITICAL — always compute the Borda consensus BEFORE writing descriptions, not after.** The `ai` seed (`list.sources.ai.items`) is a manually curated placeholder that is EXCLUDED from Borda scoring. The actual consensus top 10 is driven by the ranked editorial sources and often differs from the seed. Writing descriptions for the seed items and not the real consensus items is the mistake that causes blank tiles on the overview page. The correct workflow:
+
+1. Finish building all sources in `lib/data.js`.
+2. Run the Borda computation (either mentally or with a quick node script) to identify the real consensus top 10.
+3. Write descriptions for those 10 items — not for the seed, not for what seems like the "obvious" top 10.
+4. Verify with a script: load `LISTS` + `DESCRIPTIONS`, call `computeConsensus(list)`, confirm every item in the result has a description key.
+
+Example node check (run before every deploy of a new list):
+```javascript
+import { LISTS } from './lib/data.js';
+import { DESCRIPTIONS } from './lib/descriptions.js';
+// (paste computeConsensus() from the scripts above)
+const top10 = computeConsensus(LISTS.find(l => l.id === 'your-list-id'));
+const missing = top10.filter(item => !(DESCRIPTIONS['your-list-id'] || {})[item]);
+if (missing.length) throw new Error('Missing descriptions: ' + missing.join(', '));
+```
+
 ### Hero images for the consensus top 3 (one picture per item, by URL)
 - `lib/hero-images.js` maps list ID -> item name -> `{ src, credit, creditUrl }`. `src` is a **remote
   https image URL**; the site's built-in image optimizer (next/image, `remotePatterns` in
@@ -780,10 +797,4 @@ and survival and praise its historical accuracy." Do not invent the consensus; i
 A different kind of list: instead of ranking *different* restaurants by editorial acclaim, this ranks the *individual locations of one chain* within a city by how well each is run, using customer-rating platforms as the sources. The first one built was `best-run-chipotle-manhattan`. These lists follow their own rules, which differ from the editorial-source lists above.
 
 ### What "best" means here
-"Best-run" = highest customer satisfaction across rating platforms (food quality, accuracy, speed, cleanliness, service). It is measured, not editorial. There are no Michelin/Eater/Infatuation sources — the rating platforms themselves are the sources.
-
-### Sources = rating platforms, each ranked by its own star rating
-- Use the major per-location rating platforms: **Google Maps** and **Yelp** are the reliable, accessible two. Each platform becomes one source; within a source, order the locations by that platform's star rating, descending, with review count as the tiebreak.
-- **Gather the data live through the connected Chrome browser**, not from memory or search snippets (the no-guessing rule applies just as hard here):
-  - **Google Maps:** search `Chipotle` with the map centered on the city (URL form `https://www.google.com/maps/search/Chipotle/@LAT,LNG,13z`). Pan to a few neighborhoods (downtown / midtown / uptown) because Maps only returns ~11–20 nearest results per view. Extract each result's rating, review count, and street address from the results feed. Exclude results from other cities/boroughs that bleed in (check the address).
-  - **Yelp:** the search cards show only the neighborhood, not the street address, so they cannot be matched to a Google address directly. Instead open each location's **business page** — the page `<title>` contains the exact address and revie
+"Best-run" = highest customer satisfaction across rating p
