@@ -48,6 +48,9 @@ function buildLinks(name, list) {
 function picsConfig(list) {
   const tags = list.tags || [];
   const type = list.type || '';
+  // Breweries are drink-first: plain "Pics:", never "Food Pics:".
+  const isBrewery = `${list.title || ''} ${list.id || ''}`.toLowerCase().includes('brewer');
+  if (isBrewery) return { label: 'Pics:', links: [['yelp', 'Yelp'], ['google', 'Google']] };
   const isFood = type === 'food' || tags.includes('food') || tags.includes('food-drink');
   const isBar = tags.includes('bars') || tags.includes('nightlife');
   const isHotel = !isFood && !isBar && (type === 'travel' || tags.includes('travel') || tags.includes('luxury'));
@@ -115,25 +118,28 @@ function LinkRow({ links, pics, websiteLabel }) {
           <Globe size={9} strokeWidth={2} /> {websiteLabel}
         </a>
       )}
-      <span
-        style={{
-          fontFamily: 'DM Mono, monospace',
-          fontSize: 8,
-          letterSpacing: '0.13em',
-          textTransform: 'uppercase',
-          color: COLORS.faded,
-          marginLeft: 4,
-        }}
-      >
-        {pics.label}
+      {/* Label + its chips wrap together as one unit so the association
+          survives line breaks on mobile. */}
+      <span style={{ display: 'inline-flex', alignItems: 'center', gap: 7, marginLeft: 4, whiteSpace: 'nowrap' }}>
+        <span
+          style={{
+            fontFamily: 'DM Mono, monospace',
+            fontSize: 8,
+            letterSpacing: '0.13em',
+            textTransform: 'uppercase',
+            color: COLORS.faded,
+          }}
+        >
+          {pics.label}
+        </span>
+        {pics.links.map(([key, label]) =>
+          links[key] ? (
+            <a key={key} href={links[key]} target="_blank" rel="noopener noreferrer" style={linkBtn(false)}>
+              {label}
+            </a>
+          ) : null
+        )}
       </span>
-      {pics.links.map(([key, label]) =>
-        links[key] ? (
-          <a key={key} href={links[key]} target="_blank" rel="noopener noreferrer" style={linkBtn(false)}>
-            {label}
-          </a>
-        ) : null
-      )}
     </div>
   );
 }

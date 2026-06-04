@@ -1515,6 +1515,9 @@ function buildAuxLinks(name, list) {
 function entryPicsConfig(list) {
   const tags = list.tags || [];
   const type = list.type || '';
+  // Breweries are drink-first: plain "Pics:", never "Food Pics:".
+  const isBrewery = `${list.title || ''} ${list.id || ''}`.toLowerCase().includes('brewer');
+  if (isBrewery) return { label: 'Pics:', links: [['yelp', 'Yelp'], ['google', 'Google']] };
   const isFood = type === 'food' || tags.includes('food') || tags.includes('food-drink');
   const isBar = tags.includes('bars') || tags.includes('nightlife');
   const isHotel = !isFood && !isBar && (type === 'travel' || tags.includes('travel') || tags.includes('luxury'));
