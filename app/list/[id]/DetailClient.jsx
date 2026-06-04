@@ -1484,17 +1484,19 @@ function buildAuxLinks(name, list) {
   };
 }
 
-// Per-category "pics" convention for the hover menu: hotels use Property Pics
-// (TripAdvisor + Google), bars use a plain "Pics", everything else Food Pics.
+// Per-category "pics" convention for the hover menu: hotels use Pics
+// (TripAdvisor + Google), bars use a plain "Pics", food lists use Food Pics.
+// Food/bar take priority over hotel so that restaurant lists tagged travel/luxury
+// (e.g. a destination sushi list) still get Food Pics + Yelp, never TripAdvisor.
 function entryPicsConfig(list) {
   const tags = list.tags || [];
   const type = list.type || '';
-  const isHotel = type === 'travel' || tags.includes('travel') || tags.includes('luxury');
+  const isFood = type === 'food' || tags.includes('food') || tags.includes('food-drink');
   const isBar = tags.includes('bars') || tags.includes('nightlife');
-  // Bars take priority over the hotel branch: a bar list also tagged travel/luxury
-  // must still get Yelp pics, never TripAdvisor.
+  const isHotel = !isFood && !isBar && (type === 'travel' || tags.includes('travel') || tags.includes('luxury'));
+  if (isFood) return { label: 'Food Pics:', links: [['yelp', 'Yelp'], ['google', 'Google']] };
   if (isBar) return { label: 'Pics:', links: [['yelp', 'Yelp'], ['google', 'Google']] };
-  if (isHotel) return { label: 'Property Pics:', links: [['tripadvisor', 'TripAdvisor'], ['google', 'Google']] };
+  if (isHotel) return { label: 'Pics:', links: [['tripadvisor', 'TripAdvisor'], ['google', 'Google']] };
   return { label: 'Food Pics:', links: [['yelp', 'Yelp'], ['google', 'Google']] };
 }
 
@@ -1629,6 +1631,22 @@ function DataRow({ rank, item, list, unranked, showPrice }) {
           )}
         </button>
 
+        {/* Description (shown when expanded) */}
+        {expanded && list.descriptions && list.descriptions[item] && (
+          <p
+            style={{
+              margin: '10px 0 0',
+              fontFamily: 'DM Sans, sans-serif',
+              fontSize: 14,
+              lineHeight: 1.55,
+              color: COLORS.faded,
+              maxWidth: 560,
+            }}
+          >
+            {list.descriptions[item]}
+          </p>
+        )}
+
         {/* Expanded link panel */}
         {expanded && hasLinks && (
           <div
@@ -1640,7 +1658,7 @@ function DataRow({ rank, item, list, unranked, showPrice }) {
               fontFamily: 'DM Mono, monospace',
               fontSize: 11,
               letterSpacing: '0.04em',
-              marginTop: 10,
+              marginTop: (list.descriptions && list.descriptions[item]) ? 10 : 10,
               marginBottom: 4,
             }}
           >
@@ -1855,29 +1873,3 @@ export default function DetailClient({ listId }) {
         />
       ) : (
         <div style={{ position: 'relative', zIndex: 2, padding: 48, textAlign: 'center' }}>
-          <p style={{ fontFamily: 'Fraunces, serif', fontStyle: 'italic', color: COLORS.faded }}>
-            That list seems to have wandered off.
-          </p>
-          <button
-            onClick={backHome}
-            style={{
-              marginTop: 16,
-              background: COLORS.ink,
-              color: COLORS.cream,
-              border: 'none',
-              padding: '10px 20px',
-              fontFamily: 'DM Mono, monospace',
-              fontSize: 11,
-              letterSpacing: '0.2em',
-              textTransform: 'uppercase',
-              cursor: 'pointer',
-            }}
-          >
-            Back home
-          </button>
-        </div>
-      )}
-      <Footer />
-    </div>
-  );
-}
