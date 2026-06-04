@@ -308,7 +308,8 @@ function HeroTile({ item, rank, list, desc, pics }) {
           </p>
           <p
             style={{
-              fontSize: 12,
+              fontFamily: 'DM Sans, sans-serif',
+              fontSize: 14,
               color: desc ? '#5a5045' : COLORS.faded,
               fontStyle: desc ? 'normal' : 'italic',
               lineHeight: 1.55,
@@ -390,7 +391,8 @@ function SmallTile({ item, rank, list, desc, pics }) {
       </p>
       <p
         style={{
-          fontSize: 11,
+          fontFamily: 'DM Sans, sans-serif',
+          fontSize: 14,
           color: desc ? '#5a5045' : COLORS.faded,
           fontStyle: desc ? 'normal' : 'italic',
           lineHeight: 1.5,
@@ -452,6 +454,7 @@ export default function ListOverview({ list, voteData, extras, viewCount, onBack
           .lov-grid{grid-template-columns:1fr;}
           .lov-grid>div{grid-column:auto !important;}
           .lov-hero{grid-template-columns:1fr !important;}
+          .lov-tenth{width:100% !important;min-width:0 !important;}
         }
       `}</style>
       <div style={{ maxWidth: 920, margin: '0 auto', padding: '28px 20px 0' }}>
@@ -671,7 +674,7 @@ export default function ListOverview({ list, voteData, extras, viewCount, onBack
           {/* Rank 10: same tile as 4-9, centered on its own row */}
           {tenthItem && (
             <div style={{ gridColumn: 'span 2', display: 'flex', justifyContent: 'center' }}>
-              <div style={{ width: 'calc(50% - 7px)', minWidth: 'min(100%, 300px)' }}>
+              <div className="lov-tenth" style={{ width: 'calc(50% - 7px)', minWidth: 'min(100%, 300px)' }}>
                 <SmallTile item={tenthItem} rank={10} list={list} desc={descs[tenthItem]} pics={pics} />
               </div>
             </div>
