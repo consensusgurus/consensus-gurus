@@ -916,7 +916,7 @@ function ListDetail({ list, viewCount, voteData, userVotes, extras, relatedLists
               textAlign: 'center',
             }}
           >
-            Each entry links out · affiliate links may earn a commission
+            Tap any entry to see links · affiliate links may earn a commission
           </p>
         </>
       ) : showVoteTab ? (
@@ -1536,20 +1536,16 @@ function DataRow({ rank, item, list, unranked, showPrice }) {
   const showFullSize = rank <= 10;
   const display = showPrice ? priceDecorate(item, list) : (list.scores ? scoreDecorate(item, list) : item);
   const [hover, setHover] = useState(false);
-  const [isMobile, setIsMobile] = useState(false);
-  useEffect(() => {
-    const mq = window.matchMedia('(max-width: 640px)');
-    const update = () => setIsMobile(mq.matches);
-    update();
-    mq.addEventListener('change', update);
-    return () => mq.removeEventListener('change', update);
-  }, []);
+  const [expanded, setExpanded] = useState(false);
   const aux = (list.itemLinks || list.itemYelp || list.itemTripadvisor || list.linkType === 'mapsCity') ? buildAuxLinks(item, list) : null;
   const pics = aux ? entryPicsConfig(list) : null;
+  // For non-aux items (products, films, etc.) the primary link is still available
+  // via buildItemLink — shown as a single chip when expanded.
+  const primaryLink = !aux ? buildItemLink(item, list) : null;
+  const hasLinks = !!(aux || primaryLink);
+
   return (
     <li
-      onMouseEnter={() => setHover(true)}
-      onMouseLeave={() => setHover(false)}
       style={{
         display: 'flex',
         alignItems: 'baseline',
@@ -1593,67 +1589,86 @@ function DataRow({ rank, item, list, unranked, showPrice }) {
           {String(rank)}
         </span>
       )}
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 8, flex: 1, minWidth: 0, position: 'relative' }}>
-        <ItemLink
-          list={list}
-          item={item}
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 0, flex: 1, minWidth: 0 }}>
+        {/* Row button — hover shows subtle lift, click toggles link panel */}
+        <button
+          onClick={() => hasLinks && setExpanded((e) => !e)}
+          onMouseEnter={() => setHover(true)}
+          onMouseLeave={() => setHover(false)}
           style={{
-            fontFamily: 'Fraunces, serif',
-            fontSize: unranked ? 20 : isTop ? 28 : showFullSize ? 22 : 19,
-            fontWeight: unranked ? 500 : isTop ? 700 : 500,
-            lineHeight: 1.15,
-            color: COLORS.ink,
-            letterSpacing: '-0.01em',
-            opacity: !unranked && rank > 10 ? 0.85 : 1,
+            background: 'transparent',
+            border: 'none',
+            padding: '2px 6px 2px 0',
+            cursor: hasLinks ? 'pointer' : 'default',
+            textAlign: 'left',
+            display: 'inline-flex',
+            alignItems: 'baseline',
+            gap: 8,
+            transition: 'transform 0.12s ease, box-shadow 0.12s ease',
+            transform: hover && hasLinks ? 'translate(-2px, -2px)' : 'none',
+            boxShadow: hover && hasLinks ? `3px 3px 0 ${COLORS.ember}` : 'none',
           }}
         >
-          <span>{display}</span>
-          <ExternalLink size={isTop ? 14 : 12} strokeWidth={2} style={{ opacity: 0.4, flexShrink: 0 }} />
-        </ItemLink>
-        {aux && (
+          <span
+            style={{
+              fontFamily: 'Fraunces, serif',
+              fontSize: unranked ? 20 : isTop ? 28 : showFullSize ? 22 : 19,
+              fontWeight: unranked ? 500 : isTop ? 700 : 500,
+              lineHeight: 1.15,
+              color: COLORS.ink,
+              letterSpacing: '-0.01em',
+              opacity: !unranked && rank > 10 ? 0.85 : 1,
+            }}
+          >
+            {display}
+          </span>
+          {hasLinks && (
+            expanded
+              ? <ChevronUp size={isTop ? 14 : 12} strokeWidth={2.5} style={{ color: COLORS.ember, flexShrink: 0, opacity: 0.8 }} />
+              : <ChevronDown size={isTop ? 14 : 12} strokeWidth={2.5} style={{ color: COLORS.ember, flexShrink: 0, opacity: hover ? 0.7 : 0 }} />
+          )}
+        </button>
+
+        {/* Expanded link panel */}
+        {expanded && hasLinks && (
           <div
             style={{
-              position: isMobile ? 'static' : 'absolute',
-              top: isMobile ? 'auto' : '100%',
-              left: 0,
-              maxWidth: '100%',
-              zIndex: 6,
-              marginTop: 4,
-              padding: hover ? '8px 10px' : '0 10px',
-              background: isMobile ? 'transparent' : COLORS.cream,
-              boxShadow: isMobile ? 'none' : (hover ? '0 6px 18px rgba(0,0,0,0.14)' : 'none'),
-              opacity: hover ? 1 : 0,
-              visibility: hover ? 'visible' : 'hidden',
-              pointerEvents: hover ? 'auto' : 'none',
-              overflow: 'hidden',
-              transition: 'opacity 0.15s ease',
-              display: isMobile ? (hover ? 'flex' : 'none') : 'inline-flex',
-              width: isMobile ? '100%' : 'fit-content',
-              alignItems: 'center',
+              display: 'flex',
               flexWrap: 'wrap',
+              alignItems: 'center',
               gap: '6px 10px',
               fontFamily: 'DM Mono, monospace',
               fontSize: 11,
               letterSpacing: '0.04em',
+              marginTop: 10,
+              marginBottom: 4,
             }}
           >
-            {aux.website && (
-              <a href={aux.website} target="_blank" rel="noopener noreferrer" style={auxChip()}>
-                <Globe size={11} strokeWidth={2.2} /> Website
+            {aux ? (
+              <>
+                {aux.website && (
+                  <a href={aux.website} target="_blank" rel="noopener noreferrer" style={auxChip()}>
+                    <Globe size={11} strokeWidth={2.2} /> Website
+                  </a>
+                )}
+                <a href={aux.map} target="_blank" rel="noopener noreferrer" style={auxChip()}>
+                  <MapPin size={11} strokeWidth={2.2} /> Map
+                </a>
+                <span style={{ display: 'inline-flex', alignItems: 'center', gap: 7, border: `1.3px solid ${COLORS.ink}`, borderRadius: 4, padding: '4px 9px' }}>
+                  <span style={{ textTransform: 'uppercase', color: COLORS.ink }}>{pics.label}</span>
+                  {pics.links.filter(([key]) => aux[key]).map(([key, label], i) => (
+                    <React.Fragment key={key}>
+                      {i > 0 && <span style={{ color: COLORS.ink }}>|</span>}
+                      <a href={aux[key]} target="_blank" rel="noopener noreferrer" style={{ color: COLORS.ink, textDecoration: 'none' }}>{label}</a>
+                    </React.Fragment>
+                  ))}
+                </span>
+              </>
+            ) : (
+              <a href={primaryLink} target="_blank" rel="noopener noreferrer sponsored" style={auxChip()}>
+                <ExternalLink size={11} strokeWidth={2.2} /> View
               </a>
             )}
-            <a href={aux.map} target="_blank" rel="noopener noreferrer" style={auxChip()}>
-              <MapPin size={11} strokeWidth={2.2} /> Map
-            </a>
-            <span style={{ display: 'inline-flex', alignItems: 'center', gap: 7, border: `1.3px solid ${COLORS.ink}`, borderRadius: 4, padding: '4px 9px' }}>
-              <span style={{ textTransform: 'uppercase', color: COLORS.ink }}>{pics.label}</span>
-              {pics.links.filter(([key]) => aux[key]).map(([key, label], i) => (
-                <React.Fragment key={key}>
-                  {i > 0 && <span style={{ color: COLORS.ink }}>|</span>}
-                  <a href={aux[key]} target="_blank" rel="noopener noreferrer" style={{ color: COLORS.ink, textDecoration: 'none' }}>{label}</a>
-                </React.Fragment>
-              ))}
-            </span>
           </div>
         )}
       </div>
