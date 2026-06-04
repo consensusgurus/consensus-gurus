@@ -108,10 +108,12 @@ function computeConsensus(list) {
   };
   
   // Unordered roundups contribute equal flat points to each listed item.
-  // The flat value scales with source size: a fixed 55-point budget (10+9+...+1)
-  // split across n items, capped at 10/item (kept in sync with lib/helpers.js).
+  // The flat value scales with source size: budget = what n items could earn at
+  // the top of a ranked top-10 (n<=10: flat=(21-n)/2; n>10: flat=55/n).
+  // Kept in sync with lib/helpers.js.
   const FLAT_BUDGET = 55;
-  const flatUnordered = (n) => (n > 0 ? Math.min(10, FLAT_BUDGET / n) : 0);
+  const flatUnordered = (n) =>
+    n <= 0 ? 0 : n <= 10 ? (21 - n) / 2 : FLAT_BUDGET / n;
 
   // Source weighting (kept in sync with lib/helpers.js getSources).
   // A "true expert" source (`trueExpert: true`) counts for HALF the combined

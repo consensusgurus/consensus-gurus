@@ -299,11 +299,11 @@ When a source's order is NOT a ranking (alphabetical, "in no particular order," 
 
 How the scoring works (implemented in `lib/helpers.js` `getSources`, `scripts/generate-og-images.js`, and the OG/Twitter image routes `app/list/[id]/opengraph-image.js` and `app/list/[id]/twitter-image.js` — keep all four in sync):
 - A **ranked** source gives `11 − rank` points: 10 to its #1, 9 to #2, … 1 to #10, 0 beyond.
-- An **unordered** source (`"unordered": true`) gives every item it lists an **equal flat score that scales with the source's size**, and 0 to items it doesn't list. Each unordered source has a fixed **55-point budget** (the total a ranked source hands out: 10+9+…+1), split evenly across its `n` items and **capped at 10 per item**: `flat(n) = min(10, 55 / n)` (the constant `FLAT_BUDGET = 55` and helper `flatUnordered(n)`).
-  - 10 items → the classic 5.5 each (a solid mid-pack endorsement).
-  - More than 10 items → the score degrades proportionately: 16 items → ~3.44 each, 50 items → 1.1, 2000 items → ~0.03. Inclusion on a huge unordered list is a near-meaningless signal, and now scores like one.
-  - Fewer than 10 items → the score grows: 7 items → ~7.86 each, 5 or fewer → capped at 10 each. A tight "best in class" pick is a strong endorsement, but no unordered mention can ever exceed a ranked source's #1 (10 pts).
-- To change the budget or cap, edit `FLAT_BUDGET` / `flatUnordered` in all four files (keep them in sync).
+- An **unordered** source (`"unordered": true`) gives every item it lists an **equal flat score that scales with the source's size**, and 0 to items it doesn't list. The budget is **what those `n` items could earn at the top of a ranked top-10 list**, split evenly (helper `flatUnordered(n)`):
+  - **`n` ≤ 10:** budget = `10+9+…+(11−n)`, so `flat(n) = (21 − n) / 2`. 1 item → 10 (a ranked #1), 3 items → 9 each (avg of 10+9+8), 5 → 8, 9 → 6, 10 → the classic 5.5.
+  - **`n` > 10:** budget stays at the full 55 (`FLAT_BUDGET`, = 10+9+…+1) split across all `n`: `flat(n) = 55 / n`. 16 items → ~3.44 each, 50 → 1.1, 2000 → ~0.03. Inclusion on a huge unordered list is a near-meaningless signal, and scores like one.
+  - No unordered mention can ever exceed a ranked source's #1 (10 pts) — the n≤10 formula maxes out at 10.
+- To change the formula, edit `flatUnordered` / `FLAT_BUDGET` in all four files (keep them in sync).
 
 Example (Four Seasons list): The Points Guy's worldwide "16 best" roundup is unordered, so it's labeled `'The Points Guy (unordered roundup)'` with `"unordered": true`; each of its 16 properties gets 55/16 ≈ 3.44, while the five genuinely-ranked sources drive the order.
 
@@ -692,7 +692,7 @@ NEW_LIB_TREE=$(git ls-tree $LIB_TREE_SHA | awk -v b="$NEW_BLOB" \
 | Source list length | Any number of items |
 | How do I order items within a source? | By the source's true rank — score descending (Infatuation) or its numbers. Never article order. |
 | Source has scores but lists them out of order? | Sort by numeric score, descending; ties keep page order; unrated last. |
-| Source is alphabetical/unordered? | Find a ranked version, drop it, or label it `(alphabetical)`/`(unordered roundup)` AND set `"unordered": true` (flat `min(10, 55/n)` pts/item, not ranked). |
+| Source is alphabetical/unordered? | Find a ranked version, drop it, or label it `(alphabetical)`/`(unordered roundup)` AND set `"unordered": true` (flat pts/item: n≤10 → `(21−n)/2`, n>10 → `55/n`; not ranked). |
 | Source paywalled or JS-only / unreadable? | Don't guess — get it elsewhere, drop it, or substitute. |
 | Consensus output length | Always exactly 10 |
 | Is the seed (`ai`) source used in scoring | No — excluded from Borda |

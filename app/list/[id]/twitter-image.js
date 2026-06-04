@@ -43,10 +43,10 @@ function computeConsensus(list) {
   universe.forEach(item => { scores[item.toLowerCase().trim()] = 0 })
 
   const bordaFromRank = rank => (rank < 1 || rank > 10) ? 0 : 11 - rank
-  // Unordered sources: 55-pt budget split across n items, capped at 10/item
-  // (kept in sync with lib/helpers.js)
+  // Unordered sources: budget = top-n slice of a ranked top-10
+  // (n<=10: flat=(21-n)/2; n>10: flat=55/n). Kept in sync with lib/helpers.js.
   const FLAT_BUDGET = 55
-  const flatUnordered = n => (n > 0 ? Math.min(10, FLAT_BUDGET / n) : 0)
+  const flatUnordered = n => (n <= 0 ? 0 : n <= 10 ? (21 - n) / 2 : FLAT_BUDGET / n)
 
   publications.forEach(src => {
     if (src.unordered) {
