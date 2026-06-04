@@ -1,6 +1,6 @@
 'use client';
-import React from 'react';
-import { MapPin, Globe, Camera, ArrowRight, ArrowLeft } from 'lucide-react';
+import React, { useState } from 'react';
+import { MapPin, Globe, Camera, ArrowRight, ArrowLeft, Eye, PenLine, Share2 } from 'lucide-react';
 import { COLORS } from '@/lib/data';
 import { DESCRIPTIONS } from '@/lib/descriptions';
 import { getSources, buildItemLink } from '@/lib/helpers';
@@ -429,12 +429,36 @@ function CompactTile({ item, rank, list, pics }) {
   );
 }
 
-export default function ListOverview({ list, voteData, extras, onBack, onOpenRankings, onOpenVote }) {
+export default function ListOverview({ list, voteData, extras, viewCount, onBack, onOpenRankings, onOpenVote }) {
   const items = getItems(list, voteData, extras);
   const descs = DESCRIPTIONS[list.id] || {};
   const pics = picsConfig(list);
   const mode = list.mode || 'both';
   const showVote = mode !== 'facts' && mode !== 'scores' && mode !== 'unranked';
+
+  // "Speak With The Manager" complaint modal (same as the rankings page).
+  const [complainOpen, setComplainOpen] = useState(false);
+  const [complainMsg, setComplainMsg] = useState('');
+  const [complainName, setComplainName] = useState('');
+  const [complainEmail, setComplainEmail] = useState('');
+  const [complainSent, setComplainSent] = useState(false);
+  const [complainBusy, setComplainBusy] = useState(false);
+
+  async function submitComplaint() {
+    if (complainBusy) return;
+    setComplainBusy(true);
+    try {
+      await fetch('/api/complaints', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ listId: list.id, listTitle: list.title, message: complainMsg.trim(), name: complainName.trim(), email: complainEmail.trim() }),
+      });
+    } catch (e) {
+      // swallow — we still acknowledge the request to the reader
+    }
+    setComplainSent(true);
+    setComplainBusy(false);
+  }
 
   if (!items.length) return null;
 
@@ -547,6 +571,79 @@ export default function ListOverview({ list, voteData, extras, onBack, onOpenRan
           </p>
         )}
 
+        {/* Meta row: visitors + manager/share (matches the rankings page) */}
+        <div
+          style={{
+            marginTop: 18,
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            gap: 12,
+            flexWrap: 'wrap',
+          }}
+        >
+          <div
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: 6,
+              fontFamily: 'DM Mono, monospace',
+              fontSize: 10,
+              letterSpacing: '0.2em',
+              textTransform: 'uppercase',
+              color: COLORS.faded,
+            }}
+          >
+            <Eye size={11} strokeWidth={2} />
+            <span>{viewCount} visitors</span>
+          </div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap' }}>
+            <button
+              onClick={() => { setComplainSent(false); setComplainOpen(true); }}
+              style={{
+                background: 'transparent',
+                color: COLORS.ink,
+                border: `1.5px solid ${COLORS.ink}`,
+                padding: '8px 14px',
+                fontFamily: 'DM Mono, monospace',
+                fontSize: 10,
+                letterSpacing: '0.18em',
+                textTransform: 'uppercase',
+                fontWeight: 600,
+                cursor: 'pointer',
+                display: 'flex',
+                alignItems: 'center',
+                gap: 6,
+              }}
+            >
+              <PenLine size={12} strokeWidth={2.5} />
+              Speak With The Manager
+            </button>
+            <a
+              href={`/snapshot/${encodeURIComponent(list.id)}`}
+              style={{
+                background: 'transparent',
+                color: COLORS.ink,
+                border: `1.5px solid ${COLORS.ink}`,
+                padding: '8px 14px',
+                fontFamily: 'DM Mono, monospace',
+                fontSize: 10,
+                letterSpacing: '0.18em',
+                textTransform: 'uppercase',
+                fontWeight: 600,
+                cursor: 'pointer',
+                display: 'flex',
+                alignItems: 'center',
+                gap: 6,
+                textDecoration: 'none',
+              }}
+            >
+              <Share2 size={12} strokeWidth={2.5} />
+              Share
+            </a>
+          </div>
+        </div>
+
         {/* Tiled grid (homepage aesthetic: own borders, small gaps) */}
         <div className="lov-grid" style={{ marginTop: 26 }}>
           {/* Ranks 1-3: full-width hero tiles */}
@@ -611,6 +708,78 @@ export default function ListOverview({ list, voteData, extras, onBack, onOpenRan
           </button>
         </div>
       </div>
+
+      {complainOpen && (
+        <div
+          onClick={() => setComplainOpen(false)}
+          style={{ position: 'fixed', inset: 0, zIndex: 60, background: 'rgba(26,22,17,0.55)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '6vh 16px' }}
+        >
+          <div onClick={(e) => e.stopPropagation()} style={{ width: '100%', maxWidth: 480, background: COLORS.cream, border: `2px solid ${COLORS.ink}`, padding: 24 }}>
+            {complainSent ? (
+              <>
+                <h3 style={{ fontFamily: 'Fraunces, serif', fontWeight: 700, fontSize: 22, margin: '0 0 10px' }}>Thanks — noted.</h3>
+                <p style={{ fontFamily: 'DM Sans, sans-serif', fontSize: 15, color: COLORS.faded, margin: '0 0 20px' }}>
+                  Your note went to the editors' desk. Flagged lists get re-researched.
+                </p>
+                <button
+                  onClick={() => { setComplainOpen(false); setComplainSent(false); setComplainMsg(''); setComplainName(''); setComplainEmail(''); }}
+                  style={{ cursor: 'pointer', background: COLORS.ink, color: COLORS.cream, border: `1.5px solid ${COLORS.ink}`, padding: '12px 20px', fontFamily: 'DM Mono, monospace', fontSize: 11, letterSpacing: '0.16em', textTransform: 'uppercase', fontWeight: 600 }}
+                >
+                  Close
+                </button>
+              </>
+            ) : (
+              <>
+                <h3 style={{ fontFamily: 'Fraunces, serif', fontWeight: 700, fontSize: 22, margin: '0 0 6px' }}>Comments? Questions?</h3>
+                <p style={{ fontFamily: 'DM Sans, sans-serif', fontSize: 14, color: COLORS.faded, margin: '0 0 14px' }}>
+                  Think this list is wrong or stale? Tell the editors what to re-research.
+                </p>
+                <div style={{ display: 'flex', gap: 10, marginBottom: 10, flexWrap: 'wrap' }}>
+                  <input
+                    type="text"
+                    value={complainName}
+                    onChange={(e) => setComplainName(e.target.value)}
+                    maxLength={120}
+                    placeholder="Name (optional)"
+                    style={{ flex: 1, minWidth: 140, boxSizing: 'border-box', padding: 12, border: `1.5px solid ${COLORS.ink}`, background: COLORS.paper, fontFamily: 'DM Sans, sans-serif', fontSize: 14, color: COLORS.ink, outline: 'none' }}
+                  />
+                  <input
+                    type="email"
+                    value={complainEmail}
+                    onChange={(e) => setComplainEmail(e.target.value)}
+                    maxLength={200}
+                    placeholder="Email (optional)"
+                    style={{ flex: 1, minWidth: 140, boxSizing: 'border-box', padding: 12, border: `1.5px solid ${COLORS.ink}`, background: COLORS.paper, fontFamily: 'DM Sans, sans-serif', fontSize: 14, color: COLORS.ink, outline: 'none' }}
+                  />
+                </div>
+                <textarea
+                  value={complainMsg}
+                  onChange={(e) => setComplainMsg(e.target.value)}
+                  maxLength={1000}
+                  rows={4}
+                  placeholder="What's off about this list? (optional)"
+                  style={{ width: '100%', boxSizing: 'border-box', padding: 12, border: `1.5px solid ${COLORS.ink}`, background: COLORS.paper, fontFamily: 'DM Sans, sans-serif', fontSize: 14, color: COLORS.ink, outline: 'none', resize: 'vertical', marginBottom: 16 }}
+                />
+                <div style={{ display: 'flex', gap: 10, justifyContent: 'flex-end' }}>
+                  <button
+                    onClick={() => setComplainOpen(false)}
+                    style={{ cursor: 'pointer', background: 'transparent', color: COLORS.ink, border: `1.5px solid ${COLORS.ink}`, padding: '10px 18px', fontFamily: 'DM Mono, monospace', fontSize: 11, letterSpacing: '0.14em', textTransform: 'uppercase', fontWeight: 600 }}
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    onClick={submitComplaint}
+                    disabled={complainBusy}
+                    style={{ cursor: 'pointer', background: COLORS.rust, color: COLORS.cream, border: `1.5px solid ${COLORS.rust}`, padding: '10px 18px', fontFamily: 'DM Mono, monospace', fontSize: 11, letterSpacing: '0.14em', textTransform: 'uppercase', fontWeight: 700, opacity: complainBusy ? 0.6 : 1 }}
+                  >
+                    {complainBusy ? 'Sending…' : 'Send to editors'}
+                  </button>
+                </div>
+              </>
+            )}
+          </div>
+        </div>
+      )}
     </div>
   );
 }

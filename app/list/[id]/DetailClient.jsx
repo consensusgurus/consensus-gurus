@@ -1877,6 +1877,7 @@ export default function DetailClient({ listId, view = 'overview' }) {
             list={list}
             voteData={voteData}
             extras={extras}
+            viewCount={viewCount}
             onBack={backHome}
             onOpenRankings={() => router.push(`/list/${encodeURIComponent(list.id)}/rankings`)}
             onOpenVote={() => router.push(`/list/${encodeURIComponent(list.id)}/rankings#vote`)}
