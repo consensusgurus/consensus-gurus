@@ -13,7 +13,20 @@ serve(async (req) => {
 
     // Raw mode: caller supplies subject + html directly (always sent to
     // ADMIN_EMAIL). Used by the weekly research summary cron on the site.
+    // Gateway JWT verification is disabled for this function (the site's
+    // sb_secret key is not a JWT), so raw mode authenticates here instead:
+    // the apikey header must match the project's secret/service key.
     if (payload.type === "raw" && payload.subject && payload.html) {
+      const expected =
+        Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") || Deno.env.get("SB_SECRET_KEY") || "";
+      const provided = req.headers.get("apikey") || "";
+      if (!expected || provided !== expected) {
+        console.error("raw mode auth mismatch", {
+          expectedPrefix: expected.slice(0, 10),
+          providedPrefix: provided.slice(0, 10),
+        });
+        return new Response(JSON.stringify({ error: "Unauthorized" }), { status: 401 });
+      }
       subject = String(payload.subject);
       htmlContent = String(payload.html);
     } else if (table === "user_lists") {
@@ -41,26 +54,4 @@ serve(async (req) => {
     }
 
     if (!subject) {
-      return new Response(JSON.stringify({ error: "Unknown table" }), { status: 400 });
-    }
-
-    if (!BREVO_API_KEY) {
-      console.error("BREVO_API_KEY is not set. Run: supabase secrets set BREVO_API_KEY=...");
-      return new Response(JSON.stringify({ error: "Email service not configured" }), { status: 500 });
-    }
-
-    const response = await fetch("https://api.brevo.com/v3/smtp/email", {
-      method: "POST",
-      headers: {
-        "api-key": BREVO_API_KEY,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        to: [{ email: ADMIN_EMAIL }],
-        sender: { email: ADMIN_EMAIL, name: "Source of Truths" },
-        subject,
-        htmlContent,
-      }),
-    });
-
-    const result = await respon
+      return new Response(JSON.stringify({ error: "Unknown ta
