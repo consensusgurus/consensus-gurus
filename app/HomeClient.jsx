@@ -17,6 +17,51 @@ import { fetchBootstrap } from '@/lib/api';
 import Grain from './Grain';
 import Footer from './Footer';
 
+// Human-readable labels for each list type, shown in the top-right of tiles.
+const TYPE_LABELS = {
+  travel: 'Travel',
+  food: 'Food & Drink',
+  entertainment: 'Entertainment',
+  product: 'Products',
+  stores: 'Places',
+  other: 'Lists',
+};
+
+// Tag-derived sub-labels used when list.category would duplicate the type label.
+const TAG_SUBLABELS = {
+  bars: 'Bars',
+  nightlife: 'Nightlife',
+  luxury: 'Luxury',
+  tech: 'Tech',
+  food: 'Food',
+  'food-drink': 'Food & Drink',
+  entertainment: 'Entertainment',
+  product: 'Products',
+};
+
+// Returns { leftLabel, rightLabel } for the tile header row.
+// rightLabel = human-readable type.
+// leftLabel  = list.category, unless that would duplicate rightLabel,
+//              in which case we derive something from tags or the title.
+function getTileLabels(list) {
+  const rightLabel = TYPE_LABELS[list.type] || 'Lists';
+  const cat = list.category || '';
+  if (cat.toLowerCase() !== rightLabel.toLowerCase()) {
+    return { leftLabel: cat, rightLabel };
+  }
+  // Conflict: category repeats the type label — find a more specific left label.
+  const tags = getListTags(list);
+  for (const t of tags) {
+    if (TAG_SUBLABELS[t] && TAG_SUBLABELS[t].toLowerCase() !== rightLabel.toLowerCase()) {
+      return { leftLabel: TAG_SUBLABELS[t], rightLabel };
+    }
+  }
+  // Last resort: pull the "in X" destination out of the title.
+  const m = list.title && list.title.match(/\bin\s+(.+)$/i);
+  if (m) return { leftLabel: m[1].replace(/^the\s+/i, ''), rightLabel };
+  return { leftLabel: cat, rightLabel };
+}
+
 // Medal accents for the top-3 consensus rows on homepage tiles only (gold/silver/bronze).
 const RANK_MEDALS = [
   { fill: '#c9a227', num: '#8a6d12', numHover: '#e7cf73' },
@@ -572,61 +617,61 @@ function Tile({ list, rank, views, voteData, extras, onClick, showConsensus, fea
         boxShadow: hover ? `3px 3px 0 ${COLORS.ember}` : 'none',
       }}
     >
-      <div
-        style={{
-          display: 'flex',
-          justifyContent: 'space-between',
-          alignItems: 'flex-start',
-          marginBottom: 14,
-          gap: 8,
-        }}
-      >
-        <span
-          style={{
-            fontFamily: 'DM Mono, monospace',
-            fontSize: 10,
-            letterSpacing: '0.2em',
-            textTransform: 'uppercase',
-            opacity: 0.75,
-            display: 'flex',
-            alignItems: 'center',
-            gap: 6,
-            flexWrap: 'nowrap',
-            whiteSpace: 'nowrap',
-            overflow: 'hidden',
-            minWidth: 0,
-            lineHeight: 1,
-          }}
-        >
-          {list.isUserSubmitted && (
+      {(() => {
+        const { leftLabel, rightLabel } = getTileLabels(list);
+        const monoStyle = {
+          fontFamily: 'DM Mono, monospace',
+          fontSize: 10,
+          letterSpacing: '0.2em',
+          textTransform: 'uppercase',
+          opacity: 0.75,
+          whiteSpace: 'nowrap',
+          lineHeight: 1,
+        };
+        return (
+          <div
+            style={{
+              display: 'flex',
+              justifyContent: 'space-between',
+              alignItems: 'flex-start',
+              marginBottom: 14,
+              gap: 8,
+              width: '100%',
+            }}
+          >
             <span
               style={{
-                background: COLORS.ink,
-                color: COLORS.cream,
-                padding: '2px 6px',
-                fontSize: 8,
-                letterSpacing: '0.15em',
-                fontWeight: 700,
+                ...monoStyle,
+                display: 'flex',
+                alignItems: 'center',
+                gap: 6,
+                flexWrap: 'nowrap',
+                overflow: 'hidden',
+                minWidth: 0,
               }}
             >
-              READER
+              {list.isUserSubmitted && (
+                <span
+                  style={{
+                    background: COLORS.ink,
+                    color: COLORS.cream,
+                    padding: '2px 6px',
+                    fontSize: 8,
+                    letterSpacing: '0.15em',
+                    fontWeight: 700,
+                  }}
+                >
+                  READER
+                </span>
+              )}
+              {leftLabel}
             </span>
-          )}
-          {list.category}
-        </span>
-        <span
-          style={{
-            fontFamily: 'Fraunces, serif',
-            fontWeight: 900,
-            fontSize: 18,
-            lineHeight: 1,
-            color: COLORS.ember,
-            fontVariationSettings: '"SOFT" 100',
-          }}
-        >
-          #{rank}
-        </span>
-      </div>
+            <span style={{ ...monoStyle, flexShrink: 0 }}>
+              {rightLabel}
+            </span>
+          </div>
+        );
+      })()}
 
       <h3
         style={{
