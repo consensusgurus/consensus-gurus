@@ -1,0 +1,170 @@
+'use client';
+import React, { useState } from 'react';
+import { useRouter } from 'next/navigation';
+import { COLORS } from '@/lib/data';
+import Grain from '@/app/Grain';
+
+export default function LoginClient() {
+  const router = useRouter();
+  const [password, setPassword] = useState('');
+  const [error, setError] = useState('');
+  const [loading, setLoading] = useState(false);
+
+  async function handleSubmit(e) {
+    e.preventDefault();
+    setError('');
+    setLoading(true);
+    try {
+      const res = await fetch('/api/admin/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ password }),
+      });
+      if (res.ok) {
+        router.push('/admin');
+        router.refresh();
+      } else if (res.status === 401) {
+        setError('That password is not correct');
+      } else {
+        setError('Something went wrong. Try again.');
+      }
+    } catch (e) {
+      setError('Network error');
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  return (
+    <div
+      style={{
+        minHeight: '100vh',
+        background: COLORS.cream,
+        color: COLORS.ink,
+        position: 'relative',
+        overflow: 'hidden',
+      }}
+    >
+      <Grain />
+      <div
+        style={{
+          position: 'relative',
+          zIndex: 2,
+          maxWidth: 480,
+          margin: '0 auto',
+          padding: '80px 20px',
+        }}
+      >
+        <div
+          style={{
+            fontFamily: 'DM Mono, monospace',
+            fontSize: 11,
+            letterSpacing: '0.25em',
+            textTransform: 'uppercase',
+            color: COLORS.ember,
+            marginBottom: 12,
+            textAlign: 'center',
+          }}
+        >
+          Editorial Access
+        </div>
+        <h1
+          style={{
+            fontFamily: 'Fraunces, serif',
+            fontWeight: 900,
+            fontSize: 'clamp(40px, 9vw, 64px)',
+            lineHeight: 0.92,
+            letterSpacing: '-0.03em',
+            margin: 0,
+            color: COLORS.ink,
+            fontVariationSettings: '"SOFT" 100',
+            textAlign: 'center',
+          }}
+        >
+          Editor's
+          <br />
+          <span style={{ fontStyle: 'italic', color: COLORS.ember }}>desk</span>
+        </h1>
+
+        <form
+          onSubmit={handleSubmit}
+          style={{
+            marginTop: 48,
+            background: COLORS.paper,
+            border: `1.5px solid ${COLORS.ink}`,
+            padding: 24,
+          }}
+        >
+          <label
+            style={{
+              fontFamily: 'DM Mono, monospace',
+              fontSize: 10,
+              letterSpacing: '0.2em',
+              textTransform: 'uppercase',
+              color: COLORS.faded,
+              marginBottom: 6,
+              display: 'block',
+            }}
+          >
+            Password
+          </label>
+          <input
+            type="password"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            autoFocus
+            style={{
+              width: '100%',
+              background: 'transparent',
+              border: 'none',
+              borderBottom: `1.5px solid ${COLORS.ink}`,
+              padding: '10px 0',
+              fontFamily: 'Fraunces, serif',
+              fontSize: 20,
+              color: COLORS.ink,
+              outline: 'none',
+              fontVariationSettings: '"SOFT" 100',
+            }}
+          />
+
+          {error && (
+            <p
+              style={{
+                fontFamily: 'DM Sans, sans-serif',
+                fontSize: 14,
+                color: COLORS.ember,
+                marginTop: 14,
+                marginBottom: 0,
+              }}
+            >
+              {error}
+            </p>
+          )}
+
+          <button
+            type="submit"
+            disabled={loading || !password}
+            style={{
+              marginTop: 24,
+              width: '100%',
+              background: COLORS.ink,
+              color: COLORS.cream,
+              border: `1.5px solid ${COLORS.ink}`,
+              padding: '14px',
+              fontFamily: 'DM Mono, monospace',
+              fontSize: 11,
+              letterSpacing: '0.2em',
+              textTransform: 'uppercase',
+              fontWeight: 600,
+              cursor: loading || !password ? 'not-allowed' : 'pointer',
+              boxShadow: `3px 3px 0 ${COLORS.ember}`,
+              opacity: loading || !password ? 0.5 : 1,
+            }}
+          >
+            {loading ? 'Checking...' : 'Enter'}
+          </button>
+        </form>
+      </div>
+    </div>
+  );
+}

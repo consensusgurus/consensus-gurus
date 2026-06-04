@@ -1,0 +1,33 @@
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  background: #f4ede0;
+  color: #1a1611;
+  font-family: 'DM Sans', system-ui, sans-serif;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+input::placeholder,
+textarea::placeholder {
+  color: #7a6f5e;
+  opacity: 0.55;
+}
+
+input:focus,
+textarea:focus {
+  border-bottom-color: #c0392b !important;
+}
+
+select:focus {
+  outline: none;
+}
+
+a {
+  color: inherit;
+}
