@@ -1930,4 +1930,15 @@ export default function DetailClient({ listId, view = 'overview' }) {
               fontFamily: 'DM Mono, monospace',
               fontSize: 11,
               letterSpacing: '0.2em',
-              textTrans
+              textTransform: 'uppercase',
+              cursor: 'pointer',
+            }}
+          >
+            Back home
+          </button>
+        </div>
+      )}
+      <Footer />
+    </div>
+  );
+}
