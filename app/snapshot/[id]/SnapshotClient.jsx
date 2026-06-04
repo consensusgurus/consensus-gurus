@@ -9,137 +9,46 @@ import { fetchBootstrap } from '@/lib/api';
 const POSTER_W = 1080;
 const POSTER_H = 1350; // 4:5 portrait, Instagram-friendly
 
-// ─── Color schemes ────────────────────────────────────────────────────────────
 const COLOR_SCHEMES = {
-  classic: {
-    label: 'Classic',
-    bg: '#f4ede0',
-    text: '#1a1a1a',
-    accent: '#c0392b',
-    faded: '#8a7a6a',
-    swatch: ['#f4ede0', '#c0392b'],
-  },
-  midnight: {
-    label: 'Midnight',
-    bg: '#111118',
-    text: '#f0eeea',
-    accent: '#d4a944',
-    faded: '#7070a0',
-    swatch: ['#111118', '#d4a944'],
-  },
-  slate: {
-    label: 'Slate',
-    bg: '#1c2b3a',
-    text: '#dce8f0',
-    accent: '#4ea8de',
-    faded: '#7090a8',
-    swatch: ['#1c2b3a', '#4ea8de'],
-  },
-  forest: {
-    label: 'Forest',
-    bg: '#0e1e14',
-    text: '#d8ead0',
-    accent: '#6cbf5a',
-    faded: '#5a8060',
-    swatch: ['#0e1e14', '#6cbf5a'],
-  },
-  crimson: {
-    label: 'Crimson',
-    bg: '#b82c20',
-    text: '#fdf4ec',
-    accent: '#f5e050',
-    faded: '#e8a090',
-    swatch: ['#b82c20', '#f5e050'],
-  },
-  neon: {
-    label: 'Neon',
-    bg: '#000000',
-    text: '#ffffff',
-    accent: '#00ff88',
-    faded: '#666666',
-    swatch: ['#000000', '#00ff88'],
-  },
+  classic: { label: 'Classic', bg: '#f4ede0', text: '#1a1a1a', accent: '#c0392b', faded: '#8a7a6a', swatch: ['#f4ede0', '#c0392b'] },
+  midnight: { label: 'Midnight', bg: '#111118', text: '#f0eeea', accent: '#d4a944', faded: '#7070a0', swatch: ['#111118', '#d4a944'] },
+  slate: { label: 'Slate', bg: '#1c2b3a', text: '#dce8f0', accent: '#4ea8de', faded: '#7090a8', swatch: ['#1c2b3a', '#4ea8de'] },
+  forest: { label: 'Forest', bg: '#0e1e14', text: '#d8ead0', accent: '#6cbf5a', faded: '#5a8060', swatch: ['#0e1e14', '#6cbf5a'] },
+  crimson: { label: 'Crimson', bg: '#b82c20', text: '#fdf4ec', accent: '#f5e050', faded: '#e8a090', swatch: ['#b82c20', '#f5e050'] },
+  neon: { label: 'Neon', bg: '#000000', text: '#ffffff', accent: '#00ff88', faded: '#666666', swatch: ['#000000', '#00ff88'] },
 };
 
-// ─── Font / style presets ──────────────────────────────────────────────────────
 const FONT_STYLES = {
   editorial: {
-    label: 'Editorial',
-    previewFont: 'Fraunces, serif',
-    previewStyle: 'italic',
-    previewWeight: 700,
-    titleFamily: 'Fraunces, serif',
-    titleItalic: false,
-    titleVariation: '"SOFT" 100, "WONK" 1',
-    titleWeight: 900,
-    numberFamily: 'Fraunces, serif',
-    numberVariation: '"SOFT" 100, "WONK" 1',
-    numberItalic: false,
-    nameFamily: 'Fraunces, serif',
-    nameVariation: '"SOFT" 100',
-    metaFamily: 'DM Mono, monospace',
-    metaLetterSpacing: '0.3em',
-    itemDivider: 'solid',
+    label: 'Editorial', previewFont: 'Fraunces, serif', previewStyle: 'italic', previewWeight: 700,
+    titleFamily: 'Fraunces, serif', titleItalic: false, titleVariation: '"SOFT" 100, "WONK" 1', titleWeight: 900,
+    numberFamily: 'Fraunces, serif', numberVariation: '"SOFT" 100, "WONK" 1', numberItalic: false,
+    nameFamily: 'Fraunces, serif', nameVariation: '"SOFT" 100',
+    metaFamily: 'DM Mono, monospace', metaLetterSpacing: '0.3em', itemDivider: 'solid',
   },
   sharp: {
-    label: 'Sharp',
-    previewFont: 'DM Sans, sans-serif',
-    previewStyle: 'normal',
-    previewWeight: 800,
-    titleFamily: 'DM Sans, sans-serif',
-    titleItalic: false,
-    titleVariation: '',
-    titleWeight: 900,
-    numberFamily: 'DM Mono, monospace',
-    numberVariation: '',
-    numberItalic: false,
-    nameFamily: 'DM Sans, sans-serif',
-    nameVariation: '',
-    metaFamily: 'DM Mono, monospace',
-    metaLetterSpacing: '0.22em',
-    itemDivider: 'solid',
+    label: 'Sharp', previewFont: 'DM Sans, sans-serif', previewStyle: 'normal', previewWeight: 800,
+    titleFamily: 'DM Sans, sans-serif', titleItalic: false, titleVariation: '', titleWeight: 900,
+    numberFamily: 'DM Mono, monospace', numberVariation: '', numberItalic: false,
+    nameFamily: 'DM Sans, sans-serif', nameVariation: '',
+    metaFamily: 'DM Mono, monospace', metaLetterSpacing: '0.22em', itemDivider: 'solid',
   },
   magazine: {
-    label: 'Magazine',
-    previewFont: 'DM Sans, sans-serif',
-    previewStyle: 'normal',
-    previewWeight: 700,
-    titleFamily: 'DM Sans, sans-serif',
-    titleItalic: false,
-    titleVariation: '',
-    titleWeight: 900,
-    numberFamily: 'Fraunces, serif',
-    numberVariation: '"SOFT" 100, "WONK" 1',
-    numberItalic: false,
-    nameFamily: 'DM Sans, sans-serif',
-    nameVariation: '',
-    metaFamily: 'DM Mono, monospace',
-    metaLetterSpacing: '0.28em',
-    itemDivider: 'solid',
+    label: 'Magazine', previewFont: 'DM Sans, sans-serif', previewStyle: 'normal', previewWeight: 700,
+    titleFamily: 'DM Sans, sans-serif', titleItalic: false, titleVariation: '', titleWeight: 900,
+    numberFamily: 'Fraunces, serif', numberVariation: '"SOFT" 100, "WONK" 1', numberItalic: false,
+    nameFamily: 'DM Sans, sans-serif', nameVariation: '',
+    metaFamily: 'DM Mono, monospace', metaLetterSpacing: '0.28em', itemDivider: 'solid',
   },
   mono: {
-    label: 'Mono',
-    previewFont: 'DM Mono, monospace',
-    previewStyle: 'normal',
-    previewWeight: 700,
-    titleFamily: 'DM Mono, monospace',
-    titleItalic: false,
-    titleVariation: '',
-    titleWeight: 700,
-    numberFamily: 'DM Mono, monospace',
-    numberVariation: '',
-    numberItalic: false,
-    nameFamily: 'DM Mono, monospace',
-    nameVariation: '',
-    metaFamily: 'DM Mono, monospace',
-    metaLetterSpacing: '0.2em',
-    itemDivider: 'dashed',
+    label: 'Mono', previewFont: 'DM Mono, monospace', previewStyle: 'normal', previewWeight: 700,
+    titleFamily: 'DM Mono, monospace', titleItalic: false, titleVariation: '', titleWeight: 700,
+    numberFamily: 'DM Mono, monospace', numberVariation: '', numberItalic: false,
+    nameFamily: 'DM Mono, monospace', nameVariation: '',
+    metaFamily: 'DM Mono, monospace', metaLetterSpacing: '0.2em', itemDivider: 'dashed',
   },
 };
 
-// Source ordering tier: lead with the best sources. True experts first, then
-// top-reputation publications, then other publications, then user-ratings
-// platforms (Google/Yelp/etc.), then pricing info last.
 function sourceTier(src) {
   const id = (src.id || '').toLowerCase();
   const l = (src.label || '').toLowerCase();
@@ -152,7 +61,6 @@ function sourceTier(src) {
   return 2;
 }
 
-// Friendly display name for a constituent source on the shared poster.
 function constituentLabel(src) {
   const id = (src.id || '').toLowerCase();
   const raw = src.label || '';
@@ -164,35 +72,16 @@ function constituentLabel(src) {
   if (l.includes('booking.com')) return 'Booking';
   if (l.includes('amazon')) return 'Amazon';
   const MAP = [
-    ['michelin', 'Michelin'],
-    ['infatuation', 'Infatuation'],
-    ['eater', 'Eater'],
-    ['time out', 'Time Out'],
-    ['timeout', 'Time Out'],
-    ['u.s. news', 'US News'],
-    ['us news', 'US News'],
-    ['condé nast', 'Condé Nast'],
-    ['conde nast', 'Condé Nast'],
-    ['cntraveler', 'Condé Nast'],
-    ['travel + leisure', 'T+L'],
-    ['travel and leisure', 'T+L'],
-    ['robb report', 'Robb Report'],
-    ['forbes', 'Forbes'],
-    ['points guy', 'Points Guy'],
-    ['afar', 'AFAR'],
-    ['wirecutter', 'Wirecutter'],
-    ['good housekeeping', 'Good Housekeeping'],
-    ['cnet', 'CNET'],
-    ['serious eats', 'Serious Eats'],
-    ['thrillist', 'Thrillist'],
-    ['new york times', 'NYT'],
-    ['bon app', 'Bon Appétit'],
-    ['esquire', 'Esquire'],
-    ['johnny novo', 'Johnny Novo'],
-    ['johnnynovo', 'Johnny Novo'],
-    ['the strategist', 'Strategist'],
-    ['rolling stone', 'Rolling Stone'],
-    ['pitchfork', 'Pitchfork'],
+    ['michelin', 'Michelin'], ['infatuation', 'Infatuation'], ['eater', 'Eater'],
+    ['time out', 'Time Out'], ['timeout', 'Time Out'], ['u.s. news', 'US News'], ['us news', 'US News'],
+    ['condé nast', 'Condé Nast'], ['conde nast', 'Condé Nast'], ['cntraveler', 'Condé Nast'],
+    ['travel + leisure', 'T+L'], ['travel and leisure', 'T+L'], ['robb report', 'Robb Report'],
+    ['forbes', 'Forbes'], ['points guy', 'Points Guy'], ['afar', 'AFAR'],
+    ['wirecutter', 'Wirecutter'], ['good housekeeping', 'Good Housekeeping'], ['cnet', 'CNET'],
+    ['serious eats', 'Serious Eats'], ['thrillist', 'Thrillist'], ['new york times', 'NYT'],
+    ['bon app', 'Bon Appétit'], ['esquire', 'Esquire'],
+    ['johnny novo', 'Johnny Novo'], ['johnnynovo', 'Johnny Novo'],
+    ['the strategist', 'Strategist'], ['rolling stone', 'Rolling Stone'], ['pitchfork', 'Pitchfork'],
   ];
   for (let i = 0; i < MAP.length; i++) {
     if (l.includes(MAP[i][0])) return MAP[i][1];
@@ -214,7 +103,7 @@ export default function SnapshotClient({ listId }) {
   const [extras, setExtras] = useState([]);
   const [userLists, setUserLists] = useState([]);
   const [loaded, setLoaded] = useState(false);
-  const [mode, setMode] = useState('ai'); // 'ai', 'consensus', or source id or 'vote'
+  const [mode, setMode] = useState('ai');
   const [modeInit, setModeInit] = useState(false);
   const [copied, setCopied] = useState('');
   const [downloading, setDownloading] = useState(false);
@@ -241,9 +130,7 @@ export default function SnapshotClient({ listId }) {
     if (!list) return [];
     if (list.mode === 'facts' || list.mode === 'unranked') {
       const aiItems = list.sources?.ai?.items || [];
-      if (aiItems.length > 0) {
-        return [{ id: 'ai', label: list.sources?.ai?.label || 'Consensus AI', items: aiItems }];
-      }
+      if (aiItems.length > 0) return [{ id: 'ai', label: list.sources?.ai?.label || 'Consensus AI', items: aiItems }];
       return [];
     }
     if (list.mode === 'scores') {
@@ -252,9 +139,7 @@ export default function SnapshotClient({ listId }) {
         .filter(([id]) => id !== 'ai')
         .map(([id, src]) => ({ id, label: src.label, items: src.items, url: src.url }));
       const out = [];
-      if (aiItems.length > 0) {
-        out.push({ id: 'ai', label: list.sources?.ai?.label || 'Consensus AI', items: aiItems });
-      }
+      if (aiItems.length > 0) out.push({ id: 'ai', label: list.sources?.ai?.label || 'Consensus AI', items: aiItems });
       if (publications.length <= 1) return out.length > 0 ? out : publications;
       return [...out, ...publications];
     }
@@ -277,11 +162,7 @@ export default function SnapshotClient({ listId }) {
         });
       }
       const all = dedupeByName([...universeItems, ...extras]);
-      const scored = all.map((item, idx) => ({
-        item,
-        score: voteData[voteKey(list.id, item)] || 0,
-        idx,
-      }));
+      const scored = all.map((item, idx) => ({ item, score: voteData[voteKey(list.id, item)] || 0, idx }));
       scored.sort((a, b) => b.score - a.score || a.idx - b.idx);
       return scored.slice(0, 10).map((s) => s.item);
     }
@@ -349,9 +230,7 @@ export default function SnapshotClient({ listId }) {
   function copyText() {
     if (!list) return;
     const lines = [list.title, `— ${modeLabel} —`, ''];
-    items.forEach((item, i) => {
-      lines.push(`${String(i + 1)}. ${item}`);
-    });
+    items.forEach((item, i) => { lines.push(`${String(i + 1)}. ${item}`); });
     lines.push('', `sourceoftruths.com/list/${list.id}`);
     navigator.clipboard.writeText(lines.join('\n')).then(() => {
       setCopied('text');
@@ -361,19 +240,7 @@ export default function SnapshotClient({ listId }) {
 
   if (!loaded) {
     return (
-      <div
-        style={{
-          minHeight: '100vh',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          background: COLORS.cream,
-          fontFamily: 'Fraunces, serif',
-          fontStyle: 'italic',
-          fontSize: 18,
-          color: COLORS.faded,
-        }}
-      >
+      <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: COLORS.cream, fontFamily: 'Fraunces, serif', fontStyle: 'italic', fontSize: 18, color: COLORS.faded }}>
         loading
       </div>
     );
@@ -382,24 +249,8 @@ export default function SnapshotClient({ listId }) {
   if (!list) {
     return (
       <div style={{ padding: 48, textAlign: 'center', background: COLORS.cream, minHeight: '100vh' }}>
-        <p style={{ fontFamily: 'Fraunces, serif', fontStyle: 'italic', color: COLORS.faded }}>
-          That list seems to have wandered off.
-        </p>
-        <button
-          onClick={() => router.push('/')}
-          style={{
-            marginTop: 16,
-            background: COLORS.ink,
-            color: COLORS.cream,
-            border: 'none',
-            padding: '10px 20px',
-            fontFamily: 'DM Mono, monospace',
-            fontSize: 11,
-            letterSpacing: '0.2em',
-            textTransform: 'uppercase',
-            cursor: 'pointer',
-          }}
-        >
+        <p style={{ fontFamily: 'Fraunces, serif', fontStyle: 'italic', color: COLORS.faded }}>That list seems to have wandered off.</p>
+        <button onClick={() => router.push('/')} style={{ marginTop: 16, background: COLORS.ink, color: COLORS.cream, border: 'none', padding: '10px 20px', fontFamily: 'DM Mono, monospace', fontSize: 11, letterSpacing: '0.2em', textTransform: 'uppercase', cursor: 'pointer' }}>
           Back home
         </button>
       </div>
@@ -421,48 +272,17 @@ export default function SnapshotClient({ listId }) {
   }
 
   return (
-    <div
-      style={{
-        minHeight: '100vh',
-        background: COLORS.cream,
-        color: COLORS.ink,
-        padding: '24px 16px 64px',
-      }}
-    >
+    <div style={{ minHeight: '100vh', background: COLORS.cream, color: COLORS.ink, padding: '24px 16px 64px' }}>
       <div style={{ maxWidth: 760, margin: '0 auto' }}>
         <button
           onClick={() => router.push(`/list/${encodeURIComponent(listId)}`)}
-          style={{
-            background: 'transparent',
-            border: 'none',
-            fontFamily: 'DM Mono, monospace',
-            fontSize: 11,
-            letterSpacing: '0.2em',
-            textTransform: 'uppercase',
-            color: COLORS.ink,
-            cursor: 'pointer',
-            display: 'flex',
-            alignItems: 'center',
-            gap: 6,
-            padding: '8px 0',
-            marginBottom: 12,
-          }}
+          style={{ background: 'transparent', border: 'none', fontFamily: 'DM Mono, monospace', fontSize: 11, letterSpacing: '0.2em', textTransform: 'uppercase', color: COLORS.ink, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 6, padding: '8px 0', marginBottom: 12 }}
         >
           <ArrowLeft size={14} strokeWidth={2.5} />
           Back to list
         </button>
 
-        <h2
-          style={{
-            fontFamily: 'Fraunces, serif',
-            fontWeight: 700,
-            fontStyle: 'italic',
-            fontSize: 24,
-            margin: '0 0 18px',
-            color: COLORS.ink,
-            fontVariationSettings: '"SOFT" 100',
-          }}
-        >
+        <h2 style={{ fontFamily: 'Fraunces, serif', fontWeight: 700, fontStyle: 'italic', fontSize: 24, margin: '0 0 18px', color: COLORS.ink, fontVariationSettings: '"SOFT" 100' }}>
           Share this list
         </h2>
 
@@ -471,23 +291,8 @@ export default function SnapshotClient({ listId }) {
           {modeOptions.map((opt) => {
             const active = mode === opt.id;
             return (
-              <button
-                key={opt.id}
-                onClick={() => setMode(opt.id)}
-                style={{
-                  background: active ? COLORS.ink : 'transparent',
-                  color: active ? COLORS.cream : COLORS.ink,
-                  border: `1.5px solid ${COLORS.ink}`,
-                  padding: '6px 12px',
-                  fontFamily: 'DM Mono, monospace',
-                  fontSize: 10,
-                  letterSpacing: '0.16em',
-                  textTransform: 'uppercase',
-                  fontWeight: 600,
-                  cursor: 'pointer',
-                  whiteSpace: 'nowrap',
-                }}
-              >
+              <button key={opt.id} onClick={() => setMode(opt.id)}
+                style={{ background: active ? COLORS.ink : 'transparent', color: active ? COLORS.cream : COLORS.ink, border: `1.5px solid ${COLORS.ink}`, padding: '6px 12px', fontFamily: 'DM Mono, monospace', fontSize: 10, letterSpacing: '0.16em', textTransform: 'uppercase', fontWeight: 600, cursor: 'pointer', whiteSpace: 'nowrap' }}>
                 {opt.label}
               </button>
             );
@@ -499,38 +304,9 @@ export default function SnapshotClient({ listId }) {
           {Object.entries(COLOR_SCHEMES).map(([key, scheme]) => {
             const active = colorScheme === key;
             return (
-              <button
-                key={key}
-                onClick={() => setColorScheme(key)}
-                title={scheme.label}
-                style={{
-                  background: active ? COLORS.ink : 'transparent',
-                  color: active ? COLORS.cream : COLORS.ink,
-                  border: `1.5px solid ${active ? COLORS.ink : '#c8bdb0'}`,
-                  padding: '5px 10px',
-                  fontFamily: 'DM Mono, monospace',
-                  fontSize: 10,
-                  letterSpacing: '0.14em',
-                  textTransform: 'uppercase',
-                  fontWeight: 600,
-                  cursor: 'pointer',
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: 7,
-                }}
-              >
-                {/* Mini two-tone swatch */}
-                <span
-                  style={{
-                    display: 'inline-flex',
-                    width: 20,
-                    height: 14,
-                    borderRadius: 2,
-                    overflow: 'hidden',
-                    border: active ? `1px solid ${COLORS.cream}` : '1px solid #c8bdb0',
-                    flexShrink: 0,
-                  }}
-                >
+              <button key={key} onClick={() => setColorScheme(key)} title={scheme.label}
+                style={{ background: active ? COLORS.ink : 'transparent', color: active ? COLORS.cream : COLORS.ink, border: `1.5px solid ${active ? COLORS.ink : '#c8bdb0'}`, padding: '5px 10px', fontFamily: 'DM Mono, monospace', fontSize: 10, letterSpacing: '0.14em', textTransform: 'uppercase', fontWeight: 600, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 7 }}>
+                <span style={{ display: 'inline-flex', width: 20, height: 14, borderRadius: 2, overflow: 'hidden', border: active ? `1px solid ${COLORS.cream}` : '1px solid #c8bdb0', flexShrink: 0 }}>
                   <span style={{ background: scheme.swatch[0], flex: 1 }} />
                   <span style={{ background: scheme.swatch[1], flex: 1 }} />
                 </span>
@@ -545,22 +321,8 @@ export default function SnapshotClient({ listId }) {
           {Object.entries(FONT_STYLES).map(([key, fs]) => {
             const active = fontStyle === key;
             return (
-              <button
-                key={key}
-                onClick={() => setFontStyle(key)}
-                style={{
-                  background: active ? COLORS.ink : 'transparent',
-                  color: active ? COLORS.cream : COLORS.ink,
-                  border: `1.5px solid ${active ? COLORS.ink : '#c8bdb0'}`,
-                  padding: '6px 12px',
-                  fontFamily: fs.previewFont,
-                  fontStyle: fs.previewStyle,
-                  fontWeight: fs.previewWeight,
-                  fontSize: 11,
-                  letterSpacing: key === 'mono' ? '0.08em' : key === 'sharp' ? '0.04em' : '0.02em',
-                  cursor: 'pointer',
-                }}
-              >
+              <button key={key} onClick={() => setFontStyle(key)}
+                style={{ background: active ? COLORS.ink : 'transparent', color: active ? COLORS.cream : COLORS.ink, border: `1.5px solid ${active ? COLORS.ink : '#c8bdb0'}`, padding: '6px 12px', fontFamily: fs.previewFont, fontStyle: fs.previewStyle, fontWeight: fs.previewWeight, fontSize: 11, letterSpacing: key === 'mono' ? '0.08em' : key === 'sharp' ? '0.04em' : '0.02em', cursor: 'pointer' }}>
                 {fs.label}
               </button>
             );
@@ -568,15 +330,7 @@ export default function SnapshotClient({ listId }) {
         </PickerRow>
 
         {/* Action buttons */}
-        <div
-          style={{
-            display: 'flex',
-            gap: 8,
-            flexWrap: 'wrap',
-            marginBottom: 24,
-            marginTop: 4,
-          }}
-        >
+        <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginBottom: 24, marginTop: 4 }}>
           <ActionButton onClick={downloadPoster} disabled={downloading} primary>
             <Download size={14} strokeWidth={2.5} />
             {downloading ? 'Generating...' : 'Download poster'}
@@ -591,63 +345,25 @@ export default function SnapshotClient({ listId }) {
           </ActionButton>
         </div>
 
-        {/* Poster preview - rendered at 1080x1350, but visually scaled to fit screen */}
-        <div
-          style={{
-            background: '#000',
-            padding: 8,
-            borderRadius: 4,
-            display: 'flex',
-            justifyContent: 'center',
-            overflow: 'hidden',
-          }}
-        >
+        {/* Poster preview */}
+        <div style={{ background: '#000', padding: 8, borderRadius: 4, display: 'flex', justifyContent: 'center', overflow: 'hidden' }}>
           <PosterScaler>
-            <Poster
-              ref={posterRef}
-              list={list}
-              items={items}
-              modeLabel={modeLabel}
-              sourceNames={constituentSourceNames}
-              palette={palette}
-              fonts={fonts}
-            />
+            <Poster ref={posterRef} list={list} items={items} modeLabel={modeLabel} sourceNames={constituentSourceNames} palette={palette} fonts={fonts} />
           </PosterScaler>
         </div>
 
-        <p
-          style={{
-            marginTop: 20,
-            fontFamily: 'DM Mono, monospace',
-            fontSize: 10,
-            letterSpacing: '0.18em',
-            textTransform: 'uppercase',
-            color: COLORS.faded,
-            textAlign: 'center',
-          }}
-        >
-          1080 &times; 1350 &middot; Instagram / Pinterest portrait
+        <p style={{ marginTop: 20, fontFamily: 'DM Mono, monospace', fontSize: 10, letterSpacing: '0.18em', textTransform: 'uppercase', color: COLORS.faded, textAlign: 'center' }}>
+          1080 × 1350 · Instagram / Pinterest portrait
         </p>
       </div>
     </div>
   );
 }
 
-/* A labelled row of picker chips */
 function PickerRow({ label, children }) {
   return (
     <div style={{ marginBottom: 14 }}>
-      <div
-        style={{
-          fontFamily: 'DM Mono, monospace',
-          fontSize: 9,
-          letterSpacing: '0.22em',
-          textTransform: 'uppercase',
-          color: COLORS.faded,
-          marginBottom: 6,
-          fontWeight: 600,
-        }}
-      >
+      <div style={{ fontFamily: 'DM Mono, monospace', fontSize: 9, letterSpacing: '0.22em', textTransform: 'uppercase', color: COLORS.faded, marginBottom: 6, fontWeight: 600 }}>
         {label}
       </div>
       <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
@@ -659,33 +375,13 @@ function PickerRow({ label, children }) {
 
 function ActionButton({ onClick, children, disabled, primary }) {
   return (
-    <button
-      onClick={onClick}
-      disabled={disabled}
-      style={{
-        background: primary ? COLORS.ink : 'transparent',
-        color: primary ? COLORS.cream : COLORS.ink,
-        border: `1.5px solid ${COLORS.ink}`,
-        padding: '10px 16px',
-        fontFamily: 'DM Mono, monospace',
-        fontSize: 11,
-        letterSpacing: '0.18em',
-        textTransform: 'uppercase',
-        fontWeight: 600,
-        cursor: disabled ? 'wait' : 'pointer',
-        boxShadow: primary ? `3px 3px 0 ${COLORS.ember}` : 'none',
-        display: 'flex',
-        alignItems: 'center',
-        gap: 8,
-        opacity: disabled ? 0.6 : 1,
-      }}
-    >
+    <button onClick={onClick} disabled={disabled}
+      style={{ background: primary ? COLORS.ink : 'transparent', color: primary ? COLORS.cream : COLORS.ink, border: `1.5px solid ${COLORS.ink}`, padding: '10px 16px', fontFamily: 'DM Mono, monospace', fontSize: 11, letterSpacing: '0.18em', textTransform: 'uppercase', fontWeight: 600, cursor: disabled ? 'wait' : 'pointer', boxShadow: primary ? `3px 3px 0 ${COLORS.ember}` : 'none', display: 'flex', alignItems: 'center', gap: 8, opacity: disabled ? 0.6 : 1 }}>
       {children}
     </button>
   );
 }
 
-/* Wrap the full-size poster in a scaled-down preview that fits the screen. */
 function PosterScaler({ children }) {
   const [scale, setScale] = useState(0.5);
   useEffect(() => {
@@ -698,42 +394,64 @@ function PosterScaler({ children }) {
     return () => window.removeEventListener('resize', updateScale);
   }, []);
   return (
-    <div
-      style={{
-        width: POSTER_W * scale,
-        height: POSTER_H * scale,
-        position: 'relative',
-        overflow: 'hidden',
-      }}
-    >
-      <div
-        style={{
-          transform: `scale(${scale})`,
-          transformOrigin: 'top left',
-          width: POSTER_W,
-          height: POSTER_H,
-          position: 'absolute',
-          top: 0,
-          left: 0,
-        }}
-      >
+    <div style={{ width: POSTER_W * scale, height: POSTER_H * scale, position: 'relative', overflow: 'hidden' }}>
+      <div style={{ transform: `scale(${scale})`, transformOrigin: 'top left', width: POSTER_W, height: POSTER_H, position: 'absolute', top: 0, left: 0 }}>
         {children}
       </div>
     </div>
   );
 }
 
-/* The actual poster, rendered at full 1080x1350 resolution. */
 const Poster = React.forwardRef(function Poster({ list, items, modeLabel, sourceNames, palette, fonts }, ref) {
   const pal = palette || COLOR_SCHEMES.classic;
   const fnt = fonts || FONT_STYLES.editorial;
-
   return (
-    <div
-      ref={ref}
-      style={{
-        width: POSTER_W,
-        height: POSTER_H,
-        background: pal.bg,
-        color: pal.text,
-        padding:
+    <div ref={ref}
+      style={{ width: POSTER_W, height: POSTER_H, background: pal.bg, color: pal.text, padding: 72, position: 'relative', boxSizing: 'border-box', fontFamily: fnt.nameFamily, overflow: 'hidden' }}>
+
+      {/* Masthead */}
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: `2px solid ${pal.text}`, paddingBottom: 18, fontFamily: fnt.metaFamily, fontSize: 18, letterSpacing: fnt.metaLetterSpacing, textTransform: 'uppercase', color: pal.text }}>
+        <span style={{ fontWeight: 600 }}>Source of Truths</span>
+        <span style={{ color: pal.faded, fontSize: 14 }} />
+        <span style={{ color: pal.faded, fontSize: 14 }}>sourceoftruths.com</span>
+      </div>
+
+      {/* Category */}
+      <div style={{ marginTop: 42, fontFamily: fnt.metaFamily, fontSize: 18, letterSpacing: fnt.metaLetterSpacing, textTransform: 'uppercase', color: pal.accent, fontWeight: 600 }}>
+        {list.category} &middot; Top {Math.min(items.length, 10)}
+      </div>
+
+      {/* Title */}
+      <h1 style={{ fontFamily: fnt.titleFamily, fontWeight: fnt.titleWeight, fontStyle: fnt.titleItalic ? 'italic' : 'normal', fontSize: items.length >= 10 ? 88 : 100, lineHeight: 0.92, letterSpacing: fnt.titleFamily.includes('Mono') ? '-0.01em' : '-0.035em', margin: '14px 0 0', color: pal.text, fontVariationSettings: fnt.titleVariation || 'normal', maxWidth: '92%' }}>
+        {list.title}
+      </h1>
+
+      {/* Mode label */}
+      <div style={{ marginTop: 20, fontFamily: fnt.titleFamily.includes('Mono') ? fnt.metaFamily : fnt.nameFamily, fontStyle: fnt.titleFamily.includes('Fraunces') ? 'italic' : 'normal', fontSize: 26, color: pal.faded, paddingLeft: 16, borderLeft: `3px solid ${pal.accent}`, lineHeight: 1.3, letterSpacing: fnt.titleFamily.includes('Mono') ? '0.04em' : 'normal' }}>
+        {modeLabel}
+      </div>
+
+      {/* Items */}
+      <ol style={{ listStyle: 'none', padding: 0, margin: '36px 0 0' }}>
+        {items.map((item, i) => (
+          <li key={i} style={{ display: 'flex', alignItems: 'baseline', gap: 24, padding: '14px 0', borderBottom: i < items.length - 1 ? `1px ${fnt.itemDivider} ${pal.text}` : 'none' }}>
+            <span style={{ fontFamily: fnt.numberFamily, fontWeight: 900, fontStyle: fnt.numberItalic ? 'italic' : 'normal', fontSize: i === 0 ? 64 : 44, color: i === 0 ? pal.accent : pal.text, minWidth: 78, lineHeight: 0.9, fontVariationSettings: fnt.numberVariation || 'normal', fontFeatureSettings: '"lnum" 1', opacity: i === 0 ? 1 : 0.55 }}>
+              {String(i + 1)}
+            </span>
+            <span style={{ fontFamily: fnt.nameFamily, fontSize: i === 0 ? 38 : 30, fontWeight: i === 0 ? 700 : 500, lineHeight: 1.05, letterSpacing: fnt.nameFamily.includes('Mono') ? '0.01em' : '-0.01em', color: pal.text, flex: 1, fontVariationSettings: fnt.nameVariation || 'normal' }}>
+              {item}
+            </span>
+          </li>
+        ))}
+      </ol>
+
+      {/* Sources footer */}
+      {sourceNames && sourceNames.length > 0 && (
+        <div style={{ position: 'absolute', bottom: 52, left: 72, right: 72, borderTop: `2px solid ${pal.text}`, paddingTop: 18, fontFamily: fnt.metaFamily, fontSize: 17, letterSpacing: '0.03em', lineHeight: 1.45, color: pal.faded }}>
+          <span style={{ fontWeight: 600, color: pal.text }}>Sources: </span>
+          {[...sourceNames, ...(list.mode !== 'facts' && list.mode !== 'scores' && list.mode !== 'unranked' ? ['CG User Vote'] : [])].join(', ')}
+        </div>
+      )}
+    </div>
+  );
+});
