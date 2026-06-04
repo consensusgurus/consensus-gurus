@@ -365,70 +365,6 @@ function SmallTile({ item, rank, list, desc, pics }) {
   );
 }
 
-// Compact single-row bar used for rank 10.
-function CompactTile({ item, rank, list, pics }) {
-  const { displayName, locality } = parseItem(item);
-  const links = buildLinks(item, list);
-
-  return (
-    <div
-      style={{
-        gridColumn: 'span 2',
-        ...tileChrome,
-        padding: '13px 18px',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'space-between',
-        gap: 16,
-        flexWrap: 'wrap',
-      }}
-    >
-      <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-        <div
-          style={{
-            width: 22,
-            height: 22,
-            border: `1.5px solid ${COLORS.faded}`,
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            flexShrink: 0,
-          }}
-        >
-          <span style={{ fontFamily: 'Fraunces, serif', fontSize: 10, fontWeight: 600, color: COLORS.faded }}>
-            {rank}
-          </span>
-        </div>
-        <span
-          style={{
-            fontFamily: 'Fraunces, serif',
-            fontSize: 16,
-            fontWeight: 700,
-            fontVariationSettings: '"SOFT" 100',
-            color: COLORS.ink,
-          }}
-        >
-          {displayName}
-        </span>
-        {locality && (
-          <span
-            style={{
-              fontFamily: 'DM Mono, monospace',
-              fontSize: 8,
-              letterSpacing: '0.1em',
-              textTransform: 'uppercase',
-              color: COLORS.faded,
-            }}
-          >
-            {locality}
-          </span>
-        )}
-      </div>
-      <LinkRow links={links} pics={pics} websiteLabel="Site" />
-    </div>
-  );
-}
-
 export default function ListOverview({ list, voteData, extras, viewCount, onBack, onOpenRankings, onOpenSources, onOpenVote }) {
   const items = getItems(list, voteData, extras);
   const descs = DESCRIPTIONS[list.id] || {};
@@ -690,9 +626,13 @@ export default function ListOverview({ list, voteData, extras, viewCount, onBack
             />
           ))}
 
-          {/* Rank 10: compact bar */}
+          {/* Rank 10: same tile as 4-9, centered on its own row */}
           {tenthItem && (
-            <CompactTile item={tenthItem} rank={10} list={list} pics={pics} />
+            <div style={{ gridColumn: 'span 2', display: 'flex', justifyContent: 'center' }}>
+              <div style={{ width: 'calc(50% - 7px)', minWidth: 'min(100%, 300px)' }}>
+                <SmallTile item={tenthItem} rank={10} list={list} desc={descs[tenthItem]} pics={pics} />
+              </div>
+            </div>
           )}
         </div>
 
