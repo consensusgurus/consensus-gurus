@@ -11,7 +11,12 @@ serve(async (req) => {
     let subject = "";
     let htmlContent = "";
 
-    if (table === "user_lists") {
+    // Raw mode: caller supplies subject + html directly (always sent to
+    // ADMIN_EMAIL). Used by the weekly research summary cron on the site.
+    if (payload.type === "raw" && payload.subject && payload.html) {
+      subject = String(payload.subject);
+      htmlContent = String(payload.html);
+    } else if (table === "user_lists") {
       subject = `New List Submission: ${record.title}`;
       htmlContent = `<p>New list submitted:</p>
             <p><strong>${record.title}</strong></p>
@@ -58,11 +63,4 @@ serve(async (req) => {
       }),
     });
 
-    const result = await response.json();
-    console.log("Brevo response:", result);
-    return new Response(JSON.stringify({ ok: true, messageId: result.messageId }), { status: 200 });
-  } catch (error) {
-    console.error("Error:", error);
-    return new Response(JSON.stringify({ error: error.message }), { status: 500 });
-  }
-});
+    const result = await respon
