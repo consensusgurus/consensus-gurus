@@ -459,6 +459,9 @@ A location list (restaurants, bars, breweries, bagels/bakeries, cafes, hotels, v
 3. `itemYelp` (food/bar) and/or `itemTripadvisor` (hotel/place) — real business-page URLs.
 4. At least one **editorial/expert source** in addition to the Yelp/Google rating sources (see the source rule above).
 5. **Confirm every business is currently open (not permanently closed) before including it.** Do a quick live check for each item BEFORE adding it — watch for a "Permanently closed" flag on Google/Yelp/Tripadvisor or a closure announcement — and never include a closed place. If a check reveals a closure, drop it everywhere it appears (`ai` seed, every source's `items`, `vote.items`, `links`, `itemLinks`, `itemYelp`/`itemTripadvisor`) and backfill the `ai` seed and `vote.items` to 10 with an open, on-tier replacement (see "Drop permanently-closed locations" above). This applies when enriching or re-touching an existing list too, not just new builds.
+6. **Descriptions for the full consensus top 10 AND hero images for the top 3** (see "Overview page
+   research" section above). This applies to ALL new lists, not just location lists; for product lists
+   include the Amazon "Customers say" consensus in each description.
 Gather each website by searching `"<name> official website"` in the connected browser and taking the first genuine own-domain result; reject Yelp/TripAdvisor/menu-hosts/`*.restaurants-info.com`/delivery apps.
 
 ### Getting Yelp / TripAdvisor business-page URLs without hitting their bot walls
@@ -591,6 +594,18 @@ NEW_LIB_TREE=$(git ls-tree $LIB_TREE_SHA | awk -v b="$NEW_BLOB" \
 
 The list overview page (`ListOverview.jsx`) renders, for every list, the live consensus top 10 with a
 1-2 sentence description per item and a hero photo for ranks 1-3. Three systems support this:
+
+**HARD RULE for every NEW list: it must ship with descriptions for all 10 consensus top-10 items
+(`lib/descriptions.js`) AND hero images for the top 3 (`lib/hero-images.js` + optimized WebP under
+`public/heroes/<listId>/`) before deploy.** This applies to all list types, location and non-location
+alike. A new list without its 10 descriptions and 3 hero images is unfinished.
+
+**Product lists (`linkType: 'amazon'`): each item description = a short product description PLUS the
+"Customers say" consensus.** Amazon product pages carry an AI-generated "Customers say" summary of
+reviews. Read it live off the product page (connected Chrome) while gathering the ASIN/rating, then
+condense it into the description's second sentence, e.g. "Buyers call it a beautiful story of courage
+and survival and praise its historical accuracy." Do not invent the consensus; if a product has no
+"Customers say" block, synthesize from the top reviews instead.
 
 ### Descriptions for the consensus top 10
 - `lib/descriptions.js` keys by list ID then exact item name. Every item in a list's **live consensus
