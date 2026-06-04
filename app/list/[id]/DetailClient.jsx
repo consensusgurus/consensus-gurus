@@ -1864,7 +1864,7 @@ export default function DetailClient({ listId }) {
         </div>
       ) : list ? (
         <>
-          <ListOverview list={list} voteData={voteData} extras={extras} />
+          <ListOverview list={list} voteData={voteData} extras={extras} onBack={backHome} />
           <div
             id="lov-rankings"
             style={{
@@ -1873,13 +1873,13 @@ export default function DetailClient({ listId }) {
               borderTop: `1.5px solid ${COLORS.ink}`,
               borderBottom: `2px solid ${COLORS.ember}`,
               padding: '14px 24px',
-              display: 'flex',
-              alignItems: 'center',
-              gap: 12,
             }}
           >
             <span
               style={{
+                display: 'block',
+                maxWidth: 1200,
+                margin: '0 auto',
                 fontFamily: 'DM Mono, monospace',
                 fontSize: 10,
                 letterSpacing: '0.2em',

@@ -1,6 +1,6 @@
 'use client';
 import React from 'react';
-import { MapPin, Globe, Camera, ChevronDown } from 'lucide-react';
+import { MapPin, Globe, Camera, ChevronDown, ArrowLeft } from 'lucide-react';
 import { COLORS } from '@/lib/data';
 import { DESCRIPTIONS } from '@/lib/descriptions';
 import { getSources, buildItemLink } from '@/lib/helpers';
@@ -133,6 +133,7 @@ function HeroTile({ item, rank, list, desc, first }) {
 
   return (
     <div
+      className="lov-hero"
       style={{
         gridColumn: 'span 2',
         display: 'grid',
@@ -431,7 +432,7 @@ function CompactTile({ item, rank, list }) {
   );
 }
 
-export default function ListOverview({ list, voteData, extras }) {
+export default function ListOverview({ list, voteData, extras, onBack }) {
   const items = getItems(list, voteData, extras);
   const descs = DESCRIPTIONS[list.id] || {};
 
@@ -446,14 +447,90 @@ export default function ListOverview({ list, voteData, extras }) {
   }
 
   return (
-    <div style={{ background: COLORS.cream }}>
-      {/* 2-column grid container */}
-      <div
-        style={{
-          display: 'grid',
-          gridTemplateColumns: '1fr 1fr',
-        }}
-      >
+    <div style={{ position: 'relative', zIndex: 2, background: COLORS.cream }}>
+      <style>{`
+        .lov-grid{display:grid;grid-template-columns:1fr 1fr;}
+        @media(max-width:700px){
+          .lov-grid{grid-template-columns:1fr;}
+          .lov-grid>div{grid-column:auto !important;border-left:1.5px solid ${COLORS.ink} !important;}
+          .lov-hero{grid-template-columns:1fr !important;}
+        }
+      `}</style>
+      <div style={{ maxWidth: 1200, margin: '0 auto', padding: '28px 24px 0' }}>
+        {/* Condensed header */}
+        {onBack && (
+          <button
+            onClick={onBack}
+            style={{
+              background: 'transparent',
+              border: 'none',
+              fontFamily: 'DM Mono, monospace',
+              fontSize: 11,
+              letterSpacing: '0.2em',
+              textTransform: 'uppercase',
+              color: COLORS.ink,
+              cursor: 'pointer',
+              display: 'flex',
+              alignItems: 'center',
+              gap: 6,
+              padding: '0 0 14px',
+            }}
+          >
+            <ArrowLeft size={13} strokeWidth={2.5} />
+            Back to all lists
+          </button>
+        )}
+        <div style={{ display: 'flex', alignItems: 'flex-end', gap: 'clamp(16px, 4vw, 28px)' }}>
+          <h1
+            style={{
+              fontFamily: 'Fraunces, serif',
+              fontWeight: 800,
+              fontSize: 'clamp(30px, 5vw, 54px)',
+              lineHeight: 1.02,
+              letterSpacing: '-0.02em',
+              margin: 0,
+              color: COLORS.ink,
+              fontVariationSettings: '"SOFT" 100',
+            }}
+          >
+            {list.title}
+          </h1>
+          <div style={{ flex: 1, minWidth: 120, marginBottom: 6 }}>
+            <div
+              style={{
+                fontFamily: 'DM Mono, monospace',
+                fontSize: 'clamp(9px, 1.1vw, 11px)',
+                letterSpacing: '0.2em',
+                textTransform: 'uppercase',
+                color: COLORS.ember,
+                textAlign: 'right',
+                marginBottom: 8,
+              }}
+            >
+              {list.category} · Top Ten
+            </div>
+            <div style={{ borderBottom: `1px solid ${COLORS.ink}`, marginBottom: 4 }} />
+            <div style={{ borderBottom: `2px solid ${COLORS.ember}` }} />
+          </div>
+        </div>
+        {list.blurb && (
+          <p
+            style={{
+              fontFamily: 'Fraunces, serif',
+              fontStyle: 'italic',
+              fontSize: 16,
+              lineHeight: 1.45,
+              margin: '12px 0 0',
+              color: COLORS.faded,
+              maxWidth: 640,
+            }}
+          >
+            {list.blurb}
+          </p>
+        )}
+
+        {/* 2-column grid container */}
+        <div className="lov-grid" style={{ marginTop: 26 }}>
         {/* Ranks 1-3: full-width hero tiles */}
         {heroItems.map((item, i) => (
           <HeroTile
@@ -487,8 +564,7 @@ export default function ListOverview({ list, voteData, extras }) {
       {/* CTA */}
       <div
         style={{
-          borderTop: `1.5px solid ${COLORS.ink}`,
-          padding: '20px 24px',
+          padding: '26px 0 34px',
           display: 'flex',
           justifyContent: 'center',
         }}
@@ -515,6 +591,7 @@ export default function ListOverview({ list, voteData, extras }) {
           Full Rankings, Source Detail &amp; Voting
           <ChevronDown size={13} strokeWidth={2.5} />
         </button>
+      </div>
       </div>
     </div>
   );
