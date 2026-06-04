@@ -235,6 +235,10 @@ For hotels, products, restaurants, and any list where quality has a clear hierar
 - A fine dining list must contain only fine dining. No fast casual, no chains, no "hidden gem" budget spots.
 - If a source you want to use contains off-tier items, either drop that source or replace the off-tier items with appropriate ones before adding it.
 
+### No large chains on "best of" food lists
+
+**Rule of thumb: never include a large chain on a best-of food list, anywhere.** In-N-Out, Chipotle, Shake Shack, Five Guys, Original Tommy's-scale regional chains, and the like do not belong on a "Best Burgers in X" or any other best-of food/drink list, even when editorial sources include them (sources love a nostalgic chain pick). When a source includes a chain item, drop it from that source before adding — same treatment as off-tier items. This applies to the `ai` seed, every source's `items`, `vote.items`, `links`, `itemLinks`, and `itemYelp` alike. (The single-city chain-ranking lists, e.g. `best-run-chipotle-manhattan`, are the deliberate exception: the chain IS the topic there.) A small local mini-chain with a handful of locations in one metro (e.g. a beloved 3-location taqueria) is not a "large chain" — judgment applies; the test is whether the place reads as a mass-market chain rather than a local institution.
+
 ### Nuanced "Best" categories
 
 Some categories require a more considered definition of "best":
@@ -610,6 +614,13 @@ condense it into the description's second sentence, e.g. "Buyers call it a beaut
 and survival and praise its historical accuracy." Do not invent the consensus; if a product has no
 "Customers say" block, synthesize from the top reviews instead.
 
+**Consumable products (seltzer flavors, snacks, drinks, etc.): use the ingredient list / nutrition
+facts to fill out the description when more content is needed.** For flavor or food/beverage product
+lists where there isn't much editorial to say about an individual item, read the ingredient list and
+nutrition facts off the product page (live, connected Chrome) and work the notable details into the
+description, e.g. calories, sugar, sodium, real-juice vs natural-flavor sourcing, caffeine. This is
+the preferred filler content over generic marketing copy.
+
 ### Descriptions for the consensus top 10
 - `lib/descriptions.js` keys by list ID then exact item name. Every item in a list's **live consensus
   top 10** (not the `ai` seed) needs a description. Compute the consensus with the same scoring as the
@@ -798,17 +809,4 @@ if (missing.length) throw new Error('Missing descriptions: ' + missing.join(', '
 | Source list length | Any number of items |
 | How do I order items within a source? | By the source's true rank — score descending (Infatuation) or its numbers. Never article order. |
 | Source has scores but lists them out of order? | Sort by numeric score, descending; ties keep page order; unrated last. |
-| Source is alphabetical/unordered? | Find a ranked version, drop it, or label it `(alphabetical)`/`(unordered roundup)` AND set `"unordered": true` (flat pts/item: n≤10 → `(21−n)/2`, n>10 → `55/n`; not ranked). |
-| Source paywalled or JS-only / unreadable? | Don't guess — get it elsewhere, drop it, or substitute. |
-| Consensus output length | Always exactly 10 |
-| Is the seed (`ai`) source used in scoring | No — excluded from Borda |
-| Fan vote weight | 0.75x one publication |
-| City-level items need parentheses? | Optional but encouraged for neighborhoods |
-| Country/world-level items need parentheses? | Yes — always include city or country |
-| Can a luxury list include mid-tier hotels? | Never |
-| What tier for hotel/resort lists? | Five-star default (Forbes 5-star, AAA 5-diamond, SLH, LHW, R&C, or demonstrably equivalent). Exception only for destinations with no five-star options. |
-| Large resort complex = five-star? | Not automatically — must meet the luxury product/service standard, not just be large or popular. |
-| Use pricing as a rank input for hotels? | Yes — live rates 5–6 months out, non-holiday Tuesday or Wednesday, ordered descending as a `pricing` Borda source. |
-| How to pick a non-holiday pricing date? | Count 5–6 months forward, confirm the chosen week is ≥7 days from any major holiday (Thanksgiving, Christmas/New Year's, Easter, spring-break peak). Move a week if needed. |
-| Pricing comparison across global regions? | Use rate-as-multiple-of-local-luxury-floor (not absolute USD) when regions have very different cost-of-living baselines. Not needed for single-region lists (Caribbean, European ski, etc.). |
-| H
+| Source is alphabetical/unordered? | Find a ranked version, drop it, or label it `(alphabetical)`/`(unordered roundup)` AND set `"unorde
