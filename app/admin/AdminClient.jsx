@@ -29,10 +29,11 @@ function mapsPlaceUrl(name) {
   return `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(cleaned)}`;
 }
 
-export default function AdminClient({ initialLists, initialExtras = [], initialComplaints = [], initialVoteStandings = [], initialVoteEvents = [] }) {
+export default function AdminClient({ initialLists, initialExtras = [], initialComplaints = [], initialVoteStandings = [], initialVoteEvents = [], initialAlerts = [] }) {
   const router = useRouter();
   const [lists, setLists] = useState(initialLists);
   const [extras, setExtras] = useState(initialExtras);
+  const [alerts, setAlerts] = useState(initialAlerts);
   const [complaints, setComplaints] = useState(initialComplaints);
   const [voteStandings] = useState(initialVoteStandings);
   const [voteEvents] = useState(initialVoteEvents);
@@ -179,6 +180,23 @@ export default function AdminClient({ initialLists, initialExtras = [], initialC
     );
   }
 
+  async function resolveAlert(id) {
+    const key = `alert-${id}`;
+    if (busy[key]) return;
+    setBusy((b) => ({ ...b, [key]: true }));
+    const res = await fetch('/api/admin/alerts', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ id }),
+    });
+    if (res.ok) {
+      setAlerts((prev) => prev.filter((a) => a.id !== id));
+    } else {
+      alert('Could not resolve. Try again.');
+    }
+    setBusy((b) => ({ ...b, [key]: false }));
+  }
+
   async function logout() {
     await fetch('/api/admin/logout', { method: 'POST' });
     router.push('/admin/login');
@@ -291,9 +309,14 @@ export default function AdminClient({ initialLists, initialExtras = [], initialC
           <TabButton active={tab === 'votes'} onClick={() => setTab('votes')}>
             Votes <span style={{ opacity: 0.6 }}>{voteStandings.length}</span>
           </TabButton>
+          <TabButton active={tab === 'research'} onClick={() => setTab('research')}>
+            Research <span style={{ opacity: 0.6 }}>{alerts.length}</span>
+          </TabButton>
         </div>
 
-        {tab === 'votes' ? (
+        {tab === 'research' ? (
+          <ResearchPanel alerts={alerts} busy={busy} onResolve={resolveAlert} />
+        ) : tab === 'votes' ? (
           <VotesPanel standings={voteStandings} events={voteEvents} />
         ) : tab === 'complaints' ? (
           <ComplaintsPanel complaints={complaints} busy={busy} onDismiss={dismissComplaint} />
@@ -334,6 +357,95 @@ export default function AdminClient({ initialLists, initialExtras = [], initialC
             ))}
           </div>
         )}
+      </div>
+    </div>
+  );
+}
+
+function ResearchPanel({ alerts, busy, onResolve }) {
+  if (!alerts || alerts.length === 0) {
+    return (
+      <div
+        style={{
+          padding: '60px 20px',
+          textAlign: 'center',
+          fontFamily: 'Fraunces, serif',
+          fontStyle: 'italic',
+          fontSize: 18,
+          color: COLORS.faded,
+          border: `1.5px dashed ${COLORS.ink}`,
+        }}
+      >
+        No consensus changes awaiting research.
+      </div>
+    );
+  }
+  const rowBorder = `1px solid ${COLORS.ink}22`;
+  return (
+    <div>
+      <p style={{ fontFamily: 'DM Sans, sans-serif', fontSize: 13, color: COLORS.faded, margin: '0 0 14px' }}>
+        Items that newly entered a list's consensus top 10 (needs a description) or
+        top 3 (needs a hero photo). Resolve once the research has shipped.
+      </p>
+      <div style={{ border: `1.5px solid ${COLORS.ink}` }}>
+        <div style={{ display: 'flex', fontFamily: 'DM Mono, monospace', fontSize: 10, letterSpacing: '0.14em', textTransform: 'uppercase', color: COLORS.faded, padding: '10px 14px', borderBottom: `1.5px solid ${COLORS.ink}` }}>
+          <span style={{ flex: 2 }}>List</span>
+          <span style={{ flex: 2 }}>Item</span>
+          <span style={{ flex: '0 0 110px' }}>Change</span>
+          <span style={{ flex: '0 0 130px' }}>Needs</span>
+          <span style={{ flex: '0 0 110px', textAlign: 'right' }}>Detected</span>
+          <span style={{ flex: '0 0 80px' }} />
+        </div>
+        {alerts.map((a, i) => {
+          const needs = [];
+          if (a.changeType === 'entered_top10' && !a.hasDescription) needs.push('Description');
+          if (a.changeType === 'entered_top3' && !a.hasHeroImage) needs.push('Hero photo');
+          return (
+            <div
+              key={a.id}
+              style={{ display: 'flex', alignItems: 'center', gap: 8, fontFamily: 'DM Sans, sans-serif', fontSize: 13, color: COLORS.ink, padding: '9px 14px', borderBottom: i < alerts.length - 1 ? rowBorder : 'none' }}
+            >
+              <span style={{ flex: 2 }}>
+                <Link href={`/list/${encodeURIComponent(a.listId)}`} style={{ color: COLORS.ink }}>
+                  {a.listTitle}
+                </Link>
+              </span>
+              <span style={{ flex: 2, fontWeight: 600 }}>
+                {a.itemName}
+                {a.rank ? <span style={{ color: COLORS.faded, fontWeight: 400 }}> · #{a.rank}</span> : null}
+              </span>
+              <span style={{ flex: '0 0 110px', fontFamily: 'DM Mono, monospace', fontSize: 10, letterSpacing: '0.08em', textTransform: 'uppercase', color: a.changeType === 'entered_top3' ? COLORS.ember : COLORS.faded }}>
+                {a.changeType === 'entered_top3' ? 'Into top 3' : 'Into top 10'}
+              </span>
+              <span style={{ flex: '0 0 130px', fontSize: 12, color: needs.length ? COLORS.ember : COLORS.faded }}>
+                {needs.length ? needs.join(' + ') : 'Done, just resolve'}
+              </span>
+              <span style={{ flex: '0 0 110px', textAlign: 'right', fontSize: 11, color: COLORS.faded }}>
+                {formatDate(a.detectedAt)}
+              </span>
+              <span style={{ flex: '0 0 80px', textAlign: 'right' }}>
+                <button
+                  onClick={() => onResolve(a.id)}
+                  disabled={!!busy[`alert-${a.id}`]}
+                  style={{
+                    background: 'transparent',
+                    color: COLORS.ink,
+                    border: `1.5px solid ${COLORS.ink}`,
+                    padding: '5px 10px',
+                    fontFamily: 'DM Mono, monospace',
+                    fontSize: 9,
+                    letterSpacing: '0.12em',
+                    textTransform: 'uppercase',
+                    fontWeight: 600,
+                    cursor: 'pointer',
+                  }}
+                >
+                  Resolve
+                </button>
+              </span>
+            </div>
+          );
+        })}
       </div>
     </div>
   );

@@ -587,6 +587,39 @@ NEW_LIB_TREE=$(git ls-tree $LIB_TREE_SHA | awk -v b="$NEW_BLOB" \
   (e.g. PAT revoked, GitHub Smart HTTP unreachable): edit `lib/data.js`, save, then in GitHub Desktop commit
   to `main` and push origin. Otherwise always push directly per the procedure above.
 
+## Overview page research: descriptions, hero images, and consensus alerts
+
+The list overview page (`ListOverview.jsx`) renders, for every list, the live consensus top 10 with a
+1-2 sentence description per item and a hero photo for ranks 1-3. Three systems support this:
+
+### Descriptions for the consensus top 10
+- `lib/descriptions.js` keys by list ID then exact item name. Every item in a list's **live consensus
+  top 10** (not the `ai` seed) needs a description. Compute the consensus with the same scoring as the
+  site (`getSources` + live votes from `/api/bootstrap`) before writing.
+- Style: 1-2 sentences, specific and editorial, no em dashes. Amazon lists get a reviewer-consensus
+  second sentence. Keys must be byte-for-byte identical to the item names in `lib/data.js` (straight
+  ASCII apostrophes, exact parentheticals).
+- Rollout is batched by traffic (view counts from `/api/bootstrap`); ~159 lists total.
+
+### Hero images for the consensus top 3
+- `lib/hero-images.js` maps list ID -> item name -> a path under `/public/heroes/<listId>/<slug>.webp`.
+- Images are pre-optimized WebP, ~640px wide, quality ~70, target 25-60KB. `HeroPhoto` in
+  `ListOverview.jsx` renders them with `loading="lazy"` + `decoding="async"` and falls back to the
+  PhotoBox placeholder if missing or 404ing, so memory/bandwidth cost stays minimal.
+
+### Consensus change alerts (research queue)
+- Tables `consensus_snapshots` + `consensus_alerts` (migration `08_consensus_alerts.sql`).
+- `/api/cron/consensus-check` runs daily via Vercel cron (`vercel.json`): recomputes every list's
+  consensus top 10, diffs against the snapshot, and inserts an alert when an item newly enters the
+  top 10 (`entered_top10`, needs a description) or top 3 (`entered_top3`, needs a hero photo).
+  First run seeds snapshots silently. Optional `CRON_SECRET` env var protects the route.
+- The admin panel (`/admin`) has a **Research** tab listing unresolved alerts with what each needs;
+  resolve via `/api/admin/alerts` once the research ships.
+- `/api/consensus-alerts` is a public read-only feed of unresolved alerts (used by the weekly
+  email summary task in Cowork; supports `?sinceDays=7`).
+- When researching an alert: write the description into `lib/descriptions.js`, add the hero image if
+  top 3, deploy, then resolve the alert in the admin panel.
+
 ## Full Example List Entry
 
 ```javascript
