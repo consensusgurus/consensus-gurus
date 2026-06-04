@@ -17,10 +17,12 @@ import {
   Globe,
 } from 'lucide-react';
 import { LISTS, COLORS } from '@/lib/data';
+import { DESCRIPTIONS } from '@/lib/descriptions';
 import { buildItemLink, getSources, voteKey, dedupeByName } from '@/lib/helpers';
 import { fetchBootstrap, postVote, postView, postExtra } from '@/lib/api';
 import Grain from '../../Grain';
 import Footer from '../../Footer';
+import ListOverview from './ListOverview';
 
 // Get the effective tag set for a list. If `tags` is provided, use it.
 // Otherwise fall back to [type] for backward compatibility.
@@ -115,7 +117,7 @@ function isPublicationLink(src) {
   return g === 'publication' || g === 'trueexpert';
 }
 
-function ListDetail({ list, viewCount, voteData, userVotes, extras, relatedLists, onBack, onVote, onAddExtra, onOpenRelated }) {
+function ListDetail({ list, viewCount, voteData, userVotes, extras, relatedLists, onBack, onVote, onAddExtra, onOpenRelated, compact }) {
   const mode = list.mode || 'both';
   const showSourceTab = mode !== 'votes';
   const showVoteTab = mode !== 'facts' && mode !== 'scores' && mode !== 'unranked';
@@ -458,28 +460,30 @@ function ListDetail({ list, viewCount, voteData, userVotes, extras, relatedLists
 
   return (
     <div style={{ position: 'relative', zIndex: 2, maxWidth: 820, margin: '0 auto', padding: '24px 20px 80px' }}>
-      <button
-        onClick={onBack}
-        style={{
-          background: 'transparent',
-          border: 'none',
-          fontFamily: 'DM Mono, monospace',
-          fontSize: 11,
-          letterSpacing: '0.2em',
-          textTransform: 'uppercase',
-          color: COLORS.ink,
-          cursor: 'pointer',
-          display: 'flex',
-          alignItems: 'center',
-          gap: 6,
-          padding: '8px 0',
-        }}
-      >
-        <ArrowLeft size={14} strokeWidth={2.5} />
-        Back to all lists
-      </button>
+      {!compact && (
+        <button
+          onClick={onBack}
+          style={{
+            background: 'transparent',
+            border: 'none',
+            fontFamily: 'DM Mono, monospace',
+            fontSize: 11,
+            letterSpacing: '0.2em',
+            textTransform: 'uppercase',
+            color: COLORS.ink,
+            cursor: 'pointer',
+            display: 'flex',
+            alignItems: 'center',
+            gap: 6,
+            padding: '8px 0',
+          }}
+        >
+          <ArrowLeft size={14} strokeWidth={2.5} />
+          Back to all lists
+        </button>
+      )}
 
-      <div style={{ borderBottom: `2px solid ${COLORS.ink}`, paddingBottom: 24, marginTop: 20 }}>
+      {!compact && <div style={{ borderBottom: `2px solid ${COLORS.ink}`, paddingBottom: 24, marginTop: 20 }}>
         <div
           style={{
             fontFamily: 'DM Mono, monospace',
@@ -608,7 +612,7 @@ function ListDetail({ list, viewCount, voteData, userVotes, extras, relatedLists
             </a>
           </div>
         </div>
-      </div>
+      </div>}
 
       <div style={{ marginTop: 28 }} />
 
@@ -1632,7 +1636,7 @@ function DataRow({ rank, item, list, unranked, showPrice }) {
         </button>
 
         {/* Description (shown when expanded) */}
-        {expanded && list.descriptions && list.descriptions[item] && (
+        {expanded && DESCRIPTIONS[list.id]?.[item] && (
           <p
             style={{
               margin: '10px 0 0',
@@ -1643,7 +1647,7 @@ function DataRow({ rank, item, list, unranked, showPrice }) {
               maxWidth: 560,
             }}
           >
-            {list.descriptions[item]}
+            {DESCRIPTIONS[list.id]?.[item]}
           </p>
         )}
 
@@ -1859,18 +1863,47 @@ export default function DetailClient({ listId }) {
           loading the list
         </div>
       ) : list ? (
-        <ListDetail
-          list={list}
-          viewCount={viewCount}
-          voteData={voteData}
-          userVotes={userVotes}
-          extras={extras}
-          relatedLists={relatedLists}
-          onBack={backHome}
-          onVote={vote}
-          onAddExtra={addExtra}
-          onOpenRelated={openRelated}
-        />
+        <>
+          <ListOverview list={list} voteData={voteData} extras={extras} />
+          <div
+            id="lov-rankings"
+            style={{
+              position: 'relative',
+              zIndex: 2,
+              borderTop: `1.5px solid ${COLORS.ink}`,
+              borderBottom: `2px solid ${COLORS.ember}`,
+              padding: '14px 24px',
+              display: 'flex',
+              alignItems: 'center',
+              gap: 12,
+            }}
+          >
+            <span
+              style={{
+                fontFamily: 'DM Mono, monospace',
+                fontSize: 10,
+                letterSpacing: '0.2em',
+                textTransform: 'uppercase',
+                color: COLORS.faded,
+              }}
+            >
+              Full Rankings, Source Detail &amp; Voting
+            </span>
+          </div>
+          <ListDetail
+            list={list}
+            viewCount={viewCount}
+            voteData={voteData}
+            userVotes={userVotes}
+            extras={extras}
+            relatedLists={relatedLists}
+            onBack={backHome}
+            onVote={vote}
+            onAddExtra={addExtra}
+            onOpenRelated={openRelated}
+            compact
+          />
+        </>
       ) : (
         <div style={{ position: 'relative', zIndex: 2, padding: 48, textAlign: 'center' }}>
           <p style={{ fontFamily: 'Fraunces, serif', fontStyle: 'italic', color: COLORS.faded }}>
