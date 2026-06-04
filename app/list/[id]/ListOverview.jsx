@@ -1,6 +1,6 @@
 'use client';
 import React, { useState } from 'react';
-import { MapPin, Globe, Camera, ArrowRight, ArrowLeft, Eye, PenLine, Share2 } from 'lucide-react';
+import { MapPin, Globe, Camera, ArrowRight, ArrowLeft, Eye, PenLine, Share2, ShoppingBag, ExternalLink } from 'lucide-react';
 import { COLORS } from '@/lib/data';
 import { DESCRIPTIONS } from '@/lib/descriptions';
 import { getSources, buildItemLink } from '@/lib/helpers';
@@ -106,40 +106,47 @@ const tileChrome = {
   border: `1.5px solid ${COLORS.ink}`,
 };
 
-// Map / Website / pics chip row shared by all tile sizes.
-function LinkRow({ links, pics, websiteLabel }) {
+// Map(or Shop) / Website / pics chip row shared by all tile sizes. Location
+// lists get Map + pics; product and other non-place lists get a single
+// Shop/View link with no map and no pics.
+function LinkRow({ links, pics, websiteLabel, list }) {
+  const isPlace = (list.linkType || 'mapsCity') === 'mapsCity';
+  const primaryLabel = isPlace ? 'Map' : list.linkType === 'amazon' ? 'Shop' : 'View';
+  const PrimaryIcon = isPlace ? MapPin : list.linkType === 'amazon' ? ShoppingBag : ExternalLink;
   return (
     <div style={{ display: 'flex', gap: 7, flexWrap: 'wrap', alignItems: 'center' }}>
-      <a href={links.map} target="_blank" rel="noopener noreferrer" style={linkBtn(true)}>
-        <MapPin size={9} strokeWidth={2} /> Map
+      <a href={links.map} target="_blank" rel={isPlace ? 'noopener noreferrer' : 'noopener noreferrer sponsored'} style={linkBtn(true)}>
+        <PrimaryIcon size={9} strokeWidth={2} /> {primaryLabel}
       </a>
       {links.website && (
         <a href={links.website} target="_blank" rel="noopener noreferrer" style={linkBtn(false)}>
           <Globe size={9} strokeWidth={2} /> {websiteLabel}
         </a>
       )}
-      {/* Label + its chips wrap together as one unit so the association
-          survives line breaks on mobile. */}
-      <span style={{ display: 'inline-flex', alignItems: 'center', gap: 7, marginLeft: 4, whiteSpace: 'nowrap' }}>
-        <span
-          style={{
-            fontFamily: 'DM Mono, monospace',
-            fontSize: 8,
-            letterSpacing: '0.13em',
-            textTransform: 'uppercase',
-            color: COLORS.faded,
-          }}
-        >
-          {pics.label}
+      {/* Pics only make sense for places. Label + its chips wrap together as
+          one unit so the association survives line breaks on mobile. */}
+      {isPlace && (
+        <span style={{ display: 'inline-flex', alignItems: 'center', gap: 7, marginLeft: 4, whiteSpace: 'nowrap' }}>
+          <span
+            style={{
+              fontFamily: 'DM Mono, monospace',
+              fontSize: 8,
+              letterSpacing: '0.13em',
+              textTransform: 'uppercase',
+              color: COLORS.faded,
+            }}
+          >
+            {pics.label}
+          </span>
+          {pics.links.map(([key, label]) =>
+            links[key] ? (
+              <a key={key} href={links[key]} target="_blank" rel="noopener noreferrer" style={linkBtn(false)}>
+                {label}
+              </a>
+            ) : null
+          )}
         </span>
-        {pics.links.map(([key, label]) =>
-          links[key] ? (
-            <a key={key} href={links[key]} target="_blank" rel="noopener noreferrer" style={linkBtn(false)}>
-              {label}
-            </a>
-          ) : null
-        )}
-      </span>
+      )}
     </div>
   );
 }
@@ -282,7 +289,7 @@ function HeroTile({ item, rank, list, desc, pics }) {
             {desc || 'Wordsmithing a perfect description'}
           </p>
         </div>
-        <LinkRow links={links} pics={pics} websiteLabel="Website" />
+        <LinkRow links={links} pics={pics} websiteLabel="Website" list={list} />
       </div>
     </div>
   );
@@ -365,7 +372,7 @@ function SmallTile({ item, rank, list, desc, pics }) {
         {desc || 'Wordsmithing a perfect description'}
       </p>
       <div style={{ marginTop: 'auto', paddingTop: 10 }}>
-        <LinkRow links={links} pics={pics} websiteLabel="Site" />
+        <LinkRow links={links} pics={pics} websiteLabel="Site" list={list} />
       </div>
     </div>
   );
