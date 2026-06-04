@@ -408,6 +408,45 @@ Site-facing copy — blurbs, titles, categories, and any prose shown on a list p
 - Combine it with editorial "best of" review sources (Wirecutter, Good Housekeeping, CNET, Serious Eats, Reviewed, etc.). Re-seed `ai` and `vote.items` to reflect the blend of editorial picks + Amazon rating, not a single signal.
 - This applies to physical products (air fryers, headphones, etc.) and to product-style media sold on Amazon (cookbooks, books) where an Amazon rating exists.
 
+### Tech product lists: measured experts, lineup positioning, and day-one models
+
+Flagship tech lists (TVs, headphones, monitors, etc.) have a structural bias problem: editorial "best of"
+roundups are value-ordered (the mid-range model wins "best for most people" while the flagship sits lower
+as "best premium pick"), and a just-launched successor has no reviews at all, so it earns zero Borda and
+sinks below the two-year-old models it supersedes. Three rules fix this — first applied to `oled-tvs`
+(June 2026):
+
+1. **Measured/judged expert sources are True Experts — order them by their measurement, flag
+   `"trueExpert": true`.** A source that ranks products by instrumented lab measurement or a formal judged
+   shootout outranks listicles, exactly like the Infatuation score rule. For TVs the canonical one is the
+   **Value Electronics TV Shootout** (annual, judged by professional calibrators, official results PDF on
+   valueelectronics.com) — order by composite score. Find the equivalent for other categories where one
+   exists (e.g. a formal measured group test). ⚠️ **RTINGS numeric scores are membership-gated as of 2026**
+   — every score box renders blurred for non-members and the values are not in the page HTML, so they
+   cannot be gathered live. Do NOT reconstruct RTINGS scores from memory; use their public "Best X"
+   roundup as a normal ranked source instead (its pick order is readable) and rely on a different
+   measured/judged source for the trueExpert slot.
+
+2. **Add a "Lineup Positioning · Ranked by Launch Price" source on every flagship-tier tech list** — the
+   tech analog of the hotel pricing source. Manufacturer launch MSRP (use one consistent size/config, e.g.
+   the 65" TV) is an objective quality-positioning proxy and the one signal a day-one product has in full.
+   Gather launch MSRPs live (manufacturer press releases, launch-pricing articles), order descending, and
+   give the source the id **`pricing`** so `DetailClient` shows the price decoration on that view. Store
+   the prices in the list's `prices` map as e.g. `'$3,399 launch'`. Tie-break equal prices by newer
+   generation first, then alphabetically. Do NOT flag it `"unordered"`. Like the hotel rule, it carries
+   one normal Borda weight: it nudges, it does not dictate.
+
+3. **Day-one model policy.** When a direct successor (LG G6 after the G5, etc.) has launched but has few
+   or no reviews yet: include it on the list, carried by the positioning source (and any source that has
+   covered it), and let the daily consensus-alert cron surface it as reviews land. Never fabricate a
+   ranking for it, never inherit the predecessor's editorial positions, and never leave the current
+   flagship generation off a "Best X" list entirely — a tech list missing the newest flagship reads as
+   stale. Expect the successor to start mid-to-low and climb as coverage arrives.
+
+Tech lists also rot faster than other lists (annual model cycles, spring launches). When touching a tech
+list more than ~6 months old, re-check each source for an updated edition and re-gather the Amazon-ratings
+source.
+
 ### Goodreads ratings as the user-review source for book lists
 - **Every book list must include a Goodreads average-rating source as its User Ratings & Reviews element**, exactly the way physical-product lists use Amazon ratings and food lists use Yelp/Google. Goodreads is the reader-consensus signal for books, and a Goodreads rating should be added to ALL book lists where one is available.
 - Gather each title's **Goodreads average rating (out of 5) and ratings count live** through the connected Chrome browser (open the book's Goodreads page) — never from memory. Order the source by rating descending, then ratings count as the tiebreak.
