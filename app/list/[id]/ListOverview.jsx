@@ -429,7 +429,30 @@ function CompactTile({ item, rank, list, pics }) {
   );
 }
 
-export default function ListOverview({ list, voteData, extras, viewCount, onBack, onOpenRankings, onOpenVote }) {
+// Chip style matching the rankings page's Consensus Ranking / Sources / Vote row.
+function consensusChip() {
+  return {
+    flex: 1,
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 6,
+    border: `1.5px solid ${COLORS.ember}`,
+    padding: '13px 10px',
+    fontFamily: 'DM Mono, monospace',
+    fontSize: 12,
+    letterSpacing: '0.1em',
+    textTransform: 'uppercase',
+    fontWeight: 700,
+    cursor: 'pointer',
+    background: 'transparent',
+    color: COLORS.ember,
+    transition: 'all 0.15s ease',
+    minWidth: 140,
+  };
+}
+
+export default function ListOverview({ list, voteData, extras, viewCount, onBack, onOpenRankings, onOpenSources, onOpenVote }) {
   const items = getItems(list, voteData, extras);
   const descs = DESCRIPTIONS[list.id] || {};
   const pics = picsConfig(list);
@@ -642,6 +665,21 @@ export default function ListOverview({ list, voteData, extras, viewCount, onBack
               Share
             </a>
           </div>
+        </div>
+
+        {/* Consensus chips, mirroring the rankings page */}
+        <div style={{ display: 'flex', gap: 8, marginTop: 18, flexWrap: 'wrap' }}>
+          <button onClick={onOpenRankings} style={consensusChip()}>
+            Consensus Ranking
+          </button>
+          <button onClick={onOpenSources} style={consensusChip()}>
+            Consensus Sources
+          </button>
+          {showVote && (
+            <button onClick={onOpenVote} style={consensusChip()}>
+              Vote
+            </button>
+          )}
         </div>
 
         {/* Tiled grid (homepage aesthetic: own borders, small gaps) */}

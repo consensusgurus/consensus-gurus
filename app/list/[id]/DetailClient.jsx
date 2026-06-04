@@ -123,10 +123,15 @@ function ListDetail({ list, viewCount, voteData, userVotes, extras, relatedLists
   const showVoteTab = mode !== 'facts' && mode !== 'scores' && mode !== 'unranked';
 
   const [tab, setTab] = useState(showSourceTab ? 'source' : 'vote');
-  // Deep-link: /list/[id]/rankings#vote opens straight to the Vote tab.
+  // Deep-links: /list/[id]/rankings#vote opens straight to the Vote tab;
+  // #sources opens the side-by-side Consensus Sources view.
   useEffect(() => {
-    if (typeof window !== 'undefined' && window.location.hash === '#vote' && showVoteTab) {
+    if (typeof window === 'undefined') return;
+    if (window.location.hash === '#vote' && showVoteTab) {
       setTab('vote');
+    } else if (window.location.hash === '#sources') {
+      setTab('source');
+      setSourcesOpen(true);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
@@ -693,8 +698,8 @@ function ListDetail({ list, viewCount, voteData, userVotes, extras, relatedLists
             // active, red outline when not.
             <div style={{ marginBottom: 24 }}>
               {(() => {
-                const consActive = tab === 'source' && activeSourceId === 'consensus';
-                const srcActive = sourcesOpen || activeSourceId !== 'consensus';
+                const consActive = tab === 'source' && !sourcesOpen;
+                const srcActive = sourcesOpen;
                 const chipBase = {
                   flex: 1,
                   display: 'flex',
@@ -738,60 +743,6 @@ function ListDetail({ list, viewCount, voteData, userVotes, extras, relatedLists
                 );
               })()}
 
-              {sourcesOpen && (
-                <div style={{ marginTop: 8, border: `1.5px solid ${COLORS.ink}`, background: COLORS.paper }}>
-                  {EXPERT_GROUPS.map((group) => {
-                    const groupSources = expertSources.filter((s) => expertGroupKey(s) === group.key);
-                    if (groupSources.length === 0) return null;
-                    return (
-                      <div key={group.key}>
-                        <div
-                          style={{
-                            fontFamily: 'DM Mono, monospace',
-                            fontSize: 10,
-                            letterSpacing: '0.18em',
-                            textTransform: 'uppercase',
-                            color: COLORS.cream,
-                            background: group.color,
-                            fontWeight: 700,
-                            padding: '7px 16px',
-                          }}
-                        >
-                          {group.title}
-                        </div>
-                        {groupSources.map((s) => {
-                          const active = activeSourceId === s.id;
-                          return (
-                            <button
-                              key={s.id}
-                              onClick={() => { setActiveSourceId(s.id); setSourcesOpen(false); }}
-                              style={{
-                                display: 'block',
-                                width: '100%',
-                                textAlign: 'left',
-                                background: active ? group.color : 'transparent',
-                                color: active ? COLORS.cream : group.color,
-                                border: 'none',
-                                borderLeft: `4px solid ${group.color}`,
-                                borderBottom: `1px solid ${COLORS.cream}`,
-                                padding: '11px 16px',
-                                fontFamily: 'DM Mono, monospace',
-                                fontSize: 12,
-                                letterSpacing: '0.04em',
-                                fontWeight: active ? 700 : 600,
-                                cursor: 'pointer',
-                                transition: 'all 0.12s ease',
-                              }}
-                            >
-                              {s.label}
-                            </button>
-                          );
-                        })}
-                      </div>
-                    );
-                  })}
-                </div>
-              )}
             </div>
           ) : sources.length > 1 ? (
             <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginBottom: 24 }}>
@@ -867,57 +818,147 @@ function ListDetail({ list, viewCount, voteData, userVotes, extras, relatedLists
             </div>
           )}
 
-          {/* When viewing an individual expert source (not consensus) under the
-              grouped layout, show a small caption so the reader knows which
-              source the ranking below reflects. */}
-          {useGroupedLayout && activeSourceId !== 'consensus' && (
-            <div
-              style={{
-                fontFamily: 'Fraunces, serif',
-                fontStyle: 'italic',
-                fontSize: 14,
-                color: COLORS.faded,
-                marginBottom: 20,
-                marginTop: -8,
-                paddingLeft: 14,
-                borderLeft: `2px solid ${COLORS.ember}`,
-              }}
-            >
-              Showing:{' '}
-              {activeSource?.url && isPublicationLink(activeSource) ? (
-                <a
-                  href={activeSource.url}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  style={{ color: 'inherit', textDecoration: 'underline', textUnderlineOffset: '2px' }}
+          {useGroupedLayout && sourcesOpen ? (
+            <>
+              {/* All sources side by side as tiled lists; the grid wraps extra
+                  sources down into new rows when the row is full. */}
+              <style>{`.src-tiles{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:14px;align-items:start;}`}</style>
+              <div className="src-tiles">
+                {EXPERT_GROUPS.map((group) =>
+                  expertSources
+                    .filter((s) => expertGroupKey(s) === group.key)
+                    .map((s) => (
+                      <div key={s.id} style={{ border: `1.5px solid ${COLORS.ink}`, background: COLORS.paper }}>
+                        <div
+                          style={{
+                            background: group.color,
+                            color: COLORS.cream,
+                            padding: '9px 12px',
+                            fontFamily: 'DM Mono, monospace',
+                            fontSize: 10,
+                            letterSpacing: '0.08em',
+                            textTransform: 'uppercase',
+                            fontWeight: 700,
+                            lineHeight: 1.4,
+                          }}
+                        >
+                          {isPublicationLink(s) ? (
+                            <a
+                              href={s.url}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              style={{ color: 'inherit', textDecoration: 'underline', textUnderlineOffset: 2 }}
+                            >
+                              {s.label} ↗
+                            </a>
+                          ) : (
+                            s.label
+                          )}
+                        </div>
+                        <ol style={{ margin: 0, padding: 0, listStyle: 'none' }}>
+                          {s.items.map((item, i) => (
+                            <li
+                              key={i}
+                              style={{
+                                display: 'flex',
+                                gap: 8,
+                                alignItems: 'baseline',
+                                padding: '7px 12px',
+                                borderBottom: i === s.items.length - 1 ? 'none' : '1px solid #d8cdb8',
+                              }}
+                            >
+                              <span
+                                style={{
+                                  fontFamily: 'DM Mono, monospace',
+                                  fontSize: 9,
+                                  color: COLORS.faded,
+                                  minWidth: 18,
+                                  textAlign: 'right',
+                                  flexShrink: 0,
+                                }}
+                              >
+                                {s.unordered ? '•' : `${i + 1}.`}
+                              </span>
+                              <span style={{ fontFamily: 'DM Sans, sans-serif', fontSize: 12.5, color: COLORS.ink, lineHeight: 1.35 }}>
+                                {s.id === 'pricing' ? priceDecorate(item, list) : item}
+                              </span>
+                            </li>
+                          ))}
+                        </ol>
+                      </div>
+                    ))
+                )}
+              </div>
+
+              <p
+                style={{
+                  marginTop: 28,
+                  fontFamily: 'DM Mono, monospace',
+                  fontSize: 10,
+                  letterSpacing: '0.18em',
+                  textTransform: 'uppercase',
+                  color: COLORS.faded,
+                  textAlign: 'center',
+                }}
+              >
+                Every source side by side · tap an underlined source title to open the original
+              </p>
+            </>
+          ) : (
+            <>
+              {/* When viewing an individual expert source (not consensus) under the
+                  grouped layout, show a small caption so the reader knows which
+                  source the ranking below reflects. */}
+              {useGroupedLayout && activeSourceId !== 'consensus' && (
+                <div
+                  style={{
+                    fontFamily: 'Fraunces, serif',
+                    fontStyle: 'italic',
+                    fontSize: 14,
+                    color: COLORS.faded,
+                    marginBottom: 20,
+                    marginTop: -8,
+                    paddingLeft: 14,
+                    borderLeft: `2px solid ${COLORS.ember}`,
+                  }}
                 >
-                  {activeSource.label || 'Source'}
-                </a>
-              ) : (
-                activeSource?.label || 'Source'
+                  Showing:{' '}
+                  {activeSource?.url && isPublicationLink(activeSource) ? (
+                    <a
+                      href={activeSource.url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      style={{ color: 'inherit', textDecoration: 'underline', textUnderlineOffset: '2px' }}
+                    >
+                      {activeSource.label || 'Source'}
+                    </a>
+                  ) : (
+                    activeSource?.label || 'Source'
+                  )}
+                </div>
               )}
-            </div>
+
+              <ol style={{ margin: 0, padding: 0, listStyle: 'none' }}>
+                {(activeSource?.items || []).map((item, i) => (
+                  <DataRow key={i} rank={i + 1} item={item} list={list} unranked={mode === 'unranked' || !!activeSource?.unordered} showPrice={activeSource?.id === 'pricing'} />
+                ))}
+              </ol>
+
+              <p
+                style={{
+                  marginTop: 28,
+                  fontFamily: 'DM Mono, monospace',
+                  fontSize: 10,
+                  letterSpacing: '0.18em',
+                  textTransform: 'uppercase',
+                  color: COLORS.faded,
+                  textAlign: 'center',
+                }}
+              >
+                Tap any entry to see links · affiliate links may earn a commission
+              </p>
+            </>
           )}
-
-          <ol style={{ margin: 0, padding: 0, listStyle: 'none' }}>
-            {(activeSource?.items || []).map((item, i) => (
-              <DataRow key={i} rank={i + 1} item={item} list={list} unranked={mode === 'unranked' || !!activeSource?.unordered} showPrice={activeSource?.id === 'pricing'} />
-            ))}
-          </ol>
-
-          <p
-            style={{
-              marginTop: 28,
-              fontFamily: 'DM Mono, monospace',
-              fontSize: 10,
-              letterSpacing: '0.18em',
-              textTransform: 'uppercase',
-              color: COLORS.faded,
-              textAlign: 'center',
-            }}
-          >
-            Tap any entry to see links · affiliate links may earn a commission
-          </p>
         </>
       ) : showVoteTab ? (
         <>
@@ -1880,6 +1921,7 @@ export default function DetailClient({ listId, view = 'overview' }) {
             viewCount={viewCount}
             onBack={backHome}
             onOpenRankings={() => router.push(`/list/${encodeURIComponent(list.id)}/rankings`)}
+            onOpenSources={() => router.push(`/list/${encodeURIComponent(list.id)}/rankings#sources`)}
             onOpenVote={() => router.push(`/list/${encodeURIComponent(list.id)}/rankings#vote`)}
           />
         )
