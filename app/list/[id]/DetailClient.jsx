@@ -471,7 +471,7 @@ function ListDetail({ list, viewCount, voteData, userVotes, extras, relatedLists
   }
 
   return (
-    <div style={{ position: 'relative', zIndex: 2, maxWidth: 820, margin: '0 auto', padding: '24px 20px 80px' }}>
+    <div style={{ position: 'relative', zIndex: 2, maxWidth: 920, margin: '0 auto', padding: '24px 20px 80px' }}>
       {!compact && (
         <button
           onClick={onBack}

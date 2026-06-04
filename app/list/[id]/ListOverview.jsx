@@ -663,7 +663,7 @@ export default function ListOverview({ list, voteData, extras, viewCount, onBack
               boxShadow: `3px 3px 0 ${COLORS.ember}`,
             }}
           >
-            Full Rankings, Source Detail &amp; Voting
+            Source Detail &amp; Voting
             <ArrowRight size={13} strokeWidth={2.5} />
           </button>
         </div>
