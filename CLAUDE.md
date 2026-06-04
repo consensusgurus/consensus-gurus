@@ -239,6 +239,8 @@ For hotels, products, restaurants, and any list where quality has a clear hierar
 
 **Rule of thumb: never include a large chain on a best-of food list, anywhere.** In-N-Out, Chipotle, Shake Shack, Five Guys, Original Tommy's-scale regional chains, and the like do not belong on a "Best Burgers in X" or any other best-of food/drink list, even when editorial sources include them (sources love a nostalgic chain pick). When a source includes a chain item, drop it from that source before adding — same treatment as off-tier items. This applies to the `ai` seed, every source's `items`, `vote.items`, `links`, `itemLinks`, and `itemYelp` alike. (The single-city chain-ranking lists, e.g. `best-run-chipotle-manhattan`, are the deliberate exception: the chain IS the topic there.) A small local mini-chain with a handful of locations in one metro (e.g. a beloved 3-location taqueria) is not a "large chain" — judgment applies; the test is whether the place reads as a mass-market chain rather than a local institution.
 
+**Borderline calls: keep the item and FLAG it for the owner — never remove unilaterally.** When a place sits in the gray zone (a corporate-owned single location, a regional chain of ambiguous scale, a beloved local institution that grew), leave it on the list, complete its data (links/itemYelp/etc.) as normal, and flag it in the session notes/progress doc for the owner to rule on. Only clear-cut mass-market chains (In-N-Out, Chipotle, Shake Shack tier) get dropped without asking. Owner rulings to date: **The Capital Burger (Back Bay)** stays on `burgers-boston` despite being a Darden-owned Capital Grille spinoff (single Boston location, fine-dining execution); Tasty Burger (5 local Boston locations) is an allowed mini-chain.
+
 ### Nuanced "Best" categories
 
 Some categories require a more considered definition of "best":
@@ -544,6 +546,19 @@ Then run the push procedure below.
 Never run `git add` / `git commit` (they touch the index and can jam on a `.git/index.lock`). Use git
 plumbing on the object store and refs instead:
 
+**⚠️ STALE-BASE RULE — the #1 way to silently erase deployed data.** The new `lib/data.js` MUST be
+built by splicing the edit into the file from the fetch performed in the SAME deploy step
+(`git show FETCH_HEAD:lib/data.js`), immediately before the push. Never splice into a data.js copy
+captured earlier in the session (or in a parallel session): any commits that landed in between get
+silently overwritten, because the push replaces the whole file. This happened on 2026-06-04 — commit
+`f775229` (kids board games edit) was built from a copy ~10 minutes stale and erased the just-deployed
+`spindrift-flavors` list plus the caesar-wraps-nyc and best-wings-nyc `itemYelp` blocks; the restore
+itself then repeated the mistake once (`86de7df`) before being rebuilt on the fresh base (`71dc7a6`).
+Safety checks: (a) re-fetch and re-splice if ANY time passed between building the file and pushing;
+(b) after the push, diff the parent's data.js against the pushed one and confirm the diff contains
+ONLY the intended change (`git diff BASE_COMMIT NEW_COMMIT -- lib/data.js`); (c) if the list count
+(`grep -c publishedDate`) went DOWN and you didn't intentionally remove a list, stop and investigate.
+
 ```bash
 set -e
 cd /sessions/<session>/mnt/source-of-truths            # bash mount of C:\dev\source-of-truths
@@ -759,54 +774,4 @@ if (missing.length) throw new Error('Missing descriptions: ' + missing.join(', '
       ],
     },
     eater: {
-      label: 'Eater NY Cocktail Bar Map 2024',
-      items: [
-        'Dante NYC',
-        'Bar Pisellino',
-        'Employees Only',
-        'Amor y Amargo',
-        'Little Branch',
-        'Slowly Shirley',
-        'The Nines',
-        'Attaboy',
-      ],
-    },
-  },
-  vote: {
-    items: [
-      'Dante NYC',
-      'Employees Only',
-      'Bar Pisellino',
-      'Little Branch',
-      'Amor y Amargo',
-      'The Nines',
-      'Slowly Shirley',
-      'The Up & Up',
-      'Attaboy',
-      'White Lyan',
-    ],
-  },
-},
-```
-
----
-
-## Quick Reference Card
-
-| Question | Answer |
-|----------|--------|
-| Amazon affiliate tag | `cgurus-20` |
-| linkType for restaurants and bars | `mapsCity` |
-| linkType for US hotels | `mapsCity` |
-| linkType for international hotels | `mapsCity` |
-| Maps URL format | `https://www.google.com/maps/search/?api=1&query=...` |
-| Do `mapsCity` lists need an explicit `links` object? | Yes — always, to avoid the directions bug |
-| Characters to strip from a Maps query | `(` `)` `,` `;` `&` (replace with spaces) |
-| How to encode an apostrophe in a link URL | `%27` |
-| linkType for products | `amazon` |
-| Product not on Amazon? | Link to a Google search (`https://www.google.com/search?q=...`) — never an Amazon `s?k=` search |
-| Minimum editorial sources | At least THREE editorial publications REQUIRED; fewer only if a thorough search proves they don't exist (then tell the user). 4-6+ for well-covered topics. Rating platforms (Yelp/Google/etc.) don't count. |
-| Source list length | Any number of items |
-| How do I order items within a source? | By the source's true rank — score descending (Infatuation) or its numbers. Never article order. |
-| Source has scores but lists them out of order? | Sort by numeric score, descending; ties keep page order; unrated last. |
-| Source is alphabetical/unordered? | Find a ranked version, drop it, or label it `(alphabetical)`/`(unordered roundup)` AND set `"unorde
+      lab
