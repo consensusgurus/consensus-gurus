@@ -429,29 +429,6 @@ function CompactTile({ item, rank, list, pics }) {
   );
 }
 
-// Chip style matching the rankings page's Consensus Ranking / Sources / Vote row.
-function consensusChip() {
-  return {
-    flex: 1,
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: 6,
-    border: `1.5px solid ${COLORS.ember}`,
-    padding: '13px 10px',
-    fontFamily: 'DM Mono, monospace',
-    fontSize: 12,
-    letterSpacing: '0.1em',
-    textTransform: 'uppercase',
-    fontWeight: 700,
-    cursor: 'pointer',
-    background: 'transparent',
-    color: COLORS.ember,
-    transition: 'all 0.15s ease',
-    minWidth: 140,
-  };
-}
-
 export default function ListOverview({ list, voteData, extras, viewCount, onBack, onOpenRankings, onOpenSources, onOpenVote }) {
   const items = getItems(list, voteData, extras);
   const descs = DESCRIPTIONS[list.id] || {};
@@ -554,28 +531,6 @@ export default function ListOverview({ list, voteData, extras, viewCount, onBack
             </div>
             <div style={{ borderBottom: `1px solid ${COLORS.ink}`, marginBottom: 4 }} />
             <div style={{ borderBottom: `2px solid ${COLORS.ember}` }} />
-            {showVote && onOpenVote && (
-              <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: 10 }}>
-                <button
-                  onClick={onOpenVote}
-                  style={{
-                    background: COLORS.ember,
-                    color: COLORS.cream,
-                    border: `1.5px solid ${COLORS.ink}`,
-                    padding: '8px 20px',
-                    fontFamily: 'DM Mono, monospace',
-                    fontSize: 10,
-                    letterSpacing: '0.18em',
-                    textTransform: 'uppercase',
-                    fontWeight: 600,
-                    cursor: 'pointer',
-                    boxShadow: `2px 2px 0 ${COLORS.ink}`,
-                  }}
-                >
-                  Vote
-                </button>
-              </div>
-            )}
           </div>
         </div>
         {list.blurb && (
@@ -622,6 +577,48 @@ export default function ListOverview({ list, voteData, extras, viewCount, onBack
           </div>
           <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap' }}>
             <button
+              onClick={onOpenSources}
+              style={{
+                background: 'transparent',
+                color: COLORS.ember,
+                border: `1.5px solid ${COLORS.ember}`,
+                padding: '8px 14px',
+                fontFamily: 'DM Mono, monospace',
+                fontSize: 10,
+                letterSpacing: '0.18em',
+                textTransform: 'uppercase',
+                fontWeight: 700,
+                cursor: 'pointer',
+                display: 'flex',
+                alignItems: 'center',
+                gap: 6,
+              }}
+            >
+              Consensus Sources
+            </button>
+            {showVote && (
+              <button
+                onClick={onOpenVote}
+                style={{
+                  background: 'transparent',
+                  color: COLORS.ember,
+                  border: `1.5px solid ${COLORS.ember}`,
+                  padding: '8px 14px',
+                  fontFamily: 'DM Mono, monospace',
+                  fontSize: 10,
+                  letterSpacing: '0.18em',
+                  textTransform: 'uppercase',
+                  fontWeight: 700,
+                  cursor: 'pointer',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 6,
+                }}
+              >
+                Vote
+              </button>
+            )}
+            <button
               onClick={() => { setComplainSent(false); setComplainOpen(true); }}
               style={{
                 background: 'transparent',
@@ -665,21 +662,6 @@ export default function ListOverview({ list, voteData, extras, viewCount, onBack
               Share
             </a>
           </div>
-        </div>
-
-        {/* Consensus chips, mirroring the rankings page */}
-        <div style={{ display: 'flex', gap: 8, marginTop: 18, flexWrap: 'wrap' }}>
-          <button onClick={onOpenRankings} style={consensusChip()}>
-            Consensus Ranking
-          </button>
-          <button onClick={onOpenSources} style={consensusChip()}>
-            Consensus Sources
-          </button>
-          {showVote && (
-            <button onClick={onOpenVote} style={consensusChip()}>
-              Vote
-            </button>
-          )}
         </div>
 
         {/* Tiled grid (homepage aesthetic: own borders, small gaps) */}
