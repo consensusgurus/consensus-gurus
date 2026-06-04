@@ -568,6 +568,50 @@ function ListDetail({ list, viewCount, voteData, userVotes, extras, relatedLists
             <span>{viewCount} visitors</span>
           </div>
           <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap' }}>
+            {showSourceTab && (
+              <button
+                onClick={() => { setTab('source'); setSourcesOpen(true); }}
+                style={{
+                  background: tab === 'source' ? COLORS.ember : 'transparent',
+                  color: tab === 'source' ? COLORS.cream : COLORS.ember,
+                  border: `1.5px solid ${COLORS.ember}`,
+                  padding: '8px 14px',
+                  fontFamily: 'DM Mono, monospace',
+                  fontSize: 10,
+                  letterSpacing: '0.18em',
+                  textTransform: 'uppercase',
+                  fontWeight: 700,
+                  cursor: 'pointer',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 6,
+                }}
+              >
+                Consensus Sources
+              </button>
+            )}
+            {showVoteTab && (
+              <button
+                onClick={() => setTab('vote')}
+                style={{
+                  background: tab === 'vote' ? COLORS.ember : 'transparent',
+                  color: tab === 'vote' ? COLORS.cream : COLORS.ember,
+                  border: `1.5px solid ${COLORS.ember}`,
+                  padding: '8px 14px',
+                  fontFamily: 'DM Mono, monospace',
+                  fontSize: 10,
+                  letterSpacing: '0.18em',
+                  textTransform: 'uppercase',
+                  fontWeight: 700,
+                  cursor: 'pointer',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 6,
+                }}
+              >
+                Vote
+              </button>
+            )}
             <button
               onClick={() => { setComplainSent(false); setComplainOpen(true); }}
               style={{
@@ -691,60 +735,7 @@ function ListDetail({ list, viewCount, voteData, userVotes, extras, relatedLists
 
       {tab === 'source' && showSourceTab ? (
         <>
-          {useGroupedLayout ? (
-            // Three full-width chips: Consensus Ranking (the computed list),
-            // Consensus Sources (toggles a grouped, color-coded dropdown of all
-            // sources right here at the top), and Vote. Each fills red when
-            // active, red outline when not.
-            <div style={{ marginBottom: 24 }}>
-              {(() => {
-                const consActive = tab === 'source' && !sourcesOpen;
-                const srcActive = sourcesOpen;
-                const chipBase = {
-                  flex: 1,
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  gap: 6,
-                  border: `1.5px solid ${COLORS.ember}`,
-                  padding: '13px 10px',
-                  fontFamily: 'DM Mono, monospace',
-                  fontSize: 12,
-                  letterSpacing: '0.1em',
-                  textTransform: 'uppercase',
-                  fontWeight: 700,
-                  cursor: 'pointer',
-                  transition: 'all 0.15s ease',
-                };
-                return (
-                  <div style={{ display: 'flex', gap: 8 }}>
-                    <button
-                      onClick={() => { setActiveSourceId('consensus'); setSourcesOpen(false); }}
-                      style={{ ...chipBase, background: consActive ? COLORS.ember : 'transparent', color: consActive ? COLORS.cream : COLORS.ember }}
-                    >
-                      Consensus Ranking
-                    </button>
-                    <button
-                      onClick={() => setSourcesOpen((o) => !o)}
-                      style={{ ...chipBase, background: srcActive ? COLORS.ember : 'transparent', color: srcActive ? COLORS.cream : COLORS.ember }}
-                    >
-                      Consensus Sources
-                      {sourcesOpen ? <ChevronUp size={14} strokeWidth={2.5} /> : <ChevronDown size={14} strokeWidth={2.5} />}
-                    </button>
-                    {showVoteTab && (
-                      <button
-                        onClick={() => setTab('vote')}
-                        style={{ ...chipBase, background: 'transparent', color: COLORS.ember }}
-                      >
-                        Vote
-                      </button>
-                    )}
-                  </div>
-                );
-              })()}
-
-            </div>
-          ) : sources.length > 1 ? (
+          {useGroupedLayout ? null : sources.length > 1 ? (
             <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginBottom: 24 }}>
               {sources.map((s) => {
                 const active = activeSourceId === s.id;
@@ -818,7 +809,7 @@ function ListDetail({ list, viewCount, voteData, userVotes, extras, relatedLists
             </div>
           )}
 
-          {useGroupedLayout && sourcesOpen ? (
+          {useGroupedLayout ? (
             <>
               {/* All sources side by side as tiled lists; the grid wraps extra
                   sources down into new rows when the row is full. */}
@@ -967,7 +958,7 @@ function ListDetail({ list, viewCount, voteData, userVotes, extras, relatedLists
               onClick={() => setTab('source')}
               style={{ display: 'inline-flex', alignItems: 'center', gap: 8, marginBottom: 24, cursor: 'pointer', background: 'transparent', color: COLORS.ink, border: `1.5px solid ${COLORS.ink}`, padding: '10px 18px', fontFamily: 'DM Mono, monospace', fontSize: 11, letterSpacing: '0.14em', textTransform: 'uppercase', fontWeight: 600 }}
             >
-              <ArrowLeft size={14} strokeWidth={2.5} /> Back to Rankings
+              <ArrowLeft size={14} strokeWidth={2.5} /> Back to Sources
             </button>
           )}
           {voteMessage && (
