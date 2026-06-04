@@ -1873,3 +1873,29 @@ export default function DetailClient({ listId }) {
         />
       ) : (
         <div style={{ position: 'relative', zIndex: 2, padding: 48, textAlign: 'center' }}>
+          <p style={{ fontFamily: 'Fraunces, serif', fontStyle: 'italic', color: COLORS.faded }}>
+            That list seems to have wandered off.
+          </p>
+          <button
+            onClick={backHome}
+            style={{
+              marginTop: 16,
+              background: COLORS.ink,
+              color: COLORS.cream,
+              border: 'none',
+              padding: '10px 20px',
+              fontFamily: 'DM Mono, monospace',
+              fontSize: 11,
+              letterSpacing: '0.2em',
+              textTransform: 'uppercase',
+              cursor: 'pointer',
+            }}
+          >
+            Back home
+          </button>
+        </div>
+      )}
+      <Footer />
+    </div>
+  );
+}
