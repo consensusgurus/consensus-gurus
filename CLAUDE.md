@@ -35,6 +35,10 @@ The Consensus tab on each list is computed live using **Borda scoring**:
 
 **Key implication:** If an important item is missing from the consensus, the fix is always to improve the expert source data — ensure the item appears in multiple sources at appropriate rank positions. Fan votes alone (at 0.75x) cannot overcome a weak showing across publications.
 
+### Planned engine change: source recency multiplier
+
+Not yet implemented, but planned. Each source will carry a `publishedYear` field. The scoring engine will apply a multiplier based on how recently the source was published: current year = 1.5x, prior year = 1.0x, two years prior = 0.75x, three years prior = 0.5x (three years remains the max age). The `ai` seed and `pricing` source are exempt. Requires updating `getSources` in `lib/helpers.js` and its three mirrors (`scripts/generate-og-images.js`, `app/list/[id]/opengraph-image.js`, `app/list/[id]/twitter-image.js`). Until this ships, the data-level rules (One Bite true expert, current-year source requirement, review-count floor) are the primary mechanism for surfacing excellent new openings.
+
 ### True Expert Sources
 
 Some sources are exceptionally authoritative for a topic, and should pull more weight than an ordinary publication. Flag these with `"trueExpert": true` on the source object.
@@ -58,6 +62,7 @@ Implemented in `lib/helpers.js` `getSources` and mirrored in `scripts/generate-o
 **Known true experts:**
 
 - **Johnny Novo** (`johnnynovo.com/rankings/...`) — a rigorous, single-author burger ranking with per-establishment ratings. Used as a true expert on `burgers-nyc`. Order his source by the published rating, descending (it is a ranked source, not `unordered`).
+- **Dave Portnoy / One Bite** (`onebite.app`) — numeric pizza scores (publicly readable, not image-gated like the Infatuation). Used as a true expert on **all pizza lists**. Gather scores live via Chrome, order descending by score. Source id: `portnoy`. This is the primary mechanism for surfacing excellent new pizza spots that predate most editorial lists.
 
 ---
 
@@ -202,11 +207,11 @@ The expert publication rankings that drive Borda scoring. Rules:
 - The source `label` is shown to users on the Sources tab. Include the year: `'Condé Nast Traveler 2024'` not just `'Condé Nast Traveler'`.
 - Source IDs are internal only (e.g. `cntraveler`, `michelin`, `infatuation`).
 - Sources must be **real and verifiable**. Do not invent rankings.
-- Sources must be **recent** — published within the last 2–3 years. A 2019 ranking is not acceptable.
+- Sources must be **recent** — published within the last 2–3 years. A 2019 ranking is not acceptable. **For food and restaurant lists, at least one editorial source must be dated the current calendar year or the prior year.** If all existing sources predate that window, replace the oldest one rather than just adding to it.
 - Every item in every source must match the tier of the list (see Quality rules below).
 - **Every list MUST carry a ranking element — at least one ordered source is mandatory** (the only exception is `mode: 'unranked'` lists, which are curated by hand and intentionally have no consensus math). A list whose sources are ALL unordered (every source flagged `"unordered": true`) is NOT allowed: with no rank signal the Borda math collapses to a frequency/alphabetical tally and the "By the Rankings" view becomes meaningless. When the editorial sources for a topic happen to all be unordered, add at least one platform-rating source that genuinely ranks the items:
   - **Pick the platform by category.** For **food & drink** — restaurants, coffee shops, bars, bakeries, cafés — **Yelp is the priority platform: always include it, and list it first.** **Google Reviews is the secondary platform and should be included too** — both are considered. (For non-food place lists — hotels, shops, attractions — lead with Google and add TripAdvisor where relevant.) Two rating platforms beat one; they balance each other, since Yelp typically runs about half a star below Google.
-  - Order each platform source by aggregate rating (rating descending, review count as the tiebreak). Gather the ratings **live through the connected Chrome browser** — never from memory or search snippets (the same no-guessing rule used for chain-city lists). On Yelp, confirm you're reading the flagship listing (the one with the most reviews), not a stray duplicate — pull rating + review count from the business page when the search card is ambiguous.
+  - Order each platform source by aggregate rating (rating descending, review count as the tiebreak). **Review-count floor:** any place with 100+ reviews is considered "established" — within that tier, ties in star rating break alphabetically rather than by review count, so a new excellent spot with 150 reviews is not systematically outranked by an older one with 3,000 reviews at the same rating. Only below 100 reviews does raw count still tiebreak (very sparse data is genuinely less reliable). Gather the ratings **live through the connected Chrome browser** — never from memory or search snippets (the same no-guessing rule used for chain-city lists). On Yelp, confirm you're reading the flagship listing (the one with the most reviews), not a stray duplicate — pull rating + review count from the business page when the search card is ambiguous.
   - Label each as an ordered source, e.g. `'Yelp · Ranked by Rating (May 2026)'` and `'Google Reviews · Ranked by Rating (May 2026)'`, and do NOT set `"unordered": true` on them.
   - Only include items already on the list (every item in a ranked source needs a `links` entry). It's fine to omit a place a platform has no real presence for.
   - After adding rating-based sources, re-seed `ai` and `vote.items` so they reflect the blended consensus (editorial frequency + Yelp + Google), not a single signal.
@@ -279,7 +284,7 @@ Nightly rate is a meaningful proxy for hotel quality — properties that command
 ### Source requirements
 
 - Sources must be **real and verifiable**. Web-search to confirm they exist before adding them.
-- Sources must be **recent** — within the last 2–3 years. Check the publication date.
+- Sources must be **recent** — within the last 2–3 years. Check the publication date. **For food and restaurant lists, at least one editorial source must be dated the current calendar year or the prior year** — this ensures new excellent openings appear in at least one guide.
 - The source label must accurately name the source and year: `'The Infatuation NYC 2024'`, not `'The Infatuation'`.
 - **Always use more than two sources when more are available — this is a hard rule, not a suggestion.** One source means no real consensus; two is weak and allowed only when no third credible source exists anywhere. Before finalizing ANY list, search broadly (editorial guides, local press, rated guides, reader polls, roundups) and add every credible source you find. For well-covered topics (city restaurant lists, popular products, big hotel brands) expect 4-6+ sources, not the bare minimum.
 - **EVERY list MUST include at least one editorial / expert-publication source — never ship a list whose only sources are user-rating platforms.** Yelp, Google, TripAdvisor, Amazon, and Goodreads *ratings* are user-review signals that SUPPLEMENT editorial sources; they do not replace them. A list built from only rating platforms plus the `ai` seed is incomplete and must not be deployed. This applies to NEW food/drink and location lists too (breweries, bagels, restaurants, bars): gather at least one real published "best of" ranking (Eater, The Infatuation, Time Out, Serious Eats, a respected local paper or city magazine, a beer/brewery publication, etc.) and order it correctly, IN ADDITION to the Yelp/Google rating sources. If editorial pages are paywalled or JS-only, get the ranking from another readable source or have the user paste it (see the blocklist workflow) — do not skip the editorial source. The rating platforms are the second axis, not the whole list.
