@@ -10,52 +10,71 @@ const POSTER_W = 1080;
 const POSTER_H = 1350;
 
 const COLOR_SCHEMES = {
-  classic:  { label: 'Classic',  bg: '#f4ede0', text: '#1a1a1a', accent: '#c0392b', faded: '#8a7a6a', swatch: ['#f4ede0', '#c0392b'] },
-  midnight: { label: 'Midnight', bg: '#111118', text: '#f0eeea', accent: '#d4a944', faded: '#7070a0', swatch: ['#111118', '#d4a944'] },
-  slate:    { label: 'Slate',    bg: '#1c2b3a', text: '#dce8f0', accent: '#4ea8de', faded: '#7090a8', swatch: ['#1c2b3a', '#4ea8de'] },
-  forest:   { label: 'Forest',   bg: '#0e1e14', text: '#d8ead0', accent: '#6cbf5a', faded: '#5a8060', swatch: ['#0e1e14', '#6cbf5a'] },
-  crimson:  { label: 'Crimson',  bg: '#b82c20', text: '#fdf4ec', accent: '#f5e050', faded: '#e8a090', swatch: ['#b82c20', '#f5e050'] },
-  neon:     { label: 'Neon',     bg: '#000000', text: '#ffffff', accent: '#00ff88', faded: '#666666', swatch: ['#000000', '#00ff88'] },
-  cobalt:   { label: 'Cobalt',   bg: '#1244c5', text: '#eef3ff', accent: '#ffde59', faded: '#8aaae0', swatch: ['#1244c5', '#ffde59'] },
+  classic:    { label: 'Classic',    bg: '#f4ede0', text: '#1a1a1a', accent: '#c0392b', faded: '#8a7a6a', swatch: ['#f4ede0', '#c0392b'] },
+  midnight:   { label: 'Midnight',   bg: '#111118', text: '#f0eeea', accent: '#d4a944', faded: '#7070a0', swatch: ['#111118', '#d4a944'] },
+  slate:      { label: 'Slate',      bg: '#1c2b3a', text: '#dce8f0', accent: '#4ea8de', faded: '#7090a8', swatch: ['#1c2b3a', '#4ea8de'] },
+  forest:     { label: 'Forest',     bg: '#0e1e14', text: '#d8ead0', accent: '#6cbf5a', faded: '#5a8060', swatch: ['#0e1e14', '#6cbf5a'] },
+  crimson:    { label: 'Crimson',    bg: '#b82c20', text: '#fdf4ec', accent: '#f5e050', faded: '#e8a090', swatch: ['#b82c20', '#f5e050'] },
+  neon:       { label: 'Neon',       bg: '#000000', text: '#ffffff', accent: '#00ff88', faded: '#666666', swatch: ['#000000', '#00ff88'] },
+  cobalt:     { label: 'Cobalt',     bg: '#1244c5', text: '#eef3ff', accent: '#ffde59', faded: '#8aaae0', swatch: ['#1244c5', '#ffde59'] },
+  tangerine:  { label: 'Tangerine',  bg: '#e84800', text: '#fff8f0', accent: '#ffe066', faded: '#f0a070', swatch: ['#e84800', '#ffe066'] },
+  violet:     { label: 'Violet',     bg: '#3a0f88', text: '#ead4ff', accent: '#9dff6e', faded: '#9060c0', swatch: ['#3a0f88', '#9dff6e'] },
+  rose:       { label: 'Rose',       bg: '#c2105a', text: '#fff0f5', accent: '#ffe066', faded: '#e880a8', swatch: ['#c2105a', '#ffe066'] },
+  sand:       { label: 'Sand',       bg: '#e8d49a', text: '#2a1a06', accent: '#7a3800', faded: '#9a7a40', swatch: ['#e8d49a', '#7a3800'] },
+  espresso:   { label: 'Espresso',   bg: '#1a0d06', text: '#f0e8d8', accent: '#d4a060', faded: '#806040', swatch: ['#1a0d06', '#d4a060'] },
+  sage:       { label: 'Sage',       bg: '#c8dcc0', text: '#1a2a15', accent: '#2a6020', faded: '#5a7852', swatch: ['#c8dcc0', '#2a6020'] },
 };
 
 const FONT_STYLES = {
   editorial: {
     label: 'Editorial', previewFont: 'Fraunces, serif', previewStyle: 'italic', previewWeight: 700,
-    titleFamily: 'Fraunces, serif', titleItalic: false, titleVariation: '"SOFT" 100, "WONK" 1', titleWeight: 900,
-    numberFamily: 'Fraunces, serif', numberVariation: '"SOFT" 100, "WONK" 1', numberItalic: false,
-    nameFamily: 'Fraunces, serif', nameVariation: '"SOFT" 100',
-    metaFamily: 'DM Mono, monospace', metaLetterSpacing: '0.3em', itemDivider: 'solid',
+    titleFamily: 'Fraunces, serif', titleItalic: false, titleUppercase: false, titleVariation: '"SOFT" 100, "WONK" 1', titleWeight: 900,
+    numberFamily: 'Fraunces, serif', numberVariation: '"SOFT" 100, "WONK" 1',
+    nameFamily: 'Fraunces, serif', nameVariation: '"SOFT" 100', nameWeight: 500,
+    metaFamily: 'DM Mono, monospace', metaLetterSpacing: '0.3em', itemDivider: 'solid', itemDividerOpacity: 1,
   },
   sharp: {
     label: 'Sharp', previewFont: 'DM Sans, sans-serif', previewStyle: 'normal', previewWeight: 800,
-    titleFamily: 'DM Sans, sans-serif', titleItalic: false, titleVariation: '', titleWeight: 900,
-    numberFamily: 'DM Mono, monospace', numberVariation: '', numberItalic: false,
-    nameFamily: 'DM Sans, sans-serif', nameVariation: '',
-    metaFamily: 'DM Mono, monospace', metaLetterSpacing: '0.22em', itemDivider: 'solid',
+    titleFamily: 'DM Sans, sans-serif', titleItalic: false, titleUppercase: false, titleVariation: '', titleWeight: 900,
+    numberFamily: 'DM Mono, monospace', numberVariation: '',
+    nameFamily: 'DM Sans, sans-serif', nameVariation: '', nameWeight: 500,
+    metaFamily: 'DM Mono, monospace', metaLetterSpacing: '0.22em', itemDivider: 'solid', itemDividerOpacity: 1,
   },
   magazine: {
     label: 'Magazine', previewFont: 'DM Sans, sans-serif', previewStyle: 'normal', previewWeight: 700,
-    titleFamily: 'DM Sans, sans-serif', titleItalic: false, titleVariation: '', titleWeight: 900,
-    numberFamily: 'Fraunces, serif', numberVariation: '"SOFT" 100, "WONK" 1', numberItalic: false,
-    nameFamily: 'DM Sans, sans-serif', nameVariation: '',
-    metaFamily: 'DM Mono, monospace', metaLetterSpacing: '0.28em', itemDivider: 'solid',
+    titleFamily: 'DM Sans, sans-serif', titleItalic: false, titleUppercase: false, titleVariation: '', titleWeight: 900,
+    numberFamily: 'Fraunces, serif', numberVariation: '"SOFT" 100, "WONK" 1',
+    nameFamily: 'DM Sans, sans-serif', nameVariation: '', nameWeight: 500,
+    metaFamily: 'DM Mono, monospace', metaLetterSpacing: '0.28em', itemDivider: 'solid', itemDividerOpacity: 1,
   },
   mono: {
     label: 'Mono', previewFont: 'DM Mono, monospace', previewStyle: 'normal', previewWeight: 700,
-    titleFamily: 'DM Mono, monospace', titleItalic: false, titleVariation: '', titleWeight: 700,
-    numberFamily: 'DM Mono, monospace', numberVariation: '', numberItalic: false,
-    nameFamily: 'DM Mono, monospace', nameVariation: '',
-    metaFamily: 'DM Mono, monospace', metaLetterSpacing: '0.2em', itemDivider: 'dashed',
+    titleFamily: 'DM Mono, monospace', titleItalic: false, titleUppercase: false, titleVariation: '', titleWeight: 700,
+    numberFamily: 'DM Mono, monospace', numberVariation: '',
+    nameFamily: 'DM Mono, monospace', nameVariation: '', nameWeight: 400,
+    metaFamily: 'DM Mono, monospace', metaLetterSpacing: '0.2em', itemDivider: 'dashed', itemDividerOpacity: 0.6,
   },
-};
-
-const LAYOUTS = {
-  standard:  { label: 'Standard',  desc: 'Classic ranked list' },
-  gradient:  { label: 'Gradient',  desc: 'Bold sweep with watermark' },
-  broadside: { label: 'Broadside', desc: 'Newspaper editorial' },
-  blueprint: { label: 'Blueprint', desc: 'Technical grid' },
-  stage:     { label: 'Stage',     desc: 'Centered playbill' },
+  elegant: {
+    label: 'Elegant', previewFont: 'Fraunces, serif', previewStyle: 'italic', previewWeight: 300,
+    titleFamily: 'Fraunces, serif', titleItalic: true, titleUppercase: false, titleVariation: '"SOFT" 100', titleWeight: 300,
+    numberFamily: 'Fraunces, serif', numberVariation: '"SOFT" 100',
+    nameFamily: 'Fraunces, serif', nameVariation: '"SOFT" 100', nameWeight: 300,
+    metaFamily: 'DM Sans, sans-serif', metaLetterSpacing: '0.24em', itemDivider: 'solid', itemDividerOpacity: 0.3,
+  },
+  bold: {
+    label: 'Bold', previewFont: 'DM Sans, sans-serif', previewStyle: 'normal', previewWeight: 900,
+    titleFamily: 'DM Sans, sans-serif', titleItalic: false, titleUppercase: true, titleVariation: '', titleWeight: 900,
+    numberFamily: 'DM Sans, sans-serif', numberVariation: '',
+    nameFamily: 'DM Sans, sans-serif', nameVariation: '', nameWeight: 800,
+    metaFamily: 'DM Mono, monospace', metaLetterSpacing: '0.26em', itemDivider: 'solid', itemDividerOpacity: 1,
+  },
+  condensed: {
+    label: 'Condensed', previewFont: 'DM Mono, monospace', previewStyle: 'normal', previewWeight: 700,
+    titleFamily: 'DM Sans, sans-serif', titleItalic: false, titleUppercase: true, titleVariation: '', titleWeight: 900,
+    numberFamily: 'DM Mono, monospace', numberVariation: '',
+    nameFamily: 'DM Mono, monospace', nameVariation: '', nameWeight: 400,
+    metaFamily: 'DM Mono, monospace', metaLetterSpacing: '0.32em', itemDivider: 'dotted', itemDividerOpacity: 0.7,
+  },
 };
 
 function sourceTier(src) {
@@ -112,7 +131,6 @@ export default function SnapshotClient({ listId }) {
   const [downloading, setDownloading] = useState(false);
   const [colorScheme, setColorScheme] = useState('classic');
   const [fontStyle, setFontStyle] = useState('editorial');
-  const [layout, setLayout] = useState('standard');
   const posterRef = useRef(null);
 
   useEffect(() => {
@@ -276,19 +294,7 @@ export default function SnapshotClient({ listId }) {
         <PickerRow label="Style">
           {Object.entries(FONT_STYLES).map(([key, fs]) => {
             const active = fontStyle === key;
-            return <button key={key} onClick={() => setFontStyle(key)} style={{ background: active ? COLORS.ink : 'transparent', color: active ? COLORS.cream : COLORS.ink, border: `1.5px solid ${active ? COLORS.ink : '#c8bdb0'}`, padding: '6px 12px', fontFamily: fs.previewFont, fontStyle: fs.previewStyle, fontWeight: fs.previewWeight, fontSize: 11, letterSpacing: key === 'mono' ? '0.08em' : key === 'sharp' ? '0.04em' : '0.02em', cursor: 'pointer' }}>{fs.label}</button>;
-          })}
-        </PickerRow>
-
-        <PickerRow label="Layout">
-          {Object.entries(LAYOUTS).map(([key, ly]) => {
-            const active = layout === key;
-            return (
-              <button key={key} onClick={() => setLayout(key)}
-                style={{ background: active ? COLORS.ink : 'transparent', color: active ? COLORS.cream : COLORS.ink, border: `1.5px solid ${active ? COLORS.ink : '#c8bdb0'}`, padding: '6px 12px', fontFamily: 'DM Mono, monospace', fontSize: 10, letterSpacing: '0.14em', textTransform: 'uppercase', fontWeight: 600, cursor: 'pointer' }}>
-                {ly.label}
-              </button>
-            );
+            return <button key={key} onClick={() => setFontStyle(key)} style={{ background: active ? COLORS.ink : 'transparent', color: active ? COLORS.cream : COLORS.ink, border: `1.5px solid ${active ? COLORS.ink : '#c8bdb0'}`, padding: '6px 12px', fontFamily: fs.previewFont, fontStyle: fs.previewStyle, fontWeight: fs.previewWeight, fontSize: 11, letterSpacing: key === 'mono' || key === 'condensed' ? '0.08em' : key === 'sharp' ? '0.04em' : '0.02em', cursor: 'pointer', textTransform: (key === 'bold' || key === 'condensed') ? 'uppercase' : 'none' }}>{fs.label}</button>;
           })}
         </PickerRow>
 
@@ -300,7 +306,7 @@ export default function SnapshotClient({ listId }) {
 
         <div style={{ background: '#000', padding: 8, borderRadius: 4, display: 'flex', justifyContent: 'center', overflow: 'hidden' }}>
           <PosterScaler>
-            <Poster ref={posterRef} list={list} items={items} modeLabel={modeLabel} sourceNames={constituentSourceNames} palette={palette} fonts={fonts} layout={layout} />
+            <Poster ref={posterRef} list={list} items={items} modeLabel={modeLabel} sourceNames={constituentSourceNames} palette={palette} fonts={fonts} />
           </PosterScaler>
         </div>
 
@@ -345,172 +351,91 @@ function PosterScaler({ children }) {
   );
 }
 
-const Poster = React.forwardRef(function Poster({ list, items, modeLabel, sourceNames, palette, fonts, layout }, ref) {
+const Poster = React.forwardRef(function Poster({ list, items, modeLabel, sourceNames, palette, fonts }, ref) {
   const pal = palette || COLOR_SCHEMES.classic;
   const fnt = fonts   || FONT_STYLES.editorial;
-  const props = { list, items, modeLabel, sourceNames, pal, fnt };
-  if (layout === 'gradient')  return <GradientPoster  ref={ref} {...props} />;
-  if (layout === 'broadside') return <BroadsidePoster ref={ref} {...props} />;
-  if (layout === 'blueprint') return <BlueprintPoster ref={ref} {...props} />;
-  if (layout === 'stage')     return <StagePoster     ref={ref} {...props} />;
-  return <StandardPoster ref={ref} {...props} />;
-});
+  const dividerColor = `rgba(${parseInt(pal.text.slice(1,3),16)},${parseInt(pal.text.slice(3,5),16)},${parseInt(pal.text.slice(5,7),16)},${fnt.itemDividerOpacity ?? 1})`;
 
-const StandardPoster = React.forwardRef(function StandardPoster({ list, items, modeLabel, sourceNames, pal, fnt }, ref) {
   return (
     <div ref={ref} style={{ width: POSTER_W, height: POSTER_H, background: pal.bg, color: pal.text, padding: 72, position: 'relative', boxSizing: 'border-box', fontFamily: fnt.nameFamily, overflow: 'hidden' }}>
+
+      {/* Masthead */}
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: `2px solid ${pal.text}`, paddingBottom: 18, fontFamily: fnt.metaFamily, fontSize: 18, letterSpacing: fnt.metaLetterSpacing, textTransform: 'uppercase', color: pal.text }}>
         <span style={{ fontWeight: 600 }}>Source of Truths</span>
         <span style={{ color: pal.faded, fontSize: 14 }}>sourceoftruths.com</span>
       </div>
-      <div style={{ marginTop: 42, fontFamily: fnt.metaFamily, fontSize: 18, letterSpacing: fnt.metaLetterSpacing, textTransform: 'uppercase', color: pal.accent, fontWeight: 600 }}>{list.category} &middot; Top {Math.min(items.length, 10)}</div>
-      <h1 style={{ fontFamily: fnt.titleFamily, fontWeight: fnt.titleWeight, fontStyle: fnt.titleItalic ? 'italic' : 'normal', fontSize: items.length >= 10 ? 88 : 100, lineHeight: 0.92, letterSpacing: '-0.03em', margin: '14px 0 0', color: pal.text, fontVariationSettings: fnt.titleVariation || 'normal', maxWidth: '92%' }}>{list.title}</h1>
-      <div style={{ marginTop: 20, fontFamily: fnt.titleFamily.includes('Mono') ? fnt.metaFamily : fnt.nameFamily, fontStyle: fnt.titleFamily.includes('Fraunces') ? 'italic' : 'normal', fontSize: 26, color: pal.faded, paddingLeft: 16, borderLeft: `3px solid ${pal.accent}`, lineHeight: 1.3 }}>{modeLabel}</div>
+
+      {/* Category */}
+      <div style={{ marginTop: 42, fontFamily: fnt.metaFamily, fontSize: 18, letterSpacing: fnt.metaLetterSpacing, textTransform: 'uppercase', color: pal.accent, fontWeight: 600 }}>
+        {list.category} &middot; Top {Math.min(items.length, 10)}
+      </div>
+
+      {/* Title */}
+      <h1 style={{
+        fontFamily: fnt.titleFamily,
+        fontWeight: fnt.titleWeight,
+        fontStyle: fnt.titleItalic ? 'italic' : 'normal',
+        textTransform: fnt.titleUppercase ? 'uppercase' : 'none',
+        fontSize: items.length >= 10 ? 88 : 100,
+        lineHeight: 0.92,
+        letterSpacing: fnt.titleUppercase ? '-0.02em' : '-0.03em',
+        margin: '14px 0 0',
+        color: pal.text,
+        fontVariationSettings: fnt.titleVariation || 'normal',
+        maxWidth: '92%',
+      }}>{list.title}</h1>
+
+      {/* Mode label */}
+      <div style={{
+        marginTop: 20,
+        fontFamily: fnt.titleFamily.includes('Mono') ? fnt.metaFamily : fnt.nameFamily,
+        fontStyle: fnt.titleItalic ? 'italic' : (fnt.titleFamily.includes('Fraunces') ? 'italic' : 'normal'),
+        fontSize: fnt.titleUppercase ? 22 : 26,
+        letterSpacing: fnt.titleUppercase ? '0.06em' : 'normal',
+        textTransform: fnt.titleUppercase ? 'uppercase' : 'none',
+        color: pal.faded,
+        paddingLeft: 16,
+        borderLeft: `3px solid ${pal.accent}`,
+        lineHeight: 1.3,
+      }}>{modeLabel}</div>
+
+      {/* Items */}
       <ol style={{ listStyle: 'none', padding: 0, margin: '36px 0 0' }}>
         {items.map((item, i) => (
-          <li key={i} style={{ display: 'flex', alignItems: 'baseline', gap: 24, padding: '14px 0', borderBottom: i < items.length - 1 ? `1px ${fnt.itemDivider} ${pal.text}` : 'none' }}>
-            <span style={{ fontFamily: fnt.numberFamily, fontWeight: 900, fontSize: i === 0 ? 64 : 44, color: i === 0 ? pal.accent : pal.text, minWidth: 78, lineHeight: 0.9, fontVariationSettings: fnt.numberVariation || 'normal', fontFeatureSettings: '"lnum" 1', opacity: i === 0 ? 1 : 0.55 }}>{String(i + 1)}</span>
-            <span style={{ fontFamily: fnt.nameFamily, fontSize: i === 0 ? 38 : 30, fontWeight: i === 0 ? 700 : 500, lineHeight: 1.05, letterSpacing: '-0.01em', color: pal.text, flex: 1, fontVariationSettings: fnt.nameVariation || 'normal' }}>{item}</span>
+          <li key={i} style={{ display: 'flex', alignItems: 'baseline', gap: 24, padding: fnt.titleUppercase ? '11px 0' : '14px 0', borderBottom: i < items.length - 1 ? `1px ${fnt.itemDivider} ${dividerColor}` : 'none' }}>
+            <span style={{
+              fontFamily: fnt.numberFamily,
+              fontWeight: 900,
+              fontSize: i === 0 ? 64 : 44,
+              color: i === 0 ? pal.accent : pal.text,
+              minWidth: 78,
+              lineHeight: 0.9,
+              fontVariationSettings: fnt.numberVariation || 'normal',
+              fontFeatureSettings: '"lnum" 1',
+              opacity: i === 0 ? 1 : 0.5,
+            }}>{fnt.titleUppercase ? String(i + 1).padStart(2, '0') : String(i + 1)}</span>
+            <span style={{
+              fontFamily: fnt.nameFamily,
+              fontSize: i === 0 ? 38 : 30,
+              fontWeight: i === 0 ? (fnt.nameWeight > 500 ? fnt.nameWeight : 700) : fnt.nameWeight,
+              lineHeight: 1.05,
+              letterSpacing: fnt.nameFamily.includes('Mono') ? '0.01em' : '-0.01em',
+              color: pal.text,
+              flex: 1,
+              fontVariationSettings: fnt.nameVariation || 'normal',
+              fontStyle: fnt.titleItalic && i !== 0 ? 'italic' : 'normal',
+            }}>{item}</span>
           </li>
         ))}
       </ol>
+
+      {/* Sources footer */}
       {sourceNames && sourceNames.length > 0 && (
         <div style={{ position: 'absolute', bottom: 52, left: 72, right: 72, borderTop: `2px solid ${pal.text}`, paddingTop: 18, fontFamily: fnt.metaFamily, fontSize: 17, letterSpacing: '0.03em', lineHeight: 1.45, color: pal.faded }}>
           <span style={{ fontWeight: 600, color: pal.text }}>Sources: </span>
           {[...sourceNames, ...(list.mode !== 'facts' && list.mode !== 'scores' && list.mode !== 'unranked' ? ['CG User Vote'] : [])].join(', ')}
         </div>
       )}
-    </div>
-  );
-});
-
-const GradientPoster = React.forwardRef(function GradientPoster({ list, items, modeLabel, sourceNames, pal, fnt }, ref) {
-  const grad = `linear-gradient(145deg, ${pal.bg} 0%, ${pal.text} 100%)`;
-  const textCol = pal.bg;
-  return (
-    <div ref={ref} style={{ width: POSTER_W, height: POSTER_H, background: grad, color: textCol, padding: 72, position: 'relative', boxSizing: 'border-box', fontFamily: fnt.nameFamily, overflow: 'hidden' }}>
-      <div style={{ position: 'absolute', top: -40, right: -20, fontFamily: fnt.numberFamily, fontWeight: 900, fontSize: 600, lineHeight: 1, color: pal.text, opacity: 0.06, fontVariationSettings: fnt.numberVariation || 'normal', pointerEvents: 'none', userSelect: 'none' }}>1</div>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 60, fontFamily: fnt.metaFamily, fontSize: 15, letterSpacing: '0.28em', textTransform: 'uppercase', color: textCol, opacity: 0.7 }}>
-        <span style={{ fontWeight: 600 }}>Source of Truths</span>
-        <span>sourceoftruths.com</span>
-      </div>
-      <div style={{ fontFamily: fnt.metaFamily, fontSize: 16, letterSpacing: '0.3em', textTransform: 'uppercase', color: pal.accent, fontWeight: 700, marginBottom: 12 }}>{list.category}</div>
-      <h1 style={{ fontFamily: fnt.titleFamily, fontWeight: fnt.titleWeight, fontStyle: fnt.titleItalic ? 'italic' : 'normal', fontSize: 82, lineHeight: 0.9, letterSpacing: '-0.04em', margin: '0 0 10px', color: textCol, fontVariationSettings: fnt.titleVariation || 'normal', maxWidth: '88%' }}>{list.title}</h1>
-      <div style={{ width: 60, height: 4, background: pal.accent, margin: '18px 0 22px' }} />
-      <div style={{ fontFamily: fnt.metaFamily, fontSize: 14, letterSpacing: '0.22em', textTransform: 'uppercase', color: textCol, opacity: 0.6, marginBottom: 44 }}>{modeLabel}</div>
-      <ol style={{ listStyle: 'none', padding: 0, margin: 0 }}>
-        {items.map((item, i) => (
-          <li key={i} style={{ display: 'flex', alignItems: 'center', gap: 28, marginBottom: i === 0 ? 20 : 10 }}>
-            <span style={{ fontFamily: fnt.numberFamily, fontWeight: 900, fontSize: i === 0 ? 56 : 32, color: i === 0 ? pal.accent : textCol, minWidth: 66, lineHeight: 1, fontVariationSettings: fnt.numberVariation || 'normal', opacity: i === 0 ? 1 : 0.45, flexShrink: 0 }}>{String(i + 1).padStart(2, '0')}</span>
-            <span style={{ fontFamily: fnt.nameFamily, fontSize: i === 0 ? 34 : 24, fontWeight: i === 0 ? 700 : 400, lineHeight: 1.1, letterSpacing: '-0.01em', color: textCol, flex: 1, fontVariationSettings: fnt.nameVariation || 'normal', opacity: i === 0 ? 1 : 0.85 }}>{item}</span>
-          </li>
-        ))}
-      </ol>
-      <div style={{ position: 'absolute', bottom: 52, left: 72, right: 72, fontFamily: fnt.metaFamily, fontSize: 14, letterSpacing: '0.06em', color: textCol, opacity: 0.45 }}>
-        {sourceNames && sourceNames.length > 0 && sourceNames.join(' · ')}
-      </div>
-    </div>
-  );
-});
-
-const BroadsidePoster = React.forwardRef(function BroadsidePoster({ list, items, modeLabel, sourceNames, pal, fnt }, ref) {
-  return (
-    <div ref={ref} style={{ width: POSTER_W, height: POSTER_H, background: pal.bg, color: pal.text, padding: '60px 80px', position: 'relative', boxSizing: 'border-box', fontFamily: fnt.nameFamily, overflow: 'hidden' }}>
-      <div style={{ height: 8, background: pal.text, marginBottom: 0 }} />
-      <div style={{ height: 2, background: pal.text, marginTop: 5, marginBottom: 22 }} />
-      <div style={{ display: 'flex', justifyContent: 'space-between', fontFamily: fnt.metaFamily, fontSize: 13, letterSpacing: '0.22em', textTransform: 'uppercase', color: pal.faded, marginBottom: 20 }}>
-        <span>Source of Truths</span>
-        <span>{list.category}</span>
-        <span>sourceoftruths.com</span>
-      </div>
-      <div style={{ height: 1, background: pal.text, marginBottom: 24, opacity: 0.3 }} />
-      <h1 style={{ fontFamily: fnt.titleFamily, fontWeight: fnt.titleWeight, fontStyle: fnt.titleItalic ? 'italic' : 'normal', fontSize: 96, lineHeight: 0.88, letterSpacing: '-0.04em', margin: '0 0 18px', color: pal.text, fontVariationSettings: fnt.titleVariation || 'normal', textTransform: fnt.titleFamily.includes('Mono') || fnt.titleFamily.includes('Sans') ? 'uppercase' : 'none' }}>{list.title}</h1>
-      <div style={{ fontFamily: fnt.metaFamily, fontSize: 15, letterSpacing: '0.14em', textTransform: 'uppercase', color: pal.accent, fontWeight: 700, marginBottom: 6 }}>{modeLabel}</div>
-      <div style={{ height: 3, background: pal.accent, marginBottom: 28 }} />
-      <ol style={{ listStyle: 'none', padding: 0, margin: 0 }}>
-        {items.map((item, i) => (
-          <li key={i} style={{ display: 'flex', alignItems: 'baseline', gap: 18, padding: '11px 0', borderBottom: `1px solid ${pal.text}`, opacity: i === 0 ? 1 : 0.88 }}>
-            <span style={{ fontFamily: fnt.metaFamily, fontWeight: 700, fontSize: 13, letterSpacing: '0.12em', color: i === 0 ? pal.accent : pal.faded, minWidth: 34, flexShrink: 0 }}>{String(i + 1).padStart(2, '0')}</span>
-            <span style={{ fontFamily: fnt.nameFamily, fontSize: i === 0 ? 40 : 30, fontWeight: i === 0 ? 800 : 500, lineHeight: 1.0, letterSpacing: fnt.nameFamily.includes('Mono') ? '0' : '-0.02em', color: pal.text, flex: 1, fontVariationSettings: fnt.nameVariation || 'normal' }}>{item}</span>
-          </li>
-        ))}
-      </ol>
-      <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0 }}>
-        <div style={{ height: 1, background: pal.text, opacity: 0.2 }} />
-        <div style={{ height: 36, background: pal.text, display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0 80px' }}>
-          <span style={{ fontFamily: fnt.metaFamily, fontSize: 12, letterSpacing: '0.18em', textTransform: 'uppercase', color: pal.bg, opacity: 0.75 }}>{sourceNames && sourceNames.length > 0 ? sourceNames.join(' · ') : ''}</span>
-          <span style={{ fontFamily: fnt.metaFamily, fontSize: 12, letterSpacing: '0.18em', textTransform: 'uppercase', color: pal.bg, opacity: 0.75 }}>sourceoftruths.com</span>
-        </div>
-      </div>
-    </div>
-  );
-});
-
-const BlueprintPoster = React.forwardRef(function BlueprintPoster({ list, items, modeLabel, sourceNames, pal, fnt }, ref) {
-  const navy = '#0b1c2e';
-  const ink  = '#c8dff0';
-  const grid = 'rgba(100,160,210,0.12)';
-  const accent = pal.accent;
-  const gridBg = `repeating-linear-gradient(0deg, ${grid} 0px, ${grid} 1px, transparent 1px, transparent 54px), repeating-linear-gradient(90deg, ${grid} 0px, ${grid} 1px, transparent 1px, transparent 54px)`;
-  return (
-    <div ref={ref} style={{ width: POSTER_W, height: POSTER_H, background: navy, backgroundImage: gridBg, color: ink, padding: 72, position: 'relative', boxSizing: 'border-box', fontFamily: 'DM Mono, monospace', overflow: 'hidden' }}>
-      {[{top:20,left:20},{top:20,right:20},{bottom:20,left:20},{bottom:20,right:20}].map((pos, i) => (
-        <div key={i} style={{ position: 'absolute', ...pos, width: 28, height: 28, borderTop: i < 2 ? `2px solid ${accent}` : 'none', borderBottom: i >= 2 ? `2px solid ${accent}` : 'none', borderLeft: i % 2 === 0 ? `2px solid ${accent}` : 'none', borderRight: i % 2 === 1 ? `2px solid ${accent}` : 'none' }} />
-      ))}
-      <div style={{ borderBottom: `1px solid rgba(100,160,210,0.4)`, paddingBottom: 16, marginBottom: 32, display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end' }}>
-        <div>
-          <div style={{ fontFamily: 'DM Mono, monospace', fontSize: 11, letterSpacing: '0.3em', textTransform: 'uppercase', color: accent, marginBottom: 4, fontWeight: 700 }}>SOURCE OF TRUTHS</div>
-          <div style={{ fontFamily: 'DM Mono, monospace', fontSize: 11, letterSpacing: '0.18em', color: ink, opacity: 0.45 }}>sourceoftruths.com</div>
-        </div>
-        <div style={{ textAlign: 'right' }}>
-          <div style={{ fontFamily: 'DM Mono, monospace', fontSize: 11, letterSpacing: '0.2em', textTransform: 'uppercase', color: ink, opacity: 0.5 }}>{list.category}</div>
-          <div style={{ fontFamily: 'DM Mono, monospace', fontSize: 11, letterSpacing: '0.18em', color: accent, opacity: 0.7 }}>{modeLabel}</div>
-        </div>
-      </div>
-      <h1 style={{ fontFamily: fnt.titleFamily === 'Fraunces, serif' ? 'DM Mono, monospace' : fnt.titleFamily, fontWeight: 700, fontSize: 80, lineHeight: 0.9, letterSpacing: fnt.titleFamily.includes('Mono') ? '-0.01em' : '-0.03em', margin: '0 0 36px', color: ink, maxWidth: '90%', textTransform: 'uppercase' }}>{list.title}</h1>
-      <ol style={{ listStyle: 'none', padding: 0, margin: 0 }}>
-        {items.map((item, i) => (
-          <li key={i} style={{ display: 'flex', alignItems: 'center', gap: 24, padding: '12px 0', borderBottom: `1px solid rgba(100,160,210,0.18)` }}>
-            <span style={{ fontFamily: 'DM Mono, monospace', fontWeight: 700, fontSize: 12, letterSpacing: '0.1em', color: i === 0 ? accent : ink, opacity: i === 0 ? 1 : 0.5, minWidth: 50, flexShrink: 0 }}>[{String(i + 1).padStart(2, '0')}]</span>
-            <span style={{ fontFamily: fnt.nameFamily === 'Fraunces, serif' ? 'DM Mono, monospace' : fnt.nameFamily, fontSize: i === 0 ? 36 : 27, fontWeight: i === 0 ? 700 : 400, letterSpacing: i === 0 ? '0.01em' : '0.02em', color: i === 0 ? ink : `rgba(200,223,240,0.8)`, flex: 1, lineHeight: 1.1 }}>{item}</span>
-            {i === 0 && <span style={{ fontFamily: 'DM Mono, monospace', fontSize: 10, letterSpacing: '0.14em', color: accent, opacity: 0.8, flexShrink: 0 }}>RANK 1</span>}
-          </li>
-        ))}
-      </ol>
-      <div style={{ position: 'absolute', bottom: 40, left: 72, right: 72, borderTop: `1px solid rgba(100,160,210,0.25)`, paddingTop: 14, display: 'flex', justifyContent: 'space-between' }}>
-        <span style={{ fontFamily: 'DM Mono, monospace', fontSize: 11, letterSpacing: '0.12em', color: ink, opacity: 0.35 }}>{sourceNames && sourceNames.length > 0 ? `SRC: ${sourceNames.join(', ')}` : ''}</span>
-        <span style={{ fontFamily: 'DM Mono, monospace', fontSize: 11, letterSpacing: '0.12em', color: accent, opacity: 0.5 }}>REV A</span>
-      </div>
-    </div>
-  );
-});
-
-const StagePoster = React.forwardRef(function StagePoster({ list, items, modeLabel, sourceNames, pal, fnt }, ref) {
-  const ornament = '· · ·';
-  return (
-    <div ref={ref} style={{ width: POSTER_W, height: POSTER_H, background: pal.bg, color: pal.text, padding: '56px 80px', position: 'relative', boxSizing: 'border-box', fontFamily: fnt.nameFamily, overflow: 'hidden', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-      <div style={{ width: '100%', height: 3, background: pal.text, marginBottom: 4 }} />
-      <div style={{ width: '100%', height: 1, background: pal.text, marginBottom: 22, opacity: 0.4 }} />
-      <div style={{ fontFamily: fnt.metaFamily, fontSize: 13, letterSpacing: '0.38em', textTransform: 'uppercase', color: pal.faded, marginBottom: 4 }}>Source of Truths</div>
-      <div style={{ fontFamily: fnt.metaFamily, fontSize: 12, letterSpacing: '0.22em', textTransform: 'uppercase', color: pal.accent, fontWeight: 700, marginBottom: 18 }}>{list.category}</div>
-      <div style={{ fontFamily: 'DM Sans, sans-serif', fontSize: 18, letterSpacing: '0.5em', color: pal.accent, marginBottom: 18 }}>{ornament}</div>
-      <h1 style={{ fontFamily: fnt.titleFamily, fontWeight: fnt.titleWeight, fontStyle: fnt.titleItalic ? 'italic' : 'normal', fontSize: 82, lineHeight: 0.9, letterSpacing: '-0.03em', margin: '0 0 16px', color: pal.text, fontVariationSettings: fnt.titleVariation || 'normal', textAlign: 'center', maxWidth: '90%' }}>{list.title}</h1>
-      <div style={{ fontFamily: fnt.nameFamily, fontStyle: fnt.titleFamily.includes('Fraunces') ? 'italic' : 'normal', fontSize: 22, color: pal.faded, marginBottom: 8 }}>{modeLabel}</div>
-      <div style={{ width: '80%', height: 1, background: pal.text, opacity: 0.25, marginBottom: 6 }} />
-      <div style={{ fontFamily: 'DM Sans, sans-serif', fontSize: 16, letterSpacing: '0.4em', color: pal.accent, marginBottom: 24 }}>{ornament}</div>
-      <div style={{ width: '100%' }}>
-        {items.map((item, i) => (
-          <div key={i} style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'center', gap: 14, padding: i === 0 ? '10px 0 14px' : '7px 0', borderBottom: i < items.length - 1 ? `1px solid ${pal.text}` : 'none' }}>
-            <span style={{ fontFamily: fnt.numberFamily, fontWeight: 900, fontSize: i === 0 ? 60 : 36, color: i === 0 ? pal.accent : pal.faded, lineHeight: 0.9, fontVariationSettings: fnt.numberVariation || 'normal', flexShrink: 0, minWidth: i === 0 ? 70 : 46, textAlign: 'right' }}>{String(i + 1)}</span>
-            <span style={{ fontFamily: fnt.nameFamily, fontSize: i === 0 ? 38 : 26, fontWeight: i === 0 ? 700 : 400, lineHeight: 1.05, letterSpacing: '-0.01em', color: pal.text, fontVariationSettings: fnt.nameVariation || 'normal', flex: 1, textAlign: 'left' }}>{item}</span>
-          </div>
-        ))}
-      </div>
-      <div style={{ position: 'absolute', bottom: 30, left: 80, right: 80, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 8 }}>
-        <div style={{ width: '80%', height: 1, background: pal.text, opacity: 0.2 }} />
-        <div style={{ fontFamily: fnt.metaFamily, fontSize: 11, letterSpacing: '0.28em', textTransform: 'uppercase', color: pal.faded }}>sourceoftruths.com</div>
-        <div style={{ height: 3, width: '100%', background: pal.text }} />
-      </div>
     </div>
   );
 });
