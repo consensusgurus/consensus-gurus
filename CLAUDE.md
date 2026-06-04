@@ -25,7 +25,7 @@ convention is added or revised, so future sessions inherit the latest version au
 The Consensus tab on each list is computed live using **Borda scoring**:
 
 - Each publication source ranks its items. Rank 1 = 10 pts, rank 2 = 9 pts ... rank 10 = 1 pt.
-- Items not ranked by a source receive that source's average score (not zero).
+- Items not ranked by a source receive ZERO from that source (no average credit). The og-images script once drifted on this point and awarded the source average to absent items, which silently produced a wrong predicted top 10 for a new list; always verify a new list's consensus with the lib/helpers.js getSources logic (absent = 0), not a stale copy.
 - The `seed` source (keyed `ai` internally) is **excluded from Borda** — it is a display placeholder only, never used in scoring.
 - Live fan votes from Supabase are weighted at **0.75x** of one publication.
 - Tie-break: by appearance count across sources, then alphabetically.
@@ -629,7 +629,14 @@ Example node check (run before every deploy of a new list):
 ```javascript
 import { LISTS } from './lib/data.js';
 import { DESCRIPTIONS } from './lib/descriptions.js';
-// (paste computeConsensus() from the scripts above)
+// HARD RULE: the consensus check MUST mirror lib/helpers.js getSources EXACTLY,
+// the single source of truth for scoring. Before every new-list verification,
+// re-read getSources and copy its current logic (today: absent items earn 0
+// from a source, NO average credit; unordered flat scoring; top-10 Borda).
+// Do NOT paste computeConsensus from scripts/generate-og-images.js or any other
+// mirror without first diffing it against helpers.js; a drifted mirror once
+// predicted the wrong #10 item, the description was written for the wrong
+// island, and the live overview tile shipped blank.
 const top10 = computeConsensus(LISTS.find(l => l.id === 'your-list-id'));
 const missing = top10.filter(item => !(DESCRIPTIONS['your-list-id'] || {})[item]);
 if (missing.length) throw new Error('Missing descriptions: ' + missing.join(', '));

@@ -144,22 +144,12 @@ function computeConsensus(list) {
       pubRanks[item.toLowerCase().trim()] = idx + 1;
     });
     
-    const rankedKeys = Object.keys(pubRanks);
-    let avgScore = 0;
-    if (rankedKeys.length > 0) {
-      const total = rankedKeys.reduce(
-        (sum, k) => sum + bordaFromRank(pubRanks[k]),
-        0
-      );
-      avgScore = total / rankedKeys.length;
-    }
-    
+    // Items this publication ranks earn Borda points; items it omits earn 0
+    // (no average credit), kept in sync with lib/helpers.js getSources.
     universe.forEach((item) => {
       const key = item.toLowerCase().trim();
       if (pubRanks[key] !== undefined) {
         scores[key] += bordaFromRank(pubRanks[key]) * w;
-      } else {
-        scores[key] += avgScore * w;
       }
     });
   });
