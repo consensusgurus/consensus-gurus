@@ -801,6 +801,17 @@ that only touch internals (descriptions, itemYelp, this file). Don't ping URLs t
 live yet — wait for the Vercel deploy, and remember the Hobby-plan deploy limit (a push that
 silently didn't deploy means the URL 404s; verify before pinging).
 
+## Homepage Discover ordering: no two product lists adjacent
+
+The Discover (default, seeded-shuffle) sort on the homepage must never place two
+Products-bucket tiles (the 'shops' browse category: tags `product`/`tech`) directly
+next to each other, whenever that is mathematically possible (products <= non-products + 1).
+Implemented as `spaceOutProducts` in `app/HomeClient.jsx`: the shuffle is partitioned into
+products and non-products, and each product is dropped into its own seeded-random gap
+between non-products. When full separation is impossible, extras spread round-robin to
+minimize adjacency. The other sorts (Trending/Popular/Recent) are NOT subject to this
+rule. If the Discover pipeline is ever rewritten, preserve this constraint.
+
 ## Overview page research: descriptions, hero images, and consensus alerts
 
 The list overview page (`ListOverview.jsx`) renders, for every list, the live consensus top 10 with a

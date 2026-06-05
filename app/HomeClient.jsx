@@ -167,6 +167,54 @@ function seededShuffle(arr, seed) {
   return out;
 }
 
+// Discover ordering rule: never show two Products-bucket tiles (the 'shops'
+// browse category, i.e. lists tagged product/tech) back to back when it is
+// mathematically possible (products <= non-products + 1). The shuffled order
+// is partitioned into products and non-products (each keeping its shuffle
+// order), then re-merged by dropping each product into its own seeded-random
+// gap between non-products, so the page still feels shuffled but no two
+// product lists ever touch. When products outnumber the available gaps the
+// extras are spread round-robin, which keeps unavoidable adjacency minimal.
+function spaceOutProducts(shuffled, seed) {
+  const isProduct = (l) => listInCategory(l, 'shops');
+  const products = shuffled.filter(isProduct);
+  const others = shuffled.filter((l) => !isProduct(l));
+  if (products.length < 2 || others.length === 0) return shuffled;
+
+  const gapCount = others.length + 1; // gaps around/between non-products
+  // Independent seeded rng stream (xorshift32) so gap choice is stable per
+  // page view, like the shuffle itself.
+  let s = (seed ^ 0x9e3779b9) >>> 0 || 1;
+  const rand = (m) => {
+    s ^= s << 13;
+    s ^= s >>> 17;
+    s ^= s << 5;
+    return (s >>> 0) % m;
+  };
+
+  const byGap = Array.from({ length: gapCount }, () => []);
+  if (products.length <= gapCount) {
+    // Sample a distinct random gap per product (partial Fisher-Yates) --
+    // distinct gaps guarantee no two products are adjacent.
+    const gaps = Array.from({ length: gapCount }, (_, i) => i);
+    for (let k = 0; k < products.length; k++) {
+      const j = k + rand(gapCount - k);
+      [gaps[k], gaps[j]] = [gaps[j], gaps[k]];
+      byGap[gaps[k]].push(products[k]);
+    }
+  } else {
+    // Impossible to fully separate: spread evenly instead.
+    for (let k = 0; k < products.length; k++) byGap[k % gapCount].push(products[k]);
+  }
+
+  const out = [];
+  for (let g = 0; g < gapCount; g++) {
+    out.push(...byGap[g]);
+    if (g < others.length) out.push(others[g]);
+  }
+  return out;
+}
+
 function Home({ lists, viewCounts, voteData, extras, trending = {}, openList, onSubmit }) {
   const [query, setQuery] = useState('');
   const [typeFilter, setTypeFilter] = useState('all');
@@ -185,7 +233,8 @@ function Home({ lists, viewCounts, voteData, extras, trending = {}, openList, on
 
   // Recompute shuffle order when the lists collection or seed changes.
   const discoverOrder = useMemo(() => {
-    return seededShuffle(lists, discoverSeed);
+    // Shuffle, then enforce the no-adjacent-products rule.
+    return spaceOutProducts(seededShuffle(lists, discoverSeed), discoverSeed);
   }, [lists, discoverSeed]);
 
   // Close the category / sort dropdowns when clicking anywhere outside.
