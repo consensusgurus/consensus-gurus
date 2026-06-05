@@ -85,12 +85,6 @@ function getItems(list, voteData, extras) {
   return (consensus?.items || list.sources?.ai?.items || []).slice(0, 10);
 }
 
-const MEDAL_COLORS = [
-  { bg: '#c9a227', text: '#f4ede0' },
-  { bg: '#9ca3a8', text: '#f4ede0' },
-  { bg: '#a9743f', text: '#f4ede0' },
-];
-
 // Shared link button style.
 function linkBtn(primary) {
   return {
@@ -261,7 +255,6 @@ function PhotoBox({ style }) {
 function HeroTile({ item, rank, list, desc, pics }) {
   const { displayName, locality } = parseItem(item);
   const links = buildLinks(item, list);
-  const medal = MEDAL_COLORS[rank - 1];
   const heroSrc = (HERO_IMAGES[list.id] || {})[item];
 
   return (
@@ -291,7 +284,7 @@ function HeroTile({ item, rank, list, desc, pics }) {
                 width: 24,
                 height: 24,
                 borderRadius: '50%',
-                background: medal.bg,
+                border: `1.5px solid ${COLORS.ink}`,
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
@@ -303,7 +296,7 @@ function HeroTile({ item, rank, list, desc, pics }) {
                   fontFamily: 'Fraunces, serif',
                   fontSize: 11,
                   fontWeight: 600,
-                  color: medal.text,
+                  color: COLORS.ink,
                 }}
               >
                 {rank}
