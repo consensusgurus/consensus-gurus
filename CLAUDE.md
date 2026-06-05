@@ -63,6 +63,58 @@ Implemented in `lib/helpers.js` `getSources` and mirrored in `scripts/generate-o
 
 - **Johnny Novo** (`johnnynovo.com/rankings/...`) — a rigorous, single-author burger ranking with per-establishment ratings. Used as a true expert on `burgers-nyc`. Order his source by the published rating, descending (it is a ranked source, not `unordered`).
 - **Dave Portnoy / One Bite** (`onebite.app`) — numeric pizza scores (publicly readable, not image-gated like the Infatuation). Used as a true expert on **all pizza lists**. Gather scores live via Chrome, order descending by score. Source id: `portnoy`. This is the primary mechanism for surfacing excellent new pizza spots that predate most editorial lists.
+- **Source of Truths (SoT)** — the in-house ranking produced by the SoT True Expert input process below. Source id: `sot`. Used only on lists where the owner explicitly requests it.
+
+### SoT True Expert input — the in-house research process
+
+Source of Truths itself can act as a True Expert on a list: a ranked source built from Claude's
+reasoned synthesis of all gathered evidence plus the owner's direct input. It carries the standard
+`"trueExpert": true` weight (`max(2, N_other / 2)`), so it is reserved for lists where the owner
+has real conviction about the ordering.
+
+**When to use it: ON REQUEST ONLY.** Never add an SoT source to a list on your own initiative.
+The owner asks for SoT input on a specific list; that request is the trigger. (If a list's
+consensus looks wrong and no fix exists in the editorial data, *suggest* SoT input — but do not
+build it without an explicit yes.)
+
+**The process — Claude drafts, the owner approves:**
+
+1. **Gather everything first.** Complete all normal source research for the list (editorial
+   sources, rating platforms, pricing where applicable) BEFORE drafting the SoT ranking. The SoT
+   source is a synthesis layer on top of the evidence, never a substitute for gathering it.
+2. **Claude drafts the ranking.** Synthesize across every signal collected: editorial frequency
+   and positions, rating-platform scores and review counts, recency of acclaim, tier fit, and any
+   owner preferences already on record. Produce a ranked list (typically 10–15 items, any length
+   allowed) with a **one-line justification per item** explaining its position. Reason about
+   disagreements between sources rather than averaging them — the point of the SoT source is
+   judgment, not arithmetic.
+3. **Present the draft to the owner in chat** — ranked order plus the per-item justifications —
+   and ask for edits. The owner may reorder, add, or drop items. Items the owner adds must still
+   pass the list's tier rules (no chains, on-tier, currently open, correct geography) and get
+   full data treatment (`links`, `itemLinks`, `itemYelp`/`itemTripadvisor`, parentheticals).
+4. **Iterate until the owner approves.** Do NOT deploy an SoT source the owner has not explicitly
+   signed off on in that session. The approved order is final — never silently "fix" it later;
+   revisions go back through the owner.
+5. **Add it as a ranked source.** Source id `sot`, flagged `"trueExpert": true`, never
+   `"unordered"`. Label it with the process and date so readers know what it is:
+   `'Source of Truths · House Ranking (June 2026)'`. Item names must match the list's canonical
+   names byte-for-byte. No `url` is needed; per the publication-link rule it has no article page,
+   so it renders as plain text (if `expertGroupKey` would hyperlink a trueExpert without a `url`,
+   verify it degrades gracefully before shipping).
+6. **Re-seed and verify.** After adding the SoT source, recompute the Borda consensus
+   (helpers.js logic, absent = 0), re-seed `ai` and `vote.items` to the new blend, and refresh
+   descriptions/hero images if the top 10 or top 3 changed.
+
+**Guardrails:**
+
+- The SoT ranking must stay **grounded in the gathered evidence**. Claude's draft may weigh and
+  re-order based on reasoning, but every item must appear in at least one real source or be
+  owner-added with live-verified data. Never rank from memory.
+- One SoT source per list, maximum. It does not count toward the three-editorial-source floor —
+  the list still needs its three real publications.
+- Record the owner's reasoning for notable calls (e.g. "owner moved X to #1: ate there last
+  month, best version in the city") as a comment above the source in `lib/data.js` or in the
+  session notes, so future sessions don't second-guess the order.
 
 ---
 
@@ -830,4 +882,3 @@ if (missing.length) throw new Error('Missing descriptions: ' + missing.join(', '
     },
     eater: {
       lab
-      
