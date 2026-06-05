@@ -1736,7 +1736,7 @@ function DataRow({ rank, item, list, unranked, showPrice }) {
               </>
             ) : (
               <a href={primaryLink} target="_blank" rel="noopener noreferrer sponsored" style={auxChip()}>
-                <ExternalLink size={11} strokeWidth={2.2} /> View
+                <ExternalLink size={11} strokeWidth={2.2} /> {list.linkLabel || 'View'}
               </a>
             )}
           </div>

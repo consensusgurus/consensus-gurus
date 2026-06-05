@@ -120,7 +120,7 @@ const tileChrome = {
 // Shop/View link with no map and no pics.
 function LinkRow({ links, pics, websiteLabel, list }) {
   const isPlace = (list.linkType || 'mapsCity') === 'mapsCity';
-  const primaryLabel = isPlace ? 'Map' : list.linkType === 'amazon' ? 'Purchase' : 'View';
+  const primaryLabel = isPlace ? 'Map' : list.linkLabel ? list.linkLabel : list.linkType === 'amazon' ? 'Purchase' : 'View';
   const PrimaryIcon = isPlace ? MapPin : list.linkType === 'amazon' ? ShoppingBag : ExternalLink;
   return (
     <div style={{ display: 'flex', gap: 7, flexWrap: 'wrap', alignItems: 'center' }}>
