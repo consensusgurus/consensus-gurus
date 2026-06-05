@@ -7,7 +7,7 @@ import { DESCRIPTIONS } from '@/lib/descriptions';
 import { HERO_IMAGES } from '@/lib/hero-images';
 import { getSources, buildItemLink } from '@/lib/helpers';
 
-// Splits "Name (Locality)" into { displayName, locality }.
+// Splits a "Name (Locality)" item into { displayName, locality }.
 function parseItem(fullName) {
   const m = fullName.match(/^(.*?)\s*\(([^)]*)\)\s*$/);
   if (m) return { displayName: m[1].trim(), locality: m[2].trim() };
@@ -164,12 +164,49 @@ function LinkRow({ links, pics, websiteLabel, list }) {
 // Optimized hero photo. Lazy-loaded, async-decoded WebP: the browser only
 // fetches and decodes it when the tile nears the viewport, so memory and
 // bandwidth cost stay minimal. Falls back to PhotoBox if the file 404s.
-function HeroPhoto({ photo, alt }) {
+function HeroPhoto({ photo, alt, poster }) {
   const [failed, setFailed] = useState(false);
   const src = typeof photo === 'string' ? photo : photo?.src;
   const credit = photo && typeof photo === 'object' ? photo.credit : null;
   const creditUrl = photo && typeof photo === 'object' ? photo.creditUrl : null;
   if (!src || failed) return <PhotoBox />;
+  if (poster) {
+    // Poster capture (share page): a plain eager <img> routed through the
+    // site's own image optimizer, so html-to-image can inline it same-origin
+    // (a raw remote URL would taint the canvas and blank the download).
+    const optimized = `/_next/image?url=${encodeURIComponent(src)}&w=640&q=75`;
+    return (
+      <div style={{ position: 'relative', minHeight: 200, flexShrink: 0, overflow: 'hidden' }}>
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img
+          src={optimized}
+          alt={alt}
+          loading="eager"
+          onError={() => setFailed(true)}
+          style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover' }}
+        />
+        {credit && (
+          <span
+            style={{
+              position: 'absolute',
+              bottom: 0,
+              right: 0,
+              zIndex: 1,
+              fontFamily: 'DM Mono, monospace',
+              fontSize: 7,
+              letterSpacing: '0.08em',
+              textTransform: 'uppercase',
+              color: 'rgba(244,237,224,0.92)',
+              background: 'rgba(26,22,17,0.55)',
+              padding: '3px 7px',
+            }}
+          >
+            Photo: {credit}
+          </span>
+        )}
+      </div>
+    );
+  }
   return (
     <div style={{ position: 'relative', minHeight: 200, flexShrink: 0, overflow: 'hidden' }}>
       <Image
@@ -256,22 +293,22 @@ function PhotoBox({ style }) {
 }
 
 // Full-width hero tile (used for ranks 1, 2, 3).
-function HeroTile({ item, rank, list, desc, pics }) {
+function HeroTile({ item, rank, list, desc, pics, poster }) {
   const { displayName, locality } = parseItem(item);
   const links = buildLinks(item, list);
   const heroSrc = (HERO_IMAGES[list.id] || {})[item];
 
   return (
     <div
-      className="lov-hero"
+      className={poster ? undefined : 'lov-hero'}
       style={{
         gridColumn: 'span 2',
         display: 'grid',
-        gridTemplateColumns: 'clamp(160px, 30%, 240px) 1fr',
+        gridTemplateColumns: poster ? '240px 1fr' : 'clamp(160px, 30%, 240px) 1fr',
         ...tileChrome,
       }}
     >
-      {heroSrc ? <HeroPhoto photo={heroSrc} alt={displayName} /> : <PhotoBox />}
+      {heroSrc ? <HeroPhoto photo={heroSrc} alt={displayName} poster={poster} /> : <PhotoBox />}
       <div
         style={{
           padding: '20px 22px 18px',
@@ -431,6 +468,106 @@ function SmallTile({ item, rank, list, desc, pics }) {
       </p>
       <div style={{ marginTop: 'auto', paddingTop: 10 }}>
         <LinkRow links={links} pics={pics} websiteLabel="Website" list={list} />
+      </div>
+    </div>
+  );
+}
+
+// Static, fixed-width (1080px) rendering of the new list page, used by the
+// share page (/snapshot/[id]) as a downloadable image. Reuses the exact same
+// tiles, descriptions, hero images, and pics config as the live overview so
+// the two can never drift; strips everything interactive (back button, meta
+// buttons, CTA, complaint modal) and avoids the responsive class names so a
+// narrow window can't collapse the capture layout.
+export function ListOverviewPoster({ list, voteData, extras }) {
+  const items = getItems(list, voteData, extras);
+  const descs = DESCRIPTIONS[list.id] || {};
+  const pics = picsConfig(list);
+  if (!items.length) return null;
+
+  const heroItems = items.slice(0, 3);
+  const gridItems = items.slice(3, 9);
+  const tenthItem = items[9];
+
+  return (
+    <div style={{ width: 1080, background: COLORS.cream, color: COLORS.ink, boxSizing: 'border-box', padding: '52px 60px 40px', position: 'relative' }}>
+      {/* Masthead */}
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: `2px solid ${COLORS.ink}`, paddingBottom: 14, marginBottom: 28, fontFamily: 'DM Mono, monospace', fontSize: 14, letterSpacing: '0.3em', textTransform: 'uppercase', color: COLORS.ink }}>
+        <span style={{ fontWeight: 600 }}>Source of Truths</span>
+        <span style={{ color: COLORS.faded, fontSize: 11 }}>sourceoftruths.com</span>
+      </div>
+
+      {/* Header (same composition as the live list page) */}
+      <div style={{ display: 'flex', alignItems: 'flex-end', gap: 28 }}>
+        <h1
+          style={{
+            fontFamily: 'Fraunces, serif',
+            fontWeight: 800,
+            fontSize: 50,
+            lineHeight: 1.02,
+            letterSpacing: '-0.02em',
+            margin: 0,
+            color: COLORS.ink,
+            fontVariationSettings: '"SOFT" 100',
+          }}
+        >
+          {list.title}
+        </h1>
+        <div style={{ flex: 1, minWidth: 120, marginBottom: 6 }}>
+          <div
+            style={{
+              fontFamily: 'DM Mono, monospace',
+              fontSize: 11,
+              letterSpacing: '0.2em',
+              textTransform: 'uppercase',
+              color: COLORS.ember,
+              textAlign: 'right',
+              marginBottom: 8,
+            }}
+          >
+            {list.category} · Top Ten
+          </div>
+          <div style={{ borderBottom: `1px solid ${COLORS.ink}`, marginBottom: 4 }} />
+          <div style={{ borderBottom: `2px solid ${COLORS.ember}` }} />
+        </div>
+      </div>
+      {list.blurb && (
+        <p
+          style={{
+            fontFamily: 'Fraunces, serif',
+            fontStyle: 'italic',
+            fontSize: 16,
+            lineHeight: 1.45,
+            margin: '12px 0 0',
+            color: COLORS.faded,
+            maxWidth: 680,
+          }}
+        >
+          {list.blurb}
+        </p>
+      )}
+
+      {/* Tile grid: fixed two columns (no responsive collapse in a capture) */}
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14, marginTop: 26 }}>
+        {heroItems.map((item, i) => (
+          <HeroTile key={item} item={item} rank={i + 1} list={list} desc={descs[item]} pics={pics} poster />
+        ))}
+        {gridItems.map((item, i) => (
+          <SmallTile key={item} item={item} rank={i + 4} list={list} desc={descs[item]} pics={pics} />
+        ))}
+        {tenthItem && (
+          <div style={{ gridColumn: 'span 2', display: 'flex', justifyContent: 'center' }}>
+            <div style={{ width: 'calc(50% - 7px)' }}>
+              <SmallTile item={tenthItem} rank={10} list={list} desc={descs[tenthItem]} pics={pics} />
+            </div>
+          </div>
+        )}
+      </div>
+
+      {/* Footer */}
+      <div style={{ marginTop: 28, borderTop: `2px solid ${COLORS.ink}`, paddingTop: 14, display: 'flex', justifyContent: 'space-between', fontFamily: 'DM Mono, monospace', fontSize: 11, letterSpacing: '0.18em', textTransform: 'uppercase', color: COLORS.faded }}>
+        <span>The Live Consensus · Top {Math.min(items.length, 10)}</span>
+        <span>sourceoftruths.com/list/{list.id}</span>
       </div>
     </div>
   );

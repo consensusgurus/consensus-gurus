@@ -5,6 +5,7 @@ import { ArrowLeft, Download, Copy, Link2, Check } from 'lucide-react';
 import { LISTS, COLORS } from '@/lib/data';
 import { getSources, voteKey, dedupeByName } from '@/lib/helpers';
 import { fetchBootstrap } from '@/lib/api';
+import { ListOverviewPoster } from '../../list/[id]/ListOverview';
 
 const POSTER_W = 1080;
 const POSTER_H = 1350;
@@ -118,9 +119,11 @@ export default function SnapshotClient({ listId }) {
   const [modeInit, setModeInit] = useState(false);
   const [copied, setCopied] = useState('');
   const [downloading, setDownloading] = useState(false);
+  const [downloadingPage, setDownloadingPage] = useState(false);
   const [colorScheme, setColorScheme] = useState('classic');
   const [fontStyle, setFontStyle] = useState('editorial');
   const posterRef = useRef(null);
+  const pageRef = useRef(null);
 
   useEffect(() => {
     fetchBootstrap().then((data) => {
@@ -211,6 +214,26 @@ export default function SnapshotClient({ listId }) {
       alert('Could not generate image. Try a different browser or take a screenshot instead.');
     }
     setDownloading(false);
+  }
+
+  // Download the fully rendered list page (the new overview format). Width is
+  // fixed at 1080; height follows the content, so it's read off the node.
+  async function downloadListPage() {
+    if (!pageRef.current) return;
+    setDownloadingPage(true);
+    try {
+      const { toPng } = await import('html-to-image');
+      const node = pageRef.current;
+      const dataUrl = await toPng(node, { cacheBust: true, pixelRatio: 2, width: 1080, height: node.offsetHeight, backgroundColor: '#f4ede0' });
+      const link = document.createElement('a');
+      link.download = `source-of-truths-${list.id}-list-page.png`;
+      link.href = dataUrl;
+      link.click();
+    } catch (e) {
+      console.error('Download failed', e);
+      alert('Could not generate image. Try a different browser or take a screenshot instead.');
+    }
+    setDownloadingPage(false);
   }
 
   function copyLink() {
@@ -306,6 +329,27 @@ export default function SnapshotClient({ listId }) {
         <p style={{ marginTop: 20, fontFamily: 'DM Mono, monospace', fontSize: 10, letterSpacing: '0.18em', textTransform: 'uppercase', color: COLORS.faded, textAlign: 'center' }}>
           1080 × 1350 · Instagram / Pinterest portrait
         </p>
+
+        {/* ─── The new list page, fully rendered and downloadable ───────── */}
+        <div style={{ marginTop: 52, borderTop: `2px solid ${COLORS.ink}`, paddingTop: 28 }}>
+          <h2 style={{ fontFamily: 'Fraunces, serif', fontWeight: 700, fontStyle: 'italic', fontSize: 24, margin: '0 0 6px', color: COLORS.ink, fontVariationSettings: '"SOFT" 100' }}>List page format</h2>
+          <p style={{ fontFamily: 'DM Sans, sans-serif', fontSize: 14, color: COLORS.faded, margin: '0 0 16px', maxWidth: 560 }}>
+            The full list page with photos and descriptions, rendered as a single shareable image.
+          </p>
+          <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginBottom: 24 }}>
+            <ActionButton onClick={downloadListPage} disabled={downloadingPage} primary><Download size={14} strokeWidth={2.5} />{downloadingPage ? 'Generating...' : 'Download list page'}</ActionButton>
+          </div>
+          <div style={{ background: '#000', padding: 8, borderRadius: 4, display: 'flex', justifyContent: 'center', overflow: 'hidden' }}>
+            <PageScaler innerRef={pageRef}>
+              <div ref={pageRef} style={{ width: 1080 }}>
+                <ListOverviewPoster list={list} voteData={voteData} extras={extras} />
+              </div>
+            </PageScaler>
+          </div>
+          <p style={{ marginTop: 20, fontFamily: 'DM Mono, monospace', fontSize: 10, letterSpacing: '0.18em', textTransform: 'uppercase', color: COLORS.faded, textAlign: 'center' }}>
+            1080 wide · full list page render
+          </p>
+        </div>
       </div>
     </div>
   );
@@ -340,6 +384,32 @@ function PosterScaler({ children }) {
   return (
     <div style={{ width: POSTER_W * scale, height: POSTER_H * scale, position: 'relative', overflow: 'hidden' }}>
       <div style={{ transform: `scale(${scale})`, transformOrigin: 'top left', width: POSTER_W, height: POSTER_H, position: 'absolute', top: 0, left: 0 }}>{children}</div>
+    </div>
+  );
+}
+
+// Like PosterScaler, but the content height follows the rendered list page
+// (variable, not the fixed 1350 poster height), so it's observed live.
+function PageScaler({ children, innerRef }) {
+  const [scale, setScale] = useState(0.5);
+  const [contentH, setContentH] = useState(1350);
+  useEffect(() => {
+    function updateScale() { const available = Math.min(window.innerWidth - 60, 720); setScale(available / POSTER_W); }
+    updateScale();
+    window.addEventListener('resize', updateScale);
+    return () => window.removeEventListener('resize', updateScale);
+  }, []);
+  useEffect(() => {
+    const node = innerRef?.current;
+    if (!node || typeof ResizeObserver === 'undefined') return;
+    const ro = new ResizeObserver(() => { if (innerRef.current) setContentH(innerRef.current.offsetHeight); });
+    ro.observe(node);
+    setContentH(node.offsetHeight);
+    return () => ro.disconnect();
+  }, [innerRef]);
+  return (
+    <div style={{ width: POSTER_W * scale, height: contentH * scale, position: 'relative', overflow: 'hidden' }}>
+      <div style={{ transform: `scale(${scale})`, transformOrigin: 'top left', width: POSTER_W, position: 'absolute', top: 0, left: 0 }}>{children}</div>
     </div>
   );
 }
