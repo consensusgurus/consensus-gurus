@@ -118,6 +118,27 @@ build it without an explicit yes.)
 
 ---
 
+### Peak-portfolio rating source (`peakbeers`) — rank producers by their ten best products
+
+First used on `best-breweries-world` (June 2026). For producer lists (breweries, wineries, distilleries,
+coffee roasters), add a ranked source scoring each producer by the **average rating of its ten best
+products** on the category's deepest per-product rating platform (BeerAdvocate for beer: each brewery
+profile lists every beer with its own rating and count).
+
+- **Method:** among the producer's active products with >=25 ratings, average the 10 highest-rated.
+  Where fewer than 10 qualify, relax the floor to >=10 ratings, then to all rated products (>=3 ratings),
+  and note the relaxed basis in a comment. Gather live; long BeerAdvocate pages TRUNCATE in web_fetch
+  (Hill Farmstead cut mid-alphabet once), so parse the full table via the connected Chrome browser.
+- **Label** with a rating keyword so it groups under User Reviews, e.g.
+  `'Top 10 Beers Avg Rating · BeerAdvocate per-beer data (June 2026)'`.
+- **Weight:** give it an explicit numeric `weight` to make the methodology the dominant signal while
+  the normal rating/editorial sources and fan votes still contribute (weight 4 on the breweries list,
+  owner-ruled). This is the "weighted hybrid" alternative to a `mode: 'scores'` composite list: it
+  keeps the Vote tab and Borda consensus.
+- Ties within the source break by rating count, then alphabetically (100+-rating producers tie alpha).
+
+---
+
 ## Data Structure
 
 Each list entry in `lib/data.js` follows this structure:
