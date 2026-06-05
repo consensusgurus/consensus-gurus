@@ -55,9 +55,9 @@ A true expert's Borda contribution is scaled by a weight equal to **half the com
 | 6 | 3 |
 | 8 | 4 |
 
-The floor guarantees a true expert always counts for at least two ordinary experts; beyond that it scales to half the rest of the expert field. Everything else (rank ordering, the `unordered` size-scaled flat rule, the top-10 cutoff, tie-breaks) works exactly as for a normal source — only the per-source multiplier changes. A source may also set an explicit numeric `"weight"` to override the default 1 for fine control.
+The floor guarantees a true expert always counts for at least two ordinary experts; beyond that it scales to half the rest of the expert field. Everything else (rank ordering, the `unordered` size-scaled flat rule, the top-10 cutoff, tie-breaks) works exactly as for a normal source — only the per-source multiplier changes. A source may also set an explicit numeric `"weight"`, which **always takes precedence** (engine change 2026-06-05): on a normal source it overrides the default 1, and on a `trueExpert` source it overrides the `max(2, N/2)` default, so an owner-ruled override (e.g. `weight: 8` on best-classic-chips, `weight: 30` on loudest-college-football-stadiums) can carry the True Expert flag for correct display grouping while keeping its boosted weight.
 
-Implemented in `lib/helpers.js` `getSources` and mirrored in `scripts/generate-og-images.js` (`computeConsensus`) — keep the two in sync.
+Implemented in `lib/helpers.js` `getSources` and mirrored in `scripts/generate-og-images.js`, `app/list/[id]/opengraph-image.js`, and `app/list/[id]/twitter-image.js` (`computeConsensus`) — keep all four in sync. (The two OG/Twitter image routes silently lacked ALL source weighting until 2026-06-05, so share-card consensus order drifted from the site on any weighted or trueExpert list; weighting was added that day. Treat them as full mirrors from now on.)
 
 **Known true experts:**
 

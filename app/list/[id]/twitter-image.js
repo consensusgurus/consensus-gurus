@@ -23,7 +23,7 @@ function computeConsensus(list) {
 
   const publications = Object.entries(sources)
     .filter(([id]) => id !== 'ai')
-    .map(([id, src]) => ({ id, items: src.items || [], unordered: src.unordered }))
+    .map(([id, src]) => ({ id, items: src.items || [], unordered: src.unordered, weight: src.weight, trueExpert: src.trueExpert }))
 
   if (publications.length === 0) return sources.ai ? (sources.ai.items || []).slice(0, 10) : []
 
@@ -48,13 +48,26 @@ function computeConsensus(list) {
   const FLAT_BUDGET = 55
   const flatUnordered = n => (n <= 0 ? 0 : n <= 10 ? (21 - n) / 2 : FLAT_BUDGET / n)
 
+  // Source weighting — mirrors lib/helpers.js getSources. An explicit numeric
+  // `weight` always takes precedence (even on a trueExpert source); otherwise a
+  // trueExpert counts for max(2, N_other / 2) and a normal publication for 1.
+  const normalWeightTotal = publications
+    .filter(s => !s.trueExpert)
+    .reduce((sum, s) => sum + (s.weight || 1), 0)
+  const sourceWeight = src => {
+    if (src.weight) return src.weight
+    if (src.trueExpert) return Math.max(2, normalWeightTotal / 2)
+    return 1
+  }
+
   publications.forEach(src => {
+    const w = sourceWeight(src)
     if (src.unordered) {
       const listed = new Set(src.items.map(i => getItemName(i).toLowerCase().trim()))
       const flat = flatUnordered(listed.size)
       universe.forEach(item => {
         const key = item.toLowerCase().trim()
-        if (listed.has(key)) scores[key] += flat
+        if (listed.has(key)) scores[key] += flat * w
       })
       return
     }
@@ -65,7 +78,7 @@ function computeConsensus(list) {
     })
     universe.forEach(item => {
       const key = item.toLowerCase().trim()
-      if (pubRanks[key] !== undefined) scores[key] += bordaFromRank(pubRanks[key])
+      if (pubRanks[key] !== undefined) scores[key] += bordaFromRank(pubRanks[key]) * w
     })
   })
 
