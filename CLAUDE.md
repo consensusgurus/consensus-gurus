@@ -956,3 +956,10 @@ if (missing.length) throw new Error('Missing descriptions: ' + missing.join(', '
     },
     eater: {
       lab
+
+## Chrome tab hygiene (universal rule, owner-requested 2026-06-05)
+
+Close every Chrome MCP tab as soon as it is no longer needed: reuse ONE tab per session (navigate in
+place rather than opening new tabs), and call `tabs_close_mcp` on every tab in the session's group when
+the task or session ends. Parallel Cowork sessions were proliferating tabs in the owner's browser; never
+leave stale MCP tabs behind.
