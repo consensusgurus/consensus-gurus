@@ -481,10 +481,10 @@ function SmallTile({ item, rank, list, desc, pics }) {
 // narrow window can't collapse the capture layout.
 // Slim one-line tile for ranks 4-10 on the social share card: rank, name,
 // locality. No photo or description, so seven of them stay compact.
-function CompactRow({ item, rank, spanTwo }) {
+function CompactRow({ item, rank }) {
   const { displayName, locality } = parseItem(item);
   return (
-    <div style={{ ...tileChrome, gridColumn: spanTwo ? 'span 2' : 'auto', padding: '10px 14px', display: 'flex', alignItems: 'center', gap: 10 }}>
+    <div style={{ ...tileChrome, padding: '10px 14px', display: 'flex', alignItems: 'center', gap: 10 }}>
       <div style={{ width: 22, height: 22, border: `1.5px solid ${COLORS.faded}`, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
         <span style={{ fontFamily: 'Fraunces, serif', fontSize: 10, fontWeight: 600, color: COLORS.faded }}>{rank}</span>
       </div>
@@ -583,9 +583,20 @@ export function ListOverviewPoster({ list, voteData, extras, variant }) {
             </div>
           </div>
         )}
-        {restItems.map((item, i) => (
-          <CompactRow key={item} item={item} rank={i + 4} spanTwo={i === restItems.length - 1 && restItems.length % 2 === 1} />
-        ))}
+        {restItems.map((item, i) => {
+          const lastOdd = i === restItems.length - 1 && restItems.length % 2 === 1;
+          if (lastOdd) {
+            // Rank 10 sits alone on its row: same width as the others, centered.
+            return (
+              <div key={item} style={{ gridColumn: 'span 2', display: 'flex', justifyContent: 'center' }}>
+                <div style={{ width: 'calc(50% - 6px)' }}>
+                  <CompactRow item={item} rank={i + 4} />
+                </div>
+              </div>
+            );
+          }
+          return <CompactRow key={item} item={item} rank={i + 4} />;
+        })}
       </div>
 
       {/* Footer */}
