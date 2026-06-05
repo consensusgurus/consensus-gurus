@@ -886,6 +886,26 @@ if (missing.length) throw new Error('Missing descriptions: ' + missing.join(', '
 - **Stable-host check for hotlinked URLs:** prefer images.pexels.com / editorial CDNs /
   upload.wikimedia.org / venue sites; avoid expiring signed URLs (fbcdn, Instagram CDN,
   googleusercontent thumbnails) — they die and blank the tile.
+- **Hash-verify every repo read used for a splice.** The bash mount has silently dropped
+  characters from `git show` output more than once (a `\u2013` lost a digit and broke
+  `node --check`). Before splicing into or pushing any file, confirm
+  `git hash-object <copy>` equals `git rev-parse <commit>:<path>`; re-read until it matches.
+- **Re-check the LIVE consensus top 3 immediately before and after shipping a hero wave.**
+  Fan votes move small-margin lists within hours: a herocheck computed from a morning
+  bootstrap snapshot shipped a wave that was already stale by deploy time (The Sopranos had
+  entered the best-hbo-shows top 3 and its tile rendered the placeholder). Re-ferry
+  `/api/bootstrap` right before finalizing the wave, and after deploy open each shipped
+  list's overview page and confirm all three tiles carry a credit caption — a
+  "curating a fancy photo" placeholder on a just-shipped list means consensus drifted.
+- **Reject AI-generated images on sight.** Image search now surfaces them (a
+  `Gemini_Generated_Image_*` file was the TOP Bing result for a Sagaponack beach query,
+  hosted on a real magazine's CDN). A generated picture is never a photo of the place;
+  check filenames and look for telltale rendering before accepting any search result.
+- **Multi-venue brands: confirm the location in the filename/page before accepting.** Ski,
+  hotel, and restaurant brands with several sites (La Folie Douce, Aman, McDonald's) surface
+  photos of the WRONG location at the top of image search; the Val Thorens terrace nearly
+  shipped as the Val d'Isère hero. The same attribution rule as dish photos applies: the
+  file name, page caption, or host page must name the specific location.
 
 ### Consensus change alerts (research queue)
 - Tables `consensus_snapshots` + `consensus_alerts` (migration `08_consensus_alerts.sql`).
