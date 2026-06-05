@@ -601,7 +601,7 @@ export function ListOverviewPoster({ list, voteData, extras, variant }) {
 
       {/* Footer */}
       <div style={{ marginTop: compact ? 20 : 28, borderTop: `2px solid ${COLORS.ink}`, paddingTop: 14, display: 'flex', justifyContent: 'space-between', fontFamily: 'DM Mono, monospace', fontSize: 11, letterSpacing: '0.18em', textTransform: 'uppercase', color: COLORS.faded }}>
-        <span>The Live Consensus · {top3 ? 'Top 3' : `Top ${Math.min(items.length, 10)}`}</span>
+        <span>Consensus · {top3 ? 'Top 3' : `Top ${Math.min(items.length, 10)}`}</span>
         <span>sourceoftruths.com/list/{list.id}</span>
       </div>
     </div>
