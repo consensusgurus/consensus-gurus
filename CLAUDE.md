@@ -872,6 +872,17 @@ if (missing.length) throw new Error('Missing descriptions: ' + missing.join(', '
   Landscape orientation strongly preferred for the overview tiles. If the first search yields
   nothing beautiful, change the query (add "aerial", "sunset", "panorama", the iconic landmark
   name) and keep looking — for famous subjects a stunning shot always exists.
+- **Attribution check for photos from multi-venue roundup articles — verify the photo shows THIS
+  place's dish.** A roundup article ("Best Wings in NYC" etc.) carries one lead/hero image that
+  belongs to a SINGLE venue in the article, usually named only in its caption or credit, plus one
+  photo per venue section. Never take the article's lead image (or any image whose placement is
+  ambiguous) for an item without confirming the caption/credit/filename names that item; pull the
+  image from inside the item's own section of the article, and sanity-check the dish itself (a
+  Buffalo-wings-with-blue-cheese shot cannot be Madame Vo's fish-sauce wings). This exact mistake
+  shipped Dan and John's Buffalo wings as the Madame Vo hero on `best-wings-nyc` (caught and fixed
+  2026-06-05): the Eater lead image was captioned "Dan and John's wings" but was filed under
+  Madame Vo. When attribution cannot be confirmed, find a different photo (venue site, Yelp
+  business gallery) rather than guessing.
 - **Stable-host check for hotlinked URLs:** prefer images.pexels.com / editorial CDNs /
   upload.wikimedia.org / venue sites; avoid expiring signed URLs (fbcdn, Instagram CDN,
   googleusercontent thumbnails) — they die and blank the tile.
