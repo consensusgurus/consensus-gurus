@@ -471,7 +471,19 @@ function PageScaler({ children, innerRef }) {
 }
 
 /* ─── LAYOUT: Editorial ─────────────────────────────────────────────────── */
+// Scale a layout's base title size down for long titles, so a three- or
+// four-line headline doesn't push the list into the footer.
+function fitTitle(title, base) {
+  const n = (title || '').length;
+  if (n > 64) return Math.round(base * 0.58);
+  if (n > 44) return Math.round(base * 0.72);
+  if (n > 30) return Math.round(base * 0.86);
+  return base;
+}
+
 function PosterEditorial({ list, items, modeLabel, sourceNames, pal }) {
+  const tight = (list.title || '').length > 40;
+  const titleSize = fitTitle(list.title, items.length >= 10 ? 88 : 100);
   return (
     <div style={{ width: POSTER_W, height: POSTER_H, background: pal.bg, color: pal.text, padding: 72, boxSizing: 'border-box', fontFamily: 'Fraunces, serif', overflow: 'hidden', position: 'relative' }}>
       {/* Masthead */}
@@ -484,7 +496,7 @@ function PosterEditorial({ list, items, modeLabel, sourceNames, pal }) {
         {list.category} &middot; Top {Math.min(items.length, 10)}
       </div>
 
-      <h1 style={{ fontFamily: 'Fraunces, serif', fontWeight: 900, fontStyle: 'normal', fontSize: items.length >= 10 ? 88 : 100, lineHeight: 0.92, letterSpacing: '-0.03em', margin: '14px 0 0', color: pal.text, fontVariationSettings: '"SOFT" 100, "WONK" 1', maxWidth: '92%' }}>
+      <h1 style={{ fontFamily: 'Fraunces, serif', fontWeight: 900, fontStyle: 'normal', fontSize: titleSize, lineHeight: 0.92, letterSpacing: '-0.03em', margin: '14px 0 0', color: pal.text, fontVariationSettings: '"SOFT" 100, "WONK" 1', maxWidth: '92%' }}>
         {list.title}
       </h1>
 
@@ -492,11 +504,11 @@ function PosterEditorial({ list, items, modeLabel, sourceNames, pal }) {
         {modeLabel}
       </div>
 
-      <ol style={{ listStyle: 'none', padding: 0, margin: '36px 0 0' }}>
+      <ol style={{ listStyle: 'none', padding: 0, margin: tight ? '24px 0 0' : '36px 0 0' }}>
         {items.map((item, i) => (
-          <li key={i} style={{ display: 'flex', alignItems: 'baseline', gap: 24, padding: '14px 0', borderBottom: i < items.length - 1 ? `1px solid rgba(${hexToRgb(pal.text)},1)` : 'none' }}>
-            <span style={{ fontFamily: 'Fraunces, serif', fontWeight: 900, fontSize: i === 0 ? 64 : 44, color: i === 0 ? pal.accent : pal.text, minWidth: 78, lineHeight: 0.9, fontVariationSettings: '"SOFT" 100, "WONK" 1', opacity: i === 0 ? 1 : 0.5 }}>{i + 1}</span>
-            <span style={{ fontFamily: 'Fraunces, serif', fontSize: i === 0 ? 38 : 30, fontWeight: i === 0 ? 700 : 500, lineHeight: 1.05, letterSpacing: '-0.01em', color: pal.text, flex: 1, fontVariationSettings: '"SOFT" 100', fontStyle: i !== 0 ? 'italic' : 'normal' }}>
+          <li key={i} style={{ display: 'flex', alignItems: 'baseline', gap: 24, padding: tight ? '9px 0' : '14px 0', borderBottom: i < items.length - 1 ? `1px solid rgba(${hexToRgb(pal.text)},1)` : 'none' }}>
+            <span style={{ fontFamily: 'Fraunces, serif', fontWeight: 900, fontSize: i === 0 ? (tight ? 52 : 64) : (tight ? 38 : 44), color: i === 0 ? pal.accent : pal.text, minWidth: 78, lineHeight: 0.9, fontVariationSettings: '"SOFT" 100, "WONK" 1', opacity: i === 0 ? 1 : 0.5 }}>{i + 1}</span>
+            <span style={{ fontFamily: 'Fraunces, serif', fontSize: i === 0 ? (tight ? 32 : 38) : (tight ? 26 : 30), fontWeight: i === 0 ? 700 : 500, lineHeight: 1.05, letterSpacing: '-0.01em', color: pal.text, flex: 1, fontVariationSettings: '"SOFT" 100', fontStyle: i !== 0 ? 'italic' : 'normal' }}>
               {item}
             </span>
           </li>
@@ -522,7 +534,7 @@ function PosterSharp({ list, items, modeLabel, sourceNames, pal }) {
             <div style={{ fontFamily: 'DM Mono, monospace', fontSize: 13, letterSpacing: '0.28em', textTransform: 'uppercase', color: pal.accent, fontWeight: 700, marginBottom: 16 }}>
               Source of Truths &nbsp;/&nbsp; {list.category}
             </div>
-            <h1 style={{ fontFamily: 'DM Sans, sans-serif', fontWeight: 900, fontSize: 82, lineHeight: 0.88, letterSpacing: '-0.04em', margin: 0, color: pal.text, maxWidth: 820 }}>
+            <h1 style={{ fontFamily: 'DM Sans, sans-serif', fontWeight: 900, fontSize: fitTitle(list.title, 82), lineHeight: 0.88, letterSpacing: '-0.04em', margin: 0, color: pal.text, maxWidth: 820 }}>
               {list.title}
             </h1>
           </div>
@@ -582,7 +594,7 @@ function PosterElegant({ list, items, modeLabel, sourceNames, pal }) {
       </div>
 
       {/* Title — centered, large italic */}
-      <h1 style={{ fontFamily: 'Fraunces, serif', fontWeight: 300, fontStyle: 'italic', fontSize: 72, lineHeight: 1, letterSpacing: '-0.02em', margin: '0 0 12px', color: pal.text, fontVariationSettings: '"SOFT" 100', textAlign: 'center', maxWidth: 860 }}>
+      <h1 style={{ fontFamily: 'Fraunces, serif', fontWeight: 300, fontStyle: 'italic', fontSize: fitTitle(list.title, 72), lineHeight: 1, letterSpacing: '-0.02em', margin: '0 0 12px', color: pal.text, fontVariationSettings: '"SOFT" 100', textAlign: 'center', maxWidth: 860 }}>
         {list.title}
       </h1>
 
@@ -639,7 +651,7 @@ function PosterBold({ list, items, modeLabel, sourceNames, pal }) {
         </div>
 
         {/* BIG title */}
-        <h1 style={{ fontFamily: 'DM Sans, sans-serif', fontWeight: 900, textTransform: 'uppercase', fontSize: 86, lineHeight: 0.88, letterSpacing: '-0.04em', margin: '0 0 28px', color: pal.text, maxWidth: 900 }}>
+        <h1 style={{ fontFamily: 'DM Sans, sans-serif', fontWeight: 900, textTransform: 'uppercase', fontSize: fitTitle(list.title, 86), lineHeight: 0.88, letterSpacing: '-0.04em', margin: '0 0 28px', color: pal.text, maxWidth: 900 }}>
           {list.title}
         </h1>
 
@@ -716,7 +728,7 @@ function PosterRetro({ list, items, modeLabel, sourceNames, pal }) {
       </div>
 
       <div style={{ textAlign: 'center', marginBottom: 8 }}>
-        <h1 style={{ fontFamily: 'DM Mono, monospace', fontWeight: 900, fontSize: 54, lineHeight: 1.05, letterSpacing: '-0.02em', margin: 0, color: pal.text, textTransform: 'uppercase' }}>
+        <h1 style={{ fontFamily: 'DM Mono, monospace', fontWeight: 900, fontSize: fitTitle(list.title, 54), lineHeight: 1.05, letterSpacing: '-0.02em', margin: 0, color: pal.text, textTransform: 'uppercase' }}>
           {list.title}
         </h1>
       </div>
@@ -761,7 +773,7 @@ function PosterScorecard({ list, items, modeLabel, sourceNames, pal }) {
         <div style={{ fontFamily: 'DM Mono, monospace', fontSize: 11, letterSpacing: '0.36em', textTransform: 'uppercase', color: pal.bg, opacity: 0.7, marginBottom: 10 }}>
           Source of Truths &nbsp;/&nbsp; {list.category}
         </div>
-        <h1 style={{ fontFamily: 'DM Sans, sans-serif', fontWeight: 900, fontSize: 64, lineHeight: 0.92, letterSpacing: '-0.03em', margin: '0 0 12px', color: pal.bg, maxWidth: 880 }}>
+        <h1 style={{ fontFamily: 'DM Sans, sans-serif', fontWeight: 900, fontSize: fitTitle(list.title, 64), lineHeight: 0.92, letterSpacing: '-0.03em', margin: '0 0 12px', color: pal.bg, maxWidth: 880 }}>
           {list.title}
         </h1>
         <div style={{ fontFamily: 'DM Mono, monospace', fontSize: 12, letterSpacing: '0.22em', textTransform: 'uppercase', color: pal.bg, opacity: 0.65 }}>
@@ -813,7 +825,7 @@ function PosterMinimal({ list, items, modeLabel, sourceNames, pal }) {
     <div style={{ width: POSTER_W, height: POSTER_H, background: pal.bg, color: pal.text, padding: '100px 96px 80px', boxSizing: 'border-box', fontFamily: 'Fraunces, serif', overflow: 'hidden', position: 'relative', display: 'flex', flexDirection: 'column' }}>
       <div style={{ width: 48, height: 2, background: pal.accent, marginBottom: 48, flexShrink: 0 }} />
 
-      <h1 style={{ fontFamily: 'Fraunces, serif', fontWeight: 300, fontStyle: 'normal', fontSize: 74, lineHeight: 0.95, letterSpacing: '-0.03em', margin: '0 0 32px', color: pal.text, fontVariationSettings: '"SOFT" 100', flexShrink: 0, maxWidth: 860 }}>
+      <h1 style={{ fontFamily: 'Fraunces, serif', fontWeight: 300, fontStyle: 'normal', fontSize: fitTitle(list.title, 74), lineHeight: 0.95, letterSpacing: '-0.03em', margin: '0 0 32px', color: pal.text, fontVariationSettings: '"SOFT" 100', flexShrink: 0, maxWidth: 860 }}>
         {list.title}
       </h1>
 
