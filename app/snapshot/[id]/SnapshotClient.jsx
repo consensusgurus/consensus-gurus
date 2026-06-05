@@ -119,11 +119,12 @@ export default function SnapshotClient({ listId }) {
   const [modeInit, setModeInit] = useState(false);
   const [copied, setCopied] = useState('');
   const [downloading, setDownloading] = useState(false);
-  const [downloadingPage, setDownloadingPage] = useState(false);
+  const [renderBusy, setRenderBusy] = useState('');
   const [colorScheme, setColorScheme] = useState('classic');
   const [fontStyle, setFontStyle] = useState('editorial');
   const posterRef = useRef(null);
   const pageRef = useRef(null);
+  const top3Ref = useRef(null);
 
   useEffect(() => {
     fetchBootstrap().then((data) => {
@@ -216,24 +217,36 @@ export default function SnapshotClient({ listId }) {
     setDownloading(false);
   }
 
-  // Download the fully rendered list page (the new overview format). Width is
-  // fixed at 1080; height follows the content, so it's read off the node.
-  async function downloadListPage() {
-    if (!pageRef.current) return;
-    setDownloadingPage(true);
+  // Download a list-page render (full or Top 3). Width is fixed at 1080;
+  // height follows the content. When cropH is given, the output is a
+  // top-anchored crop at that height, so the masthead, title, and first hero
+  // tiles are what survive.
+  async function downloadRender(ref, suffix, cropH) {
+    if (!ref.current || renderBusy) return;
+    setRenderBusy(suffix);
     try {
-      const { toPng } = await import('html-to-image');
-      const node = pageRef.current;
-      const dataUrl = await toPng(node, { cacheBust: true, pixelRatio: 2, width: 1080, height: node.offsetHeight, backgroundColor: '#f4ede0' });
+      const { toCanvas } = await import('html-to-image');
+      const node = ref.current;
+      const full = await toCanvas(node, { cacheBust: true, pixelRatio: 2, width: 1080, height: node.offsetHeight, backgroundColor: '#f4ede0' });
+      let out = full;
+      if (cropH) {
+        out = document.createElement('canvas');
+        out.width = 1080 * 2;
+        out.height = cropH * 2;
+        const ctx = out.getContext('2d');
+        ctx.fillStyle = '#f4ede0';
+        ctx.fillRect(0, 0, out.width, out.height);
+        ctx.drawImage(full, 0, 0);
+      }
       const link = document.createElement('a');
-      link.download = `source-of-truths-${list.id}-list-page.png`;
-      link.href = dataUrl;
+      link.download = `source-of-truths-${list.id}-${suffix}.png`;
+      link.href = out.toDataURL('image/png');
       link.click();
     } catch (e) {
       console.error('Download failed', e);
       alert('Could not generate image. Try a different browser or take a screenshot instead.');
     }
-    setDownloadingPage(false);
+    setRenderBusy('');
   }
 
   function copyLink() {
@@ -334,10 +347,11 @@ export default function SnapshotClient({ listId }) {
         <div style={{ marginTop: 52, borderTop: `2px solid ${COLORS.ink}`, paddingTop: 28 }}>
           <h2 style={{ fontFamily: 'Fraunces, serif', fontWeight: 700, fontStyle: 'italic', fontSize: 24, margin: '0 0 6px', color: COLORS.ink, fontVariationSettings: '"SOFT" 100' }}>List page format</h2>
           <p style={{ fontFamily: 'DM Sans, sans-serif', fontSize: 14, color: COLORS.faded, margin: '0 0 16px', maxWidth: 560 }}>
-            The full list page with photos and descriptions, rendered as a single shareable image.
+            The full list page with photos and descriptions, rendered as a single shareable image. The portrait crop trims it from the top to Instagram size.
           </p>
           <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginBottom: 24 }}>
-            <ActionButton onClick={downloadListPage} disabled={downloadingPage} primary><Download size={14} strokeWidth={2.5} />{downloadingPage ? 'Generating...' : 'Download list page'}</ActionButton>
+            <ActionButton onClick={() => downloadRender(pageRef, 'list-page')} disabled={!!renderBusy} primary><Download size={14} strokeWidth={2.5} />{renderBusy === 'list-page' ? 'Generating...' : 'Download list page'}</ActionButton>
+            <ActionButton onClick={() => downloadRender(pageRef, 'list-page-portrait', 1350)} disabled={!!renderBusy}><Download size={14} strokeWidth={2.5} />{renderBusy === 'list-page-portrait' ? 'Generating...' : 'Portrait crop'}</ActionButton>
           </div>
           <div style={{ background: '#000', padding: 8, borderRadius: 4, display: 'flex', justifyContent: 'center', overflow: 'hidden' }}>
             <PageScaler innerRef={pageRef}>
@@ -347,7 +361,28 @@ export default function SnapshotClient({ listId }) {
             </PageScaler>
           </div>
           <p style={{ marginTop: 20, fontFamily: 'DM Mono, monospace', fontSize: 10, letterSpacing: '0.18em', textTransform: 'uppercase', color: COLORS.faded, textAlign: 'center' }}>
-            1080 wide · full list page render
+            1080 wide · full render · portrait crop 1080 × 1350
+          </p>
+        </div>
+
+        {/* ─── Top 3, compact ───────────────────────────────────────────── */}
+        <div style={{ marginTop: 52, borderTop: `2px solid ${COLORS.ink}`, paddingTop: 28 }}>
+          <h2 style={{ fontFamily: 'Fraunces, serif', fontWeight: 700, fontStyle: 'italic', fontSize: 24, margin: '0 0 6px', color: COLORS.ink, fontVariationSettings: '"SOFT" 100' }}>Top 3 format</h2>
+          <p style={{ fontFamily: 'DM Sans, sans-serif', fontSize: 14, color: COLORS.faded, margin: '0 0 16px', maxWidth: 560 }}>
+            Just the top three, same look, compact.
+          </p>
+          <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginBottom: 24 }}>
+            <ActionButton onClick={() => downloadRender(top3Ref, 'top-3')} disabled={!!renderBusy} primary><Download size={14} strokeWidth={2.5} />{renderBusy === 'top-3' ? 'Generating...' : 'Download top 3'}</ActionButton>
+          </div>
+          <div style={{ background: '#000', padding: 8, borderRadius: 4, display: 'flex', justifyContent: 'center', overflow: 'hidden' }}>
+            <PageScaler innerRef={top3Ref}>
+              <div ref={top3Ref} style={{ width: 1080 }}>
+                <ListOverviewPoster list={list} voteData={voteData} extras={extras} variant="top3" />
+              </div>
+            </PageScaler>
+          </div>
+          <p style={{ marginTop: 20, fontFamily: 'DM Mono, monospace', fontSize: 10, letterSpacing: '0.18em', textTransform: 'uppercase', color: COLORS.faded, textAlign: 'center' }}>
+            1080 wide · top three only
           </p>
         </div>
       </div>

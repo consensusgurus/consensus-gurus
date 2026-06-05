@@ -479,20 +479,21 @@ function SmallTile({ item, rank, list, desc, pics }) {
 // the two can never drift; strips everything interactive (back button, meta
 // buttons, CTA, complaint modal) and avoids the responsive class names so a
 // narrow window can't collapse the capture layout.
-export function ListOverviewPoster({ list, voteData, extras }) {
+export function ListOverviewPoster({ list, voteData, extras, variant }) {
+  const top3 = variant === 'top3';
   const items = getItems(list, voteData, extras);
   const descs = DESCRIPTIONS[list.id] || {};
   const pics = picsConfig(list);
   if (!items.length) return null;
 
   const heroItems = items.slice(0, 3);
-  const gridItems = items.slice(3, 9);
-  const tenthItem = items[9];
+  const gridItems = top3 ? [] : items.slice(3, 9);
+  const tenthItem = top3 ? null : items[9];
 
   return (
-    <div style={{ width: 1080, background: COLORS.cream, color: COLORS.ink, boxSizing: 'border-box', padding: '52px 60px 40px', position: 'relative' }}>
+    <div style={{ width: 1080, background: COLORS.cream, color: COLORS.ink, boxSizing: 'border-box', padding: top3 ? '38px 48px 28px' : '52px 60px 40px', position: 'relative' }}>
       {/* Masthead */}
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: `2px solid ${COLORS.ink}`, paddingBottom: 14, marginBottom: 28, fontFamily: 'DM Mono, monospace', fontSize: 14, letterSpacing: '0.3em', textTransform: 'uppercase', color: COLORS.ink }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: `2px solid ${COLORS.ink}`, paddingBottom: 14, marginBottom: top3 ? 20 : 28, fontFamily: 'DM Mono, monospace', fontSize: 14, letterSpacing: '0.3em', textTransform: 'uppercase', color: COLORS.ink }}>
         <span style={{ fontWeight: 600 }}>Source of Truths</span>
         <span style={{ color: COLORS.faded, fontSize: 11 }}>sourceoftruths.com</span>
       </div>
@@ -525,13 +526,13 @@ export function ListOverviewPoster({ list, voteData, extras }) {
               marginBottom: 8,
             }}
           >
-            {list.category} · Top Ten
+            {list.category} · {top3 ? 'Top Three' : 'Top Ten'}
           </div>
           <div style={{ borderBottom: `1px solid ${COLORS.ink}`, marginBottom: 4 }} />
           <div style={{ borderBottom: `2px solid ${COLORS.ember}` }} />
         </div>
       </div>
-      {list.blurb && (
+      {!top3 && list.blurb && (
         <p
           style={{
             fontFamily: 'Fraunces, serif',
@@ -548,7 +549,7 @@ export function ListOverviewPoster({ list, voteData, extras }) {
       )}
 
       {/* Tile grid: fixed two columns (no responsive collapse in a capture) */}
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14, marginTop: 26 }}>
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: top3 ? 12 : 14, marginTop: top3 ? 18 : 26 }}>
         {heroItems.map((item, i) => (
           <HeroTile key={item} item={item} rank={i + 1} list={list} desc={descs[item]} pics={pics} poster />
         ))}
@@ -565,8 +566,8 @@ export function ListOverviewPoster({ list, voteData, extras }) {
       </div>
 
       {/* Footer */}
-      <div style={{ marginTop: 28, borderTop: `2px solid ${COLORS.ink}`, paddingTop: 14, display: 'flex', justifyContent: 'space-between', fontFamily: 'DM Mono, monospace', fontSize: 11, letterSpacing: '0.18em', textTransform: 'uppercase', color: COLORS.faded }}>
-        <span>The Live Consensus · Top {Math.min(items.length, 10)}</span>
+      <div style={{ marginTop: top3 ? 20 : 28, borderTop: `2px solid ${COLORS.ink}`, paddingTop: 14, display: 'flex', justifyContent: 'space-between', fontFamily: 'DM Mono, monospace', fontSize: 11, letterSpacing: '0.18em', textTransform: 'uppercase', color: COLORS.faded }}>
+        <span>The Live Consensus · {top3 ? 'Top 3' : `Top ${Math.min(items.length, 10)}`}</span>
         <span>sourceoftruths.com/list/{list.id}</span>
       </div>
     </div>
