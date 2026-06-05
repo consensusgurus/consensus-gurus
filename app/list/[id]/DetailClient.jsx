@@ -833,6 +833,17 @@ function ListDetail({ list, viewCount, voteData, userVotes, extras, relatedLists
                             lineHeight: 1.4,
                           }}
                         >
+                          <div
+                            style={{
+                              fontSize: 8.5,
+                              letterSpacing: '0.18em',
+                              opacity: 0.78,
+                              fontWeight: 600,
+                              marginBottom: 3,
+                            }}
+                          >
+                            {group.title}
+                          </div>
                           {isPublicationLink(s) ? (
                             <a
                               href={s.url}
