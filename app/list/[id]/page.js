@@ -1,5 +1,13 @@
+import { cache } from 'react';
 import DetailClient from './DetailClient';
 import { LISTS } from '@/lib/data';
+import { getSources } from '@/lib/helpers';
+import { supabase } from '@/lib/supabase';
+
+// Re-render each list page (and its metadata) at most hourly so the SEO
+// description and JSON-LD track the live, vote-inclusive consensus instead
+// of the static ai seed. Pages stay statically served between revalidations.
+export const revalidate = 3600;
 
 function getItemNames(items, count) {
   if (!Array.isArray(items)) return [];
@@ -9,10 +17,69 @@ function getItemNames(items, count) {
     .filter(Boolean);
 }
 
-function generateSeoDescription(list) {
-  const items = list.sources?.ai?.items || list.vote?.items || [];
-  const safeItems = Array.isArray(items) ? items : [];
-  const top3 = getItemNames(safeItems, 3);
+// Compute the same consensus the page renders: Borda over publications plus
+// the live People vote (and user extras) from Supabase. Cached per render
+// pass so generateMetadata and the page body share one fetch.
+const getConsensusItems = cache(async (listId) => {
+  const list = LISTS.find((l) => l.id === listId);
+  if (!list) return [];
+
+  const seed = list.sources?.ai?.items || list.vote?.items || [];
+  const seedItems = Array.isArray(seed) ? seed : [];
+
+  // Non-consensus modes (facts / scores / unranked / votes) render the ai
+  // seed order on the page; mirror that here.
+  if (
+    list.mode === 'facts' ||
+    list.mode === 'scores' ||
+    list.mode === 'unranked' ||
+    list.mode === 'votes'
+  ) {
+    return seedItems;
+  }
+
+  try {
+    const [votesRes, extrasRes] = await Promise.all([
+      supabase.from('votes').select('item_name,score').eq('list_id', list.id),
+      supabase.from('extras').select('item_name').eq('list_id', list.id),
+    ]);
+
+    // Same shaping as /api/bootstrap: key `${listId}::${name}`, clamp legacy
+    // negative scores to 0.
+    const voteData = {};
+    (votesRes.data || []).forEach((row) => {
+      voteData[`${list.id}::${row.item_name.toLowerCase().trim()}`] = Math.max(0, row.score);
+    });
+    const extras = (extrasRes.data || []).map((r) => r.item_name);
+
+    const sources = getSources(list, voteData, extras);
+    const consensus = Array.isArray(sources)
+      ? sources.find((s) => s.id === 'consensus')
+      : null;
+    if (consensus && Array.isArray(consensus.items) && consensus.items.length > 0) {
+      return consensus.items;
+    }
+  } catch (e) {
+    console.error('live consensus for metadata failed', list.id, e);
+  }
+
+  // Graceful fallback: publications-only consensus, then the seed.
+  try {
+    const sources = getSources(list);
+    const consensus = Array.isArray(sources)
+      ? sources.find((s) => s.id === 'consensus')
+      : null;
+    if (consensus && Array.isArray(consensus.items) && consensus.items.length > 0) {
+      return consensus.items;
+    }
+  } catch (e) {
+    // fall through to seed
+  }
+  return seedItems;
+});
+
+function generateSeoDescription(list, consensusItems) {
+  const top3 = getItemNames(consensusItems, 3);
   const top3Str = top3.join(', ');
 
   const sourceKeys = Object.keys(list.sources || {}).filter((k) => k !== 'ai');
@@ -33,10 +100,8 @@ function generateSeoDescription(list) {
   return `${list.title}: expert rankings and reader votes. Top picks: ${top3Str}.`;
 }
 
-function buildStructuredData(list, baseUrl) {
-  const items = list.sources?.ai?.items || list.vote?.items || [];
-  const safeItems = Array.isArray(items) ? items : [];
-  const itemNames = getItemNames(safeItems, 10);
+function buildStructuredData(list, baseUrl, consensusItems) {
+  const itemNames = getItemNames(consensusItems, 10);
 
   if (itemNames.length === 0) return null;
 
@@ -64,8 +129,9 @@ export async function generateMetadata({ params }) {
     return { title: 'List not found' };
   }
 
+  const consensusItems = await getConsensusItems(id);
   const url = `/list/${encodeURIComponent(id)}`;
-  const description = generateSeoDescription(list);
+  const description = generateSeoDescription(list, consensusItems);
 
   return {
     title: list.title,
@@ -94,11 +160,12 @@ export function generateStaticParams() {
   return LISTS.map((l) => ({ id: l.id }));
 }
 
-export default function ListPage({ params }) {
+export default async function ListPage({ params }) {
   const id = decodeURIComponent(params.id);
   const list = LISTS.find((l) => l.id === id);
   const baseUrl = 'https://sourceoftruths.com';
-  const jsonLd = list ? buildStructuredData(list, baseUrl) : null;
+  const consensusItems = list ? await getConsensusItems(id) : [];
+  const jsonLd = list ? buildStructuredData(list, baseUrl, consensusItems) : null;
 
   return (
     <>
