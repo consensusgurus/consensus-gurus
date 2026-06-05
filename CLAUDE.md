@@ -319,6 +319,10 @@ How the scoring works (implemented in `lib/helpers.js` `getSources`, `scripts/ge
 
 Example (Four Seasons list): The Points Guy's worldwide "16 best" roundup is unordered, so it's labeled `'The Points Guy (unordered roundup)'` with `"unordered": true`; each of its 16 properties gets 55/16 ≈ 3.44, while the five genuinely-ranked sources drive the order.
 
+### Tiered award lists (Winners / Runners-up / "Voters Also Loved") are RANKED, not unordered
+
+Some publications (e.g. Tampa Magazine's annual Best Restaurants awards) publish tiers instead of a numbered list. Tiers ARE a rank signal, so do NOT encode these as `"unordered": true` flat sources (that pays a bottom-tier mention the same as a Winner). Encode the source as a ranked list: tier order first (Winners, then Runners-up, then the bottom tier), alphabetical within each tier, and note the basis in the label, e.g. `'Tampa Magazine Best Sushi 2026 (by award tier)'`. Include ALL published tiers, and never cherry-pick within a tier — including one "Voters Also Loved" spot while omitting another from the same tier is exactly how Noble Rice went missing from `best-sushi-tampa-bay` (fixed 2026-06-04; encoding owner-approved that day).
+
 **When unsure how a source is ordered, fetch the actual page and check** — look for scores, rank numbers, or an "in no particular order" disclaimer. If the page is paywalled or JavaScript-only and the real order cannot be read, follow the rule below.
 
 ### Never guess an order or a list
