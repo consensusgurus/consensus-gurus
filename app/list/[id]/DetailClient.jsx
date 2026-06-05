@@ -1474,7 +1474,7 @@ function ItemLink({ list, item, children, style }) {
 
 // Per-entry link menu (shown on hover for lists that define `itemLinks`).
 // Map comes from the existing mapsCity link; Website from list.itemLinks; the
-// "Food Pics" Yelp/Google links are built from the name + neighborhood.
+// "Pics" Yelp/Google links are built from the name + neighborhood.
 //
 // Geography is derived from the list, not hardcoded. The anchor is `list.category`
 // when it names a real place (New York, Boston, Tokyo, Turkey, London ...). For
@@ -1523,10 +1523,10 @@ function buildAuxLinks(name, list) {
   };
 }
 
-// Per-category "pics" convention for the hover menu: hotels use Pics
-// (TripAdvisor + Google), bars use a plain "Pics", food lists use Food Pics.
-// Rule: only explicit food-type restaurant lists get "Food Pics:". Bars, beach
-// clubs, breweries, hotels and everything else get plain "Pics:".
+// Per-category "pics" convention for the hover menu. The label is always a
+// plain "Pics:" for every category (the old "Food Pics:" food-list variant was
+// retired 2026-06-05 for consistency); the chip set still varies by category
+// (hotels get TripAdvisor + Google, everything else Yelp/local platform + Google).
 function entryPicsConfig(list) {
   const tags = list.tags || [];
   const type = list.type || '';
@@ -1539,13 +1539,13 @@ function entryPicsConfig(list) {
   const venueKey = `${list.title || ''} ${list.id || ''}`.toLowerCase();
   const isVenue = /brewer|beach[\s-]?club|winer|distiller/.test(venueKey);
   if (isVenue) return { label: 'Pics:', links: [['yelp', yelpLabel], ['google', 'Google']] };
-  // Bars / nightlife: "Pics:" - checked before food so that bars carrying
-  // the food-drink tag are not incorrectly labelled "Food Pics:".
+  // Bars / nightlife: checked before food so the branch order stays identical
+  // to the overview-page mirror (labels are all "Pics:" now).
   const isBar = tags.includes('bars') || tags.includes('nightlife');
   if (isBar) return { label: 'Pics:', links: [['yelp', yelpLabel], ['google', 'Google']] };
-  // Explicit food venues (restaurants, bakeries, cafes): "Food Pics:".
+  // Explicit food venues (restaurants, bakeries, cafes).
   const isFood = type === 'food' || tags.includes('food') || tags.includes('food-drink');
-  if (isFood) return { label: 'Food Pics:', links: [['yelp', yelpLabel], ['google', 'Google']] };
+  if (isFood) return { label: 'Pics:', links: [['yelp', yelpLabel], ['google', 'Google']] };
   // Hotels / travel: "Pics:" with TripAdvisor.
   const isHotel = type === 'travel' || tags.includes('travel') || tags.includes('luxury');
   if (isHotel) return { label: 'Pics:', links: [['tripadvisor', 'TripAdvisor'], ['google', 'Google']] };

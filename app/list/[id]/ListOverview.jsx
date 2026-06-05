@@ -48,8 +48,8 @@ function buildLinks(name, list) {
 
 // Per-category "pics" convention — MUST stay logic-identical to
 // entryPicsConfig in DetailClient.jsx (same priority order, same fallback).
-// Past drift here is exactly what kept "Food Pics:" showing on beach club
-// lists on the overview page after DetailClient was fixed.
+// The label is always a plain "Pics:" for every category (the old
+// "Food Pics:" variant was retired 2026-06-05); the chip set still varies.
 function picsConfig(list) {
   const tags = list.tags || [];
   const type = list.type || '';
@@ -62,13 +62,13 @@ function picsConfig(list) {
   const venueKey = `${list.title || ''} ${list.id || ''}`.toLowerCase();
   const isVenue = /brewer|beach[\s-]?club|winer|distiller/.test(venueKey);
   if (isVenue) return { label: 'Pics:', links: [['yelp', yelpLabel], ['google', 'Google']] };
-  // Bars / nightlife: checked before food so bars carrying the food-drink
-  // tag are not mislabelled "Food Pics:".
+  // Bars / nightlife: checked before food so the branch order stays identical
+  // to entryPicsConfig in DetailClient.jsx (labels are all "Pics:" now).
   const isBar = tags.includes('bars') || tags.includes('nightlife');
   if (isBar) return { label: 'Pics:', links: [['yelp', yelpLabel], ['google', 'Google']] };
-  // Explicit food venues (restaurants, bakeries, cafes): "Food Pics:".
+  // Explicit food venues (restaurants, bakeries, cafes).
   const isFood = type === 'food' || tags.includes('food') || tags.includes('food-drink');
-  if (isFood) return { label: 'Food Pics:', links: [['yelp', yelpLabel], ['google', 'Google']] };
+  if (isFood) return { label: 'Pics:', links: [['yelp', yelpLabel], ['google', 'Google']] };
   // Hotels / travel: "Pics:" with TripAdvisor.
   const isHotel = type === 'travel' || tags.includes('travel') || tags.includes('luxury');
   if (isHotel) return { label: 'Pics:', links: [['tripadvisor', 'TripAdvisor'], ['google', 'Google']] };
@@ -430,7 +430,7 @@ function SmallTile({ item, rank, list, desc, pics }) {
         {desc || 'Wordsmithing a perfect description'}
       </p>
       <div style={{ marginTop: 'auto', paddingTop: 10 }}>
-        <LinkRow links={links} pics={pics} websiteLabel="Site" list={list} />
+        <LinkRow links={links} pics={pics} websiteLabel="Website" list={list} />
       </div>
     </div>
   );

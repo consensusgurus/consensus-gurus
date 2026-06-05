@@ -556,18 +556,18 @@ source.
 
 A location-based list opts into the list-page hover menu by adding an `itemLinks` object mapping each exact item name to its official **Website** URL (gathered live, never guessed). When present, hovering a ranked entry reveals: **Website** (from `itemLinks`), **Map** (the existing `mapsCity` link), and a category-specific "pics" group built automatically from the item name + neighborhood:
 
-**Rule: only explicit food-type restaurant lists (where the point is the meal) get `Food Pics:`. Everything else — bars, beach clubs, breweries, hotels, wineries, distilleries — gets plain `Pics:`.**
+**Rule: the pics label is always a plain `Pics:` for EVERY category — food lists included.** (The old convention gave food-type restaurant lists a `Food Pics:` label; that was retired 2026-06-05 for consistency and ease. Never reintroduce `Food Pics:`.) What still varies by category is the chip set, per the priority order below.
 
 The priority order in `entryPicsConfig` (highest to lowest):
 1. **Venue keyword match** (title/id contains `brewer`, `beach club`, `winer`, `distiller`): `Pics:` with `Yelp` and `Google`. Add new venue types here.
-2. **Bars / nightlife** (`bars` or `nightlife` tag): `Pics:` with `Yelp` and `Google`. Checked *before* food so bars carrying the `food-drink` tag are not mislabelled.
-3. **Food venues** (`type: 'food'` OR `food`/`food-drink` tag, and no bar tag): `Food Pics:` with `Yelp` and `Google`. Only reaches this branch if not a bar or venue.
+2. **Bars / nightlife** (`bars` or `nightlife` tag): `Pics:` with `Yelp` and `Google`. Checked *before* food to keep the branch order identical in both mirrors.
+3. **Food venues** (`type: 'food'` OR `food`/`food-drink` tag, and no bar tag): `Pics:` with `Yelp` and `Google`. Only reaches this branch if not a bar or venue.
 4. **Hotels / resorts** (`type: 'travel'` or `travel`/`luxury` tag): `Pics:` with `TripAdvisor` and `Google`.
 5. **Default fallback**: `Pics:` with `Yelp` and `Google`.
 
 The `Google` link defaults to Google **Image** search (`&tbm=isch`) so it lands on photos directly, not a web-results page. Only the Website per item needs gathering; Map / Yelp / Google / TripAdvisor are constructed from the name. Implemented in `buildAuxLinks` and `entryPicsConfig` in `app/list/[id]/DetailClient.jsx`. The reveal uses a generous `max-height` so wrapped chips are not clipped on mobile.
 
-**⚠️ The overview page has a SECOND copy of this logic: `picsConfig` in `app/list/[id]/ListOverview.jsx`. Any change to `entryPicsConfig` (new venue keyword, label rule, priority order) MUST be applied to BOTH functions, logic-identical.** This duplicate drifted once: the venue check (beach club / winery / distillery) and the bar-before-food priority were fixed only in DetailClient, so beach-club lists kept showing "Food Pics:" on the overview page (its old fallback was even `Food Pics:`). Fixed 2026-06-04; keep them in sync.
+**⚠️ The overview page has a SECOND copy of this logic: `picsConfig` in `app/list/[id]/ListOverview.jsx`. Any change to `entryPicsConfig` (new venue keyword, label rule, priority order) MUST be applied to BOTH functions, logic-identical.** This duplicate drifted once: the venue check (beach club / winery / distillery) and the bar-before-food priority were fixed only in DetailClient, so beach-club lists kept showing the old "Food Pics:" label on the overview page. Fixed 2026-06-04; the Food Pics label itself was retired 2026-06-05 (everything is `Pics:` now); keep the two functions in sync.
 
 ### Dish-specific Google Image search (`picsTerm`)
 
