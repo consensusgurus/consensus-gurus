@@ -389,7 +389,7 @@ function Home({ lists, viewCounts, voteData, extras, trending = {}, openList, on
           </div>
 
           <div style={{ position: 'relative', minWidth: 0, order: 2 }} onClick={(e) => e.stopPropagation()}>
-            <button onClick={() => { setCatOpen((o) => !o); setSortOpen(false); }} aria-haspopup="true" aria-expanded={catOpen} style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, background: '#a69b86', color: COLORS.ink, border: `1.5px solid ${COLORS.ink}`, padding: '12px 14px', fontFamily: 'DM Mono, monospace', fontSize: 10, letterSpacing: '0.16em', textTransform: 'uppercase', fontWeight: 600, cursor: 'pointer', whiteSpace: 'nowrap', overflow: 'hidden' }}>
+            <button onClick={() => { setCatOpen((o) => !o); setSortOpen(false); }} aria-haspopup="true" aria-expanded={catOpen} style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, background: '#bdb3a0', color: COLORS.ink, border: `1.5px solid ${COLORS.ink}`, padding: '12px 14px', fontFamily: 'DM Mono, monospace', fontSize: 10, letterSpacing: '0.16em', textTransform: 'uppercase', fontWeight: 600, cursor: 'pointer', whiteSpace: 'nowrap', overflow: 'hidden' }}>
               <span><span style={{ opacity: 0.6 }}>Category:</span> {(visibleTypes.find((t) => t.id === typeFilter) || {}).label || 'All'}</span>
               <ChevronDown size={14} strokeWidth={2.5} style={{ transform: catOpen ? 'rotate(180deg)' : 'none', transition: 'transform 0.15s' }} />
             </button>
@@ -398,7 +398,7 @@ function Home({ lists, viewCounts, voteData, extras, trending = {}, openList, on
                 {visibleTypes.map((t, i) => {
                   const active = typeFilter === t.id;
                   return (
-                    <button key={t.id} role="menuitem" onClick={() => { setTypeFilter(t.id); setCatOpen(false); }} style={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 16, border: 'none', padding: '10px 14px', fontFamily: 'DM Mono, monospace', fontSize: 10, letterSpacing: '0.16em', textTransform: 'uppercase', fontWeight: 600, cursor: 'pointer', textAlign: 'left', background: active ? '#a69b86' : 'transparent', color: COLORS.ink, borderTop: i === 0 ? 'none' : `0.5px solid ${COLORS.paper}` }}>
+                    <button key={t.id} role="menuitem" onClick={() => { setTypeFilter(t.id); setCatOpen(false); }} style={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 16, border: 'none', padding: '10px 14px', fontFamily: 'DM Mono, monospace', fontSize: 10, letterSpacing: '0.16em', textTransform: 'uppercase', fontWeight: 600, cursor: 'pointer', textAlign: 'left', background: active ? '#bdb3a0' : 'transparent', color: COLORS.ink, borderTop: i === 0 ? 'none' : `0.5px solid ${COLORS.paper}` }}>
                       <span>{t.label}</span>
                       <span style={{ opacity: 0.6 }}>{counts[t.id] || 0}</span>
                     </button>
