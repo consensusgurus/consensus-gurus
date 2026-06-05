@@ -590,6 +590,16 @@ Apply this to every location list. The key is the same as everywhere else (exact
 - **Google stays a Google Image search** (built from the item name + neighborhood) and is always shown. Only Yelp and TripAdvisor require a stored real URL.
 - Implemented in `buildAuxLinks` in `app/list/[id]/DetailClient.jsx`: `itemYelp`/`itemTripadvisor` supply the chip URL, and a falsy value filters that chip out of the row. Re-gathering only touches `itemYelp`/`itemTripadvisor`, never names/links/vote keys.
 
+### Regional-app substitution for the Yelp chip (`itemYelpLabel`)
+
+Where Yelp has no real coverage (see the regional platform map above), do NOT ship a sparse or empty `itemYelp` block. Substitute the region's relevant platform and treat it exactly like Yelp:
+
+- **Store the regional platform's business-page URLs in `itemYelp`** (same field, same exact-item-name keys, same live-gathering and no-guessing rules: real business page, never a search URL; omit items the platform has no page for; use the flagship/current listing when duplicates or 移転 "moved" pages exist).
+- **Set `itemYelpLabel` on the list** to the platform name so the hover-menu chip renders with it, e.g. `itemYelpLabel: 'Tabelog'`. Implemented in `entryPicsConfig` (`DetailClient.jsx`) and `picsConfig` (`ListOverview.jsx`) as `list.itemYelpLabel || 'Yelp'` — both mirrors must stay in sync as usual.
+- **Which app:** the same regional platform map used for rating sources. Japan → Tabelog; Hong Kong / Macau → OpenRice; South Korea → Naver Place; Thailand → LINE MAN Wongnai; India → Zomato; Western Europe restaurants → TheFork where coverage exists; elsewhere fall back to TripAdvisor (use `itemTripadvisor`, which already has its own chip) or omit. Mainland China (Dianping) remains ungatherable, so omit there.
+- **One platform per list.** If a list's geography spans several platform regions (e.g. a worldwide list), keep plain Yelp where it exists and omit elsewhere rather than mixing platforms under one label.
+- Everything else about the chip is unchanged: a missing per-item URL just drops the chip and Google remains.
+
 ### Mandatory build checklist for a NEW location list (do NOT skip any)
 A location list (restaurants, bars, breweries, bagels/bakeries, cafes, hotels, venues) is NOT finished until it has ALL of these, gathered live:
 1. `links` — the sanitized Google Maps URL per item (required for `mapsCity`).

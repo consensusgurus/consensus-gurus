@@ -53,22 +53,26 @@ function buildLinks(name, list) {
 function picsConfig(list) {
   const tags = list.tags || [];
   const type = list.type || '';
+  // Regions without real Yelp coverage substitute the local platform (Tabelog,
+  // OpenRice, TheFork...): `itemYelp` then stores that platform's business-page
+  // URLs and `itemYelpLabel` renames the chip accordingly.
+  const yelpLabel = list.itemYelpLabel || 'Yelp';
   // Venue-first places (breweries, beach clubs, wineries, distilleries):
   // always "Pics:", regardless of other tags.
   const venueKey = `${list.title || ''} ${list.id || ''}`.toLowerCase();
   const isVenue = /brewer|beach[\s-]?club|winer|distiller/.test(venueKey);
-  if (isVenue) return { label: 'Pics:', links: [['yelp', 'Yelp'], ['google', 'Google']] };
+  if (isVenue) return { label: 'Pics:', links: [['yelp', yelpLabel], ['google', 'Google']] };
   // Bars / nightlife: checked before food so bars carrying the food-drink
   // tag are not mislabelled "Food Pics:".
   const isBar = tags.includes('bars') || tags.includes('nightlife');
-  if (isBar) return { label: 'Pics:', links: [['yelp', 'Yelp'], ['google', 'Google']] };
+  if (isBar) return { label: 'Pics:', links: [['yelp', yelpLabel], ['google', 'Google']] };
   // Explicit food venues (restaurants, bakeries, cafes): "Food Pics:".
   const isFood = type === 'food' || tags.includes('food') || tags.includes('food-drink');
-  if (isFood) return { label: 'Food Pics:', links: [['yelp', 'Yelp'], ['google', 'Google']] };
+  if (isFood) return { label: 'Food Pics:', links: [['yelp', yelpLabel], ['google', 'Google']] };
   // Hotels / travel: "Pics:" with TripAdvisor.
   const isHotel = type === 'travel' || tags.includes('travel') || tags.includes('luxury');
   if (isHotel) return { label: 'Pics:', links: [['tripadvisor', 'TripAdvisor'], ['google', 'Google']] };
-  return { label: 'Pics:', links: [['yelp', 'Yelp'], ['google', 'Google']] };
+  return { label: 'Pics:', links: [['yelp', yelpLabel], ['google', 'Google']] };
 }
 
 // Derive top-10 consensus items depending on list mode.
