@@ -14,4 +14,16 @@ export default function sitemap() {
     { url: baseUrl, lastModified: newestList, changeFrequency: 'daily', priority: 1.0 },
     { url: `${baseUrl}/request`, lastModified: new Date('2026-01-01'), changeFrequency: 'monthly', priority: 0.5 },
     { url: `${baseUrl}/privacy`, lastModified: new Date('2026-01-01'), changeFrequency: 'yearly', priority: 0.3 },
-    { url: `${baseUrl}/terms`, lastModified: new Date('2026-01-01'), changeFrequ
+    { url: `${baseUrl}/terms`, lastModified: new Date('2026-01-01'), changeFrequency: 'yearly', priority: 0.3 },
+    { url: `${baseUrl}/disclosure`, lastModified: new Date('2026-01-01'), changeFrequency: 'yearly', priority: 0.3 },
+  ];
+
+  const listPages = LISTS.map((list, i) => ({
+    url: `${baseUrl}/list/${list.id}`,
+    lastModified: listDates[i],
+    changeFrequency: 'weekly',
+    priority: 0.8,
+  }));
+
+  return [...staticPages, ...listPages];
+}
