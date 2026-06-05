@@ -55,9 +55,9 @@ A true expert's Borda contribution is scaled by a weight equal to **half the com
 | 6 | 3 |
 | 8 | 4 |
 
-The floor guarantees a true expert always counts for at least two ordinary experts; beyond that it scales to half the rest of the expert field. Everything else (rank ordering, the `unordered` size-scaled flat rule, the top-10 cutoff, tie-breaks) works exactly as for a normal source — only the per-source multiplier changes. A source may also set an explicit numeric `"weight"`, which **always takes precedence** (engine change 2026-06-05): on a normal source it overrides the default 1, and on a `trueExpert` source it overrides the `max(2, N/2)` default, so an owner-ruled override (e.g. `weight: 8` on best-classic-chips, `weight: 30` on loudest-college-football-stadiums) can carry the True Expert flag for correct display grouping while keeping its boosted weight.
+The floor guarantees a true expert always counts for at least two ordinary experts; beyond that it scales to half the rest of the expert field. Everything else (rank ordering, the `unordered` size-scaled flat rule, the top-10 cutoff, tie-breaks) works exactly as for a normal source — only the per-source multiplier changes. A source may also set an explicit numeric `"weight"` to override the default 1 for fine control.
 
-Implemented in `lib/helpers.js` `getSources` and mirrored in `scripts/generate-og-images.js`, `app/list/[id]/opengraph-image.js`, and `app/list/[id]/twitter-image.js` (`computeConsensus`) — keep all four in sync. (The two OG/Twitter image routes silently lacked ALL source weighting until 2026-06-05, so share-card consensus order drifted from the site on any weighted or trueExpert list; weighting was added that day. Treat them as full mirrors from now on.)
+Implemented in `lib/helpers.js` `getSources` and mirrored in `scripts/generate-og-images.js` (`computeConsensus`) — keep the two in sync.
 
 **Known true experts:**
 
@@ -751,6 +751,35 @@ NEW_LIB_TREE=$(git ls-tree $LIB_TREE_SHA | awk -v b="$NEW_BLOB" \
   (e.g. PAT revoked, GitHub Smart HTTP unreachable): edit `lib/data.js`, save, then in GitHub Desktop commit
   to `main` and push origin. Otherwise always push directly per the procedure above.
 
+## Search engine indexing (set up 2026-06-05)
+
+The site's indexing pipeline is mostly automatic; the per-deploy step is one IndexNow ping.
+
+**Standing infrastructure (already in place):**
+- `app/sitemap.js` — auto-generates `/sitemap.xml` from `LISTS`, with each list's real
+  `publishedAt` as `lastModified` (never `new Date()` per build — fake churn makes Google
+  distrust the dates). The homepage's `lastModified` is the newest list's timestamp.
+- `app/robots.js` — serves `/robots.txt`: allow all, disallow `/admin` and `/api/`, points
+  to the sitemap.
+- **IndexNow key:** `598abff60a4ec1cbbe4ae6fc007be9a0`, served at
+  `https://sourceoftruths.com/598abff60a4ec1cbbe4ae6fc007be9a0.txt` (file in `public/`).
+  Covers Bing, DuckDuckGo, Yandex, Naver, Seznam. Google does not use IndexNow; it picks up
+  new lists from the sitemap on its own.
+- Google Search Console is verified (sitemap submitted); Bing Webmaster Tools imports from GSC.
+
+**Per-deploy step — ping IndexNow after every push that adds or substantially changes lists:**
+after Vercel deploys (~1 min after push), send a GET via `web_fetch` (sandbox curl cannot
+reach api.indexnow.org; web_fetch can):
+
+```
+https://api.indexnow.org/indexnow?url=https://sourceoftruths.com/list/<id>&key=598abff60a4ec1cbbe4ae6fc007be9a0
+```
+
+One ping per new/changed list URL (a 200/202 response = accepted). Skip the ping for pushes
+that only touch internals (descriptions, itemYelp, this file). Don't ping URLs that aren't
+live yet — wait for the Vercel deploy, and remember the Hobby-plan deploy limit (a push that
+silently didn't deploy means the URL 404s; verify before pinging).
+
 ## Overview page research: descriptions, hero images, and consensus alerts
 
 The list overview page (`ListOverview.jsx`) renders, for every list, the live consensus top 10 with a
@@ -916,4 +945,3 @@ if (missing.length) throw new Error('Missing descriptions: ' + missing.join(', '
     },
     eater: {
       lab
-
