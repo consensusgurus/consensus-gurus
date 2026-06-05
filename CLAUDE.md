@@ -338,6 +338,31 @@ For hotels, products, restaurants, and any list where quality has a clear hierar
 - A fine dining list must contain only fine dining. No fast casual, no chains, no "hidden gem" budget spots.
 - If a source you want to use contains off-tier items, either drop that source or replace the off-tier items with appropriate ones before adding it.
 
+### Product lists: Best = Best, never the value pick (owner ruling 2026-06-05)
+
+"Best for the money" is NOT "best." Editorial roundups are value-ordered and the Amazon
+ratings source is price-blind, so without correction a "Best X" product list drifts toward
+budget picks. Two mandatory mechanics on EVERY product list:
+
+1. **Drop budget-category editorial slots.** When a category-pick roundup labels a slot
+   "best budget," "best cheap," "best value," or "best under $X," that item is OFF-TIER for
+   a "Best X" list. Remove it from that source before encoding (same treatment as off-tier
+   hotels). If an item's ONLY editorial appearances are budget slots, remove it from the
+   list entirely (links, amazon source, seed, vote). An item picked in a budget slot in one
+   guide but a non-price slot in another stays, minus the budget-slot appearance. Form-factor
+   and use-case slots (best compact, best portable, best for desks) are NOT budget slots.
+   Ranked lab tables (TechGearLab/OutdoorGearLab scores) are kept whole: their cheap items
+   rank low on merit already.
+2. **The 'Lineup Positioning · Ranked by Launch Price' source is REQUIRED on every product
+   list where price tracks quality tier** (electronics, appliances, luggage, gear), with
+   explicit `"weight": 2`. Skip it only where price does not track quality (condiments,
+   snack flavors, cookies, books) and note the skip to the owner. The Amazon Reviews source
+   stays at weight 1.
+
+First applied 2026-06-05 to `soundbars` and `home-projectors`. Still owed the same retrofit:
+`bluetooth-speakers`, `air-purifiers`, `drip-coffee-makers`, `carry-on-luggage`,
+`womens-running-shoes` (and verify each source's category labels live before dropping).
+
 ### No large chains on "best of" food lists
 
 **Rule of thumb: never include a large chain on a best-of food list, anywhere.** In-N-Out, Chipotle, Shake Shack, Five Guys, Original Tommy's-scale regional chains, and the like do not belong on a "Best Burgers in X" or any other best-of food/drink list, even when editorial sources include them (sources love a nostalgic chain pick). When a source includes a chain item, drop it from that source before adding — same treatment as off-tier items. This applies to the `ai` seed, every source's `items`, `vote.items`, `links`, `itemLinks`, and `itemYelp` alike. (The single-city chain-ranking lists, e.g. `best-run-chipotle-manhattan`, are the deliberate exception: the chain IS the topic there.) A small local mini-chain with a handful of locations in one metro (e.g. a beloved 3-location taqueria) is not a "large chain" — judgment applies; the test is whether the place reads as a mass-market chain rather than a local institution.
