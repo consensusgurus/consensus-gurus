@@ -39,6 +39,7 @@ function getListTags(list) {
 //     Amazon reviews, booking sites) -- forest green
 //   - pricing: live pricing data -- rust
 const EXPERT_GROUPS = [
+  { key: 'composite', title: 'Composite Ranking', color: COLORS.ember },
   { key: 'trueexpert', title: 'True Experts', color: COLORS.ember },
   { key: 'publication', title: 'Expert Publications', color: COLORS.ink },
   { key: 'platform', title: 'User Reviews & Ratings', color: COLORS.forest },
@@ -91,6 +92,9 @@ function expertGroupKey(src) {
   // A flagged true-expert source is exceptionally authoritative and gets its
   // own group, regardless of whether its label mentions ratings/reviews.
   if (src.trueExpert) return 'trueexpert';
+  // The composite ranking on chain "best-run" (mode: 'scores') lists renders
+  // as its own lead tile in the grouped sources layout.
+  if ((src.id || '') === 'ai') return 'composite';
   // The live Source of Truths fan vote is a user-ratings signal.
   if ((src.id || '') === 'cgvote') return 'platform';
   const id = (src.id || '').toLowerCase();
@@ -249,7 +253,7 @@ function ListDetail({ list, viewCount, voteData, userVotes, extras, relatedLists
   // BELOW the ranked list.
   const consensusSource = sources.find((s) => s.id === 'consensus');
   const expertSources = sources.filter((s) => s.id !== 'consensus');
-  const useGroupedLayout = !!consensusSource;
+  const useGroupedLayout = !!consensusSource || mode === 'scores';
 
   const sortedVote = useMemo(() => {
     if (!showVoteTab) return [];
@@ -882,7 +886,7 @@ function ListDetail({ list, viewCount, voteData, userVotes, extras, relatedLists
                                 {s.unordered ? '•' : `${i + 1}.`}
                               </span>
                               <span style={{ fontFamily: 'DM Sans, sans-serif', fontSize: 12.5, color: COLORS.ink, lineHeight: 1.35 }}>
-                                {s.id === 'pricing' ? priceDecorate(item, list) : item}
+                                {s.id === 'pricing' ? priceDecorate(item, list) : (s.id === 'ai' && list.scores ? scoreDecorate(item, list) : item)}
                               </span>
                             </li>
                           ))}
