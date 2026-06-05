@@ -521,6 +521,15 @@ Site-facing copy — blurbs, titles, categories, and any prose shown on a list p
 - **Never use the em dash (—) in site copy.** Not in blurbs, not in titles, not anywhere a reader sees. Replace it with a comma, colon, or period. A colon fits when the second part labels or summarizes the first (`Tonkotsu, shio, tsukemen: the Tokyo ramen counters most worth the queue`); a comma fits a trailing modifier (`ranked on sound and craft, not value`); a period fits two independent clauses (`A sense of place raised to an art. Rosewood Hong Kong was named the world's best hotel for 2025.`). Hyphens (`-`) in compound words are fine.
 - **Chain-city composite lists use parentheticals like every other list.** Chain item names are `address (neighborhood)` (e.g. `129 W 48th St (Midtown)`), NOT em-dash separators. The composite score is NOT part of the name (see the chain section below). So the em-dash ban applies to chain names too.
 
+### The "Top N" header label must match the actual item count, never hardcode "Top Ten"
+
+The list-page header's top-right label (`{category} · Top N`) must reflect the **actual number of ranked items**, not a hardcoded "Top Ten." A short list (e.g. Kyiv hotels with 8 items) must read `KYIV · TOP 8`, not `TOP TEN`. The count is the consensus length capped at 10 (`Math.min(items.length, 10)`): consensus is always at most 10, but lists with fewer items show fewer. This logic lives in **three** header spots that must stay in sync:
+
+- `app/list/[id]/DetailClient.jsx` — the `topCount` constant (consensus length, else vote/active-source length, capped at 10) feeds the header label.
+- `app/list/[id]/ListOverview.jsx` — **two** copies: the poster header and the main overview header, both `Top ${Math.min(items.length, 10)}` (the footer already did this).
+
+Never reintroduce a literal `'Top Ten'` in any list header. The `top3` variant correctly stays `Top Three`.
+
 ---
 
 ## Affiliate Links

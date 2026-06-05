@@ -546,7 +546,7 @@ export function ListOverviewPoster({ list, voteData, extras, variant }) {
               marginBottom: 8,
             }}
           >
-            {list.category} · {top3 ? 'Top Three' : 'Top Ten'}
+            {list.category} · {top3 ? 'Top Three' : `Top ${Math.min(items.length, 10)}`}
           </div>
           <div style={{ borderBottom: `1px solid ${COLORS.ink}`, marginBottom: 4 }} />
           <div style={{ borderBottom: `2px solid ${COLORS.ember}` }} />
@@ -707,7 +707,7 @@ export default function ListOverview({ list, voteData, extras, viewCount, onBack
                 marginBottom: 8,
               }}
             >
-              {list.category} · Top Ten
+              {list.category} · Top {Math.min(items.length, 10)}
             </div>
             <div style={{ borderBottom: `1px solid ${COLORS.ink}`, marginBottom: 4 }} />
             <div style={{ borderBottom: `2px solid ${COLORS.ember}` }} />

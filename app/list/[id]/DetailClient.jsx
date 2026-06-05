@@ -255,6 +255,16 @@ function ListDetail({ list, viewCount, voteData, userVotes, extras, relatedLists
   const expertSources = sources.filter((s) => s.id !== 'consensus');
   const useGroupedLayout = !!consensusSource || mode === 'scores';
 
+  // The header "Top N" label must match the actual number of ranked items
+  // (consensus is capped at 10, but short lists have fewer). Never hardcode "Top Ten".
+  const topCount = Math.min(
+    consensusSource?.items?.length ||
+      list.vote?.items?.length ||
+      activeSource?.items?.length ||
+      10,
+    10
+  );
+
   const sortedVote = useMemo(() => {
     if (!showVoteTab) return [];
     
@@ -527,7 +537,7 @@ function ListDetail({ list, viewCount, voteData, userVotes, extras, relatedLists
                 marginBottom: 8,
               }}
             >
-              {list.isUserSubmitted ? 'Reader Submitted · ' : ''}{list.category} · Top Ten
+              {list.isUserSubmitted ? 'Reader Submitted · ' : ''}{list.category} · Top {topCount}
             </div>
             <div style={{ borderBottom: `1px solid ${COLORS.ink}`, marginBottom: 4 }} />
             <div style={{ borderBottom: `2px solid ${COLORS.ember}` }} />
