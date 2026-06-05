@@ -479,21 +479,41 @@ function SmallTile({ item, rank, list, desc, pics }) {
 // the two can never drift; strips everything interactive (back button, meta
 // buttons, CTA, complaint modal) and avoids the responsive class names so a
 // narrow window can't collapse the capture layout.
+// Slim one-line tile for ranks 4-10 on the social share card: rank, name,
+// locality. No photo or description, so seven of them stay compact.
+function CompactRow({ item, rank, spanTwo }) {
+  const { displayName, locality } = parseItem(item);
+  return (
+    <div style={{ ...tileChrome, gridColumn: spanTwo ? 'span 2' : 'auto', padding: '10px 14px', display: 'flex', alignItems: 'center', gap: 10 }}>
+      <div style={{ width: 22, height: 22, border: `1.5px solid ${COLORS.faded}`, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+        <span style={{ fontFamily: 'Fraunces, serif', fontSize: 10, fontWeight: 600, color: COLORS.faded }}>{rank}</span>
+      </div>
+      <span style={{ fontFamily: 'Fraunces, serif', fontSize: 16, fontWeight: 700, color: COLORS.ink, fontVariationSettings: '"SOFT" 100', lineHeight: 1.15, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{displayName}</span>
+      {locality && (
+        <span style={{ fontFamily: 'DM Mono, monospace', fontSize: 8, letterSpacing: '0.1em', textTransform: 'uppercase', color: COLORS.faded, marginLeft: 'auto', whiteSpace: 'nowrap', flexShrink: 0 }}>{locality}</span>
+      )}
+    </div>
+  );
+}
+
 export function ListOverviewPoster({ list, voteData, extras, variant }) {
   const top3 = variant === 'top3';
+  const social = variant === 'social';
+  const compact = top3 || social;
   const items = getItems(list, voteData, extras);
   const descs = DESCRIPTIONS[list.id] || {};
   const pics = picsConfig(list);
   if (!items.length) return null;
 
   const heroItems = items.slice(0, 3);
-  const gridItems = top3 ? [] : items.slice(3, 9);
-  const tenthItem = top3 ? null : items[9];
+  const gridItems = compact ? [] : items.slice(3, 9);
+  const tenthItem = compact ? null : items[9];
+  const restItems = social ? items.slice(3, 10) : [];
 
   return (
-    <div style={{ width: 1080, background: COLORS.cream, color: COLORS.ink, boxSizing: 'border-box', padding: top3 ? '38px 48px 28px' : '52px 60px 40px', position: 'relative' }}>
+    <div style={{ width: 1080, background: COLORS.cream, color: COLORS.ink, boxSizing: 'border-box', padding: compact ? '38px 48px 28px' : '52px 60px 40px', position: 'relative' }}>
       {/* Masthead */}
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: `2px solid ${COLORS.ink}`, paddingBottom: 14, marginBottom: top3 ? 20 : 28, fontFamily: 'DM Mono, monospace', fontSize: 14, letterSpacing: '0.3em', textTransform: 'uppercase', color: COLORS.ink }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: `2px solid ${COLORS.ink}`, paddingBottom: 14, marginBottom: compact ? 20 : 28, fontFamily: 'DM Mono, monospace', fontSize: 14, letterSpacing: '0.3em', textTransform: 'uppercase', color: COLORS.ink }}>
         <span style={{ fontWeight: 600 }}>Source of Truths</span>
         <span style={{ color: COLORS.faded, fontSize: 11 }}>sourceoftruths.com</span>
       </div>
@@ -532,7 +552,7 @@ export function ListOverviewPoster({ list, voteData, extras, variant }) {
           <div style={{ borderBottom: `2px solid ${COLORS.ember}` }} />
         </div>
       </div>
-      {!top3 && list.blurb && (
+      {!compact && list.blurb && (
         <p
           style={{
             fontFamily: 'Fraunces, serif',
@@ -549,7 +569,7 @@ export function ListOverviewPoster({ list, voteData, extras, variant }) {
       )}
 
       {/* Tile grid: fixed two columns (no responsive collapse in a capture) */}
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: top3 ? 12 : 14, marginTop: top3 ? 18 : 26 }}>
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: compact ? 12 : 14, marginTop: compact ? 18 : 26 }}>
         {heroItems.map((item, i) => (
           <HeroTile key={item} item={item} rank={i + 1} list={list} desc={descs[item]} pics={pics} poster />
         ))}
@@ -563,10 +583,13 @@ export function ListOverviewPoster({ list, voteData, extras, variant }) {
             </div>
           </div>
         )}
+        {restItems.map((item, i) => (
+          <CompactRow key={item} item={item} rank={i + 4} spanTwo={i === restItems.length - 1 && restItems.length % 2 === 1} />
+        ))}
       </div>
 
       {/* Footer */}
-      <div style={{ marginTop: top3 ? 20 : 28, borderTop: `2px solid ${COLORS.ink}`, paddingTop: 14, display: 'flex', justifyContent: 'space-between', fontFamily: 'DM Mono, monospace', fontSize: 11, letterSpacing: '0.18em', textTransform: 'uppercase', color: COLORS.faded }}>
+      <div style={{ marginTop: compact ? 20 : 28, borderTop: `2px solid ${COLORS.ink}`, paddingTop: 14, display: 'flex', justifyContent: 'space-between', fontFamily: 'DM Mono, monospace', fontSize: 11, letterSpacing: '0.18em', textTransform: 'uppercase', color: COLORS.faded }}>
         <span>The Live Consensus · {top3 ? 'Top 3' : `Top ${Math.min(items.length, 10)}`}</span>
         <span>sourceoftruths.com/list/{list.id}</span>
       </div>
