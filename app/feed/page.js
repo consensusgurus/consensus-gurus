@@ -7,7 +7,7 @@ export const dynamic = 'force-dynamic';
 export const revalidate = 0;
 
 export const metadata = {
-  title: 'Newsfeed | Source of Truths',
+  title: 'Activity Ledger | Source of Truths',
   description: 'Live activity across every Source of Truths list: new lists, reader requests, votes, comments, and ranking changes.',
 };
 
@@ -17,12 +17,13 @@ export default async function FeedPage() {
 
   let reqRes = {}, voteRes = {}, comRes = {}, revRes = {}, resRes = {};
   try {
-    [reqRes, voteRes, comRes, revRes, resRes] = await Promise.all([
+    [reqRes, voteRes, comRes, revRes, resRes, notesRes] = await Promise.all([
       supabaseAdmin.from('user_lists').select('id,title,category,published,submitted_at').order('submitted_at', { ascending: false }).limit(25),
       supabaseAdmin.from('vote_events').select('list_id,item_name,delta,created_at').order('created_at', { ascending: false }).limit(40),
       supabaseAdmin.from('list_comments').select('list_id,name,body,created_at,editor_response').eq('hidden', false).order('created_at', { ascending: false }).limit(40),
       supabaseAdmin.from('complaints').select('list_id,message,created_at,editor_response').eq('feed_hidden', false).order('created_at', { ascending: false }).limit(25),
       supabaseAdmin.from('consensus_alerts').select('list_id,item_name,change_type,rank,detected_at').order('detected_at', { ascending: false }).limit(25),
+      supabaseAdmin.from('list_editor_notes').select('list_id,note,created_at').order('created_at', { ascending: false }).limit(40),
     ]);
   } catch (e) {
     // Render whatever static data we have on a DB hiccup.
@@ -60,11 +61,16 @@ export default async function FeedPage() {
     events.push({ ts: isNaN(ms) ? 0 : ms, kind: 'research', listId: a.list_id, listTitle: titleOf(a.list_id), itemName: a.item_name, changeType: a.change_type, rank: a.rank });
   });
 
+  (notesRes && notesRes.data || []).forEach((n) => {
+    const ms = Date.parse(n.created_at);
+    events.push({ ts: isNaN(ms) ? 0 : ms, kind: 'note', listId: n.list_id, listTitle: titleOf(n.list_id), note: n.note });
+  });
+
   events.sort((a, b) => b.ts - a.ts);
   const top = events.slice(0, 120);
 
   return (
-    <LegalLayout kicker="Live" title="The" italic="newsfeed">
+    <LegalLayout kicker="Live" title="Activity" italic="ledger">
       <p style={{ marginTop: -8, marginBottom: 28, color: COLORS.faded }}>
         Everything happening across Source of Truths: new lists, reader requests, votes, comments, review requests, and ranking changes. Names and emails are never shown.
       </p>

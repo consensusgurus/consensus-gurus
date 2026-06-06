@@ -27,6 +27,7 @@ const CATEGORIES = [
   { key: 'vote', label: 'Votes' },
   { key: 'comment', label: 'Comments' },
   { key: 'review', label: 'Review requests' },
+  { key: 'note', label: "Editor's Notes" },
   { key: 'research', label: 'Ranking changes' },
 ];
 
@@ -88,6 +89,13 @@ function renderEvent(e, i) {
       <Event key={i} icon={<PenLine size={12} strokeWidth={2.5} />} color={COLORS.faded} kicker="Review request" date={fmtDate(e.ts)}>
         User submitted review request on <ListLink id={e.listId}>{e.listTitle}</ListLink>: {e.message ? `"${e.message}"` : 'No comment given.'}
         {e.editorResponse && (<div style={{ marginTop: 5, paddingTop: 5, borderTop: `1px solid ${COLORS.paper}` }}><strong style={{ fontWeight: 700, color: COLORS.ember }}>Editor:</strong> {e.editorResponse}</div>)}
+      </Event>
+    );
+  }
+  if (e.kind === 'note') {
+    return (
+      <Event key={i} icon={<PenLine size={12} strokeWidth={2.5} />} color={COLORS.ember} kicker="Editor's Note" date={fmtDate(e.ts)}>
+        <span style={{ whiteSpace: 'pre-wrap' }}>{e.note}</span> on <ListLink id={e.listId}>{e.listTitle}</ListLink>
       </Event>
     );
   }

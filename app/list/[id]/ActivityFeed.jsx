@@ -5,6 +5,7 @@ import {
   RefreshCw,
   BarChart3,
   MessageSquare,
+  PenLine,
   ArrowUp,
   ArrowDown,
 } from 'lucide-react';
@@ -171,7 +172,7 @@ function SourceCard({ s }) {
 // changes), anonymized review requests, public comments, and a List-created
 // entry that lists the sources the ranking launched with.
 export default function ActivityFeed({ list }) {
-  const [feed, setFeed] = useState({ votes: [], manager: [], research: [], comments: [], sources: [] });
+  const [feed, setFeed] = useState({ votes: [], manager: [], research: [], comments: [], sources: [], editorNotes: [] });
   const [loaded, setLoaded] = useState(false);
   const [name, setName] = useState('');
   const [body, setBody] = useState('');
@@ -187,6 +188,7 @@ export default function ActivityFeed({ list }) {
         research: data.research || [],
         comments: data.comments || [],
         sources: data.sources || [],
+        editorNotes: data.editorNotes || [],
       });
     } catch {
       /* leave streams empty on error */
@@ -233,12 +235,12 @@ export default function ActivityFeed({ list }) {
   let launchSources = sources;
   let laterSources = [];
   if (sources.length > 0) {
-    const days = sources.map((s) => dayKey(s.addedAt)).filter(Boolean);
-    const baseline = days.length ? days.sort()[0] : null;
-    if (baseline) {
-      launchSources = sources.filter((s) => dayKey(s.addedAt) <= baseline);
+    const times = sources.map((s) => Date.parse(s.addedAt)).filter((t) => !isNaN(t));
+    const baseline = times.length ? Math.min(...times) : null;
+    if (baseline != null) {
+      launchSources = sources.filter((s) => { const t = Date.parse(s.addedAt); return isNaN(t) || t <= baseline; });
       laterSources = sources
-        .filter((s) => dayKey(s.addedAt) > baseline)
+        .filter((s) => { const t = Date.parse(s.addedAt); return !isNaN(t) && t > baseline; })
         .sort((a, b) => new Date(b.addedAt) - new Date(a.addedAt));
     }
   }
@@ -252,6 +254,21 @@ export default function ActivityFeed({ list }) {
 
       <div style={{ position: 'relative', paddingLeft: 23 }}>
         <div style={{ position: 'absolute', left: 5, top: 6, bottom: 6, width: 2, background: COLORS.paper }} />
+
+        {feed.editorNotes.length > 0 && (
+          <section style={{ position: 'relative', marginBottom: 26 }}>
+            <Dot color={COLORS.ember} />
+            <Kicker icon={<PenLine size={12} strokeWidth={2.5} />}>Editor's Note</Kicker>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 8, marginTop: 9 }}>
+              {feed.editorNotes.map((n, i) => (
+                <div key={i} style={{ background: '#fff', border: `1px solid ${COLORS.paper}`, borderLeft: `3px solid ${COLORS.ember}`, borderRadius: '0 7px 7px 0', padding: '8px 11px', fontSize: 13, whiteSpace: 'pre-wrap' }}>
+                  {n.note}
+                  <span style={{ display: 'block', fontFamily: MONO, fontSize: 10, color: COLORS.faded, marginTop: 3 }}>Editor · {fmtDate(n.createdAt)}</span>
+                </div>
+              ))}
+            </div>
+          </section>
+        )}
 
         {/* Research: later-added sources + consensus changes, as bubbles */}
         {hasResearch && (

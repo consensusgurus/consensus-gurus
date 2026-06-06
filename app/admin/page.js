@@ -18,7 +18,7 @@ export default async function AdminPage() {
     redirect('/admin/login');
   }
 
-  const [submissionsRes, extrasRes, votesRes, complaintsRes, voteEventsRes, alertsRes, trendingRes, totalViewsRes, listCommentsRes, voteCountsRes] = await Promise.all([
+  const [submissionsRes, extrasRes, votesRes, complaintsRes, voteEventsRes, alertsRes, trendingRes, totalViewsRes, listCommentsRes, voteCountsRes, editorNotesRes] = await Promise.all([
     supabaseAdmin
       .from('user_lists')
       .select('*')
@@ -49,6 +49,7 @@ export default async function AdminPage() {
     supabaseAdmin.from('views').select('list_id, count'),
     supabaseAdmin.from('list_comments').select('id, list_id, name, body, created_at, editor_response').order('created_at', { ascending: false }),
     supabaseAdmin.from('vote_events').select('list_id, item_name'),
+    supabaseAdmin.from('list_editor_notes').select('id, list_id, note, created_at').order('created_at', { ascending: false }),
   ]);
 
   if (submissionsRes.error) {
@@ -191,6 +192,8 @@ export default async function AdminPage() {
         a.title.localeCompare(b.title)
     );
 
+  const editorNotes = ((editorNotesRes && editorNotesRes.data) || []).map((row) => ({ id: row.id, listId: row.list_id, note: row.note, createdAt: row.created_at }));
+
   return (
     <AdminClient
       initialLists={lists}
@@ -199,6 +202,7 @@ export default async function AdminPage() {
       initialVoteStandings={voteStandings}
       initialVoteEvents={voteEvents}
       initialComments={comments}
+      initialEditorNotes={editorNotes}
       initialAlerts={alerts}
       initialViews24h={views24h}
     />

@@ -21,12 +21,13 @@ export async function GET(request) {
 
     const list = LISTS.find((l) => l.id === listId);
 
-    const [votesRes, managerRes, researchRes, commentsRes, seenRes] = await Promise.all([
+    const [votesRes, managerRes, researchRes, commentsRes, seenRes, notesRes] = await Promise.all([
       supabaseAdmin.from('vote_events').select('item_name,delta,created_at').eq('list_id', listId).order('created_at', { ascending: false }).limit(20),
       supabaseAdmin.from('complaints').select('message,created_at,editor_response').eq('list_id', listId).eq('feed_hidden', false).order('created_at', { ascending: false }).limit(12),
       supabaseAdmin.from('consensus_alerts').select('item_name,change_type,rank,detected_at').eq('list_id', listId).order('detected_at', { ascending: false }).limit(12),
       supabaseAdmin.from('list_comments').select('id,name,body,created_at,editor_response').eq('list_id', listId).eq('hidden', false).order('created_at', { ascending: false }).limit(60),
       supabaseAdmin.from('list_sources_seen').select('source_id,first_seen_at').eq('list_id', listId),
+      supabaseAdmin.from('list_editor_notes').select('note,created_at').eq('list_id', listId).order('created_at', { ascending: false }).limit(20),
     ]);
 
     const votes = (votesRes.data || []).map((r) => ({ itemName: r.item_name, delta: r.delta, createdAt: r.created_at }));
@@ -69,9 +70,10 @@ export async function GET(request) {
     }
     sources.sort((a, b) => new Date(b.addedAt || 0) - new Date(a.addedAt || 0));
 
-    return NextResponse.json({ votes, manager, research, comments, sources });
+    const editorNotes = (notesRes.data || []).map((r) => ({ note: r.note, createdAt: r.created_at }));
+    return NextResponse.json({ votes, manager, research, comments, sources, editorNotes });
   } catch (err) {
     console.error('list-feed error', err);
-    return NextResponse.json({ votes: [], manager: [], research: [], comments: [], sources: [] });
+    return NextResponse.json({ votes: [], manager: [], research: [], comments: [], sources: [], editorNotes: [] });
   }
 }

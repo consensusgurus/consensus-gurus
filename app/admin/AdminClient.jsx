@@ -3,7 +3,7 @@ import React, { useState, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { Check, X, Eye, EyeOff, LogOut, Pencil, Trash2, MapPin } from 'lucide-react';
-import { COLORS } from '@/lib/data';
+import { COLORS, LISTS } from '@/lib/data';
 import Grain from '@/app/Grain';
 
 function formatDate(iso) {
@@ -29,7 +29,7 @@ function mapsPlaceUrl(name) {
   return `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(cleaned)}`;
 }
 
-export default function AdminClient({ initialLists, initialExtras = [], initialComplaints = [], initialVoteStandings = [], initialVoteEvents = [], initialComments = [], initialAlerts = [], initialViews24h = [] }) {
+export default function AdminClient({ initialLists, initialExtras = [], initialComplaints = [], initialVoteStandings = [], initialVoteEvents = [], initialComments = [], initialAlerts = [], initialViews24h = [], initialEditorNotes = [] }) {
   const router = useRouter();
   const [lists, setLists] = useState(initialLists);
   const [extras, setExtras] = useState(initialExtras);
@@ -38,6 +38,7 @@ export default function AdminClient({ initialLists, initialExtras = [], initialC
   const [voteStandings, setVoteStandings] = useState(initialVoteStandings);
   const [voteEvents, setVoteEvents] = useState(initialVoteEvents);
   const [comments, setComments] = useState(initialComments);
+  const [editorNotes, setEditorNotes] = useState(initialEditorNotes);
   const [views24h] = useState(initialViews24h);
   const [tab, setTab] = useState('pending');
   const [busy, setBusy] = useState({});
@@ -54,6 +55,7 @@ export default function AdminClient({ initialLists, initialExtras = [], initialC
   );
   const complaintsCount = complaints.length;
   const commentsCount = comments.length;
+  const editorNotesCount = editorNotes.length;
   const views24hTotal = useMemo(
     () => views24h.reduce((n, v) => n + (v.views24h || 0), 0),
     [views24h]
@@ -108,6 +110,32 @@ export default function AdminClient({ initialLists, initialExtras = [], initialC
     } else {
       alert('Could not save response. Try again.');
     }
+    setBusy((b) => ({ ...b, [key]: false }));
+  }
+
+  async function addNote(listId, note) {
+    const lid = (listId || '').trim();
+    const text = (note || '').trim();
+    if (!lid || !text) { alert('Pick a list and write a note.'); return; }
+    if (busy['note-add']) return;
+    setBusy((b) => ({ ...b, ['note-add']: true }));
+    const res = await fetch('/api/admin/notes', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ listId: lid, note: text }) });
+    const data = await res.json().catch(() => ({}));
+    if (res.ok && data.note) {
+      setEditorNotes((prev) => [{ id: data.note.id, listId: data.note.list_id, note: data.note.note, createdAt: data.note.created_at }, ...prev]);
+    } else {
+      alert('Could not post note. Try again.');
+    }
+    setBusy((b) => ({ ...b, ['note-add']: false }));
+  }
+
+  async function deleteNote(id) {
+    const key = 'note-' + id;
+    if (busy[key]) return;
+    setBusy((b) => ({ ...b, [key]: true }));
+    const res = await fetch('/api/admin/notes', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ id, remove: true }) });
+    if (res.ok) setEditorNotes((prev) => prev.filter((n) => n.id !== id));
+    else alert('Could not delete note.');
     setBusy((b) => ({ ...b, [key]: false }));
   }
 
@@ -371,6 +399,9 @@ export default function AdminClient({ initialLists, initialExtras = [], initialC
           <TabButton active={tab === 'comments'} onClick={() => setTab('comments')}>
             Comments <span style={{ opacity: 0.6 }}>{commentsCount}</span>
           </TabButton>
+          <TabButton active={tab === 'notes'} onClick={() => setTab('notes')}>
+            Notes <span style={{ opacity: 0.6 }}>{editorNotesCount}</span>
+          </TabButton>
           <TabButton active={tab === 'research'} onClick={() => setTab('research')}>
             Research <span style={{ opacity: 0.6 }}>{alerts.length}</span>
           </TabButton>
@@ -383,6 +414,8 @@ export default function AdminClient({ initialLists, initialExtras = [], initialC
           <ViewsPanel views={views24h} total={views24hTotal} />
         ) : tab === 'research' ? (
           <ResearchPanel alerts={alerts} busy={busy} onResolve={resolveAlert} />
+        ) : tab === 'notes' ? (
+          <NotesPanel notes={editorNotes} lists={LISTS} busy={busy} onAdd={addNote} onDelete={deleteNote} />
         ) : tab === 'comments' ? (
           <CommentsPanel comments={comments} busy={busy} onDelete={deleteComment} onRespond={respond} />
         ) : tab === 'votes' ? (
@@ -755,6 +788,42 @@ function CommentsPanel({ comments, busy, onDelete, onRespond }) {
           </div>
         );
       })}
+    </div>
+  );
+}
+
+function NotesPanel({ notes, lists, busy, onAdd, onDelete }) {
+  const [listId, setListId] = useState('');
+  const [note, setNote] = useState('');
+  const rowBorder = `1px solid ${COLORS.ink}22`;
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 24 }}>
+      <div style={{ border: `1.5px solid ${COLORS.ink}`, padding: 16, background: COLORS.paper }}>
+        <h3 style={{ fontFamily: 'Fraunces, serif', fontWeight: 700, fontSize: 18, margin: '0 0 10px' }}>Post an editor's note</h3>
+        <input list="sot-all-lists" value={listId} onChange={(e) => setListId(e.target.value)} placeholder="List id (e.g. fast-food-fries)" style={{ width: '100%', boxSizing: 'border-box', padding: 10, border: `1.5px solid ${COLORS.ink}`, background: '#fff', fontFamily: 'DM Mono, monospace', fontSize: 13, marginBottom: 8 }} />
+        <datalist id="sot-all-lists">{lists.map((l) => <option key={l.id} value={l.id}>{l.title}</option>)}</datalist>
+        <textarea value={note} onChange={(e) => setNote(e.target.value)} rows={3} maxLength={1000} placeholder="Shown publicly as: Editor's Note: ..." style={{ width: '100%', boxSizing: 'border-box', padding: 10, border: `1.5px solid ${COLORS.ink}`, background: '#fff', fontFamily: 'DM Sans, sans-serif', fontSize: 14, resize: 'vertical', marginBottom: 8 }} />
+        <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
+          <button onClick={() => { onAdd(listId, note); setNote(''); }} disabled={!!busy['note-add']} style={{ cursor: 'pointer', background: COLORS.ember, color: COLORS.cream, border: `1.5px solid ${COLORS.ember}`, padding: '9px 16px', fontFamily: 'DM Mono, monospace', fontSize: 11, letterSpacing: '0.14em', textTransform: 'uppercase', fontWeight: 700 }}>Post note</button>
+        </div>
+      </div>
+      {(!notes || notes.length === 0) ? (
+        <p style={{ fontFamily: 'DM Sans, sans-serif', fontStyle: 'italic', fontSize: 14, color: COLORS.faded }}>No editor notes yet.</p>
+      ) : (
+        <div style={{ border: `1.5px solid ${COLORS.ink}` }}>
+          {notes.map((n, i) => (
+            <div key={n.id} style={{ display: 'flex', gap: 12, alignItems: 'flex-start', padding: '12px 14px', borderBottom: i < notes.length - 1 ? rowBorder : 'none' }}>
+              <div style={{ flex: 1, minWidth: 0 }}>
+                <div style={{ fontFamily: 'DM Mono, monospace', fontSize: 11, color: COLORS.faded }}>
+                  <Link href={`/list/${n.listId}`} style={{ color: COLORS.ember, textDecoration: 'none' }}>{n.listId}</Link>{' · '}{formatDate(n.createdAt)}
+                </div>
+                <div style={{ fontFamily: 'DM Sans, sans-serif', fontSize: 14, color: COLORS.ink, marginTop: 4, whiteSpace: 'pre-wrap' }}>{n.note}</div>
+              </div>
+              <button onClick={() => onDelete(n.id)} disabled={!!busy['note-' + n.id]} style={{ flexShrink: 0, cursor: 'pointer', background: 'transparent', color: COLORS.ember, border: `1px solid ${COLORS.ember}`, padding: '5px 12px', fontFamily: 'DM Mono, monospace', fontSize: 10, letterSpacing: '0.1em', textTransform: 'uppercase' }}>Delete</button>
+            </div>
+          ))}
+        </div>
+      )}
     </div>
   );
 }
