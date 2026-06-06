@@ -52,6 +52,9 @@ export default function Footer() {
           <Link href="/" style={{ color: COLORS.ink, textDecoration: 'none' }}>
             Home
           </Link>
+          <Link href="/feed" style={{ color: COLORS.ink, textDecoration: 'none' }}>
+            Newsfeed
+          </Link>
           <Link href="/request" style={{ color: COLORS.ink, textDecoration: 'none' }}>
             Request a list
           </Link>
