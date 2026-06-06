@@ -367,13 +367,29 @@ function Home({ lists, viewCounts, voteData, extras, trending = {}, openList, on
                 fontSize: 'clamp(9px, 1.1vw, 11px)',
                 letterSpacing: '0.2em',
                 textTransform: 'uppercase',
-                color: COLORS.faded,
+                fontWeight: 700,
+                color: COLORS.ink,
                 textAlign: 'right',
                 marginBottom: 8,
                 lineHeight: 1.4,
               }}
             >
               For all the important aspects of life
+            </div>
+            <div
+              style={{
+                fontFamily: 'DM Sans, sans-serif',
+                fontSize: 'clamp(11px, 1.25vw, 13px)',
+                lineHeight: 1.5,
+                color: COLORS.ink,
+                textAlign: 'right',
+                marginBottom: 10,
+                maxWidth: 520,
+                marginLeft: 'auto',
+              }}
+            >
+              The consensus of expert critics and everyday users, weighed across 300+ sources, from Michelin, Condé Nast Traveler, The Infatuation, Eater, and Robb Report to Wirecutter, Goodreads, and Dave Portnoy. Every vote and ranking change is recorded in our{' '}
+              <Link href="/feed" style={{ color: COLORS.ember, textDecoration: 'underline' }}>public audit log</Link>.
             </div>
             <div style={{ borderBottom: `1px solid ${COLORS.ink}`, marginBottom: 4 }} />
             <div style={{ borderBottom: `2px solid ${COLORS.ember}` }} />
