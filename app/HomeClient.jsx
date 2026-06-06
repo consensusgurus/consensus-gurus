@@ -126,6 +126,14 @@ function listInCategory(list, catId) {
   return cat.any.some((t) => tags.includes(t));
 }
 
+// A "product list" for homepage placement = anything in the Products browse
+// bucket (physical products or tech). Used to keep a product list from ever
+// being the first or second tile on the default Discover view, so a fresh
+// visitor never lands on a product list first.
+function isProductList(list) {
+  return listInCategory(list, 'shops');
+}
+
 // Resolve a comparable timestamp for a list, in priority order:
 //   1. publishedAt   (full ISO string on built-in lists)
 //   2. submittedAt   (Supabase timestamptz on reader submissions)
@@ -167,69 +175,6 @@ function seededShuffle(arr, seed) {
   return out;
 }
 
-// Discover ordering rule: enforce two things on the shuffled order.
-// (1) Lead rule: a Products-bucket list (the 'shops' browse category, i.e.
-//     lists tagged product/tech) must NEVER be the first or second tile, so a
-//     fresh visitor never lands on a product list first. (2) No two product
-//     tiles sit back to back when it is mathematically possible. The shuffled
-//     order is partitioned into products and non-products (each keeping its
-//     shuffle order), then re-merged by dropping each product into a seeded-
-//     random gap between non-products -- but never the first `lead` gaps, which
-//     are reserved so the page opens with non-product tiles. When products
-//     outnumber the available gaps the extras are spread round-robin, which
-//     keeps unavoidable adjacency minimal.
-function spaceOutProducts(shuffled, seed) {
-  const isProduct = (l) => listInCategory(l, 'shops');
-  const products = shuffled.filter(isProduct);
-  const others = shuffled.filter((l) => !isProduct(l));
-  // Nothing to balance if there are no non-product lists to lead with.
-  if (products.length === 0 || others.length === 0) return shuffled;
-
-  // Guarantee the first `lead` tiles are non-products (tile 1 and 2 never a
-  // product), capped by how many non-products actually exist.
-  const lead = Math.min(2, others.length);
-
-  const gapCount = others.length + 1; // gaps around/between non-products
-  // Independent seeded rng stream (xorshift32) so gap choice is stable per
-  // page view, like the shuffle itself.
-  let s = (seed ^ 0x9e3779b9) >>> 0 || 1;
-  const rand = (m) => {
-    s ^= s << 13;
-    s ^= s >>> 17;
-    s ^= s << 5;
-    return (s >>> 0) % m;
-  };
-
-  // Products may only land in gaps [lead .. gapCount-1]; reserving the first
-  // `lead` gaps keeps the leading tiles non-product.
-  const firstGap = lead;
-  const availGaps = gapCount - firstGap;
-  const byGap = Array.from({ length: gapCount }, () => []);
-  if (availGaps > 0 && products.length <= availGaps) {
-    // Sample a distinct random gap per product (partial Fisher-Yates) within
-    // the allowed range -- distinct gaps guarantee no two products are adjacent.
-    const gaps = Array.from({ length: availGaps }, (_, i) => firstGap + i);
-    for (let k = 0; k < products.length; k++) {
-      const j = k + rand(availGaps - k);
-      [gaps[k], gaps[j]] = [gaps[j], gaps[k]];
-      byGap[gaps[k]].push(products[k]);
-    }
-  } else if (availGaps > 0) {
-    // More products than usable gaps: spread evenly across the allowed range.
-    for (let k = 0; k < products.length; k++) byGap[firstGap + (k % availGaps)].push(products[k]);
-  } else {
-    // Degenerate fallback (only if non-products are too few to reserve gaps).
-    for (let k = 0; k < products.length; k++) byGap[gapCount - 1].push(products[k]);
-  }
-
-  const out = [];
-  for (let g = 0; g < gapCount; g++) {
-    out.push(...byGap[g]);
-    if (g < others.length) out.push(others[g]);
-  }
-  return out;
-}
-
 function Home({ lists, viewCounts, voteData, extras, trending = {}, openList, onSubmit }) {
   const [query, setQuery] = useState('');
   const [typeFilter, setTypeFilter] = useState('all');
@@ -248,8 +193,7 @@ function Home({ lists, viewCounts, voteData, extras, trending = {}, openList, on
 
   // Recompute shuffle order when the lists collection or seed changes.
   const discoverOrder = useMemo(() => {
-    // Shuffle, then enforce the no-adjacent-products rule.
-    return spaceOutProducts(seededShuffle(lists, discoverSeed), discoverSeed);
+    return seededShuffle(lists, discoverSeed);
   }, [lists, discoverSeed]);
 
   // Close the category / sort dropdowns when clicking anywhere outside.
@@ -289,7 +233,21 @@ function Home({ lists, viewCounts, voteData, extras, trending = {}, openList, on
       // Preserve the precomputed shuffle order; just keep entries that
       // survived the current filter.
       const allowed = new Set(filtered);
-      return discoverOrder.filter((l) => allowed.has(l));
+      const order = discoverOrder.filter((l) => allowed.has(l));
+      // Rule: a product list must never be the first or second tile on
+      // Discover. If one lands in slot 0 or 1, pull up the nearest later
+      // non-product list to take its place; the rest of the shuffle is
+      // otherwise untouched. The findIndex guard (-1) leaves things as-is
+      // when there aren't enough non-product lists (e.g. the Products
+      // filter is active), so the rule degrades gracefully.
+      for (let i = 0; i < 2 && i < order.length; i++) {
+        if (!isProductList(order[i])) continue;
+        const j = order.findIndex((l, k) => k > i && !isProductList(l));
+        if (j === -1) break;
+        const [moved] = order.splice(j, 1);
+        order.splice(i, 0, moved);
+      }
+      return order;
     }
     return [...filtered].sort((a, b) => {
       if (sortBy === 'trending') {
@@ -432,6 +390,15 @@ function Home({ lists, viewCounts, voteData, extras, trending = {}, openList, on
           <span><span aria-hidden="true" className="cg-dot">·</span> {totalViews.toLocaleString()} visitors</span>
         </div>
       </header>
+
+      <section style={{ padding: '0 24px 32px', maxWidth: 1200, margin: '0 auto', fontFamily: 'DM Sans, sans-serif', lineHeight: 1.6, color: COLORS.ink }}>
+        <p style={{ fontSize: 15, marginTop: 0, marginBottom: 16, maxWidth: 680 }}>
+          Source of Truths publishes ranked lists of the best in dining, travel, entertainment, and products. Each list is built from expert sources and reader votes, using Borda consensus scoring to reveal what we all agree on about the best restaurants, hotels, bars, books, films, and more.
+        </p>
+        <p style={{ fontSize: 14, marginBottom: 0, color: COLORS.faded, maxWidth: 680 }}>
+          Browse curated selections spanning dive bars and luxury resorts, the best pizza in major cities, top-rated films and TV shows, acclaimed books, and carefully selected products. Every list combines published expert rankings with live reader voting to determine the true consensus.
+        </p>
+      </section>
 
       <section style={{ padding: '32px 16px 80px', maxWidth: 1200, margin: '0 auto' }}>
         <style>{`.cg-controls{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-bottom:36px;}@media(max-width:760px){.cg-controls{grid-template-columns:1fr 1fr;}}`}</style>
@@ -890,88 +857,4 @@ function Tile({ list, rank, views, voteData, extras, onClick, showConsensus, fea
           gap: 6,
           fontFamily: 'DM Mono, monospace',
           fontSize: 11,
-          letterSpacing: '0.1em',
-          textTransform: 'uppercase',
-        }}
-      >
-        <Eye size={12} strokeWidth={2} />
-        <span>{views} visitors</span>
-      </div>
-    </button>
-  );
-}
-
-export default function HomeClient() {
-  const router = useRouter();
-  const [voteData, setVoteData] = useState({});
-  const [viewCounts, setViewCounts] = useState({});
-  const [trending, setTrending] = useState({});
-  const [extras, setExtras] = useState({});
-  const [userLists, setUserLists] = useState([]);
-  const [loaded, setLoaded] = useState(false);
-
-  useEffect(() => {
-    fetchBootstrap().then((data) => {
-      if (data) {
-        setVoteData(data.votes || {});
-        setViewCounts(data.views || {});
-        setTrending(data.trending || {});
-        setExtras(data.extras || {});
-        setUserLists(Array.isArray(data.userLists) ? data.userLists : []);
-      }
-      setLoaded(true);
-    });
-  }, []);
-
-  const allLists = useMemo(() => [...userLists, ...LISTS], [userLists]);
-
-  function openList(id) {
-    router.push(`/list/${encodeURIComponent(id)}`);
-  }
-
-  function goToSubmit() {
-    router.push('/submit');
-  }
-
-  return (
-    <div
-      style={{
-        minHeight: '100vh',
-        background: COLORS.cream,
-        color: COLORS.ink,
-        position: 'relative',
-        overflow: 'hidden',
-      }}
-    >
-      <Grain />
-      {!loaded ? (
-        <div
-          style={{
-            position: 'relative',
-            zIndex: 2,
-            minHeight: '100vh',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            fontFamily: 'Fraunces, serif',
-            fontStyle: 'italic',
-            fontSize: 18,
-            color: COLORS.faded,
-          }}
-        >
-          seeking truths...
-        </div>
-      ) : (
-        <Home
-          lists={allLists}
-          viewCounts={viewCounts}
-          voteData={voteData}
-          extras={extras}
-          trending={trending}
-          openList={openList}
-          onSubmit={goToSubmit}
-        />
-      )}
-    </div>
-  );
-}
+          letter
