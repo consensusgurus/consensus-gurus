@@ -336,13 +336,7 @@ function Home({ lists, viewCounts, voteData, extras, trending = {}, openList, on
           margin: '0 auto',
         }}
       >
-        <div
-          style={{
-            display: 'flex',
-            alignItems: 'flex-end',
-            gap: 'clamp(16px, 4vw, 28px)',
-          }}
-        >
+        <div className="cg-head">
           <h1
             style={{
               fontFamily: 'Fraunces, serif',
@@ -360,34 +354,11 @@ function Home({ lists, viewCounts, voteData, extras, trending = {}, openList, on
             <br />
             of Truths
           </h1>
-          <div style={{ flex: 1, minWidth: 0, marginBottom: 'clamp(8px, 1.4vw, 14px)' }}>
-            <div
-              style={{
-                fontFamily: 'DM Mono, monospace',
-                fontSize: 'clamp(9px, 1.1vw, 11px)',
-                letterSpacing: '0.2em',
-                textTransform: 'uppercase',
-                fontWeight: 700,
-                color: COLORS.ink,
-                textAlign: 'right',
-                marginBottom: 8,
-                lineHeight: 1.4,
-              }}
-            >
+          <div className="cg-head-col">
+            <div className="cg-tagline">
               For all the important aspects of life
             </div>
-            <div
-              style={{
-                fontFamily: 'DM Sans, sans-serif',
-                fontSize: 'clamp(11px, 1.25vw, 13px)',
-                lineHeight: 1.5,
-                color: COLORS.ink,
-                textAlign: 'right',
-                marginBottom: 10,
-                maxWidth: 520,
-                marginLeft: 'auto',
-              }}
-            >
+            <div className="cg-blurb">
               The consensus of expert critics and everyday users, weighed across 300+ sources, from Michelin, Condé Nast Traveler, The Infatuation, Eater, and Robb Report to Wirecutter, Goodreads, and Dave Portnoy. All research changes and voting is recorded in our{' '}
               <Link href="/feed" style={{ color: COLORS.ember, textDecoration: 'underline' }}>public activity ledger</Link>.
             </div>
@@ -396,6 +367,16 @@ function Home({ lists, viewCounts, voteData, extras, trending = {}, openList, on
           </div>
         </div>
         <style>{`
+          .cg-head{display:flex;align-items:flex-end;gap:clamp(16px,4vw,28px);}
+          .cg-head-col{flex:1;min-width:0;margin-bottom:clamp(8px,1.4vw,14px);}
+          .cg-tagline{font-family:'DM Mono',monospace;font-size:clamp(9px,1.1vw,11px);letter-spacing:0.2em;text-transform:uppercase;font-weight:700;color:${COLORS.ink};text-align:right;margin-bottom:8px;line-height:1.4;}
+          .cg-blurb{font-family:'DM Sans',sans-serif;font-size:clamp(11px,1.25vw,13px);line-height:1.5;color:${COLORS.ink};text-align:right;max-width:520px;margin-left:auto;margin-bottom:10px;}
+          @media(max-width:640px){
+            .cg-head{flex-direction:column;align-items:stretch;gap:14px;}
+            .cg-head-col{margin-bottom:0;}
+            .cg-tagline{text-align:left;}
+            .cg-blurb{text-align:left;max-width:none;margin-left:0;font-size:14px;}
+          }
           .cg-stats{margin-top:16px;display:flex;justify-content:flex-start;align-items:baseline;flex-wrap:nowrap;white-space:nowrap;gap:16px;font-family:'DM Mono',monospace;font-size:11px;letter-spacing:0.15em;text-transform:uppercase;color:${COLORS.faded};}
           .cg-stats .cg-dot{opacity:0.5;}
           @media(max-width:560px){.cg-stats{gap:10px;font-size:clamp(8px,2.7vw,11px);letter-spacing:0.06em;}}
