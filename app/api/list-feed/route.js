@@ -36,8 +36,6 @@ export async function GET(request) {
         .select('message,created_at')
         .eq('list_id', listId)
         .eq('feed_hidden', false)
-        .not('message', 'is', null)
-        .neq('message', '')
         .order('created_at', { ascending: false })
         .limit(12),
       supabaseAdmin

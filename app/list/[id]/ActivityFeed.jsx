@@ -345,10 +345,10 @@ export default function ActivityFeed({ list }) {
                     fontSize: 13,
                   }}
                 >
-                  {m.message}
-                  <span style={{ display: 'block', fontFamily: MONO, fontSize: 10, color: COLORS.faded, marginTop: 3 }}>
-                    Anonymous · {fmtShort(m.createdAt)}
-                  </span>
+                  <div style={{ fontFamily: MONO, fontSize: 10, letterSpacing: '0.1em', textTransform: 'uppercase', color: COLORS.faded, marginBottom: 4 }}>
+                    User submitted review request · {fmtShort(m.createdAt)}
+                  </div>
+                  {m.message && m.message.trim() ? m.message : 'No comment given.'}
                 </div>
               ))}
             </div>
