@@ -857,4 +857,88 @@ function Tile({ list, rank, views, voteData, extras, onClick, showConsensus, fea
           gap: 6,
           fontFamily: 'DM Mono, monospace',
           fontSize: 11,
-          letter
+          letterSpacing: '0.1em',
+          textTransform: 'uppercase',
+        }}
+      >
+        <Eye size={12} strokeWidth={2} />
+        <span>{views} visitors</span>
+      </div>
+    </button>
+  );
+}
+
+export default function HomeClient() {
+  const router = useRouter();
+  const [voteData, setVoteData] = useState({});
+  const [viewCounts, setViewCounts] = useState({});
+  const [trending, setTrending] = useState({});
+  const [extras, setExtras] = useState({});
+  const [userLists, setUserLists] = useState([]);
+  const [loaded, setLoaded] = useState(false);
+
+  useEffect(() => {
+    fetchBootstrap().then((data) => {
+      if (data) {
+        setVoteData(data.votes || {});
+        setViewCounts(data.views || {});
+        setTrending(data.trending || {});
+        setExtras(data.extras || {});
+        setUserLists(Array.isArray(data.userLists) ? data.userLists : []);
+      }
+      setLoaded(true);
+    });
+  }, []);
+
+  const allLists = useMemo(() => [...userLists, ...LISTS], [userLists]);
+
+  function openList(id) {
+    router.push(`/list/${encodeURIComponent(id)}`);
+  }
+
+  function goToSubmit() {
+    router.push('/submit');
+  }
+
+  return (
+    <div
+      style={{
+        minHeight: '100vh',
+        background: COLORS.cream,
+        color: COLORS.ink,
+        position: 'relative',
+        overflow: 'hidden',
+      }}
+    >
+      <Grain />
+      {!loaded ? (
+        <div
+          style={{
+            position: 'relative',
+            zIndex: 2,
+            minHeight: '100vh',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            fontFamily: 'Fraunces, serif',
+            fontStyle: 'italic',
+            fontSize: 18,
+            color: COLORS.faded,
+          }}
+        >
+          seeking truths...
+        </div>
+      ) : (
+        <Home
+          lists={allLists}
+          viewCounts={viewCounts}
+          voteData={voteData}
+          extras={extras}
+          trending={trending}
+          openList={openList}
+          onSubmit={goToSubmit}
+        />
+      )}
+    </div>
+  );
+}
