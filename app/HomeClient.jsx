@@ -360,7 +360,7 @@ function Home({ lists, viewCounts, voteData, extras, trending = {}, openList, on
               For all the important aspects of life
             </div>
             <div className="cg-blurb">
-              The consensus of expert critics and everyday users, weighed across{' '}<SourcesPopover label="300+ sources" />, from Michelin, Condé Nast Traveler, The Infatuation, Eater, and Robb Report to Wirecutter, Goodreads, and Dave Portnoy.
+              The consensus of expert critics and everyday users, weighed across{' '}<SourcesPopover />, from Michelin, Condé Nast Traveler, The Infatuation, Eater, and Robb Report to Wirecutter, Goodreads, and Dave Portnoy.
             </div>
             <div style={{ borderBottom: `1px solid ${COLORS.ink}`, marginBottom: 4 }} />
             <div style={{ borderBottom: `2px solid ${COLORS.ember}` }} />

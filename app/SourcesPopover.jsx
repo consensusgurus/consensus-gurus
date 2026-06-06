@@ -9,11 +9,14 @@ import SourcesGrid from './SourcesGrid';
 // every publication behind the consensus, with logos and how many lists each
 // appears in. Hover to open; also toggles on click and closes on Escape /
 // outside click for keyboard and touch users.
-export default function SourcesPopover({ label = '300+ sources' }) {
+export default function SourcesPopover({ label }) {
   const [open, setOpen] = useState(false);
   const wrapRef = useRef(null);
   const closeTimer = useRef(null);
   const sources = useMemo(() => getAllSources(), []);
+  // Exact, live count of distinct publications (updates as lists are added)
+  // unless an explicit label override is passed.
+  const triggerLabel = label || `${sources.length} sources`;
 
   const cancelClose = () => {
     if (closeTimer.current) { clearTimeout(closeTimer.current); closeTimer.current = null; }
@@ -63,32 +66,32 @@ export default function SourcesPopover({ label = '300+ sources' }) {
           textDecorationColor: COLORS.ember,
         }}
       >
-        {label}
+        {triggerLabel}
       </button>
 
       {open && (
+        <>
+          <style>{`
+            .sot-pop{
+              position:absolute;top:calc(100% + 10px);right:0;left:auto;
+              z-index:50;width:min(660px,86vw);max-height:62vh;overflow-y:auto;
+              background:${COLORS.cream};border:1.5px solid ${COLORS.ink};
+              box-shadow:6px 6px 0 ${COLORS.ink};padding:16px;text-align:left;cursor:default;
+            }
+            @media(max-width:640px){
+              .sot-pop{
+                position:fixed;top:64px;left:50%;right:auto;transform:translateX(-50%);
+                width:92vw;max-height:78vh;box-shadow:0 10px 40px rgba(26,22,17,0.35);
+              }
+            }
+          `}</style>
         <div
           role="dialog"
           aria-label="The sources behind the consensus"
+          className="sot-pop"
           onMouseEnter={cancelClose}
           onMouseLeave={scheduleClose}
           onClick={(e) => e.stopPropagation()}
-          style={{
-            position: 'absolute',
-            top: 'calc(100% + 10px)',
-            right: 0,
-            left: 'auto',
-            zIndex: 50,
-            width: 'min(660px, 86vw)',
-            maxHeight: '62vh',
-            overflowY: 'auto',
-            background: COLORS.cream,
-            border: `1.5px solid ${COLORS.ink}`,
-            boxShadow: `6px 6px 0 ${COLORS.ink}`,
-            padding: 16,
-            textAlign: 'left',
-            cursor: 'default',
-          }}
         >
           <div
             style={{
@@ -137,6 +140,7 @@ export default function SourcesPopover({ label = '300+ sources' }) {
           </div>
           <SourcesGrid sources={sources} />
         </div>
+        </>
       )}
     </span>
   );
