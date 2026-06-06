@@ -76,7 +76,7 @@ export default function SourcesPopover({ label }) {
               position:absolute;top:calc(100% + 10px);right:0;left:auto;
               z-index:50;width:min(660px,86vw);max-height:62vh;overflow-y:auto;
               background:${COLORS.cream};border:1.5px solid ${COLORS.ink};
-              box-shadow:6px 6px 0 ${COLORS.ink};padding:16px;text-align:left;cursor:default;
+              box-shadow:6px 6px 0 ${COLORS.ink};padding:0;text-align:left;cursor:default;
             }
             @media(max-width:640px){
               .sot-pop{
@@ -95,12 +95,16 @@ export default function SourcesPopover({ label }) {
         >
           <div
             style={{
+              position: 'sticky',
+              top: 0,
+              zIndex: 2,
+              background: COLORS.cream,
               display: 'flex',
               alignItems: 'baseline',
               justifyContent: 'space-between',
               gap: 12,
-              marginBottom: 14,
-              paddingBottom: 10,
+              margin: 0,
+              padding: '16px 16px 10px',
               borderBottom: `1px solid ${COLORS.ink}`,
             }}
           >
@@ -138,7 +142,9 @@ export default function SourcesPopover({ label }) {
               See all &#8594;
             </Link>
           </div>
-          <SourcesGrid sources={sources} />
+          <div style={{ padding: '14px 16px 16px' }}>
+            <SourcesGrid sources={sources} />
+          </div>
         </div>
         </>
       )}
