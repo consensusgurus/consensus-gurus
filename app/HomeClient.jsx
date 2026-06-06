@@ -16,6 +16,7 @@ import { voteKey, dedupeByName, getSources, stripItemScore } from '@/lib/helpers
 import { fetchBootstrap } from '@/lib/api';
 import Grain from './Grain';
 import Footer from './Footer';
+import SourcesPopover from './SourcesPopover';
 
 // Human-readable labels for each list type, shown in the top-right of tiles.
 const TYPE_LABELS = {
@@ -331,7 +332,7 @@ function Home({ lists, viewCounts, voteData, extras, trending = {}, openList, on
     <div style={{ position: 'relative', zIndex: 2 }}>
       <header
         style={{
-          padding: '48px 24px 28px',
+          padding: '48px 24px 18px',
           maxWidth: 1200,
           margin: '0 auto',
         }}
@@ -359,7 +360,7 @@ function Home({ lists, viewCounts, voteData, extras, trending = {}, openList, on
               For all the important aspects of life
             </div>
             <div className="cg-blurb">
-              The consensus of expert critics and everyday users, weighed across 300+ sources, from Michelin, Condé Nast Traveler, The Infatuation, Eater, and Robb Report to Wirecutter, Goodreads, and Dave Portnoy.
+              The consensus of expert critics and everyday users, weighed across{' '}<SourcesPopover label="300+ sources" />, from Michelin, Condé Nast Traveler, The Infatuation, Eater, and Robb Report to Wirecutter, Goodreads, and Dave Portnoy.
             </div>
             <div style={{ borderBottom: `1px solid ${COLORS.ink}`, marginBottom: 4 }} />
             <div style={{ borderBottom: `2px solid ${COLORS.ember}` }} />
@@ -387,7 +388,7 @@ function Home({ lists, viewCounts, voteData, extras, trending = {}, openList, on
         </div>
       </header>
 
-      <section style={{ padding: '32px 16px 80px', maxWidth: 1200, margin: '0 auto' }}>
+      <section style={{ padding: '10px 16px 80px', maxWidth: 1200, margin: '0 auto' }}>
         <style>{`.cg-controls{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-bottom:36px;}@media(max-width:760px){.cg-controls{grid-template-columns:1fr 1fr;}}`}</style>
         <div className="cg-controls">
           <div className="cg-c-search" style={{ position: 'relative', minWidth: 0, order: 3 }}>
