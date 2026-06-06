@@ -2,7 +2,6 @@
 import React, { useState, useEffect } from 'react';
 import {
   Flag,
-  BookMarked,
   RefreshCw,
   BarChart3,
   MessageSquare,
@@ -130,6 +129,24 @@ function Kicker({ icon, children, live, date }) {
   );
 }
 
+function TrueExpertBadge() {
+  return (
+    <span
+      style={{
+        fontSize: 10,
+        background: '#f6e3cf',
+        color: COLORS.rust,
+        padding: '1px 7px',
+        borderRadius: 10,
+        marginLeft: 6,
+        fontFamily: MONO,
+      }}
+    >
+      True Expert
+    </span>
+  );
+}
+
 function SourceCard({ s }) {
   return (
     <div
@@ -143,27 +160,14 @@ function SourceCard({ s }) {
       }}
     >
       {s.label}
-      {s.trueExpert && (
-        <span
-          style={{
-            fontSize: 10,
-            background: '#f6e3cf',
-            color: COLORS.rust,
-            padding: '1px 7px',
-            borderRadius: 10,
-            marginLeft: 6,
-            fontFamily: MONO,
-          }}
-        >
-          True Expert
-        </span>
-      )}
+      {s.trueExpert && <TrueExpertBadge />}
     </div>
   );
 }
 
-// Per-list activity feed: created time, sources (dated), re-research, live
-// votes, anonymized review requests, and public comments.
+// Per-list activity feed: live votes, research (later sources + consensus
+// changes), anonymized review requests, public comments, and a List-created
+// entry that lists the sources the ranking launched with.
 export default function ActivityFeed({ list }) {
   const [feed, setFeed] = useState({ votes: [], manager: [], research: [], comments: [], sources: [] });
   const [loaded, setLoaded] = useState(false);
@@ -222,6 +226,8 @@ export default function ActivityFeed({ list }) {
     .map(([id, s]) => ({ id, label: s.label, trueExpert: Boolean(s.trueExpert), addedAt: list.publishedAt || list.publishedDate || null }));
   const sources = apiSources.length ? apiSources : clientSources;
 
+  // Earliest add-date = the launch batch (shown in "List created"); anything
+  // added later surfaces as a bubble under "Research".
   let launchSources = sources;
   let laterSources = [];
   if (sources.length > 0) {
@@ -234,9 +240,9 @@ export default function ActivityFeed({ list }) {
         .sort((a, b) => new Date(b.addedAt) - new Date(a.addedAt));
     }
   }
-  const launchDate = launchSources.length ? launchSources[0].addedAt : null;
 
   const created = list.publishedAt || list.publishedDate;
+  const hasResearch = laterSources.length > 0 || feed.research.length > 0;
 
   return (
     <div style={{ fontFamily: SANS, color: COLORS.ink, maxWidth: 640, paddingBottom: 40 }}>
@@ -245,30 +251,33 @@ export default function ActivityFeed({ list }) {
       <div style={{ position: 'relative', paddingLeft: 23 }}>
         <div style={{ position: 'absolute', left: 5, top: 6, bottom: 6, width: 2, background: COLORS.paper }} />
 
-        {laterSources.map((s, i) => (
-          <section key={`later-${i}`} style={{ position: 'relative', marginBottom: 26 }}>
-            <Dot color={COLORS.rust} />
-            <Kicker icon={<BookMarked size={12} strokeWidth={2.5} />} date={fmtDate(s.addedAt)}>
-              Source added
-            </Kicker>
-            <div style={{ fontFamily: SERIF, fontSize: 16, margin: '3px 0 8px' }}>New source on file</div>
-            <SourceCard s={s} />
-          </section>
-        ))}
-
-        {feed.research.length > 0 && (
+        {/* Research: later-added sources + consensus changes, as bubbles */}
+        {hasResearch && (
           <section style={{ position: 'relative', marginBottom: 26 }}>
             <Dot color={COLORS.ember} />
-            <Kicker icon={<RefreshCw size={12} strokeWidth={2.5} />}>Re-researched</Kicker>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 8, marginTop: 8 }}>
+            <Kicker icon={<RefreshCw size={12} strokeWidth={2.5} />}>Research</Kicker>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 8, marginTop: 9 }}>
+              {laterSources.map((s, i) => (
+                <div key={`ls-${i}`} style={{ background: '#fff', border: `1px solid ${COLORS.paper}`, borderRadius: 7, padding: '8px 11px' }}>
+                  <div style={{ fontFamily: MONO, fontSize: 10, letterSpacing: '0.1em', textTransform: 'uppercase', color: COLORS.rust, marginBottom: 4 }}>
+                    Source added{s.addedAt ? ` · ${fmtDate(s.addedAt)}` : ''}
+                  </div>
+                  <div style={{ fontSize: 13, color: COLORS.ink }}>
+                    {s.label}
+                    {s.trueExpert && <TrueExpertBadge />}
+                  </div>
+                </div>
+              ))}
               {feed.research.map((ev, i) => {
                 const { item, tail } = researchLabel(ev);
                 return (
-                  <div key={i}>
+                  <div key={`rs-${i}`} style={{ background: '#fff', border: `1px solid ${COLORS.paper}`, borderRadius: 7, padding: '8px 11px' }}>
+                    <div style={{ fontFamily: MONO, fontSize: 10, letterSpacing: '0.1em', textTransform: 'uppercase', color: COLORS.faded, marginBottom: 4 }}>
+                      Consensus update{ev.detectedAt ? ` · ${fmtDate(ev.detectedAt)}` : ''}
+                    </div>
                     <div style={{ fontSize: 13, color: COLORS.ink }}>
                       <strong style={{ fontWeight: 500, color: COLORS.forest }}>{item}</strong> {tail}.
                     </div>
-                    <div style={{ fontFamily: MONO, fontSize: 11, color: COLORS.faded, marginTop: 2 }}>{fmtDate(ev.detectedAt)}</div>
                   </div>
                 );
               })}
@@ -276,6 +285,7 @@ export default function ActivityFeed({ list }) {
           </section>
         )}
 
+        {/* Live votes */}
         <section style={{ position: 'relative', marginBottom: 26 }}>
           <Dot color={COLORS.forest} />
           <Kicker icon={<BarChart3 size={12} strokeWidth={2.5} />} live>
@@ -315,6 +325,7 @@ export default function ActivityFeed({ list }) {
           )}
         </section>
 
+        {/* Review requests (anonymized) */}
         {feed.manager.length > 0 && (
           <section style={{ position: 'relative', marginBottom: 26 }}>
             <Dot color={COLORS.faded} />
@@ -344,33 +355,27 @@ export default function ActivityFeed({ list }) {
           </section>
         )}
 
-        {launchSources.length > 0 && (
-          <section style={{ position: 'relative', marginBottom: 26 }}>
-            <Dot color={COLORS.ink} />
-            <Kicker icon={<BookMarked size={12} strokeWidth={2.5} />} date={launchDate ? fmtDate(launchDate) : undefined}>
-              Sources
-            </Kicker>
-            <div style={{ fontFamily: SERIF, fontSize: 16, margin: '3px 0 8px' }}>
-              {launchSources.length} {launchSources.length === 1 ? 'source' : 'sources'} on file
-            </div>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 5 }}>
-              {launchSources.map((s, i) => (
-                <SourceCard key={i} s={s} />
-              ))}
-            </div>
-          </section>
-        )}
-
+        {/* List created — includes the sources the ranking launched with */}
         <section style={{ position: 'relative' }}>
           <Dot color={COLORS.ink} />
           <Kicker icon={<Flag size={12} strokeWidth={2.5} />} date={created ? fmtDate(created) : undefined}>
             List created
           </Kicker>
           <div style={{ fontFamily: SERIF, fontSize: 16, marginTop: 3 }}>Published the ranking</div>
-          <div style={{ fontSize: 13, color: COLORS.faded, marginTop: 2 }}>Seeded from expert sources and live fan voting.</div>
+          <div style={{ fontSize: 13, color: COLORS.faded, marginTop: 2 }}>
+            Seeded from {launchSources.length} {launchSources.length === 1 ? 'source' : 'sources'} and live fan voting.
+          </div>
+          {launchSources.length > 0 && (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 5, marginTop: 9 }}>
+              {launchSources.map((s, i) => (
+                <SourceCard key={i} s={s} />
+              ))}
+            </div>
+          )}
         </section>
       </div>
 
+      {/* Public comments */}
       <div style={{ borderTop: `2px solid ${COLORS.ink}`, marginTop: 28, paddingTop: 16 }}>
         <div style={{ fontFamily: SERIF, fontSize: 17, fontWeight: 600 }}>Join the conversation</div>
         <div style={{ fontSize: 12, color: COLORS.faded, marginBottom: 12 }}>
