@@ -35,6 +35,40 @@ The Consensus tab on each list is computed live using **Borda scoring**:
 
 **Key implication:** If an important item is missing from the consensus, the fix is always to improve the expert source data — ensure the item appears in multiple sources at appropriate rank positions. Fan votes alone (at 0.75x) cannot overcome a weak showing across publications.
 
+### Tier backfill: fill to 10 with next-best only when qualifying items run out
+
+Some markets simply do not contain ten items that meet a list's tier criteria (luxury hotels in
+Helsinki or Kyiv, fine dining in a small city, etc.). The default behavior is correct, the list shows
+only the genuine qualifiers and the header reads e.g. `HELSINKI · TOP 8`. But when the owner wants a
+full top 10, the remaining spots may be filled with the **next-best items that do NOT meet the tier
+criteria** — and ONLY then. This is a last resort, never a shortcut:
+
+- **Trigger condition (strict):** use backfill ONLY when the genuine tier-qualifying items number fewer
+  than 10 AND a thorough search confirms no additional qualifying items exist. If ten on-tier items
+  exist, you MUST use them, never a more convenient sub-tier pick.
+- **Backfill items occupy trailing spots ONLY.** They can never outrank a genuine qualifier. If a list
+  has 8 qualifiers, the 2 backfill items can occupy only spots 9 and 10, in that order. This is
+  enforced by the engine, not by hand (see below).
+- **They blend in silently** — no label or visual marker distinguishes a backfill item from a real one
+  on the page.
+- **Data placement: `ai` seed + `vote.items` ONLY, never a source.** Add each backfill item to the end
+  of the `ai` seed (after all the qualifiers, in best-to-worst backfill order) and to `vote.items` so
+  both reach 10. Do NOT add backfill items to any editorial/rating source: they must earn ZERO Borda so
+  they never distort the real consensus ordering.
+- **How it surfaces (engine support):** `getSources` in `lib/helpers.js` (and its three mirrors,
+  `scripts/generate-og-images.js`, `app/list/[id]/opengraph-image.js`, `app/list/[id]/twitter-image.js`)
+  pads the Borda consensus up to 10 from the `ai` seed when fewer than 10 items score. Seed items not
+  already in the consensus are appended in seed order, AFTER every scored item. Because backfill items
+  live only in the seed (never a source), they are unscored and can only land in the trailing spots,
+  exactly as required. A list with fewer than 10 seed items stays short (no padding from nothing), and a
+  list that already has 10+ scored items is unaffected.
+- **Still do the full build treatment.** A backfill item is still a real place/product: give it correct
+  parentheticals, `links`/`itemLinks`/`itemYelp`/`itemTripadvisor` as applicable, confirm it is open,
+  and write its consensus description (and a hero image if it lands in the top 3, which it normally will
+  not since it sits at the bottom).
+- **All four mirrors must stay in sync** with any change to this padding logic, like every other scoring
+  rule.
+
 ### Planned engine change: source recency multiplier
 
 Not yet implemented, but planned. Each source will carry a `publishedYear` field. The scoring engine will apply a multiplier based on how recently the source was published: current year = 1.5x, prior year = 1.0x, two years prior = 0.75x, three years prior = 0.5x (three years remains the max age). The `ai` seed and `pricing` source are exempt. Requires updating `getSources` in `lib/helpers.js` and its three mirrors (`scripts/generate-og-images.js`, `app/list/[id]/opengraph-image.js`, `app/list/[id]/twitter-image.js`). Until this ships, the data-level rules (One Bite true expert, current-year source requirement, review-count floor) are the primary mechanism for surfacing excellent new openings.

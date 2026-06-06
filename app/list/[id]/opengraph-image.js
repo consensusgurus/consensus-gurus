@@ -98,6 +98,21 @@ function computeConsensus(list) {
     return a.localeCompare(b)
   }).slice(0, 10)
 
+  // Backfill to 10 from the `ai` seed — kept in sync with lib/helpers.js.
+  if (consensusItems.length < 10) {
+    const present = new Set(consensusItems.map(i => i.toLowerCase().trim()))
+    const seed = (sources.ai && sources.ai.items) || []
+    for (const seedItem of seed) {
+      if (consensusItems.length >= 10) break
+      const name = getItemName(seedItem)
+      const key = name.toLowerCase().trim()
+      if (!present.has(key)) {
+        consensusItems.push(name)
+        present.add(key)
+      }
+    }
+  }
+
   return consensusItems
 }
 
