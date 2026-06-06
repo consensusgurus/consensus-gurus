@@ -164,7 +164,33 @@ function LinkRow({ links, pics, websiteLabel, list }) {
 // Optimized hero photo. Lazy-loaded, async-decoded WebP: the browser only
 // fetches and decodes it when the tile nears the viewport, so memory and
 // bandwidth cost stay minimal. Falls back to PhotoBox if the file 404s.
-function HeroPhoto({ photo, alt, poster }) {
+// The "best link" for an item (Purchase for products, Map otherwise) is
+// buildItemLink(item, list), already computed as links.map. rel mirrors the
+// chip row: plain for places, sponsored for affiliate/product links.
+function bestRel(list) {
+  const isPlace = (list.linkType || 'mapsCity') === 'mapsCity';
+  return isPlace ? 'noopener noreferrer' : 'noopener noreferrer sponsored';
+}
+
+// Wraps tile content (name / description) in an invisible link to the best
+// link. No underline and inherited color, so the link is not visually styled.
+// When `href` is falsy (e.g. the static share-poster capture) the children
+// render unwrapped.
+function LinkWrap({ href, rel, style, children }) {
+  if (!href) return children;
+  return (
+    <a
+      href={href}
+      target="_blank"
+      rel={rel}
+      style={{ textDecoration: 'none', color: 'inherit', display: 'block', ...style }}
+    >
+      {children}
+    </a>
+  );
+}
+
+function HeroPhoto({ photo, alt, poster, href, rel }) {
   const [failed, setFailed] = useState(false);
   const src = typeof photo === 'string' ? photo : photo?.src;
   const credit = photo && typeof photo === 'object' ? photo.credit : null;
@@ -207,16 +233,30 @@ function HeroPhoto({ photo, alt, poster }) {
       </div>
     );
   }
+  const img = (
+    <Image
+      src={src}
+      alt={alt}
+      fill
+      sizes="(max-width: 700px) 100vw, 240px"
+      onError={() => setFailed(true)}
+      style={{ objectFit: 'cover' }}
+    />
+  );
   return (
     <div style={{ position: 'relative', minHeight: 200, flexShrink: 0, overflow: 'hidden' }}>
-      <Image
-        src={src}
-        alt={alt}
-        fill
-        sizes="(max-width: 700px) 100vw, 240px"
-        onError={() => setFailed(true)}
-        style={{ objectFit: 'cover' }}
-      />
+      {href ? (
+        <a
+          href={href}
+          target="_blank"
+          rel={rel}
+          style={{ position: 'absolute', inset: 0, display: 'block', textDecoration: 'none' }}
+        >
+          {img}
+        </a>
+      ) : (
+        img
+      )}
       {credit && (
         <a
           href={creditUrl || undefined}
@@ -297,6 +337,10 @@ function HeroTile({ item, rank, list, desc, pics, poster }) {
   const { displayName, locality } = parseItem(item);
   const links = buildLinks(item, list);
   const heroSrc = (HERO_IMAGES[list.id] || {})[item];
+  // No links in the static share-poster capture; live tiles link name /
+  // description / photo to the best link (Purchase for products, Map otherwise).
+  const href = poster ? null : links.map;
+  const rel = bestRel(list);
 
   return (
     <div
@@ -308,7 +352,7 @@ function HeroTile({ item, rank, list, desc, pics, poster }) {
         ...tileChrome,
       }}
     >
-      {heroSrc ? <HeroPhoto photo={heroSrc} alt={displayName} poster={poster} /> : <PhotoBox />}
+      {heroSrc ? <HeroPhoto photo={heroSrc} alt={displayName} poster={poster} href={href} rel={rel} /> : <PhotoBox />}
       <div
         style={{
           padding: '20px 22px 18px',
@@ -357,31 +401,35 @@ function HeroTile({ item, rank, list, desc, pics, poster }) {
               </span>
             )}
           </div>
-          <p
-            style={{
-              fontFamily: 'Fraunces, serif',
-              fontSize: 22,
-              fontWeight: 700,
-              lineHeight: 1.15,
-              margin: '0 0 8px',
-              fontVariationSettings: '"SOFT" 100',
-              color: COLORS.ink,
-            }}
-          >
-            {displayName}
-          </p>
-          <p
-            style={{
-              fontFamily: 'DM Sans, sans-serif',
-              fontSize: 14,
-              color: desc ? '#5a5045' : COLORS.faded,
-              fontStyle: desc ? 'normal' : 'italic',
-              lineHeight: 1.55,
-              margin: '0 0 4px',
-            }}
-          >
-            {desc || 'Wordsmithing a perfect description'}
-          </p>
+          <LinkWrap href={href} rel={rel}>
+            <p
+              style={{
+                fontFamily: 'Fraunces, serif',
+                fontSize: 22,
+                fontWeight: 700,
+                lineHeight: 1.15,
+                margin: '0 0 8px',
+                fontVariationSettings: '"SOFT" 100',
+                color: COLORS.ink,
+              }}
+            >
+              {displayName}
+            </p>
+          </LinkWrap>
+          <LinkWrap href={href} rel={rel}>
+            <p
+              style={{
+                fontFamily: 'DM Sans, sans-serif',
+                fontSize: 14,
+                color: desc ? '#5a5045' : COLORS.faded,
+                fontStyle: desc ? 'normal' : 'italic',
+                lineHeight: 1.55,
+                margin: '0 0 4px',
+              }}
+            >
+              {desc || 'Wordsmithing a perfect description'}
+            </p>
+          </LinkWrap>
         </div>
         <LinkRow links={links} pics={pics} websiteLabel="Website" list={list} />
       </div>
@@ -390,9 +438,11 @@ function HeroTile({ item, rank, list, desc, pics, poster }) {
 }
 
 // Small tile used for ranks 4-9.
-function SmallTile({ item, rank, list, desc, pics }) {
+function SmallTile({ item, rank, list, desc, pics, poster }) {
   const { displayName, locality } = parseItem(item);
   const links = buildLinks(item, list);
+  const href = poster ? null : links.map;
+  const rel = bestRel(list);
 
   return (
     <div
@@ -440,32 +490,35 @@ function SmallTile({ item, rank, list, desc, pics }) {
           </span>
         )}
       </div>
-      <p
-        style={{
-          fontFamily: 'Fraunces, serif',
-          fontSize: 16,
-          fontWeight: 700,
-          lineHeight: 1.2,
-          margin: '0 0 6px',
-          fontVariationSettings: '"SOFT" 100',
-          color: COLORS.ink,
-        }}
-      >
-        {displayName}
-      </p>
-      <p
-        style={{
-          fontFamily: 'DM Sans, sans-serif',
-          fontSize: 14,
-          color: desc ? '#5a5045' : COLORS.faded,
-          fontStyle: desc ? 'normal' : 'italic',
-          lineHeight: 1.5,
-          margin: '0 0 10px',
-          flex: 1,
-        }}
-      >
-        {desc || 'Wordsmithing a perfect description'}
-      </p>
+      <LinkWrap href={href} rel={rel}>
+        <p
+          style={{
+            fontFamily: 'Fraunces, serif',
+            fontSize: 16,
+            fontWeight: 700,
+            lineHeight: 1.2,
+            margin: '0 0 6px',
+            fontVariationSettings: '"SOFT" 100',
+            color: COLORS.ink,
+          }}
+        >
+          {displayName}
+        </p>
+      </LinkWrap>
+      <LinkWrap href={href} rel={rel} style={{ flex: 1 }}>
+        <p
+          style={{
+            fontFamily: 'DM Sans, sans-serif',
+            fontSize: 14,
+            color: desc ? '#5a5045' : COLORS.faded,
+            fontStyle: desc ? 'normal' : 'italic',
+            lineHeight: 1.5,
+            margin: '0 0 10px',
+          }}
+        >
+          {desc || 'Wordsmithing a perfect description'}
+        </p>
+      </LinkWrap>
       <div style={{ marginTop: 'auto', paddingTop: 10 }}>
         <LinkRow links={links} pics={pics} websiteLabel="Website" list={list} />
       </div>
@@ -574,12 +627,12 @@ export function ListOverviewPoster({ list, voteData, extras, variant }) {
           <HeroTile key={item} item={item} rank={i + 1} list={list} desc={descs[item]} pics={pics} poster />
         ))}
         {gridItems.map((item, i) => (
-          <SmallTile key={item} item={item} rank={i + 4} list={list} desc={descs[item]} pics={pics} />
+          <SmallTile key={item} item={item} rank={i + 4} list={list} desc={descs[item]} pics={pics} poster />
         ))}
         {tenthItem && (
           <div style={{ gridColumn: 'span 2', display: 'flex', justifyContent: 'center' }}>
             <div style={{ width: 'calc(50% - 7px)' }}>
-              <SmallTile item={tenthItem} rank={10} list={list} desc={descs[tenthItem]} pics={pics} />
+              <SmallTile item={tenthItem} rank={10} list={list} desc={descs[tenthItem]} pics={pics} poster />
             </div>
           </div>
         )}
