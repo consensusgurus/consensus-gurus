@@ -187,9 +187,16 @@ function Home({ lists, viewCounts, voteData, extras, trending = {}, openList, on
   // the user interacts with the page (so the order doesn't reshuffle
   // when typing in search), but a reload picks a new seed and a new
   // order.
-  const [discoverSeed] = useState(
-    () => (Date.now() ^ Math.floor(Math.random() * 0xffffffff)) >>> 0
-  );
+  // SSR + first client render use a fixed seed so the server-rendered HTML and
+  // the initial hydration produce the same Discover order (no hydration
+  // mismatch). After mount we swap in a fresh random seed so Discover still
+  // reshuffles on every page load for users.
+  const [mounted, setMounted] = useState(false);
+  const [discoverSeed, setDiscoverSeed] = useState(1);
+  useEffect(() => {
+    setMounted(true);
+    setDiscoverSeed((Date.now() ^ Math.floor(Math.random() * 0xffffffff)) >>> 0);
+  }, []);
 
   // Recompute shuffle order when the lists collection or seed changes.
   const discoverOrder = useMemo(() => {
@@ -277,13 +284,16 @@ function Home({ lists, viewCounts, voteData, extras, trending = {}, openList, on
   // layout up to 5 columns. Re-randomizes whenever the sorted set changes.
   const featuredIds = useMemo(() => {
     const set = new Set();
+    // Skip the random featured tiles during SSR / first paint so the server
+    // HTML matches initial hydration; they appear right after mount.
+    if (!mounted) return set;
     let cooldown = 0;
     for (let i = 0; i < sorted.length; i++) {
       if (cooldown > 0) { cooldown--; continue; }
       if (Math.random() < 0.5) { set.add(sorted[i].id); cooldown = 5; }
     }
     return set;
-  }, [sorted]);
+  }, [sorted, mounted]);
 
   const totalViews = Object.values(viewCounts).reduce((a, b) => a + b, 0);
 
@@ -866,7 +876,6 @@ export default function HomeClient() {
   const [trending, setTrending] = useState({});
   const [extras, setExtras] = useState({});
   const [userLists, setUserLists] = useState([]);
-  const [loaded, setLoaded] = useState(false);
 
   useEffect(() => {
     fetchBootstrap().then((data) => {
@@ -877,7 +886,6 @@ export default function HomeClient() {
         setExtras(data.extras || {});
         setUserLists(Array.isArray(data.userLists) ? data.userLists : []);
       }
-      setLoaded(true);
     });
   }, []);
 
@@ -902,34 +910,15 @@ export default function HomeClient() {
       }}
     >
       <Grain />
-      {!loaded ? (
-        <div
-          style={{
-            position: 'relative',
-            zIndex: 2,
-            minHeight: '100vh',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            fontFamily: 'Fraunces, serif',
-            fontStyle: 'italic',
-            fontSize: 18,
-            color: COLORS.faded,
-          }}
-        >
-          seeking truths...
-        </div>
-      ) : (
-        <Home
-          lists={allLists}
-          viewCounts={viewCounts}
-          voteData={voteData}
-          extras={extras}
-          trending={trending}
-          openList={openList}
-          onSubmit={goToSubmit}
-        />
-      )}
+      <Home
+        lists={allLists}
+        viewCounts={viewCounts}
+        voteData={voteData}
+        extras={extras}
+        trending={trending}
+        openList={openList}
+        onSubmit={goToSubmit}
+      />
     </div>
   );
 }
