@@ -359,8 +359,7 @@ function Home({ lists, viewCounts, voteData, extras, trending = {}, openList, on
               For all the important aspects of life
             </div>
             <div className="cg-blurb">
-              The consensus of expert critics and everyday users, weighed across 300+ sources, from Michelin, Condé Nast Traveler, The Infatuation, Eater, and Robb Report to Wirecutter, Goodreads, and Dave Portnoy. All research changes and voting is recorded in our{' '}
-              <Link href="/feed" style={{ color: COLORS.ember, textDecoration: 'underline' }}>public activity ledger</Link>.
+              The consensus of expert critics and everyday users, weighed across 300+ sources, from Michelin, Condé Nast Traveler, The Infatuation, Eater, and Robb Report to Wirecutter, Goodreads, and Dave Portnoy. All research changes and voting are recorded in our public activity ledger.
             </div>
             <div style={{ borderBottom: `1px solid ${COLORS.ink}`, marginBottom: 4 }} />
             <div style={{ borderBottom: `2px solid ${COLORS.ember}` }} />
