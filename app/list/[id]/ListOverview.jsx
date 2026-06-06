@@ -872,7 +872,7 @@ export default function ListOverview({ list, voteData, extras, viewCount, onBack
               }}
             >
               <PenLine size={12} strokeWidth={2.5} />
-              Speak With The Manager
+              Request Review
             </button>
             <a
               href={`/snapshot/${encodeURIComponent(list.id)}`}
@@ -971,12 +971,12 @@ export default function ListOverview({ list, voteData, extras, viewCount, onBack
             </button>
           )}
           <button
-            onClick={onOpenRankings}
+            onClick={onOpenSources}
             style={{
               background: COLORS.ink,
               color: COLORS.cream,
               border: `1.5px solid ${COLORS.ink}`,
-              padding: '13px 32px',
+              padding: '13px 28px',
               fontFamily: 'DM Mono, monospace',
               fontSize: 10,
               letterSpacing: '0.18em',
@@ -986,12 +986,36 @@ export default function ListOverview({ list, voteData, extras, viewCount, onBack
               display: 'flex',
               alignItems: 'center',
               gap: 10,
-              boxShadow: `3px 3px 0 ${COLORS.ember}`,
+              boxShadow: `3px 3px 0 ${COLORS.faded}`,
             }}
           >
-            Source Detail &amp; Voting
+            Source Detail
             <ArrowRight size={13} strokeWidth={2.5} />
           </button>
+          {showVote && (
+            <button
+              onClick={onOpenVote}
+              style={{
+                background: COLORS.ember,
+                color: COLORS.cream,
+                border: `1.5px solid ${COLORS.ember}`,
+                padding: '13px 28px',
+                fontFamily: 'DM Mono, monospace',
+                fontSize: 10,
+                letterSpacing: '0.18em',
+                textTransform: 'uppercase',
+                fontWeight: 600,
+                cursor: 'pointer',
+                display: 'flex',
+                alignItems: 'center',
+                gap: 10,
+                boxShadow: `3px 3px 0 ${COLORS.ink}`,
+              }}
+            >
+              Vote
+              <ArrowRight size={13} strokeWidth={2.5} />
+            </button>
+          )}
         </div>
         <div style={{ marginTop: 44, paddingTop: 24, borderTop: `2px solid ${COLORS.ink}` }}>
           <div style={{ fontFamily: 'Fraunces, serif', fontSize: 26, fontWeight: 700, fontStyle: 'italic', color: COLORS.ink, margin: '0 0 18px', fontVariationSettings: '"SOFT" 100' }}>

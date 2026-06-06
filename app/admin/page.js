@@ -18,7 +18,7 @@ export default async function AdminPage() {
     redirect('/admin/login');
   }
 
-  const [submissionsRes, extrasRes, votesRes, complaintsRes, voteEventsRes, alertsRes, trendingRes, totalViewsRes] = await Promise.all([
+  const [submissionsRes, extrasRes, votesRes, complaintsRes, voteEventsRes, alertsRes, trendingRes, totalViewsRes, listCommentsRes, voteCountsRes] = await Promise.all([
     supabaseAdmin
       .from('user_lists')
       .select('*')
@@ -47,6 +47,8 @@ export default async function AdminPage() {
       .order('detected_at', { ascending: false }),
     supabaseAdmin.rpc('trending_views', { p_hours: 24 }),
     supabaseAdmin.from('views').select('list_id, count'),
+    supabaseAdmin.from('list_comments').select('id, list_id, name, body, created_at').order('created_at', { ascending: false }),
+    supabaseAdmin.from('vote_events').select('list_id, item_name'),
   ]);
 
   if (submissionsRes.error) {
@@ -107,11 +109,24 @@ export default async function AdminPage() {
   if (voteEventsRes && voteEventsRes.error) {
     console.error('admin vote_events fetch error', voteEventsRes.error);
   }
+  const voteCountMap = new Map();
+  for (const ev of (voteCountsRes && voteCountsRes.data) || []) {
+    const k = `${ev.list_id}::${ev.item_name}`;
+    voteCountMap.set(k, (voteCountMap.get(k) || 0) + 1);
+  }
   const voteStandings = (votesRes.data || []).map((row) => ({
     listId: row.list_id,
     itemName: row.item_name,
     score: row.score,
+    votes: voteCountMap.get(`${row.list_id}::${row.item_name}`) || 0,
     updatedAt: row.updated_at,
+  }));
+  const comments = ((listCommentsRes && listCommentsRes.data) || []).map((row) => ({
+    id: row.id,
+    listId: row.list_id,
+    name: row.name,
+    body: row.body,
+    createdAt: row.created_at,
   }));
   const voteEvents = ((voteEventsRes && voteEventsRes.data) || []).map((row) => ({
     id: row.id,
@@ -181,6 +196,7 @@ export default async function AdminPage() {
       initialComplaints={complaints}
       initialVoteStandings={voteStandings}
       initialVoteEvents={voteEvents}
+      initialComments={comments}
       initialAlerts={alerts}
       initialViews24h={views24h}
     />

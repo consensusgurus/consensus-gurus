@@ -39,7 +39,7 @@ export async function GET(request) {
   }
 
   try {
-    const [votesRes, extrasRes, snapsRes, alertsRes] = await Promise.all([
+    const [votesRes, extrasRes, snapsRes, alertsRes, seenRes] = await Promise.all([
       supabaseAdmin.from('votes').select('list_id,item_name,score'),
       supabaseAdmin.from('extras').select('list_id,item_name'),
       supabaseAdmin.from('consensus_snapshots').select('list_id,top10'),
@@ -47,6 +47,7 @@ export async function GET(request) {
         .from('consensus_alerts')
         .select('list_id,item_name,change_type')
         .eq('resolved', false),
+      supabaseAdmin.from('list_sources_seen').select('list_id,source_id'),
     ]);
 
     // Vote scores keyed as `${listId}::${itemNameLowerCase}` (matches voteKey).
@@ -135,11 +136,30 @@ export async function GET(request) {
       .upsert(snapshotUpserts, { onConflict: 'list_id' });
     if (up.error) throw up.error;
 
+    // Source-added tracking: stamp first_seen_at for any (list, source) not
+    // yet recorded. ignoreDuplicates keeps existing timestamps untouched, so a
+    // source is dated the first cron run after it was added.
+    const seenKeys = new Set((seenRes.data || []).map((r) => `${r.list_id}::${r.source_id}`));
+    const sourceRows = [];
+    for (const list of LISTS) {
+      for (const sid of Object.keys(list.sources || {})) {
+        if (sid === 'ai') continue;
+        const k = `${list.id}::${sid}`;
+        if (!seenKeys.has(k)) { sourceRows.push({ list_id: list.id, source_id: sid }); seenKeys.add(k); }
+      }
+    }
+    if (sourceRows.length > 0) {
+      await supabaseAdmin
+        .from('list_sources_seen')
+        .upsert(sourceRows, { onConflict: 'list_id,source_id', ignoreDuplicates: true });
+    }
+
     return NextResponse.json({
       ok: true,
       listsChecked: LISTS.length,
       newAlerts: newAlerts.length,
       alerts: newAlerts,
+      newSourcesLogged: sourceRows.length,
     });
   } catch (err) {
     console.error('consensus-check error', err);

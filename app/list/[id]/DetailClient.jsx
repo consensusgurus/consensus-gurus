@@ -666,7 +666,7 @@ function ListDetail({ list, viewCount, voteData, userVotes, extras, relatedLists
               }}
             >
               <PenLine size={12} strokeWidth={2.5} />
-              Speak With The Manager
+              Request Review
             </button>
             <a
               href={`/snapshot/${encodeURIComponent(list.id)}`}
@@ -1245,17 +1245,19 @@ function ListDetail({ list, viewCount, voteData, userVotes, extras, relatedLists
                     <span>{entry.item}</span>
                     {!linksDisabled && <ExternalLink size={11} strokeWidth={2} style={{ opacity: 0.4, flexShrink: 0, marginLeft: 4 }} />}
                   </ItemLink>
-                  <div
-                    style={{
-                      fontFamily: 'DM Mono, monospace',
-                      fontSize: 10,
-                      letterSpacing: '0.12em',
-                      textTransform: 'uppercase',
-                      color: isSelected ? COLORS.cream : entry.score > 0 ? '#2d5016' : entry.score < 0 ? COLORS.ember : COLORS.faded,
-                    }}
-                  >
-                    {entry.score > 0 ? `+${entry.score}` : entry.score} {Math.abs(entry.score) === 1 ? 'point' : 'points'}
-                  </div>
+                  {isSelected && (
+                    <div
+                      style={{
+                        fontFamily: 'DM Mono, monospace',
+                        fontSize: 10,
+                        letterSpacing: '0.12em',
+                        textTransform: 'uppercase',
+                        color: COLORS.cream,
+                      }}
+                    >
+                      {selectedSlot === '1' ? 'Your 1st pick' : selectedSlot === '2' ? 'Your 2nd pick' : 'Your 3rd pick'}
+                    </div>
+                  )}
                 </div>
               );
             })}

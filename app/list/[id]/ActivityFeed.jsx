@@ -1,5 +1,5 @@
 'use client';
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   Flag,
   BookMarked,
@@ -8,7 +8,6 @@ import {
   MessageSquare,
   ArrowUp,
   ArrowDown,
-  Plus,
 } from 'lucide-react';
 import { COLORS } from '@/lib/data';
 
@@ -32,7 +31,6 @@ function fmtShort(iso) {
   }
 }
 
-// Relative time for the live streams: "12s ago", "4m ago", "3h ago", else date.
 function fmtRelative(iso) {
   try {
     const then = new Date(iso).getTime();
@@ -50,15 +48,25 @@ function fmtRelative(iso) {
   }
 }
 
+function dayKey(iso) {
+  try {
+    return new Date(iso).toISOString().slice(0, 10);
+  } catch {
+    return '';
+  }
+}
+
 function initials(name) {
   if (!name) return '?';
-  return name
-    .trim()
-    .split(/\s+/)
-    .map((w) => w[0])
-    .join('')
-    .slice(0, 2)
-    .toUpperCase();
+  return name.trim().split(/\s+/).map((w) => w[0]).join('').slice(0, 2).toUpperCase();
+}
+
+// 1st pick = delta 3, 2nd = delta 2, 3rd = delta 1 (see DetailClient points map).
+function rankWord(delta) {
+  if (delta === 3) return '1st';
+  if (delta === 2) return '2nd';
+  if (delta === 1) return '3rd';
+  return null;
 }
 
 function researchLabel(ev) {
@@ -89,7 +97,7 @@ function Dot({ color }) {
   );
 }
 
-function Kicker({ icon, children, live }) {
+function Kicker({ icon, children, live, date }) {
   return (
     <div
       style={{
@@ -105,6 +113,7 @@ function Kicker({ icon, children, live }) {
     >
       {icon}
       <span>{children}</span>
+      {date && <span style={{ opacity: 0.8 }}>· {date}</span>}
       {live && (
         <span
           style={{
@@ -121,13 +130,46 @@ function Kicker({ icon, children, live }) {
   );
 }
 
+function SourceCard({ s }) {
+  return (
+    <div
+      style={{
+        background: '#fff',
+        border: `1px solid ${COLORS.paper}`,
+        borderRadius: 7,
+        padding: '7px 11px',
+        fontSize: 13,
+        color: COLORS.ink,
+      }}
+    >
+      {s.label}
+      {s.trueExpert && (
+        <span
+          style={{
+            fontSize: 10,
+            background: '#f6e3cf',
+            color: COLORS.rust,
+            padding: '1px 7px',
+            borderRadius: 10,
+            marginLeft: 6,
+            fontFamily: MONO,
+          }}
+        >
+          True Expert
+        </span>
+      )}
+    </div>
+  );
+}
+
+// Per-list activity feed: created time, sources (dated), re-research, live
+// votes, anonymized review requests, and public comments.
 export default function ActivityFeed({ list }) {
-  const [feed, setFeed] = useState({ votes: [], manager: [], research: [], comments: [] });
+  const [feed, setFeed] = useState({ votes: [], manager: [], research: [], comments: [], sources: [] });
   const [loaded, setLoaded] = useState(false);
   const [name, setName] = useState('');
   const [body, setBody] = useState('');
   const [posting, setPosting] = useState(false);
-  const commentsRef = useRef(null);
 
   async function load() {
     try {
@@ -138,6 +180,7 @@ export default function ActivityFeed({ list }) {
         manager: data.manager || [],
         research: data.research || [],
         comments: data.comments || [],
+        sources: data.sources || [],
       });
     } catch {
       /* leave streams empty on error */
@@ -148,7 +191,6 @@ export default function ActivityFeed({ list }) {
 
   useEffect(() => {
     load();
-    // Light polling so the live streams refresh while the tab is open.
     const t = setInterval(load, 20000);
     return () => clearInterval(t);
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -158,7 +200,6 @@ export default function ActivityFeed({ list }) {
     const text = body.trim();
     if (!text || posting) return;
     setPosting(true);
-    // Optimistic: show it immediately, then reconcile on next poll.
     const optimistic = { name: name.trim() || null, body: text, createdAt: new Date().toISOString() };
     setFeed((f) => ({ ...f, comments: [optimistic, ...f.comments] }));
     setBody('');
@@ -175,93 +216,46 @@ export default function ActivityFeed({ list }) {
     setPosting(false);
   }
 
-  // Sources from the list data (client-side), skipping the ai seed.
-  const sources = Object.entries(list.sources || {})
-    .filter(([id]) => id !== 'ai')
-    .map(([, s]) => s)
-    .filter((s) => s && s.label);
+  const apiSources = feed.sources || [];
+  const clientSources = Object.entries(list.sources || {})
+    .filter(([id, s]) => id !== 'ai' && s && s.label)
+    .map(([id, s]) => ({ id, label: s.label, trueExpert: Boolean(s.trueExpert), addedAt: list.publishedAt || list.publishedDate || null }));
+  const sources = apiSources.length ? apiSources : clientSources;
+
+  let launchSources = sources;
+  let laterSources = [];
+  if (sources.length > 0) {
+    const days = sources.map((s) => dayKey(s.addedAt)).filter(Boolean);
+    const baseline = days.length ? days.sort()[0] : null;
+    if (baseline) {
+      launchSources = sources.filter((s) => dayKey(s.addedAt) <= baseline);
+      laterSources = sources
+        .filter((s) => dayKey(s.addedAt) > baseline)
+        .sort((a, b) => new Date(b.addedAt) - new Date(a.addedAt));
+    }
+  }
+  const launchDate = launchSources.length ? launchSources[0].addedAt : null;
 
   const created = list.publishedAt || list.publishedDate;
 
-  const cardStyle = {
-    background: '#fff',
-    border: `1px solid ${COLORS.paper}`,
-    borderRadius: 7,
-    padding: '7px 11px',
-    fontSize: 13,
-    color: COLORS.ink,
-  };
-
   return (
-    <div style={{ fontFamily: SANS, color: COLORS.ink, maxWidth: 640 }}>
+    <div style={{ fontFamily: SANS, color: COLORS.ink, maxWidth: 640, paddingBottom: 40 }}>
       <style>{`@keyframes sotpulse{0%,100%{opacity:1}50%{opacity:.25}}`}</style>
 
       <div style={{ position: 'relative', paddingLeft: 23 }}>
-        <div
-          style={{
-            position: 'absolute',
-            left: 5,
-            top: 6,
-            bottom: 6,
-            width: 2,
-            background: COLORS.paper,
-          }}
-        />
+        <div style={{ position: 'absolute', left: 5, top: 6, bottom: 6, width: 2, background: COLORS.paper }} />
 
-        {/* 1. List created */}
-        <section style={{ position: 'relative', marginBottom: 26 }}>
-          <Dot color={COLORS.ink} />
-          <Kicker icon={<Flag size={12} strokeWidth={2.5} />}>List created</Kicker>
-          <div style={{ fontFamily: SERIF, fontSize: 16, marginTop: 3 }}>Published the ranking</div>
-          <div style={{ fontSize: 13, color: COLORS.faded, marginTop: 2 }}>
-            Seeded from {sources.length} {sources.length === 1 ? 'source' : 'sources'} and live fan voting.
-          </div>
-          {created && (
-            <div style={{ fontFamily: MONO, fontSize: 11, color: COLORS.faded, marginTop: 4 }}>
-              {fmtDate(created)}
-            </div>
-          )}
-        </section>
-
-        {/* 2. Sources + dates */}
-        {sources.length > 0 && (
-          <section style={{ position: 'relative', marginBottom: 26 }}>
-            <Dot color={COLORS.forest} />
-            <Kicker icon={<BookMarked size={12} strokeWidth={2.5} />}>Sources</Kicker>
-            <div style={{ fontFamily: SERIF, fontSize: 16, marginTop: 3 }}>
-              {sources.length} {sources.length === 1 ? 'source' : 'sources'} on file
-            </div>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 5, marginTop: 8 }}>
-              {sources.map((s, i) => (
-                <div key={i} style={{ ...cardStyle, display: 'flex', alignItems: 'center', gap: 8 }}>
-                  <span style={{ flex: 1 }}>
-                    {s.label}
-                    {s.trueExpert && (
-                      <span
-                        style={{
-                          fontSize: 10,
-                          background: '#f6e3cf',
-                          color: COLORS.rust,
-                          padding: '1px 7px',
-                          borderRadius: 10,
-                          marginLeft: 6,
-                          fontFamily: MONO,
-                        }}
-                      >
-                        True Expert
-                      </span>
-                    )}
-                    {s.unordered && (
-                      <span style={{ fontSize: 11, color: COLORS.faded, marginLeft: 6 }}>unordered</span>
-                    )}
-                  </span>
-                </div>
-              ))}
-            </div>
+        {laterSources.map((s, i) => (
+          <section key={`later-${i}`} style={{ position: 'relative', marginBottom: 26 }}>
+            <Dot color={COLORS.rust} />
+            <Kicker icon={<BookMarked size={12} strokeWidth={2.5} />} date={fmtDate(s.addedAt)}>
+              Source added
+            </Kicker>
+            <div style={{ fontFamily: SERIF, fontSize: 16, margin: '3px 0 8px' }}>New source on file</div>
+            <SourceCard s={s} />
           </section>
-        )}
+        ))}
 
-        {/* 3. Re-research / consensus changes */}
         {feed.research.length > 0 && (
           <section style={{ position: 'relative', marginBottom: 26 }}>
             <Dot color={COLORS.ember} />
@@ -274,9 +268,7 @@ export default function ActivityFeed({ list }) {
                     <div style={{ fontSize: 13, color: COLORS.ink }}>
                       <strong style={{ fontWeight: 500, color: COLORS.forest }}>{item}</strong> {tail}.
                     </div>
-                    <div style={{ fontFamily: MONO, fontSize: 11, color: COLORS.faded, marginTop: 2 }}>
-                      {fmtDate(ev.detectedAt)}
-                    </div>
+                    <div style={{ fontFamily: MONO, fontSize: 11, color: COLORS.faded, marginTop: 2 }}>{fmtDate(ev.detectedAt)}</div>
                   </div>
                 );
               })}
@@ -284,26 +276,30 @@ export default function ActivityFeed({ list }) {
           </section>
         )}
 
-        {/* 4. Live votes */}
         <section style={{ position: 'relative', marginBottom: 26 }}>
-          <Dot color={COLORS.rust} />
+          <Dot color={COLORS.forest} />
           <Kicker icon={<BarChart3 size={12} strokeWidth={2.5} />} live>
             Live votes
           </Kicker>
           {feed.votes.length > 0 ? (
             <div style={{ display: 'flex', flexDirection: 'column', gap: 6, marginTop: 8 }}>
               {feed.votes.slice(0, 8).map((v, i) => {
-                const up = v.delta >= 0;
+                const rw = rankWord(v.delta);
                 return (
                   <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 13 }}>
-                    {up ? (
+                    {v.delta >= 0 ? (
                       <ArrowUp size={14} strokeWidth={2.5} color={COLORS.forest} />
                     ) : (
                       <ArrowDown size={14} strokeWidth={2.5} color={COLORS.ember} />
                     )}
                     <span>
-                      Someone {up ? 'upvoted' : 'downvoted'}{' '}
+                      Someone voted{' '}
                       <strong style={{ fontWeight: 500 }}>{v.itemName}</strong>
+                      {rw && (
+                        <span style={{ fontFamily: MONO, fontSize: 10, color: COLORS.rust, marginLeft: 6 }}>
+                          {rw} pick
+                        </span>
+                      )}
                     </span>
                     <span style={{ fontFamily: MONO, fontSize: 10, color: COLORS.faded, marginLeft: 'auto' }}>
                       {fmtRelative(v.createdAt)}
@@ -319,11 +315,10 @@ export default function ActivityFeed({ list }) {
           )}
         </section>
 
-        {/* 5. Manager notes (anonymized) */}
         {feed.manager.length > 0 && (
-          <section style={{ position: 'relative', marginBottom: 8 }}>
-            <Dot color="#7f77dd" />
-            <Kicker icon={<MessageSquare size={12} strokeWidth={2.5} />}>From the suggestion box</Kicker>
+          <section style={{ position: 'relative', marginBottom: 26 }}>
+            <Dot color={COLORS.faded} />
+            <Kicker icon={<MessageSquare size={12} strokeWidth={2.5} />}>Review requests</Kicker>
             <div style={{ fontSize: 12, color: COLORS.faded, marginTop: 2, fontStyle: 'italic' }}>
               Notes sent privately to the editors. No names or emails shown.
             </div>
@@ -333,7 +328,7 @@ export default function ActivityFeed({ list }) {
                   key={i}
                   style={{
                     background: COLORS.paper,
-                    borderLeft: '3px solid #7f77dd',
+                    borderLeft: `3px solid ${COLORS.faded}`,
                     borderRadius: '0 7px 7px 0',
                     padding: '8px 11px',
                     fontSize: 13,
@@ -348,23 +343,48 @@ export default function ActivityFeed({ list }) {
             </div>
           </section>
         )}
+
+        {launchSources.length > 0 && (
+          <section style={{ position: 'relative', marginBottom: 26 }}>
+            <Dot color={COLORS.ink} />
+            <Kicker icon={<BookMarked size={12} strokeWidth={2.5} />} date={launchDate ? fmtDate(launchDate) : undefined}>
+              Sources
+            </Kicker>
+            <div style={{ fontFamily: SERIF, fontSize: 16, margin: '3px 0 8px' }}>
+              {launchSources.length} {launchSources.length === 1 ? 'source' : 'sources'} on file
+            </div>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 5 }}>
+              {launchSources.map((s, i) => (
+                <SourceCard key={i} s={s} />
+              ))}
+            </div>
+          </section>
+        )}
+
+        <section style={{ position: 'relative' }}>
+          <Dot color={COLORS.ink} />
+          <Kicker icon={<Flag size={12} strokeWidth={2.5} />} date={created ? fmtDate(created) : undefined}>
+            List created
+          </Kicker>
+          <div style={{ fontFamily: SERIF, fontSize: 16, marginTop: 3 }}>Published the ranking</div>
+          <div style={{ fontSize: 13, color: COLORS.faded, marginTop: 2 }}>Seeded from expert sources and live fan voting.</div>
+        </section>
       </div>
 
-      {/* 6. Public comments */}
-      <div style={{ borderTop: `2px solid ${COLORS.ink}`, marginTop: 22, paddingTop: 16 }}>
+      <div style={{ borderTop: `2px solid ${COLORS.ink}`, marginTop: 28, paddingTop: 16 }}>
         <div style={{ fontFamily: SERIF, fontSize: 17, fontWeight: 600 }}>Join the conversation</div>
         <div style={{ fontSize: 12, color: COLORS.faded, marginBottom: 12 }}>
           Public comment. Name is optional, posts as "Guest" if left blank.
         </div>
 
-        <div ref={commentsRef} style={{ display: 'flex', flexDirection: 'column', gap: 9, marginBottom: 14 }}>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 9, marginBottom: 14 }}>
           {feed.comments.length === 0 && loaded && (
             <div style={{ fontSize: 13, color: COLORS.faded }}>No comments yet. Start the conversation.</div>
           )}
           {feed.comments.map((c, i) => {
             const guest = !c.name;
             return (
-              <div key={i} style={{ display: 'flex', gap: 10 }}>
+              <div key={c.id || i} style={{ display: 'flex', gap: 10 }}>
                 <div
                   style={{
                     flexShrink: 0,
@@ -382,20 +402,10 @@ export default function ActivityFeed({ list }) {
                 >
                   {guest ? '?' : initials(c.name)}
                 </div>
-                <div
-                  style={{
-                    background: '#fff',
-                    border: `1px solid ${COLORS.paper}`,
-                    borderRadius: 9,
-                    padding: '8px 12px',
-                    flex: 1,
-                  }}
-                >
+                <div style={{ background: '#fff', border: `1px solid ${COLORS.paper}`, borderRadius: 9, padding: '8px 12px', flex: 1 }}>
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline' }}>
                     <span style={{ fontSize: 13, fontWeight: 500 }}>{c.name || 'Guest'}</span>
-                    <span style={{ fontFamily: MONO, fontSize: 10, color: COLORS.faded }}>
-                      {fmtRelative(c.createdAt)}
-                    </span>
+                    <span style={{ fontFamily: MONO, fontSize: 10, color: COLORS.faded }}>{fmtRelative(c.createdAt)}</span>
                   </div>
                   <div style={{ fontSize: 13, marginTop: 2, whiteSpace: 'pre-wrap' }}>{c.body}</div>
                 </div>
@@ -410,19 +420,7 @@ export default function ActivityFeed({ list }) {
             onChange={(e) => setName(e.target.value)}
             placeholder="Your name (optional)"
             maxLength={120}
-            style={{
-              width: '100%',
-              boxSizing: 'border-box',
-              border: 'none',
-              borderBottom: `1px solid ${COLORS.paper}`,
-              background: 'transparent',
-              fontFamily: SANS,
-              fontSize: 13,
-              padding: '5px 2px',
-              marginBottom: 8,
-              outline: 'none',
-              color: COLORS.ink,
-            }}
+            style={{ width: '100%', boxSizing: 'border-box', border: 'none', borderBottom: `1px solid ${COLORS.paper}`, background: 'transparent', fontFamily: SANS, fontSize: 13, padding: '5px 2px', marginBottom: 8, outline: 'none', color: COLORS.ink }}
           />
           <textarea
             value={body}
@@ -430,35 +428,13 @@ export default function ActivityFeed({ list }) {
             placeholder="Add a comment…"
             rows={2}
             maxLength={1000}
-            style={{
-              width: '100%',
-              boxSizing: 'border-box',
-              border: 'none',
-              background: 'transparent',
-              fontFamily: SANS,
-              fontSize: 13,
-              padding: 2,
-              resize: 'vertical',
-              outline: 'none',
-              color: COLORS.ink,
-            }}
+            style={{ width: '100%', boxSizing: 'border-box', border: 'none', background: 'transparent', fontFamily: SANS, fontSize: 13, padding: 2, resize: 'vertical', outline: 'none', color: COLORS.ink }}
           />
           <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: 6 }}>
             <button
               onClick={postComment}
               disabled={posting || !body.trim()}
-              style={{
-                background: COLORS.ember,
-                color: '#fff',
-                border: 'none',
-                fontFamily: MONO,
-                fontSize: 12,
-                letterSpacing: '0.08em',
-                padding: '7px 16px',
-                borderRadius: 7,
-                cursor: posting || !body.trim() ? 'default' : 'pointer',
-                opacity: posting || !body.trim() ? 0.5 : 1,
-              }}
+              style={{ background: COLORS.ember, color: '#fff', border: 'none', fontFamily: MONO, fontSize: 12, letterSpacing: '0.08em', padding: '7px 16px', borderRadius: 7, cursor: posting || !body.trim() ? 'default' : 'pointer', opacity: posting || !body.trim() ? 0.5 : 1 }}
             >
               {posting ? 'Posting…' : 'Post comment'}
             </button>

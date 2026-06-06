@@ -29,14 +29,15 @@ function mapsPlaceUrl(name) {
   return `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(cleaned)}`;
 }
 
-export default function AdminClient({ initialLists, initialExtras = [], initialComplaints = [], initialVoteStandings = [], initialVoteEvents = [], initialAlerts = [], initialViews24h = [] }) {
+export default function AdminClient({ initialLists, initialExtras = [], initialComplaints = [], initialVoteStandings = [], initialVoteEvents = [], initialComments = [], initialAlerts = [], initialViews24h = [] }) {
   const router = useRouter();
   const [lists, setLists] = useState(initialLists);
   const [extras, setExtras] = useState(initialExtras);
   const [alerts, setAlerts] = useState(initialAlerts);
   const [complaints, setComplaints] = useState(initialComplaints);
-  const [voteStandings] = useState(initialVoteStandings);
-  const [voteEvents] = useState(initialVoteEvents);
+  const [voteStandings, setVoteStandings] = useState(initialVoteStandings);
+  const [voteEvents, setVoteEvents] = useState(initialVoteEvents);
+  const [comments, setComments] = useState(initialComments);
   const [views24h] = useState(initialViews24h);
   const [tab, setTab] = useState('pending');
   const [busy, setBusy] = useState({});
@@ -52,10 +53,42 @@ export default function AdminClient({ initialLists, initialExtras = [], initialC
     [extras]
   );
   const complaintsCount = complaints.length;
+  const commentsCount = comments.length;
   const views24hTotal = useMemo(
     () => views24h.reduce((n, v) => n + (v.views24h || 0), 0),
     [views24h]
   );
+
+  async function deleteComment(id) {
+    const key = `cm-${id}`;
+    if (busy[key]) return;
+    setBusy((b) => ({ ...b, [key]: true }));
+    const res = await fetch('/api/admin/comments/delete', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ id }),
+    });
+    if (res.ok) setComments((prev) => prev.filter((c) => c.id !== id));
+    else alert('Could not delete. Try again.');
+    setBusy((b) => ({ ...b, [key]: false }));
+  }
+
+  async function deleteVote(listId, itemName) {
+    const key = `v-${listId}::${itemName}`;
+    if (busy[key]) return;
+    if (!confirm(`Delete all votes for "${itemName}" on ${listId}?`)) return;
+    setBusy((b) => ({ ...b, [key]: true }));
+    const res = await fetch('/api/admin/votes/delete', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ listId, itemName }),
+    });
+    if (res.ok) {
+      setVoteStandings((prev) => prev.filter((s) => !(s.listId === listId && s.itemName === itemName)));
+      setVoteEvents((prev) => prev.filter((e) => !(e.listId === listId && e.itemName === itemName)));
+    } else alert('Could not delete votes. Try again.');
+    setBusy((b) => ({ ...b, [key]: false }));
+  }
 
   async function dismissComplaint(id) {
     const key = `c-${id}`;
@@ -314,6 +347,9 @@ export default function AdminClient({ initialLists, initialExtras = [], initialC
           <TabButton active={tab === 'votes'} onClick={() => setTab('votes')}>
             Votes <span style={{ opacity: 0.6 }}>{voteStandings.length}</span>
           </TabButton>
+          <TabButton active={tab === 'comments'} onClick={() => setTab('comments')}>
+            Comments <span style={{ opacity: 0.6 }}>{commentsCount}</span>
+          </TabButton>
           <TabButton active={tab === 'research'} onClick={() => setTab('research')}>
             Research <span style={{ opacity: 0.6 }}>{alerts.length}</span>
           </TabButton>
@@ -326,8 +362,10 @@ export default function AdminClient({ initialLists, initialExtras = [], initialC
           <ViewsPanel views={views24h} total={views24hTotal} />
         ) : tab === 'research' ? (
           <ResearchPanel alerts={alerts} busy={busy} onResolve={resolveAlert} />
+        ) : tab === 'comments' ? (
+          <CommentsPanel comments={comments} busy={busy} onDelete={deleteComment} />
         ) : tab === 'votes' ? (
-          <VotesPanel standings={voteStandings} events={voteEvents} />
+          <VotesPanel standings={voteStandings} events={voteEvents} busy={busy} onDelete={deleteVote} />
         ) : tab === 'complaints' ? (
           <ComplaintsPanel complaints={complaints} busy={busy} onDismiss={dismissComplaint} />
         ) : tab === 'extras' ? (
@@ -567,12 +605,28 @@ function ResearchPanel({ alerts, busy, onResolve }) {
   );
 }
 
-function VotesPanel({ standings, events }) {
+function Metric({ label, value }) {
+  return (
+    <div style={{ background: COLORS.paper, borderRadius: 8, padding: '12px 18px', minWidth: 120 }}>
+      <div style={{ fontFamily: 'DM Mono, monospace', fontSize: 10, letterSpacing: '0.12em', textTransform: 'uppercase', color: COLORS.faded }}>{label}</div>
+      <div style={{ fontFamily: 'Fraunces, serif', fontSize: 26, fontWeight: 700, color: COLORS.ink, lineHeight: 1.1, marginTop: 2 }}>{value}</div>
+    </div>
+  );
+}
+
+function VotesPanel({ standings, events, busy, onDelete }) {
   const hasStandings = standings && standings.length > 0;
   const hasEvents = events && events.length > 0;
   const rowBorder = `1px solid ${COLORS.ink}22`;
+  const totalVotes = (standings || []).reduce((n, s) => n + (Number(s.votes) || 0), 0);
+  const netPoints = (standings || []).reduce((n, s) => n + (Number(s.score) || 0), 0);
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 28 }}>
+      <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap' }}>
+        <Metric label="Total votes" value={totalVotes.toLocaleString()} />
+        <Metric label="Net points" value={netPoints >= 0 ? `+${netPoints.toLocaleString()}` : netPoints.toLocaleString()} />
+        <Metric label="Items with votes" value={(standings || []).length.toLocaleString()} />
+      </div>
       <div>
         <h3 style={{ fontFamily: 'Fraunces, serif', fontWeight: 700, fontSize: 20, margin: '0 0 12px' }}>Current standings</h3>
         {hasStandings ? (
@@ -580,19 +634,34 @@ function VotesPanel({ standings, events }) {
             <div style={{ display: 'flex', fontFamily: 'DM Mono, monospace', fontSize: 10, letterSpacing: '0.14em', textTransform: 'uppercase', color: COLORS.faded, padding: '10px 14px', borderBottom: `1.5px solid ${COLORS.ink}` }}>
               <span style={{ flex: 2 }}>List</span>
               <span style={{ flex: 2 }}>Item</span>
-              <span style={{ flex: '0 0 70px', textAlign: 'right' }}>Score</span>
-              <span style={{ flex: '0 0 150px', textAlign: 'right' }}>Updated</span>
+              <span style={{ flex: '0 0 60px', textAlign: 'right' }}>Votes</span>
+              <span style={{ flex: '0 0 60px', textAlign: 'right' }}>Net</span>
+              <span style={{ flex: '0 0 120px', textAlign: 'right' }}>Updated</span>
+              <span style={{ flex: '0 0 70px' }} />
             </div>
-            {standings.map((s, i) => (
-              <div key={`${s.listId}::${s.itemName}::${i}`} style={{ display: 'flex', alignItems: 'center', fontFamily: 'DM Sans, sans-serif', fontSize: 13, color: COLORS.ink, padding: '9px 14px', borderBottom: i < standings.length - 1 ? rowBorder : 'none' }}>
-                <span style={{ flex: 2, minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                  <Link href={`/list/${s.listId}`} style={{ color: COLORS.ember, textDecoration: 'none' }}>{s.listId}</Link>
-                </span>
-                <span style={{ flex: 2, minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{s.itemName}</span>
-                <span style={{ flex: '0 0 70px', textAlign: 'right', fontWeight: 700, fontFamily: 'DM Mono, monospace', color: s.score >= 0 ? COLORS.forest : COLORS.ember }}>{s.score >= 0 ? `+${s.score}` : s.score}</span>
-                <span style={{ flex: '0 0 150px', textAlign: 'right', fontFamily: 'DM Mono, monospace', fontSize: 11, color: COLORS.faded }}>{s.updatedAt ? formatDate(s.updatedAt) : '—'}</span>
-              </div>
-            ))}
+            {standings.map((s, i) => {
+              const bkey = `v-${s.listId}::${s.itemName}`;
+              return (
+                <div key={`${s.listId}::${s.itemName}::${i}`} style={{ display: 'flex', alignItems: 'center', fontFamily: 'DM Sans, sans-serif', fontSize: 13, color: COLORS.ink, padding: '9px 14px', borderBottom: i < standings.length - 1 ? rowBorder : 'none' }}>
+                  <span style={{ flex: 2, minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                    <Link href={`/list/${s.listId}`} style={{ color: COLORS.ember, textDecoration: 'none' }}>{s.listId}</Link>
+                  </span>
+                  <span style={{ flex: 2, minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{s.itemName}</span>
+                  <span style={{ flex: '0 0 60px', textAlign: 'right', fontFamily: 'DM Mono, monospace', color: COLORS.faded }}>{Number(s.votes) || 0}</span>
+                  <span style={{ flex: '0 0 60px', textAlign: 'right', fontWeight: 700, fontFamily: 'DM Mono, monospace', color: s.score >= 0 ? COLORS.forest : COLORS.ember }}>{s.score >= 0 ? `+${s.score}` : s.score}</span>
+                  <span style={{ flex: '0 0 120px', textAlign: 'right', fontFamily: 'DM Mono, monospace', fontSize: 11, color: COLORS.faded }}>{s.updatedAt ? formatDate(s.updatedAt) : '—'}</span>
+                  <span style={{ flex: '0 0 70px', textAlign: 'right' }}>
+                    <button
+                      onClick={() => onDelete && onDelete(s.listId, s.itemName)}
+                      disabled={busy && busy[bkey]}
+                      style={{ cursor: 'pointer', background: 'transparent', color: COLORS.ember, border: `1px solid ${COLORS.ember}`, padding: '4px 10px', fontFamily: 'DM Mono, monospace', fontSize: 10, letterSpacing: '0.1em', textTransform: 'uppercase', opacity: busy && busy[bkey] ? 0.5 : 1 }}
+                    >
+                      Delete
+                    </button>
+                  </span>
+                </div>
+              );
+            })}
           </div>
         ) : (
           <p style={{ fontFamily: 'DM Sans, sans-serif', fontStyle: 'italic', fontSize: 14, color: COLORS.faded }}>No votes recorded yet.</p>
@@ -601,14 +670,14 @@ function VotesPanel({ standings, events }) {
       <div>
         <h3 style={{ fontFamily: 'Fraunces, serif', fontWeight: 700, fontSize: 20, margin: '0 0 4px' }}>Recent vote log</h3>
         <p style={{ fontFamily: 'DM Sans, sans-serif', fontSize: 13, color: COLORS.faded, margin: '0 0 12px' }}>
-          The {events.length} most recent vote events. Individual events are logged from when the vote log was deployed onward.
+          The {events.length} most recent vote events. A vote for 1st place is +3, 2nd is +2, 3rd is +1.
         </p>
         {hasEvents ? (
           <div style={{ border: `1.5px solid ${COLORS.ink}` }}>
             {events.map((e, i) => (
               <div key={e.id} style={{ display: 'flex', alignItems: 'center', gap: 12, fontFamily: 'DM Sans, sans-serif', fontSize: 13, color: COLORS.ink, padding: '9px 14px', borderBottom: i < events.length - 1 ? rowBorder : 'none' }}>
                 <span style={{ flex: '0 0 150px', fontFamily: 'DM Mono, monospace', fontSize: 11, color: COLORS.faded }}>{formatDate(e.createdAt)}</span>
-                <span style={{ flex: '0 0 44px', fontWeight: 700, fontFamily: 'DM Mono, monospace', color: e.delta >= 0 ? COLORS.forest : COLORS.ember }}>{e.delta > 0 ? `+${e.delta}` : e.delta}</span>
+                <span style={{ flex: '0 0 70px', fontWeight: 700, fontFamily: 'DM Mono, monospace', color: e.delta >= 0 ? COLORS.forest : COLORS.ember }}>{e.delta === 3 ? '1st' : e.delta === 2 ? '2nd' : e.delta === 1 ? '3rd' : e.delta > 0 ? `+${e.delta}` : e.delta}</span>
                 <span style={{ flex: 2, minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{e.itemName}</span>
                 <span style={{ flex: 1, minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                   <Link href={`/list/${e.listId}`} style={{ color: COLORS.ember, textDecoration: 'none' }}>{e.listId}</Link>
@@ -620,6 +689,38 @@ function VotesPanel({ standings, events }) {
           <p style={{ fontFamily: 'DM Sans, sans-serif', fontStyle: 'italic', fontSize: 14, color: COLORS.faded }}>No vote events logged yet.</p>
         )}
       </div>
+    </div>
+  );
+}
+
+function CommentsPanel({ comments, busy, onDelete }) {
+  if (!comments || comments.length === 0) {
+    return <p style={{ fontFamily: 'DM Sans, sans-serif', fontStyle: 'italic', fontSize: 14, color: COLORS.faded }}>No public comments yet.</p>;
+  }
+  const rowBorder = `1px solid ${COLORS.ink}22`;
+  return (
+    <div style={{ border: `1.5px solid ${COLORS.ink}` }}>
+      {comments.map((c, i) => {
+        const bkey = `cm-${c.id}`;
+        return (
+          <div key={c.id} style={{ display: 'flex', gap: 12, alignItems: 'flex-start', padding: '12px 14px', borderBottom: i < comments.length - 1 ? rowBorder : 'none' }}>
+            <div style={{ flex: 1, minWidth: 0 }}>
+              <div style={{ fontFamily: 'DM Mono, monospace', fontSize: 11, color: COLORS.faded }}>
+                <Link href={`/list/${c.listId}`} style={{ color: COLORS.ember, textDecoration: 'none' }}>{c.listId}</Link>
+                {' · '}{c.name || 'Guest'}{' · '}{formatDate(c.createdAt)}
+              </div>
+              <div style={{ fontFamily: 'DM Sans, sans-serif', fontSize: 14, color: COLORS.ink, marginTop: 4, whiteSpace: 'pre-wrap' }}>{c.body}</div>
+            </div>
+            <button
+              onClick={() => onDelete && onDelete(c.id)}
+              disabled={busy && busy[bkey]}
+              style={{ flexShrink: 0, cursor: 'pointer', background: 'transparent', color: COLORS.ember, border: `1px solid ${COLORS.ember}`, padding: '5px 12px', fontFamily: 'DM Mono, monospace', fontSize: 10, letterSpacing: '0.1em', textTransform: 'uppercase', opacity: busy && busy[bkey] ? 0.5 : 1 }}
+            >
+              Delete
+            </button>
+          </div>
+        );
+      })}
     </div>
   );
 }
