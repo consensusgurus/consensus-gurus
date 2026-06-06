@@ -161,6 +161,13 @@ function getListTimestamp(list) {
 // single page view (typing in the search bar, hovering a tile) but
 // reshuffles on every fresh page load since the seed comes from
 // Date.now() captured once on mount.
+// Deterministic thousands separator. The locale number formatter can group
+// digits differently on the build-time server vs the browser, which causes a
+// hydration mismatch. This formats identically in both environments.
+function fmtNum(n) {
+  return String(n).replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+}
+
 function seededShuffle(arr, seed) {
   const out = arr.slice();
   let s = seed >>> 0 || 1;
@@ -396,8 +403,8 @@ function Home({ lists, viewCounts, voteData, extras, trending = {}, openList, on
         `}</style>
         <div className="cg-stats">
           <span>{lists.length} lists</span>
-          <span><span aria-hidden="true" className="cg-dot">·</span> {totalVotes.toLocaleString()} votes</span>
-          <span><span aria-hidden="true" className="cg-dot">·</span> {totalViews.toLocaleString()} visitors</span>
+          <span><span aria-hidden="true" className="cg-dot">·</span> {fmtNum(totalVotes)} votes</span>
+          <span><span aria-hidden="true" className="cg-dot">·</span> {fmtNum(totalViews)} visitors</span>
         </div>
       </header>
 
