@@ -172,7 +172,7 @@ function SourceCard({ s }) {
 // changes), anonymized review requests, public comments, and a List-created
 // entry that lists the sources the ranking launched with.
 export default function ActivityFeed({ list }) {
-  const [feed, setFeed] = useState({ votes: [], manager: [], research: [], comments: [], sources: [], editorNotes: [] });
+  const [feed, setFeed] = useState({ votes: [], manager: [], research: [], comments: [], sources: [], editorNotes: [], removedSources: [] });
   const [loaded, setLoaded] = useState(false);
   const [name, setName] = useState('');
   const [body, setBody] = useState('');
@@ -189,6 +189,7 @@ export default function ActivityFeed({ list }) {
         comments: data.comments || [],
         sources: data.sources || [],
         editorNotes: data.editorNotes || [],
+        removedSources: data.removedSources || [],
       });
     } catch {
       /* leave streams empty on error */
@@ -246,7 +247,7 @@ export default function ActivityFeed({ list }) {
   }
 
   const created = list.publishedAt || list.publishedDate;
-  const hasResearch = laterSources.length > 0 || feed.research.length > 0;
+  const hasResearch = laterSources.length > 0 || feed.research.length > 0 || feed.removedSources.length > 0;
 
   return (
     <div style={{ fontFamily: SANS, color: COLORS.ink, maxWidth: 640, paddingBottom: 40 }}>
@@ -284,6 +285,16 @@ export default function ActivityFeed({ list }) {
                   <div style={{ fontSize: 13, color: COLORS.ink }}>
                     {s.label}
                     {s.trueExpert && <TrueExpertBadge />}
+                  </div>
+                </div>
+              ))}
+              {feed.removedSources.map((s, i) => (
+                <div key={`rm-${i}`} style={{ background: '#fff', border: `1px solid ${COLORS.paper}`, borderRadius: 7, padding: '8px 11px' }}>
+                  <div style={{ fontFamily: MONO, fontSize: 10, letterSpacing: '0.1em', textTransform: 'uppercase', color: COLORS.faded, marginBottom: 4 }}>
+                    Source removed{s.removedAt ? ` · ${fmtDate(s.removedAt)}` : ''}
+                  </div>
+                  <div style={{ fontSize: 13, color: COLORS.faded, textDecoration: 'line-through' }}>
+                    {s.label}
                   </div>
                 </div>
               ))}
