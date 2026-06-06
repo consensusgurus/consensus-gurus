@@ -391,15 +391,6 @@ function Home({ lists, viewCounts, voteData, extras, trending = {}, openList, on
         </div>
       </header>
 
-      <section style={{ padding: '0 24px 32px', maxWidth: 1200, margin: '0 auto', fontFamily: 'DM Sans, sans-serif', lineHeight: 1.6, color: COLORS.ink }}>
-        <p style={{ fontSize: 15, marginTop: 0, marginBottom: 16, maxWidth: 680 }}>
-          Source of Truths publishes ranked lists of the best in dining, travel, entertainment, and products. Each list is built from expert sources and reader votes, using Borda consensus scoring to reveal what we all agree on about the best restaurants, hotels, bars, books, films, and more.
-        </p>
-        <p style={{ fontSize: 14, marginBottom: 0, color: COLORS.faded, maxWidth: 680 }}>
-          Browse curated selections spanning dive bars and luxury resorts, the best pizza in major cities, top-rated films and TV shows, acclaimed books, and carefully selected products. Every list combines published expert rankings with live reader voting to determine the true consensus.
-        </p>
-      </section>
-
       <section style={{ padding: '32px 16px 80px', maxWidth: 1200, margin: '0 auto' }}>
         <style>{`.cg-controls{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-bottom:36px;}@media(max-width:760px){.cg-controls{grid-template-columns:1fr 1fr;}}`}</style>
         <div className="cg-controls">
