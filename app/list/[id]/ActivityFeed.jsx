@@ -140,6 +140,8 @@ function TrueExpertBadge() {
         borderRadius: 10,
         marginLeft: 6,
         fontFamily: MONO,
+        whiteSpace: 'nowrap',
+        display: 'inline-block',
       }}
     >
       True Expert
