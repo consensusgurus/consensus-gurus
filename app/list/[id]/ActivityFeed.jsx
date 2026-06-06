@@ -351,6 +351,11 @@ export default function ActivityFeed({ list }) {
                     User submitted review request · {fmtShort(m.createdAt)}
                   </div>
                   {m.message && m.message.trim() ? m.message : 'No comment given.'}
+                  {m.editorResponse && (
+                    <div style={{ marginTop: 6, paddingTop: 6, borderTop: `1px solid ${COLORS.faded}33`, fontSize: 13 }}>
+                      <strong style={{ fontWeight: 700, color: COLORS.ember }}>Editor:</strong> {m.editorResponse}
+                    </div>
+                  )}
                 </div>
               ))}
             </div>
@@ -415,6 +420,11 @@ export default function ActivityFeed({ list }) {
                     <span style={{ fontFamily: MONO, fontSize: 10, color: COLORS.faded }}>{fmtRelative(c.createdAt)}</span>
                   </div>
                   <div style={{ fontSize: 13, marginTop: 2, whiteSpace: 'pre-wrap' }}>{c.body}</div>
+                  {c.editorResponse && (
+                    <div style={{ marginTop: 6, paddingTop: 6, borderTop: `1px solid ${COLORS.paper}`, fontSize: 13 }}>
+                      <strong style={{ fontWeight: 700, color: COLORS.ember }}>Editor:</strong> {c.editorResponse}
+                    </div>
+                  )}
                 </div>
               </div>
             );

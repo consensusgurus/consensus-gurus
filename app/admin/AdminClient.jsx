@@ -90,6 +90,27 @@ export default function AdminClient({ initialLists, initialExtras = [], initialC
     setBusy((b) => ({ ...b, [key]: false }));
   }
 
+  async function respond(kind, id, current) {
+    const text = window.prompt('Editor response (shown publicly as "Editor: ..."). Leave blank to clear:', current || '');
+    if (text === null) return;
+    const key = 'r-' + kind + '-' + id;
+    if (busy[key]) return;
+    setBusy((b) => ({ ...b, [key]: true }));
+    const res = await fetch('/api/admin/respond', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ kind, id, response: text }),
+    });
+    if (res.ok) {
+      const val = text.trim() || null;
+      if (kind === 'comment') setComments((prev) => prev.map((c) => (c.id === id ? { ...c, editorResponse: val } : c)));
+      else setComplaints((prev) => prev.map((c) => (c.id === id ? { ...c, editorResponse: val } : c)));
+    } else {
+      alert('Could not save response. Try again.');
+    }
+    setBusy((b) => ({ ...b, [key]: false }));
+  }
+
   async function dismissComplaint(id) {
     const key = `c-${id}`;
     if (busy[key]) return;
@@ -363,11 +384,11 @@ export default function AdminClient({ initialLists, initialExtras = [], initialC
         ) : tab === 'research' ? (
           <ResearchPanel alerts={alerts} busy={busy} onResolve={resolveAlert} />
         ) : tab === 'comments' ? (
-          <CommentsPanel comments={comments} busy={busy} onDelete={deleteComment} />
+          <CommentsPanel comments={comments} busy={busy} onDelete={deleteComment} onRespond={respond} />
         ) : tab === 'votes' ? (
           <VotesPanel standings={voteStandings} events={voteEvents} busy={busy} onDelete={deleteVote} />
         ) : tab === 'complaints' ? (
-          <ComplaintsPanel complaints={complaints} busy={busy} onDismiss={dismissComplaint} />
+          <ComplaintsPanel complaints={complaints} busy={busy} onDismiss={dismissComplaint} onRespond={respond} />
         ) : tab === 'extras' ? (
           <ExtrasPanel
             extras={extras}
@@ -693,7 +714,7 @@ function VotesPanel({ standings, events, busy, onDelete }) {
   );
 }
 
-function CommentsPanel({ comments, busy, onDelete }) {
+function CommentsPanel({ comments, busy, onDelete, onRespond }) {
   if (!comments || comments.length === 0) {
     return <p style={{ fontFamily: 'DM Sans, sans-serif', fontStyle: 'italic', fontSize: 14, color: COLORS.faded }}>No public comments yet.</p>;
   }
@@ -710,14 +731,27 @@ function CommentsPanel({ comments, busy, onDelete }) {
                 {' · '}{c.name || 'Guest'}{' · '}{formatDate(c.createdAt)}
               </div>
               <div style={{ fontFamily: 'DM Sans, sans-serif', fontSize: 14, color: COLORS.ink, marginTop: 4, whiteSpace: 'pre-wrap' }}>{c.body}</div>
+              {c.editorResponse && (
+                <div style={{ marginTop: 6, fontFamily: 'DM Sans, sans-serif', fontSize: 13, color: COLORS.ink, background: COLORS.cream, borderLeft: '3px solid ' + COLORS.ember, padding: '6px 10px' }}>
+                  <strong style={{ fontWeight: 700 }}>Editor:</strong> {c.editorResponse}
+                </div>
+              )}
             </div>
-            <button
-              onClick={() => onDelete && onDelete(c.id)}
-              disabled={busy && busy[bkey]}
-              style={{ flexShrink: 0, cursor: 'pointer', background: 'transparent', color: COLORS.ember, border: `1px solid ${COLORS.ember}`, padding: '5px 12px', fontFamily: 'DM Mono, monospace', fontSize: 10, letterSpacing: '0.1em', textTransform: 'uppercase', opacity: busy && busy[bkey] ? 0.5 : 1 }}
-            >
-              Delete
-            </button>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 6, flexShrink: 0 }}>
+              <button
+                onClick={() => onRespond && onRespond('comment', c.id, c.editorResponse)}
+                style={{ cursor: 'pointer', background: 'transparent', color: COLORS.ink, border: '1px solid ' + COLORS.ink, padding: '5px 12px', fontFamily: 'DM Mono, monospace', fontSize: 10, letterSpacing: '0.1em', textTransform: 'uppercase' }}
+              >
+                {c.editorResponse ? 'Edit reply' : 'Reply'}
+              </button>
+              <button
+                onClick={() => onDelete && onDelete(c.id)}
+                disabled={busy && busy[bkey]}
+                style={{ cursor: 'pointer', background: 'transparent', color: COLORS.ember, border: '1px solid ' + COLORS.ember, padding: '5px 12px', fontFamily: 'DM Mono, monospace', fontSize: 10, letterSpacing: '0.1em', textTransform: 'uppercase', opacity: busy && busy[bkey] ? 0.5 : 1 }}
+              >
+                Delete
+              </button>
+            </div>
           </div>
         );
       })}
@@ -725,7 +759,7 @@ function CommentsPanel({ comments, busy, onDelete }) {
   );
 }
 
-function ComplaintsPanel({ complaints, busy, onDismiss }) {
+function ComplaintsPanel({ complaints, busy, onDismiss, onRespond }) {
   if (!complaints || complaints.length === 0) {
     return (
       <div
@@ -762,6 +796,11 @@ function ComplaintsPanel({ complaints, busy, onDismiss }) {
                   Requested new research (no message left).
                 </p>
               )}
+              {c.editorResponse && (
+                <p style={{ fontFamily: 'DM Sans, sans-serif', fontSize: 14, color: COLORS.ink, margin: '10px 0 0', background: COLORS.cream, borderLeft: '3px solid ' + COLORS.ember, padding: '8px 12px', whiteSpace: 'pre-wrap' }}>
+                  <strong style={{ fontWeight: 700 }}>Editor:</strong> {c.editorResponse}
+                </p>
+              )}
               {(c.name || c.email) && (
                 <p style={{ fontFamily: 'DM Mono, monospace', fontSize: 12, color: COLORS.faded, margin: '10px 0 0' }}>
                   {c.name ? c.name : 'Anonymous'}
@@ -771,25 +810,21 @@ function ComplaintsPanel({ complaints, busy, onDismiss }) {
                 </p>
               )}
             </div>
-            <button
-              onClick={() => onDismiss(c.id)}
-              disabled={!!busy[`c-${c.id}`]}
-              style={{
-                flexShrink: 0,
-                cursor: 'pointer',
-                background: 'transparent',
-                border: `1.5px solid ${COLORS.ink}`,
-                color: COLORS.ink,
-                padding: '8px 14px',
-                fontFamily: 'DM Mono, monospace',
-                fontSize: 10,
-                letterSpacing: '0.15em',
-                textTransform: 'uppercase',
-                fontWeight: 600,
-              }}
-            >
-              Dismiss
-            </button>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 8, flexShrink: 0 }}>
+              <button
+                onClick={() => onRespond && onRespond('review', c.id, c.editorResponse)}
+                style={{ cursor: 'pointer', background: 'transparent', border: '1.5px solid ' + COLORS.ember, color: COLORS.ember, padding: '8px 14px', fontFamily: 'DM Mono, monospace', fontSize: 10, letterSpacing: '0.15em', textTransform: 'uppercase', fontWeight: 600 }}
+              >
+                {c.editorResponse ? 'Edit reply' : 'Reply'}
+              </button>
+              <button
+                onClick={() => onDismiss(c.id)}
+                disabled={!!busy['c-' + c.id]}
+                style={{ cursor: 'pointer', background: 'transparent', border: '1.5px solid ' + COLORS.ink, color: COLORS.ink, padding: '8px 14px', fontFamily: 'DM Mono, monospace', fontSize: 10, letterSpacing: '0.15em', textTransform: 'uppercase', fontWeight: 600 }}
+              >
+                Dismiss
+              </button>
+            </div>
           </div>
         </div>
       ))}

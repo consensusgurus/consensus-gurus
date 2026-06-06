@@ -79,6 +79,7 @@ function renderEvent(e, i) {
     return (
       <Event key={i} icon={<MessageSquare size={12} strokeWidth={2.5} />} color={COLORS.ember} kicker={`Comment · ${e.name || 'Guest'}`} date={fmtDate(e.ts)}>
         "{e.body}" on <ListLink id={e.listId}>{e.listTitle}</ListLink>
+        {e.editorResponse && (<div style={{ marginTop: 5, paddingTop: 5, borderTop: `1px solid ${COLORS.paper}` }}><strong style={{ fontWeight: 700, color: COLORS.ember }}>Editor:</strong> {e.editorResponse}</div>)}
       </Event>
     );
   }
@@ -86,6 +87,7 @@ function renderEvent(e, i) {
     return (
       <Event key={i} icon={<PenLine size={12} strokeWidth={2.5} />} color={COLORS.faded} kicker="Review request" date={fmtDate(e.ts)}>
         User submitted review request on <ListLink id={e.listId}>{e.listTitle}</ListLink>: {e.message ? `"${e.message}"` : 'No comment given.'}
+        {e.editorResponse && (<div style={{ marginTop: 5, paddingTop: 5, borderTop: `1px solid ${COLORS.paper}` }}><strong style={{ fontWeight: 700, color: COLORS.ember }}>Editor:</strong> {e.editorResponse}</div>)}
       </Event>
     );
   }

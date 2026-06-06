@@ -140,12 +140,19 @@ export async function GET(request) {
     // yet recorded. ignoreDuplicates keeps existing timestamps untouched, so a
     // source is dated the first cron run after it was added.
     const seenKeys = new Set((seenRes.data || []).map((r) => `${r.list_id}::${r.source_id}`));
+    const nowIso = new Date().toISOString();
     const sourceRows = [];
     for (const list of LISTS) {
-      for (const sid of Object.keys(list.sources || {})) {
-        if (sid === 'ai') continue;
+      const sids = Object.keys(list.sources || {}).filter((sid) => sid !== 'ai');
+      const tracked = sids.some((sid) => seenKeys.has(`${list.id}::${sid}`));
+      const created = list.publishedAt || list.publishedDate;
+      const initialIso = created && !isNaN(Date.parse(created)) ? new Date(created).toISOString() : nowIso;
+      for (const sid of sids) {
         const k = `${list.id}::${sid}`;
-        if (!seenKeys.has(k)) { sourceRows.push({ list_id: list.id, source_id: sid }); seenKeys.add(k); }
+        if (!seenKeys.has(k)) {
+          sourceRows.push({ list_id: list.id, source_id: sid, first_seen_at: tracked ? nowIso : initialIso });
+          seenKeys.add(k);
+        }
       }
     }
     if (sourceRows.length > 0) {

@@ -47,7 +47,7 @@ export default async function AdminPage() {
       .order('detected_at', { ascending: false }),
     supabaseAdmin.rpc('trending_views', { p_hours: 24 }),
     supabaseAdmin.from('views').select('list_id, count'),
-    supabaseAdmin.from('list_comments').select('id, list_id, name, body, created_at').order('created_at', { ascending: false }),
+    supabaseAdmin.from('list_comments').select('id, list_id, name, body, created_at, editor_response').order('created_at', { ascending: false }),
     supabaseAdmin.from('vote_events').select('list_id, item_name'),
   ]);
 
@@ -104,6 +104,7 @@ export default async function AdminPage() {
     name: row.name,
     email: row.email,
     createdAt: row.created_at,
+    editorResponse: row.editor_response || null,
   }));
 
   if (voteEventsRes && voteEventsRes.error) {
@@ -127,6 +128,7 @@ export default async function AdminPage() {
     name: row.name,
     body: row.body,
     createdAt: row.created_at,
+    editorResponse: row.editor_response || null,
   }));
   const voteEvents = ((voteEventsRes && voteEventsRes.data) || []).map((row) => ({
     id: row.id,

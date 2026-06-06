@@ -20,8 +20,8 @@ export default async function FeedPage() {
     [reqRes, voteRes, comRes, revRes, resRes] = await Promise.all([
       supabaseAdmin.from('user_lists').select('id,title,category,published,submitted_at').order('submitted_at', { ascending: false }).limit(25),
       supabaseAdmin.from('vote_events').select('list_id,item_name,delta,created_at').order('created_at', { ascending: false }).limit(40),
-      supabaseAdmin.from('list_comments').select('list_id,name,body,created_at').eq('hidden', false).order('created_at', { ascending: false }).limit(40),
-      supabaseAdmin.from('complaints').select('list_id,message,created_at').eq('feed_hidden', false).order('created_at', { ascending: false }).limit(25),
+      supabaseAdmin.from('list_comments').select('list_id,name,body,created_at,editor_response').eq('hidden', false).order('created_at', { ascending: false }).limit(40),
+      supabaseAdmin.from('complaints').select('list_id,message,created_at,editor_response').eq('feed_hidden', false).order('created_at', { ascending: false }).limit(25),
       supabaseAdmin.from('consensus_alerts').select('list_id,item_name,change_type,rank,detected_at').order('detected_at', { ascending: false }).limit(25),
     ]);
   } catch (e) {
@@ -47,12 +47,12 @@ export default async function FeedPage() {
 
   (comRes.data || []).forEach((c) => {
     const ms = Date.parse(c.created_at);
-    events.push({ ts: isNaN(ms) ? 0 : ms, kind: 'comment', listId: c.list_id, listTitle: titleOf(c.list_id), name: (c.name && c.name.trim()) || null, body: c.body });
+    events.push({ ts: isNaN(ms) ? 0 : ms, kind: 'comment', listId: c.list_id, listTitle: titleOf(c.list_id), name: (c.name && c.name.trim()) || null, body: c.body, editorResponse: (c.editor_response && c.editor_response.trim()) || null });
   });
 
   (revRes.data || []).forEach((r) => {
     const ms = Date.parse(r.created_at);
-    events.push({ ts: isNaN(ms) ? 0 : ms, kind: 'review', listId: r.list_id, listTitle: titleOf(r.list_id), message: (r.message && r.message.trim()) || null });
+    events.push({ ts: isNaN(ms) ? 0 : ms, kind: 'review', listId: r.list_id, listTitle: titleOf(r.list_id), message: (r.message && r.message.trim()) || null, editorResponse: (r.editor_response && r.editor_response.trim()) || null });
   });
 
   (resRes.data || []).forEach((a) => {
