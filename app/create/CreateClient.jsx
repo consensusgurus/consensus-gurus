@@ -189,10 +189,10 @@ export default function CreateClient({ lists }) {
       <h1
         style={{
           fontFamily: 'Fraunces, serif',
-          fontWeight: 900,
+          fontWeight: 600,
           fontSize: 38,
           lineHeight: 1,
-          letterSpacing: '-0.02em',
+          letterSpacing: '-0.015em',
           margin: '0 0 8px',
           fontVariationSettings: '"SOFT" 100',
         }}

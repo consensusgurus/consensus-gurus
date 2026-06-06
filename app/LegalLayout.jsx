@@ -62,10 +62,10 @@ export default function LegalLayout({ kicker, title, italic, children, updated }
           <h1
             style={{
               fontFamily: 'Fraunces, serif',
-              fontWeight: 900,
-              fontSize: 'clamp(40px, 9vw, 76px)',
-              lineHeight: 0.92,
-              letterSpacing: '-0.03em',
+              fontWeight: 600,
+              fontSize: 'clamp(40px, 9vw, 84px)',
+              lineHeight: 0.9,
+              letterSpacing: '-0.015em',
               margin: 0,
               color: COLORS.ink,
               fontVariationSettings: '"SOFT" 100',

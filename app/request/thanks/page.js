@@ -44,10 +44,10 @@ export default function ThanksPage() {
         <h1
           style={{
             fontFamily: 'Fraunces, serif',
-            fontWeight: 900,
+            fontWeight: 600,
             fontSize: 'clamp(42px, 10vw, 84px)',
-            lineHeight: 0.92,
-            letterSpacing: '-0.03em',
+            lineHeight: 0.9,
+            letterSpacing: '-0.015em',
             margin: 0,
             color: COLORS.ink,
             fontVariationSettings: '"SOFT" 100',
