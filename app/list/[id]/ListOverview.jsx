@@ -880,14 +880,41 @@ export default function ListOverview({ list, voteData, extras, viewCount, onBack
           )}
         </div>
 
-        {/* CTA to the full rankings page */}
+        {/* CTA to the full rankings page + back to all lists */}
         <div
           style={{
             padding: '26px 0 34px',
             display: 'flex',
             justifyContent: 'center',
+            alignItems: 'center',
+            flexWrap: 'wrap',
+            gap: 14,
           }}
         >
+          {onBack && (
+            <button
+              onClick={onBack}
+              style={{
+                background: COLORS.cream,
+                color: COLORS.ink,
+                border: `1.5px solid ${COLORS.ink}`,
+                padding: '13px 32px',
+                fontFamily: 'DM Mono, monospace',
+                fontSize: 10,
+                letterSpacing: '0.18em',
+                textTransform: 'uppercase',
+                fontWeight: 600,
+                cursor: 'pointer',
+                display: 'flex',
+                alignItems: 'center',
+                gap: 10,
+                boxShadow: `3px 3px 0 ${COLORS.ink}`,
+              }}
+            >
+              <ArrowLeft size={13} strokeWidth={2.5} />
+              Back to All Lists
+            </button>
+          )}
           <button
             onClick={onOpenRankings}
             style={{
