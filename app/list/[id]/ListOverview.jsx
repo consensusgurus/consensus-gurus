@@ -6,6 +6,7 @@ import { COLORS } from '@/lib/data';
 import { DESCRIPTIONS } from '@/lib/descriptions';
 import { HERO_IMAGES } from '@/lib/hero-images';
 import { getSources, buildItemLink } from '@/lib/helpers';
+import ActivityFeed from './ActivityFeed';
 
 // Splits a "Name (Locality)" item into { displayName, locality }.
 function parseItem(fullName) {
@@ -991,6 +992,12 @@ export default function ListOverview({ list, voteData, extras, viewCount, onBack
             Source Detail &amp; Voting
             <ArrowRight size={13} strokeWidth={2.5} />
           </button>
+        </div>
+        <div style={{ marginTop: 44, paddingTop: 24, borderTop: `2px solid ${COLORS.ink}` }}>
+          <div style={{ fontFamily: 'Fraunces, serif', fontSize: 26, fontWeight: 700, fontStyle: 'italic', color: COLORS.ink, margin: '0 0 18px', fontVariationSettings: '"SOFT" 100' }}>
+            Activity
+          </div>
+          <ActivityFeed list={list} />
         </div>
       </div>
 
