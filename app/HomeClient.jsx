@@ -167,19 +167,27 @@ function seededShuffle(arr, seed) {
   return out;
 }
 
-// Discover ordering rule: never show two Products-bucket tiles (the 'shops'
-// browse category, i.e. lists tagged product/tech) back to back when it is
-// mathematically possible (products <= non-products + 1). The shuffled order
-// is partitioned into products and non-products (each keeping its shuffle
-// order), then re-merged by dropping each product into its own seeded-random
-// gap between non-products, so the page still feels shuffled but no two
-// product lists ever touch. When products outnumber the available gaps the
-// extras are spread round-robin, which keeps unavoidable adjacency minimal.
+// Discover ordering rule: enforce two things on the shuffled order.
+// (1) Lead rule: a Products-bucket list (the 'shops' browse category, i.e.
+//     lists tagged product/tech) must NEVER be the first or second tile, so a
+//     fresh visitor never lands on a product list first. (2) No two product
+//     tiles sit back to back when it is mathematically possible. The shuffled
+//     order is partitioned into products and non-products (each keeping its
+//     shuffle order), then re-merged by dropping each product into a seeded-
+//     random gap between non-products -- but never the first `lead` gaps, which
+//     are reserved so the page opens with non-product tiles. When products
+//     outnumber the available gaps the extras are spread round-robin, which
+//     keeps unavoidable adjacency minimal.
 function spaceOutProducts(shuffled, seed) {
   const isProduct = (l) => listInCategory(l, 'shops');
   const products = shuffled.filter(isProduct);
   const others = shuffled.filter((l) => !isProduct(l));
-  if (products.length < 2 || others.length === 0) return shuffled;
+  // Nothing to balance if there are no non-product lists to lead with.
+  if (products.length === 0 || others.length === 0) return shuffled;
+
+  // Guarantee the first `lead` tiles are non-products (tile 1 and 2 never a
+  // product), capped by how many non-products actually exist.
+  const lead = Math.min(2, others.length);
 
   const gapCount = others.length + 1; // gaps around/between non-products
   // Independent seeded rng stream (xorshift32) so gap choice is stable per
@@ -192,19 +200,26 @@ function spaceOutProducts(shuffled, seed) {
     return (s >>> 0) % m;
   };
 
+  // Products may only land in gaps [lead .. gapCount-1]; reserving the first
+  // `lead` gaps keeps the leading tiles non-product.
+  const firstGap = lead;
+  const availGaps = gapCount - firstGap;
   const byGap = Array.from({ length: gapCount }, () => []);
-  if (products.length <= gapCount) {
-    // Sample a distinct random gap per product (partial Fisher-Yates) --
-    // distinct gaps guarantee no two products are adjacent.
-    const gaps = Array.from({ length: gapCount }, (_, i) => i);
+  if (availGaps > 0 && products.length <= availGaps) {
+    // Sample a distinct random gap per product (partial Fisher-Yates) within
+    // the allowed range -- distinct gaps guarantee no two products are adjacent.
+    const gaps = Array.from({ length: availGaps }, (_, i) => firstGap + i);
     for (let k = 0; k < products.length; k++) {
-      const j = k + rand(gapCount - k);
+      const j = k + rand(availGaps - k);
       [gaps[k], gaps[j]] = [gaps[j], gaps[k]];
       byGap[gaps[k]].push(products[k]);
     }
+  } else if (availGaps > 0) {
+    // More products than usable gaps: spread evenly across the allowed range.
+    for (let k = 0; k < products.length; k++) byGap[firstGap + (k % availGaps)].push(products[k]);
   } else {
-    // Impossible to fully separate: spread evenly instead.
-    for (let k = 0; k < products.length; k++) byGap[k % gapCount].push(products[k]);
+    // Degenerate fallback (only if non-products are too few to reserve gaps).
+    for (let k = 0; k < products.length; k++) byGap[gapCount - 1].push(products[k]);
   }
 
   const out = [];
