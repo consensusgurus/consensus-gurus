@@ -190,7 +190,7 @@ function LinkWrap({ href, rel, style, children }) {
   );
 }
 
-function HeroPhoto({ photo, alt, poster, href, rel }) {
+function HeroPhoto({ photo, alt, poster, href, rel, fit = 'cover', bg, pad = 0 }) {
   const [failed, setFailed] = useState(false);
   const src = typeof photo === 'string' ? photo : photo?.src;
   const credit = photo && typeof photo === 'object' ? photo.credit : null;
@@ -202,14 +202,14 @@ function HeroPhoto({ photo, alt, poster, href, rel }) {
     // (a raw remote URL would taint the canvas and blank the download).
     const optimized = `/_next/image?url=${encodeURIComponent(src)}&w=640&q=75`;
     return (
-      <div style={{ position: 'relative', minHeight: 200, flexShrink: 0, overflow: 'hidden' }}>
+      <div style={{ position: 'relative', minHeight: 200, flexShrink: 0, overflow: 'hidden', backgroundColor: bg, padding: pad }}>
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img
           src={optimized}
           alt={alt}
           loading="eager"
           onError={() => setFailed(true)}
-          style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover' }}
+          style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: fit }}
         />
         {credit && (
           <span
@@ -240,11 +240,11 @@ function HeroPhoto({ photo, alt, poster, href, rel }) {
       fill
       sizes="(max-width: 700px) 100vw, 240px"
       onError={() => setFailed(true)}
-      style={{ objectFit: 'cover' }}
+      style={{ objectFit: fit }}
     />
   );
   return (
-    <div style={{ position: 'relative', minHeight: 200, flexShrink: 0, overflow: 'hidden' }}>
+    <div style={{ position: 'relative', minHeight: 200, flexShrink: 0, overflow: 'hidden', backgroundColor: bg, padding: pad }}>
       {href ? (
         <a
           href={href}
@@ -341,6 +341,7 @@ function HeroTile({ item, rank, list, desc, pics, poster }) {
   // description / photo to the best link (Purchase for products, Map otherwise).
   const href = poster ? null : links.map;
   const rel = bestRel(list);
+  const isProduct = list.type === 'product' || (list.tags || []).includes('product');
 
   return (
     <div
@@ -352,7 +353,7 @@ function HeroTile({ item, rank, list, desc, pics, poster }) {
         ...tileChrome,
       }}
     >
-      {heroSrc ? <HeroPhoto photo={heroSrc} alt={displayName} poster={poster} href={href} rel={rel} /> : <PhotoBox />}
+      {heroSrc ? <HeroPhoto photo={heroSrc} alt={displayName} poster={poster} href={href} rel={rel} fit={isProduct ? 'contain' : 'cover'} bg={isProduct ? '#ffffff' : undefined} pad={isProduct ? 14 : 0} /> : <PhotoBox />}
       <div
         style={{
           padding: '20px 22px 18px',
