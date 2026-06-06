@@ -15,7 +15,7 @@ export default async function FeedPage() {
   const titleMap = new Map(LISTS.map((l) => [l.id, l.title]));
   const titleOf = (id) => titleMap.get(id) || id;
 
-  let reqRes = {}, voteRes = {}, comRes = {}, revRes = {}, resRes = {};
+  let reqRes = {}, voteRes = {}, comRes = {}, revRes = {}, resRes = {}, notesRes = {};
   try {
     [reqRes, voteRes, comRes, revRes, resRes, notesRes] = await Promise.all([
       supabaseAdmin.from('user_lists').select('id,title,category,published,submitted_at').order('submitted_at', { ascending: false }).limit(25),

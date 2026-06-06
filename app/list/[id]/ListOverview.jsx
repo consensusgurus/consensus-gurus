@@ -1019,7 +1019,7 @@ export default function ListOverview({ list, voteData, extras, viewCount, onBack
         </div>
         <div style={{ marginTop: 44, paddingTop: 24, borderTop: `2px solid ${COLORS.ink}` }}>
           <div style={{ fontFamily: 'Fraunces, serif', fontSize: 26, fontWeight: 700, fontStyle: 'italic', color: COLORS.ink, margin: '0 0 18px', fontVariationSettings: '"SOFT" 100' }}>
-            Activity
+            Activity Ledger
           </div>
           <ActivityFeed list={list} />
         </div>

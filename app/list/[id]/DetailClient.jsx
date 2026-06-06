@@ -645,7 +645,7 @@ function ListDetail({ list, viewCount, voteData, userVotes, extras, relatedLists
                 gap: 6,
               }}
             >
-              Activity
+              Activity Ledger
             </button>
             <button
               onClick={() => { setComplainSent(false); setComplainOpen(true); }}
