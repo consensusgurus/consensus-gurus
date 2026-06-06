@@ -20,6 +20,40 @@ convention is added or revised, so future sessions inherit the latest version au
 
 ---
 
+## HARD PUBLISH GATE — never ship a list missing its full required source set (owner rule, 2026-06-06)
+
+**A list may NOT be published/deployed until it carries the COMPLETE set of initially-required
+sources for its type. Deferring any required source to a later "backfill" is NOT allowed unless the
+owner explicitly approves that deferral in chat, in the same session, before the push.** This is a
+hard gate, not a guideline. The owner discovered several food lists (e.g. `pizza-new-haven`) that
+shipped in a batch with the Yelp/Google rating sources silently deferred; that must never happen
+again. Building the editorial sources first and "owing" the rating axis is a violation of this gate.
+
+**Required initial source set by list type (all must be present at publish time):**
+
+- **Food & drink (restaurants, bars, cafes, bakeries, breweries, etc.):** at least THREE
+  editorial/expert publications **plus** the two rating-platform sources for the geography (US/Canada
+  = **Yelp + Google**, Yelp listed first; elsewhere = the regional priority platform + Google per the
+  regional platform map). **Pizza lists additionally require the One Bite / Dave Portnoy `portnoy`
+  true-expert source.** A food list with only editorial sources, or only rating sources, is incomplete.
+- **Hotels / resorts:** at least three editorial publications **plus** the live `pricing` source
+  (and Google/TripAdvisor review signal where used).
+- **Physical product lists (`amazon`):** editorial "best of" review sources **plus** the Amazon
+  ratings source (and the `pricing` positioning source for flagship-tech lists).
+- **Book lists:** editorial sources **plus** the Goodreads ratings source.
+
+**Also required before publish (the rest of the build checklist), not just sources:** for location
+lists, `links` + `itemLinks` + `itemYelp`/`itemTripadvisor`; for every list, **descriptions for all
+10 consensus top-10 items and hero images for the top 3** (recompute the Borda consensus AFTER all
+sources are in — rating sources reshuffle the top 10, so new entrants need descriptions/heroes too).
+
+**If a required source genuinely cannot be gathered** (e.g. the platform is bot-walled like Dianping,
+or no third editorial exists for a niche topic): do NOT silently ship without it. STOP, tell the
+owner exactly what is missing and why, and get explicit approval to ship the reduced set. Record the
+approved exception in the list's session notes.
+
+---
+
 ## How Consensus Works
 
 The Consensus tab on each list is computed live using **Borda scoring**:
