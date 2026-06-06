@@ -23,6 +23,7 @@ import { fetchBootstrap, postVote, postView, postExtra } from '@/lib/api';
 import Grain from '../../Grain';
 import Footer from '../../Footer';
 import ListOverview from './ListOverview';
+import ActivityFeed from './ActivityFeed';
 
 // Get the effective tag set for a list. If `tags` is provided, use it.
 // Otherwise fall back to [type] for backward compatibility.
@@ -627,6 +628,26 @@ function ListDetail({ list, viewCount, voteData, userVotes, extras, relatedLists
               </button>
             )}
             <button
+              onClick={() => setTab('activity')}
+              style={{
+                background: tab === 'activity' ? COLORS.ember : 'transparent',
+                color: tab === 'activity' ? COLORS.cream : COLORS.ember,
+                border: `1.5px solid ${COLORS.ember}`,
+                padding: '8px 14px',
+                fontFamily: 'DM Mono, monospace',
+                fontSize: 10,
+                letterSpacing: '0.18em',
+                textTransform: 'uppercase',
+                fontWeight: 700,
+                cursor: 'pointer',
+                display: 'flex',
+                alignItems: 'center',
+                gap: 6,
+              }}
+            >
+              Activity
+            </button>
+            <button
               onClick={() => { setComplainSent(false); setComplainOpen(true); }}
               style={{
                 background: 'transparent',
@@ -747,7 +768,9 @@ function ListDetail({ list, viewCount, voteData, userVotes, extras, relatedLists
         </div>
       )}
 
-      {tab === 'source' && showSourceTab ? (
+      {tab === 'activity' ? (
+        <ActivityFeed list={list} />
+      ) : tab === 'source' && showSourceTab ? (
         <>
           {useGroupedLayout ? null : sources.length > 1 ? (
             <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginBottom: 24 }}>
