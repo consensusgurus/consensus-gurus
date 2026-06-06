@@ -519,6 +519,15 @@ Some publications (e.g. Tampa Magazine's annual Best Restaurants awards) publish
 
 If a source is paywalled, renders as a JavaScript shell with no readable content, serves the wrong article body, or otherwise cannot be read, **do not reconstruct its list or its order from memory or from search snippets.** Either (a) obtain the list from another readable place, (b) drop that source, or (c) substitute a comparable readable source. Fabricated or guessed orderings are worse than one fewer source.
 
+### Never demote an unreadable ranked source to "unordered" — you must KNOW a list is unordered to treat it as one
+
+`"unordered": true` is a factual claim about a source: that the publication itself presents its items in no rank order (alphabetical, "in no particular order," an unordered roundup). It is NOT a fallback for a source whose order you couldn't read. If a publication actually RANKS its items but the ranking is hidden from you (paywalled, login-gated, JS-only, the order rendered as an unreadable image, etc.), you have NOT confirmed it is unordered, so you may not encode it as an unordered flat source. Doing so silently fabricates a "this source has no rank signal" claim that is false, and pays every listed item the same flat score when the publication actually ranked them.
+
+Example: if Consumer Reports ranks a category but their ratings sit behind a paywall, you cannot see the order, so you may NOT add CR as an unordered source that simply lists the items. You either get the real ranked order from a readable place, or you drop the source entirely. The same applies to any ranked-but-unreadable publication.
+
+The only valid path to `"unordered": true` is positive confirmation from the readable page itself that the source presents its items without a rank: an explicit "in no particular order" disclaimer, visible alphabetical ordering, or an unordered-roundup format. When you can't read the source at all, treat it as unreadable and follow the "Never guess an order or a list" rule above (get the order elsewhere, drop it, or substitute a readable source). Never invent either the order OR the absence of order.
+
+
 ### Blocked-fetch domains (e.g. travelandleisure.com) — have the user paste the list
 
 Some domains are on a **fetch blocklist** and return `HTTP 403 — "URL is on blocklist"`. This is a content-access restriction, not a rendering problem, so it applies to **every** retrieval method — `web_fetch`, the Chrome browser tools, and shell commands (`curl`/`wget`/Python) alike. Do **not** try to route around it with Chrome, archives, caches, or mirror sites; that is not permitted. (The Chrome browser is only for pages that genuinely load but render their content via JavaScript — not for blocklisted domains.)
