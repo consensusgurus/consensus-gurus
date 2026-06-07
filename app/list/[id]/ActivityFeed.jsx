@@ -258,41 +258,89 @@ export default function ActivityFeed({ list }) {
 
   const created = list.publishedAt || list.publishedDate;
 
+  // Combine post-launch source additions with the ranking changes they caused:
+  // a consensus change detected within ~26h after a source addition (and after
+  // no newer addition) is attributed to it and shown in the SAME card. Changes
+  // with no nearby source addition (vote-driven) stand on their own.
+  const RESEARCH_WINDOW_MS = 26 * 3600 * 1000;
+  const sourceGroups = [];
+  {
+    const byTs = new Map();
+    laterSources.forEach((s) => {
+      const k = s.addedAt || '';
+      if (!byTs.has(k)) byTs.set(k, { addedAt: s.addedAt, ts: new Date(s.addedAt).getTime(), sources: [], changes: [] });
+      byTs.get(k).sources.push(s);
+    });
+    sourceGroups.push(...byTs.values());
+  }
+  const looseChanges = [];
+  (feed.research || []).forEach((ev) => {
+    const t = ev.detectedAt ? new Date(ev.detectedAt).getTime() : 0;
+    let best = null;
+    sourceGroups.forEach((g) => {
+      if (g.ts <= t && t - g.ts <= RESEARCH_WINDOW_MS && (!best || g.ts > best.ts)) best = g;
+    });
+    if (best) best.changes.push(ev);
+    else looseChanges.push(ev);
+  });
+  const topEvents = [];
+  sourceGroups.forEach((g) => topEvents.push({ ts: g.ts, type: 'sourceGroup', g }));
+  looseChanges.forEach((ev) => topEvents.push({ ts: ev.detectedAt ? new Date(ev.detectedAt).getTime() : 0, type: 'change', ev }));
+  topEvents.sort((a, b) => b.ts - a.ts);
+
   return (
     <div style={{ fontFamily: SANS, color: COLORS.ink, maxWidth: 640, paddingBottom: 40 }}>
       <style>{`@keyframes sotpulse{0%,100%{opacity:1}50%{opacity:.25}}`}</style>
 
       <div>
-        {/* Later source additions: each its own news entry, newest first */}
-        {laterSources.map((s, i) => (
-          <section key={`later-${i}`} style={cardStyle(KC.source)}>
-            <Badge color={KC.source} icon={<BookMarked size={11} strokeWidth={2.5} />} date={fmtDate(s.addedAt)}>
-              Source added
-            </Badge>
-            <div style={{ fontFamily: SERIF, fontSize: 16, margin: '6px 0 8px' }}>New source on file</div>
-            <SourceCard s={s} />
-          </section>
-        ))}
-
-        {/* Re-research / consensus changes */}
-        {feed.research.length > 0 && (
-          <section style={cardStyle(KC.research)}>
-            <Badge color={KC.research} icon={<RefreshCw size={11} strokeWidth={2.5} />}>Re-researched</Badge>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 8, marginTop: 9 }}>
-              {feed.research.map((ev, i) => {
-                const { item, tail } = researchLabel(ev);
-                return (
-                  <div key={i}>
-                    <div style={{ fontSize: 13, color: COLORS.ink }}>
-                      <strong style={{ fontWeight: 500, color: KC.research }}>{item}</strong> {tail}.
-                    </div>
-                    <div style={{ fontFamily: MONO, fontSize: 11, color: COLORS.faded, marginTop: 2 }}>{fmtDate(ev.detectedAt)}</div>
+        {/* Post-launch source additions + the ranking changes they caused.
+            A source add with attached changes renders as one combined
+            "Re-researched" card; a vote-driven change with no nearby source
+            add stands alone as a "Ranking change" card. */}
+        {topEvents.map((te, i) => {
+          if (te.type === 'sourceGroup') {
+            const g = te.g;
+            const hasChanges = g.changes.length > 0;
+            return (
+              <section key={`te-${i}`} style={cardStyle(hasChanges ? KC.research : KC.source)}>
+                <Badge color={hasChanges ? KC.research : KC.source} icon={hasChanges ? <RefreshCw size={11} strokeWidth={2.5} /> : <BookMarked size={11} strokeWidth={2.5} />} date={fmtDate(g.addedAt)}>
+                  {hasChanges ? 'Re-researched' : 'Source added'}
+                </Badge>
+                <div style={{ fontFamily: SERIF, fontSize: 16, margin: '6px 0 8px' }}>
+                  {hasChanges
+                    ? `Added ${g.sources.length === 1 ? 'a source' : g.sources.length + ' sources'}, the ranking shifted`
+                    : g.sources.length === 1 ? 'New source on file' : `${g.sources.length} new sources on file`}
+                </div>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 5 }}>
+                  {g.sources.map((s, k) => (<SourceCard key={k} s={s} />))}
+                </div>
+                {hasChanges && (
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: 6, marginTop: 10 }}>
+                    {g.changes.map((ev, k) => {
+                      const { item, tail } = researchLabel(ev);
+                      return (
+                        <div key={k} style={{ fontSize: 13, color: COLORS.ink }}>
+                          <RefreshCw size={11} strokeWidth={2.5} style={{ display: 'inline', verticalAlign: 'middle', marginRight: 5, color: KC.research }} />
+                          <strong style={{ fontWeight: 500, color: KC.research }}>{item}</strong> {tail}.
+                        </div>
+                      );
+                    })}
                   </div>
-                );
-              })}
-            </div>
-          </section>
-        )}
+                )}
+              </section>
+            );
+          }
+          const ev = te.ev;
+          const { item, tail } = researchLabel(ev);
+          return (
+            <section key={`te-${i}`} style={cardStyle(KC.research)}>
+              <Badge color={KC.research} icon={<RefreshCw size={11} strokeWidth={2.5} />} date={fmtDate(ev.detectedAt)}>Ranking change</Badge>
+              <div style={{ fontSize: 13, color: COLORS.ink, marginTop: 8 }}>
+                <strong style={{ fontWeight: 500, color: KC.research }}>{item}</strong> {tail}.
+              </div>
+            </section>
+          );
+        })}
 
         {/* Live votes — shown only once at least one vote exists */}
         {feed.votes.length > 0 && (
@@ -358,29 +406,25 @@ export default function ActivityFeed({ list }) {
           </section>
         )}
 
-        {/* Launch / backfill source batch (oldest), and list created */}
-        {launchSources.length > 0 && (
-          <section style={cardStyle(KC.source)}>
-            <Badge color={KC.source} icon={<BookMarked size={11} strokeWidth={2.5} />} date={launchDate ? fmtDate(launchDate) : undefined}>
-              Sources
-            </Badge>
-            <div style={{ fontFamily: SERIF, fontSize: 16, margin: '6px 0 8px' }}>
-              {launchSources.length} {launchSources.length === 1 ? 'source' : 'sources'} on file
-            </div>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 5 }}>
-              {launchSources.map((s, i) => (
-                <SourceCard key={i} s={s} />
-              ))}
-            </div>
-          </section>
-        )}
-
+        {/* Publishing of the ranking: list created + the launch sources, one card */}
         <section style={{ ...cardStyle(KC.created), marginBottom: 0 }}>
           <Badge color={KC.created} icon={<Flag size={11} strokeWidth={2.5} />} date={created ? fmtDate(created) : undefined}>
             List created
           </Badge>
           <div style={{ fontFamily: SERIF, fontSize: 16, marginTop: 6 }}>Published the ranking</div>
           <div style={{ fontSize: 13, color: COLORS.faded, marginTop: 2 }}>Seeded from expert sources and live fan voting.</div>
+          {launchSources.length > 0 && (
+            <div style={{ marginTop: 12 }}>
+              <div style={{ fontFamily: MONO, fontSize: 10, letterSpacing: '0.08em', textTransform: 'uppercase', color: COLORS.faded, marginBottom: 6 }}>
+                {launchSources.length} {launchSources.length === 1 ? 'source' : 'sources'} at launch
+              </div>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 5 }}>
+                {launchSources.map((s, i) => (
+                  <SourceCard key={i} s={s} />
+                ))}
+              </div>
+            </div>
+          )}
         </section>
       </div>
 

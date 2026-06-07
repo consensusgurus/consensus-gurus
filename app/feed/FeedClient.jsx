@@ -1,7 +1,7 @@
 'use client';
 import React, { useState } from 'react';
 import Link from 'next/link';
-import { Flag, ListPlus, BarChart3, MessageSquare, PenLine, RefreshCw } from 'lucide-react';
+import { Flag, ListPlus, BarChart3, MessageSquare, PenLine, RefreshCw, BookMarked } from 'lucide-react';
 import { COLORS } from '@/lib/data';
 
 const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
@@ -29,6 +29,7 @@ const KIND = {
   comment:  { color: '#c0392b', label: 'Comment',         Icon: MessageSquare },
   review:   { color: '#9a6a1f', label: 'Review request',  Icon: PenLine },
   research: { color: '#5a4a7a', label: 'Ranking change',  Icon: RefreshCw },
+  source:   { color: '#2f4858', label: 'Source added',    Icon: BookMarked },
 };
 
 const CATEGORIES = [
@@ -39,10 +40,12 @@ const CATEGORIES = [
   { key: 'comment', label: 'Comments', color: KIND.comment.color },
   { key: 'review', label: 'Review requests', color: KIND.review.color },
   { key: 'research', label: 'Ranking changes', color: KIND.research.color },
+  { key: 'source', label: 'Source updates', color: KIND.source.color },
 ];
 
-function Event({ kind, kicker, date, children }) {
-  const { color, label, Icon } = KIND[kind] || {};
+function Event({ kind, kicker, date, children, color: colorOverride }) {
+  const { color: kindColor, label, Icon } = KIND[kind] || {};
+  const color = colorOverride || kindColor;
   return (
     <div
       style={{
@@ -98,6 +101,29 @@ function renderEvent(e, i) {
     return (
       <Event key={i} kind="list" date={fmtDate(e.ts)}>
         <ListLink id={e.id}>{e.title}</ListLink>{e.category ? ` · ${e.category}` : ''}
+        {e.sources && e.sources.length > 0 && (
+          <div style={{ marginTop: 4, fontSize: 12, color: COLORS.faded }}>
+            Published with {e.sources.length} {e.sources.length === 1 ? 'source' : 'sources'}: {e.sources.join(', ')}
+          </div>
+        )}
+      </Event>
+    );
+  }
+  if (e.kind === 'source') {
+    const hasChanges = e.changes && e.changes.length > 0;
+    return (
+      <Event key={i} kind="source" color={hasChanges ? KIND.research.color : undefined} kicker={hasChanges ? 'Re-researched' : 'Source added'} date={fmtDate(e.ts)}>
+        {hasChanges ? 'Re-researched ' : 'Added '}{e.labels.length} {e.labels.length === 1 ? 'source' : 'sources'} on <ListLink id={e.listId}>{e.listTitle}</ListLink>: {e.labels.join(', ')}.
+        {hasChanges && (
+          <div style={{ marginTop: 5 }}>
+            {e.changes.map((c, k) => {
+              const tail = c.changeType === 'entered_top3' ? `entered the top 3 (#${c.rank || 3})` : c.changeType === 'entered_top10' ? 'entered the top 10' : 'moved in the rankings';
+              return (
+                <div key={k} style={{ fontSize: 13 }}>&rarr; <strong style={{ fontWeight: 500 }}>{c.itemName}</strong> {tail}.</div>
+              );
+            })}
+          </div>
+        )}
       </Event>
     );
   }
