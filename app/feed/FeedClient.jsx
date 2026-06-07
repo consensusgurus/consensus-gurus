@@ -161,4 +161,35 @@ export default function FeedClient({ events = [] }) {
                 display: 'inline-flex',
                 alignItems: 'center',
                 gap: 6,
-                background: active ?
+                background: active ? c.color : `${c.color}12`,
+                color: active ? COLORS.cream : c.color,
+                border: `1.5px solid ${c.color}`,
+                padding: '7px 13px',
+                fontFamily: 'DM Mono, monospace',
+                fontSize: 10,
+                letterSpacing: '0.14em',
+                textTransform: 'uppercase',
+                fontWeight: 700,
+                cursor: 'pointer',
+                borderRadius: 3,
+              }}
+            >
+              {c.key !== 'all' && (
+                <span style={{ width: 8, height: 8, borderRadius: '50%', background: active ? COLORS.cream : c.color }} />
+              )}
+              {c.label} <span style={{ opacity: 0.6 }}>{n}</span>
+            </button>
+          );
+        })}
+      </div>
+
+      <div>
+        {shown.length === 0 ? (
+          <p style={{ fontStyle: 'italic', color: COLORS.faded, fontFamily: 'DM Sans, sans-serif' }}>Nothing in this category yet.</p>
+        ) : (
+          shown.map((e, i) => renderEvent(e, i))
+        )}
+      </div>
+    </div>
+  );
+}
