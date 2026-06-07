@@ -83,12 +83,12 @@ const SANS = "'DM Sans', sans-serif";
 
 // Per-category accent colors, matching the global activity ledger (FeedClient).
 const KC = {
-  source: '#2f4858',   // slate  - sources on file / source added
-  research: '#5a4a7a', // purple - re-researched / ranking changes
-  vote: '#3d4f2b',     // forest - live votes
-  review: '#9a6a1f',   // amber  - review requests
-  created: '#1a1611',  // ink    - list created
-  comment: '#c0392b',  // ember  - public comments
+  source: '#2f4858',   // slate  — sources on file / source added
+  research: '#5a4a7a', // purple — re-researched / ranking changes
+  vote: '#3d4f2b',     // forest — live votes
+  review: '#9a6a1f',   // amber  — review requests
+  created: '#1a1611',  // ink    — list created
+  comment: '#c0392b',  // ember  — public comments
 };
 
 // Tinted card with a colored left border, one per activity category.
@@ -294,12 +294,12 @@ export default function ActivityFeed({ list }) {
           </section>
         )}
 
-        {/* Live votes */}
-        <section style={cardStyle(KC.vote)}>
-          <Badge color={KC.vote} icon={<BarChart3 size={11} strokeWidth={2.5} />} live>
-            Live votes
-          </Badge>
-          {feed.votes.length > 0 ? (
+        {/* Live votes — shown only once at least one vote exists */}
+        {feed.votes.length > 0 && (
+          <section style={cardStyle(KC.vote)}>
+            <Badge color={KC.vote} icon={<BarChart3 size={11} strokeWidth={2.5} />} live>
+              Live votes
+            </Badge>
             <div style={{ display: 'flex', flexDirection: 'column', gap: 6, marginTop: 8 }}>
               {[...feed.votes].sort((a, b) => b.delta - a.delta).slice(0, 8).map((v, i) => {
                 const rw = rankWord(v.delta);
@@ -326,12 +326,8 @@ export default function ActivityFeed({ list }) {
                 );
               })}
             </div>
-          ) : (
-            <div style={{ fontSize: 13, color: COLORS.faded, marginTop: 6 }}>
-              {loaded ? 'No votes yet. Be the first on the Vote tab.' : 'Loading…'}
-            </div>
-          )}
-        </section>
+          </section>
+        )}
 
         {/* Manager notes (anonymized) */}
         {feed.manager.length > 0 && (
@@ -438,27 +434,4 @@ export default function ActivityFeed({ list }) {
             onChange={(e) => setName(e.target.value)}
             placeholder="Your name (optional)"
             maxLength={120}
-            style={{ width: '100%', boxSizing: 'border-box', border: 'none', borderBottom: `1px solid ${COLORS.paper}`, background: 'transparent', fontFamily: SANS, fontSize: 13, padding: '5px 2px', marginBottom: 8, outline: 'none', color: COLORS.ink }}
-          />
-          <textarea
-            value={body}
-            onChange={(e) => setBody(e.target.value)}
-            placeholder="Add a comment…"
-            rows={2}
-            maxLength={1000}
-            style={{ width: '100%', boxSizing: 'border-box', border: 'none', background: 'transparent', fontFamily: SANS, fontSize: 13, padding: 2, resize: 'vertical', outline: 'none', color: COLORS.ink }}
-          />
-          <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: 6 }}>
-            <button
-              onClick={postComment}
-              disabled={posting || !body.trim()}
-              style={{ background: COLORS.ember, color: '#fff', border: 'none', fontFamily: MONO, fontSize: 12, letterSpacing: '0.08em', padding: '7px 16px', borderRadius: 7, cursor: posting || !body.trim() ? 'default' : 'pointer', opacity: posting || !body.trim() ? 0.5 : 1 }}
-            >
-              {posting ? 'Posting…' : 'Post comment'}
-            </button>
-          </div>
-        </div>
-      </div>
-    </div>
-  );
-}
+            style={{ width: '100%', boxSizing: 'border-box', border: 'none', borderBottom: `1px solid ${COLORS.paper}`, background: 'transparent', fontFamily: SANS, fontSize: 13, padding: '5px 2px', marginBottom: 8
