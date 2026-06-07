@@ -343,6 +343,9 @@ function HeroTile({ item, rank, list, desc, pics, poster }) {
   const href = poster ? null : links.map;
   const rel = bestRel(list);
   const isProduct = list.type === 'product' || (list.tags || []).includes('product');
+  // Lists can opt portrait-photo heroes into the same crop-free contain+pad
+  // treatment as products (e.g. people/player headshots) via heroFit:'contain'.
+  const containHero = isProduct || list.heroFit === 'contain';
 
   return (
     <div
@@ -354,7 +357,7 @@ function HeroTile({ item, rank, list, desc, pics, poster }) {
         ...tileChrome,
       }}
     >
-      {heroSrc ? <HeroPhoto photo={heroSrc} alt={displayName} poster={poster} href={href} rel={rel} fit={isProduct ? 'contain' : 'cover'} bg={isProduct ? COLORS.paper : undefined} pad={isProduct ? 14 : 0} /> : <PhotoBox />}
+      {heroSrc ? <HeroPhoto photo={heroSrc} alt={displayName} poster={poster} href={href} rel={rel} fit={containHero ? 'contain' : 'cover'} bg={containHero ? COLORS.paper : undefined} pad={containHero ? 14 : 0} /> : <PhotoBox />}
       <div
         style={{
           padding: '20px 22px 18px',
