@@ -303,6 +303,29 @@ Controls what each item name links to when clicked:
 
 **All hotels — US and international — use `mapsCity`.** Google Maps finds international hotels by name accurately. Do not use `booking` for any list.
 
+### Song lists link to YouTube with a "Listen" button (owner rule, 2026-06-07)
+
+Every song list (college fight songs, karaoke, artist song rankings, covers lists) must link each
+item to a YouTube video via an explicit `links` object, and set `linkLabel: "Listen"` on the list so
+the overview button reads Listen instead of View. Rules:
+
+- **Preferred target: the song's official music video.** If none exists, the next closest official
+  thing: official artist/label channel studio audio (or Topic upload). Avoid live recordings unless
+  the canonical release is itself live (many Grateful Dead tracks) or no official studio upload exists.
+- **Covers lists link the covering artist's version** (studio cut first, then official live release on
+  the artist's channel); fall back to the original artist's official video only when the covering
+  artist has no official upload at all (owner ruling 2026-06-07, grateful-dead-covers).
+- **Gather video IDs live via YouTube search through the connected Chrome (never guess an ID)**, and
+  confirm the upload is official: verified-artist badge, Vevo/label channel, or auto-generated Topic.
+  Reject fan re-uploads, lyric channels, and reaction/karaoke versions. Rare exception: when an artist
+  keeps their catalog off YouTube entirely (e.g. Garth Brooks), the highest-quality available upload
+  may be used; flag it to the owner.
+- `linkType` stays `wiki` as the fallback; the explicit `links` URLs override it per item. Cover the
+  union of every source's items plus `vote.items`, exactly like a `mapsCity` links object.
+
+First applied 2026-06-07 to college-fight-songs (relabel), most-requested-karaoke-songs,
+grateful-dead-songs, grateful-dead-covers, and beatles-songs.
+
 **IMPORTANT — `mapsCity` links and parentheticals.** Item names carry a parenthetical for context (e.g. `Amanoi (Vinh Hy Bay, Vietnam)`). If that raw string is dropped into a Maps URL, Google reads the parentheses and commas as a separator between two waypoints and opens a **driving-directions** screen (origin `Amanoi` → destination `Vinh Hy Bay`) instead of a location pin. Two safeguards prevent this:
 
 1. The link builder must sanitize the name before building the URL — strip `(` `)` `,` `;` `&` (replace with spaces) and use the location endpoint `https://www.google.com/maps/search/?api=1&query=<encoded text>`. This endpoint always resolves to a single place. See `maps-link-fix.js`.
