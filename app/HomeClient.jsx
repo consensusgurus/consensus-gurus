@@ -13,7 +13,7 @@ import {
 } from 'lucide-react';
 import { LISTS, TYPES, COLORS } from '@/lib/data';
 import { voteKey, dedupeByName, getSources, stripItemScore } from '@/lib/helpers';
-import { fetchBootstrap } from '@/lib/api';
+import { fetchBootstrap, postView } from '@/lib/api';
 import Grain from './Grain';
 import Footer from './Footer';
 import SourcesPopover from './SourcesPopover';
@@ -1099,6 +1099,21 @@ export default function HomeClient() {
       }
       setLoaded(true);
     });
+  }, []);
+
+  // Count homepage landings in the visitors total, so visitors who bounce
+  // without opening a list page are included. Logged under the pseudo
+  // list id 'home' in the views table (totalViews sums every row), deduped
+  // to once per browser session via sessionStorage.
+  useEffect(() => {
+    let seen = false;
+    try {
+      seen = sessionStorage.getItem('sot-home-viewed') === '1';
+      if (!seen) sessionStorage.setItem('sot-home-viewed', '1');
+    } catch (e) {
+      // sessionStorage unavailable: fall through and count this load.
+    }
+    if (!seen) postView('home');
   }, []);
 
   const allLists = useMemo(() => [...userLists, ...LISTS], [userLists]);
