@@ -55,7 +55,7 @@ function consensusTop10(list, votes, extras) {
 // rather than to votes. Plain djb2 over JSON; collisions are inconsequential.
 function sourcesFingerprint(list) {
   const src = Object.entries(list.sources || {})
-    .filter(([id, s]) => id !== 'ai' && s && s.label)
+    .filter(([id, s]) => s && s.label)
     .map(([id, s]) => [id, s.label, s.weight || null, Boolean(s.unordered), Boolean(s.trueExpert), s.items || []]);
   src.sort((a, b) => (a[0] < b[0] ? -1 : a[0] > b[0] ? 1 : 0));
   const str = JSON.stringify(src);

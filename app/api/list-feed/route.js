@@ -46,8 +46,11 @@ export async function GET(request) {
     // removed_at is set the first time a tracked source is gone from the list.
     const seenRows = seenRes.data || [];
     const seenMap = new Map(seenRows.map((r) => [r.source_id, r]));
+    // Facts-mode lists keep their single real source in the ai slot (e.g.
+    // Box Office Mojo), so include it for them; everywhere else ai is the
+    // scoring-excluded consensus seed and stays hidden.
     const currentEntries = list && list.sources
-      ? Object.entries(list.sources).filter(([id, s]) => id !== 'ai' && s && s.label)
+      ? Object.entries(list.sources).filter(([id, s]) => (id !== 'ai' || list.mode === 'facts') && s && s.label)
       : [];
     const currentIds = new Set(currentEntries.map(([id]) => id));
     const created = list && (list.publishedAt || list.publishedDate);

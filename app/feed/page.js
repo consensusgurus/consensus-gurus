@@ -36,12 +36,12 @@ export default async function FeedPage() {
   const pubMs = new Map();
   LISTS.forEach((l) => {
     Object.entries(l.sources || {}).forEach(([sid, s]) => {
-      if (sid !== 'ai' && s && s.label) labelOf.set(`${l.id}::${sid}`, s.label);
+      if ((sid !== 'ai' || l.mode === 'facts') && s && s.label) labelOf.set(`${l.id}::${sid}`, s.label);
     });
     const ms = Date.parse(l.publishedAt || l.publishedDate || '');
     pubMs.set(l.id, ms);
     if (isNaN(ms)) return;
-    const srcLabels = Object.entries(l.sources || {}).filter(([sid, s]) => sid !== 'ai' && s && s.label).map(([sid, s]) => s.label);
+    const srcLabels = Object.entries(l.sources || {}).filter(([sid, s]) => (sid !== 'ai' || l.mode === 'facts') && s && s.label).map(([sid, s]) => s.label);
     events.push({ ts: ms, kind: 'list', id: l.id, title: l.title, category: l.category, sources: srcLabels });
   });
 

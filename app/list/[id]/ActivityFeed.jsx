@@ -252,7 +252,7 @@ export default function ActivityFeed({ list }) {
   // API returned none (e.g. before the source-tracking migration is applied).
   const apiSources = feed.sources || [];
   const clientSources = Object.entries(list.sources || {})
-    .filter(([id, s]) => id !== 'ai' && s && s.label)
+    .filter(([id, s]) => (id !== 'ai' || list.mode === 'facts') && s && s.label)
     .map(([id, s]) => ({ id, label: s.label, trueExpert: Boolean(s.trueExpert), addedAt: list.publishedAt || list.publishedDate || null }));
   const sources = apiSources.length ? apiSources : clientSources;
 
