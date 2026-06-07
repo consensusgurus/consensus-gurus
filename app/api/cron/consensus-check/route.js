@@ -77,8 +77,18 @@ export async function GET(request) {
       )
     );
 
+    // Which sources are already stamped, per list. Used to date "source added"
+    // events in the activity feed (list_sources_seen.first_seen_at).
+    const seenByList = new Map();
+    (seenRes.data || []).forEach((row) => {
+      if (!seenByList.has(row.list_id)) seenByList.set(row.list_id, new Set());
+      seenByList.get(row.list_id).add(row.source_id);
+    });
+
     const newAlerts = [];
     const snapshotUpserts = [];
+    const sourceSeenUpserts = [];
+    const nowIso = new Date().toISOString();
     const norm = (s) => s.toLowerCase().trim();
 
     for (const list of LISTS) {
@@ -86,8 +96,28 @@ export async function GET(request) {
       snapshotUpserts.push({
         list_id: list.id,
         top10,
-        updated_at: new Date().toISOString(),
+        updated_at: nowIso,
       });
+
+      // Stamp any source not yet recorded. On a list's FIRST sighting (no rows
+      // yet) every current source is backfilled to the list's launch date, so
+      // they group as the "N sources at launch" batch. Once a list is already
+      // tracked, a source that appears later is genuinely new and is stamped
+      // now() -- which is what surfaces it as a dated "New source added" event.
+      const seenSet = seenByList.get(list.id);
+      const firstSighting = !seenSet || seenSet.size === 0;
+      const launchIso = new Date(list.publishedAt || list.publishedDate || nowIso).toISOString();
+      if (list.sources) {
+        for (const [sid, s] of Object.entries(list.sources)) {
+          if (sid === 'ai' || !s || !s.label) continue;
+          if (seenSet && seenSet.has(sid)) continue;
+          sourceSeenUpserts.push({
+            list_id: list.id,
+            source_id: sid,
+            first_seen_at: firstSighting ? launchIso : nowIso,
+          });
+        }
+      }
 
       const prev = prevSnaps.get(list.id);
       // First sighting of a list: seed the snapshot silently, no alerts.
@@ -131,42 +161,27 @@ export async function GET(request) {
       if (ins.error) throw ins.error;
     }
 
+    // Stamp first_seen_at for any newly tracked source. ignoreDuplicates keeps
+    // an existing first_seen_at from ever being overwritten, so a source is
+    // dated exactly once.
+    if (sourceSeenUpserts.length > 0) {
+      const seenIns = await supabaseAdmin
+        .from('list_sources_seen')
+        .upsert(sourceSeenUpserts, { onConflict: 'list_id,source_id', ignoreDuplicates: true });
+      if (seenIns.error) throw seenIns.error;
+    }
+
     const up = await supabaseAdmin
       .from('consensus_snapshots')
       .upsert(snapshotUpserts, { onConflict: 'list_id' });
     if (up.error) throw up.error;
 
-    // Source-added tracking: stamp first_seen_at for any (list, source) not
-    // yet recorded. ignoreDuplicates keeps existing timestamps untouched, so a
-    // source is dated the first cron run after it was added.
-    const seenKeys = new Set((seenRes.data || []).map((r) => `${r.list_id}::${r.source_id}`));
-    const nowIso = new Date().toISOString();
-    const sourceRows = [];
-    for (const list of LISTS) {
-      const sids = Object.keys(list.sources || {}).filter((sid) => sid !== 'ai');
-      const tracked = sids.some((sid) => seenKeys.has(`${list.id}::${sid}`));
-      const created = list.publishedAt || list.publishedDate;
-      const initialIso = created && !isNaN(Date.parse(created)) ? new Date(created).toISOString() : nowIso;
-      for (const sid of sids) {
-        const k = `${list.id}::${sid}`;
-        if (!seenKeys.has(k)) {
-          sourceRows.push({ list_id: list.id, source_id: sid, first_seen_at: tracked ? nowIso : initialIso });
-          seenKeys.add(k);
-        }
-      }
-    }
-    if (sourceRows.length > 0) {
-      await supabaseAdmin
-        .from('list_sources_seen')
-        .upsert(sourceRows, { onConflict: 'list_id,source_id', ignoreDuplicates: true });
-    }
-
     return NextResponse.json({
       ok: true,
       listsChecked: LISTS.length,
       newAlerts: newAlerts.length,
+      sourcesStamped: sourceSeenUpserts.length,
       alerts: newAlerts,
-      newSourcesLogged: sourceRows.length,
     });
   } catch (err) {
     console.error('consensus-check error', err);
