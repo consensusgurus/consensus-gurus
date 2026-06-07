@@ -175,7 +175,7 @@ export default async function ListPage({ params }) {
           dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
         />
       )}
-      <DetailClient listId={id} />
+      <DetailClient key="list-overview" listId={id} />
     </>
   );
 }

@@ -38,5 +38,5 @@ export function generateStaticParams() {
 
 export default function ListRankingsPage({ params }) {
   const id = decodeURIComponent(params.id);
-  return <DetailClient listId={id} view="detail" />;
+  return <DetailClient key="list-detail" listId={id} view="detail" />;
 }
