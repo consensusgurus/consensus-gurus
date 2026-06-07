@@ -1112,8 +1112,12 @@ if (missing.length) throw new Error('Missing descriptions: ' + missing.join(', '
   render "moved from #X to #Y / unranked" and never show a rank beyond 10 (owner rule, 2026-06-07).
   Rows with `prev_rank` null are legacy (pre-movement-tracking) and render the old boundary
   phrasing. An unranked item entering the top 3 fires entered_top10 AND entered_top3 (two research
-  rows); both feeds dedupe the display. Migrations `14_restamp_source_dates_and_exits.sql` and
-  `15_alert_rank_movement.sql` cover the schema.
+  rows); both feeds dedupe the display. Each alert also carries a `cause`: the cron fingerprints
+  every list's source data (`sourcesFingerprint`) and stores it on the snapshot; if the fingerprint
+  changed since the last run the change is attributed to a deploy edit (cause `edit`, "List edited"
+  chip), otherwise to fan votes (cause `votes`, "Votes" chip). Null cause = legacy row, rendered as
+  Votes. Migrations `14_restamp_source_dates_and_exits.sql`, `15_alert_rank_movement.sql`, and
+  `16_alert_cause.sql` cover the schema.
   First run seeds snapshots silently. Optional `CRON_SECRET` env var protects the route.
 - The admin panel (`/admin`) has a **Research** tab listing unresolved alerts with what each needs;
   resolve via `/api/admin/alerts` once the research ships.

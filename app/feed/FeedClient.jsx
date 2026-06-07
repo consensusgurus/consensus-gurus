@@ -45,6 +45,7 @@ const KIND = {
   review:   { color: '#9a6a1f', label: 'Review request',  Icon: PenLine },
   research: { color: '#5a4a7a', label: 'Ranking change',  Icon: RefreshCw },
   source:   { color: '#2f4858', label: 'Source added',    Icon: BookMarked },
+  note:     { color: '#c0392b', label: "Editor's note",   Icon: PenLine },
 };
 
 const CATEGORIES = [
@@ -56,6 +57,7 @@ const CATEGORIES = [
   { key: 'review', label: 'Review requests', color: KIND.review.color },
   { key: 'research', label: 'Ranking changes', color: KIND.research.color },
   { key: 'source', label: 'Source updates', color: KIND.source.color },
+  { key: 'note', label: "Editor's notes", color: KIND.note.color },
 ];
 
 function chipStyle(color) {
@@ -189,6 +191,11 @@ function renderEvent(e, i) {
     return (
       <Event key={i} kind="comment" kicker={`Comment · ${e.name || 'Guest'}`} date={fmtDate(e.ts)}>
         "{e.body}" on <ListLink id={e.listId}>{e.listTitle}</ListLink>
+        {e.editorResponse && (
+          <div style={{ marginTop: 5, paddingTop: 5, borderTop: `1px solid ${COLORS.paper}` }}>
+            <strong style={{ fontWeight: 700, color: COLORS.ember }}>Editor:</strong> {e.editorResponse}
+          </div>
+        )}
       </Event>
     );
   }
@@ -196,6 +203,18 @@ function renderEvent(e, i) {
     return (
       <Event key={i} kind="review" date={fmtDate(e.ts)}>
         User submitted review request on <ListLink id={e.listId}>{e.listTitle}</ListLink>: {e.message ? `"${e.message}"` : 'No comment given.'}
+        {e.editorResponse && (
+          <div style={{ marginTop: 5, paddingTop: 5, borderTop: `1px solid ${COLORS.paper}` }}>
+            <strong style={{ fontWeight: 700, color: COLORS.ember }}>Editor:</strong> {e.editorResponse}
+          </div>
+        )}
+      </Event>
+    );
+  }
+  if (e.kind === 'note') {
+    return (
+      <Event key={i} kind="note" date={fmtDate(e.ts)}>
+        <span style={{ whiteSpace: 'pre-wrap' }}>{e.note}</span> on <ListLink id={e.listId}>{e.listTitle}</ListLink>
       </Event>
     );
   }
@@ -207,7 +226,9 @@ function renderEvent(e, i) {
         kind="research"
         date={fmtDate(e.ts)}
         chips={[
-          { color: KIND.vote.color, Icon: BarChart3, label: 'Votes' },
+          e.cause === 'edit'
+            ? { color: '#8a3324', Icon: PenLine, label: 'List edited' }
+            : { color: KIND.vote.color, Icon: BarChart3, label: 'Votes' },
           { color: KIND.research.color, Icon: RefreshCw, label: 'Ranking change' },
         ]}
       >

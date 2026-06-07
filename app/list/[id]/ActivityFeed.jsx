@@ -8,6 +8,7 @@ import {
   MessageSquare,
   ArrowUp,
   ArrowDown,
+  PenLine,
 } from 'lucide-react';
 import { COLORS } from '@/lib/data';
 
@@ -89,6 +90,7 @@ const KC = {
   research: '#5a4a7a', // purple - re-researched / ranking changes
   vote: '#3d4f2b',     // forest - live votes
   review: '#9a6a1f',   // amber  - review requests
+  edit: '#8a3324',     // dark ember - deploy-side list edits
   created: '#1a1611',  // ink    - list created
   comment: '#c0392b',  // ember  - public comments
 };
@@ -193,7 +195,7 @@ function SourceCard({ s }) {
 // Per-list activity feed: created time, sources (dated), re-research, live
 // votes, anonymized review requests, and public comments.
 export default function ActivityFeed({ list }) {
-  const [feed, setFeed] = useState({ votes: [], manager: [], research: [], comments: [], sources: [] });
+  const [feed, setFeed] = useState({ votes: [], manager: [], research: [], comments: [], sources: [], editorNotes: [], removedSources: [] });
   const [loaded, setLoaded] = useState(false);
   const [name, setName] = useState('');
   const [body, setBody] = useState('');
@@ -209,6 +211,8 @@ export default function ActivityFeed({ list }) {
         research: data.research || [],
         comments: data.comments || [],
         sources: data.sources || [],
+        editorNotes: data.editorNotes || [],
+        removedSources: data.removedSources || [],
       });
     } catch {
       /* leave streams empty on error */
@@ -354,12 +358,12 @@ export default function ActivityFeed({ list }) {
           return (
             <section key={`te-${i}`} style={cardStyle(KC.research)}>
               <Badge
-                color={KC.vote}
-                icon={<BarChart3 size={11} strokeWidth={2.5} />}
+                color={ev.cause === 'edit' ? KC.edit : KC.vote}
+                icon={ev.cause === 'edit' ? <PenLine size={11} strokeWidth={2.5} /> : <BarChart3 size={11} strokeWidth={2.5} />}
                 extra={{ icon: <RefreshCw size={11} strokeWidth={2.5} />, color: KC.research, label: 'Ranking change' }}
                 date={fmtDate(ev.detectedAt)}
               >
-                Votes
+                {ev.cause === 'edit' ? 'List edited' : 'Votes'}
               </Badge>
               <div style={{ fontSize: 13, color: COLORS.ink, marginTop: 8 }}>
                 <strong style={{ fontWeight: 500, color: KC.research }}>{item}</strong> {tail}.
@@ -367,6 +371,42 @@ export default function ActivityFeed({ list }) {
             </section>
           );
         })}
+
+        {/* Editor's notes posted from the admin desk */}
+        {feed.editorNotes.length > 0 && (
+          <section style={cardStyle(KC.comment)}>
+            <Badge color={KC.comment} icon={<PenLine size={11} strokeWidth={2.5} />}>Editor's Note</Badge>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 7, marginTop: 9 }}>
+              {feed.editorNotes.map((n, i) => (
+                <div key={i} style={{ background: '#fff', borderLeft: `3px solid ${KC.comment}`, borderRadius: '0 7px 7px 0', padding: '8px 11px', fontSize: 13, whiteSpace: 'pre-wrap' }}>
+                  {n.note}
+                  <span style={{ display: 'block', fontFamily: MONO, fontSize: 10, color: COLORS.faded, marginTop: 3 }}>
+                    Editor · {fmtDate(n.createdAt)}
+                  </span>
+                </div>
+              ))}
+            </div>
+          </section>
+        )}
+
+        {/* Sources removed from the list */}
+        {feed.removedSources.length > 0 && (
+          <section style={cardStyle(KC.source)}>
+            <Badge color={KC.source} icon={<BookMarked size={11} strokeWidth={2.5} />}>
+              {feed.removedSources.length === 1 ? 'Source removed' : 'Sources removed'}
+            </Badge>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 5, marginTop: 9 }}>
+              {feed.removedSources.map((s, i) => (
+                <div key={i} style={{ background: '#fff', border: `1px solid ${COLORS.paper}`, borderRadius: 7, padding: '7px 11px', fontSize: 13 }}>
+                  <span style={{ textDecoration: 'line-through', color: COLORS.faded }}>{s.label}</span>
+                  {s.removedAt && (
+                    <span style={{ fontFamily: MONO, fontSize: 10, color: COLORS.faded, marginLeft: 8 }}>{fmtDate(s.removedAt)}</span>
+                  )}
+                </div>
+              ))}
+            </div>
+          </section>
+        )}
 
         {/* Live votes — shown only once at least one vote exists */}
         {feed.votes.length > 0 && (
@@ -423,6 +463,11 @@ export default function ActivityFeed({ list }) {
                   }}
                 >
                   {m.message}
+                  {m.editorResponse && (
+                    <div style={{ marginTop: 5, paddingTop: 5, borderTop: `1px solid ${COLORS.paper}` }}>
+                      <strong style={{ fontWeight: 700, color: COLORS.ember }}>Editor:</strong> {m.editorResponse}
+                    </div>
+                  )}
                   <span style={{ display: 'block', fontFamily: MONO, fontSize: 10, color: COLORS.faded, marginTop: 3 }}>
                     Anonymous · {fmtShort(m.createdAt)}
                   </span>
@@ -497,6 +542,11 @@ export default function ActivityFeed({ list }) {
                     <span style={{ fontFamily: MONO, fontSize: 10, color: COLORS.faded }}>{fmtRelative(c.createdAt)}</span>
                   </div>
                   <div style={{ fontSize: 13, marginTop: 2, whiteSpace: 'pre-wrap' }}>{c.body}</div>
+                  {c.editorResponse && (
+                    <div style={{ fontSize: 13, marginTop: 6, paddingTop: 6, borderTop: `1px solid ${COLORS.paper}` }}>
+                      <strong style={{ fontWeight: 700, color: COLORS.ember }}>Editor:</strong> {c.editorResponse}
+                    </div>
+                  )}
                 </div>
               </div>
             );

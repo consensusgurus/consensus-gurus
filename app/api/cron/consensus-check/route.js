@@ -48,6 +48,22 @@ function consensusTop10(list, votes, extras) {
   return (consensus?.items || list.sources?.ai?.items || []).slice(0, 10);
 }
 
+// Stable fingerprint of a list's source data (ids, labels, weights, flags,
+// item order; the ai seed excluded). When this changes between cron runs, the
+// list was EDITED in a deploy (source rework/reorder/item drop), so a ranking
+// change detected in that window is attributed to the edit (cause='edit')
+// rather than to votes. Plain djb2 over JSON; collisions are inconsequential.
+function sourcesFingerprint(list) {
+  const src = Object.entries(list.sources || {})
+    .filter(([id, s]) => id !== 'ai' && s && s.label)
+    .map(([id, s]) => [id, s.label, s.weight || null, Boolean(s.unordered), Boolean(s.trueExpert), s.items || []]);
+  src.sort((a, b) => (a[0] < b[0] ? -1 : a[0] > b[0] ? 1 : 0));
+  const str = JSON.stringify(src);
+  let h = 5381;
+  for (let i = 0; i < str.length; i++) h = ((h * 33) ^ str.charCodeAt(i)) >>> 0;
+  return String(h);
+}
+
 export async function GET(request) {
   const secret = process.env.CRON_SECRET;
   if (secret) {
@@ -61,7 +77,7 @@ export async function GET(request) {
     const [votesRows, extrasRows, snapsRows, alertsRows, seenRows] = await Promise.all([
       fetchAll('votes', 'list_id,item_name,score', ['list_id', 'item_name']),
       fetchAll('extras', 'list_id,item_name', ['list_id', 'item_name']),
-      fetchAll('consensus_snapshots', 'list_id,top10', ['list_id']),
+      fetchAll('consensus_snapshots', 'list_id,top10,sources_hash', ['list_id']),
       fetchAll('consensus_alerts', 'list_id,item_name,change_type', ['id'], (q) => q.eq('resolved', false)),
       fetchAll('list_sources_seen', 'list_id,source_id', ['list_id', 'source_id']),
     ]);
@@ -83,7 +99,7 @@ export async function GET(request) {
 
     const prevSnaps = new Map();
     snapsRows.forEach((row) => {
-      prevSnaps.set(row.list_id, row.top10 || []);
+      prevSnaps.set(row.list_id, { top10: row.top10 || [], hash: row.sources_hash || null });
     });
 
     // Existing unresolved alerts, so re-detection never duplicates a row.
@@ -109,9 +125,11 @@ export async function GET(request) {
 
     for (const list of LISTS) {
       const top10 = consensusTop10(list, votes, extras);
+      const fingerprint = sourcesFingerprint(list);
       snapshotUpserts.push({
         list_id: list.id,
         top10,
+        sources_hash: fingerprint,
         updated_at: nowIso,
       });
 
@@ -135,9 +153,16 @@ export async function GET(request) {
         }
       }
 
-      const prev = prevSnaps.get(list.id);
+      const prevSnap = prevSnaps.get(list.id);
       // First sighting of a list: seed the snapshot silently, no alerts.
-      if (!prev) continue;
+      if (!prevSnap) continue;
+      const prev = prevSnap.top10;
+
+      // Attribute this run's changes: if the source fingerprint moved since
+      // the last run, a deploy edited the list (cause 'edit'); otherwise only
+      // votes/extras could have shifted the consensus (cause 'votes'). A null
+      // stored hash (pre-migration-16 snapshot) leaves cause null = unknown.
+      const cause = prevSnap.hash ? (prevSnap.hash !== fingerprint ? 'edit' : 'votes') : null;
 
       // Rank maps: positions 1-10 in the previous and current consensus.
       // Every alert row records the exact movement via prev_rank -> rank,
@@ -168,6 +193,7 @@ export async function GET(request) {
               change_type: 'entered_top10',
               rank,
               prev_rank: 0,
+              cause,
               resolved: false,
             });
             openAlerts.add(k);
@@ -183,6 +209,7 @@ export async function GET(request) {
               change_type: 'entered_top3',
               rank,
               prev_rank: p,
+              cause,
               resolved: false,
             });
             openAlerts.add(k);
@@ -197,6 +224,7 @@ export async function GET(request) {
             change_type: p <= 3 && rank > 3 ? 'exited_top3' : 'moved',
             rank,
             prev_rank: p,
+            cause,
             resolved: true,
           });
         }
@@ -212,6 +240,7 @@ export async function GET(request) {
             change_type: 'exited_top10',
             rank: 0,
             prev_rank: idx + 1,
+            cause,
             resolved: true,
           });
         }
