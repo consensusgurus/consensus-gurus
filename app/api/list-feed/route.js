@@ -24,7 +24,7 @@ export async function GET(request) {
     const [votesRes, managerRes, researchRes, commentsRes, seenRes, notesRes] = await Promise.all([
       supabaseAdmin.from('vote_events').select('item_name,delta,created_at').eq('list_id', listId).order('created_at', { ascending: false }).limit(20),
       supabaseAdmin.from('complaints').select('message,created_at,editor_response').eq('list_id', listId).eq('feed_hidden', false).order('created_at', { ascending: false }).limit(12),
-      supabaseAdmin.from('consensus_alerts').select('item_name,change_type,rank,detected_at').eq('list_id', listId).order('detected_at', { ascending: false }).limit(12),
+      supabaseAdmin.from('consensus_alerts').select('item_name,change_type,rank,detected_at').eq('list_id', listId).order('detected_at', { ascending: false }).limit(24),
       supabaseAdmin.from('list_comments').select('id,name,body,created_at,editor_response').eq('list_id', listId).eq('hidden', false).order('created_at', { ascending: false }).limit(60),
       supabaseAdmin.from('list_sources_seen').select('source_id,first_seen_at,label,removed_at').eq('list_id', listId),
       supabaseAdmin.from('list_editor_notes').select('note,created_at').eq('list_id', listId).order('created_at', { ascending: false }).limit(20),

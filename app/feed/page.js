@@ -24,7 +24,7 @@ export default async function FeedPage() {
       supabaseAdmin.from('complaints').select('list_id,message,created_at,editor_response').eq('feed_hidden', false).order('created_at', { ascending: false }).limit(25),
       supabaseAdmin.from('consensus_alerts').select('list_id,item_name,change_type,rank,detected_at').order('detected_at', { ascending: false }).limit(25),
       supabaseAdmin.from('list_editor_notes').select('list_id,note,created_at').order('created_at', { ascending: false }).limit(40),
-      supabaseAdmin.from('list_sources_seen').select('list_id,source_id,first_seen_at,label').order('first_seen_at', { ascending: false }).limit(80),
+      supabaseAdmin.from('list_sources_seen').select('list_id,source_id,first_seen_at,label').order('first_seen_at', { ascending: false }).limit(400),
     ]);
   } catch (e) {
     // Render whatever static data we have on a DB hiccup.
