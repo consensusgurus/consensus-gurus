@@ -1,11 +1,11 @@
 'use client';
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import {
   Flag,
+  BookMarked,
   RefreshCw,
   BarChart3,
   MessageSquare,
-  PenLine,
   ArrowUp,
   ArrowDown,
 } from 'lucide-react';
@@ -31,6 +31,7 @@ function fmtShort(iso) {
   }
 }
 
+// Relative time for the live streams: "12s ago", "4m ago", "3h ago", else date.
 function fmtRelative(iso) {
   try {
     const then = new Date(iso).getTime();
@@ -80,73 +81,68 @@ const MONO = "'DM Mono', monospace";
 const SERIF = "'Fraunces', serif";
 const SANS = "'DM Sans', sans-serif";
 
-function Dot({ color }) {
-  return (
-    <span
-      style={{
-        position: 'absolute',
-        left: -23,
-        top: 4,
-        width: 12,
-        height: 12,
-        borderRadius: '50%',
-        background: color,
-        border: `2px solid ${COLORS.cream}`,
-      }}
-    />
-  );
+// Per-category accent colors, matching the global activity ledger (FeedClient).
+const KC = {
+  source: '#2f4858',   // slate  — sources on file / source added
+  research: '#5a4a7a', // purple — re-researched / ranking changes
+  vote: '#3d4f2b',     // forest — live votes
+  review: '#9a6a1f',   // amber  — review requests
+  created: '#1a1611',  // ink    — list created
+  comment: '#c0392b',  // ember  — public comments
+};
+
+// Tinted card with a colored left border, one per activity category.
+function cardStyle(color) {
+  return {
+    position: 'relative',
+    marginBottom: 12,
+    padding: '12px 15px 13px',
+    background: `${color}12`,
+    borderLeft: `3px solid ${color}`,
+    borderRadius: '0 6px 6px 0',
+  };
 }
 
-function Kicker({ icon, children, live, date }) {
+function Badge({ icon, color, children, live, date }) {
   return (
-    <div
-      style={{
-        fontFamily: MONO,
-        fontSize: 10,
-        letterSpacing: '0.1em',
-        textTransform: 'uppercase',
-        color: COLORS.faded,
-        display: 'flex',
-        alignItems: 'center',
-        gap: 6,
-      }}
-    >
-      {icon}
-      <span>{children}</span>
-      {date && <span style={{ opacity: 0.8 }}>· {date}</span>}
+    <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
+      <span
+        style={{
+          display: 'inline-flex',
+          alignItems: 'center',
+          gap: 5,
+          background: `${color}24`,
+          color,
+          padding: '3px 8px',
+          borderRadius: 3,
+          fontFamily: MONO,
+          fontSize: 10,
+          letterSpacing: '0.1em',
+          textTransform: 'uppercase',
+          fontWeight: 700,
+        }}
+      >
+        {icon}
+        {children}
+      </span>
+      {date && (
+        <span style={{ fontFamily: MONO, fontSize: 10, letterSpacing: '0.08em', textTransform: 'uppercase', color: COLORS.faded }}>
+          {date}
+        </span>
+      )}
       {live && (
         <span
           style={{
             width: 7,
             height: 7,
             borderRadius: '50%',
-            background: COLORS.forest,
+            background: color,
             display: 'inline-block',
             animation: 'sotpulse 1.6s ease-in-out infinite',
           }}
         />
       )}
     </div>
-  );
-}
-
-function TrueExpertBadge() {
-  return (
-    <span
-      style={{
-        fontSize: 10,
-        background: '#f6e3cf',
-        color: COLORS.rust,
-        padding: '1px 7px',
-        borderRadius: 10,
-        marginLeft: 6,
-        fontFamily: MONO,
-        whiteSpace: 'nowrap',
-        display: 'inline-block',
-      }}
-    >
-      True Expert
-    </span>
   );
 }
 
@@ -163,16 +159,29 @@ function SourceCard({ s }) {
       }}
     >
       {s.label}
-      {s.trueExpert && <TrueExpertBadge />}
+      {s.trueExpert && (
+        <span
+          style={{
+            fontSize: 10,
+            background: '#f6e3cf',
+            color: COLORS.rust,
+            padding: '1px 7px',
+            borderRadius: 10,
+            marginLeft: 6,
+            fontFamily: MONO,
+          }}
+        >
+          True Expert
+        </span>
+      )}
     </div>
   );
 }
 
-// Per-list activity feed: live votes, research (later sources + consensus
-// changes), anonymized review requests, public comments, and a List-created
-// entry that lists the sources the ranking launched with.
+// Per-list activity feed: created time, sources (dated), re-research, live
+// votes, anonymized review requests, and public comments.
 export default function ActivityFeed({ list }) {
-  const [feed, setFeed] = useState({ votes: [], manager: [], research: [], comments: [], sources: [], editorNotes: [], removedSources: [] });
+  const [feed, setFeed] = useState({ votes: [], manager: [], research: [], comments: [], sources: [] });
   const [loaded, setLoaded] = useState(false);
   const [name, setName] = useState('');
   const [body, setBody] = useState('');
@@ -188,8 +197,6 @@ export default function ActivityFeed({ list }) {
         research: data.research || [],
         comments: data.comments || [],
         sources: data.sources || [],
-        editorNotes: data.editorNotes || [],
-        removedSources: data.removedSources || [],
       });
     } catch {
       /* leave streams empty on error */
@@ -225,89 +232,61 @@ export default function ActivityFeed({ list }) {
     setPosting(false);
   }
 
+  // Sources from the feed API (dated). Fall back to the static list data if the
+  // API returned none (e.g. before the source-tracking migration is applied).
   const apiSources = feed.sources || [];
   const clientSources = Object.entries(list.sources || {})
-    .filter(([id, s]) => (id !== 'ai' || list.mode === 'facts') && s && s.label)
+    .filter(([id, s]) => id !== 'ai' && s && s.label)
     .map(([id, s]) => ({ id, label: s.label, trueExpert: Boolean(s.trueExpert), addedAt: list.publishedAt || list.publishedDate || null }));
   const sources = apiSources.length ? apiSources : clientSources;
 
-  // Earliest add-date = the launch batch (shown in "List created"); anything
-  // added later surfaces as a bubble under "Research".
+  // Group sources by add-date: the earliest date is the "launch/backfill" batch
+  // (shown as one entry); anything added later shows as its own news entry.
   let launchSources = sources;
   let laterSources = [];
   if (sources.length > 0) {
-    const times = sources.map((s) => Date.parse(s.addedAt)).filter((t) => !isNaN(t));
-    const baseline = times.length ? Math.min(...times) : null;
-    if (baseline != null) {
-      launchSources = sources.filter((s) => { const t = Date.parse(s.addedAt); return isNaN(t) || t <= baseline; });
+    const days = sources.map((s) => dayKey(s.addedAt)).filter(Boolean);
+    const baseline = days.length ? days.sort()[0] : null;
+    if (baseline) {
+      launchSources = sources.filter((s) => dayKey(s.addedAt) <= baseline);
       laterSources = sources
-        .filter((s) => { const t = Date.parse(s.addedAt); return !isNaN(t) && t > baseline; })
+        .filter((s) => dayKey(s.addedAt) > baseline)
         .sort((a, b) => new Date(b.addedAt) - new Date(a.addedAt));
     }
   }
+  const launchDate = launchSources.length ? launchSources[0].addedAt : null;
 
   const created = list.publishedAt || list.publishedDate;
-  const hasResearch = laterSources.length > 0 || feed.research.length > 0 || feed.removedSources.length > 0;
 
   return (
     <div style={{ fontFamily: SANS, color: COLORS.ink, maxWidth: 640, paddingBottom: 40 }}>
       <style>{`@keyframes sotpulse{0%,100%{opacity:1}50%{opacity:.25}}`}</style>
 
-      <div style={{ position: 'relative', paddingLeft: 23 }}>
-        <div style={{ position: 'absolute', left: 5, top: 6, bottom: 6, width: 2, background: COLORS.paper }} />
-
-        {feed.editorNotes.length > 0 && (
-          <section style={{ position: 'relative', marginBottom: 26 }}>
-            <Dot color={COLORS.ember} />
-            <Kicker icon={<PenLine size={12} strokeWidth={2.5} />}>Editor's Note</Kicker>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 8, marginTop: 9 }}>
-              {feed.editorNotes.map((n, i) => (
-                <div key={i} style={{ background: '#fff', border: `1px solid ${COLORS.paper}`, borderLeft: `3px solid ${COLORS.ember}`, borderRadius: '0 7px 7px 0', padding: '8px 11px', fontSize: 13, whiteSpace: 'pre-wrap' }}>
-                  {n.note}
-                  <span style={{ display: 'block', fontFamily: MONO, fontSize: 10, color: COLORS.faded, marginTop: 3 }}>Editor · {fmtDate(n.createdAt)}</span>
-                </div>
-              ))}
-            </div>
+      <div>
+        {/* Later source additions: each its own news entry, newest first */}
+        {laterSources.map((s, i) => (
+          <section key={`later-${i}`} style={cardStyle(KC.source)}>
+            <Badge color={KC.source} icon={<BookMarked size={11} strokeWidth={2.5} />} date={fmtDate(s.addedAt)}>
+              Source added
+            </Badge>
+            <div style={{ fontFamily: SERIF, fontSize: 16, margin: '6px 0 8px' }}>New source on file</div>
+            <SourceCard s={s} />
           </section>
-        )}
+        ))}
 
-        {/* Research: later-added sources + consensus changes, as bubbles */}
-        {hasResearch && (
-          <section style={{ position: 'relative', marginBottom: 26 }}>
-            <Dot color={COLORS.ember} />
-            <Kicker icon={<RefreshCw size={12} strokeWidth={2.5} />}>Research</Kicker>
+        {/* Re-research / consensus changes */}
+        {feed.research.length > 0 && (
+          <section style={cardStyle(KC.research)}>
+            <Badge color={KC.research} icon={<RefreshCw size={11} strokeWidth={2.5} />}>Re-researched</Badge>
             <div style={{ display: 'flex', flexDirection: 'column', gap: 8, marginTop: 9 }}>
-              {laterSources.map((s, i) => (
-                <div key={`ls-${i}`} style={{ background: '#fff', border: `1px solid ${COLORS.paper}`, borderRadius: 7, padding: '8px 11px' }}>
-                  <div style={{ fontFamily: MONO, fontSize: 10, letterSpacing: '0.1em', textTransform: 'uppercase', color: COLORS.rust, marginBottom: 4 }}>
-                    Source added{s.addedAt ? ` · ${fmtDate(s.addedAt)}` : ''}
-                  </div>
-                  <div style={{ fontSize: 13, color: COLORS.ink }}>
-                    {s.label}
-                    {s.trueExpert && <TrueExpertBadge />}
-                  </div>
-                </div>
-              ))}
-              {feed.removedSources.map((s, i) => (
-                <div key={`rm-${i}`} style={{ background: '#fff', border: `1px solid ${COLORS.paper}`, borderRadius: 7, padding: '8px 11px' }}>
-                  <div style={{ fontFamily: MONO, fontSize: 10, letterSpacing: '0.1em', textTransform: 'uppercase', color: COLORS.faded, marginBottom: 4 }}>
-                    Source removed{s.removedAt ? ` · ${fmtDate(s.removedAt)}` : ''}
-                  </div>
-                  <div style={{ fontSize: 13, color: COLORS.faded, textDecoration: 'line-through' }}>
-                    {s.label}
-                  </div>
-                </div>
-              ))}
               {feed.research.map((ev, i) => {
                 const { item, tail } = researchLabel(ev);
                 return (
-                  <div key={`rs-${i}`} style={{ background: '#fff', border: `1px solid ${COLORS.paper}`, borderRadius: 7, padding: '8px 11px' }}>
-                    <div style={{ fontFamily: MONO, fontSize: 10, letterSpacing: '0.1em', textTransform: 'uppercase', color: COLORS.faded, marginBottom: 4 }}>
-                      Consensus update{ev.detectedAt ? ` · ${fmtDate(ev.detectedAt)}` : ''}
-                    </div>
+                  <div key={i}>
                     <div style={{ fontSize: 13, color: COLORS.ink }}>
-                      <strong style={{ fontWeight: 500, color: COLORS.forest }}>{item}</strong> {tail}.
+                      <strong style={{ fontWeight: 500, color: KC.research }}>{item}</strong> {tail}.
                     </div>
+                    <div style={{ fontFamily: MONO, fontSize: 11, color: COLORS.faded, marginTop: 2 }}>{fmtDate(ev.detectedAt)}</div>
                   </div>
                 );
               })}
@@ -316,11 +295,10 @@ export default function ActivityFeed({ list }) {
         )}
 
         {/* Live votes */}
-        <section style={{ position: 'relative', marginBottom: 26 }}>
-          <Dot color={COLORS.forest} />
-          <Kicker icon={<BarChart3 size={12} strokeWidth={2.5} />} live>
+        <section style={cardStyle(KC.vote)}>
+          <Badge color={KC.vote} icon={<BarChart3 size={11} strokeWidth={2.5} />} live>
             Live votes
-          </Kicker>
+          </Badge>
           {feed.votes.length > 0 ? (
             <div style={{ display: 'flex', flexDirection: 'column', gap: 6, marginTop: 8 }}>
               {feed.votes.slice(0, 8).map((v, i) => {
@@ -355,12 +333,11 @@ export default function ActivityFeed({ list }) {
           )}
         </section>
 
-        {/* Review requests (anonymized) */}
+        {/* Manager notes (anonymized) */}
         {feed.manager.length > 0 && (
-          <section style={{ position: 'relative', marginBottom: 26 }}>
-            <Dot color={COLORS.faded} />
-            <Kicker icon={<MessageSquare size={12} strokeWidth={2.5} />}>Review requests</Kicker>
-            <div style={{ fontSize: 12, color: COLORS.faded, marginTop: 2, fontStyle: 'italic' }}>
+          <section style={cardStyle(KC.review)}>
+            <Badge color={KC.review} icon={<MessageSquare size={11} strokeWidth={2.5} />}>Review requests</Badge>
+            <div style={{ fontSize: 12, color: COLORS.faded, marginTop: 4, fontStyle: 'italic' }}>
               Notes sent privately to the editors. No names or emails shown.
             </div>
             <div style={{ display: 'flex', flexDirection: 'column', gap: 7, marginTop: 9 }}>
@@ -368,45 +345,46 @@ export default function ActivityFeed({ list }) {
                 <div
                   key={i}
                   style={{
-                    background: COLORS.paper,
-                    borderLeft: `3px solid ${COLORS.faded}`,
+                    background: '#fff',
+                    borderLeft: `3px solid ${KC.review}`,
                     borderRadius: '0 7px 7px 0',
                     padding: '8px 11px',
                     fontSize: 13,
                   }}
                 >
-                  <div style={{ fontFamily: MONO, fontSize: 10, letterSpacing: '0.1em', textTransform: 'uppercase', color: COLORS.faded, marginBottom: 4 }}>
-                    User submitted review request · {fmtShort(m.createdAt)}
-                  </div>
-                  {m.message && m.message.trim() ? m.message : 'No comment given.'}
-                  {m.editorResponse && (
-                    <div style={{ marginTop: 6, paddingTop: 6, borderTop: `1px solid ${COLORS.faded}33`, fontSize: 13 }}>
-                      <strong style={{ fontWeight: 700, color: COLORS.ember }}>Editor:</strong> {m.editorResponse}
-                    </div>
-                  )}
+                  {m.message}
+                  <span style={{ display: 'block', fontFamily: MONO, fontSize: 10, color: COLORS.faded, marginTop: 3 }}>
+                    Anonymous · {fmtShort(m.createdAt)}
+                  </span>
                 </div>
               ))}
             </div>
           </section>
         )}
 
-        {/* List created — includes the sources the ranking launched with */}
-        <section style={{ position: 'relative' }}>
-          <Dot color={COLORS.ink} />
-          <Kicker icon={<Flag size={12} strokeWidth={2.5} />} date={created ? fmtDate(created) : undefined}>
-            List created
-          </Kicker>
-          <div style={{ fontFamily: SERIF, fontSize: 16, marginTop: 3 }}>Published the ranking</div>
-          <div style={{ fontSize: 13, color: COLORS.faded, marginTop: 2 }}>
-            Seeded from {launchSources.length} {launchSources.length === 1 ? 'source' : 'sources'} and live fan voting.
-          </div>
-          {launchSources.length > 0 && (
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 5, marginTop: 9 }}>
+        {/* Launch / backfill source batch (oldest), and list created */}
+        {launchSources.length > 0 && (
+          <section style={cardStyle(KC.source)}>
+            <Badge color={KC.source} icon={<BookMarked size={11} strokeWidth={2.5} />} date={launchDate ? fmtDate(launchDate) : undefined}>
+              Sources
+            </Badge>
+            <div style={{ fontFamily: SERIF, fontSize: 16, margin: '6px 0 8px' }}>
+              {launchSources.length} {launchSources.length === 1 ? 'source' : 'sources'} on file
+            </div>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 5 }}>
               {launchSources.map((s, i) => (
                 <SourceCard key={i} s={s} />
               ))}
             </div>
-          )}
+          </section>
+        )}
+
+        <section style={{ ...cardStyle(KC.created), marginBottom: 0 }}>
+          <Badge color={KC.created} icon={<Flag size={11} strokeWidth={2.5} />} date={created ? fmtDate(created) : undefined}>
+            List created
+          </Badge>
+          <div style={{ fontFamily: SERIF, fontSize: 16, marginTop: 6 }}>Published the ranking</div>
+          <div style={{ fontSize: 13, color: COLORS.faded, marginTop: 2 }}>Seeded from expert sources and live fan voting.</div>
         </section>
       </div>
 
@@ -448,11 +426,6 @@ export default function ActivityFeed({ list }) {
                     <span style={{ fontFamily: MONO, fontSize: 10, color: COLORS.faded }}>{fmtRelative(c.createdAt)}</span>
                   </div>
                   <div style={{ fontSize: 13, marginTop: 2, whiteSpace: 'pre-wrap' }}>{c.body}</div>
-                  {c.editorResponse && (
-                    <div style={{ marginTop: 6, paddingTop: 6, borderTop: `1px solid ${COLORS.paper}`, fontSize: 13 }}>
-                      <strong style={{ fontWeight: 700, color: COLORS.ember }}>Editor:</strong> {c.editorResponse}
-                    </div>
-                  )}
                 </div>
               </div>
             );
@@ -465,27 +438,4 @@ export default function ActivityFeed({ list }) {
             onChange={(e) => setName(e.target.value)}
             placeholder="Your name (optional)"
             maxLength={120}
-            style={{ width: '100%', boxSizing: 'border-box', border: 'none', borderBottom: `1px solid ${COLORS.paper}`, background: 'transparent', fontFamily: SANS, fontSize: 13, padding: '5px 2px', marginBottom: 8, outline: 'none', color: COLORS.ink }}
-          />
-          <textarea
-            value={body}
-            onChange={(e) => setBody(e.target.value)}
-            placeholder="Add a comment…"
-            rows={2}
-            maxLength={1000}
-            style={{ width: '100%', boxSizing: 'border-box', border: 'none', background: 'transparent', fontFamily: SANS, fontSize: 13, padding: 2, resize: 'vertical', outline: 'none', color: COLORS.ink }}
-          />
-          <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: 6 }}>
-            <button
-              onClick={postComment}
-              disabled={posting || !body.trim()}
-              style={{ background: COLORS.ember, color: '#fff', border: 'none', fontFamily: MONO, fontSize: 12, letterSpacing: '0.08em', padding: '7px 16px', borderRadius: 7, cursor: posting || !body.trim() ? 'default' : 'pointer', opacity: posting || !body.trim() ? 0.5 : 1 }}
-            >
-              {posting ? 'Posting…' : 'Post comment'}
-            </button>
-          </div>
-        </div>
-      </div>
-    </div>
-  );
-}
+            style={{ width: '100%', boxSizing: 'border-box', border: 'none', borderBottom: `1px solid ${CO
