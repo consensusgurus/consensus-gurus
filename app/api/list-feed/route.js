@@ -82,13 +82,28 @@ export async function GET(request) {
     }
     sources.sort((a, b) => new Date(b.addedAt || 0) - new Date(a.addedAt || 0));
 
+    // Suppress consensus-change ("Re-researched") cards that predate the most
+    // recent source addition. Adding a source recomputes the consensus, so any
+    // earlier change event (a vote shift or, commonly, a scoring-engine formula
+    // change) reflects a now-superseded computation and reads as backwards
+    // causality next to fresh source work. Only show change events at or after
+    // the newest source's add date.
+    const latestSourceAt = sources.reduce((mx, s) => {
+      const t = s.addedAt ? new Date(s.addedAt).getTime() : 0;
+      return t > mx ? t : mx;
+    }, 0);
+    const researchVisible = research.filter((r) => {
+      const t = r.detectedAt ? new Date(r.detectedAt).getTime() : 0;
+      return t >= latestSourceAt;
+    });
+
     const removedSources = seenRows
       .filter((r) => !currentIds.has(r.source_id))
       .map((r) => { const cur = seenMap.get(r.source_id) || r; return { label: cur.label || r.label || r.source_id, removedAt: cur.removed_at || r.removed_at || nowIso }; })
       .sort((a, b) => new Date(b.removedAt || 0) - new Date(a.removedAt || 0));
 
     const editorNotes = (notesRes.data || []).map((r) => ({ note: r.note, createdAt: r.created_at }));
-    return NextResponse.json({ votes, manager, research, comments, sources, editorNotes, removedSources });
+    return NextResponse.json({ votes, manager, research: researchVisible, comments, sources, editorNotes, removedSources });
   } catch (err) {
     console.error('list-feed error', err);
     return NextResponse.json({ votes: [], manager: [], research: [], comments: [], sources: [], editorNotes: [], removedSources: [] });
