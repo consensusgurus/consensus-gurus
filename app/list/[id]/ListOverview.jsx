@@ -354,7 +354,7 @@ function HeroTile({ item, rank, list, desc, pics, poster }) {
         ...tileChrome,
       }}
     >
-      {heroSrc ? <HeroPhoto photo={heroSrc} alt={displayName} poster={poster} href={href} rel={rel} fit={isProduct ? 'contain' : 'cover'} bg={isProduct ? '#ffffff' : undefined} pad={isProduct ? 14 : 0} /> : <PhotoBox />}
+      {heroSrc ? <HeroPhoto photo={heroSrc} alt={displayName} poster={poster} href={href} rel={rel} fit={isProduct ? 'contain' : 'cover'} bg={isProduct ? COLORS.cream : undefined} pad={isProduct ? 14 : 0} /> : <PhotoBox />}
       <div
         style={{
           padding: '20px 22px 18px',
