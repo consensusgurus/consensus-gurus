@@ -1042,6 +1042,21 @@ if (missing.length) throw new Error('Missing descriptions: ' + missing.join(', '
   Landscape orientation strongly preferred for the overview tiles. If the first search yields
   nothing beautiful, change the query (add "aerial", "sunset", "panorama", the iconic landmark
   name) and keep looking — for famous subjects a stunning shot always exists.
+- **Hero photos must work on BOTH desktop and mobile, or use the `contain` fallback (owner rule,
+  2026-06-06).** The overview tile renders at very different shapes by viewport: on desktop the photo
+  sits in a narrow near-square column, but on mobile the grid collapses to one column and the photo
+  becomes a wide, short band. A portrait image cropped with the default `objectFit: cover` loses its
+  subject (head and feet) in that wide mobile band. So when choosing each top-3 hero, FIRST find a
+  genuinely landscape, subject-centered photo that survives a center-crop at both shapes: that is the
+  default and stays full-bleed with no letterboxing (apply the magazine-grade aesthetic review above).
+  ONLY if no good landscape photo exists for the subject (portrait headshots of people, tall book
+  covers or posters, vertical artwork), do NOT ship a cover-cropped portrait. Instead set
+  `heroFit: 'contain'` on the list object, which applies the same crop-free contain plus cream-padding
+  treatment used for product lists, so the full image shows at every viewport. Implemented in
+  `app/list/[id]/ListOverview.jsx` as `containHero = isProduct || list.heroFit === 'contain'` (HeroTile
+  passes `fit`/`bg`/`pad`; the poster variant reuses HeroTile so it inherits the behavior). First used
+  on `best-basketball-player-all-time` (portrait player photos). Decide per list, and prefer genuine
+  landscape photography whenever it exists.
 - **Attribution check for photos from multi-venue roundup articles — verify the photo shows THIS
   place's dish.** A roundup article ("Best Wings in NYC" etc.) carries one lead/hero image that
   belongs to a SINGLE venue in the article, usually named only in its caption or credit, plus one
