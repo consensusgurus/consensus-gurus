@@ -44,8 +44,8 @@ export default function SourcesPopover({ label }) {
     <span
       ref={wrapRef}
       style={{ position: 'relative', display: 'inline' }}
-      onMouseEnter={() => { cancelClose(); setOpen(true); }}
-      onMouseLeave={scheduleClose}
+      onPointerEnter={(e) => { if (e.pointerType === 'mouse') { cancelClose(); setOpen(true); } }}
+      onPointerLeave={(e) => { if (e.pointerType === 'mouse') scheduleClose(); }}
     >
       <button
         type="button"
