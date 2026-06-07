@@ -43,9 +43,30 @@ const CATEGORIES = [
   { key: 'source', label: 'Source updates', color: KIND.source.color },
 ];
 
-function Event({ kind, kicker, date, children, color: colorOverride }) {
+function chipStyle(color) {
+  return {
+    display: 'inline-flex',
+    alignItems: 'center',
+    gap: 5,
+    background: `${color}1f`,
+    color,
+    padding: '3px 8px',
+    borderRadius: 3,
+    fontFamily: 'DM Mono, monospace',
+    fontSize: 10,
+    letterSpacing: '0.1em',
+    textTransform: 'uppercase',
+    fontWeight: 700,
+  };
+}
+
+// `chips` renders multiple category chips side by side (combined events:
+// list+sources, source-add+ranking-change, votes+ranking-change). Without
+// it, a single chip is derived from the kind (or the `kicker` override).
+function Event({ kind, kicker, date, children, color: colorOverride, chips }) {
   const { color: kindColor, label, Icon } = KIND[kind] || {};
   const color = colorOverride || kindColor;
+  const chipList = chips || [{ color: kindColor, Icon, label: kicker || label }];
   return (
     <div
       style={{
@@ -58,25 +79,15 @@ function Event({ kind, kicker, date, children, color: colorOverride }) {
       }}
     >
       <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
-        <span
-          style={{
-            display: 'inline-flex',
-            alignItems: 'center',
-            gap: 5,
-            background: `${color}1f`,
-            color,
-            padding: '3px 8px',
-            borderRadius: 3,
-            fontFamily: 'DM Mono, monospace',
-            fontSize: 10,
-            letterSpacing: '0.1em',
-            textTransform: 'uppercase',
-            fontWeight: 700,
-          }}
-        >
-          {Icon && <Icon size={11} strokeWidth={2.5} />}
-          {kicker || label}
-        </span>
+        {chipList.map((c, j) => {
+          const CIcon = c.Icon;
+          return (
+            <span key={j} style={chipStyle(c.color || color)}>
+              {CIcon && <CIcon size={11} strokeWidth={2.5} />}
+              {c.label}
+            </span>
+          );
+        })}
         {date && (
           <span style={{ fontFamily: 'DM Mono, monospace', fontSize: 10, letterSpacing: '0.08em', textTransform: 'uppercase', color: COLORS.faded }}>
             {date}
@@ -99,7 +110,15 @@ function ListLink({ id, children }) {
 function renderEvent(e, i) {
   if (e.kind === 'list') {
     return (
-      <Event key={i} kind="list" date={fmtDate(e.ts)}>
+      <Event
+        key={i}
+        kind="list"
+        date={fmtDate(e.ts)}
+        chips={[
+          { color: KIND.list.color, Icon: Flag, label: 'New list' },
+          ...(e.sources && e.sources.length > 0 ? [{ color: KIND.source.color, Icon: BookMarked, label: 'Sources' }] : []),
+        ]}
+      >
         <ListLink id={e.id}>{e.title}</ListLink>{e.category ? ` · ${e.category}` : ''}
         {e.sources && e.sources.length > 0 && (
           <div style={{ marginTop: 4, fontSize: 12, color: COLORS.faded }}>
@@ -112,12 +131,21 @@ function renderEvent(e, i) {
   if (e.kind === 'source') {
     const hasChanges = e.changes && e.changes.length > 0;
     return (
-      <Event key={i} kind="source" color={hasChanges ? KIND.research.color : undefined} kicker={hasChanges ? 'Re-researched' : 'Source added'} date={fmtDate(e.ts)}>
+      <Event
+        key={i}
+        kind="source"
+        color={hasChanges ? KIND.research.color : undefined}
+        date={fmtDate(e.ts)}
+        chips={[
+          { color: KIND.source.color, Icon: BookMarked, label: e.labels.length === 1 ? 'Source added' : 'Sources added' },
+          ...(hasChanges ? [{ color: KIND.research.color, Icon: RefreshCw, label: 'Ranking change' }] : []),
+        ]}
+      >
         {hasChanges ? 'Re-researched ' : 'Added '}{e.labels.length} {e.labels.length === 1 ? 'source' : 'sources'} on <ListLink id={e.listId}>{e.listTitle}</ListLink>: {e.labels.join(', ')}.
         {hasChanges && (
           <div style={{ marginTop: 5 }}>
             {e.changes.map((c, k) => {
-              const tail = c.changeType === 'entered_top3' ? `entered the top 3 (#${c.rank || 3})` : c.changeType === 'entered_top10' ? 'entered the top 10' : 'moved in the rankings';
+              const tail = c.changeType === 'entered_top3' ? `entered the top 3 (#${c.rank || 3})` : c.changeType === 'entered_top10' ? 'entered the top 10' : c.changeType === 'exited_top3' ? 'dropped out of the top 3' : c.changeType === 'exited_top10' ? 'dropped out of the top 10' : 'moved in the rankings';
               return (
                 <div key={k} style={{ fontSize: 13 }}>&rarr; <strong style={{ fontWeight: 500 }}>{c.itemName}</strong> {tail}.</div>
               );
@@ -157,9 +185,17 @@ function renderEvent(e, i) {
     );
   }
   if (e.kind === 'research') {
-    const tail = e.changeType === 'entered_top3' ? `entered the top 3 (#${e.rank || 3})` : e.changeType === 'entered_top10' ? 'entered the top 10' : 'moved in the rankings';
+    const tail = e.changeType === 'entered_top3' ? `entered the top 3 (#${e.rank || 3})` : e.changeType === 'entered_top10' ? 'entered the top 10' : e.changeType === 'exited_top3' ? 'dropped out of the top 3' : e.changeType === 'exited_top10' ? 'dropped out of the top 10' : 'moved in the rankings';
     return (
-      <Event key={i} kind="research" date={fmtDate(e.ts)}>
+      <Event
+        key={i}
+        kind="research"
+        date={fmtDate(e.ts)}
+        chips={[
+          { color: KIND.vote.color, Icon: BarChart3, label: 'Votes' },
+          { color: KIND.research.color, Icon: RefreshCw, label: 'Ranking change' },
+        ]}
+      >
         <strong style={{ fontWeight: 500 }}>{e.itemName}</strong> {tail} on <ListLink id={e.listId}>{e.listTitle}</ListLink>.
       </Event>
     );

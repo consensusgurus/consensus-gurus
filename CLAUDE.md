@@ -1094,9 +1094,21 @@ if (missing.length) throw new Error('Missing descriptions: ' + missing.join(', '
 
 ### Consensus change alerts (research queue)
 - Tables `consensus_snapshots` + `consensus_alerts` (migration `08_consensus_alerts.sql`).
+- **Activity-ledger attribution:** both ledgers (per-list `ActivityFeed.jsx` and universal
+  `app/feed/page.js` + `FeedClient.jsx`) pair each ranking change with its cause: a change detected
+  within ~26h after a post-launch source addition merges into that source-add card (dual chips
+  "Source added" + "Ranking change"); an unattributed change renders with "Votes" + "Ranking change"
+  chips. "Launch batch" sources = first seen within **6h** of the list's publish time; this window
+  lives in BOTH ActivityFeed.jsx and app/feed/page.js and the two must stay in sync. Sources added
+  before the stamping feature shipped (2026-06-07) were launch-anchored by its first run; the real
+  add dates for the affected lists were restored by migration 14.
 - `/api/cron/consensus-check` runs daily via Vercel cron (`vercel.json`): recomputes every list's
   consensus top 10, diffs against the snapshot, and inserts an alert when an item newly enters the
   top 10 (`entered_top10`, needs a description) or top 3 (`entered_top3`, needs a hero photo).
+  The same diff also records exits (`exited_top10`, `exited_top3`), inserted with `resolved=true`
+  so they show in the public activity ledgers but never enter the research queue (an exit needs
+  no description or hero work). Migration `14_restamp_source_dates_and_exits.sql` widened the
+  change_type check for this.
   First run seeds snapshots silently. Optional `CRON_SECRET` env var protects the route.
 - The admin panel (`/admin`) has a **Research** tab listing unresolved alerts with what each needs;
   resolve via `/api/admin/alerts` once the research ships.

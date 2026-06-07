@@ -80,7 +80,7 @@ export default async function FeedPage() {
     const ms = Date.parse(r.first_seen_at);
     if (isNaN(ms)) return;
     const pub = pubMs.get(r.list_id);
-    if (!isNaN(pub) && ms - pub < 12 * 3600 * 1000) return; // launch batch
+    if (!isNaN(pub) && ms - pub < 6 * 3600 * 1000) return; // launch batch (6h window; mirrors ActivityFeed.jsx)
     const key = `${r.list_id}::${r.first_seen_at}`;
     if (!srcGroupMap.has(key)) srcGroupMap.set(key, { ts: ms, kind: 'source', listId: r.list_id, listTitle: titleOf(r.list_id), labels: [], changes: [] });
     srcGroupMap.get(key).labels.push(labelOf.get(`${r.list_id}::${r.source_id}`) || r.label || r.source_id);

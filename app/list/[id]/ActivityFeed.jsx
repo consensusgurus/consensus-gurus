@@ -49,14 +49,6 @@ function fmtRelative(iso) {
   }
 }
 
-function dayKey(iso) {
-  try {
-    return new Date(iso).toISOString().slice(0, 10);
-  } catch {
-    return '';
-  }
-}
-
 function initials(name) {
   if (!name) return '?';
   return name.trim().split(/\s+/).map((w) => w[0]).join('').slice(0, 2).toUpperCase();
@@ -74,6 +66,8 @@ function researchLabel(ev) {
   const item = ev.itemName || 'An item';
   if (ev.changeType === 'entered_top3') return { item, tail: `entered the top 3 (#${ev.rank || 3})` };
   if (ev.changeType === 'entered_top10') return { item, tail: 'entered the top 10' };
+  if (ev.changeType === 'exited_top3') return { item, tail: 'dropped out of the top 3' };
+  if (ev.changeType === 'exited_top10') return { item, tail: 'dropped out of the top 10' };
   return { item, tail: 'moved in the rankings' };
 }
 
@@ -103,28 +97,38 @@ function cardStyle(color) {
   };
 }
 
-function Badge({ icon, color, children, live, date }) {
+function chipStyle(color) {
+  return {
+    display: 'inline-flex',
+    alignItems: 'center',
+    gap: 5,
+    background: `${color}24`,
+    color,
+    padding: '3px 8px',
+    borderRadius: 3,
+    fontFamily: MONO,
+    fontSize: 10,
+    letterSpacing: '0.1em',
+    textTransform: 'uppercase',
+    fontWeight: 700,
+  };
+}
+
+// Up to two category chips side by side: the primary (icon/color/children)
+// plus an optional `extra` chip ({ icon, color, label }) for combined events.
+function Badge({ icon, color, children, live, date, extra }) {
   return (
     <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
-      <span
-        style={{
-          display: 'inline-flex',
-          alignItems: 'center',
-          gap: 5,
-          background: `${color}24`,
-          color,
-          padding: '3px 8px',
-          borderRadius: 3,
-          fontFamily: MONO,
-          fontSize: 10,
-          letterSpacing: '0.1em',
-          textTransform: 'uppercase',
-          fontWeight: 700,
-        }}
-      >
+      <span style={chipStyle(color)}>
         {icon}
         {children}
       </span>
+      {extra && (
+        <span style={chipStyle(extra.color)}>
+          {extra.icon}
+          {extra.label}
+        </span>
+      )}
       {date && (
         <span style={{ fontFamily: MONO, fontSize: 10, letterSpacing: '0.08em', textTransform: 'uppercase', color: COLORS.faded }}>
           {date}
@@ -240,19 +244,21 @@ export default function ActivityFeed({ list }) {
     .map(([id, s]) => ({ id, label: s.label, trueExpert: Boolean(s.trueExpert), addedAt: list.publishedAt || list.publishedDate || null }));
   const sources = apiSources.length ? apiSources : clientSources;
 
-  // Group sources by add-date: the earliest date is the "launch/backfill" batch
-  // (shown as one entry); anything added later shows as its own news entry.
+  // Launch batch = sources first seen within 6h of the list's publish time
+  // (the cron backfills genuinely-at-launch sources to the publish timestamp
+  // exactly). Anything later is a dated post-launch addition shown as its own
+  // entry. Mirrors the 6h window in app/feed/page.js -- keep the two in sync.
+  const LAUNCH_WINDOW_MS = 6 * 3600 * 1000;
+  const pubMsRef = Date.parse(list.publishedAt || list.publishedDate || '');
   let launchSources = sources;
   let laterSources = [];
-  if (sources.length > 0) {
-    const days = sources.map((s) => dayKey(s.addedAt)).filter(Boolean);
-    const baseline = days.length ? days.sort()[0] : null;
-    if (baseline) {
-      launchSources = sources.filter((s) => dayKey(s.addedAt) <= baseline);
-      laterSources = sources
-        .filter((s) => dayKey(s.addedAt) > baseline)
-        .sort((a, b) => new Date(b.addedAt) - new Date(a.addedAt));
-    }
+  if (sources.length > 0 && !isNaN(pubMsRef)) {
+    const isLaunch = (s) => {
+      const t = Date.parse(s.addedAt || '');
+      return isNaN(t) || t - pubMsRef < LAUNCH_WINDOW_MS;
+    };
+    launchSources = sources.filter(isLaunch);
+    laterSources = sources.filter((s) => !isLaunch(s)).sort((a, b) => new Date(b.addedAt) - new Date(a.addedAt));
   }
   const launchDate = launchSources.length ? launchSources[0].addedAt : null;
 
@@ -303,8 +309,13 @@ export default function ActivityFeed({ list }) {
             const hasChanges = g.changes.length > 0;
             return (
               <section key={`te-${i}`} style={cardStyle(hasChanges ? KC.research : KC.source)}>
-                <Badge color={hasChanges ? KC.research : KC.source} icon={hasChanges ? <RefreshCw size={11} strokeWidth={2.5} /> : <BookMarked size={11} strokeWidth={2.5} />} date={fmtDate(g.addedAt)}>
-                  {hasChanges ? 'Re-researched' : 'Source added'}
+                <Badge
+                  color={KC.source}
+                  icon={<BookMarked size={11} strokeWidth={2.5} />}
+                  extra={hasChanges ? { icon: <RefreshCw size={11} strokeWidth={2.5} />, color: KC.research, label: 'Ranking change' } : undefined}
+                  date={fmtDate(g.addedAt)}
+                >
+                  {g.sources.length === 1 ? 'Source added' : 'Sources added'}
                 </Badge>
                 <div style={{ fontFamily: SERIF, fontSize: 16, margin: '6px 0 8px' }}>
                   {hasChanges
@@ -334,7 +345,14 @@ export default function ActivityFeed({ list }) {
           const { item, tail } = researchLabel(ev);
           return (
             <section key={`te-${i}`} style={cardStyle(KC.research)}>
-              <Badge color={KC.research} icon={<RefreshCw size={11} strokeWidth={2.5} />} date={fmtDate(ev.detectedAt)}>Ranking change</Badge>
+              <Badge
+                color={KC.vote}
+                icon={<BarChart3 size={11} strokeWidth={2.5} />}
+                extra={{ icon: <RefreshCw size={11} strokeWidth={2.5} />, color: KC.research, label: 'Ranking change' }}
+                date={fmtDate(ev.detectedAt)}
+              >
+                Votes
+              </Badge>
               <div style={{ fontSize: 13, color: COLORS.ink, marginTop: 8 }}>
                 <strong style={{ fontWeight: 500, color: KC.research }}>{item}</strong> {tail}.
               </div>
@@ -408,7 +426,12 @@ export default function ActivityFeed({ list }) {
 
         {/* Publishing of the ranking: list created + the launch sources, one card */}
         <section style={{ ...cardStyle(KC.created), marginBottom: 0 }}>
-          <Badge color={KC.created} icon={<Flag size={11} strokeWidth={2.5} />} date={created ? fmtDate(created) : undefined}>
+          <Badge
+            color={KC.created}
+            icon={<Flag size={11} strokeWidth={2.5} />}
+            extra={launchSources.length > 0 ? { icon: <BookMarked size={11} strokeWidth={2.5} />, color: KC.source, label: 'Sources' } : undefined}
+            date={created ? fmtDate(created) : undefined}
+          >
             List created
           </Badge>
           <div style={{ fontFamily: SERIF, fontSize: 16, marginTop: 6 }}>Published the ranking</div>

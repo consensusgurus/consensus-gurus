@@ -137,6 +137,7 @@ export async function GET(request) {
               item_name: item,
               change_type: 'entered_top10',
               rank,
+              resolved: false,
             });
             openAlerts.add(k);
           }
@@ -149,9 +150,38 @@ export async function GET(request) {
               item_name: item,
               change_type: 'entered_top3',
               rank,
+              resolved: false,
             });
             openAlerts.add(k);
           }
+        }
+      });
+
+      // Exits: items that left the top 10 entirely, or slipped out of the
+      // top 3 while staying on the list. Stored resolved=true so they appear
+      // in the public activity ledgers but never enter the research queue
+      // (an exit needs no description or hero work). Snapshot-diff detection
+      // fires each exit exactly once.
+      const cur10 = new Set(top10.map(norm));
+      const cur3 = new Set(top10.slice(0, 3).map(norm));
+      prev.forEach((item, idx) => {
+        const key = norm(item);
+        if (!cur10.has(key)) {
+          newAlerts.push({
+            list_id: list.id,
+            item_name: item,
+            change_type: 'exited_top10',
+            rank: null,
+            resolved: true,
+          });
+        } else if (idx < 3 && !cur3.has(key)) {
+          newAlerts.push({
+            list_id: list.id,
+            item_name: item,
+            change_type: 'exited_top3',
+            rank: null,
+            resolved: true,
+          });
         }
       });
     }
