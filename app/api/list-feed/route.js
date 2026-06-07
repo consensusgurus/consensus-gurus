@@ -26,7 +26,7 @@ export async function GET(request) {
       supabaseAdmin.from('complaints').select('message,created_at,editor_response').eq('list_id', listId).eq('feed_hidden', false).order('created_at', { ascending: false }).limit(12),
       supabaseAdmin.from('consensus_alerts').select('item_name,change_type,rank,prev_rank,cause,detected_at').eq('list_id', listId).order('detected_at', { ascending: false }).limit(24),
       supabaseAdmin.from('list_comments').select('id,name,body,created_at,editor_response').eq('list_id', listId).eq('hidden', false).order('created_at', { ascending: false }).limit(60),
-      supabaseAdmin.from('list_sources_seen').select('source_id,first_seen_at,label,removed_at').eq('list_id', listId),
+      supabaseAdmin.from('list_sources_seen').select('source_id,first_seen_at,label,removed_at,label_updated_at').eq('list_id', listId),
       supabaseAdmin.from('list_editor_notes').select('note,created_at').eq('list_id', listId).order('created_at', { ascending: false }).limit(20),
     ]);
 
@@ -62,14 +62,18 @@ export async function GET(request) {
     for (const [id, s] of currentEntries) {
       const row = seenMap.get(id);
       if (!row) {
-        upserts.push({ list_id: listId, source_id: id, first_seen_at: isInitial ? initialIso : nowIso, label: s.label, removed_at: null });
+        upserts.push({ list_id: listId, source_id: id, first_seen_at: isInitial ? initialIso : nowIso, label: s.label, removed_at: null, label_updated_at: null });
       } else if (row.label !== s.label || row.removed_at) {
-        upserts.push({ list_id: listId, source_id: id, first_seen_at: row.first_seen_at, label: s.label, removed_at: null });
+        // A real label change (refresh/new edition) or a removed source
+        // reappearing stamps label_updated_at -> a dated "Updated sources"
+        // feed event. Backfilling a null stored label is silent.
+        const realChange = (row.label != null && row.label !== s.label) || Boolean(row.removed_at);
+        upserts.push({ list_id: listId, source_id: id, first_seen_at: row.first_seen_at, label: s.label, removed_at: null, label_updated_at: realChange ? nowIso : row.label_updated_at || null });
       }
     }
     for (const r of seenRows) {
       if (!currentIds.has(r.source_id) && r.removed_at == null) {
-        upserts.push({ list_id: listId, source_id: r.source_id, first_seen_at: r.first_seen_at, label: r.label, removed_at: nowIso });
+        upserts.push({ list_id: listId, source_id: r.source_id, first_seen_at: r.first_seen_at, label: r.label, removed_at: nowIso, label_updated_at: r.label_updated_at || null });
       }
     }
     if (upserts.length > 0) {
@@ -85,7 +89,7 @@ export async function GET(request) {
     const sources = [];
     for (const [id, s] of currentEntries) {
       const row = seenMap.get(id);
-      sources.push({ id, label: s.label, trueExpert: Boolean(s.trueExpert), addedAt: (row && row.first_seen_at) || fallback });
+      sources.push({ id, label: s.label, trueExpert: Boolean(s.trueExpert), addedAt: (row && row.first_seen_at) || fallback, updatedAt: (row && row.label_updated_at) || null });
     }
     sources.sort((a, b) => new Date(b.addedAt || 0) - new Date(a.addedAt || 0));
 

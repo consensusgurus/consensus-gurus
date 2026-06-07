@@ -289,6 +289,14 @@ export default function ActivityFeed({ list }) {
       if (!byTs.has(k)) byTs.set(k, { addedAt: s.addedAt, ts: new Date(s.addedAt).getTime(), sources: [], changes: [] });
       byTs.get(k).sources.push(s);
     });
+    // Label refreshes (re-gathered ratings, a new year's edition) get their
+    // own dated "Updated sources" group, keyed by update time.
+    sources.forEach((s) => {
+      if (!s.updatedAt) return;
+      const k = `upd::${s.updatedAt}`;
+      if (!byTs.has(k)) byTs.set(k, { addedAt: s.updatedAt, ts: new Date(s.updatedAt).getTime(), sources: [], changes: [], updated: true });
+      byTs.get(k).sources.push(s);
+    });
     sourceGroups.push(...byTs.values());
   }
   const looseChanges = [];
@@ -327,12 +335,14 @@ export default function ActivityFeed({ list }) {
                   extra={hasChanges ? { icon: <RefreshCw size={11} strokeWidth={2.5} />, color: KC.research, label: 'Ranking change' } : undefined}
                   date={fmtDate(g.addedAt)}
                 >
-                  {g.sources.length === 1 ? 'Source added' : 'Sources added'}
+                  {g.updated ? (g.sources.length === 1 ? 'Source updated' : 'Sources updated') : g.sources.length === 1 ? 'Source added' : 'Sources added'}
                 </Badge>
                 <div style={{ fontFamily: SERIF, fontSize: 16, margin: '6px 0 8px' }}>
                   {hasChanges
-                    ? `Added ${g.sources.length === 1 ? 'a source' : g.sources.length + ' sources'}, the ranking shifted`
-                    : g.sources.length === 1 ? 'New source on file' : `${g.sources.length} new sources on file`}
+                    ? `${g.updated ? 'Updated' : 'Added'} ${g.sources.length === 1 ? 'a source' : g.sources.length + ' sources'}, the ranking shifted`
+                    : g.updated
+                      ? g.sources.length === 1 ? 'Source refreshed' : `${g.sources.length} sources refreshed`
+                      : g.sources.length === 1 ? 'New source on file' : `${g.sources.length} new sources on file`}
                 </div>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 5 }}>
                   {g.sources.map((s, k) => (<SourceCard key={k} s={s} />))}

@@ -15,9 +15,9 @@ export default async function FeedPage() {
   const titleMap = new Map(LISTS.map((l) => [l.id, l.title]));
   const titleOf = (id) => titleMap.get(id) || id;
 
-  let reqRes = {}, voteRes = {}, comRes = {}, revRes = {}, resRes = {}, notesRes = {}, srcRes = {};
+  let reqRes = {}, voteRes = {}, comRes = {}, revRes = {}, resRes = {}, notesRes = {}, srcRes = {}, srcUpdRes = {};
   try {
-    [reqRes, voteRes, comRes, revRes, resRes, notesRes, srcRes] = await Promise.all([
+    [reqRes, voteRes, comRes, revRes, resRes, notesRes, srcRes, srcUpdRes] = await Promise.all([
       supabaseAdmin.from('user_lists').select('id,title,category,published,submitted_at').order('submitted_at', { ascending: false }).limit(25),
       supabaseAdmin.from('vote_events').select('list_id,item_name,delta,created_at').order('created_at', { ascending: false }).limit(40),
       supabaseAdmin.from('list_comments').select('list_id,name,body,created_at,editor_response').eq('hidden', false).order('created_at', { ascending: false }).limit(40),
@@ -25,6 +25,7 @@ export default async function FeedPage() {
       supabaseAdmin.from('consensus_alerts').select('id,list_id,item_name,change_type,rank,prev_rank,cause,detected_at').order('detected_at', { ascending: false }).order('id', { ascending: false }).limit(300),
       supabaseAdmin.from('list_editor_notes').select('list_id,note,created_at').order('created_at', { ascending: false }).limit(40),
       supabaseAdmin.from('list_sources_seen').select('list_id,source_id,first_seen_at,label,removed_at').order('first_seen_at', { ascending: false }).limit(400),
+      supabaseAdmin.from('list_sources_seen').select('list_id,source_id,label,label_updated_at').not('label_updated_at', 'is', null).order('label_updated_at', { ascending: false }).limit(100),
     ]);
   } catch (e) {
     // Render whatever static data we have on a DB hiccup.
@@ -100,10 +101,19 @@ export default async function FeedPage() {
     if (!srcGroupMap.has(key)) srcGroupMap.set(key, { ts: ms, kind: 'source', listId: r.list_id, listTitle: titleOf(r.list_id), labels: [], changes: [] });
     srcGroupMap.get(key).labels.push(labelOf.get(`${r.list_id}::${r.source_id}`) || r.label || r.source_id);
   });
+  // Label refreshes (re-gathered ratings, a new year's edition): their own
+  // dated "Updated sources" groups, keyed by update time per list.
+  (srcUpdRes.data || []).forEach((r) => {
+    const ms = Date.parse(r.label_updated_at);
+    if (isNaN(ms)) return;
+    const key = `${r.list_id}::upd::${r.label_updated_at}`;
+    if (!srcGroupMap.has(key)) srcGroupMap.set(key, { ts: ms, kind: 'source', listId: r.list_id, listTitle: titleOf(r.list_id), labels: [], changes: [], updated: true });
+    srcGroupMap.get(key).labels.push(labelOf.get(`${r.list_id}::${r.source_id}`) || r.label || r.source_id);
+  });
   const srcGroups = [...srcGroupMap.values()];
   srcGroups.forEach((g) => {
     const rms = removalsByList.get(g.listId) || [];
-    g.updated = rms.some((rm) => Math.abs(rm - g.ts) <= RESEARCH_WINDOW_MS);
+    g.updated = g.updated || rms.some((rm) => Math.abs(rm - g.ts) <= RESEARCH_WINDOW_MS);
   });
 
   // Attribute each ranking change to the source addition that caused it (same

@@ -79,7 +79,7 @@ export async function GET(request) {
       fetchAll('extras', 'list_id,item_name', ['list_id', 'item_name']),
       fetchAll('consensus_snapshots', 'list_id,top10,sources_hash', ['list_id']),
       fetchAll('consensus_alerts', 'list_id,item_name,change_type', ['id'], (q) => q.eq('resolved', false)),
-      fetchAll('list_sources_seen', 'list_id,source_id', ['list_id', 'source_id']),
+      fetchAll('list_sources_seen', 'list_id,source_id,label,first_seen_at,removed_at,label_updated_at', ['list_id', 'source_id']),
     ]);
 
     // Vote scores keyed as `${listId}::${itemNameLowerCase}` (matches voteKey).
@@ -113,13 +113,14 @@ export async function GET(request) {
     // events in the activity feed (list_sources_seen.first_seen_at).
     const seenByList = new Map();
     seenRows.forEach((row) => {
-      if (!seenByList.has(row.list_id)) seenByList.set(row.list_id, new Set());
-      seenByList.get(row.list_id).add(row.source_id);
+      if (!seenByList.has(row.list_id)) seenByList.set(row.list_id, new Map());
+      seenByList.get(row.list_id).set(row.source_id, row);
     });
 
     const newAlerts = [];
     const snapshotUpserts = [];
     const sourceSeenUpserts = [];
+    const labelUpdateUpserts = [];
     const nowIso = new Date().toISOString();
     const norm = (s) => s.toLowerCase().trim();
 
@@ -138,17 +139,41 @@ export async function GET(request) {
       // they group as the "N sources at launch" batch. Once a list is already
       // tracked, a source that appears later is genuinely new and is stamped
       // now() -- which is what surfaces it as a dated "New source added" event.
-      const seenSet = seenByList.get(list.id);
-      const firstSighting = !seenSet || seenSet.size === 0;
+      const seenMap = seenByList.get(list.id);
+      const firstSighting = !seenMap || seenMap.size === 0;
       const launchIso = new Date(list.publishedAt || list.publishedDate || nowIso).toISOString();
       if (list.sources) {
         for (const [sid, s] of Object.entries(list.sources)) {
           if (sid === 'ai' || !s || !s.label) continue;
-          if (seenSet && seenSet.has(sid)) continue;
+          const row = seenMap && seenMap.get(sid);
+          if (row) {
+            // Already tracked. A changed label means the source was refreshed
+            // (re-gathered ratings, a new year's edition) -- stamp it so the
+            // feed can show a dated "Updated sources" event. A null stored
+            // label (pre-migration-13/17 row) is backfilled with NO stamp so
+            // the first run doesn't flood the ledger with fake events. A
+            // removed source reappearing also counts as an update.
+            const labelChanged = row.label != null && row.label !== s.label;
+            const reAdded = Boolean(row.removed_at);
+            if (labelChanged || reAdded || row.label == null) {
+              labelUpdateUpserts.push({
+                list_id: list.id,
+                source_id: sid,
+                first_seen_at: row.first_seen_at,
+                label: s.label,
+                removed_at: null,
+                label_updated_at: labelChanged || reAdded ? nowIso : row.label_updated_at || null,
+              });
+            }
+            continue;
+          }
           sourceSeenUpserts.push({
             list_id: list.id,
             source_id: sid,
             first_seen_at: firstSighting ? launchIso : nowIso,
+            label: s.label,
+            removed_at: null,
+            label_updated_at: null,
           });
         }
       }
@@ -262,6 +287,15 @@ export async function GET(request) {
       if (seenIns.error) throw seenIns.error;
     }
 
+    // Label refreshes / re-adds: these MUST overwrite the existing row (the
+    // stored first_seen_at is preserved in the payload), so no ignoreDuplicates.
+    if (labelUpdateUpserts.length > 0) {
+      const updIns = await supabaseAdmin
+        .from('list_sources_seen')
+        .upsert(labelUpdateUpserts, { onConflict: 'list_id,source_id' });
+      if (updIns.error) throw updIns.error;
+    }
+
     const up = await supabaseAdmin
       .from('consensus_snapshots')
       .upsert(snapshotUpserts, { onConflict: 'list_id' });
@@ -272,6 +306,7 @@ export async function GET(request) {
       listsChecked: LISTS.length,
       newAlerts: newAlerts.length,
       sourcesStamped: sourceSeenUpserts.length,
+      sourcesUpdated: labelUpdateUpserts.length,
       alerts: newAlerts,
     });
   } catch (err) {
