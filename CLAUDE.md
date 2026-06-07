@@ -942,6 +942,32 @@ condense it into the description's second sentence, e.g. "Buyers call it a beaut
 and survival and praise its historical accuracy." Do not invent the consensus; if a product has no
 "Customers say" block, synthesize from the top reviews instead.
 
+**HARD RULE — the bare star rating is NOT the "Customers say" consensus, and a facts-only description
+is NOT acceptable on a product list (owner ruling, 2026-06-06).** Two specific failure modes are
+banned, both discovered in a June 2026 audit that found 369 product descriptions across 61 lists
+missing a real review synthesis (the LEGO list was the trigger):
+
+1. **Never substitute the numeric rating for the synthesis.** "Buyers rate it 4.8 stars" is NOT a
+   "Customers say" sentence, it is the star count gathered for the Amazon ratings *source*. The
+   second sentence must convey what reviewers actually *said* about the product (qualities they
+   praise, gripes they raise, how they use it), in qualitative language. A star number alone fails
+   the rule. You may mention the rating in addition, but it can never be the whole reviewer sentence.
+2. **Never ship a facts-only product description.** Every consensus top-10 item on a product list must
+   carry a buyer-voice second sentence (Customers say, condensed top reviews, or for niche/no-listing
+   items a grounded statement of how owners/collectors regard it). A pure spec sheet with no reviewer
+   voice is incomplete.
+
+**The "Customers say" block must be read live, per item, every time — it is a distinct page read from
+the rating, not derivable from it.** The block lazy-loads: navigate to `/dp/<ASIN>`, scroll into the
+reviews section (~30-40 wheel ticks, then a short wait), and scan the page text for "Customers say".
+It is NOT shown on every listing (sparse third-party listings, some heavily-A+-skinned pages, and
+listings with few reviews often lack it); when genuinely absent after a real scroll, synthesize the
+second sentence from the visible "Top reviews from the United States" instead, and for an item with no
+Amazon listing at all (linked to a Google search) ground the sentence in its real-world owner/collector
+reputation without claiming an Amazon block. **Per-item verification before deploy:** scan each new
+product list's consensus top-10 descriptions and confirm every one has a qualitative reviewer clause,
+not just a number and not just specs.
+
 **Consumable products (seltzer flavors, snacks, drinks, etc.): use the ingredient list / nutrition
 facts to fill out the description when more content is needed.** For flavor or food/beverage product
 lists where there isn't much editorial to say about an individual item, read the ingredient list and
