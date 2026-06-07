@@ -1,20 +1,20 @@
 import { NextResponse } from 'next/server';
 import { supabase } from '@/lib/supabase';
+import { fetchAllRows } from '@/lib/fetch-all';
 
 export const dynamic = 'force-dynamic';
 export const revalidate = 0;
 
 export async function GET() {
   try {
+    // Whole-table reads are paginated past PostgREST's silent 1000-row cap
+    // (see lib/fetch-all.js). The trending RPC returns one row per list with
+    // recent views and stays far below the cap.
     const [votesRes, viewsRes, extrasRes, userListsRes, trendingRes] = await Promise.all([
-      supabase.from('votes').select('list_id,item_name,score'),
-      supabase.from('views').select('list_id,count'),
-      supabase.from('extras').select('list_id,item_name'),
-      supabase
-        .from('user_lists')
-        .select('*')
-        .eq('published', true)
-        .order('submitted_at', { ascending: false }),
+      fetchAllRows(supabase, 'votes', 'list_id,item_name,score', ['list_id', 'item_name']),
+      fetchAllRows(supabase, 'views', 'list_id,count', ['list_id']),
+      fetchAllRows(supabase, 'extras', 'list_id,item_name', ['list_id', 'item_name']),
+      fetchAllRows(supabase, 'user_lists', '*', [['submitted_at', false], 'id'], (q) => q.eq('published', true)),
       supabase.rpc('trending_views', { p_hours: 24 }),
     ]);
 

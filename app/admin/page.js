@@ -1,5 +1,6 @@
 import { isAdmin } from '@/lib/admin-auth';
 import { supabaseAdmin } from '@/lib/supabase-server';
+import { fetchAllRows } from '@/lib/fetch-all';
 import { redirect } from 'next/navigation';
 import AdminClient from './AdminClient';
 import { LISTS } from '@/lib/data';
@@ -19,22 +20,10 @@ export default async function AdminPage() {
   }
 
   const [submissionsRes, extrasRes, votesRes, complaintsRes, voteEventsRes, alertsRes, trendingRes, totalViewsRes, listCommentsRes, voteCountsRes, editorNotesRes] = await Promise.all([
-    supabaseAdmin
-      .from('user_lists')
-      .select('*')
-      .order('submitted_at', { ascending: false }),
-    supabaseAdmin
-      .from('extras')
-      .select('list_id, item_name, added_at')
-      .order('added_at', { ascending: false }),
-    supabaseAdmin
-      .from('votes')
-      .select('list_id, item_name, score, updated_at')
-      .order('updated_at', { ascending: false }),
-    supabaseAdmin
-      .from('complaints')
-      .select('*')
-      .order('created_at', { ascending: false }),
+    fetchAllRows(supabaseAdmin, 'user_lists', '*', [['submitted_at', false], 'id']),
+    fetchAllRows(supabaseAdmin, 'extras', 'list_id, item_name, added_at', [['added_at', false], 'list_id', 'item_name']),
+    fetchAllRows(supabaseAdmin, 'votes', 'list_id, item_name, score, updated_at', [['updated_at', false], 'list_id', 'item_name']),
+    fetchAllRows(supabaseAdmin, 'complaints', '*', [['created_at', false], 'id']),
     supabaseAdmin
       .from('vote_events')
       .select('*')
@@ -46,10 +35,10 @@ export default async function AdminPage() {
       .eq('resolved', false)
       .order('detected_at', { ascending: false }),
     supabaseAdmin.rpc('trending_views', { p_hours: 24 }),
-    supabaseAdmin.from('views').select('list_id, count'),
-    supabaseAdmin.from('list_comments').select('id, list_id, name, body, created_at, editor_response').order('created_at', { ascending: false }),
-    supabaseAdmin.from('vote_events').select('list_id, item_name'),
-    supabaseAdmin.from('list_editor_notes').select('id, list_id, note, created_at').order('created_at', { ascending: false }),
+    fetchAllRows(supabaseAdmin, 'views', 'list_id, count', ['list_id']),
+    fetchAllRows(supabaseAdmin, 'list_comments', 'id, list_id, name, body, created_at, editor_response', [['created_at', false], 'id']),
+    fetchAllRows(supabaseAdmin, 'vote_events', 'list_id, item_name', ['id']),
+    fetchAllRows(supabaseAdmin, 'list_editor_notes', 'id, list_id, note, created_at', [['created_at', false], 'id']),
   ]);
 
   if (submissionsRes.error) {
