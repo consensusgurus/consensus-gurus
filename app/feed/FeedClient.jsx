@@ -20,27 +20,67 @@ function rankWord(delta) {
   return null;
 }
 
+// Each event kind gets its own distinct accent color + icon so categories
+// read as separate blocks instead of running together.
+const KIND = {
+  list:     { color: '#2f4858', label: 'New list',       Icon: Flag },
+  request:  { color: '#a44a26', label: 'List requested',  Icon: ListPlus },
+  vote:     { color: '#3d4f2b', label: 'Vote',            Icon: BarChart3 },
+  comment:  { color: '#c0392b', label: 'Comment',         Icon: MessageSquare },
+  review:   { color: '#9a6a1f', label: 'Review request',  Icon: PenLine },
+  research: { color: '#5a4a7a', label: 'Ranking change',  Icon: RefreshCw },
+};
+
 const CATEGORIES = [
-  { key: 'all', label: 'All' },
-  { key: 'list', label: 'New lists' },
-  { key: 'request', label: 'Requests' },
-  { key: 'vote', label: 'Votes' },
-  { key: 'comment', label: 'Comments' },
-  { key: 'review', label: 'Review requests' },
-  { key: 'note', label: "Editor's Notes" },
-  { key: 'research', label: 'Ranking changes' },
+  { key: 'all', label: 'All', color: COLORS.ink },
+  { key: 'list', label: 'New lists', color: KIND.list.color },
+  { key: 'request', label: 'Requests', color: KIND.request.color },
+  { key: 'vote', label: 'Votes', color: KIND.vote.color },
+  { key: 'comment', label: 'Comments', color: KIND.comment.color },
+  { key: 'review', label: 'Review requests', color: KIND.review.color },
+  { key: 'research', label: 'Ranking changes', color: KIND.research.color },
 ];
 
-function Event({ icon, color, kicker, date, children }) {
+function Event({ kind, kicker, date, children }) {
+  const { color, label, Icon } = KIND[kind] || {};
   return (
-    <div style={{ position: 'relative', paddingLeft: 23, marginBottom: 20 }}>
-      <span style={{ position: 'absolute', left: 5, top: 5, width: 11, height: 11, borderRadius: '50%', background: color, border: `2px solid ${COLORS.cream}` }} />
-      <div style={{ fontFamily: 'DM Mono, monospace', fontSize: 10, letterSpacing: '0.1em', textTransform: 'uppercase', color: COLORS.faded, display: 'flex', alignItems: 'center', gap: 6 }}>
-        {icon}
-        <span>{kicker}</span>
-        {date && <span style={{ opacity: 0.8 }}>· {date}</span>}
+    <div
+      style={{
+        position: 'relative',
+        marginBottom: 12,
+        padding: '11px 15px 12px',
+        background: `${color}12`,
+        borderLeft: `3px solid ${color}`,
+        borderRadius: '0 5px 5px 0',
+      }}
+    >
+      <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
+        <span
+          style={{
+            display: 'inline-flex',
+            alignItems: 'center',
+            gap: 5,
+            background: `${color}1f`,
+            color,
+            padding: '3px 8px',
+            borderRadius: 3,
+            fontFamily: 'DM Mono, monospace',
+            fontSize: 10,
+            letterSpacing: '0.1em',
+            textTransform: 'uppercase',
+            fontWeight: 700,
+          }}
+        >
+          {Icon && <Icon size={11} strokeWidth={2.5} />}
+          {kicker || label}
+        </span>
+        {date && (
+          <span style={{ fontFamily: 'DM Mono, monospace', fontSize: 10, letterSpacing: '0.08em', textTransform: 'uppercase', color: COLORS.faded }}>
+            {date}
+          </span>
+        )}
       </div>
-      <div style={{ fontFamily: 'DM Sans, sans-serif', fontSize: 14, color: COLORS.ink, marginTop: 3, lineHeight: 1.45 }}>{children}</div>
+      <div style={{ fontFamily: 'DM Sans, sans-serif', fontSize: 14, color: COLORS.ink, marginTop: 6, lineHeight: 1.45 }}>{children}</div>
     </div>
   );
 }
@@ -56,14 +96,14 @@ function ListLink({ id, children }) {
 function renderEvent(e, i) {
   if (e.kind === 'list') {
     return (
-      <Event key={i} icon={<Flag size={12} strokeWidth={2.5} />} color={COLORS.ink} kicker="New list" date={fmtDate(e.ts)}>
+      <Event key={i} kind="list" date={fmtDate(e.ts)}>
         <ListLink id={e.id}>{e.title}</ListLink>{e.category ? ` · ${e.category}` : ''}
       </Event>
     );
   }
   if (e.kind === 'request') {
     return (
-      <Event key={i} icon={<ListPlus size={12} strokeWidth={2.5} />} color={COLORS.rust} kicker="List requested" date={fmtDate(e.ts)}>
+      <Event key={i} kind="request" date={fmtDate(e.ts)}>
         A reader requested <strong style={{ fontWeight: 500 }}>{e.title || 'a new list'}</strong>{e.category ? ` (${e.category})` : ''}.{e.published ? <> Now live: <ListLink id={e.id}>see it</ListLink>.</> : ' Pending review.'}
       </Event>
     );
@@ -71,38 +111,29 @@ function renderEvent(e, i) {
   if (e.kind === 'vote') {
     const rw = rankWord(e.delta);
     return (
-      <Event key={i} icon={<BarChart3 size={12} strokeWidth={2.5} />} color={COLORS.forest} kicker="Vote" date={fmtDate(e.ts)}>
+      <Event key={i} kind="vote" date={fmtDate(e.ts)}>
         Someone voted <strong style={{ fontWeight: 500 }}>{e.itemName}</strong>{rw ? ` ${rw} pick` : ''} on <ListLink id={e.listId}>{e.listTitle}</ListLink>.
       </Event>
     );
   }
   if (e.kind === 'comment') {
     return (
-      <Event key={i} icon={<MessageSquare size={12} strokeWidth={2.5} />} color={COLORS.ember} kicker={`Comment · ${e.name || 'Guest'}`} date={fmtDate(e.ts)}>
+      <Event key={i} kind="comment" kicker={`Comment · ${e.name || 'Guest'}`} date={fmtDate(e.ts)}>
         "{e.body}" on <ListLink id={e.listId}>{e.listTitle}</ListLink>
-        {e.editorResponse && (<div style={{ marginTop: 5, paddingTop: 5, borderTop: `1px solid ${COLORS.paper}` }}><strong style={{ fontWeight: 700, color: COLORS.ember }}>Editor:</strong> {e.editorResponse}</div>)}
       </Event>
     );
   }
   if (e.kind === 'review') {
     return (
-      <Event key={i} icon={<PenLine size={12} strokeWidth={2.5} />} color={COLORS.faded} kicker="Review request" date={fmtDate(e.ts)}>
+      <Event key={i} kind="review" date={fmtDate(e.ts)}>
         User submitted review request on <ListLink id={e.listId}>{e.listTitle}</ListLink>: {e.message ? `"${e.message}"` : 'No comment given.'}
-        {e.editorResponse && (<div style={{ marginTop: 5, paddingTop: 5, borderTop: `1px solid ${COLORS.paper}` }}><strong style={{ fontWeight: 700, color: COLORS.ember }}>Editor:</strong> {e.editorResponse}</div>)}
-      </Event>
-    );
-  }
-  if (e.kind === 'note') {
-    return (
-      <Event key={i} icon={<PenLine size={12} strokeWidth={2.5} />} color={COLORS.ember} kicker="Editor's Note" date={fmtDate(e.ts)}>
-        <span style={{ whiteSpace: 'pre-wrap' }}>{e.note}</span> on <ListLink id={e.listId}>{e.listTitle}</ListLink>
       </Event>
     );
   }
   if (e.kind === 'research') {
     const tail = e.changeType === 'entered_top3' ? `entered the top 3 (#${e.rank || 3})` : e.changeType === 'entered_top10' ? 'entered the top 10' : 'moved in the rankings';
     return (
-      <Event key={i} icon={<RefreshCw size={12} strokeWidth={2.5} />} color={COLORS.forest} kicker="Ranking change" date={fmtDate(e.ts)}>
+      <Event key={i} kind="research" date={fmtDate(e.ts)}>
         <strong style={{ fontWeight: 500 }}>{e.itemName}</strong> {tail} on <ListLink id={e.listId}>{e.listTitle}</ListLink>.
       </Event>
     );
@@ -127,33 +158,7 @@ export default function FeedClient({ events = [] }) {
               key={c.key}
               onClick={() => setFilter(c.key)}
               style={{
-                background: active ? COLORS.ember : 'transparent',
-                color: active ? COLORS.cream : COLORS.ember,
-                border: `1.5px solid ${COLORS.ember}`,
-                padding: '7px 13px',
-                fontFamily: 'DM Mono, monospace',
-                fontSize: 10,
-                letterSpacing: '0.14em',
-                textTransform: 'uppercase',
-                fontWeight: 700,
-                cursor: 'pointer',
-                borderRadius: 0,
-              }}
-            >
-              {c.label} <span style={{ opacity: 0.6 }}>{n}</span>
-            </button>
-          );
-        })}
-      </div>
-
-      <div style={{ position: 'relative' }}>
-        <div style={{ position: 'absolute', left: 5, top: 6, bottom: 6, width: 2, background: COLORS.paper }} />
-        {shown.length === 0 ? (
-          <p style={{ fontStyle: 'italic', color: COLORS.faded, fontFamily: 'DM Sans, sans-serif' }}>Nothing in this category yet.</p>
-        ) : (
-          shown.map((e, i) => renderEvent(e, i))
-        )}
-      </div>
-    </div>
-  );
-}
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: 6,
+                background: active ?
