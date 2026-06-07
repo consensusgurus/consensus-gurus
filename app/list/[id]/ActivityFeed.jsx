@@ -301,7 +301,7 @@ export default function ActivityFeed({ list }) {
           </Badge>
           {feed.votes.length > 0 ? (
             <div style={{ display: 'flex', flexDirection: 'column', gap: 6, marginTop: 8 }}>
-              {feed.votes.slice(0, 8).map((v, i) => {
+              {[...feed.votes].sort((a, b) => b.delta - a.delta).slice(0, 8).map((v, i) => {
                 const rw = rankWord(v.delta);
                 return (
                   <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 13 }}>
