@@ -5,17 +5,18 @@ import { getSources } from '@/lib/helpers';
 
 export const runtime = 'edge';
 
-// Instagram-ready poster: the snapshot page's Ink Spotlight design rendered
+// Instagram-ready poster: the snapshot page's Classic Showcase design rendered
 // server-side at 1080x1350 (IG's 4:5 portrait max). Layout mirrors
-// PosterSpotlight in app/snapshot/[id]/SnapshotClient.jsx — keep the two in
-// sync when the design changes. Consensus comes from the REAL lib/helpers.js
-// getSources (imported, not mirrored) plus live votes/extras fetched from
-// Supabase REST, so the poster always matches the site's Consensus tab.
+// PosterShowcase (+ PhotoCard) in app/snapshot/[id]/SnapshotClient.jsx — keep
+// the two in sync when the design changes. Consensus comes from the REAL
+// lib/helpers.js getSources (imported, not mirrored) plus live votes/extras
+// fetched from Supabase REST, so the poster always matches the site's
+// Consensus tab.
 
 const W = 1080;
 const H = 1350;
-// Ink palette — COLOR_SCHEMES.ink in SnapshotClient.jsx
-const PAL = { bg: '#0a0a0a', text: '#ffffff', accent: '#ffffff', faded: '#555555' };
+// Classic palette — COLOR_SCHEMES.classic in SnapshotClient.jsx
+const PAL = { bg: '#f4ede0', text: '#1a1a1a', accent: '#c0392b', faded: '#8a7a6a' };
 
 // --- copied from SnapshotClient.jsx (sourceTier / constituentLabel) ---
 function sourceTier(src) {
@@ -134,6 +135,12 @@ export async function GET(request, { params }) {
     const k = label.toLowerCase().trim();
     if (k && !seen.has(k)) { seen.add(k); sourceNames.push(label); }
   });
+  // Keep the footer line short enough to never collide with the URL on the right.
+  const shownSources = sourceNames.slice(0, 4);
+  const moreSources = sourceNames.length - shownSources.length;
+  const sourcesLine = shownSources.length > 0
+    ? `Sources: ${shownSources.join(', ')}${moreSources > 0 ? ` +${moreSources}` : ''}`
+    : '';
 
   const [sans900, sans600, mono500] = await Promise.all([
     loadFont('https://cdn.jsdelivr.net/npm/@fontsource/dm-sans@5/files/dm-sans-latin-900-normal.woff'),
@@ -147,43 +154,59 @@ export async function GET(request, { params }) {
   const sans = sans900 ? 'DM Sans' : 'sans-serif';
   const mono = mono500 ? 'DM Mono' : 'monospace';
 
-  const top = items[0] || '';
-  const rest = items.slice(1);
-  const topSrc = heroSrcFor(list, top);
+  const t3 = items.slice(0, 3);
+  const rest = items.slice(3, 10);
   const modeLabel = 'Consensus';
+
+  // PhotoCard — mirrors PosterShowcase's PhotoCard in SnapshotClient.jsx.
+  // When an item has no hero photo the card falls back to a solid accent
+  // panel (white name text reads fine on the Classic red).
+  const photoCard = (item, rank, big) => {
+    const src = heroSrcFor(list, item);
+    return (
+      <div style={{ display: 'flex', flexGrow: big ? 1.5 : 1, flexBasis: 0, position: 'relative', overflow: 'hidden', background: PAL.accent }}>
+        {src ? (
+          <img src={src} alt="" style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', objectFit: 'cover' }} />
+        ) : null}
+        <div style={{ display: 'flex', position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', background: 'linear-gradient(to top, rgba(0,0,0,0.8), rgba(0,0,0,0.12) 60%, rgba(0,0,0,0))' }} />
+        <div style={{ display: 'flex', position: 'absolute', left: big ? 18 : 14, right: 12, bottom: big ? 16 : 11, alignItems: 'flex-end', gap: 10 }}>
+          <span style={{ display: 'flex', fontFamily: sans, fontWeight: 900, fontSize: big ? 34 : 22, lineHeight: 1, color: PAL.bg, background: PAL.accent, padding: big ? '5px 13px' : '3px 9px', flexShrink: 0 }}>{String(rank)}</span>
+          <span style={{ fontFamily: sans, fontWeight: 900, fontSize: big ? 30 : 19, lineHeight: 1, letterSpacing: '-0.02em', color: '#ffffff', flexGrow: 1, wordBreak: 'break-word', textShadow: '0 2px 8px rgba(0,0,0,0.6)' }}>{item || ''}</span>
+        </div>
+      </div>
+    );
+  };
 
   return new ImageResponse(
     (
       <div style={{ width: W, height: H, background: PAL.bg, color: PAL.text, fontFamily: sans, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
-        <div style={{ display: 'flex', flexDirection: 'column', padding: '42px 56px 18px', flexShrink: 0 }}>
+        <div style={{ display: 'flex', flexDirection: 'column', padding: '40px 56px 16px', flexShrink: 0 }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', fontFamily: mono, fontSize: 12, letterSpacing: '0.28em', textTransform: 'uppercase', color: PAL.faded }}>
             <span style={{ color: PAL.accent, fontWeight: 700 }}>Source of Truths</span>
-            <span>{`${list.category} · ${modeLabel}`}</span>
+            <span>{`${list.category} · Top ${Math.min(items.length, 10)}`}</span>
           </div>
-          <div style={{ display: 'flex', fontFamily: sans, fontWeight: 900, fontSize: fitTitle(list.title, 58), lineHeight: 0.9, letterSpacing: '-0.03em', marginTop: 16, color: PAL.text, maxWidth: '96%' }}>
+          <div style={{ display: 'flex', fontFamily: sans, fontWeight: 900, fontSize: fitTitle(list.title, 52), lineHeight: 0.9, letterSpacing: '-0.03em', marginTop: 14, color: PAL.text, maxWidth: '96%' }}>
             {list.title}
           </div>
+          <div style={{ display: 'flex', marginTop: 6, fontFamily: mono, fontSize: 12, letterSpacing: '0.2em', textTransform: 'uppercase', color: PAL.faded }}>{modeLabel}</div>
         </div>
-        <div style={{ display: 'flex', flexGrow: 2.2, flexShrink: 0, flexBasis: 0, position: 'relative', marginLeft: 56, marginRight: 56, overflow: 'hidden', background: topSrc ? PAL.accent : '#1a1a1a' }}>
-          {topSrc ? (
-            <img src={topSrc} alt="" style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', objectFit: 'cover' }} />
-          ) : null}
-          <div style={{ display: 'flex', position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', background: 'linear-gradient(to top, rgba(0,0,0,0.82), rgba(0,0,0,0.18) 56%, rgba(0,0,0,0))' }} />
-          <div style={{ display: 'flex', position: 'absolute', left: 28, right: 28, bottom: 24, alignItems: 'flex-end', gap: 18 }}>
-            <span style={{ fontFamily: sans, fontWeight: 900, fontSize: 78, lineHeight: 0.78, color: PAL.accent, textShadow: '0 2px 12px rgba(0,0,0,0.5)' }}>01</span>
-            <span style={{ fontFamily: sans, fontWeight: 900, fontSize: 40, lineHeight: 1, letterSpacing: '-0.02em', color: '#ffffff', flexGrow: 1, paddingBottom: 6, wordBreak: 'break-word', textShadow: '0 2px 10px rgba(0,0,0,0.6)' }}>{top}</span>
+        <div style={{ display: 'flex', flexGrow: 2.6, flexShrink: 0, flexBasis: 0, gap: 10, padding: '4px 56px 0' }}>
+          {photoCard(t3[0], 1, true)}
+          <div style={{ display: 'flex', flexGrow: 1, flexBasis: 0, flexDirection: 'column', gap: 10 }}>
+            {t3[1] !== undefined ? photoCard(t3[1], 2, false) : null}
+            {t3[2] !== undefined ? photoCard(t3[2], 3, false) : null}
           </div>
         </div>
-        <div style={{ display: 'flex', flexGrow: 3, flexShrink: 0, flexBasis: 0, flexDirection: 'column', padding: '10px 56px 0' }}>
+        <div style={{ display: 'flex', flexGrow: 2.1, flexShrink: 0, flexBasis: 0, flexDirection: 'column', padding: '12px 56px 0' }}>
           {rest.map((item, i) => (
-            <div key={String(i)} style={{ display: 'flex', flexGrow: 1, flexBasis: 0, alignItems: 'center', gap: 22, borderTop: '1px solid rgba(255,255,255,0.16)' }}>
-              <span style={{ fontFamily: mono, fontWeight: 500, fontSize: 28, color: i < 2 ? PAL.accent : PAL.faded, minWidth: 52, flexShrink: 0 }}>{String(i + 2).padStart(2, '0')}</span>
-              <span style={{ fontFamily: sans, fontWeight: 600, fontSize: 25, color: PAL.text, lineHeight: 1.04, flexGrow: 1, letterSpacing: '-0.02em', wordBreak: 'break-word' }}>{item}</span>
+            <div key={String(i)} style={{ display: 'flex', flexGrow: 1, flexBasis: 0, alignItems: 'center', gap: 20, borderTop: '1px solid rgba(26,26,26,0.16)' }}>
+              <span style={{ fontFamily: mono, fontWeight: 500, fontSize: 24, color: PAL.faded, minWidth: 50, flexShrink: 0 }}>{String(i + 4).padStart(2, '0')}</span>
+              <span style={{ fontFamily: sans, fontWeight: 600, fontSize: 24, color: PAL.text, lineHeight: 1.02, flexGrow: 1, letterSpacing: '-0.02em', wordBreak: 'break-word' }}>{item}</span>
             </div>
           ))}
         </div>
-        <div style={{ display: 'flex', flexShrink: 0, padding: '10px 56px 26px', justifyContent: 'space-between', fontFamily: mono, fontSize: 11, letterSpacing: '0.16em', textTransform: 'uppercase', color: PAL.faded }}>
-          <span style={{ maxWidth: 820, overflow: 'hidden' }}>{sourceNames.length > 0 ? `Sources: ${sourceNames.join(', ')}` : ''}</span>
+        <div style={{ display: 'flex', flexShrink: 0, padding: '10px 56px 24px', justifyContent: 'space-between', fontFamily: mono, fontSize: 11, letterSpacing: '0.16em', textTransform: 'uppercase', color: PAL.faded }}>
+          <span style={{ maxWidth: 560, overflow: 'hidden', marginRight: 28 }}>{sourcesLine}</span>
           <span>{`sourceoftruths.com/list/${list.id}`}</span>
         </div>
       </div>
