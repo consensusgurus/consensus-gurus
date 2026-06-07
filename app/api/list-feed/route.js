@@ -82,19 +82,17 @@ export async function GET(request) {
     }
     sources.sort((a, b) => new Date(b.addedAt || 0) - new Date(a.addedAt || 0));
 
-    // Suppress consensus-change ("Re-researched") cards that predate the most
-    // recent source addition. Adding a source recomputes the consensus, so any
-    // earlier change event (a vote shift or, commonly, a scoring-engine formula
-    // change) reflects a now-superseded computation and reads as backwards
-    // causality next to fresh source work. Only show change events at or after
-    // the newest source's add date.
-    const latestSourceAt = sources.reduce((mx, s) => {
-      const t = s.addedAt ? new Date(s.addedAt).getTime() : 0;
-      return t > mx ? t : mx;
-    }, 0);
+    // ONE-TIME suppression of the consensus-engine changeover artifacts. The
+    // unordered-source flat-score formula in lib/helpers.js changed (678c223
+    // June 3, ee84cdb June 4); the first cron run after it (June 5 ~11:00 UTC)
+    // recomputed every list and logged boundary items as "entered top10" with
+    // no real vote or source movement. Hide ONLY alerts detected on/before that
+    // changeover. Every genuine consensus change AFTER it stays visible, even if
+    // it predates a later source addition.
+    const CHANGEOVER_CUTOFF = Date.parse('2026-06-05T12:00:00Z');
     const researchVisible = research.filter((r) => {
       const t = r.detectedAt ? new Date(r.detectedAt).getTime() : 0;
-      return t >= latestSourceAt;
+      return t > CHANGEOVER_CUTOFF;
     });
 
     const removedSources = seenRows
