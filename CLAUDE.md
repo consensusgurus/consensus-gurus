@@ -215,7 +215,7 @@ Each list entry in `lib/data.js` follows this structure:
 {
   id: 'kebab-case-unique-id',            // URL slug: /list/kebab-case-unique-id
   publishedDate: 'YYYY-MM-DD',           // Required. Use today's date.
-  title: 'Best [Thing] in [Place]',      // Must start with Best, Most, or Top-Grossing
+  title: 'Best [Thing] in [Place]',      // Must start with a ranking descriptor (see title rules)
   category: 'New York',                  // Short label shown on card and OG image
   type: 'travel',                        // Primary type for legacy code (see valid values)
   tags: ['travel', 'luxury'],            // All applicable tags — be generous (see tag rules)
@@ -259,7 +259,7 @@ Always `'YYYY-MM-DD'`. Use today's date for new lists.
 To get the current UTC timestamp in bash (run it as part of the deploy step, not earlier): `date -u +"%Y-%m-%dT%H:%M:%SZ"`.
 
 ### `title`
-Must start with **Best**, **Most**, or **Top-Grossing**. Title case. Examples:
+Must start with a **descriptor that implies a ranked list** (Best, Most, Worst, Top-Grossing, Largest, Highest-Grossing, etc. — owner rule 2026-06-07; previously limited to Best/Most/Top-Grossing). Title case. Examples:
 - `Best Pizza in NYC`
 - `Most Exclusive Golf Clubs in the World`
 - `Top-Grossing Films of 1990`
@@ -604,7 +604,7 @@ These refine how to apply the parenthetical rules above. They are universal — 
 - **Drop permanently-closed locations.** A "best" list must only contain places that are currently open. When working a list, verify open status (a quick web check — watch for "permanently closed" on Google/Yelp/Tripadvisor, or a closure announcement) and remove any closed item everywhere it appears: the `ai` seed, every source's `items`, `vote.items`, and the `links` keys. If the removed item was in the `ai` seed or `vote.items` (which should stay at 10), replace it with another currently-open, on-tier place so those stay at 10; removing it from a source alone just shortens that source, which is fine. (Example: Ensenada in Williamsburg closed Oct 2025 and was dropped from `tacos-nyc`.)
 
 ### Titles
-- Must start with **Best**, **Most**, or **Top-Grossing**.
+- Must start with a descriptor that implies a ranked list (Best, Most, Worst, Top-Grossing, Largest, etc. — owner rule 2026-06-07).
 - Title case throughout.
 - No clickbait or superlative stacking ("Most Incredible Best-Ever").
 
