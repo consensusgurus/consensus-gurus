@@ -22,9 +22,9 @@ export default async function FeedPage() {
       supabaseAdmin.from('vote_events').select('list_id,item_name,delta,created_at').order('created_at', { ascending: false }).limit(40),
       supabaseAdmin.from('list_comments').select('list_id,name,body,created_at,editor_response').eq('hidden', false).order('created_at', { ascending: false }).limit(40),
       supabaseAdmin.from('complaints').select('list_id,message,created_at,editor_response').eq('feed_hidden', false).order('created_at', { ascending: false }).limit(25),
-      supabaseAdmin.from('consensus_alerts').select('list_id,item_name,change_type,rank,prev_rank,cause,detected_at').order('detected_at', { ascending: false }).limit(25),
+      supabaseAdmin.from('consensus_alerts').select('id,list_id,item_name,change_type,rank,prev_rank,cause,detected_at').order('detected_at', { ascending: false }).order('id', { ascending: false }).limit(300),
       supabaseAdmin.from('list_editor_notes').select('list_id,note,created_at').order('created_at', { ascending: false }).limit(40),
-      supabaseAdmin.from('list_sources_seen').select('list_id,source_id,first_seen_at,label').order('first_seen_at', { ascending: false }).limit(400),
+      supabaseAdmin.from('list_sources_seen').select('list_id,source_id,first_seen_at,label,removed_at').order('first_seen_at', { ascending: false }).limit(400),
     ]);
   } catch (e) {
     // Render whatever static data we have on a DB hiccup.
@@ -79,7 +79,18 @@ export default async function FeedPage() {
   // Post-launch source additions (first_seen well after the list's publish),
   // grouped by add-time per list. Launch-batch sources belong to the list card
   // (request 1), so they are excluded here.
+  const RESEARCH_WINDOW_MS = 26 * 3600 * 1000;
   const srcGroupMap = new Map();
+  const removalsByList = new Map();
+  (srcRes.data || []).forEach((r) => {
+    if (r.removed_at) {
+      const rm = Date.parse(r.removed_at);
+      if (!isNaN(rm)) {
+        if (!removalsByList.has(r.list_id)) removalsByList.set(r.list_id, []);
+        removalsByList.get(r.list_id).push(rm);
+      }
+    }
+  });
   (srcRes.data || []).forEach((r) => {
     const ms = Date.parse(r.first_seen_at);
     if (isNaN(ms)) return;
@@ -90,10 +101,13 @@ export default async function FeedPage() {
     srcGroupMap.get(key).labels.push(labelOf.get(`${r.list_id}::${r.source_id}`) || r.label || r.source_id);
   });
   const srcGroups = [...srcGroupMap.values()];
+  srcGroups.forEach((g) => {
+    const rms = removalsByList.get(g.listId) || [];
+    g.updated = rms.some((rm) => Math.abs(rm - g.ts) <= RESEARCH_WINDOW_MS);
+  });
 
   // Attribute each ranking change to the source addition that caused it (same
   // list, within ~26h after, most recent). Unattributed = standalone change.
-  const RESEARCH_WINDOW_MS = 26 * 3600 * 1000;
   researchEvents.forEach((ev) => {
     let best = null;
     srcGroups.forEach((g) => {

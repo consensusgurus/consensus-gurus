@@ -154,11 +154,11 @@ function renderEvent(e, i) {
         color={hasChanges ? KIND.research.color : undefined}
         date={fmtDate(e.ts)}
         chips={[
-          { color: KIND.source.color, Icon: BookMarked, label: e.labels.length === 1 ? 'Source added' : 'Sources added' },
+          { color: KIND.source.color, Icon: BookMarked, label: `${e.labels.length === 1 ? 'Source' : 'Sources'} ${e.updated ? 'updated' : 'added'}` },
           ...(hasChanges ? [{ color: KIND.research.color, Icon: RefreshCw, label: 'Ranking change' }] : []),
         ]}
       >
-        {hasChanges ? 'Re-researched ' : 'Added '}{e.labels.length} {e.labels.length === 1 ? 'source' : 'sources'} on <ListLink id={e.listId}>{e.listTitle}</ListLink>: {e.labels.join(', ')}.
+        {e.updated ? 'Updated ' : 'Added '}{e.labels.length} {e.labels.length === 1 ? 'source' : 'sources'} on <ListLink id={e.listId}>{e.listTitle}</ListLink>: {e.labels.join(', ')}.
         {hasChanges && (
           <div style={{ marginTop: 5 }}>
             {e.changes.map((c, k) => {
