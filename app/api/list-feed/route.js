@@ -24,7 +24,7 @@ export async function GET(request) {
     const [votesRes, managerRes, researchRes, commentsRes, seenRes, notesRes] = await Promise.all([
       supabaseAdmin.from('vote_events').select('item_name,delta,created_at').eq('list_id', listId).order('created_at', { ascending: false }).limit(20),
       supabaseAdmin.from('complaints').select('message,created_at,editor_response').eq('list_id', listId).eq('feed_hidden', false).order('created_at', { ascending: false }).limit(12),
-      supabaseAdmin.from('consensus_alerts').select('item_name,change_type,rank,detected_at').eq('list_id', listId).order('detected_at', { ascending: false }).limit(24),
+      supabaseAdmin.from('consensus_alerts').select('item_name,change_type,rank,prev_rank,detected_at').eq('list_id', listId).order('detected_at', { ascending: false }).limit(24),
       supabaseAdmin.from('list_comments').select('id,name,body,created_at,editor_response').eq('list_id', listId).eq('hidden', false).order('created_at', { ascending: false }).limit(60),
       supabaseAdmin.from('list_sources_seen').select('source_id,first_seen_at,label,removed_at').eq('list_id', listId),
       supabaseAdmin.from('list_editor_notes').select('note,created_at').eq('list_id', listId).order('created_at', { ascending: false }).limit(20),
@@ -32,7 +32,11 @@ export async function GET(request) {
 
     const votes = (votesRes.data || []).map((r) => ({ itemName: r.item_name, delta: r.delta, createdAt: r.created_at }));
     const manager = (managerRes.data || []).map((r) => ({ message: r.message, createdAt: r.created_at, editorResponse: (r.editor_response && r.editor_response.trim()) || null }));
-    const research = (researchRes.data || []).map((r) => ({ itemName: r.item_name, changeType: r.change_type, rank: r.rank, detectedAt: r.detected_at }));
+    const researchAll = (researchRes.data || []).map((r) => ({ itemName: r.item_name, changeType: r.change_type, rank: r.rank, prevRank: r.prev_rank, detectedAt: r.detected_at }));
+    // An unranked item entering the top 3 fires entered_top10 AND entered_top3
+    // (both are research alerts); show the movement once.
+    const t3Keys = new Set(researchAll.filter((r) => r.changeType === 'entered_top3').map((r) => `${(r.itemName || '').toLowerCase()}::${r.detectedAt}`));
+    const research = researchAll.filter((r) => !(r.changeType === 'entered_top10' && t3Keys.has(`${(r.itemName || '').toLowerCase()}::${r.detectedAt}`)));
     const comments = (commentsRes.data || []).map((r) => ({ id: r.id, name: (r.name && r.name.trim()) || null, body: r.body, createdAt: r.created_at, editorResponse: (r.editor_response && r.editor_response.trim()) || null }));
 
     // Source tracking, stamped on view (no waiting for the daily cron). First

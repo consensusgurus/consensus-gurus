@@ -22,7 +22,7 @@ export default async function FeedPage() {
       supabaseAdmin.from('vote_events').select('list_id,item_name,delta,created_at').order('created_at', { ascending: false }).limit(40),
       supabaseAdmin.from('list_comments').select('list_id,name,body,created_at,editor_response').eq('hidden', false).order('created_at', { ascending: false }).limit(40),
       supabaseAdmin.from('complaints').select('list_id,message,created_at,editor_response').eq('feed_hidden', false).order('created_at', { ascending: false }).limit(25),
-      supabaseAdmin.from('consensus_alerts').select('list_id,item_name,change_type,rank,detected_at').order('detected_at', { ascending: false }).limit(25),
+      supabaseAdmin.from('consensus_alerts').select('list_id,item_name,change_type,rank,prev_rank,detected_at').order('detected_at', { ascending: false }).limit(25),
       supabaseAdmin.from('list_editor_notes').select('list_id,note,created_at').order('created_at', { ascending: false }).limit(40),
       supabaseAdmin.from('list_sources_seen').select('list_id,source_id,first_seen_at,label').order('first_seen_at', { ascending: false }).limit(400),
     ]);
@@ -68,9 +68,13 @@ export default async function FeedPage() {
   // Same one-time changeover cutoff the per-list feed uses: hide the June 3-5
   // scoring-formula recompute artifacts (see /api/list-feed).
   const CHANGEOVER_CUTOFF = Date.parse('2026-06-05T12:00:00Z');
-  const researchEvents = (resRes.data || [])
-    .map((a) => ({ ts: Date.parse(a.detected_at) || 0, kind: 'research', listId: a.list_id, listTitle: titleOf(a.list_id), itemName: a.item_name, changeType: a.change_type, rank: a.rank }))
+  const researchAll = (resRes.data || [])
+    .map((a) => ({ ts: Date.parse(a.detected_at) || 0, kind: 'research', listId: a.list_id, listTitle: titleOf(a.list_id), itemName: a.item_name, changeType: a.change_type, rank: a.rank, prevRank: a.prev_rank }))
     .filter((e) => e.ts > CHANGEOVER_CUTOFF);
+  // An unranked item entering the top 3 fires entered_top10 AND entered_top3;
+  // show the movement once.
+  const t3Keys = new Set(researchAll.filter((e) => e.changeType === 'entered_top3').map((e) => `${e.listId}::${(e.itemName || '').toLowerCase()}::${e.ts}`));
+  const researchEvents = researchAll.filter((e) => !(e.changeType === 'entered_top10' && t3Keys.has(`${e.listId}::${(e.itemName || '').toLowerCase()}::${e.ts}`)));
 
   // Post-launch source additions (first_seen well after the list's publish),
   // grouped by add-time per list. Launch-batch sources belong to the list card

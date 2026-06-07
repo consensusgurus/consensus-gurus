@@ -64,6 +64,14 @@ function rankWord(delta) {
 
 function researchLabel(ev) {
   const item = ev.itemName || 'An item';
+  // Rows with prev_rank recorded show the exact movement; 0 = unranked
+  // (outside the top 10). Ranks shown never exceed 10 by construction.
+  if (ev.prevRank !== null && ev.prevRank !== undefined) {
+    const from = ev.prevRank > 0 ? `#${ev.prevRank}` : 'unranked';
+    const to = ev.rank > 0 ? `#${ev.rank}` : 'unranked';
+    return { item, tail: `moved from ${from} to ${to}` };
+  }
+  // Legacy rows (before prev_rank existed) keep the boundary phrasing.
   if (ev.changeType === 'entered_top3') return { item, tail: `entered the top 3 (#${ev.rank || 3})` };
   if (ev.changeType === 'entered_top10') return { item, tail: 'entered the top 10' };
   if (ev.changeType === 'exited_top3') return { item, tail: 'dropped out of the top 3' };

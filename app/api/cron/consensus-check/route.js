@@ -123,13 +123,27 @@ export async function GET(request) {
       // First sighting of a list: seed the snapshot silently, no alerts.
       if (!prev) continue;
 
-      const prev10 = new Set(prev.map(norm));
-      const prev3 = new Set(prev.slice(0, 3).map(norm));
+      // Rank maps: positions 1-10 in the previous and current consensus.
+      // Every alert row records the exact movement via prev_rank -> rank,
+      // where 0 means "unranked" (outside the top 10). entered_top10 /
+      // entered_top3 stay research alerts (resolved=false: description /
+      // hero needed); exited_* and within-top10 'moved' rows are ledger-only
+      // news (resolved=true). Snapshot-diff detection fires each movement
+      // exactly once. All rows share the same keys (PostgREST bulk insert
+      // requires uniform columns).
+      const prevRankMap = new Map();
+      prev.slice(0, 10).forEach((item, idx) => prevRankMap.set(norm(item), idx + 1));
+      const curRankMap = new Map();
+      top10.forEach((item, idx) => curRankMap.set(norm(item), idx + 1));
 
       top10.forEach((item, idx) => {
         const key = norm(item);
         const rank = idx + 1;
-        if (!prev10.has(key)) {
+        const p = prevRankMap.get(key) || 0;
+        if (p === rank) return;
+        let isEntry = false;
+        if (!p) {
+          isEntry = true;
           const k = `${list.id}::${key}::entered_top10`;
           if (!openAlerts.has(k)) {
             newAlerts.push({
@@ -137,12 +151,14 @@ export async function GET(request) {
               item_name: item,
               change_type: 'entered_top10',
               rank,
+              prev_rank: 0,
               resolved: false,
             });
             openAlerts.add(k);
           }
         }
-        if (rank <= 3 && !prev3.has(key)) {
+        if (rank <= 3 && (!p || p > 3)) {
+          isEntry = true;
           const k = `${list.id}::${key}::entered_top3`;
           if (!openAlerts.has(k)) {
             newAlerts.push({
@@ -150,36 +166,36 @@ export async function GET(request) {
               item_name: item,
               change_type: 'entered_top3',
               rank,
+              prev_rank: p,
               resolved: false,
             });
             openAlerts.add(k);
           }
         }
+        if (!isEntry && p) {
+          // A shift within the top 10: dropping out of the top 3 keeps its
+          // dedicated type, any other move is a plain 'moved'.
+          newAlerts.push({
+            list_id: list.id,
+            item_name: item,
+            change_type: p <= 3 && rank > 3 ? 'exited_top3' : 'moved',
+            rank,
+            prev_rank: p,
+            resolved: true,
+          });
+        }
       });
 
-      // Exits: items that left the top 10 entirely, or slipped out of the
-      // top 3 while staying on the list. Stored resolved=true so they appear
-      // in the public activity ledgers but never enter the research queue
-      // (an exit needs no description or hero work). Snapshot-diff detection
-      // fires each exit exactly once.
-      const cur10 = new Set(top10.map(norm));
-      const cur3 = new Set(top10.slice(0, 3).map(norm));
-      prev.forEach((item, idx) => {
+      // Items that left the top 10 entirely (rank 0 = now unranked).
+      prev.slice(0, 10).forEach((item, idx) => {
         const key = norm(item);
-        if (!cur10.has(key)) {
+        if (!curRankMap.has(key)) {
           newAlerts.push({
             list_id: list.id,
             item_name: item,
             change_type: 'exited_top10',
-            rank: null,
-            resolved: true,
-          });
-        } else if (idx < 3 && !cur3.has(key)) {
-          newAlerts.push({
-            list_id: list.id,
-            item_name: item,
-            change_type: 'exited_top3',
-            rank: null,
+            rank: 0,
+            prev_rank: idx + 1,
             resolved: true,
           });
         }

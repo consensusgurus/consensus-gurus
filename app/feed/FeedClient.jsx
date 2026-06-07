@@ -13,6 +13,21 @@ function fmtDate(ms) {
   return `${MONTHS[d.getMonth()]} ${d.getDate()}, ${d.getFullYear()}`;
 }
 
+// Exact movement text for ranking-change events. Rows with prev_rank show
+// "moved from #X to #Y" (0 = unranked); legacy rows keep boundary phrasing.
+function moveTail(ev) {
+  if (ev.prevRank !== null && ev.prevRank !== undefined) {
+    const from = ev.prevRank > 0 ? `#${ev.prevRank}` : 'unranked';
+    const to = ev.rank > 0 ? `#${ev.rank}` : 'unranked';
+    return `moved from ${from} to ${to}`;
+  }
+  if (ev.changeType === 'entered_top3') return `entered the top 3 (#${ev.rank || 3})`;
+  if (ev.changeType === 'entered_top10') return 'entered the top 10';
+  if (ev.changeType === 'exited_top3') return 'dropped out of the top 3';
+  if (ev.changeType === 'exited_top10') return 'dropped out of the top 10';
+  return 'moved in the rankings';
+}
+
 function rankWord(delta) {
   if (delta === 3) return '1st';
   if (delta === 2) return '2nd';
@@ -145,7 +160,7 @@ function renderEvent(e, i) {
         {hasChanges && (
           <div style={{ marginTop: 5 }}>
             {e.changes.map((c, k) => {
-              const tail = c.changeType === 'entered_top3' ? `entered the top 3 (#${c.rank || 3})` : c.changeType === 'entered_top10' ? 'entered the top 10' : c.changeType === 'exited_top3' ? 'dropped out of the top 3' : c.changeType === 'exited_top10' ? 'dropped out of the top 10' : 'moved in the rankings';
+              const tail = moveTail(c);
               return (
                 <div key={k} style={{ fontSize: 13 }}>&rarr; <strong style={{ fontWeight: 500 }}>{c.itemName}</strong> {tail}.</div>
               );
@@ -185,7 +200,7 @@ function renderEvent(e, i) {
     );
   }
   if (e.kind === 'research') {
-    const tail = e.changeType === 'entered_top3' ? `entered the top 3 (#${e.rank || 3})` : e.changeType === 'entered_top10' ? 'entered the top 10' : e.changeType === 'exited_top3' ? 'dropped out of the top 3' : e.changeType === 'exited_top10' ? 'dropped out of the top 10' : 'moved in the rankings';
+    const tail = moveTail(e);
     return (
       <Event
         key={i}

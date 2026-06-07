@@ -1105,10 +1105,15 @@ if (missing.length) throw new Error('Missing descriptions: ' + missing.join(', '
 - `/api/cron/consensus-check` runs daily via Vercel cron (`vercel.json`): recomputes every list's
   consensus top 10, diffs against the snapshot, and inserts an alert when an item newly enters the
   top 10 (`entered_top10`, needs a description) or top 3 (`entered_top3`, needs a hero photo).
-  The same diff also records exits (`exited_top10`, `exited_top3`), inserted with `resolved=true`
-  so they show in the public activity ledgers but never enter the research queue (an exit needs
-  no description or hero work). Migration `14_restamp_source_dates_and_exits.sql` widened the
-  change_type check for this.
+  The same diff also records exits (`exited_top10`, `exited_top3`) and within-top10 shifts
+  (`moved`), inserted with `resolved=true` so they show in the public activity ledgers but never
+  enter the research queue (no description or hero work needed). Every alert row stores the exact
+  movement as `prev_rank` -> `rank`, where **0 means unranked** (outside the top 10); the ledgers
+  render "moved from #X to #Y / unranked" and never show a rank beyond 10 (owner rule, 2026-06-07).
+  Rows with `prev_rank` null are legacy (pre-movement-tracking) and render the old boundary
+  phrasing. An unranked item entering the top 3 fires entered_top10 AND entered_top3 (two research
+  rows); both feeds dedupe the display. Migrations `14_restamp_source_dates_and_exits.sql` and
+  `15_alert_rank_movement.sql` cover the schema.
   First run seeds snapshots silently. Optional `CRON_SECRET` env var protects the route.
 - The admin panel (`/admin`) has a **Research** tab listing unresolved alerts with what each needs;
   resolve via `/api/admin/alerts` once the research ships.
