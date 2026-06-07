@@ -923,6 +923,16 @@ The site's indexing pipeline is mostly automatic; the per-deploy step is one Ind
   new lists from the sitemap on its own.
 - Google Search Console is verified (sitemap submitted); Bing Webmaster Tools imports from GSC.
 
+**Per-deploy step — ping the consensus cron after every push that changes LIST DATA (sources,
+items, votes-affecting edits):** the daily 09:00 UTC cron is the only thing that diffs consensus
+and stamps ledger events, so an edit deployed at noon shows up in the activity ledgers dated the
+NEXT morning (detection time), up to 24h after the fact — exactly how the June 5 twitter-accounts
+rework surfaced as "Jun 6" cards. After Vercel finishes deploying a data change, hit
+`https://sourceoftruths.com/api/cron/consensus-check` once via `web_fetch` (a plain GET; response
+`{"ok":true,...}`). The run is idempotent, detects the change immediately, dates the ledger cards
+to the actual deploy day, and attributes them correctly (cause `edit` via the source fingerprint).
+Skip it for pushes that don't touch list data (descriptions, heroes, code, this file).
+
 **Per-deploy step — ping IndexNow after every push that adds or substantially changes lists:**
 after Vercel deploys (~1 min after push), send a GET via `web_fetch` (sandbox curl cannot
 reach api.indexnow.org; web_fetch can):
