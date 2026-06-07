@@ -127,6 +127,137 @@ function listInCategory(list, catId) {
   return cat.any.some((t) => tags.includes(t));
 }
 
+// ── Narrow browse filters (mega-menu) ───────────────────────────────────────────
+// The category dropdown shows the broad CATEGORIES above as its top row, then
+// narrower cuts below: By City, By Region, By Topic. Cities are derived from
+// list.category via this normalization map (neighborhoods and naming variants
+// roll up into their city). A city only appears in the menu once it has 2+
+// lists, so this map can stay generous.
+const CITY_CANON = {
+  'New York': 'New York',
+  'Williamsburg, Brooklyn': 'New York',
+  'Greenpoint, Brooklyn': 'New York',
+  'East Village': 'New York',
+  'West Village': 'New York',
+  'Greenwich Village': 'New York',
+  'SoHo': 'New York',
+  'Boston': 'Boston',
+  'Miami': 'Miami',
+  'Miami Beach': 'Miami',
+  'Chicago': 'Chicago',
+  'Atlanta': 'Atlanta',
+  'Austin': 'Austin',
+  'London': 'London',
+  'Tokyo': 'Tokyo',
+  'The Hamptons': 'The Hamptons',
+  'Hamptons': 'The Hamptons',
+  'Los Angeles': 'Los Angeles',
+  'Savannah': 'Savannah',
+  'New Orleans': 'New Orleans',
+  'Tampa': 'Tampa Bay',
+  'Tampa Bay': 'Tampa Bay',
+  'San Diego': 'San Diego',
+  'Buffalo': 'Buffalo',
+  'Monaco': 'Monaco',
+  'Las Vegas': 'Las Vegas',
+  'San Francisco': 'San Francisco',
+  'Dallas': 'Dallas',
+  'Denver': 'Denver',
+  'Charlotte': 'Charlotte',
+  'Orlando': 'Orlando',
+  'Washington DC': 'Washington DC',
+  'Asheville': 'Asheville',
+  'Jacksonville': 'Jacksonville',
+  'Nashville': 'Nashville',
+  'New Haven': 'New Haven',
+  'Philadelphia': 'Philadelphia',
+  'Cape Cod': 'Cape Cod',
+  'Montreal': 'Montreal',
+  'Toronto': 'Toronto',
+  'Paris': 'Paris',
+  'Barcelona': 'Barcelona',
+  'Amsterdam': 'Amsterdam',
+  'Copenhagen': 'Copenhagen',
+  'Prague': 'Prague',
+  'Oslo': 'Oslo',
+  'Helsinki': 'Helsinki',
+  'Athens': 'Athens',
+  'Istanbul': 'Istanbul',
+  'Kyiv': 'Kyiv',
+  'St. Petersburg': 'St. Petersburg',
+  'Shanghai': 'Shanghai',
+  'Hong Kong': 'Hong Kong',
+  'Tel Aviv': 'Tel Aviv',
+  'Abu Dhabi': 'Abu Dhabi',
+  'Bali': 'Bali',
+  'Sydney': 'Sydney',
+  'Tulum': 'Tulum',
+  'Cabo San Lucas': 'Cabo San Lucas',
+  'Buenos Aires': 'Buenos Aires',
+  'Marrakesh': 'Marrakesh',
+  'Casablanca': 'Casablanca',
+  'Cape Town': 'Cape Town',
+  'Rio de Janeiro': 'Rio de Janeiro',
+  'Sao Paulo': 'Sao Paulo',
+  'Santiago': 'Santiago',
+  'Cartagena': 'Cartagena',
+};
+const cityFilterId = (city) => 'city-' + city.toLowerCase().replace(/[^a-z0-9]+/g, '-');
+
+// Region cuts match on raw list.category OR the canonical city, so both
+// country-level categories ('Greece', 'Italy') and city lists land in them.
+const REGION_FILTERS = [
+  { id: 'region-us-regional', label: 'US Regional', cats: ['USA', 'Florida', 'Texas', 'Ohio', 'Kentucky', 'New England', 'Cape Cod', 'The Hamptons'] },
+  { id: 'region-europe', label: 'Europe', cats: ['London', 'Paris', 'Barcelona', 'Amsterdam', 'Copenhagen', 'Prague', 'Oslo', 'Helsinki', 'Athens', 'Istanbul', 'Kyiv', 'St. Petersburg', 'Monaco', 'Greece', 'Greek Islands', 'Italy', 'France', 'Spain', 'Croatia', 'Alps', 'Mediterranean', 'Turkey'] },
+  { id: 'region-asia-pacific', label: 'Asia & Pacific', cats: ['Tokyo', 'Shanghai', 'Hong Kong', 'Bali', 'Sydney', 'South Pacific'] },
+  { id: 'region-mideast-africa', label: 'Middle East & Africa', cats: ['Tel Aviv', 'Abu Dhabi', 'Marrakesh', 'Casablanca', 'Cape Town'] },
+  { id: 'region-latam', label: 'Latin America & Caribbean', cats: ['Tulum', 'Cabo San Lucas', 'Buenos Aires', 'Rio de Janeiro', 'Sao Paulo', 'Santiago', 'Cartagena'] },
+].map((r) => ({
+  ...r,
+  match: (l) => r.cats.includes(l.category) || r.cats.includes(CITY_CANON[l.category]),
+}));
+
+// Topic cuts match on title + id keywords (and category where cleaner).
+const ttext = (l) => `${l.title || ''} ${l.id || ''}`.toLowerCase();
+const TOPIC_FILTERS = [
+  { id: 'topic-pizza', label: 'Pizza', match: (l) => /pizza/.test(ttext(l)) },
+  { id: 'topic-burgers', label: 'Burgers', match: (l) => /burger/.test(ttext(l)) },
+  { id: 'topic-tacos', label: 'Tacos & Mexican', match: (l) => /taco|mexican|burrito/.test(ttext(l)) },
+  { id: 'topic-bbq', label: 'BBQ & Steak', match: (l) => /bbq|barbecue|steak/.test(ttext(l)) },
+  { id: 'topic-sushi', label: 'Sushi & Ramen', match: (l) => /sushi|ramen|omakase/.test(ttext(l)) },
+  { id: 'topic-breakfast', label: 'Breakfast & Coffee', match: (l) => /brunch|breakfast|bagel|coffee|cafe/.test(ttext(l)) },
+  { id: 'topic-dive-bars', label: 'Dive Bars', match: (l) => /dive.bar/.test(ttext(l)) },
+  { id: 'topic-cocktails', label: 'Cocktail Bars', match: (l) => /cocktail/.test(ttext(l)) },
+  { id: 'topic-beer', label: 'Breweries & Beer', match: (l) => /brewer|beer/.test(ttext(l)) },
+  { id: 'topic-spirits', label: 'Wine & Spirits', match: (l) => /wine|whiskey|whisky|\bgins?\b|vodka|tequila|scotch|distiller|bourbon/.test(ttext(l)) },
+  { id: 'topic-hotels', label: 'Hotels & Resorts', match: (l) => /hotel|resort|lodge|villa/.test(ttext(l)) },
+  { id: 'topic-beaches', label: 'Beaches & Beach Clubs', match: (l) => /beach/.test(ttext(l)) },
+  { id: 'topic-movies', label: 'Movies', match: (l) => /\bfilms?\b|movies?|director/.test(ttext(l)) || ['Film', 'Cinema'].includes(l.category) || /^Movies/.test(l.category || '') },
+  { id: 'topic-tv', label: 'TV Shows', match: (l) => /\btv\b|television|hbo|docuseries|sitcom/.test(ttext(l)) || ['TV', 'Television', 'True Crime'].includes(l.category) },
+  { id: 'topic-books', label: 'Books', match: (l) => ['Books', 'Cookbooks'].includes(l.category) || /\bbooks?\b|novels?|memoirs?/.test(ttext(l)) },
+  { id: 'topic-music', label: 'Music', match: (l) => /\bsongs?\b|albums?|music/.test(ttext(l)) },
+  { id: 'topic-sports', label: 'Sports & Outdoors', match: (l) => ['Sports', 'Outdoors', 'Golf', 'College Football', 'Formula 1', 'Fitness'].includes(l.category) || /golf|stadium|football|basketball|whitewater|campground|national park|running shoe|fight song/.test(ttext(l)) },
+  { id: 'topic-tech', label: 'Tech & Audio', match: (l) => ['Tech', 'Audio'].includes(l.category) },
+  { id: 'topic-kitchen-home', label: 'Kitchen & Home', match: (l) => ['Kitchen', 'Home', 'Sleep'].includes(l.category) },
+  { id: 'topic-chains', label: 'Chains & Groceries', match: (l) => ['Fast Food', 'Casual Dining', 'Costco', 'Grocery', 'Frozen Food', 'Snacks', 'Seltzer', 'Beverages'].includes(l.category) || /fast.food|menu items|trader joe/.test(ttext(l)) },
+];
+const NARROW_BY_ID = Object.fromEntries(
+  [...REGION_FILTERS, ...TOPIC_FILTERS].map((f) => [f.id, f])
+);
+
+// One filter test for every kind of browse filter (broad category, city,
+// region, topic). Unknown ids fail open so a stale id can never blank the page.
+function matchesBrowseFilter(list, id) {
+  if (!id || id === 'all') return true;
+  if (CAT_BY_ID[id]) return listInCategory(list, id);
+  if (id.startsWith('city-')) {
+    const city = CITY_CANON[list.category];
+    return !!city && cityFilterId(city) === id;
+  }
+  const f = NARROW_BY_ID[id];
+  return f ? f.match(list) : true;
+}
+
 // A "product list" for homepage placement = anything in the Products browse
 // bucket (physical products or tech). Used to keep a product list from ever
 // being the first or second tile on the default Discover view, so a fresh
@@ -211,7 +342,7 @@ function Home({ lists, viewCounts, voteData, extras, trending = {}, openList, on
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase();
     return lists.filter((list) => {
-      if (typeFilter !== 'all' && !listInCategory(list, typeFilter)) return false;
+      if (typeFilter !== 'all' && !matchesBrowseFilter(list, typeFilter)) return false;
       if (!q) return true;
       const hay = [
         list.title,
@@ -313,6 +444,9 @@ function Home({ lists, viewCounts, voteData, extras, trending = {}, openList, on
       if (c.id === 'all') return;
       out[c.id] = lists.filter((l) => listInCategory(l, c.id)).length;
     });
+    [...REGION_FILTERS, ...TOPIC_FILTERS].forEach((f) => {
+      out[f.id] = lists.filter(f.match).length;
+    });
     return out;
   }, [lists]);
 
@@ -320,6 +454,39 @@ function Home({ lists, viewCounts, voteData, extras, trending = {}, openList, on
   const visibleTypes = useMemo(() => {
     return CATEGORIES.filter((t) => t.id === 'all' || (counts[t.id] || 0) > 0);
   }, [counts]);
+
+  // Cities for the mega-menu, derived from list.category via CITY_CANON.
+  // A city needs 2+ lists to earn a chip; ordered by count, then A-Z.
+  const cityFilters = useMemo(() => {
+    const byCity = new Map();
+    lists.forEach((l) => {
+      const city = CITY_CANON[l.category];
+      if (!city) return;
+      byCity.set(city, (byCity.get(city) || 0) + 1);
+    });
+    return [...byCity.entries()]
+      .filter(([, n]) => n >= 2)
+      .sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0]))
+      .map(([city, n]) => ({ id: cityFilterId(city), label: city, count: n }));
+  }, [lists]);
+
+  // Regions / topics need 2+ matching lists to show.
+  const visibleRegions = useMemo(
+    () => REGION_FILTERS.filter((f) => (counts[f.id] || 0) >= 2),
+    [counts]
+  );
+  const visibleTopics = useMemo(
+    () => TOPIC_FILTERS.filter((f) => (counts[f.id] || 0) >= 2),
+    [counts]
+  );
+
+  // Resolve the active filter's label for the Category button, across every
+  // group (broad, city, region, topic).
+  const activeFilterLabel = useMemo(() => {
+    const all = [...visibleTypes, ...cityFilters, ...visibleRegions, ...visibleTopics];
+    const f = all.find((x) => x.id === typeFilter);
+    return (f && f.label) || 'All';
+  }, [visibleTypes, cityFilters, visibleRegions, visibleTopics, typeFilter]);
 
   const sortButtons = [
     { id: 'discover', label: 'Discover', short: 'Discover' },
@@ -409,22 +576,78 @@ function Home({ lists, viewCounts, voteData, extras, trending = {}, openList, on
 
           <div style={{ position: 'relative', minWidth: 0, order: 2 }} onClick={(e) => e.stopPropagation()}>
             <button onClick={() => { setCatOpen((o) => !o); setSortOpen(false); }} aria-haspopup="true" aria-expanded={catOpen} style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, background: '#bdb3a0', color: COLORS.ink, border: `1.5px solid ${COLORS.ink}`, padding: '12px 14px', fontFamily: 'DM Mono, monospace', fontSize: 10, letterSpacing: '0.16em', textTransform: 'uppercase', fontWeight: 600, cursor: 'pointer', whiteSpace: 'nowrap', overflow: 'hidden' }}>
-              <span><span style={{ opacity: 0.6 }}>Category:</span> {(visibleTypes.find((t) => t.id === typeFilter) || {}).label || 'All'}</span>
+              <span><span style={{ opacity: 0.6 }}>Category:</span> {activeFilterLabel}</span>
               <ChevronDown size={14} strokeWidth={2.5} style={{ transform: catOpen ? 'rotate(180deg)' : 'none', transition: 'transform 0.15s' }} />
             </button>
-            {catOpen && (
-              <div role="menu" style={{ position: 'absolute', top: 'calc(100% + 6px)', right: 0, left: 'auto', zIndex: 30, minWidth: 220, maxWidth: 'calc(100vw - 48px)', background: COLORS.cream, border: `1.5px solid ${COLORS.ink}`, maxHeight: 360, overflowY: 'auto' }}>
-                {visibleTypes.map((t, i) => {
-                  const active = typeFilter === t.id;
-                  return (
-                    <button key={t.id} role="menuitem" onClick={() => { setTypeFilter(t.id); setCatOpen(false); }} style={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 16, border: 'none', padding: '10px 14px', fontFamily: 'DM Mono, monospace', fontSize: 10, letterSpacing: '0.16em', textTransform: 'uppercase', fontWeight: 600, cursor: 'pointer', textAlign: 'left', background: active ? '#bdb3a0' : 'transparent', color: COLORS.ink, borderTop: i === 0 ? 'none' : `0.5px solid ${COLORS.paper}` }}>
-                      <span>{t.label}</span>
-                      <span style={{ opacity: 0.6 }}>{counts[t.id] || 0}</span>
-                    </button>
-                  );
-                })}
-              </div>
-            )}
+            {catOpen && (() => {
+              const pick = (id) => { setTypeFilter(id); setCatOpen(false); };
+              const chip = (f, big) => {
+                const active = typeFilter === f.id;
+                const count = f.count != null ? f.count : (counts[f.id] || 0);
+                return (
+                  <button
+                    key={f.id}
+                    role="menuitem"
+                    onClick={() => pick(f.id)}
+                    style={{
+                      display: 'inline-flex',
+                      alignItems: 'baseline',
+                      gap: 6,
+                      border: `1px solid ${COLORS.ink}`,
+                      padding: big ? '9px 12px' : '7px 10px',
+                      fontFamily: 'DM Mono, monospace',
+                      fontSize: big ? 10 : 9,
+                      letterSpacing: '0.14em',
+                      textTransform: 'uppercase',
+                      fontWeight: 600,
+                      cursor: 'pointer',
+                      background: active ? '#bdb3a0' : COLORS.paper,
+                      color: COLORS.ink,
+                      whiteSpace: 'nowrap',
+                    }}
+                  >
+                    <span>{f.label}</span>
+                    {f.id !== 'all' && <span style={{ opacity: 0.55 }}>{count}</span>}
+                  </button>
+                );
+              };
+              const heading = (text) => (
+                <div style={{ fontFamily: 'DM Mono, monospace', fontSize: 9, letterSpacing: '0.22em', textTransform: 'uppercase', fontWeight: 700, color: COLORS.faded, margin: '16px 0 8px' }}>
+                  {text}
+                </div>
+              );
+              return (
+                <div role="menu" style={{ position: 'absolute', top: 'calc(100% + 6px)', right: 0, left: 'auto', zIndex: 30, width: 'min(640px, calc(100vw - 48px))', background: COLORS.cream, border: `1.5px solid ${COLORS.ink}`, boxShadow: `4px 4px 0 ${COLORS.ink}`, maxHeight: 'min(70vh, 560px)', overflowY: 'auto', padding: '14px 16px 18px', boxSizing: 'border-box' }}>
+                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: 7, paddingBottom: 12, borderBottom: `1px solid ${COLORS.ink}` }}>
+                    {visibleTypes.map((t) => chip(t, true))}
+                  </div>
+                  {cityFilters.length > 0 && (
+                    <>
+                      {heading('By City')}
+                      <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
+                        {cityFilters.map((f) => chip(f, false))}
+                      </div>
+                    </>
+                  )}
+                  {visibleRegions.length > 0 && (
+                    <>
+                      {heading('By Region')}
+                      <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
+                        {visibleRegions.map((f) => chip(f, false))}
+                      </div>
+                    </>
+                  )}
+                  {visibleTopics.length > 0 && (
+                    <>
+                      {heading('By Topic')}
+                      <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
+                        {visibleTopics.map((f) => chip(f, false))}
+                      </div>
+                    </>
+                  )}
+                </div>
+              );
+            })()}
           </div>
 
           <div style={{ position: 'relative', minWidth: 0, order: 1 }} onClick={(e) => e.stopPropagation()}>
