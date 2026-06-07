@@ -16,6 +16,25 @@ import { getSources } from '@/lib/helpers';
 export const dynamic = 'force-dynamic';
 export const revalidate = 0;
 
+// PostgREST caps a single select at 1000 rows. list_sources_seen crossed that
+// on 2026-06-07 (~1500 rows), which silently hid existing stamps from the cron
+// and made already-tracked lists look like first sightings. Page every table
+// read in stable key order until a short page arrives.
+async function fetchAll(table, cols, orderCols, filter) {
+  const STEP = 1000;
+  const out = [];
+  for (let from = 0; ; from += STEP) {
+    let q = supabaseAdmin.from(table).select(cols);
+    for (const c of orderCols) q = q.order(c, { ascending: true });
+    if (filter) q = filter(q);
+    const { data, error } = await q.range(from, from + STEP - 1);
+    if (error) throw error;
+    out.push(...(data || []));
+    if (!data || data.length < STEP) break;
+  }
+  return out;
+}
+
 function consensusTop10(list, votes, extras) {
   const mode = list.mode || 'both';
   if (mode === 'facts' || mode === 'scores' || mode === 'unranked') {
@@ -39,20 +58,17 @@ export async function GET(request) {
   }
 
   try {
-    const [votesRes, extrasRes, snapsRes, alertsRes, seenRes] = await Promise.all([
-      supabaseAdmin.from('votes').select('list_id,item_name,score'),
-      supabaseAdmin.from('extras').select('list_id,item_name'),
-      supabaseAdmin.from('consensus_snapshots').select('list_id,top10'),
-      supabaseAdmin
-        .from('consensus_alerts')
-        .select('list_id,item_name,change_type')
-        .eq('resolved', false),
-      supabaseAdmin.from('list_sources_seen').select('list_id,source_id'),
+    const [votesRows, extrasRows, snapsRows, alertsRows, seenRows] = await Promise.all([
+      fetchAll('votes', 'list_id,item_name,score', ['list_id', 'item_name']),
+      fetchAll('extras', 'list_id,item_name', ['list_id', 'item_name']),
+      fetchAll('consensus_snapshots', 'list_id,top10', ['list_id']),
+      fetchAll('consensus_alerts', 'list_id,item_name,change_type', ['id'], (q) => q.eq('resolved', false)),
+      fetchAll('list_sources_seen', 'list_id,source_id', ['list_id', 'source_id']),
     ]);
 
     // Vote scores keyed as `${listId}::${itemNameLowerCase}` (matches voteKey).
     const votes = {};
-    (votesRes.data || []).forEach((row) => {
+    votesRows.forEach((row) => {
       votes[`${row.list_id}::${row.item_name.toLowerCase().trim()}`] = Math.max(
         0,
         row.score
@@ -60,19 +76,19 @@ export async function GET(request) {
     });
 
     const extras = {};
-    (extrasRes.data || []).forEach((row) => {
+    extrasRows.forEach((row) => {
       if (!extras[row.list_id]) extras[row.list_id] = [];
       extras[row.list_id].push(row.item_name);
     });
 
     const prevSnaps = new Map();
-    (snapsRes.data || []).forEach((row) => {
+    snapsRows.forEach((row) => {
       prevSnaps.set(row.list_id, row.top10 || []);
     });
 
     // Existing unresolved alerts, so re-detection never duplicates a row.
     const openAlerts = new Set(
-      (alertsRes.data || []).map(
+      alertsRows.map(
         (a) => `${a.list_id}::${a.item_name.toLowerCase()}::${a.change_type}`
       )
     );
@@ -80,7 +96,7 @@ export async function GET(request) {
     // Which sources are already stamped, per list. Used to date "source added"
     // events in the activity feed (list_sources_seen.first_seen_at).
     const seenByList = new Map();
-    (seenRes.data || []).forEach((row) => {
+    seenRows.forEach((row) => {
       if (!seenByList.has(row.list_id)) seenByList.set(row.list_id, new Set());
       seenByList.get(row.list_id).add(row.source_id);
     });
