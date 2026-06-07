@@ -907,6 +907,16 @@ NEW_LIB_TREE=$(git ls-tree $LIB_TREE_SHA | awk -v b="$NEW_BLOB" \
   (e.g. PAT revoked, GitHub Smart HTTP unreachable): edit `lib/data.js`, save, then in GitHub Desktop commit
   to `main` and push origin. Otherwise always push directly per the procedure above.
 
+## Post-deploy consensus-check trigger (owner-requested 2026-06-07)
+
+The Activity Ledger's ranking-change entries come from `/api/cron/consensus-check`, which only
+runs daily on its own. **After every push that changes any list's consensus (new sources,
+re-seeds, item changes), trigger the cron manually once the Vercel deploy is live:** open
+`https://sourceoftruths.com/api/cron/consensus-check` via Chrome (or web_fetch) and confirm
+`{"ok":true,...}`. This writes the movement entries (X moved from #N to #M) into the ledger
+immediately instead of leaving the feed stale until the next daily run. Skip it for pushes that
+cannot move a consensus (descriptions, heroes, this file).
+
 ## Search engine indexing (set up 2026-06-05)
 
 The site's indexing pipeline is mostly automatic; the per-deploy step is one IndexNow ping.
