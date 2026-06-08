@@ -276,11 +276,14 @@ export default function ActivityFeed({ list }) {
 
   const created = list.publishedAt || list.publishedDate;
 
-  // Combine post-launch source additions with the ranking changes they caused:
-  // a consensus change detected within ~26h after a source addition (and after
-  // no newer addition) is attributed to it and shown in the SAME card. Changes
-  // with no nearby source addition (vote-driven) stand on their own.
-  const RESEARCH_WINDOW_MS = 26 * 3600 * 1000;
+  // ------- Build ONE strictly time-ordered stream (newest first). -------
+  // Every ledger entry carries its moment-in-time timestamp and the entries
+  // are interleaved chronologically rather than grouped by type, so a vote
+  // cast after a source addition displays above it.
+
+  // Post-launch source additions (grouped by timestamp) plus dated label
+  // refreshes (re-gathered ratings, a new year's edition) as their own
+  // "Updated sources" group.
   const sourceGroups = [];
   {
     const byTs = new Map();
@@ -289,8 +292,6 @@ export default function ActivityFeed({ list }) {
       if (!byTs.has(k)) byTs.set(k, { addedAt: s.addedAt, ts: new Date(s.addedAt).getTime(), sources: [], changes: [] });
       byTs.get(k).sources.push(s);
     });
-    // Label refreshes (re-gathered ratings, a new year's edition) get their
-    // own dated "Updated sources" group, keyed by update time.
     sources.forEach((s) => {
       if (!s.updatedAt) return;
       const k = `upd::${s.updatedAt}`;
@@ -299,36 +300,94 @@ export default function ActivityFeed({ list }) {
     });
     sourceGroups.push(...byTs.values());
   }
+
+  // Voting sessions: consecutive vote events within 4h of each other form one
+  // "Voting" entry, stamped at its newest vote.
+  const VOTE_GAP_MS = 4 * 3600 * 1000;
+  const voteGroups = [];
+  {
+    const sorted = (feed.votes || [])
+      .map((v) => ({ ...v, t: new Date(v.createdAt).getTime() }))
+      .filter((v) => !isNaN(v.t))
+      .sort((a, b) => b.t - a.t);
+    sorted.forEach((v) => {
+      const last = voteGroups[voteGroups.length - 1];
+      if (last && last.minTs - v.t <= VOTE_GAP_MS) {
+        last.votes.push(v);
+        if (v.t < last.minTs) last.minTs = v.t;
+      } else {
+        voteGroups.push({ ts: v.t, minTs: v.t, votes: [v], changes: [] });
+      }
+    });
+  }
+
+  // Attribute consensus movements to their cause. Edit-caused changes (and
+  // legacy rows with no recorded cause) attach to the source addition that
+  // preceded them within ~26h; vote-caused changes attach to the voting
+  // session that preceded them the same way, so voting entries show the
+  // movements they produced. Changes with no nearby cause entry stand alone.
+  const RESEARCH_WINDOW_MS = 26 * 3600 * 1000;
   const looseChanges = [];
   (feed.research || []).forEach((ev) => {
     const t = ev.detectedAt ? new Date(ev.detectedAt).getTime() : 0;
     let best = null;
-    sourceGroups.forEach((g) => {
-      if (g.ts <= t && t - g.ts <= RESEARCH_WINDOW_MS && (!best || g.ts > best.ts)) best = g;
-    });
+    if (ev.cause !== 'votes') {
+      sourceGroups.forEach((g) => {
+        if (g.ts <= t && t - g.ts <= RESEARCH_WINDOW_MS && (!best || g.ts > best.ts)) best = g;
+      });
+    }
+    if (!best && ev.cause === 'votes') {
+      voteGroups.forEach((g) => {
+        if (g.minTs <= t && t - g.ts <= RESEARCH_WINDOW_MS && (!best || g.ts > best.ts)) best = g;
+      });
+    }
     if (best) best.changes.push(ev);
     else looseChanges.push(ev);
   });
-  const topEvents = [];
-  sourceGroups.forEach((g) => topEvents.push({ ts: g.ts, type: 'sourceGroup', g }));
-  looseChanges.forEach((ev) => topEvents.push({ ts: ev.detectedAt ? new Date(ev.detectedAt).getTime() : 0, type: 'change', ev }));
-  topEvents.sort((a, b) => b.ts - a.ts);
+
+  // The single chronological stream.
+  const stream = [];
+  sourceGroups.forEach((g) => stream.push({ ts: g.ts, type: 'sourceGroup', g }));
+  voteGroups.forEach((g) => stream.push({ ts: g.ts, type: 'voteGroup', g }));
+  looseChanges.forEach((ev) => stream.push({ ts: ev.detectedAt ? new Date(ev.detectedAt).getTime() : 0, type: 'change', ev }));
+  (feed.editorNotes || []).forEach((n) => {
+    const t = new Date(n.createdAt).getTime();
+    stream.push({ ts: isNaN(t) ? 0 : t, type: 'editorNote', n });
+  });
+  (feed.manager || []).forEach((m) => {
+    const t = new Date(m.createdAt).getTime();
+    stream.push({ ts: isNaN(t) ? 0 : t, type: 'managerNote', m });
+  });
+  {
+    const byTs = new Map();
+    (feed.removedSources || []).forEach((s) => {
+      const k = s.removedAt || '';
+      const t = new Date(s.removedAt || 0).getTime();
+      if (!byTs.has(k)) byTs.set(k, { removedAt: s.removedAt, ts: isNaN(t) ? 0 : t, sources: [] });
+      byTs.get(k).sources.push(s);
+    });
+    [...byTs.values()].forEach((g) => stream.push({ ts: g.ts, type: 'removedGroup', g }));
+  }
+  const createdMs = Date.parse(created || '');
+  stream.push({ ts: isNaN(createdMs) ? 0 : createdMs, type: 'created' });
+  stream.sort((a, b) => b.ts - a.ts);
+  const newestVoteGroup = voteGroups.length ? voteGroups.reduce((a, b) => (b.ts > a.ts ? b : a)) : null;
 
   return (
     <div style={{ fontFamily: SANS, color: COLORS.ink, maxWidth: 640, paddingBottom: 40 }}>
       <style>{`@keyframes sotpulse{0%,100%{opacity:1}50%{opacity:.25}}`}</style>
 
       <div>
-        {/* Post-launch source additions + the ranking changes they caused.
-            A source add with attached changes renders as one combined
-            "Re-researched" card; a vote-driven change with no nearby source
-            add stands alone as a "Ranking change" card. */}
-        {topEvents.map((te, i) => {
+        {stream.map((te, i) => {
+          const last = i === stream.length - 1;
+
+          // Post-launch source additions + the ranking changes they caused,
+          // one combined card.
           if (te.type === 'sourceGroup') {
             const g = te.g;
             const hasChanges = g.changes.length > 0;
             return (
-              <section key={`te-${i}`} style={cardStyle(hasChanges ? KC.research : KC.source)}>
+              <section key={`te-${i}`} style={{ ...cardStyle(hasChanges ? KC.research : KC.source), ...(last ? { marginBottom: 0 } : {}) }}>
                 <Badge
                   color={KC.source}
                   icon={<BookMarked size={11} strokeWidth={2.5} />}
@@ -363,155 +422,173 @@ export default function ActivityFeed({ list }) {
               </section>
             );
           }
-          const ev = te.ev;
-          const { item, tail } = researchLabel(ev);
-          return (
-            <section key={`te-${i}`} style={cardStyle(KC.research)}>
-              <Badge
-                color={ev.cause === 'edit' ? KC.edit : KC.vote}
-                icon={ev.cause === 'edit' ? <PenLine size={11} strokeWidth={2.5} /> : <BarChart3 size={11} strokeWidth={2.5} />}
-                extra={{ icon: <RefreshCw size={11} strokeWidth={2.5} />, color: KC.research, label: 'Ranking change' }}
-                date={fmtDate(ev.detectedAt)}
-              >
-                {ev.cause === 'edit' ? 'List edited' : 'Votes'}
-              </Badge>
-              <div style={{ fontSize: 13, color: COLORS.ink, marginTop: 8 }}>
-                <strong style={{ fontWeight: 500, color: KC.research }}>{item}</strong> {tail}.
-              </div>
-            </section>
-          );
-        })}
 
-        {/* Editor's notes posted from the admin desk */}
-        {feed.editorNotes.length > 0 && (
-          <section style={cardStyle(KC.comment)}>
-            <Badge color={KC.comment} icon={<PenLine size={11} strokeWidth={2.5} />}>Editor's Note</Badge>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 7, marginTop: 9 }}>
-              {feed.editorNotes.map((n, i) => (
-                <div key={i} style={{ background: '#fff', borderLeft: `3px solid ${KC.comment}`, borderRadius: '0 7px 7px 0', padding: '8px 11px', fontSize: 13, whiteSpace: 'pre-wrap' }}>
-                  {n.note}
-                  <span style={{ display: 'block', fontFamily: MONO, fontSize: 10, color: COLORS.faded, marginTop: 3 }}>
-                    Editor · {fmtDate(n.createdAt)}
-                  </span>
-                </div>
-              ))}
-            </div>
-          </section>
-        )}
-
-        {/* Sources removed from the list */}
-        {feed.removedSources.length > 0 && (
-          <section style={cardStyle(KC.source)}>
-            <Badge color={KC.source} icon={<BookMarked size={11} strokeWidth={2.5} />}>
-              {feed.removedSources.length === 1 ? 'Source removed' : 'Sources removed'}
-            </Badge>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 5, marginTop: 9 }}>
-              {feed.removedSources.map((s, i) => (
-                <div key={i} style={{ background: '#fff', border: `1px solid ${COLORS.paper}`, borderRadius: 7, padding: '7px 11px', fontSize: 13 }}>
-                  <span style={{ textDecoration: 'line-through', color: COLORS.faded }}>{s.label}</span>
-                  {s.removedAt && (
-                    <span style={{ fontFamily: MONO, fontSize: 10, color: COLORS.faded, marginLeft: 8 }}>{fmtDate(s.removedAt)}</span>
+          // A voting session + the ranking movements those votes produced.
+          if (te.type === 'voteGroup') {
+            const g = te.g;
+            const hasChanges = g.changes.length > 0;
+            return (
+              <section key={`te-${i}`} style={{ ...cardStyle(hasChanges ? KC.research : KC.vote), ...(last ? { marginBottom: 0 } : {}) }}>
+                <Badge
+                  color={KC.vote}
+                  icon={<BarChart3 size={11} strokeWidth={2.5} />}
+                  extra={hasChanges ? { icon: <RefreshCw size={11} strokeWidth={2.5} />, color: KC.research, label: 'Ranking change' } : undefined}
+                  date={fmtDate(g.votes[0].createdAt)}
+                  live={g === newestVoteGroup}
+                >
+                  Voting
+                </Badge>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 6, marginTop: 8 }}>
+                  {g.votes.slice(0, 8).map((v, k) => {
+                    const rw = rankWord(v.delta);
+                    return (
+                      <div key={k} style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 13 }}>
+                        {v.delta >= 0 ? (
+                          <ArrowUp size={14} strokeWidth={2.5} color={COLORS.forest} />
+                        ) : (
+                          <ArrowDown size={14} strokeWidth={2.5} color={COLORS.ember} />
+                        )}
+                        <span>
+                          Someone voted{' '}
+                          <strong style={{ fontWeight: 500 }}>{v.itemName}</strong>
+                          {rw && (
+                            <span style={{ fontFamily: MONO, fontSize: 10, color: COLORS.rust, marginLeft: 6 }}>
+                              {rw} pick
+                            </span>
+                          )}
+                        </span>
+                        <span style={{ fontFamily: MONO, fontSize: 10, color: COLORS.faded, marginLeft: 'auto' }}>
+                          {fmtRelative(v.createdAt)}
+                        </span>
+                      </div>
+                    );
+                  })}
+                  {g.votes.length > 8 && (
+                    <div style={{ fontFamily: MONO, fontSize: 10, color: COLORS.faded }}>
+                      + {g.votes.length - 8} more {g.votes.length - 8 === 1 ? 'vote' : 'votes'}
+                    </div>
                   )}
                 </div>
-              ))}
-            </div>
-          </section>
-        )}
-
-        {/* Live votes — shown only once at least one vote exists */}
-        {feed.votes.length > 0 && (
-          <section style={cardStyle(KC.vote)}>
-            <Badge color={KC.vote} icon={<BarChart3 size={11} strokeWidth={2.5} />} live>
-              Live votes
-            </Badge>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 6, marginTop: 8 }}>
-              {[...feed.votes].sort((a, b) => b.delta - a.delta).slice(0, 8).map((v, i) => {
-                const rw = rankWord(v.delta);
-                return (
-                  <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 13 }}>
-                    {v.delta >= 0 ? (
-                      <ArrowUp size={14} strokeWidth={2.5} color={COLORS.forest} />
-                    ) : (
-                      <ArrowDown size={14} strokeWidth={2.5} color={COLORS.ember} />
-                    )}
-                    <span>
-                      Someone voted{' '}
-                      <strong style={{ fontWeight: 500 }}>{v.itemName}</strong>
-                      {rw && (
-                        <span style={{ fontFamily: MONO, fontSize: 10, color: COLORS.rust, marginLeft: 6 }}>
-                          {rw} pick
-                        </span>
-                      )}
-                    </span>
-                    <span style={{ fontFamily: MONO, fontSize: 10, color: COLORS.faded, marginLeft: 'auto' }}>
-                      {fmtRelative(v.createdAt)}
-                    </span>
+                {hasChanges && (
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: 6, marginTop: 10 }}>
+                    {g.changes.map((ev, k) => {
+                      const { item, tail } = researchLabel(ev);
+                      return (
+                        <div key={k} style={{ fontSize: 13, color: COLORS.ink }}>
+                          <RefreshCw size={11} strokeWidth={2.5} style={{ display: 'inline', verticalAlign: 'middle', marginRight: 5, color: KC.research }} />
+                          <strong style={{ fontWeight: 500, color: KC.research }}>{item}</strong> {tail}.
+                        </div>
+                      );
+                    })}
                   </div>
-                );
-              })}
-            </div>
-          </section>
-        )}
+                )}
+              </section>
+            );
+          }
 
-        {/* Manager notes (anonymized) */}
-        {feed.manager.length > 0 && (
-          <section style={cardStyle(KC.review)}>
-            <Badge color={KC.review} icon={<MessageSquare size={11} strokeWidth={2.5} />}>Review requests</Badge>
-            <div style={{ fontSize: 12, color: COLORS.faded, marginTop: 4, fontStyle: 'italic' }}>
-              Notes sent privately to the editors. No names or emails shown.
-            </div>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 7, marginTop: 9 }}>
-              {feed.manager.map((m, i) => (
-                <div
-                  key={i}
-                  style={{
-                    background: '#fff',
-                    borderLeft: `3px solid ${KC.review}`,
-                    borderRadius: '0 7px 7px 0',
-                    padding: '8px 11px',
-                    fontSize: 13,
-                  }}
+          // A consensus movement with no nearby cause entry: a vote-driven
+          // change whose votes have rolled off, or a deploy-side list edit.
+          if (te.type === 'change') {
+            const ev = te.ev;
+            const { item, tail } = researchLabel(ev);
+            return (
+              <section key={`te-${i}`} style={{ ...cardStyle(KC.research), ...(last ? { marginBottom: 0 } : {}) }}>
+                <Badge
+                  color={ev.cause === 'edit' ? KC.edit : KC.vote}
+                  icon={ev.cause === 'edit' ? <PenLine size={11} strokeWidth={2.5} /> : <BarChart3 size={11} strokeWidth={2.5} />}
+                  extra={{ icon: <RefreshCw size={11} strokeWidth={2.5} />, color: KC.research, label: 'Ranking change' }}
+                  date={fmtDate(ev.detectedAt)}
                 >
+                  {ev.cause === 'edit' ? 'List edited' : 'Voting'}
+                </Badge>
+                <div style={{ fontSize: 13, color: COLORS.ink, marginTop: 8 }}>
+                  <strong style={{ fontWeight: 500, color: KC.research }}>{item}</strong> {tail}.
+                </div>
+              </section>
+            );
+          }
+
+          // Editor's note posted from the admin desk.
+          if (te.type === 'editorNote') {
+            const n = te.n;
+            return (
+              <section key={`te-${i}`} style={{ ...cardStyle(KC.comment), ...(last ? { marginBottom: 0 } : {}) }}>
+                <Badge color={KC.comment} icon={<PenLine size={11} strokeWidth={2.5} />} date={fmtDate(n.createdAt)}>Editor's Note</Badge>
+                <div style={{ background: '#fff', borderLeft: `3px solid ${KC.comment}`, borderRadius: '0 7px 7px 0', padding: '8px 11px', fontSize: 13, whiteSpace: 'pre-wrap', marginTop: 9 }}>
+                  {n.note}
+                </div>
+              </section>
+            );
+          }
+
+          // Anonymized review request sent privately to the editors.
+          if (te.type === 'managerNote') {
+            const m = te.m;
+            return (
+              <section key={`te-${i}`} style={{ ...cardStyle(KC.review), ...(last ? { marginBottom: 0 } : {}) }}>
+                <Badge color={KC.review} icon={<MessageSquare size={11} strokeWidth={2.5} />} date={fmtDate(m.createdAt)}>Review request</Badge>
+                <div style={{ fontSize: 12, color: COLORS.faded, marginTop: 4, fontStyle: 'italic' }}>
+                  Sent privately to the editors. No names or emails shown.
+                </div>
+                <div style={{ background: '#fff', borderLeft: `3px solid ${KC.review}`, borderRadius: '0 7px 7px 0', padding: '8px 11px', fontSize: 13, marginTop: 9 }}>
                   {m.message}
                   {m.editorResponse && (
                     <div style={{ marginTop: 5, paddingTop: 5, borderTop: `1px solid ${COLORS.paper}` }}>
                       <strong style={{ fontWeight: 700, color: COLORS.ember }}>Editor:</strong> {m.editorResponse}
                     </div>
                   )}
-                  <span style={{ display: 'block', fontFamily: MONO, fontSize: 10, color: COLORS.faded, marginTop: 3 }}>
-                    Anonymous · {fmtShort(m.createdAt)}
-                  </span>
                 </div>
-              ))}
-            </div>
-          </section>
-        )}
+              </section>
+            );
+          }
 
-        {/* Publishing of the ranking: list created + the launch sources, one card */}
-        <section style={{ ...cardStyle(KC.created), marginBottom: 0 }}>
-          <Badge
-            color={KC.created}
-            icon={<Flag size={11} strokeWidth={2.5} />}
-            extra={launchSources.length > 0 ? { icon: <BookMarked size={11} strokeWidth={2.5} />, color: KC.source, label: 'Sources' } : undefined}
-            date={created ? fmtDate(created) : undefined}
-          >
-            List created
-          </Badge>
-          <div style={{ fontFamily: SERIF, fontSize: 16, marginTop: 6 }}>Published the ranking</div>
-          <div style={{ fontSize: 13, color: COLORS.faded, marginTop: 2 }}>Seeded from expert sources and live fan voting.</div>
-          {launchSources.length > 0 && (
-            <div style={{ marginTop: 12 }}>
-              <div style={{ fontFamily: MONO, fontSize: 10, letterSpacing: '0.08em', textTransform: 'uppercase', color: COLORS.faded, marginBottom: 6 }}>
-                {launchSources.length} {launchSources.length === 1 ? 'source' : 'sources'} at launch
-              </div>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 5 }}>
-                {launchSources.map((s, i) => (
-                  <SourceCard key={i} s={s} />
-                ))}
-              </div>
-            </div>
-          )}
-        </section>
+          // Sources removed from the list.
+          if (te.type === 'removedGroup') {
+            const g = te.g;
+            return (
+              <section key={`te-${i}`} style={{ ...cardStyle(KC.source), ...(last ? { marginBottom: 0 } : {}) }}>
+                <Badge color={KC.source} icon={<BookMarked size={11} strokeWidth={2.5} />} date={g.removedAt ? fmtDate(g.removedAt) : undefined}>
+                  {g.sources.length === 1 ? 'Source removed' : 'Sources removed'}
+                </Badge>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 5, marginTop: 9 }}>
+                  {g.sources.map((s, k) => (
+                    <div key={k} style={{ background: '#fff', border: `1px solid ${COLORS.paper}`, borderRadius: 7, padding: '7px 11px', fontSize: 13 }}>
+                      <span style={{ textDecoration: 'line-through', color: COLORS.faded }}>{s.label}</span>
+                    </div>
+                  ))}
+                </div>
+              </section>
+            );
+          }
+
+          // Publishing of the ranking: list created + the launch sources.
+          return (
+            <section key={`te-${i}`} style={{ ...cardStyle(KC.created), ...(last ? { marginBottom: 0 } : {}) }}>
+              <Badge
+                color={KC.created}
+                icon={<Flag size={11} strokeWidth={2.5} />}
+                extra={launchSources.length > 0 ? { icon: <BookMarked size={11} strokeWidth={2.5} />, color: KC.source, label: 'Sources' } : undefined}
+                date={created ? fmtDate(created) : undefined}
+              >
+                List created
+              </Badge>
+              <div style={{ fontFamily: SERIF, fontSize: 16, marginTop: 6 }}>Published the ranking</div>
+              <div style={{ fontSize: 13, color: COLORS.faded, marginTop: 2 }}>Seeded from expert sources and live fan voting.</div>
+              {launchSources.length > 0 && (
+                <div style={{ marginTop: 12 }}>
+                  <div style={{ fontFamily: MONO, fontSize: 10, letterSpacing: '0.08em', textTransform: 'uppercase', color: COLORS.faded, marginBottom: 6 }}>
+                    {launchSources.length} {launchSources.length === 1 ? 'source' : 'sources'} at launch
+                  </div>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: 5 }}>
+                    {launchSources.map((s, k) => (
+                      <SourceCard key={k} s={s} />
+                    ))}
+                  </div>
+                </div>
+              )}
+            </section>
+          );
+        })}
       </div>
 
       {/* Public comments */}
