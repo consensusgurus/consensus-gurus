@@ -988,6 +988,9 @@ In both activity ledgers (per-list `ActivityFeed.jsx` and universal `app/feed/`)
   updated"). When a refresh lands in the same deploy as new source additions (timestamps within 1h,
   stamped by the same cron run), the two groups MERGE into one "Sources Revisited" card: added
   sources tagged "Added", re-encoded ones tagged "Re-encoded", all ranking movements on that one card.
+  Same-deploy REMOVALS fold in too (struck-through label, tagged "Removed", counted in the header);
+  only a standalone removal keeps its own "Source removed" card (per-list ledger only, the universal
+  feed names removals solely via this fold-in).
 - A re-encoded source can carry an explanatory note via a `sourceRevisions` map on the list object
   in `lib/data.js` (`{ sourceId: 'Correction (Month YYYY): ...' }`), rendered under that source's
   chip on the revisited card in both ledgers. Write one whenever a refresh changes how a source
