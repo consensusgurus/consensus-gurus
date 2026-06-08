@@ -1024,7 +1024,7 @@ export default function ListOverview({ list, voteData, extras, viewCount, onBack
           <div style={{ fontFamily: 'Fraunces, serif', fontSize: 26, fontWeight: 700, fontStyle: 'italic', color: COLORS.ink, margin: '0 0 18px', fontVariationSettings: '"SOFT" 100' }}>
             Activity Ledger
           </div>
-          <ActivityFeed list={list} />
+          <ActivityFeed list={list} voteData={voteData} extras={extras} />
         </div>
       </div>
 
