@@ -569,16 +569,18 @@ function ListDetail({ list, viewCount, voteData, userVotes, extras, relatedLists
             alignItems: 'center',
             gap: 10,
             flexWrap: 'wrap',
-            justifyContent: 'space-between',
           }}
         >
           {/* Tab chips, in order: Consensus, Consensus Sources, Activity
               Log, Vote — then Share and the Request Review modal trigger.
-              Chips swap the content below without navigating; space-between
-              stretches the row so both ends touch the page edges. */}
+              Chips swap the content below without navigating; each chip
+              flex-grows so the row fills the page width edge to edge while
+              the gaps stay fixed. */}
             <button
               onClick={() => setTab('consensus')}
               style={{
+                flex: '1 1 auto',
+                justifyContent: 'center',
                 background: tab === 'consensus' ? COLORS.ember : 'transparent',
                 color: tab === 'consensus' ? COLORS.cream : COLORS.ember,
                 border: `1.5px solid ${COLORS.ember}`,
@@ -600,6 +602,8 @@ function ListDetail({ list, viewCount, voteData, userVotes, extras, relatedLists
               <button
                 onClick={() => setTab('source')}
                 style={{
+                  flex: '1 1 auto',
+                  justifyContent: 'center',
                   background: tab === 'source' ? COLORS.ember : 'transparent',
                   color: tab === 'source' ? COLORS.cream : COLORS.ember,
                   border: `1.5px solid ${COLORS.ember}`,
@@ -621,6 +625,8 @@ function ListDetail({ list, viewCount, voteData, userVotes, extras, relatedLists
             <button
               onClick={() => setTab('activity')}
               style={{
+                flex: '1 1 auto',
+                justifyContent: 'center',
                 background: tab === 'activity' ? COLORS.ember : 'transparent',
                 color: tab === 'activity' ? COLORS.cream : COLORS.ember,
                 border: `1.5px solid ${COLORS.ember}`,
@@ -642,6 +648,8 @@ function ListDetail({ list, viewCount, voteData, userVotes, extras, relatedLists
               <button
                 onClick={() => setTab('vote')}
                 style={{
+                  flex: '1 1 auto',
+                  justifyContent: 'center',
                   background: tab === 'vote' ? COLORS.ember : 'transparent',
                   color: tab === 'vote' ? COLORS.cream : COLORS.ember,
                   border: `1.5px solid ${COLORS.ember}`,
@@ -663,6 +671,8 @@ function ListDetail({ list, viewCount, voteData, userVotes, extras, relatedLists
             <button
               onClick={() => setTab('share')}
               style={{
+                flex: '1 1 auto',
+                justifyContent: 'center',
                 background: tab === 'share' ? COLORS.ember : 'transparent',
                 color: tab === 'share' ? COLORS.cream : COLORS.ember,
                 border: `1.5px solid ${COLORS.ember}`,
@@ -684,6 +694,8 @@ function ListDetail({ list, viewCount, voteData, userVotes, extras, relatedLists
             <button
               onClick={() => { setComplainSent(false); setComplainOpen(true); }}
               style={{
+                flex: '1 1 auto',
+                justifyContent: 'center',
                 background: 'transparent',
                 color: COLORS.ink,
                 border: `1.5px solid ${COLORS.ink}`,
