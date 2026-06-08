@@ -506,6 +506,33 @@ Nightly rate is a meaningful proxy for hotel quality — properties that command
 - **At least THREE expert/editorial publications per list is REQUIRED — the only exception is when fewer genuinely exist.** Three is the floor, not a target: before finalizing ANY list, search broadly and gather at least three real published rankings from different outlets. Do not ship a list with one or two editorial sources just to save effort. You may ship with fewer ONLY when a genuine, thorough search confirms a third (or second) credible publication does not exist for that topic — and in that case you MUST tell the user how many you found and that more do not appear to exist, so they can decide. "Two is acceptable" is no longer the rule; two (or one) is acceptable only when three do not exist. For well-covered topics (city food/bar lists, popular products, major hotel brands) expect to find 3-6+ and include at least three. User-rating platforms (Yelp/Google/TripAdvisor/Amazon/Goodreads) do NOT count toward this editorial count.
 - Prefer authoritative sources: Michelin, Condé Nast Traveler, Travel + Leisure, Eater, The Infatuation, Robb Report, Forbes, Time Out, etc.
 
+### Source scope must MATCH the list's scope — no sub-scope sources (owner rule, 2026-06-07)
+
+A source may only be fed into a list when its geographic coverage matches or exceeds the list's
+geography. **Never use a source scoped to a sub-geography of the list** (a neighborhood roundup on a
+city list, a single-city roundup on a state/country list, a one-region roundup on a world list).
+Such a source awards points exclusively to its own sub-geography and ZERO to every equally good item
+elsewhere in the list's scope, structurally biasing the Borda consensus toward that area. This holds
+for ranked AND unordered sources alike (an unordered one still hands its flat score only to its own
+neighborhood). The trigger case: a "Boston Magazine · Best North End Restaurants" source on
+`best-italian-restaurants-boston` was silently subsidizing North End spots over Cambridge/South End
+contenders; it was removed 2026-06-07.
+
+- **The reverse direction is fine.** A citywide source on a neighborhood list is usable: keep only
+  the items inside the list's geography, preserving their relative order (the source stays ranked).
+- **Category scope follows the existing off-tier rules.** A category-wider source (e.g. "best
+  restaurants" on a "best Italian" list) is usable only after filtering to on-category items; a
+  category-narrower source ("best pizza" on a "best restaurants" list) is banned for the same
+  one-sided-subsidy reason as geography.
+- **Hub-neighborhood districts are NOT an exception by default.** Even when a scene genuinely
+  concentrates in one district (Frenchmen Street live music, Golden Gai dive bars), a district-only
+  source still discriminates against out-of-district contenders. Prefer citywide sources; keep a
+  district source only with explicit owner approval, recorded in the session notes.
+- **Remediation when found on a live list:** remove the source, recompute the Borda consensus
+  (helpers.js logic), re-seed `ai` + `vote.items`, delete orphaned `links`/`itemLinks`/`itemYelp`/
+  `itemTripadvisor` keys for items that appeared only in that source, and refresh descriptions/heroes
+  if the top 10/top 3 changed.
+
 ### Source item ordering — order is rank, so order it correctly
 
 **The order of items inside each source IS its ranking.** Borda scoring reads position: the 1st item in a source array gets that source's top score, the 2nd gets the next, and so on. So the array order directly drives the consensus. Getting it wrong silently corrupts the result. Before saving any source, confirm its items are in true best-to-worst order.
