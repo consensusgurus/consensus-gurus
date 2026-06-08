@@ -128,11 +128,11 @@ function ListDetail({ list, viewCount, voteData, userVotes, extras, relatedLists
   const showVoteTab = mode !== 'facts' && mode !== 'scores' && mode !== 'unranked';
 
   // The list page is one tabbed view: chips switch the content below in place
-  // (Consensus, Consensus Sources, Activity Ledger, Vote) with no navigation.
+  // (Consensus, Consensus Sources, Activity Log, Vote) with no navigation.
   const [tab, setTab] = useState('consensus');
   // Deep-links: /list/[id]#vote opens straight to the Vote tab; #sources opens
   // the side-by-side Consensus Sources view; #activity (or #ledger) opens the
-  // Activity Ledger. Old /rankings URLs redirect here with their hash intact.
+  // Activity Log. Old /rankings URLs redirect here with their hash intact.
   useEffect(() => {
     if (typeof window === 'undefined') return;
     if (window.location.hash === '#vote' && showVoteTab) {
@@ -571,25 +571,10 @@ function ListDetail({ list, viewCount, voteData, userVotes, extras, relatedLists
             flexWrap: 'wrap',
           }}
         >
-          {/* The visitors count shares one line with the chips: no eye icon
-              (so even a 1,000+ count stays compact) and marginRight:auto keeps
-              it left while the chips sit right. */}
-          <div
-            style={{
-              fontFamily: 'DM Mono, monospace',
-              fontSize: 10,
-              letterSpacing: '0.2em',
-              textTransform: 'uppercase',
-              color: COLORS.faded,
-              whiteSpace: 'nowrap',
-              marginRight: 'auto',
-            }}
-          >
-            {Number(viewCount || 0).toLocaleString('en-US')} visitors
-          </div>
           {/* Tab chips, in order: Consensus, Consensus Sources, Activity
-              Ledger, Vote — then Share and the Request Review modal trigger.
-              Chips swap the content below without navigating. */}
+              Log, Vote — then Share and the Request Review modal trigger.
+              Chips swap the content below without navigating. The visitors
+              count sits at the far right of the same line. */}
             <button
               onClick={() => setTab('consensus')}
               style={{
@@ -650,7 +635,7 @@ function ListDetail({ list, viewCount, voteData, userVotes, extras, relatedLists
                 gap: 6,
               }}
             >
-              Activity Ledger
+              Activity Log
             </button>
             {showVoteTab && (
               <button
@@ -716,6 +701,19 @@ function ListDetail({ list, viewCount, voteData, userVotes, extras, relatedLists
               <PenLine size={12} strokeWidth={2.5} />
               Request Review
             </button>
+            <div
+              style={{
+                fontFamily: 'DM Mono, monospace',
+                fontSize: 10,
+                letterSpacing: '0.2em',
+                textTransform: 'uppercase',
+                color: COLORS.faded,
+                whiteSpace: 'nowrap',
+                marginLeft: 'auto',
+              }}
+            >
+              {Number(viewCount || 0).toLocaleString('en-US')} visitors
+            </div>
         </div>
       </div>}
 

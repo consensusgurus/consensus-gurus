@@ -53,7 +53,7 @@ export default function Footer() {
             Home
           </Link>
           <Link href="/feed" style={{ color: COLORS.ink, textDecoration: 'none' }}>
-            Activity Ledger
+            Activity Log
           </Link>
           <Link href="/request" style={{ color: COLORS.ink, textDecoration: 'none' }}>
             Request a list

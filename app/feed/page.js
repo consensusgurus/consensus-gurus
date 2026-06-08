@@ -8,7 +8,7 @@ export const dynamic = 'force-dynamic';
 export const revalidate = 0;
 
 export const metadata = {
-  title: 'Activity Ledger | Source of Truths',
+  title: 'Activity Log | Source of Truths',
   description: 'Live activity across every Source of Truths list: new lists, reader requests, votes, comments, and ranking changes.',
 };
 
@@ -263,7 +263,7 @@ export default async function FeedPage() {
   const top = events.slice(0, 120);
 
   return (
-    <LegalLayout kicker="Live" title="Activity" italic="ledger">
+    <LegalLayout kicker="Live" title="Activity" italic="log">
       <p style={{ marginTop: -8, marginBottom: 28, color: COLORS.faded }}>
         Everything happening across Source of Truths: new lists, reader requests, votes, comments, review requests, and ranking changes. Names and emails are never shown.
       </p>
