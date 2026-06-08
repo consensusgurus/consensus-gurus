@@ -24,6 +24,7 @@ import Grain from '../../Grain';
 import Footer from '../../Footer';
 import ListOverview from './ListOverview';
 import ActivityFeed from './ActivityFeed';
+import SnapshotClient from '../../snapshot/[id]/SnapshotClient';
 
 // Get the effective tag set for a list. If `tags` is provided, use it.
 // Otherwise fall back to [type] for backward compatibility.
@@ -141,6 +142,8 @@ function ListDetail({ list, viewCount, voteData, userVotes, extras, relatedLists
       setTab('source');
     } else if (window.location.hash === '#activity' || window.location.hash === '#ledger') {
       setTab('activity');
+    } else if (window.location.hash === '#share') {
+      setTab('share');
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
@@ -673,28 +676,27 @@ function ListDetail({ list, viewCount, voteData, userVotes, extras, relatedLists
                 Vote
               </button>
             )}
-            <a
-              href={`/snapshot/${encodeURIComponent(list.id)}`}
+            <button
+              onClick={() => setTab('share')}
               style={{
-                background: 'transparent',
-                color: COLORS.ink,
-                border: `1.5px solid ${COLORS.ink}`,
+                background: tab === 'share' ? COLORS.ember : 'transparent',
+                color: tab === 'share' ? COLORS.cream : COLORS.ember,
+                border: `1.5px solid ${COLORS.ember}`,
                 padding: '8px 14px',
                 fontFamily: 'DM Mono, monospace',
                 fontSize: 10,
                 letterSpacing: '0.18em',
                 textTransform: 'uppercase',
-                fontWeight: 600,
+                fontWeight: 700,
                 cursor: 'pointer',
                 display: 'flex',
                 alignItems: 'center',
                 gap: 6,
-                textDecoration: 'none',
               }}
             >
               <Share2 size={12} strokeWidth={2.5} />
               Share
-            </a>
+            </button>
             <button
               onClick={() => { setComplainSent(false); setComplainOpen(true); }}
               style={{
@@ -812,6 +814,8 @@ function ListDetail({ list, viewCount, voteData, userVotes, extras, relatedLists
               : undefined
           }
         />
+      ) : tab === 'share' ? (
+        <SnapshotClient listId={list.id} embedded list={list} voteData={voteData} extras={extras} />
       ) : tab === 'activity' ? (
         <ActivityFeed list={list} voteData={voteData} extras={extras} />
       ) : tab === 'source' && showSourceTab ? (

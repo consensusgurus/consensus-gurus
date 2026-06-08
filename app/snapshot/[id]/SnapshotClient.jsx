@@ -111,12 +111,16 @@ function constituentLabel(src) {
   return s || raw;
 }
 
-export default function SnapshotClient({ listId }) {
+// `embedded` renders the share UI as the Share tab of the list page: the
+// parent (DetailClient) supplies list/voteData/extras so no fetch happens
+// here, and the page chrome (back button, heading, full-page wrapper) is
+// skipped. The standalone /snapshot/[id] page keeps working unchanged.
+export default function SnapshotClient({ listId, embedded, list: listProp, voteData: voteDataProp, extras: extrasProp }) {
   const router = useRouter();
-  const [voteData, setVoteData] = useState({});
-  const [extras, setExtras] = useState([]);
+  const [voteDataState, setVoteDataState] = useState({});
+  const [extrasState, setExtrasState] = useState([]);
   const [userLists, setUserLists] = useState([]);
-  const [loaded, setLoaded] = useState(false);
+  const [loaded, setLoaded] = useState(!!embedded);
   const [mode, setMode] = useState('ai');
   const [modeInit, setModeInit] = useState(false);
   const [copied, setCopied] = useState('');
@@ -130,17 +134,21 @@ export default function SnapshotClient({ listId }) {
   const top3Ref = useRef(null);
 
   useEffect(() => {
+    if (embedded) return; // embedded: the parent supplies live data
     fetchBootstrap().then((data) => {
       if (data) {
-        setVoteData(data.votes || {});
-        setExtras((data.extras || {})[listId] || []);
+        setVoteDataState(data.votes || {});
+        setExtrasState((data.extras || {})[listId] || []);
         setUserLists(Array.isArray(data.userLists) ? data.userLists : []);
       }
       setLoaded(true);
     });
-  }, [listId]);
+  }, [listId, embedded]);
 
-  const list = useMemo(() => [...userLists, ...LISTS].find((l) => l.id === listId), [userLists, listId]);
+  const voteData = embedded ? (voteDataProp || {}) : voteDataState;
+  const extras = embedded ? (extrasProp || []) : extrasState;
+
+  const list = useMemo(() => listProp || [...userLists, ...LISTS].find((l) => l.id === listId), [listProp, userLists, listId]);
 
   const sources = useMemo(() => {
     if (!list) return [];
@@ -287,14 +295,18 @@ export default function SnapshotClient({ listId }) {
   if (list.mode !== 'facts' && list.mode !== 'scores' && list.mode !== 'unranked') modeOptions.push({ id: 'vote', label: 'Source of Truths User Vote' });
 
   return (
-    <div style={{ minHeight: '100vh', background: COLORS.cream, color: COLORS.ink, padding: '24px 16px 64px' }}>
+    <div style={embedded ? undefined : { minHeight: '100vh', background: COLORS.cream, color: COLORS.ink, padding: '24px 16px 64px' }}>
       <div style={{ maxWidth: 760, margin: '0 auto' }}>
-        <button onClick={() => router.push(`/list/${encodeURIComponent(listId)}`)}
-          style={{ background: 'transparent', border: 'none', fontFamily: 'DM Mono, monospace', fontSize: 11, letterSpacing: '0.2em', textTransform: 'uppercase', color: COLORS.ink, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 6, padding: '8px 0', marginBottom: 12 }}>
-          <ArrowLeft size={14} strokeWidth={2.5} />Back to list
-        </button>
+        {!embedded && (
+          <button onClick={() => router.push(`/list/${encodeURIComponent(listId)}`)}
+            style={{ background: 'transparent', border: 'none', fontFamily: 'DM Mono, monospace', fontSize: 11, letterSpacing: '0.2em', textTransform: 'uppercase', color: COLORS.ink, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 6, padding: '8px 0', marginBottom: 12 }}>
+            <ArrowLeft size={14} strokeWidth={2.5} />Back to list
+          </button>
+        )}
 
-        <h2 style={{ fontFamily: 'Fraunces, serif', fontWeight: 700, fontStyle: 'italic', fontSize: 24, margin: '0 0 18px', color: COLORS.ink, fontVariationSettings: '"SOFT" 100' }}>Share this list</h2>
+        {!embedded && (
+          <h2 style={{ fontFamily: 'Fraunces, serif', fontWeight: 700, fontStyle: 'italic', fontSize: 24, margin: '0 0 18px', color: COLORS.ink, fontVariationSettings: '"SOFT" 100' }}>Share this list</h2>
+        )}
 
         <PickerRow label="Source">
           {modeOptions.map((opt) => {

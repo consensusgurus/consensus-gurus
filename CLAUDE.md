@@ -695,13 +695,15 @@ Never reintroduce a literal `'Top Ten'` in any list header. The `top3` variant c
 `/list/[id]` is the ONLY list page. Chips under the header switch the content below in place
 (no navigation), in this order: **Consensus** (default; the tile-grid overview with hero photos
 and descriptions), **Consensus Sources** (every source side by side), **Activity Ledger**,
-**Vote**, then the **Share** link (/snapshot) and the **Request Review** modal trigger. The
-Activity Ledger renders ONLY in its own tab, never at the base of the consensus view. The old
-`/list/[id]/rankings` page permanently redirects to `/list/[id]`; `#sources`, `#vote`, and
-`#activity` hashes survive the redirect and open the matching tab. Implementation: `ListDetail`
-in `DetailClient.jsx` owns the tabs; `ListOverview` renders with the `embedded` prop as the
-Consensus tab's content (its standalone header/CTA chrome is skipped); `ListOverviewPoster`
-(/snapshot) is unaffected.
+**Vote**, **Share** (the full share UI: poster designer + downloadable renders, in place), then
+the **Request Review** modal trigger. The Activity Ledger renders ONLY in its own tab, never at
+the base of the consensus view. The old `/list/[id]/rankings` page permanently redirects to
+`/list/[id]`; `#sources`, `#vote`, `#activity`, and `#share` hashes survive the redirect and
+open the matching tab. Implementation: `ListDetail` in `DetailClient.jsx` owns the tabs;
+`ListOverview` renders with the `embedded` prop as the Consensus tab's content, and
+`SnapshotClient` renders with its own `embedded` prop (list/voteData/extras passed in, page
+chrome skipped) as the Share tab's content. The standalone `/snapshot/[id]` page still works
+for old links and automations.
 
 ---
 
