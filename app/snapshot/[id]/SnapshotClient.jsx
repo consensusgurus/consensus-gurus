@@ -311,7 +311,7 @@ export default function SnapshotClient({ listId, embedded, list: listProp, voteD
         <PickerRow label="Source">
           {modeOptions.map((opt) => {
             const active = mode === opt.id;
-            return <button key={opt.id} onClick={() => setMode(opt.id)} style={{ background: active ? COLORS.ink : 'transparent', color: active ? COLORS.cream : COLORS.ink, border: `1.5px solid ${COLORS.ink}`, padding: '6px 12px', fontFamily: 'DM Mono, monospace', fontSize: 10, letterSpacing: '0.16em', textTransform: 'uppercase', fontWeight: 600, cursor: 'pointer', whiteSpace: 'nowrap' }}>{opt.label}</button>;
+            return <button key={opt.id} onClick={() => setMode(opt.id)} style={{ background: active ? COLORS.ink : 'transparent', color: active ? COLORS.cream : COLORS.ink, border: `1.5px solid ${COLORS.ink}`, padding: '6px 12px', fontFamily: 'DM Mono, monospace', fontSize: 10, lineHeight: 1.5, letterSpacing: '0.16em', textTransform: 'uppercase', fontWeight: 600, cursor: 'pointer', maxWidth: '100%', textAlign: 'left' }}>{opt.label}</button>;
           })}
         </PickerRow>
 

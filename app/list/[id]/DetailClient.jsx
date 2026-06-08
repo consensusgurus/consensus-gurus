@@ -569,12 +569,13 @@ function ListDetail({ list, viewCount, voteData, userVotes, extras, relatedLists
             alignItems: 'center',
             gap: 10,
             flexWrap: 'wrap',
+            justifyContent: 'space-between',
           }}
         >
           {/* Tab chips, in order: Consensus, Consensus Sources, Activity
               Log, Vote — then Share and the Request Review modal trigger.
-              Chips swap the content below without navigating. The visitors
-              count sits at the far right of the same line. */}
+              Chips swap the content below without navigating; space-between
+              stretches the row so both ends touch the page edges. */}
             <button
               onClick={() => setTab('consensus')}
               style={{
@@ -701,19 +702,6 @@ function ListDetail({ list, viewCount, voteData, userVotes, extras, relatedLists
               <PenLine size={12} strokeWidth={2.5} />
               Request Review
             </button>
-            <div
-              style={{
-                fontFamily: 'DM Mono, monospace',
-                fontSize: 10,
-                letterSpacing: '0.2em',
-                textTransform: 'uppercase',
-                color: COLORS.faded,
-                whiteSpace: 'nowrap',
-                marginLeft: 'auto',
-              }}
-            >
-              {Number(viewCount || 0).toLocaleString('en-US')} visitors
-            </div>
         </div>
       </div>}
 

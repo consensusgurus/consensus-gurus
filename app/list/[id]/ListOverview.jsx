@@ -1,7 +1,7 @@
 'use client';
 import React, { useState } from 'react';
 import Image from 'next/image';
-import { MapPin, Globe, Camera, ArrowRight, ArrowLeft, Eye, PenLine, Share2, ShoppingBag, ExternalLink } from 'lucide-react';
+import { MapPin, Globe, Camera, ArrowLeft, Eye, PenLine, Share2, ShoppingBag, ExternalLink } from 'lucide-react';
 import { COLORS } from '@/lib/data';
 import { DESCRIPTIONS } from '@/lib/descriptions';
 import { HERO_IMAGES } from '@/lib/hero-images';
@@ -1003,7 +1003,6 @@ export default function ListOverview({ list, voteData, extras, viewCount, onBack
               }}
             >
               Consensus Sources
-              <ArrowRight size={13} strokeWidth={2.5} />
             </button>
           )}
           {showVote && onOpenVote && (
@@ -1027,7 +1026,6 @@ export default function ListOverview({ list, voteData, extras, viewCount, onBack
               }}
             >
               Vote
-              <ArrowRight size={13} strokeWidth={2.5} />
             </button>
           )}
         </div>
