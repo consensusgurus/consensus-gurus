@@ -5,7 +5,6 @@ import {
   ChevronUp,
   ChevronDown,
   ArrowLeft,
-  Eye,
   Plus,
   X,
   ExternalLink,
@@ -568,30 +567,29 @@ function ListDetail({ list, viewCount, voteData, userVotes, extras, relatedLists
             marginTop: 18,
             display: 'flex',
             alignItems: 'center',
-            justifyContent: 'space-between',
-            gap: 12,
+            gap: 10,
             flexWrap: 'wrap',
           }}
         >
+          {/* The visitors count shares one line with the chips: no eye icon
+              (so even a 1,000+ count stays compact) and marginRight:auto keeps
+              it left while the chips sit right. */}
           <div
             style={{
-              display: 'flex',
-              alignItems: 'center',
-              gap: 6,
               fontFamily: 'DM Mono, monospace',
               fontSize: 10,
               letterSpacing: '0.2em',
               textTransform: 'uppercase',
               color: COLORS.faded,
+              whiteSpace: 'nowrap',
+              marginRight: 'auto',
             }}
           >
-            <Eye size={11} strokeWidth={2} />
-            <span>{viewCount} visitors</span>
+            {Number(viewCount || 0).toLocaleString('en-US')} visitors
           </div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap' }}>
-            {/* Tab chips, in order: Consensus, Consensus Sources, Activity
-                Ledger, Vote — then the Share link and the Request Review
-                modal trigger. Chips swap the content below without navigating. */}
+          {/* Tab chips, in order: Consensus, Consensus Sources, Activity
+              Ledger, Vote — then Share and the Request Review modal trigger.
+              Chips swap the content below without navigating. */}
             <button
               onClick={() => setTab('consensus')}
               style={{
@@ -718,7 +716,6 @@ function ListDetail({ list, viewCount, voteData, userVotes, extras, relatedLists
               <PenLine size={12} strokeWidth={2.5} />
               Request Review
             </button>
-          </div>
         </div>
       </div>}
 
