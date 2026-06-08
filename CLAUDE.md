@@ -1257,8 +1257,17 @@ if (missing.length) throw new Error('Missing descriptions: ' + missing.join(', '
   rows); both feeds dedupe the display. Each alert also carries a `cause`: the cron fingerprints
   every list's source data (`sourcesFingerprint`) and stores it on the snapshot; if the fingerprint
   changed since the last run the change is attributed to a deploy edit (cause `edit`, "List edited"
-  chip), otherwise to fan votes (cause `votes`, "Votes" chip). Null cause = legacy row, rendered as
-  Votes. Migrations `14_restamp_source_dates_and_exits.sql`, `15_alert_rank_movement.sql`, and
+  chip), otherwise to fan votes (cause `votes`, "Votes" chip) -- BUT 'votes' is never attributed to
+  a list with zero recorded votes (no `votes`/`vote_events` rows): a voteless list's change can only
+  come from a deploy, so it gets cause `edit` (owner rule 2026-06-07, after the meyhanes-rename
+  changes displayed as "Voting" on a list nobody had voted on). The fingerprint also folds in
+  `SCORING_ENGINE_VERSION` (exported from `lib/helpers.js`): **bump that constant in the same push
+  whenever the scoring engine's behavior changes** (getSources math, padding, weighting, tie-breaks,
+  in helpers.js or any mirror), so engine-deploy consensus shifts attribute as `edit`, not votes.
+  Null cause = legacy row (pre-migration-16); both ledgers render it with a neutral "Ranking change"
+  chip only -- never a Votes chip (migration `19_reattribute_voteless_alerts.sql` re-attributed
+  legacy null/votes rows on voteless lists to `edit`). Migrations
+  `14_restamp_source_dates_and_exits.sql`, `15_alert_rank_movement.sql`, and
   `16_alert_cause.sql` cover the schema.
   First run seeds snapshots silently. Optional `CRON_SECRET` env var protects the route.
 - The admin panel (`/admin`) has a **Research** tab listing unresolved alerts with what each needs;

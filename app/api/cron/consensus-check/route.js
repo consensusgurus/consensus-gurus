@@ -11,7 +11,7 @@
 import { NextResponse } from 'next/server';
 import { supabaseAdmin } from '@/lib/supabase-server';
 import { LISTS } from '@/lib/data';
-import { getSources } from '@/lib/helpers';
+import { getSources, SCORING_ENGINE_VERSION } from '@/lib/helpers';
 
 export const dynamic = 'force-dynamic';
 export const revalidate = 0;
@@ -58,7 +58,7 @@ function sourcesFingerprint(list) {
     .filter(([id, s]) => s && s.label)
     .map(([id, s]) => [id, s.label, s.weight || null, Boolean(s.unordered), Boolean(s.trueExpert), s.items || []]);
   src.sort((a, b) => (a[0] < b[0] ? -1 : a[0] > b[0] ? 1 : 0));
-  const str = JSON.stringify(src);
+  const str = SCORING_ENGINE_VERSION + ':' + JSON.stringify(src);
   let h = 5381;
   for (let i = 0; i < str.length; i++) h = ((h * 33) ^ str.charCodeAt(i)) >>> 0;
   return String(h);
@@ -96,6 +96,12 @@ export async function GET(request) {
       if (!extras[row.list_id]) extras[row.list_id] = [];
       extras[row.list_id].push(row.item_name);
     });
+
+    // Lists that have ever received a fan vote. A consensus change on a list
+    // with no votes at all cannot be vote-caused (it came from a deploy the
+    // fingerprint missed, e.g. an engine change), so 'votes' is never
+    // attributed to these.
+    const votedLists = new Set(votesRows.map((r) => r.list_id));
 
     const prevSnaps = new Map();
     snapsRows.forEach((row) => {
@@ -187,7 +193,13 @@ export async function GET(request) {
       // the last run, a deploy edited the list (cause 'edit'); otherwise only
       // votes/extras could have shifted the consensus (cause 'votes'). A null
       // stored hash (pre-migration-16 snapshot) leaves cause null = unknown.
-      const cause = prevSnap.hash ? (prevSnap.hash !== fingerprint ? 'edit' : 'votes') : null;
+      const cause = prevSnap.hash
+        ? prevSnap.hash !== fingerprint
+          ? 'edit'
+          : votedLists.has(list.id)
+            ? 'votes'
+            : 'edit'
+        : null;
 
       // Rank maps: positions 1-10 in the previous and current consensus.
       // Every alert row records the exact movement via prev_rank -> rank,

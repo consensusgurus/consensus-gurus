@@ -632,14 +632,23 @@ export default function ActivityFeed({ list, voteData, extras }) {
             const { item, tail } = researchLabel(ev);
             return (
               <section key={`te-${i}`} style={{ ...cardStyle(KC.research), ...(last ? { marginBottom: 0 } : {}) }}>
-                <Badge
-                  color={ev.cause === 'edit' ? KC.edit : KC.vote}
-                  icon={ev.cause === 'edit' ? <PenLine size={11} strokeWidth={2.5} /> : <BarChart3 size={11} strokeWidth={2.5} />}
-                  extra={{ icon: <RefreshCw size={11} strokeWidth={2.5} />, color: KC.research, label: 'Ranking change' }}
-                  date={fmtDate(ev.detectedAt)}
-                >
-                  {ev.cause === 'edit' ? 'List edited' : 'Voting'}
-                </Badge>
+                {/* Null cause = legacy row with no recorded cause: render a
+                    neutral Ranking change chip, never imply voting that may
+                    not have happened. */}
+                {ev.cause ? (
+                  <Badge
+                    color={ev.cause === 'edit' ? KC.edit : KC.vote}
+                    icon={ev.cause === 'edit' ? <PenLine size={11} strokeWidth={2.5} /> : <BarChart3 size={11} strokeWidth={2.5} />}
+                    extra={{ icon: <RefreshCw size={11} strokeWidth={2.5} />, color: KC.research, label: 'Ranking change' }}
+                    date={fmtDate(ev.detectedAt)}
+                  >
+                    {ev.cause === 'edit' ? 'List edited' : 'Voting'}
+                  </Badge>
+                ) : (
+                  <Badge color={KC.research} icon={<RefreshCw size={11} strokeWidth={2.5} />} date={fmtDate(ev.detectedAt)}>
+                    Ranking change
+                  </Badge>
+                )}
                 <div style={{ fontSize: 13, color: COLORS.ink, marginTop: 8 }}>
                   <strong style={{ fontWeight: 500, color: KC.research }}>{item}</strong> {tail}.
                 </div>

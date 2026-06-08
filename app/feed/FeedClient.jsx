@@ -323,9 +323,13 @@ function renderEvent(e, i) {
         kind="research"
         date={fmtDate(e.ts)}
         chips={[
-          e.cause === 'edit'
-            ? { color: '#8a3324', Icon: PenLine, label: 'List edited' }
-            : { color: KIND.vote.color, Icon: BarChart3, label: 'Votes' },
+          // Null cause = legacy row with no recorded cause: show no cause chip
+          // rather than implying votes that may not have happened.
+          ...(e.cause === 'edit'
+            ? [{ color: '#8a3324', Icon: PenLine, label: 'List edited' }]
+            : e.cause === 'votes'
+              ? [{ color: KIND.vote.color, Icon: BarChart3, label: 'Votes' }]
+              : []),
           { color: KIND.research.color, Icon: RefreshCw, label: 'Ranking change' },
         ]}
       >
