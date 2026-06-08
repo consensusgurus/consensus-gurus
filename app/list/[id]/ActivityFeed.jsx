@@ -455,11 +455,11 @@ export default function ActivityFeed({ list, voteData, extras }) {
                   extra={hasChanges ? { icon: <RefreshCw size={11} strokeWidth={2.5} />, color: KC.research, label: 'Ranking change' } : undefined}
                   date={fmtDate(g.addedAt)}
                 >
-                  {g.updated ? (g.sources.length === 1 ? 'Source updated' : 'Sources updated') : g.sources.length === 1 ? 'Source added' : 'Sources added'}
+                  {g.updated ? 'Refreshed Research' : g.sources.length === 1 ? 'Source added' : 'Sources added'}
                 </Badge>
                 <div style={{ fontFamily: SERIF, fontSize: 16, margin: '6px 0 8px' }}>
                   {hasChanges
-                    ? `${g.updated ? 'Updated' : 'Added'} ${g.sources.length === 1 ? 'a source' : g.sources.length + ' sources'}, the ranking shifted`
+                    ? `${g.updated ? 'Refreshed research on' : 'Added'} ${g.sources.length === 1 ? 'a source' : g.sources.length + ' sources'}, the ranking shifted`
                     : g.updated
                       ? g.sources.length === 1 ? 'Source refreshed' : `${g.sources.length} sources refreshed`
                       : g.sources.length === 1 ? 'New source on file' : `${g.sources.length} new sources on file`}

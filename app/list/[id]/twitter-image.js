@@ -23,7 +23,7 @@ function computeConsensus(list) {
 
   const publications = Object.entries(sources)
     .filter(([id]) => id !== 'ai')
-    .map(([id, src]) => ({ id, items: src.items || [], unordered: src.unordered, weight: src.weight, trueExpert: src.trueExpert }))
+    .map(([id, src]) => ({ id, items: src.items || [], unordered: src.unordered, weight: src.weight, trueExpert: src.trueExpert, rankedHead: src.rankedHead }))
 
   if (publications.length === 0) return sources.ai ? (sources.ai.items || []).slice(0, 10) : []
 
@@ -62,6 +62,28 @@ function computeConsensus(list) {
 
   publications.forEach(src => {
     const w = sourceWeight(src)
+    // Ranked-head source: first `rankedHead` items earn Borda rank points,
+    // tail items earn the flat unordered score for the tail's size (mirrors
+    // lib/helpers.js getSources).
+    if (src.rankedHead) {
+      const head = src.items.slice(0, src.rankedHead)
+      const tail = src.items.slice(src.rankedHead)
+      const flat = flatUnordered(tail.length)
+      const pts = {}
+      head.forEach((item, idx) => {
+        const name = getItemName(item)
+        if (name) pts[name.toLowerCase().trim()] = bordaFromRank(idx + 1)
+      })
+      tail.forEach(item => {
+        const name = getItemName(item)
+        if (name) pts[name.toLowerCase().trim()] = flat
+      })
+      universe.forEach(item => {
+        const key = item.toLowerCase().trim()
+        if (pts[key] !== undefined) scores[key] += pts[key] * w
+      })
+      return
+    }
     if (src.unordered) {
       const listed = new Set(src.items.map(i => getItemName(i).toLowerCase().trim()))
       const flat = flatUnordered(listed.size)

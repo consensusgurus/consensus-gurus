@@ -2,6 +2,7 @@ import LegalLayout from '@/app/LegalLayout';
 import FeedClient from './FeedClient';
 import { supabaseAdmin } from '@/lib/supabase-server';
 import { LISTS, COLORS } from '@/lib/data';
+import { getSources, voteKey } from '@/lib/helpers';
 
 export const dynamic = 'force-dynamic';
 export const revalidate = 0;
@@ -51,10 +52,25 @@ export default async function FeedPage() {
     events.push({ ts: isNaN(ms) ? 0 : ms, kind: 'request', id: r.id, title: r.title, category: r.category, published: r.published });
   });
 
+  // Voting sessions per list (consecutive votes within 4h form one entry),
+  // mirroring the per-list Activity tab, so the universal ledger shows each
+  // ballot's picks plus the ranking impact those votes produced.
+  const VOTE_GAP_MS = 4 * 3600 * 1000;
+  const voteGroupsByList = new Map();
   (voteRes.data || []).forEach((v) => {
     const ms = Date.parse(v.created_at);
-    events.push({ ts: isNaN(ms) ? 0 : ms, kind: 'vote', listId: v.list_id, listTitle: titleOf(v.list_id), itemName: v.item_name, delta: v.delta });
+    if (isNaN(ms)) return;
+    if (!voteGroupsByList.has(v.list_id)) voteGroupsByList.set(v.list_id, []);
+    const groups = voteGroupsByList.get(v.list_id);
+    const last = groups[groups.length - 1];
+    if (last && last.minTs - ms <= VOTE_GAP_MS) {
+      last.votes.push({ itemName: v.item_name, delta: v.delta, ts: ms });
+      if (ms < last.minTs) last.minTs = ms;
+    } else {
+      groups.push({ ts: ms, minTs: ms, kind: 'vote', listId: v.list_id, listTitle: titleOf(v.list_id), votes: [{ itemName: v.item_name, delta: v.delta, ts: ms }], changes: [] });
+    }
   });
+  const voteGroups = [...voteGroupsByList.values()].flat();
 
   (comRes.data || []).forEach((c) => {
     const ms = Date.parse(c.created_at);
@@ -120,13 +136,82 @@ export default async function FeedPage() {
   // list, within ~26h after, most recent). Unattributed = standalone change.
   researchEvents.forEach((ev) => {
     let best = null;
-    srcGroups.forEach((g) => {
-      if (g.listId === ev.listId && g.ts <= ev.ts && ev.ts - g.ts <= RESEARCH_WINDOW_MS && (!best || g.ts > best.ts)) best = g;
-    });
+    if (ev.cause === 'votes') {
+      // Vote-caused changes attach to the voting session that preceded them.
+      voteGroups.forEach((g) => {
+        if (g.listId === ev.listId && g.minTs <= ev.ts && ev.ts - g.ts <= RESEARCH_WINDOW_MS && (!best || g.ts > best.ts)) best = g;
+      });
+    } else {
+      srcGroups.forEach((g) => {
+        if (g.listId === ev.listId && g.ts <= ev.ts && ev.ts - g.ts <= RESEARCH_WINDOW_MS && (!best || g.ts > best.ts)) best = g;
+      });
+    }
     if (best) best.changes.push(ev);
     else events.push(ev);
   });
   srcGroups.forEach((g) => events.push(g));
+
+  // Live voting impact (mirrors ActivityFeed.jsx): replay each list's vote
+  // sessions backwards from the current totals so every ballot shows its
+  // before/after consensus diff immediately, without waiting for the daily
+  // cron. Cron-recorded rows are authoritative and win on dedupe.
+  if (voteGroupsByList.size > 0) {
+    try {
+      const listIds = [...voteGroupsByList.keys()];
+      const [totRes, extRes] = await Promise.all([
+        supabaseAdmin.from('votes').select('list_id,item_name,score').in('list_id', listIds),
+        supabaseAdmin.from('extras').select('list_id,item_name').in('list_id', listIds),
+      ]);
+      const totalsByList = new Map();
+      (totRes.data || []).forEach((r) => {
+        if (!totalsByList.has(r.list_id)) totalsByList.set(r.list_id, {});
+        totalsByList.get(r.list_id)[`${r.list_id}::${r.item_name.toLowerCase().trim()}`] = Math.max(0, r.score);
+      });
+      const extrasByList = new Map();
+      (extRes.data || []).forEach((r) => {
+        if (!extrasByList.has(r.list_id)) extrasByList.set(r.list_id, []);
+        extrasByList.get(r.list_id).push(r.item_name);
+      });
+      voteGroupsByList.forEach((groups, listId) => {
+        const list = LISTS.find((l) => l.id === listId);
+        if (!list) return;
+        const consensusTop10 = (totals) => {
+          try {
+            const c = (getSources(list, totals, extrasByList.get(listId) || []) || []).find((x) => x.id === 'consensus');
+            return c ? c.items.slice(0, 10) : null;
+          } catch {
+            return null;
+          }
+        };
+        const totals = { ...(totalsByList.get(listId) || {}) };
+        groups.forEach((g) => {
+          // Groups run newest-first; subtracting a session's votes from the
+          // running totals gives the state just before that session.
+          const after = consensusTop10(totals);
+          g.votes.forEach((v) => {
+            const k = voteKey(list.id, v.itemName || '');
+            totals[k] = (totals[k] || 0) - (v.delta || 0);
+          });
+          const before = consensusTop10(totals);
+          if (!after || !before) return;
+          const logged = new Set(g.changes.map((c) => (c.itemName || '').toLowerCase()));
+          const union = [...new Set([...before, ...after])];
+          const votedKeys = new Set(g.votes.map((v) => (v.itemName || '').toLowerCase().trim()));
+          g.liveChanges = union
+            .flatMap((item) => {
+              const prevRank = before.indexOf(item) + 1; // 0 = unranked
+              const rank = after.indexOf(item) + 1;
+              if (prevRank === rank || logged.has(item.toLowerCase())) return [];
+              return [{ itemName: item, prevRank, rank, voted: votedKeys.has(item.toLowerCase().trim()) }];
+            })
+            .sort((a, b) => (b.voted - a.voted) || ((a.rank || 99) - (b.rank || 99)));
+        });
+      });
+    } catch (e) {
+      // Replay is best-effort; ballots render without movement rows on error.
+    }
+  }
+  voteGroups.forEach((g) => events.push(g));
 
   (notesRes && notesRes.data || []).forEach((n) => {
     const ms = Date.parse(n.created_at);

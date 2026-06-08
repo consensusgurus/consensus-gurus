@@ -35,6 +35,26 @@ function rankWord(delta) {
   return null;
 }
 
+// Within a voting session, show each ballot's picks top-down: 1st, 2nd, 3rd.
+// Votes arrive newest-first, which reverses a single ballot's picks; votes
+// cast within 5 minutes of each other count as one ballot, and picks inside
+// a ballot sort by delta descending (1st pick = 3 points). Mirrors
+// ActivityFeed.jsx.
+const BALLOT_MS = 5 * 60 * 1000;
+function ballotOrdered(votes) {
+  const ballots = [];
+  votes.forEach((v) => {
+    const b = ballots[ballots.length - 1];
+    if (b && b.minT - (v.ts || 0) <= BALLOT_MS) {
+      b.votes.push(v);
+      if ((v.ts || 0) < b.minT) b.minT = v.ts || 0;
+    } else {
+      ballots.push({ minT: v.ts || 0, votes: [v] });
+    }
+  });
+  return ballots.flatMap((b) => [...b.votes].sort((a, c) => (c.delta || 0) - (a.delta || 0)));
+}
+
 // Each event kind gets its own distinct accent color + icon so categories
 // read as separate blocks instead of running together.
 const KIND = {
@@ -180,10 +200,37 @@ function renderEvent(e, i) {
     );
   }
   if (e.kind === 'vote') {
-    const rw = rankWord(e.delta);
+    // A voting session: the ballot's picks (1st/2nd/3rd top-down) plus the
+    // ranking movements those votes produced (cron rows + live replay).
+    const votes = e.votes || (e.itemName ? [{ itemName: e.itemName, delta: e.delta }] : []);
+    const allChanges = [...(e.changes || []), ...(e.liveChanges || [])];
+    const hasChanges = allChanges.length > 0;
     return (
-      <Event key={i} kind="vote" date={fmtDate(e.ts)}>
-        Someone voted <strong style={{ fontWeight: 500 }}>{e.itemName}</strong>{rw ? ` ${rw} pick` : ''} on <ListLink id={e.listId}>{e.listTitle}</ListLink>.
+      <Event
+        key={i}
+        kind="vote"
+        color={hasChanges ? KIND.research.color : undefined}
+        date={fmtDate(e.ts)}
+        chips={[
+          { color: KIND.vote.color, Icon: BarChart3, label: 'Voting' },
+          ...(hasChanges ? [{ color: KIND.research.color, Icon: RefreshCw, label: 'Ranking change' }] : []),
+        ]}
+      >
+        {ballotOrdered(votes).map((v, k) => {
+          const rw = rankWord(v.delta);
+          return (
+            <div key={k} style={{ fontSize: 13 }}>
+              Someone voted <strong style={{ fontWeight: 500 }}>{v.itemName}</strong>{rw ? ` ${rw} pick` : ''} on <ListLink id={e.listId}>{e.listTitle}</ListLink>.
+            </div>
+          );
+        })}
+        {hasChanges && (
+          <div style={{ marginTop: 5 }}>
+            {allChanges.map((c, k) => (
+              <div key={k} style={{ fontSize: 13 }}>&rarr; <strong style={{ fontWeight: 500 }}>{c.itemName}</strong> {moveTail(c)}.</div>
+            ))}
+          </div>
+        )}
       </Event>
     );
   }

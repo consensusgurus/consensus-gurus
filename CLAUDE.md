@@ -573,6 +573,23 @@ How the scoring works (implemented in `lib/helpers.js` `getSources`, `scripts/ge
 
 Example (Four Seasons list): The Points Guy's worldwide "16 best" roundup is unordered, so it's labeled `'The Points Guy (unordered roundup)'` with `"unordered": true`; each of its 16 properties gets 55/16 ≈ 3.44, while the five genuinely-ranked sources drive the order.
 
+### Ranked-head sources: one (or a few) scored items atop an otherwise unranked roundup — `rankedHead: N`
+
+Some guides score only their top pick(s) and present the rest unranked (e.g. the 2026 Infatuation
+Boston burger guide shows a 9.0 badge on Neptune Oyster and a 7.8 on JM Curley while the other eight
+spots carry no score). Encode these with `"rankedHead": N` on the source: the FIRST `N` items in the
+array earn normal Borda rank points (10, 9, ...) and every remaining item earns the flat unordered
+score for a roundup of the tail's size (`flatUnordered(tailCount)`). Notes:
+
+- Order the head by the published scores, highest first; the tail keeps the page's order (it earns a
+  flat score, so its order is cosmetic).
+- Note the basis in the label, e.g. `'The Infatuation Boston 2026 (Neptune Oyster scored 9.0, rest unranked)'`.
+- Do NOT also set `"unordered": true` — `rankedHead` takes precedence and handles the tail itself.
+- Implemented in `lib/helpers.js` `getSources` and all three mirrors (`scripts/generate-og-images.js`,
+  `app/list/[id]/opengraph-image.js`, `app/list/[id]/twitter-image.js`) — keep all four in sync.
+- First used on `burgers-boston` (owner ruling 2026-06-07: only Neptune ranks; JM Curley's 7.8 was
+  offered as a #2 head slot and the owner declined, so it scores flat with the tail).
+
 ### Tiered award lists (Winners / Runners-up / "Voters Also Loved") are RANKED, not unordered
 
 Some publications (e.g. Tampa Magazine's annual Best Restaurants awards) publish tiers instead of a numbered list. Tiers ARE a rank signal, so do NOT encode these as `"unordered": true` flat sources (that pays a bottom-tier mention the same as a Winner). Encode the source as a ranked list: tier order first (Winners, then Runners-up, then the bottom tier), alphabetical within each tier, and note the basis in the label, e.g. `'Tampa Magazine Best Sushi 2026 (by award tier)'`. Include ALL published tiers, and never cherry-pick within a tier — including one "Voters Also Loved" spot while omitting another from the same tier is exactly how Noble Rice went missing from `best-sushi-tampa-bay` (fixed 2026-06-04; encoding owner-approved that day).
@@ -946,6 +963,16 @@ NEW_LIB_TREE=$(git ls-tree $LIB_TREE_SHA | awk -v b="$NEW_BLOB" \
 - **GitHub Desktop — emergency only.** Not a normal path. Use it solely if the direct-push pipeline is down
   (e.g. PAT revoked, GitHub Smart HTTP unreachable): edit `lib/data.js`, save, then in GitHub Desktop commit
   to `main` and push origin. Otherwise always push directly per the procedure above.
+
+## Activity Ledger labels (owner rule, 2026-06-07)
+
+In both activity ledgers (per-list `ActivityFeed.jsx` and universal `app/feed/`), a dated
+source-refresh group (sources whose `label_updated_at` was stamped after a re-research pass) renders
+with the badge **"Refreshed Research"** (body: "Refreshed research on N sources, the ranking
+shifted"), distinct from "Source added"/"Sources added" for brand-new sources. Voting entries in BOTH
+ledgers show each ballot's picks 1st/2nd/3rd top-down and the ranking movements the votes produced
+(live replay via `getSources`, cron rows win on dedupe) — the universal feed mirrors the per-list
+implementation; keep the two in sync.
 
 ## Post-deploy consensus-check trigger (owner-requested 2026-06-07)
 
