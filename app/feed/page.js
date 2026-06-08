@@ -157,6 +157,21 @@ export default async function FeedPage() {
     const rms = removalsByList.get(g.listId) || [];
     g.updated = g.updated || rms.some((rm) => Math.abs(rm - g.ts) <= RESEARCH_WINDOW_MS);
   });
+  // A removal in the same deploy as additions/refreshes folds into that
+  // list's Sources Revisited card by name (struck-through), so the universal
+  // ledger names what was removed. Mirrors ActivityFeed.jsx.
+  (srcRes.data || []).forEach((r) => {
+    if (!r.removed_at) return;
+    const rm = Date.parse(r.removed_at);
+    if (isNaN(rm)) return;
+    const host = srcGroups.find((a) => a.listId === r.list_id && Math.abs(a.ts - rm) <= 60 * 60 * 1000);
+    if (host) {
+      const lbl = r.label || r.source_id;
+      host.labels.push(lbl);
+      host.srcs.push({ label: lbl, removed: true });
+      host.mixed = true;
+    }
+  });
 
   // Attribute each ranking change to the source addition that caused it (same
   // list, within ~26h after, most recent). Unattributed = standalone change.

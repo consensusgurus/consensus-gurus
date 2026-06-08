@@ -199,10 +199,15 @@ function renderEvent(e, i) {
       >
         {(() => {
           const srcs = e.srcs || e.labels.map((l) => ({ label: l }));
-          const added = srcs.filter((x) => !x.refreshed);
           const reenc = srcs.filter((x) => x.refreshed);
+          const removed = srcs.filter((x) => x.removed);
+          const added = srcs.length - reenc.length - removed.length;
+          const parts = [];
+          if (added) parts.push(`${added} added`);
+          if (reenc.length) parts.push(`${reenc.length} re-encoded`);
+          if (removed.length) parts.push(`${removed.length} removed`);
           const verb = e.mixed
-            ? `Revisited the sources (${added.length} added, ${reenc.length} re-encoded) on `
+            ? `Revisited the sources (${parts.join(', ')}) on `
             : e.updated
               ? `Revisited ${srcs.length} ${srcs.length === 1 ? 'source' : 'sources'} on `
               : `Added ${srcs.length} ${srcs.length === 1 ? 'source' : 'sources'} on `;
@@ -210,7 +215,14 @@ function renderEvent(e, i) {
             <>
               {verb}
               <ListLink id={e.listId}>{e.listTitle}</ListLink>
-              : {srcs.map((x) => x.label).join(', ')}.
+              {': '}
+              {srcs.map((x, k) => (
+                <React.Fragment key={k}>
+                  {k > 0 ? ', ' : ''}
+                  <span style={x.removed ? { textDecoration: 'line-through', color: COLORS.faded } : undefined}>{x.label}</span>
+                </React.Fragment>
+              ))}
+              .
               {reenc.filter((x) => x.note).map((x, k) => (
                 <div key={k} style={{ marginTop: 4, fontSize: 12, color: COLORS.faded, lineHeight: 1.45 }}>{x.note}</div>
               ))}

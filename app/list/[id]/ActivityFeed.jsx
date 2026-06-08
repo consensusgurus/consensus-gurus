@@ -481,7 +481,18 @@ export default function ActivityFeed({ list, voteData, extras }) {
       if (!byTs.has(k)) byTs.set(k, { removedAt: s.removedAt, ts: isNaN(t) ? 0 : t, sources: [] });
       byTs.get(k).sources.push(s);
     });
-    [...byTs.values()].forEach((g) => stream.push({ ts: g.ts, type: 'removedGroup', g }));
+    [...byTs.values()].forEach((g) => {
+      // A removal in the same deploy as additions/refreshes folds into that
+      // Sources Revisited card (struck-through, tagged Removed), completing
+      // the revisit story in one box. Standalone removals keep their card.
+      const host = sourceGroups.find((a) => Math.abs(a.ts - g.ts) <= 60 * 60 * 1000);
+      if (host) {
+        g.sources.forEach((s) => host.sources.push({ ...s, removed: true }));
+        host.mixed = true;
+        return;
+      }
+      stream.push({ ts: g.ts, type: 'removedGroup', g });
+    });
   }
   const createdMs = Date.parse(created || '');
   stream.push({ ts: isNaN(createdMs) ? 0 : createdMs, type: 'created' });
@@ -514,9 +525,14 @@ export default function ActivityFeed({ list, voteData, extras }) {
                 <div style={{ fontFamily: SERIF, fontSize: 16, margin: '6px 0 8px' }}>
                   {(() => {
                     const nRef = g.sources.filter((x) => x.refreshed).length;
-                    const nAdd = g.sources.length - nRef;
+                    const nRem = g.sources.filter((x) => x.removed).length;
+                    const nAdd = g.sources.length - nRef - nRem;
+                    const parts = [];
+                    if (nAdd) parts.push(`${nAdd} added`);
+                    if (nRef) parts.push(`${nRef} re-encoded`);
+                    if (nRem) parts.push(`${nRem} removed`);
                     const head = g.mixed
-                      ? `Revisited the sources: ${nAdd} added, ${nRef} re-encoded`
+                      ? `Revisited the sources: ${parts.join(', ')}`
                       : g.updated
                         ? `Revisited ${g.sources.length === 1 ? 'a source' : g.sources.length + ' sources'}`
                         : null;
@@ -526,7 +542,7 @@ export default function ActivityFeed({ list, voteData, extras }) {
                   })()}
                 </div>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 5 }}>
-                  {g.sources.map((s, k) => (<SourceCard key={k} s={s} tag={g.mixed ? (s.refreshed ? 'Re-encoded' : 'Added') : undefined} note={s.refreshed ? (list.sourceRevisions || {})[s.id] : undefined} />))}
+                  {g.sources.map((s, k) => (<SourceCard key={k} s={s} tag={g.mixed ? (s.removed ? 'Removed' : s.refreshed ? 'Re-encoded' : 'Added') : undefined} note={s.refreshed ? (list.sourceRevisions || {})[s.id] : undefined} />))}
                 </div>
                 {hasChanges && (
                   <div style={{ display: 'flex', flexDirection: 'column', gap: 6, marginTop: 10 }}>
