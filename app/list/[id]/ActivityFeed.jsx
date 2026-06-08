@@ -193,7 +193,7 @@ function SourceCard({ s }) {
         color: COLORS.ink,
       }}
     >
-      {s.label}
+      <span style={s.removed ? { textDecoration: 'line-through', color: COLORS.faded } : undefined}>{s.label}</span>
       {s.trueExpert && (
         <span
           style={{

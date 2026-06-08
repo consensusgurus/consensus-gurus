@@ -91,6 +91,15 @@ export async function GET(request) {
       const row = seenMap.get(id);
       sources.push({ id, label: s.label, trueExpert: Boolean(s.trueExpert), addedAt: (row && row.first_seen_at) || fallback, updatedAt: (row && row.label_updated_at) || null });
     }
+    // Sources since REMOVED still belong in the history stream: they were
+    // present at launch (or added later) and must keep showing in the
+    // "N sources at launch" card (struck-through), with their dated
+    // "Source removed" entry above. Without this, removing a launch source
+    // retroactively shrank the launch card, contradicting the removal entry.
+    for (const r of seenRows) {
+      if (currentIds.has(r.source_id)) continue;
+      sources.push({ id: r.source_id, label: r.label || r.source_id, trueExpert: false, addedAt: r.first_seen_at || fallback, updatedAt: r.label_updated_at || null, removed: true });
+    }
     sources.sort((a, b) => new Date(b.addedAt || 0) - new Date(a.addedAt || 0));
 
     // ONE-TIME suppression of the consensus-engine changeover artifacts. The
