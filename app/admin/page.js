@@ -81,7 +81,12 @@ export default async function AdminPage() {
 
   const extras = Array.from(extrasByList.entries())
     .map(([listId, items]) => ({ listId, items }))
-    .sort((a, b) => a.listId.localeCompare(b.listId));
+    .sort((a, b) => {
+      // Most recent submission first (items are already newest-first per group)
+      const aNewest = a.items[0]?.addedAt || '';
+      const bNewest = b.items[0]?.addedAt || '';
+      return bNewest.localeCompare(aNewest);
+    });
 
   if (complaintsRes && complaintsRes.error) {
     console.error('admin complaints fetch error', complaintsRes.error);
