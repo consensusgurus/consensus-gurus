@@ -1,42 +1,10 @@
-import DetailClient from '../DetailClient';
-import { LISTS } from '@/lib/data';
+import { permanentRedirect } from 'next/navigation';
 
-export async function generateMetadata({ params }) {
-  const id = decodeURIComponent(params.id);
-  const list = LISTS.find((l) => l.id === id);
-
-  if (!list) {
-    return { title: 'List not found' };
-  }
-
-  const url = `/list/${encodeURIComponent(id)}/rankings`;
-  const description = `${list.title}: full consensus rankings, every expert source compared, and reader voting.`;
-
-  return {
-    title: `${list.title} — Full Rankings & Voting`,
-    description,
-    alternates: { canonical: url },
-    openGraph: {
-      title: `${list.title} — Full Rankings & Voting | Source of Truths`,
-      description,
-      url,
-      type: 'article',
-      siteName: 'Source of Truths',
-    },
-    twitter: {
-      card: 'summary_large_image',
-      title: `${list.title} — Full Rankings & Voting | Source of Truths`,
-      description,
-    },
-  };
-}
-
-export function generateStaticParams() {
-  if (!Array.isArray(LISTS)) return [];
-  return LISTS.map((l) => ({ id: l.id }));
-}
-
+// The standalone rankings page was folded into the main list page: chips for
+// Consensus / Consensus Sources / Activity Ledger / Vote now switch content
+// in place on /list/[id]. Old /rankings links redirect there; the #sources
+// and #vote hash fragments survive the redirect client-side, so deep links
+// still open the right tab.
 export default function ListRankingsPage({ params }) {
-  const id = decodeURIComponent(params.id);
-  return <DetailClient key="list-detail" listId={id} view="detail" />;
+  permanentRedirect(`/list/${params.id}`);
 }

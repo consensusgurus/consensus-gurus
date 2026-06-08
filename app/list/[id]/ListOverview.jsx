@@ -6,7 +6,6 @@ import { COLORS } from '@/lib/data';
 import { DESCRIPTIONS } from '@/lib/descriptions';
 import { HERO_IMAGES } from '@/lib/hero-images';
 import { getSources, buildItemLink } from '@/lib/helpers';
-import ActivityFeed from './ActivityFeed';
 
 // Splits a "Name (Locality)" item into { displayName, locality }.
 function parseItem(fullName) {
@@ -666,7 +665,10 @@ export function ListOverviewPoster({ list, voteData, extras, variant }) {
   );
 }
 
-export default function ListOverview({ list, voteData, extras, viewCount, onBack, onOpenRankings, onOpenSources, onOpenVote }) {
+// `embedded` renders just the consensus tile grid + bottom CTA row, with no
+// header/meta chrome of its own: the list page (DetailClient) embeds it as
+// the content of its Consensus tab, beneath the page's own header and chips.
+export default function ListOverview({ list, voteData, extras, viewCount, onBack, onOpenSources, onOpenVote, embedded }) {
   const items = getItems(list, voteData, extras);
   const descs = DESCRIPTIONS[list.id] || {};
   const pics = picsConfig(list);
@@ -714,8 +716,11 @@ export default function ListOverview({ list, voteData, extras, viewCount, onBack
           .lov-tenth{width:100% !important;min-width:0 !important;}
         }
       `}</style>
-      <div style={{ maxWidth: 920, margin: '0 auto', padding: '28px 20px 0' }}>
-        {/* Condensed header */}
+      <div style={embedded ? undefined : { maxWidth: 920, margin: '0 auto', padding: '28px 20px 0' }}>
+        {/* Condensed header — hidden when embedded as the Consensus tab of
+            the list page, which renders its own header and chip row. */}
+        {!embedded && (
+        <>
         {onBack && (
           <button
             onClick={onBack}
@@ -901,9 +906,11 @@ export default function ListOverview({ list, voteData, extras, viewCount, onBack
             </a>
           </div>
         </div>
+        </>
+        )}
 
         {/* Tiled grid (homepage aesthetic: own borders, small gaps) */}
-        <div className="lov-grid" style={{ marginTop: 26 }}>
+        <div className="lov-grid" style={{ marginTop: embedded ? 0 : 26 }}>
           {/* Ranks 1-3: full-width hero tiles */}
           {heroItems.map((item, i) => (
             <HeroTile
@@ -938,7 +945,9 @@ export default function ListOverview({ list, voteData, extras, viewCount, onBack
           )}
         </div>
 
-        {/* CTA to the full rankings page + back to all lists */}
+        {/* Bottom CTA row: tab switchers (Consensus Sources / Vote) plus back
+            to all lists. The Activity Ledger lives in its own tab now, never
+            at the base of the consensus view. */}
         <div
           style={{
             padding: '26px 0 34px',
@@ -973,29 +982,31 @@ export default function ListOverview({ list, voteData, extras, viewCount, onBack
               Back to All Lists
             </button>
           )}
-          <button
-            onClick={onOpenSources}
-            style={{
-              background: COLORS.ink,
-              color: COLORS.cream,
-              border: `1.5px solid ${COLORS.ink}`,
-              padding: '13px 0', width: 210, justifyContent: 'center',
-              fontFamily: 'DM Mono, monospace',
-              fontSize: 10,
-              letterSpacing: '0.18em',
-              textTransform: 'uppercase',
-              fontWeight: 600,
-              cursor: 'pointer',
-              display: 'flex',
-              alignItems: 'center',
-              gap: 10,
-              boxShadow: `3px 3px 0 ${COLORS.faded}`,
-            }}
-          >
-            Source Detail
-            <ArrowRight size={13} strokeWidth={2.5} />
-          </button>
-          {showVote && (
+          {onOpenSources && (
+            <button
+              onClick={onOpenSources}
+              style={{
+                background: COLORS.ink,
+                color: COLORS.cream,
+                border: `1.5px solid ${COLORS.ink}`,
+                padding: '13px 0', width: 210, justifyContent: 'center',
+                fontFamily: 'DM Mono, monospace',
+                fontSize: 10,
+                letterSpacing: '0.18em',
+                textTransform: 'uppercase',
+                fontWeight: 600,
+                cursor: 'pointer',
+                display: 'flex',
+                alignItems: 'center',
+                gap: 10,
+                boxShadow: `3px 3px 0 ${COLORS.faded}`,
+              }}
+            >
+              Consensus Sources
+              <ArrowRight size={13} strokeWidth={2.5} />
+            </button>
+          )}
+          {showVote && onOpenVote && (
             <button
               onClick={onOpenVote}
               style={{
@@ -1019,12 +1030,6 @@ export default function ListOverview({ list, voteData, extras, viewCount, onBack
               <ArrowRight size={13} strokeWidth={2.5} />
             </button>
           )}
-        </div>
-        <div style={{ marginTop: 44, paddingTop: 24, borderTop: `2px solid ${COLORS.ink}` }}>
-          <div style={{ fontFamily: 'Fraunces, serif', fontSize: 26, fontWeight: 700, fontStyle: 'italic', color: COLORS.ink, margin: '0 0 18px', fontVariationSettings: '"SOFT" 100' }}>
-            Activity Ledger
-          </div>
-          <ActivityFeed list={list} voteData={voteData} extras={extras} />
         </div>
       </div>
 

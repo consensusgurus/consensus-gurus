@@ -127,16 +127,20 @@ function ListDetail({ list, viewCount, voteData, userVotes, extras, relatedLists
   const showSourceTab = mode !== 'votes';
   const showVoteTab = mode !== 'facts' && mode !== 'scores' && mode !== 'unranked';
 
-  const [tab, setTab] = useState(showSourceTab ? 'source' : 'vote');
-  // Deep-links: /list/[id]/rankings#vote opens straight to the Vote tab;
-  // #sources opens the side-by-side Consensus Sources view.
+  // The list page is one tabbed view: chips switch the content below in place
+  // (Consensus, Consensus Sources, Activity Ledger, Vote) with no navigation.
+  const [tab, setTab] = useState('consensus');
+  // Deep-links: /list/[id]#vote opens straight to the Vote tab; #sources opens
+  // the side-by-side Consensus Sources view; #activity (or #ledger) opens the
+  // Activity Ledger. Old /rankings URLs redirect here with their hash intact.
   useEffect(() => {
     if (typeof window === 'undefined') return;
     if (window.location.hash === '#vote' && showVoteTab) {
       setTab('vote');
-    } else if (window.location.hash === '#sources') {
+    } else if (window.location.hash === '#sources' && showSourceTab) {
       setTab('source');
-      setSourcesOpen(true);
+    } else if (window.location.hash === '#activity' || window.location.hash === '#ledger') {
+      setTab('activity');
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
@@ -154,7 +158,6 @@ function ListDetail({ list, viewCount, voteData, userVotes, extras, relatedLists
   const [complainEmail, setComplainEmail] = useState('');
   const [complainSent, setComplainSent] = useState(false);
   const [complainBusy, setComplainBusy] = useState(false);
-  const [sourcesOpen, setSourcesOpen] = useState(false);
 
   // Sources now factor in live vote data so the Consensus chip stays accurate
   // as people vote in real time. For facts-only lists, use the hardcoded ai source.
@@ -506,7 +509,7 @@ function ListDetail({ list, viewCount, voteData, userVotes, extras, relatedLists
           }}
         >
           <ArrowLeft size={14} strokeWidth={2.5} />
-          Back to detailed list
+          Back to all lists
         </button>
       )}
 
@@ -583,9 +586,32 @@ function ListDetail({ list, viewCount, voteData, userVotes, extras, relatedLists
             <span>{viewCount} visitors</span>
           </div>
           <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap' }}>
+            {/* Tab chips, in order: Consensus, Consensus Sources, Activity
+                Ledger, Vote — then the Share link and the Request Review
+                modal trigger. Chips swap the content below without navigating. */}
+            <button
+              onClick={() => setTab('consensus')}
+              style={{
+                background: tab === 'consensus' ? COLORS.ember : 'transparent',
+                color: tab === 'consensus' ? COLORS.cream : COLORS.ember,
+                border: `1.5px solid ${COLORS.ember}`,
+                padding: '8px 14px',
+                fontFamily: 'DM Mono, monospace',
+                fontSize: 10,
+                letterSpacing: '0.18em',
+                textTransform: 'uppercase',
+                fontWeight: 700,
+                cursor: 'pointer',
+                display: 'flex',
+                alignItems: 'center',
+                gap: 6,
+              }}
+            >
+              Consensus
+            </button>
             {showSourceTab && (
               <button
-                onClick={() => { setTab('source'); setSourcesOpen(true); }}
+                onClick={() => setTab('source')}
                 style={{
                   background: tab === 'source' ? COLORS.ember : 'transparent',
                   color: tab === 'source' ? COLORS.cream : COLORS.ember,
@@ -603,28 +629,6 @@ function ListDetail({ list, viewCount, voteData, userVotes, extras, relatedLists
                 }}
               >
                 Consensus Sources
-              </button>
-            )}
-            {showVoteTab && (
-              <button
-                onClick={() => setTab('vote')}
-                style={{
-                  background: tab === 'vote' ? COLORS.ember : 'transparent',
-                  color: tab === 'vote' ? COLORS.cream : COLORS.ember,
-                  border: `1.5px solid ${COLORS.ember}`,
-                  padding: '8px 14px',
-                  fontFamily: 'DM Mono, monospace',
-                  fontSize: 10,
-                  letterSpacing: '0.18em',
-                  textTransform: 'uppercase',
-                  fontWeight: 700,
-                  cursor: 'pointer',
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: 6,
-                }}
-              >
-                Vote
               </button>
             )}
             <button
@@ -647,27 +651,28 @@ function ListDetail({ list, viewCount, voteData, userVotes, extras, relatedLists
             >
               Activity Ledger
             </button>
-            <button
-              onClick={() => { setComplainSent(false); setComplainOpen(true); }}
-              style={{
-                background: 'transparent',
-                color: COLORS.ink,
-                border: `1.5px solid ${COLORS.ink}`,
-                padding: '8px 14px',
-                fontFamily: 'DM Mono, monospace',
-                fontSize: 10,
-                letterSpacing: '0.18em',
-                textTransform: 'uppercase',
-                fontWeight: 600,
-                cursor: 'pointer',
-                display: 'flex',
-                alignItems: 'center',
-                gap: 6,
-              }}
-            >
-              <PenLine size={12} strokeWidth={2.5} />
-              Request Review
-            </button>
+            {showVoteTab && (
+              <button
+                onClick={() => setTab('vote')}
+                style={{
+                  background: tab === 'vote' ? COLORS.ember : 'transparent',
+                  color: tab === 'vote' ? COLORS.cream : COLORS.ember,
+                  border: `1.5px solid ${COLORS.ember}`,
+                  padding: '8px 14px',
+                  fontFamily: 'DM Mono, monospace',
+                  fontSize: 10,
+                  letterSpacing: '0.18em',
+                  textTransform: 'uppercase',
+                  fontWeight: 700,
+                  cursor: 'pointer',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 6,
+                }}
+              >
+                Vote
+              </button>
+            )}
             <a
               href={`/snapshot/${encodeURIComponent(list.id)}`}
               style={{
@@ -690,6 +695,27 @@ function ListDetail({ list, viewCount, voteData, userVotes, extras, relatedLists
               <Share2 size={12} strokeWidth={2.5} />
               Share
             </a>
+            <button
+              onClick={() => { setComplainSent(false); setComplainOpen(true); }}
+              style={{
+                background: 'transparent',
+                color: COLORS.ink,
+                border: `1.5px solid ${COLORS.ink}`,
+                padding: '8px 14px',
+                fontFamily: 'DM Mono, monospace',
+                fontSize: 10,
+                letterSpacing: '0.18em',
+                textTransform: 'uppercase',
+                fontWeight: 600,
+                cursor: 'pointer',
+                display: 'flex',
+                alignItems: 'center',
+                gap: 6,
+              }}
+            >
+              <PenLine size={12} strokeWidth={2.5} />
+              Request Review
+            </button>
           </div>
         </div>
       </div>}
@@ -768,7 +794,25 @@ function ListDetail({ list, viewCount, voteData, userVotes, extras, relatedLists
         </div>
       )}
 
-      {tab === 'activity' ? (
+      {tab === 'consensus' ? (
+        <ListOverview
+          list={list}
+          voteData={voteData}
+          extras={extras}
+          embedded
+          onBack={onBack}
+          onOpenSources={
+            showSourceTab
+              ? () => { setTab('source'); if (typeof window !== 'undefined') window.scrollTo({ top: 0 }); }
+              : undefined
+          }
+          onOpenVote={
+            showVoteTab
+              ? () => { setTab('vote'); if (typeof window !== 'undefined') window.scrollTo({ top: 0 }); }
+              : undefined
+          }
+        />
+      ) : tab === 'activity' ? (
         <ActivityFeed list={list} voteData={voteData} extras={extras} />
       ) : tab === 'source' && showSourceTab ? (
         <>
@@ -1821,7 +1865,7 @@ function getUserVoteForList(listId) {
   return userVotes[listId] || null;
 }
 
-export default function DetailClient({ listId, view = 'overview' }) {
+export default function DetailClient({ listId }) {
   const router = useRouter();
   const [voteData, setVoteData] = useState({});
   const [userVotes, setUserVotes] = useState({});
@@ -1946,31 +1990,18 @@ export default function DetailClient({ listId, view = 'overview' }) {
           loading the list
         </div>
       ) : list ? (
-        view === 'detail' ? (
-          <ListDetail
-            list={list}
-            viewCount={viewCount}
-            voteData={voteData}
-            userVotes={userVotes}
-            extras={extras}
-            relatedLists={relatedLists}
-            onBack={() => router.push(`/list/${encodeURIComponent(list.id)}`)}
-            onVote={vote}
-            onAddExtra={addExtra}
-            onOpenRelated={openRelated}
-          />
-        ) : (
-          <ListOverview
-            list={list}
-            voteData={voteData}
-            extras={extras}
-            viewCount={viewCount}
-            onBack={backHome}
-            onOpenRankings={() => router.push(`/list/${encodeURIComponent(list.id)}/rankings`)}
-            onOpenSources={() => router.push(`/list/${encodeURIComponent(list.id)}/rankings#sources`)}
-            onOpenVote={() => router.push(`/list/${encodeURIComponent(list.id)}/rankings#vote`)}
-          />
-        )
+        <ListDetail
+          list={list}
+          viewCount={viewCount}
+          voteData={voteData}
+          userVotes={userVotes}
+          extras={extras}
+          relatedLists={relatedLists}
+          onBack={backHome}
+          onVote={vote}
+          onAddExtra={addExtra}
+          onOpenRelated={openRelated}
+        />
       ) : (
         <div style={{ position: 'relative', zIndex: 2, padding: 48, textAlign: 'center' }}>
           <p style={{ fontFamily: 'Fraunces, serif', fontStyle: 'italic', color: COLORS.faded }}>

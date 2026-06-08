@@ -690,6 +690,21 @@ Never reintroduce a literal `'Top Ten'` in any list header. The `top3` variant c
 
 ---
 
+## List page structure: one tabbed page (owner rule, 2026-06-07)
+
+`/list/[id]` is the ONLY list page. Chips under the header switch the content below in place
+(no navigation), in this order: **Consensus** (default; the tile-grid overview with hero photos
+and descriptions), **Consensus Sources** (every source side by side), **Activity Ledger**,
+**Vote**, then the **Share** link (/snapshot) and the **Request Review** modal trigger. The
+Activity Ledger renders ONLY in its own tab, never at the base of the consensus view. The old
+`/list/[id]/rankings` page permanently redirects to `/list/[id]`; `#sources`, `#vote`, and
+`#activity` hashes survive the redirect and open the matching tab. Implementation: `ListDetail`
+in `DetailClient.jsx` owns the tabs; `ListOverview` renders with the `embedded` prop as the
+Consensus tab's content (its standalone header/CTA chrome is skipped); `ListOverviewPoster`
+(/snapshot) is unaffected.
+
+---
+
 ## Affiliate Links
 
 ### Amazon products
@@ -973,9 +988,6 @@ In both activity ledgers (per-list `ActivityFeed.jsx` and universal `app/feed/`)
   updated"). When a refresh lands in the same deploy as new source additions (timestamps within 1h,
   stamped by the same cron run), the two groups MERGE into one "Sources Revisited" card: added
   sources tagged "Added", re-encoded ones tagged "Re-encoded", all ranking movements on that one card.
-  Same-deploy REMOVALS fold in too (struck-through label, tagged "Removed", counted in the header);
-  only a standalone removal keeps its own "Source removed" card (per-list ledger only, the universal
-  feed names removals solely via this fold-in).
 - A re-encoded source can carry an explanatory note via a `sourceRevisions` map on the list object
   in `lib/data.js` (`{ sourceId: 'Correction (Month YYYY): ...' }`), rendered under that source's
   chip on the revisited card in both ledgers. Write one whenever a refresh changes how a source
