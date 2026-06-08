@@ -11,6 +11,7 @@ import {
   PenLine,
 } from 'lucide-react';
 import { COLORS } from '@/lib/data';
+import { getSources, voteKey } from '@/lib/helpers';
 
 const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
 
@@ -61,6 +62,26 @@ function rankWord(delta) {
   if (delta === 2) return '2nd';
   if (delta === 1) return '3rd';
   return null;
+}
+
+// Within a voting session, show each ballot's picks top-down: 1st, 2nd, 3rd.
+// Vote events arrive newest-first, which reverses the picks of a single
+// ballot (the 3rd-recorded pick renders on top). Votes cast within 5 minutes
+// of each other count as one ballot; ballots themselves stay newest-first,
+// and inside a ballot picks sort by delta descending (1st pick = 3 points).
+const BALLOT_MS = 5 * 60 * 1000;
+function ballotOrdered(votes) {
+  const ballots = [];
+  votes.forEach((v) => {
+    const b = ballots[ballots.length - 1];
+    if (b && b.minT - v.t <= BALLOT_MS) {
+      b.votes.push(v);
+      if (v.t < b.minT) b.minT = v.t;
+    } else {
+      ballots.push({ minT: v.t, votes: [v] });
+    }
+  });
+  return ballots.flatMap((b) => [...b.votes].sort((a, c) => (c.delta || 0) - (a.delta || 0)));
 }
 
 function researchLabel(ev) {
@@ -194,7 +215,7 @@ function SourceCard({ s }) {
 
 // Per-list activity feed: created time, sources (dated), re-research, live
 // votes, anonymized review requests, and public comments.
-export default function ActivityFeed({ list }) {
+export default function ActivityFeed({ list, voteData, extras }) {
   const [feed, setFeed] = useState({ votes: [], manager: [], research: [], comments: [], sources: [], editorNotes: [], removedSources: [] });
   const [loaded, setLoaded] = useState(false);
   const [name, setName] = useState('');
@@ -345,6 +366,46 @@ export default function ActivityFeed({ list }) {
     else looseChanges.push(ev);
   });
 
+  // Live voting impact: replay the vote events backwards from the current
+  // live totals so every voting session gets a before/after consensus diff,
+  // shown immediately rather than waiting for the daily cron to record it.
+  // Cron-recorded rows (g.changes) are authoritative and win on dedupe; the
+  // computed rows only fill in items the cron has not logged yet.
+  if (voteData && voteGroups.length > 0) {
+    const consensusTop10 = (totals) => {
+      try {
+        const c = (getSources(list, totals, extras) || []).find((s) => s.id === 'consensus');
+        return c ? c.items.slice(0, 10) : null;
+      } catch {
+        return null;
+      }
+    };
+    const totals = { ...voteData };
+    voteGroups.forEach((g) => {
+      // Groups run newest-first, so `totals` holds the state just after this
+      // session; subtracting its votes gives the state just before it.
+      const after = consensusTop10(totals);
+      g.votes.forEach((v) => {
+        const k = voteKey(list.id, v.itemName || '');
+        totals[k] = (totals[k] || 0) - (v.delta || 0);
+      });
+      const before = consensusTop10(totals);
+      if (!after || !before) return;
+      const logged = new Set(g.changes.map((c) => (c.itemName || '').toLowerCase()));
+      const union = [...new Set([...before, ...after])];
+      const votedKeys = new Set(g.votes.map((v) => (v.itemName || '').toLowerCase().trim()));
+      g.liveChanges = union
+        .flatMap((item) => {
+          const prevRank = before.indexOf(item) + 1; // 0 = unranked
+          const rank = after.indexOf(item) + 1;
+          if (prevRank === rank || logged.has(item.toLowerCase())) return [];
+          return [{ itemName: item, prevRank, rank, voted: votedKeys.has(item.toLowerCase().trim()) }];
+        })
+        // Directly-voted items lead; displaced neighbors follow by new rank.
+        .sort((a, b) => (b.voted - a.voted) || ((a.rank || 99) - (b.rank || 99)));
+    });
+  }
+
   // The single chronological stream.
   const stream = [];
   sourceGroups.forEach((g) => stream.push({ ts: g.ts, type: 'sourceGroup', g }));
@@ -426,7 +487,8 @@ export default function ActivityFeed({ list }) {
           // A voting session + the ranking movements those votes produced.
           if (te.type === 'voteGroup') {
             const g = te.g;
-            const hasChanges = g.changes.length > 0;
+            const allChanges = [...g.changes, ...(g.liveChanges || [])];
+            const hasChanges = allChanges.length > 0;
             return (
               <section key={`te-${i}`} style={{ ...cardStyle(hasChanges ? KC.research : KC.vote), ...(last ? { marginBottom: 0 } : {}) }}>
                 <Badge
@@ -439,7 +501,7 @@ export default function ActivityFeed({ list }) {
                   Voting
                 </Badge>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 6, marginTop: 8 }}>
-                  {g.votes.slice(0, 8).map((v, k) => {
+                  {ballotOrdered(g.votes).slice(0, 8).map((v, k) => {
                     const rw = rankWord(v.delta);
                     return (
                       <div key={k} style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 13 }}>
@@ -471,7 +533,7 @@ export default function ActivityFeed({ list }) {
                 </div>
                 {hasChanges && (
                   <div style={{ display: 'flex', flexDirection: 'column', gap: 6, marginTop: 10 }}>
-                    {g.changes.map((ev, k) => {
+                    {allChanges.map((ev, k) => {
                       const { item, tail } = researchLabel(ev);
                       return (
                         <div key={k} style={{ fontSize: 13, color: COLORS.ink }}>

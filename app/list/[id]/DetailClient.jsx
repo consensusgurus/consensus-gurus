@@ -769,7 +769,7 @@ function ListDetail({ list, viewCount, voteData, userVotes, extras, relatedLists
       )}
 
       {tab === 'activity' ? (
-        <ActivityFeed list={list} />
+        <ActivityFeed list={list} voteData={voteData} extras={extras} />
       ) : tab === 'source' && showSourceTab ? (
         <>
           {useGroupedLayout ? null : sources.length > 1 ? (
