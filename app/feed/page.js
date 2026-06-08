@@ -47,6 +47,13 @@ export default async function FeedPage() {
     events.push({ ts: ms, kind: 'list', id: l.id, title: l.title, category: l.category, sources: srcLabels });
   });
 
+  // Per-source revision notes (list.sourceRevisions in lib/data.js): shown on
+  // Sources Revisited cards to explain what a re-encode corrected.
+  const revisionOf = new Map();
+  LISTS.forEach((l) => {
+    Object.entries(l.sourceRevisions || {}).forEach(([sid, note]) => revisionOf.set(`${l.id}::${sid}`, note));
+  });
+
   (reqRes.data || []).forEach((r) => {
     const ms = Date.parse(r.submitted_at);
     events.push({ ts: isNaN(ms) ? 0 : ms, kind: 'request', id: r.id, title: r.title, category: r.category, published: r.published });
@@ -114,8 +121,10 @@ export default async function FeedPage() {
     const pub = pubMs.get(r.list_id);
     if (!isNaN(pub) && ms - pub < 6 * 3600 * 1000) return; // launch batch (6h window; mirrors ActivityFeed.jsx)
     const key = `${r.list_id}::${r.first_seen_at}`;
-    if (!srcGroupMap.has(key)) srcGroupMap.set(key, { ts: ms, kind: 'source', listId: r.list_id, listTitle: titleOf(r.list_id), labels: [], changes: [] });
-    srcGroupMap.get(key).labels.push(labelOf.get(`${r.list_id}::${r.source_id}`) || r.label || r.source_id);
+    if (!srcGroupMap.has(key)) srcGroupMap.set(key, { ts: ms, kind: 'source', listId: r.list_id, listTitle: titleOf(r.list_id), labels: [], srcs: [], changes: [] });
+    const lbl = labelOf.get(`${r.list_id}::${r.source_id}`) || r.label || r.source_id;
+    srcGroupMap.get(key).labels.push(lbl);
+    srcGroupMap.get(key).srcs.push({ label: lbl });
   });
   // Label refreshes (re-gathered ratings, a new year's edition): their own
   // dated "Updated sources" groups, keyed by update time per list.
@@ -123,10 +132,27 @@ export default async function FeedPage() {
     const ms = Date.parse(r.label_updated_at);
     if (isNaN(ms)) return;
     const key = `${r.list_id}::upd::${r.label_updated_at}`;
-    if (!srcGroupMap.has(key)) srcGroupMap.set(key, { ts: ms, kind: 'source', listId: r.list_id, listTitle: titleOf(r.list_id), labels: [], changes: [], updated: true });
-    srcGroupMap.get(key).labels.push(labelOf.get(`${r.list_id}::${r.source_id}`) || r.label || r.source_id);
+    if (!srcGroupMap.has(key)) srcGroupMap.set(key, { ts: ms, kind: 'source', listId: r.list_id, listTitle: titleOf(r.list_id), labels: [], srcs: [], changes: [], updated: true });
+    const lbl = labelOf.get(`${r.list_id}::${r.source_id}`) || r.label || r.source_id;
+    srcGroupMap.get(key).labels.push(lbl);
+    srcGroupMap.get(key).srcs.push({ label: lbl, refreshed: true, note: revisionOf.get(`${r.list_id}::${r.source_id}`) || null });
   });
   const srcGroups = [...srcGroupMap.values()];
+  // Merge a same-deploy refresh into its sibling source addition for the same
+  // list (stamped seconds apart by the same cron run): ONE combined "Sources
+  // Revisited" card. Mirrors ActivityFeed.jsx.
+  const SR_MERGE_MS = 60 * 60 * 1000;
+  for (let i = srcGroups.length - 1; i >= 0; i--) {
+    const u = srcGroups[i];
+    if (!u.updated) continue;
+    const host = srcGroups.find((a) => a !== u && !a.updated && a.listId === u.listId && Math.abs(a.ts - u.ts) <= SR_MERGE_MS);
+    if (host) {
+      host.labels.push(...u.labels);
+      host.srcs.push(...u.srcs);
+      host.mixed = true;
+      srcGroups.splice(i, 1);
+    }
+  }
   srcGroups.forEach((g) => {
     const rms = removalsByList.get(g.listId) || [];
     g.updated = g.updated || rms.some((rm) => Math.abs(rm - g.ts) <= RESEARCH_WINDOW_MS);

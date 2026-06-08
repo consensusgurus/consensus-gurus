@@ -964,15 +964,26 @@ NEW_LIB_TREE=$(git ls-tree $LIB_TREE_SHA | awk -v b="$NEW_BLOB" \
   (e.g. PAT revoked, GitHub Smart HTTP unreachable): edit `lib/data.js`, save, then in GitHub Desktop commit
   to `main` and push origin. Otherwise always push directly per the procedure above.
 
-## Activity Ledger labels (owner rule, 2026-06-07)
+## Activity Ledger labels (owner rules, 2026-06-07)
 
-In both activity ledgers (per-list `ActivityFeed.jsx` and universal `app/feed/`), a dated
-source-refresh group (sources whose `label_updated_at` was stamped after a re-research pass) renders
-with the badge **"Refreshed Research"** (body: "Refreshed research on N sources, the ranking
-shifted"), distinct from "Source added"/"Sources added" for brand-new sources. Voting entries in BOTH
-ledgers show each ballot's picks 1st/2nd/3rd top-down and the ranking movements the votes produced
-(live replay via `getSources`, cron rows win on dedupe) — the universal feed mirrors the per-list
-implementation; keep the two in sync.
+In both activity ledgers (per-list `ActivityFeed.jsx` and universal `app/feed/`):
+
+- A dated source-refresh group (sources whose `label_updated_at` was stamped after a re-research
+  pass) renders with the badge **"Sources Revisited"** (never "Refreshed Research" or "Sources
+  updated"). When a refresh lands in the same deploy as new source additions (timestamps within 1h,
+  stamped by the same cron run), the two groups MERGE into one "Sources Revisited" card: added
+  sources tagged "Added", re-encoded ones tagged "Re-encoded", all ranking movements on that one card.
+- A re-encoded source can carry an explanatory note via a `sourceRevisions` map on the list object
+  in `lib/data.js` (`{ sourceId: 'Correction (Month YYYY): ...' }`), rendered under that source's
+  chip on the revisited card in both ledgers. Write one whenever a refresh changes how a source
+  scores (e.g. ranked -> unordered, rankedHead). No em dashes in note copy.
+- Voting entries show each ballot's picks 1st/2nd/3rd top-down plus the ranking movements the votes
+  produced. **Vote impacts are PERSISTED at vote time** by `/api/votes` (consensus_alerts rows,
+  cause 'votes', resolved=true, computed via a before/after `getSources` diff) because the feeds'
+  live replay recomputes against CURRENT sources and silently changes once a list is re-edited. The
+  replay remains as a fallback for pre-persistence votes; `collapseMoves` in both feed renderers
+  collapses per-pick rows and cron duplicates to one display row per item.
+- The universal feed mirrors the per-list implementation; keep the two in sync.
 
 ## Post-deploy consensus-check trigger (owner-requested 2026-06-07)
 

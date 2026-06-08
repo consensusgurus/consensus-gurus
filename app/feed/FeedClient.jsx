@@ -28,6 +28,25 @@ function moveTail(ev) {
   return 'moved in the rankings';
 }
 
+// Collapse movement rows to one per item (earliest prev_rank to latest rank),
+// so per-pick vote rows or a vote-time row plus the cron's later duplicate
+// render as one clean movement; no-ops drop. Mirrors ActivityFeed.jsx.
+function collapseMoves(changes) {
+  const byItem = new Map();
+  [...changes]
+    .sort((a, b) => (a.ts || 0) - (b.ts || 0))
+    .forEach((c) => {
+      const k = (c.itemName || '').toLowerCase().trim();
+      const cur = byItem.get(k);
+      if (!cur) byItem.set(k, { ...c });
+      else {
+        cur.rank = c.rank;
+        if (c.changeType && cur.changeType !== c.changeType) cur.changeType = 'moved';
+      }
+    });
+  return [...byItem.values()].filter((c) => !(c.prevRank !== null && c.prevRank !== undefined && c.prevRank === c.rank));
+}
+
 function rankWord(delta) {
   if (delta === 3) return '1st';
   if (delta === 2) return '2nd';
@@ -174,14 +193,33 @@ function renderEvent(e, i) {
         color={hasChanges ? KIND.research.color : undefined}
         date={fmtDate(e.ts)}
         chips={[
-          { color: KIND.source.color, Icon: BookMarked, label: `${e.labels.length === 1 ? 'Source' : 'Sources'} ${e.updated ? 'updated' : 'added'}` },
+          { color: KIND.source.color, Icon: BookMarked, label: e.mixed || e.updated ? 'Sources Revisited' : e.labels.length === 1 ? 'Source added' : 'Sources added' },
           ...(hasChanges ? [{ color: KIND.research.color, Icon: RefreshCw, label: 'Ranking change' }] : []),
         ]}
       >
-        {e.updated ? 'Updated ' : 'Added '}{e.labels.length} {e.labels.length === 1 ? 'source' : 'sources'} on <ListLink id={e.listId}>{e.listTitle}</ListLink>: {e.labels.join(', ')}.
+        {(() => {
+          const srcs = e.srcs || e.labels.map((l) => ({ label: l }));
+          const added = srcs.filter((x) => !x.refreshed);
+          const reenc = srcs.filter((x) => x.refreshed);
+          const verb = e.mixed
+            ? `Revisited the sources (${added.length} added, ${reenc.length} re-encoded) on `
+            : e.updated
+              ? `Revisited ${srcs.length} ${srcs.length === 1 ? 'source' : 'sources'} on `
+              : `Added ${srcs.length} ${srcs.length === 1 ? 'source' : 'sources'} on `;
+          return (
+            <>
+              {verb}
+              <ListLink id={e.listId}>{e.listTitle}</ListLink>
+              : {srcs.map((x) => x.label).join(', ')}.
+              {reenc.filter((x) => x.note).map((x, k) => (
+                <div key={k} style={{ marginTop: 4, fontSize: 12, color: COLORS.faded, lineHeight: 1.45 }}>{x.note}</div>
+              ))}
+            </>
+          );
+        })()}
         {hasChanges && (
           <div style={{ marginTop: 5 }}>
-            {e.changes.map((c, k) => {
+            {collapseMoves(e.changes).map((c, k) => {
               const tail = moveTail(c);
               return (
                 <div key={k} style={{ fontSize: 13 }}>&rarr; <strong style={{ fontWeight: 500 }}>{c.itemName}</strong> {tail}.</div>
@@ -203,7 +241,7 @@ function renderEvent(e, i) {
     // A voting session: the ballot's picks (1st/2nd/3rd top-down) plus the
     // ranking movements those votes produced (cron rows + live replay).
     const votes = e.votes || (e.itemName ? [{ itemName: e.itemName, delta: e.delta }] : []);
-    const allChanges = [...(e.changes || []), ...(e.liveChanges || [])];
+    const allChanges = collapseMoves([...(e.changes || []), ...(e.liveChanges || [])]);
     const hasChanges = allChanges.length > 0;
     return (
       <Event

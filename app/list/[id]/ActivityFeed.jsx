@@ -101,6 +101,26 @@ function researchLabel(ev) {
   return { item, tail: 'moved in the rankings' };
 }
 
+// Collapse movement rows to one per item (earliest prev_rank to latest rank,
+// in detection order), so a multi-pick ballot's per-pick rows, or a vote-time
+// row plus the cron's later duplicate, render as a single clean movement.
+// No-op rows (prev === new) drop out.
+function collapseMoves(changes) {
+  const byItem = new Map();
+  [...changes]
+    .sort((a, b) => (a.detectedAt ? new Date(a.detectedAt).getTime() : 0) - (b.detectedAt ? new Date(b.detectedAt).getTime() : 0))
+    .forEach((c) => {
+      const k = (c.itemName || '').toLowerCase().trim();
+      const cur = byItem.get(k);
+      if (!cur) byItem.set(k, { ...c });
+      else {
+        cur.rank = c.rank;
+        if (c.changeType && cur.changeType !== c.changeType) cur.changeType = 'moved';
+      }
+    });
+  return [...byItem.values()].filter((c) => !(c.prevRank !== null && c.prevRank !== undefined && c.prevRank === c.rank));
+}
+
 const MONO = "'DM Mono', monospace";
 const SERIF = "'Fraunces', serif";
 const SANS = "'DM Sans', sans-serif";
@@ -181,7 +201,7 @@ function Badge({ icon, color, children, live, date, extra }) {
   );
 }
 
-function SourceCard({ s }) {
+function SourceCard({ s, tag, note }) {
   return (
     <div
       style={{
@@ -194,6 +214,21 @@ function SourceCard({ s }) {
       }}
     >
       <span style={s.removed ? { textDecoration: 'line-through', color: COLORS.faded } : undefined}>{s.label}</span>
+      {tag && (
+        <span
+          style={{
+            fontSize: 10,
+            background: '#e8e2d6',
+            color: COLORS.faded,
+            padding: '1px 7px',
+            borderRadius: 10,
+            marginLeft: 6,
+            fontFamily: MONO,
+          }}
+        >
+          {tag}
+        </span>
+      )}
       {s.trueExpert && (
         <span
           style={{
@@ -208,6 +243,9 @@ function SourceCard({ s }) {
         >
           True Expert
         </span>
+      )}
+      {note && (
+        <div style={{ marginTop: 4, fontSize: 12, color: COLORS.faded, lineHeight: 1.45 }}>{note}</div>
       )}
     </div>
   );
@@ -317,9 +355,25 @@ export default function ActivityFeed({ list, voteData, extras }) {
       if (!s.updatedAt) return;
       const k = `upd::${s.updatedAt}`;
       if (!byTs.has(k)) byTs.set(k, { addedAt: s.updatedAt, ts: new Date(s.updatedAt).getTime(), sources: [], changes: [], updated: true });
-      byTs.get(k).sources.push(s);
+      byTs.get(k).sources.push({ ...s, refreshed: true });
     });
     sourceGroups.push(...byTs.values());
+    // Merge a same-deploy refresh into its sibling source addition (the cron
+    // stamps both within the same run, so timestamps land minutes apart):
+    // ONE combined "Sources Revisited" card instead of separate added and
+    // refreshed boxes. Mirrors app/feed/page.js.
+    const SR_MERGE_MS = 60 * 60 * 1000;
+    for (let i = sourceGroups.length - 1; i >= 0; i--) {
+      const u = sourceGroups[i];
+      if (!u.updated) continue;
+      const host = sourceGroups.find((a) => a !== u && !a.updated && Math.abs(a.ts - u.ts) <= SR_MERGE_MS);
+      if (host) {
+        host.sources.push(...u.sources);
+        host.changes.push(...u.changes);
+        host.mixed = true;
+        sourceGroups.splice(i, 1);
+      }
+    }
   }
 
   // Voting sessions: consecutive vote events within 4h of each other form one
@@ -455,21 +509,28 @@ export default function ActivityFeed({ list, voteData, extras }) {
                   extra={hasChanges ? { icon: <RefreshCw size={11} strokeWidth={2.5} />, color: KC.research, label: 'Ranking change' } : undefined}
                   date={fmtDate(g.addedAt)}
                 >
-                  {g.updated ? 'Refreshed Research' : g.sources.length === 1 ? 'Source added' : 'Sources added'}
+                  {g.mixed || g.updated ? 'Sources Revisited' : g.sources.length === 1 ? 'Source added' : 'Sources added'}
                 </Badge>
                 <div style={{ fontFamily: SERIF, fontSize: 16, margin: '6px 0 8px' }}>
-                  {hasChanges
-                    ? `${g.updated ? 'Refreshed research on' : 'Added'} ${g.sources.length === 1 ? 'a source' : g.sources.length + ' sources'}, the ranking shifted`
-                    : g.updated
-                      ? g.sources.length === 1 ? 'Source refreshed' : `${g.sources.length} sources refreshed`
-                      : g.sources.length === 1 ? 'New source on file' : `${g.sources.length} new sources on file`}
+                  {(() => {
+                    const nRef = g.sources.filter((x) => x.refreshed).length;
+                    const nAdd = g.sources.length - nRef;
+                    const head = g.mixed
+                      ? `Revisited the sources: ${nAdd} added, ${nRef} re-encoded`
+                      : g.updated
+                        ? `Revisited ${g.sources.length === 1 ? 'a source' : g.sources.length + ' sources'}`
+                        : null;
+                    if (hasChanges) return `${head || 'Added ' + (g.sources.length === 1 ? 'a source' : g.sources.length + ' sources')}, the ranking shifted`;
+                    if (head) return head;
+                    return g.sources.length === 1 ? 'New source on file' : `${g.sources.length} new sources on file`;
+                  })()}
                 </div>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 5 }}>
-                  {g.sources.map((s, k) => (<SourceCard key={k} s={s} />))}
+                  {g.sources.map((s, k) => (<SourceCard key={k} s={s} tag={g.mixed ? (s.refreshed ? 'Re-encoded' : 'Added') : undefined} note={s.refreshed ? (list.sourceRevisions || {})[s.id] : undefined} />))}
                 </div>
                 {hasChanges && (
                   <div style={{ display: 'flex', flexDirection: 'column', gap: 6, marginTop: 10 }}>
-                    {g.changes.map((ev, k) => {
+                    {collapseMoves(g.changes).map((ev, k) => {
                       const { item, tail } = researchLabel(ev);
                       return (
                         <div key={k} style={{ fontSize: 13, color: COLORS.ink }}>
@@ -487,7 +548,7 @@ export default function ActivityFeed({ list, voteData, extras }) {
           // A voting session + the ranking movements those votes produced.
           if (te.type === 'voteGroup') {
             const g = te.g;
-            const allChanges = [...g.changes, ...(g.liveChanges || [])];
+            const allChanges = collapseMoves([...g.changes, ...(g.liveChanges || [])]);
             const hasChanges = allChanges.length > 0;
             return (
               <section key={`te-${i}`} style={{ ...cardStyle(hasChanges ? KC.research : KC.vote), ...(last ? { marginBottom: 0 } : {}) }}>
