@@ -67,6 +67,8 @@ function sourcesFingerprint(list) {
 }
 
 export async function GET(request) {
+  // ?rebaseline=1 -> one-shot vote-trace backfill (see the per-list block).
+  const REBASELINE = new URL(request.url).searchParams.get('rebaseline') === '1';
   const secret = process.env.CRON_SECRET;
   if (secret) {
     const auth = request.headers.get('authorization') || '';
@@ -187,21 +189,39 @@ export async function GET(request) {
       }
 
       const prevSnap = prevSnaps.get(list.id);
-      // First sighting of a list: seed the snapshot silently, no alerts.
-      if (!prevSnap) continue;
-      const prev = prevSnap.top10;
+      // One-shot vote-trace backfill (?rebaseline=1): instead of diffing
+      // against the stored snapshot, diff the current consensus against this
+      // list's PUBLICATION-ONLY ranking (getSources with no votes). Every
+      // position that fan votes/extras shifted relative to the editorial
+      // baseline is then recorded as a ledger trace, attributed to votes. The
+      // snapshot is still upserted to the current consensus below, so the next
+      // normal daily run sees no diff and behaves exactly as before. This
+      // backfills the traces the edge-triggered detector missed on lists whose
+      // baseline snapshot was first seeded AFTER votes had already moved the
+      // consensus (so the original crossing was never observed). Run it ONCE:
+      // resolved=true moved/exited rows are not deduped, so a second rebaseline
+      // pass would duplicate them.
+      let prev, cause;
+      if (REBASELINE) {
+        prev = consensusTop10(list, {}, extras);
+        cause = 'votes';
+      } else {
+        // First sighting of a list: seed the snapshot silently, no alerts.
+        if (!prevSnap) continue;
+        prev = prevSnap.top10;
 
-      // Attribute this run's changes: if the source fingerprint moved since
-      // the last run, a deploy edited the list (cause 'edit'); otherwise only
-      // votes/extras could have shifted the consensus (cause 'votes'). A null
-      // stored hash (pre-migration-16 snapshot) leaves cause null = unknown.
-      const cause = prevSnap.hash
-        ? prevSnap.hash !== fingerprint
-          ? 'edit'
-          : votedLists.has(list.id)
-            ? 'votes'
-            : 'edit'
-        : null;
+        // Attribute this run's changes: if the source fingerprint moved since
+        // the last run, a deploy edited the list (cause 'edit'); otherwise only
+        // votes/extras could have shifted the consensus (cause 'votes'). A null
+        // stored hash (pre-migration-16 snapshot) leaves cause null = unknown.
+        cause = prevSnap.hash
+          ? prevSnap.hash !== fingerprint
+            ? 'edit'
+            : votedLists.has(list.id)
+              ? 'votes'
+              : 'edit'
+          : null;
+      }
 
       // Rank maps: positions 1-10 in the previous and current consensus.
       // Every alert row records the exact movement via prev_rank -> rank,
