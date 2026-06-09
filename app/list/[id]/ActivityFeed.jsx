@@ -11,7 +11,7 @@ import {
   PenLine,
 } from 'lucide-react';
 import { COLORS } from '@/lib/data';
-import { getSources, voteKey } from '@/lib/helpers';
+import { getSources, voteKey, autoSourceNote } from '@/lib/helpers';
 
 const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
 
@@ -562,7 +562,7 @@ export default function ActivityFeed({ list, voteData, extras }) {
                       tag={g.mixed ? (s.removed ? 'Removed' : s.refreshed ? 'Re-encoded' : 'Added') : undefined}
                       strike={s.removed}
                       label={(s.refreshed || s.removed) ? s.label : stripWeight(s.label)}
-                      note={(s.refreshed || s.removed) ? (list.sourceRevisions || {})[s.id] : undefined}
+                      note={(s.refreshed || s.removed) ? ((list.sourceRevisions || {})[s.id] || (s.refreshed ? autoSourceNote(s.label) : undefined)) : undefined}
                     />
                   ))}
                 </div>

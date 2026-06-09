@@ -2,7 +2,7 @@ import LegalLayout from '@/app/LegalLayout';
 import FeedClient from './FeedClient';
 import { supabaseAdmin } from '@/lib/supabase-server';
 import { LISTS, COLORS } from '@/lib/data';
-import { getSources, voteKey } from '@/lib/helpers';
+import { getSources, voteKey, autoSourceNote } from '@/lib/helpers';
 
 export const dynamic = 'force-dynamic';
 export const revalidate = 0;
@@ -135,7 +135,7 @@ export default async function FeedPage() {
     if (!srcGroupMap.has(key)) srcGroupMap.set(key, { ts: ms, kind: 'source', listId: r.list_id, listTitle: titleOf(r.list_id), labels: [], srcs: [], changes: [], updated: true });
     const lbl = labelOf.get(`${r.list_id}::${r.source_id}`) || r.label || r.source_id;
     srcGroupMap.get(key).labels.push(lbl);
-    srcGroupMap.get(key).srcs.push({ label: lbl, refreshed: true, note: revisionOf.get(`${r.list_id}::${r.source_id}`) || null });
+    srcGroupMap.get(key).srcs.push({ label: lbl, refreshed: true, note: revisionOf.get(`${r.list_id}::${r.source_id}`) || autoSourceNote(lbl) });
   });
   const srcGroups = [...srcGroupMap.values()];
   // Merge a same-deploy refresh into its sibling source addition for the same
