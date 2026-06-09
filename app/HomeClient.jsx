@@ -729,11 +729,12 @@ function Tile({ list, rank, views, voteData, extras, onClick, showConsensus, fea
   const mode = list.mode || 'both';
   // Total contributing sources for this list: every entry in list.sources
   // except the legacy `ai` seed (the real publications/rating sources), plus
-  // the Source of Truths user vote on lists that have voting.
+  // the Source of Truths user vote on lists that have voting. Floored at 1 so
+  // objective `facts` lists (no editorial sources, no vote) still read "Sources: 1".
   const sourceCount = (() => {
     const pubs = Object.keys(list.sources || {}).filter((id) => id !== 'ai').length;
     const hasVote = mode === 'both' || mode === 'votes';
-    return pubs + (hasVote ? 1 : 0);
+    return Math.max(1, pubs + (hasVote ? 1 : 0));
   })();
 
   const preview = useMemo(() => {
@@ -1079,6 +1080,7 @@ function Tile({ list, rank, views, voteData, extras, onClick, showConsensus, fea
           fontSize: 10,
           letterSpacing: '0.1em',
           textTransform: 'uppercase',
+          opacity: 0.85,
         }}
       >
         <span style={{ display: 'flex', alignItems: 'center', gap: 6, minWidth: 0 }}>
@@ -1086,7 +1088,7 @@ function Tile({ list, rank, views, voteData, extras, onClick, showConsensus, fea
           <span>{views} visitors</span>
         </span>
         {sourceCount > 0 && (
-          <span style={{ flexShrink: 0, whiteSpace: 'nowrap', opacity: 0.85 }}>
+          <span style={{ flexShrink: 0, whiteSpace: 'nowrap' }}>
             Sources: {sourceCount}
           </span>
         )}
