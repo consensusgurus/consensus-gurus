@@ -12,6 +12,8 @@ import { NextResponse } from 'next/server';
 import { supabaseAdmin } from '@/lib/supabase-server';
 import { LISTS } from '@/lib/data';
 import { getSources, SCORING_ENGINE_VERSION } from '@/lib/helpers';
+import { DESCRIPTIONS } from '@/lib/descriptions';
+import { HERO_IMAGES } from '@/lib/hero-images';
 
 export const dynamic = 'force-dynamic';
 export const revalidate = 0;
@@ -282,6 +284,60 @@ export async function GET(request) {
           });
         }
       });
+
+      // Self-healing (level-triggered) backstop for the snapshot-diff detection
+      // above, which is edge-triggered: it only records an item the moment it
+      // CROSSES into the top 10 (or top 3) between two daily snapshots, and the
+      // stable-rank early-return (p === rank) skips an item that is already
+      // settled. So an item that crossed in before this list's snapshot baseline
+      // existed (e.g. fan votes moved it in before the alerting tables were
+      // first seeded on 2026-06-07) was never observed crossing, so its
+      // description/hero was never queued and never will be. Backfill that gap:
+      // queue any item CURRENTLY in the top 10 that is missing its description,
+      // or in the top 3 missing its hero photo. Scoped to lists whose
+      // descriptions/heroes have already been built (DESCRIPTIONS[list.id] /
+      // HERO_IMAGES[list.id] present) so partially-rolled-out lists are not
+      // flooded, and deduped against open alerts so once the gap is filled and
+      // the alert resolved it never re-fires. Rows are shaped exactly like the
+      // genuine entry rows above (prev_rank 0 for top10, prior rank for top3).
+      const listDescs = DESCRIPTIONS[list.id];
+      const listHeroes = HERO_IMAGES[list.id];
+      if (listDescs || listHeroes) {
+        top10.forEach((item, idx) => {
+          const key = norm(item);
+          const rank = idx + 1;
+          if (listDescs && !listDescs[item]) {
+            const k = `${list.id}::${key}::entered_top10`;
+            if (!openAlerts.has(k)) {
+              newAlerts.push({
+                list_id: list.id,
+                item_name: item,
+                change_type: 'entered_top10',
+                rank,
+                prev_rank: 0,
+                cause,
+                resolved: false,
+              });
+              openAlerts.add(k);
+            }
+          }
+          if (rank <= 3 && listHeroes && !listHeroes[item]) {
+            const k = `${list.id}::${key}::entered_top3`;
+            if (!openAlerts.has(k)) {
+              newAlerts.push({
+                list_id: list.id,
+                item_name: item,
+                change_type: 'entered_top3',
+                rank,
+                prev_rank: prevRankMap.get(key) || 0,
+                cause,
+                resolved: false,
+              });
+              openAlerts.add(k);
+            }
+          }
+        });
+      }
     }
 
     if (newAlerts.length > 0) {
