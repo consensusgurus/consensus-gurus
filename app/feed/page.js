@@ -188,10 +188,10 @@ export default async function FeedPage() {
       });
     }
     if (best) best.changes.push(ev);
-    // Drop loose vote-caused changes: the live vote replay shows vote movements
-    // under their session, so a detached vote change would duplicate it. Edit
-    // (source) changes still stand alone.
-    else if (ev.cause !== 'votes') events.push(ev);
+    // Orphan changes with no source card or voting session to attach to are not
+    // rendered: a bare ranking change with no shown cause is noise (a cron-
+    // re-detected vote shift duplicating the replay, or a near-launch reseed).
+    // (no else clause: orphan changes are intentionally dropped)
   });
   srcGroups.forEach((g) => events.push(g));
 
