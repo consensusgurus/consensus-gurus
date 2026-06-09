@@ -159,8 +159,12 @@ it. Required on every pizza list (each `portnoy` source item that has a video).
   review of the venue (`one bite pizza review <venue> <city>`), confirm it is the **official upload**
   (the "One Bite Pizza Reviews" / Barstool Sports channel, Dave Portnoy), and store the canonical
   `https://www.youtube.com/watch?v=<id>` URL. Reject fan re-uploads, compilations that are not that
-  venue's review, and reaction videos. If a scored item genuinely has no standalone official video,
-  omit it from `itemVideo` (its button just doesn't show) — never fabricate or pattern-guess a video ID.
+  venue's review, and reaction videos. **App-only reviews:** some One Bite reviews have no YouTube
+  upload and live only on the One Bite app (the review page plays a Mux-hosted clip, not YouTube) — in
+  that case store the `onebite.app/restaurant/.../review/...` page URL instead (the video plays there),
+  which the owner can supply directly. Confirm the page is the correct venue/location before using it.
+  If a scored item genuinely has neither a YouTube upload nor a One Bite review page, omit it from
+  `itemVideo` (its button just doesn't show) — never fabricate or pattern-guess a URL or video ID.
 
 
 ### SoT True Expert input — the in-house research process
