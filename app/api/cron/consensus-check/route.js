@@ -14,7 +14,6 @@ import { LISTS } from '@/lib/data';
 import { getSources, SCORING_ENGINE_VERSION } from '@/lib/helpers';
 import { DESCRIPTIONS } from '@/lib/descriptions';
 import { HERO_IMAGES } from '@/lib/hero-images';
-import { SOURCE_MOVEMENT_EVENTS } from '@/lib/source-movement-backfill';
 
 export const dynamic = 'force-dynamic';
 export const revalidate = 0;
@@ -68,262 +67,11 @@ function sourcesFingerprint(list) {
 }
 
 export async function GET(request) {
-  const sp = new URL(request.url).searchParams;
-  // ?rebaseline=1 -> one-shot vote-trace backfill (see the per-list block).
-  const REBASELINE = sp.get('rebaseline') === '1';
   const secret = process.env.CRON_SECRET;
   if (secret) {
     const auth = request.headers.get('authorization') || '';
     if (auth !== `Bearer ${secret}`) {
       return NextResponse.json({ error: 'unauthorized' }, { status: 401 });
-    }
-  }
-
-  // ?resolveSatisfied=1 -> one-shot maintenance: clear research-queue alerts
-  // whose work is already done (entered_top10 for an item that already has a
-  // description, entered_top3 for one that already has a hero photo). The
-  // site-wide rebaseline inserts entered_* rows as resolved=false so genuinely
-  // missing items surface in the Research tab; this resolves the ones already
-  // satisfied (e.g. Casablanca already had its description) so they do not
-  // clutter the queue. Idempotent.
-  if (sp.get('resolveSatisfied') === '1') {
-    try {
-      const rows = await fetchAll('consensus_alerts', 'id,list_id,item_name,change_type', ['id'], (q) => q.eq('resolved', false));
-      const ids = [];
-      for (const a of rows) {
-        const d = DESCRIPTIONS[a.list_id];
-        const h = HERO_IMAGES[a.list_id];
-        if (a.change_type === 'entered_top10' && d && d[a.item_name]) ids.push(a.id);
-        else if (a.change_type === 'entered_top3' && h && h[a.item_name]) ids.push(a.id);
-      }
-      for (let i = 0; i < ids.length; i += 500) {
-        const { error } = await supabaseAdmin.from('consensus_alerts').update({ resolved: true }).in('id', ids.slice(i, i + 500));
-        if (error) throw error;
-      }
-      return NextResponse.json({ ok: true, resolved: ids.length });
-    } catch (err) {
-      console.error('resolveSatisfied error', err);
-      return NextResponse.json({ error: 'resolveSatisfied failed' }, { status: 500 });
-    }
-  }
-
-  // ?backfillVoteEvents=1 -> one-shot: synthesize the per-vote event log from
-  // the aggregate `votes` table so the Activity Log shows "Someone voted X"
-  // entries on lists whose scores were seeded directly (bypassing /api/votes,
-  // which is what logs events). For each item it inserts events whose deltas
-  // sum to the amount NOT already logged (each capped at 3, like a ballot
-  // pick), with synthetic timestamps spread between the list's launch and now
-  // (the originals were never recorded). Idempotent: a re-run sees the
-  // now-logged events and inserts nothing more.
-  if (sp.get('backfillVoteEvents') === '1') {
-    try {
-      const [vrows, erows] = await Promise.all([
-        fetchAll('votes', 'list_id,item_name,score', ['list_id', 'item_name']),
-        fetchAll('vote_events', 'list_id,item_name,delta', ['list_id', 'item_name']),
-      ]);
-      const logged = {};
-      for (const e of erows) {
-        const k = `${e.list_id}::${e.item_name.toLowerCase().trim()}`;
-        logged[k] = (logged[k] || 0) + (e.delta || 0);
-      }
-      const listById = new Map(LISTS.map((l) => [l.id, l]));
-      const now = Date.now();
-      const inserts = [];
-      for (const v of vrows) {
-        if (!v.list_id || v.list_id.length > 100) continue;
-        if (!v.item_name || v.item_name.length > 100) continue;
-        const score = Math.max(0, v.score || 0);
-        if (score <= 0) continue;
-        const k = `${v.list_id}::${v.item_name.toLowerCase().trim()}`;
-        let gap = Math.min(30, score - (logged[k] || 0));
-        if (gap <= 0) continue;
-        const list = listById.get(v.list_id);
-        const launch = list && (list.publishedAt || list.publishedDate)
-          ? new Date(list.publishedAt || list.publishedDate).getTime()
-          : now - 7 * 86400000;
-        const span = Math.max(1, now - launch);
-        while (gap > 0) {
-          const d = Math.min(3, gap);
-          const ts = new Date(launch + Math.random() * span).toISOString();
-          inserts.push({ list_id: v.list_id, item_name: v.item_name, delta: d, created_at: ts });
-          gap -= d;
-        }
-      }
-      let n = 0;
-      for (let i = 0; i < inserts.length; i += 500) {
-        const { error } = await supabaseAdmin.from('vote_events').insert(inserts.slice(i, i + 500));
-        if (error) throw error;
-        n += Math.min(500, inserts.length - i);
-      }
-      return NextResponse.json({ ok: true, inserted: n });
-    } catch (err) {
-      console.error('backfillVoteEvents error', err);
-      return NextResponse.json({ error: 'backfillVoteEvents failed' }, { status: 500 });
-    }
-  }
-
-  // ?purgeAlerts=1&from=<ISO>&to=<ISO>[&cause=votes] -> delete consensus_alerts
-  // whose detected_at falls in [from, to). Used to remove a one-shot backfill
-  // batch (e.g. the ?rebaseline=1 cards) once the live vote-replay reproduces
-  // those movements attached to the actual votes, so the ledger does not show
-  // the same movement twice. Both from and to are required (no open-ended
-  // delete); cause is an optional extra filter.
-  if (sp.get('purgeAlerts') === '1') {
-    try {
-      const from = sp.get('from');
-      const to = sp.get('to');
-      const cause = sp.get('cause');
-      if (!from || !to) return NextResponse.json({ error: 'from and to (ISO) required' }, { status: 400 });
-      let q = supabaseAdmin.from('consensus_alerts').delete().gte('detected_at', from).lt('detected_at', to);
-      if (cause) q = q.eq('cause', cause);
-      const { data, error } = await q.select('id');
-      if (error) throw error;
-      return NextResponse.json({ ok: true, deleted: (data || []).length });
-    } catch (err) {
-      console.error('purgeAlerts error', err);
-      return NextResponse.json({ error: 'purgeAlerts failed' }, { status: 500 });
-    }
-  }
-
-  // ?backfillSourceMovements=1 -> rewrite the per-source-addition ranking-change
-  // cards with their COMPLETE movement set. The daily snapshot diff is coarse:
-  // when two source additions land close together their movements get detected
-  // in one pass and split arbitrarily across the cards (e.g. the Austin Google
-  // /TripAdvisor card showed only Pinthouse when that addition actually moved
-  // ten breweries). SOURCE_MOVEMENT_EVENTS is precomputed from the git history
-  // of lib/data.js: for every commit that ADDED sources to a list, the exact
-  // before/after publication-only consensus is recomputed with vs without just
-  // those sources, isolating that addition's true effect. Here we replace each
-  // affected list's source-caused alerts (cause 'edit') with the complete set,
-  // each movement dated to the added sources' own first_seen_at so it groups
-  // under the right "Sources added" card. Rows are resolved=true (ledger
-  // display only); description/hero gaps are still surfaced by the daily
-  // self-healing backstop. Idempotent (delete-then-replace per affected list).
-  if (sp.get('backfillSourceMovements') === '1') {
-    try {
-      const seen = await fetchAll('list_sources_seen', 'list_id,source_id,first_seen_at', ['list_id', 'source_id']);
-      const seenAt = new Map();
-      for (const r of seen) seenAt.set(`${r.list_id}::${r.source_id}`, r.first_seen_at);
-      const affected = [...new Set(SOURCE_MOVEMENT_EVENTS.map((e) => e.listId))];
-      // Clear the old, mis-split source-caused movement rows for these lists.
-      for (let i = 0; i < affected.length; i += 100) {
-        const chunk = affected.slice(i, i + 100);
-        const del = await supabaseAdmin.from('consensus_alerts').delete().in('list_id', chunk).eq('cause', 'edit');
-        if (del.error) throw del.error;
-      }
-      const rows = [];
-      for (const e of SOURCE_MOVEMENT_EVENTS) {
-        if (!e.movements || !e.movements.length) continue;
-        // Date the card by the earliest first_seen_at of the sources this event
-        // added (so it lands on the existing "Sources added" card); fall back to
-        // the git commit date when the source has not been stamped yet.
-        let when = null;
-        for (const a of e.added) {
-          const fs2 = seenAt.get(`${e.listId}::${a.id}`);
-          if (fs2 && (!when || fs2 < when)) when = fs2;
-        }
-        const detectedAt = when || e.date;
-        for (const m of e.movements) {
-          rows.push({
-            list_id: e.listId,
-            item_name: m.item,
-            change_type: m.changeType,
-            rank: m.rank,
-            prev_rank: m.prevRank,
-            cause: 'edit',
-            resolved: true,
-            detected_at: detectedAt,
-          });
-        }
-      }
-      let inserted = 0;
-      for (let i = 0; i < rows.length; i += 500) {
-        const ins = await supabaseAdmin.from('consensus_alerts').insert(rows.slice(i, i + 500));
-        if (ins.error) throw ins.error;
-        inserted += Math.min(500, rows.length - i);
-      }
-      return NextResponse.json({ ok: true, affectedLists: affected.length, events: SOURCE_MOVEMENT_EVENTS.length, inserted });
-    } catch (err) {
-      console.error('backfillSourceMovements error', err);
-      return NextResponse.json({ error: 'backfillSourceMovements failed' }, { status: 500 });
-    }
-  }
-
-  // ?cleanupVoteKeys=1 -> tidy non-canonical aggregate vote keys. A vote whose
-  // item_name does not EXACTLY match a canonical item in its list (sources +
-  // vote.items + extras) is classified as either:
-  //   - NEAR-MATCH: a canonical item exists whose name minus its trailing
-  //     parenthetical equals the orphan (e.g. "the dark knight" ->
-  //     "The Dark Knight (2008)"). Merged into the canonical item: score added,
-  //     vote_events renamed, the stray row removed. Non-destructive (no votes
-  //     lost; they just count toward the right item and start scoring).
-  //   - TRUE ORPHAN: no canonical match at all (e.g. "Inception" on a list that
-  //     does not carry it). These never score. Reported always; deleted only
-  //     when &deleteOrphans=1.
-  // Dry run by default (read-only). &apply=1 performs the merges; add
-  // &deleteOrphans=1 to also remove true orphans. Idempotent.
-  if (sp.get('cleanupVoteKeys') === '1') {
-    try {
-      const apply = sp.get('apply') === '1';
-      const deleteOrphans = sp.get('deleteOrphans') === '1';
-      const [vrows, erows] = await Promise.all([
-        fetchAll('votes', 'list_id,item_name,score', ['list_id', 'item_name']),
-        fetchAll('extras', 'list_id,item_name', ['list_id', 'item_name']),
-      ]);
-      const norm = (s) => String(s).toLowerCase().trim();
-      const strip = (s) => norm(s).replace(/\s*\([^)]*\)\s*$/, '').trim();
-      const extrasByList = {};
-      for (const e of erows) {
-        if (!extrasByList[e.list_id]) extrasByList[e.list_id] = [];
-        extrasByList[e.list_id].push(e.item_name);
-      }
-      const uniByList = new Map();
-      for (const list of LISTS) {
-        const byNorm = new Map();
-        const add = (name) => { if (name) byNorm.set(norm(name), name); };
-        if (list.sources) for (const s of Object.values(list.sources)) if (s && Array.isArray(s.items)) s.items.forEach(add);
-        if (list.vote && Array.isArray(list.vote.items)) list.vote.items.forEach(add);
-        (extrasByList[list.id] || []).forEach(add);
-        uniByList.set(list.id, byNorm);
-      }
-      const scoreByKey = {};
-      for (const v of vrows) scoreByKey[`${v.list_id}::${norm(v.item_name)}`] = v.score || 0;
-      const merges = [];
-      const orphans = [];
-      for (const v of vrows) {
-        const byNorm = uniByList.get(v.list_id);
-        if (!byNorm) continue;
-        const nk = norm(v.item_name);
-        if (byNorm.has(nk)) continue;
-        const sk = strip(v.item_name);
-        let target = null;
-        for (const [cn, canonical] of byNorm) { if (cn !== nk && strip(canonical) === sk) { target = canonical; break; } }
-        if (target) merges.push({ list_id: v.list_id, from: v.item_name, to: target, score: v.score || 0 });
-        else orphans.push({ list_id: v.list_id, item_name: v.item_name, score: v.score || 0 });
-      }
-      if (!apply) return NextResponse.json({ ok: true, dryRun: true, mergeCount: merges.length, orphanCount: orphans.length, merges, orphans });
-      let merged = 0, deleted = 0;
-      for (const m of merges) {
-        const tgtKey = `${m.list_id}::${norm(m.to)}`;
-        const tgtScore = scoreByKey[tgtKey] || 0;
-        const up = await supabaseAdmin.from('votes').upsert({ list_id: m.list_id, item_name: m.to, score: tgtScore + m.score }, { onConflict: 'list_id,item_name' });
-        if (up.error) throw up.error;
-        scoreByKey[tgtKey] = tgtScore + m.score;
-        await supabaseAdmin.from('vote_events').update({ item_name: m.to }).eq('list_id', m.list_id).eq('item_name', m.from);
-        await supabaseAdmin.from('votes').delete().eq('list_id', m.list_id).eq('item_name', m.from);
-        merged++;
-      }
-      if (deleteOrphans) {
-        for (const o of orphans) {
-          await supabaseAdmin.from('vote_events').delete().eq('list_id', o.list_id).eq('item_name', o.item_name);
-          await supabaseAdmin.from('votes').delete().eq('list_id', o.list_id).eq('item_name', o.item_name);
-          deleted++;
-        }
-      }
-      return NextResponse.json({ ok: true, merged, deleted, orphansRemaining: deleteOrphans ? 0 : orphans.length });
-    } catch (err) {
-      console.error('cleanupVoteKeys error', err);
-      return NextResponse.json({ error: 'cleanupVoteKeys failed' }, { status: 500 });
     }
   }
 
@@ -439,39 +187,21 @@ export async function GET(request) {
       }
 
       const prevSnap = prevSnaps.get(list.id);
-      // One-shot vote-trace backfill (?rebaseline=1): instead of diffing
-      // against the stored snapshot, diff the current consensus against this
-      // list's PUBLICATION-ONLY ranking (getSources with no votes). Every
-      // position that fan votes/extras shifted relative to the editorial
-      // baseline is then recorded as a ledger trace, attributed to votes. The
-      // snapshot is still upserted to the current consensus below, so the next
-      // normal daily run sees no diff and behaves exactly as before. This
-      // backfills the traces the edge-triggered detector missed on lists whose
-      // baseline snapshot was first seeded AFTER votes had already moved the
-      // consensus (so the original crossing was never observed). Run it ONCE:
-      // resolved=true moved/exited rows are not deduped, so a second rebaseline
-      // pass would duplicate them.
-      let prev, cause;
-      if (REBASELINE) {
-        prev = consensusTop10(list, {}, extras);
-        cause = 'votes';
-      } else {
-        // First sighting of a list: seed the snapshot silently, no alerts.
-        if (!prevSnap) continue;
-        prev = prevSnap.top10;
+      // First sighting of a list: seed the snapshot silently, no alerts.
+      if (!prevSnap) continue;
+      const prev = prevSnap.top10;
 
-        // Attribute this run's changes: if the source fingerprint moved since
-        // the last run, a deploy edited the list (cause 'edit'); otherwise only
-        // votes/extras could have shifted the consensus (cause 'votes'). A null
-        // stored hash (pre-migration-16 snapshot) leaves cause null = unknown.
-        cause = prevSnap.hash
-          ? prevSnap.hash !== fingerprint
-            ? 'edit'
-            : votedLists.has(list.id)
-              ? 'votes'
-              : 'edit'
-          : null;
-      }
+      // Attribute this run's changes: if the source fingerprint moved since
+      // the last run, a deploy edited the list (cause 'edit'); otherwise only
+      // votes/extras could have shifted the consensus (cause 'votes'). A null
+      // stored hash (pre-migration-16 snapshot) leaves cause null = unknown.
+      const cause = prevSnap.hash
+        ? prevSnap.hash !== fingerprint
+          ? 'edit'
+          : votedLists.has(list.id)
+            ? 'votes'
+            : 'edit'
+        : null;
 
       // Rank maps: positions 1-10 in the previous and current consensus.
       // Every alert row records the exact movement via prev_rank -> rank,
