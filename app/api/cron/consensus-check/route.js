@@ -161,6 +161,29 @@ export async function GET(request) {
     }
   }
 
+  // ?purgeAlerts=1&from=<ISO>&to=<ISO>[&cause=votes] -> delete consensus_alerts
+  // whose detected_at falls in [from, to). Used to remove a one-shot backfill
+  // batch (e.g. the ?rebaseline=1 cards) once the live vote-replay reproduces
+  // those movements attached to the actual votes, so the ledger does not show
+  // the same movement twice. Both from and to are required (no open-ended
+  // delete); cause is an optional extra filter.
+  if (sp.get('purgeAlerts') === '1') {
+    try {
+      const from = sp.get('from');
+      const to = sp.get('to');
+      const cause = sp.get('cause');
+      if (!from || !to) return NextResponse.json({ error: 'from and to (ISO) required' }, { status: 400 });
+      let q = supabaseAdmin.from('consensus_alerts').delete().gte('detected_at', from).lt('detected_at', to);
+      if (cause) q = q.eq('cause', cause);
+      const { data, error } = await q.select('id');
+      if (error) throw error;
+      return NextResponse.json({ ok: true, deleted: (data || []).length });
+    } catch (err) {
+      console.error('purgeAlerts error', err);
+      return NextResponse.json({ error: 'purgeAlerts failed' }, { status: 500 });
+    }
+  }
+
   // ?cleanupVoteKeys=1 -> tidy non-canonical aggregate vote keys. A vote whose
   // item_name does not EXACTLY match a canonical item in its list (sources +
   // vote.items + extras) is classified as either:
