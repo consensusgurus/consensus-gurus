@@ -354,20 +354,54 @@ function Home({ lists, viewCounts, voteData, extras, trending = {}, openList, on
     } catch (e) {}
   }, [discoverSeed, sortBy, typeFilter, query]);
 
-  // If we mounted with a restore payload (a Back navigation), jump to the saved
-  // scroll position once the grid lays out, then clear the one-shot payload so a
-  // genuine reload still reshuffles.
+  // If we mounted with a restore payload (a Back navigation), pin the viewport to
+  // the saved offset until the layout settles. A single jump drifts because the
+  // page keeps reflowing after first paint (web-font swap, related-list sub-boxes
+  // filling in), so we re-apply on every animation frame until the document height
+  // has been stable for a moment, then stop. We bail the instant the user scrolls
+  // or keys so we never fight them, and cap the whole thing with a hard budget.
   useEffect(() => {
-    if (!restore || typeof restore.scrollY !== 'number') {
-      try { sessionStorage.removeItem('sot-home-restore'); } catch (e) {}
-      return undefined;
-    }
-    const y = restore.scrollY;
-    const jump = () => window.scrollTo(0, y);
-    if (typeof requestAnimationFrame !== 'undefined') requestAnimationFrame(() => requestAnimationFrame(jump));
-    const timers = [setTimeout(jump, 120), setTimeout(jump, 350), setTimeout(jump, 700)];
     try { sessionStorage.removeItem('sot-home-restore'); } catch (e) {}
-    return () => timers.forEach(clearTimeout);
+    if (!restore || typeof restore.scrollY !== 'number' || restore.scrollY <= 0) return undefined;
+    if (typeof window === 'undefined' || typeof requestAnimationFrame === 'undefined') return undefined;
+    const targetY = restore.scrollY;
+    const HARD_BUDGET = 4000; // ms — give up if the page never settles
+    const STABLE_MS = 350;    // height unchanged this long === settled
+    let cancelled = false;
+    let raf = 0;
+    let lastH = -1;
+    let stableSince = 0;
+    const start = performance.now();
+    const onUser = () => stop();
+    function detach() {
+      window.removeEventListener('wheel', onUser);
+      window.removeEventListener('touchmove', onUser);
+      window.removeEventListener('keydown', onUser);
+    }
+    function stop() {
+      if (cancelled) return;
+      cancelled = true;
+      if (raf) cancelAnimationFrame(raf);
+      detach();
+    }
+    const tick = (now) => {
+      if (cancelled) return;
+      const h = document.documentElement.scrollHeight;
+      if (h !== lastH) { lastH = h; stableSince = now; }
+      if (Math.abs(window.scrollY - targetY) > 1) window.scrollTo(0, targetY);
+      const settled = (now - stableSince) >= STABLE_MS && Math.abs(window.scrollY - targetY) <= 1;
+      if (settled || (now - start) >= HARD_BUDGET) { stop(); return; }
+      raf = requestAnimationFrame(tick);
+    };
+    window.addEventListener('wheel', onUser, { passive: true });
+    window.addEventListener('touchmove', onUser, { passive: true });
+    window.addEventListener('keydown', onUser);
+    // Re-baseline the stability window once web fonts finish (they reflow text).
+    if (document.fonts && document.fonts.ready && typeof document.fonts.ready.then === 'function') {
+      document.fonts.ready.then(() => { if (!cancelled) { lastH = -1; } });
+    }
+    raf = requestAnimationFrame(tick);
+    return () => stop();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
