@@ -717,7 +717,7 @@ function ListDetail({ list, viewCount, voteData, userVotes, extras, relatedLists
         </div>
       </div>}
 
-      <div style={{ marginTop: 28 }} />
+      <div style={{ marginTop: 10 }} />
 
       {complainOpen && (
         <div
