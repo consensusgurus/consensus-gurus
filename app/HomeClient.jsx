@@ -727,6 +727,14 @@ function Home({ lists, viewCounts, voteData, extras, trending = {}, openList, on
 function Tile({ list, rank, views, voteData, extras, onClick, showConsensus, featured, relatedLists, onOpenRelated }) {
   const [hover, setHover] = useState(false);
   const mode = list.mode || 'both';
+  // Total contributing sources for this list: every entry in list.sources
+  // except the legacy `ai` seed (the real publications/rating sources), plus
+  // the Source of Truths user vote on lists that have voting.
+  const sourceCount = (() => {
+    const pubs = Object.keys(list.sources || {}).filter((id) => id !== 'ai').length;
+    const hasVote = mode === 'both' || mode === 'votes';
+    return pubs + (hasVote ? 1 : 0);
+  })();
 
   const preview = useMemo(() => {
     const limit = featured ? 10 : 3;
@@ -1065,15 +1073,23 @@ function Tile({ list, rank, views, voteData, extras, onClick, showConsensus, fea
           borderTop: `1px solid ${COLORS.ink}`,
           display: 'flex',
           alignItems: 'center',
-          gap: 6,
+          justifyContent: 'space-between',
+          gap: 8,
           fontFamily: 'DM Mono, monospace',
-          fontSize: 11,
+          fontSize: 10,
           letterSpacing: '0.1em',
           textTransform: 'uppercase',
         }}
       >
-        <Eye size={12} strokeWidth={2} />
-        <span>{views} visitors</span>
+        <span style={{ display: 'flex', alignItems: 'center', gap: 6, minWidth: 0 }}>
+          <Eye size={12} strokeWidth={2} />
+          <span>{views} visitors</span>
+        </span>
+        {sourceCount > 0 && (
+          <span style={{ flexShrink: 0, whiteSpace: 'nowrap', opacity: 0.85 }}>
+            Sources: {sourceCount}
+          </span>
+        )}
       </div>
     </button>
   );
