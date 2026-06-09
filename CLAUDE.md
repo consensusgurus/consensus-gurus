@@ -546,6 +546,37 @@ contenders; it was removed 2026-06-07.
   `itemTripadvisor` keys for items that appeared only in that source, and refresh descriptions/heroes
   if the top 10/top 3 changed.
 
+### Source-rule changes ALWAYS carry a note, applied uniformly across the logs (owner rule, 2026-06-09)
+
+**Any time you change a source rule for a list, you MUST record a `sourceRevisions` note explaining
+WHY, and apply the same explanation uniformly to every list affected by that change.** This is a hard
+rule, not a courtesy. "Source rule change" is broad and covers, at minimum: a weighting change (e.g.
+down-weighting Yelp/Google to `0.5` on a generalist dish list), a re-encoding (flipping a source to
+`unordered`, `rankedHead`, or a tier/award encoding), removing a source (scope too narrow, off-tier,
+unreadable), a label/edition refresh, and adding or dropping a `trueExpert` flag. If the reason isn't
+obvious from the data alone, it needs a note.
+
+- **Where the note lives:** `list.sourceRevisions` in `lib/data.js`, keyed by the affected source id
+  (e.g. `"yelp"`, `"google"`, `"infatuation"`, or a since-removed id like `"bostonmagne"`). Phrase it
+  as a reader-facing correction, e.g. `"Correction (June 2026): ..."`.
+- **It must render uniformly in BOTH activity ledgers** — the per-list one (`app/list/[id]/ActivityFeed.jsx`)
+  and the universal one (`app/feed/page.js` + `app/feed/FeedClient.jsx`). The note attaches to the
+  Re-encoded bubble (a refreshed/re-weighted source), the Source removed card, and the folded
+  Removed/Re-encoded bubble inside a Sources Revisited card. If a code path shows a changed source
+  without surfacing its note, that's a bug to fix in both mirrors, not a reason to skip the note.
+- **Apply it everywhere the same rule fired.** When one rule change touches many lists (the generalist
+  dish-list 0.5x down-weight is the canonical case), every affected list gets the corresponding note
+  for each changed source — never just the list you happened to be looking at. Search out the full set
+  and cover it in the same pass. (Canonical 0.5x wording, adapt the dish/platform to the list:
+  `"Correction (June 2026): Yelp and Google rate the whole venue, and most spots on this list are bars
+  and full restaurants rather than burger spots, so both rating sources now carry 0.5x weight per the
+  generalist dish-list rule."`)
+- **The note explains; it never substitutes for the mechanics.** Still make the actual rule change
+  (set `"weight"`, `"unordered"`, remove the source, etc.), recompute consensus, re-seed, and refresh
+  descriptions/heroes as the specific rule requires. The note is the audit trail on top.
+- **Reuse the existing wording when one already exists for the same kind of change** rather than
+  inventing a new phrasing each time, so the logs read consistently.
+
 ### Source item ordering — order is rank, so order it correctly
 
 **The order of items inside each source IS its ranking.** Borda scoring reads position: the 1st item in a source array gets that source's top score, the 2nd gets the next, and so on. So the array order directly drives the consensus. Getting it wrong silently corrupts the result. Before saving any source, confirm its items are in true best-to-worst order.
