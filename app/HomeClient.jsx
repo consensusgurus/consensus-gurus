@@ -308,25 +308,68 @@ function seededShuffle(arr, seed) {
 }
 
 function Home({ lists, viewCounts, voteData, extras, trending = {}, openList, onSubmit }) {
-  const [query, setQuery] = useState('');
-  const [typeFilter, setTypeFilter] = useState('all');
+  // One-shot restore payload, written when the user opens a list (see saveScroll).
+  // Lets Back return to the same Discover order, filters, search, and scroll spot.
+  const restoreRef = useRef(null);
+  if (restoreRef.current === null) {
+    restoreRef.current = (() => {
+      try {
+        const raw = typeof window !== 'undefined' && sessionStorage.getItem('sot-home-restore');
+        return raw ? JSON.parse(raw) : false;
+      } catch (e) { return false; }
+    })();
+  }
+  const restore = restoreRef.current || null;
+
+  const [query, setQuery] = useState(restore?.query || '');
+  const [typeFilter, setTypeFilter] = useState(restore?.typeFilter || 'all');
   const [catOpen, setCatOpen] = useState(false);
   const [sortOpen, setSortOpen] = useState(false);
   // Default sort is the shuffled "Discover" view.
-  const [sortBy, setSortBy] = useState('discover');
+  const [sortBy, setSortBy] = useState(restore?.sortBy || 'discover');
 
   // Fresh seed per page load — captured once on mount. Stays stable while
   // the user interacts with the page (so the order doesn't reshuffle
   // when typing in search), but a reload picks a new seed and a new
   // order.
   const [discoverSeed] = useState(
-    () => (Date.now() ^ Math.floor(Math.random() * 0xffffffff)) >>> 0
+    () => (restore && typeof restore.seed === 'number')
+      ? (restore.seed >>> 0)
+      : (Date.now() ^ Math.floor(Math.random() * 0xffffffff)) >>> 0
   );
 
   // Recompute shuffle order when the lists collection or seed changes.
   const discoverOrder = useMemo(() => {
     return seededShuffle(lists, discoverSeed);
   }, [lists, discoverSeed]);
+
+  // Save the current view + scroll position before navigating to a list, so
+  // Back can restore the exact spot (Home otherwise remounts with a new seed).
+  const saveScroll = useCallback(() => {
+    try {
+      sessionStorage.setItem('sot-home-restore', JSON.stringify({
+        seed: discoverSeed, sortBy, typeFilter, query,
+        scrollY: window.scrollY || window.pageYOffset || 0,
+      }));
+    } catch (e) {}
+  }, [discoverSeed, sortBy, typeFilter, query]);
+
+  // If we mounted with a restore payload (a Back navigation), jump to the saved
+  // scroll position once the grid lays out, then clear the one-shot payload so a
+  // genuine reload still reshuffles.
+  useEffect(() => {
+    if (!restore || typeof restore.scrollY !== 'number') {
+      try { sessionStorage.removeItem('sot-home-restore'); } catch (e) {}
+      return undefined;
+    }
+    const y = restore.scrollY;
+    const jump = () => window.scrollTo(0, y);
+    if (typeof requestAnimationFrame !== 'undefined') requestAnimationFrame(() => requestAnimationFrame(jump));
+    const timers = [setTimeout(jump, 120), setTimeout(jump, 350), setTimeout(jump, 700)];
+    try { sessionStorage.removeItem('sot-home-restore'); } catch (e) {}
+    return () => timers.forEach(clearTimeout);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   // Close the category / sort dropdowns when clicking anywhere outside.
   useEffect(() => {
@@ -694,11 +737,11 @@ function Home({ lists, viewCounts, voteData, extras, trending = {}, openList, on
                   views={viewCounts[list.id] || 0}
                   voteData={voteData}
                   extras={extras[list.id] || []}
-                  onClick={() => openList(list.id)}
+                  onClick={() => { saveScroll(); openList(list.id); }}
                   showConsensus={true}
                   featured={isFeatured}
                   relatedLists={related}
-                  onOpenRelated={(id) => openList(id)}
+                  onOpenRelated={(id) => { saveScroll(); openList(id); }}
                 />
               );
             })}
