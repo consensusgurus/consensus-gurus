@@ -13,6 +13,13 @@ function fmtDate(ms) {
   return `${MONTHS[d.getMonth()]} ${d.getDate()}, ${d.getFullYear()}`;
 }
 
+// A reduced-weight annotation ("· 0.5x Weight") is a re-encode refinement, not
+// part of a source as originally added, so it shows only in the Re-encoded box.
+// Strip it from the launch listing and the "Added" cards. Mirrors ActivityFeed.jsx.
+function stripWeight(label) {
+  return typeof label === 'string' ? label.replace(/\s*·\s*[\d.]+x\s*Weight/i, '') : label;
+}
+
 // Exact movement text for ranking-change events. Rows with prev_rank show
 // "moved from #X to #Y" (0 = unranked); legacy rows keep boundary phrasing.
 function moveTail(ev) {
@@ -178,7 +185,7 @@ function renderEvent(e, i) {
         <ListLink id={e.id}>{e.title}</ListLink>{e.category ? ` · ${e.category}` : ''}
         {e.sources && e.sources.length > 0 && (
           <div style={{ marginTop: 4, fontSize: 12, color: COLORS.faded }}>
-            Published with {e.sources.length} {e.sources.length === 1 ? 'source' : 'sources'}: {e.sources.join(', ')}
+            Published with {e.sources.length} {e.sources.length === 1 ? 'source' : 'sources'}: {e.sources.map(stripWeight).join(', ')}
           </div>
         )}
       </Event>
@@ -219,11 +226,11 @@ function renderEvent(e, i) {
               {srcs.map((x, k) => (
                 <React.Fragment key={k}>
                   {k > 0 ? ', ' : ''}
-                  <span style={x.removed ? { textDecoration: 'line-through', color: COLORS.faded } : undefined}>{x.label}</span>
+                  <span style={x.removed ? { textDecoration: 'line-through', color: COLORS.faded } : undefined}>{(x.refreshed || x.removed) ? x.label : stripWeight(x.label)}</span>
                 </React.Fragment>
               ))}
               .
-              {reenc.filter((x) => x.note).map((x, k) => (
+              {srcs.filter((x) => x.note).map((x, k) => (
                 <div key={k} style={{ marginTop: 4, fontSize: 12, color: COLORS.faded, lineHeight: 1.45 }}>{x.note}</div>
               ))}
             </>

@@ -121,6 +121,14 @@ function collapseMoves(changes) {
   return [...byItem.values()].filter((c) => !(c.prevRank !== null && c.prevRank !== undefined && c.prevRank === c.rank));
 }
 
+// A reduced-weight annotation ("· 0.5x Weight") is a re-encode refinement, not
+// part of a source as originally added. Strip it for the ADD/launch contexts so
+// the weight shows up only in the "Re-encoded" box where the change happened.
+// Mirrored in app/feed/FeedClient.jsx.
+function stripWeight(label) {
+  return typeof label === 'string' ? label.replace(/\s*·\s*[\d.]+x\s*Weight/i, '') : label;
+}
+
 const MONO = "'DM Mono', monospace";
 const SERIF = "'Fraunces', serif";
 const SANS = "'DM Sans', sans-serif";
@@ -201,7 +209,12 @@ function Badge({ icon, color, children, live, date, extra }) {
   );
 }
 
-function SourceCard({ s, tag, note }) {
+// `strike` (not s.removed) drives the line-through, so a removed source is only
+// struck where the card is ABOUT its removal (the Source removed card and the
+// Removed-tagged bubble in a revisit) -- never in the launch listing, where it
+// was a genuine source at publish time. `label` overrides s.label when given
+// (the add/launch contexts pass a weight-stripped label).
+function SourceCard({ s, tag, note, strike, label }) {
   return (
     <div
       style={{
@@ -213,7 +226,7 @@ function SourceCard({ s, tag, note }) {
         color: COLORS.ink,
       }}
     >
-      <span style={s.removed ? { textDecoration: 'line-through', color: COLORS.faded } : undefined}>{s.label}</span>
+      <span style={strike ? { textDecoration: 'line-through', color: COLORS.faded } : undefined}>{label != null ? label : s.label}</span>
       {tag && (
         <span
           style={{
@@ -542,7 +555,16 @@ export default function ActivityFeed({ list, voteData, extras }) {
                   })()}
                 </div>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 5 }}>
-                  {g.sources.map((s, k) => (<SourceCard key={k} s={s} tag={g.mixed ? (s.removed ? 'Removed' : s.refreshed ? 'Re-encoded' : 'Added') : undefined} note={s.refreshed ? (list.sourceRevisions || {})[s.id] : undefined} />))}
+                  {g.sources.map((s, k) => (
+                    <SourceCard
+                      key={k}
+                      s={s}
+                      tag={g.mixed ? (s.removed ? 'Removed' : s.refreshed ? 'Re-encoded' : 'Added') : undefined}
+                      strike={s.removed}
+                      label={(s.refreshed || s.removed) ? s.label : stripWeight(s.label)}
+                      note={(s.refreshed || s.removed) ? (list.sourceRevisions || {})[s.id] : undefined}
+                    />
+                  ))}
                 </div>
                 {hasChanges && (
                   <div style={{ display: 'flex', flexDirection: 'column', gap: 6, marginTop: 10 }}>
@@ -699,11 +721,17 @@ export default function ActivityFeed({ list, voteData, extras }) {
                   {g.sources.length === 1 ? 'Source removed' : 'Sources removed'}
                 </Badge>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 5, marginTop: 9 }}>
-                  {g.sources.map((s, k) => (
-                    <div key={k} style={{ background: '#fff', border: `1px solid ${COLORS.paper}`, borderRadius: 7, padding: '7px 11px', fontSize: 13 }}>
-                      <span style={{ textDecoration: 'line-through', color: COLORS.faded }}>{s.label}</span>
-                    </div>
-                  ))}
+                  {g.sources.map((s, k) => {
+                    const note = s.id ? (list.sourceRevisions || {})[s.id] : undefined;
+                    return (
+                      <div key={k} style={{ background: '#fff', border: `1px solid ${COLORS.paper}`, borderRadius: 7, padding: '7px 11px', fontSize: 13 }}>
+                        <span style={{ textDecoration: 'line-through', color: COLORS.faded }}>{s.label}</span>
+                        {note && (
+                          <div style={{ marginTop: 4, fontSize: 12, color: COLORS.faded, lineHeight: 1.45 }}>{note}</div>
+                        )}
+                      </div>
+                    );
+                  })}
                 </div>
               </section>
             );
@@ -729,7 +757,7 @@ export default function ActivityFeed({ list, voteData, extras }) {
                   </div>
                   <div style={{ display: 'flex', flexDirection: 'column', gap: 5 }}>
                     {launchSources.map((s, k) => (
-                      <SourceCard key={k} s={s} />
+                      <SourceCard key={k} s={s} label={stripWeight(s.label)} />
                     ))}
                   </div>
                 </div>

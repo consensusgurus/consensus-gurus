@@ -117,7 +117,7 @@ export async function GET(request) {
 
     const removedSources = seenRows
       .filter((r) => !currentIds.has(r.source_id))
-      .map((r) => { const cur = seenMap.get(r.source_id) || r; return { label: cur.label || r.label || r.source_id, removedAt: cur.removed_at || r.removed_at || nowIso }; })
+      .map((r) => { const cur = seenMap.get(r.source_id) || r; return { id: r.source_id, label: cur.label || r.label || r.source_id, removedAt: cur.removed_at || r.removed_at || nowIso }; })
       .sort((a, b) => new Date(b.removedAt || 0) - new Date(a.removedAt || 0));
 
     const editorNotes = (notesRes.data || []).map((r) => ({ note: r.note, createdAt: r.created_at }));

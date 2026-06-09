@@ -480,19 +480,30 @@ function Home({ lists, viewCounts, voteData, extras, trending = {}, openList, on
     });
   }, [filtered, viewCounts, trending, lists, sortBy, discoverOrder]);
 
-  // Randomly mark some lists as "featured": double-height tiles that preview the
-  // full top 10 instead of the top 3. A cooldown of 5 guarantees at least 5 lists
+  // Mark some lists as "featured": double-height tiles that preview the full
+  // top 10 instead of the top 3. A cooldown of 5 guarantees at least 5 lists
   // between featured tiles, which keeps at most one featured tile per row for any
-  // layout up to 5 columns. Re-randomizes whenever the sorted set changes.
+  // layout up to 5 columns. The selection is SEEDED from discoverSeed (xorshift32,
+  // same family as seededShuffle) -- never Math.random() -- so the double/single
+  // tile pattern is identical on a Back navigation (the seed is restored). With
+  // raw Math.random() the featured set re-rolled on every remount, so tiles
+  // flipped between double and single height, the page reflowed, and the restored
+  // scrollY landed on different content. Re-derives whenever the seed or sorted
+  // set changes.
   const featuredIds = useMemo(() => {
     const set = new Set();
+    let s = ((discoverSeed >>> 0) ^ 0x9e3779b9) >>> 0 || 1;
+    const rand = () => {
+      s ^= s << 13; s ^= s >>> 17; s ^= s << 5;
+      return (s >>> 0) / 0x100000000;
+    };
     let cooldown = 0;
     for (let i = 0; i < sorted.length; i++) {
       if (cooldown > 0) { cooldown--; continue; }
-      if (Math.random() < 0.5) { set.add(sorted[i].id); cooldown = 5; }
+      if (rand() < 0.5) { set.add(sorted[i].id); cooldown = 5; }
     }
     return set;
-  }, [sorted]);
+  }, [sorted, discoverSeed]);
 
   const totalViews = Object.values(viewCounts).reduce((a, b) => a + b, 0);
 

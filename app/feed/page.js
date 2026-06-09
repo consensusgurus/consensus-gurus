@@ -168,7 +168,7 @@ export default async function FeedPage() {
     if (host) {
       const lbl = r.label || r.source_id;
       host.labels.push(lbl);
-      host.srcs.push({ label: lbl, removed: true });
+      host.srcs.push({ label: lbl, removed: true, note: revisionOf.get(`${r.list_id}::${r.source_id}`) || null });
       host.mixed = true;
     }
   });
