@@ -75,43 +75,6 @@ export async function GET(request) {
     }
   }
 
-  // ?auditVoteImpact=1 -> READ-ONLY. For every list that has fan votes, compare
-  // its publication-only consensus top 10 against the consensus WITH votes, and
-  // report the lists where the votes actually change the ranking (and exactly
-  // what moves). Lists not listed have votes that do not alter the standings, so
-  // there is correctly no vote-driven movement to trace.
-  if (new URL(request.url).searchParams.get('auditVoteImpact') === '1') {
-    try {
-      const [vrows, erows] = await Promise.all([
-        fetchAll('votes', 'list_id,item_name,score', ['list_id', 'item_name']),
-        fetchAll('extras', 'list_id,item_name', ['list_id', 'item_name']),
-      ]);
-      const votes = {};
-      for (const r of vrows) votes[`${r.list_id}::${r.item_name.toLowerCase().trim()}`] = Math.max(0, r.score || 0);
-      const extras = {};
-      for (const r of erows) { if (!extras[r.list_id]) extras[r.list_id] = []; extras[r.list_id].push(r.item_name); }
-      const votedLists = [...new Set(vrows.filter((r) => (r.score || 0) > 0).map((r) => r.list_id))];
-      const report = [];
-      for (const lid of votedLists) {
-        const list = LISTS.find((l) => l.id === lid);
-        if (!list) continue;
-        const pub = consensusTop10(list, {}, extras);
-        const wv = consensusTop10(list, votes, extras);
-        const changed = pub.length !== wv.length || pub.some((x, i) => x !== wv[i]);
-        if (changed) {
-          const moved = [...new Set([...pub, ...wv])]
-            .filter((it) => pub.indexOf(it) !== wv.indexOf(it))
-            .map((it) => `${it}: ${pub.indexOf(it) + 1 || 'out'}->${wv.indexOf(it) + 1 || 'out'}`);
-          report.push({ listId: lid, moved });
-        }
-      }
-      return NextResponse.json({ ok: true, votedLists: votedLists.length, listsWhereVotesChangeRanking: report.length, report });
-    } catch (err) {
-      console.error('auditVoteImpact error', err);
-      return NextResponse.json({ error: 'auditVoteImpact failed' }, { status: 500 });
-    }
-  }
-
   try {
     const [votesRows, extrasRows, snapsRows, alertsRows, seenRows] = await Promise.all([
       fetchAll('votes', 'list_id,item_name,score', ['list_id', 'item_name']),
