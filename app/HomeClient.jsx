@@ -556,7 +556,7 @@ function Home({ lists, viewCounts, voteData, extras, trending = {}, openList, on
       </header>
 
       <section style={{ padding: '10px 16px 80px', maxWidth: 1200, margin: '0 auto' }}>
-        <style>{`.cg-controls{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-bottom:16px;}.cg-controls>*{height:50px;min-width:0;}@media(max-width:760px){.cg-controls{grid-template-columns:1fr 1fr;}}`}</style>
+        <style>{`.cg-controls{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-bottom:16px;}.cg-controls>*{height:50px;min-width:0;}@media(max-width:760px){.cg-controls{grid-template-columns:1fr 1fr;}}@media(max-width:760px){.cg-c-search input{font-size:16px !important;}}`}</style>
         <div className="cg-controls">
           <div className="cg-c-search" style={{ position: 'relative', minWidth: 0, order: 3 }}>
             <Search size={16} strokeWidth={2.5} style={{ position: 'absolute', left: 14, top: '50%', transform: 'translateY(-50%)', color: COLORS.faded }} />
@@ -1083,15 +1083,15 @@ function Tile({ list, rank, views, voteData, extras, onClick, showConsensus, fea
           opacity: 0.85,
         }}
       >
-        <span style={{ display: 'flex', alignItems: 'center', gap: 6, minWidth: 0 }}>
-          <Eye size={12} strokeWidth={2} />
-          <span>{views} visitors</span>
-        </span>
         {sourceCount > 0 && (
           <span style={{ flexShrink: 0, whiteSpace: 'nowrap' }}>
             Sources: {sourceCount}
           </span>
         )}
+        <span style={{ display: 'flex', alignItems: 'center', gap: 6, minWidth: 0 }}>
+          <Eye size={12} strokeWidth={2} />
+          <span>{views} visitors</span>
+        </span>
       </div>
     </button>
   );
