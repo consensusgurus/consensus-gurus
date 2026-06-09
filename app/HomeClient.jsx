@@ -484,7 +484,7 @@ function Home({ lists, viewCounts, voteData, extras, trending = {}, openList, on
   // top 10 instead of the top 3. A cooldown of 5 guarantees at least 5 lists
   // between featured tiles, which keeps at most one featured tile per row for any
   // layout up to 5 columns. The selection is SEEDED from discoverSeed (xorshift32,
-  // same family as seededShuffle) -- never Math.random() -- so the double/single
+  // same family as seededShuffle) — never Math.random() — so the double/single
   // tile pattern is identical on a Back navigation (the seed is restored). With
   // raw Math.random() the featured set re-rolled on every remount, so tiles
   // flipped between double and single height, the page reflowed, and the restored
@@ -644,7 +644,7 @@ function Home({ lists, viewCounts, voteData, extras, trending = {}, openList, on
       </header>
 
       <section style={{ padding: '10px 16px 80px', maxWidth: 1200, margin: '0 auto' }}>
-        <style>{`.cg-controls{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-bottom:16px;}.cg-controls>*{height:50px;min-width:0;}@media(max-width:760px){.cg-controls{grid-template-columns:1fr 1fr;}}@media(max-width:760px){.cg-c-search input{font-size:16px !important;}}`}</style>
+        <style>{`.cg-controls{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-bottom:16px;}.cg-controls>*{height:50px;min-width:0;}.cg-ctrl-label{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;min-width:0;}@media(max-width:760px){.cg-controls{grid-template-columns:1fr 1fr;}.cg-c-search input{font-size:16px !important;}.cg-ctrl-btn{justify-content:space-between !important;letter-spacing:0.05em !important;padding:0 10px !important;gap:6px !important;}}`}</style>
         <div className="cg-controls">
           <div className="cg-c-search" style={{ position: 'relative', minWidth: 0, order: 3 }}>
             <Search size={16} strokeWidth={2.5} style={{ position: 'absolute', left: 14, top: '50%', transform: 'translateY(-50%)', color: COLORS.faded }} />
@@ -663,8 +663,8 @@ function Home({ lists, viewCounts, voteData, extras, trending = {}, openList, on
           </div>
 
           <div style={{ position: 'relative', minWidth: 0, order: 2 }} onClick={(e) => e.stopPropagation()}>
-            <button onClick={() => { setCatOpen((o) => !o); setSortOpen(false); }} aria-haspopup="true" aria-expanded={catOpen} style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, background: '#bdb3a0', color: COLORS.ink, border: `1.5px solid ${COLORS.ink}`, padding: '0 14px', fontFamily: 'DM Mono, monospace', fontSize: 11, letterSpacing: '0.14em', textTransform: 'uppercase', fontWeight: 600, cursor: 'pointer', whiteSpace: 'nowrap', overflow: 'hidden' }}>
-              <span><span style={{ opacity: 0.8 }}>Category:</span> {activeFilterLabel}</span>
+            <button className="cg-ctrl-btn" onClick={() => { setCatOpen((o) => !o); setSortOpen(false); }} aria-haspopup="true" aria-expanded={catOpen} style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, background: '#bdb3a0', color: COLORS.ink, border: `1.5px solid ${COLORS.ink}`, padding: '0 14px', fontFamily: 'DM Mono, monospace', fontSize: 11, letterSpacing: '0.14em', textTransform: 'uppercase', fontWeight: 600, cursor: 'pointer', whiteSpace: 'nowrap', overflow: 'hidden' }}>
+              <span className="cg-ctrl-label"><span style={{ opacity: 0.8 }}>Category:</span> {activeFilterLabel}</span>
               <ChevronDown size={14} strokeWidth={2.5} style={{ transform: catOpen ? 'rotate(180deg)' : 'none', transition: 'transform 0.15s' }} />
             </button>
             {catOpen && (() => {
@@ -739,8 +739,8 @@ function Home({ lists, viewCounts, voteData, extras, trending = {}, openList, on
           </div>
 
           <div style={{ position: 'relative', minWidth: 0, order: 1 }} onClick={(e) => e.stopPropagation()}>
-            <button onClick={() => { setSortOpen((o) => !o); setCatOpen(false); }} aria-haspopup="true" aria-expanded={sortOpen} style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, background: COLORS.ink, color: COLORS.cream, border: `1.5px solid ${COLORS.ink}`, padding: '0 14px', fontFamily: 'DM Mono, monospace', fontSize: 11, letterSpacing: '0.14em', textTransform: 'uppercase', fontWeight: 600, cursor: 'pointer', whiteSpace: 'nowrap', overflow: 'hidden' }}>
-              <span><span style={{ opacity: 0.8 }}>Sort:</span> {(sortButtons.find((o) => o.id === sortBy) || {}).short || 'Discover'}</span>
+            <button className="cg-ctrl-btn" onClick={() => { setSortOpen((o) => !o); setCatOpen(false); }} aria-haspopup="true" aria-expanded={sortOpen} style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, background: COLORS.ink, color: COLORS.cream, border: `1.5px solid ${COLORS.ink}`, padding: '0 14px', fontFamily: 'DM Mono, monospace', fontSize: 11, letterSpacing: '0.14em', textTransform: 'uppercase', fontWeight: 600, cursor: 'pointer', whiteSpace: 'nowrap', overflow: 'hidden' }}>
+              <span className="cg-ctrl-label"><span style={{ opacity: 0.8 }}>Sort:</span> {(sortButtons.find((o) => o.id === sortBy) || {}).short || 'Discover'}</span>
               <ChevronDown size={14} strokeWidth={2.5} style={{ transform: sortOpen ? 'rotate(180deg)' : 'none', transition: 'transform 0.15s' }} />
             </button>
             {sortOpen && (

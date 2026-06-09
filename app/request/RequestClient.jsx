@@ -90,6 +90,8 @@ function RequestView({ onBack, onSubmit }) {
     color: COLORS.ink,
     outline: 'none',
     fontVariationSettings: '"SOFT" 100',
+    boxSizing: 'border-box',
+    textOverflow: 'ellipsis',
   };
 
   const textareaStyle = {
@@ -150,10 +152,10 @@ function RequestView({ onBack, onSubmit }) {
         <h1
           style={{
             fontFamily: 'Fraunces, serif',
-            fontWeight: 600,
+            fontWeight: 900,
             fontSize: 'clamp(42px, 10vw, 84px)',
             lineHeight: 0.9,
-            letterSpacing: '-0.015em',
+            letterSpacing: '-0.03em',
             margin: 0,
             color: COLORS.ink,
             fontVariationSettings: '"SOFT" 100',
@@ -318,7 +320,7 @@ function RequestView({ onBack, onSubmit }) {
           <input
             style={inputStyle}
             type="text"
-            placeholder="Personal favorites, by reputation, by sand quality..."
+            placeholder="By reputation, sand quality..."
             value={criteria}
             onChange={(e) => setCriteria(e.target.value)}
             maxLength={140}
