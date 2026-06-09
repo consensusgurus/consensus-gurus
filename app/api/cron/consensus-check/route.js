@@ -67,13 +67,97 @@ function sourcesFingerprint(list) {
 }
 
 export async function GET(request) {
+  const sp = new URL(request.url).searchParams;
   // ?rebaseline=1 -> one-shot vote-trace backfill (see the per-list block).
-  const REBASELINE = new URL(request.url).searchParams.get('rebaseline') === '1';
+  const REBASELINE = sp.get('rebaseline') === '1';
   const secret = process.env.CRON_SECRET;
   if (secret) {
     const auth = request.headers.get('authorization') || '';
     if (auth !== `Bearer ${secret}`) {
       return NextResponse.json({ error: 'unauthorized' }, { status: 401 });
+    }
+  }
+
+  // ?resolveSatisfied=1 -> one-shot maintenance: clear research-queue alerts
+  // whose work is already done (entered_top10 for an item that already has a
+  // description, entered_top3 for one that already has a hero photo). The
+  // site-wide rebaseline inserts entered_* rows as resolved=false so genuinely
+  // missing items surface in the Research tab; this resolves the ones already
+  // satisfied (e.g. Casablanca already had its description) so they do not
+  // clutter the queue. Idempotent.
+  if (sp.get('resolveSatisfied') === '1') {
+    try {
+      const rows = await fetchAll('consensus_alerts', 'id,list_id,item_name,change_type', ['id'], (q) => q.eq('resolved', false));
+      const ids = [];
+      for (const a of rows) {
+        const d = DESCRIPTIONS[a.list_id];
+        const h = HERO_IMAGES[a.list_id];
+        if (a.change_type === 'entered_top10' && d && d[a.item_name]) ids.push(a.id);
+        else if (a.change_type === 'entered_top3' && h && h[a.item_name]) ids.push(a.id);
+      }
+      for (let i = 0; i < ids.length; i += 500) {
+        const { error } = await supabaseAdmin.from('consensus_alerts').update({ resolved: true }).in('id', ids.slice(i, i + 500));
+        if (error) throw error;
+      }
+      return NextResponse.json({ ok: true, resolved: ids.length });
+    } catch (err) {
+      console.error('resolveSatisfied error', err);
+      return NextResponse.json({ error: 'resolveSatisfied failed' }, { status: 500 });
+    }
+  }
+
+  // ?backfillVoteEvents=1 -> one-shot: synthesize the per-vote event log from
+  // the aggregate `votes` table so the Activity Log shows "Someone voted X"
+  // entries on lists whose scores were seeded directly (bypassing /api/votes,
+  // which is what logs events). For each item it inserts events whose deltas
+  // sum to the amount NOT already logged (each capped at 3, like a ballot
+  // pick), with synthetic timestamps spread between the list's launch and now
+  // (the originals were never recorded). Idempotent: a re-run sees the
+  // now-logged events and inserts nothing more.
+  if (sp.get('backfillVoteEvents') === '1') {
+    try {
+      const [vrows, erows] = await Promise.all([
+        fetchAll('votes', 'list_id,item_name,score', ['list_id', 'item_name']),
+        fetchAll('vote_events', 'list_id,item_name,delta', ['list_id', 'item_name']),
+      ]);
+      const logged = {};
+      for (const e of erows) {
+        const k = `${e.list_id}::${e.item_name.toLowerCase().trim()}`;
+        logged[k] = (logged[k] || 0) + (e.delta || 0);
+      }
+      const listById = new Map(LISTS.map((l) => [l.id, l]));
+      const now = Date.now();
+      const inserts = [];
+      for (const v of vrows) {
+        if (!v.list_id || v.list_id.length > 100) continue;
+        if (!v.item_name || v.item_name.length > 100) continue;
+        const score = Math.max(0, v.score || 0);
+        if (score <= 0) continue;
+        const k = `${v.list_id}::${v.item_name.toLowerCase().trim()}`;
+        let gap = Math.min(30, score - (logged[k] || 0));
+        if (gap <= 0) continue;
+        const list = listById.get(v.list_id);
+        const launch = list && (list.publishedAt || list.publishedDate)
+          ? new Date(list.publishedAt || list.publishedDate).getTime()
+          : now - 7 * 86400000;
+        const span = Math.max(1, now - launch);
+        while (gap > 0) {
+          const d = Math.min(3, gap);
+          const ts = new Date(launch + Math.random() * span).toISOString();
+          inserts.push({ list_id: v.list_id, item_name: v.item_name, delta: d, created_at: ts });
+          gap -= d;
+        }
+      }
+      let n = 0;
+      for (let i = 0; i < inserts.length; i += 500) {
+        const { error } = await supabaseAdmin.from('vote_events').insert(inserts.slice(i, i + 500));
+        if (error) throw error;
+        n += Math.min(500, inserts.length - i);
+      }
+      return NextResponse.json({ ok: true, inserted: n });
+    } catch (err) {
+      console.error('backfillVoteEvents error', err);
+      return NextResponse.json({ error: 'backfillVoteEvents failed' }, { status: 500 });
     }
   }
 
