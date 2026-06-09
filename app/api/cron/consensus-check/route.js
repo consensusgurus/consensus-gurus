@@ -161,6 +161,84 @@ export async function GET(request) {
     }
   }
 
+  // ?cleanupVoteKeys=1 -> tidy non-canonical aggregate vote keys. A vote whose
+  // item_name does not EXACTLY match a canonical item in its list (sources +
+  // vote.items + extras) is classified as either:
+  //   - NEAR-MATCH: a canonical item exists whose name minus its trailing
+  //     parenthetical equals the orphan (e.g. "the dark knight" ->
+  //     "The Dark Knight (2008)"). Merged into the canonical item: score added,
+  //     vote_events renamed, the stray row removed. Non-destructive (no votes
+  //     lost; they just count toward the right item and start scoring).
+  //   - TRUE ORPHAN: no canonical match at all (e.g. "Inception" on a list that
+  //     does not carry it). These never score. Reported always; deleted only
+  //     when &deleteOrphans=1.
+  // Dry run by default (read-only). &apply=1 performs the merges; add
+  // &deleteOrphans=1 to also remove true orphans. Idempotent.
+  if (sp.get('cleanupVoteKeys') === '1') {
+    try {
+      const apply = sp.get('apply') === '1';
+      const deleteOrphans = sp.get('deleteOrphans') === '1';
+      const [vrows, erows] = await Promise.all([
+        fetchAll('votes', 'list_id,item_name,score', ['list_id', 'item_name']),
+        fetchAll('extras', 'list_id,item_name', ['list_id', 'item_name']),
+      ]);
+      const norm = (s) => String(s).toLowerCase().trim();
+      const strip = (s) => norm(s).replace(/\s*\([^)]*\)\s*$/, '').trim();
+      const extrasByList = {};
+      for (const e of erows) {
+        if (!extrasByList[e.list_id]) extrasByList[e.list_id] = [];
+        extrasByList[e.list_id].push(e.item_name);
+      }
+      const uniByList = new Map();
+      for (const list of LISTS) {
+        const byNorm = new Map();
+        const add = (name) => { if (name) byNorm.set(norm(name), name); };
+        if (list.sources) for (const s of Object.values(list.sources)) if (s && Array.isArray(s.items)) s.items.forEach(add);
+        if (list.vote && Array.isArray(list.vote.items)) list.vote.items.forEach(add);
+        (extrasByList[list.id] || []).forEach(add);
+        uniByList.set(list.id, byNorm);
+      }
+      const scoreByKey = {};
+      for (const v of vrows) scoreByKey[`${v.list_id}::${norm(v.item_name)}`] = v.score || 0;
+      const merges = [];
+      const orphans = [];
+      for (const v of vrows) {
+        const byNorm = uniByList.get(v.list_id);
+        if (!byNorm) continue;
+        const nk = norm(v.item_name);
+        if (byNorm.has(nk)) continue;
+        const sk = strip(v.item_name);
+        let target = null;
+        for (const [cn, canonical] of byNorm) { if (cn !== nk && strip(canonical) === sk) { target = canonical; break; } }
+        if (target) merges.push({ list_id: v.list_id, from: v.item_name, to: target, score: v.score || 0 });
+        else orphans.push({ list_id: v.list_id, item_name: v.item_name, score: v.score || 0 });
+      }
+      if (!apply) return NextResponse.json({ ok: true, dryRun: true, mergeCount: merges.length, orphanCount: orphans.length, merges, orphans });
+      let merged = 0, deleted = 0;
+      for (const m of merges) {
+        const tgtKey = `${m.list_id}::${norm(m.to)}`;
+        const tgtScore = scoreByKey[tgtKey] || 0;
+        const up = await supabaseAdmin.from('votes').upsert({ list_id: m.list_id, item_name: m.to, score: tgtScore + m.score }, { onConflict: 'list_id,item_name' });
+        if (up.error) throw up.error;
+        scoreByKey[tgtKey] = tgtScore + m.score;
+        await supabaseAdmin.from('vote_events').update({ item_name: m.to }).eq('list_id', m.list_id).eq('item_name', m.from);
+        await supabaseAdmin.from('votes').delete().eq('list_id', m.list_id).eq('item_name', m.from);
+        merged++;
+      }
+      if (deleteOrphans) {
+        for (const o of orphans) {
+          await supabaseAdmin.from('vote_events').delete().eq('list_id', o.list_id).eq('item_name', o.item_name);
+          await supabaseAdmin.from('votes').delete().eq('list_id', o.list_id).eq('item_name', o.item_name);
+          deleted++;
+        }
+      }
+      return NextResponse.json({ ok: true, merged, deleted, orphansRemaining: deleteOrphans ? 0 : orphans.length });
+    } catch (err) {
+      console.error('cleanupVoteKeys error', err);
+      return NextResponse.json({ error: 'cleanupVoteKeys failed' }, { status: 500 });
+    }
+  }
+
   try {
     const [votesRows, extrasRows, snapsRows, alertsRows, seenRows] = await Promise.all([
       fetchAll('votes', 'list_id,item_name,score', ['list_id', 'item_name']),
