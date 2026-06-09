@@ -1210,6 +1210,14 @@ if (missing.length) throw new Error('Missing descriptions: ' + missing.join(', '
   2026-06-05): the Eater lead image was captioned "Dan and John's wings" but was filed under
   Madame Vo. When attribution cannot be confirmed, find a different photo (venue site, Yelp
   business gallery) rather than guessing.
+- **Never trust a CDN filename as proof the image shows the correct venue.** Editorial CMS systems
+  routinely mislabel uploaded files. A URL containing `RedHookTavern_Burger.jpg` does not guarantee
+  the photo actually shows Red Hook Tavern's food — the file could be misnamed in the CMS. Always
+  visually verify the image looks like the venue's known food and style (compare against their own
+  website, Instagram, or Yelp photos), and prefer sourcing from the venue's own site when a good
+  photo exists there. This caught the `burgers-nyc` Red Hook Tavern hero (2026-06-08): the Eater
+  CDN filename said "RedHookTavern" but the image showed a different restaurant's thick patty burger,
+  not Red Hook Tavern's signature smash burger.
 - **Stable-host check for hotlinked URLs:** prefer images.pexels.com / editorial CDNs /
   upload.wikimedia.org / venue sites; avoid expiring signed URLs (fbcdn, Instagram CDN,
   googleusercontent thumbnails) — they die and blank the tile.
