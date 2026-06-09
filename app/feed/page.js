@@ -188,7 +188,10 @@ export default async function FeedPage() {
       });
     }
     if (best) best.changes.push(ev);
-    else events.push(ev);
+    // Drop loose vote-caused changes: the live vote replay shows vote movements
+    // under their session, so a detached vote change would duplicate it. Edit
+    // (source) changes still stand alone.
+    else if (ev.cause !== 'votes') events.push(ev);
   });
   srcGroups.forEach((g) => events.push(g));
 

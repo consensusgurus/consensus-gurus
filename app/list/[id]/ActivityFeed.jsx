@@ -430,7 +430,12 @@ export default function ActivityFeed({ list, voteData, extras }) {
       });
     }
     if (best) best.changes.push(ev);
-    else looseChanges.push(ev);
+    // A vote-caused change that did not attach to a voting session (e.g. the
+    // daily cron detected it well after the ballot, beyond the 26h window) must
+    // NOT render as a standalone card: the live vote replay already shows vote
+    // movements under their session, so a loose vote change duplicates it.
+    // Edit-caused (source) loose changes still stand alone.
+    else if (ev.cause !== 'votes') looseChanges.push(ev);
   });
 
   // Live voting impact: replay the vote events backwards from the current
