@@ -130,8 +130,38 @@ Implemented in `lib/helpers.js` `getSources` and mirrored in `scripts/generate-o
 **Known true experts:**
 
 - **Johnny Novo** (`johnnynovo.com/rankings/...`) — a rigorous, single-author burger ranking with per-establishment ratings. Used as a true expert on `burgers-nyc`. Order his source by the published rating, descending (it is a ranked source, not `unordered`).
-- **Dave Portnoy / One Bite** (`onebite.app`) — numeric pizza scores (publicly readable, not image-gated like the Infatuation). Used as a true expert on **all pizza lists**. Gather scores live via Chrome, order descending by score. Source id: `portnoy`. This is the primary mechanism for surfacing excellent new pizza spots that predate most editorial lists.
+- **Dave Portnoy / One Bite** (`onebite.app`) — numeric pizza scores (publicly readable, not image-gated like the Infatuation). Used as a true expert on **all pizza lists**. Gather scores live via Chrome, order descending by score. Source id: `portnoy`. This is the primary mechanism for surfacing excellent new pizza spots that predate most editorial lists. **Every Portnoy review is also a YouTube video, so pizza lists carry a per-item `Portnoy Review` play button** (see True-expert video content below).
 - **Source of Truths (SoT)** — the in-house ranking produced by the SoT True Expert input process below. Source id: `sot`. Used only on lists where the owner explicitly requests it.
+
+### True-expert video content — per-item play button (`itemVideo` / `itemVideoLabel`)
+
+When a true-expert source ALSO publishes a video review per item (the One Bite / Dave Portnoy
+reviews are each a standalone YouTube video; the same applies to any future video-publishing true
+expert), surface that video on the list as a **play button on each item**, so a reader can watch the
+expert's actual review. This is in addition to the source's ranked score data, not a replacement for
+it. Required on every pizza list (each `portnoy` source item that has a video).
+
+- **Data field: `itemVideo`** — an object on the list mapping the exact item-name string (parenthetical
+  and all, byte-for-byte identical to the name used everywhere else) to the **official YouTube watch
+  URL** of the review, e.g. `'Regina Pizzeria (North End)': 'https://www.youtube.com/watch?v=XXXXXXXXXXX'`.
+  Cover the union of the relevant source's items plus `vote.items`. A missing per-item entry simply
+  drops the button for that item.
+- **Label: `itemVideoLabel`** — a string on the list that sets the button text. Defaults to `'Video'`
+  in code; **set it to `'Portnoy Review'` on every pizza list** (and to the analogous expert name on any
+  future video-publishing true expert). One label per list.
+- **How it renders:** a filled play-button chip (ember background, ▶ icon) appears in the per-item
+  expanded link panel on the list page AND in the overview-tile link row, opening the video in a new
+  tab. Implemented via `itemVideo` in `buildAuxLinks`/`DataRow` in `app/list/[id]/DetailClient.jsx` and
+  `buildLinks`/`LinkRow` in `app/list/[id]/ListOverview.jsx` (the two mirrors must stay logic-identical,
+  like the pics config). It is not tied to location lists, so a future non-location true expert with
+  video works too.
+- **Gathering (live, never guess an ID):** search YouTube through the connected Chrome for the One Bite
+  review of the venue (`one bite pizza review <venue> <city>`), confirm it is the **official upload**
+  (the "One Bite Pizza Reviews" / Barstool Sports channel, Dave Portnoy), and store the canonical
+  `https://www.youtube.com/watch?v=<id>` URL. Reject fan re-uploads, compilations that are not that
+  venue's review, and reaction videos. If a scored item genuinely has no standalone official video,
+  omit it from `itemVideo` (its button just doesn't show) — never fabricate or pattern-guess a video ID.
+
 
 ### SoT True Expert input — the in-house research process
 

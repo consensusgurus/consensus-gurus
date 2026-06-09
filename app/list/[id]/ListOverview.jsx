@@ -1,7 +1,7 @@
 'use client';
 import React, { useState } from 'react';
 import Image from 'next/image';
-import { MapPin, Globe, Camera, ArrowLeft, Eye, PenLine, Share2, ShoppingBag, ExternalLink } from 'lucide-react';
+import { MapPin, Globe, Camera, ArrowLeft, Eye, PenLine, Share2, ShoppingBag, ExternalLink, Play } from 'lucide-react';
 import { COLORS } from '@/lib/data';
 import { DESCRIPTIONS } from '@/lib/descriptions';
 import { HERO_IMAGES } from '@/lib/hero-images';
@@ -43,6 +43,7 @@ function buildLinks(name, list) {
     yelp: pick(list.itemYelp),
     google: `https://www.google.com/search?q=${gq}&tbm=isch`,
     tripadvisor: pick(list.itemTripadvisor),
+    video: pick(list.itemVideo),
   };
 }
 
@@ -155,6 +156,18 @@ function LinkRow({ links, pics, websiteLabel, list }) {
             ) : null
           )}
         </span>
+      )}
+      {/* Video review chip (One Bite / Dave Portnoy YouTube review etc.) —
+          shown for any list with a per-item URL in itemVideo, place or not. */}
+      {links.video && (
+        <a
+          href={links.video}
+          target="_blank"
+          rel="noopener noreferrer"
+          style={{ ...linkBtn(false), background: COLORS.ember, color: COLORS.cream, border: `1px solid ${COLORS.ember}` }}
+        >
+          <Play size={9} strokeWidth={2} fill={COLORS.cream} /> {list.itemVideoLabel || 'Video'}
+        </a>
       )}
     </div>
   );

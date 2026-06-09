@@ -14,6 +14,7 @@ import {
   Share2,
   MapPin,
   Globe,
+  Play,
 } from 'lucide-react';
 import { LISTS, COLORS } from '@/lib/data';
 import { DESCRIPTIONS } from '@/lib/descriptions';
@@ -1592,12 +1593,17 @@ function buildAuxLinks(name, list) {
   // stored for the item; otherwise the chip is omitted and only Google is shown.
   const yelp = pick(list.itemYelp);
   const tripadvisor = pick(list.itemTripadvisor);
+  // Video review link (e.g. a One Bite / Dave Portnoy YouTube review). Present
+  // only when a true-expert source for the topic publishes per-item video and a
+  // real URL is stored in list.itemVideo; otherwise the chip is omitted.
+  const video = pick(list.itemVideo);
   return {
     website,
     map: buildItemLink(name, list),
     yelp,
     google: `https://www.google.com/search?q=${gq}&tbm=isch`,
     tripadvisor,
+    video,
   };
 }
 
@@ -1674,7 +1680,11 @@ function DataRow({ rank, item, list, unranked, showPrice }) {
   // For non-aux items (products, films, etc.) the primary link is still available
   // via buildItemLink — shown as a single chip when expanded.
   const primaryLink = !aux ? buildItemLink(item, list) : null;
-  const hasLinks = !!(aux || primaryLink);
+  // Video review chip (One Bite / Dave Portnoy YouTube review etc.). Shown for
+  // any list that stores a per-item URL in list.itemVideo, location list or not.
+  const video = list.itemVideo ? (list.itemVideo[item] || null) : null;
+  const videoLabel = list.itemVideoLabel || 'Video';
+  const hasLinks = !!(aux || primaryLink || video);
 
   return (
     <li
@@ -1815,6 +1825,16 @@ function DataRow({ rank, item, list, unranked, showPrice }) {
             ) : (
               <a href={primaryLink} target="_blank" rel="noopener noreferrer sponsored" style={auxChip()}>
                 <ExternalLink size={11} strokeWidth={2.2} /> {list.linkLabel || 'View'}
+              </a>
+            )}
+            {video && (
+              <a
+                href={video}
+                target="_blank"
+                rel="noopener noreferrer"
+                style={{ ...auxChip(), background: COLORS.ember, color: COLORS.cream, border: `1.3px solid ${COLORS.ember}` }}
+              >
+                <Play size={11} strokeWidth={2.2} fill={COLORS.cream} /> {videoLabel}
               </a>
             )}
           </div>
