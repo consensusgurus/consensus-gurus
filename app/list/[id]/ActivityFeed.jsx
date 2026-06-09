@@ -11,7 +11,7 @@ import {
   PenLine,
 } from 'lucide-react';
 import { COLORS } from '@/lib/data';
-import { getSources, voteKey } from '@/lib/helpers';
+import { getSources, voteKey, autoSourceNote } from '@/lib/helpers';
 
 const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
 
@@ -211,7 +211,7 @@ function Badge({ icon, color, children, live, date, extra }) {
 
 // `strike` (not s.removed) drives the line-through, so a removed source is only
 // struck where the card is ABOUT its removal (the Source removed card and the
-// Removed-tagged bubble in a revisit) — never in the launch listing, where it
+// Removed-tagged bubble in a revisit) -- never in the launch listing, where it
 // was a genuine source at publish time. `label` overrides s.label when given
 // (the add/launch contexts pass a weight-stripped label).
 function SourceCard({ s, tag, note, strike, label }) {
@@ -430,7 +430,12 @@ export default function ActivityFeed({ list, voteData, extras }) {
       });
     }
     if (best) best.changes.push(ev);
-    else looseChanges.push(ev);
+    // A vote-caused change that did not attach to a voting session (e.g. the
+    // daily cron detected it well after the ballot, beyond the 26h window) must
+    // NOT render as a standalone card: the live vote replay already shows vote
+    // movements under their session, so a loose vote change duplicates it.
+    // Edit-caused (source) loose changes still stand alone.
+    else if (ev.cause !== 'votes') looseChanges.push(ev);
   });
 
   // Live voting impact: replay the vote events backwards from the current
@@ -562,7 +567,7 @@ export default function ActivityFeed({ list, voteData, extras }) {
                       tag={g.mixed ? (s.removed ? 'Removed' : s.refreshed ? 'Re-encoded' : 'Added') : undefined}
                       strike={s.removed}
                       label={(s.refreshed || s.removed) ? s.label : stripWeight(s.label)}
-                      note={(s.refreshed || s.removed) ? (list.sourceRevisions || {})[s.id] : undefined}
+                      note={(s.refreshed || s.removed) ? ((list.sourceRevisions || {})[s.id] || (s.refreshed ? autoSourceNote(s.label) : undefined)) : undefined}
                     />
                   ))}
                 </div>
@@ -818,4 +823,31 @@ export default function ActivityFeed({ list, voteData, extras }) {
 
         <div style={{ background: '#fff', border: `1px solid ${COLORS.faded}`, borderRadius: 10, padding: 11 }}>
           <input
- 
+            value={name}
+            onChange={(e) => setName(e.target.value)}
+            placeholder="Your name (optional)"
+            maxLength={120}
+            style={{ width: '100%', boxSizing: 'border-box', border: 'none', borderBottom: `1px solid ${COLORS.paper}`, background: 'transparent', fontFamily: SANS, fontSize: 13, padding: '5px 2px', marginBottom: 8, outline: 'none', color: COLORS.ink }}
+          />
+          <textarea
+            value={body}
+            onChange={(e) => setBody(e.target.value)}
+            placeholder="Add a comment…"
+            rows={2}
+            maxLength={1000}
+            style={{ width: '100%', boxSizing: 'border-box', border: 'none', background: 'transparent', fontFamily: SANS, fontSize: 13, padding: 2, resize: 'vertical', outline: 'none', color: COLORS.ink }}
+          />
+          <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: 6 }}>
+            <button
+              onClick={postComment}
+              disabled={posting || !body.trim()}
+              style={{ background: COLORS.ember, color: '#fff', border: 'none', fontFamily: MONO, fontSize: 12, letterSpacing: '0.08em', padding: '7px 16px', borderRadius: 7, cursor: posting || !body.trim() ? 'default' : 'pointer', opacity: posting || !body.trim() ? 0.5 : 1 }}
+            >
+              {posting ? 'Posting…' : 'Post comment'}
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
