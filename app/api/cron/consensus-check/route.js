@@ -14,6 +14,7 @@ import { LISTS } from '@/lib/data';
 import { getSources, SCORING_ENGINE_VERSION } from '@/lib/helpers';
 import { DESCRIPTIONS } from '@/lib/descriptions';
 import { HERO_IMAGES } from '@/lib/hero-images';
+import { SOURCE_MOVEMENT_EVENTS } from '@/lib/source-movement-backfill';
 
 export const dynamic = 'force-dynamic';
 export const revalidate = 0;
@@ -181,6 +182,70 @@ export async function GET(request) {
     } catch (err) {
       console.error('purgeAlerts error', err);
       return NextResponse.json({ error: 'purgeAlerts failed' }, { status: 500 });
+    }
+  }
+
+  // ?backfillSourceMovements=1 -> rewrite the per-source-addition ranking-change
+  // cards with their COMPLETE movement set. The daily snapshot diff is coarse:
+  // when two source additions land close together their movements get detected
+  // in one pass and split arbitrarily across the cards (e.g. the Austin Google
+  // /TripAdvisor card showed only Pinthouse when that addition actually moved
+  // ten breweries). SOURCE_MOVEMENT_EVENTS is precomputed from the git history
+  // of lib/data.js: for every commit that ADDED sources to a list, the exact
+  // before/after publication-only consensus is recomputed with vs without just
+  // those sources, isolating that addition's true effect. Here we replace each
+  // affected list's source-caused alerts (cause 'edit') with the complete set,
+  // each movement dated to the added sources' own first_seen_at so it groups
+  // under the right "Sources added" card. Rows are resolved=true (ledger
+  // display only); description/hero gaps are still surfaced by the daily
+  // self-healing backstop. Idempotent (delete-then-replace per affected list).
+  if (sp.get('backfillSourceMovements') === '1') {
+    try {
+      const seen = await fetchAll('list_sources_seen', 'list_id,source_id,first_seen_at', ['list_id', 'source_id']);
+      const seenAt = new Map();
+      for (const r of seen) seenAt.set(`${r.list_id}::${r.source_id}`, r.first_seen_at);
+      const affected = [...new Set(SOURCE_MOVEMENT_EVENTS.map((e) => e.listId))];
+      // Clear the old, mis-split source-caused movement rows for these lists.
+      for (let i = 0; i < affected.length; i += 100) {
+        const chunk = affected.slice(i, i + 100);
+        const del = await supabaseAdmin.from('consensus_alerts').delete().in('list_id', chunk).eq('cause', 'edit');
+        if (del.error) throw del.error;
+      }
+      const rows = [];
+      for (const e of SOURCE_MOVEMENT_EVENTS) {
+        if (!e.movements || !e.movements.length) continue;
+        // Date the card by the earliest first_seen_at of the sources this event
+        // added (so it lands on the existing "Sources added" card); fall back to
+        // the git commit date when the source has not been stamped yet.
+        let when = null;
+        for (const a of e.added) {
+          const fs2 = seenAt.get(`${e.listId}::${a.id}`);
+          if (fs2 && (!when || fs2 < when)) when = fs2;
+        }
+        const detectedAt = when || e.date;
+        for (const m of e.movements) {
+          rows.push({
+            list_id: e.listId,
+            item_name: m.item,
+            change_type: m.changeType,
+            rank: m.rank,
+            prev_rank: m.prevRank,
+            cause: 'edit',
+            resolved: true,
+            detected_at: detectedAt,
+          });
+        }
+      }
+      let inserted = 0;
+      for (let i = 0; i < rows.length; i += 500) {
+        const ins = await supabaseAdmin.from('consensus_alerts').insert(rows.slice(i, i + 500));
+        if (ins.error) throw ins.error;
+        inserted += Math.min(500, rows.length - i);
+      }
+      return NextResponse.json({ ok: true, affectedLists: affected.length, events: SOURCE_MOVEMENT_EVENTS.length, inserted });
+    } catch (err) {
+      console.error('backfillSourceMovements error', err);
+      return NextResponse.json({ error: 'backfillSourceMovements failed' }, { status: 500 });
     }
   }
 
