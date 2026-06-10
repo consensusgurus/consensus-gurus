@@ -910,7 +910,7 @@ export default function ListOverview({ list, voteData, extras, viewCount, onBack
         .lov-row{display:grid;grid-template-columns:52px minmax(0,1fr) 196px;gap:22px;align-items:center;padding:18px 14px;}
         .lov-row-top{grid-template-columns:52px 280px minmax(0,1fr) 196px;}
         @media(max-width:760px){
-          .lov-row,.lov-row-top{grid-template-columns:1fr;gap:12px;padding:20px 6px;}
+          .lov-row,.lov-row-top{grid-template-columns:1fr;gap:12px;padding:20px 16px;}
           .lov-rank{text-align:left !important;}
           .lov-photo{min-height:220px !important;}
           .lov-actions{flex-direction:row !important;flex-wrap:wrap;align-items:center;row-gap:6px;}
