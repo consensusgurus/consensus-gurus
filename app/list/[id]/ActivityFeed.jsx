@@ -11,7 +11,7 @@ import {
   PenLine,
 } from 'lucide-react';
 import { COLORS } from '@/lib/data';
-import { getSources, voteKey, autoSourceNote } from '@/lib/helpers';
+import { getSources, voteKey } from '@/lib/helpers';
 
 const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
 
@@ -211,7 +211,7 @@ function Badge({ icon, color, children, live, date, extra }) {
 
 // `strike` (not s.removed) drives the line-through, so a removed source is only
 // struck where the card is ABOUT its removal (the Source removed card and the
-// Removed-tagged bubble in a revisit) -- never in the launch listing, where it
+// Removed-tagged bubble in a revisit) — never in the launch listing, where it
 // was a genuine source at publish time. `label` overrides s.label when given
 // (the add/launch contexts pass a weight-stripped label).
 function SourceCard({ s, tag, note, strike, label }) {
@@ -409,11 +409,36 @@ export default function ActivityFeed({ list, voteData, extras }) {
     });
   }
 
+  // Standalone removal groups: build them BEFORE attribution so the changes a
+  // source removal produced can attach to its "Source removed" card the way
+  // additions absorb their changes. A removal in the same deploy as additions
+  // /refreshes folds into the host Sources Revisited card instead.
+  const removedGroups = [];
+  {
+    const byTs = new Map();
+    (feed.removedSources || []).forEach((s) => {
+      const k = s.removedAt || '';
+      const t = new Date(s.removedAt || 0).getTime();
+      if (!byTs.has(k)) byTs.set(k, { removedAt: s.removedAt, ts: isNaN(t) ? 0 : t, sources: [], changes: [] });
+      byTs.get(k).sources.push(s);
+    });
+    [...byTs.values()].forEach((g) => {
+      const host = sourceGroups.find((a) => Math.abs(a.ts - g.ts) <= 60 * 60 * 1000);
+      if (host) {
+        g.sources.forEach((s) => host.sources.push({ ...s, removed: true }));
+        host.mixed = true;
+        return;
+      }
+      removedGroups.push(g);
+    });
+  }
+
   // Attribute consensus movements to their cause. Edit-caused changes (and
-  // legacy rows with no recorded cause) attach to the source addition that
-  // preceded them within ~26h; vote-caused changes attach to the voting
-  // session that preceded them the same way, so voting entries show the
-  // movements they produced. Changes with no nearby cause entry stand alone.
+  // legacy rows with no recorded cause) attach to the source addition OR
+  // standalone removal that preceded them within ~26h; vote-caused changes
+  // attach to the voting session that preceded them the same way, so every
+  // cause entry shows the movements it produced. Changes with no nearby
+  // cause entry stand alone.
   const RESEARCH_WINDOW_MS = 26 * 3600 * 1000;
   const looseChanges = [];
   (feed.research || []).forEach((ev) => {
@@ -423,6 +448,9 @@ export default function ActivityFeed({ list, voteData, extras }) {
       sourceGroups.forEach((g) => {
         if (g.ts <= t && t - g.ts <= RESEARCH_WINDOW_MS && (!best || g.ts > best.ts)) best = g;
       });
+      removedGroups.forEach((g) => {
+        if (g.ts <= t && t - g.ts <= RESEARCH_WINDOW_MS && (!best || g.ts > best.ts)) best = g;
+      });
     }
     if (!best && ev.cause === 'votes') {
       voteGroups.forEach((g) => {
@@ -430,15 +458,7 @@ export default function ActivityFeed({ list, voteData, extras }) {
       });
     }
     if (best) best.changes.push(ev);
-    // Orphan changes (no source card or voting session to attach to) are NOT
-    // rendered as standalone cards. Every legitimate ranking change has a
-    // visible cause: a source addition/revision shows a Sources card the
-    // movements attach to, and fan-vote movements show under their voting
-    // session via the live replay. A loose change has no such home, so a bare
-    // "RANKING CHANGE" with no shown cause is just noise: a vote shift the cron
-    // re-detected long after the ballot (a duplicate of the replay), or a list
-    // reseeded/repurposed near launch (items merely being populated). Drop all.
-    // (no else clause: orphan changes are intentionally dropped)
+    else looseChanges.push(ev);
   });
 
   // Live voting impact: replay the vote events backwards from the current
@@ -494,27 +514,7 @@ export default function ActivityFeed({ list, voteData, extras }) {
     const t = new Date(m.createdAt).getTime();
     stream.push({ ts: isNaN(t) ? 0 : t, type: 'managerNote', m });
   });
-  {
-    const byTs = new Map();
-    (feed.removedSources || []).forEach((s) => {
-      const k = s.removedAt || '';
-      const t = new Date(s.removedAt || 0).getTime();
-      if (!byTs.has(k)) byTs.set(k, { removedAt: s.removedAt, ts: isNaN(t) ? 0 : t, sources: [] });
-      byTs.get(k).sources.push(s);
-    });
-    [...byTs.values()].forEach((g) => {
-      // A removal in the same deploy as additions/refreshes folds into that
-      // Sources Revisited card (struck-through, tagged Removed), completing
-      // the revisit story in one box. Standalone removals keep their card.
-      const host = sourceGroups.find((a) => Math.abs(a.ts - g.ts) <= 60 * 60 * 1000);
-      if (host) {
-        g.sources.forEach((s) => host.sources.push({ ...s, removed: true }));
-        host.mixed = true;
-        return;
-      }
-      stream.push({ ts: g.ts, type: 'removedGroup', g });
-    });
-  }
+  removedGroups.forEach((g) => stream.push({ ts: g.ts, type: 'removedGroup', g }));
   const createdMs = Date.parse(created || '');
   stream.push({ ts: isNaN(createdMs) ? 0 : createdMs, type: 'created' });
   stream.sort((a, b) => b.ts - a.ts);
@@ -570,7 +570,7 @@ export default function ActivityFeed({ list, voteData, extras }) {
                       tag={g.mixed ? (s.removed ? 'Removed' : s.refreshed ? 'Re-encoded' : 'Added') : undefined}
                       strike={s.removed}
                       label={(s.refreshed || s.removed) ? s.label : stripWeight(s.label)}
-                      note={(s.refreshed || s.removed) ? ((list.sourceRevisions || {})[s.id] || (s.refreshed ? autoSourceNote(s.label) : undefined)) : undefined}
+                      note={(s.refreshed || s.removed) ? (list.sourceRevisions || {})[s.id] : undefined}
                     />
                   ))}
                 </div>
@@ -720,12 +720,19 @@ export default function ActivityFeed({ list, voteData, extras }) {
             );
           }
 
-          // Sources removed from the list.
+          // Sources removed from the list, plus the ranking changes the
+          // removal produced (same 26h-after attribution as source additions).
           if (te.type === 'removedGroup') {
             const g = te.g;
+            const hasChanges = (g.changes || []).length > 0;
             return (
-              <section key={`te-${i}`} style={{ ...cardStyle(KC.source), ...(last ? { marginBottom: 0 } : {}) }}>
-                <Badge color={KC.source} icon={<BookMarked size={11} strokeWidth={2.5} />} date={g.removedAt ? fmtDate(g.removedAt) : undefined}>
+              <section key={`te-${i}`} style={{ ...cardStyle(hasChanges ? KC.research : KC.source), ...(last ? { marginBottom: 0 } : {}) }}>
+                <Badge
+                  color={KC.source}
+                  icon={<BookMarked size={11} strokeWidth={2.5} />}
+                  extra={hasChanges ? { icon: <RefreshCw size={11} strokeWidth={2.5} />, color: KC.research, label: 'Ranking change' } : undefined}
+                  date={g.removedAt ? fmtDate(g.removedAt) : undefined}
+                >
                   {g.sources.length === 1 ? 'Source removed' : 'Sources removed'}
                 </Badge>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 5, marginTop: 9 }}>
@@ -741,6 +748,19 @@ export default function ActivityFeed({ list, voteData, extras }) {
                     );
                   })}
                 </div>
+                {hasChanges && (
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: 6, marginTop: 10 }}>
+                    {collapseMoves(g.changes).map((ev, k) => {
+                      const { item, tail } = researchLabel(ev);
+                      return (
+                        <div key={k} style={{ fontSize: 13, color: COLORS.ink }}>
+                          <RefreshCw size={11} strokeWidth={2.5} style={{ display: 'inline', verticalAlign: 'middle', marginRight: 5, color: KC.research }} />
+                          <strong style={{ fontWeight: 500, color: KC.research }}>{item}</strong> {tail}.
+                        </div>
+                      );
+                    })}
+                  </div>
+                )}
               </section>
             );
           }
@@ -824,33 +844,4 @@ export default function ActivityFeed({ list, voteData, extras }) {
           })}
         </div>
 
-        <div style={{ background: '#fff', border: `1px solid ${COLORS.faded}`, borderRadius: 10, padding: 11 }}>
-          <input
-            value={name}
-            onChange={(e) => setName(e.target.value)}
-            placeholder="Your name (optional)"
-            maxLength={120}
-            style={{ width: '100%', boxSizing: 'border-box', border: 'none', borderBottom: `1px solid ${COLORS.paper}`, background: 'transparent', fontFamily: SANS, fontSize: 13, padding: '5px 2px', marginBottom: 8, outline: 'none', color: COLORS.ink }}
-          />
-          <textarea
-            value={body}
-            onChange={(e) => setBody(e.target.value)}
-            placeholder="Add a comment…"
-            rows={2}
-            maxLength={1000}
-            style={{ width: '100%', boxSizing: 'border-box', border: 'none', background: 'transparent', fontFamily: SANS, fontSize: 13, padding: 2, resize: 'vertical', outline: 'none', color: COLORS.ink }}
-          />
-          <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: 6 }}>
-            <button
-              onClick={postComment}
-              disabled={posting || !body.trim()}
-              style={{ background: COLORS.ember, color: '#fff', border: 'none', fontFamily: MONO, fontSize: 12, letterSpacing: '0.08em', padding: '7px 16px', borderRadius: 7, cursor: posting || !body.trim() ? 'default' : 'pointer', opacity: posting || !body.trim() ? 0.5 : 1 }}
-            >
-              {posting ? 'Posting…' : 'Post comment'}
-            </button>
-          </div>
-        </div>
-      </div>
-    </div>
-  );
-}
+        <div style={{ background: '#fff', border: `1px solid ${COL
