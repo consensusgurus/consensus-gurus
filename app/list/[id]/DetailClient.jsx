@@ -521,6 +521,28 @@ function ListDetail({ list, viewCount, voteData, userVotes, extras, relatedLists
 
   return (
     <div style={{ position: 'relative', zIndex: 2, maxWidth: 920, margin: '0 auto', padding: '24px 20px 80px' }}>
+      {!compact && (
+        <button
+          onClick={onBack}
+          style={{
+            background: 'transparent',
+            border: 'none',
+            fontFamily: 'DM Mono, monospace',
+            fontSize: 11,
+            letterSpacing: '0.2em',
+            textTransform: 'uppercase',
+            color: COLORS.ink,
+            cursor: 'pointer',
+            display: 'flex',
+            alignItems: 'center',
+            gap: 6,
+            padding: '8px 0',
+          }}
+        >
+          <ArrowLeft size={14} strokeWidth={2.5} />
+          Back to all lists
+        </button>
+      )}
 
       {!compact && <div style={{ paddingBottom: 0, marginTop: 8 }}>
         <div style={{ display: 'flex', alignItems: 'flex-end', gap: 'clamp(16px, 4vw, 28px)' }}>
@@ -627,6 +649,33 @@ function ListDetail({ list, viewCount, voteData, userVotes, extras, relatedLists
             >
               Consensus
             </button>
+            {showSourceTab && (
+              <button
+                onClick={() => setTab('source')}
+                style={{
+                  flex: LIST_RIBBON_V2 ? '1 0 auto' : '1 1 auto',
+                  justifyContent: 'center',
+                  background: tab === 'source' ? COLORS.ember : 'transparent',
+                  color: LIST_RIBBON_V2 ? COLORS.cream : (tab === 'source' ? COLORS.cream : COLORS.ember),
+                  border: LIST_RIBBON_V2 ? 'none' : `1.5px solid ${COLORS.ember}`,
+                  borderRight: LIST_RIBBON_V2 ? '1px solid rgba(244,237,224,0.18)' : undefined,
+                  padding: LIST_RIBBON_V2 ? '0 14px' : '8px 14px',
+                  height: LIST_RIBBON_V2 ? 42 : undefined,
+                  whiteSpace: LIST_RIBBON_V2 ? 'nowrap' : undefined,
+                  fontFamily: 'DM Mono, monospace',
+                  fontSize: 10,
+                  letterSpacing: '0.18em',
+                  textTransform: 'uppercase',
+                  fontWeight: 700,
+                  cursor: 'pointer',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 6,
+                }}
+              >
+                Consensus Sources
+              </button>
+            )}
             <button
               onClick={() => setTab('activity')}
               style={{
@@ -652,6 +701,33 @@ function ListDetail({ list, viewCount, voteData, userVotes, extras, relatedLists
             >
               Activity Log
             </button>
+            {showVoteTab && (
+              <button
+                onClick={() => setTab('vote')}
+                style={{
+                  flex: LIST_RIBBON_V2 ? '1 0 auto' : '1 1 auto',
+                  justifyContent: 'center',
+                  background: tab === 'vote' ? COLORS.ember : 'transparent',
+                  color: LIST_RIBBON_V2 ? COLORS.cream : (tab === 'vote' ? COLORS.cream : COLORS.ember),
+                  border: LIST_RIBBON_V2 ? 'none' : `1.5px solid ${COLORS.ember}`,
+                  borderRight: LIST_RIBBON_V2 ? '1px solid rgba(244,237,224,0.18)' : undefined,
+                  padding: LIST_RIBBON_V2 ? '0 14px' : '8px 14px',
+                  height: LIST_RIBBON_V2 ? 42 : undefined,
+                  whiteSpace: LIST_RIBBON_V2 ? 'nowrap' : undefined,
+                  fontFamily: 'DM Mono, monospace',
+                  fontSize: 10,
+                  letterSpacing: '0.18em',
+                  textTransform: 'uppercase',
+                  fontWeight: 700,
+                  cursor: 'pointer',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 6,
+                }}
+              >
+                Vote
+              </button>
+            )}
             <button
               onClick={() => setTab('share')}
               style={{
