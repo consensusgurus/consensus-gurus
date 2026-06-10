@@ -394,6 +394,30 @@ function Home({ lists, viewCounts, voteData, extras, trending = {}, openList, on
   const [sortOpen, setSortOpen] = useState(false);
   // V2 department-nav dropdown panel: null | 'city' | 'topic'
   const [navMenu, setNavMenu] = useState(null);
+  // Horizontal-scroll affordance for the department nav ribbon: tracks whether
+  // there is more content to scroll to the left / right, so we can show a small
+  // arrow indicator (mobile users otherwise can't tell the ribbon scrolls).
+  const deptNavRef = useRef(null);
+  const [navScroll, setNavScroll] = useState({ left: false, right: false });
+  useEffect(() => {
+    const el = deptNavRef.current;
+    if (!el) return undefined;
+    const update = () => {
+      const more = el.scrollWidth - el.clientWidth;
+      setNavScroll({
+        left: el.scrollLeft > 2,
+        right: more > 2 && el.scrollLeft < more - 2,
+      });
+    };
+    update();
+    el.addEventListener('scroll', update, { passive: true });
+    window.addEventListener('resize', update);
+    return () => {
+      el.removeEventListener('scroll', update);
+      window.removeEventListener('resize', update);
+    };
+    // typeFilter changes the set of nav buttons, so re-measure when it does.
+  }, [typeFilter, navMenu]);
   // Default sort is the shuffled "Discover" view.
   const [sortBy, setSortBy] = useState(restore?.sortBy || 'discover');
 
@@ -831,7 +855,14 @@ function Home({ lists, viewCounts, voteData, extras, trending = {}, openList, on
             onClick={(e) => e.stopPropagation()}
             style={{ position: 'sticky', top: 0, zIndex: 25, background: COLORS.cream }}
           >
-            <style>{`.sot-deptnav{scrollbar-width:none;-ms-overflow-style:none;}.sot-deptnav::-webkit-scrollbar{display:none;}`}</style>
+            <style>{`.sot-deptnav{scrollbar-width:none;-ms-overflow-style:none;}.sot-deptnav::-webkit-scrollbar{display:none;}
+              @keyframes sotNavNudge{0%,100%{transform:translate(0,-50%);}50%{transform:translate(3px,-50%);}}
+              @keyframes sotNavNudgeL{0%,100%{transform:translate(0,-50%);}50%{transform:translate(-3px,-50%);}}
+              .sot-navcue{position:absolute;top:50%;z-index:2;display:flex;align-items:center;justify-content:center;width:26px;height:26px;border-radius:50%;background:${COLORS.ember};color:${COLORS.cream};box-shadow:0 1px 4px rgba(26,22,17,0.45);pointer-events:none;font-size:15px;line-height:1;}
+              .sot-navcue-r{right:18px;animation:sotNavNudge 1.4s ease-in-out infinite;}
+              .sot-navcue-l{left:18px;animation:sotNavNudgeL 1.4s ease-in-out infinite;}
+              @media(min-width:760px){.sot-navcue{display:none;}}
+            `}</style>
             {/* Replicate the page's Grain overlay inside the sticky bar so its
                 cream matches the grain-textured background around it. */}
             <svg aria-hidden="true" style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', pointerEvents: 'none', opacity: 0.12, mixBlendMode: 'multiply' }}>
@@ -842,7 +873,7 @@ function Home({ lists, viewCounts, voteData, extras, trending = {}, openList, on
               <rect width="100%" height="100%" filter="url(#sot-nav-grain)" />
             </svg>
             <div style={{ maxWidth: 1200, margin: '0 auto', padding: '0 16px', position: 'relative' }}>
-            <div className="sot-deptnav" style={{ display: 'flex', alignItems: 'stretch', overflowX: 'auto', background: COLORS.ink, borderBottom: `3px solid ${COLORS.ember}` }}>
+            <div ref={deptNavRef} className="sot-deptnav" style={{ display: 'flex', alignItems: 'stretch', overflowX: 'auto', background: COLORS.ink, borderBottom: `3px solid ${COLORS.ember}` }}>
               {visibleTypes.map((t) =>
                 navBtn(
                   t.id,
@@ -855,6 +886,8 @@ function Home({ lists, viewCounts, voteData, extras, trending = {}, openList, on
               {cityFilters.length > 0 && navBtn('by-city', `By City ${navMenu === 'city' ? '▴' : '▾'}`, cityActive, COLORS.faded, () => setNavMenu((m) => (m === 'city' ? null : 'city')))}
               {visibleTopics.length > 0 && navBtn('by-topic', `By Topic ${navMenu === 'topic' ? '▴' : '▾'}`, topicActive, COLORS.faded, () => setNavMenu((m) => (m === 'topic' ? null : 'topic')))}
             </div>
+            {navScroll.left && <span aria-hidden="true" className="sot-navcue sot-navcue-l">&#8249;</span>}
+            {navScroll.right && <span aria-hidden="true" className="sot-navcue sot-navcue-r">&#8250;</span>}
             {navMenu && (
               <div style={{ position: 'absolute', top: '100%', left: 16, right: 16, zIndex: 30, background: COLORS.cream, border: `1.5px solid ${COLORS.ink}`, borderTop: 'none', boxShadow: '0 10px 24px rgba(26,22,17,0.25)', maxHeight: '60vh', overflowY: 'auto' }}>
                 <div style={{ padding: '14px 24px 18px' }}>

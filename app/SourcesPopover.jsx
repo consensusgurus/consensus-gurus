@@ -63,12 +63,16 @@ export default function SourcesPopover({ label, emphasis }) {
           color: 'inherit',
           cursor: 'pointer',
           fontWeight: emphasis ? 700 : 'inherit',
-          textDecoration: emphasis ? 'none' : 'underline',
-          textDecorationStyle: 'dotted',
+          // Always use text-decoration (not a border-bottom) for the underline:
+          // a border adds to the inline box height and made the blurb's wrapped
+          // lines unevenly spaced on mobile. text-decoration doesn't affect line
+          // height, so spacing stays consistent. Emphasis = solid ember; default
+          // = dotted ember.
+          textDecoration: 'underline',
+          textDecorationStyle: emphasis ? 'solid' : 'dotted',
+          textDecorationThickness: emphasis ? '2px' : 'auto',
           textUnderlineOffset: '3px',
           textDecorationColor: COLORS.ember,
-          borderBottom: emphasis ? `2px solid ${COLORS.ember}` : 'none',
-          paddingBottom: emphasis ? 1 : 0,
         }}
       >
         {triggerLabel}
