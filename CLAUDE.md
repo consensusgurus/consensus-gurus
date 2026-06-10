@@ -1449,6 +1449,17 @@ if (missing.length) throw new Error('Missing descriptions: ' + missing.join(', '
   passes `fit`/`bg`/`pad`; the poster variant reuses HeroTile so it inherits the behavior). First used
   on `best-basketball-player-all-time` (portrait player photos). Decide per list, and prefer genuine
   landscape photography whenever it exists.
+- **Contain-fit hero pads AUTO-MATCH the image background (rule, 2026-06-10) — no manual `bg` needed.**
+  A `contain` hero (every product list, and any `heroFit:'contain'` list) renders the photo uncropped,
+  leaving a gutter. That gutter is NO LONGER a fixed cream/paper fill: `lib/useSampledBg.js` loads the
+  image through the same-origin `/_next/image` optimizer (so the canvas read is untainted), samples the
+  median of its border pixels, and sets the pad to that color, so a white product shot pads white and a
+  tinted one (the light-blue bidet) pads that blue. It falls back to WHITE until the sample resolves and
+  for transparent-corner PNGs. Wired into BOTH render paths (the two that must always stay in sync):
+  `useSampledBg` in the homepage tile (`app/HomeClient.jsx`, the `heroBg` const) and in `HeroPhoto`
+  (`app/list/[id]/ListOverview.jsx`, the `padBg` const, covering the normal tile AND the share-poster
+  capture). Cover-fit (cropped) heroes are unaffected. So when gathering a product/contain hero you do
+  not set a background color by hand; the pad is derived from the photo itself.
 - **Attribution check for photos from multi-venue roundup articles — verify the photo shows THIS
   place's dish.** A roundup article ("Best Wings in NYC" etc.) carries one lead/hero image that
   belongs to a SINGLE venue in the article, usually named only in its caption or credit, plus one

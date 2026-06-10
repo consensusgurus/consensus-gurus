@@ -13,6 +13,7 @@ import {
 } from 'lucide-react';
 import { LISTS, TYPES, COLORS } from '@/lib/data';
 import { voteKey, dedupeByName, getSources, stripItemScore } from '@/lib/helpers';
+import { useSampledBg } from '@/lib/useSampledBg';
 import { fetchBootstrap, postView } from '@/lib/api';
 import Grain from './Grain';
 import Footer from './Footer';
@@ -1154,6 +1155,13 @@ export function Tile({ list, rank, views, voteData, extras, onClick, href, showC
     return null;
   }, [list, preview]);
 
+  // Auto-match the contain-fit hero pad to the photo's own background
+  // (white product shot -> white, tinted shot -> that tint).
+  const heroBg = useSampledBg(
+    heroPhoto && heroPhoto.contain ? heroPhoto.src : null,
+    !!(heroPhoto && heroPhoto.contain),
+  );
+
   // Tiles fill their leftover vertical space with up to 3 related-list sub-boxes,
   // showing as many as actually fit. The boxes live in an absolutely-positioned
   // inner layer so they never feed back into the container height (loop-free).
@@ -1249,7 +1257,8 @@ export function Tile({ list, rank, views, voteData, extras, onClick, href, showC
             backgroundSize: heroPhoto.contain ? 'contain' : 'cover',
             backgroundRepeat: 'no-repeat',
             backgroundPosition: 'center',
-            backgroundColor: COLORS.paper,
+            backgroundColor: heroPhoto.contain ? (heroBg || '#ffffff') : COLORS.paper,
+            transition: 'background-color 0.2s ease',
           }}
         >
           {!heroPhoto.contain && (

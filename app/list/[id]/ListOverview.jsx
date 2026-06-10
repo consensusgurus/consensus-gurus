@@ -3,6 +3,7 @@ import React, { useState } from 'react';
 import Image from 'next/image';
 import { MapPin, Globe, Camera, ArrowLeft, Eye, PenLine, Share2, ShoppingBag, ExternalLink, Play } from 'lucide-react';
 import { COLORS } from '@/lib/data';
+import { useSampledBg } from '@/lib/useSampledBg';
 import { DESCRIPTIONS } from '@/lib/descriptions';
 import { HERO_IMAGES } from '@/lib/hero-images';
 import { getSources, buildItemLink } from '@/lib/helpers';
@@ -208,6 +209,9 @@ function HeroPhoto({ photo, alt, poster, href, rel, fit = 'cover', bg, pad = 0 }
   const src = typeof photo === 'string' ? photo : photo?.src;
   const credit = photo && typeof photo === 'object' ? photo.credit : null;
   const creditUrl = photo && typeof photo === 'object' ? photo.creditUrl : null;
+  // contain-fit pad matches the image's own background (sampled live).
+  const sampledBg = useSampledBg(src, fit === 'contain');
+  const padBg = fit === 'contain' ? (sampledBg || '#ffffff') : bg;
   if (!src || failed) return <PhotoBox />;
   if (poster) {
     // Poster capture (share page): a plain eager <img> routed through the
@@ -215,7 +219,7 @@ function HeroPhoto({ photo, alt, poster, href, rel, fit = 'cover', bg, pad = 0 }
     // (a raw remote URL would taint the canvas and blank the download).
     const optimized = `/_next/image?url=${encodeURIComponent(src)}&w=640&q=75`;
     return (
-      <div style={{ position: 'relative', minHeight: 200, flexShrink: 0, overflow: 'hidden', backgroundColor: bg, padding: pad }}>
+      <div style={{ position: 'relative', minHeight: 200, flexShrink: 0, overflow: 'hidden', backgroundColor: padBg, padding: pad, transition: 'background-color 0.2s ease' }}>
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img
           src={optimized}
@@ -257,7 +261,7 @@ function HeroPhoto({ photo, alt, poster, href, rel, fit = 'cover', bg, pad = 0 }
     />
   );
   return (
-    <div style={{ position: 'relative', minHeight: 200, flexShrink: 0, overflow: 'hidden', backgroundColor: bg, padding: pad }}>
+    <div style={{ position: 'relative', minHeight: 200, flexShrink: 0, overflow: 'hidden', backgroundColor: padBg, padding: pad, transition: 'background-color 0.2s ease' }}>
       {href ? (
         <a
           href={href}
