@@ -571,6 +571,17 @@ applied 2026-06-10 to `strategy-board-games` and `best-board-games-for-adults`.
 
 **Borderline calls: keep the item and FLAG it for the owner — never remove unilaterally.** When a place sits in the gray zone (a corporate-owned single location, a regional chain of ambiguous scale, a beloved local institution that grew), leave it on the list, complete its data (links/itemYelp/etc.) as normal, and flag it in the session notes/progress doc for the owner to rule on. Only clear-cut mass-market chains (In-N-Out, Chipotle, Shake Shack tier) get dropped without asking. Owner rulings to date: **The Capital Burger (Back Bay)** stays on `burgers-boston` despite being a Darden-owned Capital Grille spinoff (single Boston location, fine-dining execution); Tasty Burger (5 local Boston locations) is an allowed mini-chain.
 
+### Major-city "best restaurants" lists are sit-down (full-service) only (owner rule, 2026-06-10)
+
+On a catch-all **"Best Restaurants in [City]"** list, whether counter-service / fast-casual / order-at-the-counter spots qualify depends on how deep a dining destination the city is. The bar scales with the city's stature:
+
+- **Major dining cities (NYC, LA, Chicago, SF, Boston, DC, Miami, and the like):** the list must contain **sit-down, full-service restaurants only** (a server takes your order at the table). Counter-service spots, slice shops, walk-up counters, and fast-casual do NOT belong, however acclaimed, because there are far more than ten genuine full-service restaurants to fill the list. Example: **L'Industrie (a pizza slice counter) cannot appear on Best Restaurants in New York.** Those spots still belong on their own dish/category list (best pizza, best tacos, best bagels), just never on the catch-all "best restaurants" list.
+- **Secondary / smaller markets (Jacksonville and the like):** counter-service IS acceptable, because the market is thinner and an excellent counter-service spot is genuinely among the city's best places to eat. Example: **Dockside (counter-service) stays on Best Restaurants in Jacksonville.**
+
+Judgment applies on which bucket a city falls in; the two examples above are the codified precedents. This rule applies ONLY to the catch-all "best restaurants in [city]" lists. Dish-specific and category lists (best pizza/burgers/tacos/bagels/etc.) are unaffected, since counter-service is the norm there. When removing a counter-service spot from a major-city list, pull it from every field (`ai` seed, each source's `items`, `vote.items`, `links`, `itemLinks`, `itemYelp`/`itemTripadvisor`, `prices`) and backfill the `ai` seed/`vote.items` to 10 with a sit-down spot already in the sources, per the universal source/item cleanup checklist.
+
+**Outstanding retrofit:** audit every shipped `best-restaurants-<city>` list set in a major dining city for counter-service entries and remove them per the cleanup checklist. The Jacksonville `Dockside` keep is the codified precedent for the secondary-market side.
+
 ### Nuanced "Best" categories
 
 Some categories require a more considered definition of "best":
