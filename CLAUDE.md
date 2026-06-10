@@ -266,6 +266,29 @@ profile lists every beer with its own rating and count).
 
 ---
 
+### Media lists: crowd-vote tilt — critics are too biased (owner rule, 2026-06-10)
+
+On any **TV, film, books, music, games, podcasts, or comics** list (in short: any "media" list, whether the items are titles, artists, or franchises), **critic sources count for less and crowd sources count for more**. Critic opinion drifts toward conventional taste and known names; the user wants the consensus to reflect what audiences actually liked.
+
+The rule is mechanical: set explicit numeric `weight` on every source.
+
+- **Critic sources → `weight: 0.5`.** Editorial publication rankings (Rolling Stone, Vulture, The Ringer, Paste, Time, Variety, IndieWire, Esquire, GQ, The Infatuation, Slashfilm, Looper, Collider, Shortlist, Newsweek, listicle-style outlets in general), and the critic aggregators **Rotten Tomatoes Tomatometer** and **Metacritic critic score**. Decisive/True Experts on media lists also get halved.
+- **Crowd sources → `weight: 1.5`.** User-rating platforms (**IMDb user rating**, **Rotten Tomatoes Popcornmeter / Audience Score**, **Goodreads**, **Metacritic User Score**, Letterboxd, Bandcamp, Discogs, Steam user reviews, Amazon ratings on media items like books or music), reader/viewer polls (any source label containing the word "Readers" — T+L Readers, CN Traveler Readers' Choice, Newsweek Readers' Choice, Boston.com Readers' Poll, etc.).
+- **Live fan votes** are crowd-by-definition and stay at their current engine weight (0.75x of one publication-source unit). Do not double-boost.
+- **The ordinary `weight: 1` default does not apply on media lists.** Every source carries an explicit weight per the rule above; do not ship a media list with any unweighted source.
+
+Apply this whenever building a NEW media list AND whenever you touch an EXISTING media list for any reason. When retrofitting an existing list, add the weights, recompute the Borda consensus, re-seed `ai` items + `vote.items`, refresh descriptions for any item entering the new top 10, and refresh hero images for any item entering the new top 3. Add a `sourceRevisions` note (per the universal source-change rule) explaining the reweight; use the canonical wording below so the activity ledger reads consistently across media lists:
+
+> `'Correction (June 2026): media-list crowd-vote rule applied — critic sources (editorial publications, RT Tomatometer, Metacritic critic) now carry 0.5x weight and crowd sources (IMDb, RT Popcornmeter, Goodreads, Metacritic User, readers polls) now carry 1.5x weight, per the project rule that audiences are a more reliable consensus signal than critics on media lists.'`
+
+Make the reweight reader-visible in source labels too: append `· 0.5x Weight` or `· 1.5x Weight` before the date, e.g. `'Rolling Stone · 100 Best Comedy Specials · 0.5x Weight (May 2025)'`, `'IMDb · Ranked by User Rating · 1.5x Weight (June 2026)'`. This matches the precedent set by the generalist-dish-list 0.5x labeling.
+
+First applied 2026-06-10 to `standup-specials-netflix`. Outstanding retrofit (apply the same treatment the next time each list is touched, or in a deliberate sweep): every other media list on the site — `best-hbo-shows`, `best-films-21st-century`, `best-novels`, `beatles-songs`, `grateful-dead-songs`, all film/TV/book/music lists; check the `entertainment` and `product` tag filter on the homepage for the full set.
+
+**Out of scope:** travel, food, restaurants, hotels, products (non-media), services. Those follow the existing rating-platform rules unchanged. The rule keys off the LIST being about media, not whether a particular source happens to be a user-rating platform.
+
+---
+
 ## Data Structure
 
 Each list entry in `lib/data.js` follows this structure:
