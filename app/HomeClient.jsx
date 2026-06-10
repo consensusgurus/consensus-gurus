@@ -735,6 +735,7 @@ function Home({ lists, viewCounts, voteData, extras, trending = {}, openList, on
               height: 42,
               display: 'flex',
               alignItems: 'center',
+              justifyContent: 'center',
               padding: '0 18px',
               fontFamily: 'DM Mono, monospace',
               fontSize: 10.5,
