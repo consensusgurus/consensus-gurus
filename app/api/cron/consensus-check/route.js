@@ -14,6 +14,7 @@ import { LISTS } from '@/lib/data';
 import { getSources, SCORING_ENGINE_VERSION } from '@/lib/helpers';
 import { DESCRIPTIONS } from '@/lib/descriptions';
 import { HERO_IMAGES } from '@/lib/hero-images';
+import { REENCODING_MOVEMENT_EVENTS } from '@/lib/reencoding-movement-backfill';
 
 export const dynamic = 'force-dynamic';
 export const revalidate = 0;
@@ -75,11 +76,126 @@ export async function GET(request) {
     }
   }
 
+  const sp = new URL(request.url).searchParams;
+
+  // ?backfillReEncodingMovements=1 -> rewrite cause='edit' alert rows for every
+  // re-encoding deploy since 2026-06-01 with their COMPLETE consensus-movement
+  // set. Built off lib/reencoding-movement-backfill.js, which walks lib/data.js
+  // git history per commit, identifies per-list source-fingerprint changes
+  // (added, removed, label/weight changed, items reordered), and recomputes the
+  // before/after publication-only consensus per change with current
+  // lib/helpers.js logic. Each event's movements are dated to the matching
+  // list_sources_seen timestamp (label_updated_at for a re-encoding,
+  // first_seen_at for a same-deploy addition, removed_at for a removal), with
+  // the commit date as fallback, so each alert lands on the correct "Sources
+  // Added" / "Sources Revisited" / "Source removed" activity-ledger card.
+  // Replaces the prior ?backfillSourceMovements=1 set (commit 63ee447 wiped
+  // re-encoding alerts when it ran). Idempotent: delete-then-replace per
+  // affected list, only the post-2026-06-01 window.
+  if (sp.get('backfillReEncodingMovements') === '1') {
+    try {
+      const seen = await fetchAll('list_sources_seen', 'list_id,source_id,first_seen_at,label_updated_at,removed_at', ['list_id', 'source_id']);
+      const seenMap = new Map();
+      for (const r of seen) seenMap.set(`${r.list_id}::${r.source_id}`, r);
+      const affected = [...new Set(REENCODING_MOVEMENT_EVENTS.map((e) => e.listId))];
+      // Clear existing post-2026-06-01 cause='edit' alerts for the affected
+      // lists, since we're about to repopulate them.
+      const SINCE = '2026-06-01T00:00:00Z';
+      for (let i = 0; i < affected.length; i += 100) {
+        const chunk = affected.slice(i, i + 100);
+        const del = await supabaseAdmin
+          .from('consensus_alerts')
+          .delete()
+          .in('list_id', chunk)
+          .eq('cause', 'edit')
+          .gte('detected_at', SINCE);
+        if (del.error) throw del.error;
+      }
+      const rows = [];
+      let snapErrors = 0;
+      for (const e of REENCODING_MOVEMENT_EVENTS) {
+        if (!e.movements || !e.movements.length) continue;
+        // Determine detected_at by snapping to the matching list_sources_seen
+        // timestamp. A re-encoding event has its sources in
+        // sourceChanges.labels / weights / items (existing source labels or
+        // items changed) -> use the latest label_updated_at among them. An
+        // addition event has sourceChanges.added with newly-stamped sources ->
+        // use the latest first_seen_at. A removal -> latest removed_at. If
+        // none of those snap to a known row, fall back to the commit date.
+        const candidates = [];
+        const { sourceChanges } = e;
+        const sIds = new Set([
+          ...(sourceChanges.added || []),
+          ...(sourceChanges.removed || []),
+          ...(sourceChanges.labels || []),
+          ...(sourceChanges.weights || []),
+          ...(sourceChanges.items || []),
+        ]);
+        for (const sid of sIds) {
+          if (sid === 'ai') continue;
+          const row = seenMap.get(`${e.listId}::${sid}`);
+          if (!row) continue;
+          if (row.label_updated_at) candidates.push(row.label_updated_at);
+          if (row.first_seen_at) candidates.push(row.first_seen_at);
+          if (row.removed_at) candidates.push(row.removed_at);
+        }
+        // Of the snap candidates, pick the one closest to the commit date
+        // (within +/- 12h) so a re-encoding picks its label_updated_at and an
+        // addition picks its first_seen_at, even though they may both exist
+        // on the same source.
+        const commitMs = Date.parse(e.date);
+        let bestSnap = null;
+        let bestDist = Infinity;
+        for (const c of candidates) {
+          const ms = Date.parse(c);
+          if (isNaN(ms)) continue;
+          const dist = Math.abs(ms - commitMs);
+          if (dist < bestDist) {
+            bestDist = dist;
+            bestSnap = c;
+          }
+        }
+        const detectedAt = bestSnap && bestDist <= 12 * 3600 * 1000 ? bestSnap : e.date;
+        if (!bestSnap || bestDist > 12 * 3600 * 1000) snapErrors++;
+        for (const m of e.movements) {
+          rows.push({
+            list_id: e.listId,
+            item_name: m.item,
+            change_type: m.changeType,
+            rank: m.rank,
+            prev_rank: m.prevRank,
+            cause: 'edit',
+            // entered_top10 / entered_top3 stay research alerts (need
+            // description/hero); moved / exited_* are ledger-only news.
+            resolved: !(m.changeType === 'entered_top10' || m.changeType === 'entered_top3'),
+            detected_at: detectedAt,
+          });
+        }
+      }
+      let inserted = 0;
+      for (let i = 0; i < rows.length; i += 500) {
+        const ins = await supabaseAdmin.from('consensus_alerts').insert(rows.slice(i, i + 500));
+        if (ins.error) throw ins.error;
+        inserted += Math.min(500, rows.length - i);
+      }
+      return NextResponse.json({
+        ok: true,
+        affectedLists: affected.length,
+        events: REENCODING_MOVEMENT_EVENTS.length,
+        inserted,
+        snapsMissed: snapErrors,
+      });
+    } catch (err) {
+      console.error('backfillReEncodingMovements error', err);
+      return NextResponse.json({ error: 'backfillReEncodingMovements failed', detail: String(err) }, { status: 500 });
+    }
+  }
+
   try {
     const [votesRows, extrasRows, snapsRows, alertsRows, seenRows] = await Promise.all([
       fetchAll('votes', 'list_id,item_name,score', ['list_id', 'item_name']),
       fetchAll('extras', 'list_id,item_name', ['list_id', 'item_name']),
-      fetchAll('consensus_snapshots', 'list_id,top10,sources_hash', ['list_id']),
+      fetchAll('consensus_snapshots', 'list_id,top10,sources_hash,updated_at', ['list_id']),
       fetchAll('consensus_alerts', 'list_id,item_name,change_type', ['id'], (q) => q.eq('resolved', false)),
       fetchAll('list_sources_seen', 'list_id,source_id,label,first_seen_at,removed_at,label_updated_at', ['list_id', 'source_id']),
     ]);
@@ -107,7 +223,11 @@ export async function GET(request) {
 
     const prevSnaps = new Map();
     snapsRows.forEach((row) => {
-      prevSnaps.set(row.list_id, { top10: row.top10 || [], hash: row.sources_hash || null });
+      prevSnaps.set(row.list_id, {
+        top10: row.top10 || [],
+        hash: row.sources_hash || null,
+        updatedAt: row.updated_at || null,
+      });
     });
 
     // Existing unresolved alerts, so re-detection never duplicates a row.
@@ -203,6 +323,51 @@ export async function GET(request) {
             : 'edit'
         : null;
 
+      // Anchor cause='edit' alerts to the actual deploy event so they pair
+      // with the matching activity-ledger source-group card (added /
+      // revisited / removed), not to now(). When the cron runs hours or days
+      // after the deploy (the typical case for the daily Vercel cron),
+      // detected_at = now() lands the alerts outside the 26h attribution
+      // window and they render as orphan "Ranking change" cards instead of
+      // attaching to the cause card. Pick the latest list_sources_seen event
+      // (first_seen_at / label_updated_at / removed_at) since prev_snap's
+      // updated_at, or now() if no source event landed in this window. Vote-
+      // and null-cause runs continue to use now(), since vote-driven changes
+      // accumulate continuously and have no single anchor moment.
+      let detectedAtForList = nowIso;
+      if (cause === 'edit' && seenMap) {
+        const prevUpdatedMs = prevSnap.updatedAt ? Date.parse(prevSnap.updatedAt) : 0;
+        let latestMs = 0;
+        let latestIso = null;
+        for (const row of seenMap.values()) {
+          for (const ts of [row.first_seen_at, row.label_updated_at, row.removed_at]) {
+            if (!ts) continue;
+            const ms = Date.parse(ts);
+            if (isNaN(ms)) continue;
+            if (ms > prevUpdatedMs && ms > latestMs) {
+              latestMs = ms;
+              latestIso = ts;
+            }
+          }
+        }
+        // Also consider this run's own pending stamps (sources newly seen or
+        // re-encoded this very pass), which are nowIso and may legitimately
+        // be the anchor when the cron runs the same minute as the deploy.
+        for (const u of sourceSeenUpserts) {
+          if (u.list_id !== list.id) continue;
+          const ms = Date.parse(u.first_seen_at);
+          if (!isNaN(ms) && ms > prevUpdatedMs && ms > latestMs) { latestMs = ms; latestIso = u.first_seen_at; }
+        }
+        for (const u of labelUpdateUpserts) {
+          if (u.list_id !== list.id) continue;
+          if (u.label_updated_at) {
+            const ms = Date.parse(u.label_updated_at);
+            if (!isNaN(ms) && ms > prevUpdatedMs && ms > latestMs) { latestMs = ms; latestIso = u.label_updated_at; }
+          }
+        }
+        if (latestIso) detectedAtForList = latestIso;
+      }
+
       // Rank maps: positions 1-10 in the previous and current consensus.
       // Every alert row records the exact movement via prev_rank -> rank,
       // where 0 means "unranked" (outside the top 10). entered_top10 /
@@ -234,6 +399,7 @@ export async function GET(request) {
               prev_rank: 0,
               cause,
               resolved: false,
+              detected_at: detectedAtForList,
             });
             openAlerts.add(k);
           }
@@ -250,6 +416,7 @@ export async function GET(request) {
               prev_rank: p,
               cause,
               resolved: false,
+              detected_at: detectedAtForList,
             });
             openAlerts.add(k);
           }
@@ -265,6 +432,7 @@ export async function GET(request) {
             prev_rank: p,
             cause,
             resolved: true,
+            detected_at: detectedAtForList,
           });
         }
       });
@@ -281,6 +449,7 @@ export async function GET(request) {
             prev_rank: idx + 1,
             cause,
             resolved: true,
+            detected_at: detectedAtForList,
           });
         }
       });
@@ -300,6 +469,8 @@ export async function GET(request) {
       // flooded, and deduped against open alerts so once the gap is filled and
       // the alert resolved it never re-fires. Rows are shaped exactly like the
       // genuine entry rows above (prev_rank 0 for top10, prior rank for top3).
+      // Self-healing rows always use now() since they're filler, not a genuine
+      // new event.
       const listDescs = DESCRIPTIONS[list.id];
       const listHeroes = HERO_IMAGES[list.id];
       if (listDescs || listHeroes) {
@@ -317,6 +488,7 @@ export async function GET(request) {
                 prev_rank: 0,
                 cause,
                 resolved: false,
+                detected_at: nowIso,
               });
               openAlerts.add(k);
             }
@@ -332,6 +504,7 @@ export async function GET(request) {
                 prev_rank: prevRankMap.get(key) || 0,
                 cause,
                 resolved: false,
+                detected_at: nowIso,
               });
               openAlerts.add(k);
             }
