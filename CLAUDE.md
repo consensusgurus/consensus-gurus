@@ -1489,6 +1489,23 @@ if (missing.length) throw new Error('Missing descriptions: ' + missing.join(', '
   (One&Only kerzner.com), amsterdam#1 (Café de Dokter holidayexpert .webp), and nashville#3
   (Coral Club axios.com) in `lib/hero-images.js`. Until swapped, those three lists post with a
   red fallback at one of their top-3 positions and should NOT be picked for IG posting.
+- **Wikimedia hero URLs: link the ORIGINAL file, never a `/thumb/.../Npx-` upscale (owner rule, 2026-06-10).**
+  `upload.wikimedia.org` generates `/thumb/<a>/<ab>/<File>/<N>px-<File>` thumbnails on demand but
+  REFUSES to upscale: if `N` is wider than the source file, the thumbnailer 404s, next/image then
+  gets a non-image upstream, and the overview tile renders BLANK. This bites album/cover lists
+  specifically and recurs every time: non-free English-Wikipedia cover art (`/wikipedia/en/...`) is
+  deliberately low-resolution (Thriller and The Bodyguard are exactly 300×300), so a `800px-` thumb
+  is always an upscale that 404s. Re-applying the same `800px-` pattern on each "fix" is why
+  `best-selling-albums-all-time` kept going blank. THE FIX: for any Wikimedia album/cover hero, drop
+  the `/thumb/` segment and the trailing `/<N>px-<File>` and point `src` straight at the original
+  file, e.g. `https://upload.wikimedia.org/wikipedia/en/5/55/Michael_Jackson_-_Thriller.png`. The
+  original always exists (the thumb derives from it) and next/image downscales it to the tile. Square
+  300px covers are fine at tile size ("album squares are fine"). This applies to the few commons
+  covers too (Back in Black, Zeppelin IV). A `/thumb/.../Npx-` URL is ONLY safe for genuinely large
+  Commons PHOTOS whose source exceeds `N` (the hotel/destination heroes at `1280px-` are fine, their
+  sources are multi-thousand-px) — never for low-res non-free cover art. Verify a new Wikimedia hero
+  resolves through the live optimizer (`/_next/image?url=...`) before shipping. Done 2026-06-10:
+  converted all 25 cover URLs in the albums + soundtracks blocks of `lib/hero-images.js` to originals.
 - **Hash-verify every repo read used for a splice.** The bash mount has silently dropped
   characters from `git show` output more than once (a `\u2013` lost a digit and broke
   `node --check`). Before splicing into or pushing any file, confirm
