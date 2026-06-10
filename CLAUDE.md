@@ -911,7 +911,7 @@ The Sources tab groups every source by `expertGroupKey` in `app/list/[id]/Detail
 - **Critic aggregators:** Rotten Tomatoes / Tomatometer, Metacritic / Metascore (matched by id/label hint).
 - **Pricing** is its own group (`pricing`), not part of this one.
 
-**Hyperlink consequence:** per `isPublicationLink`, only `publication` / `trueexpert` group sources render the chevron-arrow link on the source caption. Sources in Reviews & Ratings Aggregations render as plain text even when their `url` points to an article (e.g. a CNT Readers' Choice writeup, a Rotten Tomatoes editorial guide). This is the consistent behavior with Goodreads, Yelp, Amazon, and TripAdvisor sources today, and is the right thing — the GROUP defines whether the source is presented as a publication.
+**Hyperlink behavior:** sources in Reviews & Ratings Aggregations render the chevron-arrow link on the caption whenever a `url` is present (`isPublicationLink` was loosened 2026-06-09 to include the `platform` and `pricing` groups). So a CNT Readers' Choice writeup, a Rotten Tomatoes editorial guide, a T+L Readers article, a Goodreads ratings page, a Yelp / Google / TripAdvisor / Amazon listing URL, or the pricing search all link out where the source carries a URL. Only the internal `composite` (`ai`) group and the live fan vote (`cgvote`, which has no URL) stay non-linking. Always store the most useful destination URL on the source (the readers' poll article, the rating-platform list page, the live-pricing search), since it will be reader-facing.
 
 ### Direct Amazon product links (`/dp/<ASIN>`) and live data gathering
 - **If an Amazon product page exists, you MUST use the direct product link, not a search link.** For every product/book whose Amazon listing can be found (essentially all of them), the `links` value must be the canonical product URL `https://www.amazon.com/dp/<ASIN>?tag=cgurus-20`, never an `s?k=` search URL. The `cgurus-20` affiliate tag is all that is needed for attribution. A search link is a last resort reserved for items with no product page at all.
@@ -988,10 +988,11 @@ Gather each website by searching `"<name> official website"` in the connected br
 ### Getting Yelp / TripAdvisor business-page URLs without hitting their bot walls
 TripAdvisor (and sometimes Yelp) search pages are JS/bot-protected and return nothing when loaded directly. **Do not scrape them directly.** Instead, run a normal **Google search in the connected Chrome** for `"<venue> tripadvisor"` (or `"<venue> yelp"`) and read the `tripadvisor.com/...` (or `yelp.com/biz/...`) link straight out of the Google results — it's easy to confirm it's the property/venue page. Store that real URL in `itemTripadvisor` / `itemYelp`. If even the Google result has no real property page, omit that item (the chip drops and only Google shows).
 
-### Source labels hyperlink only for publications, not user-rating sources
-- On the list page, the selected-source "Showing:" label and the source buttons link out to the source `url` **only when the source is a real publication**: an editorial "Expert Publication" or a flagged True Expert with an article page.
-- **User-rating sources do NOT hyperlink** even though they carry a `url`: Amazon Reviews, Yelp/Google rating sources, the `pricing` source, and the live fan vote. Their `url` is a search, not an article, so they render as plain text.
-- Gated by `isPublicationLink` in `DetailClient`, which keys off `expertGroupKey` (links only when the group is `publication` or `trueexpert`).
+### Source labels hyperlink whenever the source carries a `url`
+- On the list page, the selected-source "Showing:" label and the source buttons link out to the source `url` whenever one is present, regardless of group: editorial publications, True Experts, Reviews & Ratings Aggregations (Yelp/Google/TripAdvisor/Amazon/Goodreads/readers' polls/critic aggregators), and pricing sources all link.
+- The exceptions that do NOT hyperlink: the internal `composite` ranking (no URL) and the live fan vote (`cgvote`, no URL). If a source genuinely has no useful URL, leave `url` off the source object and it will render as plain text.
+- Loosened 2026-06-09 (previously only `publication` / `trueexpert` groups linked) so readers can click through to the underlying ranking, rating page, or live search from any source.
+- Gated by `isPublicationLink` in `DetailClient`, which now permits `publication` / `trueexpert` / `platform` / `pricing` to link when a URL is present.
 
 ## Common Mistakes to Avoid
 

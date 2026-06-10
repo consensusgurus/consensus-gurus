@@ -128,13 +128,19 @@ function expertGroupKey(src) {
   return 'publication';
 }
 
-// A source's label/button links out only when it is a real publication
-// (editorial or true expert). User-rating sources (Amazon, Yelp, Google,
-// pricing, fan vote) carry a search URL, not an article, so they don't link.
+// A source's label/button links out whenever it carries a `url` AND the
+// source isn't an internal composite. Editorial publications and true experts
+// always link; Reviews & Ratings Aggregations sources (Yelp, Google, Amazon,
+// Goodreads, TripAdvisor, readers' polls like T+L Readers / CNT Readers'
+// Choice, and critic aggregators like Rotten Tomatoes / Metacritic) also link
+// when a URL is present — even though their URL may be a search rather than
+// an article, the destination is the right place to take a reader who wants
+// to dig in. Only the internal `composite` group and the live fan vote
+// (`cgvote`, which has no URL) stay non-linking.
 function isPublicationLink(src) {
   if (!src || !src.url) return false;
   const g = expertGroupKey(src);
-  return g === 'publication' || g === 'trueexpert';
+  return g === 'publication' || g === 'trueexpert' || g === 'platform' || g === 'pricing';
 }
 
 function ListDetail({ list, viewCount, voteData, userVotes, extras, relatedLists, onBack, onVote, onAddExtra, onOpenRelated, compact }) {
