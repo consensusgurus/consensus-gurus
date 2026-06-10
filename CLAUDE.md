@@ -521,12 +521,24 @@ budget picks. Two mandatory mechanics on EVERY product list:
 2. **The 'Lineup Positioning · Ranked by Launch Price' source is REQUIRED on every product
    list where price tracks quality tier** (electronics, appliances, luggage, gear), with
    explicit `"weight": 2`. Skip it only where price does not track quality (condiments,
-   snack flavors, cookies, books) and note the skip to the owner. The Amazon Reviews source
-   stays at weight 1.
+   snack flavors, cookies, books, **board games**) and note the skip to the owner. The
+   Amazon Reviews source stays at weight 1.
 
 First applied 2026-06-05 to `soundbars` and `home-projectors`. Still owed the same retrofit:
 `bluetooth-speakers`, `air-purifiers`, `drip-coffee-makers`, `carry-on-luggage`,
 `womens-running-shoes` (and verify each source's category labels live before dropping).
+
+**Board games — price is NEVER a quality signal here (owner rule, 2026-06-10).** Across
+every board game list (strategy, family, party, kids, adults, etc.), the pricing source
+is BANNED. The reasoning: board game price tracks production complexity and rules weight
+(a heavy 4-hour euro costs $80, a brilliant 20-minute party game costs $25), but the
+heavier game isn't "better" — they serve different purposes, and a cheap classic like
+Codenames is genuinely best in its category. Treating price as a quality proxy
+structurally biases the consensus toward heavy/expensive games (Frosthaven, Twilight
+Imperium) over equally-loved lighter picks (Codenames, Splendor, Catan), even after
+down-weighting. Do NOT add a `pricing` source OR a `prices` map to any board game list,
+and do NOT cite "price tracks quality tier" as a rationale on this category. First
+applied 2026-06-10 to `strategy-board-games` and `best-board-games-for-adults`.
 
 ### No large chains on "best of" food lists
 
