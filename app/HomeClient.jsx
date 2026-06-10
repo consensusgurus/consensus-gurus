@@ -1215,7 +1215,11 @@ export function Tile({ list, rank, views, voteData, extras, onClick, href, showC
             <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to top, rgba(18,14,10,0.55), rgba(18,14,10,0) 55%)' }} />
           )}
           <span style={{ position: 'absolute', left: heroPhoto.contain ? 8 : 12, bottom: 8, maxWidth: 'calc(100% - 16px)', color: '#fff', fontSize: 12, fontFamily: 'DM Mono, monospace', letterSpacing: '0.06em', textShadow: '0 1px 5px rgba(0,0,0,0.9)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', background: heroPhoto.contain ? 'rgba(26,22,17,0.78)' : 'transparent', padding: heroPhoto.contain ? '3px 8px' : 0 }}>
-            {heroPhoto.rank != null && <span style={{ color: '#e7cf73', fontFamily: 'Fraunces, serif', fontWeight: 700, fontSize: 14 }}>#{heroPhoto.rank}</span>}{heroPhoto.rank != null ? ' ' : ''}{heroPhoto.name}
+            {heroPhoto.rank != null ? (
+              <span style={{ color: '#e7cf73', fontFamily: 'Fraunces, serif', fontWeight: 700, fontSize: 14 }}>#{heroPhoto.rank}</span>
+            ) : (
+              heroPhoto.name
+            )}
           </span>
         </div>
       )}
@@ -1317,7 +1321,7 @@ export function Tile({ list, rank, views, voteData, extras, onClick, href, showC
               fontSize: 14,
             }}
           >
-            {preview.rows.map((t, i) => ({ t, i })).filter(({ i }) => !(HOME_V2 && heroPhoto && heroPhoto.rank === i + 1)).map(({ t, i }) => (
+            {preview.rows.map((t, i) => (
               <li
                 key={i}
                 style={{
