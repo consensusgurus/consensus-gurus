@@ -727,7 +727,7 @@ function Home({ lists, viewCounts, voteData, extras, trending = {}, openList, on
             key={key}
             onClick={onClick}
             style={{
-              flex: '0 0 auto',
+              flex: '1 0 auto',
               background: active ? color : 'transparent',
               color: COLORS.cream,
               border: 'none',
@@ -790,6 +790,15 @@ function Home({ lists, viewCounts, voteData, extras, trending = {}, openList, on
             style={{ position: 'sticky', top: 0, zIndex: 25, background: COLORS.cream }}
           >
             <style>{`.sot-deptnav{scrollbar-width:none;-ms-overflow-style:none;}.sot-deptnav::-webkit-scrollbar{display:none;}`}</style>
+            {/* Replicate the page's Grain overlay inside the sticky bar so its
+                cream matches the grain-textured background around it. */}
+            <svg aria-hidden="true" style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', pointerEvents: 'none', opacity: 0.12, mixBlendMode: 'multiply' }}>
+              <filter id="sot-nav-grain">
+                <feTurbulence type="fractalNoise" baseFrequency="0.9" numOctaves="2" stitchTiles="stitch" />
+                <feColorMatrix values="0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  0 0 0 0.6 0" />
+              </filter>
+              <rect width="100%" height="100%" filter="url(#sot-nav-grain)" />
+            </svg>
             <div style={{ maxWidth: 1200, margin: '0 auto', padding: '0 16px', position: 'relative' }}>
             <div className="sot-deptnav" style={{ display: 'flex', alignItems: 'stretch', overflowX: 'auto', background: COLORS.ink, borderBottom: `3px solid ${COLORS.ember}` }}>
               {visibleTypes.map((t) =>
