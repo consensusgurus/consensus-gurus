@@ -154,13 +154,13 @@ export default function SnapshotClient({ listId, embedded, list: listProp, voteD
     if (!list) return [];
     if (list.mode === 'facts' || list.mode === 'unranked') {
       const aiItems = list.sources?.ai?.items || [];
-      if (aiItems.length > 0) return [{ id: 'ai', label: list.sources?.ai?.label || 'Consensus AI', items: aiItems }];
+      if (aiItems.length > 0) return [{ id: 'ai', label: list.sources?.ai?.label || 'Consensus Seed', items: aiItems }];
       return [];
     }
     if (list.mode === 'scores') {
       const aiItems = list.sources?.ai?.items || [];
       const publications = Object.entries(list.sources || {}).filter(([id]) => id !== 'ai').map(([id, src]) => ({ id, label: src.label, items: src.items, url: src.url }));
-      const out = aiItems.length > 0 ? [{ id: 'ai', label: list.sources?.ai?.label || 'Consensus AI', items: aiItems }] : [];
+      const out = aiItems.length > 0 ? [{ id: 'ai', label: list.sources?.ai?.label || 'Consensus Seed', items: aiItems }] : [];
       if (publications.length <= 1) return out.length > 0 ? out : publications;
       return [...out, ...publications];
     }

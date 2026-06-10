@@ -95,7 +95,7 @@ function generateSeoDescription(list, consensusItems) {
   }
 
   if (sourceCount >= 2) {
-    return `${list.title}: compare AI rankings, ${sourceCount} expert publications, and reader votes. Top picks: ${top3Str}.`;
+    return `${list.title}: compare rankings from ${sourceCount} expert publications and reader votes. Top picks: ${top3Str}.`;
   }
   return `${list.title}: expert rankings and reader votes. Top picks: ${top3Str}.`;
 }

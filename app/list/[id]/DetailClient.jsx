@@ -225,7 +225,7 @@ function ListDetail({ list, viewCount, voteData, userVotes, extras, relatedLists
     if (mode === 'facts') {
       const aiItems = list.sources?.ai?.items || [];
       if (aiItems.length > 0) {
-        return [{ id: 'ai', label: list.sources?.ai?.label || 'Consensus AI', items: aiItems }];
+        return [{ id: 'ai', label: list.sources?.ai?.label || 'Consensus Seed', items: aiItems }];
       }
       return [];
     }
@@ -249,7 +249,7 @@ function ListDetail({ list, viewCount, voteData, userVotes, extras, relatedLists
         .map(([id, src]) => ({ id, label: src.label, items: src.items, url: src.url }));
       const out = [];
       if (aiItems.length > 0) {
-        out.push({ id: 'ai', label: list.sources?.ai?.label || 'Consensus AI', items: aiItems });
+        out.push({ id: 'ai', label: list.sources?.ai?.label || 'Consensus Seed', items: aiItems });
       }
       // When only one platform (Google OR Yelp, not both) backs the composite,
       // the composite and that single platform are the SAME data — showing two

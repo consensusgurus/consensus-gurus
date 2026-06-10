@@ -19,7 +19,7 @@ export default function TermsPage() {
 
       <H2>The service</H2>
       <p>
-        Source of Truths publishes top ten lists drawn from AI-generated rankings, named publications, and reader votes. Readers may vote on items, add entries to existing lists, and submit their own lists. The service is provided free of charge.
+        Source of Truths publishes top ten lists drawn from expert rankings, named publications, and reader votes. Readers may vote on items, add entries to existing lists, and submit their own lists. The service is provided free of charge.
       </p>
 
       <H2>Submissions and user content</H2>

@@ -1,6 +1,6 @@
 # Source of Truths
 
-Top ten lists from every angle. AI Optimized, Consensus, named publications, and reader votes.
+Top ten lists from every angle. Consensus, named publications, and reader votes.
 
 Next.js 14 + Supabase. Runs on Vercel's hobby tier and Supabase's free tier.
 
@@ -9,7 +9,7 @@ Next.js 14 + Supabase. Runs on Vercel's hobby tier and Supabase's free tier.
 ## Features
 
 - 25 built-in lists across food, travel, entertainment, tech, products, and city-specific places
-- Multiple ranking sources per list (AI Optimized, Consensus, IMDB, RTINGS, Eater, etc.)
+- Multiple ranking sources per list (Consensus, IMDB, RTINGS, Eater, etc.)
 - Reader voting with up and down arrows
 - Reader-submitted lists with **moderation queue** (admin must approve before they go public)
 - Per-item affiliate links (Amazon, Booking, Maps, IMDB, etc.) with per-list URL overrides
