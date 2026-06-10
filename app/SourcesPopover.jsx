@@ -9,7 +9,9 @@ import SourcesGrid from './SourcesGrid';
 // every publication behind the consensus, with logos and how many lists each
 // appears in. Hover to open; also toggles on click and closes on Escape /
 // outside click for keyboard and touch users.
-export default function SourcesPopover({ label }) {
+// `emphasis` (V2 homepage): renders the trigger bold with a solid ember
+// underline instead of the default dotted underline. Default unchanged.
+export default function SourcesPopover({ label, emphasis }) {
   const [open, setOpen] = useState(false);
   const wrapRef = useRef(null);
   const closeTimer = useRef(null);
@@ -60,10 +62,13 @@ export default function SourcesPopover({ label }) {
           font: 'inherit',
           color: 'inherit',
           cursor: 'pointer',
-          textDecoration: 'underline',
+          fontWeight: emphasis ? 700 : 'inherit',
+          textDecoration: emphasis ? 'none' : 'underline',
           textDecorationStyle: 'dotted',
           textUnderlineOffset: '3px',
           textDecorationColor: COLORS.ember,
+          borderBottom: emphasis ? `2px solid ${COLORS.ember}` : 'none',
+          paddingBottom: emphasis ? 1 : 0,
         }}
       >
         {triggerLabel}

@@ -17,6 +17,16 @@ import { fetchBootstrap, postView } from '@/lib/api';
 import Grain from './Grain';
 import Footer from './Footer';
 import SourcesPopover from './SourcesPopover';
+import { HERO_IMAGES } from '@/lib/hero-images';
+
+// ── HOMEPAGE V2 (June 2026 redesign) ────────────────────────────────────────
+// Flip this single flag to false to restore the previous homepage exactly —
+// no other change needed (SourcesPopover's `emphasis` prop is also driven by
+// it). V2 adds: photo headers on tiles whose consensus top 3 has a hero image
+// (from lib/hero-images.js), a sticky ink department-nav bar that replaces the
+// Category dropdown (with By City / By Topic panels), and a bold ember
+// emphasis on the sources count in the header blurb.
+const HOME_V2 = true;
 
 // Human-readable labels for each list type, shown in the top-right of tiles.
 const TYPE_LABELS = {
@@ -381,6 +391,8 @@ function Home({ lists, viewCounts, voteData, extras, trending = {}, openList, on
   const [typeFilter, setTypeFilter] = useState(restore?.typeFilter || 'all');
   const [catOpen, setCatOpen] = useState(false);
   const [sortOpen, setSortOpen] = useState(false);
+  // V2 department-nav dropdown panel: null | 'city' | 'topic'
+  const [navMenu, setNavMenu] = useState(null);
   // Default sort is the shuffled "Discover" view.
   const [sortBy, setSortBy] = useState(restore?.sortBy || 'discover');
 
@@ -463,14 +475,15 @@ function Home({ lists, viewCounts, voteData, extras, trending = {}, openList, on
 
   // Close the category / sort dropdowns when clicking anywhere outside.
   useEffect(() => {
-    if (!catOpen && !sortOpen) return undefined;
+    if (!catOpen && !sortOpen && !navMenu) return undefined;
     const close = () => {
       setCatOpen(false);
       setSortOpen(false);
+      setNavMenu(null);
     };
     document.addEventListener('click', close);
     return () => document.removeEventListener('click', close);
-  }, [catOpen, sortOpen]);
+  }, [catOpen, sortOpen, navMenu]);
 
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase();
@@ -671,7 +684,7 @@ function Home({ lists, viewCounts, voteData, extras, trending = {}, openList, on
               For all the important aspects of life
             </div>
             <div className="cg-blurb">
-              The consensus of expert critics and everyday users, weighed across{' '}<SourcesPopover />, from Michelin, Condé Nast Traveler, The Infatuation, Eater, and Robb Report to Wirecutter, Goodreads, and Dave Portnoy.
+              The consensus of expert critics and everyday users, weighed across{' '}<SourcesPopover emphasis={HOME_V2} />, from Michelin, Condé Nast Traveler, The Infatuation, Eater, and Robb Report to Wirecutter, Goodreads, and Dave Portnoy.
             </div>
             <div style={{ borderBottom: `1px solid ${COLORS.ink}`, marginBottom: 4 }} />
             <div style={{ borderBottom: `2px solid ${COLORS.ember}` }} />
@@ -699,8 +712,120 @@ function Home({ lists, viewCounts, voteData, extras, trending = {}, openList, on
         </div>
       </header>
 
+      {HOME_V2 && (() => {
+        // ── V2 department nav (sticky ink bar) ──────────────────────────────
+        // Replaces the Category dropdown: broad categories inline, with the
+        // city/region and topic chips of the old mega-menu under two panels.
+        const navBtn = (key, label, active, color, onClick) => (
+          <button
+            key={key}
+            onClick={onClick}
+            style={{
+              flex: '0 0 auto',
+              background: active ? color : 'transparent',
+              color: COLORS.cream,
+              border: 'none',
+              borderRight: '1px solid rgba(244,237,224,0.18)',
+              padding: '13px 18px',
+              fontFamily: 'DM Mono, monospace',
+              fontSize: 10.5,
+              letterSpacing: '0.2em',
+              textTransform: 'uppercase',
+              fontWeight: 600,
+              cursor: 'pointer',
+              whiteSpace: 'nowrap',
+            }}
+          >
+            {label}
+          </button>
+        );
+        const chip = (f) => {
+          const active = typeFilter === f.id;
+          const parentId = parentIdFor(f.id);
+          const parentColor = parentId ? PARENT_COLORS[parentId] : null;
+          const parentTint = parentId ? PARENT_TINTS[parentId] : null;
+          const count = f.count != null ? f.count : (counts[f.id] || 0);
+          return (
+            <button
+              key={f.id}
+              onClick={() => { setTypeFilter(f.id); setNavMenu(null); }}
+              style={{
+                display: 'inline-flex',
+                alignItems: 'baseline',
+                gap: 6,
+                border: `1px solid ${parentColor || COLORS.ink}`,
+                padding: '7px 10px',
+                fontFamily: 'DM Mono, monospace',
+                fontSize: 9,
+                letterSpacing: '0.14em',
+                textTransform: 'uppercase',
+                fontWeight: 600,
+                cursor: 'pointer',
+                background: active ? (parentColor || COLORS.ink) : (parentTint || COLORS.paper),
+                color: active ? COLORS.cream : COLORS.ink,
+                whiteSpace: 'nowrap',
+              }}
+            >
+              <span>{f.label}</span>
+              <span style={{ opacity: active ? 0.75 : 0.55 }}>{count}</span>
+            </button>
+          );
+        };
+        const heading = (text) => (
+          <div style={{ fontFamily: 'DM Mono, monospace', fontSize: 9, letterSpacing: '0.22em', textTransform: 'uppercase', fontWeight: 700, color: COLORS.faded, margin: '14px 0 8px' }}>
+            {text}
+          </div>
+        );
+        const cityActive = typeFilter.startsWith('city-') || typeFilter.startsWith('region-');
+        const topicActive = typeFilter.startsWith('topic-');
+        return (
+          <nav
+            onClick={(e) => e.stopPropagation()}
+            style={{ position: 'sticky', top: 0, zIndex: 25, background: COLORS.ink, borderBottom: `3px solid ${COLORS.ember}` }}
+          >
+            <style>{`.sot-deptnav{scrollbar-width:none;-ms-overflow-style:none;}.sot-deptnav::-webkit-scrollbar{display:none;}`}</style>
+            <div className="sot-deptnav" style={{ maxWidth: 1200, margin: '0 auto', display: 'flex', alignItems: 'stretch', overflowX: 'auto' }}>
+              {visibleTypes.map((t) =>
+                navBtn(
+                  t.id,
+                  t.label,
+                  typeFilter === t.id,
+                  t.id === 'all' ? COLORS.ember : (PARENT_COLORS[t.id] || COLORS.faded),
+                  () => { setTypeFilter(t.id); setNavMenu(null); }
+                )
+              )}
+              {cityFilters.length > 0 && navBtn('by-city', `By City ${navMenu === 'city' ? '▴' : '▾'}`, cityActive, COLORS.faded, () => setNavMenu((m) => (m === 'city' ? null : 'city')))}
+              {visibleTopics.length > 0 && navBtn('by-topic', `By Topic ${navMenu === 'topic' ? '▴' : '▾'}`, topicActive, COLORS.faded, () => setNavMenu((m) => (m === 'topic' ? null : 'topic')))}
+            </div>
+            {navMenu && (
+              <div style={{ position: 'absolute', top: '100%', left: 0, right: 0, zIndex: 30, background: COLORS.cream, borderBottom: `2px solid ${COLORS.ink}`, boxShadow: '0 10px 24px rgba(26,22,17,0.25)', maxHeight: '60vh', overflowY: 'auto' }}>
+                <div style={{ maxWidth: 1200, margin: '0 auto', padding: '14px 24px 18px' }}>
+                  {navMenu === 'city' ? (
+                    <>
+                      {heading('By City')}
+                      <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>{cityFilters.map(chip)}</div>
+                      {visibleRegions.length > 0 && (
+                        <>
+                          {heading('By Region')}
+                          <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>{visibleRegions.map(chip)}</div>
+                        </>
+                      )}
+                    </>
+                  ) : (
+                    <>
+                      {heading('By Topic')}
+                      <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>{visibleTopics.map(chip)}</div>
+                    </>
+                  )}
+                </div>
+              </div>
+            )}
+          </nav>
+        );
+      })()}
+
       <section style={{ padding: '10px 16px 80px', maxWidth: 1200, margin: '0 auto' }}>
-        <style>{`.cg-controls{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-bottom:16px;}.cg-controls>*{height:50px;min-width:0;}.cg-ctrl-label{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;min-width:0;}@media(max-width:760px){.cg-controls{grid-template-columns:1fr 1fr;}.cg-c-search input{font-size:16px !important;}.cg-ctrl-btn{justify-content:space-between !important;letter-spacing:0.05em !important;padding:0 10px !important;gap:6px !important;}}`}</style>
+        <style>{`.cg-controls{display:grid;grid-template-columns:repeat(${HOME_V2 ? 3 : 4},1fr);gap:16px;margin-bottom:16px;}.cg-controls>*{height:50px;min-width:0;}.cg-ctrl-label{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;min-width:0;}@media(max-width:760px){.cg-controls{grid-template-columns:1fr 1fr;}.cg-c-search input{font-size:16px !important;}.cg-ctrl-btn{justify-content:space-between !important;letter-spacing:0.05em !important;padding:0 10px !important;gap:6px !important;}}`}</style>
         <div className="cg-controls">
           <div className="cg-c-search" style={{ position: 'relative', minWidth: 0, order: 3 }}>
             <Search size={16} strokeWidth={2.5} style={{ position: 'absolute', left: 14, top: '50%', transform: 'translateY(-50%)', color: COLORS.faded }} />
@@ -718,6 +843,7 @@ function Home({ lists, viewCounts, voteData, extras, trending = {}, openList, on
             )}
           </div>
 
+          {!HOME_V2 && (
           <div style={{ position: 'relative', minWidth: 0, order: 2 }} onClick={(e) => e.stopPropagation()}>
             <button className="cg-ctrl-btn" onClick={() => { setCatOpen((o) => !o); setSortOpen(false); }} aria-haspopup="true" aria-expanded={catOpen} style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, background: '#bdb3a0', color: COLORS.ink, border: `1.5px solid ${COLORS.ink}`, padding: '0 14px', fontFamily: 'DM Mono, monospace', fontSize: 11, letterSpacing: '0.14em', textTransform: 'uppercase', fontWeight: 600, cursor: 'pointer', whiteSpace: 'nowrap', overflow: 'hidden' }}>
               <span className="cg-ctrl-label"><span style={{ opacity: 0.8 }}>Category:</span> {activeFilterLabel}</span>
@@ -798,6 +924,7 @@ function Home({ lists, viewCounts, voteData, extras, trending = {}, openList, on
               );
             })()}
           </div>
+          )}
 
           <div style={{ position: 'relative', minWidth: 0, order: 1 }} onClick={(e) => e.stopPropagation()}>
             <button className="cg-ctrl-btn" onClick={() => { setSortOpen((o) => !o); setCatOpen(false); }} aria-haspopup="true" aria-expanded={sortOpen} style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, background: COLORS.ink, color: COLORS.cream, border: `1.5px solid ${COLORS.ink}`, padding: '0 14px', fontFamily: 'DM Mono, monospace', fontSize: 11, letterSpacing: '0.14em', textTransform: 'uppercase', fontWeight: 600, cursor: 'pointer', whiteSpace: 'nowrap', overflow: 'hidden' }}>
@@ -940,6 +1067,27 @@ function Tile({ list, rank, views, voteData, extras, onClick, showConsensus, fea
     };
   }, [list, voteData, extras, mode, showConsensus, featured]);
 
+  // V2 photo header: first consensus top-3 item with a hero image in
+  // lib/hero-images.js gets a cover-cropped photo band atop the tile, with a
+  // gold "#N name" caption. Product lists stay text-only (white-background
+  // product shots crop badly), as do legacy non-https local-path entries.
+  // Lists with heroFit:'contain' render uncropped on a paper background.
+  const heroPhoto = useMemo(() => {
+    if (!HOME_V2) return null;
+    if (isProductList(list)) return null;
+    const map = HERO_IMAGES[list.id];
+    if (!map) return null;
+    const rows = preview.rows.slice(0, 3);
+    for (let i = 0; i < rows.length; i++) {
+      const entry = map[rows[i].item];
+      const src = entry && (typeof entry === 'string' ? entry : entry.src);
+      if (src && /^https?:/.test(src)) {
+        return { src, rank: i + 1, name: stripItemScore(rows[i].item), contain: list.heroFit === 'contain' };
+      }
+    }
+    return null;
+  }, [list, preview]);
+
   // Tiles fill their leftover vertical space with up to 3 related-list sub-boxes,
   // showing as many as actually fit. The boxes live in an absolutely-positioned
   // inner layer so they never feed back into the container height (loop-free).
@@ -1008,7 +1156,8 @@ function Tile({ list, rank, views, voteData, extras, onClick, showConsensus, fea
         background: hover ? '#e4dbc8' : COLORS.paper,
         color: COLORS.ink,
         border: `1.5px solid ${COLORS.ink}`,
-        padding: 20,
+        padding: HOME_V2 ? 0 : 20,
+        overflow: HOME_V2 ? 'hidden' : 'visible',
         textAlign: 'left',
         transition: 'all 0.2s ease',
         position: 'relative',
@@ -1017,6 +1166,30 @@ function Tile({ list, rank, views, voteData, extras, onClick, showConsensus, fea
         boxShadow: hover ? `3px 3px 0 ${COLORS.ember}` : 'none',
       }}
     >
+      {HOME_V2 && heroPhoto && (
+        <div
+          style={{
+            position: 'relative',
+            height: 150,
+            flex: '0 0 auto',
+            alignSelf: 'stretch',
+            borderBottom: `1.5px solid ${COLORS.ink}`,
+            backgroundImage: `url("${heroPhoto.src}")`,
+            backgroundSize: heroPhoto.contain ? 'contain' : 'cover',
+            backgroundRepeat: 'no-repeat',
+            backgroundPosition: 'center',
+            backgroundColor: COLORS.paper,
+          }}
+        >
+          {!heroPhoto.contain && (
+            <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to top, rgba(18,14,10,0.55), rgba(18,14,10,0) 55%)' }} />
+          )}
+          <span style={{ position: 'absolute', left: 12, bottom: 8, right: 12, color: '#fff', fontSize: 12, fontFamily: 'DM Mono, monospace', letterSpacing: '0.06em', textShadow: '0 1px 5px rgba(0,0,0,0.9)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+            <span style={{ color: '#e7cf73', fontFamily: 'Fraunces, serif', fontWeight: 700, fontSize: 14 }}>#{heroPhoto.rank}</span>{' '}{heroPhoto.name}
+          </span>
+        </div>
+      )}
+      <div style={HOME_V2 ? { padding: '16px 18px 14px', display: 'flex', flexDirection: 'column', flex: '1 1 auto', minHeight: 0, alignSelf: 'stretch' } : { display: 'contents' }}>
       {(() => {
         const { leftLabel, rightLabel } = getTileLabels(list);
         const monoStyle = {
@@ -1242,6 +1415,7 @@ function Tile({ list, rank, views, voteData, extras, onClick, showConsensus, fea
           <span>{views} visitors</span>
         </span>
       </div>
+      </div>
     </button>
   );
 }
@@ -1300,7 +1474,9 @@ export default function HomeClient() {
         background: COLORS.cream,
         color: COLORS.ink,
         position: 'relative',
-        overflow: 'hidden',
+        // 'clip' still clips the grain overlay but, unlike 'hidden', does not
+        // create a scroll container, so the V2 sticky department nav works.
+        overflow: HOME_V2 ? 'clip' : 'hidden',
       }}
     >
       <Grain />
