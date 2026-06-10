@@ -726,10 +726,7 @@ function Home({ lists, viewCounts, voteData, extras, trending = {}, openList, on
             <div className="cg-head-row">
               {HOME_V2 && (
                 <div className="cg-folio">
-                  <div className="cg-folio-kick">Daily Edition</div>
-                  <div className="cg-folio-rule" style={{ borderBottom: `3px double ${COLORS.ink}` }} />
                   <div className="cg-folio-date" suppressHydrationWarning>{folioDate || '\u00A0'}</div>
-                  <div className="cg-folio-rule" style={{ borderTop: `1px solid ${COLORS.ink}` }} />
                   <div className="cg-folio-tick">
                     {tickerEntries.length > 0 ? (
                       <Link
@@ -764,11 +761,8 @@ function Home({ lists, viewCounts, voteData, extras, trending = {}, openList, on
           .cg-head-row{display:flex;align-items:center;gap:clamp(12px,2.5vw,24px);}
           .cg-tagcol{margin-left:auto;min-width:0;flex:0 1 auto;}
           .cg-folio{flex:1 1 auto;display:flex;flex-direction:column;align-items:center;justify-content:center;min-width:0;padding:0 4px 8px;}
-          .cg-folio-kick{font-family:'DM Mono',monospace;font-size:9px;letter-spacing:0.26em;text-transform:uppercase;font-weight:700;color:${COLORS.faded};margin-bottom:6px;white-space:nowrap;}
-          .cg-folio-rule{width:100%;max-width:330px;}
-          .cg-folio-date{font-family:'DM Mono',monospace;font-size:clamp(9px,0.95vw,11px);letter-spacing:0.18em;text-transform:uppercase;font-weight:600;color:${COLORS.ink};padding:5px 0;white-space:nowrap;line-height:1.4;}
-          .cg-folio-tick{margin-top:9px;font-family:'DM Mono',monospace;font-size:10px;font-weight:500;letter-spacing:0.06em;text-transform:uppercase;text-align:center;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%;line-height:1.4;}
-          .cg-folio-tick a{display:block;overflow:hidden;text-overflow:ellipsis;}
+          .cg-folio-date{font-family:'DM Mono',monospace;font-size:clamp(9px,0.95vw,11px);letter-spacing:0.18em;text-transform:uppercase;font-weight:600;color:${COLORS.ink};white-space:nowrap;line-height:1.4;}
+          .cg-folio-tick{margin-top:8px;font-family:'DM Mono',monospace;font-size:10px;font-weight:500;letter-spacing:0.06em;text-transform:uppercase;text-align:center;line-height:1.5;height:30px;max-width:100%;display:flex;align-items:center;justify-content:center;}
           @media(max-width:1020px){.cg-folio{display:none;}}
           .cg-tagline{font-family:'DM Mono',monospace;font-size:clamp(9px,1.1vw,11px);letter-spacing:0.2em;text-transform:uppercase;font-weight:700;color:${COLORS.ink};text-align:right;margin-bottom:8px;line-height:1.4;}
           .cg-blurb{font-family:'DM Sans',sans-serif;font-size:clamp(11px,1.25vw,13px);line-height:1.5;color:${COLORS.ink};text-align:right;max-width:520px;margin-left:auto;margin-bottom:10px;}
