@@ -137,7 +137,7 @@ Implemented in `lib/helpers.js` `getSources` and mirrored in `scripts/generate-o
 
 Some signals are so authoritative for a topic that they should outweigh even a true expert and dominate the consensus. Flag these with `"decisiveExpert": true`.
 
-A decisive expert's Borda weight is **`max(6, 1.5 × field)`**, where `field` is the combined weight of all the ordinary sources (everything that is NOT a decisive or true expert). So it is worth **1.5× the entire rest of the field, with a floor of 6** — the single strongest source, worth more than every other source combined. The whole field acting in unison can still balance it, but no single source comes close. Where a **True Expert** is worth HALF the field (`max(2, field/2)`), a **Decisive Expert** is worth 1.5× the field. Both special tiers are excluded from the `field` sum, so they never inflate each other. An explicit numeric `weight` still takes precedence over both, as for a true expert.
+A decisive expert's Borda weight is **`max(6, 1.5 × field)`**, where `field` is the combined weight of all the ordinary sources (everything that is NOT a decisive or true expert). So it is worth **1.5× the entire rest of the field, with a floor of 6** — the single strongest source, worth more than every other source combined. The whole field acting in unison can still balance it, but no single source comes close. Where a **True Expert** is worth HALF the field (`max(2, field/2)`), a **Decisive Expert** is worth 1.5× the field. Both special tiers are excluded from the `field` sum, so they never inflate each other.
 
 | field (sum of ordinary weights) | True Expert counts for | Decisive Expert counts for |
 |---|---|---|
@@ -147,7 +147,7 @@ A decisive expert's Borda weight is **`max(6, 1.5 × field)`**, where `field` is
 | 6 | 3 | 9 |
 | 8 | 4 | 12 |
 
-Implemented in `lib/helpers.js` `getSources` (`sourceWeight`) and mirrored in `scripts/generate-og-images.js`; bump `SCORING_ENGINE_VERSION` when the math changes (done 2026-06-09). (The `opengraph-image.js` / `twitter-image.js` social-preview routes do not implement source weighting at all — a pre-existing gap — so they render an unweighted preview; sync them only if that ever matters.)
+Implemented in `lib/helpers.js` `getSources` (`sourceWeight`) and mirrored in `scripts/generate-og-images.js`. (The `opengraph-image.js` / `twitter-image.js` social-preview routes do not implement source weighting at all — a pre-existing gap — so they render an unweighted preview; sync them only if that ever matters.)
 
 **Scope — Michelin STAR ratings on best-restaurant / food lists ONLY:**
 
@@ -904,14 +904,14 @@ source.
 - A book may carry BOTH an Amazon rating source and a Goodreads rating source (two user-review signals, like Yelp + Google). Where a book has no Goodreads presence, omit it from that source.
 
 ### What counts as "Reviews & Ratings Aggregations" (the source group)
-The Sources tab groups every source by `expertGroupKey` in `app/list/[id]/DetailClient.jsx`. The third group, **Reviews & Ratings Aggregations** (renamed from "User Reviews & Ratings" 2026-06-09, since it also covers critic aggregators), catches any aggregated review/rating signal -- user OR critic -- and ALL of the following route here:
+The Sources tab groups every source by `expertGroupKey` in `app/list/[id]/DetailClient.jsx`. The third group, **Reviews & Ratings Aggregations** (renamed from "User Reviews & Ratings" 2026-06-09, since it also covers critic aggregators), catches any aggregated review/rating signal — user OR critic — and ALL of the following route here:
 
 - **User-rating platforms:** Yelp, Google Reviews, TripAdvisor, Amazon Reviews, Goodreads, OpenTable, Booking, Expedia, etc. (matched by id/label hint or by the words `rating` / `reviews` in the label).
-- **Readers' polls / Readers' Choice:** any source label containing the word `readers` (T+L Readers, Condé Nast Traveler Readers' Choice, Newsweek Readers' Choice, Boston.com Readers' Poll, Business Traveller Readers' Poll, etc.). A readers' poll is an aggregated reader vote, not an editorial pick. Exception: the publication "Reader's Digest" (id `readersdigest`, singular possessive) is a normal editorial outlet and stays in Expert Publications -- the classifier excludes that exact id.
+- **Readers' polls / Readers' Choice:** any source label containing the word `readers` (T+L Readers, Condé Nast Traveler Readers' Choice, Newsweek Readers' Choice, Boston.com Readers' Poll, Business Traveller Readers' Poll, etc.). A readers' poll is an aggregated reader vote, not an editorial pick. Exception: the publication "Reader's Digest" (id `readersdigest`, singular possessive) is a normal editorial outlet and stays in Expert Publications — the classifier excludes that exact id.
 - **Critic aggregators:** Rotten Tomatoes / Tomatometer, Metacritic / Metascore (matched by id/label hint).
 - **Pricing** is its own group (`pricing`), not part of this one.
 
-**Hyperlink behavior:** sources in Reviews & Ratings Aggregations render the chevron-arrow link on the caption whenever a `url` is present (`isPublicationLink` was loosened 2026-06-09 to include the `platform` and `pricing` groups). So a CNT Readers' Choice writeup, a Rotten Tomatoes editorial guide, a T+L Readers article, a Goodreads ratings page, a Yelp / Google / TripAdvisor / Amazon listing URL, or the pricing search all link out where the source carries a URL. Only the internal `composite` (`ai`) group and the live fan vote (`cgvote`, which has no URL) stay non-linking. Always store the most useful destination URL on the source (the readers' poll article, the rating-platform list page, the live-pricing search), since it will be reader-facing.
+**Hyperlink consequence:** per `isPublicationLink`, only `publication` / `trueexpert` group sources render the chevron-arrow link on the source caption. Sources in Reviews & Ratings Aggregations render as plain text even when their `url` points to an article (e.g. a CNT Readers' Choice writeup, a Rotten Tomatoes editorial guide). This is the consistent behavior with Goodreads, Yelp, Amazon, and TripAdvisor sources today, and is the right thing — the GROUP defines whether the source is presented as a publication.
 
 ### Direct Amazon product links (`/dp/<ASIN>`) and live data gathering
 - **If an Amazon product page exists, you MUST use the direct product link, not a search link.** For every product/book whose Amazon listing can be found (essentially all of them), the `links` value must be the canonical product URL `https://www.amazon.com/dp/<ASIN>?tag=cgurus-20`, never an `s?k=` search URL. The `cgurus-20` affiliate tag is all that is needed for attribution. A search link is a last resort reserved for items with no product page at all.
@@ -988,11 +988,10 @@ Gather each website by searching `"<name> official website"` in the connected br
 ### Getting Yelp / TripAdvisor business-page URLs without hitting their bot walls
 TripAdvisor (and sometimes Yelp) search pages are JS/bot-protected and return nothing when loaded directly. **Do not scrape them directly.** Instead, run a normal **Google search in the connected Chrome** for `"<venue> tripadvisor"` (or `"<venue> yelp"`) and read the `tripadvisor.com/...` (or `yelp.com/biz/...`) link straight out of the Google results — it's easy to confirm it's the property/venue page. Store that real URL in `itemTripadvisor` / `itemYelp`. If even the Google result has no real property page, omit that item (the chip drops and only Google shows).
 
-### Source labels hyperlink whenever the source carries a `url`
-- On the list page, the selected-source "Showing:" label and the source buttons link out to the source `url` whenever one is present, regardless of group: editorial publications, True Experts, Reviews & Ratings Aggregations (Yelp/Google/TripAdvisor/Amazon/Goodreads/readers' polls/critic aggregators), and pricing sources all link.
-- The exceptions that do NOT hyperlink: the internal `composite` ranking (no URL) and the live fan vote (`cgvote`, no URL). If a source genuinely has no useful URL, leave `url` off the source object and it will render as plain text.
-- Loosened 2026-06-09 (previously only `publication` / `trueexpert` groups linked) so readers can click through to the underlying ranking, rating page, or live search from any source.
-- Gated by `isPublicationLink` in `DetailClient`, which now permits `publication` / `trueexpert` / `platform` / `pricing` to link when a URL is present.
+### Source labels hyperlink only for publications, not user-rating sources
+- On the list page, the selected-source "Showing:" label and the source buttons link out to the source `url` **only when the source is a real publication**: an editorial "Expert Publication" or a flagged True Expert with an article page.
+- **User-rating sources do NOT hyperlink** even though they carry a `url`: Amazon Reviews, Yelp/Google rating sources, the `pricing` source, and the live fan vote. Their `url` is a search, not an article, so they render as plain text.
+- Gated by `isPublicationLink` in `DetailClient`, which keys off `expertGroupKey` (links only when the group is `publication` or `trueexpert`).
 
 ## Common Mistakes to Avoid
 
@@ -1073,21 +1072,6 @@ Safety checks: (a) re-fetch and re-splice if ANY time passed between building th
 (b) after the push, diff the parent's data.js against the pushed one and confirm the diff contains
 ONLY the intended change (`git diff BASE_COMMIT NEW_COMMIT -- lib/data.js`); (c) if the list count
 (`grep -c publishedDate`) went DOWN and you didn't intentionally remove a list, stop and investigate.
-
-**⚠️ STALE-BASE RULE applies to ANY file, not just `lib/data.js` — the Edit tool reads the
-working-tree copy, which is stale after a push.** A direct `git push` updates `.git` but does NOT
-fast-forward the working tree, so the file on disk in `C:\\dev\\source-of-truths` keeps its
-pre-push content. The next Read/Edit on that file then operates on a stale base, and pushing the
-result silently overwrites whatever landed in between. This bit twice on 2026-06-10 in one session:
-commit `3c59f47` truncated `CLAUDE.md` (lost lines 1406–1545: image attribution, consensus alerts/
-cron docs, full example list entry, chrome tab hygiene) AND truncated `app/list/[id]/ActivityFeed.jsx`
-mid-line at 847 (broke the Vercel build), because both files had been written by intervening
-commits and the Edit tool re-read them from the stale working tree. **The rule: for ANY file edit
-that will be pushed (`CLAUDE.md`, `*.jsx`, `*.js`, migration SQL, anything), splice off
-`git show FETCH_HEAD:<path>` from a fetch performed in the SAME deploy step — never the working
-tree or a copy from earlier in the session.** Same safety checks apply: after the push, diff parent
-vs new commit to confirm the change is only what was intended; if line count drops unexpectedly,
-stop and investigate. The Read tool is fine for reference but not authoritative for splice bases.
 
 ```bash
 set -e
@@ -1423,143 +1407,4 @@ if (missing.length) throw new Error('Missing descriptions: ' + missing.join(', '
   Buffalo-wings-with-blue-cheese shot cannot be Madame Vo's fish-sauce wings). This exact mistake
   shipped Dan and John's Buffalo wings as the Madame Vo hero on `best-wings-nyc` (caught and fixed
   2026-06-05): the Eater lead image was captioned "Dan and John's wings" but was filed under
-  Madame Vo. When attribution cannot be confirmed, find a different photo (venue site, Yelp
-  business gallery) rather than guessing.
-- **Never trust a CDN filename as proof the image shows the correct venue.** Editorial CMS systems
-  routinely mislabel uploaded files. A URL containing `RedHookTavern_Burger.jpg` does not guarantee
-  the photo actually shows Red Hook Tavern's food — the file could be misnamed in the CMS. Always
-  visually verify the image looks like the venue's known food and style (compare against their own
-  website, Instagram, or Yelp photos), and prefer sourcing from the venue's own site when a good
-  photo exists there. This caught the `burgers-nyc` Red Hook Tavern hero (2026-06-08): the Eater
-  CDN filename said "RedHookTavern" but the image showed a different restaurant's thick patty burger,
-  not Red Hook Tavern's signature smash burger.
-- **Stable-host check for hotlinked URLs:** prefer images.pexels.com / editorial CDNs /
-  upload.wikimedia.org / venue sites; avoid expiring signed URLs (fbcdn, Instagram CDN,
-  googleusercontent thumbnails) — they die and blank the tile.
-- **Hash-verify every repo read used for a splice.** The bash mount has silently dropped
-  characters from `git show` output more than once (a `\u2013` lost a digit and broke
-  `node --check`). Before splicing into or pushing any file, confirm
-  `git hash-object <copy>` equals `git rev-parse <commit>:<path>`; re-read until it matches.
-- **Re-check the LIVE consensus top 3 immediately before and after shipping a hero wave.**
-  Fan votes move small-margin lists within hours: a herocheck computed from a morning
-  bootstrap snapshot shipped a wave that was already stale by deploy time (The Sopranos had
-  entered the best-hbo-shows top 3 and its tile rendered the placeholder). Re-ferry
-  `/api/bootstrap` right before finalizing the wave, and after deploy open each shipped
-  list's overview page and confirm all three tiles carry a credit caption — a
-  "curating a fancy photo" placeholder on a just-shipped list means consensus drifted.
-- **Reject AI-generated images on sight.** Image search now surfaces them (a
-  `Gemini_Generated_Image_*` file was the TOP Bing result for a Sagaponack beach query,
-  hosted on a real magazine's CDN). A generated picture is never a photo of the place;
-  check filenames and look for telltale rendering before accepting any search result.
-- **Multi-venue brands: confirm the location in the filename/page before accepting.** Ski,
-  hotel, and restaurant brands with several sites (La Folie Douce, Aman, McDonald's) surface
-  photos of the WRONG location at the top of image search; the Val Thorens terrace nearly
-  shipped as the Val d'Isère hero. The same attribution rule as dish photos applies: the
-  file name, page caption, or host page must name the specific location.
-
-### Consensus change alerts (research queue)
-- Tables `consensus_snapshots` + `consensus_alerts` (migration `08_consensus_alerts.sql`).
-- **Activity-ledger attribution:** both ledgers (per-list `ActivityFeed.jsx` and universal
-  `app/feed/page.js` + `FeedClient.jsx`) pair each ranking change with its cause: a change detected
-  within ~26h after a post-launch source addition merges into that source-add card (dual chips
-  "Source added" + "Ranking change"); an unattributed change renders with "Votes" + "Ranking change"
-  chips. "Launch batch" sources = first seen within **6h** of the list's publish time; this window
-  lives in BOTH ActivityFeed.jsx and app/feed/page.js and the two must stay in sync. Sources added
-  before the stamping feature shipped (2026-06-07) were launch-anchored by its first run; the real
-  add dates for the affected lists were restored by migration 14.
-- `/api/cron/consensus-check` runs daily via Vercel cron (`vercel.json`): recomputes every list's
-  consensus top 10, diffs against the snapshot, and inserts an alert when an item newly enters the
-  top 10 (`entered_top10`, needs a description) or top 3 (`entered_top3`, needs a hero photo).
-  The same diff also records exits (`exited_top10`, `exited_top3`) and within-top10 shifts
-  (`moved`), inserted with `resolved=true` so they show in the public activity ledgers but never
-  enter the research queue (no description or hero work needed). Every alert row stores the exact
-  movement as `prev_rank` -> `rank`, where **0 means unranked** (outside the top 10); the ledgers
-  render "moved from #X to #Y / unranked" and never show a rank beyond 10 (owner rule, 2026-06-07).
-  Rows with `prev_rank` null are legacy (pre-movement-tracking) and render the old boundary
-  phrasing. An unranked item entering the top 3 fires entered_top10 AND entered_top3 (two research
-  rows); both feeds dedupe the display. Each alert also carries a `cause`: the cron fingerprints
-  every list's source data (`sourcesFingerprint`) and stores it on the snapshot; if the fingerprint
-  changed since the last run the change is attributed to a deploy edit (cause `edit`, "List edited"
-  chip), otherwise to fan votes (cause `votes`, "Votes" chip) -- BUT 'votes' is never attributed to
-  a list with zero recorded votes (no `votes`/`vote_events` rows): a voteless list's change can only
-  come from a deploy, so it gets cause `edit` (owner rule 2026-06-07, after the meyhanes-rename
-  changes displayed as "Voting" on a list nobody had voted on). The fingerprint also folds in
-  `SCORING_ENGINE_VERSION` (exported from `lib/helpers.js`): **bump that constant in the same push
-  whenever the scoring engine's behavior changes** (getSources math, padding, weighting, tie-breaks,
-  in helpers.js or any mirror), so engine-deploy consensus shifts attribute as `edit`, not votes.
-  Null cause = legacy row (pre-migration-16); both ledgers render it with a neutral "Ranking change"
-  chip only -- never a Votes chip (migration `19_reattribute_voteless_alerts.sql` re-attributed
-  legacy null/votes rows on voteless lists to `edit`). Migrations
-  `14_restamp_source_dates_and_exits.sql`, `15_alert_rank_movement.sql`, and
-  `16_alert_cause.sql` cover the schema.
-  First run seeds snapshots silently. Optional `CRON_SECRET` env var protects the route.
-- The admin panel (`/admin`) has a **Research** tab listing unresolved alerts with what each needs;
-  resolve via `/api/admin/alerts` once the research ships.
-- `/api/consensus-alerts` is a public read-only feed of unresolved alerts (used by the weekly
-  email summary task in Cowork; supports `?sinceDays=7`).
-- When researching an alert: write the description into `lib/descriptions.js`, add the hero image if
-  top 3, deploy, then resolve the alert in the admin panel.
-
-## Full Example List Entry
-
-```javascript
-{
-  id: 'cocktails-west-village',
-  publishedDate: '2026-05-27',
-  title: 'Best Cocktail Bars in the West Village',
-  category: 'New York',
-  type: 'food',
-  tags: ['bars', 'nightlife', 'food-drink', 'stores', 'entertainment'],
-  linkType: 'mapsCity',
-  blurb: 'Intimate rooms, serious bartenders, and menus that reward attention. The West Village does cocktails better than almost anywhere.',
-  defaultSource: 'ai',
-  sources: {
-    ai: {
-      label: 'Consensus Seed',
-      items: [
-        'Dante NYC',
-        'Employees Only',
-        'The Nines',
-        'Slowly Shirley',
-        'Bar Pisellino',
-        'Little Branch',
-        'Amor y Amargo',
-        'Clover Club (Brooklyn)',
-        'The Up & Up',
-        'Attaboy',
-      ],
-    },
-    infatuation: {
-      label: 'The Infatuation NYC 2024',
-      items: [
-        'Dante NYC',
-        'Employees Only',
-        'Bar Pisellino',
-        'Little Branch',
-        'Amor y Amargo',
-        'The Nines',
-        'Slowly Shirley',
-      ],
-    },
-    timeout: {
-      label: 'Time Out New York 2024',
-      items: [
-        'Employees Only',
-        'Dante NYC',
-        'Little Branch',
-        'Slowly Shirley',
-        'The Up & Up',
-        'Amor y Amargo',
-        'Bar Pisellino',
-        'The Nines',
-      ],
-    },
-    eater: {
-      lab
-
-## Chrome tab hygiene (universal rule, owner-requested 2026-06-05)
-
-Close every Chrome MCP tab as soon as it is no longer needed: reuse ONE tab per session (navigate in
-place rather than opening new tabs), and call `tabs_close_mcp` on every tab in the session's group when
-the task or session ends. Parallel Cowork sessions were proliferating tabs in the owner's browser; never
-leave stale MCP tabs behind.
+  Madame Vo. When attribution cannot be confirmed, find a different photo 
