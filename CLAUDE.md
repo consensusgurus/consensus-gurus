@@ -886,13 +886,15 @@ open the matching tab. Implementation: `ListDetail` in `DetailClient.jsx` owns t
 chrome skipped) as the Share tab's content. The standalone `/snapshot/[id]` page still works
 for old links and automations.
 
-### Consensus tab layout: ledger rows at 1200px (owner-approved redesign, 2026-06-10)
+### Consensus tab layout: ledger rows at 1040px (owner-approved redesign, 2026-06-10)
 
 The Consensus tab renders the top 10 as full-width **ledger rows** (`LedgerRow` in
 `ListOverview.jsx`), replacing the old HeroTile/SmallTile grid on the live page. The list page
-container (`DetailClient.jsx`) is **1200px wide to match the homepage** (was 920). Each row:
-rank numeral (ember for 1-3, faded for 4-10) / hero photo (ranks 1-3 only, 210px col) / name +
-locality + FULL description (never truncated) / a right-hand 184px action column. The action
+container (`DetailClient.jsx`) is **1040px wide** (was 920; briefly 1200, owner found it too
+wide on 2026-06-10). Each row: rank numeral (ember for 1-3, faded for 4-10) / hero photo (ranks
+1-3 only, 280px col) / name + locality + FULL description (never truncated) / a right-hand 196px
+action column. Rows carry 14px side padding and 22px column gaps so text and chips never hug
+edges (owner feedback 2026-06-10). The action
 column stacks the same chips the tiles carried: the ember video chip (Portnoy Review etc.),
 Rent/Buy affiliate chips (`buyLinks`/`itemBuy`), Map-or-Purchase + Website, and the `Pics:`
 label with its Yelp/TripAdvisor/Google chips (the Pics: label is REQUIRED, per owner). Ranks

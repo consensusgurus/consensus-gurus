@@ -102,7 +102,7 @@ function linkBtn(primary) {
     fontSize: 8,
     letterSpacing: '0.13em',
     textTransform: 'uppercase',
-    padding: '5px 10px',
+    padding: '7px 12px',
     border: `1px solid ${COLORS.ink}`,
     background: primary ? COLORS.ink : 'transparent',
     color: primary ? COLORS.cream : COLORS.ink,
@@ -603,7 +603,7 @@ function LedgerRow({ item, rank, list, desc, pics, isTop, heavyDivider }) {
         {rank}
       </div>
       {isTop && (
-        <div className="lov-photo" style={{ alignSelf: 'stretch', display: 'grid', minHeight: 150 }}>
+        <div className="lov-photo" style={{ alignSelf: 'stretch', display: 'grid', minHeight: 200 }}>
           {heroSrc ? (
             <HeroPhoto
               photo={heroSrc}
@@ -613,10 +613,10 @@ function LedgerRow({ item, rank, list, desc, pics, isTop, heavyDivider }) {
               fit={containHero ? 'contain' : 'cover'}
               bg={containHero ? COLORS.paper : undefined}
               pad={containHero ? 10 : 0}
-              minH={150}
+              minH={200}
             />
           ) : (
-            <PhotoBox style={{ minHeight: 150 }} />
+            <PhotoBox style={{ minHeight: 200 }} />
           )}
         </div>
       )}
@@ -666,7 +666,7 @@ function LedgerRow({ item, rank, list, desc, pics, isTop, heavyDivider }) {
           </p>
         </LinkWrap>
       </div>
-      <div className="lov-actions" style={{ display: 'flex', flexDirection: 'column', gap: 5 }}>
+      <div className="lov-actions" style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
         {links.video && (
           <a
             href={links.video}
@@ -908,16 +908,16 @@ export default function ListOverview({ list, voteData, extras, viewCount, onBack
   return (
     <div style={{ position: 'relative', zIndex: 2, background: COLORS.cream }}>
       <style>{`
-        .lov-row{display:grid;grid-template-columns:56px minmax(0,1fr) 184px;gap:16px;align-items:center;padding:14px 0;}
-        .lov-row-top{grid-template-columns:56px 210px minmax(0,1fr) 184px;}
+        .lov-row{display:grid;grid-template-columns:52px minmax(0,1fr) 196px;gap:22px;align-items:center;padding:18px 14px;}
+        .lov-row-top{grid-template-columns:52px 280px minmax(0,1fr) 196px;}
         @media(max-width:760px){
-          .lov-row,.lov-row-top{grid-template-columns:1fr;gap:10px;padding:16px 0;}
+          .lov-row,.lov-row-top{grid-template-columns:1fr;gap:12px;padding:20px 6px;}
           .lov-rank{text-align:left !important;}
-          .lov-photo{min-height:190px !important;}
-          .lov-actions{flex-direction:row !important;flex-wrap:wrap;align-items:center;}
+          .lov-photo{min-height:220px !important;}
+          .lov-actions{flex-direction:row !important;flex-wrap:wrap;align-items:center;row-gap:6px;}
         }
       `}</style>
-      <div style={embedded ? undefined : { maxWidth: 1200, margin: '0 auto', padding: '28px 20px 0' }}>
+      <div style={embedded ? undefined : { maxWidth: 1040, margin: '0 auto', padding: '28px 20px 0' }}>
         {/* Condensed header — hidden when embedded as the Consensus tab of
             the list page, which renders its own header and chip row. */}
         {!embedded && (
