@@ -119,6 +119,62 @@ const CATEGORIES = [
   { id: 'misc', label: 'Miscellaneous', any: ['other'] },
 ];
 const CAT_BY_ID = Object.fromEntries(CATEGORIES.map((c) => [c.id, c]));
+
+// Filter-chip color coding — each broad category and each By Topic chip is
+// tinted with a parent color so the connection between the top row and the
+// topic row is visible at a glance. Cities and regions stay uncolored (they
+// cut across categories). Inactive chips get a soft tinted background + a
+// colored border; the active chip flips to the solid parent color with cream
+// text. The five new tones extend the existing palette (ember, rust, forest,
+// faded) with slate (Products) and plum (Entertainment).
+const PARENT_COLORS = {
+  restaurants: '#c0392b',      // ember — Eating
+  'bars-nightlife': '#a44a26', // rust — Drinking
+  travel: '#3d4f2b',           // forest — Hotels & Travel
+  shops: '#3a5670',            // slate — Products
+  entertainment: '#6b3a5a',    // plum — Entertainment
+  misc: '#7a6f5e',             // faded — Miscellaneous
+};
+// Precomputed 12% parent tint over cream (#f4ede0). Inlined as hex so we
+// don't depend on color-mix browser support.
+const PARENT_TINTS = {
+  restaurants: '#eed7ca',
+  'bars-nightlife': '#ead9ca',
+  travel: '#dedaca',
+  shops: '#dddbd2',
+  entertainment: '#e3d7d0',
+  misc: '#e5ded0',
+};
+// Topic chip → parent category. Chains & Groceries lives under Eating since
+// the bulk of its hits (TJ's, Spindrift, snacks, seltzer, grocery) are food.
+const TOPIC_PARENT = {
+  'topic-pizza': 'restaurants',
+  'topic-burgers': 'restaurants',
+  'topic-tacos': 'restaurants',
+  'topic-bbq': 'restaurants',
+  'topic-sushi': 'restaurants',
+  'topic-breakfast': 'restaurants',
+  'topic-dive-bars': 'bars-nightlife',
+  'topic-cocktails': 'bars-nightlife',
+  'topic-beer': 'bars-nightlife',
+  'topic-spirits': 'bars-nightlife',
+  'topic-hotels': 'travel',
+  'topic-beaches': 'travel',
+  'topic-movies': 'entertainment',
+  'topic-tv': 'entertainment',
+  'topic-books': 'entertainment',
+  'topic-music': 'entertainment',
+  'topic-sports': 'entertainment',
+  'topic-tech': 'shops',
+  'topic-kitchen-home': 'shops',
+  'topic-chains': 'restaurants',
+};
+function parentIdFor(filterId) {
+  if (TOPIC_PARENT[filterId]) return TOPIC_PARENT[filterId];
+  if (PARENT_COLORS[filterId]) return filterId;
+  return null;
+}
+
 function listInCategory(list, catId) {
   const cat = CAT_BY_ID[catId];
   if (!cat || cat.id === 'all' || !cat.any) return true;
@@ -672,6 +728,9 @@ function Home({ lists, viewCounts, voteData, extras, trending = {}, openList, on
               const chip = (f, big) => {
                 const active = typeFilter === f.id;
                 const count = f.count != null ? f.count : (counts[f.id] || 0);
+                const parentId = parentIdFor(f.id);
+                const parentColor = parentId ? PARENT_COLORS[parentId] : null;
+                const parentTint = parentId ? PARENT_TINTS[parentId] : null;
                 return (
                   <button
                     key={f.id}
@@ -681,7 +740,7 @@ function Home({ lists, viewCounts, voteData, extras, trending = {}, openList, on
                       display: 'inline-flex',
                       alignItems: 'baseline',
                       gap: 6,
-                      border: `1px solid ${COLORS.ink}`,
+                      border: `1px solid ${parentColor || COLORS.ink}`,
                       padding: big ? '9px 12px' : '7px 10px',
                       fontFamily: 'DM Mono, monospace',
                       fontSize: big ? 10 : 9,
@@ -689,13 +748,15 @@ function Home({ lists, viewCounts, voteData, extras, trending = {}, openList, on
                       textTransform: 'uppercase',
                       fontWeight: 600,
                       cursor: 'pointer',
-                      background: active ? '#bdb3a0' : COLORS.paper,
-                      color: COLORS.ink,
+                      background: active
+                        ? (parentColor || '#bdb3a0')
+                        : (parentTint || COLORS.paper),
+                      color: active && parentColor ? COLORS.cream : COLORS.ink,
                       whiteSpace: 'nowrap',
                     }}
                   >
                     <span>{f.label}</span>
-                    {f.id !== 'all' && <span style={{ opacity: 0.55 }}>{count}</span>}
+                    {f.id !== 'all' && <span style={{ opacity: active && parentColor ? 0.75 : 0.55 }}>{count}</span>}
                   </button>
                 );
               };
