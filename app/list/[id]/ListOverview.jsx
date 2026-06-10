@@ -223,7 +223,7 @@ function LinkWrap({ href, rel, style, children }) {
   );
 }
 
-function HeroPhoto({ photo, alt, poster, href, rel, fit = 'cover', bg, pad = 0 }) {
+function HeroPhoto({ photo, alt, poster, href, rel, fit = 'cover', bg, pad = 0, minH = 200 }) {
   const [failed, setFailed] = useState(false);
   const src = typeof photo === 'string' ? photo : photo?.src;
   const credit = photo && typeof photo === 'object' ? photo.credit : null;
@@ -238,7 +238,7 @@ function HeroPhoto({ photo, alt, poster, href, rel, fit = 'cover', bg, pad = 0 }
     // (a raw remote URL would taint the canvas and blank the download).
     const optimized = `/_next/image?url=${encodeURIComponent(src)}&w=640&q=75`;
     return (
-      <div style={{ position: 'relative', minHeight: 200, flexShrink: 0, overflow: 'hidden', backgroundColor: padBg, padding: pad, transition: 'background-color 0.2s ease' }}>
+      <div style={{ position: 'relative', minHeight: minH, flexShrink: 0, overflow: 'hidden', backgroundColor: padBg, padding: pad, transition: 'background-color 0.2s ease' }}>
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img
           src={optimized}
@@ -280,7 +280,7 @@ function HeroPhoto({ photo, alt, poster, href, rel, fit = 'cover', bg, pad = 0 }
     />
   );
   return (
-    <div style={{ position: 'relative', minHeight: 200, flexShrink: 0, overflow: 'hidden', backgroundColor: padBg, padding: pad, transition: 'background-color 0.2s ease' }}>
+    <div style={{ position: 'relative', minHeight: minH, flexShrink: 0, overflow: 'hidden', backgroundColor: padBg, padding: pad, transition: 'background-color 0.2s ease' }}>
       {href ? (
         <a
           href={href}
@@ -566,6 +566,174 @@ function SmallTile({ item, rank, list, desc, pics, poster }) {
   );
 }
 
+// Full-width ledger row (live consensus tab). One row per item: rank
+// numeral / hero photo (ranks 1-3 only) / name + full description / a
+// right-hand action column carrying the same chip set as the old tiles
+// (video review, Map or Purchase, Website, and the "Pics:" label group).
+// The share poster (ListOverviewPoster) keeps the HeroTile/SmallTile
+// layout, so capture renders are unaffected by this layout.
+function LedgerRow({ item, rank, list, desc, pics, isTop, heavyDivider }) {
+  const { displayName, locality } = parseItem(item);
+  const links = buildLinks(item, list);
+  const heroSrc = isTop ? (HERO_IMAGES[list.id] || {})[item] : null;
+  const href = links.map;
+  const rel = bestRel(list);
+  const isPlace = (list.linkType || 'mapsCity') === 'mapsCity';
+  const primaryLabel = isPlace ? 'Map' : list.linkLabel ? list.linkLabel : list.linkType === 'amazon' ? 'Purchase' : 'View';
+  const PrimaryIcon = isPlace ? MapPin : list.linkType === 'amazon' ? ShoppingBag : ExternalLink;
+  const isProduct = list.type === 'product' || (list.tags || []).includes('product');
+  const containHero = isProduct || list.heroFit === 'contain';
+
+  return (
+    <div
+      className={isTop ? 'lov-row lov-row-top' : 'lov-row'}
+      style={{ borderBottom: heavyDivider ? `2px solid ${COLORS.ink}` : '1px solid rgba(26,22,17,0.16)' }}
+    >
+      <div
+        className="lov-rank"
+        style={{
+          fontFamily: 'Fraunces, serif',
+          fontWeight: 900,
+          fontSize: isTop ? 30 : 20,
+          lineHeight: 1,
+          color: isTop ? COLORS.ember : COLORS.faded,
+          textAlign: 'center',
+        }}
+      >
+        {rank}
+      </div>
+      {isTop && (
+        <div className="lov-photo" style={{ alignSelf: 'stretch', display: 'grid', minHeight: 150 }}>
+          {heroSrc ? (
+            <HeroPhoto
+              photo={heroSrc}
+              alt={displayName}
+              href={href}
+              rel={rel}
+              fit={containHero ? 'contain' : 'cover'}
+              bg={containHero ? COLORS.paper : undefined}
+              pad={containHero ? 10 : 0}
+              minH={150}
+            />
+          ) : (
+            <PhotoBox style={{ minHeight: 150 }} />
+          )}
+        </div>
+      )}
+      <div style={{ minWidth: 0 }}>
+        <div style={{ display: 'flex', alignItems: 'baseline', gap: 10, flexWrap: 'wrap' }}>
+          <LinkWrap href={href} rel={rel} style={{ display: 'inline-block' }}>
+            <p
+              style={{
+                fontFamily: 'Fraunces, serif',
+                fontSize: isTop ? 21 : 17,
+                fontWeight: 700,
+                lineHeight: 1.15,
+                margin: 0,
+                fontVariationSettings: '"SOFT" 100',
+                color: COLORS.ink,
+              }}
+            >
+              {displayName}
+            </p>
+          </LinkWrap>
+          {locality && (
+            <span
+              style={{
+                fontFamily: 'DM Mono, monospace',
+                fontSize: 9,
+                letterSpacing: '0.12em',
+                textTransform: 'uppercase',
+                color: COLORS.faded,
+              }}
+            >
+              {locality}
+            </span>
+          )}
+        </div>
+        <LinkWrap href={href} rel={rel}>
+          <p
+            style={{
+              fontFamily: 'DM Sans, sans-serif',
+              fontSize: 14,
+              color: desc ? '#5a5045' : COLORS.faded,
+              fontStyle: desc ? 'normal' : 'italic',
+              lineHeight: 1.55,
+              margin: '5px 0 0',
+            }}
+          >
+            {desc || 'New addition: Check back soon for description'}
+          </p>
+        </LinkWrap>
+      </div>
+      <div className="lov-actions" style={{ display: 'flex', flexDirection: 'column', gap: 5 }}>
+        {links.video && (
+          <a
+            href={links.video}
+            target="_blank"
+            rel="noopener noreferrer"
+            style={{ ...linkBtn(false), justifyContent: 'center', background: COLORS.ember, color: COLORS.cream, border: `1px solid ${COLORS.ember}` }}
+          >
+            <Play size={9} strokeWidth={2} fill={COLORS.cream} /> {list.itemVideoLabel || 'Video'}
+          </a>
+        )}
+        {links.buy && list.buyLinks === 'video' && (
+          <div style={{ display: 'flex', gap: 5 }}>
+            <a href={links.buy} target="_blank" rel="noopener noreferrer sponsored" style={{ ...linkBtn(true), justifyContent: 'center', flex: 1 }}>
+              <Clock size={9} strokeWidth={2} /> Rent
+            </a>
+            <a href={links.buy} target="_blank" rel="noopener noreferrer sponsored" style={{ ...linkBtn(true), justifyContent: 'center', flex: 1 }}>
+              <ShoppingBag size={9} strokeWidth={2} /> Buy
+            </a>
+          </div>
+        )}
+        {links.buy && list.buyLinks === 'music' && (
+          <a href={links.buy} target="_blank" rel="noopener noreferrer sponsored" style={{ ...linkBtn(true), justifyContent: 'center' }}>
+            <ShoppingBag size={9} strokeWidth={2} /> Buy
+          </a>
+        )}
+        <div style={{ display: 'flex', gap: 5 }}>
+          <a
+            href={links.map}
+            target="_blank"
+            rel={isPlace ? 'noopener noreferrer' : 'noopener noreferrer sponsored'}
+            style={{ ...linkBtn(true), justifyContent: 'center', flex: 1 }}
+          >
+            <PrimaryIcon size={9} strokeWidth={2} /> {primaryLabel}
+          </a>
+          {links.website && (
+            <a href={links.website} target="_blank" rel="noopener noreferrer" style={{ ...linkBtn(false), justifyContent: 'center', flex: 1 }}>
+              <Globe size={9} strokeWidth={2} /> Website
+            </a>
+          )}
+        </div>
+        {isPlace && (
+          <div style={{ display: 'flex', alignItems: 'center', gap: 5, flexWrap: 'wrap' }}>
+            <span
+              style={{
+                fontFamily: 'DM Mono, monospace',
+                fontSize: 8,
+                letterSpacing: '0.13em',
+                textTransform: 'uppercase',
+                color: COLORS.faded,
+              }}
+            >
+              {pics.label}
+            </span>
+            {pics.links.map(([key, label]) =>
+              links[key] ? (
+                <a key={key} href={links[key]} target="_blank" rel="noopener noreferrer" style={{ ...linkBtn(false), flex: 1, justifyContent: 'center' }}>
+                  {label}
+                </a>
+              ) : null
+            )}
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
 // Static, fixed-width (1080px) rendering of the new list page, used by the
 // share page (/snapshot/[id]) as a downloadable image. Reuses the exact same
 // tiles, descriptions, hero images, and pics config as the live overview so
@@ -737,22 +905,19 @@ export default function ListOverview({ list, voteData, extras, viewCount, onBack
 
   if (!items.length) return null;
 
-  const heroItems = items.slice(0, 3);
-  const gridItems = items.slice(3, 9);
-  const tenthItem = items[9];
-
   return (
     <div style={{ position: 'relative', zIndex: 2, background: COLORS.cream }}>
       <style>{`
-        .lov-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;}
-        @media(max-width:700px){
-          .lov-grid{grid-template-columns:1fr;}
-          .lov-grid>div{grid-column:auto !important;}
-          .lov-hero{grid-template-columns:1fr !important;}
-          .lov-tenth{width:100% !important;min-width:0 !important;}
+        .lov-row{display:grid;grid-template-columns:56px minmax(0,1fr) 184px;gap:16px;align-items:center;padding:14px 0;}
+        .lov-row-top{grid-template-columns:56px 210px minmax(0,1fr) 184px;}
+        @media(max-width:760px){
+          .lov-row,.lov-row-top{grid-template-columns:1fr;gap:10px;padding:16px 0;}
+          .lov-rank{text-align:left !important;}
+          .lov-photo{min-height:190px;}
+          .lov-actions{flex-direction:row !important;flex-wrap:wrap;align-items:center;}
         }
       `}</style>
-      <div style={embedded ? undefined : { maxWidth: 920, margin: '0 auto', padding: '28px 20px 0' }}>
+      <div style={embedded ? undefined : { maxWidth: 1200, margin: '0 auto', padding: '28px 20px 0' }}>
         {/* Condensed header — hidden when embedded as the Consensus tab of
             the list page, which renders its own header and chip row. */}
         {!embedded && (
@@ -945,40 +1110,21 @@ export default function ListOverview({ list, voteData, extras, viewCount, onBack
         </>
         )}
 
-        {/* Tiled grid (homepage aesthetic: own borders, small gaps) */}
-        <div className="lov-grid" style={{ marginTop: embedded ? 0 : 26 }}>
-          {/* Ranks 1-3: full-width hero tiles */}
-          {heroItems.map((item, i) => (
-            <HeroTile
+        {/* Ledger rows: rank / photo (ranks 1-3) / name + full description /
+            action column. Top-3 block closes with a heavy rule. */}
+        <div style={{ marginTop: embedded ? 0 : 26, borderTop: `2px solid ${COLORS.ink}` }}>
+          {items.map((item, i) => (
+            <LedgerRow
               key={item}
               item={item}
               rank={i + 1}
               list={list}
               desc={descs[item]}
               pics={pics}
+              isTop={i < 3}
+              heavyDivider={i === 2 && items.length > 3}
             />
           ))}
-
-          {/* Ranks 4-9: 2-column small tiles */}
-          {gridItems.map((item, i) => (
-            <SmallTile
-              key={item}
-              item={item}
-              rank={i + 4}
-              list={list}
-              desc={descs[item]}
-              pics={pics}
-            />
-          ))}
-
-          {/* Rank 10: same tile as 4-9, centered on its own row */}
-          {tenthItem && (
-            <div style={{ gridColumn: 'span 2', display: 'flex', justifyContent: 'center' }}>
-              <div className="lov-tenth" style={{ width: 'calc(50% - 7px)', minWidth: 'min(100%, 300px)' }}>
-                <SmallTile item={tenthItem} rank={10} list={list} desc={descs[tenthItem]} pics={pics} />
-              </div>
-            </div>
-          )}
         </div>
 
       </div>
