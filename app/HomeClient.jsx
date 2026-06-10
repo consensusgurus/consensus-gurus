@@ -411,8 +411,13 @@ function Home({ lists, viewCounts, voteData, extras, trending = {}, openList, on
   // date line under a DAILY EDITION kicker, with a cycling ticker of recent
   // consensus ranking movements (fed by /api/ticker via consensus_alerts).
   // The date is set on mount to avoid an SSR hydration mismatch.
-  const [folioDate, setFolioDate] = useState('');
+  const [folioDate, setFolioDate] = useState(
+    () => new Date()
+      .toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' })
+      .toUpperCase()
+  );
   const [tickerEntries, setTickerEntries] = useState([]);
+  const [tickerLoaded, setTickerLoaded] = useState(false);
   const [tickerIdx, setTickerIdx] = useState(0);
   const [tickerShown, setTickerShown] = useState(true);
   useEffect(() => {
@@ -426,9 +431,11 @@ function Home({ lists, viewCounts, voteData, extras, trending = {}, openList, on
     fetch('/api/ticker')
       .then((r) => (r.ok ? r.json() : null))
       .then((d) => {
-        if (alive && d && Array.isArray(d.entries) && d.entries.length) setTickerEntries(d.entries);
+        if (!alive) return;
+        if (d && Array.isArray(d.entries) && d.entries.length) setTickerEntries(d.entries);
+        setTickerLoaded(true);
       })
-      .catch(() => {});
+      .catch(() => { if (alive) setTickerLoaded(true); });
     return () => { alive = false; };
   }, []);
   useEffect(() => {
@@ -737,7 +744,7 @@ function Home({ lists, viewCounts, voteData, extras, trending = {}, openList, on
                         {tickerEntries[tickerIdx % tickerEntries.length].label} · {tickerEntries[tickerIdx % tickerEntries.length].listTitle}
                       </Link>
                     ) : (
-                      <span style={{ color: COLORS.faded }}>Expert + fan consensus, computed daily</span>
+                      <span style={{ color: COLORS.faded }}>{tickerLoaded ? 'Expert + fan consensus, computed daily' : '\u00A0'}</span>
                     )}
                   </div>
                 </div>
@@ -751,8 +758,12 @@ function Home({ lists, viewCounts, voteData, extras, trending = {}, openList, on
                 </div>
               </div>
             </div>
-            <div style={{ borderBottom: `1px solid ${COLORS.ink}`, marginBottom: 4 }} />
-            <div style={{ borderBottom: `2px solid ${COLORS.ember}` }} />
+            {!HOME_V2 && (
+              <>
+                <div style={{ borderBottom: `1px solid ${COLORS.ink}`, marginBottom: 4 }} />
+                <div style={{ borderBottom: `2px solid ${COLORS.ember}` }} />
+              </>
+            )}
           </div>
         </div>
         <style>{`
