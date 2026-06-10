@@ -100,11 +100,23 @@ async function validateHero(url) {
   const ctl = new AbortController();
   const to = setTimeout(() => ctl.abort('timeout'), 3500);
   try {
-    const r = await fetch(url, { signal: ctl.signal, redirect: 'follow', cache: 'force-cache' });
+    // Force CDNs to deliver JPEG/PNG. Satori's Edge image decoder is
+    // unreliable on WebP/AVIF (browsers decode them fine, but ImageResponse
+    // does not), which causes the streaming PNG response to abort with 0
+    // bytes — the failure mode we are guarding against. The Accept header
+    // covers Cloudinary's f_auto and similar negotiated delivery; the
+    // explicit content-type check covers CDNs that ignore Accept.
+    const r = await fetch(url, {
+      signal: ctl.signal,
+      redirect: 'follow',
+      cache: 'force-cache',
+      headers: { Accept: 'image/jpeg,image/png;q=0.9,*/*;q=0.1' },
+    });
     clearTimeout(to);
     if (!r.ok) return null;
     const ct = (r.headers.get('content-type') || '').toLowerCase();
     if (!ct.startsWith('image/')) return null;
+    if (ct.includes('webp') || ct.includes('avif')) return null;
     // Consume body to confirm the stream is actually deliverable (some CDNs
     // 200 with empty/aborted bodies). Cap at ~6MB to avoid OOM in Edge.
     const reader = r.body && r.body.getReader();
