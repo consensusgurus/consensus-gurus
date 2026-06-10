@@ -981,7 +981,7 @@ function Home({ lists, viewCounts, voteData, extras, trending = {}, openList, on
           >
             {sorted.map((list, idx) => {
               const isFeatured = featuredIds.has(list.id);
-              const related = findRelatedLists(list, lists, 3);
+              const related = findRelatedLists(list, lists, 6);
               return (
                 <Tile
                   key={list.id}
@@ -1140,7 +1140,7 @@ export function Tile({ list, rank, views, voteData, extras, onClick, href, showC
       const next = used + (fit === 0 ? h : 12 + h);
       if (next <= avail + 1) { used = next; fit += 1; } else break;
     }
-    const want = Math.min(fit, relCount, 3);
+    const want = Math.min(fit, relCount, 6);
     if (want !== fitRef.current) { fitRef.current = want; setRelatedFit(want); }
   }, [relCount]);
   // Drive the fit calc on BOTH requestAnimationFrame AND setTimeout. rAF is
@@ -1397,7 +1397,7 @@ export function Tile({ list, rank, views, voteData, extras, onClick, href, showC
       {relatedLists && relatedLists.length > 0 && (
         <div ref={setRelNode} style={{ flex: '1 1 0', minHeight: 0, position: 'relative', overflow: 'hidden' }}>
           <div style={{ position: 'absolute', top: 16, left: 0, right: 0, display: 'flex', flexDirection: 'column', gap: 12 }}>
-            {relatedLists.slice(0, 3).map((rl, idx) => {
+            {relatedLists.slice(0, 6).map((rl, idx) => {
               const shown = idx < relatedFit;
               return (
                 <div
