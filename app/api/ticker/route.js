@@ -69,6 +69,16 @@ export async function GET() {
       if (entries.length >= 12) break;
     }
 
+    // Fallback: on a quiet day with no ranking movements on record, tick
+    // the newest published lists instead so the tape never runs empty.
+    if (entries.length === 0) {
+      const ts = (l) => Date.parse(l.publishedAt || `${l.publishedDate}T12:00:00Z`) || 0;
+      const newest = [...LISTS].sort((a, b) => ts(b) - ts(a)).slice(0, 10);
+      for (const l of newest) {
+        entries.push({ listId: l.id, listTitle: l.title, dir: 'up', label: 'New list' });
+      }
+    }
+
     return NextResponse.json({ entries });
   } catch (err) {
     console.error('ticker error', err);
