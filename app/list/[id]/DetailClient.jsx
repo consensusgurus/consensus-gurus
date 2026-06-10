@@ -1,5 +1,5 @@
 'use client';
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import {
   ChevronUp,
@@ -189,6 +189,30 @@ function ListDetail({ list, viewCount, voteData, userVotes, extras, relatedLists
   const [complainEmail, setComplainEmail] = useState('');
   const [complainSent, setComplainSent] = useState(false);
   const [complainBusy, setComplainBusy] = useState(false);
+
+  // Horizontal-scroll affordance for the list-page tab ribbon (mobile): track
+  // whether there is more to scroll left/right so we can show a small arrow cue,
+  // matching the homepage department nav.
+  const listNavRef = useRef(null);
+  const [navScroll, setNavScroll] = useState({ left: false, right: false });
+  useEffect(() => {
+    const el = listNavRef.current;
+    if (!el) return undefined;
+    const update = () => {
+      const more = el.scrollWidth - el.clientWidth;
+      setNavScroll({
+        left: el.scrollLeft > 2,
+        right: more > 2 && el.scrollLeft < more - 2,
+      });
+    };
+    update();
+    el.addEventListener('scroll', update, { passive: true });
+    window.addEventListener('resize', update);
+    return () => {
+      el.removeEventListener('scroll', update);
+      window.removeEventListener('resize', update);
+    };
+  }, [compact, tab]);
 
   // Sources now factor in live vote data so the Consensus chip stays accurate
   // as people vote in real time. For facts-only lists, use the hardcoded ai source.
@@ -595,15 +619,20 @@ function ListDetail({ list, viewCount, voteData, userVotes, extras, relatedLists
 
       {!compact && <>
         {LIST_RIBBON_V2 && (
-          <style>{`.sot-listnav{scrollbar-width:none;-ms-overflow-style:none;}.sot-listnav::-webkit-scrollbar{display:none;}`}</style>
+          <style>{`.sot-listnav{scrollbar-width:none;-ms-overflow-style:none;}.sot-listnav::-webkit-scrollbar{display:none;}
+            @keyframes sotListNudge{0%,100%{transform:translate(0,-50%);}50%{transform:translate(3px,-50%);}}
+            @keyframes sotListNudgeL{0%,100%{transform:translate(0,-50%);}50%{transform:translate(-3px,-50%);}}
+            .sot-listcue{position:absolute;top:50%;z-index:3;display:flex;align-items:center;justify-content:center;width:26px;height:26px;border-radius:50%;background:${COLORS.ember};color:${COLORS.cream};box-shadow:0 1px 4px rgba(26,22,17,0.45);pointer-events:none;font-size:15px;line-height:1;}
+            .sot-listcue-r{right:8px;animation:sotListNudge 1.4s ease-in-out infinite;}
+            .sot-listcue-l{left:8px;animation:sotListNudgeL 1.4s ease-in-out infinite;}
+            @media(min-width:760px){.sot-listcue{display:none;}}
+          `}</style>
         )}
+        <div style={LIST_RIBBON_V2 ? { position: 'sticky', top: 0, zIndex: 25, marginTop: 18 } : { display: 'contents' }}>
         <div
+          ref={LIST_RIBBON_V2 ? listNavRef : undefined}
           className={LIST_RIBBON_V2 ? 'sot-listnav' : undefined}
           style={LIST_RIBBON_V2 ? {
-            position: 'sticky',
-            top: 0,
-            zIndex: 25,
-            marginTop: 18,
             display: 'flex',
             alignItems: 'stretch',
             gap: 0,
@@ -779,6 +808,9 @@ function ListDetail({ list, viewCount, voteData, userVotes, extras, relatedLists
               <PenLine size={12} strokeWidth={2.5} />
               Request Review
             </button>
+        </div>
+        {LIST_RIBBON_V2 && navScroll.left && <span aria-hidden="true" className="sot-listcue sot-listcue-l">&#8249;</span>}
+        {LIST_RIBBON_V2 && navScroll.right && <span aria-hidden="true" className="sot-listcue sot-listcue-r">&#8250;</span>}
         </div>
       </>}
 
