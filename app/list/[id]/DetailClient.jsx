@@ -44,7 +44,7 @@ const EXPERT_GROUPS = [
   { key: 'composite', title: 'Composite Ranking', color: COLORS.ember },
   { key: 'trueexpert', title: 'True Experts', color: COLORS.ember },
   { key: 'publication', title: 'Expert Publications', color: COLORS.ink },
-  { key: 'platform', title: 'User Reviews & Ratings', color: COLORS.forest },
+  { key: 'platform', title: 'Reviews & Ratings Aggregations', color: COLORS.forest },
   { key: 'pricing', title: 'Pricing Data', color: COLORS.rust },
 ];
 
@@ -104,11 +104,25 @@ function expertGroupKey(src) {
   if (id === 'pricing' || label.includes('pricing') || label.includes('nightly rate')) {
     return 'pricing';
   }
+  // The "Reviews & Ratings Aggregations" group covers any aggregated review or
+  // rating signal: user-rating platforms (Yelp/Google/TripAdvisor/Amazon/etc.),
+  // readers' choice polls (T+L Readers, CNT Readers' Choice, Newsweek Readers'
+  // Choice, Boston.com Readers' Poll, etc. -- aggregated reader votes, not
+  // editorial picks), and critic aggregators (Rotten Tomatoes / Tomatometer,
+  // Metacritic / Metascore).
   const platformHints = [
     'yelp', 'google', 'tripadvisor', 'trip advisor', 'booking', 'expedia',
     'hotels.com', 'opentable', 'amazon', 'reviews', 'rating',
+    'rotten tomatoes', 'tomatometer', 'metacritic', 'metascore',
   ];
   if (platformHints.some((h) => id.includes(h.replace(/[^a-z]/g, '')) || label.includes(h))) {
+    return 'platform';
+  }
+  // Readers' poll / readers' choice routing: an aggregated reader vote is a
+  // user-ratings signal, not an editorial pick. Match any label containing the
+  // word "readers", but exclude the normal publication Reader's Digest (id
+  // 'readersdigest', singular possessive).
+  if (id !== 'readersdigest' && /\breaders\b/i.test(src.label || '')) {
     return 'platform';
   }
   return 'publication';
@@ -207,7 +221,7 @@ function ListDetail({ list, viewCount, voteData, userVotes, extras, relatedLists
 
     // For 'both' mode lists: compute Consensus from publications, then append a
     // standalone "Source of Truths User Vote" source built from live fan votes,
-    // shown as a User Reviews & Ratings source at the base of the page.
+    // shown as a Reviews & Ratings Aggregations source at the base of the page.
     const result = getSources(list, voteData, extras);
     const cgVote = {
       id: 'cgvote',

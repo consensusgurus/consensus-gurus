@@ -256,7 +256,7 @@ profile lists every beer with its own rating and count).
   Where fewer than 10 qualify, relax the floor to >=10 ratings, then to all rated products (>=3 ratings),
   and note the relaxed basis in a comment. Gather live; long BeerAdvocate pages TRUNCATE in web_fetch
   (Hill Farmstead cut mid-alphabet once), so parse the full table via the connected Chrome browser.
-- **Label** with a rating keyword so it groups under User Reviews, e.g.
+- **Label** with a rating keyword so it groups under Reviews & Ratings Aggregations, e.g.
   `'Top 10 Beers Avg Rating · BeerAdvocate per-beer data (June 2026)'`.
 - **Weight:** give it an explicit numeric `weight` to make the methodology the dominant signal while
   the normal rating/editorial sources and fan votes still contribute (weight 4 on the breweries list,
@@ -899,9 +899,19 @@ source.
 ### Goodreads ratings as the user-review source for book lists
 - **Every book list must include a Goodreads average-rating source as its User Ratings & Reviews element**, exactly the way physical-product lists use Amazon ratings and food lists use Yelp/Google. Goodreads is the reader-consensus signal for books, and a Goodreads rating should be added to ALL book lists where one is available.
 - Gather each title's **Goodreads average rating (out of 5) and ratings count live** through the connected Chrome browser (open the book's Goodreads page) — never from memory. Order the source by rating descending, then ratings count as the tiebreak.
-- Label it so the classifier routes it into "User Reviews & Ratings", e.g. `'Goodreads · Ranked by Rating (Reader Reviews)'`. The grouping in `app/list/[id]/DetailClient.jsx` (`expertGroupKey`) keys off the words `rating`/`reviews` in the label, so always include one of those words; do NOT flag it `"unordered"`.
+- Label it so the classifier routes it into "Reviews & Ratings Aggregations", e.g. `'Goodreads · Ranked by Rating (Reader Reviews)'`. The grouping in `app/list/[id]/DetailClient.jsx` (`expertGroupKey`) keys off the words `rating`/`reviews` in the label, so always include one of those words; do NOT flag it `"unordered"`.
 - **A curated Goodreads editorial/themed LIST (e.g. a "Best Historical Fiction" Listopia) is NOT a user-rating source, it is an Expert Publication.** Label those plainly with no `rating`/`reviews` keyword so they group under Expert Publications, e.g. `'Goodreads · Great Finance Novels (Fiction)'`. The distinction: an aggregate star rating = user reviews; a hand-curated list = editorial.
 - A book may carry BOTH an Amazon rating source and a Goodreads rating source (two user-review signals, like Yelp + Google). Where a book has no Goodreads presence, omit it from that source.
+
+### What counts as "Reviews & Ratings Aggregations" (the source group)
+The Sources tab groups every source by `expertGroupKey` in `app/list/[id]/DetailClient.jsx`. The third group, **Reviews & Ratings Aggregations** (renamed from "User Reviews & Ratings" 2026-06-09, since it also covers critic aggregators), catches any aggregated review/rating signal -- user OR critic -- and ALL of the following route here:
+
+- **User-rating platforms:** Yelp, Google Reviews, TripAdvisor, Amazon Reviews, Goodreads, OpenTable, Booking, Expedia, etc. (matched by id/label hint or by the words `rating` / `reviews` in the label).
+- **Readers' polls / Readers' Choice:** any source label containing the word `readers` (T+L Readers, Condé Nast Traveler Readers' Choice, Newsweek Readers' Choice, Boston.com Readers' Poll, Business Traveller Readers' Poll, etc.). A readers' poll is an aggregated reader vote, not an editorial pick. Exception: the publication "Reader's Digest" (id `readersdigest`, singular possessive) is a normal editorial outlet and stays in Expert Publications -- the classifier excludes that exact id.
+- **Critic aggregators:** Rotten Tomatoes / Tomatometer, Metacritic / Metascore (matched by id/label hint).
+- **Pricing** is its own group (`pricing`), not part of this one.
+
+**Hyperlink consequence:** per `isPublicationLink`, only `publication` / `trueexpert` group sources render the chevron-arrow link on the source caption. Sources in Reviews & Ratings Aggregations render as plain text even when their `url` points to an article (e.g. a CNT Readers' Choice writeup, a Rotten Tomatoes editorial guide). This is consistent with Goodreads, Yelp, Amazon, and TripAdvisor sources, and is the right behavior -- the GROUP defines whether the source is presented as a publication.
 
 ### Direct Amazon product links (`/dp/<ASIN>`) and live data gathering
 - **If an Amazon product page exists, you MUST use the direct product link, not a search link.** For every product/book whose Amazon listing can be found (essentially all of them), the `links` value must be the canonical product URL `https://www.amazon.com/dp/<ASIN>?tag=cgurus-20`, never an `s?k=` search URL. The `cgurus-20` affiliate tag is all that is needed for attribution. A search link is a last resort reserved for items with no product page at all.
