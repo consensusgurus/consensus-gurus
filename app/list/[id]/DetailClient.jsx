@@ -521,30 +521,8 @@ function ListDetail({ list, viewCount, voteData, userVotes, extras, relatedLists
 
   return (
     <div style={{ position: 'relative', zIndex: 2, maxWidth: 920, margin: '0 auto', padding: '24px 20px 80px' }}>
-      {!compact && (
-        <button
-          onClick={onBack}
-          style={{
-            background: 'transparent',
-            border: 'none',
-            fontFamily: 'DM Mono, monospace',
-            fontSize: 11,
-            letterSpacing: '0.2em',
-            textTransform: 'uppercase',
-            color: COLORS.ink,
-            cursor: 'pointer',
-            display: 'flex',
-            alignItems: 'center',
-            gap: 6,
-            padding: '8px 0',
-          }}
-        >
-          <ArrowLeft size={14} strokeWidth={2.5} />
-          Back to all lists
-        </button>
-      )}
 
-      {!compact && <div style={{ paddingBottom: 18, marginTop: 8 }}>
+      {!compact && <div style={{ paddingBottom: 0, marginTop: 8 }}>
         <div style={{ display: 'flex', alignItems: 'flex-end', gap: 'clamp(16px, 4vw, 28px)' }}>
           <h1
             style={{
@@ -591,12 +569,18 @@ function ListDetail({ list, viewCount, voteData, userVotes, extras, relatedLists
         >
           {list.blurb}
         </p>
+      </div>}
+
+      {!compact && <>
         {LIST_RIBBON_V2 && (
           <style>{`.sot-listnav{scrollbar-width:none;-ms-overflow-style:none;}.sot-listnav::-webkit-scrollbar{display:none;}`}</style>
         )}
         <div
           className={LIST_RIBBON_V2 ? 'sot-listnav' : undefined}
           style={LIST_RIBBON_V2 ? {
+            position: 'sticky',
+            top: 0,
+            zIndex: 25,
             marginTop: 18,
             display: 'flex',
             alignItems: 'stretch',
@@ -643,33 +627,6 @@ function ListDetail({ list, viewCount, voteData, userVotes, extras, relatedLists
             >
               Consensus
             </button>
-            {showSourceTab && (
-              <button
-                onClick={() => setTab('source')}
-                style={{
-                  flex: LIST_RIBBON_V2 ? '1 0 auto' : '1 1 auto',
-                  justifyContent: 'center',
-                  background: tab === 'source' ? COLORS.ember : 'transparent',
-                  color: LIST_RIBBON_V2 ? COLORS.cream : (tab === 'source' ? COLORS.cream : COLORS.ember),
-                  border: LIST_RIBBON_V2 ? 'none' : `1.5px solid ${COLORS.ember}`,
-                  borderRight: LIST_RIBBON_V2 ? '1px solid rgba(244,237,224,0.18)' : undefined,
-                  padding: LIST_RIBBON_V2 ? '0 14px' : '8px 14px',
-                  height: LIST_RIBBON_V2 ? 42 : undefined,
-                  whiteSpace: LIST_RIBBON_V2 ? 'nowrap' : undefined,
-                  fontFamily: 'DM Mono, monospace',
-                  fontSize: 10,
-                  letterSpacing: '0.18em',
-                  textTransform: 'uppercase',
-                  fontWeight: 700,
-                  cursor: 'pointer',
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: 6,
-                }}
-              >
-                Consensus Sources
-              </button>
-            )}
             <button
               onClick={() => setTab('activity')}
               style={{
@@ -695,33 +652,6 @@ function ListDetail({ list, viewCount, voteData, userVotes, extras, relatedLists
             >
               Activity Log
             </button>
-            {showVoteTab && (
-              <button
-                onClick={() => setTab('vote')}
-                style={{
-                  flex: LIST_RIBBON_V2 ? '1 0 auto' : '1 1 auto',
-                  justifyContent: 'center',
-                  background: tab === 'vote' ? COLORS.ember : 'transparent',
-                  color: LIST_RIBBON_V2 ? COLORS.cream : (tab === 'vote' ? COLORS.cream : COLORS.ember),
-                  border: LIST_RIBBON_V2 ? 'none' : `1.5px solid ${COLORS.ember}`,
-                  borderRight: LIST_RIBBON_V2 ? '1px solid rgba(244,237,224,0.18)' : undefined,
-                  padding: LIST_RIBBON_V2 ? '0 14px' : '8px 14px',
-                  height: LIST_RIBBON_V2 ? 42 : undefined,
-                  whiteSpace: LIST_RIBBON_V2 ? 'nowrap' : undefined,
-                  fontFamily: 'DM Mono, monospace',
-                  fontSize: 10,
-                  letterSpacing: '0.18em',
-                  textTransform: 'uppercase',
-                  fontWeight: 700,
-                  cursor: 'pointer',
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: 6,
-                }}
-              >
-                Vote
-              </button>
-            )}
             <button
               onClick={() => setTab('share')}
               style={{
@@ -774,9 +704,9 @@ function ListDetail({ list, viewCount, voteData, userVotes, extras, relatedLists
               Request Review
             </button>
         </div>
-      </div>}
+      </>}
 
-      <div style={{ marginTop: 5 }} />
+      <div style={{ marginTop: compact ? 5 : 24 }} />
 
       {complainOpen && (
         <div
@@ -1458,7 +1388,7 @@ function ListDetail({ list, viewCount, voteData, userVotes, extras, relatedLists
               fontVariationSettings: '"SOFT" 100',
             }}
           >
-            More like this
+            More Lists
           </h2>
           <div
             style={{
@@ -1949,7 +1879,6 @@ export default function DetailClient({ listId }) {
   const relatedLists = useMemo(() => {
     if (!list) return [];
     const myTags = new Set(getListTags(list));
-    if (myTags.size === 0) return [];
 
     const scored = allLists
       .filter((l) => l.id !== list.id)
@@ -1961,11 +1890,11 @@ export default function DetailClient({ listId }) {
       .filter((x) => x.overlap > 0)
       .sort((a, b) => b.overlap - a.overlap);
 
-    if (scored.length >= 4) return scored.slice(0, 4).map((x) => x.list);
+    if (scored.length >= 6) return scored.slice(0, 6).map((x) => x.list);
 
     const usedIds = new Set(scored.map((x) => x.list.id));
     const fillers = allLists.filter((l) => l.id !== list.id && !usedIds.has(l.id));
-    return [...scored.map((x) => x.list), ...fillers].slice(0, 4);
+    return [...scored.map((x) => x.list), ...fillers].slice(0, 6);
   }, [allLists, list]);
 
   function vote(lId, itemName, direction) {
@@ -2009,7 +1938,7 @@ export default function DetailClient({ listId }) {
         background: COLORS.cream,
         color: COLORS.ink,
         position: 'relative',
-        overflow: 'hidden',
+        overflow: LIST_RIBBON_V2 ? 'clip' : 'hidden',
       }}
     >
       <Grain />
