@@ -339,7 +339,7 @@ function PhotoBox({ style }) {
           padding: '0 12px',
         }}
       >
-        Curating a Fancy Photo
+        New addition: Check back soon for photo
       </span>
     </div>
   );
@@ -444,7 +444,7 @@ function HeroTile({ item, rank, list, desc, pics, poster }) {
                 margin: '0 0 4px',
               }}
             >
-              {desc || 'Wordsmithing a perfect description'}
+              {desc || 'New addition: Check back soon for description'}
             </p>
           </LinkWrap>
         </div>
@@ -533,7 +533,7 @@ function SmallTile({ item, rank, list, desc, pics, poster }) {
             margin: '0 0 10px',
           }}
         >
-          {desc || 'Wordsmithing a perfect description'}
+          {desc || 'New addition: Check back soon for description'}
         </p>
       </LinkWrap>
       <div style={{ marginTop: 'auto', paddingTop: 10 }}>
