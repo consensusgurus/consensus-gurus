@@ -25,6 +25,7 @@ import Footer from '../../Footer';
 import ListOverview from './ListOverview';
 import ActivityFeed from './ActivityFeed';
 import SnapshotClient from '../../snapshot/[id]/SnapshotClient';
+import { Tile as HomeTile } from '../../HomeClient';
 
 // ── LIST-PAGE RIBBON V2 (June 2026 redesign) ────────────────────────────────
 // Flip to false to restore the previous outlined tab chips exactly. V2 renders
@@ -150,7 +151,7 @@ function isPublicationLink(src) {
   return g === 'publication' || g === 'trueexpert' || g === 'platform' || g === 'pricing';
 }
 
-function ListDetail({ list, viewCount, voteData, userVotes, extras, relatedLists, onBack, onVote, onAddExtra, onOpenRelated, compact }) {
+function ListDetail({ list, viewCount, voteData, userVotes, extras, relatedLists, relatedViews, onBack, onVote, onAddExtra, onOpenRelated, compact }) {
   const mode = list.mode || 'both';
   const showSourceTab = mode !== 'votes';
   const showVoteTab = mode !== 'facts' && mode !== 'scores' && mode !== 'unranked';
@@ -1445,62 +1446,24 @@ function ListDetail({ list, viewCount, voteData, userVotes, extras, relatedLists
           <div
             style={{
               display: 'grid',
-              gridTemplateColumns: 'repeat(auto-fill, minmax(220px, 1fr))',
-              gap: 14,
+              gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))',
+              gap: 16,
             }}
           >
             {relatedLists.map((rl) => (
-              <a
+              <HomeTile
                 key={rl.id}
+                list={rl}
+                rank={0}
+                views={(relatedViews || {})[rl.id] || 0}
+                voteData={voteData}
+                extras={[]}
                 href={`/list/${encodeURIComponent(rl.id)}`}
-                onClick={(e) => {
-                  if (onOpenRelated) {
-                    e.preventDefault();
-                    onOpenRelated(rl.id);
-                  }
-                }}
-                style={{
-                  display: 'block',
-                  padding: 18,
-                  background: COLORS.paper,
-                  border: `1.5px solid ${COLORS.ink}`,
-                  textDecoration: 'none',
-                  color: COLORS.ink,
-                  transition: 'all 0.2s ease',
-                }}
-                onMouseEnter={(e) => {
-                  e.currentTarget.style.transform = 'translate(-2px, -2px)';
-                  e.currentTarget.style.boxShadow = `4px 4px 0 ${COLORS.ember}`;
-                }}
-                onMouseLeave={(e) => {
-                  e.currentTarget.style.transform = 'none';
-                  e.currentTarget.style.boxShadow = 'none';
-                }}
-              >
-                <div
-                  style={{
-                    fontFamily: 'DM Mono, monospace',
-                    fontSize: 10,
-                    letterSpacing: '0.2em',
-                    textTransform: 'uppercase',
-                    opacity: 0.6,
-                    marginBottom: 8,
-                  }}
-                >
-                  {rl.category}
-                </div>
-                <div
-                  style={{
-                    fontFamily: 'Fraunces, serif',
-                    fontSize: 20,
-                    fontWeight: 700,
-                    lineHeight: 1.1,
-                    fontVariationSettings: '"SOFT" 100',
-                  }}
-                >
-                  {rl.title}
-                </div>
-              </a>
+                onClick={() => { if (onOpenRelated) onOpenRelated(rl.id); }}
+                showConsensus={true}
+                featured={false}
+                relatedLists={null}
+              />
             ))}
           </div>
         </div>
@@ -1929,6 +1892,7 @@ export default function DetailClient({ listId }) {
   const [voteData, setVoteData] = useState({});
   const [userVotes, setUserVotes] = useState({});
   const [viewCount, setViewCount] = useState(0);
+  const [allViews, setAllViews] = useState({});
   const [extras, setExtras] = useState([]);
   const [userLists, setUserLists] = useState([]);
   const [loaded, setLoaded] = useState(false);
@@ -1940,6 +1904,7 @@ export default function DetailClient({ listId }) {
       if (data) {
         setVoteData(data.votes || {});
         setViewCount((data.views || {})[listId] || 0);
+        setAllViews(data.views || {});
         setExtras((data.extras || {})[listId] || []);
         setUserLists(Array.isArray(data.userLists) ? data.userLists : []);
       }
@@ -2056,6 +2021,7 @@ export default function DetailClient({ listId }) {
           userVotes={userVotes}
           extras={extras}
           relatedLists={relatedLists}
+          relatedViews={allViews}
           onBack={backHome}
           onVote={vote}
           onAddExtra={addExtra}

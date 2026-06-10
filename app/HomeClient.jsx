@@ -1017,7 +1017,7 @@ function Home({ lists, viewCounts, voteData, extras, trending = {}, openList, on
   );
 }
 
-function Tile({ list, rank, views, voteData, extras, onClick, showConsensus, featured, relatedLists, onOpenRelated }) {
+export function Tile({ list, rank, views, voteData, extras, onClick, href, showConsensus, featured, relatedLists, onOpenRelated }) {
   const [hover, setHover] = useState(false);
   const mode = list.mode || 'both';
   // Total contributing sources for this list: every entry in list.sources
@@ -1167,13 +1167,18 @@ function Tile({ list, rank, views, voteData, extras, onClick, showConsensus, fea
     return () => document.removeEventListener('visibilitychange', onVis);
   }, [kickRelFit, preview]);
 
+  // Renders as an <a> when `href` is provided (crawlable internal link, used
+  // by the list pages' More-like-this grid); otherwise the original button.
+  const RootEl = href ? 'a' : 'button';
   return (
-    <button
-      onClick={onClick}
+    <RootEl
+      href={href}
+      onClick={href ? (e) => { e.preventDefault(); if (onClick) onClick(); } : onClick}
       onMouseEnter={() => setHover(true)}
       onMouseLeave={() => setHover(false)}
       style={{
         cursor: 'pointer',
+        textDecoration: 'none',
         gridRow: featured ? 'span 2' : 'auto',
         display: 'flex',
         flexDirection: 'column',
@@ -1445,7 +1450,7 @@ function Tile({ list, rank, views, voteData, extras, onClick, showConsensus, fea
         </span>
       </div>
       </div>
-    </button>
+    </RootEl>
   );
 }
 
