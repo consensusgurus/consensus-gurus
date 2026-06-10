@@ -576,10 +576,51 @@ contenders; it was removed 2026-06-07.
   concentrates in one district (Frenchmen Street live music, Golden Gai dive bars), a district-only
   source still discriminates against out-of-district contenders. Prefer citywide sources; keep a
   district source only with explicit owner approval, recorded in the session notes.
-- **Remediation when found on a live list:** remove the source, recompute the Borda consensus
-  (helpers.js logic), re-seed `ai` + `vote.items`, delete orphaned `links`/`itemLinks`/`itemYelp`/
-  `itemTripadvisor` keys for items that appeared only in that source, and refresh descriptions/heroes
-  if the top 10/top 3 changed.
+- **Remediation when found on a live list:** follow the universal "Dropping a source" checklist
+  below — the same cleanup applies, the only difference is the reason.
+
+### Dropping a source — universal cleanup checklist (owner rule, 2026-06-09)
+
+**Dropping a source is NEVER just deleting it from `sources`.** Every removal touches the consensus,
+which cascades into the seed, vote, link maps, descriptions, and hero images. A source-drop that
+leaves any of these out of sync is incomplete and silently rots the list. This checklist applies
+universally — whatever the trigger (sub-scope violation, off-tier items, dead URL, owner ruling,
+publication redacted, you name it). Same steps every time, no exceptions.
+
+When dropping a source, execute ALL of these in the SAME deploy:
+
+1. **Remove the source entry** from `list.sources` in `lib/data.js`.
+2. **Recompute the Borda consensus** (mirror `getSources` in `lib/helpers.js`: absent items earn 0
+   from a source, NO average credit; unordered flat scoring; top-10 cap). Never paste a stale
+   computeConsensus from a mirror — re-read helpers.js before scoring.
+3. **Re-seed `ai` items and `vote.items`** to the new consensus top 10, in the new order. Both arrays
+   stay at 10 (backfill from the next-best on-tier items if the source carried items that no other
+   source did, per the "Tier backfill" rule).
+4. **Prune orphaned link/asset keys** for any item that no longer appears in ANY source AND is not
+   in `vote.items`. Touch every map: `links`, `itemLinks`, `itemYelp`, `itemTripadvisor`, `prices`.
+   An item that survives in another source stays; a key with no remaining anchor is dead weight and
+   must go. (This is the symptom that surfaced the rule: `best-wings-nyc` had 18 orphan `links` keys
+   from past item drops, and `pacific-ocean-resorts`, `best-bottomless-brunch-lower-manhattan`,
+   `dive-bars-sydney`, `air-purifiers` each carried one.)
+5. **Backfill descriptions for newly-entering top-10 items** in `lib/descriptions.js`. Items that
+   EXIT the top 10 keep their descriptions — they're harmless fallbacks. Items that move WITHIN
+   the top 10 already have theirs.
+6. **Add a hero image for any item newly entering the top 3** in `lib/hero-images.js` (`{src, credit,
+   creditUrl}` per the gathering pipeline). Items that drop OUT of the top 3 keep their hero entries.
+7. **Ship as ONE multi-file commit** (data.js + descriptions.js + hero-images.js, plus any orphan
+   pruning) so the activity ledger's "Sources Revisited" same-deploy fold-in catches the removal
+   correctly. Don't split into separate deploys — that creates two ledger cards and a misattributed
+   ranking change.
+8. **Post-deploy pings:** trigger `/api/cron/consensus-check` (so the removal-cause attribution lands
+   the same day) AND IndexNow for the affected list URL.
+
+The activity ledger then auto-renders the removed source struck-through under "Sources Revisited"
+(both per-list `ActivityFeed.jsx` and universal `/feed`) via `removedSources` from `/api/list-feed`
+— no manual ledger entry needed. If a removal is a long-standing rule violation (e.g. sub-scope),
+add a `sourceRevisions` note explaining why per the rule below.
+
+**Pre-deploy verification:** run the orphan audit (`Object.keys(list.links).filter(k => !inUse.has(k))`
+across all link maps) on the spliced data.js before pushing. Zero orphans = the cleanup is complete.
 
 ### Source-rule changes ALWAYS carry a note, applied uniformly across the logs (owner rule, 2026-06-09)
 
