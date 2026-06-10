@@ -896,8 +896,10 @@ wide on 2026-06-10). Each row: rank numeral (ember for 1-3, faded for 4-10) / he
 action column. Rows carry 14px side padding and 22px column gaps so text and chips never hug
 edges (owner feedback 2026-06-10). The action
 column stacks the same chips the tiles carried: the ember video chip (Portnoy Review etc.),
-Rent/Buy affiliate chips (`buyLinks`/`itemBuy`), Map-or-Purchase + Website, and the `Pics:`
-label with its Yelp/TripAdvisor/Google chips (the Pics: label is REQUIRED, per owner). Ranks
+Rent/Buy affiliate chips (`buyLinks`/`itemBuy`), Map-or-Purchase + Website, and the pics chips
+(Yelp/TripAdvisor/Google). Pics chips carry an EMBER CAMERA ICON inside each chip instead of a
+"Pics:" text label (owner change 2026-06-10: icon stands out more and the two-chip row aligns
+exactly with the Map/Website row above; `pics.label` survives as title/aria-label text). Ranks
 1-3 close with a heavy 2px rule. Mobile (<=760px) collapses each row to one column and the
 action column to a wrapped row. **The share poster (`ListOverviewPoster`) still uses the
 HeroTile/SmallTile grid** - those components and `LinkRow` exist for the poster only; chip-set

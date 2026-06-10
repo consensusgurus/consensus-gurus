@@ -139,21 +139,10 @@ function LinkRow({ links, pics, websiteLabel, list }) {
           one unit so the association survives line breaks on mobile. */}
       {isPlace && (
         <span style={{ display: 'inline-flex', alignItems: 'center', gap: 7, marginLeft: 4, whiteSpace: 'nowrap' }}>
-          <span
-            style={{
-              fontFamily: 'DM Mono, monospace',
-              fontSize: 8,
-              letterSpacing: '0.13em',
-              textTransform: 'uppercase',
-              color: COLORS.faded,
-            }}
-          >
-            {pics.label}
-          </span>
           {pics.links.map(([key, label]) =>
             links[key] ? (
-              <a key={key} href={links[key]} target="_blank" rel="noopener noreferrer" style={linkBtn(false)}>
-                {label}
+              <a key={key} href={links[key]} target="_blank" rel="noopener noreferrer" title={`${pics.label} ${label}`} aria-label={`${pics.label} ${label}`} style={linkBtn(false)}>
+                <Camera size={9} strokeWidth={2.4} color={COLORS.ember} /> {label}
               </a>
             ) : null
           )}
@@ -708,22 +697,19 @@ function LedgerRow({ item, rank, list, desc, pics, isTop, heavyDivider }) {
           )}
         </div>
         {isPlace && (
-          <div style={{ display: 'flex', alignItems: 'center', gap: 5, flexWrap: 'wrap' }}>
-            <span
-              style={{
-                fontFamily: 'DM Mono, monospace',
-                fontSize: 8,
-                letterSpacing: '0.13em',
-                textTransform: 'uppercase',
-                color: COLORS.faded,
-              }}
-            >
-              {pics.label}
-            </span>
+          <div style={{ display: 'flex', gap: 5, flexWrap: 'wrap' }}>
             {pics.links.map(([key, label]) =>
               links[key] ? (
-                <a key={key} href={links[key]} target="_blank" rel="noopener noreferrer" style={{ ...linkBtn(false), flex: 1, justifyContent: 'center' }}>
-                  {label}
+                <a
+                  key={key}
+                  href={links[key]}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  title={`${pics.label} ${label}`}
+                  aria-label={`${pics.label} ${label}`}
+                  style={{ ...linkBtn(false), flex: 1, justifyContent: 'center' }}
+                >
+                  <Camera size={9} strokeWidth={2.4} color={COLORS.ember} /> {label}
                 </a>
               ) : null
             )}
