@@ -406,49 +406,21 @@ function Home({ lists, viewCounts, voteData, extras, trending = {}, openList, on
       : (Date.now() ^ Math.floor(Math.random() * 0xffffffff)) >>> 0
   );
 
-  // ── Masthead folio + live movement ticker (V2) ──────────────────────────
-  // Fills the dead space between the logo and the tagline block: a newspaper
-  // date line under a DAILY EDITION kicker, with a cycling ticker of recent
-  // consensus ranking movements (fed by /api/ticker via consensus_alerts).
-  // The date is set on mount to avoid an SSR hydration mismatch.
-  const [folioDate, setFolioDate] = useState(
-    () => new Date()
-      .toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' })
-      .toUpperCase()
-  );
+  // Homepage ticker tape (V2): recent consensus ranking movements, fed by
+  // /api/ticker (consensus_alerts), scrolled marquee-style at the end of the
+  // stats row. Appears only once entries load; absence never shifts layout.
   const [tickerEntries, setTickerEntries] = useState([]);
-  const [tickerLoaded, setTickerLoaded] = useState(false);
-  const [tickerIdx, setTickerIdx] = useState(0);
-  const [tickerShown, setTickerShown] = useState(true);
   useEffect(() => {
     if (!HOME_V2) return undefined;
-    setFolioDate(
-      new Date()
-        .toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' })
-        .toUpperCase()
-    );
     let alive = true;
     fetch('/api/ticker')
       .then((r) => (r.ok ? r.json() : null))
       .then((d) => {
-        if (!alive) return;
-        if (d && Array.isArray(d.entries) && d.entries.length) setTickerEntries(d.entries);
-        setTickerLoaded(true);
+        if (alive && d && Array.isArray(d.entries) && d.entries.length) setTickerEntries(d.entries);
       })
-      .catch(() => { if (alive) setTickerLoaded(true); });
+      .catch(() => {});
     return () => { alive = false; };
   }, []);
-  useEffect(() => {
-    if (tickerEntries.length < 2) return undefined;
-    const t = setInterval(() => {
-      setTickerShown(false);
-      setTimeout(() => {
-        setTickerIdx((i) => (i + 1) % tickerEntries.length);
-        setTickerShown(true);
-      }, 400);
-    }, 4000);
-    return () => clearInterval(t);
-  }, [tickerEntries]);
 
   // Recompute shuffle order when the lists collection or seed changes.
   const discoverOrder = useMemo(() => {
@@ -730,51 +702,19 @@ function Home({ lists, viewCounts, voteData, extras, trending = {}, openList, on
             )}
           </h1>
           <div className="cg-head-col">
-            <div className="cg-head-row">
-              {HOME_V2 && (
-                <div className="cg-folio">
-                  <div className="cg-folio-date" suppressHydrationWarning>{folioDate || '\u00A0'}</div>
-                  <div className="cg-folio-tick">
-                    {tickerEntries.length > 0 ? (
-                      <Link
-                        href={`/list/${tickerEntries[tickerIdx % tickerEntries.length].listId}`}
-                        style={{ color: COLORS.ember, textDecoration: 'none', opacity: tickerShown ? 1 : 0, transition: 'opacity 0.4s' }}
-                      >
-                        {tickerEntries[tickerIdx % tickerEntries.length].dir === 'down' ? '\u25BC' : '\u25B2'}{' '}
-                        {tickerEntries[tickerIdx % tickerEntries.length].label} · {tickerEntries[tickerIdx % tickerEntries.length].listTitle}
-                      </Link>
-                    ) : (
-                      <span style={{ color: COLORS.faded }}>{tickerLoaded ? 'Expert + fan consensus, computed daily' : '\u00A0'}</span>
-                    )}
-                  </div>
-                </div>
-              )}
-              <div className="cg-tagcol">
-                <div className="cg-tagline">
-                  For all the important aspects of life
-                </div>
-                <div className="cg-blurb">
-                  The consensus of expert critics and everyday users, weighed across{' '}<SourcesPopover emphasis={HOME_V2} />, from Michelin, Condé Nast Traveler, The Infatuation, Eater, and Robb Report to Wirecutter, Goodreads, and Dave Portnoy.
-                </div>
-              </div>
+            <div className="cg-tagline">
+              For all the important aspects of life
             </div>
-            {!HOME_V2 && (
-              <>
-                <div style={{ borderBottom: `1px solid ${COLORS.ink}`, marginBottom: 4 }} />
-                <div style={{ borderBottom: `2px solid ${COLORS.ember}` }} />
-              </>
-            )}
+            <div className="cg-blurb">
+              The consensus of expert critics and everyday users, weighed across{' '}<SourcesPopover emphasis={HOME_V2} />, from Michelin, Condé Nast Traveler, The Infatuation, Eater, and Robb Report to Wirecutter, Goodreads, and Dave Portnoy.
+            </div>
+            <div style={{ borderBottom: `1px solid ${COLORS.ink}`, marginBottom: 4 }} />
+            <div style={{ borderBottom: `2px solid ${COLORS.ember}` }} />
           </div>
         </div>
         <style>{`
           .cg-head{display:flex;align-items:flex-end;gap:clamp(16px,4vw,28px);}
           .cg-head-col{flex:1;min-width:0;margin-bottom:clamp(8px,1.4vw,14px);}
-          .cg-head-row{display:flex;align-items:center;gap:clamp(12px,2.5vw,24px);}
-          .cg-tagcol{margin-left:auto;min-width:0;flex:0 1 auto;}
-          .cg-folio{flex:1 1 auto;display:flex;flex-direction:column;align-items:center;justify-content:center;min-width:0;padding:0 4px 8px;}
-          .cg-folio-date{font-family:'DM Mono',monospace;font-size:clamp(9px,0.95vw,11px);letter-spacing:0.18em;text-transform:uppercase;font-weight:600;color:${COLORS.ink};white-space:nowrap;line-height:1.4;}
-          .cg-folio-tick{margin-top:8px;font-family:'DM Mono',monospace;font-size:10px;font-weight:500;letter-spacing:0.06em;text-transform:uppercase;text-align:center;line-height:1.5;height:30px;max-width:100%;display:flex;align-items:center;justify-content:center;}
-          @media(max-width:1020px){.cg-folio{display:none;}}
           .cg-tagline{font-family:'DM Mono',monospace;font-size:clamp(9px,1.1vw,11px);letter-spacing:0.2em;text-transform:uppercase;font-weight:700;color:${COLORS.ink};text-align:right;margin-bottom:8px;line-height:1.4;}
           .cg-blurb{font-family:'DM Sans',sans-serif;font-size:clamp(11px,1.25vw,13px);line-height:1.5;color:${COLORS.ink};text-align:right;max-width:520px;margin-left:auto;margin-bottom:10px;}
           @media(max-width:640px){
@@ -785,12 +725,33 @@ function Home({ lists, viewCounts, voteData, extras, trending = {}, openList, on
           }
           .cg-stats{margin-top:16px;display:flex;justify-content:flex-start;align-items:baseline;flex-wrap:nowrap;white-space:nowrap;gap:16px;font-family:'DM Mono',monospace;font-size:11px;letter-spacing:0.15em;text-transform:uppercase;color:${COLORS.faded};}
           .cg-stats .cg-dot{opacity:0.5;}
+          .cg-tape{flex:1 1 auto;min-width:0;overflow:hidden;margin-left:8px;}
+          .cg-tape-track{display:inline-block;white-space:nowrap;animation-name:cg-tape-scroll;animation-timing-function:linear;animation-iteration-count:infinite;will-change:transform;}
+          .cg-tape-track:hover{animation-play-state:paused;}
+          @keyframes cg-tape-scroll{from{transform:translateX(0);}to{transform:translateX(-50%);}}
+          @media(max-width:760px){.cg-tape{display:none;}}
           @media(max-width:560px){.cg-stats{gap:10px;font-size:clamp(8px,2.7vw,11px);letter-spacing:0.06em;}}
         `}</style>
         <div className="cg-stats">
           <span>{lists.length} lists</span>
           <span><span aria-hidden="true" className="cg-dot">·</span> {totalVotes.toLocaleString()} votes</span>
           <span><span aria-hidden="true" className="cg-dot">·</span> {totalViews.toLocaleString()} visitors</span>
+          {HOME_V2 && tickerEntries.length > 0 && (
+            <span className="cg-tape">
+              <span className="cg-tape-track" style={{ animationDuration: `${Math.max(40, tickerEntries.length * 9)}s` }}>
+                {[0, 1].map((dup) => (
+                  <span key={dup} aria-hidden={dup === 1 ? 'true' : undefined}>
+                    {tickerEntries.map((e, i) => (
+                      <Link key={`${dup}-${i}`} href={`/list/${e.listId}`} style={{ color: COLORS.ember, textDecoration: 'none' }}>
+                        {e.dir === 'down' ? '\u25BC' : '\u25B2'} {e.label} · {e.listTitle}
+                        <span aria-hidden="true" style={{ color: COLORS.faded, padding: '0 14px' }}>{'\u25C6'}</span>
+                      </Link>
+                    ))}
+                  </span>
+                ))}
+              </span>
+            </span>
+          )}
         </div>
       </header>
 
