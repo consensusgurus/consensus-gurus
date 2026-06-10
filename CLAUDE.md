@@ -133,6 +133,31 @@ Implemented in `lib/helpers.js` `getSources` and mirrored in `scripts/generate-o
 - **Dave Portnoy / One Bite** (`onebite.app`) — numeric pizza scores (publicly readable, not image-gated like the Infatuation). Used as a true expert on **all pizza lists**. Gather scores live via Chrome, order descending by score. Source id: `portnoy`. This is the primary mechanism for surfacing excellent new pizza spots that predate most editorial lists. **Every Portnoy review is also a YouTube video, so pizza lists carry a per-item `Portnoy Review` play button** (see True-expert video content below).
 - **Source of Truths (SoT)** — the in-house ranking produced by the SoT True Expert input process below. Source id: `sot`. Used only on lists where the owner explicitly requests it.
 
+### Decisive Expert Sources (`decisiveExpert: true`) — Michelin stars on best-restaurant lists (owner rule, 2026-06-09)
+
+Some signals are so authoritative for a topic that they should outweigh even a true expert and dominate the consensus. Flag these with `"decisiveExpert": true`.
+
+A decisive expert's Borda weight is **`max(6, 1.5 × field)`**, where `field` is the combined weight of all the ordinary sources (everything that is NOT a decisive or true expert). So it is worth **1.5× the entire rest of the field, with a floor of 6** — the single strongest source, worth more than every other source combined. The whole field acting in unison can still balance it, but no single source comes close. Where a **True Expert** is worth HALF the field (`max(2, field/2)`), a **Decisive Expert** is worth 1.5× the field. Both special tiers are excluded from the `field` sum, so they never inflate each other. An explicit numeric `weight` still takes precedence over both, as for a true expert.
+
+| field (sum of ordinary weights) | True Expert counts for | Decisive Expert counts for |
+|---|---|---|
+| 2 | 2 (floor) | 6 (floor) |
+| 4 | 2 (floor) | 6 (floor) |
+| 5 | 2.5 | 7.5 |
+| 6 | 3 | 9 |
+| 8 | 4 | 12 |
+
+Implemented in `lib/helpers.js` `getSources` (`sourceWeight`) and mirrored in `scripts/generate-og-images.js`; bump `SCORING_ENGINE_VERSION` when the math changes (done 2026-06-09). (The `opengraph-image.js` / `twitter-image.js` social-preview routes do not implement source weighting at all — a pre-existing gap — so they render an unweighted preview; sync them only if that ever matters.)
+
+**Scope — Michelin STAR ratings on best-restaurant / food lists ONLY:**
+
+- The canonical decisive expert is the **Michelin Guide star rating** on a "Best [restaurants/cuisine]" list. The Michelin source MUST be a single **tier-ranked** source ordered by star count (3★ first, then 2★, then 1★, then in-guide-but-unstarred "recommended/Selected" last), alphabetical within each tier — NEVER `unordered`, EXCEPT a source covering a SINGLE star tier (e.g. only the 3★ spots), which is a flat membership signal and stays `unordered` + `decisiveExpert`. Where a list previously split tiers into separate per-tier sources, consolidate them into one tier-ranked decisive source.
+- **Drop spots removed from the guide.** Keep a spot only if it is still recommended (still in the current guide at any level); drop it entirely if it has been removed (e.g. Sushi Saito, delisted 2019). A dropped spot stays on the LIST via its other sources (Tabelog, 50 Best, etc.) — it just no longer carries the Michelin signal.
+- **Not for:** Michelin Bib Gourmand / "Recommended"-only roundups (ordinary sources, not star ratings), Michelin **Key** hotel ratings (hotels are out of scope), or any non-restaurant list.
+- One decisive expert per list, maximum. It does NOT count toward the three-editorial-source floor.
+
+**Known decisive experts:** Michelin star sources on `best-sushi-in-tokyo`, `best-indian-restaurants-london`, `restaurants-monaco`, and all `no-budget-dinners-*` city lists (best-in-class restaurant lists where money is no object).
+
 ### True-expert video content — per-item play button (`itemVideo` / `itemVideoLabel`)
 
 When a true-expert source ALSO publishes a video review per item (the One Bite / Dave Portnoy

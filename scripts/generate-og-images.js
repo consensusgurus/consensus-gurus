@@ -77,6 +77,7 @@ function computeConsensus(list) {
       items: src.items || [],
       unordered: src.unordered,
       trueExpert: src.trueExpert,
+      decisiveExpert: src.decisiveExpert,
       weight: src.weight,
       rankedHead: src.rankedHead
     }));
@@ -120,15 +121,16 @@ function computeConsensus(list) {
   // A "true expert" source (`trueExpert: true`) counts for HALF the combined
   // weight of the other experts, with a floor of 2x one normal expert:
   // max(2, N_other / 2).
-  const normalWeightTotal = publications
-    .filter((s) => !s.trueExpert)
+  // Decisive expert (`decisiveExpert: true`): 1.5x the ordinary field, floor 6
+  // (Michelin stars on best-restaurant lists). Field excludes both special tiers.
+  // Kept in sync with lib/helpers.js.
+  const fieldWeightTotal = publications
+    .filter((s) => !s.trueExpert && !s.decisiveExpert)
     .reduce((sum, s) => sum + (s.weight || 1), 0);
   const sourceWeight = (src) => {
-    // An explicit numeric `weight` always takes precedence, including on a
-    // trueExpert source (so a true expert can carry an owner-ruled override
-    // like 8x or 30x while still grouping/displaying as a True Expert).
     if (src.weight) return src.weight;
-    if (src.trueExpert) return Math.max(2, normalWeightTotal / 2);
+    if (src.decisiveExpert) return Math.max(6, fieldWeightTotal * 1.5);
+    if (src.trueExpert) return Math.max(2, fieldWeightTotal / 2);
     return 1;
   };
 
