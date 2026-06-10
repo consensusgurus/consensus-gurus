@@ -656,16 +656,6 @@ function LedgerRow({ item, rank, list, desc, pics, isTop, heavyDivider }) {
         </LinkWrap>
       </div>
       <div className="lov-actions" style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-        {links.video && (
-          <a
-            href={links.video}
-            target="_blank"
-            rel="noopener noreferrer"
-            style={{ ...linkBtn(false), justifyContent: 'center', background: COLORS.ember, color: COLORS.cream, border: `1px solid ${COLORS.ember}` }}
-          >
-            <Play size={9} strokeWidth={2} fill={COLORS.cream} /> {list.itemVideoLabel || 'Video'}
-          </a>
-        )}
         {links.buy && list.buyLinks === 'video' && (
           <div style={{ display: 'flex', gap: 5 }}>
             <a href={links.buy} target="_blank" rel="noopener noreferrer sponsored" style={{ ...linkBtn(true), justifyContent: 'center', flex: 1 }}>
@@ -697,7 +687,20 @@ function LedgerRow({ item, rank, list, desc, pics, isTop, heavyDivider }) {
           )}
         </div>
         {isPlace && (
-          <div style={{ display: 'flex', gap: 5, flexWrap: 'wrap' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 5, flexWrap: 'wrap' }}>
+            <span
+              style={{
+                fontFamily: 'DM Mono, monospace',
+                fontSize: 8,
+                fontWeight: 700,
+                letterSpacing: '0.13em',
+                textTransform: 'uppercase',
+                color: COLORS.ember,
+                whiteSpace: 'nowrap',
+              }}
+            >
+              {pics.label}
+            </span>
             {pics.links.map(([key, label]) =>
               links[key] ? (
                 <a
@@ -714,6 +717,16 @@ function LedgerRow({ item, rank, list, desc, pics, isTop, heavyDivider }) {
               ) : null
             )}
           </div>
+        )}
+        {links.video && (
+          <a
+            href={links.video}
+            target="_blank"
+            rel="noopener noreferrer"
+            style={{ ...linkBtn(false), justifyContent: 'center', background: COLORS.ember, color: COLORS.cream, border: `1px solid ${COLORS.ember}` }}
+          >
+            <Play size={9} strokeWidth={2} fill={COLORS.cream} /> {list.itemVideoLabel || 'Video'}
+          </a>
         )}
       </div>
     </div>
