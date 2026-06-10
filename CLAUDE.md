@@ -1074,6 +1074,21 @@ Safety checks: (a) re-fetch and re-splice if ANY time passed between building th
 ONLY the intended change (`git diff BASE_COMMIT NEW_COMMIT -- lib/data.js`); (c) if the list count
 (`grep -c publishedDate`) went DOWN and you didn't intentionally remove a list, stop and investigate.
 
+**⚠️ STALE-BASE RULE applies to ANY file, not just `lib/data.js` — the Edit tool reads the
+working-tree copy, which is stale after a push.** A direct `git push` updates `.git` but does NOT
+fast-forward the working tree, so the file on disk in `C:\\dev\\source-of-truths` keeps its
+pre-push content. The next Read/Edit on that file then operates on a stale base, and pushing the
+result silently overwrites whatever landed in between. This bit twice on 2026-06-10 in one session:
+commit `3c59f47` truncated `CLAUDE.md` (lost lines 1406–1545: image attribution, consensus alerts/
+cron docs, full example list entry, chrome tab hygiene) AND truncated `app/list/[id]/ActivityFeed.jsx`
+mid-line at 847 (broke the Vercel build), because both files had been written by intervening
+commits and the Edit tool re-read them from the stale working tree. **The rule: for ANY file edit
+that will be pushed (`CLAUDE.md`, `*.jsx`, `*.js`, migration SQL, anything), splice off
+`git show FETCH_HEAD:<path>` from a fetch performed in the SAME deploy step — never the working
+tree or a copy from earlier in the session.** Same safety checks apply: after the push, diff parent
+vs new commit to confirm the change is only what was intended; if line count drops unexpectedly,
+stop and investigate. The Read tool is fine for reference but not authoritative for splice bases.
+
 ```bash
 set -e
 cd /sessions/<session>/mnt/source-of-truths            # bash mount of C:\dev\source-of-truths
