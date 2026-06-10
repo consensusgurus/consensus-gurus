@@ -1,7 +1,7 @@
 'use client';
 import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { useRouter } from 'next/navigation';
-import { ArrowLeft, Download, Copy, Link2, Check } from 'lucide-react';
+import { ArrowLeft, Download, Copy, Link2, Check, Image as ImageIcon } from 'lucide-react';
 import { LISTS, COLORS } from '@/lib/data';
 import { getSources, voteKey, dedupeByName } from '@/lib/helpers';
 import { HERO_IMAGES } from '@/lib/hero-images';
@@ -126,6 +126,7 @@ export default function SnapshotClient({ listId, embedded, list: listProp, voteD
   const [copied, setCopied] = useState('');
   const [downloading, setDownloading] = useState(false);
   const [renderBusy, setRenderBusy] = useState('');
+  const [imgBusy, setImgBusy] = useState(false);
   const [colorScheme, setColorScheme] = useState('classic');
   const [fontStyle, setFontStyle] = useState('scorecard');
   const posterRef = useRef(null);
@@ -273,6 +274,37 @@ export default function SnapshotClient({ listId, embedded, list: listProp, voteD
     navigator.clipboard.writeText(lines.join('\n')).then(() => { setCopied('text'); setTimeout(() => setCopied(''), 1800); });
   }
 
+  function posterImageUrl() {
+    return `${window.location.origin}/list/${encodeURIComponent(listId)}/poster-image`;
+  }
+
+  // Copy the direct link to the server-rendered Instagram poster PNG.
+  function copyImageLink() {
+    navigator.clipboard.writeText(posterImageUrl()).then(() => { setCopied('imglink'); setTimeout(() => setCopied(''), 1800); });
+  }
+
+  // Copy the actual Instagram poster PNG (/list/<id>/poster-image) to the
+  // clipboard. Falls back to copying the link, then to opening the image.
+  async function copyImage() {
+    if (imgBusy) return;
+    setImgBusy(true);
+    try {
+      const res = await fetch(posterImageUrl(), { cache: 'no-store' });
+      const blob = await res.blob();
+      await navigator.clipboard.write([new window.ClipboardItem({ [blob.type || 'image/png']: blob })]);
+      setCopied('img'); setTimeout(() => setCopied(''), 1800);
+    } catch (e) {
+      console.error('Copy image failed', e);
+      try {
+        await navigator.clipboard.writeText(posterImageUrl());
+        setCopied('imglink'); setTimeout(() => setCopied(''), 1800);
+      } catch (_) {
+        window.open(posterImageUrl(), '_blank', 'noopener,noreferrer');
+      }
+    }
+    setImgBusy(false);
+  }
+
   if (!loaded) {
     return <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: COLORS.cream, fontFamily: 'Fraunces, serif', fontStyle: 'italic', fontSize: 18, color: COLORS.faded }}>loading</div>;
   }
@@ -360,6 +392,25 @@ export default function SnapshotClient({ listId, embedded, list: listProp, voteD
         <p style={{ marginTop: 20, fontFamily: 'DM Mono, monospace', fontSize: 10, letterSpacing: '0.18em', textTransform: 'uppercase', color: COLORS.faded, textAlign: 'center' }}>
           1080 × 1350 · Instagram / Pinterest portrait
         </p>
+
+        {/* ─── Instagram automation image (server-rendered poster) ────── */}
+        <div style={{ marginTop: 52, borderTop: `2px solid ${COLORS.ink}`, paddingTop: 28 }}>
+          <h2 style={{ fontFamily: 'Fraunces, serif', fontWeight: 700, fontStyle: 'italic', fontSize: 24, margin: '0 0 6px', color: COLORS.ink, fontVariationSettings: '"SOFT" 100' }}>Instagram image</h2>
+          <p style={{ fontFamily: 'DM Sans, sans-serif', fontSize: 14, color: COLORS.faded, margin: '0 0 16px', maxWidth: 560 }}>
+            The ready-to-post 1080 × 1350 image the Instagram automation uses. Copy the image itself, or a direct link to it, to share anywhere.
+          </p>
+          <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginBottom: 24 }}>
+            <ActionButton onClick={copyImage} disabled={imgBusy} primary><ImageIcon size={14} strokeWidth={2.5} />{imgBusy ? 'Copying...' : copied === 'img' ? 'Copied' : 'Copy image'}</ActionButton>
+            <ActionButton onClick={copyImageLink}>{copied === 'imglink' ? <Check size={14} strokeWidth={2.5} /> : <Link2 size={14} strokeWidth={2.5} />}{copied === 'imglink' ? 'Copied' : 'Copy image link'}</ActionButton>
+          </div>
+          <div style={{ background: '#000', padding: 8, borderRadius: 4, display: 'flex', justifyContent: 'center', overflow: 'hidden' }}>
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img src={`/list/${encodeURIComponent(listId)}/poster-image`} alt="Instagram poster" loading="lazy" style={{ width: '100%', maxWidth: POSTER_W * 0.5, height: 'auto', display: 'block' }} />
+          </div>
+          <p style={{ marginTop: 20, fontFamily: 'DM Mono, monospace', fontSize: 10, letterSpacing: '0.18em', textTransform: 'uppercase', color: COLORS.faded, textAlign: 'center' }}>
+            1080 × 1350 · server-rendered · /list/{list.id}/poster-image
+          </p>
+        </div>
 
         {/* ─── The new list page, fully rendered and downloadable ───────── */}
         <div style={{ marginTop: 52, borderTop: `2px solid ${COLORS.ink}`, paddingTop: 28 }}>

@@ -559,13 +559,31 @@ function SmallTile({ item, rank, list, desc, pics, poster }) {
 // numeral / hero photo (ranks 1-3 only) / name + full description / a
 // right-hand action column carrying the same chip set as the old tiles
 // (video review, Map or Purchase, Website, and the "Pics:" label group).
-// The share poster (ListOverviewPoster) keeps the HeroTile/SmallTile
-// layout, so capture renders are unaffected by this layout.
-function LedgerRow({ item, rank, list, desc, pics, isTop, heavyDivider }) {
+// The share poster (ListOverviewPoster) now renders this same ledger layout
+// (LedgerRow in poster mode), so the share captures stay in sync with the live
+// list page. HeroTile/SmallTile/CompactRow below are the retained legacy tiles.
+function LedgerRow({ item, rank, list, desc, pics, isTop, heavyDivider, poster, compact }) {
   const { displayName, locality } = parseItem(item);
+  // Compact ledger row (share-card capture, ranks 4-10): rank + name + locality
+  // only, in the same ledger aesthetic as the full rows.
+  if (poster && compact) {
+    return (
+      <div style={{ display: 'grid', gridTemplateColumns: '52px minmax(0,1fr)', gap: 22, alignItems: 'center', padding: '12px 14px', borderBottom: '1px solid rgba(26,22,17,0.16)' }}>
+        <div style={{ fontFamily: 'Fraunces, serif', fontWeight: 900, fontSize: 20, lineHeight: 1, color: COLORS.faded, textAlign: 'center' }}>{rank}</div>
+        <div style={{ display: 'flex', alignItems: 'baseline', gap: 10, minWidth: 0 }}>
+          <span style={{ fontFamily: 'Fraunces, serif', fontSize: 17, fontWeight: 700, color: COLORS.ink, fontVariationSettings: '"SOFT" 100', lineHeight: 1.15, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{displayName}</span>
+          {locality && (
+            <span style={{ fontFamily: 'DM Mono, monospace', fontSize: 9, letterSpacing: '0.12em', textTransform: 'uppercase', color: COLORS.faded, marginLeft: 'auto', whiteSpace: 'nowrap', flexShrink: 0 }}>{locality}</span>
+          )}
+        </div>
+      </div>
+    );
+  }
   const links = buildLinks(item, list);
   const heroSrc = isTop ? (HERO_IMAGES[list.id] || {})[item] : null;
-  const href = links.map;
+  // Poster capture: name/description render inert (no nested anchors in the
+  // image); the action-column buttons still build from `links` directly.
+  const href = poster ? null : links.map;
   const rel = bestRel(list);
   const isPlace = (list.linkType || 'mapsCity') === 'mapsCity';
   const primaryLabel = isPlace ? 'Map' : list.linkLabel ? list.linkLabel : list.linkType === 'amazon' ? 'Purchase' : 'View';
@@ -575,8 +593,19 @@ function LedgerRow({ item, rank, list, desc, pics, isTop, heavyDivider }) {
 
   return (
     <div
-      className={isTop ? 'lov-row lov-row-top' : 'lov-row'}
-      style={{ borderBottom: heavyDivider ? `2px solid ${COLORS.ink}` : '1px solid rgba(26,22,17,0.16)' }}
+      className={poster ? undefined : (isTop ? 'lov-row lov-row-top' : 'lov-row')}
+      style={
+        poster
+          ? {
+              display: 'grid',
+              gridTemplateColumns: isTop ? '52px 280px minmax(0,1fr) 196px' : '52px minmax(0,1fr) 196px',
+              gap: 22,
+              alignItems: 'center',
+              padding: '18px 14px',
+              borderBottom: heavyDivider ? `2px solid ${COLORS.ink}` : '1px solid rgba(26,22,17,0.16)',
+            }
+          : { borderBottom: heavyDivider ? `2px solid ${COLORS.ink}` : '1px solid rgba(26,22,17,0.16)' }
+      }
     >
       <div
         className="lov-rank"
@@ -592,11 +621,12 @@ function LedgerRow({ item, rank, list, desc, pics, isTop, heavyDivider }) {
         {rank}
       </div>
       {isTop && (
-        <div className="lov-photo" style={{ alignSelf: 'stretch', display: 'grid', minHeight: 200 }}>
+        <div className={poster ? undefined : 'lov-photo'} style={{ alignSelf: 'stretch', display: 'grid', minHeight: 200 }}>
           {heroSrc ? (
             <HeroPhoto
               photo={heroSrc}
               alt={displayName}
+              poster={poster}
               href={href}
               rel={rel}
               fit={containHero ? 'contain' : 'cover'}
@@ -765,10 +795,12 @@ export function ListOverviewPoster({ list, voteData, extras, variant }) {
   const pics = picsConfig(list);
   if (!items.length) return null;
 
-  const heroItems = items.slice(0, 3);
-  const gridItems = compact ? [] : items.slice(3, 9);
-  const tenthItem = compact ? null : items[9];
-  const restItems = social ? items.slice(3, 10) : [];
+  // Ledger layout (mirrors the live list page): ranks 1-3 are full rows with a
+  // hero photo; the rest are full rows too. The share card (social) keeps the
+  // top 3 as photo rows and renders ranks 4-10 as compact one-line rows.
+  const fullItems = compact ? items.slice(0, 3) : items.slice(0, 10);
+  const compactItems = social ? items.slice(3, 10) : [];
+  const hasMoreAfterTop3 = social ? compactItems.length > 0 : items.length > 3;
 
   return (
     <div style={{ width: 1080, background: COLORS.cream, color: COLORS.ink, boxSizing: 'border-box', padding: compact ? '38px 48px 28px' : '52px 60px 40px', position: 'relative' }}>
@@ -828,35 +860,34 @@ export function ListOverviewPoster({ list, voteData, extras, variant }) {
         </p>
       )}
 
-      {/* Tile grid: fixed two columns (no responsive collapse in a capture) */}
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: compact ? 12 : 14, marginTop: compact ? 18 : 26 }}>
-        {heroItems.map((item, i) => (
-          <HeroTile key={item} item={item} rank={i + 1} list={list} desc={descs[item]} pics={pics} poster />
+      {/* Ledger rows (mirror the live list page): rank / hero photo on the
+          top 3 / name + description / action column. No responsive classes in a
+          static capture; the social share card adds compact rows for 4-10. */}
+      <div style={{ marginTop: compact ? 18 : 26, borderTop: `2px solid ${COLORS.ink}` }}>
+        {fullItems.map((item, i) => (
+          <LedgerRow
+            key={item}
+            item={item}
+            rank={i + 1}
+            list={list}
+            desc={descs[item]}
+            pics={pics}
+            isTop={i < 3}
+            heavyDivider={i === 2 && hasMoreAfterTop3}
+            poster
+          />
         ))}
-        {gridItems.map((item, i) => (
-          <SmallTile key={item} item={item} rank={i + 4} list={list} desc={descs[item]} pics={pics} poster />
+        {compactItems.map((item, i) => (
+          <LedgerRow
+            key={item}
+            item={item}
+            rank={i + 4}
+            list={list}
+            pics={pics}
+            poster
+            compact
+          />
         ))}
-        {tenthItem && (
-          <div style={{ gridColumn: 'span 2', display: 'flex', justifyContent: 'center' }}>
-            <div style={{ width: 'calc(50% - 7px)' }}>
-              <SmallTile item={tenthItem} rank={10} list={list} desc={descs[tenthItem]} pics={pics} poster />
-            </div>
-          </div>
-        )}
-        {restItems.map((item, i) => {
-          const lastOdd = i === restItems.length - 1 && restItems.length % 2 === 1;
-          if (lastOdd) {
-            // Rank 10 sits alone on its row: same width as the others, centered.
-            return (
-              <div key={item} style={{ gridColumn: 'span 2', display: 'flex', justifyContent: 'center' }}>
-                <div style={{ width: 'calc(50% - 6px)' }}>
-                  <CompactRow item={item} rank={i + 4} />
-                </div>
-              </div>
-            );
-          }
-          return <CompactRow key={item} item={item} rank={i + 4} />;
-        })}
       </div>
 
       {/* Footer */}
