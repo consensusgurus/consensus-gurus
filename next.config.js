@@ -9,6 +9,12 @@ const nextConfig = {
   },
   async redirects() {
     return [
+      // Renamed 2026-06-10: legacy slug 'dive-bars-istanbul' (pre-rework dive-bar build) -> meyhanes
+      {
+        source: '/list/dive-bars-istanbul',
+        destination: '/list/best-meyhanes-istanbul',
+        permanent: true,
+      },
       // Renamed 2026-06-09: "Best No-Budget Dinners in NYC" -> "Best Fine Dining Restaurants in NYC"
       {
         source: '/list/no-budget-dinners-nyc',
