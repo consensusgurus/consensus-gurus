@@ -1191,6 +1191,29 @@ function Tile({ list, rank, views, voteData, extras, onClick, showConsensus, fea
         boxShadow: hover ? `3px 3px 0 ${COLORS.ember}` : 'none',
       }}
     >
+      {HOME_V2 && heroPhoto && (
+        <div
+          style={{
+            position: 'relative',
+            height: 150,
+            flex: '0 0 auto',
+            alignSelf: 'stretch',
+            borderBottom: `1.5px solid ${COLORS.ink}`,
+            backgroundImage: `url("${heroPhoto.src}")`,
+            backgroundSize: heroPhoto.contain ? 'contain' : 'cover',
+            backgroundRepeat: 'no-repeat',
+            backgroundPosition: 'center',
+            backgroundColor: COLORS.paper,
+          }}
+        >
+          {!heroPhoto.contain && (
+            <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to top, rgba(18,14,10,0.55), rgba(18,14,10,0) 55%)' }} />
+          )}
+          <span style={{ position: 'absolute', left: heroPhoto.contain ? 8 : 12, bottom: 8, maxWidth: 'calc(100% - 16px)', color: '#fff', fontSize: 12, fontFamily: 'DM Mono, monospace', letterSpacing: '0.06em', textShadow: '0 1px 5px rgba(0,0,0,0.9)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', background: heroPhoto.contain ? 'rgba(26,22,17,0.78)' : 'transparent', padding: heroPhoto.contain ? '3px 8px' : 0 }}>
+            {heroPhoto.rank != null && <span style={{ color: '#e7cf73', fontFamily: 'Fraunces, serif', fontWeight: 700, fontSize: 14 }}>#{heroPhoto.rank}</span>}{heroPhoto.rank != null ? ' ' : ''}{heroPhoto.name}
+          </span>
+        </div>
+      )}
       <div style={HOME_V2 ? { padding: '16px 18px 14px', display: 'flex', flexDirection: 'column', flex: '1 1 auto', minHeight: 0, alignSelf: 'stretch' } : { display: 'contents' }}>
       {(() => {
         // V2: drop the category/type corner labels; keep only the READER badge.
@@ -1280,29 +1303,6 @@ function Tile({ list, rank, views, voteData, extras, onClick, showConsensus, fea
           >
             {preview.label}
           </div>
-          {HOME_V2 && heroPhoto && (
-            <div
-              style={{
-                position: 'relative',
-                height: 140,
-                margin: '2px -18px 12px',
-                borderTop: `1.5px solid ${COLORS.ink}`,
-                borderBottom: `1.5px solid ${COLORS.ink}`,
-                backgroundImage: `url("${heroPhoto.src}")`,
-                backgroundSize: heroPhoto.contain ? 'contain' : 'cover',
-                backgroundRepeat: 'no-repeat',
-                backgroundPosition: 'center',
-                backgroundColor: COLORS.paper,
-              }}
-            >
-              {!heroPhoto.contain && (
-                <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to top, rgba(18,14,10,0.55), rgba(18,14,10,0) 55%)' }} />
-              )}
-              <span style={{ position: 'absolute', left: heroPhoto.contain ? 8 : 12, bottom: 8, maxWidth: 'calc(100% - 16px)', color: '#fff', fontSize: 12, fontFamily: 'DM Mono, monospace', letterSpacing: '0.06em', textShadow: '0 1px 5px rgba(0,0,0,0.9)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', background: heroPhoto.contain ? 'rgba(26,22,17,0.78)' : 'transparent', padding: heroPhoto.contain ? '3px 8px' : 0 }}>
-                {heroPhoto.rank != null && <span style={{ color: '#e7cf73', fontFamily: 'Fraunces, serif', fontWeight: 700, fontSize: 14 }}>#{heroPhoto.rank}</span>}{heroPhoto.rank != null ? ' ' : ''}{heroPhoto.name}
-              </span>
-            </div>
-          )}
           <ol
             style={{
               margin: 0,
