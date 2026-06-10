@@ -122,8 +122,8 @@ const CATEGORIES = [
   // Bars carry food-drink/entertainment tags, so Restaurants and Entertainment exclude
   // bars/nightlife to keep a cocktail bar from leaking out of Bars & Nightlife.
   { id: 'restaurants', label: 'Eating', any: ['food', 'food-drink'], not: ['bars', 'nightlife'] },
-  { id: 'bars-nightlife', label: 'Drinking', any: ['bars', 'nightlife'] },
-  { id: 'travel', label: 'Hotels & Travel', any: ['travel', 'luxury'] },
+  { id: 'bars-nightlife', label: 'Drinking', any: ['bars', 'nightlife', 'drinks'] },
+  { id: 'travel', label: 'Travel', any: ['travel', 'luxury'] },
   { id: 'shops', label: 'Products', any: ['product', 'tech'] },
   { id: 'entertainment', label: 'Entertainment', any: ['entertainment'] },
   { id: 'misc', label: 'Miscellaneous', any: ['other'] },
