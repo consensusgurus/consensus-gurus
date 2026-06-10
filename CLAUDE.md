@@ -130,8 +130,42 @@ Implemented in `lib/helpers.js` `getSources` and mirrored in `scripts/generate-o
 **Known true experts:**
 
 - **Johnny Novo** (`johnnynovo.com/rankings/...`) — a rigorous, single-author burger ranking with per-establishment ratings. Used as a true expert on `burgers-nyc`. Order his source by the published rating, descending (it is a ranked source, not `unordered`).
-- **Dave Portnoy / One Bite** (`onebite.app`) — numeric pizza scores (publicly readable, not image-gated like the Infatuation). Used as a true expert on **all pizza lists**. Gather scores live via Chrome, order descending by score. Source id: `portnoy`. This is the primary mechanism for surfacing excellent new pizza spots that predate most editorial lists.
+- **Dave Portnoy / One Bite** (`onebite.app`) — numeric pizza scores (publicly readable, not image-gated like the Infatuation). Used as a true expert on **all pizza lists**. Gather scores live via Chrome, order descending by score. Source id: `portnoy`. This is the primary mechanism for surfacing excellent new pizza spots that predate most editorial lists. **Every Portnoy review is also a YouTube video, so pizza lists carry a per-item `Portnoy Review` play button** (see True-expert video content below).
 - **Source of Truths (SoT)** — the in-house ranking produced by the SoT True Expert input process below. Source id: `sot`. Used only on lists where the owner explicitly requests it.
+
+### True-expert video content — per-item play button (`itemVideo` / `itemVideoLabel`)
+
+When a true-expert source ALSO publishes a video review per item (the One Bite / Dave Portnoy
+reviews are each a standalone YouTube video; the same applies to any future video-publishing true
+expert), surface that video on the list as a **play button on each item**, so a reader can watch the
+expert's actual review. This is in addition to the source's ranked score data, not a replacement for
+it. Required on every pizza list (each `portnoy` source item that has a video).
+
+- **Data field: `itemVideo`** — an object on the list mapping the exact item-name string (parenthetical
+  and all, byte-for-byte identical to the name used everywhere else) to the **official YouTube watch
+  URL** of the review, e.g. `'Regina Pizzeria (North End)': 'https://www.youtube.com/watch?v=XXXXXXXXXXX'`.
+  Cover the union of the relevant source's items plus `vote.items`. A missing per-item entry simply
+  drops the button for that item.
+- **Label: `itemVideoLabel`** — a string on the list that sets the button text. Defaults to `'Video'`
+  in code; **set it to `'Portnoy Review'` on every pizza list** (and to the analogous expert name on any
+  future video-publishing true expert). One label per list.
+- **How it renders:** a filled play-button chip (ember background, ▶ icon) appears in the per-item
+  expanded link panel on the list page AND in the overview-tile link row, opening the video in a new
+  tab. Implemented via `itemVideo` in `buildAuxLinks`/`DataRow` in `app/list/[id]/DetailClient.jsx` and
+  `buildLinks`/`LinkRow` in `app/list/[id]/ListOverview.jsx` (the two mirrors must stay logic-identical,
+  like the pics config). It is not tied to location lists, so a future non-location true expert with
+  video works too.
+- **Gathering (live, never guess an ID):** search YouTube through the connected Chrome for the One Bite
+  review of the venue (`one bite pizza review <venue> <city>`), confirm it is the **official upload**
+  (the "One Bite Pizza Reviews" / Barstool Sports channel, Dave Portnoy), and store the canonical
+  `https://www.youtube.com/watch?v=<id>` URL. Reject fan re-uploads, compilations that are not that
+  venue's review, and reaction videos. **App-only reviews:** some One Bite reviews have no YouTube
+  upload and live only on the One Bite app (the review page plays a Mux-hosted clip, not YouTube) — in
+  that case store the `onebite.app/restaurant/.../review/...` page URL instead (the video plays there),
+  which the owner can supply directly. Confirm the page is the correct venue/location before using it.
+  If a scored item genuinely has neither a YouTube upload nor a One Bite review page, omit it from
+  `itemVideo` (its button just doesn't show) — never fabricate or pattern-guess a URL or video ID.
+
 
 ### SoT True Expert input — the in-house research process
 
@@ -401,7 +435,7 @@ The expert publication rankings that drive Borda scoring. Rules:
     Like every platform rule here, gatherability must be verified live the first time a platform is used; record what works (selector, URL pattern) in this file the way the Tabelog workflow is recorded.
   - **Pick the platform by category.** For **food & drink** — restaurants, coffee shops, bars, bakeries, cafés — **Yelp is the priority platform: always include it, and list it first.** **Google Reviews is the secondary platform and should be included too** — both are considered. (For non-food place lists — hotels, shops, attractions — lead with Google and add TripAdvisor where relevant.) Two rating platforms beat one; they balance each other, since Yelp typically runs about half a star below Google.
   - Order each platform source by aggregate rating (rating descending, review count as the tiebreak). **Review-count floor:** any place with 100+ reviews is considered "established" — within that tier, ties in star rating break alphabetically rather than by review count, so a new excellent spot with 150 reviews is not systematically outranked by an older one with 3,000 reviews at the same rating. Only below 100 reviews does raw count still tiebreak (very sparse data is genuinely less reliable). Gather the ratings **live through the connected Chrome browser** — never from memory or search snippets (the same no-guessing rule used for chain-city lists). On Yelp, confirm you're reading the flagship listing (the one with the most reviews), not a stray duplicate — pull rating + review count from the business page when the search card is ambiguous.
-  - **⚠️ Yelp bot wall on a cold MCP tab (June 2026, `best-restaurants-seaport-boston`):** a fresh, cookie-less MCP browser tab almost always trips Yelp's "Verifying the device..." PerimeterX challenge (it even froze the CDP renderer once), so `yelp.com/biz/...` pages usually CANNOT be read directly, and the challenge must NOT be solved (it is a bot gate). Gather Yelp from the **Bing knowledge panel** instead: `bing.com/search?q=<venue> <city> <cuisine>`, wait ~3s, read the Ratings card. Bing renders the count as EITHER `(347 reviews)` OR `(347)` (regex for both), and Yelp's value is half-star. Bing covers most venues but not all; the ones it has no Yelp card for, Google's "Reviews from the web" also usually lacks (it shows OpenTable/Grubhub/Facebook), so for those stragglers have the owner paste rating + count (the blocklist workflow). Gather **Google** ratings the reliable way from the flagship Google Maps *place* page: `google.com/maps/search/<venue>+<city>`, wait ~4s, confirm the `h1` matches the venue, and read the first `X.X (N)` headline in body text; the result-list cards (`Name · X.X stars · N reviews`) also hand you neighboring venues' Google ratings for free. Lead with Bing for Yelp, Maps for Google.
+  - **⚠️ Yelp bot wall on a cold MCP tab (June 2026, `best-restaurants-seaport-boston`):** a fresh, cookie-less MCP browser tab almost always trips Yelp's "Verifying the device..." PerimeterX challenge (it even froze the CDP renderer once), so `yelp.com/biz/...` pages usually CANNOT be read directly, and the challenge must NOT be solved (it is a bot gate). **HARD RULE (owner, 2026-06-09): the moment the "Verifying the device..." wall appears, STOP gathering and ask the owner to log into Yelp in the connected browser, then resume.** A logged-in / warm Yelp session normally clears the device challenge, after which `yelp.com/biz/...` business pages read directly via their JSON-LD `aggregateRating` (rating + review count) and you can gather every venue cleanly from the real source. Do this BEFORE falling back to anything else, and never try to solve or click through the challenge yourself. Only if the owner-login still does not clear the wall, fall back to the **Bing knowledge panel**: `bing.com/search?q=<venue> <city> <cuisine>`, wait ~3s, read the Ratings card. Bing renders the count as EITHER `(347 reviews)` OR `(347)` (regex for both), and Yelp's value is half-star. Bing covers most venues but not all; the ones it has no Yelp card for, Google's "Reviews from the web" also usually lacks (it shows OpenTable/Grubhub/Facebook), so for those stragglers have the owner paste rating + count (the blocklist workflow). Gather **Google** ratings the reliable way from the flagship Google Maps *place* page: `google.com/maps/search/<venue>+<city>`, wait ~4s, confirm the `h1` matches the venue, and read the first `X.X (N)` headline in body text; the result-list cards (`Name · X.X stars · N reviews`) also hand you neighboring venues' Google ratings for free. Lead with Bing for Yelp, Maps for Google.
   - Label each as an ordered source, e.g. `'Yelp · Ranked by Rating (May 2026)'` and `'Google Reviews · Ranked by Rating (May 2026)'`, and do NOT set `"unordered": true` on them.
   - **Breweries and other destination venues get all THREE rating platforms — Yelp + Google + TripAdvisor — where available (owner ruling, 2026-06-06).** Breweries, wineries, distilleries, beer halls, cideries, and similar food/drink places people visit as a *destination* carry genuine TripAdvisor review depth (unlike a typical neighborhood restaurant), so they get a third ranked rating source: add a `tripadvisor` source labeled `'TripAdvisor · Ranked by Rating (Month YYYY)'` (ordered by rating descending, review count as tiebreak, NOT `"unordered"`) PLUS `itemTripadvisor` business-page URLs for the hover menu, alongside the usual Yelp (first) and Google (second). Order of inclusion: Yelp, then Google, then TripAdvisor. Omit any individual item a platform has no real listing for (it is normal for some breweries to lack a TripAdvisor page). **Reliable gathering:** the Bing knowledge panel (`bing.com/search?q=<venue> <city> tripadvisor`) surfaces the Yelp AND TripAdvisor rating + review count AND the real TripAdvisor business URL in a single search (wait ~1.2s for the entity panel to render). Google ratings are NOT in Bing's panel; gather them from the flagship Google Maps *place* page and confirm the resolved place title + a sane review count, because a Maps search-list can return a secondary/stale pin (e.g. a famous brewery showing only a few dozen reviews is the wrong listing). Adding TripAdvisor reshuffles the Borda consensus, so always recompute, re-seed `ai` + `vote.items`, and add a hero image for any item that newly enters the top 3.
   - Only include items already on the list (every item in a ranked source needs a `links` entry). It's fine to omit a place a platform has no real presence for.
@@ -422,7 +456,7 @@ A Yelp/Google star rating rates the VENUE, not the dish. On lists where the venu
 **Classification, run once per menu-item list (any list with a `picsTerm`):** for each item in the candidate pool, ask the litmus question: would a local describe this place as "a [dish] spot" (specialist) or "a bar/restaurant that happens to have great [dish]" (generalist)? A sports bar with famous wings is generalist even if the wings are its claim to fame, because its reviews rate the bar. If **half or more** of the pool is generalist, the list is a **generalist dish list**.
 
 - **Specialist list:** no change. Yelp + Google at full weight 1, per the standard rules.
-- **Generalist dish list:** still gather and include both rating platforms (the HARD PUBLISH GATE is unchanged), but set explicit `"weight": 0.5` on each rating-platform source, so the two platforms combined carry the weight of one editorial source instead of two. The same 0.5 applies to a regional platform substituting for Yelp (Tabelog, OpenRice, etc.). Record the classification and the rough specialist count in a comment above the sources so future sessions do not silently reclassify.
+- **Generalist dish list:** still gather and include both rating platforms (the HARD PUBLISH GATE is unchanged), but set explicit `"weight": 0.5` on each rating-platform source, so the two platforms combined carry the weight of one editorial source instead of two. Make the down-weight reader-visible in the source label itself: append `· 0.5x Weight` before the date, e.g. `'Yelp · Ranked by Rating · 0.5x Weight (June 2026)'` (owner request, 2026-06-07). The same 0.5 applies to a regional platform substituting for Yelp (Tabelog, OpenRice, etc.). Record the classification and the rough specialist count in a comment above the sources so future sessions do not silently reclassify.
 - **Dish-specific true experts are the preferred fix, not down-weighting.** A source that scores the dish itself (One Bite for pizza, Johnny Novo for NYC burgers) is immune to this problem; always search for one when building a generalist dish list, and keep its full trueExpert weight.
 - **Gathering and ordering are unchanged** (live gathering, rating descending, review-count tiebreak, 100+ review floor). Only the weight changes.
 - **Venue-type lists are out of scope** (dive bars, steakhouses, breweries, hotels, cocktail bars, live-music bars): there the venue is the subject, so the venue rating is the right signal at full weight.
@@ -547,6 +581,37 @@ contenders; it was removed 2026-06-07.
   `itemTripadvisor` keys for items that appeared only in that source, and refresh descriptions/heroes
   if the top 10/top 3 changed.
 
+### Source-rule changes ALWAYS carry a note, applied uniformly across the logs (owner rule, 2026-06-09)
+
+**Any time you change a source rule for a list, you MUST record a `sourceRevisions` note explaining
+WHY, and apply the same explanation uniformly to every list affected by that change.** This is a hard
+rule, not a courtesy. "Source rule change" is broad and covers, at minimum: a weighting change (e.g.
+down-weighting Yelp/Google to `0.5` on a generalist dish list), a re-encoding (flipping a source to
+`unordered`, `rankedHead`, or a tier/award encoding), removing a source (scope too narrow, off-tier,
+unreadable), a label/edition refresh, and adding or dropping a `trueExpert` flag. If the reason isn't
+obvious from the data alone, it needs a note.
+
+- **Where the note lives:** `list.sourceRevisions` in `lib/data.js`, keyed by the affected source id
+  (e.g. `"yelp"`, `"google"`, `"infatuation"`, or a since-removed id like `"bostonmagne"`). Phrase it
+  as a reader-facing correction, e.g. `"Correction (June 2026): ..."`.
+- **It must render uniformly in BOTH activity ledgers** — the per-list one (`app/list/[id]/ActivityFeed.jsx`)
+  and the universal one (`app/feed/page.js` + `app/feed/FeedClient.jsx`). The note attaches to the
+  Re-encoded bubble (a refreshed/re-weighted source), the Source removed card, and the folded
+  Removed/Re-encoded bubble inside a Sources Revisited card. If a code path shows a changed source
+  without surfacing its note, that's a bug to fix in both mirrors, not a reason to skip the note.
+- **Apply it everywhere the same rule fired.** When one rule change touches many lists (the generalist
+  dish-list 0.5x down-weight is the canonical case), every affected list gets the corresponding note
+  for each changed source — never just the list you happened to be looking at. Search out the full set
+  and cover it in the same pass. (Canonical 0.5x wording, adapt the dish/platform to the list:
+  `"Correction (June 2026): Yelp and Google rate the whole venue, and most spots on this list are bars
+  and full restaurants rather than burger spots, so both rating sources now carry 0.5x weight per the
+  generalist dish-list rule."`)
+- **The note explains; it never substitutes for the mechanics.** Still make the actual rule change
+  (set `"weight"`, `"unordered"`, remove the source, etc.), recompute consensus, re-seed, and refresh
+  descriptions/heroes as the specific rule requires. The note is the audit trail on top.
+- **Reuse the existing wording when one already exists for the same kind of change** rather than
+  inventing a new phrasing each time, so the logs read consistently.
+
 ### Source item ordering — order is rank, so order it correctly
 
 **The order of items inside each source IS its ranking.** Borda scoring reads position: the 1st item in a source array gets that source's top score, the 2nd gets the next, and so on. So the array order directly drives the consensus. Getting it wrong silently corrupts the result. Before saving any source, confirm its items are in true best-to-worst order.
@@ -573,6 +638,23 @@ How the scoring works (implemented in `lib/helpers.js` `getSources`, `scripts/ge
 - To change the formula, edit `flatUnordered` / `FLAT_BUDGET` in all four files (keep them in sync).
 
 Example (Four Seasons list): The Points Guy's worldwide "16 best" roundup is unordered, so it's labeled `'The Points Guy (unordered roundup)'` with `"unordered": true`; each of its 16 properties gets 55/16 ≈ 3.44, while the five genuinely-ranked sources drive the order.
+
+### Ranked-head sources: one (or a few) scored items atop an otherwise unranked roundup — `rankedHead: N`
+
+Some guides score only their top pick(s) and present the rest unranked (e.g. the 2026 Infatuation
+Boston burger guide shows a 9.0 badge on Neptune Oyster and a 7.8 on JM Curley while the other eight
+spots carry no score). Encode these with `"rankedHead": N` on the source: the FIRST `N` items in the
+array earn normal Borda rank points (10, 9, ...) and every remaining item earns the flat unordered
+score for a roundup of the tail's size (`flatUnordered(tailCount)`). Notes:
+
+- Order the head by the published scores, highest first; the tail keeps the page's order (it earns a
+  flat score, so its order is cosmetic).
+- Note the basis in the label, e.g. `'The Infatuation Boston 2026 (Neptune Oyster scored 9.0, rest unranked)'`.
+- Do NOT also set `"unordered": true` — `rankedHead` takes precedence and handles the tail itself.
+- Implemented in `lib/helpers.js` `getSources` and all three mirrors (`scripts/generate-og-images.js`,
+  `app/list/[id]/opengraph-image.js`, `app/list/[id]/twitter-image.js`) — keep all four in sync.
+- First used on `burgers-boston` (owner ruling 2026-06-07: only Neptune ranks; JM Curley's 7.8 was
+  offered as a #2 head slot and the owner declined, so it scores flat with the tail).
 
 ### Tiered award lists (Winners / Runners-up / "Voters Also Loved") are RANKED, not unordered
 
@@ -638,7 +720,7 @@ These refine how to apply the parenthetical rules above. They are universal — 
 
 - **Collapse duplicate entries for the same property.** If two item strings refer to the same place (e.g. `'Laucala Island Resort, Fiji'` and `'COMO Laucala Island'` after an operator change), keep one canonical name across the whole list.
 
-- **Migrate user-submitted "extras" too, via the admin endpoint.** Renaming a seed/source item to add a parenthetical orphans any matching row in the `extras` table (e.g. a fan-added `'The Newbury Boston'`). Rename the extra with the admin `POST /api/admin/extras/rename` (`{listId, oldName, newName}`), which **atomically moves the extra AND its aggregated vote score**. Because that RPC moves the vote, do **not** also re-post that item's vote through `/api/votes` — that would double-count. (Seed/source items that are *not* extras still migrate via `/api/votes` as described above.)
+- **Migrate user-submitted "extras" too, via the admin endpoint.** Renaming a seed/source item to add a parenthetical orphans any matching row in the `extras` table (e.g. a fan-added `'The Newbury Boston'`). Rename the extra with the admin `POST /api/admin/extras/rename` (`{listId, oldName, newName}`), which **atomically moves the extra, its aggregated vote score, AND its activity-ledger rows** — since migration `18_rename_extra_ledger_propagation.sql` (2026-06-07) the RPC also updates `vote_events.item_name`, `consensus_alerts.item_name`, and the stored `consensus_snapshots.top10` array, so a rename is reflected site-wide including both activity ledgers and never leaves the old name behind (the Lulu Sag Harbor case) or fires a spurious exited/entered pair on the next cron run. Because that RPC moves the vote, do **not** also re-post that item's vote through `/api/votes` — that would double-count. (Seed/source items that are *not* extras still migrate via `/api/votes` as described above.)
 
 - **Items must match the list's defining geography.** Before re-parenthesizing, confirm every item actually belongs in the list's scope. A `Best Pacific Ocean Island Resorts` list must not contain Indian Ocean resorts (Maldives, Seychelles); remove off-geography items and rebuild the sources from verifiable, recent, correctly-ranked publications rather than leaving a mislabeled list.
 
@@ -671,6 +753,24 @@ The list-page header's top-right label (`{category} · Top N`) must reflect the 
 - `app/list/[id]/ListOverview.jsx` — **two** copies: the poster header and the main overview header, both `Top ${Math.min(items.length, 10)}` (the footer already did this).
 
 Never reintroduce a literal `'Top Ten'` in any list header. The `top3` variant correctly stays `Top Three`.
+
+---
+
+## List page structure: one tabbed page (owner rule, 2026-06-07)
+
+`/list/[id]` is the ONLY list page. Chips under the header switch the content below in place
+(no navigation), in this order: **Consensus** (default; the tile-grid overview with hero photos
+and descriptions), **Consensus Sources** (every source side by side), **Activity Log** (the
+activity ledger; renamed in all user-facing copy 2026-06-07, internal names unchanged),
+**Vote**, **Share** (the full share UI: poster designer + downloadable renders, in place), then
+the **Request Review** modal trigger. The Activity Ledger renders ONLY in its own tab, never at
+the base of the consensus view. The old `/list/[id]/rankings` page permanently redirects to
+`/list/[id]`; `#sources`, `#vote`, `#activity`, and `#share` hashes survive the redirect and
+open the matching tab. Implementation: `ListDetail` in `DetailClient.jsx` owns the tabs;
+`ListOverview` renders with the `embedded` prop as the Consensus tab's content, and
+`SnapshotClient` renders with its own `embedded` prop (list/voteData/extras passed in, page
+chrome skipped) as the Share tab's content. The standalone `/snapshot/[id]` page still works
+for old links and automations.
 
 ---
 
@@ -948,6 +1048,30 @@ NEW_LIB_TREE=$(git ls-tree $LIB_TREE_SHA | awk -v b="$NEW_BLOB" \
   (e.g. PAT revoked, GitHub Smart HTTP unreachable): edit `lib/data.js`, save, then in GitHub Desktop commit
   to `main` and push origin. Otherwise always push directly per the procedure above.
 
+## Activity Ledger labels (owner rules, 2026-06-07)
+
+In both activity ledgers (per-list `ActivityFeed.jsx` and universal `app/feed/`):
+
+- A dated source-refresh group (sources whose `label_updated_at` was stamped after a re-research
+  pass) renders with the badge **"Sources Revisited"** (never "Refreshed Research" or "Sources
+  updated"). When a refresh lands in the same deploy as new source additions (timestamps within 1h,
+  stamped by the same cron run), the two groups MERGE into one "Sources Revisited" card: added
+  sources tagged "Added", re-encoded ones tagged "Re-encoded", all ranking movements on that one card.
+  Same-deploy REMOVALS fold in too (struck-through label, tagged "Removed", counted in the header);
+  only a standalone removal keeps its own "Source removed" card (per-list ledger only, the universal
+  feed names removals solely via this fold-in).
+- A re-encoded source can carry an explanatory note via a `sourceRevisions` map on the list object
+  in `lib/data.js` (`{ sourceId: 'Correction (Month YYYY): ...' }`), rendered under that source's
+  chip on the revisited card in both ledgers. Write one whenever a refresh changes how a source
+  scores (e.g. ranked -> unordered, rankedHead). No em dashes in note copy.
+- Voting entries show each ballot's picks 1st/2nd/3rd top-down plus the ranking movements the votes
+  produced. **Vote impacts are PERSISTED at vote time** by `/api/votes` (consensus_alerts rows,
+  cause 'votes', resolved=true, computed via a before/after `getSources` diff) because the feeds'
+  live replay recomputes against CURRENT sources and silently changes once a list is re-edited. The
+  replay remains as a fallback for pre-persistence votes; `collapseMoves` in both feed renderers
+  collapses per-pick rows and cron duplicates to one display row per item.
+- The universal feed mirrors the per-list implementation; keep the two in sync.
+
 ## Post-deploy consensus-check trigger (owner-requested 2026-06-07)
 
 The Activity Ledger's ranking-change entries come from `/api/cron/consensus-check`, which only
@@ -981,7 +1105,7 @@ the new names: re-run `node --check` plus the consensus verification before depl
 existing vote. After deploy, read `/api/bootstrap` through the connected Chrome (the JSON is too
 large for web_fetch) and look for `<listId>::<old lowercased name>` entries that carry a score. For
 each, re-post the score under the NEW name with `POST /api/votes {listId, itemName:<new name>,
-delta}`. **`delta` is clamped to ±3 per call**, so a score above 3 needs several posts. If the item
+delta}`. **`delta` is clamped to +/-3 per call**, so a score above 3 needs several posts. If the item
 is instead a user-submitted `extra` (in the `extras` table), use the admin extras rename endpoint
 (`POST /api/admin/extras/rename {listId, oldName, newName}`), which moves the extra AND its vote
 atomically, do NOT also re-post that one through `/api/votes` or you double-count.
@@ -1205,6 +1329,14 @@ if (missing.length) throw new Error('Missing descriptions: ' + missing.join(', '
   2026-06-05): the Eater lead image was captioned "Dan and John's wings" but was filed under
   Madame Vo. When attribution cannot be confirmed, find a different photo (venue site, Yelp
   business gallery) rather than guessing.
+- **Never trust a CDN filename as proof the image shows the correct venue.** Editorial CMS systems
+  routinely mislabel uploaded files. A URL containing `RedHookTavern_Burger.jpg` does not guarantee
+  the photo actually shows Red Hook Tavern's food — the file could be misnamed in the CMS. Always
+  visually verify the image looks like the venue's known food and style (compare against their own
+  website, Instagram, or Yelp photos), and prefer sourcing from the venue's own site when a good
+  photo exists there. This caught the `burgers-nyc` Red Hook Tavern hero (2026-06-08): the Eater
+  CDN filename said "RedHookTavern" but the image showed a different restaurant's thick patty burger,
+  not Red Hook Tavern's signature smash burger.
 - **Stable-host check for hotlinked URLs:** prefer images.pexels.com / editorial CDNs /
   upload.wikimedia.org / venue sites; avoid expiring signed URLs (fbcdn, Instagram CDN,
   googleusercontent thumbnails) — they die and blank the tile.
@@ -1232,4 +1364,106 @@ if (missing.length) throw new Error('Missing descriptions: ' + missing.join(', '
 ### Consensus change alerts (research queue)
 - Tables `consensus_snapshots` + `consensus_alerts` (migration `08_consensus_alerts.sql`).
 - **Activity-ledger attribution:** both ledgers (per-list `ActivityFeed.jsx` and universal
-  `app/feed/page.js` + `FeedClient.jsx`) pair each ranking 
+  `app/feed/page.js` + `FeedClient.jsx`) pair each ranking change with its cause: a change detected
+  within ~26h after a post-launch source addition merges into that source-add card (dual chips
+  "Source added" + "Ranking change"); an unattributed change renders with "Votes" + "Ranking change"
+  chips. "Launch batch" sources = first seen within **6h** of the list's publish time; this window
+  lives in BOTH ActivityFeed.jsx and app/feed/page.js and the two must stay in sync. Sources added
+  before the stamping feature shipped (2026-06-07) were launch-anchored by its first run; the real
+  add dates for the affected lists were restored by migration 14.
+- `/api/cron/consensus-check` runs daily via Vercel cron (`vercel.json`): recomputes every list's
+  consensus top 10, diffs against the snapshot, and inserts an alert when an item newly enters the
+  top 10 (`entered_top10`, needs a description) or top 3 (`entered_top3`, needs a hero photo).
+  The same diff also records exits (`exited_top10`, `exited_top3`) and within-top10 shifts
+  (`moved`), inserted with `resolved=true` so they show in the public activity ledgers but never
+  enter the research queue (no description or hero work needed). Every alert row stores the exact
+  movement as `prev_rank` -> `rank`, where **0 means unranked** (outside the top 10); the ledgers
+  render "moved from #X to #Y / unranked" and never show a rank beyond 10 (owner rule, 2026-06-07).
+  Rows with `prev_rank` null are legacy (pre-movement-tracking) and render the old boundary
+  phrasing. An unranked item entering the top 3 fires entered_top10 AND entered_top3 (two research
+  rows); both feeds dedupe the display. Each alert also carries a `cause`: the cron fingerprints
+  every list's source data (`sourcesFingerprint`) and stores it on the snapshot; if the fingerprint
+  changed since the last run the change is attributed to a deploy edit (cause `edit`, "List edited"
+  chip), otherwise to fan votes (cause `votes`, "Votes" chip) -- BUT 'votes' is never attributed to
+  a list with zero recorded votes (no `votes`/`vote_events` rows): a voteless list's change can only
+  come from a deploy, so it gets cause `edit` (owner rule 2026-06-07, after the meyhanes-rename
+  changes displayed as "Voting" on a list nobody had voted on). The fingerprint also folds in
+  `SCORING_ENGINE_VERSION` (exported from `lib/helpers.js`): **bump that constant in the same push
+  whenever the scoring engine's behavior changes** (getSources math, padding, weighting, tie-breaks,
+  in helpers.js or any mirror), so engine-deploy consensus shifts attribute as `edit`, not votes.
+  Null cause = legacy row (pre-migration-16); both ledgers render it with a neutral "Ranking change"
+  chip only -- never a Votes chip (migration `19_reattribute_voteless_alerts.sql` re-attributed
+  legacy null/votes rows on voteless lists to `edit`). Migrations
+  `14_restamp_source_dates_and_exits.sql`, `15_alert_rank_movement.sql`, and
+  `16_alert_cause.sql` cover the schema.
+  First run seeds snapshots silently. Optional `CRON_SECRET` env var protects the route.
+- The admin panel (`/admin`) has a **Research** tab listing unresolved alerts with what each needs;
+  resolve via `/api/admin/alerts` once the research ships.
+- `/api/consensus-alerts` is a public read-only feed of unresolved alerts (used by the weekly
+  email summary task in Cowork; supports `?sinceDays=7`).
+- When researching an alert: write the description into `lib/descriptions.js`, add the hero image if
+  top 3, deploy, then resolve the alert in the admin panel.
+
+## Full Example List Entry
+
+```javascript
+{
+  id: 'cocktails-west-village',
+  publishedDate: '2026-05-27',
+  title: 'Best Cocktail Bars in the West Village',
+  category: 'New York',
+  type: 'food',
+  tags: ['bars', 'nightlife', 'food-drink', 'stores', 'entertainment'],
+  linkType: 'mapsCity',
+  blurb: 'Intimate rooms, serious bartenders, and menus that reward attention. The West Village does cocktails better than almost anywhere.',
+  defaultSource: 'ai',
+  sources: {
+    ai: {
+      label: 'Consensus Seed',
+      items: [
+        'Dante NYC',
+        'Employees Only',
+        'The Nines',
+        'Slowly Shirley',
+        'Bar Pisellino',
+        'Little Branch',
+        'Amor y Amargo',
+        'Clover Club (Brooklyn)',
+        'The Up & Up',
+        'Attaboy',
+      ],
+    },
+    infatuation: {
+      label: 'The Infatuation NYC 2024',
+      items: [
+        'Dante NYC',
+        'Employees Only',
+        'Bar Pisellino',
+        'Little Branch',
+        'Amor y Amargo',
+        'The Nines',
+        'Slowly Shirley',
+      ],
+    },
+    timeout: {
+      label: 'Time Out New York 2024',
+      items: [
+        'Employees Only',
+        'Dante NYC',
+        'Little Branch',
+        'Slowly Shirley',
+        'The Up & Up',
+        'Amor y Amargo',
+        'Bar Pisellino',
+        'The Nines',
+      ],
+    },
+    eater: {
+      lab
+
+## Chrome tab hygiene (universal rule, owner-requested 2026-06-05)
+
+Close every Chrome MCP tab as soon as it is no longer needed: reuse ONE tab per session (navigate in
+place rather than opening new tabs), and call `tabs_close_mcp` on every tab in the session's group when
+the task or session ends. Parallel Cowork sessions were proliferating tabs in the owner's browser; never
+leave stale MCP tabs behind.
