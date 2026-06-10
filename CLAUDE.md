@@ -873,8 +873,8 @@ Never reintroduce a literal `'Top Ten'` in any list header. The `top3` variant c
 ## List page structure: one tabbed page (owner rule, 2026-06-07)
 
 `/list/[id]` is the ONLY list page. Chips under the header switch the content below in place
-(no navigation), in this order: **Consensus** (default; the tile-grid overview with hero photos
-and descriptions), **Consensus Sources** (every source side by side), **Activity Log** (the
+(no navigation), in this order: **Consensus** (default; since 2026-06-10 a full-width
+ledger-row layout, see below), **Consensus Sources** (every source side by side), **Activity Log** (the
 activity ledger; renamed in all user-facing copy 2026-06-07, internal names unchanged),
 **Vote**, **Share** (the full share UI: poster designer + downloadable renders, in place), then
 the **Request Review** modal trigger. The Activity Ledger renders ONLY in its own tab, never at
@@ -885,6 +885,22 @@ open the matching tab. Implementation: `ListDetail` in `DetailClient.jsx` owns t
 `SnapshotClient` renders with its own `embedded` prop (list/voteData/extras passed in, page
 chrome skipped) as the Share tab's content. The standalone `/snapshot/[id]` page still works
 for old links and automations.
+
+### Consensus tab layout: ledger rows at 1200px (owner-approved redesign, 2026-06-10)
+
+The Consensus tab renders the top 10 as full-width **ledger rows** (`LedgerRow` in
+`ListOverview.jsx`), replacing the old HeroTile/SmallTile grid on the live page. The list page
+container (`DetailClient.jsx`) is **1200px wide to match the homepage** (was 920). Each row:
+rank numeral (ember for 1-3, faded for 4-10) / hero photo (ranks 1-3 only, 210px col) / name +
+locality + FULL description (never truncated) / a right-hand 184px action column. The action
+column stacks the same chips the tiles carried: the ember video chip (Portnoy Review etc.),
+Rent/Buy affiliate chips (`buyLinks`/`itemBuy`), Map-or-Purchase + Website, and the `Pics:`
+label with its Yelp/TripAdvisor/Google chips (the Pics: label is REQUIRED, per owner). Ranks
+1-3 close with a heavy 2px rule. Mobile (<=760px) collapses each row to one column and the
+action column to a wrapped row. **The share poster (`ListOverviewPoster`) still uses the
+HeroTile/SmallTile grid** - those components and `LinkRow` exist for the poster only; chip-set
+changes must be applied to BOTH `LinkRow` (poster) and `LedgerRow` (live page) now, the same
+two-mirror discipline as `picsConfig`/`entryPicsConfig`.
 
 ---
 

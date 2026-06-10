@@ -913,7 +913,7 @@ export default function ListOverview({ list, voteData, extras, viewCount, onBack
         @media(max-width:760px){
           .lov-row,.lov-row-top{grid-template-columns:1fr;gap:10px;padding:16px 0;}
           .lov-rank{text-align:left !important;}
-          .lov-photo{min-height:190px;}
+          .lov-photo{min-height:190px !important;}
           .lov-actions{flex-direction:row !important;flex-wrap:wrap;align-items:center;}
         }
       `}</style>
