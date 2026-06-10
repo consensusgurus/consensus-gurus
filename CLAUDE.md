@@ -877,7 +877,7 @@ Never reintroduce a literal `'Top Ten'` in any list header. The `top3` variant c
 ledger-row layout, see below), **Consensus Sources** (every source side by side), **Activity Log** (the
 activity ledger; renamed in all user-facing copy 2026-06-07, internal names unchanged),
 **Vote**, **Share** (the full share UI: poster designer + downloadable renders, in place), then
-the **Request Review** modal trigger. The Activity Ledger renders ONLY in its own tab, never at
+the **Disagree?** modal trigger (user-facing label renamed from "Request Review" 2026-06-10; internal names unchanged). The Activity Ledger renders ONLY in its own tab, never at
 the base of the consensus view. The old `/list/[id]/rankings` page permanently redirects to
 `/list/[id]`; `#sources`, `#vote`, `#activity`, and `#share` hashes survive the redirect and
 open the matching tab. Implementation: `ListDetail` in `DetailClient.jsx` owns the tabs;

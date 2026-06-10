@@ -808,7 +808,7 @@ function ListDetail({ list, viewCount, voteData, userVotes, extras, relatedLists
               }}
             >
               <PenLine size={12} strokeWidth={2.5} />
-              Request Review
+              Disagree?
             </button>
         </div>
         {LIST_RIBBON_V2 && navScroll.left && <span aria-hidden="true" className="sot-listcue sot-listcue-l">&#8249;</span>}

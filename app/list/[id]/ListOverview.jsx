@@ -1080,7 +1080,7 @@ export default function ListOverview({ list, voteData, extras, viewCount, onBack
               }}
             >
               <PenLine size={12} strokeWidth={2.5} />
-              Request Review
+              Disagree?
             </button>
             <a
               href={`/snapshot/${encodeURIComponent(list.id)}`}
