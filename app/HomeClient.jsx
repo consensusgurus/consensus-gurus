@@ -732,7 +732,10 @@ function Home({ lists, viewCounts, voteData, extras, trending = {}, openList, on
               color: COLORS.cream,
               border: 'none',
               borderRight: '1px solid rgba(244,237,224,0.18)',
-              padding: '13px 18px',
+              height: 42,
+              display: 'flex',
+              alignItems: 'center',
+              padding: '0 18px',
               fontFamily: 'DM Mono, monospace',
               fontSize: 10.5,
               letterSpacing: '0.2em',
@@ -842,7 +845,7 @@ function Home({ lists, viewCounts, voteData, extras, trending = {}, openList, on
       })()}
 
       <section style={{ padding: '10px 16px 80px', maxWidth: 1200, margin: '0 auto' }}>
-        <style>{`.cg-controls{display:grid;grid-template-columns:repeat(${HOME_V2 ? 3 : 4},1fr);gap:16px;margin-bottom:16px;}.cg-controls>*{height:50px;min-width:0;}.cg-ctrl-label{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;min-width:0;}@media(max-width:760px){.cg-controls{grid-template-columns:1fr 1fr;}${HOME_V2 ? '.cg-c-search{grid-column:1 / -1;}' : ''}.cg-c-search input{font-size:16px !important;}.cg-ctrl-btn{justify-content:space-between !important;letter-spacing:0.05em !important;padding:0 10px !important;gap:6px !important;}}`}</style>
+        <style>{`.cg-controls{display:grid;grid-template-columns:repeat(${HOME_V2 ? 3 : 4},1fr);gap:16px;margin-bottom:16px;}.cg-controls>*{height:${HOME_V2 ? 42 : 50}px;min-width:0;}.cg-ctrl-label{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;min-width:0;}@media(max-width:760px){.cg-controls{grid-template-columns:1fr 1fr;}${HOME_V2 ? '.cg-c-search{grid-column:1 / -1;}' : ''}.cg-c-search input{font-size:16px !important;}.cg-ctrl-btn{justify-content:space-between !important;letter-spacing:0.05em !important;padding:0 10px !important;gap:6px !important;}}`}</style>
         <div className="cg-controls">
           <div className="cg-c-search" style={{ position: 'relative', minWidth: 0, order: HOME_V2 ? 1 : 3 }}>
             <Search size={16} strokeWidth={2.5} style={{ position: 'absolute', left: 14, top: '50%', transform: 'translateY(-50%)', color: COLORS.faded }} />

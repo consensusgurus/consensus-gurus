@@ -591,13 +591,18 @@ function ListDetail({ list, viewCount, voteData, userVotes, extras, relatedLists
         >
           {list.blurb}
         </p>
+        {LIST_RIBBON_V2 && (
+          <style>{`.sot-listnav{scrollbar-width:none;-ms-overflow-style:none;}.sot-listnav::-webkit-scrollbar{display:none;}`}</style>
+        )}
         <div
+          className={LIST_RIBBON_V2 ? 'sot-listnav' : undefined}
           style={LIST_RIBBON_V2 ? {
             marginTop: 18,
             display: 'flex',
             alignItems: 'stretch',
             gap: 0,
-            flexWrap: 'wrap',
+            flexWrap: 'nowrap',
+            overflowX: 'auto',
             background: COLORS.ink,
             borderBottom: `3px solid ${COLORS.ember}`,
           } : {
@@ -616,13 +621,15 @@ function ListDetail({ list, viewCount, voteData, userVotes, extras, relatedLists
             <button
               onClick={() => setTab('consensus')}
               style={{
-                flex: '1 1 auto',
+                flex: LIST_RIBBON_V2 ? '1 0 auto' : '1 1 auto',
                 justifyContent: 'center',
                 background: tab === 'consensus' ? COLORS.ember : 'transparent',
                 color: LIST_RIBBON_V2 ? COLORS.cream : (tab === 'consensus' ? COLORS.cream : COLORS.ember),
                 border: LIST_RIBBON_V2 ? 'none' : `1.5px solid ${COLORS.ember}`,
                 borderRight: LIST_RIBBON_V2 ? '1px solid rgba(244,237,224,0.18)' : undefined,
-                padding: LIST_RIBBON_V2 ? '13px 14px' : '8px 14px',
+                padding: LIST_RIBBON_V2 ? '0 14px' : '8px 14px',
+                height: LIST_RIBBON_V2 ? 42 : undefined,
+                whiteSpace: LIST_RIBBON_V2 ? 'nowrap' : undefined,
                 fontFamily: 'DM Mono, monospace',
                 fontSize: 10,
                 letterSpacing: '0.18em',
@@ -640,13 +647,15 @@ function ListDetail({ list, viewCount, voteData, userVotes, extras, relatedLists
               <button
                 onClick={() => setTab('source')}
                 style={{
-                  flex: '1 1 auto',
+                  flex: LIST_RIBBON_V2 ? '1 0 auto' : '1 1 auto',
                   justifyContent: 'center',
                   background: tab === 'source' ? COLORS.ember : 'transparent',
                   color: LIST_RIBBON_V2 ? COLORS.cream : (tab === 'source' ? COLORS.cream : COLORS.ember),
                   border: LIST_RIBBON_V2 ? 'none' : `1.5px solid ${COLORS.ember}`,
                   borderRight: LIST_RIBBON_V2 ? '1px solid rgba(244,237,224,0.18)' : undefined,
-                  padding: LIST_RIBBON_V2 ? '13px 14px' : '8px 14px',
+                  padding: LIST_RIBBON_V2 ? '0 14px' : '8px 14px',
+                  height: LIST_RIBBON_V2 ? 42 : undefined,
+                  whiteSpace: LIST_RIBBON_V2 ? 'nowrap' : undefined,
                   fontFamily: 'DM Mono, monospace',
                   fontSize: 10,
                   letterSpacing: '0.18em',
@@ -664,13 +673,15 @@ function ListDetail({ list, viewCount, voteData, userVotes, extras, relatedLists
             <button
               onClick={() => setTab('activity')}
               style={{
-                flex: '1 1 auto',
+                flex: LIST_RIBBON_V2 ? '1 0 auto' : '1 1 auto',
                 justifyContent: 'center',
                 background: tab === 'activity' ? COLORS.ember : 'transparent',
                 color: LIST_RIBBON_V2 ? COLORS.cream : (tab === 'activity' ? COLORS.cream : COLORS.ember),
                 border: LIST_RIBBON_V2 ? 'none' : `1.5px solid ${COLORS.ember}`,
                 borderRight: LIST_RIBBON_V2 ? '1px solid rgba(244,237,224,0.18)' : undefined,
-                padding: LIST_RIBBON_V2 ? '13px 14px' : '8px 14px',
+                padding: LIST_RIBBON_V2 ? '0 14px' : '8px 14px',
+                height: LIST_RIBBON_V2 ? 42 : undefined,
+                whiteSpace: LIST_RIBBON_V2 ? 'nowrap' : undefined,
                 fontFamily: 'DM Mono, monospace',
                 fontSize: 10,
                 letterSpacing: '0.18em',
@@ -688,13 +699,15 @@ function ListDetail({ list, viewCount, voteData, userVotes, extras, relatedLists
               <button
                 onClick={() => setTab('vote')}
                 style={{
-                  flex: '1 1 auto',
+                  flex: LIST_RIBBON_V2 ? '1 0 auto' : '1 1 auto',
                   justifyContent: 'center',
                   background: tab === 'vote' ? COLORS.ember : 'transparent',
                   color: LIST_RIBBON_V2 ? COLORS.cream : (tab === 'vote' ? COLORS.cream : COLORS.ember),
                   border: LIST_RIBBON_V2 ? 'none' : `1.5px solid ${COLORS.ember}`,
                   borderRight: LIST_RIBBON_V2 ? '1px solid rgba(244,237,224,0.18)' : undefined,
-                  padding: LIST_RIBBON_V2 ? '13px 14px' : '8px 14px',
+                  padding: LIST_RIBBON_V2 ? '0 14px' : '8px 14px',
+                  height: LIST_RIBBON_V2 ? 42 : undefined,
+                  whiteSpace: LIST_RIBBON_V2 ? 'nowrap' : undefined,
                   fontFamily: 'DM Mono, monospace',
                   fontSize: 10,
                   letterSpacing: '0.18em',
@@ -712,13 +725,15 @@ function ListDetail({ list, viewCount, voteData, userVotes, extras, relatedLists
             <button
               onClick={() => setTab('share')}
               style={{
-                flex: '1 1 auto',
+                flex: LIST_RIBBON_V2 ? '1 0 auto' : '1 1 auto',
                 justifyContent: 'center',
                 background: tab === 'share' ? COLORS.ember : 'transparent',
                 color: LIST_RIBBON_V2 ? COLORS.cream : (tab === 'share' ? COLORS.cream : COLORS.ember),
                 border: LIST_RIBBON_V2 ? 'none' : `1.5px solid ${COLORS.ember}`,
                 borderRight: LIST_RIBBON_V2 ? '1px solid rgba(244,237,224,0.18)' : undefined,
-                padding: LIST_RIBBON_V2 ? '13px 14px' : '8px 14px',
+                padding: LIST_RIBBON_V2 ? '0 14px' : '8px 14px',
+                height: LIST_RIBBON_V2 ? 42 : undefined,
+                whiteSpace: LIST_RIBBON_V2 ? 'nowrap' : undefined,
                 fontFamily: 'DM Mono, monospace',
                 fontSize: 10,
                 letterSpacing: '0.18em',
@@ -736,12 +751,14 @@ function ListDetail({ list, viewCount, voteData, userVotes, extras, relatedLists
             <button
               onClick={() => { setComplainSent(false); setComplainOpen(true); }}
               style={{
-                flex: '1 1 auto',
+                flex: LIST_RIBBON_V2 ? '1 0 auto' : '1 1 auto',
                 justifyContent: 'center',
                 background: 'transparent',
                 color: LIST_RIBBON_V2 ? COLORS.cream : COLORS.ink,
                 border: LIST_RIBBON_V2 ? 'none' : `1.5px solid ${COLORS.ink}`,
-                padding: LIST_RIBBON_V2 ? '13px 14px' : '8px 14px',
+                padding: LIST_RIBBON_V2 ? '0 14px' : '8px 14px',
+                height: LIST_RIBBON_V2 ? 42 : undefined,
+                whiteSpace: LIST_RIBBON_V2 ? 'nowrap' : undefined,
                 fontFamily: 'DM Mono, monospace',
                 fontSize: 10,
                 letterSpacing: '0.18em',
