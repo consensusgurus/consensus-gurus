@@ -890,6 +890,36 @@ for old links and automations.
 
 ## Affiliate Links
 
+### Digital Rent / Buy buttons for movie & song lists (`itemBuy` + `buyLinks`)
+
+Media lists (movies, songs) carry per-item affiliate **purchase** chips alongside their
+primary link (the IMDb "View" / YouTube "Listen" link stays — these are *added*, not a
+replacement). The buttons are Amazon digital links carrying the `cgurus-20` tag, but **the
+retailer is NEVER named on the button** — the labels are just `Rent` / `Buy` (films) or `Buy`
+(songs). First applied 2026-06-10 to `john-hughes-movies`.
+
+- **`buyLinks` (list-level flag):** `'video'` renders **two** chips, `Rent` and `Buy`, both
+  pointing to the same item URL (an Amazon Video title page shows rent AND buy options on one
+  page, there is no separate rent-only deep link). `'music'` renders a single `Buy` chip. Omit
+  the flag and no chips render.
+- **`itemBuy` (per-item URL map):** keyed by the exact item-name string (byte-for-byte, with the
+  year/parenthetical), value = `https://www.amazon.com/dp/<ASIN>?tag=cgurus-20`. For films the
+  ASIN is the **Amazon Video** title page; for songs the **Amazon Digital Music** (MP3) track
+  page. Cover the union of every source's items plus `vote.items`.
+- **Gather ASINs LIVE via Chrome, never guess.** Search `amazon.com/s?k=<title>&i=instant-video`
+  (films) or `&i=digital-music` (songs), take the matching result's `/dp/` or `/gp/video/detail/`
+  ASIN, and **verify ambiguous titles on the detail page** (year + director/cast) — remakes,
+  sequels, and same-named films are common (the 1991 *Dutch* resolves to an unrelated 2021 crime
+  film; *Miracle on 34th Street* has 1947 and 1994 versions).
+- **If a title has no Amazon digital page, omit it from `itemBuy`** (its chip just doesn't show) —
+  never fabricate an ASIN. It is normal for a few obscure titles to lack a page (e.g. *Reach the
+  Rock* and the 1991 *Dutch* are not on Amazon Video, so they carry no Rent/Buy chip).
+- **These links are affiliate links: render with `rel="...sponsored"`.** Purchase chips do not
+  affect Borda consensus, so adding/refreshing them needs no re-seed, cron, or IndexNow ping.
+- **Renders in BOTH mirrors** — `DataRow`/`buildAuxLinks` in `app/list/[id]/DetailClient.jsx`
+  (filled-ink `buyChip`) and `LinkRow`/`buildLinks` in `app/list/[id]/ListOverview.jsx`
+  (`linkBtn(true)`). Keep the two logic-identical, like `itemVideo`.
+
 ### Amazon products
 - Use `linkType: 'amazon'` for all physical product lists.
 - The site auto-generates Amazon search links using the affiliate tag `cgurus-20`.

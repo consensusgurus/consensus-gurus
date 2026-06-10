@@ -1,7 +1,7 @@
 'use client';
 import React, { useState } from 'react';
 import Image from 'next/image';
-import { MapPin, Globe, Camera, ArrowLeft, Eye, PenLine, Share2, ShoppingBag, ExternalLink, Play } from 'lucide-react';
+import { MapPin, Globe, Camera, ArrowLeft, Eye, PenLine, Share2, ShoppingBag, ExternalLink, Play, Clock } from 'lucide-react';
 import { COLORS } from '@/lib/data';
 import { useSampledBg } from '@/lib/useSampledBg';
 import { DESCRIPTIONS } from '@/lib/descriptions';
@@ -45,6 +45,7 @@ function buildLinks(name, list) {
     google: `https://www.google.com/search?q=${gq}&tbm=isch`,
     tripadvisor: pick(list.itemTripadvisor),
     video: pick(list.itemVideo),
+    buy: pick(list.itemBuy),
   };
 }
 
@@ -168,6 +169,24 @@ function LinkRow({ links, pics, websiteLabel, list }) {
           style={{ ...linkBtn(false), background: COLORS.ember, color: COLORS.cream, border: `1px solid ${COLORS.ember}` }}
         >
           <Play size={9} strokeWidth={2} fill={COLORS.cream} /> {list.itemVideoLabel || 'Video'}
+        </a>
+      )}
+      {/* Affiliate Rent / Buy CTA chips (digital purchase of a film or song).
+          buyLinks 'video' => Rent + Buy (both to the title page); 'music' => Buy.
+          Filled-ink to read as a CTA; the retailer is never named. */}
+      {links.buy && list.buyLinks === 'video' && (
+        <>
+          <a href={links.buy} target="_blank" rel="noopener noreferrer sponsored" style={linkBtn(true)}>
+            <Clock size={9} strokeWidth={2} /> Rent
+          </a>
+          <a href={links.buy} target="_blank" rel="noopener noreferrer sponsored" style={linkBtn(true)}>
+            <ShoppingBag size={9} strokeWidth={2} /> Buy
+          </a>
+        </>
+      )}
+      {links.buy && list.buyLinks === 'music' && (
+        <a href={links.buy} target="_blank" rel="noopener noreferrer sponsored" style={linkBtn(true)}>
+          <ShoppingBag size={9} strokeWidth={2} /> Buy
         </a>
       )}
     </div>

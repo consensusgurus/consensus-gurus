@@ -15,6 +15,8 @@ import {
   MapPin,
   Globe,
   Play,
+  ShoppingBag,
+  Clock,
 } from 'lucide-react';
 import { LISTS, COLORS } from '@/lib/data';
 import { DESCRIPTIONS } from '@/lib/descriptions';
@@ -1708,6 +1710,24 @@ function auxChip() {
   };
 }
 
+// Filled-ink CTA chip for the affiliate Rent / Buy links (digital purchase of a
+// film or song). Distinct from the outlined aux chips and the ember video chip
+// so it reads as a purchase call to action. The retailer is never named.
+function buyChip() {
+  return {
+    display: 'inline-flex',
+    alignItems: 'center',
+    gap: 5,
+    color: COLORS.cream,
+    background: COLORS.ink,
+    border: `1.3px solid ${COLORS.ink}`,
+    borderRadius: 4,
+    padding: '4px 9px',
+    textTransform: 'uppercase',
+    textDecoration: 'none',
+  };
+}
+
 // Hotel nightly price (list.prices) is shown ONLY on the pricing source view,
 // never in consensus / other source views / the vote tab / the home page.
 function priceDecorate(name, list) {
@@ -1742,7 +1762,12 @@ function DataRow({ rank, item, list, unranked, showPrice }) {
   // any list that stores a per-item URL in list.itemVideo, location list or not.
   const video = list.itemVideo ? (list.itemVideo[item] || null) : null;
   const videoLabel = list.itemVideoLabel || 'Video';
-  const hasLinks = !!(aux || primaryLink || video);
+  // Affiliate purchase links. list.buyLinks === 'video' renders Rent + Buy chips
+  // (both to the title page), 'music' renders a single Buy chip. The per-item
+  // URL lives in list.itemBuy; the retailer is never named on the button.
+  const buyMode = list.buyLinks || null;
+  const buyUrl = list.itemBuy ? (list.itemBuy[item] || null) : null;
+  const hasLinks = !!(aux || primaryLink || video || buyUrl);
 
   return (
     <li
@@ -1893,6 +1918,21 @@ function DataRow({ rank, item, list, unranked, showPrice }) {
                 style={{ ...auxChip(), background: COLORS.ember, color: COLORS.cream, border: `1.3px solid ${COLORS.ember}` }}
               >
                 <Play size={11} strokeWidth={2.2} fill={COLORS.cream} /> {videoLabel}
+              </a>
+            )}
+            {buyUrl && buyMode === 'video' && (
+              <>
+                <a href={buyUrl} target="_blank" rel="noopener noreferrer sponsored" style={buyChip()}>
+                  <Clock size={11} strokeWidth={2.2} /> Rent
+                </a>
+                <a href={buyUrl} target="_blank" rel="noopener noreferrer sponsored" style={buyChip()}>
+                  <ShoppingBag size={11} strokeWidth={2.2} /> Buy
+                </a>
+              </>
+            )}
+            {buyUrl && buyMode === 'music' && (
+              <a href={buyUrl} target="_blank" rel="noopener noreferrer sponsored" style={buyChip()}>
+                <ShoppingBag size={11} strokeWidth={2.2} /> Buy
               </a>
             )}
           </div>
