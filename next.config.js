@@ -15,6 +15,42 @@ const nextConfig = {
         destination: '/list/best-fine-dining-nyc',
         permanent: true,
       },
+      // Renamed 2026-06-10: "Best No-Budget Dinners in London" -> "Best Fine Dining Restaurants in London"
+      {
+        source: '/list/no-budget-dinners-london',
+        destination: '/list/best-fine-dining-london',
+        permanent: true,
+      },
+      // Renamed 2026-06-10: "Best No-Budget Dinners in Paris" -> "Best Fine Dining Restaurants in Paris"
+      {
+        source: '/list/no-budget-dinners-paris',
+        destination: '/list/best-fine-dining-paris',
+        permanent: true,
+      },
+      // Renamed 2026-06-10: "Best No-Budget Dinners in Miami" -> "Best Fine Dining Restaurants in Miami"
+      {
+        source: '/list/no-budget-dinners-miami',
+        destination: '/list/best-fine-dining-miami',
+        permanent: true,
+      },
+      // Renamed 2026-06-10: "Best No-Budget Dinners in Tokyo" -> "Best Fine Dining Restaurants in Tokyo"
+      {
+        source: '/list/no-budget-dinners-tokyo',
+        destination: '/list/best-fine-dining-tokyo',
+        permanent: true,
+      },
+      // Renamed 2026-06-10: "Best No-Budget Dinners in Shanghai" -> "Best Fine Dining Restaurants in Shanghai"
+      {
+        source: '/list/no-budget-dinners-shanghai',
+        destination: '/list/best-fine-dining-shanghai',
+        permanent: true,
+      },
+      // Renamed 2026-06-10: "Best No-Budget Dinners in Toronto" -> "Best Fine Dining Restaurants in Toronto"
+      {
+        source: '/list/no-budget-dinners-toronto',
+        destination: '/list/best-fine-dining-toronto',
+        permanent: true,
+      },
     ];
   },
 };
