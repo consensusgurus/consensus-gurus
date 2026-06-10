@@ -26,6 +26,13 @@ import ListOverview from './ListOverview';
 import ActivityFeed from './ActivityFeed';
 import SnapshotClient from '../../snapshot/[id]/SnapshotClient';
 
+// ── LIST-PAGE RIBBON V2 (June 2026 redesign) ────────────────────────────────
+// Flip to false to restore the previous outlined tab chips exactly. V2 renders
+// the tab row as the same ink ribbon band used on the V2 homepage (cream mono
+// buttons, ember active fill, 3px ember bottom rule). The band spans the
+// content width, matching how the homepage band stops at the tile edges.
+const LIST_RIBBON_V2 = true;
+
 // Get the effective tag set for a list. If `tags` is provided, use it.
 // Otherwise fall back to [type] for backward compatibility.
 function getListTags(list) {
@@ -584,7 +591,15 @@ function ListDetail({ list, viewCount, voteData, userVotes, extras, relatedLists
           {list.blurb}
         </p>
         <div
-          style={{
+          style={LIST_RIBBON_V2 ? {
+            marginTop: 18,
+            display: 'flex',
+            alignItems: 'stretch',
+            gap: 0,
+            flexWrap: 'wrap',
+            background: COLORS.ink,
+            borderBottom: `3px solid ${COLORS.ember}`,
+          } : {
             marginTop: 18,
             display: 'flex',
             alignItems: 'center',
@@ -603,9 +618,10 @@ function ListDetail({ list, viewCount, voteData, userVotes, extras, relatedLists
                 flex: '1 1 auto',
                 justifyContent: 'center',
                 background: tab === 'consensus' ? COLORS.ember : 'transparent',
-                color: tab === 'consensus' ? COLORS.cream : COLORS.ember,
-                border: `1.5px solid ${COLORS.ember}`,
-                padding: '8px 14px',
+                color: LIST_RIBBON_V2 ? COLORS.cream : (tab === 'consensus' ? COLORS.cream : COLORS.ember),
+                border: LIST_RIBBON_V2 ? 'none' : `1.5px solid ${COLORS.ember}`,
+                borderRight: LIST_RIBBON_V2 ? '1px solid rgba(244,237,224,0.18)' : undefined,
+                padding: LIST_RIBBON_V2 ? '13px 14px' : '8px 14px',
                 fontFamily: 'DM Mono, monospace',
                 fontSize: 10,
                 letterSpacing: '0.18em',
@@ -626,9 +642,10 @@ function ListDetail({ list, viewCount, voteData, userVotes, extras, relatedLists
                   flex: '1 1 auto',
                   justifyContent: 'center',
                   background: tab === 'source' ? COLORS.ember : 'transparent',
-                  color: tab === 'source' ? COLORS.cream : COLORS.ember,
-                  border: `1.5px solid ${COLORS.ember}`,
-                  padding: '8px 14px',
+                  color: LIST_RIBBON_V2 ? COLORS.cream : (tab === 'source' ? COLORS.cream : COLORS.ember),
+                  border: LIST_RIBBON_V2 ? 'none' : `1.5px solid ${COLORS.ember}`,
+                  borderRight: LIST_RIBBON_V2 ? '1px solid rgba(244,237,224,0.18)' : undefined,
+                  padding: LIST_RIBBON_V2 ? '13px 14px' : '8px 14px',
                   fontFamily: 'DM Mono, monospace',
                   fontSize: 10,
                   letterSpacing: '0.18em',
@@ -649,9 +666,10 @@ function ListDetail({ list, viewCount, voteData, userVotes, extras, relatedLists
                 flex: '1 1 auto',
                 justifyContent: 'center',
                 background: tab === 'activity' ? COLORS.ember : 'transparent',
-                color: tab === 'activity' ? COLORS.cream : COLORS.ember,
-                border: `1.5px solid ${COLORS.ember}`,
-                padding: '8px 14px',
+                color: LIST_RIBBON_V2 ? COLORS.cream : (tab === 'activity' ? COLORS.cream : COLORS.ember),
+                border: LIST_RIBBON_V2 ? 'none' : `1.5px solid ${COLORS.ember}`,
+                borderRight: LIST_RIBBON_V2 ? '1px solid rgba(244,237,224,0.18)' : undefined,
+                padding: LIST_RIBBON_V2 ? '13px 14px' : '8px 14px',
                 fontFamily: 'DM Mono, monospace',
                 fontSize: 10,
                 letterSpacing: '0.18em',
@@ -672,9 +690,10 @@ function ListDetail({ list, viewCount, voteData, userVotes, extras, relatedLists
                   flex: '1 1 auto',
                   justifyContent: 'center',
                   background: tab === 'vote' ? COLORS.ember : 'transparent',
-                  color: tab === 'vote' ? COLORS.cream : COLORS.ember,
-                  border: `1.5px solid ${COLORS.ember}`,
-                  padding: '8px 14px',
+                  color: LIST_RIBBON_V2 ? COLORS.cream : (tab === 'vote' ? COLORS.cream : COLORS.ember),
+                  border: LIST_RIBBON_V2 ? 'none' : `1.5px solid ${COLORS.ember}`,
+                  borderRight: LIST_RIBBON_V2 ? '1px solid rgba(244,237,224,0.18)' : undefined,
+                  padding: LIST_RIBBON_V2 ? '13px 14px' : '8px 14px',
                   fontFamily: 'DM Mono, monospace',
                   fontSize: 10,
                   letterSpacing: '0.18em',
@@ -695,9 +714,10 @@ function ListDetail({ list, viewCount, voteData, userVotes, extras, relatedLists
                 flex: '1 1 auto',
                 justifyContent: 'center',
                 background: tab === 'share' ? COLORS.ember : 'transparent',
-                color: tab === 'share' ? COLORS.cream : COLORS.ember,
-                border: `1.5px solid ${COLORS.ember}`,
-                padding: '8px 14px',
+                color: LIST_RIBBON_V2 ? COLORS.cream : (tab === 'share' ? COLORS.cream : COLORS.ember),
+                border: LIST_RIBBON_V2 ? 'none' : `1.5px solid ${COLORS.ember}`,
+                borderRight: LIST_RIBBON_V2 ? '1px solid rgba(244,237,224,0.18)' : undefined,
+                padding: LIST_RIBBON_V2 ? '13px 14px' : '8px 14px',
                 fontFamily: 'DM Mono, monospace',
                 fontSize: 10,
                 letterSpacing: '0.18em',
@@ -718,9 +738,9 @@ function ListDetail({ list, viewCount, voteData, userVotes, extras, relatedLists
                 flex: '1 1 auto',
                 justifyContent: 'center',
                 background: 'transparent',
-                color: COLORS.ink,
-                border: `1.5px solid ${COLORS.ink}`,
-                padding: '8px 14px',
+                color: LIST_RIBBON_V2 ? COLORS.cream : COLORS.ink,
+                border: LIST_RIBBON_V2 ? 'none' : `1.5px solid ${COLORS.ink}`,
+                padding: LIST_RIBBON_V2 ? '13px 14px' : '8px 14px',
                 fontFamily: 'DM Mono, monospace',
                 fontSize: 10,
                 letterSpacing: '0.18em',

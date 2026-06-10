@@ -677,7 +677,13 @@ function Home({ lists, viewCounts, voteData, extras, trending = {}, openList, on
           >
             Source
             <br />
-            of Truths
+            {HOME_V2 ? (
+              <>
+                <span style={{ fontStyle: 'italic', fontWeight: 400, color: COLORS.ember }}>of</span> Truths
+              </>
+            ) : (
+              'of Truths'
+            )}
           </h1>
           <div className="cg-head-col">
             <div className="cg-tagline">
@@ -781,10 +787,11 @@ function Home({ lists, viewCounts, voteData, extras, trending = {}, openList, on
         return (
           <nav
             onClick={(e) => e.stopPropagation()}
-            style={{ position: 'sticky', top: 0, zIndex: 25, background: COLORS.ink, borderBottom: `3px solid ${COLORS.ember}` }}
+            style={{ position: 'sticky', top: 0, zIndex: 25, background: COLORS.cream }}
           >
             <style>{`.sot-deptnav{scrollbar-width:none;-ms-overflow-style:none;}.sot-deptnav::-webkit-scrollbar{display:none;}`}</style>
-            <div className="sot-deptnav" style={{ maxWidth: 1200, margin: '0 auto', display: 'flex', alignItems: 'stretch', overflowX: 'auto' }}>
+            <div style={{ maxWidth: 1200, margin: '0 auto', padding: '0 16px', position: 'relative' }}>
+            <div className="sot-deptnav" style={{ display: 'flex', alignItems: 'stretch', overflowX: 'auto', background: COLORS.ink, borderBottom: `3px solid ${COLORS.ember}` }}>
               {visibleTypes.map((t) =>
                 navBtn(
                   t.id,
@@ -798,8 +805,8 @@ function Home({ lists, viewCounts, voteData, extras, trending = {}, openList, on
               {visibleTopics.length > 0 && navBtn('by-topic', `By Topic ${navMenu === 'topic' ? '▴' : '▾'}`, topicActive, COLORS.faded, () => setNavMenu((m) => (m === 'topic' ? null : 'topic')))}
             </div>
             {navMenu && (
-              <div style={{ position: 'absolute', top: '100%', left: 0, right: 0, zIndex: 30, background: COLORS.cream, borderBottom: `2px solid ${COLORS.ink}`, boxShadow: '0 10px 24px rgba(26,22,17,0.25)', maxHeight: '60vh', overflowY: 'auto' }}>
-                <div style={{ maxWidth: 1200, margin: '0 auto', padding: '14px 24px 18px' }}>
+              <div style={{ position: 'absolute', top: '100%', left: 16, right: 16, zIndex: 30, background: COLORS.cream, border: `1.5px solid ${COLORS.ink}`, borderTop: 'none', boxShadow: '0 10px 24px rgba(26,22,17,0.25)', maxHeight: '60vh', overflowY: 'auto' }}>
+                <div style={{ padding: '14px 24px 18px' }}>
                   {navMenu === 'city' ? (
                     <>
                       {heading('By City')}
@@ -820,14 +827,15 @@ function Home({ lists, viewCounts, voteData, extras, trending = {}, openList, on
                 </div>
               </div>
             )}
+            </div>
           </nav>
         );
       })()}
 
       <section style={{ padding: '10px 16px 80px', maxWidth: 1200, margin: '0 auto' }}>
-        <style>{`.cg-controls{display:grid;grid-template-columns:repeat(${HOME_V2 ? 3 : 4},1fr);gap:16px;margin-bottom:16px;}.cg-controls>*{height:50px;min-width:0;}.cg-ctrl-label{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;min-width:0;}@media(max-width:760px){.cg-controls{grid-template-columns:1fr 1fr;}.cg-c-search input{font-size:16px !important;}.cg-ctrl-btn{justify-content:space-between !important;letter-spacing:0.05em !important;padding:0 10px !important;gap:6px !important;}}`}</style>
+        <style>{`.cg-controls{display:grid;grid-template-columns:repeat(${HOME_V2 ? 3 : 4},1fr);gap:16px;margin-bottom:16px;}.cg-controls>*{height:50px;min-width:0;}.cg-ctrl-label{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;min-width:0;}@media(max-width:760px){.cg-controls{grid-template-columns:1fr 1fr;}${HOME_V2 ? '.cg-c-search{grid-column:1 / -1;}' : ''}.cg-c-search input{font-size:16px !important;}.cg-ctrl-btn{justify-content:space-between !important;letter-spacing:0.05em !important;padding:0 10px !important;gap:6px !important;}}`}</style>
         <div className="cg-controls">
-          <div className="cg-c-search" style={{ position: 'relative', minWidth: 0, order: 3 }}>
+          <div className="cg-c-search" style={{ position: 'relative', minWidth: 0, order: HOME_V2 ? 1 : 3 }}>
             <Search size={16} strokeWidth={2.5} style={{ position: 'absolute', left: 14, top: '50%', transform: 'translateY(-50%)', color: COLORS.faded }} />
             <input
               type="text"
@@ -926,7 +934,7 @@ function Home({ lists, viewCounts, voteData, extras, trending = {}, openList, on
           </div>
           )}
 
-          <div style={{ position: 'relative', minWidth: 0, order: 1 }} onClick={(e) => e.stopPropagation()}>
+          <div style={{ position: 'relative', minWidth: 0, order: HOME_V2 ? 2 : 1 }} onClick={(e) => e.stopPropagation()}>
             <button className="cg-ctrl-btn" onClick={() => { setSortOpen((o) => !o); setCatOpen(false); }} aria-haspopup="true" aria-expanded={sortOpen} style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, background: COLORS.ink, color: COLORS.cream, border: `1.5px solid ${COLORS.ink}`, padding: '0 14px', fontFamily: 'DM Mono, monospace', fontSize: 11, letterSpacing: '0.14em', textTransform: 'uppercase', fontWeight: 600, cursor: 'pointer', whiteSpace: 'nowrap', overflow: 'hidden' }}>
               <span className="cg-ctrl-label"><span style={{ opacity: 0.8 }}>Sort:</span> {(sortButtons.find((o) => o.id === sortBy) || {}).short || 'Discover'}</span>
               <ChevronDown size={14} strokeWidth={2.5} style={{ transform: sortOpen ? 'rotate(180deg)' : 'none', transition: 'transform 0.15s' }} />
@@ -945,7 +953,7 @@ function Home({ lists, viewCounts, voteData, extras, trending = {}, openList, on
             )}
           </div>
 
-          <Link href="/request" style={{ order: 4, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, background: COLORS.ember, color: COLORS.cream, border: `1.5px solid ${COLORS.ink}`, padding: '0 14px', fontFamily: 'DM Mono, monospace', fontSize: 11, letterSpacing: '0.14em', textTransform: 'uppercase', fontWeight: 600, textDecoration: 'none', whiteSpace: 'nowrap', overflow: 'hidden', boxShadow: `3px 3px 0 ${COLORS.ink}`, cursor: 'pointer' }}>
+          <Link href="/request" style={{ order: HOME_V2 ? 3 : 4, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, background: COLORS.ember, color: COLORS.cream, border: `1.5px solid ${COLORS.ink}`, padding: '0 14px', fontFamily: 'DM Mono, monospace', fontSize: 11, letterSpacing: '0.14em', textTransform: 'uppercase', fontWeight: 600, textDecoration: 'none', whiteSpace: 'nowrap', overflow: 'hidden', boxShadow: `3px 3px 0 ${COLORS.ink}`, cursor: 'pointer' }}>
             Request a List
           </Link>
         </div>
@@ -1074,16 +1082,24 @@ function Tile({ list, rank, views, voteData, extras, onClick, showConsensus, fea
   // Lists with heroFit:'contain' render uncropped on a paper background.
   const heroPhoto = useMemo(() => {
     if (!HOME_V2) return null;
-    if (isProductList(list)) return null;
     const map = HERO_IMAGES[list.id];
     if (!map) return null;
+    // Products and heroFit:'contain' lists render uncropped on paper.
+    const contain = isProductList(list) || list.heroFit === 'contain';
+    const urlOf = (entry) => {
+      const src = entry && (typeof entry === 'string' ? entry : entry.src);
+      return src && /^https?:/.test(src) ? src : null;
+    };
     const rows = preview.rows.slice(0, 3);
     for (let i = 0; i < rows.length; i++) {
-      const entry = map[rows[i].item];
-      const src = entry && (typeof entry === 'string' ? entry : entry.src);
-      if (src && /^https?:/.test(src)) {
-        return { src, rank: i + 1, name: stripItemScore(rows[i].item), contain: list.heroFit === 'contain' };
-      }
+      const src = urlOf(map[rows[i].item]);
+      if (src) return { src, rank: i + 1, name: stripItemScore(rows[i].item), contain };
+    }
+    // Fallback so more tiles carry a photo: any hero stored for this list
+    // (covers consensus drift and renamed items). No rank in the caption.
+    for (const name of Object.keys(map)) {
+      const src = urlOf(map[name]);
+      if (src) return { src, rank: null, name: stripItemScore(name), contain };
     }
     return null;
   }, [list, preview]);
@@ -1184,13 +1200,15 @@ function Tile({ list, rank, views, voteData, extras, onClick, showConsensus, fea
           {!heroPhoto.contain && (
             <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to top, rgba(18,14,10,0.55), rgba(18,14,10,0) 55%)' }} />
           )}
-          <span style={{ position: 'absolute', left: 12, bottom: 8, right: 12, color: '#fff', fontSize: 12, fontFamily: 'DM Mono, monospace', letterSpacing: '0.06em', textShadow: '0 1px 5px rgba(0,0,0,0.9)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-            <span style={{ color: '#e7cf73', fontFamily: 'Fraunces, serif', fontWeight: 700, fontSize: 14 }}>#{heroPhoto.rank}</span>{' '}{heroPhoto.name}
+          <span style={{ position: 'absolute', left: heroPhoto.contain ? 8 : 12, bottom: 8, maxWidth: 'calc(100% - 16px)', color: '#fff', fontSize: 12, fontFamily: 'DM Mono, monospace', letterSpacing: '0.06em', textShadow: '0 1px 5px rgba(0,0,0,0.9)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', background: heroPhoto.contain ? 'rgba(26,22,17,0.78)' : 'transparent', padding: heroPhoto.contain ? '3px 8px' : 0 }}>
+            {heroPhoto.rank != null && <span style={{ color: '#e7cf73', fontFamily: 'Fraunces, serif', fontWeight: 700, fontSize: 14 }}>#{heroPhoto.rank}</span>}{heroPhoto.rank != null ? ' ' : ''}{heroPhoto.name}
           </span>
         </div>
       )}
       <div style={HOME_V2 ? { padding: '16px 18px 14px', display: 'flex', flexDirection: 'column', flex: '1 1 auto', minHeight: 0, alignSelf: 'stretch' } : { display: 'contents' }}>
       {(() => {
+        // V2: drop the category/type corner labels; keep only the READER badge.
+        if (HOME_V2 && !list.isUserSubmitted) return null;
         const { leftLabel, rightLabel } = getTileLabels(list);
         const monoStyle = {
           fontFamily: 'DM Mono, monospace',
@@ -1237,11 +1255,13 @@ function Tile({ list, rank, views, voteData, extras, onClick, showConsensus, fea
                   READER
                 </span>
               )}
-              {leftLabel}
+              {!HOME_V2 && leftLabel}
             </span>
+            {!HOME_V2 && (
             <span style={{ ...monoStyle, flexShrink: 0 }}>
               {rightLabel}
             </span>
+            )}
           </div>
         );
       })()}
