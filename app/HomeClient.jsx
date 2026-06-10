@@ -406,6 +406,43 @@ function Home({ lists, viewCounts, voteData, extras, trending = {}, openList, on
       : (Date.now() ^ Math.floor(Math.random() * 0xffffffff)) >>> 0
   );
 
+  // ── Masthead folio + live movement ticker (V2) ──────────────────────────
+  // Fills the dead space between the logo and the tagline block: a newspaper
+  // date line under a DAILY EDITION kicker, with a cycling ticker of recent
+  // consensus ranking movements (fed by /api/ticker via consensus_alerts).
+  // The date is set on mount to avoid an SSR hydration mismatch.
+  const [folioDate, setFolioDate] = useState('');
+  const [tickerEntries, setTickerEntries] = useState([]);
+  const [tickerIdx, setTickerIdx] = useState(0);
+  const [tickerShown, setTickerShown] = useState(true);
+  useEffect(() => {
+    if (!HOME_V2) return undefined;
+    setFolioDate(
+      new Date()
+        .toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' })
+        .toUpperCase()
+    );
+    let alive = true;
+    fetch('/api/ticker')
+      .then((r) => (r.ok ? r.json() : null))
+      .then((d) => {
+        if (alive && d && Array.isArray(d.entries) && d.entries.length) setTickerEntries(d.entries);
+      })
+      .catch(() => {});
+    return () => { alive = false; };
+  }, []);
+  useEffect(() => {
+    if (tickerEntries.length < 2) return undefined;
+    const t = setInterval(() => {
+      setTickerShown(false);
+      setTimeout(() => {
+        setTickerIdx((i) => (i + 1) % tickerEntries.length);
+        setTickerShown(true);
+      }, 400);
+    }, 4000);
+    return () => clearInterval(t);
+  }, [tickerEntries]);
+
   // Recompute shuffle order when the lists collection or seed changes.
   const discoverOrder = useMemo(() => {
     return seededShuffle(lists, discoverSeed);
@@ -686,11 +723,36 @@ function Home({ lists, viewCounts, voteData, extras, trending = {}, openList, on
             )}
           </h1>
           <div className="cg-head-col">
-            <div className="cg-tagline">
-              For all the important aspects of life
-            </div>
-            <div className="cg-blurb">
-              The consensus of expert critics and everyday users, weighed across{' '}<SourcesPopover emphasis={HOME_V2} />, from Michelin, Condé Nast Traveler, The Infatuation, Eater, and Robb Report to Wirecutter, Goodreads, and Dave Portnoy.
+            <div className="cg-head-row">
+              {HOME_V2 && (
+                <div className="cg-folio">
+                  <div className="cg-folio-kick">Daily Edition</div>
+                  <div className="cg-folio-rule" style={{ borderBottom: `3px double ${COLORS.ink}` }} />
+                  <div className="cg-folio-date" suppressHydrationWarning>{folioDate || '\u00A0'}</div>
+                  <div className="cg-folio-rule" style={{ borderTop: `1px solid ${COLORS.ink}` }} />
+                  <div className="cg-folio-tick">
+                    {tickerEntries.length > 0 ? (
+                      <Link
+                        href={`/list/${tickerEntries[tickerIdx % tickerEntries.length].listId}`}
+                        style={{ color: COLORS.ember, textDecoration: 'none', opacity: tickerShown ? 1 : 0, transition: 'opacity 0.4s' }}
+                      >
+                        {tickerEntries[tickerIdx % tickerEntries.length].dir === 'down' ? '\u25BC' : '\u25B2'}{' '}
+                        {tickerEntries[tickerIdx % tickerEntries.length].label} · {tickerEntries[tickerIdx % tickerEntries.length].listTitle}
+                      </Link>
+                    ) : (
+                      <span style={{ color: COLORS.faded }}>Expert + fan consensus, computed daily</span>
+                    )}
+                  </div>
+                </div>
+              )}
+              <div className="cg-tagcol">
+                <div className="cg-tagline">
+                  For all the important aspects of life
+                </div>
+                <div className="cg-blurb">
+                  The consensus of expert critics and everyday users, weighed across{' '}<SourcesPopover emphasis={HOME_V2} />, from Michelin, Condé Nast Traveler, The Infatuation, Eater, and Robb Report to Wirecutter, Goodreads, and Dave Portnoy.
+                </div>
+              </div>
             </div>
             <div style={{ borderBottom: `1px solid ${COLORS.ink}`, marginBottom: 4 }} />
             <div style={{ borderBottom: `2px solid ${COLORS.ember}` }} />
@@ -699,6 +761,15 @@ function Home({ lists, viewCounts, voteData, extras, trending = {}, openList, on
         <style>{`
           .cg-head{display:flex;align-items:flex-end;gap:clamp(16px,4vw,28px);}
           .cg-head-col{flex:1;min-width:0;margin-bottom:clamp(8px,1.4vw,14px);}
+          .cg-head-row{display:flex;align-items:center;gap:clamp(12px,2.5vw,24px);}
+          .cg-tagcol{margin-left:auto;min-width:0;flex:0 1 auto;}
+          .cg-folio{flex:1 1 auto;display:flex;flex-direction:column;align-items:center;justify-content:center;min-width:0;padding:0 4px 8px;}
+          .cg-folio-kick{font-family:'DM Mono',monospace;font-size:9px;letter-spacing:0.26em;text-transform:uppercase;font-weight:700;color:${COLORS.faded};margin-bottom:6px;white-space:nowrap;}
+          .cg-folio-rule{width:100%;max-width:330px;}
+          .cg-folio-date{font-family:'DM Mono',monospace;font-size:clamp(9px,0.95vw,11px);letter-spacing:0.18em;text-transform:uppercase;font-weight:600;color:${COLORS.ink};padding:5px 0;white-space:nowrap;line-height:1.4;}
+          .cg-folio-tick{margin-top:9px;font-family:'DM Mono',monospace;font-size:10px;font-weight:500;letter-spacing:0.06em;text-transform:uppercase;text-align:center;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%;line-height:1.4;}
+          .cg-folio-tick a{display:block;overflow:hidden;text-overflow:ellipsis;}
+          @media(max-width:1020px){.cg-folio{display:none;}}
           .cg-tagline{font-family:'DM Mono',monospace;font-size:clamp(9px,1.1vw,11px);letter-spacing:0.2em;text-transform:uppercase;font-weight:700;color:${COLORS.ink};text-align:right;margin-bottom:8px;line-height:1.4;}
           .cg-blurb{font-family:'DM Sans',sans-serif;font-size:clamp(11px,1.25vw,13px);line-height:1.5;color:${COLORS.ink};text-align:right;max-width:520px;margin-left:auto;margin-bottom:10px;}
           @media(max-width:640px){
