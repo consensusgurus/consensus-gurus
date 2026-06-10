@@ -84,6 +84,84 @@ async function loadFont(url) {
   return null;
 }
 
+// Pre-fetch a hero image URL from the Edge runtime with a tight timeout, and
+// validate it returns image/* content. Returns the URL when good, null when
+// the Edge runtime can't reliably fetch/decode it.
+//
+// WHY: Satori (next/og) fetches every <img src> from inside the Edge function.
+// If a CDN is slow, blocks Vercel egress, or returns non-image content, the
+// streaming ImageResponse aborts mid-render and the route returns HTTP 200
+// with content-length: 0 (an unreadable PNG that breaks the IG /media POST).
+// Pre-validating from the same Edge runtime catches those upfront — failed
+// validations become null, and photoCard's existing solid-accent fallback
+// panel renders in their place instead of the whole route crashing.
+async function validateHero(url) {
+  if (!url) return null;
+  const ctl = new AbortController();
+  const to = setTimeout(() => ctl.abort('timeout'), 3500);
+  try {
+    const r = await fetch(url, { signal: ctl.signal, redirect: 'follow', cache: 'force-cache' });
+    clearTimeout(to);
+    if (!r.ok) return null;
+    const ct = (r.headers.get('content-type') || '').toLowerCase();
+    if (!ct.startsWith('image/')) return null;
+    // Consume body to confirm the stream is actually deliverable (some CDNs
+    // 200 with empty/aborted bodies). Cap at ~6MB to avoid OOM in Edge.
+    const reader = r.body && r.body.getReader();
+    if (!reader) return null;
+    let bytes = 0;
+    const tc = setTimeout(() => ctl.abort('body-timeout'), 2500);
+    try {
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+        bytes += value.byteLength;
+        if (bytes > 6 * 1024 * 1024) break;
+      }
+    } finally { clearTimeout(tc); }
+    return bytes > 0 ? url : null;
+  } catch (e) {
+    clearTimeout(to);
+    return null;
+  }
+}
+
+// Last-resort text-only poster — used when the full ImageResponse construction
+// throws synchronously. Guarantees the route never returns 0 bytes (which is
+// the failure mode that hangs the IG /media POST).
+function renderFallback(list, items, sans, mono, fonts) {
+  try {
+    return new ImageResponse(
+      (
+        <div style={{ width: W, height: H, background: PAL.bg, color: PAL.text, fontFamily: sans, display: 'flex', flexDirection: 'column', padding: '56px 56px 40px' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', fontFamily: mono, fontSize: 14, letterSpacing: '0.28em', textTransform: 'uppercase', color: PAL.faded }}>
+            <span style={{ color: PAL.accent, fontWeight: 700 }}>Source of Truths</span>
+            <span>{`${list.category} · Top ${Math.min(items.length, 10)}`}</span>
+          </div>
+          <div style={{ display: 'flex', fontFamily: sans, fontWeight: 900, fontSize: fitTitle(list.title, 62), lineHeight: 0.95, letterSpacing: '-0.03em', marginTop: 26, color: PAL.text, maxWidth: '96%' }}>
+            {list.title}
+          </div>
+          <div style={{ display: 'flex', marginTop: 8, fontFamily: mono, fontSize: 12, letterSpacing: '0.2em', textTransform: 'uppercase', color: PAL.faded }}>Consensus</div>
+          <div style={{ display: 'flex', flexDirection: 'column', flexGrow: 1, marginTop: 28 }}>
+            {items.slice(0, 10).map((item, i) => (
+              <div key={String(i)} style={{ display: 'flex', flexGrow: 1, flexBasis: 0, alignItems: 'center', gap: 24, borderTop: '1px solid rgba(26,26,26,0.16)' }}>
+                <span style={{ fontFamily: mono, fontWeight: 500, fontSize: 30, color: PAL.faded, minWidth: 70, flexShrink: 0 }}>{String(i + 1).padStart(2, '0')}</span>
+                <span style={{ fontFamily: sans, fontWeight: 600, fontSize: 28, color: PAL.text, lineHeight: 1.05, flexGrow: 1, letterSpacing: '-0.02em', wordBreak: 'break-word' }}>{item || ''}</span>
+              </div>
+            ))}
+          </div>
+          <div style={{ display: 'flex', marginTop: 18, justifyContent: 'flex-end', fontFamily: mono, fontSize: 12, letterSpacing: '0.16em', textTransform: 'uppercase', color: PAL.faded }}>
+            {`sourceoftruths.com/list/${list.id}`}
+          </div>
+        </div>
+      ),
+      { width: W, height: H, fonts }
+    );
+  } catch (_) {
+    return new Response('Render failed', { status: 500 });
+  }
+}
+
 export async function GET(request, { params }) {
   const list = LISTS.find((l) => l.id === params.id);
   if (!list) return new Response('Not found', { status: 404 });
@@ -158,11 +236,15 @@ export async function GET(request, { params }) {
   const rest = items.slice(3, 10);
   const modeLabel = 'Consensus';
 
+  // Pre-validate the top-3 hero URLs from the Edge runtime in parallel.
+  // Any URL that fails or stalls is replaced with null so photoCard falls back
+  // to its solid-accent panel instead of triggering a Satori mid-stream crash.
+  const t3Heroes = await Promise.all(t3.map((it) => validateHero(heroSrcFor(list, it))));
+
   // PhotoCard — mirrors PosterShowcase's PhotoCard in SnapshotClient.jsx.
   // When an item has no hero photo the card falls back to a solid accent
   // panel (white name text reads fine on the Classic red).
-  const photoCard = (item, rank, big) => {
-    const src = heroSrcFor(list, item);
+  const photoCard = (item, src, rank, big) => {
     return (
       <div style={{ display: 'flex', flexGrow: big ? 1.5 : 1, flexBasis: 0, position: 'relative', overflow: 'hidden', background: PAL.accent }}>
         {src ? (
@@ -177,40 +259,47 @@ export async function GET(request, { params }) {
     );
   };
 
-  return new ImageResponse(
-    (
-      <div style={{ width: W, height: H, background: PAL.bg, color: PAL.text, fontFamily: sans, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
-        <div style={{ display: 'flex', flexDirection: 'column', padding: '40px 56px 16px', flexShrink: 0 }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', fontFamily: mono, fontSize: 12, letterSpacing: '0.28em', textTransform: 'uppercase', color: PAL.faded }}>
-            <span style={{ color: PAL.accent, fontWeight: 700 }}>Source of Truths</span>
-            <span>{`${list.category} · Top ${Math.min(items.length, 10)}`}</span>
-          </div>
-          <div style={{ display: 'flex', fontFamily: sans, fontWeight: 900, fontSize: fitTitle(list.title, 52), lineHeight: 0.9, letterSpacing: '-0.03em', marginTop: 14, color: PAL.text, maxWidth: '96%' }}>
-            {list.title}
-          </div>
-          <div style={{ display: 'flex', marginTop: 6, fontFamily: mono, fontSize: 12, letterSpacing: '0.2em', textTransform: 'uppercase', color: PAL.faded }}>{modeLabel}</div>
-        </div>
-        <div style={{ display: 'flex', flexGrow: 2.6, flexShrink: 0, flexBasis: 0, gap: 10, padding: '4px 56px 0' }}>
-          {photoCard(t3[0], 1, true)}
-          <div style={{ display: 'flex', flexGrow: 1, flexBasis: 0, flexDirection: 'column', gap: 10 }}>
-            {t3[1] !== undefined ? photoCard(t3[1], 2, false) : null}
-            {t3[2] !== undefined ? photoCard(t3[2], 3, false) : null}
-          </div>
-        </div>
-        <div style={{ display: 'flex', flexGrow: 2.1, flexShrink: 0, flexBasis: 0, flexDirection: 'column', padding: '12px 56px 0' }}>
-          {rest.map((item, i) => (
-            <div key={String(i)} style={{ display: 'flex', flexGrow: 1, flexBasis: 0, alignItems: 'center', gap: 20, borderTop: '1px solid rgba(26,26,26,0.16)' }}>
-              <span style={{ fontFamily: mono, fontWeight: 500, fontSize: 24, color: PAL.faded, minWidth: 50, flexShrink: 0 }}>{String(i + 4).padStart(2, '0')}</span>
-              <span style={{ fontFamily: sans, fontWeight: 600, fontSize: 24, color: PAL.text, lineHeight: 1.02, flexGrow: 1, letterSpacing: '-0.02em', wordBreak: 'break-word' }}>{item}</span>
+  try {
+    return new ImageResponse(
+      (
+        <div style={{ width: W, height: H, background: PAL.bg, color: PAL.text, fontFamily: sans, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
+          <div style={{ display: 'flex', flexDirection: 'column', padding: '40px 56px 16px', flexShrink: 0 }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', fontFamily: mono, fontSize: 12, letterSpacing: '0.28em', textTransform: 'uppercase', color: PAL.faded }}>
+              <span style={{ color: PAL.accent, fontWeight: 700 }}>Source of Truths</span>
+              <span>{`${list.category} · Top ${Math.min(items.length, 10)}`}</span>
             </div>
-          ))}
+            <div style={{ display: 'flex', fontFamily: sans, fontWeight: 900, fontSize: fitTitle(list.title, 52), lineHeight: 0.9, letterSpacing: '-0.03em', marginTop: 14, color: PAL.text, maxWidth: '96%' }}>
+              {list.title}
+            </div>
+            <div style={{ display: 'flex', marginTop: 6, fontFamily: mono, fontSize: 12, letterSpacing: '0.2em', textTransform: 'uppercase', color: PAL.faded }}>{modeLabel}</div>
+          </div>
+          <div style={{ display: 'flex', flexGrow: 2.6, flexShrink: 0, flexBasis: 0, gap: 10, padding: '4px 56px 0' }}>
+            {photoCard(t3[0], t3Heroes[0], 1, true)}
+            <div style={{ display: 'flex', flexGrow: 1, flexBasis: 0, flexDirection: 'column', gap: 10 }}>
+              {t3[1] !== undefined ? photoCard(t3[1], t3Heroes[1], 2, false) : null}
+              {t3[2] !== undefined ? photoCard(t3[2], t3Heroes[2], 3, false) : null}
+            </div>
+          </div>
+          <div style={{ display: 'flex', flexGrow: 2.1, flexShrink: 0, flexBasis: 0, flexDirection: 'column', padding: '12px 56px 0' }}>
+            {rest.map((item, i) => (
+              <div key={String(i)} style={{ display: 'flex', flexGrow: 1, flexBasis: 0, alignItems: 'center', gap: 20, borderTop: '1px solid rgba(26,26,26,0.16)' }}>
+                <span style={{ fontFamily: mono, fontWeight: 500, fontSize: 24, color: PAL.faded, minWidth: 50, flexShrink: 0 }}>{String(i + 4).padStart(2, '0')}</span>
+                <span style={{ fontFamily: sans, fontWeight: 600, fontSize: 24, color: PAL.text, lineHeight: 1.02, flexGrow: 1, letterSpacing: '-0.02em', wordBreak: 'break-word' }}>{item}</span>
+              </div>
+            ))}
+          </div>
+          <div style={{ display: 'flex', flexShrink: 0, padding: '10px 56px 24px', justifyContent: 'space-between', fontFamily: mono, fontSize: 11, letterSpacing: '0.16em', textTransform: 'uppercase', color: PAL.faded }}>
+            <span style={{ maxWidth: 560, overflow: 'hidden', marginRight: 28 }}>{sourcesLine}</span>
+            <span>{`sourceoftruths.com/list/${list.id}`}</span>
+          </div>
         </div>
-        <div style={{ display: 'flex', flexShrink: 0, padding: '10px 56px 24px', justifyContent: 'space-between', fontFamily: mono, fontSize: 11, letterSpacing: '0.16em', textTransform: 'uppercase', color: PAL.faded }}>
-          <span style={{ maxWidth: 560, overflow: 'hidden', marginRight: 28 }}>{sourcesLine}</span>
-          <span>{`sourceoftruths.com/list/${list.id}`}</span>
-        </div>
-      </div>
-    ),
-    { width: W, height: H, fonts }
-  );
+      ),
+      { width: W, height: H, fonts }
+    );
+  } catch (e) {
+    // Synchronous ImageResponse construction failed — fall back to a no-photos
+    // text-only render so the route never returns the 0-byte response that
+    // hangs IG /media POSTs.
+    return renderFallback(list, items, sans, mono, fonts);
+  }
 }
