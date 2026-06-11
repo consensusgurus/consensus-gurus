@@ -248,7 +248,7 @@ export default function QuizHomeClient() {
             <rect width="100%" height="100%" filter="url(#qz-nav-grain)" />
           </svg>
           <div style={{ maxWidth: 1200, margin: '0 auto', padding: '0 16px', position: 'relative' }}>
-            <div ref={deptNavRef} className="qz-deptnav" style={{ display: 'flex', alignItems: 'stretch', overflowX: 'auto', background: COLORS.ink }}>
+            <div ref={deptNavRef} className="qz-deptnav" style={{ display: 'flex', alignItems: 'stretch', overflowX: 'auto', background: COLORS.ink, borderBottom: `3px solid ${COLORS.ember}` }}>
               {PRIMARY.map((d) => navBtn(d.id, d.label, counts[d.id]))}
               {(() => {
                 const moreActive = MORE_CATS.some((c) => c.id === dept);
@@ -259,8 +259,6 @@ export default function QuizHomeClient() {
                 );
               })()}
             </div>
-            <div style={{ borderBottom: `1px solid ${COLORS.ink}`, marginBottom: 4 }} />
-            <div style={{ borderBottom: `2px solid ${COLORS.ember}` }} />
             {navScroll.left && <span aria-hidden="true" className="qz-navcue qz-navcue-l">&#8249;</span>}
             {navScroll.right && <span aria-hidden="true" className="qz-navcue qz-navcue-r">&#8250;</span>}
             {moreOpen && (
@@ -280,7 +278,7 @@ export default function QuizHomeClient() {
           </div>
         </nav>
 
-        <section style={{ maxWidth: 1200, margin: '0 auto', padding: '20px 24px 64px' }}>
+        <section style={{ maxWidth: 1200, margin: '0 auto', padding: '20px 16px 64px' }}>
           <div className="cg-qcontrols">
             <div className="cg-q-search" style={{ position: 'relative', minWidth: 0 }}>
               <Search size={16} strokeWidth={2.5} style={{ position: 'absolute', left: 14, top: '50%', transform: 'translateY(-50%)', color: COLORS.faded }} />
