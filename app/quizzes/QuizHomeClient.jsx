@@ -234,7 +234,7 @@ export default function QuizHomeClient() {
             <rect width="100%" height="100%" filter="url(#qz-nav-grain)" />
           </svg>
           <div style={{ maxWidth: 1200, margin: '0 auto', padding: '0 16px', position: 'relative' }}>
-            <div ref={deptNavRef} className="qz-deptnav" style={{ display: 'flex', alignItems: 'stretch', overflowX: 'auto', background: COLORS.ink, borderBottom: `3px solid ${COLORS.ember}` }}>
+            <div ref={deptNavRef} className="qz-deptnav" style={{ display: 'flex', alignItems: 'stretch', overflowX: 'auto', background: COLORS.ink }}>
               {PRIMARY.map((d) => navBtn(d.id, d.label, counts[d.id]))}
               {(() => {
                 const moreActive = MORE_CATS.some((c) => c.id === dept);
@@ -245,6 +245,8 @@ export default function QuizHomeClient() {
                 );
               })()}
             </div>
+            <div style={{ borderBottom: `1px solid ${COLORS.ink}`, marginBottom: 4 }} />
+            <div style={{ borderBottom: `2px solid ${COLORS.ember}` }} />
             {navScroll.left && <span aria-hidden="true" className="qz-navcue qz-navcue-l">&#8249;</span>}
             {navScroll.right && <span aria-hidden="true" className="qz-navcue qz-navcue-r">&#8250;</span>}
             {moreOpen && (
