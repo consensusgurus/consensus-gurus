@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { useRouter } from 'next/navigation';
-import { ArrowLeft, Share2, Check, Flag, Trophy, HelpCircle } from 'lucide-react';
+import { ArrowLeft, Share2, Check, Flag, Trophy, HelpCircle, Eye } from 'lucide-react';
 import { QUIZZES, getQuiz } from '@/lib/quizzes';
 import Grain from '../../Grain';
 import Footer from '../../Footer';
@@ -117,6 +117,10 @@ export default function QuizClient({ quizId }) {
   const matched = quiz.format === 'matched';
   const mapMode = quiz.format === 'map';
   const ordered = matched && quiz.ordered === true;
+  // The "reveal the answers" gate is only for quizzes with no companion list and
+  // no map board (the plain "table" quizzes). List quizzes already send you to
+  // the full ranking to see misses; map quizzes have no table to fill in.
+  const canReveal = !quiz.listId && !mapMode;
   const relatedQuizzes = (() => {
     const d = deptOf(quiz);
     let r = QUIZZES.filter((x) => x.id !== quiz.id && deptOf(x) === d);
@@ -154,6 +158,7 @@ export default function QuizClient({ quizId }) {
   const [claimErr, setClaimErr] = useState(false);
 
   const [copied, setCopied] = useState(false);
+  const [revealed, setRevealed] = useState(false); // non-list quizzes: misses shown after username gate
 
   // Questions? modal (mirrors the list-page Request Review modal; routes to the
   // same /api/complaints pipeline -> admin Notices tab + daily digest email).
@@ -245,9 +250,15 @@ export default function QuizClient({ quizId }) {
       setIdentity(id);
       setBoard({ plays: d.plays || 0, best: d.best ?? null, leaderboard: d.leaderboard || [] });
       setClaimErr(false);
-      setClaimMsg(`Posted! You're on the leaderboard below.`);
       setClaimOpen(false);
-      setTab('stats');
+      if (canReveal) {
+        setRevealed(true);
+        setClaimMsg('Posted! The answers you missed are now filled in under Play, highlighted.');
+        setTab('play');
+      } else {
+        setClaimMsg(`Posted! You're on the leaderboard below.`);
+        setTab('stats');
+      }
     } catch (e) {
       setClaimErr(true);
       setClaimMsg('Could not post right now. Try again.');
@@ -534,20 +545,36 @@ export default function QuizClient({ quizId }) {
               {quiz.listId && (
                 <a href={`/list/${quiz.listId}`} style={{ display: 'inline-block', fontFamily: MONO, fontSize: 13, letterSpacing: '0.08em', textTransform: 'uppercase', fontWeight: 700, lineHeight: '46px', padding: '0 28px', background: COLORS.ember, color: '#fff', textDecoration: 'none' }}>See the full list detail</a>
               )}
+              {/* Non-list quizzes: reveal the missed answers in place. Already
+                  signed-up players get a one-click reveal in place of the
+                  list-detail button; the new-player path is the signup button
+                  below, which reveals on success. */}
+              {canReveal && identity && !revealed && (
+                <button onClick={() => { setRevealed(true); setTab('play'); }} style={{ fontFamily: MONO, fontSize: 13, letterSpacing: '0.08em', textTransform: 'uppercase', fontWeight: 700, lineHeight: '46px', padding: '0 24px', background: COLORS.ember, color: '#fff', border: 'none', cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: 8 }}>
+                  <Eye size={14} strokeWidth={2.5} /> Reveal the answers
+                </button>
+              )}
+              {canReveal && revealed && (
+                <span style={{ fontFamily: MONO, fontSize: 12, letterSpacing: '0.06em', color: COLORS.forest, lineHeight: '46px' }}>Answers revealed under Play — your misses are highlighted.</span>
+              )}
               {!identity && !claimOpen && (
                 <button onClick={() => { setClaimMsg(''); setClaimErr(false); setClaimOpen(true); }} style={{ fontFamily: MONO, fontSize: 13, letterSpacing: '0.08em', textTransform: 'uppercase', fontWeight: 700, lineHeight: '46px', padding: '0 24px', background: COLORS.ember, color: '#fff', border: 'none', cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: 8 }}>
-                  <Trophy size={14} strokeWidth={2.5} /> Post this to the leaderboard
+                  {canReveal
+                    ? (<><Eye size={14} strokeWidth={2.5} /> Create a username to reveal the answers</>)
+                    : (<><Trophy size={14} strokeWidth={2.5} /> Post this to the leaderboard</>)}
                 </button>
               )}
               {!identity && claimOpen && (
                 <div style={{ flexBasis: '100%', maxWidth: 420, margin: '0 auto' }}>
                   <p style={{ fontFamily: SANS, fontSize: 13, color: '#4a4339', margin: '0 0 10px', textAlign: 'center' }}>
-                    Add a name and email to post this {score}/{total} to the leaderboard. No password needed, and reusing the same email later keeps you attached.
+                    {canReveal
+                      ? `Create a username and add your email to reveal the answers you missed. It also posts this ${score}/${total} to the leaderboard. No password needed, and reusing the same email later keeps you attached.`
+                      : `Add a name and email to post this ${score}/${total} to the leaderboard. No password needed, and reusing the same email later keeps you attached.`}
                   </p>
                   <input value={jName} onChange={(e) => setJName(e.target.value)} maxLength={40} placeholder="Username" style={fieldStyle} />
                   <input value={jEmail} onChange={(e) => setJEmail(e.target.value)} type="email" placeholder="you@email.com" style={{ ...fieldStyle, marginTop: 10 }} />
                   <button onClick={submitClaim} disabled={claimBusy} style={{ marginTop: 12, width: '100%', fontFamily: MONO, fontSize: 13, letterSpacing: '0.1em', textTransform: 'uppercase', fontWeight: 700, lineHeight: '46px', border: 'none', background: COLORS.ember, color: '#fff', cursor: claimBusy ? 'default' : 'pointer', opacity: claimBusy ? 0.6 : 1 }}>
-                    {claimBusy ? 'Posting…' : 'Post this to the leaderboard'}
+                    {claimBusy ? (canReveal ? 'Revealing…' : 'Posting…') : (canReveal ? 'Reveal the answers' : 'Post this to the leaderboard')}
                   </button>
                 </div>
               )}
@@ -610,8 +637,9 @@ export default function QuizClient({ quizId }) {
               const renderRow = (a, i) => {
                 const f = found[i];
                 const isActive = ordered && started && !ended && i === activeIdx;
+                const reveal = ended && revealed && !f; // a missed answer, now filled in
                 return (
-                  <li key={i} style={{ display: 'flex', alignItems: 'center', gap: 16, padding: '13px 16px', border: `1px solid ${f ? COLORS.forest : isActive ? COLORS.ember : COLORS.faded + '33'}`, marginBottom: 8, background: f || isActive ? '#fff' : COLORS.paper, boxShadow: isActive ? `inset 4px 0 0 ${COLORS.ember}` : 'none', transform: f || isActive ? 'translateX(2px)' : 'none', transition: 'all .2s' }}>
+                  <li key={i} style={{ display: 'flex', alignItems: 'center', gap: 16, padding: '13px 16px', border: `1px solid ${f ? COLORS.forest : isActive ? COLORS.ember : reveal ? COLORS.rust : COLORS.faded + '33'}`, marginBottom: 8, background: reveal ? '#f6ead9' : f || isActive ? '#fff' : COLORS.paper, boxShadow: isActive ? `inset 4px 0 0 ${COLORS.ember}` : reveal ? `inset 4px 0 0 ${COLORS.rust}` : 'none', transform: f || isActive || reveal ? 'translateX(2px)' : 'none', transition: 'all .2s' }}>
                     {a.label != null ? (
                       <span style={{ fontFamily: MONO, fontWeight: 700, fontSize: 15, width: 52, color: COLORS.ember, flex: 'none', textAlign: 'left', letterSpacing: '0.04em' }}>{a.label}</span>
                     ) : (
@@ -619,6 +647,8 @@ export default function QuizClient({ quizId }) {
                     )}
                     {f ? (
                       <span style={{ fontFamily: SERIF, fontSize: 19, fontWeight: 500, flex: 1 }}>{a.t}</span>
+                    ) : reveal ? (
+                      <span style={{ fontFamily: SERIF, fontSize: 19, fontWeight: 500, flex: 1, color: COLORS.rust }}>{a.t}</span>
                     ) : (matched && !ordered) ? (
                       <input
                         ref={i === 0 ? inputRef : undefined}
@@ -633,7 +663,11 @@ export default function QuizClient({ quizId }) {
                     ) : (
                       <span style={{ fontFamily: MONO, fontSize: 13, letterSpacing: '0.06em', color: COLORS.faded, opacity: 0.55, flex: 1 }}>— — — — —</span>
                     )}
-                    <span style={{ width: 20, flex: 'none', color: COLORS.forest, opacity: f ? 1 : 0 }}><Check size={17} strokeWidth={3} /></span>
+                    {reveal ? (
+                      <span style={{ flex: 'none', fontFamily: MONO, fontSize: 9, letterSpacing: '0.12em', textTransform: 'uppercase', color: COLORS.rust, fontWeight: 700 }}>Missed</span>
+                    ) : (
+                      <span style={{ width: 20, flex: 'none', color: COLORS.forest, opacity: f ? 1 : 0 }}><Check size={17} strokeWidth={3} /></span>
+                    )}
                   </li>
                 );
               };
@@ -662,7 +696,7 @@ export default function QuizClient({ quizId }) {
                 <div style={{ fontFamily: SERIF, fontWeight: 700, fontSize: 26, lineHeight: 1.1, marginBottom: 10 }}>{score} of {total} · you beat {percentile(score, total)}% of players</div>
                 <p style={{ fontFamily: SANS, fontSize: 15, color: '#4a4339', maxWidth: 440, margin: '0 auto 18px' }}>
                   {board.best != null ? (score >= board.best ? `That matches the high score of ${board.best}.` : `The high score to beat is ${board.best}.`) : 'Be the first to set the pace.'}
-                  {quiz.listId ? ' See the ones you missed in the full ranking, with sources and the consensus breakdown.' : ''}
+                  {quiz.listId ? ' See the ones you missed in the full ranking, with sources and the consensus breakdown.' : canReveal ? (revealed ? ' The ones you missed are filled in above, highlighted.' : ' Create a username above to reveal the ones you missed.') : ''}
                 </p>
               </div>
             )}
