@@ -152,7 +152,10 @@ export default function QuizHomeClient() {
     if (sortBy === 'discover') list = seededShuffle(list, seedRef.current);
     else if (sortBy === 'popularity') list = list.slice().sort((a, b) => plays(b.id) - plays(a.id) || a.title.localeCompare(b.title));
     else if (sortBy === 'trending') list = list.slice().sort((a, b) => recent(b.id) - recent(a.id) || plays(b.id) - plays(a.id) || a.title.localeCompare(b.title));
-    else if (sortBy === 'recent') list = list.slice().sort((a, b) => String(b.publishedDate || '').localeCompare(String(a.publishedDate || '')));
+    else if (sortBy === 'recent') {
+      const ts = (q) => new Date(q.publishedAt || `${q.publishedDate || '1970-01-01'}T12:00:00Z`).getTime();
+      list = list.slice().sort((a, b) => ts(b) - ts(a) || a.title.localeCompare(b.title));
+    }
     return list;
   }, [query, dept, sortBy, totals]);
 

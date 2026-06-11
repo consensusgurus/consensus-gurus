@@ -85,6 +85,7 @@ export default function QuizClient({ quizId }) {
   const answers = quiz.answers;
   const total = answers.length;
   const matched = quiz.format === 'matched';
+  const ordered = matched && quiz.ordered === true;
   const relatedQuizzes = (() => {
     const d = deptOf(quiz);
     let r = QUIZZES.filter((x) => x.id !== quiz.id && deptOf(x) === d);
@@ -135,6 +136,7 @@ export default function QuizClient({ quizId }) {
   }, []);
 
   const score = found.filter(Boolean).length;
+  const activeIdx = found.findIndex((x) => !x);
 
   function refreshBoard() {
     fetch(`/api/quiz/board?quizId=${encodeURIComponent(quizId)}`)
@@ -212,7 +214,7 @@ export default function QuizClient({ quizId }) {
     if (started || ended) return;
     setStarted(true);
     startRef.current = Date.now();
-    setHint(matched ? "Go — name each year's winner." : 'Go — name them all.');
+    setHint(ordered ? 'Go — answer in order, from the top.' : matched ? "Go — name each year's winner." : 'Go — name them all.');
     setHintBad(false);
     timerRef.current = setInterval(() => {
       setTime((t) => {
@@ -274,6 +276,33 @@ export default function QuizClient({ quizId }) {
     if (e.key !== 'Enter' || !started || ended) return;
     checkSlot(i, e.target.value);
     e.target.value = '';
+  }
+
+  // Ordered matched mode: ONE fixed input; slots must be answered in sequence.
+  function checkOrdered(raw) {
+    const g = norm(raw);
+    if (!g) return;
+    const i = found.findIndex((x) => !x);
+    if (i < 0) return;
+    const a = answers[i];
+    const hit = a.keys.some((k) => g.includes(norm(k)));
+    const blocked = (a.anti || []).some((k) => g.includes(norm(k)));
+    if (hit && !blocked) {
+      const next = found.slice();
+      next[i] = true;
+      setFound(next);
+      setHint(`Correct — ${a.label != null ? a.label + ': ' : ''}${a.t}`);
+      setHintBad(false);
+      if (next.every(Boolean)) endGame(true);
+    } else {
+      setHint(`Not the ${a.label != null ? a.label + ' ' : ''}answer. Work down in order, try again.`);
+      setHintBad(true);
+    }
+  }
+  function onOrderedKey(e) {
+    if (e.key !== 'Enter' || !started || ended) return;
+    checkOrdered(e.target.value);
+    setGuess('');
   }
 
   async function submitJoin() {
@@ -365,16 +394,6 @@ export default function QuizClient({ quizId }) {
             </div>
           </div>
           <p style={{ fontFamily: SERIF, fontStyle: 'italic', fontSize: 16, lineHeight: 1.45, margin: '12px 0 0', color: COLORS.faded, maxWidth: 640 }}>{quiz.blurb}</p>
-          {quiz.source && (
-            <p style={{ fontFamily: MONO, fontSize: 11, letterSpacing: '0.04em', color: COLORS.faded, margin: '10px 0 0' }}>
-              Source:{' '}
-              {quiz.source.url ? (
-                <a href={quiz.source.url} target="_blank" rel="noopener noreferrer" style={{ color: COLORS.rust }}>{quiz.source.label}</a>
-              ) : (
-                quiz.source.label
-              )}
-            </p>
-          )}
         </div>
 
         {/* Ribbon */}
@@ -443,20 +462,20 @@ export default function QuizClient({ quizId }) {
             </div>
 
             <div style={{ display: 'flex', gap: 10, marginBottom: 6 }}>
-              {!matched && (
+              {(!matched || ordered) && (
                 <input
                   ref={inputRef}
                   value={guess}
                   disabled={!started || ended}
                   onChange={(e) => setGuess(e.target.value)}
-                  onKeyDown={onKey}
-                  placeholder={started ? `Type ${/^[aeiou]/.test(quiz.noun || '') ? 'an' : 'a'} ${quiz.noun || 'answer'}, then Enter…` : 'Press Play to begin…'}
+                  onKeyDown={ordered ? onOrderedKey : onKey}
+                  placeholder={started ? (ordered ? `Type the ${quiz.noun || 'answer'} for ${answers[activeIdx] ? answers[activeIdx].label : ''}…` : `Type ${/^[aeiou]/.test(quiz.noun || '') ? 'an' : 'a'} ${quiz.noun || 'answer'}, then Enter…`) : 'Press Play to begin…'}
                   autoComplete="off"
                   style={{ flex: 1, fontFamily: SANS, fontSize: 17, padding: '14px 16px', border: `1.5px solid ${COLORS.ink}`, background: !started || ended ? COLORS.paper : '#fff', color: COLORS.ink, opacity: !started || ended ? 0.5 : 1 }}
                 />
               )}
-              <button onClick={start} disabled={started || ended} style={{ flex: matched ? 1 : 'none', fontFamily: MONO, fontSize: 13, letterSpacing: '0.08em', textTransform: 'uppercase', fontWeight: 700, padding: '0 22px', height: matched ? 50 : 'auto', border: 'none', background: COLORS.ember, color: '#fff', cursor: started || ended ? 'default' : 'pointer', opacity: started || ended ? 0.5 : 1 }}>
-                {ended ? 'Done' : started ? 'Playing' : matched ? 'Play — name each year' : 'Play'}
+              <button onClick={start} disabled={started || ended} style={{ flex: matched && !ordered ? 1 : 'none', fontFamily: MONO, fontSize: 13, letterSpacing: '0.08em', textTransform: 'uppercase', fontWeight: 700, padding: '0 22px', height: matched ? 50 : 'auto', border: 'none', background: COLORS.ember, color: '#fff', cursor: started || ended ? 'default' : 'pointer', opacity: started || ended ? 0.5 : 1 }}>
+                {ended ? 'Done' : started ? 'Playing' : (matched && !ordered) ? 'Play — name each year' : 'Play'}
               </button>
             </div>
             <div style={{ fontFamily: MONO, fontSize: 12, minHeight: 18, marginBottom: 20, color: hintBad ? COLORS.ember : COLORS.faded }}>{hint}</div>
@@ -464,8 +483,9 @@ export default function QuizClient({ quizId }) {
             <ol style={{ margin: 0, padding: 0, listStyle: 'none' }}>
               {answers.map((a, i) => {
                 const f = found[i];
+                const isActive = ordered && started && !ended && i === activeIdx;
                 return (
-                  <li key={i} style={{ display: 'flex', alignItems: 'center', gap: 16, padding: '13px 16px', border: `1px solid ${f ? COLORS.forest : COLORS.faded + '33'}`, marginBottom: 8, background: f ? '#fff' : COLORS.paper, transform: f ? 'translateX(2px)' : 'none', transition: 'all .2s' }}>
+                  <li key={i} style={{ display: 'flex', alignItems: 'center', gap: 16, padding: '13px 16px', border: `1px solid ${f ? COLORS.forest : isActive ? COLORS.ember : COLORS.faded + '33'}`, marginBottom: 8, background: f || isActive ? '#fff' : COLORS.paper, boxShadow: isActive ? `inset 4px 0 0 ${COLORS.ember}` : 'none', transform: f || isActive ? 'translateX(2px)' : 'none', transition: 'all .2s' }}>
                     {a.label != null ? (
                       <span style={{ fontFamily: MONO, fontWeight: 700, fontSize: 15, width: 52, color: COLORS.ember, flex: 'none', textAlign: 'left', letterSpacing: '0.04em' }}>{a.label}</span>
                     ) : (
@@ -473,7 +493,7 @@ export default function QuizClient({ quizId }) {
                     )}
                     {f ? (
                       <span style={{ fontFamily: SERIF, fontSize: 19, fontWeight: 500, flex: 1 }}>{a.t}</span>
-                    ) : matched ? (
+                    ) : (matched && !ordered) ? (
                       <input
                         ref={i === 0 ? inputRef : undefined}
                         disabled={!started || ended}
@@ -482,6 +502,8 @@ export default function QuizClient({ quizId }) {
                         autoComplete="off"
                         style={{ flex: 1, fontFamily: SANS, fontSize: 16, padding: '9px 12px', border: `1.5px solid ${COLORS.ink}`, background: !started || ended ? COLORS.paper : '#fff', color: COLORS.ink, opacity: !started || ended ? 0.5 : 1 }}
                       />
+                    ) : isActive ? (
+                      <span style={{ fontFamily: SANS, fontSize: 14, fontStyle: 'italic', color: COLORS.ember, flex: 1 }}>Type it in the box above, then Enter</span>
                     ) : (
                       <span style={{ fontFamily: MONO, fontSize: 13, letterSpacing: '0.06em', color: COLORS.faded, opacity: 0.55, flex: 1 }}>— — — — —</span>
                     )}
@@ -619,6 +641,16 @@ export default function QuizClient({ quizId }) {
           </div>
         )}
 
+        {quiz.source && (
+          <div style={{ marginTop: 40, paddingTop: 18, borderTop: `1px solid ${COLORS.faded}33`, fontFamily: MONO, fontSize: 11, letterSpacing: '0.04em', color: COLORS.faded }}>
+            Source:{' '}
+            {quiz.source.url ? (
+              <a href={quiz.source.url} target="_blank" rel="noopener noreferrer" style={{ color: COLORS.rust }}>{quiz.source.label}</a>
+            ) : (
+              quiz.source.label
+            )}
+          </div>
+        )}
       </div>
       <Footer />
     </div>

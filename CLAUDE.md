@@ -1768,6 +1768,46 @@ lists, ask once which (if any) should get quizzes rather than quizzing all of th
   `norm(guess).includes(key)` against the array catches this (it caught the `las`/`dallas` clash on
   the airports quizzes).
 
+### Timestamps: every quiz needs a distinct `publishedAt`
+
+Every quiz MUST carry a `publishedAt` ISO-8601 UTC timestamp (e.g. `'2026-06-11T17:00:00Z'`), exactly
+like a list. The `/quizzes` index "Most Recently Added" sort keys off `publishedAt` (falling back to
+`publishedDate` at noon). Quizzes that share only a `publishedDate` therefore tie and fall back to raw
+array order, which silently buries a newly added quiz at the BOTTOM of the index instead of the top.
+So give each quiz its own distinct timestamp, and when adding one to an existing set stamp it LATER
+than every existing quiz so it sorts newest. Sort logic lives in `app/quizzes/QuizHomeClient.jsx`
+(the `'recent'` branch). Backfilled across all quizzes 2026-06-11.
+
+### Quiz formats: `format: 'matched'` and `ordered`
+
+The default quiz is the single-input "name them all" game (answers accepted in any order). Two opt-in
+variants, both data-only flags on the quiz object:
+
+- **`format: 'matched'`**: each answer carries a **`label`** (e.g. a year) that renders in place of the
+  rank number, turning the board into a labeled grid ("2022 -> Argentina"). Use it when the slots are
+  keyed by something other than rank (years, categories, positions). Every answer needs a `label`.
+- **`ordered: true`** (only meaningful together with `matched`): the slots must be guessed IN SEQUENCE
+  from the top. There is ONE fixed input box that does not move; the current target row is HIGHLIGHTED
+  (ember rule plus a left accent) and the input placeholder names it ("Type the country for 2022..."),
+  and a correct guess advances the highlight to the next row. Use this whenever the labeled list has an
+  inherent order (chronological, ranked) and the player should work through it in that order. Without
+  `ordered`, a `matched` quiz renders one input per slot and accepts them in any order.
+
+Worked example: `world-cup-winners` (standalone, no `listId`) is `format: 'matched'` + `ordered: true`
+with year labels 2022 down to 1986. Implemented in `app/quiz/[id]/QuizClient.jsx`.
+
+**Keep `ordered` RARE, it is a deliberate exception and never a default.** Only turn it on when the
+answers genuinely must be produced in sequence AND the owner has asked for in-order play. As of June
+2026 the ONLY quiz with `ordered: true` is `world-cup-winners`; every other quiz stays unordered
+(a `matched` quiz without `ordered` shows one input per slot, any order).
+
+### Source attribution (`source`)
+
+A STANDALONE quiz (one with no paired `listId`) should carry a **`source`** object `{ label, url }`
+citing where the answers come from. It renders as a small caption at the **BOTTOM** of the quiz page,
+never the top, so it never crowds or spoils the prompt. Quizzes paired with a list inherit credibility
+from that list and usually omit `source`.
+
 ### Deploy
 
 Add the entry to `lib/quizzes.js`, `node --check` it, and ship it in the **same multi-file push** as
