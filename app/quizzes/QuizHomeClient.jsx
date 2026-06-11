@@ -24,6 +24,15 @@ const DEPTS = [
   { id: 'travel', label: 'Travel' },
   { id: 'other', label: 'More' },
 ];
+// Very light per-department tints for the tiles (color-coding by category).
+const TINTS = {
+  movies: '#ecdcd6',
+  music: '#efe2cf',
+  games: '#dfe4d4',
+  travel: '#dde6df',
+  other: '#e6dfd4',
+  all: '#ebe2d0',
+};
 
 function seededShuffle(arr, seed) {
   const out = arr.slice();
@@ -45,21 +54,20 @@ const SORTS = [
 
 function QuizTile({ quiz, plays }) {
   const [hover, setHover] = useState(false);
-  const blurb = (quiz.blurb || '').split(' Ninety seconds')[0];
+  const tint = TINTS[deptOf(quiz)] || COLORS.paper;
   return (
     <Link
       href={`/quiz/${quiz.id}`}
       onMouseEnter={() => setHover(true)}
       onMouseLeave={() => setHover(false)}
-      style={{ cursor: 'pointer', textDecoration: 'none', display: 'flex', flexDirection: 'column', background: hover ? '#e4dbc8' : COLORS.paper, color: COLORS.ink, border: `1.5px solid ${COLORS.ink}`, overflow: 'hidden', transition: 'all 0.2s ease', transform: hover ? 'translate(-2px, -2px)' : 'none', boxShadow: hover ? `3px 3px 0 ${COLORS.ember}` : 'none' }}
+      style={{ cursor: 'pointer', textDecoration: 'none', display: 'flex', flexDirection: 'column', background: tint, color: COLORS.ink, border: `1.5px solid ${COLORS.ink}`, overflow: 'hidden', transition: 'all 0.2s ease', transform: hover ? 'translate(-2px, -2px)' : 'none', boxShadow: hover ? `3px 3px 0 ${COLORS.ember}` : 'none' }}
     >
       <div style={{ padding: '16px 18px 14px', display: 'flex', flexDirection: 'column', flex: '1 1 auto', minHeight: 0 }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', gap: 8, marginBottom: 10 }}>
           <span style={{ fontFamily: 'DM Mono, monospace', fontSize: 10, letterSpacing: '0.18em', textTransform: 'uppercase', color: COLORS.ember, fontWeight: 700 }}>{quiz.category || 'Quiz'} · Quiz</span>
           <span style={{ fontFamily: 'DM Mono, monospace', fontSize: 10, letterSpacing: '0.1em', textTransform: 'uppercase', color: COLORS.faded }}>{quiz.answers.length} to name</span>
         </div>
-        <h3 style={{ fontFamily: 'Fraunces, serif', fontWeight: 700, fontSize: 22, lineHeight: 1.1, letterSpacing: '-0.01em', margin: '0 0 8px', color: COLORS.ink }}>{quiz.title}</h3>
-        {blurb && (<p style={{ fontFamily: 'DM Sans, sans-serif', fontSize: 13, lineHeight: 1.45, color: COLORS.faded, margin: 0 }}>{blurb}</p>)}
+        <h3 style={{ fontFamily: 'Fraunces, serif', fontWeight: 700, fontSize: 22, lineHeight: 1.1, letterSpacing: '-0.01em', margin: 0, color: COLORS.ink }}>{quiz.title}</h3>
         <div style={{ marginTop: 'auto', paddingTop: 14, display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', gap: 8, fontFamily: 'DM Mono, monospace', fontSize: 11, letterSpacing: '0.14em', textTransform: 'uppercase', fontWeight: 700 }}>
           <span style={{ color: COLORS.ember }}>▶ Play · 90s</span>
           {plays > 0 && (<span style={{ color: COLORS.faded, fontWeight: 600 }}>{plays.toLocaleString()} plays</span>)}
@@ -175,7 +183,11 @@ export default function QuizHomeClient() {
         </header>
 
         <nav style={{ position: 'sticky', top: 0, zIndex: 25, background: COLORS.cream }}>
-          <div style={{ maxWidth: 1200, margin: '0 auto', padding: '0 16px' }}>
+          <svg aria-hidden="true" style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', pointerEvents: 'none', opacity: 0.12, mixBlendMode: 'multiply' }}>
+            <filter id="qz-nav-grain"><feTurbulence type="fractalNoise" baseFrequency="0.9" numOctaves="2" stitchTiles="stitch" /><feColorMatrix values="0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  0 0 0 0.6 0" /></filter>
+            <rect width="100%" height="100%" filter="url(#qz-nav-grain)" />
+          </svg>
+          <div style={{ maxWidth: 1200, margin: '0 auto', padding: '0 16px', position: 'relative' }}>
             <div style={{ display: 'flex', alignItems: 'stretch', overflowX: 'auto', background: COLORS.ink, borderBottom: `3px solid ${COLORS.ember}` }}>
               {DEPTS.map((d) => navBtn(d.id, d.label, counts[d.id]))}
             </div>
