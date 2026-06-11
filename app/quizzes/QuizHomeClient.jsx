@@ -94,13 +94,11 @@ function QuizTile({ quiz, plays }) {
       onMouseLeave={() => setHover(false)}
       style={{ cursor: 'pointer', textDecoration: 'none', display: 'flex', flexDirection: 'column', background: COLORS.paper, color: COLORS.ink, border: `1.5px solid ${COLORS.ink}`, overflow: 'hidden', transition: 'all 0.2s ease', transform: hover ? 'translate(-2px, -2px)' : 'none', boxShadow: hover ? `3px 3px 0 ${COLORS.ember}` : 'none' }}
     >
-      <div style={{ padding: '18px 18px 16px', display: 'flex', flexDirection: 'column', flex: '1 1 auto', minHeight: 0 }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 14 }}>
-          <span style={{ flex: 'none', width: 46, height: 46, borderRadius: '50%', background: accent.t, display: 'flex', alignItems: 'center', justifyContent: 'center' }}><Icon size={22} strokeWidth={2} aria-hidden="true" style={{ color: accent.c }} /></span>
-          <span style={{ minWidth: 0, fontFamily: 'DM Mono, monospace', fontSize: 13, letterSpacing: '0.05em', textTransform: 'uppercase', color: accent.c, fontWeight: 700, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{quiz.category || 'Quiz'}</span>
-        </div>
-        <h3 style={{ fontFamily: 'Fraunces, serif', fontWeight: 700, fontSize: 22, lineHeight: 1.1, letterSpacing: '-0.01em', margin: 0, color: COLORS.ink }}>{quiz.title.replace(/^Name (the )?/, '')}</h3>
-        <div style={{ marginTop: 'auto', paddingTop: 16, display: 'flex', justifyContent: 'flex-start', alignItems: 'baseline', gap: 8, fontFamily: 'DM Mono, monospace', fontSize: 11, letterSpacing: '0.14em', textTransform: 'uppercase', fontWeight: 700 }}>
+      <div style={{ padding: '20px 18px 18px', display: 'flex', flexDirection: 'column', alignItems: 'center', textAlign: 'center', flex: '1 1 auto', minHeight: 0 }}>
+        <span style={{ flex: 'none', width: 46, height: 46, borderRadius: '50%', background: accent.t, display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: 12 }}><Icon size={22} strokeWidth={2} aria-hidden="true" style={{ color: accent.c }} /></span>
+        <span style={{ maxWidth: '100%', fontFamily: 'DM Mono, monospace', fontSize: 13, letterSpacing: '0.05em', textTransform: 'uppercase', color: accent.c, fontWeight: 700, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{(quiz.category || 'Quiz').replace(/ · \d{4}s?$/, '')}</span>
+        <h3 style={{ fontFamily: 'Fraunces, serif', fontWeight: 700, fontSize: 22, lineHeight: 1.1, letterSpacing: '-0.01em', margin: '10px 0 0', color: COLORS.ink }}>{quiz.title.replace(/^Name (the )?/, '')}</h3>
+        <div style={{ marginTop: 'auto', paddingTop: 16, display: 'flex', justifyContent: 'center', alignItems: 'baseline', gap: 8, fontFamily: 'DM Mono, monospace', fontSize: 11, letterSpacing: '0.14em', textTransform: 'uppercase', fontWeight: 700 }}>
           <span style={{ color: accent.c }}>▶ Play</span>
           {plays > 0 && (<span style={{ color: COLORS.faded, fontWeight: 600, letterSpacing: '0.1em' }}>· {plays.toLocaleString()} plays</span>)}
         </div>
