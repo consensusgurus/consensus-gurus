@@ -54,14 +54,14 @@ export async function POST(request) {
       }
     }
 
-    const { error: insErr } = await supabaseAdmin.from('quiz_results').insert({
+    const { data: inserted, error: insErr } = await supabaseAdmin.from('quiz_results').insert({
       quiz_id: quizId,
       user_id,
       username,
       score,
       total,
       time_elapsed: timeElapsed,
-    });
+    }).select('id').single();
     if (insErr) {
       console.error('quiz_results insert error', insErr);
       return NextResponse.json({ error: 'db error' }, { status: 500 });
@@ -71,7 +71,7 @@ export async function POST(request) {
       .from('quiz_results')
       .select('user_id, username, score, time_elapsed')
       .eq('quiz_id', quizId);
-    return NextResponse.json(summarize(data || []));
+    return NextResponse.json({ ...summarize(data || []), resultId: inserted?.id ?? null });
   } catch (e) {
     return NextResponse.json({ error: 'invalid request' }, { status: 400 });
   }

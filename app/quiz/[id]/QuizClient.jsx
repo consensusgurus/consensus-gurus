@@ -97,6 +97,11 @@ export default function QuizClient({ quizId }) {
   const [joinMsg, setJoinMsg] = useState('');
   const [joinErr, setJoinErr] = useState(false);
   const [joinBusy, setJoinBusy] = useState(false);
+  const [lastResultId, setLastResultId] = useState(null);
+  const [claimOpen, setClaimOpen] = useState(false);
+  const [claimBusy, setClaimBusy] = useState(false);
+  const [claimMsg, setClaimMsg] = useState('');
+  const [claimErr, setClaimErr] = useState(false);
 
   const [copied, setCopied] = useState(false);
   const timerRef = useRef(null);
@@ -142,8 +147,36 @@ export default function QuizClient({ quizId }) {
       body: JSON.stringify({ quizId, score: finalScore, total, timeElapsed: elapsed, email: identity?.email || undefined }),
     })
       .then((r) => r.json())
-      .then((d) => { if (d && !d.error) setBoard({ plays: d.plays || 0, best: d.best ?? null, leaderboard: d.leaderboard || [] }); })
+      .then((d) => { if (d && !d.error) { setBoard({ plays: d.plays || 0, best: d.best ?? null, leaderboard: d.leaderboard || [] }); setLastResultId(d.resultId ?? null); } })
       .catch(() => {});
+  }
+
+  // Retroactively post the just-finished anonymous game to the leaderboard:
+  // join by email, then attach THIS result row to the new identity.
+  async function submitClaim() {
+    setClaimErr(false);
+    if (!jName.trim() || jName.trim().length > 40) { setClaimErr(true); setClaimMsg('Pick a username (max 40 characters).'); return; }
+    if (!EMAIL_RE.test(jEmail.trim())) { setClaimErr(true); setClaimMsg('Enter a valid email.'); return; }
+    setClaimBusy(true);
+    try {
+      const res = await fetch('/api/quiz/claim', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ quizId, resultId: lastResultId, username: jName.trim(), email: jEmail.trim() }),
+      });
+      const d = await res.json();
+      if (d.error) { setClaimErr(true); setClaimMsg(d.error); setClaimBusy(false); return; }
+      const id = { username: d.username, email: d.email };
+      try { localStorage.setItem('sot_quiz_identity', JSON.stringify(id)); } catch {}
+      setIdentity(id);
+      setBoard({ plays: d.plays || 0, best: d.best ?? null, leaderboard: d.leaderboard || [] });
+      setClaimErr(false);
+      setClaimMsg(`Posted! "${d.username}" is on the leaderboard with this game.`);
+    } catch (e) {
+      setClaimErr(true);
+      setClaimMsg('Could not post right now. Try again.');
+    }
+    setClaimBusy(false);
   }
 
   function start() {
@@ -345,10 +378,25 @@ export default function QuizClient({ quizId }) {
                   {quiz.listId && (
                     <a href={`/list/${quiz.listId}`} style={{ display: 'inline-block', fontFamily: MONO, fontSize: 13, letterSpacing: '0.08em', textTransform: 'uppercase', fontWeight: 700, lineHeight: '46px', padding: '0 28px', background: COLORS.ember, color: '#fff', textDecoration: 'none' }}>See the full list detail →</a>
                   )}
-                  {!identity && (
-                    <button onClick={() => setTab('join')} style={{ fontFamily: MONO, fontSize: 13, letterSpacing: '0.08em', textTransform: 'uppercase', fontWeight: 700, lineHeight: '46px', padding: '0 24px', background: 'transparent', color: COLORS.ink, border: `1.5px solid ${COLORS.ink}`, cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: 8 }}>
-                      <Trophy size={14} strokeWidth={2.5} /> Join the leaderboard
+                  {!identity && !claimOpen && (
+                    <button onClick={() => { setClaimMsg(''); setClaimErr(false); setClaimOpen(true); }} style={{ fontFamily: MONO, fontSize: 13, letterSpacing: '0.08em', textTransform: 'uppercase', fontWeight: 700, lineHeight: '46px', padding: '0 24px', background: 'transparent', color: COLORS.ink, border: `1.5px solid ${COLORS.ink}`, cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: 8 }}>
+                      <Trophy size={14} strokeWidth={2.5} /> Post this to the leaderboard
                     </button>
+                  )}
+                  {!identity && claimOpen && (
+                    <div style={{ flexBasis: '100%', maxWidth: 420, margin: '4px auto 0' }}>
+                      <p style={{ fontFamily: SANS, fontSize: 13, color: '#4a4339', margin: '0 0 10px' }}>
+                        Add a name and email to post this {score}/{total} to the leaderboard. No password needed, and reusing the same email later keeps you attached.
+                      </p>
+                      <input value={jName} onChange={(e) => setJName(e.target.value)} maxLength={40} placeholder="Username" style={fieldStyle} />
+                      <input value={jEmail} onChange={(e) => setJEmail(e.target.value)} type="email" placeholder="you@email.com" style={{ ...fieldStyle, marginTop: 10 }} />
+                      <button onClick={submitClaim} disabled={claimBusy} style={{ marginTop: 12, width: '100%', fontFamily: MONO, fontSize: 13, letterSpacing: '0.1em', textTransform: 'uppercase', fontWeight: 700, lineHeight: '46px', border: 'none', background: COLORS.ember, color: '#fff', cursor: claimBusy ? 'default' : 'pointer', opacity: claimBusy ? 0.6 : 1 }}>
+                        {claimBusy ? 'Posting…' : 'Post this to the leaderboard'}
+                      </button>
+                    </div>
+                  )}
+                  {claimMsg && (
+                    <p style={{ flexBasis: '100%', fontFamily: MONO, fontSize: 12, margin: '6px 0 0', color: claimErr ? COLORS.ember : COLORS.forest }}>{claimMsg}</p>
                   )}
                 </div>
               </div>
