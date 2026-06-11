@@ -1,9 +1,4 @@
 {
-  "build": {
-    "env": {
-      "VERCEL_BUILD_SYSTEM_REPORT": "1"
-    }
-  },
   "crons": [
     {
       "path": "/api/cron/consensus-check",
