@@ -152,12 +152,16 @@ export async function generateMetadata({ params }) {
   };
 }
 
+// On-demand ISR (2026-06-11): we do NOT prerender all ~450 list pages at build
+// time. Each is a heavy SSG page (~1.27MB payload with inlined data) and the
+// resulting ~450 .html/.rsc files overran the build container at the Vercel
+// "Deploying outputs" step (OOM). Returning [] means each list page renders on
+// first request and is then cached for `revalidate` (3600s); pages stay fully
+// static-cached and indexable after the first hit. dynamicParams defaults true.
+export const dynamicParams = true;
+
 export function generateStaticParams() {
-  if (!Array.isArray(LISTS)) {
-    console.error('LISTS IS NOT AN ARRAY:', typeof LISTS, LISTS);
-    return [];
-  }
-  return LISTS.map((l) => ({ id: l.id }));
+  return [];
 }
 
 export default async function ListPage({ params }) {
