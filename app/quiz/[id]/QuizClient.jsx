@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { useRouter } from 'next/navigation';
-import { ArrowLeft, Share2, Check, Flag, Trophy } from 'lucide-react';
+import { ArrowLeft, Share2, Check, Flag, Trophy, HelpCircle } from 'lucide-react';
 import { QUIZZES, getQuiz } from '@/lib/quizzes';
 import Grain from '../../Grain';
 import Footer from '../../Footer';
@@ -120,6 +120,16 @@ export default function QuizClient({ quizId }) {
   const [claimErr, setClaimErr] = useState(false);
 
   const [copied, setCopied] = useState(false);
+
+  // Questions? modal (mirrors the list-page Request Review modal; routes to the
+  // same /api/complaints pipeline -> admin Notices tab + daily digest email).
+  const [qOpen, setQOpen] = useState(false);
+  const [qMsg, setQMsg] = useState('');
+  const [qName, setQName] = useState('');
+  const [qEmail, setQEmail] = useState('');
+  const [qSent, setQSent] = useState(false);
+  const [qBusy, setQBusy] = useState(false);
+
   const timerRef = useRef(null);
   const startRef = useRef(null);
   const inputRef = useRef(null);
@@ -331,6 +341,25 @@ export default function QuizClient({ quizId }) {
     setJoinBusy(false);
   }
 
+  async function submitQuestion() {
+    if (qBusy) return;
+    setQBusy(true);
+    try {
+      // Reuse the list complaints pipeline. Prefixing the title with [Quiz]
+      // lets the admin Notices tab and digest distinguish quiz questions and
+      // link them to /quiz/{id}.
+      await fetch('/api/complaints', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ listId: quiz.id, listTitle: `[Quiz] ${quiz.title}`, message: qMsg.trim(), name: qName.trim(), email: qEmail.trim() }),
+      });
+    } catch (e) {
+      // swallow - we still acknowledge the question to the reader
+    }
+    setQSent(true);
+    setQBusy(false);
+  }
+
   const clock = fmtTime(time);
   const shareUrl = typeof window !== 'undefined' ? window.location.href : `https://sourceoftruths.com/quiz/${quiz.id}`;
   function share() {
@@ -405,6 +434,13 @@ export default function QuizClient({ quizId }) {
               {chip('stats', 'Stats & Leaderboard')}
               {chip('join', 'Join the Leaderboard', <Trophy size={12} strokeWidth={2.5} />)}
               {chip('share', 'Share', <Share2 size={12} strokeWidth={2.5} />)}
+              <button
+                onClick={() => { setQSent(false); setQOpen(true); }}
+                style={{ flex: '1 0 auto', justifyContent: 'center', background: 'transparent', color: COLORS.cream, border: 'none', borderRight: '1px solid rgba(244,237,224,0.18)', padding: '0 16px', height: 42, whiteSpace: 'nowrap', fontFamily: MONO, fontSize: 10, letterSpacing: '0.18em', textTransform: 'uppercase', fontWeight: 700, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 6 }}
+              >
+                <HelpCircle size={12} strokeWidth={2.5} />
+                Questions?
+              </button>
             </div>
             {ribScroll.left && <span aria-hidden="true" className="qz-cue qz-cue-l">&#8249;</span>}
             {ribScroll.right && <span aria-hidden="true" className="qz-cue qz-cue-r">&#8250;</span>}
@@ -652,6 +688,78 @@ export default function QuizClient({ quizId }) {
           </div>
         )}
       </div>
+      {qOpen && (
+        <div
+          onClick={() => setQOpen(false)}
+          style={{ position: 'fixed', inset: 0, zIndex: 60, background: 'rgba(26,22,17,0.55)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '6vh 16px' }}
+        >
+          <div onClick={(e) => e.stopPropagation()} style={{ width: '100%', maxWidth: 480, background: COLORS.cream, border: `2px solid ${COLORS.ink}`, padding: 24 }}>
+            {qSent ? (
+              <>
+                <h3 style={{ fontFamily: SERIF, fontWeight: 700, fontSize: 22, margin: '0 0 10px' }}>Thanks, noted.</h3>
+                <p style={{ fontFamily: SANS, fontSize: 15, color: COLORS.faded, margin: '0 0 20px' }}>
+                  Your question went to the editors' desk. We read every one.
+                </p>
+                <button
+                  onClick={() => { setQOpen(false); setQSent(false); setQMsg(''); setQName(''); setQEmail(''); }}
+                  style={{ cursor: 'pointer', background: COLORS.ink, color: COLORS.cream, border: `1.5px solid ${COLORS.ink}`, padding: '12px 20px', fontFamily: MONO, fontSize: 11, letterSpacing: '0.16em', textTransform: 'uppercase', fontWeight: 600 }}
+                >
+                  Close
+                </button>
+              </>
+            ) : (
+              <>
+                <h3 style={{ fontFamily: SERIF, fontWeight: 700, fontSize: 22, margin: '0 0 6px' }}>Comments? Questions?</h3>
+                <p style={{ fontFamily: SANS, fontSize: 14, color: COLORS.faded, margin: '0 0 14px' }}>
+                  Spot an answer that should count, or something off about this quiz? Tell the editors.
+                </p>
+                <div style={{ display: 'flex', gap: 10, marginBottom: 10, flexWrap: 'wrap' }}>
+                  <input
+                    type="text"
+                    value={qName}
+                    onChange={(e) => setQName(e.target.value)}
+                    maxLength={120}
+                    placeholder="Name (optional)"
+                    style={{ flex: 1, minWidth: 140, boxSizing: 'border-box', padding: 12, border: `1.5px solid ${COLORS.ink}`, background: COLORS.paper, fontFamily: SANS, fontSize: 14, color: COLORS.ink, outline: 'none' }}
+                  />
+                  <input
+                    type="email"
+                    value={qEmail}
+                    onChange={(e) => setQEmail(e.target.value)}
+                    maxLength={200}
+                    placeholder="Email (optional)"
+                    style={{ flex: 1, minWidth: 140, boxSizing: 'border-box', padding: 12, border: `1.5px solid ${COLORS.ink}`, background: COLORS.paper, fontFamily: SANS, fontSize: 14, color: COLORS.ink, outline: 'none' }}
+                  />
+                </div>
+                <textarea
+                  value={qMsg}
+                  onChange={(e) => setQMsg(e.target.value)}
+                  maxLength={1000}
+                  rows={4}
+                  placeholder="What's your question or comment? (optional)"
+                  style={{ width: '100%', boxSizing: 'border-box', padding: 12, border: `1.5px solid ${COLORS.ink}`, background: COLORS.paper, fontFamily: SANS, fontSize: 14, color: COLORS.ink, outline: 'none', resize: 'vertical', marginBottom: 16 }}
+                />
+                <div style={{ display: 'flex', gap: 10, justifyContent: 'flex-end' }}>
+                  <button
+                    onClick={() => setQOpen(false)}
+                    style={{ cursor: 'pointer', background: 'transparent', color: COLORS.ink, border: `1.5px solid ${COLORS.ink}`, padding: '10px 18px', fontFamily: MONO, fontSize: 11, letterSpacing: '0.14em', textTransform: 'uppercase', fontWeight: 600 }}
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    onClick={submitQuestion}
+                    disabled={qBusy}
+                    style={{ cursor: 'pointer', background: COLORS.rust, color: COLORS.cream, border: `1.5px solid ${COLORS.rust}`, padding: '10px 18px', fontFamily: MONO, fontSize: 11, letterSpacing: '0.14em', textTransform: 'uppercase', fontWeight: 700, opacity: qBusy ? 0.6 : 1 }}
+                  >
+                    {qBusy ? 'Sending...' : 'Send to editors'}
+                  </button>
+                </div>
+              </>
+            )}
+          </div>
+        </div>
+      )}
+
       <Footer />
     </div>
   );
