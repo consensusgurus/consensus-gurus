@@ -14,14 +14,17 @@ export async function generateMetadata({ params }) {
   if (!quiz) return { title: 'Quiz not found | Source of Truths' };
 
   const url = `/quiz/${encodeURIComponent(id)}`;
-  const description = `${quiz.blurb} How many of the ${quiz.answers.length} can you name? Play the Source of Truths quiz.`;
+  const count = quiz.answers.length;
+  const secs = quiz.timeLimit || 90;
+  const description = `${quiz.blurb} ${count} to name, ${secs} seconds on the clock. How many can you get? Beat the clock, then the leaderboard.`;
+  const ogTitle = `${quiz.title} — Can You Beat the Clock?`;
 
   return {
     title: `${quiz.title} | Source of Truths`,
     description,
     alternates: { canonical: url },
     openGraph: {
-      title: `${quiz.title} | Source of Truths`,
+      title: ogTitle,
       description,
       url,
       type: 'website',
@@ -29,7 +32,7 @@ export async function generateMetadata({ params }) {
     },
     twitter: {
       card: 'summary_large_image',
-      title: `${quiz.title} | Source of Truths`,
+      title: ogTitle,
       description,
     },
   };
