@@ -473,6 +473,16 @@ export default function QuizClient({ quizId }) {
     lbTied[i] = prevSame || nextSame;
   }
 
+  const colSplit = (() => {
+    const cs = quiz.columnSplit;
+    if (!Array.isArray(cs) || cs.reduce((acc, n) => acc + n, 0) !== answers.length) return null;
+    const cols = []; let gi = 0;
+    for (const n of cs) { const r = []; for (let k = 0; k < n; k++) r.push(gi++); cols.push(r); }
+    return cols;
+  })();
+  const asOfRaw = quiz.publishedDate || (quiz.publishedAt ? quiz.publishedAt.slice(0, 10) : null);
+  const asOfLabel = asOfRaw ? new Date(asOfRaw + 'T12:00:00Z').toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric', timeZone: 'UTC' }) : null;
+
   return (
     <div style={{ minHeight: '100vh', background: COLORS.cream, color: COLORS.ink, position: 'relative', overflow: 'clip' }}>
       <Grain />
@@ -596,8 +606,8 @@ export default function QuizClient({ quizId }) {
               <MapQuizBoard region={quiz.region || 'europe'} started={started} ended={ended} foundNames={foundNamesSet} flash={flash} onPick={pickCountry} />
             </div>
             ) : (
-            <ol style={{ margin: 0, padding: 0, listStyle: 'none' }}>
-              {answers.map((a, i) => {
+            (() => {
+              const renderRow = (a, i) => {
                 const f = found[i];
                 const isActive = ordered && started && !ended && i === activeIdx;
                 return (
@@ -626,8 +636,24 @@ export default function QuizClient({ quizId }) {
                     <span style={{ width: 20, flex: 'none', color: COLORS.forest, opacity: f ? 1 : 0 }}><Check size={17} strokeWidth={3} /></span>
                   </li>
                 );
-              })}
-            </ol>
+              };
+              if (colSplit) {
+                return (
+                  <div style={{ display: 'flex', gap: 14, alignItems: 'flex-start', flexWrap: 'wrap' }}>
+                    {colSplit.map((idxs, ci) => (
+                      <ol key={ci} style={{ margin: 0, padding: 0, listStyle: 'none', flex: '1 1 200px', minWidth: 0 }}>
+                        {idxs.map((gi) => renderRow(answers[gi], gi))}
+                      </ol>
+                    ))}
+                  </div>
+                );
+              }
+              return (
+                <ol style={{ margin: 0, padding: 0, listStyle: 'none' }}>
+                  {answers.map((a, i) => renderRow(a, i))}
+                </ol>
+              );
+            })()
             )}
 
             {ended && (
@@ -758,6 +784,11 @@ export default function QuizClient({ quizId }) {
           </div>
         )}
 
+        {asOfLabel && (
+          <div style={{ marginTop: 36, paddingTop: 16, borderTop: `1px solid ${COLORS.faded}33`, fontFamily: MONO, fontSize: 11, letterSpacing: '0.1em', textTransform: 'uppercase', color: COLORS.faded, textAlign: 'center' }}>
+            Data as of {asOfLabel}
+          </div>
+        )}
         {quiz.source && (
           <div style={{ marginTop: 40, paddingTop: 18, borderTop: `1px solid ${COLORS.faded}33`, fontFamily: MONO, fontSize: 11, letterSpacing: '0.04em', color: COLORS.faded }}>
             Source:{' '}
