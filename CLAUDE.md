@@ -1754,6 +1754,15 @@ lists, ask once which (if any) should get quizzes rather than quizzing all of th
   becomes `o hare`), meaning a key hits when the player's guess **contains** it.
 - **`anti`** OPTIONAL substrings that BLOCK a match (disambiguation).
 
+### Blurb must NEVER name an answer (hard rule, 2026-06-11)
+
+The `blurb` is displayed on the quiz page BEFORE play starts. If it names any answer, it gives the
+game away. **No answer's display text (`t`), and no answer key substring, may appear in the blurb.**
+This applies to every quiz, including director/filmmaker filmographies where the temptation is to
+write "From Memento to Oppenheimer..." or "Goodfellas is the obvious first answer." Write the blurb
+in terms of the director/topic/genre/era, never the items themselves. Before shipping, scan every
+blurb against its answer list and fix any hits.
+
 ### Key-design rules (the matcher is substring-on-the-guess, so collisions are the real risk)
 
 - Give each answer its city/common name, its distinctive proper name, and its code, e.g.
