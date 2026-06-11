@@ -303,11 +303,10 @@ export default function QuizClient({ quizId }) {
             <ol style={{ margin: 0, padding: 0, listStyle: 'none' }}>
               {answers.map((a, i) => {
                 const f = found[i];
-                const reveal = ended && !f;
                 return (
-                  <li key={i} style={{ display: 'flex', alignItems: 'center', gap: 16, padding: '13px 16px', border: `1px solid ${f ? COLORS.forest : reveal ? COLORS.ember + '66' : COLORS.faded + '33'}`, marginBottom: 8, background: f ? '#fff' : reveal ? '#fdf0ee' : COLORS.paper, transform: f ? 'translateX(2px)' : 'none', transition: 'all .2s' }}>
+                  <li key={i} style={{ display: 'flex', alignItems: 'center', gap: 16, padding: '13px 16px', border: `1px solid ${f ? COLORS.forest : COLORS.faded + '33'}`, marginBottom: 8, background: f ? '#fff' : COLORS.paper, transform: f ? 'translateX(2px)' : 'none', transition: 'all .2s' }}>
                     <span style={{ fontFamily: SERIF, fontWeight: 800, fontSize: 22, width: 30, color: COLORS.ember, flex: 'none', textAlign: 'center' }}>{i + 1}</span>
-                    {f || reveal ? (
+                    {f ? (
                       <span style={{ fontFamily: SERIF, fontSize: 19, fontWeight: 500, flex: 1 }}>{a.t}</span>
                     ) : (
                       <span style={{ fontFamily: MONO, fontSize: 13, letterSpacing: '0.06em', color: COLORS.faded, opacity: 0.55, flex: 1 }}>— — — — —</span>
@@ -329,8 +328,8 @@ export default function QuizClient({ quizId }) {
                   {score} of {total} · you beat {percentile(score, total)}% of players
                 </div>
                 <p style={{ fontFamily: SANS, fontSize: 15, color: '#4a4339', maxWidth: 440, margin: '0 auto 18px' }}>
-                  {score > quiz.stats.avg ? `You beat the ${quiz.stats.avg} average.` : `The ${quiz.stats.avg} average is the score to beat.`} The titles above are filled in.
-                  {quiz.listId ? ' Want the full ranking, with sources and the consensus breakdown?' : ''}
+                  {score > quiz.stats.avg ? `You beat the ${quiz.stats.avg} average.` : `The ${quiz.stats.avg} average is the score to beat.`}
+                  {quiz.listId ? ' See the ones you missed in the full ranking, with sources and the consensus breakdown.' : ''}
                 </p>
                 {quiz.listId && (
                   <a
@@ -345,7 +344,7 @@ export default function QuizClient({ quizId }) {
 
             <div style={{ marginTop: 22, display: 'flex', gap: 10, justifyContent: 'center' }}>
               <button onClick={() => endGame(false)} disabled={ended || !started} style={ghostBtn(ended || !started)}>
-                <Flag size={12} strokeWidth={2.5} /> Give up &amp; reveal
+                <Flag size={12} strokeWidth={2.5} /> Give up
               </button>
             </div>
           </>
