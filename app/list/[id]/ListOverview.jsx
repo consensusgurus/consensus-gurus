@@ -123,7 +123,7 @@ const tileChrome = {
 // Shop/View link with no map and no pics.
 function LinkRow({ links, pics, websiteLabel, list }) {
   const isPlace = (list.linkType || 'mapsCity') === 'mapsCity';
-  const primaryLabel = isPlace ? 'Map' : list.linkLabel ? list.linkLabel : list.linkType === 'amazon' ? 'Purchase' : 'View';
+  const primaryLabel = isPlace ? 'Map' : list.linkLabel ? list.linkLabel : list.linkType === 'amazon' ? 'Buy' : 'View';
   const PrimaryIcon = isPlace ? MapPin : list.linkType === 'amazon' ? ShoppingBag : ExternalLink;
   return (
     <div style={{ display: 'flex', gap: 7, flexWrap: 'wrap', alignItems: 'center' }}>
@@ -586,7 +586,7 @@ function LedgerRow({ item, rank, list, desc, pics, isTop, heavyDivider, poster, 
   const href = poster ? null : links.map;
   const rel = bestRel(list);
   const isPlace = (list.linkType || 'mapsCity') === 'mapsCity';
-  const primaryLabel = isPlace ? 'Map' : list.linkLabel ? list.linkLabel : list.linkType === 'amazon' ? 'Purchase' : 'View';
+  const primaryLabel = isPlace ? 'Map' : list.linkLabel ? list.linkLabel : list.linkType === 'amazon' ? 'Buy' : 'View';
   const PrimaryIcon = isPlace ? MapPin : list.linkType === 'amazon' ? ShoppingBag : ExternalLink;
   const isProduct = list.type === 'product' || (list.tags || []).includes('product');
   const containHero = isProduct || list.heroFit === 'contain';
