@@ -383,12 +383,15 @@ export default function QuizClient({ quizId }) {
                 disabled={!started || ended}
                 onChange={(e) => setGuess(e.target.value)}
                 onKeyDown={onKey}
-                placeholder={started ? 'Type an airline, then Enter…' : 'Press Play to begin…'}
+                placeholder={started ? `Type ${/^[aeiou]/.test(quiz.noun || '') ? 'an' : 'a'} ${quiz.noun || 'answer'}, then Enter…` : 'Press Play to begin…'}
                 autoComplete="off"
                 style={{ flex: 1, fontFamily: SANS, fontSize: 17, padding: '14px 16px', border: `1.5px solid ${COLORS.ink}`, background: !started || ended ? COLORS.paper : '#fff', color: COLORS.ink, opacity: !started || ended ? 0.5 : 1 }}
               />
               <button onClick={start} disabled={started || ended} style={{ fontFamily: MONO, fontSize: 13, letterSpacing: '0.08em', textTransform: 'uppercase', fontWeight: 700, padding: '0 22px', border: 'none', background: COLORS.ember, color: '#fff', cursor: started || ended ? 'default' : 'pointer', opacity: started || ended ? 0.5 : 1 }}>
                 {ended ? 'Done' : started ? 'Playing' : 'Play'}
+              </button>
+              <button onClick={() => endGame(false)} disabled={ended || !started} style={ghostBtn(ended || !started)}>
+                <Flag size={12} strokeWidth={2.5} /> Give up
               </button>
             </div>
             <div style={{ fontFamily: MONO, fontSize: 12, minHeight: 18, marginBottom: 20, color: hintBad ? COLORS.ember : COLORS.faded }}>{hint}</div>
@@ -478,7 +481,7 @@ export default function QuizClient({ quizId }) {
         {/* ── SHARE ── */}
         {tab === 'share' && (
           <div style={{ textAlign: 'center', padding: '12px 0 8px' }}>
-            <p style={{ fontFamily: SERIF, fontStyle: 'italic', fontSize: 19, color: COLORS.ink, maxWidth: 480, margin: '0 auto 20px' }}>{ended ? `You named ${score} of ${total}. Challenge someone to beat it.` : 'Send this quiz to someone who thinks they know their airlines.'}</p>
+            <p style={{ fontFamily: SERIF, fontStyle: 'italic', fontSize: 19, color: COLORS.ink, maxWidth: 480, margin: '0 auto 20px' }}>{ended ? `You named ${score} of ${total}. Challenge someone to beat it.` : 'Send this quiz to someone who thinks they can name them all.'}</p>
             <button onClick={share} style={{ fontFamily: MONO, fontSize: 13, letterSpacing: '0.08em', textTransform: 'uppercase', fontWeight: 700, padding: '0 28px', lineHeight: '46px', border: 'none', background: COLORS.ember, color: '#fff', cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: 8 }}>
               <Share2 size={14} strokeWidth={2.5} /> {copied ? 'Link copied!' : 'Share this quiz'}
             </button>
