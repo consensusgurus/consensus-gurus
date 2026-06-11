@@ -218,6 +218,10 @@ export default function QuizHomeClient() {
             .qz-navcue-r{right:18px;animation:qzNavNudge 1.4s ease-in-out infinite;}
             .qz-navcue-l{left:18px;animation:qzNavNudgeL 1.4s ease-in-out infinite;}
             @media(min-width:760px){.qz-navcue{display:none;}}
+            .qz-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:16px;}
+            @media(max-width:1000px){.qz-grid{grid-template-columns:repeat(3,minmax(0,1fr));}}
+            @media(max-width:760px){.qz-grid{grid-template-columns:repeat(2,minmax(0,1fr));}}
+            @media(max-width:480px){.qz-grid{grid-template-columns:1fr;}}
           `}</style>
           <div className="qz-stats">
             <span>{QUIZZES.length} quizzes</span>
@@ -310,7 +314,7 @@ export default function QuizHomeClient() {
           </div>
 
           {sorted.length > 0 ? (
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: 16 }}>
+            <div className="qz-grid">
               {sorted.map((q) => (<QuizTile key={q.id} quiz={q} plays={totals.byQuiz[q.id] || 0} />))}
             </div>
           ) : (
