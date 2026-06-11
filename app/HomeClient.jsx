@@ -19,6 +19,7 @@ import Grain from './Grain';
 import Footer from './Footer';
 import SourcesPopover from './SourcesPopover';
 import { HERO_IMAGES } from '@/lib/hero-images';
+import { QUIZZES } from '@/lib/quizzes';
 
 // ── HOMEPAGE V2 (June 2026 redesign) ────────────────────────────────────────
 // Flip this single flag to false to restore the previous homepage exactly —
@@ -431,20 +432,13 @@ function Home({ lists, viewCounts, voteData, extras, trending = {}, openList, on
       : (Date.now() ^ Math.floor(Math.random() * 0xffffffff)) >>> 0
   );
 
-  // Homepage ticker tape (V2): recent consensus ranking movements, fed by
-  // /api/ticker (consensus_alerts), scrolled marquee-style at the end of the
-  // stats row. Appears only once entries load; absence never shifts layout.
-  const [tickerEntries, setTickerEntries] = useState([]);
+  // Featured quiz (V2): a single quiz spotlighted at the end of the stats row,
+  // linking to /quiz/<id>. A fresh one is picked at random on every page load
+  // (client-side, in an effect, so it never causes a hydration mismatch).
+  const [featuredQuiz, setFeaturedQuiz] = useState(null);
   useEffect(() => {
-    if (!HOME_V2) return undefined;
-    let alive = true;
-    fetch('/api/ticker')
-      .then((r) => (r.ok ? r.json() : null))
-      .then((d) => {
-        if (alive && d && Array.isArray(d.entries) && d.entries.length) setTickerEntries(d.entries);
-      })
-      .catch(() => {});
-    return () => { alive = false; };
+    if (!HOME_V2 || !Array.isArray(QUIZZES) || QUIZZES.length === 0) return;
+    setFeaturedQuiz(QUIZZES[Math.floor(Math.random() * QUIZZES.length)]);
   }, []);
 
   // Recompute shuffle order when the lists collection or seed changes.
@@ -750,10 +744,10 @@ function Home({ lists, viewCounts, voteData, extras, trending = {}, openList, on
           }
           .cg-stats{margin-top:16px;display:flex;justify-content:flex-start;align-items:baseline;flex-wrap:nowrap;white-space:nowrap;gap:16px;font-family:'DM Mono',monospace;font-size:11px;letter-spacing:0.15em;text-transform:uppercase;color:${COLORS.faded};}
           .cg-stats .cg-dot{opacity:0.5;}
-          .cg-tape{flex:1 1 auto;min-width:0;overflow:hidden;margin-left:8px;}
-          .cg-tape-track{display:inline-block;white-space:nowrap;animation-name:cg-tape-scroll;animation-timing-function:linear;animation-iteration-count:infinite;will-change:transform;}
-          .cg-tape-track:hover{animation-play-state:paused;}
-          @keyframes cg-tape-scroll{from{transform:translateX(0);}to{transform:translateX(-50%);}}
+          .cg-tape{flex:1 1 auto;min-width:0;overflow:hidden;margin-left:8px;text-overflow:ellipsis;}
+          .cg-feat{color:${COLORS.ember};text-decoration:none;white-space:nowrap;}
+          .cg-feat .cg-feat-label{color:${COLORS.faded};}
+          .cg-feat:hover .cg-feat-title{text-decoration:underline;}
           @media(max-width:760px){.cg-tape{display:none;}}
           @media(max-width:560px){.cg-stats{gap:10px;font-size:clamp(8px,2.7vw,11px);letter-spacing:0.06em;}}
         `}</style>
@@ -761,20 +755,12 @@ function Home({ lists, viewCounts, voteData, extras, trending = {}, openList, on
           <span>{lists.length} lists</span>
           <span><span aria-hidden="true" className="cg-dot">·</span> {totalVotes.toLocaleString()} votes</span>
           <span><span aria-hidden="true" className="cg-dot">·</span> {totalViews.toLocaleString()} visitors</span>
-          {HOME_V2 && tickerEntries.length > 0 && (
+          {HOME_V2 && featuredQuiz && (
             <span className="cg-tape">
-              <span className="cg-tape-track" style={{ animationDuration: `${Math.max(40, tickerEntries.length * 9)}s` }}>
-                {[0, 1].map((dup) => (
-                  <span key={dup} aria-hidden={dup === 1 ? 'true' : undefined}>
-                    {tickerEntries.map((e, i) => (
-                      <Link key={`${dup}-${i}`} href={`/list/${e.listId}`} style={{ color: COLORS.ember, textDecoration: 'none' }}>
-                        {e.dir === 'down' ? '\u25BC' : '\u25B2'} {e.label} · {e.listTitle}
-                        <span aria-hidden="true" style={{ color: COLORS.faded, padding: '0 14px' }}>{'\u25C6'}</span>
-                      </Link>
-                    ))}
-                  </span>
-                ))}
-              </span>
+              <Link className="cg-feat" href={`/quiz/${featuredQuiz.id}`}>
+                <span className="cg-feat-label">Featured Quiz: </span>
+                <span className="cg-feat-title">{featuredQuiz.title}</span>
+              </Link>
             </span>
           )}
         </div>
