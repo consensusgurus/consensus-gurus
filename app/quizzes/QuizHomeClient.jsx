@@ -1,7 +1,7 @@
 'use client';
 import React, { useState, useEffect, useMemo, useRef } from 'react';
 import Link from 'next/link';
-import { Search, X, ChevronDown, Plane, FerrisWheel, Trees, Clapperboard, Music, Gamepad2, BookOpen, Car, Youtube, Instagram, GraduationCap, Drama, Sparkles } from 'lucide-react';
+import { Search, X, ChevronDown, Plane, FerrisWheel, Trees, Clapperboard, Music, Gamepad2, BookOpen, Car, Youtube, Instagram, GraduationCap, Drama, Trophy, Sparkles } from 'lucide-react';
 import { COLORS } from '@/lib/data';
 import { QUIZZES } from '@/lib/quizzes';
 import Grain from '../Grain';
@@ -10,25 +10,34 @@ import Footer from '../Footer';
 // Group each quiz into a homepage-style department for the nav ribbon.
 function deptOf(q) {
   const id = q.id;
+  if (/sports?|nfl|nba|mlb|nhl|fifa|olympic|super-bowl|world-cup|athlete|grand-slam/.test(id)) return 'sports';
   if (q.type === 'travel') return 'travel';
-  if (/film|movie|box-office|director|actor|animated/.test(id)) return 'movies';
+  if (/film|movie|box-office|director|actor|animated|franchise/.test(id)) return 'movies';
   if (/song|album|single|spotify|music-video|concert-tour|billboard|soundtrack/.test(id)) return 'music';
   if (/games|video-games/.test(id)) return 'gaming';
+  if (/book/.test(id)) return 'literature';
   if (/youtube|instagram|broadway/.test(id)) return 'entertainment';
-  return 'more';
+  return 'misc';
 }
-const DEPTS = [
+// Primary ribbon buttons (Sporcle's biggest categories + Travel + Sports).
+const PRIMARY = [
   { id: 'all', label: 'All' },
   { id: 'movies', label: 'Movies' },
   { id: 'music', label: 'Music' },
   { id: 'gaming', label: 'Gaming' },
   { id: 'travel', label: 'Travel' },
+  { id: 'sports', label: 'Sports' },
+];
+// Additional categories, surfaced in the "More" dropdown rather than the ribbon.
+const MORE_CATS = [
   { id: 'entertainment', label: 'Entertainment' },
-  { id: 'more', label: 'More' },
+  { id: 'literature', label: 'Literature' },
+  { id: 'misc', label: 'Miscellaneous' },
 ];
 // Per-quiz category icon (finer than the nav department), shown on each tile.
 function iconOf(q) {
   const id = q.id;
+  if (/sports?|nfl|nba|mlb|nhl|fifa|olympic|super-bowl|world-cup|athlete|grand-slam/.test(id)) return Trophy;
   if (/airline/.test(id)) return Plane;
   if (/theme-park/.test(id)) return FerrisWheel;
   if (/national-park/.test(id)) return Trees;
@@ -92,6 +101,7 @@ export default function QuizHomeClient() {
   const [dept, setDept] = useState('all');
   const [sortBy, setSortBy] = useState('discover');
   const [sortOpen, setSortOpen] = useState(false);
+  const [moreOpen, setMoreOpen] = useState(false);
   const [totals, setTotals] = useState({ total: 0, byQuiz: {}, recent7: {} });
   const [recent, setRecent] = useState([]);
   const seedRef = useRef((Date.now() & 0xffffffff) >>> 0);
@@ -149,7 +159,7 @@ export default function QuizHomeClient() {
   const navBtn = (id, label, count) => {
     const active = dept === id;
     return (
-      <button key={id} onClick={() => setDept(id)} style={{ flex: '1 0 auto', background: active ? COLORS.ember : 'transparent', color: COLORS.cream, border: 'none', borderRight: '1px solid rgba(244,237,224,0.18)', height: 42, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6, padding: '0 18px', fontFamily: 'DM Mono, monospace', fontSize: 10.5, letterSpacing: '0.2em', textTransform: 'uppercase', fontWeight: 600, cursor: 'pointer', whiteSpace: 'nowrap' }}>
+      <button key={id} onClick={() => { setDept(id); setMoreOpen(false); }} style={{ flex: '1 0 auto', background: active ? COLORS.ember : 'transparent', color: COLORS.cream, border: 'none', borderRight: '1px solid rgba(244,237,224,0.18)', height: 42, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6, padding: '0 18px', fontFamily: 'DM Mono, monospace', fontSize: 10.5, letterSpacing: '0.2em', textTransform: 'uppercase', fontWeight: 600, cursor: 'pointer', whiteSpace: 'nowrap' }}>
         {label}<span style={{ opacity: 0.6 }}>{count || 0}</span>
       </button>
     );
@@ -221,10 +231,32 @@ export default function QuizHomeClient() {
           </svg>
           <div style={{ maxWidth: 1200, margin: '0 auto', padding: '0 16px', position: 'relative' }}>
             <div ref={deptNavRef} className="qz-deptnav" style={{ display: 'flex', alignItems: 'stretch', overflowX: 'auto', background: COLORS.ink, borderBottom: `3px solid ${COLORS.ember}` }}>
-              {DEPTS.map((d) => navBtn(d.id, d.label, counts[d.id]))}
+              {PRIMARY.map((d) => navBtn(d.id, d.label, counts[d.id]))}
+              {(() => {
+                const moreActive = MORE_CATS.some((c) => c.id === dept);
+                return (
+                  <button key="more" onClick={() => { setMoreOpen((o) => !o); setSortOpen(false); }} aria-haspopup="true" aria-expanded={moreOpen} style={{ flex: '1 0 auto', background: moreActive ? COLORS.ember : 'transparent', color: COLORS.cream, border: 'none', borderRight: '1px solid rgba(244,237,224,0.18)', height: 42, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6, padding: '0 18px', fontFamily: 'DM Mono, monospace', fontSize: 10.5, letterSpacing: '0.2em', textTransform: 'uppercase', fontWeight: 600, cursor: 'pointer', whiteSpace: 'nowrap' }}>
+                    More <span style={{ opacity: 0.7 }}>{moreOpen ? '\u25B4' : '\u25BE'}</span>
+                  </button>
+                );
+              })()}
             </div>
             {navScroll.left && <span aria-hidden="true" className="qz-navcue qz-navcue-l">&#8249;</span>}
             {navScroll.right && <span aria-hidden="true" className="qz-navcue qz-navcue-r">&#8250;</span>}
+            {moreOpen && (
+              <div style={{ position: 'absolute', top: '100%', left: 16, right: 16, zIndex: 30, background: COLORS.cream, border: `1.5px solid ${COLORS.ink}`, borderTop: 'none', boxShadow: '0 10px 24px rgba(26,22,17,0.25)' }}>
+                <div style={{ padding: '14px 18px 16px', display: 'flex', flexWrap: 'wrap', gap: 8 }}>
+                  {MORE_CATS.map((c) => {
+                    const active = dept === c.id;
+                    return (
+                      <button key={c.id} onClick={() => { setDept(c.id); setMoreOpen(false); }} style={{ display: 'inline-flex', alignItems: 'center', gap: 7, background: active ? COLORS.ember : COLORS.paper, color: active ? COLORS.cream : COLORS.ink, border: `1.5px solid ${COLORS.ink}`, padding: '8px 14px', fontFamily: 'DM Mono, monospace', fontSize: 10.5, letterSpacing: '0.16em', textTransform: 'uppercase', fontWeight: 700, cursor: 'pointer' }}>
+                        {c.label}<span style={{ opacity: 0.55, marginLeft: 2 }}>{counts[c.id] || 0}</span>
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
           </div>
         </nav>
 
@@ -236,7 +268,7 @@ export default function QuizHomeClient() {
               {query && (<button onClick={() => setQuery('')} aria-label="Clear search" style={{ position: 'absolute', right: 10, top: '50%', transform: 'translateY(-50%)', background: 'transparent', border: 'none', color: COLORS.faded, cursor: 'pointer', padding: 6, display: 'flex' }}><X size={16} strokeWidth={2.5} /></button>)}
             </div>
             <div className="cg-q-sort" style={{ position: 'relative', minWidth: 0 }} onClick={(e) => e.stopPropagation()}>
-              <button onClick={() => setSortOpen((o) => !o)} aria-haspopup="true" aria-expanded={sortOpen} style={{ position: 'relative', width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, background: COLORS.ink, color: COLORS.cream, border: `1.5px solid ${COLORS.ink}`, padding: '0 34px', fontFamily: 'DM Mono, monospace', fontSize: 11, letterSpacing: '0.14em', textTransform: 'uppercase', fontWeight: 600, cursor: 'pointer', whiteSpace: 'nowrap', overflow: 'hidden' }}>
+              <button onClick={() => { setSortOpen((o) => !o); setMoreOpen(false); }} aria-haspopup="true" aria-expanded={sortOpen} style={{ position: 'relative', width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, background: COLORS.ink, color: COLORS.cream, border: `1.5px solid ${COLORS.ink}`, padding: '0 34px', fontFamily: 'DM Mono, monospace', fontSize: 11, letterSpacing: '0.14em', textTransform: 'uppercase', fontWeight: 600, cursor: 'pointer', whiteSpace: 'nowrap', overflow: 'hidden' }}>
                 <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}><span style={{ opacity: 0.8 }}>Sort:</span> {(SORTS.find((o) => o.id === sortBy) || {}).short || 'Discover'}</span>
                 <ChevronDown size={14} strokeWidth={2.5} style={{ position: 'absolute', right: 14, top: '50%', transform: sortOpen ? 'translateY(-50%) rotate(180deg)' : 'translateY(-50%)', transition: 'transform 0.15s' }} />
               </button>
