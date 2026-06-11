@@ -1,7 +1,7 @@
 'use client';
 import React, { useState, useEffect, useMemo, useRef } from 'react';
 import Link from 'next/link';
-import { Search, X, ChevronDown } from 'lucide-react';
+import { Search, X, ChevronDown, Plane, FerrisWheel, Trees, Clapperboard, Music, Gamepad2, BookOpen, Car, Youtube, Instagram, GraduationCap, Drama, Sparkles } from 'lucide-react';
 import { COLORS } from '@/lib/data';
 import { QUIZZES } from '@/lib/quizzes';
 import Grain from '../Grain';
@@ -13,26 +13,36 @@ function deptOf(q) {
   if (q.type === 'travel') return 'travel';
   if (/film|movie|box-office|director|actor|animated/.test(id)) return 'movies';
   if (/song|album|single|spotify|music-video|concert-tour|billboard|soundtrack/.test(id)) return 'music';
-  if (/games|video-games/.test(id)) return 'games';
-  return 'other';
+  if (/games|video-games/.test(id)) return 'gaming';
+  if (/youtube|instagram|broadway/.test(id)) return 'entertainment';
+  return 'more';
 }
 const DEPTS = [
   { id: 'all', label: 'All' },
   { id: 'movies', label: 'Movies' },
   { id: 'music', label: 'Music' },
-  { id: 'games', label: 'Games' },
+  { id: 'gaming', label: 'Gaming' },
   { id: 'travel', label: 'Travel' },
-  { id: 'other', label: 'More' },
+  { id: 'entertainment', label: 'Entertainment' },
+  { id: 'more', label: 'More' },
 ];
-// Very light per-department tints for the tiles (color-coding by category).
-const TINTS = {
-  movies: '#ecdcd6',
-  music: '#efe2cf',
-  games: '#dfe4d4',
-  travel: '#dde6df',
-  other: '#e6dfd4',
-  all: '#ebe2d0',
-};
+// Per-quiz category icon (finer than the nav department), shown on each tile.
+function iconOf(q) {
+  const id = q.id;
+  if (/airline/.test(id)) return Plane;
+  if (/theme-park/.test(id)) return FerrisWheel;
+  if (/national-park/.test(id)) return Trees;
+  if (/best-selling-cars/.test(id)) return Car;
+  if (/book/.test(id)) return BookOpen;
+  if (/youtube/.test(id)) return Youtube;
+  if (/instagram/.test(id)) return Instagram;
+  if (/endowment|universit/.test(id)) return GraduationCap;
+  if (/broadway/.test(id)) return Drama;
+  if (/games|video-games/.test(id)) return Gamepad2;
+  if (/song|album|single|spotify|music-video|concert-tour|billboard|soundtrack/.test(id)) return Music;
+  if (/film|movie|box-office|director|actor|animated|franchise/.test(id)) return Clapperboard;
+  return Sparkles;
+}
 
 function seededShuffle(arr, seed) {
   const out = arr.slice();
@@ -54,23 +64,23 @@ const SORTS = [
 
 function QuizTile({ quiz, plays }) {
   const [hover, setHover] = useState(false);
-  const tint = TINTS[deptOf(quiz)] || COLORS.paper;
+  const Icon = iconOf(quiz);
   return (
     <Link
       href={`/quiz/${quiz.id}`}
       onMouseEnter={() => setHover(true)}
       onMouseLeave={() => setHover(false)}
-      style={{ cursor: 'pointer', textDecoration: 'none', display: 'flex', flexDirection: 'column', background: tint, color: COLORS.ink, border: `1.5px solid ${COLORS.ink}`, overflow: 'hidden', transition: 'all 0.2s ease', transform: hover ? 'translate(-2px, -2px)' : 'none', boxShadow: hover ? `3px 3px 0 ${COLORS.ember}` : 'none' }}
+      style={{ cursor: 'pointer', textDecoration: 'none', display: 'flex', flexDirection: 'column', background: COLORS.paper, color: COLORS.ink, border: `1.5px solid ${COLORS.ink}`, overflow: 'hidden', transition: 'all 0.2s ease', transform: hover ? 'translate(-2px, -2px)' : 'none', boxShadow: hover ? `3px 3px 0 ${COLORS.ember}` : 'none' }}
     >
       <div style={{ padding: '16px 18px 14px', display: 'flex', flexDirection: 'column', flex: '1 1 auto', minHeight: 0 }}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', gap: 8, marginBottom: 10 }}>
-          <span style={{ fontFamily: 'DM Mono, monospace', fontSize: 10, letterSpacing: '0.18em', textTransform: 'uppercase', color: COLORS.ember, fontWeight: 700 }}>{quiz.category || 'Quiz'} · Quiz</span>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 8, marginBottom: 10 }}>
+          <span style={{ display: 'inline-flex', alignItems: 'center', gap: 7, minWidth: 0, fontFamily: 'DM Mono, monospace', fontSize: 10, letterSpacing: '0.18em', textTransform: 'uppercase', color: COLORS.ink, fontWeight: 700 }}><Icon size={14} strokeWidth={2} aria-hidden="true" style={{ color: COLORS.ember, flex: 'none' }} /><span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{quiz.category || 'Quiz'} · Quiz</span></span>
           <span style={{ fontFamily: 'DM Mono, monospace', fontSize: 10, letterSpacing: '0.1em', textTransform: 'uppercase', color: COLORS.faded }}>{quiz.answers.length} to name</span>
         </div>
         <h3 style={{ fontFamily: 'Fraunces, serif', fontWeight: 700, fontSize: 22, lineHeight: 1.1, letterSpacing: '-0.01em', margin: 0, color: COLORS.ink }}>{quiz.title}</h3>
-        <div style={{ marginTop: 'auto', paddingTop: 14, display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', gap: 8, fontFamily: 'DM Mono, monospace', fontSize: 11, letterSpacing: '0.14em', textTransform: 'uppercase', fontWeight: 700 }}>
-          <span style={{ color: COLORS.ember }}>▶ Play · 90s</span>
-          {plays > 0 && (<span style={{ color: COLORS.faded, fontWeight: 600 }}>{plays.toLocaleString()} plays</span>)}
+        <div style={{ marginTop: 'auto', paddingTop: 14, display: 'flex', justifyContent: 'center', alignItems: 'baseline', gap: 8, fontFamily: 'DM Mono, monospace', fontSize: 11, letterSpacing: '0.14em', textTransform: 'uppercase', fontWeight: 700 }}>
+          <span style={{ color: COLORS.ink }}>▶ Play</span>
+          {plays > 0 && (<span style={{ color: COLORS.faded, fontWeight: 600, letterSpacing: '0.1em' }}>· {plays.toLocaleString()} plays</span>)}
         </div>
       </div>
     </Link>
@@ -85,6 +95,21 @@ export default function QuizHomeClient() {
   const [totals, setTotals] = useState({ total: 0, byQuiz: {}, recent7: {} });
   const [recent, setRecent] = useState([]);
   const seedRef = useRef((Date.now() & 0xffffffff) >>> 0);
+  // Horizontal-scroll affordance for the department ribbon (mobile cue arrows).
+  const deptNavRef = useRef(null);
+  const [navScroll, setNavScroll] = useState({ left: false, right: false });
+  useEffect(() => {
+    const el = deptNavRef.current;
+    if (!el) return undefined;
+    const update = () => {
+      const more = el.scrollWidth - el.clientWidth;
+      setNavScroll({ left: el.scrollLeft > 2, right: more > 2 && el.scrollLeft < more - 2 });
+    };
+    update();
+    el.addEventListener('scroll', update, { passive: true });
+    window.addEventListener('resize', update);
+    return () => { el.removeEventListener('scroll', update); window.removeEventListener('resize', update); };
+  }, [dept]);
 
   useEffect(() => {
     fetch('/api/quiz/totals').then((r) => r.json()).then((d) => { if (d && !d.error) setTotals({ total: d.total || 0, byQuiz: d.byQuiz || {}, recent7: d.recent7 || {} }); }).catch(() => {});
@@ -160,6 +185,13 @@ export default function QuizHomeClient() {
             .qz-tape-track:hover{animation-play-state:paused;}
             @keyframes qz-tape-scroll{from{transform:translateX(0);}to{transform:translateX(-50%);}}
             @media(max-width:760px){.qz-tape{display:none;}}
+            .qz-deptnav{scrollbar-width:none;-ms-overflow-style:none;}.qz-deptnav::-webkit-scrollbar{display:none;}
+            @keyframes qzNavNudge{0%,100%{transform:translate(0,-50%);}50%{transform:translate(3px,-50%);}}
+            @keyframes qzNavNudgeL{0%,100%{transform:translate(0,-50%);}50%{transform:translate(-3px,-50%);}}
+            .qz-navcue{position:absolute;top:50%;z-index:2;display:flex;align-items:center;justify-content:center;width:26px;height:26px;border-radius:50%;background:${COLORS.ember};color:${COLORS.cream};box-shadow:0 1px 4px rgba(26,22,17,0.45);pointer-events:none;font-size:15px;line-height:1;}
+            .qz-navcue-r{right:18px;animation:qzNavNudge 1.4s ease-in-out infinite;}
+            .qz-navcue-l{left:18px;animation:qzNavNudgeL 1.4s ease-in-out infinite;}
+            @media(min-width:760px){.qz-navcue{display:none;}}
           `}</style>
           <div className="qz-stats">
             <span>{QUIZZES.length} quizzes</span>
@@ -188,9 +220,11 @@ export default function QuizHomeClient() {
             <rect width="100%" height="100%" filter="url(#qz-nav-grain)" />
           </svg>
           <div style={{ maxWidth: 1200, margin: '0 auto', padding: '0 16px', position: 'relative' }}>
-            <div style={{ display: 'flex', alignItems: 'stretch', overflowX: 'auto', background: COLORS.ink, borderBottom: `3px solid ${COLORS.ember}` }}>
+            <div ref={deptNavRef} className="qz-deptnav" style={{ display: 'flex', alignItems: 'stretch', overflowX: 'auto', background: COLORS.ink, borderBottom: `3px solid ${COLORS.ember}` }}>
               {DEPTS.map((d) => navBtn(d.id, d.label, counts[d.id]))}
             </div>
+            {navScroll.left && <span aria-hidden="true" className="qz-navcue qz-navcue-l">&#8249;</span>}
+            {navScroll.right && <span aria-hidden="true" className="qz-navcue qz-navcue-r">&#8250;</span>}
           </div>
         </nav>
 
@@ -202,9 +236,9 @@ export default function QuizHomeClient() {
               {query && (<button onClick={() => setQuery('')} aria-label="Clear search" style={{ position: 'absolute', right: 10, top: '50%', transform: 'translateY(-50%)', background: 'transparent', border: 'none', color: COLORS.faded, cursor: 'pointer', padding: 6, display: 'flex' }}><X size={16} strokeWidth={2.5} /></button>)}
             </div>
             <div className="cg-q-sort" style={{ position: 'relative', minWidth: 0 }} onClick={(e) => e.stopPropagation()}>
-              <button onClick={() => setSortOpen((o) => !o)} aria-haspopup="true" aria-expanded={sortOpen} style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, background: COLORS.ink, color: COLORS.cream, border: `1.5px solid ${COLORS.ink}`, padding: '0 14px', fontFamily: 'DM Mono, monospace', fontSize: 11, letterSpacing: '0.14em', textTransform: 'uppercase', fontWeight: 600, cursor: 'pointer', whiteSpace: 'nowrap', overflow: 'hidden' }}>
+              <button onClick={() => setSortOpen((o) => !o)} aria-haspopup="true" aria-expanded={sortOpen} style={{ position: 'relative', width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, background: COLORS.ink, color: COLORS.cream, border: `1.5px solid ${COLORS.ink}`, padding: '0 34px', fontFamily: 'DM Mono, monospace', fontSize: 11, letterSpacing: '0.14em', textTransform: 'uppercase', fontWeight: 600, cursor: 'pointer', whiteSpace: 'nowrap', overflow: 'hidden' }}>
                 <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}><span style={{ opacity: 0.8 }}>Sort:</span> {(SORTS.find((o) => o.id === sortBy) || {}).short || 'Discover'}</span>
-                <ChevronDown size={14} strokeWidth={2.5} style={{ transform: sortOpen ? 'rotate(180deg)' : 'none', transition: 'transform 0.15s' }} />
+                <ChevronDown size={14} strokeWidth={2.5} style={{ position: 'absolute', right: 14, top: '50%', transform: sortOpen ? 'translateY(-50%) rotate(180deg)' : 'translateY(-50%)', transition: 'transform 0.15s' }} />
               </button>
               {sortOpen && (
                 <div role="menu" style={{ position: 'absolute', top: 'calc(100% + 6px)', left: 0, zIndex: 30, minWidth: 200, background: COLORS.cream, border: `1.5px solid ${COLORS.ink}` }}>
