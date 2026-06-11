@@ -1,8 +1,26 @@
 import { NextResponse } from 'next/server';
-import { supabase } from '@/lib/supabase';
 import { supabaseAdmin } from '@/lib/supabase-server';
 
 export const dynamic = 'force-dynamic';
+export const fetchCache = 'force-no-store';
+
+function summarize(rows) {
+  const plays = rows.length;
+  const avg = plays ? Math.round((rows.reduce((s, r) => s + r.score, 0) / plays) * 10) / 10 : null;
+  const best = new Map();
+  for (const r of rows) {
+    if (!r.user_id) continue;
+    const cur = best.get(r.user_id);
+    if (!cur || r.score > cur.score || (r.score === cur.score && r.time_elapsed < cur.time_elapsed)) {
+      best.set(r.user_id, r);
+    }
+  }
+  const leaderboard = [...best.values()]
+    .sort((a, b) => b.score - a.score || a.time_elapsed - b.time_elapsed)
+    .slice(0, 25)
+    .map((r) => ({ username: r.username, score: r.score, timeElapsed: r.time_elapsed }));
+  return { plays, avg, leaderboard };
+}
 
 // POST /api/quiz/result  { quizId, score, total, timeElapsed, email? }
 // Records one completed game (this is what makes the play count + average
@@ -10,7 +28,7 @@ export const dynamic = 'force-dynamic';
 // feeds the leaderboard. Returns refreshed { plays, avg, leaderboard }.
 //
 // Scores are client-submitted; values are sanity-bounded here but not
-// cryptographically verified — acceptable for a casual leaderboard.
+// cryptographically verified - acceptable for a casual leaderboard.
 export async function POST(request) {
   try {
     const body = (await request.json()) || {};
@@ -54,20 +72,11 @@ export async function POST(request) {
       return NextResponse.json({ error: 'db error' }, { status: 500 });
     }
 
-    const [statsRes, lbRes] = await Promise.all([
-      supabase.rpc('quiz_stats', { p_quiz_id: quizId }),
-      supabase.rpc('quiz_leaderboard', { p_quiz_id: quizId, p_limit: 25 }),
-    ]);
-    const s = Array.isArray(statsRes.data) ? statsRes.data[0] : statsRes.data;
-    return NextResponse.json({
-      plays: Number(s?.plays || 0),
-      avg: s?.avg_score != null ? Number(s.avg_score) : null,
-      leaderboard: (lbRes.data || []).map((r) => ({
-        username: r.username,
-        score: r.score,
-        timeElapsed: r.time_elapsed,
-      })),
-    });
+    const { data } = await supabaseAdmin
+      .from('quiz_results')
+      .select('user_id, username, score, time_elapsed')
+      .eq('quiz_id', quizId);
+    return NextResponse.json(summarize(data || []));
   } catch (e) {
     return NextResponse.json({ error: 'invalid request' }, { status: 400 });
   }
