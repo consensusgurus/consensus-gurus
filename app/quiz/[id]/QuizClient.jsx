@@ -84,6 +84,7 @@ export default function QuizClient({ quizId }) {
 
   const answers = quiz.answers;
   const total = answers.length;
+  const matched = quiz.format === 'matched';
   const relatedQuizzes = (() => {
     const d = deptOf(quiz);
     let r = QUIZZES.filter((x) => x.id !== quiz.id && deptOf(x) === d);
@@ -211,7 +212,7 @@ export default function QuizClient({ quizId }) {
     if (started || ended) return;
     setStarted(true);
     startRef.current = Date.now();
-    setHint('Go — name them all.');
+    setHint(matched ? "Go — name each year's winner." : 'Go — name them all.');
     setHintBad(false);
     timerRef.current = setInterval(() => {
       setTime((t) => {
@@ -248,6 +249,31 @@ export default function QuizClient({ quizId }) {
     if (e.key !== 'Enter' || !started || ended) return;
     checkGuess(e.target.value);
     setGuess('');
+  }
+
+  // Matched mode: each slot has its own input that only accepts that slot's answer.
+  function checkSlot(i, raw) {
+    const g = norm(raw);
+    if (!g || found[i]) return;
+    const a = answers[i];
+    const hit = a.keys.some((k) => g.includes(norm(k)));
+    const blocked = (a.anti || []).some((k) => g.includes(norm(k)));
+    if (hit && !blocked) {
+      const next = found.slice();
+      next[i] = true;
+      setFound(next);
+      setHint(`Correct — ${a.label != null ? a.label + ': ' : ''}${a.t}`);
+      setHintBad(false);
+      if (next.every(Boolean)) endGame(true);
+    } else {
+      setHint("Not that year's winner. Try again.");
+      setHintBad(true);
+    }
+  }
+  function onSlotKey(i, e) {
+    if (e.key !== 'Enter' || !started || ended) return;
+    checkSlot(i, e.target.value);
+    e.target.value = '';
   }
 
   async function submitJoin() {
@@ -339,6 +365,16 @@ export default function QuizClient({ quizId }) {
             </div>
           </div>
           <p style={{ fontFamily: SERIF, fontStyle: 'italic', fontSize: 16, lineHeight: 1.45, margin: '12px 0 0', color: COLORS.faded, maxWidth: 640 }}>{quiz.blurb}</p>
+          {quiz.source && (
+            <p style={{ fontFamily: MONO, fontSize: 11, letterSpacing: '0.04em', color: COLORS.faded, margin: '10px 0 0' }}>
+              Source:{' '}
+              {quiz.source.url ? (
+                <a href={quiz.source.url} target="_blank" rel="noopener noreferrer" style={{ color: COLORS.rust }}>{quiz.source.label}</a>
+              ) : (
+                quiz.source.label
+              )}
+            </p>
+          )}
         </div>
 
         {/* Ribbon */}
@@ -407,18 +443,20 @@ export default function QuizClient({ quizId }) {
             </div>
 
             <div style={{ display: 'flex', gap: 10, marginBottom: 6 }}>
-              <input
-                ref={inputRef}
-                value={guess}
-                disabled={!started || ended}
-                onChange={(e) => setGuess(e.target.value)}
-                onKeyDown={onKey}
-                placeholder={started ? `Type ${/^[aeiou]/.test(quiz.noun || '') ? 'an' : 'a'} ${quiz.noun || 'answer'}, then Enter…` : 'Press Play to begin…'}
-                autoComplete="off"
-                style={{ flex: 1, fontFamily: SANS, fontSize: 17, padding: '14px 16px', border: `1.5px solid ${COLORS.ink}`, background: !started || ended ? COLORS.paper : '#fff', color: COLORS.ink, opacity: !started || ended ? 0.5 : 1 }}
-              />
-              <button onClick={start} disabled={started || ended} style={{ fontFamily: MONO, fontSize: 13, letterSpacing: '0.08em', textTransform: 'uppercase', fontWeight: 700, padding: '0 22px', border: 'none', background: COLORS.ember, color: '#fff', cursor: started || ended ? 'default' : 'pointer', opacity: started || ended ? 0.5 : 1 }}>
-                {ended ? 'Done' : started ? 'Playing' : 'Play'}
+              {!matched && (
+                <input
+                  ref={inputRef}
+                  value={guess}
+                  disabled={!started || ended}
+                  onChange={(e) => setGuess(e.target.value)}
+                  onKeyDown={onKey}
+                  placeholder={started ? `Type ${/^[aeiou]/.test(quiz.noun || '') ? 'an' : 'a'} ${quiz.noun || 'answer'}, then Enter…` : 'Press Play to begin…'}
+                  autoComplete="off"
+                  style={{ flex: 1, fontFamily: SANS, fontSize: 17, padding: '14px 16px', border: `1.5px solid ${COLORS.ink}`, background: !started || ended ? COLORS.paper : '#fff', color: COLORS.ink, opacity: !started || ended ? 0.5 : 1 }}
+                />
+              )}
+              <button onClick={start} disabled={started || ended} style={{ flex: matched ? 1 : 'none', fontFamily: MONO, fontSize: 13, letterSpacing: '0.08em', textTransform: 'uppercase', fontWeight: 700, padding: '0 22px', height: matched ? 50 : 'auto', border: 'none', background: COLORS.ember, color: '#fff', cursor: started || ended ? 'default' : 'pointer', opacity: started || ended ? 0.5 : 1 }}>
+                {ended ? 'Done' : started ? 'Playing' : matched ? 'Play — name each year' : 'Play'}
               </button>
             </div>
             <div style={{ fontFamily: MONO, fontSize: 12, minHeight: 18, marginBottom: 20, color: hintBad ? COLORS.ember : COLORS.faded }}>{hint}</div>
@@ -428,9 +466,22 @@ export default function QuizClient({ quizId }) {
                 const f = found[i];
                 return (
                   <li key={i} style={{ display: 'flex', alignItems: 'center', gap: 16, padding: '13px 16px', border: `1px solid ${f ? COLORS.forest : COLORS.faded + '33'}`, marginBottom: 8, background: f ? '#fff' : COLORS.paper, transform: f ? 'translateX(2px)' : 'none', transition: 'all .2s' }}>
-                    <span style={{ fontFamily: SERIF, fontWeight: 800, fontSize: 22, width: 30, color: COLORS.ember, flex: 'none', textAlign: 'center' }}>{i + 1}</span>
+                    {a.label != null ? (
+                      <span style={{ fontFamily: MONO, fontWeight: 700, fontSize: 15, width: 52, color: COLORS.ember, flex: 'none', textAlign: 'left', letterSpacing: '0.04em' }}>{a.label}</span>
+                    ) : (
+                      <span style={{ fontFamily: SERIF, fontWeight: 800, fontSize: 22, width: 30, color: COLORS.ember, flex: 'none', textAlign: 'center' }}>{i + 1}</span>
+                    )}
                     {f ? (
                       <span style={{ fontFamily: SERIF, fontSize: 19, fontWeight: 500, flex: 1 }}>{a.t}</span>
+                    ) : matched ? (
+                      <input
+                        ref={i === 0 ? inputRef : undefined}
+                        disabled={!started || ended}
+                        onKeyDown={(e) => onSlotKey(i, e)}
+                        placeholder={started ? 'Type the winner, then Enter…' : ''}
+                        autoComplete="off"
+                        style={{ flex: 1, fontFamily: SANS, fontSize: 16, padding: '9px 12px', border: `1.5px solid ${COLORS.ink}`, background: !started || ended ? COLORS.paper : '#fff', color: COLORS.ink, opacity: !started || ended ? 0.5 : 1 }}
+                      />
                     ) : (
                       <span style={{ fontFamily: MONO, fontSize: 13, letterSpacing: '0.06em', color: COLORS.faded, opacity: 0.55, flex: 1 }}>— — — — —</span>
                     )}
