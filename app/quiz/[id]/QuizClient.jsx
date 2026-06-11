@@ -25,6 +25,26 @@ const SANS = 'DM Sans, sans-serif';
 function norm(s) {
   return (s || '').toLowerCase().replace(/[^a-z0-9 ]/g, ' ').replace(/\s+/g, ' ').trim();
 }
+
+// Order-independent key match. A key counts when the normalized guess CONTAINS
+// it as a substring (so a fuller guess satisfies a short key, e.g. "delta air
+// lines" -> key "delta"), OR when the key is two-plus words and every one of
+// those words appears as a whole token in the guess regardless of order (so
+// "disneyland tokyo" satisfies the key "tokyo disneyland"). Single-word keys
+// stay substring-only, which preserves partial-typing and the existing
+// collision rules. Used for both keys (accept) and anti (block).
+function keyHit(g, key) {
+  const k = norm(key);
+  if (!k) return false;
+  if (g.includes(k)) return true;
+  const kt = k.split(' ');
+  if (kt.length < 2) return false;
+  const gt = g.split(' ');
+  return kt.every((w) => gt.includes(w));
+}
+function anyKey(g, keys) {
+  return (keys || []).some((k) => keyHit(g, k));
+}
 function deptOf(q) {
   const id = q.id || '';
   if (q.type === 'travel') return 'travel';
@@ -241,8 +261,8 @@ export default function QuizClient({ quizId }) {
     for (let i = 0; i < answers.length; i++) {
       if (found[i]) continue;
       const a = answers[i];
-      const hit = a.keys.some((k) => g.includes(norm(k)));
-      const blocked = (a.anti || []).some((k) => g.includes(norm(k)));
+      const hit = anyKey(g, a.keys);
+      const blocked = anyKey(g, a.anti);
       if (hit && !blocked) {
         const next = found.slice();
         next[i] = true;
@@ -268,8 +288,8 @@ export default function QuizClient({ quizId }) {
     const g = norm(raw);
     if (!g || found[i]) return;
     const a = answers[i];
-    const hit = a.keys.some((k) => g.includes(norm(k)));
-    const blocked = (a.anti || []).some((k) => g.includes(norm(k)));
+    const hit = anyKey(g, a.keys);
+    const blocked = anyKey(g, a.anti);
     if (hit && !blocked) {
       const next = found.slice();
       next[i] = true;
@@ -295,8 +315,8 @@ export default function QuizClient({ quizId }) {
     const i = found.findIndex((x) => !x);
     if (i < 0) return;
     const a = answers[i];
-    const hit = a.keys.some((k) => g.includes(norm(k)));
-    const blocked = (a.anti || []).some((k) => g.includes(norm(k)));
+    const hit = anyKey(g, a.keys);
+    const blocked = anyKey(g, a.anti);
     if (hit && !blocked) {
       const next = found.slice();
       next[i] = true;

@@ -1749,10 +1749,16 @@ lists, ask once which (if any) should get quizzes rather than quizzing all of th
 
 - **`t`** canonical display name, revealed on a miss. No scores or figures, just the name (e.g.
   `'Hartsfield-Jackson Atlanta (ATL)'`).
-- **`keys`** lowercase substrings that count as a correct guess. The matcher is
-  `normalizedGuess.includes(key)` (the guess is lowercased and punctuation stripped, so `o'hare`
-  becomes `o hare`), meaning a key hits when the player's guess **contains** it.
-- **`anti`** OPTIONAL substrings that BLOCK a match (disambiguation).
+- **`keys`** lowercase substrings that count as a correct guess. The matcher (`keyHit` in
+  `app/quiz/[id]/QuizClient.jsx`) is **order-independent**: a key hits when the normalized guess
+  (lowercased, punctuation stripped, so `o'hare` -> `o hare`) **contains** the key as a substring,
+  OR when the key is **two or more words and every one of those words appears as a whole token in
+  the guess, in any order**. So the key `'tokyo disneyland'` is also satisfied by `disneyland tokyo`,
+  and `'kansas city'` by `city kansas`. Single-word keys stay substring-only (preserving partial
+  typing and the collision rules below). Word order never matters on any list (owner rule,
+  2026-06-11) — author keys in their natural order and the matcher handles the rest.
+- **`anti`** OPTIONAL substrings that BLOCK a match (disambiguation). Anti runs through the same
+  `keyHit`, but since anti guards are single words it behaves as a plain substring block as before.
 
 ### Blurb must NEVER name an answer (hard rule, 2026-06-11)
 
@@ -1763,7 +1769,7 @@ write "From Memento to Oppenheimer..." or "Goodfellas is the obvious first answe
 in terms of the director/topic/genre/era, never the items themselves. Before shipping, scan every
 blurb against its answer list and fix any hits.
 
-### Key-design rules (the matcher is substring-on-the-guess, so collisions are the real risk)
+### Key-design rules (the matcher is substring + any-order tokens, so collisions are the real risk)
 
 - Give each answer its city/common name, its distinctive proper name, and its code, e.g.
   `['atlanta','hartsfield','atl']`. For airports the IATA code is a great key; normalize `o'hare`
@@ -1773,9 +1779,11 @@ blurb against its answer list and fix any hits.
   like `'can'` (Guangzhou) that are common substrings of unrelated words. When in doubt prefer the
   full name over a 3-letter code, or add an `anti` guard.
 - **Verify before shipping:** run each answer's own `t` (and every other answer's `t`) through the
-  matcher and confirm nothing cross-matches the wrong slot. A tiny node loop simulating
-  `norm(guess).includes(key)` against the array catches this (it caught the `las`/`dallas` clash on
-  the airports quizzes).
+  matcher and confirm nothing cross-matches the wrong slot. Because matching is now any-order, also
+  check that a multi-word key's words don't all coincidentally appear in another default-format
+  answer's name. A tiny node loop simulating `keyHit` (substring OR all-tokens-present) against the
+  array catches this (it caught the `las`/`dallas` clash on the airports quizzes). Order-independence
+  is slot-isolated in `matched`/`ordered` quizzes, so repeated-franchise year slots are unaffected.
 
 ### Timestamps: every quiz needs a distinct `publishedAt`
 
