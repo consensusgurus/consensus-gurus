@@ -1,14 +1,20 @@
 import { ImageResponse } from 'next/og'
 import { QUIZZES } from '@/lib/quizzes'
+import { supabaseAdmin } from '@/lib/supabase-server'
+import { fetchAllRows } from '@/lib/fetch-all'
 
 export const runtime = 'nodejs';
+// Regenerate hourly so the featured row tracks current popularity without
+// hammering the database on every scrape.
+export const revalidate = 3600;
+
 export const alt = 'Source of Truths quizzes — how many can you name?'
 export const size = { width: 1200, height: 630 }
 export const contentType = 'image/png'
 
-// A few marquee quizzes to tease on the hub card. Falls back to the first few
-// if any id is missing.
-const FEATURED_IDS = [
+// Curated marquee used only to fill the featured row when there aren't yet
+// enough played quizzes to rank by popularity.
+const FALLBACK_IDS = [
   'top-grossing-films-1990s',
   'best-selling-albums-all-time',
   'most-streamed-spotify-songs',
@@ -17,6 +23,23 @@ const FEATURED_IDS = [
 
 function strip(title) {
   return (title || '').replace(/^Name the /, '').replace(/^Name /, '')
+}
+
+// The quizzes with the most completed plays, most-played first. Returns null on
+// any failure so the caller can fall back to the curated marquee.
+async function quizzesByPlays() {
+  try {
+    const { data, error } = await fetchAllRows(supabaseAdmin, 'quiz_results', 'quiz_id', ['quiz_id'])
+    if (error || !Array.isArray(data)) return null
+    const byQuiz = {}
+    for (const r of data) byQuiz[r.quiz_id] = (byQuiz[r.quiz_id] || 0) + 1
+    const ranked = (QUIZZES || [])
+      .filter((q) => byQuiz[q.id])
+      .sort((a, b) => (byQuiz[b.id] - byQuiz[a.id]) || a.title.localeCompare(b.title))
+    return ranked.length ? ranked : null
+  } catch (e) {
+    return null
+  }
 }
 
 export default async function Image() {
@@ -40,8 +63,18 @@ export default async function Image() {
 
   const count = Array.isArray(QUIZZES) ? QUIZZES.length : 0
   const byId = Object.fromEntries((QUIZZES || []).map((q) => [q.id, q]))
-  let featured = FEATURED_IDS.map((id) => byId[id]).filter(Boolean)
-  if (featured.length < 4) featured = (QUIZZES || []).slice(0, 4)
+
+  // Feature the most-played quizzes; fill from the curated marquee (then the
+  // rest) when fewer than four have been played yet.
+  let featured = (await quizzesByPlays()) || []
+  if (featured.length < 4) {
+    const seen = new Set(featured.map((q) => q.id))
+    const fill = [...FALLBACK_IDS.map((id) => byId[id]).filter(Boolean), ...(QUIZZES || [])]
+    for (const q of fill) {
+      if (featured.length >= 4) break
+      if (!seen.has(q.id)) { featured.push(q); seen.add(q.id) }
+    }
+  }
   featured = featured.slice(0, 4)
 
   return new ImageResponse(
