@@ -917,7 +917,7 @@ function Home({ lists, viewCounts, voteData, extras, trending = {}, openList, on
       })()}
 
       <section style={{ padding: '10px 16px 80px', maxWidth: 1200, margin: '0 auto' }}>
-        <style>{`.cg-controls{display:grid;grid-template-columns:repeat(${HOME_V2 ? 3 : 4},1fr);gap:16px;margin-bottom:16px;}.cg-controls>*{height:${HOME_V2 ? 42 : 50}px;min-width:0;}.cg-ctrl-label{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;min-width:0;}@media(max-width:760px){.cg-controls{grid-template-columns:1fr 1fr;}${HOME_V2 ? '.cg-c-search{grid-column:1 / -1;}' : ''}.cg-c-search input{font-size:16px !important;}.cg-ctrl-btn{justify-content:space-between !important;letter-spacing:0.05em !important;padding:0 10px !important;gap:6px !important;}}`}</style>
+        <style>{`.cg-controls{display:grid;grid-template-columns:repeat(${HOME_V2 ? 3 : 4},1fr);gap:16px;margin-bottom:16px;}.cg-controls>*{height:${HOME_V2 ? 42 : 50}px;min-width:0;}.cg-ctrl-label{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;min-width:0;}@media(max-width:760px){.cg-controls{grid-template-columns:1fr 1fr;}${HOME_V2 ? '.cg-c-search{grid-column:1 / -1;}.cg-c-sort{grid-column:1 / -1;}.cg-c-actions{grid-column:1 / -1;}' : ''}.cg-c-search input{font-size:16px !important;}.cg-ctrl-btn{justify-content:space-between !important;letter-spacing:0.05em !important;padding:0 10px !important;gap:6px !important;}}`}</style>
         <div className="cg-controls">
           <div className="cg-c-search" style={{ position: 'relative', minWidth: 0, order: HOME_V2 ? 1 : 3 }}>
             <Search size={16} strokeWidth={2.5} style={{ position: 'absolute', left: 14, top: '50%', transform: 'translateY(-50%)', color: COLORS.faded }} />
@@ -1018,7 +1018,7 @@ function Home({ lists, viewCounts, voteData, extras, trending = {}, openList, on
           </div>
           )}
 
-          <div style={{ position: 'relative', minWidth: 0, order: HOME_V2 ? 2 : 1 }} onClick={(e) => e.stopPropagation()}>
+          <div className="cg-c-sort" style={{ position: 'relative', minWidth: 0, order: HOME_V2 ? 2 : 1 }} onClick={(e) => e.stopPropagation()}>
             <button className="cg-ctrl-btn" onClick={() => { setSortOpen((o) => !o); setCatOpen(false); }} aria-haspopup="true" aria-expanded={sortOpen} style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, background: COLORS.ink, color: COLORS.cream, border: `1.5px solid ${COLORS.ink}`, padding: '0 14px', fontFamily: 'DM Mono, monospace', fontSize: 11, letterSpacing: '0.14em', textTransform: 'uppercase', fontWeight: 600, cursor: 'pointer', whiteSpace: 'nowrap', overflow: 'hidden' }}>
               <span className="cg-ctrl-label"><span style={{ opacity: 0.8 }}>Sort:</span> {(sortButtons.find((o) => o.id === sortBy) || {}).short || 'Discover'}</span>
               <ChevronDown size={14} strokeWidth={2.5} style={{ transform: sortOpen ? 'rotate(180deg)' : 'none', transition: 'transform 0.15s' }} />
@@ -1037,7 +1037,7 @@ function Home({ lists, viewCounts, voteData, extras, trending = {}, openList, on
             )}
           </div>
 
-          <div style={{ order: HOME_V2 ? 3 : 4, display: 'flex', gap: 8, minWidth: 0 }}>
+          <div className="cg-c-actions" style={{ order: HOME_V2 ? 3 : 4, display: 'flex', gap: 8, minWidth: 0 }}>
             <Link href="/request" style={{ flex: 1, minWidth: 0, height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6, background: COLORS.ember, color: COLORS.cream, border: `1.5px solid ${COLORS.ink}`, padding: '0 8px', fontFamily: 'DM Mono, monospace', fontSize: 11, letterSpacing: '0.08em', textTransform: 'uppercase', fontWeight: 600, textDecoration: 'none', whiteSpace: 'nowrap', overflow: 'hidden', boxShadow: `3px 3px 0 ${COLORS.ink}`, cursor: 'pointer' }}>
               Request a List
             </Link>
