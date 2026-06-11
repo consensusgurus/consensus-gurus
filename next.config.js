@@ -9,15 +9,6 @@ const nextConfig = {
   },
   async redirects() {
     return [
-      // /snapshot/[id] removed 2026-06-11: the snapshot/share UI now lives in the
-      // list page's Share tab (SnapshotClient renders there embedded). Preserve
-      // old shared links by sending them to that tab. Also drops ~450 heavy
-      // pages from the build prerender, which was overrunning the build memory.
-      {
-        source: '/snapshot/:id',
-        destination: '/list/:id#share',
-        permanent: true,
-      },
       // Renamed 2026-06-10: legacy slug 'dive-bars-istanbul' (pre-rework dive-bar build) -> meyhanes
       {
         source: '/list/dive-bars-istanbul',
