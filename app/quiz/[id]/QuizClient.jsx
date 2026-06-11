@@ -107,6 +107,17 @@ export default function QuizClient({ quizId }) {
   const timerRef = useRef(null);
   const startRef = useRef(null);
   const inputRef = useRef(null);
+  const ribbonRef = useRef(null);
+  const [ribScroll, setRibScroll] = useState({ left: false, right: false });
+  useEffect(() => {
+    const el = ribbonRef.current;
+    if (!el) return undefined;
+    const update = () => { const more = el.scrollWidth - el.clientWidth; setRibScroll({ left: el.scrollLeft > 2, right: more > 2 && el.scrollLeft < more - 2 }); };
+    update();
+    el.addEventListener('scroll', update, { passive: true });
+    window.addEventListener('resize', update);
+    return () => { el.removeEventListener('scroll', update); window.removeEventListener('resize', update); };
+  }, []);
 
   const score = found.filter(Boolean).length;
 
@@ -318,11 +329,16 @@ export default function QuizClient({ quizId }) {
 
         {/* Ribbon */}
         <div style={{ position: 'sticky', top: 0, zIndex: 25, marginTop: 18 }}>
-          <div style={{ display: 'flex', alignItems: 'stretch', flexWrap: 'nowrap', overflowX: 'auto', background: COLORS.ink, borderBottom: `3px solid ${COLORS.ember}` }}>
-            {chip('play', 'Play')}
-            {chip('stats', 'Stats & Leaderboard')}
-            {chip('join', 'Join the Leaderboard', <Trophy size={12} strokeWidth={2.5} />)}
-            {chip('share', 'Share', <Share2 size={12} strokeWidth={2.5} />)}
+          <div style={{ position: 'relative' }}>
+            <style>{`@keyframes qzCueR{0%,100%{transform:translate(0,-50%);}50%{transform:translate(3px,-50%);}}@keyframes qzCueL{0%,100%{transform:translate(0,-50%);}50%{transform:translate(-3px,-50%);}}.qz-cue{position:absolute;top:50%;z-index:3;display:flex;align-items:center;justify-content:center;width:26px;height:26px;border-radius:50%;background:${COLORS.ember};color:#fff;box-shadow:0 1px 4px rgba(26,22,17,0.45);pointer-events:none;font-size:15px;line-height:1;}.qz-cue-r{right:10px;animation:qzCueR 1.4s ease-in-out infinite;}.qz-cue-l{left:10px;animation:qzCueL 1.4s ease-in-out infinite;}@media(min-width:760px){.qz-cue{display:none;}}.qz-ribbon{scrollbar-width:none;-ms-overflow-style:none;}.qz-ribbon::-webkit-scrollbar{display:none;}`}</style>
+            <div ref={ribbonRef} className="qz-ribbon" style={{ display: 'flex', alignItems: 'stretch', flexWrap: 'nowrap', overflowX: 'auto', background: COLORS.ink, borderBottom: `3px solid ${COLORS.ember}` }}>
+              {chip('play', 'Play')}
+              {chip('stats', 'Stats & Leaderboard')}
+              {chip('join', 'Join the Leaderboard', <Trophy size={12} strokeWidth={2.5} />)}
+              {chip('share', 'Share', <Share2 size={12} strokeWidth={2.5} />)}
+            </div>
+            {ribScroll.left && <span aria-hidden="true" className="qz-cue qz-cue-l">&#8249;</span>}
+            {ribScroll.right && <span aria-hidden="true" className="qz-cue qz-cue-r">&#8250;</span>}
           </div>
         </div>
 
@@ -390,9 +406,6 @@ export default function QuizClient({ quizId }) {
               <button onClick={start} disabled={started || ended} style={{ fontFamily: MONO, fontSize: 13, letterSpacing: '0.08em', textTransform: 'uppercase', fontWeight: 700, padding: '0 22px', border: 'none', background: COLORS.ember, color: '#fff', cursor: started || ended ? 'default' : 'pointer', opacity: started || ended ? 0.5 : 1 }}>
                 {ended ? 'Done' : started ? 'Playing' : 'Play'}
               </button>
-              <button onClick={() => endGame(false)} disabled={ended || !started} style={ghostBtn(ended || !started)}>
-                <Flag size={12} strokeWidth={2.5} /> Give up
-              </button>
             </div>
             <div style={{ fontFamily: MONO, fontSize: 12, minHeight: 18, marginBottom: 20, color: hintBad ? COLORS.ember : COLORS.faded }}>{hint}</div>
 
@@ -425,8 +438,8 @@ export default function QuizClient({ quizId }) {
             )}
 
             <div style={{ marginTop: 22, display: 'flex', gap: 10, justifyContent: 'center' }}>
-              <button onClick={() => endGame(false)} disabled={ended || !started} style={ghostBtn(ended || !started)}>
-                <Flag size={12} strokeWidth={2.5} /> Give up
+              <button onClick={() => endGame(false)} disabled={ended || !started} style={{ fontFamily: MONO, fontSize: 12, letterSpacing: '0.12em', textTransform: 'uppercase', fontWeight: 700, padding: '12px 26px', border: 'none', background: COLORS.ember, color: '#fff', cursor: ended || !started ? 'default' : 'pointer', opacity: ended || !started ? 0.4 : 1, display: 'inline-flex', alignItems: 'center', gap: 8 }}>
+                <Flag size={14} strokeWidth={2.5} color="#fff" /> Give up
               </button>
             </div>
           </>
