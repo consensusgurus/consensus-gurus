@@ -138,6 +138,7 @@ export default function QuizClient({ quizId }) {
     setStats(recordResult(quizId, finalScore));
     setHint(win ? `Perfect — all ${total} named in ${fmtTime(elapsed)}!` : `Time! You got ${finalScore}/${total}.`);
     setHintBad(!win);
+    setTab('stats');
 
     // Record the completed game (makes play count + average real; attributes
     // to the leaderboard if signed up).
@@ -171,7 +172,9 @@ export default function QuizClient({ quizId }) {
       setIdentity(id);
       setBoard({ plays: d.plays || 0, best: d.best ?? null, leaderboard: d.leaderboard || [] });
       setClaimErr(false);
-      setClaimMsg(`Posted! "${d.username}" is on the leaderboard with this game.`);
+      setClaimMsg(`Posted! You're on the leaderboard below.`);
+      setClaimOpen(false);
+      setTab('stats');
     } catch (e) {
       setClaimErr(true);
       setClaimMsg('Could not post right now. Try again.');
@@ -240,6 +243,7 @@ export default function QuizClient({ quizId }) {
       setIdentity(id);
       setJoinErr(false);
       setJoinMsg(`You're in. "${d.username}" will appear on the leaderboard once you finish a game.`);
+      setTab('stats');
     } catch (e) {
       setJoinErr(true);
       setJoinMsg('Could not join right now. Try again.');
@@ -274,6 +278,20 @@ export default function QuizClient({ quizId }) {
   }
 
   const bestLabel = board.best != null ? board.best : '—';
+  // Leaderboard ranks with ties: equal score AND time share a rank (and are
+  // ordered alphabetically by the API), so they display as a tie (T#).
+  const lb = board.leaderboard;
+  const lbRanks = [];
+  const lbTied = [];
+  for (let i = 0; i < lb.length; i++) {
+    const prevSame = i > 0 && lb[i].score === lb[i - 1].score && lb[i].timeElapsed === lb[i - 1].timeElapsed;
+    lbRanks[i] = prevSame ? lbRanks[i - 1] : i + 1;
+  }
+  for (let i = 0; i < lb.length; i++) {
+    const prevSame = i > 0 && lb[i].score === lb[i - 1].score && lb[i].timeElapsed === lb[i - 1].timeElapsed;
+    const nextSame = i < lb.length - 1 && lb[i].score === lb[i + 1].score && lb[i].timeElapsed === lb[i + 1].timeElapsed;
+    lbTied[i] = prevSame || nextSame;
+  }
 
   return (
     <div style={{ minHeight: '100vh', background: COLORS.cream, color: COLORS.ink, position: 'relative', overflow: 'clip' }}>
@@ -302,11 +320,41 @@ export default function QuizClient({ quizId }) {
         <div style={{ position: 'sticky', top: 0, zIndex: 25, marginTop: 18 }}>
           <div style={{ display: 'flex', alignItems: 'stretch', flexWrap: 'nowrap', overflowX: 'auto', background: COLORS.ink, borderBottom: `3px solid ${COLORS.ember}` }}>
             {chip('play', 'Play')}
-            {chip('stats', 'Stats')}
+            {chip('stats', 'Stats & Leaderboard')}
             {chip('join', 'Join the Leaderboard', <Trophy size={12} strokeWidth={2.5} />)}
             {chip('share', 'Share', <Share2 size={12} strokeWidth={2.5} />)}
           </div>
         </div>
+
+        {ended && (
+          <div style={{ marginTop: 16, padding: '14px 18px', border: `1px solid ${COLORS.faded}33`, background: COLORS.paper }}>
+            <div style={{ display: 'flex', gap: 10, justifyContent: 'center', alignItems: 'flex-start', flexWrap: 'wrap' }}>
+              {quiz.listId && (
+                <a href={`/list/${quiz.listId}`} style={{ display: 'inline-block', fontFamily: MONO, fontSize: 13, letterSpacing: '0.08em', textTransform: 'uppercase', fontWeight: 700, lineHeight: '46px', padding: '0 28px', background: COLORS.ember, color: '#fff', textDecoration: 'none' }}>See the full list detail →</a>
+              )}
+              {!identity && !claimOpen && (
+                <button onClick={() => { setClaimMsg(''); setClaimErr(false); setClaimOpen(true); }} style={{ fontFamily: MONO, fontSize: 13, letterSpacing: '0.08em', textTransform: 'uppercase', fontWeight: 700, lineHeight: '46px', padding: '0 24px', background: 'transparent', color: COLORS.ink, border: `1.5px solid ${COLORS.ink}`, cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: 8 }}>
+                  <Trophy size={14} strokeWidth={2.5} /> Post this to the leaderboard
+                </button>
+              )}
+              {!identity && claimOpen && (
+                <div style={{ flexBasis: '100%', maxWidth: 420, margin: '0 auto' }}>
+                  <p style={{ fontFamily: SANS, fontSize: 13, color: '#4a4339', margin: '0 0 10px', textAlign: 'center' }}>
+                    Add a name and email to post this {score}/{total} to the leaderboard. No password needed, and reusing the same email later keeps you attached.
+                  </p>
+                  <input value={jName} onChange={(e) => setJName(e.target.value)} maxLength={40} placeholder="Username" style={fieldStyle} />
+                  <input value={jEmail} onChange={(e) => setJEmail(e.target.value)} type="email" placeholder="you@email.com" style={{ ...fieldStyle, marginTop: 10 }} />
+                  <button onClick={submitClaim} disabled={claimBusy} style={{ marginTop: 12, width: '100%', fontFamily: MONO, fontSize: 13, letterSpacing: '0.1em', textTransform: 'uppercase', fontWeight: 700, lineHeight: '46px', border: 'none', background: COLORS.ember, color: '#fff', cursor: claimBusy ? 'default' : 'pointer', opacity: claimBusy ? 0.6 : 1 }}>
+                    {claimBusy ? 'Posting…' : 'Post this to the leaderboard'}
+                  </button>
+                </div>
+              )}
+              {claimMsg && (
+                <p style={{ flexBasis: '100%', fontFamily: MONO, fontSize: 12, margin: '6px 0 0', textAlign: 'center', color: claimErr ? COLORS.ember : COLORS.forest }}>{claimMsg}</p>
+              )}
+            </div>
+          </div>
+        )}
 
         <div style={{ marginTop: 24 }} />
 
@@ -374,31 +422,6 @@ export default function QuizClient({ quizId }) {
                   {board.best != null ? (score >= board.best ? `That matches the high score of ${board.best}.` : `The high score to beat is ${board.best}.`) : 'Be the first to set the pace.'}
                   {quiz.listId ? ' See the ones you missed in the full ranking, with sources and the consensus breakdown.' : ''}
                 </p>
-                <div style={{ display: 'flex', gap: 10, justifyContent: 'center', flexWrap: 'wrap' }}>
-                  {quiz.listId && (
-                    <a href={`/list/${quiz.listId}`} style={{ display: 'inline-block', fontFamily: MONO, fontSize: 13, letterSpacing: '0.08em', textTransform: 'uppercase', fontWeight: 700, lineHeight: '46px', padding: '0 28px', background: COLORS.ember, color: '#fff', textDecoration: 'none' }}>See the full list detail →</a>
-                  )}
-                  {!identity && !claimOpen && (
-                    <button onClick={() => { setClaimMsg(''); setClaimErr(false); setClaimOpen(true); }} style={{ fontFamily: MONO, fontSize: 13, letterSpacing: '0.08em', textTransform: 'uppercase', fontWeight: 700, lineHeight: '46px', padding: '0 24px', background: 'transparent', color: COLORS.ink, border: `1.5px solid ${COLORS.ink}`, cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: 8 }}>
-                      <Trophy size={14} strokeWidth={2.5} /> Post this to the leaderboard
-                    </button>
-                  )}
-                  {!identity && claimOpen && (
-                    <div style={{ flexBasis: '100%', maxWidth: 420, margin: '4px auto 0' }}>
-                      <p style={{ fontFamily: SANS, fontSize: 13, color: '#4a4339', margin: '0 0 10px' }}>
-                        Add a name and email to post this {score}/{total} to the leaderboard. No password needed, and reusing the same email later keeps you attached.
-                      </p>
-                      <input value={jName} onChange={(e) => setJName(e.target.value)} maxLength={40} placeholder="Username" style={fieldStyle} />
-                      <input value={jEmail} onChange={(e) => setJEmail(e.target.value)} type="email" placeholder="you@email.com" style={{ ...fieldStyle, marginTop: 10 }} />
-                      <button onClick={submitClaim} disabled={claimBusy} style={{ marginTop: 12, width: '100%', fontFamily: MONO, fontSize: 13, letterSpacing: '0.1em', textTransform: 'uppercase', fontWeight: 700, lineHeight: '46px', border: 'none', background: COLORS.ember, color: '#fff', cursor: claimBusy ? 'default' : 'pointer', opacity: claimBusy ? 0.6 : 1 }}>
-                        {claimBusy ? 'Posting…' : 'Post this to the leaderboard'}
-                      </button>
-                    </div>
-                  )}
-                  {claimMsg && (
-                    <p style={{ flexBasis: '100%', fontFamily: MONO, fontSize: 12, margin: '6px 0 0', color: claimErr ? COLORS.ember : COLORS.forest }}>{claimMsg}</p>
-                  )}
-                </div>
               </div>
             )}
 
@@ -410,17 +433,17 @@ export default function QuizClient({ quizId }) {
           </>
         )}
 
-        {/* ── STATS (personal record + leaderboard) ── */}
+        {/* ── STATS & LEADERBOARD (quiz stats + leaderboard) ── */}
         {tab === 'stats' && (
           <div>
-            <div style={{ fontFamily: MONO, fontSize: 11, letterSpacing: '0.16em', textTransform: 'uppercase', color: COLORS.ember, marginBottom: 14 }}>Your record</div>
-            {stats.attempts === 0 ? (
-              <p style={{ fontFamily: SERIF, fontStyle: 'italic', fontSize: 17, color: COLORS.faded }}>Play a round and your record shows up here. It stays on this device.</p>
+            <div style={{ fontFamily: MONO, fontSize: 11, letterSpacing: '0.16em', textTransform: 'uppercase', color: COLORS.ember, marginBottom: 14 }}>Quiz stats</div>
+            {board.plays === 0 ? (
+              <p style={{ fontFamily: SERIF, fontStyle: 'italic', fontSize: 17, color: COLORS.faded }}>No one has played this quiz yet. Be the first to set the pace.</p>
             ) : (
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 12 }}>
-                <StatBox label="Best score" value={`${stats.best}/${total}`} />
-                <StatBox label="Your average" value={`${(stats.totalCorrect / stats.attempts).toFixed(1)}/${total}`} />
-                <StatBox label="Attempts" value={stats.attempts} />
+                <StatBox label="Total plays" value={board.plays.toLocaleString()} />
+                <StatBox label="Best score" value={board.best != null ? `${board.best}/${total}` : '—'} />
+                <StatBox label="On the leaderboard" value={lb.length} />
               </div>
             )}
 
@@ -443,7 +466,7 @@ export default function QuizClient({ quizId }) {
                     const mine = identity && row.username === identity.username;
                     return (
                       <div key={i} style={{ display: 'grid', gridTemplateColumns: '40px 1fr 76px 64px', gap: 8, alignItems: 'center', padding: '11px 14px', marginBottom: 6, background: mine ? '#fff' : COLORS.paper, border: `1px solid ${mine ? COLORS.ember : COLORS.faded + '22'}` }}>
-                        <span style={{ fontFamily: SERIF, fontWeight: 800, fontSize: 18, color: i < 3 ? COLORS.ember : COLORS.faded }}>{i + 1}</span>
+                        <span style={{ fontFamily: SERIF, fontWeight: 800, fontSize: 18, color: lbRanks[i] <= 3 ? COLORS.ember : COLORS.faded }}>{lbTied[i] ? `T${lbRanks[i]}` : lbRanks[i]}</span>
                         <span style={{ fontFamily: SERIF, fontSize: 17, fontWeight: 500, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{row.username}{mine ? ' (you)' : ''}</span>
                         <span style={{ fontFamily: MONO, fontSize: 14, textAlign: 'right' }}>{row.score}/{total}</span>
                         <span style={{ fontFamily: MONO, fontSize: 14, textAlign: 'right', color: COLORS.faded }}>{fmtTime(row.timeElapsed)}</span>

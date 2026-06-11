@@ -13,7 +13,7 @@ function summarize(rows) {
   // player can appear more than once). Top 10 by score desc, then fastest time.
   const leaderboard = rows
     .filter((r) => r.user_id)
-    .sort((a, b) => b.score - a.score || a.time_elapsed - b.time_elapsed)
+    .sort((a, b) => b.score - a.score || a.time_elapsed - b.time_elapsed || (a.username || '').localeCompare(b.username || ''))
     .slice(0, 10)
     .map((r) => ({ username: r.username, score: r.score, timeElapsed: r.time_elapsed }));
   return { plays, best, leaderboard };
