@@ -29,7 +29,7 @@ function mapsPlaceUrl(name) {
   return `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(cleaned)}`;
 }
 
-export default function AdminClient({ initialLists, initialExtras = [], initialComplaints = [], initialVoteStandings = [], initialVoteEvents = [], initialComments = [], initialAlerts = [], initialViews24h = [], initialEditorNotes = [] }) {
+export default function AdminClient({ initialLists, initialExtras = [], initialComplaints = [], initialVoteStandings = [], initialVoteEvents = [], initialComments = [], initialAlerts = [], initialViews24h = [], initialEditorNotes = [], initialQuizSignups = [] }) {
   const router = useRouter();
   const [lists, setLists] = useState(initialLists);
   const [extras, setExtras] = useState(initialExtras);
@@ -40,6 +40,7 @@ export default function AdminClient({ initialLists, initialExtras = [], initialC
   const [comments, setComments] = useState(initialComments);
   const [editorNotes, setEditorNotes] = useState(initialEditorNotes);
   const [views24h] = useState(initialViews24h);
+  const [quizSignups] = useState(initialQuizSignups);
   const [tab, setTab] = useState('pending');
   const [busy, setBusy] = useState({});
 
@@ -408,9 +409,14 @@ export default function AdminClient({ initialLists, initialExtras = [], initialC
           <TabButton active={tab === 'views'} onClick={() => setTab('views')}>
             Views <span style={{ opacity: 0.6 }}>{views24hTotal}</span>
           </TabButton>
+          <TabButton active={tab === 'quizzes'} onClick={() => setTab('quizzes')}>
+            Quizzes <span style={{ opacity: 0.6 }}>{quizSignups.length}</span>
+          </TabButton>
         </div>
 
-        {tab === 'views' ? (
+        {tab === 'quizzes' ? (
+          <QuizSignupsPanel signups={quizSignups} />
+        ) : tab === 'views' ? (
           <ViewsPanel views={views24h} total={views24hTotal} />
         ) : tab === 'research' ? (
           <ResearchPanel alerts={alerts} busy={busy} onResolve={resolveAlert} />
@@ -561,6 +567,133 @@ function ViewsPanel({ views, total }) {
               </span>
               <span style={{ flex: '0 0 100px', textAlign: 'right', fontFamily: 'DM Mono, monospace', fontSize: 11, color: COLORS.faded }}>
                 {v.viewsTotal}
+              </span>
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
+// Quiz signups: the email leads captured by the /quiz "join the leaderboard"
+// form. One row per email (username + email + date joined), newest first.
+function QuizSignupsPanel({ signups }) {
+  const [query, setQuery] = useState('');
+
+  const visible = useMemo(() => {
+    const q = query.trim().toLowerCase();
+    if (!q) return signups;
+    return signups.filter(
+      (s) =>
+        (s.username || '').toLowerCase().includes(q) ||
+        (s.email || '').toLowerCase().includes(q)
+    );
+  }, [signups, query]);
+
+  if (!signups || signups.length === 0) {
+    return (
+      <div
+        style={{
+          padding: '60px 20px',
+          textAlign: 'center',
+          fontFamily: 'Fraunces, serif',
+          fontStyle: 'italic',
+          fontSize: 18,
+          color: COLORS.faded,
+          border: `1.5px dashed ${COLORS.ink}`,
+        }}
+      >
+        No quiz signups yet.
+      </div>
+    );
+  }
+
+  const rowBorder = `1px solid ${COLORS.ink}22`;
+  const copyEmails = () => {
+    const text = visible.map((s) => s.email).join('\n');
+    if (navigator?.clipboard) navigator.clipboard.writeText(text).catch(() => {});
+  };
+
+  return (
+    <div>
+      <p style={{ fontFamily: 'DM Sans, sans-serif', fontSize: 13, color: COLORS.faded, margin: '0 0 14px' }}>
+        Email signups from the quiz leaderboard join form, newest first.
+        {' '}{signups.length} signup{signups.length === 1 ? '' : 's'} total.
+      </p>
+      <div style={{ display: 'flex', gap: 10, marginBottom: 16 }}>
+        <input
+          value={query}
+          onChange={(e) => setQuery(e.target.value)}
+          placeholder="Filter by username or email…"
+          style={{
+            flex: 1,
+            padding: '10px 12px',
+            background: COLORS.paper,
+            border: `1.5px solid ${COLORS.ink}`,
+            color: COLORS.ink,
+            fontFamily: 'DM Mono, monospace',
+            fontSize: 12,
+            outline: 'none',
+            boxSizing: 'border-box',
+          }}
+        />
+        <button
+          onClick={copyEmails}
+          style={{
+            padding: '10px 14px',
+            background: COLORS.ink,
+            border: `1.5px solid ${COLORS.ink}`,
+            color: COLORS.paper,
+            fontFamily: 'DM Mono, monospace',
+            fontSize: 11,
+            letterSpacing: '0.1em',
+            textTransform: 'uppercase',
+            cursor: 'pointer',
+            whiteSpace: 'nowrap',
+          }}
+        >
+          Copy emails
+        </button>
+      </div>
+      {visible.length === 0 ? (
+        <div
+          style={{
+            padding: '40px 20px',
+            textAlign: 'center',
+            fontFamily: 'Fraunces, serif',
+            fontStyle: 'italic',
+            fontSize: 16,
+            color: COLORS.faded,
+            border: `1.5px dashed ${COLORS.ink}`,
+          }}
+        >
+          No matches.
+        </div>
+      ) : (
+        <div style={{ border: `1.5px solid ${COLORS.ink}` }}>
+          <div style={{ display: 'flex', fontFamily: 'DM Mono, monospace', fontSize: 10, letterSpacing: '0.14em', textTransform: 'uppercase', color: COLORS.faded, padding: '10px 14px', borderBottom: `1.5px solid ${COLORS.ink}` }}>
+            <span style={{ flex: '0 0 36px' }}>#</span>
+            <span style={{ flex: 2 }}>Username</span>
+            <span style={{ flex: 3 }}>Email</span>
+            <span style={{ flex: '0 0 170px', textAlign: 'right' }}>Joined</span>
+          </div>
+          {visible.map((s, i) => (
+            <div
+              key={s.id}
+              style={{ display: 'flex', alignItems: 'center', fontFamily: 'DM Sans, sans-serif', fontSize: 13, color: COLORS.ink, padding: '9px 14px', borderBottom: i < visible.length - 1 ? rowBorder : 'none' }}
+            >
+              <span style={{ flex: '0 0 36px', fontFamily: 'DM Mono, monospace', fontSize: 11, color: COLORS.faded }}>
+                {i + 1}
+              </span>
+              <span style={{ flex: 2, minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', fontWeight: 600 }}>
+                {s.username}
+              </span>
+              <span style={{ flex: 3, minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', fontFamily: 'DM Mono, monospace', fontSize: 12 }}>
+                <a href={`mailto:${s.email}`} style={{ color: COLORS.ink, textDecoration: 'none' }}>{s.email}</a>
+              </span>
+              <span style={{ flex: '0 0 170px', textAlign: 'right', fontFamily: 'DM Mono, monospace', fontSize: 11, color: COLORS.faded }}>
+                {formatDate(s.createdAt)}
               </span>
             </div>
           ))}

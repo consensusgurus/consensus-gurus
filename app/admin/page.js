@@ -19,7 +19,7 @@ export default async function AdminPage() {
     redirect('/admin/login');
   }
 
-  const [submissionsRes, extrasRes, votesRes, complaintsRes, voteEventsRes, alertsRes, trendingRes, totalViewsRes, listCommentsRes, voteCountsRes, editorNotesRes] = await Promise.all([
+  const [submissionsRes, extrasRes, votesRes, complaintsRes, voteEventsRes, alertsRes, trendingRes, totalViewsRes, listCommentsRes, voteCountsRes, editorNotesRes, quizUsersRes] = await Promise.all([
     fetchAllRows(supabaseAdmin, 'user_lists', '*', [['submitted_at', false], 'id']),
     fetchAllRows(supabaseAdmin, 'extras', 'list_id, item_name, added_at', [['added_at', false], 'list_id', 'item_name']),
     fetchAllRows(supabaseAdmin, 'votes', 'list_id, item_name, score, updated_at', [['updated_at', false], 'list_id', 'item_name']),
@@ -39,6 +39,9 @@ export default async function AdminPage() {
     fetchAllRows(supabaseAdmin, 'list_comments', 'id, list_id, name, body, created_at, editor_response', [['created_at', false], 'id']),
     fetchAllRows(supabaseAdmin, 'vote_events', 'list_id, item_name', ['id']),
     fetchAllRows(supabaseAdmin, 'list_editor_notes', 'id, list_id, note, created_at', [['created_at', false], 'id']),
+    // Quiz email signups (the /quiz join form). Service-role read; quiz_users
+    // has RLS with no policies, so only the admin key can see the emails.
+    fetchAllRows(supabaseAdmin, 'quiz_users', 'id, username, email, created_at', [['created_at', false], 'id']),
   ]);
 
   if (submissionsRes.error) {
@@ -188,6 +191,16 @@ export default async function AdminPage() {
 
   const editorNotes = ((editorNotesRes && editorNotesRes.data) || []).map((row) => ({ id: row.id, listId: row.list_id, note: row.note, createdAt: row.created_at }));
 
+  if (quizUsersRes && quizUsersRes.error) {
+    console.error('admin quiz_users fetch error', quizUsersRes.error);
+  }
+  const quizSignups = ((quizUsersRes && quizUsersRes.data) || []).map((row) => ({
+    id: row.id,
+    username: row.username,
+    email: row.email,
+    createdAt: row.created_at,
+  }));
+
   return (
     <AdminClient
       initialLists={lists}
@@ -199,6 +212,7 @@ export default async function AdminPage() {
       initialEditorNotes={editorNotes}
       initialAlerts={alerts}
       initialViews24h={views24h}
+      initialQuizSignups={quizSignups}
     />
   );
 }

@@ -7,17 +7,12 @@ export const fetchCache = 'force-no-store';
 function summarize(rows) {
   const plays = rows.length;
   const avg = plays ? Math.round((rows.reduce((s, r) => s + r.score, 0) / plays) * 10) / 10 : null;
-  const best = new Map();
-  for (const r of rows) {
-    if (!r.user_id) continue;
-    const cur = best.get(r.user_id);
-    if (!cur || r.score > cur.score || (r.score === cur.score && r.time_elapsed < cur.time_elapsed)) {
-      best.set(r.user_id, r);
-    }
-  }
-  const leaderboard = [...best.values()]
+  // Signed-up players only, but EVERY qualifying play is listed (a single
+  // player can appear more than once). Top 10 by score desc, then fastest time.
+  const leaderboard = rows
+    .filter((r) => r.user_id)
     .sort((a, b) => b.score - a.score || a.time_elapsed - b.time_elapsed)
-    .slice(0, 25)
+    .slice(0, 10)
     .map((r) => ({ username: r.username, score: r.score, timeElapsed: r.time_elapsed }));
   return { plays, avg, leaderboard };
 }

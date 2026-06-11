@@ -270,8 +270,8 @@ export default function QuizClient({ quizId }) {
           <div style={{ display: 'flex', alignItems: 'stretch', flexWrap: 'nowrap', overflowX: 'auto', background: COLORS.ink, borderBottom: `3px solid ${COLORS.ember}` }}>
             {chip('play', 'Play')}
             {chip('stats', 'Stats')}
-            {chip('share', 'Share', <Share2 size={12} strokeWidth={2.5} />)}
             {chip('join', 'Join the Leaderboard', <Trophy size={12} strokeWidth={2.5} />)}
+            {chip('share', 'Share', <Share2 size={12} strokeWidth={2.5} />)}
           </div>
         </div>
 
