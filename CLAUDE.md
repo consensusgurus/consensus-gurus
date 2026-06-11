@@ -1707,3 +1707,71 @@ Close every Chrome MCP tab as soon as it is no longer needed: reuse ONE tab per 
 place rather than opening new tabs), and call `tabs_close_mcp` on every tab in the session's group when
 the task or session ends. Parallel Cowork sessions were proliferating tabs in the owner's browser; never
 leave stale MCP tabs behind.
+
+---
+
+## Quizzes (paired "name them all" games)
+
+A list can have a paired **quiz**: a timed "name them all" game at `/quiz/<id>` that mirrors the
+list's look (same ink ribbon, Fraunces/DM Mono type, cream + ember palette). Quizzes live entirely as
+data in `lib/quizzes.js` (the `QUIZZES` array). The pages are already built and render any entry
+automatically (`app/quiz/[id]` for play, `app/quizzes` for the index), so authoring a quiz is **pure
+data, no code**. The `/quizzes` index and per-list cross-link surface new entries on their own.
+
+### When to build a quiz: ON REQUEST OR ON APPROVAL ONLY
+
+Do NOT add a quiz to a list on your own initiative. Build a paired quiz only when:
+
+- (a) the **owner explicitly notes** that a list should get a quiz (in the same request or after), OR
+- (b) **Claude proposes** a quiz for a list and the **owner approves** it in the same session, before
+  the push.
+
+A list ships perfectly fine with no quiz. Absence of a quiz is the default, not a gap. (This mirrors
+the SoT-source rule: judgment/extra layers are opt-in, never automatic.) When building a batch of new
+lists, ask once which (if any) should get quizzes rather than quizzing all of them.
+
+### Pairing and answer order
+
+- **Pair by id.** Give the quiz the **same `id`** as the list and set **`listId`** to that id, so the
+  quiz and list cross-link (the results card links back to `/list/<listId>`). Omit `listId` only for a
+  standalone quiz with no underlying list.
+- **Build the answer set from the list's live consensus order**, best-to-worst (slot `i` = rank
+  `i+1`). For a `mode: 'facts'` (or other non-Borda) list the order is the `ai` seed order; for a
+  normal list it is the Borda consensus top 10, computed exactly the way descriptions are computed
+  (`getSources` in `lib/helpers.js`, absent = 0). Keep the quiz in lockstep with the list: if the
+  list's order changes, re-derive the answers.
+
+### Quiz object shape (see the airlines quiz for a worked example)
+
+`id`, `listId`, `publishedDate`, `title` ("Name the ..."), `category`, `type`, `tags`, `blurb`,
+`timeLimit` (seconds; **90 is the standard for a 10-answer quiz**), and `answers`. Each answer is
+`{ t, keys, anti? }`:
+
+- **`t`** canonical display name, revealed on a miss. No scores or figures, just the name (e.g.
+  `'Hartsfield-Jackson Atlanta (ATL)'`).
+- **`keys`** lowercase substrings that count as a correct guess. The matcher is
+  `normalizedGuess.includes(key)` (the guess is lowercased and punctuation stripped, so `o'hare`
+  becomes `o hare`), meaning a key hits when the player's guess **contains** it.
+- **`anti`** OPTIONAL substrings that BLOCK a match (disambiguation).
+
+### Key-design rules (the matcher is substring-on-the-guess, so collisions are the real risk)
+
+- Give each answer its city/common name, its distinctive proper name, and its code, e.g.
+  `['atlanta','hartsfield','atl']`. For airports the IATA code is a great key; normalize `o'hare`
+  to `o hare`/`ohare`.
+- **NEVER use a short key that is a substring of another answer's guess.** `'las'` (Las Vegas) is a
+  substring of "dallas", so it would mis-credit a Dallas guess; use `'vegas'`. Likewise drop codes
+  like `'can'` (Guangzhou) that are common substrings of unrelated words. When in doubt prefer the
+  full name over a 3-letter code, or add an `anti` guard.
+- **Verify before shipping:** run each answer's own `t` (and every other answer's `t`) through the
+  matcher and confirm nothing cross-matches the wrong slot. A tiny node loop simulating
+  `norm(guess).includes(key)` against the array catches this (it caught the `las`/`dallas` clash on
+  the airports quizzes).
+
+### Deploy
+
+Add the entry to `lib/quizzes.js`, `node --check` it, and ship it in the **same multi-file push** as
+the list (`data.js` + `descriptions.js` + `hero-images.js` + `quizzes.js`). Quizzes do NOT affect
+Borda consensus, so they need **no** `consensus-check` trigger and **no** IndexNow ping beyond the
+paired list's own. First built alongside `busiest-airports-world` / `-us` / `-outside-us`
+(2026-06-11); the original example is `best-airlines-north-america`.
