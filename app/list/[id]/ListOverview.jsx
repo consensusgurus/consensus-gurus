@@ -1114,7 +1114,7 @@ export default function ListOverview({ list, voteData, extras, viewCount, onBack
               Disagree?
             </button>
             <a
-              href={`/snapshot/${encodeURIComponent(list.id)}`}
+              href={`/list/${encodeURIComponent(list.id)}#share`}
               style={{
                 background: 'transparent',
                 color: COLORS.ink,
