@@ -8,7 +8,7 @@ import Grain from '../../Grain';
 import Footer from '../../Footer';
 import dynamic from 'next/dynamic';
 
-const EuropeMapBoard = dynamic(() => import('./EuropeMapBoard'), { ssr: false, loading: () => null });
+const MapQuizBoard = dynamic(() => import('./MapQuizBoard'), { ssr: false, loading: () => null });
 
 function shuffleIdx(n) {
   const a = [...Array(n).keys()];
@@ -580,7 +580,7 @@ export default function QuizClient({ quizId }) {
                   style={{ flex: 1, fontFamily: SANS, fontSize: 17, padding: '14px 16px', border: `1.5px solid ${COLORS.ink}`, background: !started || ended ? COLORS.paper : '#fff', color: COLORS.ink, opacity: !started || ended ? 0.5 : 1 }}
                 />
               )}
-              <button onClick={start} disabled={started || ended} style={{ flex: (matched && !ordered) || mapMode ? 1 : 'none', fontFamily: MONO, fontSize: 13, letterSpacing: '0.08em', textTransform: 'uppercase', fontWeight: 700, padding: '0 22px', height: matched ? 50 : 'auto', border: 'none', background: COLORS.ember, color: '#fff', cursor: started || ended ? 'default' : 'pointer', opacity: started || ended ? 0.5 : 1 }}>
+              <button onClick={start} disabled={started || ended} style={{ flex: (matched && !ordered) || mapMode ? 1 : 'none', fontFamily: MONO, fontSize: 13, letterSpacing: '0.08em', textTransform: 'uppercase', fontWeight: 700, padding: '0 22px', height: matched || mapMode ? 52 : 'auto', border: 'none', background: COLORS.ember, color: '#fff', cursor: started || ended ? 'default' : 'pointer', opacity: started || ended ? 0.5 : 1 }}>
                 {ended ? 'Done' : started ? 'Playing' : (matched && !ordered) ? 'Play — name each year' : 'Play'}
               </button>
             </div>
@@ -592,7 +592,7 @@ export default function QuizClient({ quizId }) {
                 <span style={{ fontFamily: MONO, fontSize: 11, letterSpacing: '0.2em', textTransform: 'uppercase', opacity: 0.7, flex: 'none' }}>Find</span>
                 <span style={{ fontFamily: SERIF, fontWeight: 800, fontSize: 'clamp(20px, 4vw, 26px)', lineHeight: 1 }}>{ended ? 'Game over' : started ? (curName || '—') : 'Press Play to start'}</span>
               </div>
-              <EuropeMapBoard started={started} ended={ended} foundNames={foundNamesSet} flash={flash} onPick={pickCountry} />
+              <MapQuizBoard region={quiz.region || 'europe'} started={started} ended={ended} foundNames={foundNamesSet} flash={flash} onPick={pickCountry} />
             </div>
             ) : (
             <ol style={{ margin: 0, padding: 0, listStyle: 'none' }}>

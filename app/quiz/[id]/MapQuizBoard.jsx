@@ -1,10 +1,17 @@
 'use client';
 
-import React, { useState } from 'react';
-import { EUROPE_GEO } from '@/lib/europe-geo';
+import React, { useState, useEffect } from 'react';
 
-// Standalone, lazy-loaded (next/dynamic) so the ~150KB geometry never lands in
-// the shared quiz bundle — only the map quiz route pulls this chunk.
+// Lazy, per-region geometry — each import() is a static specifier so webpack
+// code-splits one chunk per region; only the played region's geometry loads.
+const LOADERS = {
+  'europe': () => import('@/lib/europe-geo.js').then((m) => m.EUROPE_GEO),
+  'north-america': () => import('@/lib/na-geo.js').then((m) => m.GEO),
+  'south-america': () => import('@/lib/sa-geo.js').then((m) => m.GEO),
+  'africa': () => import('@/lib/africa-geo.js').then((m) => m.GEO),
+  'asia': () => import('@/lib/asia-geo.js').then((m) => m.GEO),
+};
+
 const LAND = '#fbf7ef';
 const LINE = '#8a8276';
 const SEA = '#cfe0ea';
@@ -12,8 +19,17 @@ const GREEN = '#3d4f2b';
 const RED = '#c0392b';
 const HOVER = '#efe7d6';
 
-export default function EuropeMapBoard({ started, ended, foundNames, flash, onPick }) {
+export default function MapQuizBoard({ region, started, ended, foundNames, flash, onPick }) {
+  const [geo, setGeo] = useState(null);
   const [hover, setHover] = useState(null);
+
+  useEffect(() => {
+    let live = true;
+    const load = LOADERS[region] || LOADERS.europe;
+    load().then((g) => { if (live) setGeo(g); }).catch(() => {});
+    return () => { live = false; };
+  }, [region]);
+
   const live = started && !ended;
 
   function fillFor(name, base) {
@@ -23,16 +39,24 @@ export default function EuropeMapBoard({ started, ended, foundNames, flash, onPi
     return base;
   }
 
+  if (!geo) {
+    return (
+      <div style={{ border: '1px solid rgba(138,130,118,0.25)', borderRadius: 2, background: SEA, height: 360, display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#5f7585', fontFamily: 'DM Mono, monospace', fontSize: 12, letterSpacing: '0.12em', textTransform: 'uppercase' }}>
+        Loading map…
+      </div>
+    );
+  }
+
   return (
     <div style={{ border: '1px solid rgba(138,130,118,0.25)', borderRadius: 2, overflow: 'hidden', background: SEA }}>
       <svg
-        viewBox={EUROPE_GEO.viewBox}
+        viewBox={geo.viewBox}
         style={{ display: 'block', width: '100%', height: 'auto', touchAction: 'manipulation' }}
         role="img"
-        aria-label="Map of Europe. Click the country named in the prompt above."
+        aria-label="Map. Click the country named in the prompt above."
       >
-        <rect x="0" y="0" width={EUROPE_GEO.width} height={EUROPE_GEO.height} fill={SEA} />
-        {EUROPE_GEO.paths.map((p) => (
+        <rect x="0" y="0" width={geo.width} height={geo.height} fill={SEA} />
+        {geo.paths.map((p) => (
           <path
             key={p.name}
             d={p.d}
@@ -46,7 +70,7 @@ export default function EuropeMapBoard({ started, ended, foundNames, flash, onPi
             onClick={() => live && onPick(p.name)}
           />
         ))}
-        {EUROPE_GEO.markers.map((m) => {
+        {geo.markers.map((m) => {
           const s = 9;
           return (
             <rect
@@ -63,9 +87,7 @@ export default function EuropeMapBoard({ started, ended, foundNames, flash, onPi
               onMouseEnter={() => setHover(m.name)}
               onMouseLeave={() => setHover((h) => (h === m.name ? null : h))}
               onClick={() => live && onPick(m.name)}
-            >
-              <title>{foundNames && foundNames.has(m.name) ? m.name : 'Micro-state'}</title>
-            </rect>
+            />
           );
         })}
       </svg>
