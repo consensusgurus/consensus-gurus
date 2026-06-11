@@ -38,7 +38,7 @@ function RequestView({ onBack, onSubmit }) {
 
   function handleSubmit() {
     setError('');
-    if (!title.trim()) return setError('Add a headline for your list');
+    if (!title.trim()) return setError('Add a headline for your list or quiz');
 
     const cleanItems = items.map((i) => i.trim()).filter(Boolean).map((i) => i.slice(0, 90));
 
@@ -163,7 +163,7 @@ function RequestView({ onBack, onSubmit }) {
         >
           Request a
           <br />
-          <span style={{ fontStyle: 'italic', color: COLORS.ember }}>list</span>
+          <span style={{ fontStyle: 'italic', color: COLORS.ember }}>list or quiz</span>
         </h1>
         <p
           style={{
@@ -232,7 +232,7 @@ function RequestView({ onBack, onSubmit }) {
               opacity: submitting ? 0.6 : 1,
             }}
           >
-            {submitting ? 'Sending...' : 'Request list'}
+            {submitting ? 'Sending...' : 'Submit request'}
           </button>
 
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 20, marginTop: 18 }}>
@@ -270,7 +270,7 @@ function RequestView({ onBack, onSubmit }) {
               marginTop: 14,
             }}
           >
-            Submitted lists are reviewed before going live
+            Submissions are reviewed before going live
           </p>
         </div>
 
@@ -474,7 +474,7 @@ export default function RequestClient() {
     if (result && result.ok) {
       router.push(`/request/thanks`);
     } else {
-      alert('Could not save your list. Please try again.');
+      alert('Could not save your request. Please try again.');
     }
   }
 

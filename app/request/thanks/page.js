@@ -68,7 +68,7 @@ export default function ThanksPage() {
             maxWidth: 520,
           }}
         >
-          Your request is in the queue for review. An editor will take a look and publish it shortly. Once it goes live, it shows up on the home page like any other list.
+          Your request is in the queue for review. An editor will take a look and publish it shortly. Once it goes live, it shows up on the site like any other list or quiz.
         </p>
         <div style={{ marginTop: 40, display: 'flex', gap: 12, justifyContent: 'center', flexWrap: 'wrap' }}>
           <Link
