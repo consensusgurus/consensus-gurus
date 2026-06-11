@@ -425,6 +425,9 @@ export default function QuizClient({ quizId }) {
             <p style={{ fontFamily: SANS, fontSize: 15, color: '#4a4339', margin: '0 0 6px' }}>
               Sign up and your username will appear on the leaderboard after you finish a game. No password needed.
             </p>
+            <p style={{ fontFamily: SANS, fontSize: 15, color: '#4a4339', margin: '0 0 6px' }}>
+              Already joined? Enter the same email to reconnect your account. If you clear your browser or switch devices, just rejoin with that email and your scores and leaderboard spot come right back.
+            </p>
             <p style={{ fontFamily: MONO, fontSize: 12, color: COLORS.faded, margin: '0 0 22px' }}>
               Your username is shown publicly; your email is kept private.
             </p>
