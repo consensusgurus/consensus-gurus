@@ -10,7 +10,7 @@ export const fetchCache = 'force-no-store';
 // deterministic and RLS-independent.
 export function summarize(rows) {
   const plays = rows.length;
-  const avg = plays ? Math.round((rows.reduce((s, r) => s + r.score, 0) / plays) * 10) / 10 : null;
+  const best = plays ? Math.max(...rows.map((r) => r.score)) : null;
   // Signed-up players only, but EVERY qualifying play is listed (a single
   // player can appear more than once). Top 10 by score desc, then fastest time.
   const leaderboard = rows
@@ -18,7 +18,7 @@ export function summarize(rows) {
     .sort((a, b) => b.score - a.score || a.time_elapsed - b.time_elapsed)
     .slice(0, 10)
     .map((r) => ({ username: r.username, score: r.score, timeElapsed: r.time_elapsed }));
-  return { plays, avg, leaderboard };
+  return { plays, best, leaderboard };
 }
 
 // GET /api/quiz/board?quizId=...  -> { plays, avg, leaderboard }

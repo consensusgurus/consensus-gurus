@@ -88,7 +88,7 @@ export default function QuizClient({ quizId }) {
   const [lastElapsed, setLastElapsed] = useState(null);
 
   const [stats, setStats] = useState({ attempts: 0, best: 0, totalCorrect: 0 });
-  const [board, setBoard] = useState({ plays: 0, avg: null, leaderboard: [] });
+  const [board, setBoard] = useState({ plays: 0, best: null, leaderboard: [] });
   const [identity, setIdentity] = useState(null); // { username, email }
 
   // Join form
@@ -108,7 +108,7 @@ export default function QuizClient({ quizId }) {
   function refreshBoard() {
     fetch(`/api/quiz/board?quizId=${encodeURIComponent(quizId)}`)
       .then((r) => r.json())
-      .then((d) => { if (d && !d.error) setBoard({ plays: d.plays || 0, avg: d.avg ?? null, leaderboard: d.leaderboard || [] }); })
+      .then((d) => { if (d && !d.error) setBoard({ plays: d.plays || 0, best: d.best ?? null, leaderboard: d.leaderboard || [] }); })
       .catch(() => {});
   }
 
@@ -142,7 +142,7 @@ export default function QuizClient({ quizId }) {
       body: JSON.stringify({ quizId, score: finalScore, total, timeElapsed: elapsed, email: identity?.email || undefined }),
     })
       .then((r) => r.json())
-      .then((d) => { if (d && !d.error) setBoard({ plays: d.plays || 0, avg: d.avg ?? null, leaderboard: d.leaderboard || [] }); })
+      .then((d) => { if (d && !d.error) setBoard({ plays: d.plays || 0, best: d.best ?? null, leaderboard: d.leaderboard || [] }); })
       .catch(() => {});
   }
 
@@ -240,7 +240,7 @@ export default function QuizClient({ quizId }) {
     );
   }
 
-  const avgLabel = board.avg != null ? board.avg : '—';
+  const bestLabel = board.best != null ? board.best : '—';
 
   return (
     <div style={{ minHeight: '100vh', background: COLORS.cream, color: COLORS.ink, position: 'relative', overflow: 'clip' }}>
@@ -285,9 +285,13 @@ export default function QuizClient({ quizId }) {
                 <div style={{ fontFamily: SERIF, fontWeight: 800, fontSize: 34, lineHeight: 1 }}>{score}<span style={{ fontSize: 20, color: COLORS.faded }}>/{total}</span></div>
                 <div style={{ fontFamily: MONO, fontSize: 11, letterSpacing: '0.12em', textTransform: 'uppercase', color: COLORS.faded }}>Your score</div>
               </div>
-              <div style={{ textAlign: 'center', borderLeft: `1px solid ${COLORS.faded}33`, borderRight: `1px solid ${COLORS.faded}33`, padding: '0 22px' }}>
-                <div style={{ fontFamily: SERIF, fontWeight: 800, fontSize: 34, lineHeight: 1, color: COLORS.ember }}>{avgLabel}</div>
-                <div style={{ fontFamily: MONO, fontSize: 11, letterSpacing: '0.12em', textTransform: 'uppercase', color: COLORS.faded }}>Avg · {board.plays.toLocaleString()} {board.plays === 1 ? 'play' : 'plays'}</div>
+              <div style={{ textAlign: 'center', borderLeft: `1px solid ${COLORS.faded}33`, padding: '0 20px' }}>
+                <div style={{ fontFamily: SERIF, fontWeight: 800, fontSize: 34, lineHeight: 1, color: COLORS.ember }}>{bestLabel}</div>
+                <div style={{ fontFamily: MONO, fontSize: 11, letterSpacing: '0.12em', textTransform: 'uppercase', color: COLORS.faded }}>Best score</div>
+              </div>
+              <div style={{ textAlign: 'center', borderLeft: `1px solid ${COLORS.faded}33`, borderRight: `1px solid ${COLORS.faded}33`, padding: '0 20px' }}>
+                <div style={{ fontFamily: SERIF, fontWeight: 800, fontSize: 34, lineHeight: 1 }}>{board.plays.toLocaleString()}</div>
+                <div style={{ fontFamily: MONO, fontSize: 11, letterSpacing: '0.12em', textTransform: 'uppercase', color: COLORS.faded }}>Total plays</div>
               </div>
               <div style={{ textAlign: 'right' }}>
                 <div style={{ fontFamily: MONO, fontSize: 24, color: time <= 10 && started && !ended ? COLORS.ember : COLORS.ink }}>{clock}</div>
@@ -334,7 +338,7 @@ export default function QuizClient({ quizId }) {
                 <div style={{ fontFamily: MONO, fontSize: 12, letterSpacing: '0.16em', textTransform: 'uppercase', color: COLORS.ember, marginBottom: 8 }}>{score === total ? 'Perfect score' : time <= 0 ? 'Time!' : 'Gave up'}</div>
                 <div style={{ fontFamily: SERIF, fontWeight: 700, fontSize: 26, lineHeight: 1.1, marginBottom: 10 }}>{score} of {total} · you beat {percentile(score, total)}% of players</div>
                 <p style={{ fontFamily: SANS, fontSize: 15, color: '#4a4339', maxWidth: 440, margin: '0 auto 18px' }}>
-                  {board.avg != null ? (score > board.avg ? `You beat the ${board.avg} average.` : `The ${board.avg} average is the score to beat.`) : 'Be the first to set the pace.'}
+                  {board.best != null ? (score >= board.best ? `That matches the high score of ${board.best}.` : `The high score to beat is ${board.best}.`) : 'Be the first to set the pace.'}
                   {quiz.listId ? ' See the ones you missed in the full ranking, with sources and the consensus breakdown.' : ''}
                 </p>
                 <div style={{ display: 'flex', gap: 10, justifyContent: 'center', flexWrap: 'wrap' }}>
@@ -375,7 +379,7 @@ export default function QuizClient({ quizId }) {
             <div style={{ borderTop: `1px solid ${COLORS.faded}33`, marginTop: 26, paddingTop: 20 }}>
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 14 }}>
                 <div style={{ fontFamily: MONO, fontSize: 11, letterSpacing: '0.16em', textTransform: 'uppercase', color: COLORS.faded }}>Leaderboard</div>
-                <div style={{ fontFamily: MONO, fontSize: 11, letterSpacing: '0.08em', color: COLORS.faded }}>{avgLabel} avg · {board.plays.toLocaleString()} {board.plays === 1 ? 'play' : 'plays'}</div>
+                <div style={{ fontFamily: MONO, fontSize: 11, letterSpacing: '0.08em', color: COLORS.faded }}>{bestLabel} best · {board.plays.toLocaleString()} {board.plays === 1 ? 'play' : 'plays'}</div>
               </div>
 
               {board.leaderboard.length === 0 ? (
