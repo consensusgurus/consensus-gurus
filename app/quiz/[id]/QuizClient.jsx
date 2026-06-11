@@ -160,7 +160,7 @@ export default function QuizClient({ quizId }) {
   const [copied, setCopied] = useState(false);
   const [revealed, setRevealed] = useState(false); // non-list quizzes: misses shown after username gate
 
-  // Questions? modal (mirrors the list-page Request Review modal; routes to the
+  // Critique? modal (mirrors the list-page Request Review modal; routes to the
   // same /api/complaints pipeline -> admin Notices tab + daily digest email).
   const [qOpen, setQOpen] = useState(false);
   const [qMsg, setQMsg] = useState('');
@@ -531,7 +531,7 @@ export default function QuizClient({ quizId }) {
                 style={{ flex: '1 0 auto', justifyContent: 'center', background: 'transparent', color: COLORS.cream, border: 'none', borderRight: '1px solid rgba(244,237,224,0.18)', padding: '0 16px', height: 42, whiteSpace: 'nowrap', fontFamily: MONO, fontSize: 10, letterSpacing: '0.18em', textTransform: 'uppercase', fontWeight: 700, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 6 }}
               >
                 <HelpCircle size={12} strokeWidth={2.5} />
-                Questions?
+                Critique?
               </button>
             </div>
             {ribScroll.left && <span aria-hidden="true" className="qz-cue qz-cue-l">&#8249;</span>}
@@ -855,7 +855,7 @@ export default function QuizClient({ quizId }) {
               </>
             ) : (
               <>
-                <h3 style={{ fontFamily: SERIF, fontWeight: 700, fontSize: 22, margin: '0 0 6px' }}>Comments? Questions?</h3>
+                <h3 style={{ fontFamily: SERIF, fontWeight: 700, fontSize: 22, margin: '0 0 6px' }}>Comments? Critique?</h3>
                 <p style={{ fontFamily: SANS, fontSize: 14, color: COLORS.faded, margin: '0 0 14px' }}>
                   Spot an answer that should count, or something off about this quiz? Tell the editors.
                 </p>
