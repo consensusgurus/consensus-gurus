@@ -1795,6 +1795,8 @@ So give each quiz its own distinct timestamp, and when adding one to an existing
 than every existing quiz so it sorts newest. Sort logic lives in `app/quizzes/QuizHomeClient.jsx`
 (the `'recent'` branch). Backfilled across all quizzes 2026-06-11.
 
+**HARD GATE (owner, 2026-06-11, after the five career-scoring quizzes shipped with only a `publishedDate` and sorted to the BOTTOM of Recent): a new quiz may NOT be pushed until it carries its own `publishedAt`. Stamp it in the SAME deploy step as the push via `date -u` (never the research/build time), and when adding it to the existing set make it LATER than every existing quiz's `publishedAt` so it sorts newest. Adding several at once: give each a DISTINCT timestamp one second apart, newest-first in the order you want them at the top. Shipping a quiz with only `publishedDate` is a rule violation, not a deferrable detail. Pre-push verification, run on the spliced file before pushing and confirm BOTH pass: (1) every new quiz entry has a `publishedAt` line immediately after its `publishedDate` line (no new id may lack one), and (2) the new timestamps exceed the prior maximum, `grep -oE 'publishedAt: "[^"]+"' lib/quizzes.js | sort | tail`. This is the same gate as the list `publishedAt` rule, applied to quizzes.**
+
 ### Quiz formats: `format: 'matched'` and `ordered`
 
 The default quiz is the single-input "name them all" game (answers accepted in any order). Two opt-in
