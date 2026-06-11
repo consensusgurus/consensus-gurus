@@ -727,6 +727,9 @@ function Home({ lists, viewCounts, voteData, extras, trending = {}, openList, on
             )}
           </h1>
           <div className="cg-head-col">
+            <div style={{ textAlign: 'right', marginBottom: 8 }}>
+              <Link href="/quizzes" style={{ display: 'inline-flex', alignItems: 'center', gap: 6, background: COLORS.ember, color: COLORS.cream, border: `1.5px solid ${COLORS.ink}`, padding: '5px 12px', fontFamily: 'DM Mono, monospace', fontSize: 10.5, letterSpacing: '0.18em', textTransform: 'uppercase', fontWeight: 600, textDecoration: 'none', boxShadow: `2px 2px 0 ${COLORS.ink}` }}>Quizzes &#8594;</Link>
+            </div>
             <div className="cg-tagline">
               For all the important aspects of life
             </div>
