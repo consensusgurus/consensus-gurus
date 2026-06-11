@@ -71,9 +71,22 @@ const SORTS = [
   { id: 'recent', label: 'Most Recently Added', short: 'Recent' },
 ];
 
+// Per-department accent color + light medallion tint for the tile icon.
+const DEPT_COLOR = {
+  movies:        { c: '#c0392b', t: '#f3ddd8' },
+  music:         { c: '#c98a1b', t: '#f3e3c8' },
+  gaming:        { c: '#7a4fb0', t: '#e6dcf1' },
+  travel:        { c: '#2e7d6b', t: '#d5e8e1' },
+  sports:        { c: '#2f6f9f', t: '#d9e6f0' },
+  entertainment: { c: '#b0466e', t: '#f3dce4' },
+  literature:    { c: '#8a6d3b', t: '#ece2cf' },
+  misc:          { c: '#4f7d5a', t: '#dde8df' },
+};
+
 function QuizTile({ quiz, plays }) {
   const [hover, setHover] = useState(false);
   const Icon = iconOf(quiz);
+  const accent = DEPT_COLOR[deptOf(quiz)] || DEPT_COLOR.misc;
   return (
     <Link
       href={`/quiz/${quiz.id}`}
@@ -81,15 +94,14 @@ function QuizTile({ quiz, plays }) {
       onMouseLeave={() => setHover(false)}
       style={{ cursor: 'pointer', textDecoration: 'none', display: 'flex', flexDirection: 'column', background: COLORS.paper, color: COLORS.ink, border: `1.5px solid ${COLORS.ink}`, overflow: 'hidden', transition: 'all 0.2s ease', transform: hover ? 'translate(-2px, -2px)' : 'none', boxShadow: hover ? `3px 3px 0 ${COLORS.ember}` : 'none' }}
     >
-      <div style={{ padding: '16px 18px 14px', display: 'flex', flexDirection: 'column', flex: '1 1 auto', minHeight: 0 }}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 8, marginBottom: 10 }}>
-          <span style={{ display: 'inline-flex', alignItems: 'center', gap: 7, minWidth: 0, fontFamily: 'DM Mono, monospace', fontSize: 10, letterSpacing: '0.18em', textTransform: 'uppercase', color: COLORS.ink, fontWeight: 700 }}><Icon size={14} strokeWidth={2} aria-hidden="true" style={{ color: COLORS.ember, flex: 'none' }} /><span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{quiz.category || 'Quiz'} · Quiz</span></span>
-          <span style={{ fontFamily: 'DM Mono, monospace', fontSize: 10, letterSpacing: '0.1em', textTransform: 'uppercase', color: COLORS.faded }}>{quiz.answers.length} to name</span>
+      <div style={{ padding: '18px 18px 16px', display: 'flex', flexDirection: 'column', flex: '1 1 auto', minHeight: 0 }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 14 }}>
+          <span style={{ flex: 'none', width: 46, height: 46, borderRadius: '50%', background: accent.t, display: 'flex', alignItems: 'center', justifyContent: 'center' }}><Icon size={22} strokeWidth={2} aria-hidden="true" style={{ color: accent.c }} /></span>
+          <span style={{ minWidth: 0, fontFamily: 'DM Mono, monospace', fontSize: 13, letterSpacing: '0.05em', textTransform: 'uppercase', color: accent.c, fontWeight: 700, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{quiz.category || 'Quiz'}</span>
         </div>
         <h3 style={{ fontFamily: 'Fraunces, serif', fontWeight: 700, fontSize: 22, lineHeight: 1.1, letterSpacing: '-0.01em', margin: 0, color: COLORS.ink }}>{quiz.title}</h3>
-        {quiz.blurb && (<p style={{ margin: '10px 0 0', fontFamily: 'DM Sans, sans-serif', fontSize: 13, lineHeight: 1.5, color: COLORS.faded, display: '-webkit-box', WebkitLineClamp: 3, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>{quiz.blurb}</p>)}
-        <div style={{ marginTop: 'auto', paddingTop: 14, display: 'flex', justifyContent: 'center', alignItems: 'baseline', gap: 8, fontFamily: 'DM Mono, monospace', fontSize: 11, letterSpacing: '0.14em', textTransform: 'uppercase', fontWeight: 700 }}>
-          <span style={{ color: COLORS.ink }}>▶ Play</span>
+        <div style={{ marginTop: 'auto', paddingTop: 16, display: 'flex', justifyContent: 'flex-start', alignItems: 'baseline', gap: 8, fontFamily: 'DM Mono, monospace', fontSize: 11, letterSpacing: '0.14em', textTransform: 'uppercase', fontWeight: 700 }}>
+          <span style={{ color: accent.c }}>▶ Play</span>
           {plays > 0 && (<span style={{ color: COLORS.faded, fontWeight: 600, letterSpacing: '0.1em' }}>· {plays.toLocaleString()} plays</span>)}
         </div>
       </div>
@@ -234,7 +246,7 @@ export default function QuizHomeClient() {
             <rect width="100%" height="100%" filter="url(#qz-nav-grain)" />
           </svg>
           <div style={{ maxWidth: 1200, margin: '0 auto', padding: '0 16px', position: 'relative' }}>
-            <div ref={deptNavRef} className="qz-deptnav" style={{ display: 'flex', alignItems: 'stretch', overflowX: 'auto', background: COLORS.ink, borderBottom: `3px solid ${COLORS.ember}` }}>
+            <div ref={deptNavRef} className="qz-deptnav" style={{ display: 'flex', alignItems: 'stretch', overflowX: 'auto', background: COLORS.ink }}>
               {PRIMARY.map((d) => navBtn(d.id, d.label, counts[d.id]))}
               {(() => {
                 const moreActive = MORE_CATS.some((c) => c.id === dept);
@@ -245,6 +257,8 @@ export default function QuizHomeClient() {
                 );
               })()}
             </div>
+            <div style={{ borderBottom: `1px solid ${COLORS.ink}`, marginBottom: 4 }} />
+            <div style={{ borderBottom: `2px solid ${COLORS.ember}` }} />
             {navScroll.left && <span aria-hidden="true" className="qz-navcue qz-navcue-l">&#8249;</span>}
             {navScroll.right && <span aria-hidden="true" className="qz-navcue qz-navcue-r">&#8250;</span>}
             {moreOpen && (
@@ -264,7 +278,7 @@ export default function QuizHomeClient() {
           </div>
         </nav>
 
-        <section style={{ maxWidth: 1200, margin: '0 auto', padding: '20px 16px 64px' }}>
+        <section style={{ maxWidth: 1200, margin: '0 auto', padding: '20px 24px 64px' }}>
           <div className="cg-qcontrols">
             <div className="cg-q-search" style={{ position: 'relative', minWidth: 0 }}>
               <Search size={16} strokeWidth={2.5} style={{ position: 'absolute', left: 14, top: '50%', transform: 'translateY(-50%)', color: COLORS.faded }} />
