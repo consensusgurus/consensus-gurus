@@ -14,8 +14,14 @@ export async function generateMetadata({ params }) {
   return { title: 'Snapshot | Source of Truths', robots: { index: false, follow: false } };
 }
 
+// On-demand ISR (Vercel support, 2026-06-11): snapshot pages (~1.24MB each) are
+// also not prerendered at build, for the same deploy-agent memory reason. The
+// route stays fully functional; pages render on first request and cache.
+export const dynamicParams = true;
+export const revalidate = 3600;
+
 export function generateStaticParams() {
-  return LISTS.map((l) => ({ id: l.id }));
+  return [];
 }
 
 export default function SnapshotPage({ params }) {

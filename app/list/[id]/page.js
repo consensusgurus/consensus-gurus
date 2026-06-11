@@ -152,12 +152,15 @@ export async function generateMetadata({ params }) {
   };
 }
 
+// On-demand ISR (Vercel support, 2026-06-11): do NOT prerender all ~450 list
+// pages at build. Each is ~1.28MB; together with the snapshot pages that is
+// >1.1GB of static output, which overruns Vercel's post-build deploy agent
+// (a separate memory limit that bigger build machines do NOT raise). Returning
+// [] renders each page on first request and CDN-caches it via `revalidate`.
+export const dynamicParams = true;
+
 export function generateStaticParams() {
-  if (!Array.isArray(LISTS)) {
-    console.error('LISTS IS NOT AN ARRAY:', typeof LISTS, LISTS);
-    return [];
-  }
-  return LISTS.map((l) => ({ id: l.id }));
+  return [];
 }
 
 export default async function ListPage({ params }) {
