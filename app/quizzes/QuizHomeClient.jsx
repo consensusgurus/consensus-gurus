@@ -132,9 +132,6 @@ export default function QuizHomeClient() {
               Source<br /><span style={{ fontStyle: 'italic', fontWeight: 400, color: COLORS.ember }}>of</span> Truths
             </h1>
             <div className="cg-head-col">
-              <div style={{ textAlign: 'right', marginBottom: 8 }}>
-                <Link href="/" style={{ display: 'inline-flex', alignItems: 'center', gap: 6, background: COLORS.ember, color: COLORS.cream, border: `1.5px solid ${COLORS.ink}`, padding: '5px 12px', fontFamily: 'DM Mono, monospace', fontSize: 10.5, letterSpacing: '0.18em', textTransform: 'uppercase', fontWeight: 600, textDecoration: 'none', boxShadow: `2px 2px 0 ${COLORS.ink}` }}>← Top 10 Lists</Link>
-              </div>
               <div className="cg-tagline">The Quizzes</div>
               <div className="cg-blurb">Timed name-them-all quizzes. Beat the clock, then the leaderboard.</div>
               <div style={{ borderBottom: `1px solid ${COLORS.ink}`, marginBottom: 4 }} />
@@ -206,9 +203,14 @@ export default function QuizHomeClient() {
                 </div>
               )}
             </div>
-            <Link href="/request" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, background: COLORS.ember, color: COLORS.cream, border: `1.5px solid ${COLORS.ink}`, padding: '0 14px', fontFamily: 'DM Mono, monospace', fontSize: 11, letterSpacing: '0.14em', textTransform: 'uppercase', fontWeight: 600, textDecoration: 'none', whiteSpace: 'nowrap', overflow: 'hidden', boxShadow: `3px 3px 0 ${COLORS.ink}` }}>
-              Request a Quiz
-            </Link>
+            <div style={{ display: 'flex', gap: 8, minWidth: 0 }}>
+              <Link href="/request" style={{ flex: 1, minWidth: 0, height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6, background: COLORS.ember, color: COLORS.cream, border: `1.5px solid ${COLORS.ink}`, padding: '0 8px', fontFamily: 'DM Mono, monospace', fontSize: 11, letterSpacing: '0.08em', textTransform: 'uppercase', fontWeight: 600, textDecoration: 'none', whiteSpace: 'nowrap', overflow: 'hidden', boxShadow: `3px 3px 0 ${COLORS.ink}` }}>
+                Request a Quiz
+              </Link>
+              <Link href="/" style={{ flex: 1, minWidth: 0, height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6, background: COLORS.ink, color: COLORS.cream, border: `1.5px solid ${COLORS.ink}`, padding: '0 8px', fontFamily: 'DM Mono, monospace', fontSize: 11, letterSpacing: '0.08em', textTransform: 'uppercase', fontWeight: 600, textDecoration: 'none', whiteSpace: 'nowrap', overflow: 'hidden', boxShadow: `3px 3px 0 ${COLORS.ink}` }}>
+                Top 10 Lists
+              </Link>
+            </div>
           </div>
 
           {sorted.length > 0 ? (
