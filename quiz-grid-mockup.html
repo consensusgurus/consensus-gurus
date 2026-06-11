@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Quizzes — Source of Truths (grid mockup, Direction B)</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600&family=DM+Sans:wght@400;500;700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --cream:#f4ede0;
+    --ink:#1d1a16;
+    --red:#c0392b;
+    --line:#d9cdba;
+    --muted:#8a7f6e;
+    --tile:#fbf7ef;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{
+    background:var(--cream);
+    color:var(--ink);
+    font-family:'DM Sans',system-ui,sans-serif;
+    -webkit-font-smoothing:antialiased;
+    line-height:1.5;
+    padding:28px 20px 80px;
+  }
+  .wrap{max-width:1080px;margin:0 auto}
+  .mono{font-family:'DM Mono',monospace;text-transform:uppercase;letter-spacing:.08em}
+
+  /* ---- Header (unchanged from the existing index) ---- */
+  .hd{display:flex;gap:10px;align-items:center;margin-bottom:24px;flex-wrap:wrap}
+  .search{
+    flex:1;min-width:200px;display:flex;align-items:center;gap:9px;
+    background:var(--tile);border:1px solid var(--line);border-radius:9px;
+    padding:11px 15px;
+  }
+  .search input{
+    border:none;background:transparent;outline:none;flex:1;
+    font-family:'DM Sans',sans-serif;font-size:14px;color:var(--ink);
+  }
+  .search input::placeholder{color:#9a8f7d}
+  .search .mag{color:#9a8f7d;font-size:15px}
+  .hbtn{
+    font-family:'DM Mono',monospace;text-transform:uppercase;letter-spacing:.08em;
+    font-size:12px;padding:12px 17px;border-radius:9px;cursor:pointer;
+    border:1px solid var(--ink);white-space:nowrap;
+  }
+  .hbtn.dark{background:var(--ink);color:var(--cream)}
+  .hbtn.red{background:var(--red);color:#fff;border-color:var(--red)}
+
+  /* ---- Tile grid (Direction B — icon medallion) ---- */
+  .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:18px}
+  .tile{
+    background:var(--tile);border:1px solid var(--line);
+    padding:20px;cursor:pointer;display:flex;flex-direction:column;
+    transition:transform .12s ease,box-shadow .12s ease,border-color .12s ease;
+  }
+  .tile:hover{transform:translateY(-3px);box-shadow:0 9px 24px rgba(60,45,20,.14);border-color:#c9bca6}
+  .top{display:flex;align-items:center;gap:13px;margin-bottom:15px}
+  .med{
+    width:46px;height:46px;border-radius:50%;flex-shrink:0;
+    display:flex;align-items:center;justify-content:center;font-size:22px;
+  }
+  .cat{font-family:'DM Mono',monospace;text-transform:uppercase;letter-spacing:.05em;font-size:13px;font-weight:500}
+  .sub{font-family:'DM Mono',monospace;text-transform:uppercase;letter-spacing:.07em;font-size:10px;color:var(--muted);margin-top:3px}
+  .h{font-family:'Fraunces',serif;font-weight:600;font-size:20px;line-height:1.12;letter-spacing:-.005em;flex:1}
+  .play{font-family:'DM Mono',monospace;text-transform:uppercase;letter-spacing:.1em;font-size:12px;margin-top:16px}
+  .empty{grid-column:1/-1;text-align:center;color:var(--muted);font-family:'DM Mono',monospace;text-transform:uppercase;letter-spacing:.1em;font-size:12px;padding:40px 0}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <!-- Header: unchanged -->
+  <div class="hd">
+    <div class="search"><span class="mag">&#9906;</span><input id="q" type="text" placeholder="Search quizzes" autocomplete="off"></div>
+    <button class="hbtn dark">Sort: Discover &#9662;</button>
+    <button class="hbtn red">Request a Quiz</button>
+    <button class="hbtn dark">Top 10 Lists</button>
+  </div>
+
+  <div class="grid" id="grid"></div>
+
+</div>
+
+<script>
+// Department palette: color + light medallion tint + icon.
+const CAT = {
+  movies:   {c:'#c0392b', t:'#f3ddd8', i:'🎬'}, // clapperboard
+  music:    {c:'#c98a1b', t:'#f3e3c8', i:'🎵'}, // music note
+  nba:      {c:'#2f6f9f', t:'#d9e6f0', i:'🏀'}, // basketball
+  nhl:      {c:'#2f6f9f', t:'#d9e6f0', i:'🏒'}, // hockey
+  travel:   {c:'#2e7d6b', t:'#d5e8e1', i:'🏞️'}, // national park
+  internet: {c:'#7a4fb0', t:'#e6dcf1', i:'📷'}, // camera
+  education:{c:'#8a6d3b', t:'#ece2cf', i:'🎓'}  // grad cap
+};
+
+// [catKey, category label, era/topic chip, headline, blurb]
+const QUIZZES = [
+  ['movies','Movies','2010s','Name the Top-Grossing Films of the 2010s','The highest-grossing films released in the 2010s, by worldwide box office.'],
+  ['movies','Movies','1990s','Name the Top-Grossing Films of the 1990s','The highest-grossing films released in the 1990s, by worldwide box office.'],
+  ['music','Music','1970s','Name the Top Songs of the 1970s','The biggest hit songs of the 1970s on the US year-end charts.'],
+  ['movies','Film','Inflation-Adj.','Name the Top-Grossing Films of All Time, Adjusted for Inflation','The highest-grossing films of all time, adjusted for inflation.'],
+  ['nba','NBA','Champions','Name the Last 10 NBA Champions','The NBA champions from the last ten Finals. Each slot is a year: name the team that won the title.'],
+  ['travel','Travel','Parks','Name the Most Visited US National Parks','The most-visited national parks in the US, by annual visitors.'],
+  ['music','Music','1990s','Name the Top Songs of the 1990s','The biggest hit songs of the 1990s on the US year-end charts.'],
+  ['music','Music','2000s','Name the Top Songs of the 2000s','The biggest hit songs of the 2000s on the US year-end charts.'],
+  ['internet','Internet','','Name the Most-Followed Instagram Accounts','The most-followed accounts on Instagram.'],
+  ['movies','Film','','Name the Top-Grossing Directors of All Time','The highest-grossing film directors of all time, by total box office.'],
+  ['education','Education','','Name the Largest University Endowments','The US universities with the largest endowments.'],
+  ['nhl','NHL','Champions','Name the Last 10 Stanley Cup Champions','The NHL champions from the last ten Stanley Cup Finals. Each slot is a year: name the team that lifted the Cup.']
+];
+
+const grid = document.getElementById('grid');
+
+function tileHTML(q){
+  const d = CAT[q[0]];
+  const sub = (q[2] ? q[2] + ' · ' : '') + '10 to name';
+  return '<div class="tile">'
+    + '<div class="top">'
+    +   '<div class="med" style="background:' + d.t + '">' + d.i + '</div>'
+    +   '<div><div class="cat" style="color:' + d.c + '">' + q[1] + '</div>'
+    +   '<div class="sub">' + sub + '</div></div>'
+    + '</div>'
+    + '<div class="h">' + q[3] + '</div>'
+    + '<div class="play" style="color:' + d.c + '">▶ Play</div>'
+    + '</div>';
+}
+
+function render(filter){
+  const f = (filter || '').toLowerCase().trim();
+  const rows = QUIZZES.filter(q => !f || (q[1]+' '+q[3]+' '+q[4]).toLowerCase().includes(f));
+  grid.innerHTML = rows.length
+    ? rows.map(tileHTML).join('')
+    : '<div class="empty">No quizzes match that search</div>';
+}
+
+document.getElementById('q').addEventListener('input', e => render(e.target.value));
+render('');
+</script>
+</body>
+</html>
