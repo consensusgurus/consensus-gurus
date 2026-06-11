@@ -3,7 +3,7 @@ import { LISTS } from '@/lib/data';
 import { HERO_IMAGES } from '@/lib/hero-images';
 import { getSources } from '@/lib/helpers';
 
-export const runtime = 'edge';
+export const runtime = 'nodejs';
 
 // Instagram-ready poster: the snapshot page's Classic Showcase design rendered
 // server-side at 1080x1350 (IG's 4:5 portrait max). Layout mirrors
