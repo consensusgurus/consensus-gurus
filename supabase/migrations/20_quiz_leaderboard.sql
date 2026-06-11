@@ -39,17 +39,19 @@ alter table quiz_users enable row level security;
 alter table quiz_results enable row level security;
 
 -- Upsert a leaderboard identity by email; returns the (possibly updated) row.
+-- NOTE: language sql (not plpgsql) on purpose -- a plpgsql RETURNS TABLE puts the
+-- output column names (id/username/email) in scope as variables, which makes the
+-- `email` in `on conflict (lower(email))` ambiguous. A sql function has no such
+-- scoping. (The app's /api/quiz/join route does this upsert directly via the
+-- service-role client and does not call this RPC, but it is kept correct here.)
 create or replace function quiz_join(p_username text, p_email text)
 returns table(id uuid, username text, email text)
-language plpgsql security definer as $$
-begin
-  return query
+language sql security definer as $$
   insert into quiz_users (username, email)
   values (p_username, p_email)
   on conflict (lower(email))
   do update set username = excluded.username
   returning quiz_users.id, quiz_users.username, quiz_users.email;
-end;
 $$;
 
 -- Accurate play count + average correct for a quiz (all completed games).
