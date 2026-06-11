@@ -99,7 +99,7 @@ function QuizTile({ quiz, plays }) {
           <span style={{ flex: 'none', width: 46, height: 46, borderRadius: '50%', background: accent.t, display: 'flex', alignItems: 'center', justifyContent: 'center' }}><Icon size={22} strokeWidth={2} aria-hidden="true" style={{ color: accent.c }} /></span>
           <span style={{ minWidth: 0, fontFamily: 'DM Mono, monospace', fontSize: 13, letterSpacing: '0.05em', textTransform: 'uppercase', color: accent.c, fontWeight: 700, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{quiz.category || 'Quiz'}</span>
         </div>
-        <h3 style={{ fontFamily: 'Fraunces, serif', fontWeight: 700, fontSize: 22, lineHeight: 1.1, letterSpacing: '-0.01em', margin: 0, color: COLORS.ink }}>{quiz.title}</h3>
+        <h3 style={{ fontFamily: 'Fraunces, serif', fontWeight: 700, fontSize: 22, lineHeight: 1.1, letterSpacing: '-0.01em', margin: 0, color: COLORS.ink }}>{quiz.title.replace(/^Name (the )?/, '')}</h3>
         <div style={{ marginTop: 'auto', paddingTop: 16, display: 'flex', justifyContent: 'flex-start', alignItems: 'baseline', gap: 8, fontFamily: 'DM Mono, monospace', fontSize: 11, letterSpacing: '0.14em', textTransform: 'uppercase', fontWeight: 700 }}>
           <span style={{ color: accent.c }}>▶ Play</span>
           {plays > 0 && (<span style={{ color: COLORS.faded, fontWeight: 600, letterSpacing: '0.1em' }}>· {plays.toLocaleString()} plays</span>)}
