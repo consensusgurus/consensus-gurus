@@ -6,6 +6,15 @@ import { ArrowLeft, Share2, Check, Flag, Trophy, HelpCircle } from 'lucide-react
 import { QUIZZES, getQuiz } from '@/lib/quizzes';
 import Grain from '../../Grain';
 import Footer from '../../Footer';
+import dynamic from 'next/dynamic';
+
+const EuropeMapBoard = dynamic(() => import('./EuropeMapBoard'), { ssr: false, loading: () => null });
+
+function shuffleIdx(n) {
+  const a = [...Array(n).keys()];
+  for (let i = n - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; }
+  return a;
+}
 
 // Palette inlined (not imported from the 3.6MB lib/data) to keep this route
 // bundle tiny.
@@ -105,6 +114,7 @@ export default function QuizClient({ quizId }) {
   const answers = quiz.answers;
   const total = answers.length;
   const matched = quiz.format === 'matched';
+  const mapMode = quiz.format === 'map';
   const ordered = matched && quiz.ordered === true;
   const relatedQuizzes = (() => {
     const d = deptOf(quiz);
@@ -121,6 +131,9 @@ export default function QuizClient({ quizId }) {
   const [hint, setHint] = useState('Press Play to start the clock.');
   const [hintBad, setHintBad] = useState(false);
   const [guess, setGuess] = useState('');
+  const orderRef = useRef(null);
+  const [curName, setCurName] = useState(null);
+  const [flash, setFlash] = useState(null);
   const [lastElapsed, setLastElapsed] = useState(null);
 
   const [stats, setStats] = useState({ attempts: 0, best: 0, totalCorrect: 0 });
@@ -167,6 +180,7 @@ export default function QuizClient({ quizId }) {
 
   const score = found.filter(Boolean).length;
   const activeIdx = found.findIndex((x) => !x);
+  const foundNamesSet = mapMode ? new Set(answers.filter((a, i) => found[i]).map((a) => a.t)) : null;
 
   function refreshBoard() {
     fetch(`/api/quiz/board?quizId=${encodeURIComponent(quizId)}`)
@@ -186,11 +200,11 @@ export default function QuizClient({ quizId }) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [quizId]);
 
-  function endGame(win) {
+  function endGame(win, foundOverride) {
     if (ended) return;
     setEnded(true);
     clearInterval(timerRef.current);
-    const finalScore = found.filter(Boolean).length;
+    const finalScore = (foundOverride || found).filter(Boolean).length;
     const elapsed = startRef.current ? Math.min(quiz.timeLimit, Math.round((Date.now() - startRef.current) / 1000)) : quiz.timeLimit;
     setLastElapsed(elapsed);
     setStats(recordResult(quizId, finalScore));
@@ -244,7 +258,14 @@ export default function QuizClient({ quizId }) {
     if (started || ended) return;
     setStarted(true);
     startRef.current = Date.now();
-    setHint(ordered ? 'Go — answer in order, from the top.' : matched ? "Go — name each year's winner." : 'Go — name them all.');
+    if (mapMode) {
+      const ord = shuffleIdx(total);
+      orderRef.current = ord;
+      setCurName(answers[ord[0]].t);
+      setHint(`Find ${answers[ord[0]].t} — click it on the map.`);
+    } else {
+      setHint(ordered ? 'Go — answer in order, from the top.' : matched ? "Go — name each year's winner." : 'Go — name them all.');
+    }
     setHintBad(false);
     timerRef.current = setInterval(() => {
       setTime((t) => {
@@ -333,6 +354,35 @@ export default function QuizClient({ quizId }) {
     if (e.key !== 'Enter' || !started || ended) return;
     checkOrdered(e.target.value);
     setGuess('');
+  }
+
+  function pickCountry(name) {
+    if (!started || ended || !mapMode) return;
+    const i = answers.findIndex((a) => a.t === name);
+    if (i < 0) return;
+    if (found[i]) {
+      if (name !== curName) { setFlash({ name, ok: false }); setTimeout(() => setFlash((f) => (f && f.name === name ? null : f)), 400); }
+      return;
+    }
+    if (name === curName) {
+      const next = found.slice();
+      next[i] = true;
+      setFound(next);
+      setFlash({ name, ok: true });
+      setTimeout(() => setFlash((f) => (f && f.name === name ? null : f)), 400);
+      const ord = orderRef.current || [];
+      const remaining = ord.filter((j) => !next[j]);
+      if (!remaining.length) { setHint(`Correct — ${name}. That's all of them.`); setHintBad(false); setCurName(null); endGame(true, next); return; }
+      const nn = answers[remaining[0]].t;
+      setCurName(nn);
+      setHint(`Correct — ${name}. Now find ${nn}.`);
+      setHintBad(false);
+    } else {
+      setFlash({ name, ok: false });
+      setTimeout(() => setFlash((f) => (f && f.name === name ? null : f)), 400);
+      setHint(`Not ${curName} — try again.`);
+      setHintBad(true);
+    }
   }
 
   async function submitJoin() {
@@ -518,7 +568,7 @@ export default function QuizClient({ quizId }) {
             </div>
 
             <div style={{ display: 'flex', gap: 10, marginBottom: 6 }}>
-              {(!matched || ordered) && (
+              {!mapMode && (!matched || ordered) && (
                 <input
                   ref={inputRef}
                   value={guess}
@@ -530,12 +580,21 @@ export default function QuizClient({ quizId }) {
                   style={{ flex: 1, fontFamily: SANS, fontSize: 17, padding: '14px 16px', border: `1.5px solid ${COLORS.ink}`, background: !started || ended ? COLORS.paper : '#fff', color: COLORS.ink, opacity: !started || ended ? 0.5 : 1 }}
                 />
               )}
-              <button onClick={start} disabled={started || ended} style={{ flex: matched && !ordered ? 1 : 'none', fontFamily: MONO, fontSize: 13, letterSpacing: '0.08em', textTransform: 'uppercase', fontWeight: 700, padding: '0 22px', height: matched ? 50 : 'auto', border: 'none', background: COLORS.ember, color: '#fff', cursor: started || ended ? 'default' : 'pointer', opacity: started || ended ? 0.5 : 1 }}>
+              <button onClick={start} disabled={started || ended} style={{ flex: (matched && !ordered) || mapMode ? 1 : 'none', fontFamily: MONO, fontSize: 13, letterSpacing: '0.08em', textTransform: 'uppercase', fontWeight: 700, padding: '0 22px', height: matched ? 50 : 'auto', border: 'none', background: COLORS.ember, color: '#fff', cursor: started || ended ? 'default' : 'pointer', opacity: started || ended ? 0.5 : 1 }}>
                 {ended ? 'Done' : started ? 'Playing' : (matched && !ordered) ? 'Play — name each year' : 'Play'}
               </button>
             </div>
             <div style={{ fontFamily: MONO, fontSize: 12, minHeight: 18, marginBottom: 20, color: hintBad ? COLORS.ember : COLORS.faded }}>{hint}</div>
 
+            {mapMode ? (
+            <div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 12, background: started && !ended ? COLORS.ink : COLORS.paper, color: started && !ended ? COLORS.cream : COLORS.faded, border: `1px solid ${COLORS.faded}33`, padding: '12px 16px', marginBottom: 10, minHeight: 30 }}>
+                <span style={{ fontFamily: MONO, fontSize: 11, letterSpacing: '0.2em', textTransform: 'uppercase', opacity: 0.7, flex: 'none' }}>Find</span>
+                <span style={{ fontFamily: SERIF, fontWeight: 800, fontSize: 'clamp(20px, 4vw, 26px)', lineHeight: 1 }}>{ended ? 'Game over' : started ? (curName || '—') : 'Press Play to start'}</span>
+              </div>
+              <EuropeMapBoard started={started} ended={ended} foundNames={foundNamesSet} flash={flash} onPick={pickCountry} />
+            </div>
+            ) : (
             <ol style={{ margin: 0, padding: 0, listStyle: 'none' }}>
               {answers.map((a, i) => {
                 const f = found[i];
@@ -568,6 +627,7 @@ export default function QuizClient({ quizId }) {
                 );
               })}
             </ol>
+            )}
 
             {ended && (
               <div style={{ marginTop: 22, padding: 24, border: `1.5px solid ${COLORS.ink}`, background: COLORS.paper, textAlign: 'center' }}>
