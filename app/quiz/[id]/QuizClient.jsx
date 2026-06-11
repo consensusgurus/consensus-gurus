@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { useRouter } from 'next/navigation';
-import { ArrowLeft, Share2, Check, RotateCcw, Flag } from 'lucide-react';
+import { ArrowLeft, Share2, Check, Flag } from 'lucide-react';
 import { getQuiz } from '@/lib/quizzes';
 import Grain from '../../Grain';
 import Footer from '../../Footer';
@@ -93,7 +93,7 @@ export default function QuizClient({ quizId }) {
   const [started, setStarted] = useState(false);
   const [ended, setEnded] = useState(false);
   const [time, setTime] = useState(quiz.timeLimit);
-  const [hint, setHint] = useState('Press Start, or just begin typing, to play.');
+  const [hint, setHint] = useState('Press Play to start the clock.');
   const [hintBad, setHintBad] = useState(false);
   const [guess, setGuess] = useState('');
   const [stats, setStats] = useState({ attempts: 0, best: 0, totalCorrect: 0 });
@@ -158,23 +158,8 @@ export default function QuizClient({ quizId }) {
   }
 
   function onKey(e) {
-    if (e.key !== 'Enter') {
-      if (!started && !ended) start();
-      return;
-    }
-    if (!started && !ended) start();
+    if (e.key !== 'Enter' || !started || ended) return;
     checkGuess(e.target.value);
-    setGuess('');
-  }
-
-  function reset() {
-    clearInterval(timerRef.current);
-    setFound(new Array(total).fill(false));
-    setStarted(false);
-    setEnded(false);
-    setTime(quiz.timeLimit);
-    setHint('Press Start, or just begin typing, to play.');
-    setHintBad(false);
     setGuess('');
   }
 
@@ -298,19 +283,19 @@ export default function QuizClient({ quizId }) {
               <input
                 ref={inputRef}
                 value={guess}
-                disabled={ended}
+                disabled={!started || ended}
                 onChange={(e) => setGuess(e.target.value)}
                 onKeyDown={onKey}
-                placeholder="Type an airline, then Enter…"
+                placeholder={started ? 'Type an airline, then Enter…' : 'Press Play to begin…'}
                 autoComplete="off"
-                style={{ flex: 1, fontFamily: SANS, fontSize: 17, padding: '14px 16px', border: `1.5px solid ${COLORS.ink}`, background: ended ? COLORS.paper : '#fff', color: COLORS.ink, opacity: ended ? 0.5 : 1 }}
+                style={{ flex: 1, fontFamily: SANS, fontSize: 17, padding: '14px 16px', border: `1.5px solid ${COLORS.ink}`, background: !started || ended ? COLORS.paper : '#fff', color: COLORS.ink, opacity: !started || ended ? 0.5 : 1 }}
               />
               <button
                 onClick={start}
                 disabled={started || ended}
                 style={{ fontFamily: MONO, fontSize: 13, letterSpacing: '0.08em', textTransform: 'uppercase', fontWeight: 700, padding: '0 22px', border: 'none', background: COLORS.ember, color: '#fff', cursor: started || ended ? 'default' : 'pointer', opacity: started || ended ? 0.5 : 1 }}
               >
-                {ended ? 'Done' : started ? 'Playing' : 'Start'}
+                {ended ? 'Done' : started ? 'Playing' : 'Play'}
               </button>
             </div>
             <div style={{ fontFamily: MONO, fontSize: 12, minHeight: 18, marginBottom: 20, color: hintBad ? COLORS.ember : COLORS.faded }}>{hint}</div>
@@ -352,7 +337,7 @@ export default function QuizClient({ quizId }) {
                     href={`/list/${quiz.listId}`}
                     style={{ display: 'inline-block', fontFamily: MONO, fontSize: 13, letterSpacing: '0.08em', textTransform: 'uppercase', fontWeight: 700, lineHeight: '46px', padding: '0 28px', background: COLORS.ember, color: '#fff', textDecoration: 'none' }}
                   >
-                    See the full list →
+                    See the full list detail →
                   </a>
                 )}
               </div>
@@ -361,9 +346,6 @@ export default function QuizClient({ quizId }) {
             <div style={{ marginTop: 22, display: 'flex', gap: 10, justifyContent: 'center' }}>
               <button onClick={() => endGame(false)} disabled={ended || !started} style={ghostBtn(ended || !started)}>
                 <Flag size={12} strokeWidth={2.5} /> Give up &amp; reveal
-              </button>
-              <button onClick={reset} style={ghostBtn(false)}>
-                <RotateCcw size={12} strokeWidth={2.5} /> Reset
               </button>
             </div>
           </>
