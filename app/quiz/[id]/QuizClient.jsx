@@ -3,7 +3,7 @@
 import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { ArrowLeft, Share2, Check, Flag, Trophy } from 'lucide-react';
-import { getQuiz } from '@/lib/quizzes';
+import { QUIZZES, getQuiz } from '@/lib/quizzes';
 import Grain from '../../Grain';
 import Footer from '../../Footer';
 
@@ -24,6 +24,14 @@ const SANS = 'DM Sans, sans-serif';
 
 function norm(s) {
   return (s || '').toLowerCase().replace(/[^a-z0-9 ]/g, ' ').replace(/\s+/g, ' ').trim();
+}
+function deptOf(q) {
+  const id = q.id || '';
+  if (q.type === 'travel') return 'travel';
+  if (/film|movie|box-office|director|actor|animated/.test(id)) return 'movies';
+  if (/song|album|single|spotify|music-video|concert-tour|billboard|soundtrack/.test(id)) return 'music';
+  if (/games|video-games/.test(id)) return 'games';
+  return 'other';
 }
 function fmtTime(sec) {
   const s = Math.max(0, Math.round(sec || 0));
@@ -76,6 +84,12 @@ export default function QuizClient({ quizId }) {
 
   const answers = quiz.answers;
   const total = answers.length;
+  const relatedQuizzes = (() => {
+    const d = deptOf(quiz);
+    let r = QUIZZES.filter((x) => x.id !== quiz.id && deptOf(x) === d);
+    if (r.length < 4) r = r.concat(QUIZZES.filter((x) => x.id !== quiz.id && !r.includes(x)));
+    return r.slice(0, 4);
+  })();
 
   const [tab, setTab] = useState('play');
   const [found, setFound] = useState(() => new Array(total).fill(false));
@@ -309,9 +323,9 @@ export default function QuizClient({ quizId }) {
       <Grain />
       <div style={{ position: 'relative', zIndex: 2, maxWidth: 920, margin: '0 auto', padding: '24px 20px 80px' }}>
 
-        <button onClick={() => router.push('/')} style={{ background: 'transparent', border: 'none', fontFamily: MONO, fontSize: 11, letterSpacing: '0.2em', textTransform: 'uppercase', color: COLORS.ink, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 6, padding: '8px 0' }}>
+        <button onClick={() => router.push('/quizzes')} style={{ background: 'transparent', border: 'none', fontFamily: MONO, fontSize: 11, letterSpacing: '0.2em', textTransform: 'uppercase', color: COLORS.ink, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 6, padding: '8px 0' }}>
           <ArrowLeft size={14} strokeWidth={2.5} />
-          Back to all lists
+          Back to all quizzes
         </button>
 
         {/* Header */}
@@ -488,6 +502,19 @@ export default function QuizClient({ quizId }) {
                 </div>
               )}
             </div>
+            {relatedQuizzes.length > 0 && (
+              <div style={{ borderTop: `1px solid ${COLORS.faded}33`, marginTop: 26, paddingTop: 20 }}>
+                <div style={{ fontFamily: MONO, fontSize: 11, letterSpacing: '0.16em', textTransform: 'uppercase', color: COLORS.faded, marginBottom: 14 }}>More quizzes</div>
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))', gap: 10 }}>
+                  {relatedQuizzes.map((rq) => (
+                    <a key={rq.id} href={`/quiz/${rq.id}`} style={{ textDecoration: 'none', color: COLORS.ink, background: COLORS.paper, border: `1px solid ${COLORS.faded}33`, padding: '12px 14px', display: 'block', transition: 'all 0.15s ease' }}>
+                      <div style={{ fontFamily: MONO, fontSize: 9, letterSpacing: '0.16em', textTransform: 'uppercase', color: COLORS.ember, fontWeight: 700, marginBottom: 6 }}>{rq.category || 'Quiz'}</div>
+                      <div style={{ fontFamily: SERIF, fontSize: 16, fontWeight: 600, lineHeight: 1.15 }}>{rq.title}</div>
+                    </a>
+                  ))}
+                </div>
+              </div>
+            )}
           </div>
         )}
 
