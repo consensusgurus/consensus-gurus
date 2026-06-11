@@ -2,14 +2,13 @@
 
 import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { useRouter } from 'next/navigation';
-import { ArrowLeft, Share2, Check, Flag } from 'lucide-react';
+import { ArrowLeft, Share2, Check, Flag, Trophy } from 'lucide-react';
 import { getQuiz } from '@/lib/quizzes';
 import Grain from '../../Grain';
 import Footer from '../../Footer';
 
-// Palette is inlined (not imported from lib/data) so the quiz route bundle
-// stays tiny — importing COLORS from the 3.6MB data.js would pull the whole
-// file into this bundle.
+// Palette inlined (not imported from the 3.6MB lib/data) to keep this route
+// bundle tiny.
 const COLORS = {
   cream: '#f4ede0',
   paper: '#ebe2d0',
@@ -19,7 +18,6 @@ const COLORS = {
   forest: '#3d4f2b',
   faded: '#7a6f5e',
 };
-
 const MONO = 'DM Mono, monospace';
 const SERIF = 'Fraunces, serif';
 const SANS = 'DM Sans, sans-serif';
@@ -27,8 +25,12 @@ const SANS = 'DM Sans, sans-serif';
 function norm(s) {
   return (s || '').toLowerCase().replace(/[^a-z0-9 ]/g, ' ').replace(/\s+/g, ' ').trim();
 }
+function fmtTime(sec) {
+  const s = Math.max(0, Math.round(sec || 0));
+  return `${Math.floor(s / 60)}:${String(s % 60).padStart(2, '0')}`;
+}
 
-// ── Personal stats (client-side, real) ──────────────────────────────────────
+// ── Personal stats (client-side) ──
 function statsKey(id) {
   return `sot_quiz_${id}`;
 }
@@ -40,26 +42,20 @@ function loadStats(id) {
     return { attempts: 0, best: 0, totalCorrect: 0 };
   }
 }
-function recordResult(id, score, total) {
+function recordResult(id, score) {
   const s = loadStats(id);
-  const next = {
-    attempts: s.attempts + 1,
-    best: Math.max(s.best, score),
-    totalCorrect: s.totalCorrect + score,
-    lastScore: score,
-    lastTotal: total,
-  };
+  const next = { attempts: s.attempts + 1, best: Math.max(s.best, score), totalCorrect: s.totalCorrect + score };
   try {
     localStorage.setItem(statsKey(id), JSON.stringify(next));
   } catch {}
   return next;
 }
-
-// rough cumulative percentile curve for the "you beat X%" line
 function percentile(score, total) {
   const frac = total ? score / total : 0;
   return Math.round(Math.min(99, Math.max(2, Math.pow(frac, 1.35) * 100)));
 }
+
+const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 export default function QuizClient({ quizId }) {
   const router = useRouter();
@@ -70,15 +66,8 @@ export default function QuizClient({ quizId }) {
       <div style={{ minHeight: '100vh', background: COLORS.cream, color: COLORS.ink, position: 'relative' }}>
         <Grain />
         <div style={{ position: 'relative', zIndex: 2, padding: 48, textAlign: 'center' }}>
-          <p style={{ fontFamily: SERIF, fontStyle: 'italic', color: COLORS.faded }}>
-            That quiz seems to have wandered off.
-          </p>
-          <button
-            onClick={() => router.push('/')}
-            style={{ marginTop: 16, background: COLORS.ink, color: COLORS.cream, border: 'none', padding: '10px 20px', fontFamily: MONO, fontSize: 11, letterSpacing: '0.2em', textTransform: 'uppercase', cursor: 'pointer' }}
-          >
-            Back home
-          </button>
+          <p style={{ fontFamily: SERIF, fontStyle: 'italic', color: COLORS.faded }}>That quiz seems to have wandered off.</p>
+          <button onClick={() => router.push('/')} style={{ marginTop: 16, background: COLORS.ink, color: COLORS.cream, border: 'none', padding: '10px 20px', fontFamily: MONO, fontSize: 11, letterSpacing: '0.2em', textTransform: 'uppercase', cursor: 'pointer' }}>Back home</button>
         </div>
         <Footer />
       </div>
@@ -96,39 +85,76 @@ export default function QuizClient({ quizId }) {
   const [hint, setHint] = useState('Press Play to start the clock.');
   const [hintBad, setHintBad] = useState(false);
   const [guess, setGuess] = useState('');
+  const [lastElapsed, setLastElapsed] = useState(null);
+
   const [stats, setStats] = useState({ attempts: 0, best: 0, totalCorrect: 0 });
+  const [board, setBoard] = useState({ plays: 0, avg: null, leaderboard: [] });
+  const [identity, setIdentity] = useState(null); // { username, email }
+
+  // Join form
+  const [jName, setJName] = useState('');
+  const [jEmail, setJEmail] = useState('');
+  const [joinMsg, setJoinMsg] = useState('');
+  const [joinErr, setJoinErr] = useState(false);
+  const [joinBusy, setJoinBusy] = useState(false);
+
   const [copied, setCopied] = useState(false);
   const timerRef = useRef(null);
+  const startRef = useRef(null);
   const inputRef = useRef(null);
+
+  const score = found.filter(Boolean).length;
+
+  function refreshBoard() {
+    fetch(`/api/quiz/board?quizId=${encodeURIComponent(quizId)}`)
+      .then((r) => r.json())
+      .then((d) => { if (d && !d.error) setBoard({ plays: d.plays || 0, avg: d.avg ?? null, leaderboard: d.leaderboard || [] }); })
+      .catch(() => {});
+  }
 
   useEffect(() => {
     setStats(loadStats(quizId));
+    try {
+      const id = JSON.parse(localStorage.getItem('sot_quiz_identity'));
+      if (id && id.email) { setIdentity(id); setJName(id.username || ''); setJEmail(id.email || ''); }
+    } catch {}
+    refreshBoard();
+    return () => clearInterval(timerRef.current);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [quizId]);
-
-  const score = found.filter(Boolean).length;
 
   function endGame(win) {
     if (ended) return;
     setEnded(true);
     clearInterval(timerRef.current);
     const finalScore = found.filter(Boolean).length;
-    setStats(recordResult(quizId, finalScore, total));
-    setHint(win ? `Perfect — all ${total} named!` : `Time! You got ${finalScore}/${total}.`);
+    const elapsed = startRef.current ? Math.min(quiz.timeLimit, Math.round((Date.now() - startRef.current) / 1000)) : quiz.timeLimit;
+    setLastElapsed(elapsed);
+    setStats(recordResult(quizId, finalScore));
+    setHint(win ? `Perfect — all ${total} named in ${fmtTime(elapsed)}!` : `Time! You got ${finalScore}/${total}.`);
     setHintBad(!win);
+
+    // Record the completed game (makes play count + average real; attributes
+    // to the leaderboard if signed up).
+    fetch('/api/quiz/result', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ quizId, score: finalScore, total, timeElapsed: elapsed, email: identity?.email || undefined }),
+    })
+      .then((r) => r.json())
+      .then((d) => { if (d && !d.error) setBoard({ plays: d.plays || 0, avg: d.avg ?? null, leaderboard: d.leaderboard || [] }); })
+      .catch(() => {});
   }
 
   function start() {
     if (started || ended) return;
     setStarted(true);
+    startRef.current = Date.now();
     setHint('Go — name them all.');
     setHintBad(false);
     timerRef.current = setInterval(() => {
       setTime((t) => {
-        if (t <= 1) {
-          clearInterval(timerRef.current);
-          endGame(false);
-          return 0;
-        }
+        if (t <= 1) { clearInterval(timerRef.current); endGame(false); return 0; }
         return t - 1;
       });
     }, 1000);
@@ -163,11 +189,32 @@ export default function QuizClient({ quizId }) {
     setGuess('');
   }
 
-  useEffect(() => () => clearInterval(timerRef.current), []);
+  async function submitJoin() {
+    setJoinErr(false);
+    if (!jName.trim() || jName.trim().length > 40) { setJoinErr(true); setJoinMsg('Pick a username (max 40 characters).'); return; }
+    if (!EMAIL_RE.test(jEmail.trim())) { setJoinErr(true); setJoinMsg('Enter a valid email.'); return; }
+    setJoinBusy(true);
+    try {
+      const res = await fetch('/api/quiz/join', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ username: jName.trim(), email: jEmail.trim() }),
+      });
+      const d = await res.json();
+      if (d.error) { setJoinErr(true); setJoinMsg(d.error); setJoinBusy(false); return; }
+      const id = { username: d.username, email: d.email };
+      try { localStorage.setItem('sot_quiz_identity', JSON.stringify(id)); } catch {}
+      setIdentity(id);
+      setJoinErr(false);
+      setJoinMsg(`You're in. "${d.username}" will appear on the leaderboard once you finish a game.`);
+    } catch (e) {
+      setJoinErr(true);
+      setJoinMsg('Could not join right now. Try again.');
+    }
+    setJoinBusy(false);
+  }
 
-  const personalAvg = stats.attempts ? (stats.totalCorrect / stats.attempts).toFixed(1) : null;
-  const clock = `${Math.floor(time / 60)}:${String(time % 60).padStart(2, '0')}`;
-
+  const clock = fmtTime(time);
   const shareUrl = typeof window !== 'undefined' ? window.location.href : `https://sourceoftruths.com/quiz/${quiz.id}`;
   function share() {
     const text = ended
@@ -176,39 +223,16 @@ export default function QuizClient({ quizId }) {
     if (navigator.share) {
       navigator.share({ title: quiz.title, text, url: shareUrl }).catch(() => {});
     } else {
-      navigator.clipboard?.writeText(`${text} ${shareUrl}`).then(() => {
-        setCopied(true);
-        setTimeout(() => setCopied(false), 1800);
-      });
+      navigator.clipboard?.writeText(`${text} ${shareUrl}`).then(() => { setCopied(true); setTimeout(() => setCopied(false), 1800); });
     }
   }
 
-  // ── tab chip (ink ribbon, ember active fill — mirrors the list page) ──
   function chip(key, label, icon) {
     const active = tab === key;
     return (
       <button
         onClick={() => setTab(key)}
-        style={{
-          flex: '1 0 auto',
-          justifyContent: 'center',
-          background: active ? COLORS.ember : 'transparent',
-          color: COLORS.cream,
-          border: 'none',
-          borderRight: '1px solid rgba(244,237,224,0.18)',
-          padding: '0 16px',
-          height: 42,
-          whiteSpace: 'nowrap',
-          fontFamily: MONO,
-          fontSize: 10,
-          letterSpacing: '0.18em',
-          textTransform: 'uppercase',
-          fontWeight: 700,
-          cursor: 'pointer',
-          display: 'flex',
-          alignItems: 'center',
-          gap: 6,
-        }}
+        style={{ flex: '1 0 auto', justifyContent: 'center', background: active ? COLORS.ember : 'transparent', color: COLORS.cream, border: 'none', borderRight: '1px solid rgba(244,237,224,0.18)', padding: '0 16px', height: 42, whiteSpace: 'nowrap', fontFamily: MONO, fontSize: 10, letterSpacing: '0.18em', textTransform: 'uppercase', fontWeight: 700, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 6 }}
       >
         {icon}
         {label}
@@ -216,36 +240,29 @@ export default function QuizClient({ quizId }) {
     );
   }
 
+  const avgLabel = board.avg != null ? board.avg : '—';
+
   return (
     <div style={{ minHeight: '100vh', background: COLORS.cream, color: COLORS.ink, position: 'relative', overflow: 'clip' }}>
       <Grain />
       <div style={{ position: 'relative', zIndex: 2, maxWidth: 920, margin: '0 auto', padding: '24px 20px 80px' }}>
 
-        <button
-          onClick={() => router.push('/')}
-          style={{ background: 'transparent', border: 'none', fontFamily: MONO, fontSize: 11, letterSpacing: '0.2em', textTransform: 'uppercase', color: COLORS.ink, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 6, padding: '8px 0' }}
-        >
+        <button onClick={() => router.push('/')} style={{ background: 'transparent', border: 'none', fontFamily: MONO, fontSize: 11, letterSpacing: '0.2em', textTransform: 'uppercase', color: COLORS.ink, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 6, padding: '8px 0' }}>
           <ArrowLeft size={14} strokeWidth={2.5} />
           Back to all lists
         </button>
 
-        {/* Header — Fraunces title + ember eyebrow, double rule */}
+        {/* Header */}
         <div style={{ paddingBottom: 0, marginTop: 8 }}>
           <div style={{ display: 'flex', alignItems: 'flex-end', gap: 'clamp(16px, 4vw, 28px)' }}>
-            <h1 style={{ fontFamily: SERIF, fontWeight: 800, fontSize: 'clamp(30px, 5vw, 50px)', lineHeight: 1.02, letterSpacing: '-0.02em', margin: 0, color: COLORS.ink, fontVariationSettings: '"SOFT" 100' }}>
-              {quiz.title}
-            </h1>
+            <h1 style={{ fontFamily: SERIF, fontWeight: 800, fontSize: 'clamp(30px, 5vw, 50px)', lineHeight: 1.02, letterSpacing: '-0.02em', margin: 0, color: COLORS.ink, fontVariationSettings: '"SOFT" 100' }}>{quiz.title}</h1>
             <div style={{ flex: 1, minWidth: 120, marginBottom: 6 }}>
-              <div style={{ fontFamily: MONO, fontSize: 'clamp(9px, 1.1vw, 11px)', letterSpacing: '0.2em', textTransform: 'uppercase', color: COLORS.ember, textAlign: 'right', marginBottom: 8 }}>
-                {quiz.category} · Quiz
-              </div>
+              <div style={{ fontFamily: MONO, fontSize: 'clamp(9px, 1.1vw, 11px)', letterSpacing: '0.2em', textTransform: 'uppercase', color: COLORS.ember, textAlign: 'right', marginBottom: 8 }}>{quiz.category} · Quiz</div>
               <div style={{ borderBottom: `1px solid ${COLORS.ink}`, marginBottom: 4 }} />
               <div style={{ borderBottom: `2px solid ${COLORS.ember}` }} />
             </div>
           </div>
-          <p style={{ fontFamily: SERIF, fontStyle: 'italic', fontSize: 16, lineHeight: 1.45, margin: '12px 0 0', color: COLORS.faded, maxWidth: 640 }}>
-            {quiz.blurb}
-          </p>
+          <p style={{ fontFamily: SERIF, fontStyle: 'italic', fontSize: 16, lineHeight: 1.45, margin: '12px 0 0', color: COLORS.faded, maxWidth: 640 }}>{quiz.blurb}</p>
         </div>
 
         {/* Ribbon */}
@@ -254,6 +271,7 @@ export default function QuizClient({ quizId }) {
             {chip('play', 'Play')}
             {chip('stats', 'Stats')}
             {chip('share', 'Share', <Share2 size={12} strokeWidth={2.5} />)}
+            {chip('join', 'Join the Leaderboard', <Trophy size={12} strokeWidth={2.5} />)}
           </div>
         </div>
 
@@ -264,14 +282,12 @@ export default function QuizClient({ quizId }) {
           <>
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 16, background: COLORS.paper, border: `1px solid ${COLORS.faded}33`, padding: '16px 20px', marginBottom: 16 }}>
               <div>
-                <div style={{ fontFamily: SERIF, fontWeight: 800, fontSize: 34, lineHeight: 1 }}>
-                  {score}<span style={{ fontSize: 20, color: COLORS.faded }}>/{total}</span>
-                </div>
+                <div style={{ fontFamily: SERIF, fontWeight: 800, fontSize: 34, lineHeight: 1 }}>{score}<span style={{ fontSize: 20, color: COLORS.faded }}>/{total}</span></div>
                 <div style={{ fontFamily: MONO, fontSize: 11, letterSpacing: '0.12em', textTransform: 'uppercase', color: COLORS.faded }}>Your score</div>
               </div>
               <div style={{ textAlign: 'center', borderLeft: `1px solid ${COLORS.faded}33`, borderRight: `1px solid ${COLORS.faded}33`, padding: '0 22px' }}>
-                <div style={{ fontFamily: SERIF, fontWeight: 800, fontSize: 34, lineHeight: 1, color: COLORS.ember }}>{quiz.stats.avg}</div>
-                <div style={{ fontFamily: MONO, fontSize: 11, letterSpacing: '0.12em', textTransform: 'uppercase', color: COLORS.faded }}>Avg · {quiz.stats.plays.toLocaleString()} plays</div>
+                <div style={{ fontFamily: SERIF, fontWeight: 800, fontSize: 34, lineHeight: 1, color: COLORS.ember }}>{avgLabel}</div>
+                <div style={{ fontFamily: MONO, fontSize: 11, letterSpacing: '0.12em', textTransform: 'uppercase', color: COLORS.faded }}>Avg · {board.plays.toLocaleString()} {board.plays === 1 ? 'play' : 'plays'}</div>
               </div>
               <div style={{ textAlign: 'right' }}>
                 <div style={{ fontFamily: MONO, fontSize: 24, color: time <= 10 && started && !ended ? COLORS.ember : COLORS.ink }}>{clock}</div>
@@ -290,11 +306,7 @@ export default function QuizClient({ quizId }) {
                 autoComplete="off"
                 style={{ flex: 1, fontFamily: SANS, fontSize: 17, padding: '14px 16px', border: `1.5px solid ${COLORS.ink}`, background: !started || ended ? COLORS.paper : '#fff', color: COLORS.ink, opacity: !started || ended ? 0.5 : 1 }}
               />
-              <button
-                onClick={start}
-                disabled={started || ended}
-                style={{ fontFamily: MONO, fontSize: 13, letterSpacing: '0.08em', textTransform: 'uppercase', fontWeight: 700, padding: '0 22px', border: 'none', background: COLORS.ember, color: '#fff', cursor: started || ended ? 'default' : 'pointer', opacity: started || ended ? 0.5 : 1 }}
-              >
+              <button onClick={start} disabled={started || ended} style={{ fontFamily: MONO, fontSize: 13, letterSpacing: '0.08em', textTransform: 'uppercase', fontWeight: 700, padding: '0 22px', border: 'none', background: COLORS.ember, color: '#fff', cursor: started || ended ? 'default' : 'pointer', opacity: started || ended ? 0.5 : 1 }}>
                 {ended ? 'Done' : started ? 'Playing' : 'Play'}
               </button>
             </div>
@@ -311,9 +323,7 @@ export default function QuizClient({ quizId }) {
                     ) : (
                       <span style={{ fontFamily: MONO, fontSize: 13, letterSpacing: '0.06em', color: COLORS.faded, opacity: 0.55, flex: 1 }}>— — — — —</span>
                     )}
-                    <span style={{ width: 20, flex: 'none', color: COLORS.forest, opacity: f ? 1 : 0 }}>
-                      <Check size={17} strokeWidth={3} />
-                    </span>
+                    <span style={{ width: 20, flex: 'none', color: COLORS.forest, opacity: f ? 1 : 0 }}><Check size={17} strokeWidth={3} /></span>
                   </li>
                 );
               })}
@@ -321,24 +331,22 @@ export default function QuizClient({ quizId }) {
 
             {ended && (
               <div style={{ marginTop: 22, padding: 24, border: `1.5px solid ${COLORS.ink}`, background: COLORS.paper, textAlign: 'center' }}>
-                <div style={{ fontFamily: MONO, fontSize: 12, letterSpacing: '0.16em', textTransform: 'uppercase', color: COLORS.ember, marginBottom: 8 }}>
-                  {score === total ? 'Perfect score' : time <= 0 ? 'Time!' : 'Gave up'}
-                </div>
-                <div style={{ fontFamily: SERIF, fontWeight: 700, fontSize: 26, lineHeight: 1.1, marginBottom: 10 }}>
-                  {score} of {total} · you beat {percentile(score, total)}% of players
-                </div>
+                <div style={{ fontFamily: MONO, fontSize: 12, letterSpacing: '0.16em', textTransform: 'uppercase', color: COLORS.ember, marginBottom: 8 }}>{score === total ? 'Perfect score' : time <= 0 ? 'Time!' : 'Gave up'}</div>
+                <div style={{ fontFamily: SERIF, fontWeight: 700, fontSize: 26, lineHeight: 1.1, marginBottom: 10 }}>{score} of {total} · you beat {percentile(score, total)}% of players</div>
                 <p style={{ fontFamily: SANS, fontSize: 15, color: '#4a4339', maxWidth: 440, margin: '0 auto 18px' }}>
-                  {score > quiz.stats.avg ? `You beat the ${quiz.stats.avg} average.` : `The ${quiz.stats.avg} average is the score to beat.`}
+                  {board.avg != null ? (score > board.avg ? `You beat the ${board.avg} average.` : `The ${board.avg} average is the score to beat.`) : 'Be the first to set the pace.'}
                   {quiz.listId ? ' See the ones you missed in the full ranking, with sources and the consensus breakdown.' : ''}
                 </p>
-                {quiz.listId && (
-                  <a
-                    href={`/list/${quiz.listId}`}
-                    style={{ display: 'inline-block', fontFamily: MONO, fontSize: 13, letterSpacing: '0.08em', textTransform: 'uppercase', fontWeight: 700, lineHeight: '46px', padding: '0 28px', background: COLORS.ember, color: '#fff', textDecoration: 'none' }}
-                  >
-                    See the full list detail →
-                  </a>
-                )}
+                <div style={{ display: 'flex', gap: 10, justifyContent: 'center', flexWrap: 'wrap' }}>
+                  {quiz.listId && (
+                    <a href={`/list/${quiz.listId}`} style={{ display: 'inline-block', fontFamily: MONO, fontSize: 13, letterSpacing: '0.08em', textTransform: 'uppercase', fontWeight: 700, lineHeight: '46px', padding: '0 28px', background: COLORS.ember, color: '#fff', textDecoration: 'none' }}>See the full list detail →</a>
+                  )}
+                  {!identity && (
+                    <button onClick={() => setTab('join')} style={{ fontFamily: MONO, fontSize: 13, letterSpacing: '0.08em', textTransform: 'uppercase', fontWeight: 700, lineHeight: '46px', padding: '0 24px', background: 'transparent', color: COLORS.ink, border: `1.5px solid ${COLORS.ink}`, cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: 8 }}>
+                      <Trophy size={14} strokeWidth={2.5} /> Join the leaderboard
+                    </button>
+                  )}
+                </div>
               </div>
             )}
 
@@ -350,30 +358,48 @@ export default function QuizClient({ quizId }) {
           </>
         )}
 
-        {/* ── STATS ── */}
+        {/* ── STATS (personal record + leaderboard) ── */}
         {tab === 'stats' && (
           <div>
             <div style={{ fontFamily: MONO, fontSize: 11, letterSpacing: '0.16em', textTransform: 'uppercase', color: COLORS.ember, marginBottom: 14 }}>Your record</div>
             {stats.attempts === 0 ? (
-              <p style={{ fontFamily: SERIF, fontStyle: 'italic', fontSize: 17, color: COLORS.faded }}>
-                Play a round and your stats will show up here. Everything is kept on this device.
-              </p>
+              <p style={{ fontFamily: SERIF, fontStyle: 'italic', fontSize: 17, color: COLORS.faded }}>Play a round and your record shows up here. It stays on this device.</p>
             ) : (
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 12, marginBottom: 26 }}>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 12 }}>
                 <StatBox label="Best score" value={`${stats.best}/${total}`} />
-                <StatBox label="Your average" value={`${personalAvg}/${total}`} />
+                <StatBox label="Your average" value={`${(stats.totalCorrect / stats.attempts).toFixed(1)}/${total}`} />
                 <StatBox label="Attempts" value={stats.attempts} />
               </div>
             )}
-            <div style={{ borderTop: `1px solid ${COLORS.faded}33`, paddingTop: 20 }}>
-              <div style={{ fontFamily: MONO, fontSize: 11, letterSpacing: '0.16em', textTransform: 'uppercase', color: COLORS.faded, marginBottom: 14 }}>Community</div>
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 12 }}>
-                <StatBox label="Average correct" value={`${quiz.stats.avg}/${total}`} accent />
-                <StatBox label="Total plays" value={quiz.stats.plays.toLocaleString()} accent />
+
+            <div style={{ borderTop: `1px solid ${COLORS.faded}33`, marginTop: 26, paddingTop: 20 }}>
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 14 }}>
+                <div style={{ fontFamily: MONO, fontSize: 11, letterSpacing: '0.16em', textTransform: 'uppercase', color: COLORS.faded }}>Leaderboard</div>
+                <div style={{ fontFamily: MONO, fontSize: 11, letterSpacing: '0.08em', color: COLORS.faded }}>{avgLabel} avg · {board.plays.toLocaleString()} {board.plays === 1 ? 'play' : 'plays'}</div>
               </div>
-              <p style={{ fontFamily: SANS, fontSize: 13, color: COLORS.faded, marginTop: 14 }}>
-                Community figures are a baseline; wire them to live play data when the quiz backend lands.
-              </p>
+
+              {board.leaderboard.length === 0 ? (
+                <p style={{ fontFamily: SERIF, fontStyle: 'italic', fontSize: 16, color: COLORS.faded }}>
+                  No one has posted a score yet. <button onClick={() => setTab('join')} style={{ background: 'none', border: 'none', padding: 0, color: COLORS.ember, font: 'inherit', fontStyle: 'italic', textDecoration: 'underline', cursor: 'pointer' }}>Join the leaderboard</button> and be first.
+                </p>
+              ) : (
+                <div>
+                  <div style={{ display: 'grid', gridTemplateColumns: '40px 1fr 76px 64px', gap: 8, padding: '0 14px 8px', fontFamily: MONO, fontSize: 10, letterSpacing: '0.12em', textTransform: 'uppercase', color: COLORS.faded }}>
+                    <span>#</span><span>Username</span><span style={{ textAlign: 'right' }}>Correct</span><span style={{ textAlign: 'right' }}>Time</span>
+                  </div>
+                  {board.leaderboard.map((row, i) => {
+                    const mine = identity && row.username === identity.username;
+                    return (
+                      <div key={i} style={{ display: 'grid', gridTemplateColumns: '40px 1fr 76px 64px', gap: 8, alignItems: 'center', padding: '11px 14px', marginBottom: 6, background: mine ? '#fff' : COLORS.paper, border: `1px solid ${mine ? COLORS.ember : COLORS.faded + '22'}` }}>
+                        <span style={{ fontFamily: SERIF, fontWeight: 800, fontSize: 18, color: i < 3 ? COLORS.ember : COLORS.faded }}>{i + 1}</span>
+                        <span style={{ fontFamily: SERIF, fontSize: 17, fontWeight: 500, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{row.username}{mine ? ' (you)' : ''}</span>
+                        <span style={{ fontFamily: MONO, fontSize: 14, textAlign: 'right' }}>{row.score}/{total}</span>
+                        <span style={{ fontFamily: MONO, fontSize: 14, textAlign: 'right', color: COLORS.faded }}>{fmtTime(row.timeElapsed)}</span>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
             </div>
           </div>
         )}
@@ -381,13 +407,47 @@ export default function QuizClient({ quizId }) {
         {/* ── SHARE ── */}
         {tab === 'share' && (
           <div style={{ textAlign: 'center', padding: '12px 0 8px' }}>
-            <p style={{ fontFamily: SERIF, fontStyle: 'italic', fontSize: 19, color: COLORS.ink, maxWidth: 480, margin: '0 auto 20px' }}>
-              {ended ? `You named ${score} of ${total}. Challenge someone to beat it.` : 'Send this quiz to someone who thinks they know their airlines.'}
-            </p>
+            <p style={{ fontFamily: SERIF, fontStyle: 'italic', fontSize: 19, color: COLORS.ink, maxWidth: 480, margin: '0 auto 20px' }}>{ended ? `You named ${score} of ${total}. Challenge someone to beat it.` : 'Send this quiz to someone who thinks they know their airlines.'}</p>
             <button onClick={share} style={{ fontFamily: MONO, fontSize: 13, letterSpacing: '0.08em', textTransform: 'uppercase', fontWeight: 700, padding: '0 28px', lineHeight: '46px', border: 'none', background: COLORS.ember, color: '#fff', cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: 8 }}>
               <Share2 size={14} strokeWidth={2.5} /> {copied ? 'Link copied!' : 'Share this quiz'}
             </button>
             <div style={{ fontFamily: MONO, fontSize: 12, color: COLORS.faded, marginTop: 16, wordBreak: 'break-all' }}>{shareUrl}</div>
+          </div>
+        )}
+
+        {/* ── JOIN THE LEADERBOARD (sign-up) ── */}
+        {tab === 'join' && (
+          <div style={{ maxWidth: 440, margin: '0 auto' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 12 }}>
+              <Trophy size={22} strokeWidth={2.2} style={{ color: COLORS.ember }} />
+              <h2 style={{ fontFamily: SERIF, fontWeight: 800, fontSize: 26, margin: 0 }}>Join the Leaderboard</h2>
+            </div>
+            <p style={{ fontFamily: SANS, fontSize: 15, color: '#4a4339', margin: '0 0 6px' }}>
+              Sign up and your username will appear on the leaderboard after you finish a game. No password needed.
+            </p>
+            <p style={{ fontFamily: MONO, fontSize: 12, color: COLORS.faded, margin: '0 0 22px' }}>
+              Your username is shown publicly; your email is kept private.
+            </p>
+
+            <label style={labelStyle}>Username</label>
+            <input value={jName} onChange={(e) => setJName(e.target.value)} maxLength={40} placeholder="e.g. skyhopper42" style={fieldStyle} />
+            <label style={{ ...labelStyle, marginTop: 16 }}>Email</label>
+            <input value={jEmail} onChange={(e) => setJEmail(e.target.value)} type="email" placeholder="you@email.com" style={fieldStyle} />
+
+            <button onClick={submitJoin} disabled={joinBusy} style={{ marginTop: 22, width: '100%', fontFamily: MONO, fontSize: 13, letterSpacing: '0.1em', textTransform: 'uppercase', fontWeight: 700, lineHeight: '48px', border: 'none', background: COLORS.ember, color: '#fff', cursor: joinBusy ? 'default' : 'pointer', opacity: joinBusy ? 0.6 : 1 }}>
+              {joinBusy ? 'Joining…' : identity ? 'Update my name' : 'Join the leaderboard'}
+            </button>
+
+            {joinMsg && (
+              <p style={{ fontFamily: MONO, fontSize: 12, marginTop: 14, color: joinErr ? COLORS.ember : COLORS.forest }}>{joinMsg}</p>
+            )}
+            {identity && !joinMsg && (
+              <p style={{ fontFamily: MONO, fontSize: 12, marginTop: 14, color: COLORS.faded }}>You're signed up as "{identity.username}". Finish a game to post your score.</p>
+            )}
+
+            <button onClick={() => setTab('stats')} style={{ marginTop: 18, background: 'transparent', border: 'none', color: COLORS.faded, cursor: 'pointer', fontFamily: MONO, fontSize: 11, letterSpacing: '0.12em', textTransform: 'uppercase', textDecoration: 'underline', padding: 0 }}>
+              View the leaderboard →
+            </button>
           </div>
         )}
 
@@ -398,23 +458,11 @@ export default function QuizClient({ quizId }) {
 }
 
 function ghostBtn(disabled) {
-  return {
-    fontFamily: MONO,
-    fontSize: 11,
-    letterSpacing: '0.08em',
-    textTransform: 'uppercase',
-    fontWeight: 600,
-    padding: '10px 18px',
-    background: 'transparent',
-    color: COLORS.faded,
-    border: `1px solid ${COLORS.faded}55`,
-    cursor: disabled ? 'default' : 'pointer',
-    opacity: disabled ? 0.4 : 1,
-    display: 'inline-flex',
-    alignItems: 'center',
-    gap: 6,
-  };
+  return { fontFamily: MONO, fontSize: 11, letterSpacing: '0.08em', textTransform: 'uppercase', fontWeight: 600, padding: '10px 18px', background: 'transparent', color: COLORS.faded, border: `1px solid ${COLORS.faded}55`, cursor: disabled ? 'default' : 'pointer', opacity: disabled ? 0.4 : 1, display: 'inline-flex', alignItems: 'center', gap: 6 };
 }
+
+const labelStyle = { display: 'block', fontFamily: MONO, fontSize: 10, letterSpacing: '0.14em', textTransform: 'uppercase', color: COLORS.faded, marginBottom: 6 };
+const fieldStyle = { width: '100%', fontFamily: SANS, fontSize: 16, padding: '12px 14px', border: `1.5px solid ${COLORS.ink}`, background: '#fff', color: COLORS.ink };
 
 function StatBox({ label, value, accent }) {
   return (
