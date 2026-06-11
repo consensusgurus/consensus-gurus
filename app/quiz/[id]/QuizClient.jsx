@@ -56,6 +56,7 @@ function anyKey(g, keys) {
 }
 function deptOf(q) {
   const id = q.id || '';
+  if (q.format === 'map') return 'geography';
   if (q.type === 'travel') return 'travel';
   if (/film|movie|box-office|director|actor|animated/.test(id)) return 'movies';
   if (/song|album|single|spotify|music-video|concert-tour|billboard|soundtrack/.test(id)) return 'music';

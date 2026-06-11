@@ -1,7 +1,7 @@
 'use client';
 import React, { useState, useEffect, useMemo, useRef } from 'react';
 import Link from 'next/link';
-import { Search, X, ChevronDown, Plane, FerrisWheel, Trees, Clapperboard, Music, Gamepad2, BookOpen, Car, Youtube, Instagram, GraduationCap, Drama, Trophy, Sparkles } from 'lucide-react';
+import { Search, X, ChevronDown, Plane, FerrisWheel, Trees, Clapperboard, Music, Gamepad2, BookOpen, Car, Youtube, Instagram, GraduationCap, Drama, Trophy, Sparkles, Globe } from 'lucide-react';
 import { COLORS } from '@/lib/data';
 import { QUIZZES } from '@/lib/quizzes';
 import Grain from '../Grain';
@@ -10,6 +10,7 @@ import Footer from '../Footer';
 // Group each quiz into a homepage-style department for the nav ribbon.
 function deptOf(q) {
   const id = q.id;
+  if (q.format === 'map') return 'geography';
   if (/sports?|nfl|nba|mlb|nhl|fifa|olympic|super-bowl|world-cup|athlete|grand-slam/.test(id)) return 'sports';
   if (q.type === 'travel') return 'travel';
   if (/film|movie|box-office|director|actor|animated|franchise/.test(id)) return 'movies';
@@ -27,6 +28,7 @@ const PRIMARY = [
   { id: 'gaming', label: 'Gaming' },
   { id: 'travel', label: 'Travel' },
   { id: 'sports', label: 'Sports' },
+  { id: 'geography', label: 'Geography' },
 ];
 // Additional categories, surfaced in the "More" dropdown rather than the ribbon.
 const MORE_CATS = [
@@ -37,6 +39,7 @@ const MORE_CATS = [
 // Per-quiz category icon (finer than the nav department), shown on each tile.
 function iconOf(q) {
   const id = q.id;
+  if (q.format === 'map') return Globe;
   if (/sports?|nfl|nba|mlb|nhl|fifa|olympic|super-bowl|world-cup|athlete|grand-slam/.test(id)) return Trophy;
   if (/airline/.test(id)) return Plane;
   if (/theme-park/.test(id)) return FerrisWheel;
@@ -78,6 +81,7 @@ const DEPT_COLOR = {
   gaming:        { c: '#7a4fb0', t: '#e6dcf1' },
   travel:        { c: '#2e7d6b', t: '#d5e8e1' },
   sports:        { c: '#2f6f9f', t: '#d9e6f0' },
+  geography:     { c: '#1f7a8c', t: '#d4e9ee' },
   entertainment: { c: '#b0466e', t: '#f3dce4' },
   literature:    { c: '#8a6d3b', t: '#ece2cf' },
   misc:          { c: '#4f7d5a', t: '#dde8df' },
@@ -96,7 +100,7 @@ function QuizTile({ quiz, plays }) {
     >
       <div style={{ padding: '20px 18px 18px', display: 'flex', flexDirection: 'column', alignItems: 'center', textAlign: 'center', flex: '1 1 auto', minHeight: 0 }}>
         <span style={{ flex: 'none', width: 46, height: 46, borderRadius: '50%', background: accent.t, display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: 12 }}><Icon size={22} strokeWidth={2} aria-hidden="true" style={{ color: accent.c }} /></span>
-        <h3 style={{ fontFamily: 'Fraunces, serif', fontWeight: 700, fontSize: 22, lineHeight: 1.1, letterSpacing: '-0.01em', margin: 0, color: COLORS.ink }}>{quiz.title.replace(/^Name (the )?/, '')}</h3>
+        <h3 style={{ fontFamily: 'Fraunces, serif', fontWeight: 700, fontSize: 22, lineHeight: 1.1, letterSpacing: '-0.01em', margin: 0, color: COLORS.ink }}>{quiz.title.replace(/^(Name|Find) (the )?/, '')}</h3>
         <div style={{ marginTop: 'auto', paddingTop: 16, display: 'flex', justifyContent: 'center', alignItems: 'baseline', gap: 8, fontFamily: 'DM Mono, monospace', fontSize: 11, letterSpacing: '0.14em', textTransform: 'uppercase', fontWeight: 700 }}>
           <span style={{ color: accent.c }}>▶ Play</span>
           {plays > 0 && (<span style={{ color: COLORS.faded, fontWeight: 600, letterSpacing: '0.1em' }}>· {plays.toLocaleString()} plays</span>)}

@@ -46,6 +46,9 @@ export default async function Image({ params }) {
 
   const count = quiz.answers.length
   const secs = quiz.timeLimit || 90
+  const isMap = quiz.format === 'map'
+  const mins = Math.round(secs / 60)
+  const clockText = secs % 60 === 0 ? `${mins} minute${mins === 1 ? '' : 's'}` : `${secs} seconds`
   // Non-spoiler tease: blank ranked slots, never the answers themselves.
   const slots = Array.from({ length: Math.min(count, 6) }, (_, i) => i + 1)
 
@@ -67,18 +70,28 @@ export default async function Image({ params }) {
             {quiz.title}
           </div>
           <div style={{ display: 'flex', fontSize: 24, fontFamily: dmFF, fontStyle: 'italic', color: '#5a5a5a', lineHeight: 1.2 }}>
-            {count} to name. {secs} seconds on the clock. Can you get them all?
+            {isMap ? `Find all ${count} on the blank map. ${clockText} on the clock.` : `${count} to name. ${secs} seconds on the clock. Can you get them all?`}
           </div>
         </div>
 
-        <div style={{ display: 'flex', flexDirection: 'column' }}>
-          {slots.map((n) => (
-            <div key={n} style={{ display: 'flex', alignItems: 'center', marginBottom: 4 }}>
-              <div style={{ display: 'flex', fontSize: 34, fontWeight: 700, color: '#c0392b', width: 56, justifyContent: 'flex-end', marginRight: 24, lineHeight: 1.1 }}>{String(n)}</div>
-              <div style={{ display: 'flex', fontSize: 30, color: '#b9ac90', fontWeight: 500, letterSpacing: 6, lineHeight: 1.1 }}>— — — — — —</div>
+        {isMap ? (
+          <div style={{ display: 'flex', alignItems: 'center' }}>
+            <div style={{ display: 'flex', fontSize: 150, fontWeight: 700, color: '#c0392b', lineHeight: 1, marginRight: 28 }}>{String(count)}</div>
+            <div style={{ display: 'flex', flexDirection: 'column' }}>
+              <div style={{ display: 'flex', fontSize: 46, fontWeight: 700, color: '#1a1a1a', lineHeight: 1.05 }}>countries</div>
+              <div style={{ display: 'flex', fontSize: 28, fontFamily: dmFF, fontStyle: 'italic', color: '#5a5a5a' }}>one blank map, a ticking clock</div>
             </div>
-          ))}
-        </div>
+          </div>
+        ) : (
+          <div style={{ display: 'flex', flexDirection: 'column' }}>
+            {slots.map((n) => (
+              <div key={n} style={{ display: 'flex', alignItems: 'center', marginBottom: 4 }}>
+                <div style={{ display: 'flex', fontSize: 34, fontWeight: 700, color: '#c0392b', width: 56, justifyContent: 'flex-end', marginRight: 24, lineHeight: 1.1 }}>{String(n)}</div>
+                <div style={{ display: 'flex', fontSize: 30, color: '#b9ac90', fontWeight: 500, letterSpacing: 6, lineHeight: 1.1 }}>— — — — — —</div>
+              </div>
+            ))}
+          </div>
+        )}
 
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', borderTop: '1px solid #c4b896', paddingTop: 12, fontSize: 18, color: '#5a5a5a' }}>
           <div style={{ display: 'flex' }}>Beat the clock, then the leaderboard.</div>
