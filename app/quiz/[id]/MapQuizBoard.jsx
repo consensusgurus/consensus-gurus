@@ -72,22 +72,61 @@ export default function MapQuizBoard({ region, started, ended, foundNames, flash
         ))}
         {geo.markers.map((m) => {
           const s = 9;
+          // A marker with lx/ly is a callout: the clickable box is pulled out
+          // into open water at (lx,ly) and a leader line ties it back to the
+          // island's true location (x,y), where a small anchor dot sits. This
+          // keeps tightly-clustered island states (the Lesser Antilles) from
+          // overlapping into one unclickable blob.
+          const hasCallout = m.lx != null && m.ly != null;
+          const bx = hasCallout ? m.lx : m.x;
+          const by = hasCallout ? m.ly : m.y;
+          const tint = fillFor(m.name, '#ffffff');
+          const active = (foundNames && foundNames.has(m.name)) || (flash && flash.name === m.name) || (hover === m.name && live);
+          const lineColor = active ? tint : LINE;
+          const enter = () => setHover(m.name);
+          const leave = () => setHover((h) => (h === m.name ? null : h));
+          const pick = () => live && onPick(m.name);
+          const cursor = live ? 'pointer' : 'default';
           return (
-            <rect
-              key={m.name}
-              x={m.x - s / 2}
-              y={m.y - s / 2}
-              width={s}
-              height={s}
-              rx={1.5}
-              fill={fillFor(m.name, '#ffffff')}
-              stroke={LINE}
-              strokeWidth={1}
-              style={{ cursor: live ? 'pointer' : 'default', transition: 'fill .12s' }}
-              onMouseEnter={() => setHover(m.name)}
-              onMouseLeave={() => setHover((h) => (h === m.name ? null : h))}
-              onClick={() => live && onPick(m.name)}
-            />
+            <g key={m.name}>
+              {hasCallout && (
+                <>
+                  <line
+                    x1={m.x}
+                    y1={m.y}
+                    x2={bx}
+                    y2={by}
+                    stroke={lineColor}
+                    strokeWidth={0.8}
+                    strokeLinecap="round"
+                    style={{ transition: 'stroke .12s' }}
+                  />
+                  <circle
+                    cx={m.x}
+                    cy={m.y}
+                    r={2}
+                    fill={lineColor}
+                    stroke={LINE}
+                    strokeWidth={0.5}
+                    style={{ transition: 'fill .12s' }}
+                  />
+                </>
+              )}
+              <rect
+                x={bx - s / 2}
+                y={by - s / 2}
+                width={s}
+                height={s}
+                rx={1.5}
+                fill={tint}
+                stroke={LINE}
+                strokeWidth={1}
+                style={{ cursor, transition: 'fill .12s' }}
+                onMouseEnter={enter}
+                onMouseLeave={leave}
+                onClick={pick}
+              />
+            </g>
           );
         })}
       </svg>
