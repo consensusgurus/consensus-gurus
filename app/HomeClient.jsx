@@ -1168,8 +1168,10 @@ function QuizTile({ quiz }) {
   const [hover, setHover] = useState(false);
   const Icon = quizIconOf(quiz);
   const accent = QUIZ_DEPT_COLOR[quizDeptOf(quiz)] || QUIZ_DEPT_COLOR.misc;
-  const n = Array.isArray(quiz.answers) ? quiz.answers.length : 10;
-  const heading = (quiz.title || '').replace(/^(Name|Find) (the )?/, '');
+  const n = Array.isArray(quiz.answers) ? quiz.answers.length : Array.isArray(quiz.questions) ? quiz.questions.length : 10;
+  const actionWord = ({ Name: 'name', Locate: 'locate', Click: 'click', Match: 'match', Find: 'find', Guess: 'guess', Identify: 'identify', Pinpoint: 'pinpoint' })[(quiz.title || '').trim().split(' ')[0]] || 'name';
+  const countLabel = quiz.format === 'timed-mcq' ? `${n} question${n === 1 ? '' : 's'}` : `${n} to ${actionWord}`;
+  const heading = (quiz.title || '').replace(/^Name (the )?/, '');
   return (
     <Link
       href={`/quiz/${quiz.id}`}
@@ -1182,7 +1184,7 @@ function QuizTile({ quiz }) {
           <span style={{ flex: 'none', fontFamily: 'DM Mono, monospace', fontSize: 11, fontWeight: 700, letterSpacing: '0.2em', textTransform: 'uppercase', color: COLORS.cream, background: accent.c, padding: '5px 10px' }}>Quiz</span>
           <span style={{ flex: 'none', width: 46, height: 46, borderRadius: '50%', background: COLORS.cream, display: 'flex', alignItems: 'center', justifyContent: 'center' }}><Icon size={23} strokeWidth={2} aria-hidden="true" style={{ color: accent.c }} /></span>
         </div>
-        <span style={{ fontFamily: 'DM Mono, monospace', fontSize: 11, letterSpacing: '0.16em', textTransform: 'uppercase', fontWeight: 600, color: accent.c }}>{n} to name</span>
+        <span style={{ fontFamily: 'DM Mono, monospace', fontSize: 11, letterSpacing: '0.16em', textTransform: 'uppercase', fontWeight: 600, color: accent.c }}>{countLabel}</span>
       </div>
       <div style={{ padding: '16px 18px 18px', flex: '1 1 auto', display: 'flex', flexDirection: 'column' }}>
         <h3 style={{ fontFamily: 'Fraunces, serif', fontWeight: 700, fontSize: 26, lineHeight: 1.05, letterSpacing: '-0.02em', margin: '0 0 12px', fontVariationSettings: '"SOFT" 100', color: COLORS.ink }}>{heading}</h3>
