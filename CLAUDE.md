@@ -1944,3 +1944,131 @@ while building the homepage quiz tile:
   investigate before the deploy is considered done.
 - **To resync a stale local tree** (so the editor isn't working against truncated files), fetch and
   reset/checkout to origin/main once the deploy lands, rather than editing the stale copy.
+
+
+---
+
+## Quizzes (`/quiz/[id]`) and paired top-grossing film lists (workflow, added 2026-06-12)
+
+The site has a timed "name them all" quiz system at `/quiz/[id]`, indexed at `/quizzes`. Quizzes live
+in **`lib/quizzes.js`** (`export const QUIZZES = [...]`, plus `getQuiz(id)`). Each quiz usually pairs
+with a facts-mode `/list/[id]` of the same id (the "See the full list" button uses `listId`). This
+section documents the quiz format AND the established **top-grossing film-list** pattern (decade lists
+like `top-grossing-films-1990` and the per-actor `top-grossing-<actor>-movies` lists), so future
+sessions can build more without re-deriving it.
+
+### Quiz object shape (typed "name them all" quiz)
+
+```javascript
+{
+  id: 'top-grossing-tom-hanks-movies',          // kebab slug -> /quiz/<id>
+  source: { label: 'Box Office Mojo · Worldwide Gross' }, // shown as the data source
+  listId: 'top-grossing-tom-hanks-movies',      // OPTIONAL paired /list/<id> (omit for standalone)
+  publishedDate: '2026-06-12',
+  publishedAt: '2026-06-12T08:01:00Z',          // REQUIRED for "Recent" sort (same rule as lists)
+  title: 'Name the Highest-Grossing Tom Hanks Movies', // starts with "Name the ..."
+  category: 'Movies · Tom Hanks',               // eyebrow label
+  type: 'entertainment',
+  tags: ['entertainment'],
+  timeLimit: 90,                                // seconds on the clock (90 for a 10-item quiz)
+  noun: 'film',                                 // placeholder/leniency noun ("Type the film...")
+  blurb: 'The highest-grossing films starring Tom Hanks, by worldwide box office. Name all ten.',
+  answers: [                                    // ranked slots, best-to-worst (top 10)
+    { t: 'Toy Story 4', keys: ['toy story 4'] },
+    { t: 'Men in Black', keys: ['men in black'], anti: ['men in black ii','men in black 2','men in black 3'] },
+    // ...10 total
+  ],
+}
+```
+
+### How answer matching works (sets `keys` / `anti` correctly)
+
+`QuizClient.jsx` normalizes a guess with `norm()` (lowercase, every non-alphanumeric becomes a space,
+collapse spaces) and scans the **unsolved answer slots in array order**; the first slot whose keys hit
+and whose `anti` does NOT hit wins. A key hits when the normalized guess **contains the key as a
+substring**, OR (for a 2+ word key) **every word of the key appears as a token in the guess**. So:
+
+- **Default key** = `norm(title)`. Add aliases generously (`'mission impossible fallout'`, `'fallout'`,
+  `'gotg 2'`, `'t2'`, `'godfather 3'`, `'godfather part iii'`). `noun: 'film'` plus the title key means
+  the bare title alone is accepted.
+- **Sequel collision rule (the one thing that bites):** when a SHORTER title is a substring of a longer
+  sequel AND the shorter title's slot comes BEFORE the sequel's slot (higher gross), a guess for the
+  sequel would wrongly satisfy the shorter slot first. Fix it with `anti` on the SHORTER slot listing
+  the sequel forms, e.g. on bare `Men in Black`: `anti: ['men in black ii','men in black 2','men in black 3']`;
+  on bare `The Equalizer`: `anti: ['the equalizer 2','the equalizer 3']`; on bare `Jurassic World`:
+  `anti: ['fallen kingdom','dominion']`; on bare `The Godfather`: `anti: ['godfather part ii','godfather part iii','godfather 2','godfather 3','coda']`.
+  When the bare title comes AFTER its sequels in gross order (e.g. `Shrek` below `Shrek 2/3`, `Toy Story`
+  below `Toy Story 2/3/4`, the bare `Guardians of the Galaxy` below the Vols), no `anti` is needed.
+  Always simulate the tricky cases against the `keyHit`/`anyKey` logic before shipping.
+
+### Quiz department / icon (id naming matters)
+
+`deptOf` and `iconOf` in `app/quizzes/QuizHomeClient.jsx` (and the `relatedQuizzes` copy in
+`QuizClient.jsx`) key off the quiz **id** by regex. An id matching `/film|movie|box-office|director|actor|animated|franchise/`
+files under the **Movies** department with the Clapperboard icon. So name film quizzes with `movie`/
+`film` in the id (e.g. `top-grossing-<actor>-movies`). Other depts: `song|album|...` -> Music,
+`games|video-games` -> Gaming, `book` -> Literature, `format:'map'` -> Geography, sports regex -> Sports.
+
+### Paired facts-mode list (`lib/data.js`)
+
+The quiz's `listId` points to a normal `mode: 'facts'` list. The top-grossing pattern:
+
+```javascript
+{
+  "id": "top-grossing-tom-hanks-movies",
+  "publishedDate": "2026-06-12", "publishedAt": "2026-06-12T08:01:00Z",
+  "title": "Highest-Grossing Tom Hanks Movies",  // "Highest-Grossing" / "Top-Grossing" descriptor
+  "category": "Movies · Tom Hanks",
+  "type": "entertainment", "tags": ["entertainment"],
+  "linkType": "imdb", "mode": "facts",           // facts mode = no voting, Sources tab only
+  "blurb": "...one or two sentences, no em dash...",
+  "defaultSource": "ai",
+  "links": { "Toy Story 4": "https://www.amazon.com/dp/<ASIN>?tag=cgurus-20", ... },
+  "sources": { "ai": { "label": "Box Office Mojo · Worldwide Gross",
+                       "url": "https://www.boxofficemojo.com/", "items": [ ...10 titles... ] } }
+}
+```
+
+- **`linkType: 'imdb'`** auto-links every title to its IMDb page. The `links` map OVERRIDES that per item
+  with an Amazon Video affiliate link (`/dp/<ASIN>?tag=cgurus-20`). A film that has **no purchasable
+  Amazon Video page** (some Disney/Marvel-pulled titles, e.g. the 2008 `Iron Man`) is simply OMITTED from
+  `links` and falls back cleanly to the IMDb auto-link. Never ship an `s?k=` search link.
+- Only the `ai` seed source is needed (it is excluded from Borda anyway, and facts mode does no scoring).
+  The overview tile order for a facts list is the `ai` seed order, so seed it in true gross-descending order.
+- Still REQUIRED like any new list: a **description for all 10 items** in `lib/descriptions.js` and a
+  **hero image for the top 3** in `lib/hero-images.js`.
+
+### Descriptions and hero images
+
+- **Descriptions** (`lib/descriptions.js`, keyed `listId -> exact title -> text`): 1-2 sentences, lead with
+  the worldwide gross figure and a memorable hook, no em dashes. One per item for all 10.
+- **Hero images** (`lib/hero-images.js`, top 3): use the film's **TMDB backdrop** (landscape):
+  `{ "src": "https://image.tmdb.org/t/p/original/<backdrop>.jpg", "credit": "TMDB", "creditUrl": "https://www.themoviedb.org/movie/<id>" }`.
+  These resolve to JPEG (satisfies the no-WebP hero rule) and are the established source the decade
+  film lists already use.
+
+### Gathering, live (no guessing)
+
+- **Worldwide gross + ranking (the "fact"):** the standard "actor box office" convention credits the FULL
+  film gross to the actor, INCLUDING voice, supporting, and credited cameo roles (Toy Story counts for
+  Hanks, Shrek for Murphy, Kung Fu Panda for Hoffman, Joker for De Niro). EXCLUDE uncredited/blink cameos
+  and off-screen narrator-only credits (e.g. Morgan Freeman's War of the Worlds narration was dropped).
+  Use current cumulative nominal worldwide gross (re-releases included). Box Office Mojo person pages are
+  now IMDbPro-gated, so gather title-by-title / via research and cross-check two sources.
+- **Amazon Video ASINs:** from an amazon.com tab, `fetch('/s?k=<title>&i=instant-video')`, parse anchors
+  matching `/(dp|gp/video/detail)/([A-Z0-9]{10})/`, strip trailing parentheticals from the result title
+  (`(4K UHD)`, `(Bonus X-Ray Edition)` ARE the movie; `Trailer`/`Sneak Peek`/`Making of`/`Collection`/
+  `2-Movie` are NOT), and pick the candidate whose base title contains all the title's tokens with the
+  fewest extras. For same-name films (Aladdin, The Mummy, King Kong, Mulan, Total Recall, Robin Hood)
+  verify the year by fetching `/dp/<ASIN>` and reading the release year.
+- **TMDB backdrops:** from a themoviedb.org tab, `fetch('/search/movie?query=<title>')` for candidate
+  `/movie/<id>` links, then `fetch('/movie/<id>')` and read the `t/p/w1920_and_h800_multi_faces/<file>.jpg`
+  path (that is the landscape backdrop; the og:image is the portrait poster). Disambiguate same-name films
+  by reading the `(YYYY)` in the page `<title>`.
+
+### Build / deploy
+
+Build all four files' fragments programmatically and splice into FETCH_HEAD copies (quizzes.js + data.js
++ descriptions.js + hero-images.js), `node --check` each, then deploy as ONE multi-file commit per the
+Deploy section. Facts-mode lists have no consensus movement, so SKIP the consensus-check cron ping; DO
+ping IndexNow for each new `/list/<id>` (and the `/quiz/<id>`) URL after the Vercel deploy is live.
