@@ -173,6 +173,7 @@ export default function QuizClient({ quizId }) {
   const timerRef = useRef(null);
   const startRef = useRef(null);
   const inputRef = useRef(null);
+  const viewedRef = useRef(false);
   const ribbonRef = useRef(null);
   const [ribScroll, setRibScroll] = useState({ left: false, right: false });
   useEffect(() => {
@@ -203,6 +204,16 @@ export default function QuizClient({ quizId }) {
       if (id && id.email) { setIdentity(id); setJName(id.username || ''); setJEmail(id.email || ''); }
     } catch {}
     refreshBoard();
+    // Count one quiz-page view per load (admin analytics). Guarded so React's
+    // dev double-invoke and any re-run don't double-count. Best-effort.
+    if (!viewedRef.current) {
+      viewedRef.current = true;
+      fetch('/api/quiz/view', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ quizId }),
+      }).catch(() => {});
+    }
     return () => clearInterval(timerRef.current);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [quizId]);

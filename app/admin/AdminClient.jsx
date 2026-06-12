@@ -29,7 +29,7 @@ function mapsPlaceUrl(name) {
   return `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(cleaned)}`;
 }
 
-export default function AdminClient({ initialLists, initialExtras = [], initialComplaints = [], initialVoteStandings = [], initialVoteEvents = [], initialComments = [], initialAlerts = [], initialViews24h = [], initialEditorNotes = [], initialQuizSignups = [] }) {
+export default function AdminClient({ initialLists, initialExtras = [], initialComplaints = [], initialVoteStandings = [], initialVoteEvents = [], initialComments = [], initialAlerts = [], initialViews24h = [], initialEditorNotes = [], initialQuizSignups = [], initialQuizStats = [] }) {
   const router = useRouter();
   const [lists, setLists] = useState(initialLists);
   const [extras, setExtras] = useState(initialExtras);
@@ -41,6 +41,7 @@ export default function AdminClient({ initialLists, initialExtras = [], initialC
   const [editorNotes, setEditorNotes] = useState(initialEditorNotes);
   const [views24h] = useState(initialViews24h);
   const [quizSignups] = useState(initialQuizSignups);
+  const [quizStats] = useState(initialQuizStats);
   const [tab, setTab] = useState('pending');
   const [busy, setBusy] = useState({});
 
@@ -60,6 +61,10 @@ export default function AdminClient({ initialLists, initialExtras = [], initialC
   const views24hTotal = useMemo(
     () => views24h.reduce((n, v) => n + (v.views24h || 0), 0),
     [views24h]
+  );
+  const quizPlaysTotal = useMemo(
+    () => quizStats.reduce((n, q) => n + (q.plays || 0), 0),
+    [quizStats]
   );
 
   async function deleteComment(id) {
@@ -409,12 +414,17 @@ export default function AdminClient({ initialLists, initialExtras = [], initialC
           <TabButton active={tab === 'views'} onClick={() => setTab('views')}>
             Views <span style={{ opacity: 0.6 }}>{views24hTotal}</span>
           </TabButton>
+          <TabButton active={tab === 'quizstats'} onClick={() => setTab('quizstats')}>
+            Quiz Stats <span style={{ opacity: 0.6 }}>{quizPlaysTotal}</span>
+          </TabButton>
           <TabButton active={tab === 'quizzes'} onClick={() => setTab('quizzes')}>
             Quizzes <span style={{ opacity: 0.6 }}>{quizSignups.length}</span>
           </TabButton>
         </div>
 
-        {tab === 'quizzes' ? (
+        {tab === 'quizstats' ? (
+          <QuizStatsPanel stats={quizStats} playsTotal={quizPlaysTotal} />
+        ) : tab === 'quizzes' ? (
           <QuizSignupsPanel signups={quizSignups} />
         ) : tab === 'views' ? (
           <ViewsPanel views={views24h} total={views24hTotal} />
@@ -578,6 +588,124 @@ function ViewsPanel({ views, total }) {
 
 // Quiz signups: the email leads captured by the /quiz "join the leaderboard"
 // form. One row per email (username + email + date joined), newest first.
+// Quiz stats: per-quiz analytics — visitors over the rolling past 24 hours and
+// all-time, plus completed-game plays and average score. Mirrors ViewsPanel.
+function QuizStatsPanel({ stats, playsTotal }) {
+  const [query, setQuery] = useState('');
+
+  const visible = useMemo(() => {
+    const q = query.trim().toLowerCase();
+    if (!q) return stats;
+    return stats.filter(
+      (s) => s.title.toLowerCase().includes(q) || s.quizId.toLowerCase().includes(q)
+    );
+  }, [stats, query]);
+
+  if (!stats || stats.length === 0) {
+    return (
+      <div
+        style={{
+          padding: '60px 20px',
+          textAlign: 'center',
+          fontFamily: 'Fraunces, serif',
+          fontStyle: 'italic',
+          fontSize: 18,
+          color: COLORS.faded,
+          border: `1.5px dashed ${COLORS.ink}`,
+        }}
+      >
+        No quiz activity yet.
+      </div>
+    );
+  }
+
+  const rowBorder = `1px solid ${COLORS.ink}22`;
+  const views24Total = stats.reduce((n, s) => n + (s.views24h || 0), 0);
+
+  return (
+    <div>
+      <p style={{ fontFamily: 'DM Sans, sans-serif', fontSize: 13, color: COLORS.faded, margin: '0 0 14px' }}>
+        Per-quiz visitors over the rolling past 24 hours and all-time, plus
+        completed-game plays and average score. Busiest first.
+        {' '}{views24Total} view{views24Total === 1 ? '' : 's'} and {playsTotal} play{playsTotal === 1 ? '' : 's'} in the last day.
+      </p>
+      <input
+        value={query}
+        onChange={(e) => setQuery(e.target.value)}
+        placeholder="Filter by quiz title or id…"
+        style={{
+          width: '100%',
+          padding: '10px 12px',
+          background: COLORS.paper,
+          border: `1.5px solid ${COLORS.ink}`,
+          color: COLORS.ink,
+          fontFamily: 'DM Mono, monospace',
+          fontSize: 12,
+          outline: 'none',
+          marginBottom: 16,
+          boxSizing: 'border-box',
+        }}
+      />
+      {visible.length === 0 ? (
+        <div
+          style={{
+            padding: '40px 20px',
+            textAlign: 'center',
+            fontFamily: 'Fraunces, serif',
+            fontStyle: 'italic',
+            fontSize: 16,
+            color: COLORS.faded,
+            border: `1.5px dashed ${COLORS.ink}`,
+          }}
+        >
+          No matches.
+        </div>
+      ) : (
+        <div style={{ border: `1.5px solid ${COLORS.ink}` }}>
+          <div style={{ display: 'flex', fontFamily: 'DM Mono, monospace', fontSize: 10, letterSpacing: '0.14em', textTransform: 'uppercase', color: COLORS.faded, padding: '10px 14px', borderBottom: `1.5px solid ${COLORS.ink}` }}>
+            <span style={{ flex: '0 0 36px' }}>#</span>
+            <span style={{ flex: 3 }}>Quiz</span>
+            <span style={{ flex: '0 0 84px', textAlign: 'right' }}>Views 24h</span>
+            <span style={{ flex: '0 0 84px', textAlign: 'right' }}>Views all</span>
+            <span style={{ flex: '0 0 72px', textAlign: 'right' }}>Plays</span>
+            <span style={{ flex: '0 0 72px', textAlign: 'right' }}>Avg</span>
+          </div>
+          {visible.map((s, i) => {
+            const active = s.views24h > 0 || s.plays > 0;
+            return (
+              <div
+                key={s.quizId}
+                style={{ display: 'flex', alignItems: 'center', fontFamily: 'DM Sans, sans-serif', fontSize: 13, color: COLORS.ink, padding: '9px 14px', borderBottom: i < visible.length - 1 ? rowBorder : 'none', opacity: active ? 1 : 0.55 }}
+              >
+                <span style={{ flex: '0 0 36px', fontFamily: 'DM Mono, monospace', fontSize: 11, color: COLORS.faded }}>
+                  {i + 1}
+                </span>
+                <span style={{ flex: 3, minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                  <Link href={`/quiz/${encodeURIComponent(s.quizId)}`} target="_blank" style={{ color: COLORS.ink, textDecoration: 'none' }}>
+                    {s.title}
+                  </Link>
+                </span>
+                <span style={{ flex: '0 0 84px', textAlign: 'right', fontFamily: 'DM Mono, monospace', fontWeight: 700, color: s.views24h > 0 ? COLORS.ember : COLORS.faded }}>
+                  {s.views24h}
+                </span>
+                <span style={{ flex: '0 0 84px', textAlign: 'right', fontFamily: 'DM Mono, monospace', fontSize: 11, color: COLORS.faded }}>
+                  {s.viewsTotal}
+                </span>
+                <span style={{ flex: '0 0 72px', textAlign: 'right', fontFamily: 'DM Mono, monospace', fontWeight: 700, color: s.plays > 0 ? COLORS.ink : COLORS.faded }}>
+                  {s.plays}
+                </span>
+                <span style={{ flex: '0 0 72px', textAlign: 'right', fontFamily: 'DM Mono, monospace', fontSize: 11, color: COLORS.faded }}>
+                  {s.avgScore != null ? s.avgScore : '—'}
+                </span>
+              </div>
+            );
+          })}
+        </div>
+      )}
+    </div>
+  );
+}
+
 function QuizSignupsPanel({ signups }) {
   const [query, setQuery] = useState('');
 

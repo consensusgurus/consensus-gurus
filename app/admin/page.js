@@ -4,6 +4,7 @@ import { fetchAllRows } from '@/lib/fetch-all';
 import { redirect } from 'next/navigation';
 import AdminClient from './AdminClient';
 import { LISTS } from '@/lib/data';
+import { QUIZZES } from '@/lib/quizzes';
 import { DESCRIPTIONS } from '@/lib/descriptions';
 import { HERO_IMAGES } from '@/lib/hero-images';
 
@@ -19,7 +20,7 @@ export default async function AdminPage() {
     redirect('/admin/login');
   }
 
-  const [submissionsRes, extrasRes, votesRes, complaintsRes, voteEventsRes, alertsRes, trendingRes, totalViewsRes, listCommentsRes, voteCountsRes, editorNotesRes, quizUsersRes] = await Promise.all([
+  const [submissionsRes, extrasRes, votesRes, complaintsRes, voteEventsRes, alertsRes, trendingRes, totalViewsRes, listCommentsRes, voteCountsRes, editorNotesRes, quizUsersRes, quizTrendingRes, quizTotalViewsRes, quizResultsRes] = await Promise.all([
     fetchAllRows(supabaseAdmin, 'user_lists', '*', [['submitted_at', false], 'id']),
     fetchAllRows(supabaseAdmin, 'extras', 'list_id, item_name, added_at', [['added_at', false], 'list_id', 'item_name']),
     fetchAllRows(supabaseAdmin, 'votes', 'list_id, item_name, score, updated_at', [['updated_at', false], 'list_id', 'item_name']),
@@ -42,6 +43,12 @@ export default async function AdminPage() {
     // Quiz email signups (the /quiz join form). Service-role read; quiz_users
     // has RLS with no policies, so only the admin key can see the emails.
     fetchAllRows(supabaseAdmin, 'quiz_users', 'id, username, email, created_at', [['created_at', false], 'id']),
+    // Quiz analytics: rolling-24h views (quiz_view_events), all-time view
+    // totals (quiz_views), and every completed game (quiz_results) for play
+    // counts + average score per quiz.
+    supabaseAdmin.rpc('quiz_trending_views', { p_hours: 24 }),
+    fetchAllRows(supabaseAdmin, 'quiz_views', 'quiz_id, count', ['quiz_id']),
+    fetchAllRows(supabaseAdmin, 'quiz_results', 'quiz_id, score', ['id']),
   ]);
 
   if (submissionsRes.error) {
@@ -201,6 +208,57 @@ export default async function AdminPage() {
     createdAt: row.created_at,
   }));
 
+  // Per-quiz analytics: 24h views, all-time views, plays, and average score.
+  if (quizTrendingRes && quizTrendingRes.error) {
+    console.error('admin quiz_trending_views fetch error', quizTrendingRes.error);
+  }
+  if (quizTotalViewsRes && quizTotalViewsRes.error) {
+    console.error('admin quiz_views fetch error', quizTotalViewsRes.error);
+  }
+  if (quizResultsRes && quizResultsRes.error) {
+    console.error('admin quiz_results fetch error', quizResultsRes.error);
+  }
+  const quizViews24Map = new Map(
+    ((quizTrendingRes && quizTrendingRes.data) || []).map((row) => [row.quiz_id, Number(row.cnt) || 0])
+  );
+  const quizTotalViewsMap = new Map(
+    ((quizTotalViewsRes && quizTotalViewsRes.data) || []).map((row) => [row.quiz_id, Number(row.count) || 0])
+  );
+  // plays + score sum per quiz, from completed games.
+  const quizPlaysMap = new Map();
+  const quizScoreSumMap = new Map();
+  for (const r of (quizResultsRes && quizResultsRes.data) || []) {
+    quizPlaysMap.set(r.quiz_id, (quizPlaysMap.get(r.quiz_id) || 0) + 1);
+    quizScoreSumMap.set(r.quiz_id, (quizScoreSumMap.get(r.quiz_id) || 0) + (Number(r.score) || 0));
+  }
+  const quizTitles = new Map((Array.isArray(QUIZZES) ? QUIZZES : []).map((q) => [q.id, q.title]));
+  const quizIds = new Set([
+    ...(Array.isArray(QUIZZES) ? QUIZZES.map((q) => q.id) : []),
+    ...quizViews24Map.keys(),
+    ...quizTotalViewsMap.keys(),
+    ...quizPlaysMap.keys(),
+  ]);
+  const quizStats = Array.from(quizIds)
+    .map((quizId) => {
+      const plays = quizPlaysMap.get(quizId) || 0;
+      const scoreSum = quizScoreSumMap.get(quizId) || 0;
+      return {
+        quizId,
+        title: quizTitles.get(quizId) || quizId,
+        views24h: quizViews24Map.get(quizId) || 0,
+        viewsTotal: quizTotalViewsMap.get(quizId) || 0,
+        plays,
+        avgScore: plays > 0 ? Math.round((scoreSum / plays) * 10) / 10 : null,
+      };
+    })
+    .sort(
+      (a, b) =>
+        b.views24h - a.views24h ||
+        b.plays - a.plays ||
+        b.viewsTotal - a.viewsTotal ||
+        a.title.localeCompare(b.title)
+    );
+
   return (
     <AdminClient
       initialLists={lists}
@@ -213,6 +271,7 @@ export default async function AdminPage() {
       initialAlerts={alerts}
       initialViews24h={views24h}
       initialQuizSignups={quizSignups}
+      initialQuizStats={quizStats}
     />
   );
 }
