@@ -26,6 +26,14 @@ const SORTS = [
   { id: 'recent', label: 'Most Recently Added', short: 'Recent' },
 ];
 
+// Compact clock label for a quiz's total time budget (seconds -> '90 sec' / '2 min' / '3:15').
+function fmtQuizTime(s) {
+  if (!s || s <= 0) return '';
+  if (s < 120) return `${s} sec`;
+  if (s % 60 === 0) return `${s / 60} min`;
+  return `${Math.floor(s / 60)}:${String(s % 60).padStart(2, '0')}`;
+}
+
 function QuizTile({ quiz, plays }) {
   const [hover, setHover] = useState(false);
   const Icon = iconOf(quiz);
@@ -34,7 +42,9 @@ function QuizTile({ quiz, plays }) {
   const deptLabel = DEPT_LABEL[dept] || 'Quiz';
   const n = Array.isArray(quiz.answers) ? quiz.answers.length : Array.isArray(quiz.questions) ? quiz.questions.length : 10;
   const actionWord = ({ Name: 'name', Locate: 'locate', Click: 'click', Match: 'match', Find: 'find', Guess: 'guess', Identify: 'identify', Pinpoint: 'pinpoint' })[(quiz.title || '').trim().split(' ')[0]] || 'name';
-  const countLabel = quiz.format === 'timed-mcq' ? `${n} question${n === 1 ? '' : 's'}` : `${n} to ${actionWord}`;
+  const base = quiz.format === 'timed-mcq' ? `${n} question${n === 1 ? '' : 's'}` : `${n} to ${actionWord}`;
+  const clock = fmtQuizTime(quiz.timeLimit);
+  const countLabel = clock ? `${base} in ${clock}` : base;
   const heading = (quiz.title || '').replace(/^Name (the )?/, '');
   return (
     <Link
@@ -52,7 +62,7 @@ function QuizTile({ quiz, plays }) {
       </div>
       <div style={{ padding: '16px 18px 18px', flex: '1 1 auto', display: 'flex', flexDirection: 'column' }}>
         <h3 style={{ fontFamily: 'Fraunces, serif', fontWeight: 700, fontSize: 26, lineHeight: 1.05, letterSpacing: '-0.02em', margin: '0 0 12px', fontVariationSettings: '"SOFT" 100', color: COLORS.ink }}>{heading}</h3>
-        {quiz.blurb && (<p style={{ fontFamily: 'Fraunces, serif', fontStyle: 'italic', fontSize: 14.5, lineHeight: 1.5, color: COLORS.faded, margin: 0 }}>{quiz.blurb}</p>)}
+        {quiz.blurb && (<p style={{ fontFamily: 'Fraunces, serif', fontStyle: 'italic', fontSize: 14.5, lineHeight: 1.5, color: COLORS.faded, margin: 0, display: '-webkit-box', WebkitLineClamp: 3, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>{quiz.blurb}</p>)}
         <div style={{ marginTop: 'auto', paddingTop: 18, display: 'flex', alignItems: 'baseline', gap: 8, fontFamily: 'DM Mono, monospace', fontSize: 12, letterSpacing: '0.18em', textTransform: 'uppercase', fontWeight: 700, color: accent.c }}>
           <span>▶ Play</span>
           {plays > 0 && (<span style={{ color: COLORS.faded, fontWeight: 600, fontSize: 11, letterSpacing: '0.1em' }}>· {plays.toLocaleString()} plays</span>)}
