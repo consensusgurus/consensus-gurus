@@ -10,12 +10,15 @@ export async function GET() {
     // Whole-table reads are paginated past PostgREST's silent 1000-row cap
     // (see lib/fetch-all.js). The trending RPC returns one row per list with
     // recent views and stays far below the cap.
-    const [votesRes, viewsRes, extrasRes, userListsRes, trendingRes] = await Promise.all([
+    const [votesRes, viewsRes, extrasRes, userListsRes, trendingRes, quizViewsRes] = await Promise.all([
       fetchAllRows(supabase, 'votes', 'list_id,item_name,score', ['list_id', 'item_name']),
       fetchAllRows(supabase, 'views', 'list_id,count', ['list_id']),
       fetchAllRows(supabase, 'extras', 'list_id,item_name', ['list_id', 'item_name']),
       fetchAllRows(supabase, 'user_lists', '*', [['submitted_at', false], 'id'], (q) => q.eq('published', true)),
       supabase.rpc('trending_views', { p_hours: 24 }),
+      // Quiz-page view totals (separate quiz_views table). Safe if the table
+      // does not exist yet: fetchAllRows returns { data: [] } on error.
+      fetchAllRows(supabase, 'quiz_views', 'quiz_id,count', ['quiz_id']),
     ]);
 
     // Vote scores keyed as `${listId}::${itemNameLowerCase}` to match client voteKey()
@@ -29,6 +32,12 @@ export async function GET() {
     const views = {};
     (viewsRes.data || []).forEach((row) => {
       views[row.list_id] = row.count;
+    });
+    // Quiz-page views count toward the site visitor total in the homepage
+    // header. Merge them under a namespaced key so they sum into the total
+    // without overwriting a paired list's count (a quiz can share its list id).
+    (quizViewsRes.data || []).forEach((row) => {
+      views[`quiz::${row.quiz_id}`] = row.count;
     });
 
     const extras = {};
