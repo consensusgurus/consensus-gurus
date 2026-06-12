@@ -94,7 +94,7 @@ function ChampionsPanel({ completed, weighted, accuracy, anonymous }) {
         .champ-cta{font-family:'DM Mono',monospace;font-size:9.5px;letter-spacing:0.14em;text-transform:uppercase;color:${COLORS.faded};white-space:nowrap;}
         .champ-rule1{border-bottom:1px solid ${COLORS.ink};}
         .champ-rule2{border-bottom:2px solid ${COLORS.ember};margin-bottom:12px;}
-        .champ-anon{text-align:center;font-family:'DM Mono',monospace;font-size:11px;letter-spacing:0.18em;text-transform:uppercase;color:${COLORS.faded};margin:0 0 14px;}
+        .champ-anon{text-align:center;font-family:'DM Mono',monospace;font-size:11px;letter-spacing:0.18em;text-transform:uppercase;color:${COLORS.faded};margin:14px 0 0;}
         .champ-anon b{font-family:'Fraunces',serif;font-weight:700;font-size:15px;letter-spacing:0;color:${COLORS.ember};margin-left:6px;}
         .champ-grid{display:grid;grid-template-columns:repeat(3,1fr);}
         .champ-cell{padding:0 16px;min-width:0;}
@@ -122,12 +122,12 @@ function ChampionsPanel({ completed, weighted, accuracy, anonymous }) {
       </div>
       <div className="champ-rule1" />
       <div className="champ-rule2" />
-      {anon > 0 && (<div className="champ-anon">Anonymous Play Count:<b>{anon.toLocaleString()}</b></div>)}
       <div className="champ-grid">
         <MiniList title="Quizzes Completed" rows={comp} />
         <MiniList title="Accuracy-Weighted Completions" rows={wtd} />
         <MiniList title="Accuracy (min 5)" rows={acc} />
       </div>
+      {anon > 0 && (<div className="champ-anon">Anonymous Play Count:<b>{anon.toLocaleString()}</b></div>)}
     </Link>
   );
 }
