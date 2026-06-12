@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { useRouter } from 'next/navigation';
-import { ArrowLeft, Share2, Check, Flag, Trophy, HelpCircle, Eye } from 'lucide-react';
+import { ArrowLeft, Share2, Check, Flag, Trophy, HelpCircle, Eye, SkipForward } from 'lucide-react';
 import { QUIZZES, getQuiz } from '@/lib/quizzes';
 import Grain from '../../Grain';
 import Footer from '../../Footer';
@@ -397,6 +397,28 @@ export default function QuizClient({ quizId }) {
     }
   }
 
+  // Skip the current country: rotate it to the back of the queue (it stays
+  // unfound, so it comes back around) and advance to the next one. Lets a
+  // player move on when they can't spot a country on the map.
+  function skipCountry() {
+    if (!started || ended || !mapMode || !curName) return;
+    const curIdx = answers.findIndex((a) => a.t === curName);
+    if (curIdx < 0) return;
+    const ord = orderRef.current || [];
+    const remaining = ord.filter((j) => !found[j]);
+    if (remaining.length <= 1) {
+      setHint(`${curName} is the last one — find it on the map.`);
+      setHintBad(false);
+      return;
+    }
+    const newOrd = ord.filter((j) => j !== curIdx).concat(curIdx);
+    orderRef.current = newOrd;
+    const nn = answers[newOrd.filter((j) => !found[j])[0]].t;
+    setCurName(nn);
+    setHint(`Skipped ${curName} — you'll come back to it. Now find ${nn}.`);
+    setHintBad(false);
+  }
+
   async function submitJoin() {
     setJoinErr(false);
     if (!jName.trim() || jName.trim().length > 40) { setJoinErr(true); setJoinMsg('Pick a username (max 40 characters).'); return; }
@@ -629,6 +651,11 @@ export default function QuizClient({ quizId }) {
               <div style={{ display: 'flex', alignItems: 'center', gap: 12, background: started && !ended ? COLORS.ink : COLORS.paper, color: started && !ended ? COLORS.cream : COLORS.faded, border: `1px solid ${COLORS.faded}33`, padding: '12px 16px', marginBottom: 10, minHeight: 30 }}>
                 <span style={{ fontFamily: MONO, fontSize: 11, letterSpacing: '0.2em', textTransform: 'uppercase', opacity: 0.7, flex: 'none' }}>Find</span>
                 <span style={{ fontFamily: SERIF, fontWeight: 800, fontSize: 'clamp(20px, 4vw, 26px)', lineHeight: 1 }}>{ended ? 'Game over' : started ? (curName || '—') : 'Press Play to start'}</span>
+                {started && !ended && (
+                  <button onClick={skipCountry} title="Can't find it? Skip and come back to it later." style={{ marginLeft: 'auto', flex: 'none', fontFamily: MONO, fontSize: 10, letterSpacing: '0.16em', textTransform: 'uppercase', fontWeight: 700, padding: '8px 14px', background: 'transparent', color: COLORS.cream, border: '1px solid rgba(244,237,224,0.4)', cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: 6 }}>
+                    <SkipForward size={12} strokeWidth={2.5} /> Skip
+                  </button>
+                )}
               </div>
               <MapQuizBoard region={quiz.region || 'europe'} started={started} ended={ended} foundNames={foundNamesSet} flash={flash} onPick={pickCountry} />
             </div>
