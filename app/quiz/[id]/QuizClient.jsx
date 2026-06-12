@@ -251,6 +251,7 @@ export default function QuizClient({ quizId }) {
 
   const [copied, setCopied] = useState(false);
   const [revealed, setRevealed] = useState(false); // non-list quizzes: misses shown after username gate
+  const [gameOverDismissed, setGameOverDismissed] = useState(false); // hides the Game Over overlay once acknowledged
 
   // Critique? modal (mirrors the list-page Request Review modal; routes to the
   // same /api/complaints pipeline -> admin Notices tab + daily digest email).
@@ -320,7 +321,10 @@ export default function QuizClient({ quizId }) {
     setStats(recordResult(quizId, finalScore));
     setHint(win ? `Perfect — all ${total} named in ${fmtTime(elapsed)}!` : `Time! You got ${finalScore}/${total}.`);
     setHintBad(!win);
-    setTab('stats');
+    setGameOverDismissed(false);
+    // Map games keep the board on screen behind the Game Over card; other
+    // formats still jump to the results/leaderboard tab as before.
+    if (!mapMode) setTab('stats');
 
     // Record the completed game (makes play count + average real; attributes
     // to the leaderboard if signed up).
@@ -1033,6 +1037,45 @@ export default function QuizClient({ quizId }) {
           </div>
         )}
       </div>
+      {ended && !gameOverDismissed && (
+        <div
+          onClick={() => setGameOverDismissed(true)}
+          style={{ position: 'fixed', inset: 0, zIndex: 70, background: 'rgba(26,22,17,0.62)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '6vh 16px' }}
+        >
+          <div onClick={(e) => e.stopPropagation()} style={{ width: '100%', maxWidth: 440, background: COLORS.cream, border: `2px solid ${COLORS.ink}`, padding: '28px 26px', textAlign: 'center', boxShadow: '0 18px 60px rgba(26,22,17,0.4)' }}>
+            {(() => {
+              const win = dispScore === total;
+              const timeout = !win && time <= 0;
+              const heading = win ? 'Perfect!' : timeout ? "Time's Up" : 'Game Over';
+              const reason = win
+                ? `All ${total} found${lastElapsed != null ? ` in ${fmtTime(lastElapsed)}` : ''}.`
+                : timeout
+                  ? 'The clock ran out.'
+                  : (mapMode && quiz.suddenDeath)
+                    ? 'One wrong click ends the run.'
+                    : 'You ended the round.';
+              return (
+                <>
+                  <div style={{ display: 'inline-flex', marginBottom: 12, color: win ? COLORS.forest : COLORS.ember }}>
+                    {win ? <Trophy size={40} strokeWidth={2} /> : <Flag size={40} strokeWidth={2} />}
+                  </div>
+                  <div style={{ fontFamily: MONO, fontSize: 12, letterSpacing: '0.24em', textTransform: 'uppercase', color: win ? COLORS.forest : COLORS.ember, marginBottom: 8 }}>{heading}</div>
+                  <div style={{ fontFamily: SERIF, fontWeight: 800, fontSize: 40, lineHeight: 1, marginBottom: 6 }}>{dispScore}<span style={{ fontSize: 24, color: COLORS.faded }}> / {total}</span></div>
+                  <p style={{ fontFamily: SERIF, fontStyle: 'italic', fontSize: 16, color: COLORS.faded, margin: '0 0 4px' }}>{reason}</p>
+                  <p style={{ fontFamily: SANS, fontSize: 14, color: '#4a4339', margin: '0 0 20px' }}>You beat {percentile(dispScore, total)}% of players.{board.best != null ? (dispScore >= board.best ? ' That ties the high score.' : ` High score to beat: ${board.best}.`) : ''}</p>
+                  <div style={{ display: 'flex', gap: 10, justifyContent: 'center', flexWrap: 'wrap' }}>
+                    <button onClick={() => { setGameOverDismissed(true); setTab('stats'); }} style={{ fontFamily: MONO, fontSize: 12, letterSpacing: '0.12em', textTransform: 'uppercase', fontWeight: 700, padding: '13px 22px', border: 'none', background: COLORS.ember, color: '#fff', cursor: 'pointer' }}>See results</button>
+                    <button onClick={() => window.location.reload()} style={{ fontFamily: MONO, fontSize: 12, letterSpacing: '0.12em', textTransform: 'uppercase', fontWeight: 700, padding: '13px 22px', border: `1.5px solid ${COLORS.ink}`, background: 'transparent', color: COLORS.ink, cursor: 'pointer' }}>Play again</button>
+                  </div>
+                  {mapMode && (
+                    <button onClick={() => setGameOverDismissed(true)} style={{ marginTop: 14, background: 'transparent', border: 'none', color: COLORS.faded, cursor: 'pointer', fontFamily: MONO, fontSize: 11, letterSpacing: '0.12em', textTransform: 'uppercase', textDecoration: 'underline', padding: 0 }}>Review the map</button>
+                  )}
+                </>
+              );
+            })()}
+          </div>
+        </div>
+      )}
       {qOpen && (
         <div
           onClick={() => setQOpen(false)}
