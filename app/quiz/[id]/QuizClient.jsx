@@ -139,6 +139,7 @@ export default function QuizClient({ quizId }) {
   const orderRef = useRef(null);
   const [curName, setCurName] = useState(null);
   const [flash, setFlash] = useState(null);
+  const [guessesLeft, setGuessesLeft] = useState(null);
   const [lastElapsed, setLastElapsed] = useState(null);
 
   const [stats, setStats] = useState({ attempts: 0, best: 0, totalCorrect: 0 });
@@ -274,7 +275,8 @@ export default function QuizClient({ quizId }) {
       const ord = shuffleIdx(total);
       orderRef.current = ord;
       setCurName(answers[ord[0]].t);
-      setHint(`Find ${answers[ord[0]].t} — click it on the map.`);
+      setGuessesLeft(total);
+      setHint(`Find ${answers[ord[0]].t} — click it. You get ${total} guesses, one per country.`);
     } else {
       setHint(ordered ? 'Go — answer in order, from the top.' : matched ? "Go — name each year's winner." : 'Go — name them all.');
     }
@@ -372,10 +374,16 @@ export default function QuizClient({ quizId }) {
     if (!started || ended || !mapMode) return;
     const i = answers.findIndex((a) => a.t === name);
     if (i < 0) return;
+    // Clicking a country you've already named is harmless and free.
     if (found[i]) {
       if (name !== curName) { setFlash({ name, ok: false }); setTimeout(() => setFlash((f) => (f && f.name === name ? null : f)), 400); }
       return;
     }
+    // Every genuine pick (right OR wrong) spends one guess from the budget,
+    // which equals the number of countries. This makes a perfect game require
+    // one correct click per country and stops spam-clicking to 100%.
+    const left = (guessesLeft == null ? total : guessesLeft) - 1;
+    setGuessesLeft(left);
     if (name === curName) {
       const next = found.slice();
       next[i] = true;
@@ -385,14 +393,16 @@ export default function QuizClient({ quizId }) {
       const ord = orderRef.current || [];
       const remaining = ord.filter((j) => !next[j]);
       if (!remaining.length) { setHint(`Correct — ${name}. That's all of them.`); setHintBad(false); setCurName(null); endGame(true, next); return; }
+      if (left <= 0) { setHint(`Correct — ${name}. That was your last guess.`); setHintBad(false); setCurName(null); endGame(false, next); return; }
       const nn = answers[remaining[0]].t;
       setCurName(nn);
-      setHint(`Correct — ${name}. Now find ${nn}.`);
+      setHint(`Correct — ${name}. ${left} ${left === 1 ? 'guess' : 'guesses'} left. Now find ${nn}.`);
       setHintBad(false);
     } else {
       setFlash({ name, ok: false });
       setTimeout(() => setFlash((f) => (f && f.name === name ? null : f)), 400);
-      setHint(`Not ${curName} — try again.`);
+      if (left <= 0) { setHint(`That was ${name}, not ${curName}. Out of guesses.`); setHintBad(true); endGame(false); return; }
+      setHint(`Not ${curName} — try again. ${left} ${left === 1 ? 'guess' : 'guesses'} left.`);
       setHintBad(true);
     }
   }
@@ -617,10 +627,17 @@ export default function QuizClient({ quizId }) {
                 <div style={{ fontFamily: SERIF, fontWeight: 800, fontSize: 34, lineHeight: 1 }}>{score}<span style={{ fontSize: 20, color: COLORS.faded }}>/{total}</span></div>
                 <div style={{ fontFamily: MONO, fontSize: 11, letterSpacing: '0.12em', textTransform: 'uppercase', color: COLORS.faded }}>Your score</div>
               </div>
+              {mapMode ? (
+              <div style={{ textAlign: 'center', padding: '0 8px', borderLeft: `1px solid ${COLORS.faded}33` }}>
+                <div style={{ fontFamily: SERIF, fontWeight: 800, fontSize: 34, lineHeight: 1, color: (guessesLeft == null ? total : guessesLeft) <= 3 && started && !ended ? COLORS.ember : COLORS.ink }}>{guessesLeft == null ? total : guessesLeft}</div>
+                <div style={{ fontFamily: MONO, fontSize: 11, letterSpacing: '0.12em', textTransform: 'uppercase', color: COLORS.faded }}>Guesses left</div>
+              </div>
+              ) : (
               <div style={{ textAlign: 'center', padding: '0 8px', borderLeft: `1px solid ${COLORS.faded}33` }}>
                 <div style={{ fontFamily: SERIF, fontWeight: 800, fontSize: 34, lineHeight: 1 }}>{board.plays.toLocaleString()}</div>
                 <div style={{ fontFamily: MONO, fontSize: 11, letterSpacing: '0.12em', textTransform: 'uppercase', color: COLORS.faded }}>Total plays</div>
               </div>
+              )}
               <div style={{ textAlign: 'center', padding: '0 8px', borderLeft: `1px solid ${COLORS.faded}33` }}>
                 <div style={{ fontFamily: MONO, fontSize: 24, color: time <= 10 && started && !ended ? COLORS.ember : COLORS.ink }}>{clock}</div>
                 <div style={{ fontFamily: MONO, fontSize: 11, letterSpacing: '0.12em', textTransform: 'uppercase', color: COLORS.faded }}>Time left</div>
