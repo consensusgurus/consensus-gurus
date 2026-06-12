@@ -315,7 +315,7 @@ export default function QuizClient({ quizId }) {
         setFound(next);
         setHint(`Correct — ${a.t}`);
         setHintBad(false);
-        if (next.every(Boolean)) endGame(true);
+        if (next.every(Boolean)) endGame(true, next);
         return;
       }
     }
@@ -342,7 +342,7 @@ export default function QuizClient({ quizId }) {
       setFound(next);
       setHint(`Correct — ${a.label != null ? a.label + ': ' : ''}${a.t}`);
       setHintBad(false);
-      if (next.every(Boolean)) endGame(true);
+      if (next.every(Boolean)) endGame(true, next);
     } else {
       setHint("Not that year's winner. Try again.");
       setHintBad(true);
@@ -369,7 +369,7 @@ export default function QuizClient({ quizId }) {
       setFound(next);
       setHint(`Correct — ${a.label != null ? a.label + ': ' : ''}${a.t}`);
       setHintBad(false);
-      if (next.every(Boolean)) endGame(true);
+      if (next.every(Boolean)) endGame(true, next);
     } else {
       setHint(`Not the ${a.label != null ? a.label + ' ' : ''}answer. Work down in order, try again.`);
       setHintBad(true);
