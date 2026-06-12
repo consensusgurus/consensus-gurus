@@ -236,7 +236,7 @@ export default function QuizHomeClient() {
             </h1>
             <div className="cg-head-col">
               <div className="cg-tagline">The Quizzes</div>
-              <div className="cg-blurb">Timed quizzes of every kind. Beat the clock, then the leaderboard.</div>
+              <div className="cg-blurb">Timed quizzes built from our rankings. Test what you actually know.</div>
               <div style={{ borderBottom: `1px solid ${COLORS.ink}`, marginBottom: 4 }} />
               <div style={{ borderBottom: `2px solid ${COLORS.ember}` }} />
             </div>

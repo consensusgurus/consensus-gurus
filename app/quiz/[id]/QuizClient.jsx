@@ -627,8 +627,8 @@ export default function QuizClient({ quizId }) {
   const shareUrl = typeof window !== 'undefined' ? window.location.href : `https://sourceoftruths.com/quiz/${quiz.id}`;
   function share() {
     const text = ended
-      ? `I named ${dispScore}/${total} on "${quiz.title}" at Source of Truths. Can you beat me?`
-      : `Can you name the ${total}? "${quiz.title}" at Source of Truths.`;
+      ? `I scored ${dispScore}/${total} on "${quiz.title}" at Source of Truths. Can you beat me?`
+      : `How well do you know "${quiz.title}"? Take the timed quiz at Source of Truths.`;
     if (navigator.share) {
       navigator.share({ title: quiz.title, text, url: shareUrl }).catch(() => {});
     } else {
@@ -965,7 +965,7 @@ export default function QuizClient({ quizId }) {
         {/* ── SHARE ── */}
         {tab === 'share' && (
           <div style={{ textAlign: 'center', padding: '12px 0 8px' }}>
-            <p style={{ fontFamily: SERIF, fontStyle: 'italic', fontSize: 19, color: COLORS.ink, maxWidth: 480, margin: '0 auto 20px' }}>{ended ? `You named ${dispScore} of ${total}. Challenge someone to beat it.` : 'Send this quiz to someone who thinks they can name them all.'}</p>
+            <p style={{ fontFamily: SERIF, fontStyle: 'italic', fontSize: 19, color: COLORS.ink, maxWidth: 480, margin: '0 auto 20px' }}>{ended ? `You scored ${dispScore} of ${total}. Challenge someone to beat it.` : 'Send this quiz to someone who thinks they know better.'}</p>
             <button onClick={share} style={{ fontFamily: MONO, fontSize: 13, letterSpacing: '0.08em', textTransform: 'uppercase', fontWeight: 700, padding: '0 28px', lineHeight: '46px', border: 'none', background: COLORS.ember, color: '#fff', cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: 8 }}>
               <Share2 size={14} strokeWidth={2.5} /> {copied ? 'Link copied!' : 'Share this quiz'}
             </button>

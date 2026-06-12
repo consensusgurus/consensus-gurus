@@ -8,7 +8,7 @@ export const runtime = 'nodejs';
 // hammering the database on every scrape.
 export const revalidate = 3600;
 
-export const alt = 'Source of Truths quizzes — how many can you name?'
+export const alt = 'Source of Truths quizzes: test what you know'
 export const size = { width: 1200, height: 630 }
 export const contentType = 'image/png'
 
@@ -90,10 +90,10 @@ export default async function Image() {
             <div style={{ display: 'flex', width: '100%', height: 3, background: '#c0392b', marginTop: 3 }} />
           </div>
           <div style={{ display: 'flex', fontSize: 78, fontWeight: 700, color: '#1a1a1a', lineHeight: 1.0, marginBottom: 14 }}>
-            How many can you name?
+            Test what you know.
           </div>
           <div style={{ display: 'flex', fontSize: 26, fontFamily: dmFF, fontStyle: 'italic', color: '#5a5a5a', lineHeight: 1.25, maxWidth: '92%' }}>
-            {count} timed name-them-all quizzes, built from the rankings. Ten to name, ninety seconds on the clock.
+            {count} timed quizzes built from the rankings. Name them, match them, map them, beat the clock.
           </div>
         </div>
 
