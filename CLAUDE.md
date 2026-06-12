@@ -1795,7 +1795,7 @@ game away. **No answer's display text (`t`), and no answer key substring, may ap
 This applies to every quiz, including director/filmmaker filmographies where the temptation is to
 write "From Memento to Oppenheimer..." or "Goodfellas is the obvious first answer." Write the blurb
 in terms of the director/topic/genre/era, never the items themselves. Before shipping, scan every
-blurb against its answer list and fix any hits.
+blurb against its answer list and fix any hits. **Strip each answer's parenthetical figure first, then test its core NAME and every key as a substring of the blurb, multi-word names included** (a name like "blue whale" or "saturday night live" hides from a scan that only matches the full "Blue Whale (200 tons)" display string, which is how a batch of #1-naming blurbs slipped through once).
 
 **Hints are banned too, not only named answers (owner rule, 2026-06-11).** The blurb must not even
 NUDGE the player toward a specific answer. Beyond the ban on any answer's display text (`t`) or key
