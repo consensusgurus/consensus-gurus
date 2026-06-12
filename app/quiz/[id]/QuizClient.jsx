@@ -548,9 +548,9 @@ export default function QuizClient({ quizId }) {
     setPairsMatched(matchedCount);
     endGame(win, null, matchedCount);
   }
-  function onBankWrong(errorCount, prompt, answer) {
+  function onBankWrong(errorCount, prompt) {
     setPairsErrors(errorCount);
-    setHint(`Missed — ${prompt}: ${answer}. That one is gone.`);
+    setHint(`Not the match for ${prompt}. That cost you a guess.`);
     setHintBad(true);
   }
 
@@ -756,6 +756,11 @@ export default function QuizClient({ quizId }) {
               {mapMode ? (
               <div style={{ textAlign: 'center', padding: '0 8px', borderLeft: `1px solid ${COLORS.faded}33` }}>
                 <div style={{ fontFamily: SERIF, fontWeight: 800, fontSize: 34, lineHeight: 1, color: (guessesLeft == null ? total : guessesLeft) <= 3 && started && !ended ? COLORS.ember : COLORS.ink }}>{guessesLeft == null ? total : guessesLeft}</div>
+                <div style={{ fontFamily: MONO, fontSize: 11, letterSpacing: '0.12em', textTransform: 'uppercase', color: COLORS.faded }}>Guesses left</div>
+              </div>
+              ) : bankMode ? (
+              <div style={{ textAlign: 'center', padding: '0 8px', borderLeft: `1px solid ${COLORS.faded}33` }}>
+                <div style={{ fontFamily: SERIF, fontWeight: 800, fontSize: 34, lineHeight: 1, color: (total - pairsMatched - pairsErrors) <= 3 && started && !ended ? COLORS.ember : COLORS.ink }}>{Math.max(0, total - pairsMatched - pairsErrors)}</div>
                 <div style={{ fontFamily: MONO, fontSize: 11, letterSpacing: '0.12em', textTransform: 'uppercase', color: COLORS.faded }}>Guesses left</div>
               </div>
               ) : tileMode ? (
