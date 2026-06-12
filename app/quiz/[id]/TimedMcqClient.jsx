@@ -324,7 +324,7 @@ export default function TimedMcqClient({ quizId }) {
 
         <button onClick={() => router.push('/')} style={{ background: 'transparent', border: 'none', fontFamily: MONO, fontSize: 11, letterSpacing: '0.2em', textTransform: 'uppercase', color: COLORS.ink, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 6, padding: '8px 0' }}>
           <ArrowLeft size={14} strokeWidth={2.5} />
-          Back to all lists
+          Back to all quizzes
         </button>
 
         {/* Header */}
@@ -332,7 +332,7 @@ export default function TimedMcqClient({ quizId }) {
           <div style={{ display: 'flex', alignItems: 'flex-end', gap: 'clamp(16px, 4vw, 28px)' }}>
             <h1 style={{ fontFamily: SERIF, fontWeight: 800, fontSize: 'clamp(30px, 5vw, 50px)', lineHeight: 1.02, letterSpacing: '-0.02em', margin: 0, color: COLORS.ink, fontVariationSettings: '"SOFT" 100' }}>{quiz.title}</h1>
             <div style={{ flex: 1, minWidth: 120, marginBottom: 6 }}>
-              <div style={{ fontFamily: MONO, fontSize: 'clamp(9px, 1.1vw, 11px)', letterSpacing: '0.2em', textTransform: 'uppercase', color: COLORS.ember, textAlign: 'right', marginBottom: 8 }}>{quiz.category} · Timed Quiz</div>
+              <div style={{ fontFamily: MONO, fontSize: 'clamp(9px, 1.1vw, 11px)', letterSpacing: '0.2em', textTransform: 'uppercase', color: COLORS.ember, textAlign: 'right', marginBottom: 8 }}>{quiz.category} · Quiz</div>
               <div style={{ borderBottom: `1px solid ${COLORS.ink}`, marginBottom: 4 }} />
               <div style={{ borderBottom: `2px solid ${COLORS.ember}` }} />
             </div>
@@ -652,7 +652,7 @@ export default function TimedMcqClient({ quizId }) {
               </>
             ) : (
               <>
-                <h3 style={{ fontFamily: SERIF, fontWeight: 700, fontSize: 22, margin: '0 0 6px' }}>Comments? Questions?</h3>
+                <h3 style={{ fontFamily: SERIF, fontWeight: 700, fontSize: 22, margin: '0 0 6px' }}>Comments? Critique?</h3>
                 <p style={{ fontFamily: SANS, fontSize: 14, color: COLORS.faded, margin: '0 0 14px' }}>
                   Spot an answer that should count, or something off about this quiz? Tell the editors.
                 </p>

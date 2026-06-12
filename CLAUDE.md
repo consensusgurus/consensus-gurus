@@ -2148,3 +2148,47 @@ slots into the existing board with no backend change. The page identity is store
   decaying live point meter, the four-option board with correct/wrong reveal, the per-question recap on
   the results card, and the Stats/Share/Join/Critique tabs. Posts `score` (points) / `total` (max) to
   the shared result API.
+
+## Quiz page formatting and consistency rules (owner rule, 2026-06-12)
+
+EVERY quiz page, regardless of `format` (name-them-all, `map`, `pairs`, `matched`, `timed-mcq`, and any
+future board), MUST present IDENTICAL page chrome. The canonical implementation is
+`app/quiz/[id]/QuizClient.jsx`; it is the source of truth. When you add a new format or touch any quiz
+board, diff your component's user-facing strings and layout against QuizClient and reconcile EVERY
+difference before shipping. A new board that renders its own full page (like `TimedMcqClient.jsx`)
+re-implements this chrome, so it is the easiest place to drift, audit it against this list.
+
+Shared chrome that must match QuizClient exactly:
+
+- **Back link (top left):** the ArrowLeft icon plus the text "Back to all quizzes". NOT "Back to all
+  lists".
+- **Header:** the Fraunces h1 `quiz.title`; the right-aligned eyebrow `{quiz.category} · Quiz` (ember,
+  uppercase) with the two divider rules under it (1px ink, then 2px ember); then the italic Fraunces
+  `quiz.blurb`. The eyebrow is `· Quiz` for every format (do NOT vary it, e.g. no "· Timed Quiz"). Do
+  NOT place the source line in the header.
+- **Ribbon tabs, in this exact order and wording:** Play; Stats & Leaderboard; Join the Leaderboard
+  (Trophy icon); Share (Share2 icon); then the Critique? button (HelpCircle icon) opening the critique
+  modal. Labels are exact: "Stats & Leaderboard" (not "Stats"), "Join the Leaderboard" (not "Join").
+- **Critique modal:** heading "Comments? Critique?"; body "Spot an answer that should count, or
+  something off about this quiz? Tell the editors."; optional Name / Email / message fields; posts to
+  `/api/complaints` with `listTitle` prefixed `[Quiz] `. Success state: heading "Thanks, noted." with
+  "Your question went to the editors' desk. We read every one."
+- **Source line:** rendered ONCE, at the BASE of the page content (just before the modal / `<Footer />`),
+  with a top border, MONO 11px, faded color, as `Source: <label>` (label links in rust when a URL is
+  present). Support `quiz.source` as EITHER a string OR a `{ label, url }` object.
+- **Page frame:** background `COLORS.cream` with `<Grain />`, shared `<Footer />` at the bottom.
+- **Styling tokens:** reuse the same `COLORS` (cream/paper/ink/ember/rust/forest/faded) and
+  `MONO`/`SERIF`/`SANS` font constants. Never hardcode a different palette or font stack.
+- **Stats/leaderboard:** read `/api/quiz/board` and `/api/quiz/result`, shape `{ plays, best,
+  leaderboard }` (best = high score; rows `{ username, score, timeElapsed, tryNum }`). Stats tab heading
+  "Your record"; empty state "Play a round and your record shows up here. It stays on this device."
+
+Format-specific parts that MAY differ (because gameplay differs), everything else above stays identical:
+the Play-area board itself (text input + answer slots vs the clickable map vs the timed question card),
+the scoreboard metrics (names found vs points), the in-board action control (e.g. "Give up" vs
+"End now"), and the Share/results microcopy.
+
+**The "you beat X% of players" results line is a MODELED percentile of the score itself** (the
+`percentile()` curve), NOT a tally of real players, so it shows even on the first/only play. This is
+intentional and shared by every quiz. Keep it consistent across formats; if it should ever reflect real
+play data, change it in QuizClient AND every board in the SAME pass.
