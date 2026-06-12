@@ -384,6 +384,7 @@ export default function AdminClient({ initialLists, initialExtras = [], initialC
             display: 'flex',
             gap: 0,
             marginBottom: 28,
+            overflowX: 'auto',
             border: `1.5px solid ${COLORS.ink}`,
           }}
         >
@@ -396,14 +397,11 @@ export default function AdminClient({ initialLists, initialExtras = [], initialC
           <TabButton active={tab === 'extras'} onClick={() => setTab('extras')}>
             By the people <span style={{ opacity: 0.6 }}>{extrasCount}</span>
           </TabButton>
-          <TabButton active={tab === 'complaints'} onClick={() => setTab('complaints')}>
-            Notices <span style={{ opacity: 0.6 }}>{complaintsCount}</span>
+          <TabButton active={tab === 'feedback'} onClick={() => setTab('feedback')}>
+            Feedback <span style={{ opacity: 0.6 }}>{complaintsCount + commentsCount}</span>
           </TabButton>
           <TabButton active={tab === 'votes'} onClick={() => setTab('votes')}>
             Votes <span style={{ opacity: 0.6 }}>{voteStandings.length}</span>
-          </TabButton>
-          <TabButton active={tab === 'comments'} onClick={() => setTab('comments')}>
-            Comments <span style={{ opacity: 0.6 }}>{commentsCount}</span>
           </TabButton>
           <TabButton active={tab === 'notes'} onClick={() => setTab('notes')}>
             Notes <span style={{ opacity: 0.6 }}>{editorNotesCount}</span>
@@ -411,33 +409,26 @@ export default function AdminClient({ initialLists, initialExtras = [], initialC
           <TabButton active={tab === 'research'} onClick={() => setTab('research')}>
             Research <span style={{ opacity: 0.6 }}>{alerts.length}</span>
           </TabButton>
-          <TabButton active={tab === 'views'} onClick={() => setTab('views')}>
-            Views <span style={{ opacity: 0.6 }}>{views24hTotal}</span>
-          </TabButton>
-          <TabButton active={tab === 'quizstats'} onClick={() => setTab('quizstats')}>
-            Quiz Stats <span style={{ opacity: 0.6 }}>{quizPlaysTotal}</span>
+          <TabButton active={tab === 'analytics'} onClick={() => setTab('analytics')}>
+            Analytics <span style={{ opacity: 0.6 }}>{views24hTotal}</span>
           </TabButton>
           <TabButton active={tab === 'quizzes'} onClick={() => setTab('quizzes')}>
             Quizzes <span style={{ opacity: 0.6 }}>{quizSignups.length}</span>
           </TabButton>
         </div>
 
-        {tab === 'quizstats' ? (
-          <QuizStatsPanel stats={quizStats} playsTotal={quizPlaysTotal} />
+        {tab === 'analytics' ? (
+          <AnalyticsPanel views={views24h} viewsTotal={views24hTotal} quizStats={quizStats} quizPlaysTotal={quizPlaysTotal} />
         ) : tab === 'quizzes' ? (
           <QuizSignupsPanel signups={quizSignups} />
-        ) : tab === 'views' ? (
-          <ViewsPanel views={views24h} total={views24hTotal} />
         ) : tab === 'research' ? (
           <ResearchPanel alerts={alerts} busy={busy} onResolve={resolveAlert} />
         ) : tab === 'notes' ? (
           <NotesPanel notes={editorNotes} lists={LISTS} busy={busy} onAdd={addNote} onDelete={deleteNote} />
-        ) : tab === 'comments' ? (
-          <CommentsPanel comments={comments} busy={busy} onDelete={deleteComment} onRespond={respond} />
+        ) : tab === 'feedback' ? (
+          <FeedbackPanel complaints={complaints} comments={comments} busy={busy} onDismiss={dismissComplaint} onDelete={deleteComment} onRespond={respond} />
         ) : tab === 'votes' ? (
           <VotesPanel standings={voteStandings} events={voteEvents} busy={busy} onDelete={deleteVote} />
-        ) : tab === 'complaints' ? (
-          <ComplaintsPanel complaints={complaints} busy={busy} onDismiss={dismissComplaint} onRespond={respond} />
         ) : tab === 'extras' ? (
           <ExtrasPanel
             extras={extras}
@@ -1162,12 +1153,53 @@ function ComplaintsPanel({ complaints, busy, onDismiss, onRespond }) {
   );
 }
 
+function SectionHeading({ children }) {
+  return (
+    <div style={{ fontFamily: 'DM Mono, monospace', fontSize: 12, letterSpacing: '0.18em', textTransform: 'uppercase', color: COLORS.ink, fontWeight: 700, paddingBottom: 10, marginBottom: 14, borderBottom: `2px solid ${COLORS.ink}` }}>
+      {children}
+    </div>
+  );
+}
+
+// Analytics tab: list page views and quiz views/plays, stacked into one view.
+function AnalyticsPanel({ views, viewsTotal, quizStats, quizPlaysTotal }) {
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 36 }}>
+      <div>
+        <SectionHeading>List Views</SectionHeading>
+        <ViewsPanel views={views} total={viewsTotal} />
+      </div>
+      <div>
+        <SectionHeading>Quiz Stats</SectionHeading>
+        <QuizStatsPanel stats={quizStats} playsTotal={quizPlaysTotal} />
+      </div>
+    </div>
+  );
+}
+
+// Feedback tab: reader notices (complaints) and list comments, stacked.
+function FeedbackPanel({ complaints, comments, busy, onDismiss, onDelete, onRespond }) {
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 36 }}>
+      <div>
+        <SectionHeading>Notices</SectionHeading>
+        <ComplaintsPanel complaints={complaints} busy={busy} onDismiss={onDismiss} onRespond={onRespond} />
+      </div>
+      <div>
+        <SectionHeading>Comments</SectionHeading>
+        <CommentsPanel comments={comments} busy={busy} onDelete={onDelete} onRespond={onRespond} />
+      </div>
+    </div>
+  );
+}
+
 function TabButton({ active, onClick, children }) {
   return (
     <button
       onClick={onClick}
       style={{
-        flex: 1,
+        flex: '1 0 auto',
+        whiteSpace: 'nowrap',
         background: active ? COLORS.ink : 'transparent',
         color: active ? COLORS.cream : COLORS.ink,
         border: 'none',
