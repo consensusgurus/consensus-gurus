@@ -1144,12 +1144,12 @@ function Home({ lists, viewCounts, voteData, extras, trending = {}, openList, on
             }}
           >
             {(() => {
-              // A quiz tile lands after every `gap` list tiles. The gap is a FIXED tile
-              // count, not a number of rows: a row-based gap dropped a quiz tile
-              // every few tiles on mobile, where the grid is a single column.
-              // Desktop runs ~3.5 tiles per row, so 10 tiles is about every three
-              // rows. Off until mounted (gridCols > 0) and a factual quiz exists.
-              const gap = gridCols > 0 ? 10 : 0;
+              // Quiz-tile spacing is viewport-aware. On desktop (multi-column) a quiz
+              // tile lands after every 5 rows' worth of tiles (gridCols * 5). On
+              // mobile the grid collapses to a single column, where that rule would
+              // place one every 5 tiles, so fall back to a fixed ~10-tile gap. Off
+              // until mounted (gridCols > 0) and a factual quiz exists.
+              const gap = gridCols > 0 ? (gridCols > 1 ? gridCols * 5 : 10) : 0;
               const cells = [];
               let quizIdx = 0;
               sorted.forEach((list, idx) => {
