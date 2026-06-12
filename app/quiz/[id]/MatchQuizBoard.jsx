@@ -3,13 +3,14 @@
 import React, { useMemo, useState } from 'react';
 
 // Two-column matching board (the `pairs` quiz format). The LEFT column holds the
-// slogans (the prompt you pick first); the RIGHT column holds the companies (the
-// answer), listed ALPHABETICALLY. Pick a slogan, then the company it belongs to.
-// A wrong company is struck through and locked for good — and because every wrong
-// pick buries one company's only correct answer, the final matched count is
-// exactly (total − errors) at a natural end, so "score = matched" ranks fewest
-// errors first. The board owns its interaction state and reports up to QuizClient
-// via callbacks, mirroring how MapQuizBoard reports picks.
+// clues (the prompt you pick first); the RIGHT column holds the answers, listed
+// ALPHABETICALLY. Optionally the left column is alphabetised too (sortLeft) when
+// that helps scanning (novels, companies); otherwise it is shuffled (slogans,
+// quotes). Pick a clue, then its answer. A wrong answer is struck through and
+// locked for good — and because every wrong pick buries one answer, the final
+// matched count is exactly (total − errors) at a natural end, so "score =
+// matched" ranks fewest errors first. The board owns its interaction state and
+// reports up to QuizClient via callbacks, mirroring how MapQuizBoard reports picks.
 
 const COLORS = {
   cream: '#f4ede0',
@@ -21,8 +22,8 @@ const COLORS = {
   faded: '#7a6f5e',
 };
 // Distinct column tints so the two sides read as separate at a glance: the
-// slogans (prompt) sit on a warm parchment panel with an ember accent, the
-// companies (answers) on a cool sage panel with a forest accent.
+// clues (prompt) sit on a warm parchment panel with an ember accent, the
+// answers on a cool sage panel with a forest accent.
 const LEFT_PANEL = '#efe6d2';
 const RIGHT_PANEL = '#e5ece0';
 const MONO = 'DM Mono, monospace';
@@ -38,22 +39,31 @@ function shuffle(arr) {
   return a;
 }
 
-export default function MatchQuizBoard({ pairs, started, ended, onMatch, onError, onEnd, onHint }) {
-  // index i is the canonical pair id: pairs[i] === [company, slogan].
-  const leftOrder = useMemo(() => shuffle(pairs.map((_, i) => i)), [pairs]); // slogans (shuffled)
-  // Companies (the answer column) are ALWAYS listed alphabetically — true for
-  // every `pairs` matching game, so the answers read as a clean reference column.
+export default function MatchQuizBoard({ pairs, started, ended, onMatch, onError, onEnd, onHint, leftLabel, rightLabel, sortLeft }) {
+  // index i is the canonical pair id: pairs[i] === [answer, clue].
+  // Left column = clues (pairs[i][1]); right column = answers (pairs[i][0]).
+  const leftOrder = useMemo(
+    () =>
+      sortLeft
+        ? pairs.map((_, i) => i).sort((a, b) => pairs[a][1].localeCompare(pairs[b][1]))
+        : shuffle(pairs.map((_, i) => i)),
+    [pairs, sortLeft]
+  );
+  // Answers (right column) are ALWAYS listed alphabetically — true for every
+  // `pairs` matching game, so the answers read as a clean reference column.
   const rightOrder = useMemo(
     () => pairs.map((_, i) => i).sort((a, b) => pairs[a][0].localeCompare(pairs[b][0])),
     [pairs]
-  ); // companies (alphabetical)
-  const [sel, setSel] = useState(null); // selected slogan pair id (left), or null
+  );
+  const [sel, setSel] = useState(null); // selected clue pair id (left), or null
   const [matched, setMatched] = useState(() => new Set()); // matched pair ids
-  const [dead, setDead] = useState(() => new Set()); // companies (right) struck out
+  const [dead, setDead] = useState(() => new Set()); // answers (right) struck out
   const [errors, setErrors] = useState(0);
-  const [tray, setTray] = useState([]); // [{ slogan, company }]
+  const [tray, setTray] = useState([]); // [{ clue, answer }]
 
   const live = started && !ended;
+  const lLabel = leftLabel || 'Slogans';
+  const rLabel = rightLabel || 'Companies';
 
   function hasMovesLeft(matchedSet, deadSet) {
     for (let i = 0; i < pairs.length; i++) {
@@ -62,23 +72,23 @@ export default function MatchQuizBoard({ pairs, started, ended, onMatch, onError
     return false;
   }
 
-  function clickSlogan(i) {
+  function clickClue(i) {
     if (!live || matched.has(i)) return;
     setSel(i);
-    if (onHint) onHint(`Now pick the company behind “${pairs[i][1]}”.`, false);
+    if (onHint) onHint(`Now pick the match for “${pairs[i][1]}”.`, false);
   }
 
-  function clickCompany(j) {
+  function clickAnswer(j) {
     if (!live || dead.has(j) || matched.has(j)) return;
     if (sel == null) {
-      if (onHint) onHint('Pick a slogan on the left first.', true);
+      if (onHint) onHint('Pick from the left column first.', true);
       return;
     }
     if (sel === j) {
       const nm = new Set(matched);
       nm.add(j);
       setMatched(nm);
-      setTray((t) => [...t, { slogan: pairs[j][1], company: pairs[j][0] }]);
+      setTray((t) => [...t, { clue: pairs[j][1], answer: pairs[j][0] }]);
       setSel(null);
       if (onMatch) onMatch(j, nm.size, pairs[j][0], pairs[j][1]);
       if (nm.size === pairs.length && onEnd) onEnd(true, nm.size);
@@ -133,9 +143,9 @@ export default function MatchQuizBoard({ pairs, started, ended, onMatch, onError
             {tray.map((m, k) => (
               <div key={k} style={{ fontFamily: SANS, fontSize: 12.5, display: 'flex', gap: 8, alignItems: 'baseline', flexWrap: 'wrap' }}>
                 <span style={{ color: COLORS.forest, fontWeight: 700 }}>&#10003;</span>
-                <span style={{ fontStyle: 'italic', color: '#4a4339' }}>&ldquo;{m.slogan}&rdquo;</span>
+                <span style={{ fontStyle: 'italic', color: '#4a4339' }}>&ldquo;{m.clue}&rdquo;</span>
                 <span style={{ color: COLORS.faded }}>&rarr;</span>
-                <span style={{ fontWeight: 700 }}>{m.company}</span>
+                <span style={{ fontWeight: 700 }}>{m.answer}</span>
               </div>
             ))}
           </div>
@@ -144,7 +154,7 @@ export default function MatchQuizBoard({ pairs, started, ended, onMatch, onError
 
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14, alignItems: 'start' }}>
         <div style={{ ...panel, background: LEFT_PANEL, borderTop: `3px solid ${COLORS.ember}` }}>
-          <div style={{ ...colHead, color: COLORS.ember }}>Slogans</div>
+          <div style={{ ...colHead, color: COLORS.ember }}>{lLabel}{sortLeft ? ' (A–Z)' : ''}</div>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
             {leftOrder.map((i) => {
               if (matched.has(i)) return null;
@@ -153,7 +163,7 @@ export default function MatchQuizBoard({ pairs, started, ended, onMatch, onError
                 <button
                   key={i}
                   type="button"
-                  onClick={() => clickSlogan(i)}
+                  onClick={() => clickClue(i)}
                   disabled={!live}
                   style={{
                     ...cellBase,
@@ -170,7 +180,7 @@ export default function MatchQuizBoard({ pairs, started, ended, onMatch, onError
         </div>
 
         <div style={{ ...panel, background: RIGHT_PANEL, borderTop: `3px solid ${COLORS.forest}` }}>
-          <div style={{ ...colHead, color: COLORS.forest }}>Companies (A–Z)</div>
+          <div style={{ ...colHead, color: COLORS.forest }}>{rLabel} (A–Z)</div>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
             {rightOrder.map((j) => {
               if (matched.has(j)) return null;
@@ -179,7 +189,7 @@ export default function MatchQuizBoard({ pairs, started, ended, onMatch, onError
                 <button
                   key={j}
                   type="button"
-                  onClick={() => clickCompany(j)}
+                  onClick={() => clickAnswer(j)}
                   disabled={!live || isDead}
                   style={{
                     ...cellBase,

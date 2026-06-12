@@ -722,7 +722,7 @@ export default function QuizClient({ quizId }) {
             <div style={{ fontFamily: MONO, fontSize: 12, minHeight: 18, marginBottom: 20, color: hintBad ? COLORS.ember : COLORS.faded }}>{hint}</div>
 
             {pairsMode ? (
-            <MatchQuizBoard pairs={quiz.pairs} started={started} ended={ended} onMatch={onPairMatch} onError={onPairError} onEnd={onPairEnd} onHint={onPairHint} />
+            <MatchQuizBoard pairs={quiz.pairs} started={started} ended={ended} onMatch={onPairMatch} onError={onPairError} onEnd={onPairEnd} onHint={onPairHint} leftLabel={quiz.leftLabel} rightLabel={quiz.rightLabel} sortLeft={quiz.sortLeft} />
             ) : mapMode ? (
             <div>
               <div style={{ display: 'flex', alignItems: 'center', gap: 12, background: started && !ended ? COLORS.ink : COLORS.paper, color: started && !ended ? COLORS.cream : COLORS.faded, border: `1px solid ${COLORS.faded}33`, padding: '12px 16px', marginBottom: 10, minHeight: 30 }}>
