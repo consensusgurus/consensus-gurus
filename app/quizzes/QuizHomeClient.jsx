@@ -134,6 +134,63 @@ function QuizTile({ quiz, plays }) {
   );
 }
 
+const PODIUM_COLORS = ['#caa12e', '#9c968a', '#b1763f'];
+const PODIUM_H = [66, 46, 34];
+
+function Podium({ title, entries, unit }) {
+  const top = (entries || []).slice(0, 3).map((e, i) => ({ rank: i + 1, name: e.name, val: e.val, color: PODIUM_COLORS[i], h: PODIUM_H[i] }));
+  const order = [top[1], top[0], top[2]].filter(Boolean);
+  return (
+    <div style={{ flex: '1 1 0', minWidth: 0 }}>
+      <div style={{ fontFamily: 'Fraunces, serif', fontWeight: 600, fontSize: 14, letterSpacing: '-0.01em', color: COLORS.ink, textAlign: 'center', marginBottom: 9, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{title}</div>
+      {order.length > 0 ? (
+        <div style={{ display: 'flex', alignItems: 'flex-end', justifyContent: 'center', gap: 6 }}>
+          {order.map((p) => (
+            <div key={p.rank} style={{ flex: '1 1 0', maxWidth: 90, display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+              <div style={{ width: 22, height: 22, borderRadius: '50%', background: p.color, border: `1.25px solid ${COLORS.ink}`, display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: 'DM Mono, monospace', fontWeight: 500, fontSize: 11, color: COLORS.ink, marginBottom: 4 }}>{p.rank}</div>
+              <div style={{ fontFamily: 'DM Mono, monospace', fontSize: 10.5, fontWeight: 500, color: COLORS.ink, textAlign: 'center', marginBottom: 5, maxWidth: '100%', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{p.name}</div>
+              <div style={{ width: '100%', height: p.h, background: p.color, border: `1.25px solid ${COLORS.ink}`, borderBottom: 'none', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}>
+                <div style={{ fontFamily: 'Fraunces, serif', fontWeight: 700, fontSize: 15, color: COLORS.ink, lineHeight: 1 }}>{p.val}</div>
+                <div style={{ fontFamily: 'DM Mono, monospace', fontSize: 8, letterSpacing: '0.1em', textTransform: 'uppercase', color: 'rgba(26,22,17,0.6)' }}>{unit}</div>
+              </div>
+            </div>
+          ))}
+        </div>
+      ) : (
+        <div style={{ textAlign: 'center', fontFamily: 'Fraunces, serif', fontStyle: 'italic', fontSize: 13, color: COLORS.faded, padding: '18px 0' }}>Not enough plays yet</div>
+      )}
+      <div style={{ height: 5, background: COLORS.ink }} />
+    </div>
+  );
+}
+
+function ChampionsPanel({ completed, accuracy }) {
+  const [hover, setHover] = useState(false);
+  if (!((completed && completed.length) || (accuracy && accuracy.length))) return null;
+  const compEntries = (completed || []).map((u) => ({ name: u.username, val: (u.quizzes || 0).toLocaleString() }));
+  const accEntries = (accuracy || []).map((u) => ({ name: u.username, val: `${(u.accuracy || 0).toFixed(1)}%` }));
+  return (
+    <Link href="/leaderboard" onMouseEnter={() => setHover(true)} onMouseLeave={() => setHover(false)} style={{ display: 'block', textDecoration: 'none', marginBottom: 20 }}>
+      <div style={{ background: COLORS.paper, border: `1.5px solid ${COLORS.ink}`, boxShadow: hover ? `5px 5px 0 ${COLORS.ember}` : `3px 3px 0 ${COLORS.ember}`, transform: hover ? 'translate(-2px, -2px)' : 'none', transition: 'all 0.2s ease', padding: '12px 16px 14px' }}>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12, marginBottom: 3 }}>
+          <span style={{ fontFamily: 'DM Mono, monospace', fontSize: 10.5, fontWeight: 700, letterSpacing: '0.22em', textTransform: 'uppercase', color: COLORS.ember }}>Quiz Champions</span>
+          <span style={{ fontFamily: 'DM Mono, monospace', fontSize: 9.5, letterSpacing: '0.14em', textTransform: 'uppercase', color: COLORS.faded }}>All-Time · View Leaderboard {'›'}</span>
+        </div>
+        <div style={{ borderBottom: `1px solid ${COLORS.ink}` }} />
+        <div style={{ borderBottom: `2px solid ${COLORS.ember}`, marginBottom: 12 }} />
+        <div style={{ display: 'flex', gap: 16 }}>
+          <div style={{ flex: '1 1 0', minWidth: 0, borderRight: `1px solid rgba(26,22,17,0.18)`, paddingRight: 16 }}>
+            <Podium title="Most Quizzes Completed" entries={compEntries} unit="quizzes" />
+          </div>
+          <div style={{ flex: '1 1 0', minWidth: 0 }}>
+            <Podium title="Best Accuracy (min 5)" entries={accEntries} unit="avg" />
+          </div>
+        </div>
+      </div>
+    </Link>
+  );
+}
+
 export default function QuizHomeClient() {
   const [query, setQuery] = useState('');
   const [dept, setDept] = useState('all');
@@ -142,6 +199,7 @@ export default function QuizHomeClient() {
   const [moreOpen, setMoreOpen] = useState(false);
   const [totals, setTotals] = useState({ total: 0, byQuiz: {}, recent7: {} });
   const [recent, setRecent] = useState([]);
+  const [champions, setChampions] = useState({ completed: [], accuracy: [] });
   const seedRef = useRef((Date.now() & 0xffffffff) >>> 0);
   // Horizontal-scroll affordance for the department ribbon (mobile cue arrows).
   const deptNavRef = useRef(null);
@@ -162,6 +220,7 @@ export default function QuizHomeClient() {
   useEffect(() => {
     fetch('/api/quiz/totals').then((r) => r.json()).then((d) => { if (d && !d.error) setTotals({ total: d.total || 0, byQuiz: d.byQuiz || {}, recent7: d.recent7 || {} }); }).catch(() => {});
     fetch('/api/quiz/recent').then((r) => r.json()).then((d) => { if (d && Array.isArray(d.plays)) setRecent(d.plays); }).catch(() => {});
+    fetch('/api/quiz/champions').then((r) => r.json()).then((d) => { if (d && !d.error) setChampions({ completed: d.completed || [], accuracy: d.accuracy || [] }); }).catch(() => {});
   }, []);
 
   const titleById = useMemo(() => Object.fromEntries(QUIZZES.map((q) => [q.id, q.title])), []);
@@ -335,6 +394,8 @@ export default function QuizHomeClient() {
               </Link>
             </div>
           </div>
+
+          <ChampionsPanel completed={champions.completed} accuracy={champions.accuracy} />
 
           {sorted.length > 0 ? (
             <div className="qz-grid">
