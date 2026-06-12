@@ -1804,6 +1804,10 @@ substring, do not describe an answer's defining trait, era, nationality, claim t
 give away the count of a tricky disambiguation. Keep the blurb to the topic, category, era, genre, or
 rules of the game, never the items or any clue pointing at them. When in doubt, cut it.
 
+**Map quizzes are the one exception (owner ruling, 2026-06-11):** a `format: 'map'` quiz MAY name
+countries in its blurb, because the player LOCATES each country on the map rather than typing its name,
+so a named country is not a spoiler. The no-name / no-hint rule applies in full to every non-map quiz.
+
 ### Key-design rules (the matcher is substring + any-order tokens, so collisions are the real risk)
 
 - Give each answer its city/common name, its distinctive proper name, and its code, e.g.
@@ -1819,6 +1823,41 @@ rules of the game, never the items or any clue pointing at them. When in doubt, 
   answer's name. A tiny node loop simulating `keyHit` (substring OR all-tokens-present) against the
   array catches this (it caught the `las`/`dallas` clash on the airports quizzes). Order-independence
   is slot-isolated in `matched`/`ordered` quizzes, so repeated-franchise year slots are unaffected.
+
+### Accepted-answer collision audit (run before EVERY quiz ships, owner rule, 2026-06-11)
+
+Because `keyHit` accepts a key as a SUBSTRING (and a multi-word key as any-order tokens), and the
+default single-input game credits the FIRST unfound slot that matches, loose keys silently mis-credit
+or shadow answers. Run the collision audit on every new or edited default-format quiz and fix all hits
+before shipping (matched/ordered quizzes are slot-isolated and map quizzes are click-based, so they
+are exempt). The recurring failure modes, all found and fixed 2026-06-11:
+
+- **Two-letter abbreviations that are substrings of other answers.** Postal/locale codes like `us`
+  (inside "russia", "australia"), `la` ("philadelphia", "dallas"), `ca` ("north carolina"), `ga`
+  ("michigan"), `or` ("california", "colorado"), `co` ("new mexico"), nicknames like `rock` ("brock"),
+  and initials like `to` ("tony") wrongly credit another slot. Drop the code, or keep it only where it
+  collides with nothing in that quiz; never ship a 2-3 char key that is a substring of any other
+  answer's normalized name.
+- **A shared name across two answers** (same author, franchise, family): an author key on one novel
+  grabs the other by the same author (`le carré`), a generic series key matches a sibling
+  (`ctf finance centre`, `chinese` across two Chinese languages, `elephant` across two elephants). Key
+  each answer by its DISTINCTIVE title/name only, never by the shared element.
+- **A base name that is a substring of a sequel** ("Frozen" in "Frozen 2", "Avatar" in "Avatar: The
+  Way of Water", "Black Panther" in "Wakanda Forever", "Game Boy" in "Game Boy Advance", "Diablo II"
+  in "Diablo III", "Arctic" in "Antarctic"). Guard the base with an `anti` on the distinguishing
+  word/year (`anti: ["way of water"]`, `anti: ["advance"]`, `anti: ["2013"]`) so the fuller name falls
+  through to its own slot.
+- **Short substrings of common words** (`er` inside "frasier"/"cheers"; `e.t.` normalizes to `e t`,
+  which is inside "th**e t**hird"): replace with the full distinctive token or add a targeted `anti`.
+- **Accent loss in `norm`** ("Khloé" -> "khlo", "Beyoncé" -> "beyonc"): `norm` strips accented letters
+  to a space, so add a key that matches the STRIPPED form (`khlo`, `beyonc`) or the answer undermatches
+  its own name.
+
+The audit is mechanical: mirror `keyHit`/`anyKey` from `app/quiz/[id]/QuizClient.jsx`, then for every
+answer run its own `t` (and every other answer's `t`) through the matcher against the full set, and
+confirm each `t` credits ITS OWN slot first and nothing else. Classify hits as UNDERMATCH (own name
+matches no slot), MISCREDIT (own name credits an earlier slot), or EXTRA (own name also hits another
+slot and would mis-credit on a re-guess). Zero findings is the ship gate.
 
 ### Timestamps: every quiz needs a distinct `publishedAt`
 
