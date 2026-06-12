@@ -11,11 +11,24 @@ function summarize(rows) {
   const best = plays ? Math.max(...rows.map((r) => r.score)) : null;
   // Signed-up players only, but EVERY qualifying play is listed (a single
   // player can appear more than once). Top 10 by score desc, then fastest time.
-  const leaderboard = rows
-    .filter((r) => r.user_id)
+  // Per-user chronological attempt number (1 = that player's first completed
+  // game for this quiz), assigned by row id ascending. Lets the UI tag each
+  // leaderboard entry "(1st Try)", "(2nd Try)"... so multiple plays from the
+  // same person are distinguishable.
+  const signed = rows.filter((r) => r.user_id);
+  const tryByUser = {};
+  const tryOf = new Map();
+  signed
+    .slice()
+    .sort((a, b) => (a.id || 0) - (b.id || 0))
+    .forEach((r) => {
+      tryByUser[r.user_id] = (tryByUser[r.user_id] || 0) + 1;
+      tryOf.set(r, tryByUser[r.user_id]);
+    });
+  const leaderboard = signed
     .sort((a, b) => b.score - a.score || a.time_elapsed - b.time_elapsed || (a.username || '').localeCompare(b.username || ''))
     .slice(0, 10)
-    .map((r) => ({ username: r.username, score: r.score, timeElapsed: r.time_elapsed }));
+    .map((r) => ({ username: r.username, score: r.score, timeElapsed: r.time_elapsed, tryNum: tryOf.get(r) }));
   return { plays, best, leaderboard };
 }
 
@@ -110,7 +123,7 @@ export async function POST(request) {
 
     const { data } = await supabaseAdmin
       .from('quiz_results')
-      .select('user_id, username, score, time_elapsed')
+      .select('id, user_id, username, score, time_elapsed')
       .eq('quiz_id', quizId);
     return NextResponse.json({ ...summarize(data || []), username: user.username, email: user.email });
   } catch (e) {
