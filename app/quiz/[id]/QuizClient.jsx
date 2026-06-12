@@ -828,7 +828,7 @@ export default function QuizClient({ quizId }) {
                   </button>
                 )}
               </div>
-              <MapQuizBoard region={quiz.region || 'europe'} started={started} ended={ended} foundNames={foundNamesSet} flash={flash} onPick={pickCountry} />
+              <MapQuizBoard region={quiz.region || 'europe'} noBorders={quiz.noBorders} started={started} ended={ended} foundNames={foundNamesSet} flash={flash} onPick={pickCountry} />
             </div>
             ) : (
             (() => {

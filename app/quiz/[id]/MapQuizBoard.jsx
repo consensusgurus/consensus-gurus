@@ -20,7 +20,7 @@ const GREEN = '#3d4f2b';
 const RED = '#c0392b';
 const HOVER = '#efe7d6';
 
-export default function MapQuizBoard({ region, started, ended, foundNames, flash, onPick }) {
+export default function MapQuizBoard({ region, started, ended, foundNames, flash, onPick, noBorders: noBordersProp }) {
   const [geo, setGeo] = useState(null);
   const [hover, setHover] = useState(null);
 
@@ -36,7 +36,7 @@ export default function MapQuizBoard({ region, started, ended, foundNames, flash
   // silhouette: no internal boundary lines AND no hover shape-preview, so the
   // player can't trace a state's outline before clicking. Found/flash colors
   // still show as feedback.
-  const noBorders = !!(geo && geo.noBorders);
+  const noBorders = !!(geo && geo.noBorders) || !!noBordersProp;
 
   function fillFor(name, base) {
     if (foundNames && foundNames.has(name)) return GREEN;
