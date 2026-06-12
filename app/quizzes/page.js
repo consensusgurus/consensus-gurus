@@ -4,7 +4,7 @@ import { QUIZZES } from '@/lib/quizzes';
 export function generateMetadata() {
   const count = Array.isArray(QUIZZES) ? QUIZZES.length : 0;
   const title = 'Quizzes | Source of Truths';
-  const description = `How many can you name? ${count} timed name-them-all quizzes, built from the rankings behind Source of Truths: top-grossing films, best-selling albums, most-streamed songs, biggest games, cars, and more. Ten to name, ninety seconds on the clock. Beat the clock, then the leaderboard.`;
+  const description = `How many can you get? ${count} timed quizzes built from the rankings behind Source of Truths: name-them-all, matching, and more, spanning films, music, geography, sports, brands, and beyond. Beat the clock, then the leaderboard.`;
   const url = '/quizzes';
 
   return {

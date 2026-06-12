@@ -12,7 +12,7 @@
 import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { ArrowLeft, Share2, Check, X, Flag, Trophy, HelpCircle, Zap } from 'lucide-react';
-import { getQuiz } from '@/lib/quizzes';
+import { getQuiz, QUIZZES } from '@/lib/quizzes';
 import Grain from '../../Grain';
 import Footer from '../../Footer';
 
@@ -628,6 +628,27 @@ export default function TimedMcqClient({ quizId }) {
                 : quiz.source.label}
           </div>
         )}
+
+        {(() => {
+          const more = [
+            ...QUIZZES.filter((x) => x.id !== quiz.id && quiz.category && x.category === quiz.category),
+            ...QUIZZES.filter((x) => x.id !== quiz.id && !(quiz.category && x.category === quiz.category)),
+          ].slice(0, 8);
+          if (more.length === 0) return null;
+          return (
+            <div style={{ marginTop: 40, paddingTop: 24, borderTop: `1px solid ${COLORS.faded}33` }}>
+              <div style={{ fontFamily: MONO, fontSize: 11, letterSpacing: '0.16em', textTransform: 'uppercase', color: COLORS.ember, marginBottom: 16 }}>More quizzes</div>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))', gap: 10 }}>
+                {more.map((rq) => (
+                  <a key={rq.id} href={`/quiz/${rq.id}`} style={{ textDecoration: 'none', color: COLORS.ink, background: COLORS.paper, border: `1px solid ${COLORS.faded}33`, padding: '12px 14px', display: 'block' }}>
+                    <div style={{ fontFamily: MONO, fontSize: 9, letterSpacing: '0.16em', textTransform: 'uppercase', color: COLORS.ember, fontWeight: 700, marginBottom: 6 }}>{rq.category || 'Quiz'}</div>
+                    <div style={{ fontFamily: SERIF, fontSize: 16, fontWeight: 600, lineHeight: 1.15 }}>{rq.title}</div>
+                  </a>
+                ))}
+              </div>
+            </div>
+          );
+        })()}
 
       </div>
 

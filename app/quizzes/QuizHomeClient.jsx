@@ -141,25 +141,25 @@ function Podium({ title, entries, unit }) {
   const top = (entries || []).slice(0, 3).map((e, i) => ({ rank: i + 1, name: e.name, val: e.val, color: PODIUM_COLORS[i], h: PODIUM_H[i] }));
   const order = [top[1], top[0], top[2]].filter(Boolean);
   return (
-    <div className="champ-pod">
-      <div className="champ-ptitle">{title}</div>
+    <div style={{ flex: '1 1 0', minWidth: 0 }}>
+      <div style={{ fontFamily: 'Fraunces, serif', fontWeight: 600, fontSize: 14, letterSpacing: '-0.01em', color: COLORS.ink, textAlign: 'center', marginBottom: 9, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{title}</div>
       {order.length > 0 ? (
-        <div className="champ-bars">
+        <div style={{ display: 'flex', alignItems: 'flex-end', justifyContent: 'center', gap: 6 }}>
           {order.map((p) => (
-            <div key={p.rank} className="champ-col">
-              <div className="champ-medal" style={{ background: p.color }}>{p.rank}</div>
-              <div className="champ-name">{p.name}</div>
-              <div className="champ-bar" style={{ height: p.h, background: p.color }}>
-                <div className="champ-val">{p.val}</div>
-                <div className="champ-unit">{unit}</div>
+            <div key={p.rank} style={{ flex: '1 1 0', maxWidth: 90, display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+              <div style={{ width: 22, height: 22, borderRadius: '50%', background: p.color, border: `1.25px solid ${COLORS.ink}`, display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: 'DM Mono, monospace', fontWeight: 500, fontSize: 11, color: COLORS.ink, marginBottom: 4 }}>{p.rank}</div>
+              <div style={{ fontFamily: 'DM Mono, monospace', fontSize: 10.5, fontWeight: 500, color: COLORS.ink, textAlign: 'center', marginBottom: 5, maxWidth: '100%', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{p.name}</div>
+              <div style={{ width: '100%', height: p.h, background: p.color, border: `1.25px solid ${COLORS.ink}`, borderBottom: 'none', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}>
+                <div style={{ fontFamily: 'Fraunces, serif', fontWeight: 700, fontSize: 15, color: COLORS.ink, lineHeight: 1 }}>{p.val}</div>
+                <div style={{ fontFamily: 'DM Mono, monospace', fontSize: 8, letterSpacing: '0.1em', textTransform: 'uppercase', color: 'rgba(26,22,17,0.6)' }}>{unit}</div>
               </div>
             </div>
           ))}
         </div>
       ) : (
-        <div className="champ-empty">Not enough plays yet</div>
+        <div style={{ textAlign: 'center', fontFamily: 'Fraunces, serif', fontStyle: 'italic', fontSize: 13, color: COLORS.faded, padding: '18px 0' }}>Not enough plays yet</div>
       )}
-      <div className="champ-base" />
+      <div style={{ height: 5, background: COLORS.ink }} />
     </div>
   );
 }
@@ -170,49 +170,22 @@ function ChampionsPanel({ completed, accuracy }) {
   const compEntries = (completed || []).map((u) => ({ name: u.username, val: (u.quizzes || 0).toLocaleString() }));
   const accEntries = (accuracy || []).map((u) => ({ name: u.username, val: `${(u.accuracy || 0).toFixed(1)}%` }));
   return (
-    <Link href="/leaderboard" onMouseEnter={() => setHover(true)} onMouseLeave={() => setHover(false)} className="champ-link" style={{ boxShadow: hover ? `5px 5px 0 ${COLORS.ember}` : `3px 3px 0 ${COLORS.ember}`, transform: hover ? 'translate(-2px, -2px)' : 'none' }}>
-      <style>{`
-        .champ-link{display:block;text-decoration:none;margin-bottom:20px;background:${COLORS.paper};border:1.5px solid ${COLORS.ink};transition:all 0.2s ease;padding:12px 16px 14px;}
-        .champ-eyebrow{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:3px;}
-        .champ-kicker{font-family:'DM Mono',monospace;font-size:10.5px;font-weight:700;letter-spacing:0.22em;text-transform:uppercase;color:${COLORS.ember};}
-        .champ-cta{font-family:'DM Mono',monospace;font-size:9.5px;letter-spacing:0.14em;text-transform:uppercase;color:${COLORS.faded};white-space:nowrap;}
-        .champ-rule1{border-bottom:1px solid ${COLORS.ink};}
-        .champ-rule2{border-bottom:2px solid ${COLORS.ember};margin-bottom:12px;}
-        .champ-row{display:flex;gap:16px;}
-        .champ-half{flex:1 1 0;min-width:0;}
-        .champ-half.left{border-right:1px solid rgba(26,22,17,0.18);padding-right:16px;}
-        .champ-pod{min-width:0;}
-        .champ-ptitle{font-family:'Fraunces',serif;font-weight:600;font-size:14px;line-height:1.15;letter-spacing:-0.01em;color:${COLORS.ink};text-align:center;margin-bottom:9px;min-height:33px;display:flex;align-items:center;justify-content:center;}
-        .champ-bars{display:flex;align-items:flex-end;justify-content:center;gap:6px;}
-        .champ-col{flex:1 1 0;max-width:90px;min-width:0;display:flex;flex-direction:column;align-items:center;}
-        .champ-medal{width:22px;height:22px;border-radius:50%;border:1.25px solid ${COLORS.ink};display:flex;align-items:center;justify-content:center;font-family:'DM Mono',monospace;font-weight:500;font-size:11px;color:${COLORS.ink};margin-bottom:4px;}
-        .champ-name{width:100%;font-family:'DM Mono',monospace;font-size:10.5px;font-weight:500;color:${COLORS.ink};text-align:center;margin-bottom:5px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
-        .champ-bar{width:100%;border:1.25px solid ${COLORS.ink};border-bottom:none;display:flex;flex-direction:column;align-items:center;justify-content:center;}
-        .champ-val{font-family:'Fraunces',serif;font-weight:700;font-size:15px;color:${COLORS.ink};line-height:1;}
-        .champ-unit{font-family:'DM Mono',monospace;font-size:8px;letter-spacing:0.1em;text-transform:uppercase;color:rgba(26,22,17,0.6);}
-        .champ-empty{text-align:center;font-family:'Fraunces',serif;font-style:italic;font-size:13px;color:${COLORS.faded};padding:18px 0;}
-        .champ-base{height:5px;background:${COLORS.ink};}
-        @media(max-width:520px){
-          .champ-link{padding:11px 12px 13px;}
-          .champ-row{gap:10px;}
-          .champ-half.left{padding-right:10px;}
-          .champ-ptitle{font-size:12px;min-height:29px;margin-bottom:8px;}
-          .champ-bars{gap:4px;}
-          .champ-name{font-size:9.5px;}
-          .champ-val{font-size:13.5px;}
-          .champ-cta{font-size:9px;letter-spacing:0.08em;}
-          .champ-kicker{letter-spacing:0.16em;}
-        }
-      `}</style>
-      <div className="champ-eyebrow">
-        <span className="champ-kicker">Quiz Champions</span>
-        <span className="champ-cta">View Leaderboard {'›'}</span>
-      </div>
-      <div className="champ-rule1" />
-      <div className="champ-rule2" />
-      <div className="champ-row">
-        <div className="champ-half left"><Podium title="Most Quizzes Completed" entries={compEntries} unit="quizzes" /></div>
-        <div className="champ-half"><Podium title="Best Accuracy (min 5)" entries={accEntries} unit="avg" /></div>
+    <Link href="/leaderboard" onMouseEnter={() => setHover(true)} onMouseLeave={() => setHover(false)} style={{ display: 'block', textDecoration: 'none', marginBottom: 20 }}>
+      <div style={{ background: COLORS.paper, border: `1.5px solid ${COLORS.ink}`, boxShadow: hover ? `5px 5px 0 ${COLORS.ember}` : `3px 3px 0 ${COLORS.ember}`, transform: hover ? 'translate(-2px, -2px)' : 'none', transition: 'all 0.2s ease', padding: '12px 16px 14px' }}>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12, marginBottom: 3 }}>
+          <span style={{ fontFamily: 'DM Mono, monospace', fontSize: 10.5, fontWeight: 700, letterSpacing: '0.22em', textTransform: 'uppercase', color: COLORS.ember }}>Quiz Champions</span>
+          <span style={{ fontFamily: 'DM Mono, monospace', fontSize: 9.5, letterSpacing: '0.14em', textTransform: 'uppercase', color: COLORS.faded }}>All-Time · View Leaderboard {'›'}</span>
+        </div>
+        <div style={{ borderBottom: `1px solid ${COLORS.ink}` }} />
+        <div style={{ borderBottom: `2px solid ${COLORS.ember}`, marginBottom: 12 }} />
+        <div style={{ display: 'flex', gap: 16 }}>
+          <div style={{ flex: '1 1 0', minWidth: 0, borderRight: `1px solid rgba(26,22,17,0.18)`, paddingRight: 16 }}>
+            <Podium title="Most Quizzes Completed" entries={compEntries} unit="quizzes" />
+          </div>
+          <div style={{ flex: '1 1 0', minWidth: 0 }}>
+            <Podium title="Best Accuracy (min 5)" entries={accEntries} unit="avg" />
+          </div>
+        </div>
       </div>
     </Link>
   );
@@ -303,7 +276,7 @@ export default function QuizHomeClient() {
             </h1>
             <div className="cg-head-col">
               <div className="cg-tagline">The Quizzes</div>
-              <div className="cg-blurb">Timed name-them-all quizzes. Beat the clock, then the leaderboard.</div>
+              <div className="cg-blurb">Timed quizzes of every kind. Beat the clock, then the leaderboard.</div>
               <div style={{ borderBottom: `1px solid ${COLORS.ink}`, marginBottom: 4 }} />
               <div style={{ borderBottom: `2px solid ${COLORS.ember}` }} />
             </div>

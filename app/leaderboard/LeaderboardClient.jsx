@@ -3,6 +3,7 @@ import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { ArrowLeft, Trophy, Target } from 'lucide-react';
 import { COLORS } from '@/lib/data';
+import { QUIZZES } from '@/lib/quizzes';
 import Grain from '../Grain';
 import Footer from '../Footer';
 
@@ -85,6 +86,18 @@ export default function LeaderboardClient() {
             .lb-grid{display:grid;grid-template-columns:1fr 1fr;gap:48px;}
             @media(max-width:720px){.lb-grid{grid-template-columns:1fr;gap:44px;}}
           `}</style>
+        </section>
+
+        <section style={{ maxWidth: 1040, margin: '0 auto', padding: '0 24px 72px' }}>
+          <div style={{ fontFamily: 'DM Mono, monospace', fontSize: 11, letterSpacing: '0.16em', textTransform: 'uppercase', color: COLORS.ember, marginBottom: 16 }}>More quizzes</div>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(220px, 1fr))', gap: 12 }}>
+            {[...QUIZZES].sort((a, b) => String(b.publishedAt || b.publishedDate || '').localeCompare(String(a.publishedAt || a.publishedDate || ''))).slice(0, 8).map((rq) => (
+              <a key={rq.id} href={`/quiz/${rq.id}`} style={{ textDecoration: 'none', color: COLORS.ink, background: COLORS.paper, border: `1px solid ${COLORS.faded}33`, padding: '12px 14px', display: 'block' }}>
+                <div style={{ fontFamily: 'DM Mono, monospace', fontSize: 9, letterSpacing: '0.16em', textTransform: 'uppercase', color: COLORS.ember, fontWeight: 700, marginBottom: 6 }}>{rq.category || 'Quiz'}</div>
+                <div style={{ fontFamily: 'Fraunces, serif', fontSize: 16, fontWeight: 600, lineHeight: 1.15 }}>{rq.title}</div>
+              </a>
+            ))}
+          </div>
         </section>
       </div>
       <Footer />
