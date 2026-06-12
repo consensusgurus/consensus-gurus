@@ -1823,6 +1823,18 @@ so a named country is not a spoiler. The no-name / no-hint rule applies in full 
   answer's name. A tiny node loop simulating `keyHit` (substring OR all-tokens-present) against the
   array catches this (it caught the `las`/`dallas` clash on the airports quizzes). Order-independence
   is slot-isolated in `matched`/`ordered` quizzes, so repeated-franchise year slots are unaffected.
+- **The engine now auto-accepts an answer's own NAME (added 2026-06-12, after "Moscow" was rejected on
+  the college-towns quiz).** `buildImplicitNameKeys` in `app/quiz/[id]/QuizClient.jsx` accepts, in
+  addition to the authored `keys`, each answer's full normalized `t` AND its **parenthetical-stripped
+  base name** ("Moscow (Idaho)" -> `moscow`) -- but ONLY when that candidate is UNAMBIGUOUS across the
+  quiz (it matches no other answer's keys, is not a substring of any other answer's name, and is not
+  another answer's base name). The unambiguity guard means an implicit key can only ever credit its own
+  slot, so it never steals a guess from a sibling (sequel/substring cases like Frozen/Frozen 2 are NOT
+  auto-added and still need the authored `anti`). The bug it fixes: an answer whose `keys` only list
+  disambiguated multi-word forms (`['moscow idaho','moscow id']`) silently rejected the bare name a
+  player actually types, because a multi-word key needs every word present. You should STILL author a
+  clean primary key (the bare name) on every answer -- the implicit layer is a safety net, not a license
+  to omit keys -- but a parenthetical-disambiguated place name no longer breaks when you forget it.
 
 ### Accepted-answer collision audit (run before EVERY quiz ships, owner rule, 2026-06-11)
 
@@ -1853,11 +1865,16 @@ are exempt). The recurring failure modes, all found and fixed 2026-06-11:
   to a space, so add a key that matches the STRIPPED form (`khlo`, `beyonc`) or the answer undermatches
   its own name.
 
-The audit is mechanical: mirror `keyHit`/`anyKey` from `app/quiz/[id]/QuizClient.jsx`, then for every
-answer run its own `t` (and every other answer's `t`) through the matcher against the full set, and
-confirm each `t` credits ITS OWN slot first and nothing else. Classify hits as UNDERMATCH (own name
-matches no slot), MISCREDIT (own name credits an earlier slot), or EXTRA (own name also hits another
-slot and would mis-credit on a re-guess). Zero findings is the ship gate.
+The audit is mechanical: mirror `keyHit`/`anyKey` AND `buildImplicitNameKeys` from
+`app/quiz/[id]/QuizClient.jsx` (the matcher now ORs each answer's implicit name keys into the hit), then
+for every answer run **BOTH its full `t` AND its parenthetical-stripped base name** (`baseName(t)`,
+e.g. "Moscow" from "Moscow (Idaho)") -- and every other answer's `t` and base name -- through the
+matcher against the full set, and confirm each probe credits ITS OWN slot first and nothing else.
+Testing only the full `t` is what let the "Moscow" bug ship: "Moscow (Idaho)" normalizes to
+"moscow idaho", which matched its `moscow idaho` key, so the full-name probe passed while the bare
+"Moscow" a player types matched nothing. ALWAYS probe the base name too. Classify hits as UNDERMATCH
+(name matches no slot), MISCREDIT (name credits an earlier slot), or EXTRA (name also hits another slot
+and would mis-credit on a re-guess). Zero findings is the ship gate.
 
 ### Timestamps: every quiz needs a distinct `publishedAt`
 

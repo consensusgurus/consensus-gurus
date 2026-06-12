@@ -56,6 +56,43 @@ function keyHit(g, key) {
 function anyKey(g, keys) {
   return (keys || []).some((k) => keyHit(g, k));
 }
+// The bare name a player naturally types: the answer's display `t` with any
+// parenthetical disambiguator stripped ("Moscow (Idaho)" -> "moscow"). Authored
+// `keys` sometimes only list the disambiguated forms ("moscow idaho"), which a
+// multi-word key never matches from the short guess, so the answer silently
+// rejects its own name. We accept the bare name implicitly to close that gap.
+function baseName(t) {
+  return norm(String(t || '').replace(/\([^)]*\)/g, ' '));
+}
+// For each answer, the implicit name keys accepted IN ADDITION to its authored
+// keys: the full normalized name and the parenthetical-stripped base name, but
+// ONLY when that candidate is UNAMBIGUOUS across the quiz, i.e. it does not match
+// any other answer's keys, is not a substring of any other answer's name, and is
+// not another answer's base name. The guard guarantees an implicit key can only
+// ever credit its own slot, so this never steals a guess from a sibling answer
+// (sequel/substring collisions still require authored `anti`, exactly as before).
+function buildImplicitNameKeys(answers) {
+  const list = answers || [];
+  const norms = list.map((a) => norm(a && a.t));
+  const bases = list.map((a) => baseName(a && a.t));
+  const unambiguous = (cand, i) => {
+    if (!cand) return false;
+    for (let j = 0; j < list.length; j++) {
+      if (j === i) continue;
+      if (anyKey(cand, list[j].keys)) return false; // would match another slot's key
+      if (norms[j] && norms[j].includes(cand)) return false; // substring of another name
+      if (bases[j] && bases[j] === cand) return false; // shared base name
+    }
+    return true;
+  };
+  return list.map((a, i) => {
+    const out = [];
+    for (const cand of [norms[i], bases[i]]) {
+      if (cand && !out.includes(cand) && unambiguous(cand, i)) out.push(cand);
+    }
+    return out;
+  });
+}
 function deptOf(q) {
   const id = q.id || '';
   if (q.format === 'map') return 'geography';
@@ -153,6 +190,7 @@ export default function QuizClient({ quizId }) {
   const answers = quiz.answers;
   const total = answers.length;
   const matched = quiz.format === 'matched';
+  const nameKeys = useMemo(() => buildImplicitNameKeys(answers), [answers]);
   const mapMode = quiz.format === 'map';
   const pairsMode = quiz.format === 'pairs';
   const ordered = matched && quiz.ordered === true;
@@ -352,7 +390,7 @@ export default function QuizClient({ quizId }) {
     for (let i = 0; i < answers.length; i++) {
       if (found[i]) continue;
       const a = answers[i];
-      const hit = anyKey(g, a.keys);
+      const hit = anyKey(g, a.keys) || anyKey(g, nameKeys[i]);
       const blocked = anyKey(g, a.anti);
       if (hit && !blocked) {
         const next = found.slice();
@@ -379,7 +417,7 @@ export default function QuizClient({ quizId }) {
     const g = norm(raw);
     if (!g || found[i]) return;
     const a = answers[i];
-    const hit = anyKey(g, a.keys);
+    const hit = anyKey(g, a.keys) || anyKey(g, nameKeys[i]);
     const blocked = anyKey(g, a.anti);
     if (hit && !blocked) {
       const next = found.slice();
@@ -406,7 +444,7 @@ export default function QuizClient({ quizId }) {
     const i = found.findIndex((x) => !x);
     if (i < 0) return;
     const a = answers[i];
-    const hit = anyKey(g, a.keys);
+    const hit = anyKey(g, a.keys) || anyKey(g, nameKeys[i]);
     const blocked = anyKey(g, a.anti);
     if (hit && !blocked) {
       const next = found.slice();
