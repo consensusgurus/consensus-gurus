@@ -338,20 +338,15 @@ export default function TimedMcqClient({ quizId }) {
             </div>
           </div>
           <p style={{ fontFamily: SERIF, fontStyle: 'italic', fontSize: 16, lineHeight: 1.45, margin: '12px 0 0', color: COLORS.faded, maxWidth: 640 }}>{quiz.blurb}</p>
-          {quiz.source && (
-            <p style={{ fontFamily: MONO, fontSize: 11, letterSpacing: '0.08em', textTransform: 'uppercase', color: COLORS.faded, margin: '10px 0 0' }}>
-              Source: <span style={{ color: COLORS.ink }}>{quiz.source}</span>
-            </p>
-          )}
         </div>
 
         {/* Ribbon */}
         <div style={{ position: 'sticky', top: 0, zIndex: 25, marginTop: 18 }}>
           <div style={{ display: 'flex', alignItems: 'stretch', flexWrap: 'nowrap', overflowX: 'auto', background: COLORS.ink, borderBottom: `3px solid ${COLORS.ember}` }}>
             {chip('play', 'Play')}
-            {chip('stats', 'Stats')}
-            {chip('share', 'Share', <Share2 size={12} strokeWidth={2.5} />)}
+            {chip('stats', 'Stats & Leaderboard')}
             {chip('join', 'Join the Leaderboard', <Trophy size={12} strokeWidth={2.5} />)}
+            {chip('share', 'Share', <Share2 size={12} strokeWidth={2.5} />)}
             <button
               onClick={() => { setQSent(false); setQOpen(true); }}
               style={{ flex: '1 0 auto', justifyContent: 'center', background: 'transparent', color: COLORS.cream, border: 'none', padding: '0 16px', height: 42, whiteSpace: 'nowrap', fontFamily: MONO, fontSize: 10, letterSpacing: '0.18em', textTransform: 'uppercase', fontWeight: 700, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 6 }}
@@ -620,6 +615,17 @@ export default function TimedMcqClient({ quizId }) {
             <button onClick={() => setTab('stats')} style={{ marginTop: 18, background: 'transparent', border: 'none', color: COLORS.faded, cursor: 'pointer', fontFamily: MONO, fontSize: 11, letterSpacing: '0.12em', textTransform: 'uppercase', textDecoration: 'underline', padding: 0 }}>
               View the leaderboard →
             </button>
+          </div>
+        )}
+
+        {quiz.source && (
+          <div style={{ marginTop: 40, paddingTop: 18, borderTop: `1px solid ${COLORS.faded}33`, fontFamily: MONO, fontSize: 11, letterSpacing: '0.04em', color: COLORS.faded }}>
+            Source:{' '}
+            {typeof quiz.source === 'string'
+              ? quiz.source
+              : quiz.source.url
+                ? <a href={quiz.source.url} target="_blank" rel="noopener noreferrer" style={{ color: COLORS.rust }}>{quiz.source.label}</a>
+                : quiz.source.label}
           </div>
         )}
 
