@@ -1158,16 +1158,16 @@ function AnalyticsPanel({ views, viewsTotal, quizStats, quizPlaysTotal, signups 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 36 }}>
       <div>
+        <SectionHeading>Quiz Signups</SectionHeading>
+        <QuizSignupsPanel signups={signups} />
+      </div>
+      <div>
         <SectionHeading>List Views</SectionHeading>
         <ViewsPanel views={views} total={viewsTotal} />
       </div>
       <div>
         <SectionHeading>Quiz Stats</SectionHeading>
         <QuizStatsPanel stats={quizStats} playsTotal={quizPlaysTotal} />
-      </div>
-      <div>
-        <SectionHeading>Quiz Signups</SectionHeading>
-        <QuizSignupsPanel signups={signups} />
       </div>
     </div>
   );
