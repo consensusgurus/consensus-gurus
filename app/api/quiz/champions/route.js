@@ -92,9 +92,13 @@ export function buildChampions(rows, { minQuizzes = MIN_QUIZZES } = {}) {
 export async function GET() {
   try {
     const rows = await fetchAllResults();
-    return NextResponse.json(buildChampions(rows));
+    // Anonymous plays = completed games with no signed-up account behind them.
+    // Surfaced on the /quizzes Champions panel so the total-plays counter makes
+    // sense (the leaderboard only credits signed-up users).
+    const anonymous = rows.filter((r) => !r.user_id).length;
+    return NextResponse.json({ ...buildChampions(rows), anonymous });
   } catch (e) {
     console.error('quiz champions error', e);
-    return NextResponse.json({ completed: [], weighted: [], accuracy: [], minQuizzes: MIN_QUIZZES });
+    return NextResponse.json({ completed: [], weighted: [], accuracy: [], minQuizzes: MIN_QUIZZES, anonymous: 0 });
   }
 }

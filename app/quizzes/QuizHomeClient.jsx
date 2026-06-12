@@ -78,9 +78,10 @@ function MiniList({ title, rows }) {
   );
 }
 
-function ChampionsPanel({ completed, weighted, accuracy }) {
+function ChampionsPanel({ completed, weighted, accuracy, anonymous }) {
   const [hover, setHover] = useState(false);
-  if (!((completed && completed.length) || (weighted && weighted.length) || (accuracy && accuracy.length))) return null;
+  const anon = Number(anonymous) || 0;
+  if (!((completed && completed.length) || (weighted && weighted.length) || (accuracy && accuracy.length) || anon > 0)) return null;
   const comp = (completed || []).map((u) => ({ name: u.username, val: (u.quizzes || 0).toLocaleString() }));
   const wtd = (weighted || []).map((u) => ({ name: u.username, val: (u.weighted || 0).toFixed(1) }));
   const acc = (accuracy || []).map((u) => ({ name: u.username, val: `${(u.accuracy || 0).toFixed(1)}%` }));
@@ -93,6 +94,8 @@ function ChampionsPanel({ completed, weighted, accuracy }) {
         .champ-cta{font-family:'DM Mono',monospace;font-size:9.5px;letter-spacing:0.14em;text-transform:uppercase;color:${COLORS.faded};white-space:nowrap;}
         .champ-rule1{border-bottom:1px solid ${COLORS.ink};}
         .champ-rule2{border-bottom:2px solid ${COLORS.ember};margin-bottom:12px;}
+        .champ-anon{text-align:center;font-family:'DM Mono',monospace;font-size:11px;letter-spacing:0.18em;text-transform:uppercase;color:${COLORS.faded};margin:0 0 14px;}
+        .champ-anon b{font-family:'Fraunces',serif;font-weight:700;font-size:15px;letter-spacing:0;color:${COLORS.ember};margin-left:6px;}
         .champ-grid{display:grid;grid-template-columns:repeat(3,1fr);}
         .champ-cell{padding:0 16px;min-width:0;}
         .champ-cell:first-child{padding-left:0;}
@@ -119,6 +122,7 @@ function ChampionsPanel({ completed, weighted, accuracy }) {
       </div>
       <div className="champ-rule1" />
       <div className="champ-rule2" />
+      {anon > 0 && (<div className="champ-anon">Anonymous Play Count:<b>{anon.toLocaleString()}</b></div>)}
       <div className="champ-grid">
         <MiniList title="Quizzes Completed" rows={comp} />
         <MiniList title="Accuracy-Weighted Completions" rows={wtd} />
@@ -136,7 +140,7 @@ export default function QuizHomeClient() {
   const [moreOpen, setMoreOpen] = useState(false);
   const [totals, setTotals] = useState({ total: 0, byQuiz: {}, recent7: {} });
   const [recent, setRecent] = useState([]);
-  const [champions, setChampions] = useState({ completed: [], weighted: [], accuracy: [] });
+  const [champions, setChampions] = useState({ completed: [], weighted: [], accuracy: [], anonymous: 0 });
   const seedRef = useRef((Date.now() & 0xffffffff) >>> 0);
   // Horizontal-scroll affordance for the department ribbon (mobile cue arrows).
   const deptNavRef = useRef(null);
@@ -157,7 +161,7 @@ export default function QuizHomeClient() {
   useEffect(() => {
     fetch('/api/quiz/totals').then((r) => r.json()).then((d) => { if (d && !d.error) setTotals({ total: d.total || 0, byQuiz: d.byQuiz || {}, recent7: d.recent7 || {} }); }).catch(() => {});
     fetch('/api/quiz/recent').then((r) => r.json()).then((d) => { if (d && Array.isArray(d.plays)) setRecent(d.plays); }).catch(() => {});
-    fetch('/api/quiz/champions').then((r) => r.json()).then((d) => { if (d && !d.error) setChampions({ completed: d.completed || [], weighted: d.weighted || [], accuracy: d.accuracy || [] }); }).catch(() => {});
+    fetch('/api/quiz/champions').then((r) => r.json()).then((d) => { if (d && !d.error) setChampions({ completed: d.completed || [], weighted: d.weighted || [], accuracy: d.accuracy || [], anonymous: d.anonymous || 0 }); }).catch(() => {});
   }, []);
 
   const titleById = useMemo(() => Object.fromEntries(QUIZZES.map((q) => [q.id, q.title])), []);
@@ -340,7 +344,7 @@ export default function QuizHomeClient() {
             </div>
           </div>
 
-          <ChampionsPanel completed={champions.completed} weighted={champions.weighted} accuracy={champions.accuracy} />
+          <ChampionsPanel completed={champions.completed} weighted={champions.weighted} accuracy={champions.accuracy} anonymous={champions.anonymous} />
 
           {sorted.length > 0 ? (
             <div className="qz-grid">
