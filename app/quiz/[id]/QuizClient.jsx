@@ -548,9 +548,9 @@ export default function QuizClient({ quizId }) {
     setPairsMatched(matchedCount);
     endGame(win, null, matchedCount);
   }
-  function onBankWrong(errorCount, prompt) {
+  function onBankWrong(errorCount, prompt, answer) {
     setPairsErrors(errorCount);
-    setHint(`Not the match for ${prompt}. Try again, or press Next to skip.`);
+    setHint(`Missed — ${prompt}: ${answer}. That one is gone.`);
     setHintBad(true);
   }
 
