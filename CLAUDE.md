@@ -1911,6 +1911,45 @@ answers genuinely must be produced in sequence AND the owner has asked for in-or
 2026 the ONLY quiz with `ordered: true` is `world-cup-winners`; every other quiz stays unordered
 (a `matched` quiz without `ordered` shows one input per slot, any order).
 
+### Quiz formats: matching / fill-in-the-blank games use `format: 'bank'` (NOT `pairs`)
+
+**The standard matching game on the site is `format: 'bank'`, rendered by
+`app/quiz/[id]/BankQuizBoard.jsx`.** It shows ONE prompt at a time at the top (the clue, e.g. a
+country, or a book title with a `____` blank) and a SINGLE alphabetical bank of clickable answer
+tiles below (e.g. capitals, or the missing words). You tap the tile that matches the current prompt;
+a Next button cycles to the next unmatched prompt. This is the "the bank below" layout the owner
+means by "our matching format". Every live matching quiz uses it (`novels-to-authors`,
+`company-slogans`, `movie-quotes-to-movies`, `companies-to-headquarters`, the capitals/geography
+matchers, etc.).
+
+- **Data shape:** `pairs: [[answer, prompt], ...]` — `pairs[i][0]` = the answer TILE shown in the
+  bank, `pairs[i][1]` = the PROMPT shown one at a time at the top (same `[answer, prompt]` order as
+  the legacy pairs format). Also include the mirror `answers: [{ t: answer, keys: [lowercased] }, ...]`
+  (QuizClient reads `answers.length` for the total). `leftLabel` = the small eyebrow over the prompt,
+  `rightLabel` = the bank label. Set `format: 'bank'`, a `timeLimit`, a spoiler-free `blurb`, and a
+  distinct `publishedAt` like any quiz.
+- **Scoring is a GUESS-BUDGET, not strike-out.** You start with one guess per item. Every tap, right
+  or wrong, spends a guess; a wrong tap removes/reveals NOTHING and the missed prompt keeps looping so
+  you can retry it later (at the cost of another guess). The game ends on running out of guesses,
+  matching everything, or the clock. Score = number matched. Write the `blurb` to describe THIS (one
+  guess per item, misses loop back), never "struck out for good" — that is the `pairs` board's model,
+  not bank's.
+
+**DO NOT use `format: 'pairs'` for a new matching quiz.** `pairs` is the OLD two-column
+`MatchQuizBoard` (clues on the left, answers on the right, wrong pick struck out for good). It still
+renders for back-compat, but the site moved to `bank`; building a new matcher as `pairs` is wrong and
+has been mistaken for "the matching format we use" before. When in doubt, copy an existing live `bank`
+quiz byte-for-byte and change the data.
+
+⚠️ **Source-of-truth-is-origin, again:** the `bank` format and `BankQuizBoard.jsx` exist on
+origin/main but were ABSENT from a stale local working tree, which led to a wrong `pairs` build
+(2026-06-12). Always read the quiz boards and an existing `bank` quiz from `git show FETCH_HEAD:...`
+(origin), not the local copy, before building any matching quiz.
+
+First book `bank` quizzes: `fill-in-the-blank-book-titles-pt-1` / `-pt-2` / `-pt-3` (2026-06-12) —
+famous book titles with one word blanked at the top, the missing words as the answer bank.
+
+
 ### Source attribution (`source`)
 
 A STANDALONE quiz (one with no paired `listId`) should carry a **`source`** object `{ label, url }`
@@ -2100,7 +2139,9 @@ share UI, the join form, and the "Comments? Questions?" modal that posts to `/ap
 specialised formats dispatch to a dedicated board:
 
 - `format: 'map'` -> `MapQuizBoard` (click-the-country geography board)
-- `format: 'matched'` / `'pairs'` -> `MatchQuizBoard`
+- `format: 'bank'` -> `BankQuizBoard` (one prompt at top, single clickable answer bank below) -- THE standard matching / fill-in-the-blank format
+- `format: 'matched'` -> `MatchQuizBoard` (labeled grid, typed input)
+- `format: 'pairs'` -> `MatchQuizBoard` (LEGACY two-column matcher; do NOT use for new quizzes, see the bank-format section above)
 - `format: 'timed-mcq'` -> `TimedMcqClient` (full-page timed multiple-choice; first added 2026-06-12)
 
 The shared quiz APIs (reuse them, do not invent new ones): POST `/api/quiz/view` once per page load
