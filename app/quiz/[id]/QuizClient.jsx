@@ -379,7 +379,9 @@ export default function QuizClient({ quizId }) {
       orderRef.current = ord;
       setCurName(answers[ord[0]].t);
       setGuessesLeft(total);
-      setHint(`Find ${answers[ord[0]].t} — click it. You get ${total} guesses, one per country.`);
+      setHint(quiz.suddenDeath
+        ? `Find ${answers[ord[0]].t} — click it. One wrong click ends the game.`
+        : `Find ${answers[ord[0]].t} — click it. You get ${total} guesses, one per country.`);
     } else if (bankMode) {
       setHint('Match the prompt to a tile in the bank below.');
     } else if (pairsMode) {
@@ -503,11 +505,15 @@ export default function QuizClient({ quizId }) {
       if (left <= 0) { setHint(`Correct — ${name}. That was your last guess.`); setHintBad(false); setCurName(null); endGame(false, next); return; }
       const nn = answers[remaining[0]].t;
       setCurName(nn);
-      setHint(`Correct — ${name}. ${left} ${left === 1 ? 'guess' : 'guesses'} left. Now find ${nn}.`);
+      setHint(quiz.suddenDeath
+        ? `Correct — ${name}. ${left} to go. Now find ${nn}.`
+        : `Correct — ${name}. ${left} ${left === 1 ? 'guess' : 'guesses'} left. Now find ${nn}.`);
       setHintBad(false);
     } else {
       setFlash({ name, ok: false });
       setTimeout(() => setFlash((f) => (f && f.name === name ? null : f)), 400);
+      // Sudden-death map: one wrong click ends the run on the spot.
+      if (quiz.suddenDeath) { setHint(`That was ${name}, not ${curName}. One wrong click ends it — game over.`); setHintBad(true); endGame(false); return; }
       if (left <= 0) { setHint(`That was ${name}, not ${curName}. Out of guesses.`); setHintBad(true); endGame(false); return; }
       setHint(`Not ${curName} — try again. ${left} ${left === 1 ? 'guess' : 'guesses'} left.`);
       setHintBad(true);
@@ -764,7 +770,7 @@ export default function QuizClient({ quizId }) {
               {mapMode ? (
               <div style={{ textAlign: 'center', padding: '0 8px', borderLeft: `1px solid ${COLORS.faded}33` }}>
                 <div style={{ fontFamily: SERIF, fontWeight: 800, fontSize: 34, lineHeight: 1, color: (guessesLeft == null ? total : guessesLeft) <= 3 && started && !ended ? COLORS.ember : COLORS.ink }}>{guessesLeft == null ? total : guessesLeft}</div>
-                <div style={{ fontFamily: MONO, fontSize: 11, letterSpacing: '0.12em', textTransform: 'uppercase', color: COLORS.faded }}>Guesses left</div>
+                <div style={{ fontFamily: MONO, fontSize: 11, letterSpacing: '0.12em', textTransform: 'uppercase', color: COLORS.faded }}>{quiz.suddenDeath ? 'States left' : 'Guesses left'}</div>
               </div>
               ) : bankMode ? (
               <div style={{ textAlign: 'center', padding: '0 8px', borderLeft: `1px solid ${COLORS.faded}33` }}>

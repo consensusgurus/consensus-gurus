@@ -10,6 +10,7 @@ const LOADERS = {
   'south-america': () => import('@/lib/sa-geo.js').then((m) => m.GEO),
   'africa': () => import('@/lib/africa-geo.js').then((m) => m.GEO),
   'asia': () => import('@/lib/asia-geo.js').then((m) => m.GEO),
+  'us-states': () => import('@/lib/us-geo.js').then((m) => m.GEO),
 };
 
 const LAND = '#fbf7ef';
@@ -31,11 +32,16 @@ export default function MapQuizBoard({ region, started, ended, foundNames, flash
   }, [region]);
 
   const live = started && !ended;
+  // A "no borders" map (e.g. the lower-48 states quiz) renders as a single blank
+  // silhouette: no internal boundary lines AND no hover shape-preview, so the
+  // player can't trace a state's outline before clicking. Found/flash colors
+  // still show as feedback.
+  const noBorders = !!(geo && geo.noBorders);
 
   function fillFor(name, base) {
     if (foundNames && foundNames.has(name)) return GREEN;
     if (flash && flash.name === name) return flash.ok ? GREEN : RED;
-    if (hover === name && live) return HOVER;
+    if (hover === name && live && !noBorders) return HOVER;
     return base;
   }
 
@@ -56,20 +62,27 @@ export default function MapQuizBoard({ region, started, ended, foundNames, flash
         aria-label="Map. Click the country named in the prompt above."
       >
         <rect x="0" y="0" width={geo.width} height={geo.height} fill={SEA} />
-        {geo.paths.map((p) => (
-          <path
-            key={p.name}
-            d={p.d}
-            fill={fillFor(p.name, LAND)}
-            stroke={LINE}
-            strokeWidth={0.6}
-            strokeLinejoin="round"
-            style={{ cursor: live ? 'pointer' : 'default', transition: 'fill .12s' }}
-            onMouseEnter={() => setHover(p.name)}
-            onMouseLeave={() => setHover((h) => (h === p.name ? null : h))}
-            onClick={() => live && onPick(p.name)}
-          />
-        ))}
+        {geo.paths.map((p) => {
+          const f = fillFor(p.name, LAND);
+          // Borderless map: stroke each path with its OWN fill color so the
+          // internal seams between adjacent same-color states disappear (the
+          // map reads as one clean cream silhouette) without drawing any
+          // boundary line that would give away where a state is.
+          return (
+            <path
+              key={p.name}
+              d={p.d}
+              fill={f}
+              stroke={noBorders ? f : LINE}
+              strokeWidth={noBorders ? 1 : 0.6}
+              strokeLinejoin="round"
+              style={{ cursor: live ? 'pointer' : 'default', transition: 'fill .12s' }}
+              onMouseEnter={() => setHover(p.name)}
+              onMouseLeave={() => setHover((h) => (h === p.name ? null : h))}
+              onClick={() => live && onPick(p.name)}
+            />
+          );
+        })}
         {geo.markers.map((m) => {
           const s = 9;
           // A marker with lx/ly is a callout: the clickable box is pulled out
