@@ -1744,7 +1744,7 @@ lists, ask once which (if any) should get quizzes rather than quizzing all of th
 ### Quiz object shape (see the airlines quiz for a worked example)
 
 `id`, `listId`, `publishedDate`, `title` ("Name the ..."), `category`, `type`, `tags`, `blurb`,
-`timeLimit` (seconds; **90 is the standard for a 10-answer quiz**), and `answers`. Each answer is
+`timeLimit` (seconds; scales with answer count, see "Time limit scales with answer count" below), and `answers`. Each answer is
 `{ t, keys, anti? }`:
 
 - **`t`** canonical display name, revealed on a miss. No scores or figures, just the name (e.g.
@@ -1760,7 +1760,35 @@ lists, ask once which (if any) should get quizzes rather than quizzing all of th
 - **`anti`** OPTIONAL substrings that BLOCK a match (disambiguation). Anti runs through the same
   `keyHit`, but since anti guards are single words it behaves as a plain substring block as before.
 
-### Blurb must NEVER name an answer (hard rule, 2026-06-11)
+### Time limit scales with answer count (owner rule, 2026-06-11)
+
+`timeLimit` is a function of how many answers the quiz asks for, not a fixed default: the more
+responses a player must produce, the more time they get, on a 15-second-quantized scale.
+
+- **Baseline, 10 answers = 90 seconds (1:30).** The standard floor. Quizzes with fewer than 10
+  answers also use 90s; never go below it.
+- **Hard-recall tier, 10 answers = 120 seconds (2:00).** Recall-heavy factual 10-answer quizzes
+  (sports career/stat leaders, geography top-10s, hard trivia, multi-team/franchise lists) may use
+  120s instead of 90s. This is the ONLY sanctioned deviation at the 10-answer level; pop-culture,
+  food, film, and other lighter quizzes stay at the 90s baseline. Existing 120s quizzes keep their 120.
+- **Ceiling, the single largest quiz on the site = 7:00 (420 seconds).** As of June 2026 the largest
+  is `countries-of-africa` at 54 answers, so 54 answers = 420s. The ceiling is pinned to whatever the
+  current largest quiz is: if a new quiz ever exceeds it, that quiz becomes the new 420s maximum and
+  every 11+-answer quiz rescales against the new largest count.
+- **In between (11+ answers), scale proportionally and round to the nearest 15 seconds (halves round
+  up):**
+
+  `seconds = roundTo15( 90 + (n - 10) * (420 - 90) / (Nmax - 10) )`
+
+  where `n` is the quiz's answer count and `Nmax` is the largest answer count on the site (currently
+  54). With Nmax = 54 the per-answer step is 7.5s, so `seconds = roundTo15( 90 + (n - 10) * 7.5 )`.
+  Worked values: 12 -> 1:45, 23 -> 3:15, 25 -> 3:30, 46 -> 6:00, 47 -> 6:15, 54 -> 7:00.
+
+Set `timeLimit` by this rule on every new quiz, and re-derive it whenever a quiz's answer count
+changes. Do NOT hardcode the clock duration in the `blurb` ("seven minutes on the clock"); if the
+time later rescales the blurb goes stale, so keep the blurb about the topic, not the timer.
+
+### Blurb must NEVER name OR hint at an answer (hard rule, 2026-06-11)
 
 The `blurb` is displayed on the quiz page BEFORE play starts. If it names any answer, it gives the
 game away. **No answer's display text (`t`), and no answer key substring, may appear in the blurb.**
@@ -1768,6 +1796,13 @@ This applies to every quiz, including director/filmmaker filmographies where the
 write "From Memento to Oppenheimer..." or "Goodfellas is the obvious first answer." Write the blurb
 in terms of the director/topic/genre/era, never the items themselves. Before shipping, scan every
 blurb against its answer list and fix any hits.
+
+**Hints are banned too, not only named answers (owner rule, 2026-06-11).** The blurb must not even
+NUDGE the player toward a specific answer. Beyond the ban on any answer's display text (`t`) or key
+substring, do not describe an answer's defining trait, era, nationality, claim to fame, or rank
+("the obvious #1," "a household name leads this one," "don't forget the British entry"), and do not
+give away the count of a tricky disambiguation. Keep the blurb to the topic, category, era, genre, or
+rules of the game, never the items or any clue pointing at them. When in doubt, cut it.
 
 ### Key-design rules (the matcher is substring + any-order tokens, so collisions are the real risk)
 
