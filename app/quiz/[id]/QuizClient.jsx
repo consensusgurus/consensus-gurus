@@ -193,18 +193,27 @@ export default function QuizClient({ quizId }) {
   // no map board (the plain "table" quizzes). List quizzes already send you to
   // the full ranking to see misses; map quizzes have no table to fill in.
   const canReveal = !quiz.listId && !mapMode && !pairsMode && !bankMode;
-  const relatedQuizzes = (() => {
-    const d = deptOf(quiz);
-    let r = QUIZZES.filter((x) => x.id !== quiz.id && deptOf(x) === d);
-    if (r.length < 4) r = r.concat(QUIZZES.filter((x) => x.id !== quiz.id && !r.includes(x)));
-    return r.slice(0, 4);
-  })();
   const moreLikeThis = (() => {
     const d = deptOf(quiz);
+    // Other parts of a multi-part quiz (pt 2, pt 3...) ALWAYS lead, so they are
+    // never crowded out of the eight shown. A part-set is a base quiz (e.g.
+    // 'movie-taglines') plus its numbered siblings ('movie-taglines-2'); we only
+    // treat the stripped base as a set when it is itself a real quiz id, so an
+    // unrelated trailing number (e.g. a date slug) is never mis-grouped.
+    const stripped = quiz.id.replace(/-\d+$/, '');
+    const partBase = QUIZZES.some((x) => x.id === stripped) ? stripped : null;
+    const parts = partBase
+      ? QUIZZES.filter((x) => x.id !== quiz.id && x.id.replace(/-\d+$/, '') === partBase)
+      : [];
     const sameCat = QUIZZES.filter((x) => x.id !== quiz.id && quiz.category && x.category === quiz.category);
-    const sameDept = QUIZZES.filter((x) => x.id !== quiz.id && deptOf(x) === d && !sameCat.includes(x));
-    const rest = QUIZZES.filter((x) => x.id !== quiz.id && !sameCat.includes(x) && !sameDept.includes(x));
-    return [...sameCat, ...sameDept, ...rest].slice(0, 8);
+    const sameDept = QUIZZES.filter((x) => x.id !== quiz.id && deptOf(x) === d);
+    const rest = QUIZZES.filter((x) => x.id !== quiz.id);
+    const seen = new Set();
+    const out = [];
+    for (const x of [...parts, ...sameCat, ...sameDept, ...rest]) {
+      if (!seen.has(x.id)) { seen.add(x.id); out.push(x); }
+    }
+    return out.slice(0, 8);
   })();
 
   const [tab, setTab] = useState('play');
@@ -935,19 +944,6 @@ export default function QuizClient({ quizId }) {
                 </div>
               )}
             </div>
-            {relatedQuizzes.length > 0 && (
-              <div style={{ borderTop: `1px solid ${COLORS.faded}33`, marginTop: 26, paddingTop: 20 }}>
-                <div style={{ fontFamily: MONO, fontSize: 11, letterSpacing: '0.16em', textTransform: 'uppercase', color: COLORS.faded, marginBottom: 14 }}>More quizzes</div>
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))', gap: 10 }}>
-                  {relatedQuizzes.map((rq) => (
-                    <a key={rq.id} href={`/quiz/${rq.id}`} style={{ textDecoration: 'none', color: COLORS.ink, background: COLORS.paper, border: `1px solid ${COLORS.faded}33`, padding: '12px 14px', display: 'block', transition: 'all 0.15s ease' }}>
-                      <div style={{ fontFamily: MONO, fontSize: 9, letterSpacing: '0.16em', textTransform: 'uppercase', color: COLORS.ember, fontWeight: 700, marginBottom: 6 }}>{rq.category || 'Quiz'}</div>
-                      <div style={{ fontFamily: SERIF, fontSize: 16, fontWeight: 600, lineHeight: 1.15 }}>{rq.title}</div>
-                    </a>
-                  ))}
-                </div>
-              </div>
-            )}
           </div>
         )}
 
