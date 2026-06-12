@@ -70,23 +70,44 @@ export default function BankQuizBoard({ pairs, started, ended, onMatch, onWrong,
     setTimeout(() => setFlash((f) => (f && f.key === key ? null : f)), 480);
   }
 
+  // The current prompt is a work/clue string (pairs[cur][1]). Several pairs may
+  // share that prompt (e.g. three characters from one movie); ANY not-yet-matched
+  // tile whose prompt equals the current one counts as correct, in ANY order, and
+  // the prompt stays up until all of its tiles are found. For 1-to-1 quizzes each
+  // prompt is unique, so this reduces to the old k===cur behavior.
+  function nextDifferentPrompt(fromPair, matchedSet) {
+    if (!promptOrder.length) return null;
+    const fromPrompt = pairs[fromPair][1];
+    const start = promptOrder.indexOf(fromPair);
+    for (let k = 1; k <= promptOrder.length; k++) {
+      const p = promptOrder[(start + k) % promptOrder.length];
+      if (!matchedSet.has(p) && pairs[p][1] !== fromPrompt) return p;
+    }
+    return nextUnmatched(fromPair, matchedSet);
+  }
+
   function clickTile(k) {
     if (!live || cur == null || matched.has(k)) return;
-    if (k === cur) {
+    const curPrompt = pairs[cur][1];
+    if (pairs[k][1] === curPrompt) {
       const nm = new Set(matched);
-      nm.add(cur);
+      nm.add(k);
       const used = nm.size + errors;
       setMatched(nm);
       flashTile(k, true);
-      if (onMatch) onMatch(cur, nm.size, pairs[cur][0], pairs[cur][1]);
+      if (onMatch) onMatch(k, nm.size, pairs[k][0], pairs[k][1]);
       if (used >= total || nm.size === total) { setCur(null); if (onEnd) onEnd(nm.size === total, nm.size); }
-      else setCur(nextUnmatched(cur, nm));
+      else {
+        // keep the same work up while it still has unmatched tiles
+        const sameLeft = promptOrder.find((p) => !nm.has(p) && pairs[p][1] === curPrompt);
+        setCur(sameLeft != null ? sameLeft : nextUnmatched(cur, nm));
+      }
     } else {
       const ne = errors + 1;
       const used = matched.size + ne;
       setErrors(ne);
       flashTile(k, false);
-      if (onWrong) onWrong(ne, pairs[cur][1]);
+      if (onWrong) onWrong(ne, curPrompt);
       if (used >= total) { setCur(null); if (onEnd) onEnd(matched.size === total, matched.size); }
       else setCur(nextUnmatched(cur, matched));
     }
@@ -94,8 +115,8 @@ export default function BankQuizBoard({ pairs, started, ended, onMatch, onWrong,
 
   function skip() {
     if (!live || cur == null) return;
-    const np = nextUnmatched(cur, matched);
-    if (np != null && np !== cur) { setCur(np); if (onHint) onHint(`Next up: ${pairs[np][1]}.`, false); }
+    const np = nextDifferentPrompt(cur, matched);
+    if (np != null && pairs[np][1] !== pairs[cur][1]) { setCur(np); if (onHint) onHint(`Next up: ${pairs[np][1]}.`, false); }
     else if (onHint) onHint('That is the only one left, take your shot.', false);
   }
 
