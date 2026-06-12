@@ -548,9 +548,9 @@ export default function QuizClient({ quizId }) {
     setPairsMatched(matchedCount);
     endGame(win, null, matchedCount);
   }
-  function onBankWrong(errorCount, prompt, answer) {
+  function onBankWrong(errorCount, prompt) {
     setPairsErrors(errorCount);
-    setHint(`Wrong — ${prompt}: ${answer}. It is locked now.`);
+    setHint(`Not the match for ${prompt}. Try again, or press Next to skip.`);
     setHintBad(true);
   }
 
