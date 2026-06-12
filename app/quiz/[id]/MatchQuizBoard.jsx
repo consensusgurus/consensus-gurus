@@ -4,12 +4,12 @@ import React, { useMemo, useState } from 'react';
 
 // Two-column matching board (the `pairs` quiz format). The LEFT column holds the
 // slogans (the prompt you pick first); the RIGHT column holds the companies (the
-// answer). Pick a slogan, then the company it belongs to. A wrong company is
-// struck through and locked for good — and because every wrong pick buries one
-// company's only correct answer, the final matched count is exactly
-// (total − errors) at a natural end, so "score = matched" ranks fewest errors
-// first. The board owns its interaction state and reports up to QuizClient via
-// callbacks, mirroring how MapQuizBoard reports picks.
+// answer), listed ALPHABETICALLY. Pick a slogan, then the company it belongs to.
+// A wrong company is struck through and locked for good — and because every wrong
+// pick buries one company's only correct answer, the final matched count is
+// exactly (total − errors) at a natural end, so "score = matched" ranks fewest
+// errors first. The board owns its interaction state and reports up to QuizClient
+// via callbacks, mirroring how MapQuizBoard reports picks.
 
 const COLORS = {
   cream: '#f4ede0',
@@ -20,6 +20,11 @@ const COLORS = {
   forest: '#3d4f2b',
   faded: '#7a6f5e',
 };
+// Distinct column tints so the two sides read as separate at a glance: the
+// slogans (prompt) sit on a warm parchment panel with an ember accent, the
+// companies (answers) on a cool sage panel with a forest accent.
+const LEFT_PANEL = '#efe6d2';
+const RIGHT_PANEL = '#e5ece0';
 const MONO = 'DM Mono, monospace';
 const SERIF = 'Fraunces, serif';
 const SANS = 'DM Sans, sans-serif';
@@ -35,8 +40,13 @@ function shuffle(arr) {
 
 export default function MatchQuizBoard({ pairs, started, ended, onMatch, onError, onEnd, onHint }) {
   // index i is the canonical pair id: pairs[i] === [company, slogan].
-  const leftOrder = useMemo(() => shuffle(pairs.map((_, i) => i)), [pairs]); // slogans
-  const rightOrder = useMemo(() => shuffle(pairs.map((_, i) => i)), [pairs]); // companies
+  const leftOrder = useMemo(() => shuffle(pairs.map((_, i) => i)), [pairs]); // slogans (shuffled)
+  // Companies (the answer column) are ALWAYS listed alphabetically — true for
+  // every `pairs` matching game, so the answers read as a clean reference column.
+  const rightOrder = useMemo(
+    () => pairs.map((_, i) => i).sort((a, b) => pairs[a][0].localeCompare(pairs[b][0])),
+    [pairs]
+  ); // companies (alphabetical)
   const [sel, setSel] = useState(null); // selected slogan pair id (left), or null
   const [matched, setMatched] = useState(() => new Set()); // matched pair ids
   const [dead, setDead] = useState(() => new Set()); // companies (right) struck out
@@ -92,7 +102,7 @@ export default function MatchQuizBoard({ pairs, started, ended, onMatch, onError
     fontSize: 14,
     lineHeight: 1.3,
     padding: '11px 13px',
-    background: '#fff',
+    background: '#fffdf8',
     border: `1px solid ${COLORS.faded}55`,
     color: COLORS.ink,
     borderRadius: 0,
@@ -105,14 +115,17 @@ export default function MatchQuizBoard({ pairs, started, ended, onMatch, onError
     fontSize: 10,
     letterSpacing: '0.18em',
     textTransform: 'uppercase',
-    color: COLORS.ember,
     marginBottom: 8,
+  };
+  const panel = {
+    border: `1px solid ${COLORS.faded}44`,
+    padding: '10px 10px 12px',
   };
 
   return (
     <div>
       {tray.length > 0 && (
-        <div style={{ marginBottom: 16, background: '#fff', border: `1px solid ${COLORS.forest}66`, padding: '12px 14px' }}>
+        <div style={{ marginBottom: 16, background: '#fffdf8', border: `1px solid ${COLORS.forest}66`, padding: '12px 14px' }}>
           <div style={{ fontFamily: MONO, fontSize: 10, letterSpacing: '0.18em', textTransform: 'uppercase', color: COLORS.forest, marginBottom: 8 }}>
             Matched · {tray.length}
           </div>
@@ -130,8 +143,8 @@ export default function MatchQuizBoard({ pairs, started, ended, onMatch, onError
       )}
 
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14, alignItems: 'start' }}>
-        <div>
-          <div style={colHead}>Slogans</div>
+        <div style={{ ...panel, background: LEFT_PANEL, borderTop: `3px solid ${COLORS.ember}` }}>
+          <div style={{ ...colHead, color: COLORS.ember }}>Slogans</div>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
             {leftOrder.map((i) => {
               if (matched.has(i)) return null;
@@ -156,8 +169,8 @@ export default function MatchQuizBoard({ pairs, started, ended, onMatch, onError
           </div>
         </div>
 
-        <div>
-          <div style={colHead}>Companies</div>
+        <div style={{ ...panel, background: RIGHT_PANEL, borderTop: `3px solid ${COLORS.forest}` }}>
+          <div style={{ ...colHead, color: COLORS.forest }}>Companies (A–Z)</div>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
             {rightOrder.map((j) => {
               if (matched.has(j)) return null;
@@ -174,7 +187,7 @@ export default function MatchQuizBoard({ pairs, started, ended, onMatch, onError
                     textDecoration: isDead ? 'line-through' : 'none',
                     color: isDead ? COLORS.faded : COLORS.ink,
                     opacity: isDead ? 0.5 : 1,
-                    background: isDead ? COLORS.paper : '#fff',
+                    background: isDead ? COLORS.paper : '#fffdf8',
                     cursor: isDead || !live ? 'default' : 'pointer',
                   }}
                 >
