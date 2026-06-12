@@ -87,10 +87,25 @@ const DEPT_COLOR = {
   misc:          { c: '#4f7d5a', t: '#dde8df' },
 };
 
+// Readable badge label per department (shown in place of a generic "Quiz" tag).
+const DEPT_LABEL = {
+  movies: 'Movies',
+  music: 'Music',
+  gaming: 'Gaming',
+  travel: 'Travel',
+  sports: 'Sports',
+  geography: 'Geography',
+  entertainment: 'Entertainment',
+  literature: 'Literature',
+  misc: 'Trivia',
+};
+
 function QuizTile({ quiz, plays }) {
   const [hover, setHover] = useState(false);
   const Icon = iconOf(quiz);
-  const accent = DEPT_COLOR[deptOf(quiz)] || DEPT_COLOR.misc;
+  const dept = deptOf(quiz);
+  const accent = DEPT_COLOR[dept] || DEPT_COLOR.misc;
+  const deptLabel = DEPT_LABEL[dept] || 'Quiz';
   const n = Array.isArray(quiz.answers) ? quiz.answers.length : 10;
   const heading = (quiz.title || '').replace(/^(Name|Find) (the )?/, '');
   return (
@@ -102,8 +117,8 @@ function QuizTile({ quiz, plays }) {
     >
       <div style={{ flex: '0 0 auto', height: 150, display: 'flex', flexDirection: 'column', justifyContent: 'center', gap: 16, padding: '0 18px', background: accent.t, borderBottom: `1.5px solid ${COLORS.ink}` }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-          <span style={{ flex: 'none', fontFamily: 'DM Mono, monospace', fontSize: 11, fontWeight: 700, letterSpacing: '0.2em', textTransform: 'uppercase', color: COLORS.cream, background: accent.c, padding: '5px 10px' }}>Quiz</span>
           <span style={{ flex: 'none', width: 46, height: 46, borderRadius: '50%', background: COLORS.cream, display: 'flex', alignItems: 'center', justifyContent: 'center' }}><Icon size={23} strokeWidth={2} aria-hidden="true" style={{ color: accent.c }} /></span>
+          <span style={{ flex: 'none', fontFamily: 'DM Mono, monospace', fontSize: 11, fontWeight: 700, letterSpacing: '0.2em', textTransform: 'uppercase', color: COLORS.cream, background: accent.c, padding: '5px 10px' }}>{deptLabel}</span>
         </div>
         <span style={{ fontFamily: 'DM Mono, monospace', fontSize: 11, letterSpacing: '0.16em', textTransform: 'uppercase', fontWeight: 600, color: accent.c }}>{n} to name</span>
       </div>
