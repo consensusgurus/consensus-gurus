@@ -207,6 +207,13 @@ export default function QuizClient({ quizId }) {
     if (r.length < 4) r = r.concat(QUIZZES.filter((x) => x.id !== quiz.id && !r.includes(x)));
     return r.slice(0, 4);
   })();
+  const moreLikeThis = (() => {
+    const d = deptOf(quiz);
+    const sameCat = QUIZZES.filter((x) => x.id !== quiz.id && quiz.category && x.category === quiz.category);
+    const sameDept = QUIZZES.filter((x) => x.id !== quiz.id && deptOf(x) === d && !sameCat.includes(x));
+    const rest = QUIZZES.filter((x) => x.id !== quiz.id && !sameCat.includes(x) && !sameDept.includes(x));
+    return [...sameCat, ...sameDept, ...rest].slice(0, 8);
+  })();
 
   const [tab, setTab] = useState('play');
   const [found, setFound] = useState(() => new Array(total).fill(false));
@@ -1015,6 +1022,20 @@ export default function QuizClient({ quizId }) {
             ) : (
               quiz.source.label
             )}
+          </div>
+        )}
+
+        {moreLikeThis.length > 0 && (
+          <div style={{ marginTop: 40, paddingTop: 24, borderTop: `1px solid ${COLORS.faded}33` }}>
+            <div style={{ fontFamily: MONO, fontSize: 11, letterSpacing: '0.16em', textTransform: 'uppercase', color: COLORS.ember, marginBottom: 16 }}>More quizzes</div>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))', gap: 10 }}>
+              {moreLikeThis.map((rq) => (
+                <a key={rq.id} href={`/quiz/${rq.id}`} style={{ textDecoration: 'none', color: COLORS.ink, background: COLORS.paper, border: `1px solid ${COLORS.faded}33`, padding: '12px 14px', display: 'block', transition: 'all 0.15s ease' }}>
+                  <div style={{ fontFamily: MONO, fontSize: 9, letterSpacing: '0.16em', textTransform: 'uppercase', color: COLORS.ember, fontWeight: 700, marginBottom: 6 }}>{rq.category || 'Quiz'}</div>
+                  <div style={{ fontFamily: SERIF, fontSize: 16, fontWeight: 600, lineHeight: 1.15 }}>{rq.title}</div>
+                </a>
+              ))}
+            </div>
           </div>
         )}
       </div>
