@@ -134,41 +134,30 @@ function QuizTile({ quiz, plays }) {
   );
 }
 
-const PODIUM_COLORS = ['#caa12e', '#9c968a', '#b1763f'];
-const PODIUM_H = [66, 46, 34];
+const MEDAL = ['#caa12e', '#9c968a', '#b1763f'];
 
-function Podium({ title, entries, unit }) {
-  const top = (entries || []).slice(0, 3).map((e, i) => ({ rank: i + 1, name: e.name, val: e.val, color: PODIUM_COLORS[i], h: PODIUM_H[i] }));
-  const order = [top[1], top[0], top[2]].filter(Boolean);
+function MiniList({ title, rows }) {
+  const top = (rows || []).slice(0, 3);
   return (
-    <div className="champ-pod">
-      <div className="champ-ptitle">{title}</div>
-      {order.length > 0 ? (
-        <div className="champ-bars">
-          {order.map((p) => (
-            <div key={p.rank} className="champ-col">
-              <div className="champ-medal" style={{ background: p.color }}>{p.rank}</div>
-              <div className="champ-name">{p.name}</div>
-              <div className="champ-bar" style={{ height: p.h, background: p.color }}>
-                <div className="champ-val">{p.val}</div>
-                <div className="champ-unit">{unit}</div>
-              </div>
-            </div>
-          ))}
+    <div className="champ-cell">
+      <div className="champ-ltitle">{title}</div>
+      {top.length > 0 ? top.map((r, i) => (
+        <div key={i} className="champ-lrow">
+          <span className="champ-lrank" style={{ background: MEDAL[i] }}>{i + 1}</span>
+          <span className="champ-lname">{r.name}</span>
+          <span className="champ-lval">{r.val}</span>
         </div>
-      ) : (
-        <div className="champ-empty">Not enough plays yet</div>
-      )}
-      <div className="champ-base" />
+      )) : (<div className="champ-lempty">No data yet</div>)}
     </div>
   );
 }
 
-function ChampionsPanel({ completed, accuracy }) {
+function ChampionsPanel({ completed, weighted, accuracy }) {
   const [hover, setHover] = useState(false);
-  if (!((completed && completed.length) || (accuracy && accuracy.length))) return null;
-  const compEntries = (completed || []).map((u) => ({ name: u.username, val: (u.quizzes || 0).toLocaleString() }));
-  const accEntries = (accuracy || []).map((u) => ({ name: u.username, val: `${(u.accuracy || 0).toFixed(1)}%` }));
+  if (!((completed && completed.length) || (weighted && weighted.length) || (accuracy && accuracy.length))) return null;
+  const comp = (completed || []).map((u) => ({ name: u.username, val: (u.quizzes || 0).toLocaleString() }));
+  const wtd = (weighted || []).map((u) => ({ name: u.username, val: (u.weighted || 0).toFixed(1) }));
+  const acc = (accuracy || []).map((u) => ({ name: u.username, val: `${(u.accuracy || 0).toFixed(1)}%` }));
   return (
     <Link href="/leaderboard" onMouseEnter={() => setHover(true)} onMouseLeave={() => setHover(false)} className="champ-link" style={{ boxShadow: hover ? `5px 5px 0 ${COLORS.ember}` : `3px 3px 0 ${COLORS.ember}`, transform: hover ? 'translate(-2px, -2px)' : 'none' }}>
       <style>{`
@@ -178,30 +167,24 @@ function ChampionsPanel({ completed, accuracy }) {
         .champ-cta{font-family:'DM Mono',monospace;font-size:9.5px;letter-spacing:0.14em;text-transform:uppercase;color:${COLORS.faded};white-space:nowrap;}
         .champ-rule1{border-bottom:1px solid ${COLORS.ink};}
         .champ-rule2{border-bottom:2px solid ${COLORS.ember};margin-bottom:12px;}
-        .champ-row{display:flex;gap:16px;}
-        .champ-half{flex:1 1 0;min-width:0;}
-        .champ-half.left{border-right:1px solid rgba(26,22,17,0.18);padding-right:16px;}
-        .champ-pod{min-width:0;}
-        .champ-ptitle{font-family:'Fraunces',serif;font-weight:600;font-size:14px;line-height:1.15;letter-spacing:-0.01em;color:${COLORS.ink};text-align:center;margin-bottom:9px;min-height:33px;display:flex;align-items:center;justify-content:center;}
-        .champ-bars{display:flex;align-items:flex-end;justify-content:center;gap:6px;}
-        .champ-col{flex:1 1 0;max-width:90px;min-width:0;display:flex;flex-direction:column;align-items:center;}
-        .champ-medal{width:22px;height:22px;border-radius:50%;border:1.25px solid ${COLORS.ink};display:flex;align-items:center;justify-content:center;font-family:'DM Mono',monospace;font-weight:500;font-size:11px;color:${COLORS.ink};margin-bottom:4px;}
-        .champ-name{width:100%;font-family:'DM Mono',monospace;font-size:10.5px;font-weight:500;color:${COLORS.ink};text-align:center;margin-bottom:5px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
-        .champ-bar{width:100%;border:1.25px solid ${COLORS.ink};border-bottom:none;display:flex;flex-direction:column;align-items:center;justify-content:center;}
-        .champ-val{font-family:'Fraunces',serif;font-weight:700;font-size:15px;color:${COLORS.ink};line-height:1;}
-        .champ-unit{font-family:'DM Mono',monospace;font-size:8px;letter-spacing:0.1em;text-transform:uppercase;color:rgba(26,22,17,0.6);}
-        .champ-empty{text-align:center;font-family:'Fraunces',serif;font-style:italic;font-size:13px;color:${COLORS.faded};padding:18px 0;}
-        .champ-base{height:5px;background:${COLORS.ink};}
-        @media(max-width:520px){
-          .champ-link{padding:11px 12px 13px;}
-          .champ-row{gap:10px;}
-          .champ-half.left{padding-right:10px;}
-          .champ-ptitle{font-size:12px;min-height:29px;margin-bottom:8px;}
-          .champ-bars{gap:4px;}
-          .champ-name{font-size:9.5px;}
-          .champ-val{font-size:13.5px;}
-          .champ-cta{font-size:9px;letter-spacing:0.08em;}
-          .champ-kicker{letter-spacing:0.16em;}
+        .champ-grid{display:grid;grid-template-columns:repeat(3,1fr);}
+        .champ-cell{padding:0 16px;min-width:0;}
+        .champ-cell:first-child{padding-left:0;}
+        .champ-cell:last-child{padding-right:0;}
+        .champ-cell + .champ-cell{border-left:1px solid rgba(26,22,17,0.15);}
+        .champ-ltitle{font-family:'Fraunces',serif;font-weight:600;font-size:13.5px;line-height:1.15;letter-spacing:-0.01em;color:${COLORS.ink};min-height:34px;display:flex;align-items:flex-end;margin-bottom:8px;}
+        .champ-lrow{display:flex;align-items:center;gap:9px;padding:6px 0;border-top:1px solid rgba(26,22,17,0.1);}
+        .champ-lrank{flex:none;width:19px;height:19px;border-radius:50%;border:1.25px solid ${COLORS.ink};display:flex;align-items:center;justify-content:center;font-family:'DM Mono',monospace;font-size:10.5px;font-weight:500;color:${COLORS.ink};}
+        .champ-lname{flex:1 1 auto;min-width:0;font-family:'DM Mono',monospace;font-size:12px;font-weight:500;color:${COLORS.ink};overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+        .champ-lval{flex:none;font-family:'Fraunces',serif;font-weight:700;font-size:15px;color:${COLORS.ink};}
+        .champ-lempty{font-family:'Fraunces',serif;font-style:italic;font-size:12.5px;color:${COLORS.faded};padding:10px 0;}
+        @media(max-width:560px){
+          .champ-grid{grid-template-columns:1fr;}
+          .champ-cell{padding:10px 0 0;}
+          .champ-cell:first-child{padding-top:0;}
+          .champ-cell:last-child{padding-right:0;}
+          .champ-cell + .champ-cell{border-left:none;border-top:1px solid rgba(26,22,17,0.15);margin-top:10px;}
+          .champ-ltitle{min-height:0;margin-bottom:4px;}
         }
       `}</style>
       <div className="champ-eyebrow">
@@ -210,9 +193,10 @@ function ChampionsPanel({ completed, accuracy }) {
       </div>
       <div className="champ-rule1" />
       <div className="champ-rule2" />
-      <div className="champ-row">
-        <div className="champ-half left"><Podium title="Most Quizzes Completed" entries={compEntries} unit="quizzes" /></div>
-        <div className="champ-half"><Podium title="Best Accuracy (min 5)" entries={accEntries} unit="avg" /></div>
+      <div className="champ-grid">
+        <MiniList title="Most Quizzes Completed" rows={comp} />
+        <MiniList title="Accuracy-Weighted" rows={wtd} />
+        <MiniList title="Best Accuracy (min 5)" rows={acc} />
       </div>
     </Link>
   );
@@ -226,7 +210,7 @@ export default function QuizHomeClient() {
   const [moreOpen, setMoreOpen] = useState(false);
   const [totals, setTotals] = useState({ total: 0, byQuiz: {}, recent7: {} });
   const [recent, setRecent] = useState([]);
-  const [champions, setChampions] = useState({ completed: [], accuracy: [] });
+  const [champions, setChampions] = useState({ completed: [], weighted: [], accuracy: [] });
   const seedRef = useRef((Date.now() & 0xffffffff) >>> 0);
   // Horizontal-scroll affordance for the department ribbon (mobile cue arrows).
   const deptNavRef = useRef(null);
@@ -247,7 +231,7 @@ export default function QuizHomeClient() {
   useEffect(() => {
     fetch('/api/quiz/totals').then((r) => r.json()).then((d) => { if (d && !d.error) setTotals({ total: d.total || 0, byQuiz: d.byQuiz || {}, recent7: d.recent7 || {} }); }).catch(() => {});
     fetch('/api/quiz/recent').then((r) => r.json()).then((d) => { if (d && Array.isArray(d.plays)) setRecent(d.plays); }).catch(() => {});
-    fetch('/api/quiz/champions').then((r) => r.json()).then((d) => { if (d && !d.error) setChampions({ completed: d.completed || [], accuracy: d.accuracy || [] }); }).catch(() => {});
+    fetch('/api/quiz/champions').then((r) => r.json()).then((d) => { if (d && !d.error) setChampions({ completed: d.completed || [], weighted: d.weighted || [], accuracy: d.accuracy || [] }); }).catch(() => {});
   }, []);
 
   const titleById = useMemo(() => Object.fromEntries(QUIZZES.map((q) => [q.id, q.title])), []);
@@ -422,7 +406,7 @@ export default function QuizHomeClient() {
             </div>
           </div>
 
-          <ChampionsPanel completed={champions.completed} accuracy={champions.accuracy} />
+          <ChampionsPanel completed={champions.completed} weighted={champions.weighted} accuracy={champions.accuracy} />
 
           {sorted.length > 0 ? (
             <div className="qz-grid">

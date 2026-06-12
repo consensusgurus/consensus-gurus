@@ -27,10 +27,12 @@ async function fetchAllResults() {
   return all;
 }
 
-// Build the two cross-quiz rankings from raw completed games.
+// Build the three cross-quiz rankings from raw completed games.
 //   completed : most DISTINCT quizzes completed (signed-up users only)
-//   accuracy  : highest average score on each user's FIRST attempt per quiz,
-//               among users with at least minQuizzes distinct quizzes
+//   weighted  : accuracy-weighted completions = sum of first-attempt
+//               score/total across distinct quizzes (i.e. accuracy x quizzes)
+//   accuracy  : highest average first-attempt accuracy, among users with at
+//               least minQuizzes distinct quizzes
 export function buildChampions(rows, { minQuizzes = MIN_QUIZZES } = {}) {
   const signed = rows.filter((r) => r.user_id && r.total > 0);
 
@@ -55,36 +57,44 @@ export function buildChampions(rows, { minQuizzes = MIN_QUIZZES } = {}) {
   for (const r of firstByPair.values()) {
     const a = agg.get(r.user_id) || { quizzes: 0, accSum: 0 };
     a.quizzes += 1;
-    a.accSum += r.score / r.total;
+    a.accSum += r.score / r.total; // fraction 0..1
     agg.set(r.user_id, a);
   }
 
   const users = [...agg.entries()].map(([uid, a]) => ({
     username: nameByUser.get(uid) || 'Anonymous',
     quizzes: a.quizzes,
-    accuracy: Math.round((a.accSum / a.quizzes) * 1000) / 10,
+    accuracy: Math.round((a.accSum / a.quizzes) * 1000) / 10, // percent, 1dp
+    weighted: Math.round(a.accSum * 10) / 10,                  // accuracy x quizzes, 1dp
   }));
+
+  const byName = (x, y) => (x.username || '').localeCompare(y.username || '');
 
   const completed = users
     .slice()
-    .sort((x, y) => y.quizzes - x.quizzes || (x.username || '').localeCompare(y.username || ''))
+    .sort((x, y) => y.quizzes - x.quizzes || byName(x, y))
     .map((u) => ({ username: u.username, quizzes: u.quizzes }));
+
+  const weighted = users
+    .slice()
+    .sort((x, y) => y.weighted - x.weighted || y.quizzes - x.quizzes || byName(x, y))
+    .map((u) => ({ username: u.username, weighted: u.weighted, quizzes: u.quizzes, accuracy: u.accuracy }));
 
   const accuracy = users
     .filter((u) => u.quizzes >= minQuizzes)
-    .sort((x, y) => y.accuracy - x.accuracy || y.quizzes - x.quizzes || (x.username || '').localeCompare(y.username || ''))
+    .sort((x, y) => y.accuracy - x.accuracy || y.quizzes - x.quizzes || byName(x, y))
     .map((u) => ({ username: u.username, accuracy: u.accuracy, quizzes: u.quizzes }));
 
-  return { completed, accuracy, minQuizzes };
+  return { completed, weighted, accuracy, minQuizzes };
 }
 
-// GET /api/quiz/champions  -> { completed:[{username,quizzes}], accuracy:[{username,accuracy,quizzes}], minQuizzes }
+// GET /api/quiz/champions
 export async function GET() {
   try {
     const rows = await fetchAllResults();
     return NextResponse.json(buildChampions(rows));
   } catch (e) {
     console.error('quiz champions error', e);
-    return NextResponse.json({ completed: [], accuracy: [], minQuizzes: MIN_QUIZZES });
+    return NextResponse.json({ completed: [], weighted: [], accuracy: [], minQuizzes: MIN_QUIZZES });
   }
 }
