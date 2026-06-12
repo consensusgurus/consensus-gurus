@@ -804,7 +804,7 @@ function Home({ lists, viewCounts, voteData, extras, trending = {}, openList, on
           }
           .cg-stats{margin-top:16px;display:flex;justify-content:flex-start;align-items:baseline;flex-wrap:nowrap;white-space:nowrap;gap:16px;font-family:'DM Mono',monospace;font-size:11px;letter-spacing:0.15em;text-transform:uppercase;color:${COLORS.faded};}
           .cg-stats .cg-dot{opacity:0.5;}
-          .cg-tape{flex:1 1 auto;min-width:0;overflow:hidden;margin-left:8px;text-overflow:ellipsis;}
+          .cg-tape{flex:1 1 auto;min-width:0;overflow:hidden;margin-left:8px;text-overflow:ellipsis;text-align:center;}
           .cg-feat{color:${COLORS.ember};text-decoration:none;white-space:nowrap;}
           .cg-feat .cg-feat-label{color:${COLORS.faded};}
           .cg-feat:hover .cg-feat-title{text-decoration:underline;}

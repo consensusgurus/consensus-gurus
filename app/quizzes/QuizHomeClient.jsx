@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { Search, X, ChevronDown } from 'lucide-react';
 import { COLORS } from '@/lib/data';
 import { QUIZZES } from '@/lib/quizzes';
+import { fetchBootstrap } from '@/lib/api';
 import { quizDept as deptOf, quizIcon as iconOf, DEPT_COLOR, DEPT_LABEL, DEPT_NAV } from '@/lib/quiz-departments';
 import Grain from '../Grain';
 import Footer from '../Footer';
@@ -152,6 +153,7 @@ export default function QuizHomeClient() {
   const [moreOpen, setMoreOpen] = useState(false);
   const [totals, setTotals] = useState({ total: 0, byQuiz: {}, recent7: {} });
   const [recent, setRecent] = useState([]);
+  const [visitors, setVisitors] = useState(0);
   const [champions, setChampions] = useState({ completed: [], weighted: [], accuracy: [], anonymous: 0 });
   const seedRef = useRef((Date.now() & 0xffffffff) >>> 0);
   // Horizontal-scroll affordance for the department ribbon (mobile cue arrows).
@@ -173,6 +175,7 @@ export default function QuizHomeClient() {
   useEffect(() => {
     fetch('/api/quiz/totals').then((r) => r.json()).then((d) => { if (d && !d.error) setTotals({ total: d.total || 0, byQuiz: d.byQuiz || {}, recent7: d.recent7 || {} }); }).catch(() => {});
     fetch('/api/quiz/recent').then((r) => r.json()).then((d) => { if (d && Array.isArray(d.plays)) setRecent(d.plays); }).catch(() => {});
+    fetchBootstrap().then((data) => { if (data && data.views) setVisitors(Object.values(data.views).reduce((a, b) => a + b, 0)); }).catch(() => {});
     fetch('/api/quiz/champions').then((r) => r.json()).then((d) => { if (d && !d.error) setChampions({ completed: d.completed || [], weighted: d.weighted || [], accuracy: d.accuracy || [], anonymous: d.anonymous || 0 }); }).catch(() => {});
   }, []);
 
@@ -270,6 +273,7 @@ export default function QuizHomeClient() {
           <div className="qz-stats">
             <span>{QUIZZES.length} quizzes</span>
             <span><span style={{ opacity: 0.5 }}>·</span> {totals.total.toLocaleString()} total plays</span>
+            <span><span style={{ opacity: 0.5 }}>·</span> {visitors.toLocaleString()} visitors</span>
             {recentEntries.length > 0 && (
               <span className="qz-tape">
                 <span className="qz-tape-track" style={{ animationDuration: `${Math.max(40, recentEntries.length * 9)}s` }}>
