@@ -272,7 +272,7 @@ export default function QuizHomeClient() {
           `}</style>
           <div className="qz-stats">
             <span>{QUIZZES.length} quizzes</span>
-            <span><span style={{ opacity: 0.5 }}>·</span> {totals.total.toLocaleString()} total plays</span>
+            <span><span style={{ opacity: 0.5 }}>·</span> {totals.total.toLocaleString()} plays</span>
             <span><span style={{ opacity: 0.5 }}>·</span> {visitors.toLocaleString()} visitors</span>
             {recentEntries.length > 0 && (
               <span className="qz-tape">
