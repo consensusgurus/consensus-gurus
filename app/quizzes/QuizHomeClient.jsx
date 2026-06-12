@@ -168,7 +168,7 @@ export default function QuizHomeClient() {
   const recentEntries = useMemo(() => recent.map((p) => {
     const t = (titleById[p.quizId] || '').replace(/^Name (the )?/, '');
     if (!t) return null;
-    const who = p.username ? p.username : 'A player';
+    const who = p.username ? p.username : 'Anonymous User';
     return { quizId: p.quizId, text: `${who} named ${p.score}/${p.total}: ${t}` };
   }).filter(Boolean), [recent, titleById]);
 
