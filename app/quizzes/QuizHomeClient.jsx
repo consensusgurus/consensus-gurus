@@ -1,60 +1,12 @@
 'use client';
 import React, { useState, useEffect, useMemo, useRef } from 'react';
 import Link from 'next/link';
-import { Search, X, ChevronDown, Plane, FerrisWheel, Trees, Clapperboard, Music, Gamepad2, BookOpen, Car, Youtube, Instagram, GraduationCap, Drama, Trophy, Sparkles, Globe } from 'lucide-react';
+import { Search, X, ChevronDown } from 'lucide-react';
 import { COLORS } from '@/lib/data';
 import { QUIZZES } from '@/lib/quizzes';
+import { quizDept as deptOf, quizIcon as iconOf, DEPT_COLOR, DEPT_LABEL, DEPT_NAV } from '@/lib/quiz-departments';
 import Grain from '../Grain';
 import Footer from '../Footer';
-
-// Group each quiz into a homepage-style department for the nav ribbon.
-function deptOf(q) {
-  const id = q.id;
-  if (q.format === 'map') return 'geography';
-  if (/sports?|nfl|nba|mlb|nhl|fifa|olympic|super-bowl|world-cup|athlete|grand-slam/.test(id)) return 'sports';
-  if (q.type === 'travel') return 'travel';
-  if (/film|movie|box-office|director|actor|animated|franchise/.test(id)) return 'movies';
-  if (/song|album|single|spotify|music-video|concert-tour|billboard|soundtrack/.test(id)) return 'music';
-  if (/games|video-games/.test(id)) return 'gaming';
-  if (/book/.test(id)) return 'literature';
-  if (/youtube|instagram|broadway/.test(id)) return 'entertainment';
-  return 'misc';
-}
-// Primary ribbon buttons (Sporcle's biggest categories + Travel + Sports).
-const PRIMARY = [
-  { id: 'all', label: 'All' },
-  { id: 'movies', label: 'Movies' },
-  { id: 'music', label: 'Music' },
-  { id: 'gaming', label: 'Gaming' },
-  { id: 'travel', label: 'Travel' },
-  { id: 'sports', label: 'Sports' },
-  { id: 'geography', label: 'Geography' },
-];
-// Additional categories, surfaced in the "More" dropdown rather than the ribbon.
-const MORE_CATS = [
-  { id: 'entertainment', label: 'Entertainment' },
-  { id: 'literature', label: 'Literature' },
-  { id: 'misc', label: 'Miscellaneous' },
-];
-// Per-quiz category icon (finer than the nav department), shown on each tile.
-function iconOf(q) {
-  const id = q.id;
-  if (q.format === 'map') return Globe;
-  if (/sports?|nfl|nba|mlb|nhl|fifa|olympic|super-bowl|world-cup|athlete|grand-slam/.test(id)) return Trophy;
-  if (/airline/.test(id)) return Plane;
-  if (/theme-park/.test(id)) return FerrisWheel;
-  if (/national-park/.test(id)) return Trees;
-  if (/best-selling-cars/.test(id)) return Car;
-  if (/book/.test(id)) return BookOpen;
-  if (/youtube/.test(id)) return Youtube;
-  if (/instagram/.test(id)) return Instagram;
-  if (/endowment|universit/.test(id)) return GraduationCap;
-  if (/broadway/.test(id)) return Drama;
-  if (/games|video-games/.test(id)) return Gamepad2;
-  if (/song|album|single|spotify|music-video|concert-tour|billboard|soundtrack/.test(id)) return Music;
-  if (/film|movie|box-office|director|actor|animated|franchise/.test(id)) return Clapperboard;
-  return Sparkles;
-}
 
 function seededShuffle(arr, seed) {
   const out = arr.slice();
@@ -73,32 +25,6 @@ const SORTS = [
   { id: 'popularity', label: 'Most Played', short: 'Most Played' },
   { id: 'recent', label: 'Most Recently Added', short: 'Recent' },
 ];
-
-// Per-department accent color + light medallion tint for the tile icon.
-const DEPT_COLOR = {
-  movies:        { c: '#c0392b', t: '#f3ddd8' },
-  music:         { c: '#c98a1b', t: '#f3e3c8' },
-  gaming:        { c: '#7a4fb0', t: '#e6dcf1' },
-  travel:        { c: '#2e7d6b', t: '#d5e8e1' },
-  sports:        { c: '#2f6f9f', t: '#d9e6f0' },
-  geography:     { c: '#1f7a8c', t: '#d4e9ee' },
-  entertainment: { c: '#b0466e', t: '#f3dce4' },
-  literature:    { c: '#8a6d3b', t: '#ece2cf' },
-  misc:          { c: '#4f7d5a', t: '#dde8df' },
-};
-
-// Readable badge label per department (shown in place of a generic "Quiz" tag).
-const DEPT_LABEL = {
-  movies: 'Movies',
-  music: 'Music',
-  gaming: 'Gaming',
-  travel: 'Travel',
-  sports: 'Sports',
-  geography: 'Geography',
-  entertainment: 'Entertainment',
-  literature: 'Literature',
-  misc: 'Trivia',
-};
 
 function QuizTile({ quiz, plays }) {
   const [hover, setHover] = useState(false);
@@ -248,6 +174,13 @@ export default function QuizHomeClient() {
     return c;
   }, []);
 
+  // Ribbon order: departments sorted by how many quizzes each holds (most first).
+  // The top six fill the ribbon; the remainder drop into the "More" dropdown.
+  const { primaryDepts, moreDepts } = useMemo(() => {
+    const ordered = DEPT_NAV.slice().sort((a, b) => (counts[b.id] || 0) - (counts[a.id] || 0) || a.label.localeCompare(b.label));
+    return { primaryDepts: ordered.slice(0, 6), moreDepts: ordered.slice(6) };
+  }, [counts]);
+
   const sorted = useMemo(() => {
     const ql = query.trim().toLowerCase();
     let list = QUIZZES.filter((q) => {
@@ -346,9 +279,10 @@ export default function QuizHomeClient() {
           </svg>
           <div style={{ maxWidth: 1200, margin: '0 auto', padding: '0 16px', position: 'relative' }}>
             <div ref={deptNavRef} className="qz-deptnav" style={{ display: 'flex', alignItems: 'stretch', overflowX: 'auto', background: COLORS.ink, borderBottom: `3px solid ${COLORS.ember}` }}>
-              {PRIMARY.map((d) => navBtn(d.id, d.label, counts[d.id]))}
+              {navBtn('all', 'All', counts.all)}
+              {primaryDepts.map((d) => navBtn(d.id, d.label, counts[d.id]))}
               {(() => {
-                const moreActive = MORE_CATS.some((c) => c.id === dept);
+                const moreActive = moreDepts.some((c) => c.id === dept);
                 return (
                   <button key="more" onClick={() => { setMoreOpen((o) => !o); setSortOpen(false); }} aria-haspopup="true" aria-expanded={moreOpen} style={{ flex: '1 0 auto', background: moreActive ? COLORS.ember : 'transparent', color: COLORS.cream, border: 'none', borderRight: '1px solid rgba(244,237,224,0.18)', height: 42, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6, padding: '0 18px', fontFamily: 'DM Mono, monospace', fontSize: 10.5, letterSpacing: '0.2em', textTransform: 'uppercase', fontWeight: 600, cursor: 'pointer', whiteSpace: 'nowrap' }}>
                     More <span style={{ opacity: 0.7 }}>{moreOpen ? '\u25B4' : '\u25BE'}</span>
@@ -361,7 +295,7 @@ export default function QuizHomeClient() {
             {moreOpen && (
               <div style={{ position: 'absolute', top: '100%', left: 16, right: 16, zIndex: 30, background: COLORS.cream, border: `1.5px solid ${COLORS.ink}`, borderTop: 'none', boxShadow: '0 10px 24px rgba(26,22,17,0.25)' }}>
                 <div style={{ padding: '14px 18px 16px', display: 'flex', flexWrap: 'wrap', gap: 8 }}>
-                  {MORE_CATS.map((c) => {
+                  {moreDepts.map((c) => {
                     const active = dept === c.id;
                     return (
                       <button key={c.id} onClick={() => { setDept(c.id); setMoreOpen(false); }} style={{ display: 'inline-flex', alignItems: 'center', gap: 7, background: active ? COLORS.ember : COLORS.paper, color: active ? COLORS.cream : COLORS.ink, border: `1.5px solid ${COLORS.ink}`, padding: '8px 14px', fontFamily: 'DM Mono, monospace', fontSize: 10.5, letterSpacing: '0.16em', textTransform: 'uppercase', fontWeight: 700, cursor: 'pointer' }}>

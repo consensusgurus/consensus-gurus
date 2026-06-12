@@ -35,6 +35,7 @@ import Footer from './Footer';
 import SourcesPopover from './SourcesPopover';
 import { HERO_IMAGES } from '@/lib/hero-images';
 import { QUIZZES } from '@/lib/quizzes';
+import { quizDept as quizDeptOf, quizIcon as quizIconOf, DEPT_COLOR as QUIZ_DEPT_COLOR } from '@/lib/quiz-departments';
 
 // ── HOMEPAGE V2 (June 2026 redesign) ────────────────────────────────────────
 // Flip this single flag to false to restore the previous homepage exactly —
@@ -54,47 +55,6 @@ const HOME_V2 = true;
 // tile matches the quizzes-page tile -- keep the two in sync.
 const FACTUAL_QUIZZES = (Array.isArray(QUIZZES) ? QUIZZES : []).filter((q) => !q.listId);
 
-function quizDeptOf(q) {
-  const id = q.id;
-  if (q.format === 'map') return 'geography';
-  if (/sports?|nfl|nba|mlb|nhl|fifa|olympic|super-bowl|world-cup|athlete|grand-slam/.test(id)) return 'sports';
-  if (q.type === 'travel') return 'travel';
-  if (/film|movie|box-office|director|actor|animated|franchise/.test(id)) return 'movies';
-  if (/song|album|single|spotify|music-video|concert-tour|billboard|soundtrack/.test(id)) return 'music';
-  if (/games|video-games/.test(id)) return 'gaming';
-  if (/book/.test(id)) return 'literature';
-  if (/youtube|instagram|broadway/.test(id)) return 'entertainment';
-  return 'misc';
-}
-function quizIconOf(q) {
-  const id = q.id;
-  if (q.format === 'map') return Globe;
-  if (/sports?|nfl|nba|mlb|nhl|fifa|olympic|super-bowl|world-cup|athlete|grand-slam/.test(id)) return Trophy;
-  if (/airline/.test(id)) return Plane;
-  if (/theme-park/.test(id)) return FerrisWheel;
-  if (/national-park/.test(id)) return Trees;
-  if (/best-selling-cars/.test(id)) return Car;
-  if (/book/.test(id)) return BookOpen;
-  if (/youtube/.test(id)) return Youtube;
-  if (/instagram/.test(id)) return Instagram;
-  if (/endowment|universit/.test(id)) return GraduationCap;
-  if (/broadway/.test(id)) return Drama;
-  if (/games|video-games/.test(id)) return Gamepad2;
-  if (/song|album|single|spotify|music-video|concert-tour|billboard|soundtrack/.test(id)) return Music;
-  if (/film|movie|box-office|director|actor|animated|franchise/.test(id)) return Clapperboard;
-  return Sparkles;
-}
-const QUIZ_DEPT_COLOR = {
-  movies:        { c: '#c0392b', t: '#f3ddd8' },
-  music:         { c: '#c98a1b', t: '#f3e3c8' },
-  gaming:        { c: '#7a4fb0', t: '#e6dcf1' },
-  travel:        { c: '#2e7d6b', t: '#d5e8e1' },
-  sports:        { c: '#2f6f9f', t: '#d9e6f0' },
-  geography:     { c: '#1f7a8c', t: '#d4e9ee' },
-  entertainment: { c: '#b0466e', t: '#f3dce4' },
-  literature:    { c: '#8a6d3b', t: '#ece2cf' },
-  misc:          { c: '#4f7d5a', t: '#dde8df' },
-};
 
 // Human-readable labels for each list type, shown in the top-right of tiles.
 const TYPE_LABELS = {

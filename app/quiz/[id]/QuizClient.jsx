@@ -4,6 +4,7 @@ import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { ArrowLeft, Share2, Check, Flag, Trophy, HelpCircle, Eye, SkipForward } from 'lucide-react';
 import { QUIZZES, getQuiz } from '@/lib/quizzes';
+import { quizDept as deptOf } from '@/lib/quiz-departments';
 import Grain from '../../Grain';
 import Footer from '../../Footer';
 import dynamic from 'next/dynamic';
@@ -93,15 +94,6 @@ function buildImplicitNameKeys(answers) {
     }
     return out;
   });
-}
-function deptOf(q) {
-  const id = q.id || '';
-  if (q.format === 'map') return 'geography';
-  if (q.type === 'travel') return 'travel';
-  if (/film|movie|box-office|director|actor|animated/.test(id)) return 'movies';
-  if (/song|album|single|spotify|music-video|concert-tour|billboard|soundtrack/.test(id)) return 'music';
-  if (/games|video-games/.test(id)) return 'games';
-  return 'other';
 }
 function fmtTime(sec) {
   const s = Math.max(0, Math.round(sec || 0));
