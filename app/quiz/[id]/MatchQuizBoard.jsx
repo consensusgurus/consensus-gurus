@@ -105,13 +105,19 @@ export default function MatchQuizBoard({ pairs, started, ended, onMatch, onError
   }
 
   const cellBase = {
+    display: 'block',
     textAlign: 'left',
     width: '100%',
     boxSizing: 'border-box',
     fontFamily: SANS,
-    fontSize: 14,
+    fontSize: 13.5,
     lineHeight: 1.3,
-    padding: '11px 13px',
+    padding: '8px 11px',
+    marginBottom: 6,
+    // Lets each option flow inside a balanced CSS multi-column without a box
+    // ever splitting across the gap.
+    breakInside: 'avoid',
+    WebkitColumnBreakInside: 'avoid',
     background: '#fffdf8',
     border: `1px solid ${COLORS.faded}55`,
     color: COLORS.ink,
@@ -134,6 +140,10 @@ export default function MatchQuizBoard({ pairs, started, ended, onMatch, onError
 
   return (
     <div>
+      <style>{`
+        .mqb-cols { column-count: 2; column-gap: 6px; }
+        @media (max-width: 600px) { .mqb-cols { column-count: 1; } }
+      `}</style>
       {tray.length > 0 && (
         <div style={{ marginBottom: 16, background: '#fffdf8', border: `1px solid ${COLORS.forest}66`, padding: '12px 14px' }}>
           <div style={{ fontFamily: MONO, fontSize: 10, letterSpacing: '0.18em', textTransform: 'uppercase', color: COLORS.forest, marginBottom: 8 }}>
@@ -155,7 +165,7 @@ export default function MatchQuizBoard({ pairs, started, ended, onMatch, onError
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14, alignItems: 'start' }}>
         <div style={{ ...panel, background: LEFT_PANEL, borderTop: `3px solid ${COLORS.ember}` }}>
           <div style={{ ...colHead, color: COLORS.ember }}>{lLabel}{sortLeft ? ' (A–Z)' : ''}</div>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+          <div className="mqb-cols">
             {leftOrder.map((i) => {
               if (matched.has(i)) return null;
               const isSel = sel === i;
@@ -181,7 +191,7 @@ export default function MatchQuizBoard({ pairs, started, ended, onMatch, onError
 
         <div style={{ ...panel, background: RIGHT_PANEL, borderTop: `3px solid ${COLORS.forest}` }}>
           <div style={{ ...colHead, color: COLORS.forest }}>{rLabel} (A–Z)</div>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+          <div className="mqb-cols">
             {rightOrder.map((j) => {
               if (matched.has(j)) return null;
               const isDead = dead.has(j);

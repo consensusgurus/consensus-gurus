@@ -602,7 +602,7 @@ export default function QuizClient({ quizId }) {
   return (
     <div style={{ minHeight: '100vh', background: COLORS.cream, color: COLORS.ink, position: 'relative', overflow: 'clip' }}>
       <Grain />
-      <div style={{ position: 'relative', zIndex: 2, maxWidth: 920, margin: '0 auto', padding: '24px 20px 80px' }}>
+      <div style={{ position: 'relative', zIndex: 2, maxWidth: 1060, margin: '0 auto', padding: '24px 20px 80px' }}>
 
         <button onClick={() => router.push('/quizzes')} style={{ background: 'transparent', border: 'none', fontFamily: MONO, fontSize: 11, letterSpacing: '0.2em', textTransform: 'uppercase', color: COLORS.ink, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 6, padding: '8px 0' }}>
           <ArrowLeft size={14} strokeWidth={2.5} />
