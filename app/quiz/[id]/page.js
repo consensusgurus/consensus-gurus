@@ -14,10 +14,10 @@ export async function generateMetadata({ params }) {
   if (!quiz) return { title: 'Quiz not found | Source of Truths' };
 
   const url = `/quiz/${encodeURIComponent(id)}`;
-  const count = quiz.answers.length;
-  const secs = quiz.timeLimit || 90;
-  const description = `${quiz.blurb} ${count} to name, ${secs} seconds on the clock. How many can you get? Beat the clock, then the leaderboard.`;
-  const ogTitle = `${quiz.title} — Can You Beat the Clock?`;
+  // Format-agnostic share copy: just the topic and its description, so the card
+  // reads correctly for name-them-all, map, and matching quizzes alike.
+  const description = quiz.blurb;
+  const ogTitle = quiz.title;
 
   return {
     title: `${quiz.title} | Source of Truths`,

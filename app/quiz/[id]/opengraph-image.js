@@ -2,7 +2,7 @@ import { ImageResponse } from 'next/og'
 import { QUIZZES, getQuiz } from '@/lib/quizzes'
 
 export const runtime = 'nodejs';
-export const alt = 'Source of Truths quiz challenge'
+export const alt = 'Source of Truths quiz'
 export const size = { width: 1200, height: 630 }
 export const contentType = 'image/png'
 
@@ -44,57 +44,34 @@ export default async function Image({ params }) {
     )
   }
 
-  const count = quiz.answers.length
-  const secs = quiz.timeLimit || 90
-  const isMap = quiz.format === 'map'
-  const mins = Math.round(secs / 60)
-  const clockText = secs % 60 === 0 ? `${mins} minute${mins === 1 ? '' : 's'}` : `${secs} seconds`
-  // Non-spoiler tease: blank ranked slots, never the answers themselves.
-  const slots = Array.from({ length: Math.min(count, 6) }, (_, i) => i + 1)
-
+  // Format-agnostic card: just the topic (title) and its description (blurb).
+  // No "name them all / beat the clock" framing, which did not fit the map
+  // (country-clicking) or matching quizzes.
   return new ImageResponse(
     (
-      <div style={{ width: '100%', height: '100%', display: 'flex', flexDirection: 'column', justifyContent: 'space-between', background: '#f4ead5', padding: '40px 72px', fontFamily: ff }}>
+      <div style={{ width: '100%', height: '100%', display: 'flex', flexDirection: 'column', justifyContent: 'space-between', background: '#f4ead5', padding: '52px 72px', fontFamily: ff }}>
         <div style={{ display: 'flex', flexDirection: 'column' }}>
-          <div style={{ display: 'flex', flexDirection: 'column', marginBottom: 18 }}>
-            <div style={{ display: 'flex', alignItems: 'flex-end', justifyContent: 'space-between', paddingBottom: 10 }}>
-              <div style={{ display: 'flex', fontSize: 40, color: '#1a1a1a', fontWeight: 700, lineHeight: 1 }}>Source of Truths</div>
-              <div style={{ display: 'flex', fontSize: 18, color: '#c0392b', textTransform: 'uppercase', letterSpacing: 2, fontWeight: 600, paddingBottom: 6 }}>
-                {(quiz.category || 'Quiz')} · Quiz
-              </div>
+          <div style={{ display: 'flex', alignItems: 'flex-end', justifyContent: 'space-between', paddingBottom: 10 }}>
+            <div style={{ display: 'flex', fontSize: 40, color: '#1a1a1a', fontWeight: 700, lineHeight: 1 }}>Source of Truths</div>
+            <div style={{ display: 'flex', fontSize: 18, color: '#c0392b', textTransform: 'uppercase', letterSpacing: 2, fontWeight: 600, paddingBottom: 6 }}>
+              {(quiz.category || 'Quiz')} · Quiz
             </div>
-            <div style={{ display: 'flex', width: '100%', height: 1, background: '#1a1a1a' }} />
-            <div style={{ display: 'flex', width: '100%', height: 3, background: '#c0392b', marginTop: 3 }} />
           </div>
-          <div style={{ display: 'flex', fontSize: 56, fontWeight: 700, color: '#1a1a1a', lineHeight: 1.04, marginBottom: 8, maxWidth: '94%' }}>
+          <div style={{ display: 'flex', width: '100%', height: 1, background: '#1a1a1a' }} />
+          <div style={{ display: 'flex', width: '100%', height: 3, background: '#c0392b', marginTop: 3 }} />
+        </div>
+
+        <div style={{ display: 'flex', flexDirection: 'column' }}>
+          <div style={{ display: 'flex', fontSize: 58, fontWeight: 700, color: '#1a1a1a', lineHeight: 1.05, marginBottom: 22, maxWidth: '96%' }}>
             {quiz.title}
           </div>
-          <div style={{ display: 'flex', fontSize: 24, fontFamily: dmFF, fontStyle: 'italic', color: '#5a5a5a', lineHeight: 1.2 }}>
-            {isMap ? `Find all ${count} on the blank map. ${clockText} on the clock.` : `${count} to name. ${secs} seconds on the clock. Can you get them all?`}
+          <div style={{ display: 'flex', fontSize: 27, fontFamily: dmFF, fontStyle: 'italic', color: '#5a5a5a', lineHeight: 1.32, maxWidth: '94%' }}>
+            {quiz.blurb}
           </div>
         </div>
 
-        {isMap ? (
-          <div style={{ display: 'flex', alignItems: 'center' }}>
-            <div style={{ display: 'flex', fontSize: 150, fontWeight: 700, color: '#c0392b', lineHeight: 1, marginRight: 28 }}>{String(count)}</div>
-            <div style={{ display: 'flex', flexDirection: 'column' }}>
-              <div style={{ display: 'flex', fontSize: 46, fontWeight: 700, color: '#1a1a1a', lineHeight: 1.05 }}>countries</div>
-              <div style={{ display: 'flex', fontSize: 28, fontFamily: dmFF, fontStyle: 'italic', color: '#5a5a5a' }}>one blank map, a ticking clock</div>
-            </div>
-          </div>
-        ) : (
-          <div style={{ display: 'flex', flexDirection: 'column' }}>
-            {slots.map((n) => (
-              <div key={n} style={{ display: 'flex', alignItems: 'center', marginBottom: 4 }}>
-                <div style={{ display: 'flex', fontSize: 34, fontWeight: 700, color: '#c0392b', width: 56, justifyContent: 'flex-end', marginRight: 24, lineHeight: 1.1 }}>{String(n)}</div>
-                <div style={{ display: 'flex', fontSize: 30, color: '#b9ac90', fontWeight: 500, letterSpacing: 6, lineHeight: 1.1 }}>— — — — — —</div>
-              </div>
-            ))}
-          </div>
-        )}
-
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', borderTop: '1px solid #c4b896', paddingTop: 12, fontSize: 18, color: '#5a5a5a' }}>
-          <div style={{ display: 'flex' }}>Beat the clock, then the leaderboard.</div>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', borderTop: '1px solid #c4b896', paddingTop: 14, fontSize: 18, color: '#5a5a5a' }}>
+          <div style={{ display: 'flex' }}>A Source of Truths quiz</div>
           <div style={{ display: 'flex', color: '#c0392b', fontWeight: 600 }}>Play at sourceoftruths.com</div>
         </div>
       </div>
