@@ -93,7 +93,7 @@ export default async function Image() {
             Test what you know.
           </div>
           <div style={{ display: 'flex', fontSize: 26, fontFamily: dmFF, fontStyle: 'italic', color: '#5a5a5a', lineHeight: 1.25, maxWidth: '92%' }}>
-            {count} timed quizzes built from the rankings. Name them, match them, map them, beat the clock.
+            {count} timed quizzes across film, music, sports, and beyond. Name them, match them, map them, beat the clock.
           </div>
         </div>
 
