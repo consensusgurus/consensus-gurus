@@ -194,9 +194,9 @@ function ChampionsPanel({ completed, weighted, accuracy }) {
       <div className="champ-rule1" />
       <div className="champ-rule2" />
       <div className="champ-grid">
-        <MiniList title="Most Quizzes Completed" rows={comp} />
-        <MiniList title="Accuracy-Weighted" rows={wtd} />
-        <MiniList title="Best Accuracy (min 5)" rows={acc} />
+        <MiniList title="Quizzes Completed" rows={comp} />
+        <MiniList title="Accuracy-Weighted Completions" rows={wtd} />
+        <MiniList title="Accuracy (min 5)" rows={acc} />
       </div>
     </Link>
   );
