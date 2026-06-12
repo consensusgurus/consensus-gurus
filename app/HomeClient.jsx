@@ -10,6 +10,21 @@ import {
   Plus,
   X,
   Search,
+  Globe,
+  Trophy,
+  Plane,
+  FerrisWheel,
+  Trees,
+  Car,
+  BookOpen,
+  Youtube,
+  Instagram,
+  GraduationCap,
+  Drama,
+  Gamepad2,
+  Music,
+  Clapperboard,
+  Sparkles,
 } from 'lucide-react';
 import { LISTS, TYPES, COLORS } from '@/lib/data';
 import { voteKey, dedupeByName, getSources, stripItemScore } from '@/lib/helpers';
@@ -29,6 +44,57 @@ import { QUIZZES } from '@/lib/quizzes';
 // Category dropdown (with By City / By Topic panels), and a bold ember
 // emphasis on the sources count in the header blurb.
 const HOME_V2 = true;
+
+// ── Homepage quiz tiles ──────────────────────────────────────────────────────
+// A quiz tile is woven into the list grid at most once every ~5 rows (see the
+// interleave logic in Home). Only "factual" quizzes (no paired list, i.e. no
+// `listId`) are eligible, since list-backed quizzes already surface through
+// their own list tile. quizDeptOf / quizIconOf / QUIZ_DEPT_COLOR MIRROR
+// app/quizzes/QuizHomeClient.jsx (deptOf / iconOf / DEPT_COLOR) so the homepage
+// tile matches the quizzes-page tile -- keep the two in sync.
+const FACTUAL_QUIZZES = (Array.isArray(QUIZZES) ? QUIZZES : []).filter((q) => !q.listId);
+
+function quizDeptOf(q) {
+  const id = q.id;
+  if (q.format === 'map') return 'geography';
+  if (/sports?|nfl|nba|mlb|nhl|fifa|olympic|super-bowl|world-cup|athlete|grand-slam/.test(id)) return 'sports';
+  if (q.type === 'travel') return 'travel';
+  if (/film|movie|box-office|director|actor|animated|franchise/.test(id)) return 'movies';
+  if (/song|album|single|spotify|music-video|concert-tour|billboard|soundtrack/.test(id)) return 'music';
+  if (/games|video-games/.test(id)) return 'gaming';
+  if (/book/.test(id)) return 'literature';
+  if (/youtube|instagram|broadway/.test(id)) return 'entertainment';
+  return 'misc';
+}
+function quizIconOf(q) {
+  const id = q.id;
+  if (q.format === 'map') return Globe;
+  if (/sports?|nfl|nba|mlb|nhl|fifa|olympic|super-bowl|world-cup|athlete|grand-slam/.test(id)) return Trophy;
+  if (/airline/.test(id)) return Plane;
+  if (/theme-park/.test(id)) return FerrisWheel;
+  if (/national-park/.test(id)) return Trees;
+  if (/best-selling-cars/.test(id)) return Car;
+  if (/book/.test(id)) return BookOpen;
+  if (/youtube/.test(id)) return Youtube;
+  if (/instagram/.test(id)) return Instagram;
+  if (/endowment|universit/.test(id)) return GraduationCap;
+  if (/broadway/.test(id)) return Drama;
+  if (/games|video-games/.test(id)) return Gamepad2;
+  if (/song|album|single|spotify|music-video|concert-tour|billboard|soundtrack/.test(id)) return Music;
+  if (/film|movie|box-office|director|actor|animated|franchise/.test(id)) return Clapperboard;
+  return Sparkles;
+}
+const QUIZ_DEPT_COLOR = {
+  movies:        { c: '#c0392b', t: '#f3ddd8' },
+  music:         { c: '#c98a1b', t: '#f3e3c8' },
+  gaming:        { c: '#7a4fb0', t: '#e6dcf1' },
+  travel:        { c: '#2e7d6b', t: '#d5e8e1' },
+  sports:        { c: '#2f6f9f', t: '#d9e6f0' },
+  geography:     { c: '#1f7a8c', t: '#d4e9ee' },
+  entertainment: { c: '#b0466e', t: '#f3dce4' },
+  literature:    { c: '#8a6d3b', t: '#ece2cf' },
+  misc:          { c: '#4f7d5a', t: '#dde8df' },
+};
 
 // Human-readable labels for each list type, shown in the top-right of tiles.
 const TYPE_LABELS = {
@@ -609,6 +675,40 @@ function Home({ lists, viewCounts, voteData, extras, trending = {}, openList, on
     return set;
   }, [sorted, discoverSeed]);
 
+  // ── Interleaved quiz tiles ────────────────────────────────────────────────
+  // Weave a factual (list-less) quiz tile into the grid at most once every ~5
+  // rows. "Rows" depend on the live column count of the responsive auto-fill
+  // grid, so measure it (ResizeObserver) rather than guessing. gridCols starts
+  // at 0 (server + first client render), so no quiz tile is emitted until after
+  // mount, keeping SSR and hydration identical. Each slot shows a DIFFERENT
+  // factual quiz; the pool is shuffled with a seed derived from discoverSeed, so
+  // picks are random per fresh load but stable across a Back navigation.
+  const gridRef = useRef(null);
+  const [gridCols, setGridCols] = useState(0);
+  useEffect(() => {
+    const el = gridRef.current;
+    if (!el) { setGridCols(0); return; }
+    const measure = () => {
+      const tracks = getComputedStyle(el).gridTemplateColumns.split(' ').filter(Boolean).length;
+      setGridCols(tracks || 1);
+    };
+    measure();
+    const ro = new ResizeObserver(measure);
+    ro.observe(el);
+    return () => ro.disconnect();
+  }, [sorted.length]);
+
+  const shuffledQuizzes = useMemo(() => {
+    const arr = FACTUAL_QUIZZES.slice();
+    let s = ((discoverSeed >>> 0) ^ 0x85ebca6b) >>> 0 || 1;
+    const rand = () => { s ^= s << 13; s ^= s >>> 17; s ^= s << 5; return (s >>> 0) / 0x100000000; };
+    for (let i = arr.length - 1; i > 0; i--) {
+      const j = Math.floor(rand() * (i + 1));
+      [arr[i], arr[j]] = [arr[j], arr[i]];
+    }
+    return arr;
+  }, [discoverSeed]);
+
   const totalViews = Object.values(viewCounts).reduce((a, b) => a + b, 0);
 
   // Total votes shown in the header: every expert entry counts as Borda points
@@ -1035,6 +1135,7 @@ function Home({ lists, viewCounts, voteData, extras, trending = {}, openList, on
 
         {sorted.length > 0 ? (
           <div
+            ref={gridRef}
             style={{
               display: 'grid',
               gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))',
@@ -1042,25 +1143,39 @@ function Home({ lists, viewCounts, voteData, extras, trending = {}, openList, on
               gap: 16,
             }}
           >
-            {sorted.map((list, idx) => {
-              const isFeatured = featuredIds.has(list.id);
-              const related = findRelatedLists(list, lists, 6);
-              return (
-                <Tile
-                  key={list.id}
-                  list={list}
-                  rank={idx + 1}
-                  views={viewCounts[list.id] || 0}
-                  voteData={voteData}
-                  extras={extras[list.id] || []}
-                  onClick={() => { saveScroll(); openList(list.id); }}
-                  showConsensus={true}
-                  featured={isFeatured}
-                  relatedLists={related}
-                  onOpenRelated={(id) => { saveScroll(); openList(id); }}
-                />
-              );
-            })}
+            {(() => {
+              // A quiz tile lands after every `gap` list tiles (gap = 5 rows of
+              // columns), so at most one per 5 rows. Off until the grid's column
+              // count is measured (gridCols > 0) and a factual quiz exists.
+              const gap = gridCols > 0 ? gridCols * 5 : 0;
+              const cells = [];
+              let quizIdx = 0;
+              sorted.forEach((list, idx) => {
+                const isFeatured = featuredIds.has(list.id);
+                const related = findRelatedLists(list, lists, 6);
+                cells.push(
+                  <Tile
+                    key={list.id}
+                    list={list}
+                    rank={idx + 1}
+                    views={viewCounts[list.id] || 0}
+                    voteData={voteData}
+                    extras={extras[list.id] || []}
+                    onClick={() => { saveScroll(); openList(list.id); }}
+                    showConsensus={true}
+                    featured={isFeatured}
+                    relatedLists={related}
+                    onOpenRelated={(id) => { saveScroll(); openList(id); }}
+                  />
+                );
+                if (gap > 0 && shuffledQuizzes.length > 0 && (idx + 1) % gap === 0 && idx + 1 < sorted.length) {
+                  const quiz = shuffledQuizzes[quizIdx % shuffledQuizzes.length];
+                  quizIdx += 1;
+                  cells.push(<QuizTile key={`quiz-${quiz.id}-${idx}`} quiz={quiz} />);
+                }
+              });
+              return cells;
+            })()}
           </div>
         ) : (
           <div
@@ -1080,6 +1195,38 @@ function Home({ lists, viewCounts, voteData, extras, trending = {}, openList, on
 
       <Footer />
     </div>
+  );
+}
+
+// A single quiz tile woven into the homepage grid. Mirrors the quizzes-page
+// tile (medallion lucide icon + department accent + prefix-stripped title +
+// the play affordance), with a QUIZ badge beside the icon and the blurb shown
+// in the taller homepage tile. Links to /quiz/<id>.
+function QuizTile({ quiz }) {
+  const [hover, setHover] = useState(false);
+  const Icon = quizIconOf(quiz);
+  const accent = QUIZ_DEPT_COLOR[quizDeptOf(quiz)] || QUIZ_DEPT_COLOR.misc;
+  const n = Array.isArray(quiz.answers) ? quiz.answers.length : 10;
+  const secs = quiz.timeLimit || 90;
+  const heading = (quiz.title || '').replace(/^(Name|Find) (the )?/, '');
+  return (
+    <Link
+      href={`/quiz/${quiz.id}`}
+      onMouseEnter={() => setHover(true)}
+      onMouseLeave={() => setHover(false)}
+      style={{ cursor: 'pointer', textDecoration: 'none', display: 'flex', flexDirection: 'column', background: hover ? '#e4dbc8' : COLORS.paper, color: COLORS.ink, border: `1.5px solid ${COLORS.ink}`, overflow: 'hidden', transition: 'all 0.2s ease', transform: hover ? 'translate(-2px, -2px)' : 'none', boxShadow: hover ? `3px 3px 0 ${accent.c}` : 'none' }}
+    >
+      <div style={{ padding: '16px 18px 16px', display: 'flex', flexDirection: 'column', flex: '1 1 auto', minHeight: 0 }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 13 }}>
+          <span style={{ flex: 'none', fontFamily: 'DM Mono, monospace', fontSize: 10, fontWeight: 700, letterSpacing: '0.18em', textTransform: 'uppercase', color: COLORS.cream, background: accent.c, padding: '4px 8px' }}>Quiz</span>
+          <span style={{ flex: 'none', width: 42, height: 42, borderRadius: '50%', background: accent.t, display: 'flex', alignItems: 'center', justifyContent: 'center' }}><Icon size={20} strokeWidth={2} aria-hidden="true" style={{ color: accent.c }} /></span>
+          <span style={{ fontFamily: 'DM Mono, monospace', fontSize: 10, letterSpacing: '0.12em', textTransform: 'uppercase', color: COLORS.faded }}>{n} to name · {secs}s</span>
+        </div>
+        <h3 style={{ fontFamily: 'Fraunces, serif', fontWeight: 700, fontSize: 21, lineHeight: 1.1, letterSpacing: '-0.01em', margin: 0, color: COLORS.ink }}>{heading}</h3>
+        {quiz.blurb && (<p style={{ fontFamily: 'Fraunces, serif', fontStyle: 'italic', fontSize: 14, lineHeight: 1.45, color: COLORS.faded, margin: '10px 0 0' }}>{quiz.blurb}</p>)}
+        <div style={{ marginTop: 'auto', paddingTop: 16, fontFamily: 'DM Mono, monospace', fontSize: 11, letterSpacing: '0.16em', textTransform: 'uppercase', fontWeight: 700, color: accent.c }}>▶ Play</div>
+      </div>
+    </Link>
   );
 }
 

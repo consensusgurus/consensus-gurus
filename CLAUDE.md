@@ -1908,3 +1908,39 @@ the list (`data.js` + `descriptions.js` + `hero-images.js` + `quizzes.js`). Quiz
 Borda consensus, so they need **no** `consensus-check` trigger and **no** IndexNow ping beyond the
 paired list's own. First built alongside `busiest-airports-world` / `-us` / `-outside-us`
 (2026-06-11); the original example is `best-airlines-north-america`.
+
+
+## Source of truth is origin/main, NOT the local working copy or the bash mount (owner rule, 2026-06-11)
+
+The local working tree can be silently STALE or TRUNCATED relative to origin/main, and acting on it
+loses the latest files with the latest counts. Two distinct failure modes, both seen on 2026-06-11
+while building the homepage quiz tile:
+
+1. **Local HEAD behind origin.** A parallel session / GitHub Desktop can push the newest work to
+   origin without advancing the local HEAD ref or working tree. Local HEAD lacked the entire quiz
+   feature while origin/main already had `lib/quizzes.js` (151 quizzes), `app/quizzes/QuizHomeClient.jsx`,
+   and the quiz pages. Reading the local tree showed a feature that looked half-built and absent.
+2. **Bash mount serves a truncated read.** `mcp__workspace__bash` (`grep`, `wc`, `cat`, `node`,
+   `esbuild`) can return a STABLY truncated copy of a working-tree file. The local `lib/quizzes.js`
+   read as 24 quizzes via the mount and 31 via the Read tool, when origin actually had 151 (82
+   factual). A `node`/parse error at a suspiciously round line number, or a count lower than expected,
+   is a TRUNCATION TELL, not a real result.
+
+**Rules:**
+
+- **The Read and Grep tools are authoritative for LOCAL file contents; `mcp__workspace__bash`
+  grep/wc/cat/node reads are NOT — never make a decision or quote a count from a bash read of a
+  source/data file.** If the shell must be used, cross-check its `wc -l` against the Read tool's
+  reported total; a mismatch = truncated mount = stop.
+- **For any count of lists/quizzes/items, or any file used to BUILD a deploy, read from origin, not
+  local.** `git fetch` origin and read the file out of `FETCH_HEAD`, hash-verified
+  (`git hash-object <extracted> == git rev-parse FETCH_HEAD:<path>`); retry until it matches. Treat
+  that blob as the current truth. This is how "151 quizzes / 82 factual" was established after the
+  local copy lied.
+- **Deploy by splicing the intended edit into the FETCH_HEAD blob in the SAME step (existing
+  stale-base rule), and NEVER push a local/stale copy over origin.** After the push, `git diff BASE
+  NEW --stat` must show ONLY the files you intended, and item counts (quizzes, lists) must not drop
+  (`grep -c` the relevant id pattern on `BASE` vs `NEW`). If a count fell unexpectedly, STOP and
+  investigate before the deploy is considered done.
+- **To resync a stale local tree** (so the editor isn't working against truncated files), fetch and
+  reset/checkout to origin/main once the deploy lands, rather than editing the stale copy.
