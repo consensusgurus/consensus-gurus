@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { supabaseAdmin } from '@/lib/supabase-server';
+import { findQuizIdentity } from '@/lib/quiz-identity';
 
 export const dynamic = 'force-dynamic';
 export const fetchCache = 'force-no-store';
@@ -54,19 +55,11 @@ export async function POST(request) {
       return NextResponse.json({ error: 'bad time' }, { status: 400 });
     }
 
-    let user_id = null;
-    let username = null;
-    if (typeof email === 'string' && email.trim()) {
-      const { data: u } = await supabaseAdmin
-        .from('quiz_users')
-        .select('id, username')
-        .ilike('email', email.trim())
-        .maybeSingle();
-      if (u) {
-        user_id = u.id;
-        username = u.username;
-      }
-    }
+    // Attribute to a joined identity by email, or by the browser's anon_id when
+    // the player signed up with a display name only (no email).
+    const ident = await findQuizIdentity(supabaseAdmin, { email, anonId });
+    const user_id = ident ? ident.id : null;
+    const username = ident ? ident.username : null;
 
     const baseRow = {
       quiz_id: quizId,

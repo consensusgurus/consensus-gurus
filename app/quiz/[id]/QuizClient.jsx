@@ -294,7 +294,7 @@ export default function QuizClient({ quizId }) {
     setStats(loadStats(quizId));
     try {
       const id = JSON.parse(localStorage.getItem('sot_quiz_identity'));
-      if (id && id.email) { setIdentity(id); setJName(id.username || ''); setJEmail(id.email || ''); }
+      if (id && id.username) { setIdentity(id); setJName(id.username || ''); setJEmail(id.email || ''); }
     } catch {}
     refreshBoard();
     // Count one quiz-page view per load (admin analytics). Guarded so React's
@@ -342,14 +342,14 @@ export default function QuizClient({ quizId }) {
   // join by email, then attach THIS result row to the new identity.
   async function submitClaim() {
     setClaimErr(false);
-    if (!jName.trim() || jName.trim().length > 40) { setClaimErr(true); setClaimMsg('Pick a username (max 40 characters).'); return; }
-    if (!EMAIL_RE.test(jEmail.trim())) { setClaimErr(true); setClaimMsg('Enter a valid email.'); return; }
+    if (!jName.trim() || jName.trim().length > 40) { setClaimErr(true); setClaimMsg('Pick a display name (max 40 characters).'); return; }
+    if (jEmail.trim() && !EMAIL_RE.test(jEmail.trim())) { setClaimErr(true); setClaimMsg('Enter a valid email or leave it blank.'); return; }
     setClaimBusy(true);
     try {
       const res = await fetch('/api/quiz/claim', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ quizId, resultId: lastResultId, username: jName.trim(), email: jEmail.trim(), anonId: getAnonId() }),
+        body: JSON.stringify({ quizId, resultId: lastResultId, username: jName.trim(), email: jEmail.trim() || undefined, anonId: getAnonId() }),
       });
       const d = await res.json();
       if (d.error) { setClaimErr(true); setClaimMsg(d.error); setClaimBusy(false); return; }
@@ -574,14 +574,14 @@ export default function QuizClient({ quizId }) {
 
   async function submitJoin() {
     setJoinErr(false);
-    if (!jName.trim() || jName.trim().length > 40) { setJoinErr(true); setJoinMsg('Pick a username (max 40 characters).'); return; }
-    if (!EMAIL_RE.test(jEmail.trim())) { setJoinErr(true); setJoinMsg('Enter a valid email.'); return; }
+    if (!jName.trim() || jName.trim().length > 40) { setJoinErr(true); setJoinMsg('Pick a display name (max 40 characters).'); return; }
+    if (jEmail.trim() && !EMAIL_RE.test(jEmail.trim())) { setJoinErr(true); setJoinMsg('Enter a valid email or leave it blank.'); return; }
     setJoinBusy(true);
     try {
       const res = await fetch('/api/quiz/join', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ username: jName.trim(), email: jEmail.trim(), anonId: getAnonId() }),
+        body: JSON.stringify({ username: jName.trim(), email: jEmail.trim() || undefined, anonId: getAnonId() }),
       });
       const d = await res.json();
       if (d.error) { setJoinErr(true); setJoinMsg(d.error); setJoinBusy(false); return; }
@@ -736,7 +736,7 @@ export default function QuizClient({ quizId }) {
               {!identity && !claimOpen && (
                 <button onClick={() => { setClaimMsg(''); setClaimErr(false); setClaimOpen(true); }} style={{ fontFamily: MONO, fontSize: 13, letterSpacing: '0.08em', textTransform: 'uppercase', fontWeight: 700, lineHeight: '46px', padding: '0 24px', background: COLORS.ember, color: '#fff', border: 'none', cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: 8 }}>
                   {canReveal
-                    ? (<><Eye size={14} strokeWidth={2.5} /> Create a username to reveal the answers</>)
+                    ? (<><Eye size={14} strokeWidth={2.5} /> Create a display name to reveal the answers</>)
                     : (<><Trophy size={14} strokeWidth={2.5} /> Post this to the leaderboard</>)}
                 </button>
               )}
@@ -744,11 +744,11 @@ export default function QuizClient({ quizId }) {
                 <div style={{ flexBasis: '100%', maxWidth: 420, margin: '0 auto' }}>
                   <p style={{ fontFamily: SANS, fontSize: 13, color: '#4a4339', margin: '0 0 10px', textAlign: 'center' }}>
                     {canReveal
-                      ? `Create a username and add your email to reveal the answers you missed. It also posts this ${dispScore}/${total} to the leaderboard. No password needed, and reusing the same email later keeps you attached.`
-                      : `Add a name and email to post this ${dispScore}/${total} to the leaderboard. No password needed, and reusing the same email later keeps you attached.`}
+                      ? `Pick a display name to reveal the answers you missed. It also posts this ${dispScore}/${total} to the leaderboard. Email is optional (required only for prizes), and no password is needed.`
+                      : `Pick a display name to post this ${dispScore}/${total} to the leaderboard. Email is optional (required only for prizes), and no password is needed.`}
                   </p>
-                  <input value={jName} onChange={(e) => setJName(e.target.value)} maxLength={40} placeholder="Username" style={fieldStyle} />
-                  <input value={jEmail} onChange={(e) => setJEmail(e.target.value)} type="email" placeholder="you@email.com" style={{ ...fieldStyle, marginTop: 10 }} />
+                  <input value={jName} onChange={(e) => setJName(e.target.value)} maxLength={40} placeholder="Display Name" style={fieldStyle} />
+                  <input value={jEmail} onChange={(e) => setJEmail(e.target.value)} type="email" placeholder="Email (optional, required for prizes)" style={{ ...fieldStyle, marginTop: 10 }} />
                   <button onClick={submitClaim} disabled={claimBusy} style={{ marginTop: 12, width: '100%', fontFamily: MONO, fontSize: 13, letterSpacing: '0.1em', textTransform: 'uppercase', fontWeight: 700, lineHeight: '46px', border: 'none', background: COLORS.ember, color: '#fff', cursor: claimBusy ? 'default' : 'pointer', opacity: claimBusy ? 0.6 : 1 }}>
                     {claimBusy ? (canReveal ? 'Revealing…' : 'Posting…') : (canReveal ? 'Reveal the answers' : 'Post this to the leaderboard')}
                   </button>
@@ -898,7 +898,7 @@ export default function QuizClient({ quizId }) {
                 <div style={{ fontFamily: SERIF, fontWeight: 700, fontSize: 26, lineHeight: 1.1, marginBottom: 10 }}>{dispScore} of {total} · you beat {percentile(dispScore, total)}% of players</div>
                 <p style={{ fontFamily: SANS, fontSize: 15, color: '#4a4339', maxWidth: 440, margin: '0 auto 18px' }}>
                   {board.best != null ? (dispScore >= board.best ? `That matches the high score of ${board.best}.` : `The high score to beat is ${board.best}.`) : 'Be the first to set the pace.'}
-                  {quiz.listId ? ' See the ones you missed in the full ranking, with sources and the consensus breakdown.' : canReveal ? (revealed ? ' The ones you missed are filled in above, highlighted.' : ' Create a username above to reveal the ones you missed.') : ''}
+                  {quiz.listId ? ' See the ones you missed in the full ranking, with sources and the consensus breakdown.' : canReveal ? (revealed ? ' The ones you missed are filled in above, highlighted.' : ' Create a display name above to reveal the ones you missed.') : ''}
                 </p>
               </div>
             )}
@@ -938,7 +938,7 @@ export default function QuizClient({ quizId }) {
               ) : (
                 <div>
                   <div style={{ display: 'grid', gridTemplateColumns: '40px 1fr 76px 64px', gap: 8, padding: '0 14px 8px', fontFamily: MONO, fontSize: 10, letterSpacing: '0.12em', textTransform: 'uppercase', color: COLORS.faded }}>
-                    <span>#</span><span>Username</span><span style={{ textAlign: 'right' }}>Correct</span><span style={{ textAlign: 'right' }}>Time</span>
+                    <span>#</span><span>Display Name</span><span style={{ textAlign: 'right' }}>Correct</span><span style={{ textAlign: 'right' }}>Time</span>
                   </div>
                   {board.leaderboard.map((row, i) => {
                     const mine = identity && row.username === identity.username;
@@ -976,18 +976,18 @@ export default function QuizClient({ quizId }) {
               <h2 style={{ fontFamily: SERIF, fontWeight: 800, fontSize: 26, margin: 0 }}>Join the Leaderboard</h2>
             </div>
             <p style={{ fontFamily: SANS, fontSize: 15, color: '#4a4339', margin: '0 0 6px' }}>
-              Sign up and your username will appear on the leaderboard after you finish a game. No password needed.
+              Sign up with a display name and it appears on the leaderboard after you finish a game. No password needed.
             </p>
             <p style={{ fontFamily: SANS, fontSize: 15, color: '#4a4339', margin: '0 0 6px' }}>
-              Already joined? Enter the same email to reconnect your account. If you clear your browser or switch devices, just rejoin with that email and your scores and leaderboard spot come right back.
+              Adding an email lets you reconnect on another device or after clearing your browser. Without one, your spot is saved in this browser.
             </p>
             <p style={{ fontFamily: MONO, fontSize: 12, color: COLORS.faded, margin: '0 0 22px' }}>
-              Your username is shown publicly; your email is kept private.
+              Your display name is shown publicly. Email is optional, required only for prizes, and kept private.
             </p>
 
-            <label style={labelStyle}>Username</label>
+            <label style={labelStyle}>Display Name</label>
             <input value={jName} onChange={(e) => setJName(e.target.value)} maxLength={40} placeholder="e.g. skyhopper42" style={fieldStyle} />
-            <label style={{ ...labelStyle, marginTop: 16 }}>Email</label>
+            <label style={{ ...labelStyle, marginTop: 16 }}>Email (optional, required for prizes)</label>
             <input value={jEmail} onChange={(e) => setJEmail(e.target.value)} type="email" placeholder="you@email.com" style={fieldStyle} />
 
             <button onClick={submitJoin} disabled={joinBusy} style={{ marginTop: 22, width: '100%', fontFamily: MONO, fontSize: 13, letterSpacing: '0.1em', textTransform: 'uppercase', fontWeight: 700, lineHeight: '48px', border: 'none', background: COLORS.ember, color: '#fff', cursor: joinBusy ? 'default' : 'pointer', opacity: joinBusy ? 0.6 : 1 }}>
