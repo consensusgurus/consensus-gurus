@@ -384,7 +384,6 @@ export default function AdminClient({ initialLists, initialExtras = [], initialC
             display: 'flex',
             gap: 0,
             marginBottom: 28,
-            overflowX: 'auto',
             border: `1.5px solid ${COLORS.ink}`,
           }}
         >
@@ -403,28 +402,18 @@ export default function AdminClient({ initialLists, initialExtras = [], initialC
           <TabButton active={tab === 'votes'} onClick={() => setTab('votes')}>
             Votes <span style={{ opacity: 0.6 }}>{voteStandings.length}</span>
           </TabButton>
-          <TabButton active={tab === 'notes'} onClick={() => setTab('notes')}>
-            Notes <span style={{ opacity: 0.6 }}>{editorNotesCount}</span>
-          </TabButton>
           <TabButton active={tab === 'research'} onClick={() => setTab('research')}>
-            Research <span style={{ opacity: 0.6 }}>{alerts.length}</span>
+            Research <span style={{ opacity: 0.6 }}>{alerts.length + editorNotesCount}</span>
           </TabButton>
           <TabButton active={tab === 'analytics'} onClick={() => setTab('analytics')}>
             Analytics <span style={{ opacity: 0.6 }}>{views24hTotal}</span>
           </TabButton>
-          <TabButton active={tab === 'quizzes'} onClick={() => setTab('quizzes')}>
-            Quizzes <span style={{ opacity: 0.6 }}>{quizSignups.length}</span>
-          </TabButton>
         </div>
 
         {tab === 'analytics' ? (
-          <AnalyticsPanel views={views24h} viewsTotal={views24hTotal} quizStats={quizStats} quizPlaysTotal={quizPlaysTotal} />
-        ) : tab === 'quizzes' ? (
-          <QuizSignupsPanel signups={quizSignups} />
+          <AnalyticsPanel views={views24h} viewsTotal={views24hTotal} quizStats={quizStats} quizPlaysTotal={quizPlaysTotal} signups={quizSignups} />
         ) : tab === 'research' ? (
-          <ResearchPanel alerts={alerts} busy={busy} onResolve={resolveAlert} />
-        ) : tab === 'notes' ? (
-          <NotesPanel notes={editorNotes} lists={LISTS} busy={busy} onAdd={addNote} onDelete={deleteNote} />
+          <ResearchNotesPanel alerts={alerts} busy={busy} onResolve={resolveAlert} notes={editorNotes} lists={LISTS} onAddNote={addNote} onDeleteNote={deleteNote} />
         ) : tab === 'feedback' ? (
           <FeedbackPanel complaints={complaints} comments={comments} busy={busy} onDismiss={dismissComplaint} onDelete={deleteComment} onRespond={respond} />
         ) : tab === 'votes' ? (
@@ -472,6 +461,9 @@ export default function AdminClient({ initialLists, initialExtras = [], initialC
 }
 
 // Views panel: per-list visitor counts over the rolling past 24 hours.
+// Cap long admin tables to roughly 25 visible rows, then scroll vertically.
+const TABLE_MAX_H = 940;
+
 function ViewsPanel({ views, total }) {
   const [query, setQuery] = useState('');
 
@@ -543,8 +535,8 @@ function ViewsPanel({ views, total }) {
           No matches.
         </div>
       ) : (
-        <div style={{ border: `1.5px solid ${COLORS.ink}` }}>
-          <div style={{ display: 'flex', fontFamily: 'DM Mono, monospace', fontSize: 10, letterSpacing: '0.14em', textTransform: 'uppercase', color: COLORS.faded, padding: '10px 14px', borderBottom: `1.5px solid ${COLORS.ink}` }}>
+        <div style={{ border: `1.5px solid ${COLORS.ink}`, maxHeight: TABLE_MAX_H, overflowY: 'auto' }}>
+          <div style={{ display: 'flex', position: 'sticky', top: 0, zIndex: 1, background: COLORS.cream, fontFamily: 'DM Mono, monospace', fontSize: 10, letterSpacing: '0.14em', textTransform: 'uppercase', color: COLORS.faded, padding: '10px 14px', borderBottom: `1.5px solid ${COLORS.ink}` }}>
             <span style={{ flex: '0 0 36px' }}>#</span>
             <span style={{ flex: 3 }}>List</span>
             <span style={{ flex: '0 0 100px', textAlign: 'right' }}>Last 24h</span>
@@ -652,8 +644,8 @@ function QuizStatsPanel({ stats, playsTotal }) {
           No matches.
         </div>
       ) : (
-        <div style={{ border: `1.5px solid ${COLORS.ink}` }}>
-          <div style={{ display: 'flex', fontFamily: 'DM Mono, monospace', fontSize: 10, letterSpacing: '0.14em', textTransform: 'uppercase', color: COLORS.faded, padding: '10px 14px', borderBottom: `1.5px solid ${COLORS.ink}` }}>
+        <div style={{ border: `1.5px solid ${COLORS.ink}`, maxHeight: TABLE_MAX_H, overflowY: 'auto' }}>
+          <div style={{ display: 'flex', position: 'sticky', top: 0, zIndex: 1, background: COLORS.cream, fontFamily: 'DM Mono, monospace', fontSize: 10, letterSpacing: '0.14em', textTransform: 'uppercase', color: COLORS.faded, padding: '10px 14px', borderBottom: `1.5px solid ${COLORS.ink}` }}>
             <span style={{ flex: '0 0 36px' }}>#</span>
             <span style={{ flex: 3 }}>Quiz</span>
             <span style={{ flex: '0 0 84px', textAlign: 'right' }}>Views 24h</span>
@@ -790,8 +782,8 @@ function QuizSignupsPanel({ signups }) {
           No matches.
         </div>
       ) : (
-        <div style={{ border: `1.5px solid ${COLORS.ink}` }}>
-          <div style={{ display: 'flex', fontFamily: 'DM Mono, monospace', fontSize: 10, letterSpacing: '0.14em', textTransform: 'uppercase', color: COLORS.faded, padding: '10px 14px', borderBottom: `1.5px solid ${COLORS.ink}` }}>
+        <div style={{ border: `1.5px solid ${COLORS.ink}`, maxHeight: TABLE_MAX_H, overflowY: 'auto' }}>
+          <div style={{ display: 'flex', position: 'sticky', top: 0, zIndex: 1, background: COLORS.cream, fontFamily: 'DM Mono, monospace', fontSize: 10, letterSpacing: '0.14em', textTransform: 'uppercase', color: COLORS.faded, padding: '10px 14px', borderBottom: `1.5px solid ${COLORS.ink}` }}>
             <span style={{ flex: '0 0 36px' }}>#</span>
             <span style={{ flex: 2 }}>Username</span>
             <span style={{ flex: 3 }}>Email</span>
@@ -936,8 +928,8 @@ function VotesPanel({ standings, events, busy, onDelete }) {
       <div>
         <h3 style={{ fontFamily: 'Fraunces, serif', fontWeight: 700, fontSize: 20, margin: '0 0 12px' }}>Current standings</h3>
         {hasStandings ? (
-          <div style={{ border: `1.5px solid ${COLORS.ink}` }}>
-            <div style={{ display: 'flex', fontFamily: 'DM Mono, monospace', fontSize: 10, letterSpacing: '0.14em', textTransform: 'uppercase', color: COLORS.faded, padding: '10px 14px', borderBottom: `1.5px solid ${COLORS.ink}` }}>
+          <div style={{ border: `1.5px solid ${COLORS.ink}`, maxHeight: TABLE_MAX_H, overflowY: 'auto' }}>
+            <div style={{ display: 'flex', position: 'sticky', top: 0, zIndex: 1, background: COLORS.cream, fontFamily: 'DM Mono, monospace', fontSize: 10, letterSpacing: '0.14em', textTransform: 'uppercase', color: COLORS.faded, padding: '10px 14px', borderBottom: `1.5px solid ${COLORS.ink}` }}>
               <span style={{ flex: 2 }}>List</span>
               <span style={{ flex: 2 }}>Item</span>
               <span style={{ flex: '0 0 60px', textAlign: 'right' }}>Votes</span>
@@ -979,7 +971,7 @@ function VotesPanel({ standings, events, busy, onDelete }) {
           The {events.length} most recent vote events. A vote for 1st place is +3, 2nd is +2, 3rd is +1.
         </p>
         {hasEvents ? (
-          <div style={{ border: `1.5px solid ${COLORS.ink}` }}>
+          <div style={{ border: `1.5px solid ${COLORS.ink}`, maxHeight: TABLE_MAX_H, overflowY: 'auto' }}>
             {events.map((e, i) => (
               <div key={e.id} style={{ display: 'flex', alignItems: 'center', gap: 12, fontFamily: 'DM Sans, sans-serif', fontSize: 13, color: COLORS.ink, padding: '9px 14px', borderBottom: i < events.length - 1 ? rowBorder : 'none' }}>
                 <span style={{ flex: '0 0 150px', fontFamily: 'DM Mono, monospace', fontSize: 11, color: COLORS.faded }}>{formatDate(e.createdAt)}</span>
@@ -1162,7 +1154,7 @@ function SectionHeading({ children }) {
 }
 
 // Analytics tab: list page views and quiz views/plays, stacked into one view.
-function AnalyticsPanel({ views, viewsTotal, quizStats, quizPlaysTotal }) {
+function AnalyticsPanel({ views, viewsTotal, quizStats, quizPlaysTotal, signups }) {
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 36 }}>
       <div>
@@ -1172,6 +1164,26 @@ function AnalyticsPanel({ views, viewsTotal, quizStats, quizPlaysTotal }) {
       <div>
         <SectionHeading>Quiz Stats</SectionHeading>
         <QuizStatsPanel stats={quizStats} playsTotal={quizPlaysTotal} />
+      </div>
+      <div>
+        <SectionHeading>Quiz Signups</SectionHeading>
+        <QuizSignupsPanel signups={signups} />
+      </div>
+    </div>
+  );
+}
+
+// Research tab: the consensus-alert research queue plus editor notes, stacked.
+function ResearchNotesPanel({ alerts, busy, onResolve, notes, lists, onAddNote, onDeleteNote }) {
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 36 }}>
+      <div>
+        <SectionHeading>Consensus Alerts</SectionHeading>
+        <ResearchPanel alerts={alerts} busy={busy} onResolve={onResolve} />
+      </div>
+      <div>
+        <SectionHeading>Editor Notes</SectionHeading>
+        <NotesPanel notes={notes} lists={lists} busy={busy} onAdd={onAddNote} onDelete={onDeleteNote} />
       </div>
     </div>
   );
@@ -1198,8 +1210,7 @@ function TabButton({ active, onClick, children }) {
     <button
       onClick={onClick}
       style={{
-        flex: '1 0 auto',
-        whiteSpace: 'nowrap',
+        flex: 1,
         background: active ? COLORS.ink : 'transparent',
         color: active ? COLORS.cream : COLORS.ink,
         border: 'none',
