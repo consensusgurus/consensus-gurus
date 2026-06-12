@@ -234,7 +234,7 @@ export default function QuizClient({ quizId }) {
   const pairsMatchedRef = useRef(0);
 
   const [stats, setStats] = useState({ attempts: 0, best: 0, totalCorrect: 0 });
-  const [board, setBoard] = useState({ plays: 0, best: null, leaderboard: [] });
+  const [board, setBoard] = useState({ plays: 0, best: null, topTime: null, leaderboard: [] });
   const [identity, setIdentity] = useState(null); // { username, email }
 
   // Join form
@@ -280,13 +280,18 @@ export default function QuizClient({ quizId }) {
 
   const score = found.filter(Boolean).length;
   const dispScore = tileMode ? pairsMatched : score;
+  // Outright #1 across ALL completed plays (anonymous included): the finished run
+  // holds the best score AND ties/beats the fastest time recorded at that score
+  // (this run is already counted in board.best/board.topTime, so equality = top).
+  const isTopScore = ended && board.best != null && lastElapsed != null
+    && dispScore === board.best && board.topTime != null && lastElapsed <= board.topTime;
   const activeIdx = found.findIndex((x) => !x);
   const foundNamesSet = mapMode ? new Set(answers.filter((a, i) => found[i]).map((a) => a.t)) : null;
 
   function refreshBoard() {
     fetch(`/api/quiz/board?quizId=${encodeURIComponent(quizId)}`)
       .then((r) => r.json())
-      .then((d) => { if (d && !d.error) setBoard({ plays: d.plays || 0, best: d.best ?? null, leaderboard: d.leaderboard || [] }); })
+      .then((d) => { if (d && !d.error) setBoard({ plays: d.plays || 0, best: d.best ?? null, topTime: d.topTime ?? null, leaderboard: d.leaderboard || [] }); })
       .catch(() => {});
   }
 
@@ -334,7 +339,7 @@ export default function QuizClient({ quizId }) {
       body: JSON.stringify({ quizId, score: finalScore, total, timeElapsed: elapsed, email: identity?.email || undefined, anonId: getAnonId() }),
     })
       .then((r) => r.json())
-      .then((d) => { if (d && !d.error) { setBoard({ plays: d.plays || 0, best: d.best ?? null, leaderboard: d.leaderboard || [] }); setLastResultId(d.resultId ?? null); } })
+      .then((d) => { if (d && !d.error) { setBoard({ plays: d.plays || 0, best: d.best ?? null, topTime: d.topTime ?? null, leaderboard: d.leaderboard || [] }); setLastResultId(d.resultId ?? null); } })
       .catch(() => {});
   }
 
@@ -356,7 +361,7 @@ export default function QuizClient({ quizId }) {
       const id = { username: d.username, email: d.email };
       try { localStorage.setItem('sot_quiz_identity', JSON.stringify(id)); } catch {}
       setIdentity(id);
-      setBoard({ plays: d.plays || 0, best: d.best ?? null, leaderboard: d.leaderboard || [] });
+      setBoard({ plays: d.plays || 0, best: d.best ?? null, topTime: d.topTime ?? null, leaderboard: d.leaderboard || [] });
       setClaimErr(false);
       setClaimOpen(false);
       if (canReveal) {
@@ -895,7 +900,7 @@ export default function QuizClient({ quizId }) {
             {ended && (
               <div style={{ marginTop: 22, padding: 24, border: `1.5px solid ${COLORS.ink}`, background: COLORS.paper, textAlign: 'center' }}>
                 <div style={{ fontFamily: MONO, fontSize: 12, letterSpacing: '0.16em', textTransform: 'uppercase', color: COLORS.ember, marginBottom: 8 }}>{dispScore === total ? 'Perfect score' : time <= 0 ? 'Time!' : tileMode ? 'Out of moves' : 'Gave up'}</div>
-                <div style={{ fontFamily: SERIF, fontWeight: 700, fontSize: 26, lineHeight: 1.1, marginBottom: 10 }}>{dispScore} of {total} · you beat {percentile(dispScore, total)}% of players</div>
+                <div style={{ fontFamily: SERIF, fontWeight: 700, fontSize: 26, lineHeight: 1.1, marginBottom: 10 }}>{dispScore} of {total} · {isTopScore ? 'you are the top score' : `you beat ${percentile(dispScore, total)}% of players`}</div>
                 <p style={{ fontFamily: SANS, fontSize: 15, color: '#4a4339', maxWidth: 440, margin: '0 auto 18px' }}>
                   {board.best != null ? (dispScore >= board.best ? `That matches the high score of ${board.best}.` : `The high score to beat is ${board.best}.`) : 'Be the first to set the pace.'}
                   {quiz.listId ? ' See the ones you missed in the full ranking, with sources and the consensus breakdown.' : canReveal ? (revealed ? ' The ones you missed are filled in above, highlighted.' : ' Create a display name above to reveal the ones you missed.') : ''}
@@ -1062,7 +1067,7 @@ export default function QuizClient({ quizId }) {
                   <div style={{ fontFamily: MONO, fontSize: 12, letterSpacing: '0.24em', textTransform: 'uppercase', color: win ? COLORS.forest : COLORS.ember, marginBottom: 8 }}>{heading}</div>
                   <div style={{ fontFamily: SERIF, fontWeight: 800, fontSize: 40, lineHeight: 1, marginBottom: 6 }}>{dispScore}<span style={{ fontSize: 24, color: COLORS.faded }}> / {total}</span></div>
                   <p style={{ fontFamily: SERIF, fontStyle: 'italic', fontSize: 16, color: COLORS.faded, margin: '0 0 4px' }}>{reason}</p>
-                  <p style={{ fontFamily: SANS, fontSize: 14, color: '#4a4339', margin: '0 0 20px' }}>You beat {percentile(dispScore, total)}% of players.{board.best != null ? (dispScore >= board.best ? ' That ties the high score.' : ` High score to beat: ${board.best}.`) : ''}</p>
+                  <p style={{ fontFamily: SANS, fontSize: 14, color: '#4a4339', margin: '0 0 20px' }}>{isTopScore ? 'You are the top score.' : <>You beat {percentile(dispScore, total)}% of players.{board.best != null ? (dispScore >= board.best ? ' That ties the high score.' : ` High score to beat: ${board.best}.`) : ''}</>}</p>
                   <div style={{ display: 'flex', gap: 10, justifyContent: 'center', flexWrap: 'wrap' }}>
                     <button onClick={() => { setGameOverDismissed(true); setTab('stats'); }} style={{ fontFamily: MONO, fontSize: 12, letterSpacing: '0.12em', textTransform: 'uppercase', fontWeight: 700, padding: '13px 22px', border: 'none', background: COLORS.ember, color: '#fff', cursor: 'pointer' }}>See results</button>
                     <button onClick={() => window.location.reload()} style={{ fontFamily: MONO, fontSize: 12, letterSpacing: '0.12em', textTransform: 'uppercase', fontWeight: 700, padding: '13px 22px', border: `1.5px solid ${COLORS.ink}`, background: 'transparent', color: COLORS.ink, cursor: 'pointer' }}>Play again</button>

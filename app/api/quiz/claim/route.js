@@ -8,6 +8,12 @@ export const fetchCache = 'force-no-store';
 function summarize(rows) {
   const plays = rows.length;
   const best = plays ? Math.max(...rows.map((r) => r.score)) : null;
+  // Fastest time recorded AT the best score, across ALL completed plays
+  // (anonymous included, not just the signed-up leaderboard). Lets the client
+  // tell whether a finished run is the outright #1 (top score, fastest time).
+  const topTime = best != null
+    ? Math.min(...rows.filter((r) => r.score === best).map((r) => (r.time_elapsed ?? Infinity)))
+    : null;
   // Signed-up players only, but EVERY qualifying play is listed (a single
   // player can appear more than once). Top 10 by score desc, then fastest time.
   // try_num = that player's chronological attempt number (by row id).
@@ -25,7 +31,7 @@ function summarize(rows) {
     .sort((a, b) => b.score - a.score || a.time_elapsed - b.time_elapsed || (a.username || '').localeCompare(b.username || ''))
     .slice(0, 10)
     .map((r) => ({ username: r.username, score: r.score, timeElapsed: r.time_elapsed, tryNum: tryOf.get(r) }));
-  return { plays, best, leaderboard };
+  return { plays, best, topTime: Number.isFinite(topTime) ? topTime : null, leaderboard };
 }
 
 // POST /api/quiz/claim  { quizId, resultId, username, email?, anonId }

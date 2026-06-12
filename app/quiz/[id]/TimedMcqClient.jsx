@@ -102,7 +102,7 @@ export default function TimedMcqClient({ quizId }) {
   const [lastElapsed, setLastElapsed] = useState(null);
 
   const [stats, setStats] = useState({ attempts: 0, best: 0, totalCorrect: 0 });
-  const [board, setBoard] = useState({ plays: 0, best: null, leaderboard: [] });
+  const [board, setBoard] = useState({ plays: 0, best: null, topTime: null, leaderboard: [] });
   const [identity, setIdentity] = useState(null);
 
   // Join form
@@ -131,11 +131,15 @@ export default function TimedMcqClient({ quizId }) {
 
   const points = results.reduce((s, r) => s + (r.pts || 0), 0);
   const answeredCount = results.length;
+  // Outright #1 across ALL completed plays (anonymous included): this run holds
+  // the best points total AND ties/beats the fastest time recorded at it.
+  const isTopScore = phase === 'done' && board.best != null && lastElapsed != null
+    && points === board.best && board.topTime != null && lastElapsed <= board.topTime;
 
   function refreshBoard() {
     fetch(`/api/quiz/board?quizId=${encodeURIComponent(quizId)}`)
       .then((r) => r.json())
-      .then((d) => { if (d && !d.error) setBoard({ plays: d.plays || 0, best: d.best ?? null, leaderboard: d.leaderboard || [] }); })
+      .then((d) => { if (d && !d.error) setBoard({ plays: d.plays || 0, best: d.best ?? null, topTime: d.topTime ?? null, leaderboard: d.leaderboard || [] }); })
       .catch(() => {});
   }
 
@@ -235,7 +239,7 @@ export default function TimedMcqClient({ quizId }) {
         body: JSON.stringify({ quizId, score: finalPoints, total: maxPoints, timeElapsed: elapsed, email: identity?.email || undefined }),
       })
         .then((r) => r.json())
-        .then((d) => { if (d && !d.error) setBoard({ plays: d.plays || 0, best: d.best ?? null, leaderboard: d.leaderboard || [] }); })
+        .then((d) => { if (d && !d.error) setBoard({ plays: d.plays || 0, best: d.best ?? null, topTime: d.topTime ?? null, leaderboard: d.leaderboard || [] }); })
         .catch(() => {});
       return prev;
     });
@@ -485,7 +489,7 @@ export default function TimedMcqClient({ quizId }) {
                   </div>
                   <div style={{ fontFamily: SERIF, fontWeight: 800, fontSize: 44, lineHeight: 1, marginBottom: 6 }}>{points}<span style={{ fontSize: 24, color: COLORS.faded }}>/{maxPoints}</span></div>
                   <div style={{ fontFamily: SERIF, fontWeight: 700, fontSize: 20, lineHeight: 1.15, marginBottom: 10 }}>
-                    {results.filter((r) => r.correct).length} of {total} right · you beat {percentile(points, maxPoints)}% of players
+                    {results.filter((r) => r.correct).length} of {total} right · {isTopScore ? 'you are the top score' : `you beat ${percentile(points, maxPoints)}% of players`}
                   </div>
                   <p style={{ fontFamily: SANS, fontSize: 15, color: '#4a4339', maxWidth: 440, margin: '0 auto 18px' }}>
                     {board.best != null ? (points >= board.best ? `That is the high score to beat.` : `The high score to beat is ${board.best}.`) : 'Be the first to set the pace.'}
