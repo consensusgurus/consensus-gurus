@@ -9,6 +9,7 @@ import Footer from '../../Footer';
 import dynamic from 'next/dynamic';
 
 const MapQuizBoard = dynamic(() => import('./MapQuizBoard'), { ssr: false, loading: () => null });
+const MatchQuizBoard = dynamic(() => import('./MatchQuizBoard'), { ssr: false, loading: () => null });
 
 function shuffleIdx(n) {
   const a = [...Array(n).keys()];
@@ -116,11 +117,12 @@ export default function QuizClient({ quizId }) {
   const total = answers.length;
   const matched = quiz.format === 'matched';
   const mapMode = quiz.format === 'map';
+  const pairsMode = quiz.format === 'pairs';
   const ordered = matched && quiz.ordered === true;
   // The "reveal the answers" gate is only for quizzes with no companion list and
   // no map board (the plain "table" quizzes). List quizzes already send you to
   // the full ranking to see misses; map quizzes have no table to fill in.
-  const canReveal = !quiz.listId && !mapMode;
+  const canReveal = !quiz.listId && !mapMode && !pairsMode;
   const relatedQuizzes = (() => {
     const d = deptOf(quiz);
     let r = QUIZZES.filter((x) => x.id !== quiz.id && deptOf(x) === d);
@@ -141,6 +143,9 @@ export default function QuizClient({ quizId }) {
   const [flash, setFlash] = useState(null);
   const [guessesLeft, setGuessesLeft] = useState(null);
   const [lastElapsed, setLastElapsed] = useState(null);
+  const [pairsMatched, setPairsMatched] = useState(0);
+  const [pairsErrors, setPairsErrors] = useState(0);
+  const pairsMatchedRef = useRef(0);
 
   const [stats, setStats] = useState({ attempts: 0, best: 0, totalCorrect: 0 });
   const [board, setBoard] = useState({ plays: 0, best: null, leaderboard: [] });
@@ -187,6 +192,7 @@ export default function QuizClient({ quizId }) {
   }, []);
 
   const score = found.filter(Boolean).length;
+  const dispScore = pairsMode ? pairsMatched : score;
   const activeIdx = found.findIndex((x) => !x);
   const foundNamesSet = mapMode ? new Set(answers.filter((a, i) => found[i]).map((a) => a.t)) : null;
 
@@ -218,11 +224,11 @@ export default function QuizClient({ quizId }) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [quizId]);
 
-  function endGame(win, foundOverride) {
+  function endGame(win, foundOverride, scoreOverride) {
     if (ended) return;
     setEnded(true);
     clearInterval(timerRef.current);
-    const finalScore = (foundOverride || found).filter(Boolean).length;
+    const finalScore = scoreOverride != null ? scoreOverride : pairsMode ? pairsMatchedRef.current : (foundOverride || found).filter(Boolean).length;
     const elapsed = startRef.current ? Math.min(quiz.timeLimit, Math.round((Date.now() - startRef.current) / 1000)) : quiz.timeLimit;
     setLastElapsed(elapsed);
     setStats(recordResult(quizId, finalScore));
@@ -288,6 +294,8 @@ export default function QuizClient({ quizId }) {
       setCurName(answers[ord[0]].t);
       setGuessesLeft(total);
       setHint(`Find ${answers[ord[0]].t} — click it. You get ${total} guesses, one per country.`);
+    } else if (pairsMode) {
+      setHint('Pick a slogan, then the company it belongs to.');
     } else {
       setHint(ordered ? 'Go — answer in order, from the top.' : matched ? "Go — name each year's winner." : 'Go — name them all.');
     }
@@ -440,6 +448,27 @@ export default function QuizClient({ quizId }) {
     setHintBad(false);
   }
 
+  function onPairMatch(companyIndex, matchedCount, company, slogan) {
+    pairsMatchedRef.current = matchedCount;
+    setPairsMatched(matchedCount);
+    setHint(`Match — ${company}: “${slogan}”.`);
+    setHintBad(false);
+  }
+  function onPairError(errorCount, company) {
+    setPairsErrors(errorCount);
+    setHint(`Not it. ${company} is struck out for good.`);
+    setHintBad(true);
+  }
+  function onPairHint(msg, bad) {
+    setHint(msg);
+    setHintBad(!!bad);
+  }
+  function onPairEnd(win, matchedCount) {
+    pairsMatchedRef.current = matchedCount;
+    setPairsMatched(matchedCount);
+    endGame(win, null, matchedCount);
+  }
+
   async function submitJoin() {
     setJoinErr(false);
     if (!jName.trim() || jName.trim().length > 40) { setJoinErr(true); setJoinMsg('Pick a username (max 40 characters).'); return; }
@@ -489,7 +518,7 @@ export default function QuizClient({ quizId }) {
   const shareUrl = typeof window !== 'undefined' ? window.location.href : `https://sourceoftruths.com/quiz/${quiz.id}`;
   function share() {
     const text = ended
-      ? `I named ${score}/${total} on "${quiz.title}" at Source of Truths. Can you beat me?`
+      ? `I named ${dispScore}/${total} on "${quiz.title}" at Source of Truths. Can you beat me?`
       : `Can you name the ${total}? "${quiz.title}" at Source of Truths.`;
     if (navigator.share) {
       navigator.share({ title: quiz.title, text, url: shareUrl }).catch(() => {});
@@ -611,8 +640,8 @@ export default function QuizClient({ quizId }) {
                 <div style={{ flexBasis: '100%', maxWidth: 420, margin: '0 auto' }}>
                   <p style={{ fontFamily: SANS, fontSize: 13, color: '#4a4339', margin: '0 0 10px', textAlign: 'center' }}>
                     {canReveal
-                      ? `Create a username and add your email to reveal the answers you missed. It also posts this ${score}/${total} to the leaderboard. No password needed, and reusing the same email later keeps you attached.`
-                      : `Add a name and email to post this ${score}/${total} to the leaderboard. No password needed, and reusing the same email later keeps you attached.`}
+                      ? `Create a username and add your email to reveal the answers you missed. It also posts this ${dispScore}/${total} to the leaderboard. No password needed, and reusing the same email later keeps you attached.`
+                      : `Add a name and email to post this ${dispScore}/${total} to the leaderboard. No password needed, and reusing the same email later keeps you attached.`}
                   </p>
                   <input value={jName} onChange={(e) => setJName(e.target.value)} maxLength={40} placeholder="Username" style={fieldStyle} />
                   <input value={jEmail} onChange={(e) => setJEmail(e.target.value)} type="email" placeholder="you@email.com" style={{ ...fieldStyle, marginTop: 10 }} />
@@ -635,13 +664,18 @@ export default function QuizClient({ quizId }) {
           <>
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', alignItems: 'center', background: COLORS.paper, border: `1px solid ${COLORS.faded}33`, padding: '16px 8px', marginBottom: 16 }}>
               <div style={{ textAlign: 'center', padding: '0 8px' }}>
-                <div style={{ fontFamily: SERIF, fontWeight: 800, fontSize: 34, lineHeight: 1 }}>{score}<span style={{ fontSize: 20, color: COLORS.faded }}>/{total}</span></div>
+                <div style={{ fontFamily: SERIF, fontWeight: 800, fontSize: 34, lineHeight: 1 }}>{dispScore}<span style={{ fontSize: 20, color: COLORS.faded }}>/{total}</span></div>
                 <div style={{ fontFamily: MONO, fontSize: 11, letterSpacing: '0.12em', textTransform: 'uppercase', color: COLORS.faded }}>Your score</div>
               </div>
               {mapMode ? (
               <div style={{ textAlign: 'center', padding: '0 8px', borderLeft: `1px solid ${COLORS.faded}33` }}>
                 <div style={{ fontFamily: SERIF, fontWeight: 800, fontSize: 34, lineHeight: 1, color: (guessesLeft == null ? total : guessesLeft) <= 3 && started && !ended ? COLORS.ember : COLORS.ink }}>{guessesLeft == null ? total : guessesLeft}</div>
                 <div style={{ fontFamily: MONO, fontSize: 11, letterSpacing: '0.12em', textTransform: 'uppercase', color: COLORS.faded }}>Guesses left</div>
+              </div>
+              ) : pairsMode ? (
+              <div style={{ textAlign: 'center', padding: '0 8px', borderLeft: `1px solid ${COLORS.faded}33` }}>
+                <div style={{ fontFamily: SERIF, fontWeight: 800, fontSize: 34, lineHeight: 1, color: pairsErrors > 0 ? COLORS.ember : COLORS.ink }}>{pairsErrors}</div>
+                <div style={{ fontFamily: MONO, fontSize: 11, letterSpacing: '0.12em', textTransform: 'uppercase', color: COLORS.faded }}>Errors</div>
               </div>
               ) : (
               <div style={{ textAlign: 'center', padding: '0 8px', borderLeft: `1px solid ${COLORS.faded}33` }}>
@@ -656,7 +690,7 @@ export default function QuizClient({ quizId }) {
             </div>
 
             <div style={{ display: 'flex', gap: 10, marginBottom: 6 }}>
-              {!mapMode && (!matched || ordered) && (
+              {!mapMode && !pairsMode && (!matched || ordered) && (
                 <input
                   ref={inputRef}
                   value={guess}
@@ -668,13 +702,15 @@ export default function QuizClient({ quizId }) {
                   style={{ flex: 1, fontFamily: SANS, fontSize: 17, padding: '14px 16px', border: `1.5px solid ${COLORS.ink}`, background: !started || ended ? COLORS.paper : '#fff', color: COLORS.ink, opacity: !started || ended ? 0.5 : 1 }}
                 />
               )}
-              <button onClick={start} disabled={started || ended} style={{ flex: (matched && !ordered) || mapMode ? 1 : 'none', fontFamily: MONO, fontSize: 13, letterSpacing: '0.08em', textTransform: 'uppercase', fontWeight: 700, padding: '0 22px', height: matched || mapMode ? 52 : 'auto', border: 'none', background: COLORS.ember, color: '#fff', cursor: started || ended ? 'default' : 'pointer', opacity: started || ended ? 0.5 : 1 }}>
+              <button onClick={start} disabled={started || ended} style={{ flex: (matched && !ordered) || mapMode || pairsMode ? 1 : 'none', fontFamily: MONO, fontSize: 13, letterSpacing: '0.08em', textTransform: 'uppercase', fontWeight: 700, padding: '0 22px', height: matched || mapMode || pairsMode ? 52 : 'auto', border: 'none', background: COLORS.ember, color: '#fff', cursor: started || ended ? 'default' : 'pointer', opacity: started || ended ? 0.5 : 1 }}>
                 {ended ? 'Done' : started ? 'Playing' : (matched && !ordered) ? 'Play — name each year' : 'Play'}
               </button>
             </div>
             <div style={{ fontFamily: MONO, fontSize: 12, minHeight: 18, marginBottom: 20, color: hintBad ? COLORS.ember : COLORS.faded }}>{hint}</div>
 
-            {mapMode ? (
+            {pairsMode ? (
+            <MatchQuizBoard pairs={quiz.pairs} started={started} ended={ended} onMatch={onPairMatch} onError={onPairError} onEnd={onPairEnd} onHint={onPairHint} />
+            ) : mapMode ? (
             <div>
               <div style={{ display: 'flex', alignItems: 'center', gap: 12, background: started && !ended ? COLORS.ink : COLORS.paper, color: started && !ended ? COLORS.cream : COLORS.faded, border: `1px solid ${COLORS.faded}33`, padding: '12px 16px', marginBottom: 10, minHeight: 30 }}>
                 <span style={{ fontFamily: MONO, fontSize: 11, letterSpacing: '0.2em', textTransform: 'uppercase', opacity: 0.7, flex: 'none' }}>Find</span>
@@ -747,10 +783,10 @@ export default function QuizClient({ quizId }) {
 
             {ended && (
               <div style={{ marginTop: 22, padding: 24, border: `1.5px solid ${COLORS.ink}`, background: COLORS.paper, textAlign: 'center' }}>
-                <div style={{ fontFamily: MONO, fontSize: 12, letterSpacing: '0.16em', textTransform: 'uppercase', color: COLORS.ember, marginBottom: 8 }}>{score === total ? 'Perfect score' : time <= 0 ? 'Time!' : 'Gave up'}</div>
-                <div style={{ fontFamily: SERIF, fontWeight: 700, fontSize: 26, lineHeight: 1.1, marginBottom: 10 }}>{score} of {total} · you beat {percentile(score, total)}% of players</div>
+                <div style={{ fontFamily: MONO, fontSize: 12, letterSpacing: '0.16em', textTransform: 'uppercase', color: COLORS.ember, marginBottom: 8 }}>{dispScore === total ? 'Perfect score' : time <= 0 ? 'Time!' : pairsMode ? 'Out of moves' : 'Gave up'}</div>
+                <div style={{ fontFamily: SERIF, fontWeight: 700, fontSize: 26, lineHeight: 1.1, marginBottom: 10 }}>{dispScore} of {total} · you beat {percentile(dispScore, total)}% of players</div>
                 <p style={{ fontFamily: SANS, fontSize: 15, color: '#4a4339', maxWidth: 440, margin: '0 auto 18px' }}>
-                  {board.best != null ? (score >= board.best ? `That matches the high score of ${board.best}.` : `The high score to beat is ${board.best}.`) : 'Be the first to set the pace.'}
+                  {board.best != null ? (dispScore >= board.best ? `That matches the high score of ${board.best}.` : `The high score to beat is ${board.best}.`) : 'Be the first to set the pace.'}
                   {quiz.listId ? ' See the ones you missed in the full ranking, with sources and the consensus breakdown.' : canReveal ? (revealed ? ' The ones you missed are filled in above, highlighted.' : ' Create a username above to reveal the ones you missed.') : ''}
                 </p>
               </div>
@@ -826,7 +862,7 @@ export default function QuizClient({ quizId }) {
         {/* ── SHARE ── */}
         {tab === 'share' && (
           <div style={{ textAlign: 'center', padding: '12px 0 8px' }}>
-            <p style={{ fontFamily: SERIF, fontStyle: 'italic', fontSize: 19, color: COLORS.ink, maxWidth: 480, margin: '0 auto 20px' }}>{ended ? `You named ${score} of ${total}. Challenge someone to beat it.` : 'Send this quiz to someone who thinks they can name them all.'}</p>
+            <p style={{ fontFamily: SERIF, fontStyle: 'italic', fontSize: 19, color: COLORS.ink, maxWidth: 480, margin: '0 auto 20px' }}>{ended ? `You named ${dispScore} of ${total}. Challenge someone to beat it.` : 'Send this quiz to someone who thinks they can name them all.'}</p>
             <button onClick={share} style={{ fontFamily: MONO, fontSize: 13, letterSpacing: '0.08em', textTransform: 'uppercase', fontWeight: 700, padding: '0 28px', lineHeight: '46px', border: 'none', background: COLORS.ember, color: '#fff', cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: 8 }}>
               <Share2 size={14} strokeWidth={2.5} /> {copied ? 'Link copied!' : 'Share this quiz'}
             </button>

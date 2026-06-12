@@ -1,0 +1,190 @@
+'use client';
+
+import React, { useMemo, useState } from 'react';
+
+// Two-column matching board (the `pairs` quiz format). The LEFT column holds the
+// slogans (the prompt you pick first); the RIGHT column holds the companies (the
+// answer). Pick a slogan, then the company it belongs to. A wrong company is
+// struck through and locked for good — and because every wrong pick buries one
+// company's only correct answer, the final matched count is exactly
+// (total − errors) at a natural end, so "score = matched" ranks fewest errors
+// first. The board owns its interaction state and reports up to QuizClient via
+// callbacks, mirroring how MapQuizBoard reports picks.
+
+const COLORS = {
+  cream: '#f4ede0',
+  paper: '#ebe2d0',
+  ink: '#1a1611',
+  ember: '#c0392b',
+  rust: '#a44a26',
+  forest: '#3d4f2b',
+  faded: '#7a6f5e',
+};
+const MONO = 'DM Mono, monospace';
+const SERIF = 'Fraunces, serif';
+const SANS = 'DM Sans, sans-serif';
+
+function shuffle(arr) {
+  const a = arr.slice();
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [a[i], a[j]] = [a[j], a[i]];
+  }
+  return a;
+}
+
+export default function MatchQuizBoard({ pairs, started, ended, onMatch, onError, onEnd, onHint }) {
+  // index i is the canonical pair id: pairs[i] === [company, slogan].
+  const leftOrder = useMemo(() => shuffle(pairs.map((_, i) => i)), [pairs]); // slogans
+  const rightOrder = useMemo(() => shuffle(pairs.map((_, i) => i)), [pairs]); // companies
+  const [sel, setSel] = useState(null); // selected slogan pair id (left), or null
+  const [matched, setMatched] = useState(() => new Set()); // matched pair ids
+  const [dead, setDead] = useState(() => new Set()); // companies (right) struck out
+  const [errors, setErrors] = useState(0);
+  const [tray, setTray] = useState([]); // [{ slogan, company }]
+
+  const live = started && !ended;
+
+  function hasMovesLeft(matchedSet, deadSet) {
+    for (let i = 0; i < pairs.length; i++) {
+      if (!matchedSet.has(i) && !deadSet.has(i)) return true;
+    }
+    return false;
+  }
+
+  function clickSlogan(i) {
+    if (!live || matched.has(i)) return;
+    setSel(i);
+    if (onHint) onHint(`Now pick the company behind “${pairs[i][1]}”.`, false);
+  }
+
+  function clickCompany(j) {
+    if (!live || dead.has(j) || matched.has(j)) return;
+    if (sel == null) {
+      if (onHint) onHint('Pick a slogan on the left first.', true);
+      return;
+    }
+    if (sel === j) {
+      const nm = new Set(matched);
+      nm.add(j);
+      setMatched(nm);
+      setTray((t) => [...t, { slogan: pairs[j][1], company: pairs[j][0] }]);
+      setSel(null);
+      if (onMatch) onMatch(j, nm.size, pairs[j][0], pairs[j][1]);
+      if (nm.size === pairs.length && onEnd) onEnd(true, nm.size);
+    } else {
+      const nd = new Set(dead);
+      nd.add(j);
+      setDead(nd);
+      const ne = errors + 1;
+      setErrors(ne);
+      setSel(null);
+      if (onError) onError(ne, pairs[j][0]);
+      if (!hasMovesLeft(matched, nd) && onEnd) onEnd(false, matched.size);
+    }
+  }
+
+  const cellBase = {
+    textAlign: 'left',
+    width: '100%',
+    boxSizing: 'border-box',
+    fontFamily: SANS,
+    fontSize: 14,
+    lineHeight: 1.3,
+    padding: '11px 13px',
+    background: '#fff',
+    border: `1px solid ${COLORS.faded}55`,
+    color: COLORS.ink,
+    borderRadius: 0,
+    transition: 'all .12s',
+    cursor: live ? 'pointer' : 'default',
+  };
+
+  const colHead = {
+    fontFamily: MONO,
+    fontSize: 10,
+    letterSpacing: '0.18em',
+    textTransform: 'uppercase',
+    color: COLORS.ember,
+    marginBottom: 8,
+  };
+
+  return (
+    <div>
+      {tray.length > 0 && (
+        <div style={{ marginBottom: 16, background: '#fff', border: `1px solid ${COLORS.forest}66`, padding: '12px 14px' }}>
+          <div style={{ fontFamily: MONO, fontSize: 10, letterSpacing: '0.18em', textTransform: 'uppercase', color: COLORS.forest, marginBottom: 8 }}>
+            Matched · {tray.length}
+          </div>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 5 }}>
+            {tray.map((m, k) => (
+              <div key={k} style={{ fontFamily: SANS, fontSize: 12.5, display: 'flex', gap: 8, alignItems: 'baseline', flexWrap: 'wrap' }}>
+                <span style={{ color: COLORS.forest, fontWeight: 700 }}>&#10003;</span>
+                <span style={{ fontStyle: 'italic', color: '#4a4339' }}>&ldquo;{m.slogan}&rdquo;</span>
+                <span style={{ color: COLORS.faded }}>&rarr;</span>
+                <span style={{ fontWeight: 700 }}>{m.company}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14, alignItems: 'start' }}>
+        <div>
+          <div style={colHead}>Slogans</div>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+            {leftOrder.map((i) => {
+              if (matched.has(i)) return null;
+              const isSel = sel === i;
+              return (
+                <button
+                  key={i}
+                  type="button"
+                  onClick={() => clickSlogan(i)}
+                  disabled={!live}
+                  style={{
+                    ...cellBase,
+                    borderColor: isSel ? COLORS.ember : `${COLORS.faded}55`,
+                    boxShadow: isSel ? `inset 0 0 0 1px ${COLORS.ember}` : 'none',
+                    fontStyle: 'italic',
+                  }}
+                >
+                  {pairs[i][1]}
+                </button>
+              );
+            })}
+          </div>
+        </div>
+
+        <div>
+          <div style={colHead}>Companies</div>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+            {rightOrder.map((j) => {
+              if (matched.has(j)) return null;
+              const isDead = dead.has(j);
+              return (
+                <button
+                  key={j}
+                  type="button"
+                  onClick={() => clickCompany(j)}
+                  disabled={!live || isDead}
+                  style={{
+                    ...cellBase,
+                    fontWeight: 500,
+                    textDecoration: isDead ? 'line-through' : 'none',
+                    color: isDead ? COLORS.faded : COLORS.ink,
+                    opacity: isDead ? 0.5 : 1,
+                    background: isDead ? COLORS.paper : '#fff',
+                    cursor: isDead || !live ? 'default' : 'pointer',
+                  }}
+                >
+                  {pairs[j][0]}
+                </button>
+              );
+            })}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
