@@ -42,6 +42,7 @@ export async function POST(request) {
     const body = (await request.json()) || {};
     const quizId = typeof body.quizId === 'string' ? body.quizId.trim() : '';
     const { score, total, timeElapsed, email } = body;
+    const anonId = typeof body.anonId === 'string' && body.anonId.trim() ? body.anonId.trim().slice(0, 64) : null;
 
     if (!quizId || quizId.length > 100) {
       return NextResponse.json({ error: 'quizId required' }, { status: 400 });
@@ -67,14 +68,27 @@ export async function POST(request) {
       }
     }
 
-    const { data: inserted, error: insErr } = await supabaseAdmin.from('quiz_results').insert({
+    const baseRow = {
       quiz_id: quizId,
       user_id,
       username,
       score,
       total,
       time_elapsed: timeElapsed,
-    }).select('id').single();
+    };
+    let { data: inserted, error: insErr } = await supabaseAdmin
+      .from('quiz_results')
+      .insert({ ...baseRow, anon_id: anonId })
+      .select('id')
+      .single();
+    // Graceful fallback until migration 22 adds the anon_id column.
+    if (insErr && insErr.code === '42703') {
+      ({ data: inserted, error: insErr } = await supabaseAdmin
+        .from('quiz_results')
+        .insert(baseRow)
+        .select('id')
+        .single());
+    }
     if (insErr) {
       console.error('quiz_results insert error', insErr);
       return NextResponse.json({ error: 'db error' }, { status: 500 });

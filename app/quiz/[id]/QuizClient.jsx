@@ -102,6 +102,25 @@ function recordResult(id, score) {
   } catch {}
   return next;
 }
+// Stable per-browser anonymous id. Sent with every result and used on join/claim
+// to link games played BEFORE signing up to the new account, so warm-up runs
+// can't be hidden to fake a "1st Try" high score.
+function getAnonId() {
+  if (typeof window === 'undefined') return null;
+  try {
+    let a = localStorage.getItem('sot_quiz_anon');
+    if (!a) {
+      a = (window.crypto && crypto.randomUUID)
+        ? crypto.randomUUID()
+        : `a_${Date.now()}_${Math.random().toString(36).slice(2)}`;
+      localStorage.setItem('sot_quiz_anon', a);
+    }
+    return a;
+  } catch {
+    return null;
+  }
+}
+
 function percentile(score, total) {
   const frac = total ? score / total : 0;
   return Math.round(Math.min(99, Math.max(2, Math.pow(frac, 1.35) * 100)));
@@ -254,7 +273,7 @@ export default function QuizClient({ quizId }) {
     fetch('/api/quiz/result', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ quizId, score: finalScore, total, timeElapsed: elapsed, email: identity?.email || undefined }),
+      body: JSON.stringify({ quizId, score: finalScore, total, timeElapsed: elapsed, email: identity?.email || undefined, anonId: getAnonId() }),
     })
       .then((r) => r.json())
       .then((d) => { if (d && !d.error) { setBoard({ plays: d.plays || 0, best: d.best ?? null, leaderboard: d.leaderboard || [] }); setLastResultId(d.resultId ?? null); } })
@@ -272,7 +291,7 @@ export default function QuizClient({ quizId }) {
       const res = await fetch('/api/quiz/claim', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ quizId, resultId: lastResultId, username: jName.trim(), email: jEmail.trim() }),
+        body: JSON.stringify({ quizId, resultId: lastResultId, username: jName.trim(), email: jEmail.trim(), anonId: getAnonId() }),
       });
       const d = await res.json();
       if (d.error) { setClaimErr(true); setClaimMsg(d.error); setClaimBusy(false); return; }
@@ -491,7 +510,7 @@ export default function QuizClient({ quizId }) {
       const res = await fetch('/api/quiz/join', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ username: jName.trim(), email: jEmail.trim() }),
+        body: JSON.stringify({ username: jName.trim(), email: jEmail.trim(), anonId: getAnonId() }),
       });
       const d = await res.json();
       if (d.error) { setJoinErr(true); setJoinMsg(d.error); setJoinBusy(false); return; }
@@ -499,7 +518,8 @@ export default function QuizClient({ quizId }) {
       try { localStorage.setItem('sot_quiz_identity', JSON.stringify(id)); } catch {}
       setIdentity(id);
       setJoinErr(false);
-      setJoinMsg(`You're in. "${d.username}" will appear on the leaderboard once you finish a game.`);
+      refreshBoard();
+      setJoinMsg(`You're in. "${d.username}" is on the leaderboard, including any games you already finished.`);
       setTab('stats');
     } catch (e) {
       setJoinErr(true);

@@ -6,6 +6,24 @@ export const fetchCache = 'force-no-store';
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
+// Best-effort: attribute EVERY unattributed game this browser played (matched by
+// its persistent anon_id, across all quizzes) to the freshly-identified user.
+// This is what closes the "warm up anonymously, then claim a great run as 1st
+// Try" loophole: the earlier anonymous attempts get linked too, so they count
+// toward the per-user attempt number. No-ops cleanly until migration 22 adds the
+// anon_id column.
+async function attributeAnonGames(admin, anonId, user) {
+  if (!anonId || !user) return;
+  const { error } = await admin
+    .from('quiz_results')
+    .update({ user_id: user.id, username: user.username })
+    .eq('anon_id', anonId)
+    .is('user_id', null);
+  if (error && error.code !== '42703') {
+    console.error('attribute anon games error', error);
+  }
+}
+
 function summarize(rows) {
   const plays = rows.length;
   const best = plays ? Math.max(...rows.map((r) => r.score)) : null;
@@ -44,6 +62,7 @@ export async function POST(request) {
     const resultId = Number.isInteger(body.resultId) ? body.resultId : null;
     const username = typeof body.username === 'string' ? body.username.trim() : '';
     const email = typeof body.email === 'string' ? body.email.trim() : '';
+    const anonId = typeof body.anonId === 'string' && body.anonId.trim() ? body.anonId.trim().slice(0, 64) : null;
 
     if (!quizId || quizId.length > 100) {
       return NextResponse.json({ error: 'quizId required' }, { status: 400 });
@@ -120,6 +139,9 @@ export async function POST(request) {
       console.error('quiz claim attribute error', updErr);
       return NextResponse.json({ error: 'Could not post right now.' }, { status: 500 });
     }
+
+    // Also link every earlier anonymous game from this browser to the user.
+    await attributeAnonGames(supabaseAdmin, anonId, user);
 
     const { data } = await supabaseAdmin
       .from('quiz_results')
