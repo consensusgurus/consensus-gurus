@@ -2072,3 +2072,79 @@ Build all four files' fragments programmatically and splice into FETCH_HEAD copi
 + descriptions.js + hero-images.js), `node --check` each, then deploy as ONE multi-file commit per the
 Deploy section. Facts-mode lists have no consensus movement, so SKIP the consensus-check cron ping; DO
 ping IndexNow for each new `/list/<id>` (and the `/quiz/<id>`) URL after the Vercel deploy is live.
+
+## Quiz formats: adding a new one (e.g. timed multiple-choice)
+
+Quizzes live in `lib/quizzes.js` (the `QUIZZES` array, read by `getQuiz`) and render at `/quiz/[id]`
+through `app/quiz/[id]/QuizClient.jsx`. QuizClient is the shared shell: header, sticky ribbon tabs
+(Play / Stats / Share / Join the Leaderboard / Critique), the personal-stats + leaderboard panel, the
+share UI, the join form, and the "Comments? Questions?" modal that posts to `/api/complaints`. A quiz's
+`format` field selects how the Play area renders. Default (no `format`) is the name-them-all text quiz;
+specialised formats dispatch to a dedicated board:
+
+- `format: 'map'` -> `MapQuizBoard` (click-the-country geography board)
+- `format: 'matched'` / `'pairs'` -> `MatchQuizBoard`
+- `format: 'timed-mcq'` -> `TimedMcqClient` (full-page timed multiple-choice; first added 2026-06-12)
+
+The shared quiz APIs (reuse them, do not invent new ones): POST `/api/quiz/view` once per page load
+(analytics); GET `/api/quiz/board?quizId=<id>` -> `{ plays, best, leaderboard }`; POST
+`/api/quiz/result { quizId, score, total, timeElapsed, email? }` to record a finished game; POST
+`/api/quiz/join { username, email }` for the leaderboard sign-up; POST `/api/complaints` for the
+critique modal. The leaderboard ranks by `score` DESC then `timeElapsed` ASC, and `best` is the high
+score, so any format that maps its result onto an integer `score` (with `0 <= score <= total <= 1000`)
+slots into the existing board with no backend change. The page identity is stored in
+`localStorage.sot_quiz_identity`; personal stats live under `sot_quiz_<id>`.
+
+### Steps to add a format
+
+1. **Build the board/component in `app/quiz/[id]/`.** Two patterns: a *partial board* (rendered inside
+   the QuizClient shell, like `MapQuizBoard`) when the format reuses the shell's clock and scoreboard;
+   or a *full-page client* (like `TimedMcqClient`) when the format needs its own scoreboard, timer, and
+   flow. The full-page client renders its own `Grain`/`Footer`/header/ribbon and reuses the same APIs
+   and visual tokens (the `COLORS`/`MONO`/`SERIF`/`SANS` constants), so it stays on-brand.
+2. **Dispatch in `QuizClient.jsx`.** Dynamic-import the component next to the other boards
+   (`const TimedMcqBoard = dynamic(() => import('./TimedMcqClient'), { ssr: false, loading: () => null });`)
+   and add an early return for the format placed with the `if (!quiz)` return, BEFORE the line
+   `const answers = quiz.answers;` (that line throws for any format without an `answers` array):
+   `if (quiz.format === 'timed-mcq') return <TimedMcqBoard quizId={quizId} />;`. The early return is
+   safe with rules-of-hooks because `format` is stable for a mounted quizId, exactly like the existing
+   `if (!quiz)` return.
+3. **Metadata and social cards need no change.** `app/quiz/[id]/page.js` (`generateMetadata`) and
+   `opengraph-image.js` are already format-agnostic, they use only `quiz.title` and `quiz.blurb`. As
+   long as a new format object carries a title and blurb, the share card and `<head>` are correct.
+4. **No separate registration.** `/quizzes` lists every entry in `QUIZZES` automatically.
+
+### Timed multiple-choice (`format: 'timed-mcq'`) data shape and scoring
+
+```
+{
+  id, publishedDate, publishedAt, title, category, type, tags,
+  format: 'timed-mcq',
+  perQuestionTime: 30,        // seconds per question
+  maxPerQuestion: 30,         // points for an instant-correct answer
+  timeLimit: 300,             // = perQuestionTime * questions (kept for legacy readers)
+  blurb,
+  source,                     // optional attribution line
+  questions: [
+    { q: 'Question text?', choices: ['A','B','C','D'], correct: 2, note: 'One-line reveal explainer.' },
+    // ...exactly the count you want; 10 is the house default
+  ],
+}
+```
+
+- **Scoring is linear time-decay.** Each question is worth up to `maxPerQuestion`, falling linearly
+  over `perQuestionTime`: answer instantly and bank the full points, answer at the buzzer and bank ~1
+  (correct answers are floored at 1 so a slow-but-right answer still beats a wrong one), a wrong pick
+  or a timeout banks 0. The game maximum is `questions * maxPerQuestion` (300 for the standard 10 x 30)
+  and is reachable only in theory. The final point total is what gets posted as `score`, with `total`
+  set to that maximum, so the leaderboard reads e.g. `247/300`.
+- **`correct` is the 0-based index into `choices`.** VARY it across questions, never leave every answer
+  at the same position (all-A is an instant tell). Shuffle each question's options before shipping.
+- **News quizzes are dated.** Use a dated `id` and `title` (e.g. `weekly-business-quiz-2026-06-12`,
+  "Weekly Business Quiz 6/12/26") so each week's leaderboard stays separate; set `publishedAt` at push
+  time per the Deploy rules. Gather every fact from live, citable sources (filings, Bloomberg, Reuters)
+  and write a one-line `note` per question so the reveal teaches.
+- **Component reference:** `app/quiz/[id]/TimedMcqClient.jsx`. It owns the per-question countdown, the
+  decaying live point meter, the four-option board with correct/wrong reveal, the per-question recap on
+  the results card, and the Stats/Share/Join/Critique tabs. Posts `score` (points) / `total` (max) to
+  the shared result API.

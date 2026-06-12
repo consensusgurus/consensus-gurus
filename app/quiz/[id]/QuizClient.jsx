@@ -10,6 +10,7 @@ import dynamic from 'next/dynamic';
 
 const MapQuizBoard = dynamic(() => import('./MapQuizBoard'), { ssr: false, loading: () => null });
 const MatchQuizBoard = dynamic(() => import('./MatchQuizBoard'), { ssr: false, loading: () => null });
+const TimedMcqBoard = dynamic(() => import('./TimedMcqClient'), { ssr: false, loading: () => null });
 
 function shuffleIdx(n) {
   const a = [...Array(n).keys()];
@@ -143,6 +144,10 @@ export default function QuizClient({ quizId }) {
         <Footer />
       </div>
     );
+  }
+
+  if (quiz.format === 'timed-mcq') {
+    return <TimedMcqBoard quizId={quizId} />;
   }
 
   const answers = quiz.answers;
