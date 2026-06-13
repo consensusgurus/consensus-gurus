@@ -898,6 +898,11 @@ export default function QuizClient({ quizId }) {
         {/* ── PLAY ── */}
         {tab === 'play' && (
           <>
+            {/* Freeze the score/time bar AND the answer input together, pinned
+                directly under the sticky ribbon (44 = ribbon height, tucked 1px
+                under it; ribbon zIndex 25 > this 24 so it covers the seam). The
+                answer list/board scrolls underneath. */}
+            <div style={{ position: 'sticky', top: 44, zIndex: 24, background: COLORS.cream, paddingBottom: 4 }}>
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', alignItems: 'center', background: COLORS.paper, border: `1px solid ${COLORS.faded}33`, padding: '16px 8px', marginBottom: 16 }}>
               <div style={{ textAlign: 'center', padding: '0 8px' }}>
                 <div style={{ fontFamily: SERIF, fontWeight: 800, fontSize: 34, lineHeight: 1 }}>{dispScore}<span style={{ fontSize: 20, color: COLORS.faded }}>/{total}</span></div>
@@ -959,6 +964,7 @@ export default function QuizClient({ quizId }) {
                 </div>
               )}
               <div style={{ fontFamily: MONO, fontSize: 12, paddingTop: 3, color: hintBad ? COLORS.ember : COLORS.faded }}>{hint}</div>
+            </div>
             </div>
 
             {typeMode ? (
