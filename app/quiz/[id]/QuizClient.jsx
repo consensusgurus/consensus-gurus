@@ -13,6 +13,7 @@ const MapQuizBoard = dynamic(() => import('./MapQuizBoard'), { ssr: false, loadi
 const MatchQuizBoard = dynamic(() => import('./MatchQuizBoard'), { ssr: false, loading: () => null });
 const BankQuizBoard = dynamic(() => import('./BankQuizBoard'), { ssr: false, loading: () => null });
 const TimedMcqBoard = dynamic(() => import('./TimedMcqClient'), { ssr: false, loading: () => null });
+const LogicGridBoard = dynamic(() => import('./LogicGridClient'), { ssr: false, loading: () => null });
 
 function shuffleIdx(n) {
   const a = [...Array(n).keys()];
@@ -178,6 +179,9 @@ export default function QuizClient({ quizId }) {
 
   if (quiz.format === 'timed-mcq') {
     return <TimedMcqBoard quizId={quizId} />;
+  }
+  if (quiz.format === 'logic-grid') {
+    return <LogicGridBoard quizId={quizId} />;
   }
 
   const answers = quiz.answers;
