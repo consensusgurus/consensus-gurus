@@ -515,6 +515,64 @@ export default function QuizClient({ quizId }) {
     setGuess('');
   }
 
+  // Live auto-submit: accept a typed guess THE MOMENT it matches an unsolved
+  // answer, with no Enter and no wrong-answer feedback while still typing. Enter
+  // (the check* handlers) still works and is what surfaces a miss. Returns true
+  // when a guess was accepted so the caller can clear the field.
+  function autoName(raw) {
+    const g = norm(raw);
+    if (!g) return false;
+    for (let i = 0; i < answers.length; i++) {
+      if (found[i]) continue;
+      const a = answers[i];
+      if ((anyKey(g, a.keys) || anyKey(g, nameKeys[i])) && !anyKey(g, a.anti)) {
+        const next = found.slice();
+        next[i] = true;
+        setFound(next);
+        setHint(`Correct — ${a.t}`);
+        setHintBad(false);
+        fireCue(true);
+        if (next.every(Boolean)) endGame(true, next);
+        return true;
+      }
+    }
+    return false;
+  }
+  function autoOrdered(raw) {
+    const g = norm(raw);
+    if (!g) return false;
+    const i = found.findIndex((x) => !x);
+    if (i < 0) return false;
+    const a = answers[i];
+    if ((anyKey(g, a.keys) || anyKey(g, nameKeys[i])) && !anyKey(g, a.anti)) {
+      const next = found.slice();
+      next[i] = true;
+      setFound(next);
+      setHint(`Correct — ${a.label != null ? a.label + ': ' : ''}${a.t}`);
+      setHintBad(false);
+      fireCue(true);
+      if (next.every(Boolean)) endGame(true, next);
+      return true;
+    }
+    return false;
+  }
+  function autoSlot(i, raw) {
+    const g = norm(raw);
+    if (!g || found[i]) return false;
+    const a = answers[i];
+    if ((anyKey(g, a.keys) || anyKey(g, nameKeys[i])) && !anyKey(g, a.anti)) {
+      const next = found.slice();
+      next[i] = true;
+      setFound(next);
+      setHint(`Correct — ${a.label != null ? a.label + ': ' : ''}${a.t}`);
+      setHintBad(false);
+      fireCue(true);
+      if (next.every(Boolean)) endGame(true, next);
+      return true;
+    }
+    return false;
+  }
+
   function pickCountry(name) {
     if (!started || ended || !mapMode) return;
     const i = answers.findIndex((a) => a.t === name);
@@ -838,9 +896,13 @@ export default function QuizClient({ quizId }) {
                   ref={inputRef}
                   value={guess}
                   disabled={!started || ended}
-                  onChange={(e) => setGuess(e.target.value)}
+                  onChange={(e) => {
+                    const v = e.target.value;
+                    if (started && !ended && (ordered ? autoOrdered(v) : autoName(v))) { setGuess(''); }
+                    else { setGuess(v); }
+                  }}
                   onKeyDown={ordered ? onOrderedKey : onKey}
-                  placeholder={started ? (ordered ? `Type the ${quiz.noun || 'answer'} for ${answers[activeIdx] ? answers[activeIdx].label : ''}…` : `Type ${/^[aeiou]/.test(quiz.noun || '') ? 'an' : 'a'} ${quiz.noun || 'answer'}, then Enter…`) : 'Press Play to begin…'}
+                  placeholder={started ? (ordered ? `Type the ${quiz.noun || 'answer'} for ${answers[activeIdx] ? answers[activeIdx].label : ''}…` : `Type ${/^[aeiou]/.test(quiz.noun || '') ? 'an' : 'a'} ${quiz.noun || 'answer'}…`) : 'Press Play to begin…'}
                   autoComplete="off"
                   style={{ flex: 1, fontFamily: SANS, fontSize: 17, padding: '14px 16px', border: `1.5px solid ${COLORS.ink}`, background: !started || ended ? COLORS.paper : '#fff', color: COLORS.ink, opacity: !started || ended ? 0.5 : 1 }}
                 />
@@ -897,13 +959,14 @@ export default function QuizClient({ quizId }) {
                       <input
                         ref={i === 0 ? inputRef : undefined}
                         disabled={!started || ended}
+                        onChange={(e) => { if (started && !ended && autoSlot(i, e.target.value)) e.target.value = ''; }}
                         onKeyDown={(e) => onSlotKey(i, e)}
-                        placeholder={started ? 'Type the winner, then Enter…' : ''}
+                        placeholder={started ? 'Type the winner…' : ''}
                         autoComplete="off"
                         style={{ flex: 1, fontFamily: SANS, fontSize: 16, padding: '9px 12px', border: `1.5px solid ${COLORS.ink}`, background: !started || ended ? COLORS.paper : '#fff', color: COLORS.ink, opacity: !started || ended ? 0.5 : 1 }}
                       />
                     ) : isActive ? (
-                      <span style={{ fontFamily: SANS, fontSize: 14, fontStyle: 'italic', color: COLORS.ember, flex: 1 }}>Type it in the box above, then Enter</span>
+                      <span style={{ fontFamily: SANS, fontSize: 14, fontStyle: 'italic', color: COLORS.ember, flex: 1 }}>Type it in the box above</span>
                     ) : (
                       <span style={{ fontFamily: MONO, fontSize: 13, letterSpacing: '0.06em', color: COLORS.faded, opacity: 0.55, flex: 1 }}>— — — — —</span>
                     )}
