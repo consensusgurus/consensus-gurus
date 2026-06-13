@@ -35,3 +35,6 @@ supabase/.temp/
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# deploy secrets (PAT + config, never commit)
+.deploy-secrets
