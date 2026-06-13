@@ -407,7 +407,7 @@ export default function QuizClient({ quizId }) {
     } else if (pairsMode) {
       setHint('Pick a slogan, then the company it belongs to.');
     } else {
-      setHint(ordered ? 'Go — answer in order, from the top.' : matched ? "Go — name each year's winner." : 'Go — name them all.');
+      setHint(ordered ? 'Go — answer in order, from the top.' : matched ? (quiz.noun ? `Go — type each ${quiz.noun}.` : "Go — name each year's winner.") : 'Go — name them all.');
     }
     setHintBad(false);
     timerRef.current = setInterval(() => {
@@ -475,7 +475,7 @@ export default function QuizClient({ quizId }) {
       fireCue(true);
       if (next.every(Boolean)) endGame(true, next);
     } else {
-      setHint("Not that year's winner. Try again.");
+      setHint(quiz.noun ? "Not quite. Try again." : "Not that year's winner. Try again.");
       setHintBad(true);
       fireCue(false);
     }
@@ -940,7 +940,7 @@ export default function QuizClient({ quizId }) {
                 />
               )}
               <button onClick={start} disabled={started || ended} style={{ flex: (matched && !ordered) || mapMode || tileMode ? 1 : 'none', fontFamily: MONO, fontSize: 13, letterSpacing: '0.08em', textTransform: 'uppercase', fontWeight: 700, padding: '0 22px', height: matched || mapMode || tileMode ? 52 : 'auto', border: 'none', background: COLORS.ember, color: '#fff', cursor: started || ended ? 'default' : 'pointer', opacity: started || ended ? 0.5 : 1 }}>
-                {ended ? 'Done' : started ? 'Playing' : (matched && !ordered) ? 'Play — name each year' : 'Play'}
+                {ended ? 'Done' : started ? 'Playing' : (matched && !ordered) ? (quiz.noun ? 'Play' : 'Play — name each year') : 'Play'}
               </button>
             </div>
             <div style={{ position: 'relative', minHeight: 46, marginBottom: 14 }}>
@@ -993,7 +993,7 @@ export default function QuizClient({ quizId }) {
                         disabled={!started || ended}
                         onChange={(e) => { if (started && !ended && autoSlot(i, e.target.value)) e.target.value = ''; }}
                         onKeyDown={(e) => onSlotKey(i, e)}
-                        placeholder={started ? 'Type the winner…' : ''}
+                        placeholder={started ? `Type the ${quiz.noun || 'winner'}…` : ''}
                         autoComplete="off"
                         style={{ flex: 1, fontFamily: SANS, fontSize: 16, padding: '9px 12px', border: `1.5px solid ${COLORS.ink}`, background: !started || ended ? COLORS.paper : '#fff', color: COLORS.ink, opacity: !started || ended ? 0.5 : 1 }}
                       />
