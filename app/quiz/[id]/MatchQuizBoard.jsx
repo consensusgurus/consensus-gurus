@@ -56,15 +56,7 @@ export default function MatchQuizBoard({ pairs, started, ended, onMatch, onError
     [pairs]
   );
   const [sel, setSel] = useState(null); // selected clue pair id (left), or null
-  // A clue matches an answer when they share the SAME answer VALUE (pairs[i][0]),
-  // not the same pair index — so several clues can legitimately share one answer
-  // value (e.g. many companies headquartered in "New York City, New York") and the
-  // bank can show that value on multiple tiles. matchedL = clues consumed (left),
-  // matchedR = answer tiles consumed (right); they advance together, one each per
-  // match, so matchedL.size === matchedR.size at every natural end. For a quiz whose
-  // answer values are all unique this is identical to the old index match.
-  const [matchedL, setMatchedL] = useState(() => new Set()); // matched clue (left) ids
-  const [matchedR, setMatchedR] = useState(() => new Set()); // consumed answer (right) ids
+  const [matched, setMatched] = useState(() => new Set()); // matched pair ids
   const [dead, setDead] = useState(() => new Set()); // answers (right) struck out
   const [errors, setErrors] = useState(0);
   const [tray, setTray] = useState([]); // [{ clue, answer }]
@@ -73,43 +65,33 @@ export default function MatchQuizBoard({ pairs, started, ended, onMatch, onError
   const lLabel = leftLabel || 'Slogans';
   const rLabel = rightLabel || 'Companies';
 
-  // A move remains if some unmatched clue shares an answer value with a live
-  // (not yet consumed, not struck-out) answer tile.
-  function hasMovesLeft(mL, mR, dd) {
+  function hasMovesLeft(matchedSet, deadSet) {
     for (let i = 0; i < pairs.length; i++) {
-      if (mL.has(i)) continue;
-      for (let j = 0; j < pairs.length; j++) {
-        if (mR.has(j) || dd.has(j)) continue;
-        if (pairs[i][0] === pairs[j][0]) return true;
-      }
+      if (!matchedSet.has(i) && !deadSet.has(i)) return true;
     }
     return false;
   }
 
   function clickClue(i) {
-    if (!live || matchedL.has(i)) return;
+    if (!live || matched.has(i)) return;
     setSel(i);
     if (onHint) onHint(`Now pick the match for “${pairs[i][1]}”.`, false);
   }
 
   function clickAnswer(j) {
-    if (!live || dead.has(j) || matchedR.has(j)) return;
+    if (!live || dead.has(j) || matched.has(j)) return;
     if (sel == null) {
       if (onHint) onHint('Pick from the left column first.', true);
       return;
     }
-    if (pairs[sel][0] === pairs[j][0]) {
-      const nL = new Set(matchedL);
-      nL.add(sel);
-      const nR = new Set(matchedR);
-      nR.add(j);
-      setMatchedL(nL);
-      setMatchedR(nR);
-      setTray((t) => [...t, { clue: pairs[sel][1], answer: pairs[j][0] }]);
-      const cnt = nR.size;
+    if (sel === j) {
+      const nm = new Set(matched);
+      nm.add(j);
+      setMatched(nm);
+      setTray((t) => [...t, { clue: pairs[j][1], answer: pairs[j][0] }]);
       setSel(null);
-      if (onMatch) onMatch(j, cnt, pairs[j][0], pairs[sel][1]);
-      if (cnt === pairs.length && onEnd) onEnd(true, cnt);
+      if (onMatch) onMatch(j, nm.size, pairs[j][0], pairs[j][1]);
+      if (nm.size === pairs.length && onEnd) onEnd(true, nm.size);
     } else {
       const nd = new Set(dead);
       nd.add(j);
@@ -118,7 +100,7 @@ export default function MatchQuizBoard({ pairs, started, ended, onMatch, onError
       setErrors(ne);
       setSel(null);
       if (onError) onError(ne, pairs[j][0]);
-      if (!hasMovesLeft(matchedL, matchedR, nd) && onEnd) onEnd(false, matchedL.size);
+      if (!hasMovesLeft(matched, nd) && onEnd) onEnd(false, matched.size);
     }
   }
 
@@ -185,7 +167,7 @@ export default function MatchQuizBoard({ pairs, started, ended, onMatch, onError
           <div style={{ ...colHead, color: COLORS.ember }}>{lLabel}{sortLeft ? ' (A–Z)' : ''}</div>
           <div className="mqb-cols">
             {leftOrder.map((i) => {
-              if (matchedL.has(i)) return null;
+              if (matched.has(i)) return null;
               const isSel = sel === i;
               return (
                 <button
@@ -211,7 +193,7 @@ export default function MatchQuizBoard({ pairs, started, ended, onMatch, onError
           <div style={{ ...colHead, color: COLORS.forest }}>{rLabel} (A–Z)</div>
           <div className="mqb-cols">
             {rightOrder.map((j) => {
-              if (matchedR.has(j)) return null;
+              if (matched.has(j)) return null;
               const isDead = dead.has(j);
               return (
                 <button

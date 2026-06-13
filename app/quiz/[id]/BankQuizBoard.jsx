@@ -3,15 +3,26 @@
 import React, { useMemo, useState } from 'react';
 
 // Single-bank matching board (`format: 'bank'`). ONE prompt (the clue, e.g. a
-// country) shows at a time with a Next button to cycle through the prompts not
-// yet matched; below sits ONE bank of answer tiles (e.g. capitals), alphabetical.
-// GUESS-BUDGET model (same as the map quiz): you start with one guess per item.
-// Every tap, right OR wrong, spends one guess. A correct tile turns green and the
-// prompt is done; a wrong tap just costs a guess, NOTHING is removed or revealed,
-// and the missed prompt keeps looping so you can try it again later (at the cost
-// of another guess). The game ends when you run out of guesses, match everything,
-// or the clock runs out. Next skips the current prompt without spending a guess.
-// Score = number matched. Reports up to QuizClient like the other boards.
+// company) shows at a time with a Next button to cycle through the prompts not
+// yet matched; below sits ONE bank of answer tiles (e.g. headquarters cities),
+// alphabetical. GUESS-BUDGET model (same as the map quiz): you start with one
+// guess per item. Every tap, right OR wrong, spends one guess. A correct tile
+// turns green and is removed; a wrong tap just costs a guess, NOTHING is removed
+// or revealed, and the missed prompt keeps looping so you can try it again later
+// (at the cost of another guess). The game ends when you run out of guesses,
+// match everything, or the clock runs out. Next skips the current prompt without
+// spending a guess. Score = number of tiles matched. Reports up to QuizClient
+// like the other boards.
+//
+// MANY-TO-MANY MATCHING. A tile counts as a correct answer for the current
+// prompt when it shares the prompt (book-characters: three characters that all
+// belong to one book) OR shows the same answer VALUE (companies-to-headquarters:
+// several companies share a city, so the bank can list "Houston, Texas" on more
+// than one tile and ANY Houston tile is correct for ANY Houston company). A
+// prompt string is complete once it has been answered as many times as it
+// appears in the data (`required`): three taps for a 3-character book, one tap
+// for a single company. For a 1-to-1 quiz (capitals, taglines) both relations
+// reduce to the exact tile, so behaviour is unchanged.
 
 const COLORS = {
   cream: '#f4ede0',
@@ -36,15 +47,25 @@ function shuffle(arr) {
 }
 
 export default function BankQuizBoard({ pairs, started, ended, onMatch, onWrong, onEnd, onHint, promptLabel, bankLabel }) {
-  // pairs[i] === [answer, prompt]: answer = the tile (e.g. capital), prompt =
-  // the clue shown one at a time (e.g. country).
+  // pairs[i] === [answer, prompt]: answer = the tile (e.g. headquarters city),
+  // prompt = the clue shown one at a time (e.g. company).
   const total = pairs.length;
   const promptOrder = useMemo(() => shuffle(pairs.map((_, i) => i)), [pairs]);
   const bankOrder = useMemo(
     () => pairs.map((_, i) => i).sort((a, b) => pairs[a][0].localeCompare(pairs[b][0])),
     [pairs]
   );
-  const [matched, setMatched] = useState(() => new Set()); // pair ids matched (locked green)
+  // How many tiles each PROMPT string needs before it is complete (book: 3 per
+  // book; companies: 1 per company).
+  const required = useMemo(() => {
+    const m = {};
+    for (let i = 0; i < pairs.length; i++) m[pairs[i][1]] = (m[pairs[i][1]] || 0) + 1;
+    return m;
+  }, [pairs]);
+
+  const [matched, setMatched] = useState(() => new Set()); // tile ids consumed (green). score = size
+  const [donePrompts, setDonePrompts] = useState(() => new Set()); // completed prompt STRINGS
+  const [hits, setHits] = useState(() => ({})); // prompt string -> correct taps so far
   const [errors, setErrors] = useState(0); // wrong taps
   const [cur, setCur] = useState(() => (promptOrder.length ? promptOrder[0] : null));
   const [flash, setFlash] = useState(null); // { key, ok }
@@ -53,16 +74,39 @@ export default function BankQuizBoard({ pairs, started, ended, onMatch, onWrong,
   const guessesLeft = total - matched.size - errors;
   const remaining = total - matched.size;
 
-  // Next still-UNMATCHED prompt after `fromPair`, wrapping. Returns the same pair
-  // if it is the only one left, or null if everything is matched.
-  function nextUnmatched(fromPair, matchedSet) {
+  // A tile k is a correct answer for prompt pair c when it belongs to the same
+  // prompt OR carries the same answer value. (For unique data this is just k===c.)
+  function isAnswer(k, c) {
+    return pairs[k][1] === pairs[c][1] || pairs[k][0] === pairs[c][0];
+  }
+
+  // First prompt pair (in promptOrder, after `fromPair`, wrapping) whose prompt
+  // string is not yet complete. null when every prompt is done.
+  function nextPrompt(fromPair, doneSet) {
     if (!promptOrder.length) return null;
     const start = promptOrder.indexOf(fromPair);
-    for (let k = 1; k <= promptOrder.length; k++) {
-      const p = promptOrder[(start + k) % promptOrder.length];
-      if (!matchedSet.has(p)) return p;
+    for (let s = 1; s <= promptOrder.length; s++) {
+      const p = promptOrder[(start + s) % promptOrder.length];
+      if (!doneSet.has(pairs[p][1])) return p;
     }
     return null;
+  }
+  // Like nextPrompt but prefers a DIFFERENT prompt string (used by Skip).
+  function nextDifferentPrompt(fromPair, doneSet) {
+    if (!promptOrder.length) return null;
+    const fromPrompt = pairs[fromPair][1];
+    const start = promptOrder.indexOf(fromPair);
+    for (let s = 1; s <= promptOrder.length; s++) {
+      const p = promptOrder[(start + s) % promptOrder.length];
+      if (!doneSet.has(pairs[p][1]) && pairs[p][1] !== fromPrompt) return p;
+    }
+    return nextPrompt(fromPair, doneSet);
+  }
+  // A still-unmatched tile that belongs to prompt string `ps`, to keep showing
+  // while a multi-tile prompt (book) still has tiles left. Falls back to cur.
+  function sameUnmatchedTile(ps, matchedSet, fallback) {
+    const p = promptOrder.find((q) => !matchedSet.has(q) && pairs[q][1] === ps);
+    return p != null ? p : fallback;
   }
 
   function flashTile(key, ok) {
@@ -70,52 +114,49 @@ export default function BankQuizBoard({ pairs, started, ended, onMatch, onWrong,
     setTimeout(() => setFlash((f) => (f && f.key === key ? null : f)), 480);
   }
 
-  // The current prompt is a work/clue string (pairs[cur][1]). Several pairs may
-  // share that prompt (e.g. three characters from one movie); ANY not-yet-matched
-  // tile whose prompt equals the current one counts as correct, in ANY order, and
-  // the prompt stays up until all of its tiles are found. For 1-to-1 quizzes each
-  // prompt is unique, so this reduces to the old k===cur behavior.
-  function nextDifferentPrompt(fromPair, matchedSet) {
-    if (!promptOrder.length) return null;
-    const fromPrompt = pairs[fromPair][1];
-    const start = promptOrder.indexOf(fromPair);
-    for (let k = 1; k <= promptOrder.length; k++) {
-      const p = promptOrder[(start + k) % promptOrder.length];
-      if (!matchedSet.has(p) && pairs[p][1] !== fromPrompt) return p;
-    }
-    return nextUnmatched(fromPair, matchedSet);
-  }
-
   function clickTile(k) {
     if (!live || cur == null || matched.has(k)) return;
-    const curPrompt = pairs[cur][1];
-    if (pairs[k][1] === curPrompt) {
+    const ps = pairs[cur][1]; // current prompt string
+    if (isAnswer(k, cur)) {
       const nm = new Set(matched);
       nm.add(k);
+      const nh = { ...hits, [ps]: (hits[ps] || 0) + 1 };
+      const promptComplete = nh[ps] >= (required[ps] || 1);
+      const nd = new Set(donePrompts);
+      if (promptComplete) nd.add(ps);
       const used = nm.size + errors;
       setMatched(nm);
+      setHits(nh);
+      if (promptComplete) setDonePrompts(nd);
       flashTile(k, true);
-      if (onMatch) onMatch(k, nm.size, pairs[k][0], pairs[k][1]);
-      if (used >= total || nm.size === total) { setCur(null); if (onEnd) onEnd(nm.size === total, nm.size); }
-      else {
-        // keep the same work up while it still has unmatched tiles
-        const sameLeft = promptOrder.find((p) => !nm.has(p) && pairs[p][1] === curPrompt);
-        setCur(sameLeft != null ? sameLeft : nextUnmatched(cur, nm));
+      if (onMatch) onMatch(k, nm.size, pairs[k][0], ps);
+      const np = nextPrompt(cur, nd);
+      if (used >= total || np == null) {
+        setCur(null);
+        if (onEnd) onEnd(np == null, nm.size);
+      } else {
+        // keep the same prompt up while it still owes tiles (multi-tile book),
+        // otherwise move on to the next unfinished prompt.
+        setCur(promptComplete ? np : sameUnmatchedTile(ps, nm, cur));
       }
     } else {
       const ne = errors + 1;
       const used = matched.size + ne;
       setErrors(ne);
       flashTile(k, false);
-      if (onWrong) onWrong(ne, curPrompt);
-      if (used >= total) { setCur(null); if (onEnd) onEnd(matched.size === total, matched.size); }
-      else setCur(nextUnmatched(cur, matched));
+      if (onWrong) onWrong(ne, ps);
+      if (used >= total) {
+        setCur(null);
+        if (onEnd) onEnd(false, matched.size);
+      } else {
+        setCur(nextPrompt(cur, donePrompts));
+      }
     }
   }
 
   function skip() {
     if (!live || cur == null) return;
-    const np = nextDifferentPrompt(cur, matched);
+    const np = nextDifferentPrompt(cur, donePrompts);
     if (np != null && pairs[np][1] !== pairs[cur][1]) { setCur(np); if (onHint) onHint(`Next up: ${pairs[np][1]}.`, false); }
     else if (onHint) onHint('That is the only one left, take your shot.', false);
   }
