@@ -1784,6 +1784,17 @@ responses a player must produce, the more time they get, on a 15-second-quantize
   54). With Nmax = 54 the per-answer step is 7.5s, so `seconds = roundTo15( 90 + (n - 10) * 7.5 )`.
   Worked values: 12 -> 1:45, 23 -> 3:15, 25 -> 3:30, 46 -> 6:00, 47 -> 6:15, 54 -> 7:00.
 
+- **Guess-in-order quizzes get 2x the scaled time (owner rule, 2026-06-13).** Any quiz with
+  `ordered: true` (the labeled, guess-in-sequence format) is markedly harder than a free-order
+  quiz: the player must produce the answers in a fixed sequence, not in any order, so a single
+  early gap stalls the whole board. After computing `seconds` by the scale above, DOUBLE it for an
+  ordered quiz. A 10-answer ordered quiz is therefore 180s (3:00) rather than 90s. Apply the
+  doubling to the FINAL scaled value at whatever answer count the quiz has (re-derive it if the
+  count changes). This stacks on top of the baseline / hard-recall / 11+ scaling rules and changes
+  nothing for non-ordered quizzes. First applied 2026-06-13 to the seven 'Name the Last 10 ...'
+  champion quizzes (World Cup, Super Bowl, College Football, NBA, Men's College Basketball, Stanley
+  Cup, World Series), each bumped 90 -> 180.
+
 Set `timeLimit` by this rule on every new quiz, and re-derive it whenever a quiz's answer count
 changes. Do NOT hardcode the clock duration in the `blurb` ("seven minutes on the clock"); if the
 time later rescales the blurb goes stale, so keep the blurb about the topic, not the timer.
