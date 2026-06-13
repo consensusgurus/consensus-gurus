@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { useRouter } from 'next/navigation';
-import { ArrowLeft, Share2, Check, Flag, Trophy, HelpCircle, Eye, SkipForward } from 'lucide-react';
+import { ArrowLeft, Share2, Check, X, Flag, Trophy, HelpCircle, Eye, SkipForward } from 'lucide-react';
 import { QUIZZES, getQuiz } from '@/lib/quizzes';
 import { quizDept as deptOf } from '@/lib/quiz-departments';
 import Grain from '../../Grain';
@@ -223,6 +223,9 @@ export default function QuizClient({ quizId }) {
   const [time, setTime] = useState(quiz.timeLimit);
   const [hint, setHint] = useState('Press Play to start the clock.');
   const [hintBad, setHintBad] = useState(false);
+  // Transient right/wrong verdict banner (mobile users miss the small hint line).
+  const [cue, setCue] = useState(null);
+  const cueTimer = useRef(null);
   const [guess, setGuess] = useState('');
   const orderRef = useRef(null);
   const [curName, setCurName] = useState(null);
@@ -408,6 +411,16 @@ export default function QuizClient({ quizId }) {
     if (inputRef.current) inputRef.current.focus();
   }
 
+  // Flash a bold colored verdict and buzz the device so a right/wrong result
+  // is unmissable on a phone, where the 12px hint line alone goes unnoticed.
+  function fireCue(ok) {
+    const id = Date.now() + Math.random();
+    setCue({ ok, id });
+    try { if (typeof navigator !== 'undefined' && navigator.vibrate) navigator.vibrate(ok ? 22 : [0, 38, 55, 38]); } catch (e) {}
+    clearTimeout(cueTimer.current);
+    cueTimer.current = setTimeout(() => setCue((c) => (c && c.id === id ? null : c)), 1000);
+  }
+
   function checkGuess(raw) {
     const g = norm(raw);
     if (!g) return;
@@ -422,12 +435,14 @@ export default function QuizClient({ quizId }) {
         setFound(next);
         setHint(`Correct — ${a.t}`);
         setHintBad(false);
+        fireCue(true);
         if (next.every(Boolean)) endGame(true, next);
         return;
       }
     }
     setHint('Not on the list — try another.');
     setHintBad(true);
+    fireCue(false);
   }
 
   function onKey(e) {
@@ -449,10 +464,12 @@ export default function QuizClient({ quizId }) {
       setFound(next);
       setHint(`Correct — ${a.label != null ? a.label + ': ' : ''}${a.t}`);
       setHintBad(false);
+      fireCue(true);
       if (next.every(Boolean)) endGame(true, next);
     } else {
       setHint("Not that year's winner. Try again.");
       setHintBad(true);
+      fireCue(false);
     }
   }
   function onSlotKey(i, e) {
@@ -476,10 +493,12 @@ export default function QuizClient({ quizId }) {
       setFound(next);
       setHint(`Correct — ${a.label != null ? a.label + ': ' : ''}${a.t}`);
       setHintBad(false);
+      fireCue(true);
       if (next.every(Boolean)) endGame(true, next);
     } else {
       setHint(`Not the ${a.label != null ? a.label + ' ' : ''}answer. Work down in order, try again.`);
       setHintBad(true);
+      fireCue(false);
     }
   }
   function onOrderedKey(e) {
@@ -507,6 +526,7 @@ export default function QuizClient({ quizId }) {
       next[i] = true;
       setFound(next);
       setFlash({ name, ok: true });
+      fireCue(true);
       setTimeout(() => setFlash((f) => (f && f.name === name ? null : f)), 400);
       const ord = orderRef.current || [];
       const remaining = ord.filter((j) => !next[j]);
@@ -521,6 +541,7 @@ export default function QuizClient({ quizId }) {
     } else {
       setFlash({ name, ok: false });
       setTimeout(() => setFlash((f) => (f && f.name === name ? null : f)), 400);
+      fireCue(false);
       // Sudden-death map: one wrong click ends the run on the spot.
       if (quiz.suddenDeath) { setHint(`That was ${name}, not ${curName}. One wrong click ends it — game over.`); setHintBad(true); endGame(false); return; }
       if (left <= 0) { setHint(`That was ${name}, not ${curName}. Out of guesses.`); setHintBad(true); endGame(false); return; }
@@ -701,7 +722,7 @@ export default function QuizClient({ quizId }) {
         {/* Ribbon */}
         <div style={{ position: 'sticky', top: 0, zIndex: 25, marginTop: 18 }}>
           <div style={{ position: 'relative' }}>
-            <style>{`@keyframes qzCueR{0%,100%{transform:translate(0,-50%);}50%{transform:translate(3px,-50%);}}@keyframes qzCueL{0%,100%{transform:translate(0,-50%);}50%{transform:translate(-3px,-50%);}}.qz-cue{position:absolute;top:50%;z-index:3;display:flex;align-items:center;justify-content:center;width:26px;height:26px;border-radius:50%;background:${COLORS.ember};color:#fff;box-shadow:0 1px 4px rgba(26,22,17,0.45);pointer-events:none;font-size:15px;line-height:1;}.qz-cue-r{right:10px;animation:qzCueR 1.4s ease-in-out infinite;}.qz-cue-l{left:10px;animation:qzCueL 1.4s ease-in-out infinite;}@media(min-width:760px){.qz-cue{display:none;}}.qz-ribbon{scrollbar-width:none;-ms-overflow-style:none;}.qz-ribbon::-webkit-scrollbar{display:none;}`}</style>
+            <style>{`@keyframes qzCueR{0%,100%{transform:translate(0,-50%);}50%{transform:translate(3px,-50%);}}@keyframes qzCueL{0%,100%{transform:translate(0,-50%);}50%{transform:translate(-3px,-50%);}}.qz-cue{position:absolute;top:50%;z-index:3;display:flex;align-items:center;justify-content:center;width:26px;height:26px;border-radius:50%;background:${COLORS.ember};color:#fff;box-shadow:0 1px 4px rgba(26,22,17,0.45);pointer-events:none;font-size:15px;line-height:1;}.qz-cue-r{right:10px;animation:qzCueR 1.4s ease-in-out infinite;}.qz-cue-l{left:10px;animation:qzCueL 1.4s ease-in-out infinite;}@media(min-width:760px){.qz-cue{display:none;}}.qz-ribbon{scrollbar-width:none;-ms-overflow-style:none;}.qz-ribbon::-webkit-scrollbar{display:none;}@keyframes qzCueOk{0%{transform:scale(.96);opacity:0;}55%{transform:scale(1.03);}100%{transform:scale(1);opacity:1;}}@keyframes qzCueNo{0%,100%{transform:translateX(0);}15%{transform:translateX(-7px);}30%{transform:translateX(6px);}45%{transform:translateX(-5px);}60%{transform:translateX(4px);}75%{transform:translateX(-2px);}}`}</style>
             <div ref={ribbonRef} className="qz-ribbon" style={{ display: 'flex', alignItems: 'stretch', flexWrap: 'nowrap', overflowX: 'auto', background: COLORS.ink, borderBottom: `3px solid ${COLORS.ember}` }}>
               {chip('play', 'Play')}
               {chip('stats', 'Stats & Leaderboard')}
@@ -820,7 +841,15 @@ export default function QuizClient({ quizId }) {
                 {ended ? 'Done' : started ? 'Playing' : (matched && !ordered) ? 'Play — name each year' : 'Play'}
               </button>
             </div>
-            <div style={{ fontFamily: MONO, fontSize: 12, minHeight: 18, marginBottom: 20, color: hintBad ? COLORS.ember : COLORS.faded }}>{hint}</div>
+            <div style={{ position: 'relative', minHeight: 46, marginBottom: 14 }}>
+              {cue && (
+                <div key={cue.id} aria-live="assertive" style={{ position: 'absolute', left: 0, right: 0, top: 0, display: 'flex', alignItems: 'center', gap: 9, padding: '11px 16px', color: '#fff', fontFamily: SANS, fontWeight: 700, fontSize: 17, lineHeight: 1, background: cue.ok ? COLORS.forest : COLORS.ember, boxShadow: '0 2px 8px rgba(26,22,17,0.25)', animation: `${cue.ok ? 'qzCueOk' : 'qzCueNo'} .4s ease both` }}>
+                  {cue.ok ? <Check size={20} strokeWidth={3} /> : <X size={20} strokeWidth={3} />}
+                  <span>{cue.ok ? 'Correct' : 'Try again'}</span>
+                </div>
+              )}
+              <div style={{ fontFamily: MONO, fontSize: 12, paddingTop: 3, color: hintBad ? COLORS.ember : COLORS.faded }}>{hint}</div>
+            </div>
 
             {bankMode ? (
             <BankQuizBoard pairs={quiz.pairs} started={started} ended={ended} onMatch={onPairMatch} onWrong={onBankWrong} onEnd={onPairEnd} onHint={onPairHint} promptLabel={quiz.leftLabel} bankLabel={quiz.rightLabel} />
