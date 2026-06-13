@@ -48,7 +48,7 @@ export default async function AdminPage() {
     // counts + average score per quiz.
     supabaseAdmin.rpc('quiz_trending_views', { p_hours: 24 }),
     fetchAllRows(supabaseAdmin, 'quiz_views', 'quiz_id, count', ['quiz_id']),
-    fetchAllRows(supabaseAdmin, 'quiz_results', 'quiz_id, score', ['id']),
+    fetchAllRows(supabaseAdmin, 'quiz_results', 'quiz_id, user_id, score, total, time_elapsed, created_at', [['created_at', false], 'id']),
   ]);
 
   if (submissionsRes.error) {
@@ -232,6 +232,29 @@ export default async function AdminPage() {
     quizScoreSumMap.set(r.quiz_id, (quizScoreSumMap.get(r.quiz_id) || 0) + (Number(r.score) || 0));
   }
   const quizTitles = new Map((Array.isArray(QUIZZES) ? QUIZZES : []).map((q) => [q.id, q.title]));
+  // Per-signup play history: every completed game attributed to each user
+  // (quiz_results.user_id -> quiz_users.id), newest first, with the quiz title
+  // resolved. Lets the Quiz Signups panel show which quizzes a person played
+  // and how many times.
+  const playsByUser = new Map();
+  for (const r of (quizResultsRes && quizResultsRes.data) || []) {
+    if (!r.user_id) continue;
+    if (!playsByUser.has(r.user_id)) playsByUser.set(r.user_id, []);
+    playsByUser.get(r.user_id).push({
+      quizId: r.quiz_id,
+      title: quizTitles.get(r.quiz_id) || r.quiz_id,
+      score: r.score,
+      total: r.total,
+      timeElapsed: r.time_elapsed,
+      createdAt: r.created_at,
+    });
+  }
+  const quizSignupsWithPlays = quizSignups.map((s) => {
+    const plays = (playsByUser.get(s.id) || []).sort((a, b) =>
+      String(b.createdAt || '').localeCompare(String(a.createdAt || ''))
+    );
+    return { ...s, plays, playCount: plays.length };
+  });
   const quizIds = new Set([
     ...(Array.isArray(QUIZZES) ? QUIZZES.map((q) => q.id) : []),
     ...quizViews24Map.keys(),
@@ -270,7 +293,7 @@ export default async function AdminPage() {
       initialEditorNotes={editorNotes}
       initialAlerts={alerts}
       initialViews24h={views24h}
-      initialQuizSignups={quizSignups}
+      initialQuizSignups={quizSignupsWithPlays}
       initialQuizStats={quizStats}
     />
   );

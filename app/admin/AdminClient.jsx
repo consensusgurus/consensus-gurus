@@ -15,6 +15,15 @@ function formatDate(iso) {
   }
 }
 
+// Seconds -> m:ss, for a quiz play's elapsed time.
+function formatClock(secs) {
+  const s = Number(secs);
+  if (!Number.isFinite(s) || s < 0) return '—';
+  const m = Math.floor(s / 60);
+  const r = s % 60;
+  return `${m}:${String(r).padStart(2, '0')}`;
+}
+
 // Build a Google Maps "search" URL that resolves to a single place pin.
 // Mirrors lib/helpers.js: strip the characters Maps reads as waypoint
 // separators so a name like "Lucali (Carroll Gardens)" opens a location,
@@ -691,6 +700,7 @@ function QuizStatsPanel({ stats, playsTotal }) {
 
 function QuizSignupsPanel({ signups }) {
   const [query, setQuery] = useState('');
+  const [expandedId, setExpandedId] = useState(null);
 
   const visible = useMemo(() => {
     const q = query.trim().toLowerCase();
@@ -731,6 +741,7 @@ function QuizSignupsPanel({ signups }) {
       <p style={{ fontFamily: 'DM Sans, sans-serif', fontSize: 13, color: COLORS.faded, margin: '0 0 14px' }}>
         Email signups from the quiz leaderboard join form, newest first.
         {' '}{signups.length} signup{signups.length === 1 ? '' : 's'} total.
+        {' '}Click a row to see every quiz that person has played.
       </p>
       <div style={{ display: 'flex', gap: 10, marginBottom: 16 }}>
         <input
@@ -787,27 +798,78 @@ function QuizSignupsPanel({ signups }) {
             <span style={{ flex: '0 0 36px' }}>#</span>
             <span style={{ flex: 2 }}>Username</span>
             <span style={{ flex: 3 }}>Email</span>
+            <span style={{ flex: '0 0 64px', textAlign: 'right' }}>Plays</span>
             <span style={{ flex: '0 0 170px', textAlign: 'right' }}>Joined</span>
           </div>
-          {visible.map((s, i) => (
-            <div
-              key={s.id}
-              style={{ display: 'flex', alignItems: 'center', fontFamily: 'DM Sans, sans-serif', fontSize: 13, color: COLORS.ink, padding: '9px 14px', borderBottom: i < visible.length - 1 ? rowBorder : 'none' }}
-            >
-              <span style={{ flex: '0 0 36px', fontFamily: 'DM Mono, monospace', fontSize: 11, color: COLORS.faded }}>
-                {i + 1}
-              </span>
-              <span style={{ flex: 2, minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', fontWeight: 600 }}>
-                {s.username}
-              </span>
-              <span style={{ flex: 3, minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', fontFamily: 'DM Mono, monospace', fontSize: 12 }}>
-                <a href={`mailto:${s.email}`} style={{ color: COLORS.ink, textDecoration: 'none' }}>{s.email}</a>
-              </span>
-              <span style={{ flex: '0 0 170px', textAlign: 'right', fontFamily: 'DM Mono, monospace', fontSize: 11, color: COLORS.faded }}>
-                {formatDate(s.createdAt)}
-              </span>
-            </div>
-          ))}
+          {visible.map((s, i) => {
+            const plays = s.plays || [];
+            const playCount = s.playCount != null ? s.playCount : plays.length;
+            const open = expandedId === s.id;
+            return (
+              <div key={s.id} style={{ borderBottom: i < visible.length - 1 ? rowBorder : 'none' }}>
+                <div
+                  onClick={() => setExpandedId(open ? null : s.id)}
+                  style={{ display: 'flex', alignItems: 'center', fontFamily: 'DM Sans, sans-serif', fontSize: 13, color: COLORS.ink, padding: '9px 14px', cursor: 'pointer', background: open ? `${COLORS.ink}0a` : 'transparent' }}
+                >
+                  <span style={{ flex: '0 0 36px', fontFamily: 'DM Mono, monospace', fontSize: 11, color: COLORS.faded, display: 'flex', alignItems: 'center', gap: 4 }}>
+                    <span style={{ display: 'inline-block', width: 8, transform: open ? 'rotate(90deg)' : 'none', transition: 'transform 0.12s' }}>▸</span>
+                    {i + 1}
+                  </span>
+                  <span style={{ flex: 2, minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', fontWeight: 600 }}>
+                    {s.username}
+                  </span>
+                  <span style={{ flex: 3, minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', fontFamily: 'DM Mono, monospace', fontSize: 12 }}>
+                    <a href={`mailto:${s.email}`} onClick={(e) => e.stopPropagation()} style={{ color: COLORS.ink, textDecoration: 'none' }}>{s.email}</a>
+                  </span>
+                  <span style={{ flex: '0 0 64px', textAlign: 'right', fontFamily: 'DM Mono, monospace', fontSize: 12, fontWeight: 700, color: playCount > 0 ? COLORS.ember : COLORS.faded }}>
+                    {playCount}
+                  </span>
+                  <span style={{ flex: '0 0 170px', textAlign: 'right', fontFamily: 'DM Mono, monospace', fontSize: 11, color: COLORS.faded }}>
+                    {formatDate(s.createdAt)}
+                  </span>
+                </div>
+                {open && (
+                  <div style={{ padding: '4px 14px 14px 48px', background: `${COLORS.ink}0a` }}>
+                    {playCount === 0 ? (
+                      <p style={{ fontFamily: 'Fraunces, serif', fontStyle: 'italic', fontSize: 14, color: COLORS.faded, margin: '8px 0' }}>
+                        Signed up but hasn&apos;t completed a quiz yet.
+                      </p>
+                    ) : (
+                      <div style={{ border: `1px solid ${COLORS.ink}33`, background: COLORS.paper }}>
+                        <div style={{ display: 'flex', fontFamily: 'DM Mono, monospace', fontSize: 9, letterSpacing: '0.12em', textTransform: 'uppercase', color: COLORS.faded, padding: '8px 12px', borderBottom: `1px solid ${COLORS.ink}33` }}>
+                          <span style={{ flex: 3 }}>Quiz</span>
+                          <span style={{ flex: '0 0 90px', textAlign: 'right' }}>Score</span>
+                          <span style={{ flex: '0 0 70px', textAlign: 'right' }}>Time</span>
+                          <span style={{ flex: '0 0 170px', textAlign: 'right' }}>Played</span>
+                        </div>
+                        {plays.map((p, j) => (
+                          <div
+                            key={`${p.quizId}-${j}`}
+                            style={{ display: 'flex', alignItems: 'center', fontFamily: 'DM Sans, sans-serif', fontSize: 12, color: COLORS.ink, padding: '7px 12px', borderBottom: j < plays.length - 1 ? `1px solid ${COLORS.ink}1a` : 'none' }}
+                          >
+                            <span style={{ flex: 3, minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                              <Link href={`/quiz/${encodeURIComponent(p.quizId)}`} target="_blank" style={{ color: COLORS.ink, textDecoration: 'none' }}>
+                                {p.title}
+                              </Link>
+                            </span>
+                            <span style={{ flex: '0 0 90px', textAlign: 'right', fontFamily: 'DM Mono, monospace', fontSize: 11 }}>
+                              {p.score}{p.total != null ? `/${p.total}` : ''}
+                            </span>
+                            <span style={{ flex: '0 0 70px', textAlign: 'right', fontFamily: 'DM Mono, monospace', fontSize: 11, color: COLORS.faded }}>
+                              {formatClock(p.timeElapsed)}
+                            </span>
+                            <span style={{ flex: '0 0 170px', textAlign: 'right', fontFamily: 'DM Mono, monospace', fontSize: 10, color: COLORS.faded }}>
+                              {formatDate(p.createdAt)}
+                            </span>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                )}
+              </div>
+            );
+          })}
         </div>
       )}
     </div>
