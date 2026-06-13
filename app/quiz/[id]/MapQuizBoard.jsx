@@ -11,6 +11,9 @@ const LOADERS = {
   'africa': () => import('@/lib/africa-geo.js').then((m) => m.GEO),
   'asia': () => import('@/lib/asia-geo.js').then((m) => m.GEO),
   'us-states': () => import('@/lib/us-geo.js').then((m) => m.GEO),
+  'central-america': () => import('@/lib/central-america-geo.js').then((m) => m.GEO),
+  'southeast-asia': () => import('@/lib/southeast-asia-geo.js').then((m) => m.GEO),
+  'caribbean': () => import('@/lib/caribbean-geo.js').then((m) => m.GEO),
 };
 
 const LAND = '#fbf7ef';
