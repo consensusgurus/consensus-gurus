@@ -721,8 +721,9 @@ export default function QuizClient({ quizId }) {
   const clock = fmtTime(time);
   const shareUrl = typeof window !== 'undefined' ? window.location.href : `https://sourceoftruths.com/quiz/${quiz.id}`;
   function share() {
+    const pct = total ? Math.round((dispScore / total) * 100) : 0;
     const text = ended
-      ? `I scored ${dispScore}/${total} on "${quiz.title}" at Source of Truths. Can you beat me?`
+      ? `I scored ${dispScore}/${total} (${pct}%) on "${quiz.title}" at Source of Truths. Can you beat me?`
       : `How well do you know "${quiz.title}"? Take the timed quiz at Source of Truths.`;
     if (navigator.share) {
       navigator.share({ title: quiz.title, text, url: shareUrl }).catch(() => {});
@@ -1074,10 +1075,15 @@ export default function QuizClient({ quizId }) {
               </div>
             )}
 
-            <div style={{ marginTop: 22, display: 'flex', gap: 10, justifyContent: 'center' }}>
+            <div style={{ marginTop: 22, display: 'flex', gap: 10, justifyContent: 'center', flexWrap: 'wrap' }}>
               <button onClick={() => endGame(false)} disabled={ended || !started} style={{ fontFamily: MONO, fontSize: 12, letterSpacing: '0.12em', textTransform: 'uppercase', fontWeight: 700, padding: '12px 26px', border: 'none', background: COLORS.ember, color: '#fff', cursor: ended || !started ? 'default' : 'pointer', opacity: ended || !started ? 0.4 : 1, display: 'inline-flex', alignItems: 'center', gap: 8 }}>
                 <Flag size={14} strokeWidth={2.5} color="#fff" /> Give up
               </button>
+              {ended && (
+                <button onClick={share} style={{ fontFamily: MONO, fontSize: 12, letterSpacing: '0.12em', textTransform: 'uppercase', fontWeight: 700, padding: '12px 26px', border: 'none', background: COLORS.ink, color: COLORS.cream, cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: 8 }}>
+                  <Share2 size={14} strokeWidth={2.5} /> {copied ? 'Link copied!' : 'Share my score'}
+                </button>
+              )}
             </div>
           </>
         )}
@@ -1133,7 +1139,7 @@ export default function QuizClient({ quizId }) {
           <div style={{ textAlign: 'center', padding: '12px 0 8px' }}>
             <p style={{ fontFamily: SERIF, fontStyle: 'italic', fontSize: 19, color: COLORS.ink, maxWidth: 480, margin: '0 auto 20px' }}>{ended ? `You scored ${dispScore} of ${total}. Challenge someone to beat it.` : 'Send this quiz to someone who thinks they know better.'}</p>
             <button onClick={share} style={{ fontFamily: MONO, fontSize: 13, letterSpacing: '0.08em', textTransform: 'uppercase', fontWeight: 700, padding: '0 28px', lineHeight: '46px', border: 'none', background: COLORS.ember, color: '#fff', cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: 8 }}>
-              <Share2 size={14} strokeWidth={2.5} /> {copied ? 'Link copied!' : 'Share this quiz'}
+              <Share2 size={14} strokeWidth={2.5} /> {copied ? 'Link copied!' : (ended ? 'Share my score' : 'Share this quiz')}
             </button>
             <div style={{ fontFamily: MONO, fontSize: 12, color: COLORS.faded, marginTop: 16, wordBreak: 'break-all' }}>{shareUrl}</div>
           </div>

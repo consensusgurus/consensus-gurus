@@ -307,8 +307,9 @@ export default function LogicGridClient({ quizId }) {
   const clock = fmtTime(time);
   const shareUrl = typeof window !== 'undefined' ? window.location.href : `https://sourceoftruths.com/quiz/${quiz.id}`;
   function share() {
+    const pct = total ? Math.round((score / total) * 100) : 0;
     const text = phase === 'done'
-      ? `I placed ${score}/${total} on "${quiz.title}" at Source of Truths. Can you solve the grid?`
+      ? `I placed ${score}/${total} (${pct}%) on "${quiz.title}" at Source of Truths. Can you solve the grid?`
       : `Can you solve all ${total} boxes? "${quiz.title}" at Source of Truths.`;
     if (navigator.share) {
       navigator.share({ title: quiz.title, text, url: shareUrl }).catch(() => {});
@@ -505,6 +506,9 @@ export default function LogicGridClient({ quizId }) {
                     <p style={{ fontFamily: SANS, fontSize: 14, color: COLORS.faded, maxWidth: 460, margin: '0 auto 18px' }}>The answers you missed are filled in above in rust, and each row's continent is now shown.</p>
                     <div style={{ display: 'flex', gap: 10, justifyContent: 'center', flexWrap: 'wrap' }}>
                       <button onClick={() => { setPhase('idle'); setSolved(new Array(total).fill(false)); setActive(null); setGuess(''); setTime(quiz.timeLimit); setRevealed(false); endedRef.current = false; setHint('Press Start to read the clues and begin.'); setHintBad(false); }} style={{ fontFamily: MONO, fontSize: 13, letterSpacing: '0.08em', textTransform: 'uppercase', fontWeight: 700, lineHeight: '46px', padding: '0 28px', background: COLORS.ember, color: '#fff', border: 'none', cursor: 'pointer' }}>Play again</button>
+                      <button onClick={share} style={{ fontFamily: MONO, fontSize: 13, letterSpacing: '0.08em', textTransform: 'uppercase', fontWeight: 700, lineHeight: '46px', padding: '0 24px', background: COLORS.ink, color: COLORS.cream, border: 'none', cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: 8 }}>
+                        <Share2 size={14} strokeWidth={2.5} /> {copied ? 'Link copied!' : 'Share my score'}
+                      </button>
                       {!identity && (
                         <button onClick={() => setTab('join')} style={{ fontFamily: MONO, fontSize: 13, letterSpacing: '0.08em', textTransform: 'uppercase', fontWeight: 700, lineHeight: '46px', padding: '0 24px', background: 'transparent', color: COLORS.ink, border: `1.5px solid ${COLORS.ink}`, cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: 8 }}>
                           <Trophy size={14} strokeWidth={2.5} /> Join the leaderboard
@@ -578,7 +582,7 @@ export default function LogicGridClient({ quizId }) {
           <div style={{ textAlign: 'center', padding: '12px 0 8px' }}>
             <p style={{ fontFamily: SERIF, fontStyle: 'italic', fontSize: 19, color: COLORS.ink, maxWidth: 480, margin: '0 auto 20px' }}>{phase === 'done' ? `You placed ${score} of ${total}. Challenge someone to solve the grid.` : 'Send this puzzle to someone who thinks they know their countries.'}</p>
             <button onClick={share} style={{ fontFamily: MONO, fontSize: 13, letterSpacing: '0.08em', textTransform: 'uppercase', fontWeight: 700, padding: '0 28px', lineHeight: '46px', border: 'none', background: COLORS.ember, color: '#fff', cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: 8 }}>
-              <Share2 size={14} strokeWidth={2.5} /> {copied ? 'Link copied!' : 'Share this quiz'}
+              <Share2 size={14} strokeWidth={2.5} /> {copied ? 'Link copied!' : (phase === 'done' ? 'Share my score' : 'Share this quiz')}
             </button>
             <div style={{ fontFamily: MONO, fontSize: 12, color: COLORS.faded, marginTop: 16, wordBreak: 'break-all' }}>{shareUrl}</div>
           </div>

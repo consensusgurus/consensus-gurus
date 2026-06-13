@@ -294,8 +294,10 @@ export default function TimedMcqClient({ quizId }) {
 
   const shareUrl = typeof window !== 'undefined' ? window.location.href : `https://sourceoftruths.com/quiz/${quiz.id}`;
   function share() {
+    const correct = results.filter((r) => r.correct).length;
+    const pct = total ? Math.round((correct / total) * 100) : 0;
     const text = phase === 'done'
-      ? `I scored ${points}/${maxPoints} on "${quiz.title}" at Source of Truths. Beat the clock and beat me.`
+      ? `I got ${correct}/${total} right (${pct}%) on "${quiz.title}" at Source of Truths. Beat the clock and beat me.`
       : `${total} questions, ${perSec} seconds each, answer fast for points. "${quiz.title}" at Source of Truths.`;
     if (navigator.share) {
       navigator.share({ title: quiz.title, text, url: shareUrl }).catch(() => {});
@@ -509,6 +511,9 @@ export default function TimedMcqClient({ quizId }) {
                         <Trophy size={14} strokeWidth={2.5} /> Post to Leaderboard
                       </button>
                     )}
+                    <button onClick={share} style={{ fontFamily: MONO, fontSize: 13, letterSpacing: '0.08em', textTransform: 'uppercase', fontWeight: 700, lineHeight: '46px', padding: '0 24px', background: COLORS.ink, color: COLORS.cream, border: 'none', cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: 8 }}>
+                      <Share2 size={14} strokeWidth={2.5} /> {copied ? 'Link copied!' : 'Share my score'}
+                    </button>
                   </div>
                 </div>
 
@@ -593,7 +598,7 @@ export default function TimedMcqClient({ quizId }) {
           <div style={{ textAlign: 'center', padding: '12px 0 8px' }}>
             <p style={{ fontFamily: SERIF, fontStyle: 'italic', fontSize: 19, color: COLORS.ink, maxWidth: 480, margin: '0 auto 20px' }}>{phase === 'done' ? `You scored ${points} of ${maxPoints}. Challenge someone to beat it.` : 'Send this quiz to someone who thinks they kept up with the business news.'}</p>
             <button onClick={share} style={{ fontFamily: MONO, fontSize: 13, letterSpacing: '0.08em', textTransform: 'uppercase', fontWeight: 700, padding: '0 28px', lineHeight: '46px', border: 'none', background: COLORS.ember, color: '#fff', cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: 8 }}>
-              <Share2 size={14} strokeWidth={2.5} /> {copied ? 'Link copied!' : 'Share this quiz'}
+              <Share2 size={14} strokeWidth={2.5} /> {copied ? 'Link copied!' : (phase === 'done' ? 'Share my score' : 'Share this quiz')}
             </button>
             <div style={{ fontFamily: MONO, fontSize: 12, color: COLORS.faded, marginTop: 16, wordBreak: 'break-all' }}>{shareUrl}</div>
           </div>
