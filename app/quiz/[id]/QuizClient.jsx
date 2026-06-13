@@ -340,9 +340,10 @@ export default function QuizClient({ quizId }) {
     setHint(win ? `Perfect — all ${total} named in ${fmtTime(elapsed)}!` : `Time! You got ${finalScore}/${total}.`);
     setHintBad(!win);
     setGameOverDismissed(false);
-    // Map games keep the board on screen behind the Game Over card; other
-    // formats still jump to the results/leaderboard tab as before.
-    if (!mapMode) setTab('stats');
+    // Map games AND tile games (bank/type-it) keep the board on screen behind
+    // the Game Over card so their answer grid is revealed; other formats still
+    // jump to the results/leaderboard tab as before.
+    if (!mapMode && !tileMode) setTab('stats');
 
     // Record the completed game (makes play count + average real; attributes
     // to the leaderboard if signed up).
@@ -1207,7 +1208,7 @@ export default function QuizClient({ quizId }) {
                   <p style={{ fontFamily: SERIF, fontStyle: 'italic', fontSize: 16, color: COLORS.faded, margin: '0 0 4px' }}>{reason}</p>
                   <p style={{ fontFamily: SANS, fontSize: 14, color: '#4a4339', margin: '0 0 20px' }}>{isTopScore ? 'You are the top score.' : <>You beat {percentile(dispScore, total)}% of players.{board.best != null ? (dispScore >= board.best ? ' That ties the high score.' : ` High score to beat: ${board.best}.`) : ''}</>}</p>
                   <div style={{ display: 'flex', gap: 10, justifyContent: 'center', flexWrap: 'wrap' }}>
-                    <button onClick={() => { setGameOverDismissed(true); setTab('stats'); }} style={{ fontFamily: MONO, fontSize: 12, letterSpacing: '0.12em', textTransform: 'uppercase', fontWeight: 700, padding: '13px 22px', border: 'none', background: COLORS.ember, color: '#fff', cursor: 'pointer' }}>See results</button>
+                    <button onClick={() => { setGameOverDismissed(true); setTab(tileMode ? 'play' : 'stats'); }} style={{ fontFamily: MONO, fontSize: 12, letterSpacing: '0.12em', textTransform: 'uppercase', fontWeight: 700, padding: '13px 22px', border: 'none', background: COLORS.ember, color: '#fff', cursor: 'pointer' }}>See results</button>
                     <button onClick={() => window.location.reload()} style={{ fontFamily: MONO, fontSize: 12, letterSpacing: '0.12em', textTransform: 'uppercase', fontWeight: 700, padding: '13px 22px', border: `1.5px solid ${COLORS.ink}`, background: 'transparent', color: COLORS.ink, cursor: 'pointer' }}>Play again</button>
                   </div>
                   {mapMode && (
