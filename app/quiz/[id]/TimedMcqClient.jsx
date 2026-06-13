@@ -11,7 +11,7 @@
 
 import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { useRouter } from 'next/navigation';
-import { ArrowLeft, Share2, Check, X, Flag, Trophy, HelpCircle, Zap } from 'lucide-react';
+import { ArrowLeft, Share2, Check, X, Flag, Trophy, HelpCircle, Zap, Eye } from 'lucide-react';
 import { getQuiz, QUIZZES } from '@/lib/quizzes';
 import Grain from '../../Grain';
 import Footer from '../../Footer';
@@ -93,6 +93,7 @@ export default function TimedMcqClient({ quizId }) {
   const maxPoints = total * maxPer;
 
   const [tab, setTab] = useState('play');
+  const [mcqRevealed, setMcqRevealed] = useState(false); // answer key hidden until revealed
 
   // ── Game state ──
   const [phase, setPhase] = useState('idle'); // idle | playing | reveal | done
@@ -269,6 +270,7 @@ export default function TimedMcqClient({ quizId }) {
       setIdentity(id);
       setJoinErr(false);
       setJoinMsg(`You're in. "${d.username}" will appear on the leaderboard once you finish a game.`);
+      setMcqRevealed(true); setTab('play');
     } catch (e) {
       setJoinErr(true);
       setJoinMsg('Could not join right now. Try again.');
@@ -496,16 +498,25 @@ export default function TimedMcqClient({ quizId }) {
                     {board.best != null ? (points >= board.best ? `That is the high score to beat.` : `The high score to beat is ${board.best}.`) : 'Be the first to set the pace.'}
                   </p>
                   <div style={{ display: 'flex', gap: 10, justifyContent: 'center', flexWrap: 'wrap' }}>
-                    <button onClick={() => { setPhase('idle'); setResults([]); setQIndex(0); setPicked(null); setRemaining(perMs); endedRef.current = false; }} style={{ fontFamily: MONO, fontSize: 13, letterSpacing: '0.08em', textTransform: 'uppercase', fontWeight: 700, lineHeight: '46px', padding: '0 28px', background: COLORS.ember, color: '#fff', border: 'none', cursor: 'pointer' }}>Play again</button>
+                    {!mcqRevealed && (
+                      <button onClick={() => { if (identity) setMcqRevealed(true); else setTab('join'); }} style={{ fontFamily: MONO, fontSize: 13, letterSpacing: '0.08em', textTransform: 'uppercase', fontWeight: 700, lineHeight: '46px', padding: '0 24px', background: COLORS.ember, color: '#fff', border: 'none', cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: 8 }}>
+                        <Eye size={14} strokeWidth={2.5} /> Reveal Answers
+                      </button>
+                    )}
+                    <button onClick={() => { setPhase('idle'); setResults([]); setQIndex(0); setPicked(null); setRemaining(perMs); endedRef.current = false; }} style={{ fontFamily: MONO, fontSize: 13, letterSpacing: '0.08em', textTransform: 'uppercase', fontWeight: 700, lineHeight: '46px', padding: '0 28px', background: 'transparent', color: COLORS.ink, border: `1.5px solid ${COLORS.ink}`, cursor: 'pointer' }}>Play again</button>
                     {!identity && (
                       <button onClick={() => setTab('join')} style={{ fontFamily: MONO, fontSize: 13, letterSpacing: '0.08em', textTransform: 'uppercase', fontWeight: 700, lineHeight: '46px', padding: '0 24px', background: 'transparent', color: COLORS.ink, border: `1.5px solid ${COLORS.ink}`, cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: 8 }}>
-                        <Trophy size={14} strokeWidth={2.5} /> Join the leaderboard
+                        <Trophy size={14} strokeWidth={2.5} /> Post to Leaderboard
                       </button>
                     )}
                   </div>
                 </div>
 
-                {/* Per-question recap */}
+                {/* Per-question recap (answer key) - hidden until revealed */}
+                {!mcqRevealed && (
+                  <p style={{ fontFamily: MONO, fontSize: 12, letterSpacing: '0.06em', textTransform: 'uppercase', color: COLORS.faded, textAlign: 'center', marginTop: 22 }}>Press Reveal Answers to see the full answer key.</p>
+                )}
+                {mcqRevealed && (
                 <ol style={{ margin: '18px 0 0', padding: 0, listStyle: 'none' }}>
                   {questions.map((qq, i) => {
                     const r = results[i];
@@ -525,6 +536,7 @@ export default function TimedMcqClient({ quizId }) {
                     );
                   })}
                 </ol>
+                )}
               </div>
             )}
           </>

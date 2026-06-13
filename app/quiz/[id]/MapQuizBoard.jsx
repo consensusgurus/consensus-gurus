@@ -23,7 +23,7 @@ const GREEN = '#3d4f2b';
 const RED = '#c0392b';
 const HOVER = '#efe7d6';
 
-export default function MapQuizBoard({ region, started, ended, foundNames, flash, onPick, noBorders: noBordersProp }) {
+export default function MapQuizBoard({ region, started, ended, revealed, foundNames, flash, onPick, noBorders: noBordersProp }) {
   const [geo, setGeo] = useState(null);
   const [hover, setHover] = useState(null);
 
@@ -43,6 +43,7 @@ export default function MapQuizBoard({ region, started, ended, foundNames, flash
 
   function fillFor(name, base) {
     if (foundNames && foundNames.has(name)) return GREEN;
+    if (revealed) return RED;
     if (flash && flash.name === name) return flash.ok ? GREEN : RED;
     if (hover === name && live && !noBorders) return HOVER;
     return base;

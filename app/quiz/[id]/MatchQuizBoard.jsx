@@ -39,7 +39,7 @@ function shuffle(arr) {
   return a;
 }
 
-export default function MatchQuizBoard({ pairs, started, ended, onMatch, onError, onEnd, onHint, leftLabel, rightLabel, sortLeft }) {
+export default function MatchQuizBoard({ pairs, started, ended, revealed, onMatch, onError, onEnd, onHint, leftLabel, rightLabel, sortLeft }) {
   // index i is the canonical pair id: pairs[i] === [answer, clue].
   // Left column = clues (pairs[i][1]); right column = answers (pairs[i][0]).
   const leftOrder = useMemo(

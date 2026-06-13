@@ -38,7 +38,7 @@ function accepts(raw, item) {
   return g === norm(item.t);
 }
 
-export default function TypeItBoard({ items, started, ended, onMatch, onWrong, onEnd, onHint, promptLabel, answerNoun }) {
+export default function TypeItBoard({ items, started, ended, revealed, onMatch, onWrong, onEnd, onHint, promptLabel, answerNoun }) {
   const list = items || [];
   const total = list.length;
   const order = useMemo(() => shuffle(list.map((_, i) => i)), [list]);
@@ -138,7 +138,7 @@ export default function TypeItBoard({ items, started, ended, onMatch, onWrong, o
             return (
               <div key={i} style={{ border: `1px solid ${got ? COLORS.forest : COLORS.faded + '55'}`, background: got ? '#e8efdd' : '#fbf7ef', padding: '8px 11px', borderRadius: 2, display: 'flex', flexDirection: 'column', gap: 2 }}>
                 <span style={{ fontFamily: MONO, fontSize: 10, letterSpacing: '0.06em', textTransform: 'uppercase', color: COLORS.faded, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{it.label}</span>
-                <span style={{ fontFamily: SERIF, fontWeight: 800, fontSize: 17, lineHeight: 1.1, color: got ? COLORS.forest : COLORS.rust }}>{got ? '✓ ' : ''}{it.t}</span>
+                <span style={{ fontFamily: SERIF, fontWeight: 800, fontSize: 17, lineHeight: 1.1, color: got ? COLORS.forest : (revealed ? COLORS.rust : COLORS.faded) }}>{got ? '✓ ' + it.t : (revealed ? it.t : '• • •')}</span>
               </div>
             );
           })}

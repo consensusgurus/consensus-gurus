@@ -203,7 +203,7 @@ export default function QuizClient({ quizId }) {
   // The "reveal the answers" gate is only for quizzes with no companion list and
   // no map board (the plain "table" quizzes). List quizzes already send you to
   // the full ranking to see misses; map quizzes have no table to fill in.
-  const canReveal = !quiz.listId && !mapMode && !pairsMode && !bankMode && !typeMode;
+  const canReveal = !quiz.listId;
   const moreLikeThis = (() => {
     const d = deptOf(quiz);
     // Other parts of a multi-part quiz (pt 2, pt 3...) ALWAYS lead, so they are
@@ -857,7 +857,7 @@ export default function QuizClient({ quizId }) {
                   below, which reveals on success. */}
               {canReveal && identity && !revealed && (
                 <button onClick={() => { setRevealed(true); setTab('play'); }} style={{ fontFamily: MONO, fontSize: 13, letterSpacing: '0.08em', textTransform: 'uppercase', fontWeight: 700, lineHeight: '46px', padding: '0 24px', background: COLORS.ember, color: '#fff', border: 'none', cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: 8 }}>
-                  <Eye size={14} strokeWidth={2.5} /> Reveal the answers
+                  <Eye size={14} strokeWidth={2.5} /> Reveal Answers
                 </button>
               )}
               {canReveal && revealed && (
@@ -866,7 +866,7 @@ export default function QuizClient({ quizId }) {
               {!identity && !claimOpen && (
                 <button onClick={() => { setClaimMsg(''); setClaimErr(false); setClaimOpen(true); }} style={{ fontFamily: MONO, fontSize: 13, letterSpacing: '0.08em', textTransform: 'uppercase', fontWeight: 700, lineHeight: '46px', padding: '0 24px', background: COLORS.ember, color: '#fff', border: 'none', cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: 8 }}>
                   {canReveal
-                    ? (<><Eye size={14} strokeWidth={2.5} /> Create a display name to reveal the answers</>)
+                    ? (<><Eye size={14} strokeWidth={2.5} /> Reveal Answers</>)
                     : (<><Trophy size={14} strokeWidth={2.5} /> Post this to the leaderboard</>)}
                 </button>
               )}
@@ -960,11 +960,11 @@ export default function QuizClient({ quizId }) {
             </div>
 
             {typeMode ? (
-            <TypeItBoard items={quiz.answers} started={started} ended={ended} onMatch={onPairMatch} onWrong={onBankWrong} onEnd={onPairEnd} onHint={onPairHint} promptLabel={quiz.leftLabel} answerNoun={quiz.noun} />
+            <TypeItBoard items={quiz.answers} started={started} ended={ended} revealed={revealed} onMatch={onPairMatch} onWrong={onBankWrong} onEnd={onPairEnd} onHint={onPairHint} promptLabel={quiz.leftLabel} answerNoun={quiz.noun} />
             ) : bankMode ? (
-            <BankQuizBoard pairs={quiz.pairs} started={started} ended={ended} onMatch={onPairMatch} onWrong={onBankWrong} onEnd={onPairEnd} onHint={onPairHint} promptLabel={quiz.leftLabel} bankLabel={quiz.rightLabel} />
+            <BankQuizBoard pairs={quiz.pairs} started={started} ended={ended} revealed={revealed} onMatch={onPairMatch} onWrong={onBankWrong} onEnd={onPairEnd} onHint={onPairHint} promptLabel={quiz.leftLabel} bankLabel={quiz.rightLabel} />
             ) : pairsMode ? (
-            <MatchQuizBoard pairs={quiz.pairs} started={started} ended={ended} onMatch={onPairMatch} onError={onPairError} onEnd={onPairEnd} onHint={onPairHint} leftLabel={quiz.leftLabel} rightLabel={quiz.rightLabel} sortLeft={quiz.sortLeft} />
+            <MatchQuizBoard pairs={quiz.pairs} started={started} ended={ended} revealed={revealed} onMatch={onPairMatch} onError={onPairError} onEnd={onPairEnd} onHint={onPairHint} leftLabel={quiz.leftLabel} rightLabel={quiz.rightLabel} sortLeft={quiz.sortLeft} />
             ) : mapMode ? (
             <div>
               <div style={{ display: 'flex', alignItems: 'center', gap: 12, background: started && !ended ? COLORS.ink : COLORS.paper, color: started && !ended ? COLORS.cream : COLORS.faded, border: `1px solid ${COLORS.faded}33`, padding: '12px 16px', marginBottom: 10, minHeight: 30 }}>
@@ -976,7 +976,7 @@ export default function QuizClient({ quizId }) {
                   </button>
                 )}
               </div>
-              <MapQuizBoard region={quiz.region || 'europe'} noBorders={quiz.noBorders} started={started} ended={ended} foundNames={foundNamesSet} flash={flash} onPick={pickCountry} />
+              <MapQuizBoard region={quiz.region || 'europe'} noBorders={quiz.noBorders} started={started} ended={ended} revealed={revealed} foundNames={foundNamesSet} flash={flash} onPick={pickCountry} />
             </div>
             ) : (
             (() => {
@@ -1209,12 +1209,10 @@ export default function QuizClient({ quizId }) {
                   <p style={{ fontFamily: SERIF, fontStyle: 'italic', fontSize: 16, color: COLORS.faded, margin: '0 0 4px' }}>{reason}</p>
                   <p style={{ fontFamily: SANS, fontSize: 14, color: '#4a4339', margin: '0 0 20px' }}>{isTopScore ? 'You are the top score.' : <>You beat {percentile(dispScore, total)}% of players.{board.best != null ? (dispScore >= board.best ? ' That ties the high score.' : ` High score to beat: ${board.best}.`) : ''}</>}</p>
                   <div style={{ display: 'flex', gap: 10, justifyContent: 'center', flexWrap: 'wrap' }}>
-                    <button onClick={() => { setGameOverDismissed(true); setTab(tileMode ? 'play' : 'stats'); }} style={{ fontFamily: MONO, fontSize: 12, letterSpacing: '0.12em', textTransform: 'uppercase', fontWeight: 700, padding: '13px 22px', border: 'none', background: COLORS.ember, color: '#fff', cursor: 'pointer' }}>See results</button>
-                    <button onClick={() => window.location.reload()} style={{ fontFamily: MONO, fontSize: 12, letterSpacing: '0.12em', textTransform: 'uppercase', fontWeight: 700, padding: '13px 22px', border: `1.5px solid ${COLORS.ink}`, background: 'transparent', color: COLORS.ink, cursor: 'pointer' }}>Play again</button>
+                    <button onClick={() => { setGameOverDismissed(true); setTab('play'); }} style={{ fontFamily: MONO, fontSize: 12, letterSpacing: '0.12em', textTransform: 'uppercase', fontWeight: 700, padding: '13px 22px', border: 'none', background: COLORS.ember, color: '#fff', cursor: 'pointer' }}>Return to Quiz</button>
+                    <button onClick={() => { setGameOverDismissed(true); if (identity) { setTab('stats'); } else { setClaimMsg(''); setClaimErr(false); setClaimOpen(true); setTab('play'); } }} style={{ fontFamily: MONO, fontSize: 12, letterSpacing: '0.12em', textTransform: 'uppercase', fontWeight: 700, padding: '13px 22px', border: `1.5px solid ${COLORS.ink}`, background: 'transparent', color: COLORS.ink, cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: 8 }}><Trophy size={14} strokeWidth={2.5} /> Post to Leaderboard</button>
                   </div>
-                  {mapMode && (
-                    <button onClick={() => setGameOverDismissed(true)} style={{ marginTop: 14, background: 'transparent', border: 'none', color: COLORS.faded, cursor: 'pointer', fontFamily: MONO, fontSize: 11, letterSpacing: '0.12em', textTransform: 'uppercase', textDecoration: 'underline', padding: 0 }}>Review the map</button>
-                  )}
+                  <button onClick={() => window.location.reload()} style={{ marginTop: 14, background: 'transparent', border: 'none', color: COLORS.faded, cursor: 'pointer', fontFamily: MONO, fontSize: 11, letterSpacing: '0.12em', textTransform: 'uppercase', textDecoration: 'underline', padding: 0 }}>Play again</button>
                 </>
               );
             })()}

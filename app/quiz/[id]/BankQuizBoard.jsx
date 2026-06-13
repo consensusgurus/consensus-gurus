@@ -46,7 +46,7 @@ function shuffle(arr) {
   return a;
 }
 
-export default function BankQuizBoard({ pairs, started, ended, onMatch, onWrong, onEnd, onHint, promptLabel, bankLabel }) {
+export default function BankQuizBoard({ pairs, started, ended, revealed, onMatch, onWrong, onEnd, onHint, promptLabel, bankLabel }) {
   // pairs[i] === [answer, prompt]: answer = the tile (e.g. headquarters city),
   // prompt = the clue shown one at a time (e.g. company).
   const total = pairs.length;
@@ -204,7 +204,7 @@ export default function BankQuizBoard({ pairs, started, ended, onMatch, onWrong,
             return (
               <div key={i} style={{ border: `1px solid ${got ? COLORS.forest : COLORS.faded + '55'}`, background: got ? '#e8efdd' : '#fbf7ef', padding: '8px 11px', borderRadius: 2, display: 'flex', flexDirection: 'column', gap: 2 }}>
                 <span style={{ fontFamily: MONO, fontSize: 10, letterSpacing: '0.06em', textTransform: 'uppercase', color: COLORS.faded, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{p[1]}</span>
-                <span style={{ fontFamily: SERIF, fontWeight: 800, fontSize: 16, lineHeight: 1.15, color: got ? COLORS.forest : COLORS.rust }}>{got ? '\u2713 ' : ''}{p[0]}</span>
+                <span style={{ fontFamily: SERIF, fontWeight: 800, fontSize: 16, lineHeight: 1.15, color: got ? COLORS.forest : (revealed ? COLORS.rust : COLORS.faded) }}>{got ? '\u2713 ' + p[0] : (revealed ? p[0] : '\u2022 \u2022 \u2022')}</span>
               </div>
             );
           })}
