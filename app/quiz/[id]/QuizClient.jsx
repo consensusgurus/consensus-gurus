@@ -903,7 +903,7 @@ export default function QuizClient({ quizId }) {
                 directly under the sticky ribbon (44 = ribbon height, tucked 1px
                 under it; ribbon zIndex 25 > this 24 so it covers the seam). The
                 answer list/board scrolls underneath. */}
-            <div style={{ position: 'sticky', top: 44, zIndex: 24, background: COLORS.cream, paddingBottom: 4 }}>
+            <div style={{ position: 'sticky', top: 44, zIndex: 24, background: COLORS.cream }}>
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', alignItems: 'center', background: COLORS.paper, border: `1px solid ${COLORS.faded}33`, padding: '16px 8px', marginBottom: 16 }}>
               <div style={{ textAlign: 'center', padding: '0 8px' }}>
                 <div style={{ fontFamily: SERIF, fontWeight: 800, fontSize: 34, lineHeight: 1 }}>{dispScore}<span style={{ fontSize: 20, color: COLORS.faded }}>/{total}</span></div>
@@ -957,6 +957,7 @@ export default function QuizClient({ quizId }) {
                 {ended ? 'Done' : started ? 'Playing' : (matched && !ordered) ? (quiz.noun ? 'Play' : 'Play — name each year') : 'Play'}
               </button>
             </div>
+            </div>
             <div style={{ position: 'relative', minHeight: 46, marginBottom: 14 }}>
               {cue && (
                 <div key={cue.id} aria-live="assertive" style={{ position: 'absolute', left: 0, right: 0, top: 0, display: 'flex', alignItems: 'center', gap: 9, padding: '11px 16px', color: '#fff', fontFamily: SANS, fontWeight: 700, fontSize: 17, lineHeight: 1, background: cue.ok ? COLORS.forest : COLORS.ember, boxShadow: '0 2px 8px rgba(26,22,17,0.25)', animation: `${cue.ok ? 'qzCueOk' : 'qzCueNo'} .4s ease both` }}>
@@ -965,7 +966,6 @@ export default function QuizClient({ quizId }) {
                 </div>
               )}
               <div style={{ fontFamily: MONO, fontSize: 12, paddingTop: 3, color: hintBad ? COLORS.ember : COLORS.faded }}>{hint}</div>
-            </div>
             </div>
 
             {typeMode ? (
