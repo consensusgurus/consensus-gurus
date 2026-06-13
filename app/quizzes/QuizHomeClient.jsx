@@ -217,11 +217,13 @@ export default function QuizHomeClient() {
     return c;
   }, []);
 
-  // Ribbon order: departments sorted by how many quizzes each holds (most first).
-  // The top six fill the ribbon; the remainder drop into the "More" dropdown.
-  const { primaryDepts, moreDepts } = useMemo(() => {
+  // Ribbon order: departments sorted by how many quizzes each holds (most first),
+  // then split across two stacked bars so every category is always visible.
+  // "All" leads the top bar, so the top bar holds one more chip than the bottom.
+  const { row1Depts, row2Depts } = useMemo(() => {
     const ordered = DEPT_NAV.slice().sort((a, b) => (counts[b.id] || 0) - (counts[a.id] || 0) || a.label.localeCompare(b.label));
-    return { primaryDepts: ordered.slice(0, 6), moreDepts: ordered.slice(6) };
+    const half = Math.ceil(ordered.length / 2);
+    return { row1Depts: ordered.slice(0, half), row2Depts: ordered.slice(half) };
   }, [counts]);
 
   const sorted = useMemo(() => {
@@ -322,34 +324,15 @@ export default function QuizHomeClient() {
             <rect width="100%" height="100%" filter="url(#qz-nav-grain)" />
           </svg>
           <div style={{ maxWidth: 1200, margin: '0 auto', padding: '0 16px', position: 'relative' }}>
-            <div ref={deptNavRef} className="qz-deptnav" style={{ display: 'flex', alignItems: 'stretch', overflowX: 'auto', background: COLORS.ink, borderBottom: `3px solid ${COLORS.ember}` }}>
+            <div ref={deptNavRef} className="qz-deptnav" style={{ display: 'flex', alignItems: 'stretch', overflowX: 'auto', background: COLORS.ink, borderBottom: '1px solid rgba(244,237,224,0.22)' }}>
               {navBtn('all', 'All', counts.all)}
-              {primaryDepts.map((d) => navBtn(d.id, d.label, counts[d.id]))}
-              {(() => {
-                const moreActive = moreDepts.some((c) => c.id === dept);
-                return (
-                  <button key="more" onClick={() => { setMoreOpen((o) => !o); setSortOpen(false); }} aria-haspopup="true" aria-expanded={moreOpen} style={{ flex: '1 0 auto', background: moreActive ? COLORS.ember : 'transparent', color: COLORS.cream, border: 'none', borderRight: '1px solid rgba(244,237,224,0.18)', height: 42, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6, padding: '0 18px', fontFamily: 'DM Mono, monospace', fontSize: 10.5, letterSpacing: '0.2em', textTransform: 'uppercase', fontWeight: 600, cursor: 'pointer', whiteSpace: 'nowrap' }}>
-                    More <span style={{ opacity: 0.7 }}>{moreOpen ? '\u25B4' : '\u25BE'}</span>
-                  </button>
-                );
-              })()}
+              {row1Depts.map((d) => navBtn(d.id, d.label, counts[d.id]))}
+            </div>
+            <div className="qz-deptnav" style={{ display: 'flex', alignItems: 'stretch', overflowX: 'auto', background: COLORS.ink, borderBottom: `3px solid ${COLORS.ember}` }}>
+              {row2Depts.map((d) => navBtn(d.id, d.label, counts[d.id]))}
             </div>
             {navScroll.left && <span aria-hidden="true" className="qz-navcue qz-navcue-l">&#8249;</span>}
             {navScroll.right && <span aria-hidden="true" className="qz-navcue qz-navcue-r">&#8250;</span>}
-            {moreOpen && (
-              <div style={{ position: 'absolute', top: '100%', left: 16, right: 16, zIndex: 30, background: COLORS.cream, border: `1.5px solid ${COLORS.ink}`, borderTop: 'none', boxShadow: '0 10px 24px rgba(26,22,17,0.25)' }}>
-                <div style={{ padding: '14px 18px 16px', display: 'flex', flexWrap: 'wrap', gap: 8 }}>
-                  {moreDepts.map((c) => {
-                    const active = dept === c.id;
-                    return (
-                      <button key={c.id} onClick={() => { setDept(c.id); setMoreOpen(false); }} style={{ display: 'inline-flex', alignItems: 'center', gap: 7, background: active ? COLORS.ember : COLORS.paper, color: active ? COLORS.cream : COLORS.ink, border: `1.5px solid ${COLORS.ink}`, padding: '8px 14px', fontFamily: 'DM Mono, monospace', fontSize: 10.5, letterSpacing: '0.16em', textTransform: 'uppercase', fontWeight: 700, cursor: 'pointer' }}>
-                        {c.label}<span style={{ opacity: 0.55, marginLeft: 2 }}>{counts[c.id] || 0}</span>
-                      </button>
-                    );
-                  })}
-                </div>
-              </div>
-            )}
           </div>
         </nav>
 
