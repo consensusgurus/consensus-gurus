@@ -12,6 +12,7 @@ import dynamic from 'next/dynamic';
 const MapQuizBoard = dynamic(() => import('./MapQuizBoard'), { ssr: false, loading: () => null });
 const MatchQuizBoard = dynamic(() => import('./MatchQuizBoard'), { ssr: false, loading: () => null });
 const BankQuizBoard = dynamic(() => import('./BankQuizBoard'), { ssr: false, loading: () => null });
+const TypeItBoard = dynamic(() => import('./TypeItBoard'), { ssr: false, loading: () => null });
 const TimedMcqBoard = dynamic(() => import('./TimedMcqClient'), { ssr: false, loading: () => null });
 const LogicGridBoard = dynamic(() => import('./LogicGridClient'), { ssr: false, loading: () => null });
 
@@ -190,7 +191,8 @@ export default function QuizClient({ quizId }) {
   const mapMode = quiz.format === 'map';
   const pairsMode = quiz.format === 'pairs';
   const bankMode = quiz.format === 'bank';
-  const tileMode = pairsMode || bankMode;
+  const typeMode = quiz.format === 'type-it';
+  const tileMode = pairsMode || bankMode || typeMode;
   // Tile-mode (bank/pairs) quizzes are answered one prompt per PAIR, so the score
   // denominator is the pair count, not the number of distinct answer tiles. A
   // many-to-one bank quiz (e.g. cocktail -> base spirit: 16 cocktails, 6 spirits)
@@ -200,7 +202,7 @@ export default function QuizClient({ quizId }) {
   // The "reveal the answers" gate is only for quizzes with no companion list and
   // no map board (the plain "table" quizzes). List quizzes already send you to
   // the full ranking to see misses; map quizzes have no table to fill in.
-  const canReveal = !quiz.listId && !mapMode && !pairsMode && !bankMode;
+  const canReveal = !quiz.listId && !mapMode && !pairsMode && !bankMode && !typeMode;
   const moreLikeThis = (() => {
     const d = deptOf(quiz);
     // Other parts of a multi-part quiz (pt 2, pt 3...) ALWAYS lead, so they are
@@ -406,6 +408,8 @@ export default function QuizClient({ quizId }) {
       setHint('Match the prompt to a tile in the bank below.');
     } else if (pairsMode) {
       setHint('Pick a slogan, then the company it belongs to.');
+    } else if (typeMode) {
+      setHint('Type the answer for the clue above. Next skips it for now.');
     } else {
       setHint(ordered ? 'Go — answer in order, from the top.' : matched ? (quiz.noun ? `Go — type each ${quiz.noun}.` : "Go — name each year's winner.") : 'Go — name them all.');
     }
@@ -761,7 +765,7 @@ export default function QuizClient({ quizId }) {
       return cols;
     }
     // These formats render their own board, not the answer list.
-    if (mapMode || pairsMode || bankMode) return null;
+    if (mapMode || pairsMode || bankMode || typeMode) return null;
     // Otherwise auto-wrap a long answer list into balanced columns so it does
     // not run off the screen. Column count scales with the number of answers
     // and is capped by the longest answer's width (so wide names are not
@@ -900,7 +904,7 @@ export default function QuizClient({ quizId }) {
                 <div style={{ fontFamily: SERIF, fontWeight: 800, fontSize: 34, lineHeight: 1, color: (guessesLeft == null ? total : guessesLeft) <= 3 && started && !ended ? COLORS.ember : COLORS.ink }}>{guessesLeft == null ? total : guessesLeft}</div>
                 <div style={{ fontFamily: MONO, fontSize: 11, letterSpacing: '0.12em', textTransform: 'uppercase', color: COLORS.faded }}>{quiz.suddenDeath ? 'States left' : 'Guesses left'}</div>
               </div>
-              ) : bankMode ? (
+              ) : (bankMode || typeMode) ? (
               <div style={{ textAlign: 'center', padding: '0 8px', borderLeft: `1px solid ${COLORS.faded}33` }}>
                 <div style={{ fontFamily: SERIF, fontWeight: 800, fontSize: 34, lineHeight: 1, color: (total - pairsMatched - pairsErrors) <= 3 && started && !ended ? COLORS.ember : COLORS.ink }}>{Math.max(0, total - pairsMatched - pairsErrors)}</div>
                 <div style={{ fontFamily: MONO, fontSize: 11, letterSpacing: '0.12em', textTransform: 'uppercase', color: COLORS.faded }}>Guesses left</div>
@@ -953,7 +957,9 @@ export default function QuizClient({ quizId }) {
               <div style={{ fontFamily: MONO, fontSize: 12, paddingTop: 3, color: hintBad ? COLORS.ember : COLORS.faded }}>{hint}</div>
             </div>
 
-            {bankMode ? (
+            {typeMode ? (
+            <TypeItBoard items={quiz.answers} started={started} ended={ended} onMatch={onPairMatch} onWrong={onBankWrong} onEnd={onPairEnd} onHint={onPairHint} promptLabel={quiz.leftLabel} answerNoun={quiz.noun} />
+            ) : bankMode ? (
             <BankQuizBoard pairs={quiz.pairs} started={started} ended={ended} onMatch={onPairMatch} onWrong={onBankWrong} onEnd={onPairEnd} onHint={onPairHint} promptLabel={quiz.leftLabel} bankLabel={quiz.rightLabel} />
             ) : pairsMode ? (
             <MatchQuizBoard pairs={quiz.pairs} started={started} ended={ended} onMatch={onPairMatch} onError={onPairError} onEnd={onPairEnd} onHint={onPairHint} leftLabel={quiz.leftLabel} rightLabel={quiz.rightLabel} sortLeft={quiz.sortLeft} />
