@@ -170,8 +170,11 @@ export default function BankQuizBoard({ pairs, started, ended, onMatch, onWrong,
           <button onClick={skip} title="Skip to the next prompt without spending a guess, you can come back." style={{ marginLeft: 'auto', flex: 'none', fontFamily: MONO, fontSize: 10, letterSpacing: '0.16em', textTransform: 'uppercase', fontWeight: 700, padding: '9px 16px', background: 'transparent', color: COLORS.cream, border: '1px solid rgba(244,237,224,0.4)', cursor: 'pointer' }}>Next &rarr;</button>
         )}
       </div>
+      {!ended && (
       <div style={{ fontFamily: MONO, fontSize: 11, letterSpacing: '0.12em', textTransform: 'uppercase', color: COLORS.faded, marginBottom: 12 }}>{remaining} still to match &middot; {Math.max(0, guessesLeft)} {Math.max(0, guessesLeft) === 1 ? 'guess' : 'guesses'} left</div>
+      )}
 
+      {!ended && (
       <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, justifyContent: 'center', background: COLORS.paper, border: `1px solid ${COLORS.faded}33`, padding: '16px 14px' }}>
         {bankOrder.map((k) => {
           const isMatched = matched.has(k);
@@ -193,6 +196,20 @@ export default function BankQuizBoard({ pairs, started, ended, onMatch, onWrong,
           );
         })}
       </div>
+      )}
+      {ended && (
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(170px, 1fr))', gap: 8, marginTop: 4 }}>
+          {pairs.map((p, i) => {
+            const got = donePrompts.has(p[1]);
+            return (
+              <div key={i} style={{ border: `1px solid ${got ? COLORS.forest : COLORS.faded + '55'}`, background: got ? '#e8efdd' : '#fbf7ef', padding: '8px 11px', borderRadius: 2, display: 'flex', flexDirection: 'column', gap: 2 }}>
+                <span style={{ fontFamily: MONO, fontSize: 10, letterSpacing: '0.06em', textTransform: 'uppercase', color: COLORS.faded, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{p[1]}</span>
+                <span style={{ fontFamily: SERIF, fontWeight: 800, fontSize: 16, lineHeight: 1.15, color: got ? COLORS.forest : COLORS.rust }}>{got ? '\u2713 ' : ''}{p[0]}</span>
+              </div>
+            );
+          })}
+        </div>
+      )}
     </div>
   );
 }
