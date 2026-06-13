@@ -214,11 +214,11 @@ export default function QuizClient({ quizId }) {
     const stripped = quiz.id.replace(/-\d+$/, '');
     const partBase = QUIZZES.some((x) => x.id === stripped) ? stripped : null;
     const parts = partBase
-      ? QUIZZES.filter((x) => x.id !== quiz.id && x.id.replace(/-\d+$/, '') === partBase)
+      ? QUIZZES.filter((x) => x.id !== quiz.id && !x.hideFromRelated && x.id.replace(/-\d+$/, '') === partBase)
       : [];
-    const sameCat = QUIZZES.filter((x) => x.id !== quiz.id && quiz.category && x.category === quiz.category);
-    const sameDept = QUIZZES.filter((x) => x.id !== quiz.id && deptOf(x) === d);
-    const rest = QUIZZES.filter((x) => x.id !== quiz.id);
+    const sameCat = QUIZZES.filter((x) => x.id !== quiz.id && !x.hideFromRelated && quiz.category && x.category === quiz.category);
+    const sameDept = QUIZZES.filter((x) => x.id !== quiz.id && !x.hideFromRelated && deptOf(x) === d);
+    const rest = QUIZZES.filter((x) => x.id !== quiz.id && !x.hideFromRelated);
     const seen = new Set();
     const out = [];
     for (const x of [...parts, ...sameCat, ...sameDept, ...rest]) {
