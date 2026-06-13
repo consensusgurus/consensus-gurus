@@ -175,8 +175,31 @@ export default function QuizHomeClient() {
   useEffect(() => {
     fetch('/api/quiz/totals').then((r) => r.json()).then((d) => { if (d && !d.error) setTotals({ total: d.total || 0, byQuiz: d.byQuiz || {}, recent7: d.recent7 || {} }); }).catch(() => {});
     fetch('/api/quiz/recent').then((r) => r.json()).then((d) => { if (d && Array.isArray(d.plays)) setRecent(d.plays); }).catch(() => {});
-    fetchBootstrap().then((data) => { if (data && data.views) setVisitors(Object.values(data.views).reduce((a, b) => a + b, 0)); }).catch(() => {});
+    // Visitors on this page reflect quiz traffic only (the quiz home page +
+    // individual quiz pages), not the whole site. Quiz-page views are merged
+    // into bootstrap views under `quiz::<id>` keys; sum only those.
+    fetchBootstrap().then((data) => { if (data && data.views) setVisitors(Object.entries(data.views).reduce((sum, [k, v]) => (k.startsWith('quiz::') ? sum + (Number(v) || 0) : sum), 0)); }).catch(() => {});
     fetch('/api/quiz/champions').then((r) => r.json()).then((d) => { if (d && !d.error) setChampions({ completed: d.completed || [], weighted: d.weighted || [], accuracy: d.accuracy || [], anonymous: d.anonymous || 0 }); }).catch(() => {});
+  }, []);
+
+  // Count quiz-home-page landings toward this page's visitor total, so it
+  // reflects the quiz home page plus individual quiz pages. Logged under the
+  // pseudo quiz id 'home' in quiz_views (bootstrap merges it as `quiz::home`),
+  // deduped to once per browser session. Mirrors the site homepage's landing
+  // tracking.
+  useEffect(() => {
+    let seen = false;
+    try {
+      seen = sessionStorage.getItem('sot-quizhome-viewed') === '1';
+      if (!seen) sessionStorage.setItem('sot-quizhome-viewed', '1');
+    } catch (e) { /* sessionStorage unavailable: count this load */ }
+    if (!seen) {
+      fetch('/api/quiz/view', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ quizId: 'home' }),
+      }).catch(() => {});
+    }
   }, []);
 
   const titleById = useMemo(() => Object.fromEntries(QUIZZES.map((q) => [q.id, q.title])), []);
