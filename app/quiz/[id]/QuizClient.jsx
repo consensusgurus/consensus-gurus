@@ -185,13 +185,17 @@ export default function QuizClient({ quizId }) {
   }
 
   const answers = quiz.answers;
-  const total = answers.length;
   const matched = quiz.format === 'matched';
   const nameKeys = useMemo(() => buildImplicitNameKeys(answers), [answers]);
   const mapMode = quiz.format === 'map';
   const pairsMode = quiz.format === 'pairs';
   const bankMode = quiz.format === 'bank';
   const tileMode = pairsMode || bankMode;
+  // Tile-mode (bank/pairs) quizzes are answered one prompt per PAIR, so the score
+  // denominator is the pair count, not the number of distinct answer tiles. A
+  // many-to-one bank quiz (e.g. cocktail -> base spirit: 16 cocktails, 6 spirits)
+  // otherwise mis-displays as 13/6 and drives the guesses-left counter negative.
+  const total = tileMode && Array.isArray(quiz.pairs) ? quiz.pairs.length : answers.length;
   const ordered = matched && quiz.ordered === true;
   // The "reveal the answers" gate is only for quizzes with no companion list and
   // no map board (the plain "table" quizzes). List quizzes already send you to
