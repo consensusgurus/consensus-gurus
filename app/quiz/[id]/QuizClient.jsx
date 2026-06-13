@@ -7,6 +7,7 @@ import { QUIZZES, getQuiz } from '@/lib/quizzes';
 import { quizDept as deptOf } from '@/lib/quiz-departments';
 import Grain from '../../Grain';
 import Footer from '../../Footer';
+import Count from '../../Count';
 import dynamic from 'next/dynamic';
 
 const MapQuizBoard = dynamic(() => import('./MapQuizBoard'), { ssr: false, loading: () => null });
@@ -917,7 +918,7 @@ export default function QuizClient({ quizId }) {
               </div>
               ) : (
               <div style={{ textAlign: 'center', padding: '0 8px', borderLeft: `1px solid ${COLORS.faded}33` }}>
-                <div style={{ fontFamily: SERIF, fontWeight: 800, fontSize: 34, lineHeight: 1 }}>{board.plays.toLocaleString()}</div>
+                <div style={{ fontFamily: SERIF, fontWeight: 800, fontSize: 34, lineHeight: 1 }}><Count value={board.plays} /></div>
                 <div style={{ fontFamily: MONO, fontSize: 11, letterSpacing: '0.12em', textTransform: 'uppercase', color: COLORS.faded }}>Total plays</div>
               </div>
               )}
@@ -1063,7 +1064,7 @@ export default function QuizClient({ quizId }) {
               <p style={{ fontFamily: SERIF, fontStyle: 'italic', fontSize: 17, color: COLORS.faded }}>No one has played this quiz yet. Be the first to set the pace.</p>
             ) : (
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 12 }}>
-                <StatBox label="Total plays" value={board.plays.toLocaleString()} />
+                <StatBox label="Total plays" value={<Count value={board.plays} />} />
                 <StatBox label="Best score" value={board.best != null ? `${board.best}/${total}` : '—'} />
                 <StatBox label="On the leaderboard" value={lb.length} />
               </div>
@@ -1072,7 +1073,7 @@ export default function QuizClient({ quizId }) {
             <div style={{ borderTop: `1px solid ${COLORS.faded}33`, marginTop: 26, paddingTop: 20 }}>
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 14 }}>
                 <div style={{ fontFamily: MONO, fontSize: 11, letterSpacing: '0.16em', textTransform: 'uppercase', color: COLORS.faded }}>Leaderboard</div>
-                <div style={{ fontFamily: MONO, fontSize: 11, letterSpacing: '0.08em', color: COLORS.faded }}>{bestLabel} best · {board.plays.toLocaleString()} {board.plays === 1 ? 'play' : 'plays'}</div>
+                <div style={{ fontFamily: MONO, fontSize: 11, letterSpacing: '0.08em', color: COLORS.faded }}>{bestLabel} best · <Count value={board.plays} /> {board.plays === 1 ? 'play' : 'plays'}</div>
               </div>
 
               {board.leaderboard.length === 0 ? (

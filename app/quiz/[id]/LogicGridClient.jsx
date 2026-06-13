@@ -15,6 +15,7 @@ import { ArrowLeft, Share2, Check, Flag, Trophy, HelpCircle, Globe } from 'lucid
 import { getQuiz } from '@/lib/quizzes';
 import Grain from '../../Grain';
 import Footer from '../../Footer';
+import Count from '../../Count';
 
 const COLORS = {
   cream: '#f4ede0',
@@ -388,7 +389,7 @@ export default function LogicGridClient({ quizId }) {
               </div>
               <div style={{ textAlign: 'center', padding: '0 8px', borderLeft: `1px solid ${COLORS.faded}33` }}>
                 <div style={{ fontFamily: SERIF, fontWeight: 800, fontSize: 34, lineHeight: 1, color: COLORS.ember }}>{bestLabel}</div>
-                <div style={{ fontFamily: MONO, fontSize: 11, letterSpacing: '0.12em', textTransform: 'uppercase', color: COLORS.faded }}>Best · {board.plays.toLocaleString()} {board.plays === 1 ? 'play' : 'plays'}</div>
+                <div style={{ fontFamily: MONO, fontSize: 11, letterSpacing: '0.12em', textTransform: 'uppercase', color: COLORS.faded }}>Best · <Count value={board.plays} /> {board.plays === 1 ? 'play' : 'plays'}</div>
               </div>
               <div style={{ textAlign: 'center', padding: '0 8px', borderLeft: `1px solid ${COLORS.faded}33` }}>
                 <div style={{ fontFamily: MONO, fontSize: 24, color: time <= 30 && phase === 'playing' ? COLORS.ember : COLORS.ink }}>{clock}</div>
@@ -543,7 +544,7 @@ export default function LogicGridClient({ quizId }) {
             <div style={{ borderTop: `1px solid ${COLORS.faded}33`, marginTop: 26, paddingTop: 20 }}>
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 14 }}>
                 <div style={{ fontFamily: MONO, fontSize: 11, letterSpacing: '0.16em', textTransform: 'uppercase', color: COLORS.faded }}>Leaderboard</div>
-                <div style={{ fontFamily: MONO, fontSize: 11, letterSpacing: '0.08em', color: COLORS.faded }}>{bestLabel} best · {board.plays.toLocaleString()} {board.plays === 1 ? 'play' : 'plays'}</div>
+                <div style={{ fontFamily: MONO, fontSize: 11, letterSpacing: '0.08em', color: COLORS.faded }}>{bestLabel} best · <Count value={board.plays} /> {board.plays === 1 ? 'play' : 'plays'}</div>
               </div>
 
               {board.leaderboard.length === 0 ? (

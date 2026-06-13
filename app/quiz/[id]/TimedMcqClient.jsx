@@ -15,6 +15,7 @@ import { ArrowLeft, Share2, Check, X, Flag, Trophy, HelpCircle, Zap } from 'luci
 import { getQuiz, QUIZZES } from '@/lib/quizzes';
 import Grain from '../../Grain';
 import Footer from '../../Footer';
+import Count from '../../Count';
 
 const COLORS = {
   cream: '#f4ede0',
@@ -374,7 +375,7 @@ export default function TimedMcqClient({ quizId }) {
               </div>
               <div style={{ textAlign: 'center', borderLeft: `1px solid ${COLORS.faded}33`, borderRight: `1px solid ${COLORS.faded}33`, padding: '0 22px' }}>
                 <div style={{ fontFamily: SERIF, fontWeight: 800, fontSize: 34, lineHeight: 1, color: COLORS.ember }}>{bestLabel}</div>
-                <div style={{ fontFamily: MONO, fontSize: 11, letterSpacing: '0.12em', textTransform: 'uppercase', color: COLORS.faded }}>Best · {board.plays.toLocaleString()} {board.plays === 1 ? 'play' : 'plays'}</div>
+                <div style={{ fontFamily: MONO, fontSize: 11, letterSpacing: '0.12em', textTransform: 'uppercase', color: COLORS.faded }}>Best · <Count value={board.plays} /> {board.plays === 1 ? 'play' : 'plays'}</div>
               </div>
               <div style={{ textAlign: 'right' }}>
                 <div style={{ fontFamily: MONO, fontSize: 24, color: phase === 'idle' || phase === 'done' ? COLORS.faded : COLORS.ink }}>
@@ -546,7 +547,7 @@ export default function TimedMcqClient({ quizId }) {
             <div style={{ borderTop: `1px solid ${COLORS.faded}33`, marginTop: 26, paddingTop: 20 }}>
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 14 }}>
                 <div style={{ fontFamily: MONO, fontSize: 11, letterSpacing: '0.16em', textTransform: 'uppercase', color: COLORS.faded }}>Leaderboard</div>
-                <div style={{ fontFamily: MONO, fontSize: 11, letterSpacing: '0.08em', color: COLORS.faded }}>{bestLabel} best · {board.plays.toLocaleString()} {board.plays === 1 ? 'play' : 'plays'}</div>
+                <div style={{ fontFamily: MONO, fontSize: 11, letterSpacing: '0.08em', color: COLORS.faded }}>{bestLabel} best · <Count value={board.plays} /> {board.plays === 1 ? 'play' : 'plays'}</div>
               </div>
 
               {board.leaderboard.length === 0 ? (

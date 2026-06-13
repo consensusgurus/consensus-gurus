@@ -7,6 +7,7 @@ import { useSampledBg } from '@/lib/useSampledBg';
 import { DESCRIPTIONS } from '@/lib/descriptions';
 import { HERO_IMAGES } from '@/lib/hero-images';
 import { getSources, buildItemLink } from '@/lib/helpers';
+import Count from '@/app/Count';
 
 // Splits a "Name (Locality)" item into { displayName, locality }.
 function parseItem(fullName) {
@@ -1047,7 +1048,7 @@ export default function ListOverview({ list, voteData, extras, viewCount, onBack
             }}
           >
             <Eye size={11} strokeWidth={2} />
-            <span>{viewCount} visitors</span>
+            <span><Count value={viewCount} /> visitors</span>
           </div>
           <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap' }}>
             <button

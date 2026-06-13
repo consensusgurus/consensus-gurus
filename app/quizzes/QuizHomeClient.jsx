@@ -8,6 +8,7 @@ import { fetchBootstrap } from '@/lib/api';
 import { quizDept as deptOf, quizIcon as iconOf, DEPT_COLOR, DEPT_LABEL, DEPT_NAV } from '@/lib/quiz-departments';
 import Grain from '../Grain';
 import Footer from '../Footer';
+import Count from '../Count';
 
 function seededShuffle(arr, seed) {
   const out = arr.slice();
@@ -66,7 +67,7 @@ function QuizTile({ quiz, plays }) {
         {quiz.blurb && (<p style={{ fontFamily: 'Fraunces, serif', fontStyle: 'italic', fontSize: 14.5, lineHeight: 1.5, color: COLORS.faded, margin: 0, display: '-webkit-box', WebkitLineClamp: 3, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>{quiz.blurb}</p>)}
         <div style={{ marginTop: 'auto', paddingTop: 18, display: 'flex', alignItems: 'baseline', gap: 8, fontFamily: 'DM Mono, monospace', fontSize: 12, letterSpacing: '0.18em', textTransform: 'uppercase', fontWeight: 700, color: accent.c }}>
           <span>▶ Play</span>
-          {plays > 0 && (<span style={{ color: COLORS.faded, fontWeight: 600, fontSize: 11, letterSpacing: '0.1em' }}>· {plays.toLocaleString()} plays</span>)}
+          {plays > 0 && (<span style={{ color: COLORS.faded, fontWeight: 600, fontSize: 11, letterSpacing: '0.1em' }}>· <Count value={plays} /> plays</span>)}
         </div>
       </div>
     </Link>
@@ -140,7 +141,7 @@ function ChampionsPanel({ completed, weighted, accuracy, anonymous }) {
         <MiniList title="Accuracy-Weighted Completions" rows={wtd} />
         <MiniList title="Accuracy (min 5)" rows={acc} />
       </div>
-      {anon > 0 && (<div className="champ-anon">Anonymous Play Count:<b>{anon.toLocaleString()}</b></div>)}
+      {anon > 0 && (<div className="champ-anon">Anonymous Play Count:<b><Count value={anon} /></b></div>)}
     </Link>
   );
 }
@@ -295,8 +296,8 @@ export default function QuizHomeClient() {
           `}</style>
           <div className="qz-stats">
             <span>{QUIZZES.length} quizzes</span>
-            <span><span style={{ opacity: 0.5 }}>·</span> {totals.total.toLocaleString()} plays</span>
-            <span><span style={{ opacity: 0.5 }}>·</span> {visitors.toLocaleString()} visitors</span>
+            <span><span style={{ opacity: 0.5 }}>·</span> <Count value={totals.total} /> plays</span>
+            <span><span style={{ opacity: 0.5 }}>·</span> <Count value={visitors} /> visitors</span>
             {recentEntries.length > 0 && (
               <span className="qz-tape">
                 <span className="qz-tape-track" style={{ animationDuration: `${Math.max(40, recentEntries.length * 9)}s` }}>

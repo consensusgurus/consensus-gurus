@@ -32,6 +32,7 @@ import { useSampledBg } from '@/lib/useSampledBg';
 import { fetchBootstrap, postView } from '@/lib/api';
 import Grain from './Grain';
 import Footer from './Footer';
+import Count from './Count';
 import SourcesPopover from './SourcesPopover';
 import { HERO_IMAGES } from '@/lib/hero-images';
 import { QUIZZES } from '@/lib/quizzes';
@@ -813,8 +814,8 @@ function Home({ lists, viewCounts, voteData, extras, trending = {}, openList, on
         `}</style>
         <div className="cg-stats">
           <span>{lists.length} lists</span>
-          <span><span aria-hidden="true" className="cg-dot">·</span> {totalVotes.toLocaleString()} votes</span>
-          <span><span aria-hidden="true" className="cg-dot">·</span> {totalViews.toLocaleString()} visitors</span>
+          <span><span aria-hidden="true" className="cg-dot">·</span> <Count value={totalVotes} /> votes</span>
+          <span><span aria-hidden="true" className="cg-dot">·</span> <Count value={totalViews} /> visitors</span>
           {HOME_V2 && featuredQuiz && (
             <span className="cg-tape">
               <Link className="cg-feat" href={`/quiz/${featuredQuiz.id}`}>
@@ -1635,7 +1636,7 @@ export function Tile({ list, rank, views, voteData, extras, onClick, href, showC
         )}
         <span style={{ display: 'flex', alignItems: 'center', gap: 6, minWidth: 0 }}>
           <Eye size={12} strokeWidth={2} />
-          <span>{views} visitors</span>
+          <span><Count value={views} /> visitors</span>
         </span>
       </div>
       </div>
