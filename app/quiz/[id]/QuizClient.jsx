@@ -193,6 +193,7 @@ export default function QuizClient({ quizId }) {
   const pairsMode = quiz.format === 'pairs';
   const bankMode = quiz.format === 'bank';
   const typeMode = quiz.format === 'type-it';
+  const logosMode = quiz.format === 'logos';
   const tileMode = pairsMode || bankMode || typeMode;
   // Tile-mode (bank/pairs) quizzes are answered one prompt per PAIR, so the score
   // denominator is the pair count, not the number of distinct answer tiles. A
@@ -978,6 +979,24 @@ export default function QuizClient({ quizId }) {
               </div>
               <MapQuizBoard region={quiz.region || 'europe'} noBorders={quiz.noBorders} started={started} ended={ended} revealed={revealed} foundNames={foundNamesSet} flash={flash} onPick={pickCountry} />
             </div>
+            ) : logosMode ? (
+            <ul style={{ margin: 0, padding: 0, listStyle: 'none', display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(112px, 1fr))', gap: 8 }}>
+              {answers.map((a, i) => {
+                const f = found[i];
+                const reveal = ended && revealed && !f;
+                const bd = f ? COLORS.forest : reveal ? COLORS.rust : COLORS.faded + '33';
+                return (
+                  <li key={i} style={{ border: `1px solid ${bd}`, background: '#fff', display: 'flex', flexDirection: 'column', alignItems: 'center', padding: 8, transition: 'all .2s', boxShadow: f ? `inset 0 -3px 0 ${COLORS.forest}` : reveal ? `inset 0 -3px 0 ${COLORS.rust}` : 'none' }}>
+                    <div style={{ height: 62, width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '2px' }}>
+                      <img src={a.img} alt={f || reveal ? a.t : `Logo ${i + 1}`} loading="lazy" style={{ maxWidth: '90%', maxHeight: 56, objectFit: 'contain' }} />
+                    </div>
+                    <div style={{ minHeight: 30, marginTop: 5, textAlign: 'center', fontFamily: SERIF, fontWeight: 600, fontSize: 13, lineHeight: 1.12, color: f ? COLORS.forest : reveal ? COLORS.rust : COLORS.faded }}>
+                      {f || reveal ? a.t : <span style={{ fontFamily: MONO, fontSize: 17, opacity: 0.4 }}>?</span>}
+                    </div>
+                  </li>
+                );
+              })}
+            </ul>
             ) : (
             (() => {
               const renderRow = (a, i) => {
