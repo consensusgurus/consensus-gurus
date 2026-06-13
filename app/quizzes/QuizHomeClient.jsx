@@ -47,7 +47,7 @@ function QuizTile({ quiz, plays }) {
   const base = quiz.format === 'timed-mcq' ? `${n} question${n === 1 ? '' : 's'}` : `${n} to ${actionWord}`;
   const clock = fmtQuizTime(quiz.timeLimit);
   const countLabel = clock ? `${base} in ${clock}` : base;
-  const heading = (quiz.title || '').replace(/^Name (the )?/, '');
+  const heading = quiz.title || '';
   return (
     <Link
       href={`/quiz/${quiz.id}`}
