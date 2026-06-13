@@ -1819,6 +1819,35 @@ rules of the game, never the items or any clue pointing at them. When in doubt, 
 countries in its blurb, because the player LOCATES each country on the map rather than typing its name,
 so a named country is not a spoiler. The no-name / no-hint rule applies in full to every non-map quiz.
 
+### A quiz's CLUES must never contain or give away their own answers (hard rule, 2026-06-13)
+
+A quiz is pointless when the prompt the player reads already contains the answer they are supposed to
+produce. This is the rule that retired nine matching games on 2026-06-13 (subway-system-to-city,
+marathon-to-city, racing-game-to-series, novel-to-film-adaptation, constellation-to-zodiac,
+tv-show-to-theme-song, stock-exchange-to-city, cathedral-to-city, tv-award-to-field): in each, the
+clue text spelled out the answer (e.g. a clue naming the city whose subway the player must name, or a
+cathedral named after the very city that was the answer). NEVER create such a quiz, and DELETE any
+existing one outright rather than trying to salvage it.
+
+**The rule:** for every quiz where the player reads a per-item clue and supplies a separate answer
+(`format: 'bank'`, `'pairs'`, `'matched'`, `'type-it'`, and the default name-them-all when it uses
+`label` clues), the clue/prompt string for an item MUST NOT contain that item's answer. Concretely,
+normalize (lowercase, strip punctuation) and confirm the answer's display text (`t`) and every one of
+its `keys` is NOT a substring of, and does not share its distinctive word(s) with, that item's own
+clue. A clue that names the answer's city, person, brand, or defining proper noun when THAT is the
+answer is a giveaway and disqualifies the item.
+
+**Build-time gate (run before shipping any clue-and-answer quiz):** for each item, test
+`norm(answer.t)` and each `norm(key)` against `norm(clue)`; any hit is a violation. Then judge the
+softer giveaways a substring test misses (a clue that paraphrases or uniquely fingerprints the answer
+without quoting it). **If even a few items give themselves away, fix those clues; if roughly half or
+more of the items do, the quiz CONCEPT is broken, do not build it.** Map quizzes are exempt (the
+player clicks a location, so a named place is not a spoiler), exactly as in the blurb rule above.
+
+When this surfaces on a LIVE quiz, delete the whole quiz entry from `lib/quizzes.js` (and its
+`QUIZ_DEPT` entry) in a normal deploy, rather than patching clue by clue, unless only one or two items
+are affected and good non-giveaway clues exist.
+
 ### Key-design rules (the matcher is substring + any-order tokens, so collisions are the real risk)
 
 - Give each answer its city/common name, its distinctive proper name, and its code, e.g.
