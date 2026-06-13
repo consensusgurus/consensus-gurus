@@ -753,11 +753,43 @@ export default function QuizClient({ quizId }) {
   }
 
   const colSplit = (() => {
+    // Explicit author-provided split always wins.
     const cs = quiz.columnSplit;
-    if (!Array.isArray(cs) || cs.reduce((acc, n) => acc + n, 0) !== answers.length) return null;
-    const cols = []; let gi = 0;
-    for (const n of cs) { const r = []; for (let k = 0; k < n; k++) r.push(gi++); cols.push(r); }
-    return cols;
+    if (Array.isArray(cs) && cs.reduce((acc, n) => acc + n, 0) === answers.length) {
+      const cols = []; let gi = 0;
+      for (const n of cs) { const r = []; for (let k = 0; k < n; k++) r.push(gi++); cols.push(r); }
+      return cols;
+    }
+    // These formats render their own board, not the answer list.
+    if (mapMode || pairsMode || bankMode) return null;
+    // Otherwise auto-wrap a long answer list into balanced columns so it does
+    // not run off the screen. Column count scales with the number of answers
+    // and is capped by the longest answer's width (so wide names are not
+    // cramped). Short lists (roughly <= 11 items) stay a single column, which
+    // preserves the classic look for the many paired top-10 quizzes. On mobile
+    // the columns collapse back to one via the flex-basis wrap in the renderer.
+    const n = answers.length;
+    const maxLen = answers.reduce((m, a) => {
+      const labelLen = a && a.label != null ? String(a.label).length + 2 : 0;
+      return Math.max(m, String((a && a.t) || '').length + labelLen);
+    }, 0);
+    let widthCap;
+    if (maxLen <= 14) widthCap = 4;
+    else if (maxLen <= 28) widthCap = 3;
+    else if (maxLen <= 40) widthCap = 2;
+    else widthCap = 1;
+    // Aim for at least ~6 rows per column so columns never look sparse.
+    let cols = Math.max(1, Math.min(widthCap, Math.floor(n / 6)));
+    if (cols <= 1) return null;
+    const per = Math.ceil(n / cols);
+    cols = Math.ceil(n / per); // trim a near-empty trailing column
+    const groups = []; let gi = 0;
+    for (let c = 0; c < cols && gi < n; c++) {
+      const r = [];
+      for (let k = 0; k < per && gi < n; k++) r.push(gi++);
+      groups.push(r);
+    }
+    return groups;
   })();
   const asOfRaw = quiz.publishedDate || (quiz.publishedAt ? quiz.publishedAt.slice(0, 10) : null);
   const asOfLabel = asOfRaw ? new Date(asOfRaw + 'T12:00:00Z').toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric', timeZone: 'UTC' }) : null;
