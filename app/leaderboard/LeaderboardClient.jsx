@@ -22,7 +22,7 @@ function RankRow({ rank, name, value }) {
 function Column({ icon: Icon, title, note, rows, empty }) {
   return (
     <div>
-      <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 4 }}>
+      <div className="lb-title" style={{ display: 'flex', alignItems: 'flex-start', gap: 10, marginBottom: 4 }}>
         <Icon size={20} strokeWidth={2} aria-hidden="true" style={{ color: COLORS.ember }} />
         <h2 style={{ fontFamily: 'Fraunces, serif', fontWeight: 600, fontSize: 21, letterSpacing: '-0.01em', margin: 0, color: COLORS.ink }}>{title}</h2>
       </div>
@@ -85,8 +85,9 @@ export default function LeaderboardClient() {
           )}
           <style>{`
             .lb-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:40px;}
+            .lb-title{min-height:58px;}
             @media(max-width:880px){.lb-grid{grid-template-columns:1fr 1fr;gap:36px;}}
-            @media(max-width:600px){.lb-grid{grid-template-columns:1fr;gap:40px;}}
+            @media(max-width:600px){.lb-grid{grid-template-columns:1fr;gap:40px;}.lb-title{min-height:0;}}
           `}</style>
         </section>
       </div>
