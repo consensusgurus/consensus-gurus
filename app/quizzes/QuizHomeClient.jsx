@@ -276,6 +276,12 @@ export default function QuizHomeClient() {
   const ribbonRef = useRef(null);
   const ribbonScrollRef = useRef(null);
   const [navScroll, setNavScroll] = useState({ left: false, right: false });
+  // Anchor the open dropdown under its ribbon button (panels live outside the
+  // horizontally-scrolling ribbon so they aren't clipped; mobile uses full width).
+  const catBtnRef = useRef(null);
+  const typeBtnRef = useRef(null);
+  const sortBtnRef = useRef(null);
+  const [panelLeft, setPanelLeft] = useState(16);
   useEffect(() => {
     const onDown = (e) => { if (ribbonRef.current && !ribbonRef.current.contains(e.target)) { setCatOpen(false); setSortOpen(false); setTypeOpen(false); } };
     const onKey = (e) => { if (e.key === 'Escape') { setCatOpen(false); setSortOpen(false); setTypeOpen(false); } };
@@ -498,7 +504,7 @@ export default function QuizHomeClient() {
             @media(max-width:760px){
               .qz-rb-search{flex:0 0 auto;width:210px;}
               .qz-rb-search input{font-size:16px;}
-              .qz-pop{left:8px;right:8px;}
+              .qz-pop{left:8px !important;right:8px;}
               .qz-pop-cat{width:auto;}
             }
           `}</style>
@@ -531,15 +537,15 @@ export default function QuizHomeClient() {
           </svg>
           <div ref={ribbonRef} style={{ maxWidth: 1200, margin: '0 auto', padding: '0 16px', position: 'relative' }}>
             <div ref={ribbonScrollRef} className="qz-ribbon">
-              <button type="button" className="qz-rb-btn" aria-haspopup="true" aria-expanded={catOpen} onClick={() => { setCatOpen((o) => !o); setSortOpen(false); setTypeOpen(false); }}>
+              <button ref={catBtnRef} type="button" className="qz-rb-btn" aria-haspopup="true" aria-expanded={catOpen} onClick={() => { const willOpen = !catOpen; if (willOpen && catBtnRef.current) setPanelLeft(catBtnRef.current.offsetLeft); setCatOpen(willOpen); setSortOpen(false); setTypeOpen(false); }}>
                 <span><span style={{ opacity: 0.7 }}>Category:</span> {currentDeptLabel}</span>
                 <ChevronDown className="qz-rb-chev" size={14} strokeWidth={2.5} style={{ transform: catOpen ? 'rotate(180deg)' : 'none' }} />
               </button>
-              <button type="button" className="qz-rb-btn" aria-haspopup="true" aria-expanded={typeOpen} onClick={() => { setTypeOpen((o) => !o); setCatOpen(false); setSortOpen(false); }}>
+              <button ref={typeBtnRef} type="button" className="qz-rb-btn" aria-haspopup="true" aria-expanded={typeOpen} onClick={() => { const willOpen = !typeOpen; if (willOpen && typeBtnRef.current) setPanelLeft(typeBtnRef.current.offsetLeft); setTypeOpen(willOpen); setCatOpen(false); setSortOpen(false); }}>
                 <span><span style={{ opacity: 0.7 }}>Type:</span> {currentTypeLabel}</span>
                 <ChevronDown className="qz-rb-chev" size={14} strokeWidth={2.5} style={{ transform: typeOpen ? 'rotate(180deg)' : 'none' }} />
               </button>
-              <button type="button" className="qz-rb-btn" aria-haspopup="true" aria-expanded={sortOpen} onClick={() => { setSortOpen((o) => !o); setCatOpen(false); setTypeOpen(false); }}>
+              <button ref={sortBtnRef} type="button" className="qz-rb-btn" aria-haspopup="true" aria-expanded={sortOpen} onClick={() => { const willOpen = !sortOpen; if (willOpen && sortBtnRef.current) setPanelLeft(sortBtnRef.current.offsetLeft); setSortOpen(willOpen); setCatOpen(false); setTypeOpen(false); }}>
                 <span><span style={{ opacity: 0.7 }}>Sort:</span> {(SORTS.find((o) => o.id === sortBy) || {}).short || 'Discover'}</span>
                 <ChevronDown className="qz-rb-chev" size={14} strokeWidth={2.5} style={{ transform: sortOpen ? 'rotate(180deg)' : 'none' }} />
               </button>
@@ -553,7 +559,7 @@ export default function QuizHomeClient() {
             {navScroll.left && <span aria-hidden="true" className="qz-navcue qz-navcue-l">&#8249;</span>}
             {navScroll.right && <span aria-hidden="true" className="qz-navcue qz-navcue-r">&#8250;</span>}
             {catOpen && (
-              <div className="qz-pop qz-pop-cat" role="menu">
+              <div className="qz-pop qz-pop-cat" role="menu" style={{ left: panelLeft }}>
                 {deptOptions.map((o) => {
                   const active = dept === o.id;
                   return (
@@ -565,7 +571,7 @@ export default function QuizHomeClient() {
               </div>
             )}
             {typeOpen && (
-              <div className="qz-pop qz-pop-cat" role="menu">
+              <div className="qz-pop qz-pop-cat" role="menu" style={{ left: panelLeft }}>
                 {typeOptions.map((o) => {
                   const active = typeFilter === o.id;
                   return (
@@ -577,7 +583,7 @@ export default function QuizHomeClient() {
               </div>
             )}
             {sortOpen && (
-              <div className="qz-pop qz-pop-sort" role="menu">
+              <div className="qz-pop qz-pop-sort" role="menu" style={{ left: panelLeft }}>
                 {SORTS.map((opt, i) => {
                   const active = sortBy === opt.id;
                   return (<button key={opt.id} role="menuitem" className="qz-pop-item" onClick={() => { setSortBy(opt.id); setSortOpen(false); }} style={{ background: active ? COLORS.ink : 'transparent', color: active ? COLORS.cream : COLORS.ink, borderTop: i === 0 ? 'none' : `0.5px solid ${COLORS.paper}` }}>{opt.label}</button>);
