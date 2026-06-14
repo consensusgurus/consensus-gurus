@@ -465,11 +465,11 @@ export default function PhotoQuizClient({ quizId }) {
             {phase === 'playing' && cur && (
               <div>
                 {/* Photo */}
-                <div style={{ position: 'relative', width: '100%', aspectRatio: '16 / 10', maxHeight: 460, background: COLORS.ink, border: `1.5px solid ${COLORS.ink}`, overflow: 'hidden', marginBottom: 14 }}>
+                <div style={{ position: 'relative', width: '100%', aspectRatio: '4 / 3', maxHeight: 500, background: COLORS.ink, border: `1.5px solid ${COLORS.ink}`, overflow: 'hidden', marginBottom: 14 }}>
                   <img
                     src={cur.img}
                     alt="Name the city this landmark is in"
-                    style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }}
+                    style={{ width: '100%', height: '100%', objectFit: 'contain', display: 'block' }}
                   />
                   {flash && (
                     <div style={{ position: 'absolute', inset: 0, background: 'rgba(26,22,17,0.62)', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', textAlign: 'center', padding: 20 }}>
