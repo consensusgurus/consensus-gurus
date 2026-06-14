@@ -122,6 +122,17 @@ export default function LogicGridClient({ quizId }) {
   const intro = quiz.intro || [];
 
   const [tab, setTab] = useState('play');
+  const ribbonRef = useRef(null);
+  const [ribScroll, setRibScroll] = useState({ left: false, right: false });
+  useEffect(() => {
+    const el = ribbonRef.current;
+    if (!el) return undefined;
+    const update = () => { const more = el.scrollWidth - el.clientWidth; setRibScroll({ left: el.scrollLeft > 2, right: more > 2 && el.scrollLeft < more - 2 }); };
+    update();
+    el.addEventListener('scroll', update, { passive: true });
+    window.addEventListener('resize', update);
+    return () => { el.removeEventListener('scroll', update); window.removeEventListener('resize', update); };
+  }, []);
 
   // ── Game state ──
   const [phase, setPhase] = useState('idle'); // idle | playing | done
@@ -365,7 +376,9 @@ export default function LogicGridClient({ quizId }) {
 
         {/* Ribbon */}
         <div style={{ position: 'sticky', top: 0, zIndex: 25, marginTop: 18 }}>
-          <div style={{ display: 'flex', alignItems: 'stretch', flexWrap: 'nowrap', overflowX: 'auto', background: COLORS.ink, borderBottom: `3px solid ${COLORS.ember}` }}>
+          <div style={{ position: 'relative' }}>
+            <style>{`@keyframes qzCueR{0%,100%{transform:translate(0,-50%);}50%{transform:translate(3px,-50%);}}@keyframes qzCueL{0%,100%{transform:translate(0,-50%);}50%{transform:translate(-3px,-50%);}}.qz-cue{position:absolute;top:50%;z-index:3;display:flex;align-items:center;justify-content:center;width:26px;height:26px;border-radius:50%;background:${COLORS.ember};color:#fff;box-shadow:0 1px 4px rgba(26,22,17,0.45);pointer-events:none;font-size:15px;line-height:1;}.qz-cue-r{right:10px;animation:qzCueR 1.4s ease-in-out infinite;}.qz-cue-l{left:10px;animation:qzCueL 1.4s ease-in-out infinite;}@media(min-width:760px){.qz-cue{display:none;}}.qz-ribbon{scrollbar-width:none;-ms-overflow-style:none;}.qz-ribbon::-webkit-scrollbar{display:none;}`}</style>
+            <div ref={ribbonRef} className="qz-ribbon" style={{ display: 'flex', alignItems: 'stretch', flexWrap: 'nowrap', overflowX: 'auto', background: COLORS.ink, borderBottom: `3px solid ${COLORS.ember}` }}>
             {chip('play', 'Play')}
             {chip('stats', 'Stats & Leaderboard')}
             {chip('join', 'Join the Leaderboard', <Trophy size={12} strokeWidth={2.5} />)}
@@ -377,6 +390,9 @@ export default function LogicGridClient({ quizId }) {
               <HelpCircle size={12} strokeWidth={2.5} />
               Critique?
             </button>
+            </div>
+            {ribScroll.left && <span aria-hidden="true" className="qz-cue qz-cue-l">&#8249;</span>}
+            {ribScroll.right && <span aria-hidden="true" className="qz-cue qz-cue-r">&#8250;</span>}
           </div>
         </div>
 

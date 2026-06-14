@@ -2290,3 +2290,51 @@ the scoreboard metrics (names found vs points), the in-board action control (e.g
 `percentile()` curve), NOT a tally of real players, so it shows even on the first/only play. This is
 intentional and shared by every quiz. Keep it consistent across formats; if it should ever reflect real
 play data, change it in QuizClient AND every board in the SAME pass.
+
+## Typed quizzes derived from matching games: the clue must have exactly one answer (owner rule, 2026-06-13)
+
+A `format: 'type-it'` quiz shows the clue (`answers[].label`) and the player types the answer
+(`answers[].t`). When such a quiz is DERIVED from a two-column matching/`bank` game, the matching game
+is bidirectional and fine, but the typed version is one-directional: it is valid ONLY in the direction
+where **each clue has exactly ONE correct answer**. Choose that direction; flip the pair if the chosen
+clue is a container with many members.
+
+- BROKEN (one-to-many in the shown direction): `Country -> city` ("Name the City for Each Country") — a
+  country has many cities and the player isn't told which is wanted. FLIP to `city -> country` ("Name
+  the Country for Each City"): a city is in exactly one country. Same failure class, all flipped
+  2026-06-13: `Industry -> company` -> `company -> industry`; `Game (fighting) -> fighter` ->
+  `fighter -> game`; `Region -> wine` -> `wine -> region` (appellation makes a named wine resolve to one
+  region). The reverse side is the hard one-to-one fact, so flip to it.
+- FINE as-is (clue already fixes the answer; do NOT flip — the reverse is the many-valued side):
+  `country -> capital/currency/continent/official language/national sport/highest peak`, `capital -> river`
+  (one main river), `desert -> continent`, `empire -> capital`, `hotel/bridge/skyscraper/sandwich/street -> city`,
+  `sitcom/novel -> setting city/opening city`, `achievement -> pharaoh`, `author -> genre`, `game -> protagonist`.
+- METADATA-ONLY fix (data is already one-to-one but the title/leftLabel/noun describe the reverse): e.g.
+  `river-to-continent-typed` carried river->continent data under a "Name the River for Each Continent"
+  title; corrected the title/leftLabel/noun to "Name the Continent for Each River" with no data flip.
+- FUZZY in BOTH directions (signature relationships, neither side a hard fact): `region <-> grape`,
+  `actor <-> director`, `setting <-> novel`. Do NOT force a flip; FLAG to the owner. Also flag a broken
+  quiz that cannot flip without duplicating an existing one (`scientist-to-field-bank-typed` is the
+  broken `field -> scientist` twin of the already-correct `match-scientist-nobel-field-typed`).
+- When you flip: swap `label`/`t`, REGENERATE `keys` for the new `t`, update `title`/`leftLabel`/`noun`,
+  run the accepted-answer collision audit, and KEEP the quiz `id` unchanged (it is the leaderboard/URL
+  key) even though the id then reads backwards. `node --check` before deploy. The paired matching/`bank`
+  game is left untouched (a two-column match is bidirectional and not subject to this rule).
+
+## Series titles: the first entry carries (Part 1) (owner rule, 2026-06-13)
+
+When a quiz or list series has any `(Part 2)`+ entries, the FIRST entry MUST be labeled `(Part 1)`, never
+left unnumbered. Title is display-only (the `id` is the key), so this is a pure title edit with no
+vote/key migration. Applied 2026-06-13 to the quiz series Opening Line to the Novel, Tagline to the
+Movie, Name the Brand From the Logo, Name the Movie From the Poster, and Name the Missing Word in Each
+Book Title (lib/data.js had no Part-numbered series).
+
+## Quiz-page ribbon mobile scroll cue must exist in EVERY render path (owner rule, 2026-06-13)
+
+The sticky quiz ribbon's mobile horizontal-scroll cue (the ember `<`/`>` chips shown when the ribbon
+overflows on viewports <760px, driven by `ribbonRef` + `ribScroll` state + the `.qz-cue` CSS) must be
+present in every quiz-page render path, matching the other ribbons site-wide. `QuizClient.jsx` has it;
+the FULL-PAGE board clients that re-implement the ribbon each need their own copy. Added 2026-06-13 to
+`TimedMcqClient.jsx`, `LogicGridClient.jsx`, and `PhotoQuizClient.jsx`. The PARTIAL boards rendered
+inside QuizClient (`TypeItBoard`, `MapQuizBoard`, `MatchQuizBoard`, `BankQuizBoard`) inherit QuizClient's
+ribbon and need no change. Any future full-page board must include the cue too.
