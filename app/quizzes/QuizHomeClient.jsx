@@ -58,6 +58,29 @@ function shortTitle(t, max = 32) {
   return out || words[0] || s;
 }
 
+// Quiz "type" classification for the Type filter. Primary type is one of
+// name / match / locate; picture is an overlay flag (image-based quizzes,
+// which also belong to name or match). Selecting Picture shows every image
+// quiz; selecting Name/Match shows that primary type incl. its picture ones.
+const MATCH_FORMATS = new Set(['matched', 'bank', 'pairs', 'type-it']);
+const IMG_FORMATS = new Set(['photo', 'posters', 'logos', 'images']);
+function quizPrimaryType(q) {
+  if (q.format === 'map') return 'locate';
+  if (MATCH_FORMATS.has(q.format) || /^match\b/i.test(q.title || '')) return 'match';
+  return 'name';
+}
+function quizIsPicture(q) {
+  if (IMG_FORMATS.has(q.format)) return true;
+  if (Array.isArray(q.answers) && q.answers.some((a) => a && a.img)) return true;
+  if (Array.isArray(q.pairs) && q.pairs.some((pr) => pr && (pr.img || (pr.left && pr.left.img) || (pr.right && pr.right.img)))) return true;
+  return false;
+}
+function quizMatchesType(q, t) {
+  if (t === 'all') return true;
+  if (t === 'picture') return quizIsPicture(q);
+  return quizPrimaryType(q) === t;
+}
+
 function QuizTile({ quiz, plays }) {
   const [hover, setHover] = useState(false);
   const Icon = iconOf(quiz);
@@ -121,6 +144,11 @@ const boardCss = `
   .qz-bval small{font-family:'DM Mono',monospace;font-weight:500;font-size:9.5px;letter-spacing:0.1em;text-transform:uppercase;color:${COLORS.faded};margin-left:4px;}
   .qz-board a.qz-brow:hover .qz-bname{color:${COLORS.ember};}
   .qz-board-empty{font-family:'Fraunces',serif;font-style:italic;font-size:13px;color:${COLORS.faded};padding:12px 0;}
+  .qz-bname .qz-bn-short{display:none;}
+  @media(max-width:680px){.qz-bname .qz-bn-full{display:none;}.qz-bname .qz-bn-short{display:inline;}}
+  .qz-pcols{display:grid;grid-template-columns:1fr 1fr;gap:0 18px;flex:1 1 auto;}
+  .qz-pcol{display:flex;flex-direction:column;min-width:0;}
+  @media(max-width:430px){.qz-pcols{grid-template-columns:1fr;}}
 `;
 
 // Left board: the three most-played quizzes. Each row links to its quiz; the
@@ -152,7 +180,7 @@ function MostPlayedBoard({ rows }) {
         {rows.length > 0 ? rows.map((r, i) => (
           <Link key={r.id} href={`/quiz/${r.id}`} className="qz-brow" onClick={(e) => e.stopPropagation()} title={r.title}>
             <span className="qz-brank" style={{ background: i < 3 ? MEDAL[i] : 'transparent' }}>{i + 1}</span>
-            <span className="qz-bname">{shortTitle(r.title)}</span>
+            <span className="qz-bname"><span className="qz-bn-full">{r.title}</span><span className="qz-bn-short">{shortTitle(r.title, 18)}</span></span>
             <span className="qz-bval"><Count value={r.plays} /><small>plays</small></span>
           </Link>
         )) : (<div className="qz-board-empty">No plays recorded yet.</div>)}
@@ -179,15 +207,24 @@ function TopPlayersBoard({ players }) {
       </div>
       <div className="qz-board-rule1" />
       <div className="qz-board-rule2" />
-      <div className="qz-board-rows">
-        {players.length > 0 ? players.map((p, i) => (
-          <div key={i} className="qz-brow">
-            <span className="qz-brank" style={{ background: i < 3 ? MEDAL[i] : 'transparent' }}>{i + 1}</span>
-            <span className="qz-bname">{p.name}</span>
-            <span className="qz-bval">{p.val}</span>
-          </div>
-        )) : (<div className="qz-board-empty">No ranked players yet.</div>)}
-      </div>
+      {players.length > 0 ? (
+        <div className="qz-pcols">
+          {[players.slice(0, 3), players.slice(3, 6)].map((col, ci) => (
+            <div className="qz-pcol" key={ci}>
+              {col.map((p, j) => {
+                const i = ci * 3 + j;
+                return (
+                  <div key={i} className="qz-brow">
+                    <span className="qz-brank" style={{ background: i < 3 ? MEDAL[i] : 'transparent' }}>{i + 1}</span>
+                    <span className="qz-bname">{p.name}</span>
+                    <span className="qz-bval">{p.val}</span>
+                  </div>
+                );
+              })}
+            </div>
+          ))}
+        </div>
+      ) : (<div className="qz-board-rows"><div className="qz-board-empty">No ranked players yet.</div></div>)}
     </Link>
   );
 }
@@ -251,6 +288,8 @@ export default function QuizHomeClient() {
   const [sortBy, setSortBy] = useState('discover');
   const [sortOpen, setSortOpen] = useState(false);
   const [catOpen, setCatOpen] = useState(false);
+  const [typeOpen, setTypeOpen] = useState(false);
+  const [typeFilter, setTypeFilter] = useState('all');
   const [totals, setTotals] = useState({ total: 0, byQuiz: {}, recent7: {}, recent12h: {} });
   const [recent, setRecent] = useState([]);
   const [visitors, setVisitors] = useState(0);
@@ -259,8 +298,8 @@ export default function QuizHomeClient() {
   // Close the category / sort dropdowns on an outside click or Escape.
   const ribbonRef = useRef(null);
   useEffect(() => {
-    const onDown = (e) => { if (ribbonRef.current && !ribbonRef.current.contains(e.target)) { setCatOpen(false); setSortOpen(false); } };
-    const onKey = (e) => { if (e.key === 'Escape') { setCatOpen(false); setSortOpen(false); } };
+    const onDown = (e) => { if (ribbonRef.current && !ribbonRef.current.contains(e.target)) { setCatOpen(false); setSortOpen(false); setTypeOpen(false); } };
+    const onKey = (e) => { if (e.key === 'Escape') { setCatOpen(false); setSortOpen(false); setTypeOpen(false); } };
     document.addEventListener('mousedown', onDown);
     document.addEventListener('keydown', onKey);
     return () => { document.removeEventListener('mousedown', onDown); document.removeEventListener('keydown', onKey); };
@@ -318,6 +357,15 @@ export default function QuizHomeClient() {
   }, [counts]);
   const currentDeptLabel = dept === 'all' ? 'All' : (DEPT_LABEL[dept] || 'Category');
 
+  // Quiz-type filter options (with live counts). Picture overlaps name/match.
+  const TYPE_LABELS = { all: 'All', name: 'Name', match: 'Match', locate: 'Locate', picture: 'Picture' };
+  const typeOptions = useMemo(() => ['all', 'name', 'match', 'locate', 'picture'].map((id) => ({
+    id,
+    label: TYPE_LABELS[id],
+    count: id === 'all' ? QUIZZES.length : QUIZZES.filter((q) => quizMatchesType(q, id)).length,
+  })), []);
+  const currentTypeLabel = TYPE_LABELS[typeFilter] || 'All';
+
   // Left board data: the three quizzes with the most all-time plays.
   const topPlayed = useMemo(() => {
     return QUIZZES
@@ -330,7 +378,7 @@ export default function QuizHomeClient() {
   // Right board data: top Accuracy-Weighted players (whole-number weighted score).
   const topPlayers = useMemo(() => (champions.weighted || [])
     .map((u) => ({ name: u.username, val: Math.round(u.weighted || 0).toLocaleString() }))
-    .slice(0, 3), [champions]);
+    .slice(0, 6), [champions]);
 
   const sorted = useMemo(() => {
     const ql = query.trim().toLowerCase();
@@ -339,6 +387,7 @@ export default function QuizHomeClient() {
     const tokens = ql.split(/\s+/).filter(Boolean);
     let list = QUIZZES.filter((q) => {
       if (dept !== 'all' && deptOf(q) !== dept) return false;
+      if (typeFilter !== 'all' && !quizMatchesType(q, typeFilter)) return false;
       if (!tokens.length) return true;
       const hay = `${q.title || ''} ${q.category || ''} ${q.blurb || ''}`.toLowerCase();
       return tokens.every((t) => hay.includes(t));
@@ -371,7 +420,7 @@ export default function QuizHomeClient() {
     const isNewsQuiz = (q) => /^(daily-market-news-quiz-|daily-business-quiz-|daily-news-quiz-|weekly-business-quiz-|weekly-news-quiz-|earnings-reporter-quiz-|earnings-quiz-)/.test(q.id || '');
     list = [...list.filter((q) => !isNewsQuiz(q)), ...list.filter((q) => isNewsQuiz(q))];
     return list;
-  }, [query, dept, sortBy, totals]);
+  }, [query, dept, typeFilter, sortBy, totals]);
 
   return (
     <div style={{ minHeight: '100vh', background: COLORS.cream, color: COLORS.ink, position: 'relative', overflow: 'clip' }}>
@@ -413,9 +462,9 @@ export default function QuizHomeClient() {
             .qz-rb-item{position:relative;display:flex;}
             .qz-rb-btn{display:flex;align-items:center;gap:8px;height:46px;background:transparent;color:${COLORS.cream};border:none;border-right:1px solid rgba(244,237,224,0.18);padding:0 18px;font-family:'DM Mono',monospace;font-size:10.5px;letter-spacing:0.18em;text-transform:uppercase;font-weight:600;cursor:pointer;white-space:nowrap;}
             .qz-rb-btn .qz-rb-chev{transition:transform 0.15s;}
-            .qz-rb-search{flex:1 1 220px;min-width:160px;display:flex;align-items:center;position:relative;border-right:1px solid rgba(244,237,224,0.18);}
-            .qz-rb-search input{width:100%;height:46px;box-sizing:border-box;padding:0 34px 0 40px;background:transparent;border:none;outline:none;font-family:'DM Sans',sans-serif;font-size:14px;color:${COLORS.cream};}
-            .qz-rb-search input::placeholder{color:rgba(244,237,224,0.55);}
+            .qz-rb-search{flex:1 1 220px;min-width:160px;display:flex;align-items:center;position:relative;padding:6px 10px;}
+            .qz-rb-search input{width:100%;height:34px;box-sizing:border-box;padding:0 32px 0 38px;background:#fff;border:1.5px solid ${COLORS.ink};outline:none;font-family:'DM Sans',sans-serif;font-size:14px;color:${COLORS.ink};}
+            .qz-rb-search input::placeholder{color:${COLORS.faded};}
             .qz-rb-req{display:flex;align-items:center;justify-content:center;gap:6px;height:46px;background:${COLORS.ember};color:${COLORS.cream};padding:0 20px;font-family:'DM Mono',monospace;font-size:10.5px;letter-spacing:0.14em;text-transform:uppercase;font-weight:700;text-decoration:none;white-space:nowrap;}
             .qz-pop{position:absolute;top:calc(100% + 6px);left:0;z-index:40;background:${COLORS.cream};border:1.5px solid ${COLORS.ink};box-shadow:0 10px 24px rgba(26,22,17,0.25);}
             .qz-pop-sort{min-width:210px;}
@@ -460,7 +509,7 @@ export default function QuizHomeClient() {
           <div ref={ribbonRef} style={{ maxWidth: 1200, margin: '0 auto', padding: '0 16px', position: 'relative' }}>
             <div className="qz-ribbon">
               <div className="qz-rb-item">
-                <button type="button" className="qz-rb-btn" aria-haspopup="true" aria-expanded={catOpen} onClick={() => { setCatOpen((o) => !o); setSortOpen(false); }}>
+                <button type="button" className="qz-rb-btn" aria-haspopup="true" aria-expanded={catOpen} onClick={() => { setCatOpen((o) => !o); setSortOpen(false); setTypeOpen(false); }}>
                   <span><span style={{ opacity: 0.7 }}>Category:</span> {currentDeptLabel}</span>
                   <ChevronDown className="qz-rb-chev" size={14} strokeWidth={2.5} style={{ transform: catOpen ? 'rotate(180deg)' : 'none' }} />
                 </button>
@@ -478,7 +527,25 @@ export default function QuizHomeClient() {
                 )}
               </div>
               <div className="qz-rb-item">
-                <button type="button" className="qz-rb-btn" aria-haspopup="true" aria-expanded={sortOpen} onClick={() => { setSortOpen((o) => !o); setCatOpen(false); }}>
+                <button type="button" className="qz-rb-btn" aria-haspopup="true" aria-expanded={typeOpen} onClick={() => { setTypeOpen((o) => !o); setCatOpen(false); setSortOpen(false); }}>
+                  <span><span style={{ opacity: 0.7 }}>Type:</span> {currentTypeLabel}</span>
+                  <ChevronDown className="qz-rb-chev" size={14} strokeWidth={2.5} style={{ transform: typeOpen ? 'rotate(180deg)' : 'none' }} />
+                </button>
+                {typeOpen && (
+                  <div className="qz-pop qz-pop-cat" role="menu">
+                    {typeOptions.map((o) => {
+                      const active = typeFilter === o.id;
+                      return (
+                        <button key={o.id} role="menuitem" className="qz-chip" onClick={() => { setTypeFilter(o.id); setTypeOpen(false); }} style={{ background: active ? COLORS.ember : COLORS.paper, color: active ? COLORS.cream : COLORS.ink }}>
+                          {o.label}<span style={{ opacity: 0.55, marginLeft: 2 }}>{o.count}</span>
+                        </button>
+                      );
+                    })}
+                  </div>
+                )}
+              </div>
+              <div className="qz-rb-item">
+                <button type="button" className="qz-rb-btn" aria-haspopup="true" aria-expanded={sortOpen} onClick={() => { setSortOpen((o) => !o); setCatOpen(false); setTypeOpen(false); }}>
                   <span><span style={{ opacity: 0.7 }}>Sort:</span> {(SORTS.find((o) => o.id === sortBy) || {}).short || 'Discover'}</span>
                   <ChevronDown className="qz-rb-chev" size={14} strokeWidth={2.5} style={{ transform: sortOpen ? 'rotate(180deg)' : 'none' }} />
                 </button>
@@ -492,9 +559,9 @@ export default function QuizHomeClient() {
                 )}
               </div>
               <div className="qz-rb-search">
-                <Search size={16} strokeWidth={2.5} style={{ position: 'absolute', left: 14, top: '50%', transform: 'translateY(-50%)', color: 'rgba(244,237,224,0.6)' }} />
+                <Search size={16} strokeWidth={2.5} style={{ position: 'absolute', left: 22, top: '50%', transform: 'translateY(-50%)', color: COLORS.faded }} />
                 <input type="text" value={query} onChange={(e) => setQuery(e.target.value)} placeholder="Search quizzes" />
-                {query && (<button onClick={() => setQuery('')} aria-label="Clear search" style={{ position: 'absolute', right: 10, top: '50%', transform: 'translateY(-50%)', background: 'transparent', border: 'none', color: 'rgba(244,237,224,0.7)', cursor: 'pointer', padding: 6, display: 'flex' }}><X size={16} strokeWidth={2.5} /></button>)}
+                {query && (<button onClick={() => setQuery('')} aria-label="Clear search" style={{ position: 'absolute', right: 18, top: '50%', transform: 'translateY(-50%)', background: 'transparent', border: 'none', color: COLORS.faded, cursor: 'pointer', padding: 6, display: 'flex' }}><X size={16} strokeWidth={2.5} /></button>)}
               </div>
               <Link href="/request" className="qz-rb-req">Request a Quiz</Link>
             </div>
