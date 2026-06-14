@@ -11,7 +11,7 @@
 
 import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { useRouter } from 'next/navigation';
-import { ArrowLeft, Share2, Check, X, Flag, Trophy, HelpCircle, Zap, Eye } from 'lucide-react';
+import { ArrowLeft, Share2, Check, X, Flag, Trophy, HelpCircle, Zap, ScrollText } from 'lucide-react';
 import { getQuiz, QUIZZES } from '@/lib/quizzes';
 import Grain from '../../Grain';
 import Footer from '../../Footer';
@@ -516,8 +516,8 @@ export default function TimedMcqClient({ quizId }) {
                   </p>
                   <div style={{ display: 'flex', gap: 10, justifyContent: 'center', flexWrap: 'wrap' }}>
                     {!mcqRevealed && (
-                      <button onClick={() => { if (identity) setMcqRevealed(true); else setTab('join'); }} style={{ fontFamily: MONO, fontSize: 13, letterSpacing: '0.08em', textTransform: 'uppercase', fontWeight: 700, lineHeight: '46px', width: 210, padding: 0, boxSizing: 'border-box', background: COLORS.ember, color: '#fff', border: 'none', cursor: 'pointer', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 8 }}>
-                        <Eye size={14} strokeWidth={2.5} /> Reveal Answers
+                      <button onClick={() => setMcqRevealed(true)} style={{ fontFamily: MONO, fontSize: 13, letterSpacing: '0.08em', textTransform: 'uppercase', fontWeight: 700, lineHeight: '46px', width: 210, padding: 0, boxSizing: 'border-box', background: COLORS.ember, color: '#fff', border: 'none', cursor: 'pointer', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 8 }}>
+                        <ScrollText size={14} strokeWidth={2.5} /> Quiz Summary
                       </button>
                     )}
                     <button onClick={() => { setPhase('idle'); setResults([]); setQIndex(0); setPicked(null); setRemaining(perMs); endedRef.current = false; }} style={{ fontFamily: MONO, fontSize: 13, letterSpacing: '0.08em', textTransform: 'uppercase', fontWeight: 700, lineHeight: '46px', width: 210, padding: 0, boxSizing: 'border-box', background: 'transparent', color: COLORS.ink, border: `1.5px solid ${COLORS.ink}`, cursor: 'pointer', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 8 }}>Play again</button>
@@ -534,7 +534,7 @@ export default function TimedMcqClient({ quizId }) {
 
                 {/* Per-question recap (answer key) - hidden until revealed */}
                 {!mcqRevealed && (
-                  <p style={{ fontFamily: MONO, fontSize: 12, letterSpacing: '0.06em', textTransform: 'uppercase', color: COLORS.faded, textAlign: 'center', marginTop: 22 }}>Press Reveal Answers to see the full answer key.</p>
+                  <p style={{ fontFamily: MONO, fontSize: 12, letterSpacing: '0.06em', textTransform: 'uppercase', color: COLORS.faded, textAlign: 'center', marginTop: 22 }}>Press Quiz Summary for the results and the story behind each answer.</p>
                 )}
                 {mcqRevealed && (
                 <ol style={{ margin: '18px 0 0', padding: 0, listStyle: 'none' }}>
