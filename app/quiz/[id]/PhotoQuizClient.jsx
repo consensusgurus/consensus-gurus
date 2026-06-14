@@ -254,6 +254,7 @@ export default function PhotoQuizClient({ quizId }) {
   }
 
   function onChange(e) {
+    if (flash) return;              // ignore keystrokes during the brief reveal
     const v = e.target.value;
     if (!tryAccept(v)) setGuess(v); // a match clears the input inside tryAccept
   }
@@ -464,7 +465,25 @@ export default function PhotoQuizClient({ quizId }) {
             {/* PLAYING — the photo + input */}
             {phase === 'playing' && cur && (
               <div>
-                {/* Photo */}
+                {/* Input + Skip — frozen bar; stays put and focused, only the photo below changes */}
+                <div style={{ display: 'flex', gap: 10, marginBottom: 6 }}>
+                  <input
+                    ref={inputRef}
+                    value={guess}
+                    onChange={onChange}
+                    onKeyDown={onKey}
+                    placeholder={`Type the ${noun}…`}
+                    autoComplete="off"
+                    autoFocus
+                    style={{ flex: 1, fontFamily: SANS, fontSize: 17, padding: '14px 16px', border: `1.5px solid ${COLORS.ink}`, background: '#fff', color: COLORS.ink }}
+                  />
+                  <button onClick={skip} style={{ flex: 'none', fontFamily: MONO, fontSize: 12, letterSpacing: '0.08em', textTransform: 'uppercase', fontWeight: 700, padding: '0 20px', border: `1.5px solid ${COLORS.ink}`, background: 'transparent', color: COLORS.ink, cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: 7 }}>
+                    <SkipForward size={14} strokeWidth={2.5} /> Skip
+                  </button>
+                </div>
+                <div style={{ fontFamily: MONO, fontSize: 12, minHeight: 18, marginBottom: 14, color: hintBad ? COLORS.ember : COLORS.faded }}>{hint}</div>
+
+                {/* Photo — only this refreshes per answer */}
                 <div style={{ position: 'relative', width: '100%', aspectRatio: '4 / 3', maxHeight: 500, background: COLORS.ink, border: `1.5px solid ${COLORS.ink}`, overflow: 'hidden', marginBottom: 14 }}>
                   <img
                     src={cur.img}
@@ -479,24 +498,6 @@ export default function PhotoQuizClient({ quizId }) {
                     </div>
                   )}
                 </div>
-
-                {/* Input + Skip */}
-                <div style={{ display: 'flex', gap: 10, marginBottom: 6 }}>
-                  <input
-                    ref={inputRef}
-                    value={guess}
-                    disabled={!!flash}
-                    onChange={onChange}
-                    onKeyDown={onKey}
-                    placeholder={`Type the ${noun}…`}
-                    autoComplete="off"
-                    style={{ flex: 1, fontFamily: SANS, fontSize: 17, padding: '14px 16px', border: `1.5px solid ${COLORS.ink}`, background: flash ? COLORS.paper : '#fff', color: COLORS.ink, opacity: flash ? 0.5 : 1 }}
-                  />
-                  <button onClick={skip} disabled={!!flash} style={{ flex: 'none', fontFamily: MONO, fontSize: 12, letterSpacing: '0.08em', textTransform: 'uppercase', fontWeight: 700, padding: '0 20px', border: `1.5px solid ${COLORS.ink}`, background: 'transparent', color: COLORS.ink, cursor: flash ? 'default' : 'pointer', opacity: flash ? 0.5 : 1, display: 'inline-flex', alignItems: 'center', gap: 7 }}>
-                    <SkipForward size={14} strokeWidth={2.5} /> Skip
-                  </button>
-                </div>
-                <div style={{ fontFamily: MONO, fontSize: 12, minHeight: 18, marginBottom: 18, color: hintBad ? COLORS.ember : COLORS.faded }}>{hint}</div>
 
                 {/* Progress dots */}
                 <div style={{ display: 'flex', gap: 6, justifyContent: 'center', flexWrap: 'wrap', marginBottom: 6 }}>
