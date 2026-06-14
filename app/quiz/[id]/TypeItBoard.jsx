@@ -116,7 +116,7 @@ export default function TypeItBoard({ items, started, ended, revealed, onMatch, 
           <button onClick={skip} title="Skip to the next clue without spending a guess, you can come back." style={{ marginLeft: 'auto', flex: 'none', fontFamily: MONO, fontSize: 10, letterSpacing: '0.16em', textTransform: 'uppercase', fontWeight: 700, padding: '9px 16px', background: 'transparent', color: COLORS.cream, border: '1px solid rgba(244,237,224,0.4)', cursor: 'pointer' }}>Next &rarr;</button>
         )}
       </div>
-      {!ended && (
+      {live && (
         <input
           ref={inputRef}
           value={val}
@@ -131,9 +131,6 @@ export default function TypeItBoard({ items, started, ended, revealed, onMatch, 
           autoCapitalize="characters"
           style={{ width: '100%', boxSizing: 'border-box', fontFamily: SANS, fontSize: 18, padding: '14px 16px', border: `2px solid ${borderColor}`, background: live ? '#fff' : COLORS.paper, color: COLORS.ink, opacity: live ? 1 : 0.6, transition: 'border-color .15s', marginBottom: 12 }}
         />
-      )}
-      {!ended && (
-        <div style={{ fontFamily: MONO, fontSize: 11, letterSpacing: '0.12em', textTransform: 'uppercase', color: COLORS.faded }}>{remaining} still to name &middot; {guessesLeft} {guessesLeft === 1 ? 'guess' : 'guesses'} left</div>
       )}
       {ended && (
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(155px, 1fr))', gap: 8 }}>

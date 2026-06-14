@@ -170,9 +170,6 @@ export default function BankQuizBoard({ pairs, started, ended, revealed, onMatch
           <button onClick={skip} title="Skip to the next prompt without spending a guess, you can come back." style={{ marginLeft: 'auto', flex: 'none', fontFamily: MONO, fontSize: 10, letterSpacing: '0.16em', textTransform: 'uppercase', fontWeight: 700, padding: '9px 16px', background: 'transparent', color: COLORS.cream, border: '1px solid rgba(244,237,224,0.4)', cursor: 'pointer' }}>Next &rarr;</button>
         )}
       </div>
-      {!ended && (
-      <div style={{ fontFamily: MONO, fontSize: 11, letterSpacing: '0.12em', textTransform: 'uppercase', color: COLORS.faded, marginBottom: 12 }}>{remaining} still to match &middot; {Math.max(0, guessesLeft)} {Math.max(0, guessesLeft) === 1 ? 'guess' : 'guesses'} left</div>
-      )}
 
       {!ended && (
       <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, justifyContent: 'center', background: COLORS.paper, border: `1px solid ${COLORS.faded}33`, padding: '16px 14px' }}>

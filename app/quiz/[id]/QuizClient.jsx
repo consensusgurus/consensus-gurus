@@ -333,7 +333,7 @@ export default function QuizClient({ quizId }) {
   function refreshBoard() {
     fetch(`/api/quiz/board?quizId=${encodeURIComponent(quizId)}`)
       .then((r) => r.json())
-      .then((d) => { if (d && !d.error) setBoard({ plays: d.plays || 0, best: d.best ?? null, topTime: d.topTime ?? null, leaderboard: d.leaderboard || [] }); })
+      .then((d) => { if (d && !d.error) setBoard({ plays: d.plays || 0, best: d.best != null ? Math.min(d.best, total) : null, topTime: d.topTime ?? null, leaderboard: d.leaderboard || [] }); })
       .catch(() => {});
   }
 
@@ -382,7 +382,7 @@ export default function QuizClient({ quizId }) {
       body: JSON.stringify({ quizId, score: finalScore, total, timeElapsed: elapsed, email: identity?.email || undefined, anonId: getAnonId() }),
     })
       .then((r) => r.json())
-      .then((d) => { if (d && !d.error) { setBoard({ plays: d.plays || 0, best: d.best ?? null, topTime: d.topTime ?? null, leaderboard: d.leaderboard || [] }); setLastResultId(d.resultId ?? null); } })
+      .then((d) => { if (d && !d.error) { setBoard({ plays: d.plays || 0, best: d.best != null ? Math.min(d.best, total) : null, topTime: d.topTime ?? null, leaderboard: d.leaderboard || [] }); setLastResultId(d.resultId ?? null); } })
       .catch(() => {});
   }
 
@@ -404,7 +404,7 @@ export default function QuizClient({ quizId }) {
       const id = { username: d.username, email: d.email };
       try { localStorage.setItem('sot_quiz_identity', JSON.stringify(id)); } catch {}
       setIdentity(id);
-      setBoard({ plays: d.plays || 0, best: d.best ?? null, topTime: d.topTime ?? null, leaderboard: d.leaderboard || [] });
+      setBoard({ plays: d.plays || 0, best: d.best != null ? Math.min(d.best, total) : null, topTime: d.topTime ?? null, leaderboard: d.leaderboard || [] });
       setClaimErr(false);
       setClaimOpen(false);
       if (canReveal) {
