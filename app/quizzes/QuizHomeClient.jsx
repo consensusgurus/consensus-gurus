@@ -144,13 +144,14 @@ const boardCss = `
   .lb-cat.open .lb-cat-head{color:${COLORS.ember};}
   .lb-cat.open .lb-cat-chev{transform:rotate(180deg);color:${COLORS.ember};}
   .lb-list{display:flex;flex-direction:column;padding:0 0 8px;}
+  .lb-list-2col{display:grid;grid-template-columns:1fr 1fr;grid-template-rows:repeat(3,auto);grid-auto-flow:column;column-gap:20px;padding:0 0 8px;}
   .lb-row{display:flex;align-items:center;gap:10px;padding:5px 0;text-decoration:none;}
   .lb-rank{flex:none;width:19px;height:19px;border-radius:50%;border:1.25px solid ${COLORS.ink};display:flex;align-items:center;justify-content:center;font-family:'DM Mono',monospace;font-size:10.5px;font-weight:500;color:${COLORS.ink};}
   .lb-name{flex:1 1 auto;min-width:0;font-family:'DM Mono',monospace;font-size:12px;font-weight:500;color:${COLORS.ink};line-height:1.25;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
   a.lb-row:hover .lb-name{color:${COLORS.ember};}
   .lb-val{flex:none;font-family:'Fraunces',serif;font-weight:700;font-size:14px;color:${COLORS.ink};white-space:nowrap;}
   .lb-empty{font-family:'Fraunces',serif;font-style:italic;font-size:12.5px;color:${COLORS.faded};padding:2px 0 8px;}
-  @media(max-width:680px){.lb-row-extra{display:none;}.lb-name{white-space:normal;overflow:visible;text-overflow:clip;overflow-wrap:anywhere;}}
+  @media(max-width:680px){.lb-row-extra{display:none;}.lb-list-2col{display:flex;flex-direction:column;}.lb-name{white-space:normal;overflow:visible;text-overflow:clip;overflow-wrap:anywhere;}}
 `;
 
 // Left board: the three most-played quizzes. Each row links to its quiz; the
@@ -189,7 +190,7 @@ function LeaderboardCard({ kicker, cta, ctaHref, categories }) {
                 <ChevronDown className="lb-cat-chev" size={13} strokeWidth={2.5} />
               </button>
               {open && (
-                <div className="lb-list">
+                <div className={`lb-list${c.rows.length > 3 ? ' lb-list-2col' : ''}`}>
                   {c.rows.length > 0 ? c.rows.map((r, i) => {
                     const inner = (
                       <>
