@@ -147,11 +147,9 @@ const boardCss = `
   .lb-row{display:flex;align-items:center;gap:10px;padding:5px 0;text-decoration:none;}
   .lb-rank{flex:none;width:19px;height:19px;border-radius:50%;border:1.25px solid ${COLORS.ink};display:flex;align-items:center;justify-content:center;font-family:'DM Mono',monospace;font-size:10.5px;font-weight:500;color:${COLORS.ink};}
   .lb-name{flex:1 1 auto;min-width:0;font-family:'DM Mono',monospace;font-size:12px;font-weight:500;color:${COLORS.ink};line-height:1.25;white-space:normal;overflow-wrap:anywhere;}
-  .lb-name .lb-name-short{display:none;}
   a.lb-row:hover .lb-name{color:${COLORS.ember};}
   .lb-val{flex:none;font-family:'Fraunces',serif;font-weight:700;font-size:14px;color:${COLORS.ink};white-space:nowrap;}
   .lb-empty{font-family:'Fraunces',serif;font-style:italic;font-size:12.5px;color:${COLORS.faded};padding:2px 0 8px;}
-  @media(max-width:680px){.lb-name .lb-name-full{display:none;}.lb-name .lb-name-short{display:inline;}}
 `;
 
 // Left board: the three most-played quizzes. Each row links to its quiz; the
@@ -160,6 +158,12 @@ const boardCss = `
 // expands (on hover, or tap on touch) to reveal its top three.
 function LeaderboardCard({ kicker, cta, ctaHref, categories }) {
   const [openId, setOpenId] = useState(null);
+  // Hover-to-expand on devices that actually hover; on touch the categories
+  // start collapsed and expand only on tap (saves space on initial load).
+  const [canHover, setCanHover] = useState(false);
+  useEffect(() => {
+    if (typeof window !== 'undefined' && window.matchMedia) setCanHover(window.matchMedia('(hover: hover) and (pointer: fine)').matches);
+  }, []);
   return (
     <div className="lb-card">
       <div className="lb-head">
@@ -175,8 +179,8 @@ function LeaderboardCard({ kicker, cta, ctaHref, categories }) {
             <div
               key={c.id}
               className={`lb-cat${open ? ' open' : ''}`}
-              onMouseEnter={() => setOpenId(c.id)}
-              onMouseLeave={() => setOpenId(null)}
+              onMouseEnter={canHover ? () => setOpenId(c.id) : undefined}
+              onMouseLeave={canHover ? () => setOpenId(null) : undefined}
             >
               <button type="button" className="lb-cat-head" aria-expanded={open} onClick={() => setOpenId(open ? null : c.id)}>
                 <span className="lb-cat-label">{c.label}</span>
@@ -188,7 +192,7 @@ function LeaderboardCard({ kicker, cta, ctaHref, categories }) {
                     const inner = (
                       <>
                         <span className="lb-rank" style={{ background: i < 3 ? MEDAL[i] : 'transparent' }}>{i + 1}</span>
-                        <span className="lb-name">{r.short != null ? (<><span className="lb-name-full">{r.full}</span><span className="lb-name-short">{r.short}</span></>) : r.full}</span>
+                        <span className="lb-name">{r.full}</span>
                         <span className="lb-val">{r.val}</span>
                       </>
                     );
@@ -267,12 +271,28 @@ export default function QuizHomeClient() {
   const seedRef = useRef((Date.now() & 0xffffffff) >>> 0);
   // Close the category / sort dropdowns on an outside click or Escape.
   const ribbonRef = useRef(null);
+  const ribbonScrollRef = useRef(null);
+  const [navScroll, setNavScroll] = useState({ left: false, right: false });
   useEffect(() => {
     const onDown = (e) => { if (ribbonRef.current && !ribbonRef.current.contains(e.target)) { setCatOpen(false); setSortOpen(false); setTypeOpen(false); } };
     const onKey = (e) => { if (e.key === 'Escape') { setCatOpen(false); setSortOpen(false); setTypeOpen(false); } };
     document.addEventListener('mousedown', onDown);
     document.addEventListener('keydown', onKey);
     return () => { document.removeEventListener('mousedown', onDown); document.removeEventListener('keydown', onKey); };
+  }, []);
+  // Mobile ribbon is a horizontal scroller; track scroll position so the red
+  // edge cues show when there's more to scroll left/right.
+  useEffect(() => {
+    const el = ribbonScrollRef.current;
+    if (!el) return undefined;
+    const update = () => {
+      const more = el.scrollWidth - el.clientWidth;
+      setNavScroll({ left: el.scrollLeft > 2, right: more > 2 && el.scrollLeft < more - 2 });
+    };
+    update();
+    el.addEventListener('scroll', update, { passive: true });
+    window.addEventListener('resize', update);
+    return () => { el.removeEventListener('scroll', update); window.removeEventListener('resize', update); };
   }, []);
 
   useEffect(() => {
@@ -343,7 +363,7 @@ export default function QuizHomeClient() {
   // Quiz-side leaderboard: Most Played / Trending Now / Highest Scored. Each
   // row links to its quiz and shows full title on desktop, short on mobile.
   const quizCats = useMemo(() => {
-    const mk = (q, val) => ({ key: q.id, href: `/quiz/${q.id}`, full: cleanTitle(q.title), short: shortTitle(q.title, 18), val });
+    const mk = (q, val) => ({ key: q.id, href: `/quiz/${q.id}`, full: cleanTitle(q.title), val });
     const plays = (id) => totals.byQuiz[id] || 0;
     const recent = (id) => totals.recent7[id] || 0;
     const mostPlayed = QUIZZES.filter((q) => plays(q.id) > 0)
@@ -453,25 +473,30 @@ export default function QuizHomeClient() {
             @media(max-width:760px){.qz-grid{grid-template-columns:repeat(2,minmax(0,1fr));}}
             @media(max-width:480px){.qz-grid{grid-template-columns:1fr;}}
             ${boardCss}
-            .qz-ribbon{display:flex;align-items:stretch;flex-wrap:wrap;background:${COLORS.ink};border-bottom:3px solid ${COLORS.ember};}
-            .qz-rb-item{position:relative;display:flex;}
-            .qz-rb-btn{display:flex;align-items:center;gap:8px;height:46px;background:transparent;color:${COLORS.cream};border:none;border-right:1px solid rgba(244,237,224,0.18);padding:0 18px;font-family:'DM Mono',monospace;font-size:10.5px;letter-spacing:0.18em;text-transform:uppercase;font-weight:600;cursor:pointer;white-space:nowrap;}
+            .qz-ribbon{display:flex;align-items:stretch;flex-wrap:nowrap;overflow-x:auto;scrollbar-width:none;-ms-overflow-style:none;background:${COLORS.ink};border-bottom:3px solid ${COLORS.ember};}
+            .qz-ribbon::-webkit-scrollbar{display:none;}
+            .qz-rb-btn{flex:0 0 auto;display:flex;align-items:center;gap:8px;height:46px;background:transparent;color:${COLORS.cream};border:none;border-right:1px solid rgba(244,237,224,0.18);padding:0 18px;font-family:'DM Mono',monospace;font-size:10.5px;letter-spacing:0.18em;text-transform:uppercase;font-weight:600;cursor:pointer;white-space:nowrap;}
             .qz-rb-btn .qz-rb-chev{transition:transform 0.15s;}
-            .qz-rb-search{flex:1 1 220px;min-width:160px;display:flex;align-items:center;position:relative;padding:6px 10px;}
+            .qz-rb-search{flex:1 1 220px;min-width:170px;display:flex;align-items:center;position:relative;padding:6px 10px;}
             .qz-rb-search input{width:100%;height:34px;box-sizing:border-box;padding:0 32px 0 38px;background:#fff;border:1.5px solid ${COLORS.ink};outline:none;font-family:'DM Sans',sans-serif;font-size:14px;color:${COLORS.ink};}
             .qz-rb-search input::placeholder{color:${COLORS.faded};}
-            .qz-rb-req{display:flex;align-items:center;justify-content:center;gap:6px;height:46px;background:${COLORS.ember};color:${COLORS.cream};padding:0 20px;font-family:'DM Mono',monospace;font-size:10.5px;letter-spacing:0.14em;text-transform:uppercase;font-weight:700;text-decoration:none;white-space:nowrap;}
-            .qz-pop{position:absolute;top:calc(100% + 6px);left:0;z-index:40;background:${COLORS.cream};border:1.5px solid ${COLORS.ink};box-shadow:0 10px 24px rgba(26,22,17,0.25);}
+            .qz-rb-req{flex:0 0 auto;display:flex;align-items:center;justify-content:center;gap:6px;height:46px;background:${COLORS.ember};color:${COLORS.cream};padding:0 20px;font-family:'DM Mono',monospace;font-size:10.5px;letter-spacing:0.14em;text-transform:uppercase;font-weight:700;text-decoration:none;white-space:nowrap;}
+            .qz-pop{position:absolute;top:100%;left:16px;z-index:40;background:${COLORS.cream};border:1.5px solid ${COLORS.ink};box-shadow:0 10px 24px rgba(26,22,17,0.25);}
             .qz-pop-sort{min-width:210px;}
-            .qz-pop-cat{width:max(260px,100%);display:flex;flex-wrap:wrap;gap:8px;padding:14px 16px 16px;}
+            .qz-pop-cat{width:min(320px,calc(100vw - 40px));display:flex;flex-wrap:wrap;gap:8px;padding:14px 16px 16px;}
             .qz-pop-item{width:100%;display:flex;align-items:center;border:none;padding:10px 14px;font-family:'DM Mono',monospace;font-size:10px;letter-spacing:0.16em;text-transform:uppercase;font-weight:600;cursor:pointer;text-align:left;background:transparent;color:${COLORS.ink};}
             .qz-chip{display:inline-flex;align-items:center;gap:7px;border:1.5px solid ${COLORS.ink};padding:8px 14px;font-family:'DM Mono',monospace;font-size:10.5px;letter-spacing:0.14em;text-transform:uppercase;font-weight:700;cursor:pointer;}
-            @media(max-width:640px){
-              .qz-rb-item{flex:1 1 50%;}
-              .qz-rb-btn{flex:1 1 auto;justify-content:center;}
-              .qz-rb-search{flex:1 1 100%;order:5;border-right:none;border-top:1px solid rgba(244,237,224,0.18);}
-              .qz-rb-req{flex:1 1 100%;order:4;border-top:1px solid rgba(244,237,224,0.18);}
+            @keyframes qzNavNudge{0%,100%{transform:translate(0,-50%);}50%{transform:translate(3px,-50%);}}
+            @keyframes qzNavNudgeL{0%,100%{transform:translate(0,-50%);}50%{transform:translate(-3px,-50%);}}
+            .qz-navcue{position:absolute;top:50%;z-index:30;display:flex;align-items:center;justify-content:center;width:26px;height:26px;border-radius:50%;background:${COLORS.ember};color:${COLORS.cream};box-shadow:0 1px 4px rgba(26,22,17,0.45);pointer-events:none;font-size:15px;line-height:1;}
+            .qz-navcue-r{right:6px;animation:qzNavNudge 1.4s ease-in-out infinite;}
+            .qz-navcue-l{left:6px;animation:qzNavNudgeL 1.4s ease-in-out infinite;}
+            @media(min-width:760px){.qz-navcue{display:none;}}
+            @media(max-width:760px){
+              .qz-rb-search{flex:0 0 auto;width:210px;}
               .qz-rb-search input{font-size:16px;}
+              .qz-pop{left:8px;right:8px;}
+              .qz-pop-cat{width:auto;}
             }
           `}</style>
           <div className="qz-stats">
@@ -502,57 +527,19 @@ export default function QuizHomeClient() {
             <rect width="100%" height="100%" filter="url(#qz-nav-grain)" />
           </svg>
           <div ref={ribbonRef} style={{ maxWidth: 1200, margin: '0 auto', padding: '0 16px', position: 'relative' }}>
-            <div className="qz-ribbon">
-              <div className="qz-rb-item">
-                <button type="button" className="qz-rb-btn" aria-haspopup="true" aria-expanded={catOpen} onClick={() => { setCatOpen((o) => !o); setSortOpen(false); setTypeOpen(false); }}>
-                  <span><span style={{ opacity: 0.7 }}>Category:</span> {currentDeptLabel}</span>
-                  <ChevronDown className="qz-rb-chev" size={14} strokeWidth={2.5} style={{ transform: catOpen ? 'rotate(180deg)' : 'none' }} />
-                </button>
-                {catOpen && (
-                  <div className="qz-pop qz-pop-cat" role="menu">
-                    {deptOptions.map((o) => {
-                      const active = dept === o.id;
-                      return (
-                        <button key={o.id} role="menuitem" className="qz-chip" onClick={() => { setDept(o.id); setCatOpen(false); }} style={{ background: active ? COLORS.ember : COLORS.paper, color: active ? COLORS.cream : COLORS.ink }}>
-                          {o.label}<span style={{ opacity: 0.55, marginLeft: 2 }}>{counts[o.id] || 0}</span>
-                        </button>
-                      );
-                    })}
-                  </div>
-                )}
-              </div>
-              <div className="qz-rb-item">
-                <button type="button" className="qz-rb-btn" aria-haspopup="true" aria-expanded={typeOpen} onClick={() => { setTypeOpen((o) => !o); setCatOpen(false); setSortOpen(false); }}>
-                  <span><span style={{ opacity: 0.7 }}>Type:</span> {currentTypeLabel}</span>
-                  <ChevronDown className="qz-rb-chev" size={14} strokeWidth={2.5} style={{ transform: typeOpen ? 'rotate(180deg)' : 'none' }} />
-                </button>
-                {typeOpen && (
-                  <div className="qz-pop qz-pop-cat" role="menu">
-                    {typeOptions.map((o) => {
-                      const active = typeFilter === o.id;
-                      return (
-                        <button key={o.id} role="menuitem" className="qz-chip" onClick={() => { setTypeFilter(o.id); setTypeOpen(false); }} style={{ background: active ? COLORS.ember : COLORS.paper, color: active ? COLORS.cream : COLORS.ink }}>
-                          {o.label}<span style={{ opacity: 0.55, marginLeft: 2 }}>{o.count}</span>
-                        </button>
-                      );
-                    })}
-                  </div>
-                )}
-              </div>
-              <div className="qz-rb-item">
-                <button type="button" className="qz-rb-btn" aria-haspopup="true" aria-expanded={sortOpen} onClick={() => { setSortOpen((o) => !o); setCatOpen(false); setTypeOpen(false); }}>
-                  <span><span style={{ opacity: 0.7 }}>Sort:</span> {(SORTS.find((o) => o.id === sortBy) || {}).short || 'Discover'}</span>
-                  <ChevronDown className="qz-rb-chev" size={14} strokeWidth={2.5} style={{ transform: sortOpen ? 'rotate(180deg)' : 'none' }} />
-                </button>
-                {sortOpen && (
-                  <div className="qz-pop qz-pop-sort" role="menu">
-                    {SORTS.map((opt, i) => {
-                      const active = sortBy === opt.id;
-                      return (<button key={opt.id} role="menuitem" className="qz-pop-item" onClick={() => { setSortBy(opt.id); setSortOpen(false); }} style={{ background: active ? COLORS.ink : 'transparent', color: active ? COLORS.cream : COLORS.ink, borderTop: i === 0 ? 'none' : `0.5px solid ${COLORS.paper}` }}>{opt.label}</button>);
-                    })}
-                  </div>
-                )}
-              </div>
+            <div ref={ribbonScrollRef} className="qz-ribbon">
+              <button type="button" className="qz-rb-btn" aria-haspopup="true" aria-expanded={catOpen} onClick={() => { setCatOpen((o) => !o); setSortOpen(false); setTypeOpen(false); }}>
+                <span><span style={{ opacity: 0.7 }}>Category:</span> {currentDeptLabel}</span>
+                <ChevronDown className="qz-rb-chev" size={14} strokeWidth={2.5} style={{ transform: catOpen ? 'rotate(180deg)' : 'none' }} />
+              </button>
+              <button type="button" className="qz-rb-btn" aria-haspopup="true" aria-expanded={typeOpen} onClick={() => { setTypeOpen((o) => !o); setCatOpen(false); setSortOpen(false); }}>
+                <span><span style={{ opacity: 0.7 }}>Type:</span> {currentTypeLabel}</span>
+                <ChevronDown className="qz-rb-chev" size={14} strokeWidth={2.5} style={{ transform: typeOpen ? 'rotate(180deg)' : 'none' }} />
+              </button>
+              <button type="button" className="qz-rb-btn" aria-haspopup="true" aria-expanded={sortOpen} onClick={() => { setSortOpen((o) => !o); setCatOpen(false); setTypeOpen(false); }}>
+                <span><span style={{ opacity: 0.7 }}>Sort:</span> {(SORTS.find((o) => o.id === sortBy) || {}).short || 'Discover'}</span>
+                <ChevronDown className="qz-rb-chev" size={14} strokeWidth={2.5} style={{ transform: sortOpen ? 'rotate(180deg)' : 'none' }} />
+              </button>
               <div className="qz-rb-search">
                 <Search size={16} strokeWidth={2.5} style={{ position: 'absolute', left: 22, top: '50%', transform: 'translateY(-50%)', color: COLORS.faded }} />
                 <input type="text" value={query} onChange={(e) => setQuery(e.target.value)} placeholder="Search quizzes" />
@@ -560,6 +547,40 @@ export default function QuizHomeClient() {
               </div>
               <Link href="/request" className="qz-rb-req">Request a Quiz</Link>
             </div>
+            {navScroll.left && <span aria-hidden="true" className="qz-navcue qz-navcue-l">&#8249;</span>}
+            {navScroll.right && <span aria-hidden="true" className="qz-navcue qz-navcue-r">&#8250;</span>}
+            {catOpen && (
+              <div className="qz-pop qz-pop-cat" role="menu">
+                {deptOptions.map((o) => {
+                  const active = dept === o.id;
+                  return (
+                    <button key={o.id} role="menuitem" className="qz-chip" onClick={() => { setDept(o.id); setCatOpen(false); }} style={{ background: active ? COLORS.ember : COLORS.paper, color: active ? COLORS.cream : COLORS.ink }}>
+                      {o.label}<span style={{ opacity: 0.55, marginLeft: 2 }}>{counts[o.id] || 0}</span>
+                    </button>
+                  );
+                })}
+              </div>
+            )}
+            {typeOpen && (
+              <div className="qz-pop qz-pop-cat" role="menu">
+                {typeOptions.map((o) => {
+                  const active = typeFilter === o.id;
+                  return (
+                    <button key={o.id} role="menuitem" className="qz-chip" onClick={() => { setTypeFilter(o.id); setTypeOpen(false); }} style={{ background: active ? COLORS.ember : COLORS.paper, color: active ? COLORS.cream : COLORS.ink }}>
+                      {o.label}<span style={{ opacity: 0.55, marginLeft: 2 }}>{o.count}</span>
+                    </button>
+                  );
+                })}
+              </div>
+            )}
+            {sortOpen && (
+              <div className="qz-pop qz-pop-sort" role="menu">
+                {SORTS.map((opt, i) => {
+                  const active = sortBy === opt.id;
+                  return (<button key={opt.id} role="menuitem" className="qz-pop-item" onClick={() => { setSortBy(opt.id); setSortOpen(false); }} style={{ background: active ? COLORS.ink : 'transparent', color: active ? COLORS.cream : COLORS.ink, borderTop: i === 0 ? 'none' : `0.5px solid ${COLORS.paper}` }}>{opt.label}</button>);
+                })}
+              </div>
+            )}
           </div>
         </nav>
 
