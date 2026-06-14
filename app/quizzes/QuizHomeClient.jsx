@@ -137,9 +137,9 @@ function ChampionsPanel({ completed, weighted, accuracy, anonymous }) {
       <div className="champ-rule1" />
       <div className="champ-rule2" />
       <div className="champ-grid">
-        <MiniList title="Quizzes Completed" rows={comp} />
-        <MiniList title="Accuracy-Weighted Completions" rows={wtd} />
-        <MiniList title="Accuracy (min 5)" rows={acc} />
+        <MiniList title="Quizzes Played" rows={comp} />
+        <MiniList title="Accuracy (min 5 plays)" rows={acc} />
+        <MiniList title="Accuracy-Weighted Plays" rows={wtd} />
       </div>
       {anon > 0 && (<div className="champ-anon">Anonymous Play Count:<b><Count value={anon} /></b></div>)}
     </Link>

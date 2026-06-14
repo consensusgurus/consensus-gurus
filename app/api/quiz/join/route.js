@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { supabaseAdmin } from '@/lib/supabase-server';
-import { resolveQuizIdentity, attributeAnonGames, validEmail } from '@/lib/quiz-identity';
+import { resolveQuizIdentity, attributeAnonGames, validEmail, looksLikeEmail } from '@/lib/quiz-identity';
 
 export const dynamic = 'force-dynamic';
 
@@ -17,6 +17,9 @@ export async function POST(request) {
 
     if (!username || username.length > 40) {
       return NextResponse.json({ error: 'Display name required (max 40 characters).' }, { status: 400 });
+    }
+    if (looksLikeEmail(username)) {
+      return NextResponse.json({ error: 'Display name cannot be an email address.' }, { status: 400 });
     }
     if (email && !validEmail(email)) {
       return NextResponse.json({ error: 'Enter a valid email or leave it blank.' }, { status: 400 });
