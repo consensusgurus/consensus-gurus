@@ -16,7 +16,7 @@ const BankQuizBoard = dynamic(() => import('./BankQuizBoard'), { ssr: false, loa
 const TypeItBoard = dynamic(() => import('./TypeItBoard'), { ssr: false, loading: () => null });
 const TimedMcqBoard = dynamic(() => import('./TimedMcqClient'), { ssr: false, loading: () => null });
 const LogicGridBoard = dynamic(() => import('./LogicGridClient'), { ssr: false, loading: () => null });
-const PhotoBoard = dynamic(() => import('./PhotoQuizClient'), { ssr: false, loading: () => null });
+const PhotoBoard = dynamic(() => import('./PhotoBoard'), { ssr: false, loading: () => null });
 
 function shuffleIdx(n) {
   const a = [...Array(n).keys()];
@@ -189,10 +189,6 @@ export default function QuizClient({ quizId }) {
   if (quiz.format === 'logic-grid') {
     return <LogicGridBoard quizId={quizId} />;
   }
-  if (quiz.format === 'photo') {
-    return <PhotoBoard quizId={quizId} />;
-  }
-
   const answers = quiz.answers;
   const matched = quiz.format === 'matched';
   const nameKeys = useMemo(() => buildImplicitNameKeys(answers), [answers]);
@@ -200,9 +196,10 @@ export default function QuizClient({ quizId }) {
   const pairsMode = quiz.format === 'pairs';
   const bankMode = quiz.format === 'bank';
   const typeMode = quiz.format === 'type-it';
+  const photoMode = quiz.format === 'photo';
   const logosMode = quiz.format === 'logos' || quiz.format === 'posters' || quiz.format === 'images';
   const tallTiles = quiz.format === 'posters' || quiz.imgTall === true;
-  const tileMode = pairsMode || bankMode || typeMode;
+  const tileMode = pairsMode || bankMode || typeMode || photoMode;
   // Tile-mode (bank/pairs) quizzes are answered one prompt per PAIR, so the score
   // denominator is the pair count, not the number of distinct answer tiles. A
   // many-to-one bank quiz (e.g. cocktail -> base spirit: 16 cocktails, 6 spirits)
@@ -421,6 +418,8 @@ export default function QuizClient({ quizId }) {
       setHint('Pick a slogan, then the company it belongs to.');
     } else if (typeMode) {
       setHint('Type the answer for the clue above. Next skips it for now.');
+    } else if (photoMode) {
+      setHint('Name the city in the photo above. Next skips it for now.');
     } else {
       setHint(ordered ? 'Go — answer in order, from the top.' : matched ? (quiz.noun ? `Go — type each ${quiz.noun}.` : "Go — name each year's winner.") : 'Go — name them all.');
     }
@@ -777,7 +776,7 @@ export default function QuizClient({ quizId }) {
       return cols;
     }
     // These formats render their own board, not the answer list.
-    if (mapMode || pairsMode || bankMode || typeMode) return null;
+    if (mapMode || pairsMode || bankMode || typeMode || photoMode) return null;
     // Otherwise auto-wrap a long answer list into balanced columns so it does
     // not run off the screen. Column count scales with the number of answers
     // and is capped by the longest answer's width (so wide names are not
@@ -921,7 +920,7 @@ export default function QuizClient({ quizId }) {
                 <div style={{ fontFamily: SERIF, fontWeight: 800, fontSize: 34, lineHeight: 1, color: (guessesLeft == null ? total : guessesLeft) <= 3 && started && !ended ? COLORS.ember : COLORS.ink }}>{guessesLeft == null ? total : guessesLeft}</div>
                 <div style={{ fontFamily: MONO, fontSize: 11, letterSpacing: '0.12em', textTransform: 'uppercase', color: COLORS.faded }}>{quiz.suddenDeath ? 'States left' : 'Guesses left'}</div>
               </div>
-              ) : (bankMode || typeMode) ? (
+              ) : (bankMode || typeMode || photoMode) ? (
               <div style={{ textAlign: 'center', padding: '0 8px', borderLeft: `1px solid ${COLORS.faded}33` }}>
                 <div style={{ fontFamily: SERIF, fontWeight: 800, fontSize: 34, lineHeight: 1, color: (total - pairsMatched - pairsErrors) <= 3 && started && !ended ? COLORS.ember : COLORS.ink }}>{Math.max(0, total - pairsMatched - pairsErrors)}</div>
                 <div style={{ fontFamily: MONO, fontSize: 11, letterSpacing: '0.12em', textTransform: 'uppercase', color: COLORS.faded }}>Guesses left</div>
@@ -978,7 +977,9 @@ export default function QuizClient({ quizId }) {
               <div style={{ fontFamily: MONO, fontSize: 12, paddingTop: 3, color: hintBad ? COLORS.ember : COLORS.faded }}>{hint}</div>
             </div>
 
-            {typeMode ? (
+            {photoMode ? (
+            <PhotoBoard items={quiz.answers} started={started} ended={ended} revealed={revealed} onMatch={onPairMatch} onWrong={onBankWrong} onEnd={onPairEnd} onHint={onPairHint} answerNoun={quiz.noun} />
+            ) : typeMode ? (
             <TypeItBoard items={quiz.answers} started={started} ended={ended} revealed={revealed} onMatch={onPairMatch} onWrong={onBankWrong} onEnd={onPairEnd} onHint={onPairHint} promptLabel={quiz.leftLabel} answerNoun={quiz.noun} />
             ) : bankMode ? (
             <BankQuizBoard pairs={quiz.pairs} started={started} ended={ended} revealed={revealed} onMatch={onPairMatch} onWrong={onBankWrong} onEnd={onPairEnd} onHint={onPairHint} promptLabel={quiz.leftLabel} bankLabel={quiz.rightLabel} />
@@ -1253,10 +1254,10 @@ export default function QuizClient({ quizId }) {
                   <div style={{ fontFamily: SERIF, fontWeight: 800, fontSize: 40, lineHeight: 1, marginBottom: 6 }}>{dispScore}<span style={{ fontSize: 24, color: COLORS.faded }}> / {total}</span></div>
                   <p style={{ fontFamily: SERIF, fontStyle: 'italic', fontSize: 16, color: COLORS.faded, margin: '0 0 4px' }}>{reason}</p>
                   <p style={{ fontFamily: SANS, fontSize: 14, color: '#4a4339', margin: '0 0 20px' }}>{isTopScore ? 'You are the top score.' : <>You beat {percentile(dispScore, total)}% of players.{board.best != null ? (dispScore >= board.best ? ' That ties the high score.' : ` High score to beat: ${board.best}.`) : ''}</>}</p>
-                  <div style={{ display: 'flex', gap: 10, justifyContent: 'center', flexWrap: 'wrap' }}>
-                    <button onClick={() => { setGameOverDismissed(true); setTab('play'); }} style={{ fontFamily: MONO, fontSize: 12, letterSpacing: '0.12em', textTransform: 'uppercase', fontWeight: 700, padding: '13px 22px', border: 'none', background: COLORS.ember, color: '#fff', cursor: 'pointer' }}>Return to Quiz</button>
-                    <button onClick={share} style={{ fontFamily: MONO, fontSize: 12, letterSpacing: '0.12em', textTransform: 'uppercase', fontWeight: 700, padding: '13px 22px', border: 'none', background: COLORS.ink, color: COLORS.cream, cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: 8 }}><Share2 size={14} strokeWidth={2.5} /> {copied ? 'Link copied!' : 'Challenge a friend'}</button>
-                    <button onClick={() => { setGameOverDismissed(true); if (identity) { setTab('stats'); } else { setClaimMsg(''); setClaimErr(false); setClaimOpen(true); setTab('play'); } }} style={{ fontFamily: MONO, fontSize: 12, letterSpacing: '0.12em', textTransform: 'uppercase', fontWeight: 700, padding: '13px 22px', border: `1.5px solid ${COLORS.ink}`, background: 'transparent', color: COLORS.ink, cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: 8 }}><Trophy size={14} strokeWidth={2.5} /> Post to Leaderboard</button>
+                  <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'stretch', gap: 10, width: '100%', maxWidth: 300, margin: '0 auto' }}>
+                    <button onClick={() => { setGameOverDismissed(true); setTab('play'); }} style={{ width: '100%', boxSizing: 'border-box', fontFamily: MONO, fontSize: 12, letterSpacing: '0.12em', textTransform: 'uppercase', fontWeight: 700, padding: '13px 22px', border: `1.5px solid ${COLORS.ember}`, background: COLORS.ember, color: '#fff', cursor: 'pointer', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 8 }}>Return to Quiz</button>
+                    <button onClick={share} style={{ width: '100%', boxSizing: 'border-box', fontFamily: MONO, fontSize: 12, letterSpacing: '0.12em', textTransform: 'uppercase', fontWeight: 700, padding: '13px 22px', border: `1.5px solid ${COLORS.ink}`, background: COLORS.ink, color: COLORS.cream, cursor: 'pointer', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 8 }}><Share2 size={14} strokeWidth={2.5} /> {copied ? 'Link copied!' : 'Challenge a friend'}</button>
+                    <button onClick={() => { setGameOverDismissed(true); if (identity) { setTab('stats'); } else { setClaimMsg(''); setClaimErr(false); setClaimOpen(true); setTab('play'); } }} style={{ width: '100%', boxSizing: 'border-box', fontFamily: MONO, fontSize: 12, letterSpacing: '0.12em', textTransform: 'uppercase', fontWeight: 700, padding: '13px 22px', border: `1.5px solid ${COLORS.ink}`, background: 'transparent', color: COLORS.ink, cursor: 'pointer', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 8 }}><Trophy size={14} strokeWidth={2.5} /> Post to Leaderboard</button>
                   </div>
                   <button onClick={() => window.location.reload()} style={{ marginTop: 14, background: 'transparent', border: 'none', color: COLORS.faded, cursor: 'pointer', fontFamily: MONO, fontSize: 11, letterSpacing: '0.12em', textTransform: 'uppercase', textDecoration: 'underline', padding: 0 }}>Play again</button>
                 </>
