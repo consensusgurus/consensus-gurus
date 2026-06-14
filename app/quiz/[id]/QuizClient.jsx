@@ -239,7 +239,7 @@ export default function QuizClient({ quizId }) {
   const [started, setStarted] = useState(false);
   const [ended, setEnded] = useState(false);
   const [time, setTime] = useState(quiz.timeLimit);
-  const [hint, setHint] = useState('Press Play to start the clock.');
+  const [hint, setHint] = useState('');
   const [hintBad, setHintBad] = useState(false);
   // Transient right/wrong verdict banner (mobile users miss the small hint line).
   const [cue, setCue] = useState(null);
@@ -1001,7 +1001,7 @@ export default function QuizClient({ quizId }) {
               </button>
             </div>
             </div>
-            <div style={{ position: 'relative', minHeight: 46, marginBottom: 14 }}>
+            <div style={{ position: 'relative', minHeight: cue ? 46 : 0, marginBottom: (hint || cue) ? 12 : 0 }}>
               {cue && (
                 <div key={cue.id} aria-live="assertive" style={{ position: 'absolute', left: 0, right: 0, top: 0, display: 'flex', alignItems: 'center', gap: 9, padding: '11px 16px', color: '#fff', fontFamily: SANS, fontWeight: 700, fontSize: 17, lineHeight: 1, background: cue.ok ? COLORS.forest : COLORS.ember, boxShadow: '0 2px 8px rgba(26,22,17,0.25)', animation: `${cue.ok ? 'qzCueOk' : 'qzCueNo'} .4s ease both` }}>
                   {cue.ok ? <Check size={20} strokeWidth={3} /> : <X size={20} strokeWidth={3} />}
