@@ -244,16 +244,19 @@ export default function TimedMcqClient({ quizId }) {
     setResults((prev) => {
       const finalPoints = prev.reduce((s, r) => s + (r.pts || 0), 0);
       const elapsed = startRef.current ? Math.round((Date.now() - startRef.current) / 1000) : total * perSec;
+      const firstAttempt = loadStats(quizId).attempts === 0; // only the first play counts on the leaderboard
       setLastElapsed(elapsed);
       setStats(recordResult(quizId, finalPoints));
-      fetch('/api/quiz/result', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ quizId, score: finalPoints, total: maxPoints, timeElapsed: elapsed, email: identity?.email || undefined }),
-      })
-        .then((r) => r.json())
-        .then((d) => { if (d && !d.error) setBoard({ plays: d.plays || 0, best: d.best ?? null, topTime: d.topTime ?? null, leaderboard: d.leaderboard || [] }); })
-        .catch(() => {});
+      if (firstAttempt) {
+        fetch('/api/quiz/result', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ quizId, score: finalPoints, total: maxPoints, timeElapsed: elapsed, email: identity?.email || undefined }),
+        })
+          .then((r) => r.json())
+          .then((d) => { if (d && !d.error) setBoard({ plays: d.plays || 0, best: d.best ?? null, topTime: d.topTime ?? null, leaderboard: d.leaderboard || [] }); })
+          .catch(() => {});
+      }
       return prev;
     });
   }
@@ -331,6 +334,7 @@ export default function TimedMcqClient({ quizId }) {
   }
 
   const bestLabel = board.best != null ? board.best : '—';
+  const dateLabel = (() => { const p = (quiz.publishedDate || '').split('-'); return p.length === 3 ? `${+p[1]}/${+p[2]}/${p[0].slice(2)}` : ''; })();
   const q = questions[qIndex];
   const frac = Math.max(0, Math.min(1, remaining / perMs));
   const liveValue = Math.max(0, Math.round(maxPer * frac));        // points if you answer right now
@@ -353,6 +357,7 @@ export default function TimedMcqClient({ quizId }) {
             <h1 style={{ fontFamily: SERIF, fontWeight: 800, fontSize: 'clamp(30px, 5vw, 50px)', lineHeight: 1.02, letterSpacing: '-0.02em', margin: 0, color: COLORS.ink, fontVariationSettings: '"SOFT" 100' }}>{quiz.title}</h1>
             <div style={{ flex: 1, minWidth: 120, marginBottom: 6 }}>
               <div style={{ fontFamily: MONO, fontSize: 'clamp(9px, 1.1vw, 11px)', letterSpacing: '0.2em', textTransform: 'uppercase', color: COLORS.ember, textAlign: 'right', marginBottom: 8 }}>{quiz.category} · Quiz</div>
+              {dateLabel && <div style={{ fontFamily: MONO, fontSize: 'clamp(13px, 1.7vw, 17px)', fontWeight: 700, letterSpacing: '0.08em', color: COLORS.ember, textAlign: 'right', marginBottom: 8 }}>{dateLabel}</div>}
               <div style={{ borderBottom: `1px solid ${COLORS.ink}`, marginBottom: 4 }} />
               <div style={{ borderBottom: `2px solid ${COLORS.ember}` }} />
             </div>
