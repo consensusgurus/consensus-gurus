@@ -228,10 +228,14 @@ export default function QuizHomeClient() {
 
   const sorted = useMemo(() => {
     const ql = query.trim().toLowerCase();
+    // Match every word in the query, in any order (so "africa map" and
+    // "map africa" both find the Africa map quiz), mirroring the homepage search.
+    const tokens = ql.split(/\s+/).filter(Boolean);
     let list = QUIZZES.filter((q) => {
       if (dept !== 'all' && deptOf(q) !== dept) return false;
-      if (!ql) return true;
-      return (q.title || '').toLowerCase().includes(ql) || (q.category || '').toLowerCase().includes(ql) || (q.blurb || '').toLowerCase().includes(ql);
+      if (!tokens.length) return true;
+      const hay = `${q.title || ''} ${q.category || ''} ${q.blurb || ''}`.toLowerCase();
+      return tokens.every((t) => hay.includes(t));
     });
     const plays = (id) => totals.byQuiz[id] || 0;
     const recent = (id) => totals.recent7[id] || 0;
