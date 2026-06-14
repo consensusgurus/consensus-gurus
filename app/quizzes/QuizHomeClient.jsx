@@ -150,6 +150,7 @@ const boardCss = `
   a.lb-row:hover .lb-name{color:${COLORS.ember};}
   .lb-val{flex:none;font-family:'Fraunces',serif;font-weight:700;font-size:14px;color:${COLORS.ink};white-space:nowrap;}
   .lb-empty{font-family:'Fraunces',serif;font-style:italic;font-size:12.5px;color:${COLORS.faded};padding:2px 0 8px;}
+  @media(max-width:680px){.lb-row-extra{display:none;}.lb-name{white-space:normal;overflow:visible;text-overflow:clip;overflow-wrap:anywhere;}}
 `;
 
 // Left board: the three most-played quizzes. Each row links to its quiz; the
@@ -197,9 +198,10 @@ function LeaderboardCard({ kicker, cta, ctaHref, categories }) {
                         <span className="lb-val">{r.val}</span>
                       </>
                     );
+                    const rowCls = `lb-row${i >= 3 ? ' lb-row-extra' : ''}`;
                     return r.href
-                      ? (<Link key={r.key} href={r.href} className="lb-row" title={r.full}>{inner}</Link>)
-                      : (<div key={r.key} className="lb-row">{inner}</div>);
+                      ? (<Link key={r.key} href={r.href} className={rowCls} title={r.full}>{inner}</Link>)
+                      : (<div key={r.key} className={rowCls}>{inner}</div>);
                   }) : (<div className="lb-empty">{c.empty || 'No data yet.'}</div>)}
                 </div>
               )}
@@ -386,9 +388,9 @@ export default function QuizHomeClient() {
   // Player-side leaderboard: Most Plays (quizzes completed) / Most Accurate /
   // Best Overall (accuracy-weighted). Sourced from /api/quiz/champions.
   const playerCats = useMemo(() => {
-    const mostPlays = (champions.completed || []).slice(0, 3).map((u) => ({ key: `p-${u.username}`, full: u.username, val: <Count value={u.quizzes || 0} /> }));
-    const accurate = (champions.accuracy || []).slice(0, 3).map((u) => ({ key: `a-${u.username}`, full: u.username, val: `${Math.round(u.accuracy || 0)}%` }));
-    const overall = (champions.weighted || []).slice(0, 3).map((u) => ({ key: `w-${u.username}`, full: u.username, val: Math.round(u.weighted || 0).toLocaleString() }));
+    const mostPlays = (champions.completed || []).slice(0, 6).map((u) => ({ key: `p-${u.username}`, full: u.username, val: <Count value={u.quizzes || 0} /> }));
+    const accurate = (champions.accuracy || []).slice(0, 6).map((u) => ({ key: `a-${u.username}`, full: u.username, val: `${Math.round(u.accuracy || 0)}%` }));
+    const overall = (champions.weighted || []).slice(0, 6).map((u) => ({ key: `w-${u.username}`, full: u.username, val: Math.round(u.weighted || 0).toLocaleString() }));
     return [
       { id: 'plays', label: 'Most Plays', rows: mostPlays, empty: 'No ranked players yet.' },
       { id: 'accurate', label: 'Most Accurate', rows: accurate, empty: 'No ranked players yet.' },
