@@ -334,7 +334,6 @@ export default function TimedMcqClient({ quizId }) {
   }
 
   const bestLabel = board.best != null ? board.best : '—';
-  const dateLabel = (() => { const p = (quiz.publishedDate || '').split('-'); return p.length === 3 ? `${+p[1]}/${+p[2]}/${p[0].slice(2)}` : ''; })();
   const q = questions[qIndex];
   const frac = Math.max(0, Math.min(1, remaining / perMs));
   const liveValue = Math.max(0, Math.round(maxPer * frac));        // points if you answer right now
@@ -357,7 +356,6 @@ export default function TimedMcqClient({ quizId }) {
             <h1 style={{ fontFamily: SERIF, fontWeight: 800, fontSize: 'clamp(30px, 5vw, 50px)', lineHeight: 1.02, letterSpacing: '-0.02em', margin: 0, color: COLORS.ink, fontVariationSettings: '"SOFT" 100' }}>{quiz.title}</h1>
             <div style={{ flex: 1, minWidth: 120, marginBottom: 6 }}>
               <div style={{ fontFamily: MONO, fontSize: 'clamp(9px, 1.1vw, 11px)', letterSpacing: '0.2em', textTransform: 'uppercase', color: COLORS.ember, textAlign: 'right', marginBottom: 8 }}>{quiz.category} · Quiz</div>
-              {dateLabel && <div style={{ fontFamily: MONO, fontSize: 'clamp(13px, 1.7vw, 17px)', fontWeight: 700, letterSpacing: '0.08em', color: COLORS.ember, textAlign: 'right', marginBottom: 8 }}>{dateLabel}</div>}
               <div style={{ borderBottom: `1px solid ${COLORS.ink}`, marginBottom: 4 }} />
               <div style={{ borderBottom: `2px solid ${COLORS.ember}` }} />
             </div>
