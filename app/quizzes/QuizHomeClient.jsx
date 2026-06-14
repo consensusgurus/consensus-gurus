@@ -146,7 +146,7 @@ const boardCss = `
   .lb-list{display:flex;flex-direction:column;padding:0 0 8px;}
   .lb-row{display:flex;align-items:center;gap:10px;padding:5px 0;text-decoration:none;}
   .lb-rank{flex:none;width:19px;height:19px;border-radius:50%;border:1.25px solid ${COLORS.ink};display:flex;align-items:center;justify-content:center;font-family:'DM Mono',monospace;font-size:10.5px;font-weight:500;color:${COLORS.ink};}
-  .lb-name{flex:1 1 auto;min-width:0;font-family:'DM Mono',monospace;font-size:12px;font-weight:500;color:${COLORS.ink};line-height:1.25;white-space:normal;overflow-wrap:anywhere;}
+  .lb-name{flex:1 1 auto;min-width:0;font-family:'DM Mono',monospace;font-size:12px;font-weight:500;color:${COLORS.ink};line-height:1.25;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
   a.lb-row:hover .lb-name{color:${COLORS.ember};}
   .lb-val{flex:none;font-family:'Fraunces',serif;font-weight:700;font-size:14px;color:${COLORS.ink};white-space:nowrap;}
   .lb-empty{font-family:'Fraunces',serif;font-style:italic;font-size:12.5px;color:${COLORS.faded};padding:2px 0 8px;}
@@ -157,9 +157,10 @@ const boardCss = `
 // ranking categories. Each category is closed by default to save space and
 // expands (on hover, or tap on touch) to reveal its top three.
 function LeaderboardCard({ kicker, cta, ctaHref, categories }) {
-  const [openId, setOpenId] = useState(null);
-  // Hover-to-expand on devices that actually hover; on touch the categories
-  // start collapsed and expand only on tap (saves space on initial load).
+  // The first (top) category is expanded by default. Hover-to-expand on devices
+  // that hover (leaving reverts to the first); tap-to-expand on touch.
+  const firstId = categories[0] ? categories[0].id : null;
+  const [openId, setOpenId] = useState(firstId);
   const [canHover, setCanHover] = useState(false);
   useEffect(() => {
     if (typeof window !== 'undefined' && window.matchMedia) setCanHover(window.matchMedia('(hover: hover) and (pointer: fine)').matches);
@@ -180,7 +181,7 @@ function LeaderboardCard({ kicker, cta, ctaHref, categories }) {
               key={c.id}
               className={`lb-cat${open ? ' open' : ''}`}
               onMouseEnter={canHover ? () => setOpenId(c.id) : undefined}
-              onMouseLeave={canHover ? () => setOpenId(null) : undefined}
+              onMouseLeave={canHover ? () => setOpenId(firstId) : undefined}
             >
               <button type="button" className="lb-cat-head" aria-expanded={open} onClick={() => setOpenId(open ? null : c.id)}>
                 <span className="lb-cat-label">{c.label}</span>
@@ -386,7 +387,7 @@ export default function QuizHomeClient() {
   // Best Overall (accuracy-weighted). Sourced from /api/quiz/champions.
   const playerCats = useMemo(() => {
     const mostPlays = (champions.completed || []).slice(0, 3).map((u) => ({ key: `p-${u.username}`, full: u.username, val: <Count value={u.quizzes || 0} /> }));
-    const accurate = (champions.accuracy || []).slice(0, 3).map((u) => ({ key: `a-${u.username}`, full: u.username, val: `${(u.accuracy || 0).toFixed(1)}%` }));
+    const accurate = (champions.accuracy || []).slice(0, 3).map((u) => ({ key: `a-${u.username}`, full: u.username, val: `${Math.round(u.accuracy || 0)}%` }));
     const overall = (champions.weighted || []).slice(0, 3).map((u) => ({ key: `w-${u.username}`, full: u.username, val: Math.round(u.weighted || 0).toLocaleString() }));
     return [
       { id: 'plays', label: 'Most Plays', rows: mostPlays, empty: 'No ranked players yet.' },
