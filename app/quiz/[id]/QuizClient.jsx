@@ -50,8 +50,11 @@ function norm(s) {
 // "disneyland tokyo" satisfies the key "tokyo disneyland"). Single-word keys
 // stay substring-only, which preserves partial-typing and the existing
 // collision rules. Used for both keys (accept) and anti (block).
+function deArticle(s) {
+  return s.replace(/^(?:the|a|an) (?=.{2})/, '');
+}
 function keyHit(g, key) {
-  const k = norm(key);
+  const k = deArticle(norm(key));
   if (!k) return false;
   if (g.includes(k)) return true;
   const kt = k.split(' ');

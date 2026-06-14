@@ -76,9 +76,9 @@ export default function LeaderboardClient() {
         <section style={{ maxWidth: 1100, margin: '0 auto', padding: '24px 24px 72px' }}>
           {loaded ? (
             <div className="lb-grid">
-              <Column icon={Trophy} title="Quizzes Completed" note="Distinct quizzes finished" rows={completedRows} empty="No completed quizzes yet." />
-              <Column icon={Scale} title="Accuracy-Weighted Completions" note="Accuracy × quizzes completed" rows={weightedRows} empty="No completed quizzes yet." />
-              <Column icon={Target} title="Accuracy (min 5)" note={`Min ${data.minQuizzes} quizzes · first attempt`} rows={accuracyRows} empty={`No players with ${data.minQuizzes}+ quizzes yet.`} />
+              <Column icon={Trophy} title="Quizzes Played" note="Distinct quizzes finished" rows={completedRows} empty="No completed quizzes yet." />
+              <Column icon={Target} title="Accuracy (min 5 plays)" note={`Min ${data.minQuizzes} quizzes · first attempt`} rows={accuracyRows} empty={`No players with ${data.minQuizzes}+ quizzes yet.`} />
+              <Column icon={Scale} title="Accuracy-Weighted Plays" note="Accuracy × quizzes completed" rows={weightedRows} empty="No completed quizzes yet." />
             </div>
           ) : (
             <div style={{ textAlign: 'center', padding: '60px 24px', fontFamily: 'Fraunces, serif', fontStyle: 'italic', fontSize: 18, color: COLORS.faded }}>Loading the standings...</div>

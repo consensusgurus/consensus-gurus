@@ -34,8 +34,11 @@ function norm(s) {
   return (s || '').toLowerCase().replace(/[^a-z0-9 ]/g, ' ').replace(/\s+/g, ' ').trim();
 }
 // Same order-independent key match used across the quiz boards.
+function deArticle(s) {
+  return s.replace(/^(?:the|a|an) (?=.{2})/, '');
+}
 function keyHit(g, key) {
-  const k = norm(key);
+  const k = deArticle(norm(key));
   if (!k) return false;
   if (g.includes(k)) return true;
   const kt = k.split(' ');

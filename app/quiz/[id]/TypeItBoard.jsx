@@ -24,8 +24,9 @@ function shuffle(arr) {
   return a;
 }
 function norm(s) { return (s || '').toLowerCase().replace(/[^a-z0-9 ]/g, ' ').replace(/\s+/g, ' ').trim(); }
+function deArticle(s) { return s.replace(/^(?:the|a|an) (?=.{2})/, ''); }
 function keyHit(g, key) {
-  const k = norm(key); if (!k) return false;
+  const k = deArticle(norm(key)); if (!k) return false;
   if (g.includes(k)) return true;
   const kt = k.split(' '); if (kt.length < 2) return false;
   const gt = g.split(' '); return kt.every((w) => gt.includes(w));
@@ -35,7 +36,7 @@ function accepts(raw, item) {
   const g = norm(raw); if (!g) return false;
   if (anyKey(g, item.keys)) return true;
   if (item.anti && anyKey(g, item.anti)) return false;
-  return g === norm(item.t);
+  return deArticle(g) === deArticle(norm(item.t));
 }
 
 export default function TypeItBoard({ items, started, ended, revealed, onMatch, onWrong, onEnd, onHint, promptLabel, answerNoun }) {
