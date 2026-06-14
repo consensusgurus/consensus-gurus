@@ -158,7 +158,7 @@ function DailyNewsBanner() {
       `}</style>
       <span className="dn-left">
         <span className="dn-kicker">{'▶'} Daily Market Moving News Quiz</span>
-        <span className="dn-desc">{quiz.blurb}</span>
+        <span className="dn-desc">Ten questions keeping you on top of the most important news</span>
       </span>
       <span className="dn-cta">Play Today {'›'}</span>
     </Link>
