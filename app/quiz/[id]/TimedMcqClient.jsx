@@ -520,7 +520,6 @@ export default function TimedMcqClient({ quizId }) {
                         <ScrollText size={14} strokeWidth={2.5} /> Quiz Summary
                       </button>
                     )}
-                    <button onClick={() => { setPhase('idle'); setResults([]); setQIndex(0); setPicked(null); setRemaining(perMs); endedRef.current = false; }} style={{ fontFamily: MONO, fontSize: 13, letterSpacing: '0.08em', textTransform: 'uppercase', fontWeight: 700, lineHeight: '46px', width: 210, padding: 0, boxSizing: 'border-box', background: 'transparent', color: COLORS.ink, border: `1.5px solid ${COLORS.ink}`, cursor: 'pointer', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 8 }}>Play again</button>
                     {!identity && (
                       <button onClick={() => setTab('join')} style={{ fontFamily: MONO, fontSize: 13, letterSpacing: '0.08em', textTransform: 'uppercase', fontWeight: 700, lineHeight: '46px', width: 210, padding: 0, boxSizing: 'border-box', background: 'transparent', color: COLORS.ink, border: `1.5px solid ${COLORS.ink}`, cursor: 'pointer', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 8 }}>
                         <Trophy size={14} strokeWidth={2.5} /> Post to Leaderboard
