@@ -126,106 +126,83 @@ const MEDAL = ['#caa12e', '#9c968a', '#b1763f'];
 // (right/Top Players board) or as a clickable div (left/Most Played board,
 // which contains its own per-quiz links and so can't be an anchor).
 const boardCss = `
-  .qz-boards{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px;align-items:stretch;}
+  .qz-boards{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px;align-items:start;}
   @media(max-width:680px){.qz-boards{grid-template-columns:1fr;}}
-  .qz-board{display:flex;flex-direction:column;text-decoration:none;background:${COLORS.paper};border:1.5px solid ${COLORS.ink};padding:10px 16px 12px;transition:all 0.2s ease;cursor:pointer;height:100%;box-sizing:border-box;}
-  .qz-board:focus-visible{outline:2px solid ${COLORS.ember};outline-offset:2px;}
-  .qz-board-eyebrow{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:3px;}
-  .qz-board-kicker{font-family:'DM Mono',monospace;font-size:10.5px;font-weight:700;letter-spacing:0.22em;text-transform:uppercase;color:${COLORS.ember};}
-  .qz-board-cta{font-family:'DM Mono',monospace;font-size:9.5px;letter-spacing:0.14em;text-transform:uppercase;color:${COLORS.faded};white-space:nowrap;}
-  .qz-board-rule1{border-bottom:1px solid ${COLORS.ink};}
-  .qz-board-rule2{border-bottom:2px solid ${COLORS.ember};margin-bottom:8px;}
-  .qz-board-rows{display:flex;flex-direction:column;flex:1 1 auto;}
-  .qz-brow{display:flex;align-items:center;gap:10px;padding:7px 0;border-top:1px solid rgba(26,22,17,0.1);text-decoration:none;}
-  .qz-brow:first-child{border-top:none;}
-  .qz-brank{flex:none;width:20px;height:20px;border-radius:50%;border:1.25px solid ${COLORS.ink};display:flex;align-items:center;justify-content:center;font-family:'DM Mono',monospace;font-size:11px;font-weight:500;color:${COLORS.ink};}
-  .qz-bname{flex:1 1 auto;min-width:0;font-family:'DM Mono',monospace;font-size:12px;font-weight:500;color:${COLORS.ink};line-height:1.25;white-space:normal;overflow-wrap:anywhere;}
-  .qz-bval{flex:none;font-family:'Fraunces',serif;font-weight:700;font-size:15px;color:${COLORS.ink};white-space:nowrap;}
-  .qz-bval small{font-family:'DM Mono',monospace;font-weight:500;font-size:9.5px;letter-spacing:0.1em;text-transform:uppercase;color:${COLORS.faded};margin-left:4px;}
-  .qz-board a.qz-brow:hover .qz-bname{color:${COLORS.ember};}
-  .qz-board-empty{font-family:'Fraunces',serif;font-style:italic;font-size:13px;color:${COLORS.faded};padding:12px 0;}
-  .qz-bname .qz-bn-short{display:none;}
-  @media(max-width:680px){.qz-bname .qz-bn-full{display:none;}.qz-bname .qz-bn-short{display:inline;}}
-  .qz-pcols{display:grid;grid-template-columns:1fr 1fr;gap:0 18px;flex:1 1 auto;}
-  .qz-pcol{display:flex;flex-direction:column;min-width:0;}
-  @media(max-width:430px){.qz-pcols{grid-template-columns:1fr;}}
+  .lb-card{display:flex;flex-direction:column;background:${COLORS.paper};border:1.5px solid ${COLORS.ink};box-shadow:3px 3px 0 ${COLORS.ember};padding:10px 16px 10px;box-sizing:border-box;}
+  .lb-head{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:3px;}
+  .lb-kicker{font-family:'DM Mono',monospace;font-size:10.5px;font-weight:700;letter-spacing:0.22em;text-transform:uppercase;color:${COLORS.ember};}
+  .lb-cta{font-family:'DM Mono',monospace;font-size:9.5px;letter-spacing:0.14em;text-transform:uppercase;color:${COLORS.faded};white-space:nowrap;text-decoration:none;}
+  .lb-cta:hover{color:${COLORS.ember};}
+  .lb-rule1{border-bottom:1px solid ${COLORS.ink};}
+  .lb-rule2{border-bottom:2px solid ${COLORS.ember};margin-bottom:4px;}
+  .lb-cats{display:flex;flex-direction:column;}
+  .lb-cat{border-top:1px solid rgba(26,22,17,0.1);}
+  .lb-cat:first-child{border-top:none;}
+  .lb-cat-head{display:flex;align-items:center;gap:8px;width:100%;background:transparent;border:none;cursor:pointer;padding:10px 0;font-family:'DM Mono',monospace;font-size:11px;font-weight:700;letter-spacing:0.16em;text-transform:uppercase;color:${COLORS.ink};text-align:left;}
+  .lb-cat-label{flex:1 1 auto;min-width:0;}
+  .lb-cat-chev{flex:none;transition:transform 0.18s;color:${COLORS.faded};}
+  .lb-cat.open .lb-cat-head{color:${COLORS.ember};}
+  .lb-cat.open .lb-cat-chev{transform:rotate(180deg);color:${COLORS.ember};}
+  .lb-list{display:flex;flex-direction:column;padding:0 0 8px;}
+  .lb-row{display:flex;align-items:center;gap:10px;padding:5px 0;text-decoration:none;}
+  .lb-rank{flex:none;width:19px;height:19px;border-radius:50%;border:1.25px solid ${COLORS.ink};display:flex;align-items:center;justify-content:center;font-family:'DM Mono',monospace;font-size:10.5px;font-weight:500;color:${COLORS.ink};}
+  .lb-name{flex:1 1 auto;min-width:0;font-family:'DM Mono',monospace;font-size:12px;font-weight:500;color:${COLORS.ink};line-height:1.25;white-space:normal;overflow-wrap:anywhere;}
+  .lb-name .lb-name-short{display:none;}
+  a.lb-row:hover .lb-name{color:${COLORS.ember};}
+  .lb-val{flex:none;font-family:'Fraunces',serif;font-weight:700;font-size:14px;color:${COLORS.ink};white-space:nowrap;}
+  .lb-empty{font-family:'Fraunces',serif;font-style:italic;font-size:12.5px;color:${COLORS.faded};padding:2px 0 8px;}
+  @media(max-width:680px){.lb-name .lb-name-full{display:none;}.lb-name .lb-name-short{display:inline;}}
 `;
 
 // Left board: the three most-played quizzes. Each row links to its quiz; the
-// surrounding card is itself clickable (and keyboard-focusable) to the full
-// quiz-statistics page. A div, not an anchor, so the per-quiz links nest legally.
-function MostPlayedBoard({ rows }) {
-  const router = useRouter();
-  const [hover, setHover] = useState(false);
-  const go = () => router.push('/quizzes/stats');
+// Compact leaderboard card: a kicker, a CTA link, and three collapsible
+// ranking categories. Each category is closed by default to save space and
+// expands (on hover, or tap on touch) to reveal its top three.
+function LeaderboardCard({ kicker, cta, ctaHref, categories }) {
+  const [openId, setOpenId] = useState(null);
   return (
-    <div
-      role="link"
-      tabIndex={0}
-      aria-label="View all quiz statistics"
-      onClick={go}
-      onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); go(); } }}
-      onMouseEnter={() => setHover(true)}
-      onMouseLeave={() => setHover(false)}
-      className="qz-board"
-      style={{ boxShadow: hover ? `5px 5px 0 ${COLORS.ember}` : `3px 3px 0 ${COLORS.ember}`, transform: hover ? 'translate(-2px, -2px)' : 'none' }}
-    >
-      <div className="qz-board-eyebrow">
-        <span className="qz-board-kicker">Most Played</span>
-        <span className="qz-board-cta">All Quiz Stats {'›'}</span>
+    <div className="lb-card">
+      <div className="lb-head">
+        <span className="lb-kicker">{kicker}</span>
+        <Link href={ctaHref} className="lb-cta">{cta} {'\u203A'}</Link>
       </div>
-      <div className="qz-board-rule1" />
-      <div className="qz-board-rule2" />
-      <div className="qz-board-rows">
-        {rows.length > 0 ? rows.map((r, i) => (
-          <Link key={r.id} href={`/quiz/${r.id}`} className="qz-brow" onClick={(e) => e.stopPropagation()} title={r.title}>
-            <span className="qz-brank" style={{ background: i < 3 ? MEDAL[i] : 'transparent' }}>{i + 1}</span>
-            <span className="qz-bname"><span className="qz-bn-full">{r.title}</span><span className="qz-bn-short">{shortTitle(r.title, 18)}</span></span>
-            <span className="qz-bval"><Count value={r.plays} /><small>plays</small></span>
-          </Link>
-        )) : (<div className="qz-board-empty">No plays recorded yet.</div>)}
+      <div className="lb-rule1" />
+      <div className="lb-rule2" />
+      <div className="lb-cats">
+        {categories.map((c) => {
+          const open = openId === c.id;
+          return (
+            <div
+              key={c.id}
+              className={`lb-cat${open ? ' open' : ''}`}
+              onMouseEnter={() => setOpenId(c.id)}
+              onMouseLeave={() => setOpenId(null)}
+            >
+              <button type="button" className="lb-cat-head" aria-expanded={open} onClick={() => setOpenId(open ? null : c.id)}>
+                <span className="lb-cat-label">{c.label}</span>
+                <ChevronDown className="lb-cat-chev" size={13} strokeWidth={2.5} />
+              </button>
+              {open && (
+                <div className="lb-list">
+                  {c.rows.length > 0 ? c.rows.map((r, i) => {
+                    const inner = (
+                      <>
+                        <span className="lb-rank" style={{ background: i < 3 ? MEDAL[i] : 'transparent' }}>{i + 1}</span>
+                        <span className="lb-name">{r.short != null ? (<><span className="lb-name-full">{r.full}</span><span className="lb-name-short">{r.short}</span></>) : r.full}</span>
+                        <span className="lb-val">{r.val}</span>
+                      </>
+                    );
+                    return r.href
+                      ? (<Link key={r.key} href={r.href} className="lb-row" title={r.full}>{inner}</Link>)
+                      : (<div key={r.key} className="lb-row">{inner}</div>);
+                  }) : (<div className="lb-empty">{c.empty || 'No data yet.'}</div>)}
+                </div>
+              )}
+            </div>
+          );
+        })}
       </div>
     </div>
-  );
-}
-
-// Right board: the top Accuracy-Weighted players. The whole card is one big
-// link to the full leaderboard, so no nested links here.
-function TopPlayersBoard({ players }) {
-  const [hover, setHover] = useState(false);
-  return (
-    <Link
-      href="/leaderboard"
-      onMouseEnter={() => setHover(true)}
-      onMouseLeave={() => setHover(false)}
-      className="qz-board"
-      style={{ boxShadow: hover ? `5px 5px 0 ${COLORS.ember}` : `3px 3px 0 ${COLORS.ember}`, transform: hover ? 'translate(-2px, -2px)' : 'none', color: COLORS.ink }}
-    >
-      <div className="qz-board-eyebrow">
-        <span className="qz-board-kicker">Top Players</span>
-        <span className="qz-board-cta">View Leaderboard {'›'}</span>
-      </div>
-      <div className="qz-board-rule1" />
-      <div className="qz-board-rule2" />
-      {players.length > 0 ? (
-        <div className="qz-pcols">
-          {[players.slice(0, 3), players.slice(3, 6)].map((col, ci) => (
-            <div className="qz-pcol" key={ci}>
-              {col.map((p, j) => {
-                const i = ci * 3 + j;
-                return (
-                  <div key={i} className="qz-brow">
-                    <span className="qz-brank" style={{ background: i < 3 ? MEDAL[i] : 'transparent' }}>{i + 1}</span>
-                    <span className="qz-bname">{p.name}</span>
-                    <span className="qz-bval">{p.val}</span>
-                  </div>
-                );
-              })}
-            </div>
-          ))}
-        </div>
-      ) : (<div className="qz-board-rows"><div className="qz-board-empty">No ranked players yet.</div></div>)}
-    </Link>
   );
 }
 
@@ -240,22 +217,14 @@ function DailyNewsBanner({ totals }) {
     cands.sort((a, b) => new Date(b.publishedAt || `${b.publishedDate || '1970-01-01'}T12:00:00Z`).getTime() - new Date(a.publishedAt || `${a.publishedDate || '1970-01-01'}T12:00:00Z`).getTime());
     return cands[0] || null;
   }, []);
-  // Left button: the quiz with the most plays over the last 12 hours. News
-  // quizzes are excluded (they have their own button), and we fall back to the
-  // 7-day then all-time leader when no game has been played in the last 12h.
+  // Left button: a Featured Quiz that rotates among all quizzes with at least
+  // three recorded plays (news quizzes excluded — they get their own button).
+  // A fresh one is picked each time the data loads, so it changes per visit.
   const trendingQuiz = useMemo(() => {
     const isNews = (id) => /^(daily-market-news-quiz-|daily-business-quiz-|daily-news-quiz-|weekly-business-quiz-|weekly-news-quiz-|earnings-reporter-quiz-|earnings-quiz-)/.test(id || '');
-    const pick = (counts) => {
-      let best = null;
-      let bestN = 0;
-      for (const q of QUIZZES) {
-        if (!q.id || isNews(q.id)) continue;
-        const n = (counts || {})[q.id] || 0;
-        if (n > bestN) { bestN = n; best = q; }
-      }
-      return bestN > 0 ? best : null;
-    };
-    return pick(totals.recent12h) || pick(totals.recent7) || pick(totals.byQuiz) || null;
+    const cands = QUIZZES.filter((q) => q.id && !isNews(q.id) && (totals.byQuiz[q.id] || 0) >= 3);
+    if (!cands.length) return null;
+    return cands[Math.floor(Math.random() * cands.length)];
   }, [totals]);
 
   if (!newsQuiz && !trendingQuiz) return null;
@@ -270,7 +239,7 @@ function DailyNewsBanner({ totals }) {
       `}</style>
       {trendingQuiz && (
         <Link href={`/quiz/${trendingQuiz.id}`} className="dn-btn" onMouseEnter={() => setHover('trend')} onMouseLeave={() => setHover(null)} style={liftStyle(hover === 'trend')}>
-          <span className="dn-label">{'▶'} Top Trending Quiz</span>
+          <span className="dn-label">{'▶'} Featured Quiz</span>
         </Link>
       )}
       {newsQuiz && (
@@ -294,6 +263,7 @@ export default function QuizHomeClient() {
   const [recent, setRecent] = useState([]);
   const [visitors, setVisitors] = useState(0);
   const [champions, setChampions] = useState({ completed: [], weighted: [], accuracy: [], anonymous: 0 });
+  const [quizStats, setQuizStats] = useState([]);
   const seedRef = useRef((Date.now() & 0xffffffff) >>> 0);
   // Close the category / sort dropdowns on an outside click or Escape.
   const ribbonRef = useRef(null);
@@ -313,6 +283,7 @@ export default function QuizHomeClient() {
     // into bootstrap views under `quiz::<id>` keys; sum only those.
     fetchBootstrap().then((data) => { if (data && data.views) setVisitors(Object.entries(data.views).reduce((sum, [k, v]) => (k.startsWith('quiz::') ? sum + (Number(v) || 0) : sum), 0)); }).catch(() => {});
     fetch('/api/quiz/champions').then((r) => r.json()).then((d) => { if (d && !d.error) setChampions({ completed: d.completed || [], weighted: d.weighted || [], accuracy: d.accuracy || [], anonymous: d.anonymous || 0 }); }).catch(() => {});
+    fetch('/api/quiz/stats').then((r) => r.json()).then((d) => { if (d && Array.isArray(d.quizzes)) setQuizStats(d.quizzes); }).catch(() => {});
   }, []);
 
   // Count quiz-home-page landings toward this page's visitor total, so it
@@ -366,19 +337,43 @@ export default function QuizHomeClient() {
   })), []);
   const currentTypeLabel = TYPE_LABELS[typeFilter] || 'All';
 
-  // Left board data: the three quizzes with the most all-time plays.
-  const topPlayed = useMemo(() => {
-    return QUIZZES
-      .map((q) => ({ id: q.id, title: cleanTitle(q.title), plays: totals.byQuiz[q.id] || 0 }))
-      .filter((q) => q.plays > 0)
-      .sort((a, b) => b.plays - a.plays || a.title.localeCompare(b.title))
-      .slice(0, 3);
-  }, [totals]);
+  // Per-quiz aggregate stats (avg score etc.) for the Highest Scored ranking.
+  const statById = useMemo(() => Object.fromEntries((quizStats || []).map((st) => [st.quizId, st])), [quizStats]);
 
-  // Right board data: top Accuracy-Weighted players (whole-number weighted score).
-  const topPlayers = useMemo(() => (champions.weighted || [])
-    .map((u) => ({ name: u.username, val: Math.round(u.weighted || 0).toLocaleString() }))
-    .slice(0, 6), [champions]);
+  // Quiz-side leaderboard: Most Played / Trending Now / Highest Scored. Each
+  // row links to its quiz and shows full title on desktop, short on mobile.
+  const quizCats = useMemo(() => {
+    const mk = (q, val) => ({ key: q.id, href: `/quiz/${q.id}`, full: cleanTitle(q.title), short: shortTitle(q.title, 18), val });
+    const plays = (id) => totals.byQuiz[id] || 0;
+    const recent = (id) => totals.recent7[id] || 0;
+    const mostPlayed = QUIZZES.filter((q) => plays(q.id) > 0)
+      .sort((a, b) => plays(b.id) - plays(a.id) || a.title.localeCompare(b.title))
+      .slice(0, 3).map((q) => mk(q, <Count value={plays(q.id)} />));
+    const trending = QUIZZES.filter((q) => recent(q.id) > 0)
+      .sort((a, b) => recent(b.id) - recent(a.id) || plays(b.id) - plays(a.id))
+      .slice(0, 3).map((q) => mk(q, <Count value={recent(q.id)} />));
+    const highest = QUIZZES.filter((q) => { const st = statById[q.id]; return st && st.plays >= 3; })
+      .sort((a, b) => statById[b.id].avgScorePct - statById[a.id].avgScorePct || statById[b.id].plays - statById[a.id].plays)
+      .slice(0, 3).map((q) => mk(q, `${statById[q.id].avgScorePct}%`));
+    return [
+      { id: 'played', label: 'Most Played', rows: mostPlayed, empty: 'No plays recorded yet.' },
+      { id: 'trending', label: 'Trending Now', rows: trending, empty: 'No plays this week yet.' },
+      { id: 'highest', label: 'Highest Scored', rows: highest, empty: 'Not enough plays yet.' },
+    ];
+  }, [totals, statById]);
+
+  // Player-side leaderboard: Most Plays (quizzes completed) / Most Accurate /
+  // Best Overall (accuracy-weighted). Sourced from /api/quiz/champions.
+  const playerCats = useMemo(() => {
+    const mostPlays = (champions.completed || []).slice(0, 3).map((u) => ({ key: `p-${u.username}`, full: u.username, val: <Count value={u.quizzes || 0} /> }));
+    const accurate = (champions.accuracy || []).slice(0, 3).map((u) => ({ key: `a-${u.username}`, full: u.username, val: `${(u.accuracy || 0).toFixed(1)}%` }));
+    const overall = (champions.weighted || []).slice(0, 3).map((u) => ({ key: `w-${u.username}`, full: u.username, val: Math.round(u.weighted || 0).toLocaleString() }));
+    return [
+      { id: 'plays', label: 'Most Plays', rows: mostPlays, empty: 'No ranked players yet.' },
+      { id: 'accurate', label: 'Most Accurate', rows: accurate, empty: 'No ranked players yet.' },
+      { id: 'overall', label: 'Best Overall', rows: overall, empty: 'No ranked players yet.' },
+    ];
+  }, [champions]);
 
   const sorted = useMemo(() => {
     const ql = query.trim().toLowerCase();
@@ -570,8 +565,8 @@ export default function QuizHomeClient() {
 
         <section style={{ maxWidth: 1200, margin: '0 auto', padding: '20px 16px 64px' }}>
           <div className="qz-boards">
-            <MostPlayedBoard rows={topPlayed} />
-            <TopPlayersBoard players={topPlayers} />
+            <LeaderboardCard kicker="Quizzes" cta="All Quiz Stats" ctaHref="/quizzes/stats" categories={quizCats} />
+            <LeaderboardCard kicker="Players" cta="View Leaderboard" ctaHref="/leaderboard" categories={playerCats} />
           </div>
 
           <DailyNewsBanner totals={totals} />
