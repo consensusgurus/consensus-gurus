@@ -364,7 +364,7 @@ export default function TimedMcqClient({ quizId }) {
         </div>
 
         {/* Ribbon */}
-        <div style={{ position: 'sticky', top: 0, zIndex: 25, marginTop: 18 }}>
+        <div style={{ marginTop: 18 }}>
           <div style={{ position: 'relative' }}>
             <style>{`@keyframes qzCueR{0%,100%{transform:translate(0,-50%);}50%{transform:translate(3px,-50%);}}@keyframes qzCueL{0%,100%{transform:translate(0,-50%);}50%{transform:translate(-3px,-50%);}}.qz-cue{position:absolute;top:50%;z-index:3;display:flex;align-items:center;justify-content:center;width:26px;height:26px;border-radius:50%;background:${COLORS.ember};color:#fff;box-shadow:0 1px 4px rgba(26,22,17,0.45);pointer-events:none;font-size:15px;line-height:1;}.qz-cue-r{right:10px;animation:qzCueR 1.4s ease-in-out infinite;}.qz-cue-l{left:10px;animation:qzCueL 1.4s ease-in-out infinite;}@media(min-width:760px){.qz-cue{display:none;}}.qz-ribbon{scrollbar-width:none;-ms-overflow-style:none;}.qz-ribbon::-webkit-scrollbar{display:none;}`}</style>
             <div ref={ribbonRef} className="qz-ribbon" style={{ display: 'flex', alignItems: 'stretch', flexWrap: 'nowrap', overflowX: 'auto', background: COLORS.ink, borderBottom: `3px solid ${COLORS.ember}` }}>
@@ -393,7 +393,7 @@ export default function TimedMcqClient({ quizId }) {
             {/* Freeze the score/timer bar at the top (44 = ribbon height), mirroring the
                 name-them-all board so the countdown and points stay visible as the
                 question and options scroll underneath. */}
-            <div style={{ position: 'sticky', top: 44, zIndex: 24, background: COLORS.cream, paddingBottom: 4 }}>
+            <div style={{ position: 'sticky', top: 0, zIndex: 24, background: COLORS.cream, paddingBottom: 4 }}>
             {/* Scoreboard */}
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 16, background: COLORS.paper, border: `1px solid ${COLORS.faded}33`, padding: '16px 20px', marginBottom: 0 }}>
               <div>

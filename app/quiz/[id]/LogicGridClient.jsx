@@ -375,7 +375,7 @@ export default function LogicGridClient({ quizId }) {
         </div>
 
         {/* Ribbon */}
-        <div style={{ position: 'sticky', top: 0, zIndex: 25, marginTop: 18 }}>
+        <div style={{ marginTop: 18 }}>
           <div style={{ position: 'relative' }}>
             <style>{`@keyframes qzCueR{0%,100%{transform:translate(0,-50%);}50%{transform:translate(3px,-50%);}}@keyframes qzCueL{0%,100%{transform:translate(0,-50%);}50%{transform:translate(-3px,-50%);}}.qz-cue{position:absolute;top:50%;z-index:3;display:flex;align-items:center;justify-content:center;width:26px;height:26px;border-radius:50%;background:${COLORS.ember};color:#fff;box-shadow:0 1px 4px rgba(26,22,17,0.45);pointer-events:none;font-size:15px;line-height:1;}.qz-cue-r{right:10px;animation:qzCueR 1.4s ease-in-out infinite;}.qz-cue-l{left:10px;animation:qzCueL 1.4s ease-in-out infinite;}@media(min-width:760px){.qz-cue{display:none;}}.qz-ribbon{scrollbar-width:none;-ms-overflow-style:none;}.qz-ribbon::-webkit-scrollbar{display:none;}`}</style>
             <div ref={ribbonRef} className="qz-ribbon" style={{ display: 'flex', alignItems: 'stretch', flexWrap: 'nowrap', overflowX: 'auto', background: COLORS.ink, borderBottom: `3px solid ${COLORS.ember}` }}>
@@ -404,7 +404,7 @@ export default function LogicGridClient({ quizId }) {
             {/* Freeze the score/time bar AND the answer input together at the top
                 (44 = ribbon height), mirroring the name-them-all board, so the answer
                 box is always reachable while the clue grid scrolls underneath. */}
-            <div style={{ position: 'sticky', top: 44, zIndex: 24, background: COLORS.cream, paddingBottom: 4 }}>
+            <div style={{ position: 'sticky', top: 0, zIndex: 24, background: COLORS.cream, paddingBottom: 4 }}>
             {/* Scoreboard */}
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', alignItems: 'center', background: COLORS.paper, border: `1px solid ${COLORS.faded}33`, padding: '16px 8px', marginBottom: 0 }}>
               <div style={{ textAlign: 'center', padding: '0 8px' }}>

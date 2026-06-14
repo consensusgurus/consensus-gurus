@@ -300,10 +300,10 @@ export default function QuizClient({ quizId }) {
   const scoreRef = useRef(null);
   const [ribScroll, setRibScroll] = useState({ left: false, right: false });
   // Measured height of the frozen score/answer block, so each format's clue bar
-  // (map Find, photo/bank/type prompt) can stick FLUSH right beneath it. 44 = the
-  // ribbon's sticky height above it.
+  // (map Find, photo/bank/type prompt) can stick FLUSH right beneath it. The
+  // score block pins to the top (top:0); the nav ribbon is not sticky.
   const [scoreH, setScoreH] = useState(150);
-  const stickyTop = 44 + scoreH;
+  const stickyTop = scoreH;
   useEffect(() => {
     const measure = () => { if (scoreRef.current) setScoreH(scoreRef.current.offsetHeight); };
     measure();
@@ -867,7 +867,7 @@ export default function QuizClient({ quizId }) {
         </div>
 
         {/* Ribbon */}
-        <div style={{ position: 'sticky', top: 0, zIndex: 25, marginTop: 18 }}>
+        <div style={{ marginTop: 18 }}>
           <div style={{ position: 'relative' }}>
             <style>{`@keyframes qzCueR{0%,100%{transform:translate(0,-50%);}50%{transform:translate(3px,-50%);}}@keyframes qzCueL{0%,100%{transform:translate(0,-50%);}50%{transform:translate(-3px,-50%);}}.qz-cue{position:absolute;top:50%;z-index:3;display:flex;align-items:center;justify-content:center;width:26px;height:26px;border-radius:50%;background:${COLORS.ember};color:#fff;box-shadow:0 1px 4px rgba(26,22,17,0.45);pointer-events:none;font-size:15px;line-height:1;}.qz-cue-r{right:10px;animation:qzCueR 1.4s ease-in-out infinite;}.qz-cue-l{left:10px;animation:qzCueL 1.4s ease-in-out infinite;}@media(min-width:760px){.qz-cue{display:none;}}.qz-ribbon{scrollbar-width:none;-ms-overflow-style:none;}.qz-ribbon::-webkit-scrollbar{display:none;}@keyframes qzCueOk{0%{transform:scale(.96);opacity:0;}55%{transform:scale(1.03);}100%{transform:scale(1);opacity:1;}}@keyframes qzCueNo{0%,100%{transform:translateX(0);}15%{transform:translateX(-7px);}30%{transform:translateX(6px);}45%{transform:translateX(-5px);}60%{transform:translateX(4px);}75%{transform:translateX(-2px);}}`}</style>
             <div ref={ribbonRef} className="qz-ribbon" style={{ display: 'flex', alignItems: 'stretch', flexWrap: 'nowrap', overflowX: 'auto', background: COLORS.ink, borderBottom: `3px solid ${COLORS.ember}` }}>
@@ -939,11 +939,10 @@ export default function QuizClient({ quizId }) {
         {/* ── PLAY ── */}
         {tab === 'play' && (
           <>
-            {/* Freeze the score/time bar AND the answer input together, pinned
-                directly under the sticky ribbon (44 = ribbon height, tucked 1px
-                under it; ribbon zIndex 25 > this 24 so it covers the seam). The
-                answer list/board scrolls underneath. */}
-            <div ref={scoreRef} style={{ position: 'sticky', top: 44, zIndex: 24, background: COLORS.cream }}>
+            {/* Freeze the score/time bar AND the answer input together, pinned to
+                the top of the viewport. The nav ribbon above is NOT sticky, so
+                this is the only frozen element; the list/board scrolls under. */}
+            <div ref={scoreRef} style={{ position: 'sticky', top: 0, zIndex: 24, background: COLORS.cream }}>
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', alignItems: 'center', background: COLORS.paper, border: `1px solid ${COLORS.faded}33`, padding: '16px 8px', marginBottom: 0 }}>
               <div style={{ textAlign: 'center', padding: '0 8px' }}>
                 <div style={{ fontFamily: SERIF, fontWeight: 800, fontSize: 34, lineHeight: 1 }}>{dispScore}<span style={{ fontSize: 20, color: COLORS.faded }}>/{total}</span></div>
