@@ -477,7 +477,6 @@ export default function TimedMcqClient({ quizId }) {
                     <span style={{ fontFamily: MONO, fontSize: 11, letterSpacing: '0.12em', textTransform: 'uppercase', color: results[results.length - 1]?.correct ? COLORS.forest : COLORS.ember, marginRight: 8 }}>
                       {results[results.length - 1]?.correct ? `Correct · +${results[results.length - 1]?.pts}` : (picked == null ? 'Time' : 'Wrong')}
                     </span>
-                    {q.note && <span style={{ fontFamily: SANS, fontSize: 14, color: '#4a4339' }}>{q.note}</span>}
                   </div>
                 )}
 
@@ -517,17 +516,17 @@ export default function TimedMcqClient({ quizId }) {
                   </p>
                   <div style={{ display: 'flex', gap: 10, justifyContent: 'center', flexWrap: 'wrap' }}>
                     {!mcqRevealed && (
-                      <button onClick={() => { if (identity) setMcqRevealed(true); else setTab('join'); }} style={{ fontFamily: MONO, fontSize: 13, letterSpacing: '0.08em', textTransform: 'uppercase', fontWeight: 700, lineHeight: '46px', padding: '0 24px', background: COLORS.ember, color: '#fff', border: 'none', cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: 8 }}>
+                      <button onClick={() => { if (identity) setMcqRevealed(true); else setTab('join'); }} style={{ fontFamily: MONO, fontSize: 13, letterSpacing: '0.08em', textTransform: 'uppercase', fontWeight: 700, lineHeight: '46px', width: 210, padding: 0, boxSizing: 'border-box', background: COLORS.ember, color: '#fff', border: 'none', cursor: 'pointer', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 8 }}>
                         <Eye size={14} strokeWidth={2.5} /> Reveal Answers
                       </button>
                     )}
-                    <button onClick={() => { setPhase('idle'); setResults([]); setQIndex(0); setPicked(null); setRemaining(perMs); endedRef.current = false; }} style={{ fontFamily: MONO, fontSize: 13, letterSpacing: '0.08em', textTransform: 'uppercase', fontWeight: 700, lineHeight: '46px', padding: '0 28px', background: 'transparent', color: COLORS.ink, border: `1.5px solid ${COLORS.ink}`, cursor: 'pointer' }}>Play again</button>
+                    <button onClick={() => { setPhase('idle'); setResults([]); setQIndex(0); setPicked(null); setRemaining(perMs); endedRef.current = false; }} style={{ fontFamily: MONO, fontSize: 13, letterSpacing: '0.08em', textTransform: 'uppercase', fontWeight: 700, lineHeight: '46px', width: 210, padding: 0, boxSizing: 'border-box', background: 'transparent', color: COLORS.ink, border: `1.5px solid ${COLORS.ink}`, cursor: 'pointer', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 8 }}>Play again</button>
                     {!identity && (
-                      <button onClick={() => setTab('join')} style={{ fontFamily: MONO, fontSize: 13, letterSpacing: '0.08em', textTransform: 'uppercase', fontWeight: 700, lineHeight: '46px', padding: '0 24px', background: 'transparent', color: COLORS.ink, border: `1.5px solid ${COLORS.ink}`, cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: 8 }}>
+                      <button onClick={() => setTab('join')} style={{ fontFamily: MONO, fontSize: 13, letterSpacing: '0.08em', textTransform: 'uppercase', fontWeight: 700, lineHeight: '46px', width: 210, padding: 0, boxSizing: 'border-box', background: 'transparent', color: COLORS.ink, border: `1.5px solid ${COLORS.ink}`, cursor: 'pointer', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 8 }}>
                         <Trophy size={14} strokeWidth={2.5} /> Post to Leaderboard
                       </button>
                     )}
-                    <button onClick={share} style={{ fontFamily: MONO, fontSize: 13, letterSpacing: '0.08em', textTransform: 'uppercase', fontWeight: 700, lineHeight: '46px', padding: '0 24px', background: COLORS.ink, color: COLORS.cream, border: 'none', cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: 8 }}>
+                    <button onClick={share} style={{ fontFamily: MONO, fontSize: 13, letterSpacing: '0.08em', textTransform: 'uppercase', fontWeight: 700, lineHeight: '46px', width: 210, padding: 0, boxSizing: 'border-box', background: COLORS.ink, color: COLORS.cream, border: 'none', cursor: 'pointer', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 8 }}>
                       <Share2 size={14} strokeWidth={2.5} /> {copied ? 'Link copied!' : 'Challenge a friend'}
                     </button>
                   </div>
@@ -544,13 +543,16 @@ export default function TimedMcqClient({ quizId }) {
                     const answered = !!r;
                     const good = answered && r.correct;
                     return (
-                      <li key={i} style={{ display: 'flex', alignItems: 'center', gap: 14, padding: '12px 16px', border: `1px solid ${good ? COLORS.forest : COLORS.faded + '33'}`, marginBottom: 8, background: good ? '#fff' : COLORS.paper }}>
+                      <li key={i} style={{ display: 'flex', alignItems: 'flex-start', gap: 14, padding: '12px 16px', border: `1px solid ${good ? COLORS.forest : COLORS.faded + '33'}`, marginBottom: 8, background: good ? '#fff' : COLORS.paper }}>
                         <span style={{ width: 22, flex: 'none', color: good ? COLORS.forest : COLORS.ember }}>{good ? <Check size={17} strokeWidth={3} /> : <X size={17} strokeWidth={3} />}</span>
                         <span style={{ flex: 1, fontFamily: SANS, fontSize: 14, lineHeight: 1.35 }}>
                           <span style={{ color: '#4a4339' }}>{qq.q}</span>
                           <span style={{ display: 'block', fontFamily: MONO, fontSize: 12, color: COLORS.faded, marginTop: 3 }}>
                             Answer: <span style={{ color: COLORS.ink }}>{qq.choices[qq.correct]}</span>
                           </span>
+                          {qq.note && (
+                            <span style={{ display: 'block', fontFamily: SANS, fontSize: 13, color: '#4a4339', marginTop: 6, lineHeight: 1.45 }}>{qq.note}</span>
+                          )}
                         </span>
                         <span style={{ fontFamily: MONO, fontSize: 14, color: good ? COLORS.forest : COLORS.faded, flex: 'none' }}>+{answered ? r.pts : 0}</span>
                       </li>
