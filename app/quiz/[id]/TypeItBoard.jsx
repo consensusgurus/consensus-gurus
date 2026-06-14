@@ -125,6 +125,9 @@ export default function TypeItBoard({ items, started, ended, revealed, onMatch, 
           onKeyDown={onKey}
           placeholder={live ? `Type the ${noun}…` : ''}
           autoComplete="off"
+                  autoCapitalize="none"
+                  autoCorrect="off"
+                  spellCheck={false}
           autoCapitalize="characters"
           style={{ width: '100%', boxSizing: 'border-box', fontFamily: SANS, fontSize: 18, padding: '14px 16px', border: `2px solid ${borderColor}`, background: live ? '#fff' : COLORS.paper, color: COLORS.ink, opacity: live ? 1 : 0.6, transition: 'border-color .15s', marginBottom: 12 }}
         />

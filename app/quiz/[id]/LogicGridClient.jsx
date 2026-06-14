@@ -444,6 +444,9 @@ export default function LogicGridClient({ quizId }) {
                       onKeyDown={onKey}
                       placeholder={phase === 'playing' ? (activeCell ? `Type the country for ${activeCell.id}, then Enter…` : 'Click a box to select it…') : 'Game over'}
                       autoComplete="off"
+                  autoCapitalize="none"
+                  autoCorrect="off"
+                  spellCheck={false}
                       style={{ fontFamily: SANS, fontSize: 17, padding: '14px 16px', border: `1.5px solid ${COLORS.ink}`, background: phase !== 'playing' ? COLORS.paper : '#fff', color: COLORS.ink, opacity: phase !== 'playing' ? 0.5 : 1 }}
                     />
                   </div>
