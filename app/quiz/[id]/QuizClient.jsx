@@ -199,6 +199,7 @@ export default function QuizClient({ quizId }) {
   const photoMode = quiz.format === 'photo';
   const logosMode = quiz.format === 'logos' || quiz.format === 'posters' || quiz.format === 'images';
   const tallTiles = quiz.format === 'posters' || quiz.imgTall === true;
+  const squareTiles = quiz.imgSquare === true;
   const tileMode = pairsMode || bankMode || typeMode || photoMode;
   // Tile-mode (bank/pairs) quizzes are answered one prompt per PAIR, so the score
   // denominator is the pair count, not the number of distinct answer tiles. A
@@ -1012,15 +1013,15 @@ export default function QuizClient({ quizId }) {
               <MapQuizBoard region={quiz.region || 'europe'} noBorders={quiz.noBorders} started={started} ended={ended} revealed={revealed} foundNames={foundNamesSet} flash={flash} onPick={pickCountry} />
             </div>
             ) : logosMode ? (
-            <ul style={{ margin: 0, padding: 0, listStyle: 'none', display: 'grid', gridTemplateColumns: `repeat(auto-fill, minmax(${tallTiles ? 134 : 112}px, 1fr))`, gap: 8 }}>
+            <ul style={{ margin: 0, padding: 0, listStyle: 'none', display: 'grid', gridTemplateColumns: `repeat(auto-fill, minmax(${tallTiles || squareTiles ? 134 : 112}px, 1fr))`, gap: 8 }}>
               {answers.map((a, i) => {
                 const f = found[i];
                 const reveal = ended && revealed && !f;
                 const bd = f ? COLORS.forest : reveal ? COLORS.rust : COLORS.faded + '33';
                 return (
-                  <li key={i} style={{ border: `1px solid ${bd}`, background: '#fff', display: 'flex', flexDirection: 'column', alignItems: 'center', padding: tallTiles ? 6 : 8, transition: 'all .2s', boxShadow: f ? `inset 0 -3px 0 ${COLORS.forest}` : reveal ? `inset 0 -3px 0 ${COLORS.rust}` : 'none' }}>
-                    <div style={{ height: tallTiles ? 208 : 62, width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '2px' }}>
-                      <img src={a.img} alt={f || reveal ? a.t : `Image ${i + 1}`} loading="lazy" style={{ maxWidth: tallTiles ? '100%' : '90%', maxHeight: tallTiles ? 206 : 56, objectFit: 'contain' }} />
+                  <li key={i} style={{ border: `1px solid ${bd}`, background: '#fff', display: 'flex', flexDirection: 'column', alignItems: 'center', padding: tallTiles || squareTiles ? 6 : 8, transition: 'all .2s', boxShadow: f ? `inset 0 -3px 0 ${COLORS.forest}` : reveal ? `inset 0 -3px 0 ${COLORS.rust}` : 'none' }}>
+                    <div style={{ ...(squareTiles ? { aspectRatio: '1 / 1' } : { height: tallTiles ? 208 : 62 }), width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '2px' }}>
+                      <img src={a.img} alt={f || reveal ? a.t : `Image ${i + 1}`} loading="lazy" style={{ maxWidth: tallTiles || squareTiles ? '100%' : '90%', maxHeight: squareTiles ? '100%' : tallTiles ? 206 : 56, objectFit: 'contain' }} />
                     </div>
                     <div style={{ minHeight: 30, marginTop: 5, textAlign: 'center', fontFamily: SERIF, fontWeight: 600, fontSize: 13, lineHeight: 1.12, color: f ? COLORS.forest : reveal ? COLORS.rust : COLORS.faded }}>
                       {f || reveal ? a.t : <span style={{ fontFamily: MONO, fontSize: 17, opacity: 0.4 }}>?</span>}
