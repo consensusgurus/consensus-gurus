@@ -120,28 +120,31 @@ export default function PhotoBoard({ items, started, ended, revealed, onMatch, o
           <div style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', color: COLORS.faded, fontFamily: SERIF, fontStyle: 'italic', fontSize: 18 }}>{ended ? 'Game over' : 'Press Play to start'}</div>
         )}
       </div>
+      {/* The answer bar is pinned to the bottom of the viewport so it stays visible
+          while the (tall) photo scrolls. The input element is never remounted between
+          photos, so it keeps focus after a correct answer or Next, exactly as before. */}
       {!ended && (
-        <div style={{ display: 'flex', gap: 10, marginBottom: 12 }}>
-          <input
-            ref={inputRef}
-            value={val}
-            disabled={!live}
-            onChange={onChange}
-            onKeyDown={onKey}
-            placeholder={live ? `Type the ${noun}…` : ''}
-            autoComplete="off"
-            autoCapitalize="none"
-            autoCorrect="off"
-            spellCheck={false}
-            style={{ flex: 1, boxSizing: 'border-box', fontFamily: SANS, fontSize: 18, padding: '14px 16px', border: `2px solid ${borderColor}`, background: live ? '#fff' : COLORS.paper, color: COLORS.ink, opacity: live ? 1 : 0.6, transition: 'border-color .15s' }}
-          />
-          {live && cur != null && (
-            <button onClick={skip} title="Skip to the next photo without spending a guess, you can come back." style={{ flex: 'none', fontFamily: MONO, fontSize: 10, letterSpacing: '0.16em', textTransform: 'uppercase', fontWeight: 700, padding: '0 18px', background: 'transparent', color: COLORS.ink, border: `1.5px solid ${COLORS.ink}`, cursor: 'pointer' }}>Next &rarr;</button>
-          )}
+        <div style={{ position: 'sticky', bottom: 0, zIndex: 5, background: COLORS.cream, paddingTop: 8, paddingBottom: 4, borderTop: `1px solid ${COLORS.faded}33` }}>
+          <div style={{ display: 'flex', gap: 10, marginBottom: 8 }}>
+            <input
+              ref={inputRef}
+              value={val}
+              disabled={!live}
+              onChange={onChange}
+              onKeyDown={onKey}
+              placeholder={live ? `Type the ${noun}…` : ''}
+              autoComplete="off"
+              autoCapitalize="none"
+              autoCorrect="off"
+              spellCheck={false}
+              style={{ flex: 1, boxSizing: 'border-box', fontFamily: SANS, fontSize: 18, padding: '14px 16px', border: `2px solid ${borderColor}`, background: live ? '#fff' : COLORS.paper, color: COLORS.ink, opacity: live ? 1 : 0.6, transition: 'border-color .15s' }}
+            />
+            {live && cur != null && (
+              <button onClick={skip} title="Skip to the next photo without spending a guess, you can come back." style={{ flex: 'none', fontFamily: MONO, fontSize: 10, letterSpacing: '0.16em', textTransform: 'uppercase', fontWeight: 700, padding: '0 18px', background: 'transparent', color: COLORS.ink, border: `1.5px solid ${COLORS.ink}`, cursor: 'pointer' }}>Next &rarr;</button>
+            )}
+          </div>
+          <div style={{ fontFamily: MONO, fontSize: 11, letterSpacing: '0.12em', textTransform: 'uppercase', color: COLORS.faded }}>{remaining} still to name &middot; {guessesLeft} {guessesLeft === 1 ? 'guess' : 'guesses'} left</div>
         </div>
-      )}
-      {!ended && (
-        <div style={{ fontFamily: MONO, fontSize: 11, letterSpacing: '0.12em', textTransform: 'uppercase', color: COLORS.faded }}>{remaining} still to name &middot; {guessesLeft} {guessesLeft === 1 ? 'guess' : 'guesses'} left</div>
       )}
       {ended && (
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(150px, 1fr))', gap: 8 }}>

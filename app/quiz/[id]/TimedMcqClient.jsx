@@ -390,6 +390,10 @@ export default function TimedMcqClient({ quizId }) {
         {/* ── PLAY ── */}
         {tab === 'play' && (
           <>
+            {/* Freeze the score/timer bar at the top (44 = ribbon height), mirroring the
+                name-them-all board so the countdown and points stay visible as the
+                question and options scroll underneath. */}
+            <div style={{ position: 'sticky', top: 44, zIndex: 24, background: COLORS.cream, paddingBottom: 4 }}>
             {/* Scoreboard */}
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 16, background: COLORS.paper, border: `1px solid ${COLORS.faded}33`, padding: '16px 20px', marginBottom: 16 }}>
               <div>
@@ -406,6 +410,22 @@ export default function TimedMcqClient({ quizId }) {
                 </div>
                 <div style={{ fontFamily: MONO, fontSize: 11, letterSpacing: '0.12em', textTransform: 'uppercase', color: COLORS.faded }}>Question</div>
               </div>
+            </div>
+            {/* Live timer bar + point value, frozen with the scoreboard so the countdown is always visible. */}
+            {(phase === 'playing' || phase === 'reveal') && (
+              <div style={{ display: 'flex', alignItems: 'center', gap: 14, marginTop: 14 }}>
+                <div style={{ flex: 1, height: 12, background: COLORS.paper, border: `1px solid ${COLORS.faded}44`, position: 'relative', overflow: 'hidden' }}>
+                  <div style={{ position: 'absolute', left: 0, top: 0, bottom: 0, width: `${frac * 100}%`, background: lowClock ? COLORS.ember : COLORS.forest, transition: phase === 'playing' ? `width ${TICK_MS}ms linear` : 'none' }} />
+                </div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 6, minWidth: 96, justifyContent: 'flex-end' }}>
+                  <Zap size={15} strokeWidth={2.5} style={{ color: phase === 'reveal' ? COLORS.faded : (lowClock ? COLORS.ember : COLORS.rust) }} />
+                  <span style={{ fontFamily: MONO, fontSize: 22, fontWeight: 500, color: phase === 'reveal' ? COLORS.faded : COLORS.ink }}>
+                    {phase === 'reveal' ? '+' + (results[results.length - 1]?.pts ?? 0) : liveValue}
+                  </span>
+                  <span style={{ fontFamily: MONO, fontSize: 11, color: COLORS.faded }}>pts</span>
+                </div>
+              </div>
+            )}
             </div>
 
             {/* IDLE — start screen */}
@@ -428,20 +448,6 @@ export default function TimedMcqClient({ quizId }) {
             {/* PLAYING / REVEAL — the question */}
             {(phase === 'playing' || phase === 'reveal') && q && (
               <div>
-                {/* Timer bar + live point value */}
-                <div style={{ display: 'flex', alignItems: 'center', gap: 14, marginBottom: 14 }}>
-                  <div style={{ flex: 1, height: 12, background: COLORS.paper, border: `1px solid ${COLORS.faded}44`, position: 'relative', overflow: 'hidden' }}>
-                    <div style={{ position: 'absolute', left: 0, top: 0, bottom: 0, width: `${frac * 100}%`, background: lowClock ? COLORS.ember : COLORS.forest, transition: phase === 'playing' ? `width ${TICK_MS}ms linear` : 'none' }} />
-                  </div>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 6, minWidth: 96, justifyContent: 'flex-end' }}>
-                    <Zap size={15} strokeWidth={2.5} style={{ color: phase === 'reveal' ? COLORS.faded : (lowClock ? COLORS.ember : COLORS.rust) }} />
-                    <span style={{ fontFamily: MONO, fontSize: 22, fontWeight: 500, color: phase === 'reveal' ? COLORS.faded : COLORS.ink }}>
-                      {phase === 'reveal' ? '+' + (results[results.length - 1]?.pts ?? 0) : liveValue}
-                    </span>
-                    <span style={{ fontFamily: MONO, fontSize: 11, color: COLORS.faded }}>pts</span>
-                  </div>
-                </div>
-
                 {/* Question */}
                 <div style={{ fontFamily: SERIF, fontWeight: 700, fontSize: 'clamp(20px, 3vw, 27px)', lineHeight: 1.18, margin: '4px 0 18px' }}>
                   {q.q}

@@ -401,6 +401,10 @@ export default function LogicGridClient({ quizId }) {
         {/* ── PLAY ── */}
         {tab === 'play' && (
           <>
+            {/* Freeze the score/time bar AND the answer input together at the top
+                (44 = ribbon height), mirroring the name-them-all board, so the answer
+                box is always reachable while the clue grid scrolls underneath. */}
+            <div style={{ position: 'sticky', top: 44, zIndex: 24, background: COLORS.cream, paddingBottom: 4 }}>
             {/* Scoreboard */}
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', alignItems: 'center', background: COLORS.paper, border: `1px solid ${COLORS.faded}33`, padding: '16px 8px', marginBottom: 16 }}>
               <div style={{ textAlign: 'center', padding: '0 8px' }}>
@@ -415,6 +419,34 @@ export default function LogicGridClient({ quizId }) {
                 <div style={{ fontFamily: MONO, fontSize: 24, color: time <= 30 && phase === 'playing' ? COLORS.ember : COLORS.ink }}>{clock}</div>
                 <div style={{ fontFamily: MONO, fontSize: 11, letterSpacing: '0.12em', textTransform: 'uppercase', color: COLORS.faded }}>Time left</div>
               </div>
+            </div>
+            {/* Input bar + hint, frozen with the scoreboard so the answer box is always reachable while the grid scrolls. */}
+            {phase !== 'idle' && (
+              <>
+                {/* Input bar — types into the selected cell */}
+                <div style={{ display: 'flex', gap: 10, marginBottom: 6, alignItems: 'stretch' }}>
+                  <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 4 }}>
+                    <div style={{ fontFamily: MONO, fontSize: 11, letterSpacing: '0.1em', textTransform: 'uppercase', color: COLORS.ember, minHeight: 14 }}>
+                      {activeCell ? `Box ${activeCell.id}` : phase === 'done' ? 'Game over' : 'Pick a box'}
+                    </div>
+                    <input
+                      ref={inputRef}
+                      value={guess}
+                      disabled={phase !== 'playing'}
+                      onChange={(e) => setGuess(e.target.value)}
+                      onKeyDown={onKey}
+                      placeholder={phase === 'playing' ? (activeCell ? `Type the country for ${activeCell.id}, then Enter…` : 'Click a box to select it…') : 'Game over'}
+                      autoComplete="off"
+                  autoCapitalize="none"
+                  autoCorrect="off"
+                  spellCheck={false}
+                      style={{ fontFamily: SANS, fontSize: 17, padding: '14px 16px', border: `1.5px solid ${COLORS.ink}`, background: phase !== 'playing' ? COLORS.paper : '#fff', color: COLORS.ink, opacity: phase !== 'playing' ? 0.5 : 1 }}
+                    />
+                  </div>
+                </div>
+                <div style={{ fontFamily: MONO, fontSize: 12, minHeight: 18, marginBottom: 16, color: hintBad ? COLORS.ember : COLORS.faded }}>{hint}</div>
+              </>
+            )}
             </div>
 
             {/* IDLE — start screen with the rules */}
@@ -443,32 +475,9 @@ export default function LogicGridClient({ quizId }) {
               </div>
             )}
 
-            {/* PLAYING / DONE — the input bar + grid */}
+            {/* PLAYING / DONE — the clue grid (the input bar is frozen above with the scoreboard) */}
             {phase !== 'idle' && (
               <>
-                {/* Input bar — types into the selected cell */}
-                <div style={{ display: 'flex', gap: 10, marginBottom: 6, alignItems: 'stretch' }}>
-                  <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 4 }}>
-                    <div style={{ fontFamily: MONO, fontSize: 11, letterSpacing: '0.1em', textTransform: 'uppercase', color: COLORS.ember, minHeight: 14 }}>
-                      {activeCell ? `Box ${activeCell.id}` : phase === 'done' ? 'Game over' : 'Pick a box'}
-                    </div>
-                    <input
-                      ref={inputRef}
-                      value={guess}
-                      disabled={phase !== 'playing'}
-                      onChange={(e) => setGuess(e.target.value)}
-                      onKeyDown={onKey}
-                      placeholder={phase === 'playing' ? (activeCell ? `Type the country for ${activeCell.id}, then Enter…` : 'Click a box to select it…') : 'Game over'}
-                      autoComplete="off"
-                  autoCapitalize="none"
-                  autoCorrect="off"
-                  spellCheck={false}
-                      style={{ fontFamily: SANS, fontSize: 17, padding: '14px 16px', border: `1.5px solid ${COLORS.ink}`, background: phase !== 'playing' ? COLORS.paper : '#fff', color: COLORS.ink, opacity: phase !== 'playing' ? 0.5 : 1 }}
-                    />
-                  </div>
-                </div>
-                <div style={{ fontFamily: MONO, fontSize: 12, minHeight: 18, marginBottom: 16, color: hintBad ? COLORS.ember : COLORS.faded }}>{hint}</div>
-
                 {/* The grid */}
                 <div style={{ overflowX: 'auto', paddingBottom: 4 }}>
                   <div style={{ minWidth: 620 }}>

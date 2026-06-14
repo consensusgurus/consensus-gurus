@@ -150,15 +150,15 @@ function DailyNewsBanner() {
     <Link href={`/quiz/${quiz.id}`} onMouseEnter={() => setHover(true)} onMouseLeave={() => setHover(false)} className="dn-banner" style={{ boxShadow: hover ? `5px 5px 0 ${COLORS.ink}` : `3px 3px 0 ${COLORS.ink}`, transform: hover ? 'translate(-2px, -2px)' : 'none' }}>
       <style>{`
         .dn-banner{display:flex;align-items:center;justify-content:space-between;gap:18px;text-decoration:none;background:${COLORS.ember};color:${COLORS.cream};border:1.5px solid ${COLORS.ink};padding:11px 18px;margin-bottom:16px;transition:all 0.2s ease;}
-        .dn-left{display:flex;align-items:baseline;gap:14px;min-width:0;}
+        .dn-left{display:flex;align-items:baseline;gap:14px;min-width:0;flex:1 1 auto;}
         .dn-kicker{flex:none;font-family:'DM Mono',monospace;font-size:12px;font-weight:700;letter-spacing:0.18em;text-transform:uppercase;color:${COLORS.cream};white-space:nowrap;}
-        .dn-desc{font-family:'Fraunces',serif;font-style:italic;font-size:14px;line-height:1.3;color:rgba(244,237,224,0.92);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+        .dn-desc{flex:1 1 auto;text-align:center;font-family:'Fraunces',serif;font-style:italic;font-size:14px;line-height:1.3;color:rgba(244,237,224,0.92);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
         .dn-cta{flex:none;font-family:'DM Mono',monospace;font-size:11px;font-weight:700;letter-spacing:0.14em;text-transform:uppercase;color:${COLORS.cream};white-space:nowrap;border:1.5px solid ${COLORS.cream};padding:6px 13px;}
         @media(max-width:640px){.dn-banner{flex-direction:column;align-items:stretch;gap:9px;}.dn-left{flex-direction:column;align-items:flex-start;gap:5px;}.dn-desc{white-space:normal;}.dn-cta{text-align:center;}}
       `}</style>
       <span className="dn-left">
         <span className="dn-kicker">{'▶'} Daily Market Moving News Quiz</span>
-        <span className="dn-desc">Ten questions keeping you on top of the most important news</span>
+        <span className="dn-desc">Ten questions keeping you on top of the most important news.</span>
       </span>
       <span className="dn-cta">Play Today {'›'}</span>
     </Link>
@@ -281,7 +281,7 @@ export default function QuizHomeClient() {
     // Daily/weekly news quizzes always sink to the very bottom of every view (the
     // full grid and any department they file under); they are surfaced via the red
     // Daily News banner and direct URL, not promoted among the tiles.
-    const isNewsQuiz = (q) => /^(daily-market-news-quiz-|daily-business-quiz-|weekly-business-quiz-)/.test(q.id || '');
+    const isNewsQuiz = (q) => /^(daily-market-news-quiz-|daily-business-quiz-|daily-news-quiz-|weekly-business-quiz-|weekly-news-quiz-|earnings-reporter-quiz-|earnings-quiz-)/.test(q.id || '');
     list = [...list.filter((q) => !isNewsQuiz(q)), ...list.filter((q) => isNewsQuiz(q))];
     return list;
   }, [query, dept, sortBy, totals]);
