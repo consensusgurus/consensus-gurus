@@ -146,7 +146,6 @@ function DailyNewsBanner() {
     return cands[0] || null;
   }, []);
   if (!quiz) return null;
-  const dateLabel = (() => { const p = (quiz.publishedDate || '').split('-'); return p.length === 3 ? `${+p[1]}/${+p[2]}/${p[0].slice(2)}` : ''; })();
   return (
     <Link href={`/quiz/${quiz.id}`} onMouseEnter={() => setHover(true)} onMouseLeave={() => setHover(false)} className="dn-banner" style={{ boxShadow: hover ? `5px 5px 0 ${COLORS.ink}` : `3px 3px 0 ${COLORS.ink}`, transform: hover ? 'translate(-2px, -2px)' : 'none' }}>
       <style>{`
@@ -156,7 +155,7 @@ function DailyNewsBanner() {
         .dn-cta{flex:none;font-family:'DM Mono',monospace;font-size:11px;font-weight:700;letter-spacing:0.14em;text-transform:uppercase;color:${COLORS.cream};white-space:nowrap;border:1.5px solid ${COLORS.cream};padding:6px 13px;}
         @media(max-width:640px){.dn-banner{flex-direction:column;align-items:stretch;gap:9px;}.dn-desc{white-space:normal;text-align:center;}.dn-cta{text-align:center;}}
       `}</style>
-      <span className="dn-kicker">{'▶'} Daily Market Moving News Quiz{dateLabel ? ` (${dateLabel})` : ''}</span>
+      <span className="dn-kicker">{'▶'} Daily Market Moving News Quiz</span>
       <span className="dn-desc">{quiz.blurb}</span>
       <span className="dn-cta">Play Today {'›'}</span>
     </Link>
@@ -263,6 +262,11 @@ export default function QuizHomeClient() {
       const ts = (q) => new Date(q.publishedAt || `${q.publishedDate || '1970-01-01'}T12:00:00Z`).getTime();
       list = list.slice().sort((a, b) => ts(b) - ts(a) || a.title.localeCompare(b.title));
     }
+    // Daily/weekly news quizzes always sink to the very bottom of every view (the
+    // full grid and any department they file under); they are surfaced via the red
+    // Daily News banner and direct URL, not promoted among the tiles.
+    const isNewsQuiz = (q) => /^(daily-market-news-quiz-|daily-business-quiz-|weekly-business-quiz-)/.test(q.id || '');
+    list = [...list.filter((q) => !isNewsQuiz(q)), ...list.filter((q) => isNewsQuiz(q))];
     return list;
   }, [query, dept, sortBy, totals]);
 
