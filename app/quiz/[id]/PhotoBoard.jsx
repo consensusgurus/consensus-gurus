@@ -115,7 +115,7 @@ export default function PhotoBoard({ items, started, ended, revealed, onMatch, o
       {/* Answer bar — frozen FLUSH beneath the score/time block so it never leaves
           the screen; the photo scrolls below. The input element is never remounted
           between photos, so it keeps focus after a correct answer or Next. */}
-      {!ended && (
+      {live && (
         <div style={{ position: 'sticky', top: stickyTop, zIndex: 4, background: COLORS.cream, paddingTop: 4, paddingBottom: 8 }}>
           <div style={{ display: 'flex', gap: 10, marginBottom: 8 }}>
             <input
@@ -135,7 +135,6 @@ export default function PhotoBoard({ items, started, ended, revealed, onMatch, o
               <button onClick={skip} title="Skip to the next photo without spending a guess, you can come back." style={{ flex: 'none', fontFamily: MONO, fontSize: 10, letterSpacing: '0.16em', textTransform: 'uppercase', fontWeight: 700, padding: '0 18px', background: 'transparent', color: COLORS.ink, border: `1.5px solid ${COLORS.ink}`, cursor: 'pointer' }}>Next &rarr;</button>
             )}
           </div>
-          <div style={{ fontFamily: MONO, fontSize: 11, letterSpacing: '0.12em', textTransform: 'uppercase', color: COLORS.faded }}>{remaining} still to name &middot; {guessesLeft} {guessesLeft === 1 ? 'guess' : 'guesses'} left</div>
         </div>
       )}
       {/* Photo prompt — only this changes between answers; scrolls beneath the frozen bar. */}
