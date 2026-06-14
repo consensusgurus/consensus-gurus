@@ -2169,6 +2169,54 @@ Build all four files' fragments programmatically and splice into FETCH_HEAD copi
 Deploy section. Facts-mode lists have no consensus movement, so SKIP the consensus-check cron ping; DO
 ping IndexNow for each new `/list/<id>` (and the `/quiz/<id>`) URL after the Vercel deploy is live.
 
+## Picture-text-input quizzes: image research (Wikimedia-first, verify live) (owner rule, 2026-06-14)
+
+The picture "name them all" quizzes (`format: 'images'`, plus the visually identical `posters` and
+`logos`) show one image per answer and the player types the name. Each answer is
+`{ t, img, keys, anti? }` where `img` is a remote https image URL. The hero-image discipline applies
+to gathering these quiz images, plus a few quiz-specific rules:
+
+- **Wikimedia Commons is the FIRST source, gathered LIVE, never guessed.** For any subject with a
+  Wikipedia article (people, places, flags, public-domain art), pull the canonical image straight
+  from the MediaWiki pageimages API instead of hand-writing a Commons URL:
+  `https://en.wikipedia.org/w/api.php?action=query&format=json&prop=pageimages&piprop=thumbnail|original&pithumbsize=600&redirects=1&titles=<A>|<B>|...`
+  (up to 50 titles per call; `thumbnail.source` is the lead image, `original.source` when the file is
+  narrower than the requested width). Run it through the connected Chrome (`fetch().then(r=>r.json())`),
+  the API URL is too long for `web_fetch`. The lead image of a person's article is essentially always
+  their canonical portrait, exactly what these quizzes want.
+- **When Wikimedia has no usable image, broaden the search** to a stable source: TMDB for film
+  posters/backdrops (`image.tmdb.org`), the brand's own site for a logo, an editorial CDN, Pexels.
+  The no-guessing rule holds: open the candidate and confirm it is the right subject before use.
+- **Verify EVERY image loads AND shows the correct subject before shipping.** Load-test each final
+  `img` URL (an `Image()` onload/onerror sweep in the connected Chrome is fastest) and confirm zero
+  failures. For portraits also confirm orientation (taller than wide) and that the face matches the
+  intended person, the same attribution care used for hero photos (multi-subject brands and same-named
+  people surface the wrong image at the top of search).
+- **Format and host: JPEG or PNG on a stable host, downscaled.** Apply the hero no-WebP/no-AVIF rule
+  (`upload.wikimedia.org` thumbs and TMDB serve JPEG/PNG). Prefer a `~500px` thumb, not the multi-MB
+  original. A Wikimedia thumb URL is `.../wikipedia/commons/thumb/<X>/<XY>/<File>/<W>px-<File>`; when
+  the API returns the original (file narrower than `<W>`), use that original URL as-is.
+- **Tile shape: `imgTall: true` for portrait subjects** (people, book covers, movie posters), which
+  renders the same tall tile as `format: 'posters'`; `imgSquare: true` for square art (album covers);
+  neither for wide logos. Set `noun` to what the player types (`'president'`, `'artist'`, `'film'`).
+- **Sampling a large historical set across two or more parts: split evenly and INTERLEAVE eras** so
+  each part carries a balanced mix of old and recent, never a chronological first-half/second-half
+  split (interleaving by every-other keeps both parts spanning the full timeline). Together the parts
+  must cover the whole set with no overlap.
+- **Run the accepted-answer collision audit** (the same one every default/`images` quiz needs): two
+  subjects sharing a surname in the SAME part need first-name keys + `anti` guards (the two Adamses,
+  the two Harrisons, the two Roosevelts, the two Johnsons among presidents), and watch for a name that
+  is a substring of another answer (Gerald **Ford** inside "ruther**ford**" needed `anti: ['rutherford']`).
+- **`timeLimit`** follows the standard scaling rule (`roundTo15(90 + (n-10)*7.5)`, halves round UP;
+  a 19- or 20-image quiz is 165s), and the **blurb must not name or hint at any pictured subject**.
+- **Department:** add each new image quiz id to `QUIZ_DEPT` in `lib/quiz-departments.js` (the
+  `quizDept` id heuristics do not cover every topic, so an unlisted id falls to `misc`).
+
+First applied 2026-06-14 to `name-the-president-from-the-portrait` Pt. 1/2 (every president from
+Washington through Reagan, official Wikimedia Commons portraits, interleaved so each part mixes
+founding-era and modern presidents).
+
+
 ## Quiz formats: adding a new one (e.g. timed multiple-choice)
 
 Quizzes live in `lib/quizzes.js` (the `QUIZZES` array, read by `getQuiz`) and render at `/quiz/[id]`
