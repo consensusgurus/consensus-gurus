@@ -115,7 +115,7 @@ export default function PhotoBoard({ items, started, ended, revealed, onMatch, o
       {/* Photo prompt — only this changes between answers. */}
       <div style={{ position: 'relative', width: '100%', aspectRatio: '4 / 3', maxHeight: 500, background: COLORS.ink, border: `2px solid ${borderColor}`, overflow: 'hidden', marginBottom: 10, transition: 'border-color .15s' }}>
         {live && curItem ? (
-          <img src={curItem.img} alt="Name the city this landmark is in" style={{ width: '100%', height: '100%', objectFit: 'contain', display: 'block' }} />
+          <img src={curItem.img} alt={`Name the ${noun} in this photo`} style={{ width: '100%', height: '100%', objectFit: 'contain', display: 'block' }} />
         ) : (
           <div style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', color: COLORS.faded, fontFamily: SERIF, fontStyle: 'italic', fontSize: 18 }}>{ended ? 'Game over' : 'Press Play to start'}</div>
         )}

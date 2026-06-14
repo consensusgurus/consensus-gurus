@@ -421,7 +421,7 @@ export default function QuizClient({ quizId }) {
     } else if (typeMode) {
       setHint('Type the answer for the clue above. Next skips it for now.');
     } else if (photoMode) {
-      setHint('Name the city in the photo above. Next skips it for now.');
+      setHint(`Name the ${quiz.noun || 'city'} in the photo above. Next skips it for now.`);
     } else {
       setHint(ordered ? 'Go — answer in order, from the top.' : matched ? (quiz.noun ? `Go — type each ${quiz.noun}.` : "Go — name each year's winner.") : 'Go — name them all.');
     }
