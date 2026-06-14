@@ -258,8 +258,21 @@ export default function QuizHomeClient() {
     });
     const plays = (id) => totals.byQuiz[id] || 0;
     const recent = (id) => totals.recent7[id] || 0;
-    if (sortBy === 'discover') list = seededShuffle(list, seedRef.current);
-    else if (sortBy === 'popularity') list = list.slice().sort((a, b) => plays(b.id) - plays(a.id) || a.title.localeCompare(b.title));
+    if (sortBy === 'discover') {
+      // Default landing: the first two rows (8 tiles at the 4-column desktop
+      // grid) are a random assortment of quizzes that have caught on (more than
+      // 2 plays); after those, true discover takes over with a random shuffle of
+      // everything else. Both halves are seeded so the order is stable per load.
+      const shuffled = seededShuffle(list, seedRef.current);
+      const FEATURED_SLOTS = 8;
+      const featured = shuffled.filter((q) => plays(q.id) > 2).slice(0, FEATURED_SLOTS);
+      if (featured.length) {
+        const featuredIds = new Set(featured.map((q) => q.id));
+        list = [...featured, ...shuffled.filter((q) => !featuredIds.has(q.id))];
+      } else {
+        list = shuffled;
+      }
+    } else if (sortBy === 'popularity') list = list.slice().sort((a, b) => plays(b.id) - plays(a.id) || a.title.localeCompare(b.title));
     else if (sortBy === 'trending') list = list.slice().sort((a, b) => recent(b.id) - recent(a.id) || plays(b.id) - plays(a.id) || a.title.localeCompare(b.title));
     else if (sortBy === 'recent') {
       const ts = (q) => new Date(q.publishedAt || `${q.publishedDate || '1970-01-01'}T12:00:00Z`).getTime();
