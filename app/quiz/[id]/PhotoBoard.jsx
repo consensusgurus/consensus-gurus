@@ -42,7 +42,7 @@ function accepts(raw, item) {
   return deArticle(g) === deArticle(norm(item.t));
 }
 
-export default function PhotoBoard({ items, started, ended, revealed, onMatch, onWrong, onEnd, onHint, answerNoun, stickyTop = 150 }) {
+export default function PhotoBoard({ items, started, ended, revealed, onMatch, onWrong, onEnd, onHint, answerNoun, photoAspect = '4 / 3', stickyTop = 150 }) {
   const list = items || [];
   const total = list.length;
   const order = useMemo(() => shuffle(list.map((_, i) => i)), [list]);
@@ -57,6 +57,8 @@ export default function PhotoBoard({ items, started, ended, revealed, onMatch, o
   const guessesLeft = Math.max(0, total - matched.size - errors);
   const remaining = total - matched.size;
   const noun = answerNoun || 'city';
+  const _ar = String(photoAspect).split('/');
+  const portrait = parseFloat(_ar[0]) < parseFloat(_ar[1]);
 
   function nextIdx(fromCur, doneSet) {
     if (!order.length) return null;
@@ -138,7 +140,7 @@ export default function PhotoBoard({ items, started, ended, revealed, onMatch, o
         </div>
       )}
       {/* Photo prompt — only this changes between answers; scrolls beneath the frozen bar. */}
-      <div style={{ position: 'relative', width: '100%', aspectRatio: '4 / 3', maxHeight: 500, background: COLORS.ink, border: `2px solid ${borderColor}`, overflow: 'hidden', marginBottom: 10, transition: 'border-color .15s' }}>
+      <div style={{ position: 'relative', width: '100%', aspectRatio: photoAspect, maxHeight: 500, ...(portrait ? { maxWidth: 380, marginLeft: 'auto', marginRight: 'auto' } : null), background: COLORS.ink, border: `2px solid ${borderColor}`, overflow: 'hidden', marginBottom: 10, transition: 'border-color .15s' }}>
         {live && curItem ? (
           <img src={curItem.img} alt={`Name the ${noun} in this photo`} style={{ width: '100%', height: '100%', objectFit: 'contain', display: 'block' }} />
         ) : (
@@ -152,7 +154,7 @@ export default function PhotoBoard({ items, started, ended, revealed, onMatch, o
             const show = got || revealed;
             return (
               <div key={i} style={{ border: `1px solid ${got ? COLORS.forest : (revealed ? COLORS.rust : COLORS.faded + '55')}`, background: got ? '#fff' : (revealed ? '#f6ead9' : '#fbf7ef'), borderRadius: 2, overflow: 'hidden' }}>
-                <div style={{ position: 'relative', width: '100%', aspectRatio: '4 / 3', background: COLORS.ink, overflow: 'hidden' }}>
+                <div style={{ position: 'relative', width: '100%', aspectRatio: photoAspect, background: COLORS.ink, overflow: 'hidden' }}>
                   <img src={it.img} alt={show ? it.t : `Photo ${i + 1}`} loading="lazy" style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block', opacity: show ? 1 : 0.5, filter: show ? 'none' : 'grayscale(0.5)' }} />
                 </div>
                 <div style={{ padding: '7px 9px 9px' }}>
