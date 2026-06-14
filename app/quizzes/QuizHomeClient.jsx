@@ -288,8 +288,12 @@ export default function QuizHomeClient() {
 
   const navBtn = (id, label, count) => {
     const active = dept === id;
+    // Active chip flips to that department's tile accent color (the same color
+    // the tiles use for their badge/hover), so the ribbon reads as a varied
+    // palette. 'all' has no department tile, so it keeps the brand ember.
+    const activeColor = (DEPT_COLOR[id] || {}).c || COLORS.ember;
     return (
-      <button key={id} onClick={() => { setDept(id); setMoreOpen(false); }} style={{ flex: '1 0 auto', background: active ? COLORS.ember : 'transparent', color: COLORS.cream, border: 'none', borderRight: '1px solid rgba(244,237,224,0.18)', height: 42, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6, padding: '0 18px', fontFamily: 'DM Mono, monospace', fontSize: 10.5, letterSpacing: '0.2em', textTransform: 'uppercase', fontWeight: 600, cursor: 'pointer', whiteSpace: 'nowrap' }}>
+      <button key={id} onClick={() => { setDept(id); setMoreOpen(false); }} style={{ flex: '1 0 auto', background: active ? activeColor : 'transparent', color: COLORS.cream, border: 'none', borderRight: '1px solid rgba(244,237,224,0.18)', height: 42, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6, padding: '0 18px', fontFamily: 'DM Mono, monospace', fontSize: 10.5, letterSpacing: '0.2em', textTransform: 'uppercase', fontWeight: 600, cursor: 'pointer', whiteSpace: 'nowrap' }}>
         {label}<span style={{ opacity: 0.6 }}>{count || 0}</span>
       </button>
     );
