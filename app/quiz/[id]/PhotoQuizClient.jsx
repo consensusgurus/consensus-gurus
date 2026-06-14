@@ -224,13 +224,16 @@ export default function PhotoQuizClient({ quizId }) {
     return false; // nothing unsolved left
   }
 
-  function submitGuess(raw) {
-    if (phase !== 'playing' || flash) return;
+  // Silent auto-accept (universal quiz rule): on every keystroke we test the
+  // guess against the current photo and accept the moment it matches, no Enter
+  // needed. Returns true on a match (and clears the input); false otherwise,
+  // with NO failure hint so partial typing isn't nagged.
+  function tryAccept(raw) {
+    if (phase !== 'playing' || flash) return false;
     const g = norm(raw);
-    if (!g) return;
+    if (!g) return false;
     const a = answers[curIdx];
-    const hit = anyKey(g, a.keys) && !anyKey(g, a.anti);
-    if (hit) {
+    if (anyKey(g, a.keys) && !anyKey(g, a.anti)) {
       const next = solved.slice();
       next[curIdx] = true;
       setSolved(next);
@@ -245,15 +248,23 @@ export default function PhotoQuizClient({ quizId }) {
         if (next.every(Boolean)) { finish(true, next); return; }
         advanceFrom(pos, next);
       }, 950);
-    } else {
+      return true;
+    }
+    return false;
+  }
+
+  function onChange(e) {
+    const v = e.target.value;
+    if (!tryAccept(v)) setGuess(v); // a match clears the input inside tryAccept
+  }
+
+  // Enter is an optional fallback; on a wrong full guess it gives feedback.
+  function onKey(e) {
+    if (e.key !== 'Enter' || phase !== 'playing' || flash) return;
+    if (!tryAccept(e.target.value)) {
       setHint(`Not ${noun === 'city' ? 'the city' : 'it'} — try again, or Skip to come back.`);
       setHintBad(true);
     }
-  }
-
-  function onKey(e) {
-    if (e.key !== 'Enter') return;
-    submitGuess(e.target.value);
   }
 
   function skip() {
@@ -475,9 +486,9 @@ export default function PhotoQuizClient({ quizId }) {
                     ref={inputRef}
                     value={guess}
                     disabled={!!flash}
-                    onChange={(e) => setGuess(e.target.value)}
+                    onChange={onChange}
                     onKeyDown={onKey}
-                    placeholder={`Type the ${noun}, then Enter…`}
+                    placeholder={`Type the ${noun}…`}
                     autoComplete="off"
                     style={{ flex: 1, fontFamily: SANS, fontSize: 17, padding: '14px 16px', border: `1.5px solid ${COLORS.ink}`, background: flash ? COLORS.paper : '#fff', color: COLORS.ink, opacity: flash ? 0.5 : 1 }}
                   />
