@@ -76,58 +76,38 @@ function QuizTile({ quiz, plays }) {
 
 const MEDAL = ['#caa12e', '#9c968a', '#b1763f'];
 
-function MiniList({ title, rows }) {
-  const top = (rows || []).slice(0, 3);
-  return (
-    <div className="champ-cell">
-      <div className="champ-ltitle">{title}</div>
-      {top.length > 0 ? top.map((r, i) => (
-        <div key={i} className="champ-lrow">
-          <span className="champ-lrank" style={{ background: MEDAL[i] }}>{i + 1}</span>
-          <span className="champ-lname">{r.name}</span>
-          <span className="champ-lval">{r.val}</span>
-        </div>
-      )) : (<div className="champ-lempty">No data yet</div>)}
-    </div>
-  );
-}
-
-function ChampionsPanel({ completed, weighted, accuracy, anonymous }) {
+// Slimmed Quiz Champions card: a single horizontal strip showing the top three
+// Accuracy-Weighted players side by side (no Quizzes-Played or Accuracy lists,
+// and the weighted value rounded to a whole number), so the card stays short
+// and leaves room above the tile grid for the Daily News Quiz banner.
+function ChampionsPanel({ weighted, anonymous }) {
   const [hover, setHover] = useState(false);
   const anon = Number(anonymous) || 0;
-  if (!((completed && completed.length) || (weighted && weighted.length) || (accuracy && accuracy.length) || anon > 0)) return null;
-  const comp = (completed || []).map((u) => ({ name: u.username, val: (u.quizzes || 0).toLocaleString() }));
-  const wtd = (weighted || []).map((u) => ({ name: u.username, val: (u.weighted || 0).toFixed(1) }));
-  const acc = (accuracy || []).map((u) => ({ name: u.username, val: `${(u.accuracy || 0).toFixed(1)}%` }));
+  if (!((weighted && weighted.length) || anon > 0)) return null;
+  const wtd = (weighted || []).map((u) => ({ name: u.username, val: Math.round(u.weighted || 0).toLocaleString() })).slice(0, 3);
   return (
     <Link href="/leaderboard" onMouseEnter={() => setHover(true)} onMouseLeave={() => setHover(false)} className="champ-link" style={{ boxShadow: hover ? `5px 5px 0 ${COLORS.ember}` : `3px 3px 0 ${COLORS.ember}`, transform: hover ? 'translate(-2px, -2px)' : 'none' }}>
       <style>{`
-        .champ-link{display:block;text-decoration:none;margin-bottom:20px;background:${COLORS.paper};border:1.5px solid ${COLORS.ink};transition:all 0.2s ease;padding:12px 16px 14px;}
+        .champ-link{display:block;text-decoration:none;margin-bottom:20px;background:${COLORS.paper};border:1.5px solid ${COLORS.ink};transition:all 0.2s ease;padding:10px 16px 12px;}
         .champ-eyebrow{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:3px;}
         .champ-kicker{font-family:'DM Mono',monospace;font-size:10.5px;font-weight:700;letter-spacing:0.22em;text-transform:uppercase;color:${COLORS.ember};}
         .champ-cta{font-family:'DM Mono',monospace;font-size:9.5px;letter-spacing:0.14em;text-transform:uppercase;color:${COLORS.faded};white-space:nowrap;}
         .champ-rule1{border-bottom:1px solid ${COLORS.ink};}
-        .champ-rule2{border-bottom:2px solid ${COLORS.ember};margin-bottom:12px;}
-        .champ-anon{text-align:center;font-family:'DM Mono',monospace;font-size:11px;letter-spacing:0.18em;text-transform:uppercase;color:${COLORS.faded};margin:14px 0 0;}
-        .champ-anon b{font-family:'Fraunces',serif;font-weight:700;font-size:15px;letter-spacing:0;color:${COLORS.ember};margin-left:6px;}
-        .champ-grid{display:grid;grid-template-columns:repeat(3,1fr);}
-        .champ-cell{padding:0 16px;min-width:0;}
-        .champ-cell:first-child{padding-left:0;}
-        .champ-cell:last-child{padding-right:0;}
-        .champ-cell + .champ-cell{border-left:1px solid rgba(26,22,17,0.15);}
-        .champ-ltitle{font-family:'Fraunces',serif;font-weight:600;font-size:13.5px;line-height:1.15;letter-spacing:-0.01em;color:${COLORS.ink};min-height:34px;display:flex;align-items:flex-end;margin-bottom:8px;}
-        .champ-lrow{display:flex;align-items:center;gap:9px;padding:6px 0;border-top:1px solid rgba(26,22,17,0.1);}
+        .champ-rule2{border-bottom:2px solid ${COLORS.ember};margin-bottom:10px;}
+        .champ-row{display:flex;align-items:center;gap:18px;flex-wrap:wrap;}
+        .champ-rtitle{font-family:'Fraunces',serif;font-weight:600;font-size:13.5px;letter-spacing:-0.01em;color:${COLORS.ink};white-space:nowrap;}
+        .champ-tops{display:flex;align-items:center;gap:22px;flex-wrap:wrap;min-width:0;}
+        .champ-top{display:inline-flex;align-items:center;gap:8px;min-width:0;}
         .champ-lrank{flex:none;width:19px;height:19px;border-radius:50%;border:1.25px solid ${COLORS.ink};display:flex;align-items:center;justify-content:center;font-family:'DM Mono',monospace;font-size:10.5px;font-weight:500;color:${COLORS.ink};}
-        .champ-lname{flex:1 1 auto;min-width:0;font-family:'DM Mono',monospace;font-size:12px;font-weight:500;color:${COLORS.ink};overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
-        .champ-lval{flex:none;font-family:'Fraunces',serif;font-weight:700;font-size:15px;color:${COLORS.ink};}
-        .champ-lempty{font-family:'Fraunces',serif;font-style:italic;font-size:12.5px;color:${COLORS.faded};padding:10px 0;}
+        .champ-tname{font-family:'DM Mono',monospace;font-size:12px;font-weight:500;color:${COLORS.ink};overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:150px;}
+        .champ-tval{font-family:'Fraunces',serif;font-weight:700;font-size:15px;color:${COLORS.ink};}
+        .champ-anon{font-family:'DM Mono',monospace;font-size:11px;letter-spacing:0.16em;text-transform:uppercase;color:${COLORS.faded};white-space:nowrap;}
+        .champ-anon b{font-family:'Fraunces',serif;font-weight:700;font-size:14px;letter-spacing:0;color:${COLORS.ember};margin-left:6px;}
+        .champ-empty{font-family:'Fraunces',serif;font-style:italic;font-size:13px;color:${COLORS.faded};}
         @media(max-width:560px){
-          .champ-grid{grid-template-columns:1fr;}
-          .champ-cell{padding:10px 0 0;}
-          .champ-cell:first-child{padding-top:0;}
-          .champ-cell:last-child{padding-right:0;}
-          .champ-cell + .champ-cell{border-left:none;border-top:1px solid rgba(26,22,17,0.15);margin-top:10px;}
-          .champ-ltitle{min-height:0;margin-bottom:4px;}
+          .champ-row{align-items:flex-start;gap:8px;}
+          .champ-tops{gap:14px;}
+          .champ-tname{max-width:110px;}
         }
       `}</style>
       <div className="champ-eyebrow">
@@ -136,12 +116,51 @@ function ChampionsPanel({ completed, weighted, accuracy, anonymous }) {
       </div>
       <div className="champ-rule1" />
       <div className="champ-rule2" />
-      <div className="champ-grid">
-        <MiniList title="Quizzes Played" rows={comp} />
-        <MiniList title="Accuracy (min 5 plays)" rows={acc} />
-        <MiniList title="Accuracy-Weighted Plays" rows={wtd} />
+      <div className="champ-row">
+        <span className="champ-rtitle">Accuracy-Weighted Plays</span>
+        {wtd.length > 0 ? (
+          <div className="champ-tops">
+            {wtd.map((r, i) => (
+              <span key={i} className="champ-top">
+                <span className="champ-lrank" style={{ background: MEDAL[i] }}>{i + 1}</span>
+                <span className="champ-tname">{r.name}</span>
+                <span className="champ-tval">{r.val}</span>
+              </span>
+            ))}
+          </div>
+        ) : (<span className="champ-empty">No ranked players yet</span>)}
+        {anon > 0 && (<span className="champ-anon" style={{ marginLeft: 'auto' }}>Anonymous Plays:<b><Count value={anon} /></b></span>)}
       </div>
-      {anon > 0 && (<div className="champ-anon">Anonymous Play Count:<b><Count value={anon} /></b></div>)}
+    </Link>
+  );
+}
+
+// Full-width, vertically-narrow banner spotlighting the latest Daily Market Moving News Quiz
+// at the top of the page. Finds the most recent daily-market-news-quiz-* entry so it
+// always points at today's edition without a hardcoded id.
+function DailyNewsBanner() {
+  const [hover, setHover] = useState(false);
+  const quiz = useMemo(() => {
+    const cands = QUIZZES.filter((q) => /^daily-market-news-quiz-/.test(q.id || ''));
+    cands.sort((a, b) => new Date(b.publishedAt || `${b.publishedDate || '1970-01-01'}T12:00:00Z`).getTime() - new Date(a.publishedAt || `${a.publishedDate || '1970-01-01'}T12:00:00Z`).getTime());
+    return cands[0] || null;
+  }, []);
+  if (!quiz) return null;
+  return (
+    <Link href={`/quiz/${quiz.id}`} onMouseEnter={() => setHover(true)} onMouseLeave={() => setHover(false)} className="dn-banner" style={{ boxShadow: hover ? `5px 5px 0 ${COLORS.ink}` : `3px 3px 0 ${COLORS.ink}`, transform: hover ? 'translate(-2px, -2px)' : 'none' }}>
+      <style>{`
+        .dn-banner{display:flex;align-items:center;justify-content:space-between;gap:18px;text-decoration:none;background:${COLORS.ember};color:${COLORS.cream};border:1.5px solid ${COLORS.ink};padding:11px 18px;margin-bottom:16px;transition:all 0.2s ease;}
+        .dn-left{display:flex;align-items:baseline;gap:14px;min-width:0;}
+        .dn-kicker{flex:none;font-family:'DM Mono',monospace;font-size:12px;font-weight:700;letter-spacing:0.18em;text-transform:uppercase;color:${COLORS.cream};white-space:nowrap;}
+        .dn-desc{font-family:'Fraunces',serif;font-style:italic;font-size:14px;line-height:1.3;color:rgba(244,237,224,0.92);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+        .dn-cta{flex:none;font-family:'DM Mono',monospace;font-size:11px;font-weight:700;letter-spacing:0.14em;text-transform:uppercase;color:${COLORS.cream};white-space:nowrap;border:1.5px solid ${COLORS.cream};padding:6px 13px;}
+        @media(max-width:640px){.dn-banner{flex-direction:column;align-items:stretch;gap:9px;}.dn-left{flex-direction:column;align-items:flex-start;gap:5px;}.dn-desc{white-space:normal;}.dn-cta{text-align:center;}}
+      `}</style>
+      <span className="dn-left">
+        <span className="dn-kicker">{'▶'} Daily Market Moving News Quiz</span>
+        <span className="dn-desc">{quiz.blurb}</span>
+      </span>
+      <span className="dn-cta">Play Today {'›'}</span>
     </Link>
   );
 }
@@ -341,6 +360,7 @@ export default function QuizHomeClient() {
         </nav>
 
         <section style={{ maxWidth: 1200, margin: '0 auto', padding: '20px 16px 64px' }}>
+          <DailyNewsBanner />
           <div className="cg-qcontrols">
             <div className="cg-q-search" style={{ position: 'relative', minWidth: 0 }}>
               <Search size={16} strokeWidth={2.5} style={{ position: 'absolute', left: 14, top: '50%', transform: 'translateY(-50%)', color: COLORS.faded }} />
@@ -371,7 +391,7 @@ export default function QuizHomeClient() {
             </div>
           </div>
 
-          <ChampionsPanel completed={champions.completed} weighted={champions.weighted} accuracy={champions.accuracy} anonymous={champions.anonymous} />
+          <ChampionsPanel weighted={champions.weighted} anonymous={champions.anonymous} />
 
           {sorted.length > 0 ? (
             <div className="qz-grid">
