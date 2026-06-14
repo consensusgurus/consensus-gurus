@@ -141,7 +141,7 @@ function ChampionsPanel({ weighted, anonymous }) {
 function DailyNewsBanner() {
   const [hover, setHover] = useState(false);
   const quiz = useMemo(() => {
-    const cands = QUIZZES.filter((q) => /^daily-market-news-quiz-/.test(q.id || ''));
+    const cands = QUIZZES.filter((q) => /^(daily-market-news-quiz-|daily-business-quiz-)/.test(q.id || ''));
     cands.sort((a, b) => new Date(b.publishedAt || `${b.publishedDate || '1970-01-01'}T12:00:00Z`).getTime() - new Date(a.publishedAt || `${a.publishedDate || '1970-01-01'}T12:00:00Z`).getTime());
     return cands[0] || null;
   }, []);
