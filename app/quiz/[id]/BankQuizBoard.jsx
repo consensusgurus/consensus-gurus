@@ -46,7 +46,7 @@ function shuffle(arr) {
   return a;
 }
 
-export default function BankQuizBoard({ pairs, started, ended, revealed, onMatch, onWrong, onEnd, onHint, promptLabel, bankLabel }) {
+export default function BankQuizBoard({ pairs, started, ended, revealed, onMatch, onWrong, onEnd, onHint, promptLabel, bankLabel, stickyTop = 150 }) {
   // pairs[i] === [answer, prompt]: answer = the tile (e.g. headquarters city),
   // prompt = the clue shown one at a time (e.g. company).
   const total = pairs.length;
@@ -163,7 +163,7 @@ export default function BankQuizBoard({ pairs, started, ended, revealed, onMatch
 
   return (
     <div>
-      <div style={{ display: 'flex', alignItems: 'center', gap: 12, background: live ? COLORS.ink : COLORS.paper, color: live ? COLORS.cream : COLORS.faded, border: `1px solid ${COLORS.faded}33`, padding: '14px 16px', marginBottom: 10, minHeight: 30 }}>
+      <div style={{ position: 'sticky', top: stickyTop, zIndex: 4, display: 'flex', alignItems: 'center', gap: 12, background: live ? COLORS.ink : COLORS.paper, color: live ? COLORS.cream : COLORS.faded, border: `1px solid ${COLORS.faded}33`, padding: '14px 16px', marginBottom: 10, minHeight: 30 }}>
         <span style={{ fontFamily: MONO, fontSize: 11, letterSpacing: '0.2em', textTransform: 'uppercase', opacity: 0.7, flex: 'none' }}>{promptLabel || 'Prompt'}</span>
         <span style={{ fontFamily: SERIF, fontWeight: 800, fontSize: 'clamp(20px, 3.4vw, 28px)', lineHeight: 1.15, flex: '1 1 auto', minWidth: 0, overflowWrap: 'anywhere' }}>{cur != null ? pairs[cur][1] : (ended ? 'Game over' : 'Press Play to start')}</span>
         {live && cur != null && (

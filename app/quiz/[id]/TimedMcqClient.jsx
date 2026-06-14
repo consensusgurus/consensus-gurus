@@ -395,7 +395,7 @@ export default function TimedMcqClient({ quizId }) {
                 question and options scroll underneath. */}
             <div style={{ position: 'sticky', top: 44, zIndex: 24, background: COLORS.cream, paddingBottom: 4 }}>
             {/* Scoreboard */}
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 16, background: COLORS.paper, border: `1px solid ${COLORS.faded}33`, padding: '16px 20px', marginBottom: 16 }}>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 16, background: COLORS.paper, border: `1px solid ${COLORS.faded}33`, padding: '16px 20px', marginBottom: 0 }}>
               <div>
                 <div style={{ fontFamily: SERIF, fontWeight: 800, fontSize: 34, lineHeight: 1 }}>{points}<span style={{ fontSize: 20, color: COLORS.faded }}>/{maxPoints}</span></div>
                 <div style={{ fontFamily: MONO, fontSize: 11, letterSpacing: '0.12em', textTransform: 'uppercase', color: COLORS.faded }}>Points</div>
@@ -413,7 +413,7 @@ export default function TimedMcqClient({ quizId }) {
             </div>
             {/* Live timer bar + point value, frozen with the scoreboard so the countdown is always visible. */}
             {(phase === 'playing' || phase === 'reveal') && (
-              <div style={{ display: 'flex', alignItems: 'center', gap: 14, marginTop: 14 }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 14, marginTop: 8 }}>
                 <div style={{ flex: 1, height: 12, background: COLORS.paper, border: `1px solid ${COLORS.faded}44`, position: 'relative', overflow: 'hidden' }}>
                   <div style={{ position: 'absolute', left: 0, top: 0, bottom: 0, width: `${frac * 100}%`, background: lowClock ? COLORS.ember : COLORS.forest, transition: phase === 'playing' ? `width ${TICK_MS}ms linear` : 'none' }} />
                 </div>

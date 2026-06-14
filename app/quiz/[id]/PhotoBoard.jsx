@@ -42,7 +42,7 @@ function accepts(raw, item) {
   return deArticle(g) === deArticle(norm(item.t));
 }
 
-export default function PhotoBoard({ items, started, ended, revealed, onMatch, onWrong, onEnd, onHint, answerNoun }) {
+export default function PhotoBoard({ items, started, ended, revealed, onMatch, onWrong, onEnd, onHint, answerNoun, stickyTop = 150 }) {
   const list = items || [];
   const total = list.length;
   const order = useMemo(() => shuffle(list.map((_, i) => i)), [list]);
@@ -112,19 +112,11 @@ export default function PhotoBoard({ items, started, ended, revealed, onMatch, o
 
   return (
     <div>
-      {/* Photo prompt — only this changes between answers. */}
-      <div style={{ position: 'relative', width: '100%', aspectRatio: '4 / 3', maxHeight: 500, background: COLORS.ink, border: `2px solid ${borderColor}`, overflow: 'hidden', marginBottom: 10, transition: 'border-color .15s' }}>
-        {live && curItem ? (
-          <img src={curItem.img} alt={`Name the ${noun} in this photo`} style={{ width: '100%', height: '100%', objectFit: 'contain', display: 'block' }} />
-        ) : (
-          <div style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', color: COLORS.faded, fontFamily: SERIF, fontStyle: 'italic', fontSize: 18 }}>{ended ? 'Game over' : 'Press Play to start'}</div>
-        )}
-      </div>
-      {/* The answer bar is pinned to the bottom of the viewport so it stays visible
-          while the (tall) photo scrolls. The input element is never remounted between
-          photos, so it keeps focus after a correct answer or Next, exactly as before. */}
+      {/* Answer bar — frozen FLUSH beneath the score/time block so it never leaves
+          the screen; the photo scrolls below. The input element is never remounted
+          between photos, so it keeps focus after a correct answer or Next. */}
       {!ended && (
-        <div style={{ position: 'sticky', bottom: 0, zIndex: 5, background: COLORS.cream, paddingTop: 8, paddingBottom: 4, borderTop: `1px solid ${COLORS.faded}33` }}>
+        <div style={{ position: 'sticky', top: stickyTop, zIndex: 4, background: COLORS.cream, paddingTop: 4, paddingBottom: 8 }}>
           <div style={{ display: 'flex', gap: 10, marginBottom: 8 }}>
             <input
               ref={inputRef}
@@ -146,6 +138,14 @@ export default function PhotoBoard({ items, started, ended, revealed, onMatch, o
           <div style={{ fontFamily: MONO, fontSize: 11, letterSpacing: '0.12em', textTransform: 'uppercase', color: COLORS.faded }}>{remaining} still to name &middot; {guessesLeft} {guessesLeft === 1 ? 'guess' : 'guesses'} left</div>
         </div>
       )}
+      {/* Photo prompt — only this changes between answers; scrolls beneath the frozen bar. */}
+      <div style={{ position: 'relative', width: '100%', aspectRatio: '4 / 3', maxHeight: 500, background: COLORS.ink, border: `2px solid ${borderColor}`, overflow: 'hidden', marginBottom: 10, transition: 'border-color .15s' }}>
+        {live && curItem ? (
+          <img src={curItem.img} alt={`Name the ${noun} in this photo`} style={{ width: '100%', height: '100%', objectFit: 'contain', display: 'block' }} />
+        ) : (
+          <div style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', color: COLORS.faded, fontFamily: SERIF, fontStyle: 'italic', fontSize: 18 }}>{ended ? 'Game over' : 'Press Play to start'}</div>
+        )}
+      </div>
       {ended && (
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(150px, 1fr))', gap: 8 }}>
           {list.map((it, i) => {

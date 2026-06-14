@@ -297,7 +297,19 @@ export default function QuizClient({ quizId }) {
   // always holds the current closure with fresh `found`.
   const endRef = useRef(null);
   endRef.current = endGame;
+  const scoreRef = useRef(null);
   const [ribScroll, setRibScroll] = useState({ left: false, right: false });
+  // Measured height of the frozen score/answer block, so each format's clue bar
+  // (map Find, photo/bank/type prompt) can stick FLUSH right beneath it. 44 = the
+  // ribbon's sticky height above it.
+  const [scoreH, setScoreH] = useState(150);
+  const stickyTop = 44 + scoreH;
+  useEffect(() => {
+    const measure = () => { if (scoreRef.current) setScoreH(scoreRef.current.offsetHeight); };
+    measure();
+    window.addEventListener('resize', measure);
+    return () => window.removeEventListener('resize', measure);
+  }, [tab, started, ended, mapMode]);
   useEffect(() => {
     const el = ribbonRef.current;
     if (!el) return undefined;
@@ -931,8 +943,8 @@ export default function QuizClient({ quizId }) {
                 directly under the sticky ribbon (44 = ribbon height, tucked 1px
                 under it; ribbon zIndex 25 > this 24 so it covers the seam). The
                 answer list/board scrolls underneath. */}
-            <div style={{ position: 'sticky', top: 44, zIndex: 24, background: COLORS.cream }}>
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', alignItems: 'center', background: COLORS.paper, border: `1px solid ${COLORS.faded}33`, padding: '16px 8px', marginBottom: 16 }}>
+            <div ref={scoreRef} style={{ position: 'sticky', top: 44, zIndex: 24, background: COLORS.cream }}>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', alignItems: 'center', background: COLORS.paper, border: `1px solid ${COLORS.faded}33`, padding: '16px 8px', marginBottom: 0 }}>
               <div style={{ textAlign: 'center', padding: '0 8px' }}>
                 <div style={{ fontFamily: SERIF, fontWeight: 800, fontSize: 34, lineHeight: 1 }}>{dispScore}<span style={{ fontSize: 20, color: COLORS.faded }}>/{total}</span></div>
                 <div style={{ fontFamily: MONO, fontSize: 11, letterSpacing: '0.12em', textTransform: 'uppercase', color: COLORS.faded }}>Your score</div>
@@ -1000,16 +1012,16 @@ export default function QuizClient({ quizId }) {
             </div>
 
             {photoMode ? (
-            <PhotoBoard items={quiz.answers} started={started} ended={ended} revealed={revealed} onMatch={onPairMatch} onWrong={onBankWrong} onEnd={onPairEnd} onHint={onPairHint} answerNoun={quiz.noun} />
+            <PhotoBoard items={quiz.answers} started={started} ended={ended} revealed={revealed} onMatch={onPairMatch} onWrong={onBankWrong} onEnd={onPairEnd} onHint={onPairHint} answerNoun={quiz.noun} stickyTop={stickyTop} />
             ) : typeMode ? (
-            <TypeItBoard items={quiz.answers} started={started} ended={ended} revealed={revealed} onMatch={onPairMatch} onWrong={onBankWrong} onEnd={onPairEnd} onHint={onPairHint} promptLabel={quiz.leftLabel} answerNoun={quiz.noun} />
+            <TypeItBoard items={quiz.answers} started={started} ended={ended} revealed={revealed} onMatch={onPairMatch} onWrong={onBankWrong} onEnd={onPairEnd} onHint={onPairHint} promptLabel={quiz.leftLabel} answerNoun={quiz.noun} stickyTop={stickyTop} />
             ) : bankMode ? (
-            <BankQuizBoard pairs={quiz.pairs} started={started} ended={ended} revealed={revealed} onMatch={onPairMatch} onWrong={onBankWrong} onEnd={onPairEnd} onHint={onPairHint} promptLabel={quiz.leftLabel} bankLabel={quiz.rightLabel} />
+            <BankQuizBoard pairs={quiz.pairs} started={started} ended={ended} revealed={revealed} onMatch={onPairMatch} onWrong={onBankWrong} onEnd={onPairEnd} onHint={onPairHint} promptLabel={quiz.leftLabel} bankLabel={quiz.rightLabel} stickyTop={stickyTop} />
             ) : pairsMode ? (
             <MatchQuizBoard pairs={quiz.pairs} started={started} ended={ended} revealed={revealed} onMatch={onPairMatch} onError={onPairError} onEnd={onPairEnd} onHint={onPairHint} leftLabel={quiz.leftLabel} rightLabel={quiz.rightLabel} sortLeft={quiz.sortLeft} />
             ) : mapMode ? (
             <div>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 12, background: started && !ended ? COLORS.ink : COLORS.paper, color: started && !ended ? COLORS.cream : COLORS.faded, border: `1px solid ${COLORS.faded}33`, padding: '12px 16px', marginBottom: 10, minHeight: 30 }}>
+              <div style={{ position: 'sticky', top: stickyTop, zIndex: 4, display: 'flex', alignItems: 'center', gap: 12, background: started && !ended ? COLORS.ink : COLORS.paper, color: started && !ended ? COLORS.cream : COLORS.faded, border: `1px solid ${COLORS.faded}33`, padding: '12px 16px', marginBottom: 10, minHeight: 30 }}>
                 <span style={{ fontFamily: MONO, fontSize: 11, letterSpacing: '0.2em', textTransform: 'uppercase', opacity: 0.7, flex: 'none' }}>Find</span>
                 <span style={{ fontFamily: SERIF, fontWeight: 800, fontSize: 'clamp(20px, 3.4vw, 26px)', lineHeight: 1.1, flex: '1 1 auto', minWidth: 0, overflowWrap: 'anywhere' }}>{ended ? 'Game over' : started ? (curName || '—') : 'Press Play to start'}</span>
                 {started && !ended && (
