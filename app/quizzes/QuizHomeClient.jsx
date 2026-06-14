@@ -138,30 +138,53 @@ function ChampionsPanel({ weighted, anonymous }) {
 // Full-width, vertically-narrow banner spotlighting the latest Daily Market Moving News Quiz
 // at the top of the page. Finds the most recent daily-market-news-quiz-* entry so it
 // always points at today's edition without a hardcoded id.
-function DailyNewsBanner() {
-  const [hover, setHover] = useState(false);
-  const quiz = useMemo(() => {
+function DailyNewsBanner({ totals }) {
+  const [hover, setHover] = useState(null); // 'trend' | 'news' | null
+  // Right button: the latest Daily Market Moving News Quiz edition.
+  const newsQuiz = useMemo(() => {
     const cands = QUIZZES.filter((q) => /^(daily-market-news-quiz-|daily-business-quiz-)/.test(q.id || ''));
     cands.sort((a, b) => new Date(b.publishedAt || `${b.publishedDate || '1970-01-01'}T12:00:00Z`).getTime() - new Date(a.publishedAt || `${a.publishedDate || '1970-01-01'}T12:00:00Z`).getTime());
     return cands[0] || null;
   }, []);
-  if (!quiz) return null;
+  // Left button: the quiz with the most plays over the last 12 hours. News
+  // quizzes are excluded (they have their own button), and we fall back to the
+  // 7-day then all-time leader when no game has been played in the last 12h.
+  const trendingQuiz = useMemo(() => {
+    const isNews = (id) => /^(daily-market-news-quiz-|daily-business-quiz-|daily-news-quiz-|weekly-business-quiz-|weekly-news-quiz-|earnings-reporter-quiz-|earnings-quiz-)/.test(id || '');
+    const pick = (counts) => {
+      let best = null;
+      let bestN = 0;
+      for (const q of QUIZZES) {
+        if (!q.id || isNews(q.id)) continue;
+        const n = (counts || {})[q.id] || 0;
+        if (n > bestN) { bestN = n; best = q; }
+      }
+      return bestN > 0 ? best : null;
+    };
+    return pick(totals.recent12h) || pick(totals.recent7) || pick(totals.byQuiz) || null;
+  }, [totals]);
+
+  if (!newsQuiz && !trendingQuiz) return null;
+  const liftStyle = (active) => ({ boxShadow: active ? `5px 5px 0 ${COLORS.ink}` : `3px 3px 0 ${COLORS.ink}`, transform: active ? 'translate(-2px, -2px)' : 'none' });
   return (
-    <Link href={`/quiz/${quiz.id}`} onMouseEnter={() => setHover(true)} onMouseLeave={() => setHover(false)} className="dn-banner" style={{ boxShadow: hover ? `5px 5px 0 ${COLORS.ink}` : `3px 3px 0 ${COLORS.ink}`, transform: hover ? 'translate(-2px, -2px)' : 'none' }}>
+    <div className="dn-wrap">
       <style>{`
-        .dn-banner{display:flex;align-items:center;justify-content:space-between;gap:18px;text-decoration:none;background:${COLORS.ember};color:${COLORS.cream};border:1.5px solid ${COLORS.ink};padding:11px 18px;margin-bottom:16px;transition:all 0.2s ease;}
-        .dn-left{display:flex;align-items:baseline;gap:14px;min-width:0;flex:1 1 auto;}
-        .dn-kicker{flex:none;font-family:'DM Mono',monospace;font-size:12px;font-weight:700;letter-spacing:0.18em;text-transform:uppercase;color:${COLORS.cream};white-space:nowrap;}
-        .dn-desc{flex:1 1 auto;text-align:center;font-family:'Fraunces',serif;font-style:italic;font-size:14px;line-height:1.3;color:rgba(244,237,224,0.92);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
-        .dn-cta{flex:none;font-family:'DM Mono',monospace;font-size:11px;font-weight:700;letter-spacing:0.14em;text-transform:uppercase;color:${COLORS.cream};white-space:nowrap;border:1.5px solid ${COLORS.cream};padding:6px 13px;}
-        @media(max-width:640px){.dn-banner{flex-direction:column;align-items:stretch;gap:9px;}.dn-left{flex-direction:column;align-items:flex-start;gap:5px;}.dn-desc{white-space:normal;}.dn-cta{text-align:center;}}
+        .dn-wrap{display:flex;gap:12px;margin-bottom:16px;}
+        .dn-btn{flex:1 1 0;min-width:0;display:flex;align-items:center;justify-content:center;gap:10px;text-decoration:none;background:${COLORS.ember};color:${COLORS.cream};border:1.5px solid ${COLORS.ink};padding:13px 18px;transition:all 0.2s ease;}
+        .dn-label{font-family:'DM Mono',monospace;font-size:12px;font-weight:700;letter-spacing:0.18em;text-transform:uppercase;color:${COLORS.cream};white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+        @media(max-width:640px){.dn-wrap{flex-direction:column;gap:9px;}.dn-label{white-space:normal;text-align:center;}}
       `}</style>
-      <span className="dn-left">
-        <span className="dn-kicker">{'▶'} Daily Market Moving News Quiz</span>
-        <span className="dn-desc">Ten questions keeping you on top of the most important news.</span>
-      </span>
-      <span className="dn-cta">Play Today {'›'}</span>
-    </Link>
+      {trendingQuiz && (
+        <Link href={`/quiz/${trendingQuiz.id}`} className="dn-btn" onMouseEnter={() => setHover('trend')} onMouseLeave={() => setHover(null)} style={liftStyle(hover === 'trend')}>
+          <span className="dn-label">{'▶'} Top Trending Quiz</span>
+        </Link>
+      )}
+      {newsQuiz && (
+        <Link href={`/quiz/${newsQuiz.id}`} className="dn-btn" onMouseEnter={() => setHover('news')} onMouseLeave={() => setHover(null)} style={liftStyle(hover === 'news')}>
+          <span className="dn-label">{'▶'} Daily Market Moving News Quiz</span>
+        </Link>
+      )}
+    </div>
   );
 }
 
@@ -171,7 +194,7 @@ export default function QuizHomeClient() {
   const [sortBy, setSortBy] = useState('discover');
   const [sortOpen, setSortOpen] = useState(false);
   const [moreOpen, setMoreOpen] = useState(false);
-  const [totals, setTotals] = useState({ total: 0, byQuiz: {}, recent7: {} });
+  const [totals, setTotals] = useState({ total: 0, byQuiz: {}, recent7: {}, recent12h: {} });
   const [recent, setRecent] = useState([]);
   const [visitors, setVisitors] = useState(0);
   const [champions, setChampions] = useState({ completed: [], weighted: [], accuracy: [], anonymous: 0 });
@@ -193,7 +216,7 @@ export default function QuizHomeClient() {
   }, [dept]);
 
   useEffect(() => {
-    fetch('/api/quiz/totals').then((r) => r.json()).then((d) => { if (d && !d.error) setTotals({ total: d.total || 0, byQuiz: d.byQuiz || {}, recent7: d.recent7 || {} }); }).catch(() => {});
+    fetch('/api/quiz/totals').then((r) => r.json()).then((d) => { if (d && !d.error) setTotals({ total: d.total || 0, byQuiz: d.byQuiz || {}, recent7: d.recent7 || {}, recent12h: d.recent12h || {} }); }).catch(() => {});
     fetch('/api/quiz/recent').then((r) => r.json()).then((d) => { if (d && Array.isArray(d.plays)) setRecent(d.plays); }).catch(() => {});
     // Visitors on this page reflect quiz traffic only (the quiz home page +
     // individual quiz pages), not the whole site. Quiz-page views are merged
@@ -414,7 +437,7 @@ export default function QuizHomeClient() {
 
           <ChampionsPanel weighted={champions.weighted} anonymous={champions.anonymous} />
 
-          <DailyNewsBanner />
+          <DailyNewsBanner totals={totals} />
 
           {sorted.length > 0 ? (
             <div className="qz-grid">
