@@ -150,13 +150,16 @@ function DailyNewsBanner() {
     <Link href={`/quiz/${quiz.id}`} onMouseEnter={() => setHover(true)} onMouseLeave={() => setHover(false)} className="dn-banner" style={{ boxShadow: hover ? `5px 5px 0 ${COLORS.ink}` : `3px 3px 0 ${COLORS.ink}`, transform: hover ? 'translate(-2px, -2px)' : 'none' }}>
       <style>{`
         .dn-banner{display:flex;align-items:center;justify-content:space-between;gap:18px;text-decoration:none;background:${COLORS.ember};color:${COLORS.cream};border:1.5px solid ${COLORS.ink};padding:11px 18px;margin-bottom:16px;transition:all 0.2s ease;}
+        .dn-left{display:flex;align-items:baseline;gap:14px;min-width:0;}
         .dn-kicker{flex:none;font-family:'DM Mono',monospace;font-size:12px;font-weight:700;letter-spacing:0.18em;text-transform:uppercase;color:${COLORS.cream};white-space:nowrap;}
-        .dn-desc{flex:1;min-width:0;text-align:center;font-family:'Fraunces',serif;font-style:italic;font-size:14px;line-height:1.3;color:rgba(244,237,224,0.92);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+        .dn-desc{font-family:'Fraunces',serif;font-style:italic;font-size:14px;line-height:1.3;color:rgba(244,237,224,0.92);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
         .dn-cta{flex:none;font-family:'DM Mono',monospace;font-size:11px;font-weight:700;letter-spacing:0.14em;text-transform:uppercase;color:${COLORS.cream};white-space:nowrap;border:1.5px solid ${COLORS.cream};padding:6px 13px;}
-        @media(max-width:640px){.dn-banner{flex-direction:column;align-items:stretch;gap:9px;}.dn-desc{white-space:normal;text-align:center;}.dn-cta{text-align:center;}}
+        @media(max-width:640px){.dn-banner{flex-direction:column;align-items:stretch;gap:9px;}.dn-left{flex-direction:column;align-items:flex-start;gap:5px;}.dn-desc{white-space:normal;}.dn-cta{text-align:center;}}
       `}</style>
-      <span className="dn-kicker">{'▶'} Daily Market Moving News Quiz</span>
-      <span className="dn-desc">{quiz.blurb}</span>
+      <span className="dn-left">
+        <span className="dn-kicker">{'▶'} Daily Market Moving News Quiz</span>
+        <span className="dn-desc">{quiz.blurb}</span>
+      </span>
       <span className="dn-cta">Play Today {'›'}</span>
     </Link>
   );
