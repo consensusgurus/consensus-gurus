@@ -289,6 +289,14 @@ export default function QuizClient({ quizId }) {
   const slotRefs = useRef([]);
   const viewedRef = useRef(false);
   const ribbonRef = useRef(null);
+  // Keep a ref pointing at the LATEST endGame closure. The countdown
+  // setInterval is created once in start(), so the endGame it captured
+  // closes over the game-start state (found = all false). On a natural
+  // timeout that stale closure posted score 0 at full time. endGame is a
+  // hoisted function declaration, so this assignment (re-run every render)
+  // always holds the current closure with fresh `found`.
+  const endRef = useRef(null);
+  endRef.current = endGame;
   const [ribScroll, setRibScroll] = useState({ left: false, right: false });
   useEffect(() => {
     const el = ribbonRef.current;
@@ -428,7 +436,7 @@ export default function QuizClient({ quizId }) {
     setHintBad(false);
     timerRef.current = setInterval(() => {
       setTime((t) => {
-        if (t <= 1) { clearInterval(timerRef.current); endGame(false); return 0; }
+        if (t <= 1) { clearInterval(timerRef.current); (endRef.current || endGame)(false); return 0; }
         return t - 1;
       });
     }, 1000);
