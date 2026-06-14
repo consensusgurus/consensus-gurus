@@ -16,6 +16,7 @@ const BankQuizBoard = dynamic(() => import('./BankQuizBoard'), { ssr: false, loa
 const TypeItBoard = dynamic(() => import('./TypeItBoard'), { ssr: false, loading: () => null });
 const TimedMcqBoard = dynamic(() => import('./TimedMcqClient'), { ssr: false, loading: () => null });
 const LogicGridBoard = dynamic(() => import('./LogicGridClient'), { ssr: false, loading: () => null });
+const PhotoBoard = dynamic(() => import('./PhotoQuizClient'), { ssr: false, loading: () => null });
 
 function shuffleIdx(n) {
   const a = [...Array(n).keys()];
@@ -184,6 +185,9 @@ export default function QuizClient({ quizId }) {
   }
   if (quiz.format === 'logic-grid') {
     return <LogicGridBoard quizId={quizId} />;
+  }
+  if (quiz.format === 'photo') {
+    return <PhotoBoard quizId={quizId} />;
   }
 
   const answers = quiz.answers;
