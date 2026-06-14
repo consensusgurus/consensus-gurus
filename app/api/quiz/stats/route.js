@@ -6,7 +6,7 @@ export const dynamic = 'force-dynamic';
 export const fetchCache = 'force-no-store';
 
 // GET /api/quiz/stats -> { quizzes: [{ quizId, plays, plays24h, players,
-//   signedPlays, avgScorePct, avgScore, avgTotal, avgTime, bestScore }] }
+//   signedPlays, avgScorePct, avgScore, avgTotal, totalTime, bestScore }] }
 // Per-quiz aggregates over every completed game (signed-up or anonymous),
 // powering the /quizzes/stats table. Computed in JS over service-role rows so
 // it is RLS-independent and matches the totals counter exactly.
@@ -56,10 +56,10 @@ export async function GET() {
       plays24h: a.plays24h,
       signedPlays: a.signedPlays,
       players: a.players.size, // distinct players, anonymous included
-      avgScorePct: a.plays ? Math.round((a.pctSum / a.plays) * 1000) / 10 : 0, // percent, 1dp
-      avgScore: a.plays ? Math.round((a.scoreSum / a.plays) * 10) / 10 : 0,
-      avgTotal: a.plays ? Math.round((a.totalSum / a.plays) * 10) / 10 : 0,
-      avgTime: a.timeN ? Math.round(a.timeSum / a.timeN) : null, // seconds
+      avgScorePct: a.plays ? Math.round((a.pctSum / a.plays) * 100) : 0, // percent, integer
+      avgScore: a.plays ? Math.round(a.scoreSum / a.plays) : 0,
+      avgTotal: a.plays ? Math.round(a.totalSum / a.plays) : 0,
+      totalTime: a.timeSum || 0, // total seconds spent across all plays
       bestScore: a.bestScore,
     })).sort((x, y) => y.plays - x.plays || x.quizId.localeCompare(y.quizId));
     return NextResponse.json({ quizzes });

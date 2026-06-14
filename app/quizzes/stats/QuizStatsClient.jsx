@@ -14,7 +14,11 @@ function fmtTime(s) {
   if (s == null || !Number.isFinite(Number(s))) return '—';
   const v = Math.round(Number(s));
   if (v < 60) return `${v}s`;
-  return `${Math.floor(v / 60)}:${String(v % 60).padStart(2, '0')}`;
+  const m = Math.floor(v / 60);
+  const sec = v % 60;
+  if (m < 60) return `${m}:${String(sec).padStart(2, '0')}`;
+  const h = Math.floor(m / 60);
+  return `${h}:${String(m % 60).padStart(2, '0')}:${String(sec).padStart(2, '0')}`;
 }
 
 const MEDAL = ['#caa12e', '#9c968a', '#b1763f'];
@@ -24,7 +28,7 @@ const COLS = [
   { id: 'plays24h', label: 'Last 24h', num: true },
   { id: 'players', label: 'Players', num: true },
   { id: 'avgScorePct', label: 'Avg Score', num: true },
-  { id: 'avgTime', label: 'Avg Time', num: true },
+  { id: 'totalTime', label: 'Total Time', num: true },
 ];
 
 export default function QuizStatsClient() {
@@ -79,7 +83,7 @@ export default function QuizStatsClient() {
             The <span style={{ fontStyle: 'italic', fontWeight: 400, color: COLORS.ember }}>Most Played</span> Quizzes
           </h1>
           <p style={{ fontFamily: 'Fraunces, serif', fontStyle: 'italic', fontSize: 17, lineHeight: 1.5, color: COLORS.faded, margin: 0, maxWidth: 640 }}>
-            Every quiz ranked by how often it's been played, with the average score and the average time players take to finish. Tap any column to re-sort, or any row to play.
+            Every quiz ranked by how often it's been played, with the average score and the total time players have spent on it. Tap any column to re-sort, or any row to play.
           </p>
           <div style={{ borderBottom: `1px solid ${COLORS.ink}`, marginTop: 22 }} />
           <div style={{ borderBottom: `2px solid ${COLORS.ember}` }} />
@@ -144,7 +148,7 @@ export default function QuizStatsClient() {
                       <td className="qs-col-num"><span className="qs-num"><Count value={r.plays24h} /></span></td>
                       <td className="qs-col-num"><span className="qs-num"><Count value={r.players} /></span></td>
                       <td className="qs-col-num"><span className="qs-num">{r.avgScorePct}%<small>{r.avgScore}/{r.avgTotal}</small></span></td>
-                      <td className="qs-col-num"><span className="qs-num">{fmtTime(r.avgTime)}</span></td>
+                      <td className="qs-col-num"><span className="qs-num">{fmtTime(r.totalTime)}</span></td>
                     </tr>
                   ))}
                 </tbody>
