@@ -285,6 +285,7 @@ export default function QuizClient({ quizId }) {
   const timerRef = useRef(null);
   const startRef = useRef(null);
   const inputRef = useRef(null);
+  const slotRefs = useRef([]);
   const viewedRef = useRef(false);
   const ribbonRef = useRef(null);
   const [ribScroll, setRibScroll] = useState({ left: false, right: false });
@@ -473,6 +474,16 @@ export default function QuizClient({ quizId }) {
     setGuess('');
   }
 
+  // After a slot is answered, move focus to the next still-blank slot input.
+  // Done synchronously inside the user gesture so the mobile on-screen keyboard
+  // stays up and the typing cursor does not reset (no re-tap needed).
+  function focusNextSlot(fromIdx, foundArr) {
+    const n = foundArr.length;
+    for (let k = 1; k <= n; k++) {
+      const j = (fromIdx + k) % n;
+      if (!foundArr[j] && slotRefs.current[j]) { slotRefs.current[j].focus(); return; }
+    }
+  }
   // Matched mode: each slot has its own input that only accepts that slot's answer.
   function checkSlot(i, raw) {
     const g = norm(raw);
@@ -488,6 +499,7 @@ export default function QuizClient({ quizId }) {
       setHintBad(false);
       fireCue(true);
       if (next.every(Boolean)) endGame(true, next);
+      else focusNextSlot(i, next);
     } else {
       setHint(quiz.noun ? "Not quite. Try again." : "Not that year's winner. Try again.");
       setHintBad(true);
@@ -582,6 +594,7 @@ export default function QuizClient({ quizId }) {
       setHintBad(false);
       fireCue(true);
       if (next.every(Boolean)) endGame(true, next);
+      else focusNextSlot(i, next);
       return true;
     }
     return false;
@@ -886,8 +899,8 @@ export default function QuizClient({ quizId }) {
                       ? `Pick a display name to reveal the answers you missed. It also posts this ${dispScore}/${total} to the leaderboard. Email is optional (required only for prizes), and no password is needed.`
                       : `Pick a display name to post this ${dispScore}/${total} to the leaderboard. Email is optional (required only for prizes), and no password is needed.`}
                   </p>
-                  <input value={jName} onChange={(e) => setJName(e.target.value)} maxLength={40} placeholder="Display Name" style={fieldStyle} />
-                  <input value={jEmail} onChange={(e) => setJEmail(e.target.value)} type="email" placeholder="Email (optional, required for prizes)" style={{ ...fieldStyle, marginTop: 10 }} />
+                  <input value={jName} onChange={(e) => setJName(e.target.value)} maxLength={40} placeholder="Display Name" autoCapitalize="none" autoCorrect="off" spellCheck={false} style={fieldStyle} />
+                  <input value={jEmail} onChange={(e) => setJEmail(e.target.value)} type="email" placeholder="Email (optional, required for prizes)" autoCapitalize="none" autoCorrect="off" spellCheck={false} style={{ ...fieldStyle, marginTop: 10 }} />
                   <button onClick={submitClaim} disabled={claimBusy} style={{ marginTop: 12, width: '100%', fontFamily: MONO, fontSize: 13, letterSpacing: '0.1em', textTransform: 'uppercase', fontWeight: 700, lineHeight: '46px', border: 'none', background: COLORS.ember, color: '#fff', cursor: claimBusy ? 'default' : 'pointer', opacity: claimBusy ? 0.6 : 1 }}>
                     {claimBusy ? (canReveal ? 'Revealing…' : 'Posting…') : (canReveal ? 'Reveal the answers' : 'Post this to the leaderboard')}
                   </button>
@@ -1035,7 +1048,8 @@ export default function QuizClient({ quizId }) {
                       <span style={{ fontFamily: SERIF, fontSize: 19, fontWeight: 500, flex: 1, color: COLORS.rust }}>{a.t}</span>
                     ) : (matched && !ordered) ? (
                       <input
-                        ref={i === 0 ? inputRef : undefined}
+                        ref={(el) => { slotRefs.current[i] = el; if (i === 0) inputRef.current = el; }}
+                        enterKeyHint="next"
                         disabled={!started || ended}
                         onChange={(e) => { if (started && !ended && autoSlot(i, e.target.value)) e.target.value = ''; }}
                         onKeyDown={(e) => onSlotKey(i, e)}
@@ -1177,9 +1191,9 @@ export default function QuizClient({ quizId }) {
             </p>
 
             <label style={labelStyle}>Display Name</label>
-            <input value={jName} onChange={(e) => setJName(e.target.value)} maxLength={40} placeholder="e.g. skyhopper42" style={fieldStyle} />
+            <input value={jName} onChange={(e) => setJName(e.target.value)} maxLength={40} placeholder="e.g. skyhopper42" autoCapitalize="none" autoCorrect="off" spellCheck={false} style={fieldStyle} />
             <label style={{ ...labelStyle, marginTop: 16 }}>Email (optional, required for prizes)</label>
-            <input value={jEmail} onChange={(e) => setJEmail(e.target.value)} type="email" placeholder="you@email.com" style={fieldStyle} />
+            <input value={jEmail} onChange={(e) => setJEmail(e.target.value)} type="email" placeholder="you@email.com" autoCapitalize="none" autoCorrect="off" spellCheck={false} style={fieldStyle} />
 
             <button onClick={submitJoin} disabled={joinBusy} style={{ marginTop: 22, width: '100%', fontFamily: MONO, fontSize: 13, letterSpacing: '0.1em', textTransform: 'uppercase', fontWeight: 700, lineHeight: '48px', border: 'none', background: COLORS.ember, color: '#fff', cursor: joinBusy ? 'default' : 'pointer', opacity: joinBusy ? 0.6 : 1 }}>
               {joinBusy ? 'Joining…' : identity ? 'Update my name' : 'Join the leaderboard'}
