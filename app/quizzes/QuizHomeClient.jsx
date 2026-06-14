@@ -84,7 +84,7 @@ function ChampionsPanel({ weighted, anonymous }) {
   const [hover, setHover] = useState(false);
   const anon = Number(anonymous) || 0;
   if (!((weighted && weighted.length) || anon > 0)) return null;
-  const wtd = (weighted || []).map((u) => ({ name: u.username, val: Math.round(u.weighted || 0).toLocaleString() })).slice(0, 3);
+  const wtd = (weighted || []).map((u) => ({ name: u.username, val: Math.round(u.weighted || 0).toLocaleString() })).slice(0, 5);
   return (
     <Link href="/leaderboard" onMouseEnter={() => setHover(true)} onMouseLeave={() => setHover(false)} className="champ-link" style={{ boxShadow: hover ? `5px 5px 0 ${COLORS.ember}` : `3px 3px 0 ${COLORS.ember}`, transform: hover ? 'translate(-2px, -2px)' : 'none' }}>
       <style>{`
@@ -96,7 +96,7 @@ function ChampionsPanel({ weighted, anonymous }) {
         .champ-rule2{border-bottom:2px solid ${COLORS.ember};margin-bottom:10px;}
         .champ-row{display:flex;align-items:center;gap:18px;flex-wrap:wrap;}
         .champ-rtitle{font-family:'Fraunces',serif;font-weight:600;font-size:13.5px;letter-spacing:-0.01em;color:${COLORS.ink};white-space:nowrap;}
-        .champ-tops{display:flex;align-items:center;gap:22px;flex-wrap:wrap;min-width:0;}
+        .champ-tops{display:flex;flex:1 1 auto;align-items:center;justify-content:center;gap:28px;flex-wrap:wrap;min-width:0;}
         .champ-top{display:inline-flex;align-items:center;gap:8px;min-width:0;}
         .champ-lrank{flex:none;width:19px;height:19px;border-radius:50%;border:1.25px solid ${COLORS.ink};display:flex;align-items:center;justify-content:center;font-family:'DM Mono',monospace;font-size:10.5px;font-weight:500;color:${COLORS.ink};}
         .champ-tname{font-family:'DM Mono',monospace;font-size:12px;font-weight:500;color:${COLORS.ink};overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:150px;}
@@ -122,7 +122,7 @@ function ChampionsPanel({ weighted, anonymous }) {
           <div className="champ-tops">
             {wtd.map((r, i) => (
               <span key={i} className="champ-top">
-                <span className="champ-lrank" style={{ background: MEDAL[i] }}>{i + 1}</span>
+                <span className="champ-lrank" style={{ background: i < 3 ? MEDAL[i] : 'transparent' }}>{i + 1}</span>
                 <span className="champ-tname">{r.name}</span>
                 <span className="champ-tval">{r.val}</span>
               </span>
@@ -360,7 +360,6 @@ export default function QuizHomeClient() {
         </nav>
 
         <section style={{ maxWidth: 1200, margin: '0 auto', padding: '20px 16px 64px' }}>
-          <DailyNewsBanner />
           <div className="cg-qcontrols">
             <div className="cg-q-search" style={{ position: 'relative', minWidth: 0 }}>
               <Search size={16} strokeWidth={2.5} style={{ position: 'absolute', left: 14, top: '50%', transform: 'translateY(-50%)', color: COLORS.faded }} />
@@ -392,6 +391,8 @@ export default function QuizHomeClient() {
           </div>
 
           <ChampionsPanel weighted={champions.weighted} anonymous={champions.anonymous} />
+
+          <DailyNewsBanner />
 
           {sorted.length > 0 ? (
             <div className="qz-grid">
