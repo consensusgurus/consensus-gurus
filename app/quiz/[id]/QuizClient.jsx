@@ -409,7 +409,7 @@ export default function QuizClient({ quizId }) {
       setClaimOpen(false);
       if (canReveal) {
         setRevealed(true);
-        setClaimMsg('Posted! The answers you missed are now filled in under Play, highlighted.');
+        setClaimMsg('Posted! The answers you missed are now filled in below, highlighted.');
         setTab('play');
       } else {
         setClaimMsg(`Posted! You're on the leaderboard below.`);
@@ -904,7 +904,7 @@ export default function QuizClient({ quizId }) {
                 </button>
               )}
               {canReveal && revealed && (
-                <span style={{ fontFamily: MONO, fontSize: 12, letterSpacing: '0.06em', color: COLORS.forest, lineHeight: '46px' }}>Answers revealed under Play — your misses are highlighted.</span>
+                <span style={{ fontFamily: MONO, fontSize: 12, letterSpacing: '0.06em', color: COLORS.forest, lineHeight: '46px' }}>Answers revealed below — your misses are highlighted.</span>
               )}
               {!identity && !claimOpen && (
                 <button onClick={() => { setClaimMsg(''); setClaimErr(false); setClaimOpen(true); }} style={{ fontFamily: MONO, fontSize: 13, letterSpacing: '0.08em', textTransform: 'uppercase', fontWeight: 700, lineHeight: '46px', padding: '0 24px', background: COLORS.ember, color: '#fff', border: 'none', cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: 8 }}>

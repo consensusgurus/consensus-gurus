@@ -1,7 +1,8 @@
 'use client';
 import React, { useState, useEffect, useMemo, useRef } from 'react';
 import Link from 'next/link';
-import { Search, X, ChevronDown } from 'lucide-react';
+import { useRouter } from 'next/navigation';
+import { Search, X, ChevronDown, ArrowLeft } from 'lucide-react';
 import { COLORS } from '@/lib/data';
 import { QUIZZES } from '@/lib/quizzes';
 import { fetchBootstrap } from '@/lib/api';
@@ -34,6 +35,27 @@ function fmtQuizTime(s) {
   if (s < 120) return `${s} sec`;
   if (s % 60 === 0) return `${s / 60} min`;
   return `${Math.floor(s / 60)}:${String(s % 60).padStart(2, '0')}`;
+}
+
+// Strip the leading "Name (the) " verb from a quiz title for display.
+function cleanTitle(t) {
+  return (t || '').replace(/^Name (the )?/i, '').trim();
+}
+
+// Whole-word short form for the cramped Most-Played board: keep adding words
+// until we'd exceed `max` characters, then stop — no ellipsis, no mid-word cut,
+// and the board's CSS wraps anything still long instead of clipping it.
+function shortTitle(t, max = 32) {
+  const s = cleanTitle(t);
+  if (s.length <= max) return s;
+  const words = s.split(/\s+/);
+  let out = '';
+  for (const w of words) {
+    const next = out ? `${out} ${w}` : w;
+    if (next.length > max) break;
+    out = next;
+  }
+  return out || words[0] || s;
 }
 
 function QuizTile({ quiz, plays }) {
@@ -76,60 +98,95 @@ function QuizTile({ quiz, plays }) {
 
 const MEDAL = ['#caa12e', '#9c968a', '#b1763f'];
 
-// Slimmed Quiz Champions card: a single horizontal strip showing the top three
-// Accuracy-Weighted players side by side (no Quizzes-Played or Accuracy lists,
-// and the weighted value rounded to a whole number), so the card stays short
-// and leaves room above the tile grid for the Daily News Quiz banner.
-function ChampionsPanel({ weighted, anonymous }) {
+// Shared card chrome for the two side-by-side boards below the ribbon: a
+// paper panel with an ember drop-shadow that lifts on hover. Used as a Link
+// (right/Top Players board) or as a clickable div (left/Most Played board,
+// which contains its own per-quiz links and so can't be an anchor).
+const boardCss = `
+  .qz-boards{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px;align-items:stretch;}
+  @media(max-width:680px){.qz-boards{grid-template-columns:1fr;}}
+  .qz-board{display:flex;flex-direction:column;text-decoration:none;background:${COLORS.paper};border:1.5px solid ${COLORS.ink};padding:10px 16px 12px;transition:all 0.2s ease;cursor:pointer;height:100%;box-sizing:border-box;}
+  .qz-board:focus-visible{outline:2px solid ${COLORS.ember};outline-offset:2px;}
+  .qz-board-eyebrow{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:3px;}
+  .qz-board-kicker{font-family:'DM Mono',monospace;font-size:10.5px;font-weight:700;letter-spacing:0.22em;text-transform:uppercase;color:${COLORS.ember};}
+  .qz-board-cta{font-family:'DM Mono',monospace;font-size:9.5px;letter-spacing:0.14em;text-transform:uppercase;color:${COLORS.faded};white-space:nowrap;}
+  .qz-board-rule1{border-bottom:1px solid ${COLORS.ink};}
+  .qz-board-rule2{border-bottom:2px solid ${COLORS.ember};margin-bottom:8px;}
+  .qz-board-rows{display:flex;flex-direction:column;flex:1 1 auto;}
+  .qz-brow{display:flex;align-items:center;gap:10px;padding:7px 0;border-top:1px solid rgba(26,22,17,0.1);text-decoration:none;}
+  .qz-brow:first-child{border-top:none;}
+  .qz-brank{flex:none;width:20px;height:20px;border-radius:50%;border:1.25px solid ${COLORS.ink};display:flex;align-items:center;justify-content:center;font-family:'DM Mono',monospace;font-size:11px;font-weight:500;color:${COLORS.ink};}
+  .qz-bname{flex:1 1 auto;min-width:0;font-family:'DM Mono',monospace;font-size:12px;font-weight:500;color:${COLORS.ink};line-height:1.25;white-space:normal;overflow-wrap:anywhere;}
+  .qz-bval{flex:none;font-family:'Fraunces',serif;font-weight:700;font-size:15px;color:${COLORS.ink};white-space:nowrap;}
+  .qz-bval small{font-family:'DM Mono',monospace;font-weight:500;font-size:9.5px;letter-spacing:0.1em;text-transform:uppercase;color:${COLORS.faded};margin-left:4px;}
+  .qz-board a.qz-brow:hover .qz-bname{color:${COLORS.ember};}
+  .qz-board-empty{font-family:'Fraunces',serif;font-style:italic;font-size:13px;color:${COLORS.faded};padding:12px 0;}
+`;
+
+// Left board: the three most-played quizzes. Each row links to its quiz; the
+// surrounding card is itself clickable (and keyboard-focusable) to the full
+// quiz-statistics page. A div, not an anchor, so the per-quiz links nest legally.
+function MostPlayedBoard({ rows }) {
+  const router = useRouter();
   const [hover, setHover] = useState(false);
-  const anon = Number(anonymous) || 0;
-  if (!((weighted && weighted.length) || anon > 0)) return null;
-  const wtd = (weighted || []).map((u) => ({ name: u.username, val: Math.round(u.weighted || 0).toLocaleString() })).slice(0, 5);
+  const go = () => router.push('/quizzes/stats');
   return (
-    <Link href="/leaderboard" onMouseEnter={() => setHover(true)} onMouseLeave={() => setHover(false)} className="champ-link" style={{ boxShadow: hover ? `5px 5px 0 ${COLORS.ember}` : `3px 3px 0 ${COLORS.ember}`, transform: hover ? 'translate(-2px, -2px)' : 'none' }}>
-      <style>{`
-        .champ-link{display:block;text-decoration:none;margin-bottom:20px;background:${COLORS.paper};border:1.5px solid ${COLORS.ink};transition:all 0.2s ease;padding:10px 16px 12px;}
-        .champ-eyebrow{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:3px;}
-        .champ-kicker{font-family:'DM Mono',monospace;font-size:10.5px;font-weight:700;letter-spacing:0.22em;text-transform:uppercase;color:${COLORS.ember};}
-        .champ-cta{font-family:'DM Mono',monospace;font-size:9.5px;letter-spacing:0.14em;text-transform:uppercase;color:${COLORS.faded};white-space:nowrap;}
-        .champ-rule1{border-bottom:1px solid ${COLORS.ink};}
-        .champ-rule2{border-bottom:2px solid ${COLORS.ember};margin-bottom:10px;}
-        .champ-row{display:flex;align-items:center;gap:18px;flex-wrap:wrap;}
-        .champ-rtitle{font-family:'Fraunces',serif;font-weight:600;font-size:13.5px;letter-spacing:-0.01em;color:${COLORS.ink};white-space:nowrap;}
-        .champ-tops{display:flex;flex:1 1 auto;align-items:center;justify-content:center;gap:28px;flex-wrap:wrap;min-width:0;}
-        .champ-top{display:inline-flex;align-items:center;gap:8px;min-width:0;}
-        .champ-lrank{flex:none;width:19px;height:19px;border-radius:50%;border:1.25px solid ${COLORS.ink};display:flex;align-items:center;justify-content:center;font-family:'DM Mono',monospace;font-size:10.5px;font-weight:500;color:${COLORS.ink};}
-        .champ-tname{font-family:'DM Mono',monospace;font-size:12px;font-weight:500;color:${COLORS.ink};overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:150px;}
-        .champ-tval{font-family:'Fraunces',serif;font-weight:700;font-size:15px;color:${COLORS.ink};}
-        .champ-anon{font-family:'DM Mono',monospace;font-size:11px;letter-spacing:0.16em;text-transform:uppercase;color:${COLORS.faded};white-space:nowrap;}
-        .champ-anon b{font-family:'Fraunces',serif;font-weight:700;font-size:14px;letter-spacing:0;color:${COLORS.ember};margin-left:6px;}
-        .champ-empty{font-family:'Fraunces',serif;font-style:italic;font-size:13px;color:${COLORS.faded};}
-        @media(max-width:560px){
-          .champ-row{align-items:flex-start;gap:8px;}
-          .champ-tops{gap:14px;}
-          .champ-tname{max-width:110px;}
-        }
-      `}</style>
-      <div className="champ-eyebrow">
-        <span className="champ-kicker">Quiz Champions</span>
-        <span className="champ-cta">View Leaderboard {'›'}</span>
+    <div
+      role="link"
+      tabIndex={0}
+      aria-label="View all quiz statistics"
+      onClick={go}
+      onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); go(); } }}
+      onMouseEnter={() => setHover(true)}
+      onMouseLeave={() => setHover(false)}
+      className="qz-board"
+      style={{ boxShadow: hover ? `5px 5px 0 ${COLORS.ember}` : `3px 3px 0 ${COLORS.ember}`, transform: hover ? 'translate(-2px, -2px)' : 'none' }}
+    >
+      <div className="qz-board-eyebrow">
+        <span className="qz-board-kicker">Most Played</span>
+        <span className="qz-board-cta">All Quiz Stats {'›'}</span>
       </div>
-      <div className="champ-rule1" />
-      <div className="champ-rule2" />
-      <div className="champ-row">
-        <span className="champ-rtitle">Accuracy-Weighted Plays</span>
-        {wtd.length > 0 ? (
-          <div className="champ-tops">
-            {wtd.map((r, i) => (
-              <span key={i} className="champ-top">
-                <span className="champ-lrank" style={{ background: i < 3 ? MEDAL[i] : 'transparent' }}>{i + 1}</span>
-                <span className="champ-tname">{r.name}</span>
-                <span className="champ-tval">{r.val}</span>
-              </span>
-            ))}
+      <div className="qz-board-rule1" />
+      <div className="qz-board-rule2" />
+      <div className="qz-board-rows">
+        {rows.length > 0 ? rows.map((r, i) => (
+          <Link key={r.id} href={`/quiz/${r.id}`} className="qz-brow" onClick={(e) => e.stopPropagation()} title={r.title}>
+            <span className="qz-brank" style={{ background: i < 3 ? MEDAL[i] : 'transparent' }}>{i + 1}</span>
+            <span className="qz-bname">{shortTitle(r.title)}</span>
+            <span className="qz-bval"><Count value={r.plays} /><small>plays</small></span>
+          </Link>
+        )) : (<div className="qz-board-empty">No plays recorded yet.</div>)}
+      </div>
+    </div>
+  );
+}
+
+// Right board: the top Accuracy-Weighted players. The whole card is one big
+// link to the full leaderboard, so no nested links here.
+function TopPlayersBoard({ players }) {
+  const [hover, setHover] = useState(false);
+  return (
+    <Link
+      href="/leaderboard"
+      onMouseEnter={() => setHover(true)}
+      onMouseLeave={() => setHover(false)}
+      className="qz-board"
+      style={{ boxShadow: hover ? `5px 5px 0 ${COLORS.ember}` : `3px 3px 0 ${COLORS.ember}`, transform: hover ? 'translate(-2px, -2px)' : 'none', color: COLORS.ink }}
+    >
+      <div className="qz-board-eyebrow">
+        <span className="qz-board-kicker">Top Players</span>
+        <span className="qz-board-cta">View Leaderboard {'›'}</span>
+      </div>
+      <div className="qz-board-rule1" />
+      <div className="qz-board-rule2" />
+      <div className="qz-board-rows">
+        {players.length > 0 ? players.map((p, i) => (
+          <div key={i} className="qz-brow">
+            <span className="qz-brank" style={{ background: i < 3 ? MEDAL[i] : 'transparent' }}>{i + 1}</span>
+            <span className="qz-bname">{p.name}</span>
+            <span className="qz-bval">{p.val}</span>
           </div>
-        ) : (<span className="champ-empty">No ranked players yet</span>)}
-        {anon > 0 && (<span className="champ-anon" style={{ marginLeft: 'auto' }}>Anonymous Plays:<b><Count value={anon} /></b></span>)}
+        )) : (<div className="qz-board-empty">No ranked players yet.</div>)}
       </div>
     </Link>
   );
@@ -193,27 +250,21 @@ export default function QuizHomeClient() {
   const [dept, setDept] = useState('all');
   const [sortBy, setSortBy] = useState('discover');
   const [sortOpen, setSortOpen] = useState(false);
-  const [moreOpen, setMoreOpen] = useState(false);
+  const [catOpen, setCatOpen] = useState(false);
   const [totals, setTotals] = useState({ total: 0, byQuiz: {}, recent7: {}, recent12h: {} });
   const [recent, setRecent] = useState([]);
   const [visitors, setVisitors] = useState(0);
   const [champions, setChampions] = useState({ completed: [], weighted: [], accuracy: [], anonymous: 0 });
   const seedRef = useRef((Date.now() & 0xffffffff) >>> 0);
-  // Horizontal-scroll affordance for the department ribbon (mobile cue arrows).
-  const deptNavRef = useRef(null);
-  const [navScroll, setNavScroll] = useState({ left: false, right: false });
+  // Close the category / sort dropdowns on an outside click or Escape.
+  const ribbonRef = useRef(null);
   useEffect(() => {
-    const el = deptNavRef.current;
-    if (!el) return undefined;
-    const update = () => {
-      const more = el.scrollWidth - el.clientWidth;
-      setNavScroll({ left: el.scrollLeft > 2, right: more > 2 && el.scrollLeft < more - 2 });
-    };
-    update();
-    el.addEventListener('scroll', update, { passive: true });
-    window.addEventListener('resize', update);
-    return () => { el.removeEventListener('scroll', update); window.removeEventListener('resize', update); };
-  }, [dept]);
+    const onDown = (e) => { if (ribbonRef.current && !ribbonRef.current.contains(e.target)) { setCatOpen(false); setSortOpen(false); } };
+    const onKey = (e) => { if (e.key === 'Escape') { setCatOpen(false); setSortOpen(false); } };
+    document.addEventListener('mousedown', onDown);
+    document.addEventListener('keydown', onKey);
+    return () => { document.removeEventListener('mousedown', onDown); document.removeEventListener('keydown', onKey); };
+  }, []);
 
   useEffect(() => {
     fetch('/api/quiz/totals').then((r) => r.json()).then((d) => { if (d && !d.error) setTotals({ total: d.total || 0, byQuiz: d.byQuiz || {}, recent7: d.recent7 || {}, recent12h: d.recent12h || {} }); }).catch(() => {});
@@ -259,14 +310,27 @@ export default function QuizHomeClient() {
     return c;
   }, []);
 
-  // Ribbon order: departments sorted by how many quizzes each holds (most first),
-  // then split across two stacked bars so every category is always visible.
-  // "All" leads the top bar, so the top bar holds one more chip than the bottom.
-  const { row1Depts, row2Depts } = useMemo(() => {
+  // Category dropdown options: "All" first, then every department ordered by
+  // how many quizzes it holds (most first), so the menu mirrors the old ribbon.
+  const deptOptions = useMemo(() => {
     const ordered = DEPT_NAV.slice().sort((a, b) => (counts[b.id] || 0) - (counts[a.id] || 0) || a.label.localeCompare(b.label));
-    const half = Math.ceil(ordered.length / 2);
-    return { row1Depts: ordered.slice(0, half), row2Depts: ordered.slice(half) };
+    return [{ id: 'all', label: 'All' }, ...ordered];
   }, [counts]);
+  const currentDeptLabel = dept === 'all' ? 'All' : (DEPT_LABEL[dept] || 'Category');
+
+  // Left board data: the three quizzes with the most all-time plays.
+  const topPlayed = useMemo(() => {
+    return QUIZZES
+      .map((q) => ({ id: q.id, title: cleanTitle(q.title), plays: totals.byQuiz[q.id] || 0 }))
+      .filter((q) => q.plays > 0)
+      .sort((a, b) => b.plays - a.plays || a.title.localeCompare(b.title))
+      .slice(0, 3);
+  }, [totals]);
+
+  // Right board data: top Accuracy-Weighted players (whole-number weighted score).
+  const topPlayers = useMemo(() => (champions.weighted || [])
+    .map((u) => ({ name: u.username, val: Math.round(u.weighted || 0).toLocaleString() }))
+    .slice(0, 3), [champions]);
 
   const sorted = useMemo(() => {
     const ql = query.trim().toLowerCase();
@@ -309,24 +373,14 @@ export default function QuizHomeClient() {
     return list;
   }, [query, dept, sortBy, totals]);
 
-  const navBtn = (id, label, count) => {
-    const active = dept === id;
-    // Active chip flips to that department's tile accent color (the same color
-    // the tiles use for their badge/hover), so the ribbon reads as a varied
-    // palette. 'all' has no department tile, so it keeps the brand ember.
-    const activeColor = (DEPT_COLOR[id] || {}).c || COLORS.ember;
-    return (
-      <button key={id} onClick={() => { setDept(id); setMoreOpen(false); }} style={{ flex: '1 0 auto', background: active ? activeColor : 'transparent', color: COLORS.cream, border: 'none', borderRight: '1px solid rgba(244,237,224,0.18)', height: 42, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6, padding: '0 18px', fontFamily: 'DM Mono, monospace', fontSize: 10.5, letterSpacing: '0.2em', textTransform: 'uppercase', fontWeight: 600, cursor: 'pointer', whiteSpace: 'nowrap' }}>
-        {label}<span style={{ opacity: 0.6 }}>{count || 0}</span>
-      </button>
-    );
-  };
-
   return (
     <div style={{ minHeight: '100vh', background: COLORS.cream, color: COLORS.ink, position: 'relative', overflow: 'clip' }}>
       <Grain />
       <div style={{ position: 'relative', zIndex: 2 }}>
-        <header style={{ padding: '48px 24px 18px', maxWidth: 1200, margin: '0 auto' }}>
+        <header style={{ padding: '32px 24px 18px', maxWidth: 1200, margin: '0 auto' }}>
+          <Link href="/" style={{ display: 'inline-flex', alignItems: 'center', gap: 6, fontFamily: 'DM Mono, monospace', fontSize: 11, letterSpacing: '0.2em', textTransform: 'uppercase', fontWeight: 600, color: COLORS.ink, textDecoration: 'none', marginBottom: 18, padding: '8px 0' }}>
+            <ArrowLeft size={14} strokeWidth={2.5} /> Top 10 Lists
+          </Link>
           <div className="cg-head">
             <h1 style={{ fontFamily: 'Fraunces, serif', fontWeight: 600, fontSize: 'clamp(40px, 9vw, 84px)', lineHeight: 0.9, letterSpacing: '-0.015em', margin: 0, fontVariationSettings: '"SOFT" 100', color: COLORS.ink, whiteSpace: 'nowrap' }}>
               Source<br /><span style={{ fontStyle: 'italic', fontWeight: 400, color: COLORS.ember }}>of</span> Truths
@@ -344,25 +398,37 @@ export default function QuizHomeClient() {
             .cg-tagline{font-family:'DM Mono',monospace;font-size:clamp(9px,1.1vw,11px);letter-spacing:0.2em;text-transform:uppercase;font-weight:700;color:${COLORS.ink};text-align:right;margin-bottom:8px;line-height:1.4;}
             .cg-blurb{font-family:'DM Sans',sans-serif;font-size:clamp(11px,1.25vw,13px);line-height:1.5;color:${COLORS.ink};text-align:right;max-width:520px;margin-left:auto;margin-bottom:10px;}
             @media(max-width:640px){.cg-head{flex-direction:column;align-items:stretch;gap:14px;}.cg-head-col{margin-bottom:0;}.cg-tagline{text-align:left;}.cg-blurb{text-align:left;max-width:none;margin-left:0;font-size:14px;}}
-            .cg-qcontrols{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-bottom:20px;}.cg-qcontrols>*{height:42px;min-width:0;}
-            @media(max-width:760px){.cg-qcontrols{grid-template-columns:1fr 1fr;}.cg-q-search{grid-column:1 / -1;}.cg-q-sort{grid-column:1 / -1;}.cg-q-actions{grid-column:1 / -1;}.cg-q-search input{font-size:16px !important;}}
             .qz-stats{margin-top:16px;display:flex;align-items:baseline;flex-wrap:nowrap;white-space:nowrap;gap:16px;font-family:'DM Mono',monospace;font-size:11px;letter-spacing:0.15em;text-transform:uppercase;color:${COLORS.faded};}
             .qz-tape{flex:1 1 auto;min-width:0;overflow:hidden;margin-left:8px;}
             .qz-tape-track{display:inline-block;white-space:nowrap;animation-name:qz-tape-scroll;animation-timing-function:linear;animation-iteration-count:infinite;will-change:transform;}
             .qz-tape-track:hover{animation-play-state:paused;}
             @keyframes qz-tape-scroll{from{transform:translateX(0);}to{transform:translateX(-50%);}}
             @media(max-width:760px){.qz-tape{display:none;}}
-            .qz-deptnav{scrollbar-width:none;-ms-overflow-style:none;}.qz-deptnav::-webkit-scrollbar{display:none;}
-            @keyframes qzNavNudge{0%,100%{transform:translate(0,-50%);}50%{transform:translate(3px,-50%);}}
-            @keyframes qzNavNudgeL{0%,100%{transform:translate(0,-50%);}50%{transform:translate(-3px,-50%);}}
-            .qz-navcue{position:absolute;top:50%;z-index:2;display:flex;align-items:center;justify-content:center;width:26px;height:26px;border-radius:50%;background:${COLORS.ember};color:${COLORS.cream};box-shadow:0 1px 4px rgba(26,22,17,0.45);pointer-events:none;font-size:15px;line-height:1;}
-            .qz-navcue-r{right:18px;animation:qzNavNudge 1.4s ease-in-out infinite;}
-            .qz-navcue-l{left:18px;animation:qzNavNudgeL 1.4s ease-in-out infinite;}
-            @media(min-width:760px){.qz-navcue{display:none;}}
             .qz-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:16px;}
             @media(max-width:1000px){.qz-grid{grid-template-columns:repeat(3,minmax(0,1fr));}}
             @media(max-width:760px){.qz-grid{grid-template-columns:repeat(2,minmax(0,1fr));}}
             @media(max-width:480px){.qz-grid{grid-template-columns:1fr;}}
+            ${boardCss}
+            .qz-ribbon{display:flex;align-items:stretch;flex-wrap:wrap;background:${COLORS.ink};border-bottom:3px solid ${COLORS.ember};}
+            .qz-rb-item{position:relative;display:flex;}
+            .qz-rb-btn{display:flex;align-items:center;gap:8px;height:46px;background:transparent;color:${COLORS.cream};border:none;border-right:1px solid rgba(244,237,224,0.18);padding:0 18px;font-family:'DM Mono',monospace;font-size:10.5px;letter-spacing:0.18em;text-transform:uppercase;font-weight:600;cursor:pointer;white-space:nowrap;}
+            .qz-rb-btn .qz-rb-chev{transition:transform 0.15s;}
+            .qz-rb-search{flex:1 1 220px;min-width:160px;display:flex;align-items:center;position:relative;border-right:1px solid rgba(244,237,224,0.18);}
+            .qz-rb-search input{width:100%;height:46px;box-sizing:border-box;padding:0 34px 0 40px;background:transparent;border:none;outline:none;font-family:'DM Sans',sans-serif;font-size:14px;color:${COLORS.cream};}
+            .qz-rb-search input::placeholder{color:rgba(244,237,224,0.55);}
+            .qz-rb-req{display:flex;align-items:center;justify-content:center;gap:6px;height:46px;background:${COLORS.ember};color:${COLORS.cream};padding:0 20px;font-family:'DM Mono',monospace;font-size:10.5px;letter-spacing:0.14em;text-transform:uppercase;font-weight:700;text-decoration:none;white-space:nowrap;}
+            .qz-pop{position:absolute;top:calc(100% + 6px);left:0;z-index:40;background:${COLORS.cream};border:1.5px solid ${COLORS.ink};box-shadow:0 10px 24px rgba(26,22,17,0.25);}
+            .qz-pop-sort{min-width:210px;}
+            .qz-pop-cat{width:max(260px,100%);display:flex;flex-wrap:wrap;gap:8px;padding:14px 16px 16px;}
+            .qz-pop-item{width:100%;display:flex;align-items:center;border:none;padding:10px 14px;font-family:'DM Mono',monospace;font-size:10px;letter-spacing:0.16em;text-transform:uppercase;font-weight:600;cursor:pointer;text-align:left;background:transparent;color:${COLORS.ink};}
+            .qz-chip{display:inline-flex;align-items:center;gap:7px;border:1.5px solid ${COLORS.ink};padding:8px 14px;font-family:'DM Mono',monospace;font-size:10.5px;letter-spacing:0.14em;text-transform:uppercase;font-weight:700;cursor:pointer;}
+            @media(max-width:640px){
+              .qz-rb-item{flex:1 1 50%;}
+              .qz-rb-btn{flex:1 1 auto;justify-content:center;}
+              .qz-rb-search{flex:1 1 100%;order:5;border-right:none;border-top:1px solid rgba(244,237,224,0.18);}
+              .qz-rb-req{flex:1 1 100%;order:4;border-top:1px solid rgba(244,237,224,0.18);}
+              .qz-rb-search input{font-size:16px;}
+            }
           `}</style>
           <div className="qz-stats">
             <span>{QUIZZES.length} quizzes</span>
@@ -375,7 +441,7 @@ export default function QuizHomeClient() {
                     <span key={dup} aria-hidden={dup === 1 ? 'true' : undefined}>
                       {recentEntries.map((e, i) => (
                         <Link key={`${dup}-${i}`} href={`/quiz/${e.quizId}`} style={{ color: COLORS.ember, textDecoration: 'none' }}>
-                          {e.text}<span aria-hidden="true" style={{ color: COLORS.faded, padding: '0 14px' }}>{'\u25C6'}</span>
+                          {e.text}<span aria-hidden="true" style={{ color: COLORS.faded, padding: '0 14px' }}>{'◆'}</span>
                         </Link>
                       ))}
                     </span>
@@ -391,51 +457,55 @@ export default function QuizHomeClient() {
             <filter id="qz-nav-grain"><feTurbulence type="fractalNoise" baseFrequency="0.9" numOctaves="2" stitchTiles="stitch" /><feColorMatrix values="0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  0 0 0 0.6 0" /></filter>
             <rect width="100%" height="100%" filter="url(#qz-nav-grain)" />
           </svg>
-          <div style={{ maxWidth: 1200, margin: '0 auto', padding: '0 16px', position: 'relative' }}>
-            <div ref={deptNavRef} className="qz-deptnav" style={{ display: 'flex', alignItems: 'stretch', overflowX: 'auto', background: COLORS.ink, borderBottom: '1px solid rgba(244,237,224,0.22)' }}>
-              {navBtn('all', 'All', counts.all)}
-              {row1Depts.map((d) => navBtn(d.id, d.label, counts[d.id]))}
+          <div ref={ribbonRef} style={{ maxWidth: 1200, margin: '0 auto', padding: '0 16px', position: 'relative' }}>
+            <div className="qz-ribbon">
+              <div className="qz-rb-item">
+                <button type="button" className="qz-rb-btn" aria-haspopup="true" aria-expanded={catOpen} onClick={() => { setCatOpen((o) => !o); setSortOpen(false); }}>
+                  <span><span style={{ opacity: 0.7 }}>Category:</span> {currentDeptLabel}</span>
+                  <ChevronDown className="qz-rb-chev" size={14} strokeWidth={2.5} style={{ transform: catOpen ? 'rotate(180deg)' : 'none' }} />
+                </button>
+                {catOpen && (
+                  <div className="qz-pop qz-pop-cat" role="menu">
+                    {deptOptions.map((o) => {
+                      const active = dept === o.id;
+                      return (
+                        <button key={o.id} role="menuitem" className="qz-chip" onClick={() => { setDept(o.id); setCatOpen(false); }} style={{ background: active ? COLORS.ember : COLORS.paper, color: active ? COLORS.cream : COLORS.ink }}>
+                          {o.label}<span style={{ opacity: 0.55, marginLeft: 2 }}>{counts[o.id] || 0}</span>
+                        </button>
+                      );
+                    })}
+                  </div>
+                )}
+              </div>
+              <div className="qz-rb-item">
+                <button type="button" className="qz-rb-btn" aria-haspopup="true" aria-expanded={sortOpen} onClick={() => { setSortOpen((o) => !o); setCatOpen(false); }}>
+                  <span><span style={{ opacity: 0.7 }}>Sort:</span> {(SORTS.find((o) => o.id === sortBy) || {}).short || 'Discover'}</span>
+                  <ChevronDown className="qz-rb-chev" size={14} strokeWidth={2.5} style={{ transform: sortOpen ? 'rotate(180deg)' : 'none' }} />
+                </button>
+                {sortOpen && (
+                  <div className="qz-pop qz-pop-sort" role="menu">
+                    {SORTS.map((opt, i) => {
+                      const active = sortBy === opt.id;
+                      return (<button key={opt.id} role="menuitem" className="qz-pop-item" onClick={() => { setSortBy(opt.id); setSortOpen(false); }} style={{ background: active ? COLORS.ink : 'transparent', color: active ? COLORS.cream : COLORS.ink, borderTop: i === 0 ? 'none' : `0.5px solid ${COLORS.paper}` }}>{opt.label}</button>);
+                    })}
+                  </div>
+                )}
+              </div>
+              <div className="qz-rb-search">
+                <Search size={16} strokeWidth={2.5} style={{ position: 'absolute', left: 14, top: '50%', transform: 'translateY(-50%)', color: 'rgba(244,237,224,0.6)' }} />
+                <input type="text" value={query} onChange={(e) => setQuery(e.target.value)} placeholder="Search quizzes" />
+                {query && (<button onClick={() => setQuery('')} aria-label="Clear search" style={{ position: 'absolute', right: 10, top: '50%', transform: 'translateY(-50%)', background: 'transparent', border: 'none', color: 'rgba(244,237,224,0.7)', cursor: 'pointer', padding: 6, display: 'flex' }}><X size={16} strokeWidth={2.5} /></button>)}
+              </div>
+              <Link href="/request" className="qz-rb-req">Request a Quiz</Link>
             </div>
-            <div className="qz-deptnav" style={{ display: 'flex', alignItems: 'stretch', overflowX: 'auto', background: COLORS.ink, borderBottom: `3px solid ${COLORS.ember}` }}>
-              {row2Depts.map((d) => navBtn(d.id, d.label, counts[d.id]))}
-            </div>
-            {navScroll.left && <span aria-hidden="true" className="qz-navcue qz-navcue-l">&#8249;</span>}
-            {navScroll.right && <span aria-hidden="true" className="qz-navcue qz-navcue-r">&#8250;</span>}
           </div>
         </nav>
 
         <section style={{ maxWidth: 1200, margin: '0 auto', padding: '20px 16px 64px' }}>
-          <div className="cg-qcontrols">
-            <div className="cg-q-search" style={{ position: 'relative', minWidth: 0 }}>
-              <Search size={16} strokeWidth={2.5} style={{ position: 'absolute', left: 14, top: '50%', transform: 'translateY(-50%)', color: COLORS.faded }} />
-              <input type="text" value={query} onChange={(e) => setQuery(e.target.value)} placeholder="Search quizzes" style={{ width: '100%', height: '100%', boxSizing: 'border-box', padding: '0 16px 0 42px', background: COLORS.paper, border: `1.5px solid ${COLORS.ink}`, fontFamily: 'DM Sans, sans-serif', fontSize: 14, color: COLORS.ink, outline: 'none' }} />
-              {query && (<button onClick={() => setQuery('')} aria-label="Clear search" style={{ position: 'absolute', right: 10, top: '50%', transform: 'translateY(-50%)', background: 'transparent', border: 'none', color: COLORS.faded, cursor: 'pointer', padding: 6, display: 'flex' }}><X size={16} strokeWidth={2.5} /></button>)}
-            </div>
-            <div className="cg-q-sort" style={{ position: 'relative', minWidth: 0 }} onClick={(e) => e.stopPropagation()}>
-              <button onClick={() => { setSortOpen((o) => !o); setMoreOpen(false); }} aria-haspopup="true" aria-expanded={sortOpen} style={{ position: 'relative', width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, background: COLORS.ink, color: COLORS.cream, border: `1.5px solid ${COLORS.ink}`, padding: '0 34px', fontFamily: 'DM Mono, monospace', fontSize: 11, letterSpacing: '0.14em', textTransform: 'uppercase', fontWeight: 600, cursor: 'pointer', whiteSpace: 'nowrap', overflow: 'hidden' }}>
-                <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}><span style={{ opacity: 0.8 }}>Sort:</span> {(SORTS.find((o) => o.id === sortBy) || {}).short || 'Discover'}</span>
-                <ChevronDown size={14} strokeWidth={2.5} style={{ position: 'absolute', right: 14, top: '50%', transform: sortOpen ? 'translateY(-50%) rotate(180deg)' : 'translateY(-50%)', transition: 'transform 0.15s' }} />
-              </button>
-              {sortOpen && (
-                <div role="menu" style={{ position: 'absolute', top: 'calc(100% + 6px)', left: 0, zIndex: 30, minWidth: 200, background: COLORS.cream, border: `1.5px solid ${COLORS.ink}` }}>
-                  {SORTS.map((opt, i) => {
-                    const active = sortBy === opt.id;
-                    return (<button key={opt.id} role="menuitem" onClick={() => { setSortBy(opt.id); setSortOpen(false); }} style={{ width: '100%', display: 'flex', alignItems: 'center', border: 'none', padding: '10px 14px', fontFamily: 'DM Mono, monospace', fontSize: 10, letterSpacing: '0.16em', textTransform: 'uppercase', fontWeight: 600, cursor: 'pointer', textAlign: 'left', background: active ? COLORS.ink : 'transparent', color: active ? COLORS.cream : COLORS.ink, borderTop: i === 0 ? 'none' : `0.5px solid ${COLORS.paper}` }}>{opt.label}</button>);
-                  })}
-                </div>
-              )}
-            </div>
-            <div className="cg-q-actions" style={{ display: 'flex', gap: 8, minWidth: 0 }}>
-              <Link href="/request" style={{ flex: 1, minWidth: 0, height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6, background: COLORS.ember, color: COLORS.cream, border: `1.5px solid ${COLORS.ink}`, padding: '0 8px', fontFamily: 'DM Mono, monospace', fontSize: 11, letterSpacing: '0.08em', textTransform: 'uppercase', fontWeight: 600, textDecoration: 'none', whiteSpace: 'nowrap', overflow: 'hidden', boxShadow: `3px 3px 0 ${COLORS.ink}` }}>
-                Request a Quiz
-              </Link>
-              <Link href="/" style={{ flex: 1, minWidth: 0, height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6, background: COLORS.ink, color: COLORS.cream, border: `1.5px solid ${COLORS.ink}`, padding: '0 8px', fontFamily: 'DM Mono, monospace', fontSize: 11, letterSpacing: '0.08em', textTransform: 'uppercase', fontWeight: 600, textDecoration: 'none', whiteSpace: 'nowrap', overflow: 'hidden', boxShadow: `3px 3px 0 ${COLORS.ink}` }}>
-                Top 10 Lists
-              </Link>
-            </div>
+          <div className="qz-boards">
+            <MostPlayedBoard rows={topPlayed} />
+            <TopPlayersBoard players={topPlayers} />
           </div>
-
-          <ChampionsPanel weighted={champions.weighted} anonymous={champions.anonymous} />
 
           <DailyNewsBanner totals={totals} />
 
