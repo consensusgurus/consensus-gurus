@@ -21,6 +21,7 @@ const MEDAL = ['#caa12e', '#9c968a', '#b1763f'];
 
 const COLS = [
   { id: 'plays', label: 'Plays', num: true },
+  { id: 'plays24h', label: 'Last 24h', num: true },
   { id: 'players', label: 'Players', num: true },
   { id: 'avgScorePct', label: 'Avg Score', num: true },
   { id: 'avgTime', label: 'Avg Time', num: true },
@@ -140,6 +141,7 @@ export default function QuizStatsClient() {
                         </Link>
                       </td>
                       <td className="qs-col-num"><span className="qs-num"><Count value={r.plays} /></span></td>
+                      <td className="qs-col-num"><span className="qs-num"><Count value={r.plays24h} /></span></td>
                       <td className="qs-col-num"><span className="qs-num"><Count value={r.players} /></span></td>
                       <td className="qs-col-num"><span className="qs-num">{r.avgScorePct}%<small>{r.avgScore}/{r.avgTotal}</small></span></td>
                       <td className="qs-col-num"><span className="qs-num">{fmtTime(r.avgTime)}</span></td>
