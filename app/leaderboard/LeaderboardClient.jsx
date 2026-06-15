@@ -9,10 +9,10 @@ import Footer from '../Footer';
 const MEDAL = ['#caa12e', '#9c968a', '#b1763f'];
 
 function RankRow({ rank, name, value }) {
-  const medal = rank <= 3 ? MEDAL[rank - 1] : null;
+  const medal = rank != null && rank <= 3 ? MEDAL[rank - 1] : null;
   return (
     <div style={{ display: 'flex', alignItems: 'center', gap: 14, padding: '11px 4px', borderBottom: `1px solid rgba(26,22,17,0.12)` }}>
-      <span style={{ flex: 'none', width: 30, height: 30, borderRadius: '50%', background: medal || 'transparent', border: medal ? `1.5px solid ${COLORS.ink}` : `1.5px solid rgba(26,22,17,0.2)`, display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: 'DM Mono, monospace', fontSize: 13, fontWeight: 500, color: medal ? COLORS.ink : COLORS.faded }}>{rank}</span>
+      <span style={{ flex: 'none', width: 30, height: 30, borderRadius: '50%', background: medal || 'transparent', border: medal ? `1.5px solid ${COLORS.ink}` : `1.5px solid rgba(26,22,17,0.2)`, display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: 'DM Mono, monospace', fontSize: 13, fontWeight: 500, color: medal ? COLORS.ink : COLORS.faded }}>{rank != null ? rank : ''}</span>
       <span style={{ flex: '1 1 auto', minWidth: 0, fontFamily: 'DM Mono, monospace', fontSize: 14, fontWeight: 500, color: COLORS.ink, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{name}</span>
       <span style={{ flex: 'none', fontFamily: 'Fraunces, serif', fontWeight: 700, fontSize: 17, color: COLORS.ink }}>{value}</span>
     </div>
@@ -29,7 +29,7 @@ function Column({ icon: Icon, title, note, rows, empty }) {
       <div style={{ fontFamily: 'DM Mono, monospace', fontSize: 10.5, letterSpacing: '0.1em', textTransform: 'uppercase', color: COLORS.faded, marginBottom: 12 }}>{note}</div>
       <div style={{ borderTop: `2px solid ${COLORS.ember}` }}>
         {rows.length > 0 ? rows.map((r, i) => (
-          <RankRow key={`${r.name}-${i}`} rank={i + 1} name={r.name} value={r.value} />
+          <RankRow key={`${r.name}-${i}`} rank={r.rank !== undefined ? r.rank : i + 1} name={r.name} value={r.value} />
         )) : (
           <div style={{ padding: '24px 4px', fontFamily: 'Fraunces, serif', fontStyle: 'italic', fontSize: 15, color: COLORS.faded }}>{empty}</div>
         )}
@@ -39,18 +39,25 @@ function Column({ icon: Icon, title, note, rows, empty }) {
 }
 
 export default function LeaderboardClient() {
-  const [data, setData] = useState({ completed: [], weighted: [], accuracy: [], minQuizzes: 5 });
+  const [data, setData] = useState({ completed: [], weighted: [], accuracy: [], minQuizzes: 5, anonymous: 0 });
   const [loaded, setLoaded] = useState(false);
 
   useEffect(() => {
     fetch('/api/quiz/champions')
       .then((r) => r.json())
-      .then((d) => { if (d && !d.error) setData({ completed: d.completed || [], weighted: d.weighted || [], accuracy: d.accuracy || [], minQuizzes: d.minQuizzes || 5 }); })
+      .then((d) => { if (d && !d.error) setData({ completed: d.completed || [], weighted: d.weighted || [], accuracy: d.accuracy || [], minQuizzes: d.minQuizzes || 5, anonymous: d.anonymous || 0 }); })
       .catch(() => {})
       .finally(() => setLoaded(true));
   }, []);
 
-  const completedRows = data.completed.map((u) => ({ name: u.username, value: u.quizzes.toLocaleString() }));
+  // Quizzes Played (most plays): top 5 signed-up players, then an aggregate
+  // "Anonymous" row in the 6th slot for all plays not tied to a registered
+  // account. The Anonymous row carries no rank number (rank: null).
+  const playedRows = data.completed.map((u, i) => ({ name: u.username, value: u.quizzes.toLocaleString(), rank: i + 1 }));
+  const anonRow = { name: 'Anonymous', value: (data.anonymous || 0).toLocaleString(), rank: null };
+  const completedRows = playedRows.length >= 5
+    ? [...playedRows.slice(0, 5), anonRow, ...playedRows.slice(6)]
+    : [...playedRows, anonRow];
   const weightedRows = data.weighted.map((u) => ({ name: u.username, value: u.weighted.toFixed(1) }));
   const accuracyRows = data.accuracy.map((u) => ({ name: u.username, value: `${u.accuracy.toFixed(1)}%` }));
 
