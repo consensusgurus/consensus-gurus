@@ -1,7 +1,7 @@
 'use client';
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { ArrowLeft, Trophy, Scale, Play, Check, CheckCheck } from 'lucide-react';
+import { ArrowLeft, Trophy, Play, Check, CheckCheck } from 'lucide-react';
 import { COLORS } from '@/lib/data';
 import Grain from '../Grain';
 import Footer from '../Footer';
@@ -42,13 +42,13 @@ function Column({ icon: Icon, title, anon, note, rows, empty }) {
 }
 
 export default function LeaderboardClient() {
-  const [data, setData] = useState({ totalPlays: [], completed: [], weighted: [], correctAnswers: [], perfectQuizzes: [], minQuizzes: 5, anonPlays: 0, anonCompleted: 0, anonWeighted: 0 });
+  const [data, setData] = useState({ totalPlays: [], completed: [], correctAnswers: [], perfectQuizzes: [], minQuizzes: 5, anonPlays: 0, anonCompleted: 0 });
   const [loaded, setLoaded] = useState(false);
 
   useEffect(() => {
     fetch('/api/quiz/champions')
       .then((r) => r.json())
-      .then((d) => { if (d && !d.error) setData({ totalPlays: d.totalPlays || [], completed: d.completed || [], weighted: d.weighted || [], correctAnswers: d.correctAnswers || [], perfectQuizzes: d.perfectQuizzes || [], minQuizzes: d.minQuizzes || 5, anonPlays: d.anonPlays || 0, anonCompleted: d.anonCompleted || 0, anonWeighted: d.anonWeighted || 0 }); })
+      .then((d) => { if (d && !d.error) setData({ totalPlays: d.totalPlays || [], completed: d.completed || [], correctAnswers: d.correctAnswers || [], perfectQuizzes: d.perfectQuizzes || [], minQuizzes: d.minQuizzes || 5, anonPlays: d.anonPlays || 0, anonCompleted: d.anonCompleted || 0 }); })
       .catch(() => {})
       .finally(() => setLoaded(true));
   }, []);
@@ -58,7 +58,6 @@ export default function LeaderboardClient() {
   const correctRows = data.correctAnswers.map((u) => ({ name: u.username, value: num(u.correct) }));
   const completedRows = data.completed.map((u) => ({ name: u.username, value: num(u.quizzes) }));
   const perfectRows = data.perfectQuizzes.map((u) => ({ name: u.username, value: num(u.perfect) }));
-  const weightedRows = data.weighted.map((u) => ({ name: u.username, value: u.weighted.toFixed(1) }));
 
   // Metric-specific anonymous totals, shown as a parenthetical in each column title.
   const anonPlaysStr = `${num(data.anonPlays)} anonymous`;
@@ -77,7 +76,7 @@ export default function LeaderboardClient() {
             The <span style={{ fontStyle: 'italic', fontWeight: 400, color: COLORS.ember }}>All-Time</span> Leaderboard
           </h1>
           <p style={{ fontFamily: 'Fraunces, serif', fontStyle: 'italic', fontSize: 17, lineHeight: 1.5, color: COLORS.faded, margin: 0, maxWidth: 720 }}>
-            Every signed-up player, ranked five ways: total plays, correct answers banked, distinct quizzes finished, quizzes scored a perfect 100%, and quality-adjusted volume. Anonymous totals are noted where available. Sign up before a quiz to put your name in the running.
+            Every signed-up player, ranked four ways: total plays, correct answers banked, distinct quizzes finished, and quizzes scored a perfect 100%. Anonymous totals are noted where available. Sign up before a quiz to put your name in the running.
           </p>
           <div style={{ borderBottom: `1px solid ${COLORS.ink}`, marginTop: 22 }} />
           <div style={{ borderBottom: `2px solid ${COLORS.ember}` }} />
@@ -90,16 +89,14 @@ export default function LeaderboardClient() {
               <Column icon={Check} title="Most Correct Answers" note="Correct answers, all-time" rows={correctRows} empty="No answers recorded yet." />
               <Column icon={Trophy} title="Unique Quizzes Played" anon={anonCompletedStr} note="Distinct quizzes finished" rows={completedRows} empty="No completed quizzes yet." />
               <Column icon={CheckCheck} title="Fully Completed Quizzes" note="Distinct quizzes scored 100%" rows={perfectRows} empty="No perfect runs yet." />
-              <Column icon={Scale} title="Accuracy-Weighted" note="Accuracy × quizzes completed" rows={weightedRows} empty="No completed quizzes yet." />
             </div>
           ) : (
             <div style={{ textAlign: 'center', padding: '60px 24px', fontFamily: 'Fraunces, serif', fontStyle: 'italic', fontSize: 18, color: COLORS.faded }}>Loading the standings...</div>
           )}
           <style>{`
-            .lb-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:20px;}
+            .lb-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:22px;}
             .lb-title{min-height:46px;}
-            @media(max-width:1100px){.lb-grid{grid-template-columns:1fr 1fr 1fr;gap:28px;}}
-            @media(max-width:760px){.lb-grid{grid-template-columns:1fr 1fr;gap:30px;}}
+            @media(max-width:900px){.lb-grid{grid-template-columns:1fr 1fr;gap:30px;}}
             @media(max-width:520px){.lb-grid{grid-template-columns:1fr;gap:34px;}.lb-title{min-height:0;}}
           `}</style>
         </section>

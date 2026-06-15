@@ -30,20 +30,22 @@ export async function GET() {
     const cutoffIso = new Date(startOfEasternTodayUTC()).toISOString();
     const { data, error } = await supabaseAdmin
       .from('quiz_results')
-      .select('user_id, username, score, created_at')
+      .select('user_id, username, score, created_at, total')
       .gte('created_at', cutoffIso)
       .order('created_at', { ascending: false })
       .limit(50000);
     if (error) {
       console.error('quiz today error', error);
-      return NextResponse.json({ leaders: [], correctToday: 0, playsToday: 0 });
+      return NextResponse.json({ leaders: [], correctToday: 0, perfectToday: 0, playsToday: 0 });
     }
     const rows = data || [];
     let correctToday = 0;
+    let perfectToday = 0;
     const byUser = new Map();
     for (const r of rows) {
       const sc = Number(r.score) || 0;
       correctToday += sc;
+      if (r.total > 0 && sc === Number(r.total)) perfectToday += 1;
       if (r.user_id) {
         const cur = byUser.get(r.user_id) || { username: r.username || 'Player', correct: 0 };
         cur.correct += sc;
@@ -54,8 +56,8 @@ export async function GET() {
     const leaders = [...byUser.values()]
       .sort((a, b) => b.correct - a.correct || String(a.username).localeCompare(String(b.username)))
       .slice(0, 5);
-    return NextResponse.json({ leaders, correctToday, playsToday: rows.length });
+    return NextResponse.json({ leaders, correctToday, perfectToday, playsToday: rows.length });
   } catch (e) {
-    return NextResponse.json({ leaders: [], correctToday: 0, playsToday: 0 });
+    return NextResponse.json({ leaders: [], correctToday: 0, perfectToday: 0, playsToday: 0 });
   }
 }
