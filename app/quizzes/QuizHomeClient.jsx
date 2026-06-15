@@ -2,7 +2,7 @@
 import React, { useState, useEffect, useMemo, useRef } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { Search, X, ChevronDown, ArrowLeft, Trophy, Clock, Flame, Sparkles, Check } from 'lucide-react';
+import { Search, X, ChevronDown, ArrowLeft, Trophy, Clock, Flame, Sparkles, Check, BarChart3 } from 'lucide-react';
 import { COLORS } from '@/lib/data';
 import { QUIZZES } from '@/lib/quizzes';
 import { fetchBootstrap } from '@/lib/api';
@@ -100,9 +100,9 @@ function QuizTile({ quiz, plays }) {
       onMouseLeave={() => setHover(false)}
       style={{ cursor: 'pointer', textDecoration: 'none', display: 'flex', flexDirection: 'column', background: hover ? '#e4dbc8' : COLORS.paper, color: COLORS.ink, border: `1.5px solid ${COLORS.ink}`, overflow: 'hidden', transition: 'all 0.2s ease', transform: hover ? 'translate(-2px, -2px)' : 'none', boxShadow: hover ? `3px 3px 0 ${accent.c}` : 'none' }}
     >
-      <div style={{ flex: '0 0 auto', height: 150, display: 'flex', flexDirection: 'column', justifyContent: 'center', gap: 16, padding: '0 18px', background: accent.t, borderBottom: `1.5px solid ${COLORS.ink}` }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-          <span style={{ flex: 'none', width: 46, height: 46, borderRadius: '50%', background: COLORS.cream, display: 'flex', alignItems: 'center', justifyContent: 'center' }}><Icon size={23} strokeWidth={2} aria-hidden="true" style={{ color: accent.c }} /></span>
+      <div style={{ flex: '0 0 auto', display: 'flex', flexDirection: 'column', gap: 8, padding: '14px 18px', background: accent.t, borderBottom: `1.5px solid ${COLORS.ink}` }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+          <span style={{ flex: 'none', width: 38, height: 38, borderRadius: '50%', background: COLORS.cream, display: 'flex', alignItems: 'center', justifyContent: 'center' }}><Icon size={20} strokeWidth={2} aria-hidden="true" style={{ color: accent.c }} /></span>
           <span style={{ flex: 'none', fontFamily: 'DM Mono, monospace', fontSize: 11, fontWeight: 700, letterSpacing: '0.2em', textTransform: 'uppercase', color: COLORS.cream, background: accent.c, padding: '5px 10px' }}>{deptLabel}</span>
         </div>
         <span style={{ fontFamily: 'DM Mono, monospace', fontSize: 11, letterSpacing: '0.16em', textTransform: 'uppercase', fontWeight: 600, color: accent.c }}>{countLabel}</span>
@@ -233,28 +233,18 @@ function QuizBoardWide({ kicker, cta, ctaHref, categories, mid }) {
   );
 }
 
-// Full-width row of three buttons: a rotating Featured Quiz, the latest Daily
-// Market Moving News Quiz, and the all-time player Leaderboard. The news button
-// finds the most recent daily-market-news-quiz-* entry so it always points at
-// today's edition without a hardcoded id. The Leaderboard button always shows.
+// Full-width row of three buttons: the latest Daily Market Moving News Quiz,
+// the all-time player Leaderboard, and Quiz Stats. The news button finds the
+// most recent daily-market-news-quiz-* entry so it always points at today's
+// edition without a hardcoded id. The Leaderboard and Quiz Stats buttons always show.
 function DailyNewsBanner({ totals }) {
-  const [hover, setHover] = useState(null); // 'trend' | 'news' | 'lb' | null
+  const [hover, setHover] = useState(null); // 'news' | 'lb' | 'stats' | null
   // Right button: the latest Daily Market Moving News Quiz edition.
   const newsQuiz = useMemo(() => {
     const cands = QUIZZES.filter((q) => /^(daily-market-news-quiz-|daily-business-quiz-)/.test(q.id || ''));
     cands.sort((a, b) => new Date(b.publishedAt || `${b.publishedDate || '1970-01-01'}T12:00:00Z`).getTime() - new Date(a.publishedAt || `${a.publishedDate || '1970-01-01'}T12:00:00Z`).getTime());
     return cands[0] || null;
   }, []);
-  // Left button: a Featured Quiz that rotates among all quizzes with at least
-  // three recorded plays (news quizzes excluded — they get their own button).
-  // A fresh one is picked each time the data loads, so it changes per visit.
-  const trendingQuiz = useMemo(() => {
-    const isNews = (id) => /^(daily-market-news-quiz-|daily-business-quiz-|daily-news-quiz-|weekly-business-quiz-|weekly-news-quiz-|earnings-reporter-quiz-|earnings-quiz-)/.test(id || '');
-    const cands = QUIZZES.filter((q) => q.id && !isNews(q.id) && (totals.byQuiz[q.id] || 0) >= 3);
-    if (!cands.length) return null;
-    return cands[Math.floor(Math.random() * cands.length)];
-  }, [totals]);
-
   const liftStyle = (active) => ({ boxShadow: active ? `5px 5px 0 ${COLORS.ink}` : `3px 3px 0 ${COLORS.ink}`, transform: active ? 'translate(-2px, -2px)' : 'none' });
   return (
     <div className="dn-wrap">
@@ -264,11 +254,6 @@ function DailyNewsBanner({ totals }) {
         .dn-label{font-family:'DM Mono',monospace;font-size:12px;font-weight:700;letter-spacing:0.18em;text-transform:uppercase;color:${COLORS.cream};white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
         @media(max-width:640px){.dn-wrap{flex-direction:column;gap:9px;}.dn-label{white-space:normal;text-align:center;}}
       `}</style>
-      {trendingQuiz && (
-        <Link href={`/quiz/${trendingQuiz.id}`} className="dn-btn" onMouseEnter={() => setHover('trend')} onMouseLeave={() => setHover(null)} style={liftStyle(hover === 'trend')}>
-          <span className="dn-label">{'▶'} Featured Quiz</span>
-        </Link>
-      )}
       {newsQuiz && (
         <Link href={`/quiz/${newsQuiz.id}`} className="dn-btn" onMouseEnter={() => setHover('news')} onMouseLeave={() => setHover(null)} style={liftStyle(hover === 'news')}>
           <span className="dn-label">{'▶'} Daily Market Moving News Quiz</span>
@@ -277,6 +262,10 @@ function DailyNewsBanner({ totals }) {
       <Link href="/leaderboard" className="dn-btn" onMouseEnter={() => setHover('lb')} onMouseLeave={() => setHover(null)} style={liftStyle(hover === 'lb')}>
         <Trophy size={15} strokeWidth={2.5} aria-hidden="true" style={{ flex: 'none' }} />
         <span className="dn-label">Leaderboard</span>
+      </Link>
+      <Link href="/quizzes/stats" className="dn-btn" onMouseEnter={() => setHover('stats')} onMouseLeave={() => setHover(null)} style={liftStyle(hover === 'stats')}>
+        <BarChart3 size={15} strokeWidth={2.5} aria-hidden="true" style={{ flex: 'none' }} />
+        <span className="dn-label">Quiz Stats</span>
       </Link>
     </div>
   );
@@ -428,8 +417,8 @@ export default function QuizHomeClient() {
     }));
     return [
       { id: 'leaders', label: "Today's Correct Answer Leaders", rows: leaderRows, empty: 'No correct answers yet today.', accent: '#c98a1b', tint: '#f3e3c8', icon: <Check size={12} strokeWidth={3} aria-hidden="true" /> },
-      { id: 'played', label: 'Most Played', rows: mostPlayed, empty: 'No plays recorded yet.', noMedals: true, accent: '#c0392b', tint: '#f3ddd8', icon: <Flame size={12} strokeWidth={2.5} aria-hidden="true" /> },
-      { id: 'lastplayed', label: 'Last Played', rows: lastPlayed, empty: 'No recent plays yet.', noMedals: true, accent: '#2f6f9f', tint: '#dce9f0', icon: <Clock size={12} strokeWidth={2.5} aria-hidden="true" /> },
+      { id: 'played', label: 'Most Played Quizzes', rows: mostPlayed, empty: 'No plays recorded yet.', noMedals: true, accent: '#c0392b', tint: '#f3ddd8', icon: <Flame size={12} strokeWidth={2.5} aria-hidden="true" /> },
+      { id: 'lastplayed', label: 'Last Played Quizzes', rows: lastPlayed, empty: 'No recent plays yet.', noMedals: true, accent: '#2f6f9f', tint: '#dce9f0', icon: <Clock size={12} strokeWidth={2.5} aria-hidden="true" /> },
     ];
   }, [totals, statById, recent, todayBoard]);
 
