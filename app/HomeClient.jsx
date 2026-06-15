@@ -1666,18 +1666,6 @@ export default function HomeClient() {
     });
   }, []);
 
-  // Remove the server-rendered SEO/loading fallback (#home-seo-fallback, set in
-  // app/page.js) once the live app is ready, so the crawler gets real homepage
-  // content while a human visitor transitions straight into the app with no
-  // flash. Runs after hydration, so removing the static node is safe.
-  useEffect(() => {
-    if (!loaded) return;
-    const el = typeof document !== 'undefined'
-      ? document.getElementById('home-seo-fallback')
-      : null;
-    if (el) el.remove();
-  }, [loaded]);
-
   // Count homepage landings in the visitors total, so visitors who bounce
   // without opening a list page are included. Logged under the pseudo
   // list id 'home' in the views table (totalViews sums every row), deduped
@@ -1722,16 +1710,149 @@ export default function HomeClient() {
             position: 'relative',
             zIndex: 2,
             minHeight: '100vh',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            fontFamily: 'Fraunces, serif',
-            fontStyle: 'italic',
-            fontSize: 18,
-            color: COLORS.faded,
+            overflowY: 'auto',
+            background: '#f4ede0',
+            color: '#2b2b2b',
           }}
         >
-          seeking truths...
+          {/* Branded loading splash (what a human briefly sees while the app
+              boots) followed by a crawlable index of every list (what search
+              engines read from the server HTML). React owns this entire tree,
+              so it swaps to <Home> cleanly with no manual DOM removal. */}
+          <div
+            style={{
+              minHeight: '100vh',
+              display: 'flex',
+              flexDirection: 'column',
+              alignItems: 'center',
+              justifyContent: 'center',
+              textAlign: 'center',
+              padding: '24px',
+            }}
+          >
+            <p
+              style={{
+                fontFamily: 'DM Mono, monospace',
+                textTransform: 'uppercase',
+                letterSpacing: '0.2em',
+                fontSize: 12,
+                color: '#c0392b',
+                margin: '0 0 14px',
+              }}
+            >
+              Source of Truths
+            </p>
+            <h1
+              style={{
+                fontFamily: 'Fraunces, serif',
+                fontWeight: 900,
+                fontSize: 'clamp(36px, 7vw, 60px)',
+                lineHeight: 1.04,
+                margin: '0 0 16px',
+              }}
+            >
+              Source of Truths
+            </h1>
+            <p
+              style={{
+                fontFamily: 'Fraunces, serif',
+                fontStyle: 'italic',
+                fontSize: 'clamp(18px, 2.4vw, 22px)',
+                color: '#6f6657',
+                margin: '0 0 26px',
+              }}
+            >
+              For all the important aspects of life.
+            </p>
+            <p
+              style={{
+                fontFamily: 'Fraunces, serif',
+                fontStyle: 'italic',
+                fontSize: 16,
+                color: '#9a8f7d',
+                margin: 0,
+              }}
+            >
+              seeking truths...
+            </p>
+          </div>
+
+          <div style={{ maxWidth: 920, margin: '0 auto', padding: '8px 24px 80px' }}>
+            <p
+              style={{
+                fontFamily: 'DM Sans, sans-serif',
+                fontSize: 17,
+                lineHeight: 1.6,
+                maxWidth: 680,
+                margin: '0 0 28px',
+              }}
+            >
+              Source of Truths is a collection of curated top-ten lists ranked by
+              expert consensus and reader votes. Each list blends rankings from
+              authoritative publications using Borda consensus scoring, then
+              layers live reader voting on top, so you can see what we all
+              actually agree on, from the best dive bars and pizza to luxury
+              resorts, films, books, and products.
+            </p>
+            {[
+              { type: 'food', label: 'Food & Drink' },
+              { type: 'travel', label: 'Travel & Hotels' },
+              { type: 'entertainment', label: 'Entertainment' },
+              { type: 'product', label: 'Products & Tech' },
+              { type: 'stores', label: 'Places & Shops' },
+              { type: 'other', label: 'More Lists' },
+            ].map(({ type, label }) => {
+              const seoLists = LISTS.filter((l) => l.type === type).sort((a, b) =>
+                (a.title || '').localeCompare(b.title || '')
+              );
+              if (seoLists.length === 0) return null;
+              return (
+                <section key={type} style={{ margin: '0 0 34px' }}>
+                  <h2
+                    style={{
+                      fontFamily: 'Fraunces, serif',
+                      fontWeight: 700,
+                      fontSize: 22,
+                      margin: '0 0 12px',
+                      borderBottom: '2px solid #c0392b',
+                      paddingBottom: 6,
+                    }}
+                  >
+                    {label}
+                  </h2>
+                  <ul
+                    style={{
+                      listStyle: 'none',
+                      margin: 0,
+                      padding: 0,
+                      columns: '2 280px',
+                      columnGap: 28,
+                    }}
+                  >
+                    {seoLists.map((l) => (
+                      <li
+                        key={l.id}
+                        style={{
+                          breakInside: 'avoid',
+                          margin: '0 0 7px',
+                          fontFamily: 'DM Sans, sans-serif',
+                          fontSize: 15,
+                          lineHeight: 1.4,
+                        }}
+                      >
+                        <a
+                          href={`/list/${l.id}`}
+                          style={{ color: '#2b2b2b', textDecoration: 'none' }}
+                        >
+                          {l.title}
+                        </a>
+                      </li>
+                    ))}
+                  </ul>
+                </section>
+              );
+            })}
+          </div>
         </div>
       ) : (
         <Home
