@@ -46,11 +46,13 @@ function keyHit(g, key) {
 // Resolve a raw guess to a company id, or null. Exact ticker match wins first;
 // otherwise the longest matching key across all companies wins (so "exxon mobil"
 // resolves to exxon, not mobil), and a company's `anti` list blocks a match.
-function matchCompany(raw, companies) {
+function matchCompany(raw, companies, autoMode) {
   const g = norm(raw);
   if (!g) return null;
+  // autoMode (live, every-keystroke): ignore 1-2 char tickers, which would
+  // otherwise fire mid-word (typing "tesla" would grab AT&T on the first "t").
   for (const id in companies) {
-    if ((companies[id].tk || []).some((t) => norm(t) === g)) return id;
+    if ((companies[id].tk || []).some((t) => norm(t) === g && (!autoMode || norm(t).length >= 3))) return id;
   }
   let best = null;
   let bestLen = -1;
@@ -219,7 +221,7 @@ export default function GridFillBoard({ quizId }) {
     setFound(new Set());
     setGuess('');
     setPhase('playing');
-    setHint(`Name a ${noun} — it fills every year it was a giant. Order doesn't matter.`);
+    setHint(`Name a ${noun} and it fills every year it was a giant. Order doesn't matter.`);
     setHintBad(false);
     startRef.current = Date.now();
     clearInterval(timerRef.current);
@@ -232,22 +234,7 @@ export default function GridFillBoard({ quizId }) {
     focusInput();
   }
 
-  function submitGuess(raw) {
-    if (phase !== 'playing') return;
-    const g = norm(raw);
-    if (!g) return;
-    const id = matchCompany(raw, companies);
-    if (!id) {
-      setHint(`No match for "${raw.trim()}".`);
-      setHintBad(true);
-      return;
-    }
-    if (foundRef.current.has(id)) {
-      setHint(`${companies[id].name} — already found.`);
-      setHintBad(false);
-      setGuess('');
-      return;
-    }
+  function acceptId(id) {
     const next = new Set(foundRef.current);
     next.add(id);
     foundRef.current = next;
@@ -256,11 +243,34 @@ export default function GridFillBoard({ quizId }) {
     setHintBad(false);
     let n = 0;
     columns.forEach((c) => (c.items || []).forEach((it) => { if (it.id === id) n++; }));
-    setHint(`Correct — ${companies[id].name} (${n} year${n > 1 ? 's' : ''}).`);
+    setHint(`Correct: ${companies[id].name} (${n} year${n > 1 ? 's' : ''}).`);
     setJustId(id);
     clearTimeout(justRef.current);
     justRef.current = setTimeout(() => setJustId(null), 900);
     if (next.size >= totalCompanies) { finish(true, next); }
+  }
+
+  // Live auto-accept: every keystroke. A correct company is taken the instant
+  // its name (or a 3+ char ticker) is typed, no Enter needed, and the box
+  // clears. No error noise while typing; misses are silent here.
+  function onType(v) {
+    if (phase === 'playing') {
+      const id = matchCompany(v, companies, true);
+      if (id && !foundRef.current.has(id)) { acceptId(id); return; }
+    }
+    setGuess(v);
+  }
+
+  // Explicit submit (Enter / Guess button): full matcher including short
+  // tickers, with not-found / already-found messaging.
+  function submitGuess(raw) {
+    if (phase !== 'playing') return;
+    const g = norm(raw);
+    if (!g) return;
+    const id = matchCompany(raw, companies);
+    if (!id) { setHint(`No match for "${raw.trim()}".`); setHintBad(true); return; }
+    if (foundRef.current.has(id)) { setHint(`${companies[id].name} already found.`); setHintBad(false); setGuess(''); return; }
+    acceptId(id);
   }
 
   function onKey(e) {
@@ -281,7 +291,7 @@ export default function GridFillBoard({ quizId }) {
     const elapsed = startRef.current ? Math.min(quiz.timeLimit, Math.round((Date.now() - startRef.current) / 1000)) : quiz.timeLimit;
     setLastElapsed(elapsed);
     setStats(recordResult(quizId, finalScore));
-    setHint(win ? `Perfect — all ${totalCells} cells in ${fmtTime(elapsed)}!` : `Done. You filled ${finalScore}/${totalCells} cells.`);
+    setHint(win ? `Perfect! All ${totalCells} cells in ${fmtTime(elapsed)}.` : `Done. You filled ${finalScore}/${totalCells} cells.`);
     setHintBad(!win);
     fetch('/api/quiz/result', {
       method: 'POST',
@@ -417,8 +427,8 @@ export default function GridFillBoard({ quizId }) {
           <p style={{ fontFamily: SERIF, fontStyle: 'italic', fontSize: 16, lineHeight: 1.45, margin: '12px 0 0', color: COLORS.faded, maxWidth: 640 }}>{quiz.blurb}</p>
         </div>
 
-        {/* Ribbon */}
-        <div style={{ position: 'sticky', top: 0, zIndex: 25, marginTop: 18 }}>
+        {/* Ribbon (not sticky - the scoreboard + input pin to the top instead) */}
+        <div style={{ marginTop: 18 }}>
           <div style={{ display: 'flex', alignItems: 'stretch', flexWrap: 'nowrap', overflowX: 'auto', background: COLORS.ink, borderBottom: `3px solid ${COLORS.ember}` }}>
             {chip('play', 'Play')}
             {chip('stats', 'Stats & Leaderboard')}
@@ -439,8 +449,10 @@ export default function GridFillBoard({ quizId }) {
         {/* ── PLAY ── */}
         {tab === 'play' && (
           <>
+            {/* Sticky top: the scoreboard + live input pin to the top of the viewport */}
+            <div style={{ position: 'sticky', top: 0, zIndex: 24, background: COLORS.cream, paddingTop: 6, paddingBottom: 8, marginBottom: 8 }}>
             {/* Scoreboard */}
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', alignItems: 'center', background: COLORS.paper, border: `1px solid ${COLORS.faded}33`, padding: '16px 8px', marginBottom: 16 }}>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', alignItems: 'center', background: COLORS.paper, border: `1px solid ${COLORS.faded}33`, padding: '16px 8px', marginBottom: 0 }}>
               <div style={{ textAlign: 'center', padding: '0 8px' }}>
                 <div style={{ fontFamily: SERIF, fontWeight: 800, fontSize: 32, lineHeight: 1 }}>{score}<span style={{ fontSize: 19, color: COLORS.faded }}>/{totalCells}</span></div>
                 <div style={{ fontFamily: MONO, fontSize: 10, letterSpacing: '0.1em', textTransform: 'uppercase', color: COLORS.faded }}>Cells</div>
@@ -457,6 +469,29 @@ export default function GridFillBoard({ quizId }) {
                 <div style={{ fontFamily: MONO, fontSize: 23, color: lowClock ? COLORS.ember : COLORS.ink }}>{clock}</div>
                 <div style={{ fontFamily: MONO, fontSize: 10, letterSpacing: '0.1em', textTransform: 'uppercase', color: COLORS.faded }}>Time left</div>
               </div>
+            </div>
+            {phase === 'playing' && (
+              <div style={{ marginTop: 10 }}>
+                <div style={{ display: 'flex', gap: 10 }}>
+                  <input
+                    ref={inputRef}
+                    value={guess}
+                    onChange={(e) => onType(e.target.value)}
+                    onKeyDown={onKey}
+                    placeholder="Start typing a company or ticker…"
+                    autoComplete="off"
+                    autoCapitalize="none"
+                    autoCorrect="off"
+                    spellCheck={false}
+                    style={{ flex: 1, fontFamily: SANS, fontSize: 17, padding: '14px 16px', border: `1.5px solid ${COLORS.ink}`, background: '#fff', color: COLORS.ink }}
+                  />
+                  <button onClick={() => submitGuess(guess)} style={{ flex: 'none', fontFamily: MONO, fontSize: 12, letterSpacing: '0.08em', textTransform: 'uppercase', fontWeight: 700, padding: '0 22px', border: 'none', background: COLORS.ink, color: COLORS.cream, cursor: 'pointer' }}>
+                    Guess
+                  </button>
+                </div>
+                <div style={{ fontFamily: MONO, fontSize: 12, minHeight: 18, marginTop: 6, color: hintBad ? COLORS.ember : COLORS.forest }}>{hint}</div>
+              </div>
+            )}
             </div>
 
             {/* IDLE — start screen */}
@@ -479,26 +514,6 @@ export default function GridFillBoard({ quizId }) {
             {/* PLAYING / DONE — the grid + input */}
             {(phase === 'playing' || phase === 'done') && (
               <div>
-                {phase === 'playing' && (
-                  <>
-                    <div style={{ display: 'flex', gap: 10, marginBottom: 6 }}>
-                      <input
-                        ref={inputRef}
-                        value={guess}
-                        onChange={(e) => setGuess(e.target.value)}
-                        onKeyDown={onKey}
-                        placeholder="Type a company or ticker, then Enter…"
-                        autoComplete="off"
-                        style={{ flex: 1, fontFamily: SANS, fontSize: 17, padding: '14px 16px', border: `1.5px solid ${COLORS.ink}`, background: '#fff', color: COLORS.ink }}
-                      />
-                      <button onClick={() => submitGuess(guess)} style={{ flex: 'none', fontFamily: MONO, fontSize: 12, letterSpacing: '0.08em', textTransform: 'uppercase', fontWeight: 700, padding: '0 22px', border: 'none', background: COLORS.ink, color: COLORS.cream, cursor: 'pointer' }}>
-                        Guess
-                      </button>
-                    </div>
-                    <div style={{ fontFamily: MONO, fontSize: 12, minHeight: 18, marginBottom: 16, color: hintBad ? COLORS.ember : COLORS.forest }}>{hint}</div>
-                  </>
-                )}
-
                 {/* Grid of year-blocks (wraps ~5 per row) */}
                 <div style={{ display: 'flex', flexWrap: 'wrap', gap: 10 }}>
                   {columns.map((col) => <Block key={col.year} col={col} />)}

@@ -216,9 +216,14 @@ function fmtDur(sec) {
   const s = Math.max(0, Math.round(Number(sec) || 0));
   const totalMin = Math.round(s / 60);
   if (totalMin < 1) return `${s}s`;
-  const h = Math.floor(totalMin / 60);
+  const d = Math.floor(totalMin / 1440);
+  const h = Math.floor((totalMin % 1440) / 60);
   const m = totalMin % 60;
-  return h > 0 ? `${h}h ${m}m` : `${m}m`;
+  const parts = [];
+  if (d > 0) parts.push(`${d}d`);
+  if (d > 0 || h > 0) parts.push(`${h}h`);
+  parts.push(`${m}m`);
+  return parts.join(' ');
 }
 
 function QuizBoardWide({ title, cta, ctaHref, categories, mid }) {

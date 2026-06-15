@@ -2386,3 +2386,26 @@ the FULL-PAGE board clients that re-implement the ribbon each need their own cop
 `TimedMcqClient.jsx`, `LogicGridClient.jsx`, and `PhotoQuizClient.jsx`. The PARTIAL boards rendered
 inside QuizClient (`TypeItBoard`, `MapQuizBoard`, `MatchQuizBoard`, `BankQuizBoard`) inherit QuizClient's
 ribbon and need no change. Any future full-page board must include the cue too.
+
+## Typed quizzes auto-accept on type, and the score+input pin to the top (owner rule, 2026-06-15)
+
+Two interaction rules for EVERY typed "name them all" quiz format, including any new full-page board
+(the cross-fill `grid-fill` board, first quiz `biggest-us-companies-by-year`, was corrected to follow them):
+
+- **Live auto-accept, no Enter.** A correct answer is taken the INSTANT it is typed: the input is
+  matched on every keystroke (`onChange`/`onType`), and on a hit the answer is accepted and the box
+  cleared, with NO Enter press required. Enter and the Guess button stay only as a fallback for
+  explicit submission, but typing alone must score. Never require Enter to accept a correct answer.
+  In the live every-keystroke matcher, GUARD short aliases/tickers: a 1-2 character exact match (e.g.
+  the tickers T, V, C, GE) is accepted ONLY on explicit submit, never during auto-accept, or typing
+  "tesla" would grab AT&T on the first "t". Full names and 3+ char tickers auto-accept normally.
+  Implemented as `onType` + `matchCompany(raw, companies, autoMode)` in `GridFillBoard.jsx`.
+
+- **The score block + input pin to the top.** The scoreboard and the answer input live in ONE sticky
+  container at `top: 0` (z-index above the board, cream background) so they stay visible while the
+  board scrolls; the nav RIBBON is NOT sticky and scrolls away. This mirrors QuizClient's shared shell
+  (the `scoreRef` sticky block, ribbon non-sticky). Any full-page board that re-implements the chrome
+  must pin its input the same way.
+
+Also: duration ("time spent") labels roll into days, not raw hours. `fmtDur` on the quizzes homepage
+renders e.g. `1d 1h 1m`, never `25h 1m` (days/hours/minutes, omitting leading zero units).
