@@ -2,7 +2,7 @@
 import React, { useState, useEffect, useMemo, useRef } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { Search, X, ChevronDown, ArrowLeft, Trophy, Clock, Flame, Sparkles } from 'lucide-react';
+import { Search, X, ChevronDown, ArrowLeft, Trophy, Clock, Flame, Sparkles, Check } from 'lucide-react';
 import { COLORS } from '@/lib/data';
 import { QUIZZES } from '@/lib/quizzes';
 import { fetchBootstrap } from '@/lib/api';
@@ -424,7 +424,7 @@ export default function QuizHomeClient() {
     const leaderRows = (todayBoard.leaders || []).slice(0, 3).map((u, i) => ({
       key: `lead-${i}-${u.username}`,
       full: u.username,
-      val: <span style={{ color: '#c98a1b', fontWeight: 500 }}>{u.correct}</span>,
+      val: <span style={{ color: '#c98a1b', fontWeight: 500, display: 'inline-flex', alignItems: 'center', gap: 3 }}><Check size={11} strokeWidth={3} aria-hidden="true" />{u.correct}</span>,
     }));
     return [
       { id: 'lastplayed', label: 'Last Played', rows: lastPlayed, empty: 'No recent plays yet.', noMedals: true, accent: '#2f6f9f', tint: '#dce9f0', icon: <Clock size={12} strokeWidth={2.5} aria-hidden="true" /> },
