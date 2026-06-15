@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useMemo, useState, useRef } from 'react';
+import React, { useMemo, useState, useRef, useEffect } from 'react';
 
 // Photo-recall board (`format: 'photo'`). ONE landmark photo shows at a time with
 // a Next button to cycle through photos not yet solved; below sits a single text
@@ -59,6 +59,30 @@ export default function PhotoBoard({ items, started, ended, revealed, onMatch, o
   const noun = answerNoun || 'city';
   const _ar = String(photoAspect).split('/');
   const portrait = parseFloat(_ar[0]) < parseFloat(_ar[1]);
+
+  useEffect(() => {
+    const origins = new Set();
+    for (const it of list) { try { origins.add(new URL(it.img).origin); } catch (e) {} }
+    const links = [];
+    origins.forEach((origin) => {
+      const l = document.createElement('link');
+      l.rel = 'preconnect'; l.href = origin;
+      document.head.appendChild(l); links.push(l);
+    });
+    return () => { links.forEach((l) => l.remove()); };
+  }, [list]);
+
+  useEffect(() => {
+    if (!live || cur == null || !order.length) return;
+    const start = order.indexOf(cur);
+    let n = 0;
+    for (let s = 1; s <= order.length && n < 3; s++) {
+      const q = order[(start + s) % order.length];
+      if (!matched.has(q) && list[q] && list[q].img) {
+        const im = new Image(); im.decoding = 'async'; im.src = list[q].img; n++;
+      }
+    }
+  }, [cur, matched, order, live, list]);
 
   function nextIdx(fromCur, doneSet) {
     if (!order.length) return null;
