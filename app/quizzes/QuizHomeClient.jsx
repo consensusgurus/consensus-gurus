@@ -292,6 +292,7 @@ export default function QuizHomeClient() {
   const [typeFilter, setTypeFilter] = useState('all');
   const [totals, setTotals] = useState({ total: 0, today: 0, byQuiz: {}, recent7: {}, recent12h: {}, trendingByQuiz: {}, trendingWindowH: 0 });
   const [recent, setRecent] = useState([]);
+  const [todayBoard, setTodayBoard] = useState({ leaders: [], correctToday: 0, playsToday: 0 });
   const [visitors, setVisitors] = useState(0);
   const [quizStats, setQuizStats] = useState([]);
   const seedRef = useRef((Date.now() & 0xffffffff) >>> 0);
@@ -330,6 +331,7 @@ export default function QuizHomeClient() {
   useEffect(() => {
     fetch('/api/quiz/totals').then((r) => r.json()).then((d) => { if (d && !d.error) setTotals({ total: d.total || 0, today: d.today || 0, byQuiz: d.byQuiz || {}, recent7: d.recent7 || {}, recent12h: d.recent12h || {}, trendingByQuiz: d.trendingByQuiz || {}, trendingWindowH: d.trendingWindowH || 0 }); }).catch(() => {});
     fetch('/api/quiz/recent').then((r) => r.json()).then((d) => { if (d && Array.isArray(d.plays)) setRecent(d.plays); }).catch(() => {});
+    fetch('/api/quiz/today').then((r) => r.json()).then((d) => { if (d && !d.error) setTodayBoard({ leaders: Array.isArray(d.leaders) ? d.leaders : [], correctToday: d.correctToday || 0, playsToday: d.playsToday || 0 }); }).catch(() => {});
     // Visitors on this page reflect quiz traffic only (the quiz home page +
     // individual quiz pages), not the whole site. Quiz-page views are merged
     // into bootstrap views under `quiz::<id>` keys; sum only those.
@@ -417,17 +419,19 @@ export default function QuizHomeClient() {
       lastPlayed.push(mk(q, p.playedAt ? <span style={{ color: COLORS.faded }}>{timeAgo(p.playedAt)}</span> : null));
       if (lastPlayed.length >= 3) break;
     }
-    const tsOf = (q) => new Date(q.publishedAt || `${q.publishedDate || '1970-01-01'}T12:00:00Z`).getTime();
-    const isNewsQ = (q) => /^(daily-market-news-quiz-|daily-business-quiz-|daily-news-quiz-|weekly-business-quiz-|weekly-news-quiz-|earnings-reporter-quiz-|earnings-quiz-)/.test(q.id || '');
-    const newest = QUIZZES.filter((q) => !isNewsQ(q)).slice()
-      .sort((a, b) => tsOf(b) - tsOf(a) || a.title.localeCompare(b.title))
-      .slice(0, 3).map((q) => mk(q, <span style={{ color: COLORS.faded }}>{dateShort(q)}</span>));
+    // Today's Correct Answer Leaders: signed-up players ranked by total correct
+    // answers since midnight US Eastern (from /api/quiz/today), top 3.
+    const leaderRows = (todayBoard.leaders || []).slice(0, 3).map((u, i) => ({
+      key: `lead-${i}-${u.username}`,
+      full: u.username,
+      val: <span style={{ color: '#c98a1b', fontWeight: 500 }}>{u.correct}</span>,
+    }));
     return [
       { id: 'lastplayed', label: 'Last Played', rows: lastPlayed, empty: 'No recent plays yet.', noMedals: true, accent: '#2f6f9f', tint: '#dce9f0', icon: <Clock size={12} strokeWidth={2.5} aria-hidden="true" /> },
       { id: 'played', label: 'Most Played', rows: mostPlayed, empty: 'No plays recorded yet.', noMedals: true, accent: '#c0392b', tint: '#f3ddd8', icon: <Flame size={12} strokeWidth={2.5} aria-hidden="true" /> },
-      { id: 'newest', label: 'Newest', rows: newest, empty: 'No quizzes yet.', noMedals: true, accent: '#2e7d6b', tint: '#d5e8e1', icon: <Sparkles size={12} strokeWidth={2.5} aria-hidden="true" /> },
+      { id: 'leaders', label: "Today's Correct Answer Leaders", rows: leaderRows, empty: 'No correct answers yet today.', noMedals: true, accent: '#c98a1b', tint: '#f3e3c8', icon: <Trophy size={12} strokeWidth={2.5} aria-hidden="true" /> },
     ];
-  }, [totals, statById, recent]);
+  }, [totals, statById, recent, todayBoard]);
 
   const sorted = useMemo(() => {
     const ql = query.trim().toLowerCase();
@@ -621,7 +625,7 @@ export default function QuizHomeClient() {
         <section style={{ maxWidth: 1200, margin: '0 auto', padding: '10px 16px 64px' }}>
           <DailyNewsBanner totals={totals} />
 
-          <QuizBoardWide kicker="Quizzes" cta="All Quiz Stats" ctaHref="/quizzes/stats" categories={quizCats} mid={totals.total > 0 ? (<><span className="qz-pulse" />{totals.total.toLocaleString()} plays{totals.today > 0 ? ` \u00B7 ${totals.today} today` : ''}</>) : null} />
+          <QuizBoardWide kicker="Quizzes" cta="All Quiz Stats" ctaHref="/quizzes/stats" categories={quizCats} mid={totals.total > 0 ? (<><span className="qz-pulse" />{totals.total.toLocaleString()} plays{todayBoard.playsToday > 0 ? ` \u00B7 ${todayBoard.playsToday} today` : ''}{todayBoard.correctToday > 0 ? ` \u00B7 ${todayBoard.correctToday.toLocaleString()} correct answers today` : ''}</>) : null} />
 
           {sorted.length > 0 ? (
             <div className="qz-grid">
