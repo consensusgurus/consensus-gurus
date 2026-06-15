@@ -367,24 +367,34 @@ export default function QuizHomeClient() {
     // (last 3h, widening by 3h until >= 3 quizzes have plays) so this board
     // reflects genuinely recent activity. The tiled grid's Trending sort below
     // is unaffected and still uses the 7-day `recent7` basis.
-    const trend = (id) => (totals.trendingByQuiz || {})[id] || 0;
     const mostPlayed = QUIZZES.filter((q) => plays(q.id) > 0)
       .sort((a, b) => plays(b.id) - plays(a.id) || a.title.localeCompare(b.title))
       .slice(0, 3).map((q) => mk(q, <Count value={plays(q.id)} />));
-    const trending = QUIZZES.filter((q) => trend(q.id) > 0)
-      .sort((a, b) => trend(b.id) - trend(a.id) || plays(b.id) - plays(a.id) || a.title.localeCompare(b.title))
-      .slice(0, 3).map((q) => mk(q, null));
+    // Last Played: the literal most-recently-completed games (from
+    // /api/quiz/recent, newest first), de-duplicated by quiz so a name never
+    // repeats, top 3.
+    const quizById = Object.fromEntries(QUIZZES.map((q) => [q.id, q]));
+    const lastPlayed = [];
+    const seenLP = new Set();
+    for (const p of recent) {
+      if (!p || !p.quizId || seenLP.has(p.quizId)) continue;
+      const q = quizById[p.quizId];
+      if (!q) continue;
+      seenLP.add(p.quizId);
+      lastPlayed.push(mk(q, null));
+      if (lastPlayed.length >= 3) break;
+    }
     const tsOf = (q) => new Date(q.publishedAt || `${q.publishedDate || '1970-01-01'}T12:00:00Z`).getTime();
     const isNewsQ = (q) => /^(daily-market-news-quiz-|daily-business-quiz-|daily-news-quiz-|weekly-business-quiz-|weekly-news-quiz-|earnings-reporter-quiz-|earnings-quiz-)/.test(q.id || '');
     const newest = QUIZZES.filter((q) => !isNewsQ(q)).slice()
       .sort((a, b) => tsOf(b) - tsOf(a) || a.title.localeCompare(b.title))
       .slice(0, 3).map((q) => mk(q, null));
     return [
-      { id: 'trending', label: 'Trending Now', rows: trending, empty: 'No recent plays yet.' },
-      { id: 'played', label: 'Most Played', rows: mostPlayed, empty: 'No plays recorded yet.' },
+      { id: 'lastplayed', label: 'Last Played', rows: lastPlayed, empty: 'No recent plays yet.', noMedals: true },
+      { id: 'played', label: 'Most Played', rows: mostPlayed, empty: 'No plays recorded yet.', noMedals: true },
       { id: 'newest', label: 'Newest', rows: newest, empty: 'No quizzes yet.', noMedals: true },
     ];
-  }, [totals, statById]);
+  }, [totals, statById, recent]);
 
   const sorted = useMemo(() => {
     const ql = query.trim().toLowerCase();

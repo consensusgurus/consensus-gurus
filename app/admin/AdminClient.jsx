@@ -24,6 +24,29 @@ function formatClock(secs) {
   return `${m}:${String(r).padStart(2, '0')}`;
 }
 
+// Calendar-day key (local time) for a play timestamp. Distinct days played is
+// the simplest robust proxy for "separate sessions" without per-session
+// tracking: two games on the same day count as one session, games on different
+// days count separately.
+function dayKey(iso) {
+  if (!iso) return '';
+  try {
+    return new Date(iso).toDateString();
+  } catch {
+    return String(iso);
+  }
+}
+
+// Short date (no time) for the "last session" column.
+function formatDay(iso) {
+  if (!iso) return '—';
+  try {
+    return new Date(iso).toLocaleDateString();
+  } catch {
+    return iso;
+  }
+}
+
 // Build a Google Maps "search" URL that resolves to a single place pin.
 // Mirrors lib/helpers.js: strip the characters Maps reads as waypoint
 // separators so a name like "Lucali (Carroll Gardens)" opens a location,
@@ -51,7 +74,7 @@ export default function AdminClient({ initialLists, initialExtras = [], initialC
   const [views24h] = useState(initialViews24h);
   const [quizSignups] = useState(initialQuizSignups);
   const [quizStats] = useState(initialQuizStats);
-  const [tab, setTab] = useState('pending');
+  const [tab, setTab] = useState('analytics');
   const [busy, setBusy] = useState({});
 
   const filtered = useMemo(() => {
@@ -701,16 +724,50 @@ function QuizStatsPanel({ stats, playsTotal }) {
 function QuizSignupsPanel({ signups }) {
   const [query, setQuery] = useState('');
   const [expandedId, setExpandedId] = useState(null);
+  // Sort key: joined (signup date, default) | recent (last session played) |
+  // plays (total games) | days (distinct days played).
+  const [sortBy, setSortBy] = useState('joined');
+
+  // Enrich each signup with its last-played timestamp and distinct days played
+  // (its "sessions"). Plays arrive newest-first from the server.
+  const enriched = useMemo(
+    () =>
+      (signups || []).map((s) => {
+        const plays = s.plays || [];
+        const playCount = s.playCount != null ? s.playCount : plays.length;
+        const lastPlayedAt = plays.length
+          ? plays.reduce(
+              (max, p) => (String(p.createdAt || '') > max ? String(p.createdAt || '') : max),
+              ''
+            )
+          : '';
+        const daysPlayed = new Set(plays.map((p) => dayKey(p.createdAt)).filter(Boolean)).size;
+        return { ...s, playCount, lastPlayedAt, daysPlayed };
+      }),
+    [signups]
+  );
 
   const visible = useMemo(() => {
     const q = query.trim().toLowerCase();
-    if (!q) return signups;
-    return signups.filter(
-      (s) =>
-        (s.username || '').toLowerCase().includes(q) ||
-        (s.email || '').toLowerCase().includes(q)
-    );
-  }, [signups, query]);
+    const filtered = !q
+      ? enriched
+      : enriched.filter(
+          (s) =>
+            (s.username || '').toLowerCase().includes(q) ||
+            (s.email || '').toLowerCase().includes(q)
+        );
+    const sorted = filtered.slice();
+    if (sortBy === 'recent') {
+      sorted.sort((a, b) => String(b.lastPlayedAt || '').localeCompare(String(a.lastPlayedAt || '')));
+    } else if (sortBy === 'plays') {
+      sorted.sort((a, b) => (b.playCount || 0) - (a.playCount || 0));
+    } else if (sortBy === 'days') {
+      sorted.sort((a, b) => (b.daysPlayed || 0) - (a.daysPlayed || 0));
+    } else {
+      sorted.sort((a, b) => String(b.createdAt || '').localeCompare(String(a.createdAt || '')));
+    }
+    return sorted;
+  }, [enriched, query, sortBy]);
 
   if (!signups || signups.length === 0) {
     return (
@@ -739,10 +796,43 @@ function QuizSignupsPanel({ signups }) {
   return (
     <div>
       <p style={{ fontFamily: 'DM Sans, sans-serif', fontSize: 13, color: COLORS.faded, margin: '0 0 14px' }}>
-        Email signups from the quiz leaderboard join form, newest first.
+        Email signups from the quiz leaderboard join form.
         {' '}{signups.length} signup{signups.length === 1 ? '' : 's'} total.
+        {' '}Days = distinct calendar days a person played (separate sessions).
         {' '}Click a row to see every quiz that person has played.
       </p>
+      <div style={{ display: 'flex', gap: 8, marginBottom: 12, flexWrap: 'wrap', alignItems: 'center' }}>
+        <span style={{ fontFamily: 'DM Mono, monospace', fontSize: 10, letterSpacing: '0.12em', textTransform: 'uppercase', color: COLORS.faded, marginRight: 2 }}>
+          Sort:
+        </span>
+        {[
+          ['joined', 'Joined'],
+          ['recent', 'Last session'],
+          ['plays', 'Plays'],
+          ['days', 'Days'],
+        ].map(([key, label]) => {
+          const on = sortBy === key;
+          return (
+            <button
+              key={key}
+              onClick={() => setSortBy(key)}
+              style={{
+                padding: '6px 12px',
+                background: on ? COLORS.ink : 'transparent',
+                border: `1.5px solid ${COLORS.ink}`,
+                color: on ? COLORS.paper : COLORS.ink,
+                fontFamily: 'DM Mono, monospace',
+                fontSize: 11,
+                letterSpacing: '0.08em',
+                textTransform: 'uppercase',
+                cursor: 'pointer',
+              }}
+            >
+              {label}
+            </button>
+          );
+        })}
+      </div>
       <div style={{ display: 'flex', gap: 10, marginBottom: 16 }}>
         <input
           value={query}
@@ -797,13 +887,16 @@ function QuizSignupsPanel({ signups }) {
           <div style={{ display: 'flex', position: 'sticky', top: 0, zIndex: 1, background: COLORS.cream, fontFamily: 'DM Mono, monospace', fontSize: 10, letterSpacing: '0.14em', textTransform: 'uppercase', color: COLORS.faded, padding: '10px 14px', borderBottom: `1.5px solid ${COLORS.ink}` }}>
             <span style={{ flex: '0 0 36px' }}>#</span>
             <span style={{ flex: 2 }}>Username</span>
-            <span style={{ flex: 3 }}>Email</span>
-            <span style={{ flex: '0 0 64px', textAlign: 'right' }}>Plays</span>
-            <span style={{ flex: '0 0 170px', textAlign: 'right' }}>Joined</span>
+            <span style={{ flex: 2 }}>Email</span>
+            <span style={{ flex: '0 0 56px', textAlign: 'right' }}>Plays</span>
+            <span style={{ flex: '0 0 52px', textAlign: 'right' }}>Days</span>
+            <span style={{ flex: '0 0 130px', textAlign: 'right' }}>Last session</span>
+            <span style={{ flex: '0 0 150px', textAlign: 'right' }}>Joined</span>
           </div>
           {visible.map((s, i) => {
             const plays = s.plays || [];
             const playCount = s.playCount != null ? s.playCount : plays.length;
+            const daysPlayed = s.daysPlayed != null ? s.daysPlayed : new Set(plays.map((p) => dayKey(p.createdAt)).filter(Boolean)).size;
             const open = expandedId === s.id;
             return (
               <div key={s.id} style={{ borderBottom: i < visible.length - 1 ? rowBorder : 'none' }}>
@@ -818,13 +911,19 @@ function QuizSignupsPanel({ signups }) {
                   <span style={{ flex: 2, minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', fontWeight: 600 }}>
                     {s.username}
                   </span>
-                  <span style={{ flex: 3, minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', fontFamily: 'DM Mono, monospace', fontSize: 12 }}>
+                  <span style={{ flex: 2, minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', fontFamily: 'DM Mono, monospace', fontSize: 12 }}>
                     <a href={`mailto:${s.email}`} onClick={(e) => e.stopPropagation()} style={{ color: COLORS.ink, textDecoration: 'none' }}>{s.email}</a>
                   </span>
-                  <span style={{ flex: '0 0 64px', textAlign: 'right', fontFamily: 'DM Mono, monospace', fontSize: 12, fontWeight: 700, color: playCount > 0 ? COLORS.ember : COLORS.faded }}>
+                  <span style={{ flex: '0 0 56px', textAlign: 'right', fontFamily: 'DM Mono, monospace', fontSize: 12, fontWeight: 700, color: playCount > 0 ? COLORS.ember : COLORS.faded }}>
                     {playCount}
                   </span>
-                  <span style={{ flex: '0 0 170px', textAlign: 'right', fontFamily: 'DM Mono, monospace', fontSize: 11, color: COLORS.faded }}>
+                  <span style={{ flex: '0 0 52px', textAlign: 'right', fontFamily: 'DM Mono, monospace', fontSize: 12, fontWeight: 700, color: daysPlayed > 0 ? COLORS.ink : COLORS.faded }}>
+                    {daysPlayed}
+                  </span>
+                  <span style={{ flex: '0 0 130px', textAlign: 'right', fontFamily: 'DM Mono, monospace', fontSize: 11, color: COLORS.faded }}>
+                    {s.lastPlayedAt ? formatDay(s.lastPlayedAt) : '—'}
+                  </span>
+                  <span style={{ flex: '0 0 150px', textAlign: 'right', fontFamily: 'DM Mono, monospace', fontSize: 11, color: COLORS.faded }}>
                     {formatDate(s.createdAt)}
                   </span>
                 </div>
