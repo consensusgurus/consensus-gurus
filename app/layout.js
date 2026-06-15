@@ -39,6 +39,16 @@ const websiteJsonLd = {
   description: 'Ranked lists of the best restaurants, hotels, bars, products, films, books, and more, built from expert sources and reader votes using Borda consensus scoring.',
 };
 
+const organizationJsonLd = {
+  '@context': 'https://schema.org',
+  '@type': 'Organization',
+  name: 'Source of Truths',
+  alternateName: 'Source of Truths | For All the Important Aspects of Life',
+  url: 'https://sourceoftruths.com',
+  logo: 'https://sourceoftruths.com/icon.png',
+  description: 'Curated top-ten lists ranked by expert consensus and reader votes, built using Borda consensus scoring.',
+};
+
 const collectionJsonLd = {
   '@context': 'https://schema.org',
   '@type': 'CollectionPage',
@@ -61,6 +71,10 @@ export default function RootLayout({ children }) {
           async
           src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-6094189268309966"
           crossOrigin="anonymous"
+        />
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(organizationJsonLd) }}
         />
         <script
           type="application/ld+json"

@@ -1666,6 +1666,18 @@ export default function HomeClient() {
     });
   }, []);
 
+  // Remove the server-rendered SEO/loading fallback (#home-seo-fallback, set in
+  // app/page.js) once the live app is ready, so the crawler gets real homepage
+  // content while a human visitor transitions straight into the app with no
+  // flash. Runs after hydration, so removing the static node is safe.
+  useEffect(() => {
+    if (!loaded) return;
+    const el = typeof document !== 'undefined'
+      ? document.getElementById('home-seo-fallback')
+      : null;
+    if (el) el.remove();
+  }, [loaded]);
+
   // Count homepage landings in the visitors total, so visitors who bounce
   // without opening a list page are included. Logged under the pseudo
   // list id 'home' in the views table (totalViews sums every row), deduped
