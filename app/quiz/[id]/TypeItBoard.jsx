@@ -72,19 +72,17 @@ export default function TypeItBoard({ items, started, ended, revealed, onMatch, 
     if (!live || cur == null) return false;
     if (accepts(raw, list[cur])) {
       const nm = new Set(matched); nm.add(cur);
-      const used = nm.size + errors;
       setMatched(nm); setVal(''); flashIt(true);
       if (onMatch) onMatch(cur, nm.size, list[cur].t, list[cur].label);
       const np = nextIdx(cur, nm);
-      if (used >= total || np == null) { setCur(null); if (onEnd) onEnd(np == null, nm.size); }
+      if (np == null) { setCur(null); if (onEnd) onEnd(true, nm.size); }
       else setCur(np);
       return true;
     }
     if (viaEnter && norm(raw)) {
-      const ne = errors + 1; const used = matched.size + ne;
-      setErrors(ne); flashIt(false); setVal('');
-      if (onWrong) onWrong(ne, list[cur].label);
-      if (used >= total) { setCur(null); if (onEnd) onEnd(false, matched.size); }
+      // Misses are not counted against the player: flash, clear, and let them
+      // keep guessing (use Next to cycle) until they solve it or time runs out.
+      flashIt(false); setVal('');
     }
     return false;
   }
