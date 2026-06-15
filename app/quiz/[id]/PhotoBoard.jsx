@@ -105,6 +105,7 @@ export default function PhotoBoard({ items, started, ended, revealed, onMatch, o
     const np = nextIdx(cur, matched);
     if (np != null && np !== cur) { setCur(np); setVal(''); if (onHint) onHint('Skipped — you will come back to it.', false); }
     else if (onHint) onHint('That is the last one — take your shot.', false);
+    if (inputRef.current) inputRef.current.focus();
   }
 
   const curItem = cur != null ? list[cur] : null;
