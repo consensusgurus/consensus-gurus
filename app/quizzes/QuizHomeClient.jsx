@@ -2,7 +2,7 @@
 import React, { useState, useEffect, useMemo, useRef } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { Search, X, ChevronDown, ArrowLeft } from 'lucide-react';
+import { Search, X, ChevronDown, ArrowLeft, Trophy } from 'lucide-react';
 import { COLORS } from '@/lib/data';
 import { QUIZZES } from '@/lib/quizzes';
 import { fetchBootstrap } from '@/lib/api';
@@ -151,22 +151,22 @@ const boardCss = `
   a.lb-row:hover .lb-name{color:${COLORS.ember};}
   .lb-val{flex:none;font-family:'Fraunces',serif;font-weight:700;font-size:14px;color:${COLORS.ink};white-space:nowrap;}
   .lb-empty{font-family:'Fraunces',serif;font-style:italic;font-size:12.5px;color:${COLORS.faded};padding:2px 0 8px;}
-  @media(max-width:680px){.lb-row-extra{display:none;}.lb-list-2col{display:flex;flex-direction:column;}.lb-name{white-space:normal;overflow:visible;text-overflow:clip;overflow-wrap:anywhere;}}
+  .qz-wide-cols{display:grid;grid-template-columns:repeat(3,1fr);}
+  .qz-wide-col{min-width:0;padding:0 18px;}
+  .qz-wide-col:first-child{padding-left:0;}
+  .qz-wide-col:last-child{padding-right:0;}
+  .qz-wide-col:not(:first-child){border-left:1px solid rgba(26,22,17,0.12);}
+  .qz-wide-label{font-family:'DM Mono',monospace;font-size:11px;font-weight:700;letter-spacing:0.16em;text-transform:uppercase;color:${COLORS.ink};padding:8px 0 8px;border-bottom:1px solid rgba(26,22,17,0.12);margin-bottom:4px;}
+  .qz-wide-list{display:flex;flex-direction:column;}
+  @media(max-width:680px){.lb-row-extra{display:none;}.lb-list-2col{display:flex;flex-direction:column;}.lb-name{white-space:normal;overflow:visible;text-overflow:clip;overflow-wrap:anywhere;}
+    .qz-wide-cols{grid-template-columns:1fr;}.qz-wide-col{padding:0;border-left:none;}.qz-wide-col:not(:first-child){border-top:1px solid rgba(26,22,17,0.12);margin-top:8px;padding-top:2px;}}
 `;
 
-// Left board: the three most-played quizzes. Each row links to its quiz; the
-// Compact leaderboard card: a kicker, a CTA link, and three collapsible
-// ranking categories. Each category is closed by default to save space and
-// expands (on hover, or tap on touch) to reveal its top three.
-function LeaderboardCard({ kicker, cta, ctaHref, categories }) {
-  // The first (top) category is expanded by default. Hover-to-expand on devices
-  // that hover (leaving reverts to the first); tap-to-expand on touch.
-  const firstId = categories[0] ? categories[0].id : null;
-  const [openId, setOpenId] = useState(firstId);
-  const [canHover, setCanHover] = useState(false);
-  useEffect(() => {
-    if (typeof window !== 'undefined' && window.matchMedia) setCanHover(window.matchMedia('(hover: hover) and (pointer: fine)').matches);
-  }, []);
+// One wide box holding the quiz boards (Most Played / Trending Now / Newest) as
+// three distinct lists side by side. A kicker + CTA sit on top; each list shows
+// its top three rows, every row a link to its quiz. On mobile the three lists
+// stack into a single column with a divider between each.
+function QuizBoardWide({ kicker, cta, ctaHref, categories }) {
   return (
     <div className="lb-card">
       <div className="lb-head">
@@ -175,50 +175,37 @@ function LeaderboardCard({ kicker, cta, ctaHref, categories }) {
       </div>
       <div className="lb-rule1" />
       <div className="lb-rule2" />
-      <div className="lb-cats">
-        {categories.map((c) => {
-          const open = openId === c.id;
-          return (
-            <div
-              key={c.id}
-              className={`lb-cat${open ? ' open' : ''}`}
-              onMouseEnter={canHover ? () => setOpenId(c.id) : undefined}
-              onMouseLeave={canHover ? () => setOpenId(firstId) : undefined}
-            >
-              <button type="button" className="lb-cat-head" aria-expanded={open} onClick={() => setOpenId(open ? null : c.id)}>
-                <span className="lb-cat-label">{c.label}</span>
-                <ChevronDown className="lb-cat-chev" size={13} strokeWidth={2.5} />
-              </button>
-              {open && (
-                <div className={`lb-list${c.rows.length > 3 ? ' lb-list-2col' : ''}`}>
-                  {c.rows.length > 0 ? c.rows.map((r, i) => {
-                    const inner = (
-                      <>
-                        <span className="lb-rank" style={r.noRank ? { background: 'transparent', border: 'none' } : { background: i < 3 ? MEDAL[i] : 'transparent' }}>{r.noRank ? '' : i + 1}</span>
-                        <span className="lb-name">{r.full}</span>
-                        <span className="lb-val">{r.val}</span>
-                      </>
-                    );
-                    const rowCls = `lb-row${i >= 3 ? ' lb-row-extra' : ''}`;
-                    return r.href
-                      ? (<Link key={r.key} href={r.href} className={rowCls} title={r.full}>{inner}</Link>)
-                      : (<div key={r.key} className={rowCls}>{inner}</div>);
-                  }) : (<div className="lb-empty">{c.empty || 'No data yet.'}</div>)}
-                </div>
-              )}
+      <div className="qz-wide-cols">
+        {categories.map((c) => (
+          <div className="qz-wide-col" key={c.id}>
+            <div className="qz-wide-label">{c.label}</div>
+            <div className="qz-wide-list">
+              {c.rows.length > 0 ? c.rows.map((r, i) => {
+                const inner = (
+                  <>
+                    <span className="lb-rank" style={r.noRank ? { background: 'transparent', border: 'none' } : { background: i < 3 ? MEDAL[i] : 'transparent' }}>{r.noRank ? '' : i + 1}</span>
+                    <span className="lb-name">{r.full}</span>
+                    <span className="lb-val">{r.val}</span>
+                  </>
+                );
+                return r.href
+                  ? (<Link key={r.key} href={r.href} className="lb-row" title={r.full}>{inner}</Link>)
+                  : (<div key={r.key} className="lb-row">{inner}</div>);
+              }) : (<div className="lb-empty">{c.empty || 'No data yet.'}</div>)}
             </div>
-          );
-        })}
+          </div>
+        ))}
       </div>
     </div>
   );
 }
 
-// Full-width, vertically-narrow banner spotlighting the latest Daily Market Moving News Quiz
-// at the top of the page. Finds the most recent daily-market-news-quiz-* entry so it
-// always points at today's edition without a hardcoded id.
+// Full-width row of three buttons: a rotating Featured Quiz, the latest Daily
+// Market Moving News Quiz, and the all-time player Leaderboard. The news button
+// finds the most recent daily-market-news-quiz-* entry so it always points at
+// today's edition without a hardcoded id. The Leaderboard button always shows.
 function DailyNewsBanner({ totals }) {
-  const [hover, setHover] = useState(null); // 'trend' | 'news' | null
+  const [hover, setHover] = useState(null); // 'trend' | 'news' | 'lb' | null
   // Right button: the latest Daily Market Moving News Quiz edition.
   const newsQuiz = useMemo(() => {
     const cands = QUIZZES.filter((q) => /^(daily-market-news-quiz-|daily-business-quiz-)/.test(q.id || ''));
@@ -235,7 +222,6 @@ function DailyNewsBanner({ totals }) {
     return cands[Math.floor(Math.random() * cands.length)];
   }, [totals]);
 
-  if (!newsQuiz && !trendingQuiz) return null;
   const liftStyle = (active) => ({ boxShadow: active ? `5px 5px 0 ${COLORS.ink}` : `3px 3px 0 ${COLORS.ink}`, transform: active ? 'translate(-2px, -2px)' : 'none' });
   return (
     <div className="dn-wrap">
@@ -255,6 +241,10 @@ function DailyNewsBanner({ totals }) {
           <span className="dn-label">{'▶'} Daily Market Moving News Quiz</span>
         </Link>
       )}
+      <Link href="/leaderboard" className="dn-btn" onMouseEnter={() => setHover('lb')} onMouseLeave={() => setHover(null)} style={liftStyle(hover === 'lb')}>
+        <Trophy size={15} strokeWidth={2.5} aria-hidden="true" style={{ flex: 'none' }} />
+        <span className="dn-label">Leaderboard</span>
+      </Link>
     </div>
   );
 }
@@ -267,10 +257,9 @@ export default function QuizHomeClient() {
   const [catOpen, setCatOpen] = useState(false);
   const [typeOpen, setTypeOpen] = useState(false);
   const [typeFilter, setTypeFilter] = useState('all');
-  const [totals, setTotals] = useState({ total: 0, byQuiz: {}, recent7: {}, recent12h: {} });
+  const [totals, setTotals] = useState({ total: 0, byQuiz: {}, recent7: {}, recent12h: {}, trendingByQuiz: {}, trendingWindowH: 0 });
   const [recent, setRecent] = useState([]);
   const [visitors, setVisitors] = useState(0);
-  const [champions, setChampions] = useState({ completed: [], weighted: [], accuracy: [], anonymous: 0 });
   const [quizStats, setQuizStats] = useState([]);
   const seedRef = useRef((Date.now() & 0xffffffff) >>> 0);
   // Close the category / sort dropdowns on an outside click or Escape.
@@ -306,13 +295,12 @@ export default function QuizHomeClient() {
   }, []);
 
   useEffect(() => {
-    fetch('/api/quiz/totals').then((r) => r.json()).then((d) => { if (d && !d.error) setTotals({ total: d.total || 0, byQuiz: d.byQuiz || {}, recent7: d.recent7 || {}, recent12h: d.recent12h || {} }); }).catch(() => {});
+    fetch('/api/quiz/totals').then((r) => r.json()).then((d) => { if (d && !d.error) setTotals({ total: d.total || 0, byQuiz: d.byQuiz || {}, recent7: d.recent7 || {}, recent12h: d.recent12h || {}, trendingByQuiz: d.trendingByQuiz || {}, trendingWindowH: d.trendingWindowH || 0 }); }).catch(() => {});
     fetch('/api/quiz/recent').then((r) => r.json()).then((d) => { if (d && Array.isArray(d.plays)) setRecent(d.plays); }).catch(() => {});
     // Visitors on this page reflect quiz traffic only (the quiz home page +
     // individual quiz pages), not the whole site. Quiz-page views are merged
     // into bootstrap views under `quiz::<id>` keys; sum only those.
     fetchBootstrap().then((data) => { if (data && data.views) setVisitors(Object.entries(data.views).reduce((sum, [k, v]) => (k.startsWith('quiz::') ? sum + (Number(v) || 0) : sum), 0)); }).catch(() => {});
-    fetch('/api/quiz/champions').then((r) => r.json()).then((d) => { if (d && !d.error) setChampions({ completed: d.completed || [], weighted: d.weighted || [], accuracy: d.accuracy || [], anonymous: d.anonymous || 0 }); }).catch(() => {});
     fetch('/api/quiz/stats').then((r) => r.json()).then((d) => { if (d && Array.isArray(d.quizzes)) setQuizStats(d.quizzes); }).catch(() => {});
   }, []);
 
@@ -375,13 +363,17 @@ export default function QuizHomeClient() {
   const quizCats = useMemo(() => {
     const mk = (q, val) => ({ key: q.id, href: `/quiz/${q.id}`, full: cleanTitle(q.title), val });
     const plays = (id) => totals.byQuiz[id] || 0;
-    const recent = (id) => totals.recent7[id] || 0;
+    // Trending here uses the dynamic, self-widening window from the totals API
+    // (last 3h, widening by 3h until >= 3 quizzes have plays) so this board
+    // reflects genuinely recent activity. The tiled grid's Trending sort below
+    // is unaffected and still uses the 7-day `recent7` basis.
+    const trend = (id) => (totals.trendingByQuiz || {})[id] || 0;
     const mostPlayed = QUIZZES.filter((q) => plays(q.id) > 0)
       .sort((a, b) => plays(b.id) - plays(a.id) || a.title.localeCompare(b.title))
       .slice(0, 3).map((q) => mk(q, <Count value={plays(q.id)} />));
-    const trending = QUIZZES.filter((q) => recent(q.id) > 0)
-      .sort((a, b) => recent(b.id) - recent(a.id) || plays(b.id) - plays(a.id))
-      .slice(0, 3).map((q) => mk(q, <Count value={recent(q.id)} />));
+    const trending = QUIZZES.filter((q) => trend(q.id) > 0)
+      .sort((a, b) => trend(b.id) - trend(a.id) || plays(b.id) - plays(a.id) || a.title.localeCompare(b.title))
+      .slice(0, 3).map((q) => mk(q, <Count value={trend(q.id)} />));
     const tsOf = (q) => new Date(q.publishedAt || `${q.publishedDate || '1970-01-01'}T12:00:00Z`).getTime();
     const isNewsQ = (q) => /^(daily-market-news-quiz-|daily-business-quiz-|daily-news-quiz-|weekly-business-quiz-|weekly-news-quiz-|earnings-reporter-quiz-|earnings-quiz-)/.test(q.id || '');
     const fmtDate = (q) => new Date(q.publishedAt || `${q.publishedDate || '1970-01-01'}T12:00:00Z`).toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
@@ -390,28 +382,10 @@ export default function QuizHomeClient() {
       .slice(0, 3).map((q) => mk(q, fmtDate(q)));
     return [
       { id: 'played', label: 'Most Played', rows: mostPlayed, empty: 'No plays recorded yet.' },
-      { id: 'trending', label: 'Trending Now', rows: trending, empty: 'No plays this week yet.' },
+      { id: 'trending', label: 'Trending Now', rows: trending, empty: 'No recent plays yet.' },
       { id: 'newest', label: 'Newest', rows: newest, empty: 'No quizzes yet.' },
     ];
   }, [totals, statById]);
-
-  // Player-side leaderboard: Most Plays (quizzes completed) / Most Accurate /
-  // Best Overall (accuracy-weighted). Sourced from /api/quiz/champions.
-  const playerCats = useMemo(() => {
-    // Most Plays: top 5 signed-up players, then an aggregate "Anonymous" row in
-    // the 6th slot for all plays not tied to a registered account (no rank number).
-    const mostPlays = [
-      ...(champions.completed || []).slice(0, 5).map((u) => ({ key: `p-${u.username}`, full: u.username, val: <Count value={u.quizzes || 0} /> })),
-      { key: 'p-anon', full: 'Anonymous Users', val: <Count value={champions.anonymous || 0} />, noRank: true },
-    ];
-    const accurate = (champions.accuracy || []).slice(0, 6).map((u) => ({ key: `a-${u.username}`, full: u.username, val: `${Math.round(u.accuracy || 0)}%` }));
-    const overall = (champions.weighted || []).slice(0, 6).map((u) => ({ key: `w-${u.username}`, full: u.username, val: Math.round(u.weighted || 0).toLocaleString() }));
-    return [
-      { id: 'plays', label: 'Most Plays', rows: mostPlays, empty: 'No ranked players yet.' },
-      { id: 'accurate', label: 'Most Accurate', rows: accurate, empty: 'No ranked players yet.' },
-      { id: 'overall', label: 'Best Overall', rows: overall, empty: 'No ranked players yet.' },
-    ];
-  }, [champions]);
 
   const sorted = useMemo(() => {
     const ql = query.trim().toLowerCase();
@@ -603,10 +577,7 @@ export default function QuizHomeClient() {
         </nav>
 
         <section style={{ maxWidth: 1200, margin: '0 auto', padding: '20px 16px 64px' }}>
-          <div className="qz-boards">
-            <LeaderboardCard kicker="Quizzes" cta="All Quiz Stats" ctaHref="/quizzes/stats" categories={quizCats} />
-            <LeaderboardCard kicker="Players" cta="View Leaderboard" ctaHref="/leaderboard" categories={playerCats} />
-          </div>
+          <QuizBoardWide kicker="Quizzes" cta="All Quiz Stats" ctaHref="/quizzes/stats" categories={quizCats} />
 
           <DailyNewsBanner totals={totals} />
 

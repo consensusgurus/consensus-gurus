@@ -15,7 +15,7 @@ async function fetchAllResults() {
   for (;;) {
     const { data, error } = await supabaseAdmin
       .from('quiz_results')
-      .select('id, user_id, username, quiz_id, score, total')
+      .select('id, user_id, username, quiz_id, score, total, anon_id')
       .order('id', { ascending: true })
       .range(from, from + page - 1);
     if (error) throw error;
@@ -27,7 +27,8 @@ async function fetchAllResults() {
   return all;
 }
 
-// Build the three cross-quiz rankings from raw completed games.
+// Build the cross-quiz rankings from raw completed games.
+//   totalPlays: most completed games overall, counting REPEATS (signed users)
 //   completed : most DISTINCT quizzes completed (signed-up users only)
 //   weighted  : accuracy-weighted completions = sum of first-attempt
 //               score/total across distinct quizzes (i.e. accuracy x quizzes)
@@ -38,6 +39,8 @@ export function buildChampions(rows, { minQuizzes = MIN_QUIZZES } = {}) {
 
   // First attempt per (user, quiz) = the lowest row id for that pair.
   const firstByPair = new Map();
+  // Total completed games per user, counting every replay (for Total Plays).
+  const playsByUser = new Map();
   // Display name per user = the username on their most recent row.
   const nameByUser = new Map();
   const nameIdByUser = new Map();
@@ -46,6 +49,7 @@ export function buildChampions(rows, { minQuizzes = MIN_QUIZZES } = {}) {
     const key = r.user_id + '::' + r.quiz_id;
     const prev = firstByPair.get(key);
     if (!prev || id < (prev.id || 0)) firstByPair.set(key, r);
+    playsByUser.set(r.user_id, (playsByUser.get(r.user_id) || 0) + 1);
     if (id >= (nameIdByUser.get(r.user_id) || -1)) {
       nameIdByUser.set(r.user_id, id);
       nameByUser.set(r.user_id, r.username || 'Anonymous');
@@ -70,6 +74,10 @@ export function buildChampions(rows, { minQuizzes = MIN_QUIZZES } = {}) {
 
   const byName = (x, y) => (x.username || '').localeCompare(y.username || '');
 
+  const totalPlays = [...playsByUser.entries()]
+    .map(([uid, n]) => ({ username: nameByUser.get(uid) || 'Anonymous', plays: n }))
+    .sort((x, y) => y.plays - x.plays || byName(x, y));
+
   const completed = users
     .slice()
     .sort((x, y) => y.quizzes - x.quizzes || byName(x, y))
@@ -85,20 +93,44 @@ export function buildChampions(rows, { minQuizzes = MIN_QUIZZES } = {}) {
     .sort((x, y) => y.accuracy - x.accuracy || y.quizzes - x.quizzes || byName(x, y))
     .map((u) => ({ username: u.username, accuracy: u.accuracy, quizzes: u.quizzes }));
 
-  return { completed, weighted, accuracy, minQuizzes };
+  return { totalPlays, completed, weighted, accuracy, minQuizzes };
+}
+
+// Metric-specific anonymous totals for the leaderboard column parentheticals.
+// Anonymous plays can't be tied to an account, so each anonymous "player" is
+// keyed by their per-browser anon_id (else the row id, which can't dedupe).
+//   anonPlays    : every anonymous completed game (counting replays)
+//   anonCompleted: distinct (anon player, quiz) first attempts
+//   anonWeighted : sum of first-attempt score/total across those distinct pairs
+//   anonAccuracy : average first-attempt accuracy across those pairs (percent)
+function buildAnon(rows) {
+  const anonRows = rows.filter((r) => !r.user_id);
+  const anonPlays = anonRows.length;
+  const firstByPair = new Map();
+  for (const r of anonRows) {
+    if (!(r.total > 0)) continue;
+    const pk = r.anon_id ? `a:${r.anon_id}` : `r:${r.id}`;
+    const key = pk + '::' + r.quiz_id;
+    const prev = firstByPair.get(key);
+    if (!prev || (r.id || 0) < (prev.id || 0)) firstByPair.set(key, r);
+  }
+  let accSum = 0;
+  for (const r of firstByPair.values()) accSum += r.score / r.total;
+  const anonCompleted = firstByPair.size;
+  const anonWeighted = Math.round(accSum * 10) / 10;                                  // accuracy x quizzes
+  const anonAccuracy = firstByPair.size ? Math.round((accSum / firstByPair.size) * 1000) / 10 : 0; // percent, 1dp
+  return { anonPlays, anonCompleted, anonWeighted, anonAccuracy };
 }
 
 // GET /api/quiz/champions
 export async function GET() {
   try {
     const rows = await fetchAllResults();
-    // Anonymous plays = completed games with no signed-up account behind them.
-    // Surfaced on the /quizzes Champions panel so the total-plays counter makes
-    // sense (the leaderboard only credits signed-up users).
-    const anonymous = rows.filter((r) => !r.user_id).length;
-    return NextResponse.json({ ...buildChampions(rows), anonymous });
+    const anon = buildAnon(rows);
+    // `anonymous` retained for back-compat (the /quizzes Players board total).
+    return NextResponse.json({ ...buildChampions(rows), ...anon, anonymous: anon.anonPlays });
   } catch (e) {
     console.error('quiz champions error', e);
-    return NextResponse.json({ completed: [], weighted: [], accuracy: [], minQuizzes: MIN_QUIZZES, anonymous: 0 });
+    return NextResponse.json({ totalPlays: [], completed: [], weighted: [], accuracy: [], minQuizzes: MIN_QUIZZES, anonymous: 0, anonPlays: 0, anonCompleted: 0, anonWeighted: 0, anonAccuracy: 0 });
   }
 }
