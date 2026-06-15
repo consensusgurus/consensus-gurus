@@ -151,8 +151,8 @@ const boardCss = `
   a.lb-row:hover .lb-name{color:${COLORS.ember};}
   .lb-val{flex:none;font-family:'DM Mono',monospace;font-weight:500;font-size:12px;color:${COLORS.ink};white-space:nowrap;}
   .lb-empty{font-family:'Fraunces',serif;font-style:italic;font-size:12.5px;color:${COLORS.faded};padding:2px 0 8px;}
-  .qz-wide-cols{display:grid;grid-template-columns:1fr 1.4fr 1fr;}
-  .qz-wide-col{min-width:0;padding:0 18px;}
+  .qz-wide-cols{display:grid;grid-template-columns:1fr 1.2fr 1fr;}
+  .qz-wide-col{min-width:0;padding:0 14px;}
   .qz-wide-col:first-child{padding-left:0;}
   .qz-wide-col:last-child{padding-right:0;}
   .qz-wide-col:not(:first-child){border-left:1px solid rgba(26,22,17,0.12);}
@@ -576,9 +576,9 @@ export default function QuizHomeClient() {
         </nav>
 
         <section style={{ maxWidth: 1200, margin: '0 auto', padding: '16px 16px 64px' }}>
-          <QuizBoardWide kicker="Quizzes" cta="All Quiz Stats" ctaHref="/quizzes/stats" categories={quizCats} />
-
           <DailyNewsBanner totals={totals} />
+
+          <QuizBoardWide kicker="Quizzes" cta="All Quiz Stats" ctaHref="/quizzes/stats" categories={quizCats} />
 
           {sorted.length > 0 ? (
             <div className="qz-grid">
