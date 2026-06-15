@@ -47,6 +47,17 @@ function formatDay(iso) {
   }
 }
 
+// Compact date + time for the "last session" column, so same-day sessions are
+// distinguishable and the time-based sort is visibly correct: "Jun 15, 2:23 PM".
+function formatDayTime(iso) {
+  if (!iso) return '—';
+  try {
+    return new Date(iso).toLocaleString(undefined, { month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' });
+  } catch {
+    return iso;
+  }
+}
+
 // Build a Google Maps "search" URL that resolves to a single place pin.
 // Mirrors lib/helpers.js: strip the characters Maps reads as waypoint
 // separators so a name like "Lucali (Carroll Gardens)" opens a location,
@@ -758,7 +769,7 @@ function QuizSignupsPanel({ signups }) {
         );
     const sorted = filtered.slice();
     if (sortBy === 'recent') {
-      sorted.sort((a, b) => String(b.lastPlayedAt || '').localeCompare(String(a.lastPlayedAt || '')));
+      sorted.sort((a, b) => (Date.parse(b.lastPlayedAt || '') || 0) - (Date.parse(a.lastPlayedAt || '') || 0));
     } else if (sortBy === 'plays') {
       sorted.sort((a, b) => (b.playCount || 0) - (a.playCount || 0));
     } else if (sortBy === 'days') {
@@ -890,7 +901,7 @@ function QuizSignupsPanel({ signups }) {
             <span style={{ flex: 2 }}>Email</span>
             <span style={{ flex: '0 0 56px', textAlign: 'right' }}>Plays</span>
             <span style={{ flex: '0 0 52px', textAlign: 'right' }}>Days</span>
-            <span style={{ flex: '0 0 130px', textAlign: 'right' }}>Last session</span>
+            <span style={{ flex: '0 0 156px', textAlign: 'right' }}>Last session</span>
             <span style={{ flex: '0 0 150px', textAlign: 'right' }}>Joined</span>
           </div>
           {visible.map((s, i) => {
@@ -920,8 +931,8 @@ function QuizSignupsPanel({ signups }) {
                   <span style={{ flex: '0 0 52px', textAlign: 'right', fontFamily: 'DM Mono, monospace', fontSize: 12, fontWeight: 700, color: daysPlayed > 0 ? COLORS.ink : COLORS.faded }}>
                     {daysPlayed}
                   </span>
-                  <span style={{ flex: '0 0 130px', textAlign: 'right', fontFamily: 'DM Mono, monospace', fontSize: 11, color: COLORS.faded }}>
-                    {s.lastPlayedAt ? formatDay(s.lastPlayedAt) : '—'}
+                  <span style={{ flex: '0 0 156px', textAlign: 'right', fontFamily: 'DM Mono, monospace', fontSize: 11, color: COLORS.faded }}>
+                    {s.lastPlayedAt ? formatDayTime(s.lastPlayedAt) : '—'}
                   </span>
                   <span style={{ flex: '0 0 150px', textAlign: 'right', fontFamily: 'DM Mono, monospace', fontSize: 11, color: COLORS.faded }}>
                     {formatDate(s.createdAt)}

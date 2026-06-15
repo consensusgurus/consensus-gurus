@@ -17,7 +17,7 @@ export async function GET() {
       console.error('quiz recent error', error);
       return NextResponse.json({ plays: [] });
     }
-    return NextResponse.json({ plays: (data || []).map((r) => ({ quizId: r.quiz_id, username: r.username || null, score: r.score, total: r.total })) });
+    return NextResponse.json({ plays: (data || []).map((r) => ({ quizId: r.quiz_id, username: r.username || null, score: r.score, total: r.total, playedAt: r.created_at || null })) });
   } catch (e) {
     return NextResponse.json({ plays: [] });
   }

@@ -33,6 +33,8 @@ export async function GET() {
     const now = Date.now();
     const cutoff7 = now - 7 * 24 * 60 * 60 * 1000;
     const cutoff12h = now - 12 * 60 * 60 * 1000;
+    const startToday = new Date(); startToday.setUTCHours(0, 0, 0, 0); const cutoffToday = startToday.getTime();
+    let today = 0;
     const bucketMs = TREND_BUCKET_H * 60 * 60 * 1000;
     // Per quiz, plays bucketed by how many 3h steps back they fall (0 = newest).
     const buckets = new Map();
@@ -42,6 +44,7 @@ export async function GET() {
         const t = new Date(r.created_at).getTime();
         if (t >= cutoff7) recent7[r.quiz_id] = (recent7[r.quiz_id] || 0) + 1;
         if (t >= cutoff12h) recent12h[r.quiz_id] = (recent12h[r.quiz_id] || 0) + 1;
+        if (t >= cutoffToday) today += 1;
         const idx = Math.floor((now - t) / bucketMs);
         if (idx >= 0 && idx < TREND_MAX_BUCKETS) {
           let arr = buckets.get(r.quiz_id);
@@ -58,7 +61,7 @@ export async function GET() {
       if (Object.keys(cum).length >= TREND_MIN_QUIZZES) { trendingWindowH = (k + 1) * TREND_BUCKET_H; break; }
     }
     const trendingByQuiz = { ...cum };
-    return NextResponse.json({ total: rows.length, byQuiz, recent7, recent12h, trendingByQuiz, trendingWindowH });
+    return NextResponse.json({ total: rows.length, today, byQuiz, recent7, recent12h, trendingByQuiz, trendingWindowH });
   } catch (e) {
     return NextResponse.json({ total: 0, byQuiz: {}, recent7: {}, recent12h: {}, trendingByQuiz: {}, trendingWindowH: 0 });
   }
