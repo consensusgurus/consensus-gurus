@@ -194,7 +194,7 @@ function LeaderboardCard({ kicker, cta, ctaHref, categories }) {
                   {c.rows.length > 0 ? c.rows.map((r, i) => {
                     const inner = (
                       <>
-                        <span className="lb-rank" style={{ background: i < 3 ? MEDAL[i] : 'transparent' }}>{i + 1}</span>
+                        <span className="lb-rank" style={r.noRank ? { background: 'transparent', border: 'none' } : { background: i < 3 ? MEDAL[i] : 'transparent' }}>{r.noRank ? '' : i + 1}</span>
                         <span className="lb-name">{r.full}</span>
                         <span className="lb-val">{r.val}</span>
                       </>
@@ -395,7 +395,12 @@ export default function QuizHomeClient() {
   // Player-side leaderboard: Most Plays (quizzes completed) / Most Accurate /
   // Best Overall (accuracy-weighted). Sourced from /api/quiz/champions.
   const playerCats = useMemo(() => {
-    const mostPlays = (champions.completed || []).slice(0, 6).map((u) => ({ key: `p-${u.username}`, full: u.username, val: <Count value={u.quizzes || 0} /> }));
+    // Most Plays: top 5 signed-up players, then an aggregate "Anonymous" row in
+    // the 6th slot for all plays not tied to a registered account (no rank number).
+    const mostPlays = [
+      ...(champions.completed || []).slice(0, 5).map((u) => ({ key: `p-${u.username}`, full: u.username, val: <Count value={u.quizzes || 0} /> })),
+      { key: 'p-anon', full: 'Anonymous', val: <Count value={champions.anonymous || 0} />, noRank: true },
+    ];
     const accurate = (champions.accuracy || []).slice(0, 6).map((u) => ({ key: `a-${u.username}`, full: u.username, val: `${Math.round(u.accuracy || 0)}%` }));
     const overall = (champions.weighted || []).slice(0, 6).map((u) => ({ key: `w-${u.username}`, full: u.username, val: Math.round(u.weighted || 0).toLocaleString() }));
     return [
