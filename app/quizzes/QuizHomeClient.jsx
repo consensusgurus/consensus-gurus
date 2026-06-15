@@ -42,6 +42,13 @@ function cleanTitle(t) {
   return (t || '').replace(/^Name (the )?/i, '').trim();
 }
 
+// Activity-feed board names drop the leading action verb, so a cramped column
+// reads "Countries of South America No Outline" rather than "Click the
+// Countries of South America No Outline". Covers Click/Name/Guess/Find/etc.
+function boardTitle(t) {
+  return cleanTitle(t).replace(/^(Click|Name|Guess|Find|Identify|Locate|Pick|Select|Match|Pinpoint)\s+(the\s+|all\s+the\s+|these\s+)?/i, '').trim();
+}
+
 // Whole-word short form for the cramped Most-Played board: keep adding words
 // until we'd exceed `max` characters, then stop — no ellipsis, no mid-word cut,
 // and the board's CSS wraps anything still long instead of clipping it.
@@ -157,8 +164,15 @@ const boardCss = `
   .qz-wide-list{display:flex;flex-direction:column;padding:0 10px;}
   .lb-mid{font-family:'DM Mono',monospace;font-size:10px;letter-spacing:0.1em;text-transform:uppercase;color:${COLORS.faded};display:flex;align-items:center;gap:7px;white-space:nowrap;}
   .qz-pulse{width:7px;height:7px;border-radius:50%;background:#2e7d6b;flex:none;}
+  .qb{margin-bottom:16px;}
+  .qb-head{display:flex;align-items:center;justify-content:space-between;gap:12px;background:${COLORS.ember};border:1.5px solid ${COLORS.ink};box-shadow:3px 3px 0 ${COLORS.ink};padding:11px 15px;}
+  .qb-title{font-family:'DM Mono',monospace;font-size:12px;font-weight:700;letter-spacing:0.2em;text-transform:uppercase;color:${COLORS.cream};}
+  .qb-mid{font-family:'DM Mono',monospace;font-size:9.5px;letter-spacing:0.12em;text-transform:uppercase;color:#f4d9d4;display:flex;align-items:center;gap:7px;white-space:nowrap;}
+  .qb-cta{font-family:'DM Mono',monospace;font-size:9.5px;letter-spacing:0.14em;text-transform:uppercase;color:#f4d9d4;white-space:nowrap;text-decoration:none;}
+  .qb-cta:hover{color:${COLORS.cream};}
+  .qb-body{border:1.5px solid ${COLORS.ink};border-top:none;background:${COLORS.paper};padding:12px 15px 13px;}
   @media(max-width:680px){.lb-row-extra{display:none;}.lb-list-2col{display:flex;flex-direction:column;}.lb-name{white-space:normal;overflow:visible;text-overflow:clip;overflow-wrap:anywhere;}
-    .qz-wide-cols{grid-template-columns:1fr;gap:8px;}.lb-mid{display:none;}}
+    .qz-wide-cols{grid-template-columns:1fr;gap:8px;}.lb-mid,.qb-mid{display:none;}}
 `;
 
 // Relative time since a play (compact): "just now", "5m", "3h", "2d", "3w".
@@ -198,20 +212,19 @@ function dateShort(q) {
 // three distinct lists side by side. A kicker + CTA sit on top; each list shows
 // its top three rows, every row a link to its quiz. On mobile the three lists
 // stack into a single column with a divider between each.
-function QuizBoardWide({ kicker, cta, ctaHref, categories, mid }) {
+function QuizBoardWide({ title, cta, ctaHref, categories, mid }) {
   return (
-    <div className="lb-card">
-      <div className="lb-head">
-        <span className="lb-kicker">{kicker}</span>
-        {mid != null && <span className="lb-mid">{mid}</span>}
-        <Link href={ctaHref} className="lb-cta">{cta} {'\u203A'}</Link>
+    <div className="qb">
+      <div className="qb-head">
+        <span className="qb-title">{title}</span>
+        {mid != null && <span className="qb-mid">{mid}</span>}
+        <Link href={ctaHref} className="qb-cta">{cta} {'\u203A'}</Link>
       </div>
-      <div className="lb-rule1" />
-      <div className="lb-rule2" />
+      <div className="qb-body">
       <div className="qz-wide-cols">
         {categories.map((c) => (
           <div className="qz-wide-col" key={c.id}>
-            <div className="qz-wide-label" style={c.tint ? { background: c.tint, color: c.accent } : undefined}>{c.icon}{c.label}</div>
+            <div className="qz-wide-label" style={{ color: c.accent, background: 'transparent', borderBottom: `2px solid ${c.accent}`, padding: '6px 2px' }}>{c.icon}{c.label}</div>
             <div className="qz-wide-list">
               {c.rows.length > 0 ? c.rows.map((r, i) => {
                 const inner = (
@@ -228,6 +241,7 @@ function QuizBoardWide({ kicker, cta, ctaHref, categories, mid }) {
             </div>
           </div>
         ))}
+      </div>
       </div>
     </div>
   );
@@ -284,6 +298,7 @@ export default function QuizHomeClient() {
   const [todayBoard, setTodayBoard] = useState({ leaders: [], correctToday: 0, playsToday: 0 });
   const [visitors, setVisitors] = useState(0);
   const [quizStats, setQuizStats] = useState([]);
+  const [champions, setChampions] = useState({ correctAnswers: [], perfectQuizzes: [] });
   const seedRef = useRef((Date.now() & 0xffffffff) >>> 0);
   // Close the category / sort dropdowns on an outside click or Escape.
   const ribbonRef = useRef(null);
@@ -326,6 +341,7 @@ export default function QuizHomeClient() {
     // into bootstrap views under `quiz::<id>` keys; sum only those.
     fetchBootstrap().then((data) => { if (data && data.views) setVisitors(Object.entries(data.views).reduce((sum, [k, v]) => (k.startsWith('quiz::') ? sum + (Number(v) || 0) : sum), 0)); }).catch(() => {});
     fetch('/api/quiz/stats').then((r) => r.json()).then((d) => { if (d && Array.isArray(d.quizzes)) setQuizStats(d.quizzes); }).catch(() => {});
+    fetch('/api/quiz/champions').then((r) => r.json()).then((d) => { if (d && !d.error) setChampions({ correctAnswers: Array.isArray(d.correctAnswers) ? d.correctAnswers : [], perfectQuizzes: Array.isArray(d.perfectQuizzes) ? d.perfectQuizzes : [] }); }).catch(() => {});
   }, []);
 
   // Count quiz-home-page landings toward this page's visitor total, so it
@@ -384,19 +400,16 @@ export default function QuizHomeClient() {
 
   // Quiz-side leaderboard: Most Played / Trending Now / Highest Scored. Each
   // row links to its quiz and shows full title on desktop, short on mobile.
-  const quizCats = useMemo(() => {
-    const mk = (q, val) => ({ key: q.id, href: `/quiz/${q.id}`, full: cleanTitle(q.title), val });
+  const { playerCols, quizCols } = useMemo(() => {
+    const mk = (q, val) => ({ key: q.id, href: `/quiz/${q.id}`, full: boardTitle(q.title), val });
     const plays = (id) => totals.byQuiz[id] || 0;
-    // Trending here uses the dynamic, self-widening window from the totals API
-    // (last 3h, widening by 3h until >= 3 quizzes have plays) so this board
-    // reflects genuinely recent activity. The tiled grid's Trending sort below
-    // is unaffected and still uses the 7-day `recent7` basis.
+    const isNewsId = (id) => /^(daily-market-news-quiz-|daily-business-quiz-|daily-news-quiz-|weekly-business-quiz-|weekly-news-quiz-|earnings-reporter-quiz-|earnings-quiz-)/.test(id || '');
+    // Most Played: quizzes with the most completed games, all-time, top 3.
     const mostPlayed = QUIZZES.filter((q) => plays(q.id) > 0)
       .sort((a, b) => plays(b.id) - plays(a.id) || a.title.localeCompare(b.title))
       .slice(0, 3).map((q) => mk(q, <Count value={plays(q.id)} />));
     // Last Played: the literal most-recently-completed games (from
-    // /api/quiz/recent, newest first), de-duplicated by quiz so a name never
-    // repeats, top 3.
+    // /api/quiz/recent, newest first), de-duplicated by quiz, top 3.
     const quizById = Object.fromEntries(QUIZZES.map((q) => [q.id, q]));
     const lastPlayed = [];
     const seenLP = new Set();
@@ -408,19 +421,30 @@ export default function QuizHomeClient() {
       lastPlayed.push(mk(q, p.playedAt ? <span style={{ color: COLORS.faded }}>{timeAgo(p.playedAt)}</span> : null));
       if (lastPlayed.length >= 3) break;
     }
-    // Today's Correct Answer Leaders: signed-up players ranked by total correct
-    // answers since midnight US Eastern (from /api/quiz/today), top 3.
-    const leaderRows = (todayBoard.leaders || []).slice(0, 3).map((u, i) => ({
-      key: `lead-${i}-${u.username}`,
-      full: u.username,
-      val: u.correct,
-    }));
-    return [
-      { id: 'leaders', label: "Today's Correct Answer Leaders", rows: leaderRows, empty: 'No correct answers yet today.', accent: '#c98a1b', tint: '#f3e3c8', icon: <Check size={12} strokeWidth={3} aria-hidden="true" /> },
-      { id: 'played', label: 'Most Played Quizzes', rows: mostPlayed, empty: 'No plays recorded yet.', noMedals: true, accent: '#c0392b', tint: '#f3ddd8', icon: <Flame size={12} strokeWidth={2.5} aria-hidden="true" /> },
-      { id: 'lastplayed', label: 'Last Played Quizzes', rows: lastPlayed, empty: 'No recent plays yet.', noMedals: true, accent: '#2f6f9f', tint: '#dce9f0', icon: <Clock size={12} strokeWidth={2.5} aria-hidden="true" /> },
-    ];
-  }, [totals, statById, recent, todayBoard]);
+    // Newest: most recently published quizzes (news quizzes excluded), top 3.
+    const ts = (q) => new Date(q.publishedAt || `${q.publishedDate || '1970-01-01'}T12:00:00Z`).getTime();
+    const newest = QUIZZES.filter((q) => q.id && !isNewsId(q.id))
+      .slice()
+      .sort((a, b) => ts(b) - ts(a) || a.title.localeCompare(b.title))
+      .slice(0, 3).map((q) => mk(q, <span style={{ color: COLORS.faded }}>{dateShort(q)}</span>));
+    // Players: today's correct answers (since midnight ET, /api/quiz/today),
+    // all-time correct answers and most perfect quizzes (/api/quiz/champions).
+    const todaysCorrect = (todayBoard.leaders || []).slice(0, 3).map((u, i) => ({ key: `tc-${i}-${u.username}`, full: u.username, val: (u.correct || 0).toLocaleString() }));
+    const totalCorrect = (champions.correctAnswers || []).slice(0, 3).map((u, i) => ({ key: `cc-${i}-${u.username}`, full: u.username, val: (u.correct || 0).toLocaleString() }));
+    const mostPerfect = (champions.perfectQuizzes || []).slice(0, 3).map((u, i) => ({ key: `pf-${i}-${u.username}`, full: u.username, val: (u.perfect || 0).toLocaleString() }));
+    return {
+      playerCols: [
+        { id: 'today', label: "Today's Correct Answers", rows: todaysCorrect, empty: 'No correct answers yet today.', accent: '#c98a1b', icon: <Check size={12} strokeWidth={3} aria-hidden="true" /> },
+        { id: 'allcorrect', label: 'Total Correct Answers', rows: totalCorrect, empty: 'No answers recorded yet.', accent: '#3d4f2b', icon: <BarChart3 size={12} strokeWidth={2.5} aria-hidden="true" /> },
+        { id: 'perfect', label: 'Most Perfect Quizzes', rows: mostPerfect, empty: 'No perfect runs yet.', accent: '#a44a26', icon: <Trophy size={12} strokeWidth={2.5} aria-hidden="true" /> },
+      ],
+      quizCols: [
+        { id: 'played', label: 'Most Played', rows: mostPlayed, empty: 'No plays recorded yet.', noMedals: true, accent: '#c0392b', icon: <Flame size={12} strokeWidth={2.5} aria-hidden="true" /> },
+        { id: 'lastplayed', label: 'Last Played', rows: lastPlayed, empty: 'No recent plays yet.', noMedals: true, accent: '#2f6f9f', icon: <Clock size={12} strokeWidth={2.5} aria-hidden="true" /> },
+        { id: 'newest', label: 'Newest', rows: newest, empty: 'No quizzes yet.', noMedals: true, accent: '#7a4fae', icon: <Sparkles size={12} strokeWidth={2.5} aria-hidden="true" /> },
+      ],
+    };
+  }, [totals, statById, recent, todayBoard, champions]);
 
   const sorted = useMemo(() => {
     const ql = query.trim().toLowerCase();
@@ -614,7 +638,9 @@ export default function QuizHomeClient() {
         <section style={{ maxWidth: 1200, margin: '0 auto', padding: '10px 16px 64px' }}>
           <DailyNewsBanner totals={totals} />
 
-          <QuizBoardWide kicker="Activity Feed" cta="All Quiz Stats" ctaHref="/quizzes/stats" categories={quizCats} mid={totals.total > 0 ? (<><span className="qz-pulse" />{totals.total.toLocaleString()} plays{todayBoard.playsToday > 0 ? ` · ${todayBoard.playsToday} today` : ''}{' '}<Check size={11} strokeWidth={3} aria-hidden="true" style={{ verticalAlign: '-1px' }} />{' '}{(totals.totalCorrect || 0).toLocaleString()} correct answers{todayBoard.correctToday > 0 ? ` · ${todayBoard.correctToday.toLocaleString()} today` : ''}</>) : null} />
+          <QuizBoardWide title="Players" cta="All player stats" ctaHref="/quizzes/stats" categories={playerCols} mid={(totals.totalCorrect || 0) > 0 ? (<>{(totals.totalCorrect || 0).toLocaleString()} correct{todayBoard.correctToday > 0 ? ` · ${todayBoard.correctToday.toLocaleString()} today` : ''}</>) : null} />
+
+          <QuizBoardWide title="Quizzes" cta="All quiz stats" ctaHref="/quizzes/stats" categories={quizCols} mid={totals.total > 0 ? (<><span className="qz-pulse" />{totals.total.toLocaleString()} plays{todayBoard.playsToday > 0 ? ` · ${todayBoard.playsToday} today` : ''}</>) : null} />
 
           {sorted.length > 0 ? (
             <div className="qz-grid">

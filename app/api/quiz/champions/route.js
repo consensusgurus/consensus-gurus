@@ -41,6 +41,10 @@ export function buildChampions(rows, { minQuizzes = MIN_QUIZZES } = {}) {
   const firstByPair = new Map();
   // Total completed games per user, counting every replay (for Total Plays).
   const playsByUser = new Map();
+  // All-time correct answers per user (sum of score over every completed game),
+  // and the DISTINCT quizzes each user has scored 100% on (Fully Completed).
+  const correctByUser = new Map();
+  const perfectByUser = new Map();
   // Display name per user = the username on their most recent row.
   const nameByUser = new Map();
   const nameIdByUser = new Map();
@@ -50,6 +54,12 @@ export function buildChampions(rows, { minQuizzes = MIN_QUIZZES } = {}) {
     const prev = firstByPair.get(key);
     if (!prev || id < (prev.id || 0)) firstByPair.set(key, r);
     playsByUser.set(r.user_id, (playsByUser.get(r.user_id) || 0) + 1);
+    correctByUser.set(r.user_id, (correctByUser.get(r.user_id) || 0) + (r.score || 0));
+    if (r.total > 0 && r.score === r.total) {
+      let pset = perfectByUser.get(r.user_id);
+      if (!pset) { pset = new Set(); perfectByUser.set(r.user_id, pset); }
+      pset.add(r.quiz_id);
+    }
     if (id >= (nameIdByUser.get(r.user_id) || -1)) {
       nameIdByUser.set(r.user_id, id);
       nameByUser.set(r.user_id, r.username || 'Anonymous');
@@ -93,7 +103,18 @@ export function buildChampions(rows, { minQuizzes = MIN_QUIZZES } = {}) {
     .sort((x, y) => y.accuracy - x.accuracy || y.quizzes - x.quizzes || byName(x, y))
     .map((u) => ({ username: u.username, accuracy: u.accuracy, quizzes: u.quizzes }));
 
-  return { totalPlays, completed, weighted, accuracy, minQuizzes };
+  // All-time Total Correct Answers and Fully Completed Quizzes (distinct quizzes
+  // scored 100%) leaderboards, used by the /quizzes Players board and /leaderboard.
+  const correctAnswers = [...correctByUser.entries()]
+    .map(([uid, n]) => ({ username: nameByUser.get(uid) || 'Anonymous', correct: n }))
+    .filter((u) => u.correct > 0)
+    .sort((x, y) => y.correct - x.correct || byName(x, y));
+  const perfectQuizzes = [...perfectByUser.entries()]
+    .map(([uid, set]) => ({ username: nameByUser.get(uid) || 'Anonymous', perfect: set.size }))
+    .filter((u) => u.perfect > 0)
+    .sort((x, y) => y.perfect - x.perfect || byName(x, y));
+
+  return { totalPlays, completed, weighted, accuracy, correctAnswers, perfectQuizzes, minQuizzes };
 }
 
 // Metric-specific anonymous totals for the leaderboard column parentheticals.
@@ -131,6 +152,6 @@ export async function GET() {
     return NextResponse.json({ ...buildChampions(rows), ...anon, anonymous: anon.anonPlays });
   } catch (e) {
     console.error('quiz champions error', e);
-    return NextResponse.json({ totalPlays: [], completed: [], weighted: [], accuracy: [], minQuizzes: MIN_QUIZZES, anonymous: 0, anonPlays: 0, anonCompleted: 0, anonWeighted: 0, anonAccuracy: 0 });
+    return NextResponse.json({ totalPlays: [], completed: [], weighted: [], accuracy: [], correctAnswers: [], perfectQuizzes: [], minQuizzes: MIN_QUIZZES, anonymous: 0, anonPlays: 0, anonCompleted: 0, anonWeighted: 0, anonAccuracy: 0 });
   }
 }
