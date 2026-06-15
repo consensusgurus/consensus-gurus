@@ -183,7 +183,7 @@ function QuizBoardWide({ kicker, cta, ctaHref, categories }) {
               {c.rows.length > 0 ? c.rows.map((r, i) => {
                 const inner = (
                   <>
-                    <span className="lb-rank" style={r.noRank ? { background: 'transparent', border: 'none' } : { background: i < 3 ? MEDAL[i] : 'transparent' }}>{r.noRank ? '' : i + 1}</span>
+                    <span className="lb-rank" style={r.noRank ? { background: 'transparent', border: 'none' } : { background: (i < 3 && !c.noMedals) ? MEDAL[i] : 'transparent' }}>{r.noRank ? '' : i + 1}</span>
                     <span className="lb-name">{r.full}</span>
                     {r.val != null && <span className="lb-val">{r.val}</span>}
                   </>
@@ -382,7 +382,7 @@ export default function QuizHomeClient() {
     return [
       { id: 'trending', label: 'Trending Now', rows: trending, empty: 'No recent plays yet.' },
       { id: 'played', label: 'Most Played', rows: mostPlayed, empty: 'No plays recorded yet.' },
-      { id: 'newest', label: 'Newest', rows: newest, empty: 'No quizzes yet.' },
+      { id: 'newest', label: 'Newest', rows: newest, empty: 'No quizzes yet.', noMedals: true },
     ];
   }, [totals, statById]);
 
@@ -575,7 +575,7 @@ export default function QuizHomeClient() {
           </div>
         </nav>
 
-        <section style={{ maxWidth: 1200, margin: '0 auto', padding: '16px 16px 64px' }}>
+        <section style={{ maxWidth: 1200, margin: '0 auto', padding: '10px 16px 64px' }}>
           <DailyNewsBanner totals={totals} />
 
           <QuizBoardWide kicker="Quizzes" cta="All Quiz Stats" ctaHref="/quizzes/stats" categories={quizCats} />
