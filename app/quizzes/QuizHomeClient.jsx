@@ -214,9 +214,11 @@ function dateShort(q) {
 // stack into a single column with a divider between each.
 function fmtDur(sec) {
   const s = Math.max(0, Math.round(Number(sec) || 0));
-  if (s >= 3600) { const h = s / 3600; return `${h >= 10 ? Math.round(h) : h.toFixed(1)}h`; }
-  if (s >= 60) return `${Math.round(s / 60)}m`;
-  return `${s}s`;
+  const totalMin = Math.round(s / 60);
+  if (totalMin < 1) return `${s}s`;
+  const h = Math.floor(totalMin / 60);
+  const m = totalMin % 60;
+  return h > 0 ? `${h}h ${m}m` : `${m}m`;
 }
 
 function QuizBoardWide({ title, cta, ctaHref, categories, mid }) {
@@ -647,7 +649,7 @@ export default function QuizHomeClient() {
 
           <QuizBoardWide title="Players" cta="All player stats" ctaHref="/leaderboard" categories={playerCols} mid={(totals.totalCorrect || 0) > 0 ? (<><span style={{ display: 'inline-flex', alignItems: 'center', gap: 5 }}><Check size={11} strokeWidth={3} aria-hidden="true" />{(totals.totalCorrect || 0).toLocaleString()} correct answers{todayBoard.correctToday > 0 ? ` · ${todayBoard.correctToday.toLocaleString()} today` : ''}</span>{(totals.totalPerfect || 0) > 0 ? (<span style={{ display: 'inline-flex', alignItems: 'center', gap: 5, marginLeft: 22 }}><Trophy size={11} strokeWidth={2.5} aria-hidden="true" />{(totals.totalPerfect || 0).toLocaleString()} perfect quiz completions{todayBoard.perfectToday > 0 ? ` · ${todayBoard.perfectToday.toLocaleString()} today` : ''}</span>) : null}</>) : null} />
 
-          <QuizBoardWide title="Quizzes" cta="All quiz stats" ctaHref="/quizzes/stats" categories={quizCols} mid={totals.total > 0 ? (<><span style={{ display: 'inline-flex', alignItems: 'center', gap: 5 }}><span className="qz-pulse" />{totals.total.toLocaleString()} plays{todayBoard.playsToday > 0 ? ` · ${todayBoard.playsToday} today` : ''}</span>{totals.totalTime > 0 ? (<span style={{ display: 'inline-flex', alignItems: 'center', gap: 5, marginLeft: 22 }}><Clock size={11} strokeWidth={2.5} aria-hidden="true" />{fmtDur(totals.totalTime)} spent{totals.todayTime > 0 ? ` · ${fmtDur(totals.todayTime)} today` : ''}</span>) : null}</>) : null} />
+          <QuizBoardWide title="Quizzes" cta="All quiz stats" ctaHref="/quizzes/stats" categories={quizCols} mid={totals.total > 0 ? (<><span style={{ display: 'inline-flex', alignItems: 'center', gap: 5 }}><span className="qz-pulse" />{totals.total.toLocaleString()} plays{todayBoard.playsToday > 0 ? ` · ${todayBoard.playsToday} today` : ''}</span>{totals.totalTime > 0 ? (<span style={{ display: 'inline-flex', alignItems: 'center', gap: 5, marginLeft: 22 }}><Clock size={11} strokeWidth={2.5} aria-hidden="true" />{fmtDur(totals.totalTime)} spent answering{totals.todayTime > 0 ? ` · ${fmtDur(totals.todayTime)} today` : ''}</span>) : null}</>) : null} />
 
           {sorted.length > 0 ? (
             <div className="qz-grid">
