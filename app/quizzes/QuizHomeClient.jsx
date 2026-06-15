@@ -382,13 +382,16 @@ export default function QuizHomeClient() {
     const trending = QUIZZES.filter((q) => recent(q.id) > 0)
       .sort((a, b) => recent(b.id) - recent(a.id) || plays(b.id) - plays(a.id))
       .slice(0, 3).map((q) => mk(q, <Count value={recent(q.id)} />));
-    const highest = QUIZZES.filter((q) => { const st = statById[q.id]; return st && st.plays >= 3; })
-      .sort((a, b) => statById[b.id].avgScorePct - statById[a.id].avgScorePct || statById[b.id].plays - statById[a.id].plays)
-      .slice(0, 3).map((q) => mk(q, `${statById[q.id].avgScorePct}%`));
+    const tsOf = (q) => new Date(q.publishedAt || `${q.publishedDate || '1970-01-01'}T12:00:00Z`).getTime();
+    const isNewsQ = (q) => /^(daily-market-news-quiz-|daily-business-quiz-|daily-news-quiz-|weekly-business-quiz-|weekly-news-quiz-|earnings-reporter-quiz-|earnings-quiz-)/.test(q.id || '');
+    const fmtDate = (q) => new Date(q.publishedAt || `${q.publishedDate || '1970-01-01'}T12:00:00Z`).toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+    const newest = QUIZZES.filter((q) => !isNewsQ(q)).slice()
+      .sort((a, b) => tsOf(b) - tsOf(a) || a.title.localeCompare(b.title))
+      .slice(0, 3).map((q) => mk(q, fmtDate(q)));
     return [
       { id: 'played', label: 'Most Played', rows: mostPlayed, empty: 'No plays recorded yet.' },
       { id: 'trending', label: 'Trending Now', rows: trending, empty: 'No plays this week yet.' },
-      { id: 'highest', label: 'Highest Scored', rows: highest, empty: 'Not enough plays yet.' },
+      { id: 'newest', label: 'Newest', rows: newest, empty: 'No quizzes yet.' },
     ];
   }, [totals, statById]);
 
@@ -399,7 +402,7 @@ export default function QuizHomeClient() {
     // the 6th slot for all plays not tied to a registered account (no rank number).
     const mostPlays = [
       ...(champions.completed || []).slice(0, 5).map((u) => ({ key: `p-${u.username}`, full: u.username, val: <Count value={u.quizzes || 0} /> })),
-      { key: 'p-anon', full: 'Anonymous', val: <Count value={champions.anonymous || 0} />, noRank: true },
+      { key: 'p-anon', full: 'Anonymous Users', val: <Count value={champions.anonymous || 0} />, noRank: true },
     ];
     const accurate = (champions.accuracy || []).slice(0, 6).map((u) => ({ key: `a-${u.username}`, full: u.username, val: `${Math.round(u.accuracy || 0)}%` }));
     const overall = (champions.weighted || []).slice(0, 6).map((u) => ({ key: `w-${u.username}`, full: u.username, val: Math.round(u.weighted || 0).toLocaleString() }));
