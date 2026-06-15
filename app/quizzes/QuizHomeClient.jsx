@@ -212,6 +212,13 @@ function dateShort(q) {
 // three distinct lists side by side. A kicker + CTA sit on top; each list shows
 // its top three rows, every row a link to its quiz. On mobile the three lists
 // stack into a single column with a divider between each.
+function fmtDur(sec) {
+  const s = Math.max(0, Math.round(Number(sec) || 0));
+  if (s >= 3600) { const h = s / 3600; return `${h >= 10 ? Math.round(h) : h.toFixed(1)}h`; }
+  if (s >= 60) return `${Math.round(s / 60)}m`;
+  return `${s}s`;
+}
+
 function QuizBoardWide({ title, cta, ctaHref, categories, mid }) {
   return (
     <div className="qb">
@@ -293,7 +300,7 @@ export default function QuizHomeClient() {
   const [catOpen, setCatOpen] = useState(false);
   const [typeOpen, setTypeOpen] = useState(false);
   const [typeFilter, setTypeFilter] = useState('all');
-  const [totals, setTotals] = useState({ total: 0, today: 0, totalCorrect: 0, totalPerfect: 0, byQuiz: {}, recent7: {}, recent12h: {}, trendingByQuiz: {}, trendingWindowH: 0 });
+  const [totals, setTotals] = useState({ total: 0, today: 0, totalCorrect: 0, totalPerfect: 0, totalTime: 0, todayTime: 0, byQuiz: {}, recent7: {}, recent12h: {}, trendingByQuiz: {}, trendingWindowH: 0 });
   const [recent, setRecent] = useState([]);
   const [todayBoard, setTodayBoard] = useState({ leaders: [], correctToday: 0, perfectToday: 0, playsToday: 0 });
   const [visitors, setVisitors] = useState(0);
@@ -333,7 +340,7 @@ export default function QuizHomeClient() {
   }, []);
 
   useEffect(() => {
-    fetch('/api/quiz/totals').then((r) => r.json()).then((d) => { if (d && !d.error) setTotals({ total: d.total || 0, today: d.today || 0, totalCorrect: d.totalCorrect || 0, totalPerfect: d.totalPerfect || 0, byQuiz: d.byQuiz || {}, recent7: d.recent7 || {}, recent12h: d.recent12h || {}, trendingByQuiz: d.trendingByQuiz || {}, trendingWindowH: d.trendingWindowH || 0 }); }).catch(() => {});
+    fetch('/api/quiz/totals').then((r) => r.json()).then((d) => { if (d && !d.error) setTotals({ total: d.total || 0, today: d.today || 0, totalCorrect: d.totalCorrect || 0, totalPerfect: d.totalPerfect || 0, totalTime: d.totalTime || 0, todayTime: d.todayTime || 0, byQuiz: d.byQuiz || {}, recent7: d.recent7 || {}, recent12h: d.recent12h || {}, trendingByQuiz: d.trendingByQuiz || {}, trendingWindowH: d.trendingWindowH || 0 }); }).catch(() => {});
     fetch('/api/quiz/recent').then((r) => r.json()).then((d) => { if (d && Array.isArray(d.plays)) setRecent(d.plays); }).catch(() => {});
     fetch('/api/quiz/today').then((r) => r.json()).then((d) => { if (d && !d.error) setTodayBoard({ leaders: Array.isArray(d.leaders) ? d.leaders : [], correctToday: d.correctToday || 0, perfectToday: d.perfectToday || 0, playsToday: d.playsToday || 0 }); }).catch(() => {});
     // Visitors on this page reflect quiz traffic only (the quiz home page +
@@ -640,7 +647,7 @@ export default function QuizHomeClient() {
 
           <QuizBoardWide title="Players" cta="All player stats" ctaHref="/leaderboard" categories={playerCols} mid={(totals.totalCorrect || 0) > 0 ? (<><span style={{ display: 'inline-flex', alignItems: 'center', gap: 5 }}><Check size={11} strokeWidth={3} aria-hidden="true" />{(totals.totalCorrect || 0).toLocaleString()} correct answers{todayBoard.correctToday > 0 ? ` · ${todayBoard.correctToday.toLocaleString()} today` : ''}</span>{(totals.totalPerfect || 0) > 0 ? (<span style={{ display: 'inline-flex', alignItems: 'center', gap: 5, marginLeft: 22 }}><Trophy size={11} strokeWidth={2.5} aria-hidden="true" />{(totals.totalPerfect || 0).toLocaleString()} perfect quiz completions{todayBoard.perfectToday > 0 ? ` · ${todayBoard.perfectToday.toLocaleString()} today` : ''}</span>) : null}</>) : null} />
 
-          <QuizBoardWide title="Quizzes" cta="All quiz stats" ctaHref="/quizzes/stats" categories={quizCols} mid={totals.total > 0 ? (<><span className="qz-pulse" />{totals.total.toLocaleString()} plays{todayBoard.playsToday > 0 ? ` · ${todayBoard.playsToday} today` : ''}</>) : null} />
+          <QuizBoardWide title="Quizzes" cta="All quiz stats" ctaHref="/quizzes/stats" categories={quizCols} mid={totals.total > 0 ? (<><span style={{ display: 'inline-flex', alignItems: 'center', gap: 5 }}><span className="qz-pulse" />{totals.total.toLocaleString()} plays{todayBoard.playsToday > 0 ? ` · ${todayBoard.playsToday} today` : ''}</span>{totals.totalTime > 0 ? (<span style={{ display: 'inline-flex', alignItems: 'center', gap: 5, marginLeft: 22 }}><Clock size={11} strokeWidth={2.5} aria-hidden="true" />{fmtDur(totals.totalTime)} spent{totals.todayTime > 0 ? ` · ${fmtDur(totals.todayTime)} today` : ''}</span>) : null}</>) : null} />
 
           {sorted.length > 0 ? (
             <div className="qz-grid">

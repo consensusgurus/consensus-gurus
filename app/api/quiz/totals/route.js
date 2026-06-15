@@ -21,7 +21,7 @@ const TREND_MIN_QUIZZES = 3;         // widen until at least this many quizzes h
 
 export async function GET() {
   try {
-    const { data, error } = await fetchAllRows(supabaseAdmin, 'quiz_results', 'quiz_id, created_at, score, total', ['quiz_id']);
+    const { data, error } = await fetchAllRows(supabaseAdmin, 'quiz_results', 'quiz_id, created_at, score, total, time_elapsed', ['quiz_id']);
     if (error) {
       console.error('quiz totals error', error);
       return NextResponse.json({ total: 0, byQuiz: {}, recent7: {}, recent12h: {}, trendingByQuiz: {}, trendingWindowH: 0 });
@@ -35,6 +35,8 @@ export async function GET() {
     const cutoff12h = now - 12 * 60 * 60 * 1000;
     const startToday = new Date(); startToday.setUTCHours(0, 0, 0, 0); const cutoffToday = startToday.getTime();
     let today = 0;
+    let totalTime = 0;
+    let todayTime = 0;
     let totalCorrect = 0;
     let totalPerfect = 0;
     const bucketMs = TREND_BUCKET_H * 60 * 60 * 1000;
@@ -43,12 +45,14 @@ export async function GET() {
     for (const r of rows) {
       byQuiz[r.quiz_id] = (byQuiz[r.quiz_id] || 0) + 1;
       totalCorrect += Number(r.score) || 0;
+      const te = Number(r.time_elapsed);
+      if (Number.isFinite(te) && te > 0) totalTime += te;
       if (r.total > 0 && Number(r.score) === Number(r.total)) totalPerfect += 1;
       if (r.created_at) {
         const t = new Date(r.created_at).getTime();
         if (t >= cutoff7) recent7[r.quiz_id] = (recent7[r.quiz_id] || 0) + 1;
         if (t >= cutoff12h) recent12h[r.quiz_id] = (recent12h[r.quiz_id] || 0) + 1;
-        if (t >= cutoffToday) today += 1;
+        if (t >= cutoffToday) { today += 1; if (Number.isFinite(te) && te > 0) todayTime += te; }
         const idx = Math.floor((now - t) / bucketMs);
         if (idx >= 0 && idx < TREND_MAX_BUCKETS) {
           let arr = buckets.get(r.quiz_id);
@@ -65,7 +69,7 @@ export async function GET() {
       if (Object.keys(cum).length >= TREND_MIN_QUIZZES) { trendingWindowH = (k + 1) * TREND_BUCKET_H; break; }
     }
     const trendingByQuiz = { ...cum };
-    return NextResponse.json({ total: rows.length, today, totalCorrect, totalPerfect, byQuiz, recent7, recent12h, trendingByQuiz, trendingWindowH });
+    return NextResponse.json({ total: rows.length, today, totalCorrect, totalPerfect, totalTime, todayTime, byQuiz, recent7, recent12h, trendingByQuiz, trendingWindowH });
   } catch (e) {
     return NextResponse.json({ total: 0, byQuiz: {}, recent7: {}, recent12h: {}, trendingByQuiz: {}, trendingWindowH: 0 });
   }
