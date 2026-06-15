@@ -158,7 +158,7 @@ const boardCss = `
   a.lb-row:hover .lb-name{color:${COLORS.ember};}
   .lb-val{flex:none;font-family:'DM Mono',monospace;font-weight:500;font-size:12px;color:${COLORS.ink};white-space:nowrap;}
   .lb-empty{font-family:'Fraunces',serif;font-style:italic;font-size:12.5px;color:${COLORS.faded};padding:2px 0 8px;}
-  .qz-wide-cols{display:grid;grid-template-columns:1fr 1.2fr 1fr;gap:10px;}
+  .qz-wide-cols{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;}
   .qz-wide-col{min-width:0;}
   .qz-wide-label{font-family:'DM Mono',monospace;font-size:11px;font-weight:700;letter-spacing:0.16em;text-transform:uppercase;color:${COLORS.ink};display:flex;align-items:center;gap:6px;padding:7px 10px;margin-bottom:4px;}
   .qz-wide-list{display:flex;flex-direction:column;padding:0 10px;}
