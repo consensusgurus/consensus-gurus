@@ -85,8 +85,8 @@ export default function LeaderboardClient() {
         <section style={{ maxWidth: 1300, margin: '0 auto', padding: '24px 24px 72px' }}>
           {loaded ? (
             <div className="lb-grid">
-              <Column icon={Play} title="Total Plays" anon={anonPlaysStr} note="Every game, replays included" rows={totalPlaysRows} empty="No plays recorded yet." />
-              <Column icon={Check} title="Most Correct Answers" note="Correct answers, all-time" rows={correctRows} empty="No answers recorded yet." />
+              <Column icon={Play} title="Plays" anon={anonPlaysStr} note="Every game, replays included" rows={totalPlaysRows} empty="No plays recorded yet." />
+              <Column icon={Check} title="Correct Answers" note="Correct answers, all-time" rows={correctRows} empty="No answers recorded yet." />
               <Column icon={Trophy} title="Unique Quizzes Played" anon={anonCompletedStr} note="Distinct quizzes finished" rows={completedRows} empty="No completed quizzes yet." />
               <Column icon={CheckCheck} title="Fully Completed Quizzes" note="Distinct quizzes scored 100%" rows={perfectRows} empty="No perfect runs yet." />
             </div>
