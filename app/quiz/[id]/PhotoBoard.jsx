@@ -139,6 +139,21 @@ export default function PhotoBoard({ items, started, ended, revealed, onMatch, o
         </div>
       )}
       {/* Photo prompt — only this changes between answers; scrolls beneath the frozen bar. */}
+      {live && curItem && curItem.mask !== undefined ? (
+        // Masked photo (e.g. ski trail maps with names blacked out): render the
+        // image at its NATURAL aspect inside a wrapper sized to the image, so the
+        // percentage-based mask rectangles line up exactly regardless of the
+        // image's own aspect ratio. Each mask is an opaque ink bar redacting a
+        // logo / name printed on the photo.
+        <div style={{ width: '100%', display: 'flex', justifyContent: 'center', marginBottom: 10 }}>
+          <div style={{ position: 'relative', display: 'inline-block', lineHeight: 0, maxWidth: '100%', background: COLORS.ink, border: `2px solid ${borderColor}`, transition: 'border-color .15s' }}>
+            <img src={curItem.img} alt={`Name the ${noun} in this photo`} style={{ display: 'block', width: 'auto', height: 'auto', maxWidth: '100%', maxHeight: 520 }} />
+            {(curItem.mask || []).map((m, mi) => (
+              <div key={mi} style={{ position: 'absolute', left: `${m.x}%`, top: `${m.y}%`, width: `${m.w}%`, height: `${m.h}%`, background: COLORS.ink }} />
+            ))}
+          </div>
+        </div>
+      ) : (
       <div style={{ position: 'relative', width: '100%', aspectRatio: photoAspect, maxHeight: 500, ...(portrait ? { maxWidth: 380, marginLeft: 'auto', marginRight: 'auto' } : null), background: COLORS.ink, border: `2px solid ${borderColor}`, overflow: 'hidden', marginBottom: 10, transition: 'border-color .15s' }}>
         {live && curItem ? (
           <img src={curItem.img} alt={`Name the ${noun} in this photo`} style={{ width: '100%', height: '100%', objectFit: 'contain', display: 'block' }} />
@@ -146,6 +161,7 @@ export default function PhotoBoard({ items, started, ended, revealed, onMatch, o
           <div style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', color: COLORS.faded, fontFamily: SERIF, fontStyle: 'italic', fontSize: 18 }}>{ended ? 'Game over' : 'Press Play to start'}</div>
         )}
       </div>
+      )}
       {ended && (
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(150px, 1fr))', gap: 8 }}>
           {list.map((it, i) => {
