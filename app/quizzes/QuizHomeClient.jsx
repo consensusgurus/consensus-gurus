@@ -128,7 +128,7 @@ const MEDAL = ['#caa12e', '#9c968a', '#b1763f'];
 const boardCss = `
   .qz-boards{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px;align-items:start;}
   @media(max-width:680px){.qz-boards{grid-template-columns:1fr;}}
-  .lb-card{display:flex;flex-direction:column;background:${COLORS.paper};border:1.5px solid ${COLORS.ink};box-shadow:3px 3px 0 ${COLORS.ember};padding:10px 16px 10px;box-sizing:border-box;}
+  .lb-card{display:flex;flex-direction:column;background:${COLORS.paper};border:1.5px solid ${COLORS.ink};box-shadow:3px 3px 0 ${COLORS.ember};padding:10px 16px 10px;margin-bottom:16px;box-sizing:border-box;}
   .lb-head{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:3px;}
   .lb-kicker{font-family:'DM Mono',monospace;font-size:10.5px;font-weight:700;letter-spacing:0.22em;text-transform:uppercase;color:${COLORS.ember};}
   .lb-cta{font-family:'DM Mono',monospace;font-size:9.5px;letter-spacing:0.14em;text-transform:uppercase;color:${COLORS.faded};white-space:nowrap;text-decoration:none;}
@@ -576,7 +576,7 @@ export default function QuizHomeClient() {
           </div>
         </nav>
 
-        <section style={{ maxWidth: 1200, margin: '0 auto', padding: '20px 16px 64px' }}>
+        <section style={{ maxWidth: 1200, margin: '0 auto', padding: '16px 16px 64px' }}>
           <QuizBoardWide kicker="Quizzes" cta="All Quiz Stats" ctaHref="/quizzes/stats" categories={quizCats} />
 
           <DailyNewsBanner totals={totals} />
