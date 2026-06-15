@@ -149,9 +149,9 @@ const boardCss = `
   .lb-rank{flex:none;width:19px;height:19px;border-radius:50%;border:1.25px solid ${COLORS.ink};display:flex;align-items:center;justify-content:center;font-family:'DM Mono',monospace;font-size:10.5px;font-weight:500;color:${COLORS.ink};}
   .lb-name{flex:1 1 auto;min-width:0;font-family:'DM Mono',monospace;font-size:12px;font-weight:500;color:${COLORS.ink};line-height:1.25;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
   a.lb-row:hover .lb-name{color:${COLORS.ember};}
-  .lb-val{flex:none;font-family:'Fraunces',serif;font-weight:700;font-size:14px;color:${COLORS.ink};white-space:nowrap;}
+  .lb-val{flex:none;font-family:'DM Mono',monospace;font-weight:500;font-size:12px;color:${COLORS.ink};white-space:nowrap;}
   .lb-empty{font-family:'Fraunces',serif;font-style:italic;font-size:12.5px;color:${COLORS.faded};padding:2px 0 8px;}
-  .qz-wide-cols{display:grid;grid-template-columns:repeat(3,1fr);}
+  .qz-wide-cols{display:grid;grid-template-columns:1fr 1.4fr 1fr;}
   .qz-wide-col{min-width:0;padding:0 18px;}
   .qz-wide-col:first-child{padding-left:0;}
   .qz-wide-col:last-child{padding-right:0;}
@@ -185,7 +185,7 @@ function QuizBoardWide({ kicker, cta, ctaHref, categories }) {
                   <>
                     <span className="lb-rank" style={r.noRank ? { background: 'transparent', border: 'none' } : { background: i < 3 ? MEDAL[i] : 'transparent' }}>{r.noRank ? '' : i + 1}</span>
                     <span className="lb-name">{r.full}</span>
-                    <span className="lb-val">{r.val}</span>
+                    {r.val != null && <span className="lb-val">{r.val}</span>}
                   </>
                 );
                 return r.href
@@ -373,16 +373,15 @@ export default function QuizHomeClient() {
       .slice(0, 3).map((q) => mk(q, <Count value={plays(q.id)} />));
     const trending = QUIZZES.filter((q) => trend(q.id) > 0)
       .sort((a, b) => trend(b.id) - trend(a.id) || plays(b.id) - plays(a.id) || a.title.localeCompare(b.title))
-      .slice(0, 3).map((q) => mk(q, <Count value={trend(q.id)} />));
+      .slice(0, 3).map((q) => mk(q, null));
     const tsOf = (q) => new Date(q.publishedAt || `${q.publishedDate || '1970-01-01'}T12:00:00Z`).getTime();
     const isNewsQ = (q) => /^(daily-market-news-quiz-|daily-business-quiz-|daily-news-quiz-|weekly-business-quiz-|weekly-news-quiz-|earnings-reporter-quiz-|earnings-quiz-)/.test(q.id || '');
-    const fmtDate = (q) => new Date(q.publishedAt || `${q.publishedDate || '1970-01-01'}T12:00:00Z`).toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
     const newest = QUIZZES.filter((q) => !isNewsQ(q)).slice()
       .sort((a, b) => tsOf(b) - tsOf(a) || a.title.localeCompare(b.title))
-      .slice(0, 3).map((q) => mk(q, fmtDate(q)));
+      .slice(0, 3).map((q) => mk(q, null));
     return [
-      { id: 'played', label: 'Most Played', rows: mostPlayed, empty: 'No plays recorded yet.' },
       { id: 'trending', label: 'Trending Now', rows: trending, empty: 'No recent plays yet.' },
+      { id: 'played', label: 'Most Played', rows: mostPlayed, empty: 'No plays recorded yet.' },
       { id: 'newest', label: 'Newest', rows: newest, empty: 'No quizzes yet.' },
     ];
   }, [totals, statById]);
