@@ -73,16 +73,19 @@ export default function PhotoBoard({ items, started, ended, revealed, onMatch, o
   }, [list]);
 
   useEffect(() => {
-    if (!live || cur == null || !order.length) return;
+    if (cur == null || !order.length) return;
     const start = order.indexOf(cur);
     let n = 0;
-    for (let s = 1; s <= order.length && n < 3; s++) {
+    // Preload the current photo plus the next few. This runs even BEFORE Play (no
+    // `live` gate) so the first image is already cached when the player presses
+    // Play, eliminating the cold-fetch delay before the first photo appears.
+    for (let s = 0; s <= order.length && n < 4; s++) {
       const q = order[(start + s) % order.length];
       if (!matched.has(q) && list[q] && list[q].img) {
         const im = new Image(); im.decoding = 'async'; im.src = list[q].img; n++;
       }
     }
-  }, [cur, matched, order, live, list]);
+  }, [cur, matched, order, list]);
 
   function nextIdx(fromCur, doneSet) {
     if (!order.length) return null;

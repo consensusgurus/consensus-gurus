@@ -2,7 +2,7 @@
 import React, { useState, useEffect, useMemo, useRef } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { Search, X, ChevronDown, ArrowLeft, Trophy, Clock, Flame, Sparkles, Check, BarChart3 } from 'lucide-react';
+import { Search, X, ChevronDown, ArrowLeft, Trophy, Clock, Flame, Sparkles, Check, BarChart3, DollarSign } from 'lucide-react';
 import { COLORS } from '@/lib/data';
 import { QUIZZES } from '@/lib/quizzes';
 import { fetchBootstrap } from '@/lib/api';
@@ -245,6 +245,11 @@ function QuizBoardWide({ title, cta, ctaHref, categories, mid }) {
                   <>
                     <span className="lb-rank" style={r.noRank ? { background: 'transparent', border: 'none' } : { background: (i < 3 && !c.noMedals) ? MEDAL[i] : 'transparent' }}>{r.noRank ? '' : i + 1}</span>
                     <span className="lb-name">{r.full}</span>
+                    {c.prize && i < 3 && !r.noRank && (
+                      <span aria-hidden="true" style={{ flex: 'none', display: 'inline-flex', alignItems: 'center', gap: 1, color: '#2e8b3d' }}>
+                        {Array.from({ length: 3 - i }).map((_, d) => (<DollarSign key={d} size={12} strokeWidth={2.75} />))}
+                      </span>
+                    )}
                     {r.val != null && <span className="lb-val">{r.val}</span>}
                   </>
                 );
@@ -448,7 +453,7 @@ export default function QuizHomeClient() {
     const mostPerfect = (champions.perfectQuizzes || []).slice(0, 3).map((u, i) => ({ key: `pf-${i}-${u.username}`, full: u.username, val: (u.perfect || 0).toLocaleString() }));
     return {
       playerCols: [
-        { id: 'today', label: "Today's Correct Answers", rows: todaysCorrect, empty: 'No correct answers yet today.', accent: '#c98a1b', icon: <Check size={12} strokeWidth={3} aria-hidden="true" /> },
+        { id: 'today', label: "Today's Correct Answers", rows: todaysCorrect, empty: 'No correct answers yet today.', accent: '#c98a1b', icon: <Check size={12} strokeWidth={3} aria-hidden="true" />, prize: true },
         { id: 'allcorrect', label: 'Total Correct Answers', rows: totalCorrect, empty: 'No answers recorded yet.', accent: '#3d4f2b', icon: <BarChart3 size={12} strokeWidth={2.5} aria-hidden="true" /> },
         { id: 'perfect', label: 'Most Perfect Quizzes', rows: mostPerfect, empty: 'No perfect runs yet.', accent: '#a44a26', icon: <Trophy size={12} strokeWidth={2.5} aria-hidden="true" /> },
       ],
