@@ -278,7 +278,7 @@ function DailyNewsBanner({ totals }) {
     <div className="dn-wrap">
       <style>{`
         .dn-wrap{display:flex;gap:12px;margin-bottom:16px;}
-        .dn-btn{flex:1 1 0;min-width:0;display:flex;align-items:center;justify-content:center;gap:10px;text-decoration:none;background:${COLORS.ember};color:${COLORS.cream};border:1.5px solid ${COLORS.ink};padding:13px 18px;transition:all 0.2s ease;}
+        .dn-btn{flex:1 1 auto;min-width:0;display:flex;align-items:center;justify-content:center;gap:10px;text-decoration:none;background:${COLORS.ember};color:${COLORS.cream};border:1.5px solid ${COLORS.ink};padding:13px 18px;transition:all 0.2s ease;}
         .dn-label{font-family:'DM Mono',monospace;font-size:12px;font-weight:700;letter-spacing:0.18em;text-transform:uppercase;color:${COLORS.cream};white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
         @media(max-width:640px){.dn-wrap{flex-direction:column;gap:9px;}.dn-label{white-space:normal;text-align:center;}}
       `}</style>
