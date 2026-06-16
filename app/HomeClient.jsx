@@ -55,6 +55,11 @@ const HOME_V2 = true;
 // app/quizzes/QuizHomeClient.jsx (deptOf / iconOf / DEPT_COLOR) so the homepage
 // tile matches the quizzes-page tile -- keep the two in sync.
 const FACTUAL_QUIZZES = (Array.isArray(QUIZZES) ? QUIZZES : []).filter((q) => !q.listId);
+// Homepage quiz tiles only surface quizzes that have been completed at least
+// this many times (repeats across slots are allowed, since the render loop
+// cycles the pool). Once no quiz clears the bar the gate falls back to the
+// full factual pool so the tiles never vanish.
+const QUIZ_TILE_MIN_PLAYS = 5;
 
 
 // Human-readable labels for each list type, shown in the top-right of tiles.
@@ -468,6 +473,20 @@ function Home({ lists, viewCounts, voteData, extras, trending = {}, openList, on
     setFeaturedQuiz(QUIZZES[Math.floor(Math.random() * QUIZZES.length)]);
   }, []);
 
+  // Per-quiz completed-game counts (from /api/quiz/totals). Used to gate the
+  // interleaved homepage quiz tiles to quizzes that have been played at least
+  // QUIZ_TILE_MIN_PLAYS times (see shuffledQuizzes). Empty until the fetch
+  // resolves, which simply means the gate is inactive on first paint.
+  const [quizPlays, setQuizPlays] = useState({});
+  useEffect(() => {
+    let alive = true;
+    fetch('/api/quiz/totals')
+      .then((r) => r.json())
+      .then((d) => { if (alive && d && !d.error) setQuizPlays(d.byQuiz || {}); })
+      .catch(() => {});
+    return () => { alive = false; };
+  }, []);
+
   // Recompute shuffle order when the lists collection or seed changes.
   const discoverOrder = useMemo(() => {
     return seededShuffle(lists, discoverSeed);
@@ -660,7 +679,11 @@ function Home({ lists, viewCounts, voteData, extras, trending = {}, openList, on
   }, [sorted.length]);
 
   const shuffledQuizzes = useMemo(() => {
-    const arr = FACTUAL_QUIZZES.slice();
+    // Gate to quizzes with >= QUIZ_TILE_MIN_PLAYS completed games; fall back to
+    // the full factual pool only when none qualify yet (including before the
+    // play-count fetch resolves).
+    const eligible = FACTUAL_QUIZZES.filter((q) => (quizPlays[q.id] || 0) >= QUIZ_TILE_MIN_PLAYS);
+    const arr = (eligible.length ? eligible : FACTUAL_QUIZZES).slice();
     let s = ((discoverSeed >>> 0) ^ 0x85ebca6b) >>> 0 || 1;
     const rand = () => { s ^= s << 13; s ^= s >>> 17; s ^= s << 5; return (s >>> 0) / 0x100000000; };
     for (let i = arr.length - 1; i > 0; i--) {
@@ -668,7 +691,7 @@ function Home({ lists, viewCounts, voteData, extras, trending = {}, openList, on
       [arr[i], arr[j]] = [arr[j], arr[i]];
     }
     return arr;
-  }, [discoverSeed]);
+  }, [discoverSeed, quizPlays]);
 
   const totalViews = Object.values(viewCounts).reduce((a, b) => a + b, 0);
 

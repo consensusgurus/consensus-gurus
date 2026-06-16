@@ -252,7 +252,31 @@ export default async function AdminPage() {
   }
   // Anonymous players: completed games with no signed-up user_id, batched by
   // browser (anon_id) under a stable random number. Mirrors the signups table.
-  const anonPlayers = buildAnonPlayers((quizResultsRes && quizResultsRes.data) || []);
+  const anonPlayersBase = buildAnonPlayers((quizResultsRes && quizResultsRes.data) || []);
+  // Per-player game history (which quizzes a browser played and when), keyed the
+  // same way buildAnonPlayers batches rows (a:<anon_id>, else r:<row id>), so the
+  // Anonymous Players panel can expand a row to its individual plays, the same
+  // detail the Quiz Signups panel shows for registered users.
+  const anonHistoryByKey = new Map();
+  for (const r of (quizResultsRes && quizResultsRes.data) || []) {
+    if (r.user_id) continue;
+    const key = r.anon_id ? `a:${r.anon_id}` : `r:${r.id}`;
+    if (!anonHistoryByKey.has(key)) anonHistoryByKey.set(key, []);
+    anonHistoryByKey.get(key).push({
+      quizId: r.quiz_id,
+      title: quizTitles.get(r.quiz_id) || r.quiz_id,
+      score: r.score,
+      total: r.total,
+      timeElapsed: r.time_elapsed,
+      createdAt: r.created_at,
+    });
+  }
+  const anonPlayers = anonPlayersBase.map((p) => ({
+    ...p,
+    history: (anonHistoryByKey.get(p.key) || []).sort((a, b) =>
+      String(b.createdAt || '').localeCompare(String(a.createdAt || ''))
+    ),
+  }));
 
   const quizSignupsWithPlays = quizSignups.map((s) => {
     const plays = (playsByUser.get(s.id) || []).sort((a, b) =>

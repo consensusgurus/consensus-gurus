@@ -1330,6 +1330,7 @@ function SectionHeading({ children }) {
 function AnonPlayersPanel({ players }) {
   const [query, setQuery] = useState('');
   const [sortBy, setSortBy] = useState('plays');
+  const [expandedKey, setExpandedKey] = useState(null);
   const list = players || [];
 
   const visible = useMemo(() => {
@@ -1357,6 +1358,7 @@ function AnonPlayersPanel({ players }) {
       <p style={{ fontFamily: 'DM Sans, sans-serif', fontSize: 13, color: COLORS.faded, margin: '0 0 14px' }}>
         Players who completed quizzes without signing up, batched by browser and shown under a stable random number.
         {' '}{list.length} anonymous player{list.length === 1 ? '' : 's'}, {totalPlays} play{totalPlays === 1 ? '' : 's'} total.
+        {' '}Click a row to see every quiz that player played and when.
       </p>
       <div style={{ display: 'flex', gap: 8, marginBottom: 12, flexWrap: 'wrap', alignItems: 'center' }}>
         <span style={{ fontFamily: 'DM Mono, monospace', fontSize: 10, letterSpacing: '0.12em', textTransform: 'uppercase', color: COLORS.faded, marginRight: 2 }}>Sort:</span>
@@ -1382,18 +1384,53 @@ function AnonPlayersPanel({ players }) {
             <span style={{ flex: '0 0 72px', textAlign: 'right' }}>Accuracy</span>
             <span style={{ flex: '0 0 156px', textAlign: 'right' }}>Last played</span>
           </div>
-          {visible.map((p, i) => (
-            <div key={p.key} style={{ display: 'flex', alignItems: 'center', fontFamily: 'DM Sans, sans-serif', fontSize: 13, color: COLORS.ink, padding: '9px 14px', borderBottom: i < visible.length - 1 ? rowBorder : 'none' }}>
-              <span style={{ flex: '0 0 36px', fontFamily: 'DM Mono, monospace', fontSize: 11, color: COLORS.faded }}>{i + 1}</span>
-              <span style={{ flex: 2, minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', fontFamily: 'DM Mono, monospace', fontWeight: 700 }}>{p.label}</span>
-              <span style={{ flex: '0 0 70px', textAlign: 'right', fontFamily: 'DM Mono, monospace', fontSize: 12 }}>{p.quizzes}</span>
-              <span style={{ flex: '0 0 56px', textAlign: 'right', fontFamily: 'DM Mono, monospace', fontSize: 12, fontWeight: 700, color: p.plays > 0 ? COLORS.ember : COLORS.faded }}>{p.plays}</span>
-              <span style={{ flex: '0 0 70px', textAlign: 'right', fontFamily: 'DM Mono, monospace', fontSize: 12 }}>{p.correct}</span>
-              <span style={{ flex: '0 0 64px', textAlign: 'right', fontFamily: 'DM Mono, monospace', fontSize: 12, color: p.perfect > 0 ? COLORS.ink : COLORS.faded }}>{p.perfect}</span>
-              <span style={{ flex: '0 0 72px', textAlign: 'right', fontFamily: 'DM Mono, monospace', fontSize: 12, color: COLORS.faded }}>{p.accuracy}%</span>
-              <span style={{ flex: '0 0 156px', textAlign: 'right', fontFamily: 'DM Mono, monospace', fontSize: 11, color: COLORS.faded }}>{p.lastPlayed ? formatDayTime(p.lastPlayed) : '\u2014'}</span>
-            </div>
-          ))}
+          {visible.map((p, i) => {
+            const open = expandedKey === p.key;
+            const history = p.history || [];
+            return (
+              <div key={p.key} style={{ borderBottom: i < visible.length - 1 ? rowBorder : 'none' }}>
+                <div onClick={() => setExpandedKey(open ? null : p.key)} style={{ display: 'flex', alignItems: 'center', fontFamily: 'DM Sans, sans-serif', fontSize: 13, color: COLORS.ink, padding: '9px 14px', cursor: 'pointer', background: open ? `${COLORS.ink}0a` : 'transparent' }}>
+                  <span style={{ flex: '0 0 36px', fontFamily: 'DM Mono, monospace', fontSize: 11, color: COLORS.faded, display: 'flex', alignItems: 'center', gap: 4 }}>
+                    <span style={{ display: 'inline-block', width: 8, transform: open ? 'rotate(90deg)' : 'none', transition: 'transform 0.12s' }}>&#9656;</span>
+                    {i + 1}
+                  </span>
+                  <span style={{ flex: 2, minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', fontFamily: 'DM Mono, monospace', fontWeight: 700 }}>{p.label}</span>
+                  <span style={{ flex: '0 0 70px', textAlign: 'right', fontFamily: 'DM Mono, monospace', fontSize: 12 }}>{p.quizzes}</span>
+                  <span style={{ flex: '0 0 56px', textAlign: 'right', fontFamily: 'DM Mono, monospace', fontSize: 12, fontWeight: 700, color: p.plays > 0 ? COLORS.ember : COLORS.faded }}>{p.plays}</span>
+                  <span style={{ flex: '0 0 70px', textAlign: 'right', fontFamily: 'DM Mono, monospace', fontSize: 12 }}>{p.correct}</span>
+                  <span style={{ flex: '0 0 64px', textAlign: 'right', fontFamily: 'DM Mono, monospace', fontSize: 12, color: p.perfect > 0 ? COLORS.ink : COLORS.faded }}>{p.perfect}</span>
+                  <span style={{ flex: '0 0 72px', textAlign: 'right', fontFamily: 'DM Mono, monospace', fontSize: 12, color: COLORS.faded }}>{p.accuracy}%</span>
+                  <span style={{ flex: '0 0 156px', textAlign: 'right', fontFamily: 'DM Mono, monospace', fontSize: 11, color: COLORS.faded }}>{p.lastPlayed ? formatDayTime(p.lastPlayed) : '\u2014'}</span>
+                </div>
+                {open && (
+                  <div style={{ padding: '4px 14px 14px 48px', background: `${COLORS.ink}0a` }}>
+                    {history.length === 0 ? (
+                      <p style={{ fontFamily: 'Fraunces, serif', fontStyle: 'italic', fontSize: 14, color: COLORS.faded, margin: '8px 0' }}>No completed games recorded.</p>
+                    ) : (
+                      <div style={{ border: `1px solid ${COLORS.ink}33`, background: COLORS.paper }}>
+                        <div style={{ display: 'flex', fontFamily: 'DM Mono, monospace', fontSize: 9, letterSpacing: '0.12em', textTransform: 'uppercase', color: COLORS.faded, padding: '8px 12px', borderBottom: `1px solid ${COLORS.ink}33` }}>
+                          <span style={{ flex: 3 }}>Quiz</span>
+                          <span style={{ flex: '0 0 90px', textAlign: 'right' }}>Score</span>
+                          <span style={{ flex: '0 0 70px', textAlign: 'right' }}>Time</span>
+                          <span style={{ flex: '0 0 170px', textAlign: 'right' }}>Played</span>
+                        </div>
+                        {history.map((x, j) => (
+                          <div key={`${x.quizId}-${j}`} style={{ display: 'flex', alignItems: 'center', fontFamily: 'DM Sans, sans-serif', fontSize: 12, color: COLORS.ink, padding: '7px 12px', borderBottom: j < history.length - 1 ? `1px solid ${COLORS.ink}1a` : 'none' }}>
+                            <span style={{ flex: 3, minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                              <Link href={`/quiz/${encodeURIComponent(x.quizId)}`} target="_blank" style={{ color: COLORS.ink, textDecoration: 'none' }}>{x.title}</Link>
+                            </span>
+                            <span style={{ flex: '0 0 90px', textAlign: 'right', fontFamily: 'DM Mono, monospace', fontSize: 11 }}>{x.score}{x.total != null ? `/${x.total}` : ''}</span>
+                            <span style={{ flex: '0 0 70px', textAlign: 'right', fontFamily: 'DM Mono, monospace', fontSize: 11, color: COLORS.faded }}>{formatClock(x.timeElapsed)}</span>
+                            <span style={{ flex: '0 0 170px', textAlign: 'right', fontFamily: 'DM Mono, monospace', fontSize: 10, color: COLORS.faded }}>{formatDate(x.createdAt)}</span>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                )}
+              </div>
+            );
+          })}
         </div>
       )}
     </div>
