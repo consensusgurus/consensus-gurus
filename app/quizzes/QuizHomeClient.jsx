@@ -786,11 +786,8 @@ export default function QuizHomeClient() {
             .qz-navcue-l{left:6px;animation:qzNavNudgeL 1.4s ease-in-out infinite;}
             @media(min-width:760px){.qz-navcue{display:none;}}
             @media(max-width:760px){
-              .qz-rb-btn{padding:0 8px;font-size:9px;letter-spacing:0.06em;gap:4px;}
-              .qz-rb-search{flex:1 1 50px;min-width:44px;width:auto;padding:6px 6px;}
-              .qz-rb-search input{font-size:16px;padding:0 6px 0 26px;}
-              .qz-rb-search svg{left:8px !important;}
-              .qz-rb-req{padding:0 8px;font-size:9px;letter-spacing:0.05em;}
+              .qz-rb-search{flex:0 0 auto;width:210px;}
+              .qz-rb-search input{font-size:16px;}
               .qz-pop{left:8px !important;right:8px;}
               .qz-pop-cat{width:auto;}
             }
