@@ -191,23 +191,6 @@ export async function GET(request) {
     }
   }
 
-  // TEMP one-time maintenance: delete amazon/amazonreviews rows from
-  // list_sources_seen so the next normal run re-stamps them as genuine
-  // first_seen_at=now() additions (they were folded into the launch batch on
-  // first sighting). Remove after use.
-  if (sp.get('resetAmazonSeen') === '1') {
-    try {
-      const del = await supabaseAdmin
-        .from('list_sources_seen')
-        .delete()
-        .in('source_id', ['amazon', 'amazonreviews']);
-      if (del.error) throw del.error;
-      return NextResponse.json({ ok: true, reset: 'amazon+amazonreviews source-seen rows deleted' });
-    } catch (err) {
-      return NextResponse.json({ error: 'resetAmazonSeen failed', detail: String(err) }, { status: 500 });
-    }
-  }
-
   try {
     const [votesRows, extrasRows, snapsRows, alertsRows, seenRows] = await Promise.all([
       fetchAll('votes', 'list_id,item_name,score', ['list_id', 'item_name']),
