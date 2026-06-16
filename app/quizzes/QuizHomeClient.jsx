@@ -213,6 +213,8 @@ const boardCss = `
   .lb-name-sm{display:none;}
   @media(max-width:760px){.ql-2col{grid-template-columns:1fr;}.ql-title{white-space:normal;overflow:visible;font-size:13px;line-height:1.25;}}
   @media(max-width:680px){.lb-name-lg{display:none;}.lb-name-sm{display:block;}}
+  .ql-sortbar{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:14px;}
+  .ql-sortlabel{font-family:'DM Mono',monospace;font-size:9px;letter-spacing:0.16em;text-transform:uppercase;color:${COLORS.faded};font-weight:700;}
 
 `;
 
@@ -364,34 +366,17 @@ const TYPE_META = {
 // One category (or type) column in the list view: header (icon + name, no
 // count) with a Newest / Most Played / Trending sort toggle, a tight list of
 // rows (title + play count + current leader), and a "View all" expander.
-function QuizCategoryColumn({ sectionKey, label, accent, Icon, quizzes, totals, searching }) {
-  const [sortMode, setSortMode] = useState('popularity');
-  const [expanded, setExpanded] = useState(false);
+function QuizCategoryColumn({ sectionKey, label, accent, Icon, quizzes, totals, onViewAll }) {
   const plays = (id) => totals.byQuiz[id] || 0;
-  const trend = (id) => totals.trendingByQuiz[id] || totals.recent7[id] || 0;
-  const ts = (q) => new Date(q.publishedAt || `${q.publishedDate || '1970-01-01'}T12:00:00Z`).getTime();
-  const sorted = useMemo(() => {
-    const arr = quizzes.slice();
-    if (sortMode === 'recent') arr.sort((a, b) => ts(b) - ts(a) || a.title.localeCompare(b.title));
-    else if (sortMode === 'trending') arr.sort((a, b) => trend(b.id) - trend(a.id) || plays(b.id) - plays(a.id) || a.title.localeCompare(b.title));
-    else arr.sort((a, b) => plays(b.id) - plays(a.id) || a.title.localeCompare(b.title));
-    return arr;
-  }, [quizzes, sortMode, totals]);
-  const LIMIT = 8;
-  const showAll = expanded || searching;
-  const shown = showAll ? sorted : sorted.slice(0, LIMIT);
+  const sorted = useMemo(() => quizzes.slice().sort((a, b) => plays(b.id) - plays(a.id) || a.title.localeCompare(b.title)), [quizzes, totals]);
+  const LIMIT = 6;
+  const shown = sorted.slice(0, LIMIT);
   const total = quizzes.length;
-  const TOGGLES = [['recent', 'Newest'], ['popularity', 'Most Played'], ['trending', 'Trending']];
   return (
     <section id={`qzsec-${sectionKey}`} className="ql-col">
       <div className="ql-col-head" style={{ borderColor: accent.c }}>
         <span className="ql-medal" style={{ background: accent.t }}><Icon size={15} strokeWidth={2} aria-hidden="true" style={{ color: accent.c }} /></span>
         <h2 className="ql-name">{label}</h2>
-        <div className="ql-toggle" role="group" aria-label={`Sort ${label}`}>
-          {TOGGLES.map(([id, lbl]) => (
-            <button key={id} type="button" className="ql-tg" onClick={() => { setSortMode(id); setExpanded(false); }} style={sortMode === id ? { background: accent.c, color: COLORS.cream } : undefined}>{lbl}</button>
-          ))}
-        </div>
       </div>
       <div className="ql-list">
         {shown.map((q) => {
@@ -411,11 +396,9 @@ function QuizCategoryColumn({ sectionKey, label, accent, Icon, quizzes, totals, 
           );
         })}
       </div>
-      {!searching && total > LIMIT && (
-        <button type="button" className="ql-viewall" onClick={() => setExpanded((e) => !e)} style={{ color: accent.c }}>
-          {expanded ? 'Show fewer' : `View all ${total} ${label} quizzes`} {expanded ? '▴' : '›'}
-        </button>
-      )}
+      <button type="button" className="ql-viewall" onClick={onViewAll} style={{ color: accent.c }}>
+        View all {total} {label} {'›'}
+      </button>
     </section>
   );
 }
@@ -482,7 +465,7 @@ export default function QuizHomeClient() {
   const [dept, setDept] = useState('all');
   const [sortBy, setSortBy] = useState('discover');
   const [groupBy, setGroupBy] = useState('category');
-  const [listSort, setListSort] = useState('popularity');
+  const [listSort, setListSort] = useState(null);
   const [sortOpen, setSortOpen] = useState(false);
   const [catOpen, setCatOpen] = useState(false);
   const [typeOpen, setTypeOpen] = useState(false);
@@ -705,9 +688,11 @@ export default function QuizHomeClient() {
     }
     const byDept = {};
     for (const q of matches) { const d = deptOf(q); (byDept[d] = byDept[d] || []).push(q); }
-    const ids = seededShuffle(Object.keys(byDept), seedRef.current);
+    const catPlays = (id) => byDept[id].reduce((sum, q) => sum + (totals.byQuiz[q.id] || 0), 0);
+    const ranked = Object.keys(byDept).sort((a, b) => catPlays(b) - catPlays(a) || a.localeCompare(b));
+    const ids = [...ranked.slice(0, 2), ...seededShuffle(ranked.slice(2), seedRef.current)];
     return ids.map((id) => ({ key: id, label: DEPT_LABEL[id] || 'Quizzes', accent: DEPT_COLOR[id] || DEPT_COLOR.misc, Icon: SECTION_ICON[id] || Sparkles, quizzes: byDept[id] }));
-  }, [query, groupBy]);
+  }, [query, groupBy, totals]);
   const scrollToSection = (key) => {
     if (typeof document === 'undefined') return;
     const el = document.getElementById(`qzsec-${key}`);
@@ -734,6 +719,7 @@ export default function QuizHomeClient() {
     else list = list.slice().sort((a, b) => plays(b.id) - plays(a.id) || a.title.localeCompare(b.title));
     return list;
   }, [dept, typeFilter, query, listSort, totals]);
+  const showColumns = dept === 'all' && typeFilter === 'all' && !query.trim() && !listSort;
   return (
     <div style={{ minHeight: '100vh', background: COLORS.cream, color: COLORS.ink, position: 'relative', overflow: 'clip' }}>
       <Grain />
@@ -885,38 +871,49 @@ export default function QuizHomeClient() {
             <RotatingBoard title="Quizzes" href="/quizzes/stats" cta="Quiz Stats" columns={quizCols} perView={1} />
           </div>
 
-                              <div className="ql-block">
-            <div className="ql-bhead">
-              <h2 className="ql-bname">{listLabel}</h2>
-              <div className="ql-toggle" role="group" aria-label="Sort quizzes">
-                {[['recent', 'Newest'], ['popularity', 'Most Played'], ['trending', 'Trending']].map(([id, lbl]) => (
-                  <button key={id} type="button" className="ql-tg" onClick={() => setListSort(id)} style={listSort === id ? { background: COLORS.ember, color: COLORS.cream } : undefined}>{lbl}</button>
-                ))}
-              </div>
+                                        <div className="ql-sortbar">
+            <span className="ql-sortlabel">Sort</span>
+            <div className="ql-toggle" role="group" aria-label="Sort quizzes">
+              {[['recent', 'Newest'], ['popularity', 'Most Played'], ['trending', 'Trending']].map(([id, lbl]) => (
+                <button key={id} type="button" className="ql-tg" onClick={() => setListSort(id)} style={(!showColumns && (listSort || 'popularity') === id) ? { background: COLORS.ember, color: COLORS.cream } : undefined}>{lbl}</button>
+              ))}
             </div>
-            {filtered.length > 0 ? (
-              <div className="ql-2col">
-                {filtered.map((q) => {
-                  const leader = totals.leaders[q.id];
-                  const p = totals.byQuiz[q.id] || 0;
-                  return (
-                    <Link key={q.id} href={`/quiz/${q.id}`} className="ql-row" title={q.title}>
-                      <span className="ql-title">{q.title}</span>
-                      <span className="ql-meta">
-                        {p > 0 && <span className="ql-plays">{'▶'} <Count value={p} /></span>}
-                        <span className="ql-leader" style={{ color: leader ? COLORS.ink : COLORS.faded }}>
-                          <Crown size={11} strokeWidth={2.5} aria-hidden="true" style={{ flex: 'none', color: COLORS.ember }} />
-                          <span className="ql-lname">{leader || 'Empty'}</span>
-                        </span>
-                      </span>
-                    </Link>
-                  );
-                })}
-              </div>
-            ) : (
-              <div style={{ textAlign: 'center', padding: '48px 24px', fontFamily: 'Fraunces, serif', fontStyle: 'italic', fontSize: 18, color: COLORS.faded }}>No quizzes match that filter.</div>
-            )}
           </div>
+          {showColumns ? (
+            <div className="ql-cols">
+              {sections.map((s) => (
+                <QuizCategoryColumn key={s.key} sectionKey={s.key} label={s.label} accent={s.accent} Icon={s.Icon} quizzes={s.quizzes} totals={totals} onViewAll={() => setDept(s.key)} />
+              ))}
+            </div>
+          ) : (
+            <div className="ql-block">
+              <div className="ql-bhead">
+                <h2 className="ql-bname">{listLabel}</h2>
+              </div>
+              {filtered.length > 0 ? (
+                <div className="ql-2col">
+                  {filtered.map((q) => {
+                    const leader = totals.leaders[q.id];
+                    const p = totals.byQuiz[q.id] || 0;
+                    return (
+                      <Link key={q.id} href={`/quiz/${q.id}`} className="ql-row" title={q.title}>
+                        <span className="ql-title">{q.title}</span>
+                        <span className="ql-meta">
+                          {p > 0 && <span className="ql-plays">{'▶'} <Count value={p} /></span>}
+                          <span className="ql-leader" style={{ color: leader ? COLORS.ink : COLORS.faded }}>
+                            <Crown size={11} strokeWidth={2.5} aria-hidden="true" style={{ flex: 'none', color: COLORS.ember }} />
+                            <span className="ql-lname">{leader || 'Empty'}</span>
+                          </span>
+                        </span>
+                      </Link>
+                    );
+                  })}
+                </div>
+              ) : (
+                <div style={{ textAlign: 'center', padding: '48px 24px', fontFamily: 'Fraunces, serif', fontStyle: 'italic', fontSize: 18, color: COLORS.faded }}>No quizzes match that filter.</div>
+              )}
+            </div>
+          )}
 
         </section>
       </div>
