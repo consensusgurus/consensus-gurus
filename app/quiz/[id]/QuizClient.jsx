@@ -325,6 +325,22 @@ export default function QuizClient({ quizId }) {
     return () => { el.removeEventListener('scroll', update); window.removeEventListener('resize', update); };
   }, []);
 
+  // One-click retry: the Game Over "Retry with 1 click" button reloads the page
+  // after leaving this sessionStorage flag, so the fresh mount auto-starts a new
+  // round instead of waiting for the player to press Play again.
+  useEffect(() => {
+    if (typeof window === 'undefined') return undefined;
+    let t;
+    try {
+      if (sessionStorage.getItem('sot_quiz_retry') === quizId) {
+        sessionStorage.removeItem('sot_quiz_retry');
+        t = setTimeout(() => { start(); }, 50);
+      }
+    } catch (e) { /* sessionStorage unavailable */ }
+    return () => { if (t) clearTimeout(t); };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
   const score = found.filter(Boolean).length;
   const dispScore = tileMode ? pairsMatched : score;
   // Outright #1 across ALL completed plays (anonymous included): the finished run
@@ -1360,11 +1376,11 @@ export default function QuizClient({ quizId }) {
                   <p style={{ fontFamily: SERIF, fontStyle: 'italic', fontSize: 16, color: COLORS.faded, margin: '0 0 4px' }}>{reason}</p>
                   <p style={{ fontFamily: SANS, fontSize: 14, color: '#4a4339', margin: '0 0 20px' }}>{isTopScore ? 'You are the top score.' : <>You beat {percentile(dispScore, total)}% of players.{board.best != null ? (dispScore >= board.best ? ' That ties the high score.' : ` High score to beat: ${board.best}.`) : ''}</>}</p>
                   <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'stretch', gap: 10, width: '100%', maxWidth: 300, margin: '0 auto' }}>
-                    <button onClick={() => { setGameOverDismissed(true); setTab('play'); }} style={{ width: '100%', boxSizing: 'border-box', fontFamily: MONO, fontSize: 12, letterSpacing: '0.12em', textTransform: 'uppercase', fontWeight: 700, padding: '13px 22px', border: `1.5px solid ${COLORS.ember}`, background: COLORS.ember, color: '#fff', cursor: 'pointer', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 8 }}>Return to Quiz</button>
+                    <button onClick={() => { try { sessionStorage.setItem('sot_quiz_retry', quizId); } catch (e) { /* no-op */ } window.location.reload(); }} style={{ width: '100%', boxSizing: 'border-box', fontFamily: MONO, fontSize: 12, letterSpacing: '0.12em', textTransform: 'uppercase', fontWeight: 700, padding: '13px 22px', border: `1.5px solid ${COLORS.ember}`, background: COLORS.ember, color: '#fff', cursor: 'pointer', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 8 }}>Retry with 1 click</button>
+                    <button onClick={() => { setGameOverDismissed(true); if (identity) { setTab('stats'); } else { setClaimMsg(''); setClaimErr(false); setClaimOpen(true); setTab('play'); } }} style={{ width: '100%', boxSizing: 'border-box', fontFamily: MONO, fontSize: 12, letterSpacing: '0.12em', textTransform: 'uppercase', fontWeight: 700, padding: '13px 22px', border: `1.5px solid ${COLORS.ink}`, background: COLORS.ink, color: COLORS.cream, cursor: 'pointer', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 8 }}><Trophy size={14} strokeWidth={2.5} /> Post to Leaderboard</button>
+                    <button onClick={() => { setGameOverDismissed(true); setTab('play'); }} style={{ width: '100%', boxSizing: 'border-box', fontFamily: MONO, fontSize: 12, letterSpacing: '0.12em', textTransform: 'uppercase', fontWeight: 700, padding: '13px 22px', border: `1.5px solid ${COLORS.ink}`, background: COLORS.ink, color: COLORS.cream, cursor: 'pointer', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 8 }}>Return to page</button>
                     <button onClick={share} style={{ width: '100%', boxSizing: 'border-box', fontFamily: MONO, fontSize: 12, letterSpacing: '0.12em', textTransform: 'uppercase', fontWeight: 700, padding: '13px 22px', border: `1.5px solid ${COLORS.ink}`, background: COLORS.ink, color: COLORS.cream, cursor: 'pointer', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 8 }}><Share2 size={14} strokeWidth={2.5} /> {copied ? 'Link copied!' : 'Challenge a friend'}</button>
-                    <button onClick={() => { setGameOverDismissed(true); if (identity) { setTab('stats'); } else { setClaimMsg(''); setClaimErr(false); setClaimOpen(true); setTab('play'); } }} style={{ width: '100%', boxSizing: 'border-box', fontFamily: MONO, fontSize: 12, letterSpacing: '0.12em', textTransform: 'uppercase', fontWeight: 700, padding: '13px 22px', border: `1.5px solid ${COLORS.ink}`, background: 'transparent', color: COLORS.ink, cursor: 'pointer', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 8 }}><Trophy size={14} strokeWidth={2.5} /> Post to Leaderboard</button>
                   </div>
-                  <button onClick={() => window.location.reload()} style={{ marginTop: 14, background: 'transparent', border: 'none', color: COLORS.faded, cursor: 'pointer', fontFamily: MONO, fontSize: 11, letterSpacing: '0.12em', textTransform: 'uppercase', textDecoration: 'underline', padding: 0 }}>Play again</button>
                 </>
               );
             })()}
