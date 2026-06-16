@@ -131,7 +131,7 @@ const MEDAL = ['#caa12e', '#9c968a', '#b1763f'];
 // (right/Top Players board) or as a clickable div (left/Most Played board,
 // which contains its own per-quiz links and so can't be an anchor).
 const boardCss = `
-  .qz-boards{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px;align-items:start;}
+  .qz-boards{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:12px;align-items:start;}
   @media(max-width:680px){.qz-boards{grid-template-columns:1fr;gap:10px;}.qz-boards .qb{margin-bottom:0;}}
   .lb-card{display:flex;flex-direction:column;background:${COLORS.paper};border:1.5px solid ${COLORS.ink};box-shadow:3px 3px 0 ${COLORS.ember};padding:10px 16px 10px;margin-bottom:16px;box-sizing:border-box;}
   .lb-head{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:3px;}
@@ -162,7 +162,7 @@ const boardCss = `
   .qz-wide-list{display:flex;flex-direction:column;padding:0 10px;}
   .lb-mid{font-family:'DM Mono',monospace;font-size:10px;letter-spacing:0.1em;text-transform:uppercase;color:${COLORS.faded};display:flex;align-items:center;gap:7px;white-space:nowrap;}
   .qz-pulse{width:7px;height:7px;border-radius:50%;background:#2e7d6b;flex:none;}
-  .qb{margin-bottom:16px;}
+  .qb{margin-bottom:0;}
   .qb-head{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:6px 12px;background:${COLORS.ember};border:1.5px solid ${COLORS.ink};box-shadow:3px 3px 0 ${COLORS.ink};padding:11px 15px;}
   .qb-title{font-family:'DM Mono',monospace;font-size:12px;font-weight:700;letter-spacing:0.2em;text-transform:uppercase;color:${COLORS.cream};}
   .qb-mid{font-family:'DM Mono',monospace;font-size:9.5px;font-weight:700;letter-spacing:0.12em;text-transform:uppercase;color:#f4d9d4;display:flex;align-items:center;gap:7px;white-space:nowrap;}
@@ -179,7 +179,8 @@ const boardCss = `
   .ql-jumps{display:flex;flex-wrap:wrap;gap:6px;flex:1;min-width:0;}
   @media(max-width:760px){.ql-controls{flex-direction:column;align-items:flex-start;gap:8px;}.ql-jumps{width:100%;}}
   .ql-jump{padding:4px 9px;background:transparent;border:1px solid ${COLORS.ink};font-family:'DM Mono',monospace;font-size:8.5px;letter-spacing:0.08em;text-transform:uppercase;font-weight:700;cursor:pointer;white-space:nowrap;}
-  .ql-cols{display:grid;grid-template-columns:1fr 1fr;gap:26px;align-items:start;}
+  .ql-cols{display:grid;grid-template-columns:1fr 1fr 1fr;gap:22px;align-items:start;}
+  @media(max-width:1000px){.ql-cols{grid-template-columns:1fr 1fr;}}
   @media(max-width:760px){.ql-cols{grid-template-columns:1fr;}}
   .ql-col{scroll-margin-top:72px;min-width:0;}
   .ql-col-head{display:flex;align-items:center;gap:9px;padding-bottom:6px;border-bottom:2px solid ${COLORS.ink};}
@@ -400,7 +401,7 @@ function QuizCategoryColumn({ sectionKey, label, accent, Icon, quizzes, totals, 
           const p = plays(q.id);
           return (
             <Link key={q.id} href={`/quiz/${q.id}`} className="ql-row" title={q.title}>
-              <span className="ql-title">{q.title}</span>
+              <span className="ql-title">{boardTitle(q.title)}</span>
               <span className="ql-meta">
                 {p > 0 && <span className="ql-plays">{'▶'} <Count value={p} /></span>}
                 <span className="ql-leader" style={{ color: leader ? COLORS.ink : COLORS.faded }}>
@@ -907,7 +908,7 @@ export default function QuizHomeClient() {
                     const p = totals.byQuiz[q.id] || 0;
                     return (
                       <Link key={q.id} href={`/quiz/${q.id}`} className="ql-row" title={q.title}>
-                        <span className="ql-title">{q.title}</span>
+                        <span className="ql-title">{boardTitle(q.title)}</span>
                         <span className="ql-meta">
                           {p > 0 && <span className="ql-plays">{'▶'} <Count value={p} /></span>}
                           <span className="ql-leader" style={{ color: leader ? COLORS.ink : COLORS.faded }}>
