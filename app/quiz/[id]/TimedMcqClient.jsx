@@ -341,7 +341,7 @@ export default function TimedMcqClient({ quizId }) {
   const correctIdx = q ? q.correct : -1;
 
   return (
-    <div style={{ minHeight: '100vh', background: COLORS.cream, color: COLORS.ink, position: 'relative' }}>
+    <div style={{ minHeight: '100vh', background: COLORS.cream, color: COLORS.ink, position: 'relative', overflow: 'clip' }}>
       <Grain />
       <div style={{ position: 'relative', zIndex: 2, maxWidth: 920, margin: '0 auto', padding: '24px 20px 80px' }}>
 

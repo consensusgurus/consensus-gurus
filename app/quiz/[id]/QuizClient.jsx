@@ -848,7 +848,7 @@ export default function QuizClient({ quizId }) {
   const asOfLabel = asOfRaw ? new Date(asOfRaw + 'T12:00:00Z').toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric', timeZone: 'UTC' }) : null;
 
   return (
-    <div style={{ minHeight: '100vh', background: COLORS.cream, color: COLORS.ink, position: 'relative' }}>
+    <div style={{ minHeight: '100vh', background: COLORS.cream, color: COLORS.ink, position: 'relative', overflowX: 'clip' }}>
       <Grain />
       <div style={{ position: 'relative', zIndex: 2, maxWidth: 1060, margin: '0 auto', padding: '24px 20px 80px' }}>
 
