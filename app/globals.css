@@ -10,10 +10,6 @@ body {
 }
 
 html {
-  /* Clip horizontal overflow at the root, not on intermediate
-     wrappers: an overflow:clip ancestor breaks position:sticky on iOS
-     Safari (sticky pins to the clip box, not the viewport). */
-  overflow-x: clip;
   scroll-behavior: smooth;
   /* Disable mobile-browser font boosting: long un-wrappable labels and the
      scaled 1080px share posters otherwise get inconsistently inflated text. */
