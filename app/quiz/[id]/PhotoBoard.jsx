@@ -96,6 +96,16 @@ export default function PhotoBoard({ items, started, ended, revealed, onMatch, o
     }
     return null;
   }
+  function prevIdx(fromCur, doneSet) {
+    if (!order.length) return null;
+    const L = order.length;
+    const start = order.indexOf(fromCur);
+    for (let s = 1; s <= L; s++) {
+      const p = order[((start - s) % L + L) % L];
+      if (!doneSet.has(p)) return p;
+    }
+    return null;
+  }
   function flashIt(ok) {
     const key = Date.now(); setFlash({ ok, key });
     setTimeout(() => setFlash((f) => (f && f.key === key ? null : f)), 480);
@@ -134,6 +144,13 @@ export default function PhotoBoard({ items, started, ended, revealed, onMatch, o
     else if (onHint) onHint('That is the last one — take your shot.', false);
     if (inputRef.current) inputRef.current.focus();
   }
+  function back() {
+    if (!live || cur == null) return;
+    const np = prevIdx(cur, matched);
+    if (np != null && np !== cur) { setCur(np); setVal(''); if (onHint) onHint('Back to an earlier photo — you can still answer it.', false); }
+    else if (onHint) onHint('That is the only one left — take your shot.', false);
+    if (inputRef.current) inputRef.current.focus();
+  }
 
   const curItem = cur != null ? list[cur] : null;
   const borderColor = flash ? (flash.ok ? COLORS.forest : COLORS.ember) : COLORS.ink;
@@ -159,6 +176,9 @@ export default function PhotoBoard({ items, started, ended, revealed, onMatch, o
               spellCheck={false}
               style={{ flex: 1, boxSizing: 'border-box', fontFamily: SANS, fontSize: 18, padding: '14px 16px', border: `2px solid ${borderColor}`, background: live ? '#fff' : COLORS.paper, color: COLORS.ink, opacity: live ? 1 : 0.6, transition: 'border-color .15s' }}
             />
+            {live && cur != null && (
+              <button onClick={back} title="Go back to the previous photo." style={{ flex: 'none', fontFamily: MONO, fontSize: 10, letterSpacing: '0.16em', textTransform: 'uppercase', fontWeight: 700, padding: '0 18px', background: 'transparent', color: COLORS.ink, border: `1.5px solid ${COLORS.ink}`, cursor: 'pointer' }}>&larr; Back</button>
+            )}
             {live && cur != null && (
               <button onClick={skip} title="Skip to the next photo without spending a guess, you can come back." style={{ flex: 'none', fontFamily: MONO, fontSize: 10, letterSpacing: '0.16em', textTransform: 'uppercase', fontWeight: 700, padding: '0 18px', background: 'transparent', color: COLORS.ink, border: `1.5px solid ${COLORS.ink}`, cursor: 'pointer' }}>Next &rarr;</button>
             )}

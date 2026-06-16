@@ -64,6 +64,16 @@ export default function TypeItBoard({ items, started, ended, revealed, onMatch, 
     }
     return null;
   }
+  function prevIdx(fromCur, doneSet) {
+    if (!order.length) return null;
+    const L = order.length;
+    const start = order.indexOf(fromCur);
+    for (let s = 1; s <= L; s++) {
+      const p = order[((start - s) % L + L) % L];
+      if (!doneSet.has(p)) return p;
+    }
+    return null;
+  }
   function flashIt(ok) {
     const key = Date.now(); setFlash({ ok, key });
     setTimeout(() => setFlash((f) => (f && f.key === key ? null : f)), 480);
@@ -101,6 +111,12 @@ export default function TypeItBoard({ items, started, ended, revealed, onMatch, 
     if (np != null && np !== cur) { setCur(np); setVal(''); if (onHint) onHint(`Next: ${list[np].label}`, false); }
     else if (onHint) onHint('That is the last one — take your shot.', false);
   }
+  function back() {
+    if (!live || cur == null) return;
+    const np = prevIdx(cur, matched);
+    if (np != null && np !== cur) { setCur(np); setVal(''); if (onHint) onHint(`Back: ${list[np].label}`, false); }
+    else if (onHint) onHint('That is the only one left — take your shot.', false);
+  }
 
   const promptText = !started ? 'Press Play to start' : ended ? 'Game over' : (cur != null ? list[cur].label : 'All done');
   const borderColor = flash ? (flash.ok ? COLORS.forest : COLORS.ember) : COLORS.ink;
@@ -111,7 +127,10 @@ export default function TypeItBoard({ items, started, ended, revealed, onMatch, 
         <span style={{ fontFamily: MONO, fontSize: 11, letterSpacing: '0.2em', textTransform: 'uppercase', opacity: 0.7, flex: 'none' }}>{promptLabel || 'Clue'}</span>
         <span style={{ fontFamily: SERIF, fontWeight: 800, fontSize: 'clamp(20px, 3.4vw, 28px)', lineHeight: 1.15, flex: '1 1 auto', minWidth: 0, overflowWrap: 'anywhere' }}>{promptText}</span>
         {live && cur != null && (
-          <button onClick={skip} title="Skip to the next clue without spending a guess, you can come back." style={{ marginLeft: 'auto', flex: 'none', fontFamily: MONO, fontSize: 10, letterSpacing: '0.16em', textTransform: 'uppercase', fontWeight: 700, padding: '9px 16px', background: 'transparent', color: COLORS.cream, border: '1px solid rgba(244,237,224,0.4)', cursor: 'pointer' }}>Next &rarr;</button>
+          <button onClick={back} title="Go back to the previous clue." style={{ marginLeft: 'auto', flex: 'none', fontFamily: MONO, fontSize: 10, letterSpacing: '0.16em', textTransform: 'uppercase', fontWeight: 700, padding: '9px 16px', background: 'transparent', color: COLORS.cream, border: '1px solid rgba(244,237,224,0.4)', cursor: 'pointer' }}>&larr; Back</button>
+        )}
+        {live && cur != null && (
+          <button onClick={skip} title="Skip to the next clue without spending a guess, you can come back." style={{ flex: 'none', fontFamily: MONO, fontSize: 10, letterSpacing: '0.16em', textTransform: 'uppercase', fontWeight: 700, padding: '9px 16px', background: 'transparent', color: COLORS.cream, border: '1px solid rgba(244,237,224,0.4)', cursor: 'pointer' }}>Next &rarr;</button>
         )}
       </div>
       {live && (

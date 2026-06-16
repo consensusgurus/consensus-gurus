@@ -102,6 +102,22 @@ export default function BankQuizBoard({ pairs, started, ended, revealed, onMatch
     }
     return nextPrompt(fromPair, doneSet);
   }
+  // Like nextDifferentPrompt but walking BACKWARD (used by Back).
+  function prevDifferentPrompt(fromPair, doneSet) {
+    if (!promptOrder.length) return null;
+    const fromPrompt = pairs[fromPair][1];
+    const L = promptOrder.length;
+    const start = promptOrder.indexOf(fromPair);
+    for (let s = 1; s <= L; s++) {
+      const p = promptOrder[((start - s) % L + L) % L];
+      if (!doneSet.has(pairs[p][1]) && pairs[p][1] !== fromPrompt) return p;
+    }
+    for (let s = 1; s <= L; s++) {
+      const p = promptOrder[((start - s) % L + L) % L];
+      if (!doneSet.has(pairs[p][1])) return p;
+    }
+    return null;
+  }
   // A still-unmatched tile that belongs to prompt string `ps`, to keep showing
   // while a multi-tile prompt (book) still has tiles left. Falls back to cur.
   function sameUnmatchedTile(ps, matchedSet, fallback) {
@@ -160,6 +176,12 @@ export default function BankQuizBoard({ pairs, started, ended, revealed, onMatch
     if (np != null && pairs[np][1] !== pairs[cur][1]) { setCur(np); if (onHint) onHint(`Next up: ${pairs[np][1]}.`, false); }
     else if (onHint) onHint('That is the only one left, take your shot.', false);
   }
+  function back() {
+    if (!live || cur == null) return;
+    const np = prevDifferentPrompt(cur, donePrompts);
+    if (np != null && pairs[np][1] !== pairs[cur][1]) { setCur(np); if (onHint) onHint(`Back to: ${pairs[np][1]}.`, false); }
+    else if (onHint) onHint('That is the only one left, take your shot.', false);
+  }
 
   return (
     <div>
@@ -167,7 +189,10 @@ export default function BankQuizBoard({ pairs, started, ended, revealed, onMatch
         <span style={{ fontFamily: MONO, fontSize: 11, letterSpacing: '0.2em', textTransform: 'uppercase', opacity: 0.7, flex: 'none' }}>{promptLabel || 'Prompt'}</span>
         {(() => { const clueText = cur != null ? pairs[cur][1] : (ended ? 'Game over' : 'Press Play to start'); return (<span key={clueText} style={{ fontFamily: SERIF, fontWeight: 800, fontSize: 'clamp(20px, 3.4vw, 28px)', lineHeight: 1.15, flex: '1 1 auto', minWidth: 0, overflowWrap: 'anywhere', transform: 'translateZ(0)' }}>{clueText}</span>); })()}
         {live && cur != null && (
-          <button onClick={skip} title="Skip to the next prompt without spending a guess, you can come back." style={{ marginLeft: 'auto', flex: 'none', fontFamily: MONO, fontSize: 10, letterSpacing: '0.16em', textTransform: 'uppercase', fontWeight: 700, padding: '9px 16px', background: 'transparent', color: COLORS.cream, border: '1px solid rgba(244,237,224,0.4)', cursor: 'pointer' }}>Next &rarr;</button>
+          <button onClick={back} title="Go back to the previous prompt." style={{ marginLeft: 'auto', flex: 'none', fontFamily: MONO, fontSize: 10, letterSpacing: '0.16em', textTransform: 'uppercase', fontWeight: 700, padding: '9px 16px', background: 'transparent', color: COLORS.cream, border: '1px solid rgba(244,237,224,0.4)', cursor: 'pointer' }}>&larr; Back</button>
+        )}
+        {live && cur != null && (
+          <button onClick={skip} title="Skip to the next prompt without spending a guess, you can come back." style={{ flex: 'none', fontFamily: MONO, fontSize: 10, letterSpacing: '0.16em', textTransform: 'uppercase', fontWeight: 700, padding: '9px 16px', background: 'transparent', color: COLORS.cream, border: '1px solid rgba(244,237,224,0.4)', cursor: 'pointer' }}>Next &rarr;</button>
         )}
       </div>
 
