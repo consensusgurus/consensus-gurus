@@ -2,7 +2,7 @@
 import React, { useState, useEffect, useMemo, useRef } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { Search, X, ChevronDown, ArrowLeft, Trophy, Clock, Flame, Sparkles, Check, BarChart3, CircleDollarSign } from 'lucide-react';
+import { Search, X, ChevronDown, ArrowLeft, Trophy, Clock, Flame, Sparkles, Check, BarChart3, CircleDollarSign, Crown, Clapperboard, Music, Gamepad2, Plane, Globe, Utensils, Briefcase, Leaf, Tv, BookOpen, Landmark, Type, Shuffle, MapPin, Image } from 'lucide-react';
 import { COLORS } from '@/lib/data';
 import { QUIZZES } from '@/lib/quizzes';
 import { fetchBootstrap } from '@/lib/api';
@@ -165,12 +165,39 @@ const boardCss = `
   .qb{margin-bottom:16px;}
   .qb-head{display:flex;align-items:center;justify-content:space-between;gap:12px;background:${COLORS.ember};border:1.5px solid ${COLORS.ink};box-shadow:3px 3px 0 ${COLORS.ink};padding:11px 15px;}
   .qb-title{font-family:'DM Mono',monospace;font-size:12px;font-weight:700;letter-spacing:0.2em;text-transform:uppercase;color:${COLORS.cream};}
-  .qb-mid{font-family:'DM Mono',monospace;font-size:9.5px;letter-spacing:0.12em;text-transform:uppercase;color:#f4d9d4;display:flex;align-items:center;gap:7px;white-space:nowrap;}
-  .qb-cta{font-family:'DM Mono',monospace;font-size:9.5px;letter-spacing:0.14em;text-transform:uppercase;color:#f4d9d4;white-space:nowrap;text-decoration:none;}
+  .qb-mid{font-family:'DM Mono',monospace;font-size:9.5px;font-weight:700;letter-spacing:0.12em;text-transform:uppercase;color:#f4d9d4;display:flex;align-items:center;gap:7px;white-space:nowrap;}
+  .qb-cta{font-family:'DM Mono',monospace;font-size:9.5px;font-weight:700;letter-spacing:0.14em;text-transform:uppercase;color:#f4d9d4;white-space:nowrap;text-decoration:none;}
   .qb-cta:hover{color:${COLORS.cream};}
   .qb-body{border:1.5px solid ${COLORS.ink};border-top:none;background:${COLORS.paper};padding:12px 15px 13px;}
   @media(max-width:680px){.lb-row-extra{display:none;}.lb-list-2col{display:flex;flex-direction:column;}.lb-name{white-space:normal;overflow:visible;text-overflow:clip;overflow-wrap:anywhere;}
     .qz-wide-cols{grid-template-columns:1fr;gap:8px;}.lb-mid,.qb-mid{display:none;}}
+  .ql-controls{display:flex;align-items:center;gap:10px;flex-wrap:wrap;padding:9px 12px;margin-bottom:16px;background:${COLORS.paper};border:1.5px solid ${COLORS.ink};}
+  .ql-gb{display:inline-flex;border:1.5px solid ${COLORS.ink};flex:none;}
+  .ql-gb-btn{padding:6px 13px;background:transparent;border:none;border-left:1.5px solid ${COLORS.ink};font-family:'DM Mono',monospace;font-size:9.5px;letter-spacing:0.1em;text-transform:uppercase;font-weight:700;color:${COLORS.ink};cursor:pointer;white-space:nowrap;}
+  .ql-gb-btn:first-child{border-left:none;}
+  .ql-jumplabel{font-family:'DM Mono',monospace;font-size:9px;letter-spacing:0.14em;text-transform:uppercase;color:${COLORS.faded};font-weight:700;flex:none;}
+  .ql-jumps{display:flex;flex-wrap:wrap;gap:6px;flex:1;min-width:0;}
+  .ql-jump{padding:4px 9px;background:transparent;border:1px solid ${COLORS.ink};font-family:'DM Mono',monospace;font-size:8.5px;letter-spacing:0.08em;text-transform:uppercase;font-weight:700;cursor:pointer;white-space:nowrap;}
+  .ql-cols{display:grid;grid-template-columns:1fr 1fr;gap:26px;align-items:start;}
+  @media(max-width:760px){.ql-cols{grid-template-columns:1fr;}}
+  .ql-col{scroll-margin-top:72px;min-width:0;}
+  .ql-col-head{display:flex;align-items:center;gap:9px;padding-bottom:6px;border-bottom:2px solid ${COLORS.ink};}
+  .ql-medal{flex:none;width:26px;height:26px;border-radius:50%;display:flex;align-items:center;justify-content:center;}
+  .ql-name{font-family:'Fraunces',serif;font-weight:700;font-size:18px;letter-spacing:-0.01em;margin:0;color:${COLORS.ink};}
+  .ql-toggle{margin-left:auto;display:inline-flex;border:1px solid rgba(26,22,17,0.28);flex:none;}
+  .ql-tg{padding:5px 10px;background:transparent;border:none;border-left:1px solid rgba(26,22,17,0.16);font-family:'DM Mono',monospace;font-size:9px;letter-spacing:0.06em;text-transform:uppercase;font-weight:700;color:${COLORS.faded};cursor:pointer;white-space:nowrap;}
+  .ql-tg:first-child{border-left:none;}
+  .ql-list{display:flex;flex-direction:column;}
+  .ql-row{display:flex;align-items:baseline;gap:10px;padding:7px 0;border-bottom:1px solid rgba(26,22,17,0.1);text-decoration:none;color:${COLORS.ink};}
+  .ql-row:hover .ql-title{color:${COLORS.ember};}
+  .ql-title{flex:1 1 auto;min-width:0;font-family:'Fraunces',serif;font-weight:700;font-size:14px;line-height:1.2;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+  .ql-meta{flex:none;display:flex;align-items:center;gap:11px;font-family:'DM Mono',monospace;font-size:9.5px;font-weight:500;white-space:nowrap;}
+  .ql-plays{color:${COLORS.faded};letter-spacing:0.04em;}
+  .ql-leader{display:flex;align-items:center;gap:3px;max-width:130px;}
+  .ql-lname{overflow:hidden;text-overflow:ellipsis;}
+  .ql-viewall{margin-top:9px;background:transparent;border:none;padding:2px 0;font-family:'DM Mono',monospace;font-size:9.5px;letter-spacing:0.1em;text-transform:uppercase;font-weight:700;cursor:pointer;}
+  @media(max-width:760px){.ql-name{font-size:17px;}.ql-meta{gap:8px;}.ql-leader{max-width:104px;}}
+
 `;
 
 // Relative time since a play (compact): "just now", "5m", "3h", "2d", "3w".
@@ -302,10 +329,87 @@ function DailyNewsBanner({ totals }) {
   );
 }
 
+// Per-department icon for the list-view column headers (mirrors DEPT_ICON in
+// lib/quiz-departments so a column reads consistently).
+const SECTION_ICON = {
+  movies: Clapperboard, music: Music, gaming: Gamepad2, travel: Plane, sports: Trophy,
+  geography: Globe, food: Utensils, business: Briefcase, science: Leaf,
+  entertainment: Tv, literature: BookOpen, history: Landmark, misc: Sparkles,
+};
+
+// Type-bucket display meta for the "By Type" grouping.
+const TYPE_META = {
+  name: { label: 'Name', Icon: Type, accent: { c: '#c0392b', t: '#f3ddd8' } },
+  match: { label: 'Match', Icon: Shuffle, accent: { c: '#2f6f9f', t: '#d9e6f0' } },
+  locate: { label: 'Locate', Icon: MapPin, accent: { c: '#1f7a8c', t: '#d4e9ee' } },
+  picture: { label: 'Picture', Icon: Image, accent: { c: '#7a4fb0', t: '#e6dcf1' } },
+};
+
+// One category (or type) column in the list view: header (icon + name, no
+// count) with a Newest / Most Played / Trending sort toggle, a tight list of
+// rows (title + play count + current leader), and a "View all" expander.
+function QuizCategoryColumn({ sectionKey, label, accent, Icon, quizzes, totals, searching }) {
+  const [sortMode, setSortMode] = useState('popularity');
+  const [expanded, setExpanded] = useState(false);
+  const plays = (id) => totals.byQuiz[id] || 0;
+  const trend = (id) => totals.trendingByQuiz[id] || totals.recent7[id] || 0;
+  const ts = (q) => new Date(q.publishedAt || `${q.publishedDate || '1970-01-01'}T12:00:00Z`).getTime();
+  const sorted = useMemo(() => {
+    const arr = quizzes.slice();
+    if (sortMode === 'recent') arr.sort((a, b) => ts(b) - ts(a) || a.title.localeCompare(b.title));
+    else if (sortMode === 'trending') arr.sort((a, b) => trend(b.id) - trend(a.id) || plays(b.id) - plays(a.id) || a.title.localeCompare(b.title));
+    else arr.sort((a, b) => plays(b.id) - plays(a.id) || a.title.localeCompare(b.title));
+    return arr;
+  }, [quizzes, sortMode, totals]);
+  const LIMIT = 8;
+  const showAll = expanded || searching;
+  const shown = showAll ? sorted : sorted.slice(0, LIMIT);
+  const total = quizzes.length;
+  const TOGGLES = [['recent', 'Newest'], ['popularity', 'Most Played'], ['trending', 'Trending']];
+  return (
+    <section id={`qzsec-${sectionKey}`} className="ql-col">
+      <div className="ql-col-head" style={{ borderColor: accent.c }}>
+        <span className="ql-medal" style={{ background: accent.t }}><Icon size={15} strokeWidth={2} aria-hidden="true" style={{ color: accent.c }} /></span>
+        <h2 className="ql-name">{label}</h2>
+        <div className="ql-toggle" role="group" aria-label={`Sort ${label}`}>
+          {TOGGLES.map(([id, lbl]) => (
+            <button key={id} type="button" className="ql-tg" onClick={() => { setSortMode(id); setExpanded(false); }} style={sortMode === id ? { background: accent.c, color: COLORS.cream } : undefined}>{lbl}</button>
+          ))}
+        </div>
+      </div>
+      <div className="ql-list">
+        {shown.map((q) => {
+          const leader = totals.leaders[q.id];
+          const p = plays(q.id);
+          return (
+            <Link key={q.id} href={`/quiz/${q.id}`} className="ql-row" title={q.title}>
+              <span className="ql-title">{q.title}</span>
+              <span className="ql-meta">
+                {p > 0 && <span className="ql-plays">{'▶'} <Count value={p} /></span>}
+                <span className="ql-leader" style={{ color: leader ? COLORS.ink : COLORS.faded }}>
+                  <Crown size={11} strokeWidth={2.5} aria-hidden="true" style={{ flex: 'none', color: accent.c }} />
+                  <span className="ql-lname">{leader || 'Empty'}</span>
+                </span>
+              </span>
+            </Link>
+          );
+        })}
+      </div>
+      {!searching && total > LIMIT && (
+        <button type="button" className="ql-viewall" onClick={() => setExpanded((e) => !e)} style={{ color: accent.c }}>
+          {expanded ? 'Show fewer' : `View all ${total} ${label} quizzes`} {expanded ? '▴' : '›'}
+        </button>
+      )}
+    </section>
+  );
+}
+
+
 export default function QuizHomeClient() {
   const [query, setQuery] = useState('');
   const [dept, setDept] = useState('all');
   const [sortBy, setSortBy] = useState('discover');
+  const [groupBy, setGroupBy] = useState('category');
   const [sortOpen, setSortOpen] = useState(false);
   const [catOpen, setCatOpen] = useState(false);
   const [typeOpen, setTypeOpen] = useState(false);
@@ -505,6 +609,36 @@ export default function QuizHomeClient() {
     return list;
   }, [query, dept, typeFilter, sortBy, totals]);
 
+  // List view: group quizzes into sections (news quizzes excluded). "By
+  // Category" shuffles the section order each page load; "By Type" buckets into
+  // Name / Match / Locate / Picture. Search filters the quizzes within sections.
+  const isSearching = query.trim().length > 0;
+  const sections = useMemo(() => {
+    const tokens = query.trim().toLowerCase().split(/\s+/).filter(Boolean);
+    const isNewsQuiz = (q) => /^(daily-market-news-quiz-|daily-business-quiz-|daily-news-quiz-|weekly-business-quiz-|weekly-news-quiz-|earnings-reporter-quiz-|earnings-quiz-)/.test(q.id || '');
+    const matches = QUIZZES.filter((q) => {
+      if (isNewsQuiz(q)) return false;
+      if (!tokens.length) return true;
+      const hay = `${q.title || ''} ${q.category || ''} ${q.blurb || ''}`.toLowerCase();
+      return tokens.every((t) => hay.includes(t));
+    });
+    if (groupBy === 'type') {
+      const byType = {};
+      for (const q of matches) { const k = quizIsPicture(q) ? 'picture' : quizPrimaryType(q); (byType[k] = byType[k] || []).push(q); }
+      const ids = ['name', 'match', 'locate', 'picture'].filter((k) => byType[k] && byType[k].length).sort((a, b) => byType[b].length - byType[a].length);
+      return ids.map((k) => ({ key: k, label: TYPE_META[k].label, accent: TYPE_META[k].accent, Icon: TYPE_META[k].Icon, quizzes: byType[k] }));
+    }
+    const byDept = {};
+    for (const q of matches) { const d = deptOf(q); (byDept[d] = byDept[d] || []).push(q); }
+    const ids = seededShuffle(Object.keys(byDept), seedRef.current);
+    return ids.map((id) => ({ key: id, label: DEPT_LABEL[id] || 'Quizzes', accent: DEPT_COLOR[id] || DEPT_COLOR.misc, Icon: SECTION_ICON[id] || Sparkles, quizzes: byDept[id] }));
+  }, [query, groupBy]);
+  const scrollToSection = (key) => {
+    if (typeof document === 'undefined') return;
+    const el = document.getElementById(`qzsec-${key}`);
+    if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  };
+
   return (
     <div style={{ minHeight: '100vh', background: COLORS.cream, color: COLORS.ink, position: 'relative', overflow: 'clip' }}>
       <Grain />
@@ -596,18 +730,13 @@ export default function QuizHomeClient() {
           </svg>
           <div ref={ribbonRef} style={{ maxWidth: 1200, margin: '0 auto', padding: '0 16px', position: 'relative' }}>
             <div ref={ribbonScrollRef} className="qz-ribbon">
-              <button ref={catBtnRef} type="button" className="qz-rb-btn" aria-haspopup="true" aria-expanded={catOpen} onClick={() => { const willOpen = !catOpen; if (willOpen && catBtnRef.current) setPanelLeft(catBtnRef.current.offsetLeft); setCatOpen(willOpen); setSortOpen(false); setTypeOpen(false); }}>
-                <span><span style={{ opacity: 0.7 }}>Category:</span> {currentDeptLabel}</span>
-                <ChevronDown className="qz-rb-chev" size={14} strokeWidth={2.5} style={{ transform: catOpen ? 'rotate(180deg)' : 'none' }} />
-              </button>
-              <button ref={typeBtnRef} type="button" className="qz-rb-btn" aria-haspopup="true" aria-expanded={typeOpen} onClick={() => { const willOpen = !typeOpen; if (willOpen && typeBtnRef.current) setPanelLeft(typeBtnRef.current.offsetLeft); setTypeOpen(willOpen); setCatOpen(false); setSortOpen(false); }}>
-                <span><span style={{ opacity: 0.7 }}>Type:</span> {currentTypeLabel}</span>
-                <ChevronDown className="qz-rb-chev" size={14} strokeWidth={2.5} style={{ transform: typeOpen ? 'rotate(180deg)' : 'none' }} />
-              </button>
-              <button ref={sortBtnRef} type="button" className="qz-rb-btn" aria-haspopup="true" aria-expanded={sortOpen} onClick={() => { const willOpen = !sortOpen; if (willOpen && sortBtnRef.current) setPanelLeft(sortBtnRef.current.offsetLeft); setSortOpen(willOpen); setCatOpen(false); setTypeOpen(false); }}>
-                <span><span style={{ opacity: 0.7 }}>Sort:</span> {(SORTS.find((o) => o.id === sortBy) || {}).short || 'Discover'}</span>
-                <ChevronDown className="qz-rb-chev" size={14} strokeWidth={2.5} style={{ transform: sortOpen ? 'rotate(180deg)' : 'none' }} />
-              </button>
+                            <Link href="/leaderboard" className="qz-rb-btn" style={{ textDecoration: 'none' }}>
+                <Trophy size={14} strokeWidth={2.5} aria-hidden="true" /> Leaderboard
+              </Link>
+              <Link href="/quizzes/stats" className="qz-rb-btn" style={{ textDecoration: 'none' }}>
+                <BarChart3 size={14} strokeWidth={2.5} aria-hidden="true" /> Quiz Stats
+              </Link>
+
               <div className="qz-rb-search">
                 <Search size={16} strokeWidth={2.5} style={{ position: 'absolute', left: 22, top: '50%', transform: 'translateY(-50%)', color: COLORS.faded }} />
                 <input type="text" value={query} onChange={(e) => setQuery(e.target.value)} placeholder="Search quizzes" />
@@ -653,19 +782,31 @@ export default function QuizHomeClient() {
         </nav>
 
         <section style={{ maxWidth: 1200, margin: '0 auto', padding: '10px 16px 64px' }}>
-          <DailyNewsBanner totals={totals} />
 
           <QuizBoardWide title="Players" cta="All player stats" ctaHref="/leaderboard" categories={playerCols} mid={(totals.totalCorrect || 0) > 0 ? (<><span style={{ display: 'inline-flex', alignItems: 'center', gap: 5 }}><Check size={11} strokeWidth={3} aria-hidden="true" />{(totals.totalCorrect || 0).toLocaleString()} correct answers{todayBoard.correctToday > 0 ? ` · ${todayBoard.correctToday.toLocaleString()} today` : ''}</span>{(totals.totalPerfect || 0) > 0 ? (<span style={{ display: 'inline-flex', alignItems: 'center', gap: 5, marginLeft: 22 }}><Trophy size={11} strokeWidth={2.5} aria-hidden="true" />{(totals.totalPerfect || 0).toLocaleString()} perfect scores{todayBoard.perfectToday > 0 ? ` · ${todayBoard.perfectToday.toLocaleString()} today` : ''}</span>) : null}</>) : null} />
 
           <QuizBoardWide title="Quizzes" cta="All quiz stats" ctaHref="/quizzes/stats" categories={quizCols} mid={totals.total > 0 ? (<><span style={{ display: 'inline-flex', alignItems: 'center', gap: 5 }}><span className="qz-pulse" />{totals.total.toLocaleString()} plays{todayBoard.playsToday > 0 ? ` · ${todayBoard.playsToday} today` : ''}</span>{totals.totalTime > 0 ? (<span style={{ display: 'inline-flex', alignItems: 'center', gap: 5, marginLeft: 22 }}><Clock size={11} strokeWidth={2.5} aria-hidden="true" />{fmtDur(totals.totalTime)} spent answering{totals.todayTime > 0 ? ` · ${fmtDur(totals.todayTime)} today` : ''}</span>) : null}</>) : null} />
 
-          {sorted.length > 0 ? (
-            <div className="qz-grid">
-              {sorted.map((q) => (<QuizTile key={q.id} quiz={q} plays={totals.byQuiz[q.id] || 0} leader={totals.leaders[q.id]} />))}
+                    <div className="ql-controls">
+            <div className="ql-gb" role="group" aria-label="Group quizzes by">
+              <button type="button" className="ql-gb-btn" onClick={() => setGroupBy('category')} style={groupBy === 'category' ? { background: COLORS.ink, color: COLORS.cream } : undefined}>By Category</button>
+              <button type="button" className="ql-gb-btn" onClick={() => setGroupBy('type')} style={groupBy === 'type' ? { background: COLORS.ink, color: COLORS.cream } : undefined}>By Type</button>
+            </div>
+            <span className="ql-jumplabel">Jump to:</span>
+            <div className="ql-jumps">
+              {sections.map((s) => (
+                <button key={s.key} type="button" className="ql-jump" onClick={() => scrollToSection(s.key)} style={{ borderColor: s.accent.c, color: s.accent.c }}>{s.label}</button>
+              ))}
+            </div>
+          </div>
+          {sections.length > 0 ? (
+            <div className="ql-cols">
+              {sections.map((s) => (<QuizCategoryColumn key={`${groupBy}-${s.key}`} sectionKey={s.key} label={s.label} accent={s.accent} Icon={s.Icon} quizzes={s.quizzes} totals={totals} searching={isSearching} />))}
             </div>
           ) : (
             <div style={{ textAlign: 'center', padding: '48px 24px', fontFamily: 'Fraunces, serif', fontStyle: 'italic', fontSize: 18, color: COLORS.faded }}>No quizzes match that filter.</div>
           )}
+
         </section>
       </div>
       <Footer />
