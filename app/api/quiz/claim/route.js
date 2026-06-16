@@ -67,6 +67,9 @@ export async function POST(request) {
     }
 
     const user = await resolveQuizIdentity(supabaseAdmin, { username, email: email || undefined, anonId });
+    if (user && user.error === 'username_taken') {
+      return NextResponse.json({ error: 'That display name is already taken. Pick another.' }, { status: 409 });
+    }
     if (!user) {
       return NextResponse.json({ error: 'Could not post right now.' }, { status: 500 });
     }
