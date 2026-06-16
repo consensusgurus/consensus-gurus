@@ -478,11 +478,12 @@ function Home({ lists, viewCounts, voteData, extras, trending = {}, openList, on
   // QUIZ_TILE_MIN_PLAYS times (see shuffledQuizzes). Empty until the fetch
   // resolves, which simply means the gate is inactive on first paint.
   const [quizPlays, setQuizPlays] = useState({});
+  const [quizLeaders, setQuizLeaders] = useState({});
   useEffect(() => {
     let alive = true;
     fetch('/api/quiz/totals')
       .then((r) => r.json())
-      .then((d) => { if (alive && d && !d.error) setQuizPlays(d.byQuiz || {}); })
+      .then((d) => { if (alive && d && !d.error) { setQuizPlays(d.byQuiz || {}); setQuizLeaders(d.leaders || {}); } })
       .catch(() => {});
     return () => { alive = false; };
   }, []);
@@ -1157,7 +1158,7 @@ function Home({ lists, viewCounts, voteData, extras, trending = {}, openList, on
                 if (gap > 0 && shuffledQuizzes.length > 0 && (idx + 1) % gap === 0 && idx + 1 < sorted.length) {
                   const quiz = shuffledQuizzes[quizIdx % shuffledQuizzes.length];
                   quizIdx += 1;
-                  cells.push(<QuizTile key={`quiz-${quiz.id}-${idx}`} quiz={quiz} />);
+                  cells.push(<QuizTile key={`quiz-${quiz.id}-${idx}`} quiz={quiz} leader={quizLeaders[quiz.id]} />);
                 }
               });
               return cells;
@@ -1188,13 +1189,10 @@ function Home({ lists, viewCounts, voteData, extras, trending = {}, openList, on
 // fills the hero-image area (QUIZ badge + medallion icon + the dynamic answer
 // count), so the title below lines up with neighbouring list-tile titles and is
 // sized to match them; the play affordance sits at the foot. Links to /quiz/<id>.
-function QuizTile({ quiz }) {
+function QuizTile({ quiz, leader }) {
   const [hover, setHover] = useState(false);
   const Icon = quizIconOf(quiz);
   const accent = QUIZ_DEPT_COLOR[quizDeptOf(quiz)] || QUIZ_DEPT_COLOR.misc;
-  const n = Array.isArray(quiz.answers) ? quiz.answers.length : Array.isArray(quiz.questions) ? quiz.questions.length : 10;
-  const actionWord = ({ Name: 'name', Locate: 'locate', Click: 'click', Match: 'match', Find: 'find', Guess: 'guess', Identify: 'identify', Pinpoint: 'pinpoint' })[(quiz.title || '').trim().split(' ')[0]] || 'name';
-  const countLabel = quiz.format === 'timed-mcq' ? `${n} question${n === 1 ? '' : 's'}` : `${n} to ${actionWord}`;
   const heading = (quiz.title || '').replace(/^Name (the )?/, '');
   return (
     <Link
@@ -1208,12 +1206,15 @@ function QuizTile({ quiz }) {
           <span style={{ flex: 'none', fontFamily: 'DM Mono, monospace', fontSize: 11, fontWeight: 700, letterSpacing: '0.2em', textTransform: 'uppercase', color: COLORS.cream, background: accent.c, padding: '5px 10px' }}>Quiz</span>
           <span style={{ flex: 'none', width: 46, height: 46, borderRadius: '50%', background: COLORS.cream, display: 'flex', alignItems: 'center', justifyContent: 'center' }}><Icon size={23} strokeWidth={2} aria-hidden="true" style={{ color: accent.c }} /></span>
         </div>
-        <span style={{ fontFamily: 'DM Mono, monospace', fontSize: 11, letterSpacing: '0.16em', textTransform: 'uppercase', fontWeight: 600, color: accent.c }}>{countLabel}</span>
       </div>
       <div style={{ padding: '16px 18px 18px', flex: '1 1 auto', display: 'flex', flexDirection: 'column' }}>
         <h3 style={{ fontFamily: 'Fraunces, serif', fontWeight: 700, fontSize: 26, lineHeight: 1.05, letterSpacing: '-0.02em', margin: '0 0 12px', fontVariationSettings: '"SOFT" 100', color: COLORS.ink }}>{heading}</h3>
         {quiz.blurb && (<p style={{ fontFamily: 'Fraunces, serif', fontStyle: 'italic', fontSize: 14.5, lineHeight: 1.5, color: COLORS.faded, margin: 0 }}>{quiz.blurb}</p>)}
-        <div style={{ marginTop: 'auto', paddingTop: 18, fontFamily: 'DM Mono, monospace', fontSize: 12, letterSpacing: '0.18em', textTransform: 'uppercase', fontWeight: 700, color: accent.c }}>▶ Play</div>
+        <span style={{ marginTop: 'auto', paddingTop: 16, display: 'flex', alignItems: 'baseline', gap: 6, minWidth: 0, fontFamily: 'DM Mono, monospace', fontSize: 11, letterSpacing: '0.14em', textTransform: 'uppercase', fontWeight: 600, color: accent.c }}>
+          <span style={{ flex: 'none' }}>Current Leader:</span>
+          <span style={{ flex: '1 1 auto', minWidth: 0, fontWeight: 700, color: leader ? COLORS.ink : COLORS.faded, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{leader || 'Empty'}</span>
+        </span>
+        <div style={{ paddingTop: 10, fontFamily: 'DM Mono, monospace', fontSize: 12, letterSpacing: '0.18em', textTransform: 'uppercase', fontWeight: 700, color: accent.c }}>▶ Play</div>
       </div>
     </Link>
   );
