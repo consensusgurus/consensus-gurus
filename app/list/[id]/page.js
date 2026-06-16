@@ -1,4 +1,5 @@
 import { cache } from 'react';
+import { notFound } from 'next/navigation';
 import DetailClient from './DetailClient';
 import { LISTS } from '@/lib/data';
 import { getSources } from '@/lib/helpers';
@@ -166,6 +167,7 @@ export function generateStaticParams() {
 export default async function ListPage({ params }) {
   const id = decodeURIComponent(params.id);
   const list = LISTS.find((l) => l.id === id);
+  if (!list) notFound();
   const baseUrl = 'https://sourceoftruths.com';
   const consensusItems = list ? await getConsensusItems(id) : [];
   const jsonLd = list ? buildStructuredData(list, baseUrl, consensusItems) : null;

@@ -9,6 +9,15 @@ const nextConfig = {
   },
   async redirects() {
     return [
+      // Canonicalize host: 308 all www traffic to the apex domain. Fixes the
+      // GSC "Duplicate without user-selected canonical" flag, where
+      // www.sourceoftruths.com was serving duplicate 200 content. 2026-06-16.
+      {
+        source: '/:path*',
+        has: [{ type: 'host', value: 'www.sourceoftruths.com' }],
+        destination: 'https://sourceoftruths.com/:path*',
+        permanent: true,
+      },
       // Renamed 2026-06-10: legacy slug 'dive-bars-istanbul' (pre-rework dive-bar build) -> meyhanes
       {
         source: '/list/dive-bars-istanbul',
