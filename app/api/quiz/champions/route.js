@@ -16,7 +16,7 @@ async function fetchAllResults() {
   for (;;) {
     const { data, error } = await supabaseAdmin
       .from('quiz_results')
-      .select('id, user_id, username, quiz_id, score, total, anon_id')
+      .select('id, user_id, username, quiz_id, score, total, anon_id, created_at')
       .order('id', { ascending: true })
       .range(from, from + page - 1);
     if (error) throw error;
@@ -118,6 +118,21 @@ export function buildChampions(rows, { minQuizzes = MIN_QUIZZES } = {}) {
   return { totalPlays, completed, weighted, accuracy, correctAnswers, perfectQuizzes, minQuizzes };
 }
 
+// Midnight "today" in US Eastern as a UTC epoch ms (matches /api/quiz/today).
+function startOfEasternTodayUTC() {
+  const tz = 'America/New_York';
+  const now = new Date();
+  const ymd = new Intl.DateTimeFormat('en-CA', { timeZone: tz, year: 'numeric', month: '2-digit', day: '2-digit' }).format(now);
+  for (const offH of [4, 5]) {
+    const guess = Date.parse(`${ymd}T00:00:00.000Z`) + offH * 3600 * 1000;
+    const p = new Intl.DateTimeFormat('en-CA', { timeZone: tz, year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', hour12: false })
+      .formatToParts(new Date(guess))
+      .reduce((a, x) => { a[x.type] = x.value; return a; }, {});
+    if (`${p.year}-${p.month}-${p.day}` === ymd && p.hour === '00') return guess;
+  }
+  return Date.parse(`${ymd}T04:00:00.000Z`);
+}
+
 // Metric-specific anonymous totals for the leaderboard column parentheticals.
 // Anonymous plays can't be tied to an account, so each anonymous "player" is
 // keyed by their per-browser anon_id (else the row id, which can't dedupe).
@@ -150,10 +165,14 @@ export async function GET() {
     const rows = await fetchAllResults();
     const anon = buildAnon(rows);
     const anonPlayers = buildAnonPlayers(rows);
+    // Today subset (since midnight US Eastern) for the Today/All-time toggle.
+    const cutoff = new Date(startOfEasternTodayUTC()).toISOString();
+    const todayRows = rows.filter((r) => String(r.created_at || '') >= cutoff);
+    const today = { ...buildChampions(todayRows), anonPlayers: buildAnonPlayers(todayRows) };
     // `anonymous` retained for back-compat (the /quizzes Players board total).
-    return NextResponse.json({ ...buildChampions(rows), ...anon, anonPlayers, anonymous: anon.anonPlays });
+    return NextResponse.json({ ...buildChampions(rows), ...anon, anonPlayers, today, anonymous: anon.anonPlays });
   } catch (e) {
     console.error('quiz champions error', e);
-    return NextResponse.json({ totalPlays: [], completed: [], weighted: [], accuracy: [], correctAnswers: [], perfectQuizzes: [], minQuizzes: MIN_QUIZZES, anonPlayers: [], anonymous: 0, anonPlays: 0, anonCompleted: 0, anonWeighted: 0, anonAccuracy: 0 });
+    return NextResponse.json({ totalPlays: [], completed: [], weighted: [], accuracy: [], correctAnswers: [], perfectQuizzes: [], minQuizzes: MIN_QUIZZES, anonPlayers: [], today: { totalPlays: [], completed: [], correctAnswers: [], perfectQuizzes: [], anonPlayers: [] }, anonymous: 0, anonPlays: 0, anonCompleted: 0, anonWeighted: 0, anonAccuracy: 0 });
   }
 }

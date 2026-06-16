@@ -42,26 +42,29 @@ function Column({ icon: Icon, title, anon, note, rows, empty }) {
 }
 
 export default function LeaderboardClient() {
-  const [data, setData] = useState({ totalPlays: [], completed: [], correctAnswers: [], perfectQuizzes: [], minQuizzes: 5, anonPlays: 0, anonCompleted: 0, anonPlayers: [] });
+  const [data, setData] = useState({ totalPlays: [], completed: [], correctAnswers: [], perfectQuizzes: [], minQuizzes: 5, anonPlays: 0, anonCompleted: 0, anonPlayers: [], today: {} });
   const [loaded, setLoaded] = useState(false);
   const [view, setView] = useState('registered');
+  const [period, setPeriod] = useState('all');
 
   useEffect(() => {
     fetch('/api/quiz/champions')
       .then((r) => r.json())
-      .then((d) => { if (d && !d.error) setData({ totalPlays: d.totalPlays || [], completed: d.completed || [], correctAnswers: d.correctAnswers || [], perfectQuizzes: d.perfectQuizzes || [], minQuizzes: d.minQuizzes || 5, anonPlays: d.anonPlays || 0, anonCompleted: d.anonCompleted || 0, anonPlayers: d.anonPlayers || [] }); })
+      .then((d) => { if (d && !d.error) setData({ totalPlays: d.totalPlays || [], completed: d.completed || [], correctAnswers: d.correctAnswers || [], perfectQuizzes: d.perfectQuizzes || [], minQuizzes: d.minQuizzes || 5, anonPlays: d.anonPlays || 0, anonCompleted: d.anonCompleted || 0, anonPlayers: d.anonPlayers || [], today: d.today || {} }); })
       .catch(() => {})
       .finally(() => setLoaded(true));
   }, []);
 
   const num = (n) => (Number(n) || 0).toLocaleString();
-  const totalPlaysRows = data.totalPlays.map((u) => ({ name: u.username, value: num(u.plays) }));
-  const correctRows = data.correctAnswers.map((u) => ({ name: u.username, value: num(u.correct) }));
-  const completedRows = data.completed.map((u) => ({ name: u.username, value: num(u.quizzes) }));
-  const perfectRows = data.perfectQuizzes.map((u) => ({ name: u.username, value: num(u.perfect) }));
+  // Source for the current period (all-time = top-level fields; today = data.today).
+  const src = period === 'today' ? (data.today || {}) : data;
+  const totalPlaysRows = (src.totalPlays || []).map((u) => ({ name: u.username, value: num(u.plays) }));
+  const correctRows = (src.correctAnswers || []).map((u) => ({ name: u.username, value: num(u.correct) }));
+  const completedRows = (src.completed || []).map((u) => ({ name: u.username, value: num(u.quizzes) }));
+  const perfectRows = (src.perfectQuizzes || []).map((u) => ({ name: u.username, value: num(u.perfect) }));
 
   // Anonymous players: same four metrics, ranked, shown under their random number.
-  const apl = data.anonPlayers || [];
+  const apl = src.anonPlayers || [];
   const anonTop = (key) => apl.filter((p) => (p[key] || 0) > 0).sort((a, b) => (b[key] || 0) - (a[key] || 0) || (a.num - b.num)).slice(0, 50).map((p) => ({ name: p.label, value: num(p[key]) }));
   const anonPlaysRows = anonTop('plays');
   const anonCorrectRows = anonTop('correct');
@@ -69,8 +72,8 @@ export default function LeaderboardClient() {
   const anonPerfectRows = anonTop('perfect');
 
   // Metric-specific anonymous totals, shown as a parenthetical in each column title.
-  const anonPlaysStr = `${num(data.anonPlays)} anonymous`;
-  const anonCompletedStr = `${num(data.anonCompleted)} anonymous`;
+  const anonPlaysStr = `${num(period === 'today' ? apl.reduce((s, p) => s + (p.plays || 0), 0) : data.anonPlays)} anonymous`;
+  const anonCompletedStr = `${num(period === 'today' ? apl.reduce((s, p) => s + (p.quizzes || 0), 0) : data.anonCompleted)} anonymous`;
 
   return (
     <div style={{ minHeight: '100vh', background: COLORS.cream, color: COLORS.ink, position: 'relative', overflow: 'clip' }}>
@@ -82,7 +85,7 @@ export default function LeaderboardClient() {
           </Link>
           <div style={{ fontFamily: 'DM Mono, monospace', fontSize: 11, fontWeight: 700, letterSpacing: '0.22em', textTransform: 'uppercase', color: COLORS.ember, marginBottom: 10 }}>Quiz Champions</div>
           <h1 style={{ fontFamily: 'Fraunces, serif', fontWeight: 600, fontSize: 'clamp(34px, 7vw, 60px)', lineHeight: 0.95, letterSpacing: '-0.015em', margin: '0 0 14px', fontVariationSettings: '"SOFT" 100', color: COLORS.ink }}>
-            The <span style={{ fontStyle: 'italic', fontWeight: 400, color: COLORS.ember }}>All-Time</span> Leaderboard
+            The <span style={{ fontStyle: 'italic', fontWeight: 400, color: COLORS.ember }}>Quiz</span> Leaderboard
           </h1>
           <p style={{ fontFamily: 'Fraunces, serif', fontStyle: 'italic', fontSize: 17, lineHeight: 1.5, color: COLORS.faded, margin: 0, maxWidth: 720 }}>
             Every signed-up player, ranked four ways: total plays, correct answers banked, distinct quizzes finished, and quizzes scored a perfect 100%. Anonymous totals are noted where available. Sign up before a quiz to put your name in the running.
@@ -92,30 +95,40 @@ export default function LeaderboardClient() {
         </header>
 
         <section style={{ maxWidth: 1300, margin: '0 auto', padding: '24px 24px 72px' }}>
-          <div style={{ display: 'inline-flex', border: `1.5px solid ${COLORS.ink}`, marginBottom: 14 }}>
-            {[['registered', 'Registered'], ['anon', 'Anonymous']].map(([k, label], idx) => {
-              const on = view === k;
-              return (
-                <button key={k} onClick={() => setView(k)} style={{ padding: '8px 20px', background: on ? COLORS.ink : 'transparent', color: on ? COLORS.cream : COLORS.ink, border: 'none', borderLeft: idx === 0 ? 'none' : `1.5px solid ${COLORS.ink}`, fontFamily: 'DM Mono, monospace', fontSize: 11, letterSpacing: '0.14em', textTransform: 'uppercase', fontWeight: 700, cursor: 'pointer' }}>{label}</button>
-              );
-            })}
+          <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap', marginBottom: 14 }}>
+            <div style={{ display: 'inline-flex', border: `1.5px solid ${COLORS.ink}` }}>
+              {[['registered', 'Registered'], ['anon', 'Anonymous']].map(([k, label], idx) => {
+                const on = view === k;
+                return (
+                  <button key={k} onClick={() => setView(k)} style={{ padding: '8px 20px', background: on ? COLORS.ink : 'transparent', color: on ? COLORS.cream : COLORS.ink, border: 'none', borderLeft: idx === 0 ? 'none' : `1.5px solid ${COLORS.ink}`, fontFamily: 'DM Mono, monospace', fontSize: 11, letterSpacing: '0.14em', textTransform: 'uppercase', fontWeight: 700, cursor: 'pointer' }}>{label}</button>
+                );
+              })}
+            </div>
+            <div style={{ display: 'inline-flex', border: `1.5px solid ${COLORS.ink}` }}>
+              {[['today', 'Today'], ['all', 'All Time']].map(([k, label], idx) => {
+                const on = period === k;
+                return (
+                  <button key={k} onClick={() => setPeriod(k)} style={{ padding: '8px 20px', background: on ? COLORS.ink : 'transparent', color: on ? COLORS.cream : COLORS.ink, border: 'none', borderLeft: idx === 0 ? 'none' : `1.5px solid ${COLORS.ink}`, fontFamily: 'DM Mono, monospace', fontSize: 11, letterSpacing: '0.14em', textTransform: 'uppercase', fontWeight: 700, cursor: 'pointer' }}>{label}</button>
+                );
+              })}
+            </div>
           </div>
           <p style={{ fontFamily: 'DM Mono, monospace', fontSize: 11, letterSpacing: '0.03em', color: COLORS.faded, margin: '0 0 18px', maxWidth: 720 }}>
-            {view === 'anon' ? 'Players who never signed up, batched by browser and shown under a random number.' : 'Signed-up players only. Switch to Anonymous to see everyone else.'}
+            {view === 'anon' ? 'Players who never signed up, batched by browser and shown under a random number.' : 'Signed-up players only. Switch to Anonymous to see everyone else.'}{period === 'today' ? ' Showing today only.' : ''}
           </p>
           {loaded ? (
             <div className="lb-grid">
               {view === 'registered' ? (
                 <>
                   <Column icon={Play} title="Plays" anon={anonPlaysStr} note="Every game, replays included" rows={totalPlaysRows} empty="No plays recorded yet." />
-                  <Column icon={Check} title="Correct Answers" note="Correct answers, all-time" rows={correctRows} empty="No answers recorded yet." />
+                  <Column icon={Check} title="Correct Answers" note="Correct answers" rows={correctRows} empty="No answers recorded yet." />
                   <Column icon={Trophy} title="Unique Quizzes Played" anon={anonCompletedStr} note="Distinct quizzes finished" rows={completedRows} empty="No completed quizzes yet." />
                   <Column icon={CheckCheck} title="Fully Completed Quizzes" note="Distinct quizzes scored 100%" rows={perfectRows} empty="No perfect runs yet." />
                 </>
               ) : (
                 <>
                   <Column icon={Play} title="Plays" note="Every game, replays included" rows={anonPlaysRows} empty="No anonymous plays yet." />
-                  <Column icon={Check} title="Correct Answers" note="Correct answers, all-time" rows={anonCorrectRows} empty="No anonymous answers yet." />
+                  <Column icon={Check} title="Correct Answers" note="Correct answers" rows={anonCorrectRows} empty="No anonymous answers yet." />
                   <Column icon={Trophy} title="Unique Quizzes Played" note="Distinct quizzes finished" rows={anonQuizzesRows} empty="No anonymous quizzes yet." />
                   <Column icon={CheckCheck} title="Fully Completed Quizzes" note="Distinct quizzes scored 100%" rows={anonPerfectRows} empty="No perfect anonymous runs yet." />
                 </>

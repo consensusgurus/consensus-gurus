@@ -2,7 +2,7 @@
 import React, { useState, useEffect, useMemo, useRef } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { Search, X, ChevronDown, ArrowLeft, Trophy, Clock, Flame, Sparkles, Check, BarChart3 } from 'lucide-react';
+import { Search, X, ChevronDown, ArrowLeft, Trophy, Clock, Flame, Sparkles, Check, BarChart3, Banknote } from 'lucide-react';
 import { COLORS } from '@/lib/data';
 import { QUIZZES } from '@/lib/quizzes';
 import { fetchBootstrap } from '@/lib/api';
@@ -246,8 +246,8 @@ function QuizBoardWide({ title, cta, ctaHref, categories, mid }) {
                     <span className="lb-rank" style={r.noRank ? { background: 'transparent', border: 'none' } : { background: (i < 3 && !c.noMedals) ? MEDAL[i] : 'transparent' }}>{r.noRank ? '' : i + 1}</span>
                     <span className="lb-name">{r.full}</span>
                     {c.prize && (
-                      <span aria-hidden="true" style={{ flex: 'none', width: 54, textAlign: 'left', whiteSpace: 'nowrap', overflow: 'hidden', fontSize: 12.5, lineHeight: 1 }}>
-                        {i < 3 && !r.noRank ? '\uD83D\uDCB5'.repeat(3 - i) : ''}
+                      <span aria-hidden="true" style={{ flex: 'none', width: 58, display: 'inline-flex', justifyContent: 'flex-start', alignItems: 'center', gap: 1, color: '#15803d' }}>
+                        {i < 3 && !r.noRank ? Array.from({ length: 3 - i }).map((_, d) => (<Banknote key={d} size={13} strokeWidth={2.25} />)) : null}
                       </span>
                     )}
                     {r.val != null && <span className="lb-val" style={c.prize ? { minWidth: 30, textAlign: 'right' } : undefined}>{r.val}</span>}
@@ -657,7 +657,7 @@ export default function QuizHomeClient() {
         <section style={{ maxWidth: 1200, margin: '0 auto', padding: '10px 16px 64px' }}>
           <DailyNewsBanner totals={totals} />
 
-          <QuizBoardWide title="Players" cta="All player stats" ctaHref="/leaderboard" categories={playerCols} mid={(totals.totalCorrect || 0) > 0 ? (<><span style={{ display: 'inline-flex', alignItems: 'center', gap: 5 }}><Check size={11} strokeWidth={3} aria-hidden="true" />{(totals.totalCorrect || 0).toLocaleString()} correct answers{todayBoard.correctToday > 0 ? ` · ${todayBoard.correctToday.toLocaleString()} today` : ''}</span>{(totals.totalPerfect || 0) > 0 ? (<span style={{ display: 'inline-flex', alignItems: 'center', gap: 5, marginLeft: 22 }}><Trophy size={11} strokeWidth={2.5} aria-hidden="true" />{(totals.totalPerfect || 0).toLocaleString()} perfect quiz completions{todayBoard.perfectToday > 0 ? ` · ${todayBoard.perfectToday.toLocaleString()} today` : ''}</span>) : null}</>) : null} />
+          <QuizBoardWide title="Players" cta="All player stats" ctaHref="/leaderboard" categories={playerCols} mid={(totals.totalCorrect || 0) > 0 ? (<><span style={{ display: 'inline-flex', alignItems: 'center', gap: 5 }}><Check size={11} strokeWidth={3} aria-hidden="true" />{(totals.totalCorrect || 0).toLocaleString()} correct answers{todayBoard.correctToday > 0 ? ` · ${todayBoard.correctToday.toLocaleString()} today` : ''}</span>{(totals.totalPerfect || 0) > 0 ? (<span style={{ display: 'inline-flex', alignItems: 'center', gap: 5, marginLeft: 22 }}><Trophy size={11} strokeWidth={2.5} aria-hidden="true" />{(totals.totalPerfect || 0).toLocaleString()} perfect scores{todayBoard.perfectToday > 0 ? ` · ${todayBoard.perfectToday.toLocaleString()} today` : ''}</span>) : null}</>) : null} />
 
           <QuizBoardWide title="Quizzes" cta="All quiz stats" ctaHref="/quizzes/stats" categories={quizCols} mid={totals.total > 0 ? (<><span style={{ display: 'inline-flex', alignItems: 'center', gap: 5 }}><span className="qz-pulse" />{totals.total.toLocaleString()} plays{todayBoard.playsToday > 0 ? ` · ${todayBoard.playsToday} today` : ''}</span>{totals.totalTime > 0 ? (<span style={{ display: 'inline-flex', alignItems: 'center', gap: 5, marginLeft: 22 }}><Clock size={11} strokeWidth={2.5} aria-hidden="true" />{fmtDur(totals.totalTime)} spent answering{totals.todayTime > 0 ? ` · ${fmtDur(totals.todayTime)} today` : ''}</span>) : null}</>) : null} />
 

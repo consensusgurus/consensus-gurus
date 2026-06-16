@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { supabaseAdmin } from '@/lib/supabase-server';
 import { findQuizIdentity } from '@/lib/quiz-identity';
+import { buildAllLeaderboard } from '@/lib/quiz-anon';
 
 export const dynamic = 'force-dynamic';
 export const fetchCache = 'force-no-store';
@@ -34,7 +35,8 @@ function summarize(rows) {
     .sort((a, b) => b.score - a.score || a.time_elapsed - b.time_elapsed || (a.username || '').localeCompare(b.username || ''))
     .slice(0, 10)
     .map((r) => ({ username: r.username, score: r.score, timeElapsed: r.time_elapsed, tryNum: tryOf.get(r) }));
-  return { plays, best, topTime: Number.isFinite(topTime) ? topTime : null, leaderboard };
+  const leaderboardAll = buildAllLeaderboard(rows);
+  return { plays, best, topTime: Number.isFinite(topTime) ? topTime : null, leaderboard, leaderboardAll };
 }
 
 // POST /api/quiz/result  { quizId, score, total, timeElapsed, email? }
@@ -95,7 +97,7 @@ export async function POST(request) {
 
     const { data } = await supabaseAdmin
       .from('quiz_results')
-      .select('id, user_id, username, score, time_elapsed')
+      .select('id, user_id, username, score, time_elapsed, anon_id')
       .eq('quiz_id', quizId);
     return NextResponse.json({ ...summarize(data || []), resultId: inserted?.id ?? null });
   } catch (e) {

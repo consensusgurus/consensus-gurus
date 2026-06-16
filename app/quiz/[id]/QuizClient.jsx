@@ -259,7 +259,8 @@ export default function QuizClient({ quizId }) {
   const pairsMatchedRef = useRef(0);
 
   const [stats, setStats] = useState({ attempts: 0, best: 0, totalCorrect: 0 });
-  const [board, setBoard] = useState({ plays: 0, best: null, topTime: null, leaderboard: [] });
+  const [board, setBoard] = useState({ plays: 0, best: null, topTime: null, leaderboard: [], leaderboardAll: [] });
+  const [lbView, setLbView] = useState('registered');
   const [identity, setIdentity] = useState(null); // { username, email }
 
   // Join form
@@ -337,7 +338,7 @@ export default function QuizClient({ quizId }) {
   function refreshBoard() {
     fetch(`/api/quiz/board?quizId=${encodeURIComponent(quizId)}`)
       .then((r) => r.json())
-      .then((d) => { if (d && !d.error) setBoard({ plays: d.plays || 0, best: d.best != null ? Math.min(d.best, total) : null, topTime: d.topTime ?? null, leaderboard: d.leaderboard || [] }); })
+      .then((d) => { if (d && !d.error) setBoard({ plays: d.plays || 0, best: d.best != null ? Math.min(d.best, total) : null, topTime: d.topTime ?? null, leaderboard: d.leaderboard || [], leaderboardAll: d.leaderboardAll || [] }); })
       .catch(() => {});
   }
 
@@ -386,7 +387,7 @@ export default function QuizClient({ quizId }) {
       body: JSON.stringify({ quizId, score: finalScore, total, timeElapsed: elapsed, email: identity?.email || undefined, anonId: getAnonId() }),
     })
       .then((r) => r.json())
-      .then((d) => { if (d && !d.error) { setBoard({ plays: d.plays || 0, best: d.best != null ? Math.min(d.best, total) : null, topTime: d.topTime ?? null, leaderboard: d.leaderboard || [] }); setLastResultId(d.resultId ?? null); } })
+      .then((d) => { if (d && !d.error) { setBoard({ plays: d.plays || 0, best: d.best != null ? Math.min(d.best, total) : null, topTime: d.topTime ?? null, leaderboard: d.leaderboard || [], leaderboardAll: d.leaderboardAll || [] }); setLastResultId(d.resultId ?? null); } })
       .catch(() => {});
   }
 
@@ -408,7 +409,7 @@ export default function QuizClient({ quizId }) {
       const id = { username: d.username, email: d.email };
       try { localStorage.setItem('sot_quiz_identity', JSON.stringify(id)); } catch {}
       setIdentity(id);
-      setBoard({ plays: d.plays || 0, best: d.best != null ? Math.min(d.best, total) : null, topTime: d.topTime ?? null, leaderboard: d.leaderboard || [] });
+      setBoard({ plays: d.plays || 0, best: d.best != null ? Math.min(d.best, total) : null, topTime: d.topTime ?? null, leaderboard: d.leaderboard || [], leaderboardAll: d.leaderboardAll || [] });
       setClaimErr(false);
       setClaimOpen(false);
       if (canReveal) {
@@ -792,7 +793,7 @@ export default function QuizClient({ quizId }) {
   const bestLabel = board.best != null ? board.best : '—';
   // Leaderboard ranks with ties: equal score AND time share a rank (and are
   // ordered alphabetically by the API), so they display as a tie (T#).
-  const lb = board.leaderboard;
+  const lb = lbView === 'all' ? (board.leaderboardAll || []) : board.leaderboard;
   const lbRanks = [];
   const lbTied = [];
   for (let i = 0; i < lb.length; i++) {
@@ -1215,7 +1216,18 @@ export default function QuizClient({ quizId }) {
                 <div style={{ fontFamily: MONO, fontSize: 11, letterSpacing: '0.08em', color: COLORS.faded }}>{bestLabel} best · <Count value={board.plays} /> {board.plays === 1 ? 'play' : 'plays'}</div>
               </div>
 
-              {board.leaderboard.length === 0 ? (
+              {board.plays > 0 && (
+                <div style={{ display: 'flex', marginBottom: 14, border: `1px solid ${COLORS.faded}55`, width: 'fit-content' }}>
+                  {[['registered', 'Registered'], ['all', 'All players']].map(([k, label], idx) => {
+                    const on = lbView === k;
+                    return (
+                      <button key={k} onClick={() => setLbView(k)} style={{ padding: '6px 14px', background: on ? COLORS.ink : 'transparent', color: on ? '#fff' : COLORS.faded, border: 'none', borderLeft: idx === 0 ? 'none' : `1px solid ${COLORS.faded}55`, fontFamily: MONO, fontSize: 10, letterSpacing: '0.12em', textTransform: 'uppercase', fontWeight: 700, cursor: 'pointer' }}>{label}</button>
+                    );
+                  })}
+                </div>
+              )}
+
+              {lb.length === 0 ? (
                 <p style={{ fontFamily: SERIF, fontStyle: 'italic', fontSize: 16, color: COLORS.faded }}>
                   No one has posted a score yet. <button onClick={() => setTab('join')} style={{ background: 'none', border: 'none', padding: 0, color: COLORS.ember, font: 'inherit', fontStyle: 'italic', textDecoration: 'underline', cursor: 'pointer' }}>Join the leaderboard</button> and be first.
                 </p>
@@ -1224,7 +1236,7 @@ export default function QuizClient({ quizId }) {
                   <div style={{ display: 'grid', gridTemplateColumns: '40px 1fr 76px 64px', gap: 8, padding: '0 14px 8px', fontFamily: MONO, fontSize: 10, letterSpacing: '0.12em', textTransform: 'uppercase', color: COLORS.faded }}>
                     <span>#</span><span>Display Name</span><span style={{ textAlign: 'right' }}>Correct</span><span style={{ textAlign: 'right' }}>Time</span>
                   </div>
-                  {board.leaderboard.map((row, i) => {
+                  {lb.map((row, i) => {
                     const mine = identity && row.username === identity.username;
                     return (
                       <div key={i} style={{ display: 'grid', gridTemplateColumns: '40px 1fr 76px 64px', gap: 8, alignItems: 'center', padding: '11px 14px', marginBottom: 6, background: mine ? '#fff' : COLORS.paper, border: `1px solid ${mine ? COLORS.ember : COLORS.faded + '22'}` }}>

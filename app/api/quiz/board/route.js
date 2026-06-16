@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { supabaseAdmin } from '@/lib/supabase-server';
+import { buildAllLeaderboard } from '@/lib/quiz-anon';
 
 export const dynamic = 'force-dynamic';
 export const fetchCache = 'force-no-store';
@@ -37,7 +38,8 @@ export function summarize(rows) {
     .sort((a, b) => b.score - a.score || a.time_elapsed - b.time_elapsed || (a.username || '').localeCompare(b.username || ''))
     .slice(0, 10)
     .map((r) => ({ username: r.username, score: r.score, timeElapsed: r.time_elapsed, tryNum: tryOf.get(r) }));
-  return { plays, best, topTime: Number.isFinite(topTime) ? topTime : null, leaderboard };
+  const leaderboardAll = buildAllLeaderboard(rows);
+  return { plays, best, topTime: Number.isFinite(topTime) ? topTime : null, leaderboard, leaderboardAll };
 }
 
 // GET /api/quiz/board?quizId=...  -> { plays, avg, leaderboard }
@@ -50,7 +52,7 @@ export async function GET(request) {
   try {
     const { data, error } = await supabaseAdmin
       .from('quiz_results')
-      .select('id, user_id, username, score, time_elapsed')
+      .select('id, user_id, username, score, time_elapsed, anon_id')
       .eq('quiz_id', quizId);
     if (error) {
       console.error('quiz board error', error);
