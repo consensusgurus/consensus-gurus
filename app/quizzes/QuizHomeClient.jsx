@@ -88,17 +88,12 @@ function quizMatchesType(q, t) {
   return quizPrimaryType(q) === t;
 }
 
-function QuizTile({ quiz, plays }) {
+function QuizTile({ quiz, plays, leader }) {
   const [hover, setHover] = useState(false);
   const Icon = iconOf(quiz);
   const dept = deptOf(quiz);
   const accent = DEPT_COLOR[dept] || DEPT_COLOR.misc;
   const deptLabel = DEPT_LABEL[dept] || 'Quiz';
-  const n = Array.isArray(quiz.answers) ? quiz.answers.length : Array.isArray(quiz.questions) ? quiz.questions.length : 10;
-  const actionWord = ({ Name: 'name', Locate: 'locate', Click: 'click', Match: 'match', Find: 'find', Guess: 'guess', Identify: 'identify', Pinpoint: 'pinpoint' })[(quiz.title || '').trim().split(' ')[0]] || 'name';
-  const base = quiz.format === 'timed-mcq' ? `${n} question${n === 1 ? '' : 's'}` : `${n} to ${actionWord}`;
-  const clock = fmtQuizTime(quiz.timeLimit);
-  const countLabel = clock ? `${base} in ${clock}` : base;
   const heading = quiz.title || '';
   return (
     <Link
@@ -112,7 +107,10 @@ function QuizTile({ quiz, plays }) {
           <span style={{ flex: 'none', width: 38, height: 38, borderRadius: '50%', background: COLORS.cream, display: 'flex', alignItems: 'center', justifyContent: 'center' }}><Icon size={20} strokeWidth={2} aria-hidden="true" style={{ color: accent.c }} /></span>
           <span style={{ flex: 'none', fontFamily: 'DM Mono, monospace', fontSize: 11, fontWeight: 700, letterSpacing: '0.2em', textTransform: 'uppercase', color: COLORS.cream, background: accent.c, padding: '5px 10px' }}>{deptLabel}</span>
         </div>
-        <span style={{ fontFamily: 'DM Mono, monospace', fontSize: 11, letterSpacing: '0.16em', textTransform: 'uppercase', fontWeight: 600, color: accent.c }}>{countLabel}</span>
+        <span style={{ display: 'flex', alignItems: 'baseline', gap: 6, minWidth: 0, fontFamily: 'DM Mono, monospace', fontSize: 11, letterSpacing: '0.14em', textTransform: 'uppercase', fontWeight: 600, color: accent.c }}>
+          <span style={{ flex: 'none' }}>Current Leader:</span>
+          <span style={{ flex: '1 1 auto', minWidth: 0, fontWeight: 700, color: leader ? COLORS.ink : COLORS.faded, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{leader || 'Empty'}</span>
+        </span>
       </div>
       <div style={{ padding: '16px 18px 18px', flex: '1 1 auto', display: 'flex', flexDirection: 'column' }}>
         <h3 style={{ fontFamily: 'Fraunces, serif', fontWeight: 700, fontSize: 26, lineHeight: 1.05, letterSpacing: '-0.02em', margin: '0 0 12px', fontVariationSettings: '"SOFT" 100', color: COLORS.ink }}>{heading}</h3>
@@ -312,7 +310,7 @@ export default function QuizHomeClient() {
   const [catOpen, setCatOpen] = useState(false);
   const [typeOpen, setTypeOpen] = useState(false);
   const [typeFilter, setTypeFilter] = useState('all');
-  const [totals, setTotals] = useState({ total: 0, today: 0, totalCorrect: 0, totalPerfect: 0, totalTime: 0, todayTime: 0, byQuiz: {}, recent7: {}, recent12h: {}, trendingByQuiz: {}, trendingWindowH: 0 });
+  const [totals, setTotals] = useState({ total: 0, today: 0, totalCorrect: 0, totalPerfect: 0, totalTime: 0, todayTime: 0, byQuiz: {}, recent7: {}, recent12h: {}, trendingByQuiz: {}, trendingWindowH: 0, leaders: {} });
   const [recent, setRecent] = useState([]);
   const [todayBoard, setTodayBoard] = useState({ leaders: [], correctToday: 0, perfectToday: 0, playsToday: 0 });
   const [visitors, setVisitors] = useState(0);
@@ -352,7 +350,7 @@ export default function QuizHomeClient() {
   }, []);
 
   useEffect(() => {
-    fetch('/api/quiz/totals').then((r) => r.json()).then((d) => { if (d && !d.error) setTotals({ total: d.total || 0, today: d.today || 0, totalCorrect: d.totalCorrect || 0, totalPerfect: d.totalPerfect || 0, totalTime: d.totalTime || 0, todayTime: d.todayTime || 0, byQuiz: d.byQuiz || {}, recent7: d.recent7 || {}, recent12h: d.recent12h || {}, trendingByQuiz: d.trendingByQuiz || {}, trendingWindowH: d.trendingWindowH || 0 }); }).catch(() => {});
+    fetch('/api/quiz/totals').then((r) => r.json()).then((d) => { if (d && !d.error) setTotals({ total: d.total || 0, today: d.today || 0, totalCorrect: d.totalCorrect || 0, totalPerfect: d.totalPerfect || 0, totalTime: d.totalTime || 0, todayTime: d.todayTime || 0, byQuiz: d.byQuiz || {}, recent7: d.recent7 || {}, recent12h: d.recent12h || {}, trendingByQuiz: d.trendingByQuiz || {}, trendingWindowH: d.trendingWindowH || 0, leaders: d.leaders || {} }); }).catch(() => {});
     fetch('/api/quiz/recent').then((r) => r.json()).then((d) => { if (d && Array.isArray(d.plays)) setRecent(d.plays); }).catch(() => {});
     fetch('/api/quiz/today').then((r) => r.json()).then((d) => { if (d && !d.error) setTodayBoard({ leaders: Array.isArray(d.leaders) ? d.leaders : [], correctToday: d.correctToday || 0, perfectToday: d.perfectToday || 0, playsToday: d.playsToday || 0 }); }).catch(() => {});
     // Visitors on this page reflect quiz traffic only (the quiz home page +
@@ -663,7 +661,7 @@ export default function QuizHomeClient() {
 
           {sorted.length > 0 ? (
             <div className="qz-grid">
-              {sorted.map((q) => (<QuizTile key={q.id} quiz={q} plays={totals.byQuiz[q.id] || 0} />))}
+              {sorted.map((q) => (<QuizTile key={q.id} quiz={q} plays={totals.byQuiz[q.id] || 0} leader={totals.leaders[q.id]} />))}
             </div>
           ) : (
             <div style={{ textAlign: 'center', padding: '48px 24px', fontFamily: 'Fraunces, serif', fontStyle: 'italic', fontSize: 18, color: COLORS.faded }}>No quizzes match that filter.</div>

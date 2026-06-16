@@ -39,13 +39,16 @@ function startOfEasternTodayUTC() {
 
 export async function GET() {
   try {
-    const { data, error } = await fetchAllRows(supabaseAdmin, 'quiz_results', 'quiz_id, created_at, score, total, time_elapsed', ['quiz_id']);
+    const { data, error } = await fetchAllRows(supabaseAdmin, 'quiz_results', 'quiz_id, created_at, score, total, time_elapsed, user_id, username', ['quiz_id']);
     if (error) {
       console.error('quiz totals error', error);
-      return NextResponse.json({ total: 0, byQuiz: {}, recent7: {}, recent12h: {}, trendingByQuiz: {}, trendingWindowH: 0 });
+      return NextResponse.json({ total: 0, byQuiz: {}, recent7: {}, recent12h: {}, trendingByQuiz: {}, trendingWindowH: 0, leaders: {} });
     }
     const rows = data || [];
     const byQuiz = {};
+    // Best registered (signed-up) entry per quiz: highest score, then fastest
+    // time, then name. Powers the "Current Leader" line on each index tile.
+    const bestLeader = {};
     const recent7 = {};
     const recent12h = {};
     const now = Date.now();
@@ -62,6 +65,14 @@ export async function GET() {
     const buckets = new Map();
     for (const r of rows) {
       byQuiz[r.quiz_id] = (byQuiz[r.quiz_id] || 0) + 1;
+      if (r.user_id && r.username) {
+        const sc = Number(r.score) || 0;
+        const tm = Number.isFinite(Number(r.time_elapsed)) ? Number(r.time_elapsed) : Infinity;
+        const cur = bestLeader[r.quiz_id];
+        if (!cur || sc > cur.score || (sc === cur.score && tm < cur.time) || (sc === cur.score && tm === cur.time && r.username.localeCompare(cur.name) < 0)) {
+          bestLeader[r.quiz_id] = { score: sc, time: tm, name: r.username };
+        }
+      }
       totalCorrect += correctAnswersOf(r);
       const te = Number(r.time_elapsed);
       if (Number.isFinite(te) && te > 0) totalTime += te;
@@ -87,8 +98,10 @@ export async function GET() {
       if (Object.keys(cum).length >= TREND_MIN_QUIZZES) { trendingWindowH = (k + 1) * TREND_BUCKET_H; break; }
     }
     const trendingByQuiz = { ...cum };
-    return NextResponse.json({ total: rows.length, today, totalCorrect, totalPerfect, totalTime, todayTime, byQuiz, recent7, recent12h, trendingByQuiz, trendingWindowH });
+    const leaders = {};
+    for (const qid of Object.keys(bestLeader)) leaders[qid] = bestLeader[qid].name;
+    return NextResponse.json({ total: rows.length, today, totalCorrect, totalPerfect, totalTime, todayTime, byQuiz, recent7, recent12h, trendingByQuiz, trendingWindowH, leaders });
   } catch (e) {
-    return NextResponse.json({ total: 0, byQuiz: {}, recent7: {}, recent12h: {}, trendingByQuiz: {}, trendingWindowH: 0 });
+    return NextResponse.json({ total: 0, byQuiz: {}, recent7: {}, recent12h: {}, trendingByQuiz: {}, trendingWindowH: 0, leaders: {} });
   }
 }

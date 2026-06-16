@@ -71,6 +71,21 @@ export default function LeaderboardClient() {
   const anonQuizzesRows = anonTop('quizzes');
   const anonPerfectRows = anonTop('perfect');
 
+  // Combined view: registered + anonymous players merged into one ranking per
+  // metric, sorted by value desc, top 50.
+  const combine = (regField, regKey, anonKey) => {
+    const reg = (src[regField] || []).map((u) => ({ name: u.username, v: Number(u[regKey]) || 0 }));
+    const an = apl.filter((p) => (p[anonKey] || 0) > 0).map((p) => ({ name: p.label, v: Number(p[anonKey]) || 0 }));
+    return [...reg, ...an]
+      .sort((a, b) => b.v - a.v || (a.name || '').localeCompare(b.name || ''))
+      .slice(0, 50)
+      .map((x) => ({ name: x.name, value: num(x.v) }));
+  };
+  const combPlaysRows = combine('totalPlays', 'plays', 'plays');
+  const combCorrectRows = combine('correctAnswers', 'correct', 'correct');
+  const combQuizzesRows = combine('completed', 'quizzes', 'quizzes');
+  const combPerfectRows = combine('perfectQuizzes', 'perfect', 'perfect');
+
   // Metric-specific anonymous totals, shown as a parenthetical in each column title.
   const anonPlaysStr = `${num(period === 'today' ? apl.reduce((s, p) => s + (p.plays || 0), 0) : data.anonPlays)} anonymous`;
   const anonCompletedStr = `${num(period === 'today' ? apl.reduce((s, p) => s + (p.quizzes || 0), 0) : data.anonCompleted)} anonymous`;
@@ -97,7 +112,7 @@ export default function LeaderboardClient() {
         <section style={{ maxWidth: 1300, margin: '0 auto', padding: '24px 24px 72px' }}>
           <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap', marginBottom: 14 }}>
             <div style={{ display: 'inline-flex', border: `1.5px solid ${COLORS.ink}` }}>
-              {[['registered', 'Registered'], ['anon', 'Anonymous']].map(([k, label], idx) => {
+              {[['registered', 'Registered'], ['anon', 'Anonymous'], ['combined', 'Combined']].map(([k, label], idx) => {
                 const on = view === k;
                 return (
                   <button key={k} onClick={() => setView(k)} style={{ padding: '8px 20px', background: on ? COLORS.ink : 'transparent', color: on ? COLORS.cream : COLORS.ink, border: 'none', borderLeft: idx === 0 ? 'none' : `1.5px solid ${COLORS.ink}`, fontFamily: 'DM Mono, monospace', fontSize: 11, letterSpacing: '0.14em', textTransform: 'uppercase', fontWeight: 700, cursor: 'pointer' }}>{label}</button>
@@ -105,7 +120,7 @@ export default function LeaderboardClient() {
               })}
             </div>
             <div style={{ display: 'inline-flex', border: `1.5px solid ${COLORS.ink}` }}>
-              {[['today', 'Today'], ['all', 'All Time']].map(([k, label], idx) => {
+              {[['all', 'All Time'], ['today', 'Today']].map(([k, label], idx) => {
                 const on = period === k;
                 return (
                   <button key={k} onClick={() => setPeriod(k)} style={{ padding: '8px 20px', background: on ? COLORS.ink : 'transparent', color: on ? COLORS.cream : COLORS.ink, border: 'none', borderLeft: idx === 0 ? 'none' : `1.5px solid ${COLORS.ink}`, fontFamily: 'DM Mono, monospace', fontSize: 11, letterSpacing: '0.14em', textTransform: 'uppercase', fontWeight: 700, cursor: 'pointer' }}>{label}</button>
@@ -114,7 +129,7 @@ export default function LeaderboardClient() {
             </div>
           </div>
           <p style={{ fontFamily: 'DM Mono, monospace', fontSize: 11, letterSpacing: '0.03em', color: COLORS.faded, margin: '0 0 18px', maxWidth: 720 }}>
-            {view === 'anon' ? 'Players who never signed up, batched by browser and shown under a random number.' : 'Signed-up players only. Switch to Anonymous to see everyone else.'}{period === 'today' ? ' Showing today only.' : ''}
+            {view === 'anon' ? 'Players who never signed up, batched by browser and shown under a random number.' : view === 'combined' ? 'Registered and anonymous players merged into one combined ranking.' : 'Signed-up players only. Switch to Anonymous or Combined to see everyone else.'}{period === 'today' ? ' Showing today only.' : ''}
           </p>
           {loaded ? (
             <div className="lb-grid">
@@ -125,12 +140,19 @@ export default function LeaderboardClient() {
                   <Column icon={Trophy} title="Unique Quizzes Played" anon={anonCompletedStr} note="Distinct quizzes finished" rows={completedRows} empty="No completed quizzes yet." />
                   <Column icon={CheckCheck} title="Fully Completed Quizzes" note="Distinct quizzes scored 100%" rows={perfectRows} empty="No perfect runs yet." />
                 </>
-              ) : (
+              ) : view === 'anon' ? (
                 <>
                   <Column icon={Play} title="Plays" note="Every game, replays included" rows={anonPlaysRows} empty="No anonymous plays yet." />
                   <Column icon={Check} title="Correct Answers" note="Correct answers" rows={anonCorrectRows} empty="No anonymous answers yet." />
                   <Column icon={Trophy} title="Unique Quizzes Played" note="Distinct quizzes finished" rows={anonQuizzesRows} empty="No anonymous quizzes yet." />
                   <Column icon={CheckCheck} title="Fully Completed Quizzes" note="Distinct quizzes scored 100%" rows={anonPerfectRows} empty="No perfect anonymous runs yet." />
+                </>
+              ) : (
+                <>
+                  <Column icon={Play} title="Plays" note="Every game, replays included" rows={combPlaysRows} empty="No plays recorded yet." />
+                  <Column icon={Check} title="Correct Answers" note="Correct answers" rows={combCorrectRows} empty="No answers recorded yet." />
+                  <Column icon={Trophy} title="Unique Quizzes Played" note="Distinct quizzes finished" rows={combQuizzesRows} empty="No completed quizzes yet." />
+                  <Column icon={CheckCheck} title="Fully Completed Quizzes" note="Distinct quizzes scored 100%" rows={combPerfectRows} empty="No perfect runs yet." />
                 </>
               )}
             </div>
