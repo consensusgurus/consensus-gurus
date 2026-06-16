@@ -212,7 +212,6 @@ const boardCss = `
   .ql-2col{display:grid;grid-template-columns:1fr 1fr;column-gap:28px;margin-top:6px;}
   .lb-name-sm{display:none;}
   @media(max-width:760px){.ql-2col{grid-template-columns:1fr;}.ql-title{white-space:normal;overflow:visible;font-size:13px;line-height:1.25;}}
-  @media(max-width:680px){.lb-name-lg{display:none;}.lb-name-sm{display:block;}}
   .ql-sortbar{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:14px;}
   .ql-sortlabel{font-family:'DM Mono',monospace;font-size:9px;letter-spacing:0.16em;text-transform:uppercase;color:${COLORS.faded};font-weight:700;}
 
@@ -703,11 +702,9 @@ export default function QuizHomeClient() {
     }
     const byDept = {};
     for (const q of matches) { const d = deptOf(q); (byDept[d] = byDept[d] || []).push(q); }
-    const catPlays = (id) => byDept[id].reduce((sum, q) => sum + (totals.byQuiz[q.id] || 0), 0);
-    const ranked = Object.keys(byDept).sort((a, b) => catPlays(b) - catPlays(a) || a.localeCompare(b));
-    const ids = [...ranked.slice(0, 2), ...seededShuffle(ranked.slice(2), seedRef.current)];
+    const ids = seededShuffle(Object.keys(byDept), seedRef.current);
     return ids.map((id) => ({ key: id, label: DEPT_LABEL[id] || 'Quizzes', accent: DEPT_COLOR[id] || DEPT_COLOR.misc, Icon: SECTION_ICON[id] || Sparkles, quizzes: byDept[id] }));
-  }, [query, groupBy, totals]);
+  }, [query, groupBy]);
   const scrollToSection = (key) => {
     if (typeof document === 'undefined') return;
     const el = document.getElementById(`qzsec-${key}`);
