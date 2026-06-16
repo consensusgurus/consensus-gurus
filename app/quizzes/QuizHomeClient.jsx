@@ -207,6 +207,19 @@ const boardCss = `
   .rb-dots{display:flex;justify-content:center;gap:6px;margin-top:10px;}
   .rb-dot{width:6px;height:6px;border-radius:50%;border:none;padding:0;background:rgba(26,22,17,0.22);cursor:pointer;}
   .rb-dot.on{background:${COLORS.ember};}
+  .sp-spotlight-wrap{margin-bottom:12px;}
+  .sp-shelves{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:12px;align-items:start;}
+  .sp-toprow{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:10px;}
+  .sp-dots-inline{margin-top:0;justify-content:flex-end;}
+  .sp-flex{display:grid;grid-template-columns:minmax(0,1.55fr) minmax(0,1fr);gap:0;}
+  .sp-feat{display:flex;align-items:center;gap:14px;min-width:0;padding-right:16px;}
+  .sp-medal{width:50px;height:50px;border-radius:50%;background:#caa12e;border:1.5px solid ${COLORS.ink};display:flex;align-items:center;justify-content:center;flex:none;font-family:'DM Mono',monospace;font-size:20px;font-weight:500;color:#4a3608;}
+  .sp-fname{font-family:'Fraunces',serif;font-size:22px;font-weight:600;color:${COLORS.ink};line-height:1.05;overflow-wrap:anywhere;}
+  .sp-fstat{font-family:'DM Mono',monospace;font-size:11px;letter-spacing:0.05em;text-transform:uppercase;color:${COLORS.faded};margin-top:4px;}
+  .sp-fstat b{color:${COLORS.ember};font-weight:500;}
+  .sp-rest{display:flex;flex-direction:column;justify-content:center;border-left:1px solid rgba(26,22,17,0.18);padding-left:16px;min-width:0;}
+  .sp-new{flex:none;background:${COLORS.ember};color:${COLORS.cream};font-family:'DM Mono',monospace;font-size:9px;letter-spacing:0.08em;padding:2px 5px;text-transform:uppercase;margin-right:2px;}
+  @media(max-width:680px){.sp-shelves{grid-template-columns:1fr;gap:10px;}.sp-flex{grid-template-columns:1fr;}.sp-feat{padding-right:0;padding-bottom:12px;}.sp-rest{border-left:none;border-top:1px solid rgba(26,22,17,0.18);padding-left:0;padding-top:8px;}}
   .ql-block{margin-top:4px;}
   .ql-bhead{display:flex;align-items:center;gap:11px;padding-bottom:7px;border-bottom:2px solid ${COLORS.ink};flex-wrap:wrap;}
   .ql-bname{font-family:'Fraunces',serif;font-weight:600;font-size:22px;letter-spacing:-0.01em;margin:0;color:${COLORS.ink};}
@@ -426,6 +439,107 @@ function QuizCategoryColumn({ sectionKey, label, accent, Icon, quizzes, totals, 
 // `perView` lists show at once (Players shows 2 of its 4, Quizzes 1 of 3). The
 // header stays one fixed line with the box's stats flipping in sync. Hover
 // pauses, dots jump. Not collapsible.
+// Per-board phrasing for the rotating Player Spotlight headline stat.
+const SPOT_UNIT = { today: ['correct today', 'today'], allcorrect: ['correct answers', 'correct'], perfect: ['perfect quizzes', 'perfect'], unique: ['quizzes played', 'played'] };
+
+// Player Spotlight: rotates through the player leaderboards (Today's Correct,
+// Total Correct, Most Perfect, Most Unique) every 8s with a crossfade; hover
+// pauses, dots jump. Each shows its #1 large with #2 and #3 in the right-hand
+// space. Header carries only the title + Leaderboard link (no inline stats).
+function SpotlightBoard({ columns }) {
+  const avail = columns.filter((c) => c.rows && c.rows.length > 0);
+  const [idx, setIdx] = useState(0);
+  const [paused, setPaused] = useState(false);
+  useEffect(() => {
+    if (paused || avail.length <= 1) return undefined;
+    const t = setInterval(() => setIdx((i) => (i + 1) % avail.length), 8000);
+    return () => clearInterval(t);
+  }, [paused, avail.length]);
+  const safeIdx = avail.length ? idx % avail.length : 0;
+  const cat = avail[safeIdx] || null;
+  const [unit, unitShort] = (cat && SPOT_UNIT[cat.id]) || ['', ''];
+  const feat = cat ? cat.rows[0] : null;
+  const rest = cat ? cat.rows.slice(1, 3) : [];
+  return (
+    <div className="qb" onMouseEnter={() => setPaused(true)} onMouseLeave={() => setPaused(false)}>
+      <Link href="/leaderboard" className="qb-head" style={{ textDecoration: 'none' }}>
+        <span className="qb-title">Player Spotlight</span>
+        <span className="qb-cta">Leaderboard {'→'}</span>
+      </Link>
+      <div className="qb-body">
+        {cat && feat ? (
+          <div key={safeIdx} className="rb-fade">
+            <div className="sp-toprow">
+              <div className="qz-wide-label" style={{ color: cat.accent, borderBottom: `2px solid ${cat.accent}`, padding: '6px 2px', margin: 0 }}>{cat.icon}{cat.label}</div>
+              {avail.length > 1 && (
+                <div className="rb-dots sp-dots-inline">
+                  {avail.map((c, i) => (
+                    <button key={c.id} type="button" aria-label={c.label} className={i === safeIdx ? 'rb-dot on' : 'rb-dot'} onClick={() => setIdx(i)} />
+                  ))}
+                </div>
+              )}
+            </div>
+            <div className="sp-flex">
+              <div className="sp-feat">
+                <span className="sp-medal">1</span>
+                <div style={{ minWidth: 0 }}>
+                  <div className="sp-fname">{feat.full}</div>
+                  <div className="sp-fstat"><b>{feat.val}</b> {unit}</div>
+                </div>
+              </div>
+              {rest.length > 0 && (
+                <div className="sp-rest">
+                  {rest.map((r, i) => (
+                    <div key={r.key} className="lb-row">
+                      <span className="lb-rank" style={{ background: MEDAL[i + 1] }}>{i + 2}</span>
+                      <span className="lb-name">{r.full}</span>
+                      <span className="lb-val">{r.val} {unitShort}</span>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          </div>
+        ) : (
+          <div className="lb-empty">No player stats yet.</div>
+        )}
+      </div>
+    </div>
+  );
+}
+
+// A quiz shelf (Recently Played / Just Added): the board's top three as a list.
+// `href`/`cta` add a header link (Just Added -> Quiz Stats). `withNew` tags the
+// freshest additions. Titles wrap on mobile via lb-name-lg / lb-name-sm.
+function ShelfBoard({ title, href, cta, col, withNew }) {
+  if (!col) return null;
+  const head = href
+    ? (<Link href={href} className="qb-head" style={{ textDecoration: 'none' }}><span className="qb-title">{title}</span><span className="qb-cta">{cta} {'→'}</span></Link>)
+    : (<div className="qb-head"><span className="qb-title">{title}</span></div>);
+  return (
+    <div className="qb">
+      {head}
+      <div className="qb-body">
+        <div className="qz-wide-label" style={{ color: col.accent, borderBottom: `2px solid ${col.accent}`, padding: '6px 2px', marginBottom: 4 }}>{col.icon}{col.label}</div>
+        <div className="qz-wide-list">
+          {col.rows.length > 0 ? col.rows.map((r) => {
+            const inner = (
+              <>
+                {withNew && r.fresh ? <span className="sp-new">New</span> : null}
+                <span className="lb-name lb-name-lg">{r.full}</span><span className="lb-name lb-name-sm">{r.short || r.full}</span>
+                {r.val != null && <span className="lb-val">{r.val}</span>}
+              </>
+            );
+            return r.href
+              ? (<Link key={r.key} href={r.href} className="lb-row" title={r.full}>{inner}</Link>)
+              : (<div key={r.key} className="lb-row">{inner}</div>);
+          }) : (<div className="lb-empty">{col.empty || 'No data yet.'}</div>)}
+        </div>
+      </div>
+    </div>
+  );
+}
+
 function RotatingBoard({ title, href, cta, columns, perView }) {
   const pages = Math.max(1, Math.ceil(columns.length / perView));
   const [page, setPage] = useState(0);
@@ -620,7 +734,7 @@ export default function QuizHomeClient() {
     const newest = QUIZZES.filter((q) => q.id && !isNewsId(q.id))
       .slice()
       .sort((a, b) => ts(b) - ts(a) || a.title.localeCompare(b.title))
-      .slice(0, 3).map((q) => mk(q, <span style={{ color: COLORS.faded }}>{dateShort(q)}</span>));
+      .slice(0, 3).map((q) => ({ ...mk(q, <span style={{ color: COLORS.faded }}>{dateShort(q)}</span>), fresh: (Date.now() - ts(q)) < 7 * 86400000 }));
     // Players: today's correct answers (since midnight ET, /api/quiz/today),
     // all-time correct answers and most perfect quizzes (/api/quiz/champions).
     const todaysCorrect = (todayBoard.leaders || []).slice(0, 3).map((u, i) => ({ key: `tc-${i}-${u.username}`, full: u.username, val: (u.correct || 0).toLocaleString() }));
@@ -880,9 +994,12 @@ export default function QuizHomeClient() {
 
         <section style={{ maxWidth: 1200, margin: '0 auto', padding: '10px 16px 64px' }}>
 
-                              <div className="qz-boards">
-            <RotatingBoard title="Players" href="/leaderboard" cta="Leaderboard" columns={playerCols} perView={2} />
-            <RotatingBoard title="Quizzes" href="/quizzes/stats" cta="Quiz Stats" columns={quizCols} perView={1} />
+                              <div className="sp-spotlight-wrap">
+            <SpotlightBoard columns={playerCols} />
+          </div>
+          <div className="sp-shelves">
+            <ShelfBoard title="Recently Played" col={quizCols.find((c) => c.id === 'lastplayed')} withNew={false} />
+            <ShelfBoard title="Just Added" href="/quizzes/stats" cta="Quiz Stats" col={quizCols.find((c) => c.id === 'newest')} withNew />
           </div>
 
                                                   {showColumns ? (
