@@ -152,7 +152,7 @@ const boardCss = `
   .lb-list-2col{display:grid;grid-template-columns:1fr 1fr;grid-template-rows:repeat(3,auto);grid-auto-flow:column;column-gap:20px;padding:0 0 8px;}
   .lb-row{display:flex;align-items:center;gap:10px;padding:5px 0;text-decoration:none;}
   .lb-rank{flex:none;width:19px;height:19px;border-radius:50%;border:1.25px solid ${COLORS.ink};display:flex;align-items:center;justify-content:center;font-family:'DM Mono',monospace;font-size:10.5px;font-weight:500;color:${COLORS.ink};}
-  .lb-name{flex:1 1 auto;min-width:0;font-family:'DM Mono',monospace;font-size:12px;font-weight:500;color:${COLORS.ink};line-height:1.25;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+  .lb-name{flex:1 1 auto;min-width:0;font-family:'Fraunces',serif;font-size:13px;font-weight:500;color:${COLORS.ink};line-height:1.25;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
   a.lb-row:hover .lb-name{color:${COLORS.ember};}
   .lb-val{flex:none;font-family:'DM Mono',monospace;font-weight:500;font-size:12px;color:${COLORS.ink};white-space:nowrap;}
   .lb-empty{font-family:'Fraunces',serif;font-style:italic;font-size:12.5px;color:${COLORS.faded};padding:2px 0 8px;}
@@ -163,7 +163,7 @@ const boardCss = `
   .lb-mid{font-family:'DM Mono',monospace;font-size:10px;letter-spacing:0.1em;text-transform:uppercase;color:${COLORS.faded};display:flex;align-items:center;gap:7px;white-space:nowrap;}
   .qz-pulse{width:7px;height:7px;border-radius:50%;background:#2e7d6b;flex:none;}
   .qb{margin-bottom:16px;}
-  .qb-head{display:flex;align-items:center;justify-content:space-between;gap:12px;background:${COLORS.ember};border:1.5px solid ${COLORS.ink};box-shadow:3px 3px 0 ${COLORS.ink};padding:11px 15px;}
+  .qb-head{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:6px 12px;background:${COLORS.ember};border:1.5px solid ${COLORS.ink};box-shadow:3px 3px 0 ${COLORS.ink};padding:11px 15px;}
   .qb-title{font-family:'DM Mono',monospace;font-size:12px;font-weight:700;letter-spacing:0.2em;text-transform:uppercase;color:${COLORS.cream};}
   .qb-mid{font-family:'DM Mono',monospace;font-size:9.5px;font-weight:700;letter-spacing:0.12em;text-transform:uppercase;color:#f4d9d4;display:flex;align-items:center;gap:7px;white-space:nowrap;}
   .qb-cta{font-family:'DM Mono',monospace;font-size:9.5px;font-weight:700;letter-spacing:0.14em;text-transform:uppercase;color:#f4d9d4;white-space:nowrap;text-decoration:none;}
@@ -177,6 +177,7 @@ const boardCss = `
   .ql-gb-btn:first-child{border-left:none;}
   .ql-jumplabel{font-family:'DM Mono',monospace;font-size:9px;letter-spacing:0.14em;text-transform:uppercase;color:${COLORS.faded};font-weight:700;flex:none;}
   .ql-jumps{display:flex;flex-wrap:wrap;gap:6px;flex:1;min-width:0;}
+  @media(max-width:760px){.ql-controls{flex-direction:column;align-items:flex-start;gap:8px;}.ql-jumps{width:100%;}}
   .ql-jump{padding:4px 9px;background:transparent;border:1px solid ${COLORS.ink};font-family:'DM Mono',monospace;font-size:8.5px;letter-spacing:0.08em;text-transform:uppercase;font-weight:700;cursor:pointer;white-space:nowrap;}
   .ql-cols{display:grid;grid-template-columns:1fr 1fr;gap:26px;align-items:start;}
   @media(max-width:760px){.ql-cols{grid-template-columns:1fr;}}
@@ -190,7 +191,7 @@ const boardCss = `
   .ql-list{display:flex;flex-direction:column;}
   .ql-row{display:flex;align-items:baseline;gap:10px;padding:7px 0;border-bottom:1px solid rgba(26,22,17,0.1);text-decoration:none;color:${COLORS.ink};}
   .ql-row:hover .ql-title{color:${COLORS.ember};}
-  .ql-title{flex:1 1 auto;min-width:0;font-family:'Fraunces',serif;font-weight:700;font-size:14px;line-height:1.2;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+  .ql-title{flex:1 1 auto;min-width:0;font-family:'Fraunces',serif;font-weight:500;font-size:14px;line-height:1.2;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
   .ql-meta{flex:none;display:flex;align-items:center;gap:11px;font-family:'DM Mono',monospace;font-size:9.5px;font-weight:500;white-space:nowrap;}
   .ql-plays{color:${COLORS.faded};letter-spacing:0.04em;}
   .ql-leader{display:flex;align-items:center;gap:3px;max-width:130px;}
@@ -199,7 +200,7 @@ const boardCss = `
   @media(max-width:760px){.ql-name{font-size:17px;}.ql-meta{gap:8px;}.ql-leader{max-width:104px;}}
   .rb-cols{display:grid;gap:14px;min-height:120px;}
   .rb-fade{animation:rbfade 0.5s ease;}
-  .rb-stat{margin-left:auto;font-family:'DM Mono',monospace;font-size:9px;font-weight:700;letter-spacing:0.06em;text-transform:uppercase;color:#f4d9d4;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+  .rb-stat{margin-left:auto;font-family:'DM Mono',monospace;font-size:9px;font-weight:700;letter-spacing:0.06em;text-transform:uppercase;color:#f4d9d4;white-space:normal;text-align:right;}
   .rb-stat.rb-flip{animation:rbfade 0.5s ease;}
   @keyframes rbfade{from{opacity:0}to{opacity:1}}
   .rb-dots{display:flex;justify-content:center;gap:6px;margin-top:10px;}
@@ -418,29 +419,28 @@ function QuizCategoryColumn({ sectionKey, label, accent, Icon, quizzes, totals, 
 // `perView` lists show at once (Players shows 2 of its 4, Quizzes 1 of 3). The
 // header stays one fixed line with the box's stats flipping in sync. Hover
 // pauses, dots jump. Not collapsible.
-function RotatingBoard({ title, columns, perView, stats }) {
+function RotatingBoard({ title, href, columns, perView, stats }) {
   const pages = Math.max(1, Math.ceil(columns.length / perView));
   const [page, setPage] = useState(0);
   const [paused, setPaused] = useState(false);
   useEffect(() => {
     if (paused || pages <= 1) return undefined;
-    const t = setInterval(() => setPage((p) => (p + 1) % pages), 5000);
+    const t = setInterval(() => setPage((p) => (p + 1) % pages), 8000);
     return () => clearInterval(t);
   }, [paused, pages]);
   const safePage = page % pages;
   const view = columns.slice(safePage * perView, safePage * perView + perView);
-  const statIdx = stats && stats.length ? safePage % stats.length : 0;
   return (
     <div className="qb" onMouseEnter={() => setPaused(true)} onMouseLeave={() => setPaused(false)}>
-      <div className="qb-head">
+      <Link href={href} className="qb-head" style={{ textDecoration: 'none' }}>
         <span className="qb-title">{title}</span>
-        {stats && stats.length > 0 && <span key={statIdx} className="rb-stat rb-flip">{stats[statIdx]}</span>}
-      </div>
+        {stats && stats.length > 0 && <span className="rb-stat">{stats.join(' · ')}</span>}
+      </Link>
       <div className="qb-body">
         <div key={safePage} className="rb-cols rb-fade" style={{ gridTemplateColumns: `repeat(${perView}, minmax(0, 1fr))` }}>
           {view.map((c) => (
             <div className="qz-wide-col" key={c.id}>
-              <div className="qz-wide-label" style={{ color: c.accent, background: 'transparent', borderBottom: `2px solid ${c.accent}`, padding: '6px 2px' }}>{c.icon}{c.label}</div>
+              <div className="qz-wide-label" style={{ color: COLORS.ink, background: 'transparent', borderBottom: `2px solid ${COLORS.ink}`, padding: '6px 2px' }}>{c.icon}{c.label}</div>
               <div className="qz-wide-list">
                 {c.rows.length > 0 ? c.rows.map((r, i) => {
                   const inner = (
@@ -851,8 +851,8 @@ export default function QuizHomeClient() {
         <section style={{ maxWidth: 1200, margin: '0 auto', padding: '10px 16px 64px' }}>
 
                     <div className="qz-boards">
-            <RotatingBoard title="Players" columns={playerCols} perView={2} stats={[`${(totals.totalCorrect || 0).toLocaleString()} correct${todayBoard.correctToday > 0 ? ` · ${todayBoard.correctToday.toLocaleString()} today` : ''}`, `${(totals.totalPerfect || 0).toLocaleString()} perfect${todayBoard.perfectToday > 0 ? ` · ${todayBoard.perfectToday.toLocaleString()} today` : ''}`]} />
-            <RotatingBoard title="Quizzes" columns={quizCols} perView={1} stats={[`${(totals.total || 0).toLocaleString()} plays${todayBoard.playsToday > 0 ? ` · ${todayBoard.playsToday} today` : ''}`, `${fmtDur(totals.totalTime)} played${totals.todayTime > 0 ? ` · ${fmtDur(totals.todayTime)} today` : ''}`]} />
+            <RotatingBoard title="Players" href="/leaderboard" columns={playerCols} perView={2} stats={[`${(totals.totalCorrect || 0).toLocaleString()} correct${todayBoard.correctToday > 0 ? ` · ${todayBoard.correctToday.toLocaleString()} today` : ''}`, `${(totals.totalPerfect || 0).toLocaleString()} perfect quizzes${todayBoard.perfectToday > 0 ? ` · ${todayBoard.perfectToday.toLocaleString()} today` : ''}`]} />
+            <RotatingBoard title="Quizzes" href="/quizzes/stats" columns={quizCols} perView={1} stats={[`${(totals.total || 0).toLocaleString()} plays${todayBoard.playsToday > 0 ? ` · ${todayBoard.playsToday} today` : ''}`, `${fmtDur(totals.totalTime)} played${totals.todayTime > 0 ? ` · ${fmtDur(totals.todayTime)} today` : ''}`]} />
           </div>
 
                     <div className="ql-controls">
