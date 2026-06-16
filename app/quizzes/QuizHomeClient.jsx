@@ -197,6 +197,14 @@ const boardCss = `
   .ql-lname{overflow:hidden;text-overflow:ellipsis;}
   .ql-viewall{margin-top:9px;background:transparent;border:none;padding:2px 0;font-family:'DM Mono',monospace;font-size:9.5px;letter-spacing:0.1em;text-transform:uppercase;font-weight:700;cursor:pointer;}
   @media(max-width:760px){.ql-name{font-size:17px;}.ql-meta{gap:8px;}.ql-leader{max-width:104px;}}
+  .rb-cols{display:grid;gap:14px;min-height:120px;}
+  .rb-fade{animation:rbfade 0.5s ease;}
+  .rb-stat{margin-left:auto;font-family:'DM Mono',monospace;font-size:9px;font-weight:700;letter-spacing:0.06em;text-transform:uppercase;color:#f4d9d4;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+  .rb-stat.rb-flip{animation:rbfade 0.5s ease;}
+  @keyframes rbfade{from{opacity:0}to{opacity:1}}
+  .rb-dots{display:flex;justify-content:center;gap:6px;margin-top:10px;}
+  .rb-dot{width:6px;height:6px;border-radius:50%;border:none;padding:0;background:rgba(26,22,17,0.22);cursor:pointer;}
+  .rb-dot.on{background:${COLORS.ember};}
 
 `;
 
@@ -405,6 +413,63 @@ function QuizCategoryColumn({ sectionKey, label, accent, Icon, quizzes, totals, 
 }
 
 
+// Two of these sit side by side (Players | Quizzes) in place of the old
+// full-width boards. Each rotates through its lists every 5s with a crossfade;
+// `perView` lists show at once (Players shows 2 of its 4, Quizzes 1 of 3). The
+// header stays one fixed line with the box's stats flipping in sync. Hover
+// pauses, dots jump. Not collapsible.
+function RotatingBoard({ title, columns, perView, stats }) {
+  const pages = Math.max(1, Math.ceil(columns.length / perView));
+  const [page, setPage] = useState(0);
+  const [paused, setPaused] = useState(false);
+  useEffect(() => {
+    if (paused || pages <= 1) return undefined;
+    const t = setInterval(() => setPage((p) => (p + 1) % pages), 5000);
+    return () => clearInterval(t);
+  }, [paused, pages]);
+  const safePage = page % pages;
+  const view = columns.slice(safePage * perView, safePage * perView + perView);
+  const statIdx = stats && stats.length ? safePage % stats.length : 0;
+  return (
+    <div className="qb" onMouseEnter={() => setPaused(true)} onMouseLeave={() => setPaused(false)}>
+      <div className="qb-head">
+        <span className="qb-title">{title}</span>
+        {stats && stats.length > 0 && <span key={statIdx} className="rb-stat rb-flip">{stats[statIdx]}</span>}
+      </div>
+      <div className="qb-body">
+        <div key={safePage} className="rb-cols rb-fade" style={{ gridTemplateColumns: `repeat(${perView}, minmax(0, 1fr))` }}>
+          {view.map((c) => (
+            <div className="qz-wide-col" key={c.id}>
+              <div className="qz-wide-label" style={{ color: c.accent, background: 'transparent', borderBottom: `2px solid ${c.accent}`, padding: '6px 2px' }}>{c.icon}{c.label}</div>
+              <div className="qz-wide-list">
+                {c.rows.length > 0 ? c.rows.map((r, i) => {
+                  const inner = (
+                    <>
+                      <span className="lb-rank" style={{ background: (i < 3 && !c.noMedals) ? MEDAL[i] : 'transparent' }}>{i + 1}</span>
+                      <span className="lb-name">{r.full}</span>
+                      {r.val != null && <span className="lb-val">{r.val}</span>}
+                    </>
+                  );
+                  return r.href
+                    ? (<Link key={r.key} href={r.href} className="lb-row" title={r.full}>{inner}</Link>)
+                    : (<div key={r.key} className="lb-row">{inner}</div>);
+                }) : (<div className="lb-empty">{c.empty || 'No data yet.'}</div>)}
+              </div>
+            </div>
+          ))}
+        </div>
+        {pages > 1 && (
+          <div className="rb-dots">
+            {Array.from({ length: pages }).map((_, i) => (
+              <button key={i} type="button" aria-label={`Show set ${i + 1}`} className={i === safePage ? 'rb-dot on' : 'rb-dot'} onClick={() => setPage(i)} />
+            ))}
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
 export default function QuizHomeClient() {
   const [query, setQuery] = useState('');
   const [dept, setDept] = useState('all');
@@ -419,7 +484,7 @@ export default function QuizHomeClient() {
   const [todayBoard, setTodayBoard] = useState({ leaders: [], correctToday: 0, perfectToday: 0, playsToday: 0 });
   const [visitors, setVisitors] = useState(0);
   const [quizStats, setQuizStats] = useState([]);
-  const [champions, setChampions] = useState({ correctAnswers: [], perfectQuizzes: [] });
+  const [champions, setChampions] = useState({ correctAnswers: [], perfectQuizzes: [], completed: [] });
   const seedRef = useRef((Date.now() & 0xffffffff) >>> 0);
   // Close the category / sort dropdowns on an outside click or Escape.
   const ribbonRef = useRef(null);
@@ -462,7 +527,7 @@ export default function QuizHomeClient() {
     // into bootstrap views under `quiz::<id>` keys; sum only those.
     fetchBootstrap().then((data) => { if (data && data.views) setVisitors(Object.entries(data.views).reduce((sum, [k, v]) => (k.startsWith('quiz::') ? sum + (Number(v) || 0) : sum), 0)); }).catch(() => {});
     fetch('/api/quiz/stats').then((r) => r.json()).then((d) => { if (d && Array.isArray(d.quizzes)) setQuizStats(d.quizzes); }).catch(() => {});
-    fetch('/api/quiz/champions').then((r) => r.json()).then((d) => { if (d && !d.error) setChampions({ correctAnswers: Array.isArray(d.correctAnswers) ? d.correctAnswers : [], perfectQuizzes: Array.isArray(d.perfectQuizzes) ? d.perfectQuizzes : [] }); }).catch(() => {});
+    fetch('/api/quiz/champions').then((r) => r.json()).then((d) => { if (d && !d.error) setChampions({ correctAnswers: Array.isArray(d.correctAnswers) ? d.correctAnswers : [], perfectQuizzes: Array.isArray(d.perfectQuizzes) ? d.perfectQuizzes : [], completed: Array.isArray(d.completed) ? d.completed : [] }); }).catch(() => {});
   }, []);
 
   // Count quiz-home-page landings toward this page's visitor total, so it
@@ -553,11 +618,13 @@ export default function QuizHomeClient() {
     const todaysCorrect = (todayBoard.leaders || []).slice(0, 3).map((u, i) => ({ key: `tc-${i}-${u.username}`, full: u.username, val: (u.correct || 0).toLocaleString() }));
     const totalCorrect = (champions.correctAnswers || []).slice(0, 3).map((u, i) => ({ key: `cc-${i}-${u.username}`, full: u.username, val: (u.correct || 0).toLocaleString() }));
     const mostPerfect = (champions.perfectQuizzes || []).slice(0, 3).map((u, i) => ({ key: `pf-${i}-${u.username}`, full: u.username, val: (u.perfect || 0).toLocaleString() }));
+    const mostUnique = (champions.completed || []).slice(0, 3).map((u, i) => ({ key: `uq-${i}-${u.username}`, full: u.username, val: (u.quizzes || 0).toLocaleString() }));
     return {
       playerCols: [
         { id: 'today', label: "Today's Correct Answers", rows: todaysCorrect, empty: 'No correct answers yet today.', accent: '#c98a1b', icon: <Check size={12} strokeWidth={3} aria-hidden="true" />, prize: true },
         { id: 'allcorrect', label: 'Total Correct Answers', rows: totalCorrect, empty: 'No answers recorded yet.', accent: '#3d4f2b', icon: <BarChart3 size={12} strokeWidth={2.5} aria-hidden="true" /> },
         { id: 'perfect', label: 'Most Perfect Quizzes', rows: mostPerfect, empty: 'No perfect runs yet.', accent: '#a44a26', icon: <Trophy size={12} strokeWidth={2.5} aria-hidden="true" /> },
+        { id: 'unique', label: 'Most Unique Quizzes Played', rows: mostUnique, empty: 'No quizzes played yet.', accent: '#1f7a8c', icon: <Sparkles size={12} strokeWidth={2.5} aria-hidden="true" /> },
       ],
       quizCols: [
         { id: 'played', label: 'Most Played', rows: mostPlayed, empty: 'No plays recorded yet.', noMedals: true, accent: '#c0392b', icon: <Flame size={12} strokeWidth={2.5} aria-hidden="true" /> },
@@ -783,9 +850,10 @@ export default function QuizHomeClient() {
 
         <section style={{ maxWidth: 1200, margin: '0 auto', padding: '10px 16px 64px' }}>
 
-          <QuizBoardWide title="Players" cta="All player stats" ctaHref="/leaderboard" categories={playerCols} mid={(totals.totalCorrect || 0) > 0 ? (<><span style={{ display: 'inline-flex', alignItems: 'center', gap: 5 }}><Check size={11} strokeWidth={3} aria-hidden="true" />{(totals.totalCorrect || 0).toLocaleString()} correct answers{todayBoard.correctToday > 0 ? ` · ${todayBoard.correctToday.toLocaleString()} today` : ''}</span>{(totals.totalPerfect || 0) > 0 ? (<span style={{ display: 'inline-flex', alignItems: 'center', gap: 5, marginLeft: 22 }}><Trophy size={11} strokeWidth={2.5} aria-hidden="true" />{(totals.totalPerfect || 0).toLocaleString()} perfect scores{todayBoard.perfectToday > 0 ? ` · ${todayBoard.perfectToday.toLocaleString()} today` : ''}</span>) : null}</>) : null} />
-
-          <QuizBoardWide title="Quizzes" cta="All quiz stats" ctaHref="/quizzes/stats" categories={quizCols} mid={totals.total > 0 ? (<><span style={{ display: 'inline-flex', alignItems: 'center', gap: 5 }}><span className="qz-pulse" />{totals.total.toLocaleString()} plays{todayBoard.playsToday > 0 ? ` · ${todayBoard.playsToday} today` : ''}</span>{totals.totalTime > 0 ? (<span style={{ display: 'inline-flex', alignItems: 'center', gap: 5, marginLeft: 22 }}><Clock size={11} strokeWidth={2.5} aria-hidden="true" />{fmtDur(totals.totalTime)} spent answering{totals.todayTime > 0 ? ` · ${fmtDur(totals.todayTime)} today` : ''}</span>) : null}</>) : null} />
+                    <div className="qz-boards">
+            <RotatingBoard title="Players" columns={playerCols} perView={2} stats={[`${(totals.totalCorrect || 0).toLocaleString()} correct${todayBoard.correctToday > 0 ? ` · ${todayBoard.correctToday.toLocaleString()} today` : ''}`, `${(totals.totalPerfect || 0).toLocaleString()} perfect${todayBoard.perfectToday > 0 ? ` · ${todayBoard.perfectToday.toLocaleString()} today` : ''}`]} />
+            <RotatingBoard title="Quizzes" columns={quizCols} perView={1} stats={[`${(totals.total || 0).toLocaleString()} plays${todayBoard.playsToday > 0 ? ` · ${todayBoard.playsToday} today` : ''}`, `${fmtDur(totals.totalTime)} played${totals.todayTime > 0 ? ` · ${fmtDur(totals.todayTime)} today` : ''}`]} />
+          </div>
 
                     <div className="ql-controls">
             <div className="ql-gb" role="group" aria-label="Group quizzes by">
