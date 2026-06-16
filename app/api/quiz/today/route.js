@@ -54,6 +54,7 @@ export async function GET() {
       }
     }
     const leaders = [...byUser.values()]
+      .filter((u) => u.correct > 0)
       .sort((a, b) => b.correct - a.correct || String(a.username).localeCompare(String(b.username)))
       .slice(0, 5);
     return NextResponse.json({ leaders, correctToday, perfectToday, playsToday: rows.length });

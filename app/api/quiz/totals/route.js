@@ -19,6 +19,23 @@ const TREND_BUCKET_H = 3;            // widen the window in 3-hour steps
 const TREND_MAX_BUCKETS = 56;        // cap at 56 * 3h = 7 days
 const TREND_MIN_QUIZZES = 3;         // widen until at least this many quizzes have plays
 
+// Midnight "today" in US Eastern (handles EST/EDT) as a UTC epoch ms, matching
+// /api/quiz/today so the index's two "today" counters roll over together
+// (previously this route used UTC midnight, which reset hours earlier).
+function startOfEasternTodayUTC() {
+  const tz = 'America/New_York';
+  const now = new Date();
+  const ymd = new Intl.DateTimeFormat('en-CA', { timeZone: tz, year: 'numeric', month: '2-digit', day: '2-digit' }).format(now);
+  for (const offH of [4, 5]) {
+    const guess = Date.parse(`${ymd}T00:00:00.000Z`) + offH * 3600 * 1000;
+    const p = new Intl.DateTimeFormat('en-CA', { timeZone: tz, year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', hour12: false })
+      .formatToParts(new Date(guess))
+      .reduce((a, x) => { a[x.type] = x.value; return a; }, {});
+    if (`${p.year}-${p.month}-${p.day}` === ymd && p.hour === '00') return guess;
+  }
+  return Date.parse(`${ymd}T04:00:00.000Z`);
+}
+
 export async function GET() {
   try {
     const { data, error } = await fetchAllRows(supabaseAdmin, 'quiz_results', 'quiz_id, created_at, score, total, time_elapsed', ['quiz_id']);
@@ -33,7 +50,7 @@ export async function GET() {
     const now = Date.now();
     const cutoff7 = now - 7 * 24 * 60 * 60 * 1000;
     const cutoff12h = now - 12 * 60 * 60 * 1000;
-    const startToday = new Date(); startToday.setUTCHours(0, 0, 0, 0); const cutoffToday = startToday.getTime();
+    const cutoffToday = startOfEasternTodayUTC();
     let today = 0;
     let totalTime = 0;
     let todayTime = 0;

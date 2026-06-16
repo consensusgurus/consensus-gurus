@@ -1076,7 +1076,7 @@ export default function QuizClient({ quizId }) {
             <div>
               <div style={{ position: 'sticky', top: stickyTop, zIndex: 4, display: 'flex', alignItems: 'center', gap: 12, background: started && !ended ? COLORS.ink : COLORS.paper, color: started && !ended ? COLORS.cream : COLORS.faded, border: `1px solid ${COLORS.faded}33`, padding: '12px 16px', marginBottom: 10, minHeight: 30 }}>
                 <span style={{ fontFamily: MONO, fontSize: 11, letterSpacing: '0.2em', textTransform: 'uppercase', opacity: 0.7, flex: 'none' }}>Find</span>
-                <span style={{ fontFamily: SERIF, fontWeight: 800, fontSize: 'clamp(20px, 3.4vw, 26px)', lineHeight: 1.1, flex: '1 1 auto', minWidth: 0, overflowWrap: 'anywhere' }}>{ended ? 'Game over' : started ? (curName || '—') : 'Press Play to start'}</span>
+                {(() => { const clueText = ended ? 'Game over' : started ? (curName || '—') : 'Press Play to start'; return (<span key={clueText} style={{ fontFamily: SERIF, fontWeight: 800, fontSize: 'clamp(20px, 3.4vw, 26px)', lineHeight: 1.1, flex: '1 1 auto', minWidth: 0, overflowWrap: 'anywhere', transform: 'translateZ(0)' }}>{clueText}</span>); })()}
                 {started && !ended && (
                   <button onClick={skipCountry} title="Can't find it? Skip and come back to it later." style={{ marginLeft: 'auto', flex: 'none', fontFamily: MONO, fontSize: 10, letterSpacing: '0.16em', textTransform: 'uppercase', fontWeight: 700, padding: '8px 14px', background: 'transparent', color: COLORS.cream, border: '1px solid rgba(244,237,224,0.4)', cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: 6 }}>
                     <SkipForward size={12} strokeWidth={2.5} /> Skip
