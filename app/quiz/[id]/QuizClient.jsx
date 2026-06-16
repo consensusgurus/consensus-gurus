@@ -855,7 +855,7 @@ export default function QuizClient({ quizId }) {
   // matched/ordered per-slot, map, and tile boards keep their fixed order, and
   // multi-column (colSplit) layouts are left alone. Each item keeps its own rank
   // number because the row/tile is always handed its ORIGINAL index.
-  const cyclingOn = started && !ended && !matched && !mapMode && !tileMode && !colSplit;
+  const cyclingOn = started && !ended && !matched && !mapMode && !tileMode && (logosMode || !colSplit);
   const displayOrder = useMemo(() => {
     const base = answers.map((_, i) => i);
     if (!cyclingOn) return base;
@@ -1048,20 +1048,21 @@ export default function QuizClient({ quizId }) {
                   style={{ flex: 1, fontFamily: SANS, fontSize: 17, padding: '14px 16px', border: `1.5px solid ${COLORS.ink}`, background: !started || ended ? COLORS.paper : '#fff', color: COLORS.ink, opacity: !started || ended ? 0.5 : 1 }}
                 />
               )}
-              <button onClick={start} disabled={started || ended} style={{ flex: (matched && !ordered) || mapMode || tileMode ? 1 : 'none', fontFamily: MONO, fontSize: 13, letterSpacing: '0.08em', textTransform: 'uppercase', fontWeight: 700, padding: '0 22px', height: matched || mapMode || tileMode ? 52 : 'auto', border: 'none', background: COLORS.ember, color: '#fff', cursor: started || ended ? 'default' : 'pointer', opacity: started || ended ? 0.5 : 1 }}>
+              <div style={{ position: 'relative', display: 'flex', flex: (matched && !ordered) || mapMode || tileMode ? 1 : 'none' }}>
+              <button onClick={start} disabled={started || ended} style={{ flex: 1, fontFamily: MONO, fontSize: 13, letterSpacing: '0.08em', textTransform: 'uppercase', fontWeight: 700, padding: '0 22px', height: matched || mapMode || tileMode ? 52 : 'auto', border: 'none', background: COLORS.ember, color: '#fff', cursor: started || ended ? 'default' : 'pointer', opacity: started || ended ? 0.5 : 1 }}>
                 {ended ? 'Done' : started ? 'Playing' : (matched && !ordered) ? (quiz.noun ? 'Play' : 'Play — name each year') : 'Play'}
               </button>
-            </div>
-            </div>
-            <div style={{ position: 'relative', minHeight: 46, marginBottom: 12 }}>
-              {cue && (
-                <div key={cue.id} aria-live="assertive" style={{ position: 'absolute', left: 0, right: 0, top: 0, display: 'flex', alignItems: 'center', gap: 9, padding: '11px 16px', color: '#fff', fontFamily: SANS, fontWeight: 700, fontSize: 17, lineHeight: 1, background: cue.ok ? COLORS.forest : COLORS.ember, boxShadow: '0 2px 8px rgba(26,22,17,0.25)', animation: `${cue.ok ? 'qzCueOk' : 'qzCueNo'} .4s ease both` }}>
-                  {cue.ok ? <Check size={20} strokeWidth={3} /> : <X size={20} strokeWidth={3} />}
-                  <span>{cue.ok ? 'Correct' : 'Try again'}</span>
+              {/* Correct/wrong verdict pops over the Play button (replaces the old
+                  full-width banner, which forced a large gap below the input). */}
+              {cue && started && !ended && (
+                <div key={cue.id} aria-live="assertive" style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', background: cue.ok ? COLORS.forest : COLORS.ember, color: '#fff', pointerEvents: 'none', animation: `${cue.ok ? 'qzCueOk' : 'qzCueNo'} .45s ease both` }}>
+                  {cue.ok ? <Check size={22} strokeWidth={3} /> : <X size={22} strokeWidth={3} />}
                 </div>
               )}
-              <div style={{ fontFamily: MONO, fontSize: 12, paddingTop: 3, color: hintBad ? COLORS.ember : COLORS.faded }}>{hint}</div>
+              </div>
             </div>
+            </div>
+            <div style={{ fontFamily: MONO, fontSize: 12, minHeight: 15, marginTop: 2, marginBottom: 8, color: hintBad ? COLORS.ember : COLORS.faded }}>{hint}</div>
 
             {photoMode ? (
             <PhotoBoard items={quiz.answers} started={started} ended={ended} revealed={revealed} onMatch={onPairMatch} onWrong={onBankWrong} onEnd={onPairEnd} onHint={onPairHint} answerNoun={quiz.noun} photoAspect={quiz.photoAspect} stickyTop={stickyTop} />
