@@ -191,38 +191,6 @@ export async function GET(request) {
     }
   }
 
-  // TEMP one-time: seed each amazon list snapshot with its PRE-amazon
-  // consensus so the next normal run diffs the addition and records the
-  // ranking movements, anchored to the source first_seen_at. Remove after use.
-  if (sp.get('seedPreAmazonSnapshots') === '1') {
-    try {
-      const [vRows, eRows] = await Promise.all([
-        fetchAll('votes', 'list_id,item_name,score', ['list_id', 'item_name']),
-        fetchAll('extras', 'list_id,item_name', ['list_id', 'item_name']),
-      ]);
-      const votes = {};
-      vRows.forEach((r) => { votes[r.list_id + '::' + r.item_name.toLowerCase().trim()] = Math.max(0, r.score); });
-      const extras = {};
-      eRows.forEach((r) => { (extras[r.list_id] = extras[r.list_id] || []).push(r.item_name); });
-      const rows = [];
-      for (const list of LISTS) {
-        if (!list.sources || !(list.sources.amazon || list.sources.amazonreviews)) continue;
-        const clone = { ...list, sources: { ...list.sources } };
-        delete clone.sources.amazon;
-        delete clone.sources.amazonreviews;
-        const preTop10 = consensusTop10(clone, votes, extras);
-        rows.push({ list_id: list.id, top10: preTop10, sources_hash: 'pre-amazon-seed', updated_at: '2026-06-15T00:00:00Z' });
-      }
-      for (let i = 0; i < rows.length; i += 200) {
-        const up = await supabaseAdmin.from('consensus_snapshots').upsert(rows.slice(i, i + 200), { onConflict: 'list_id' });
-        if (up.error) throw up.error;
-      }
-      return NextResponse.json({ ok: true, seeded: rows.length });
-    } catch (err) {
-      return NextResponse.json({ error: 'seedPreAmazonSnapshots failed', detail: String(err) }, { status: 500 });
-    }
-  }
-
   try {
     const [votesRows, extrasRows, snapsRows, alertsRows, seenRows] = await Promise.all([
       fetchAll('votes', 'list_id,item_name,score', ['list_id', 'item_name']),
