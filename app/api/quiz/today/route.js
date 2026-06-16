@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { supabaseAdmin } from '@/lib/supabase-server';
+import { correctAnswersOf } from '@/lib/quiz-scoring';
 
 export const dynamic = 'force-dynamic';
 export const fetchCache = 'force-no-store';
@@ -43,9 +44,9 @@ export async function GET() {
     let perfectToday = 0;
     const byUser = new Map();
     for (const r of rows) {
-      const sc = Number(r.score) || 0;
+      const sc = correctAnswersOf(r);
       correctToday += sc;
-      if (r.total > 0 && sc === Number(r.total)) perfectToday += 1;
+      if (r.total > 0 && (Number(r.score) || 0) === Number(r.total)) perfectToday += 1;
       if (r.user_id) {
         const cur = byUser.get(r.user_id) || { username: r.username || 'Player', correct: 0 };
         cur.correct += sc;

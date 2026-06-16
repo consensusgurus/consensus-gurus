@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { supabaseAdmin } from '@/lib/supabase-server';
 import { buildAnonPlayers } from '@/lib/quiz-anon';
+import { correctAnswersOf } from '@/lib/quiz-scoring';
 
 export const dynamic = 'force-dynamic';
 export const fetchCache = 'force-no-store';
@@ -55,7 +56,7 @@ export function buildChampions(rows, { minQuizzes = MIN_QUIZZES } = {}) {
     const prev = firstByPair.get(key);
     if (!prev || id < (prev.id || 0)) firstByPair.set(key, r);
     playsByUser.set(r.user_id, (playsByUser.get(r.user_id) || 0) + 1);
-    correctByUser.set(r.user_id, (correctByUser.get(r.user_id) || 0) + (r.score || 0));
+    correctByUser.set(r.user_id, (correctByUser.get(r.user_id) || 0) + correctAnswersOf(r));
     if (r.total > 0 && r.score === r.total) {
       let pset = perfectByUser.get(r.user_id);
       if (!pset) { pset = new Set(); perfectByUser.set(r.user_id, pset); }

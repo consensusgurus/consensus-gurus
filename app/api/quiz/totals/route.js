@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { supabaseAdmin } from '@/lib/supabase-server';
 import { fetchAllRows } from '@/lib/fetch-all';
+import { correctAnswersOf } from '@/lib/quiz-scoring';
 
 export const dynamic = 'force-dynamic';
 export const fetchCache = 'force-no-store';
@@ -61,7 +62,7 @@ export async function GET() {
     const buckets = new Map();
     for (const r of rows) {
       byQuiz[r.quiz_id] = (byQuiz[r.quiz_id] || 0) + 1;
-      totalCorrect += Number(r.score) || 0;
+      totalCorrect += correctAnswersOf(r);
       const te = Number(r.time_elapsed);
       if (Number.isFinite(te) && te > 0) totalTime += te;
       if (r.total > 0 && Number(r.score) === Number(r.total)) totalPerfect += 1;
