@@ -192,7 +192,7 @@ const boardCss = `
   .ql-row{display:flex;align-items:baseline;gap:10px;padding:7px 0;border-bottom:1px solid rgba(26,22,17,0.1);text-decoration:none;color:${COLORS.ink};}
   .ql-row:hover .ql-title{color:${COLORS.ember};}
   .ql-title{flex:1 1 auto;min-width:0;font-family:'Fraunces',serif;font-weight:500;font-size:14px;line-height:1.2;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
-  .ql-meta{flex:none;display:flex;align-items:center;gap:11px;font-family:'DM Mono',monospace;font-size:9.5px;font-weight:500;white-space:nowrap;}
+  .ql-meta{flex:none;display:flex;align-items:center;gap:11px;font-family:'DM Sans',sans-serif;font-size:9.5px;font-weight:500;white-space:nowrap;}
   .ql-plays{color:${COLORS.faded};letter-spacing:0.04em;}
   .ql-leader{display:flex;align-items:center;gap:3px;max-width:130px;}
   .ql-lname{overflow:hidden;text-overflow:ellipsis;}
@@ -206,6 +206,13 @@ const boardCss = `
   .rb-dots{display:flex;justify-content:center;gap:6px;margin-top:10px;}
   .rb-dot{width:6px;height:6px;border-radius:50%;border:none;padding:0;background:rgba(26,22,17,0.22);cursor:pointer;}
   .rb-dot.on{background:${COLORS.ember};}
+  .ql-block{margin-top:4px;}
+  .ql-bhead{display:flex;align-items:center;gap:11px;padding-bottom:7px;border-bottom:2px solid ${COLORS.ink};flex-wrap:wrap;}
+  .ql-bname{font-family:'Fraunces',serif;font-weight:600;font-size:22px;letter-spacing:-0.01em;margin:0;color:${COLORS.ink};}
+  .ql-2col{display:grid;grid-template-columns:1fr 1fr;column-gap:28px;margin-top:6px;}
+  .lb-name-sm{display:none;}
+  @media(max-width:760px){.ql-2col{grid-template-columns:1fr;}.ql-title{white-space:normal;overflow:visible;font-size:13px;line-height:1.25;}}
+  @media(max-width:680px){.lb-name-lg{display:none;}.lb-name-sm{display:block;}}
 
 `;
 
@@ -419,7 +426,7 @@ function QuizCategoryColumn({ sectionKey, label, accent, Icon, quizzes, totals, 
 // `perView` lists show at once (Players shows 2 of its 4, Quizzes 1 of 3). The
 // header stays one fixed line with the box's stats flipping in sync. Hover
 // pauses, dots jump. Not collapsible.
-function RotatingBoard({ title, href, columns, perView, stats }) {
+function RotatingBoard({ title, href, cta, columns, perView }) {
   const pages = Math.max(1, Math.ceil(columns.length / perView));
   const [page, setPage] = useState(0);
   const [paused, setPaused] = useState(false);
@@ -434,7 +441,7 @@ function RotatingBoard({ title, href, columns, perView, stats }) {
     <div className="qb" onMouseEnter={() => setPaused(true)} onMouseLeave={() => setPaused(false)}>
       <Link href={href} className="qb-head" style={{ textDecoration: 'none' }}>
         <span className="qb-title">{title}</span>
-        {stats && stats.length > 0 && <span className="rb-stat">{stats.join(' · ')}</span>}
+        <span className="qb-cta">{cta} {'→'}</span>
       </Link>
       <div className="qb-body">
         <div key={safePage} className="rb-cols rb-fade" style={{ gridTemplateColumns: `repeat(${perView}, minmax(0, 1fr))` }}>
@@ -446,7 +453,7 @@ function RotatingBoard({ title, href, columns, perView, stats }) {
                   const inner = (
                     <>
                       <span className="lb-rank" style={{ background: (i < 3 && !c.noMedals) ? MEDAL[i] : 'transparent' }}>{i + 1}</span>
-                      <span className="lb-name">{r.full}</span>
+                      <span className="lb-name lb-name-lg">{r.full}</span><span className="lb-name lb-name-sm">{r.short || r.full}</span>
                       {r.val != null && <span className="lb-val">{r.val}</span>}
                     </>
                   );
@@ -475,6 +482,7 @@ export default function QuizHomeClient() {
   const [dept, setDept] = useState('all');
   const [sortBy, setSortBy] = useState('discover');
   const [groupBy, setGroupBy] = useState('category');
+  const [listSort, setListSort] = useState('popularity');
   const [sortOpen, setSortOpen] = useState(false);
   const [catOpen, setCatOpen] = useState(false);
   const [typeOpen, setTypeOpen] = useState(false);
@@ -587,7 +595,7 @@ export default function QuizHomeClient() {
   // Quiz-side leaderboard: Most Played / Trending Now / Highest Scored. Each
   // row links to its quiz and shows full title on desktop, short on mobile.
   const { playerCols, quizCols } = useMemo(() => {
-    const mk = (q, val) => ({ key: q.id, href: `/quiz/${q.id}`, full: boardTitle(q.title), val });
+    const mk = (q, val) => ({ key: q.id, href: `/quiz/${q.id}`, full: boardTitle(q.title), short: shortTitle(q.title), val });
     const plays = (id) => totals.byQuiz[id] || 0;
     const isNewsId = (id) => /^(daily-market-news-quiz-|daily-business-quiz-|daily-news-quiz-|weekly-business-quiz-|weekly-news-quiz-|earnings-reporter-quiz-|earnings-quiz-)/.test(id || '');
     // Most Played: quizzes with the most completed games, all-time, top 3.
@@ -706,6 +714,26 @@ export default function QuizHomeClient() {
     if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
   };
 
+  const listLabel = dept === 'all' ? 'All Quizzes' : (DEPT_LABEL[dept] || 'Quizzes');
+  const filtered = useMemo(() => {
+    const tokens = query.trim().toLowerCase().split(/\s+/).filter(Boolean);
+    const isNewsQuiz = (q) => /^(daily-market-news-quiz-|daily-business-quiz-|daily-news-quiz-|weekly-business-quiz-|weekly-news-quiz-|earnings-reporter-quiz-|earnings-quiz-)/.test(q.id || '');
+    let list = QUIZZES.filter((q) => {
+      if (isNewsQuiz(q)) return false;
+      if (dept !== 'all' && deptOf(q) !== dept) return false;
+      if (typeFilter !== 'all' && !quizMatchesType(q, typeFilter)) return false;
+      if (!tokens.length) return true;
+      const hay = `${q.title || ''} ${q.category || ''} ${q.blurb || ''}`.toLowerCase();
+      return tokens.every((t) => hay.includes(t));
+    });
+    const plays = (id) => totals.byQuiz[id] || 0;
+    const trend = (id) => totals.trendingByQuiz[id] || totals.recent7[id] || 0;
+    const ts = (q) => new Date(q.publishedAt || `${q.publishedDate || '1970-01-01'}T12:00:00Z`).getTime();
+    if (listSort === 'recent') list = list.slice().sort((a, b) => ts(b) - ts(a) || a.title.localeCompare(b.title));
+    else if (listSort === 'trending') list = list.slice().sort((a, b) => trend(b.id) - trend(a.id) || plays(b.id) - plays(a.id) || a.title.localeCompare(b.title));
+    else list = list.slice().sort((a, b) => plays(b.id) - plays(a.id) || a.title.localeCompare(b.title));
+    return list;
+  }, [dept, typeFilter, query, listSort, totals]);
   return (
     <div style={{ minHeight: '100vh', background: COLORS.cream, color: COLORS.ink, position: 'relative', overflow: 'clip' }}>
       <Grain />
@@ -797,12 +825,14 @@ export default function QuizHomeClient() {
           </svg>
           <div ref={ribbonRef} style={{ maxWidth: 1200, margin: '0 auto', padding: '0 16px', position: 'relative' }}>
             <div ref={ribbonScrollRef} className="qz-ribbon">
-                            <Link href="/leaderboard" className="qz-rb-btn" style={{ textDecoration: 'none' }}>
-                <Trophy size={14} strokeWidth={2.5} aria-hidden="true" /> Leaderboard
-              </Link>
-              <Link href="/quizzes/stats" className="qz-rb-btn" style={{ textDecoration: 'none' }}>
-                <BarChart3 size={14} strokeWidth={2.5} aria-hidden="true" /> Quiz Stats
-              </Link>
+                                          <button ref={catBtnRef} type="button" className="qz-rb-btn" aria-haspopup="true" aria-expanded={catOpen} onClick={() => { const willOpen = !catOpen; if (willOpen && catBtnRef.current) setPanelLeft(catBtnRef.current.offsetLeft); setCatOpen(willOpen); setSortOpen(false); setTypeOpen(false); }}>
+                <span><span style={{ opacity: 0.7 }}>Category:</span> {currentDeptLabel}</span>
+                <ChevronDown className="qz-rb-chev" size={14} strokeWidth={2.5} style={{ transform: catOpen ? 'rotate(180deg)' : 'none' }} />
+              </button>
+              <button ref={typeBtnRef} type="button" className="qz-rb-btn" aria-haspopup="true" aria-expanded={typeOpen} onClick={() => { const willOpen = !typeOpen; if (willOpen && typeBtnRef.current) setPanelLeft(typeBtnRef.current.offsetLeft); setTypeOpen(willOpen); setCatOpen(false); setSortOpen(false); }}>
+                <span><span style={{ opacity: 0.7 }}>Type:</span> {currentTypeLabel}</span>
+                <ChevronDown className="qz-rb-chev" size={14} strokeWidth={2.5} style={{ transform: typeOpen ? 'rotate(180deg)' : 'none' }} />
+              </button>
 
               <div className="qz-rb-search">
                 <Search size={16} strokeWidth={2.5} style={{ position: 'absolute', left: 22, top: '50%', transform: 'translateY(-50%)', color: COLORS.faded }} />
@@ -850,30 +880,43 @@ export default function QuizHomeClient() {
 
         <section style={{ maxWidth: 1200, margin: '0 auto', padding: '10px 16px 64px' }}>
 
-                    <div className="qz-boards">
-            <RotatingBoard title="Players" href="/leaderboard" columns={playerCols} perView={2} stats={[`${(totals.totalCorrect || 0).toLocaleString()} correct${todayBoard.correctToday > 0 ? ` · ${todayBoard.correctToday.toLocaleString()} today` : ''}`, `${(totals.totalPerfect || 0).toLocaleString()} perfect quizzes${todayBoard.perfectToday > 0 ? ` · ${todayBoard.perfectToday.toLocaleString()} today` : ''}`]} />
-            <RotatingBoard title="Quizzes" href="/quizzes/stats" columns={quizCols} perView={1} stats={[`${(totals.total || 0).toLocaleString()} plays${todayBoard.playsToday > 0 ? ` · ${todayBoard.playsToday} today` : ''}`, `${fmtDur(totals.totalTime)} played${totals.todayTime > 0 ? ` · ${fmtDur(totals.todayTime)} today` : ''}`]} />
+                              <div className="qz-boards">
+            <RotatingBoard title="Players" href="/leaderboard" cta="Leaderboard" columns={playerCols} perView={2} />
+            <RotatingBoard title="Quizzes" href="/quizzes/stats" cta="Quiz Stats" columns={quizCols} perView={1} />
           </div>
 
-                    <div className="ql-controls">
-            <div className="ql-gb" role="group" aria-label="Group quizzes by">
-              <button type="button" className="ql-gb-btn" onClick={() => setGroupBy('category')} style={groupBy === 'category' ? { background: COLORS.ink, color: COLORS.cream } : undefined}>By Category</button>
-              <button type="button" className="ql-gb-btn" onClick={() => setGroupBy('type')} style={groupBy === 'type' ? { background: COLORS.ink, color: COLORS.cream } : undefined}>By Type</button>
+                              <div className="ql-block">
+            <div className="ql-bhead">
+              <h2 className="ql-bname">{listLabel}</h2>
+              <div className="ql-toggle" role="group" aria-label="Sort quizzes">
+                {[['recent', 'Newest'], ['popularity', 'Most Played'], ['trending', 'Trending']].map(([id, lbl]) => (
+                  <button key={id} type="button" className="ql-tg" onClick={() => setListSort(id)} style={listSort === id ? { background: COLORS.ember, color: COLORS.cream } : undefined}>{lbl}</button>
+                ))}
+              </div>
             </div>
-            <span className="ql-jumplabel">Jump to:</span>
-            <div className="ql-jumps">
-              {sections.map((s) => (
-                <button key={s.key} type="button" className="ql-jump" onClick={() => scrollToSection(s.key)} style={{ borderColor: s.accent.c, color: s.accent.c }}>{s.label}</button>
-              ))}
-            </div>
+            {filtered.length > 0 ? (
+              <div className="ql-2col">
+                {filtered.map((q) => {
+                  const leader = totals.leaders[q.id];
+                  const p = totals.byQuiz[q.id] || 0;
+                  return (
+                    <Link key={q.id} href={`/quiz/${q.id}`} className="ql-row" title={q.title}>
+                      <span className="ql-title">{q.title}</span>
+                      <span className="ql-meta">
+                        {p > 0 && <span className="ql-plays">{'▶'} <Count value={p} /></span>}
+                        <span className="ql-leader" style={{ color: leader ? COLORS.ink : COLORS.faded }}>
+                          <Crown size={11} strokeWidth={2.5} aria-hidden="true" style={{ flex: 'none', color: COLORS.ember }} />
+                          <span className="ql-lname">{leader || 'Empty'}</span>
+                        </span>
+                      </span>
+                    </Link>
+                  );
+                })}
+              </div>
+            ) : (
+              <div style={{ textAlign: 'center', padding: '48px 24px', fontFamily: 'Fraunces, serif', fontStyle: 'italic', fontSize: 18, color: COLORS.faded }}>No quizzes match that filter.</div>
+            )}
           </div>
-          {sections.length > 0 ? (
-            <div className="ql-cols">
-              {sections.map((s) => (<QuizCategoryColumn key={`${groupBy}-${s.key}`} sectionKey={s.key} label={s.label} accent={s.accent} Icon={s.Icon} quizzes={s.quizzes} totals={totals} searching={isSearching} />))}
-            </div>
-          ) : (
-            <div style={{ textAlign: 'center', padding: '48px 24px', fontFamily: 'Fraunces, serif', fontStyle: 'italic', fontSize: 18, color: COLORS.faded }}>No quizzes match that filter.</div>
-          )}
 
         </section>
       </div>
