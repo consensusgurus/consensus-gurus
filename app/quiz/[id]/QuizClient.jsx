@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect, useMemo, useRef } from 'react';
+import React, { useState, useEffect, useLayoutEffect, useMemo, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { ArrowLeft, Share2, Check, X, Flag, Trophy, HelpCircle, Eye, SkipForward } from 'lucide-react';
 import { QUIZZES, getQuiz } from '@/lib/quizzes';
@@ -847,6 +847,50 @@ export default function QuizClient({ quizId }) {
   const asOfRaw = quiz.publishedDate || (quiz.publishedAt ? quiz.publishedAt.slice(0, 10) : null);
   const asOfLabel = asOfRaw ? new Date(asOfRaw + 'T12:00:00Z').toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric', timeZone: 'UTC' }) : null;
 
+  // ── Solved-item cycling ──────────────────────────────────────────────────
+  // Move answered items to the bottom so the next unanswered one is always near
+  // the input bar. Keeps the action at the top of the page, which makes the
+  // long-list scroll (and the sticky-input fight on mobile) a non-issue. Only
+  // the single-input name-them-all modes (plain list + image grid) cycle;
+  // matched/ordered per-slot, map, and tile boards keep their fixed order, and
+  // multi-column (colSplit) layouts are left alone. Each item keeps its own rank
+  // number because the row/tile is always handed its ORIGINAL index.
+  const cyclingOn = started && !ended && !matched && !mapMode && !tileMode && !colSplit;
+  const displayOrder = useMemo(() => {
+    const base = answers.map((_, i) => i);
+    if (!cyclingOn) return base;
+    return [...base.filter((i) => !found[i]), ...base.filter((i) => found[i])];
+  }, [answers, cyclingOn, found]);
+
+  // FLIP: when the order changes, slide each row/tile from its old position to
+  // its new one instead of jumping. Cheap (a handful of nodes) and only fires
+  // when the solved set, play state, or active tab changes.
+  const flipEls = useRef(new Map());   // originalIndex -> element
+  const flipPrev = useRef(new Map());  // originalIndex -> { top, left }
+  const setFlipRef = (i) => (el) => { if (el) flipEls.current.set(i, el); else flipEls.current.delete(i); };
+  useLayoutEffect(() => {
+    if (tab !== 'play') { flipPrev.current = new Map(); return; }
+    const els = flipEls.current;
+    const next = new Map();
+    els.forEach((el, idx) => { if (el && el.isConnected) { const r = el.getBoundingClientRect(); next.set(idx, { top: r.top, left: r.left }); } });
+    const prev = flipPrev.current;
+    next.forEach((np, idx) => {
+      const op = prev.get(idx);
+      if (!op) return;
+      const dx = op.left - np.left, dy = op.top - np.top;
+      if (Math.abs(dx) < 0.5 && Math.abs(dy) < 0.5) return;
+      const el = els.get(idx);
+      if (!el) return;
+      el.style.transition = 'none';
+      el.style.transform = `translate(${dx}px, ${dy}px)`;
+      requestAnimationFrame(() => {
+        el.style.transition = 'transform .32s cubic-bezier(.22,.61,.36,1)';
+        el.style.transform = '';
+      });
+    });
+    flipPrev.current = next;
+  }, [found, started, ended, tab]);
+
   return (
     <div style={{ minHeight: '100vh', background: COLORS.cream, color: COLORS.ink, position: 'relative', overflowX: 'clip' }}>
       <Grain />
@@ -1042,12 +1086,13 @@ export default function QuizClient({ quizId }) {
             </div>
             ) : logosMode ? (
             <ul style={{ margin: 0, padding: 0, listStyle: 'none', display: 'grid', gridTemplateColumns: `repeat(auto-fill, minmax(${tallTiles || squareTiles ? 134 : 112}px, 1fr))`, gap: 8 }}>
-              {answers.map((a, i) => {
+              {displayOrder.map((i) => {
+                const a = answers[i];
                 const f = found[i];
                 const reveal = ended && revealed && !f;
                 const bd = f ? COLORS.forest : reveal ? COLORS.rust : COLORS.faded + '33';
                 return (
-                  <li key={i} style={{ border: `1px solid ${bd}`, background: '#fff', display: 'flex', flexDirection: 'column', alignItems: 'center', padding: tallTiles || squareTiles ? 6 : 8, transition: 'all .2s', boxShadow: f ? `inset 0 -3px 0 ${COLORS.forest}` : reveal ? `inset 0 -3px 0 ${COLORS.rust}` : 'none' }}>
+                  <li key={i} ref={setFlipRef(i)} style={{ border: `1px solid ${bd}`, background: '#fff', display: 'flex', flexDirection: 'column', alignItems: 'center', padding: tallTiles || squareTiles ? 6 : 8, transition: 'background .2s, border-color .2s, box-shadow .2s', boxShadow: f ? `inset 0 -3px 0 ${COLORS.forest}` : reveal ? `inset 0 -3px 0 ${COLORS.rust}` : 'none' }}>
                     <div style={{ ...(squareTiles ? { aspectRatio: '1 / 1' } : { height: tallTiles ? 208 : 62 }), width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '2px' }}>
                       {started || ended ? (
                         <img src={a.img} alt={f || reveal ? a.t : `Image ${i + 1}`} loading="lazy" style={{ maxWidth: tallTiles || squareTiles ? '100%' : '90%', maxHeight: squareTiles ? '100%' : tallTiles ? 206 : 56, objectFit: 'contain' }} />
@@ -1069,7 +1114,7 @@ export default function QuizClient({ quizId }) {
                 const isActive = ordered && started && !ended && i === activeIdx;
                 const reveal = ended && revealed && !f; // a missed answer, now filled in
                 return (
-                  <li key={i} style={{ display: 'flex', alignItems: 'center', gap: 16, padding: '13px 16px', border: `1px solid ${f ? COLORS.forest : isActive ? COLORS.ember : reveal ? COLORS.rust : COLORS.faded + '33'}`, marginBottom: 8, background: reveal ? '#f6ead9' : f || isActive ? '#fff' : COLORS.paper, boxShadow: isActive ? `inset 4px 0 0 ${COLORS.ember}` : reveal ? `inset 4px 0 0 ${COLORS.rust}` : 'none', transform: f || isActive || reveal ? 'translateX(2px)' : 'none', transition: 'all .2s' }}>
+                  <li key={i} ref={setFlipRef(i)} style={{ display: 'flex', alignItems: 'center', gap: 16, padding: '13px 16px', border: `1px solid ${f ? COLORS.forest : isActive ? COLORS.ember : reveal ? COLORS.rust : COLORS.faded + '33'}`, marginBottom: 8, background: reveal ? '#f6ead9' : f || isActive ? '#fff' : COLORS.paper, boxShadow: isActive ? `inset 4px 0 0 ${COLORS.ember}` : reveal ? `inset 4px 0 0 ${COLORS.rust}` : 'none', transition: 'background .2s, border-color .2s, box-shadow .2s, color .2s' }}>
                     {a.label != null ? (
                       <span style={{ fontFamily: MONO, fontWeight: 700, fontSize: 15, width: 52, color: COLORS.ember, flex: 'none', textAlign: 'left', letterSpacing: '0.04em' }}>{a.label}</span>
                     ) : (
@@ -1119,7 +1164,7 @@ export default function QuizClient({ quizId }) {
               }
               return (
                 <ol style={{ margin: 0, padding: 0, listStyle: 'none' }}>
-                  {answers.map((a, i) => renderRow(a, i))}
+                  {displayOrder.map((i) => renderRow(answers[i], i))}
                 </ol>
               );
             })()
