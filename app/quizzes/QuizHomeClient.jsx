@@ -505,11 +505,11 @@ function SpotlightBoard({ columns }) {
 // A quiz shelf (Recently Played / Just Added): the board's top three as a list.
 // `href`/`cta` add a header link (Just Added -> Quiz Stats). `withNew` tags the
 // freshest additions. Titles wrap on mobile via lb-name-lg / lb-name-sm.
-function ShelfBoard({ title, href, cta, col, withNew }) {
+function ShelfBoard({ title, href, cta, col, withNew, mid }) {
   if (!col) return null;
   const head = href
-    ? (<Link href={href} className="qb-head" style={{ textDecoration: 'none' }}><span className="qb-title">{title}</span><span className="qb-cta">{cta} {'→'}</span></Link>)
-    : (<div className="qb-head"><span className="qb-title">{title}</span></div>);
+    ? (<Link href={href} className="qb-head" style={{ textDecoration: 'none' }}><span className="qb-title">{title}</span>{mid != null && <span className="qb-mid">{mid}</span>}<span className="qb-cta">{cta} {'→'}</span></Link>)
+    : (<div className="qb-head"><span className="qb-title">{title}</span>{mid != null && <span className="qb-mid">{mid}</span>}</div>);
   return (
     <div className="qb">
       {head}
@@ -991,7 +991,7 @@ export default function QuizHomeClient() {
             <SpotlightBoard columns={playerCols} />
           </div>
           <div className="sp-shelves">
-            <ShelfBoard title="Recently Played" col={quizCols.find((c) => c.id === 'lastplayed')} withNew={false} />
+            <ShelfBoard title="Recently Played" mid={todayBoard.playsToday > 0 ? (<><span className="qz-pulse" />{todayBoard.playsToday.toLocaleString()} plays today</>) : null} col={quizCols.find((c) => c.id === 'lastplayed')} withNew={false} />
             <ShelfBoard title="Just Added" href="/quizzes/stats" cta="Quiz Stats" col={quizCols.find((c) => c.id === 'newest')} withNew />
           </div>
 
