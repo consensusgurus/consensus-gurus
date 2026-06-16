@@ -209,17 +209,22 @@ const boardCss = `
   .rb-dot.on{background:${COLORS.ember};}
   .sp-spotlight-wrap{margin-bottom:12px;}
   .sp-shelves{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:12px;align-items:start;}
-  .sp-toprow{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:10px;}
-  .sp-dots-inline{margin-top:0;justify-content:flex-end;}
-  .sp-flex{display:grid;grid-template-columns:minmax(0,1.55fr) minmax(0,1fr);gap:0;}
-  .sp-feat{display:flex;align-items:center;gap:14px;min-width:0;padding-right:16px;}
+  .sp-head{display:grid;grid-template-columns:1fr auto 1fr;align-items:center;}
+  .sp-head .qb-title{justify-self:start;}
+  .sp-head .qb-cta{justify-self:end;}
+  .sp-hcat{justify-self:center;display:flex;align-items:center;gap:6px;font-family:'DM Mono',monospace;font-size:11px;font-weight:700;letter-spacing:0.16em;text-transform:uppercase;color:#f4d9d4;text-align:center;}
+  .sp-flex{display:grid;grid-template-columns:minmax(200px,0.85fr) minmax(0,2fr);gap:0;align-items:center;}
+  .sp-feat{display:flex;align-items:center;gap:14px;min-width:0;padding-right:18px;}
   .sp-medal{width:50px;height:50px;border-radius:50%;background:#caa12e;border:1.5px solid ${COLORS.ink};display:flex;align-items:center;justify-content:center;flex:none;font-family:'DM Mono',monospace;font-size:20px;font-weight:500;color:#4a3608;}
   .sp-fname{font-family:'Fraunces',serif;font-size:22px;font-weight:600;color:${COLORS.ink};line-height:1.05;overflow-wrap:anywhere;}
   .sp-fstat{font-family:'DM Mono',monospace;font-size:11px;letter-spacing:0.05em;text-transform:uppercase;color:${COLORS.faded};margin-top:4px;}
   .sp-fstat b{color:${COLORS.ember};font-weight:500;}
-  .sp-rest{display:flex;flex-direction:column;justify-content:center;border-left:1px solid rgba(26,22,17,0.18);padding-left:16px;min-width:0;}
+  .sp-rest{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:1px 22px;align-content:center;border-left:1px solid rgba(26,22,17,0.18);padding-left:18px;min-width:0;}
+  .sp-rrow{padding:4px 0;}
   .sp-new{flex:none;background:${COLORS.ember};color:${COLORS.cream};font-family:'DM Mono',monospace;font-size:9px;letter-spacing:0.08em;padding:2px 5px;text-transform:uppercase;margin-right:2px;}
-  @media(max-width:680px){.sp-shelves{grid-template-columns:1fr;gap:10px;}.sp-flex{grid-template-columns:1fr;}.sp-feat{padding-right:0;padding-bottom:12px;}.sp-rest{border-left:none;border-top:1px solid rgba(26,22,17,0.18);padding-left:0;padding-top:8px;}}
+  .sh-row{align-items:flex-start;}
+  .sh-name{white-space:normal;overflow:visible;text-overflow:clip;overflow-wrap:anywhere;line-height:1.3;}
+  @media(max-width:680px){.sp-shelves{grid-template-columns:1fr;gap:10px;}.sp-head{display:flex;flex-wrap:wrap;}.sp-hcat{flex-basis:100%;order:3;justify-content:center;margin-top:5px;}.sp-flex{grid-template-columns:1fr;}.sp-feat{padding-right:0;padding-bottom:12px;}.sp-rest{grid-template-columns:repeat(auto-fit,minmax(140px,1fr));border-left:none;border-top:1px solid rgba(26,22,17,0.18);padding-left:0;padding-top:8px;}}
   .ql-block{margin-top:4px;}
   .ql-bhead{display:flex;align-items:center;gap:11px;padding-bottom:7px;border-bottom:2px solid ${COLORS.ink};flex-wrap:wrap;}
   .ql-bname{font-family:'Fraunces',serif;font-weight:600;font-size:22px;letter-spacing:-0.01em;margin:0;color:${COLORS.ink};}
@@ -459,46 +464,35 @@ function SpotlightBoard({ columns }) {
   const cat = avail[safeIdx] || null;
   const [unit, unitShort] = (cat && SPOT_UNIT[cat.id]) || ['', ''];
   const feat = cat ? cat.rows[0] : null;
-  const rest = cat ? cat.rows.slice(1, 3) : [];
+  const rest = cat ? cat.rows.slice(1, 10) : [];
   return (
     <div className="qb" onMouseEnter={() => setPaused(true)} onMouseLeave={() => setPaused(false)}>
-      <Link href="/leaderboard" className="qb-head" style={{ textDecoration: 'none' }}>
+      <Link href="/leaderboard" className="qb-head sp-head" style={{ textDecoration: 'none' }}>
         <span className="qb-title">Player Spotlight</span>
+        {cat && <span className="sp-hcat">{cat.icon}{cat.label}</span>}
         <span className="qb-cta">Leaderboard {'→'}</span>
       </Link>
       <div className="qb-body">
         {cat && feat ? (
-          <div key={safeIdx} className="rb-fade">
-            <div className="sp-toprow">
-              <div className="qz-wide-label" style={{ color: cat.accent, borderBottom: `2px solid ${cat.accent}`, padding: '6px 2px', margin: 0 }}>{cat.icon}{cat.label}</div>
-              {avail.length > 1 && (
-                <div className="rb-dots sp-dots-inline">
-                  {avail.map((c, i) => (
-                    <button key={c.id} type="button" aria-label={c.label} className={i === safeIdx ? 'rb-dot on' : 'rb-dot'} onClick={() => setIdx(i)} />
-                  ))}
-                </div>
-              )}
-            </div>
-            <div className="sp-flex">
-              <div className="sp-feat">
-                <span className="sp-medal">1</span>
-                <div style={{ minWidth: 0 }}>
-                  <div className="sp-fname">{feat.full}</div>
-                  <div className="sp-fstat"><b>{feat.val}</b> {unit}</div>
-                </div>
+          <div key={safeIdx} className="rb-fade sp-flex">
+            <div className="sp-feat">
+              <span className="sp-medal">1</span>
+              <div style={{ minWidth: 0 }}>
+                <div className="sp-fname">{feat.full}</div>
+                <div className="sp-fstat"><b>{feat.val}</b> {unit}</div>
               </div>
-              {rest.length > 0 && (
-                <div className="sp-rest">
-                  {rest.map((r, i) => (
-                    <div key={r.key} className="lb-row">
-                      <span className="lb-rank" style={{ background: MEDAL[i + 1] }}>{i + 2}</span>
-                      <span className="lb-name">{r.full}</span>
-                      <span className="lb-val">{r.val} {unitShort}</span>
-                    </div>
-                  ))}
-                </div>
-              )}
             </div>
+            {rest.length > 0 && (
+              <div className="sp-rest">
+                {rest.map((r, i) => (
+                  <div key={r.key} className="lb-row sp-rrow">
+                    <span className="lb-rank" style={{ background: i < 2 ? MEDAL[i + 1] : 'transparent' }}>{i + 2}</span>
+                    <span className="lb-name">{r.full}</span>
+                    <span className="lb-val">{r.val}{unitShort ? ` ${unitShort}` : ''}</span>
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
         ) : (
           <div className="lb-empty">No player stats yet.</div>
@@ -520,19 +514,18 @@ function ShelfBoard({ title, href, cta, col, withNew }) {
     <div className="qb">
       {head}
       <div className="qb-body">
-        <div className="qz-wide-label" style={{ color: col.accent, borderBottom: `2px solid ${col.accent}`, padding: '6px 2px', marginBottom: 4 }}>{col.icon}{col.label}</div>
-        <div className="qz-wide-list">
+        <div className="qz-wide-list" style={{ padding: 0 }}>
           {col.rows.length > 0 ? col.rows.map((r) => {
             const inner = (
               <>
                 {withNew && r.fresh ? <span className="sp-new">New</span> : null}
-                <span className="lb-name lb-name-lg">{r.full}</span><span className="lb-name lb-name-sm">{r.short || r.full}</span>
+                <span className="lb-name sh-name">{r.long || r.full}</span>
                 {r.val != null && <span className="lb-val">{r.val}</span>}
               </>
             );
             return r.href
-              ? (<Link key={r.key} href={r.href} className="lb-row" title={r.full}>{inner}</Link>)
-              : (<div key={r.key} className="lb-row">{inner}</div>);
+              ? (<Link key={r.key} href={r.href} className="lb-row sh-row" title={r.long || r.full}>{inner}</Link>)
+              : (<div key={r.key} className="lb-row sh-row">{inner}</div>);
           }) : (<div className="lb-empty">{col.empty || 'No data yet.'}</div>)}
         </div>
       </div>
@@ -709,7 +702,7 @@ export default function QuizHomeClient() {
   // Quiz-side leaderboard: Most Played / Trending Now / Highest Scored. Each
   // row links to its quiz and shows full title on desktop, short on mobile.
   const { playerCols, quizCols } = useMemo(() => {
-    const mk = (q, val) => ({ key: q.id, href: `/quiz/${q.id}`, full: boardTitle(q.title), short: shortTitle(q.title), val });
+    const mk = (q, val) => ({ key: q.id, href: `/quiz/${q.id}`, full: boardTitle(q.title), short: shortTitle(q.title), long: cleanTitle(q.title), val });
     const plays = (id) => totals.byQuiz[id] || 0;
     const isNewsId = (id) => /^(daily-market-news-quiz-|daily-business-quiz-|daily-news-quiz-|weekly-business-quiz-|weekly-news-quiz-|earnings-reporter-quiz-|earnings-quiz-)/.test(id || '');
     // Most Played: quizzes with the most completed games, all-time, top 3.
@@ -737,10 +730,10 @@ export default function QuizHomeClient() {
       .slice(0, 3).map((q) => ({ ...mk(q, <span style={{ color: COLORS.faded }}>{dateShort(q)}</span>), fresh: (Date.now() - ts(q)) < 7 * 86400000 }));
     // Players: today's correct answers (since midnight ET, /api/quiz/today),
     // all-time correct answers and most perfect quizzes (/api/quiz/champions).
-    const todaysCorrect = (todayBoard.leaders || []).slice(0, 3).map((u, i) => ({ key: `tc-${i}-${u.username}`, full: u.username, val: (u.correct || 0).toLocaleString() }));
-    const totalCorrect = (champions.correctAnswers || []).slice(0, 3).map((u, i) => ({ key: `cc-${i}-${u.username}`, full: u.username, val: (u.correct || 0).toLocaleString() }));
-    const mostPerfect = (champions.perfectQuizzes || []).slice(0, 3).map((u, i) => ({ key: `pf-${i}-${u.username}`, full: u.username, val: (u.perfect || 0).toLocaleString() }));
-    const mostUnique = (champions.completed || []).slice(0, 3).map((u, i) => ({ key: `uq-${i}-${u.username}`, full: u.username, val: (u.quizzes || 0).toLocaleString() }));
+    const todaysCorrect = (todayBoard.leaders || []).slice(0, 10).map((u, i) => ({ key: `tc-${i}-${u.username}`, full: u.username, val: (u.correct || 0).toLocaleString() }));
+    const totalCorrect = (champions.correctAnswers || []).slice(0, 10).map((u, i) => ({ key: `cc-${i}-${u.username}`, full: u.username, val: (u.correct || 0).toLocaleString() }));
+    const mostPerfect = (champions.perfectQuizzes || []).slice(0, 10).map((u, i) => ({ key: `pf-${i}-${u.username}`, full: u.username, val: (u.perfect || 0).toLocaleString() }));
+    const mostUnique = (champions.completed || []).slice(0, 10).map((u, i) => ({ key: `uq-${i}-${u.username}`, full: u.username, val: (u.quizzes || 0).toLocaleString() }));
     return {
       playerCols: [
         { id: 'today', label: "Today's Correct Answers", rows: todaysCorrect, empty: 'No correct answers yet today.', accent: '#c98a1b', icon: <Check size={12} strokeWidth={3} aria-hidden="true" />, prize: true },
