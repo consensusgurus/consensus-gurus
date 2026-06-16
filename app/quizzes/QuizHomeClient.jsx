@@ -212,6 +212,7 @@ const boardCss = `
   .ql-2col{display:grid;grid-template-columns:1fr 1fr;column-gap:28px;margin-top:6px;}
   .lb-name-sm{display:none;}
   @media(max-width:760px){.ql-2col{grid-template-columns:1fr;}.ql-title{white-space:normal;overflow:visible;font-size:13px;line-height:1.25;}}
+  @media(max-width:680px){.lb-name-lg{display:none;}.lb-name-sm{display:block;}}
   .ql-sortbar{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:14px;}
   .ql-sortlabel{font-family:'DM Mono',monospace;font-size:9px;letter-spacing:0.16em;text-transform:uppercase;color:${COLORS.faded};font-weight:700;}
 
@@ -367,20 +368,21 @@ const TYPE_META = {
 // rows (title + play count + current leader), and a "View all" expander.
 function QuizCategoryColumn({ sectionKey, label, accent, Icon, quizzes, totals, onViewAll }) {
   const [sortMode, setSortMode] = useState('popularity');
+  const dseed = useMemo(() => (Math.random() * 1e9) >>> 0, []);
   const plays = (id) => totals.byQuiz[id] || 0;
   const trend = (id) => totals.trendingByQuiz[id] || totals.recent7[id] || 0;
   const ts = (q) => new Date(q.publishedAt || `${q.publishedDate || '1970-01-01'}T12:00:00Z`).getTime();
   const sorted = useMemo(() => {
     const arr = quizzes.slice();
+    if (sortMode === 'discover') return seededShuffle(arr, dseed);
     if (sortMode === 'recent') arr.sort((a, b) => ts(b) - ts(a) || a.title.localeCompare(b.title));
-    else if (sortMode === 'trending') arr.sort((a, b) => trend(b.id) - trend(a.id) || plays(b.id) - plays(a.id) || a.title.localeCompare(b.title));
     else arr.sort((a, b) => plays(b.id) - plays(a.id) || a.title.localeCompare(b.title));
     return arr;
-  }, [quizzes, sortMode, totals]);
+  }, [quizzes, sortMode, totals, dseed]);
   const LIMIT = 6;
   const shown = sorted.slice(0, LIMIT);
   const total = quizzes.length;
-  const TOGGLES = [['recent', 'Newest'], ['popularity', 'Most Played'], ['trending', 'Trending']];
+  const TOGGLES = [['recent', 'Newest'], ['popularity', 'Most Played'], ['discover', 'Discover']];
   return (
     <section id={`qzsec-${sectionKey}`} className="ql-col">
       <div className="ql-col-head" style={{ borderColor: accent.c }}>
@@ -727,7 +729,7 @@ export default function QuizHomeClient() {
     const trend = (id) => totals.trendingByQuiz[id] || totals.recent7[id] || 0;
     const ts = (q) => new Date(q.publishedAt || `${q.publishedDate || '1970-01-01'}T12:00:00Z`).getTime();
     if (listSort === 'recent') list = list.slice().sort((a, b) => ts(b) - ts(a) || a.title.localeCompare(b.title));
-    else if (listSort === 'trending') list = list.slice().sort((a, b) => trend(b.id) - trend(a.id) || plays(b.id) - plays(a.id) || a.title.localeCompare(b.title));
+    else if (listSort === 'discover') list = seededShuffle(list, seedRef.current);
     else list = list.slice().sort((a, b) => plays(b.id) - plays(a.id) || a.title.localeCompare(b.title));
     return list;
   }, [dept, typeFilter, query, listSort, totals]);
@@ -893,7 +895,7 @@ export default function QuizHomeClient() {
               <div className="ql-bhead">
                 <h2 className="ql-bname">{listLabel}</h2>
                 <div className="ql-toggle" role="group" aria-label="Sort quizzes">
-                  {[['recent', 'Newest'], ['popularity', 'Most Played'], ['trending', 'Trending']].map(([id, lbl]) => (
+                  {[['recent', 'Newest'], ['popularity', 'Most Played'], ['discover', 'Discover']].map(([id, lbl]) => (
                     <button key={id} type="button" className="ql-tg" onClick={() => setListSort(id)} style={listSort === id ? { background: COLORS.ember, color: COLORS.cream } : undefined}>{lbl}</button>
                   ))}
                 </div>
