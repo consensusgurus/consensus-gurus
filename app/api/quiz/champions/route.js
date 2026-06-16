@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { supabaseAdmin } from '@/lib/supabase-server';
+import { buildAnonPlayers } from '@/lib/quiz-anon';
 
 export const dynamic = 'force-dynamic';
 export const fetchCache = 'force-no-store';
@@ -148,10 +149,11 @@ export async function GET() {
   try {
     const rows = await fetchAllResults();
     const anon = buildAnon(rows);
+    const anonPlayers = buildAnonPlayers(rows);
     // `anonymous` retained for back-compat (the /quizzes Players board total).
-    return NextResponse.json({ ...buildChampions(rows), ...anon, anonymous: anon.anonPlays });
+    return NextResponse.json({ ...buildChampions(rows), ...anon, anonPlayers, anonymous: anon.anonPlays });
   } catch (e) {
     console.error('quiz champions error', e);
-    return NextResponse.json({ totalPlays: [], completed: [], weighted: [], accuracy: [], correctAnswers: [], perfectQuizzes: [], minQuizzes: MIN_QUIZZES, anonymous: 0, anonPlays: 0, anonCompleted: 0, anonWeighted: 0, anonAccuracy: 0 });
+    return NextResponse.json({ totalPlays: [], completed: [], weighted: [], accuracy: [], correctAnswers: [], perfectQuizzes: [], minQuizzes: MIN_QUIZZES, anonPlayers: [], anonymous: 0, anonPlays: 0, anonCompleted: 0, anonWeighted: 0, anonAccuracy: 0 });
   }
 }

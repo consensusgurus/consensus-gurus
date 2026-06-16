@@ -2,7 +2,7 @@
 import React, { useState, useEffect, useMemo, useRef } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { Search, X, ChevronDown, ArrowLeft, Trophy, Clock, Flame, Sparkles, Check, BarChart3, DollarSign } from 'lucide-react';
+import { Search, X, ChevronDown, ArrowLeft, Trophy, Clock, Flame, Sparkles, Check, BarChart3 } from 'lucide-react';
 import { COLORS } from '@/lib/data';
 import { QUIZZES } from '@/lib/quizzes';
 import { fetchBootstrap } from '@/lib/api';
@@ -245,12 +245,12 @@ function QuizBoardWide({ title, cta, ctaHref, categories, mid }) {
                   <>
                     <span className="lb-rank" style={r.noRank ? { background: 'transparent', border: 'none' } : { background: (i < 3 && !c.noMedals) ? MEDAL[i] : 'transparent' }}>{r.noRank ? '' : i + 1}</span>
                     <span className="lb-name">{r.full}</span>
-                    {c.prize && i < 3 && !r.noRank && (
-                      <span aria-hidden="true" style={{ flex: 'none', display: 'inline-flex', alignItems: 'center', gap: 1, color: '#2e8b3d' }}>
-                        {Array.from({ length: 3 - i }).map((_, d) => (<DollarSign key={d} size={12} strokeWidth={2.75} />))}
+                    {c.prize && (
+                      <span aria-hidden="true" style={{ flex: 'none', width: 54, textAlign: 'left', whiteSpace: 'nowrap', overflow: 'hidden', fontSize: 12.5, lineHeight: 1 }}>
+                        {i < 3 && !r.noRank ? '\uD83D\uDCB5'.repeat(3 - i) : ''}
                       </span>
                     )}
-                    {r.val != null && <span className="lb-val">{r.val}</span>}
+                    {r.val != null && <span className="lb-val" style={c.prize ? { minWidth: 30, textAlign: 'right' } : undefined}>{r.val}</span>}
                   </>
                 );
                 return r.href

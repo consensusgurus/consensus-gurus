@@ -5,6 +5,7 @@ import { redirect } from 'next/navigation';
 import AdminClient from './AdminClient';
 import { LISTS } from '@/lib/data';
 import { QUIZZES } from '@/lib/quizzes';
+import { buildAnonPlayers } from '@/lib/quiz-anon';
 import { DESCRIPTIONS } from '@/lib/descriptions';
 import { HERO_IMAGES } from '@/lib/hero-images';
 
@@ -48,7 +49,7 @@ export default async function AdminPage() {
     // counts + average score per quiz.
     supabaseAdmin.rpc('quiz_trending_views', { p_hours: 24 }),
     fetchAllRows(supabaseAdmin, 'quiz_views', 'quiz_id, count', ['quiz_id']),
-    fetchAllRows(supabaseAdmin, 'quiz_results', 'quiz_id, user_id, score, total, time_elapsed, created_at', [['created_at', false], 'id']),
+    fetchAllRows(supabaseAdmin, 'quiz_results', 'id, quiz_id, user_id, score, total, time_elapsed, created_at, anon_id', [['created_at', false], 'id']),
   ]);
 
   if (submissionsRes.error) {
@@ -249,6 +250,10 @@ export default async function AdminPage() {
       createdAt: r.created_at,
     });
   }
+  // Anonymous players: completed games with no signed-up user_id, batched by
+  // browser (anon_id) under a stable random number. Mirrors the signups table.
+  const anonPlayers = buildAnonPlayers((quizResultsRes && quizResultsRes.data) || []);
+
   const quizSignupsWithPlays = quizSignups.map((s) => {
     const plays = (playsByUser.get(s.id) || []).sort((a, b) =>
       String(b.createdAt || '').localeCompare(String(a.createdAt || ''))
@@ -295,6 +300,7 @@ export default async function AdminPage() {
       initialViews24h={views24h}
       initialQuizSignups={quizSignupsWithPlays}
       initialQuizStats={quizStats}
+      initialAnonPlayers={anonPlayers}
     />
   );
 }

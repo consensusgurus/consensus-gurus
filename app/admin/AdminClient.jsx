@@ -72,7 +72,7 @@ function mapsPlaceUrl(name) {
   return `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(cleaned)}`;
 }
 
-export default function AdminClient({ initialLists, initialExtras = [], initialComplaints = [], initialVoteStandings = [], initialVoteEvents = [], initialComments = [], initialAlerts = [], initialViews24h = [], initialEditorNotes = [], initialQuizSignups = [], initialQuizStats = [] }) {
+export default function AdminClient({ initialLists, initialExtras = [], initialComplaints = [], initialVoteStandings = [], initialVoteEvents = [], initialComments = [], initialAlerts = [], initialViews24h = [], initialEditorNotes = [], initialQuizSignups = [], initialQuizStats = [], initialAnonPlayers = [] }) {
   const router = useRouter();
   const [lists, setLists] = useState(initialLists);
   const [extras, setExtras] = useState(initialExtras);
@@ -84,6 +84,7 @@ export default function AdminClient({ initialLists, initialExtras = [], initialC
   const [editorNotes, setEditorNotes] = useState(initialEditorNotes);
   const [views24h] = useState(initialViews24h);
   const [quizSignups] = useState(initialQuizSignups);
+  const [anonPlayers] = useState(initialAnonPlayers);
   const [quizStats] = useState(initialQuizStats);
   const [tab, setTab] = useState('analytics');
   const [busy, setBusy] = useState({});
@@ -454,7 +455,7 @@ export default function AdminClient({ initialLists, initialExtras = [], initialC
         </div>
 
         {tab === 'analytics' ? (
-          <AnalyticsPanel views={views24h} viewsTotal={views24hTotal} quizStats={quizStats} quizPlaysTotal={quizPlaysTotal} signups={quizSignups} />
+          <AnalyticsPanel views={views24h} viewsTotal={views24hTotal} quizStats={quizStats} quizPlaysTotal={quizPlaysTotal} signups={quizSignups} anonPlayers={anonPlayers} />
         ) : tab === 'research' ? (
           <ResearchNotesPanel alerts={alerts} busy={busy} onResolve={resolveAlert} notes={editorNotes} lists={LISTS} onAddNote={addNote} onDeleteNote={deleteNote} />
         ) : tab === 'feedback' ? (
@@ -1326,12 +1327,89 @@ function SectionHeading({ children }) {
 }
 
 // Analytics tab: list page views and quiz views/plays, stacked into one view.
-function AnalyticsPanel({ views, viewsTotal, quizStats, quizPlaysTotal, signups }) {
+function AnonPlayersPanel({ players }) {
+  const [query, setQuery] = useState('');
+  const [sortBy, setSortBy] = useState('plays');
+  const list = players || [];
+
+  const visible = useMemo(() => {
+    const digits = query.replace(/[^0-9]/g, '');
+    const arr = !digits ? list.slice() : list.filter((p) => String(p.num).includes(digits));
+    if (sortBy === 'recent') {
+      arr.sort((a, b) => (Date.parse(b.lastPlayed || '') || 0) - (Date.parse(a.lastPlayed || '') || 0));
+    } else {
+      arr.sort((a, b) => (b[sortBy] || 0) - (a[sortBy] || 0) || (a.num - b.num));
+    }
+    return arr;
+  }, [list, query, sortBy]);
+
+  if (!list.length) {
+    return (
+      <div style={{ padding: '60px 20px', textAlign: 'center', fontFamily: 'Fraunces, serif', fontStyle: 'italic', fontSize: 18, color: COLORS.faded, border: `1.5px dashed ${COLORS.ink}` }}>
+        No anonymous players yet.
+      </div>
+    );
+  }
+  const rowBorder = `1px solid ${COLORS.ink}22`;
+  const totalPlays = list.reduce((n, p) => n + (p.plays || 0), 0);
+  return (
+    <div>
+      <p style={{ fontFamily: 'DM Sans, sans-serif', fontSize: 13, color: COLORS.faded, margin: '0 0 14px' }}>
+        Players who completed quizzes without signing up, batched by browser and shown under a stable random number.
+        {' '}{list.length} anonymous player{list.length === 1 ? '' : 's'}, {totalPlays} play{totalPlays === 1 ? '' : 's'} total.
+      </p>
+      <div style={{ display: 'flex', gap: 8, marginBottom: 12, flexWrap: 'wrap', alignItems: 'center' }}>
+        <span style={{ fontFamily: 'DM Mono, monospace', fontSize: 10, letterSpacing: '0.12em', textTransform: 'uppercase', color: COLORS.faded, marginRight: 2 }}>Sort:</span>
+        {[['plays', 'Plays'], ['correct', 'Correct'], ['quizzes', 'Quizzes'], ['perfect', 'Perfect'], ['recent', 'Last played']].map(([key, label]) => {
+          const on = sortBy === key;
+          return (
+            <button key={key} onClick={() => setSortBy(key)} style={{ padding: '6px 12px', background: on ? COLORS.ink : 'transparent', border: `1.5px solid ${COLORS.ink}`, color: on ? COLORS.paper : COLORS.ink, fontFamily: 'DM Mono, monospace', fontSize: 11, letterSpacing: '0.08em', textTransform: 'uppercase', cursor: 'pointer' }}>{label}</button>
+          );
+        })}
+      </div>
+      <input value={query} onChange={(e) => setQuery(e.target.value)} placeholder="Filter by player number\u2026" style={{ width: '100%', padding: '10px 12px', background: COLORS.paper, border: `1.5px solid ${COLORS.ink}`, color: COLORS.ink, fontFamily: 'DM Mono, monospace', fontSize: 12, outline: 'none', boxSizing: 'border-box', marginBottom: 16 }} />
+      {visible.length === 0 ? (
+        <div style={{ padding: '40px 20px', textAlign: 'center', fontFamily: 'Fraunces, serif', fontStyle: 'italic', fontSize: 16, color: COLORS.faded, border: `1.5px dashed ${COLORS.ink}` }}>No matches.</div>
+      ) : (
+        <div style={{ border: `1.5px solid ${COLORS.ink}`, maxHeight: TABLE_MAX_H, overflowY: 'auto' }}>
+          <div style={{ display: 'flex', position: 'sticky', top: 0, zIndex: 1, background: COLORS.cream, fontFamily: 'DM Mono, monospace', fontSize: 10, letterSpacing: '0.14em', textTransform: 'uppercase', color: COLORS.faded, padding: '10px 14px', borderBottom: `1.5px solid ${COLORS.ink}` }}>
+            <span style={{ flex: '0 0 36px' }}>#</span>
+            <span style={{ flex: 2 }}>Player</span>
+            <span style={{ flex: '0 0 70px', textAlign: 'right' }}>Quizzes</span>
+            <span style={{ flex: '0 0 56px', textAlign: 'right' }}>Plays</span>
+            <span style={{ flex: '0 0 70px', textAlign: 'right' }}>Correct</span>
+            <span style={{ flex: '0 0 64px', textAlign: 'right' }}>Perfect</span>
+            <span style={{ flex: '0 0 72px', textAlign: 'right' }}>Accuracy</span>
+            <span style={{ flex: '0 0 156px', textAlign: 'right' }}>Last played</span>
+          </div>
+          {visible.map((p, i) => (
+            <div key={p.key} style={{ display: 'flex', alignItems: 'center', fontFamily: 'DM Sans, sans-serif', fontSize: 13, color: COLORS.ink, padding: '9px 14px', borderBottom: i < visible.length - 1 ? rowBorder : 'none' }}>
+              <span style={{ flex: '0 0 36px', fontFamily: 'DM Mono, monospace', fontSize: 11, color: COLORS.faded }}>{i + 1}</span>
+              <span style={{ flex: 2, minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', fontFamily: 'DM Mono, monospace', fontWeight: 700 }}>{p.label}</span>
+              <span style={{ flex: '0 0 70px', textAlign: 'right', fontFamily: 'DM Mono, monospace', fontSize: 12 }}>{p.quizzes}</span>
+              <span style={{ flex: '0 0 56px', textAlign: 'right', fontFamily: 'DM Mono, monospace', fontSize: 12, fontWeight: 700, color: p.plays > 0 ? COLORS.ember : COLORS.faded }}>{p.plays}</span>
+              <span style={{ flex: '0 0 70px', textAlign: 'right', fontFamily: 'DM Mono, monospace', fontSize: 12 }}>{p.correct}</span>
+              <span style={{ flex: '0 0 64px', textAlign: 'right', fontFamily: 'DM Mono, monospace', fontSize: 12, color: p.perfect > 0 ? COLORS.ink : COLORS.faded }}>{p.perfect}</span>
+              <span style={{ flex: '0 0 72px', textAlign: 'right', fontFamily: 'DM Mono, monospace', fontSize: 12, color: COLORS.faded }}>{p.accuracy}%</span>
+              <span style={{ flex: '0 0 156px', textAlign: 'right', fontFamily: 'DM Mono, monospace', fontSize: 11, color: COLORS.faded }}>{p.lastPlayed ? formatDayTime(p.lastPlayed) : '\u2014'}</span>
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
+function AnalyticsPanel({ views, viewsTotal, quizStats, quizPlaysTotal, signups, anonPlayers }) {
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 36 }}>
       <div>
         <SectionHeading>Quiz Signups</SectionHeading>
         <QuizSignupsPanel signups={signups} />
+      </div>
+      <div>
+        <SectionHeading>Anonymous Players</SectionHeading>
+        <AnonPlayersPanel players={anonPlayers} />
       </div>
       <div>
         <SectionHeading>List Views</SectionHeading>
