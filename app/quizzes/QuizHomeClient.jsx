@@ -219,7 +219,7 @@ const boardCss = `
   .sp-fname{font-family:'Fraunces',serif;font-size:22px;font-weight:600;color:${COLORS.ink};line-height:1.05;overflow-wrap:anywhere;}
   .sp-fstat{font-family:'DM Mono',monospace;font-size:11px;letter-spacing:0.05em;text-transform:uppercase;color:${COLORS.faded};margin-top:4px;}
   .sp-fstat b{color:${COLORS.ember};font-weight:500;}
-  .sp-rest{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));grid-auto-flow:row;gap:1px 22px;align-content:center;border-left:1px solid rgba(26,22,17,0.18);padding-left:18px;min-width:0;}
+  .sp-rest{display:grid;grid-template-rows:repeat(3,auto);grid-auto-flow:column;grid-auto-columns:minmax(0,1fr);gap:1px 22px;align-content:center;border-left:1px solid rgba(26,22,17,0.18);padding-left:18px;min-width:0;}
   .sp-rest .lb-name{font-size:12px;}
   .sp-rest .lb-val{font-size:11px;}
   .sp-rrow{padding:3px 0;}
@@ -230,7 +230,7 @@ const boardCss = `
   .sp-new{flex:none;background:${COLORS.ember};color:${COLORS.cream};font-family:'DM Mono',monospace;font-size:9px;letter-spacing:0.08em;padding:2px 5px;text-transform:uppercase;margin-right:2px;}
   .sh-row{align-items:flex-start;}
   .sh-name{white-space:normal;overflow:visible;text-overflow:clip;overflow-wrap:anywhere;line-height:1.3;}
-  @media(max-width:680px){.sp-shelves{grid-template-columns:1fr;gap:10px;}.sp-head{display:flex;flex-wrap:wrap;}.sp-hcat{flex-basis:100%;order:3;justify-content:center;margin-top:5px;}.sp-flex{grid-template-columns:1fr;}.sp-feat{padding-right:0;padding-bottom:12px;}.sp-rest{grid-template-columns:repeat(2,minmax(0,1fr));border-left:none;border-top:1px solid rgba(26,22,17,0.18);padding-left:0;padding-top:8px;}}
+  @media(max-width:680px){.sp-shelves{grid-template-columns:1fr;gap:10px;}.sp-head{display:flex;flex-wrap:wrap;}.sp-hcat{flex-basis:100%;order:3;justify-content:center;margin-top:5px;}.sp-flex{grid-template-columns:1fr;}.sp-feat{padding-right:0;padding-bottom:12px;}.sp-rest{grid-template-rows:repeat(5,auto);grid-template-columns:none;border-left:none;border-top:1px solid rgba(26,22,17,0.18);padding-left:0;padding-top:8px;}}
   .ql-block{margin-top:4px;}
   .ql-bhead{display:flex;align-items:center;gap:11px;padding-bottom:7px;border-bottom:2px solid ${COLORS.ink};flex-wrap:wrap;}
   .ql-bname{font-family:'Fraunces',serif;font-weight:600;font-size:22px;letter-spacing:-0.01em;margin:0;color:${COLORS.ink};}
@@ -912,8 +912,7 @@ export default function QuizHomeClient() {
             }
           `}</style>
           <div className="qz-stats">
-            <span>{QUIZZES.length} quizzes</span>
-            <span><span style={{ opacity: 0.5 }}>·</span> <Count value={totals.total} /> plays</span>
+            <span>{totals.total.toLocaleString()} quiz plays</span>
             <span><span style={{ opacity: 0.5 }}>·</span> <Count value={visitors} /> visitors</span>
             {recentEntries.length > 0 && (
               <span className="qz-tape">
@@ -1000,9 +999,9 @@ export default function QuizHomeClient() {
             <SpotlightBoard columns={playerCols} />
           </div>
           <div className="sp-shelves">
-            <ShelfBoard title="Recently Added" href="/quizzes/stats" cta="Quiz Stats" col={quizCols.find((c) => c.id === 'newest')} withNew />
+            <ShelfBoard title="Recently Added" mid={`${QUIZZES.length.toLocaleString()} Total Quizzes`} col={quizCols.find((c) => c.id === 'newest')} withNew />
             <ShelfBoard title="Last Played" mid={todayBoard.playsToday > 0 ? (<><span className="qz-pulse" />{todayBoard.playsToday.toLocaleString()} plays today</>) : null} col={quizCols.find((c) => c.id === 'lastplayed')} withNew={false} />
-            <ShelfBoard title="Most Played" col={quizCols.find((c) => c.id === 'played')} withNew={false} />
+            <ShelfBoard title="Most Played" href="/quizzes/stats" cta="Quiz Stats" col={quizCols.find((c) => c.id === 'played')} withNew={false} />
           </div>
 
                                                   {showColumns ? (
