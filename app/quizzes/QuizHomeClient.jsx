@@ -524,19 +524,28 @@ function SpotlightBoard({ columns }) {
 // A quiz shelf (Recently Played / Just Added): the board's top three as a list.
 // `href`/`cta` add a header link (Just Added -> Quiz Stats). `withNew` tags the
 // freshest additions. Titles wrap on mobile via lb-name-lg / lb-name-sm.
-function ShelfBoard({ title, col, withNew, mid, open, onToggle }) {
+function ShelfBoard({ title, col, withNew, mid, open, onToggle, cta, ctaHref }) {
   // Collapsed shows 3; expanding any shelf expands all three to 10 (shared state).
   // The arrow flips up when open. Capped at 10.
   if (!col) return null;
   const rows = col.rows || [];
   const shown = rows.slice(0, open ? 10 : 3);
   const canToggle = rows.length > 3;
+  const head = cta ? (
+    <div className="qb-head">
+      <Link href="/quizzes/stats" className="qb-title" style={{ textDecoration: 'none' }}>{title}</Link>
+      {mid != null && <span className="qb-mid">{mid}</span>}
+      <Link href={ctaHref} className="qb-cta">{cta} {'→'}</Link>
+    </div>
+  ) : (
+    <Link href="/quizzes/stats" className="qb-head" style={{ textDecoration: 'none' }}>
+      <span className="qb-title">{title}</span>
+      {mid != null && <span className="qb-mid">{mid}</span>}
+    </Link>
+  );
   return (
     <div className="qb">
-      <Link href="/quizzes" className="qb-head" style={{ textDecoration: 'none' }}>
-        <span className="qb-title">{title}</span>
-        {mid != null && <span className="qb-mid">{mid}</span>}
-      </Link>
+      {head}
       <div className="qb-body">
         <div className="qz-wide-list" style={{ padding: 0 }}>
           {shown.length > 0 ? shown.map((r) => {
@@ -1035,7 +1044,7 @@ export default function QuizHomeClient() {
           <div className="sp-shelves">
             <ShelfBoard title="Recently Added" mid={`${QUIZZES.length.toLocaleString()} Total Quizzes`} col={quizCols.find((c) => c.id === 'newest')} withNew open={shelvesOpen} onToggle={() => setShelvesOpen((o) => !o)} />
             <ShelfBoard title="Last Played" mid={todayBoard.playsToday > 0 ? (<><span className="qz-pulse" />{todayBoard.playsToday.toLocaleString()} plays today</>) : null} col={quizCols.find((c) => c.id === 'lastplayed')} withNew={false} open={shelvesOpen} onToggle={() => setShelvesOpen((o) => !o)} />
-            <ShelfBoard title="Most Played" col={quizCols.find((c) => c.id === 'played')} withNew={false} open={shelvesOpen} onToggle={() => setShelvesOpen((o) => !o)} />
+            <ShelfBoard title="Most Played" col={quizCols.find((c) => c.id === 'played')} withNew={false} open={shelvesOpen} onToggle={() => setShelvesOpen((o) => !o)} cta="Quiz Stats" ctaHref="/quizzes/stats" />
           </div>
 
                                                   {showColumns ? (
