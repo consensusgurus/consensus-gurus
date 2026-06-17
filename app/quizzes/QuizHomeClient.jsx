@@ -221,7 +221,7 @@ const boardCss = `
   .sp-fname{font-family:'Fraunces',serif;font-size:22px;font-weight:600;color:${COLORS.ink};line-height:1.05;overflow-wrap:anywhere;}
   .sp-fstat{font-family:'DM Mono',monospace;font-size:11px;letter-spacing:0.05em;text-transform:uppercase;color:${COLORS.faded};margin-top:4px;}
   .sp-fstat b{color:${COLORS.ember};font-weight:500;}
-  .sp-rest{display:grid;grid-template-rows:repeat(3,auto);grid-auto-flow:column;grid-auto-columns:max-content;justify-content:space-between;gap:1px 24px;align-content:center;border-left:1px solid rgba(26,22,17,0.18);padding-left:18px;min-width:0;}
+  .sp-rest{display:grid;grid-template-rows:repeat(3,auto);grid-auto-flow:column;grid-auto-columns:max-content;justify-content:space-evenly;gap:1px 24px;align-content:center;border-left:1px solid rgba(26,22,17,0.18);padding-left:18px;min-width:0;}
   .sp-rest .lb-name{font-size:12px;}
   .sp-rest .lb-val{font-size:11px;}
   .sp-rrow{padding:4px 0;}
