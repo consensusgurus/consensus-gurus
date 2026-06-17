@@ -226,6 +226,10 @@ const boardCss = `
   .sp-rest .lb-val{font-size:11px;}
   .sp-rrow{padding:4px 0;}
   .sp-date{flex:none;min-width:42px;font-family:'DM Mono',monospace;font-size:12px;font-weight:700;letter-spacing:0.04em;color:${COLORS.ember};}
+  .sp-daily-grid{display:grid;grid-auto-flow:column;grid-template-rows:repeat(5,auto);gap:2px 26px;}
+  .sp-daily-row{display:flex;align-items:center;gap:10px;padding:4px 0;min-width:0;}
+  .sp-daily-name{flex:1 1 auto;min-width:0;font-family:'Fraunces',serif;font-size:14px;font-weight:500;color:${COLORS.ink};white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+  @media(max-width:680px){.sp-daily-grid{grid-auto-flow:row;grid-template-rows:none;grid-template-columns:1fr 1fr;}}
   .sp-new{flex:none;background:${COLORS.ember};color:${COLORS.cream};font-family:'DM Mono',monospace;font-size:9px;letter-spacing:0.08em;padding:2px 5px;text-transform:uppercase;margin-right:2px;}
   .sh-row{align-items:flex-start;}
   .sh-name{white-space:normal;overflow:visible;text-overflow:clip;overflow-wrap:anywhere;line-height:1.3;}
@@ -477,28 +481,37 @@ function SpotlightBoard({ columns }) {
       </Link>
       <div className="qb-body">
         {cat && feat ? (
-          <div key={safeIdx} className="rb-fade sp-flex">
-            <div className="sp-feat">
-              <span className="sp-medal">{cat.dated ? <Crown size={22} strokeWidth={2} aria-hidden="true" /> : '1'}</span>
-              <div style={{ minWidth: 0 }}>
-                <div className="sp-fname">{feat.full}</div>
-                <div className="sp-fstat">{cat.dated ? <b>{feat.date}</b> : <><b>{feat.val}</b> {unit}</>}</div>
-              </div>
+          cat.dated ? (
+            <div key={safeIdx} className="rb-fade sp-daily-grid">
+              {cat.rows.map((r) => (
+                <div key={r.key} className="sp-daily-row">
+                  <span className="sp-date">{r.date}</span>
+                  <span className="sp-daily-name">{r.full}</span>
+                </div>
+              ))}
             </div>
-            {rest.length > 0 && (
-              <div className="sp-rest">
-                {rest.map((r, i) => (
-                  <div key={r.key} className="lb-row sp-rrow">
-                    {cat.dated ? (
-                      <><span className="sp-date">{r.date}</span><span className="lb-name">{r.full}</span></>
-                    ) : (
-                      <><span className="lb-rank" style={{ background: i < 2 ? MEDAL[i + 1] : 'transparent' }}>{i + 2}</span><span className="lb-name">{r.full}</span><span className="lb-val">{r.val}</span></>
-                    )}
-                  </div>
-                ))}
+          ) : (
+            <div key={safeIdx} className="rb-fade sp-flex">
+              <div className="sp-feat">
+                <span className="sp-medal">1</span>
+                <div style={{ minWidth: 0 }}>
+                  <div className="sp-fname">{feat.full}</div>
+                  <div className="sp-fstat"><b>{feat.val}</b> {unit}</div>
+                </div>
               </div>
-            )}
-          </div>
+              {rest.length > 0 && (
+                <div className="sp-rest">
+                  {rest.map((r, i) => (
+                    <div key={r.key} className="lb-row sp-rrow">
+                      <span className="lb-rank" style={{ background: i < 2 ? MEDAL[i + 1] : 'transparent' }}>{i + 2}</span>
+                      <span className="lb-name">{r.full}</span>
+                      <span className="lb-val">{r.val}</span>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          )
         ) : (
           <div className="lb-empty">No player stats yet.</div>
         )}
