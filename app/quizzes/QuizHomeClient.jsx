@@ -222,11 +222,7 @@ const boardCss = `
   .sp-rest{display:grid;grid-template-rows:repeat(3,auto);grid-auto-flow:column;grid-auto-columns:minmax(0,1fr);gap:1px 22px;align-content:center;border-left:1px solid rgba(26,22,17,0.18);padding-left:18px;min-width:0;}
   .sp-rest .lb-name{font-size:12px;}
   .sp-rest .lb-val{font-size:11px;}
-  .sp-rrow{padding:3px 0;}
-  .sp-rrow-hi{padding:5px 0;}
-  .sp-rrow-hi .lb-rank{width:21px;height:21px;font-size:11px;}
-  .sp-rrow-hi .lb-name{font-size:14px;}
-  .sp-rrow-hi .lb-val{font-size:12px;color:${COLORS.ink};}
+  .sp-rrow{padding:4px 0;}
   .sp-new{flex:none;background:${COLORS.ember};color:${COLORS.cream};font-family:'DM Mono',monospace;font-size:9px;letter-spacing:0.08em;padding:2px 5px;text-transform:uppercase;margin-right:2px;}
   .sh-row{align-items:flex-start;}
   .sh-name{white-space:normal;overflow:visible;text-overflow:clip;overflow-wrap:anywhere;line-height:1.3;}
@@ -491,7 +487,7 @@ function SpotlightBoard({ columns }) {
             {rest.length > 0 && (
               <div className="sp-rest">
                 {rest.map((r, i) => (
-                  <div key={r.key} className={i < 2 ? 'lb-row sp-rrow sp-rrow-hi' : 'lb-row sp-rrow'}>
+                  <div key={r.key} className="lb-row sp-rrow">
                     <span className="lb-rank" style={{ background: i < 2 ? MEDAL[i + 1] : 'transparent' }}>{i + 2}</span>
                     <span className="lb-name">{r.full}</span>
                     <span className="lb-val">{r.val}</span>
@@ -912,8 +908,8 @@ export default function QuizHomeClient() {
             }
           `}</style>
           <div className="qz-stats">
-            <span>{totals.total.toLocaleString()} quiz plays</span>
-            <span><span style={{ opacity: 0.5 }}>·</span> <Count value={visitors} /> visitors</span>
+            <span>{visitors.toLocaleString()} visitors</span>
+            <span><span style={{ opacity: 0.5 }}>·</span> {totals.total.toLocaleString()} quiz plays</span>
             {recentEntries.length > 0 && (
               <span className="qz-tape">
                 <span className="qz-tape-track" style={{ animationDuration: `${Math.max(40, recentEntries.length * 9)}s` }}>
