@@ -23,7 +23,7 @@ export default async function FeedPage() {
       supabaseAdmin.from('vote_events').select('list_id,item_name,delta,created_at').order('created_at', { ascending: false }).limit(40),
       supabaseAdmin.from('list_comments').select('list_id,name,body,created_at,editor_response').eq('hidden', false).order('created_at', { ascending: false }).limit(40),
       supabaseAdmin.from('complaints').select('list_id,message,created_at,editor_response').eq('feed_hidden', false).order('created_at', { ascending: false }).limit(25),
-      supabaseAdmin.from('consensus_alerts').select('id,list_id,item_name,change_type,rank,prev_rank,cause,detected_at').order('detected_at', { ascending: false }).order('id', { ascending: false }).limit(300),
+      supabaseAdmin.from('consensus_alerts').select('id,list_id,item_name,change_type,rank,prev_rank,cause,detected_at').order('detected_at', { ascending: false }).order('id', { ascending: false }).limit(800),
       supabaseAdmin.from('list_editor_notes').select('list_id,note,created_at').order('created_at', { ascending: false }).limit(40),
       supabaseAdmin.from('list_sources_seen').select('list_id,source_id,first_seen_at,label,removed_at').order('first_seen_at', { ascending: false }).limit(400),
       supabaseAdmin.from('list_sources_seen').select('list_id,source_id,label,label_updated_at').not('label_updated_at', 'is', null).order('label_updated_at', { ascending: false }).limit(100),
