@@ -126,6 +126,9 @@ export default function LeaderboardClient() {
           <p style={{ fontFamily: 'Fraunces, serif', fontStyle: 'italic', fontSize: 17, lineHeight: 1.5, color: COLORS.faded, margin: 0, maxWidth: 720 }}>
             Every signed-up player, ranked five ways: total plays, correct answers banked, distinct quizzes finished, quizzes scored a perfect 100%, and the daily champion. Pick a category below. Sign up before a quiz to put your name in the running.
           </p>
+          <Link href="/quizzes/leaderboard" style={{ display: 'inline-flex', alignItems: 'center', gap: 7, marginTop: 16, padding: '8px 15px', border: `1.5px solid ${COLORS.ember}`, fontFamily: 'DM Mono, monospace', fontSize: 11, fontWeight: 700, letterSpacing: '0.12em', textTransform: 'uppercase', color: COLORS.ember, textDecoration: 'none' }}>
+            <Trophy size={14} strokeWidth={2.4} aria-hidden="true" /> Continents Challenge Leaderboard <span aria-hidden="true">{'\u2192'}</span>
+          </Link>
           <div style={{ borderBottom: `1px solid ${COLORS.ink}`, marginTop: 22 }} />
           <div style={{ borderBottom: `2px solid ${COLORS.ember}` }} />
         </header>

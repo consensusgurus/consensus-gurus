@@ -216,7 +216,7 @@ const boardCss = `
   .sp-head .qb-title{justify-self:start;}
   .sp-head .qb-cta{justify-self:end;}
   .sp-hcat{justify-self:center;display:flex;align-items:center;gap:6px;font-family:'DM Mono',monospace;font-size:11px;font-weight:700;letter-spacing:0.16em;text-transform:uppercase;color:#f4d9d4;text-align:center;}
-  .sp-flex{display:grid;grid-template-columns:minmax(0,0.8fr) minmax(0,2.2fr);gap:0;align-items:center;min-height:80px;}
+  .sp-flex{display:grid;grid-template-columns:minmax(0,0.8fr) minmax(0,2.2fr);gap:0;align-items:center;min-height:96px;}
   .sp-feat{display:flex;align-items:center;gap:14px;min-width:0;padding-right:18px;}
   .sp-medal{width:50px;height:50px;border-radius:50%;background:#caa12e;border:1.5px solid ${COLORS.ink};display:flex;align-items:center;justify-content:center;flex:none;font-family:'DM Mono',monospace;font-size:20px;font-weight:500;color:#4a3608;}
   .sp-fname{font-family:'Fraunces',serif;font-size:22px;font-weight:600;color:${COLORS.ink};line-height:1.05;overflow-wrap:anywhere;}

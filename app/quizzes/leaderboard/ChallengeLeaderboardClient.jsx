@@ -139,7 +139,7 @@ export default function ChallengeLeaderboardClient() {
                     const tint = TINT[rank] || 'transparent';
                     return (
                       <tr key={u.username + i} style={{ background: tint }}>
-                        <th className="clb-player" style={{ background: medal ? `linear-gradient(90deg, ${tint}, transparent)` : undefined }}>
+                        <th className="clb-player" style={{ backgroundColor: COLORS.cream, backgroundImage: medal ? `linear-gradient(90deg, ${tint}, transparent)` : undefined }}>
                           <span className="clb-rk" style={medal ? { background: medal, borderColor: COLORS.ink } : undefined}>{rank}</span>
                           <span className="clb-nm">{u.username}</span>
                           <span className="clb-pl">{u.quizzesPlayed}/{cols.length}</span>
