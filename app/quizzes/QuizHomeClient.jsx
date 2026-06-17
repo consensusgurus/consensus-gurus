@@ -521,7 +521,7 @@ function ShelfBoard({ title, href, cta, col, withNew, mid }) {
             const inner = (
               <>
                 {withNew && r.fresh ? <span className="sp-new">New</span> : null}
-                <span className="lb-name sh-name">{r.short || r.full}</span>
+                <span className="lb-name sh-name">{r.full}</span>
                 {r.val != null && <span className="lb-val">{r.val}</span>}
               </>
             );
