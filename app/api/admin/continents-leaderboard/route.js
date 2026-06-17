@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { supabaseAdmin } from '@/lib/supabase-server';
 import { fetchAllRows } from '@/lib/fetch-all';
+import { isAdmin } from '@/lib/admin-auth';
 
 export const dynamic = 'force-dynamic';
 export const fetchCache = 'force-no-store';
@@ -39,7 +40,7 @@ function tokenOk(request, searchParams) {
 
 export async function GET(request) {
   const { searchParams } = new URL(request.url);
-  if (!tokenOk(request, searchParams)) {
+  if (!isAdmin() && !tokenOk(request, searchParams)) {
     return NextResponse.json({ error: 'unauthorized' }, { status: 401 });
   }
   const sinceParam = searchParams.get('since');
