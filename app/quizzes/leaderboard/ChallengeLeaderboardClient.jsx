@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { ArrowLeft, RefreshCw } from 'lucide-react';
 import { COLORS } from '@/lib/data';
 import { CHALLENGES, getChallenge, DEFAULT_CHALLENGE_ID, challengeColumns } from '@/lib/challenges';
+import { getQuiz } from '@/lib/quizzes';
 import Grain from '../../Grain';
 import Footer from '../../Footer';
 
@@ -44,6 +45,10 @@ export default function ChallengeLeaderboardClient() {
 
   const ch = getChallenge(chId) || CHALLENGES[0];
   const cols = challengeColumns(ch);
+  const colTotal = {};
+  for (const c of cols) { const q = getQuiz(c.quizId); colTotal[c.quizId] = q && Array.isArray(q.answers) ? q.answers.length : 0; }
+  const totalPossible = Object.values(colTotal).reduce((a, b) => a + b, 0);
+  const pctOf = (n, d) => (d > 0 ? Math.round((Number(n) || 0) / d * 100) : 0);
 
   function load(showSpin) {
     if (showSpin) setRefreshing(true);
@@ -118,7 +123,7 @@ export default function ChallengeLeaderboardClient() {
                         <span className="clb-grp-nm">{g.label}</span>
                       </th>
                     ))}
-                    <th className="clb-thc clb-first" rowSpan={2}>Total<br />Correct</th>
+                    <th className="clb-thc clb-first" rowSpan={2}>Percent<br />Complete</th>
                     <th className="clb-thc" rowSpan={2}>Total<br />Time</th>
                   </tr>
                   <tr>
@@ -143,13 +148,14 @@ export default function ChallengeLeaderboardClient() {
                           const sc = u.scores ? u.scores[col.quizId] : undefined;
                           if (sc === undefined || sc === null) return <td key={col.quizId} className="clb-sc clb-empty">·</td>;
                           const tm = u.times ? u.times[col.quizId] : null;
+                          const tot = colTotal[col.quizId] || 0;
                           return (
-                            <td key={col.quizId} className={`clb-sc${sc === 0 ? ' clb-zero' : ''}`} title={tm != null ? `${mmss(tm)} · best attempt` : ''}>
-                              <span className="clb-v" style={{ '--ac': col.group.color }}>{sc}</span>
+                            <td key={col.quizId} className={`clb-sc${sc === 0 ? ' clb-zero' : ''}`} title={`${sc}/${tot} correct${tm != null ? ` · ${mmss(tm)}` : ''} · best attempt`}>
+                              <span className="clb-v" style={{ '--ac': col.group.color }}>{pctOf(sc, tot)}%</span>
                             </td>
                           );
                         })}
-                        <td className="clb-totc"><span>{u.totalCorrect}</span></td>
+                        <td className="clb-totc"><span>{pctOf(u.totalCorrect, totalPossible)}%</span></td>
                         <td className="clb-tott">{mmss(u.totalTime)}</td>
                       </tr>
                     );
@@ -165,7 +171,7 @@ export default function ChallengeLeaderboardClient() {
             ))}
           </div>
           <p className="clb-foot">
-            Each section shows two columns: <b>🚩 Flags</b> (name the country from its flag) and <b>🗺️ Map</b> (click the country with no outline). Cells show a player's correct-answer count on their best attempt since the window opened — hover a score to see that attempt's time; a dot (·) means they haven't taken that quiz yet. Ranking is by <b>total correct</b> across every quiz, ties broken by <b>least total time</b>. Only signed-up players appear. Standings are live — hit Refresh for the latest.
+            Each section shows two columns: <b>🚩 Flags</b> (name the country from its flag) and <b>🗺️ Map</b> (click the country with no outline). Cells show how much of each quiz a player has completed (correct answers ÷ the quiz total) on their best attempt since the window opened — hover a cell for the raw count and time; a dot (·) means they haven't taken that quiz yet. Ranking is by <b>total correct</b> across every quiz (equivalently, overall percent complete), ties broken by <b>least total time</b>. Only signed-up players appear. Standings are live — hit Refresh for the latest.
           </p>
         </section>
         <Footer />

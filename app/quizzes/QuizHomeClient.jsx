@@ -7,6 +7,7 @@ import { COLORS } from '@/lib/data';
 import { QUIZZES } from '@/lib/quizzes';
 import { fetchBootstrap } from '@/lib/api';
 import { quizDept as deptOf, quizIcon as iconOf, DEPT_COLOR, DEPT_LABEL, DEPT_NAV } from '@/lib/quiz-departments';
+import { challengeQuizIds, getChallenge, DEFAULT_CHALLENGE_ID } from '@/lib/challenges';
 import Grain from '../Grain';
 import Footer from '../Footer';
 import Count from '../Count';
@@ -452,7 +453,7 @@ function QuizCategoryColumn({ sectionKey, label, accent, Icon, quizzes, totals, 
 // header stays one fixed line with the box's stats flipping in sync. Hover
 // pauses, dots jump. Not collapsible.
 // Per-board phrasing for the rotating Player Spotlight headline stat.
-const SPOT_UNIT = { today: ['correct today', 'today'], allcorrect: ['correct answers', 'correct'], perfect: ['perfect quizzes', 'perfect'], unique: ['quizzes played', 'played'] };
+const SPOT_UNIT = { today: ['correct today', 'today'], allcorrect: ['correct answers', 'correct'], perfect: ['perfect quizzes', 'perfect'], unique: ['quizzes played', 'played'], challenge: ['completed', 'completed'] };
 
 // Player Spotlight: rotates through the player leaderboards (Today's Correct,
 // Total Correct, Most Perfect, Most Unique) every 8s with a crossfade; hover
@@ -464,7 +465,7 @@ function SpotlightBoard({ columns }) {
   const [paused, setPaused] = useState(false);
   useEffect(() => {
     if (paused || avail.length <= 1) return undefined;
-    const t = setInterval(() => setIdx((i) => (i + 1) % avail.length), 10000);
+    const t = setInterval(() => setIdx((i) => (i + 1) % avail.length), 5000);
     return () => clearInterval(t);
   }, [paused, avail.length]);
   const safeIdx = avail.length ? idx % avail.length : 0;
@@ -474,7 +475,7 @@ function SpotlightBoard({ columns }) {
   const rest = cat ? cat.rows.slice(1, 10) : [];
   return (
     <div className="qb" onMouseEnter={() => setPaused(true)} onMouseLeave={() => setPaused(false)}>
-      <Link href="/leaderboard" className="qb-head sp-head" style={{ textDecoration: 'none' }}>
+      <Link href={cat && cat.href ? cat.href : '/leaderboard'} className="qb-head sp-head" style={{ textDecoration: 'none' }}>
         <span className="qb-title">Player Spotlight</span>
         {cat && <span className="sp-hcat">{cat.icon}{cat.label}</span>}
         <span className="qb-cta">Leaderboard {'→'}</span>
@@ -627,6 +628,7 @@ export default function QuizHomeClient() {
   const [visitors, setVisitors] = useState(0);
   const [quizStats, setQuizStats] = useState([]);
   const [champions, setChampions] = useState({ correctAnswers: [], perfectQuizzes: [], completed: [], dailyChampions: [] });
+  const [challengeBoard, setChallengeBoard] = useState({ users: [] });
   const [shelvesOpen, setShelvesOpen] = useState(false);
   const seedRef = useRef((Date.now() & 0xffffffff) >>> 0);
   // Close the category / sort dropdowns on an outside click or Escape.
@@ -671,6 +673,7 @@ export default function QuizHomeClient() {
     fetchBootstrap().then((data) => { if (data && data.views) setVisitors(Object.entries(data.views).reduce((sum, [k, v]) => (k.startsWith('quiz::') ? sum + (Number(v) || 0) : sum), 0)); }).catch(() => {});
     fetch('/api/quiz/stats').then((r) => r.json()).then((d) => { if (d && Array.isArray(d.quizzes)) setQuizStats(d.quizzes); }).catch(() => {});
     fetch('/api/quiz/champions').then((r) => r.json()).then((d) => { if (d && !d.error) setChampions({ correctAnswers: Array.isArray(d.correctAnswers) ? d.correctAnswers : [], perfectQuizzes: Array.isArray(d.perfectQuizzes) ? d.perfectQuizzes : [], completed: Array.isArray(d.completed) ? d.completed : [], dailyChampions: Array.isArray(d.dailyChampions) ? d.dailyChampions : [] }); }).catch(() => {});
+    fetch('/api/quiz/challenge-leaderboard').then((r) => r.json()).then((d) => { if (d && !d.error && Array.isArray(d.users)) setChallengeBoard({ users: d.users }); }).catch(() => {});
   }, []);
 
   // Count quiz-home-page landings toward this page's visitor total, so it
@@ -765,8 +768,14 @@ export default function QuizHomeClient() {
     const mostPerfect = (champions.perfectQuizzes || []).slice(0, 10).map((u, i) => ({ key: `pf-${i}-${u.username}`, full: u.username, val: (u.perfect || 0).toLocaleString() }));
     const mostUnique = (champions.completed || []).slice(0, 10).map((u, i) => ({ key: `uq-${i}-${u.username}`, full: u.username, val: (u.quizzes || 0).toLocaleString() }));
     const dailyChamps = (champions.dailyChampions || []).slice(0, 10).map((d, i) => ({ key: `dc-${i}-${d.date}`, date: d.date, full: d.username }));
+    // Weekly Challenge: registered players ranked by overall percent complete
+    // (total correct / total possible) across the challenge's quizzes.
+    const challengeCh = getChallenge(DEFAULT_CHALLENGE_ID);
+    const challengeTotal = (challengeCh ? challengeQuizIds(challengeCh) : []).reduce((acc, id) => { const q = quizById[id]; return acc + (q && Array.isArray(q.answers) ? q.answers.length : 0); }, 0);
+    const challengeRows = (challengeBoard.users || []).slice(0, 10).map((u, i) => ({ key: `ch-${i}-${u.username}`, full: u.username, val: `${challengeTotal > 0 ? Math.round((u.totalCorrect || 0) / challengeTotal * 100) : 0}%` }));
     return {
       playerCols: [
+        { id: 'challenge', label: 'Continents Challenge', rows: challengeRows, empty: 'No challenge entries yet.', accent: '#2f6f9f', icon: <Globe size={12} strokeWidth={2.5} aria-hidden="true" />, challenge: true, href: '/quizzes/leaderboard' },
         { id: 'today', label: "Today's Correct Answers", rows: todaysCorrect, empty: 'No correct answers yet today.', accent: '#c98a1b', icon: <Check size={12} strokeWidth={3} aria-hidden="true" />, prize: true },
         { id: 'daily', label: 'Daily Champions', rows: dailyChamps, empty: 'No daily champions yet.', accent: '#b0466e', icon: <Crown size={12} strokeWidth={2.5} aria-hidden="true" />, dated: true },
         { id: 'allcorrect', label: 'Total Correct Answers', rows: totalCorrect, empty: 'No answers recorded yet.', accent: '#3d4f2b', icon: <BarChart3 size={12} strokeWidth={2.5} aria-hidden="true" /> },
@@ -779,7 +788,7 @@ export default function QuizHomeClient() {
         { id: 'newest', label: 'Newest', rows: newest, empty: 'No quizzes yet.', noMedals: true, accent: '#7a4fae', icon: <Sparkles size={12} strokeWidth={2.5} aria-hidden="true" /> },
       ],
     };
-  }, [totals, statById, recent, todayBoard, champions]);
+  }, [totals, statById, recent, todayBoard, champions, challengeBoard]);
 
   const sorted = useMemo(() => {
     const ql = query.trim().toLowerCase();
@@ -887,7 +896,7 @@ export default function QuizHomeClient() {
             </h1>
             <div className="cg-head-col">
               <div className="cg-tagline">The Quizzes</div>
-              <div className="cg-blurb">Timed quizzes across film, music, sports, and beyond. Test what you actually know.</div>
+              <div className="cg-blurb">Trivia and Quizzes for every topic known to man and woman.</div>
               <div style={{ borderBottom: `1px solid ${COLORS.ink}`, marginBottom: 4 }} />
               <div style={{ borderBottom: `2px solid ${COLORS.ember}` }} />
             </div>
