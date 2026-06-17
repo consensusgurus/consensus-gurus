@@ -1188,6 +1188,33 @@ export default function QuizClient({ quizId }) {
                   </li>
                 );
               };
+              if (quiz.format === 'author-grid') {
+                const gridOrder = answers.map((a, gi) => gi).sort((x, y) => (!!found[x] === !!found[y] ? x - y : (found[x] ? 1 : -1)));
+                return (
+                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(220px, 1fr))', gap: 8 }}>
+                    {gridOrder.map((gi) => {
+                      const a = answers[gi];
+                      const f = found[gi];
+                      const rev = ended && revealed && !f;
+                      return (
+                        <div key={gi} style={{ border: `1px solid ${f ? COLORS.forest : rev ? COLORS.rust : COLORS.faded + '33'}`, background: f ? '#fff' : rev ? '#f6ead9' : COLORS.paper, padding: '9px 11px', transition: 'all .2s' }}>
+                          <div style={{ display: 'flex', alignItems: 'baseline', gap: 8 }}>
+                            <span style={{ fontFamily: MONO, fontSize: 11, color: COLORS.faded, flex: 'none' }}>{gi + 1}</span>
+                            <span style={{ fontFamily: SANS, fontSize: 13, fontWeight: 500, color: COLORS.ink, lineHeight: 1.2 }}>{a.clue}</span>
+                          </div>
+                          <div style={{ marginTop: 4, marginLeft: 22, minHeight: 18 }}>
+                            {f || rev ? (
+                              <span style={{ fontFamily: SERIF, fontSize: 15, fontWeight: 500, lineHeight: 1.2, color: f ? COLORS.forest : COLORS.rust }}>{a.t}</span>
+                            ) : (
+                              <span style={{ fontFamily: MONO, fontSize: 12, letterSpacing: '0.04em', color: COLORS.faded, opacity: 0.5 }}>&mdash;&nbsp;&mdash;&nbsp;&mdash;</span>
+                            )}
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                );
+              }
               if (colSplit) {
                 return (
                   <div style={{ display: 'flex', gap: 14, alignItems: 'flex-start', flexWrap: 'wrap' }}>
