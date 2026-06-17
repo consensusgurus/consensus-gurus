@@ -429,7 +429,7 @@ function QuizCategoryColumn({ sectionKey, label, accent, Icon, quizzes, totals, 
           const p = plays(q.id);
           return (
             <Link key={q.id} href={`/quiz/${q.id}`} className="ql-row" title={q.title}>
-              <span className="ql-title">{boardTitle(q.title)}</span>
+              <span className="ql-title">{q.navTitle || boardTitle(q.title)}</span>
               <span className="ql-meta">
                 {p > 0 && <span className="ql-plays">{'▶'} <Count value={p} /></span>}
                 <span className="ql-leader" style={{ color: leader ? COLORS.ink : COLORS.faded }}>
@@ -693,7 +693,7 @@ export default function QuizHomeClient() {
     }
   }, []);
 
-  const titleById = useMemo(() => Object.fromEntries(QUIZZES.map((q) => [q.id, q.title])), []);
+  const titleById = useMemo(() => Object.fromEntries(QUIZZES.map((q) => [q.id, q.navTitle || q.title])), []);
   const recentEntries = useMemo(() => recent.map((p) => {
     const t = (titleById[p.quizId] || '').replace(/^Name (the )?/, '');
     if (!t) return null;
@@ -732,7 +732,7 @@ export default function QuizHomeClient() {
   // Quiz-side leaderboard: Most Played / Trending Now / Highest Scored. Each
   // row links to its quiz and shows full title on desktop, short on mobile.
   const { playerCols, quizCols } = useMemo(() => {
-    const mk = (q, val) => ({ key: q.id, href: `/quiz/${q.id}`, full: boardTitle(q.title), short: shortTitle(q.title), long: cleanTitle(q.title), val });
+    const mk = (q, val) => ({ key: q.id, href: `/quiz/${q.id}`, full: q.navTitle || boardTitle(q.title), short: q.navTitle || shortTitle(q.title), long: q.navTitle || cleanTitle(q.title), val });
     const plays = (id) => totals.byQuiz[id] || 0;
     const isNewsId = (id) => /^(daily-market-news-quiz-|daily-business-quiz-|daily-news-quiz-|weekly-business-quiz-|weekly-news-quiz-|earnings-reporter-quiz-|earnings-quiz-)/.test(id || '');
     // Most Played: quizzes with the most completed games, all-time, top 3.
@@ -1055,7 +1055,7 @@ export default function QuizHomeClient() {
                     const p = totals.byQuiz[q.id] || 0;
                     return (
                       <Link key={q.id} href={`/quiz/${q.id}`} className="ql-row" title={q.title}>
-                        <span className="ql-title">{boardTitle(q.title)}</span>
+                        <span className="ql-title">{q.navTitle || boardTitle(q.title)}</span>
                         <span className="ql-meta">
                           {p > 0 && <span className="ql-plays">{'▶'} <Count value={p} /></span>}
                           <span className="ql-leader" style={{ color: leader ? COLORS.ink : COLORS.faded }}>
