@@ -387,33 +387,31 @@ const TYPE_META = {
 // One category (or type) column in the list view: header (icon + name, no
 // count) with a Newest / Most Played / Trending sort toggle, a tight list of
 // rows (title + play count + current leader), and a "View all" expander.
-function QuizCategoryColumn({ sectionKey, label, accent, Icon, quizzes, totals, onViewAll }) {
-  const [sortMode, setSortMode] = useState('popularity');
+function QuizCategoryColumn({ sectionKey, label, accent, Icon, quizzes, totals, onViewAll, sortMode = 'discover' }) {
   const dseed = useMemo(() => (Math.random() * 1e9) >>> 0, []);
   const plays = (id) => totals.byQuiz[id] || 0;
   const trend = (id) => totals.trendingByQuiz[id] || totals.recent7[id] || 0;
   const ts = (q) => new Date(q.publishedAt || `${q.publishedDate || '1970-01-01'}T12:00:00Z`).getTime();
   const sorted = useMemo(() => {
     const arr = quizzes.slice();
-    if (sortMode === 'discover') return seededShuffle(arr, dseed);
+    if (sortMode === 'discover') {
+      const feat = arr.filter((q) => plays(q.id) >= 5).sort((a, b) => plays(b.id) - plays(a.id) || a.title.localeCompare(b.title)).slice(0, 3);
+      const fset = new Set(feat.map((q) => q.id));
+      return [...feat, ...seededShuffle(arr.filter((q) => !fset.has(q.id)), dseed)];
+    }
     if (sortMode === 'recent') arr.sort((a, b) => ts(b) - ts(a) || a.title.localeCompare(b.title));
+    else if (sortMode === 'trending') arr.sort((a, b) => trend(b.id) - trend(a.id) || plays(b.id) - plays(a.id) || a.title.localeCompare(b.title));
     else arr.sort((a, b) => plays(b.id) - plays(a.id) || a.title.localeCompare(b.title));
     return arr;
   }, [quizzes, sortMode, totals, dseed]);
   const LIMIT = 6;
   const shown = sorted.slice(0, LIMIT);
   const total = quizzes.length;
-  const TOGGLES = [['recent', 'New'], ['popularity', 'Popular'], ['discover', 'Discover']];
   return (
     <section id={`qzsec-${sectionKey}`} className="ql-col">
       <div className="ql-col-head" style={{ borderColor: accent.c }}>
         <span className="ql-medal" style={{ background: accent.t }}><Icon size={15} strokeWidth={2} aria-hidden="true" style={{ color: accent.c }} /></span>
         <h2 className="ql-name">{label}</h2>
-        <div className="ql-toggle" role="group" aria-label={`Sort ${label}`}>
-          {TOGGLES.map(([id, lbl]) => (
-            <button key={id} type="button" className="ql-tg" onClick={() => setSortMode(id)} style={sortMode === id ? { background: accent.c, color: COLORS.cream } : undefined}>{lbl}</button>
-          ))}
-        </div>
       </div>
       <div className="ql-list">
         {shown.map((q) => {
@@ -591,7 +589,6 @@ export default function QuizHomeClient() {
   const [dept, setDept] = useState('all');
   const [sortBy, setSortBy] = useState('discover');
   const [groupBy, setGroupBy] = useState('category');
-  const [listSort, setListSort] = useState('popularity');
   const [sortOpen, setSortOpen] = useState(false);
   const [catOpen, setCatOpen] = useState(false);
   const [typeOpen, setTypeOpen] = useState(false);
@@ -697,6 +694,8 @@ export default function QuizHomeClient() {
     count: id === 'all' ? QUIZZES.length : QUIZZES.filter((q) => quizMatchesType(q, id)).length,
   })), []);
   const currentTypeLabel = TYPE_LABELS[typeFilter] || 'All';
+  const filterSummary = (dept === 'all' && typeFilter === 'all') ? 'All Quizzes' : [dept !== 'all' ? currentDeptLabel : null, typeFilter !== 'all' ? currentTypeLabel : null].filter(Boolean).join(' \u00b7 ');
+  const currentSortLabel = (SORTS.find((x) => x.id === sortBy) || SORTS[0]).short;
 
   // Per-quiz aggregate stats (avg score etc.) for the Highest Scored ranking.
   const statById = useMemo(() => Object.fromEntries((quizStats || []).map((st) => [st.quizId, st])), [quizStats]);
@@ -838,11 +837,12 @@ export default function QuizHomeClient() {
     const plays = (id) => totals.byQuiz[id] || 0;
     const trend = (id) => totals.trendingByQuiz[id] || totals.recent7[id] || 0;
     const ts = (q) => new Date(q.publishedAt || `${q.publishedDate || '1970-01-01'}T12:00:00Z`).getTime();
-    if (listSort === 'recent') list = list.slice().sort((a, b) => ts(b) - ts(a) || a.title.localeCompare(b.title));
-    else if (listSort === 'discover') list = seededShuffle(list, seedRef.current);
+    if (sortBy === 'recent') list = list.slice().sort((a, b) => ts(b) - ts(a) || a.title.localeCompare(b.title));
+    else if (sortBy === 'trending') list = list.slice().sort((a, b) => trend(b.id) - trend(a.id) || plays(b.id) - plays(a.id) || a.title.localeCompare(b.title));
+    else if (sortBy === 'discover') list = seededShuffle(list, seedRef.current);
     else list = list.slice().sort((a, b) => plays(b.id) - plays(a.id) || a.title.localeCompare(b.title));
     return list;
-  }, [dept, typeFilter, query, listSort, totals]);
+  }, [dept, typeFilter, query, sortBy, totals]);
   const showColumns = dept === 'all' && typeFilter === 'all' && !query.trim();
   return (
     <div style={{ minHeight: '100vh', background: COLORS.cream, color: COLORS.ink, position: 'relative', overflow: 'clip' }}>
@@ -886,9 +886,13 @@ export default function QuizHomeClient() {
             .qz-rb-search input{width:100%;height:34px;box-sizing:border-box;padding:0 32px 0 38px;background:#fff;border:1.5px solid ${COLORS.ink};outline:none;font-family:'DM Sans',sans-serif;font-size:14px;color:${COLORS.ink};}
             .qz-rb-search input::placeholder{color:${COLORS.faded};}
             .qz-rb-req{flex:0 0 auto;display:flex;align-items:center;justify-content:center;gap:6px;height:46px;background:${COLORS.ember};color:${COLORS.cream};padding:0 20px;font-family:'DM Mono',monospace;font-size:10.5px;letter-spacing:0.14em;text-transform:uppercase;font-weight:700;text-decoration:none;white-space:nowrap;}
+            .qz-rb-spacer{flex:1 1 220px;min-width:0;align-self:stretch;}
             .qz-pop{position:absolute;top:100%;left:16px;z-index:40;background:${COLORS.cream};border:1.5px solid ${COLORS.ink};box-shadow:0 10px 24px rgba(26,22,17,0.25);}
             .qz-pop-sort{min-width:210px;}
-            .qz-pop-cat{width:min(320px,calc(100vw - 40px));display:flex;flex-wrap:wrap;gap:8px;padding:14px 16px 16px;}
+            .qz-pop-cat{width:min(340px,calc(100vw - 40px));padding:12px 16px 16px;}
+            .qz-pop-sub{font-family:'DM Mono',monospace;font-size:9.5px;font-weight:700;letter-spacing:0.18em;text-transform:uppercase;color:${COLORS.faded};margin:14px 0 8px;}
+            .qz-pop-sub:first-child{margin-top:0;}
+            .qz-pop-chips{display:flex;flex-wrap:wrap;gap:8px;}
             .qz-pop-item{width:100%;display:flex;align-items:center;border:none;padding:10px 14px;font-family:'DM Mono',monospace;font-size:10px;letter-spacing:0.16em;text-transform:uppercase;font-weight:600;cursor:pointer;text-align:left;background:transparent;color:${COLORS.ink};}
             .qz-chip{display:inline-flex;align-items:center;gap:7px;border:1.5px solid ${COLORS.ink};padding:8px 14px;font-family:'DM Mono',monospace;font-size:10.5px;letter-spacing:0.14em;text-transform:uppercase;font-weight:700;cursor:pointer;}
             @keyframes qzNavNudge{0%,100%{transform:translate(0,-50%);}50%{transform:translate(3px,-50%);}}
@@ -902,6 +906,7 @@ export default function QuizHomeClient() {
               .qz-rb-btn{padding:0 11px;font-size:9.5px;letter-spacing:0.08em;gap:5px;}
               .qz-rb-req{padding:0 12px;font-size:9px;letter-spacing:0.06em;}
               .qz-rb-search{flex:0 0 auto;width:170px;}
+              .qz-rb-spacer{display:none;}
               .qz-rb-search input{font-size:16px;}
               .qz-pop{left:8px !important;right:8px;}
               .qz-pop-cat{width:auto;}
@@ -934,12 +939,12 @@ export default function QuizHomeClient() {
           <div ref={ribbonRef} style={{ maxWidth: 1200, margin: '0 auto', padding: '0 16px', position: 'relative' }}>
             <div ref={ribbonScrollRef} className="qz-ribbon">
                                           <button ref={catBtnRef} type="button" className="qz-rb-btn" aria-haspopup="true" aria-expanded={catOpen} onClick={() => { const willOpen = !catOpen; if (willOpen && catBtnRef.current) setPanelLeft(catBtnRef.current.offsetLeft); setCatOpen(willOpen); setSortOpen(false); setTypeOpen(false); }}>
-                <span><span className="qz-rb-pre" style={{ opacity: 0.7 }}>Category:</span> {currentDeptLabel}</span>
+                <span><span className="qz-rb-pre" style={{ opacity: 0.7 }}>Filter:</span> {filterSummary}</span>
                 <ChevronDown className="qz-rb-chev" size={14} strokeWidth={2.5} style={{ transform: catOpen ? 'rotate(180deg)' : 'none' }} />
               </button>
-              <button ref={typeBtnRef} type="button" className="qz-rb-btn" aria-haspopup="true" aria-expanded={typeOpen} onClick={() => { const willOpen = !typeOpen; if (willOpen && typeBtnRef.current) setPanelLeft(typeBtnRef.current.offsetLeft); setTypeOpen(willOpen); setCatOpen(false); setSortOpen(false); }}>
-                <span><span className="qz-rb-pre" style={{ opacity: 0.7 }}>Type:</span> {currentTypeLabel}</span>
-                <ChevronDown className="qz-rb-chev" size={14} strokeWidth={2.5} style={{ transform: typeOpen ? 'rotate(180deg)' : 'none' }} />
+              <button ref={sortBtnRef} type="button" className="qz-rb-btn" aria-haspopup="true" aria-expanded={sortOpen} onClick={() => { const willOpen = !sortOpen; if (willOpen && sortBtnRef.current) setPanelLeft(sortBtnRef.current.offsetLeft); setSortOpen(willOpen); setCatOpen(false); }}>
+                <span><span className="qz-rb-pre" style={{ opacity: 0.7 }}>Sort:</span> {currentSortLabel}</span>
+                <ChevronDown className="qz-rb-chev" size={14} strokeWidth={2.5} style={{ transform: sortOpen ? 'rotate(180deg)' : 'none' }} />
               </button>
 
               <div className="qz-rb-search">
@@ -948,6 +953,7 @@ export default function QuizHomeClient() {
                 {query && (<button onClick={() => setQuery('')} aria-label="Clear search" style={{ position: 'absolute', right: 18, top: '50%', transform: 'translateY(-50%)', background: 'transparent', border: 'none', color: COLORS.faded, cursor: 'pointer', padding: 6, display: 'flex' }}><X size={16} strokeWidth={2.5} /></button>)}
               </div>
               <Link href="/quizzes/stats" className="qz-rb-req" style={{ background: COLORS.ink }}><span aria-hidden="true" style={{ width: 8, height: 8, borderRadius: '50%', background: COLORS.ember, display: 'inline-block', flex: 'none' }} />{totals.total.toLocaleString()} Quiz Plays</Link>
+              <div className="qz-rb-spacer" aria-hidden="true" />
               <Link href="/request" className="qz-rb-req">Submit a Quiz</Link>
               <Link href="/" className="qz-rb-req" style={{ background: COLORS.ink }}>Top 10 Lists</Link>
             </div>
@@ -955,26 +961,28 @@ export default function QuizHomeClient() {
             {navScroll.right && <span aria-hidden="true" className="qz-navcue qz-navcue-r">&#8250;</span>}
             {catOpen && (
               <div className="qz-pop qz-pop-cat" role="menu" style={{ left: panelLeft }}>
-                {deptOptions.map((o) => {
-                  const active = dept === o.id;
-                  return (
-                    <button key={o.id} role="menuitem" className="qz-chip" onClick={() => { setDept(o.id); setCatOpen(false); }} style={{ background: active ? COLORS.ember : COLORS.paper, color: active ? COLORS.cream : COLORS.ink }}>
-                      {o.label}<span style={{ opacity: 0.55, marginLeft: 2 }}>{counts[o.id] || 0}</span>
-                    </button>
-                  );
-                })}
-              </div>
-            )}
-            {typeOpen && (
-              <div className="qz-pop qz-pop-cat" role="menu" style={{ left: panelLeft }}>
-                {typeOptions.map((o) => {
-                  const active = typeFilter === o.id;
-                  return (
-                    <button key={o.id} role="menuitem" className="qz-chip" onClick={() => { setTypeFilter(o.id); setTypeOpen(false); }} style={{ background: active ? COLORS.ember : COLORS.paper, color: active ? COLORS.cream : COLORS.ink }}>
-                      {o.label}<span style={{ opacity: 0.55, marginLeft: 2 }}>{o.count}</span>
-                    </button>
-                  );
-                })}
+                <div className="qz-pop-sub">Category</div>
+                <div className="qz-pop-chips">
+                  {deptOptions.map((o) => {
+                    const active = dept === o.id;
+                    return (
+                      <button key={o.id} role="menuitem" className="qz-chip" onClick={() => { setDept(o.id); }} style={{ background: active ? COLORS.ember : COLORS.paper, color: active ? COLORS.cream : COLORS.ink }}>
+                        {o.label}<span style={{ opacity: 0.55, marginLeft: 2 }}>{counts[o.id] || 0}</span>
+                      </button>
+                    );
+                  })}
+                </div>
+                <div className="qz-pop-sub">Type</div>
+                <div className="qz-pop-chips">
+                  {typeOptions.map((o) => {
+                    const active = typeFilter === o.id;
+                    return (
+                      <button key={o.id} role="menuitem" className="qz-chip" onClick={() => { setTypeFilter(o.id); }} style={{ background: active ? COLORS.ember : COLORS.paper, color: active ? COLORS.cream : COLORS.ink }}>
+                        {o.label}<span style={{ opacity: 0.55, marginLeft: 2 }}>{o.count}</span>
+                      </button>
+                    );
+                  })}
+                </div>
               </div>
             )}
             {sortOpen && (
@@ -1002,18 +1010,13 @@ export default function QuizHomeClient() {
                                                   {showColumns ? (
             <div className="ql-cols">
               {sections.map((s) => (
-                <QuizCategoryColumn key={s.key} sectionKey={s.key} label={s.label} accent={s.accent} Icon={s.Icon} quizzes={s.quizzes} totals={totals} onViewAll={() => setDept(s.key)} />
+                <QuizCategoryColumn key={s.key} sectionKey={s.key} label={s.label} accent={s.accent} Icon={s.Icon} quizzes={s.quizzes} totals={totals} onViewAll={() => setDept(s.key)} sortMode={sortBy} />
               ))}
             </div>
           ) : (
             <div className="ql-block">
               <div className="ql-bhead">
                 <h2 className="ql-bname">{listLabel}</h2>
-                <div className="ql-toggle" role="group" aria-label="Sort quizzes">
-                  {[['recent', 'New'], ['popularity', 'Popular'], ['discover', 'Discover']].map(([id, lbl]) => (
-                    <button key={id} type="button" className="ql-tg" onClick={() => setListSort(id)} style={listSort === id ? { background: COLORS.ember, color: COLORS.cream } : undefined}>{lbl}</button>
-                  ))}
-                </div>
               </div>
               {filtered.length > 0 ? (
                 <div className="ql-2col">

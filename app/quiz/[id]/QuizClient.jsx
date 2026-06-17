@@ -17,6 +17,7 @@ const TypeItBoard = dynamic(() => import('./TypeItBoard'), { ssr: false, loading
 const TimedMcqBoard = dynamic(() => import('./TimedMcqClient'), { ssr: false, loading: () => null });
 const LogicGridBoard = dynamic(() => import('./LogicGridClient'), { ssr: false, loading: () => null });
 const PhotoBoard = dynamic(() => import('./PhotoBoard'), { ssr: false, loading: () => null });
+const PhotoMatchBoard = dynamic(() => import('./PhotoMatchBoard'), { ssr: false, loading: () => null });
 const GridFillBoard = dynamic(() => import('./GridFillBoard'), { ssr: false, loading: () => null });
 
 function shuffleIdx(n) {
@@ -208,10 +209,11 @@ export default function QuizClient({ quizId }) {
   const bankMode = quiz.format === 'bank';
   const typeMode = quiz.format === 'type-it';
   const photoMode = quiz.format === 'photo';
+  const photoMatchMode = quiz.format === 'photo-match';
   const logosMode = quiz.format === 'logos' || quiz.format === 'posters' || quiz.format === 'images';
   const tallTiles = quiz.format === 'posters' || quiz.imgTall === true;
   const squareTiles = quiz.imgSquare === true;
-  const tileMode = pairsMode || bankMode || typeMode || photoMode;
+  const tileMode = pairsMode || bankMode || typeMode || photoMode || photoMatchMode;
   // Tile-mode (bank/pairs) quizzes are answered one prompt per PAIR, so the score
   // denominator is the pair count, not the number of distinct answer tiles. A
   // many-to-one bank quiz (e.g. cocktail -> base spirit: 16 cocktails, 6 spirits)
@@ -470,6 +472,8 @@ export default function QuizClient({ quizId }) {
       setHint('Type the answer for the clue above. Next skips it for now.');
     } else if (photoMode) {
       setHint(`Name the ${quiz.noun || 'city'} in the photo above. Next skips it for now.`);
+    } else if (photoMatchMode) {
+      setHint(`Tap a ${quiz.noun || 'picture'}, then its title. A wrong title is struck out for good.`);
     } else {
       setHint(ordered ? 'Go — answer in order, from the top.' : matched ? (quiz.noun ? `Go — type each ${quiz.noun}.` : "Go — name each year's winner.") : 'Go — name them all.');
     }
@@ -838,7 +842,7 @@ export default function QuizClient({ quizId }) {
       return cols;
     }
     // These formats render their own board, not the answer list.
-    if (mapMode || pairsMode || bankMode || typeMode || photoMode) return null;
+    if (mapMode || pairsMode || bankMode || typeMode || photoMode || photoMatchMode) return null;
     // Otherwise auto-wrap a long answer list into balanced columns so it does
     // not run off the screen. Column count scales with the number of answers
     // and is capped by the longest answer's width (so wide names are not
@@ -1094,6 +1098,8 @@ export default function QuizClient({ quizId }) {
             <TypeItBoard items={quiz.answers} started={started} ended={ended} revealed={revealed} onMatch={onPairMatch} onWrong={onBankWrong} onEnd={onPairEnd} onHint={onPairHint} promptLabel={quiz.leftLabel} answerNoun={quiz.noun} stickyTop={stickyTop} />
             ) : bankMode ? (
             <BankQuizBoard pairs={quiz.pairs} started={started} ended={ended} revealed={revealed} onMatch={onPairMatch} onWrong={onBankWrong} onEnd={onPairEnd} onHint={onPairHint} promptLabel={quiz.leftLabel} bankLabel={quiz.rightLabel} stickyTop={stickyTop} />
+            ) : photoMatchMode ? (
+            <PhotoMatchBoard items={quiz.answers} started={started} ended={ended} revealed={revealed} onMatch={onPairMatch} onWrong={onBankWrong} onEnd={onPairEnd} onHint={onPairHint} answerNoun={quiz.noun} stickyTop={stickyTop} />
             ) : pairsMode ? (
             <MatchQuizBoard pairs={quiz.pairs} started={started} ended={ended} revealed={revealed} onMatch={onPairMatch} onError={onPairError} onEnd={onPairEnd} onHint={onPairHint} leftLabel={quiz.leftLabel} rightLabel={quiz.rightLabel} sortLeft={quiz.sortLeft} />
             ) : mapMode ? (
