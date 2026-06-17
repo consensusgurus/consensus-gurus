@@ -215,15 +215,15 @@ const boardCss = `
   .sp-head .qb-title{justify-self:start;}
   .sp-head .qb-cta{justify-self:end;}
   .sp-hcat{justify-self:center;display:flex;align-items:center;gap:6px;font-family:'DM Mono',monospace;font-size:11px;font-weight:700;letter-spacing:0.16em;text-transform:uppercase;color:#f4d9d4;text-align:center;}
-  .sp-flex{display:grid;grid-template-columns:minmax(0,0.8fr) minmax(0,2.2fr);gap:0;align-items:center;}
+  .sp-flex{display:grid;grid-template-columns:minmax(0,0.8fr) minmax(0,2.2fr);gap:0;align-items:center;min-height:80px;}
   .sp-feat{display:flex;align-items:center;gap:14px;min-width:0;padding-right:18px;}
   .sp-medal{width:50px;height:50px;border-radius:50%;background:#caa12e;border:1.5px solid ${COLORS.ink};display:flex;align-items:center;justify-content:center;flex:none;font-family:'DM Mono',monospace;font-size:20px;font-weight:500;color:#4a3608;}
   .sp-fname{font-family:'Fraunces',serif;font-size:22px;font-weight:600;color:${COLORS.ink};line-height:1.05;overflow-wrap:anywhere;}
   .sp-fstat{font-family:'DM Mono',monospace;font-size:11px;letter-spacing:0.05em;text-transform:uppercase;color:${COLORS.faded};margin-top:4px;}
   .sp-fstat b{color:${COLORS.ember};font-weight:500;}
-  .sp-rest{display:grid;grid-template-rows:repeat(3,auto);grid-auto-flow:column;grid-auto-columns:minmax(0,1fr);gap:1px 22px;align-content:center;border-left:1px solid rgba(26,22,17,0.18);padding-left:18px;min-width:0;}
-  .sp-rest .lb-name{font-size:12px;flex:0 1 auto;}
-  .sp-rest .lb-val{margin-left:2px;}
+  .sp-rest{display:grid;grid-template-rows:repeat(3,auto);grid-auto-flow:column;grid-auto-columns:170px;gap:1px 24px;align-content:center;border-left:1px solid rgba(26,22,17,0.18);padding-left:18px;min-width:0;}
+  .sp-rest .lb-name{font-size:12px;}
+  .sp-rest .lb-val{margin-right:14px;}
   .sp-rest .lb-val{font-size:11px;}
   .sp-rrow{padding:4px 0;}
   .sp-date{flex:none;min-width:42px;font-family:'DM Mono',monospace;font-size:12px;font-weight:700;letter-spacing:0.04em;color:${COLORS.ember};}
@@ -482,37 +482,28 @@ function SpotlightBoard({ columns }) {
       </Link>
       <div className="qb-body">
         {cat && feat ? (
-          cat.dated ? (
-            <div key={safeIdx} className="rb-fade sp-daily-grid">
-              {cat.rows.map((r) => (
-                <div key={r.key} className="sp-daily-row">
-                  <span className="sp-date">{r.date}</span>
-                  <span className="sp-daily-name">{r.full}</span>
-                </div>
-              ))}
-            </div>
-          ) : (
-            <div key={safeIdx} className="rb-fade sp-flex">
-              <div className="sp-feat">
-                <span className="sp-medal">1</span>
-                <div style={{ minWidth: 0 }}>
-                  <div className="sp-fname">{feat.full}</div>
-                  <div className="sp-fstat"><b>{feat.val}</b> {unit}</div>
-                </div>
+          <div key={safeIdx} className="rb-fade sp-flex">
+            <div className="sp-feat">
+              <span className="sp-medal">{cat.dated ? <Crown size={22} strokeWidth={2} aria-hidden="true" /> : '1'}</span>
+              <div style={{ minWidth: 0 }}>
+                <div className="sp-fname">{feat.full}</div>
+                <div className="sp-fstat">{cat.dated ? <b>{feat.date}</b> : <><b>{feat.val}</b> {unit}</>}</div>
               </div>
-              {rest.length > 0 && (
-                <div className="sp-rest">
-                  {rest.map((r, i) => (
-                    <div key={r.key} className="lb-row sp-rrow">
-                      <span className="lb-rank" style={{ background: i < 2 ? MEDAL[i + 1] : 'transparent' }}>{i + 2}</span>
-                      <span className="lb-name">{r.full}</span>
-                      <span className="lb-val">{r.val}</span>
-                    </div>
-                  ))}
-                </div>
-              )}
             </div>
-          )
+            {rest.length > 0 && (
+              <div className="sp-rest">
+                {rest.map((r, i) => (
+                  <div key={r.key} className="lb-row sp-rrow">
+                    {cat.dated ? (
+                      <><span className="sp-date">{r.date}</span><span className="lb-name">{r.full}</span></>
+                    ) : (
+                      <><span className="lb-rank" style={{ background: i < 2 ? MEDAL[i + 1] : 'transparent' }}>{i + 2}</span><span className="lb-name">{r.full}</span><span className="lb-val">{r.val}</span></>
+                    )}
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
         ) : (
           <div className="lb-empty">No player stats yet.</div>
         )}
