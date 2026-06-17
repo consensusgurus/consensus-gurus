@@ -1,7 +1,7 @@
 'use client';
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { ArrowLeft, RefreshCw } from 'lucide-react';
+import { ArrowLeft, RefreshCw, Trophy, Share2 } from 'lucide-react';
 import { COLORS } from '@/lib/data';
 import { CHALLENGES, getChallenge, DEFAULT_CHALLENGE_ID, challengeColumns } from '@/lib/challenges';
 import { getQuiz } from '@/lib/quizzes';
@@ -42,6 +42,7 @@ export default function ChallengeLeaderboardClient() {
   const [data, setData] = useState(null);
   const [loaded, setLoaded] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
+  const [shared, setShared] = useState(false);
 
   const ch = getChallenge(chId) || CHALLENGES[0];
   const cols = challengeColumns(ch);
@@ -66,6 +67,16 @@ export default function ChallengeLeaderboardClient() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [chId]);
 
+  function doShare() {
+    const url = typeof window !== 'undefined' ? window.location.href : 'https://sourceoftruths.com/quizzes/leaderboard';
+    const text = `${ch.title} on Source of Truths.${ch.prize ? ' There is a prize on the line for the winner.' : ''} Think you can top the leaderboard?`;
+    if (typeof navigator !== 'undefined' && navigator.share) {
+      navigator.share({ title: ch.title, text, url }).catch(() => {});
+    } else if (typeof navigator !== 'undefined' && navigator.clipboard) {
+      navigator.clipboard.writeText(`${text} ${url}`).then(() => { setShared(true); setTimeout(() => setShared(false), 1800); }).catch(() => {});
+    }
+  }
+
   const users = (data && data.users) || [];
 
   return (
@@ -81,6 +92,7 @@ export default function ChallengeLeaderboardClient() {
             <TitleLine title={ch.title} accent={ch.accent} />
           </h1>
           <p style={{ fontFamily: 'Fraunces, serif', fontStyle: 'italic', fontSize: 17, lineHeight: 1.5, color: COLORS.faded, margin: 0, maxWidth: 760 }}>{ch.blurb}</p>
+          {ch.prize ? (<div className="clb-prize"><Trophy size={14} strokeWidth={2.4} aria-hidden="true" /> {ch.prize}</div>) : null}
 
           {CHALLENGES.length > 1 && (
             <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginTop: 20 }}>
@@ -100,6 +112,9 @@ export default function ChallengeLeaderboardClient() {
             <span>Best attempt per quiz</span>
             <button className="clb-refresh" onClick={() => load(true)} disabled={refreshing}>
               <RefreshCw size={12} strokeWidth={2.4} style={{ animation: refreshing ? 'clbspin 0.8s linear infinite' : 'none' }} /> Refresh
+            </button>
+            <button className="clb-refresh" onClick={doShare}>
+              <Share2 size={12} strokeWidth={2.4} /> {shared ? 'Copied!' : 'Share'}
             </button>
           </div>
           <div style={{ borderBottom: `1px solid ${COLORS.ink}`, marginTop: 16 }} />
@@ -211,6 +226,7 @@ export default function ChallengeLeaderboardClient() {
         .clb-sw{width:10px;height:10px;border-radius:2px;display:inline-block;}
         .clb-foot{font-family:'DM Mono',monospace;font-size:11px;line-height:1.6;color:${COLORS.faded};max-width:880px;margin-top:14px;}
         .clb-foot b{color:${COLORS.ink};font-weight:500;}
+        .clb-prize{display:inline-flex;align-items:center;gap:8px;margin-top:14px;padding:8px 14px;background:${COLORS.ember};color:#fff;font-family:'DM Mono',monospace;font-size:11.5px;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;}
       `}</style>
     </div>
   );

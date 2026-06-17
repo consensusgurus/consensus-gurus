@@ -2171,6 +2171,8 @@ tiles stay put). A board becomes multi-column in two ways:
   list > ~11 items with short answer text). So a big quiz silently loses cycling even with no
   `columnSplit` set.
 
+**HARD RULE (owner, 2026-06-17): every list-guessing (name-them-all) quiz MUST set `singleColumn: true` so answered tiles sink to the bottom. This is the owner's expected behaviour for these quizzes. The auto-wrap silently turns cycling OFF on any list longer than ~11 items (or with short labels), so a long quiz that omits `singleColumn` ships with answered tiles pinned in place, which is a bug. This was missed on `largest-ski-areas-north-america` (25 items auto-wrapped to two columns, cycling off) and retrofitted 2026-06-17; do not repeat. Add `singleColumn: true` as a standard field on every new name-them-all quiz. The ONLY exception is a deliberate fixed reference grid (periodic-table style) built with `columnSplit`, where rows must stay put by design.**
+
 So choose deliberately for long quizzes:
 - Want the answered-rows-sink-to-bottom feel (recommended for long recall lists like all-118 elements):
   set **`singleColumn: true`** on the quiz. This forces `colSplit` null, keeping the single-column
