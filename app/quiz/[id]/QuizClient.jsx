@@ -834,6 +834,12 @@ export default function QuizClient({ quizId }) {
   }
 
   const colSplit = (() => {
+    // Author can force a single column (colSplit stays null) so the answered-item
+    // cycling below remains ON for long lists. Without this, any multi-column
+    // layout (explicit columnSplit OR the auto-wrap of a long short-label list)
+    // pins rows in a fixed grid and solved tiles do NOT sink to the bottom.
+    // See the "answered-item cycling" note in CLAUDE.md.
+    if (quiz.singleColumn) return null;
     // Explicit author-provided split always wins.
     const cs = quiz.columnSplit;
     if (Array.isArray(cs) && cs.reduce((acc, n) => acc + n, 0) === answers.length) {

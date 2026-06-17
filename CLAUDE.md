@@ -2156,6 +2156,31 @@ substring**, OR (for a 2+ word key) **every word of the key appears as a token i
   below `Toy Story 2/3/4`, the bare `Guardians of the Galaxy` below the Vols), no `anti` is needed.
   Always simulate the tricky cases against the `keyHit`/`anyKey` logic before shipping.
 
+### Layout & the answered-item cycling system (single column vs. grid) — READ BEFORE BUILDING A LONG QUIZ
+
+The default name-them-all board has a built-in **answered-item cycling** behaviour: as you solve slots,
+the solved rows slide to the BOTTOM so the next unsolved row is always near the input bar (this is what
+makes a long list playable without scrolling). It is implemented via `displayOrder` + the FLIP slide in
+`QuizClient.jsx` and is gated on `cyclingOn`, which is ON **only when the board renders as a single
+column** (`colSplit === null`).
+
+CRITICAL: any multi-column layout TURNS CYCLING OFF (the rows are pinned in a fixed grid and solved
+tiles stay put). A board becomes multi-column in two ways:
+- an explicit **`columnSplit: [n, n, ...]`** on the quiz (must sum to `answers.length`), OR
+- the **auto-wrap**: a long list of short labels auto-splits into 2-4 columns on its own (roughly any
+  list > ~11 items with short answer text). So a big quiz silently loses cycling even with no
+  `columnSplit` set.
+
+So choose deliberately for long quizzes:
+- Want the answered-rows-sink-to-bottom feel (recommended for long recall lists like all-118 elements):
+  set **`singleColumn: true`** on the quiz. This forces `colSplit` null, keeping the single-column
+  cycling board no matter how many items. (Added 2026-06-17; honoured at the top of the `colSplit`
+  IIFE in `QuizClient.jsx`.)
+- Want a fixed reference grid (e.g. a periodic-table-style block) where rows stay put: use
+  `columnSplit`. Cycling will be off by design.
+Do NOT set both; `singleColumn` wins. In a single-column board each row shows its ORIGINAL index as the
+rank number even after it sinks, so don't also bake the number into `t`.
+
 ### Quiz department / icon (id naming matters)
 
 `deptOf` and `iconOf` in `app/quizzes/QuizHomeClient.jsx` (and the `relatedQuizzes` copy in
