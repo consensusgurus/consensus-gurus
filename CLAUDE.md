@@ -36,6 +36,30 @@ entries, and only verified after the owner caught it). Do ALL of these, in order
    the full set, not a truncated subset.
 
 
+## ⚠️ New-list pre-flight checklist (run EVERY time you publish a brand-new list)
+
+Separate from the source-change checklist above. A brand-new list (or a batch of them) is NOT a source
+change, so those steps do not all apply — but these do, every time:
+
+1. **Build on a FRESH origin/main clone**, compute the Borda consensus, and seed `ai.items` + `vote.items`
+   to the displayed top 10.
+2. **Descriptions for EVERY pool item** (descriptions.js) and **hero images for the top 3** (hero-images.js),
+   on optimizer-friendly hosts — verify each hero through the LIVE optimizer after deploy
+   (`fetch('/_next/image?url=<enc>&w=1200&q=75')` in the browser; must return `image/*`, not an error).
+3. **Stamp `publishedAt` (and `publishedDate`) at PUSH TIME, and make them the NEWEST in the file.** Capture
+   `date -u` immediately before the commit, give each list in a batch a DISTINCT timestamp in newest-last
+   order, and run the VERIFY check in the `publishedAt` field reference below (`grep ... | sort -r | head`)
+   to confirm your new lists sit at the very top. Hardcoding a build-time timestamp is the #1 recurring
+   miss: it buries the new list beneath lists pushed earlier the same day. THIS HAS HAPPENED REPEATEDLY.
+4. **Validate + deploy:** `node --check` all edited lib files, confirm ZERO unexpected deletions
+   (`git diff | grep -cE '^-[^-]'` returns 0), push.
+5. **Trigger the cron** (GET /api/cron/consensus-check via the browser) so the new list gets its launch
+   consensus snapshot. For a brand-new list `newAlerts:0` is expected (all sources fold into "N sources at
+   launch"); there is no "Source added" card.
+6. **VERIFY ON THE LIVE SITE:** the list page renders the full consensus, descriptions, and top-3 hero
+   photos, AND the new list appears at the TOP of the homepage "Most Recent" order.
+
+
 ## Setup & site overview
 
 - **Repo (the only folder):** the connected repo, currently `C:\dev\source-of-truths` (moved off OneDrive to
@@ -372,6 +396,8 @@ Always `'YYYY-MM-DD'`. Use today's date for new lists.
 **`publishedAt` must be the moment of publication, i.e. captured immediately before the push — never the build/research time.** Generate the timestamp with `date -u` in the SAME step that builds the commit and pushes, AFTER all gathering, editing, and `node --check` are done. Do NOT capture it at the start of a build or reuse one captured earlier; build time can be minutes or hours before the push, which makes the "Most Recent" order wrong. When publishing several lists in one push, give each a DISTINCT timestamp (e.g. one second apart) in the order you want them to appear, newest last-published first — never reuse the same timestamp for multiple lists (that causes ties that fall back to array order). Re-capture `date -u` for every separate push.
 
 To get the current UTC timestamp in bash (run it as part of the deploy step, not earlier): `date -u +"%Y-%m-%dT%H:%M:%SZ"`.
+
+**VERIFY the new list is actually the newest before you push (this check is mandatory — it keeps getting skipped).** "Today's date" does NOT make a list the newest: another list may have been pushed earlier the same day with a later wall-clock `publishedAt`. After stamping, run `grep -oE '"publishedAt": "[0-9T:Z-]+"' lib/data.js | sort -r | head` and confirm YOUR new timestamps sit at the very TOP of that sorted list. If any existing list has a `publishedAt` later than yours, raise yours above it (use the real current `date -u`, which is always later than anything already in the file). A new list that renders on the site but appears BELOW older lists in "Most Recent" means this step was skipped — the fix is to restamp `publishedAt` (and `publishedDate`) to now and redeploy. Do this in the SAME push, not as a follow-up.
 
 ### `title`
 Must start with a **descriptor that implies a ranked list** (Best, Most, Worst, Top-Grossing, Largest, Highest-Grossing, etc. — owner rule 2026-06-07; previously limited to Best/Most/Top-Grossing). Title case. Examples:
