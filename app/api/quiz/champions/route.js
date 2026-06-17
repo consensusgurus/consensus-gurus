@@ -160,6 +160,40 @@ function buildAnon(rows) {
   return { anonPlays, anonCompleted, anonWeighted, anonAccuracy };
 }
 
+// Per-day champion: for each Eastern calendar day, the signed-up player with the
+// most correct answers banked that day. Returns the most recent `days` days,
+// newest first, as { date:'M/D', dateISO:'YYYY-MM-DD', username }.
+function buildDailyChampions(rows, { days = 14 } = {}) {
+  const signed = rows.filter((r) => r.user_id && r.total > 0 && r.created_at);
+  const fmt = new Intl.DateTimeFormat('en-CA', { timeZone: 'America/New_York', year: 'numeric', month: '2-digit', day: '2-digit' });
+  const byDay = new Map(); // 'YYYY-MM-DD' -> Map(user_id -> { username, correct })
+  for (const r of signed) {
+    const t = Date.parse(r.created_at);
+    if (!Number.isFinite(t)) continue;
+    const day = fmt.format(new Date(t));
+    let users = byDay.get(day);
+    if (!users) { users = new Map(); byDay.set(day, users); }
+    const cur = users.get(r.user_id) || { username: r.username || 'Player', correct: 0 };
+    cur.correct += correctAnswersOf(r);
+    if ((!cur.username || cur.username === 'Player') && r.username) cur.username = r.username;
+    users.set(r.user_id, cur);
+  }
+  const out = [];
+  for (const [day, users] of byDay.entries()) {
+    let best = null;
+    for (const u of users.values()) {
+      if (u.correct <= 0) continue;
+      if (!best || u.correct > best.correct || (u.correct === best.correct && String(u.username).localeCompare(String(best.username)) < 0)) best = u;
+    }
+    if (best) {
+      const [, m, d] = day.split('-');
+      out.push({ date: `${Number(m)}/${Number(d)}`, dateISO: day, username: best.username });
+    }
+  }
+  out.sort((a, b) => (a.dateISO < b.dateISO ? 1 : a.dateISO > b.dateISO ? -1 : 0));
+  return out.slice(0, days);
+}
+
 // GET /api/quiz/champions
 export async function GET() {
   try {
@@ -170,10 +204,11 @@ export async function GET() {
     const cutoff = new Date(startOfEasternTodayUTC()).toISOString();
     const todayRows = rows.filter((r) => String(r.created_at || '') >= cutoff);
     const today = { ...buildChampions(todayRows), anonPlayers: buildAnonPlayers(todayRows) };
+    const dailyChampions = buildDailyChampions(rows);
     // `anonymous` retained for back-compat (the /quizzes Players board total).
-    return NextResponse.json({ ...buildChampions(rows), ...anon, anonPlayers, today, anonymous: anon.anonPlays });
+    return NextResponse.json({ ...buildChampions(rows), ...anon, anonPlayers, today, dailyChampions, anonymous: anon.anonPlays });
   } catch (e) {
     console.error('quiz champions error', e);
-    return NextResponse.json({ totalPlays: [], completed: [], weighted: [], accuracy: [], correctAnswers: [], perfectQuizzes: [], minQuizzes: MIN_QUIZZES, anonPlayers: [], today: { totalPlays: [], completed: [], correctAnswers: [], perfectQuizzes: [], anonPlayers: [] }, anonymous: 0, anonPlays: 0, anonCompleted: 0, anonWeighted: 0, anonAccuracy: 0 });
+    return NextResponse.json({ totalPlays: [], completed: [], weighted: [], accuracy: [], correctAnswers: [], perfectQuizzes: [], minQuizzes: MIN_QUIZZES, anonPlayers: [], today: { totalPlays: [], completed: [], correctAnswers: [], perfectQuizzes: [], anonPlayers: [] }, dailyChampions: [], anonymous: 0, anonPlays: 0, anonCompleted: 0, anonWeighted: 0, anonAccuracy: 0 });
   }
 }

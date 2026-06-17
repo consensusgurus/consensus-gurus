@@ -163,7 +163,7 @@ const boardCss = `
   .lb-mid{font-family:'DM Mono',monospace;font-size:10px;letter-spacing:0.1em;text-transform:uppercase;color:${COLORS.faded};display:flex;align-items:center;gap:7px;white-space:nowrap;}
   .qz-pulse{width:7px;height:7px;border-radius:50%;background:#2e7d6b;flex:none;}
   .qb{margin-bottom:0;}
-  .qb-head{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:6px 12px;background:${COLORS.ember};border:1.5px solid ${COLORS.ink};box-shadow:3px 3px 0 ${COLORS.ink};padding:11px 15px;}
+  .qb-head{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:6px 12px;background:${COLORS.ember};border:1.5px solid ${COLORS.ink};padding:11px 15px;}
   .qb-title{font-family:'DM Mono',monospace;font-size:12px;font-weight:700;letter-spacing:0.2em;text-transform:uppercase;color:${COLORS.cream};}
   .qb-mid{font-family:'DM Mono',monospace;font-size:9.5px;font-weight:700;letter-spacing:0.12em;text-transform:uppercase;color:#f4d9d4;display:flex;align-items:center;gap:7px;white-space:nowrap;}
   .qb-cta{font-family:'DM Mono',monospace;font-size:9.5px;font-weight:700;letter-spacing:0.14em;text-transform:uppercase;color:#f4d9d4;white-space:nowrap;text-decoration:none;}
@@ -179,7 +179,7 @@ const boardCss = `
   .ql-jumps{display:flex;flex-wrap:wrap;gap:6px;flex:1;min-width:0;}
   @media(max-width:760px){.ql-controls{flex-direction:column;align-items:flex-start;gap:8px;}.ql-jumps{width:100%;}}
   .ql-jump{padding:4px 9px;background:transparent;border:1px solid ${COLORS.ink};font-family:'DM Mono',monospace;font-size:8.5px;letter-spacing:0.08em;text-transform:uppercase;font-weight:700;cursor:pointer;white-space:nowrap;}
-  .ql-cols{display:grid;grid-template-columns:1fr 1fr 1fr;gap:22px;align-items:start;}
+  .ql-cols{display:grid;grid-template-columns:1fr 1fr 1fr;gap:14px 22px;align-items:start;}
   @media(max-width:1000px){.ql-cols{grid-template-columns:1fr 1fr;}}
   @media(max-width:760px){.ql-cols{grid-template-columns:1fr;}}
   .ql-col{scroll-margin-top:72px;min-width:0;}
@@ -198,6 +198,8 @@ const boardCss = `
   .ql-leader{display:flex;align-items:center;gap:3px;max-width:130px;}
   .ql-lname{overflow:hidden;text-overflow:ellipsis;}
   .ql-viewall{margin-top:9px;background:transparent;border:none;padding:2px 0;font-family:'DM Mono',monospace;font-size:9.5px;letter-spacing:0.1em;text-transform:uppercase;font-weight:700;cursor:pointer;}
+  .ql-viewall-head{margin-left:auto;flex:none;background:transparent;border:none;padding:0 0 0 8px;font-family:'DM Mono',monospace;font-size:9.5px;letter-spacing:0.08em;text-transform:uppercase;font-weight:700;cursor:pointer;white-space:nowrap;}
+  .ql-viewall-head:hover{opacity:0.7;}
   @media(max-width:760px){.ql-name{font-size:17px;}.ql-meta{gap:8px;}.ql-leader{max-width:104px;}}
   .rb-cols{display:grid;gap:14px;min-height:120px;}
   .rb-fade{animation:rbfade 0.5s ease;}
@@ -223,9 +225,22 @@ const boardCss = `
   .sp-rest .lb-name{font-size:12px;}
   .sp-rest .lb-val{font-size:11px;}
   .sp-rrow{padding:4px 0;}
+  .sp-allgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:4px 22px;align-content:center;}
+  .sp-arow{display:flex;align-items:center;gap:9px;padding:5px 0;min-width:0;}
+  .sp-arank{flex:none;width:22px;height:22px;border-radius:50%;border:1.25px solid ${COLORS.ink};display:flex;align-items:center;justify-content:center;font-family:'DM Mono',monospace;font-size:11px;font-weight:500;color:${COLORS.ink};}
+  .sp-aname{flex:0 1 auto;min-width:0;font-family:'Fraunces',serif;font-size:14px;font-weight:500;color:${COLORS.ink};white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+  .sp-aval{flex:none;font-family:'DM Mono',monospace;font-size:12px;font-weight:500;color:${COLORS.ember};}
+  .sp-date{flex:none;min-width:42px;font-family:'DM Mono',monospace;font-size:12px;font-weight:700;letter-spacing:0.04em;color:${COLORS.ember};}
+  .sp-arow-top{padding:6px 0;}
+  .sp-arow-top .sp-arank{width:30px;height:30px;font-size:14px;}
+  .sp-arow-top .sp-aname{font-size:20px;font-weight:600;}
+  .sp-arow-top .sp-aval{font-size:13px;}
+  .sp-arow-top .sp-date{font-size:14px;}
   .sp-new{flex:none;background:${COLORS.ember};color:${COLORS.cream};font-family:'DM Mono',monospace;font-size:9px;letter-spacing:0.08em;padding:2px 5px;text-transform:uppercase;margin-right:2px;}
   .sh-row{align-items:flex-start;}
   .sh-name{white-space:normal;overflow:visible;text-overflow:clip;overflow-wrap:anywhere;line-height:1.3;}
+  .sh-more{display:flex;align-items:center;justify-content:center;width:100%;margin-top:6px;padding:5px 0;background:transparent;border:none;border-top:1px solid rgba(26,22,17,0.12);color:${COLORS.ember};cursor:pointer;}
+  .sh-more:hover{color:${COLORS.ink};}
   @media(max-width:680px){.sp-shelves{grid-template-columns:1fr;gap:10px;}.sp-head{display:flex;flex-wrap:wrap;}.sp-hcat{flex-basis:100%;order:3;justify-content:center;margin-top:5px;}.sp-flex{grid-template-columns:1fr;}.sp-feat{padding-right:0;padding-bottom:12px;}.sp-rest{grid-template-rows:repeat(5,auto);grid-template-columns:none;border-left:none;border-top:1px solid rgba(26,22,17,0.18);padding-left:0;padding-top:8px;}}
   .ql-block{margin-top:4px;}
   .ql-bhead{display:flex;align-items:center;gap:11px;padding-bottom:7px;border-bottom:2px solid ${COLORS.ink};flex-wrap:wrap;}
@@ -412,6 +427,7 @@ function QuizCategoryColumn({ sectionKey, label, accent, Icon, quizzes, totals, 
       <div className="ql-col-head" style={{ borderColor: accent.c }}>
         <span className="ql-medal" style={{ background: accent.t }}><Icon size={15} strokeWidth={2} aria-hidden="true" style={{ color: accent.c }} /></span>
         <h2 className="ql-name">{label}</h2>
+        <button type="button" className="ql-viewall-head" onClick={onViewAll} style={{ color: accent.c }}>View all {total} {'›'}</button>
       </div>
       <div className="ql-list">
         {shown.map((q) => {
@@ -431,9 +447,6 @@ function QuizCategoryColumn({ sectionKey, label, accent, Icon, quizzes, totals, 
           );
         })}
       </div>
-      <button type="button" className="ql-viewall" onClick={onViewAll} style={{ color: accent.c }}>
-        View all {total} {label} {'›'}
-      </button>
     </section>
   );
 }
@@ -462,9 +475,8 @@ function SpotlightBoard({ columns }) {
   }, [paused, avail.length]);
   const safeIdx = avail.length ? idx % avail.length : 0;
   const cat = avail[safeIdx] || null;
-  const [unit, unitShort] = (cat && SPOT_UNIT[cat.id]) || ['', ''];
-  const feat = cat ? cat.rows[0] : null;
-  const rest = cat ? cat.rows.slice(1, 10) : [];
+  const [, unitShort] = (cat && SPOT_UNIT[cat.id]) || ['', ''];
+  const rows = cat ? cat.rows.slice(0, 10) : [];
   return (
     <div className="qb" onMouseEnter={() => setPaused(true)} onMouseLeave={() => setPaused(false)}>
       <Link href="/leaderboard" className="qb-head sp-head" style={{ textDecoration: 'none' }}>
@@ -473,26 +485,21 @@ function SpotlightBoard({ columns }) {
         <span className="qb-cta">Leaderboard {'→'}</span>
       </Link>
       <div className="qb-body">
-        {cat && feat ? (
-          <div key={safeIdx} className="rb-fade sp-flex">
-            <div className="sp-feat">
-              <span className="sp-medal">1</span>
-              <div style={{ minWidth: 0 }}>
-                <div className="sp-fname">{feat.full}</div>
-                <div className="sp-fstat"><b>{feat.val}</b> {unit}</div>
+        {cat && rows.length > 0 ? (
+          <div key={safeIdx} className="rb-fade sp-allgrid">
+            {rows.map((r, i) => (
+              <div key={r.key} className={`sp-arow${i === 0 ? ' sp-arow-top' : ''}`}>
+                {cat.dated ? (
+                  <span className="sp-date">{r.date}</span>
+                ) : (
+                  <span className="sp-arank" style={{ background: i < 3 ? MEDAL[i] : 'transparent' }}>{i + 1}</span>
+                )}
+                <span className="sp-aname">{r.full}</span>
+                {!cat.dated && r.val != null && (
+                  <span className="sp-aval">{r.val}{i === 0 && unitShort ? ` ${unitShort}` : ''}</span>
+                )}
               </div>
-            </div>
-            {rest.length > 0 && (
-              <div className="sp-rest">
-                {rest.map((r, i) => (
-                  <div key={r.key} className="lb-row sp-rrow">
-                    <span className="lb-rank" style={{ background: i < 2 ? MEDAL[i + 1] : 'transparent' }}>{i + 2}</span>
-                    <span className="lb-name">{r.full}</span>
-                    <span className="lb-val">{r.val}</span>
-                  </div>
-                ))}
-              </div>
-            )}
+            ))}
           </div>
         ) : (
           <div className="lb-empty">No player stats yet.</div>
@@ -505,17 +512,25 @@ function SpotlightBoard({ columns }) {
 // A quiz shelf (Recently Played / Just Added): the board's top three as a list.
 // `href`/`cta` add a header link (Just Added -> Quiz Stats). `withNew` tags the
 // freshest additions. Titles wrap on mobile via lb-name-lg / lb-name-sm.
-function ShelfBoard({ title, href, cta, col, withNew, mid }) {
+function ShelfBoard({ title, headHref = '/quizzes', cta = 'All Quizzes', col, withNew, mid }) {
+  // Each shelf starts at 3 rows; the down-arrow under the list expands it to 10,
+  // then by 10 each subsequent click, while more rows remain. The header links
+  // to the full quiz index.
+  const [visible, setVisible] = useState(3);
   if (!col) return null;
-  const head = href
-    ? (<Link href={href} className="qb-head" style={{ textDecoration: 'none' }}><span className="qb-title">{title}</span>{mid != null && <span className="qb-mid">{mid}</span>}<span className="qb-cta">{cta} {'→'}</span></Link>)
-    : (<div className="qb-head"><span className="qb-title">{title}</span>{mid != null && <span className="qb-mid">{mid}</span>}</div>);
+  const rows = col.rows || [];
+  const shown = rows.slice(0, visible);
+  const canExpand = rows.length > visible;
   return (
     <div className="qb">
-      {head}
+      <Link href={headHref} className="qb-head" style={{ textDecoration: 'none' }}>
+        <span className="qb-title">{title}</span>
+        {mid != null && <span className="qb-mid">{mid}</span>}
+        <span className="qb-cta">{cta} {'→'}</span>
+      </Link>
       <div className="qb-body">
         <div className="qz-wide-list" style={{ padding: 0 }}>
-          {col.rows.length > 0 ? col.rows.map((r) => {
+          {shown.length > 0 ? shown.map((r) => {
             const inner = (
               <>
                 {withNew && r.fresh ? <span className="sp-new">New</span> : null}
@@ -528,6 +543,11 @@ function ShelfBoard({ title, href, cta, col, withNew, mid }) {
               : (<div key={r.key} className="lb-row sh-row">{inner}</div>);
           }) : (<div className="lb-empty">{col.empty || 'No data yet.'}</div>)}
         </div>
+        {canExpand && (
+          <button type="button" className="sh-more" onClick={() => setVisible((v) => (v < 10 ? 10 : v + 10))} aria-label={`Show more ${title}`}>
+            <ChevronDown size={18} strokeWidth={2.5} aria-hidden="true" />
+          </button>
+        )}
       </div>
     </div>
   );
@@ -598,7 +618,7 @@ export default function QuizHomeClient() {
   const [todayBoard, setTodayBoard] = useState({ leaders: [], correctToday: 0, perfectToday: 0, playsToday: 0 });
   const [visitors, setVisitors] = useState(0);
   const [quizStats, setQuizStats] = useState([]);
-  const [champions, setChampions] = useState({ correctAnswers: [], perfectQuizzes: [], completed: [] });
+  const [champions, setChampions] = useState({ correctAnswers: [], perfectQuizzes: [], completed: [], dailyChampions: [] });
   const seedRef = useRef((Date.now() & 0xffffffff) >>> 0);
   // Close the category / sort dropdowns on an outside click or Escape.
   const ribbonRef = useRef(null);
@@ -641,7 +661,7 @@ export default function QuizHomeClient() {
     // into bootstrap views under `quiz::<id>` keys; sum only those.
     fetchBootstrap().then((data) => { if (data && data.views) setVisitors(Object.entries(data.views).reduce((sum, [k, v]) => (k.startsWith('quiz::') ? sum + (Number(v) || 0) : sum), 0)); }).catch(() => {});
     fetch('/api/quiz/stats').then((r) => r.json()).then((d) => { if (d && Array.isArray(d.quizzes)) setQuizStats(d.quizzes); }).catch(() => {});
-    fetch('/api/quiz/champions').then((r) => r.json()).then((d) => { if (d && !d.error) setChampions({ correctAnswers: Array.isArray(d.correctAnswers) ? d.correctAnswers : [], perfectQuizzes: Array.isArray(d.perfectQuizzes) ? d.perfectQuizzes : [], completed: Array.isArray(d.completed) ? d.completed : [] }); }).catch(() => {});
+    fetch('/api/quiz/champions').then((r) => r.json()).then((d) => { if (d && !d.error) setChampions({ correctAnswers: Array.isArray(d.correctAnswers) ? d.correctAnswers : [], perfectQuizzes: Array.isArray(d.perfectQuizzes) ? d.perfectQuizzes : [], completed: Array.isArray(d.completed) ? d.completed : [], dailyChampions: Array.isArray(d.dailyChampions) ? d.dailyChampions : [] }); }).catch(() => {});
   }, []);
 
   // Count quiz-home-page landings toward this page's visitor total, so it
@@ -709,7 +729,7 @@ export default function QuizHomeClient() {
     // Most Played: quizzes with the most completed games, all-time, top 3.
     const mostPlayed = QUIZZES.filter((q) => plays(q.id) > 0)
       .sort((a, b) => plays(b.id) - plays(a.id) || a.title.localeCompare(b.title))
-      .slice(0, 3).map((q) => mk(q, <Count value={plays(q.id)} />));
+      .slice(0, 60).map((q) => mk(q, <Count value={plays(q.id)} />));
     // Last Played: the literal most-recently-completed games (from
     // /api/quiz/recent, newest first), de-duplicated by quiz, top 3.
     const quizById = Object.fromEntries(QUIZZES.map((q) => [q.id, q]));
@@ -721,23 +741,25 @@ export default function QuizHomeClient() {
       if (!q) continue;
       seenLP.add(p.quizId);
       lastPlayed.push(mk(q, p.playedAt ? <span style={{ color: COLORS.faded }}>{timeAgo(p.playedAt)}</span> : null));
-      if (lastPlayed.length >= 3) break;
+      if (lastPlayed.length >= 60) break;
     }
     // Newest: most recently published quizzes (news quizzes excluded), top 3.
     const ts = (q) => new Date(q.publishedAt || `${q.publishedDate || '1970-01-01'}T12:00:00Z`).getTime();
     const newest = QUIZZES.filter((q) => q.id && !isNewsId(q.id))
       .slice()
       .sort((a, b) => ts(b) - ts(a) || a.title.localeCompare(b.title))
-      .slice(0, 3).map((q) => ({ ...mk(q, <span style={{ color: COLORS.faded }}>{dateShort(q)}</span>), fresh: (Date.now() - ts(q)) < 7 * 86400000 }));
+      .slice(0, 60).map((q) => ({ ...mk(q, <span style={{ color: COLORS.faded }}>{dateShort(q)}</span>), fresh: (Date.now() - ts(q)) < 7 * 86400000 }));
     // Players: today's correct answers (since midnight ET, /api/quiz/today),
     // all-time correct answers and most perfect quizzes (/api/quiz/champions).
     const todaysCorrect = (todayBoard.leaders || []).slice(0, 10).map((u, i) => ({ key: `tc-${i}-${u.username}`, full: u.username, val: (u.correct || 0).toLocaleString() }));
     const totalCorrect = (champions.correctAnswers || []).slice(0, 10).map((u, i) => ({ key: `cc-${i}-${u.username}`, full: u.username, val: (u.correct || 0).toLocaleString() }));
     const mostPerfect = (champions.perfectQuizzes || []).slice(0, 10).map((u, i) => ({ key: `pf-${i}-${u.username}`, full: u.username, val: (u.perfect || 0).toLocaleString() }));
     const mostUnique = (champions.completed || []).slice(0, 10).map((u, i) => ({ key: `uq-${i}-${u.username}`, full: u.username, val: (u.quizzes || 0).toLocaleString() }));
+    const dailyChamps = (champions.dailyChampions || []).slice(0, 10).map((d, i) => ({ key: `dc-${i}-${d.date}`, date: d.date, full: d.username }));
     return {
       playerCols: [
         { id: 'today', label: "Today's Correct Answers", rows: todaysCorrect, empty: 'No correct answers yet today.', accent: '#c98a1b', icon: <Check size={12} strokeWidth={3} aria-hidden="true" />, prize: true },
+        { id: 'daily', label: 'Daily Champions', rows: dailyChamps, empty: 'No daily champions yet.', accent: '#b0466e', icon: <Crown size={12} strokeWidth={2.5} aria-hidden="true" />, dated: true },
         { id: 'allcorrect', label: 'Total Correct Answers', rows: totalCorrect, empty: 'No answers recorded yet.', accent: '#3d4f2b', icon: <BarChart3 size={12} strokeWidth={2.5} aria-hidden="true" /> },
         { id: 'perfect', label: 'Most Perfect Quizzes', rows: mostPerfect, empty: 'No perfect runs yet.', accent: '#a44a26', icon: <Trophy size={12} strokeWidth={2.5} aria-hidden="true" /> },
         { id: 'unique', label: 'Most Unique Quizzes Played', rows: mostUnique, empty: 'No quizzes played yet.', accent: '#1f7a8c', icon: <Sparkles size={12} strokeWidth={2.5} aria-hidden="true" /> },
@@ -848,7 +870,7 @@ export default function QuizHomeClient() {
     <div style={{ minHeight: '100vh', background: COLORS.cream, color: COLORS.ink, position: 'relative', overflow: 'clip' }}>
       <Grain />
       <div style={{ position: 'relative', zIndex: 2 }}>
-        <header style={{ padding: '20px 24px 18px', maxWidth: 1200, margin: '0 auto' }}>
+        <header style={{ padding: '20px 16px 18px', maxWidth: 1200, margin: '0 auto' }}>
 
           <div className="cg-head">
             <h1 style={{ fontFamily: 'Fraunces, serif', fontWeight: 600, fontSize: 'clamp(40px, 9vw, 84px)', lineHeight: 0.9, letterSpacing: '-0.015em', margin: 0, fontVariationSettings: '"SOFT" 100', color: COLORS.ink, whiteSpace: 'nowrap' }}>
@@ -953,7 +975,6 @@ export default function QuizHomeClient() {
                 {query && (<button onClick={() => setQuery('')} aria-label="Clear search" style={{ position: 'absolute', right: 18, top: '50%', transform: 'translateY(-50%)', background: 'transparent', border: 'none', color: COLORS.faded, cursor: 'pointer', padding: 6, display: 'flex' }}><X size={16} strokeWidth={2.5} /></button>)}
               </div>
               <Link href="/quizzes/stats" className="qz-rb-req" style={{ background: COLORS.ink }}><span aria-hidden="true" style={{ width: 8, height: 8, borderRadius: '50%', background: COLORS.ember, display: 'inline-block', flex: 'none' }} />{totals.total.toLocaleString()} Quiz Plays</Link>
-              <div className="qz-rb-spacer" aria-hidden="true" />
               <Link href="/request" className="qz-rb-req">Submit a Quiz</Link>
               <Link href="/" className="qz-rb-req" style={{ background: COLORS.ink }}>Top 10 Lists</Link>
             </div>
@@ -1004,7 +1025,7 @@ export default function QuizHomeClient() {
           <div className="sp-shelves">
             <ShelfBoard title="Recently Added" mid={`${QUIZZES.length.toLocaleString()} Total Quizzes`} col={quizCols.find((c) => c.id === 'newest')} withNew />
             <ShelfBoard title="Last Played" mid={todayBoard.playsToday > 0 ? (<><span className="qz-pulse" />{todayBoard.playsToday.toLocaleString()} plays today</>) : null} col={quizCols.find((c) => c.id === 'lastplayed')} withNew={false} />
-            <ShelfBoard title="Most Played" href="/quizzes/stats" cta="Quiz Stats" col={quizCols.find((c) => c.id === 'played')} withNew={false} />
+            <ShelfBoard title="Most Played" col={quizCols.find((c) => c.id === 'played')} withNew={false} />
           </div>
 
                                                   {showColumns ? (

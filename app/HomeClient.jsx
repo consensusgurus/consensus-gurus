@@ -776,7 +776,7 @@ function Home({ lists, viewCounts, voteData, extras, trending = {}, openList, on
     <div style={{ position: 'relative', zIndex: 2 }}>
       <header
         style={{
-          padding: '48px 24px 18px',
+          padding: '48px 16px 18px',
           maxWidth: 1200,
           margin: '0 auto',
         }}

@@ -1,7 +1,7 @@
 'use client';
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { ArrowLeft, Trophy, Play, Check, CheckCheck } from 'lucide-react';
+import { ArrowLeft, Trophy, Play, Check, CheckCheck, Crown } from 'lucide-react';
 import { COLORS } from '@/lib/data';
 import Grain from '../Grain';
 import Footer from '../Footer';
@@ -42,18 +42,27 @@ function Column({ icon: Icon, title, anon, note, rows, empty }) {
 }
 
 export default function LeaderboardClient() {
-  const [data, setData] = useState({ totalPlays: [], completed: [], correctAnswers: [], perfectQuizzes: [], minQuizzes: 5, anonPlays: 0, anonCompleted: 0, anonPlayers: [], today: {} });
+  const [data, setData] = useState({ totalPlays: [], completed: [], correctAnswers: [], perfectQuizzes: [], minQuizzes: 5, anonPlays: 0, anonCompleted: 0, anonPlayers: [], today: {}, dailyChampions: [] });
   const [loaded, setLoaded] = useState(false);
   const [view, setView] = useState('registered');
   const [period, setPeriod] = useState('all');
+  const [metric, setMetric] = useState('correct');
 
   useEffect(() => {
     fetch('/api/quiz/champions')
       .then((r) => r.json())
-      .then((d) => { if (d && !d.error) setData({ totalPlays: d.totalPlays || [], completed: d.completed || [], correctAnswers: d.correctAnswers || [], perfectQuizzes: d.perfectQuizzes || [], minQuizzes: d.minQuizzes || 5, anonPlays: d.anonPlays || 0, anonCompleted: d.anonCompleted || 0, anonPlayers: d.anonPlayers || [], today: d.today || {} }); })
+      .then((d) => { if (d && !d.error) setData({ totalPlays: d.totalPlays || [], completed: d.completed || [], correctAnswers: d.correctAnswers || [], perfectQuizzes: d.perfectQuizzes || [], minQuizzes: d.minQuizzes || 5, anonPlays: d.anonPlays || 0, anonCompleted: d.anonCompleted || 0, anonPlayers: d.anonPlayers || [], today: d.today || {}, dailyChampions: d.dailyChampions || [] }); })
       .catch(() => {})
       .finally(() => setLoaded(true));
   }, []);
+
+  const METRICS = [
+    { id: 'plays', label: 'Plays', icon: Play, note: 'Every game, replays included' },
+    { id: 'correct', label: 'Correct Answers', icon: Check, note: 'Correct answers banked' },
+    { id: 'unique', label: 'Unique Quizzes', icon: Trophy, note: 'Distinct quizzes finished' },
+    { id: 'perfect', label: 'Fully Completed', icon: CheckCheck, note: 'Distinct quizzes scored 100%' },
+    { id: 'daily', label: 'Daily Champions', icon: Crown, note: 'Top scorer each day, ranked by correct answers' },
+  ];
 
   const num = (n) => (Number(n) || 0).toLocaleString();
   // Source for the current period (all-time = top-level fields; today = data.today).
@@ -90,6 +99,18 @@ export default function LeaderboardClient() {
   const anonPlaysStr = `${num(period === 'today' ? apl.reduce((s, p) => s + (p.plays || 0), 0) : data.anonPlays)} anonymous`;
   const anonCompletedStr = `${num(period === 'today' ? apl.reduce((s, p) => s + (p.quizzes || 0), 0) : data.anonCompleted)} anonymous`;
 
+  // Daily Champions: the top scorer (by correct answers) for each day, newest first.
+  const dailyRows = (data.dailyChampions || []).map((d) => ({ date: d.date, name: d.username }));
+
+  // Rows for the currently-selected metric, respecting the view toggle.
+  const rowsFor = (m) => {
+    if (view === 'anon') return ({ plays: anonPlaysRows, correct: anonCorrectRows, unique: anonQuizzesRows, perfect: anonPerfectRows })[m] || [];
+    if (view === 'combined') return ({ plays: combPlaysRows, correct: combCorrectRows, unique: combQuizzesRows, perfect: combPerfectRows })[m] || [];
+    return ({ plays: totalPlaysRows, correct: correctRows, unique: completedRows, perfect: perfectRows })[m] || [];
+  };
+  const cur = METRICS.find((m) => m.id === metric) || METRICS[0];
+  const curAnon = view === 'registered' ? (metric === 'plays' ? anonPlaysStr : metric === 'unique' ? anonCompletedStr : null) : null;
+
   return (
     <div style={{ minHeight: '100vh', background: COLORS.cream, color: COLORS.ink, position: 'relative', overflow: 'clip' }}>
       <Grain />
@@ -103,64 +124,84 @@ export default function LeaderboardClient() {
             The <span style={{ fontStyle: 'italic', fontWeight: 400, color: COLORS.ember }}>Quiz</span> Leaderboard
           </h1>
           <p style={{ fontFamily: 'Fraunces, serif', fontStyle: 'italic', fontSize: 17, lineHeight: 1.5, color: COLORS.faded, margin: 0, maxWidth: 720 }}>
-            Every signed-up player, ranked four ways: total plays, correct answers banked, distinct quizzes finished, and quizzes scored a perfect 100%. Anonymous totals are noted where available. Sign up before a quiz to put your name in the running.
+            Every signed-up player, ranked five ways: total plays, correct answers banked, distinct quizzes finished, quizzes scored a perfect 100%, and the daily champion. Pick a category below. Sign up before a quiz to put your name in the running.
           </p>
           <div style={{ borderBottom: `1px solid ${COLORS.ink}`, marginTop: 22 }} />
           <div style={{ borderBottom: `2px solid ${COLORS.ember}` }} />
         </header>
 
         <section style={{ maxWidth: 1300, margin: '0 auto', padding: '24px 24px 72px' }}>
-          <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap', marginBottom: 14 }}>
-            <div style={{ display: 'inline-flex', border: `1.5px solid ${COLORS.ink}` }}>
-              {[['registered', 'Registered'], ['anon', 'Anonymous'], ['combined', 'Combined']].map(([k, label], idx) => {
-                const on = view === k;
-                return (
-                  <button key={k} onClick={() => setView(k)} style={{ padding: '8px 20px', background: on ? COLORS.ink : 'transparent', color: on ? COLORS.cream : COLORS.ink, border: 'none', borderLeft: idx === 0 ? 'none' : `1.5px solid ${COLORS.ink}`, fontFamily: 'DM Mono, monospace', fontSize: 11, letterSpacing: '0.14em', textTransform: 'uppercase', fontWeight: 700, cursor: 'pointer' }}>{label}</button>
-                );
-              })}
-            </div>
-            <div style={{ display: 'inline-flex', border: `1.5px solid ${COLORS.ink}` }}>
-              {[['all', 'All Time'], ['today', 'Today']].map(([k, label], idx) => {
-                const on = period === k;
-                return (
-                  <button key={k} onClick={() => setPeriod(k)} style={{ padding: '8px 20px', background: on ? COLORS.ink : 'transparent', color: on ? COLORS.cream : COLORS.ink, border: 'none', borderLeft: idx === 0 ? 'none' : `1.5px solid ${COLORS.ink}`, fontFamily: 'DM Mono, monospace', fontSize: 11, letterSpacing: '0.14em', textTransform: 'uppercase', fontWeight: 700, cursor: 'pointer' }}>{label}</button>
-                );
-              })}
-            </div>
+          <div className="lb-metrics">
+            {METRICS.map((m) => {
+              const on = metric === m.id;
+              const MI = m.icon;
+              return (
+                <button key={m.id} onClick={() => setMetric(m.id)} className={`lb-metric${on ? ' on' : ''}`}>
+                  <MI size={15} strokeWidth={2.2} aria-hidden="true" style={{ flex: 'none' }} />
+                  <span>{m.label}</span>
+                </button>
+              );
+            })}
           </div>
+
+          {metric !== 'daily' && (
+            <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap', marginBottom: 14 }}>
+              <div style={{ display: 'inline-flex', border: `1.5px solid ${COLORS.ink}` }}>
+                {[['registered', 'Registered'], ['anon', 'Anonymous'], ['combined', 'Combined']].map(([k, label], idx) => {
+                  const on = view === k;
+                  return (
+                    <button key={k} onClick={() => setView(k)} style={{ padding: '8px 20px', background: on ? COLORS.ink : 'transparent', color: on ? COLORS.cream : COLORS.ink, border: 'none', borderLeft: idx === 0 ? 'none' : `1.5px solid ${COLORS.ink}`, fontFamily: 'DM Mono, monospace', fontSize: 11, letterSpacing: '0.14em', textTransform: 'uppercase', fontWeight: 700, cursor: 'pointer' }}>{label}</button>
+                  );
+                })}
+              </div>
+              <div style={{ display: 'inline-flex', border: `1.5px solid ${COLORS.ink}` }}>
+                {[['all', 'All Time'], ['today', 'Today']].map(([k, label], idx) => {
+                  const on = period === k;
+                  return (
+                    <button key={k} onClick={() => setPeriod(k)} style={{ padding: '8px 20px', background: on ? COLORS.ink : 'transparent', color: on ? COLORS.cream : COLORS.ink, border: 'none', borderLeft: idx === 0 ? 'none' : `1.5px solid ${COLORS.ink}`, fontFamily: 'DM Mono, monospace', fontSize: 11, letterSpacing: '0.14em', textTransform: 'uppercase', fontWeight: 700, cursor: 'pointer' }}>{label}</button>
+                  );
+                })}
+              </div>
+            </div>
+          )}
           <p style={{ fontFamily: 'DM Mono, monospace', fontSize: 11, letterSpacing: '0.03em', color: COLORS.faded, margin: '0 0 18px', maxWidth: 720 }}>
-            {view === 'anon' ? 'Players who never signed up, batched by browser and shown under a random number.' : view === 'combined' ? 'Registered and anonymous players merged into one combined ranking.' : 'Signed-up players only. Switch to Anonymous or Combined to see everyone else.'}{period === 'today' ? ' Showing today only.' : ''}
+            {metric === 'daily'
+              ? 'The signed-up player who banked the most correct answers each day. A fresh champion is crowned every day.'
+              : `${view === 'anon' ? 'Players who never signed up, batched by browser and shown under a random number.' : view === 'combined' ? 'Registered and anonymous players merged into one combined ranking.' : 'Signed-up players only. Switch to Anonymous or Combined to see everyone else.'}${period === 'today' ? ' Showing today only.' : ''}`}
           </p>
           {loaded ? (
-            <div className="lb-grid">
-              {view === 'registered' ? (
-                <>
-                  <Column icon={Play} title="Plays" anon={anonPlaysStr} note="Every game, replays included" rows={totalPlaysRows} empty="No plays recorded yet." />
-                  <Column icon={Check} title="Correct Answers" note="Correct answers" rows={correctRows} empty="No answers recorded yet." />
-                  <Column icon={Trophy} title="Unique Quizzes Played" anon={anonCompletedStr} note="Distinct quizzes finished" rows={completedRows} empty="No completed quizzes yet." />
-                  <Column icon={CheckCheck} title="Fully Completed Quizzes" note="Distinct quizzes scored 100%" rows={perfectRows} empty="No perfect runs yet." />
-                </>
-              ) : view === 'anon' ? (
-                <>
-                  <Column icon={Play} title="Plays" note="Every game, replays included" rows={anonPlaysRows} empty="No anonymous plays yet." />
-                  <Column icon={Check} title="Correct Answers" note="Correct answers" rows={anonCorrectRows} empty="No anonymous answers yet." />
-                  <Column icon={Trophy} title="Unique Quizzes Played" note="Distinct quizzes finished" rows={anonQuizzesRows} empty="No anonymous quizzes yet." />
-                  <Column icon={CheckCheck} title="Fully Completed Quizzes" note="Distinct quizzes scored 100%" rows={anonPerfectRows} empty="No perfect anonymous runs yet." />
-                </>
+            <div className="lb-single">
+              {metric === 'daily' ? (
+                <div>
+                  <div className="lb-title" style={{ display: 'flex', alignItems: 'flex-start', gap: 8, marginBottom: 3 }}>
+                    <Crown size={16} strokeWidth={2} aria-hidden="true" style={{ flex: 'none', marginTop: 2, color: COLORS.ember }} />
+                    <h2 style={{ fontFamily: 'Fraunces, serif', fontWeight: 600, fontSize: 16, lineHeight: 1.1, letterSpacing: '-0.01em', margin: 0, color: COLORS.ink }}>Daily Champions</h2>
+                  </div>
+                  <div style={{ fontFamily: 'DM Mono, monospace', fontSize: 9.5, letterSpacing: '0.1em', textTransform: 'uppercase', color: COLORS.faded, marginBottom: 10 }}>Most correct answers each day</div>
+                  <div style={{ borderTop: `2px solid ${COLORS.ember}` }}>
+                    {dailyRows.length > 0 ? dailyRows.map((r, i) => (
+                      <div key={`${r.date}-${i}`} style={{ display: 'flex', alignItems: 'center', gap: 14, padding: '9px 3px', borderBottom: `1px solid rgba(26,22,17,0.12)` }}>
+                        <span style={{ flex: 'none', minWidth: 54, fontFamily: 'DM Mono, monospace', fontSize: 12.5, fontWeight: 700, color: COLORS.ember }}>{r.date}</span>
+                        <span style={{ flex: '1 1 auto', minWidth: 0, fontFamily: 'Fraunces, serif', fontSize: 16, fontWeight: 600, color: COLORS.ink, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{r.name}</span>
+                      </div>
+                    )) : (
+                      <div style={{ padding: '20px 3px', fontFamily: 'Fraunces, serif', fontStyle: 'italic', fontSize: 13.5, color: COLORS.faded }}>No daily champions yet.</div>
+                    )}
+                  </div>
+                </div>
               ) : (
-                <>
-                  <Column icon={Play} title="Plays" note="Every game, replays included" rows={combPlaysRows} empty="No plays recorded yet." />
-                  <Column icon={Check} title="Correct Answers" note="Correct answers" rows={combCorrectRows} empty="No answers recorded yet." />
-                  <Column icon={Trophy} title="Unique Quizzes Played" note="Distinct quizzes finished" rows={combQuizzesRows} empty="No completed quizzes yet." />
-                  <Column icon={CheckCheck} title="Fully Completed Quizzes" note="Distinct quizzes scored 100%" rows={combPerfectRows} empty="No perfect runs yet." />
-                </>
+                <Column icon={cur.icon} title={cur.label} anon={curAnon} note={cur.note} rows={rowsFor(metric)} empty={`No ${cur.label.toLowerCase()} recorded yet.`} />
               )}
             </div>
           ) : (
             <div style={{ textAlign: 'center', padding: '60px 24px', fontFamily: 'Fraunces, serif', fontStyle: 'italic', fontSize: 18, color: COLORS.faded }}>Loading the standings...</div>
           )}
           <style>{`
-            .lb-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:22px;}
+            .lb-metrics{display:flex;flex-wrap:wrap;gap:10px;margin-bottom:20px;}
+            .lb-metric{display:inline-flex;align-items:center;gap:8px;padding:10px 18px;background:${COLORS.paper};border:1.5px solid ${COLORS.ink};font-family:'DM Mono',monospace;font-size:11px;letter-spacing:0.12em;text-transform:uppercase;font-weight:700;color:${COLORS.ink};cursor:pointer;}
+            .lb-metric:hover{background:#e4dbc8;}
+            .lb-metric.on{background:${COLORS.ember};color:${COLORS.cream};}
+            .lb-single{max-width:760px;}
             .lb-title{min-height:46px;}
             @media(max-width:900px){.lb-grid{grid-template-columns:1fr 1fr;gap:30px;}}
             @media(max-width:520px){.lb-grid{grid-template-columns:1fr;gap:34px;}.lb-title{min-height:0;}}
