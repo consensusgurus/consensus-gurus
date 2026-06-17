@@ -3,6 +3,39 @@
 This file is the single, auto-loaded source of truth for working on sourceoftruths.com. It lives at the
 root of the repo, and Cowork loads it every session, so there is no need to paste anything into chat.
 
+## ⚠️ Source-change pre-flight checklist (run EVERY time you add/change/remove a source)
+
+This consolidates the source rules below into one runnable list. Skipping any step has caused real
+production gaps (Amazon source added across 80+ lists with no audit notes, no ranking-change ledger
+entries, and only verified after the owner caught it). Do ALL of these, in order, every time:
+
+0. **Re-read the relevant sections of THIS file first** (do not work from memory): "Source-rule changes
+   ALWAYS carry a note", "Activity Ledger labels", "Post-deploy consensus-check trigger", and the
+   media crowd-vote rule if the list is media.
+1. **Make the change** on a FRESH origin/main clone: add/remove the source, order its items by true
+   rank, set weight/unordered/trueExpert. On MEDIA lists set an explicit weight on EVERY source
+   (critics 0.5x, crowd incl. Amazon/Goodreads 1.5x) and add the weight suffix to each label.
+2. **Re-seed** ai.items + vote.items to the recomputed Borda consensus (helpers.js, absent = 0).
+3. **Descriptions + heroes:** descriptions.js for any item newly in the top 10; hero-images.js for any
+   item newly in the top 3 (restaurants: FOOD/DINING photo only; ALL heroes must be on an
+   optimizer-friendly host — Resy/Eater/Wikimedia/publication CDNs work; Washingtonian, Squarespace,
+   getbento, Amazon, and most brand sites are blocked by the Next image optimizer and render 0x0).
+4. **sourceRevisions[sourceId] note**, reader-facing, NO em dashes, applied to EVERY affected list in
+   the same pass. A brand-new source uses ADDITION framing ("New source (Month YYYY): ..."), not
+   "Correction" (Correction is for re-encodings/reweights/removals).
+5. **Stamp rating-data.js** for every rating gathered (RATING_DATA[listId][item][platform] =
+   {rating,count,date}).
+6. **Validate + deploy:** node --check, verify ZERO unexpected deletions, push.
+7. **Trigger the cron** (GET /api/cron/consensus-check via the browser; web_fetch returns empty). The
+   ranking-change ledger entries for a source ADDITION are only captured if a PRE-change consensus
+   snapshot exists to diff against; a brand-new list (or one whose snapshot already reflects the new
+   source) will record nothing, so seed the pre-change snapshot first if needed.
+8. **VERIFY ON THE LIVE SITE — do not stop at "push succeeded".** Open the list page Activity Log AND
+   the master /feed and confirm the "Source added / Sources Revisited" card renders WITH its ranking
+   movements and note. After a bulk change, confirm the master /feed (capped at 800 alert rows) shows
+   the full set, not a truncated subset.
+
+
 ## Setup & site overview
 
 - **Repo (the only folder):** the connected repo, currently `C:\dev\source-of-truths` (moved off OneDrive to
