@@ -31,7 +31,7 @@ export async function GET() {
     const cutoffIso = new Date(startOfEasternTodayUTC()).toISOString();
     const { data, error } = await supabaseAdmin
       .from('quiz_results')
-      .select('user_id, username, score, created_at, total')
+      .select('user_id, username, quiz_id, score, created_at, total')
       .gte('created_at', cutoffIso)
       .order('created_at', { ascending: false })
       .limit(50000);
@@ -48,13 +48,15 @@ export async function GET() {
       correctToday += sc;
       if (r.total > 0 && (Number(r.score) || 0) === Number(r.total)) perfectToday += 1;
       if (r.user_id) {
-        const cur = byUser.get(r.user_id) || { username: r.username || 'Player', correct: 0 };
-        cur.correct += sc;
+        let cur = byUser.get(r.user_id);
+        if (!cur) { cur = { username: r.username || 'Player', byQuiz: new Map() }; byUser.set(r.user_id, cur); }
         if ((!cur.username || cur.username === 'Player') && r.username) cur.username = r.username;
-        byUser.set(r.user_id, cur);
+        // Best correct count per quiz today: replays can raise but never multiply.
+        if (sc > (cur.byQuiz.get(r.quiz_id) || 0)) cur.byQuiz.set(r.quiz_id, sc);
       }
     }
     const leaders = [...byUser.values()]
+      .map((u) => ({ username: u.username, correct: [...u.byQuiz.values()].reduce((s, v) => s + v, 0) }))
       .filter((u) => u.correct > 0)
       .sort((a, b) => b.correct - a.correct || String(a.username).localeCompare(String(b.username)))
       .slice(0, 10);

@@ -43,9 +43,11 @@ export function buildChampions(rows, { minQuizzes = MIN_QUIZZES } = {}) {
   const firstByPair = new Map();
   // Total completed games per user, counting every replay (for Total Plays).
   const playsByUser = new Map();
-  // All-time correct answers per user (sum of score over every completed game),
-  // and the DISTINCT quizzes each user has scored 100% on (Fully Completed).
-  const correctByUser = new Map();
+  // All-time correct answers per user: the user's BEST correct count per quiz
+  // (already capped at that quiz's available answers), summed across DISTINCT
+  // quizzes -- so replaying a quiz can raise but never multiply the total. Plus
+  // the DISTINCT quizzes each user has scored 100% on (Fully Completed).
+  const correctByUser = new Map(); // user_id -> Map(quiz_id -> best correct count)
   const perfectByUser = new Map();
   // Display name per user = the username on their most recent row.
   const nameByUser = new Map();
@@ -56,7 +58,12 @@ export function buildChampions(rows, { minQuizzes = MIN_QUIZZES } = {}) {
     const prev = firstByPair.get(key);
     if (!prev || id < (prev.id || 0)) firstByPair.set(key, r);
     playsByUser.set(r.user_id, (playsByUser.get(r.user_id) || 0) + 1);
-    correctByUser.set(r.user_id, (correctByUser.get(r.user_id) || 0) + correctAnswersOf(r));
+    {
+      let cqm = correctByUser.get(r.user_id);
+      if (!cqm) { cqm = new Map(); correctByUser.set(r.user_id, cqm); }
+      const ca = correctAnswersOf(r);
+      if (ca > (cqm.get(r.quiz_id) || 0)) cqm.set(r.quiz_id, ca);
+    }
     if (r.total > 0 && r.score === r.total) {
       let pset = perfectByUser.get(r.user_id);
       if (!pset) { pset = new Set(); perfectByUser.set(r.user_id, pset); }
@@ -108,7 +115,7 @@ export function buildChampions(rows, { minQuizzes = MIN_QUIZZES } = {}) {
   // All-time Total Correct Answers and Fully Completed Quizzes (distinct quizzes
   // scored 100%) leaderboards, used by the /quizzes Players board and /leaderboard.
   const correctAnswers = [...correctByUser.entries()]
-    .map(([uid, n]) => ({ username: nameByUser.get(uid) || 'Anonymous', correct: n }))
+    .map(([uid, cqm]) => ({ username: nameByUser.get(uid) || 'Anonymous', correct: [...cqm.values()].reduce((s, v) => s + v, 0) }))
     .filter((u) => u.correct > 0)
     .sort((x, y) => y.correct - x.correct || byName(x, y));
   const perfectQuizzes = [...perfectByUser.entries()]
