@@ -150,7 +150,7 @@ export default function LeaderboardClient() {
                 {[['registered', 'Registered'], ['anon', 'Anonymous'], ['combined', 'Combined']].map(([k, label], idx) => {
                   const on = view === k;
                   return (
-                    <button key={k} onClick={() => setView(k)} style={{ padding: '8px 20px', background: on ? COLORS.ink : 'transparent', color: on ? COLORS.cream : COLORS.ink, border: 'none', borderLeft: idx === 0 ? 'none' : `1.5px solid ${COLORS.ink}`, fontFamily: 'DM Mono, monospace', fontSize: 11, letterSpacing: '0.14em', textTransform: 'uppercase', fontWeight: 700, cursor: 'pointer' }}>{label}</button>
+                    <button key={k} onClick={() => setView(k)} style={{ padding: '8px 15px', background: on ? COLORS.ink : 'transparent', color: on ? COLORS.cream : COLORS.ink, border: 'none', borderLeft: idx === 0 ? 'none' : `1.5px solid ${COLORS.ink}`, fontFamily: 'DM Mono, monospace', fontSize: 11, letterSpacing: '0.14em', textTransform: 'uppercase', fontWeight: 700, cursor: 'pointer' }}>{label}</button>
                   );
                 })}
               </div>
@@ -158,7 +158,7 @@ export default function LeaderboardClient() {
                 {[['all', 'All Time'], ['today', 'Today']].map(([k, label], idx) => {
                   const on = period === k;
                   return (
-                    <button key={k} onClick={() => setPeriod(k)} style={{ padding: '8px 20px', background: on ? COLORS.ink : 'transparent', color: on ? COLORS.cream : COLORS.ink, border: 'none', borderLeft: idx === 0 ? 'none' : `1.5px solid ${COLORS.ink}`, fontFamily: 'DM Mono, monospace', fontSize: 11, letterSpacing: '0.14em', textTransform: 'uppercase', fontWeight: 700, cursor: 'pointer' }}>{label}</button>
+                    <button key={k} onClick={() => setPeriod(k)} style={{ padding: '8px 15px', background: on ? COLORS.ink : 'transparent', color: on ? COLORS.cream : COLORS.ink, border: 'none', borderLeft: idx === 0 ? 'none' : `1.5px solid ${COLORS.ink}`, fontFamily: 'DM Mono, monospace', fontSize: 11, letterSpacing: '0.14em', textTransform: 'uppercase', fontWeight: 700, cursor: 'pointer' }}>{label}</button>
                   );
                 })}
               </div>
@@ -179,13 +179,17 @@ export default function LeaderboardClient() {
                   </div>
                   <div style={{ fontFamily: 'DM Mono, monospace', fontSize: 9.5, letterSpacing: '0.1em', textTransform: 'uppercase', color: COLORS.faded, marginBottom: 10 }}>Most correct answers each day</div>
                   <div style={{ borderTop: `2px solid ${COLORS.ember}` }}>
-                    {dailyRows.length > 0 ? dailyRows.map((r, i) => (
-                      <div key={`${r.date}-${i}`} style={{ display: 'flex', alignItems: 'center', gap: 14, padding: '9px 3px', borderBottom: `1px solid rgba(26,22,17,0.12)` }}>
-                        <span style={{ flex: 'none', minWidth: 54, fontFamily: 'DM Mono, monospace', fontSize: 12.5, fontWeight: 700, color: COLORS.ember }}>{r.date}</span>
-                        <span style={{ flex: '1 1 auto', minWidth: 0, fontFamily: 'Fraunces, serif', fontSize: 16, fontWeight: 600, color: COLORS.ink, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{r.name}</span>
+                    {dailyRows.length > 0 ? (
+                      <div className="lb-daily-grid">
+                        {dailyRows.map((r, i) => (
+                          <div key={`${r.date}-${i}`} className="lb-daily-row">
+                            <span className="lb-daily-date">{r.date}</span>
+                            <span className="lb-daily-name">{r.name}</span>
+                          </div>
+                        ))}
                       </div>
-                    )) : (
-                      <div style={{ padding: '20px 3px', fontFamily: 'Fraunces, serif', fontStyle: 'italic', fontSize: 13.5, color: COLORS.faded }}>No daily champions yet.</div>
+                    ) : (
+                      <div style={{ padding: '20px 3px', fontFamily: 'Fraunces, serif', fontStyle: 'italic', fontSize: 13.5, color: COLORS.faded }}>The first champion is crowned once today is over.</div>
                     )}
                   </div>
                 </div>
@@ -198,10 +202,15 @@ export default function LeaderboardClient() {
           )}
           <style>{`
             .lb-metrics{display:flex;flex-wrap:wrap;gap:10px;margin-bottom:20px;}
-            .lb-metric{display:inline-flex;align-items:center;gap:8px;padding:10px 18px;background:${COLORS.paper};border:1.5px solid ${COLORS.ink};font-family:'DM Mono',monospace;font-size:11px;letter-spacing:0.12em;text-transform:uppercase;font-weight:700;color:${COLORS.ink};cursor:pointer;}
+            .lb-metric{display:inline-flex;align-items:center;gap:7px;padding:9px 14px;background:${COLORS.paper};border:1.5px solid ${COLORS.ink};font-family:'DM Mono',monospace;font-size:11px;letter-spacing:0.12em;text-transform:uppercase;font-weight:700;color:${COLORS.ink};cursor:pointer;}
             .lb-metric:hover{background:#e4dbc8;}
             .lb-metric.on{background:${COLORS.ember};color:${COLORS.cream};}
-            .lb-single{max-width:760px;}
+            .lb-single{max-width:none;}
+            .lb-daily-grid{display:grid;grid-auto-flow:column;grid-template-rows:repeat(10,auto);gap:0 36px;}
+            .lb-daily-row{display:flex;align-items:center;gap:12px;padding:8px 3px;border-bottom:1px solid rgba(26,22,17,0.12);min-width:0;}
+            .lb-daily-date{flex:none;min-width:46px;font-family:'DM Mono',monospace;font-size:12px;font-weight:700;color:${COLORS.ember};}
+            .lb-daily-name{flex:1 1 auto;min-width:0;font-family:'Fraunces',serif;font-size:15px;font-weight:500;color:${COLORS.ink};overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+            @media(max-width:680px){.lb-daily-grid{grid-auto-flow:row;grid-template-rows:none;grid-template-columns:1fr;}}
             .lb-title{min-height:46px;}
             @media(max-width:900px){.lb-grid{grid-template-columns:1fr 1fr;gap:30px;}}
             @media(max-width:520px){.lb-grid{grid-template-columns:1fr;gap:34px;}.lb-title{min-height:0;}}

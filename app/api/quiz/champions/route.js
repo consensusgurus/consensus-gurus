@@ -163,9 +163,10 @@ function buildAnon(rows) {
 // Per-day champion: for each Eastern calendar day, the signed-up player with the
 // most correct answers banked that day. Returns the most recent `days` days,
 // newest first, as { date:'M/D', dateISO:'YYYY-MM-DD', username }.
-function buildDailyChampions(rows, { days = 14 } = {}) {
+function buildDailyChampions(rows, { days = 30 } = {}) {
   const signed = rows.filter((r) => r.user_id && r.total > 0 && r.created_at);
   const fmt = new Intl.DateTimeFormat('en-CA', { timeZone: 'America/New_York', year: 'numeric', month: '2-digit', day: '2-digit' });
+  const todayE = fmt.format(new Date()); // current Eastern day is still in progress
   const byDay = new Map(); // 'YYYY-MM-DD' -> Map(user_id -> { username, correct })
   for (const r of signed) {
     const t = Date.parse(r.created_at);
@@ -180,6 +181,7 @@ function buildDailyChampions(rows, { days = 14 } = {}) {
   }
   const out = [];
   for (const [day, users] of byDay.entries()) {
+    if (day === todayE) continue; // don't crown a champion until the day is over
     let best = null;
     for (const u of users.values()) {
       if (u.correct <= 0) continue;
