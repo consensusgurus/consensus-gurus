@@ -25,7 +25,7 @@ function startOfEasternTodayUTC() {
 // GET /api/quiz/today -> { leaders:[{username,correct}], correctToday, playsToday }
 // Everything completed since midnight US Eastern. correctToday / playsToday count
 // ALL games (anonymous included); leaders ranks signed-up players by total
-// correct answers, top 5.
+// correct answers, top 10.
 export async function GET() {
   try {
     const cutoffIso = new Date(startOfEasternTodayUTC()).toISOString();
@@ -57,7 +57,7 @@ export async function GET() {
     const leaders = [...byUser.values()]
       .filter((u) => u.correct > 0)
       .sort((a, b) => b.correct - a.correct || String(a.username).localeCompare(String(b.username)))
-      .slice(0, 5);
+      .slice(0, 10);
     return NextResponse.json({ leaders, correctToday, perfectToday, playsToday: rows.length });
   } catch (e) {
     return NextResponse.json({ leaders: [], correctToday: 0, perfectToday: 0, playsToday: 0 });
