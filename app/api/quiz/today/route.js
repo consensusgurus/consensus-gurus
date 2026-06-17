@@ -31,7 +31,7 @@ export async function GET() {
     const cutoffIso = new Date(startOfEasternTodayUTC()).toISOString();
     const { data, error } = await supabaseAdmin
       .from('quiz_results')
-      .select('user_id, username, score, created_at, total')
+      .select('quiz_id, user_id, username, score, created_at, total')
       .gte('created_at', cutoffIso)
       .order('created_at', { ascending: false })
       .limit(50000);
