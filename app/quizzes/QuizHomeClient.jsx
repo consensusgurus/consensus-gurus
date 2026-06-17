@@ -908,8 +908,6 @@ export default function QuizHomeClient() {
             }
           `}</style>
           <div className="qz-stats">
-            <span>{visitors.toLocaleString()} visitors</span>
-            <span><span style={{ opacity: 0.5 }}>·</span> {totals.total.toLocaleString()} quiz plays</span>
             {recentEntries.length > 0 && (
               <span className="qz-tape">
                 <span className="qz-tape-track" style={{ animationDuration: `${Math.max(40, recentEntries.length * 9)}s` }}>
@@ -949,7 +947,8 @@ export default function QuizHomeClient() {
                 <input type="text" value={query} onChange={(e) => setQuery(e.target.value)} placeholder="Search quizzes" />
                 {query && (<button onClick={() => setQuery('')} aria-label="Clear search" style={{ position: 'absolute', right: 18, top: '50%', transform: 'translateY(-50%)', background: 'transparent', border: 'none', color: COLORS.faded, cursor: 'pointer', padding: 6, display: 'flex' }}><X size={16} strokeWidth={2.5} /></button>)}
               </div>
-              <Link href="/request" className="qz-rb-req">Request a Quiz</Link>
+              <Link href="/quizzes/stats" className="qz-rb-req" style={{ background: COLORS.ink }}><span aria-hidden="true" style={{ width: 8, height: 8, borderRadius: '50%', background: COLORS.ember, display: 'inline-block', flex: 'none' }} />{totals.total.toLocaleString()} Quiz Plays</Link>
+              <Link href="/request" className="qz-rb-req">Submit a Quiz</Link>
               <Link href="/" className="qz-rb-req" style={{ background: COLORS.ink }}>Top 10 Lists</Link>
             </div>
             {navScroll.left && <span aria-hidden="true" className="qz-navcue qz-navcue-l">&#8249;</span>}
