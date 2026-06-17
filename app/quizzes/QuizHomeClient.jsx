@@ -220,7 +220,13 @@ const boardCss = `
   .sp-fstat{font-family:'DM Mono',monospace;font-size:11px;letter-spacing:0.05em;text-transform:uppercase;color:${COLORS.faded};margin-top:4px;}
   .sp-fstat b{color:${COLORS.ember};font-weight:500;}
   .sp-rest{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:1px 22px;align-content:center;border-left:1px solid rgba(26,22,17,0.18);padding-left:18px;min-width:0;}
-  .sp-rrow{padding:4px 0;}
+  .sp-rest .lb-name{font-size:12px;}
+  .sp-rest .lb-val{font-size:11px;}
+  .sp-rrow{padding:3px 0;}
+  .sp-rrow-hi{padding:5px 0;}
+  .sp-rrow-hi .lb-rank{width:21px;height:21px;font-size:11px;}
+  .sp-rrow-hi .lb-name{font-size:14px;}
+  .sp-rrow-hi .lb-val{font-size:12px;color:${COLORS.ink};}
   .sp-new{flex:none;background:${COLORS.ember};color:${COLORS.cream};font-family:'DM Mono',monospace;font-size:9px;letter-spacing:0.08em;padding:2px 5px;text-transform:uppercase;margin-right:2px;}
   .sh-row{align-items:flex-start;}
   .sh-name{white-space:normal;overflow:visible;text-overflow:clip;overflow-wrap:anywhere;line-height:1.3;}
@@ -401,7 +407,7 @@ function QuizCategoryColumn({ sectionKey, label, accent, Icon, quizzes, totals, 
   const LIMIT = 6;
   const shown = sorted.slice(0, LIMIT);
   const total = quizzes.length;
-  const TOGGLES = [['recent', 'Newest'], ['popularity', 'Most Played'], ['discover', 'Discover']];
+  const TOGGLES = [['recent', 'New'], ['popularity', 'Popular'], ['discover', 'Discover']];
   return (
     <section id={`qzsec-${sectionKey}`} className="ql-col">
       <div className="ql-col-head" style={{ borderColor: accent.c }}>
@@ -457,7 +463,7 @@ function SpotlightBoard({ columns }) {
   const [paused, setPaused] = useState(false);
   useEffect(() => {
     if (paused || avail.length <= 1) return undefined;
-    const t = setInterval(() => setIdx((i) => (i + 1) % avail.length), 8000);
+    const t = setInterval(() => setIdx((i) => (i + 1) % avail.length), 10000);
     return () => clearInterval(t);
   }, [paused, avail.length]);
   const safeIdx = avail.length ? idx % avail.length : 0;
@@ -485,10 +491,10 @@ function SpotlightBoard({ columns }) {
             {rest.length > 0 && (
               <div className="sp-rest">
                 {rest.map((r, i) => (
-                  <div key={r.key} className="lb-row sp-rrow">
+                  <div key={r.key} className={i < 2 ? 'lb-row sp-rrow sp-rrow-hi' : 'lb-row sp-rrow'}>
                     <span className="lb-rank" style={{ background: i < 2 ? MEDAL[i + 1] : 'transparent' }}>{i + 2}</span>
                     <span className="lb-name">{r.full}</span>
-                    <span className="lb-val">{r.val}{unitShort ? ` ${unitShort}` : ''}</span>
+                    <span className="lb-val">{r.val}</span>
                   </div>
                 ))}
               </div>
@@ -896,7 +902,10 @@ export default function QuizHomeClient() {
             .qz-navcue-l{left:6px;animation:qzNavNudgeL 1.4s ease-in-out infinite;}
             @media(min-width:760px){.qz-navcue{display:none;}}
             @media(max-width:760px){
-              .qz-rb-search{flex:0 0 auto;width:210px;}
+              .qz-rb-pre{display:none;}
+              .qz-rb-btn{padding:0 11px;font-size:9.5px;letter-spacing:0.08em;gap:5px;}
+              .qz-rb-req{padding:0 12px;font-size:9px;letter-spacing:0.06em;}
+              .qz-rb-search{flex:0 0 auto;width:170px;}
               .qz-rb-search input{font-size:16px;}
               .qz-pop{left:8px !important;right:8px;}
               .qz-pop-cat{width:auto;}
@@ -932,11 +941,11 @@ export default function QuizHomeClient() {
           <div ref={ribbonRef} style={{ maxWidth: 1200, margin: '0 auto', padding: '0 16px', position: 'relative' }}>
             <div ref={ribbonScrollRef} className="qz-ribbon">
                                           <button ref={catBtnRef} type="button" className="qz-rb-btn" aria-haspopup="true" aria-expanded={catOpen} onClick={() => { const willOpen = !catOpen; if (willOpen && catBtnRef.current) setPanelLeft(catBtnRef.current.offsetLeft); setCatOpen(willOpen); setSortOpen(false); setTypeOpen(false); }}>
-                <span><span style={{ opacity: 0.7 }}>Category:</span> {currentDeptLabel}</span>
+                <span><span className="qz-rb-pre" style={{ opacity: 0.7 }}>Category:</span> {currentDeptLabel}</span>
                 <ChevronDown className="qz-rb-chev" size={14} strokeWidth={2.5} style={{ transform: catOpen ? 'rotate(180deg)' : 'none' }} />
               </button>
               <button ref={typeBtnRef} type="button" className="qz-rb-btn" aria-haspopup="true" aria-expanded={typeOpen} onClick={() => { const willOpen = !typeOpen; if (willOpen && typeBtnRef.current) setPanelLeft(typeBtnRef.current.offsetLeft); setTypeOpen(willOpen); setCatOpen(false); setSortOpen(false); }}>
-                <span><span style={{ opacity: 0.7 }}>Type:</span> {currentTypeLabel}</span>
+                <span><span className="qz-rb-pre" style={{ opacity: 0.7 }}>Type:</span> {currentTypeLabel}</span>
                 <ChevronDown className="qz-rb-chev" size={14} strokeWidth={2.5} style={{ transform: typeOpen ? 'rotate(180deg)' : 'none' }} />
               </button>
 
@@ -1006,7 +1015,7 @@ export default function QuizHomeClient() {
               <div className="ql-bhead">
                 <h2 className="ql-bname">{listLabel}</h2>
                 <div className="ql-toggle" role="group" aria-label="Sort quizzes">
-                  {[['recent', 'Newest'], ['popularity', 'Most Played'], ['discover', 'Discover']].map(([id, lbl]) => (
+                  {[['recent', 'New'], ['popularity', 'Popular'], ['discover', 'Discover']].map(([id, lbl]) => (
                     <button key={id} type="button" className="ql-tg" onClick={() => setListSort(id)} style={listSort === id ? { background: COLORS.ember, color: COLORS.cream } : undefined}>{lbl}</button>
                   ))}
                 </div>
