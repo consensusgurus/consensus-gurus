@@ -178,14 +178,11 @@ export default function StatHubClient() {
           <Link className="back" href="/quizzes"><ArrowLeft size={15} /> Back to Quizzes</Link>
         </div>
 
-        {/* player name */}
-        {found && me.name ? (
-          <h1 style={{ fontSize: 24, fontWeight: 800, letterSpacing: '-0.02em', color: C.ink, margin: '16px 0 0' }}>{me.name}</h1>
-        ) : null}
-
         {/* profile header — leads with OVERALL RANK (largest element) */}
-        <div className="card" style={{ display: 'flex', flexDirection: 'row', alignItems: 'center', flexWrap: 'wrap', gap: 18, padding: '15px 18px', marginTop: 10, overflow: 'visible', position: 'relative', zIndex: 40 }}>
+        <div className="card" style={{ display: 'flex', flexDirection: 'row', alignItems: 'center', flexWrap: 'wrap', gap: 18, padding: '15px 18px', marginTop: 16, overflow: 'visible', position: 'relative', zIndex: 40 }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 18, flexWrap: 'wrap' }}>
+            {found && me.name ? <div style={{ fontSize: 22, fontWeight: 800, letterSpacing: '-0.02em', color: C.ink }}>{me.name}</div> : null}
+            {found && me.name ? <div style={{ width: 1, height: 50, background: C.line }} /> : null}
             <div style={{ display: 'flex', flexDirection: 'column' }}>
               <span className="lbl">Overall Rank</span>
               <span style={{ fontSize: 42, fontWeight: 800, color: C.accent, lineHeight: 1 }}>{found && me.rank ? `#${me.rank}` : '—'}</span>
@@ -214,7 +211,7 @@ export default function StatHubClient() {
           <span className="tabcue" aria-hidden="true">{'\u203A'}</span>
         </div>
 
-        {tab === 'player' && <PlayerPanel me={me} scope={scope} cats={cats} byKey={byKey} totalQuizzes={catalog.length} board={board} myName={myName} myAnonKey={myAnonKey} />}
+        {tab === 'player' && <PlayerPanel me={me} scope={scope} cats={cats} byKey={byKey} totalQuizzes={catalog.length} board={board} myName={myName} myAnonKey={myAnonKey} titleById={titleById} />}
         {tab === 'quizzes' && <QuizzesPanel me={me} scope={scope} byKey={byKey} catalog={catalog} stats={statsById} totals={totals} totalPlays={totalPlays} />}
         {tab === 'challenges' && <ChallengesPanel me={me} challenge={challenge} titleById={titleById} />}
         {tab === 'rating' && <RatingPanel me={me} titleById={titleById} />}
@@ -250,7 +247,7 @@ function Metric({ label, value, sub, rank, total, avg }) {
   );
 }
 
-function PlayerPanel({ me, scope, cats, byKey, totalQuizzes, board, myName, myAnonKey }) {
+function PlayerPanel({ me, scope, cats, byKey, totalQuizzes, board, myName, myAnonKey, titleById }) {
   const found = me && me.found;
   const a = found ? me.activity : { correct: 0, answered: 0, played: 0, completed: 0, accuracy: 0, daysPlayed: 0 };
   const ranks = (found && me.ranks) || {};
@@ -260,12 +257,12 @@ function PlayerPanel({ me, scope, cats, byKey, totalQuizzes, board, myName, myAn
   const pctCompleted = a.played ? Math.round((a.completed / a.played) * 100) : 0;
   const byCat = (found && me.byCategory) || {};
   const catRows = (scope === 'all' ? cats : cats.filter((c) => c.key === scope));
-  const [pview, setPview] = useState('userbase');
+  const [pview, setPview] = useState('ranking');
 
   const toggle = (
     <div style={{ display: 'flex', gap: 3, background: '#eceef1', borderRadius: 9, padding: 3, flex: 'none' }}>
-      {[['userbase', 'User Base'], ['category', 'Category']].map(([v, lbl]) => (
-        <button key={v} onClick={() => setPview(v)} style={{ border: 'none', background: pview === v ? '#fff' : 'transparent', color: pview === v ? C.ink : C.muted, fontWeight: pview === v ? 700 : 600, boxShadow: pview === v ? '0 1px 2px rgba(20,22,28,0.06)' : 'none', borderRadius: 7, padding: '6px 13px', font: 'inherit', fontFamily: FONT, fontSize: 12, cursor: 'pointer' }}>{lbl}</button>
+      {[['ranking', 'Ranking'], ['category', 'Category Detail'], ['activity', 'Activity Feed']].map(([v, lbl]) => (
+        <button key={v} onClick={() => setPview(v)} style={{ border: 'none', background: pview === v ? '#fff' : 'transparent', color: pview === v ? C.ink : C.muted, fontWeight: pview === v ? 700 : 600, boxShadow: pview === v ? '0 1px 2px rgba(20,22,28,0.06)' : 'none', borderRadius: 7, padding: '7px 15px', font: 'inherit', fontFamily: FONT, fontSize: 12.5, cursor: 'pointer' }}>{lbl}</button>
       ))}
     </div>
   );
@@ -273,14 +270,13 @@ function PlayerPanel({ me, scope, cats, byKey, totalQuizzes, board, myName, myAn
   return (
     <div>
       <div className="card" style={{ padding: '14px 16px' }}>
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 10, flexWrap: 'wrap', marginBottom: 10 }}>
-          <div style={{ fontSize: 14, fontWeight: 700 }}>
-            {pview === 'userbase' ? 'Every Player, Ranked' : (scope === 'all' ? 'Your Stats' : `Your ${byKey[scope]?.label} Detail`)}
-          </div>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 10, flexWrap: 'wrap', marginBottom: 12 }}>
           {toggle}
         </div>
-        {pview === 'userbase' ? (
+        {pview === 'ranking' ? (
           <UserBaseBody board={board} myName={myName} myAnonKey={myAnonKey} />
+        ) : pview === 'activity' ? (
+          <ActivityFeed recent={found ? me.recent : []} titleById={titleById} />
         ) : !found ? (
           <div style={{ fontSize: 13, color: C.soft, padding: '6px 0' }}>Play a few quizzes and your breakdown shows up here.</div>
         ) : (
@@ -328,6 +324,38 @@ function PlayerPanel({ me, scope, cats, byKey, totalQuizzes, board, myName, myAn
           </div>
         )}
       </div>
+    </div>
+  );
+}
+
+// Per-quiz play feed: the current player's recent games, newest first, each
+// linking to that quiz. Lives under the Player tab's "Activity Feed" view.
+function ActivityFeed({ recent, titleById }) {
+  if (!recent || !recent.length) return <div style={{ fontSize: 13, color: C.soft, padding: '6px 0' }}>No games on record yet. Play a quiz and it shows up here.</div>;
+  return (
+    <div style={{ overflow: 'auto', maxHeight: 600 }}>
+      <table>
+        <thead><tr>
+          <th>Quiz</th>
+          <th style={{ textAlign: 'right' }}>When</th>
+          <th style={{ textAlign: 'right' }}>Your %</th>
+          <th style={{ textAlign: 'right' }}>Rating &Delta;</th>
+        </tr></thead>
+        <tbody>
+          {recent.map((m, i) => {
+            const title = (titleById && titleById[m.quizId]) || m.quizId;
+            const when = m.createdAt ? new Date(m.createdAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : '\u2014';
+            return (
+              <tr key={i}>
+                <td style={{ fontWeight: 600, whiteSpace: 'nowrap' }}><Link href={`/quiz/${m.quizId}`} style={{ color: C.ink, textDecoration: 'none' }}>{title}</Link></td>
+                <td style={{ textAlign: 'right', color: C.muted, whiteSpace: 'nowrap' }}>{when}</td>
+                <td style={{ textAlign: 'right' }}>{m.scorePct}%</td>
+                <td className="score" style={{ textAlign: 'right', color: (m.delta >= 0) ? C.accent : C.danger, fontWeight: 700 }}>{m.delta >= 0 ? `+${m.delta}` : m.delta}</td>
+              </tr>
+            );
+          })}
+        </tbody>
+      </table>
     </div>
   );
 }

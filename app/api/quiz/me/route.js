@@ -28,7 +28,7 @@ export async function GET(request) {
       ['id'],
     );
     if (error) { console.error('quiz me error', error); return NextResponse.json({ found: false }); }
-    const { players } = computeElo(data || []);
+    const { players } = computeElo(data || [], { recentN: 60 });
     return NextResponse.json(buildProfile(players, myKey, { signed, username }));
   } catch (e) {
     console.error('quiz me exception', e);
