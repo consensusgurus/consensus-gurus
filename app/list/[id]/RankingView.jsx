@@ -105,7 +105,10 @@ export default function RankingView({ list, voteData, extras }) {
   const items = (consensus && consensus.items) || [];
   const rawScores = (consensus && consensus.scores) || {};
   const top = Math.max(1, ...items.map((it) => rawScores[it] || 0));
-  const score100 = (it) => Math.max(1, Math.round(100 * (rawScores[it] || 0) / top));
+  // Scale to a 60-100 band (not 0-100): #1 = 100, the weakest item lands ~60,
+  // so a thin top-10 entry never reads like a near-zero score.
+  const FLOOR = 60;
+  const score100 = (it) => Math.round(FLOOR + (100 - FLOOR) * (rawScores[it] || 0) / top);
 
   const podium = items.slice(0, 3);
   const rest = items.slice(3);
