@@ -34,7 +34,7 @@ function Logo({ size = 40 }) {
   );
 }
 
-export default function SiteHeader({ active = 'lists', maxWidth = 1180, visitors }) {
+export default function SiteHeader({ active = 'lists', maxWidth = 1180, visitors, bare = false }) {
   const linkStyle = (isOn) => ({ textDecoration: 'none', fontSize: 14, fontWeight: isOn ? 700 : 500, color: isOn ? C.ink : C.muted });
   const plain = { color: 'inherit', textDecoration: 'none' };
   // One consistent site-wide visitors figure on EVERY page: fetch it here so the
@@ -66,7 +66,7 @@ export default function SiteHeader({ active = 'lists', maxWidth = 1180, visitors
           .sh-stat{font-size:11px;margin-top:8px;line-height:1.7;}
         }
       `}</style>
-      <div style={{ maxWidth, margin: '0 auto', padding: '16px 24px 0' }}>
+      <div style={bare ? { padding: '2px 0 0' } : { maxWidth, margin: '0 auto', padding: '16px 24px 0' }}>
         <div className="sh-bar">
           <Link href="/" className="sh-brand">
             <Logo size={40} />

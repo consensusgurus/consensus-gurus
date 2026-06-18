@@ -945,11 +945,11 @@ export default function QuizClient({ quizId }) {
 
   return (
     <div style={{ minHeight: '100vh', background: COLORS.cream, color: COLORS.ink, position: 'relative', overflowX: 'clip' }}>
-      <div style={{ position: 'relative', zIndex: 2, maxWidth: 1180, margin: '0 auto', padding: '24px 20px 80px' }}>
+      <div style={{ position: 'relative', zIndex: 2, maxWidth: 1180, margin: '0 auto', padding: '8px 24px 80px' }}>
 
         <style>{`@import url('https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap');`}</style>
 
-        <SiteHeader active="quizzes" />
+        <SiteHeader active="quizzes" bare />
 
         {/* Header */}
         <div style={{ paddingBottom: 0, marginTop: 8 }}>

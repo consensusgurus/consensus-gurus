@@ -16,7 +16,7 @@ export const runtime = 'nodejs';
 const W = 1080;
 const H = 1350;
 // Classic palette — COLOR_SCHEMES.classic in SnapshotClient.jsx
-const PAL = { bg: '#f4ede0', text: '#1a1a1a', accent: '#c0392b', faded: '#8a7a6a' };
+const PAL = { bg: '#ffffff', text: '#1c1e24', accent: '#2563eb', faded: '#6b7280' };
 
 // --- copied from SnapshotClient.jsx (sourceTier / constituentLabel) ---
 function sourceTier(src) {
@@ -150,13 +150,13 @@ function renderFallback(list, items, sans, mono, fonts) {
             <span style={{ color: PAL.accent, fontWeight: 700 }}>Source of Truths</span>
             <span>{`${list.category} · Top ${Math.min(items.length, 10)}`}</span>
           </div>
-          <div style={{ display: 'flex', fontFamily: sans, fontWeight: 900, fontSize: fitTitle(list.title, 62), lineHeight: 0.95, letterSpacing: '-0.03em', marginTop: 26, color: PAL.text, maxWidth: '96%' }}>
+          <div style={{ display: 'flex', fontFamily: sans, fontWeight: 800, fontSize: fitTitle(list.title, 62), lineHeight: 0.95, letterSpacing: '-0.03em', marginTop: 26, color: PAL.text, maxWidth: '96%' }}>
             {list.title}
           </div>
           <div style={{ display: 'flex', marginTop: 8, fontFamily: mono, fontSize: 12, letterSpacing: '0.2em', textTransform: 'uppercase', color: PAL.faded }}>Consensus</div>
           <div style={{ display: 'flex', flexDirection: 'column', flexGrow: 1, marginTop: 28 }}>
             {items.slice(0, 10).map((item, i) => (
-              <div key={String(i)} style={{ display: 'flex', flexGrow: 1, flexBasis: 0, alignItems: 'center', gap: 24, borderTop: '1px solid rgba(26,26,26,0.16)' }}>
+              <div key={String(i)} style={{ display: 'flex', flexGrow: 1, flexBasis: 0, alignItems: 'center', gap: 24, borderTop: '1px solid rgba(20,22,28,0.12)' }}>
                 <span style={{ fontFamily: mono, fontWeight: 500, fontSize: 30, color: PAL.faded, minWidth: 70, flexShrink: 0 }}>{String(i + 1).padStart(2, '0')}</span>
                 <span style={{ fontFamily: sans, fontWeight: 600, fontSize: 28, color: PAL.text, lineHeight: 1.05, flexGrow: 1, letterSpacing: '-0.02em', wordBreak: 'break-word' }}>{item || ''}</span>
               </div>
@@ -233,16 +233,16 @@ export async function GET(request, { params }) {
     : '';
 
   const [sans900, sans600, mono500] = await Promise.all([
-    loadFont('https://cdn.jsdelivr.net/npm/@fontsource/dm-sans@5/files/dm-sans-latin-900-normal.woff'),
-    loadFont('https://cdn.jsdelivr.net/npm/@fontsource/dm-sans@5/files/dm-sans-latin-600-normal.woff'),
-    loadFont('https://cdn.jsdelivr.net/npm/@fontsource/dm-mono@5/files/dm-mono-latin-500-normal.woff'),
+    loadFont('https://cdn.jsdelivr.net/npm/@fontsource/manrope@5/files/manrope-latin-800-normal.woff'),
+    loadFont('https://cdn.jsdelivr.net/npm/@fontsource/manrope@5/files/manrope-latin-600-normal.woff'),
+    loadFont('https://cdn.jsdelivr.net/npm/@fontsource/manrope@5/files/manrope-latin-500-normal.woff'),
   ]);
   const fonts = [];
-  if (sans900) fonts.push({ name: 'DM Sans', data: sans900, weight: 900, style: 'normal' });
-  if (sans600) fonts.push({ name: 'DM Sans', data: sans600, weight: 600, style: 'normal' });
-  if (mono500) fonts.push({ name: 'DM Mono', data: mono500, weight: 500, style: 'normal' });
-  const sans = sans900 ? 'DM Sans' : 'sans-serif';
-  const mono = mono500 ? 'DM Mono' : 'monospace';
+  if (sans900) fonts.push({ name: 'Manrope', data: sans900, weight: 800, style: 'normal' });
+  if (sans600) fonts.push({ name: 'Manrope', data: sans600, weight: 600, style: 'normal' });
+  if (mono500) fonts.push({ name: 'Manrope', data: mono500, weight: 500, style: 'normal' });
+  const sans = sans900 ? 'Manrope' : 'sans-serif';
+  const mono = mono500 ? 'Manrope' : 'monospace';
 
   const t3 = items.slice(0, 3);
   const rest = items.slice(3, 10);
@@ -264,8 +264,8 @@ export async function GET(request, { params }) {
         ) : null}
         <div style={{ display: 'flex', position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', background: 'linear-gradient(to top, rgba(0,0,0,0.8), rgba(0,0,0,0.12) 60%, rgba(0,0,0,0))' }} />
         <div style={{ display: 'flex', position: 'absolute', left: big ? 18 : 14, right: 12, bottom: big ? 16 : 11, alignItems: 'flex-end', gap: 10 }}>
-          <span style={{ display: 'flex', fontFamily: sans, fontWeight: 900, fontSize: big ? 34 : 22, lineHeight: 1, color: PAL.bg, background: PAL.accent, padding: big ? '5px 13px' : '3px 9px', flexShrink: 0 }}>{String(rank)}</span>
-          <span style={{ fontFamily: sans, fontWeight: 900, fontSize: big ? 30 : 19, lineHeight: 1, letterSpacing: '-0.02em', color: '#ffffff', flexGrow: 1, wordBreak: 'break-word', textShadow: '0 2px 8px rgba(0,0,0,0.6)' }}>{item || ''}</span>
+          <span style={{ display: 'flex', fontFamily: sans, fontWeight: 800, fontSize: big ? 34 : 22, lineHeight: 1, color: PAL.bg, background: PAL.accent, padding: big ? '5px 13px' : '3px 9px', flexShrink: 0 }}>{String(rank)}</span>
+          <span style={{ fontFamily: sans, fontWeight: 800, fontSize: big ? 30 : 19, lineHeight: 1, letterSpacing: '-0.02em', color: '#ffffff', flexGrow: 1, wordBreak: 'break-word', textShadow: '0 2px 8px rgba(0,0,0,0.6)' }}>{item || ''}</span>
         </div>
       </div>
     );
@@ -280,7 +280,7 @@ export async function GET(request, { params }) {
               <span style={{ color: PAL.accent, fontWeight: 700 }}>Source of Truths</span>
               <span>{`${list.category} · Top ${Math.min(items.length, 10)}`}</span>
             </div>
-            <div style={{ display: 'flex', fontFamily: sans, fontWeight: 900, fontSize: fitTitle(list.title, 52), lineHeight: 0.9, letterSpacing: '-0.03em', marginTop: 14, color: PAL.text, maxWidth: '96%' }}>
+            <div style={{ display: 'flex', fontFamily: sans, fontWeight: 800, fontSize: fitTitle(list.title, 52), lineHeight: 0.9, letterSpacing: '-0.03em', marginTop: 14, color: PAL.text, maxWidth: '96%' }}>
               {list.title}
             </div>
             <div style={{ display: 'flex', marginTop: 6, fontFamily: mono, fontSize: 12, letterSpacing: '0.2em', textTransform: 'uppercase', color: PAL.faded }}>{modeLabel}</div>
@@ -294,7 +294,7 @@ export async function GET(request, { params }) {
           </div>
           <div style={{ display: 'flex', flexGrow: 2.1, flexShrink: 0, flexBasis: 0, flexDirection: 'column', padding: '12px 56px 0' }}>
             {rest.map((item, i) => (
-              <div key={String(i)} style={{ display: 'flex', flexGrow: 1, flexBasis: 0, alignItems: 'center', gap: 20, borderTop: '1px solid rgba(26,26,26,0.16)' }}>
+              <div key={String(i)} style={{ display: 'flex', flexGrow: 1, flexBasis: 0, alignItems: 'center', gap: 20, borderTop: '1px solid rgba(20,22,28,0.12)' }}>
                 <span style={{ fontFamily: mono, fontWeight: 500, fontSize: 24, color: PAL.faded, minWidth: 50, flexShrink: 0 }}>{String(i + 4).padStart(2, '0')}</span>
                 <span style={{ fontFamily: sans, fontWeight: 600, fontSize: 24, color: PAL.text, lineHeight: 1.02, flexGrow: 1, letterSpacing: '-0.02em', wordBreak: 'break-word' }}>{item}</span>
               </div>

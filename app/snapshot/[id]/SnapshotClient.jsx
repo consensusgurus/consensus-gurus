@@ -340,6 +340,7 @@ export default function SnapshotClient({ listId, embedded, list: listProp, voteD
           <h2 style={{ fontFamily: 'Manrope, system-ui, -apple-system, sans-serif', fontWeight: 700, fontStyle: 'italic', fontSize: 24, margin: '0 0 18px', color: COLORS.ink, fontVariationSettings: '"SOFT" 100' }}>Share this list</h2>
         )}
 
+        {!embedded && (<>
         <PickerRow label="Source">
           {modeOptions.map((opt) => {
             const active = mode === opt.id;
@@ -392,6 +393,7 @@ export default function SnapshotClient({ listId, embedded, list: listProp, voteD
         <p style={{ marginTop: 20, fontFamily: 'DM Mono, monospace', fontSize: 10, letterSpacing: '0.18em', textTransform: 'uppercase', color: COLORS.faded, textAlign: 'center' }}>
           1080 × 1350 · Instagram / Pinterest portrait
         </p>
+        </>)}
 
         {/* ─── Instagram automation image (server-rendered poster) ────── */}
         <div style={{ marginTop: 52, borderTop: `2px solid ${COLORS.ink}`, paddingTop: 28 }}>
@@ -412,68 +414,6 @@ export default function SnapshotClient({ listId, embedded, list: listProp, voteD
           </p>
         </div>
 
-        {/* ─── The new list page, fully rendered and downloadable ───────── */}
-        <div style={{ marginTop: 52, borderTop: `2px solid ${COLORS.ink}`, paddingTop: 28 }}>
-          <h2 style={{ fontFamily: 'Manrope, system-ui, -apple-system, sans-serif', fontWeight: 700, fontStyle: 'italic', fontSize: 24, margin: '0 0 6px', color: COLORS.ink, fontVariationSettings: '"SOFT" 100' }}>List page format</h2>
-          <p style={{ fontFamily: 'DM Sans, sans-serif', fontSize: 14, color: COLORS.faded, margin: '0 0 16px', maxWidth: 560 }}>
-            The full list page with photos and descriptions, rendered as a single shareable image.
-          </p>
-          <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginBottom: 24 }}>
-            <ActionButton onClick={() => downloadRender(pageRef, 'list-page')} disabled={!!renderBusy} primary><Download size={14} strokeWidth={2.5} />{renderBusy === 'list-page' ? 'Generating...' : 'Download list page'}</ActionButton>
-          </div>
-          <div style={{ background: '#000', padding: 8, borderRadius: 4, display: 'flex', justifyContent: 'center', overflow: 'hidden' }}>
-            <PageScaler innerRef={pageRef}>
-              <div ref={pageRef} style={{ width: 1080 }}>
-                <ListOverviewPoster list={list} voteData={voteData} extras={extras} />
-              </div>
-            </PageScaler>
-          </div>
-          <p style={{ marginTop: 20, fontFamily: 'DM Mono, monospace', fontSize: 10, letterSpacing: '0.18em', textTransform: 'uppercase', color: COLORS.faded, textAlign: 'center' }}>
-            1080 wide · full list page render
-          </p>
-        </div>
-
-        {/* ─── Share card: top 3 in full, 4-10 compact ──────────────────── */}
-        <div style={{ marginTop: 52, borderTop: `2px solid ${COLORS.ink}`, paddingTop: 28 }}>
-          <h2 style={{ fontFamily: 'Manrope, system-ui, -apple-system, sans-serif', fontWeight: 700, fontStyle: 'italic', fontSize: 24, margin: '0 0 6px', color: COLORS.ink, fontVariationSettings: '"SOFT" 100' }}>Share card</h2>
-          <p style={{ fontFamily: 'DM Sans, sans-serif', fontSize: 14, color: COLORS.faded, margin: '0 0 16px', maxWidth: 560 }}>
-            The top three in full, ranks 4 through 10 in compact rows. The whole top ten at a shareable size.
-          </p>
-          <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginBottom: 24 }}>
-            <ActionButton onClick={() => downloadRender(socialRef, 'share-card')} disabled={!!renderBusy} primary><Download size={14} strokeWidth={2.5} />{renderBusy === 'share-card' ? 'Generating...' : 'Download share card'}</ActionButton>
-          </div>
-          <div style={{ background: '#000', padding: 8, borderRadius: 4, display: 'flex', justifyContent: 'center', overflow: 'hidden' }}>
-            <PageScaler innerRef={socialRef}>
-              <div ref={socialRef} style={{ width: 1080 }}>
-                <ListOverviewPoster list={list} voteData={voteData} extras={extras} variant="social" />
-              </div>
-            </PageScaler>
-          </div>
-          <p style={{ marginTop: 20, fontFamily: 'DM Mono, monospace', fontSize: 10, letterSpacing: '0.18em', textTransform: 'uppercase', color: COLORS.faded, textAlign: 'center' }}>
-            1080 wide · full top 3 · compact 4-10
-          </p>
-        </div>
-
-        {/* ─── Top 3, compact ───────────────────────────────────────────── */}
-        <div style={{ marginTop: 52, borderTop: `2px solid ${COLORS.ink}`, paddingTop: 28 }}>
-          <h2 style={{ fontFamily: 'Manrope, system-ui, -apple-system, sans-serif', fontWeight: 700, fontStyle: 'italic', fontSize: 24, margin: '0 0 6px', color: COLORS.ink, fontVariationSettings: '"SOFT" 100' }}>Top 3 format</h2>
-          <p style={{ fontFamily: 'DM Sans, sans-serif', fontSize: 14, color: COLORS.faded, margin: '0 0 16px', maxWidth: 560 }}>
-            Just the top three, same look, compact.
-          </p>
-          <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginBottom: 24 }}>
-            <ActionButton onClick={() => downloadRender(top3Ref, 'top-3')} disabled={!!renderBusy} primary><Download size={14} strokeWidth={2.5} />{renderBusy === 'top-3' ? 'Generating...' : 'Download top 3'}</ActionButton>
-          </div>
-          <div style={{ background: '#000', padding: 8, borderRadius: 4, display: 'flex', justifyContent: 'center', overflow: 'hidden' }}>
-            <PageScaler innerRef={top3Ref}>
-              <div ref={top3Ref} style={{ width: 1080 }}>
-                <ListOverviewPoster list={list} voteData={voteData} extras={extras} variant="top3" />
-              </div>
-            </PageScaler>
-          </div>
-          <p style={{ marginTop: 20, fontFamily: 'DM Mono, monospace', fontSize: 10, letterSpacing: '0.18em', textTransform: 'uppercase', color: COLORS.faded, textAlign: 'center' }}>
-            1080 wide · top three only
-          </p>
-        </div>
       </div>
     </div>
   );

@@ -180,10 +180,10 @@ export default function StatHubClient() {
     <div style={{ background: C.bg, minHeight: '100vh', position: 'relative' }}>
       <Grain />
       <style>{css}</style>
-      <div className="qzhub" style={{ maxWidth: 1180, margin: '0 auto', padding: '20px 24px 70px', position: 'relative' }}>
+      <div className="qzhub" style={{ maxWidth: 1180, margin: '0 auto', padding: '8px 24px 70px', position: 'relative' }}>
 
         {/* Shared site header on every page */}
-        <SiteHeader active="quizzes" />
+        <SiteHeader active="quizzes" bare />
 
         {/* profile header — leads with OVERALL RANK (largest element) */}
         <div className="card" style={{ display: 'flex', flexDirection: 'row', alignItems: 'center', flexWrap: 'wrap', gap: 18, padding: '15px 18px', marginTop: 16, overflow: 'visible', position: 'relative', zIndex: 40 }}>
