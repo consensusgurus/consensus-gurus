@@ -232,7 +232,7 @@ export default function StatHubClient() {
           <span className="tabcue" aria-hidden="true">{'\u203A'}</span>
         </div>
 
-        {tab === 'player' && <PlayerPanel me={profile} scope={scope} cats={cats} byKey={byKey} totalQuizzes={catalog.length} board={board} myName={myName} myAnonKey={myAnonKey} titleById={titleById} pview={pview} setPview={setPview} onSelectPlayer={(k) => { setViewKey(k); setPview('category'); }} />}
+        {tab === 'player' && <PlayerPanel me={profile} scope={scope} cats={cats} byKey={byKey} totalQuizzes={catalog.length} board={board} myName={myName} myAnonKey={myAnonKey} titleById={titleById} pview={pview} setPview={setPview} onSelectPlayer={(k) => { const mine = (me && me.userKey && k === me.userKey) || (myAnonKey && k === myAnonKey); setViewKey(mine ? null : k); setPview(mine ? 'ranking' : 'category'); }} />}
         {tab === 'quizzes' && <QuizzesPanel me={profile} scope={scope} byKey={byKey} catalog={catalog} stats={statsById} totals={totals} totalPlays={totalPlays} />}
         {tab === 'challenges' && <ChallengesPanel me={profile} challenge={challenge} titleById={titleById} />}
         {tab === 'rating' && <RatingPanel me={profile} titleById={titleById} />}
