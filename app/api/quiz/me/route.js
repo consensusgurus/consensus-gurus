@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { supabaseAdmin } from '@/lib/supabase-server';
-import { fetchAllRows } from '@/lib/fetch-all';
+import { loadQuizResults } from '@/lib/quiz-results-load';
 import { findQuizIdentity } from '@/lib/quiz-identity';
 import { computeElo } from '@/lib/quiz-elo';
 import { buildProfile } from '@/lib/quiz-profile';
@@ -21,12 +21,7 @@ export async function GET(request) {
     if (ident && ident.id) { myKey = `u:${ident.id}`; signed = true; username = ident.username || null; }
     else if (anonId) { myKey = `a:${anonId}`; }
 
-    const { data, error } = await fetchAllRows(
-      supabaseAdmin,
-      'quiz_results',
-      'id, user_id, username, quiz_id, score, total, anon_id, created_at',
-      ['id'],
-    );
+    const { data, error } = await loadQuizResults(supabaseAdmin);
     if (error) { console.error('quiz me error', error); return NextResponse.json({ found: false }); }
     const { players } = computeElo(data || [], { recentN: 60 });
     return NextResponse.json(buildProfile(players, myKey, { signed, username }));

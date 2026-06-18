@@ -51,6 +51,7 @@ export async function POST(request) {
     const body = (await request.json()) || {};
     const quizId = typeof body.quizId === 'string' ? body.quizId.trim() : '';
     const { score, total, timeElapsed, email } = body;
+    const correct = Number.isInteger(body.correct) ? Math.max(0, Math.min(total, body.correct)) : null;
     const anonId = typeof body.anonId === 'string' && body.anonId.trim() ? body.anonId.trim().slice(0, 64) : null;
 
     if (!quizId || quizId.length > 100) {
@@ -77,18 +78,18 @@ export async function POST(request) {
       total,
       time_elapsed: timeElapsed,
     };
-    let { data: inserted, error: insErr } = await supabaseAdmin
-      .from('quiz_results')
-      .insert({ ...baseRow, anon_id: anonId })
-      .select('id')
-      .single();
-    // Graceful fallback until migration 22 adds the anon_id column.
-    if (insErr && insErr.code === '42703') {
-      ({ data: inserted, error: insErr } = await supabaseAdmin
-        .from('quiz_results')
-        .insert(baseRow)
-        .select('id')
-        .single());
+    // Try the richest row first, then drop optional columns that a not-yet-applied
+    // migration may be missing (correct_count -> migration 24, anon_id -> 22).
+    const attempts = [
+      { ...baseRow, anon_id: anonId, ...(correct != null ? { correct_count: correct } : {}) },
+      { ...baseRow, anon_id: anonId },
+      baseRow,
+    ];
+    let inserted = null, insErr = null;
+    for (const row of attempts) {
+      ({ data: inserted, error: insErr } = await supabaseAdmin.from('quiz_results').insert(row).select('id').single());
+      if (!insErr) break;
+      if (insErr.code !== '42703') break; // a real error, not a missing column
     }
     if (insErr) {
       console.error('quiz_results insert error', insErr);

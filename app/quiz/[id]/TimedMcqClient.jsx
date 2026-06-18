@@ -283,7 +283,7 @@ export default function TimedMcqClient({ quizId }) {
         fetch('/api/quiz/result', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ quizId, score: finalPoints, total: maxPoints, timeElapsed: elapsed, email: identity?.email || undefined, anonId: getAnonId() }),
+          body: JSON.stringify({ quizId, score: finalPoints, total: maxPoints, correct: prev.filter((r) => r.correct).length, timeElapsed: elapsed, email: identity?.email || undefined, anonId: getAnonId() }),
         })
           .then((r) => r.json())
           .then((d) => { if (d && !d.error) setBoard({ plays: d.plays || 0, best: d.best ?? null, topTime: d.topTime ?? null, leaderboard: d.leaderboard || [], leaderboardAll: d.leaderboardAll || [] }); })

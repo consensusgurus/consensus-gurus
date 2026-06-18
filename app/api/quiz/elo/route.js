@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { supabaseAdmin } from '@/lib/supabase-server';
-import { fetchAllRows } from '@/lib/fetch-all';
+import { loadQuizResults } from '@/lib/quiz-results-load';
 import { computeElo, rankPlayers } from '@/lib/quiz-elo';
 
 export const dynamic = 'force-dynamic';
@@ -18,12 +18,7 @@ export async function GET(request) {
   const scope = (searchParams.get('scope') || 'all').trim() || 'all';
   const full = searchParams.get('full') === '1';
   try {
-    const { data, error } = await fetchAllRows(
-      supabaseAdmin,
-      'quiz_results',
-      'id, user_id, username, quiz_id, score, total, anon_id, created_at',
-      ['id'],
-    );
+    const { data, error } = await loadQuizResults(supabaseAdmin);
     if (error) {
       console.error('quiz elo error', error);
       return NextResponse.json({ scope, total: 0, players: [] });
