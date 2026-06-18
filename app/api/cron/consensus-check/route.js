@@ -191,6 +191,70 @@ export async function GET(request) {
     }
   }
 
+  // ?rebaselineList=<listId> -> treat the list's CURRENT full source set as its
+  // launch baseline and re-layer fan votes on top. Fixes the tracing left when a
+  // source is added to an already-launched list: the added source was dated now()
+  // (a spurious "source added" event) and any ballot cast before the add recorded
+  // its movement against the pre-add consensus. Re-dates EVERY current source to
+  // the list's launch (folding them into the "N sources at launch" card, no
+  // add/revisit event), deletes the list's stale alerts, and rebuilds the
+  // vote-impact rows as the diff between the sources-only consensus and the
+  // sources+votes consensus (cause 'votes', resolved=true), dated to the latest
+  // ballot. Snapshot reset to the live top 10 so the daily cron sees no change.
+  // Idempotent one-off maintenance.
+  const rebaseId = sp.get('rebaselineList');
+  if (rebaseId) {
+    try {
+      const list = LISTS.find((l) => l.id === rebaseId);
+      if (!list) return NextResponse.json({ error: 'unknown list' }, { status: 404 });
+      const nowIso = new Date().toISOString();
+      const launchIso = new Date(list.publishedAt || list.publishedDate || nowIso).toISOString();
+      const entries = Object.entries(list.sources || {}).filter(([id, s]) => id !== 'ai' && s && s.label);
+      const seenUpserts = entries.map(([id, s]) => ({ list_id: rebaseId, source_id: id, first_seen_at: launchIso, label: s.label, removed_at: null, label_updated_at: null }));
+      if (seenUpserts.length) {
+        const r = await supabaseAdmin.from('list_sources_seen').upsert(seenUpserts, { onConflict: 'list_id,source_id' });
+        if (r.error) throw r.error;
+      }
+      const del = await supabaseAdmin.from('consensus_alerts').delete().eq('list_id', rebaseId);
+      if (del.error) throw del.error;
+      const [vRes, eRes, veRes] = await Promise.all([
+        supabaseAdmin.from('votes').select('item_name,score').eq('list_id', rebaseId),
+        supabaseAdmin.from('extras').select('item_name').eq('list_id', rebaseId),
+        supabaseAdmin.from('vote_events').select('created_at').eq('list_id', rebaseId).order('created_at', { ascending: false }).limit(1),
+      ]);
+      const totals = {};
+      (vRes.data || []).forEach((r) => { totals[`${rebaseId}::${r.item_name.toLowerCase().trim()}`] = Math.max(0, r.score); });
+      const extrasArr = (eRes.data || []).map((r) => r.item_name);
+      const top10For = (t) => { const c = (getSources(list, t, extrasArr) || []).find((x) => x.id === 'consensus'); return c ? c.items.slice(0, 10) : []; };
+      const before = top10For({});
+      const after = top10For(totals);
+      const voteIso = (veRes.data && veRes.data[0] && veRes.data[0].created_at) || nowIso;
+      const rows = [];
+      [...new Set([...before, ...after])].forEach((item) => {
+        const pp = before.indexOf(item) + 1;
+        const qq = after.indexOf(item) + 1;
+        if (pp === qq) return;
+        rows.push({
+          list_id: rebaseId,
+          item_name: item,
+          change_type: qq === 0 ? (pp <= 3 ? 'exited_top3' : 'exited_top10') : pp === 0 ? (qq <= 3 ? 'entered_top3' : 'entered_top10') : (pp <= 3 && qq > 3 ? 'exited_top3' : 'moved'),
+          rank: qq,
+          prev_rank: pp,
+          cause: 'votes',
+          resolved: true,
+          detected_at: voteIso,
+        });
+      });
+      if (rows.length) { const ins = await supabaseAdmin.from('consensus_alerts').insert(rows); if (ins.error) throw ins.error; }
+      const snap = await supabaseAdmin.from('consensus_snapshots').upsert([{ list_id: rebaseId, top10: after, sources_hash: sourcesFingerprint(list), updated_at: nowIso }], { onConflict: 'list_id' });
+      if (snap.error) throw snap.error;
+      return NextResponse.json({ ok: true, list: rebaseId, sourcesReDated: seenUpserts.length, voteRows: rows.length, before, after });
+    } catch (err) {
+      console.error('rebaselineList error', err);
+      return NextResponse.json({ error: 'rebaselineList failed', detail: String(err) }, { status: 500 });
+    }
+  }
+
   try {
     const [votesRows, extrasRows, snapsRows, alertsRows, seenRows] = await Promise.all([
       fetchAll('votes', 'list_id,item_name,score', ['list_id', 'item_name']),
