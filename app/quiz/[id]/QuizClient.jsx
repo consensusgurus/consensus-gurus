@@ -990,7 +990,7 @@ export default function QuizClient({ quizId }) {
               {r.isNew ? (
                 <div style={{ fontFamily: MONO, fontSize: 11, fontWeight: 700, color: COLORS.forest, background: '#e7ecdf', padding: '3px 8px', display: 'inline-block', marginTop: 3 }}>NEW</div>
               ) : (r.delta == null || r.delta === 0) ? (
-                <div style={{ fontFamily: MONO, fontSize: 11, color: COLORS.faded, marginTop: 3 }}>\u00b10</div>
+                <div style={{ fontFamily: MONO, fontSize: 11, color: COLORS.faded, marginTop: 3 }}>±0</div>
               ) : (
                 <div style={{ fontFamily: MONO, fontSize: 12, fontWeight: 700, color: r.delta > 0 ? COLORS.forest : COLORS.ember, background: r.delta > 0 ? '#e7ecdf' : '#f6e2dd', padding: '3px 8px', display: 'inline-block', marginTop: 3 }}>{r.delta > 0 ? '\u25b2' : '\u25bc'} {Math.abs(r.delta).toLocaleString()}</div>
               )}

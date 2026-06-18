@@ -59,11 +59,10 @@ export default function MapQuizBoard({ region, started, ended, revealed, foundNa
   }
 
   return (
-    <div style={{ border: '1px solid rgba(138,130,118,0.25)', borderRadius: 2, overflow: 'hidden', background: SEA }}>
-      <style>{`@media(min-width:760px){.sot-map-svg{max-height:min(76vh,680px);margin:0 auto;}}`}</style>
+    <div className="sot-map-board" style={{ border: '1px solid rgba(138,130,118,0.25)', borderRadius: 2, overflow: 'hidden', background: SEA }}>
+      <style>{`@media(min-width:760px){.sot-map-board{max-width:680px;margin:0 auto;}}`}</style>
       <svg
         viewBox={geo.viewBox}
-        className="sot-map-svg"
         style={{ display: 'block', width: '100%', height: 'auto', touchAction: 'manipulation' }}
         role="img"
         aria-label="Map. Click the country named in the prompt above."
