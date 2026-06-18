@@ -5,18 +5,18 @@ import { Analytics } from '@vercel/analytics/next';
 
 export const metadata = {
   metadataBase: new URL('https://sourceoftruths.com'),
-  title: 'Source of Truths | For All the Important Aspects of Life',
-  description: 'Curated top-ten lists ranked by expert consensus and reader votes. From dive bars to luxury resorts, discover what we all agree on.',
+  title: 'Source of Truths | Producing Objectivity',
+  description: 'Producing objectivity from subjective opinion. Curated top-ten lists ranked by expert consensus and reader votes, from dive bars and pizza to luxury resorts, films, books, and products.',
   openGraph: {
-    title: 'Source of Truths | For All the Important Aspects of Life',
-    description: 'Curated top-ten lists ranked by expert consensus and reader votes. From dive bars to luxury resorts, discover what we all agree on.',
+    title: 'Source of Truths | Producing Objectivity',
+    description: 'Producing objectivity from subjective opinion. Curated top-ten lists ranked by expert consensus and reader votes, from dive bars and pizza to luxury resorts, films, books, and products.',
     url: 'https://sourceoftruths.com',
     type: 'website',
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'Source of Truths | For All the Important Aspects of Life',
-    description: 'Curated top-ten lists ranked by expert consensus and reader votes.',
+    title: 'Source of Truths | Producing Objectivity',
+    description: 'Many voices, one verified answer. Top-ten lists ranked by expert consensus and reader votes.',
   },
 formatDetection: {
     telephone: false,
@@ -34,7 +34,7 @@ const websiteJsonLd = {
   '@context': 'https://schema.org',
   '@type': 'WebSite',
   name: 'Source of Truths',
-  alternateName: 'Source of Truths | For All the Important Aspects of Life',
+  alternateName: 'Source of Truths | Producing Objectivity',
   url: 'https://sourceoftruths.com',
   description: 'Ranked lists of the best restaurants, hotels, bars, products, films, books, and more, built from expert sources and reader votes using Borda consensus scoring.',
 };
@@ -43,7 +43,7 @@ const organizationJsonLd = {
   '@context': 'https://schema.org',
   '@type': 'Organization',
   name: 'Source of Truths',
-  alternateName: 'Source of Truths | For All the Important Aspects of Life',
+  alternateName: 'Source of Truths | Producing Objectivity',
   url: 'https://sourceoftruths.com',
   logo: 'https://sourceoftruths.com/icon.png',
   description: 'Curated top-ten lists ranked by expert consensus and reader votes, built using Borda consensus scoring.',
