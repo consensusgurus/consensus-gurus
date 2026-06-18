@@ -17,6 +17,14 @@ const C = {
 };
 const MEDAL = ['#e8b43a', '#b8bcc4', '#c8814b'];
 const FONT = "'Manrope', system-ui, -apple-system, sans-serif";
+const MEDAL_BG = ['#fbf2dc', '#eef0f2', '#f6e9df'];
+// Rank bubble. #1/#2/#3 render in gold/silver/bronze; everything else accent blue.
+function RankChip({ rank, total }) {
+  if (!rank) return null;
+  const i = rank >= 1 && rank <= 3 ? rank - 1 : -1;
+  const st = i >= 0 ? { color: MEDAL[i], background: MEDAL_BG[i] } : undefined;
+  return <span className="rankchip" style={st}>#{rank}{total ? ` of ${total.toLocaleString()}` : ''}</span>;
+}
 
 function cleanTitle(t) { return (t || '').replace(/^Name (the )?/i, '').trim(); }
 function getAnonId() { if (typeof window === 'undefined') return null; try { return localStorage.getItem('sot_quiz_anon'); } catch { return null; } }
@@ -212,7 +220,7 @@ function ChipMetric({ label, value, rank }) {
   return (
     <div>
       <div className="lbl">{label}</div>
-      <div style={{ fontSize: 18, fontWeight: 700 }}>{value}{rank ? <span className="rankchip">#{rank}</span> : null}</div>
+      <div style={{ fontSize: 18, fontWeight: 700 }}>{value}<RankChip rank={rank} /></div>
     </div>
   );
 }
@@ -222,7 +230,7 @@ function Metric({ label, value, sub, rank, total, avg }) {
   return (
     <div className="metric">
       <div className="lbl metric-lbl">
-        <span style={{ whiteSpace: 'nowrap' }}>{label}</span>{rank ? <span className="rankchip">#{rank}{total ? ` of ${total.toLocaleString()}` : ''}</span> : null}
+        <span style={{ whiteSpace: 'nowrap' }}>{label}</span><RankChip rank={rank} total={total} />
       </div>
       <div className="v">{value}</div>
       {avg != null ? <div style={{ fontSize: 10.5, color: C.muted, marginTop: 2 }}>avg {avg}</div> : null}
@@ -244,29 +252,14 @@ function PlayerPanel({ me, scope, cats, byKey, totalQuizzes }) {
 
   return (
     <div>
-      {/* Top metric cards — each carries its rank ("#N of <total>") and the
-          player-base average, consolidating the old vs-base table inline. */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(120px,1fr))', gap: 10, marginBottom: 16 }}>
-        <Metric label="Correct" value={found ? a.correct.toLocaleString() : '—'} rank={found ? ranks.correct : null} total={totalPlayers}
-          avg={found && base.correct != null ? base.correct.toLocaleString() : null}
-          sub={found ? `${a.accuracy}% of ${a.answered.toLocaleString()} answered` : null} />
-        <Metric label="Played" value={found ? a.played : '—'} rank={found ? ranks.played : null} total={totalPlayers}
-          avg={found && base.played != null ? base.played.toLocaleString() : null}
-          sub={found ? `${pctTotal}% of ${totalQuizzes.toLocaleString()}` : null} />
-        <Metric label="Completed" value={found ? a.completed : '—'} rank={found ? ranks.completed : null} total={totalPlayers}
-          avg={found && base.completed != null ? base.completed.toLocaleString() : null}
-          sub={found ? `${pctCompleted}% of played` : null} />
-        <Metric label="Accuracy" value={found ? `${a.accuracy}%` : '—'} rank={found ? ranks.accuracy : null} total={totalPlayers}
-          avg={found && base.accuracy != null ? `${base.accuracy}%` : null} />
-        <Metric label="Days Played" value={found ? (a.daysPlayed || 0) : '—'} rank={found ? ranks.daysPlayed : null} total={totalPlayers}
-          avg={found && base.daysPlayed != null ? base.daysPlayed.toLocaleString() : null} />
-        <Metric label="Skill Rating" value={found ? (me.rating || 1500).toLocaleString() : '—'} rank={found ? ranks.rating : null} total={totalPlayers}
-          avg={found && base.rating != null ? base.rating.toLocaleString() : null} />
-      </div>
+      {/* All player stats consolidated into one table: an Overall row
+          (global values + #rank of all players + player-base avg) on top of the
+          per-category breakdown. Per-category ranks exist for Played and Skill
+          Rating; the other columns show the category value without a rank. */}
       <div className="card" style={{ padding: '14px 16px' }}>
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 10, flexWrap: 'wrap', marginBottom: 10 }}>
           <div style={{ fontSize: 14, fontWeight: 700 }}>
-            {scope === 'all' ? 'Your Stats by Category' : `Your ${byKey[scope]?.label} Detail`}
+            {scope === 'all' ? 'Your Stats' : `Your ${byKey[scope]?.label} Detail`}
           </div>
         </div>
         {!found ? (
@@ -276,23 +269,43 @@ function PlayerPanel({ me, scope, cats, byKey, totalQuizzes }) {
             <table>
               <thead><tr>
                 <th>Category</th>
+                <th style={{ textAlign: 'right' }}>Correct</th>
                 <th style={{ textAlign: 'right' }}>Played</th>
-                <th style={{ textAlign: 'right' }}>ELO</th>
+                <th style={{ textAlign: 'right' }}>Completed</th>
+                <th style={{ textAlign: 'right' }}>Accuracy</th>
+                <th style={{ textAlign: 'right' }}>Days</th>
+                <th style={{ textAlign: 'right' }}>Skill Rating</th>
               </tr></thead>
               <tbody>
+                {scope === 'all' ? (
+                  <tr style={{ background: '#f3f7fe' }}>
+                    <td style={{ fontWeight: 800, whiteSpace: 'nowrap' }}>Overall</td>
+                    <td style={{ textAlign: 'right', whiteSpace: 'nowrap' }}><b>{a.correct.toLocaleString()}</b><RankChip rank={ranks.correct} total={totalPlayers} />{base.correct != null ? <div style={{ fontSize: 9.5, color: C.muted }}>avg {base.correct.toLocaleString()}</div> : null}</td>
+                    <td style={{ textAlign: 'right', whiteSpace: 'nowrap' }}><b>{a.played.toLocaleString()}</b><RankChip rank={ranks.played} total={totalPlayers} />{base.played != null ? <div style={{ fontSize: 9.5, color: C.muted }}>avg {base.played.toLocaleString()}</div> : null}</td>
+                    <td style={{ textAlign: 'right', whiteSpace: 'nowrap' }}><b>{a.completed.toLocaleString()}</b><RankChip rank={ranks.completed} total={totalPlayers} />{base.completed != null ? <div style={{ fontSize: 9.5, color: C.muted }}>avg {base.completed.toLocaleString()}</div> : null}</td>
+                    <td style={{ textAlign: 'right', whiteSpace: 'nowrap' }}><b>{a.accuracy}%</b><RankChip rank={ranks.accuracy} total={totalPlayers} />{base.accuracy != null ? <div style={{ fontSize: 9.5, color: C.muted }}>avg {base.accuracy}%</div> : null}</td>
+                    <td style={{ textAlign: 'right', whiteSpace: 'nowrap' }}><b>{a.daysPlayed || 0}</b><RankChip rank={ranks.daysPlayed} total={totalPlayers} />{base.daysPlayed != null ? <div style={{ fontSize: 9.5, color: C.muted }}>avg {base.daysPlayed.toLocaleString()}</div> : null}</td>
+                    <td className="score" style={{ textAlign: 'right', color: C.accent, whiteSpace: 'nowrap' }}><b>{(me.rating || 1500).toLocaleString()}</b><RankChip rank={ranks.rating} total={totalPlayers} />{base.rating != null ? <div style={{ fontSize: 9.5, color: C.muted }}>avg {base.rating.toLocaleString()}</div> : null}</td>
+                  </tr>
+                ) : null}
                 {catRows.map((c) => {
                   const cr = byCat[c.key];
+                  const muted = !cr;
                   return (
                     <tr key={c.key}>
                       <td style={{ fontWeight: 600, whiteSpace: 'nowrap' }}><span className="dot" style={{ background: c.c, display: 'inline-block', marginRight: 8, verticalAlign: 'middle' }} />{c.label}</td>
-                      <td style={{ textAlign: 'right', color: cr ? C.ink : C.soft, whiteSpace: 'nowrap' }}>{cr ? cr.matches : 0}{cr && cr.playedRank ? <span className="rankchip">#{cr.playedRank}</span> : null}</td>
-                      <td className="score" style={{ textAlign: 'right', color: cr ? C.accent : C.soft, whiteSpace: 'nowrap' }}>{cr ? cr.rating.toLocaleString() : '—'}{cr && cr.rank ? <span className="rankchip">#{cr.rank}{cr.catTotal ? ` of ${cr.catTotal.toLocaleString()}` : ''}</span> : null}</td>
+                      <td style={{ textAlign: 'right', color: muted ? C.soft : C.ink, whiteSpace: 'nowrap' }}>{cr ? cr.correct.toLocaleString() : '—'}</td>
+                      <td style={{ textAlign: 'right', color: muted ? C.soft : C.ink, whiteSpace: 'nowrap' }}>{cr ? (cr.played != null ? cr.played : cr.matches) : '—'}{cr && cr.playedRank ? <RankChip rank={cr.playedRank} /> : null}</td>
+                      <td style={{ textAlign: 'right', color: muted ? C.soft : C.ink, whiteSpace: 'nowrap' }}>{cr ? cr.completed : '—'}</td>
+                      <td style={{ textAlign: 'right', color: muted ? C.soft : C.ink, whiteSpace: 'nowrap' }}>{cr ? `${cr.accuracy}%` : '—'}</td>
+                      <td style={{ textAlign: 'right', color: muted ? C.soft : C.ink, whiteSpace: 'nowrap' }}>{cr ? (cr.daysPlayed || 0) : '—'}</td>
+                      <td className="score" style={{ textAlign: 'right', color: muted ? C.soft : C.accent, whiteSpace: 'nowrap' }}>{cr ? cr.rating.toLocaleString() : '—'}{cr && cr.rank ? <RankChip rank={cr.rank} total={cr.catTotal} /> : null}</td>
                     </tr>
                   );
                 })}
               </tbody>
             </table>
-            <div style={{ fontSize: 10.5, color: C.soft, marginTop: 8 }}>ELO is your rating within each category; Played counts your matches in that category. Each #rank is your standing among all players with matches in that category.</div>
+            <div style={{ fontSize: 10.5, color: C.soft, marginTop: 8 }}>The Overall row ranks you against all {totalPlayers.toLocaleString()} players on every metric (avg = player-base average). Per-category Skill Rating and Played also carry your standing among players active in that category.</div>
           </div>
         )}
       </div>
