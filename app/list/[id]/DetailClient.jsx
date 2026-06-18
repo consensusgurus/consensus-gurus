@@ -2093,16 +2093,20 @@ export default function DetailClient({ listId }) {
             position: 'relative',
             zIndex: 2,
             minHeight: '100vh',
+            background: '#f7f8fa',
             display: 'flex',
+            flexDirection: 'column',
             alignItems: 'center',
             justifyContent: 'center',
-            fontFamily: 'Fraunces, serif',
-            fontStyle: 'italic',
-            fontSize: 18,
-            color: COLORS.faded,
+            gap: 13,
+            fontFamily: "'Manrope', system-ui, -apple-system, sans-serif",
           }}
         >
-          loading the list
+          <style>{`@import url('https://fonts.googleapis.com/css2?family=Manrope:wght@600;700;800&display=swap');@keyframes sotpulse{0%,100%{opacity:.4;transform:scale(0.92)}50%{opacity:1;transform:scale(1)}}`}</style>
+          <div style={{ width: 42, height: 42, borderRadius: 12, background: 'linear-gradient(135deg,#3b74f0,#1d4ed8)', display: 'flex', alignItems: 'center', justifyContent: 'center', animation: 'sotpulse 1.2s ease-in-out infinite' }}>
+            <div style={{ width: 17, height: 17, borderRadius: '50%', border: '2.5px solid #fff' }} />
+          </div>
+          <div style={{ fontSize: 13.5, fontWeight: 700, letterSpacing: '0.04em', color: '#6b7280' }}>Loading the ranking…</div>
         </div>
       ) : list ? (
         <ListDetail
@@ -2120,7 +2124,7 @@ export default function DetailClient({ listId }) {
         />
       ) : (
         <div style={{ position: 'relative', zIndex: 2, padding: 48, textAlign: 'center' }}>
-          <p style={{ fontFamily: 'Fraunces, serif', fontStyle: 'italic', color: COLORS.faded }}>
+          <p style={{ fontFamily: "'Manrope', system-ui, sans-serif", fontWeight: 600, color: '#6b7280' }}>
             That list seems to have wandered off.
           </p>
           <button
