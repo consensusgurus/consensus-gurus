@@ -157,7 +157,7 @@ export async function GET(request) {
         daysPlayed: Math.round(rankAndBase(metricVal.daysPlayed, p.daysPlayed || 0).base * 10) / 10,
         played: Math.round(rankAndBase(metricVal.played, p.played || 0).base * 10) / 10,
       },
-      byCategory: byCategoryRanked, // { cat: { rating, matches, played, rank, playedRank, catTotal } }
+      byCategory: byCategoryRanked, // { cat: { rating, matches, correct, answered, played, completed, daysPlayed, accuracy, rank, playedRank, catTotal } }
       recent,
     });
   } catch (e) {

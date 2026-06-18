@@ -219,6 +219,34 @@ export default function QuizHomeClient() {
   function plays(id) { return totals.byQuiz[id] || 0; }
   function leader(id) { return totals.leaders[id] || ''; }
 
+  // Player-bar stats: overall by default; for a selected category, the player's
+  // figures + rank WITHIN that category (from me.byCategory[scope]). Falls back
+  // to overall / '—' when the player has no matches in the chosen category.
+  const playerStats = useMemo(() => {
+    if (!me || !me.found) return null;
+    if (scope === 'all') {
+      const a = me.activity || {};
+      return {
+        rank: me.rank || null,
+        denom: me.totalPlayers || 0,
+        correct: a.correct ?? null,
+        played: a.played ?? null,
+        completed: a.completed ?? null,
+        accuracy: a.accuracy ?? null,
+      };
+    }
+    const c = me.byCategory ? me.byCategory[scope] : null;
+    if (!c) return { rank: null, denom: 0, correct: null, played: null, completed: null, accuracy: null };
+    return {
+      rank: c.rank || null,
+      denom: c.catTotal || 0,
+      correct: c.correct ?? null,
+      played: c.played ?? null,
+      completed: c.completed ?? null,
+      accuracy: c.accuracy ?? null,
+    };
+  }, [me, scope]);
+
   // ── leaderboard: re-ranks per slide AND per category ──
   // Each slide sorts the board by that slide's metric (desc; ties by rating then
   // name), scoped to the selected category (the elo API already returns the
@@ -251,7 +279,7 @@ export default function QuizHomeClient() {
   const liveRows = useMemo(() => {
     const rows = recent.map((p) => ({ ...p, dept: deptOf({ id: p.quizId }), title: titleById[p.quizId] || cleanTitle(p.quizId) }));
     const scoped = scope === 'all' ? rows : rows.filter((r) => r.dept === scope);
-    return scoped.slice(0, 11);
+    return scoped.slice(0, 10);
   }, [recent, scope, titleById]);
 
   const playsToday = totals.today || 0;
@@ -377,17 +405,17 @@ export default function QuizHomeClient() {
           </div>
           <div style={{ width: 1, height: 34, background: C.line }} />
           <div>
-            <div className="lbl">Your rank</div>
+            <div className="lbl">Your rank{scope === 'all' ? '' : ` · ${byKey[scope]?.label}`}</div>
             <div style={{ display: 'flex', alignItems: 'baseline', gap: 5 }}>
-              <span style={{ fontSize: 22, fontWeight: 700, color: C.accent, lineHeight: 1 }}>{me && me.found && me.rank ? `#${me.rank}` : '—'}</span>
-              {me && me.totalPlayers ? <span style={{ fontSize: 11, color: C.muted }}>of {me.totalPlayers.toLocaleString()}</span> : null}
+              <span style={{ fontSize: 22, fontWeight: 700, color: C.accent, lineHeight: 1 }}>{playerStats && playerStats.rank ? `#${playerStats.rank}` : '—'}</span>
+              {playerStats && playerStats.denom ? <span style={{ fontSize: 11, color: C.muted }}>of {playerStats.denom.toLocaleString()}</span> : null}
             </div>
           </div>
           <div style={{ display: 'flex', gap: 22, marginLeft: 'auto', flexWrap: 'wrap' }}>
-            <div><div style={{ fontSize: 17, fontWeight: 700 }}>{me && me.found ? me.activity.correct.toLocaleString() : '—'}</div><div className="lbl">correct</div></div>
-            <div><div style={{ fontSize: 17, fontWeight: 700 }}>{me && me.found ? me.activity.played : '—'}</div><div className="lbl">played</div></div>
-            <div><div style={{ fontSize: 17, fontWeight: 700 }}>{me && me.found ? me.activity.completed : '—'}</div><div className="lbl">completed</div></div>
-            <div><div style={{ fontSize: 17, fontWeight: 700 }}>{me && me.found ? `${me.activity.accuracy}%` : '—'}</div><div className="lbl">accuracy</div></div>
+            <div><div style={{ fontSize: 17, fontWeight: 700 }}>{playerStats && playerStats.correct != null ? playerStats.correct.toLocaleString() : '—'}</div><div className="lbl">correct</div></div>
+            <div><div style={{ fontSize: 17, fontWeight: 700 }}>{playerStats && playerStats.played != null ? playerStats.played : '—'}</div><div className="lbl">played</div></div>
+            <div><div style={{ fontSize: 17, fontWeight: 700 }}>{playerStats && playerStats.completed != null ? playerStats.completed : '—'}</div><div className="lbl">completed</div></div>
+            <div><div style={{ fontSize: 17, fontWeight: 700 }}>{playerStats && playerStats.accuracy != null ? `${playerStats.accuracy}%` : '—'}</div><div className="lbl">accuracy</div></div>
           </div>
           <Link className="hubbtn" href="/quizzes/hub"><BarChart3 size={16} /> Stat Hub <ArrowRight size={15} /></Link>
         </div>
@@ -410,13 +438,6 @@ export default function QuizHomeClient() {
                 </div>
               ))}
             </div>
-            {me && me.found && me.rank && (
-              <div style={{ display: 'flex', alignItems: 'center', gap: 9, padding: '8px 13px', background: C.bg, borderTop: `1px solid ${C.line}`, fontSize: 12 }}>
-                <span style={{ flex: 'none', width: 18, textAlign: 'center', fontWeight: 700, color: C.accent }}>#{me.rank}</span>
-                <span style={{ flex: 1, fontWeight: 700, color: C.accent }}>You</span>
-                <span style={{ fontSize: 11, color: C.muted }}>{me.activity.correct.toLocaleString()} correct · {me.activity.accuracy}%</span>
-              </div>
-            )}
           </div>
 
           {/* live feed */}
