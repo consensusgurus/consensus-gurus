@@ -25,6 +25,7 @@ import { fetchBootstrap, postVote, postView, postExtra } from '@/lib/api';
 import Grain from '../../Grain';
 import Footer from '../../Footer';
 import ListOverview from './ListOverview';
+import RankingView from './RankingView';
 import ActivityFeed from './ActivityFeed';
 import SnapshotClient from '../../snapshot/[id]/SnapshotClient';
 import { Tile as HomeTile } from '../../HomeClient';
@@ -871,23 +872,7 @@ function ListDetail({ list, viewCount, voteData, userVotes, extras, relatedLists
       )}
 
       {tab === 'consensus' ? (
-        <ListOverview
-          list={list}
-          voteData={voteData}
-          extras={extras}
-          embedded
-          onBack={onBack}
-          onOpenSources={
-            showSourceTab
-              ? () => { setTab('source'); if (typeof window !== 'undefined') window.scrollTo({ top: 0 }); }
-              : undefined
-          }
-          onOpenVote={
-            showVoteTab
-              ? () => { setTab('vote'); if (typeof window !== 'undefined') window.scrollTo({ top: 0 }); }
-              : undefined
-          }
-        />
+        <RankingView list={list} voteData={voteData} extras={extras} />
       ) : tab === 'share' ? (
         <SnapshotClient listId={list.id} embedded list={list} voteData={voteData} extras={extras} />
       ) : tab === 'activity' ? (
