@@ -72,7 +72,7 @@ export default function SiteHeader({ active = 'lists', maxWidth = 1180, visitors
             <Logo size={40} />
             <span>
               <span className="sh-word" style={{ display: 'block' }}>Source <span style={{ color: C.accent, fontWeight: 600 }}>of</span> Truths</span>
-              <span style={{ display: 'block', fontSize: 9.5, fontWeight: 800, letterSpacing: '0.18em', textTransform: 'uppercase', color: C.ink, marginTop: 3 }}>Producing Objectivity</span>
+              <span style={{ display: 'block', fontSize: 9.5, fontWeight: 800, letterSpacing: '0.18em', textTransform: 'uppercase', color: C.ink, marginTop: 3 }}>Crafting Objectivity</span>
             </span>
           </Link>
           <div className="sh-right">

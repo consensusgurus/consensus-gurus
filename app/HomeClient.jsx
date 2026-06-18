@@ -1721,7 +1721,7 @@ export default function HomeClient() {
           <div style={{ maxWidth: 1180, margin: '0 auto', padding: '36px 24px 80px' }}>
             <div style={{ textAlign: 'center', padding: '34px 0 26px' }}>
               <h1 style={{ fontSize: 'clamp(30px, 6vw, 52px)', fontWeight: 800, letterSpacing: '-0.03em', margin: '0 0 10px' }}>Source <span style={{ color: NT.accent }}>of</span> Truths</h1>
-              <p style={{ fontSize: 12.5, fontWeight: 800, letterSpacing: '0.18em', textTransform: 'uppercase', color: NT.muted, margin: '0 0 18px' }}>Producing Objectivity</p>
+              <p style={{ fontSize: 12.5, fontWeight: 800, letterSpacing: '0.18em', textTransform: 'uppercase', color: NT.muted, margin: '0 0 18px' }}>Crafting Objectivity</p>
               <p style={{ maxWidth: 660, margin: '0 auto', fontSize: 16, lineHeight: 1.6, color: NT.muted }}>Curated rankings built from expert critics and everyday reviewers, weighed across hundreds of sources using Borda consensus scoring, so you can see what we all actually agree on, from the best restaurants and hotels to films, books, and products.</p>
               <p style={{ fontSize: 13, color: NT.soft, marginTop: 22 }}>seeking truths…</p>
             </div>

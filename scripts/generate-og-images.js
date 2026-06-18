@@ -328,8 +328,8 @@ function createHomepageImageSVG() {
   <!-- gurus text in red italic -->
   <text x="600" y="290" font-family="Georgia, serif" font-size="85" font-style="italic" fill="#c0392b" text-anchor="middle" letter-spacing="2">gurus</text>
   
-  <!-- Tagline - "Producing Objectivity" -->
-  <text x="600" y="350" font-family="Arial, sans-serif" font-size="18" fill="#282828" text-anchor="middle">Producing Objectivity</text>
+  <!-- Tagline - "Crafting Objectivity" -->
+  <text x="600" y="350" font-family="Arial, sans-serif" font-size="18" fill="#282828" text-anchor="middle">Crafting Objectivity</text>
   
   <!-- Bottom decorative line -->
   <line x1="50" y1="520" x2="1150" y2="520" stroke="#282828" stroke-width="1"/>
