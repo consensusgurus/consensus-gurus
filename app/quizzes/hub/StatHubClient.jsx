@@ -113,11 +113,25 @@ export default function StatHubClient() {
     fetch('/api/quiz/elo?full=1').then((r) => r.json()).then((d) => { if (d && Array.isArray(d.players)) setBoard(d.players); }).catch(() => {});
   }, []);
 
-  const found = me && me.found;
-  const rating = me ? (me.rating || 1500) : 1500;
-  const tierLabel = me && me.tier ? me.tier : 'Unrated';
-  const tierBg = me && me.tierBg ? me.tierBg : '#eceef1';
-  const tierFg = me && me.tierFg ? me.tierFg : C.muted;
+  // Inline player viewing: clicking a player in the ranking loads their full
+  // profile in place (no page nav). null = my own stats.
+  const [viewKey, setViewKey] = useState(null);
+  const [viewProfile, setViewProfile] = useState(null);
+  const [pview, setPview] = useState('ranking');
+  useEffect(() => {
+    if (!viewKey) { setViewProfile(null); return; }
+    setViewProfile(null);
+    let on = true;
+    fetch(`/api/quiz/player?key=${encodeURIComponent(viewKey)}`).then((r) => r.json()).then((d) => { if (on) setViewProfile(d || { found: false }); }).catch(() => { if (on) setViewProfile({ found: false }); });
+    return () => { on = false; };
+  }, [viewKey]);
+  const viewing = !!viewKey;
+  const profile = viewing ? viewProfile : me;
+  const found = profile && profile.found;
+  const rating = profile ? (profile.rating || 1500) : 1500;
+  const tierLabel = profile && profile.tier ? profile.tier : 'Unrated';
+  const tierBg = profile && profile.tierBg ? profile.tierBg : '#eceef1';
+  const tierFg = profile && profile.tierFg ? profile.tierFg : C.muted;
 
   const statsById = useMemo(() => Object.fromEntries(stats.map((s) => [s.quizId, s])), [stats]);
   const totalPlays = useMemo(() => stats.reduce((a, s) => a + (s.plays || 0), 0), [stats]);
@@ -181,12 +195,12 @@ export default function StatHubClient() {
         {/* profile header — leads with OVERALL RANK (largest element) */}
         <div className="card" style={{ display: 'flex', flexDirection: 'row', alignItems: 'center', flexWrap: 'wrap', gap: 18, padding: '15px 18px', marginTop: 16, overflow: 'visible', position: 'relative', zIndex: 40 }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 18, flexWrap: 'wrap' }}>
-            {found && me.name ? <div style={{ fontSize: 22, fontWeight: 800, letterSpacing: '-0.02em', color: C.ink }}>{me.name}</div> : null}
-            {found && me.name ? <div style={{ width: 1, height: 50, background: C.line }} /> : null}
+            {found && profile.name ? <div style={{ fontSize: 22, fontWeight: 800, letterSpacing: '-0.02em', color: C.ink }}>{profile.name}</div> : null}
+            {found && profile.name ? <div style={{ width: 1, height: 50, background: C.line }} /> : null}
             <div style={{ display: 'flex', flexDirection: 'column' }}>
               <span className="lbl">Overall Rank</span>
-              <span style={{ fontSize: 42, fontWeight: 800, color: C.accent, lineHeight: 1 }}>{found && me.rank ? `#${me.rank}` : '—'}</span>
-              <span style={{ fontSize: 11.5, color: C.muted, marginTop: 3 }}>{found && me.totalPlayers ? `of ${me.totalPlayers.toLocaleString()} players` : 'No games on record yet'}</span>
+              <span style={{ fontSize: 42, fontWeight: 800, color: C.accent, lineHeight: 1 }}>{found && profile.rank ? `#${profile.rank}` : '—'}</span>
+              <span style={{ fontSize: 11.5, color: C.muted, marginTop: 3 }}>{found && profile.totalPlayers ? `of ${profile.totalPlayers.toLocaleString()} players` : 'No games on record yet'}</span>
             </div>
             <div style={{ width: 1, height: 50, background: C.line }} />
             <div style={{ display: 'flex', alignItems: 'center', gap: 20, flexWrap: 'wrap' }}>
@@ -194,12 +208,19 @@ export default function StatHubClient() {
                 <div className="lbl">Skill Rating</div>
                 <div style={{ fontSize: 21, fontWeight: 800, color: C.ink }}>{found ? rating.toLocaleString() : '—'}{found ? <span style={{ background: tierBg, color: tierFg, fontSize: 10, fontWeight: 700, padding: '2px 7px', borderRadius: 5, verticalAlign: 2, marginLeft: 6 }}>{(tierLabel || '').replace(/ Tier$/, '')}</span> : null}</div>
               </div>
-              <ChipMetric label="Correct" value={found ? me.activity.correct.toLocaleString() : '—'} rank={found && me.ranks ? me.ranks.correct : null} />
-              <ChipMetric label="Completed" value={found ? me.activity.completed : '—'} rank={found && me.ranks ? me.ranks.completed : null} />
-              <ChipMetric label="Accuracy" value={found ? `${me.activity.accuracy}%` : '—'} rank={found && me.ranks ? me.ranks.accuracy : null} />
+              <ChipMetric label="Correct" value={found ? profile.activity.correct.toLocaleString() : '—'} rank={found && profile.ranks ? profile.ranks.correct : null} />
+              <ChipMetric label="Completed" value={found ? profile.activity.completed : '—'} rank={found && profile.ranks ? profile.ranks.completed : null} />
+              <ChipMetric label="Accuracy" value={found ? `${profile.activity.accuracy}%` : '—'} rank={found && profile.ranks ? profile.ranks.accuracy : null} />
             </div>
           </div>
         </div>
+
+        {viewing ? (
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 10, background: C.accsoft, border: `1px solid ${C.line}`, borderRadius: 10, padding: '8px 14px', marginTop: 10 }}>
+            <span style={{ fontSize: 13, color: C.ink }}>Viewing <b>{(viewProfile && viewProfile.name) || 'player'}</b>{"'"}s stats</span>
+            <button onClick={() => setViewKey(null)} style={{ border: 'none', background: C.accent, color: '#fff', borderRadius: 7, padding: '6px 13px', font: 'inherit', fontFamily: FONT, fontSize: 12, fontWeight: 700, cursor: 'pointer' }}>Back to my stats</button>
+          </div>
+        ) : null}
 
         {/* tabs */}
         <div className="tabs">
@@ -211,10 +232,10 @@ export default function StatHubClient() {
           <span className="tabcue" aria-hidden="true">{'\u203A'}</span>
         </div>
 
-        {tab === 'player' && <PlayerPanel me={me} scope={scope} cats={cats} byKey={byKey} totalQuizzes={catalog.length} board={board} myName={myName} myAnonKey={myAnonKey} titleById={titleById} />}
-        {tab === 'quizzes' && <QuizzesPanel me={me} scope={scope} byKey={byKey} catalog={catalog} stats={statsById} totals={totals} totalPlays={totalPlays} />}
-        {tab === 'challenges' && <ChallengesPanel me={me} challenge={challenge} titleById={titleById} />}
-        {tab === 'rating' && <RatingPanel me={me} titleById={titleById} />}
+        {tab === 'player' && <PlayerPanel me={profile} scope={scope} cats={cats} byKey={byKey} totalQuizzes={catalog.length} board={board} myName={myName} myAnonKey={myAnonKey} titleById={titleById} pview={pview} setPview={setPview} onSelectPlayer={(k) => { setViewKey(k); setPview('category'); }} />}
+        {tab === 'quizzes' && <QuizzesPanel me={profile} scope={scope} byKey={byKey} catalog={catalog} stats={statsById} totals={totals} totalPlays={totalPlays} />}
+        {tab === 'challenges' && <ChallengesPanel me={profile} challenge={challenge} titleById={titleById} />}
+        {tab === 'rating' && <RatingPanel me={profile} titleById={titleById} />}
       </div>
 
       <Footer />
@@ -247,7 +268,7 @@ function Metric({ label, value, sub, rank, total, avg }) {
   );
 }
 
-function PlayerPanel({ me, scope, cats, byKey, totalQuizzes, board, myName, myAnonKey, titleById }) {
+function PlayerPanel({ me, scope, cats, byKey, totalQuizzes, board, myName, myAnonKey, titleById, pview, setPview, onSelectPlayer }) {
   const found = me && me.found;
   const a = found ? me.activity : { correct: 0, answered: 0, played: 0, completed: 0, accuracy: 0, daysPlayed: 0 };
   const ranks = (found && me.ranks) || {};
@@ -257,7 +278,6 @@ function PlayerPanel({ me, scope, cats, byKey, totalQuizzes, board, myName, myAn
   const pctCompleted = a.played ? Math.round((a.completed / a.played) * 100) : 0;
   const byCat = (found && me.byCategory) || {};
   const catRows = (scope === 'all' ? cats : cats.filter((c) => c.key === scope));
-  const [pview, setPview] = useState('ranking');
 
   const toggle = (
     <div style={{ display: 'flex', gap: 3, background: '#eceef1', borderRadius: 9, padding: 3, flex: 'none' }}>
@@ -274,7 +294,7 @@ function PlayerPanel({ me, scope, cats, byKey, totalQuizzes, board, myName, myAn
           {toggle}
         </div>
         {pview === 'ranking' ? (
-          <UserBaseBody board={board} myName={myName} myAnonKey={myAnonKey} />
+          <UserBaseBody board={board} myName={myName} myAnonKey={myAnonKey} onSelectPlayer={onSelectPlayer} />
         ) : pview === 'activity' ? (
           <ActivityFeed recent={found ? me.recent : []} titleById={titleById} />
         ) : !found ? (
@@ -362,7 +382,7 @@ function ActivityFeed({ recent, titleById }) {
 
 // Full ranking BODY (no card chrome; the card, title, and toggle live in
 // PlayerPanel). Every player registered + anonymous, current row highlighted.
-function UserBaseBody({ board, myName, myAnonKey }) {
+function UserBaseBody({ board, myName, myAnonKey, onSelectPlayer }) {
   if (!board) return <div style={{ fontSize: 13, color: C.soft, padding: '6px 0' }}>Loading the full ranking…</div>;
   if (!board.length) return <div style={{ fontSize: 13, color: C.soft, padding: '6px 0' }}>No ranked players yet.</div>;
   return (
@@ -386,7 +406,7 @@ function UserBaseBody({ board, myName, myAnonKey }) {
               return (
                 <tr key={p.userKey} style={mine ? { background: C.accsoft } : undefined}>
                   <td style={{ fontWeight: 800, color: mi >= 0 ? MEDAL[mi] : C.soft }}>{p.rank}</td>
-                  <td style={{ fontWeight: mine ? 800 : 600, whiteSpace: 'nowrap' }}><Link href={`/quizzes/player/${encodeURIComponent(p.userKey)}`} style={{ color: C.ink, textDecoration: 'none' }}>{p.name}</Link>{p.isAnon ? <span style={{ fontSize: 10, color: C.soft, fontWeight: 600, marginLeft: 6 }}>guest</span> : null}{mine ? <span style={{ fontSize: 10, color: C.accent, fontWeight: 700, marginLeft: 6 }}>you</span> : null}</td>
+                  <td style={{ fontWeight: mine ? 800 : 600, whiteSpace: 'nowrap' }}><button onClick={() => onSelectPlayer && onSelectPlayer(p.userKey)} style={{ border: 'none', background: 'transparent', padding: 0, font: 'inherit', fontFamily: FONT, fontWeight: 'inherit', color: C.accent, cursor: 'pointer', textAlign: 'left' }}>{p.name}</button>{p.isAnon ? <span style={{ fontSize: 10, color: C.soft, fontWeight: 600, marginLeft: 6 }}>guest</span> : null}{mine ? <span style={{ fontSize: 10, color: C.accent, fontWeight: 700, marginLeft: 6 }}>you</span> : null}</td>
                   <td className="score" style={{ textAlign: 'right', color: C.accent, fontWeight: 700 }}>{(p.rating || 0).toLocaleString()}</td>
                   <td style={{ textAlign: 'right' }}>{(p.correct || 0).toLocaleString()}</td>
                   <td style={{ textAlign: 'right' }}>{p.completed || 0}</td>
@@ -407,8 +427,7 @@ function QuizzesPanel({ me, scope, byKey, catalog, stats, totals, totalPlays }) 
   const found = me && me.found;
   const pool = scope === 'all' ? catalog : catalog.filter((q) => q.dept === scope);
   const rows = pool.map((q) => ({ q, s: stats[q.id] || { plays: 0, avgScorePct: 0 }, leader: totals.leaders[q.id] || '' }))
-    .sort((a, b) => (b.s.plays || 0) - (a.s.plays || 0) || a.q.title.localeCompare(b.q.title))
-    .slice(0, 16);
+    .sort((a, b) => (b.s.plays || 0) - (a.s.plays || 0) || a.q.title.localeCompare(b.q.title));
   const playedTotal = found ? me.activity.played : 0;
   const avgScore = found ? me.activity.accuracy : 0;
 
@@ -421,7 +440,8 @@ function QuizzesPanel({ me, scope, byKey, catalog, stats, totals, totalPlays }) 
         <Metric label="Your Avg Accuracy" value={found ? `${avgScore}%` : '—'} />
       </div>
       <div className="card" style={{ padding: '4px 6px' }}>
-        <div style={{ overflow: 'auto' }}>
+        <div style={{ padding: '10px 10px 4px', fontSize: 13, fontWeight: 700 }}>All Quizzes <span style={{ fontWeight: 600, color: C.soft }}>({rows.length.toLocaleString()})</span></div>
+        <div style={{ overflow: 'auto', maxHeight: 620 }}>
           <table>
             <thead><tr>
               <th>Quiz</th>
@@ -472,9 +492,9 @@ function ChallengesPanel({ me, challenge, titleById }) {
           <div><div className="lbl">Your Standing</div><div style={{ fontSize: 19, fontWeight: 800, color: C.accent }}>{myIdx >= 0 ? `#${myIdx + 1}` : '—'}</div></div>
           <div><div className="lbl">Leader</div><div style={{ fontSize: 19, fontWeight: 800 }}>{leader}</div></div>
         </div>
-        <div>
+        <div style={{ maxHeight: 520, overflow: 'auto' }}>
           {users.length === 0 && <div style={{ fontSize: 13, color: C.soft }}>No challenge entries yet.</div>}
-          {users.slice(0, 10).map((u, i) => (
+          {users.map((u, i) => (
             <div className="hrow" key={(u.username || '') + i}>
               {i < 3 ? <span style={{ flex: 'none', width: 18, height: 18, borderRadius: '50%', background: MEDAL[i], display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 10, fontWeight: 700, color: C.ink }}>{i + 1}</span>
                 : <span style={{ flex: 'none', width: 18, textAlign: 'center', fontSize: 11, color: C.soft }}>{i + 1}</span>}
@@ -483,9 +503,6 @@ function ChallengesPanel({ me, challenge, titleById }) {
               <span className="score">{u.totalCorrect}</span>
             </div>
           ))}
-        </div>
-        <div style={{ marginTop: 12 }}>
-          <Link href="/quizzes/leaderboard" className="qlink"><span style={{ fontSize: 11, fontWeight: 700, letterSpacing: '.05em', textTransform: 'uppercase', color: C.accent }}>Full Standings →</span></Link>
         </div>
       </div>
       <div className="card" style={{ padding: '14px 16px' }}>

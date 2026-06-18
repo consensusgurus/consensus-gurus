@@ -111,6 +111,17 @@ export default function TimedMcqClient({ quizId }) {
   const perMs = perSec * 1000;
   const maxPer = quiz.maxPerQuestion || 30;
   const maxPoints = total * maxPer;
+  // Leniency: you bank FULL points if you answer within a short grace window
+  // (~3s, tunable per quiz via graceSeconds), then points decay linearly to the
+  // buzzer. This makes a perfect points game actually reachable for someone who
+  // knows the answers, instead of requiring literally-instant clicks.
+  const graceMs = Math.max(0, (quiz.graceSeconds != null ? quiz.graceSeconds : 3) * 1000);
+  const ptsFrac = (rem) => {
+    const el = perMs - Math.max(0, Math.min(perMs, rem));   // time taken to answer
+    if (el <= graceMs) return 1;
+    const span = perMs - graceMs;
+    return span > 0 ? Math.max(0, (perMs - el) / span) : 0;
+  };
 
   const [tab, setTab] = useState('play');
   const ribbonRef = useRef(null);
@@ -231,7 +242,7 @@ export default function TimedMcqClient({ quizId }) {
     const q = questions[qIndex];
     const left = Math.max(0, deadlineRef.current - Date.now());
     const correct = choiceIndex != null && choiceIndex === q.correct;
-    const pts = correct ? Math.max(1, Math.round(maxPer * (left / perMs))) : 0;
+    const pts = correct ? Math.max(1, Math.round(maxPer * ptsFrac(left))) : 0;
     setPicked(choiceIndex);
     setPhase('reveal');
     setResults((prev) => {
@@ -358,7 +369,7 @@ export default function TimedMcqClient({ quizId }) {
   const lbRows = lbView === 'all' ? (board.leaderboardAll || []) : board.leaderboard;
   const q = questions[qIndex];
   const frac = Math.max(0, Math.min(1, remaining / perMs));
-  const liveValue = Math.max(0, Math.round(maxPer * frac));        // points if you answer right now
+  const liveValue = Math.max(0, Math.round(maxPer * ptsFrac(remaining)));        // points if you answer right now
   const lowClock = phase === 'playing' && remaining <= 8000;
   const correctIdx = q ? q.correct : -1;
 
@@ -454,7 +465,7 @@ export default function TimedMcqClient({ quizId }) {
                 <Zap size={26} strokeWidth={2.2} style={{ color: COLORS.ember }} />
                 <h2 style={{ fontFamily: SERIF, fontWeight: 800, fontSize: 26, margin: '8px 0 6px' }}>Beat the clock.</h2>
                 <p style={{ fontFamily: SANS, fontSize: 15, lineHeight: 1.5, color: '#4a4339', maxWidth: 460, margin: '0 auto 6px' }}>
-                  {total} questions, four answers each. You get {perSec} seconds per question, and the points you bank for a right answer fall as the clock ticks. Answer instantly for the full {maxPer}; answer at the buzzer for almost nothing. A wrong answer scores zero.
+                  {total} questions, four answers each. You get {perSec} seconds per question, and the points you bank for a right answer fall as the clock ticks. Answer within about {Math.round(graceMs/1000)} seconds for the full {maxPer}; after that the points decay to the buzzer. A wrong answer scores zero.
                 </p>
                 <p style={{ fontFamily: MONO, fontSize: 12, letterSpacing: '0.06em', color: COLORS.faded, margin: '0 0 20px' }}>
                   {maxPoints} points in play. No one gets all {maxPoints}.

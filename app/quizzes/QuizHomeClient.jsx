@@ -194,7 +194,10 @@ export default function QuizHomeClient() {
 
   // Elo leaderboard re-loads when the scope changes.
   useEffect(() => {
-    const q = scope === 'all' ? '' : `?scope=${encodeURIComponent(scope)}`;
+    // Pull the FULL ranking (not just top-12-by-rating) so the cycling
+    // leaderboard's non-rating slides (Most Correct, etc.) surface the true
+    // per-metric leaders, not just whoever is already top by rating.
+    const q = scope === 'all' ? '?full=1' : `?scope=${encodeURIComponent(scope)}&full=1`;
     let alive = true;
     fetch(`/api/quiz/elo${q}`).then((r) => r.json()).then((d) => {
       if (!alive) return;
