@@ -359,6 +359,7 @@ export default function QuizHomeClient() {
     .qzh .qrow .qtitle{font-size:13px;font-weight:500;}
     .qzh .qmeta{flex:none;display:flex;align-items:center;gap:10px;font-size:10.5px;}
     .qzh .hubbtn{display:flex;align-items:center;gap:7px;background:${C.accent};color:#fff;padding:10px 15px;border-radius:10px;font-weight:700;font-size:13px;text-decoration:none;white-space:nowrap;}
+    @media(max-width:560px){.qz-playerbar{flex-direction:column !important;align-items:stretch !important;gap:12px !important;}.qz-playerbar .qz-div{display:none !important;}.qz-playerbar .dd,.qz-playerbar .ddbtn{width:100% !important;min-width:0 !important;}.qz-playerbar .qz-stats{margin-left:0 !important;justify-content:space-between !important;gap:14px !important;}.qz-playerbar .hubbtn{width:100% !important;justify-content:center !important;}}
     .qzh .hubbtn:hover{filter:brightness(1.06);}
     .qzh .crumb1{font-size:18px;font-weight:800;letter-spacing:-0.02em;}
     .qzh .crumb2{font-size:18px;font-weight:600;color:${C.accent};}
@@ -373,7 +374,7 @@ export default function QuizHomeClient() {
       <div className="qzh" style={{ maxWidth: 1180, margin: '0 auto', padding: '20px 24px 70px', position: 'relative' }}>
 
         {/* player bar */}
-        <div className="card" style={{ flexDirection: 'row', alignItems: 'center', flexWrap: 'wrap', gap: 16, padding: '11px 14px', margin: '4px 0 12px', overflow: 'visible', position: 'relative', zIndex: 40 }}>
+        <div className="card qz-playerbar" style={{ flexDirection: 'row', alignItems: 'center', flexWrap: 'wrap', gap: 16, padding: '11px 14px', margin: '4px 0 12px', overflow: 'visible', position: 'relative', zIndex: 40 }}>
           <div className="dd">
             <button className="ddbtn" onClick={(e) => { e.stopPropagation(); setDdOpen((o) => !o); }}>
               <span className="dot" style={{ background: scope === 'all' ? C.ink : (byKey[scope]?.c || C.ink) }} />
@@ -395,7 +396,7 @@ export default function QuizHomeClient() {
               </div>
             )}
           </div>
-          <div style={{ width: 1, height: 34, background: C.line }} />
+          <div className="qz-div" style={{ width: 1, height: 34, background: C.line }} />
           <div>
             <div className="lbl">Your rank{scope === 'all' ? '' : ` · ${byKey[scope]?.label}`}</div>
             <div style={{ display: 'flex', alignItems: 'baseline', gap: 5 }}>
@@ -403,7 +404,7 @@ export default function QuizHomeClient() {
               {playerStats && playerStats.denom ? <span style={{ fontSize: 11, color: C.muted }}>of {playerStats.denom.toLocaleString()}</span> : null}
             </div>
           </div>
-          <div style={{ display: 'flex', gap: 22, marginLeft: 'auto', flexWrap: 'wrap' }}>
+          <div className="qz-stats" style={{ display: 'flex', gap: 22, marginLeft: 'auto', flexWrap: 'wrap' }}>
             <div><div style={{ fontSize: 17, fontWeight: 700 }}>{playerStats && playerStats.correct != null ? playerStats.correct.toLocaleString() : '—'}</div><div className="lbl">correct</div></div>
             <div><div style={{ fontSize: 17, fontWeight: 700 }}>{playerStats && playerStats.played != null ? playerStats.played : '—'}</div><div className="lbl">played</div></div>
             <div><div style={{ fontSize: 17, fontWeight: 700 }}>{playerStats && playerStats.completed != null ? playerStats.completed : '—'}</div><div className="lbl">completed</div></div>

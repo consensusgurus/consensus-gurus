@@ -601,16 +601,16 @@ function ListDetail({ list, viewCount, voteData, userVotes, extras, relatedLists
 
       {!compact && (
         <div style={{ marginTop: 18 }}>
+          <div style={{ display: 'flex', gap: 16, marginBottom: 10, justifyContent: 'flex-end' }}>
+            <button onClick={() => setTab('share')} style={{ background: 'none', border: 'none', cursor: 'pointer', fontFamily: "'Manrope', system-ui, sans-serif", fontSize: 12.5, fontWeight: 600, color: tab === 'share' ? '#2563eb' : '#6b7280', display: 'flex', alignItems: 'center', gap: 5 }}><Share2 size={13} strokeWidth={2.5} /> Share</button>
+            <button onClick={() => { setComplainSent(false); setComplainOpen(true); }} style={{ background: 'none', border: 'none', cursor: 'pointer', fontFamily: "'Manrope', system-ui, sans-serif", fontSize: 12.5, fontWeight: 600, color: '#6b7280', display: 'flex', alignItems: 'center', gap: 5 }}><PenLine size={13} strokeWidth={2.5} /> Disagree?</button>
+          </div>
           <div style={{ display: 'flex', gap: 6, background: '#eceef1', borderRadius: 10, padding: 4 }}>
             {[['consensus', 'The Ranking'], ['source', 'Sources'], ['method', 'Methodology'], ['activity', 'Activity']]
               .filter(([id]) => id !== 'source' || showSourceTab)
               .map(([id, label]) => (
                 <button key={id} onClick={() => setTab(id)} style={{ flex: 1, border: 'none', background: tab === id ? '#fff' : 'transparent', borderRadius: 7, padding: '9px', fontFamily: "'Manrope', system-ui, sans-serif", fontSize: 13, fontWeight: tab === id ? 700 : 500, color: tab === id ? '#1c1e24' : '#6b7280', cursor: 'pointer', boxShadow: tab === id ? '0 1px 2px rgba(20,22,28,0.06)' : 'none' }}>{label}</button>
               ))}
-          </div>
-          <div style={{ display: 'flex', gap: 16, marginTop: 10, justifyContent: 'flex-end' }}>
-            <button onClick={() => setTab('share')} style={{ background: 'none', border: 'none', cursor: 'pointer', fontFamily: "'Manrope', system-ui, sans-serif", fontSize: 12.5, fontWeight: 600, color: tab === 'share' ? '#2563eb' : '#6b7280', display: 'flex', alignItems: 'center', gap: 5 }}><Share2 size={13} strokeWidth={2.5} /> Share</button>
-            <button onClick={() => { setComplainSent(false); setComplainOpen(true); }} style={{ background: 'none', border: 'none', cursor: 'pointer', fontFamily: "'Manrope', system-ui, sans-serif", fontSize: 12.5, fontWeight: 600, color: '#6b7280', display: 'flex', alignItems: 'center', gap: 5 }}><PenLine size={13} strokeWidth={2.5} /> Disagree?</button>
           </div>
         </div>
       )}
