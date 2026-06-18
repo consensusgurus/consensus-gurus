@@ -126,6 +126,7 @@ export default function QuizHomeClient() {
   const [scope, setScope] = useState('all');
   const [ddOpen, setDdOpen] = useState(false);
   const [search, setSearch] = useState('');
+  const [listMode, setListMode] = useState(null); // null | 'newest' | 'mostplayed' | 'live' (View all expansions)
 
   const [totals, setTotals] = useState({ byQuiz: {}, leaders: {}, today: 0 });
   const [eloBoard, setEloBoard] = useState([]); // [{rank,name,isAnon,userKey}]
@@ -317,6 +318,14 @@ export default function QuizHomeClient() {
     mostPlayed.forEach((q) => set.add(q.id));
     return set;
   }, [scope, newestIds, mostPlayed]);
+  // Full "View all" lists (every quiz, not the 6-row column preview).
+  const newestAll = useMemo(() => catalog.slice()
+    .filter((q) => !/daily-market|weekly-business|daily-business/.test(q.id))
+    .sort((a, b) => (a.publishedAt < b.publishedAt ? 1 : a.publishedAt > b.publishedAt ? -1 : 0)), [catalog]);
+  const mostPlayedAll = useMemo(() => catalog.slice()
+    .sort((a, b) => plays(b.id) - plays(a.id) || a.title.localeCompare(b.title)), [catalog, totals]);
+  const liveAll = useMemo(() => recent.map((p) => ({ ...p, title: titleById[p.quizId] || cleanTitle(p.quizId) })), [recent, titleById]);
+
   function colRows(cat, lim, exclude) {
     return cat.quizzes.slice()
       .filter((q) => !exclude || !exclude.has(q.id))
@@ -386,12 +395,12 @@ export default function QuizHomeClient() {
             </button>
             {ddOpen && (
               <div className="ddmenu" onClick={(e) => e.stopPropagation()}>
-                <div className="dditem ddall" onClick={() => { setScope('all'); setDdOpen(false); setSearch(''); }}>
+                <div className="dditem ddall" onClick={() => { setScope('all'); setDdOpen(false); setSearch(''); setListMode(null); }}>
                   <span className="dot" style={{ background: C.ink }} /><span style={{ flex: 1 }}>All Categories</span>
                   <span style={{ fontSize: 11, color: C.soft }}>{totalCount}</span>
                 </div>
                 {cats.map((c) => (
-                  <div key={c.key} className="dditem" onClick={() => { setScope(c.key); setDdOpen(false); setSearch(''); }}>
+                  <div key={c.key} className="dditem" onClick={() => { setScope(c.key); setDdOpen(false); setSearch(''); setListMode(null); }}>
                     <span className="dot" style={{ background: c.c }} /><span style={{ flex: 1 }}>{c.label}</span>
                     <span style={{ fontSize: 11, color: C.soft }}>{c.count}</span>
                   </div>
@@ -443,7 +452,10 @@ export default function QuizHomeClient() {
                 <span style={{ width: 8, height: 8, borderRadius: '50%', background: C.live, animation: 'qzp 1.6s infinite' }} />
                 <span className="lbl" style={{ color: C.ink }}>Live · Quizzes Played{scope === 'all' ? '' : ` · ${byKey[scope]?.label}`}</span>
               </span>
-              {playsToday ? <span style={{ fontSize: 10, fontWeight: 700, letterSpacing: '.05em', textTransform: 'uppercase', color: C.soft }}>{playsToday.toLocaleString()} Plays Today</span> : null}
+              <span style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                {playsToday ? <span style={{ fontSize: 10, fontWeight: 700, letterSpacing: '.05em', textTransform: 'uppercase', color: C.soft }}>{playsToday.toLocaleString()} Plays Today</span> : null}
+                <button type="button" onClick={() => setListMode('live')} style={{ background: 'none', border: 'none', padding: 0, cursor: 'pointer', color: C.accent, fontWeight: 700, fontSize: 11, whiteSpace: 'nowrap' }}>View all ›</button>
+              </span>
             </div>
             <div style={{ flex: 1, padding: '3px 0' }}>
               {liveRows.length === 0 && <div style={{ padding: '12px 13px', fontSize: 12, color: C.soft }}>No recent plays{scope === 'all' ? '' : ' in this category'} yet.</div>}
@@ -466,8 +478,16 @@ export default function QuizHomeClient() {
 
         {/* browse header + search */}
         <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 14, flexWrap: 'wrap' }}>
-          <h2 style={{ fontSize: 17, fontWeight: 800, margin: 0, whiteSpace: 'nowrap' }}>
-            {searchResults ? `Search Results · ${searchResults.length}` : scope === 'all' ? 'Browse Quizzes' : `${byKey[scope]?.label} Quizzes`}
+          <h2 style={{ fontSize: 17, fontWeight: 800, margin: 0, whiteSpace: 'nowrap', display: 'flex', alignItems: 'center', gap: 10 }}>
+            {listMode && !searchResults && scope === 'all' && (
+              <button type="button" onClick={() => setListMode(null)} style={{ background: 'none', border: 'none', padding: 0, cursor: 'pointer', color: C.accent, fontWeight: 700, fontSize: 14 }}>‹ Back</button>
+            )}
+            {searchResults ? `Search Results · ${searchResults.length}`
+              : scope !== 'all' ? `${byKey[scope]?.label} Quizzes`
+              : listMode === 'newest' ? `Newest Quizzes · ${newestAll.length}`
+              : listMode === 'mostplayed' ? `Most Played · ${mostPlayedAll.length}`
+              : listMode === 'live' ? 'Live · Quizzes Played'
+              : 'Browse Quizzes'}
           </h2>
           <div style={{ position: 'relative', flex: '1 1 200px' }}>
             <Search size={16} style={{ position: 'absolute', left: 12, top: '50%', transform: 'translateY(-50%)', color: C.soft }} />
@@ -502,20 +522,48 @@ export default function QuizHomeClient() {
               })}
             </div>
           )
-        ) : scope === 'all' ? (
+        ) : scope !== 'all' ? (
+          <CategoryFull cat={byKey[scope]} plays={plays} leader={leader} />
+        ) : listMode === 'live' ? (
+          <div className="qfull">
+            {liveAll.length === 0 ? (
+              <div style={{ padding: '18px 2px', color: C.soft, fontSize: 14 }}>No recent plays yet.</div>
+            ) : liveAll.map((f, i) => (
+              <Link href={`/quiz/${f.quizId}`} className="qrow" key={i} title={f.title}>
+                <span className="qtitle">{f.title}</span>
+                <span className="qmeta" style={{ gap: 8 }}>
+                  <WhoTag name={f.name || (f.isAnon ? 'Guest' : 'Player')} isAnon={f.isAnon} />
+                  <span className="score">{f.score}/{f.total}</span>
+                  <span style={{ color: C.soft }}>{relTime(f.playedAt)}</span>
+                </span>
+              </Link>
+            ))}
+          </div>
+        ) : listMode ? (
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill,minmax(310px,1fr))', gap: '0 26px' }}>
+            {(listMode === 'newest' ? newestAll : mostPlayedAll).map((q) => {
+              const cc = (DEPT_COLOR[q.dept] || DEPT_COLOR.misc).c;
+              return (
+                <Link href={`/quiz/${q.id}`} className="qrow" key={q.id} title={q.rawTitle || q.title}>
+                  <span className="dot" style={{ background: cc, alignSelf: 'center' }} />
+                  <span className="qtitle">{stripVerb(q.title)}</span>
+                  <span className="qmeta">{listMode === 'newest' ? <NewRight q={q} /> : <PlaysRight id={q.id} plays={plays} leader={leader} color={C.accent} />}</span>
+                </Link>
+              );
+            })}
+          </div>
+        ) : (
           <div className="qcols">
             <BrowseColumn label="Newest" Icon={Sparkles} color={C.accent} tint={C.accsoft}
-              rows={newest.map((q) => ({ q, right: <NewRight q={q} /> }))} cta="View all ›" />
+              rows={newest.map((q) => ({ q, right: <NewRight q={q} /> }))} cta="View all ›" onCta={() => setListMode('newest')} />
             <BrowseColumn label="Most Played" Icon={Flame} color="#c2691c" tint="#f4e2cd"
-              rows={mostPlayed.map((q) => ({ q, right: <PlaysRight id={q.id} plays={plays} leader={leader} color="#c2691c" hidePlays /> }))} cta="View all ›" />
+              rows={mostPlayed.map((q) => ({ q, right: <PlaysRight id={q.id} plays={plays} leader={leader} color="#c2691c" hidePlays /> }))} cta="View all ›" onCta={() => setListMode('mostplayed')} />
             {cats.map((c) => (
               <BrowseColumn key={c.key} label={c.label} Icon={c.Icon} color={c.c} tint={c.t}
                 rows={colRows(c, 6, shownIds).map((q) => ({ q, right: <PlaysRight id={q.id} plays={plays} leader={leader} color={c.c} hidePlays /> }))}
-                cta={`View all ${c.count} ›`} />
+                cta={`View all ${c.count} ›`} onCta={() => setScope(c.key)} />
             ))}
           </div>
-        ) : (
-          <CategoryFull cat={byKey[scope]} plays={plays} leader={leader} />
         )}
       </div>
 
@@ -621,7 +669,7 @@ function CategoryFull({ cat, plays, leader }) {
   );
 }
 
-function BrowseColumn({ label, Icon, color, tint, rows, cta }) {
+function BrowseColumn({ label, Icon, color, tint, rows, cta, onCta }) {
   return (
     <section style={{ minWidth: 0 }}>
       <div className="colhead" style={{ borderColor: color }}>
@@ -629,7 +677,9 @@ function BrowseColumn({ label, Icon, color, tint, rows, cta }) {
           <Icon size={14} />
         </span>
         <h3 style={{ fontSize: 15, fontWeight: 700, margin: 0 }}>{label}</h3>
-        <span className="viewall" style={{ color }}>{cta}</span>
+        {onCta
+          ? <button type="button" onClick={onCta} className="viewall" style={{ color, background: 'none', border: 'none', padding: 0, cursor: 'pointer', font: 'inherit' }}>{cta}</button>
+          : <span className="viewall" style={{ color }}>{cta}</span>}
       </div>
       {rows.map(({ q, right }) => (
         <Link href={`/quiz/${q.id}`} className="qrow" key={q.id} title={q.rawTitle || q.title}>
