@@ -252,11 +252,11 @@ export default function QuizHomeClient() {
   // name), scoped to the selected category (the elo API already returns the
   // per-category metric values). The Skill Rating slide DOES show the rating.
   const LB_METRICS = [
-    { key: 'rating', label: 'Skill Rating', fmt: (v) => (v || 0).toLocaleString(), ms: 7000 },
-    { key: 'correct', label: 'Correct', fmt: (v) => (v || 0).toLocaleString(), ms: 5000 },
-    { key: 'completed', label: 'Completed', fmt: (v) => (v || 0).toLocaleString(), ms: 5000 },
-    { key: 'daysPlayed', label: 'Days Played', fmt: (v) => (v || 0).toLocaleString(), ms: 5000 },
-    { key: 'accuracy', label: 'Accuracy', fmt: (v) => `${v || 0}%`, ms: 5000 },
+    { key: 'rating', label: 'Top Skill Rating', fmt: (v) => (v || 0).toLocaleString(), ms: 7000 },
+    { key: 'correct', label: 'Most Correct Answers', fmt: (v) => (v || 0).toLocaleString(), ms: 5000 },
+    { key: 'completed', label: 'Most Quizzes Aced (100%)', fmt: (v) => (v || 0).toLocaleString(), ms: 5000 },
+    { key: 'daysPlayed', label: 'Most Days Played', fmt: (v) => (v || 0).toLocaleString(), ms: 5000 },
+    { key: 'accuracy', label: 'Highest Accuracy', fmt: (v) => `${v || 0}%`, ms: 5000 },
   ];
   const lbMetric = LB_METRICS[lbIdx];
   // Per-slide timeout: the ELO slide holds 7s, every other slide 5s.
@@ -426,7 +426,7 @@ export default function QuizHomeClient() {
           {/* leaderboard */}
           <div className="card">
             <div className="head">
-              <span className="lbl" style={{ color: C.ink }}>Leaderboard · {lbMetric.label}{scope === 'all' ? '' : ` · ${byKey[scope]?.label}`}</span>
+              <span className="lbl" style={{ color: C.ink }}>{lbMetric.label}{scope === 'all' ? '' : ` · ${byKey[scope]?.label}`}</span>
               <Link href="/quizzes/hub" className="qlink"><span style={{ fontSize: 10, fontWeight: 700, letterSpacing: '.05em', textTransform: 'uppercase', color: C.soft }}>Full →</span></Link>
             </div>
             <div style={{ flex: 1, padding: '3px 0' }}>

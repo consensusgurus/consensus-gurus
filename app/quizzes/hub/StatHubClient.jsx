@@ -127,6 +127,8 @@ export default function StatHubClient() {
     .qzhub .dot{width:9px;height:9px;border-radius:3px;flex:none;}
     .qzhub .tabs{display:flex;gap:6px;background:#eceef1;border-radius:10px;padding:4px;margin:16px 0;}
     .qzhub .tab{flex:1;border:none;background:transparent;border-radius:7px;padding:9px;font:inherit;font-family:${FONT};font-size:13px;color:${C.muted};cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px;}
+    .qzhub .tabcue{display:none;}
+    @media(max-width:680px){.qzhub .tabs{overflow-x:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none;}.qzhub .tabs::-webkit-scrollbar{display:none;}.qzhub .tab{flex:0 0 auto;}.qzhub .tabcue{display:flex;align-items:center;position:sticky;right:0;flex:0 0 auto;padding:0 8px 0 16px;color:${C.muted};font-weight:800;font-size:15px;background:linear-gradient(to right,rgba(236,238,241,0),#eceef1 45%);pointer-events:none;}}
     .qzhub .tab.on{background:#fff;color:${C.ink};font-weight:700;box-shadow:0 1px 2px rgba(20,22,28,0.06);}
     .qzhub .hrow{display:flex;align-items:center;gap:10px;padding:7px 0;border-top:1px solid rgba(20,22,28,0.07);font-size:13px;}
     .qzhub .score{font-weight:700;color:${C.accent};font-variant-numeric:tabular-nums;}
@@ -190,6 +192,7 @@ export default function StatHubClient() {
               <Icon size={15} /> {label}
             </button>
           ))}
+          <span className="tabcue" aria-hidden="true">{'\u203A'}</span>
         </div>
 
         {tab === 'player' && <PlayerPanel me={me} scope={scope} cats={cats} byKey={byKey} totalQuizzes={catalog.length} />}
