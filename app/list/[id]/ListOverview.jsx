@@ -25,7 +25,7 @@ const GENERIC_CATEGORIES = new Set([
 // Build Map / Website / Yelp / Google-pics / TripAdvisor links for one item.
 // Mirrors buildAuxLinks in DetailClient: Yelp/TripAdvisor only when a real
 // business-page URL is stored; Google is always an image search (picsTerm-aware).
-function buildLinks(name, list) {
+export function buildLinks(name, list) {
   const m = name.match(/^(.*?)\s*\(([^)]*)\)\s*$/);
   const base = m ? m[1].trim() : name;
   const locality = m ? m[2].trim() : '';
@@ -54,7 +54,7 @@ function buildLinks(name, list) {
 // entryPicsConfig in DetailClient.jsx (same priority order, same fallback).
 // The label is always a plain "Pics:" for every category (the old
 // "Food Pics:" variant was retired 2026-06-05); the chip set still varies.
-function picsConfig(list) {
+export function picsConfig(list) {
   const tags = list.tags || [];
   const type = list.type || '';
   // Regions without real Yelp coverage substitute the local platform (Tabelog,
