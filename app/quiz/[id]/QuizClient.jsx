@@ -859,28 +859,26 @@ export default function QuizClient({ quizId }) {
     lbTied[i] = prevSame || nextSame;
   }
 
-  const colSplit = (() => {
-    // Author can force a single column (colSplit stays null) so the answered-item
-    // cycling below remains ON for long lists. Without this, any multi-column
-    // layout (explicit columnSplit OR the auto-wrap of a long short-label list)
-    // pins rows in a fixed grid and solved tiles do NOT sink to the bottom.
-    // See the "answered-item cycling" note in CLAUDE.md.
+  // Column layout. An EXPLICIT quiz.columnSplit is a fixed reference grid (e.g.
+  // a periodic-table block) and is NEVER reordered. Everything else long enough
+  // auto-wraps into balanced columns purely for fit, and those columns DO cycle
+  // (answered items sink to the bottom) exactly like a single column.
+  // quiz.singleColumn forces one column. See the cycling note in CLAUDE.md.
+  const explicitCols = (() => {
     if (quiz.singleColumn) return null;
-    // Explicit author-provided split always wins.
     const cs = quiz.columnSplit;
     if (Array.isArray(cs) && cs.reduce((acc, n) => acc + n, 0) === answers.length) {
       const cols = []; let gi = 0;
       for (const n of cs) { const r = []; for (let k = 0; k < n; k++) r.push(gi++); cols.push(r); }
       return cols;
     }
+    return null;
+  })();
+  const colSplit = explicitCols; // fixed-grid render path uses this
+  const autoColCount = (() => {
+    if (quiz.singleColumn || explicitCols) return 1;
     // These formats render their own board, not the answer list.
-    if (mapMode || pairsMode || bankMode || typeMode || photoMode || photoMatchMode) return null;
-    // Otherwise auto-wrap a long answer list into balanced columns so it does
-    // not run off the screen. Column count scales with the number of answers
-    // and is capped by the longest answer's width (so wide names are not
-    // cramped). Short lists (roughly <= 11 items) stay a single column, which
-    // preserves the classic look for the many paired top-10 quizzes. On mobile
-    // the columns collapse back to one via the flex-basis wrap in the renderer.
+    if (mapMode || pairsMode || bankMode || typeMode || photoMode || photoMatchMode) return 1;
     const n = answers.length;
     const maxLen = answers.reduce((m, a) => {
       const labelLen = a && a.label != null ? String(a.label).length + 2 : 0;
@@ -893,16 +891,9 @@ export default function QuizClient({ quizId }) {
     else widthCap = 1;
     // Aim for at least ~6 rows per column so columns never look sparse.
     let cols = Math.max(1, Math.min(widthCap, Math.floor(n / 6)));
-    if (cols <= 1) return null;
-    const per = Math.ceil(n / cols);
+    const per = Math.ceil(n / Math.max(1, cols));
     cols = Math.ceil(n / per); // trim a near-empty trailing column
-    const groups = []; let gi = 0;
-    for (let c = 0; c < cols && gi < n; c++) {
-      const r = [];
-      for (let k = 0; k < per && gi < n; k++) r.push(gi++);
-      groups.push(r);
-    }
-    return groups;
+    return Math.max(1, cols);
   })();
   const asOfRaw = quiz.publishedDate || (quiz.publishedAt ? quiz.publishedAt.slice(0, 10) : null);
   const asOfLabel = asOfRaw ? new Date(asOfRaw + 'T12:00:00Z').toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric', timeZone: 'UTC' }) : null;
@@ -915,7 +906,7 @@ export default function QuizClient({ quizId }) {
   // matched/ordered per-slot, map, and tile boards keep their fixed order, and
   // multi-column (colSplit) layouts are left alone. Each item keeps its own rank
   // number because the row/tile is always handed its ORIGINAL index.
-  const cyclingOn = started && !ended && !matched && !mapMode && !tileMode && (logosMode || !colSplit);
+  const cyclingOn = started && !ended && !matched && !mapMode && !tileMode && !explicitCols;
   const displayOrder = useMemo(() => {
     const base = answers.map((_, i) => i);
     if (!cyclingOn) return base;
@@ -1256,6 +1247,23 @@ export default function QuizClient({ quizId }) {
                     {colSplit.map((idxs, ci) => (
                       <ol key={ci} style={{ margin: 0, padding: 0, listStyle: 'none', flex: '1 1 200px', minWidth: 0 }}>
                         {idxs.map((gi) => renderRow(answers[gi], gi))}
+                      </ol>
+                    ))}
+                  </div>
+                );
+              }
+              if (autoColCount > 1) {
+                // Auto-wrapped columns follow displayOrder (column-major), so as
+                // items are solved they sink toward the last column's bottom and
+                // the next unsolved one stays near the input bar.
+                const per = Math.ceil(displayOrder.length / autoColCount);
+                const cols = [];
+                for (let c = 0; c < autoColCount; c++) cols.push(displayOrder.slice(c * per, (c + 1) * per));
+                return (
+                  <div style={{ display: 'flex', gap: 14, alignItems: 'flex-start', flexWrap: 'wrap' }}>
+                    {cols.map((idxs, ci) => (
+                      <ol key={ci} style={{ margin: 0, padding: 0, listStyle: 'none', flex: '1 1 200px', minWidth: 0 }}>
+                        {idxs.map((i) => renderRow(answers[i], i))}
                       </ol>
                     ))}
                   </div>

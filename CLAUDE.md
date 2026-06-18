@@ -2182,32 +2182,32 @@ substring**, OR (for a 2+ word key) **every word of the key appears as a token i
   below `Toy Story 2/3/4`, the bare `Guardians of the Galaxy` below the Vols), no `anti` is needed.
   Always simulate the tricky cases against the `keyHit`/`anyKey` logic before shipping.
 
-### Layout & the answered-item cycling system (single column vs. grid) — READ BEFORE BUILDING A LONG QUIZ
+### Layout & the answered-item cycling system (UNIVERSAL) — answered tiles always sink
 
-The default name-them-all board has a built-in **answered-item cycling** behaviour: as you solve slots,
-the solved rows slide to the BOTTOM so the next unsolved row is always near the input bar (this is what
-makes a long list playable without scrolling). It is implemented via `displayOrder` + the FLIP slide in
-`QuizClient.jsx` and is gated on `cyclingOn`, which is ON **only when the board renders as a single
-column** (`colSplit === null`).
+The name-them-all board has a built-in **answered-item cycling** behaviour: as you solve slots, the
+solved rows slide to the BOTTOM so the next unsolved row is always near the input bar (this is what
+makes a long list playable without scrolling). Implemented via `displayOrder` + the FLIP slide in
+`QuizClient.jsx`, gated on `cyclingOn`.
 
-CRITICAL: any multi-column layout TURNS CYCLING OFF (the rows are pinned in a fixed grid and solved
-tiles stay put). A board becomes multi-column in two ways:
-- an explicit **`columnSplit: [n, n, ...]`** on the quiz (must sum to `answers.length`), OR
-- the **auto-wrap**: a long list of short labels auto-splits into 2-4 columns on its own (roughly any
-  list > ~11 items with short answer text). So a big quiz silently loses cycling even with no
-  `columnSplit` set.
+**HARD RULE (owner, 2026-06-18): answered tiles sinking to the bottom is UNIVERSAL and AUTOMATIC for
+every name-them-all quiz — single-column AND auto-wrapped multi-column alike. You do NOT need to set
+any flag to get it.** Previously a long list that auto-wrapped into 2-4 columns silently turned cycling
+OFF (rows pinned in a fixed grid); that was the bug behind `states-with-the-most-appalachian-trail`
+(14 states auto-wrapped to two columns, answered tiles stuck). Fixed in `QuizClient.jsx` 2026-06-18:
+`cyclingOn` is now blocked ONLY by an explicit fixed grid, and the auto-wrap render branch lays
+`displayOrder` out column-major so solved items sink toward the last column's bottom while the next
+unsolved one stays near the input. `cyclingOn = started && !ended && !matched && !mapMode && !tileMode
+&& !explicitCols`.
 
-**HARD RULE (owner, 2026-06-17): every list-guessing (name-them-all) quiz MUST set `singleColumn: true` so answered tiles sink to the bottom. This is the owner's expected behaviour for these quizzes. The auto-wrap silently turns cycling OFF on any list longer than ~11 items (or with short labels), so a long quiz that omits `singleColumn` ships with answered tiles pinned in place, which is a bug. This was missed on `largest-ski-areas-north-america` (25 items auto-wrapped to two columns, cycling off) and retrofitted 2026-06-17; do not repeat. Add `singleColumn: true` as a standard field on every new name-them-all quiz. The ONLY exception is a deliberate fixed reference grid (periodic-table style) built with `columnSplit`, where rows must stay put by design.**
-
-So choose deliberately for long quizzes:
-- Want the answered-rows-sink-to-bottom feel (recommended for long recall lists like all-118 elements):
-  set **`singleColumn: true`** on the quiz. This forces `colSplit` null, keeping the single-column
-  cycling board no matter how many items. (Added 2026-06-17; honoured at the top of the `colSplit`
-  IIFE in `QuizClient.jsx`.)
-- Want a fixed reference grid (e.g. a periodic-table-style block) where rows stay put: use
-  `columnSplit`. Cycling will be off by design.
-Do NOT set both; `singleColumn` wins. In a single-column board each row shows its ORIGINAL index as the
-rank number even after it sinks, so don't also bake the number into `t`.
+Mechanics:
+- **Auto-wrap (default for long/short-label lists): cycles automatically.** No flag needed. The columns
+  exist purely for fit; answered tiles still sink.
+- **`singleColumn: true`: forces ONE column** (no auto-wrap) and cycles. Use it only when you want the
+  classic single tall column instead of auto-wrapped columns; it is no longer required to get cycling.
+- **Explicit `columnSplit: [n, n, ...]` (must sum to `answers.length`): a deliberate FIXED reference
+  grid** (periodic-table style). This is the ONLY layout where rows stay put by design — cycling is off.
+- Do NOT set both `singleColumn` and `columnSplit`; `singleColumn` wins. Each row/tile always shows its
+  ORIGINAL index as the rank number even after it sinks, so never bake the number into `t`.
 
 ### Quiz department / icon (id naming matters)
 
