@@ -74,7 +74,7 @@ export async function GET() {
         const tm = Number.isFinite(Number(r.time_elapsed)) ? Number(r.time_elapsed) : Infinity;
         const cur = bestLeader[r.quiz_id];
         if (!cur || sc > cur.score || (sc === cur.score && tm < cur.time) || (sc === cur.score && tm === cur.time && r.username.localeCompare(cur.name) < 0)) {
-          bestLeader[r.quiz_id] = { score: sc, time: tm, name: r.username };
+          bestLeader[r.quiz_id] = { score: sc, time: tm, name: r.username, userId: r.user_id };
         }
         let um = byUserPerQuiz[r.quiz_id];
         if (!um) { um = new Map(); byUserPerQuiz[r.quiz_id] = um; }
@@ -109,7 +109,8 @@ export async function GET() {
     }
     const trendingByQuiz = { ...cum };
     const leaders = {};
-    for (const qid of Object.keys(bestLeader)) leaders[qid] = bestLeader[qid].name;
+    const leaderKeys = {};
+    for (const qid of Object.keys(bestLeader)) { leaders[qid] = bestLeader[qid].name; if (bestLeader[qid].userId) leaderKeys[qid] = `u:${bestLeader[qid].userId}`; }
     // Top 3 distinct players per quiz (gold/silver/bronze): best score, then
     // fastest time, then name. Used by the homepage quiz tiles.
     const topLeaders = {};
@@ -119,7 +120,7 @@ export async function GET() {
         .slice(0, 3)
         .map(([name]) => name);
     }
-    return NextResponse.json({ total: rows.length, today, totalCorrect, totalPerfect, totalTime, todayTime, byQuiz, recent7, recent12h, trendingByQuiz, trendingWindowH, leaders, topLeaders });
+    return NextResponse.json({ total: rows.length, today, totalCorrect, totalPerfect, totalTime, todayTime, byQuiz, recent7, recent12h, trendingByQuiz, trendingWindowH, leaders, leaderKeys, topLeaders });
   } catch (e) {
     return NextResponse.json({ total: 0, byQuiz: {}, recent7: {}, recent12h: {}, trendingByQuiz: {}, trendingWindowH: 0, leaders: {} });
   }

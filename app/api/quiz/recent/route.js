@@ -59,6 +59,9 @@ export async function GET() {
         quizId: r.quiz_id,
         username: r.username || null,
         name,
+        // Linkable player key (u:<id> / a:<anon>) so the live feed can link a
+        // name to its Stat Hub profile. Null for an unattributable one-off row.
+        userKey: (r.user_id || r.anon_id) ? pk : null,
         score: r.score,
         total: r.total,
         playedAt: r.created_at || null,

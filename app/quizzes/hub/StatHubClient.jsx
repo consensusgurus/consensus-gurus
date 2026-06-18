@@ -60,7 +60,6 @@ function Logo({ size = 22 }) {
 
 const TABS = [
   { t: 'player', label: 'Player', Icon: User },
-  { t: 'rating', label: 'Rating', Icon: FunctionSquare },
   { t: 'quizzes', label: 'Quizzes', Icon: ListChecks },
   { t: 'challenges', label: 'Challenges', Icon: Flame },
 ];
@@ -126,6 +125,12 @@ export default function StatHubClient() {
     fetch(`/api/quiz/player?key=${encodeURIComponent(viewKey)}`).then((r) => r.json()).then((d) => { if (on) setViewProfile(d || { found: false }); }).catch(() => { if (on) setViewProfile({ found: false }); });
     return () => { on = false; };
   }, [viewKey]);
+  // Deep link: /quizzes/hub?player=<key> opens that player's profile on load.
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    const pk = new URLSearchParams(window.location.search).get('player');
+    if (pk) setViewKey(pk);
+  }, []);
   const viewing = !!viewKey;
   const profile = viewing ? viewProfile : me;
   const found = profile && profile.found;
@@ -211,7 +216,7 @@ export default function StatHubClient() {
         {viewing ? (
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 10, background: C.accsoft, border: `1px solid ${C.line}`, borderRadius: 10, padding: '8px 14px', marginTop: 10 }}>
             <span style={{ fontSize: 13, color: C.ink }}>Viewing <b>{(viewProfile && viewProfile.name) || 'player'}</b>{"'"}s stats</span>
-            <button onClick={() => setViewKey(null)} style={{ border: 'none', background: C.accent, color: '#fff', borderRadius: 7, padding: '6px 13px', font: 'inherit', fontFamily: FONT, fontSize: 12, fontWeight: 700, cursor: 'pointer' }}>Back to my stats</button>
+            <button onClick={() => { setViewKey(null); if (typeof window !== 'undefined' && window.history) window.history.replaceState(null, '', '/quizzes/hub'); }} style={{ border: 'none', background: C.accent, color: '#fff', borderRadius: 7, padding: '6px 13px', font: 'inherit', fontFamily: FONT, fontSize: 12, fontWeight: 700, cursor: 'pointer' }}>Back to my stats</button>
           </div>
         ) : null}
 
@@ -225,10 +230,9 @@ export default function StatHubClient() {
           <span className="tabcue" aria-hidden="true">{'\u203A'}</span>
         </div>
 
-        {tab === 'player' && <PlayerPanel me={profile} scope={scope} cats={cats} byKey={byKey} totalQuizzes={catalog.length} board={board} myName={myName} myAnonKey={myAnonKey} titleById={titleById} pview={pview} setPview={setPview} onSelectPlayer={(k) => { const mine = (me && me.userKey && k === me.userKey) || (myAnonKey && k === myAnonKey); setViewKey(mine ? null : k); setPview(mine ? 'ranking' : 'category'); }} />}
+        {tab === 'player' && <PlayerPanel me={profile} scope={scope} cats={cats} byKey={byKey} totalQuizzes={catalog.length} board={board} myName={myName} myAnonKey={myAnonKey} titleById={titleById} pview={pview} setPview={setPview} viewKey={viewKey} onSelectPlayer={(k) => { const mine = (me && me.userKey && k === me.userKey) || (myAnonKey && k === myAnonKey); setViewKey(mine ? null : k); setPview(mine ? 'ranking' : 'category'); }} />}
         {tab === 'quizzes' && <QuizzesPanel me={profile} scope={scope} byKey={byKey} catalog={catalog} stats={statsById} totals={totals} totalPlays={totalPlays} />}
         {tab === 'challenges' && <ChallengesPanel me={profile} />}
-        {tab === 'rating' && <RatingPanel me={profile} titleById={titleById} />}
       </div>
 
       <Footer />
@@ -274,8 +278,9 @@ function Metric({ label, value, sub, rank, total, avg }) {
   );
 }
 
-function PlayerPanel({ me, scope, cats, byKey, totalQuizzes, board, myName, myAnonKey, titleById, pview, setPview, onSelectPlayer }) {
+function PlayerPanel({ me, scope, cats, byKey, totalQuizzes, board, myName, myAnonKey, titleById, pview, setPview, viewKey, onSelectPlayer }) {
   const found = me && me.found;
+  const viewing = !!viewKey;
   const a = found ? me.activity : { correct: 0, answered: 0, played: 0, completed: 0, accuracy: 0, daysPlayed: 0 };
   const ranks = (found && me.ranks) || {};
   const base = (found && me.base) || {};
@@ -314,7 +319,7 @@ function PlayerPanel({ me, scope, cats, byKey, totalQuizzes, board, myName, myAn
 
   const toggle = (
     <div style={{ display: 'flex', gap: 3, background: '#eceef1', borderRadius: 9, padding: 3, flex: 'none' }}>
-      {[['ranking', 'Ranking'], ['category', 'Category Detail'], ['activity', 'Activity Feed']].map(([v, lbl]) => (
+      {[['ranking', 'Ranking'], ['category', 'Category Detail'], ['activity', 'Activity Feed'], ['rating', 'Rating']].map(([v, lbl]) => (
         <button key={v} onClick={() => setPview(v)} style={{ border: 'none', background: pview === v ? '#fff' : 'transparent', color: pview === v ? C.ink : C.muted, fontWeight: pview === v ? 700 : 600, boxShadow: pview === v ? '0 1px 2px rgba(20,22,28,0.06)' : 'none', borderRadius: 7, padding: '7px 15px', font: 'inherit', fontFamily: FONT, fontSize: 12.5, cursor: 'pointer' }}>{lbl}</button>
       ))}
     </div>
@@ -322,14 +327,17 @@ function PlayerPanel({ me, scope, cats, byKey, totalQuizzes, board, myName, myAn
 
   return (
     <div>
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 10, flexWrap: 'wrap', marginBottom: 12 }}>
+        {toggle}
+      </div>
+      {pview === 'rating' ? (
+        <RatingPanel me={me} titleById={titleById} viewing={viewing} />
+      ) : (
       <div className="card" style={{ padding: '14px 16px' }}>
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 10, flexWrap: 'wrap', marginBottom: 12 }}>
-          {toggle}
-        </div>
         {pview === 'ranking' ? (
-          <UserBaseBody board={board} myName={myName} myAnonKey={myAnonKey} onSelectPlayer={onSelectPlayer} />
+          <UserBaseBody board={board} myName={myName} myAnonKey={myAnonKey} onSelectPlayer={onSelectPlayer} viewKey={viewKey} />
         ) : pview === 'activity' ? (
-          <ActivityFeed recent={found ? me.recent : []} titleById={titleById} />
+          <ActivityFeed recent={found ? me.recent : []} titleById={titleById} viewing={viewing} />
         ) : !found ? (
           <div style={{ fontSize: 13, color: C.soft, padding: '6px 0' }}>Play a few quizzes and your breakdown shows up here.</div>
         ) : (
@@ -375,13 +383,14 @@ function PlayerPanel({ me, scope, cats, byKey, totalQuizzes, board, myName, myAn
           </div>
         )}
       </div>
+      )}
     </div>
   );
 }
 
 // Per-quiz play feed: the current player's recent games, newest first, each
 // linking to that quiz. Lives under the Player tab's "Activity Feed" view.
-function ActivityFeed({ recent, titleById }) {
+function ActivityFeed({ recent, titleById, viewing }) {
   if (!recent || !recent.length) return <div style={{ fontSize: 13, color: C.soft, padding: '6px 0' }}>No games on record yet. Play a quiz and it shows up here.</div>;
   return (
     <div style={{ overflow: 'auto', maxHeight: 600 }}>
@@ -389,7 +398,7 @@ function ActivityFeed({ recent, titleById }) {
         <thead><tr>
           <th>Quiz</th>
           <th style={{ textAlign: 'right' }}>When</th>
-          <th style={{ textAlign: 'right' }}>Your %</th>
+          <th style={{ textAlign: 'right' }}>{viewing ? 'User %' : 'Your %'}</th>
           <th style={{ textAlign: 'right' }}>Rating &Delta;</th>
         </tr></thead>
         <tbody>
@@ -413,7 +422,7 @@ function ActivityFeed({ recent, titleById }) {
 
 // Full ranking BODY (no card chrome; the card, title, and toggle live in
 // PlayerPanel). Every player registered + anonymous, current row highlighted.
-function UserBaseBody({ board, myName, myAnonKey, onSelectPlayer }) {
+function UserBaseBody({ board, myName, myAnonKey, onSelectPlayer, viewKey }) {
   const [sort, setSort] = useState({ col: 'rating', dir: 'desc' });
   if (!board) return <div style={{ fontSize: 13, color: C.soft, padding: '6px 0' }}>Loading the full ranking…</div>;
   if (!board.length) return <div style={{ fontSize: 13, color: C.soft, padding: '6px 0' }}>No ranked players yet.</div>;
@@ -450,11 +459,12 @@ function UserBaseBody({ board, myName, myAnonKey, onSelectPlayer }) {
           <tbody>
             {sorted.map((p, idx) => {
               const mine = (myAnonKey && p.userKey === myAnonKey) || (myName && !p.isAnon && p.name === myName);
+              const viewed = !!viewKey && p.userKey === viewKey && !mine;
               const mi = idx < 3 ? idx : -1;
               return (
-                <tr key={p.userKey} style={mine ? { background: C.accsoft } : undefined}>
+                <tr key={p.userKey} style={mine ? { background: C.accsoft } : (viewed ? { background: '#fdf2e3' } : undefined)}>
                   <td style={{ fontWeight: 800, color: mi >= 0 ? MEDAL[mi] : C.soft }}>{idx + 1}</td>
-                  <td style={{ fontWeight: mine ? 800 : 600, whiteSpace: 'nowrap' }}><button onClick={() => onSelectPlayer && onSelectPlayer(p.userKey)} style={{ border: 'none', background: 'transparent', padding: 0, font: 'inherit', fontFamily: FONT, fontWeight: 'inherit', color: C.accent, cursor: 'pointer', textAlign: 'left' }}>{p.name}</button>{p.isAnon ? <span style={{ fontSize: 10, color: C.soft, fontWeight: 600, marginLeft: 6 }}>guest</span> : null}{mine ? <span style={{ fontSize: 10, color: C.accent, fontWeight: 700, marginLeft: 6 }}>you</span> : null}</td>
+                  <td style={{ fontWeight: (mine || viewed) ? 800 : 600, whiteSpace: 'nowrap' }}><button onClick={() => onSelectPlayer && onSelectPlayer(p.userKey)} style={{ border: 'none', background: 'transparent', padding: 0, font: 'inherit', fontFamily: FONT, fontWeight: 'inherit', color: C.accent, cursor: 'pointer', textAlign: 'left' }}>{p.name}</button>{p.isAnon ? <span style={{ fontSize: 10, color: C.soft, fontWeight: 600, marginLeft: 6 }}>guest</span> : null}{mine ? <span style={{ fontSize: 10, color: C.accent, fontWeight: 700, marginLeft: 6 }}>you</span> : null}{viewed ? <span style={{ fontSize: 10, color: '#b5560f', fontWeight: 700, marginLeft: 6 }}>viewing</span> : null}</td>
                   <td className="score" style={{ textAlign: 'right', color: C.accent, fontWeight: 700 }}>{(p.rating || 0).toLocaleString()}</td>
                   <td style={{ textAlign: 'right' }}>{(p.correct || 0).toLocaleString()}</td>
                   <td style={{ textAlign: 'right' }}>{p.completed || 0}</td>
@@ -683,7 +693,7 @@ function ChallengesPanel({ me }) {
   );
 }
 // ─── Rating tab ─────────────────────────────────────────────────────────────
-function RatingPanel({ me, titleById }) {
+function RatingPanel({ me, titleById, viewing }) {
   const found = me && me.found;
   const comp = found ? me.components : { start: 1500, k: 24, matches: 0, netDelta: 0, rating: 1500 };
   const recent = (found && me.recent) || [];
@@ -705,7 +715,7 @@ function RatingPanel({ me, titleById }) {
           </div>
         </div>
         <div className="card" style={{ padding: '14px 16px' }}>
-          <div style={{ fontSize: 14, fontWeight: 700, marginBottom: 10 }}>Your Components</div>
+          <div style={{ fontSize: 14, fontWeight: 700, marginBottom: 10 }}>{viewing ? 'Components' : 'Your Components'}</div>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 0 }}>
             <div className="hrow" style={{ borderTop: 'none' }}><span style={{ flex: 1 }}>Season Start Rating</span><span style={{ fontWeight: 700 }}>{comp.start.toLocaleString()}</span></div>
             <div className="hrow"><span style={{ flex: 1 }}>K-Factor (Volatility)</span><span style={{ fontWeight: 700 }}>{comp.k}</span></div>
@@ -722,7 +732,7 @@ function RatingPanel({ me, titleById }) {
             <thead><tr>
               <th>Quiz</th>
               <th style={{ textAlign: 'right' }}>Dq</th>
-              <th style={{ textAlign: 'right' }}>Your %</th>
+              <th style={{ textAlign: 'right' }}>{viewing ? 'User %' : 'Your %'}</th>
               <th style={{ textAlign: 'right' }}>S</th>
               <th style={{ textAlign: 'right' }}>E</th>
               <th style={{ textAlign: 'right' }}>ΔR</th>

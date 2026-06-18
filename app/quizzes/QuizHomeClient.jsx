@@ -1,6 +1,7 @@
 'use client';
 import React, { useState, useEffect, useMemo, useRef } from 'react';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import SiteHeader from '../SiteHeader';
 import {
   Search, ChevronDown, ArrowRight, BarChart3, Crown, Sparkles, Flame,
@@ -99,6 +100,18 @@ function getIdentity() {
 }
 
 // ─── small presentational bits ──────────────────────────────────────────────
+// Wraps a player name so clicking it opens that player on the Stat Hub
+// (?player=<key>). Used inside quiz-row anchors, so it suppresses the parent
+// link's navigation. No key (unattributable play) renders plain, unlinked.
+function PlayerLink({ userKey, children }) {
+  const router = useRouter();
+  if (!userKey) return children;
+  const go = (e) => { e.preventDefault(); e.stopPropagation(); router.push(`/quizzes/hub?player=${encodeURIComponent(userKey)}`); };
+  return (
+    <span role="link" tabIndex={0} onClick={go} onKeyDown={(e) => { if (e.key === 'Enter') go(e); }} style={{ cursor: 'pointer' }}>{children}</span>
+  );
+}
+
 function WhoTag({ name, isAnon }) {
   if (isAnon) return (
     <span style={{ whiteSpace: 'nowrap' }}>
@@ -128,7 +141,7 @@ export default function QuizHomeClient() {
   const [search, setSearch] = useState('');
   const [listMode, setListMode] = useState(null); // null | 'newest' | 'mostplayed' | 'live' (View all expansions)
 
-  const [totals, setTotals] = useState({ byQuiz: {}, leaders: {}, today: 0 });
+  const [totals, setTotals] = useState({ byQuiz: {}, leaders: {}, leaderKeys: {}, today: 0 });
   const [eloBoard, setEloBoard] = useState([]); // [{rank,name,isAnon,userKey}]
   const [eloScope, setEloScope] = useState('all');
   const [recent, setRecent] = useState([]); // [{quizId,username,score,total,playedAt,isAnon,attempt}]
@@ -183,7 +196,7 @@ export default function QuizHomeClient() {
   // ── data loads ──
   useEffect(() => {
     fetch('/api/quiz/totals').then((r) => r.json()).then((d) => {
-      if (d && !d.error) setTotals({ byQuiz: d.byQuiz || {}, leaders: d.leaders || {}, today: d.today || 0 });
+      if (d && !d.error) setTotals({ byQuiz: d.byQuiz || {}, leaders: d.leaders || {}, leaderKeys: d.leaderKeys || {}, today: d.today || 0 });
     }).catch(() => {});
     fetch('/api/quiz/recent').then((r) => r.json()).then((d) => {
       if (d && Array.isArray(d.plays)) setRecent(d.plays);
@@ -223,6 +236,7 @@ export default function QuizHomeClient() {
 
   function plays(id) { return totals.byQuiz[id] || 0; }
   function leader(id) { return totals.leaders[id] || ''; }
+  function leaderKey(id) { return (totals.leaderKeys && totals.leaderKeys[id]) || ''; }
 
   // Player-bar stats: overall by default; for a selected category, the player's
   // figures + rank WITHIN that category (from me.byCategory[scope]). Falls back
@@ -366,7 +380,7 @@ export default function QuizHomeClient() {
     @media(max-width:680px){.qzh .qfull{grid-template-columns:1fr;}}
     .qzh .colhead{display:flex;align-items:center;gap:9px;padding:7px 0;border-bottom:2px solid ${C.ink};margin-bottom:3px;}
     .qzh .viewall{margin-left:auto;font-size:10px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;}
-    .qzh .qrow{display:flex;align-items:baseline;gap:10px;padding:6px 0;border-bottom:1px solid rgba(20,22,28,0.07);text-decoration:none;color:${C.ink};}
+    .qzh .qrow{display:flex;align-items:baseline;gap:10px;padding:6px 0;border-bottom:1px solid rgba(20,22,28,0.07);text-decoration:none;color:${C.ink};min-width:0;overflow:hidden;}
     .qzh .qrow:hover .qtitle{color:${C.accent};}
     .qzh .qrow .qtitle{font-size:13px;font-weight:500;}
     .qzh .qmeta{flex:none;display:flex;align-items:center;gap:10px;font-size:10.5px;}
@@ -438,7 +452,7 @@ export default function QuizHomeClient() {
               {leaderRows.map((r, i) => (
                 <div className="lrow" key={r.userKey || i}>
                   <Medal i={i} />
-                  <span className="qtitle">{r.userKey ? <Link href={`/quizzes/player/${encodeURIComponent(r.userKey)}`} style={{ color: 'inherit', textDecoration: 'none' }}><WhoTag name={r.name} isAnon={r.isAnon} /></Link> : <WhoTag name={r.name} isAnon={r.isAnon} />}</span>
+                  <span className="qtitle">{r.userKey ? <Link href={`/quizzes/hub?player=${encodeURIComponent(r.userKey)}`} style={{ color: 'inherit', textDecoration: 'none' }}><WhoTag name={r.name} isAnon={r.isAnon} /></Link> : <WhoTag name={r.name} isAnon={r.isAnon} />}</span>
                   <span style={{ flex: 'none', fontWeight: 700, fontVariantNumeric: 'tabular-nums' }}>{lbMetric.fmt(r[lbMetric.key])}</span>
                 </div>
               ))}
@@ -464,7 +478,7 @@ export default function QuizHomeClient() {
                   <div className="lrow" style={{ gap: 9 }}>
                     <span className="qtitle" style={{ fontWeight: 600 }}>{f.title}</span>
                     <span className="qmeta" style={{ gap: 8 }}>
-                      <WhoTag name={f.name || (f.isAnon ? 'Guest' : 'Player')} isAnon={f.isAnon} />
+                      <PlayerLink userKey={f.userKey}><WhoTag name={f.name || (f.isAnon ? 'Guest' : 'Player')} isAnon={f.isAnon} /></PlayerLink>
                       <span className="score lf-extra">{f.score}/{f.total}</span>
                       <span className="att lf-extra">{f.attempt > 1 ? `attempt ${f.attempt}` : '1st try'}</span>
                       <span style={{ color: C.soft }}>{relTime(f.playedAt)}</span>
@@ -523,18 +537,18 @@ export default function QuizHomeClient() {
             </div>
           )
         ) : scope !== 'all' ? (
-          <CategoryFull cat={byKey[scope]} plays={plays} leader={leader} />
+          <CategoryFull cat={byKey[scope]} plays={plays} leader={leader} leaderKey={leaderKey} />
         ) : listMode === 'live' ? (
           <div className="qfull">
             {liveAll.length === 0 ? (
               <div style={{ padding: '18px 2px', color: C.soft, fontSize: 14 }}>No recent plays yet.</div>
             ) : liveAll.map((f, i) => (
               <Link href={`/quiz/${f.quizId}`} className="qrow" key={i} title={f.title}>
-                <span className="qtitle">{f.title}</span>
+                <span className="qtitle">{stripVerb(f.title)}</span>
                 <span className="qmeta" style={{ gap: 8 }}>
-                  <WhoTag name={f.name || (f.isAnon ? 'Guest' : 'Player')} isAnon={f.isAnon} />
-                  <span className="score">{f.score}/{f.total}</span>
-                  <span style={{ color: C.soft }}>{relTime(f.playedAt)}</span>
+                  <PlayerLink userKey={f.userKey}><WhoTag name={f.name || (f.isAnon ? 'Guest' : 'Player')} isAnon={f.isAnon} /></PlayerLink>
+                  <span className="score lf-extra">{f.score}/{f.total}</span>
+                  <span className="lf-extra" style={{ color: C.soft }}>{relTime(f.playedAt)}</span>
                 </span>
               </Link>
             ))}
@@ -547,7 +561,7 @@ export default function QuizHomeClient() {
                 <Link href={`/quiz/${q.id}`} className="qrow" key={q.id} title={q.rawTitle || q.title}>
                   <span className="dot" style={{ background: cc, alignSelf: 'center' }} />
                   <span className="qtitle">{stripVerb(q.title)}</span>
-                  <span className="qmeta">{listMode === 'newest' ? <NewRight q={q} /> : <PlaysRight id={q.id} plays={plays} leader={leader} color={C.accent} />}</span>
+                  <span className="qmeta">{listMode === 'newest' ? <NewRight q={q} /> : <PlaysRight id={q.id} plays={plays} leader={leader} leaderKey={leaderKey} color={C.accent} />}</span>
                 </Link>
               );
             })}
@@ -557,10 +571,10 @@ export default function QuizHomeClient() {
             <BrowseColumn label="Newest" Icon={Sparkles} color={C.accent} tint={C.accsoft}
               rows={newest.map((q) => ({ q, right: <NewRight q={q} /> }))} cta="View all ›" onCta={() => setListMode('newest')} />
             <BrowseColumn label="Most Played" Icon={Flame} color="#c2691c" tint="#f4e2cd"
-              rows={mostPlayed.map((q) => ({ q, right: <PlaysRight id={q.id} plays={plays} leader={leader} color="#c2691c" hidePlays /> }))} cta="View all ›" onCta={() => setListMode('mostplayed')} />
+              rows={mostPlayed.map((q) => ({ q, right: <PlaysRight id={q.id} plays={plays} leader={leader} leaderKey={leaderKey} color="#c2691c" hidePlays /> }))} cta="View all ›" onCta={() => setListMode('mostplayed')} />
             {cats.map((c) => (
               <BrowseColumn key={c.key} label={c.label} Icon={c.Icon} color={c.c} tint={c.t}
-                rows={colRows(c, 6, shownIds).map((q) => ({ q, right: <PlaysRight id={q.id} plays={plays} leader={leader} color={c.c} hidePlays /> }))}
+                rows={colRows(c, 6, shownIds).map((q) => ({ q, right: <PlaysRight id={q.id} plays={plays} leader={leader} leaderKey={leaderKey} color={c.c} hidePlays /> }))}
                 cta={`View all ${c.count} ›`} onCta={() => setScope(c.key)} />
             ))}
           </div>
@@ -613,14 +627,14 @@ function DetailCard({ q, s, leader, color }) {
   );
 }
 
-function PlaysRight({ id, plays, leader, color, hidePlays }) {
+function PlaysRight({ id, plays, leader, leaderKey, color, hidePlays }) {
   const p = plays(id);
   const ld = leader(id);
   return (
     <>
       {!hidePlays && p > 0 ? <span className="score" style={{ fontSize: 11 }}>▶ {p.toLocaleString()}</span> : null}
       {ld ? (
-        <span style={{ display: 'flex', alignItems: 'center', gap: 3 }}><Crown size={11} style={{ color }} />{ld}</span>
+        <span style={{ display: 'flex', alignItems: 'center', gap: 3 }}><Crown size={11} style={{ color }} /><PlayerLink userKey={leaderKey ? leaderKey(id) : ''}>{ld}</PlayerLink></span>
       ) : <span style={{ color: C.soft }}>Empty</span>}
     </>
   );
@@ -643,7 +657,7 @@ function NewRight({ q }) {
 // Selected-category compact view: the WHOLE category, leader-only, laid out in
 // two columns (single column under ~680px). Header shows the category icon +
 // label + total count.
-function CategoryFull({ cat, plays, leader }) {
+function CategoryFull({ cat, plays, leader, leaderKey }) {
   if (!cat) return null;
   const rows = cat.quizzes.slice()
     .sort((a, b) => plays(b.id) - plays(a.id) || a.title.localeCompare(b.title));
@@ -661,7 +675,7 @@ function CategoryFull({ cat, plays, leader }) {
         {rows.map((q) => (
           <Link href={`/quiz/${q.id}`} className="qrow" key={q.id} title={q.rawTitle || q.title}>
             <span className="qtitle">{stripVerb(q.title)}</span>
-            <span className="qmeta"><PlaysRight id={q.id} plays={plays} leader={leader} color={color} hidePlays /></span>
+            <span className="qmeta"><PlaysRight id={q.id} plays={plays} leader={leader} leaderKey={leaderKey} color={color} hidePlays /></span>
           </Link>
         ))}
       </div>
