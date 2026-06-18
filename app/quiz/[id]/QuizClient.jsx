@@ -247,6 +247,7 @@ export default function QuizClient({ quizId }) {
   // otherwise mis-displays as 13/6 and drives the guesses-left counter negative.
   const total = tileMode && Array.isArray(quiz.pairs) ? quiz.pairs.length : answers.length;
   const ordered = matched && quiz.ordered === true;
+  const slideshow = matched && !ordered && quiz.slideshow === true;
   // The "reveal the answers" gate is only for quizzes with no companion list and
   // no map board (the plain "table" quizzes). List quizzes already send you to
   // the full ranking to see misses; map quizzes have no table to fill in.
@@ -276,6 +277,7 @@ export default function QuizClient({ quizId }) {
 
   const [tab, setTab] = useState('play');
   const [found, setFound] = useState(() => new Array(total).fill(false));
+  const [slideIdx, setSlideIdx] = useState(0);
   const [started, setStarted] = useState(false);
   const [ended, setEnded] = useState(false);
   const [time, setTime] = useState(quiz.timeLimit);
@@ -330,6 +332,13 @@ export default function QuizClient({ quizId }) {
   const startRef = useRef(null);
   const inputRef = useRef(null);
   const slotRefs = useRef([]);
+  useEffect(() => {
+    if (!slideshow || !started || ended) return;
+    const i = Math.min(Math.max(slideIdx, 0), answers.length - 1);
+    if (found[i]) return;
+    const el = slotRefs.current[i];
+    if (el) el.focus();
+  }, [slideIdx, started, ended, slideshow]);
   const viewedRef = useRef(false);
   const ribbonRef = useRef(null);
   // Keep a ref pointing at the LATEST endGame closure. The countdown
@@ -1212,6 +1221,48 @@ export default function QuizClient({ quizId }) {
             </ul>
             ) : (
             (() => {
+              if (slideshow) {
+                const last = answers.length - 1;
+                const i = Math.min(Math.max(slideIdx, 0), last);
+                const a = answers[i];
+                const f = found[i];
+                const reveal = ended && revealed && !f;
+                const solved = found.filter(Boolean).length;
+                const go = (d) => setSlideIdx((p) => Math.min(Math.max(p + d, 0), last));
+                const adv = () => { const n = answers.length; for (let k = 1; k <= n; k++) { const j = (i + k) % n; if (j !== i && !found[j]) { setSlideIdx(j); return; } } };
+                return (
+                  <div>
+                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', fontFamily: MONO, fontSize: 11, letterSpacing: '0.1em', textTransform: 'uppercase', color: COLORS.faded, marginBottom: 12 }}>
+                      <span>{i + 1} / {answers.length}</span>
+                      <span>{solved} solved</span>
+                    </div>
+                    <div style={{ borderRadius: 14, border: `1px solid ${f ? COLORS.forest : reveal ? COLORS.rust : COLORS.faded + '44'}`, background: f ? '#fff' : reveal ? '#f6ead9' : COLORS.paper, padding: '34px 22px', textAlign: 'center', minHeight: 150, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 18 }}>
+                      <div style={{ fontFamily: SERIF, fontWeight: 800, fontSize: 'clamp(26px, 5vw, 40px)', lineHeight: 1.1, color: COLORS.ink }}>{a.label}</div>
+                      {f ? (
+                        <div style={{ fontFamily: SERIF, fontSize: 22, fontWeight: 600, color: COLORS.forest }}>{a.t}</div>
+                      ) : reveal ? (
+                        <div style={{ fontFamily: SERIF, fontSize: 22, fontWeight: 600, color: COLORS.rust }}>{a.t}</div>
+                      ) : (
+                        <input
+                          ref={(el) => { slotRefs.current[i] = el; if (i === 0) inputRef.current = el; }}
+                          enterKeyHint="next"
+                          disabled={!started || ended}
+                          onChange={(e) => { if (started && !ended && autoSlot(i, e.target.value)) { e.target.value = ''; adv(); } }}
+                          onKeyDown={(e) => onSlotKey(i, e)}
+                          placeholder={started ? `Type the ${quiz.noun || 'answer'}\u2026` : 'Press Play to begin\u2026'}
+                          autoComplete="off" autoCapitalize="none" autoCorrect="off" spellCheck={false}
+                          style={{ width: '100%', maxWidth: 360, fontFamily: SANS, fontSize: 18, padding: '13px 16px', borderRadius: 8, border: `1.5px solid ${COLORS.ink}`, background: !started || ended ? COLORS.paper : '#fff', color: COLORS.ink, textAlign: 'center', opacity: !started || ended ? 0.5 : 1 }}
+                        />
+                      )}
+                    </div>
+                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginTop: 14, gap: 12 }}>
+                      <button onClick={() => go(-1)} disabled={i === 0} style={{ fontFamily: MONO, fontSize: 12, letterSpacing: '0.08em', textTransform: 'uppercase', fontWeight: 700, padding: '11px 20px', borderRadius: 8, border: `1.5px solid ${COLORS.ink}`, background: 'transparent', color: COLORS.ink, cursor: i === 0 ? 'default' : 'pointer', opacity: i === 0 ? 0.4 : 1 }}>&larr; Back</button>
+                      <span style={{ fontFamily: MONO, fontSize: 12, color: COLORS.faded }}>{f ? 'Solved' : reveal ? 'Missed' : (started ? 'Type your answer' : 'Press Play')}</span>
+                      <button onClick={() => go(1)} disabled={i === last} style={{ fontFamily: MONO, fontSize: 12, letterSpacing: '0.08em', textTransform: 'uppercase', fontWeight: 700, padding: '11px 20px', borderRadius: 8, border: 'none', background: COLORS.ember, color: '#fff', cursor: i === last ? 'default' : 'pointer', opacity: i === last ? 0.4 : 1 }}>Next &rarr;</button>
+                    </div>
+                  </div>
+                );
+              }
               const renderRow = (a, i) => {
                 const f = found[i];
                 const isActive = ordered && started && !ended && i === activeIdx;
@@ -1219,7 +1270,7 @@ export default function QuizClient({ quizId }) {
                 return (
                   <li key={i} ref={setFlipRef(i)} style={{ display: 'flex', alignItems: 'center', gap: 16, padding: '13px 16px', borderRadius: 10, border: `1px solid ${f ? COLORS.forest : isActive ? COLORS.ember : reveal ? COLORS.rust : COLORS.faded + '33'}`, marginBottom: 8, background: reveal ? '#f6ead9' : f || isActive ? '#fff' : COLORS.paper, boxShadow: isActive ? `inset 4px 0 0 ${COLORS.ember}` : reveal ? `inset 4px 0 0 ${COLORS.rust}` : 'none', transition: 'background .2s, border-color .2s, box-shadow .2s, color .2s' }}>
                     {a.label != null ? (
-                      <span style={{ fontFamily: MONO, fontWeight: 700, fontSize: 15, width: 52, color: COLORS.ember, flex: 'none', textAlign: 'left', letterSpacing: '0.04em' }}>{a.label}</span>
+                      <span style={{ fontFamily: MONO, fontWeight: 700, fontSize: 15, minWidth: 52, maxWidth: '50%', overflowWrap: 'anywhere', wordBreak: 'break-word', whiteSpace: 'normal', lineHeight: 1.2, color: COLORS.ember, flex: 'none', textAlign: 'left', letterSpacing: '0.04em' }}>{a.label}</span>
                     ) : (
                       <span style={{ fontFamily: SERIF, fontWeight: 800, fontSize: 22, width: 30, color: COLORS.ember, flex: 'none', textAlign: 'center' }}>{i + 1}</span>
                     )}
