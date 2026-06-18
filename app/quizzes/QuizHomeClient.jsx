@@ -419,7 +419,7 @@ export default function QuizHomeClient() {
           <div className="qz-stats" style={{ display: 'flex', gap: 22, marginLeft: 'auto', flexWrap: 'wrap' }}>
             <div><div style={{ fontSize: 17, fontWeight: 700 }}>{playerStats && playerStats.correct != null ? playerStats.correct.toLocaleString() : '—'}</div><div className="lbl">correct</div></div>
             <div><div style={{ fontSize: 17, fontWeight: 700 }}>{playerStats && playerStats.played != null ? playerStats.played : '—'}</div><div className="lbl">played</div></div>
-            <div><div style={{ fontSize: 17, fontWeight: 700 }}>{playerStats && playerStats.completed != null ? playerStats.completed : '—'}</div><div className="lbl">completed</div></div>
+            <div><div style={{ fontSize: 10, fontWeight: 600, lineHeight: 1, color: C.soft, marginBottom: 1 }}>{playerStats && playerStats.completed != null && totalCount ? `${playerStats.completed > 0 && playerStats.completed / totalCount < 0.005 ? '<1' : Math.round((playerStats.completed / totalCount) * 100)}%` : '\u00A0'}</div><div style={{ fontSize: 17, fontWeight: 700 }}>{playerStats && playerStats.completed != null ? playerStats.completed : '—'}</div><div className="lbl">completed</div></div>
             <div><div style={{ fontSize: 17, fontWeight: 700 }}>{playerStats && playerStats.accuracy != null ? `${playerStats.accuracy}%` : '—'}</div><div className="lbl">accuracy</div></div>
           </div>
           <Link className="hubbtn" href="/quizzes/hub"><BarChart3 size={16} /> Stat Hub <ArrowRight size={15} /></Link>
