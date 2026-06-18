@@ -115,37 +115,43 @@ export default function RankingView({ list, voteData, extras }) {
 
   return (
     <div style={{ fontFamily: FONT }}>
-      <style>{`.rv-podium{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:6px;}@media(max-width:680px){.rv-podium{grid-template-columns:1fr;}}`}</style>
-      {podium.length > 0 && (
-        <>
-          <div style={{ fontSize: 10, fontWeight: 800, letterSpacing: '0.14em', textTransform: 'uppercase', color: C.soft, margin: '2px 2px 10px' }}>Top 3 · The Podium</div>
-          <div className="rv-podium">
-            {podium.map((item, i) => {
-              const { name, locality } = parseItem(item);
-              const src = heroUrl(heroMap, item);
-              const big = i === 0;
-              return (
-                <div key={item} style={{ gridColumn: big ? '1 / -1' : 'auto', background: '#fff', border: `1px solid ${C.line}`, borderRadius: 14, overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>
-                  <div style={{ position: 'relative', minHeight: big ? 210 : 180, backgroundImage: src ? `url("${src}")` : grad(name), backgroundSize: containHero ? 'contain' : 'cover', backgroundRepeat: 'no-repeat', backgroundPosition: 'center', backgroundColor: src && containHero ? '#1c1e24' : undefined }}>
-                    <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to top, rgba(12,13,16,0.86), rgba(12,13,16,0.18) 58%, rgba(12,13,16,0))' }} />
-                    <span style={{ position: 'absolute', top: 12, left: 12, width: 30, height: 30, borderRadius: '50%', background: MEDAL[i], color: '#1c1e24', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 800, fontSize: 15, zIndex: 2, boxShadow: '0 2px 6px rgba(0,0,0,.25)' }}>{i + 1}</span>
-                    <Score item={item} dark />
-                    <div style={{ position: 'absolute', left: 0, right: 0, bottom: 0, padding: '16px 18px', color: '#fff' }}>
-                      <div style={{ fontSize: big ? 24 : 19, fontWeight: 800, letterSpacing: '-0.01em', lineHeight: 1.15 }}>{stripName(name)}</div>
-                      {locality && <div style={{ fontSize: 12, opacity: 0.85, margin: '3px 0 10px' }}>{locality}</div>}
-                      <Chips names={chipsFor(item, publications)} light />
-                    </div>
-                  </div>
-                  <div style={{ padding: '13px 16px' }}>
-                    {descs[item] && <p style={{ fontSize: 13, color: C.muted, lineHeight: 1.55, margin: 0 }}>{descs[item]}</p>}
-                    <ActionRow item={item} list={list} />
-                  </div>
+      <style>{`.rv-pgrid{display:grid;grid-template-columns:1fr 1fr;gap:14px;}@media(max-width:680px){.rv-pgrid{grid-template-columns:1fr !important;}.rv-pcard{flex-direction:column;}.rv-pphoto{flex-basis:auto !important;width:100%;min-height:200px !important;}}`}</style>
+      {podium.length > 0 && (() => {
+        const renderCard = (item, i, lead) => {
+          const { name, locality } = parseItem(item);
+          const src = heroUrl(heroMap, item);
+          const chips = chipsFor(item, publications);
+          return (
+            <div key={item} className="rv-pcard" style={{ background: '#fff', border: `1px solid ${C.line}`, borderRadius: 14, overflow: 'hidden', display: 'flex' }}>
+              <div className="rv-pphoto" style={{ position: 'relative', flex: lead ? '0 0 42%' : '0 0 40%', minHeight: lead ? 212 : 152, backgroundImage: src ? `url("${src}")` : grad(name), backgroundSize: containHero ? 'contain' : 'cover', backgroundRepeat: 'no-repeat', backgroundPosition: 'center', backgroundColor: src && containHero ? '#1c1e24' : undefined }}>
+                <span style={{ position: 'absolute', top: lead ? 12 : 10, left: lead ? 12 : 10, width: lead ? 30 : 27, height: lead ? 30 : 27, borderRadius: '50%', background: MEDAL[i] || MEDAL[2], color: '#1c1e24', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 800, fontSize: lead ? 15 : 14, zIndex: 2, boxShadow: '0 2px 6px rgba(0,0,0,.25)' }}>{i + 1}</span>
+              </div>
+              <div style={{ flex: 1, padding: lead ? '16px 18px' : '13px 14px', minWidth: 0 }}>
+                <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: lead ? 12 : 8 }}>
+                  <div style={{ fontSize: lead ? 24 : 17, fontWeight: 800, letterSpacing: '-0.01em', lineHeight: 1.15 }}>{stripName(name)}</div>
+                  <Score item={item} />
                 </div>
-              );
-            })}
-          </div>
-        </>
-      )}
+                {locality && <div style={{ fontSize: lead ? 12 : 11.5, color: C.muted, margin: lead ? '3px 0 9px' : '2px 0 7px' }}>{locality}</div>}
+                {chips.length > 0 && <div style={{ marginBottom: 9 }}><Chips names={chips} /></div>}
+                {descs[item] && <p style={{ fontSize: lead ? 13 : 12, color: C.muted, lineHeight: 1.5, margin: 0 }}>{descs[item]}</p>}
+                <ActionRow item={item} list={list} />
+              </div>
+            </div>
+          );
+        };
+        const others = podium.slice(1);
+        return (
+          <>
+            <div style={{ fontSize: 10, fontWeight: 800, letterSpacing: '0.14em', textTransform: 'uppercase', color: C.soft, margin: '2px 2px 10px' }}>Top 3 · The Podium</div>
+            {renderCard(podium[0], 0, true)}
+            {others.length > 0 && (
+              <div className="rv-pgrid" style={{ marginTop: 14, gridTemplateColumns: others.length === 1 ? '1fr' : undefined }}>
+                {others.map((item, k) => renderCard(item, k + 1, false))}
+              </div>
+            )}
+          </>
+        );
+      })()}
 
       {rest.length > 0 && (
         <>
