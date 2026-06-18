@@ -13,6 +13,7 @@ import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { ArrowLeft, Share2, Check, X, Flag, Trophy, HelpCircle, Zap, ScrollText } from 'lucide-react';
 import { getQuiz, QUIZZES } from '@/lib/quizzes';
+import { quizDept as deptOf, DEPT_LABEL } from '@/lib/quiz-departments';
 import Grain from '../../Grain';
 import Footer from '../../Footer';
 import SiteHeader from '../../SiteHeader';
@@ -149,6 +150,8 @@ export default function TimedMcqClient({ quizId }) {
   const [board, setBoard] = useState({ plays: 0, best: null, topTime: null, leaderboard: [], leaderboardAll: [] });
   const [lbView, setLbView] = useState('registered');
   const [identity, setIdentity] = useState(null);
+  const [eloBefore, setEloBefore] = useState(null);
+  const [eloAfter, setEloAfter] = useState(null);
 
   // Join form
   const [jName, setJName] = useState('');
@@ -181,6 +184,18 @@ export default function TimedMcqClient({ quizId }) {
   const isTopScore = phase === 'done' && board.best != null && lastElapsed != null
     && points === board.best && board.topTime != null && lastElapsed <= board.topTime;
 
+  function fetchQuizMe(setter) {
+    try {
+      const qs = new URLSearchParams();
+      const anon = getAnonId();
+      if (anon) qs.set('anonId', anon);
+      let em = identity && identity.email ? identity.email : null;
+      if (!em) { try { const j = JSON.parse(localStorage.getItem('sot_quiz_identity')); if (j && j.email) em = j.email; } catch (e) {} }
+      if (em) qs.set('email', em);
+      fetch(`/api/quiz/me?${qs.toString()}`).then((r) => r.json()).then((d) => { if (d && d.found) setter(d); }).catch(() => {});
+    } catch (e) {}
+  }
+
   function refreshBoard() {
     fetch(`/api/quiz/board?quizId=${encodeURIComponent(quizId)}`)
       .then((r) => r.json())
@@ -195,10 +210,12 @@ export default function TimedMcqClient({ quizId }) {
       if (id && id.email) { setIdentity(id); setJName(id.username || ''); setJEmail(id.email || ''); }
     } catch {}
     refreshBoard();
+    fetchQuizMe(setEloBefore);
     if (!viewedRef.current) {
       viewedRef.current = true;
       fetch('/api/quiz/view', {
         method: 'POST',
+        keepalive: true,
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ quizId }),
       }).catch(() => {});
@@ -282,12 +299,16 @@ export default function TimedMcqClient({ quizId }) {
       if (firstAttempt) {
         fetch('/api/quiz/result', {
           method: 'POST',
+          keepalive: true,
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ quizId, score: finalPoints, total: maxPoints, correct: prev.filter((r) => r.correct).length, timeElapsed: elapsed, email: identity?.email || undefined, anonId: getAnonId() }),
         })
           .then((r) => r.json())
           .then((d) => { if (d && !d.error) setBoard({ plays: d.plays || 0, best: d.best ?? null, topTime: d.topTime ?? null, leaderboard: d.leaderboard || [], leaderboardAll: d.leaderboardAll || [] }); })
-          .catch(() => {});
+          .then(() => fetchQuizMe(setEloAfter))
+          .catch(() => { fetchQuizMe(setEloAfter); });
+      } else {
+        fetchQuizMe(setEloAfter);
       }
       return prev;
     });
@@ -372,6 +393,48 @@ export default function TimedMcqClient({ quizId }) {
   const liveValue = Math.max(0, Math.round(maxPer * ptsFrac(remaining)));        // points if you answer right now
   const lowClock = phase === 'playing' && remaining <= 8000;
   const correctIdx = q ? q.correct : -1;
+
+  const eloDept = deptOf(quiz);
+  const eloDeptLabel = DEPT_LABEL[eloDept] || 'Category';
+  const eloPanel = eloAfter ? (() => {
+    const fmtN = (x) => (x == null ? null : x.toLocaleString());
+    const aRating = eloAfter.rating;
+    const bRating = eloBefore && eloBefore.rating != null ? eloBefore.rating : null;
+    const aGlobal = eloAfter.rank != null ? eloAfter.rank : null;
+    const bGlobal = eloBefore && eloBefore.found ? eloBefore.rank : null;
+    const aCatObj = eloAfter.byCategory && eloAfter.byCategory[eloDept];
+    const bCatObj = eloBefore && eloBefore.byCategory && eloBefore.byCategory[eloDept];
+    const aCat = aCatObj ? aCatObj.rank : null;
+    const bCat = bCatObj ? bCatObj.rank : null;
+    const rows = [
+      { label: 'ELO rating', value: fmtN(aRating), was: bRating != null ? `was ${fmtN(bRating)}` : null, delta: bRating != null ? aRating - bRating : null, isNew: bRating == null },
+      { label: 'Global rank', value: aGlobal != null ? `#${fmtN(aGlobal)}` : '—', was: bGlobal != null ? `was #${fmtN(bGlobal)}` : 'new entry', delta: (bGlobal != null && aGlobal != null) ? bGlobal - aGlobal : null, isNew: bGlobal == null },
+      { label: `${eloDeptLabel} rank`, value: aCat != null ? `#${fmtN(aCat)}` : '—', was: bCat != null ? `was #${fmtN(bCat)}` : 'new entry', delta: (bCat != null && aCat != null) ? bCat - aCat : null, isNew: bCat == null },
+    ];
+    return (
+      <div style={{ margin: '18px auto 0', maxWidth: 300, background: '#fbf7ef', border: `1px solid ${COLORS.faded}33` }}>
+        <div style={{ fontFamily: MONO, fontSize: 9, letterSpacing: '0.18em', textTransform: 'uppercase', color: COLORS.ember, textAlign: 'center', padding: '9px 0 1px' }}>Your standing</div>
+        {rows.map((r, i) => (
+          <div key={r.label} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '9px 14px', borderTop: i === 0 ? 'none' : `1px solid ${COLORS.faded}22` }}>
+            <div style={{ textAlign: 'left' }}>
+              <div style={{ fontFamily: MONO, fontSize: 9, letterSpacing: '0.13em', textTransform: 'uppercase', color: COLORS.faded }}>{r.label}</div>
+              <div style={{ fontFamily: SERIF, fontWeight: 800, fontSize: 19, lineHeight: 1.15, color: COLORS.ink }}>{r.value}</div>
+            </div>
+            <div style={{ textAlign: 'right' }}>
+              {r.was ? <div style={{ fontFamily: MONO, fontSize: 10, color: COLORS.faded }}>{r.was}</div> : null}
+              {r.isNew ? (
+                <div style={{ fontFamily: MONO, fontSize: 11, fontWeight: 700, color: COLORS.forest, background: '#e7ecdf', padding: '3px 8px', display: 'inline-block', marginTop: 3 }}>NEW</div>
+              ) : (r.delta == null || r.delta === 0) ? (
+                <div style={{ fontFamily: MONO, fontSize: 11, color: COLORS.faded, marginTop: 3 }}>±0</div>
+              ) : (
+                <div style={{ fontFamily: MONO, fontSize: 12, fontWeight: 700, color: r.delta > 0 ? COLORS.forest : COLORS.ember, background: r.delta > 0 ? '#e7ecdf' : '#f6e2dd', padding: '3px 8px', display: 'inline-block', marginTop: 3 }}>{r.delta > 0 ? '▲' : '▼'} {Math.abs(r.delta).toLocaleString()}</div>
+              )}
+            </div>
+          </div>
+        ))}
+      </div>
+    );
+  })() : null;
 
   return (
     <div style={{ minHeight: '100vh', background: COLORS.cream, color: COLORS.ink, position: 'relative', overflow: 'clip' }}>
@@ -559,6 +622,8 @@ export default function TimedMcqClient({ quizId }) {
                     </button>
                   </div>
                 </div>
+
+                {eloPanel}
 
                 {/* Per-question recap (answer key) - hidden until revealed */}
                 {!mcqRevealed && (

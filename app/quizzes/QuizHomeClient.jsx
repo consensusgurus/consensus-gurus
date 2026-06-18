@@ -425,10 +425,14 @@ export default function QuizHomeClient() {
           <div className="qz-div" style={{ width: 1, height: 34, background: C.line }} />
           <div>
             <div className="lbl">Skill rank{scope === 'all' ? '' : ` · ${byKey[scope]?.label}`}</div>
-            <div style={{ display: 'flex', alignItems: 'baseline', gap: 5 }}>
-              <span style={{ fontSize: 22, fontWeight: 700, color: C.accent, lineHeight: 1 }}>{playerStats && playerStats.rank ? `#${playerStats.rank}` : '—'}</span>
-              {playerStats && playerStats.denom ? <span style={{ fontSize: 11, color: C.muted }}>of {playerStats.denom.toLocaleString()}</span> : null}
-            </div>
+            {playerStats && playerStats.rank ? (
+              <div style={{ display: 'flex', alignItems: 'baseline', gap: 5 }}>
+                <span style={{ fontSize: 22, fontWeight: 700, color: C.accent, lineHeight: 1 }}>{`#${playerStats.rank}`}</span>
+                {playerStats.denom ? <span style={{ fontSize: 11, color: C.muted }}>of {playerStats.denom.toLocaleString()}</span> : null}
+              </div>
+            ) : (
+              <div style={{ fontSize: 12, fontWeight: 600, color: C.muted, lineHeight: 1.2, marginTop: 2, maxWidth: 160 }}>Play your first quiz to populate</div>
+            )}
           </div>
           <div className="qz-stats" style={{ display: 'flex', gap: 22, marginLeft: 'auto', flexWrap: 'wrap' }}>
             <div><div style={{ display: 'flex', alignItems: 'baseline', gap: 4 }}><span style={{ fontSize: 17, fontWeight: 700 }}>{playerStats && playerStats.completed != null ? playerStats.completed : '—'}</span>{playerStats && playerStats.completed != null && totalCount ? <span style={{ fontSize: 11, fontWeight: 600, color: C.soft }}>({playerStats.completed > 0 && playerStats.completed / totalCount < 0.005 ? '<1' : Math.round((playerStats.completed / totalCount) * 100)}%)</span> : null}</div><div className="lbl">completed</div></div>

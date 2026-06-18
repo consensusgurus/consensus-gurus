@@ -56,7 +56,11 @@ export default function SiteHeader({ active = 'lists', maxWidth = 1180, visitors
         .sh-brand{display:flex;align-items:center;gap:11px;text-decoration:none;flex:none;}
         .sh-word{font-size:24px;font-weight:800;letter-spacing:-0.025em;line-height:1;color:${C.ink};}
         .sh-right{text-align:right;}
-        .sh-nav{display:flex;align-items:center;gap:20px;justify-content:flex-end;}
+        .sh-nav{display:flex;align-items:center;gap:12px;justify-content:flex-end;flex-wrap:wrap;}
+        .sh-navbtn{display:inline-flex;align-items:center;gap:5px;text-decoration:none;font-size:13.5px;font-weight:700;color:${C.ink};border:1px solid ${C.line};border-radius:8px;padding:7px 13px;background:#fff;transition:background .15s,border-color .15s,color .15s;}
+        .sh-navbtn:hover{border-color:${C.accent};color:${C.accent};}
+        .sh-navbtn.on{background:${C.accent};border-color:${C.accent};color:#fff;}
+        .sh-navct{font-weight:600;opacity:0.65;font-size:12px;}
         .sh-stat{font-size:11.5px;color:${C.muted};margin-top:6px;letter-spacing:0.01em;}
         @media(max-width:560px){
           .sh-bar{gap:10px;}
@@ -72,18 +76,16 @@ export default function SiteHeader({ active = 'lists', maxWidth = 1180, visitors
             <Logo size={40} />
             <span>
               <span className="sh-word" style={{ display: 'block' }}>Source <span style={{ color: C.accent, fontWeight: 600 }}>of</span> Truths</span>
-              <span style={{ display: 'block', fontSize: 9.5, fontWeight: 800, letterSpacing: '0.18em', textTransform: 'uppercase', color: C.ink, marginTop: 3 }}>Crafting Objectivity</span>
+              <span style={{ display: 'block', fontSize: 9.5, fontWeight: 800, letterSpacing: '0.18em', textTransform: 'uppercase', color: C.ink, marginTop: 3 }}>Crafting Objectivity from {SOURCE_COUNT.toLocaleString()} Sources</span>
             </span>
           </Link>
           <div className="sh-right">
             <nav className="sh-nav">
-              <Link href="/" style={linkStyle(active === 'lists')}>Lists</Link>
-              <Link href="/quizzes" style={linkStyle(active === 'quizzes')}>Quizzes</Link>
+              <Link href="/" className={`sh-navbtn${active === 'lists' ? ' on' : ''}`}>Lists <span className="sh-navct">({LIST_COUNT.toLocaleString()})</span></Link>
+              <Link href="/quizzes" className={`sh-navbtn${active === 'quizzes' ? ' on' : ''}`}>Quizzes <span className="sh-navct">({QUIZ_COUNT.toLocaleString()})</span></Link>
             </nav>
             <div className="sh-stat">
-              <Link href="/" style={plain}>{LIST_COUNT.toLocaleString()} lists</Link>{' '}&middot;{' '}
-              <Link href="/quizzes" style={plain}>{QUIZ_COUNT.toLocaleString()} quizzes</Link>{' '}&middot;{' '}
-              <Link href="/sources" style={plain}>{SOURCE_COUNT.toLocaleString()} sources</Link>{typeof vis === 'number' ? <>{' '}&middot;{' '}{vis.toLocaleString()} visitors</> : ''}
+              {typeof vis === 'number' ? `${vis.toLocaleString()} visitors` : ''}
             </div>
           </div>
         </div>
