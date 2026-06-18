@@ -214,7 +214,7 @@ export default function QuizHomeClient() {
   const liveRows = useMemo(() => {
     const rows = recent.map((p) => ({ ...p, dept: deptOf({ id: p.quizId }), title: titleById[p.quizId] || cleanTitle(p.quizId) }));
     const scoped = scope === 'all' ? rows : rows.filter((r) => r.dept === scope);
-    return scoped.slice(0, 14);
+    return scoped.slice(0, 11);
   }, [recent, scope, titleById]);
 
   const playsToday = totals.today || 0;
@@ -279,6 +279,8 @@ export default function QuizHomeClient() {
     .qzh .boards{display:grid;grid-template-columns:1fr 2fr;gap:12px;align-items:stretch;margin-bottom:22px;}
     @media(max-width:680px){.qzh .boards{grid-template-columns:1fr;}}
     .qzh .qcols{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:6px 26px;}
+    .qzh .qfull{display:grid;grid-template-columns:1fr 1fr;gap:0 26px;}
+    @media(max-width:680px){.qzh .qfull{grid-template-columns:1fr;}}
     .qzh .colhead{display:flex;align-items:center;gap:9px;padding:7px 0;border-bottom:2px solid ${C.ink};margin-bottom:3px;}
     .qzh .viewall{margin-left:auto;font-size:10px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;}
     .qzh .qrow{display:flex;align-items:baseline;gap:10px;padding:6px 0;border-bottom:1px solid rgba(20,22,28,0.07);text-decoration:none;color:${C.ink};}
@@ -299,7 +301,7 @@ export default function QuizHomeClient() {
       <div className="qzh" style={{ maxWidth: 1080, margin: '0 auto', padding: '20px 24px 70px', position: 'relative' }}>
 
         {/* crumb header */}
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12, paddingBottom: 12, borderBottom: `1px solid ${C.line}` }}>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12, padding: '12px 16px', background: '#e3ecfd', borderRadius: 12, marginBottom: 12 }}>
           <div style={{ display: 'flex', alignItems: 'baseline', gap: 9 }}>
             <Link href="/" className="qlink"><span className="crumb1">Source of Truths</span></Link>
             <span style={{ color: C.soft }}>/</span>
@@ -312,7 +314,7 @@ export default function QuizHomeClient() {
         </div>
 
         {/* player bar */}
-        <div className="card" style={{ flexDirection: 'row', alignItems: 'center', flexWrap: 'wrap', gap: 16, padding: '11px 14px', margin: '14px 0 12px', overflow: 'visible', position: 'relative', zIndex: 40 }}>
+        <div className="card" style={{ flexDirection: 'row', alignItems: 'center', flexWrap: 'wrap', gap: 16, padding: '11px 14px', margin: '14px 0 12px', overflow: 'visible', position: 'relative', zIndex: 40, background: '#eff4fe' }}>
           <div className="dd">
             <button className="ddbtn" onClick={(e) => { e.stopPropagation(); setDdOpen((o) => !o); }}>
               <span className="dot" style={{ background: scope === 'all' ? C.ink : (byKey[scope]?.c || C.ink) }} />
@@ -407,7 +409,7 @@ export default function QuizHomeClient() {
         </div>
 
         {/* browse header + search */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: 16, marginBottom: 14 }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 16, marginBottom: 14, background: '#eff4fe', padding: '10px 14px', borderRadius: 12 }}>
           <h2 style={{ fontSize: 17, fontWeight: 800, margin: 0, whiteSpace: 'nowrap' }}>
             {searchResults ? `Search Results · ${searchResults.length}` : scope === 'all' ? 'Browse Quizzes' : `${byKey[scope]?.label} Quizzes`}
           </h2>
@@ -460,25 +462,20 @@ export default function QuizHomeClient() {
                 <DetailCard key={q.id} q={q} s={statsById[q.id]} leader={leader(q.id)} color={(DEPT_COLOR[q.dept] || DEPT_COLOR.misc).c} />
               ))}
           </div>
-        ) : (
+        ) : scope === 'all' ? (
           <div className="qcols">
-            {scope === 'all' && (
-              <BrowseColumn label="Newest" Icon={Sparkles} color={C.accent} tint={C.accsoft}
-                rows={newest.map((q) => ({ q, right: <NewRight q={q} /> }))} cta="View all ›" />
-            )}
-            {scope === 'all' && (
-              <BrowseColumn label="Most Played" Icon={Flame} color="#c2691c" tint="#f4e2cd"
-                rows={mostPlayed.map((q) => ({ q, right: <PlaysRight id={q.id} plays={plays} leader={leader} color="#c2691c" /> }))} cta="View all ›" />
-            )}
-            {(scope === 'all'
-              ? seededShuffle(cats, ((Date.now() & 0xffff) || 7))
-              : [byKey[scope]].filter(Boolean)
-            ).map((c) => (
+            <BrowseColumn label="Newest" Icon={Sparkles} color={C.accent} tint={C.accsoft}
+              rows={newest.map((q) => ({ q, right: <NewRight q={q} /> }))} cta="View all ›" />
+            <BrowseColumn label="Most Played" Icon={Flame} color="#c2691c" tint="#f4e2cd"
+              rows={mostPlayed.map((q) => ({ q, right: <PlaysRight id={q.id} plays={plays} leader={leader} color="#c2691c" hidePlays /> }))} cta="View all ›" />
+            {cats.map((c) => (
               <BrowseColumn key={c.key} label={c.label} Icon={c.Icon} color={c.c} tint={c.t}
-                rows={colRows(c, 6, scope === 'all' ? shownIds : null).map((q) => ({ q, right: <PlaysRight id={q.id} plays={plays} leader={leader} color={c.c} hidePlays /> }))}
+                rows={colRows(c, 6, shownIds).map((q) => ({ q, right: <PlaysRight id={q.id} plays={plays} leader={leader} color={c.c} hidePlays /> }))}
                 cta={`View all ${c.count} ›`} />
             ))}
           </div>
+        ) : (
+          <CategoryFull cat={byKey[scope]} plays={plays} leader={leader} />
         )}
       </div>
 
@@ -543,7 +540,6 @@ function PlaysRight({ id, plays, leader, color, hidePlays }) {
 
 function NewRight({ q }) {
   const t = Date.parse(q.publishedAt);
-  const isNew = Number.isFinite(t) && (Date.now() - t) < 3 * 24 * 60 * 60 * 1000;
   let when = '';
   if (Number.isFinite(t)) {
     const d = new Date(t);
@@ -551,9 +547,37 @@ function NewRight({ q }) {
   }
   return (
     <>
-      {isNew && <span style={{ fontSize: 8.5, fontWeight: 700, letterSpacing: '.04em', textTransform: 'uppercase', color: C.accent, background: C.accsoft, borderRadius: 4, padding: '1px 5px' }}>new</span>}
       <span style={{ color: C.soft }}>{when}</span>
     </>
+  );
+}
+
+// Selected-category compact view: the WHOLE category, leader-only, laid out in
+// two columns (single column under ~680px). Header shows the category icon +
+// label + total count.
+function CategoryFull({ cat, plays, leader }) {
+  if (!cat) return null;
+  const rows = cat.quizzes.slice()
+    .sort((a, b) => plays(b.id) - plays(a.id) || a.title.localeCompare(b.title));
+  const { Icon, c: color, t: tint } = cat;
+  return (
+    <section style={{ minWidth: 0 }}>
+      <div className="colhead" style={{ borderColor: color }}>
+        <span style={{ width: 24, height: 24, borderRadius: 7, background: tint, color, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+          <Icon size={14} />
+        </span>
+        <h3 style={{ fontSize: 15, fontWeight: 700, margin: 0 }}>{cat.label}</h3>
+        <span className="viewall" style={{ color }}>{cat.count} quizzes</span>
+      </div>
+      <div className="qfull">
+        {rows.map((q) => (
+          <Link href={`/quiz/${q.id}`} className="qrow" key={q.id} title={q.rawTitle || q.title}>
+            <span className="qtitle">{stripVerb(q.title)}</span>
+            <span className="qmeta"><PlaysRight id={q.id} plays={plays} leader={leader} color={color} hidePlays /></span>
+          </Link>
+        ))}
+      </div>
+    </section>
   );
 }
 
