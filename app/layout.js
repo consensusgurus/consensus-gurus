@@ -31,6 +31,7 @@ export const viewport = {
   initialScale: 1,
   maximumScale: 5,
   userScalable: true,
+  themeColor: '#f7f8fa',
 };
 
 const websiteJsonLd = {

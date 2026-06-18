@@ -4,11 +4,10 @@ import { getAllSources } from '@/lib/sources';
 import { LISTS } from '@/lib/data';
 import { QUIZZES } from '@/lib/quizzes';
 
-// Shared site header used across Lists (browse + detail) and Quizzes so the
-// brand lockup, nav and stat line are identical everywhere. Logo is the
-// concentric-target rebrand mark, inlined as SVG. Right side: nav + a single
-// stat line (lists / sources / quizzes / visitors); "N sources" links to the
-// /sources roster. `visitors` is passed by pages that have the live total.
+// Shared site header (Lists browse + detail, Quizzes, preload). Inline target/
+// star logo. Right side: nav + one stat line (lists/sources/quizzes/visitors);
+// "sources" and "quizzes" are clickable but plain-text styled. Responsive:
+// on mobile the right block drops to its own full-width, left-aligned row.
 const C = { ink: '#1c1e24', accent: '#2563eb', muted: '#6b7280', line: 'rgba(20,22,28,0.09)' };
 const FONT = "'Manrope', system-ui, -apple-system, sans-serif";
 const SOURCE_COUNT = getAllSources().length;
@@ -35,25 +34,41 @@ function Logo({ size = 40 }) {
 }
 
 export default function SiteHeader({ active = 'lists', maxWidth = 1180, visitors }) {
-  const link = (isOn) => ({ textDecoration: 'none', fontSize: 14, fontWeight: isOn ? 700 : 500, color: isOn ? C.ink : C.muted });
+  const linkStyle = (isOn) => ({ textDecoration: 'none', fontSize: 14, fontWeight: isOn ? 700 : 500, color: isOn ? C.ink : C.muted });
+  const plain = { color: 'inherit', textDecoration: 'none' };
   return (
     <div style={{ fontFamily: FONT }}>
-      <style>{`@import url('https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap');`}</style>
+      <style>{`
+        @import url('https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap');
+        .sh-bar{display:flex;align-items:center;justify-content:space-between;gap:16px;padding-bottom:14px;border-bottom:1px solid ${C.line};flex-wrap:wrap;}
+        .sh-brand{display:flex;align-items:center;gap:11px;text-decoration:none;flex:none;}
+        .sh-word{font-size:24px;font-weight:800;letter-spacing:-0.025em;line-height:1;color:${C.ink};}
+        .sh-right{text-align:right;}
+        .sh-nav{display:flex;align-items:center;gap:20px;justify-content:flex-end;}
+        .sh-stat{font-size:11.5px;color:${C.muted};margin-top:6px;letter-spacing:0.01em;}
+        @media(max-width:560px){
+          .sh-bar{gap:10px;}
+          .sh-word{font-size:19px;}
+          .sh-right{flex:1 1 100%;text-align:left;}
+          .sh-nav{justify-content:flex-start;gap:18px;}
+          .sh-stat{font-size:11px;margin-top:8px;line-height:1.7;}
+        }
+      `}</style>
       <div style={{ maxWidth, margin: '0 auto', padding: '16px 24px 0' }}>
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 16, paddingBottom: 14, borderBottom: `1px solid ${C.line}`, flexWrap: 'wrap' }}>
-          <Link href="/" style={{ display: 'flex', alignItems: 'center', gap: 11, textDecoration: 'none' }}>
+        <div className="sh-bar">
+          <Link href="/" className="sh-brand">
             <Logo size={40} />
-            <span style={{ fontSize: 24, fontWeight: 800, letterSpacing: '-0.025em', lineHeight: 1, color: C.ink }}>Source <span style={{ color: C.accent, fontWeight: 600 }}>of</span> Truths</span>
+            <span className="sh-word">Source <span style={{ color: C.accent, fontWeight: 600 }}>of</span> Truths</span>
           </Link>
-          <div style={{ textAlign: 'right' }}>
-            <nav style={{ display: 'flex', alignItems: 'center', gap: 20, justifyContent: 'flex-end' }}>
-              <Link href="/" style={link(active === 'lists')}>Lists</Link>
-              <Link href="/quizzes" style={link(active === 'quizzes')}>Quizzes</Link>
+          <div className="sh-right">
+            <nav className="sh-nav">
+              <Link href="/" style={linkStyle(active === 'lists')}>Lists</Link>
+              <Link href="/quizzes" style={linkStyle(active === 'quizzes')}>Quizzes</Link>
             </nav>
-            <div style={{ fontSize: 11.5, color: C.muted, marginTop: 6, letterSpacing: '0.01em' }}>
+            <div className="sh-stat">
               {LIST_COUNT.toLocaleString()} lists{' '}&middot;{' '}
-              <Link href="/sources" style={{ color: 'inherit', textDecoration: 'none' }}>{SOURCE_COUNT.toLocaleString()} sources</Link>{' '}&middot;{' '}
-              <Link href="/quizzes" style={{ color: 'inherit', textDecoration: 'none' }}>{QUIZ_COUNT.toLocaleString()} quizzes</Link>{typeof visitors === 'number' ? ` · ${visitors.toLocaleString()} visitors` : ''}
+              <Link href="/sources" style={plain}>{SOURCE_COUNT.toLocaleString()} sources</Link>{' '}&middot;{' '}
+              <Link href="/quizzes" style={plain}>{QUIZ_COUNT.toLocaleString()} quizzes</Link>{typeof visitors === 'number' ? ` · ${visitors.toLocaleString()} visitors` : ''}
             </div>
           </div>
         </div>
