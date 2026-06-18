@@ -3,6 +3,28 @@
 This file is the single, auto-loaded source of truth for working on sourceoftruths.com. It lives at the
 root of the repo, and Cowork loads it every session, so there is no need to paste anything into chat.
 
+## ⚠️ NATIVE VOTING REMOVED (2026-06-18) — overrides everything below
+
+On-site user voting was removed sitewide. The crowd signal now comes only through the
+aggregator sources (Yelp / Google / TripAdvisor) already blended into the consensus. This
+note overrides any older vote-related instruction anywhere in this file:
+
+- **No `vote` blocks in `lib/data.js`.** Lists carry `sources` (and the `ai` seed) only.
+  Do NOT add, seed, or maintain a `vote:` / `vote.items` block on any list. The historical
+  `### vote.items` section below is DEPRECATED.
+- **Seed `ai` only.** When you recompute a Borda consensus, re-seed `ai.items`. Ignore every
+  older instruction that also says "re-seed `vote.items`" — there is no `vote.items` anymore.
+- **No Vote tab and no `votes` mode behavior.** The list page has no Vote tab; `getSources`
+  no longer scores or appends any user-vote column; the activity feed shows no vote events.
+- **Media crowd reweight still applies, but WITHOUT the fan-vote clause.** The "Media lists:
+  crowd-vote tilt" rule still reweights critic vs. aggregator sources; just drop the old
+  0.75x live-fan-vote weighting — there are no fan votes to weight.
+- **List pages show the FULL ranking.** `ListOverview` renders every consensus item, not just
+  the top 10 (only the top 10 carry descriptions). Home tiles, the cron snapshot, and OG
+  poster images stay capped at 10.
+
+---
+
 ## ⚠️ Source-change pre-flight checklist (run EVERY time you add/change/remove a source)
 
 This consolidates the source rules below into one runnable list. Skipping any step has caused real
@@ -571,8 +593,12 @@ A Yelp/Google star rating rates the VENUE, not the dish. On lists where the venu
 - **Venue-type lists are out of scope** (dive bars, steakhouses, breweries, hotels, cocktail bars, live-music bars): there the venue is the subject, so the venue rating is the right signal at full weight.
 - Changing a weight reshuffles the Borda consensus, so recompute, re-seed `ai` + `vote.items`, and backfill descriptions/heroes for any new top-10/top-3 entrants, exactly as when adding a source.
 
-### `vote.items`
-Exactly 10 items. These seed the voting UI before live Supabase data loads. Must be the same quality tier as the expert sources.
+### `vote.items` — DEPRECATED (2026-06-18)
+Native voting was removed (see the "NATIVE VOTING REMOVED" note at the top of this file).
+There are no `vote` blocks in `lib/data.js` anymore; do not add or seed `vote.items`. Re-seed
+`ai.items` only. This section is retained for historical context.
+
+~~Exactly 10 items. These seed the voting UI before live Supabase data loads. Must be the same quality tier as the expert sources.~~
 
 ---
 

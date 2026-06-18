@@ -156,7 +156,7 @@ function isPublicationLink(src) {
 function ListDetail({ list, viewCount, voteData, userVotes, extras, relatedLists, relatedViews, onBack, onVote, onAddExtra, onOpenRelated, compact }) {
   const mode = list.mode || 'both';
   const showSourceTab = mode !== 'votes';
-  const showVoteTab = mode !== 'facts' && mode !== 'scores' && mode !== 'unranked';
+  const showVoteTab = false;
 
   // The list page is one tabbed view: chips switch the content below in place
   // (Consensus, Consensus Sources, Activity Log, Vote) with no navigation.
@@ -262,13 +262,10 @@ function ListDetail({ list, viewCount, voteData, userVotes, extras, relatedLists
     // For 'both' mode lists: compute Consensus from publications, then append a
     // standalone "Source of Truths User Vote" source built from live fan votes,
     // shown as a Reviews & Ratings Aggregations source at the base of the page.
+    // Native voting removed (2026-06-18): no "Source of Truths User Vote"
+    // column appended; just the publication-derived consensus + sources.
     const result = getSources(list, voteData, extras);
-    const cgVote = {
-      id: 'cgvote',
-      label: 'Source of Truths User Vote',
-      items: voteOrderedItems(list, voteData, extras),
-    };
-    return [...result, cgVote];
+    return result;
   }, [list, voteData, extras, showSourceTab, mode]);
 
   // Default: Consensus if exists, else configured default, else first available

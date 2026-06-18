@@ -22,7 +22,7 @@ export async function GET(request) {
     const list = LISTS.find((l) => l.id === listId);
 
     const [votesRes, managerRes, researchRes, commentsRes, seenRes, notesRes] = await Promise.all([
-      supabaseAdmin.from('vote_events').select('item_name,delta,created_at').eq('list_id', listId).order('created_at', { ascending: false }).limit(20),
+      Promise.resolve({ data: [] }), // vote_events removed (2026-06-18); votes return empty
       supabaseAdmin.from('complaints').select('message,created_at,editor_response').eq('list_id', listId).eq('feed_hidden', false).order('created_at', { ascending: false }).limit(12),
       supabaseAdmin.from('consensus_alerts').select('item_name,change_type,rank,prev_rank,cause,detected_at').eq('list_id', listId).order('detected_at', { ascending: false }).limit(24),
       supabaseAdmin.from('list_comments').select('id,name,body,created_at,editor_response').eq('list_id', listId).eq('hidden', false).order('created_at', { ascending: false }).limit(60),
@@ -111,6 +111,7 @@ export async function GET(request) {
     // it predates a later source addition.
     const CHANGEOVER_CUTOFF = Date.parse('2026-06-05T12:00:00Z');
     const researchVisible = research.filter((r) => {
+      if (r.cause === 'votes') return false;
       const t = r.detectedAt ? new Date(r.detectedAt).getTime() : 0;
       return t > CHANGEOVER_CUTOFF;
     });

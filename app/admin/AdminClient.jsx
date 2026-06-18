@@ -443,9 +443,6 @@ export default function AdminClient({ initialLists, initialExtras = [], initialC
           <TabButton active={tab === 'feedback'} onClick={() => setTab('feedback')}>
             Feedback <span style={{ opacity: 0.6 }}>{complaintsCount + commentsCount}</span>
           </TabButton>
-          <TabButton active={tab === 'votes'} onClick={() => setTab('votes')}>
-            Votes <span style={{ opacity: 0.6 }}>{voteStandings.length}</span>
-          </TabButton>
           <TabButton active={tab === 'research'} onClick={() => setTab('research')}>
             Research <span style={{ opacity: 0.6 }}>{alerts.length + editorNotesCount}</span>
           </TabButton>
@@ -460,8 +457,6 @@ export default function AdminClient({ initialLists, initialExtras = [], initialC
           <ResearchNotesPanel alerts={alerts} busy={busy} onResolve={resolveAlert} notes={editorNotes} lists={LISTS} onAddNote={addNote} onDeleteNote={deleteNote} />
         ) : tab === 'feedback' ? (
           <FeedbackPanel complaints={complaints} comments={comments} busy={busy} onDismiss={dismissComplaint} onDelete={deleteComment} onRespond={respond} />
-        ) : tab === 'votes' ? (
-          <VotesPanel standings={voteStandings} events={voteEvents} busy={busy} onDelete={deleteVote} />
         ) : tab === 'extras' ? (
           <ExtrasPanel
             extras={extras}

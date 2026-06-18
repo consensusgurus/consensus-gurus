@@ -82,15 +82,18 @@ function picsConfig(list) {
 // Derive top-10 consensus items depending on list mode.
 function getItems(list, voteData, extras) {
   const mode = list.mode || 'both';
+  // Native voting removed (2026-06-18); list pages show the FULL ranking
+  // (descriptions only on the top 10 - see LedgerRow). Home tiles, the cron
+  // snapshot, and OG poster images stay capped at 10 by their own callers.
   if (mode === 'facts' || mode === 'scores' || mode === 'unranked') {
-    return (list.sources?.ai?.items || []).slice(0, 10);
+    return list.sources?.ai?.items || [];
   }
   if (mode === 'votes') {
-    return (list.vote?.items || []).slice(0, 10);
+    return list.vote?.items || [];
   }
-  const sources = getSources(list, voteData, extras);
+  const sources = getSources(list, voteData, extras, { limit: Infinity });
   const consensus = sources.find((s) => s.id === 'consensus');
-  return (consensus?.items || list.sources?.ai?.items || []).slice(0, 10);
+  return consensus?.items || list.sources?.ai?.items || [];
 }
 
 // Shared link button style.
@@ -671,20 +674,22 @@ function LedgerRow({ item, rank, list, desc, pics, isTop, heavyDivider, poster, 
             </span>
           )}
         </div>
-        <LinkWrap href={href} rel={rel}>
-          <p
-            style={{
-              fontFamily: 'DM Sans, sans-serif',
-              fontSize: 14,
-              color: desc ? '#5a5045' : COLORS.faded,
-              fontStyle: desc ? 'normal' : 'italic',
-              lineHeight: 1.55,
-              margin: '5px 0 0',
-            }}
-          >
-            {desc || 'New addition: Check back soon for description'}
-          </p>
-        </LinkWrap>
+        {rank <= 10 && (
+          <LinkWrap href={href} rel={rel}>
+            <p
+              style={{
+                fontFamily: 'DM Sans, sans-serif',
+                fontSize: 14,
+                color: desc ? '#5a5045' : COLORS.faded,
+                fontStyle: desc ? 'normal' : 'italic',
+                lineHeight: 1.55,
+                margin: '5px 0 0',
+              }}
+            >
+              {desc || 'New addition: Check back soon for description'}
+            </p>
+          </LinkWrap>
+        )}
       </div>
       <div className="lov-actions" style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
         {links.buy && list.buyLinks === 'video' && (

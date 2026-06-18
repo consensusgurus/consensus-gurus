@@ -20,7 +20,7 @@ export default async function FeedPage() {
   try {
     [reqRes, voteRes, comRes, revRes, resRes, notesRes, srcRes, srcUpdRes] = await Promise.all([
       supabaseAdmin.from('user_lists').select('id,title,category,published,submitted_at').order('submitted_at', { ascending: false }).limit(25),
-      supabaseAdmin.from('vote_events').select('list_id,item_name,delta,created_at').order('created_at', { ascending: false }).limit(40),
+      Promise.resolve({ data: [] }), // vote_events removed (2026-06-18)
       supabaseAdmin.from('list_comments').select('list_id,name,body,created_at,editor_response').eq('hidden', false).order('created_at', { ascending: false }).limit(40),
       supabaseAdmin.from('complaints').select('list_id,message,created_at,editor_response').eq('feed_hidden', false).order('created_at', { ascending: false }).limit(25),
       supabaseAdmin.from('consensus_alerts').select('id,list_id,item_name,change_type,rank,prev_rank,cause,detected_at').order('detected_at', { ascending: false }).order('id', { ascending: false }).limit(800),
@@ -94,7 +94,7 @@ export default async function FeedPage() {
   const CHANGEOVER_CUTOFF = Date.parse('2026-06-05T12:00:00Z');
   const researchAll = (resRes.data || [])
     .map((a) => ({ ts: Date.parse(a.detected_at) || 0, kind: 'research', listId: a.list_id, listTitle: titleOf(a.list_id), itemName: a.item_name, changeType: a.change_type, rank: a.rank, prevRank: a.prev_rank, cause: a.cause }))
-    .filter((e) => e.ts > CHANGEOVER_CUTOFF);
+    .filter((e) => e.ts > CHANGEOVER_CUTOFF && e.cause !== 'votes');
   // An unranked item entering the top 3 fires entered_top10 AND entered_top3;
   // show the movement once.
   const t3Keys = new Set(researchAll.filter((e) => e.changeType === 'entered_top3').map((e) => `${e.listId}::${(e.itemName || '').toLowerCase()}::${e.ts}`));

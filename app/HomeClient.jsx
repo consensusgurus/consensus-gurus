@@ -696,23 +696,17 @@ function Home({ lists, viewCounts, voteData, extras, trending = {}, openList, on
 
   const totalViews = Object.values(viewCounts).reduce((a, b) => a + b, 0);
 
-  // Total votes shown in the header: every expert entry counts as Borda points
-  // (rank 1 = 10, rank 2 = 9 ... rank 10 = 1, nothing beyond), summed across
-  // every expert source on every list (the 'ai' seed is excluded, exactly as in
-  // the consensus scoring), plus the live, continuously-tallied reader votes.
-  const totalVotes = useMemo(() => {
+  // Total sources shown in the header: every named (non-'ai') source across
+  // every list. Native voting removed (2026-06-18), so the crowd signal now
+  // comes through aggregator sources (Yelp/Google) counted here.
+  const totalSources = useMemo(() => {
     let total = 0;
     lists.forEach((list) => {
       const src = list.sources || {};
-      Object.keys(src).forEach((sid) => {
-        if (sid === 'ai') return;
-        const items = (src[sid] && src[sid].items) || [];
-        for (let i = 0; i < items.length; i++) total += Math.max(0, 10 - i);
-      });
+      total += Object.keys(src).filter((sid) => sid !== 'ai').length;
     });
-    Object.values(voteData || {}).forEach((v) => { if (v > 0) total += v; });
     return total;
-  }, [lists, voteData]);
+  }, [lists]);
 
   // Count lists per tag (a list can contribute to multiple tag counts)
   const counts = useMemo(() => {
@@ -838,7 +832,7 @@ function Home({ lists, viewCounts, voteData, extras, trending = {}, openList, on
         `}</style>
         <div className="cg-stats">
           <span>{lists.length} lists</span>
-          <span><span aria-hidden="true" className="cg-dot">·</span> <Count value={totalVotes} /> votes</span>
+          <span><span aria-hidden="true" className="cg-dot">·</span> <Count value={totalSources} /> sources</span>
           <span><span aria-hidden="true" className="cg-dot">·</span> <Count value={totalViews} /> visitors</span>
           {HOME_V2 && featuredQuiz && (
             <span className="cg-tape">
@@ -1228,8 +1222,7 @@ export function Tile({ list, rank, views, voteData, extras, onClick, href, showC
   // objective `facts` lists (no editorial sources, no vote) still read "Sources: 1".
   const sourceCount = (() => {
     const pubs = Object.keys(list.sources || {}).filter((id) => id !== 'ai').length;
-    const hasVote = mode === 'both' || mode === 'votes';
-    return Math.max(1, pubs + (hasVote ? 1 : 0));
+    return Math.max(1, pubs);
   })();
 
   const preview = useMemo(() => {

@@ -10,8 +10,7 @@ export async function GET() {
     // Whole-table reads are paginated past PostgREST's silent 1000-row cap
     // (see lib/fetch-all.js). The trending RPC returns one row per list with
     // recent views and stays far below the cap.
-    const [votesRes, viewsRes, extrasRes, userListsRes, trendingRes, quizViewsRes] = await Promise.all([
-      fetchAllRows(supabase, 'votes', 'list_id,item_name,score', ['list_id', 'item_name']),
+    const [viewsRes, extrasRes, userListsRes, trendingRes, quizViewsRes] = await Promise.all([
       fetchAllRows(supabase, 'views', 'list_id,count', ['list_id']),
       fetchAllRows(supabase, 'extras', 'list_id,item_name', ['list_id', 'item_name']),
       fetchAllRows(supabase, 'user_lists', '*', [['submitted_at', false], 'id'], (q) => q.eq('published', true)),
@@ -21,13 +20,8 @@ export async function GET() {
       fetchAllRows(supabase, 'quiz_views', 'quiz_id,count', ['quiz_id']),
     ]);
 
-    // Vote scores keyed as `${listId}::${itemNameLowerCase}` to match client voteKey()
+    // Native voting removed (2026-06-18): always return an empty vote map.
     const votes = {};
-    (votesRes.data || []).forEach((row) => {
-      // Legacy downvotes from the prior voting system left negative net scores.
-      // Clamp to 0 so they never count toward consensus or display.
-      votes[`${row.list_id}::${row.item_name.toLowerCase().trim()}`] = Math.max(0, row.score);
-    });
 
     const views = {};
     (viewsRes.data || []).forEach((row) => {

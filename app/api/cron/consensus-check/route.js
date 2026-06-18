@@ -256,34 +256,18 @@ export async function GET(request) {
   }
 
   try {
-    const [votesRows, extrasRows, snapsRows, alertsRows, seenRows] = await Promise.all([
-      fetchAll('votes', 'list_id,item_name,score', ['list_id', 'item_name']),
+    const [extrasRows, snapsRows, alertsRows, seenRows] = await Promise.all([
       fetchAll('extras', 'list_id,item_name', ['list_id', 'item_name']),
       fetchAll('consensus_snapshots', 'list_id,top10,sources_hash,updated_at', ['list_id']),
       fetchAll('consensus_alerts', 'list_id,item_name,change_type', ['id'], (q) => q.eq('resolved', false)),
       fetchAll('list_sources_seen', 'list_id,source_id,label,first_seen_at,removed_at,label_updated_at', ['list_id', 'source_id']),
     ]);
 
-    // Vote scores keyed as `${listId}::${itemNameLowerCase}` (matches voteKey).
-    const votes = {};
-    votesRows.forEach((row) => {
-      votes[`${row.list_id}::${row.item_name.toLowerCase().trim()}`] = Math.max(
-        0,
-        row.score
-      );
-    });
-
     const extras = {};
     extrasRows.forEach((row) => {
       if (!extras[row.list_id]) extras[row.list_id] = [];
       extras[row.list_id].push(row.item_name);
     });
-
-    // Lists that have ever received a fan vote. A consensus change on a list
-    // with no votes at all cannot be vote-caused (it came from a deploy the
-    // fingerprint missed, e.g. an engine change), so 'votes' is never
-    // attributed to these.
-    const votedLists = new Set(votesRows.map((r) => r.list_id));
 
     const prevSnaps = new Map();
     snapsRows.forEach((row) => {
@@ -317,7 +301,7 @@ export async function GET(request) {
     const norm = (s) => s.toLowerCase().trim();
 
     for (const list of LISTS) {
-      const top10 = consensusTop10(list, votes, extras);
+      const top10 = consensusTop10(list, {}, extras);
       const fingerprint = sourcesFingerprint(list);
       snapshotUpserts.push({
         list_id: list.id,
@@ -379,13 +363,7 @@ export async function GET(request) {
       // the last run, a deploy edited the list (cause 'edit'); otherwise only
       // votes/extras could have shifted the consensus (cause 'votes'). A null
       // stored hash (pre-migration-16 snapshot) leaves cause null = unknown.
-      const cause = prevSnap.hash
-        ? prevSnap.hash !== fingerprint
-          ? 'edit'
-          : votedLists.has(list.id)
-            ? 'votes'
-            : 'edit'
-        : null;
+      const cause = prevSnap.hash ? 'edit' : null;
 
       // Anchor cause='edit' alerts to the actual deploy event so they pair
       // with the matching activity-ledger source-group card (added /

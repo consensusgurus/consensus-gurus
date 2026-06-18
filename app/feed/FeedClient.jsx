@@ -98,7 +98,6 @@ const CATEGORIES = [
   { key: 'all', label: 'All', color: COLORS.ink },
   { key: 'list', label: 'New lists', color: KIND.list.color },
   { key: 'request', label: 'Requests', color: KIND.request.color },
-  { key: 'vote', label: 'Votes', color: KIND.vote.color },
   { key: 'comment', label: 'Comments', color: KIND.comment.color },
   { key: 'review', label: 'Review requests', color: KIND.review.color },
   { key: 'research', label: 'Ranking changes', color: KIND.research.color },
