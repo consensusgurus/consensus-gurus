@@ -49,6 +49,10 @@ export async function GET() {
     // Best registered (signed-up) entry per quiz: highest score, then fastest
     // time, then name. Powers the "Current Leader" line on each index tile.
     const bestLeader = {};
+    // Best entry per (quiz, username), so the homepage quiz tiles can show the
+    // top 3 DISTINCT players per quiz (gold/silver/bronze). Keyed
+    // quiz_id -> Map(username -> { score, time }).
+    const byUserPerQuiz = {};
     const recent7 = {};
     const recent12h = {};
     const now = Date.now();
@@ -71,6 +75,12 @@ export async function GET() {
         const cur = bestLeader[r.quiz_id];
         if (!cur || sc > cur.score || (sc === cur.score && tm < cur.time) || (sc === cur.score && tm === cur.time && r.username.localeCompare(cur.name) < 0)) {
           bestLeader[r.quiz_id] = { score: sc, time: tm, name: r.username };
+        }
+        let um = byUserPerQuiz[r.quiz_id];
+        if (!um) { um = new Map(); byUserPerQuiz[r.quiz_id] = um; }
+        const prevU = um.get(r.username);
+        if (!prevU || sc > prevU.score || (sc === prevU.score && tm < prevU.time)) {
+          um.set(r.username, { score: sc, time: tm });
         }
       }
       totalCorrect += correctAnswersOf(r);
@@ -100,7 +110,16 @@ export async function GET() {
     const trendingByQuiz = { ...cum };
     const leaders = {};
     for (const qid of Object.keys(bestLeader)) leaders[qid] = bestLeader[qid].name;
-    return NextResponse.json({ total: rows.length, today, totalCorrect, totalPerfect, totalTime, todayTime, byQuiz, recent7, recent12h, trendingByQuiz, trendingWindowH, leaders });
+    // Top 3 distinct players per quiz (gold/silver/bronze): best score, then
+    // fastest time, then name. Used by the homepage quiz tiles.
+    const topLeaders = {};
+    for (const qid of Object.keys(byUserPerQuiz)) {
+      topLeaders[qid] = [...byUserPerQuiz[qid].entries()]
+        .sort((a, b) => b[1].score - a[1].score || a[1].time - b[1].time || a[0].localeCompare(b[0]))
+        .slice(0, 3)
+        .map(([name]) => name);
+    }
+    return NextResponse.json({ total: rows.length, today, totalCorrect, totalPerfect, totalTime, todayTime, byQuiz, recent7, recent12h, trendingByQuiz, trendingWindowH, leaders, topLeaders });
   } catch (e) {
     return NextResponse.json({ total: 0, byQuiz: {}, recent7: {}, recent12h: {}, trendingByQuiz: {}, trendingWindowH: 0, leaders: {} });
   }

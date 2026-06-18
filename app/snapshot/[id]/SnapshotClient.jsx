@@ -336,17 +336,17 @@ export default function SnapshotClient({ listId, embedded, list: listProp, voteD
           </button>
         )}
 
-        {!embedded && (
-          <h2 style={{ fontFamily: 'Manrope, system-ui, -apple-system, sans-serif', fontWeight: 700, fontStyle: 'italic', fontSize: 24, margin: '0 0 18px', color: COLORS.ink, fontVariationSettings: '"SOFT" 100' }}>Share this list</h2>
-        )}
+        <h2 style={{ fontFamily: 'Manrope, system-ui, -apple-system, sans-serif', fontWeight: 700, fontStyle: 'italic', fontSize: 24, margin: '0 0 18px', color: COLORS.ink, fontVariationSettings: '"SOFT" 100' }}>Share this list</h2>
 
-        {!embedded && (<>
+        <>
+        {!embedded && (
         <PickerRow label="Source">
           {modeOptions.map((opt) => {
             const active = mode === opt.id;
             return <button key={opt.id} onClick={() => setMode(opt.id)} style={{ background: active ? COLORS.ink : 'transparent', color: active ? COLORS.cream : COLORS.ink, border: `1.5px solid ${COLORS.ink}`, padding: '6px 12px', fontFamily: 'DM Mono, monospace', fontSize: 10, lineHeight: 1.5, letterSpacing: '0.16em', textTransform: 'uppercase', fontWeight: 600, cursor: 'pointer', maxWidth: '100%', textAlign: 'left' }}>{opt.label}</button>;
           })}
         </PickerRow>
+        )}
 
         <PickerRow label="Color">
           {Object.entries(COLOR_SCHEMES).map(([key, scheme]) => {
@@ -393,7 +393,7 @@ export default function SnapshotClient({ listId, embedded, list: listProp, voteD
         <p style={{ marginTop: 20, fontFamily: 'DM Mono, monospace', fontSize: 10, letterSpacing: '0.18em', textTransform: 'uppercase', color: COLORS.faded, textAlign: 'center' }}>
           1080 × 1350 · Instagram / Pinterest portrait
         </p>
-        </>)}
+        </>
 
         {/* ─── Instagram automation image (server-rendered poster) ────── */}
         <div style={{ marginTop: 52, borderTop: `2px solid ${COLORS.ink}`, paddingTop: 28 }}>

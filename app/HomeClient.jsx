@@ -490,7 +490,7 @@ function Home({ lists, viewCounts, voteData, extras, trending = {}, openList, on
     let alive = true;
     fetch('/api/quiz/totals')
       .then((r) => r.json())
-      .then((d) => { if (alive && d && !d.error) { setQuizPlays(d.byQuiz || {}); setQuizLeaders(d.leaders || {}); } })
+      .then((d) => { if (alive && d && !d.error) { setQuizPlays(d.byQuiz || {}); setQuizLeaders(d.topLeaders || {}); } })
       .catch(() => {});
     return () => { alive = false; };
   }, []);
@@ -939,7 +939,7 @@ function Home({ lists, viewCounts, voteData, extras, trending = {}, openList, on
                 if (gap > 0 && shuffledQuizzes.length > 0 && (idx + 1) % gap === 0 && idx + 1 < sorted.length) {
                   const quiz = shuffledQuizzes[quizIdx % shuffledQuizzes.length];
                   quizIdx += 1;
-                  cells.push(<NTQuizTile key={`quiz-${quiz.id}-${idx}`} quiz={quiz} leader={quizLeaders[quiz.id]} />);
+                  cells.push(<NTQuizTile key={`quiz-${quiz.id}-${idx}`} quiz={quiz} leaders={quizLeaders[quiz.id]} />);
                 }
               });
               return cells;
@@ -1624,11 +1624,13 @@ export function BrowseTile({ list, views, voteData, extras, onClick, featured, r
   );
 }
 
-// New-theme quiz tile woven into the browse grid (matches BrowseTile).
-function NTQuizTile({ quiz, leader }) {
+// New-theme quiz tile woven into the browse grid (matches BrowseTile). Shows
+// the full quiz title and the top 3 distinct players (gold/silver/bronze) in
+// the same ranked-row format the list tiles use for their consensus rows.
+function NTQuizTile({ quiz, leaders }) {
   const Icon = quizIconOf(quiz);
   const accent = QUIZ_DEPT_COLOR[quizDeptOf(quiz)] || QUIZ_DEPT_COLOR.misc;
-  const heading = (quiz.title || '').replace(/^Name (the )?/i, '');
+  const top = Array.isArray(leaders) ? leaders.slice(0, 3) : (leaders ? [leaders] : []);
   return (
     <a className="nt-tile" href={`/quiz/${quiz.id}`}>
       <div className="nt-timg" style={{ background: accent.t }}>
@@ -1636,9 +1638,16 @@ function NTQuizTile({ quiz, leader }) {
         <span className="nt-tcat" style={{ background: accent.c }}>Quiz</span>
       </div>
       <div className="nt-tbody">
-        <h3 className="nt-ttitle">{heading}</h3>
-        <div className="nt-lbl" style={{ marginBottom: 4 }}>Current Leader</div>
-        <div style={{ fontSize: 13, fontWeight: 700, color: leader ? NT.ink : NT.soft, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{leader || 'Be the first to play'}</div>
+        <h3 className="nt-ttitle">{quiz.title}</h3>
+        <div className="nt-lbl" style={{ marginBottom: 5 }}>Top Players</div>
+        {top.length > 0 ? top.map((name, i) => (
+          <div className="nt-crow" key={i}>
+            <span className="nt-cnum" style={{ background: '#fff', color: NT_MEDAL[i], border: `1.5px solid ${NT_MEDAL[i]}` }}>{i + 1}</span>
+            <span className="nt-cname">{name}</span>
+          </div>
+        )) : (
+          <div style={{ fontSize: 12.5, fontWeight: 700, color: NT.soft, padding: '5px 0' }}>Be the first to play</div>
+        )}
         <div className="nt-tfoot"><span style={{ color: accent.c }}>{'\u25B6'} Play quiz</span><span>Quiz</span></div>
       </div>
     </a>
