@@ -41,6 +41,7 @@ import Footer from './Footer';
 import Count from './Count';
 import SourcesPopover from './SourcesPopover';
 import { HERO_IMAGES } from '@/lib/hero-images';
+import { getAllSources } from '@/lib/sources';
 import { QUIZZES } from '@/lib/quizzes';
 import { quizDept as quizDeptOf, quizIcon as quizIconOf, DEPT_COLOR as QUIZ_DEPT_COLOR } from '@/lib/quiz-departments';
 
@@ -704,14 +705,10 @@ function Home({ lists, viewCounts, voteData, extras, trending = {}, openList, on
   // Total sources shown in the header: every named (non-'ai') source across
   // every list. Native voting removed (2026-06-18), so the crowd signal now
   // comes through aggregator sources (Yelp/Google) counted here.
-  const totalSources = useMemo(() => {
-    let total = 0;
-    lists.forEach((list) => {
-      const src = list.sources || {};
-      total += Object.keys(src).filter((sid) => sid !== 'ai').length;
-    });
-    return total;
-  }, [lists]);
+  // Canonical sources count = distinct PUBLICATIONS behind the consensus
+  // (deduped by domain, synthetic sources excluded), the same roster the
+  // SourcesPopover / /sources page use. Not the raw per-list source-entry sum.
+  const totalSources = useMemo(() => getAllSources().length, []);
 
   // Count lists per tag (a list can contribute to multiple tag counts)
   const counts = useMemo(() => {
