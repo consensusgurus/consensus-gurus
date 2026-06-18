@@ -356,7 +356,7 @@ export default function LogicGridClient({ quizId }) {
   return (
     <div style={{ minHeight: '100vh', background: COLORS.cream, color: COLORS.ink, position: 'relative', overflow: 'clip' }}>
       <Grain />
-      <div style={{ position: 'relative', zIndex: 2, maxWidth: 1060, margin: '0 auto', padding: '24px 20px 80px' }}>
+      <div style={{ position: 'relative', zIndex: 2, maxWidth: 1180, margin: '0 auto', padding: '24px 20px 80px' }}>
 
         <style>{`@import url('https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap');`}</style>
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12, paddingBottom: 11, borderBottom: `1px solid ${COLORS.faded}33` }}>

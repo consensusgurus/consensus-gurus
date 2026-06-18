@@ -159,7 +159,7 @@ export default function StatHubClient() {
     <div style={{ background: C.bg, minHeight: '100vh', position: 'relative' }}>
       <Grain />
       <style>{css}</style>
-      <div className="qzhub" style={{ maxWidth: 1080, margin: '0 auto', padding: '20px 24px 70px', position: 'relative' }}>
+      <div className="qzhub" style={{ maxWidth: 1180, margin: '0 auto', padding: '20px 24px 70px', position: 'relative' }}>
 
         {/* crumb */}
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12, paddingBottom: 12, borderBottom: `1px solid ${C.line}` }}>
