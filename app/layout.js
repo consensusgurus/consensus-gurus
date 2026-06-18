@@ -2,21 +2,24 @@
 
 import './globals.css';
 import { Analytics } from '@vercel/analytics/next';
+import { getAllSources } from '@/lib/sources';
+
+const SOURCE_COUNT = getAllSources().length;
 
 export const metadata = {
   metadataBase: new URL('https://sourceoftruths.com'),
   title: 'Source of Truths | Producing Objectivity',
-  description: 'Producing objectivity from 641 sources. Ranking the best of everything, from restaurants and bars to hotels, books, films, and products, plus quizzes to test what you know.',
+  description: `Producing objectivity from ${SOURCE_COUNT} sources. Ranking the best of everything, from restaurants and bars to hotels, books, films, and products, plus quizzes to test what you know.`,
   openGraph: {
     title: 'Source of Truths | Producing Objectivity',
-    description: 'Producing objectivity from 641 sources. Ranking the best of everything, from restaurants and bars to hotels, books, films, and products, plus quizzes to test what you know.',
+    description: `Producing objectivity from ${SOURCE_COUNT} sources. Ranking the best of everything, from restaurants and bars to hotels, books, films, and products, plus quizzes to test what you know.`,
     url: 'https://sourceoftruths.com',
     type: 'website',
   },
   twitter: {
     card: 'summary_large_image',
     title: 'Source of Truths | Producing Objectivity',
-    description: 'Producing objectivity from 641 sources. Ranking the best of everything, plus quizzes to test what you know.',
+    description: `Producing objectivity from ${SOURCE_COUNT} sources. Ranking the best of everything, plus quizzes to test what you know.`,
   },
 formatDetection: {
     telephone: false,
@@ -36,7 +39,7 @@ const websiteJsonLd = {
   name: 'Source of Truths',
   alternateName: 'Source of Truths | Producing Objectivity',
   url: 'https://sourceoftruths.com',
-  description: 'Ranking the best of everything, from restaurants, hotels, and bars to products, films, and books, plus quizzes, built from 641 expert and reader sources using Borda consensus scoring.',
+  description: `Ranking the best of everything, from restaurants, hotels, and bars to products, films, and books, plus quizzes, built from ${SOURCE_COUNT} expert and reader sources using Borda consensus scoring.`,
 };
 
 const organizationJsonLd = {
@@ -46,7 +49,7 @@ const organizationJsonLd = {
   alternateName: 'Source of Truths | Producing Objectivity',
   url: 'https://sourceoftruths.com',
   logo: 'https://sourceoftruths.com/icon.png',
-  description: 'Producing objectivity from 641 sources: ranking the best of everything, plus quizzes, scored by expert and reader consensus using Borda methodology.',
+  description: `Producing objectivity from ${SOURCE_COUNT} sources: ranking the best of everything, plus quizzes, scored by expert and reader consensus using Borda methodology.`,
 };
 
 const collectionJsonLd = {
