@@ -27,12 +27,25 @@ export async function GET(request) {
     }
     const { players } = computeElo(data || []);
     const ranked = rankPlayers(players, scope);
-    const out = ranked.map((p, i) => ({
-      rank: i + 1,
-      name: p.name,
-      isAnon: p.isAnon,
-      userKey: p.key,
-    }));
+    // Attach per-player activity stats (NOT the rating number) so the /quizzes
+    // leaderboard can cycle Correct / Completed / Days Played / Accuracy across
+    // the FIXED Elo order without ever exposing the underlying Elo.
+    const out = ranked.map((p, i) => {
+      const full = players.get(p.key);
+      const stats = full ? {
+        correct: full.correct,
+        completed: full.completed,
+        daysPlayed: full.daysPlayed || 0,
+        accuracy: full.accuracy,
+      } : { correct: 0, completed: 0, daysPlayed: 0, accuracy: 0 };
+      return {
+        rank: i + 1,
+        name: p.name,
+        isAnon: p.isAnon,
+        userKey: p.key,
+        stats,
+      };
+    });
     return NextResponse.json({ scope, total: out.length, players: out });
   } catch (e) {
     console.error('quiz elo exception', e);

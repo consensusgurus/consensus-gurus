@@ -13,22 +13,22 @@ import React, { useMemo, useState } from 'react';
 // reports up to QuizClient via callbacks, mirroring how MapQuizBoard reports picks.
 
 const COLORS = {
-  cream: '#f4ede0',
-  paper: '#ebe2d0',
-  ink: '#1a1611',
-  ember: '#c0392b',
-  rust: '#a44a26',
-  forest: '#3d4f2b',
-  faded: '#7a6f5e',
+  cream: '#f7f8fa',
+  paper: '#eceef1',
+  ink: '#1c1e24',
+  ember: '#2563eb',
+  rust: '#c0392b',
+  forest: '#10b981',
+  faded: '#6b7280',
 };
 // Distinct column tints so the two sides read as separate at a glance: the
 // clues (prompt) sit on a warm parchment panel with an ember accent, the
 // answers on a cool sage panel with a forest accent.
 const LEFT_PANEL = '#efe6d2';
 const RIGHT_PANEL = '#e5ece0';
-const MONO = 'DM Mono, monospace';
-const SERIF = 'Fraunces, serif';
-const SANS = 'DM Sans, sans-serif';
+const MONO = "'Manrope', system-ui, -apple-system, sans-serif";
+const SERIF = "'Manrope', system-ui, -apple-system, sans-serif";
+const SANS = "'Manrope', system-ui, -apple-system, sans-serif";
 
 function shuffle(arr) {
   const a = arr.slice();
@@ -207,7 +207,7 @@ export default function MatchQuizBoard({ pairs, started, ended, revealed, onMatc
                     textDecoration: isDead ? 'line-through' : 'none',
                     color: isDead ? COLORS.faded : COLORS.ink,
                     opacity: isDead ? 0.5 : 1,
-                    background: isDead ? COLORS.paper : '#fffdf8',
+                    background: isDead ? COLORS.paper : '#eceef1',
                     cursor: isDead || !live ? 'default' : 'pointer',
                   }}
                 >

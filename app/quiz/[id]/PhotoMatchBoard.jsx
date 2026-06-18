@@ -14,12 +14,12 @@ import React, { useMemo, useState, useEffect } from 'react';
 // onMatch/onWrong/onEnd/onHint, the same contract as PhotoBoard / BankQuizBoard.
 
 const COLORS = {
-  cream: '#f4ede0', paper: '#ebe2d0', ink: '#1a1611', ember: '#c0392b',
-  rust: '#a44a26', forest: '#3d4f2b', faded: '#7a6f5e',
+  cream: '#f7f8fa', paper: '#eceef1', ink: '#1c1e24', ember: '#2563eb',
+  rust: '#c0392b', forest: '#10b981', faded: '#6b7280',
 };
-const MONO = 'DM Mono, monospace';
-const SERIF = 'Fraunces, serif';
-const SANS = 'DM Sans, sans-serif';
+const MONO = "'Manrope', system-ui, -apple-system, sans-serif";
+const SERIF = "'Manrope', system-ui, -apple-system, sans-serif";
+const SANS = "'Manrope', system-ui, -apple-system, sans-serif";
 
 function shuffle(arr) {
   const a = arr.slice();

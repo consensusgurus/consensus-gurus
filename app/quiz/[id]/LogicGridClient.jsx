@@ -18,17 +18,17 @@ import Footer from '../../Footer';
 import Count from '../../Count';
 
 const COLORS = {
-  cream: '#f4ede0',
-  paper: '#ebe2d0',
-  ink: '#1a1611',
-  ember: '#c0392b',
-  rust: '#a44a26',
-  forest: '#3d4f2b',
-  faded: '#7a6f5e',
+  cream: '#f7f8fa',
+  paper: '#eceef1',
+  ink: '#1c1e24',
+  ember: '#2563eb',
+  rust: '#c0392b',
+  forest: '#10b981',
+  faded: '#6b7280',
 };
-const MONO = 'DM Mono, monospace';
-const SERIF = 'Fraunces, serif';
-const SANS = 'DM Sans, sans-serif';
+const MONO = "'Manrope', system-ui, -apple-system, sans-serif";
+const SERIF = "'Manrope', system-ui, -apple-system, sans-serif";
+const SANS = "'Manrope', system-ui, -apple-system, sans-serif";
 
 function norm(s) {
   return (s || '').toLowerCase().replace(/[^a-z0-9 ]/g, ' ').replace(/\s+/g, ' ').trim();
@@ -358,10 +358,18 @@ export default function LogicGridClient({ quizId }) {
       <Grain />
       <div style={{ position: 'relative', zIndex: 2, maxWidth: 1060, margin: '0 auto', padding: '24px 20px 80px' }}>
 
-        <button onClick={() => router.push('/quizzes')} style={{ background: 'transparent', border: 'none', fontFamily: MONO, fontSize: 11, letterSpacing: '0.2em', textTransform: 'uppercase', color: COLORS.ink, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 6, padding: '8px 0' }}>
-          <ArrowLeft size={14} strokeWidth={2.5} />
-          Back to all quizzes
-        </button>
+        <style>{`@import url('https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap');`}</style>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12, paddingBottom: 11, borderBottom: `1px solid ${COLORS.faded}33` }}>
+          <button onClick={() => router.push('/quizzes')} style={{ background: 'transparent', border: 'none', fontFamily: SANS, fontSize: 13, color: COLORS.faded, cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: 6, padding: '4px 0' }}>
+            <ArrowLeft size={15} strokeWidth={2.5} />
+            Back to Quizzes
+          </button>
+          <div style={{ display: 'flex', alignItems: 'baseline', gap: 9 }}>
+            <a href="/" style={{ fontFamily: SANS, fontSize: 15, fontWeight: 800, letterSpacing: '-0.02em', color: COLORS.ink, textDecoration: 'none' }}>Source of Truths</a>
+            <span style={{ color: '#9aa0ab' }}>/</span>
+            <span style={{ fontFamily: SANS, fontSize: 15, fontWeight: 600, color: COLORS.ember }}>Quizzes</span>
+          </div>
+        </div>
 
         {/* Header */}
         <div style={{ paddingBottom: 0, marginTop: 8 }}>
@@ -390,7 +398,7 @@ export default function LogicGridClient({ quizId }) {
               style={{ flex: '1 0 auto', justifyContent: 'center', background: 'transparent', color: COLORS.cream, border: 'none', padding: '0 16px', height: 42, whiteSpace: 'nowrap', fontFamily: MONO, fontSize: 10, letterSpacing: '0.18em', textTransform: 'uppercase', fontWeight: 700, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 6 }}
             >
               <HelpCircle size={12} strokeWidth={2.5} />
-              Critique?
+              Error(s)?
             </button>
             </div>
             {ribScroll.left && <span aria-hidden="true" className="qz-cue qz-cue-l">&#8249;</span>}
@@ -442,7 +450,7 @@ export default function LogicGridClient({ quizId }) {
                   autoCapitalize="none"
                   autoCorrect="off"
                   spellCheck={false}
-                      style={{ fontFamily: SANS, fontSize: 17, padding: '14px 16px', border: `1.5px solid ${COLORS.ink}`, background: phase !== 'playing' ? COLORS.paper : '#fff', color: COLORS.ink, opacity: phase !== 'playing' ? 0.5 : 1 }}
+                      style={{ fontFamily: SANS, fontSize: 17, padding: '14px 16px', border: `1.5px solid ${COLORS.ink}`, background: phase !== 'playing' ? COLORS.paper : '#eceef1', color: COLORS.ink, opacity: phase !== 'playing' ? 0.5 : 1 }}
                     />
                   </div>
                 </div>
@@ -514,7 +522,7 @@ export default function LogicGridClient({ quizId }) {
                                 <span style={{ fontFamily: SERIF, fontWeight: 700, fontSize: 14, lineHeight: 1.1, color: isMiss ? COLORS.rust : COLORS.ink }}>{cell.t}</span>
                               )}
                               {cell.clue ? (
-                                <span style={{ fontFamily: SANS, fontSize: 11, lineHeight: 1.25, color: isSolved || isMiss ? COLORS.faded : '#4a4339' }}>{cell.clue}</span>
+                                <span style={{ fontFamily: SANS, fontSize: 11, lineHeight: 1.25, color: isSolved || isMiss ? COLORS.faded : '#6b7280' }}>{cell.clue}</span>
                               ) : (
                                 !isSolved && !isMiss && <span style={{ fontFamily: MONO, fontSize: 10, fontStyle: 'italic', color: COLORS.faded, opacity: 0.7 }}>no clue — deduce it</span>
                               )}
@@ -731,7 +739,7 @@ const fieldStyle = { width: '100%', fontFamily: SANS, fontSize: 16, padding: '12
 
 function StatBox({ label, value, accent }) {
   return (
-    <div style={{ background: accent ? COLORS.paper : '#fff', border: `1px solid ${COLORS.faded}33`, padding: '18px 16px', textAlign: 'center' }}>
+    <div style={{ background: accent ? COLORS.paper : '#eceef1', border: `1px solid ${COLORS.faded}33`, padding: '18px 16px', textAlign: 'center' }}>
       <div style={{ fontFamily: SERIF, fontWeight: 800, fontSize: 30, lineHeight: 1, color: accent ? COLORS.ember : COLORS.ink }}>{value}</div>
       <div style={{ fontFamily: MONO, fontSize: 10, letterSpacing: '0.12em', textTransform: 'uppercase', color: COLORS.faded, marginTop: 8 }}>{label}</div>
     </div>

@@ -17,12 +17,12 @@ const LOADERS = {
   'oceania': () => import('@/lib/oceania-geo.js').then((m) => m.GEO),
 };
 
-const LAND = '#fbf7ef';
-const LINE = '#8a8276';
-const SEA = '#cfe0ea';
-const GREEN = '#3d4f2b';
+const LAND = '#e9edf2';
+const LINE = '#aab1bd';
+const SEA = '#dbe7f2';
+const GREEN = '#10b981';
 const RED = '#c0392b';
-const HOVER = '#efe7d6';
+const HOVER = '#e8effb';
 
 export default function MapQuizBoard({ region, started, ended, revealed, foundNames, flash, onPick, noBorders: noBordersProp }) {
   const [geo, setGeo] = useState(null);
@@ -52,7 +52,7 @@ export default function MapQuizBoard({ region, started, ended, revealed, foundNa
 
   if (!geo) {
     return (
-      <div style={{ border: '1px solid rgba(138,130,118,0.25)', borderRadius: 2, background: SEA, height: 360, display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#5f7585', fontFamily: 'DM Mono, monospace', fontSize: 12, letterSpacing: '0.12em', textTransform: 'uppercase' }}>
+      <div style={{ border: '1px solid rgba(138,130,118,0.25)', borderRadius: 2, background: SEA, height: 360, display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#5f7585', fontFamily: "'Manrope', system-ui, sans-serif", fontSize: 12, letterSpacing: '0.12em', textTransform: 'uppercase' }}>
         Loading map…
       </div>
     );

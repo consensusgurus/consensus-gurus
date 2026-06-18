@@ -90,6 +90,9 @@ export default function StatHubClient() {
     .qzhub .card{background:${C.surface};border:1px solid ${C.line};border-radius:12px;overflow:hidden;min-width:0;}
     .qzhub .metric{background:${C.bg};border-radius:10px;padding:12px 14px;}
     .qzhub .metric .v{font-size:21px;font-weight:700;}
+    .qzhub .rankchip{font-size:10px;font-weight:700;color:${C.accent};background:${C.accsoft};border-radius:5px;padding:1px 6px;letter-spacing:0;text-transform:none;margin-left:6px;}
+    .qzhub .pvbtn{border:none;background:transparent;border-radius:6px;padding:5px 11px;font:inherit;font-family:${FONT};font-size:12px;color:${C.muted};cursor:pointer;}
+    .qzhub .pvbtn.on{background:#fff;color:${C.ink};font-weight:700;box-shadow:0 1px 2px rgba(20,22,28,0.06);}
     .qzhub .dd{position:relative;}
     .qzhub .ddbtn{display:flex;align-items:center;gap:8px;background:#fff;border:1px solid ${C.line};border-radius:10px;padding:9px 12px;cursor:pointer;font:inherit;min-width:200px;}
     .qzhub .ddmenu{position:absolute;top:calc(100% + 6px);right:0;z-index:30;background:#fff;border:1px solid ${C.line};border-radius:10px;box-shadow:0 8px 24px rgba(20,22,28,0.12);padding:6px;min-width:250px;max-height:360px;overflow:auto;}
@@ -130,18 +133,23 @@ export default function StatHubClient() {
           <Link className="back" href="/quizzes"><ArrowLeft size={15} /> Back to Quizzes</Link>
         </div>
 
-        {/* profile header */}
-        <div className="card" style={{ display: 'flex', flexDirection: 'row', alignItems: 'center', flexWrap: 'wrap', gap: 18, padding: '15px 18px', marginTop: 14 }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
+        {/* profile header — leads with OVERALL RANK (largest element) */}
+        <div className="card" style={{ display: 'flex', flexDirection: 'row', alignItems: 'center', flexWrap: 'wrap', gap: 18, padding: '15px 18px', marginTop: 14, overflow: 'visible', position: 'relative', zIndex: 40 }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 18, flexWrap: 'wrap' }}>
             <div style={{ display: 'flex', flexDirection: 'column' }}>
-              <span className="lbl">Skill Rating</span>
-              <span style={{ fontSize: 34, fontWeight: 800, color: C.accent, lineHeight: 1 }}>{found ? rating.toLocaleString() : '—'}</span>
+              <span className="lbl">Overall Rank</span>
+              <span style={{ fontSize: 42, fontWeight: 800, color: C.accent, lineHeight: 1 }}>{found && me.rank ? `#${me.rank}` : '—'}</span>
+              <span style={{ fontSize: 11.5, color: C.muted, marginTop: 3 }}>{found && me.totalPlayers ? `of ${me.totalPlayers.toLocaleString()} players` : 'No games on record yet'}</span>
             </div>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
-              <span style={{ background: tierBg, color: tierFg, fontSize: 11, fontWeight: 700, padding: '3px 9px', borderRadius: 6, width: 'max-content' }}>{found ? tierLabel : 'Play to rank'}</span>
-              <span style={{ fontSize: 12, color: C.muted }}>
-                {found && me.rank ? <>Rank <b style={{ color: C.ink }}>#{me.rank}</b> of {me.totalPlayers?.toLocaleString()}</> : 'No games on record yet'}
-              </span>
+            <div style={{ width: 1, height: 50, background: C.line }} />
+            <div style={{ display: 'flex', alignItems: 'center', gap: 20, flexWrap: 'wrap' }}>
+              <div>
+                <div className="lbl">Skill Rating</div>
+                <div style={{ fontSize: 21, fontWeight: 800, color: C.ink }}>{found ? rating.toLocaleString() : '—'}{found ? <span style={{ background: tierBg, color: tierFg, fontSize: 10, fontWeight: 700, padding: '2px 7px', borderRadius: 5, verticalAlign: 2, marginLeft: 6 }}>{(tierLabel || '').replace(/ Tier$/, '')}</span> : null}</div>
+              </div>
+              <ChipMetric label="Correct" value={found ? me.activity.correct.toLocaleString() : '—'} rank={found && me.ranks ? me.ranks.correct : null} />
+              <ChipMetric label="Completed" value={found ? me.activity.completed : '—'} rank={found && me.ranks ? me.ranks.completed : null} />
+              <ChipMetric label="Accuracy" value={found ? `${me.activity.accuracy}%` : '—'} rank={found && me.ranks ? me.ranks.accuracy : null} />
             </div>
           </div>
           <div className="dd" style={{ marginLeft: 'auto' }}>
@@ -188,11 +196,24 @@ export default function StatHubClient() {
   );
 }
 
+// ─── small helpers ──────────────────────────────────────────────────────────
+// A compact metric for the profile header: label, value, and a "#rank" chip.
+function ChipMetric({ label, value, rank }) {
+  return (
+    <div>
+      <div className="lbl">{label}</div>
+      <div style={{ fontSize: 18, fontWeight: 700 }}>{value}{rank ? <span className="rankchip">#{rank}</span> : null}</div>
+    </div>
+  );
+}
+
 // ─── Player tab ─────────────────────────────────────────────────────────────
-function Metric({ label, value, sub }) {
+function Metric({ label, value, sub, rank }) {
   return (
     <div className="metric">
-      <div className="lbl">{label}</div>
+      <div className="lbl" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+        <span>{label}</span>{rank ? <span className="rankchip">#{rank}</span> : null}
+      </div>
       <div className="v">{value}</div>
       {sub ? <div style={{ fontSize: 10.5, color: C.muted, marginTop: 2 }}>{sub}</div> : null}
     </div>
@@ -200,68 +221,93 @@ function Metric({ label, value, sub }) {
 }
 
 function PlayerPanel({ me, scope, cats, byKey, totalQuizzes }) {
+  const [pview, setPview] = useState('base'); // 'base' (vs. Player Base, default) | 'cat'
   const found = me && me.found;
-  const a = found ? me.activity : { correct: 0, answered: 0, played: 0, completed: 0, accuracy: 0 };
+  const a = found ? me.activity : { correct: 0, answered: 0, played: 0, completed: 0, accuracy: 0, daysPlayed: 0 };
+  const ranks = (found && me.ranks) || {};
+  const base = (found && me.base) || {};
+  const totalPlayers = (found && me.totalPlayers) || 0;
   const pctTotal = totalQuizzes ? Math.round((a.played / totalQuizzes) * 1000) / 10 : 0;
   const pctCompleted = a.played ? Math.round((a.completed / a.played) * 100) : 0;
   const byCat = (found && me.byCategory) || {};
-
   const catRows = (scope === 'all' ? cats : cats.filter((c) => c.key === scope));
+
+  // vs. Player Base rows: [label, you, avgPlayer, rank]
+  const baseRows = [
+    ['Skill Rating', found ? (me.rating || 1500).toLocaleString() : '—', base.rating != null ? base.rating.toLocaleString() : '—', ranks.rating],
+    ['Correct', found ? a.correct.toLocaleString() : '—', base.correct != null ? base.correct.toLocaleString() : '—', ranks.correct],
+    ['Completed', found ? a.completed : '—', base.completed != null ? base.completed : '—', ranks.completed],
+    ['Accuracy', found ? `${a.accuracy}%` : '—', base.accuracy != null ? `${base.accuracy}%` : '—', ranks.accuracy],
+    ['Days Played', found ? (a.daysPlayed || 0) : '—', base.daysPlayed != null ? base.daysPlayed : '—', ranks.daysPlayed],
+  ];
 
   return (
     <div>
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(120px,1fr))', gap: 10, marginBottom: 16 }}>
-        <Metric label="Correct" value={found ? a.correct.toLocaleString() : '—'} sub={found ? `${a.accuracy}% of ${a.answered.toLocaleString()} answered` : null} />
+        <Metric label="Correct" value={found ? a.correct.toLocaleString() : '—'} rank={found ? ranks.correct : null} sub={found ? `${a.accuracy}% of ${a.answered.toLocaleString()} answered` : null} />
         <Metric label="Played" value={found ? a.played : '—'} sub={found ? `${pctTotal}% of ${totalQuizzes.toLocaleString()}` : null} />
-        <Metric label="Completed" value={found ? a.completed : '—'} sub={found ? `${pctCompleted}% of played` : null} />
-        <Metric label="Accuracy" value={found ? `${a.accuracy}%` : '—'} />
-        <Metric label="Matches" value={found ? me.components.matches : '—'} />
-        <Metric label="Net Rating" value={found ? (me.components.netDelta >= 0 ? `+${me.components.netDelta}` : me.components.netDelta) : '—'} />
+        <Metric label="Completed" value={found ? a.completed : '—'} rank={found ? ranks.completed : null} sub={found ? `${pctCompleted}% of played` : null} />
+        <Metric label="Accuracy" value={found ? `${a.accuracy}%` : '—'} rank={found ? ranks.accuracy : null} />
+        <Metric label="Days Played" value={found ? (a.daysPlayed || 0) : '—'} rank={found ? ranks.daysPlayed : null} />
+        <Metric label="Skill Rating" value={found ? (me.rating || 1500).toLocaleString() : '—'} rank={found ? ranks.rating : null} />
       </div>
       <div className="card" style={{ padding: '14px 16px' }}>
-        <div style={{ fontSize: 14, fontWeight: 700, marginBottom: 6 }}>
-          {scope === 'all' ? 'Your Stats by Category' : `Your ${byKey[scope]?.label} Detail`}
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 10, flexWrap: 'wrap', marginBottom: 10 }}>
+          <div style={{ fontSize: 14, fontWeight: 700 }}>
+            {pview === 'base'
+              ? 'You vs. the Player Base'
+              : (scope === 'all' ? 'Your Stats by Category' : `Your ${byKey[scope]?.label} Detail`)}
+          </div>
+          <div style={{ display: 'flex', gap: 3, background: '#eceef1', borderRadius: 8, padding: 3 }}>
+            <button className={`pvbtn${pview === 'base' ? ' on' : ''}`} onClick={() => setPview('base')}>vs. Player Base</button>
+            <button className={`pvbtn${pview === 'cat' ? ' on' : ''}`} onClick={() => setPview('cat')}>By Category</button>
+          </div>
         </div>
         {!found ? (
-          <div style={{ fontSize: 13, color: C.soft, padding: '6px 0' }}>Play a few quizzes and your category breakdown shows up here.</div>
+          <div style={{ fontSize: 13, color: C.soft, padding: '6px 0' }}>Play a few quizzes and your breakdown shows up here.</div>
+        ) : pview === 'base' ? (
+          <div style={{ overflow: 'auto' }}>
+            <table>
+              <thead><tr>
+                <th>Metric</th>
+                <th style={{ textAlign: 'right' }}>You</th>
+                <th style={{ textAlign: 'right' }}>Avg Player</th>
+                <th style={{ textAlign: 'right' }}>Your Rank</th>
+              </tr></thead>
+              <tbody>
+                {baseRows.map((r) => (
+                  <tr key={r[0]}>
+                    <td style={{ fontWeight: 600 }}>{r[0]}</td>
+                    <td className="score" style={{ textAlign: 'right' }}>{r[1]}</td>
+                    <td style={{ textAlign: 'right', color: C.muted }}>{r[2]}</td>
+                    <td style={{ textAlign: 'right', fontWeight: 700 }}>{r[3] ? <>#{r[3]} <span style={{ color: C.muted, fontWeight: 400 }}>of {totalPlayers.toLocaleString()}</span></> : '—'}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
         ) : (
           <div style={{ overflow: 'auto' }}>
             <table>
               <thead><tr>
                 <th>Category</th>
                 <th style={{ textAlign: 'right' }}>Played</th>
-                <th style={{ textAlign: 'right' }}>Correct</th>
-                <th style={{ textAlign: 'right' }}>Completed</th>
-                <th style={{ textAlign: 'right' }}>Acc</th>
                 <th style={{ textAlign: 'right' }}>ELO</th>
               </tr></thead>
               <tbody>
                 {catRows.map((c) => {
                   const cr = byCat[c.key];
-                  if (!cr) return (
-                    <tr key={c.key}>
-                      <td style={{ fontWeight: 600, whiteSpace: 'nowrap' }}><span className="dot" style={{ background: c.c, display: 'inline-block', marginRight: 8, verticalAlign: 'middle' }} />{c.label}</td>
-                      <td style={{ textAlign: 'right', color: C.soft }}>0</td>
-                      <td style={{ textAlign: 'right', color: C.soft }}>—</td>
-                      <td style={{ textAlign: 'right', color: C.soft }}>—</td>
-                      <td style={{ textAlign: 'right', color: C.soft }}>—</td>
-                      <td style={{ textAlign: 'right', color: C.soft }}>—</td>
-                    </tr>
-                  );
                   return (
                     <tr key={c.key}>
                       <td style={{ fontWeight: 600, whiteSpace: 'nowrap' }}><span className="dot" style={{ background: c.c, display: 'inline-block', marginRight: 8, verticalAlign: 'middle' }} />{c.label}</td>
-                      <td style={{ textAlign: 'right' }}>{cr.matches}</td>
-                      <td style={{ textAlign: 'right' }}>—</td>
-                      <td style={{ textAlign: 'right' }}>—</td>
-                      <td style={{ textAlign: 'right' }}>—</td>
-                      <td className="score" style={{ textAlign: 'right' }}>{cr.rating.toLocaleString()}</td>
+                      <td style={{ textAlign: 'right', color: cr ? C.ink : C.soft }}>{cr ? cr.matches : 0}</td>
+                      <td className="score" style={{ textAlign: 'right', color: cr ? C.accent : C.soft }}>{cr ? cr.rating.toLocaleString() : '—'}</td>
                     </tr>
                   );
                 })}
               </tbody>
             </table>
-            <div style={{ fontSize: 10.5, color: C.soft, marginTop: 8 }}>Per-category Correct / Completed / Accuracy are summarized across all categories above; the ELO column is your rating within each category.</div>
+            <div style={{ fontSize: 10.5, color: C.soft, marginTop: 8 }}>ELO is your rating within each category; Played counts your matches in that category.</div>
           </div>
         )}
       </div>

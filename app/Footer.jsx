@@ -1,90 +1,118 @@
 import Link from 'next/link';
-import { COLORS } from '@/lib/data';
+
+// Shared, site-wide footer. Deliberately font/brand-neutral (it inherits the
+// surrounding page's body font and uses neutral grays) so it reads correctly on
+// BOTH the cream list/home pages and the blue quiz pages. No heavy accent color.
+const NEUTRAL = {
+  ink: '#1c1e24',
+  muted: '#6b7280',
+  soft: '#9aa0ab',
+  line: 'rgba(20,22,28,0.12)',
+};
+
+const COLS = [
+  {
+    head: 'Quizzes',
+    links: [
+      { label: 'Browse Quizzes', href: '/quizzes' },
+      { label: 'Stat Hub', href: '/quizzes/hub' },
+      { label: 'Leaderboard', href: '/quizzes/leaderboard' },
+      { label: 'Challenges', href: '/quizzes/leaderboard' },
+    ],
+  },
+  {
+    head: 'Site',
+    links: [
+      { label: 'Home', href: '/' },
+      { label: 'Lists', href: '/' },
+      { label: 'Sources', href: '/sources' },
+      { label: 'Submit a Quiz', href: '/submit' },
+    ],
+  },
+  {
+    head: 'Legal',
+    links: [
+      { label: 'Privacy', href: '/privacy' },
+      { label: 'Terms', href: '/terms' },
+      { label: 'Disclosure', href: '/disclosure' },
+    ],
+  },
+];
 
 export default function Footer() {
   const year = new Date().getFullYear();
   return (
     <footer
       style={{
-        borderTop: `2px solid ${COLORS.ink}`,
-        padding: '32px 24px',
+        borderTop: `1px solid ${NEUTRAL.line}`,
+        marginTop: 30,
+        padding: '26px 24px 20px',
         position: 'relative',
         zIndex: 2,
-        background: COLORS.cream,
+        background: 'transparent',
+        color: NEUTRAL.ink,
       }}
     >
       <div
         style={{
-          maxWidth: 1200,
+          maxWidth: 1040,
           margin: '0 auto',
           display: 'flex',
-          flexDirection: 'column',
-          gap: 18,
-          alignItems: 'center',
-          textAlign: 'center',
+          flexWrap: 'wrap',
+          gap: 28,
+          justifyContent: 'space-between',
         }}
       >
-        <p
-          style={{
-            fontFamily: 'Fraunces, serif',
-            fontStyle: 'italic',
-            fontSize: 15,
-            margin: 0,
-            color: COLORS.ink,
-            maxWidth: 600,
-            lineHeight: 1.4,
-          }}
-        >
-          As an Amazon Associate, Source of Truths earns from qualifying purchases. Some other outbound links may also be affiliate links.
-        </p>
-        <div
-          style={{
-            display: 'flex',
-            gap: 24,
-            flexWrap: 'wrap',
-            justifyContent: 'center',
-            fontFamily: 'DM Mono, monospace',
-            fontSize: 10,
-            letterSpacing: '0.2em',
-            textTransform: 'uppercase',
-          }}
-        >
-          <Link href="/" style={{ color: COLORS.ink, textDecoration: 'none' }}>
-            Home
-          </Link>
-          <Link href="/feed" style={{ color: COLORS.ink, textDecoration: 'none' }}>
-            Activity Log
-          </Link>
-          <Link href="/request" style={{ color: COLORS.ink, textDecoration: 'none' }}>
-            Request a list
-          </Link>
-          <Link href="/create" style={{ color: COLORS.ink, textDecoration: 'none' }}>
-            Create Your Own Grid
-          </Link>
-          <Link href="/sources" style={{ color: COLORS.ink, textDecoration: 'none' }}>
-            Sources
-          </Link>
-          <Link href="/disclosure" style={{ color: COLORS.ink, textDecoration: 'none' }}>
-            Disclosure
-          </Link>
-          <Link href="/privacy" style={{ color: COLORS.ink, textDecoration: 'none' }}>
-            Privacy
-          </Link>
-          <Link href="/terms" style={{ color: COLORS.ink, textDecoration: 'none' }}>
-            Terms
-          </Link>
+        <div style={{ maxWidth: 250 }}>
+          <div style={{ fontSize: 15, fontWeight: 800 }}>Source of Truths</div>
+          <div style={{ fontSize: 12, color: NEUTRAL.muted, marginTop: 5, lineHeight: 1.5 }}>
+            Consensus lists and timed quizzes for everything worth knowing.
+          </div>
         </div>
-        <div
-          style={{
-            fontFamily: 'DM Mono, monospace',
-            fontSize: 10,
-            letterSpacing: '0.2em',
-            textTransform: 'uppercase',
-            color: COLORS.faded,
-          }}
-        >
-          © {year} Source of Truths
-        </div>
+        {COLS.map((col) => (
+          <div key={col.head}>
+            <div
+              style={{
+                fontSize: 10,
+                fontWeight: 700,
+                letterSpacing: '.06em',
+                textTransform: 'uppercase',
+                color: NEUTRAL.soft,
+                marginBottom: 9,
+              }}
+            >
+              {col.head}
+            </div>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+              {col.links.map((l) => (
+                <Link
+                  key={l.label}
+                  href={l.href}
+                  style={{ fontSize: 12.5, color: NEUTRAL.muted, textDecoration: 'none' }}
+                >
+                  {l.label}
+                </Link>
+              ))}
+            </div>
+          </div>
+        ))}
+      </div>
+      <div
+        style={{
+          maxWidth: 1040,
+          margin: '16px auto 0',
+          paddingTop: 14,
+          borderTop: `1px solid ${NEUTRAL.line}`,
+          display: 'flex',
+          justifyContent: 'space-between',
+          flexWrap: 'wrap',
+          gap: 8,
+          fontSize: 11,
+          color: NEUTRAL.soft,
+        }}
+      >
+        <span>© {year} Source of Truths</span>
+        <span>As an Amazon Associate, Source of Truths earns from qualifying purchases.</span>
       </div>
     </footer>
   );

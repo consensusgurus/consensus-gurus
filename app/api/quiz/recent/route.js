@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { supabaseAdmin } from '@/lib/supabase-server';
 import { fetchAllRows } from '@/lib/fetch-all';
+import { guestHandleFromAnon } from '@/lib/quiz-elo';
 
 export const dynamic = 'force-dynamic';
 export const fetchCache = 'force-no-store';
@@ -50,13 +51,18 @@ export async function GET() {
     const plays = recent.map((r) => {
       const pk = r.user_id ? `u:${r.user_id}` : (r.anon_id ? `a:${r.anon_id}` : `r:${r.id}`);
       const attempt = priorCount.get(pk + '::' + r.quiz_id + '::' + r.id) || 1;
+      const isAnon = !r.user_id;
+      const name = isAnon
+        ? (r.username || guestHandleFromAnon(r.anon_id || `r:${r.id}`))
+        : (r.username || 'Player');
       return {
         quizId: r.quiz_id,
         username: r.username || null,
+        name,
         score: r.score,
         total: r.total,
         playedAt: r.created_at || null,
-        isAnon: !r.user_id,
+        isAnon,
         attempt,
       };
     });

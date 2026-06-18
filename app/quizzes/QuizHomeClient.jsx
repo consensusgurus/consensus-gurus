@@ -42,6 +42,15 @@ function seededShuffle(arr, seed) {
 }
 
 function cleanTitle(t) { return (t || '').replace(/^Name (the )?/i, '').trim(); }
+// Drop a leading action verb (and an optional the/all the/these) from a browse
+// title for a tighter, scannable label. The FULL title is kept as the link's
+// tooltip. e.g. "Click the Countries of Europe" -> "Countries of Europe",
+// "Match the Slogan to the Company" -> "Slogan to the Company".
+const VERB_RE = /^(Click|Name|Guess|Find|Identify|Locate|Pick|Select|Match|Pinpoint)\b\s*(all the|the|these)?\s*/i;
+function stripVerb(t) {
+  const out = (t || '').replace(VERB_RE, '').trim();
+  return out || (t || '');
+}
 function relTime(iso) {
   if (!iso) return '';
   const t = Date.parse(iso);
@@ -97,6 +106,14 @@ export default function QuizHomeClient() {
   const [eloScope, setEloScope] = useState('all');
   const [recent, setRecent] = useState([]); // [{quizId,username,score,total,playedAt,isAnon,attempt}]
   const [me, setMe] = useState(null);
+  const [lbIdx, setLbIdx] = useState(0); // which leaderboard stat is showing
+  const [view, setView] = useState('compact'); // 'compact' | 'detailed' browse layout
+  const [statsById, setStatsById] = useState({}); // /api/quiz/stats keyed by quizId
+  // Restore the saved browse-view preference once on mount.
+  useEffect(() => {
+    try { const v = localStorage.getItem('sot_quiz_browse_view'); if (v === 'detailed' || v === 'compact') setView(v); } catch {}
+  }, []);
+  function setBrowseView(v) { setView(v); try { localStorage.setItem('sot_quiz_browse_view', v); } catch {} }
 
   // Build the catalog once: every quiz, with its department + nav title.
   const catalog = useMemo(() => (QUIZZES || []).filter((q) => q && q.id).map((q) => ({
@@ -144,6 +161,9 @@ export default function QuizHomeClient() {
     fetch('/api/quiz/recent').then((r) => r.json()).then((d) => {
       if (d && Array.isArray(d.plays)) setRecent(d.plays);
     }).catch(() => {});
+    fetch('/api/quiz/stats').then((r) => r.json()).then((d) => {
+      if (d && Array.isArray(d.quizzes)) setStatsById(Object.fromEntries(d.quizzes.map((q) => [q.quizId, q])));
+    }).catch(() => {});
   }, []);
 
   // Elo leaderboard re-loads when the scope changes.
@@ -176,35 +196,61 @@ export default function QuizHomeClient() {
 
   // ── leaderboard rows (rank + name only; current scope) ──
   const leaderRows = useMemo(() => eloBoard.slice(0, 10), [eloBoard]);
+  // Cycle one stat per slide every ~4s across the FIXED Elo order (the order
+  // never reshuffles, and the underlying Elo number is never shown).
+  const LB_METRICS = [
+    { key: 'correct', label: 'Correct', fmt: (v) => (v || 0).toLocaleString() },
+    { key: 'completed', label: 'Completed', fmt: (v) => (v || 0).toLocaleString() },
+    { key: 'daysPlayed', label: 'Days Played', fmt: (v) => (v || 0).toLocaleString() },
+    { key: 'accuracy', label: 'Accuracy', fmt: (v) => `${v || 0}%` },
+  ];
+  useEffect(() => {
+    const id = setInterval(() => setLbIdx((i) => (i + 1) % LB_METRICS.length), 4000);
+    return () => clearInterval(id);
+  }, []);
+  const lbMetric = LB_METRICS[lbIdx];
 
   // ── live feed (scoped by quiz department) ──
   const liveRows = useMemo(() => {
     const rows = recent.map((p) => ({ ...p, dept: deptOf({ id: p.quizId }), title: titleById[p.quizId] || cleanTitle(p.quizId) }));
     const scoped = scope === 'all' ? rows : rows.filter((r) => r.dept === scope);
-    return scoped.slice(0, 9);
+    return scoped.slice(0, 14);
   }, [recent, scope, titleById]);
 
   const playsToday = totals.today || 0;
 
   // ── browse columns ──
-  function colRows(cat, lim) {
-    return cat.quizzes.slice()
-      .sort((a, b) => plays(b.id) - plays(a.id) || a.title.localeCompare(b.title))
-      .slice(0, lim);
-  }
-  const mostPlayed = useMemo(() => {
-    let pool;
-    if (scope === 'all') pool = catalog;
-    else pool = byKey[scope] ? byKey[scope].quizzes : [];
-    return pool.map((q) => ({ ...q, p: plays(q.id) }))
-      .filter((q) => q.p > 0)
-      .sort((a, b) => b.p - a.p || a.title.localeCompare(b.title))
-      .slice(0, 6);
-  }, [catalog, byKey, scope, totals]);
+  // Newest first (so the dedupe sets below can reference it), then Most Played
+  // excluding anything already in Newest, then each category column excluding
+  // everything shown in Newest + Most Played. No quiz appears twice on the page.
   const newest = useMemo(() => catalog.slice()
     .filter((q) => !/daily-market|weekly-business|daily-business/.test(q.id))
     .sort((a, b) => (a.publishedAt < b.publishedAt ? 1 : a.publishedAt > b.publishedAt ? -1 : 0))
     .slice(0, 6), [catalog]);
+  const newestIds = useMemo(() => new Set(newest.map((q) => q.id)), [newest]);
+  const mostPlayed = useMemo(() => {
+    let pool;
+    if (scope === 'all') pool = catalog;
+    else pool = byKey[scope] ? byKey[scope].quizzes : [];
+    const exclude = scope === 'all' ? newestIds : new Set();
+    return pool.map((q) => ({ ...q, p: plays(q.id) }))
+      .filter((q) => q.p > 0 && !exclude.has(q.id))
+      .sort((a, b) => b.p - a.p || a.title.localeCompare(b.title))
+      .slice(0, 6);
+  }, [catalog, byKey, scope, totals, newestIds]);
+  // Ids already surfaced in the Newest + Most Played columns (all-scope only).
+  const shownIds = useMemo(() => {
+    if (scope !== 'all') return new Set();
+    const set = new Set(newestIds);
+    mostPlayed.forEach((q) => set.add(q.id));
+    return set;
+  }, [scope, newestIds, mostPlayed]);
+  function colRows(cat, lim, exclude) {
+    return cat.quizzes.slice()
+      .filter((q) => !exclude || !exclude.has(q.id))
+      .sort((a, b) => plays(b.id) - plays(a.id) || a.title.localeCompare(b.title))
+      .slice(0, lim);
+  }
 
   // Search across the whole catalog.
   const searchResults = useMemo(() => {
@@ -218,7 +264,7 @@ export default function QuizHomeClient() {
     .qzh{font-family:${FONT};color:${C.ink};}
     .qzh .lbl{font-size:10px;font-weight:600;letter-spacing:.04em;text-transform:uppercase;color:${C.muted};}
     .qzh .card{background:${C.surface};border:1px solid ${C.line};border-radius:12px;display:flex;flex-direction:column;overflow:hidden;min-width:0;}
-    .qzh .head{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:10px 13px 9px;border-bottom:1px solid ${C.line};}
+    .qzh .head{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:10px 13px 9px;border-bottom:1px solid ${C.line};min-height:42px;}
     .qzh .lrow{display:flex;align-items:center;gap:9px;padding:5.5px 13px;font-size:12.5px;}
     .qzh .qtitle{flex:1 1 auto;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
     .qzh .att{font-size:9.5px;font-weight:700;color:${C.soft};}
@@ -266,7 +312,7 @@ export default function QuizHomeClient() {
         </div>
 
         {/* player bar */}
-        <div className="card" style={{ flexDirection: 'row', alignItems: 'center', flexWrap: 'wrap', gap: 16, padding: '11px 14px', margin: '14px 0 12px' }}>
+        <div className="card" style={{ flexDirection: 'row', alignItems: 'center', flexWrap: 'wrap', gap: 16, padding: '11px 14px', margin: '14px 0 12px', overflow: 'visible', position: 'relative', zIndex: 40 }}>
           <div className="dd">
             <button className="ddbtn" onClick={(e) => { e.stopPropagation(); setDdOpen((o) => !o); }}>
               <span className="dot" style={{ background: scope === 'all' ? C.ink : (byKey[scope]?.c || C.ink) }} />
@@ -310,7 +356,7 @@ export default function QuizHomeClient() {
           {/* leaderboard */}
           <div className="card">
             <div className="head">
-              <span className="lbl" style={{ color: C.ink }}>Leaderboard{scope === 'all' ? '' : ` · ${byKey[scope]?.label}`}</span>
+              <span className="lbl" style={{ color: C.ink }}>Leaderboard · {lbMetric.label}{scope === 'all' ? '' : ` · ${byKey[scope]?.label}`}</span>
               <Link href="/quizzes/hub" className="qlink"><span style={{ fontSize: 10, fontWeight: 700, letterSpacing: '.05em', textTransform: 'uppercase', color: C.soft }}>Full →</span></Link>
             </div>
             <div style={{ flex: 1, padding: '3px 0' }}>
@@ -319,6 +365,7 @@ export default function QuizHomeClient() {
                 <div className="lrow" key={r.userKey || i}>
                   <Medal i={i} />
                   <span className="qtitle"><WhoTag name={r.name} isAnon={r.isAnon} /></span>
+                  <span style={{ flex: 'none', fontWeight: 700, fontVariantNumeric: 'tabular-nums' }}>{lbMetric.fmt(r.stats ? r.stats[lbMetric.key] : 0)}</span>
                 </div>
               ))}
             </div>
@@ -347,7 +394,7 @@ export default function QuizHomeClient() {
                   <div className="lrow" style={{ gap: 9 }}>
                     <span className="qtitle" style={{ fontWeight: 600 }}>{f.title}</span>
                     <span className="qmeta" style={{ gap: 8 }}>
-                      <WhoTag name={f.isAnon ? (f.username || 'Anonymous') : (f.username || 'Player')} isAnon={f.isAnon} />
+                      <WhoTag name={f.name || (f.isAnon ? 'Guest' : 'Player')} isAnon={f.isAnon} />
                       <span className="score">{f.score}/{f.total}</span>
                       <span className="att">{f.attempt > 1 ? `attempt ${f.attempt}` : '1st try'}</span>
                       <span style={{ color: C.soft }}>{relTime(f.playedAt)}</span>
@@ -374,6 +421,16 @@ export default function QuizHomeClient() {
               style={{ width: '100%', padding: '9px 12px 9px 36px', border: `1px solid ${C.line}`, borderRadius: 10, font: 'inherit', fontFamily: FONT, fontSize: 13.5, background: '#fff', color: C.ink, outline: 'none', boxSizing: 'border-box' }}
             />
           </div>
+          {!searchResults && (
+            <div style={{ display: 'flex', gap: 3, background: '#eceef1', borderRadius: 9, padding: 3, flex: 'none' }}>
+              {[['compact', 'Compact'], ['detailed', 'Detailed']].map(([v, lbl]) => (
+                <button key={v} onClick={() => setBrowseView(v)}
+                  style={{ border: 'none', background: view === v ? '#fff' : 'transparent', color: view === v ? C.ink : C.muted, fontWeight: view === v ? 700 : 600, boxShadow: view === v ? '0 1px 2px rgba(20,22,28,0.06)' : 'none', borderRadius: 7, padding: '7px 13px', font: 'inherit', fontFamily: FONT, fontSize: 12.5, cursor: 'pointer' }}>
+                  {lbl}
+                </button>
+              ))}
+            </div>
+          )}
         </div>
 
         {/* lists */}
@@ -385,15 +442,24 @@ export default function QuizHomeClient() {
               {searchResults.map((r) => {
                 const cc = (DEPT_COLOR[r.dept] || DEPT_COLOR.misc).c;
                 return (
-                  <Link href={`/quiz/${r.id}`} className="qrow" key={r.id}>
+                  <Link href={`/quiz/${r.id}`} className="qrow" key={r.id} title={r.rawTitle || r.title}>
                     <span className="dot" style={{ background: cc, alignSelf: 'center' }} />
-                    <span className="qtitle">{r.title}</span>
+                    <span className="qtitle">{stripVerb(r.title)}</span>
                     <span className="qmeta" style={{ color: C.soft, fontSize: 10, fontWeight: 600, letterSpacing: '.04em', textTransform: 'uppercase' }}>{DEPT_LABEL[r.dept]}</span>
                   </Link>
                 );
               })}
             </div>
           )
+        ) : view === 'detailed' ? (
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill,minmax(330px,1fr))', gap: 12 }}>
+            {(scope === 'all' ? catalog.slice() : (byKey[scope]?.quizzes || []).slice())
+              .sort((a, b) => plays(b.id) - plays(a.id) || a.title.localeCompare(b.title))
+              .slice(0, scope === 'all' ? 60 : 200)
+              .map((q) => (
+                <DetailCard key={q.id} q={q} s={statsById[q.id]} leader={leader(q.id)} color={(DEPT_COLOR[q.dept] || DEPT_COLOR.misc).c} />
+              ))}
+          </div>
         ) : (
           <div className="qcols">
             {scope === 'all' && (
@@ -409,7 +475,7 @@ export default function QuizHomeClient() {
               : [byKey[scope]].filter(Boolean)
             ).map((c) => (
               <BrowseColumn key={c.key} label={c.label} Icon={c.Icon} color={c.c} tint={c.t}
-                rows={colRows(c, 6).map((q) => ({ q, right: <PlaysRight id={q.id} plays={plays} leader={leader} color={c.c} /> }))}
+                rows={colRows(c, 6, scope === 'all' ? shownIds : null).map((q) => ({ q, right: <PlaysRight id={q.id} plays={plays} leader={leader} color={c.c} hidePlays /> }))}
                 cta={`View all ${c.count} ›`} />
             ))}
           </div>
@@ -424,12 +490,50 @@ export default function QuizHomeClient() {
   );
 }
 
-function PlaysRight({ id, plays, leader, color }) {
+function fmtAvgTime(s, plays) {
+  if (!plays || !Number.isFinite(s) || s <= 0) return '—';
+  const avg = Math.round(s / plays);
+  const m = Math.floor(avg / 60);
+  const sec = avg % 60;
+  return m ? `${m}m ${sec}s` : `${sec}s`;
+}
+
+// Detailed browse card: title + department dot, then plays / current leader /
+// high score / avg time, sourced from /api/quiz/stats + the totals leaders map.
+function DetailCard({ q, s, leader, color }) {
+  const plays = s ? (s.plays || 0) : 0;
+  const high = s ? (s.bestScore || 0) : 0;
+  const avgTime = fmtAvgTime(s ? s.totalTime : 0, plays);
+  const Stat = ({ label, value }) => (
+    <div style={{ minWidth: 0 }}>
+      <div style={{ fontSize: 9, fontWeight: 700, letterSpacing: '.04em', textTransform: 'uppercase', color: C.soft }}>{label}</div>
+      <div style={{ fontSize: 13, fontWeight: 700, color: C.ink, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{value}</div>
+    </div>
+  );
+  return (
+    <Link href={`/quiz/${q.id}`} className="qlink" title={q.rawTitle || q.title}>
+      <div className="card" style={{ padding: '12px 14px', gap: 10, height: '100%' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+          <span className="dot" style={{ background: color, flex: 'none' }} />
+          <span style={{ fontSize: 13.5, fontWeight: 600, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{stripVerb(q.title)}</span>
+        </div>
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px 12px' }}>
+          <Stat label="Plays" value={plays ? plays.toLocaleString() : '0'} />
+          <Stat label="Current Leader" value={leader || '—'} />
+          <Stat label="High Score" value={plays ? high.toLocaleString() : '—'} />
+          <Stat label="Avg Time" value={avgTime} />
+        </div>
+      </div>
+    </Link>
+  );
+}
+
+function PlaysRight({ id, plays, leader, color, hidePlays }) {
   const p = plays(id);
   const ld = leader(id);
   return (
     <>
-      {p > 0 ? <span className="score" style={{ fontSize: 11 }}>▶ {p.toLocaleString()}</span> : null}
+      {!hidePlays && p > 0 ? <span className="score" style={{ fontSize: 11 }}>▶ {p.toLocaleString()}</span> : null}
       {ld ? (
         <span style={{ display: 'flex', alignItems: 'center', gap: 3 }}><Crown size={11} style={{ color }} />{ld}</span>
       ) : <span style={{ color: C.soft }}>Empty</span>}
@@ -464,8 +568,8 @@ function BrowseColumn({ label, Icon, color, tint, rows, cta }) {
         <span className="viewall" style={{ color }}>{cta}</span>
       </div>
       {rows.map(({ q, right }) => (
-        <Link href={`/quiz/${q.id}`} className="qrow" key={q.id}>
-          <span className="qtitle">{q.title}</span>
+        <Link href={`/quiz/${q.id}`} className="qrow" key={q.id} title={q.rawTitle || q.title}>
+          <span className="qtitle">{stripVerb(q.title)}</span>
           <span className="qmeta">{right}</span>
         </Link>
       ))}

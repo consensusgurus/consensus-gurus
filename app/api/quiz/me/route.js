@@ -48,6 +48,28 @@ export async function GET(request) {
     const ranked = rankPlayers(players, 'all');
     const total = ranked.length;
 
+    // Per-metric ranks + player-base averages across EVERY player (registered
+    // AND anonymous — anon keys a:/r: are never filtered out). For each metric
+    // we sort all players desc and find this player's 1-based position; the
+    // base average is the mean of that metric over all players.
+    const allPlayers = [...players.values()];
+    const metricVal = {
+      rating: (q) => q.rating,
+      correct: (q) => q.correct,
+      completed: (q) => q.completed,
+      accuracy: (q) => q.accuracy,
+      daysPlayed: (q) => q.daysPlayed || 0,
+    };
+    function rankAndBase(getter, myVal) {
+      const vals = allPlayers.map(getter);
+      const n = vals.length || 1;
+      const avg = vals.reduce((a, b) => a + (Number(b) || 0), 0) / n;
+      // 1-based rank: 1 + count of players strictly greater than me.
+      let greater = 0;
+      for (const v of vals) if ((Number(v) || 0) > (Number(myVal) || 0)) greater += 1;
+      return { rank: greater + 1, base: avg };
+    }
+
     if (!myKey || !players.has(myKey)) {
       // No games on record yet for this identity.
       return NextResponse.json({
@@ -89,6 +111,23 @@ export async function GET(request) {
         played: p.played,
         completed: p.completed,
         accuracy: p.accuracy,
+        daysPlayed: p.daysPlayed || 0,
+      },
+      // Per-metric rank (#N of totalPlayers) and player-base average, for the
+      // Stat Hub "vs. Player Base" table and the metric "#rank" chips.
+      ranks: {
+        rating: rankAndBase(metricVal.rating, p.rating).rank,
+        correct: rankAndBase(metricVal.correct, p.correct).rank,
+        completed: rankAndBase(metricVal.completed, p.completed).rank,
+        accuracy: rankAndBase(metricVal.accuracy, p.accuracy).rank,
+        daysPlayed: rankAndBase(metricVal.daysPlayed, p.daysPlayed || 0).rank,
+      },
+      base: {
+        rating: Math.round(rankAndBase(metricVal.rating, p.rating).base),
+        correct: Math.round(rankAndBase(metricVal.correct, p.correct).base),
+        completed: Math.round(rankAndBase(metricVal.completed, p.completed).base * 10) / 10,
+        accuracy: Math.round(rankAndBase(metricVal.accuracy, p.accuracy).base * 10) / 10,
+        daysPlayed: Math.round(rankAndBase(metricVal.daysPlayed, p.daysPlayed || 0).base * 10) / 10,
       },
       byCategory: p.byCategory, // { cat: { rating, matches, netDelta } }
       recent,
