@@ -55,7 +55,7 @@ function ActionRow({ item, list }) {
       {links.map && <a href={links.map} target="_blank" rel={rel} style={BTN_PRIMARY}>{primaryLabel}</a>}
       {links.website && <a href={links.website} target="_blank" rel="noopener noreferrer" style={BTN}>Website</a>}
       {links.video && <a href={links.video} target="_blank" rel="noopener noreferrer" style={{ ...BTN, color: C.accent, borderColor: C.accent, fontWeight: 700 }}>{'▶'} {list.itemVideoLabel || 'Video'}</a>}
-      {picsBtns.length > 0 && (
+      {isPlace && picsBtns.length > 0 && (
         <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6, flexWrap: 'wrap' }}>
           <span style={{ fontSize: 10.5, fontWeight: 700, letterSpacing: '0.04em', textTransform: 'uppercase', color: C.soft }}>Pics:</span>
           {picsBtns.map(([k, label]) => <a key={k} href={links[k]} target="_blank" rel="noopener noreferrer" style={BTN}>{label}</a>)}
