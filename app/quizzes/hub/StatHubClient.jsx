@@ -567,26 +567,26 @@ function ChallengesPanel({ me }) {
         .chg-btn:disabled{opacity:0.55;cursor:default;}
         @keyframes chgspin{to{transform:rotate(360deg);}}
         .chg-scroll{overflow-x:auto;border:1px solid ${C.line};border-radius:12px;background:${C.surface};margin-top:14px;}
-        .chg-table{border-collapse:separate;border-spacing:0;width:100%;font-variant-numeric:tabular-nums;font-size:12.5px;}
+        .chg-table{border-collapse:separate;border-spacing:0;width:100%;font-variant-numeric:tabular-nums;font-size:10px;}
         .chg-table th,.chg-table td{white-space:nowrap;}
-        .chg-grp{padding:10px 8px 8px;text-align:center;border-bottom:2px solid var(--ac);border-left:1px solid ${C.line};background:${C.bg};}
-        .chg-grp-ico{font-size:18px;display:block;line-height:1;margin-bottom:3px;}
-        .chg-grp-nm{font-weight:700;font-size:12.5px;color:${C.ink};}
-        .chg-sub{padding:6px 8px 8px;text-align:center;font-size:10px;letter-spacing:.04em;text-transform:uppercase;color:var(--ac);font-weight:700;border-bottom:1px solid ${C.line};border-left:1px solid rgba(20,22,28,0.04);background:${C.bg};}
-        .chg-corner{position:sticky;left:0;z-index:2;background:${C.bg};text-align:left;padding:10px 14px;font-weight:700;font-size:12.5px;color:${C.ink};border-bottom:2px solid ${C.accent};border-right:2px solid ${C.line};}
-        .chg-thc{padding:8px 10px;font-size:10px;letter-spacing:.04em;text-transform:uppercase;color:${C.muted};border-bottom:1px solid ${C.line};text-align:center;vertical-align:bottom;background:${C.bg};font-weight:700;}
+        .chg-grp{padding:6px 3px 4px;text-align:center;border-bottom:2px solid var(--ac);border-left:1px solid ${C.line};background:${C.bg};}
+        .chg-grp-ico{font-size:13px;display:block;line-height:1;margin-bottom:2px;}
+        .chg-grp-nm{font-weight:700;font-size:9.5px;color:${C.ink};}
+        .chg-sub{padding:3px 3px 4px;text-align:center;font-size:8px;letter-spacing:.02em;text-transform:uppercase;color:var(--ac);font-weight:700;border-bottom:1px solid ${C.line};border-left:1px solid rgba(20,22,28,0.04);background:${C.bg};}
+        .chg-corner{position:sticky;left:0;z-index:2;background:${C.bg};text-align:left;padding:6px 10px;font-weight:700;font-size:10px;color:${C.ink};border-bottom:2px solid ${C.accent};border-right:2px solid ${C.line};}
+        .chg-thc{padding:5px 5px;font-size:8px;letter-spacing:.02em;text-transform:uppercase;color:${C.muted};border-bottom:1px solid ${C.line};text-align:center;vertical-align:bottom;background:${C.bg};font-weight:700;}
         .chg-thc.chg-first{border-left:2px solid ${C.line};}
-        .chg-player{position:sticky;left:0;z-index:1;background:${C.surface};text-align:left;padding:9px 14px;border-right:2px solid ${C.line};border-bottom:1px solid rgba(20,22,28,0.06);}
-        .chg-rk{display:inline-flex;align-items:center;justify-content:center;width:21px;height:21px;border-radius:50%;border:1px solid ${C.line};font-size:11px;font-weight:700;margin-right:9px;vertical-align:middle;color:${C.ink};}
-        .chg-nm{font-weight:700;font-size:13.5px;vertical-align:middle;}
-        .chg-pl{font-size:10.5px;color:${C.soft};margin-left:8px;vertical-align:middle;}
-        .chg-sc{text-align:center;padding:8px;border-bottom:1px solid rgba(20,22,28,0.06);border-left:1px solid rgba(20,22,28,0.04);}
-        .chg-v{font-weight:800;font-size:14px;color:var(--ac);}
-        .chg-empty{color:${C.soft};font-size:13px;}
+        .chg-player{position:sticky;left:0;z-index:1;background:${C.surface};text-align:left;padding:5px 10px;border-right:2px solid ${C.line};border-bottom:1px solid rgba(20,22,28,0.06);}
+        .chg-rk{display:inline-flex;align-items:center;justify-content:center;width:17px;height:17px;border-radius:50%;border:1px solid ${C.line};font-size:9.5px;font-weight:700;margin-right:6px;vertical-align:middle;color:${C.ink};}
+        .chg-nm{font-weight:700;font-size:11px;vertical-align:middle;}
+        .chg-pl{font-size:8.5px;color:${C.soft};margin-left:6px;vertical-align:middle;}
+        .chg-sc{text-align:center;padding:4px 3px;border-bottom:1px solid rgba(20,22,28,0.06);border-left:1px solid rgba(20,22,28,0.04);}
+        .chg-v{font-weight:800;font-size:10.5px;color:var(--ac);}
+        .chg-empty{color:${C.soft};font-size:11px;}
         .chg-zero .chg-v{color:${C.soft};font-weight:600;}
-        .chg-totc{text-align:center;padding:8px 12px;border-left:2px solid ${C.line};border-bottom:1px solid rgba(20,22,28,0.06);}
-        .chg-totc span{font-weight:800;font-size:16px;color:${C.accent};}
-        .chg-tott{text-align:center;padding:8px 14px 8px 10px;font-size:12.5px;font-weight:600;color:${C.ink};border-bottom:1px solid rgba(20,22,28,0.06);}
+        .chg-totc{text-align:center;padding:4px 7px;border-left:2px solid ${C.line};border-bottom:1px solid rgba(20,22,28,0.06);}
+        .chg-totc span{font-weight:800;font-size:11.5px;color:${C.accent};}
+        .chg-tott{text-align:center;padding:4px 8px;font-size:9.5px;font-weight:600;color:${C.ink};border-bottom:1px solid rgba(20,22,28,0.06);}
         .chg-table tbody tr:hover td,.chg-table tbody tr:hover th.chg-player{background:${C.accsoft};}
         .chg-legend{display:flex;flex-wrap:wrap;gap:8px 16px;margin:14px 0 4px;font-size:11.5px;color:${C.muted};}
         .chg-chip{display:inline-flex;align-items:center;gap:6px;}
@@ -623,7 +623,7 @@ function ChallengesPanel({ me }) {
         </div>
 
         {!loaded ? (
-          <div style={{ fontSize: 13, color: C.soft, padding: '24px 0' }}>Loading the standings\u2026</div>
+          <div style={{ fontSize: 13, color: C.soft, padding: '24px 0' }}>Loading the standings…</div>
         ) : users.length === 0 ? (
           <div style={{ fontSize: 13, color: C.soft, padding: '24px 0' }}>No registered players have played yet. Sign up before a quiz to put your name in the running.</div>
         ) : (
@@ -659,10 +659,10 @@ function ChallengesPanel({ me }) {
                       </th>
                       {cols.map((col) => {
                         const sc = u.scores ? u.scores[col.quizId] : undefined;
-                        if (sc === undefined || sc === null) return <td key={col.quizId} className="chg-sc chg-empty">\u00b7</td>;
+                        if (sc === undefined || sc === null) return <td key={col.quizId} className="chg-sc chg-empty">·</td>;
                         const tm = u.times ? u.times[col.quizId] : null;
                         const tot = colTotal[col.quizId] || 0;
-                        return <td key={col.quizId} className={`chg-sc${sc === 0 ? ' chg-zero' : ''}`} title={`${sc}/${tot} correct${tm != null ? ` \u00b7 ${chMmss(tm)}` : ''} \u00b7 best attempt`}><span className="chg-v" style={{ '--ac': col.group.color }}>{pctOf(sc, tot)}%</span></td>;
+                        return <td key={col.quizId} className={`chg-sc${sc === 0 ? ' chg-zero' : ''}`} title={`${sc}/${tot} correct${tm != null ? ` · ${chMmss(tm)}` : ''} · best attempt`}><span className="chg-v" style={{ '--ac': col.group.color }}>{pctOf(sc, tot)}%</span></td>;
                       })}
                       <td className="chg-totc"><span>{pctOf(u.totalCorrect, totalPossible)}%</span></td>
                       <td className="chg-tott">{chMmss(u.totalTime)}</td>
@@ -677,7 +677,7 @@ function ChallengesPanel({ me }) {
         <div className="chg-legend">
           {ch.groups.map((g) => (<span key={g.key} className="chg-chip"><span className="chg-sw" style={{ background: g.color }} />{g.label} {g.emoji}</span>))}
         </div>
-        <p className="chg-foot">Cells show how much of each quiz a player has completed (correct \u00f7 quiz total) on their best attempt since the window opened; hover a cell for the raw count and time, a dot (\u00b7) means they haven{"'"}t taken that quiz yet. Ranking is by <b>total correct</b> across every quiz, ties broken by <b>least total time</b>. Only signed-up players appear. Hit Refresh for the latest.</p>
+        <p className="chg-foot">Cells show how much of each quiz a player has completed (correct ÷ quiz total) on their best attempt since the window opened; hover a cell for the raw count and time, a dot (·) means they haven{"'"}t taken that quiz yet. Ranking is by <b>total correct</b> across every quiz, ties broken by <b>least total time</b>. Only signed-up players appear. Hit Refresh for the latest.</p>
       </div>
     </div>
   );

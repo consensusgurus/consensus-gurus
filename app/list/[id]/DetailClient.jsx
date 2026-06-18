@@ -546,28 +546,8 @@ function ListDetail({ list, viewCount, voteData, userVotes, extras, relatedLists
   }
 
   return (
-    <div style={{ position: 'relative', zIndex: 2, maxWidth: 1040, margin: '0 auto', padding: '24px 20px 80px' }}>
-      {!compact && (
-        <button
-          onClick={onBack}
-          style={{
-            background: 'transparent',
-            border: 'none',
-            fontFamily: "'Manrope', system-ui, sans-serif",
-            fontSize: 13,
-            fontWeight: 600,
-            color: '#6b7280',
-            cursor: 'pointer',
-            display: 'flex',
-            alignItems: 'center',
-            gap: 6,
-            padding: '8px 0',
-          }}
-        >
-          <ArrowLeft size={15} strokeWidth={2.5} />
-          Back to Lists
-        </button>
-      )}
+    <div style={{ position: 'relative', zIndex: 2, maxWidth: 1180, margin: '0 auto', padding: '24px 20px 80px' }}>
+      {!compact && <SiteHeader active="lists" />}
 
       {!compact && <div style={{ paddingBottom: 0, marginTop: 8 }}>
         <div style={{ display: 'flex', alignItems: 'flex-end', gap: 'clamp(16px, 4vw, 28px)' }}>

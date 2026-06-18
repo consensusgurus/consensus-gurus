@@ -231,7 +231,7 @@ export default function QuizHomeClient() {
     if (scope === 'all') {
       const a = me.activity || {};
       return {
-        rank: me.rank || null,
+        rank: (me.ranks && me.ranks.rating) || me.rank || null,
         denom: me.totalPlayers || 0,
         correct: a.correct ?? null,
         played: a.played ?? null,
@@ -401,7 +401,7 @@ export default function QuizHomeClient() {
           </div>
           <div className="qz-div" style={{ width: 1, height: 34, background: C.line }} />
           <div>
-            <div className="lbl">Your rank{scope === 'all' ? '' : ` · ${byKey[scope]?.label}`}</div>
+            <div className="lbl">Skill rank{scope === 'all' ? '' : ` · ${byKey[scope]?.label}`}</div>
             <div style={{ display: 'flex', alignItems: 'baseline', gap: 5 }}>
               <span style={{ fontSize: 22, fontWeight: 700, color: C.accent, lineHeight: 1 }}>{playerStats && playerStats.rank ? `#${playerStats.rank}` : '—'}</span>
               {playerStats && playerStats.denom ? <span style={{ fontSize: 11, color: C.muted }}>of {playerStats.denom.toLocaleString()}</span> : null}
