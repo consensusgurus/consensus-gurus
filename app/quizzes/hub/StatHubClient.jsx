@@ -206,8 +206,8 @@ export default function StatHubClient() {
                 <div className="lbl">Skill Rating</div>
                 <div style={{ fontSize: 21, fontWeight: 800, color: C.ink }}>{found ? rating.toLocaleString() : '—'}{found ? <span style={{ background: tierBg, color: tierFg, fontSize: 10, fontWeight: 700, padding: '2px 7px', borderRadius: 5, verticalAlign: 2, marginLeft: 6 }}>{(tierLabel || '').replace(/ Tier$/, '')}</span> : null}</div>
               </div>
-              <ChipMetric label="Correct" value={found ? profile.activity.correct.toLocaleString() : '—'} rank={found && profile.ranks ? profile.ranks.correct : null} />
               <ChipMetric label="Completed" value={found ? profile.activity.completed : '—'} rank={found && profile.ranks ? profile.ranks.completed : null} />
+              <ChipMetric label="Correct" value={found ? profile.activity.correct.toLocaleString() : '—'} rank={found && profile.ranks ? profile.ranks.correct : null} />
               <ChipMetric label="Accuracy" value={found ? `${profile.activity.accuracy}%` : '—'} rank={found && profile.ranks ? profile.ranks.accuracy : null} />
             </div>
           </div>

@@ -431,9 +431,9 @@ export default function QuizHomeClient() {
             </div>
           </div>
           <div className="qz-stats" style={{ display: 'flex', gap: 22, marginLeft: 'auto', flexWrap: 'wrap' }}>
-            <div><div style={{ fontSize: 17, fontWeight: 700 }}>{playerStats && playerStats.correct != null ? playerStats.correct.toLocaleString() : '—'}</div><div className="lbl">correct</div></div>
-            <div><div style={{ fontSize: 17, fontWeight: 700 }}>{playerStats && playerStats.played != null ? playerStats.played : '—'}</div><div className="lbl">played</div></div>
             <div><div style={{ display: 'flex', alignItems: 'baseline', gap: 4 }}><span style={{ fontSize: 17, fontWeight: 700 }}>{playerStats && playerStats.completed != null ? playerStats.completed : '—'}</span>{playerStats && playerStats.completed != null && totalCount ? <span style={{ fontSize: 11, fontWeight: 600, color: C.soft }}>({playerStats.completed > 0 && playerStats.completed / totalCount < 0.005 ? '<1' : Math.round((playerStats.completed / totalCount) * 100)}%)</span> : null}</div><div className="lbl">completed</div></div>
+            <div><div style={{ fontSize: 17, fontWeight: 700 }}>{playerStats && playerStats.played != null ? playerStats.played : '—'}</div><div className="lbl">played</div></div>
+            <div><div style={{ fontSize: 17, fontWeight: 700 }}>{playerStats && playerStats.correct != null ? playerStats.correct.toLocaleString() : '—'}</div><div className="lbl">correct</div></div>
             <div><div style={{ fontSize: 17, fontWeight: 700 }}>{playerStats && playerStats.accuracy != null ? `${playerStats.accuracy}%` : '—'}</div><div className="lbl">accuracy</div></div>
           </div>
           <Link className="hubbtn" href="/quizzes/hub"><BarChart3 size={16} /> Stat Hub <ArrowRight size={15} /></Link>
@@ -492,17 +492,22 @@ export default function QuizHomeClient() {
 
         {/* browse header + search */}
         <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 14, flexWrap: 'wrap' }}>
-          <h2 style={{ fontSize: 17, fontWeight: 800, margin: 0, whiteSpace: 'nowrap', display: 'flex', alignItems: 'center', gap: 10 }}>
-            {listMode && !searchResults && scope === 'all' && (
-              <button type="button" onClick={() => setListMode(null)} style={{ background: 'none', border: 'none', padding: 0, cursor: 'pointer', color: C.accent, fontWeight: 700, fontSize: 14 }}>‹ Back</button>
-            )}
-            {searchResults ? `Search Results · ${searchResults.length}`
-              : scope !== 'all' ? `${byKey[scope]?.label} Quizzes`
-              : listMode === 'newest' ? `Newest Quizzes · ${newestAll.length}`
-              : listMode === 'mostplayed' ? `Most Played · ${mostPlayedAll.length}`
-              : listMode === 'live' ? 'Live · Quizzes Played'
-              : 'Browse Quizzes'}
-          </h2>
+          {(!searchResults && scope === 'all' && !listMode) ? (
+            <Link href="/submit?for=quiz" style={{ flex: '0 0 auto', display: 'flex', alignItems: 'center', gap: 6, background: C.ink, color: '#fff', padding: '9px 16px', borderRadius: 10, fontFamily: FONT, fontWeight: 700, fontSize: 13, textDecoration: 'none', whiteSpace: 'nowrap' }}>
+              Submit a Quiz
+            </Link>
+          ) : (
+            <h2 style={{ fontSize: 17, fontWeight: 800, margin: 0, whiteSpace: 'nowrap', display: 'flex', alignItems: 'center', gap: 10 }}>
+              {listMode && !searchResults && scope === 'all' && (
+                <button type="button" onClick={() => setListMode(null)} style={{ background: 'none', border: 'none', padding: 0, cursor: 'pointer', color: C.accent, fontWeight: 700, fontSize: 14 }}>‹ Back</button>
+              )}
+              {searchResults ? `Search Results · ${searchResults.length}`
+                : scope !== 'all' ? `${byKey[scope]?.label} Quizzes`
+                : listMode === 'newest' ? `Newest Quizzes · ${newestAll.length}`
+                : listMode === 'mostplayed' ? `Most Played · ${mostPlayedAll.length}`
+                : 'Live · Quizzes Played'}
+            </h2>
+          )}
           <div style={{ position: 'relative', flex: '1 1 200px' }}>
             <Search size={16} style={{ position: 'absolute', left: 12, top: '50%', transform: 'translateY(-50%)', color: C.soft }} />
             <input
@@ -513,9 +518,6 @@ export default function QuizHomeClient() {
               style={{ width: '100%', padding: '9px 12px 9px 36px', border: `1px solid ${C.line}`, borderRadius: 10, font: 'inherit', fontFamily: FONT, fontSize: 13.5, background: '#fff', color: C.ink, outline: 'none', boxSizing: 'border-box' }}
             />
           </div>
-          <Link href="/submit?for=quiz" style={{ flex: '0 0 auto', display: 'flex', alignItems: 'center', gap: 6, background: C.ink, color: '#fff', padding: '9px 16px', borderRadius: 10, fontFamily: FONT, fontWeight: 700, fontSize: 13, textDecoration: 'none', whiteSpace: 'nowrap' }}>
-            Submit a Quiz
-          </Link>
         </div>
 
         {/* lists */}
