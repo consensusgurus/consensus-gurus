@@ -334,6 +334,7 @@ export default function QuizHomeClient() {
     .qzh .qtitle{flex:1 1 auto;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
     .qzh .att{font-size:9.5px;font-weight:700;color:${C.soft};}
     .qzh .score{flex:none;font-weight:700;color:${C.accent};font-variant-numeric:tabular-nums;}
+    @media(max-width:680px){.qzh .lf-extra{display:none;}}
     @keyframes qzp{0%{opacity:1}50%{opacity:.35}100%{opacity:1}}
     .qzh .dd{position:relative;}
     .qzh .ddbtn{display:flex;align-items:center;gap:8px;background:#fff;border:1px solid ${C.line};border-radius:10px;padding:9px 12px;cursor:pointer;font:inherit;min-width:200px;}
@@ -457,8 +458,8 @@ export default function QuizHomeClient() {
                     <span className="qtitle" style={{ fontWeight: 600 }}>{f.title}</span>
                     <span className="qmeta" style={{ gap: 8 }}>
                       <WhoTag name={f.name || (f.isAnon ? 'Guest' : 'Player')} isAnon={f.isAnon} />
-                      <span className="score">{f.score}/{f.total}</span>
-                      <span className="att">{f.attempt > 1 ? `attempt ${f.attempt}` : '1st try'}</span>
+                      <span className="score lf-extra">{f.score}/{f.total}</span>
+                      <span className="att lf-extra">{f.attempt > 1 ? `attempt ${f.attempt}` : '1st try'}</span>
                       <span style={{ color: C.soft }}>{relTime(f.playedAt)}</span>
                     </span>
                   </div>
