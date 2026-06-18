@@ -1,4 +1,5 @@
 'use client';
+import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { getAllSources } from '@/lib/sources';
 import { LISTS } from '@/lib/data';
@@ -36,6 +37,17 @@ function Logo({ size = 40 }) {
 export default function SiteHeader({ active = 'lists', maxWidth = 1180, visitors }) {
   const linkStyle = (isOn) => ({ textDecoration: 'none', fontSize: 14, fontWeight: isOn ? 700 : 500, color: isOn ? C.ink : C.muted });
   const plain = { color: 'inherit', textDecoration: 'none' };
+  // One consistent site-wide visitors figure on EVERY page: fetch it here so the
+  // home, quizzes, list-detail, and quiz-play headers all show the same number,
+  // regardless of what (if anything) each page passes in.
+  const [vis, setVis] = useState(typeof visitors === 'number' ? visitors : null);
+  useEffect(() => {
+    let on = true;
+    fetch('/api/visitors').then((r) => r.json()).then((d) => {
+      if (on && d && typeof d.visitors === 'number') setVis(d.visitors);
+    }).catch(() => {});
+    return () => { on = false; };
+  }, []);
   return (
     <div style={{ fontFamily: FONT }}>
       <style>{`
@@ -66,9 +78,9 @@ export default function SiteHeader({ active = 'lists', maxWidth = 1180, visitors
               <Link href="/quizzes" style={linkStyle(active === 'quizzes')}>Quizzes</Link>
             </nav>
             <div className="sh-stat">
-              {LIST_COUNT.toLocaleString()} lists{' '}&middot;{' '}
-              <Link href="/sources" style={plain}>{SOURCE_COUNT.toLocaleString()} sources</Link>{' '}&middot;{' '}
-              <Link href="/quizzes" style={plain}>{QUIZ_COUNT.toLocaleString()} quizzes</Link>{typeof visitors === 'number' ? ` · ${visitors.toLocaleString()} visitors` : ''}
+              <Link href="/" style={plain}>{LIST_COUNT.toLocaleString()} lists</Link>{' '}&middot;{' '}
+              <Link href="/quizzes" style={plain}>{QUIZ_COUNT.toLocaleString()} quizzes</Link>{' '}&middot;{' '}
+              <Link href="/sources" style={plain}>{SOURCE_COUNT.toLocaleString()} sources</Link>{typeof vis === 'number' ? <>{' '}&middot;{' '}{vis.toLocaleString()} visitors</> : ''}
             </div>
           </div>
         </div>

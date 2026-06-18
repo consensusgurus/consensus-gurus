@@ -366,7 +366,7 @@ export default function QuizHomeClient() {
     <div style={{ background: C.bg, minHeight: '100vh', position: 'relative' }}>
       <Grain />
       <style>{css}</style>
-      <SiteHeader active="quizzes" maxWidth={1080} />
+      <SiteHeader active="quizzes" />
       <div className="qzh" style={{ maxWidth: 1180, margin: '0 auto', padding: '20px 24px 70px', position: 'relative' }}>
 
         {/* player bar */}
@@ -472,16 +472,6 @@ export default function QuizHomeClient() {
               style={{ width: '100%', padding: '9px 12px 9px 36px', border: `1px solid ${C.line}`, borderRadius: 10, font: 'inherit', fontFamily: FONT, fontSize: 13.5, background: '#fff', color: C.ink, outline: 'none', boxSizing: 'border-box' }}
             />
           </div>
-          {!searchResults && (
-            <div style={{ display: 'flex', gap: 3, background: '#eceef1', borderRadius: 9, padding: 3, flex: 'none' }}>
-              {[['compact', 'Compact'], ['detailed', 'Detailed']].map(([v, lbl]) => (
-                <button key={v} onClick={() => setBrowseView(v)}
-                  style={{ border: 'none', background: view === v ? '#fff' : 'transparent', color: view === v ? C.ink : C.muted, fontWeight: view === v ? 700 : 600, boxShadow: view === v ? '0 1px 2px rgba(20,22,28,0.06)' : 'none', borderRadius: 7, padding: '7px 13px', font: 'inherit', fontFamily: FONT, fontSize: 12.5, cursor: 'pointer' }}>
-                  {lbl}
-                </button>
-              ))}
-            </div>
-          )}
         </div>
 
         {/* lists */}
@@ -502,7 +492,7 @@ export default function QuizHomeClient() {
               })}
             </div>
           )
-        ) : view === 'detailed' ? (
+        ) : (
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill,minmax(330px,1fr))', gap: 12 }}>
             {(scope === 'all' ? catalog.slice() : (byKey[scope]?.quizzes || []).slice())
               .sort((a, b) => plays(b.id) - plays(a.id) || a.title.localeCompare(b.title))
@@ -511,20 +501,6 @@ export default function QuizHomeClient() {
                 <DetailCard key={q.id} q={q} s={statsById[q.id]} leader={leader(q.id)} color={(DEPT_COLOR[q.dept] || DEPT_COLOR.misc).c} />
               ))}
           </div>
-        ) : scope === 'all' ? (
-          <div className="qcols">
-            <BrowseColumn label="Newest" Icon={Sparkles} color={C.accent} tint={C.accsoft}
-              rows={newest.map((q) => ({ q, right: <NewRight q={q} /> }))} cta="View all ›" />
-            <BrowseColumn label="Most Played" Icon={Flame} color="#c2691c" tint="#f4e2cd"
-              rows={mostPlayed.map((q) => ({ q, right: <PlaysRight id={q.id} plays={plays} leader={leader} color="#c2691c" hidePlays /> }))} cta="View all ›" />
-            {cats.map((c) => (
-              <BrowseColumn key={c.key} label={c.label} Icon={c.Icon} color={c.c} tint={c.t}
-                rows={colRows(c, 6, shownIds).map((q) => ({ q, right: <PlaysRight id={q.id} plays={plays} leader={leader} color={c.c} hidePlays /> }))}
-                cta={`View all ${c.count} ›`} />
-            ))}
-          </div>
-        ) : (
-          <CategoryFull cat={byKey[scope]} plays={plays} leader={leader} />
         )}
       </div>
 

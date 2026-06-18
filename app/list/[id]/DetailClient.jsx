@@ -1,6 +1,7 @@
 'use client';
 import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { useRouter } from 'next/navigation';
+import SiteHeader from '../../SiteHeader';
 import {
   ChevronUp,
   ChevronDown,
@@ -2055,6 +2056,7 @@ export default function DetailClient({ listId }) {
       }}
     >
       <Grain />
+      <div style={{ position: 'relative', zIndex: 3 }}><SiteHeader active="lists" maxWidth={1040} /></div>
       {!loaded ? (
         <div
           style={{

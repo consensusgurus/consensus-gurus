@@ -15,6 +15,7 @@ import { ArrowLeft, Share2, Check, Flag, Trophy, HelpCircle, Globe } from 'lucid
 import { getQuiz } from '@/lib/quizzes';
 import Grain from '../../Grain';
 import Footer from '../../Footer';
+import SiteHeader from '../../SiteHeader';
 import Count from '../../Count';
 
 const COLORS = {
@@ -356,20 +357,10 @@ export default function LogicGridClient({ quizId }) {
   return (
     <div style={{ minHeight: '100vh', background: COLORS.cream, color: COLORS.ink, position: 'relative', overflow: 'clip' }}>
       <Grain />
+      <div style={{ position: 'relative', zIndex: 3 }}><SiteHeader active="quizzes" /></div>
       <div style={{ position: 'relative', zIndex: 2, maxWidth: 1180, margin: '0 auto', padding: '24px 20px 80px' }}>
 
         <style>{`@import url('https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap');`}</style>
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12, paddingBottom: 11, borderBottom: `1px solid ${COLORS.faded}33` }}>
-          <button onClick={() => router.push('/quizzes')} style={{ background: 'transparent', border: 'none', fontFamily: SANS, fontSize: 13, color: COLORS.faded, cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: 6, padding: '4px 0' }}>
-            <ArrowLeft size={15} strokeWidth={2.5} />
-            Back to Quizzes
-          </button>
-          <div style={{ display: 'flex', alignItems: 'baseline', gap: 9 }}>
-            <a href="/" style={{ fontFamily: SANS, fontSize: 15, fontWeight: 800, letterSpacing: '-0.02em', color: COLORS.ink, textDecoration: 'none' }}>Source of Truths</a>
-            <span style={{ color: '#9aa0ab' }}>/</span>
-            <span style={{ fontFamily: SANS, fontSize: 15, fontWeight: 600, color: COLORS.ember }}>Quizzes</span>
-          </div>
-        </div>
 
         {/* Header */}
         <div style={{ paddingBottom: 0, marginTop: 8 }}>

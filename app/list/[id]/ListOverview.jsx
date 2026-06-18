@@ -618,7 +618,7 @@ function LedgerRow({ item, rank, list, desc, pics, isTop, heavyDivider, poster, 
           fontWeight: 900,
           fontSize: isTop ? 30 : 20,
           lineHeight: 1,
-          color: isTop ? COLORS.ember : COLORS.faded,
+          color: rank === 1 ? '#e8b43a' : rank === 2 ? '#b8bcc4' : rank === 3 ? '#c8814b' : COLORS.faded,
           textAlign: 'center',
         }}
       >

@@ -17,9 +17,9 @@ const LOADERS = {
   'oceania': () => import('@/lib/oceania-geo.js').then((m) => m.GEO),
 };
 
-const LAND = '#e9edf2';
-const LINE = '#aab1bd';
-const SEA = '#dbe7f2';
+const LAND = '#eef1f4';
+const LINE = '#94a0b0';
+const SEA = '#bcd4ec';
 const GREEN = '#10b981';
 const RED = '#c0392b';
 const HOVER = '#e8effb';
