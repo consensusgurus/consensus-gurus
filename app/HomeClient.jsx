@@ -1467,6 +1467,7 @@ function broadCatOf(list) {
 function ntHash(s) { let h = 0; for (let i = 0; i < s.length; i++) h = (h * 31 + s.charCodeAt(i)) >>> 0; return h; }
 function ntGrad(s) { const h = ntHash(s) % 360; return `linear-gradient(135deg,hsl(${h},40%,46%),hsl(${(h + 34) % 360},44%,30%))`; }
 function ntTint(hex) { return hex + '22'; }
+const NT_MEDAL = ['#c9a227', '#9ca3a8', '#a9743f']; // gold / silver / bronze
 
 // Top-N consensus preview rows for a tile (mirrors the list page logic).
 function ntPreview(list, voteData, extras, limit) {
@@ -1585,7 +1586,7 @@ export function BrowseTile({ list, views, voteData, extras, onClick, featured, r
         <div className="nt-lbl" style={{ marginBottom: 5 }}>{preview.label}</div>
         {preview.items.map((name, i) => (
           <div className="nt-crow" key={i}>
-            <span className="nt-cnum" style={{ background: ntTint(cat.color), color: cat.color }}>{i + 1}</span>
+            <span className="nt-cnum" style={i < 3 ? { background: '#fff', color: NT_MEDAL[i], border: `1.5px solid ${NT_MEDAL[i]}` } : { background: ntTint(cat.color), color: cat.color }}>{i + 1}</span>
             <span className="nt-cname">{stripItemScore(name)}</span>
           </div>
         ))}

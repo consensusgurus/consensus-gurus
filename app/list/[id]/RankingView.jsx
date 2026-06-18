@@ -122,10 +122,11 @@ export default function RankingView({ list, voteData, extras }) {
 
   return (
     <div style={{ fontFamily: FONT }}>
+      <style>{`.rv-podium{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:6px;}@media(max-width:680px){.rv-podium{grid-template-columns:1fr;}}`}</style>
       {podium.length > 0 && (
         <>
           <div style={{ fontSize: 10, fontWeight: 800, letterSpacing: '0.14em', textTransform: 'uppercase', color: C.soft, margin: '2px 2px 10px' }}>Top 3 · The Podium</div>
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14, marginBottom: 6 }}>
+          <div className="rv-podium">
             {podium.map((item, i) => {
               const { name, locality } = parseItem(item);
               const src = heroUrl(heroMap, item);
