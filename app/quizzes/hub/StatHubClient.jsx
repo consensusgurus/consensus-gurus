@@ -72,6 +72,7 @@ export default function StatHubClient() {
   const [stats, setStats] = useState([]);     // /api/quiz/stats
   const [totals, setTotals] = useState({ byQuiz: {}, leaders: {}, total: 0 });
   const [challenge, setChallenge] = useState(null); // /api/quiz/challenge-leaderboard
+  const [board, setBoard] = useState(null); // full Elo ranking of every player (incl. anon)
 
   const catalog = useMemo(() => (QUIZZES || []).filter((q) => q && q.id).map((q) => ({
     id: q.id, title: q.navTitle || cleanTitle(q.title) || q.id, dept: deptOf(q),
@@ -89,6 +90,10 @@ export default function StatHubClient() {
   }, [catalog]);
   const byKey = useMemo(() => Object.fromEntries(cats.map((c) => [c.key, c])), [cats]);
 
+  // Current player's identity, used to highlight their row in the User Base board.
+  const myAnonKey = useMemo(() => { const a = getAnonId(); return a ? `a:${a}` : null; }, []);
+  const myName = useMemo(() => { const id = getIdentity(); return (id && id.username) || null; }, []);
+
   // ── data loads ──
   useEffect(() => {
     const ident = getIdentity();
@@ -105,6 +110,7 @@ export default function StatHubClient() {
     fetch('/api/quiz/stats').then((r) => r.json()).then((d) => { if (d && Array.isArray(d.quizzes)) setStats(d.quizzes); }).catch(() => {});
     fetch('/api/quiz/totals').then((r) => r.json()).then((d) => { if (d && !d.error) setTotals({ byQuiz: d.byQuiz || {}, leaders: d.leaders || {}, total: d.total || 0 }); }).catch(() => {});
     fetch('/api/quiz/challenge-leaderboard').then((r) => r.json()).then((d) => { if (d && !d.error) setChallenge(d); }).catch(() => {});
+    fetch('/api/quiz/elo?full=1').then((r) => r.json()).then((d) => { if (d && Array.isArray(d.players)) setBoard(d.players); }).catch(() => {});
   }, []);
 
   const found = me && me.found;
@@ -203,7 +209,7 @@ export default function StatHubClient() {
           <span className="tabcue" aria-hidden="true">{'\u203A'}</span>
         </div>
 
-        {tab === 'player' && <PlayerPanel me={me} scope={scope} cats={cats} byKey={byKey} totalQuizzes={catalog.length} />}
+        {tab === 'player' && <PlayerPanel me={me} scope={scope} cats={cats} byKey={byKey} totalQuizzes={catalog.length} board={board} myName={myName} myAnonKey={myAnonKey} />}
         {tab === 'quizzes' && <QuizzesPanel me={me} scope={scope} byKey={byKey} catalog={catalog} stats={statsById} totals={totals} totalPlays={totalPlays} />}
         {tab === 'challenges' && <ChallengesPanel me={me} challenge={challenge} titleById={titleById} />}
         {tab === 'rating' && <RatingPanel me={me} titleById={titleById} />}
@@ -239,7 +245,7 @@ function Metric({ label, value, sub, rank, total, avg }) {
   );
 }
 
-function PlayerPanel({ me, scope, cats, byKey, totalQuizzes }) {
+function PlayerPanel({ me, scope, cats, byKey, totalQuizzes, board, myName, myAnonKey }) {
   const found = me && me.found;
   const a = found ? me.activity : { correct: 0, answered: 0, played: 0, completed: 0, accuracy: 0, daysPlayed: 0 };
   const ranks = (found && me.ranks) || {};
@@ -249,13 +255,19 @@ function PlayerPanel({ me, scope, cats, byKey, totalQuizzes }) {
   const pctCompleted = a.played ? Math.round((a.completed / a.played) * 100) : 0;
   const byCat = (found && me.byCategory) || {};
   const catRows = (scope === 'all' ? cats : cats.filter((c) => c.key === scope));
+  const [pview, setPview] = useState('category');
 
   return (
     <div>
-      {/* All player stats consolidated into one table: an Overall row
-          (global values + #rank of all players + player-base avg) on top of the
-          per-category breakdown. Per-category ranks exist for Played and Skill
-          Rating; the other columns show the category value without a rank. */}
+      {/* Toggle: per-category breakdown vs the full User Base ranking (all players, guests included). */}
+      <div style={{ display: 'flex', gap: 3, background: '#eceef1', borderRadius: 9, padding: 3, width: 'fit-content', marginBottom: 14 }}>
+        {[['category', 'Category'], ['userbase', 'User Base']].map(([v, lbl]) => (
+          <button key={v} onClick={() => setPview(v)} style={{ border: 'none', background: pview === v ? '#fff' : 'transparent', color: pview === v ? C.ink : C.muted, fontWeight: pview === v ? 700 : 600, boxShadow: pview === v ? '0 1px 2px rgba(20,22,28,0.06)' : 'none', borderRadius: 7, padding: '7px 15px', font: 'inherit', fontFamily: FONT, fontSize: 12.5, cursor: 'pointer' }}>{lbl}</button>
+        ))}
+      </div>
+      {pview === 'userbase' ? (
+        <UserBaseBoard board={board} myName={myName} myAnonKey={myAnonKey} />
+      ) : (
       <div className="card" style={{ padding: '14px 16px' }}>
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 10, flexWrap: 'wrap', marginBottom: 10 }}>
           <div style={{ fontSize: 14, fontWeight: 700 }}>
@@ -308,6 +320,50 @@ function PlayerPanel({ me, scope, cats, byKey, totalQuizzes }) {
             <div style={{ fontSize: 10.5, color: C.soft, marginTop: 8 }}>The Overall row ranks you against all {totalPlayers.toLocaleString()} players on every metric (avg = player-base average). Per-category Skill Rating and Played also carry your standing among players active in that category.</div>
           </div>
         )}
+      </div>
+      )}
+    </div>
+  );
+}
+
+// Full ranking of every player (registered + anonymous), shown under the Player
+// tab's "User Base" toggle. The current player's row is highlighted.
+function UserBaseBoard({ board, myName, myAnonKey }) {
+  if (!board) return <div className="card" style={{ padding: 16, fontSize: 13, color: C.soft }}>Loading the full ranking…</div>;
+  if (!board.length) return <div className="card" style={{ padding: 16, fontSize: 13, color: C.soft }}>No ranked players yet.</div>;
+  return (
+    <div className="card" style={{ padding: '14px 16px' }}>
+      <div style={{ fontSize: 14, fontWeight: 700, marginBottom: 4 }}>Every Player, Ranked</div>
+      <div style={{ fontSize: 11, color: C.soft, marginBottom: 10 }}>All {board.length.toLocaleString()} players by skill rating, anonymous guests included. Your row is highlighted.</div>
+      <div style={{ overflow: 'auto', maxHeight: 600 }}>
+        <table>
+          <thead><tr>
+            <th style={{ width: 44 }}>#</th>
+            <th>Player</th>
+            <th style={{ textAlign: 'right' }}>Skill Rating</th>
+            <th style={{ textAlign: 'right' }}>Correct</th>
+            <th style={{ textAlign: 'right' }}>Completed</th>
+            <th style={{ textAlign: 'right' }}>Days</th>
+            <th style={{ textAlign: 'right' }}>Accuracy</th>
+          </tr></thead>
+          <tbody>
+            {board.map((p) => {
+              const mine = (myAnonKey && p.userKey === myAnonKey) || (myName && !p.isAnon && p.name === myName);
+              const mi = p.rank <= 3 ? p.rank - 1 : -1;
+              return (
+                <tr key={p.userKey} style={mine ? { background: C.accsoft } : undefined}>
+                  <td style={{ fontWeight: 800, color: mi >= 0 ? MEDAL[mi] : C.soft }}>{p.rank}</td>
+                  <td style={{ fontWeight: mine ? 800 : 600, whiteSpace: 'nowrap' }}>{p.name}{p.isAnon ? <span style={{ fontSize: 10, color: C.soft, fontWeight: 600, marginLeft: 6 }}>guest</span> : null}{mine ? <span style={{ fontSize: 10, color: C.accent, fontWeight: 700, marginLeft: 6 }}>you</span> : null}</td>
+                  <td className="score" style={{ textAlign: 'right', color: C.accent, fontWeight: 700 }}>{(p.rating || 0).toLocaleString()}</td>
+                  <td style={{ textAlign: 'right' }}>{(p.correct || 0).toLocaleString()}</td>
+                  <td style={{ textAlign: 'right' }}>{p.completed || 0}</td>
+                  <td style={{ textAlign: 'right' }}>{p.daysPlayed || 0}</td>
+                  <td style={{ textAlign: 'right' }}>{p.accuracy || 0}%</td>
+                </tr>
+              );
+            })}
+          </tbody>
+        </table>
       </div>
     </div>
   );

@@ -62,6 +62,18 @@ function loadStats(id) {
     return JSON.parse(localStorage.getItem(statsKey(id))) || { attempts: 0, best: 0, totalCorrect: 0 };
   } catch { return { attempts: 0, best: 0, totalCorrect: 0 }; }
 }
+function getAnonId() {
+  if (typeof window === 'undefined') return null;
+  try {
+    let a = localStorage.getItem('sot_quiz_anon');
+    if (!a) {
+      a = (window.crypto && crypto.randomUUID) ? crypto.randomUUID() : `a_${Date.now()}_${Math.random().toString(36).slice(2)}`;
+      localStorage.setItem('sot_quiz_anon', a);
+    }
+    return a;
+  } catch { return null; }
+}
+
 function recordResult(id, points) {
   const s = loadStats(id);
   const next = { attempts: s.attempts + 1, best: Math.max(s.best, points), totalCorrect: s.totalCorrect + points };
@@ -260,7 +272,7 @@ export default function TimedMcqClient({ quizId }) {
         fetch('/api/quiz/result', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ quizId, score: finalPoints, total: maxPoints, timeElapsed: elapsed, email: identity?.email || undefined }),
+          body: JSON.stringify({ quizId, score: finalPoints, total: maxPoints, timeElapsed: elapsed, email: identity?.email || undefined, anonId: getAnonId() }),
         })
           .then((r) => r.json())
           .then((d) => { if (d && !d.error) setBoard({ plays: d.plays || 0, best: d.best ?? null, topTime: d.topTime ?? null, leaderboard: d.leaderboard || [], leaderboardAll: d.leaderboardAll || [] }); })
@@ -284,7 +296,7 @@ export default function TimedMcqClient({ quizId }) {
       const res = await fetch('/api/quiz/join', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ username: jName.trim(), email: jEmail.trim() }),
+        body: JSON.stringify({ username: jName.trim(), email: jEmail.trim(), anonId: getAnonId() }),
       });
       const d = await res.json();
       if (d.error) { setJoinErr(true); setJoinMsg(d.error); setJoinBusy(false); return; }

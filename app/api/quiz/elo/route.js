@@ -16,6 +16,7 @@ const TOP_N = 12;
 export async function GET(request) {
   const { searchParams } = new URL(request.url);
   const scope = (searchParams.get('scope') || 'all').trim() || 'all';
+  const full = searchParams.get('full') === '1';
   try {
     const { data, error } = await fetchAllRows(
       supabaseAdmin,
@@ -31,7 +32,7 @@ export async function GET(request) {
     // rankPlayers already scopes every metric (rating/correct/completed/days/
     // accuracy) to the requested category, and includes guests.
     const ranked = rankPlayers(players, scope);
-    const out = ranked.slice(0, TOP_N).map((p, i) => ({
+    const out = ranked.slice(0, full ? 2000 : TOP_N).map((p, i) => ({
       rank: i + 1,
       name: p.name,
       isAnon: p.isAnon,
