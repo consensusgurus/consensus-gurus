@@ -419,7 +419,7 @@ export default function QuizHomeClient() {
           <div className="qz-stats" style={{ display: 'flex', gap: 22, marginLeft: 'auto', flexWrap: 'wrap' }}>
             <div><div style={{ fontSize: 17, fontWeight: 700 }}>{playerStats && playerStats.correct != null ? playerStats.correct.toLocaleString() : '—'}</div><div className="lbl">correct</div></div>
             <div><div style={{ fontSize: 17, fontWeight: 700 }}>{playerStats && playerStats.played != null ? playerStats.played : '—'}</div><div className="lbl">played</div></div>
-            <div><div style={{ fontSize: 10, fontWeight: 600, lineHeight: 1, color: C.soft, marginBottom: 1 }}>{playerStats && playerStats.completed != null && totalCount ? `${playerStats.completed > 0 && playerStats.completed / totalCount < 0.005 ? '<1' : Math.round((playerStats.completed / totalCount) * 100)}%` : '\u00A0'}</div><div style={{ fontSize: 17, fontWeight: 700 }}>{playerStats && playerStats.completed != null ? playerStats.completed : '—'}</div><div className="lbl">completed</div></div>
+            <div><div style={{ display: 'flex', alignItems: 'baseline', gap: 4 }}><span style={{ fontSize: 17, fontWeight: 700 }}>{playerStats && playerStats.completed != null ? playerStats.completed : '—'}</span>{playerStats && playerStats.completed != null && totalCount ? <span style={{ fontSize: 11, fontWeight: 600, color: C.soft }}>({playerStats.completed > 0 && playerStats.completed / totalCount < 0.005 ? '<1' : Math.round((playerStats.completed / totalCount) * 100)}%)</span> : null}</div><div className="lbl">completed</div></div>
             <div><div style={{ fontSize: 17, fontWeight: 700 }}>{playerStats && playerStats.accuracy != null ? `${playerStats.accuracy}%` : '—'}</div><div className="lbl">accuracy</div></div>
           </div>
           <Link className="hubbtn" href="/quizzes/hub"><BarChart3 size={16} /> Stat Hub <ArrowRight size={15} /></Link>
@@ -678,7 +678,7 @@ function BrowseColumn({ label, Icon, color, tint, rows, cta, onCta }) {
         </span>
         <h3 style={{ fontSize: 15, fontWeight: 700, margin: 0 }}>{label}</h3>
         {onCta
-          ? <button type="button" onClick={onCta} className="viewall" style={{ color, background: 'none', border: 'none', padding: 0, cursor: 'pointer', font: 'inherit' }}>{cta}</button>
+          ? <button type="button" onClick={onCta} className="viewall" style={{ color, background: 'none', border: 'none', padding: 0, cursor: 'pointer', fontFamily: 'inherit', fontSize: 10, fontWeight: 700 }}>{cta}</button>
           : <span className="viewall" style={{ color }}>{cta}</span>}
       </div>
       {rows.map(({ q, right }) => (
