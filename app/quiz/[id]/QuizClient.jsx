@@ -1228,6 +1228,7 @@ export default function QuizClient({ quizId }) {
                 const f = found[i];
                 const reveal = ended && revealed && !f;
                 const solved = found.filter(Boolean).length;
+                const navDisabled = !started;
                 const go = (d) => setSlideIdx((p) => Math.min(Math.max(p + d, 0), last));
                 const adv = () => { const n = answers.length; for (let k = 1; k <= n; k++) { const j = (i + k) % n; if (j !== i && !found[j]) { setSlideIdx(j); return; } } };
                 return (
@@ -1256,9 +1257,9 @@ export default function QuizClient({ quizId }) {
                       )}
                     </div>
                     <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginTop: 14, gap: 12 }}>
-                      <button onClick={() => go(-1)} disabled={i === 0} style={{ fontFamily: MONO, fontSize: 12, letterSpacing: '0.08em', textTransform: 'uppercase', fontWeight: 700, padding: '11px 20px', borderRadius: 8, border: `1.5px solid ${COLORS.ink}`, background: 'transparent', color: COLORS.ink, cursor: i === 0 ? 'default' : 'pointer', opacity: i === 0 ? 0.4 : 1 }}>&larr; Back</button>
+                      <button onClick={() => go(-1)} disabled={navDisabled || i === 0} style={{ fontFamily: MONO, fontSize: 12, letterSpacing: '0.08em', textTransform: 'uppercase', fontWeight: 700, padding: '11px 20px', borderRadius: 8, border: `1.5px solid ${COLORS.ink}`, background: 'transparent', color: COLORS.ink, cursor: (navDisabled || i === 0) ? 'default' : 'pointer', opacity: (navDisabled || i === 0) ? 0.4 : 1 }}>&larr; Back</button>
                       <span style={{ fontFamily: MONO, fontSize: 12, color: COLORS.faded }}>{f ? 'Solved' : reveal ? 'Missed' : (started ? 'Type your answer' : 'Press Play')}</span>
-                      <button onClick={() => go(1)} disabled={i === last} style={{ fontFamily: MONO, fontSize: 12, letterSpacing: '0.08em', textTransform: 'uppercase', fontWeight: 700, padding: '11px 20px', borderRadius: 8, border: 'none', background: COLORS.ember, color: '#fff', cursor: i === last ? 'default' : 'pointer', opacity: i === last ? 0.4 : 1 }}>Next &rarr;</button>
+                      <button onClick={() => go(1)} disabled={navDisabled || i === last} style={{ fontFamily: MONO, fontSize: 12, letterSpacing: '0.08em', textTransform: 'uppercase', fontWeight: 700, padding: '11px 20px', borderRadius: 8, border: 'none', background: COLORS.ember, color: '#fff', cursor: (navDisabled || i === last) ? 'default' : 'pointer', opacity: (navDisabled || i === last) ? 0.4 : 1 }}>Next &rarr;</button>
                     </div>
                   </div>
                 );
