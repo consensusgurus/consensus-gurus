@@ -254,6 +254,19 @@ function ChipMetric({ label, value, rank }) {
   );
 }
 
+// Columns for the Category Detail table. `get(c, cr)` extracts the sort value
+// from a category row's stats record (cr); `chip` names the per-category rank
+// field on cr that renders as a #rank badge in that column.
+const CAT_COLS = [
+  { key: 'label', label: 'Category', align: 'left', get: (c) => (c.label || '').toLowerCase() },
+  { key: 'correct', label: 'Correct', align: 'right', get: (c, cr) => cr.correct, chip: 'correctRank' },
+  { key: 'played', label: 'Played', align: 'right', get: (c, cr) => (cr.played != null ? cr.played : cr.matches), chip: 'playedRank' },
+  { key: 'completed', label: 'Completed', align: 'right', get: (c, cr) => cr.completed, chip: 'completedRank' },
+  { key: 'accuracy', label: 'Accuracy', align: 'right', get: (c, cr) => cr.accuracy, chip: 'accuracyRank' },
+  { key: 'days', label: 'Days', align: 'right', get: (c, cr) => cr.daysPlayed || 0, chip: 'daysRank' },
+  { key: 'rating', label: 'Skill Rating', align: 'right', get: (c, cr) => cr.rating, chip: 'rank' },
+];
+
 // ─── Player tab ─────────────────────────────────────────────────────────────
 function Metric({ label, value, sub, rank, total, avg }) {
   return (
@@ -279,6 +292,33 @@ function PlayerPanel({ me, scope, cats, byKey, totalQuizzes, board, myName, myAn
   const byCat = (found && me.byCategory) || {};
   const catRows = (scope === 'all' ? cats : cats.filter((c) => c.key === scope));
 
+  // Column sort for the Category Detail table. The Overall row is rendered
+  // separately and stays pinned on top; only these category rows get sorted.
+  const [catSort, setCatSort] = useState({ col: null, dir: 'desc' });
+  const sortedCatRows = useMemo(() => {
+    if (!catSort.col) return catRows;
+    const col = CAT_COLS.find((cc) => cc.key === catSort.col) || CAT_COLS[0];
+    const arr = [...catRows];
+    arr.sort((A, B) => {
+      const crA = byCat[A.key], crB = byCat[B.key];
+      if (col.key !== 'label') {
+        // categories the player hasn't touched have no stats; always sink them.
+        if (!crA && !crB) return A.label.localeCompare(B.label);
+        if (!crA) return 1;
+        if (!crB) return -1;
+      }
+      const av = col.get(A, crA || {});
+      const bv = col.get(B, crB || {});
+      let cmp = typeof av === 'string' ? av.localeCompare(bv) : ((av || 0) - (bv || 0));
+      if (catSort.dir === 'desc') cmp = -cmp;
+      return cmp;
+    });
+    return arr;
+  }, [catRows, catSort, byCat]);
+  const clickCatSort = (col) => setCatSort((st) => (st.col === col.key
+    ? { col: col.key, dir: st.dir === 'desc' ? 'asc' : 'desc' }
+    : { col: col.key, dir: col.key === 'label' ? 'asc' : 'desc' }));
+
   const toggle = (
     <div style={{ display: 'flex', gap: 3, background: '#eceef1', borderRadius: 9, padding: 3, flex: 'none' }}>
       {[['ranking', 'Ranking'], ['category', 'Category Detail'], ['activity', 'Activity Feed']].map(([v, lbl]) => (
@@ -303,13 +343,11 @@ function PlayerPanel({ me, scope, cats, byKey, totalQuizzes, board, myName, myAn
           <div style={{ overflow: 'auto' }}>
             <table>
               <thead><tr>
-                <th>Category</th>
-                <th style={{ textAlign: 'right' }}>Correct</th>
-                <th style={{ textAlign: 'right' }}>Played</th>
-                <th style={{ textAlign: 'right' }}>Completed</th>
-                <th style={{ textAlign: 'right' }}>Accuracy</th>
-                <th style={{ textAlign: 'right' }}>Days</th>
-                <th style={{ textAlign: 'right' }}>Skill Rating</th>
+                {CAT_COLS.map((col) => (
+                  <th key={col.key} onClick={() => clickCatSort(col)} style={{ textAlign: col.align, whiteSpace: 'nowrap', cursor: 'pointer', userSelect: 'none', color: catSort.col === col.key ? C.accent : undefined }}>
+                    {col.label}{catSort.col === col.key ? (catSort.dir === 'desc' ? ' \u2193' : ' \u2191') : ''}
+                  </th>
+                ))}
               </tr></thead>
               <tbody>
                 {scope === 'all' ? (
@@ -323,24 +361,24 @@ function PlayerPanel({ me, scope, cats, byKey, totalQuizzes, board, myName, myAn
                     <td className="score" style={{ textAlign: 'right', color: C.accent, whiteSpace: 'nowrap' }}><b>{(me.rating || 1500).toLocaleString()}</b><RankChip rank={ranks.rating} total={totalPlayers} />{base.rating != null ? <div style={{ fontSize: 9.5, color: C.muted }}>avg {base.rating.toLocaleString()}</div> : null}</td>
                   </tr>
                 ) : null}
-                {catRows.map((c) => {
+                {sortedCatRows.map((c) => {
                   const cr = byCat[c.key];
                   const muted = !cr;
                   return (
                     <tr key={c.key}>
                       <td style={{ fontWeight: 600, whiteSpace: 'nowrap' }}><span className="dot" style={{ background: c.c, display: 'inline-block', marginRight: 8, verticalAlign: 'middle' }} />{c.label}</td>
-                      <td style={{ textAlign: 'right', color: muted ? C.soft : C.ink, whiteSpace: 'nowrap' }}>{cr ? cr.correct.toLocaleString() : '\u2014'}</td>
-                      <td style={{ textAlign: 'right', color: muted ? C.soft : C.ink, whiteSpace: 'nowrap' }}>{cr ? (cr.played != null ? cr.played : cr.matches) : '\u2014'}{cr && cr.playedRank ? <RankChip rank={cr.playedRank} /> : null}</td>
-                      <td style={{ textAlign: 'right', color: muted ? C.soft : C.ink, whiteSpace: 'nowrap' }}>{cr ? cr.completed : '\u2014'}</td>
-                      <td style={{ textAlign: 'right', color: muted ? C.soft : C.ink, whiteSpace: 'nowrap' }}>{cr ? `${cr.accuracy}%` : '\u2014'}</td>
-                      <td style={{ textAlign: 'right', color: muted ? C.soft : C.ink, whiteSpace: 'nowrap' }}>{cr ? (cr.daysPlayed || 0) : '\u2014'}</td>
+                      <td style={{ textAlign: 'right', color: muted ? C.soft : C.ink, whiteSpace: 'nowrap' }}>{cr ? cr.correct.toLocaleString() : '\u2014'}{cr && cr.correctRank ? <RankChip rank={cr.correctRank} total={cr.catTotal} /> : null}</td>
+                      <td style={{ textAlign: 'right', color: muted ? C.soft : C.ink, whiteSpace: 'nowrap' }}>{cr ? (cr.played != null ? cr.played : cr.matches) : '\u2014'}{cr && cr.playedRank ? <RankChip rank={cr.playedRank} total={cr.catTotal} /> : null}</td>
+                      <td style={{ textAlign: 'right', color: muted ? C.soft : C.ink, whiteSpace: 'nowrap' }}>{cr ? cr.completed : '\u2014'}{cr && cr.completedRank ? <RankChip rank={cr.completedRank} total={cr.catTotal} /> : null}</td>
+                      <td style={{ textAlign: 'right', color: muted ? C.soft : C.ink, whiteSpace: 'nowrap' }}>{cr ? `${cr.accuracy}%` : '\u2014'}{cr && cr.accuracyRank ? <RankChip rank={cr.accuracyRank} total={cr.catTotal} /> : null}</td>
+                      <td style={{ textAlign: 'right', color: muted ? C.soft : C.ink, whiteSpace: 'nowrap' }}>{cr ? (cr.daysPlayed || 0) : '\u2014'}{cr && cr.daysRank ? <RankChip rank={cr.daysRank} total={cr.catTotal} /> : null}</td>
                       <td className="score" style={{ textAlign: 'right', color: muted ? C.soft : C.accent, whiteSpace: 'nowrap' }}>{cr ? cr.rating.toLocaleString() : '\u2014'}{cr && cr.rank ? <RankChip rank={cr.rank} total={cr.catTotal} /> : null}</td>
                     </tr>
                   );
                 })}
               </tbody>
             </table>
-            <div style={{ fontSize: 10.5, color: C.soft, marginTop: 8 }}>The Overall row ranks you against all {totalPlayers.toLocaleString()} players on every metric (avg = player-base average). Per-category Skill Rating and Played also carry your standing among players active in that category.</div>
+            <div style={{ fontSize: 10.5, color: C.soft, marginTop: 8 }}>The Overall row ranks you against all {totalPlayers.toLocaleString()} players on every metric (avg = player-base average) and stays pinned on top. Each #rank chip in a category row is your standing among the players active in that category. Tap any column header to sort.</div>
           </div>
         )}
       </div>
