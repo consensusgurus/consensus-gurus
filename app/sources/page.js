@@ -1,9 +1,6 @@
-import Link from 'next/link';
-import { ArrowLeft } from 'lucide-react';
-import Grain from '@/app/Grain';
+import SiteHeader from '@/app/SiteHeader';
 import Footer from '@/app/Footer';
 import SourcesGrid from '@/app/SourcesGrid';
-import { COLORS } from '@/lib/data';
 import { getAllSources } from '@/lib/sources';
 
 export const metadata = {
@@ -12,57 +9,32 @@ export const metadata = {
     'Every publication behind the Source of Truths consensus, from Michelin and Condé Nast Traveler to Wirecutter, Goodreads, and Yelp, with how many lists each one shapes.',
 };
 
+const C = {
+  bg: '#f7f8fa',
+  ink: '#1c1e24',
+  muted: '#6b7280',
+  soft: '#9aa0ab',
+  accent: '#2563eb',
+  line: 'rgba(20,22,28,0.09)',
+};
+const FONT = "'Manrope', system-ui, -apple-system, sans-serif";
+
 export default function SourcesPage() {
   const sources = getAllSources();
   const totalAppearances = sources.reduce((a, s) => a + s.count, 0);
 
   return (
-    <div
-      style={{
-        minHeight: '100vh',
-        background: COLORS.cream,
-        color: COLORS.ink,
-        position: 'relative',
-        overflow: 'hidden',
-      }}
-    >
-      <Grain />
-      <div
-        style={{
-          position: 'relative',
-          zIndex: 2,
-          maxWidth: 1200,
-          margin: '0 auto',
-          padding: '24px 24px 60px',
-        }}
-      >
-        <Link
-          href="/"
-          style={{
-            fontFamily: 'DM Mono, monospace',
-            fontSize: 11,
-            letterSpacing: '0.2em',
-            textTransform: 'uppercase',
-            color: COLORS.ink,
-            textDecoration: 'none',
-            display: 'inline-flex',
-            alignItems: 'center',
-            gap: 6,
-            padding: '8px 0',
-          }}
-        >
-          <ArrowLeft size={14} strokeWidth={2.5} />
-          Back to all lists
-        </Link>
-
-        <div style={{ borderBottom: `2px solid ${COLORS.ink}`, paddingBottom: 20, marginTop: 16, marginBottom: 28 }}>
+    <div style={{ minHeight: '100vh', background: C.bg, color: C.ink, fontFamily: FONT }}>
+      <SiteHeader active="sources" />
+      <div style={{ maxWidth: 1180, margin: '0 auto', padding: '24px 24px 40px' }}>
+        <div style={{ borderBottom: `1px solid ${C.line}`, paddingBottom: 22, marginBottom: 28 }}>
           <div
             style={{
-              fontFamily: 'DM Mono, monospace',
               fontSize: 11,
-              letterSpacing: '0.25em',
+              fontWeight: 700,
+              letterSpacing: '0.14em',
               textTransform: 'uppercase',
-              color: COLORS.ember,
+              color: C.accent,
               marginBottom: 12,
             }}
           >
@@ -70,27 +42,25 @@ export default function SourcesPage() {
           </div>
           <h1
             style={{
-              fontFamily: 'Manrope, system-ui, -apple-system, sans-serif',
-              fontWeight: 900,
-              fontSize: 'clamp(40px, 9vw, 76px)',
-              lineHeight: 0.92,
+              fontFamily: FONT,
+              fontWeight: 800,
+              fontSize: 'clamp(34px, 7vw, 60px)',
+              lineHeight: 1.0,
               letterSpacing: '-0.03em',
               margin: 0,
-              color: COLORS.ink,
-              fontVariationSettings: '"SOFT" 100',
+              color: C.ink,
             }}
           >
             Who we{' '}
-            <span style={{ fontStyle: 'italic', color: COLORS.ember }}>listen to</span>
+            <span style={{ color: C.accent }}>listen to</span>
           </h1>
           <p
             style={{
-              marginTop: 18,
+              marginTop: 16,
               maxWidth: 680,
-              fontFamily: 'DM Sans, sans-serif',
               fontSize: 16,
               lineHeight: 1.6,
-              color: COLORS.ink,
+              color: C.muted,
             }}
           >
             Every ranking on Source of Truths is a consensus of expert critics and everyday users.
@@ -100,19 +70,19 @@ export default function SourcesPage() {
           </p>
           <div
             style={{
-              marginTop: 16,
-              fontFamily: 'DM Mono, monospace',
-              fontSize: 10,
-              letterSpacing: '0.2em',
+              marginTop: 14,
+              fontSize: 11,
+              fontWeight: 600,
+              letterSpacing: '0.06em',
               textTransform: 'uppercase',
-              color: COLORS.faded,
+              color: C.soft,
             }}
           >
-            {sources.length} sources &nbsp;·&nbsp; {totalAppearances.toLocaleString()} list appearances
+            {sources.length} sources &nbsp;&middot;&nbsp; {totalAppearances.toLocaleString()} list appearances
           </div>
         </div>
 
-        <SourcesGrid sources={sources} minColWidth={220} linked />
+        <SourcesGrid sources={sources} minColWidth={220} linked theme="site" />
       </div>
       <Footer />
     </div>

@@ -10,7 +10,10 @@ import { COLORS } from '@/lib/data';
 //
 // `linked`: when true, chips with a domain become links to the publication's
 // homepage (used on the /sources page; the homepage popover keeps them static).
-export default function SourcesGrid({ sources = [], minColWidth = 190, linked = false }) {
+export default function SourcesGrid({ sources = [], minColWidth = 190, linked = false, theme = 'paper' }) {
+  const PAL = theme === 'site'
+    ? { chipBg: '#ffffff', chipBorder: 'rgba(20,22,28,0.10)', hoverBg: '#f3f5f8', hoverShadow: '#2563eb', logoBg: '#f7f8fa', logoBorder: 'rgba(20,22,28,0.08)', logoFont: "'Manrope',system-ui,sans-serif", logoColor: '#9aa0ab', nameFont: "'Manrope',system-ui,sans-serif", nameColor: '#1c1e24', countColor: '#9aa0ab' }
+    : { chipBg: COLORS.paper, chipBorder: 'rgba(26,22,17,0.16)', hoverBg: '#e4dbc8', hoverShadow: COLORS.ember, logoBg: COLORS.cream, logoBorder: 'rgba(26,22,17,0.10)', logoFont: "'Fraunces',serif", logoColor: COLORS.faded, nameFont: "'DM Sans',sans-serif", nameColor: COLORS.ink, countColor: COLORS.faded };
   return (
     <div>
       <style>{`
@@ -22,29 +25,29 @@ export default function SourcesGrid({ sources = [], minColWidth = 190, linked = 
         .sot-src-chip{
           display:flex;align-items:center;gap:10px;
           padding:8px 11px;
-          background:${COLORS.paper};
-          border:1px solid rgba(26,22,17,0.16);
+          background:${PAL.chipBg};
+          border:1px solid ${PAL.chipBorder};
           min-width:0;
           text-decoration:none;color:inherit;
         }
         a.sot-src-chip{transition:transform 0.12s ease, box-shadow 0.12s ease, background 0.12s ease;}
-        a.sot-src-chip:hover{background:#e4dbc8;transform:translate(-2px,-2px);box-shadow:3px 3px 0 ${COLORS.ember};}
+        a.sot-src-chip:hover{background:${PAL.hoverBg};transform:translate(-2px,-2px);box-shadow:2px 2px 0 ${PAL.hoverShadow};}
         .sot-src-logo{
           flex:0 0 auto;width:20px;height:20px;border-radius:4px;
-          background-color:${COLORS.cream};
+          background-color:${PAL.logoBg};
           background-size:contain;background-position:center;background-repeat:no-repeat;
           display:flex;align-items:center;justify-content:center;
-          font-family:'Manrope',serif;font-weight:700;font-size:11px;color:${COLORS.faded};
-          border:1px solid rgba(26,22,17,0.10);
+          font-family:${PAL.logoFont};font-weight:700;font-size:11px;color:${PAL.logoColor};
+          border:1px solid ${PAL.logoBorder};
         }
         .sot-src-name{
           flex:1 1 auto;min-width:0;
-          font-family:'DM Sans',sans-serif;font-size:13px;line-height:1.25;color:${COLORS.ink};
+          font-family:${PAL.nameFont};font-size:13px;line-height:1.25;color:${PAL.nameColor};
           white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
         }
         .sot-src-count{
           flex:0 0 auto;
-          font-family:'DM Mono',monospace;font-size:11px;color:${COLORS.faded};
+          font-family:'DM Mono',monospace;font-size:11px;color:${PAL.countColor};
         }
       `}</style>
       <div className="sot-src-grid">

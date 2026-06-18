@@ -4,7 +4,7 @@ import React, { useState, useEffect, useLayoutEffect, useMemo, useRef } from 're
 import { useRouter } from 'next/navigation';
 import { ArrowLeft, Share2, Check, X, Flag, Trophy, HelpCircle, Eye, SkipForward } from 'lucide-react';
 import { QUIZZES, getQuiz } from '@/lib/quizzes';
-import { quizDept as deptOf } from '@/lib/quiz-departments';
+import { quizDept as deptOf, DEPT_LABEL } from '@/lib/quiz-departments';
 import Grain from '../../Grain';
 import Footer from '../../Footer';
 import Count from '../../Count';
@@ -306,6 +306,8 @@ export default function QuizClient({ quizId }) {
   const [joinErr, setJoinErr] = useState(false);
   const [joinBusy, setJoinBusy] = useState(false);
   const [lastResultId, setLastResultId] = useState(null);
+  const [eloBefore, setEloBefore] = useState(null);
+  const [eloAfter, setEloAfter] = useState(null);
   const [claimOpen, setClaimOpen] = useState(false);
   const [claimBusy, setClaimBusy] = useState(false);
   const [claimMsg, setClaimMsg] = useState('');
@@ -394,6 +396,18 @@ export default function QuizClient({ quizId }) {
       .catch(() => {});
   }
 
+  function fetchQuizMe(setter) {
+    try {
+      const qs = new URLSearchParams();
+      const anon = getAnonId();
+      if (anon) qs.set('anonId', anon);
+      let em = identity && identity.email ? identity.email : null;
+      if (!em) { try { const j = JSON.parse(localStorage.getItem('sot_quiz_identity')); if (j && j.email) em = j.email; } catch (e) {} }
+      if (em) qs.set('email', em);
+      fetch(`/api/quiz/me?${qs.toString()}`).then((r) => r.json()).then((d) => { if (d && d.found) setter(d); }).catch(() => {});
+    } catch (e) {}
+  }
+
   useEffect(() => {
     setStats(loadStats(quizId));
     try {
@@ -401,6 +415,7 @@ export default function QuizClient({ quizId }) {
       if (id && id.username) { setIdentity(id); setJName(id.username || ''); setJEmail(id.email || ''); }
     } catch {}
     refreshBoard();
+    fetchQuizMe(setEloBefore);
     // Count one quiz-page view per load (admin analytics). Guarded so React's
     // dev double-invoke and any re-run don't double-count. Best-effort.
     if (!viewedRef.current) {
@@ -440,6 +455,7 @@ export default function QuizClient({ quizId }) {
     })
       .then((r) => r.json())
       .then((d) => { if (d && !d.error) { setBoard({ plays: d.plays || 0, best: d.best != null ? Math.min(d.best, total) : null, topTime: d.topTime ?? null, leaderboard: d.leaderboard || [], leaderboardAll: d.leaderboardAll || [] }); setLastResultId(d.resultId ?? null); } })
+      .then(() => fetchQuizMe(setEloAfter))
       .catch(() => {});
   }
 
@@ -942,6 +958,48 @@ export default function QuizClient({ quizId }) {
     });
     flipPrev.current = next;
   }, [found, started, ended, tab]);
+
+  const eloDept = deptOf(quiz);
+  const eloDeptLabel = DEPT_LABEL[eloDept] || 'Category';
+  const eloPanel = eloAfter ? (() => {
+    const fmtN = (x) => (x == null ? null : x.toLocaleString());
+    const aRating = eloAfter.rating;
+    const bRating = eloBefore && eloBefore.rating != null ? eloBefore.rating : null;
+    const aGlobal = eloAfter.rank != null ? eloAfter.rank : null;
+    const bGlobal = eloBefore && eloBefore.found ? eloBefore.rank : null;
+    const aCatObj = eloAfter.byCategory && eloAfter.byCategory[eloDept];
+    const bCatObj = eloBefore && eloBefore.byCategory && eloBefore.byCategory[eloDept];
+    const aCat = aCatObj ? aCatObj.rank : null;
+    const bCat = bCatObj ? bCatObj.rank : null;
+    const rows = [
+      { label: 'ELO rating', value: fmtN(aRating), was: bRating != null ? `was ${fmtN(bRating)}` : null, delta: bRating != null ? aRating - bRating : null, isNew: bRating == null },
+      { label: 'Global rank', value: aGlobal != null ? `#${fmtN(aGlobal)}` : '\u2014', was: bGlobal != null ? `was #${fmtN(bGlobal)}` : 'new entry', delta: (bGlobal != null && aGlobal != null) ? bGlobal - aGlobal : null, isNew: bGlobal == null },
+      { label: `${eloDeptLabel} rank`, value: aCat != null ? `#${fmtN(aCat)}` : '\u2014', was: bCat != null ? `was #${fmtN(bCat)}` : 'new entry', delta: (bCat != null && aCat != null) ? bCat - aCat : null, isNew: bCat == null },
+    ];
+    return (
+      <div style={{ margin: '0 auto 18px', maxWidth: 300, background: '#fbf7ef', border: `1px solid ${COLORS.faded}33` }}>
+        <div style={{ fontFamily: MONO, fontSize: 9, letterSpacing: '0.18em', textTransform: 'uppercase', color: COLORS.ember, textAlign: 'center', padding: '9px 0 1px' }}>Your standing</div>
+        {rows.map((r, i) => (
+          <div key={r.label} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '9px 14px', borderTop: i === 0 ? 'none' : `1px solid ${COLORS.faded}22` }}>
+            <div style={{ textAlign: 'left' }}>
+              <div style={{ fontFamily: MONO, fontSize: 9, letterSpacing: '0.13em', textTransform: 'uppercase', color: COLORS.faded }}>{r.label}</div>
+              <div style={{ fontFamily: SERIF, fontWeight: 800, fontSize: 19, lineHeight: 1.15, color: COLORS.ink }}>{r.value}</div>
+            </div>
+            <div style={{ textAlign: 'right' }}>
+              {r.was ? <div style={{ fontFamily: MONO, fontSize: 10, color: COLORS.faded }}>{r.was}</div> : null}
+              {r.isNew ? (
+                <div style={{ fontFamily: MONO, fontSize: 11, fontWeight: 700, color: COLORS.forest, background: '#e7ecdf', padding: '3px 8px', display: 'inline-block', marginTop: 3 }}>NEW</div>
+              ) : (r.delta == null || r.delta === 0) ? (
+                <div style={{ fontFamily: MONO, fontSize: 11, color: COLORS.faded, marginTop: 3 }}>\u00b10</div>
+              ) : (
+                <div style={{ fontFamily: MONO, fontSize: 12, fontWeight: 700, color: r.delta > 0 ? COLORS.forest : COLORS.ember, background: r.delta > 0 ? '#e7ecdf' : '#f6e2dd', padding: '3px 8px', display: 'inline-block', marginTop: 3 }}>{r.delta > 0 ? '\u25b2' : '\u25bc'} {Math.abs(r.delta).toLocaleString()}</div>
+              )}
+            </div>
+          </div>
+        ))}
+      </div>
+    );
+  })() : null;
 
   return (
     <div style={{ minHeight: '100vh', background: COLORS.cream, color: COLORS.ink, position: 'relative', overflowX: 'clip' }}>
@@ -1449,12 +1507,13 @@ export default function QuizClient({ quizId }) {
                   <div style={{ fontFamily: SERIF, fontWeight: 800, fontSize: 40, lineHeight: 1, marginBottom: 6 }}>{dispScore}<span style={{ fontSize: 24, color: COLORS.faded }}> / {total}</span></div>
                   <p style={{ fontFamily: SERIF, fontStyle: 'italic', fontSize: 16, color: COLORS.faded, margin: '0 0 4px' }}>{reason}</p>
                   <p style={{ fontFamily: SANS, fontSize: 14, color: '#4a4339', margin: '0 0 20px' }}>{isTopScore ? 'You are the top score.' : <>You beat {percentile(dispScore, total)}% of players.{board.best != null ? (dispScore >= board.best ? ' That ties the high score.' : ` High score to beat: ${board.best}.`) : ''}</>}</p>
+                  {eloPanel}
                   <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'stretch', gap: 10, width: '100%', maxWidth: 300, margin: '0 auto' }}>
                     <button onClick={() => { try { sessionStorage.setItem('sot_quiz_retry', quizId); } catch (e) { /* no-op */ } window.location.reload(); }} style={{ width: '100%', boxSizing: 'border-box', fontFamily: MONO, fontSize: 12, letterSpacing: '0.12em', textTransform: 'uppercase', fontWeight: 700, padding: '13px 22px', borderRadius: 10, border: `1.5px solid ${COLORS.ember}`, background: COLORS.ember, color: '#fff', cursor: 'pointer', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 8 }}>Retry with 1 click</button>
                     <button onClick={() => { setGameOverDismissed(true); setRevealed(true); setTab('play'); }} style={{ width: '100%', boxSizing: 'border-box', fontFamily: MONO, fontSize: 12, letterSpacing: '0.12em', textTransform: 'uppercase', fontWeight: 700, padding: '13px 22px', borderRadius: 10, border: `1.5px solid ${COLORS.ink}`, background: COLORS.ink, color: COLORS.cream, cursor: 'pointer', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 8 }}><Eye size={14} strokeWidth={2.5} /> Reveal Answers</button>
                     <button onClick={() => { setGameOverDismissed(true); if (identity) { setTab('stats'); } else { setClaimMsg(''); setClaimErr(false); setClaimOpen(true); setTab('play'); } }} style={{ width: '100%', boxSizing: 'border-box', fontFamily: MONO, fontSize: 12, letterSpacing: '0.12em', textTransform: 'uppercase', fontWeight: 700, padding: '13px 22px', borderRadius: 10, border: `1.5px solid ${COLORS.ink}`, background: COLORS.ink, color: COLORS.cream, cursor: 'pointer', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 8 }}><Trophy size={14} strokeWidth={2.5} /> Post to Leaderboard</button>
                     <button onClick={share} style={{ width: '100%', boxSizing: 'border-box', fontFamily: MONO, fontSize: 12, letterSpacing: '0.12em', textTransform: 'uppercase', fontWeight: 700, padding: '13px 22px', borderRadius: 10, border: `1.5px solid ${COLORS.ink}`, background: COLORS.ink, color: COLORS.cream, cursor: 'pointer', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 8 }}><Share2 size={14} strokeWidth={2.5} /> {copied ? 'Link copied!' : 'Challenge a friend'}</button>
-                    <button onClick={() => { const pool = QUIZZES.filter((qq) => qq && qq.id && qq.id !== quizId); const r = pool[Math.floor(Math.random() * pool.length)]; if (r) router.push(`/quiz/${r.id}`); }} style={{ width: '100%', boxSizing: 'border-box', fontFamily: MONO, fontSize: 12, letterSpacing: '0.12em', textTransform: 'uppercase', fontWeight: 700, padding: '13px 22px', borderRadius: 10, border: `1.5px solid ${COLORS.ember}`, background: COLORS.ember, color: '#fff', cursor: 'pointer', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 8 }}>Play a Random Quiz</button>
+                    <button onClick={() => { const pool = QUIZZES.filter((qq) => qq && qq.id && qq.id !== quizId); const r = pool[Math.floor(Math.random() * pool.length)]; if (r) router.push(`/quiz/${r.id}`); }} style={{ width: '100%', boxSizing: 'border-box', fontFamily: MONO, fontSize: 12, letterSpacing: '0.12em', textTransform: 'uppercase', fontWeight: 700, padding: '13px 22px', borderRadius: 10, border: `1.5px solid ${COLORS.ember}`, background: COLORS.ember, color: '#fff', cursor: 'pointer', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 8 }}>Random Quiz</button>
                     <button onClick={() => router.push('/quizzes')} style={{ width: '100%', boxSizing: 'border-box', fontFamily: MONO, fontSize: 12, letterSpacing: '0.12em', textTransform: 'uppercase', fontWeight: 700, padding: '13px 22px', borderRadius: 10, border: `1.5px solid ${COLORS.ink}`, background: COLORS.ink, color: COLORS.cream, cursor: 'pointer', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 8 }}>All Quizzes</button>
                   </div>
                 </>
