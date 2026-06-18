@@ -185,7 +185,7 @@ export default function BankQuizBoard({ pairs, started, ended, revealed, onMatch
 
   return (
     <div>
-      <div style={{ position: 'sticky', top: stickyTop, zIndex: 4, display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: 12, background: live ? COLORS.ink : COLORS.paper, color: live ? COLORS.cream : COLORS.faded, border: `1px solid ${COLORS.faded}33`, padding: '14px 16px', marginBottom: 10, minHeight: 30 }}>
+      <div style={{ position: 'sticky', top: stickyTop, zIndex: 4, display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: 12, background: live ? COLORS.ink : COLORS.paper, color: live ? COLORS.cream : COLORS.faded, borderRadius: 10, border: `1px solid ${COLORS.faded}33`, padding: '14px 16px', marginBottom: 10, minHeight: 30 }}>
         <span style={{ fontFamily: MONO, fontSize: 11, letterSpacing: '0.2em', textTransform: 'uppercase', opacity: 0.7, flex: 'none' }}>{promptLabel || 'Prompt'}</span>
         {(() => { const clueText = !started ? 'Press Play to start' : (ended ? 'Game over' : (cur != null ? pairs[cur][1] : 'All done')); return (<span key={clueText} style={{ fontFamily: SERIF, fontWeight: 800, fontSize: 'clamp(20px, 3.4vw, 28px)', lineHeight: 1.15, flex: '1 1 320px', minWidth: 0, overflowWrap: 'break-word', transform: 'translateZ(0)' }}>{clueText}</span>); })()}
         {live && cur != null && (
@@ -197,7 +197,7 @@ export default function BankQuizBoard({ pairs, started, ended, revealed, onMatch
       </div>
 
       {!ended && (
-      <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, justifyContent: 'center', background: COLORS.paper, border: `1px solid ${COLORS.faded}33`, padding: '16px 14px' }}>
+      <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, justifyContent: 'center', background: COLORS.paper, borderRadius: 10, border: `1px solid ${COLORS.faded}33`, padding: '16px 14px' }}>
         {bankOrder.map((k) => {
           const isMatched = matched.has(k);
           const isFlash = flash && flash.key === k;
@@ -211,7 +211,7 @@ export default function BankQuizBoard({ pairs, started, ended, revealed, onMatch
               type="button"
               disabled={!live || isMatched}
               onClick={() => clickTile(k)}
-              style={{ fontFamily: SANS, fontSize: 13.5, padding: '9px 13px', background: bg, color: fg, border: `1px solid ${isMatched ? COLORS.forest : COLORS.faded + '66'}`, borderRadius: 0, cursor: live && !isMatched ? 'pointer' : 'default', transition: 'all .12s', fontWeight: 500 }}
+              style={{ fontFamily: SANS, fontSize: 13.5, padding: '9px 13px', background: bg, color: fg, borderRadius: 10, border: `1px solid ${isMatched ? COLORS.forest : COLORS.faded + '66'}`, borderRadius: 0, cursor: live && !isMatched ? 'pointer' : 'default', transition: 'all .12s', fontWeight: 500 }}
             >
               {pairs[k][0]}
             </button>
@@ -224,7 +224,7 @@ export default function BankQuizBoard({ pairs, started, ended, revealed, onMatch
           {pairs.map((p, i) => {
             const got = donePrompts.has(p[1]);
             return (
-              <div key={i} style={{ border: `1px solid ${got ? COLORS.forest : COLORS.faded + '55'}`, background: got ? '#e8efdd' : '#fbf7ef', padding: '8px 11px', borderRadius: 2, display: 'flex', flexDirection: 'column', gap: 2 }}>
+              <div key={i} style={{ borderRadius: 10, border: `1px solid ${got ? COLORS.forest : COLORS.faded + '55'}`, background: got ? '#e8efdd' : '#fbf7ef', padding: '8px 11px', borderRadius: 2, display: 'flex', flexDirection: 'column', gap: 2 }}>
                 <span style={{ fontFamily: MONO, fontSize: 10, letterSpacing: '0.06em', textTransform: 'uppercase', color: COLORS.faded, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{p[1]}</span>
                 <span style={{ fontFamily: SERIF, fontWeight: 800, fontSize: 16, lineHeight: 1.15, color: got ? COLORS.forest : (revealed ? COLORS.rust : COLORS.faded) }}>{got ? '\u2713 ' + p[0] : (revealed ? p[0] : '\u2022 \u2022 \u2022')}</span>
               </div>

@@ -1511,6 +1511,7 @@ function NTLogo({ size = 38 }) {
 // New-theme browse tile (matches lists-browse mockup, adapted to real data).
 export function BrowseTile({ list, views, voteData, extras, onClick, featured, relatedLists, onOpenRelated }) {
   const cat = broadCatOf(list);
+  const containHero = list.heroFit === 'contain' || list.type === 'product' || (list.tags || []).includes('product') || (list.tags || []).includes('tech');
   const preview = ntPreview(list, voteData, extras, featured ? 10 : 3);
   const sourceCount = Math.max(1, Object.keys(list.sources || {}).filter((id) => id !== 'ai').length);
   const Icon = cat.Icon;
@@ -1576,7 +1577,7 @@ export function BrowseTile({ list, views, voteData, extras, onClick, featured, r
 
   return (
     <a className="nt-tile" style={featured ? { gridRow: 'span 2' } : null} href={`/list/${encodeURIComponent(list.id)}`} onClick={(e) => { if (onClick) { e.preventDefault(); onClick(); } }}>
-      <div className="nt-timg" style={hero ? { backgroundImage: `url("${hero.src}")`, backgroundSize: 'cover', backgroundPosition: 'center' } : { background: ntGrad(list.title || list.id) }}>
+      <div className="nt-timg" style={hero ? { backgroundImage: `url("${hero.src}")`, backgroundSize: containHero ? 'contain' : 'cover', backgroundRepeat: 'no-repeat', backgroundPosition: 'center', backgroundColor: containHero ? '#fff' : undefined } : { background: ntGrad(list.title || list.id) }}>
         {!hero && <Icon size={34} strokeWidth={1.75} style={{ color: 'rgba(255,255,255,0.6)' }} />}
         <span className="nt-tcat" style={{ background: cat.color }}><Icon size={11} strokeWidth={2.25} /> {cat.label}</span>
         {hero && hero.rank && <span className="nt-tbadge">#{hero.rank}</span>}

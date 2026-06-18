@@ -174,13 +174,13 @@ export default function PhotoBoard({ items, started, ended, revealed, onMatch, o
               autoCapitalize="none"
               autoCorrect="off"
               spellCheck={false}
-              style={{ flex: 1, minWidth: 0, boxSizing: 'border-box', fontFamily: SANS, fontSize: 18, padding: '14px 16px', border: `2px solid ${borderColor}`, background: live ? '#fff' : COLORS.paper, color: COLORS.ink, opacity: live ? 1 : 0.6, transition: 'border-color .15s' }}
+              style={{ flex: 1, minWidth: 0, boxSizing: 'border-box', fontFamily: SANS, fontSize: 18, padding: '14px 16px', borderRadius: 10, border: `2px solid ${borderColor}`, background: live ? '#fff' : COLORS.paper, color: COLORS.ink, opacity: live ? 1 : 0.6, transition: 'border-color .15s' }}
             />
             {live && cur != null && (
-              <button onClick={back} title="Go back to the previous photo." style={{ flex: 'none', fontFamily: MONO, fontSize: 10, letterSpacing: '0.16em', textTransform: 'uppercase', fontWeight: 700, padding: '0 11px', background: 'transparent', color: COLORS.ink, border: `1.5px solid ${COLORS.ink}`, cursor: 'pointer' }}>&larr; Back</button>
+              <button onClick={back} title="Go back to the previous photo." style={{ flex: 'none', fontFamily: MONO, fontSize: 10, letterSpacing: '0.16em', textTransform: 'uppercase', fontWeight: 700, padding: '0 11px', background: 'transparent', color: COLORS.ink, borderRadius: 10, border: `1.5px solid ${COLORS.ink}`, cursor: 'pointer' }}>&larr; Back</button>
             )}
             {live && cur != null && (
-              <button onClick={skip} title="Skip to the next photo without spending a guess, you can come back." style={{ flex: 'none', fontFamily: MONO, fontSize: 10, letterSpacing: '0.16em', textTransform: 'uppercase', fontWeight: 700, padding: '0 11px', background: 'transparent', color: COLORS.ink, border: `1.5px solid ${COLORS.ink}`, cursor: 'pointer' }}>Next &rarr;</button>
+              <button onClick={skip} title="Skip to the next photo without spending a guess, you can come back." style={{ flex: 'none', fontFamily: MONO, fontSize: 10, letterSpacing: '0.16em', textTransform: 'uppercase', fontWeight: 700, padding: '0 11px', background: 'transparent', color: COLORS.ink, borderRadius: 10, border: `1.5px solid ${COLORS.ink}`, cursor: 'pointer' }}>Next &rarr;</button>
             )}
           </div>
         </div>
@@ -193,7 +193,7 @@ export default function PhotoBoard({ items, started, ended, revealed, onMatch, o
         // image's own aspect ratio. Each mask is an opaque ink bar redacting a
         // logo / name printed on the photo.
         <div style={{ width: '100%', display: 'flex', justifyContent: 'center', marginBottom: 10 }}>
-          <div style={{ position: 'relative', display: 'inline-block', lineHeight: 0, maxWidth: '100%', background: COLORS.ink, border: `2px solid ${borderColor}`, transition: 'border-color .15s' }}>
+          <div style={{ position: 'relative', display: 'inline-block', lineHeight: 0, maxWidth: '100%', background: COLORS.ink, borderRadius: 10, border: `2px solid ${borderColor}`, transition: 'border-color .15s' }}>
             <img src={curItem.img} alt={`Name the ${noun} in this photo`} style={{ display: 'block', width: 'auto', height: 'auto', maxWidth: '100%', maxHeight: 520 }} />
             {(curItem.mask || []).map((m, mi) => (
               <div key={mi} style={{ position: 'absolute', left: `${m.x}%`, top: `${m.y}%`, width: `${m.w}%`, height: `${m.h}%`, background: COLORS.ink }} />
@@ -201,7 +201,7 @@ export default function PhotoBoard({ items, started, ended, revealed, onMatch, o
           </div>
         </div>
       ) : (
-      <div style={{ position: 'relative', width: '100%', aspectRatio: photoAspect, maxHeight: 500, ...(portrait ? { maxWidth: 380, marginLeft: 'auto', marginRight: 'auto' } : null), background: COLORS.ink, border: `2px solid ${borderColor}`, overflow: 'hidden', marginBottom: 10, transition: 'border-color .15s' }}>
+      <div style={{ position: 'relative', width: '100%', aspectRatio: photoAspect, maxHeight: 500, ...(portrait ? { maxWidth: 380, marginLeft: 'auto', marginRight: 'auto' } : null), background: COLORS.ink, borderRadius: 10, border: `2px solid ${borderColor}`, overflow: 'hidden', marginBottom: 10, transition: 'border-color .15s' }}>
         {live && curItem ? (
           <img src={curItem.img} alt={`Name the ${noun} in this photo`} style={{ width: '100%', height: '100%', objectFit: 'contain', display: 'block' }} />
         ) : (
@@ -215,7 +215,7 @@ export default function PhotoBoard({ items, started, ended, revealed, onMatch, o
             const got = matched.has(i);
             const show = got || revealed;
             return (
-              <div key={i} style={{ border: `1px solid ${got ? COLORS.forest : (revealed ? COLORS.rust : COLORS.faded + '55')}`, background: got ? '#fff' : (revealed ? '#f6ead9' : '#fbf7ef'), borderRadius: 2, overflow: 'hidden' }}>
+              <div key={i} style={{ borderRadius: 10, border: `1px solid ${got ? COLORS.forest : (revealed ? COLORS.rust : COLORS.faded + '55')}`, background: got ? '#fff' : (revealed ? '#f6ead9' : '#fbf7ef'), borderRadius: 2, overflow: 'hidden' }}>
                 <div style={{ position: 'relative', width: '100%', aspectRatio: photoAspect, background: COLORS.ink, overflow: 'hidden' }}>
                   <img src={it.img} alt={show ? it.t : `Photo ${i + 1}`} loading="lazy" style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block', opacity: show ? 1 : 0.5, filter: show ? 'none' : 'grayscale(0.5)' }} />
                 </div>

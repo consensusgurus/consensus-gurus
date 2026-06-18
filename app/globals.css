@@ -59,3 +59,7 @@ a {
 .nt-rel:hover{background:#fff;border-color:#2563eb;}
 .nt-rel-t{flex:1 1 auto;min-width:0;font-size:12.5px;font-weight:700;line-height:1.2;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
 .nt-rel-a{flex:none;color:#2563eb;font-weight:800;}
+
+/* Round interactive controls site-wide (quiz tiles, Play/Give-up buttons, modal
+   buttons, inputs). Inline border-radius (where set) still overrides this. */
+button, input, textarea, select { border-radius: 8px; }

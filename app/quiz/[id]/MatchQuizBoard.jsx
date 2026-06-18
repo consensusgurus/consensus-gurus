@@ -119,7 +119,7 @@ export default function MatchQuizBoard({ pairs, started, ended, revealed, onMatc
     breakInside: 'avoid',
     WebkitColumnBreakInside: 'avoid',
     background: '#fffdf8',
-    border: `1px solid ${COLORS.faded}55`,
+    borderRadius: 10, border: `1px solid ${COLORS.faded}55`,
     color: COLORS.ink,
     borderRadius: 0,
     transition: 'all .12s',
@@ -134,7 +134,7 @@ export default function MatchQuizBoard({ pairs, started, ended, revealed, onMatc
     marginBottom: 8,
   };
   const panel = {
-    border: `1px solid ${COLORS.faded}44`,
+    borderRadius: 10, border: `1px solid ${COLORS.faded}44`,
     padding: '10px 10px 12px',
   };
 
@@ -145,7 +145,7 @@ export default function MatchQuizBoard({ pairs, started, ended, revealed, onMatc
         @media (max-width: 600px) { .mqb-cols { column-count: 1; } }
       `}</style>
       {tray.length > 0 && (
-        <div style={{ marginBottom: 16, background: '#fffdf8', border: `1px solid ${COLORS.forest}66`, padding: '12px 14px' }}>
+        <div style={{ marginBottom: 16, background: '#fffdf8', borderRadius: 10, border: `1px solid ${COLORS.forest}66`, padding: '12px 14px' }}>
           <div style={{ fontFamily: MONO, fontSize: 10, letterSpacing: '0.18em', textTransform: 'uppercase', color: COLORS.forest, marginBottom: 8 }}>
             Matched · {tray.length}
           </div>

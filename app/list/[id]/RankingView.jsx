@@ -80,6 +80,7 @@ function Chips({ names, light }) {
 
 export default function RankingView({ list, voteData, extras }) {
   const mode = list.mode || 'both';
+  const containHero = list.heroFit === 'contain' || list.type === 'product' || (list.tags || []).includes('product') || (list.tags || []).includes('tech');
   const heroMap = HERO_IMAGES[list.id];
   const descs = DESCRIPTIONS[list.id] || {};
   const isConsensus = mode !== 'facts' && mode !== 'scores' && mode !== 'unranked' && mode !== 'votes';
@@ -125,7 +126,7 @@ export default function RankingView({ list, voteData, extras }) {
               const big = i === 0;
               return (
                 <div key={item} style={{ gridColumn: big ? '1 / -1' : 'auto', background: '#fff', border: `1px solid ${C.line}`, borderRadius: 14, overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>
-                  <div style={{ position: 'relative', minHeight: big ? 210 : 180, backgroundImage: src ? `url("${src}")` : grad(name), backgroundSize: 'cover', backgroundPosition: 'center' }}>
+                  <div style={{ position: 'relative', minHeight: big ? 210 : 180, backgroundImage: src ? `url("${src}")` : grad(name), backgroundSize: containHero ? 'contain' : 'cover', backgroundRepeat: 'no-repeat', backgroundPosition: 'center', backgroundColor: src && containHero ? '#1c1e24' : undefined }}>
                     <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to top, rgba(12,13,16,0.86), rgba(12,13,16,0.18) 58%, rgba(12,13,16,0))' }} />
                     <span style={{ position: 'absolute', top: 12, left: 12, width: 30, height: 30, borderRadius: '50%', background: MEDAL[i], color: '#1c1e24', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 800, fontSize: 15, zIndex: 2, boxShadow: '0 2px 6px rgba(0,0,0,.25)' }}>{i + 1}</span>
                     <Score item={item} dark />

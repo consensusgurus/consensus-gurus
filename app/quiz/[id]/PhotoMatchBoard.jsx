@@ -118,7 +118,7 @@ export default function PhotoMatchBoard({ items, started, ended, revealed, onMat
           const got = matched.has(i);
           const show = got || revealed;
           return (
-            <div key={i} style={{ border: `1px solid ${got ? COLORS.forest : (revealed ? COLORS.rust : COLORS.faded + '55')}`, background: got ? '#fff' : (revealed ? '#f6ead9' : '#fbf7ef'), borderRadius: 2, overflow: 'hidden' }}>
+            <div key={i} style={{ borderRadius: 10, border: `1px solid ${got ? COLORS.forest : (revealed ? COLORS.rust : COLORS.faded + '55')}`, background: got ? '#fff' : (revealed ? '#f6ead9' : '#fbf7ef'), borderRadius: 2, overflow: 'hidden' }}>
               <div style={{ position: 'relative', width: '100%', aspectRatio: '1 / 1', background: COLORS.ink, overflow: 'hidden' }}>
                 <img src={it.img} alt={show ? it.t : `Picture ${i + 1}`} loading="lazy" style={{ width: '100%', height: '100%', objectFit: 'contain', display: 'block', opacity: show ? 1 : 0.5, filter: show ? 'none' : 'grayscale(0.5)' }} />
               </div>
@@ -141,14 +141,14 @@ export default function PhotoMatchBoard({ items, started, ended, revealed, onMat
           {live ? `Tap the title of this ${noun}.` : 'Press Play to start'}
         </span>
         {live && cur != null && (
-          <button onClick={back} title="Go back to the previous painting." style={{ marginLeft: 'auto', flex: 'none', fontFamily: MONO, fontSize: 10, letterSpacing: '0.16em', textTransform: 'uppercase', fontWeight: 700, padding: '8px 12px', background: 'transparent', color: COLORS.ink, border: `1.5px solid ${COLORS.ink}`, cursor: 'pointer' }}>&larr; Back</button>
+          <button onClick={back} title="Go back to the previous painting." style={{ marginLeft: 'auto', flex: 'none', fontFamily: MONO, fontSize: 10, letterSpacing: '0.16em', textTransform: 'uppercase', fontWeight: 700, padding: '8px 12px', background: 'transparent', color: COLORS.ink, borderRadius: 10, border: `1.5px solid ${COLORS.ink}`, cursor: 'pointer' }}>&larr; Back</button>
         )}
         {live && cur != null && (
-          <button onClick={skip} title="Skip to the next painting; this one comes back around." style={{ flex: 'none', fontFamily: MONO, fontSize: 10, letterSpacing: '0.16em', textTransform: 'uppercase', fontWeight: 700, padding: '8px 12px', background: 'transparent', color: COLORS.ink, border: `1.5px solid ${COLORS.ink}`, cursor: 'pointer' }}>Next &rarr;</button>
+          <button onClick={skip} title="Skip to the next painting; this one comes back around." style={{ flex: 'none', fontFamily: MONO, fontSize: 10, letterSpacing: '0.16em', textTransform: 'uppercase', fontWeight: 700, padding: '8px 12px', background: 'transparent', color: COLORS.ink, borderRadius: 10, border: `1.5px solid ${COLORS.ink}`, cursor: 'pointer' }}>Next &rarr;</button>
         )}
       </div>
 
-      <div style={{ position: 'relative', width: '100%', aspectRatio: '4 / 3', maxHeight: 460, background: COLORS.ink, border: `2px solid ${imgBorder}`, overflow: 'hidden', marginBottom: 12, transition: 'border-color .15s' }}>
+      <div style={{ position: 'relative', width: '100%', aspectRatio: '4 / 3', maxHeight: 460, background: COLORS.ink, borderRadius: 10, border: `2px solid ${imgBorder}`, overflow: 'hidden', marginBottom: 12, transition: 'border-color .15s' }}>
         {live && curItem ? (
           <img src={curItem.img} alt={`Match this ${noun} to its title`} style={{ width: '100%', height: '100%', objectFit: 'contain', display: 'block' }} />
         ) : (
@@ -157,7 +157,7 @@ export default function PhotoMatchBoard({ items, started, ended, revealed, onMat
       </div>
 
       {/* Full answer bank, alphabetised by title. */}
-      <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, justifyContent: 'center', background: COLORS.paper, border: `1px solid ${COLORS.faded}33`, padding: '16px 14px' }}>
+      <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, justifyContent: 'center', background: COLORS.paper, borderRadius: 10, border: `1px solid ${COLORS.faded}33`, padding: '16px 14px' }}>
         {bankOrder.map((k) => {
           const isMatched = matched.has(k);
           const isFlash = flash && flash.key === k;
@@ -166,7 +166,7 @@ export default function PhotoMatchBoard({ items, started, ended, revealed, onMat
           else if (isFlash) { bg = flash.ok ? COLORS.forest : COLORS.ember; fg = COLORS.cream; }
           return (
             <button key={k} type="button" disabled={!live || isMatched} onClick={() => clickTile(k)}
-              style={{ fontFamily: SANS, fontSize: 14, fontWeight: 600, padding: '11px 14px', minHeight: 44, background: bg, color: fg, border: `1px solid ${isMatched ? COLORS.forest : COLORS.faded + '66'}`, borderRadius: 0, cursor: live && !isMatched ? 'pointer' : 'default', transition: 'all .12s' }}>
+              style={{ fontFamily: SANS, fontSize: 14, fontWeight: 600, padding: '11px 14px', minHeight: 44, background: bg, color: fg, borderRadius: 10, border: `1px solid ${isMatched ? COLORS.forest : COLORS.faded + '66'}`, borderRadius: 0, cursor: live && !isMatched ? 'pointer' : 'default', transition: 'all .12s' }}>
               {list[k].t}
             </button>
           );
