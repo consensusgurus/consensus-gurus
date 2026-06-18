@@ -335,7 +335,7 @@ function PlayerPanel({ me, scope, cats, byKey, totalQuizzes, board, myName, myAn
 // Full ranking BODY (no card chrome; the card, title, and toggle live in
 // PlayerPanel). Every player registered + anonymous, current row highlighted.
 function UserBaseBody({ board, myName, myAnonKey }) {
-  if (!board) return <div style={{ fontSize: 13, color: C.soft, padding: '6px 0' }}>Loading the full ranking\u2026</div>;
+  if (!board) return <div style={{ fontSize: 13, color: C.soft, padding: '6px 0' }}>Loading the full ranking…</div>;
   if (!board.length) return <div style={{ fontSize: 13, color: C.soft, padding: '6px 0' }}>No ranked players yet.</div>;
   return (
     <div>
@@ -358,7 +358,7 @@ function UserBaseBody({ board, myName, myAnonKey }) {
               return (
                 <tr key={p.userKey} style={mine ? { background: C.accsoft } : undefined}>
                   <td style={{ fontWeight: 800, color: mi >= 0 ? MEDAL[mi] : C.soft }}>{p.rank}</td>
-                  <td style={{ fontWeight: mine ? 800 : 600, whiteSpace: 'nowrap' }}>{p.name}{p.isAnon ? <span style={{ fontSize: 10, color: C.soft, fontWeight: 600, marginLeft: 6 }}>guest</span> : null}{mine ? <span style={{ fontSize: 10, color: C.accent, fontWeight: 700, marginLeft: 6 }}>you</span> : null}</td>
+                  <td style={{ fontWeight: mine ? 800 : 600, whiteSpace: 'nowrap' }}><Link href={`/quizzes/player/${encodeURIComponent(p.userKey)}`} style={{ color: C.ink, textDecoration: 'none' }}>{p.name}</Link>{p.isAnon ? <span style={{ fontSize: 10, color: C.soft, fontWeight: 600, marginLeft: 6 }}>guest</span> : null}{mine ? <span style={{ fontSize: 10, color: C.accent, fontWeight: 700, marginLeft: 6 }}>you</span> : null}</td>
                   <td className="score" style={{ textAlign: 'right', color: C.accent, fontWeight: 700 }}>{(p.rating || 0).toLocaleString()}</td>
                   <td style={{ textAlign: 'right' }}>{(p.correct || 0).toLocaleString()}</td>
                   <td style={{ textAlign: 'right' }}>{p.completed || 0}</td>

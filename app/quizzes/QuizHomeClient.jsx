@@ -422,7 +422,7 @@ export default function QuizHomeClient() {
               {leaderRows.map((r, i) => (
                 <div className="lrow" key={r.userKey || i}>
                   <Medal i={i} />
-                  <span className="qtitle"><WhoTag name={r.name} isAnon={r.isAnon} /></span>
+                  <span className="qtitle">{r.userKey ? <Link href={`/quizzes/player/${encodeURIComponent(r.userKey)}`} style={{ color: 'inherit', textDecoration: 'none' }}><WhoTag name={r.name} isAnon={r.isAnon} /></Link> : <WhoTag name={r.name} isAnon={r.isAnon} />}</span>
                   <span style={{ flex: 'none', fontWeight: 700, fontVariantNumeric: 'tabular-nums' }}>{lbMetric.fmt(r[lbMetric.key])}</span>
                 </div>
               ))}
