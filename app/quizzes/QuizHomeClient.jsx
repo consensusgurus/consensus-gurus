@@ -492,15 +492,20 @@ export default function QuizHomeClient() {
               })}
             </div>
           )
-        ) : (
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill,minmax(330px,1fr))', gap: 12 }}>
-            {(scope === 'all' ? catalog.slice() : (byKey[scope]?.quizzes || []).slice())
-              .sort((a, b) => plays(b.id) - plays(a.id) || a.title.localeCompare(b.title))
-              .slice(0, scope === 'all' ? 60 : 200)
-              .map((q) => (
-                <DetailCard key={q.id} q={q} s={statsById[q.id]} leader={leader(q.id)} color={(DEPT_COLOR[q.dept] || DEPT_COLOR.misc).c} />
-              ))}
+        ) : scope === 'all' ? (
+          <div className="qcols">
+            <BrowseColumn label="Newest" Icon={Sparkles} color={C.accent} tint={C.accsoft}
+              rows={newest.map((q) => ({ q, right: <NewRight q={q} /> }))} cta="View all ›" />
+            <BrowseColumn label="Most Played" Icon={Flame} color="#c2691c" tint="#f4e2cd"
+              rows={mostPlayed.map((q) => ({ q, right: <PlaysRight id={q.id} plays={plays} leader={leader} color="#c2691c" hidePlays /> }))} cta="View all ›" />
+            {cats.map((c) => (
+              <BrowseColumn key={c.key} label={c.label} Icon={c.Icon} color={c.c} tint={c.t}
+                rows={colRows(c, 6, shownIds).map((q) => ({ q, right: <PlaysRight id={q.id} plays={plays} leader={leader} color={c.c} hidePlays /> }))}
+                cta={`View all ${c.count} ›`} />
+            ))}
           </div>
+        ) : (
+          <CategoryFull cat={byKey[scope]} plays={plays} leader={leader} />
         )}
       </div>
 
