@@ -1,4 +1,4 @@
-import { ImageResponse } from 'next/og'
+import { renderListCard } from '@/lib/og-brand-card'
 import { LISTS } from '@/lib/data'
 
 export const runtime = 'nodejs';
@@ -140,87 +140,13 @@ function computeConsensus(list) {
 
 export default async function Image({ params }) {
   const list = LISTS.find(l => l.id === params.id)
-
   if (!list) {
-    return new ImageResponse(
-      (
-        <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#f4ead5', fontSize: 60, color: '#1a1a1a' }}>
-          <div style={{ display: 'flex' }}>Source of Truths</div>
-        </div>
-      ),
-      { ...size }
-    )
+    return renderListCard({ title: 'Source of Truths', category: 'Source of Truths', previewItems: [], startPosition: 10, isUnranked: false })
   }
-
-  // Load Fraunces (the site masthead serif) so the preview matches the header.
-  let frauncesData = null
-  try {
-    const res = await fetch('https://cdn.jsdelivr.net/npm/@fontsource/fraunces@5.0.20/files/fraunces-latin-900-normal.woff')
-    if (res.ok) frauncesData = await res.arrayBuffer()
-  } catch (e) { frauncesData = null }
-  let dmData = null
-  try {
-    const res2 = await fetch('https://cdn.jsdelivr.net/npm/@fontsource/dm-serif-display@5/files/dm-serif-display-latin-400-italic.woff')
-    if (res2.ok) dmData = await res2.arrayBuffer()
-  } catch (e) { dmData = null }
-  const fonts = [
-    ...(frauncesData ? [{ name: 'Fraunces', data: frauncesData, weight: 900, style: 'normal' }] : []),
-    ...(dmData ? [{ name: 'DMSerif', data: dmData, weight: 400, style: 'italic' }] : []),
-  ]
-  const ff = frauncesData ? 'Fraunces' : 'serif'
-  const dmFF = dmData ? 'DMSerif' : 'serif'
-
   const isUnranked = (list.mode || 'both') === 'unranked'
   const consensusItems = computeConsensus(list)
   const sliced = isUnranked ? consensusItems.slice(0, 5) : consensusItems.slice(5, 10)
-  const previewItems = isUnranked ? sliced : sliced.slice().reverse()
-  const startPosition = 5 + (isUnranked ? 0 : sliced.length)
-
-  return new ImageResponse(
-    (
-      <div style={{ width: '100%', height: '100%', display: 'flex', flexDirection: 'column', justifyContent: 'space-between', background: '#f4ead5', padding: '40px 72px', fontFamily: ff }}>
-        <div style={{ display: 'flex', flexDirection: 'column' }}>
-          <div style={{ display: 'flex', flexDirection: 'column', marginBottom: 18 }}>
-            <div style={{ display: 'flex', alignItems: 'flex-end', justifyContent: 'space-between', paddingBottom: 10 }}>
-              <div style={{ display: 'flex', fontSize: 42, color: '#1a1a1a', fontWeight: 700, lineHeight: 1 }}>Source of Truths</div>
-              <div style={{ display: 'flex', fontSize: 18, color: '#c0392b', textTransform: 'uppercase', letterSpacing: 2, fontWeight: 600, paddingBottom: 6 }}>
-                {list.category || 'Top Ten'}
-              </div>
-            </div>
-            <div style={{ display: 'flex', width: '100%', height: 1, background: '#1a1a1a' }} />
-            <div style={{ display: 'flex', width: '100%', height: 3, background: '#c0392b', marginTop: 3 }} />
-          </div>
-          <div style={{ display: 'flex', fontSize: 48, fontWeight: 700, color: '#1a1a1a', lineHeight: 1.05, marginBottom: 6, maxWidth: '94%' }}>
-            {list.title}
-          </div>
-          <div style={{ display: 'flex', fontSize: 20, color: '#5a5a5a', fontStyle: 'italic', lineHeight: 1.2 }}>
-            {isUnranked ? 'A handpicked set. Not ranked \u2014 just the ones worth owning.' : 'Counting down from ten. Top five revealed on site.'}
-          </div>
-        </div>
-
-        <div style={{ display: 'flex', flexDirection: 'column' }}>
-          {previewItems.map((item, idx) => {
-            const position = startPosition - idx
-            const name = getItemName(item)
-            return (
-              <div key={position} style={{ display: 'flex', alignItems: 'center', marginBottom: 2 }}>
-                <div style={{ display: 'flex', fontSize: 36, fontWeight: 700, color: '#c0392b', width: isUnranked ? 34 : 70, justifyContent: 'flex-end', marginRight: 22, lineHeight: 1.1 }}>
-                  {isUnranked ? '\u2022' : String(position)}
-                </div>
-                <div style={{ display: 'flex', fontSize: 26, color: '#1a1a1a', fontWeight: 500, maxWidth: 900, lineHeight: 1.1 }}>
-                  {name || 'Untitled'}
-                </div>
-              </div>
-            )
-          })}
-        </div>
-
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', borderTop: '1px solid #c4b896', paddingTop: 12, fontSize: 18, color: '#5a5a5a' }}>
-          <div style={{ display: 'flex' }}>{isUnranked ? 'See the full set at sourceoftruths.com' : 'See 5 through 1 at sourceoftruths.com'}</div>
-          <div style={{ display: 'flex', color: '#c0392b', fontWeight: 600 }}>{isUnranked ? 'Browse the picks' : 'Read the full ranking'}</div>
-        </div>
-      </div>
-    ),
-    { ...size, fonts }
-  )
+  const previewItems = (isUnranked ? sliced : sliced.slice().reverse()).map(getItemName)
+  const startPosition = isUnranked ? 5 : 5 + sliced.length
+  return renderListCard({ title: list.title, category: list.category || 'Top 10', previewItems, startPosition, isUnranked })
 }
