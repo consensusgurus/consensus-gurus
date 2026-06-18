@@ -80,7 +80,7 @@ export function buildChampions(rows, { minQuizzes = MIN_QUIZZES } = {}) {
   const users = [...agg.entries()].map(([uid, a]) => ({
     username: nameByUser.get(uid) || 'Anonymous',
     quizzes: a.quizzes,
-    accuracy: Math.round((a.accSum / a.quizzes) * 1000) / 10, // percent, 1dp
+    accuracy: Math.round((a.accSum / a.quizzes) * 100), // percent, 1dp
     weighted: Math.round(a.accSum * 10) / 10,                  // accuracy x quizzes, 1dp
   }));
 
@@ -156,7 +156,7 @@ function buildAnon(rows) {
   for (const r of firstByPair.values()) accSum += r.score / r.total;
   const anonCompleted = firstByPair.size;
   const anonWeighted = Math.round(accSum * 10) / 10;                                  // accuracy x quizzes
-  const anonAccuracy = firstByPair.size ? Math.round((accSum / firstByPair.size) * 1000) / 10 : 0; // percent, 1dp
+  const anonAccuracy = firstByPair.size ? Math.round((accSum / firstByPair.size) * 100) : 0; // percent, 1dp
   return { anonPlays, anonCompleted, anonWeighted, anonAccuracy };
 }
 

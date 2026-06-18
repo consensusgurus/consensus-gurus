@@ -274,7 +274,7 @@ function PlayerPanel({ me, scope, cats, byKey, totalQuizzes, board, myName, myAn
   const ranks = (found && me.ranks) || {};
   const base = (found && me.base) || {};
   const totalPlayers = (found && me.totalPlayers) || 0;
-  const pctTotal = totalQuizzes ? Math.round((a.played / totalQuizzes) * 1000) / 10 : 0;
+  const pctTotal = totalQuizzes ? Math.round((a.played / totalQuizzes) * 100) : 0;
   const pctCompleted = a.played ? Math.round((a.completed / a.played) * 100) : 0;
   const byCat = (found && me.byCategory) || {};
   const catRows = (scope === 'all' ? cats : cats.filter((c) => c.key === scope));
@@ -383,29 +383,46 @@ function ActivityFeed({ recent, titleById }) {
 // Full ranking BODY (no card chrome; the card, title, and toggle live in
 // PlayerPanel). Every player registered + anonymous, current row highlighted.
 function UserBaseBody({ board, myName, myAnonKey, onSelectPlayer }) {
+  const [sort, setSort] = useState({ col: 'rating', dir: 'desc' });
   if (!board) return <div style={{ fontSize: 13, color: C.soft, padding: '6px 0' }}>Loading the full ranking…</div>;
   if (!board.length) return <div style={{ fontSize: 13, color: C.soft, padding: '6px 0' }}>No ranked players yet.</div>;
+  const COLS = [
+    { key: 'rank', label: '#', w: 44, align: 'left' },
+    { key: 'name', label: 'Player', align: 'left', get: (p) => (p.name || '').toLowerCase() },
+    { key: 'rating', label: 'Skill Rating', align: 'right', get: (p) => p.rating || 0 },
+    { key: 'correct', label: 'Correct', align: 'right', get: (p) => p.correct || 0 },
+    { key: 'completed', label: 'Completed', align: 'right', get: (p) => p.completed || 0 },
+    { key: 'daysPlayed', label: 'Days', align: 'right', get: (p) => p.daysPlayed || 0 },
+    { key: 'accuracy', label: 'Accuracy', align: 'right', get: (p) => p.accuracy || 0 },
+  ];
+  const active = COLS.find((c) => c.key === sort.col) || COLS[2];
+  const sorted = [...board].sort((a, b) => {
+    const av = active.get ? active.get(a) : 0;
+    const bv = active.get ? active.get(b) : 0;
+    let cmp = typeof av === 'string' ? av.localeCompare(bv) : av - bv;
+    if (sort.dir === 'desc') cmp = -cmp;
+    return cmp || (a.rank || 0) - (b.rank || 0);
+  });
+  const clickSort = (c) => { if (!c.get) return; setSort((st) => st.col === c.key ? { col: c.key, dir: st.dir === 'desc' ? 'asc' : 'desc' } : { col: c.key, dir: c.key === 'name' ? 'asc' : 'desc' }); };
   return (
     <div>
-      <div style={{ fontSize: 11, color: C.soft, marginBottom: 10 }}>All {board.length.toLocaleString()} players by skill rating, anonymous guests included. Your row is highlighted.</div>
+      <div style={{ fontSize: 11, color: C.soft, marginBottom: 10 }}>All {board.length.toLocaleString()} players, anonymous guests included. Tap a column to sort; your row is highlighted.</div>
       <div style={{ overflow: 'auto', maxHeight: 600 }}>
         <table>
           <thead><tr>
-            <th style={{ width: 44 }}>#</th>
-            <th>Player</th>
-            <th style={{ textAlign: 'right' }}>Skill Rating</th>
-            <th style={{ textAlign: 'right' }}>Correct</th>
-            <th style={{ textAlign: 'right' }}>Completed</th>
-            <th style={{ textAlign: 'right' }}>Days</th>
-            <th style={{ textAlign: 'right' }}>Accuracy</th>
+            {COLS.map((c) => (
+              <th key={c.key} onClick={() => clickSort(c)} style={{ width: c.w, textAlign: c.align, whiteSpace: 'nowrap', userSelect: 'none', cursor: c.get ? 'pointer' : 'default', color: c.get && sort.col === c.key ? C.accent : undefined }}>
+                {c.label}{c.get && sort.col === c.key ? (sort.dir === 'desc' ? ' ↓' : ' ↑') : ''}
+              </th>
+            ))}
           </tr></thead>
           <tbody>
-            {board.map((p) => {
+            {sorted.map((p, idx) => {
               const mine = (myAnonKey && p.userKey === myAnonKey) || (myName && !p.isAnon && p.name === myName);
-              const mi = p.rank <= 3 ? p.rank - 1 : -1;
+              const mi = idx < 3 ? idx : -1;
               return (
                 <tr key={p.userKey} style={mine ? { background: C.accsoft } : undefined}>
-                  <td style={{ fontWeight: 800, color: mi >= 0 ? MEDAL[mi] : C.soft }}>{p.rank}</td>
+                  <td style={{ fontWeight: 800, color: mi >= 0 ? MEDAL[mi] : C.soft }}>{idx + 1}</td>
                   <td style={{ fontWeight: mine ? 800 : 600, whiteSpace: 'nowrap' }}><button onClick={() => onSelectPlayer && onSelectPlayer(p.userKey)} style={{ border: 'none', background: 'transparent', padding: 0, font: 'inherit', fontFamily: FONT, fontWeight: 'inherit', color: C.accent, cursor: 'pointer', textAlign: 'left' }}>{p.name}</button>{p.isAnon ? <span style={{ fontSize: 10, color: C.soft, fontWeight: 600, marginLeft: 6 }}>guest</span> : null}{mine ? <span style={{ fontSize: 10, color: C.accent, fontWeight: 700, marginLeft: 6 }}>you</span> : null}</td>
                   <td className="score" style={{ textAlign: 'right', color: C.accent, fontWeight: 700 }}>{(p.rating || 0).toLocaleString()}</td>
                   <td style={{ textAlign: 'right' }}>{(p.correct || 0).toLocaleString()}</td>
