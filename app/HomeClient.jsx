@@ -25,6 +25,12 @@ import {
   Music,
   Clapperboard,
   Sparkles,
+  LayoutGrid,
+  Utensils,
+  Wine,
+  ShoppingBag,
+  Tv,
+  ArrowRight,
 } from 'lucide-react';
 import { LISTS, TYPES, COLORS } from '@/lib/data';
 import { voteKey, dedupeByName, getSources, stripItemScore } from '@/lib/helpers';
@@ -60,7 +66,6 @@ const FACTUAL_QUIZZES = (Array.isArray(QUIZZES) ? QUIZZES : []).filter((q) => !q
 // cycles the pool). Once no quiz clears the bar the gate falls back to the
 // full factual pool so the tiles never vanish.
 const QUIZ_TILE_MIN_PLAYS = 5;
-
 
 // Human-readable labels for each list type, shown in the top-right of tiles.
 const TYPE_LABELS = {
@@ -766,413 +771,184 @@ function Home({ lists, viewCounts, voteData, extras, trending = {}, openList, on
     { id: 'recent', label: 'Most Recently Added', short: 'Recent' },
   ];
 
-  return (
-    <div style={{ position: 'relative', zIndex: 2 }}>
-      <header
-        style={{
-          padding: '48px 16px 18px',
-          maxWidth: 1200,
-          margin: '0 auto',
-        }}
+  const cityActive = typeFilter.startsWith('city-') || typeFilter.startsWith('region-');
+  const topicActive = typeFilter.startsWith('topic-');
+
+  // A single category pill (broad categories: All, Eating, Drinking, …).
+  const catPill = (c) => {
+    const meta = CAT_META[c.id] || CAT_META.misc;
+    const Icon = meta.Icon;
+    const active = typeFilter === c.id;
+    return (
+      <button
+        key={c.id}
+        className={'nt-pill' + (active ? ' on' : '')}
+        style={active ? { background: meta.color, borderColor: meta.color } : null}
+        onClick={() => { setTypeFilter(c.id); setNavMenu(null); }}
       >
-        <div className="cg-head">
-          <h1
-            style={{
-              fontFamily: 'Fraunces, serif',
-              fontWeight: 600,
-              fontSize: 'clamp(40px, 9vw, 84px)',
-              lineHeight: 0.9,
-              letterSpacing: '-0.015em',
-              margin: 0,
-              fontVariationSettings: '"SOFT" 100',
-              color: COLORS.ink,
-              whiteSpace: 'nowrap',
-            }}
-          >
-            Source
-            <br />
-            {HOME_V2 ? (
-              <>
-                <span style={{ fontStyle: 'italic', fontWeight: 400, color: COLORS.ember }}>of</span> Truths
-              </>
-            ) : (
-              'of Truths'
-            )}
-          </h1>
-          <div className="cg-head-col">
-            <div className="cg-tagline">
-              For all the important aspects of life
+        <Icon size={13} strokeWidth={2.25} style={{ color: active ? '#fff' : meta.color }} /> {c.label}
+      </button>
+    );
+  };
+
+  // A narrow chip inside the By City / By Topic dropdown panel.
+  const narrowChip = (f) => {
+    const active = typeFilter === f.id;
+    const count = f.count != null ? f.count : (counts[f.id] || 0);
+    return (
+      <button
+        key={f.id}
+        className={'nt-chip' + (active ? ' on' : '')}
+        onClick={() => { setTypeFilter(f.id); setNavMenu(null); }}
+      >
+        {f.label} <span style={{ opacity: 0.55 }}>{count}</span>
+      </button>
+    );
+  };
+
+  return (
+    <div style={{ position: 'relative', zIndex: 2, fontFamily: NFONT, color: NT.ink }}>
+      <style>{`
+        @import url('https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap');
+        .nt-wrap{max-width:1180px;margin:0 auto;padding:20px 24px 70px;}
+        .nt-lbl{font-size:9.5px;font-weight:700;letter-spacing:.07em;text-transform:uppercase;color:${NT.soft};}
+        .nt-crumb1{font-size:18px;font-weight:800;letter-spacing:-0.02em;color:${NT.ink};text-decoration:none;}
+        .nt-crumb2{font-size:18px;font-weight:600;color:${NT.accent};}
+        .nt-navlink{font-size:13px;color:${NT.muted};text-decoration:none;}
+        .nt-navlink:hover{color:${NT.ink};}
+        .nt-stat{font-size:11px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;color:${NT.soft};margin-top:9px;}
+        .nt-stat b{color:${NT.ink};}
+        .nt-tagline{font-size:12px;color:${NT.muted};line-height:1.5;max-width:430px;}
+        .nt-tagline b{color:${NT.ink};}
+        .nt-pills{display:flex;gap:7px;flex-wrap:wrap;margin:16px 0 12px;position:relative;}
+        .nt-pill{font-size:12px;font-weight:700;letter-spacing:.03em;text-transform:uppercase;padding:7px 13px;border-radius:9px;border:1px solid ${NT.line};background:#fff;color:${NT.muted};cursor:pointer;display:inline-flex;align-items:center;gap:5px;font-family:inherit;white-space:nowrap;}
+        .nt-pill.on{color:#fff;}
+        .nt-pill.ghost.on{background:${NT.ink};border-color:${NT.ink};color:#fff;}
+        .nt-panel{position:absolute;top:calc(100% + 6px);left:0;right:0;z-index:30;background:#fff;border:1px solid ${NT.line};border-radius:12px;box-shadow:0 12px 30px rgba(20,22,28,0.12);padding:14px 16px 18px;max-height:62vh;overflow:auto;}
+        .nt-chip{font-size:11px;font-weight:700;letter-spacing:.02em;padding:6px 10px;border-radius:8px;border:1px solid ${NT.line};background:${NT.bg};color:${NT.ink};cursor:pointer;font-family:inherit;white-space:nowrap;}
+        .nt-chip.on{background:${NT.accent};border-color:${NT.accent};color:#fff;}
+        .nt-phead{font-size:9.5px;font-weight:800;letter-spacing:.16em;text-transform:uppercase;color:${NT.soft};margin:14px 0 8px;}
+        .nt-phead:first-child{margin-top:0;}
+        .nt-toolbar{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-bottom:18px;position:relative;}
+        .nt-field{position:relative;flex:1 1 280px;min-width:0;}
+        .nt-field svg{position:absolute;left:12px;top:50%;transform:translateY(-50%);color:${NT.soft};}
+        .nt-field input{width:100%;padding:10px 34px 10px 36px;border:1px solid ${NT.line};border-radius:10px;font-family:inherit;font-size:13.5px;background:#fff;outline:none;color:${NT.ink};}
+        .nt-field .nt-clear{position:absolute;right:8px;top:50%;transform:translateY(-50%);background:none;border:none;color:${NT.soft};cursor:pointer;display:flex;padding:4px;}
+        .nt-tbtn{display:flex;align-items:center;gap:7px;border:1px solid ${NT.line};background:#fff;border-radius:10px;padding:10px 13px;font-family:inherit;font-size:13px;font-weight:600;color:${NT.ink};cursor:pointer;white-space:nowrap;}
+        .nt-tbtn.primary{background:${NT.accent};border-color:${NT.accent};color:#fff;font-weight:700;text-decoration:none;}
+        .nt-sortmenu{position:absolute;top:calc(100% + 6px);z-index:30;min-width:190px;background:#fff;border:1px solid ${NT.line};border-radius:10px;box-shadow:0 12px 30px rgba(20,22,28,0.12);overflow:hidden;}
+        .nt-sortitem{width:100%;display:block;text-align:left;border:none;background:#fff;padding:10px 14px;font-family:inherit;font-size:13px;font-weight:600;color:${NT.ink};cursor:pointer;}
+        .nt-sortitem.on,.nt-sortitem:hover{background:${NT.accsoft};color:${NT.accent};}
+        .nt-grid{column-count:4;column-gap:16px;}
+        @media(max-width:1040px){.nt-grid{column-count:3;}}
+        @media(max-width:720px){.nt-grid{column-count:2;}}
+        @media(max-width:480px){.nt-grid{column-count:1;}}
+        .nt-tile{break-inside:avoid;width:100%;margin:0 0 16px;background:#fff;border:1px solid ${NT.line};border-radius:12px;overflow:hidden;display:inline-block;text-decoration:none;color:${NT.ink};transition:box-shadow .15s,transform .15s;}
+        .nt-tile:hover{box-shadow:0 8px 24px rgba(20,22,28,0.10);transform:translateY(-2px);}
+        .nt-timg{position:relative;height:140px;display:flex;align-items:center;justify-content:center;}
+        .nt-tcat{position:absolute;top:8px;left:8px;font-size:9px;font-weight:800;letter-spacing:.05em;text-transform:uppercase;color:#fff;padding:3px 7px 3px 6px;border-radius:6px;display:inline-flex;align-items:center;gap:4px;box-shadow:0 1px 3px rgba(0,0,0,0.18);}
+        .nt-tbadge{position:absolute;bottom:8px;left:8px;background:rgba(28,30,36,0.85);color:#fff;font-size:11px;font-weight:800;padding:2px 8px;border-radius:6px;}
+        .nt-tbody{padding:12px 14px 13px;}
+        .nt-ttitle{font-size:16px;font-weight:800;line-height:1.18;letter-spacing:-0.01em;margin:0 0 9px;}
+        .nt-crow{display:flex;align-items:center;gap:9px;padding:5px 0;border-bottom:1px dashed rgba(20,22,28,0.12);font-size:12.5px;}
+        .nt-crow:last-of-type{border-bottom:none;}
+        .nt-cnum{flex:none;width:18px;height:18px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:800;}
+        .nt-cname{flex:1 1 auto;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+        .nt-tfoot{display:flex;align-items:center;justify-content:space-between;margin-top:11px;padding-top:9px;border-top:1px solid ${NT.line};}
+        .nt-tfoot span{font-size:9.5px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;color:${NT.soft};display:flex;align-items:center;gap:4px;}
+        @media(max-width:560px){.nt-wrap{padding:16px 14px 60px;}.nt-tagline{display:none;}}
+      `}</style>
+
+      <div className="nt-wrap">
+        {/* header */}
+        <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 24, flexWrap: 'wrap', paddingBottom: 14, borderBottom: `1px solid ${NT.line}` }}>
+          <div>
+            <Link href="/" style={{ display: 'flex', alignItems: 'center', gap: 11, textDecoration: 'none' }}>
+              <NTLogo size={40} />
+              <span>
+                <span style={{ display: 'block', fontSize: 26, fontWeight: 800, letterSpacing: '-0.025em', lineHeight: 1, color: NT.ink }}>Source <span style={{ color: NT.accent, fontWeight: 600 }}>of</span> Truths</span>
+                <span style={{ display: 'block', fontSize: 10, fontWeight: 800, letterSpacing: '0.18em', textTransform: 'uppercase', color: '#c8870f', marginTop: 4 }}>Producing Objectivity</span>
+              </span>
+            </Link>
+            <div className="nt-stat"><b>{lists.length}</b> lists · <b>{totalSources.toLocaleString()}</b> sources · <b>{totalViews.toLocaleString()}</b> visitors</div>
+          </div>
+          <div style={{ textAlign: 'right' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 18, justifyContent: 'flex-end', marginBottom: 9 }}>
+              <span style={{ fontSize: 13, color: NT.ink, fontWeight: 700 }}>Lists</span>
+              <Link className="nt-navlink" href="/quizzes">Quizzes</Link>
             </div>
-            <div className="cg-blurb">
-              The consensus of expert critics and everyday users, weighed across{' '}<SourcesPopover emphasis={HOME_V2} />, from Michelin, Condé Nast Traveler, The Infatuation, Eater, and Robb Report to Wirecutter, Goodreads, and Dave Portnoy.
-            </div>
-            <div style={{ borderBottom: `1px solid ${COLORS.ink}`, marginBottom: 4 }} />
-            <div style={{ borderBottom: `2px solid ${COLORS.ember}` }} />
+            <div className="nt-tagline">The consensus of expert critics and everyday users, weighed across <b>{totalSources.toLocaleString()} sources</b> — from Michelin and Condé Nast Traveler to Eater, Wirecutter, and Goodreads.</div>
           </div>
         </div>
-        <style>{`
-          .cg-head{display:flex;align-items:flex-end;gap:clamp(16px,4vw,28px);}
-          .cg-head-col{flex:1;min-width:0;margin-bottom:clamp(8px,1.4vw,14px);}
-          .cg-tagline{font-family:'DM Mono',monospace;font-size:clamp(9px,1.1vw,11px);letter-spacing:0.2em;text-transform:uppercase;font-weight:700;color:${COLORS.ink};text-align:right;margin-bottom:8px;line-height:1.4;}
-          .cg-blurb{font-family:'DM Sans',sans-serif;font-size:clamp(11px,1.25vw,13px);line-height:1.5;color:${COLORS.ink};text-align:right;max-width:520px;margin-left:auto;margin-bottom:10px;}
-          @media(max-width:640px){
-            .cg-head{flex-direction:column;align-items:stretch;gap:14px;}
-            .cg-head-col{margin-bottom:0;}
-            .cg-tagline{text-align:left;}
-            .cg-blurb{text-align:left;max-width:none;margin-left:0;font-size:14px;}
-          }
-          .cg-stats{margin-top:16px;display:flex;justify-content:flex-start;align-items:baseline;flex-wrap:nowrap;white-space:nowrap;gap:16px;font-family:'DM Mono',monospace;font-size:11px;letter-spacing:0.15em;text-transform:uppercase;color:${COLORS.faded};}
-          .cg-stats .cg-dot{opacity:0.5;}
-          .cg-tape{flex:1 1 auto;min-width:0;overflow:hidden;margin-left:8px;text-overflow:ellipsis;text-align:center;}
-          .cg-feat{color:${COLORS.ember};text-decoration:none;white-space:nowrap;}
-          .cg-feat .cg-feat-label{color:${COLORS.faded};}
-          .cg-feat:hover .cg-feat-title{text-decoration:underline;}
-          @media(max-width:760px){.cg-tape{display:none;}}
-          @media(max-width:560px){.cg-stats{gap:10px;font-size:clamp(8px,2.7vw,11px);letter-spacing:0.06em;}}
-        `}</style>
-        <div className="cg-stats">
-          <span>{lists.length} lists</span>
-          <span><span aria-hidden="true" className="cg-dot">·</span> <Count value={totalSources} /> sources</span>
-          <span><span aria-hidden="true" className="cg-dot">·</span> <Count value={totalViews} /> visitors</span>
-          {HOME_V2 && featuredQuiz && (
-            <span className="cg-tape">
-              <Link className="cg-feat" href={`/quiz/${featuredQuiz.id}`}>
-                <span className="cg-feat-label">Featured Quiz: </span>
-                <span className="cg-feat-title">{featuredQuiz.title}</span>
-              </Link>
-            </span>
+
+        {/* category pills + By City / By Topic */}
+        <div className="nt-pills" onClick={(e) => e.stopPropagation()}>
+          {visibleTypes.map(catPill)}
+          {cityFilters.length > 0 && (
+            <button className={'nt-pill ghost' + (cityActive ? ' on' : '')} onClick={() => setNavMenu((m) => (m === 'city' ? null : 'city'))}>
+              By City <ChevronDown size={13} strokeWidth={2.5} style={{ transform: navMenu === 'city' ? 'rotate(180deg)' : 'none' }} />
+            </button>
+          )}
+          {visibleTopics.length > 0 && (
+            <button className={'nt-pill ghost' + (topicActive ? ' on' : '')} onClick={() => setNavMenu((m) => (m === 'topic' ? null : 'topic'))}>
+              By Topic <ChevronDown size={13} strokeWidth={2.5} style={{ transform: navMenu === 'topic' ? 'rotate(180deg)' : 'none' }} />
+            </button>
+          )}
+          {navMenu === 'city' && (
+            <div className="nt-panel">
+              <div className="nt-phead">By City</div>
+              <div style={{ display: 'flex', flexWrap: 'wrap', gap: 7 }}>{cityFilters.map(narrowChip)}</div>
+              {visibleRegions.length > 0 && (<><div className="nt-phead">By Region</div><div style={{ display: 'flex', flexWrap: 'wrap', gap: 7 }}>{visibleRegions.map(narrowChip)}</div></>)}
+            </div>
+          )}
+          {navMenu === 'topic' && (
+            <div className="nt-panel">
+              <div className="nt-phead">By Topic</div>
+              <div style={{ display: 'flex', flexWrap: 'wrap', gap: 7 }}>{visibleTopics.map(narrowChip)}</div>
+            </div>
           )}
         </div>
-      </header>
 
-      {HOME_V2 && (() => {
-        // ── V2 department nav (sticky ink bar) ──────────────────────────────
-        // Replaces the Category dropdown: broad categories inline, with the
-        // city/region and topic chips of the old mega-menu under two panels.
-        const navBtn = (key, label, active, color, onClick) => (
-          <button
-            key={key}
-            onClick={onClick}
-            style={{
-              flex: '1 0 auto',
-              background: active ? color : 'transparent',
-              color: COLORS.cream,
-              border: 'none',
-              borderRight: '1px solid rgba(244,237,224,0.18)',
-              height: 42,
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              padding: '0 18px',
-              fontFamily: 'DM Mono, monospace',
-              fontSize: 10.5,
-              letterSpacing: '0.2em',
-              textTransform: 'uppercase',
-              fontWeight: 600,
-              cursor: 'pointer',
-              whiteSpace: 'nowrap',
-            }}
-          >
-            {label}
-          </button>
-        );
-        const chip = (f) => {
-          const active = typeFilter === f.id;
-          const parentId = parentIdFor(f.id);
-          const parentColor = parentId ? PARENT_COLORS[parentId] : null;
-          const parentTint = parentId ? PARENT_TINTS[parentId] : null;
-          const count = f.count != null ? f.count : (counts[f.id] || 0);
-          return (
-            <button
-              key={f.id}
-              onClick={() => { setTypeFilter(f.id); setNavMenu(null); }}
-              style={{
-                display: 'inline-flex',
-                alignItems: 'baseline',
-                gap: 6,
-                border: `1px solid ${parentColor || COLORS.ink}`,
-                padding: '7px 10px',
-                fontFamily: 'DM Mono, monospace',
-                fontSize: 9,
-                letterSpacing: '0.14em',
-                textTransform: 'uppercase',
-                fontWeight: 600,
-                cursor: 'pointer',
-                background: active ? (parentColor || COLORS.ink) : (parentTint || COLORS.paper),
-                color: active ? COLORS.cream : COLORS.ink,
-                whiteSpace: 'nowrap',
-              }}
-            >
-              <span>{f.label}</span>
-              <span style={{ opacity: active ? 0.75 : 0.55 }}>{count}</span>
-            </button>
-          );
-        };
-        const heading = (text) => (
-          <div style={{ fontFamily: 'DM Mono, monospace', fontSize: 9, letterSpacing: '0.22em', textTransform: 'uppercase', fontWeight: 700, color: COLORS.faded, margin: '14px 0 8px' }}>
-            {text}
+        {/* toolbar */}
+        <div className="nt-toolbar" onClick={(e) => e.stopPropagation()}>
+          <div className="nt-field">
+            <Search size={16} strokeWidth={2.25} />
+            <input value={query} onChange={(e) => setQuery(e.target.value)} placeholder="Search lists…" autoComplete="off" />
+            {query && <button className="nt-clear" aria-label="Clear search" onClick={() => setQuery('')}><X size={15} strokeWidth={2.5} /></button>}
           </div>
-        );
-        const cityActive = typeFilter.startsWith('city-') || typeFilter.startsWith('region-');
-        const topicActive = typeFilter.startsWith('topic-');
-        return (
-          <nav
-            onClick={(e) => e.stopPropagation()}
-            style={{ position: 'sticky', top: 0, zIndex: 25, background: COLORS.cream }}
-          >
-            <style>{`.sot-deptnav{scrollbar-width:none;-ms-overflow-style:none;}.sot-deptnav::-webkit-scrollbar{display:none;}
-              @keyframes sotNavNudge{0%,100%{transform:translate(0,-50%);}50%{transform:translate(3px,-50%);}}
-              @keyframes sotNavNudgeL{0%,100%{transform:translate(0,-50%);}50%{transform:translate(-3px,-50%);}}
-              .sot-navcue{position:absolute;top:50%;z-index:2;display:flex;align-items:center;justify-content:center;width:26px;height:26px;border-radius:50%;background:${COLORS.ember};color:${COLORS.cream};box-shadow:0 1px 4px rgba(26,22,17,0.45);pointer-events:none;font-size:15px;line-height:1;}
-              .sot-navcue-r{right:18px;animation:sotNavNudge 1.4s ease-in-out infinite;}
-              .sot-navcue-l{left:18px;animation:sotNavNudgeL 1.4s ease-in-out infinite;}
-              @media(min-width:760px){.sot-navcue{display:none;}}
-            `}</style>
-            {/* Replicate the page's Grain overlay inside the sticky bar so its
-                cream matches the grain-textured background around it. */}
-            <svg aria-hidden="true" style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', pointerEvents: 'none', opacity: 0.12, mixBlendMode: 'multiply' }}>
-              <filter id="sot-nav-grain">
-                <feTurbulence type="fractalNoise" baseFrequency="0.9" numOctaves="2" stitchTiles="stitch" />
-                <feColorMatrix values="0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  0 0 0 0.6 0" />
-              </filter>
-              <rect width="100%" height="100%" filter="url(#sot-nav-grain)" />
-            </svg>
-            <div style={{ maxWidth: 1200, margin: '0 auto', padding: '0 16px', position: 'relative' }}>
-            <div ref={deptNavRef} className="sot-deptnav" style={{ display: 'flex', alignItems: 'stretch', overflowX: 'auto', background: COLORS.ink, borderBottom: `3px solid ${COLORS.ember}` }}>
-              {visibleTypes.map((t) =>
-                navBtn(
-                  t.id,
-                  t.label,
-                  typeFilter === t.id,
-                  t.id === 'all' ? COLORS.ember : (PARENT_COLORS[t.id] || COLORS.faded),
-                  () => { setTypeFilter(t.id); setNavMenu(null); }
-                )
-              )}
-              {cityFilters.length > 0 && navBtn('by-city', `By City ${navMenu === 'city' ? '▴' : '▾'}`, cityActive, COLORS.faded, () => setNavMenu((m) => (m === 'city' ? null : 'city')))}
-              {visibleTopics.length > 0 && navBtn('by-topic', `By Topic ${navMenu === 'topic' ? '▴' : '▾'}`, topicActive, COLORS.faded, () => setNavMenu((m) => (m === 'topic' ? null : 'topic')))}
-            </div>
-            {navScroll.left && <span aria-hidden="true" className="sot-navcue sot-navcue-l">&#8249;</span>}
-            {navScroll.right && <span aria-hidden="true" className="sot-navcue sot-navcue-r">&#8250;</span>}
-            {navMenu && (
-              <div style={{ position: 'absolute', top: '100%', left: 16, right: 16, zIndex: 30, background: COLORS.cream, border: `1.5px solid ${COLORS.ink}`, borderTop: 'none', boxShadow: '0 10px 24px rgba(26,22,17,0.25)', maxHeight: '60vh', overflowY: 'auto' }}>
-                <div style={{ padding: '14px 24px 18px' }}>
-                  {navMenu === 'city' ? (
-                    <>
-                      {heading('By City')}
-                      <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>{cityFilters.map(chip)}</div>
-                      {visibleRegions.length > 0 && (
-                        <>
-                          {heading('By Region')}
-                          <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>{visibleRegions.map(chip)}</div>
-                        </>
-                      )}
-                    </>
-                  ) : (
-                    <>
-                      {heading('By Topic')}
-                      <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>{visibleTopics.map(chip)}</div>
-                    </>
-                  )}
-                </div>
-              </div>
-            )}
-            </div>
-          </nav>
-        );
-      })()}
-
-      <section style={{ padding: '10px 16px 80px', maxWidth: 1200, margin: '0 auto' }}>
-        <style>{`.cg-controls{display:grid;grid-template-columns:repeat(${HOME_V2 ? 3 : 4},1fr);gap:16px;margin-bottom:16px;}.cg-controls>*{height:${HOME_V2 ? 42 : 50}px;min-width:0;}.cg-ctrl-label{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;min-width:0;}@media(max-width:760px){.cg-controls{grid-template-columns:1fr 1fr;}${HOME_V2 ? '.cg-c-search{grid-column:1 / -1;}.cg-c-sort{grid-column:1 / -1;}.cg-c-actions{grid-column:1 / -1;}' : ''}.cg-c-search input{font-size:16px !important;}.cg-ctrl-btn{justify-content:space-between !important;letter-spacing:0.05em !important;padding:0 10px !important;gap:6px !important;}}@media(max-width:760px){.cg-sort-btn{justify-content:center !important;padding:0 30px !important;}}`}</style>
-        <div className="cg-controls">
-          <div className="cg-c-search" style={{ position: 'relative', minWidth: 0, order: HOME_V2 ? 1 : 3 }}>
-            <Search size={16} strokeWidth={2.5} style={{ position: 'absolute', left: 14, top: '50%', transform: 'translateY(-50%)', color: COLORS.faded }} />
-            <input
-              type="text"
-              value={query}
-              onChange={(e) => setQuery(e.target.value)}
-              placeholder="Search lists"
-              style={{ width: '100%', height: '100%', boxSizing: 'border-box', padding: '0 16px 0 42px', background: COLORS.paper, border: `1.5px solid ${COLORS.ink}`, fontFamily: 'DM Sans, sans-serif', fontSize: 14, color: COLORS.ink, outline: 'none' }}
-            />
-            {query && (
-              <button onClick={() => setQuery('')} aria-label="Clear search" style={{ position: 'absolute', right: 10, top: '50%', transform: 'translateY(-50%)', background: 'transparent', border: 'none', color: COLORS.faded, cursor: 'pointer', padding: 6, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                <X size={16} strokeWidth={2.5} />
-              </button>
-            )}
-          </div>
-
-          {!HOME_V2 && (
-          <div style={{ position: 'relative', minWidth: 0, order: 2 }} onClick={(e) => e.stopPropagation()}>
-            <button className="cg-ctrl-btn" onClick={() => { setCatOpen((o) => !o); setSortOpen(false); }} aria-haspopup="true" aria-expanded={catOpen} style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, background: '#bdb3a0', color: COLORS.ink, border: `1.5px solid ${COLORS.ink}`, padding: '0 14px', fontFamily: 'DM Mono, monospace', fontSize: 11, letterSpacing: '0.14em', textTransform: 'uppercase', fontWeight: 600, cursor: 'pointer', whiteSpace: 'nowrap', overflow: 'hidden' }}>
-              <span className="cg-ctrl-label"><span style={{ opacity: 0.8 }}>Category:</span> {activeFilterLabel}</span>
-              <ChevronDown size={14} strokeWidth={2.5} style={{ transform: catOpen ? 'rotate(180deg)' : 'none', transition: 'transform 0.15s' }} />
-            </button>
-            {catOpen && (() => {
-              const pick = (id) => { setTypeFilter(id); setCatOpen(false); };
-              const chip = (f, big) => {
-                const active = typeFilter === f.id;
-                const count = f.count != null ? f.count : (counts[f.id] || 0);
-                const parentId = parentIdFor(f.id);
-                const parentColor = parentId ? PARENT_COLORS[parentId] : null;
-                const parentTint = parentId ? PARENT_TINTS[parentId] : null;
-                return (
-                  <button
-                    key={f.id}
-                    role="menuitem"
-                    onClick={() => pick(f.id)}
-                    style={{
-                      display: 'inline-flex',
-                      alignItems: 'baseline',
-                      gap: 6,
-                      border: `1px solid ${parentColor || COLORS.ink}`,
-                      padding: big ? '9px 12px' : '7px 10px',
-                      fontFamily: 'DM Mono, monospace',
-                      fontSize: big ? 10 : 9,
-                      letterSpacing: '0.14em',
-                      textTransform: 'uppercase',
-                      fontWeight: 600,
-                      cursor: 'pointer',
-                      background: active
-                        ? (parentColor || '#bdb3a0')
-                        : (parentTint || COLORS.paper),
-                      color: active && parentColor ? COLORS.cream : COLORS.ink,
-                      whiteSpace: 'nowrap',
-                    }}
-                  >
-                    <span>{f.label}</span>
-                    {f.id !== 'all' && <span style={{ opacity: active && parentColor ? 0.75 : 0.55 }}>{count}</span>}
-                  </button>
-                );
-              };
-              const heading = (text) => (
-                <div style={{ fontFamily: 'DM Mono, monospace', fontSize: 9, letterSpacing: '0.22em', textTransform: 'uppercase', fontWeight: 700, color: COLORS.faded, margin: '16px 0 8px' }}>
-                  {text}
-                </div>
-              );
-              return (
-                <div role="menu" style={{ position: 'absolute', top: 'calc(100% + 6px)', right: 0, left: 'auto', zIndex: 30, width: 'min(640px, calc(100vw - 48px))', background: COLORS.cream, border: `1.5px solid ${COLORS.ink}`, boxShadow: `4px 4px 0 ${COLORS.ink}`, maxHeight: 'min(70vh, 560px)', overflowY: 'auto', padding: '14px 16px 18px', boxSizing: 'border-box' }}>
-                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: 7, paddingBottom: 12, borderBottom: `1px solid ${COLORS.ink}` }}>
-                    {visibleTypes.map((t) => chip(t, true))}
-                  </div>
-                  {cityFilters.length > 0 && (
-                    <>
-                      {heading('By City')}
-                      <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
-                        {cityFilters.map((f) => chip(f, false))}
-                      </div>
-                    </>
-                  )}
-                  {visibleRegions.length > 0 && (
-                    <>
-                      {heading('By Region')}
-                      <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
-                        {visibleRegions.map((f) => chip(f, false))}
-                      </div>
-                    </>
-                  )}
-                  {visibleTopics.length > 0 && (
-                    <>
-                      {heading('By Topic')}
-                      <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
-                        {visibleTopics.map((f) => chip(f, false))}
-                      </div>
-                    </>
-                  )}
-                </div>
-              );
-            })()}
-          </div>
-          )}
-
-          <div className="cg-c-sort" style={{ position: 'relative', minWidth: 0, order: HOME_V2 ? 2 : 1 }} onClick={(e) => e.stopPropagation()}>
-            <button className="cg-ctrl-btn cg-sort-btn" onClick={() => { setSortOpen((o) => !o); setCatOpen(false); }} aria-haspopup="true" aria-expanded={sortOpen} style={{ position: 'relative', width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, background: COLORS.ink, color: COLORS.cream, border: `1.5px solid ${COLORS.ink}`, padding: '0 34px', fontFamily: 'DM Mono, monospace', fontSize: 11, letterSpacing: '0.14em', textTransform: 'uppercase', fontWeight: 600, cursor: 'pointer', whiteSpace: 'nowrap', overflow: 'hidden' }}>
-              <span className="cg-ctrl-label"><span style={{ opacity: 0.8 }}>Sort:</span> {(sortButtons.find((o) => o.id === sortBy) || {}).short || 'Discover'}</span>
-              <ChevronDown size={14} strokeWidth={2.5} style={{ position: 'absolute', right: 14, top: '50%', transform: sortOpen ? 'translateY(-50%) rotate(180deg)' : 'translateY(-50%)', transition: 'transform 0.15s' }} />
+          <div style={{ position: 'relative' }}>
+            <button className="nt-tbtn" onClick={() => { setSortOpen((o) => !o); setNavMenu(null); }}>
+              <ArrowRight size={15} strokeWidth={2.25} style={{ color: NT.muted, transform: 'rotate(90deg)' }} /> Sort: {(sortButtons.find((o) => o.id === sortBy) || {}).short || 'Discover'} <ChevronDown size={14} strokeWidth={2.5} style={{ color: NT.soft }} />
             </button>
             {sortOpen && (
-              <div role="menu" style={{ position: 'absolute', top: 'calc(100% + 6px)', left: 0, zIndex: 30, minWidth: 180, background: COLORS.cream, border: `1.5px solid ${COLORS.ink}` }}>
-                {sortButtons.map((opt, i) => {
-                  const active = sortBy === opt.id;
-                  return (
-                    <button key={opt.id} role="menuitem" onClick={() => { setSortBy(opt.id); setSortOpen(false); }} style={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 16, border: 'none', padding: '10px 14px', fontFamily: 'DM Mono, monospace', fontSize: 10, letterSpacing: '0.16em', textTransform: 'uppercase', fontWeight: 600, cursor: 'pointer', textAlign: 'left', justifyContent: 'flex-start', background: active ? COLORS.ink : 'transparent', color: active ? COLORS.cream : COLORS.ink, borderTop: i === 0 ? 'none' : `0.5px solid ${COLORS.paper}` }}>
-                      {opt.label}
-                    </button>
-                  );
-                })}
+              <div className="nt-sortmenu">
+                {sortButtons.map((opt) => (
+                  <button key={opt.id} className={'nt-sortitem' + (sortBy === opt.id ? ' on' : '')} onClick={() => { setSortBy(opt.id); setSortOpen(false); }}>{opt.label}</button>
+                ))}
               </div>
             )}
           </div>
-
-          <div className="cg-c-actions" style={{ order: HOME_V2 ? 3 : 4, display: 'flex', gap: 8, minWidth: 0 }}>
-            <Link href="/request" style={{ flex: 1, minWidth: 0, height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6, background: COLORS.ember, color: COLORS.cream, border: `1.5px solid ${COLORS.ink}`, padding: '0 8px', fontFamily: 'DM Mono, monospace', fontSize: 11, letterSpacing: '0.08em', textTransform: 'uppercase', fontWeight: 600, textDecoration: 'none', whiteSpace: 'nowrap', overflow: 'hidden', boxShadow: `3px 3px 0 ${COLORS.ink}`, cursor: 'pointer' }}>
-              Request a List
-            </Link>
-            <Link href="/quizzes" style={{ flex: 1, minWidth: 0, height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6, background: COLORS.ink, color: COLORS.cream, border: `1.5px solid ${COLORS.ink}`, padding: '0 8px', fontFamily: 'DM Mono, monospace', fontSize: 11, letterSpacing: '0.08em', textTransform: 'uppercase', fontWeight: 600, textDecoration: 'none', whiteSpace: 'nowrap', overflow: 'hidden', boxShadow: `3px 3px 0 ${COLORS.ink}`, cursor: 'pointer' }}>
-              Quizzes
-            </Link>
-          </div>
+          <Link className="nt-tbtn primary" href="/request"><Plus size={15} strokeWidth={2.5} /> Request a list</Link>
         </div>
 
+        {/* masonry grid */}
         {sorted.length > 0 ? (
-          <div
-            ref={gridRef}
-            style={{
-              display: 'grid',
-              gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))',
-              gridAutoFlow: 'dense',
-              gap: 16,
-            }}
-          >
-            {(() => {
-              // Quiz-tile spacing is viewport-aware. On desktop (multi-column) a quiz
-              // tile lands after every 3.5 rows' worth of tiles (gridCols * 3.5,
-              // rounded). On mobile the grid collapses to a single column, where that
-              // rule would place one every ~4 tiles, so fall back to a fixed ~7-tile
-              // gap. Off until mounted (gridCols > 0) and a factual quiz exists.
-              const gap = gridCols > 0 ? (gridCols > 1 ? Math.round(gridCols * 3.5) : 7) : 0;
-              const cells = [];
-              let quizIdx = 0;
-              sorted.forEach((list, idx) => {
-                const isFeatured = featuredIds.has(list.id);
-                const related = findRelatedLists(list, lists, 6);
-                cells.push(
-                  <Tile
-                    key={list.id}
-                    list={list}
-                    rank={idx + 1}
-                    views={viewCounts[list.id] || 0}
-                    voteData={voteData}
-                    extras={extras[list.id] || []}
-                    onClick={() => { saveScroll(); openList(list.id); }}
-                    showConsensus={true}
-                    featured={isFeatured}
-                    relatedLists={related}
-                    onOpenRelated={(id) => { saveScroll(); openList(id); }}
-                  />
-                );
-                if (gap > 0 && shuffledQuizzes.length > 0 && (idx + 1) % gap === 0 && idx + 1 < sorted.length) {
-                  const quiz = shuffledQuizzes[quizIdx % shuffledQuizzes.length];
-                  quizIdx += 1;
-                  cells.push(<QuizTile key={`quiz-${quiz.id}-${idx}`} quiz={quiz} leader={quizLeaders[quiz.id]} />);
-                }
-              });
-              return cells;
-            })()}
+          <div className="nt-grid">
+            {sorted.map((list) => (
+              <BrowseTile
+                key={list.id}
+                list={list}
+                views={viewCounts[list.id] || 0}
+                voteData={voteData}
+                extras={extras[list.id] || []}
+                onClick={() => { saveScroll(); openList(list.id); }}
+              />
+            ))}
           </div>
         ) : (
-          <div
-            style={{
-              textAlign: 'center',
-              padding: '48px 24px',
-              fontFamily: 'Fraunces, serif',
-              fontStyle: 'italic',
-              fontSize: 18,
-              color: COLORS.faded,
-            }}
-          >
-            No lists match that filter.
-          </div>
+          <div style={{ color: NT.soft, fontSize: 14, padding: '24px 2px' }}>No lists match your filters.</div>
         )}
-      </section>
+      </div>
 
       <Footer />
     </div>
@@ -1661,6 +1437,119 @@ export function Tile({ list, rank, views, voteData, extras, onClick, href, showC
   );
 }
 
+// ── New-theme (June 2026 site revamp) tokens, shared with the live Quizzes UI ──
+// Modern light theme: Manrope, soft gray bg, white cards, blue accent, lucide
+// icons. Mirrors app/quizzes/QuizHomeClient.jsx so Lists and Quizzes match.
+const NT = {
+  bg: '#f7f8fa', surface: '#fff', ink: '#1c1e24', muted: '#6b7280',
+  soft: '#9aa0ab', line: 'rgba(20,22,28,0.09)', accent: '#2563eb',
+  accsoft: '#e8effb', live: '#10b981',
+};
+const NFONT = "'Manrope', system-ui, -apple-system, sans-serif";
+
+// Broad category → lucide icon + accent color (used by pills + tile badges).
+const CAT_META = {
+  all: { Icon: LayoutGrid, color: NT.ink },
+  restaurants: { Icon: Utensils, color: '#c0392b' },
+  'bars-nightlife': { Icon: Wine, color: '#b0466e' },
+  travel: { Icon: Plane, color: '#2e7d6b' },
+  shops: { Icon: ShoppingBag, color: '#7a4fb0' },
+  entertainment: { Icon: Tv, color: '#c98a1b' },
+  misc: { Icon: Sparkles, color: '#4f7d5a' },
+};
+function broadCatOf(list) {
+  for (const c of CATEGORIES) {
+    if (c.id === 'all') continue;
+    if (listInCategory(list, c.id)) return { id: c.id, label: c.label, ...(CAT_META[c.id] || CAT_META.misc) };
+  }
+  return { id: 'misc', label: 'Miscellaneous', ...CAT_META.misc };
+}
+function ntHash(s) { let h = 0; for (let i = 0; i < s.length; i++) h = (h * 31 + s.charCodeAt(i)) >>> 0; return h; }
+function ntGrad(s) { const h = ntHash(s) % 360; return `linear-gradient(135deg,hsl(${h},40%,46%),hsl(${(h + 34) % 360},44%,30%))`; }
+function ntTint(hex) { return hex + '22'; }
+
+// Top-N consensus preview rows for a tile (mirrors the list page logic).
+function ntPreview(list, voteData, extras, limit) {
+  const mode = list.mode || 'both';
+  if (mode === 'facts' || mode === 'scores' || mode === 'unranked') {
+    return { label: 'Top of the list', items: (list.sources?.ai?.items || []).slice(0, limit) };
+  }
+  if (mode === 'votes') {
+    const base = dedupeByName([...(list.vote?.items || []), ...(extras || [])]);
+    return { label: 'Current ranking', items: base.slice(0, limit) };
+  }
+  const sources = getSources(list, voteData, extras);
+  const consensus = sources.find((s) => s.id === 'consensus');
+  if (consensus && consensus.items.length > 0) {
+    return { label: 'Current Consensus', items: consensus.items.slice(0, limit) };
+  }
+  return { label: 'Current Consensus', items: (list.sources?.ai?.items || []).slice(0, limit) };
+}
+
+// Brand mark (concentric-target logo from the June 2026 rebrand): blue tile,
+// two white rings, gold star. Inlined as SVG so it needs no asset/CDN.
+function NTLogo({ size = 38 }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Source of Truths" style={{ flex: 'none' }}>
+      <defs>
+        <linearGradient id="sotLogoBlue" x1="8" y1="6" x2="56" y2="58" gradientUnits="userSpaceOnUse">
+          <stop offset="0" stopColor="#3b74f0" /><stop offset="1" stopColor="#1d4ed8" />
+        </linearGradient>
+        <radialGradient id="sotLogoGold" cx="0.5" cy="0.42" r="0.7">
+          <stop offset="0" stopColor="#ffe24d" /><stop offset="0.55" stopColor="#fbb615" /><stop offset="1" stopColor="#f59008" />
+        </radialGradient>
+      </defs>
+      <rect x="3" y="3" width="58" height="58" rx="17.5" fill="url(#sotLogoBlue)" />
+      <circle cx="32" cy="32.5" r="16.4" stroke="#ffffff" strokeWidth="4.2" fill="none" />
+      <circle cx="32" cy="32.5" r="9.6" stroke="#ffffff" strokeWidth="4.2" fill="none" strokeOpacity="0.9" />
+      <path d="M 32 24.9 C 32.775 31.725 32.775 31.725 39.6 32.5 C 32.775 33.275 32.775 33.275 32 40.1 C 31.225 33.275 31.225 33.275 24.4 32.5 C 31.225 31.725 31.225 31.725 32 24.9 Z" fill="url(#sotLogoGold)" />
+    </svg>
+  );
+}
+
+// New-theme browse tile (matches lists-browse mockup, adapted to real data).
+function BrowseTile({ list, views, voteData, extras, onClick }) {
+  const cat = broadCatOf(list);
+  const preview = ntPreview(list, voteData, extras, 3);
+  const sourceCount = Math.max(1, Object.keys(list.sources || {}).filter((id) => id !== 'ai').length);
+  const Icon = cat.Icon;
+  // Real hero photo: first top-3 pick with an https image in lib/hero-images.js.
+  const hero = (() => {
+    const map = HERO_IMAGES[list.id];
+    if (!map) return null;
+    const urlOf = (e) => { const src = e && (typeof e === 'string' ? e : e.src); return src && /^https?:/.test(src) ? src : null; };
+    for (let i = 0; i < preview.items.length && i < 3; i++) {
+      const src = urlOf(map[preview.items[i]]);
+      if (src) return { src, rank: i + 1 };
+    }
+    for (const name of Object.keys(map)) { const src = urlOf(map[name]); if (src) return { src, rank: null }; }
+    return null;
+  })();
+  return (
+    <a className="nt-tile" href={`/list/${encodeURIComponent(list.id)}`} onClick={(e) => { if (onClick) { e.preventDefault(); onClick(); } }}>
+      <div className="nt-timg" style={hero ? { backgroundImage: `url("${hero.src}")`, backgroundSize: 'cover', backgroundPosition: 'center' } : { background: ntGrad(list.title || list.id) }}>
+        {!hero && <Icon size={34} strokeWidth={1.75} style={{ color: 'rgba(255,255,255,0.6)' }} />}
+        <span className="nt-tcat" style={{ background: cat.color }}><Icon size={11} strokeWidth={2.25} /> {cat.label}</span>
+        {hero && hero.rank && <span className="nt-tbadge">#{hero.rank}</span>}
+      </div>
+      <div className="nt-tbody">
+        <h3 className="nt-ttitle">{list.title}</h3>
+        <div className="nt-lbl" style={{ marginBottom: 5 }}>{preview.label}</div>
+        {preview.items.map((name, i) => (
+          <div className="nt-crow" key={i}>
+            <span className="nt-cnum" style={{ background: ntTint(cat.color), color: cat.color }}>{i + 1}</span>
+            <span className="nt-cname">{stripItemScore(name)}</span>
+          </div>
+        ))}
+        <div className="nt-tfoot">
+          <span>Sources: {sourceCount}</span>
+          <span><Eye size={12} strokeWidth={2.25} /> {(views || 0).toLocaleString()}</span>
+        </div>
+      </div>
+    </a>
+  );
+}
+
 export default function HomeClient() {
   const router = useRouter();
   const [voteData, setVoteData] = useState({});
@@ -1712,15 +1601,14 @@ export default function HomeClient() {
     <div
       style={{
         minHeight: '100vh',
-        background: COLORS.cream,
-        color: COLORS.ink,
+        background: NT.bg,
+        color: NT.ink,
         position: 'relative',
         // 'clip' still clips the grain overlay but, unlike 'hidden', does not
         // create a scroll container, so the V2 sticky department nav works.
         overflow: HOME_V2 ? 'clip' : 'hidden',
       }}
     >
-      <Grain />
       {!loaded ? (
         <div
           style={{
