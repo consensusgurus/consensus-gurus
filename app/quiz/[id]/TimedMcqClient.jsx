@@ -357,7 +357,7 @@ export default function TimedMcqClient({ quizId }) {
     return (
       <button
         onClick={() => setTab(key)}
-        style={{ flex: '1 0 auto', justifyContent: 'center', background: active ? COLORS.ember : 'transparent', color: COLORS.cream, border: 'none', borderRight: '1px solid rgba(244,237,224,0.18)', padding: '0 16px', height: 42, whiteSpace: 'nowrap', fontFamily: MONO, fontSize: 10, letterSpacing: '0.18em', textTransform: 'uppercase', fontWeight: 700, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 6 }}
+        style={{ flex: '1 0 auto', justifyContent: 'center', background: active ? '#fff' : 'transparent', color: active ? COLORS.ink : COLORS.faded, border: 'none', borderRadius: 7, padding: '9px 14px', whiteSpace: 'nowrap', fontFamily: SANS, fontSize: 13, fontWeight: active ? 700 : 500, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 6, boxShadow: active ? '0 1px 2px rgba(20,22,28,0.06)' : 'none' }}
       >
         {icon}
         {label}
@@ -375,41 +375,33 @@ export default function TimedMcqClient({ quizId }) {
 
   return (
     <div style={{ minHeight: '100vh', background: COLORS.cream, color: COLORS.ink, position: 'relative', overflow: 'clip' }}>
-      <Grain />
-      <div style={{ position: 'relative', zIndex: 3 }}><SiteHeader active="quizzes" /></div>
       <div style={{ position: 'relative', zIndex: 2, maxWidth: 920, margin: '0 auto', padding: '24px 20px 80px' }}>
 
         <style>{`@import url('https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap');`}</style>
 
+        <button onClick={() => router.push('/quizzes')} style={{ background: 'transparent', border: 'none', fontFamily: SANS, fontSize: 13, fontWeight: 600, color: COLORS.faded, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 6, padding: '8px 0' }}>
+          <ArrowLeft size={15} strokeWidth={2.5} /> Back to Quizzes
+        </button>
+
         {/* Header */}
         <div style={{ paddingBottom: 0, marginTop: 8 }}>
-          <div style={{ display: 'flex', alignItems: 'flex-end', gap: 'clamp(16px, 4vw, 28px)' }}>
-            <h1 style={{ fontFamily: SERIF, fontWeight: 800, fontSize: 'clamp(30px, 5vw, 50px)', lineHeight: 1.02, letterSpacing: '-0.02em', margin: 0, color: COLORS.ink, fontVariationSettings: '"SOFT" 100' }}>{quiz.title}</h1>
-            <div style={{ flex: 1, minWidth: 120, marginBottom: 6 }}>
-              <div style={{ fontFamily: MONO, fontSize: 'clamp(9px, 1.1vw, 11px)', letterSpacing: '0.2em', textTransform: 'uppercase', color: COLORS.ember, textAlign: 'right', marginBottom: 8 }}>{quiz.category} · Quiz</div>
-              <div style={{ borderBottom: `1px solid ${COLORS.ink}`, marginBottom: 4 }} />
-              <div style={{ borderBottom: `2px solid ${COLORS.ember}` }} />
-            </div>
-          </div>
-          <p style={{ fontFamily: SERIF, fontStyle: 'italic', fontSize: 16, lineHeight: 1.45, margin: '12px 0 0', color: COLORS.faded, maxWidth: 640 }}>{quiz.blurb}</p>
+          <h1 style={{ fontFamily: SANS, fontWeight: 800, fontSize: 'clamp(28px, 4.5vw, 44px)', lineHeight: 1.05, letterSpacing: '-0.025em', margin: 0, color: COLORS.ink }}>{quiz.title}</h1>
+          <p style={{ fontFamily: SANS, fontSize: 15, lineHeight: 1.55, margin: '10px 0 0', color: COLORS.faded, maxWidth: 680 }}>{quiz.blurb}</p>
+        </div>
+
+        <div style={{ display: 'flex', gap: 16, marginTop: 14, justifyContent: 'flex-end' }}>
+          <button onClick={() => setTab('share')} style={{ background: 'none', border: 'none', cursor: 'pointer', fontFamily: SANS, fontSize: 12.5, fontWeight: 600, color: tab === 'share' ? COLORS.ember : COLORS.faded, display: 'flex', alignItems: 'center', gap: 5 }}><Share2 size={13} strokeWidth={2.5} /> Share</button>
+          <button onClick={() => { setQSent(false); setQOpen(true); }} style={{ background: 'none', border: 'none', cursor: 'pointer', fontFamily: SANS, fontSize: 12.5, fontWeight: 600, color: COLORS.faded, display: 'flex', alignItems: 'center', gap: 5 }}><HelpCircle size={13} strokeWidth={2.5} /> Error(s)?</button>
         </div>
 
         {/* Ribbon */}
-        <div style={{ marginTop: 18 }}>
+        <div style={{ marginTop: 8 }}>
           <div style={{ position: 'relative' }}>
             <style>{`@keyframes qzCueR{0%,100%{transform:translate(0,-50%);}50%{transform:translate(3px,-50%);}}@keyframes qzCueL{0%,100%{transform:translate(0,-50%);}50%{transform:translate(-3px,-50%);}}.qz-cue{position:absolute;top:50%;z-index:3;display:flex;align-items:center;justify-content:center;width:26px;height:26px;border-radius:50%;background:${COLORS.ember};color:#fff;box-shadow:0 1px 4px rgba(26,22,17,0.45);pointer-events:none;font-size:15px;line-height:1;}.qz-cue-r{right:10px;animation:qzCueR 1.4s ease-in-out infinite;}.qz-cue-l{left:10px;animation:qzCueL 1.4s ease-in-out infinite;}@media(min-width:760px){.qz-cue{display:none;}}.qz-ribbon{scrollbar-width:none;-ms-overflow-style:none;}.qz-ribbon::-webkit-scrollbar{display:none;}`}</style>
-            <div ref={ribbonRef} className="qz-ribbon" style={{ display: 'flex', alignItems: 'stretch', flexWrap: 'nowrap', overflowX: 'auto', background: COLORS.ink, borderBottom: `3px solid ${COLORS.ember}` }}>
+            <div ref={ribbonRef} className="qz-ribbon" style={{ display: 'flex', alignItems: 'stretch', flexWrap: 'nowrap', overflowX: 'auto', background: '#eceef1', borderRadius: 10, padding: 4, gap: 6 }}>
             {chip('play', 'Play')}
-            {chip('stats', 'Stats & Leaderboard')}
-            {chip('join', 'Join the Leaderboard', <Trophy size={12} strokeWidth={2.5} />)}
-            {chip('share', 'Share', <Share2 size={12} strokeWidth={2.5} />)}
-            <button
-              onClick={() => { setQSent(false); setQOpen(true); }}
-              style={{ flex: '1 0 auto', justifyContent: 'center', background: 'transparent', color: COLORS.cream, border: 'none', padding: '0 16px', height: 42, whiteSpace: 'nowrap', fontFamily: MONO, fontSize: 10, letterSpacing: '0.18em', textTransform: 'uppercase', fontWeight: 700, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 6 }}
-            >
-              <HelpCircle size={12} strokeWidth={2.5} />
-              Error(s)?
-            </button>
+            {chip('stats', 'Leaderboard')}
+            {chip('join', 'Sign-up', <Trophy size={12} strokeWidth={2.5} />)}
             </div>
             {ribScroll.left && <span aria-hidden="true" className="qz-cue qz-cue-l">&#8249;</span>}
             {ribScroll.right && <span aria-hidden="true" className="qz-cue qz-cue-r">&#8250;</span>}
@@ -426,7 +418,7 @@ export default function TimedMcqClient({ quizId }) {
                 question and options scroll underneath. */}
             <div style={{ position: 'sticky', top: 0, zIndex: 24, background: COLORS.cream, paddingBottom: 4 }}>
             {/* Scoreboard */}
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 16, background: COLORS.paper, border: `1px solid ${COLORS.faded}33`, padding: '16px 20px', marginBottom: 0 }}>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 16, background: COLORS.paper, border: `1px solid ${COLORS.faded}33`, borderRadius: 12, padding: '16px 20px', marginBottom: 0 }}>
               <div>
                 <div style={{ fontFamily: SERIF, fontWeight: 800, fontSize: 34, lineHeight: 1 }}>{points}<span style={{ fontSize: 20, color: COLORS.faded }}>/{maxPoints}</span></div>
                 <div style={{ fontFamily: MONO, fontSize: 11, letterSpacing: '0.12em', textTransform: 'uppercase', color: COLORS.faded }}>Points</div>
@@ -501,7 +493,7 @@ export default function TimedMcqClient({ quizId }) {
                         key={ci}
                         onClick={() => pick(ci)}
                         disabled={revealing}
-                        style={{ display: 'flex', alignItems: 'center', gap: 14, textAlign: 'left', padding: '15px 18px', background: bg, border: `1.5px solid ${border}`, color: fg, cursor: revealing ? 'default' : 'pointer', fontFamily: SANS, fontSize: 17, lineHeight: 1.3, transition: 'background .15s, border-color .15s' }}
+                        style={{ display: 'flex', alignItems: 'center', gap: 14, textAlign: 'left', padding: '15px 18px', borderRadius: 10, background: bg, border: `1.5px solid ${border}`, color: fg, cursor: revealing ? 'default' : 'pointer', fontFamily: SANS, fontSize: 17, lineHeight: 1.3, transition: 'background .15s, border-color .15s' }}
                       >
                         <span style={{ fontFamily: MONO, fontSize: 13, fontWeight: 700, color: revealing && !isCorrect && !isPicked ? COLORS.faded : COLORS.ember, width: 18, flex: 'none' }}>{String.fromCharCode(65 + ci)}</span>
                         <span style={{ flex: 1 }}>{c}</span>
@@ -582,7 +574,7 @@ export default function TimedMcqClient({ quizId }) {
                     const answered = !!r;
                     const good = answered && r.correct;
                     return (
-                      <li key={i} style={{ display: 'flex', alignItems: 'flex-start', gap: 14, padding: '12px 16px', border: `1px solid ${good ? COLORS.forest : COLORS.faded + '33'}`, marginBottom: 8, background: good ? '#fff' : COLORS.paper }}>
+                      <li key={i} style={{ display: 'flex', alignItems: 'flex-start', gap: 14, padding: '12px 16px', borderRadius: 10, border: `1px solid ${good ? COLORS.forest : COLORS.faded + '33'}`, marginBottom: 8, background: good ? '#fff' : COLORS.paper }}>
                         <span style={{ width: 22, flex: 'none', color: good ? COLORS.forest : COLORS.ember }}>{good ? <Check size={17} strokeWidth={3} /> : <X size={17} strokeWidth={3} />}</span>
                         <span style={{ flex: 1, fontFamily: SANS, fontSize: 14, lineHeight: 1.35 }}>
                           <span style={{ color: '#4a4339' }}>{qq.q}</span>
