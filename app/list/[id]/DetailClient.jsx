@@ -30,7 +30,7 @@ import RankingView from './RankingView';
 import { SourcesPanel, MethodologyPanel } from './MethodPanels';
 import ActivityFeed from './ActivityFeed';
 import SnapshotClient from '../../snapshot/[id]/SnapshotClient';
-import { Tile as HomeTile } from '../../HomeClient';
+import { Tile as HomeTile, BrowseTile } from '../../HomeClient';
 
 // ── LIST-PAGE RIBBON V2 (June 2026 redesign) ────────────────────────────────
 // Flip to false to restore the previous outlined tab chips exactly. V2 renders
@@ -1038,46 +1038,17 @@ function ListDetail({ list, viewCount, voteData, userVotes, extras, relatedLists
 
       {/* RELATED LISTS — internal linking for SEO and stickiness */}
       {relatedLists && relatedLists.length > 0 && (
-        <div
-          style={{
-            marginTop: 60,
-            paddingTop: 32,
-            borderTop: `2px solid ${COLORS.ink}`,
-          }}
-        >
-          <h2
-            style={{
-              fontFamily: 'Fraunces, serif',
-              fontSize: 26,
-              fontWeight: 700,
-              margin: '0 0 20px',
-              fontStyle: 'italic',
-              color: COLORS.ink,
-              fontVariationSettings: '"SOFT" 100',
-            }}
-          >
-            More Lists
-          </h2>
-          <div
-            style={{
-              display: 'grid',
-              gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))',
-              gap: 16,
-            }}
-          >
+        <div style={{ marginTop: 48, paddingTop: 28, borderTop: '1px solid rgba(20,22,28,0.09)' }}>
+          <h2 style={{ fontFamily: "'Manrope', system-ui, sans-serif", fontSize: 20, fontWeight: 800, letterSpacing: '-0.02em', margin: '0 0 16px', color: COLORS.ink }}>More Lists</h2>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(240px, 1fr))', gap: 16 }}>
             {relatedLists.map((rl) => (
-              <HomeTile
+              <BrowseTile
                 key={rl.id}
                 list={rl}
-                rank={0}
                 views={(relatedViews || {})[rl.id] || 0}
                 voteData={voteData}
                 extras={[]}
-                href={`/list/${encodeURIComponent(rl.id)}`}
                 onClick={() => { if (onOpenRelated) onOpenRelated(rl.id); }}
-                showConsensus={true}
-                featured={false}
-                relatedLists={null}
               />
             ))}
           </div>

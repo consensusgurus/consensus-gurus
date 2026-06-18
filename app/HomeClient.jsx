@@ -917,20 +917,33 @@ function Home({ lists, viewCounts, voteData, extras, trending = {}, openList, on
 
         {/* masonry grid */}
         {sorted.length > 0 ? (
-          <div className="nt-grid">
-            {sorted.map((list) => (
-              <BrowseTile
-                key={list.id}
-                list={list}
-                featured={featuredIds.has(list.id)}
-                views={viewCounts[list.id] || 0}
-                voteData={voteData}
-                extras={extras[list.id] || []}
-                relatedLists={findRelatedLists(list, lists, 6)}
-                onOpenRelated={(id) => { saveScroll(); openList(id); }}
-                onClick={() => { saveScroll(); openList(list.id); }}
-              />
-            ))}
+          <div className="nt-grid" ref={gridRef}>
+            {(() => {
+              const gap = gridCols > 0 ? (gridCols > 1 ? Math.round(gridCols * 3.5) : 7) : 0;
+              const cells = [];
+              let quizIdx = 0;
+              sorted.forEach((list, idx) => {
+                cells.push(
+                  <BrowseTile
+                    key={list.id}
+                    list={list}
+                    featured={featuredIds.has(list.id)}
+                    views={viewCounts[list.id] || 0}
+                    voteData={voteData}
+                    extras={extras[list.id] || []}
+                    relatedLists={findRelatedLists(list, lists, 6)}
+                    onOpenRelated={(id) => { saveScroll(); openList(id); }}
+                    onClick={() => { saveScroll(); openList(list.id); }}
+                  />
+                );
+                if (gap > 0 && shuffledQuizzes.length > 0 && (idx + 1) % gap === 0 && idx + 1 < sorted.length) {
+                  const quiz = shuffledQuizzes[quizIdx % shuffledQuizzes.length];
+                  quizIdx += 1;
+                  cells.push(<NTQuizTile key={`quiz-${quiz.id}-${idx}`} quiz={quiz} leader={quizLeaders[quiz.id]} />);
+                }
+              });
+              return cells;
+            })()}
           </div>
         ) : (
           <div style={{ color: NT.soft, fontSize: 14, padding: '24px 2px' }}>No lists match your filters.</div>
@@ -1495,7 +1508,7 @@ function NTLogo({ size = 38 }) {
 }
 
 // New-theme browse tile (matches lists-browse mockup, adapted to real data).
-function BrowseTile({ list, views, voteData, extras, onClick, featured, relatedLists, onOpenRelated }) {
+export function BrowseTile({ list, views, voteData, extras, onClick, featured, relatedLists, onOpenRelated }) {
   const cat = broadCatOf(list);
   const preview = ntPreview(list, voteData, extras, featured ? 10 : 3);
   const sourceCount = Math.max(1, Object.keys(list.sources || {}).filter((id) => id !== 'ai').length);
@@ -1604,6 +1617,27 @@ function BrowseTile({ list, views, voteData, extras, onClick, featured, relatedL
           <span>Sources: {sourceCount}</span>
           <span><Eye size={12} strokeWidth={2.25} /> {(views || 0).toLocaleString()}</span>
         </div>
+      </div>
+    </a>
+  );
+}
+
+// New-theme quiz tile woven into the browse grid (matches BrowseTile).
+function NTQuizTile({ quiz, leader }) {
+  const Icon = quizIconOf(quiz);
+  const accent = QUIZ_DEPT_COLOR[quizDeptOf(quiz)] || QUIZ_DEPT_COLOR.misc;
+  const heading = (quiz.title || '').replace(/^Name (the )?/i, '');
+  return (
+    <a className="nt-tile" href={`/quiz/${quiz.id}`}>
+      <div className="nt-timg" style={{ background: accent.t }}>
+        <Icon size={36} strokeWidth={1.75} style={{ color: accent.c, opacity: 0.9 }} />
+        <span className="nt-tcat" style={{ background: accent.c }}>Quiz</span>
+      </div>
+      <div className="nt-tbody">
+        <h3 className="nt-ttitle">{heading}</h3>
+        <div className="nt-lbl" style={{ marginBottom: 4 }}>Current Leader</div>
+        <div style={{ fontSize: 13, fontWeight: 700, color: leader ? NT.ink : NT.soft, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{leader || 'Be the first to play'}</div>
+        <div className="nt-tfoot"><span style={{ color: accent.c }}>{'\u25B6'} Play quiz</span><span>Quiz</span></div>
       </div>
     </a>
   );

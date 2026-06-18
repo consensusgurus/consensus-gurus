@@ -49,11 +49,18 @@ function ActionRow({ item, list }) {
   const isPlace = (list.linkType || 'mapsCity') === 'mapsCity';
   const primaryLabel = isPlace ? 'Map' : list.linkLabel ? list.linkLabel : list.linkType === 'amazon' ? 'Buy' : 'View';
   const rel = isPlace ? 'noopener noreferrer' : 'noopener noreferrer sponsored';
+  const picsBtns = pics.links.filter(([k]) => links[k]);
   return (
-    <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', marginTop: 9 }}>
+    <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', alignItems: 'center', marginTop: 9 }}>
       {links.map && <a href={links.map} target="_blank" rel={rel} style={BTN_PRIMARY}>{primaryLabel}</a>}
       {links.website && <a href={links.website} target="_blank" rel="noopener noreferrer" style={BTN}>Website</a>}
-      {pics.links.map(([k, label]) => (links[k] ? <a key={k} href={links[k]} target="_blank" rel="noopener noreferrer" style={BTN}>{label}</a> : null))}
+      {links.video && <a href={links.video} target="_blank" rel="noopener noreferrer" style={{ ...BTN, color: C.accent, borderColor: C.accent, fontWeight: 700 }}>{'\u25B6'} {list.itemVideoLabel || 'Video'}</a>}
+      {picsBtns.length > 0 && (
+        <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6, flexWrap: 'wrap' }}>
+          <span style={{ fontSize: 10.5, fontWeight: 700, letterSpacing: '0.04em', textTransform: 'uppercase', color: C.soft }}>Pics:</span>
+          {picsBtns.map(([k, label]) => <a key={k} href={links[k]} target="_blank" rel="noopener noreferrer" style={BTN}>{label}</a>)}
+        </span>
+      )}
     </div>
   );
 }
@@ -153,11 +160,9 @@ export default function RankingView({ list, voteData, extras }) {
             {rest.map((item, idx) => {
               const i = idx + 3;
               const { name, locality } = parseItem(item);
-              const src = heroUrl(heroMap, item);
               return (
-                <div key={item} style={{ display: 'flex', gap: 14, alignItems: 'flex-start', padding: '13px 15px', borderTop: idx === 0 ? 'none' : `1px solid ${C.line}` }}>
-                  <span style={{ flex: 'none', width: 22, fontWeight: 800, fontSize: 18, color: C.ink, textAlign: 'center', marginTop: 2 }}>{i + 1}</span>
-                  <span style={{ flex: 'none', width: 54, height: 54, borderRadius: 10, backgroundImage: src ? `url("${src}")` : grad(name), backgroundSize: 'cover', backgroundPosition: 'center' }} />
+                <div key={item} style={{ display: 'flex', gap: 12, alignItems: 'flex-start', padding: '13px 15px', borderTop: idx === 0 ? 'none' : `1px solid ${C.line}` }}>
+                  <span style={{ flex: 'none', width: 24, fontWeight: 800, fontSize: 18, color: C.ink, textAlign: 'center', marginTop: 1 }}>{i + 1}</span>
                   <div style={{ flex: '1 1 auto', minWidth: 0 }}>
                     <div style={{ fontSize: 14.5, fontWeight: 700 }}>{name}</div>
                     {locality && <div style={{ fontSize: 11.5, color: C.muted, margin: '2px 0 0' }}>{locality}</div>}
