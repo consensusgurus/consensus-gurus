@@ -821,7 +821,7 @@ function Home({ lists, viewCounts, voteData, extras, trending = {}, openList, on
         .nt-tagline{font-size:12px;color:${NT.muted};line-height:1.5;max-width:430px;}
         .nt-tagline b{color:${NT.ink};}
         .nt-pills{display:flex;gap:7px;flex-wrap:wrap;margin:16px 0 12px;position:relative;}
-        .nt-pill{font-size:12px;font-weight:700;letter-spacing:.03em;text-transform:uppercase;padding:7px 13px;border-radius:9px;border:1px solid ${NT.line};background:#fff;color:${NT.muted};cursor:pointer;display:inline-flex;align-items:center;gap:5px;font-family:inherit;white-space:nowrap;}
+        .nt-pill{font-size:12px;font-weight:700;letter-spacing:.03em;text-transform:uppercase;padding:7px 10px;border-radius:9px;border:1px solid ${NT.line};background:#fff;color:${NT.muted};cursor:pointer;display:flex;flex:1 1 auto;align-items:center;justify-content:center;gap:5px;font-family:inherit;white-space:nowrap;}
         .nt-pill.on{color:#fff;}
         .nt-pill.ghost.on{background:${NT.ink};border-color:${NT.ink};color:#fff;}
         .nt-panel{position:absolute;top:calc(100% + 6px);left:0;right:0;z-index:30;background:#fff;border:1px solid ${NT.line};border-radius:12px;box-shadow:0 12px 30px rgba(20,22,28,0.12);padding:14px 16px 18px;max-height:62vh;overflow:auto;}
@@ -839,22 +839,19 @@ function Home({ lists, viewCounts, voteData, extras, trending = {}, openList, on
         .nt-sortmenu{position:absolute;top:calc(100% + 6px);z-index:30;min-width:190px;background:#fff;border:1px solid ${NT.line};border-radius:10px;box-shadow:0 12px 30px rgba(20,22,28,0.12);overflow:hidden;}
         .nt-sortitem{width:100%;display:block;text-align:left;border:none;background:#fff;padding:10px 14px;font-family:inherit;font-size:13px;font-weight:600;color:${NT.ink};cursor:pointer;}
         .nt-sortitem.on,.nt-sortitem:hover{background:${NT.accsoft};color:${NT.accent};}
-        .nt-grid{column-count:4;column-gap:16px;}
-        @media(max-width:1040px){.nt-grid{column-count:3;}}
-        @media(max-width:720px){.nt-grid{column-count:2;}}
-        @media(max-width:480px){.nt-grid{column-count:1;}}
-        .nt-tile{break-inside:avoid;width:100%;margin:0 0 16px;background:#fff;border:1px solid ${NT.line};border-radius:12px;overflow:hidden;display:inline-block;text-decoration:none;color:${NT.ink};transition:box-shadow .15s,transform .15s;}
+        .nt-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));grid-auto-flow:dense;gap:16px;}
+        .nt-tile{height:100%;background:#fff;border:1px solid ${NT.line};border-radius:12px;overflow:hidden;display:flex;flex-direction:column;text-decoration:none;color:${NT.ink};transition:box-shadow .15s,transform .15s;}
         .nt-tile:hover{box-shadow:0 8px 24px rgba(20,22,28,0.10);transform:translateY(-2px);}
         .nt-timg{position:relative;height:140px;display:flex;align-items:center;justify-content:center;}
         .nt-tcat{position:absolute;top:8px;left:8px;font-size:9px;font-weight:800;letter-spacing:.05em;text-transform:uppercase;color:#fff;padding:3px 7px 3px 6px;border-radius:6px;display:inline-flex;align-items:center;gap:4px;box-shadow:0 1px 3px rgba(0,0,0,0.18);}
         .nt-tbadge{position:absolute;bottom:8px;left:8px;background:rgba(28,30,36,0.85);color:#fff;font-size:11px;font-weight:800;padding:2px 8px;border-radius:6px;}
-        .nt-tbody{padding:12px 14px 13px;}
+        .nt-tbody{padding:12px 14px 13px;display:flex;flex-direction:column;flex:1 1 auto;}
         .nt-ttitle{font-size:16px;font-weight:800;line-height:1.18;letter-spacing:-0.01em;margin:0 0 9px;}
-        .nt-crow{display:flex;align-items:center;gap:9px;padding:5px 0;border-bottom:1px dashed rgba(20,22,28,0.12);font-size:12.5px;}
+        .nt-crow{display:flex;align-items:flex-start;gap:9px;padding:5px 0;border-bottom:1px dashed rgba(20,22,28,0.12);font-size:12.5px;}
         .nt-crow:last-of-type{border-bottom:none;}
-        .nt-cnum{flex:none;width:18px;height:18px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:800;}
-        .nt-cname{flex:1 1 auto;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
-        .nt-tfoot{display:flex;align-items:center;justify-content:space-between;margin-top:11px;padding-top:9px;border-top:1px solid ${NT.line};}
+        .nt-cnum{flex:none;width:18px;height:18px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:800;margin-top:1px;}
+        .nt-cname{flex:1 1 auto;min-width:0;line-height:1.3;}
+        .nt-tfoot{display:flex;align-items:center;justify-content:space-between;margin-top:auto;padding-top:9px;border-top:1px solid ${NT.line};}
         .nt-tfoot span{font-size:9.5px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;color:${NT.soft};display:flex;align-items:center;gap:4px;}
         @media(max-width:560px){.nt-wrap{padding:16px 14px 60px;}.nt-tagline{display:none;}}
       `}</style>
@@ -938,6 +935,7 @@ function Home({ lists, viewCounts, voteData, extras, trending = {}, openList, on
               <BrowseTile
                 key={list.id}
                 list={list}
+                featured={featuredIds.has(list.id)}
                 views={viewCounts[list.id] || 0}
                 voteData={voteData}
                 extras={extras[list.id] || []}
@@ -1508,9 +1506,9 @@ function NTLogo({ size = 38 }) {
 }
 
 // New-theme browse tile (matches lists-browse mockup, adapted to real data).
-function BrowseTile({ list, views, voteData, extras, onClick }) {
+function BrowseTile({ list, views, voteData, extras, onClick, featured }) {
   const cat = broadCatOf(list);
-  const preview = ntPreview(list, voteData, extras, 3);
+  const preview = ntPreview(list, voteData, extras, featured ? 10 : 3);
   const sourceCount = Math.max(1, Object.keys(list.sources || {}).filter((id) => id !== 'ai').length);
   const Icon = cat.Icon;
   // Real hero photo: first top-3 pick with an https image in lib/hero-images.js.
@@ -1526,7 +1524,7 @@ function BrowseTile({ list, views, voteData, extras, onClick }) {
     return null;
   })();
   return (
-    <a className="nt-tile" href={`/list/${encodeURIComponent(list.id)}`} onClick={(e) => { if (onClick) { e.preventDefault(); onClick(); } }}>
+    <a className="nt-tile" style={featured ? { gridRow: 'span 2' } : null} href={`/list/${encodeURIComponent(list.id)}`} onClick={(e) => { if (onClick) { e.preventDefault(); onClick(); } }}>
       <div className="nt-timg" style={hero ? { backgroundImage: `url("${hero.src}")`, backgroundSize: 'cover', backgroundPosition: 'center' } : { background: ntGrad(list.title || list.id) }}>
         {!hero && <Icon size={34} strokeWidth={1.75} style={{ color: 'rgba(255,255,255,0.6)' }} />}
         <span className="nt-tcat" style={{ background: cat.color }}><Icon size={11} strokeWidth={2.25} /> {cat.label}</span>
