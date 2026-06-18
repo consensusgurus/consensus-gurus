@@ -7,10 +7,12 @@ export const dynamic = 'force-dynamic';
 export const fetchCache = 'force-no-store';
 
 // GET /api/quiz/elo[?scope=<dept>]
-// Elo-RANKED leaderboard, position only — NO rating number is returned, so the
-// /quizzes page can render rank + name (with a verified/guest tag) without ever
-// exposing the underlying Elo (that lives only on the Stat Hub via /me).
-// `scope` filters to one department's per-category Elo; omit/`all` for overall.
+// Elo-RANKED leaderboard for the /quizzes page. Returns, per ranked player, the
+// per-metric values FOR THE REQUESTED SCOPE (skill rating, correct, completed,
+// days played, accuracy) so the page can re-sort the board by whichever slide is
+// showing without another round trip. `scope` filters to one department's
+// per-category data; omit/`all` for overall. ALL anonymous players are included.
+const TOP_N = 12;
 export async function GET(request) {
   const { searchParams } = new URL(request.url);
   const scope = (searchParams.get('scope') || 'all').trim() || 'all';
@@ -26,26 +28,20 @@ export async function GET(request) {
       return NextResponse.json({ scope, total: 0, players: [] });
     }
     const { players } = computeElo(data || []);
+    // rankPlayers already scopes every metric (rating/correct/completed/days/
+    // accuracy) to the requested category, and includes guests.
     const ranked = rankPlayers(players, scope);
-    // Attach per-player activity stats (NOT the rating number) so the /quizzes
-    // leaderboard can cycle Correct / Completed / Days Played / Accuracy across
-    // the FIXED Elo order without ever exposing the underlying Elo.
-    const out = ranked.map((p, i) => {
-      const full = players.get(p.key);
-      const stats = full ? {
-        correct: full.correct,
-        completed: full.completed,
-        daysPlayed: full.daysPlayed || 0,
-        accuracy: full.accuracy,
-      } : { correct: 0, completed: 0, daysPlayed: 0, accuracy: 0 };
-      return {
-        rank: i + 1,
-        name: p.name,
-        isAnon: p.isAnon,
-        userKey: p.key,
-        stats,
-      };
-    });
+    const out = ranked.slice(0, TOP_N).map((p, i) => ({
+      rank: i + 1,
+      name: p.name,
+      isAnon: p.isAnon,
+      userKey: p.key,
+      rating: p.rating,
+      correct: p.correct,
+      completed: p.completed,
+      daysPlayed: p.daysPlayed,
+      accuracy: p.accuracy,
+    }));
     return NextResponse.json({ scope, total: out.length, players: out });
   } catch (e) {
     console.error('quiz elo exception', e);

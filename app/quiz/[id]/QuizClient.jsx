@@ -41,6 +41,32 @@ const MONO = "'Manrope', system-ui, -apple-system, sans-serif";
 const SERIF = "'Manrope', system-ui, -apple-system, sans-serif";
 const SANS = "'Manrope', system-ui, -apple-system, sans-serif";
 
+// Brand mark (gradient ids suffixed per render so multiple instances stay unique).
+let __logoSeq = 0;
+function Logo({ size = 22 }) {
+  const uid = useMemo(() => `l${(__logoSeq += 1)}`, []);
+  return (
+    <svg width={size} height={size} viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg" style={{ display: 'block', flex: 'none' }} aria-hidden="true">
+      <defs>
+        <linearGradient id={`bh-${uid}`} x1="8" y1="6" x2="56" y2="58" gradientUnits="userSpaceOnUse">
+          <stop offset="0" stopColor="#3b74f0" />
+          <stop offset="1" stopColor="#1d4ed8" />
+        </linearGradient>
+        <radialGradient id={`gh-${uid}`} cx="0.5" cy="0.42" r="0.7">
+          <stop offset="0" stopColor="#ffe24d" />
+          <stop offset="0.55" stopColor="#fbb615" />
+          <stop offset="1" stopColor="#f59008" />
+        </radialGradient>
+      </defs>
+      <rect x="3" y="3" width="58" height="58" rx="17.5" fill={`url(#bh-${uid})`} />
+      <circle cx="32" cy="32.5" r="16.4" stroke="#fff" strokeWidth="4.2" fill="none" />
+      <circle cx="32" cy="32.5" r="9.6" stroke="#fff" strokeWidth="4.2" fill="none" strokeOpacity="0.9" />
+      <path d="M 32 24.9 C 32.775 31.725 32.775 31.725 39.6 32.5 C 32.775 33.275 32.775 33.275 32 40.1 C 31.225 33.275 31.225 33.275 24.4 32.5 C 31.225 31.725 31.225 31.725 32 24.9 Z" fill={`url(#gh-${uid})`} />
+    </svg>
+  );
+}
+
+
 function norm(s) {
   return (s || '').toLowerCase().replace(/[^a-z0-9 ]/g, ' ').replace(/\s+/g, ' ').trim();
 }
@@ -936,7 +962,8 @@ export default function QuizClient({ quizId }) {
             <ArrowLeft size={15} strokeWidth={2.5} />
             Back to Quizzes
           </button>
-          <div style={{ display: 'flex', alignItems: 'baseline', gap: 9 }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 9 }}>
+            <Logo />
             <a href="/" style={{ fontFamily: SANS, fontSize: 15, fontWeight: 800, letterSpacing: '-0.02em', color: COLORS.ink, textDecoration: 'none' }}>Source of Truths</a>
             <span style={{ color: '#9aa0ab' }}>/</span>
             <span style={{ fontFamily: SANS, fontSize: 15, fontWeight: 600, color: COLORS.ember }}>Quizzes</span>
@@ -1385,7 +1412,7 @@ export default function QuizClient({ quizId }) {
           <div style={{ marginTop: 40, paddingTop: 18, borderTop: `1px solid ${COLORS.faded}33`, fontFamily: MONO, fontSize: 11, letterSpacing: '0.04em', color: COLORS.faded }}>
             Source:{' '}
             {quiz.source.url ? (
-              <a href={quiz.source.url} target="_blank" rel="noopener noreferrer" style={{ color: COLORS.rust }}>{quiz.source.label}</a>
+              <a href={quiz.source.url} target="_blank" rel="noopener noreferrer" style={{ color: COLORS.ember }}>{quiz.source.label}</a>
             ) : (
               quiz.source.label
             )}
@@ -1507,7 +1534,7 @@ export default function QuizClient({ quizId }) {
                   <button
                     onClick={submitQuestion}
                     disabled={qBusy}
-                    style={{ cursor: 'pointer', background: COLORS.rust, color: COLORS.cream, border: `1.5px solid ${COLORS.rust}`, padding: '10px 18px', fontFamily: MONO, fontSize: 11, letterSpacing: '0.14em', textTransform: 'uppercase', fontWeight: 700, opacity: qBusy ? 0.6 : 1 }}
+                    style={{ cursor: 'pointer', background: COLORS.ember, color: '#fff', border: `1.5px solid ${COLORS.ember}`, padding: '10px 18px', fontFamily: MONO, fontSize: 11, letterSpacing: '0.14em', textTransform: 'uppercase', fontWeight: 700, opacity: qBusy ? 0.6 : 1 }}
                   >
                     {qBusy ? 'Sending...' : 'Send to editors'}
                   </button>

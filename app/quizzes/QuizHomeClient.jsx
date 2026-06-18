@@ -13,6 +13,31 @@ import {
 import Grain from '../Grain';
 import Footer from '../Footer';
 
+// Brand mark (gradient ids suffixed per render so multiple instances stay unique).
+let __logoSeq = 0;
+function Logo({ size = 22 }) {
+  const uid = useMemo(() => `l${(__logoSeq += 1)}`, []);
+  return (
+    <svg width={size} height={size} viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg" style={{ display: 'block', flex: 'none' }} aria-hidden="true">
+      <defs>
+        <linearGradient id={`bh-${uid}`} x1="8" y1="6" x2="56" y2="58" gradientUnits="userSpaceOnUse">
+          <stop offset="0" stopColor="#3b74f0" />
+          <stop offset="1" stopColor="#1d4ed8" />
+        </linearGradient>
+        <radialGradient id={`gh-${uid}`} cx="0.5" cy="0.42" r="0.7">
+          <stop offset="0" stopColor="#ffe24d" />
+          <stop offset="0.55" stopColor="#fbb615" />
+          <stop offset="1" stopColor="#f59008" />
+        </radialGradient>
+      </defs>
+      <rect x="3" y="3" width="58" height="58" rx="17.5" fill={`url(#bh-${uid})`} />
+      <circle cx="32" cy="32.5" r="16.4" stroke="#fff" strokeWidth="4.2" fill="none" />
+      <circle cx="32" cy="32.5" r="9.6" stroke="#fff" strokeWidth="4.2" fill="none" strokeOpacity="0.9" />
+      <path d="M 32 24.9 C 32.775 31.725 32.775 31.725 39.6 32.5 C 32.775 33.275 32.775 33.275 32 40.1 C 31.225 33.275 31.225 33.275 24.4 32.5 C 31.225 31.725 31.225 31.725 32 24.9 Z" fill={`url(#gh-${uid})`} />
+    </svg>
+  );
+}
+
 // ─── palette / type ─────────────────────────────────────────────────────────
 const C = {
   bg: '#f7f8fa', surface: '#fff', ink: '#1c1e24', muted: '#6b7280',
@@ -194,21 +219,33 @@ export default function QuizHomeClient() {
   function plays(id) { return totals.byQuiz[id] || 0; }
   function leader(id) { return totals.leaders[id] || ''; }
 
-  // ── leaderboard rows (rank + name only; current scope) ──
-  const leaderRows = useMemo(() => eloBoard.slice(0, 10), [eloBoard]);
-  // Cycle one stat per slide every ~4s across the FIXED Elo order (the order
-  // never reshuffles, and the underlying Elo number is never shown).
+  // ── leaderboard: re-ranks per slide AND per category ──
+  // Each slide sorts the board by that slide's metric (desc; ties by rating then
+  // name), scoped to the selected category (the elo API already returns the
+  // per-category metric values). The Skill Rating slide DOES show the rating.
   const LB_METRICS = [
-    { key: 'correct', label: 'Correct', fmt: (v) => (v || 0).toLocaleString() },
-    { key: 'completed', label: 'Completed', fmt: (v) => (v || 0).toLocaleString() },
-    { key: 'daysPlayed', label: 'Days Played', fmt: (v) => (v || 0).toLocaleString() },
-    { key: 'accuracy', label: 'Accuracy', fmt: (v) => `${v || 0}%` },
+    { key: 'rating', label: 'Skill Rating', fmt: (v) => (v || 0).toLocaleString(), ms: 7000 },
+    { key: 'correct', label: 'Correct', fmt: (v) => (v || 0).toLocaleString(), ms: 5000 },
+    { key: 'completed', label: 'Completed', fmt: (v) => (v || 0).toLocaleString(), ms: 5000 },
+    { key: 'daysPlayed', label: 'Days Played', fmt: (v) => (v || 0).toLocaleString(), ms: 5000 },
+    { key: 'accuracy', label: 'Accuracy', fmt: (v) => `${v || 0}%`, ms: 5000 },
   ];
-  useEffect(() => {
-    const id = setInterval(() => setLbIdx((i) => (i + 1) % LB_METRICS.length), 4000);
-    return () => clearInterval(id);
-  }, []);
   const lbMetric = LB_METRICS[lbIdx];
+  // Per-slide timeout: the ELO slide holds 7s, every other slide 5s.
+  useEffect(() => {
+    const id = setTimeout(() => setLbIdx((i) => (i + 1) % LB_METRICS.length), lbMetric.ms);
+    return () => clearTimeout(id);
+  }, [lbIdx, lbMetric.ms]);
+  // Sort the displayed board by the active slide's metric, scoped to the current
+  // category (eloBoard is already category-scoped via the /api/quiz/elo refetch).
+  const leaderRows = useMemo(() => {
+    const k = lbMetric.key;
+    return eloBoard.slice().sort((a, b) =>
+      ((b[k] || 0) - (a[k] || 0))
+      || ((b.rating || 0) - (a.rating || 0))
+      || (a.name || '').localeCompare(b.name || '')
+    ).slice(0, 10);
+  }, [eloBoard, lbMetric.key]);
 
   // ── live feed (scoped by quiz department) ──
   const liveRows = useMemo(() => {
@@ -272,7 +309,8 @@ export default function QuizHomeClient() {
     @keyframes qzp{0%{opacity:1}50%{opacity:.35}100%{opacity:1}}
     .qzh .dd{position:relative;}
     .qzh .ddbtn{display:flex;align-items:center;gap:8px;background:#fff;border:1px solid ${C.line};border-radius:10px;padding:9px 12px;cursor:pointer;font:inherit;min-width:200px;}
-    .qzh .ddmenu{position:absolute;top:calc(100% + 6px);left:0;z-index:30;background:#fff;border:1px solid ${C.line};border-radius:10px;box-shadow:0 8px 24px rgba(20,22,28,0.12);padding:6px;min-width:250px;max-height:360px;overflow:auto;}
+    .qzh .ddmenu{position:absolute;top:calc(100% + 6px);left:0;z-index:30;background:#fff;border:1px solid ${C.line};border-radius:10px;box-shadow:0 8px 24px rgba(20,22,28,0.12);padding:6px;min-width:430px;display:grid;grid-template-columns:1fr 1fr;gap:1px 4px;}
+    .qzh .ddmenu .ddall{grid-column:1 / -1;}
     .qzh .dditem{display:flex;align-items:center;gap:9px;padding:7px 9px;border-radius:7px;cursor:pointer;font-size:13px;}
     .qzh .dditem:hover{background:${C.bg};}
     .qzh .dot{width:9px;height:9px;border-radius:3px;flex:none;}
@@ -301,8 +339,9 @@ export default function QuizHomeClient() {
       <div className="qzh" style={{ maxWidth: 1080, margin: '0 auto', padding: '20px 24px 70px', position: 'relative' }}>
 
         {/* crumb header */}
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12, padding: '12px 16px', background: '#e3ecfd', borderRadius: 12, marginBottom: 12 }}>
-          <div style={{ display: 'flex', alignItems: 'baseline', gap: 9 }}>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12, paddingBottom: 12, borderBottom: `1px solid ${C.line}`, marginBottom: 12 }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 9 }}>
+            <Logo />
             <Link href="/" className="qlink"><span className="crumb1">Source of Truths</span></Link>
             <span style={{ color: C.soft }}>/</span>
             <span className="crumb2">Quizzes</span>
@@ -314,7 +353,7 @@ export default function QuizHomeClient() {
         </div>
 
         {/* player bar */}
-        <div className="card" style={{ flexDirection: 'row', alignItems: 'center', flexWrap: 'wrap', gap: 16, padding: '11px 14px', margin: '14px 0 12px', overflow: 'visible', position: 'relative', zIndex: 40, background: '#eff4fe' }}>
+        <div className="card" style={{ flexDirection: 'row', alignItems: 'center', flexWrap: 'wrap', gap: 16, padding: '11px 14px', margin: '14px 0 12px', overflow: 'visible', position: 'relative', zIndex: 40 }}>
           <div className="dd">
             <button className="ddbtn" onClick={(e) => { e.stopPropagation(); setDdOpen((o) => !o); }}>
               <span className="dot" style={{ background: scope === 'all' ? C.ink : (byKey[scope]?.c || C.ink) }} />
@@ -323,7 +362,7 @@ export default function QuizHomeClient() {
             </button>
             {ddOpen && (
               <div className="ddmenu" onClick={(e) => e.stopPropagation()}>
-                <div className="dditem" onClick={() => { setScope('all'); setDdOpen(false); setSearch(''); }}>
+                <div className="dditem ddall" onClick={() => { setScope('all'); setDdOpen(false); setSearch(''); }}>
                   <span className="dot" style={{ background: C.ink }} /><span style={{ flex: 1 }}>All Categories</span>
                   <span style={{ fontSize: 11, color: C.soft }}>{totalCount}</span>
                 </div>
@@ -367,7 +406,7 @@ export default function QuizHomeClient() {
                 <div className="lrow" key={r.userKey || i}>
                   <Medal i={i} />
                   <span className="qtitle"><WhoTag name={r.name} isAnon={r.isAnon} /></span>
-                  <span style={{ flex: 'none', fontWeight: 700, fontVariantNumeric: 'tabular-nums' }}>{lbMetric.fmt(r.stats ? r.stats[lbMetric.key] : 0)}</span>
+                  <span style={{ flex: 'none', fontWeight: 700, fontVariantNumeric: 'tabular-nums' }}>{lbMetric.fmt(r[lbMetric.key])}</span>
                 </div>
               ))}
             </div>
@@ -409,7 +448,7 @@ export default function QuizHomeClient() {
         </div>
 
         {/* browse header + search */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: 16, marginBottom: 14, background: '#eff4fe', padding: '10px 14px', borderRadius: 12 }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 16, marginBottom: 14 }}>
           <h2 style={{ fontSize: 17, fontWeight: 800, margin: 0, whiteSpace: 'nowrap' }}>
             {searchResults ? `Search Results · ${searchResults.length}` : scope === 'all' ? 'Browse Quizzes' : `${byKey[scope]?.label} Quizzes`}
           </h2>

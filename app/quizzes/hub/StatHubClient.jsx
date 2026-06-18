@@ -2,7 +2,7 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import Link from 'next/link';
 import {
-  ArrowLeft, ChevronDown, User, ListChecks, Flame, FunctionSquare, Clock,
+  ArrowLeft, User, ListChecks, Flame, FunctionSquare, Clock,
 } from 'lucide-react';
 import { QUIZZES } from '@/lib/quizzes';
 import { quizDept as deptOf, DEPT_COLOR, DEPT_LABEL, DEPT_NAV } from '@/lib/quiz-departments';
@@ -23,6 +23,32 @@ function getAnonId() { if (typeof window === 'undefined') return null; try { ret
 function getIdentity() { if (typeof window === 'undefined') return null; try { return JSON.parse(localStorage.getItem('sot_quiz_identity')); } catch { return null; } }
 function mmss(s) { if (!Number.isFinite(s)) return '—'; const m = Math.floor(s / 60); const sec = Math.round(s % 60); return `${m}:${String(sec).padStart(2, '0')}`; }
 
+
+// Brand mark (gradient ids suffixed per render so multiple instances stay unique).
+let __logoSeq = 0;
+function Logo({ size = 22 }) {
+  const uid = useMemo(() => `l${(__logoSeq += 1)}`, []);
+  return (
+    <svg width={size} height={size} viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg" style={{ display: 'block', flex: 'none' }} aria-hidden="true">
+      <defs>
+        <linearGradient id={`bh-${uid}`} x1="8" y1="6" x2="56" y2="58" gradientUnits="userSpaceOnUse">
+          <stop offset="0" stopColor="#3b74f0" />
+          <stop offset="1" stopColor="#1d4ed8" />
+        </linearGradient>
+        <radialGradient id={`gh-${uid}`} cx="0.5" cy="0.42" r="0.7">
+          <stop offset="0" stopColor="#ffe24d" />
+          <stop offset="0.55" stopColor="#fbb615" />
+          <stop offset="1" stopColor="#f59008" />
+        </radialGradient>
+      </defs>
+      <rect x="3" y="3" width="58" height="58" rx="17.5" fill={`url(#bh-${uid})`} />
+      <circle cx="32" cy="32.5" r="16.4" stroke="#fff" strokeWidth="4.2" fill="none" />
+      <circle cx="32" cy="32.5" r="9.6" stroke="#fff" strokeWidth="4.2" fill="none" strokeOpacity="0.9" />
+      <path d="M 32 24.9 C 32.775 31.725 32.775 31.725 39.6 32.5 C 32.775 33.275 32.775 33.275 32 40.1 C 31.225 33.275 31.225 33.275 24.4 32.5 C 31.225 31.725 31.225 31.725 32 24.9 Z" fill={`url(#gh-${uid})`} />
+    </svg>
+  );
+}
+
 const TABS = [
   { t: 'player', label: 'Player', Icon: User },
   { t: 'rating', label: 'Rating', Icon: FunctionSquare },
@@ -31,8 +57,7 @@ const TABS = [
 ];
 
 export default function StatHubClient() {
-  const [scope, setScope] = useState('all');
-  const [ddOpen, setDdOpen] = useState(false);
+  const scope = 'all'; // category selector removed; Stat Hub always shows overall + per-category table
   const [tab, setTab] = useState('player');
 
   const [me, setMe] = useState(null);
@@ -95,12 +120,13 @@ export default function StatHubClient() {
     .qzhub .pvbtn.on{background:#fff;color:${C.ink};font-weight:700;box-shadow:0 1px 2px rgba(20,22,28,0.06);}
     .qzhub .dd{position:relative;}
     .qzhub .ddbtn{display:flex;align-items:center;gap:8px;background:#fff;border:1px solid ${C.line};border-radius:10px;padding:9px 12px;cursor:pointer;font:inherit;min-width:200px;}
-    .qzhub .ddmenu{position:absolute;top:calc(100% + 6px);right:0;z-index:30;background:#fff;border:1px solid ${C.line};border-radius:10px;box-shadow:0 8px 24px rgba(20,22,28,0.12);padding:6px;min-width:250px;max-height:360px;overflow:auto;}
+    .qzhub .ddmenu{position:absolute;top:calc(100% + 6px);right:0;z-index:30;background:#fff;border:1px solid ${C.line};border-radius:10px;box-shadow:0 8px 24px rgba(20,22,28,0.12);padding:6px;min-width:430px;display:grid;grid-template-columns:1fr 1fr;gap:1px 4px;}
+    .qzhub .ddmenu .ddall{grid-column:1 / -1;}
     .qzhub .dditem{display:flex;align-items:center;gap:9px;padding:7px 9px;border-radius:7px;cursor:pointer;font-size:13px;}
     .qzhub .dditem:hover{background:${C.bg};}
     .qzhub .dot{width:9px;height:9px;border-radius:3px;flex:none;}
     .qzhub .tabs{display:flex;gap:6px;background:#eceef1;border-radius:10px;padding:4px;margin:16px 0;}
-    .qzhub .tab{flex:0 0 auto;border:none;background:transparent;border-radius:7px;padding:9px;font:inherit;font-family:${FONT};font-size:13px;color:${C.muted};cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px;}
+    .qzhub .tab{flex:1;border:none;background:transparent;border-radius:7px;padding:9px;font:inherit;font-family:${FONT};font-size:13px;color:${C.muted};cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px;}
     .qzhub .tab.on{background:#fff;color:${C.ink};font-weight:700;box-shadow:0 1px 2px rgba(20,22,28,0.06);}
     .qzhub .hrow{display:flex;align-items:center;gap:10px;padding:7px 0;border-top:1px solid rgba(20,22,28,0.07);font-size:13px;}
     .qzhub .score{font-weight:700;color:${C.accent};font-variant-numeric:tabular-nums;}
@@ -114,6 +140,8 @@ export default function StatHubClient() {
     .qzhub .crumb1{font-size:18px;font-weight:800;letter-spacing:-0.02em;}
     .qzhub .crumb2{font-size:18px;font-weight:600;color:${C.accent};}
     .qzhub a.qlink{text-decoration:none;color:inherit;}
+.qzhub .metric-lbl{display:flex;justify-content:space-between;align-items:center;gap:6px;flex-wrap:nowrap;}
+    @media(max-width:600px){.qzhub .metric-lbl{flex-wrap:wrap;}}
     @media(max-width:680px){.qzhub .rgrid{grid-template-columns:1fr !important;}}
   `;
 
@@ -125,7 +153,8 @@ export default function StatHubClient() {
 
         {/* crumb */}
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12, paddingBottom: 12, borderBottom: `1px solid ${C.line}` }}>
-          <div style={{ display: 'flex', alignItems: 'baseline', gap: 9 }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 9 }}>
+            <Logo />
             <Link href="/" className="qlink"><span className="crumb1">Source of Truths</span></Link>
             <span style={{ color: C.soft }}>/</span>
             <span className="crumb2">Stat Hub</span>
@@ -152,33 +181,12 @@ export default function StatHubClient() {
               <ChipMetric label="Accuracy" value={found ? `${me.activity.accuracy}%` : '—'} rank={found && me.ranks ? me.ranks.accuracy : null} />
             </div>
           </div>
-          <div className="dd" style={{ marginLeft: 'auto' }}>
-            <button className="ddbtn" onClick={(e) => { e.stopPropagation(); setDdOpen((o) => !o); }}>
-              <span className="dot" style={{ background: scope === 'all' ? C.ink : (byKey[scope]?.c || C.ink) }} />
-              <span style={{ flex: 1, textAlign: 'left', fontWeight: 600, fontSize: 13 }}>{scope === 'all' ? 'All Categories' : byKey[scope]?.label}</span>
-              <ChevronDown size={16} style={{ color: C.muted }} />
-            </button>
-            {ddOpen && (
-              <div className="ddmenu" onClick={(e) => e.stopPropagation()}>
-                <div className="dditem" onClick={() => { setScope('all'); setDdOpen(false); }}>
-                  <span className="dot" style={{ background: C.ink }} /><span style={{ flex: 1 }}>All Categories</span>
-                  <span style={{ fontSize: 11, color: C.soft }}>{catalog.length}</span>
-                </div>
-                {cats.map((c) => (
-                  <div key={c.key} className="dditem" onClick={() => { setScope(c.key); setDdOpen(false); }}>
-                    <span className="dot" style={{ background: c.c }} /><span style={{ flex: 1 }}>{c.label}</span>
-                    <span style={{ fontSize: 11, color: C.soft }}>{c.count}</span>
-                  </div>
-                ))}
-              </div>
-            )}
-          </div>
         </div>
 
         {/* tabs */}
         <div className="tabs">
           {TABS.map(({ t, label, Icon }) => (
-            <button key={t} className={`tab${tab === t ? ' on' : ''}`} style={t === 'quizzes' ? { marginLeft: 'auto' } : undefined} onClick={() => setTab(t)}>
+            <button key={t} className={`tab${tab === t ? ' on' : ''}`} onClick={() => setTab(t)}>
               <Icon size={15} /> {label}
             </button>
           ))}
@@ -190,7 +198,6 @@ export default function StatHubClient() {
         {tab === 'rating' && <RatingPanel me={me} titleById={titleById} />}
       </div>
 
-      {ddOpen && <div onClick={() => setDdOpen(false)} style={{ position: 'fixed', inset: 0, zIndex: 20 }} />}
       <Footer />
     </div>
   );
@@ -211,8 +218,8 @@ function ChipMetric({ label, value, rank }) {
 function Metric({ label, value, sub, rank, total, avg }) {
   return (
     <div className="metric">
-      <div className="lbl" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 6 }}>
-        <span>{label}</span>{rank ? <span className="rankchip">#{rank}{total ? ` of ${total.toLocaleString()}` : ''}</span> : null}
+      <div className="lbl metric-lbl">
+        <span style={{ whiteSpace: 'nowrap' }}>{label}</span>{rank ? <span className="rankchip">#{rank}{total ? ` of ${total.toLocaleString()}` : ''}</span> : null}
       </div>
       <div className="v">{value}</div>
       {avg != null ? <div style={{ fontSize: 10.5, color: C.muted, marginTop: 2 }}>avg {avg}</div> : null}
@@ -240,7 +247,8 @@ function PlayerPanel({ me, scope, cats, byKey, totalQuizzes }) {
         <Metric label="Correct" value={found ? a.correct.toLocaleString() : '—'} rank={found ? ranks.correct : null} total={totalPlayers}
           avg={found && base.correct != null ? base.correct.toLocaleString() : null}
           sub={found ? `${a.accuracy}% of ${a.answered.toLocaleString()} answered` : null} />
-        <Metric label="Played" value={found ? a.played : '—'}
+        <Metric label="Played" value={found ? a.played : '—'} rank={found ? ranks.played : null} total={totalPlayers}
+          avg={found && base.played != null ? base.played.toLocaleString() : null}
           sub={found ? `${pctTotal}% of ${totalQuizzes.toLocaleString()}` : null} />
         <Metric label="Completed" value={found ? a.completed : '—'} rank={found ? ranks.completed : null} total={totalPlayers}
           avg={found && base.completed != null ? base.completed.toLocaleString() : null}
@@ -274,14 +282,14 @@ function PlayerPanel({ me, scope, cats, byKey, totalQuizzes }) {
                   return (
                     <tr key={c.key}>
                       <td style={{ fontWeight: 600, whiteSpace: 'nowrap' }}><span className="dot" style={{ background: c.c, display: 'inline-block', marginRight: 8, verticalAlign: 'middle' }} />{c.label}</td>
-                      <td style={{ textAlign: 'right', color: cr ? C.ink : C.soft }}>{cr ? cr.matches : 0}</td>
-                      <td className="score" style={{ textAlign: 'right', color: cr ? C.accent : C.soft }}>{cr ? cr.rating.toLocaleString() : '—'}</td>
+                      <td style={{ textAlign: 'right', color: cr ? C.ink : C.soft, whiteSpace: 'nowrap' }}>{cr ? cr.matches : 0}{cr && cr.playedRank ? <span className="rankchip">#{cr.playedRank}</span> : null}</td>
+                      <td className="score" style={{ textAlign: 'right', color: cr ? C.accent : C.soft, whiteSpace: 'nowrap' }}>{cr ? cr.rating.toLocaleString() : '—'}{cr && cr.rank ? <span className="rankchip">#{cr.rank}{cr.catTotal ? ` of ${cr.catTotal.toLocaleString()}` : ''}</span> : null}</td>
                     </tr>
                   );
                 })}
               </tbody>
             </table>
-            <div style={{ fontSize: 10.5, color: C.soft, marginTop: 8 }}>ELO is your rating within each category; Played counts your matches in that category.</div>
+            <div style={{ fontSize: 10.5, color: C.soft, marginTop: 8 }}>ELO is your rating within each category; Played counts your matches in that category. Each #rank is your standing among all players with matches in that category.</div>
           </div>
         )}
       </div>

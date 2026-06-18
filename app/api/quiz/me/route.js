@@ -59,6 +59,7 @@ export async function GET(request) {
       completed: (q) => q.completed,
       accuracy: (q) => q.accuracy,
       daysPlayed: (q) => q.daysPlayed || 0,
+      played: (q) => q.played || 0,
     };
     function rankAndBase(getter, myVal) {
       const vals = allPlayers.map(getter);
@@ -86,6 +87,31 @@ export async function GET(request) {
 
     // Recent matches enriched, already newest-first from computeElo.
     const recent = p.recent.map((m) => ({ ...m }));
+
+    // Per-category ranks: for each category the current player has matches in,
+    // rank them by that category's ELO (and by played count) among ALL players
+    // who have matches in that category (anonymous included). Attached onto a
+    // copy of byCategory as { rank, playedRank, catTotal }.
+    const byCategoryRanked = {};
+    for (const cat of Object.keys(p.byCategory)) {
+      const mine = p.byCategory[cat];
+      let eloGreater = 0;
+      let playedGreater = 0;
+      let catTotal = 0;
+      for (const op of allPlayers) {
+        const oc = op.byCategory[cat];
+        if (!oc || !(oc.matches > 0)) continue;
+        catTotal += 1;
+        if ((oc.rating || 0) > (mine.rating || 0)) eloGreater += 1;
+        if ((oc.played || 0) > (mine.played || 0)) playedGreater += 1;
+      }
+      byCategoryRanked[cat] = {
+        ...mine,
+        rank: eloGreater + 1,
+        playedRank: playedGreater + 1,
+        catTotal,
+      };
+    }
 
     return NextResponse.json({
       found: true,
@@ -121,6 +147,7 @@ export async function GET(request) {
         completed: rankAndBase(metricVal.completed, p.completed).rank,
         accuracy: rankAndBase(metricVal.accuracy, p.accuracy).rank,
         daysPlayed: rankAndBase(metricVal.daysPlayed, p.daysPlayed || 0).rank,
+        played: rankAndBase(metricVal.played, p.played || 0).rank,
       },
       base: {
         rating: Math.round(rankAndBase(metricVal.rating, p.rating).base),
@@ -128,8 +155,9 @@ export async function GET(request) {
         completed: Math.round(rankAndBase(metricVal.completed, p.completed).base * 10) / 10,
         accuracy: Math.round(rankAndBase(metricVal.accuracy, p.accuracy).base * 10) / 10,
         daysPlayed: Math.round(rankAndBase(metricVal.daysPlayed, p.daysPlayed || 0).base * 10) / 10,
+        played: Math.round(rankAndBase(metricVal.played, p.played || 0).base * 10) / 10,
       },
-      byCategory: p.byCategory, // { cat: { rating, matches, netDelta } }
+      byCategory: byCategoryRanked, // { cat: { rating, matches, played, rank, playedRank, catTotal } }
       recent,
     });
   } catch (e) {
