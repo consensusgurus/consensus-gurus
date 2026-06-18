@@ -625,7 +625,7 @@ function ListDetail({ list, viewCount, voteData, userVotes, extras, relatedLists
           <div onClick={(e) => e.stopPropagation()} style={{ width: '100%', maxWidth: 480, background: COLORS.cream, border: `2px solid ${COLORS.ink}`, padding: 24 }}>
             {complainSent ? (
               <>
-                <h3 style={{ fontFamily: 'Fraunces, serif', fontWeight: 700, fontSize: 22, margin: '0 0 10px' }}>Thanks — noted.</h3>
+                <h3 style={{ fontFamily: 'Manrope, system-ui, -apple-system, sans-serif', fontWeight: 700, fontSize: 22, margin: '0 0 10px' }}>Thanks — noted.</h3>
                 <p style={{ fontFamily: 'DM Sans, sans-serif', fontSize: 15, color: COLORS.faded, margin: '0 0 20px' }}>
                   Your note went to the editors' desk. Flagged lists get re-researched.
                 </p>
@@ -638,7 +638,7 @@ function ListDetail({ list, viewCount, voteData, userVotes, extras, relatedLists
               </>
             ) : (
               <>
-                <h3 style={{ fontFamily: 'Fraunces, serif', fontWeight: 700, fontSize: 22, margin: '0 0 6px' }}>Comments? Questions?</h3>
+                <h3 style={{ fontFamily: 'Manrope, system-ui, -apple-system, sans-serif', fontWeight: 700, fontSize: 22, margin: '0 0 6px' }}>Comments? Questions?</h3>
                 <p style={{ fontFamily: 'DM Sans, sans-serif', fontSize: 14, color: COLORS.faded, margin: '0 0 14px' }}>
                   Think this list is wrong or stale? Tell the editors what to re-research.
                 </p>
@@ -708,7 +708,7 @@ function ListDetail({ list, viewCount, voteData, userVotes, extras, relatedLists
                 padding: 16,
                 border: `1.5px solid ${COLORS.ink}`,
                 marginBottom: 24,
-                fontFamily: 'Fraunces, serif',
+                fontFamily: 'Manrope, system-ui, -apple-system, sans-serif',
                 fontStyle: 'italic',
                 fontSize: 14,
                 color: COLORS.ink,
@@ -797,7 +797,7 @@ function ListDetail({ list, viewCount, voteData, userVotes, extras, relatedLists
                         <div style={{ fontFamily: 'DM Mono, monospace', fontSize: 9, letterSpacing: '0.1em', textTransform: 'uppercase', fontWeight: 700, opacity: 0.85 }}>
                           {labels[slot]}{locked ? ' · cast' : ''}
                         </div>
-                        <div style={{ fontFamily: 'Fraunces, serif', fontSize: 15, fontWeight: 600, flex: 1, lineHeight: 1.1, fontStyle: val ? 'normal' : 'italic', color: !val && !isActive ? COLORS.faded : 'inherit' }}>
+                        <div style={{ fontFamily: 'Manrope, system-ui, -apple-system, sans-serif', fontSize: 15, fontWeight: 600, flex: 1, lineHeight: 1.1, fontStyle: val ? 'normal' : 'italic', color: !val && !isActive ? COLORS.faded : 'inherit' }}>
                           {val || (isActive ? 'Tap a choice' : 'Tap to pick')}
                         </div>
                         {val && !locked && (
@@ -852,7 +852,7 @@ function ListDetail({ list, viewCount, voteData, userVotes, extras, relatedLists
                   return (
                     <div key={slot} style={{ padding: '12px', minHeight: 72, background: colors[slot], color: COLORS.cream, border: `1.5px solid ${colors[slot]}`, display: 'flex', flexDirection: 'column', gap: 6 }}>
                       <div style={{ fontFamily: 'DM Mono, monospace', fontSize: 9, letterSpacing: '0.1em', textTransform: 'uppercase', fontWeight: 700, opacity: 0.85 }}>{labels[slot]}</div>
-                      <div style={{ fontFamily: 'Fraunces, serif', fontSize: 15, fontWeight: 600, lineHeight: 1.1 }}>{val}</div>
+                      <div style={{ fontFamily: 'Manrope, system-ui, -apple-system, sans-serif', fontSize: 15, fontWeight: 600, lineHeight: 1.1 }}>{val}</div>
                     </div>
                   );
                 })}
@@ -933,7 +933,7 @@ function ListDetail({ list, viewCount, voteData, userVotes, extras, relatedLists
                     list={list}
                     item={entry.item}
                     style={{
-                      fontFamily: 'Fraunces, serif',
+                      fontFamily: 'Manrope, system-ui, -apple-system, sans-serif',
                       fontSize: 17,
                       fontWeight: 600,
                       color: 'inherit',
@@ -991,7 +991,7 @@ function ListDetail({ list, viewCount, voteData, userVotes, extras, relatedLists
                 border: 'none',
                 borderBottom: `1.5px solid ${COLORS.ink}`,
                 padding: '8px 4px',
-                fontFamily: 'Fraunces, serif',
+                fontFamily: 'Manrope, system-ui, -apple-system, sans-serif',
                 fontSize: 16,
                 color: COLORS.ink,
                 outline: 'none',
@@ -1312,7 +1312,7 @@ function DataRow({ rank, item, list, unranked, showPrice }) {
         <span
           aria-hidden="true"
           style={{
-            fontFamily: 'Fraunces, serif',
+            fontFamily: 'Manrope, system-ui, -apple-system, sans-serif',
             fontWeight: 900,
             fontSize: 22,
             lineHeight: 1,
@@ -1327,7 +1327,7 @@ function DataRow({ rank, item, list, unranked, showPrice }) {
       ) : (
         <span
           style={{
-            fontFamily: 'Fraunces, serif',
+            fontFamily: 'Manrope, system-ui, -apple-system, sans-serif',
             fontWeight: 900,
             fontSize: isTop ? 64 : showFullSize ? 44 : 32,
             lineHeight: 0.85,
@@ -1365,7 +1365,7 @@ function DataRow({ rank, item, list, unranked, showPrice }) {
         >
           <span
             style={{
-              fontFamily: 'Fraunces, serif',
+              fontFamily: 'Manrope, system-ui, -apple-system, sans-serif',
               fontSize: unranked ? 20 : isTop ? 28 : showFullSize ? 22 : 19,
               fontWeight: unranked ? 500 : isTop ? 700 : 500,
               lineHeight: 1.15,

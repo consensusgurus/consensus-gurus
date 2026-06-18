@@ -978,8 +978,8 @@ function QuizTile({ quiz, leader }) {
         </div>
       </div>
       <div style={{ padding: '16px 18px 18px', flex: '1 1 auto', display: 'flex', flexDirection: 'column' }}>
-        <h3 style={{ fontFamily: 'Fraunces, serif', fontWeight: 700, fontSize: 26, lineHeight: 1.05, letterSpacing: '-0.02em', margin: '0 0 12px', fontVariationSettings: '"SOFT" 100', color: COLORS.ink }}>{heading}</h3>
-        {quiz.blurb && (<p style={{ fontFamily: 'Fraunces, serif', fontStyle: 'italic', fontSize: 14.5, lineHeight: 1.5, color: COLORS.faded, margin: 0 }}>{quiz.blurb}</p>)}
+        <h3 style={{ fontFamily: 'Manrope, system-ui, -apple-system, sans-serif', fontWeight: 700, fontSize: 26, lineHeight: 1.05, letterSpacing: '-0.02em', margin: '0 0 12px', fontVariationSettings: '"SOFT" 100', color: COLORS.ink }}>{heading}</h3>
+        {quiz.blurb && (<p style={{ fontFamily: 'Manrope, system-ui, -apple-system, sans-serif', fontStyle: 'italic', fontSize: 14.5, lineHeight: 1.5, color: COLORS.faded, margin: 0 }}>{quiz.blurb}</p>)}
         <span style={{ marginTop: 'auto', paddingTop: 16, display: 'flex', alignItems: 'baseline', gap: 6, minWidth: 0, fontFamily: 'DM Mono, monospace', fontSize: 11, letterSpacing: '0.14em', textTransform: 'uppercase', fontWeight: 600, color: accent.c }}>
           <span style={{ flex: 'none' }}>Current Leader:</span>
           <span style={{ flex: '1 1 auto', minWidth: 0, fontWeight: 700, color: leader ? COLORS.ink : COLORS.faded, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{leader || 'Empty'}</span>
@@ -1195,7 +1195,7 @@ export function Tile({ list, rank, views, voteData, extras, onClick, href, showC
           )}
           <span style={{ position: 'absolute', left: heroPhoto.contain ? 8 : 12, bottom: 8, maxWidth: 'calc(100% - 16px)', color: '#fff', fontSize: 12, fontFamily: 'DM Mono, monospace', letterSpacing: '0.06em', textShadow: '0 1px 5px rgba(0,0,0,0.9)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', background: heroPhoto.contain ? 'rgba(26,22,17,0.78)' : 'transparent', padding: heroPhoto.contain ? '3px 8px' : 0 }}>
             {heroPhoto.rank != null ? (
-              <span style={{ color: '#e7cf73', fontFamily: 'Fraunces, serif', fontWeight: 700, fontSize: 14 }}>#{heroPhoto.rank}</span>
+              <span style={{ color: '#e7cf73', fontFamily: 'Manrope, system-ui, -apple-system, sans-serif', fontWeight: 700, fontSize: 14 }}>#{heroPhoto.rank}</span>
             ) : (
               heroPhoto.name
             )}
@@ -1265,7 +1265,7 @@ export function Tile({ list, rank, views, voteData, extras, onClick, href, showC
 
       <h3
         style={{
-          fontFamily: 'Fraunces, serif',
+          fontFamily: 'Manrope, system-ui, -apple-system, sans-serif',
           fontWeight: 700,
           fontSize: 26,
           lineHeight: 1.05,
@@ -1336,7 +1336,7 @@ export function Tile({ list, rank, views, voteData, extras, onClick, href, showC
                     <span
                       style={{
                         position: 'relative',
-                        fontFamily: 'Fraunces, serif',
+                        fontFamily: 'Manrope, system-ui, -apple-system, sans-serif',
                         fontWeight: 600,
                         fontSize: 13,
                         color: RANK_MEDALS[i].num,
@@ -1354,7 +1354,7 @@ export function Tile({ list, rank, views, voteData, extras, onClick, href, showC
                       display: 'inline-flex',
                       alignItems: 'center',
                       justifyContent: 'center',
-                      fontFamily: 'Fraunces, serif',
+                      fontFamily: 'Manrope, system-ui, -apple-system, sans-serif',
                       fontWeight: 600,
                       fontSize: 13,
                       color: COLORS.faded,
@@ -1397,8 +1397,8 @@ export function Tile({ list, rank, views, voteData, extras, onClick, href, showC
                     cursor: 'pointer',
                   }}
                 >
-                  <span style={{ flex: '1 1 auto', minWidth: 0, fontFamily: 'Fraunces, serif', fontWeight: 700, fontSize: 14, lineHeight: 1.15, fontVariationSettings: '"SOFT" 100' }}>{rl.title}</span>
-                  <span style={{ flex: '0 0 auto', fontFamily: 'Fraunces, serif', fontWeight: 700, fontSize: 14 }}>&#8594;</span>
+                  <span style={{ flex: '1 1 auto', minWidth: 0, fontFamily: 'Manrope, system-ui, -apple-system, sans-serif', fontWeight: 700, fontSize: 14, lineHeight: 1.15, fontVariationSettings: '"SOFT" 100' }}>{rl.title}</span>
+                  <span style={{ flex: '0 0 auto', fontFamily: 'Manrope, system-ui, -apple-system, sans-serif', fontWeight: 700, fontSize: 14 }}>&#8594;</span>
                 </div>
               );
             })}

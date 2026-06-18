@@ -14,7 +14,7 @@ function RankRow({ rank, name, value }) {
     <div style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '8px 3px', borderBottom: `1px solid rgba(26,22,17,0.12)` }}>
       <span style={{ flex: 'none', width: 24, height: 24, borderRadius: '50%', background: medal || 'transparent', border: medal ? `1.5px solid ${COLORS.ink}` : `1.5px solid rgba(26,22,17,0.2)`, display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: 'DM Mono, monospace', fontSize: 11, fontWeight: 500, color: medal ? COLORS.ink : COLORS.faded }}>{rank}</span>
       <span style={{ flex: '1 1 auto', minWidth: 0, fontFamily: 'DM Mono, monospace', fontSize: 12.5, fontWeight: 500, color: COLORS.ink, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{name}</span>
-      <span style={{ flex: 'none', fontFamily: 'Fraunces, serif', fontWeight: 700, fontSize: 15, color: COLORS.ink }}>{value}</span>
+      <span style={{ flex: 'none', fontFamily: 'Manrope, system-ui, -apple-system, sans-serif', fontWeight: 700, fontSize: 15, color: COLORS.ink }}>{value}</span>
     </div>
   );
 }
@@ -24,7 +24,7 @@ function Column({ icon: Icon, title, anon, note, rows, empty }) {
     <div>
       <div className="lb-title" style={{ display: 'flex', alignItems: 'flex-start', gap: 8, marginBottom: 3 }}>
         <Icon size={16} strokeWidth={2} aria-hidden="true" style={{ flex: 'none', marginTop: 2, color: COLORS.ember }} />
-        <h2 style={{ fontFamily: 'Fraunces, serif', fontWeight: 600, fontSize: 16, lineHeight: 1.1, letterSpacing: '-0.01em', margin: 0, color: COLORS.ink }}>
+        <h2 style={{ fontFamily: 'Manrope, system-ui, -apple-system, sans-serif', fontWeight: 600, fontSize: 16, lineHeight: 1.1, letterSpacing: '-0.01em', margin: 0, color: COLORS.ink }}>
           {title}
           {anon ? <span style={{ fontFamily: 'DM Mono, monospace', fontSize: 9.5, fontWeight: 500, letterSpacing: '0.04em', color: COLORS.faded, marginLeft: 6, whiteSpace: 'nowrap' }}>({anon})</span> : null}
         </h2>
@@ -34,7 +34,7 @@ function Column({ icon: Icon, title, anon, note, rows, empty }) {
         {rows.length > 0 ? rows.map((r, i) => (
           <RankRow key={`${r.name}-${i}`} rank={i + 1} name={r.name} value={r.value} />
         )) : (
-          <div style={{ padding: '20px 3px', fontFamily: 'Fraunces, serif', fontStyle: 'italic', fontSize: 13.5, color: COLORS.faded }}>{empty}</div>
+          <div style={{ padding: '20px 3px', fontFamily: 'Manrope, system-ui, -apple-system, sans-serif', fontStyle: 'italic', fontSize: 13.5, color: COLORS.faded }}>{empty}</div>
         )}
       </div>
     </div>
@@ -120,10 +120,10 @@ export default function LeaderboardClient() {
             <ArrowLeft size={15} strokeWidth={2.5} /> All Quizzes
           </Link>
           <div style={{ fontFamily: 'DM Mono, monospace', fontSize: 11, fontWeight: 700, letterSpacing: '0.22em', textTransform: 'uppercase', color: COLORS.ember, marginBottom: 10 }}>Quiz Champions</div>
-          <h1 style={{ fontFamily: 'Fraunces, serif', fontWeight: 600, fontSize: 'clamp(34px, 7vw, 60px)', lineHeight: 0.95, letterSpacing: '-0.015em', margin: '0 0 14px', fontVariationSettings: '"SOFT" 100', color: COLORS.ink }}>
+          <h1 style={{ fontFamily: 'Manrope, system-ui, -apple-system, sans-serif', fontWeight: 600, fontSize: 'clamp(34px, 7vw, 60px)', lineHeight: 0.95, letterSpacing: '-0.015em', margin: '0 0 14px', fontVariationSettings: '"SOFT" 100', color: COLORS.ink }}>
             The <span style={{ fontStyle: 'italic', fontWeight: 400, color: COLORS.ember }}>Quiz</span> Leaderboard
           </h1>
-          <p style={{ fontFamily: 'Fraunces, serif', fontStyle: 'italic', fontSize: 17, lineHeight: 1.5, color: COLORS.faded, margin: 0, maxWidth: 720 }}>
+          <p style={{ fontFamily: 'Manrope, system-ui, -apple-system, sans-serif', fontStyle: 'italic', fontSize: 17, lineHeight: 1.5, color: COLORS.faded, margin: 0, maxWidth: 720 }}>
             Every signed-up player, ranked five ways: total plays, correct answers banked, distinct quizzes finished, quizzes scored a perfect 100%, and the daily champion. Pick a category below. Sign up before a quiz to put your name in the running.
           </p>
           <Link href="/quizzes/leaderboard" style={{ display: 'inline-flex', alignItems: 'center', gap: 7, marginTop: 16, padding: '8px 15px', border: `1.5px solid ${COLORS.ember}`, fontFamily: 'DM Mono, monospace', fontSize: 11, fontWeight: 700, letterSpacing: '0.12em', textTransform: 'uppercase', color: COLORS.ember, textDecoration: 'none' }}>
@@ -178,7 +178,7 @@ export default function LeaderboardClient() {
                 <div>
                   <div className="lb-title" style={{ display: 'flex', alignItems: 'flex-start', gap: 8, marginBottom: 3 }}>
                     <Crown size={16} strokeWidth={2} aria-hidden="true" style={{ flex: 'none', marginTop: 2, color: COLORS.ember }} />
-                    <h2 style={{ fontFamily: 'Fraunces, serif', fontWeight: 600, fontSize: 16, lineHeight: 1.1, letterSpacing: '-0.01em', margin: 0, color: COLORS.ink }}>Daily Champions</h2>
+                    <h2 style={{ fontFamily: 'Manrope, system-ui, -apple-system, sans-serif', fontWeight: 600, fontSize: 16, lineHeight: 1.1, letterSpacing: '-0.01em', margin: 0, color: COLORS.ink }}>Daily Champions</h2>
                   </div>
                   <div style={{ fontFamily: 'DM Mono, monospace', fontSize: 9.5, letterSpacing: '0.1em', textTransform: 'uppercase', color: COLORS.faded, marginBottom: 10 }}>Most correct answers each day</div>
                   <div style={{ borderTop: `2px solid ${COLORS.ember}` }}>
@@ -192,7 +192,7 @@ export default function LeaderboardClient() {
                         ))}
                       </div>
                     ) : (
-                      <div style={{ padding: '20px 3px', fontFamily: 'Fraunces, serif', fontStyle: 'italic', fontSize: 13.5, color: COLORS.faded }}>The first champion is crowned once today is over.</div>
+                      <div style={{ padding: '20px 3px', fontFamily: 'Manrope, system-ui, -apple-system, sans-serif', fontStyle: 'italic', fontSize: 13.5, color: COLORS.faded }}>The first champion is crowned once today is over.</div>
                     )}
                   </div>
                 </div>
@@ -201,7 +201,7 @@ export default function LeaderboardClient() {
               )}
             </div>
           ) : (
-            <div style={{ textAlign: 'center', padding: '60px 24px', fontFamily: 'Fraunces, serif', fontStyle: 'italic', fontSize: 18, color: COLORS.faded }}>Loading the standings...</div>
+            <div style={{ textAlign: 'center', padding: '60px 24px', fontFamily: 'Manrope, system-ui, -apple-system, sans-serif', fontStyle: 'italic', fontSize: 18, color: COLORS.faded }}>Loading the standings...</div>
           )}
           <style>{`
             .lb-metrics{display:flex;flex-wrap:wrap;gap:10px;margin-bottom:20px;}
@@ -212,7 +212,7 @@ export default function LeaderboardClient() {
             .lb-daily-grid{display:grid;grid-auto-flow:column;grid-template-rows:repeat(10,auto);gap:0 36px;}
             .lb-daily-row{display:flex;align-items:center;gap:12px;padding:8px 3px;border-bottom:1px solid rgba(26,22,17,0.12);min-width:0;}
             .lb-daily-date{flex:none;min-width:46px;font-family:'DM Mono',monospace;font-size:12px;font-weight:700;color:${COLORS.ember};}
-            .lb-daily-name{flex:1 1 auto;min-width:0;font-family:'Fraunces',serif;font-size:15px;font-weight:500;color:${COLORS.ink};overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+            .lb-daily-name{flex:1 1 auto;min-width:0;font-family:'Manrope',serif;font-size:15px;font-weight:500;color:${COLORS.ink};overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
             @media(max-width:680px){.lb-daily-grid{grid-auto-flow:row;grid-template-rows:none;grid-template-columns:1fr;}}
             .lb-title{min-height:46px;}
             @media(max-width:900px){.lb-grid{grid-template-columns:1fr 1fr;gap:30px;}}

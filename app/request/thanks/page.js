@@ -43,7 +43,7 @@ export default function ThanksPage() {
         </div>
         <h1
           style={{
-            fontFamily: 'Fraunces, serif',
+            fontFamily: 'Manrope, system-ui, -apple-system, sans-serif',
             fontWeight: 600,
             fontSize: 'clamp(42px, 10vw, 84px)',
             lineHeight: 0.9,
@@ -59,7 +59,7 @@ export default function ThanksPage() {
         </h1>
         <p
           style={{
-            fontFamily: 'Fraunces, serif',
+            fontFamily: 'Manrope, system-ui, -apple-system, sans-serif',
             fontStyle: 'italic',
             fontSize: 19,
             lineHeight: 1.5,

@@ -85,7 +85,7 @@ function RequestView({ onBack, onSubmit }) {
     border: 'none',
     borderBottom: `1.5px solid ${COLORS.ink}`,
     padding: '8px 0',
-    fontFamily: 'Fraunces, serif',
+    fontFamily: 'Manrope, system-ui, -apple-system, sans-serif',
     fontSize: 18,
     color: COLORS.ink,
     outline: 'none',
@@ -151,7 +151,7 @@ function RequestView({ onBack, onSubmit }) {
         </div>
         <h1
           style={{
-            fontFamily: 'Fraunces, serif',
+            fontFamily: 'Manrope, system-ui, -apple-system, sans-serif',
             fontWeight: 900,
             fontSize: 'clamp(42px, 10vw, 84px)',
             lineHeight: 0.9,
@@ -167,7 +167,7 @@ function RequestView({ onBack, onSubmit }) {
         </h1>
         <p
           style={{
-            fontFamily: 'Fraunces, serif',
+            fontFamily: 'Manrope, system-ui, -apple-system, sans-serif',
             fontStyle: 'italic',
             fontSize: 17,
             lineHeight: 1.45,
@@ -343,7 +343,7 @@ function RequestView({ onBack, onSubmit }) {
           >
             <h3
               style={{
-                fontFamily: 'Fraunces, serif',
+                fontFamily: 'Manrope, system-ui, -apple-system, sans-serif',
                 fontStyle: 'italic',
                 fontSize: 22,
                 margin: 0,
@@ -380,7 +380,7 @@ function RequestView({ onBack, onSubmit }) {
               >
                 <span
                   style={{
-                    fontFamily: 'Fraunces, serif',
+                    fontFamily: 'Manrope, system-ui, -apple-system, sans-serif',
                     fontWeight: 900,
                     fontSize: 22,
                     color: i === 0 ? COLORS.ember : COLORS.ink,
@@ -401,7 +401,7 @@ function RequestView({ onBack, onSubmit }) {
                     flex: 1,
                     background: 'transparent',
                     border: 'none',
-                    fontFamily: 'Fraunces, serif',
+                    fontFamily: 'Manrope, system-ui, -apple-system, sans-serif',
                     fontSize: 17,
                     color: COLORS.ink,
                     outline: 'none',

@@ -272,7 +272,10 @@ export default function QuizHomeClient() {
   // category (eloBoard is already category-scoped via the /api/quiz/elo refetch).
   const leaderRows = useMemo(() => {
     const k = lbMetric.key;
-    return eloBoard.slice().sort((a, b) =>
+    // Highest Accuracy needs a real sample: only players with >=3 unique
+    // quizzes played qualify (a 100% from one quiz shouldn't top the board).
+    const pool = k === 'accuracy' ? eloBoard.filter((p) => (p.played || 0) >= 3) : eloBoard;
+    return pool.slice().sort((a, b) =>
       ((b[k] || 0) - (a[k] || 0))
       || ((b.rating || 0) - (a.rating || 0))
       || (a.name || '').localeCompare(b.name || '')

@@ -411,7 +411,7 @@ function HeroTile({ item, rank, list, desc, pics, poster }) {
             >
               <span
                 style={{
-                  fontFamily: 'Fraunces, serif',
+                  fontFamily: 'Manrope, system-ui, -apple-system, sans-serif',
                   fontSize: 11,
                   fontWeight: 600,
                   color: COLORS.ink,
@@ -437,7 +437,7 @@ function HeroTile({ item, rank, list, desc, pics, poster }) {
           <LinkWrap href={href} rel={rel}>
             <p
               style={{
-                fontFamily: 'Fraunces, serif',
+                fontFamily: 'Manrope, system-ui, -apple-system, sans-serif',
                 fontSize: 22,
                 fontWeight: 700,
                 lineHeight: 1.15,
@@ -500,7 +500,7 @@ function SmallTile({ item, rank, list, desc, pics, poster }) {
         >
           <span
             style={{
-              fontFamily: 'Fraunces, serif',
+              fontFamily: 'Manrope, system-ui, -apple-system, sans-serif',
               fontSize: 10,
               fontWeight: 600,
               color: COLORS.faded,
@@ -526,7 +526,7 @@ function SmallTile({ item, rank, list, desc, pics, poster }) {
       <LinkWrap href={href} rel={rel}>
         <p
           style={{
-            fontFamily: 'Fraunces, serif',
+            fontFamily: 'Manrope, system-ui, -apple-system, sans-serif',
             fontSize: 16,
             fontWeight: 700,
             lineHeight: 1.2,
@@ -573,9 +573,9 @@ function LedgerRow({ item, rank, list, desc, pics, isTop, heavyDivider, poster, 
   if (poster && compact) {
     return (
       <div style={{ display: 'grid', gridTemplateColumns: '52px minmax(0,1fr)', gap: 22, alignItems: 'center', padding: '12px 14px', borderBottom: '1px solid rgba(26,22,17,0.16)' }}>
-        <div style={{ fontFamily: 'Fraunces, serif', fontWeight: 900, fontSize: 20, lineHeight: 1, color: COLORS.faded, textAlign: 'center' }}>{rank}</div>
+        <div style={{ fontFamily: 'Manrope, system-ui, -apple-system, sans-serif', fontWeight: 900, fontSize: 20, lineHeight: 1, color: COLORS.faded, textAlign: 'center' }}>{rank}</div>
         <div style={{ display: 'flex', alignItems: 'baseline', gap: 10, minWidth: 0 }}>
-          <span style={{ fontFamily: 'Fraunces, serif', fontSize: 17, fontWeight: 700, color: COLORS.ink, fontVariationSettings: '"SOFT" 100', lineHeight: 1.15, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{displayName}</span>
+          <span style={{ fontFamily: 'Manrope, system-ui, -apple-system, sans-serif', fontSize: 17, fontWeight: 700, color: COLORS.ink, fontVariationSettings: '"SOFT" 100', lineHeight: 1.15, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{displayName}</span>
           {locality && (
             <span style={{ fontFamily: 'DM Mono, monospace', fontSize: 9, letterSpacing: '0.12em', textTransform: 'uppercase', color: COLORS.faded, marginLeft: 'auto', whiteSpace: 'nowrap', flexShrink: 0 }}>{locality}</span>
           )}
@@ -614,7 +614,7 @@ function LedgerRow({ item, rank, list, desc, pics, isTop, heavyDivider, poster, 
       <div
         className="lov-rank"
         style={{
-          fontFamily: 'Fraunces, serif',
+          fontFamily: 'Manrope, system-ui, -apple-system, sans-serif',
           fontWeight: 900,
           fontSize: isTop ? 30 : 20,
           lineHeight: 1,
@@ -648,7 +648,7 @@ function LedgerRow({ item, rank, list, desc, pics, isTop, heavyDivider, poster, 
           <LinkWrap href={href} rel={rel} style={{ display: 'inline-block' }}>
             <p
               style={{
-                fontFamily: 'Fraunces, serif',
+                fontFamily: 'Manrope, system-ui, -apple-system, sans-serif',
                 fontSize: isTop ? 21 : 17,
                 fontWeight: 700,
                 lineHeight: 1.15,
@@ -782,9 +782,9 @@ function CompactRow({ item, rank }) {
   return (
     <div style={{ ...tileChrome, padding: '10px 14px', display: 'flex', alignItems: 'center', gap: 10 }}>
       <div style={{ width: 22, height: 22, border: `1.5px solid ${COLORS.faded}`, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-        <span style={{ fontFamily: 'Fraunces, serif', fontSize: 10, fontWeight: 600, color: COLORS.faded }}>{rank}</span>
+        <span style={{ fontFamily: 'Manrope, system-ui, -apple-system, sans-serif', fontSize: 10, fontWeight: 600, color: COLORS.faded }}>{rank}</span>
       </div>
-      <span style={{ fontFamily: 'Fraunces, serif', fontSize: 16, fontWeight: 700, color: COLORS.ink, fontVariationSettings: '"SOFT" 100', lineHeight: 1.15, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{displayName}</span>
+      <span style={{ fontFamily: 'Manrope, system-ui, -apple-system, sans-serif', fontSize: 16, fontWeight: 700, color: COLORS.ink, fontVariationSettings: '"SOFT" 100', lineHeight: 1.15, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{displayName}</span>
       {locality && (
         <span style={{ fontFamily: 'DM Mono, monospace', fontSize: 8, letterSpacing: '0.1em', textTransform: 'uppercase', color: COLORS.faded, marginLeft: 'auto', whiteSpace: 'nowrap', flexShrink: 0 }}>{locality}</span>
       )}
@@ -820,7 +820,7 @@ export function ListOverviewPoster({ list, voteData, extras, variant }) {
       <div style={{ display: 'flex', alignItems: 'flex-end', gap: 28 }}>
         <h1
           style={{
-            fontFamily: 'Fraunces, serif',
+            fontFamily: 'Manrope, system-ui, -apple-system, sans-serif',
             fontWeight: 800,
             fontSize: 50,
             lineHeight: 1.02,
@@ -853,7 +853,7 @@ export function ListOverviewPoster({ list, voteData, extras, variant }) {
       {!compact && list.blurb && (
         <p
           style={{
-            fontFamily: 'Fraunces, serif',
+            fontFamily: 'Manrope, system-ui, -apple-system, sans-serif',
             fontStyle: 'italic',
             fontSize: 16,
             lineHeight: 1.45,
@@ -983,7 +983,7 @@ export default function ListOverview({ list, voteData, extras, viewCount, onBack
         <div style={{ display: 'flex', alignItems: 'flex-end', gap: 'clamp(16px, 4vw, 28px)' }}>
           <h1
             style={{
-              fontFamily: 'Fraunces, serif',
+              fontFamily: 'Manrope, system-ui, -apple-system, sans-serif',
               fontWeight: 800,
               fontSize: 'clamp(30px, 5vw, 50px)',
               lineHeight: 1.02,
@@ -1016,7 +1016,7 @@ export default function ListOverview({ list, voteData, extras, viewCount, onBack
         {list.blurb && (
           <p
             style={{
-              fontFamily: 'Fraunces, serif',
+              fontFamily: 'Manrope, system-ui, -apple-system, sans-serif',
               fontStyle: 'italic',
               fontSize: 16,
               lineHeight: 1.45,
@@ -1173,7 +1173,7 @@ export default function ListOverview({ list, voteData, extras, viewCount, onBack
           <div onClick={(e) => e.stopPropagation()} style={{ width: '100%', maxWidth: 480, background: COLORS.cream, border: `2px solid ${COLORS.ink}`, padding: 24 }}>
             {complainSent ? (
               <>
-                <h3 style={{ fontFamily: 'Fraunces, serif', fontWeight: 700, fontSize: 22, margin: '0 0 10px' }}>Thanks — noted.</h3>
+                <h3 style={{ fontFamily: 'Manrope, system-ui, -apple-system, sans-serif', fontWeight: 700, fontSize: 22, margin: '0 0 10px' }}>Thanks — noted.</h3>
                 <p style={{ fontFamily: 'DM Sans, sans-serif', fontSize: 15, color: COLORS.faded, margin: '0 0 20px' }}>
                   Your note went to the editors' desk. Flagged lists get re-researched.
                 </p>
@@ -1186,7 +1186,7 @@ export default function ListOverview({ list, voteData, extras, viewCount, onBack
               </>
             ) : (
               <>
-                <h3 style={{ fontFamily: 'Fraunces, serif', fontWeight: 700, fontSize: 22, margin: '0 0 6px' }}>Comments? Questions?</h3>
+                <h3 style={{ fontFamily: 'Manrope, system-ui, -apple-system, sans-serif', fontWeight: 700, fontSize: 22, margin: '0 0 6px' }}>Comments? Questions?</h3>
                 <p style={{ fontFamily: 'DM Sans, sans-serif', fontSize: 14, color: COLORS.faded, margin: '0 0 14px' }}>
                   Think this list is wrong or stale? Tell the editors what to re-research.
                 </p>

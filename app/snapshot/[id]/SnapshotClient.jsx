@@ -47,7 +47,7 @@ const FONT_STYLES = {
   },
   ledger: {
     label: 'Ledger',
-    previewFont: 'Fraunces, serif', previewStyle: 'italic', previewWeight: 700,
+    previewFont: 'Manrope, system-ui, -apple-system, sans-serif', previewStyle: 'italic', previewWeight: 700,
   },
   stack: {
     label: 'Stack',
@@ -306,13 +306,13 @@ export default function SnapshotClient({ listId, embedded, list: listProp, voteD
   }
 
   if (!loaded) {
-    return <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: COLORS.cream, fontFamily: 'Fraunces, serif', fontStyle: 'italic', fontSize: 18, color: COLORS.faded }}>loading</div>;
+    return <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: COLORS.cream, fontFamily: 'Manrope, system-ui, -apple-system, sans-serif', fontStyle: 'italic', fontSize: 18, color: COLORS.faded }}>loading</div>;
   }
 
   if (!list) {
     return (
       <div style={{ padding: 48, textAlign: 'center', background: COLORS.cream, minHeight: '100vh' }}>
-        <p style={{ fontFamily: 'Fraunces, serif', fontStyle: 'italic', color: COLORS.faded }}>That list seems to have wandered off.</p>
+        <p style={{ fontFamily: 'Manrope, system-ui, -apple-system, sans-serif', fontStyle: 'italic', color: COLORS.faded }}>That list seems to have wandered off.</p>
         <button onClick={() => router.push('/')} style={{ marginTop: 16, background: COLORS.ink, color: COLORS.cream, border: 'none', padding: '10px 20px', fontFamily: 'DM Mono, monospace', fontSize: 11, letterSpacing: '0.2em', textTransform: 'uppercase', cursor: 'pointer' }}>Back home</button>
       </div>
     );
@@ -337,7 +337,7 @@ export default function SnapshotClient({ listId, embedded, list: listProp, voteD
         )}
 
         {!embedded && (
-          <h2 style={{ fontFamily: 'Fraunces, serif', fontWeight: 700, fontStyle: 'italic', fontSize: 24, margin: '0 0 18px', color: COLORS.ink, fontVariationSettings: '"SOFT" 100' }}>Share this list</h2>
+          <h2 style={{ fontFamily: 'Manrope, system-ui, -apple-system, sans-serif', fontWeight: 700, fontStyle: 'italic', fontSize: 24, margin: '0 0 18px', color: COLORS.ink, fontVariationSettings: '"SOFT" 100' }}>Share this list</h2>
         )}
 
         <PickerRow label="Source">
@@ -395,7 +395,7 @@ export default function SnapshotClient({ listId, embedded, list: listProp, voteD
 
         {/* ─── Instagram automation image (server-rendered poster) ────── */}
         <div style={{ marginTop: 52, borderTop: `2px solid ${COLORS.ink}`, paddingTop: 28 }}>
-          <h2 style={{ fontFamily: 'Fraunces, serif', fontWeight: 700, fontStyle: 'italic', fontSize: 24, margin: '0 0 6px', color: COLORS.ink, fontVariationSettings: '"SOFT" 100' }}>Instagram image</h2>
+          <h2 style={{ fontFamily: 'Manrope, system-ui, -apple-system, sans-serif', fontWeight: 700, fontStyle: 'italic', fontSize: 24, margin: '0 0 6px', color: COLORS.ink, fontVariationSettings: '"SOFT" 100' }}>Instagram image</h2>
           <p style={{ fontFamily: 'DM Sans, sans-serif', fontSize: 14, color: COLORS.faded, margin: '0 0 16px', maxWidth: 560 }}>
             The ready-to-post 1080 × 1350 image the Instagram automation uses. Copy the image itself, or a direct link to it, to share anywhere.
           </p>
@@ -414,7 +414,7 @@ export default function SnapshotClient({ listId, embedded, list: listProp, voteD
 
         {/* ─── The new list page, fully rendered and downloadable ───────── */}
         <div style={{ marginTop: 52, borderTop: `2px solid ${COLORS.ink}`, paddingTop: 28 }}>
-          <h2 style={{ fontFamily: 'Fraunces, serif', fontWeight: 700, fontStyle: 'italic', fontSize: 24, margin: '0 0 6px', color: COLORS.ink, fontVariationSettings: '"SOFT" 100' }}>List page format</h2>
+          <h2 style={{ fontFamily: 'Manrope, system-ui, -apple-system, sans-serif', fontWeight: 700, fontStyle: 'italic', fontSize: 24, margin: '0 0 6px', color: COLORS.ink, fontVariationSettings: '"SOFT" 100' }}>List page format</h2>
           <p style={{ fontFamily: 'DM Sans, sans-serif', fontSize: 14, color: COLORS.faded, margin: '0 0 16px', maxWidth: 560 }}>
             The full list page with photos and descriptions, rendered as a single shareable image.
           </p>
@@ -435,7 +435,7 @@ export default function SnapshotClient({ listId, embedded, list: listProp, voteD
 
         {/* ─── Share card: top 3 in full, 4-10 compact ──────────────────── */}
         <div style={{ marginTop: 52, borderTop: `2px solid ${COLORS.ink}`, paddingTop: 28 }}>
-          <h2 style={{ fontFamily: 'Fraunces, serif', fontWeight: 700, fontStyle: 'italic', fontSize: 24, margin: '0 0 6px', color: COLORS.ink, fontVariationSettings: '"SOFT" 100' }}>Share card</h2>
+          <h2 style={{ fontFamily: 'Manrope, system-ui, -apple-system, sans-serif', fontWeight: 700, fontStyle: 'italic', fontSize: 24, margin: '0 0 6px', color: COLORS.ink, fontVariationSettings: '"SOFT" 100' }}>Share card</h2>
           <p style={{ fontFamily: 'DM Sans, sans-serif', fontSize: 14, color: COLORS.faded, margin: '0 0 16px', maxWidth: 560 }}>
             The top three in full, ranks 4 through 10 in compact rows. The whole top ten at a shareable size.
           </p>
@@ -456,7 +456,7 @@ export default function SnapshotClient({ listId, embedded, list: listProp, voteD
 
         {/* ─── Top 3, compact ───────────────────────────────────────────── */}
         <div style={{ marginTop: 52, borderTop: `2px solid ${COLORS.ink}`, paddingTop: 28 }}>
-          <h2 style={{ fontFamily: 'Fraunces, serif', fontWeight: 700, fontStyle: 'italic', fontSize: 24, margin: '0 0 6px', color: COLORS.ink, fontVariationSettings: '"SOFT" 100' }}>Top 3 format</h2>
+          <h2 style={{ fontFamily: 'Manrope, system-ui, -apple-system, sans-serif', fontWeight: 700, fontStyle: 'italic', fontSize: 24, margin: '0 0 6px', color: COLORS.ink, fontVariationSettings: '"SOFT" 100' }}>Top 3 format</h2>
           <p style={{ fontFamily: 'DM Sans, sans-serif', fontSize: 14, color: COLORS.faded, margin: '0 0 16px', maxWidth: 560 }}>
             Just the top three, same look, compact.
           </p>
@@ -568,16 +568,16 @@ function PosterImg({ src, alt }) {
 /* ─── LAYOUT: Ledger (serif editorial, full-height rows) ────────────────── */
 function PosterLedger({ list, items, modeLabel, sourceNames, pal }) {
   return (
-    <div style={{ width: POSTER_W, height: POSTER_H, background: pal.bg, color: pal.text, boxSizing: 'border-box', fontFamily: 'Fraunces, serif', overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>
+    <div style={{ width: POSTER_W, height: POSTER_H, background: pal.bg, color: pal.text, boxSizing: 'border-box', fontFamily: 'Manrope, system-ui, -apple-system, sans-serif', overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>
       <div style={{ padding: '48px 64px 22px', flexShrink: 0 }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', fontFamily: 'DM Mono, monospace', fontSize: 13, letterSpacing: '0.28em', textTransform: 'uppercase', color: pal.faded, marginBottom: 18 }}>
           <span style={{ color: pal.accent, fontWeight: 600 }}>Source of Truths</span>
           <span>{list.category} &middot; Top {Math.min(items.length, 10)}</span>
         </div>
-        <h1 style={{ fontFamily: 'Fraunces, serif', fontWeight: 900, fontSize: fitTitle(list.title, 64), lineHeight: 0.95, letterSpacing: '-0.03em', margin: 0, color: pal.text, fontVariationSettings: '"SOFT" 100, "WONK" 1', maxWidth: '94%' }}>
+        <h1 style={{ fontFamily: 'Manrope, system-ui, -apple-system, sans-serif', fontWeight: 900, fontSize: fitTitle(list.title, 64), lineHeight: 0.95, letterSpacing: '-0.03em', margin: 0, color: pal.text, fontVariationSettings: '"SOFT" 100, "WONK" 1', maxWidth: '94%' }}>
           {list.title}
         </h1>
-        <div style={{ marginTop: 12, fontFamily: 'Fraunces, serif', fontStyle: 'italic', fontSize: 22, color: pal.faded, fontVariationSettings: '"SOFT" 100' }}>{modeLabel}</div>
+        <div style={{ marginTop: 12, fontFamily: 'Manrope, system-ui, -apple-system, sans-serif', fontStyle: 'italic', fontSize: 22, color: pal.faded, fontVariationSettings: '"SOFT" 100' }}>{modeLabel}</div>
       </div>
       <div style={{ flex: 1, display: 'flex', flexDirection: 'column', borderTop: `2px solid ${pal.text}` }}>
         {items.map((item, i) => {
@@ -585,8 +585,8 @@ function PosterLedger({ list, items, modeLabel, sourceNames, pal }) {
           const top3 = i < 3;
           return (
             <div key={i} style={{ flex: isTop ? 1.5 : 1, display: 'flex', alignItems: 'center', gap: 28, padding: '0 64px', background: isTop ? `rgba(${hexToRgb(pal.accent)},0.10)` : 'transparent', borderBottom: i < items.length - 1 ? `1px solid rgba(${hexToRgb(pal.text)},0.15)` : 'none' }}>
-              <span style={{ fontFamily: 'Fraunces, serif', fontStyle: 'italic', fontWeight: 900, fontSize: isTop ? 72 : top3 ? 46 : 38, color: top3 ? pal.accent : pal.faded, minWidth: 94, flexShrink: 0, lineHeight: 0.85, fontVariationSettings: '"SOFT" 100, "WONK" 1' }}>{i + 1}</span>
-              <span style={{ fontFamily: 'Fraunces, serif', fontWeight: isTop ? 700 : 500, fontStyle: isTop ? 'normal' : 'italic', fontSize: isTop ? 44 : 29, color: pal.text, lineHeight: 1.04, flex: 1, letterSpacing: '-0.01em', fontVariationSettings: '"SOFT" 100', wordBreak: 'break-word' }}>{item}</span>
+              <span style={{ fontFamily: 'Manrope, system-ui, -apple-system, sans-serif', fontStyle: 'italic', fontWeight: 900, fontSize: isTop ? 72 : top3 ? 46 : 38, color: top3 ? pal.accent : pal.faded, minWidth: 94, flexShrink: 0, lineHeight: 0.85, fontVariationSettings: '"SOFT" 100, "WONK" 1' }}>{i + 1}</span>
+              <span style={{ fontFamily: 'Manrope, system-ui, -apple-system, sans-serif', fontWeight: isTop ? 700 : 500, fontStyle: isTop ? 'normal' : 'italic', fontSize: isTop ? 44 : 29, color: pal.text, lineHeight: 1.04, flex: 1, letterSpacing: '-0.01em', fontVariationSettings: '"SOFT" 100', wordBreak: 'break-word' }}>{item}</span>
             </div>
           );
         })}

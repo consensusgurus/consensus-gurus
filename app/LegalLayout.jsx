@@ -61,7 +61,7 @@ export default function LegalLayout({ kicker, title, italic, children, updated }
           </div>
           <h1
             style={{
-              fontFamily: 'Fraunces, serif',
+              fontFamily: 'Manrope, system-ui, -apple-system, sans-serif',
               fontWeight: 600,
               fontSize: 'clamp(40px, 9vw, 84px)',
               lineHeight: 0.9,
@@ -116,7 +116,7 @@ export function H2({ children }) {
   return (
     <h2
       style={{
-        fontFamily: 'Fraunces, serif',
+        fontFamily: 'Manrope, system-ui, -apple-system, sans-serif',
         fontWeight: 700,
         fontStyle: 'italic',
         fontSize: 26,

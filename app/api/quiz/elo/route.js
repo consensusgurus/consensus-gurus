@@ -37,6 +37,7 @@ export async function GET(request) {
       completed: p.completed,
       daysPlayed: p.daysPlayed,
       accuracy: p.accuracy,
+      played: p.played,
     }));
     return NextResponse.json({ scope, total: out.length, players: out });
   } catch (e) {

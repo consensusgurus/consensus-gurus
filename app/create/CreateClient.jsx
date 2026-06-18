@@ -188,7 +188,7 @@ export default function CreateClient({ lists }) {
 
       <h1
         style={{
-          fontFamily: 'Fraunces, serif',
+          fontFamily: 'Manrope, system-ui, -apple-system, sans-serif',
           fontWeight: 600,
           fontSize: 38,
           lineHeight: 1,
@@ -244,7 +244,7 @@ export default function CreateClient({ lists }) {
           padding: '14px 16px',
           background: COLORS.paper,
           border: `1.5px solid ${COLORS.ink}`,
-          fontFamily: 'Fraunces, serif',
+          fontFamily: 'Manrope, system-ui, -apple-system, sans-serif',
           fontSize: 18,
           color: COLORS.ink,
           outline: 'none',
@@ -298,7 +298,7 @@ export default function CreateClient({ lists }) {
                   <Plus size={16} strokeWidth={2.5} style={{ color: COLORS.ember, flex: '0 0 auto' }} />
                   <span style={{ display: 'flex', flexDirection: 'column', gap: 3, minWidth: 0 }}>
                     <span style={{ fontFamily: 'DM Mono, monospace', fontSize: 9, letterSpacing: '0.18em', textTransform: 'uppercase', color: COLORS.faded }}>{l.category}</span>
-                    <span style={{ fontFamily: 'Fraunces, serif', fontWeight: 600, fontSize: 17, fontVariationSettings: '"SOFT" 100' }}>{l.title}</span>
+                    <span style={{ fontFamily: 'Manrope, system-ui, -apple-system, sans-serif', fontWeight: 600, fontSize: 17, fontVariationSettings: '"SOFT" 100' }}>{l.title}</span>
                   </span>
                 </button>
               ))}
@@ -321,10 +321,10 @@ export default function CreateClient({ lists }) {
               background: t ? COLORS.paper : 'transparent',
             }}
           >
-            <span style={{ fontFamily: 'Fraunces, serif', fontWeight: 700, fontSize: 16, width: 22, flex: '0 0 auto', color: t ? COLORS.ink : COLORS.faded }}>{i + 1}</span>
+            <span style={{ fontFamily: 'Manrope, system-ui, -apple-system, sans-serif', fontWeight: 700, fontSize: 16, width: 22, flex: '0 0 auto', color: t ? COLORS.ink : COLORS.faded }}>{i + 1}</span>
             {t ? (
               <>
-                <span style={{ flex: 1, minWidth: 0, fontFamily: 'Fraunces, serif', fontWeight: 600, fontSize: 16, fontVariationSettings: '"SOFT" 100', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{t.title}</span>
+                <span style={{ flex: 1, minWidth: 0, fontFamily: 'Manrope, system-ui, -apple-system, sans-serif', fontWeight: 600, fontSize: 16, fontVariationSettings: '"SOFT" 100', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{t.title}</span>
                 <button onClick={() => removeSlot(i)} aria-label="Remove" style={{ cursor: 'pointer', background: 'transparent', border: 'none', color: COLORS.faded, display: 'flex', flex: '0 0 auto' }}>
                   <X size={18} strokeWidth={2.5} />
                 </button>
@@ -416,7 +416,7 @@ const Board = forwardRef(function Board({ tiles, format, title, voteData, extras
             style={{
               textAlign: 'center',
               whiteSpace: 'nowrap',
-              fontFamily: 'Fraunces, serif',
+              fontFamily: 'Manrope, system-ui, -apple-system, sans-serif',
               fontWeight: 900,
               fontSize: 34,
               lineHeight: 1,
@@ -457,7 +457,7 @@ const Board = forwardRef(function Board({ tiles, format, title, voteData, extras
                     <div style={{ marginBottom: 16 }}>
                       <span style={{ fontFamily: 'DM Mono, monospace', fontSize: 15, letterSpacing: '0.2em', textTransform: 'uppercase', opacity: 0.75 }}>{t.category}</span>
                     </div>
-                    <h3 style={{ fontFamily: 'Fraunces, serif', fontWeight: 700, fontSize: 28, lineHeight: 1.05, letterSpacing: '-0.02em', margin: '0 0 16px', fontVariationSettings: '"SOFT" 100' }}>{t.title}</h3>
+                    <h3 style={{ fontFamily: 'Manrope, system-ui, -apple-system, sans-serif', fontWeight: 700, fontSize: 28, lineHeight: 1.05, letterSpacing: '-0.02em', margin: '0 0 16px', fontVariationSettings: '"SOFT" 100' }}>{t.title}</h3>
                     <div style={{ fontFamily: 'DM Mono, monospace', fontSize: 13, letterSpacing: '0.15em', textTransform: 'uppercase', opacity: 0.6, marginBottom: 10 }}>{pv.label}</div>
                     <ol style={{ margin: 0, padding: 0, listStyle: 'none', fontFamily: 'DM Sans, sans-serif', fontSize: 19 }}>
                       {pv.items.map((it, idx) => (
@@ -465,10 +465,10 @@ const Board = forwardRef(function Board({ tiles, format, title, voteData, extras
                           {idx < 3 ? (
                             <span style={{ position: 'relative', width: 30, height: 30, flex: '0 0 auto', display: 'inline-flex', alignItems: 'center', justifyContent: 'center' }}>
                               <span style={{ position: 'absolute', inset: 0, borderRadius: '50%', background: RANK_MEDALS[idx].fill, opacity: 0.3 }} />
-                              <span style={{ position: 'relative', fontFamily: 'Fraunces, serif', fontWeight: 600, fontSize: 17, color: RANK_MEDALS[idx].num }}>{idx + 1}</span>
+                              <span style={{ position: 'relative', fontFamily: 'Manrope, system-ui, -apple-system, sans-serif', fontWeight: 600, fontSize: 17, color: RANK_MEDALS[idx].num }}>{idx + 1}</span>
                             </span>
                           ) : (
-                            <span style={{ fontFamily: 'Fraunces, serif', fontWeight: 600, width: 22, color: COLORS.faded }}>{idx + 1}</span>
+                            <span style={{ fontFamily: 'Manrope, system-ui, -apple-system, sans-serif', fontWeight: 600, width: 22, color: COLORS.faded }}>{idx + 1}</span>
                           )}
                           <span style={{ flex: 1, minWidth: 0 }}>{it}</span>
                         </li>

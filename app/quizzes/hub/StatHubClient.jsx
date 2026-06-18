@@ -2,11 +2,12 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import Link from 'next/link';
 import {
-  ArrowLeft, User, ListChecks, Flame, FunctionSquare, Clock,
+  ArrowLeft, User, ListChecks, Flame, FunctionSquare, Clock, Trophy, RefreshCw, Share2,
 } from 'lucide-react';
-import { QUIZZES } from '@/lib/quizzes';
+import { QUIZZES, getQuiz } from '@/lib/quizzes';
 import { quizDept as deptOf, DEPT_COLOR, DEPT_LABEL, DEPT_NAV } from '@/lib/quiz-departments';
-import { CHALLENGES, getChallenge, DEFAULT_CHALLENGE_ID, challengeQuizIds } from '@/lib/challenges';
+import { CHALLENGES, getChallenge, DEFAULT_CHALLENGE_ID, challengeQuizIds, challengeColumns } from '@/lib/challenges';
+import SiteHeader from '../../SiteHeader';
 import Grain from '../../Grain';
 import Footer from '../../Footer';
 
@@ -181,16 +182,8 @@ export default function StatHubClient() {
       <style>{css}</style>
       <div className="qzhub" style={{ maxWidth: 1180, margin: '0 auto', padding: '20px 24px 70px', position: 'relative' }}>
 
-        {/* crumb */}
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12, paddingBottom: 12, borderBottom: `1px solid ${C.line}` }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 9 }}>
-            <Logo />
-            <Link href="/" className="qlink"><span className="crumb1">Source of Truths</span></Link>
-            <span style={{ color: C.soft }}>/</span>
-            <span className="crumb2">Stat Hub</span>
-          </div>
-          <Link className="back" href="/quizzes"><ArrowLeft size={15} /> Back to Quizzes</Link>
-        </div>
+        {/* Shared site header on every page */}
+        <SiteHeader active="quizzes" />
 
         {/* profile header — leads with OVERALL RANK (largest element) */}
         <div className="card" style={{ display: 'flex', flexDirection: 'row', alignItems: 'center', flexWrap: 'wrap', gap: 18, padding: '15px 18px', marginTop: 16, overflow: 'visible', position: 'relative', zIndex: 40 }}>
@@ -234,7 +227,7 @@ export default function StatHubClient() {
 
         {tab === 'player' && <PlayerPanel me={profile} scope={scope} cats={cats} byKey={byKey} totalQuizzes={catalog.length} board={board} myName={myName} myAnonKey={myAnonKey} titleById={titleById} pview={pview} setPview={setPview} onSelectPlayer={(k) => { const mine = (me && me.userKey && k === me.userKey) || (myAnonKey && k === myAnonKey); setViewKey(mine ? null : k); setPview(mine ? 'ranking' : 'category'); }} />}
         {tab === 'quizzes' && <QuizzesPanel me={profile} scope={scope} byKey={byKey} catalog={catalog} stats={statsById} totals={totals} totalPlays={totalPlays} />}
-        {tab === 'challenges' && <ChallengesPanel me={profile} challenge={challenge} titleById={titleById} />}
+        {tab === 'challenges' && <ChallengesPanel me={profile} />}
         {tab === 'rating' && <RatingPanel me={profile} titleById={titleById} />}
       </div>
 
@@ -367,11 +360,11 @@ function PlayerPanel({ me, scope, cats, byKey, totalQuizzes, board, myName, myAn
                   return (
                     <tr key={c.key}>
                       <td style={{ fontWeight: 600, whiteSpace: 'nowrap' }}><span className="dot" style={{ background: c.c, display: 'inline-block', marginRight: 8, verticalAlign: 'middle' }} />{c.label}</td>
-                      <td style={{ textAlign: 'right', color: muted ? C.soft : C.ink, whiteSpace: 'nowrap' }}>{cr ? cr.correct.toLocaleString() : '\u2014'}{cr && cr.correctRank ? <RankChip rank={cr.correctRank} total={cr.catTotal} /> : null}</td>
-                      <td style={{ textAlign: 'right', color: muted ? C.soft : C.ink, whiteSpace: 'nowrap' }}>{cr ? (cr.played != null ? cr.played : cr.matches) : '\u2014'}{cr && cr.playedRank ? <RankChip rank={cr.playedRank} total={cr.catTotal} /> : null}</td>
-                      <td style={{ textAlign: 'right', color: muted ? C.soft : C.ink, whiteSpace: 'nowrap' }}>{cr ? cr.completed : '\u2014'}{cr && cr.completedRank ? <RankChip rank={cr.completedRank} total={cr.catTotal} /> : null}</td>
-                      <td style={{ textAlign: 'right', color: muted ? C.soft : C.ink, whiteSpace: 'nowrap' }}>{cr ? `${cr.accuracy}%` : '\u2014'}{cr && cr.accuracyRank ? <RankChip rank={cr.accuracyRank} total={cr.catTotal} /> : null}</td>
-                      <td style={{ textAlign: 'right', color: muted ? C.soft : C.ink, whiteSpace: 'nowrap' }}>{cr ? (cr.daysPlayed || 0) : '\u2014'}{cr && cr.daysRank ? <RankChip rank={cr.daysRank} total={cr.catTotal} /> : null}</td>
+                      <td style={{ textAlign: 'right', color: muted ? C.soft : C.ink, whiteSpace: 'nowrap' }}>{cr ? cr.correct.toLocaleString() : '\u2014'}{cr && cr.correctRank ? <RankChip rank={cr.correctRank} /> : null}</td>
+                      <td style={{ textAlign: 'right', color: muted ? C.soft : C.ink, whiteSpace: 'nowrap' }}>{cr ? (cr.played != null ? cr.played : cr.matches) : '\u2014'}{cr && cr.playedRank ? <RankChip rank={cr.playedRank} /> : null}</td>
+                      <td style={{ textAlign: 'right', color: muted ? C.soft : C.ink, whiteSpace: 'nowrap' }}>{cr ? cr.completed : '\u2014'}{cr && cr.completedRank ? <RankChip rank={cr.completedRank} /> : null}</td>
+                      <td style={{ textAlign: 'right', color: muted ? C.soft : C.ink, whiteSpace: 'nowrap' }}>{cr ? `${cr.accuracy}%` : '\u2014'}{cr && cr.accuracyRank ? <RankChip rank={cr.accuracyRank} /> : null}</td>
+                      <td style={{ textAlign: 'right', color: muted ? C.soft : C.ink, whiteSpace: 'nowrap' }}>{cr ? (cr.daysPlayed || 0) : '\u2014'}{cr && cr.daysRank ? <RankChip rank={cr.daysRank} /> : null}</td>
                       <td className="score" style={{ textAlign: 'right', color: muted ? C.soft : C.accent, whiteSpace: 'nowrap' }}>{cr ? cr.rating.toLocaleString() : '\u2014'}{cr && cr.rank ? <RankChip rank={cr.rank} total={cr.catTotal} /> : null}</td>
                     </tr>
                   );
@@ -524,52 +517,171 @@ function QuizzesPanel({ me, scope, byKey, catalog, stats, totals, totalPlays }) 
 }
 
 // ─── Challenges tab ─────────────────────────────────────────────────────────
-function ChallengesPanel({ me, challenge, titleById }) {
-  const ch = getChallenge(DEFAULT_CHALLENGE_ID) || CHALLENGES[0];
-  const users = (challenge && challenge.users) || [];
-  const setSize = challengeQuizIds(ch).length;
-  const myName = me && me.found ? me.name : null;
-  const myIdx = myName ? users.findIndex((u) => (u.username || '').toLowerCase() === myName.toLowerCase()) : -1;
-  const leader = users[0]?.username || '—';
+const CH_MEDAL = { 1: '#e8b43a', 2: '#b8bcc4', 3: '#c8814b' };
+const CH_TINT = { 1: 'rgba(232,180,58,0.12)', 2: 'rgba(184,188,196,0.16)', 3: 'rgba(200,129,75,0.12)' };
+function chMmss(s) { const n = Math.max(0, Math.round(Number(s) || 0)); return `${Math.floor(n / 60)}:${String(n % 60).padStart(2, '0')}`; }
+function chUpdated(iso) { if (!iso) return ''; try { return new Date(iso).toLocaleString('en-US', { timeZone: 'America/New_York', month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' }) + ' ET'; } catch (e) { return ''; } }
+
+// Full challenge standings grid (mirrors the standalone leaderboard page),
+// restyled to the Stat Hub theme. Self-fetches per selected challenge so the
+// selector + refresh work in place; highlights the current player's row.
+function ChallengesPanel({ me }) {
+  const [chId, setChId] = useState(DEFAULT_CHALLENGE_ID);
+  const [data, setData] = useState(null);
+  const [loaded, setLoaded] = useState(false);
+  const [refreshing, setRefreshing] = useState(false);
+  const [shared, setShared] = useState(false);
+
+  const ch = getChallenge(chId) || CHALLENGES[0];
+  const cols = challengeColumns(ch);
+  const colTotal = {};
+  for (const c of cols) { const q = getQuiz(c.quizId); colTotal[c.quizId] = q && Array.isArray(q.answers) ? q.answers.length : 0; }
+  const totalPossible = Object.values(colTotal).reduce((a, b) => a + b, 0);
+  const pctOf = (n, d) => (d > 0 ? Math.round((Number(n) || 0) / d * 100) : 0);
+
+  const load = (showSpin) => {
+    if (showSpin) setRefreshing(true);
+    fetch(`/api/quiz/challenge-leaderboard?id=${encodeURIComponent(ch.id)}`)
+      .then((r) => r.json()).then((d) => { if (d && !d.error) setData(d); })
+      .catch(() => {}).finally(() => { setLoaded(true); setRefreshing(false); });
+  };
+  useEffect(() => { setLoaded(false); setData(null); load(false); /* eslint-disable-next-line react-hooks/exhaustive-deps */ }, [chId]);
+
+  const doShare = () => {
+    const url = typeof window !== 'undefined' ? `${window.location.origin}/quizzes/leaderboard` : 'https://sourceoftruths.com/quizzes/leaderboard';
+    const text = `${ch.title} on Source of Truths.${ch.prize ? ' There is a prize on the line for the winner.' : ''} Think you can top the leaderboard?`;
+    if (typeof navigator !== 'undefined' && navigator.share) navigator.share({ title: ch.title, text, url }).catch(() => {});
+    else if (typeof navigator !== 'undefined' && navigator.clipboard) navigator.clipboard.writeText(`${text} ${url}`).then(() => { setShared(true); setTimeout(() => setShared(false), 1800); }).catch(() => {});
+  };
+
+  const users = (data && data.users) || [];
+  const myName = me && me.found ? (me.name || '').toLowerCase() : null;
 
   return (
     <div>
-      <div className="card" style={{ border: `1.5px solid ${C.accent}`, padding: '15px 17px', marginBottom: 12 }}>
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 9 }}>
-          <span style={{ background: C.accsoft, color: C.accent, fontSize: 11, fontWeight: 700, padding: '4px 11px', borderRadius: 6 }}>Active Now</span>
-          <span style={{ fontSize: 11, color: C.muted, display: 'inline-flex', alignItems: 'center', gap: 5 }}><Clock size={12} /> opens {ch.sinceLabel}</span>
+      <style>{`
+        .chg-meta{display:flex;flex-wrap:wrap;align-items:center;gap:8px 20px;font-size:12px;color:${C.muted};margin-top:14px;}
+        .chg-meta b{color:${C.ink};font-weight:700;}
+        .chg-btn{display:inline-flex;align-items:center;gap:6px;padding:6px 12px;background:#fff;border:1px solid ${C.line};border-radius:8px;font:inherit;font-family:${FONT};font-size:12px;font-weight:600;color:${C.ink};cursor:pointer;}
+        .chg-btn:hover{background:${C.bg};}
+        .chg-btn:disabled{opacity:0.55;cursor:default;}
+        @keyframes chgspin{to{transform:rotate(360deg);}}
+        .chg-scroll{overflow-x:auto;border:1px solid ${C.line};border-radius:12px;background:${C.surface};margin-top:14px;}
+        .chg-table{border-collapse:separate;border-spacing:0;width:100%;font-variant-numeric:tabular-nums;font-size:12.5px;}
+        .chg-table th,.chg-table td{white-space:nowrap;}
+        .chg-grp{padding:10px 8px 8px;text-align:center;border-bottom:2px solid var(--ac);border-left:1px solid ${C.line};background:${C.bg};}
+        .chg-grp-ico{font-size:18px;display:block;line-height:1;margin-bottom:3px;}
+        .chg-grp-nm{font-weight:700;font-size:12.5px;color:${C.ink};}
+        .chg-sub{padding:6px 8px 8px;text-align:center;font-size:10px;letter-spacing:.04em;text-transform:uppercase;color:var(--ac);font-weight:700;border-bottom:1px solid ${C.line};border-left:1px solid rgba(20,22,28,0.04);background:${C.bg};}
+        .chg-corner{position:sticky;left:0;z-index:2;background:${C.bg};text-align:left;padding:10px 14px;font-weight:700;font-size:12.5px;color:${C.ink};border-bottom:2px solid ${C.accent};border-right:2px solid ${C.line};}
+        .chg-thc{padding:8px 10px;font-size:10px;letter-spacing:.04em;text-transform:uppercase;color:${C.muted};border-bottom:1px solid ${C.line};text-align:center;vertical-align:bottom;background:${C.bg};font-weight:700;}
+        .chg-thc.chg-first{border-left:2px solid ${C.line};}
+        .chg-player{position:sticky;left:0;z-index:1;background:${C.surface};text-align:left;padding:9px 14px;border-right:2px solid ${C.line};border-bottom:1px solid rgba(20,22,28,0.06);}
+        .chg-rk{display:inline-flex;align-items:center;justify-content:center;width:21px;height:21px;border-radius:50%;border:1px solid ${C.line};font-size:11px;font-weight:700;margin-right:9px;vertical-align:middle;color:${C.ink};}
+        .chg-nm{font-weight:700;font-size:13.5px;vertical-align:middle;}
+        .chg-pl{font-size:10.5px;color:${C.soft};margin-left:8px;vertical-align:middle;}
+        .chg-sc{text-align:center;padding:8px;border-bottom:1px solid rgba(20,22,28,0.06);border-left:1px solid rgba(20,22,28,0.04);}
+        .chg-v{font-weight:800;font-size:14px;color:var(--ac);}
+        .chg-empty{color:${C.soft};font-size:13px;}
+        .chg-zero .chg-v{color:${C.soft};font-weight:600;}
+        .chg-totc{text-align:center;padding:8px 12px;border-left:2px solid ${C.line};border-bottom:1px solid rgba(20,22,28,0.06);}
+        .chg-totc span{font-weight:800;font-size:16px;color:${C.accent};}
+        .chg-tott{text-align:center;padding:8px 14px 8px 10px;font-size:12.5px;font-weight:600;color:${C.ink};border-bottom:1px solid rgba(20,22,28,0.06);}
+        .chg-table tbody tr:hover td,.chg-table tbody tr:hover th.chg-player{background:${C.accsoft};}
+        .chg-legend{display:flex;flex-wrap:wrap;gap:8px 16px;margin:14px 0 4px;font-size:11.5px;color:${C.muted};}
+        .chg-chip{display:inline-flex;align-items:center;gap:6px;}
+        .chg-sw{width:10px;height:10px;border-radius:3px;display:inline-block;}
+        .chg-foot{font-size:11.5px;line-height:1.7;color:${C.soft};max-width:880px;margin-top:12px;}
+        .chg-foot b{color:${C.muted};font-weight:700;}
+        .chg-prize{display:inline-flex;align-items:center;gap:8px;margin-top:12px;padding:8px 13px;background:${C.accent};color:#fff;font-size:12px;font-weight:700;border-radius:8px;}
+      `}</style>
+
+      <div className="card" style={{ padding: '16px 18px' }}>
+        <div style={{ display: 'flex', alignItems: 'baseline', gap: 10, flexWrap: 'wrap' }}>
+          <span style={{ background: C.accsoft, color: C.accent, fontSize: 11, fontWeight: 700, padding: '3px 10px', borderRadius: 6 }}>{ch.kicker || 'Challenge'}</span>
+          <span style={{ fontSize: 11.5, color: C.muted, display: 'inline-flex', alignItems: 'center', gap: 5 }}><Clock size={12} /> opens {ch.sinceLabel}</span>
         </div>
-        <div style={{ fontSize: 18, fontWeight: 800 }}>{ch.title}</div>
-        <div style={{ fontSize: 12.5, color: C.muted, margin: '3px 0 13px' }}>{ch.blurb}</div>
-        <div style={{ display: 'flex', gap: 26, flexWrap: 'wrap', marginBottom: 14 }}>
-          <div><div className="lbl">Entrants</div><div style={{ fontSize: 19, fontWeight: 800 }}>{challenge ? (challenge.totalRegisteredPlayers ?? users.length) : '—'}</div></div>
-          <div><div className="lbl">Quizzes in Set</div><div style={{ fontSize: 19, fontWeight: 800 }}>{setSize}</div></div>
-          <div><div className="lbl">Your Standing</div><div style={{ fontSize: 19, fontWeight: 800, color: C.accent }}>{myIdx >= 0 ? `#${myIdx + 1}` : '—'}</div></div>
-          <div><div className="lbl">Leader</div><div style={{ fontSize: 19, fontWeight: 800 }}>{leader}</div></div>
+        <div style={{ fontSize: 22, fontWeight: 800, letterSpacing: '-0.02em', marginTop: 8 }}>{ch.title}</div>
+        <div style={{ fontSize: 13, color: C.muted, marginTop: 3, maxWidth: 760 }}>{ch.blurb}</div>
+        {ch.prize ? (<div className="chg-prize"><Trophy size={13} strokeWidth={2.4} /> {ch.prize}</div>) : null}
+
+        {CHALLENGES.length > 1 && (
+          <div style={{ display: 'flex', gap: 7, flexWrap: 'wrap', marginTop: 14 }}>
+            {CHALLENGES.map((c) => {
+              const on = c.id === ch.id;
+              return <button key={c.id} onClick={() => setChId(c.id)} style={{ padding: '7px 14px', background: on ? C.accent : '#fff', color: on ? '#fff' : C.ink, border: `1px solid ${on ? C.accent : C.line}`, borderRadius: 8, font: 'inherit', fontFamily: FONT, fontSize: 12, fontWeight: 700, cursor: 'pointer' }}>{c.title.replace(/^The\s+/, '')}</button>;
+            })}
+          </div>
+        )}
+
+        <div className="chg-meta">
+          <span><b>{data ? data.totalRegisteredPlayers : '\u2014'}</b> registered players</span>
+          <span>Best attempt per quiz</span>
+          {data && data.generatedAt ? <span>Updated <b>{chUpdated(data.generatedAt)}</b></span> : null}
+          <button className="chg-btn" onClick={() => load(true)} disabled={refreshing}><RefreshCw size={12} strokeWidth={2.4} style={{ animation: refreshing ? 'chgspin 0.8s linear infinite' : 'none' }} /> Refresh</button>
+          <button className="chg-btn" onClick={doShare}><Share2 size={12} strokeWidth={2.4} /> {shared ? 'Copied!' : 'Share'}</button>
         </div>
-        <div style={{ maxHeight: 520, overflow: 'auto' }}>
-          {users.length === 0 && <div style={{ fontSize: 13, color: C.soft }}>No challenge entries yet.</div>}
-          {users.map((u, i) => (
-            <div className="hrow" key={(u.username || '') + i}>
-              {i < 3 ? <span style={{ flex: 'none', width: 18, height: 18, borderRadius: '50%', background: MEDAL[i], display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 10, fontWeight: 700, color: C.ink }}>{i + 1}</span>
-                : <span style={{ flex: 'none', width: 18, textAlign: 'center', fontSize: 11, color: C.soft }}>{i + 1}</span>}
-              <span style={{ flex: 1, fontWeight: myIdx === i ? 800 : 700, color: myIdx === i ? C.accent : C.ink }}>{u.username}{myIdx === i ? ' (You)' : ''}</span>
-              <span style={{ fontSize: 11, color: C.muted }}>{mmss(u.totalTime)}</span>
-              <span className="score">{u.totalCorrect}</span>
-            </div>
-          ))}
+
+        {!loaded ? (
+          <div style={{ fontSize: 13, color: C.soft, padding: '24px 0' }}>Loading the standings\u2026</div>
+        ) : users.length === 0 ? (
+          <div style={{ fontSize: 13, color: C.soft, padding: '24px 0' }}>No registered players have played yet. Sign up before a quiz to put your name in the running.</div>
+        ) : (
+          <div className="chg-scroll">
+            <table className="chg-table">
+              <thead>
+                <tr>
+                  <th className="chg-corner" rowSpan={2}>Player</th>
+                  {ch.groups.map((g) => (
+                    <th key={g.key} className="chg-grp" colSpan={g.columns.length} style={{ '--ac': g.color }}>
+                      <span className="chg-grp-ico">{g.emoji}</span><span className="chg-grp-nm">{g.label}</span>
+                    </th>
+                  ))}
+                  <th className="chg-thc chg-first" rowSpan={2}>Percent<br />Complete</th>
+                  <th className="chg-thc" rowSpan={2}>Total<br />Time</th>
+                </tr>
+                <tr>
+                  {ch.groups.map((g) => g.columns.map((col) => (
+                    <th key={col.quizId} className="chg-sub" style={{ '--ac': g.color }}>{col.icon} {col.label}</th>
+                  )))}
+                </tr>
+              </thead>
+              <tbody>
+                {users.map((u, i) => {
+                  const rank = i + 1; const medal = CH_MEDAL[rank]; const tint = CH_TINT[rank] || 'transparent';
+                  const mine = myName && (u.username || '').toLowerCase() === myName;
+                  return (
+                    <tr key={u.username + i} style={{ background: mine ? C.accsoft : tint }}>
+                      <th className="chg-player" style={mine ? { background: C.accsoft } : undefined}>
+                        <span className="chg-rk" style={medal ? { background: medal, borderColor: medal, color: '#1c1e24' } : undefined}>{rank}</span>
+                        <span className="chg-nm">{u.username}{mine ? <span style={{ color: C.accent, fontWeight: 700, marginLeft: 6, fontSize: 11 }}>you</span> : null}</span>
+                        <span className="chg-pl">{u.quizzesPlayed}/{cols.length}</span>
+                      </th>
+                      {cols.map((col) => {
+                        const sc = u.scores ? u.scores[col.quizId] : undefined;
+                        if (sc === undefined || sc === null) return <td key={col.quizId} className="chg-sc chg-empty">\u00b7</td>;
+                        const tm = u.times ? u.times[col.quizId] : null;
+                        const tot = colTotal[col.quizId] || 0;
+                        return <td key={col.quizId} className={`chg-sc${sc === 0 ? ' chg-zero' : ''}`} title={`${sc}/${tot} correct${tm != null ? ` \u00b7 ${chMmss(tm)}` : ''} \u00b7 best attempt`}><span className="chg-v" style={{ '--ac': col.group.color }}>{pctOf(sc, tot)}%</span></td>;
+                      })}
+                      <td className="chg-totc"><span>{pctOf(u.totalCorrect, totalPossible)}%</span></td>
+                      <td className="chg-tott">{chMmss(u.totalTime)}</td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
+        )}
+
+        <div className="chg-legend">
+          {ch.groups.map((g) => (<span key={g.key} className="chg-chip"><span className="chg-sw" style={{ background: g.color }} />{g.label} {g.emoji}</span>))}
         </div>
-      </div>
-      <div className="card" style={{ padding: '14px 16px' }}>
-        <div style={{ fontSize: 14, fontWeight: 700, marginBottom: 7 }}>About the Challenge</div>
-        <div style={{ fontSize: 12.5, color: C.muted, lineHeight: 1.7 }}>
-          {ch.prize || 'Compete across the challenge quiz set; most correct wins, ties broken by least total time.'} Everyone is eligible, registered and guest. Standings update live as players finish the set.
-        </div>
+        <p className="chg-foot">Cells show how much of each quiz a player has completed (correct \u00f7 quiz total) on their best attempt since the window opened; hover a cell for the raw count and time, a dot (\u00b7) means they haven{"'"}t taken that quiz yet. Ranking is by <b>total correct</b> across every quiz, ties broken by <b>least total time</b>. Only signed-up players appear. Hit Refresh for the latest.</p>
       </div>
     </div>
   );
 }
-
 // ─── Rating tab ─────────────────────────────────────────────────────────────
 function RatingPanel({ me, titleById }) {
   const found = me && me.found;

@@ -88,10 +88,10 @@ export default function ChallengeLeaderboardClient() {
             <ArrowLeft size={15} strokeWidth={2.5} /> All Quizzes
           </Link>
           <div style={{ fontFamily: 'DM Mono, monospace', fontSize: 11, fontWeight: 700, letterSpacing: '0.22em', textTransform: 'uppercase', color: COLORS.ember, marginBottom: 10 }}>Source of Truths · {ch.kicker}</div>
-          <h1 style={{ fontFamily: 'Fraunces, serif', fontWeight: 600, fontSize: 'clamp(34px, 7vw, 58px)', lineHeight: 0.96, letterSpacing: '-0.015em', margin: '0 0 14px', fontVariationSettings: '"SOFT" 100', color: COLORS.ink }}>
+          <h1 style={{ fontFamily: 'Manrope, system-ui, -apple-system, sans-serif', fontWeight: 600, fontSize: 'clamp(34px, 7vw, 58px)', lineHeight: 0.96, letterSpacing: '-0.015em', margin: '0 0 14px', fontVariationSettings: '"SOFT" 100', color: COLORS.ink }}>
             <TitleLine title={ch.title} accent={ch.accent} />
           </h1>
-          <p style={{ fontFamily: 'Fraunces, serif', fontStyle: 'italic', fontSize: 17, lineHeight: 1.5, color: COLORS.faded, margin: 0, maxWidth: 760 }}>{ch.blurb}</p>
+          <p style={{ fontFamily: 'Manrope, system-ui, -apple-system, sans-serif', fontStyle: 'italic', fontSize: 17, lineHeight: 1.5, color: COLORS.faded, margin: 0, maxWidth: 760 }}>{ch.blurb}</p>
           {ch.prize ? (<div className="clb-prize"><Trophy size={14} strokeWidth={2.4} aria-hidden="true" /> {ch.prize}</div>) : null}
 
           {CHALLENGES.length > 1 && (
@@ -123,9 +123,9 @@ export default function ChallengeLeaderboardClient() {
 
         <section style={{ maxWidth: 1400, margin: '0 auto', padding: '22px 24px 64px' }}>
           {!loaded ? (
-            <div style={{ textAlign: 'center', padding: '60px 24px', fontFamily: 'Fraunces, serif', fontStyle: 'italic', fontSize: 18, color: COLORS.faded }}>Loading the standings…</div>
+            <div style={{ textAlign: 'center', padding: '60px 24px', fontFamily: 'Manrope, system-ui, -apple-system, sans-serif', fontStyle: 'italic', fontSize: 18, color: COLORS.faded }}>Loading the standings…</div>
           ) : users.length === 0 ? (
-            <div style={{ textAlign: 'center', padding: '60px 24px', fontFamily: 'Fraunces, serif', fontStyle: 'italic', fontSize: 18, color: COLORS.faded }}>No registered players have played yet. Sign up before a quiz to put your name in the running.</div>
+            <div style={{ textAlign: 'center', padding: '60px 24px', fontFamily: 'Manrope, system-ui, -apple-system, sans-serif', fontStyle: 'italic', fontSize: 18, color: COLORS.faded }}>No registered players have played yet. Sign up before a quiz to put your name in the running.</div>
           ) : (
             <div className="clb-scroll">
               <table className="clb-table">
@@ -204,21 +204,21 @@ export default function ChallengeLeaderboardClient() {
         .clb-table th,.clb-table td{white-space:nowrap;}
         .clb-grp{padding:10px 8px 8px;text-align:center;border-bottom:2px solid var(--ac);border-left:1px solid rgba(26,22,17,0.10);background:${COLORS.paper};}
         .clb-grp-ico{font-size:20px;display:block;line-height:1;margin-bottom:4px;}
-        .clb-grp-nm{font-family:'Fraunces',serif;font-weight:600;font-size:13px;color:${COLORS.ink};}
+        .clb-grp-nm{font-family:'Manrope',serif;font-weight:600;font-size:13px;color:${COLORS.ink};}
         .clb-sub{padding:6px 8px 8px;text-align:center;font-family:'DM Mono',monospace;font-size:9.5px;letter-spacing:0.06em;text-transform:uppercase;color:var(--ac);font-weight:500;border-bottom:1px solid rgba(26,22,17,0.16);border-left:1px solid rgba(26,22,17,0.06);background:${COLORS.paper};}
-        .clb-corner{position:sticky;left:0;z-index:2;background:${COLORS.paper};text-align:left;padding:10px 14px;font-family:'Fraunces',serif;font-weight:600;font-size:13px;color:${COLORS.ink};border-bottom:2px solid ${COLORS.ember};border-right:2px solid rgba(26,22,17,0.18);}
+        .clb-corner{position:sticky;left:0;z-index:2;background:${COLORS.paper};text-align:left;padding:10px 14px;font-family:'Manrope',serif;font-weight:600;font-size:13px;color:${COLORS.ink};border-bottom:2px solid ${COLORS.ember};border-right:2px solid rgba(26,22,17,0.18);}
         .clb-thc{padding:8px 10px;font-family:'DM Mono',monospace;font-size:9.5px;letter-spacing:0.07em;text-transform:uppercase;color:${COLORS.faded};border-bottom:1px solid rgba(26,22,17,0.16);text-align:center;vertical-align:bottom;background:${COLORS.paper};}
         .clb-thc.clb-first{border-left:2px solid rgba(26,22,17,0.25);}
         .clb-player{position:sticky;left:0;z-index:1;background:${COLORS.cream};text-align:left;padding:9px 14px;font-weight:400;border-right:2px solid rgba(26,22,17,0.18);border-bottom:1px solid rgba(26,22,17,0.08);}
         .clb-rk{display:inline-flex;align-items:center;justify-content:center;width:22px;height:22px;border-radius:50%;border:1.5px solid rgba(26,22,17,0.2);font-family:'DM Mono',monospace;font-size:11px;font-weight:500;margin-right:9px;vertical-align:middle;color:${COLORS.ink};}
-        .clb-nm{font-family:'Fraunces',serif;font-weight:600;font-size:14.5px;vertical-align:middle;}
+        .clb-nm{font-family:'Manrope',serif;font-weight:600;font-size:14.5px;vertical-align:middle;}
         .clb-pl{font-family:'DM Mono',monospace;font-size:10px;color:${COLORS.faded};margin-left:8px;vertical-align:middle;}
         .clb-sc{text-align:center;padding:8px;border-bottom:1px solid rgba(26,22,17,0.06);border-left:1px solid rgba(26,22,17,0.05);}
-        .clb-v{font-family:'Fraunces',serif;font-weight:700;font-size:15px;color:var(--ac);}
+        .clb-v{font-family:'Manrope',serif;font-weight:700;font-size:15px;color:var(--ac);}
         .clb-empty{color:rgba(26,22,17,0.22);font-size:13px;}
         .clb-zero .clb-v{color:rgba(26,22,17,0.3);font-weight:500;}
         .clb-totc{text-align:center;padding:8px 12px;border-left:2px solid rgba(26,22,17,0.25);border-bottom:1px solid rgba(26,22,17,0.06);}
-        .clb-totc span{font-family:'Fraunces',serif;font-weight:700;font-size:18px;color:${COLORS.ember};}
+        .clb-totc span{font-family:'Manrope',serif;font-weight:700;font-size:18px;color:${COLORS.ember};}
         .clb-tott{text-align:center;padding:8px 14px 8px 10px;font-family:'DM Mono',monospace;font-size:13px;font-weight:500;color:${COLORS.ink};border-bottom:1px solid rgba(26,22,17,0.06);}
         .clb-table tbody tr:hover td,.clb-table tbody tr:hover th.clb-player{background:rgba(192,57,43,0.05);}
         .clb-legend{display:flex;flex-wrap:wrap;gap:8px 16px;margin:16px 0 4px;font-family:'DM Mono',monospace;font-size:11px;color:${COLORS.faded};}

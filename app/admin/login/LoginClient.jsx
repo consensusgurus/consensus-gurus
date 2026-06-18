@@ -70,7 +70,7 @@ export default function LoginClient() {
         </div>
         <h1
           style={{
-            fontFamily: 'Fraunces, serif',
+            fontFamily: 'Manrope, system-ui, -apple-system, sans-serif',
             fontWeight: 900,
             fontSize: 'clamp(40px, 9vw, 64px)',
             lineHeight: 0.92,
@@ -119,7 +119,7 @@ export default function LoginClient() {
               border: 'none',
               borderBottom: `1.5px solid ${COLORS.ink}`,
               padding: '10px 0',
-              fontFamily: 'Fraunces, serif',
+              fontFamily: 'Manrope, system-ui, -apple-system, sans-serif',
               fontSize: 20,
               color: COLORS.ink,
               outline: 'none',

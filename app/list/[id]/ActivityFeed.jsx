@@ -130,7 +130,7 @@ function stripWeight(label) {
 }
 
 const MONO = "'DM Mono', monospace";
-const SERIF = "'Fraunces', serif";
+const SERIF = "'Manrope', serif";
 const SANS = "'DM Sans', sans-serif";
 
 // Per-category accent colors, matching the global activity ledger (FeedClient).

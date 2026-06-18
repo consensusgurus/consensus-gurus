@@ -949,9 +949,7 @@ export default function QuizClient({ quizId }) {
 
         <style>{`@import url('https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap');`}</style>
 
-        <button onClick={() => router.push('/quizzes')} style={{ background: 'transparent', border: 'none', fontFamily: SANS, fontSize: 13, fontWeight: 600, color: COLORS.faded, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 6, padding: '8px 0' }}>
-          <ArrowLeft size={15} strokeWidth={2.5} /> Back to Quizzes
-        </button>
+        <SiteHeader active="quizzes" />
 
         {/* Header */}
         <div style={{ paddingBottom: 0, marginTop: 8 }}>

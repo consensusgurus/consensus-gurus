@@ -385,7 +385,7 @@ export default function AdminClient({ initialLists, initialExtras = [], initialC
             </div>
             <h1
               style={{
-                fontFamily: 'Fraunces, serif',
+                fontFamily: 'Manrope, system-ui, -apple-system, sans-serif',
                 fontWeight: 900,
                 fontSize: 'clamp(36px, 8vw, 64px)',
                 lineHeight: 0.92,
@@ -469,7 +469,7 @@ export default function AdminClient({ initialLists, initialExtras = [], initialC
             style={{
               padding: '60px 20px',
               textAlign: 'center',
-              fontFamily: 'Fraunces, serif',
+              fontFamily: 'Manrope, system-ui, -apple-system, sans-serif',
               fontStyle: 'italic',
               fontSize: 18,
               color: COLORS.faded,
@@ -520,7 +520,7 @@ function ViewsPanel({ views, total }) {
         style={{
           padding: '60px 20px',
           textAlign: 'center',
-          fontFamily: 'Fraunces, serif',
+          fontFamily: 'Manrope, system-ui, -apple-system, sans-serif',
           fontStyle: 'italic',
           fontSize: 18,
           color: COLORS.faded,
@@ -564,7 +564,7 @@ function ViewsPanel({ views, total }) {
           style={{
             padding: '40px 20px',
             textAlign: 'center',
-            fontFamily: 'Fraunces, serif',
+            fontFamily: 'Manrope, system-ui, -apple-system, sans-serif',
             fontStyle: 'italic',
             fontSize: 16,
             color: COLORS.faded,
@@ -629,7 +629,7 @@ function QuizStatsPanel({ stats, playsTotal }) {
         style={{
           padding: '60px 20px',
           textAlign: 'center',
-          fontFamily: 'Fraunces, serif',
+          fontFamily: 'Manrope, system-ui, -apple-system, sans-serif',
           fontStyle: 'italic',
           fontSize: 18,
           color: COLORS.faded,
@@ -673,7 +673,7 @@ function QuizStatsPanel({ stats, playsTotal }) {
           style={{
             padding: '40px 20px',
             textAlign: 'center',
-            fontFamily: 'Fraunces, serif',
+            fontFamily: 'Manrope, system-ui, -apple-system, sans-serif',
             fontStyle: 'italic',
             fontSize: 16,
             color: COLORS.faded,
@@ -782,7 +782,7 @@ function QuizSignupsPanel({ signups }) {
         style={{
           padding: '60px 20px',
           textAlign: 'center',
-          fontFamily: 'Fraunces, serif',
+          fontFamily: 'Manrope, system-ui, -apple-system, sans-serif',
           fontStyle: 'italic',
           fontSize: 18,
           color: COLORS.faded,
@@ -880,7 +880,7 @@ function QuizSignupsPanel({ signups }) {
           style={{
             padding: '40px 20px',
             textAlign: 'center',
-            fontFamily: 'Fraunces, serif',
+            fontFamily: 'Manrope, system-ui, -apple-system, sans-serif',
             fontStyle: 'italic',
             fontSize: 16,
             color: COLORS.faded,
@@ -937,7 +937,7 @@ function QuizSignupsPanel({ signups }) {
                 {open && (
                   <div style={{ padding: '4px 14px 14px 48px', background: `${COLORS.ink}0a` }}>
                     {playCount === 0 ? (
-                      <p style={{ fontFamily: 'Fraunces, serif', fontStyle: 'italic', fontSize: 14, color: COLORS.faded, margin: '8px 0' }}>
+                      <p style={{ fontFamily: 'Manrope, system-ui, -apple-system, sans-serif', fontStyle: 'italic', fontSize: 14, color: COLORS.faded, margin: '8px 0' }}>
                         Signed up but hasn&apos;t completed a quiz yet.
                       </p>
                     ) : (
@@ -989,7 +989,7 @@ function ResearchPanel({ alerts, busy, onResolve }) {
         style={{
           padding: '60px 20px',
           textAlign: 'center',
-          fontFamily: 'Fraunces, serif',
+          fontFamily: 'Manrope, system-ui, -apple-system, sans-serif',
           fontStyle: 'italic',
           fontSize: 18,
           color: COLORS.faded,
@@ -1075,7 +1075,7 @@ function Metric({ label, value }) {
   return (
     <div style={{ background: COLORS.paper, borderRadius: 8, padding: '12px 18px', minWidth: 120 }}>
       <div style={{ fontFamily: 'DM Mono, monospace', fontSize: 10, letterSpacing: '0.12em', textTransform: 'uppercase', color: COLORS.faded }}>{label}</div>
-      <div style={{ fontFamily: 'Fraunces, serif', fontSize: 26, fontWeight: 700, color: COLORS.ink, lineHeight: 1.1, marginTop: 2 }}>{value}</div>
+      <div style={{ fontFamily: 'Manrope, system-ui, -apple-system, sans-serif', fontSize: 26, fontWeight: 700, color: COLORS.ink, lineHeight: 1.1, marginTop: 2 }}>{value}</div>
     </div>
   );
 }
@@ -1094,7 +1094,7 @@ function VotesPanel({ standings, events, busy, onDelete }) {
         <Metric label="Items with votes" value={(standings || []).length.toLocaleString()} />
       </div>
       <div>
-        <h3 style={{ fontFamily: 'Fraunces, serif', fontWeight: 700, fontSize: 20, margin: '0 0 12px' }}>Current standings</h3>
+        <h3 style={{ fontFamily: 'Manrope, system-ui, -apple-system, sans-serif', fontWeight: 700, fontSize: 20, margin: '0 0 12px' }}>Current standings</h3>
         {hasStandings ? (
           <div style={{ border: `1.5px solid ${COLORS.ink}`, maxHeight: TABLE_MAX_H, overflowY: 'auto' }}>
             <div style={{ display: 'flex', position: 'sticky', top: 0, zIndex: 1, background: COLORS.cream, fontFamily: 'DM Mono, monospace', fontSize: 10, letterSpacing: '0.14em', textTransform: 'uppercase', color: COLORS.faded, padding: '10px 14px', borderBottom: `1.5px solid ${COLORS.ink}` }}>
@@ -1134,7 +1134,7 @@ function VotesPanel({ standings, events, busy, onDelete }) {
         )}
       </div>
       <div>
-        <h3 style={{ fontFamily: 'Fraunces, serif', fontWeight: 700, fontSize: 20, margin: '0 0 4px' }}>Recent vote log</h3>
+        <h3 style={{ fontFamily: 'Manrope, system-ui, -apple-system, sans-serif', fontWeight: 700, fontSize: 20, margin: '0 0 4px' }}>Recent vote log</h3>
         <p style={{ fontFamily: 'DM Sans, sans-serif', fontSize: 13, color: COLORS.faded, margin: '0 0 12px' }}>
           The {events.length} most recent vote events. A vote for 1st place is +3, 2nd is +2, 3rd is +1.
         </p>
@@ -1211,7 +1211,7 @@ function NotesPanel({ notes, lists, busy, onAdd, onDelete }) {
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 24 }}>
       <div style={{ border: `1.5px solid ${COLORS.ink}`, padding: 16, background: COLORS.paper }}>
-        <h3 style={{ fontFamily: 'Fraunces, serif', fontWeight: 700, fontSize: 18, margin: '0 0 10px' }}>Post an editor's note</h3>
+        <h3 style={{ fontFamily: 'Manrope, system-ui, -apple-system, sans-serif', fontWeight: 700, fontSize: 18, margin: '0 0 10px' }}>Post an editor's note</h3>
         <input list="sot-all-lists" value={listId} onChange={(e) => setListId(e.target.value)} placeholder="List id (e.g. fast-food-fries)" style={{ width: '100%', boxSizing: 'border-box', padding: 10, border: `1.5px solid ${COLORS.ink}`, background: '#fff', fontFamily: 'DM Mono, monospace', fontSize: 13, marginBottom: 8 }} />
         <datalist id="sot-all-lists">{lists.map((l) => <option key={l.id} value={l.id}>{l.title}</option>)}</datalist>
         <textarea value={note} onChange={(e) => setNote(e.target.value)} rows={3} maxLength={1000} placeholder="Shown publicly as: Editor's Note: ..." style={{ width: '100%', boxSizing: 'border-box', padding: 10, border: `1.5px solid ${COLORS.ink}`, background: '#fff', fontFamily: 'DM Sans, sans-serif', fontSize: 14, resize: 'vertical', marginBottom: 8 }} />
@@ -1247,7 +1247,7 @@ function ComplaintsPanel({ complaints, busy, onDismiss, onRespond }) {
         style={{
           padding: '60px 20px',
           textAlign: 'center',
-          fontFamily: 'Fraunces, serif',
+          fontFamily: 'Manrope, system-ui, -apple-system, sans-serif',
           fontStyle: 'italic',
           fontSize: 18,
           color: COLORS.faded,
@@ -1267,7 +1267,7 @@ function ComplaintsPanel({ complaints, busy, onDismiss, onRespond }) {
               <div style={{ fontFamily: 'DM Mono, monospace', fontSize: 10, letterSpacing: '0.15em', textTransform: 'uppercase', color: COLORS.faded, marginBottom: 4 }}>
                 {formatDate(c.createdAt)}
               </div>
-              <Link href={`${(c.listTitle || '').startsWith('[Quiz]') ? '/quiz/' : '/list/'}${c.listId}`} style={{ fontFamily: 'Fraunces, serif', fontWeight: 700, fontSize: 18, color: COLORS.ink, textDecoration: 'none' }}>
+              <Link href={`${(c.listTitle || '').startsWith('[Quiz]') ? '/quiz/' : '/list/'}${c.listId}`} style={{ fontFamily: 'Manrope, system-ui, -apple-system, sans-serif', fontWeight: 700, fontSize: 18, color: COLORS.ink, textDecoration: 'none' }}>
                 {c.listTitle || c.listId}
               </Link>
               {c.message ? (
@@ -1341,7 +1341,7 @@ function AnonPlayersPanel({ players }) {
 
   if (!list.length) {
     return (
-      <div style={{ padding: '60px 20px', textAlign: 'center', fontFamily: 'Fraunces, serif', fontStyle: 'italic', fontSize: 18, color: COLORS.faded, border: `1.5px dashed ${COLORS.ink}` }}>
+      <div style={{ padding: '60px 20px', textAlign: 'center', fontFamily: 'Manrope, system-ui, -apple-system, sans-serif', fontStyle: 'italic', fontSize: 18, color: COLORS.faded, border: `1.5px dashed ${COLORS.ink}` }}>
         No anonymous players yet.
       </div>
     );
@@ -1366,7 +1366,7 @@ function AnonPlayersPanel({ players }) {
       </div>
       <input value={query} onChange={(e) => setQuery(e.target.value)} placeholder="Filter by player number\u2026" style={{ width: '100%', padding: '10px 12px', background: COLORS.paper, border: `1.5px solid ${COLORS.ink}`, color: COLORS.ink, fontFamily: 'DM Mono, monospace', fontSize: 12, outline: 'none', boxSizing: 'border-box', marginBottom: 16 }} />
       {visible.length === 0 ? (
-        <div style={{ padding: '40px 20px', textAlign: 'center', fontFamily: 'Fraunces, serif', fontStyle: 'italic', fontSize: 16, color: COLORS.faded, border: `1.5px dashed ${COLORS.ink}` }}>No matches.</div>
+        <div style={{ padding: '40px 20px', textAlign: 'center', fontFamily: 'Manrope, system-ui, -apple-system, sans-serif', fontStyle: 'italic', fontSize: 16, color: COLORS.faded, border: `1.5px dashed ${COLORS.ink}` }}>No matches.</div>
       ) : (
         <div style={{ border: `1.5px solid ${COLORS.ink}`, maxHeight: TABLE_MAX_H, overflowY: 'auto' }}>
           <div style={{ display: 'flex', position: 'sticky', top: 0, zIndex: 1, background: COLORS.cream, fontFamily: 'DM Mono, monospace', fontSize: 10, letterSpacing: '0.14em', textTransform: 'uppercase', color: COLORS.faded, padding: '10px 14px', borderBottom: `1.5px solid ${COLORS.ink}` }}>
@@ -1400,7 +1400,7 @@ function AnonPlayersPanel({ players }) {
                 {open && (
                   <div style={{ padding: '4px 14px 14px 48px', background: `${COLORS.ink}0a` }}>
                     {history.length === 0 ? (
-                      <p style={{ fontFamily: 'Fraunces, serif', fontStyle: 'italic', fontSize: 14, color: COLORS.faded, margin: '8px 0' }}>No completed games recorded.</p>
+                      <p style={{ fontFamily: 'Manrope, system-ui, -apple-system, sans-serif', fontStyle: 'italic', fontSize: 14, color: COLORS.faded, margin: '8px 0' }}>No completed games recorded.</p>
                     ) : (
                       <div style={{ border: `1px solid ${COLORS.ink}33`, background: COLORS.paper }}>
                         <div style={{ display: 'flex', fontFamily: 'DM Mono, monospace', fontSize: 9, letterSpacing: '0.12em', textTransform: 'uppercase', color: COLORS.faded, padding: '8px 12px', borderBottom: `1px solid ${COLORS.ink}33` }}>
@@ -1544,7 +1544,7 @@ function SubmissionCard({ list, busy, onApprove, onUnpublish, onReject }) {
           </div>
           <h3
             style={{
-              fontFamily: 'Fraunces, serif',
+              fontFamily: 'Manrope, system-ui, -apple-system, sans-serif',
               fontWeight: 700,
               fontSize: 24,
               lineHeight: 1.1,
@@ -1558,7 +1558,7 @@ function SubmissionCard({ list, busy, onApprove, onUnpublish, onReject }) {
           </h3>
           <p
             style={{
-              fontFamily: 'Fraunces, serif',
+              fontFamily: 'Manrope, system-ui, -apple-system, sans-serif',
               fontStyle: 'italic',
               fontSize: 15,
               color: COLORS.faded,
@@ -1608,7 +1608,7 @@ function SubmissionCard({ list, busy, onApprove, onUnpublish, onReject }) {
           style={{
             margin: '10px 0 0 18px',
             padding: 0,
-            fontFamily: 'Fraunces, serif',
+            fontFamily: 'Manrope, system-ui, -apple-system, sans-serif',
             fontSize: 16,
             color: COLORS.ink,
             lineHeight: 1.6,
@@ -1732,7 +1732,7 @@ function ExtrasPanel({ extras, busy, onRename, onDelete }) {
         style={{
           padding: '60px 20px',
           textAlign: 'center',
-          fontFamily: 'Fraunces, serif',
+          fontFamily: 'Manrope, system-ui, -apple-system, sans-serif',
           fontStyle: 'italic',
           fontSize: 18,
           color: COLORS.faded,
@@ -1767,7 +1767,7 @@ function ExtrasPanel({ extras, busy, onRename, onDelete }) {
           style={{
             padding: '40px 20px',
             textAlign: 'center',
-            fontFamily: 'Fraunces, serif',
+            fontFamily: 'Manrope, system-ui, -apple-system, sans-serif',
             fontStyle: 'italic',
             fontSize: 16,
             color: COLORS.faded,
@@ -1825,7 +1825,7 @@ function ExtrasGroup({ group, busy, onRename, onDelete }) {
           </div>
           <h3
             style={{
-              fontFamily: 'Fraunces, serif',
+              fontFamily: 'Manrope, system-ui, -apple-system, sans-serif',
               fontWeight: 700,
               fontSize: 22,
               lineHeight: 1.1,
@@ -1927,7 +1927,7 @@ function ExtraRow({ listId, item, busy, onRename, onDelete }) {
             border: `1.5px solid ${COLORS.ink}`,
             background: COLORS.paper,
             color: COLORS.ink,
-            fontFamily: 'Fraunces, serif',
+            fontFamily: 'Manrope, system-ui, -apple-system, sans-serif',
             fontSize: 16,
             outline: 'none',
           }}
@@ -1937,7 +1937,7 @@ function ExtraRow({ listId, item, busy, onRename, onDelete }) {
           style={{
             flex: 1,
             minWidth: 200,
-            fontFamily: 'Fraunces, serif',
+            fontFamily: 'Manrope, system-ui, -apple-system, sans-serif',
             fontSize: 16,
             color: COLORS.ink,
           }}

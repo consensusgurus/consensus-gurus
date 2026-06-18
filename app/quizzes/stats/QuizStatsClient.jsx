@@ -79,10 +79,10 @@ export default function QuizStatsClient() {
             <ArrowLeft size={15} strokeWidth={2.5} /> All Quizzes
           </Link>
           <div style={{ fontFamily: 'DM Mono, monospace', fontSize: 11, fontWeight: 700, letterSpacing: '0.22em', textTransform: 'uppercase', color: COLORS.ember, marginBottom: 10 }}>Quiz Statistics</div>
-          <h1 style={{ fontFamily: 'Fraunces, serif', fontWeight: 600, fontSize: 'clamp(34px, 7vw, 60px)', lineHeight: 0.95, letterSpacing: '-0.015em', margin: '0 0 14px', fontVariationSettings: '"SOFT" 100', color: COLORS.ink }}>
+          <h1 style={{ fontFamily: 'Manrope, system-ui, -apple-system, sans-serif', fontWeight: 600, fontSize: 'clamp(34px, 7vw, 60px)', lineHeight: 0.95, letterSpacing: '-0.015em', margin: '0 0 14px', fontVariationSettings: '"SOFT" 100', color: COLORS.ink }}>
             The <span style={{ fontStyle: 'italic', fontWeight: 400, color: COLORS.ember }}>Most Played</span> Quizzes
           </h1>
-          <p style={{ fontFamily: 'Fraunces, serif', fontStyle: 'italic', fontSize: 17, lineHeight: 1.5, color: COLORS.faded, margin: 0, maxWidth: 640 }}>
+          <p style={{ fontFamily: 'Manrope, system-ui, -apple-system, sans-serif', fontStyle: 'italic', fontSize: 17, lineHeight: 1.5, color: COLORS.faded, margin: 0, maxWidth: 640 }}>
             Every quiz ranked by how often it's been played, with the average score and the total time players have spent on it. Tap any column to re-sort, or any row to play.
           </p>
           <div style={{ borderBottom: `1px solid ${COLORS.ink}`, marginTop: 22 }} />
@@ -105,18 +105,18 @@ export default function QuizStatsClient() {
             .qs-rank span{display:inline-flex;width:26px;height:26px;border-radius:50%;align-items:center;justify-content:center;border:1.25px solid rgba(26,22,17,0.2);font-family:'DM Mono',monospace;font-size:12px;color:${COLORS.faded};}
             .qs-quiz{text-align:left;}
             .qs-quiz a{text-decoration:none;}
-            .qs-title{font-family:'Fraunces',serif;font-weight:600;font-size:17px;line-height:1.15;color:${COLORS.ink};}
+            .qs-title{font-family:'Manrope',serif;font-weight:600;font-size:17px;line-height:1.15;color:${COLORS.ink};}
             .qs-quiz a:hover .qs-title{color:${COLORS.ember};}
             .qs-dept{font-family:'DM Mono',monospace;font-size:9.5px;letter-spacing:0.14em;text-transform:uppercase;color:${COLORS.faded};margin-top:3px;}
-            .qs-num{font-family:'Fraunces',serif;font-weight:700;font-size:16px;color:${COLORS.ink};white-space:nowrap;}
+            .qs-num{font-family:'Manrope',serif;font-weight:700;font-size:16px;color:${COLORS.ink};white-space:nowrap;}
             .qs-num small{font-family:'DM Mono',monospace;font-weight:500;font-size:9.5px;letter-spacing:0.08em;text-transform:uppercase;color:${COLORS.faded};margin-left:5px;}
             .qs-col-num{padding-left:22px !important;}
             @media(max-width:620px){.qs-title{font-size:15px;}.qs-num{font-size:14px;}.qs-num small{display:none;}}
           `}</style>
           {!loaded ? (
-            <div style={{ textAlign: 'center', padding: '60px 24px', fontFamily: 'Fraunces, serif', fontStyle: 'italic', fontSize: 18, color: COLORS.faded }}>Loading the numbers...</div>
+            <div style={{ textAlign: 'center', padding: '60px 24px', fontFamily: 'Manrope, system-ui, -apple-system, sans-serif', fontStyle: 'italic', fontSize: 18, color: COLORS.faded }}>Loading the numbers...</div>
           ) : rows.length === 0 ? (
-            <div style={{ textAlign: 'center', padding: '60px 24px', fontFamily: 'Fraunces, serif', fontStyle: 'italic', fontSize: 18, color: COLORS.faded }}>No quizzes have been played yet.</div>
+            <div style={{ textAlign: 'center', padding: '60px 24px', fontFamily: 'Manrope, system-ui, -apple-system, sans-serif', fontStyle: 'italic', fontSize: 18, color: COLORS.faded }}>No quizzes have been played yet.</div>
           ) : (
             <div className="qs-scroll">
               <table className="qs-table">

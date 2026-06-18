@@ -70,7 +70,7 @@ export default function SourcesPage() {
           </div>
           <h1
             style={{
-              fontFamily: 'Fraunces, serif',
+              fontFamily: 'Manrope, system-ui, -apple-system, sans-serif',
               fontWeight: 900,
               fontSize: 'clamp(40px, 9vw, 76px)',
               lineHeight: 0.92,

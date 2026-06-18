@@ -34,7 +34,7 @@ export default function SourcesGrid({ sources = [], minColWidth = 190, linked = 
           background-color:${COLORS.cream};
           background-size:contain;background-position:center;background-repeat:no-repeat;
           display:flex;align-items:center;justify-content:center;
-          font-family:'Fraunces',serif;font-weight:700;font-size:11px;color:${COLORS.faded};
+          font-family:'Manrope',serif;font-weight:700;font-size:11px;color:${COLORS.faded};
           border:1px solid rgba(26,22,17,0.10);
         }
         .sot-src-name{
