@@ -850,6 +850,11 @@ function Home({ lists, viewCounts, voteData, extras, trending = {}, openList, on
         .nt-cname{flex:1 1 auto;min-width:0;line-height:1.3;}
         .nt-tfoot{display:flex;align-items:center;justify-content:space-between;margin-top:auto;padding-top:9px;border-top:1px solid ${NT.line};}
         .nt-tfoot span{font-size:9.5px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;color:${NT.soft};display:flex;align-items:center;gap:4px;}
+        .nt-relwrap{flex:1 1 0;min-height:0;position:relative;overflow:hidden;margin-top:10px;}
+        .nt-rel{display:flex;align-items:center;justify-content:space-between;gap:8px;background:${NT.bg};border:1px solid ${NT.line};border-radius:8px;padding:8px 11px;cursor:pointer;color:${NT.ink};transition:background .12s,border-color .12s;}
+        .nt-rel:hover{background:#fff;border-color:${NT.accent};}
+        .nt-rel-t{flex:1 1 auto;min-width:0;font-size:12.5px;font-weight:700;line-height:1.2;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+        .nt-rel-a{flex:none;color:${NT.accent};font-weight:800;}
         @media(max-width:560px){.nt-wrap{padding:16px 14px 60px;}.nt-tagline{display:none;}}
       `}</style>
 
@@ -936,6 +941,8 @@ function Home({ lists, viewCounts, voteData, extras, trending = {}, openList, on
                 views={viewCounts[list.id] || 0}
                 voteData={voteData}
                 extras={extras[list.id] || []}
+                relatedLists={findRelatedLists(list, lists, 6)}
+                onOpenRelated={(id) => { saveScroll(); openList(id); }}
                 onClick={() => { saveScroll(); openList(list.id); }}
               />
             ))}
@@ -1503,7 +1510,7 @@ function NTLogo({ size = 38 }) {
 }
 
 // New-theme browse tile (matches lists-browse mockup, adapted to real data).
-function BrowseTile({ list, views, voteData, extras, onClick, featured }) {
+function BrowseTile({ list, views, voteData, extras, onClick, featured, relatedLists, onOpenRelated }) {
   const cat = broadCatOf(list);
   const preview = ntPreview(list, voteData, extras, featured ? 10 : 3);
   const sourceCount = Math.max(1, Object.keys(list.sources || {}).filter((id) => id !== 'ai').length);
@@ -1520,6 +1527,52 @@ function BrowseTile({ list, views, voteData, extras, onClick, featured }) {
     for (const name of Object.keys(map)) { const src = urlOf(map[name]); if (src) return { src, rank: null }; }
     return null;
   })();
+
+  // Fill leftover vertical space with links to similar lists (prior formatting):
+  // measure available height in the fill area and show as many as actually fit.
+  const [relatedFit, setRelatedFit] = useState(0);
+  const fitRef = useRef(0);
+  const relNodeRef = useRef(null);
+  const relRoRef = useRef(null);
+  const relCount = relatedLists ? relatedLists.length : 0;
+  const computeRelFit = useCallback(() => {
+    const node = relNodeRef.current;
+    if (!node) return;
+    const avail = node.clientHeight;
+    const inner = node.firstElementChild;
+    const kids = inner ? inner.children : [];
+    let used = 0;
+    let fit = 0;
+    for (let i = 0; i < kids.length; i++) {
+      const h = kids[i].offsetHeight || 40;
+      const next = used + (fit === 0 ? h : 10 + h);
+      if (next <= avail + 1) { used = next; fit += 1; } else break;
+    }
+    const want = Math.min(fit, relCount, 6);
+    if (want !== fitRef.current) { fitRef.current = want; setRelatedFit(want); }
+  }, [relCount]);
+  const kickRelFit = useCallback(() => {
+    if (typeof requestAnimationFrame !== 'undefined') requestAnimationFrame(computeRelFit);
+    setTimeout(computeRelFit, 60);
+    setTimeout(computeRelFit, 300);
+  }, [computeRelFit]);
+  const setRelNode = useCallback((node) => {
+    if (relRoRef.current) { relRoRef.current.disconnect(); relRoRef.current = null; }
+    relNodeRef.current = node;
+    if (node && typeof ResizeObserver !== 'undefined') {
+      const ro = new ResizeObserver(() => kickRelFit());
+      ro.observe(node);
+      relRoRef.current = ro;
+    }
+    if (node) kickRelFit();
+  }, [kickRelFit]);
+  useEffect(() => {
+    kickRelFit();
+    const onVis = () => { if (!document.hidden) kickRelFit(); };
+    document.addEventListener('visibilitychange', onVis);
+    return () => document.removeEventListener('visibilitychange', onVis);
+  }, [kickRelFit, preview]);
+
   return (
     <a className="nt-tile" style={featured ? { gridRow: 'span 2' } : null} href={`/list/${encodeURIComponent(list.id)}`} onClick={(e) => { if (onClick) { e.preventDefault(); onClick(); } }}>
       <div className="nt-timg" style={hero ? { backgroundImage: `url("${hero.src}")`, backgroundSize: 'cover', backgroundPosition: 'center' } : { background: ntGrad(list.title || list.id) }}>
@@ -1536,6 +1589,30 @@ function BrowseTile({ list, views, voteData, extras, onClick, featured }) {
             <span className="nt-cname">{stripItemScore(name)}</span>
           </div>
         ))}
+        {relatedLists && relatedLists.length > 0 && (
+          <div ref={setRelNode} className="nt-relwrap">
+            <div style={{ position: 'absolute', top: 12, left: 0, right: 0, display: 'flex', flexDirection: 'column', gap: 10 }}>
+              {relatedLists.slice(0, 6).map((rl, idx) => {
+                const shown = idx < relatedFit;
+                return (
+                  <div
+                    key={rl.id}
+                    role="link"
+                    tabIndex={shown ? 0 : -1}
+                    aria-hidden={shown ? undefined : true}
+                    className="nt-rel"
+                    style={{ visibility: shown ? 'visible' : 'hidden', pointerEvents: shown ? 'auto' : 'none' }}
+                    onClick={(e) => { e.preventDefault(); e.stopPropagation(); if (shown && onOpenRelated) onOpenRelated(rl.id); }}
+                    onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); e.stopPropagation(); if (shown && onOpenRelated) onOpenRelated(rl.id); } }}
+                  >
+                    <span className="nt-rel-t">{rl.title}</span>
+                    <span aria-hidden="true" className="nt-rel-a">&#8594;</span>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        )}
         <div className="nt-tfoot">
           <span>Sources: {sourceCount}</span>
           <span><Eye size={12} strokeWidth={2.25} /> {(views || 0).toLocaleString()}</span>
