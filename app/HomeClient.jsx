@@ -808,7 +808,7 @@ function Home({ lists, viewCounts, voteData, extras, trending = {}, openList, on
     <div style={{ position: 'relative', zIndex: 2, fontFamily: NFONT, color: NT.ink }}>
       <style>{`
         @import url('https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap');
-        .nt-wrap{max-width:1180px;margin:0 auto;padding:20px 24px 70px;}
+        .nt-wrap{max-width:1180px;margin:0 auto;padding:8px 24px 70px;}
         .nt-lbl{font-size:9.5px;font-weight:700;letter-spacing:.07em;text-transform:uppercase;color:${NT.soft};}
         .nt-crumb1{font-size:18px;font-weight:800;letter-spacing:-0.02em;color:${NT.ink};text-decoration:none;}
         .nt-crumb2{font-size:18px;font-weight:600;color:${NT.accent};}
@@ -818,7 +818,7 @@ function Home({ lists, viewCounts, voteData, extras, trending = {}, openList, on
         .nt-stat b{color:${NT.ink};}
         .nt-tagline{font-size:12px;color:${NT.muted};line-height:1.5;max-width:430px;}
         .nt-tagline b{color:${NT.ink};}
-        .nt-pills{display:flex;gap:7px;flex-wrap:wrap;margin:16px 0 12px;position:relative;}
+        .nt-pills{display:flex;gap:7px;flex-wrap:wrap;margin:12px 0 12px;position:relative;}
         .nt-pill{font-size:12px;font-weight:700;letter-spacing:.03em;text-transform:uppercase;padding:7px 10px;border-radius:9px;border:1px solid ${NT.line};background:#fff;color:${NT.muted};cursor:pointer;display:flex;flex:1 1 auto;align-items:center;justify-content:center;gap:5px;font-family:inherit;white-space:nowrap;}
         .nt-pill.on{color:#fff;}
         .nt-pill.ghost.on{background:${NT.ink};border-color:${NT.ink};color:#fff;}
