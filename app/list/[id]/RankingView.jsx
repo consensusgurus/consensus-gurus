@@ -54,7 +54,7 @@ function ActionRow({ item, list }) {
     <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', alignItems: 'center', marginTop: 9 }}>
       {links.map && <a href={links.map} target="_blank" rel={rel} style={BTN_PRIMARY}>{primaryLabel}</a>}
       {links.website && <a href={links.website} target="_blank" rel="noopener noreferrer" style={BTN}>Website</a>}
-      {links.video && <a href={links.video} target="_blank" rel="noopener noreferrer" style={{ ...BTN, color: C.accent, borderColor: C.accent, fontWeight: 700 }}>{'\u25B6'} {list.itemVideoLabel || 'Video'}</a>}
+      {links.video && <a href={links.video} target="_blank" rel="noopener noreferrer" style={{ ...BTN, color: C.accent, borderColor: C.accent, fontWeight: 700 }}>{'▶'} {list.itemVideoLabel || 'Video'}</a>}
       {picsBtns.length > 0 && (
         <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6, flexWrap: 'wrap' }}>
           <span style={{ fontSize: 10.5, fontWeight: 700, letterSpacing: '0.04em', textTransform: 'uppercase', color: C.soft }}>Pics:</span>
@@ -66,6 +66,7 @@ function ActionRow({ item, list }) {
 }
 
 function Chips({ names, light }) {
+  if (!names || names.length === 0) return null;
   return (
     <div style={{ display: 'flex', gap: 5, flexWrap: 'wrap' }}>
       {names.slice(0, 5).map((n) => {
@@ -81,44 +82,35 @@ export default function RankingView({ list, voteData, extras }) {
   const mode = list.mode || 'both';
   const heroMap = HERO_IMAGES[list.id];
   const descs = DESCRIPTIONS[list.id] || {};
+  const isConsensus = mode !== 'facts' && mode !== 'scores' && mode !== 'unranked' && mode !== 'votes';
 
-  if (mode === 'facts' || mode === 'scores' || mode === 'unranked' || mode === 'votes') {
-    const items = (mode === 'votes' ? (list.vote && list.vote.items) : (list.sources && list.sources.ai && list.sources.ai.items)) || [];
-    return (
-      <div style={{ fontFamily: FONT }}>
-        <div style={{ background: '#fff', border: `1px solid ${C.line}`, borderRadius: 12, overflow: 'hidden' }}>
-          {items.map((item, i) => {
-            const { name, locality } = parseItem(item);
-            return (
-              <div key={item} style={{ display: 'flex', gap: 13, alignItems: 'flex-start', padding: '13px 15px', borderTop: i === 0 ? 'none' : `1px solid ${C.line}` }}>
-                <span style={{ flex: 'none', width: 24, fontWeight: 800, fontSize: 16, color: C.ink, textAlign: 'center', marginTop: 1 }}>{i + 1}</span>
-                <div style={{ minWidth: 0, flex: 1 }}>
-                  <div style={{ fontSize: 14.5, fontWeight: 700 }}>{name}</div>
-                  {locality && <div style={{ fontSize: 11.5, color: C.muted, marginTop: 1 }}>{locality}</div>}
-                  {i < 10 && descs[item] && <div style={{ fontSize: 12.5, color: C.muted, marginTop: 5, lineHeight: 1.5 }}>{descs[item]}</div>}
-                  <ActionRow item={item} list={list} />
-                </div>
-              </div>
-            );
-          })}
-        </div>
-      </div>
-    );
+  let items = [];
+  let publications = [];
+  let rawScores = {};
+  if (isConsensus) {
+    const sources = getSources(list, voteData, extras, { limit: Infinity });
+    const consensus = sources.find((s) => s.id === 'consensus');
+    publications = sources.filter((s) => s.id !== 'consensus');
+    items = (consensus && consensus.items) || (list.sources && list.sources.ai && list.sources.ai.items) || [];
+    rawScores = (consensus && consensus.scores) || {};
+  } else {
+    items = (mode === 'votes' ? (list.vote && list.vote.items) : (list.sources && list.sources.ai && list.sources.ai.items)) || [];
   }
+  if (!items.length) return null;
 
-  const sources = getSources(list, voteData, extras, { limit: Infinity });
-  const consensus = sources.find((s) => s.id === 'consensus');
-  const publications = sources.filter((s) => s.id !== 'consensus');
-  const items = (consensus && consensus.items) || [];
-  const rawScores = (consensus && consensus.scores) || {};
+  const hasScores = isConsensus && items.some((it) => rawScores[it]);
   const top = Math.max(1, ...items.map((it) => rawScores[it] || 0));
-  // Scale to a 60-100 band (not 0-100): #1 = 100, the weakest item lands ~60,
-  // so a thin top-10 entry never reads like a near-zero score.
   const FLOOR = 60;
   const score100 = (it) => Math.round(FLOOR + (100 - FLOOR) * (rawScores[it] || 0) / top);
 
   const podium = items.slice(0, 3);
   const rest = items.slice(3);
+
+  const Score = ({ item, dark }) => {
+    if (!hasScores) return null;
+    if (dark) return <span style={{ position: 'absolute', top: 12, right: 14, zIndex: 2, color: '#fff', fontSize: 25, fontWeight: 800, display: 'flex', flexDirection: 'column', alignItems: 'flex-end', lineHeight: 1, textShadow: '0 1px 4px rgba(0,0,0,.4)' }}>{score100(item)}<small style={{ fontSize: 8, fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase', opacity: 0.85, marginTop: 3 }}>consensus</small></span>;
+    return <div style={{ flex: 'none', textAlign: 'right' }}><div style={{ fontSize: 19, fontWeight: 800, color: C.accent, fontVariantNumeric: 'tabular-nums' }}>{score100(item)}</div><div style={{ fontSize: 9.5, fontWeight: 700, letterSpacing: '0.05em', textTransform: 'uppercase', color: C.soft }}>consensus</div></div>;
+  };
 
   return (
     <div style={{ fontFamily: FONT }}>
@@ -136,9 +128,9 @@ export default function RankingView({ list, voteData, extras }) {
                   <div style={{ position: 'relative', minHeight: big ? 210 : 180, backgroundImage: src ? `url("${src}")` : grad(name), backgroundSize: 'cover', backgroundPosition: 'center' }}>
                     <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to top, rgba(12,13,16,0.86), rgba(12,13,16,0.18) 58%, rgba(12,13,16,0))' }} />
                     <span style={{ position: 'absolute', top: 12, left: 12, width: 30, height: 30, borderRadius: '50%', background: MEDAL[i], color: '#1c1e24', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 800, fontSize: 15, zIndex: 2, boxShadow: '0 2px 6px rgba(0,0,0,.25)' }}>{i + 1}</span>
-                    <span style={{ position: 'absolute', top: 12, right: 14, zIndex: 2, color: '#fff', fontSize: 25, fontWeight: 800, display: 'flex', flexDirection: 'column', alignItems: 'flex-end', lineHeight: 1, textShadow: '0 1px 4px rgba(0,0,0,.4)' }}>{score100(item)}<small style={{ fontSize: 8, fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase', opacity: 0.85, marginTop: 3 }}>consensus</small></span>
+                    <Score item={item} dark />
                     <div style={{ position: 'absolute', left: 0, right: 0, bottom: 0, padding: '16px 18px', color: '#fff' }}>
-                      <div style={{ fontSize: big ? 24 : 19, fontWeight: 800, letterSpacing: '-0.01em', lineHeight: 1.15 }}>{name}</div>
+                      <div style={{ fontSize: big ? 24 : 19, fontWeight: 800, letterSpacing: '-0.01em', lineHeight: 1.15 }}>{stripName(name)}</div>
                       {locality && <div style={{ fontSize: 12, opacity: 0.85, margin: '3px 0 10px' }}>{locality}</div>}
                       <Chips names={chipsFor(item, publications)} light />
                     </div>
@@ -165,16 +157,13 @@ export default function RankingView({ list, voteData, extras }) {
                 <div key={item} style={{ display: 'flex', gap: 12, alignItems: 'flex-start', padding: '13px 15px', borderTop: idx === 0 ? 'none' : `1px solid ${C.line}` }}>
                   <span style={{ flex: 'none', width: 24, fontWeight: 800, fontSize: 18, color: C.ink, textAlign: 'center', marginTop: 1 }}>{i + 1}</span>
                   <div style={{ flex: '1 1 auto', minWidth: 0 }}>
-                    <div style={{ fontSize: 14.5, fontWeight: 700 }}>{name}</div>
+                    <div style={{ fontSize: 14.5, fontWeight: 700 }}>{stripName(name)}</div>
                     {locality && <div style={{ fontSize: 11.5, color: C.muted, margin: '2px 0 0' }}>{locality}</div>}
                     {i < 10 && descs[item] && <div style={{ fontSize: 12.5, color: C.muted, margin: '5px 0 0', lineHeight: 1.5 }}>{descs[item]}</div>}
-                    <div style={{ marginTop: 7 }}><Chips names={chipsFor(item, publications)} /></div>
+                    {chipsFor(item, publications).length > 0 && <div style={{ marginTop: 7 }}><Chips names={chipsFor(item, publications)} /></div>}
                     <ActionRow item={item} list={list} />
                   </div>
-                  <div style={{ flex: 'none', textAlign: 'right' }}>
-                    <div style={{ fontSize: 19, fontWeight: 800, color: C.accent, fontVariantNumeric: 'tabular-nums' }}>{score100(item)}</div>
-                    <div style={{ fontSize: 9.5, fontWeight: 700, letterSpacing: '0.05em', textTransform: 'uppercase', color: C.soft }}>consensus</div>
-                  </div>
+                  <Score item={item} />
                 </div>
               );
             })}
@@ -184,3 +173,5 @@ export default function RankingView({ list, voteData, extras }) {
     </div>
   );
 }
+
+function stripName(n) { return String(n).replace(/\s*(?:—|-)\s*\d+(?:\.\d+)?\/10\s*$/, ''); }
