@@ -1,25 +1,66 @@
 import { NextResponse } from 'next/server';
 import { supabaseAdmin } from '@/lib/supabase-server';
+import { fetchAllRows } from '@/lib/fetch-all';
 
 export const dynamic = 'force-dynamic';
 export const fetchCache = 'force-no-store';
 
-// GET /api/quiz/recent -> { plays: [{quizId, username, score, total}] }
-// The 60 most recent completed games, newest first. Powers the /quizzes
-// ticker AND the Last Played board, which de-dupes this feed by quiz; a wider
-// window keeps Last Played filled to 3 distinct quizzes during repeat-play runs.
+// GET /api/quiz/recent -> { plays: [{quizId, username, score, total, playedAt,
+//   isAnon, attempt}] }
+// The 60 most recent completed games, newest first. Powers the /quizzes live
+// feed + Last Played board. `attempt` is that PLAYER's chronological attempt
+// number of that quiz (1 = first time), computed by counting their earlier rows
+// for the same quiz; `isAnon` flags a play with no signed account.
 export async function GET() {
   try {
     const { data, error } = await supabaseAdmin
       .from('quiz_results')
-      .select('quiz_id, username, score, total, created_at')
+      .select('id, quiz_id, user_id, anon_id, username, score, total, created_at')
       .order('created_at', { ascending: false })
       .limit(60);
     if (error) {
       console.error('quiz recent error', error);
       return NextResponse.json({ plays: [] });
     }
-    return NextResponse.json({ plays: (data || []).map((r) => ({ quizId: r.quiz_id, username: r.username || null, score: r.score, total: r.total, playedAt: r.created_at || null })) });
+    const recent = data || [];
+
+    // Compute the per-(player, quiz) attempt number for each recent row by
+    // counting that player's earlier rows for the same quiz. We pull every row
+    // for just the quizzes present in the feed (a small set), then count.
+    const quizIds = [...new Set(recent.map((r) => r.quiz_id).filter(Boolean))];
+    const priorCount = new Map(); // `${playerKey}::${quizId}::${rowId}` -> attempt
+    if (quizIds.length) {
+      const { data: all } = await fetchAllRows(
+        supabaseAdmin,
+        'quiz_results',
+        'id, quiz_id, user_id, anon_id',
+        ['id'],
+        (q) => q.in('quiz_id', quizIds),
+      );
+      const seen = new Map(); // `${playerKey}::${quizId}` -> running count
+      for (const r of (all || [])) {
+        const pk = r.user_id ? `u:${r.user_id}` : (r.anon_id ? `a:${r.anon_id}` : `r:${r.id}`);
+        const k = pk + '::' + r.quiz_id;
+        const n = (seen.get(k) || 0) + 1;
+        seen.set(k, n);
+        priorCount.set(pk + '::' + r.quiz_id + '::' + r.id, n);
+      }
+    }
+
+    const plays = recent.map((r) => {
+      const pk = r.user_id ? `u:${r.user_id}` : (r.anon_id ? `a:${r.anon_id}` : `r:${r.id}`);
+      const attempt = priorCount.get(pk + '::' + r.quiz_id + '::' + r.id) || 1;
+      return {
+        quizId: r.quiz_id,
+        username: r.username || null,
+        score: r.score,
+        total: r.total,
+        playedAt: r.created_at || null,
+        isAnon: !r.user_id,
+        attempt,
+      };
+    });
+    return NextResponse.json({ plays });
   } catch (e) {
     return NextResponse.json({ plays: [] });
   }
