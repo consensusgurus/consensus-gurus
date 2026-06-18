@@ -862,15 +862,9 @@ function Home({ lists, viewCounts, voteData, extras, trending = {}, openList, on
         @media(max-width:560px){.nt-wrap{padding:16px 14px 60px;}.nt-tagline{display:none;}}
       `}</style>
 
-      <SiteHeader active="lists" />
+      <SiteHeader active="lists" visitors={totalViews} />
 
       <div className="nt-wrap">
-        {/* stat + tagline (brand lockup + nav live in the shared SiteHeader above) */}
-        <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 24, flexWrap: 'wrap', paddingTop: 14 }}>
-          <div className="nt-stat"><b>{lists.length}</b> lists · <b>{totalSources.toLocaleString()}</b> sources · <b>{totalViews.toLocaleString()}</b> visitors</div>
-          <div className="nt-tagline" style={{ textAlign: 'right' }}>The consensus of expert critics and everyday users, weighed across <b>{totalSources.toLocaleString()} sources</b> — from Michelin and Condé Nast Traveler to Eater, Wirecutter, and Goodreads.</div>
-        </div>
-
         {/* category pills + By City / By Topic */}
         <div className="nt-pills" onClick={(e) => e.stopPropagation()}>
           {visibleTypes.map(catPill)}
@@ -1532,12 +1526,14 @@ function BrowseTile({ list, views, voteData, extras, onClick, featured, relatedL
     const avail = node.clientHeight;
     const inner = node.firstElementChild;
     const kids = inner ? inner.children : [];
-    let used = 0;
+    // Reserve the inner top offset (12) plus a small bottom buffer so the last
+    // box always fully fits inside the clipped fill area (no half-cut row).
+    let used = 14;
     let fit = 0;
     for (let i = 0; i < kids.length; i++) {
       const h = kids[i].offsetHeight || 40;
       const next = used + (fit === 0 ? h : 10 + h);
-      if (next <= avail + 1) { used = next; fit += 1; } else break;
+      if (next <= avail - 6) { used = next; fit += 1; } else break;
     }
     const want = Math.min(fit, relCount, 6);
     if (want !== fitRef.current) { fitRef.current = want; setRelatedFit(want); }

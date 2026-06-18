@@ -1,14 +1,19 @@
 'use client';
 import Link from 'next/link';
 import { getAllSources } from '@/lib/sources';
+import { LISTS } from '@/lib/data';
+import { QUIZZES } from '@/lib/quizzes';
 
 // Shared site header used across Lists (browse + detail) and Quizzes so the
-// brand lockup + nav are identical everywhere. Logo is the concentric-target
-// rebrand mark, inlined as SVG. Top-right reads "Producing Objectivity from N
-// sources", where "N sources" links to /sources (distinct publications).
+// brand lockup, nav and stat line are identical everywhere. Logo is the
+// concentric-target rebrand mark, inlined as SVG. Right side: nav + a single
+// stat line (lists / sources / quizzes / visitors); "N sources" links to the
+// /sources roster. `visitors` is passed by pages that have the live total.
 const C = { ink: '#1c1e24', accent: '#2563eb', muted: '#6b7280', line: 'rgba(20,22,28,0.09)' };
 const FONT = "'Manrope', system-ui, -apple-system, sans-serif";
 const SOURCE_COUNT = getAllSources().length;
+const LIST_COUNT = LISTS.length;
+const QUIZ_COUNT = Array.isArray(QUIZZES) ? QUIZZES.length : 0;
 
 function Logo({ size = 40 }) {
   return (
@@ -29,7 +34,7 @@ function Logo({ size = 40 }) {
   );
 }
 
-export default function SiteHeader({ active = 'lists', maxWidth = 1180 }) {
+export default function SiteHeader({ active = 'lists', maxWidth = 1180, visitors }) {
   const link = (isOn) => ({ textDecoration: 'none', fontSize: 14, fontWeight: isOn ? 700 : 500, color: isOn ? C.ink : C.muted });
   return (
     <div style={{ fontFamily: FONT }}>
@@ -45,9 +50,10 @@ export default function SiteHeader({ active = 'lists', maxWidth = 1180 }) {
               <Link href="/" style={link(active === 'lists')}>Lists</Link>
               <Link href="/quizzes" style={link(active === 'quizzes')}>Quizzes</Link>
             </nav>
-            <div style={{ fontSize: 11.5, color: C.ink, marginTop: 6, letterSpacing: '0.01em' }}>
-              Producing Objectivity from{' '}
-              <Link href="/sources" style={{ color: C.accent, fontWeight: 700, textDecoration: 'none', borderBottom: `1px solid ${C.accent}` }}>{SOURCE_COUNT.toLocaleString()} sources</Link>
+            <div style={{ fontSize: 11.5, color: C.muted, marginTop: 6, letterSpacing: '0.01em' }}>
+              {LIST_COUNT.toLocaleString()} lists{' '}&middot;{' '}
+              <Link href="/sources" style={{ color: 'inherit', textDecoration: 'none' }}>{SOURCE_COUNT.toLocaleString()} sources</Link>{' '}&middot;{' '}
+              <Link href="/quizzes" style={{ color: 'inherit', textDecoration: 'none' }}>{QUIZ_COUNT.toLocaleString()} quizzes</Link>{typeof visitors === 'number' ? ` · ${visitors.toLocaleString()} visitors` : ''}
             </div>
           </div>
         </div>
