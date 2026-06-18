@@ -42,6 +42,7 @@ import Count from './Count';
 import SourcesPopover from './SourcesPopover';
 import { HERO_IMAGES } from '@/lib/hero-images';
 import { getAllSources } from '@/lib/sources';
+import SiteHeader from './SiteHeader';
 import { QUIZZES } from '@/lib/quizzes';
 import { quizDept as quizDeptOf, quizIcon as quizIconOf, DEPT_COLOR as QUIZ_DEPT_COLOR } from '@/lib/quiz-departments';
 
@@ -836,10 +837,13 @@ function Home({ lists, viewCounts, voteData, extras, trending = {}, openList, on
         .nt-sortmenu{position:absolute;top:calc(100% + 6px);z-index:30;min-width:190px;background:#fff;border:1px solid ${NT.line};border-radius:10px;box-shadow:0 12px 30px rgba(20,22,28,0.12);overflow:hidden;}
         .nt-sortitem{width:100%;display:block;text-align:left;border:none;background:#fff;padding:10px 14px;font-family:inherit;font-size:13px;font-weight:600;color:${NT.ink};cursor:pointer;}
         .nt-sortitem.on,.nt-sortitem:hover{background:${NT.accsoft};color:${NT.accent};}
-        .nt-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));grid-auto-flow:dense;gap:16px;}
+        .nt-grid{display:grid;grid-template-columns:repeat(4,1fr);grid-auto-flow:dense;gap:16px;}
+        @media(max-width:1040px){.nt-grid{grid-template-columns:repeat(3,1fr);}}
+        @media(max-width:720px){.nt-grid{grid-template-columns:repeat(2,1fr);}}
+        @media(max-width:480px){.nt-grid{grid-template-columns:1fr;}}
         .nt-tile{height:100%;background:#fff;border:1px solid ${NT.line};border-radius:12px;overflow:hidden;display:flex;flex-direction:column;text-decoration:none;color:${NT.ink};transition:box-shadow .15s,transform .15s;}
         .nt-tile:hover{box-shadow:0 8px 24px rgba(20,22,28,0.10);transform:translateY(-2px);}
-        .nt-timg{position:relative;height:140px;display:flex;align-items:center;justify-content:center;}
+        .nt-timg{position:relative;height:180px;display:flex;align-items:center;justify-content:center;}
         .nt-tcat{position:absolute;top:8px;left:8px;font-size:9px;font-weight:800;letter-spacing:.05em;text-transform:uppercase;color:#fff;padding:3px 7px 3px 6px;border-radius:6px;display:inline-flex;align-items:center;gap:4px;box-shadow:0 1px 3px rgba(0,0,0,0.18);}
         .nt-tbadge{position:absolute;bottom:8px;left:8px;background:rgba(28,30,36,0.85);color:#fff;font-size:11px;font-weight:800;padding:2px 8px;border-radius:6px;}
         .nt-tbody{padding:12px 14px 13px;display:flex;flex-direction:column;flex:1 1 auto;}
@@ -858,26 +862,13 @@ function Home({ lists, viewCounts, voteData, extras, trending = {}, openList, on
         @media(max-width:560px){.nt-wrap{padding:16px 14px 60px;}.nt-tagline{display:none;}}
       `}</style>
 
+      <SiteHeader active="lists" />
+
       <div className="nt-wrap">
-        {/* header */}
-        <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 24, flexWrap: 'wrap', paddingBottom: 14, borderBottom: `1px solid ${NT.line}` }}>
-          <div>
-            <Link href="/" style={{ display: 'flex', alignItems: 'center', gap: 11, textDecoration: 'none' }}>
-              <NTLogo size={40} />
-              <span>
-                <span style={{ display: 'block', fontSize: 26, fontWeight: 800, letterSpacing: '-0.025em', lineHeight: 1, color: NT.ink }}>Source <span style={{ color: NT.accent, fontWeight: 600 }}>of</span> Truths</span>
-                <span style={{ display: 'block', fontSize: 10, fontWeight: 800, letterSpacing: '0.18em', textTransform: 'uppercase', color: '#c8870f', marginTop: 4 }}>Producing Objectivity</span>
-              </span>
-            </Link>
-            <div className="nt-stat"><b>{lists.length}</b> lists · <b>{totalSources.toLocaleString()}</b> sources · <b>{totalViews.toLocaleString()}</b> visitors</div>
-          </div>
-          <div style={{ textAlign: 'right' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 18, justifyContent: 'flex-end', marginBottom: 9 }}>
-              <span style={{ fontSize: 13, color: NT.ink, fontWeight: 700 }}>Lists</span>
-              <Link className="nt-navlink" href="/quizzes">Quizzes</Link>
-            </div>
-            <div className="nt-tagline">The consensus of expert critics and everyday users, weighed across <b>{totalSources.toLocaleString()} sources</b> — from Michelin and Condé Nast Traveler to Eater, Wirecutter, and Goodreads.</div>
-          </div>
+        {/* stat + tagline (brand lockup + nav live in the shared SiteHeader above) */}
+        <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 24, flexWrap: 'wrap', paddingTop: 14 }}>
+          <div className="nt-stat"><b>{lists.length}</b> lists · <b>{totalSources.toLocaleString()}</b> sources · <b>{totalViews.toLocaleString()}</b> visitors</div>
+          <div className="nt-tagline" style={{ textAlign: 'right' }}>The consensus of expert critics and everyday users, weighed across <b>{totalSources.toLocaleString()} sources</b> — from Michelin and Condé Nast Traveler to Eater, Wirecutter, and Goodreads.</div>
         </div>
 
         {/* category pills + By City / By Topic */}
@@ -1682,95 +1673,17 @@ export default function HomeClient() {
       }}
     >
       {!loaded ? (
-        <div
-          style={{
-            position: 'relative',
-            zIndex: 2,
-            minHeight: '100vh',
-            overflowY: 'auto',
-            background: '#f4ede0',
-            color: '#2b2b2b',
-          }}
-        >
-          {/* Branded loading splash (what a human briefly sees while the app
-              boots) followed by a crawlable index of every list (what search
-              engines read from the server HTML). React owns this entire tree,
-              so it swaps to <Home> cleanly with no manual DOM removal. */}
-          <div
-            style={{
-              minHeight: '100vh',
-              display: 'flex',
-              flexDirection: 'column',
-              alignItems: 'center',
-              justifyContent: 'center',
-              textAlign: 'center',
-              padding: '24px',
-            }}
-          >
-            <p
-              style={{
-                fontFamily: 'DM Mono, monospace',
-                textTransform: 'uppercase',
-                letterSpacing: '0.2em',
-                fontSize: 12,
-                color: '#c0392b',
-                margin: '0 0 14px',
-              }}
-            >
-              Source of Truths
-            </p>
-            <h1
-              style={{
-                fontFamily: 'Fraunces, serif',
-                fontWeight: 900,
-                fontSize: 'clamp(36px, 7vw, 60px)',
-                lineHeight: 1.04,
-                margin: '0 0 16px',
-              }}
-            >
-              Source of Truths
-            </h1>
-            <p
-              style={{
-                fontFamily: 'Fraunces, serif',
-                fontStyle: 'italic',
-                fontSize: 'clamp(18px, 2.4vw, 22px)',
-                color: '#6f6657',
-                margin: '0 0 26px',
-              }}
-            >
-              Producing Objectivity.
-            </p>
-            <p
-              style={{
-                fontFamily: 'Fraunces, serif',
-                fontStyle: 'italic',
-                fontSize: 16,
-                color: '#9a8f7d',
-                margin: 0,
-              }}
-            >
-              seeking truths...
-            </p>
-          </div>
-
-          <div style={{ maxWidth: 920, margin: '0 auto', padding: '8px 24px 80px' }}>
-            <p
-              style={{
-                fontFamily: 'DM Sans, sans-serif',
-                fontSize: 17,
-                lineHeight: 1.6,
-                maxWidth: 680,
-                margin: '0 0 28px',
-              }}
-            >
-              Source of Truths is a collection of curated top-ten lists ranked by
-              expert consensus and reader votes. Each list blends rankings from
-              authoritative publications using Borda consensus scoring, then
-              layers live reader voting on top, so you can see what we all
-              actually agree on, from the best dive bars and pizza to luxury
-              resorts, films, books, and products.
-            </p>
+        <div style={{ position: 'relative', zIndex: 2, minHeight: '100vh', background: NT.bg, color: NT.ink, fontFamily: NFONT }}>
+          {/* Server-rendered preload + crawlable list index (what Google reads
+              before the client app boots). Themed to match the live site. */}
+          <SiteHeader active="lists" />
+          <div style={{ maxWidth: 1180, margin: '0 auto', padding: '36px 24px 80px' }}>
+            <div style={{ textAlign: 'center', padding: '34px 0 26px' }}>
+              <h1 style={{ fontSize: 'clamp(30px, 6vw, 52px)', fontWeight: 800, letterSpacing: '-0.03em', margin: '0 0 10px' }}>Source <span style={{ color: NT.accent }}>of</span> Truths</h1>
+              <p style={{ fontSize: 12.5, fontWeight: 800, letterSpacing: '0.18em', textTransform: 'uppercase', color: NT.muted, margin: '0 0 18px' }}>Producing Objectivity</p>
+              <p style={{ maxWidth: 660, margin: '0 auto', fontSize: 16, lineHeight: 1.6, color: NT.muted }}>Curated rankings built from expert critics and everyday reviewers, weighed across hundreds of sources using Borda consensus scoring, so you can see what we all actually agree on, from the best restaurants and hotels to films, books, and products.</p>
+              <p style={{ fontSize: 13, color: NT.soft, marginTop: 22 }}>seeking truths…</p>
+            </div>
             {[
               { type: 'food', label: 'Food & Drink' },
               { type: 'travel', label: 'Travel & Hotels' },
@@ -1779,50 +1692,15 @@ export default function HomeClient() {
               { type: 'stores', label: 'Places & Shops' },
               { type: 'other', label: 'More Lists' },
             ].map(({ type, label }) => {
-              const seoLists = LISTS.filter((l) => l.type === type).sort((a, b) =>
-                (a.title || '').localeCompare(b.title || '')
-              );
+              const seoLists = LISTS.filter((l) => l.type === type).sort((a, b) => (a.title || '').localeCompare(b.title || ''));
               if (seoLists.length === 0) return null;
               return (
-                <section key={type} style={{ margin: '0 0 34px' }}>
-                  <h2
-                    style={{
-                      fontFamily: 'Fraunces, serif',
-                      fontWeight: 700,
-                      fontSize: 22,
-                      margin: '0 0 12px',
-                      borderBottom: '2px solid #c0392b',
-                      paddingBottom: 6,
-                    }}
-                  >
-                    {label}
-                  </h2>
-                  <ul
-                    style={{
-                      listStyle: 'none',
-                      margin: 0,
-                      padding: 0,
-                      columns: '2 280px',
-                      columnGap: 28,
-                    }}
-                  >
+                <section key={type} style={{ margin: '0 0 30px' }}>
+                  <h2 style={{ fontSize: 18, fontWeight: 800, margin: '0 0 12px', paddingBottom: 8, borderBottom: `2px solid ${NT.accent}` }}>{label}</h2>
+                  <ul style={{ listStyle: 'none', margin: 0, padding: 0, columns: '2 260px', columnGap: 28 }}>
                     {seoLists.map((l) => (
-                      <li
-                        key={l.id}
-                        style={{
-                          breakInside: 'avoid',
-                          margin: '0 0 7px',
-                          fontFamily: 'DM Sans, sans-serif',
-                          fontSize: 15,
-                          lineHeight: 1.4,
-                        }}
-                      >
-                        <a
-                          href={`/list/${l.id}`}
-                          style={{ color: '#2b2b2b', textDecoration: 'none' }}
-                        >
-                          {l.title}
-                        </a>
+                      <li key={l.id} style={{ breakInside: 'avoid', margin: '0 0 7px', fontSize: 14.5, lineHeight: 1.4 }}>
+                        <a href={`/list/${l.id}`} style={{ color: NT.ink, textDecoration: 'none' }}>{l.title}</a>
                       </li>
                     ))}
                   </ul>

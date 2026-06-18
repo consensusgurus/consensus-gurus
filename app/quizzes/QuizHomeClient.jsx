@@ -1,6 +1,7 @@
 'use client';
 import React, { useState, useEffect, useMemo, useRef } from 'react';
 import Link from 'next/link';
+import SiteHeader from '../SiteHeader';
 import {
   Search, ChevronDown, ArrowRight, BarChart3, Crown, Sparkles, Flame,
   BadgeCheck, Clapperboard, Music, Gamepad2, Plane, Globe, Utensils,
@@ -365,21 +366,8 @@ export default function QuizHomeClient() {
     <div style={{ background: C.bg, minHeight: '100vh', position: 'relative' }}>
       <Grain />
       <style>{css}</style>
+      <SiteHeader active="quizzes" maxWidth={1080} />
       <div className="qzh" style={{ maxWidth: 1080, margin: '0 auto', padding: '20px 24px 70px', position: 'relative' }}>
-
-        {/* crumb header */}
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12, paddingBottom: 12, borderBottom: `1px solid ${C.line}`, marginBottom: 12 }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 9 }}>
-            <Logo />
-            <Link href="/" className="qlink"><span className="crumb1">Source of Truths</span></Link>
-            <span style={{ color: C.soft }}>/</span>
-            <span className="crumb2">Quizzes</span>
-          </div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 18, fontSize: 13, color: C.muted }}>
-            <Link href="/" className="qlink"><span>Lists</span></Link>
-            <span style={{ color: C.ink, fontWeight: 700 }}>Quizzes</span>
-          </div>
-        </div>
 
         {/* player bar */}
         <div className="card" style={{ flexDirection: 'row', alignItems: 'center', flexWrap: 'wrap', gap: 16, padding: '11px 14px', margin: '14px 0 12px', overflow: 'visible', position: 'relative', zIndex: 40 }}>
