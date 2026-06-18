@@ -375,13 +375,10 @@ export default function TimedMcqClient({ quizId }) {
 
   return (
     <div style={{ minHeight: '100vh', background: COLORS.cream, color: COLORS.ink, position: 'relative', overflow: 'clip' }}>
-      <div style={{ position: 'relative', zIndex: 2, maxWidth: 920, margin: '0 auto', padding: '24px 20px 80px' }}>
+      <div style={{ position: 'relative', zIndex: 3 }}><SiteHeader active="quizzes" /></div>
+      <div style={{ position: 'relative', zIndex: 2, maxWidth: 1180, margin: '0 auto', padding: '8px 24px 80px' }}>
 
         <style>{`@import url('https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap');`}</style>
-
-        <button onClick={() => router.push('/quizzes')} style={{ background: 'transparent', border: 'none', fontFamily: SANS, fontSize: 13, fontWeight: 600, color: COLORS.faded, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 6, padding: '8px 0' }}>
-          <ArrowLeft size={15} strokeWidth={2.5} /> Back to Quizzes
-        </button>
 
         {/* Header */}
         <div style={{ paddingBottom: 0, marginTop: 8 }}>
