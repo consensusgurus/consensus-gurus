@@ -465,11 +465,11 @@ export default function QuizHomeClient() {
         </div>
 
         {/* browse header + search */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: 16, marginBottom: 14 }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 14, flexWrap: 'wrap' }}>
           <h2 style={{ fontSize: 17, fontWeight: 800, margin: 0, whiteSpace: 'nowrap' }}>
             {searchResults ? `Search Results · ${searchResults.length}` : scope === 'all' ? 'Browse Quizzes' : `${byKey[scope]?.label} Quizzes`}
           </h2>
-          <div style={{ position: 'relative', flex: '1 1 auto' }}>
+          <div style={{ position: 'relative', flex: '1 1 200px' }}>
             <Search size={16} style={{ position: 'absolute', left: 12, top: '50%', transform: 'translateY(-50%)', color: C.soft }} />
             <input
               value={search}
@@ -479,6 +479,9 @@ export default function QuizHomeClient() {
               style={{ width: '100%', padding: '9px 12px 9px 36px', border: `1px solid ${C.line}`, borderRadius: 10, font: 'inherit', fontFamily: FONT, fontSize: 13.5, background: '#fff', color: C.ink, outline: 'none', boxSizing: 'border-box' }}
             />
           </div>
+          <Link href="/submit?for=quiz" style={{ flex: '0 0 auto', display: 'flex', alignItems: 'center', gap: 6, background: C.ink, color: '#fff', padding: '9px 16px', borderRadius: 10, fontFamily: FONT, fontWeight: 700, fontSize: 13, textDecoration: 'none', whiteSpace: 'nowrap' }}>
+            Submit a Quiz
+          </Link>
         </div>
 
         {/* lists */}

@@ -23,10 +23,40 @@ const SEA = '#bcd4ec';
 const GREEN = '#10b981';
 const RED = '#c0392b';
 const HOVER = '#e8effb';
+const CTRL_INK = '#1c1e24';
+const CTRL_ACCENT = '#2563eb';
+
+// In-window size control. The map was capped at 680px wide and centered, which
+// renders small on a wide-but-short region (e.g. the no-outline lower-48). These
+// presets let the player enlarge it past the play column with the full-bleed
+// technique (centered on the viewport; the page scrolls vertically - never a
+// separate window). 'lg' is the default so maps open larger than the old cap.
+const SIZES = {
+  fit: { label: 'Fit', width: '680px', bleed: false },
+  lg: { label: 'Large', width: 'min(1100px, 94vw)', bleed: true },
+  xl: { label: 'Full', width: '96vw', bleed: true },
+};
+const SIZE_ORDER = ['fit', 'lg', 'xl'];
+const SIZE_KEY = 'sot_map_size';
 
 export default function MapQuizBoard({ region, started, ended, revealed, foundNames, flash, onPick, noBorders: noBordersProp }) {
   const [geo, setGeo] = useState(null);
   const [hover, setHover] = useState(null);
+  const [size, setSize] = useState('lg');
+
+  // Restore the saved size preference (ssr:false, so localStorage is safe;
+  // read in an effect to avoid a hydration mismatch).
+  useEffect(() => {
+    try {
+      const saved = localStorage.getItem(SIZE_KEY);
+      if (saved && SIZES[saved]) setSize(saved);
+    } catch {}
+  }, []);
+
+  function chooseSize(s) {
+    setSize(s);
+    try { localStorage.setItem(SIZE_KEY, s); } catch {}
+  }
 
   useEffect(() => {
     let live = true;
@@ -58,9 +88,38 @@ export default function MapQuizBoard({ region, started, ended, revealed, foundNa
     );
   }
 
+  const sz = SIZES[size] || SIZES.lg;
+  // Full-bleed for the larger presets: center on the viewport and break out of
+  // the play column; the page scrolls vertically if the map is tall. 'Fit'
+  // keeps the original centered cap.
+  const wrapStyle = sz.bleed
+    ? { width: sz.width, maxWidth: '96vw', position: 'relative', left: '50%', transform: 'translateX(-50%)' }
+    : { maxWidth: 680, margin: '0 auto' };
+
   return (
-    <div className="sot-map-board" style={{ border: '1px solid rgba(138,130,118,0.25)', borderRadius: 2, overflow: 'hidden', background: SEA }}>
-      <style>{`@media(min-width:760px){.sot-map-board{max-width:680px;margin:0 auto;}}`}</style>
+    <div>
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: 6, marginBottom: 8 }}>
+        <span style={{ fontFamily: "'Manrope', system-ui, sans-serif", fontSize: 10, fontWeight: 700, letterSpacing: '0.12em', textTransform: 'uppercase', color: '#9aa0ab', marginRight: 2 }}>Map size</span>
+        {SIZE_ORDER.map((s) => {
+          const on = s === size;
+          return (
+            <button
+              key={s}
+              onClick={() => chooseSize(s)}
+              style={{
+                fontFamily: "'Manrope', system-ui, sans-serif", fontSize: 11, fontWeight: 700, letterSpacing: '0.04em',
+                padding: '4px 11px', cursor: 'pointer', borderRadius: 6,
+                border: `1px solid ${on ? CTRL_INK : 'rgba(20,22,28,0.18)'}`,
+                background: on ? CTRL_INK : '#fff',
+                color: on ? '#fff' : '#6b7280',
+              }}
+            >
+              {SIZES[s].label}
+            </button>
+          );
+        })}
+      </div>
+      <div style={{ ...wrapStyle, border: '1px solid rgba(138,130,118,0.25)', borderRadius: 2, overflow: 'hidden', background: SEA }}>
       <svg
         viewBox={geo.viewBox}
         style={{ display: 'block', width: '100%', height: 'auto', touchAction: 'manipulation' }}
@@ -149,6 +208,7 @@ export default function MapQuizBoard({ region, started, ended, revealed, foundNa
           );
         })}
       </svg>
+      </div>
     </div>
   );
 }

@@ -1,5 +1,5 @@
 'use client';
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { ArrowLeft, Plus, X, ChevronDown } from 'lucide-react';
 import { TYPES, COLORS } from '@/lib/data';
@@ -7,7 +7,39 @@ import { postList } from '@/lib/api';
 import Grain from '../Grain';
 import Footer from '../Footer';
 
-function SubmitView({ onBack, onSubmit }) {
+function SubmitView({ mode = 'list', onBack, onSubmit }) {
+  const isQuiz = mode === 'quiz';
+  const COPY = isQuiz
+    ? {
+        back: 'Back to all quizzes',
+        headLine1: 'Submit your',
+        headLine2: 'quiz idea',
+        intro: 'Only a headline is required. Give us the quiz and, if you like, the answers in order, and an editor will build the rest.',
+        headlineLabel: 'Quiz title (required)',
+        headlinePlaceholder: 'Name the highest-grossing Tom Hanks movies',
+        blurbPlaceholder: 'A quick pitch for the quiz',
+        picksHeading: 'The answers, in order (optional)',
+        picksHint: 'filled · #1 at top',
+        slotPlaceholder: (n) => `Answer number ${n} (optional)`,
+        submit: 'Submit quiz',
+        submitting: 'Sending...',
+        footnote: 'Submitted quizzes are reviewed before going live',
+      }
+    : {
+        back: 'Back to all lists',
+        headLine1: 'Submit your',
+        headLine2: 'top list',
+        intro: 'Only a headline is required. Add as much or as little as you want, and an editor will handle the rest.',
+        headlineLabel: 'Headline (required)',
+        headlinePlaceholder: 'Best beaches in Sicily',
+        blurbPlaceholder: 'A quick pitch for your readers',
+        picksHeading: 'Your picks, in order (optional)',
+        picksHint: 'filled · #1 at top',
+        slotPlaceholder: (n) => `Pick number ${n} (optional)`,
+        submit: 'Submit list',
+        submitting: 'Sending...',
+        footnote: 'Submitted lists are reviewed before going live',
+      };
   const [title, setTitle] = useState('');
   const [category, setCategory] = useState('');
   const [type, setType] = useState('other');
@@ -36,19 +68,22 @@ function SubmitView({ onBack, onSubmit }) {
 
   function handleSubmit() {
     setError('');
-    if (!title.trim()) return setError('Add a headline for your list');
+    if (!title.trim()) return setError(isQuiz ? 'Add a title for your quiz' : 'Add a headline for your list');
 
     const cleanItems = items.map((i) => i.trim()).filter(Boolean).map((i) => i.slice(0, 90));
 
     const newList = {
-      id: `user-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 7)}`,
+      id: `${isQuiz ? 'quiz' : 'user'}-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 7)}`,
       title: title.trim().slice(0, 90),
-      category: category.trim().slice(0, 40) || 'Reader Pick',
+      category: category.trim().slice(0, 40) || (isQuiz ? 'Quiz Idea' : 'Reader Pick'),
       type: type,
       // Always use 'search' as link type; admin can change on the backend.
       linkType: 'search',
-      blurb: blurb.trim().slice(0, 220) || 'A reader-submitted list.',
+      blurb: blurb.trim().slice(0, 220) || (isQuiz ? 'A reader-submitted quiz idea.' : 'A reader-submitted list.'),
       isUserSubmitted: true,
+      // Marks this as a quiz idea so the editor routes it to lib/quizzes.js
+      // rather than lib/data.js. Same backend, same review queue.
+      submissionKind: isQuiz ? 'quiz' : 'list',
       submittedAt: Date.now(),
       defaultSource: 'ai',
       sources: {
@@ -127,7 +162,7 @@ function SubmitView({ onBack, onSubmit }) {
         }}
       >
         <ArrowLeft size={14} strokeWidth={2.5} />
-        Back to all lists
+        {COPY.back}
       </button>
 
       <div style={{ borderBottom: `2px solid ${COLORS.ink}`, paddingBottom: 20, marginTop: 16, marginBottom: 32 }}>
@@ -155,9 +190,9 @@ function SubmitView({ onBack, onSubmit }) {
             fontVariationSettings: '"SOFT" 100',
           }}
         >
-          Submit your
+          {COPY.headLine1}
           <br />
-          <span style={{ fontStyle: 'italic', color: COLORS.ember }}>top list</span>
+          <span style={{ fontStyle: 'italic', color: COLORS.ember }}>{COPY.headLine2}</span>
         </h1>
         <p
           style={{
@@ -170,17 +205,17 @@ function SubmitView({ onBack, onSubmit }) {
             maxWidth: 560,
           }}
         >
-          Only a headline is required. Add as much or as little as you want, and an editor will handle the rest.
+          {COPY.intro}
         </p>
       </div>
 
       <div style={{ display: 'flex', flexDirection: 'column', gap: 28 }}>
         <div>
-          <label style={labelStyle}>Headline (required)</label>
+          <label style={labelStyle}>{COPY.headlineLabel}</label>
           <input
             style={inputStyle}
             type="text"
-            placeholder="Best beaches in Sicily"
+            placeholder={COPY.headlinePlaceholder}
             value={title}
             onChange={(e) => setTitle(e.target.value)}
             maxLength={90}
@@ -220,7 +255,7 @@ function SubmitView({ onBack, onSubmit }) {
           <label style={labelStyle}>One-line description (optional)</label>
           <textarea
             style={textareaStyle}
-            placeholder="A quick pitch for your readers"
+            placeholder={COPY.blurbPlaceholder}
             value={blurb}
             onChange={(e) => setBlurb(e.target.value)}
             maxLength={220}
@@ -263,7 +298,7 @@ function SubmitView({ onBack, onSubmit }) {
                 color: COLORS.ink,
               }}
             >
-              Your picks, in order (optional)
+              {COPY.picksHeading}
             </h3>
             <span
               style={{
@@ -274,7 +309,7 @@ function SubmitView({ onBack, onSubmit }) {
                 color: COLORS.faded,
               }}
             >
-              {filledCount} filled · #1 at top
+              {filledCount} {COPY.picksHint}
             </span>
           </div>
 
@@ -308,7 +343,7 @@ function SubmitView({ onBack, onSubmit }) {
                   type="text"
                   value={val}
                   onChange={(e) => updateItem(i, e.target.value)}
-                  placeholder={`Pick number ${i + 1} (optional)`}
+                  placeholder={COPY.slotPlaceholder(i + 1)}
                   maxLength={90}
                   style={{
                     flex: 1,
@@ -426,7 +461,7 @@ function SubmitView({ onBack, onSubmit }) {
               opacity: submitting ? 0.6 : 1,
             }}
           >
-            {submitting ? 'Sending...' : 'Submit list'}
+            {submitting ? COPY.submitting : COPY.submit}
           </button>
         </div>
 
@@ -441,7 +476,7 @@ function SubmitView({ onBack, onSubmit }) {
             marginTop: 4,
           }}
         >
-          Submitted lists are reviewed before going live
+          {COPY.footnote}
         </p>
       </div>
     </div>
@@ -450,9 +485,19 @@ function SubmitView({ onBack, onSubmit }) {
 
 export default function SubmitClient() {
   const router = useRouter();
+  // Quiz mode is opted into with /submit?for=quiz (the "Submit a Quiz" button on
+  // the /quizzes page). Read it off the URL on mount so we don't need a Suspense
+  // boundary around useSearchParams. Same form and backend power both; only the
+  // copy, the back target, and the submission marker change.
+  const [mode, setMode] = useState('list');
+  useEffect(() => {
+    try {
+      if (new URLSearchParams(window.location.search).get('for') === 'quiz') setMode('quiz');
+    } catch {}
+  }, []);
 
-  function backHome() {
-    router.push('/');
+  function goBack() {
+    router.push(mode === 'quiz' ? '/quizzes' : '/');
   }
 
   async function handleSubmit(newList) {
@@ -460,7 +505,7 @@ export default function SubmitClient() {
     if (result && result.ok) {
       router.push(`/submit/thanks`);
     } else {
-      alert('Could not save your list. Please try again.');
+      alert(`Could not save your ${mode === 'quiz' ? 'quiz' : 'list'}. Please try again.`);
     }
   }
 
@@ -475,7 +520,7 @@ export default function SubmitClient() {
       }}
     >
       <Grain />
-      <SubmitView onBack={backHome} onSubmit={handleSubmit} />
+      <SubmitView mode={mode} onBack={goBack} onSubmit={handleSubmit} />
       <Footer />
     </div>
   );
