@@ -260,26 +260,28 @@ function PlayerPanel({ me, scope, cats, byKey, totalQuizzes, board, myName, myAn
   const pctCompleted = a.played ? Math.round((a.completed / a.played) * 100) : 0;
   const byCat = (found && me.byCategory) || {};
   const catRows = (scope === 'all' ? cats : cats.filter((c) => c.key === scope));
-  const [pview, setPview] = useState('category');
+  const [pview, setPview] = useState('userbase');
+
+  const toggle = (
+    <div style={{ display: 'flex', gap: 3, background: '#eceef1', borderRadius: 9, padding: 3, flex: 'none' }}>
+      {[['userbase', 'User Base'], ['category', 'Category']].map(([v, lbl]) => (
+        <button key={v} onClick={() => setPview(v)} style={{ border: 'none', background: pview === v ? '#fff' : 'transparent', color: pview === v ? C.ink : C.muted, fontWeight: pview === v ? 700 : 600, boxShadow: pview === v ? '0 1px 2px rgba(20,22,28,0.06)' : 'none', borderRadius: 7, padding: '6px 13px', font: 'inherit', fontFamily: FONT, fontSize: 12, cursor: 'pointer' }}>{lbl}</button>
+      ))}
+    </div>
+  );
 
   return (
     <div>
-      {/* Toggle: per-category breakdown vs the full User Base ranking (all players, guests included). */}
-      <div style={{ display: 'flex', gap: 3, background: '#eceef1', borderRadius: 9, padding: 3, width: 'fit-content', marginBottom: 14 }}>
-        {[['category', 'Category'], ['userbase', 'User Base']].map(([v, lbl]) => (
-          <button key={v} onClick={() => setPview(v)} style={{ border: 'none', background: pview === v ? '#fff' : 'transparent', color: pview === v ? C.ink : C.muted, fontWeight: pview === v ? 700 : 600, boxShadow: pview === v ? '0 1px 2px rgba(20,22,28,0.06)' : 'none', borderRadius: 7, padding: '7px 15px', font: 'inherit', fontFamily: FONT, fontSize: 12.5, cursor: 'pointer' }}>{lbl}</button>
-        ))}
-      </div>
-      {pview === 'userbase' ? (
-        <UserBaseBoard board={board} myName={myName} myAnonKey={myAnonKey} />
-      ) : (
       <div className="card" style={{ padding: '14px 16px' }}>
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 10, flexWrap: 'wrap', marginBottom: 10 }}>
           <div style={{ fontSize: 14, fontWeight: 700 }}>
-            {scope === 'all' ? 'Your Stats' : `Your ${byKey[scope]?.label} Detail`}
+            {pview === 'userbase' ? 'Every Player, Ranked' : (scope === 'all' ? 'Your Stats' : `Your ${byKey[scope]?.label} Detail`)}
           </div>
+          {toggle}
         </div>
-        {!found ? (
+        {pview === 'userbase' ? (
+          <UserBaseBody board={board} myName={myName} myAnonKey={myAnonKey} />
+        ) : !found ? (
           <div style={{ fontSize: 13, color: C.soft, padding: '6px 0' }}>Play a few quizzes and your breakdown shows up here.</div>
         ) : (
           <div style={{ overflow: 'auto' }}>
@@ -311,12 +313,12 @@ function PlayerPanel({ me, scope, cats, byKey, totalQuizzes, board, myName, myAn
                   return (
                     <tr key={c.key}>
                       <td style={{ fontWeight: 600, whiteSpace: 'nowrap' }}><span className="dot" style={{ background: c.c, display: 'inline-block', marginRight: 8, verticalAlign: 'middle' }} />{c.label}</td>
-                      <td style={{ textAlign: 'right', color: muted ? C.soft : C.ink, whiteSpace: 'nowrap' }}>{cr ? cr.correct.toLocaleString() : '—'}</td>
-                      <td style={{ textAlign: 'right', color: muted ? C.soft : C.ink, whiteSpace: 'nowrap' }}>{cr ? (cr.played != null ? cr.played : cr.matches) : '—'}{cr && cr.playedRank ? <RankChip rank={cr.playedRank} /> : null}</td>
-                      <td style={{ textAlign: 'right', color: muted ? C.soft : C.ink, whiteSpace: 'nowrap' }}>{cr ? cr.completed : '—'}</td>
-                      <td style={{ textAlign: 'right', color: muted ? C.soft : C.ink, whiteSpace: 'nowrap' }}>{cr ? `${cr.accuracy}%` : '—'}</td>
-                      <td style={{ textAlign: 'right', color: muted ? C.soft : C.ink, whiteSpace: 'nowrap' }}>{cr ? (cr.daysPlayed || 0) : '—'}</td>
-                      <td className="score" style={{ textAlign: 'right', color: muted ? C.soft : C.accent, whiteSpace: 'nowrap' }}>{cr ? cr.rating.toLocaleString() : '—'}{cr && cr.rank ? <RankChip rank={cr.rank} total={cr.catTotal} /> : null}</td>
+                      <td style={{ textAlign: 'right', color: muted ? C.soft : C.ink, whiteSpace: 'nowrap' }}>{cr ? cr.correct.toLocaleString() : '\u2014'}</td>
+                      <td style={{ textAlign: 'right', color: muted ? C.soft : C.ink, whiteSpace: 'nowrap' }}>{cr ? (cr.played != null ? cr.played : cr.matches) : '\u2014'}{cr && cr.playedRank ? <RankChip rank={cr.playedRank} /> : null}</td>
+                      <td style={{ textAlign: 'right', color: muted ? C.soft : C.ink, whiteSpace: 'nowrap' }}>{cr ? cr.completed : '\u2014'}</td>
+                      <td style={{ textAlign: 'right', color: muted ? C.soft : C.ink, whiteSpace: 'nowrap' }}>{cr ? `${cr.accuracy}%` : '\u2014'}</td>
+                      <td style={{ textAlign: 'right', color: muted ? C.soft : C.ink, whiteSpace: 'nowrap' }}>{cr ? (cr.daysPlayed || 0) : '\u2014'}</td>
+                      <td className="score" style={{ textAlign: 'right', color: muted ? C.soft : C.accent, whiteSpace: 'nowrap' }}>{cr ? cr.rating.toLocaleString() : '\u2014'}{cr && cr.rank ? <RankChip rank={cr.rank} total={cr.catTotal} /> : null}</td>
                     </tr>
                   );
                 })}
@@ -326,19 +328,17 @@ function PlayerPanel({ me, scope, cats, byKey, totalQuizzes, board, myName, myAn
           </div>
         )}
       </div>
-      )}
     </div>
   );
 }
 
-// Full ranking of every player (registered + anonymous), shown under the Player
-// tab's "User Base" toggle. The current player's row is highlighted.
-function UserBaseBoard({ board, myName, myAnonKey }) {
-  if (!board) return <div className="card" style={{ padding: 16, fontSize: 13, color: C.soft }}>Loading the full ranking…</div>;
-  if (!board.length) return <div className="card" style={{ padding: 16, fontSize: 13, color: C.soft }}>No ranked players yet.</div>;
+// Full ranking BODY (no card chrome; the card, title, and toggle live in
+// PlayerPanel). Every player registered + anonymous, current row highlighted.
+function UserBaseBody({ board, myName, myAnonKey }) {
+  if (!board) return <div style={{ fontSize: 13, color: C.soft, padding: '6px 0' }}>Loading the full ranking\u2026</div>;
+  if (!board.length) return <div style={{ fontSize: 13, color: C.soft, padding: '6px 0' }}>No ranked players yet.</div>;
   return (
-    <div className="card" style={{ padding: '14px 16px' }}>
-      <div style={{ fontSize: 14, fontWeight: 700, marginBottom: 4 }}>Every Player, Ranked</div>
+    <div>
       <div style={{ fontSize: 11, color: C.soft, marginBottom: 10 }}>All {board.length.toLocaleString()} players by skill rating, anonymous guests included. Your row is highlighted.</div>
       <div style={{ overflow: 'auto', maxHeight: 600 }}>
         <table>
