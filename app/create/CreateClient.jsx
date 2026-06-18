@@ -428,7 +428,7 @@ const Board = forwardRef(function Board({ tiles, format, title, voteData, extras
           >
             {title.trim()}
           </span>
-          <span style={{ textAlign: 'right' }}>For All of the Important Aspects of Life</span>
+          <span style={{ textAlign: 'right' }}>Producing Objectivity</span>
         </div>
 
         <div style={{ display: 'grid', gridTemplateColumns: `repeat(${format.cols}, minmax(0, 1fr))`, gap: 22, alignItems: 'stretch' }}>

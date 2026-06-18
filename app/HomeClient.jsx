@@ -1739,7 +1739,7 @@ export default function HomeClient() {
                 margin: '0 0 26px',
               }}
             >
-              For all the important aspects of life.
+              Producing Objectivity.
             </p>
             <p
               style={{
