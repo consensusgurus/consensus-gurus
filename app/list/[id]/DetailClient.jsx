@@ -27,6 +27,7 @@ import Grain from '../../Grain';
 import Footer from '../../Footer';
 import ListOverview from './ListOverview';
 import RankingView from './RankingView';
+import { SourcesPanel, MethodologyPanel } from './MethodPanels';
 import ActivityFeed from './ActivityFeed';
 import SnapshotClient from '../../snapshot/[id]/SnapshotClient';
 import { Tile as HomeTile } from '../../HomeClient';
@@ -552,11 +553,10 @@ function ListDetail({ list, viewCount, voteData, userVotes, extras, relatedLists
           style={{
             background: 'transparent',
             border: 'none',
-            fontFamily: 'DM Mono, monospace',
-            fontSize: 11,
-            letterSpacing: '0.2em',
-            textTransform: 'uppercase',
-            color: COLORS.ink,
+            fontFamily: "'Manrope', system-ui, sans-serif",
+            fontSize: 13,
+            fontWeight: 600,
+            color: '#6b7280',
             cursor: 'pointer',
             display: 'flex',
             alignItems: 'center',
@@ -564,8 +564,8 @@ function ListDetail({ list, viewCount, voteData, userVotes, extras, relatedLists
             padding: '8px 0',
           }}
         >
-          <ArrowLeft size={14} strokeWidth={2.5} />
-          Back to all lists
+          <ArrowLeft size={15} strokeWidth={2.5} />
+          Back to Lists
         </button>
       )}
 
@@ -573,14 +573,13 @@ function ListDetail({ list, viewCount, voteData, userVotes, extras, relatedLists
         <div style={{ display: 'flex', alignItems: 'flex-end', gap: 'clamp(16px, 4vw, 28px)' }}>
           <h1
             style={{
-              fontFamily: 'Fraunces, serif',
+              fontFamily: "'Manrope', system-ui, sans-serif",
               fontWeight: 800,
-              fontSize: 'clamp(30px, 5vw, 50px)',
-              lineHeight: 1.02,
-              letterSpacing: '-0.02em',
+              fontSize: 'clamp(28px, 4.5vw, 44px)',
+              lineHeight: 1.05,
+              letterSpacing: '-0.025em',
               margin: 0,
               color: COLORS.ink,
-              fontVariationSettings: '"SOFT" 100',
             }}
           >
             {list.title}
@@ -588,215 +587,33 @@ function ListDetail({ list, viewCount, voteData, userVotes, extras, relatedLists
         </div>
         <p
           style={{
-            fontFamily: 'Fraunces, serif',
-            fontStyle: 'italic',
-            fontSize: 16,
-            lineHeight: 1.45,
-            margin: '12px 0 0',
-            color: COLORS.faded,
-            maxWidth: 640,
+            fontFamily: "'Manrope', system-ui, sans-serif",
+            fontSize: 15,
+            lineHeight: 1.55,
+            margin: '10px 0 0',
+            color: '#6b7280',
+            maxWidth: 680,
           }}
         >
           {list.blurb}
         </p>
       </div>}
 
-      {!compact && <>
-        {LIST_RIBBON_V2 && (
-          <style>{`.sot-listnav{scrollbar-width:none;-ms-overflow-style:none;}.sot-listnav::-webkit-scrollbar{display:none;}
-            @keyframes sotListNudge{0%,100%{transform:translate(0,-50%);}50%{transform:translate(3px,-50%);}}
-            @keyframes sotListNudgeL{0%,100%{transform:translate(0,-50%);}50%{transform:translate(-3px,-50%);}}
-            .sot-listcue{position:absolute;top:50%;z-index:3;display:flex;align-items:center;justify-content:center;width:26px;height:26px;border-radius:50%;background:${COLORS.ember};color:${COLORS.cream};box-shadow:0 1px 4px rgba(26,22,17,0.45);pointer-events:none;font-size:15px;line-height:1;}
-            .sot-listcue-r{right:8px;animation:sotListNudge 1.4s ease-in-out infinite;}
-            .sot-listcue-l{left:8px;animation:sotListNudgeL 1.4s ease-in-out infinite;}
-            @media(min-width:760px){.sot-listcue{display:none;}}
-          `}</style>
-        )}
-        <div style={LIST_RIBBON_V2 ? { position: 'sticky', top: 0, zIndex: 25, marginTop: 18 } : { display: 'contents' }}>
-        <div
-          ref={LIST_RIBBON_V2 ? listNavRef : undefined}
-          className={LIST_RIBBON_V2 ? 'sot-listnav' : undefined}
-          style={LIST_RIBBON_V2 ? {
-            display: 'flex',
-            alignItems: 'stretch',
-            gap: 0,
-            flexWrap: 'nowrap',
-            overflowX: 'auto',
-            background: COLORS.ink,
-            borderBottom: `3px solid ${COLORS.ember}`,
-          } : {
-            marginTop: 18,
-            display: 'flex',
-            alignItems: 'center',
-            gap: 10,
-            flexWrap: 'wrap',
-          }}
-        >
-          {/* Tab chips, in order: Consensus, Consensus Sources, Activity
-              Log, Vote — then Share and the Request Review modal trigger.
-              Chips swap the content below without navigating; each chip
-              flex-grows so the row fills the page width edge to edge while
-              the gaps stay fixed. */}
-            <button
-              onClick={() => setTab('consensus')}
-              style={{
-                flex: LIST_RIBBON_V2 ? '1 0 auto' : '1 1 auto',
-                justifyContent: 'center',
-                background: tab === 'consensus' ? COLORS.ember : 'transparent',
-                color: LIST_RIBBON_V2 ? COLORS.cream : (tab === 'consensus' ? COLORS.cream : COLORS.ember),
-                border: LIST_RIBBON_V2 ? 'none' : `1.5px solid ${COLORS.ember}`,
-                borderRight: LIST_RIBBON_V2 ? '1px solid rgba(244,237,224,0.18)' : undefined,
-                padding: LIST_RIBBON_V2 ? '0 14px' : '8px 14px',
-                height: LIST_RIBBON_V2 ? 42 : undefined,
-                whiteSpace: LIST_RIBBON_V2 ? 'nowrap' : undefined,
-                fontFamily: 'DM Mono, monospace',
-                fontSize: 10,
-                letterSpacing: '0.18em',
-                textTransform: 'uppercase',
-                fontWeight: 700,
-                cursor: 'pointer',
-                display: 'flex',
-                alignItems: 'center',
-                gap: 6,
-              }}
-            >
-              Consensus
-            </button>
-            {showSourceTab && (
-              <button
-                onClick={() => setTab('source')}
-                style={{
-                  flex: LIST_RIBBON_V2 ? '1 0 auto' : '1 1 auto',
-                  justifyContent: 'center',
-                  background: tab === 'source' ? COLORS.ember : 'transparent',
-                  color: LIST_RIBBON_V2 ? COLORS.cream : (tab === 'source' ? COLORS.cream : COLORS.ember),
-                  border: LIST_RIBBON_V2 ? 'none' : `1.5px solid ${COLORS.ember}`,
-                  borderRight: LIST_RIBBON_V2 ? '1px solid rgba(244,237,224,0.18)' : undefined,
-                  padding: LIST_RIBBON_V2 ? '0 14px' : '8px 14px',
-                  height: LIST_RIBBON_V2 ? 42 : undefined,
-                  whiteSpace: LIST_RIBBON_V2 ? 'nowrap' : undefined,
-                  fontFamily: 'DM Mono, monospace',
-                  fontSize: 10,
-                  letterSpacing: '0.18em',
-                  textTransform: 'uppercase',
-                  fontWeight: 700,
-                  cursor: 'pointer',
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: 6,
-                }}
-              >
-                Consensus Sources
-              </button>
-            )}
-            <button
-              onClick={() => setTab('activity')}
-              style={{
-                flex: LIST_RIBBON_V2 ? '1 0 auto' : '1 1 auto',
-                justifyContent: 'center',
-                background: tab === 'activity' ? COLORS.ember : 'transparent',
-                color: LIST_RIBBON_V2 ? COLORS.cream : (tab === 'activity' ? COLORS.cream : COLORS.ember),
-                border: LIST_RIBBON_V2 ? 'none' : `1.5px solid ${COLORS.ember}`,
-                borderRight: LIST_RIBBON_V2 ? '1px solid rgba(244,237,224,0.18)' : undefined,
-                padding: LIST_RIBBON_V2 ? '0 14px' : '8px 14px',
-                height: LIST_RIBBON_V2 ? 42 : undefined,
-                whiteSpace: LIST_RIBBON_V2 ? 'nowrap' : undefined,
-                fontFamily: 'DM Mono, monospace',
-                fontSize: 10,
-                letterSpacing: '0.18em',
-                textTransform: 'uppercase',
-                fontWeight: 700,
-                cursor: 'pointer',
-                display: 'flex',
-                alignItems: 'center',
-                gap: 6,
-              }}
-            >
-              Activity Log
-            </button>
-            {showVoteTab && (
-              <button
-                onClick={() => setTab('vote')}
-                style={{
-                  flex: LIST_RIBBON_V2 ? '1 0 auto' : '1 1 auto',
-                  justifyContent: 'center',
-                  background: tab === 'vote' ? COLORS.ember : 'transparent',
-                  color: LIST_RIBBON_V2 ? COLORS.cream : (tab === 'vote' ? COLORS.cream : COLORS.ember),
-                  border: LIST_RIBBON_V2 ? 'none' : `1.5px solid ${COLORS.ember}`,
-                  borderRight: LIST_RIBBON_V2 ? '1px solid rgba(244,237,224,0.18)' : undefined,
-                  padding: LIST_RIBBON_V2 ? '0 14px' : '8px 14px',
-                  height: LIST_RIBBON_V2 ? 42 : undefined,
-                  whiteSpace: LIST_RIBBON_V2 ? 'nowrap' : undefined,
-                  fontFamily: 'DM Mono, monospace',
-                  fontSize: 10,
-                  letterSpacing: '0.18em',
-                  textTransform: 'uppercase',
-                  fontWeight: 700,
-                  cursor: 'pointer',
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: 6,
-                }}
-              >
-                Vote
-              </button>
-            )}
-            <button
-              onClick={() => setTab('share')}
-              style={{
-                flex: LIST_RIBBON_V2 ? '1 0 auto' : '1 1 auto',
-                justifyContent: 'center',
-                background: tab === 'share' ? COLORS.ember : 'transparent',
-                color: LIST_RIBBON_V2 ? COLORS.cream : (tab === 'share' ? COLORS.cream : COLORS.ember),
-                border: LIST_RIBBON_V2 ? 'none' : `1.5px solid ${COLORS.ember}`,
-                borderRight: LIST_RIBBON_V2 ? '1px solid rgba(244,237,224,0.18)' : undefined,
-                padding: LIST_RIBBON_V2 ? '0 14px' : '8px 14px',
-                height: LIST_RIBBON_V2 ? 42 : undefined,
-                whiteSpace: LIST_RIBBON_V2 ? 'nowrap' : undefined,
-                fontFamily: 'DM Mono, monospace',
-                fontSize: 10,
-                letterSpacing: '0.18em',
-                textTransform: 'uppercase',
-                fontWeight: 700,
-                cursor: 'pointer',
-                display: 'flex',
-                alignItems: 'center',
-                gap: 6,
-              }}
-            >
-              <Share2 size={12} strokeWidth={2.5} />
-              Share
-            </button>
-            <button
-              onClick={() => { setComplainSent(false); setComplainOpen(true); }}
-              style={{
-                flex: LIST_RIBBON_V2 ? '1 0 auto' : '1 1 auto',
-                justifyContent: 'center',
-                background: 'transparent',
-                color: LIST_RIBBON_V2 ? COLORS.cream : COLORS.ink,
-                border: LIST_RIBBON_V2 ? 'none' : `1.5px solid ${COLORS.ink}`,
-                padding: LIST_RIBBON_V2 ? '0 14px' : '8px 14px',
-                height: LIST_RIBBON_V2 ? 42 : undefined,
-                whiteSpace: LIST_RIBBON_V2 ? 'nowrap' : undefined,
-                fontFamily: 'DM Mono, monospace',
-                fontSize: 10,
-                letterSpacing: '0.18em',
-                textTransform: 'uppercase',
-                fontWeight: 600,
-                cursor: 'pointer',
-                display: 'flex',
-                alignItems: 'center',
-                gap: 6,
-              }}
-            >
-              <PenLine size={12} strokeWidth={2.5} />
-              Disagree?
-            </button>
+      {!compact && (
+        <div style={{ marginTop: 18 }}>
+          <div style={{ display: 'flex', gap: 6, background: '#eceef1', borderRadius: 10, padding: 4 }}>
+            {[['consensus', 'The Ranking'], ['source', 'Sources'], ['method', 'Methodology'], ['activity', 'Activity']]
+              .filter(([id]) => id !== 'source' || showSourceTab)
+              .map(([id, label]) => (
+                <button key={id} onClick={() => setTab(id)} style={{ flex: 1, border: 'none', background: tab === id ? '#fff' : 'transparent', borderRadius: 7, padding: '9px', fontFamily: "'Manrope', system-ui, sans-serif", fontSize: 13, fontWeight: tab === id ? 700 : 500, color: tab === id ? '#1c1e24' : '#6b7280', cursor: 'pointer', boxShadow: tab === id ? '0 1px 2px rgba(20,22,28,0.06)' : 'none' }}>{label}</button>
+              ))}
+          </div>
+          <div style={{ display: 'flex', gap: 16, marginTop: 10, justifyContent: 'flex-end' }}>
+            <button onClick={() => setTab('share')} style={{ background: 'none', border: 'none', cursor: 'pointer', fontFamily: "'Manrope', system-ui, sans-serif", fontSize: 12.5, fontWeight: 600, color: tab === 'share' ? '#2563eb' : '#6b7280', display: 'flex', alignItems: 'center', gap: 5 }}><Share2 size={13} strokeWidth={2.5} /> Share</button>
+            <button onClick={() => { setComplainSent(false); setComplainOpen(true); }} style={{ background: 'none', border: 'none', cursor: 'pointer', fontFamily: "'Manrope', system-ui, sans-serif", fontSize: 12.5, fontWeight: 600, color: '#6b7280', display: 'flex', alignItems: 'center', gap: 5 }}><PenLine size={13} strokeWidth={2.5} /> Disagree?</button>
+          </div>
         </div>
-        {LIST_RIBBON_V2 && navScroll.left && <span aria-hidden="true" className="sot-listcue sot-listcue-l">&#8249;</span>}
-        {LIST_RIBBON_V2 && navScroll.right && <span aria-hidden="true" className="sot-listcue sot-listcue-r">&#8250;</span>}
-        </div>
-      </>}
+      )}
 
       <div style={{ marginTop: compact ? 5 : 24 }} />
 
@@ -879,234 +696,9 @@ function ListDetail({ list, viewCount, voteData, userVotes, extras, relatedLists
       ) : tab === 'activity' ? (
         <ActivityFeed list={list} voteData={voteData} extras={extras} />
       ) : tab === 'source' && showSourceTab ? (
-        <>
-          {useGroupedLayout ? null : sources.length > 1 ? (
-            <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginBottom: 24 }}>
-              {sources.map((s) => {
-                const active = activeSourceId === s.id;
-                const isConsensus = s.id === 'consensus';
-                const borderColor = isConsensus ? COLORS.ember : COLORS.ink;
-                const activeBg = isConsensus ? COLORS.ember : COLORS.ink;
-                // When a source button is already selected and the source has a
-                // real URL, a second click opens that source in a new tab.
-                const linkable = active && !!s.url && isPublicationLink(s);
-                return (
-                  <button
-                    key={s.id}
-                    onClick={() => {
-                      if (linkable) {
-                        window.open(s.url, '_blank', 'noopener,noreferrer');
-                      } else {
-                        setActiveSourceId(s.id);
-                      }
-                    }}
-                    title={linkable ? `View source: ${s.label}` : undefined}
-                    style={{
-                      background: active ? activeBg : 'transparent',
-                      color: active ? COLORS.cream : (isConsensus ? COLORS.ember : COLORS.ink),
-                      border: `1.5px solid ${borderColor}`,
-                      padding: '10px 16px',
-                      fontFamily: 'DM Mono, monospace',
-                      fontSize: 11,
-                      letterSpacing: '0.12em',
-                      fontWeight: isConsensus ? 700 : 600,
-                      cursor: 'pointer',
-                      transition: 'all 0.15s ease',
-                    }}
-                  >
-                    {s.label}{linkable ? ' ↗' : ''}
-                  </button>
-                );
-              })}
-              {showVoteTab && (
-                <button
-                  onClick={() => setTab('vote')}
-                  style={{
-                    background: COLORS.ember,
-                    color: COLORS.cream,
-                    border: `1.5px solid ${COLORS.ember}`,
-                    padding: '10px 16px',
-                    fontFamily: 'DM Mono, monospace',
-                    fontSize: 11,
-                    letterSpacing: '0.12em',
-                    fontWeight: 700,
-                    cursor: 'pointer',
-                    transition: 'all 0.15s ease',
-                  }}
-                >
-                  User Vote
-                </button>
-              )}
-            </div>
-          ) : (
-            <div
-              style={{
-                fontFamily: 'Fraunces, serif',
-                fontStyle: 'italic',
-                fontSize: 14,
-                color: COLORS.faded,
-                marginBottom: 24,
-                paddingLeft: 14,
-                borderLeft: `2px solid ${COLORS.ember}`,
-              }}
-            >
-              {activeSource?.label || 'Ranked'}
-            </div>
-          )}
-
-          {useGroupedLayout ? (
-            <>
-              {/* All sources side by side as tiled lists; the grid wraps extra
-                  sources down into new rows when the row is full. */}
-              <style>{`.src-tiles{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:14px;align-items:start;}`}</style>
-              <div className="src-tiles">
-                {EXPERT_GROUPS.map((group) =>
-                  expertSources
-                    .filter((s) => expertGroupKey(s) === group.key)
-                    .map((s) => (
-                      <div key={s.id} style={{ border: `1.5px solid ${COLORS.ink}`, background: COLORS.paper }}>
-                        <div
-                          style={{
-                            background: group.color,
-                            color: COLORS.cream,
-                            padding: '9px 12px',
-                            fontFamily: 'DM Mono, monospace',
-                            fontSize: 10,
-                            letterSpacing: '0.08em',
-                            textTransform: 'uppercase',
-                            fontWeight: 700,
-                            lineHeight: 1.4,
-                          }}
-                        >
-                          <div
-                            style={{
-                              fontSize: 8.5,
-                              letterSpacing: '0.18em',
-                              opacity: 0.78,
-                              fontWeight: 600,
-                              marginBottom: 3,
-                            }}
-                          >
-                            {group.title}
-                          </div>
-                          {isPublicationLink(s) ? (
-                            <a
-                              href={s.url}
-                              target="_blank"
-                              rel="noopener noreferrer"
-                              style={{ color: 'inherit', textDecoration: 'underline', textUnderlineOffset: 2 }}
-                            >
-                              {s.label} ↗
-                            </a>
-                          ) : (
-                            s.label
-                          )}
-                        </div>
-                        <ol style={{ margin: 0, padding: 0, listStyle: 'none' }}>
-                          {s.items.map((item, i) => (
-                            <li
-                              key={i}
-                              style={{
-                                display: 'flex',
-                                gap: 8,
-                                alignItems: 'baseline',
-                                padding: '7px 12px',
-                                borderBottom: i === s.items.length - 1 ? 'none' : '1px solid #d8cdb8',
-                              }}
-                            >
-                              <span
-                                style={{
-                                  fontFamily: 'DM Mono, monospace',
-                                  fontSize: 9,
-                                  color: COLORS.faded,
-                                  minWidth: 18,
-                                  textAlign: 'right',
-                                  flexShrink: 0,
-                                }}
-                              >
-                                {s.unordered ? '•' : `${i + 1}.`}
-                              </span>
-                              <span style={{ fontFamily: 'DM Sans, sans-serif', fontSize: 12.5, color: COLORS.ink, lineHeight: 1.35 }}>
-                                {s.id === 'pricing' ? priceDecorate(item, list) : (s.id === 'ai' && list.scores ? scoreDecorate(item, list) : item)}
-                              </span>
-                            </li>
-                          ))}
-                        </ol>
-                      </div>
-                    ))
-                )}
-              </div>
-
-              <p
-                style={{
-                  marginTop: 28,
-                  fontFamily: 'DM Mono, monospace',
-                  fontSize: 10,
-                  letterSpacing: '0.18em',
-                  textTransform: 'uppercase',
-                  color: COLORS.faded,
-                  textAlign: 'center',
-                }}
-              >
-                Every source side by side · tap an underlined source title to open the original
-              </p>
-            </>
-          ) : (
-            <>
-              {/* When viewing an individual expert source (not consensus) under the
-                  grouped layout, show a small caption so the reader knows which
-                  source the ranking below reflects. */}
-              {useGroupedLayout && activeSourceId !== 'consensus' && (
-                <div
-                  style={{
-                    fontFamily: 'Fraunces, serif',
-                    fontStyle: 'italic',
-                    fontSize: 14,
-                    color: COLORS.faded,
-                    marginBottom: 20,
-                    marginTop: -8,
-                    paddingLeft: 14,
-                    borderLeft: `2px solid ${COLORS.ember}`,
-                  }}
-                >
-                  Showing:{' '}
-                  {activeSource?.url && isPublicationLink(activeSource) ? (
-                    <a
-                      href={activeSource.url}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      style={{ color: 'inherit', textDecoration: 'underline', textUnderlineOffset: '2px' }}
-                    >
-                      {activeSource.label || 'Source'}
-                    </a>
-                  ) : (
-                    activeSource?.label || 'Source'
-                  )}
-                </div>
-              )}
-
-              <ol style={{ margin: 0, padding: 0, listStyle: 'none' }}>
-                {(activeSource?.items || []).map((item, i) => (
-                  <DataRow key={i} rank={i + 1} item={item} list={list} unranked={mode === 'unranked' || !!activeSource?.unordered} showPrice={activeSource?.id === 'pricing'} />
-                ))}
-              </ol>
-
-              <p
-                style={{
-                  marginTop: 28,
-                  fontFamily: 'DM Mono, monospace',
-                  fontSize: 10,
-                  letterSpacing: '0.18em',
-                  textTransform: 'uppercase',
-                  color: COLORS.faded,
-                  textAlign: 'center',
-                }}
-              >
-                Tap any entry to see links · affiliate links may earn a commission
-              </p>
-            </>
-          )}
-        </>
+        <SourcesPanel list={list} extras={extras} />
+      ) : tab === 'method' ? (
+        <MethodologyPanel list={list} extras={extras} />
       ) : showVoteTab ? (
         <>
           {voteMessage && (
@@ -2049,14 +1641,12 @@ export default function DetailClient({ listId }) {
     <div
       style={{
         minHeight: '100vh',
-        background: COLORS.cream,
+        background: '#f7f8fa',
         color: COLORS.ink,
         position: 'relative',
         overflow: LIST_RIBBON_V2 ? 'clip' : 'hidden',
       }}
     >
-      <Grain />
-      <div style={{ position: 'relative', zIndex: 3 }}><SiteHeader active="lists" maxWidth={1040} /></div>
       {!loaded ? (
         <div
           style={{
