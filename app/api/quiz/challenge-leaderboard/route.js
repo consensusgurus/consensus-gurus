@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { supabaseAdmin } from '@/lib/supabase-server';
 import { fetchAllRows } from '@/lib/fetch-all';
 import { getChallenge, challengeQuizIds, DEFAULT_CHALLENGE_ID } from '@/lib/challenges';
+import { correctAnswersOf } from '@/lib/quiz-scoring';
 
 export const dynamic = 'force-dynamic';
 export const fetchCache = 'force-no-store';
@@ -48,10 +49,11 @@ export async function GET(request) {
     for (const r of rows) {
       const uid = r.user_id;
       const sc = Number(r.score) || 0;
+      const co = correctAnswersOf(r); // points-quiz aware (timed-mcq -> estimated correct count)
       const tm = Number.isFinite(Number(r.time_elapsed)) ? Number(r.time_elapsed) : Infinity;
       const k = `${uid}::${r.quiz_id}`;
       const cur = best.get(k);
-      if (!cur || sc > cur.score || (sc === cur.score && tm < cur.time)) best.set(k, { score: sc, time: tm });
+      if (!cur || sc > cur.score || (sc === cur.score && tm < cur.time)) best.set(k, { score: sc, correct: co, time: tm });
       const rid = r.id || 0;
       if (rid >= (nameRowId.get(uid) || -1)) { nameRowId.set(uid, rid); nameById.set(uid, r.username || 'Player'); }
     }
@@ -63,9 +65,9 @@ export async function GET(request) {
       const quizId = k.slice(sep + 2);
       let u = byUser.get(uid);
       if (!u) { u = { username: nameById.get(uid) || 'Player', scores: {}, times: {}, totalCorrect: 0, totalTime: 0, quizzesPlayed: 0 }; byUser.set(uid, u); }
-      u.scores[quizId] = v.score;
+      u.scores[quizId] = v.correct;
       u.times[quizId] = Number.isFinite(v.time) ? v.time : 0;
-      u.totalCorrect += v.score;
+      u.totalCorrect += v.correct;
       u.totalTime += Number.isFinite(v.time) ? v.time : 0;
       u.quizzesPlayed += 1;
     }

@@ -178,8 +178,13 @@ export default function StatHubClient() {
           <Link className="back" href="/quizzes"><ArrowLeft size={15} /> Back to Quizzes</Link>
         </div>
 
+        {/* player name */}
+        {found && me.name ? (
+          <h1 style={{ fontSize: 24, fontWeight: 800, letterSpacing: '-0.02em', color: C.ink, margin: '16px 0 0' }}>{me.name}</h1>
+        ) : null}
+
         {/* profile header — leads with OVERALL RANK (largest element) */}
-        <div className="card" style={{ display: 'flex', flexDirection: 'row', alignItems: 'center', flexWrap: 'wrap', gap: 18, padding: '15px 18px', marginTop: 14, overflow: 'visible', position: 'relative', zIndex: 40 }}>
+        <div className="card" style={{ display: 'flex', flexDirection: 'row', alignItems: 'center', flexWrap: 'wrap', gap: 18, padding: '15px 18px', marginTop: 10, overflow: 'visible', position: 'relative', zIndex: 40 }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 18, flexWrap: 'wrap' }}>
             <div style={{ display: 'flex', flexDirection: 'column' }}>
               <span className="lbl">Overall Rank</span>
