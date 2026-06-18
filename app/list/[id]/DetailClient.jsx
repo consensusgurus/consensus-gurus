@@ -583,23 +583,6 @@ function ListDetail({ list, viewCount, voteData, userVotes, extras, relatedLists
           >
             {list.title}
           </h1>
-          <div style={{ flex: 1, minWidth: 120, marginBottom: 6 }}>
-            <div
-              style={{
-                fontFamily: 'DM Mono, monospace',
-                fontSize: 'clamp(9px, 1.1vw, 11px)',
-                letterSpacing: '0.2em',
-                textTransform: 'uppercase',
-                color: COLORS.ember,
-                textAlign: 'right',
-                marginBottom: 8,
-              }}
-            >
-              {list.isUserSubmitted ? 'Reader Submitted · ' : ''}{list.category} · Top {topCount}
-            </div>
-            <div style={{ borderBottom: `1px solid ${COLORS.ink}`, marginBottom: 4 }} />
-            <div style={{ borderBottom: `2px solid ${COLORS.ember}` }} />
-          </div>
         </div>
         <p
           style={{

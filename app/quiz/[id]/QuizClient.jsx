@@ -965,11 +965,6 @@ export default function QuizClient({ quizId }) {
         <div style={{ paddingBottom: 0, marginTop: 8 }}>
           <div style={{ display: 'flex', alignItems: 'flex-end', gap: 'clamp(16px, 4vw, 28px)' }}>
             <h1 style={{ fontFamily: SERIF, fontWeight: 800, fontSize: 'clamp(30px, 5vw, 50px)', lineHeight: 1.02, letterSpacing: '-0.02em', margin: 0, color: COLORS.ink, fontVariationSettings: '"SOFT" 100' }}>{quiz.title}</h1>
-            <div style={{ flex: 1, minWidth: 120, marginBottom: 6 }}>
-              <div style={{ fontFamily: MONO, fontSize: 'clamp(9px, 1.1vw, 11px)', letterSpacing: '0.2em', textTransform: 'uppercase', color: COLORS.ember, textAlign: 'right', marginBottom: 8 }}>{quiz.category} · Quiz</div>
-              <div style={{ borderBottom: `1px solid ${COLORS.ink}`, marginBottom: 4 }} />
-              <div style={{ borderBottom: `2px solid ${COLORS.ember}` }} />
-            </div>
           </div>
           <p style={{ fontFamily: SERIF, fontStyle: 'italic', fontSize: 16, lineHeight: 1.45, margin: '12px 0 0', color: COLORS.faded, maxWidth: 640 }}>{quiz.blurb}</p>
         </div>
