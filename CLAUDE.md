@@ -955,41 +955,66 @@ Never reintroduce a literal `'Top Ten'` in any list header. The `top3` variant c
 
 ---
 
-## List page structure: one tabbed page (owner rule, 2026-06-07)
+## List page structure: one tabbed page (owner rule, 2026-06-07; ranking render rewritten 2026-06-18)
 
-`/list/[id]` is the ONLY list page. Chips under the header switch the content below in place
-(no navigation), in this order: **Consensus** (default; since 2026-06-10 a full-width
-ledger-row layout, see below), **Consensus Sources** (every source side by side), **Activity Log** (the
-activity ledger; renamed in all user-facing copy 2026-06-07, internal names unchanged),
-**Vote**, **Share** (the full share UI: poster designer + downloadable renders, in place), then
-the **Disagree?** modal trigger (user-facing label renamed from "Request Review" 2026-06-10; internal names unchanged). The Activity Ledger renders ONLY in its own tab, never at
-the base of the consensus view. The old `/list/[id]/rankings` page permanently redirects to
-`/list/[id]`; `#sources`, `#vote`, `#activity`, and `#share` hashes survive the redirect and
-open the matching tab. Implementation: `ListDetail` in `DetailClient.jsx` owns the tabs;
-`ListOverview` renders with the `embedded` prop as the Consensus tab's content, and
-`SnapshotClient` renders with its own `embedded` prop (list/voteData/extras passed in, page
-chrome skipped) as the Share tab's content. The standalone `/snapshot/[id]` page still works
-for old links and automations.
+`/list/[id]` is the ONLY list page. Tabs under the header switch the content below in place (no
+navigation), in this exact order and user-facing wording (the unchanged internal tab keys are in
+parentheses): **The Ranking** (`consensus`, default), **Sources** (`source`), **Methodology**
+(`method`), **Activity** (`activity`). Two more controls sit in the header row to the RIGHT, as
+buttons rather than tab chips: **Share** (opens the share UI; `tab === 'share'`, rendered by
+`SnapshotClient` with its `embedded` prop) and the **Disagree?** modal trigger (user-facing label;
+the internal complain / Request-Review machinery and the `#vote` view are unchanged). The Activity
+ledger renders ONLY in its Activity tab. The old `/list/[id]/rankings` page permanently redirects to
+`/list/[id]`; `#sources`, `#vote`, `#activity`, and `#share` hashes survive the redirect and open
+the matching tab. Implementation: `ListDetail` in `DetailClient.jsx` owns the tabs and the page
+container (`maxWidth: 1180`); **the default `consensus` tab renders `RankingView.jsx`** (see next
+section), `SourcesPanel` / `MethodologyPanel` (from `MethodPanels`) render Sources / Methodology,
+`ActivityFeed` renders Activity, and `SnapshotClient` (embedded) renders Share. The standalone
+`/snapshot/[id]` page still works for old links and automations.
 
-### Consensus tab layout: ledger rows at 1040px (owner-approved redesign, 2026-06-10)
+⚠️ The ranking tab no longer renders through `ListOverview` / `LedgerRow` (the layout the prior
+version of this section described, now superseded). `DetailClient` still imports `ListOverview`, but
+its DEFAULT export is no longer the live ranking render. The named export `ListOverviewPoster` (in
+`ListOverview.jsx`) IS still live: it is the SHARE POSTER, rendered by `SnapshotClient`, and still
+uses the `LedgerRow` / `HeroTile` / `SmallTile` ledger layout. So the live ranking page and the
+share poster are now SEPARATE renders with different layouts and palettes (see the mirror note).
 
-The Consensus tab renders the top 10 as full-width **ledger rows** (`LedgerRow` in
-`ListOverview.jsx`), replacing the old HeroTile/SmallTile grid on the live page. The list page
-container (`DetailClient.jsx`) is **1040px wide** (was 920; briefly 1200, owner found it too
-wide on 2026-06-10). Each row: rank numeral (ember for 1-3, faded for 4-10) / hero photo (ranks
-1-3 only, 280px col) / name + locality + FULL description (never truncated) / a right-hand 196px
-action column. Rows carry 14px side padding and 22px column gaps so text and chips never hug
-edges (owner feedback 2026-06-10). The action
-column stacks the chips in this owner-ruled ORDER (2026-06-10): Map-or-Purchase + Website row,
-Rent/Buy affiliate chips (`buyLinks`/`itemBuy`), the pics row, and the ember video chip
-(Portnoy Review etc.) LAST at the bottom. The pics row = an EMBER "Pics:" text label + the
-Yelp/TripAdvisor/Google chips, each chip ALSO carrying an ember camera icon inside it; all
-three elements fit on one line within the action column (TripAdvisor may wrap, acceptable). Ranks
-1-3 close with a heavy 2px rule. Mobile (<=760px) collapses each row to one column and the
-action column to a wrapped row. **The share poster (`ListOverviewPoster`) still uses the
-HeroTile/SmallTile grid** - those components and `LinkRow` exist for the poster only; chip-set
-changes must be applied to BOTH `LinkRow` (poster) and `LedgerRow` (live page) now, the same
-two-mirror discipline as `picsConfig`/`entryPicsConfig`.
+### Ranking tab layout: RankingView.jsx "podium" + rest (Option B, owner-approved 2026-06-18)
+
+The Ranking tab renders through **`app/list/[id]/RankingView.jsx`**, which has its OWN visual
+system, deliberately distinct from the site cream / Fraunces / ember magazine theme: font is
+**Manrope**, accent / primary is **blue `#2563eb`**, cards are **white on a `#f7f8fa` ground**, and
+the rank badges are **gold / silver / bronze medals** (`MEDAL = ['#e8b43a','#b8bcc4','#c8814b']`). A
+local `C` token object holds these colors. When mocking up or extending this page, match THESE
+tokens, not `COLORS` from `lib/data.js` (the first mockup attempt used cream / Fraunces and looked
+nothing like the live page). Container width is 1180px (`DetailClient.jsx`).
+
+Top-3 "podium" treatment is **Option B**, which replaced an earlier text-over-photo overlay the
+owner flagged 2026-06-18 as unreadably murky (name / chips / score were layered on the photo under a
+dark gradient, so a mediocre photo read as muddy). The rule now: photos NEVER carry overlaid text or
+a darkening gradient. Each podium item is a horizontal white card with the **photo in its own frame
+on the left** and the name, consensus score, publication chips, description and action row on white
+to the right. **#1 is the lead card** (full width, ~42% photo column, 24px name); **#2 and #3 are a
+paired compact row below** (`.rv-pgrid`, two equal cards, ~40% photo column, 17px name), collapsing
+to one column with photo-on-top on mobile (`<=680px`, via `.rv-pcard` / `.rv-pphoto`). The medal
+badge sits in the photo's top-left corner. Below the podium, **"The Rest of the Ranking"** renders
+ranks 4-10 as compact rows (rank numeral + name / locality + description for the top 10 + chips +
+action row). A list with fewer than 3 ranked items shows just the lead (plus a single full-width
+second card). This render path also serves `mode: 'facts' / 'scores' / 'unranked' / 'votes'` lists
+(the non-consensus branches inside `RankingView`).
+
+Per-item plumbing is shared with the rest of the site: `RankingView` imports `buildLinks` and
+`picsConfig` from `ListOverview.jsx` (its `ActionRow` builds the Map / Website / Pics + video / buy
+chips the same way), and reads `HERO_IMAGES` / `DESCRIPTIONS` by exact item name. `containHero`
+(product / tech / `heroFit: 'contain'`) still letterboxes the photo on a dark fill.
+
+**Mirror discipline (changed 2026-06-18):** the live ranking page (`RankingView.jsx`) and the share
+poster (`ListOverviewPoster` -> `LedgerRow` / `HeroTile` in `ListOverview.jsx`) are now SEPARATE
+renders. A visual change to the live ranking tab is made in `RankingView.jsx`; a matching change to
+the downloadable / social share image is made separately in `ListOverview.jsx`. They are NOT
+auto-synced, so decide per change whether the poster needs the same treatment. (`picsConfig` in
+`ListOverview` and `entryPicsConfig` in `DetailClient` remain the per-item pics-config helpers; the
+shared link/pics builders `buildLinks` / `picsConfig` are imported by both render paths.)
 
 ---
 
