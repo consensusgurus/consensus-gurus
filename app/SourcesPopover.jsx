@@ -11,7 +11,7 @@ import SourcesGrid from './SourcesGrid';
 // outside click for keyboard and touch users.
 // `emphasis` (V2 homepage): renders the trigger bold with a solid ember
 // underline instead of the default dotted underline. Default unchanged.
-export default function SourcesPopover({ label, emphasis }) {
+export default function SourcesPopover({ label, emphasis, align }) {
   const [open, setOpen] = useState(false);
   const wrapRef = useRef(null);
   const closeTimer = useRef(null);
@@ -82,7 +82,7 @@ export default function SourcesPopover({ label, emphasis }) {
         <>
           <style>{`
             .sot-pop{
-              position:absolute;top:calc(100% + 10px);right:0;left:auto;
+              position:absolute;top:calc(100% + 10px);${align === 'left' ? 'left:0;right:auto;' : 'right:0;left:auto;'}
               z-index:50;width:min(660px,86vw);max-height:62vh;overflow-y:auto;
               background:${COLORS.cream};border:1.5px solid ${COLORS.ink};
               box-shadow:6px 6px 0 ${COLORS.ink};padding:0;text-align:left;cursor:default;

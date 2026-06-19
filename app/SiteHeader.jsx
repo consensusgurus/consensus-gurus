@@ -1,6 +1,7 @@
 'use client';
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
+import SourcesPopover from './SourcesPopover';
 import { getAllSources } from '@/lib/sources';
 import { LISTS } from '@/lib/data';
 import { QUIZZES } from '@/lib/quizzes';
@@ -72,13 +73,13 @@ export default function SiteHeader({ active = 'lists', maxWidth = 1180, visitors
       `}</style>
       <div style={bare ? { padding: '2px 0 0' } : { maxWidth, margin: '0 auto', padding: '16px 24px 0' }}>
         <div className="sh-bar">
-          <Link href="/" className="sh-brand">
-            <Logo size={40} />
-            <span>
-              <span className="sh-word" style={{ display: 'block' }}>Source <span style={{ color: C.accent, fontWeight: 600 }}>of</span> Truths</span>
-              <span style={{ display: 'block', fontSize: 9.5, fontWeight: 800, letterSpacing: '0.18em', textTransform: 'uppercase', color: C.ink, marginTop: 3 }}>Crafting Objectivity from {SOURCE_COUNT.toLocaleString()} Sources</span>
+          <div className="sh-brand">
+            <Link href="/" style={{ flex: 'none', display: 'flex' }} aria-label="Source of Truths home"><Logo size={40} /></Link>
+            <span style={{ display: 'flex', flexDirection: 'column' }}>
+              <Link href="/" className="sh-word" style={{ textDecoration: 'none', color: 'inherit' }}>Source <span style={{ color: C.accent, fontWeight: 600 }}>of</span> Truths</Link>
+              <span style={{ fontSize: 9.5, fontWeight: 800, letterSpacing: '0.18em', textTransform: 'uppercase', color: C.ink, marginTop: 3 }}>Crafting Objectivity from <SourcesPopover align="left" label={`${SOURCE_COUNT.toLocaleString()} Sources`} /></span>
             </span>
-          </Link>
+          </div>
           <div className="sh-right">
             <nav className="sh-nav">
               <Link href="/" className={`sh-navbtn${active === 'lists' ? ' on' : ''}`}>Lists <span className="sh-navct">({LIST_COUNT.toLocaleString()})</span></Link>

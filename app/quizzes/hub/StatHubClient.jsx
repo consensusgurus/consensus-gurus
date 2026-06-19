@@ -2,7 +2,7 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import Link from 'next/link';
 import {
-  ArrowLeft, User, ListChecks, Flame, FunctionSquare, Clock, Trophy, RefreshCw, Share2, Download,
+  ArrowLeft, User, ListChecks, Flame, FunctionSquare, Clock, Trophy, RefreshCw, Share2, Download, UserPlus, X,
 } from 'lucide-react';
 import { QUIZZES, getQuiz } from '@/lib/quizzes';
 import { quizDept as deptOf, DEPT_COLOR, DEPT_LABEL, DEPT_NAV } from '@/lib/quiz-departments';
@@ -83,6 +83,44 @@ const TABS = [
 // Share Stats: a shareable player card (overall rank, skill rating + tier,
 // completed/correct/accuracy with their ranks, top-3 categories) plus a copy
 // link to this player's Stat Hub profile (?player=<key>).
+// Sign-up popup (mirrors the Browse Quizzes one): claim a display name (email
+// optional) so the player's name shows on the leaderboards.
+function SignupModal({ onClose }) {
+  const [u, setU] = useState('');
+  const [em, setEm] = useState('');
+  const [busy, setBusy] = useState(false);
+  const [err, setErr] = useState('');
+  const inp = { width: '100%', boxSizing: 'border-box', border: `1px solid ${C.line}`, borderRadius: 10, padding: '11px 13px', fontFamily: FONT, fontSize: 15, color: C.ink, outline: 'none' };
+  async function submit() {
+    setErr('');
+    if (!u.trim()) { setErr('Pick a display name'); return; }
+    setBusy(true);
+    try {
+      const r = await fetch('/api/quiz/join', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ username: u.trim(), email: em.trim() || undefined, anonId: getAnonId() }) });
+      const d = await r.json();
+      if (d && d.username) {
+        try { localStorage.setItem('sot_quiz_identity', JSON.stringify({ username: d.username, email: d.email || undefined })); } catch (e) {}
+        window.location.reload();
+      } else { setErr((d && d.error) || 'Could not sign up. Try again.'); setBusy(false); }
+    } catch (e) { setErr('Could not sign up. Try again.'); setBusy(false); }
+  }
+  return (
+    <div onClick={onClose} style={{ position: 'fixed', inset: 0, zIndex: 300, background: 'rgba(20,22,28,0.45)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 20, fontFamily: FONT }}>
+      <div onClick={(e) => e.stopPropagation()} style={{ width: 380, maxWidth: '100%', background: '#fff', borderRadius: 14, border: `1px solid ${C.line}`, padding: 22 }}>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 4 }}>
+          <div style={{ fontSize: 18, fontWeight: 800, color: C.ink }}>Claim your name</div>
+          <button onClick={onClose} aria-label="Close" style={{ border: 'none', background: 'transparent', cursor: 'pointer', color: C.soft, display: 'flex' }}><X size={18} /></button>
+        </div>
+        <p style={{ fontSize: 13, color: C.muted, margin: '0 0 16px', lineHeight: 1.5 }}>Pick a display name to appear on the leaderboards. Email is optional, only used to recover your name on another device. No password needed.</p>
+        {err && <div style={{ marginBottom: 12, padding: 10, borderRadius: 8, background: 'rgba(192,57,43,0.08)', border: '1px solid rgba(192,57,43,0.4)', color: '#c0392b', fontSize: 13 }}>{err}</div>}
+        <input value={u} onChange={(e) => setU(e.target.value)} placeholder="Display name" maxLength={40} style={inp} />
+        <input value={em} onChange={(e) => setEm(e.target.value)} placeholder="Email (optional)" maxLength={120} style={{ ...inp, marginTop: 10 }} />
+        <button onClick={submit} disabled={busy} style={{ marginTop: 16, width: '100%', background: C.accent, color: '#fff', border: 'none', borderRadius: 10, padding: '12px', fontFamily: FONT, fontWeight: 700, fontSize: 14, cursor: busy ? 'wait' : 'pointer', opacity: busy ? 0.6 : 1 }}>{busy ? 'Joining…' : 'Join the leaderboard'}</button>
+      </div>
+    </div>
+  );
+}
+
 function ShareStatsModal({ profile, byKey, onClose }) {
   const [copied, setCopied] = useState(false);
   const a = profile.activity || {};
@@ -154,6 +192,7 @@ export default function StatHubClient() {
   const [stats, setStats] = useState([]);     // /api/quiz/stats
   const [totals, setTotals] = useState({ byQuiz: {}, leaders: {}, total: 0, totalTime: 0 });
   const [shareOpen, setShareOpen] = useState(false);
+  const [signupOpen, setSignupOpen] = useState(false);
   const [board, setBoard] = useState(null); // full Elo ranking of every player (incl. anon)
 
   const catalog = useMemo(() => (QUIZZES || []).filter((q) => q && q.id).map((q) => ({
@@ -275,12 +314,28 @@ export default function StatHubClient() {
         {/* profile header — leads with OVERALL RANK (largest element) */}
         <div className="card shpbar" style={{ display: 'flex', flexDirection: 'row', alignItems: 'center', flexWrap: 'wrap', gap: 18, padding: '15px 18px', marginTop: 16, overflow: 'visible', position: 'relative', zIndex: 40 }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 18, flexWrap: 'wrap' }}>
-            {found && profile.name ? <div style={{ fontSize: 22, fontWeight: 800, letterSpacing: '-0.02em', color: C.ink }}>{profile.name}</div> : null}
-            {found && profile.name ? <div style={{ width: 1, height: 50, background: C.line }} /> : null}
+            {viewing ? (
+              profile.name ? (
+                <>
+                  <div style={{ fontSize: 22, fontWeight: 800, letterSpacing: '-0.02em', color: C.ink }}>{profile.name}</div>
+                  <div style={{ width: 1, height: 50, background: C.line }} />
+                </>
+              ) : null
+            ) : (me && me.signed && me.name ? (
+              <>
+                <div style={{ fontSize: 22, fontWeight: 800, letterSpacing: '-0.02em', color: C.ink }}>{me.name}</div>
+                <div style={{ width: 1, height: 50, background: C.line }} />
+              </>
+            ) : (
+              <>
+                <button onClick={() => setSignupOpen(true)} style={{ display: 'inline-flex', alignItems: 'center', gap: 6, background: C.accent, color: '#fff', border: 'none', borderRadius: 9, padding: '9px 14px', fontFamily: FONT, fontWeight: 700, fontSize: 13, cursor: 'pointer', whiteSpace: 'nowrap' }}><UserPlus size={15} /> Sign up</button>
+                <div style={{ width: 1, height: 50, background: C.line }} />
+              </>
+            ))}
             <div style={{ display: 'flex', flexDirection: 'column' }}>
               <span className="lbl">Overall Rank</span>
               <span style={{ fontSize: 42, fontWeight: 800, color: C.accent, lineHeight: 1 }}>{found && profile.rank ? `#${profile.rank}` : '—'}</span>
-              <span style={{ fontSize: 11.5, color: C.muted, marginTop: 3 }}>{found && profile.totalPlayers ? `of ${profile.totalPlayers.toLocaleString()} players` : 'No games on record yet'}</span>
+              <span style={{ fontSize: 11.5, color: C.muted, marginTop: 3 }}>{found && profile.totalPlayers ? `of ${profile.totalPlayers.toLocaleString()} players` : 'Play your first quiz to populate'}</span>
             </div>
             <div style={{ width: 1, height: 50, background: C.line }} />
             <div style={{ display: 'flex', alignItems: 'center', gap: 20, flexWrap: 'wrap' }}>
@@ -320,6 +375,7 @@ export default function StatHubClient() {
       </div>
 
       {shareOpen && found && <ShareStatsModal profile={profile} byKey={byKey} onClose={() => setShareOpen(false)} />}
+      {signupOpen && <SignupModal onClose={() => setSignupOpen(false)} />}
       <Footer />
     </div>
   );
