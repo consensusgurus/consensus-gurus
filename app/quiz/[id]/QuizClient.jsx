@@ -9,6 +9,8 @@ import Grain from '../../Grain';
 import Footer from '../../Footer';
 import Count from '../../Count';
 import SiteHeader from '../../SiteHeader';
+import useIsMobile from './useIsMobile';
+import QuizMobileHeader from './QuizMobileHeader';
 import dynamic from 'next/dynamic';
 
 const MapQuizBoard = dynamic(() => import('./MapQuizBoard'), { ssr: false, loading: () => null });
@@ -219,14 +221,16 @@ export default function QuizClient({ quizId }) {
     );
   }
 
+  const isMobileVP = useIsMobile();
+  const mobile = isMobileVP && !!quiz.mobilePreview;
   if (quiz.format === 'timed-mcq') {
-    return <TimedMcqBoard quizId={quizId} />;
+    return <TimedMcqBoard quizId={quizId} mobile={mobile} />;
   }
   if (quiz.format === 'logic-grid') {
-    return <LogicGridBoard quizId={quizId} />;
+    return <LogicGridBoard quizId={quizId} mobile={mobile} />;
   }
   if (quiz.format === 'grid-fill') {
-    return <GridFillBoard quizId={quizId} />;
+    return <GridFillBoard quizId={quizId} mobile={mobile} />;
   }
   const answers = quiz.answers;
   const matched = quiz.format === 'matched';
@@ -1012,11 +1016,11 @@ export default function QuizClient({ quizId }) {
 
   return (
     <div style={{ minHeight: '100vh', background: COLORS.cream, color: COLORS.ink, position: 'relative', overflowX: 'clip' }}>
-      <div style={{ position: 'relative', zIndex: 2, maxWidth: 1180, margin: '0 auto', padding: '8px 24px 80px' }}>
+      <div style={{ position: 'relative', zIndex: 2, maxWidth: 1180, margin: '0 auto', padding: mobile ? '8px 12px 64px' : '8px 24px 80px' }}>
 
         <style>{`@import url('https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap');`}</style>
 
-        <SiteHeader active="quizzes" bare />
+        {mobile ? <QuizMobileHeader title={quiz.title} /> : <SiteHeader active="quizzes" bare />}
 
         {/* Header */}
         <div style={{ paddingBottom: 0, marginTop: 8 }}>
@@ -1182,7 +1186,7 @@ export default function QuizClient({ quizId }) {
             ) : photoMatchMode ? (
             <PhotoMatchBoard items={quiz.answers} started={started} ended={ended} revealed={revealed} onMatch={onPairMatch} onWrong={onBankWrong} onEnd={onPairEnd} onHint={onPairHint} answerNoun={quiz.noun} stickyTop={stickyTop} />
             ) : pairsMode ? (
-            <MatchQuizBoard pairs={quiz.pairs} started={started} ended={ended} revealed={revealed} onMatch={onPairMatch} onError={onPairError} onEnd={onPairEnd} onHint={onPairHint} leftLabel={quiz.leftLabel} rightLabel={quiz.rightLabel} sortLeft={quiz.sortLeft} />
+            <MatchQuizBoard pairs={quiz.pairs} started={started} ended={ended} revealed={revealed} onMatch={onPairMatch} onError={onPairError} onEnd={onPairEnd} onHint={onPairHint} leftLabel={quiz.leftLabel} rightLabel={quiz.rightLabel} sortLeft={quiz.sortLeft} mobile={mobile} />
             ) : mapMode ? (
             <div>
               <div style={{ position: 'sticky', top: stickyTop, zIndex: 4, display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: 12, background: started && !ended ? COLORS.ink : COLORS.paper, color: started && !ended ? COLORS.cream : COLORS.faded, borderRadius: 10, border: `1px solid ${COLORS.faded}33`, padding: '12px 16px', marginBottom: 10, minHeight: 30 }}>
@@ -1194,7 +1198,7 @@ export default function QuizClient({ quizId }) {
                   </button>
                 )}
               </div>
-              <MapQuizBoard region={quiz.region || 'europe'} noBorders={quiz.noBorders} started={started} ended={ended} revealed={revealed} foundNames={foundNamesSet} flash={flash} onPick={pickCountry} />
+              <MapQuizBoard region={quiz.region || 'europe'} noBorders={quiz.noBorders} started={started} ended={ended} revealed={revealed} foundNames={foundNamesSet} flash={flash} onPick={pickCountry} mobile={mobile} />
             </div>
             ) : logosMode ? (
             <ul style={{ margin: 0, padding: 0, listStyle: 'none', display: 'grid', gridTemplateColumns: `repeat(auto-fill, minmax(${tallTiles || squareTiles ? 134 : 112}px, 1fr))`, gap: 8 }}>
@@ -1646,7 +1650,7 @@ export default function QuizClient({ quizId }) {
         </div>
       )}
 
-      <Footer />
+      {!mobile && <Footer />}
     </div>
   );
 }

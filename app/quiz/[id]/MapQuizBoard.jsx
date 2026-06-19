@@ -39,10 +39,11 @@ const SIZES = {
 const SIZE_ORDER = ['fit', 'lg', 'xl'];
 const SIZE_KEY = 'sot_map_size';
 
-export default function MapQuizBoard({ region, started, ended, revealed, foundNames, flash, onPick, noBorders: noBordersProp }) {
+export default function MapQuizBoard({ region, started, ended, revealed, foundNames, flash, onPick, noBorders: noBordersProp, mobile = false }) {
   const [geo, setGeo] = useState(null);
   const [hover, setHover] = useState(null);
   const [size, setSize] = useState('lg');
+  const isMobile = mobile;
 
   // Restore the saved size preference (ssr:false, so localStorage is safe;
   // read in an effect to avoid a hydration mismatch).
@@ -92,12 +93,15 @@ export default function MapQuizBoard({ region, started, ended, revealed, foundNa
   // Full-bleed for the larger presets: center on the viewport and break out of
   // the play column; the page scrolls vertically if the map is tall. 'Fit'
   // keeps the original centered cap.
-  const wrapStyle = sz.bleed
+  const wrapStyle = isMobile
+    ? { width: '100%' }
+    : sz.bleed
     ? { width: sz.width, maxWidth: '96vw', position: 'relative', left: '50%', transform: 'translateX(-50%)' }
     : { maxWidth: 680, margin: '0 auto' };
 
   return (
     <div>
+      {!isMobile && (
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: 6, marginBottom: 8 }}>
         <span style={{ fontFamily: "'Manrope', system-ui, sans-serif", fontSize: 10, fontWeight: 700, letterSpacing: '0.12em', textTransform: 'uppercase', color: '#9aa0ab', marginRight: 2 }}>Map size</span>
         {SIZE_ORDER.map((s) => {
@@ -119,6 +123,7 @@ export default function MapQuizBoard({ region, started, ended, revealed, foundNa
           );
         })}
       </div>
+      )}
       <div style={{ ...wrapStyle, border: '1px solid rgba(138,130,118,0.25)', borderRadius: 2, overflow: 'hidden', background: SEA }}>
       <svg
         viewBox={geo.viewBox}
@@ -149,7 +154,7 @@ export default function MapQuizBoard({ region, started, ended, revealed, foundNa
           );
         })}
         {geo.markers.map((m) => {
-          const s = 9;
+          const s = isMobile ? 13 : 9;
           // A marker with lx/ly is a callout: the clickable box is pulled out
           // into open water at (lx,ly) and a leader line ties it back to the
           // island's true location (x,y), where a small anchor dot sits. This

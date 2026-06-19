@@ -39,7 +39,7 @@ function shuffle(arr) {
   return a;
 }
 
-export default function MatchQuizBoard({ pairs, started, ended, revealed, onMatch, onError, onEnd, onHint, leftLabel, rightLabel, sortLeft }) {
+export default function MatchQuizBoard({ pairs, started, ended, revealed, onMatch, onError, onEnd, onHint, leftLabel, rightLabel, sortLeft, mobile = false }) {
   // index i is the canonical pair id: pairs[i] === [answer, clue].
   // Left column = clues (pairs[i][1]); right column = answers (pairs[i][0]).
   const leftOrder = useMemo(
@@ -162,7 +162,7 @@ export default function MatchQuizBoard({ pairs, started, ended, revealed, onMatc
         </div>
       )}
 
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14, alignItems: 'start' }}>
+      <div style={{ display: 'grid', gridTemplateColumns: mobile ? '1fr' : '1fr 1fr', gap: 14, alignItems: 'start' }}>
         <div style={{ ...panel, background: LEFT_PANEL, borderTop: `3px solid ${COLORS.ember}` }}>
           <div style={{ ...colHead, color: COLORS.ember }}>{lLabel}{sortLeft ? ' (A–Z)' : ''}</div>
           <div className="mqb-cols">

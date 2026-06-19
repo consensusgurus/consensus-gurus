@@ -17,6 +17,7 @@ import { getQuiz } from '@/lib/quizzes';
 import Grain from '../../Grain';
 import Footer from '../../Footer';
 import SiteHeader from '../../SiteHeader';
+import QuizMobileHeader from './QuizMobileHeader';
 import Count from '../../Count';
 
 const COLORS = {
@@ -114,7 +115,7 @@ function percentile(score, total) {
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
-export default function GridFillBoard({ quizId }) {
+export default function GridFillBoard({ quizId, mobile = false }) {
   const router = useRouter();
   const quiz = useMemo(() => getQuiz(quizId), [quizId]);
 
@@ -386,7 +387,7 @@ export default function GridFillBoard({ quizId }) {
   // in done mode every cell shows its label, missed ones in rust.
   function Block({ col }) {
     return (
-      <div style={{ flex: '0 0 calc(20% - 8px)', minWidth: 132, background: COLORS.paper, borderRadius: 10, border: `1px solid ${COLORS.faded}44`, borderRadius: 4, padding: '6px 7px 4px' }}>
+      <div style={{ flex: mobile ? '0 0 calc(50% - 6px)' : '0 0 calc(20% - 8px)', minWidth: mobile ? 0 : 132, background: COLORS.paper, borderRadius: 10, border: `1px solid ${COLORS.faded}44`, borderRadius: 4, padding: '6px 7px 4px' }}>
         <div style={{ fontFamily: MONO, fontWeight: 700, fontSize: 15, textAlign: 'center', color: COLORS.ink, borderBottom: `2px solid #4d6b8a`, paddingBottom: 4, marginBottom: 3 }}>{col.year}</div>
         {(col.items || []).map((it, i) => {
           const got = found.has(it.id);
@@ -410,8 +411,8 @@ export default function GridFillBoard({ quizId }) {
   return (
     <div style={{ minHeight: '100vh', background: COLORS.cream, color: COLORS.ink, position: 'relative', overflow: 'clip' }}>
       <Grain />
-      <div style={{ position: 'relative', zIndex: 3 }}><SiteHeader active="quizzes" /></div>
-      <div style={{ position: 'relative', zIndex: 2, maxWidth: 1180, margin: '0 auto', padding: '8px 24px 80px' }}>
+      {mobile ? <QuizMobileHeader title={quiz.title} /> : <div style={{ position: 'relative', zIndex: 3 }}><SiteHeader active="quizzes" /></div>}
+      <div style={{ position: 'relative', zIndex: 2, maxWidth: 1180, margin: '0 auto', padding: mobile ? '8px 12px 64px' : '8px 24px 80px' }}>
 
         <style>{`@import url('https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap');`}</style>
 
@@ -453,7 +454,7 @@ export default function GridFillBoard({ quizId }) {
             {/* Sticky top: the scoreboard + live input pin to the top of the viewport */}
             <div style={{ position: 'sticky', top: 0, zIndex: 24, background: COLORS.cream, paddingTop: 6, paddingBottom: 8, marginBottom: 8 }}>
             {/* Scoreboard */}
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', alignItems: 'center', background: COLORS.paper, borderRadius: 10, border: `1px solid ${COLORS.faded}33`, padding: '16px 8px', marginBottom: 0 }}>
+            <div style={{ display: 'grid', gridTemplateColumns: mobile ? 'repeat(2, 1fr)' : 'repeat(4, 1fr)', alignItems: 'center', background: COLORS.paper, borderRadius: 10, border: `1px solid ${COLORS.faded}33`, padding: '16px 8px', marginBottom: 0 }}>
               <div style={{ textAlign: 'center', padding: '0 8px' }}>
                 <div style={{ fontFamily: SERIF, fontWeight: 800, fontSize: 32, lineHeight: 1 }}>{score}<span style={{ fontSize: 19, color: COLORS.faded }}>/{totalCells}</span></div>
                 <div style={{ fontFamily: MONO, fontSize: 10, letterSpacing: '0.1em', textTransform: 'uppercase', color: COLORS.faded }}>Cells</div>
@@ -713,7 +714,7 @@ export default function GridFillBoard({ quizId }) {
         </div>
       )}
 
-      <Footer />
+      {!mobile && <Footer />}
     </div>
   );
 }

@@ -17,6 +17,7 @@ import { quizDept as deptOf, DEPT_LABEL } from '@/lib/quiz-departments';
 import Grain from '../../Grain';
 import Footer from '../../Footer';
 import SiteHeader from '../../SiteHeader';
+import QuizMobileHeader from './QuizMobileHeader';
 import Count from '../../Count';
 
 const COLORS = {
@@ -89,7 +90,7 @@ function percentile(points, max) {
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const TICK_MS = 80;
 
-export default function TimedMcqClient({ quizId }) {
+export default function TimedMcqClient({ quizId, mobile = false }) {
   const router = useRouter();
   const quiz = useMemo(() => getQuiz(quizId), [quizId]);
 
@@ -438,8 +439,8 @@ export default function TimedMcqClient({ quizId }) {
 
   return (
     <div style={{ minHeight: '100vh', background: COLORS.cream, color: COLORS.ink, position: 'relative', overflow: 'clip' }}>
-      <div style={{ position: 'relative', zIndex: 3 }}><SiteHeader active="quizzes" /></div>
-      <div style={{ position: 'relative', zIndex: 2, maxWidth: 1180, margin: '0 auto', padding: '8px 24px 80px' }}>
+      {mobile ? <QuizMobileHeader title={quiz.title} /> : <div style={{ position: 'relative', zIndex: 3 }}><SiteHeader active="quizzes" /></div>}
+      <div style={{ position: 'relative', zIndex: 2, maxWidth: 1180, margin: '0 auto', padding: mobile ? '8px 12px 64px' : '8px 24px 80px' }}>
 
         <style>{`@import url('https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap');`}</style>
 
@@ -839,7 +840,7 @@ export default function TimedMcqClient({ quizId }) {
         </div>
       )}
 
-      <Footer />
+      {!mobile && <Footer />}
     </div>
   );
 }
