@@ -229,9 +229,58 @@ function parentIdFor(filterId) {
 function listInCategory(list, catId) {
   const cat = CAT_BY_ID[catId];
   if (!cat || cat.id === 'all' || !cat.any) return true;
+  // Broad-bucket overrides (owner rule, 2026-06-19) win over the raw tag set so a
+  // list lands in exactly one browse bucket. See overrideBucket below.
+  const ob = overrideBucket(list);
+  if (ob) return ob === catId;
   const tags = getListTags(list);
   if (cat.not && cat.not.some((t) => tags.includes(t))) return false;
   return cat.any.some((t) => tags.includes(t));
+}
+
+// Broad browse-bucket overrides (owner rule, 2026-06-19) win over the raw tag
+// set so each list lands in exactly one broad bucket:
+//   - Products: anything with an Amazon ASIN product link OR a product/tech tag,
+//     EXCEPT movies, music, and books (those stay Entertainment).
+//   - Miscellaneous: fast-food/casual chain menu-item lists and residential
+//     "suburbs" exclusivity lists (e.g. Most Exclusive Boston Suburbs).
+//   - Media (movies/music/books) carrying a stray product/tech tag is forced
+//     back to Entertainment so it never sits under Products.
+// A null return falls through to the default tag logic so nothing else changes.
+function isAmazonProductList(list) {
+  if (list.linkType === 'amazon') return true;
+  const links = list.links || {};
+  for (const k in links) {
+    if (/amazon\.[a-z.]+\/(dp|gp\/product)\//i.test(links[k] || '')) return true;
+  }
+  return false;
+}
+// Movies / music / books. Cookbooks are intentionally NOT treated as media
+// (owner ruling 2026-06-19: cookbook lists stay under Products).
+function isMediaList(list) {
+  const t = ttext(list);
+  const c = list.category || '';
+  if (list.linkType === 'imdb') return true;
+  if (/\bfilms?\b|\bmovies?\b|cinema|directed by|\bdirector\b|\btv\b|television|\bhbo\b|sitcom|docuseries|miniseries/.test(t)) return true;
+  if (['Film', 'Cinema', 'TV', 'Television', 'True Crime'].includes(c) || /^Movies/.test(c)) return true;
+  if (/\bsongs?\b|\balbums?\b|soundtracks?\b|\bmusic\b/.test(t)) return true;
+  if (/\bbooks?\b|\bnovels?\b|memoirs?|biograph|\bfiction\b|nonfiction|non-fiction|poetry/.test(t)) return true;
+  if (c === 'Books') return true;
+  return false;
+}
+// Residential exclusivity lists (e.g. "Most Exclusive Boston Suburbs"). Scoped
+// to the word "suburb" so resort/college/beach TOWN lists stay under Travel.
+function isResidentialSuburbList(list) {
+  return /\bsuburbs?\b/.test(ttext(list));
+}
+function overrideBucket(list) {
+  if (isChainRestaurantList(list) || isResidentialSuburbList(list)) return 'misc';
+  if (isMediaList(list)) {
+    if (listHasTag(list, 'product') || listHasTag(list, 'tech')) return 'entertainment';
+    return null;
+  }
+  if (listHasTag(list, 'product') || listHasTag(list, 'tech') || isAmazonProductList(list)) return 'shops';
+  return null;
 }
 
 // ── Narrow browse filters (mega-menu) ───────────────────────────────────────────
@@ -662,7 +711,11 @@ function Home({ lists, viewCounts, voteData, extras, trending = {}, openList, on
       // gridCols is 0 before the grid is measured (server + first paint); assume
       // a 4-wide desktop grid until then so SSR and first client render match.
       const cols = gridCols > 0 ? gridCols : 4;
-      const leadCount = Math.min(2 * cols, order.length);
+      // Reserve the opening two desktop rows (2 * cols) for eating/lodging leads.
+      // On a single-column mobile layout that would be only 2 tiles, so floor the
+      // reservation at 7 so the first ~7 mobile slides follow the same lead rule
+      // (owner rule, 2026-06-19). Wider grids already exceed 7, so unchanged.
+      const leadCount = Math.min(Math.max(2 * cols, 7), order.length);
       for (let i = 0; i < leadCount; i++) {
         if (leadEligible(order[i])) continue;
         const j = order.findIndex((l, k) => k > i && leadEligible(l));

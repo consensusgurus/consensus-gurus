@@ -409,10 +409,16 @@ export default function QuizHomeClient() {
     .qzh .ddbtn{display:flex;align-items:center;gap:8px;background:#fff;border:1px solid ${C.line};border-radius:10px;padding:9px 12px;cursor:pointer;font:inherit;}
     .qzh .ddmenu{position:absolute;top:calc(100% + 6px);right:0;z-index:30;background:#fff;border:1px solid ${C.line};border-radius:10px;box-shadow:0 8px 24px rgba(20,22,28,0.12);padding:6px;min-width:430px;display:grid;grid-template-columns:1fr 1fr;gap:1px 4px;}
     .qzh .ddmenu .ddall{grid-column:1 / -1;}
+    @media(max-width:560px){.qzh .ddmenu{min-width:0;width:100%;left:0;right:auto;grid-template-columns:1fr;max-width:calc(100vw - 32px);}}
     .qzh .dditem{display:flex;align-items:center;gap:9px;padding:7px 9px;border-radius:7px;cursor:pointer;font-size:13px;}
     .qzh .dditem:hover{background:${C.bg};}
     .qzh .dot{width:9px;height:9px;border-radius:3px;flex:none;}
-    .qzh .boards{display:grid;grid-template-columns:1fr 2fr;gap:12px;align-items:stretch;margin-bottom:22px;}
+    .qzh .boards{display:grid;grid-template-columns:2fr 1fr;gap:12px;align-items:stretch;margin-bottom:22px;}
+    /* Last-played feed (2nd card) sits on the wide LEFT track; the ranking
+       leaderboard (1st card) moves to the narrow RIGHT track. On mobile the
+       single column stacks by order, so last-played shows before ranking. */
+    .qzh .boards > .card:first-child{order:2;}
+    .qzh .boards > .card:nth-child(2){order:1;}
     @media(max-width:680px){.qzh .boards{grid-template-columns:1fr;}}
     .qzh .qcols{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:6px 26px;}
     .qzh .qfull{column-count:2;column-gap:26px;}
@@ -462,7 +468,7 @@ export default function QuizHomeClient() {
             )}
           </div>
           <div className="qz-stats" style={{ display: 'flex', gap: 22, marginLeft: 'auto', flexWrap: 'wrap' }}>
-            <div><div style={{ display: 'flex', alignItems: 'baseline', gap: 4 }}><span style={{ fontSize: 17, fontWeight: 700 }}>{playerStats && playerStats.completed != null ? playerStats.completed : '—'}</span>{playerStats && playerStats.completed != null && totalCount ? <span style={{ fontSize: 11, fontWeight: 600, color: C.soft }}>({playerStats.completed > 0 && playerStats.completed / totalCount < 0.005 ? '<1' : Math.round((playerStats.completed / totalCount) * 100)}%)</span> : null}</div><div className="lbl">completed</div></div>
+            <div><div style={{ display: 'flex', alignItems: 'baseline', gap: 4 }}><span style={{ fontSize: 17, fontWeight: 700 }}>{playerStats && playerStats.completed != null ? playerStats.completed : '—'}</span>{playerStats && playerStats.completed != null && scopeCount ? <span style={{ fontSize: 11, fontWeight: 600, color: C.soft }}>({playerStats.completed > 0 && playerStats.completed / scopeCount < 0.005 ? '<1' : Math.round((playerStats.completed / scopeCount) * 100)}%)</span> : null}</div><div className="lbl">completed</div></div>
             <div><div style={{ fontSize: 17, fontWeight: 700 }}>{playerStats && playerStats.played != null ? playerStats.played : '—'}</div><div className="lbl">played</div></div>
             <div><div style={{ fontSize: 17, fontWeight: 700 }}>{playerStats && playerStats.correct != null ? playerStats.correct.toLocaleString() : '—'}</div><div className="lbl">correct</div></div>
             <div><div style={{ fontSize: 17, fontWeight: 700 }}>{playerStats && playerStats.accuracy != null ? `${playerStats.accuracy}%` : '—'}</div><div className="lbl">accuracy</div></div>

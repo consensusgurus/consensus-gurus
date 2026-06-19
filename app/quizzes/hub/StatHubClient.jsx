@@ -401,6 +401,15 @@ const CAT_COLS = [
   { key: 'rating', label: 'Skill Rating', align: 'right', get: (c, cr) => cr.rating, chip: 'rank' },
 ];
 
+// Share of a quiz pool a player has aced (completed / pool size). Used in the
+// Category table's Completed column, scoped per-category (overall row uses the
+// whole catalog, each category row uses that category's quiz count).
+function completedPct(n, d) {
+  if (!d || n == null) return '';
+  if (n > 0 && n / d < 0.005) return '<1%';
+  return `${Math.round((n / d) * 100)}%`;
+}
+
 // ─── Player tab ─────────────────────────────────────────────────────────────
 function Metric({ label, value, sub, rank, total, avg }) {
   return (
@@ -493,7 +502,7 @@ function PlayerPanel({ me, scope, cats, byKey, totalQuizzes, board, myName, myAn
                     <td style={{ fontWeight: 800, whiteSpace: 'nowrap' }}>Overall</td>
                     <td style={{ textAlign: 'right', whiteSpace: 'nowrap' }}><b>{a.correct.toLocaleString()}</b><RankChip rank={ranks.correct} />{base.correct != null ? <div style={{ fontSize: 9.5, color: C.muted }}>avg {base.correct.toLocaleString()}</div> : null}</td>
                     <td style={{ textAlign: 'right', whiteSpace: 'nowrap' }}><b>{a.played.toLocaleString()}</b><RankChip rank={ranks.played} />{base.played != null ? <div style={{ fontSize: 9.5, color: C.muted }}>avg {base.played.toLocaleString()}</div> : null}</td>
-                    <td style={{ textAlign: 'right', whiteSpace: 'nowrap' }}><b>{a.completed.toLocaleString()}</b><RankChip rank={ranks.completed} />{base.completed != null ? <div style={{ fontSize: 9.5, color: C.muted }}>avg {base.completed.toLocaleString()}</div> : null}</td>
+                    <td style={{ textAlign: 'right', whiteSpace: 'nowrap' }}><b>{a.completed.toLocaleString()}</b>{totalQuizzes ? <span style={{ fontSize: 10, color: C.soft, marginLeft: 4 }}>({completedPct(a.completed, totalQuizzes)})</span> : null}<RankChip rank={ranks.completed} />{base.completed != null ? <div style={{ fontSize: 9.5, color: C.muted }}>avg {base.completed.toLocaleString()}</div> : null}</td>
                     <td style={{ textAlign: 'right', whiteSpace: 'nowrap' }}><b>{a.accuracy}%</b><RankChip rank={ranks.accuracy} />{base.accuracy != null ? <div style={{ fontSize: 9.5, color: C.muted }}>avg {base.accuracy}%</div> : null}</td>
                     <td style={{ textAlign: 'right', whiteSpace: 'nowrap' }}><b>{a.daysPlayed || 0}</b><RankChip rank={ranks.daysPlayed} />{base.daysPlayed != null ? <div style={{ fontSize: 9.5, color: C.muted }}>avg {base.daysPlayed.toLocaleString()}</div> : null}</td>
                     <td className="score" style={{ textAlign: 'right', color: C.accent, whiteSpace: 'nowrap' }}><b>{(me.rating || 1500).toLocaleString()}</b><RankChip rank={ranks.rating} total={totalPlayers} />{base.rating != null ? <div style={{ fontSize: 9.5, color: C.muted }}>avg {base.rating.toLocaleString()}</div> : null}</td>
@@ -507,7 +516,7 @@ function PlayerPanel({ me, scope, cats, byKey, totalQuizzes, board, myName, myAn
                       <td style={{ fontWeight: 600, whiteSpace: 'nowrap' }}><span className="dot" style={{ background: c.c, display: 'inline-block', marginRight: 8, verticalAlign: 'middle' }} />{c.label}</td>
                       <td style={{ textAlign: 'right', color: muted ? C.soft : C.ink, whiteSpace: 'nowrap' }}>{cr ? cr.correct.toLocaleString() : '\u2014'}{cr && cr.correctRank ? <RankChip rank={cr.correctRank} /> : null}</td>
                       <td style={{ textAlign: 'right', color: muted ? C.soft : C.ink, whiteSpace: 'nowrap' }}>{cr ? (cr.played != null ? cr.played : cr.matches) : '\u2014'}{cr && cr.playedRank ? <RankChip rank={cr.playedRank} /> : null}</td>
-                      <td style={{ textAlign: 'right', color: muted ? C.soft : C.ink, whiteSpace: 'nowrap' }}>{cr ? cr.completed : '\u2014'}{cr && cr.completedRank ? <RankChip rank={cr.completedRank} /> : null}</td>
+                      <td style={{ textAlign: 'right', color: muted ? C.soft : C.ink, whiteSpace: 'nowrap' }}>{cr ? <>{cr.completed}{c.count ? <span style={{ fontSize: 10, color: C.soft, marginLeft: 4 }}>({completedPct(cr.completed, c.count)})</span> : null}</> : '\u2014'}{cr && cr.completedRank ? <RankChip rank={cr.completedRank} /> : null}</td>
                       <td style={{ textAlign: 'right', color: muted ? C.soft : C.ink, whiteSpace: 'nowrap' }}>{cr ? `${cr.accuracy}%` : '\u2014'}{cr && cr.accuracyRank ? <RankChip rank={cr.accuracyRank} /> : null}</td>
                       <td style={{ textAlign: 'right', color: muted ? C.soft : C.ink, whiteSpace: 'nowrap' }}>{cr ? (cr.daysPlayed || 0) : '\u2014'}{cr && cr.daysRank ? <RankChip rank={cr.daysRank} /> : null}</td>
                       <td className="score" style={{ textAlign: 'right', color: muted ? C.soft : C.accent, whiteSpace: 'nowrap' }}>{cr ? cr.rating.toLocaleString() : '\u2014'}{cr && cr.rank ? <RankChip rank={cr.rank} total={cr.catTotal} /> : null}</td>
