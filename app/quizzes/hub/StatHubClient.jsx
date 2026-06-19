@@ -299,7 +299,7 @@ export default function StatHubClient() {
 .qzhub .metric-lbl{display:flex;justify-content:space-between;align-items:center;gap:6px;flex-wrap:nowrap;}
     @media(max-width:600px){.qzhub .metric-lbl{flex-wrap:wrap;}}
     @media(max-width:680px){.qzhub .rgrid{grid-template-columns:1fr !important;}}
-    @media(max-width:560px){.qzhub .shpbar{gap:10px 12px !important;padding:13px 14px !important;}.qzhub .shpbar-share{margin-left:0 !important;width:100% !important;justify-content:center !important;}}
+    @media(max-width:560px){.qzhub .shpbar{gap:8px 12px !important;padding:13px 14px !important;}.qzhub .shpbar-id{order:1;}.qzhub .shpbar-share{order:2;margin-left:auto !important;width:auto !important;padding:8px 13px !important;}.qzhub .shpbar-iddiv,.qzhub .shpbar-maindiv{display:none !important;}.qzhub .shpbar-main{order:3;flex-basis:100% !important;width:100% !important;}}
   `;
 
   return (
@@ -313,39 +313,35 @@ export default function StatHubClient() {
 
         {/* profile header — leads with OVERALL RANK (largest element) */}
         <div className="card shpbar" style={{ display: 'flex', flexDirection: 'row', alignItems: 'center', flexWrap: 'wrap', gap: 18, padding: '15px 18px', marginTop: 16, overflow: 'visible', position: 'relative', zIndex: 40 }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 18, flexWrap: 'wrap' }}>
-            {viewing ? (
-              profile.name ? (
-                <>
+          {(viewing ? profile.name : true) ? (
+            <>
+              <div className="shpbar-id" style={{ display: 'flex', alignItems: 'center', minWidth: 0 }}>
+                {viewing ? (
                   <div style={{ fontSize: 22, fontWeight: 800, letterSpacing: '-0.02em', color: C.ink }}>{profile.name}</div>
-                  <div style={{ width: 1, height: 50, background: C.line }} />
-                </>
-              ) : null
-            ) : (me && me.signed && me.name ? (
-              <>
-                <div style={{ fontSize: 22, fontWeight: 800, letterSpacing: '-0.02em', color: C.ink }}>{me.name}</div>
-                <div style={{ width: 1, height: 50, background: C.line }} />
-              </>
-            ) : (
-              <>
-                <button onClick={() => setSignupOpen(true)} style={{ display: 'inline-flex', alignItems: 'center', gap: 6, background: C.accent, color: '#fff', border: 'none', borderRadius: 9, padding: '9px 14px', fontFamily: FONT, fontWeight: 700, fontSize: 13, cursor: 'pointer', whiteSpace: 'nowrap' }}><UserPlus size={15} /> Sign up</button>
-                <div style={{ width: 1, height: 50, background: C.line }} />
-              </>
-            ))}
+                ) : (me && me.signed && me.name ? (
+                  <div style={{ fontSize: 22, fontWeight: 800, letterSpacing: '-0.02em', color: C.ink }}>{me.name}</div>
+                ) : (
+                  <button onClick={() => setSignupOpen(true)} style={{ display: 'inline-flex', alignItems: 'center', gap: 6, background: C.accent, color: '#fff', border: 'none', borderRadius: 9, padding: '9px 14px', fontFamily: FONT, fontWeight: 700, fontSize: 13, cursor: 'pointer', whiteSpace: 'nowrap' }}><UserPlus size={15} /> Sign up</button>
+                ))}
+              </div>
+              <div className="shpbar-iddiv" style={{ width: 1, height: 50, background: C.line }} />
+            </>
+          ) : null}
+          <div className="shpbar-main" style={{ display: 'flex', alignItems: 'center', gap: 20, flexWrap: 'wrap' }}>
             <div style={{ display: 'flex', flexDirection: 'column' }}>
               <span className="lbl">Overall Rank</span>
-              <span style={{ fontSize: 42, fontWeight: 800, color: C.accent, lineHeight: 1 }}>{found && profile.rank ? `#${profile.rank}` : '—'}</span>
+              <span style={{ fontSize: 42, fontWeight: 800, color: C.accent, lineHeight: 1 }}>{found && profile.rank ? `#${profile.rank}` : '\u2014'}</span>
               <span style={{ fontSize: 11.5, color: C.muted, marginTop: 3 }}>{found && profile.totalPlayers ? `of ${profile.totalPlayers.toLocaleString()} players` : 'Play your first quiz to populate'}</span>
             </div>
-            <div style={{ width: 1, height: 50, background: C.line }} />
+            <div className="shpbar-maindiv" style={{ width: 1, height: 50, background: C.line }} />
             <div style={{ display: 'flex', alignItems: 'center', gap: 20, flexWrap: 'wrap' }}>
               <div>
                 <div className="lbl">Skill Rating</div>
-                <div style={{ fontSize: 21, fontWeight: 800, color: C.ink }}>{found ? rating.toLocaleString() : '—'}{found ? <span style={{ background: tierBg, color: tierFg, fontSize: 10, fontWeight: 700, padding: '2px 7px', borderRadius: 5, verticalAlign: 2, marginLeft: 6 }}>{(tierLabel || '').replace(/ Tier$/, '')}</span> : null}</div>
+                <div style={{ fontSize: 21, fontWeight: 800, color: C.ink }}>{found ? rating.toLocaleString() : '\u2014'}{found ? <span style={{ background: tierBg, color: tierFg, fontSize: 10, fontWeight: 700, padding: '2px 7px', borderRadius: 5, verticalAlign: 2, marginLeft: 6 }}>{(tierLabel || '').replace(/ Tier$/, '')}</span> : null}</div>
               </div>
-              <ChipMetric label="Completed" value={found ? profile.activity.completed : '—'} rank={found && profile.ranks ? profile.ranks.completed : null} />
-              <ChipMetric label="Correct" value={found ? profile.activity.correct.toLocaleString() : '—'} rank={found && profile.ranks ? profile.ranks.correct : null} />
-              <ChipMetric label="Accuracy" value={found ? `${profile.activity.accuracy}%` : '—'} rank={found && profile.ranks ? profile.ranks.accuracy : null} />
+              <ChipMetric label="Completed" value={found ? profile.activity.completed : '\u2014'} rank={found && profile.ranks ? profile.ranks.completed : null} />
+              <ChipMetric label="Correct" value={found ? profile.activity.correct.toLocaleString() : '\u2014'} rank={found && profile.ranks ? profile.ranks.correct : null} />
+              <ChipMetric label="Accuracy" value={found ? `${profile.activity.accuracy}%` : '\u2014'} rank={found && profile.ranks ? profile.ranks.accuracy : null} />
             </div>
           </div>
           {found ? (
