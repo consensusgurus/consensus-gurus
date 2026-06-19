@@ -89,11 +89,11 @@ function RequestView({ onSubmit }) {
   `;
 
   return (
-    <div className="req" style={{ maxWidth: 1040, margin: '0 auto', padding: '4px 24px 80px' }}>
+    <div className="req" style={{ maxWidth: 1180, margin: '0 auto', padding: '24px 24px 80px' }}>
       <style>{css}</style>
 
-      <div style={{ borderBottom: `1px solid ${C.line}`, paddingBottom: 22, marginTop: 2, marginBottom: 28 }}>
-        <div style={{ fontSize: 11, fontWeight: 800, letterSpacing: '.14em', textTransform: 'uppercase', color: C.accent, marginBottom: 10 }}>Letter to the Editor</div>
+      <div style={{ borderBottom: `1px solid ${C.line}`, paddingBottom: 22, marginBottom: 28 }}>
+        <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: '.14em', textTransform: 'uppercase', color: C.accent, marginBottom: 12 }}>Letter to the Editor</div>
         <h1 style={{ fontSize: 'clamp(30px, 6vw, 44px)', fontWeight: 800, letterSpacing: '-0.02em', lineHeight: 1.05, margin: 0 }}>Request a list or quiz</h1>
         <p style={{ fontSize: 16, lineHeight: 1.5, margin: '14px 0 0', color: C.muted, maxWidth: 620 }}>
           Only a headline is required. Add as much or as little as you want, and an editor will handle the rest.

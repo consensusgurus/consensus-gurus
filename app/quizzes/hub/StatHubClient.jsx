@@ -77,6 +77,7 @@ function Logo({ size = 22 }) {
 const TABS = [
   { t: 'player', label: 'Player', Icon: User },
   { t: 'quizzes', label: 'Quizzes', Icon: ListChecks },
+  { t: 'challenges', label: 'Challenges', Icon: Flame },
 ];
 
 // Share Stats: a shareable player card (overall rank, skill rating + tier,
@@ -259,6 +260,7 @@ export default function StatHubClient() {
 .qzhub .metric-lbl{display:flex;justify-content:space-between;align-items:center;gap:6px;flex-wrap:nowrap;}
     @media(max-width:600px){.qzhub .metric-lbl{flex-wrap:wrap;}}
     @media(max-width:680px){.qzhub .rgrid{grid-template-columns:1fr !important;}}
+    @media(max-width:560px){.qzhub .shpbar{gap:10px 12px !important;padding:13px 14px !important;}.qzhub .shpbar-share{margin-left:0 !important;width:100% !important;justify-content:center !important;}}
   `;
 
   return (
@@ -271,7 +273,7 @@ export default function StatHubClient() {
         <SiteHeader active="quizzes" bare />
 
         {/* profile header — leads with OVERALL RANK (largest element) */}
-        <div className="card" style={{ display: 'flex', flexDirection: 'row', alignItems: 'center', flexWrap: 'wrap', gap: 18, padding: '15px 18px', marginTop: 16, overflow: 'visible', position: 'relative', zIndex: 40 }}>
+        <div className="card shpbar" style={{ display: 'flex', flexDirection: 'row', alignItems: 'center', flexWrap: 'wrap', gap: 18, padding: '15px 18px', marginTop: 16, overflow: 'visible', position: 'relative', zIndex: 40 }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 18, flexWrap: 'wrap' }}>
             {found && profile.name ? <div style={{ fontSize: 22, fontWeight: 800, letterSpacing: '-0.02em', color: C.ink }}>{profile.name}</div> : null}
             {found && profile.name ? <div style={{ width: 1, height: 50, background: C.line }} /> : null}
@@ -292,7 +294,7 @@ export default function StatHubClient() {
             </div>
           </div>
           {found ? (
-            <button onClick={() => setShareOpen(true)} style={{ marginLeft: 'auto', display: 'inline-flex', alignItems: 'center', gap: 7, background: C.accent, color: '#fff', border: 'none', borderRadius: 9, padding: '10px 15px', fontFamily: FONT, fontWeight: 700, fontSize: 13, cursor: 'pointer', whiteSpace: 'nowrap' }}><Share2 size={15} strokeWidth={2.4} /> Share Stats</button>
+            <button onClick={() => setShareOpen(true)} className="shpbar-share" style={{ marginLeft: 'auto', display: 'inline-flex', alignItems: 'center', gap: 7, background: C.accent, color: '#fff', border: 'none', borderRadius: 9, padding: '10px 15px', fontFamily: FONT, fontWeight: 700, fontSize: 13, cursor: 'pointer', whiteSpace: 'nowrap' }}><Share2 size={15} strokeWidth={2.4} /> Share Stats</button>
           ) : null}
         </div>
 
@@ -314,6 +316,7 @@ export default function StatHubClient() {
 
         {tab === 'player' && <PlayerPanel me={profile} scope={scope} cats={cats} byKey={byKey} totalQuizzes={catalog.length} board={board} myName={myName} myAnonKey={myAnonKey} titleById={titleById} pview={pview} setPview={setPview} viewKey={viewKey} onSelectPlayer={(k) => { const mine = (me && me.userKey && k === me.userKey) || (myAnonKey && k === myAnonKey); setViewKey(mine ? null : k); setPview(mine ? 'ranking' : 'category'); }} />}
         {tab === 'quizzes' && <QuizzesPanel me={profile} scope={scope} byKey={byKey} catalog={catalog} stats={statsById} totals={totals} totalPlays={totalPlays} />}
+        {tab === 'challenges' && <ChallengesPanel me={profile} />}
       </div>
 
       {shareOpen && found && <ShareStatsModal profile={profile} byKey={byKey} onClose={() => setShareOpen(false)} />}
@@ -641,7 +644,7 @@ function ChallengesPanel({ me }) {
   useEffect(() => { setLoaded(false); setData(null); load(false); /* eslint-disable-next-line react-hooks/exhaustive-deps */ }, [chId]);
 
   const doShare = () => {
-    const url = typeof window !== 'undefined' ? `${window.location.origin}/quizzes/leaderboard` : 'https://sourceoftruths.com/quizzes/leaderboard';
+    const url = typeof window !== 'undefined' ? `${window.location.origin}/quizzes/hub` : 'https://sourceoftruths.com/quizzes/hub';
     const text = `${ch.title} on Source of Truths.${ch.prize ? ' There is a prize on the line for the winner.' : ''} Think you can top the leaderboard?`;
     if (typeof navigator !== 'undefined' && navigator.share) navigator.share({ title: ch.title, text, url }).catch(() => {});
     else if (typeof navigator !== 'undefined' && navigator.clipboard) navigator.clipboard.writeText(`${text} ${url}`).then(() => { setShared(true); setTimeout(() => setShared(false), 1800); }).catch(() => {});

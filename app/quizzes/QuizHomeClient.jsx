@@ -406,7 +406,7 @@ export default function QuizHomeClient() {
     @media(max-width:680px){.qzh .lf-extra{display:none;}}
     @keyframes qzp{0%{opacity:1}50%{opacity:.35}100%{opacity:1}}
     .qzh .dd{position:relative;}
-    .qzh .ddbtn{display:flex;align-items:center;gap:8px;background:#fff;border:1px solid ${C.line};border-radius:10px;padding:9px 12px;cursor:pointer;font:inherit;min-width:200px;}
+    .qzh .ddbtn{display:flex;align-items:center;gap:8px;background:#fff;border:1px solid ${C.line};border-radius:10px;padding:9px 12px;cursor:pointer;font:inherit;}
     .qzh .ddmenu{position:absolute;top:calc(100% + 6px);right:0;z-index:30;background:#fff;border:1px solid ${C.line};border-radius:10px;box-shadow:0 8px 24px rgba(20,22,28,0.12);padding:6px;min-width:430px;display:grid;grid-template-columns:1fr 1fr;gap:1px 4px;}
     .qzh .ddmenu .ddall{grid-column:1 / -1;}
     .qzh .dditem{display:flex;align-items:center;gap:9px;padding:7px 9px;border-radius:7px;cursor:pointer;font-size:13px;}
@@ -467,11 +467,10 @@ export default function QuizHomeClient() {
             <div><div style={{ fontSize: 17, fontWeight: 700 }}>{playerStats && playerStats.correct != null ? playerStats.correct.toLocaleString() : '—'}</div><div className="lbl">correct</div></div>
             <div><div style={{ fontSize: 17, fontWeight: 700 }}>{playerStats && playerStats.accuracy != null ? `${playerStats.accuracy}%` : '—'}</div><div className="lbl">accuracy</div></div>
           </div>
-          <Link className="hubbtn" href="/quizzes/hub"><BarChart3 size={16} /> Stat Hub <ArrowRight size={15} /></Link>
           <div className="dd">
             <button className="ddbtn" onClick={(e) => { e.stopPropagation(); setDdOpen((o) => !o); }}>
               <span className="dot" style={{ background: scope === 'all' ? C.ink : (byKey[scope]?.c || C.ink) }} />
-              <span style={{ flex: 1, textAlign: 'left', fontWeight: 600, fontSize: 13 }}>{scope === 'all' ? 'All Categories' : byKey[scope]?.label}</span>
+              <span style={{ fontWeight: 600, fontSize: 13 }}>{scope === 'all' ? 'All Categories' : byKey[scope]?.label}</span>
               <ChevronDown size={16} style={{ color: C.muted }} />
             </button>
             {ddOpen && (
@@ -489,6 +488,7 @@ export default function QuizHomeClient() {
               </div>
             )}
           </div>
+          <Link className="hubbtn" href="/quizzes/hub"><BarChart3 size={16} /> Stat Hub <ArrowRight size={15} /></Link>
         </div>
 
         {signupOpen && <SignupModal onClose={() => setSignupOpen(false)} />}
