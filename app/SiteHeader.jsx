@@ -69,7 +69,7 @@ export default function SiteHeader({ active = 'lists', maxWidth = 1180, visitors
           .sh-bar{gap:10px;}
           .sh-word{font-size:19px;}
           .sh-right{flex:1 1 100%;display:flex;align-items:center;justify-content:flex-start;gap:12px;text-align:left;}
-          .sh-nav{justify-content:flex-start;gap:12px;flex-wrap:nowrap;}
+          .sh-nav{justify-content:flex-start;gap:12px;flex-wrap:nowrap;flex:1 1 100%;}.sh-navbtn{flex:1 1 0;justify-content:center;}
           .sh-stat{font-size:11px;margin-top:0;line-height:1.4;white-space:nowrap;flex:none;}
           .sh-vis-full{display:none;}
           .sh-vis-compact{display:inline;}

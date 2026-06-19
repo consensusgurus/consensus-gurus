@@ -2546,3 +2546,26 @@ Two interaction rules for EVERY typed "name them all" quiz format, including any
 
 Also: duration ("time spent") labels roll into days, not raw hours. `fmtDur` on the quizzes homepage
 renders e.g. `1d 1h 1m`, never `25h 1m` (days/hours/minutes, omitting leading zero units).
+
+## Quiz mobile vs desktop rendering — board-level branching only (owner rule, 2026-06-19)
+
+Quiz pages adapt to mobile at the BOARD level only; page chrome stays consistent across desktop
+and mobile (owner decision, 2026-06-19).
+
+- **Header and footer are identical on desktop and mobile.** Do NOT swap in a slim header or drop
+  the footer on mobile. (An earlier slim-header / no-footer experiment was reverted on this rule.)
+- A `useIsMobile()` hook lives at `app/quiz/[id]/useIsMobile.js` (true at viewport <= 760px; null
+  until mounted, boards are `ssr:false` so no hydration mismatch). `QuizClient.jsx` computes
+  `const mobile = useIsMobile()` and passes `mobile` to every board; full-page boards (TimedMcq,
+  LogicGrid, GridFill) receive it via their early-return props.
+- **Only boards whose desktop layout genuinely breaks on a phone branch on `mobile`:** map
+  (`MapQuizBoard`: hide the desktop Map size controls, full-width, marker tap targets 9px->13px);
+  matching (`MatchQuizBoard`, formats `matched`/`pairs`: two-column grid collapses to one);
+  grid-fill (`GridFillBoard`: five-across year blocks -> two-across, four-col stat -> two-col).
+- **All other formats already reflow and take NO mobile branch:** default name-them-all, photo,
+  posters, logos, images, bank, photo-match (auto-fit/wrapping grids), timed-mcq (single-column),
+  logic-grid (horizontal-scroll).
+- **Future quizzes inherit this automatically** (branching lives in the shared board components);
+  a new map/matched/pairs/grid-fill quiz is mobile-ready with no extra work. When adding a NEW
+  board format that renders poorly on a phone, add the same `mobile`-gated branch INSIDE that board
+  component only; never reintroduce header/footer branching.

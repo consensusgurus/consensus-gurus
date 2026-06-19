@@ -972,7 +972,7 @@ function Home({ lists, viewCounts, voteData, extras, trending = {}, openList, on
         .nt-rel:hover{background:#fff;border-color:${NT.accent};}
         .nt-rel-t{flex:1 1 auto;min-width:0;font-size:12.5px;font-weight:700;line-height:1.2;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
         .nt-rel-a{flex:none;color:${NT.accent};font-weight:800;}
-        @media(max-width:560px){.nt-wrap{padding:16px 14px 60px;}.nt-tagline{display:none;}}
+        @media(max-width:560px){.nt-wrap{padding:16px 14px 60px;}.nt-tagline{display:none;}.nt-field{flex:1 1 100%;}.nt-sortwrap{flex:1 1 0;}.nt-sortwrap .nt-tbtn{width:100%;justify-content:center;}.nt-tbtn.primary{flex:1 1 0;justify-content:center;}}
       `}</style>
 
       <SiteHeader active="lists" visitors={totalViews} />
@@ -1013,7 +1013,7 @@ function Home({ lists, viewCounts, voteData, extras, trending = {}, openList, on
             <input value={query} onChange={(e) => setQuery(e.target.value)} placeholder="Search lists…" autoComplete="off" />
             {query && <button className="nt-clear" aria-label="Clear search" onClick={() => setQuery('')}><X size={15} strokeWidth={2.5} /></button>}
           </div>
-          <div style={{ position: 'relative' }}>
+          <div className="nt-sortwrap" style={{ position: 'relative' }}>
             <button className="nt-tbtn" onClick={() => { setSortOpen((o) => !o); setNavMenu(null); }}>
               <ArrowRight size={15} strokeWidth={2.25} style={{ color: NT.muted, transform: 'rotate(90deg)' }} /> Sort: {(sortButtons.find((o) => o.id === sortBy) || {}).short || 'Discover'} <ChevronDown size={14} strokeWidth={2.5} style={{ color: NT.soft }} />
             </button>

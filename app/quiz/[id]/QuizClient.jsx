@@ -10,7 +10,6 @@ import Footer from '../../Footer';
 import Count from '../../Count';
 import SiteHeader from '../../SiteHeader';
 import useIsMobile from './useIsMobile';
-import QuizMobileHeader from './QuizMobileHeader';
 import dynamic from 'next/dynamic';
 
 const MapQuizBoard = dynamic(() => import('./MapQuizBoard'), { ssr: false, loading: () => null });
@@ -222,7 +221,7 @@ export default function QuizClient({ quizId }) {
   }
 
   const isMobileVP = useIsMobile();
-  const mobile = isMobileVP && !!quiz.mobilePreview;
+  const mobile = isMobileVP;
   if (quiz.format === 'timed-mcq') {
     return <TimedMcqBoard quizId={quizId} mobile={mobile} />;
   }
@@ -1018,11 +1017,11 @@ export default function QuizClient({ quizId }) {
 
   return (
     <div style={{ minHeight: '100vh', background: COLORS.cream, color: COLORS.ink, position: 'relative', overflowX: 'clip' }}>
-      <div style={{ position: 'relative', zIndex: 2, maxWidth: 1180, margin: '0 auto', padding: mobile ? '8px 12px 64px' : '8px 24px 80px' }}>
+      <div style={{ position: 'relative', zIndex: 2, maxWidth: 1180, margin: '0 auto', padding: '8px 24px 80px' }}>
 
         <style>{`@import url('https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap');`}</style>
 
-        {mobile ? <QuizMobileHeader title={quiz.title} /> : <SiteHeader active="quizzes" bare />}
+        <SiteHeader active="quizzes" bare />
 
         {/* Header */}
         <div style={{ paddingBottom: 0, marginTop: 8 }}>
@@ -1652,7 +1651,7 @@ export default function QuizClient({ quizId }) {
         </div>
       )}
 
-      {!mobile && <Footer />}
+      <Footer />
     </div>
   );
 }

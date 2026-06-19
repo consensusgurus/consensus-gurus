@@ -449,7 +449,7 @@ export default function QuizHomeClient() {
     .qzh .qrow .qtitle{font-size:13px;font-weight:500;}
     .qzh .qmeta{flex:none;display:flex;align-items:center;gap:10px;font-size:10.5px;}
     .qzh .hubbtn{display:flex;align-items:center;gap:7px;background:${C.accent};color:#fff;padding:10px 15px;border-radius:10px;font-weight:700;font-size:13px;text-decoration:none;white-space:nowrap;}
-    @media(max-width:560px){.qz-playerbar{flex-wrap:wrap !important;align-items:center !important;gap:10px 14px !important;}.qz-playerbar .qz-div{display:none !important;}.qz-playerbar .qz-stats{flex:1 1 100% !important;margin-left:0 !important;justify-content:space-between !important;gap:10px !important;}.qz-playerbar .dd{flex:1 1 0 !important;min-width:0 !important;align-self:stretch !important;}.qz-playerbar .dd .ddbtn{width:100% !important;justify-content:center !important;height:100% !important;box-sizing:border-box !important;}.qz-playerbar .hubbtn{flex:1 1 0 !important;justify-content:center !important;align-self:stretch !important;}}
+    @media(max-width:560px){.qz-playerbar{flex-wrap:wrap !important;align-items:center !important;gap:10px 14px !important;}.qz-playerbar .qz-div{display:none !important;}.qz-playerbar .qz-stats{flex:1 1 100% !important;margin-left:0 !important;justify-content:space-between !important;gap:10px !important;}.qz-playerbar .dd{flex:1 1 0 !important;min-width:0 !important;align-self:stretch !important;}.qz-playerbar .dd .ddbtn{width:100% !important;justify-content:center !important;height:100% !important;box-sizing:border-box !important;}.qz-playerbar .hubbtn{flex:1 1 0 !important;justify-content:center !important;align-self:stretch !important;}.qz-daily{flex:1 1 100% !important;justify-content:center !important;}}
     .qzh .hubbtn:hover{filter:brightness(1.06);}
     .qzh .crumb1{font-size:18px;font-weight:800;letter-spacing:-0.02em;}
     .qzh .crumb2{font-size:18px;font-weight:600;color:${C.accent};}
@@ -461,10 +461,10 @@ export default function QuizHomeClient() {
       <Grain />
       <style>{css}</style>
       <SiteHeader active="quizzes" />
-      <div className="qzh" style={{ maxWidth: 1180, margin: '0 auto', padding: '12px 24px 70px', position: 'relative' }}>
+      <div className="qzh" style={{ maxWidth: 1180, margin: '0 auto', padding: '6px 24px 70px', position: 'relative' }}>
 
         {/* player bar */}
-        <div className="card qz-playerbar" style={{ flexDirection: 'row', alignItems: 'center', flexWrap: 'wrap', gap: 16, padding: '11px 14px', margin: '4px 0 12px', overflow: 'visible', position: 'relative', zIndex: 40 }}>
+        <div className="card qz-playerbar" style={{ flexDirection: 'row', alignItems: 'center', flexWrap: 'wrap', gap: 16, padding: '11px 14px', margin: '0 0 12px', overflow: 'visible', position: 'relative', zIndex: 40 }}>
           {me && me.signed && me.name ? (
             <div style={{ display: 'flex', flexDirection: 'column', minWidth: 0 }}>
               <div className="lbl">Player</div>
@@ -595,7 +595,7 @@ export default function QuizHomeClient() {
             </h2>
           )}
           {daily && (
-            <Link href="/quizzes/hub?tab=challenges" style={{ flex: '0 0 auto', display: 'flex', alignItems: 'center', gap: 9, background: C.accent, color: '#fff', padding: '8px 14px', borderRadius: 10, textDecoration: 'none' }}>
+            <Link href="/quizzes/hub?tab=challenges" className="qz-daily" style={{ flex: '0 0 auto', display: 'flex', alignItems: 'center', gap: 9, background: C.accent, color: '#fff', padding: '8px 14px', borderRadius: 10, textDecoration: 'none' }}>
               <Flame size={17} style={{ flex: 'none' }} />
               <span style={{ lineHeight: 1.15 }}>
                 <span style={{ display: 'block', fontSize: 13, fontWeight: 800 }}>Daily Challenge</span>
@@ -611,7 +611,7 @@ export default function QuizHomeClient() {
               onChange={(e) => setSearch(e.target.value)}
               placeholder="Search quizzes…"
               autoComplete="off"
-              style={{ width: '100%', padding: '9px 12px 9px 36px', border: `1px solid ${C.line}`, borderRadius: 10, font: 'inherit', fontFamily: FONT, fontSize: 16, background: '#fff', color: C.ink, outline: 'none', boxSizing: 'border-box' }}
+              style={{ width: '100%', padding: '9px 12px 9px 36px', border: `1px solid ${C.line}`, borderRadius: 10, font: 'inherit', fontFamily: FONT, fontSize: 13.5, background: '#fff', color: C.ink, outline: 'none', boxSizing: 'border-box' }}
             />
           </div>
           {(!searchResults && scope === 'all' && !listMode) && (
