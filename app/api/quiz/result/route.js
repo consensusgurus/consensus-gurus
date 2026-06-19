@@ -34,7 +34,7 @@ function summarize(rows) {
   const leaderboard = signed
     .sort((a, b) => b.score - a.score || a.time_elapsed - b.time_elapsed || (a.username || '').localeCompare(b.username || ''))
     .slice(0, 10)
-    .map((r) => ({ username: r.username, score: r.score, timeElapsed: r.time_elapsed, tryNum: tryOf.get(r), playedAt: r.created_at }));
+    .map((r) => ({ username: r.username, userKey: 'u:' + r.user_id, score: r.score, timeElapsed: r.time_elapsed, tryNum: tryOf.get(r), playedAt: r.created_at }));
   const leaderboardAll = buildAllLeaderboard(rows);
   return { plays, best, topTime: Number.isFinite(topTime) ? topTime : null, leaderboard, leaderboardAll };
 }
