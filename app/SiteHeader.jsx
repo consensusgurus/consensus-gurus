@@ -61,47 +61,47 @@ export default function SiteHeader({ active = 'lists', maxWidth = 1180, visitors
     <div style={{ fontFamily: FONT }}>
       <style>{`
         @import url('https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap');
-        .sh-bar{display:flex;align-items:center;justify-content:space-between;gap:16px;padding-bottom:14px;border-bottom:1px solid ${C.line};flex-wrap:wrap;}
+        .sh-bar{display:flex;align-items:center;justify-content:space-between;gap:16px;padding-bottom:10px;border-bottom:1px solid ${C.line};flex-wrap:wrap;}
         .sh-brand{display:flex;align-items:center;gap:11px;text-decoration:none;flex:none;}
-        .sh-word{font-size:24px;font-weight:800;letter-spacing:-0.025em;line-height:1;color:${C.ink};}
-        .sh-right{text-align:right;}
+        .sh-word{font-size:21px;font-weight:800;letter-spacing:-0.025em;line-height:1;color:${C.ink};}
+        .sh-right{display:flex;align-items:center;justify-content:flex-end;gap:14px;}
         .sh-nav{display:flex;align-items:center;gap:12px;justify-content:flex-end;flex-wrap:wrap;}
         .sh-navbtn{display:inline-flex;align-items:center;gap:5px;text-decoration:none;font-size:13.5px;font-weight:700;color:${C.ink};border:1px solid ${C.line};border-radius:8px;padding:7px 13px;background:#fff;transition:background .15s,border-color .15s,color .15s;}
         .sh-navbtn:hover{border-color:${C.accent};color:${C.accent};}
         .sh-navbtn.on{background:${C.accent};border-color:${C.accent};color:#fff;}
         .sh-navct{font-weight:600;opacity:0.65;font-size:12px;}
-        .sh-stat{font-size:11.5px;color:${C.muted};margin-top:6px;letter-spacing:0.01em;min-height:16px;}
+        .sh-stat{font-size:11.5px;color:${C.muted};letter-spacing:0.01em;white-space:nowrap;}
         .sh-vis-compact{display:none;}
         @media(max-width:560px){
           .sh-bar{gap:10px;}
           .sh-word{font-size:19px;}
-          .sh-right{flex:1 1 100%;display:flex;align-items:center;justify-content:space-between;gap:10px;text-align:left;}
+          .sh-right{flex:1 1 100%;display:flex;align-items:center;justify-content:flex-start;gap:12px;text-align:left;}
           .sh-nav{justify-content:flex-start;gap:12px;flex-wrap:nowrap;}
           .sh-stat{font-size:11px;margin-top:0;line-height:1.4;white-space:nowrap;flex:none;}
           .sh-vis-full{display:none;}
           .sh-vis-compact{display:inline;}
         }
       `}</style>
-      <div style={bare ? { padding: '2px 0 0' } : { maxWidth, margin: '0 auto', padding: '16px 24px 0' }}>
+      <div style={bare ? { padding: '2px 0 0' } : { maxWidth, margin: '0 auto', padding: '10px 24px 0' }}>
         <div className="sh-bar">
           <div className="sh-brand">
-            <Link href="/" style={{ flex: 'none', display: 'flex' }} aria-label="Source of Truths home"><Logo size={40} /></Link>
+            <Link href="/" style={{ flex: 'none', display: 'flex' }} aria-label="Source of Truths home"><Logo size={34} /></Link>
             <span style={{ display: 'flex', flexDirection: 'column' }}>
               <Link href="/" className="sh-word" style={{ textDecoration: 'none', color: 'inherit' }}>Source <span style={{ color: C.accent, fontWeight: 600 }}>of</span> Truths</Link>
               <span style={{ fontSize: 9.5, fontWeight: 800, letterSpacing: 'normal', textTransform: 'uppercase', color: C.ink, marginTop: 3 }}>Where <SourcesPopover align="left" href="/experts-and-aggregators" label={`${SOURCE_COUNT.toLocaleString()} Experts and Aggregators`} /> Agree</span>
             </span>
           </div>
           <div className="sh-right">
-            <nav className="sh-nav">
-              <Link href="/" className={`sh-navbtn${active === 'lists' ? ' on' : ''}`}>Lists <span className="sh-navct">({LIST_COUNT.toLocaleString()})</span></Link>
-              <Link href="/quizzes" className={`sh-navbtn${active === 'quizzes' ? ' on' : ''}`}>Quizzes <span className="sh-navct">({QUIZ_COUNT.toLocaleString()})</span></Link>
-            </nav>
             <div className="sh-stat">
               {typeof vis === 'number' ? (<>
                 <span className="sh-vis-full">{`${vis.toLocaleString()} visitors`}</span>
                 <span className="sh-vis-compact">{`${compactVis(vis)} visitors`}</span>
               </>) : ''}
             </div>
+            <nav className="sh-nav">
+              <Link href="/" className={`sh-navbtn${active === 'lists' ? ' on' : ''}`}>Lists <span className="sh-navct">({LIST_COUNT.toLocaleString()})</span></Link>
+              <Link href="/quizzes" className={`sh-navbtn${active === 'quizzes' ? ' on' : ''}`}>Quizzes <span className="sh-navct">({QUIZ_COUNT.toLocaleString()})</span></Link>
+            </nav>
           </div>
         </div>
       </div>
