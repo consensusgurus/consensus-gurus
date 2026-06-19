@@ -9,6 +9,12 @@ const nextConfig = {
   },
   async redirects() {
     return [
+      // Renamed 2026-06-18: 'The Sources' rebranded to 'The Inputs'; /sources -> /inputs
+      {
+        source: '/sources',
+        destination: '/inputs',
+        permanent: true,
+      },
       // Canonicalize host: 308 all www traffic to the apex domain. Fixes the
       // GSC "Duplicate without user-selected canonical" flag, where
       // www.sourceoftruths.com was serving duplicate 200 content. 2026-06-16.
