@@ -376,8 +376,9 @@ export default function QuizHomeClient() {
     .qzh .boards{display:grid;grid-template-columns:1fr 2fr;gap:12px;align-items:stretch;margin-bottom:22px;}
     @media(max-width:680px){.qzh .boards{grid-template-columns:1fr;}}
     .qzh .qcols{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:6px 26px;}
-    .qzh .qfull{display:grid;grid-template-columns:1fr 1fr;gap:0 26px;}
-    @media(max-width:680px){.qzh .qfull{grid-template-columns:1fr;}}
+    .qzh .qfull{column-count:2;column-gap:26px;}
+    .qzh .qfull > a{display:flex;break-inside:avoid;-webkit-column-break-inside:avoid;}
+    @media(max-width:680px){.qzh .qfull{column-count:1;}}
     .qzh .colhead{display:flex;align-items:center;gap:9px;padding:7px 0;border-bottom:2px solid ${C.ink};margin-bottom:3px;}
     .qzh .viewall{margin-left:auto;font-size:10px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;}
     .qzh .qrow{display:flex;align-items:baseline;gap:10px;padding:6px 0;border-bottom:1px solid rgba(20,22,28,0.07);text-decoration:none;color:${C.ink};min-width:0;overflow:hidden;}

@@ -61,7 +61,7 @@ export default function SiteHeader({ active = 'lists', maxWidth = 1180, visitors
         .sh-navbtn:hover{border-color:${C.accent};color:${C.accent};}
         .sh-navbtn.on{background:${C.accent};border-color:${C.accent};color:#fff;}
         .sh-navct{font-weight:600;opacity:0.65;font-size:12px;}
-        .sh-stat{font-size:11.5px;color:${C.muted};margin-top:6px;letter-spacing:0.01em;}
+        .sh-stat{font-size:11.5px;color:${C.muted};margin-top:6px;letter-spacing:0.01em;min-height:16px;}
         @media(max-width:560px){
           .sh-bar{gap:10px;}
           .sh-word{font-size:19px;}

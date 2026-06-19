@@ -35,6 +35,22 @@ function mmss(s) { if (!Number.isFinite(s)) return '—'; const m = Math.floor(s
 
 // Brand mark (gradient ids suffixed per render so multiple instances stay unique).
 let __logoSeq = 0;
+// Aggregate play-time, big-number friendly: seconds -> "2mo 3d 5h 12m" (30-day
+// months). Always shows at least minutes so it never renders empty.
+function fmtPlayTime(totalSec) {
+  let s = Math.max(0, Math.round(Number(totalSec) || 0));
+  const mo = Math.floor(s / (30 * 86400)); s -= mo * 30 * 86400;
+  const d = Math.floor(s / 86400); s -= d * 86400;
+  const h = Math.floor(s / 3600); s -= h * 3600;
+  const m = Math.floor(s / 60);
+  const parts = [];
+  if (mo) parts.push(`${mo}mo`);
+  if (d) parts.push(`${d}d`);
+  if (h) parts.push(`${h}h`);
+  parts.push(`${m}m`);
+  return parts.join(' ');
+}
+
 function Logo({ size = 22 }) {
   const uid = useMemo(() => `l${(__logoSeq += 1)}`, []);
   return (
@@ -70,7 +86,7 @@ export default function StatHubClient() {
 
   const [me, setMe] = useState(null);
   const [stats, setStats] = useState([]);     // /api/quiz/stats
-  const [totals, setTotals] = useState({ byQuiz: {}, leaders: {}, total: 0 });
+  const [totals, setTotals] = useState({ byQuiz: {}, leaders: {}, total: 0, totalTime: 0 });
   const [challenge, setChallenge] = useState(null); // /api/quiz/challenge-leaderboard
   const [board, setBoard] = useState(null); // full Elo ranking of every player (incl. anon)
 
@@ -108,7 +124,7 @@ export default function StatHubClient() {
       setMe({ found: false });
     }
     fetch('/api/quiz/stats').then((r) => r.json()).then((d) => { if (d && Array.isArray(d.quizzes)) setStats(d.quizzes); }).catch(() => {});
-    fetch('/api/quiz/totals').then((r) => r.json()).then((d) => { if (d && !d.error) setTotals({ byQuiz: d.byQuiz || {}, leaders: d.leaders || {}, total: d.total || 0 }); }).catch(() => {});
+    fetch('/api/quiz/totals').then((r) => r.json()).then((d) => { if (d && !d.error) setTotals({ byQuiz: d.byQuiz || {}, leaders: d.leaders || {}, total: d.total || 0, totalTime: d.totalTime || 0 }); }).catch(() => {});
     fetch('/api/quiz/challenge-leaderboard').then((r) => r.json()).then((d) => { if (d && !d.error) setChallenge(d); }).catch(() => {});
     fetch('/api/quiz/elo?full=1').then((r) => r.json()).then((d) => { if (d && Array.isArray(d.players)) setBoard(d.players); }).catch(() => {});
   }, []);
@@ -493,6 +509,7 @@ function QuizzesPanel({ me, scope, byKey, catalog, stats, totals, totalPlays }) 
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(120px,1fr))', gap: 10, marginBottom: 16 }}>
         <Metric label="Quizzes" value={(scope === 'all' ? catalog.length : pool.length).toLocaleString()} />
         <Metric label="Total Plays" value={totalPlays.toLocaleString()} />
+        <Metric label="Time Played" value={fmtPlayTime(totals.totalTime || 0)} />
         <Metric label="You've Played" value={found ? playedTotal : '—'} />
         <Metric label="Your Avg Accuracy" value={found ? `${avgScore}%` : '—'} />
       </div>

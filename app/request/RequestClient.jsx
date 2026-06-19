@@ -82,11 +82,14 @@ function RequestView({ onSubmit }) {
     .req .submit:disabled{opacity:.6;cursor:wait;}
     .req .back{display:inline-flex;align-items:center;gap:6px;color:${C.muted};text-decoration:none;font-size:13px;font-weight:600;margin:14px 0 4px;}
     .req .back:hover{color:${C.ink};}
+    .req .reqgrid{display:grid;grid-template-columns:1fr 1fr;gap:30px;align-items:start;}
+    .req .col{display:flex;flex-direction:column;gap:22px;}
+    @media(max-width:820px){.req .reqgrid{grid-template-columns:1fr !important;}}
     @media(max-width:560px){.req .two{grid-template-columns:1fr !important;}}
   `;
 
   return (
-    <div className="req" style={{ maxWidth: 720, margin: '0 auto', padding: '4px 24px 80px' }}>
+    <div className="req" style={{ maxWidth: 1040, margin: '0 auto', padding: '4px 24px 80px' }}>
       <style>{css}</style>
 
       <a href="/" className="back"><ArrowLeft size={15} strokeWidth={2.4} /> Back to all lists</a>
@@ -94,64 +97,66 @@ function RequestView({ onSubmit }) {
       <div style={{ borderBottom: `1px solid ${C.line}`, paddingBottom: 22, marginTop: 10, marginBottom: 28 }}>
         <div style={{ fontSize: 11, fontWeight: 800, letterSpacing: '.14em', textTransform: 'uppercase', color: C.accent, marginBottom: 10 }}>Letter to the Editor</div>
         <h1 style={{ fontSize: 'clamp(30px, 6vw, 44px)', fontWeight: 800, letterSpacing: '-0.02em', lineHeight: 1.05, margin: 0 }}>Request a list or quiz</h1>
-        <p style={{ fontSize: 16, lineHeight: 1.5, margin: '14px 0 0', color: C.muted, maxWidth: 560 }}>
+        <p style={{ fontSize: 16, lineHeight: 1.5, margin: '14px 0 0', color: C.muted, maxWidth: 620 }}>
           Only a headline is required. Add as much or as little as you want, and an editor will handle the rest.
         </p>
       </div>
 
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 24 }}>
-        <div>
-          <label className="lbl">Headline (required)</label>
-          <input className="fld" type="text" placeholder="Best beaches in Sicily" value={title} onChange={(e) => setTitle(e.target.value)} maxLength={90} />
+      {error && (
+        <div style={{ marginBottom: 22, padding: 13, border: `1px solid ${C.danger}`, background: 'rgba(192,57,43,0.07)', borderRadius: 10, fontSize: 14, color: C.danger, display: 'flex', alignItems: 'center', gap: 8 }}>
+          <X size={14} strokeWidth={2.5} /> {error}
         </div>
+      )}
 
-        {error && (
-          <div style={{ padding: 13, border: `1px solid ${C.danger}`, background: 'rgba(192,57,43,0.07)', borderRadius: 10, fontSize: 14, color: C.danger, display: 'flex', alignItems: 'center', gap: 8 }}>
-            <X size={14} strokeWidth={2.5} /> {error}
-          </div>
-        )}
-
-        <div>
-          <button className="submit" onClick={handleSubmit} disabled={submitting}>{submitting ? 'Sending…' : 'Submit request'}</button>
-          <div className="two" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 18, marginTop: 18 }}>
-            <div>
-              <label className="lbl">Name (optional)</label>
-              <input className="fld" type="text" placeholder="Your name" value={name} onChange={(e) => setName(e.target.value)} maxLength={80} />
-            </div>
-            <div>
-              <label className="lbl">Email (optional)</label>
-              <input className="fld" type="email" placeholder="you@example.com" value={email} onChange={(e) => setEmail(e.target.value)} maxLength={120} />
-            </div>
-          </div>
-          <p style={{ fontSize: 11, letterSpacing: '.04em', textTransform: 'uppercase', color: C.soft, fontWeight: 700, marginTop: 14 }}>Submissions are reviewed before going live</p>
-        </div>
-
-        <div className="two" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 18 }}>
+      <div className="reqgrid">
+        <div className="col">
           <div>
-            <label className="lbl">Tag (optional)</label>
-            <input className="fld" type="text" placeholder="Sicily, Travel, anything" value={category} onChange={(e) => setCategory(e.target.value)} maxLength={40} />
+            <label className="lbl">Headline (required)</label>
+            <input className="fld" type="text" placeholder="Best beaches in Sicily; Name the 50 US state capitals" value={title} onChange={(e) => setTitle(e.target.value)} maxLength={90} />
           </div>
-          <div style={{ position: 'relative' }}>
-            <label className="lbl">Type (optional)</label>
-            <select className="fld" value={type} onChange={(e) => setType(e.target.value)}>
-              {TYPES.filter((t) => t.id !== 'all').map((t) => (<option key={t.id} value={t.id}>{t.label}</option>))}
-            </select>
-            <ChevronDown size={15} strokeWidth={2.4} style={{ position: 'absolute', right: 12, bottom: 13, pointerEvents: 'none', color: C.muted }} />
+
+          <div className="two" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 18 }}>
+            <div>
+              <label className="lbl">Tag (optional)</label>
+              <input className="fld" type="text" placeholder="Sicily, Travel, anything" value={category} onChange={(e) => setCategory(e.target.value)} maxLength={40} />
+            </div>
+            <div style={{ position: 'relative' }}>
+              <label className="lbl">Type (optional)</label>
+              <select className="fld" value={type} onChange={(e) => setType(e.target.value)}>
+                {TYPES.filter((t) => t.id !== 'all').map((t) => (<option key={t.id} value={t.id}>{t.label}</option>))}
+              </select>
+              <ChevronDown size={15} strokeWidth={2.4} style={{ position: 'absolute', right: 12, bottom: 13, pointerEvents: 'none', color: C.muted }} />
+            </div>
+          </div>
+
+          <div>
+            <label className="lbl">One-line description (optional)</label>
+            <textarea className="fld" placeholder="A quick pitch for your readers" value={blurb} onChange={(e) => setBlurb(e.target.value)} maxLength={220} rows={2} />
+          </div>
+
+          <div>
+            <label className="lbl">How you ranked them (optional)</label>
+            <input className="fld" type="text" placeholder="By reputation, sand quality…" value={criteria} onChange={(e) => setCriteria(e.target.value)} maxLength={140} />
+          </div>
+
+          <div>
+            <button className="submit" onClick={handleSubmit} disabled={submitting}>{submitting ? 'Sending…' : 'Submit request'}</button>
+            <div className="two" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 18, marginTop: 18 }}>
+              <div>
+                <label className="lbl">Name (optional)</label>
+                <input className="fld" type="text" placeholder="Your name" value={name} onChange={(e) => setName(e.target.value)} maxLength={80} />
+              </div>
+              <div>
+                <label className="lbl">Email (optional)</label>
+                <input className="fld" type="email" placeholder="you@example.com" value={email} onChange={(e) => setEmail(e.target.value)} maxLength={120} />
+              </div>
+            </div>
+            <p style={{ fontSize: 11, letterSpacing: '.04em', textTransform: 'uppercase', color: C.soft, fontWeight: 700, marginTop: 14 }}>Submissions are reviewed before going live</p>
           </div>
         </div>
 
         <div>
-          <label className="lbl">One-line description (optional)</label>
-          <textarea className="fld" placeholder="A quick pitch for your readers" value={blurb} onChange={(e) => setBlurb(e.target.value)} maxLength={220} rows={2} />
-        </div>
-
-        <div>
-          <label className="lbl">How you ranked them (optional)</label>
-          <input className="fld" type="text" placeholder="By reputation, sand quality…" value={criteria} onChange={(e) => setCriteria(e.target.value)} maxLength={140} />
-        </div>
-
-        <div>
-          <div style={{ borderTop: `1px solid ${C.line}`, paddingTop: 20, marginBottom: 16, display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', gap: 12, flexWrap: 'wrap' }}>
+          <div style={{ marginBottom: 16, display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', gap: 12, flexWrap: 'wrap' }}>
             <h3 style={{ fontSize: 18, fontWeight: 800, letterSpacing: '-0.01em', margin: 0 }}>Your picks, in order (optional)</h3>
             <span style={{ fontSize: 11, letterSpacing: '.04em', textTransform: 'uppercase', color: C.soft, fontWeight: 700 }}>{filledCount} filled · #1 at top</span>
           </div>
