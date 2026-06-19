@@ -431,7 +431,7 @@ export default function QuizHomeClient() {
     .qzh .qrow .qtitle{font-size:13px;font-weight:500;}
     .qzh .qmeta{flex:none;display:flex;align-items:center;gap:10px;font-size:10.5px;}
     .qzh .hubbtn{display:flex;align-items:center;gap:7px;background:${C.accent};color:#fff;padding:10px 15px;border-radius:10px;font-weight:700;font-size:13px;text-decoration:none;white-space:nowrap;}
-    @media(max-width:560px){.qz-playerbar{flex-wrap:wrap !important;align-items:center !important;gap:10px 14px !important;}.qz-playerbar .qz-div{display:none !important;}.qz-playerbar .qz-stats{flex:1 1 100% !important;margin-left:0 !important;justify-content:space-between !important;gap:10px !important;}.qz-playerbar .dd{flex:1 1 0 !important;min-width:0 !important;}.qz-playerbar .dd .ddbtn{width:100% !important;justify-content:center !important;}.qz-playerbar .hubbtn{flex:1 1 0 !important;justify-content:center !important;}}
+    @media(max-width:560px){.qz-playerbar{flex-wrap:wrap !important;align-items:center !important;gap:10px 14px !important;}.qz-playerbar .qz-div{display:none !important;}.qz-playerbar .qz-stats{flex:1 1 100% !important;margin-left:0 !important;justify-content:space-between !important;gap:10px !important;}.qz-playerbar .dd{flex:1 1 0 !important;min-width:0 !important;align-self:stretch !important;}.qz-playerbar .dd .ddbtn{width:100% !important;justify-content:center !important;height:100% !important;box-sizing:border-box !important;}.qz-playerbar .hubbtn{flex:1 1 0 !important;justify-content:center !important;align-self:stretch !important;}}
     .qzh .hubbtn:hover{filter:brightness(1.06);}
     .qzh .crumb1{font-size:18px;font-weight:800;letter-spacing:-0.02em;}
     .qzh .crumb2{font-size:18px;font-weight:600;color:${C.accent};}
