@@ -195,7 +195,7 @@ export default function QuizHomeClient() {
   function setBrowseView(v) { setView(v); try { localStorage.setItem('sot_quiz_browse_view', v); } catch {} }
 
   // Build the catalog once: every quiz, with its department + nav title.
-  const catalog = useMemo(() => (QUIZZES || []).filter((q) => q && q.id).map((q) => ({
+  const catalog = useMemo(() => (QUIZZES || []).filter((q) => q && q.id && !q.unlisted).map((q) => ({
     id: q.id,
     title: q.navTitle || cleanTitle(q.title) || q.id,
     rawTitle: q.title || '',

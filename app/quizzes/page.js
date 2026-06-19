@@ -2,7 +2,7 @@ import QuizHomeClient from './QuizHomeClient';
 import { QUIZZES } from '@/lib/quizzes';
 
 export function generateMetadata() {
-  const count = Array.isArray(QUIZZES) ? QUIZZES.length : 0;
+  const count = Array.isArray(QUIZZES) ? QUIZZES.filter((q) => !q.unlisted).length : 0;
   const title = 'Quizzes | Source of Truths';
   const description = `Test what you actually know. ${count} timed quizzes across films, music, geography, sports, brands, and beyond: name-them-all, matching, map, and multiple-choice. Beat the clock, then the leaderboard.`;
   const url = '/quizzes';

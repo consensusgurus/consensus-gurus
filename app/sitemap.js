@@ -12,7 +12,10 @@ export default function sitemap() {
   const newestList = new Date(Math.max(...listDates.map((d) => d.getTime())));
 
   // Quiz dates drive the /quizzes index lastModified and each /quiz/[id] entry.
-  const quizDates = QUIZZES.map((quiz) =>
+  // Unlisted quizzes (mobile-preview clones) stay out of the sitemap so they
+  // are reachable only by direct link.
+  const visibleQuizzes = QUIZZES.filter((quiz) => !quiz.unlisted);
+  const quizDates = visibleQuizzes.map((quiz) =>
     new Date(quiz.publishedAt || `${quiz.publishedDate}T12:00:00Z`)
   );
   const newestQuiz = quizDates.length
@@ -36,7 +39,7 @@ export default function sitemap() {
     priority: 0.8,
   }));
 
-  const quizPages = QUIZZES.map((quiz, i) => ({
+  const quizPages = visibleQuizzes.map((quiz, i) => ({
     url: `${baseUrl}/quiz/${quiz.id}`,
     lastModified: quizDates[i],
     changeFrequency: 'weekly',
