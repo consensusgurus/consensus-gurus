@@ -690,7 +690,12 @@ function chUpdated(iso) { if (!iso) return ''; try { return new Date(iso).toLoca
 // restyled to the Stat Hub theme. Self-fetches per selected challenge so the
 // selector + refresh work in place; highlights the current player's row.
 function ChallengesPanel({ me }) {
-  const [chId, setChId] = useState(() => dailyChallengeId());
+  const [chId, setChId] = useState(() => {
+    if (typeof window !== 'undefined') {
+      try { const c = new URLSearchParams(window.location.search).get('ch'); if (c) return c; } catch (e) {}
+    }
+    return dailyChallengeId();
+  });
   const [menuSort, setMenuSort] = useState('new');
   const menu = useMemo(() => challengeMenu(), []);
   const [data, setData] = useState(null);
@@ -715,7 +720,8 @@ function ChallengesPanel({ me }) {
   useEffect(() => { setLoaded(false); setData(null); load(false); /* eslint-disable-next-line react-hooks/exhaustive-deps */ }, [chId]);
 
   const doShare = () => {
-    const url = typeof window !== 'undefined' ? `${window.location.origin}/quizzes/hub` : 'https://sourceoftruths.com/quizzes/hub';
+    const base = typeof window !== 'undefined' ? window.location.origin : 'https://sourceoftruths.com';
+    const url = `${base}/quizzes/hub?tab=challenges&ch=${encodeURIComponent(ch.id)}`;
     const text = `${ch.title} on Source of Truths.${ch.prize ? ' There is a prize on the line for the winner.' : ''} Think you can top the leaderboard?`;
     if (typeof navigator !== 'undefined' && navigator.share) navigator.share({ title: ch.title, text, url }).catch(() => {});
     else if (typeof navigator !== 'undefined' && navigator.clipboard) navigator.clipboard.writeText(`${text} ${url}`).then(() => { setShared(true); setTimeout(() => setShared(false), 1800); }).catch(() => {});
@@ -761,6 +767,9 @@ function ChallengesPanel({ me }) {
         .chg-foot{font-size:11.5px;line-height:1.7;color:${C.soft};max-width:880px;margin-top:12px;}
         .chg-foot b{color:${C.muted};font-weight:700;}
         .chg-prize{display:inline-flex;align-items:center;gap:8px;margin-top:12px;padding:8px 13px;background:${C.accent};color:#fff;font-size:12px;font-weight:700;border-radius:8px;}
+        .chg-play{display:flex;flex-wrap:wrap;gap:8px;margin-top:8px;}
+        .chg-playchip{display:inline-flex;align-items:center;justify-content:center;gap:6px;background:${C.accent};color:#fff;padding:8px 14px;border-radius:8px;font-family:${FONT};font-size:12px;font-weight:700;text-decoration:none;text-align:center;}
+        @media(max-width:600px){.chg-play{display:grid;grid-template-columns:1fr;grid-auto-rows:1fr;}.chg-playchip{width:100%;box-sizing:border-box;}}
       `}</style>
 
       <div className="card" style={{ padding: '16px 18px' }}>
@@ -775,11 +784,13 @@ function ChallengesPanel({ me }) {
         {ch.prize ? (<div className="chg-prize"><Trophy size={13} strokeWidth={2.4} /> {ch.prize}</div>) : null}
 
         {ch.daily && (
-          <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap', marginTop: 14 }}>
+          <div style={{ marginTop: 14 }}>
             <span style={{ fontSize: 11, fontWeight: 700, letterSpacing: '.04em', textTransform: 'uppercase', color: C.soft }}>Play today</span>
-            {cols.map((col) => (
-              <Link key={col.quizId} href={`/quiz/${col.quizId}`} style={{ display: 'inline-flex', alignItems: 'center', gap: 6, background: C.accent, color: '#fff', padding: '7px 13px', borderRadius: 8, fontFamily: FONT, fontSize: 12, fontWeight: 700, textDecoration: 'none' }}>{colLabel(col)} <ArrowLeft size={13} style={{ transform: 'rotate(180deg)' }} /></Link>
-            ))}
+            <div className="chg-play">
+              {cols.map((col) => (
+                <Link key={col.quizId} href={`/quiz/${col.quizId}`} className="chg-playchip">{colLabel(col)} <ArrowLeft size={13} style={{ transform: 'rotate(180deg)', flex: 'none' }} /></Link>
+              ))}
+            </div>
           </div>
         )}
 

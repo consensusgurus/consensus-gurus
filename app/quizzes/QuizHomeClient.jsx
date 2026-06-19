@@ -191,6 +191,7 @@ export default function QuizHomeClient() {
   const [statsById, setStatsById] = useState({}); // /api/quiz/stats keyed by quizId
   const [signupOpen, setSignupOpen] = useState(false);
   const [dailyLb, setDailyLb] = useState(null); // today's daily-challenge standings (registered players)
+  const [todayData, setTodayData] = useState({ byCorrect: [], byQuizzes: [] }); // /api/quiz/today leaders
   // Today's daily challenge (deterministic from the date; no server state needed).
   const daily = useMemo(() => getDailyChallenge(), []);
   const dailyCat = daily ? daily.accent : '';
@@ -251,6 +252,9 @@ export default function QuizHomeClient() {
     }).catch(() => {});
     fetch(`/api/quiz/challenge-leaderboard?id=${encodeURIComponent(dailyChallengeId())}`).then((r) => r.json()).then((d) => {
       if (d && Array.isArray(d.users)) setDailyLb(d.users);
+    }).catch(() => {});
+    fetch('/api/quiz/today').then((r) => r.json()).then((d) => {
+      if (d) setTodayData({ byCorrect: Array.isArray(d.leaders) ? d.leaders : [], byQuizzes: Array.isArray(d.quizLeaders) ? d.quizLeaders : [] });
     }).catch(() => {});
   }, []);
 
@@ -321,7 +325,19 @@ export default function QuizHomeClient() {
   // Today's daily-challenge standings, ranked by total correct then least time.
   const dailyRows = useMemo(() => (dailyLb || []).slice()
     .sort((a, b) => (b.totalCorrect || 0) - (a.totalCorrect || 0) || (a.totalTime || 0) - (b.totalTime || 0) || (a.username || '').localeCompare(b.username || ''))
-    .slice(0, boardsExpanded ? 10 : 5), [dailyLb, boardsExpanded]);
+    .slice(0, boardsExpanded ? 10 : 3), [dailyLb, boardsExpanded]);
+  const todayCorrectRows = useMemo(() => (todayData.byCorrect || []).slice(0, boardsExpanded ? 10 : 3), [todayData, boardsExpanded]);
+  const todayQuizRows = useMemo(() => (todayData.byQuizzes || []).slice(0, boardsExpanded ? 10 : 3), [todayData, boardsExpanded]);
+  const bestCat = useMemo(() => {
+    if (!me || !me.byCategory) return null;
+    let best = null;
+    for (const k of Object.keys(me.byCategory)) {
+      const c = me.byCategory[k];
+      if (!c || !(c.correct > 0)) continue;
+      if (!best || c.correct > best.correct || (c.correct === best.correct && (c.accuracy || 0) > (best.accuracy || 0))) best = { key: k, correct: c.correct, accuracy: c.accuracy || 0 };
+    }
+    return best;
+  }, [me]);
   // The daily-challenge slide joins the rotation ONLY once >=2 registered
   // players have played today's challenge.
   const LB_METRICS = useMemo(() => {
@@ -333,8 +349,12 @@ export default function QuizHomeClient() {
       { key: 'accuracy', label: 'Highest Accuracy', fmt: (v) => `${v || 0}%`, ms: 5000 },
     ];
     if (dailyRows.length >= 2) base.splice(1, 0, { key: 'dailyChallenge', special: true, label: `Today's Challenge${dailyCat ? ` · ${dailyCat}` : ''}`, fmt: (v) => (v || 0).toLocaleString(), ms: 6000 });
+    const extra = [];
+    if (todayCorrectRows.length >= 1) extra.push({ key: 'correctToday', special: true, label: 'Correct Today', fmt: (v) => (v || 0).toLocaleString(), ms: 5000 });
+    if (todayQuizRows.length >= 1) extra.push({ key: 'quizzesToday', special: true, label: 'Quizzes Today', fmt: (v) => (v || 0).toLocaleString(), ms: 5000 });
+    if (extra.length) base.splice(dailyRows.length >= 2 ? 2 : 1, 0, ...extra);
     return base;
-  }, [dailyRows.length, dailyCat]);
+  }, [dailyRows.length, dailyCat, todayCorrectRows.length, todayQuizRows.length]);
   const lbMetric = LB_METRICS[Math.min(lbIdx, LB_METRICS.length - 1)];
   // Per-slide timeout: the ELO slide holds 7s, every other slide 5s.
   useEffect(() => {
@@ -352,14 +372,14 @@ export default function QuizHomeClient() {
       ((b[k] || 0) - (a[k] || 0))
       || ((b.rating || 0) - (a.rating || 0))
       || (a.name || '').localeCompare(b.name || '')
-    ).slice(0, boardsExpanded ? 10 : 5);
+    ).slice(0, boardsExpanded ? 10 : 3);
   }, [eloBoard, lbMetric.key, boardsExpanded]);
 
   // ── live feed (scoped by quiz department) ──
   const liveRows = useMemo(() => {
     const rows = recent.map((p) => ({ ...p, dept: deptOf({ id: p.quizId }), title: titleById[p.quizId] || cleanTitle(p.quizId) }));
     const scoped = scope === 'all' ? rows : rows.filter((r) => r.dept === scope);
-    return scoped.slice(0, boardsExpanded ? 10 : 5);
+    return scoped.slice(0, boardsExpanded ? 10 : 3);
   }, [recent, scope, titleById, boardsExpanded]);
 
   const playsToday = totals.today || 0;
@@ -448,6 +468,7 @@ export default function QuizHomeClient() {
     .qzh .qmeta{flex:none;display:flex;align-items:center;gap:10px;font-size:10.5px;}
     .qzh .hubbtn{display:flex;align-items:center;gap:7px;background:${C.accent};color:#fff;padding:10px 15px;border-radius:10px;font-weight:700;font-size:13px;text-decoration:none;white-space:nowrap;}
     @media(max-width:560px){.qz-playerbar{flex-wrap:wrap !important;align-items:center !important;gap:10px 14px !important;}.qz-playerbar .qz-div{display:none !important;}.qz-playerbar .qz-stats{flex:1 1 100% !important;margin-left:0 !important;justify-content:space-between !important;gap:10px !important;}.qz-playerbar .dd{flex:1 1 0 !important;min-width:0 !important;align-self:stretch !important;}.qz-playerbar .dd .ddbtn{width:100% !important;justify-content:center !important;height:100% !important;box-sizing:border-box !important;}.qz-playerbar .hubbtn{flex:1 1 0 !important;justify-content:center !important;align-self:stretch !important;}.qz-daily{flex:1 1 100% !important;justify-content:center !important;}}
+    @media(max-width:560px){.qzh .qz-bestcat{display:none;}}
     .qzh .hubbtn:hover{filter:brightness(1.06);}
     .qzh .crumb1{font-size:18px;font-weight:800;letter-spacing:-0.02em;}
     .qzh .crumb2{font-size:18px;font-weight:600;color:${C.accent};}
@@ -483,6 +504,12 @@ export default function QuizHomeClient() {
               <div style={{ fontSize: 12, fontWeight: 600, color: C.muted, lineHeight: 1.2, marginTop: 2, maxWidth: 160 }}>Play your first quiz to populate</div>
             )}
           </div>
+          {bestCat ? (
+            <div className="qz-bestcat">
+              <div className="lbl">Best category</div>
+              <div style={{ fontSize: 17, fontWeight: 700, color: C.ink, lineHeight: 1.2 }}>{byKey[bestCat.key]?.label || DEPT_LABEL[bestCat.key] || '—'}</div>
+            </div>
+          ) : null}
           <div className="qz-stats" style={{ display: 'flex', gap: 22, marginLeft: 'auto', flexWrap: 'wrap' }}>
             <div><div style={{ display: 'flex', alignItems: 'baseline', gap: 4 }}><span style={{ fontSize: 17, fontWeight: 700 }}>{playerStats && playerStats.completed != null ? playerStats.completed : '—'}</span>{playerStats && playerStats.completed != null && scopeCount ? <span style={{ fontSize: 11, fontWeight: 600, color: C.soft }}>({playerStats.completed > 0 && playerStats.completed / scopeCount < 0.005 ? '<1' : Math.round((playerStats.completed / scopeCount) * 100)}%)</span> : null}</div><div className="lbl">completed</div></div>
             <div><div style={{ fontSize: 17, fontWeight: 700 }}>{playerStats && playerStats.played != null ? playerStats.played : '—'}</div><div className="lbl">played</div></div>
@@ -521,17 +548,22 @@ export default function QuizHomeClient() {
           <div className="card">
             <div className="head" onClick={() => setBoardsExpanded((v) => !v)}>
               <span className="lbl" style={{ color: C.ink }}>{lbMetric.label}{lbMetric.special || scope === 'all' ? '' : ` · ${byKey[scope]?.label}`}</span>
-              <Link href={lbMetric.special ? '/quizzes/hub?tab=challenges' : '/quizzes/hub'} onClick={(e) => e.stopPropagation()} className="qlink"><span style={{ fontSize: 10, fontWeight: 700, letterSpacing: '.05em', textTransform: 'uppercase', color: C.soft }}>View all →</span></Link>
+              <Link href={lbMetric.special ? '/quizzes/hub?tab=challenges' : '/quizzes/hub'} onClick={(e) => e.stopPropagation()} className="qlink"><span style={{ fontSize: 11, fontWeight: 700, color: C.accent }}>View all</span></Link>
             </div>
             <div style={{ flex: 1, padding: '3px 0' }}>
               {lbMetric.special ? (
-                dailyRows.map((r, i) => (
-                  <div className="lrow" key={`d${i}`}>
-                    <Medal i={i} />
-                    <span className="qtitle"><WhoTag name={r.username || 'Player'} isAnon={false} /></span>
-                    <span style={{ flex: 'none', fontWeight: 700, fontVariantNumeric: 'tabular-nums' }}>{(r.totalCorrect || 0).toLocaleString()}</span>
-                  </div>
-                ))
+                (() => {
+                  const rows = lbMetric.key === 'dailyChallenge' ? dailyRows : lbMetric.key === 'correctToday' ? todayCorrectRows : todayQuizRows;
+                  const valOf = lbMetric.key === 'dailyChallenge' ? ((r) => r.totalCorrect) : lbMetric.key === 'correctToday' ? ((r) => r.correct) : ((r) => r.quizzes);
+                  if (rows.length === 0) return <div style={{ padding: '12px 13px', fontSize: 12, color: C.soft }}>No plays yet today.</div>;
+                  return rows.map((r, i) => (
+                    <div className="lrow" key={`s${i}`}>
+                      <Medal i={i} />
+                      <span className="qtitle"><WhoTag name={r.username || 'Player'} isAnon={false} /></span>
+                      <span style={{ flex: 'none', fontWeight: 700, fontVariantNumeric: 'tabular-nums' }}>{(valOf(r) || 0).toLocaleString()}</span>
+                    </div>
+                  ));
+                })()
               ) : (
                 <>
                   {leaderRows.length === 0 && <div style={{ padding: '12px 13px', fontSize: 12, color: C.soft }}>No ranked players yet.</div>}
