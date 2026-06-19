@@ -340,7 +340,7 @@ export default function LogicGridClient({ quizId, mobile = false }) {
     return (
       <button
         onClick={() => setTab(key)}
-        style={{ flex: '1 0 auto', justifyContent: 'center', background: isActive ? COLORS.ember : 'transparent', color: COLORS.cream, border: 'none', borderRight: '1px solid rgba(244,237,224,0.18)', padding: '0 16px', height: 42, whiteSpace: 'nowrap', fontFamily: MONO, fontSize: 10, letterSpacing: '0.18em', textTransform: 'uppercase', fontWeight: 700, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 6 }}
+        style={{ flex: '1 0 auto', justifyContent: 'center', background: isActive ? '#fff' : 'transparent', color: isActive ? COLORS.ink : COLORS.faded, border: 'none', borderRadius: 7, padding: '9px 14px', whiteSpace: 'nowrap', fontFamily: SANS, fontSize: 13, fontWeight: isActive ? 700 : 500, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 6, boxShadow: isActive ? '0 1px 2px rgba(20,22,28,0.06)' : 'none' }}
       >
         {icon}
         {label}
@@ -380,14 +380,14 @@ export default function LogicGridClient({ quizId, mobile = false }) {
         <div style={{ marginTop: 18 }}>
           <div style={{ position: 'relative' }}>
             <style>{`@keyframes qzCueR{0%,100%{transform:translate(0,-50%);}50%{transform:translate(3px,-50%);}}@keyframes qzCueL{0%,100%{transform:translate(0,-50%);}50%{transform:translate(-3px,-50%);}}.qz-cue{position:absolute;top:50%;z-index:3;display:flex;align-items:center;justify-content:center;width:26px;height:26px;border-radius:50%;background:${COLORS.ember};color:#fff;box-shadow:0 1px 4px rgba(26,22,17,0.45);pointer-events:none;font-size:15px;line-height:1;}.qz-cue-r{right:10px;animation:qzCueR 1.4s ease-in-out infinite;}.qz-cue-l{left:10px;animation:qzCueL 1.4s ease-in-out infinite;}@media(min-width:760px){.qz-cue{display:none;}}.qz-ribbon{scrollbar-width:none;-ms-overflow-style:none;}.qz-ribbon::-webkit-scrollbar{display:none;}`}</style>
-            <div ref={ribbonRef} className="qz-ribbon" style={{ display: 'flex', alignItems: 'stretch', flexWrap: 'nowrap', overflowX: 'auto', background: COLORS.ink, borderBottom: `3px solid ${COLORS.ember}` }}>
+            <div ref={ribbonRef} className="qz-ribbon" style={{ display: 'flex', alignItems: 'stretch', flexWrap: 'nowrap', overflowX: 'auto', background: '#eceef1', borderRadius: 10, padding: 4, gap: 6 }}>
             {chip('play', 'Play')}
-            {chip('stats', 'Stats & Leaderboard')}
-            {chip('join', 'Join the Leaderboard', <Trophy size={12} strokeWidth={2.5} />)}
+            {chip('stats', 'Leaderboard')}
+            {chip('join', 'Sign-up', <Trophy size={12} strokeWidth={2.5} />)}
             {chip('share', 'Share', <Share2 size={12} strokeWidth={2.5} />)}
             <button
               onClick={() => { setQSent(false); setQOpen(true); }}
-              style={{ flex: '1 0 auto', justifyContent: 'center', background: 'transparent', color: COLORS.cream, border: 'none', padding: '0 16px', height: 42, whiteSpace: 'nowrap', fontFamily: MONO, fontSize: 10, letterSpacing: '0.18em', textTransform: 'uppercase', fontWeight: 700, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 6 }}
+              style={{ flex: '1 0 auto', justifyContent: 'center', background: 'transparent', color: COLORS.faded, border: 'none', borderRadius: 7, padding: '9px 14px', whiteSpace: 'nowrap', fontFamily: SANS, fontSize: 13, fontWeight: 500, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 6 }}
             >
               <HelpCircle size={12} strokeWidth={2.5} />
               Error(s)?

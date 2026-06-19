@@ -2,6 +2,9 @@ import { NextResponse } from 'next/server';
 import { supabaseAdmin } from '@/lib/supabase-server';
 import { fetchAllRows } from '@/lib/fetch-all';
 import { guestHandleFromAnon } from '@/lib/quiz-elo';
+import { QUIZZES } from '@/lib/quizzes';
+
+const HIDDEN_QUIZ_IDS = new Set((QUIZZES || []).filter((q) => q && (q.unlisted || q.mobilePreview)).map((q) => q.id));
 
 export const dynamic = 'force-dynamic';
 export const fetchCache = 'force-no-store';
@@ -23,7 +26,7 @@ export async function GET() {
       console.error('quiz recent error', error);
       return NextResponse.json({ plays: [] });
     }
-    const recent = data || [];
+    const recent = (data || []).filter((r) => !HIDDEN_QUIZ_IDS.has(r.quiz_id));
 
     // Compute the per-(player, quiz) attempt number for each recent row by
     // counting that player's earlier rows for the same quiz. We pull every row

@@ -370,7 +370,7 @@ export default function GridFillBoard({ quizId, mobile = false }) {
     return (
       <button
         onClick={() => setTab(key)}
-        style={{ flex: '1 0 auto', justifyContent: 'center', background: active ? COLORS.ember : 'transparent', color: COLORS.cream, border: 'none', borderRight: '1px solid rgba(244,237,224,0.18)', padding: '0 16px', height: 42, whiteSpace: 'nowrap', fontFamily: MONO, fontSize: 10, letterSpacing: '0.18em', textTransform: 'uppercase', fontWeight: 700, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 6 }}
+        style={{ flex: '1 0 auto', justifyContent: 'center', background: active ? '#fff' : 'transparent', color: active ? COLORS.ink : COLORS.faded, border: 'none', borderRadius: 7, padding: '9px 14px', whiteSpace: 'nowrap', fontFamily: SANS, fontSize: 13, fontWeight: active ? 700 : 500, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 6, boxShadow: active ? '0 1px 2px rgba(20,22,28,0.06)' : 'none' }}
       >
         {icon}
         {label}
@@ -431,14 +431,14 @@ export default function GridFillBoard({ quizId, mobile = false }) {
 
         {/* Ribbon (not sticky - the scoreboard + input pin to the top instead) */}
         <div style={{ marginTop: 18 }}>
-          <div style={{ display: 'flex', alignItems: 'stretch', flexWrap: 'nowrap', overflowX: 'auto', background: COLORS.ink, borderBottom: `3px solid ${COLORS.ember}` }}>
+          <div style={{ display: 'flex', alignItems: 'stretch', flexWrap: 'nowrap', overflowX: 'auto', background: '#eceef1', borderRadius: 10, padding: 4, gap: 6 }}>
             {chip('play', 'Play')}
-            {chip('stats', 'Stats & Leaderboard')}
-            {chip('join', 'Join the Leaderboard', <Trophy size={12} strokeWidth={2.5} />)}
+            {chip('stats', 'Leaderboard')}
+            {chip('join', 'Sign-up', <Trophy size={12} strokeWidth={2.5} />)}
             {chip('share', 'Share', <Share2 size={12} strokeWidth={2.5} />)}
             <button
               onClick={() => { setQSent(false); setQOpen(true); }}
-              style={{ flex: '1 0 auto', justifyContent: 'center', background: 'transparent', color: COLORS.cream, border: 'none', padding: '0 16px', height: 42, whiteSpace: 'nowrap', fontFamily: MONO, fontSize: 10, letterSpacing: '0.18em', textTransform: 'uppercase', fontWeight: 700, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 6 }}
+              style={{ flex: '1 0 auto', justifyContent: 'center', background: 'transparent', color: COLORS.faded, border: 'none', borderRadius: 7, padding: '9px 14px', whiteSpace: 'nowrap', fontFamily: SANS, fontSize: 13, fontWeight: 500, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 6 }}
             >
               <HelpCircle size={12} strokeWidth={2.5} />
               Error(s)?
