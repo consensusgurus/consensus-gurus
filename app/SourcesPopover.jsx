@@ -96,7 +96,7 @@ export default function SourcesPopover({ label, emphasis, align }) {
           `}</style>
         <div
           role="dialog"
-          aria-label="The sources behind the consensus"
+          aria-label="The inputs behind the consensus"
           className="sot-pop"
           onMouseEnter={cancelClose}
           onMouseLeave={scheduleClose}
@@ -131,14 +131,14 @@ export default function SourcesPopover({ label, emphasis, align }) {
                   marginBottom: 4,
                 }}
               >
-                The Sources
+                The Inputs
               </div>
               <div style={{ fontFamily: "'Manrope', system-ui, sans-serif", fontSize: 12, color: '#6b7280' }}>
                 {sources.length} publications, with how many lists each shapes
               </div>
             </div>
             <Link
-              href="/sources"
+              href="/inputs"
               style={{
                 flex: '0 0 auto',
                 fontFamily: "'Manrope', system-ui, sans-serif",

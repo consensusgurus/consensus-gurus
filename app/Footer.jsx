@@ -16,7 +16,7 @@ const COLS = [
     links: [
       { label: 'Browse Lists', href: '/' },
       { label: 'Activity Log', href: '/feed' },
-      { label: 'Sources', href: '/sources' },
+      { label: 'Inputs', href: '/inputs' },
       { label: 'Request a List', href: '/request' },
     ],
   },
