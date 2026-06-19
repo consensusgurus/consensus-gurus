@@ -89,7 +89,7 @@ function RequestView({ onSubmit }) {
   `;
 
   return (
-    <div className="req" style={{ maxWidth: 1180, margin: '0 auto', padding: '24px 24px 80px' }}>
+    <div className="req" style={{ maxWidth: 1180, margin: '0 auto', padding: '10px 24px 80px' }}>
       <style>{css}</style>
 
       <div style={{ borderBottom: `1px solid ${C.line}`, paddingBottom: 22, marginBottom: 28 }}>

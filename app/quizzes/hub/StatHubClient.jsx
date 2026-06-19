@@ -315,7 +315,7 @@ export default function StatHubClient() {
         <SiteHeader active="quizzes" bare />
 
         {/* profile header — leads with OVERALL RANK (largest element) */}
-        <div className="card shpbar" style={{ display: 'flex', flexDirection: 'row', alignItems: 'center', flexWrap: 'wrap', gap: 18, padding: '15px 18px', marginTop: 16, overflow: 'visible', position: 'relative', zIndex: 40 }}>
+        <div className="card shpbar" style={{ display: 'flex', flexDirection: 'row', alignItems: 'center', flexWrap: 'wrap', gap: 18, padding: '15px 18px', marginTop: 10, overflow: 'visible', position: 'relative', zIndex: 40 }}>
           {(viewing ? (profile && profile.name) : true) ? (
             <>
               <div className="shpbar-id" style={{ display: 'flex', alignItems: 'center', minWidth: 0 }}>
@@ -804,7 +804,7 @@ function ChallengesPanel({ me }) {
 
         <div className="chg-meta">
           <span><b>{data ? data.totalRegisteredPlayers : '\u2014'}</b> registered players</span>
-          <span>Best attempt per quiz</span>
+          <span>{ch.firstAttemptOnly ? 'First attempt only' : 'Best attempt per quiz'}</span>
           {data && data.generatedAt ? <span>Updated <b>{chUpdated(data.generatedAt)}</b></span> : null}
           <button className="chg-btn" onClick={() => load(true)} disabled={refreshing}><RefreshCw size={12} strokeWidth={2.4} style={{ animation: refreshing ? 'chgspin 0.8s linear infinite' : 'none' }} /> Refresh</button>
           <button className="chg-btn" onClick={doShare}><Share2 size={12} strokeWidth={2.4} /> {shared ? 'Copied!' : 'Share'}</button>
@@ -850,7 +850,7 @@ function ChallengesPanel({ me }) {
                         if (sc === undefined || sc === null) return <td key={col.quizId} className="chg-sc chg-empty">·</td>;
                         const tm = u.times ? u.times[col.quizId] : null;
                         const tot = colTotal[col.quizId] || 0;
-                        return <td key={col.quizId} className={`chg-sc${sc === 0 ? ' chg-zero' : ''}`} title={`${sc}/${tot} correct${tm != null ? ` · ${chMmss(tm)}` : ''} · best attempt`}><span className="chg-v" style={{ '--ac': col.group.color }}>{pctOf(sc, tot)}%</span></td>;
+                        return <td key={col.quizId} className={`chg-sc${sc === 0 ? ' chg-zero' : ''}`} title={`${sc}/${tot} correct${tm != null ? ` · ${chMmss(tm)}` : ''} · ${ch.firstAttemptOnly ? 'first attempt' : 'best attempt'}`}><span className="chg-v" style={{ '--ac': col.group.color }}>{pctOf(sc, tot)}%</span></td>;
                       })}
                       <td className="chg-totc"><span>{pctOf(u.totalCorrect, totalPossible)}%</span></td>
                       <td className="chg-tott">{chMmss(u.totalTime)}</td>
@@ -865,7 +865,7 @@ function ChallengesPanel({ me }) {
         <div className="chg-legend">
           {ch.groups.map((g) => (<span key={g.key} className="chg-chip"><span className="chg-sw" style={{ background: g.color }} />{g.label} {g.emoji}</span>))}
         </div>
-        <p className="chg-foot">Cells show how much of each quiz a player has completed (correct ÷ quiz total) on their best attempt since the window opened; hover a cell for the raw count and time, a dot (·) means they haven{"'"}t taken that quiz yet. Ranking is by <b>total correct</b> across every quiz, ties broken by <b>least total time</b>. Only signed-up players appear. Hit Refresh for the latest.</p>
+        <p className="chg-foot">Cells show how much of each quiz a player has completed (correct ÷ quiz total) on their {ch.firstAttemptOnly ? 'first attempt' : 'best attempt'} since the window opened; hover a cell for the raw count and time, a dot (·) means they haven{"'"}t taken that quiz yet. Ranking is by <b>total correct</b> across every quiz, ties broken by <b>least total time</b>. Only signed-up players appear. Hit Refresh for the latest.</p>
       </div>
     </div>
   );

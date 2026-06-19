@@ -549,7 +549,7 @@ function ListDetail({ list, viewCount, voteData, userVotes, extras, relatedLists
     <div style={{ position: 'relative', zIndex: 2, maxWidth: 1180, margin: '0 auto', padding: '8px 24px 80px' }}>
       {!compact && <SiteHeader active="lists" bare />}
 
-      {!compact && <div style={{ paddingBottom: 0, marginTop: 8 }}>
+      {!compact && <div style={{ paddingBottom: 0, marginTop: 10 }}>
         <div style={{ display: 'flex', alignItems: 'flex-end', gap: 'clamp(16px, 4vw, 28px)' }}>
           <h1
             style={{

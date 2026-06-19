@@ -24,6 +24,7 @@ export async function GET(request) {
   const quizIds = challengeQuizIds(ch);
   const sinceMs = Date.parse(ch.since);
   const untilMs = ch.until ? Date.parse(ch.until) : null;
+  const firstOnly = !!ch.firstAttemptOnly;
 
   try {
     const { data, error } = await fetchAllRows(
@@ -53,7 +54,13 @@ export async function GET(request) {
       const tm = Number.isFinite(Number(r.time_elapsed)) ? Number(r.time_elapsed) : Infinity;
       const k = `${uid}::${r.quiz_id}`;
       const cur = best.get(k);
-      if (!cur || sc > cur.score || (sc === cur.score && tm < cur.time)) best.set(k, { score: sc, correct: co, time: tm });
+      if (firstOnly) {
+        const ctn = Date.parse(r.created_at);
+        const ct = Number.isFinite(ctn) ? ctn : Infinity;
+        if (!cur || ct < cur.ct) best.set(k, { score: sc, correct: co, time: tm, ct });
+      } else if (!cur || sc > cur.score || (sc === cur.score && tm < cur.time)) {
+        best.set(k, { score: sc, correct: co, time: tm });
+      }
       const rid = r.id || 0;
       if (rid >= (nameRowId.get(uid) || -1)) { nameRowId.set(uid, rid); nameById.set(uid, r.username || 'Player'); }
     }
