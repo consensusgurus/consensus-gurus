@@ -546,6 +546,8 @@ function ActivityFeed({ recent, titleById, viewing }) {
           <th style={{ textAlign: 'right' }}>When</th>
           <th style={{ textAlign: 'right' }}>{viewing ? 'User %' : 'Your %'}</th>
           <th style={{ textAlign: 'right' }}>Rating &Delta;</th>
+          <th style={{ textAlign: 'right' }}>Rank &Delta;</th>
+          <th style={{ textAlign: 'right' }}>Cat. Rank &Delta;</th>
         </tr></thead>
         <tbody>
           {recent.map((m, i) => {
@@ -557,6 +559,8 @@ function ActivityFeed({ recent, titleById, viewing }) {
                 <td style={{ textAlign: 'right', color: C.muted, whiteSpace: 'nowrap' }}>{when}</td>
                 <td style={{ textAlign: 'right' }}>{m.scorePct}%</td>
                 <td className="score" style={{ textAlign: 'right', color: (m.delta >= 0) ? C.accent : C.danger, fontWeight: 700 }}>{m.delta >= 0 ? `+${m.delta}` : m.delta}</td>
+                <td style={{ textAlign: 'right', fontWeight: 700, color: m.rankDelta > 0 ? C.accent : m.rankDelta < 0 ? C.danger : C.muted }}>{m.rankDelta == null ? '\u2014' : m.rankDelta === 0 ? '\u00b10' : m.rankDelta > 0 ? `+${m.rankDelta}` : m.rankDelta}</td>
+                <td style={{ textAlign: 'right', fontWeight: 700, color: m.catRankDelta > 0 ? C.accent : m.catRankDelta < 0 ? C.danger : C.muted }}>{m.catRankDelta == null ? '\u2014' : m.catRankDelta === 0 ? '\u00b10' : m.catRankDelta > 0 ? `+${m.catRankDelta}` : m.catRankDelta}</td>
               </tr>
             );
           })}

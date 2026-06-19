@@ -408,10 +408,11 @@ export default function TimedMcqClient({ quizId, mobile = false }) {
     const aCat = aCatObj ? aCatObj.rank : null;
     const bCat = bCatObj ? bCatObj.rank : null;
     const perGame = (eloAfter.recent && eloAfter.recent[0] && typeof eloAfter.recent[0].delta === 'number') ? eloAfter.recent[0].delta : (bRating != null ? aRating - bRating : null);
+    const rg = (eloAfter.recent && eloAfter.recent[0]) ? eloAfter.recent[0] : null;
     const rows = [
       { label: 'ELO rating', value: fmtN(aRating), was: perGame != null ? `was ${fmtN(aRating - perGame)}` : null, delta: perGame, isNew: bRating == null },
-      { label: 'Global rank', value: aGlobal != null ? `#${fmtN(aGlobal)}` : '—', was: bGlobal != null ? `was #${fmtN(bGlobal)}` : 'new entry', delta: (bGlobal != null && aGlobal != null) ? bGlobal - aGlobal : null, isNew: bGlobal == null },
-      { label: `${eloDeptLabel} rank`, value: aCat != null ? `#${fmtN(aCat)}` : '—', was: bCat != null ? `was #${fmtN(bCat)}` : 'new entry', delta: (bCat != null && aCat != null) ? bCat - aCat : null, isNew: bCat == null },
+      { label: 'Global rank', value: aGlobal != null ? `#${fmtN(aGlobal)}` : '—', was: bGlobal != null ? `was #${fmtN(bGlobal)}` : 'new entry', delta: (rg && typeof rg.rankDelta === 'number') ? rg.rankDelta : ((bGlobal != null && aGlobal != null) ? bGlobal - aGlobal : null), isNew: bGlobal == null },
+      { label: `${eloDeptLabel} rank`, value: aCat != null ? `#${fmtN(aCat)}` : '—', was: bCat != null ? `was #${fmtN(bCat)}` : 'new entry', delta: (rg && typeof rg.catRankDelta === 'number') ? rg.catRankDelta : ((bCat != null && aCat != null) ? bCat - aCat : null), isNew: bCat == null },
     ];
     return (
       <div style={{ margin: '18px auto 0', maxWidth: 300, background: '#fbf7ef', border: `1px solid ${COLORS.faded}33` }}>

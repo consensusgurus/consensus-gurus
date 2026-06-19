@@ -17,7 +17,7 @@ export async function GET(request) {
   try {
     const { data, error } = await loadQuizResults(supabaseAdmin);
     if (error) { console.error('quiz player error', error); return NextResponse.json({ found: false }); }
-    const { players } = computeElo(data || []);
+    const { players } = computeElo(data || [], { rankFor: key });
 
     let myKey = key;
     if (!myKey && uname) {
