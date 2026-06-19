@@ -77,7 +77,7 @@ export default function SiteHeader({ active = 'lists', maxWidth = 1180, visitors
             <Link href="/" style={{ flex: 'none', display: 'flex' }} aria-label="Source of Truths home"><Logo size={40} /></Link>
             <span style={{ display: 'flex', flexDirection: 'column' }}>
               <Link href="/" className="sh-word" style={{ textDecoration: 'none', color: 'inherit' }}>Source <span style={{ color: C.accent, fontWeight: 600 }}>of</span> Truths</Link>
-              <span style={{ fontSize: 9.5, fontWeight: 800, letterSpacing: '0.18em', textTransform: 'uppercase', color: C.ink, marginTop: 3 }}>Crafting Objectivity from <SourcesPopover align="left" label={`${SOURCE_COUNT.toLocaleString()} Inputs`} /></span>
+              <span style={{ fontSize: 9.5, fontWeight: 800, letterSpacing: '0.18em', textTransform: 'uppercase', color: C.ink, marginTop: 3 }}>Crafting Objectivity from <SourcesPopover align="left" label={`${SOURCE_COUNT.toLocaleString()} INPUTS`} /></span>
             </span>
           </div>
           <div className="sh-right">
