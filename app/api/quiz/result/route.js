@@ -89,7 +89,7 @@ export async function POST(request) {
     for (const row of attempts) {
       ({ data: inserted, error: insErr } = await supabaseAdmin.from('quiz_results').insert(row).select('id').single());
       if (!insErr) break;
-      if (insErr.code !== '42703') break; // a real error, not a missing column
+      if (insErr.code !== '42703' && insErr.code !== 'PGRST204' && !/column|schema cache/i.test(insErr.message || '')) break; // a real error, not a missing column (Postgres 42703 OR PostgREST PGRST204 schema-cache miss)
     }
     if (insErr) {
       console.error('quiz_results insert error', insErr);
