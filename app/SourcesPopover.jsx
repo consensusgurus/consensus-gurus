@@ -72,7 +72,7 @@ export default function SourcesPopover({ label, emphasis, align }) {
           textDecorationStyle: emphasis ? 'solid' : 'dotted',
           textDecorationThickness: emphasis ? '2px' : 'auto',
           textUnderlineOffset: '3px',
-          textDecorationColor: COLORS.ember,
+          textDecorationColor: '#2563eb',
         }}
       >
         {triggerLabel}
@@ -83,9 +83,9 @@ export default function SourcesPopover({ label, emphasis, align }) {
           <style>{`
             .sot-pop{
               position:absolute;top:calc(100% + 10px);${align === 'left' ? 'left:0;right:auto;' : 'right:0;left:auto;'}
-              z-index:50;width:min(660px,86vw);max-height:62vh;overflow-y:auto;
-              background:${COLORS.cream};border:1.5px solid ${COLORS.ink};
-              box-shadow:6px 6px 0 ${COLORS.ink};padding:0;text-align:left;cursor:default;
+              z-index:50;width:min(720px,90vw);max-height:64vh;overflow-y:auto;
+              background:#ffffff;border:1px solid rgba(20,22,28,0.12);border-radius:14px;
+              box-shadow:0 14px 44px rgba(20,22,28,0.18);padding:0;text-align:left;cursor:default;
             }
             @media(max-width:640px){
               .sot-pop{
@@ -107,30 +107,33 @@ export default function SourcesPopover({ label, emphasis, align }) {
               position: 'sticky',
               top: 0,
               zIndex: 2,
-              background: COLORS.cream,
+              background: '#ffffff',
+              borderTopLeftRadius: 14,
+              borderTopRightRadius: 14,
               display: 'flex',
               alignItems: 'baseline',
               justifyContent: 'space-between',
               gap: 12,
               margin: 0,
               padding: '16px 16px 10px',
-              borderBottom: `1px solid ${COLORS.ink}`,
+              borderBottom: `1px solid rgba(20,22,28,0.10)`,
             }}
           >
             <div>
               <div
                 style={{
-                  fontFamily: 'DM Mono, monospace',
+                  fontFamily: "'Manrope', system-ui, sans-serif",
                   fontSize: 10,
                   letterSpacing: '0.2em',
                   textTransform: 'uppercase',
-                  color: COLORS.ember,
+                  fontWeight: 700,
+                  color: '#2563eb',
                   marginBottom: 4,
                 }}
               >
                 The Sources
               </div>
-              <div style={{ fontFamily: 'DM Sans, sans-serif', fontSize: 12, color: COLORS.faded }}>
+              <div style={{ fontFamily: "'Manrope', system-ui, sans-serif", fontSize: 12, color: '#6b7280' }}>
                 {sources.length} publications, with how many lists each shapes
               </div>
             </div>
@@ -138,13 +141,14 @@ export default function SourcesPopover({ label, emphasis, align }) {
               href="/sources"
               style={{
                 flex: '0 0 auto',
-                fontFamily: 'DM Mono, monospace',
+                fontFamily: "'Manrope', system-ui, sans-serif",
                 fontSize: 10,
                 letterSpacing: '0.15em',
                 textTransform: 'uppercase',
-                color: COLORS.ink,
+                fontWeight: 700,
+                color: '#1c1e24',
                 textDecoration: 'none',
-                borderBottom: `1.5px solid ${COLORS.ember}`,
+                borderBottom: `2px solid #2563eb`,
                 paddingBottom: 2,
               }}
             >
@@ -152,7 +156,7 @@ export default function SourcesPopover({ label, emphasis, align }) {
             </Link>
           </div>
           <div style={{ padding: '14px 16px 16px' }}>
-            <SourcesGrid sources={sources} />
+            <SourcesGrid sources={sources} theme="site" minColWidth={210} />
           </div>
         </div>
         </>

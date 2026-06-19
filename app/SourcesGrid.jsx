@@ -27,11 +27,12 @@ export default function SourcesGrid({ sources = [], minColWidth = 190, linked = 
           padding:8px 11px;
           background:${PAL.chipBg};
           border:1px solid ${PAL.chipBorder};
+          border-radius:10px;
           min-width:0;
           text-decoration:none;color:inherit;
         }
         a.sot-src-chip{transition:transform 0.12s ease, box-shadow 0.12s ease, background 0.12s ease;}
-        a.sot-src-chip:hover{background:${PAL.hoverBg};transform:translate(-2px,-2px);box-shadow:2px 2px 0 ${PAL.hoverShadow};}
+        a.sot-src-chip:hover{background:${PAL.hoverBg};transform:translate(-2px,-2px);box-shadow:2px 2px 0 ${PAL.hoverShadow};border-radius:10px;}
         .sot-src-logo{
           flex:0 0 auto;width:20px;height:20px;border-radius:4px;
           background-color:${PAL.logoBg};
@@ -43,7 +44,7 @@ export default function SourcesGrid({ sources = [], minColWidth = 190, linked = 
         .sot-src-name{
           flex:1 1 auto;min-width:0;
           font-family:${PAL.nameFont};font-size:13px;line-height:1.25;color:${PAL.nameColor};
-          white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+          overflow-wrap:anywhere;word-break:break-word;
         }
         .sot-src-count{
           flex:0 0 auto;

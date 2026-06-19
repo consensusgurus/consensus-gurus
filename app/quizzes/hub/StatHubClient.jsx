@@ -313,7 +313,7 @@ export default function StatHubClient() {
 
         {/* profile header — leads with OVERALL RANK (largest element) */}
         <div className="card shpbar" style={{ display: 'flex', flexDirection: 'row', alignItems: 'center', flexWrap: 'wrap', gap: 18, padding: '15px 18px', marginTop: 16, overflow: 'visible', position: 'relative', zIndex: 40 }}>
-          {(viewing ? profile.name : true) ? (
+          {(viewing ? (profile && profile.name) : true) ? (
             <>
               <div className="shpbar-id" style={{ display: 'flex', alignItems: 'center', minWidth: 0 }}>
                 {viewing ? (
