@@ -3,8 +3,22 @@ import React, { useState, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { Check, X, Eye, EyeOff, LogOut, Pencil, Trash2, MapPin } from 'lucide-react';
-import { COLORS, LISTS } from '@/lib/data';
+import { LISTS } from '@/lib/data';
 import Grain from '@/app/Grain';
+
+// Local theme palette: the live-site look (Manrope + soft blue) applied to the
+// admin desk. Shadows the magazine COLORS from lib/data so the public site is
+// untouched; same keys the admin uses, remapped to the new theme.
+const COLORS = {
+  cream: '#f7f8fa',
+  paper: '#ffffff',
+  ink: '#1c1e24',
+  faded: '#6b7280',
+  ember: '#2563eb',
+  forest: '#10b981',
+  rust: '#b45309',
+  line: 'rgba(20,22,28,0.09)',
+};
 
 function formatDate(iso) {
   if (!iso) return '';
@@ -342,14 +356,20 @@ export default function AdminClient({ initialLists, initialExtras = [], initialC
 
   return (
     <div
+      className="adt"
       style={{
         minHeight: '100vh',
         background: COLORS.cream,
         color: COLORS.ink,
         position: 'relative',
         overflow: 'hidden',
+        fontFamily: 'Manrope, system-ui, -apple-system, sans-serif',
       }}
     >
+      <style>{`
+        .adt [style*="border:"]{border-radius:10px;}
+        .adt ::placeholder{color:${COLORS.faded};}
+      `}</style>
       <Grain />
       <div
         style={{
@@ -404,7 +424,7 @@ export default function AdminClient({ initialLists, initialExtras = [], initialC
             style={{
               background: 'transparent',
               color: COLORS.ink,
-              border: `1.5px solid ${COLORS.ink}`,
+              border: `1px solid ${COLORS.line}`,
               padding: '8px 14px',
               fontFamily: 'DM Mono, monospace',
               fontSize: 10,
@@ -428,7 +448,7 @@ export default function AdminClient({ initialLists, initialExtras = [], initialC
             display: 'flex',
             gap: 0,
             marginBottom: 28,
-            border: `1.5px solid ${COLORS.ink}`,
+            border: `1px solid ${COLORS.line}`,
           }}
         >
           <TabButton active={tab === 'pending'} onClick={() => setTab('pending')}>
@@ -473,7 +493,7 @@ export default function AdminClient({ initialLists, initialExtras = [], initialC
               fontStyle: 'italic',
               fontSize: 18,
               color: COLORS.faded,
-              border: `1.5px dashed ${COLORS.ink}`,
+              border: `1px dashed ${COLORS.line}`,
             }}
           >
             {tab === 'pending'
@@ -524,7 +544,7 @@ function ViewsPanel({ views, total }) {
           fontStyle: 'italic',
           fontSize: 18,
           color: COLORS.faded,
-          border: `1.5px dashed ${COLORS.ink}`,
+          border: `1px dashed ${COLORS.line}`,
         }}
       >
         No view data yet.
@@ -537,7 +557,7 @@ function ViewsPanel({ views, total }) {
 
   return (
     <div>
-      <p style={{ fontFamily: 'DM Sans, sans-serif', fontSize: 13, color: COLORS.faded, margin: '0 0 14px' }}>
+      <p style={{ fontFamily: 'Manrope, system-ui, -apple-system, sans-serif', fontSize: 13, color: COLORS.faded, margin: '0 0 14px' }}>
         Visitor counts per list page over the rolling past 24 hours, busiest first.
         {' '}{total} view{total === 1 ? '' : 's'} across {activeLists} list{activeLists === 1 ? '' : 's'}.
         All-time totals shown for context.
@@ -550,7 +570,7 @@ function ViewsPanel({ views, total }) {
           width: '100%',
           padding: '10px 12px',
           background: COLORS.paper,
-          border: `1.5px solid ${COLORS.ink}`,
+          border: `1px solid ${COLORS.line}`,
           color: COLORS.ink,
           fontFamily: 'DM Mono, monospace',
           fontSize: 12,
@@ -568,14 +588,14 @@ function ViewsPanel({ views, total }) {
             fontStyle: 'italic',
             fontSize: 16,
             color: COLORS.faded,
-            border: `1.5px dashed ${COLORS.ink}`,
+            border: `1px dashed ${COLORS.line}`,
           }}
         >
           No matches.
         </div>
       ) : (
-        <div style={{ border: `1.5px solid ${COLORS.ink}`, maxHeight: TABLE_MAX_H, overflowY: 'auto' }}>
-          <div style={{ display: 'flex', position: 'sticky', top: 0, zIndex: 1, background: COLORS.cream, fontFamily: 'DM Mono, monospace', fontSize: 10, letterSpacing: '0.14em', textTransform: 'uppercase', color: COLORS.faded, padding: '10px 14px', borderBottom: `1.5px solid ${COLORS.ink}` }}>
+        <div style={{ border: `1px solid ${COLORS.line}`, background: COLORS.paper, borderRadius: 12, maxHeight: TABLE_MAX_H, overflowY: 'auto' }}>
+          <div style={{ display: 'flex', position: 'sticky', top: 0, zIndex: 1, background: COLORS.cream, fontFamily: 'DM Mono, monospace', fontSize: 10, letterSpacing: '0.14em', textTransform: 'uppercase', color: COLORS.faded, padding: '10px 14px', borderBottom: `1px solid ${COLORS.line}` }}>
             <span style={{ flex: '0 0 36px' }}>#</span>
             <span style={{ flex: 3 }}>List</span>
             <span style={{ flex: '0 0 100px', textAlign: 'right' }}>Last 24h</span>
@@ -584,7 +604,7 @@ function ViewsPanel({ views, total }) {
           {visible.map((v, i) => (
             <div
               key={v.listId}
-              style={{ display: 'flex', alignItems: 'center', fontFamily: 'DM Sans, sans-serif', fontSize: 13, color: COLORS.ink, padding: '9px 14px', borderBottom: i < visible.length - 1 ? rowBorder : 'none', opacity: v.views24h > 0 ? 1 : 0.55 }}
+              style={{ display: 'flex', alignItems: 'center', fontFamily: 'Manrope, system-ui, -apple-system, sans-serif', fontSize: 13, color: COLORS.ink, padding: '9px 14px', borderBottom: i < visible.length - 1 ? rowBorder : 'none', opacity: v.views24h > 0 ? 1 : 0.55 }}
             >
               <span style={{ flex: '0 0 36px', fontFamily: 'DM Mono, monospace', fontSize: 11, color: COLORS.faded }}>
                 {i + 1}
@@ -633,7 +653,7 @@ function QuizStatsPanel({ stats, playsTotal }) {
           fontStyle: 'italic',
           fontSize: 18,
           color: COLORS.faded,
-          border: `1.5px dashed ${COLORS.ink}`,
+          border: `1px dashed ${COLORS.line}`,
         }}
       >
         No quiz activity yet.
@@ -646,7 +666,7 @@ function QuizStatsPanel({ stats, playsTotal }) {
 
   return (
     <div>
-      <p style={{ fontFamily: 'DM Sans, sans-serif', fontSize: 13, color: COLORS.faded, margin: '0 0 14px' }}>
+      <p style={{ fontFamily: 'Manrope, system-ui, -apple-system, sans-serif', fontSize: 13, color: COLORS.faded, margin: '0 0 14px' }}>
         Per-quiz visitors over the rolling past 24 hours and all-time, plus
         completed-game plays and average score. Busiest first.
         {' '}{views24Total} view{views24Total === 1 ? '' : 's'} and {playsTotal} play{playsTotal === 1 ? '' : 's'} in the last day.
@@ -659,7 +679,7 @@ function QuizStatsPanel({ stats, playsTotal }) {
           width: '100%',
           padding: '10px 12px',
           background: COLORS.paper,
-          border: `1.5px solid ${COLORS.ink}`,
+          border: `1px solid ${COLORS.line}`,
           color: COLORS.ink,
           fontFamily: 'DM Mono, monospace',
           fontSize: 12,
@@ -677,14 +697,14 @@ function QuizStatsPanel({ stats, playsTotal }) {
             fontStyle: 'italic',
             fontSize: 16,
             color: COLORS.faded,
-            border: `1.5px dashed ${COLORS.ink}`,
+            border: `1px dashed ${COLORS.line}`,
           }}
         >
           No matches.
         </div>
       ) : (
-        <div style={{ border: `1.5px solid ${COLORS.ink}`, maxHeight: TABLE_MAX_H, overflowY: 'auto' }}>
-          <div style={{ display: 'flex', position: 'sticky', top: 0, zIndex: 1, background: COLORS.cream, fontFamily: 'DM Mono, monospace', fontSize: 10, letterSpacing: '0.14em', textTransform: 'uppercase', color: COLORS.faded, padding: '10px 14px', borderBottom: `1.5px solid ${COLORS.ink}` }}>
+        <div style={{ border: `1px solid ${COLORS.line}`, background: COLORS.paper, borderRadius: 12, maxHeight: TABLE_MAX_H, overflowY: 'auto' }}>
+          <div style={{ display: 'flex', position: 'sticky', top: 0, zIndex: 1, background: COLORS.cream, fontFamily: 'DM Mono, monospace', fontSize: 10, letterSpacing: '0.14em', textTransform: 'uppercase', color: COLORS.faded, padding: '10px 14px', borderBottom: `1px solid ${COLORS.line}` }}>
             <span style={{ flex: '0 0 36px' }}>#</span>
             <span style={{ flex: 3 }}>Quiz</span>
             <span style={{ flex: '0 0 84px', textAlign: 'right' }}>Views 24h</span>
@@ -697,7 +717,7 @@ function QuizStatsPanel({ stats, playsTotal }) {
             return (
               <div
                 key={s.quizId}
-                style={{ display: 'flex', alignItems: 'center', fontFamily: 'DM Sans, sans-serif', fontSize: 13, color: COLORS.ink, padding: '9px 14px', borderBottom: i < visible.length - 1 ? rowBorder : 'none', opacity: active ? 1 : 0.55 }}
+                style={{ display: 'flex', alignItems: 'center', fontFamily: 'Manrope, system-ui, -apple-system, sans-serif', fontSize: 13, color: COLORS.ink, padding: '9px 14px', borderBottom: i < visible.length - 1 ? rowBorder : 'none', opacity: active ? 1 : 0.55 }}
               >
                 <span style={{ flex: '0 0 36px', fontFamily: 'DM Mono, monospace', fontSize: 11, color: COLORS.faded }}>
                   {i + 1}
@@ -786,7 +806,7 @@ function QuizSignupsPanel({ signups }) {
           fontStyle: 'italic',
           fontSize: 18,
           color: COLORS.faded,
-          border: `1.5px dashed ${COLORS.ink}`,
+          border: `1px dashed ${COLORS.line}`,
         }}
       >
         No quiz signups yet.
@@ -802,7 +822,7 @@ function QuizSignupsPanel({ signups }) {
 
   return (
     <div>
-      <p style={{ fontFamily: 'DM Sans, sans-serif', fontSize: 13, color: COLORS.faded, margin: '0 0 14px' }}>
+      <p style={{ fontFamily: 'Manrope, system-ui, -apple-system, sans-serif', fontSize: 13, color: COLORS.faded, margin: '0 0 14px' }}>
         Email signups from the quiz leaderboard join form.
         {' '}{signups.length} signup{signups.length === 1 ? '' : 's'} total.
         {' '}Days = distinct calendar days a person played (separate sessions).
@@ -826,7 +846,7 @@ function QuizSignupsPanel({ signups }) {
               style={{
                 padding: '6px 12px',
                 background: on ? COLORS.ink : 'transparent',
-                border: `1.5px solid ${COLORS.ink}`,
+                border: `1px solid ${COLORS.line}`,
                 color: on ? COLORS.paper : COLORS.ink,
                 fontFamily: 'DM Mono, monospace',
                 fontSize: 11,
@@ -849,7 +869,7 @@ function QuizSignupsPanel({ signups }) {
             flex: 1,
             padding: '10px 12px',
             background: COLORS.paper,
-            border: `1.5px solid ${COLORS.ink}`,
+            border: `1px solid ${COLORS.line}`,
             color: COLORS.ink,
             fontFamily: 'DM Mono, monospace',
             fontSize: 12,
@@ -862,7 +882,7 @@ function QuizSignupsPanel({ signups }) {
           style={{
             padding: '10px 14px',
             background: COLORS.ink,
-            border: `1.5px solid ${COLORS.ink}`,
+            border: `1px solid ${COLORS.line}`,
             color: COLORS.paper,
             fontFamily: 'DM Mono, monospace',
             fontSize: 11,
@@ -884,14 +904,14 @@ function QuizSignupsPanel({ signups }) {
             fontStyle: 'italic',
             fontSize: 16,
             color: COLORS.faded,
-            border: `1.5px dashed ${COLORS.ink}`,
+            border: `1px dashed ${COLORS.line}`,
           }}
         >
           No matches.
         </div>
       ) : (
-        <div style={{ border: `1.5px solid ${COLORS.ink}`, maxHeight: TABLE_MAX_H, overflowY: 'auto' }}>
-          <div style={{ display: 'flex', position: 'sticky', top: 0, zIndex: 1, background: COLORS.cream, fontFamily: 'DM Mono, monospace', fontSize: 10, letterSpacing: '0.14em', textTransform: 'uppercase', color: COLORS.faded, padding: '10px 14px', borderBottom: `1.5px solid ${COLORS.ink}` }}>
+        <div style={{ border: `1px solid ${COLORS.line}`, background: COLORS.paper, borderRadius: 12, maxHeight: TABLE_MAX_H, overflowY: 'auto' }}>
+          <div style={{ display: 'flex', position: 'sticky', top: 0, zIndex: 1, background: COLORS.cream, fontFamily: 'DM Mono, monospace', fontSize: 10, letterSpacing: '0.14em', textTransform: 'uppercase', color: COLORS.faded, padding: '10px 14px', borderBottom: `1px solid ${COLORS.line}` }}>
             <span style={{ flex: '0 0 36px' }}>#</span>
             <span style={{ flex: 2 }}>Username</span>
             <span style={{ flex: 2 }}>Email</span>
@@ -909,7 +929,7 @@ function QuizSignupsPanel({ signups }) {
               <div key={s.id} style={{ borderBottom: i < visible.length - 1 ? rowBorder : 'none' }}>
                 <div
                   onClick={() => setExpandedId(open ? null : s.id)}
-                  style={{ display: 'flex', alignItems: 'center', fontFamily: 'DM Sans, sans-serif', fontSize: 13, color: COLORS.ink, padding: '9px 14px', cursor: 'pointer', background: open ? `${COLORS.ink}0a` : 'transparent' }}
+                  style={{ display: 'flex', alignItems: 'center', fontFamily: 'Manrope, system-ui, -apple-system, sans-serif', fontSize: 13, color: COLORS.ink, padding: '9px 14px', cursor: 'pointer', background: open ? `${COLORS.ink}0a` : 'transparent' }}
                 >
                   <span style={{ flex: '0 0 36px', fontFamily: 'DM Mono, monospace', fontSize: 11, color: COLORS.faded, display: 'flex', alignItems: 'center', gap: 4 }}>
                     <span style={{ display: 'inline-block', width: 8, transform: open ? 'rotate(90deg)' : 'none', transition: 'transform 0.12s' }}>▸</span>
@@ -951,7 +971,7 @@ function QuizSignupsPanel({ signups }) {
                         {plays.map((p, j) => (
                           <div
                             key={`${p.quizId}-${j}`}
-                            style={{ display: 'flex', alignItems: 'center', fontFamily: 'DM Sans, sans-serif', fontSize: 12, color: COLORS.ink, padding: '7px 12px', borderBottom: j < plays.length - 1 ? `1px solid ${COLORS.ink}1a` : 'none' }}
+                            style={{ display: 'flex', alignItems: 'center', fontFamily: 'Manrope, system-ui, -apple-system, sans-serif', fontSize: 12, color: COLORS.ink, padding: '7px 12px', borderBottom: j < plays.length - 1 ? `1px solid ${COLORS.ink}1a` : 'none' }}
                           >
                             <span style={{ flex: 3, minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                               <Link href={`/quiz/${encodeURIComponent(p.quizId)}`} target="_blank" style={{ color: COLORS.ink, textDecoration: 'none' }}>
@@ -993,7 +1013,7 @@ function ResearchPanel({ alerts, busy, onResolve }) {
           fontStyle: 'italic',
           fontSize: 18,
           color: COLORS.faded,
-          border: `1.5px dashed ${COLORS.ink}`,
+          border: `1px dashed ${COLORS.line}`,
         }}
       >
         No consensus changes awaiting research.
@@ -1003,12 +1023,12 @@ function ResearchPanel({ alerts, busy, onResolve }) {
   const rowBorder = `1px solid ${COLORS.ink}22`;
   return (
     <div>
-      <p style={{ fontFamily: 'DM Sans, sans-serif', fontSize: 13, color: COLORS.faded, margin: '0 0 14px' }}>
+      <p style={{ fontFamily: 'Manrope, system-ui, -apple-system, sans-serif', fontSize: 13, color: COLORS.faded, margin: '0 0 14px' }}>
         Items that newly entered a list's consensus top 10 (needs a description) or
         top 3 (needs a hero photo). Resolve once the research has shipped.
       </p>
-      <div style={{ border: `1.5px solid ${COLORS.ink}` }}>
-        <div style={{ display: 'flex', fontFamily: 'DM Mono, monospace', fontSize: 10, letterSpacing: '0.14em', textTransform: 'uppercase', color: COLORS.faded, padding: '10px 14px', borderBottom: `1.5px solid ${COLORS.ink}` }}>
+      <div style={{ border: `1px solid ${COLORS.line}` }}>
+        <div style={{ display: 'flex', fontFamily: 'DM Mono, monospace', fontSize: 10, letterSpacing: '0.14em', textTransform: 'uppercase', color: COLORS.faded, padding: '10px 14px', borderBottom: `1px solid ${COLORS.line}` }}>
           <span style={{ flex: 2 }}>List</span>
           <span style={{ flex: 2 }}>Item</span>
           <span style={{ flex: '0 0 110px' }}>Change</span>
@@ -1023,7 +1043,7 @@ function ResearchPanel({ alerts, busy, onResolve }) {
           return (
             <div
               key={a.id}
-              style={{ display: 'flex', alignItems: 'center', gap: 8, fontFamily: 'DM Sans, sans-serif', fontSize: 13, color: COLORS.ink, padding: '9px 14px', borderBottom: i < alerts.length - 1 ? rowBorder : 'none' }}
+              style={{ display: 'flex', alignItems: 'center', gap: 8, fontFamily: 'Manrope, system-ui, -apple-system, sans-serif', fontSize: 13, color: COLORS.ink, padding: '9px 14px', borderBottom: i < alerts.length - 1 ? rowBorder : 'none' }}
             >
               <span style={{ flex: 2 }}>
                 <Link href={`/list/${encodeURIComponent(a.listId)}`} style={{ color: COLORS.ink }}>
@@ -1050,7 +1070,7 @@ function ResearchPanel({ alerts, busy, onResolve }) {
                   style={{
                     background: 'transparent',
                     color: COLORS.ink,
-                    border: `1.5px solid ${COLORS.ink}`,
+                    border: `1px solid ${COLORS.line}`,
                     padding: '5px 10px',
                     fontFamily: 'DM Mono, monospace',
                     fontSize: 9,
@@ -1096,8 +1116,8 @@ function VotesPanel({ standings, events, busy, onDelete }) {
       <div>
         <h3 style={{ fontFamily: 'Manrope, system-ui, -apple-system, sans-serif', fontWeight: 700, fontSize: 20, margin: '0 0 12px' }}>Current standings</h3>
         {hasStandings ? (
-          <div style={{ border: `1.5px solid ${COLORS.ink}`, maxHeight: TABLE_MAX_H, overflowY: 'auto' }}>
-            <div style={{ display: 'flex', position: 'sticky', top: 0, zIndex: 1, background: COLORS.cream, fontFamily: 'DM Mono, monospace', fontSize: 10, letterSpacing: '0.14em', textTransform: 'uppercase', color: COLORS.faded, padding: '10px 14px', borderBottom: `1.5px solid ${COLORS.ink}` }}>
+          <div style={{ border: `1px solid ${COLORS.line}`, background: COLORS.paper, borderRadius: 12, maxHeight: TABLE_MAX_H, overflowY: 'auto' }}>
+            <div style={{ display: 'flex', position: 'sticky', top: 0, zIndex: 1, background: COLORS.cream, fontFamily: 'DM Mono, monospace', fontSize: 10, letterSpacing: '0.14em', textTransform: 'uppercase', color: COLORS.faded, padding: '10px 14px', borderBottom: `1px solid ${COLORS.line}` }}>
               <span style={{ flex: 2 }}>List</span>
               <span style={{ flex: 2 }}>Item</span>
               <span style={{ flex: '0 0 60px', textAlign: 'right' }}>Votes</span>
@@ -1108,7 +1128,7 @@ function VotesPanel({ standings, events, busy, onDelete }) {
             {standings.map((s, i) => {
               const bkey = `v-${s.listId}::${s.itemName}`;
               return (
-                <div key={`${s.listId}::${s.itemName}::${i}`} style={{ display: 'flex', alignItems: 'center', fontFamily: 'DM Sans, sans-serif', fontSize: 13, color: COLORS.ink, padding: '9px 14px', borderBottom: i < standings.length - 1 ? rowBorder : 'none' }}>
+                <div key={`${s.listId}::${s.itemName}::${i}`} style={{ display: 'flex', alignItems: 'center', fontFamily: 'Manrope, system-ui, -apple-system, sans-serif', fontSize: 13, color: COLORS.ink, padding: '9px 14px', borderBottom: i < standings.length - 1 ? rowBorder : 'none' }}>
                   <span style={{ flex: 2, minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                     <Link href={`/list/${s.listId}`} style={{ color: COLORS.ember, textDecoration: 'none' }}>{s.listId}</Link>
                   </span>
@@ -1130,18 +1150,18 @@ function VotesPanel({ standings, events, busy, onDelete }) {
             })}
           </div>
         ) : (
-          <p style={{ fontFamily: 'DM Sans, sans-serif', fontStyle: 'italic', fontSize: 14, color: COLORS.faded }}>No votes recorded yet.</p>
+          <p style={{ fontFamily: 'Manrope, system-ui, -apple-system, sans-serif', fontStyle: 'italic', fontSize: 14, color: COLORS.faded }}>No votes recorded yet.</p>
         )}
       </div>
       <div>
         <h3 style={{ fontFamily: 'Manrope, system-ui, -apple-system, sans-serif', fontWeight: 700, fontSize: 20, margin: '0 0 4px' }}>Recent vote log</h3>
-        <p style={{ fontFamily: 'DM Sans, sans-serif', fontSize: 13, color: COLORS.faded, margin: '0 0 12px' }}>
+        <p style={{ fontFamily: 'Manrope, system-ui, -apple-system, sans-serif', fontSize: 13, color: COLORS.faded, margin: '0 0 12px' }}>
           The {events.length} most recent vote events. A vote for 1st place is +3, 2nd is +2, 3rd is +1.
         </p>
         {hasEvents ? (
-          <div style={{ border: `1.5px solid ${COLORS.ink}`, maxHeight: TABLE_MAX_H, overflowY: 'auto' }}>
+          <div style={{ border: `1px solid ${COLORS.line}`, background: COLORS.paper, borderRadius: 12, maxHeight: TABLE_MAX_H, overflowY: 'auto' }}>
             {events.map((e, i) => (
-              <div key={e.id} style={{ display: 'flex', alignItems: 'center', gap: 12, fontFamily: 'DM Sans, sans-serif', fontSize: 13, color: COLORS.ink, padding: '9px 14px', borderBottom: i < events.length - 1 ? rowBorder : 'none' }}>
+              <div key={e.id} style={{ display: 'flex', alignItems: 'center', gap: 12, fontFamily: 'Manrope, system-ui, -apple-system, sans-serif', fontSize: 13, color: COLORS.ink, padding: '9px 14px', borderBottom: i < events.length - 1 ? rowBorder : 'none' }}>
                 <span style={{ flex: '0 0 150px', fontFamily: 'DM Mono, monospace', fontSize: 11, color: COLORS.faded }}>{formatDate(e.createdAt)}</span>
                 <span style={{ flex: '0 0 70px', fontWeight: 700, fontFamily: 'DM Mono, monospace', color: e.delta >= 0 ? COLORS.forest : COLORS.ember }}>{e.delta === 3 ? '1st' : e.delta === 2 ? '2nd' : e.delta === 1 ? '3rd' : e.delta > 0 ? `+${e.delta}` : e.delta}</span>
                 <span style={{ flex: 2, minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{e.itemName}</span>
@@ -1152,7 +1172,7 @@ function VotesPanel({ standings, events, busy, onDelete }) {
             ))}
           </div>
         ) : (
-          <p style={{ fontFamily: 'DM Sans, sans-serif', fontStyle: 'italic', fontSize: 14, color: COLORS.faded }}>No vote events logged yet.</p>
+          <p style={{ fontFamily: 'Manrope, system-ui, -apple-system, sans-serif', fontStyle: 'italic', fontSize: 14, color: COLORS.faded }}>No vote events logged yet.</p>
         )}
       </div>
     </div>
@@ -1161,11 +1181,11 @@ function VotesPanel({ standings, events, busy, onDelete }) {
 
 function CommentsPanel({ comments, busy, onDelete, onRespond }) {
   if (!comments || comments.length === 0) {
-    return <p style={{ fontFamily: 'DM Sans, sans-serif', fontStyle: 'italic', fontSize: 14, color: COLORS.faded }}>No public comments yet.</p>;
+    return <p style={{ fontFamily: 'Manrope, system-ui, -apple-system, sans-serif', fontStyle: 'italic', fontSize: 14, color: COLORS.faded }}>No public comments yet.</p>;
   }
   const rowBorder = `1px solid ${COLORS.ink}22`;
   return (
-    <div style={{ border: `1.5px solid ${COLORS.ink}` }}>
+    <div style={{ border: `1px solid ${COLORS.line}` }}>
       {comments.map((c, i) => {
         const bkey = `cm-${c.id}`;
         return (
@@ -1175,9 +1195,9 @@ function CommentsPanel({ comments, busy, onDelete, onRespond }) {
                 <Link href={`/list/${c.listId}`} style={{ color: COLORS.ember, textDecoration: 'none' }}>{c.listId}</Link>
                 {' · '}{c.name || 'Guest'}{' · '}{formatDate(c.createdAt)}
               </div>
-              <div style={{ fontFamily: 'DM Sans, sans-serif', fontSize: 14, color: COLORS.ink, marginTop: 4, whiteSpace: 'pre-wrap' }}>{c.body}</div>
+              <div style={{ fontFamily: 'Manrope, system-ui, -apple-system, sans-serif', fontSize: 14, color: COLORS.ink, marginTop: 4, whiteSpace: 'pre-wrap' }}>{c.body}</div>
               {c.editorResponse && (
-                <div style={{ marginTop: 6, fontFamily: 'DM Sans, sans-serif', fontSize: 13, color: COLORS.ink, background: COLORS.cream, borderLeft: '3px solid ' + COLORS.ember, padding: '6px 10px' }}>
+                <div style={{ marginTop: 6, fontFamily: 'Manrope, system-ui, -apple-system, sans-serif', fontSize: 13, color: COLORS.ink, background: COLORS.cream, borderLeft: '3px solid ' + COLORS.ember, padding: '6px 10px' }}>
                   <strong style={{ fontWeight: 700 }}>Editor:</strong> {c.editorResponse}
                 </div>
               )}
@@ -1185,7 +1205,7 @@ function CommentsPanel({ comments, busy, onDelete, onRespond }) {
             <div style={{ display: 'flex', flexDirection: 'column', gap: 6, flexShrink: 0 }}>
               <button
                 onClick={() => onRespond && onRespond('comment', c.id, c.editorResponse)}
-                style={{ cursor: 'pointer', background: 'transparent', color: COLORS.ink, border: '1px solid ' + COLORS.ink, padding: '5px 12px', fontFamily: 'DM Mono, monospace', fontSize: 10, letterSpacing: '0.1em', textTransform: 'uppercase' }}
+                style={{ cursor: 'pointer', background: 'transparent', color: COLORS.ink, border: '1px solid ' + COLORS.line, padding: '5px 12px', fontFamily: 'DM Mono, monospace', fontSize: 10, letterSpacing: '0.1em', textTransform: 'uppercase' }}
               >
                 {c.editorResponse ? 'Edit reply' : 'Reply'}
               </button>
@@ -1210,26 +1230,26 @@ function NotesPanel({ notes, lists, busy, onAdd, onDelete }) {
   const rowBorder = `1px solid ${COLORS.ink}22`;
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 24 }}>
-      <div style={{ border: `1.5px solid ${COLORS.ink}`, padding: 16, background: COLORS.paper }}>
+      <div style={{ border: `1px solid ${COLORS.line}`, padding: 16, background: COLORS.paper }}>
         <h3 style={{ fontFamily: 'Manrope, system-ui, -apple-system, sans-serif', fontWeight: 700, fontSize: 18, margin: '0 0 10px' }}>Post an editor's note</h3>
-        <input list="sot-all-lists" value={listId} onChange={(e) => setListId(e.target.value)} placeholder="List id (e.g. fast-food-fries)" style={{ width: '100%', boxSizing: 'border-box', padding: 10, border: `1.5px solid ${COLORS.ink}`, background: '#fff', fontFamily: 'DM Mono, monospace', fontSize: 13, marginBottom: 8 }} />
+        <input list="sot-all-lists" value={listId} onChange={(e) => setListId(e.target.value)} placeholder="List id (e.g. fast-food-fries)" style={{ width: '100%', boxSizing: 'border-box', padding: 10, border: `1px solid ${COLORS.line}`, background: '#fff', fontFamily: 'DM Mono, monospace', fontSize: 13, marginBottom: 8 }} />
         <datalist id="sot-all-lists">{lists.map((l) => <option key={l.id} value={l.id}>{l.title}</option>)}</datalist>
-        <textarea value={note} onChange={(e) => setNote(e.target.value)} rows={3} maxLength={1000} placeholder="Shown publicly as: Editor's Note: ..." style={{ width: '100%', boxSizing: 'border-box', padding: 10, border: `1.5px solid ${COLORS.ink}`, background: '#fff', fontFamily: 'DM Sans, sans-serif', fontSize: 14, resize: 'vertical', marginBottom: 8 }} />
+        <textarea value={note} onChange={(e) => setNote(e.target.value)} rows={3} maxLength={1000} placeholder="Shown publicly as: Editor's Note: ..." style={{ width: '100%', boxSizing: 'border-box', padding: 10, border: `1px solid ${COLORS.line}`, background: '#fff', fontFamily: 'Manrope, system-ui, -apple-system, sans-serif', fontSize: 14, resize: 'vertical', marginBottom: 8 }} />
         <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
           <button onClick={() => { onAdd(listId, note); setNote(''); }} disabled={!!busy['note-add']} style={{ cursor: 'pointer', background: COLORS.ember, color: COLORS.cream, border: `1.5px solid ${COLORS.ember}`, padding: '9px 16px', fontFamily: 'DM Mono, monospace', fontSize: 11, letterSpacing: '0.14em', textTransform: 'uppercase', fontWeight: 700 }}>Post note</button>
         </div>
       </div>
       {(!notes || notes.length === 0) ? (
-        <p style={{ fontFamily: 'DM Sans, sans-serif', fontStyle: 'italic', fontSize: 14, color: COLORS.faded }}>No editor notes yet.</p>
+        <p style={{ fontFamily: 'Manrope, system-ui, -apple-system, sans-serif', fontStyle: 'italic', fontSize: 14, color: COLORS.faded }}>No editor notes yet.</p>
       ) : (
-        <div style={{ border: `1.5px solid ${COLORS.ink}` }}>
+        <div style={{ border: `1px solid ${COLORS.line}` }}>
           {notes.map((n, i) => (
             <div key={n.id} style={{ display: 'flex', gap: 12, alignItems: 'flex-start', padding: '12px 14px', borderBottom: i < notes.length - 1 ? rowBorder : 'none' }}>
               <div style={{ flex: 1, minWidth: 0 }}>
                 <div style={{ fontFamily: 'DM Mono, monospace', fontSize: 11, color: COLORS.faded }}>
                   <Link href={`/list/${n.listId}`} style={{ color: COLORS.ember, textDecoration: 'none' }}>{n.listId}</Link>{' · '}{formatDate(n.createdAt)}
                 </div>
-                <div style={{ fontFamily: 'DM Sans, sans-serif', fontSize: 14, color: COLORS.ink, marginTop: 4, whiteSpace: 'pre-wrap' }}>{n.note}</div>
+                <div style={{ fontFamily: 'Manrope, system-ui, -apple-system, sans-serif', fontSize: 14, color: COLORS.ink, marginTop: 4, whiteSpace: 'pre-wrap' }}>{n.note}</div>
               </div>
               <button onClick={() => onDelete(n.id)} disabled={!!busy['note-' + n.id]} style={{ flexShrink: 0, cursor: 'pointer', background: 'transparent', color: COLORS.ember, border: `1px solid ${COLORS.ember}`, padding: '5px 12px', fontFamily: 'DM Mono, monospace', fontSize: 10, letterSpacing: '0.1em', textTransform: 'uppercase' }}>Delete</button>
             </div>
@@ -1251,7 +1271,7 @@ function ComplaintsPanel({ complaints, busy, onDismiss, onRespond }) {
           fontStyle: 'italic',
           fontSize: 18,
           color: COLORS.faded,
-          border: `1.5px dashed ${COLORS.ink}`,
+          border: `1px dashed ${COLORS.line}`,
         }}
       >
         No reader notices right now.
@@ -1261,7 +1281,7 @@ function ComplaintsPanel({ complaints, busy, onDismiss, onRespond }) {
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
       {complaints.map((c) => (
-        <div key={c.id} style={{ border: `1.5px solid ${COLORS.ink}`, padding: 18, background: COLORS.paper }}>
+        <div key={c.id} style={{ border: `1px solid ${COLORS.line}`, padding: 18, background: COLORS.paper }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 12 }}>
             <div style={{ minWidth: 0 }}>
               <div style={{ fontFamily: 'DM Mono, monospace', fontSize: 10, letterSpacing: '0.15em', textTransform: 'uppercase', color: COLORS.faded, marginBottom: 4 }}>
@@ -1271,14 +1291,14 @@ function ComplaintsPanel({ complaints, busy, onDismiss, onRespond }) {
                 {c.listTitle || c.listId}
               </Link>
               {c.message ? (
-                <p style={{ fontFamily: 'DM Sans, sans-serif', fontSize: 14, color: COLORS.ink, margin: '8px 0 0', whiteSpace: 'pre-wrap' }}>{c.message}</p>
+                <p style={{ fontFamily: 'Manrope, system-ui, -apple-system, sans-serif', fontSize: 14, color: COLORS.ink, margin: '8px 0 0', whiteSpace: 'pre-wrap' }}>{c.message}</p>
               ) : (
-                <p style={{ fontFamily: 'DM Sans, sans-serif', fontStyle: 'italic', fontSize: 14, color: COLORS.faded, margin: '8px 0 0' }}>
+                <p style={{ fontFamily: 'Manrope, system-ui, -apple-system, sans-serif', fontStyle: 'italic', fontSize: 14, color: COLORS.faded, margin: '8px 0 0' }}>
                   Requested new research (no message left).
                 </p>
               )}
               {c.editorResponse && (
-                <p style={{ fontFamily: 'DM Sans, sans-serif', fontSize: 14, color: COLORS.ink, margin: '10px 0 0', background: COLORS.cream, borderLeft: '3px solid ' + COLORS.ember, padding: '8px 12px', whiteSpace: 'pre-wrap' }}>
+                <p style={{ fontFamily: 'Manrope, system-ui, -apple-system, sans-serif', fontSize: 14, color: COLORS.ink, margin: '10px 0 0', background: COLORS.cream, borderLeft: '3px solid ' + COLORS.ember, padding: '8px 12px', whiteSpace: 'pre-wrap' }}>
                   <strong style={{ fontWeight: 700 }}>Editor:</strong> {c.editorResponse}
                 </p>
               )}
@@ -1301,7 +1321,7 @@ function ComplaintsPanel({ complaints, busy, onDismiss, onRespond }) {
               <button
                 onClick={() => onDismiss(c.id)}
                 disabled={!!busy['c-' + c.id]}
-                style={{ cursor: 'pointer', background: 'transparent', border: '1.5px solid ' + COLORS.ink, color: COLORS.ink, padding: '8px 14px', fontFamily: 'DM Mono, monospace', fontSize: 10, letterSpacing: '0.15em', textTransform: 'uppercase', fontWeight: 600 }}
+                style={{ cursor: 'pointer', background: 'transparent', border: '1px solid ' + COLORS.line, color: COLORS.ink, padding: '8px 14px', fontFamily: 'DM Mono, monospace', fontSize: 10, letterSpacing: '0.15em', textTransform: 'uppercase', fontWeight: 600 }}
               >
                 Dismiss
               </button>
@@ -1315,7 +1335,7 @@ function ComplaintsPanel({ complaints, busy, onDismiss, onRespond }) {
 
 function SectionHeading({ children }) {
   return (
-    <div style={{ fontFamily: 'DM Mono, monospace', fontSize: 12, letterSpacing: '0.18em', textTransform: 'uppercase', color: COLORS.ink, fontWeight: 700, paddingBottom: 10, marginBottom: 14, borderBottom: `2px solid ${COLORS.ink}` }}>
+    <div style={{ fontFamily: 'DM Mono, monospace', fontSize: 12, letterSpacing: '0.18em', textTransform: 'uppercase', color: COLORS.ink, fontWeight: 700, paddingBottom: 10, marginBottom: 14, borderBottom: `1px solid ${COLORS.line}` }}>
       {children}
     </div>
   );
@@ -1341,7 +1361,7 @@ function AnonPlayersPanel({ players }) {
 
   if (!list.length) {
     return (
-      <div style={{ padding: '60px 20px', textAlign: 'center', fontFamily: 'Manrope, system-ui, -apple-system, sans-serif', fontStyle: 'italic', fontSize: 18, color: COLORS.faded, border: `1.5px dashed ${COLORS.ink}` }}>
+      <div style={{ padding: '60px 20px', textAlign: 'center', fontFamily: 'Manrope, system-ui, -apple-system, sans-serif', fontStyle: 'italic', fontSize: 18, color: COLORS.faded, border: `1px dashed ${COLORS.line}` }}>
         No anonymous players yet.
       </div>
     );
@@ -1350,7 +1370,7 @@ function AnonPlayersPanel({ players }) {
   const totalPlays = list.reduce((n, p) => n + (p.plays || 0), 0);
   return (
     <div>
-      <p style={{ fontFamily: 'DM Sans, sans-serif', fontSize: 13, color: COLORS.faded, margin: '0 0 14px' }}>
+      <p style={{ fontFamily: 'Manrope, system-ui, -apple-system, sans-serif', fontSize: 13, color: COLORS.faded, margin: '0 0 14px' }}>
         Players who completed quizzes without signing up, batched by browser and shown under a stable random number.
         {' '}{list.length} anonymous player{list.length === 1 ? '' : 's'}, {totalPlays} play{totalPlays === 1 ? '' : 's'} total.
         {' '}Click a row to see every quiz that player played and when.
@@ -1360,16 +1380,16 @@ function AnonPlayersPanel({ players }) {
         {[['plays', 'Plays'], ['correct', 'Correct'], ['quizzes', 'Quizzes'], ['perfect', 'Perfect'], ['recent', 'Last played']].map(([key, label]) => {
           const on = sortBy === key;
           return (
-            <button key={key} onClick={() => setSortBy(key)} style={{ padding: '6px 12px', background: on ? COLORS.ink : 'transparent', border: `1.5px solid ${COLORS.ink}`, color: on ? COLORS.paper : COLORS.ink, fontFamily: 'DM Mono, monospace', fontSize: 11, letterSpacing: '0.08em', textTransform: 'uppercase', cursor: 'pointer' }}>{label}</button>
+            <button key={key} onClick={() => setSortBy(key)} style={{ padding: '6px 12px', background: on ? COLORS.ink : 'transparent', border: `1px solid ${COLORS.line}`, color: on ? COLORS.paper : COLORS.ink, fontFamily: 'DM Mono, monospace', fontSize: 11, letterSpacing: '0.08em', textTransform: 'uppercase', cursor: 'pointer' }}>{label}</button>
           );
         })}
       </div>
-      <input value={query} onChange={(e) => setQuery(e.target.value)} placeholder="Filter by player number\u2026" style={{ width: '100%', padding: '10px 12px', background: COLORS.paper, border: `1.5px solid ${COLORS.ink}`, color: COLORS.ink, fontFamily: 'DM Mono, monospace', fontSize: 12, outline: 'none', boxSizing: 'border-box', marginBottom: 16 }} />
+      <input value={query} onChange={(e) => setQuery(e.target.value)} placeholder="Filter by player number\u2026" style={{ width: '100%', padding: '10px 12px', background: COLORS.paper, border: `1px solid ${COLORS.line}`, color: COLORS.ink, fontFamily: 'DM Mono, monospace', fontSize: 12, outline: 'none', boxSizing: 'border-box', marginBottom: 16 }} />
       {visible.length === 0 ? (
-        <div style={{ padding: '40px 20px', textAlign: 'center', fontFamily: 'Manrope, system-ui, -apple-system, sans-serif', fontStyle: 'italic', fontSize: 16, color: COLORS.faded, border: `1.5px dashed ${COLORS.ink}` }}>No matches.</div>
+        <div style={{ padding: '40px 20px', textAlign: 'center', fontFamily: 'Manrope, system-ui, -apple-system, sans-serif', fontStyle: 'italic', fontSize: 16, color: COLORS.faded, border: `1px dashed ${COLORS.line}` }}>No matches.</div>
       ) : (
-        <div style={{ border: `1.5px solid ${COLORS.ink}`, maxHeight: TABLE_MAX_H, overflowY: 'auto' }}>
-          <div style={{ display: 'flex', position: 'sticky', top: 0, zIndex: 1, background: COLORS.cream, fontFamily: 'DM Mono, monospace', fontSize: 10, letterSpacing: '0.14em', textTransform: 'uppercase', color: COLORS.faded, padding: '10px 14px', borderBottom: `1.5px solid ${COLORS.ink}` }}>
+        <div style={{ border: `1px solid ${COLORS.line}`, background: COLORS.paper, borderRadius: 12, maxHeight: TABLE_MAX_H, overflowY: 'auto' }}>
+          <div style={{ display: 'flex', position: 'sticky', top: 0, zIndex: 1, background: COLORS.cream, fontFamily: 'DM Mono, monospace', fontSize: 10, letterSpacing: '0.14em', textTransform: 'uppercase', color: COLORS.faded, padding: '10px 14px', borderBottom: `1px solid ${COLORS.line}` }}>
             <span style={{ flex: '0 0 36px' }}>#</span>
             <span style={{ flex: 2 }}>Player</span>
             <span style={{ flex: '0 0 70px', textAlign: 'right' }}>Quizzes</span>
@@ -1384,7 +1404,7 @@ function AnonPlayersPanel({ players }) {
             const history = p.history || [];
             return (
               <div key={p.key} style={{ borderBottom: i < visible.length - 1 ? rowBorder : 'none' }}>
-                <div onClick={() => setExpandedKey(open ? null : p.key)} style={{ display: 'flex', alignItems: 'center', fontFamily: 'DM Sans, sans-serif', fontSize: 13, color: COLORS.ink, padding: '9px 14px', cursor: 'pointer', background: open ? `${COLORS.ink}0a` : 'transparent' }}>
+                <div onClick={() => setExpandedKey(open ? null : p.key)} style={{ display: 'flex', alignItems: 'center', fontFamily: 'Manrope, system-ui, -apple-system, sans-serif', fontSize: 13, color: COLORS.ink, padding: '9px 14px', cursor: 'pointer', background: open ? `${COLORS.ink}0a` : 'transparent' }}>
                   <span style={{ flex: '0 0 36px', fontFamily: 'DM Mono, monospace', fontSize: 11, color: COLORS.faded, display: 'flex', alignItems: 'center', gap: 4 }}>
                     <span style={{ display: 'inline-block', width: 8, transform: open ? 'rotate(90deg)' : 'none', transition: 'transform 0.12s' }}>&#9656;</span>
                     {i + 1}
@@ -1410,7 +1430,7 @@ function AnonPlayersPanel({ players }) {
                           <span style={{ flex: '0 0 170px', textAlign: 'right' }}>Played</span>
                         </div>
                         {history.map((x, j) => (
-                          <div key={`${x.quizId}-${j}`} style={{ display: 'flex', alignItems: 'center', fontFamily: 'DM Sans, sans-serif', fontSize: 12, color: COLORS.ink, padding: '7px 12px', borderBottom: j < history.length - 1 ? `1px solid ${COLORS.ink}1a` : 'none' }}>
+                          <div key={`${x.quizId}-${j}`} style={{ display: 'flex', alignItems: 'center', fontFamily: 'Manrope, system-ui, -apple-system, sans-serif', fontSize: 12, color: COLORS.ink, padding: '7px 12px', borderBottom: j < history.length - 1 ? `1px solid ${COLORS.ink}1a` : 'none' }}>
                             <span style={{ flex: 3, minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                               <Link href={`/quiz/${encodeURIComponent(x.quizId)}`} target="_blank" style={{ color: COLORS.ink, textDecoration: 'none' }}>{x.title}</Link>
                             </span>
@@ -1515,7 +1535,7 @@ function SubmissionCard({ list, busy, onApprove, onUnpublish, onReject }) {
     <div
       style={{
         background: COLORS.paper,
-        border: `1.5px solid ${COLORS.ink}`,
+        border: `1px solid ${COLORS.line}`,
         padding: 20,
       }}
     >
@@ -1579,7 +1599,7 @@ function SubmissionCard({ list, busy, onApprove, onUnpublish, onReject }) {
               letterSpacing: '0.18em',
               textTransform: 'uppercase',
               color: COLORS.ink,
-              border: `1.5px solid ${COLORS.ink}`,
+              border: `1px solid ${COLORS.line}`,
               padding: '6px 10px',
               textDecoration: 'none',
             }}
@@ -1626,7 +1646,7 @@ function SubmissionCard({ list, busy, onApprove, onUnpublish, onReject }) {
           gap: 8,
           marginTop: 16,
           paddingTop: 16,
-          borderTop: `1px solid ${COLORS.ink}`,
+          borderTop: `1px solid ${COLORS.line}`,
           flexWrap: 'wrap',
         }}
       >
@@ -1637,7 +1657,7 @@ function SubmissionCard({ list, busy, onApprove, onUnpublish, onReject }) {
             style={{
               background: COLORS.forest,
               color: COLORS.cream,
-              border: `1.5px solid ${COLORS.ink}`,
+              border: `1px solid ${COLORS.line}`,
               padding: '10px 16px',
               fontFamily: 'DM Mono, monospace',
               fontSize: 10,
@@ -1661,7 +1681,7 @@ function SubmissionCard({ list, busy, onApprove, onUnpublish, onReject }) {
             style={{
               background: 'transparent',
               color: COLORS.ink,
-              border: `1.5px solid ${COLORS.ink}`,
+              border: `1px solid ${COLORS.line}`,
               padding: '10px 16px',
               fontFamily: 'DM Mono, monospace',
               fontSize: 10,
@@ -1736,7 +1756,7 @@ function ExtrasPanel({ extras, busy, onRename, onDelete }) {
           fontStyle: 'italic',
           fontSize: 18,
           color: COLORS.faded,
-          border: `1.5px dashed ${COLORS.ink}`,
+          border: `1px dashed ${COLORS.line}`,
         }}
       >
         No reader-submitted items yet.
@@ -1754,7 +1774,7 @@ function ExtrasPanel({ extras, busy, onRename, onDelete }) {
           width: '100%',
           padding: '10px 12px',
           background: COLORS.paper,
-          border: `1.5px solid ${COLORS.ink}`,
+          border: `1px solid ${COLORS.line}`,
           color: COLORS.ink,
           fontFamily: 'DM Mono, monospace',
           fontSize: 12,
@@ -1771,7 +1791,7 @@ function ExtrasPanel({ extras, busy, onRename, onDelete }) {
             fontStyle: 'italic',
             fontSize: 16,
             color: COLORS.faded,
-            border: `1.5px dashed ${COLORS.ink}`,
+            border: `1px dashed ${COLORS.line}`,
           }}
         >
           No matches.
@@ -1796,7 +1816,7 @@ function ExtrasGroup({ group, busy, onRename, onDelete }) {
     <div
       style={{
         background: COLORS.paper,
-        border: `1.5px solid ${COLORS.ink}`,
+        border: `1px solid ${COLORS.line}`,
         padding: 20,
       }}
     >
@@ -1846,7 +1866,7 @@ function ExtrasGroup({ group, busy, onRename, onDelete }) {
             letterSpacing: '0.18em',
             textTransform: 'uppercase',
             color: COLORS.ink,
-            border: `1.5px solid ${COLORS.ink}`,
+            border: `1px solid ${COLORS.line}`,
             padding: '6px 10px',
             textDecoration: 'none',
           }}
@@ -1893,7 +1913,7 @@ function ExtraRow({ listId, item, busy, onRename, onDelete }) {
         gap: 10,
         padding: '10px 12px',
         background: COLORS.cream,
-        border: `1px solid ${COLORS.ink}`,
+        border: `1px solid ${COLORS.line}`,
         flexWrap: 'wrap',
       }}
     >
@@ -1924,7 +1944,7 @@ function ExtraRow({ listId, item, busy, onRename, onDelete }) {
             flex: 1,
             minWidth: 200,
             padding: '6px 8px',
-            border: `1.5px solid ${COLORS.ink}`,
+            border: `1px solid ${COLORS.line}`,
             background: COLORS.paper,
             color: COLORS.ink,
             fontFamily: 'Manrope, system-ui, -apple-system, sans-serif',

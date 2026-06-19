@@ -1,8 +1,14 @@
 'use client';
 import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { COLORS } from '@/lib/data';
 import Grain from '@/app/Grain';
+
+// Local theme palette (live-site look), shadowing the magazine COLORS so the
+// public site is untouched.
+const COLORS = {
+  cream: '#f7f8fa', paper: '#ffffff', ink: '#1c1e24', faded: '#6b7280',
+  ember: '#2563eb', forest: '#10b981', rust: '#b45309', line: 'rgba(20,22,28,0.09)',
+};
 
 export default function LoginClient() {
   const router = useRouter();
@@ -37,14 +43,20 @@ export default function LoginClient() {
 
   return (
     <div
+      className="adt"
       style={{
         minHeight: '100vh',
         background: COLORS.cream,
         color: COLORS.ink,
         position: 'relative',
         overflow: 'hidden',
+        fontFamily: 'Manrope, system-ui, -apple-system, sans-serif',
       }}
     >
+      <style>{`
+        .adt [style*="border:"]{border-radius:10px;}
+        .adt ::placeholder{color:${COLORS.faded};}
+      `}</style>
       <Grain />
       <div
         style={{
@@ -91,7 +103,7 @@ export default function LoginClient() {
           style={{
             marginTop: 48,
             background: COLORS.paper,
-            border: `1.5px solid ${COLORS.ink}`,
+            border: `1px solid ${COLORS.line}`,
             padding: 24,
           }}
         >
@@ -117,7 +129,7 @@ export default function LoginClient() {
               width: '100%',
               background: 'transparent',
               border: 'none',
-              borderBottom: `1.5px solid ${COLORS.ink}`,
+              borderBottom: `1px solid ${COLORS.line}`,
               padding: '10px 0',
               fontFamily: 'Manrope, system-ui, -apple-system, sans-serif',
               fontSize: 20,
@@ -149,7 +161,7 @@ export default function LoginClient() {
               width: '100%',
               background: COLORS.ink,
               color: COLORS.cream,
-              border: `1.5px solid ${COLORS.ink}`,
+              border: `1px solid ${COLORS.line}`,
               padding: '14px',
               fontFamily: 'DM Mono, monospace',
               fontSize: 11,

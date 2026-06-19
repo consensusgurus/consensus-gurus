@@ -16,6 +16,14 @@ const SOURCE_COUNT = getAllSources().length;
 const LIST_COUNT = LISTS.length;
 const QUIZ_COUNT = Array.isArray(QUIZZES) ? QUIZZES.length : 0;
 
+// Compact visitor count for the mobile header (e.g. 12,345 -> 12.3k) so the
+// figure fits on the same row as the nav buttons.
+function compactVis(n) {
+  if (typeof n !== 'number' || n < 1000) return String(n);
+  const k = n / 1000;
+  return `${k >= 100 ? Math.round(k) : Math.round(k * 10) / 10}k`;
+}
+
 function Logo({ size = 40 }) {
   return (
     <svg width={size} height={size} viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Source of Truths" style={{ flex: 'none' }}>
@@ -63,12 +71,15 @@ export default function SiteHeader({ active = 'lists', maxWidth = 1180, visitors
         .sh-navbtn.on{background:${C.accent};border-color:${C.accent};color:#fff;}
         .sh-navct{font-weight:600;opacity:0.65;font-size:12px;}
         .sh-stat{font-size:11.5px;color:${C.muted};margin-top:6px;letter-spacing:0.01em;min-height:16px;}
+        .sh-vis-compact{display:none;}
         @media(max-width:560px){
           .sh-bar{gap:10px;}
           .sh-word{font-size:19px;}
-          .sh-right{flex:1 1 100%;text-align:left;}
-          .sh-nav{justify-content:flex-start;gap:18px;}
-          .sh-stat{font-size:11px;margin-top:8px;line-height:1.7;}
+          .sh-right{flex:1 1 100%;display:flex;align-items:center;justify-content:space-between;gap:10px;text-align:left;}
+          .sh-nav{justify-content:flex-start;gap:12px;flex-wrap:nowrap;}
+          .sh-stat{font-size:11px;margin-top:0;line-height:1.4;white-space:nowrap;flex:none;}
+          .sh-vis-full{display:none;}
+          .sh-vis-compact{display:inline;}
         }
       `}</style>
       <div style={bare ? { padding: '2px 0 0' } : { maxWidth, margin: '0 auto', padding: '16px 24px 0' }}>
@@ -86,7 +97,10 @@ export default function SiteHeader({ active = 'lists', maxWidth = 1180, visitors
               <Link href="/quizzes" className={`sh-navbtn${active === 'quizzes' ? ' on' : ''}`}>Quizzes <span className="sh-navct">({QUIZ_COUNT.toLocaleString()})</span></Link>
             </nav>
             <div className="sh-stat">
-              {typeof vis === 'number' ? `${vis.toLocaleString()} visitors` : ''}
+              {typeof vis === 'number' ? (<>
+                <span className="sh-vis-full">{`${vis.toLocaleString()} visitors`}</span>
+                <span className="sh-vis-compact">{`${compactVis(vis)} visitors`}</span>
+              </>) : ''}
             </div>
           </div>
         </div>

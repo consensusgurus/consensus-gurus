@@ -273,13 +273,18 @@ function isMediaList(list) {
 function isResidentialSuburbList(list) {
   return /\bsuburbs?\b/.test(ttext(list));
 }
+// Store-brand packaged grocery lists (Trader Joe's snacks/frozen meals, etc.)
+// are products you buy, not restaurants (owner rule, 2026-06-19).
+function isPackagedGroceryList(list) {
+  return /\btrader joe'?s\b/.test(ttext(list));
+}
 function overrideBucket(list) {
   if (isChainRestaurantList(list) || isResidentialSuburbList(list)) return 'misc';
   if (isMediaList(list)) {
     if (listHasTag(list, 'product') || listHasTag(list, 'tech')) return 'entertainment';
     return null;
   }
-  if (listHasTag(list, 'product') || listHasTag(list, 'tech') || isAmazonProductList(list)) return 'shops';
+  if (listHasTag(list, 'product') || listHasTag(list, 'tech') || isAmazonProductList(list) || isPackagedGroceryList(list)) return 'shops';
   return null;
 }
 
