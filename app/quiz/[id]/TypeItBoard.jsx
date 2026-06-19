@@ -110,12 +110,14 @@ export default function TypeItBoard({ items, started, ended, revealed, onMatch, 
     const np = nextIdx(cur, matched);
     if (np != null && np !== cur) { setCur(np); setVal(''); if (onHint) onHint(`Next: ${list[np].label}`, false); }
     else if (onHint) onHint('That is the last one — take your shot.', false);
+    if (inputRef.current) inputRef.current.focus();
   }
   function back() {
     if (!live || cur == null) return;
     const np = prevIdx(cur, matched);
     if (np != null && np !== cur) { setCur(np); setVal(''); if (onHint) onHint(`Back: ${list[np].label}`, false); }
     else if (onHint) onHint('That is the only one left — take your shot.', false);
+    if (inputRef.current) inputRef.current.focus();
   }
 
   const promptText = !started ? 'Press Play to start' : ended ? 'Game over' : (cur != null ? list[cur].label : 'All done');
@@ -123,31 +125,40 @@ export default function TypeItBoard({ items, started, ended, revealed, onMatch, 
 
   return (
     <div>
-      <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: 12, background: live ? COLORS.ink : COLORS.paper, color: live ? COLORS.cream : COLORS.faded, borderRadius: 10, border: `1px solid ${COLORS.faded}33`, padding: '14px 16px', marginBottom: 10, minHeight: 30, scrollMarginTop: stickyTop + 12 }}>
-        <span style={{ fontFamily: MONO, fontSize: 11, letterSpacing: '0.2em', textTransform: 'uppercase', opacity: 0.7, flex: 'none' }}>{promptLabel || 'Clue'}</span>
-        <span style={{ fontFamily: SERIF, fontWeight: 800, fontSize: 'clamp(20px, 3.4vw, 28px)', lineHeight: 1.15, flex: '1 1 320px', minWidth: 'min(100%, 220px)', overflowWrap: 'break-word', wordBreak: 'normal', hyphens: 'none' }}>{promptText}</span>
-        {live && cur != null && (
-          <button onClick={back} title="Go back to the previous clue." style={{ marginLeft: 'auto', flex: 'none', fontFamily: MONO, fontSize: 10, letterSpacing: '0.16em', textTransform: 'uppercase', fontWeight: 700, padding: '9px 16px', background: 'transparent', color: COLORS.cream, border: '1px solid rgba(244,237,224,0.4)', cursor: 'pointer' }}>&larr; Back</button>
+      {/* Frozen answer bar: input ON TOP (abuts the score block, light so any
+          1px overlap is invisible), clue BELOW it. The whole bar is sticky just
+          under the score/timer block. Next/Back use onMouseDown preventDefault +
+          refocus so tapping them never blurs the input (keyboard stays open, no
+          reflow that would slide the bar behind the stats on mobile). */}
+      <div style={{ position: 'sticky', top: stickyTop, zIndex: 4, background: COLORS.cream, paddingTop: 4, paddingBottom: 8 }}>
+        {live && (
+          <div style={{ display: 'flex', gap: 10, marginBottom: 10 }}>
+            <input
+              ref={inputRef}
+              value={val}
+              disabled={!live}
+              onChange={onChange}
+              onKeyDown={onKey}
+              placeholder={live ? `Type the ${noun}…` : ''}
+              autoComplete="off"
+              autoCapitalize="none"
+              autoCorrect="off"
+              spellCheck={false}
+              style={{ flex: 1, minWidth: 0, boxSizing: 'border-box', fontFamily: SANS, fontSize: 18, padding: '14px 16px', borderRadius: 10, border: `2px solid ${borderColor}`, background: '#fff', color: COLORS.ink, transition: 'border-color .15s' }}
+            />
+            {cur != null && (
+              <button onMouseDown={(e) => e.preventDefault()} onClick={back} title="Go back to the previous clue." style={{ flex: 'none', fontFamily: MONO, fontSize: 10, letterSpacing: '0.16em', textTransform: 'uppercase', fontWeight: 700, padding: '0 13px', background: 'transparent', color: COLORS.ink, borderRadius: 10, border: `1.5px solid ${COLORS.ink}`, cursor: 'pointer' }}>&larr; Back</button>
+            )}
+            {cur != null && (
+              <button onMouseDown={(e) => e.preventDefault()} onClick={skip} title="Skip to the next clue without spending a guess, you can come back." style={{ flex: 'none', fontFamily: MONO, fontSize: 10, letterSpacing: '0.16em', textTransform: 'uppercase', fontWeight: 700, padding: '0 13px', background: 'transparent', color: COLORS.ink, borderRadius: 10, border: `1.5px solid ${COLORS.ink}`, cursor: 'pointer' }}>Next &rarr;</button>
+            )}
+          </div>
         )}
-        {live && cur != null && (
-          <button onClick={skip} title="Skip to the next clue without spending a guess, you can come back." style={{ flex: 'none', fontFamily: MONO, fontSize: 10, letterSpacing: '0.16em', textTransform: 'uppercase', fontWeight: 700, padding: '9px 16px', background: 'transparent', color: COLORS.cream, border: '1px solid rgba(244,237,224,0.4)', cursor: 'pointer' }}>Next &rarr;</button>
-        )}
+        <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: 12, background: live ? COLORS.ink : COLORS.paper, color: live ? COLORS.cream : COLORS.faded, borderRadius: 10, border: `1px solid ${COLORS.faded}33`, padding: '14px 16px', minHeight: 30 }}>
+          <span style={{ fontFamily: MONO, fontSize: 11, letterSpacing: '0.2em', textTransform: 'uppercase', opacity: 0.7, flex: 'none' }}>{promptLabel || 'Clue'}</span>
+          <span style={{ fontFamily: SERIF, fontWeight: 800, fontSize: 'clamp(20px, 3.4vw, 28px)', lineHeight: 1.15, flex: '1 1 320px', minWidth: 'min(100%, 220px)', overflowWrap: 'break-word', wordBreak: 'normal', hyphens: 'none' }}>{promptText}</span>
+        </div>
       </div>
-      {live && (
-        <input
-          ref={inputRef}
-          value={val}
-          disabled={!live}
-          onChange={onChange}
-          onKeyDown={onKey}
-          placeholder={live ? `Type the ${noun}…` : ''}
-          autoComplete="off"
-                  autoCapitalize="none"
-                  autoCorrect="off"
-                  spellCheck={false}
-          style={{ width: '100%', boxSizing: 'border-box', fontFamily: SANS, fontSize: 18, padding: '14px 16px', borderRadius: 10, border: `2px solid ${borderColor}`, background: live ? '#fff' : COLORS.paper, color: COLORS.ink, opacity: live ? 1 : 0.6, transition: 'border-color .15s', marginBottom: 12, scrollMarginTop: stickyTop + 96 }}
-        />
-      )}
       {ended && (
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(155px, 1fr))', gap: 8 }}>
           {list.map((it, i) => {
