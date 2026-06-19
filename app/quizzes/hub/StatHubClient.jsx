@@ -77,8 +77,72 @@ function Logo({ size = 22 }) {
 const TABS = [
   { t: 'player', label: 'Player', Icon: User },
   { t: 'quizzes', label: 'Quizzes', Icon: ListChecks },
-  { t: 'challenges', label: 'Challenges', Icon: Flame },
 ];
+
+// Share Stats: a shareable player card (overall rank, skill rating + tier,
+// completed/correct/accuracy with their ranks, top-3 categories) plus a copy
+// link to this player's Stat Hub profile (?player=<key>).
+function ShareStatsModal({ profile, byKey, onClose }) {
+  const [copied, setCopied] = useState(false);
+  const a = profile.activity || {};
+  const r = profile.ranks || {};
+  const cats3 = Object.entries(profile.byCategory || {})
+    .filter(([, v]) => (v.matches || 0) > 0)
+    .sort((x, y) => (y[1].rating || 0) - (x[1].rating || 0))
+    .slice(0, 3);
+  const maxR = cats3.length ? Math.max(...cats3.map(([, v]) => v.rating || 0), 1) : 1;
+  const label = (k) => (byKey && byKey[k] && byKey[k].label) || k;
+  function copy() {
+    const origin = typeof window !== 'undefined' ? window.location.origin : 'https://sourceoftruths.com';
+    const url = `${origin}/quizzes/hub?player=${encodeURIComponent(profile.userKey || '')}`;
+    if (typeof navigator !== 'undefined' && navigator.clipboard) navigator.clipboard.writeText(url).then(() => { setCopied(true); setTimeout(() => setCopied(false), 1600); }).catch(() => {});
+  }
+  const cell = { background: C.bg, borderRadius: 12, padding: '12px 13px' };
+  const lbl = { fontFamily: FONT, fontWeight: 700, fontSize: 10, letterSpacing: '.06em', textTransform: 'uppercase', color: C.muted };
+  return (
+    <div onClick={onClose} style={{ position: 'fixed', inset: 0, zIndex: 300, background: 'rgba(20,22,28,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 20, fontFamily: FONT }}>
+      <div onClick={(e) => e.stopPropagation()} style={{ width: 440, maxWidth: '100%', background: '#fff', borderRadius: 16, border: `1px solid ${C.line}`, overflow: 'hidden', color: C.ink }}>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '14px 18px', borderBottom: `1px solid ${C.line}` }}>
+          <span style={{ display: 'flex', alignItems: 'center', gap: 8 }}><Logo size={20} /><span style={{ fontWeight: 800, fontSize: 14 }}>Source of Truths</span></span>
+          <button onClick={onClose} aria-label="Close" style={{ border: 'none', background: 'transparent', cursor: 'pointer', color: C.soft, display: 'flex' }}><ArrowLeft size={0} /><span style={{ fontSize: 20, lineHeight: 1 }}>&times;</span></button>
+        </div>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 14, padding: '18px 18px 12px' }}>
+          <div style={{ flex: 1, minWidth: 0 }}>
+            <div style={{ fontSize: 22, fontWeight: 800, letterSpacing: '-0.02em', lineHeight: 1.05, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{profile.name}</div>
+            <div style={{ marginTop: 5 }}><span style={{ background: profile.tierBg || C.bg, color: profile.tierFg || C.muted, fontSize: 10.5, fontWeight: 700, padding: '2px 8px', borderRadius: 6 }}>{(profile.tier || '').replace(/ Tier$/, '')}</span> <span style={{ fontSize: 12, color: C.muted, fontWeight: 600 }}>Skill {Number(profile.rating || 0).toLocaleString()}</span></div>
+          </div>
+          <div style={{ textAlign: 'right' }}>
+            <div style={lbl}>Overall rank</div>
+            <div style={{ fontSize: 38, fontWeight: 800, color: C.accent, lineHeight: 0.95 }}>{profile.rank ? `#${profile.rank}` : '—'}</div>
+            <div style={{ fontSize: 11, color: C.muted, fontWeight: 600 }}>{profile.totalPlayers ? `of ${profile.totalPlayers.toLocaleString()} players` : ''}</div>
+          </div>
+        </div>
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 9, padding: '0 18px 4px' }}>
+          <div style={cell}><div style={lbl}>Completed</div><div style={{ display: 'flex', alignItems: 'center', gap: 6, marginTop: 6 }}><span style={{ fontSize: 21, fontWeight: 800 }}>{a.completed != null ? a.completed : '—'}</span>{r.completed ? <span style={{ background: C.accsoft, color: C.accent, fontSize: 10, fontWeight: 700, padding: '1px 6px', borderRadius: 5 }}>#{r.completed}</span> : null}</div></div>
+          <div style={cell}><div style={lbl}>Correct</div><div style={{ display: 'flex', alignItems: 'center', gap: 6, marginTop: 6 }}><span style={{ fontSize: 21, fontWeight: 800 }}>{a.correct != null ? a.correct.toLocaleString() : '—'}</span>{r.correct ? <span style={{ background: C.accsoft, color: C.accent, fontSize: 10, fontWeight: 700, padding: '1px 6px', borderRadius: 5 }}>#{r.correct}</span> : null}</div></div>
+          <div style={cell}><div style={lbl}>Accuracy</div><div style={{ display: 'flex', alignItems: 'center', gap: 6, marginTop: 6 }}><span style={{ fontSize: 21, fontWeight: 800 }}>{a.accuracy != null ? `${a.accuracy}%` : '—'}</span>{r.accuracy ? <span style={{ background: C.accsoft, color: C.accent, fontSize: 10, fontWeight: 700, padding: '1px 6px', borderRadius: 5 }}>#{r.accuracy}</span> : null}</div></div>
+        </div>
+        {cats3.length ? (
+          <div style={{ padding: '14px 18px 4px' }}>
+            <div style={{ ...lbl, marginBottom: 10 }}>Top categories</div>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+              {cats3.map(([k, v]) => (
+                <div key={k}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: 5 }}><span style={{ fontSize: 12.5, fontWeight: 700 }}>{label(k)}</span><span style={{ fontSize: 12, fontWeight: 700, color: C.muted }}>{Number(v.rating || 0).toLocaleString()}</span></div>
+                  <div style={{ height: 8, background: C.bg, borderRadius: 5, overflow: 'hidden' }}><div style={{ width: `${Math.round(((v.rating || 0) / maxR) * 100)}%`, height: '100%', background: C.accent }} /></div>
+                </div>
+              ))}
+            </div>
+          </div>
+        ) : null}
+        <div style={{ display: 'flex', gap: 9, padding: '16px 18px 18px' }}>
+          <button onClick={copy} style={{ flex: 1, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 7, background: C.accent, color: '#fff', border: 'none', borderRadius: 10, padding: '11px 14px', fontFamily: FONT, fontWeight: 700, fontSize: 13, cursor: 'pointer' }}><Share2 size={15} strokeWidth={2.4} /> {copied ? 'Link copied!' : 'Copy share link'}</button>
+          <button onClick={onClose} style={{ border: `1px solid ${C.line}`, background: '#fff', color: C.ink, borderRadius: 10, padding: '11px 16px', fontFamily: FONT, fontWeight: 700, fontSize: 13, cursor: 'pointer' }}>Close</button>
+        </div>
+      </div>
+    </div>
+  );
+}
 
 export default function StatHubClient() {
   const scope = 'all'; // category selector removed; Stat Hub always shows overall + per-category table
@@ -87,7 +151,7 @@ export default function StatHubClient() {
   const [me, setMe] = useState(null);
   const [stats, setStats] = useState([]);     // /api/quiz/stats
   const [totals, setTotals] = useState({ byQuiz: {}, leaders: {}, total: 0, totalTime: 0 });
-  const [challenge, setChallenge] = useState(null); // /api/quiz/challenge-leaderboard
+  const [shareOpen, setShareOpen] = useState(false);
   const [board, setBoard] = useState(null); // full Elo ranking of every player (incl. anon)
 
   const catalog = useMemo(() => (QUIZZES || []).filter((q) => q && q.id).map((q) => ({
@@ -125,7 +189,6 @@ export default function StatHubClient() {
     }
     fetch('/api/quiz/stats').then((r) => r.json()).then((d) => { if (d && Array.isArray(d.quizzes)) setStats(d.quizzes); }).catch(() => {});
     fetch('/api/quiz/totals').then((r) => r.json()).then((d) => { if (d && !d.error) setTotals({ byQuiz: d.byQuiz || {}, leaders: d.leaders || {}, total: d.total || 0, totalTime: d.totalTime || 0 }); }).catch(() => {});
-    fetch('/api/quiz/challenge-leaderboard').then((r) => r.json()).then((d) => { if (d && !d.error) setChallenge(d); }).catch(() => {});
     fetch('/api/quiz/elo?full=1').then((r) => r.json()).then((d) => { if (d && Array.isArray(d.players)) setBoard(d.players); }).catch(() => {});
   }, []);
 
@@ -227,6 +290,9 @@ export default function StatHubClient() {
               <ChipMetric label="Accuracy" value={found ? `${profile.activity.accuracy}%` : '—'} rank={found && profile.ranks ? profile.ranks.accuracy : null} />
             </div>
           </div>
+          {found ? (
+            <button onClick={() => setShareOpen(true)} style={{ marginLeft: 'auto', display: 'inline-flex', alignItems: 'center', gap: 7, background: C.accent, color: '#fff', border: 'none', borderRadius: 9, padding: '10px 15px', fontFamily: FONT, fontWeight: 700, fontSize: 13, cursor: 'pointer', whiteSpace: 'nowrap' }}><Share2 size={15} strokeWidth={2.4} /> Share Stats</button>
+          ) : null}
         </div>
 
         {viewing ? (
@@ -247,9 +313,9 @@ export default function StatHubClient() {
 
         {tab === 'player' && <PlayerPanel me={profile} scope={scope} cats={cats} byKey={byKey} totalQuizzes={catalog.length} board={board} myName={myName} myAnonKey={myAnonKey} titleById={titleById} pview={pview} setPview={setPview} viewKey={viewKey} onSelectPlayer={(k) => { const mine = (me && me.userKey && k === me.userKey) || (myAnonKey && k === myAnonKey); setViewKey(mine ? null : k); setPview(mine ? 'ranking' : 'category'); }} />}
         {tab === 'quizzes' && <QuizzesPanel me={profile} scope={scope} byKey={byKey} catalog={catalog} stats={statsById} totals={totals} totalPlays={totalPlays} />}
-        {tab === 'challenges' && <ChallengesPanel me={profile} />}
       </div>
 
+      {shareOpen && found && <ShareStatsModal profile={profile} byKey={byKey} onClose={() => setShareOpen(false)} />}
       <Footer />
     </div>
   );

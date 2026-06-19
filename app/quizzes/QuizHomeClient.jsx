@@ -6,7 +6,7 @@ import SiteHeader from '../SiteHeader';
 import {
   Search, ChevronDown, ArrowRight, BarChart3, Crown, Sparkles, Flame,
   BadgeCheck, Clapperboard, Music, Gamepad2, Plane, Globe, Utensils,
-  Briefcase, Leaf, Tv, BookOpen, Landmark, Trophy,
+  Briefcase, Leaf, Tv, BookOpen, Landmark, Trophy, UserPlus, X,
 } from 'lucide-react';
 import { QUIZZES } from '@/lib/quizzes';
 import {
@@ -134,6 +134,44 @@ function Medal({ i }) {
   return <span style={{ flex: 'none', width: 18, textAlign: 'center', fontSize: 11, color: C.soft }}>{i + 1}</span>;
 }
 
+// Sign-up popup: claim a display name (email optional) so the player's name
+// shows on the leaderboards. Posts to /api/quiz/join, stores identity, reloads.
+function SignupModal({ onClose }) {
+  const [u, setU] = useState('');
+  const [em, setEm] = useState('');
+  const [busy, setBusy] = useState(false);
+  const [err, setErr] = useState('');
+  const inp = { width: '100%', boxSizing: 'border-box', border: `1px solid ${C.line}`, borderRadius: 10, padding: '11px 13px', fontFamily: 'Manrope, system-ui, -apple-system, sans-serif', fontSize: 15, color: C.ink, outline: 'none' };
+  async function submit() {
+    setErr('');
+    if (!u.trim()) { setErr('Pick a display name'); return; }
+    setBusy(true);
+    try {
+      const r = await fetch('/api/quiz/join', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ username: u.trim(), email: em.trim() || undefined, anonId: getAnonId() }) });
+      const d = await r.json();
+      if (d && d.username) {
+        try { localStorage.setItem('sot_quiz_identity', JSON.stringify({ username: d.username, email: d.email || undefined })); } catch (e) {}
+        window.location.reload();
+      } else { setErr((d && d.error) || 'Could not sign up. Try again.'); setBusy(false); }
+    } catch (e) { setErr('Could not sign up. Try again.'); setBusy(false); }
+  }
+  return (
+    <div onClick={onClose} style={{ position: 'fixed', inset: 0, zIndex: 200, background: 'rgba(20,22,28,0.45)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 20 }}>
+      <div onClick={(e) => e.stopPropagation()} style={{ width: 380, maxWidth: '100%', background: '#fff', borderRadius: 14, border: `1px solid ${C.line}`, padding: 22, fontFamily: 'Manrope, system-ui, -apple-system, sans-serif' }}>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 4 }}>
+          <div style={{ fontSize: 18, fontWeight: 800, color: C.ink }}>Claim your name</div>
+          <button onClick={onClose} aria-label="Close" style={{ border: 'none', background: 'transparent', cursor: 'pointer', color: C.soft, display: 'flex' }}><X size={18} /></button>
+        </div>
+        <p style={{ fontSize: 13, color: C.muted, margin: '0 0 16px', lineHeight: 1.5 }}>Pick a display name to appear on the leaderboards. Email is optional, only used to recover your name on another device. No password needed.</p>
+        {err && <div style={{ marginBottom: 12, padding: 10, borderRadius: 8, background: 'rgba(192,57,43,0.08)', border: '1px solid rgba(192,57,43,0.4)', color: '#c0392b', fontSize: 13 }}>{err}</div>}
+        <input value={u} onChange={(e) => setU(e.target.value)} placeholder="Display name" maxLength={40} style={inp} />
+        <input value={em} onChange={(e) => setEm(e.target.value)} placeholder="Email (optional)" maxLength={120} style={{ ...inp, marginTop: 10 }} />
+        <button onClick={submit} disabled={busy} style={{ marginTop: 16, width: '100%', background: C.accent, color: '#fff', border: 'none', borderRadius: 10, padding: '12px', fontFamily: 'Manrope, system-ui, -apple-system, sans-serif', fontWeight: 700, fontSize: 14, cursor: busy ? 'wait' : 'pointer', opacity: busy ? 0.6 : 1 }}>{busy ? 'Joining…' : 'Join the leaderboard'}</button>
+      </div>
+    </div>
+  );
+}
+
 // ─── main ───────────────────────────────────────────────────────────────────
 export default function QuizHomeClient() {
   const [scope, setScope] = useState('all');
@@ -149,6 +187,7 @@ export default function QuizHomeClient() {
   const [lbIdx, setLbIdx] = useState(0); // which leaderboard stat is showing
   const [view, setView] = useState('compact'); // 'compact' | 'detailed' browse layout
   const [statsById, setStatsById] = useState({}); // /api/quiz/stats keyed by quizId
+  const [signupOpen, setSignupOpen] = useState(false);
   // Restore the saved browse-view preference once on mount.
   useEffect(() => {
     try { const v = localStorage.getItem('sot_quiz_browse_view'); if (v === 'detailed' || v === 'compact') setView(v); } catch {}
@@ -368,7 +407,7 @@ export default function QuizHomeClient() {
     @keyframes qzp{0%{opacity:1}50%{opacity:.35}100%{opacity:1}}
     .qzh .dd{position:relative;}
     .qzh .ddbtn{display:flex;align-items:center;gap:8px;background:#fff;border:1px solid ${C.line};border-radius:10px;padding:9px 12px;cursor:pointer;font:inherit;min-width:200px;}
-    .qzh .ddmenu{position:absolute;top:calc(100% + 6px);left:0;z-index:30;background:#fff;border:1px solid ${C.line};border-radius:10px;box-shadow:0 8px 24px rgba(20,22,28,0.12);padding:6px;min-width:430px;display:grid;grid-template-columns:1fr 1fr;gap:1px 4px;}
+    .qzh .ddmenu{position:absolute;top:calc(100% + 6px);right:0;z-index:30;background:#fff;border:1px solid ${C.line};border-radius:10px;box-shadow:0 8px 24px rgba(20,22,28,0.12);padding:6px;min-width:430px;display:grid;grid-template-columns:1fr 1fr;gap:1px 4px;}
     .qzh .ddmenu .ddall{grid-column:1 / -1;}
     .qzh .dditem{display:flex;align-items:center;gap:9px;padding:7px 9px;border-radius:7px;cursor:pointer;font-size:13px;}
     .qzh .dditem:hover{background:${C.bg};}
@@ -402,6 +441,33 @@ export default function QuizHomeClient() {
 
         {/* player bar */}
         <div className="card qz-playerbar" style={{ flexDirection: 'row', alignItems: 'center', flexWrap: 'wrap', gap: 16, padding: '11px 14px', margin: '4px 0 12px', overflow: 'visible', position: 'relative', zIndex: 40 }}>
+          {me && me.signed && me.name ? (
+            <div style={{ display: 'flex', flexDirection: 'column', minWidth: 0 }}>
+              <div className="lbl">Player</div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 5, fontSize: 16, fontWeight: 800, color: C.ink, lineHeight: 1.15, maxWidth: 180, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{me.name}<BadgeCheck size={13} strokeWidth={2.5} style={{ color: C.accent, flex: 'none' }} /></div>
+            </div>
+          ) : (
+            <button onClick={() => setSignupOpen(true)} style={{ display: 'inline-flex', alignItems: 'center', gap: 6, background: C.accent, color: '#fff', border: 'none', borderRadius: 9, padding: '9px 14px', fontFamily: 'Manrope, system-ui, -apple-system, sans-serif', fontWeight: 700, fontSize: 13, cursor: 'pointer', whiteSpace: 'nowrap' }}><UserPlus size={15} /> Sign up</button>
+          )}
+          <div className="qz-div" style={{ width: 1, height: 34, background: C.line }} />
+          <div>
+            <div className="lbl">Skill rank{scope === 'all' ? '' : ` · ${byKey[scope]?.label}`}</div>
+            {playerStats && playerStats.rank ? (
+              <div style={{ display: 'flex', alignItems: 'baseline', gap: 5 }}>
+                <span style={{ fontSize: 22, fontWeight: 700, color: C.accent, lineHeight: 1 }}>{`#${playerStats.rank}`}</span>
+                {playerStats.denom ? <span style={{ fontSize: 11, color: C.muted }}>of {playerStats.denom.toLocaleString()}</span> : null}
+              </div>
+            ) : (
+              <div style={{ fontSize: 12, fontWeight: 600, color: C.muted, lineHeight: 1.2, marginTop: 2, maxWidth: 160 }}>Play your first quiz to populate</div>
+            )}
+          </div>
+          <div className="qz-stats" style={{ display: 'flex', gap: 22, marginLeft: 'auto', flexWrap: 'wrap' }}>
+            <div><div style={{ display: 'flex', alignItems: 'baseline', gap: 4 }}><span style={{ fontSize: 17, fontWeight: 700 }}>{playerStats && playerStats.completed != null ? playerStats.completed : '—'}</span>{playerStats && playerStats.completed != null && totalCount ? <span style={{ fontSize: 11, fontWeight: 600, color: C.soft }}>({playerStats.completed > 0 && playerStats.completed / totalCount < 0.005 ? '<1' : Math.round((playerStats.completed / totalCount) * 100)}%)</span> : null}</div><div className="lbl">completed</div></div>
+            <div><div style={{ fontSize: 17, fontWeight: 700 }}>{playerStats && playerStats.played != null ? playerStats.played : '—'}</div><div className="lbl">played</div></div>
+            <div><div style={{ fontSize: 17, fontWeight: 700 }}>{playerStats && playerStats.correct != null ? playerStats.correct.toLocaleString() : '—'}</div><div className="lbl">correct</div></div>
+            <div><div style={{ fontSize: 17, fontWeight: 700 }}>{playerStats && playerStats.accuracy != null ? `${playerStats.accuracy}%` : '—'}</div><div className="lbl">accuracy</div></div>
+          </div>
+          <Link className="hubbtn" href="/quizzes/hub"><BarChart3 size={16} /> Stat Hub <ArrowRight size={15} /></Link>
           <div className="dd">
             <button className="ddbtn" onClick={(e) => { e.stopPropagation(); setDdOpen((o) => !o); }}>
               <span className="dot" style={{ background: scope === 'all' ? C.ink : (byKey[scope]?.c || C.ink) }} />
@@ -423,26 +489,9 @@ export default function QuizHomeClient() {
               </div>
             )}
           </div>
-          <div className="qz-div" style={{ width: 1, height: 34, background: C.line }} />
-          <div>
-            <div className="lbl">Skill rank{scope === 'all' ? '' : ` · ${byKey[scope]?.label}`}</div>
-            {playerStats && playerStats.rank ? (
-              <div style={{ display: 'flex', alignItems: 'baseline', gap: 5 }}>
-                <span style={{ fontSize: 22, fontWeight: 700, color: C.accent, lineHeight: 1 }}>{`#${playerStats.rank}`}</span>
-                {playerStats.denom ? <span style={{ fontSize: 11, color: C.muted }}>of {playerStats.denom.toLocaleString()}</span> : null}
-              </div>
-            ) : (
-              <div style={{ fontSize: 12, fontWeight: 600, color: C.muted, lineHeight: 1.2, marginTop: 2, maxWidth: 160 }}>Play your first quiz to populate</div>
-            )}
-          </div>
-          <div className="qz-stats" style={{ display: 'flex', gap: 22, marginLeft: 'auto', flexWrap: 'wrap' }}>
-            <div><div style={{ display: 'flex', alignItems: 'baseline', gap: 4 }}><span style={{ fontSize: 17, fontWeight: 700 }}>{playerStats && playerStats.completed != null ? playerStats.completed : '—'}</span>{playerStats && playerStats.completed != null && totalCount ? <span style={{ fontSize: 11, fontWeight: 600, color: C.soft }}>({playerStats.completed > 0 && playerStats.completed / totalCount < 0.005 ? '<1' : Math.round((playerStats.completed / totalCount) * 100)}%)</span> : null}</div><div className="lbl">completed</div></div>
-            <div><div style={{ fontSize: 17, fontWeight: 700 }}>{playerStats && playerStats.played != null ? playerStats.played : '—'}</div><div className="lbl">played</div></div>
-            <div><div style={{ fontSize: 17, fontWeight: 700 }}>{playerStats && playerStats.correct != null ? playerStats.correct.toLocaleString() : '—'}</div><div className="lbl">correct</div></div>
-            <div><div style={{ fontSize: 17, fontWeight: 700 }}>{playerStats && playerStats.accuracy != null ? `${playerStats.accuracy}%` : '—'}</div><div className="lbl">accuracy</div></div>
-          </div>
-          <Link className="hubbtn" href="/quizzes/hub"><BarChart3 size={16} /> Stat Hub <ArrowRight size={15} /></Link>
         </div>
+
+        {signupOpen && <SignupModal onClose={() => setSignupOpen(false)} />}
 
         {/* boards */}
         <div className="boards">
@@ -473,7 +522,7 @@ export default function QuizHomeClient() {
               </span>
               <span style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
                 {playsToday ? <span style={{ fontSize: 10, fontWeight: 700, letterSpacing: '.05em', textTransform: 'uppercase', color: C.soft }}>{playsToday.toLocaleString()} Plays Today</span> : null}
-                <button type="button" onClick={() => setListMode('live')} style={{ background: 'none', border: 'none', padding: 0, cursor: 'pointer', color: C.accent, fontWeight: 700, fontSize: 11, whiteSpace: 'nowrap' }}>View all ›</button>
+                <button type="button" onClick={() => setListMode('live')} style={{ background: 'none', border: 'none', padding: 0, cursor: 'pointer', color: C.accent, fontWeight: 700, fontSize: 11, whiteSpace: 'nowrap' }}>View all</button>
               </span>
             </div>
             <div style={{ flex: 1, padding: '3px 0' }}>
@@ -483,7 +532,7 @@ export default function QuizHomeClient() {
                   <div className="lrow" style={{ gap: 9 }}>
                     <span className="qtitle" style={{ fontWeight: 600 }}>{f.title}</span>
                     <span className="qmeta" style={{ gap: 8 }}>
-                      <PlayerLink userKey={f.userKey}><WhoTag name={f.name || (f.isAnon ? 'Guest' : 'Player')} isAnon={f.isAnon} /></PlayerLink>
+                      <PlayerLink userKey={f.userKey}><WhoTag name={f.name || 'Guest'} isAnon={f.isAnon} /></PlayerLink>
                       <span className="score lf-extra">{f.score}/{f.total}</span>
                       <span className="att lf-extra">{f.attempt > 1 ? `attempt ${f.attempt}` : '1st try'}</span>
                       <span style={{ color: C.soft }}>{relTime(f.playedAt)}</span>
@@ -553,7 +602,7 @@ export default function QuizHomeClient() {
               <Link href={`/quiz/${f.quizId}`} className="qrow" key={i} title={f.title}>
                 <span className="qtitle">{stripVerb(f.title)}</span>
                 <span className="qmeta" style={{ gap: 8 }}>
-                  <PlayerLink userKey={f.userKey}><WhoTag name={f.name || (f.isAnon ? 'Guest' : 'Player')} isAnon={f.isAnon} /></PlayerLink>
+                  <PlayerLink userKey={f.userKey}><WhoTag name={f.name || 'Guest'} isAnon={f.isAnon} /></PlayerLink>
                   <span className="score lf-extra">{f.score}/{f.total}</span>
                   <span className="lf-extra" style={{ color: C.soft }}>{relTime(f.playedAt)}</span>
                 </span>

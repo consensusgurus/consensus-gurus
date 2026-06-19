@@ -2,7 +2,10 @@
 import React, { useState } from 'react';
 import Link from 'next/link';
 import { Flag, ListPlus, BarChart3, MessageSquare, PenLine, RefreshCw, BookMarked } from 'lucide-react';
-import { COLORS } from '@/lib/data';
+// Re-themed to the site's white/Manrope/blue design (was the cream COLORS from
+// lib/data). Same keys, new values, so every COLORS.* reference below picks up
+// the new palette with no other change.
+const COLORS = { ink: '#1c1e24', faded: '#6b7280', ember: '#2563eb', cream: '#ffffff', paper: 'rgba(20,22,28,0.12)', soft: '#9aa0ab' };
 
 const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
 

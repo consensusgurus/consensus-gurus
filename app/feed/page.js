@@ -1,4 +1,6 @@
 import LegalLayout from '@/app/LegalLayout';
+import SiteHeader from '../SiteHeader';
+import Footer from '../Footer';
 import FeedClient from './FeedClient';
 import { supabaseAdmin } from '@/lib/supabase-server';
 import { LISTS, COLORS } from '@/lib/data';
@@ -266,11 +268,19 @@ export default async function FeedPage() {
   const top = events.slice(0, 120);
 
   return (
-    <LegalLayout kicker="Live" title="Activity" italic="log">
-      <p style={{ marginTop: -8, marginBottom: 28, color: COLORS.faded }}>
-        Everything happening across Source of Truths: new lists, reader requests, votes, comments, review requests, and ranking changes. Names and emails are never shown.
-      </p>
-      <FeedClient events={top} />
-    </LegalLayout>
+    <div style={{ minHeight: '100vh', background: '#f7f8fa', color: '#1c1e24', fontFamily: "'Manrope', system-ui, -apple-system, sans-serif" }}>
+      <SiteHeader active="lists" />
+      <div style={{ maxWidth: 1180, margin: '0 auto', padding: '20px 24px 70px' }}>
+        <div style={{ borderBottom: '1px solid rgba(20,22,28,0.09)', paddingBottom: 18, marginBottom: 24 }}>
+          <div style={{ fontSize: 11, fontWeight: 800, letterSpacing: '.14em', textTransform: 'uppercase', color: '#2563eb', marginBottom: 8 }}>Live</div>
+          <h1 style={{ fontSize: 'clamp(30px, 6vw, 46px)', fontWeight: 800, letterSpacing: '-0.02em', lineHeight: 1.04, margin: 0 }}>Activity log</h1>
+          <p style={{ fontSize: 15, lineHeight: 1.5, margin: '12px 0 0', color: '#6b7280', maxWidth: 720 }}>
+            Everything happening across Source of Truths: new lists, reader requests, votes, comments, review requests, and ranking changes. Names and emails are never shown.
+          </p>
+        </div>
+        <FeedClient events={top} />
+      </div>
+      <Footer />
+    </div>
   );
 }
