@@ -455,9 +455,9 @@ function PlayerPanel({ me, scope, cats, byKey, totalQuizzes, board, myName, myAn
     : { col: col.key, dir: col.key === 'label' ? 'asc' : 'desc' }));
 
   const toggle = (
-    <div style={{ display: 'flex', gap: 3, background: '#eceef1', borderRadius: 9, padding: 3, flex: 'none' }}>
+    <div style={{ display: 'flex', gap: 3, background: '#eceef1', borderRadius: 9, padding: 3, flex: 1, width: '100%', boxSizing: 'border-box' }}>
       {[['ranking', 'Ranking'], ['category', 'Category'], ['activity', 'Activity'], ['rating', 'Rating']].map(([v, lbl]) => (
-        <button key={v} onClick={() => setPview(v)} style={{ border: 'none', background: pview === v ? '#fff' : 'transparent', color: pview === v ? C.ink : C.muted, fontWeight: pview === v ? 700 : 600, boxShadow: pview === v ? '0 1px 2px rgba(20,22,28,0.06)' : 'none', borderRadius: 7, padding: '7px 15px', font: 'inherit', fontFamily: FONT, fontSize: 12.5, cursor: 'pointer' }}>{lbl}</button>
+        <button key={v} onClick={() => setPview(v)} style={{ flex: 1, textAlign: 'center', border: 'none', background: pview === v ? '#fff' : 'transparent', color: pview === v ? C.ink : C.muted, fontWeight: pview === v ? 700 : 600, boxShadow: pview === v ? '0 1px 2px rgba(20,22,28,0.06)' : 'none', borderRadius: 7, padding: '7px 6px', font: 'inherit', fontFamily: FONT, fontSize: 12.5, cursor: 'pointer' }}>{lbl}</button>
       ))}
     </div>
   );

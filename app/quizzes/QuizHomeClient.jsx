@@ -546,11 +546,7 @@ export default function QuizHomeClient() {
 
         {/* browse header + search */}
         <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 14, flexWrap: 'wrap' }}>
-          {(!searchResults && scope === 'all' && !listMode) ? (
-            <Link href="/submit?for=quiz" style={{ flex: '0 0 auto', display: 'flex', alignItems: 'center', gap: 6, background: C.ink, color: '#fff', padding: '9px 16px', borderRadius: 10, fontFamily: FONT, fontWeight: 700, fontSize: 13, textDecoration: 'none', whiteSpace: 'nowrap' }}>
-              Submit a Quiz
-            </Link>
-          ) : (
+          {!(!searchResults && scope === 'all' && !listMode) && (
             <h2 style={{ fontSize: 17, fontWeight: 800, margin: 0, whiteSpace: 'nowrap', display: 'flex', alignItems: 'center', gap: 10 }}>
               {listMode && !searchResults && scope === 'all' && (
                 <button type="button" onClick={() => setListMode(null)} style={{ background: 'none', border: 'none', padding: 0, cursor: 'pointer', color: C.accent, fontWeight: 700, fontSize: 14 }}>‹ Back</button>
@@ -569,9 +565,14 @@ export default function QuizHomeClient() {
               onChange={(e) => setSearch(e.target.value)}
               placeholder={`Search ${scopeCount.toLocaleString()} quizzes`}
               autoComplete="off"
-              style={{ width: '100%', padding: '9px 12px 9px 36px', border: `1px solid ${C.line}`, borderRadius: 10, font: 'inherit', fontFamily: FONT, fontSize: 13.5, background: '#fff', color: C.ink, outline: 'none', boxSizing: 'border-box' }}
+              style={{ width: '100%', padding: '9px 12px 9px 36px', border: `1px solid ${C.line}`, borderRadius: 10, font: 'inherit', fontFamily: FONT, fontSize: 16, background: '#fff', color: C.ink, outline: 'none', boxSizing: 'border-box' }}
             />
           </div>
+          {(!searchResults && scope === 'all' && !listMode) && (
+            <Link href="/submit?for=quiz" style={{ flex: '0 0 auto', display: 'flex', alignItems: 'center', gap: 6, background: C.ink, color: '#fff', padding: '9px 16px', borderRadius: 10, fontFamily: FONT, fontWeight: 700, fontSize: 13, textDecoration: 'none', whiteSpace: 'nowrap' }}>
+              Submit a Quiz
+            </Link>
+          )}
         </div>
 
         {/* lists */}
