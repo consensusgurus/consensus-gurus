@@ -320,7 +320,7 @@ export default function QuizHomeClient() {
   // Today's daily-challenge standings, ranked by total correct then least time.
   const dailyRows = useMemo(() => (dailyLb || []).slice()
     .sort((a, b) => (b.totalCorrect || 0) - (a.totalCorrect || 0) || (a.totalTime || 0) - (b.totalTime || 0) || (a.username || '').localeCompare(b.username || ''))
-    .slice(0, 10), [dailyLb]);
+    .slice(0, 5), [dailyLb]);
   // The daily-challenge slide joins the rotation ONLY once >=2 registered
   // players have played today's challenge.
   const LB_METRICS = useMemo(() => {
@@ -351,14 +351,14 @@ export default function QuizHomeClient() {
       ((b[k] || 0) - (a[k] || 0))
       || ((b.rating || 0) - (a.rating || 0))
       || (a.name || '').localeCompare(b.name || '')
-    ).slice(0, 10);
+    ).slice(0, 5);
   }, [eloBoard, lbMetric.key]);
 
   // ── live feed (scoped by quiz department) ──
   const liveRows = useMemo(() => {
     const rows = recent.map((p) => ({ ...p, dept: deptOf({ id: p.quizId }), title: titleById[p.quizId] || cleanTitle(p.quizId) }));
     const scoped = scope === 'all' ? rows : rows.filter((r) => r.dept === scope);
-    return scoped.slice(0, 10);
+    return scoped.slice(0, 5);
   }, [recent, scope, titleById]);
 
   const playsToday = totals.today || 0;
@@ -494,7 +494,7 @@ export default function QuizHomeClient() {
           <div className="dd">
             <button className="ddbtn" onClick={(e) => { e.stopPropagation(); setDdOpen((o) => !o); }}>
               <span className="dot" style={{ background: scope === 'all' ? C.ink : (byKey[scope]?.c || C.ink) }} />
-              <span style={{ fontWeight: 600, fontSize: 13 }}>{scope === 'all' ? 'All Categories' : byKey[scope]?.label}</span>
+              <span style={{ fontWeight: 600, fontSize: 13 }}>{scope === 'all' ? 'Sort: All' : byKey[scope]?.label}</span>
               <ChevronDown size={16} style={{ color: C.muted }} />
             </button>
             {ddOpen && (
