@@ -1024,7 +1024,7 @@ export default function QuizClient({ quizId }) {
         <SiteHeader active="quizzes" bare />
 
         {/* Header */}
-        <div style={{ paddingBottom: 0, marginTop: 10 }}>
+        <div style={{ paddingBottom: 0, marginTop: 12 }}>
           <div style={{ display: 'flex', alignItems: 'flex-end', gap: 'clamp(16px, 4vw, 28px)' }}>
             <h1 style={{ fontFamily: SERIF, fontWeight: 800, fontSize: 'clamp(30px, 5vw, 50px)', lineHeight: 1.02, letterSpacing: '-0.02em', margin: 0, color: COLORS.ink, fontVariationSettings: '"SOFT" 100' }}>{quiz.title}</h1>
           </div>

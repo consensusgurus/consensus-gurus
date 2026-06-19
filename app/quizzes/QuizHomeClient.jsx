@@ -179,6 +179,7 @@ export default function QuizHomeClient() {
   const [ddOpen, setDdOpen] = useState(false);
   const [search, setSearch] = useState('');
   const [listMode, setListMode] = useState(null); // null | 'newest' | 'mostplayed' | 'live' (View all expansions)
+  const [boardsExpanded, setBoardsExpanded] = useState(false); // header click expands both boards 5 -> 10
 
   const [totals, setTotals] = useState({ byQuiz: {}, leaders: {}, leaderKeys: {}, today: 0 });
   const [eloBoard, setEloBoard] = useState([]); // [{rank,name,isAnon,userKey}]
@@ -320,7 +321,7 @@ export default function QuizHomeClient() {
   // Today's daily-challenge standings, ranked by total correct then least time.
   const dailyRows = useMemo(() => (dailyLb || []).slice()
     .sort((a, b) => (b.totalCorrect || 0) - (a.totalCorrect || 0) || (a.totalTime || 0) - (b.totalTime || 0) || (a.username || '').localeCompare(b.username || ''))
-    .slice(0, 5), [dailyLb]);
+    .slice(0, boardsExpanded ? 10 : 5), [dailyLb, boardsExpanded]);
   // The daily-challenge slide joins the rotation ONLY once >=2 registered
   // players have played today's challenge.
   const LB_METRICS = useMemo(() => {
@@ -351,15 +352,15 @@ export default function QuizHomeClient() {
       ((b[k] || 0) - (a[k] || 0))
       || ((b.rating || 0) - (a.rating || 0))
       || (a.name || '').localeCompare(b.name || '')
-    ).slice(0, 5);
-  }, [eloBoard, lbMetric.key]);
+    ).slice(0, boardsExpanded ? 10 : 5);
+  }, [eloBoard, lbMetric.key, boardsExpanded]);
 
   // ── live feed (scoped by quiz department) ──
   const liveRows = useMemo(() => {
     const rows = recent.map((p) => ({ ...p, dept: deptOf({ id: p.quizId }), title: titleById[p.quizId] || cleanTitle(p.quizId) }));
     const scoped = scope === 'all' ? rows : rows.filter((r) => r.dept === scope);
-    return scoped.slice(0, 5);
-  }, [recent, scope, titleById]);
+    return scoped.slice(0, boardsExpanded ? 10 : 5);
+  }, [recent, scope, titleById, boardsExpanded]);
 
   const playsToday = totals.today || 0;
 
@@ -416,7 +417,7 @@ export default function QuizHomeClient() {
     .qzh{font-family:${FONT};color:${C.ink};}
     .qzh .lbl{font-size:10px;font-weight:600;letter-spacing:.04em;text-transform:uppercase;color:${C.muted};}
     .qzh .card{background:${C.surface};border:1px solid ${C.line};border-radius:12px;display:flex;flex-direction:column;overflow:hidden;min-width:0;}
-    .qzh .head{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:10px 13px 9px;border-bottom:1px solid ${C.line};min-height:42px;}
+    .qzh .head{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:10px 13px 9px;border-bottom:1px solid ${C.line};min-height:42px;cursor:pointer;}
     .qzh .lrow{display:flex;align-items:center;gap:9px;padding:5.5px 13px;font-size:12.5px;}
     .qzh .qtitle{flex:1 1 auto;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
     .qzh .att{font-size:9.5px;font-weight:700;color:${C.soft};}
@@ -431,12 +432,9 @@ export default function QuizHomeClient() {
     .qzh .dditem{display:flex;align-items:center;gap:9px;padding:7px 9px;border-radius:7px;cursor:pointer;font-size:13px;}
     .qzh .dditem:hover{background:${C.bg};}
     .qzh .dot{width:9px;height:9px;border-radius:3px;flex:none;}
-    .qzh .boards{display:grid;grid-template-columns:2fr 1fr;gap:12px;align-items:stretch;margin-bottom:22px;}
-    /* Last-played feed (2nd card) sits on the wide LEFT track; the ranking
-       leaderboard (1st card) moves to the narrow RIGHT track. On mobile the
-       single column stacks by order, so last-played shows before ranking. */
-    .qzh .boards > .card:first-child{order:2;}
-    .qzh .boards > .card:nth-child(2){order:1;}
+    .qzh .boards{display:grid;grid-template-columns:1fr 2fr;gap:12px;align-items:stretch;margin-bottom:12px;}
+    /* Ranking leaderboard (1st card) on the narrow LEFT track; the last-played
+       feed (2nd card) on the wide RIGHT track. Natural source order, no reorder. */
     @media(max-width:680px){.qzh .boards{grid-template-columns:1fr;}}
     .qzh .qcols{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:6px 26px;}
     .qzh .qfull{column-count:2;column-gap:26px;}
@@ -461,7 +459,7 @@ export default function QuizHomeClient() {
       <Grain />
       <style>{css}</style>
       <SiteHeader active="quizzes" />
-      <div className="qzh" style={{ maxWidth: 1180, margin: '0 auto', padding: '6px 24px 70px', position: 'relative' }}>
+      <div className="qzh" style={{ maxWidth: 1180, margin: '0 auto', padding: '12px 24px 70px', position: 'relative' }}>
 
         {/* player bar */}
         <div className="card qz-playerbar" style={{ flexDirection: 'row', alignItems: 'center', flexWrap: 'wrap', gap: 16, padding: '11px 14px', margin: '0 0 12px', overflow: 'visible', position: 'relative', zIndex: 40 }}>
@@ -521,9 +519,9 @@ export default function QuizHomeClient() {
         <div className="boards">
           {/* leaderboard */}
           <div className="card">
-            <div className="head">
+            <div className="head" onClick={() => setBoardsExpanded((v) => !v)}>
               <span className="lbl" style={{ color: C.ink }}>{lbMetric.label}{lbMetric.special || scope === 'all' ? '' : ` · ${byKey[scope]?.label}`}</span>
-              <Link href={lbMetric.special ? '/quizzes/hub?tab=challenges' : '/quizzes/hub'} className="qlink"><span style={{ fontSize: 10, fontWeight: 700, letterSpacing: '.05em', textTransform: 'uppercase', color: C.soft }}>Full →</span></Link>
+              <Link href={lbMetric.special ? '/quizzes/hub?tab=challenges' : '/quizzes/hub'} onClick={(e) => e.stopPropagation()} className="qlink"><span style={{ fontSize: 10, fontWeight: 700, letterSpacing: '.05em', textTransform: 'uppercase', color: C.soft }}>View all →</span></Link>
             </div>
             <div style={{ flex: 1, padding: '3px 0' }}>
               {lbMetric.special ? (
@@ -551,14 +549,14 @@ export default function QuizHomeClient() {
 
           {/* live feed */}
           <div className="card">
-            <div className="head">
+            <div className="head" onClick={() => setBoardsExpanded((v) => !v)}>
               <span style={{ display: 'flex', alignItems: 'center', gap: 7 }}>
                 <span style={{ width: 8, height: 8, borderRadius: '50%', background: C.live, animation: 'qzp 1.6s infinite' }} />
                 <span className="lbl" style={{ color: C.ink }}>Live · Quizzes Played{scope === 'all' ? '' : ` · ${byKey[scope]?.label}`}</span>
               </span>
               <span style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
                 {playsToday ? <span style={{ fontSize: 10, fontWeight: 700, letterSpacing: '.05em', textTransform: 'uppercase', color: C.soft }}>{playsToday.toLocaleString()} Plays Today</span> : null}
-                <button type="button" onClick={() => setListMode('live')} style={{ background: 'none', border: 'none', padding: 0, cursor: 'pointer', color: C.accent, fontWeight: 700, fontSize: 11, whiteSpace: 'nowrap' }}>View all</button>
+                <button type="button" onClick={(e) => { e.stopPropagation(); setListMode('live'); }} style={{ background: 'none', border: 'none', padding: 0, cursor: 'pointer', color: C.accent, fontWeight: 700, fontSize: 11, whiteSpace: 'nowrap' }}>View all</button>
               </span>
             </div>
             <div style={{ flex: 1, padding: '3px 0' }}>
@@ -581,7 +579,7 @@ export default function QuizHomeClient() {
         </div>
 
         {/* browse header + search */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 14, flexWrap: 'wrap' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 12, flexWrap: 'wrap' }}>
           {!(!searchResults && scope === 'all' && !listMode) && (
             <h2 style={{ fontSize: 17, fontWeight: 800, margin: 0, whiteSpace: 'nowrap', display: 'flex', alignItems: 'center', gap: 10 }}>
               {listMode && !searchResults && scope === 'all' && (

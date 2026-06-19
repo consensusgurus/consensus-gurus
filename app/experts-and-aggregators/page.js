@@ -26,7 +26,7 @@ export default function SourcesPage() {
   return (
     <div style={{ minHeight: '100vh', background: C.bg, color: C.ink, fontFamily: FONT }}>
       <SiteHeader active="sources" />
-      <div style={{ maxWidth: 1180, margin: '0 auto', padding: '10px 24px 40px' }}>
+      <div style={{ maxWidth: 1180, margin: '0 auto', padding: '12px 24px 40px' }}>
         <div style={{ borderBottom: `1px solid ${C.line}`, paddingBottom: 22, marginBottom: 28 }}>
           <div
             style={{
