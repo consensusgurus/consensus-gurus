@@ -8,18 +8,18 @@ const SOURCE_COUNT = getAllSources().length;
 
 export const metadata = {
   metadataBase: new URL('https://sourceoftruths.com'),
-  title: 'Source of Truths | Crafting Objectivity',
-  description: `Crafting objectivity from ${SOURCE_COUNT} sources.`,
+  title: `Source of Truths | Where ${SOURCE_COUNT} Experts and Aggregators Agree`,
+  description: `Where ${SOURCE_COUNT} experts and aggregators agree. Consensus rankings of the best restaurants, hotels, products, films, and more, scored from expert and reader sources.`,
   openGraph: {
-    title: 'Source of Truths | Crafting Objectivity',
-    description: `Crafting objectivity from ${SOURCE_COUNT} sources.`,
+    title: `Source of Truths | Where ${SOURCE_COUNT} Experts and Aggregators Agree`,
+    description: `Where ${SOURCE_COUNT} experts and aggregators agree. Consensus rankings of the best restaurants, hotels, products, films, and more, scored from expert and reader sources.`,
     url: 'https://sourceoftruths.com',
     type: 'website',
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'Source of Truths | Crafting Objectivity',
-    description: `Crafting objectivity from ${SOURCE_COUNT} sources.`,
+    title: `Source of Truths | Where ${SOURCE_COUNT} Experts and Aggregators Agree`,
+    description: `Where ${SOURCE_COUNT} experts and aggregators agree. Consensus rankings of the best restaurants, hotels, products, films, and more, scored from expert and reader sources.`,
   },
 formatDetection: {
     telephone: false,
@@ -38,19 +38,19 @@ const websiteJsonLd = {
   '@context': 'https://schema.org',
   '@type': 'WebSite',
   name: 'Source of Truths',
-  alternateName: 'Source of Truths | Crafting Objectivity',
+  alternateName: `Source of Truths | Where ${SOURCE_COUNT} Experts and Aggregators Agree`,
   url: 'https://sourceoftruths.com',
-  description: `Crafting objectivity from ${SOURCE_COUNT} expert and reader sources using Borda consensus scoring.`,
+  description: `Where ${SOURCE_COUNT} experts and aggregators agree, built from expert and reader sources using Borda consensus scoring.`,
 };
 
 const organizationJsonLd = {
   '@context': 'https://schema.org',
   '@type': 'Organization',
   name: 'Source of Truths',
-  alternateName: 'Source of Truths | Crafting Objectivity',
+  alternateName: `Source of Truths | Where ${SOURCE_COUNT} Experts and Aggregators Agree`,
   url: 'https://sourceoftruths.com',
   logo: 'https://sourceoftruths.com/icon.png',
-  description: `Crafting objectivity from ${SOURCE_COUNT} sources, scored by expert and reader consensus using Borda methodology.`,
+  description: `Where ${SOURCE_COUNT} experts and aggregators agree, scored by expert and reader consensus using Borda methodology.`,
 };
 
 const collectionJsonLd = {

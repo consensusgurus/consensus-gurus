@@ -4,7 +4,7 @@ import SourcesGrid from '@/app/SourcesGrid';
 import { getAllSources } from '@/lib/sources';
 
 export const metadata = {
-  title: 'The Inputs | Source of Truths',
+  title: 'Experts and Aggregators | Source of Truths',
   description:
     'Every publication behind the Source of Truths consensus, from Michelin and Condé Nast Traveler to Wirecutter, Goodreads, and Yelp, with how many lists each one shapes.',
 };
@@ -38,7 +38,7 @@ export default function SourcesPage() {
               marginBottom: 12,
             }}
           >
-            The Inputs
+            Experts and Aggregators
           </div>
           <h1
             style={{
@@ -78,7 +78,7 @@ export default function SourcesPage() {
               color: C.soft,
             }}
           >
-            {sources.length} inputs &nbsp;&middot;&nbsp; {totalAppearances.toLocaleString()} list appearances
+            {sources.length} experts and aggregators &nbsp;&middot;&nbsp; {totalAppearances.toLocaleString()} list appearances
           </div>
         </div>
 

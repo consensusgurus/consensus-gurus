@@ -11,14 +11,14 @@ import SourcesGrid from './SourcesGrid';
 // outside click for keyboard and touch users.
 // `emphasis` (V2 homepage): renders the trigger bold with a solid ember
 // underline instead of the default dotted underline. Default unchanged.
-export default function SourcesPopover({ label, emphasis, align }) {
+export default function SourcesPopover({ label, emphasis, align, href }) {
   const [open, setOpen] = useState(false);
   const wrapRef = useRef(null);
   const closeTimer = useRef(null);
   const sources = useMemo(() => getAllSources(), []);
   // Exact, live count of distinct publications (updates as lists are added)
   // unless an explicit label override is passed.
-  const triggerLabel = label || `${sources.length} sources`;
+  const triggerLabel = label || `${sources.length} experts and aggregators`;
 
   const cancelClose = () => {
     if (closeTimer.current) { clearTimeout(closeTimer.current); closeTimer.current = null; }
@@ -49,25 +49,16 @@ export default function SourcesPopover({ label, emphasis, align }) {
       onPointerEnter={(e) => { if (e.pointerType === 'mouse') { cancelClose(); setOpen(true); } }}
       onPointerLeave={(e) => { if (e.pointerType === 'mouse') scheduleClose(); }}
     >
-      <button
-        type="button"
-        onClick={(e) => { e.stopPropagation(); setOpen((o) => !o); }}
-        aria-haspopup="dialog"
-        aria-expanded={open}
+      <Link
+        href={href || '/experts-and-aggregators'}
         style={{
-          background: 'transparent',
-          border: 'none',
-          padding: 0,
-          margin: 0,
           font: 'inherit',
+          letterSpacing: 'inherit',
           color: 'inherit',
           cursor: 'pointer',
           fontWeight: emphasis ? 700 : 'inherit',
-          // Always use text-decoration (not a border-bottom) for the underline:
-          // a border adds to the inline box height and made the blurb's wrapped
-          // lines unevenly spaced on mobile. text-decoration doesn't affect line
-          // height, so spacing stays consistent. Emphasis = solid ember; default
-          // = dotted ember.
+          // Underline via text-decoration (not a border-bottom) so wrapped lines
+          // keep even spacing. Emphasis = solid blue; default = dotted blue.
           textDecoration: 'underline',
           textDecorationStyle: emphasis ? 'solid' : 'dotted',
           textDecorationThickness: emphasis ? '2px' : 'auto',
@@ -76,7 +67,7 @@ export default function SourcesPopover({ label, emphasis, align }) {
         }}
       >
         {triggerLabel}
-      </button>
+      </Link>
 
       {open && (
         <>
@@ -96,7 +87,7 @@ export default function SourcesPopover({ label, emphasis, align }) {
           `}</style>
         <div
           role="dialog"
-          aria-label="The inputs behind the consensus"
+          aria-label="The experts and aggregators behind the consensus"
           className="sot-pop"
           onMouseEnter={cancelClose}
           onMouseLeave={scheduleClose}
@@ -131,14 +122,14 @@ export default function SourcesPopover({ label, emphasis, align }) {
                   marginBottom: 4,
                 }}
               >
-                The Inputs
+                Experts and Aggregators
               </div>
               <div style={{ fontFamily: "'Manrope', system-ui, sans-serif", fontSize: 12, color: '#6b7280' }}>
                 {sources.length} publications, with how many lists each shapes
               </div>
             </div>
             <Link
-              href="/inputs"
+              href="/experts-and-aggregators"
               style={{
                 flex: '0 0 auto',
                 fontFamily: "'Manrope', system-ui, sans-serif",

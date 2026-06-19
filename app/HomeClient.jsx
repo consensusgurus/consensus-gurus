@@ -373,6 +373,17 @@ function isProductList(list) {
   return listInCategory(list, 'shops');
 }
 
+// First two rows of the default Discover view show ONLY restaurants / specialty
+// food (the Eating bucket) or lodging (the Travel bucket). Bars and dive bars,
+// products/tech, movies and other entertainment, and miscellaneous are held back
+// to later rows. Exclusions win over overlap: a list also tagged as a product or
+// a bar is treated as such and excluded even if it carries a food/travel tag.
+function leadEligible(list) {
+  if (isProductList(list)) return false;
+  if (listInCategory(list, 'bars-nightlife')) return false;
+  return listInCategory(list, 'restaurants') || listInCategory(list, 'travel');
+}
+
 // Resolve a comparable timestamp for a list, in priority order:
 //   1. publishedAt   (full ISO string on built-in lists)
 //   2. submittedAt   (Supabase timestamptz on reader submissions)
@@ -595,21 +606,30 @@ function Home({ lists, viewCounts, voteData, extras, trending = {}, openList, on
     });
   }, [lists, query, typeFilter]);
 
+  // gridCols (measured below) is read by the Discover lead rule, so the state
+  // is declared here, before `sorted`, to stay out of the temporal dead zone.
+  // The ResizeObserver that updates it lives further down.
+  const [gridCols, setGridCols] = useState(0);
   const sorted = useMemo(() => {
     if (sortBy === 'discover') {
       // Preserve the precomputed shuffle order; just keep entries that
       // survived the current filter.
       const allowed = new Set(filtered);
       const order = discoverOrder.filter((l) => allowed.has(l));
-      // Rule: a product list must never be the first or second tile on
-      // Discover. If one lands in slot 0 or 1, pull up the nearest later
-      // non-product list to take its place; the rest of the shuffle is
-      // otherwise untouched. The findIndex guard (-1) leaves things as-is
-      // when there aren't enough non-product lists (e.g. the Products
-      // filter is active), so the rule degrades gracefully.
-      for (let i = 0; i < 2 && i < order.length; i++) {
-        if (!isProductList(order[i])) continue;
-        const j = order.findIndex((l, k) => k > i && !isProductList(l));
+      // Rule: the first two rows of the Discover landing show ONLY eating or
+      // lodging lists (no products, no bars/dive bars, no movies/entertainment,
+      // no misc). For each slot in those opening two rows, if an ineligible list
+      // sits there, pull up the nearest later eligible list to take its place;
+      // the rest of the shuffle is otherwise preserved. The findIndex guard (-1)
+      // leaves the order untouched when there aren't enough eligible lists (e.g.
+      // a Products or Movies filter is active), so the rule degrades gracefully.
+      // gridCols is 0 before the grid is measured (server + first paint); assume
+      // a 4-wide desktop grid until then so SSR and first client render match.
+      const cols = gridCols > 0 ? gridCols : 4;
+      const leadCount = Math.min(2 * cols, order.length);
+      for (let i = 0; i < leadCount; i++) {
+        if (leadEligible(order[i])) continue;
+        const j = order.findIndex((l, k) => k > i && leadEligible(l));
         if (j === -1) break;
         const [moved] = order.splice(j, 1);
         order.splice(i, 0, moved);
@@ -636,7 +656,7 @@ function Home({ lists, viewCounts, voteData, extras, trending = {}, openList, on
       if (vb !== va) return vb - va;
       return lists.indexOf(a) - lists.indexOf(b);
     });
-  }, [filtered, viewCounts, trending, lists, sortBy, discoverOrder]);
+  }, [filtered, viewCounts, trending, lists, sortBy, discoverOrder, gridCols]);
 
   // Mark some lists as "featured": double-height tiles that preview the full
   // top 10 instead of the top 3. A cooldown of 5 guarantees at least 5 lists
@@ -672,7 +692,6 @@ function Home({ lists, viewCounts, voteData, extras, trending = {}, openList, on
   // factual quiz; the pool is shuffled with a seed derived from discoverSeed, so
   // picks are random per fresh load but stable across a Back navigation.
   const gridRef = useRef(null);
-  const [gridCols, setGridCols] = useState(0);
   useEffect(() => {
     const el = gridRef.current;
     if (!el) { setGridCols(0); return; }
@@ -1721,7 +1740,7 @@ export default function HomeClient() {
           <div style={{ maxWidth: 1180, margin: '0 auto', padding: '36px 24px 80px' }}>
             <div style={{ textAlign: 'center', padding: '34px 0 26px' }}>
               <h1 style={{ fontSize: 'clamp(30px, 6vw, 52px)', fontWeight: 800, letterSpacing: '-0.03em', margin: '0 0 10px' }}>Source <span style={{ color: NT.accent }}>of</span> Truths</h1>
-              <p style={{ fontSize: 12.5, fontWeight: 800, letterSpacing: '0.18em', textTransform: 'uppercase', color: NT.muted, margin: '0 0 18px' }}>Crafting Objectivity</p>
+              <p style={{ fontSize: 12.5, fontWeight: 800, letterSpacing: 'normal', textTransform: 'uppercase', color: NT.muted, margin: '0 0 18px' }}>Where Experts and Aggregators Agree</p>
               <p style={{ maxWidth: 660, margin: '0 auto', fontSize: 16, lineHeight: 1.6, color: NT.muted }}>Curated rankings built from expert critics and everyday reviewers, weighed across hundreds of sources using Borda consensus scoring, so you can see what we all actually agree on, from the best restaurants and hotels to films, books, and products.</p>
               <p style={{ fontSize: 13, color: NT.soft, marginTop: 22 }}>seeking truths…</p>
             </div>

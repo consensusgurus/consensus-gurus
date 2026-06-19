@@ -9,10 +9,16 @@ const nextConfig = {
   },
   async redirects() {
     return [
-      // Renamed 2026-06-18: 'The Sources' rebranded to 'The Inputs'; /sources -> /inputs
+      // Renamed 2026-06-19: 'Inputs' rebranded to 'Experts and Aggregators'.
+      // Old /sources and /inputs both 308 to the new path.
       {
         source: '/sources',
-        destination: '/inputs',
+        destination: '/experts-and-aggregators',
+        permanent: true,
+      },
+      {
+        source: '/inputs',
+        destination: '/experts-and-aggregators',
         permanent: true,
       },
       // Canonicalize host: 308 all www traffic to the apex domain. Fixes the
