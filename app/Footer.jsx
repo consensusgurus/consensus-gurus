@@ -1,4 +1,7 @@
+'use client';
+
 import Link from 'next/link';
+import { useState, useEffect } from 'react';
 
 // Shared, site-wide footer. Deliberately font/brand-neutral (it inherits the
 // surrounding page's body font and uses neutral grays) so it reads correctly on
@@ -40,6 +43,12 @@ const COLS = [
 
 export default function Footer() {
   const year = new Date().getFullYear();
+  const [vis, setVis] = useState(null);
+  useEffect(() => {
+    let on = true;
+    fetch('/api/visitors').then((r) => r.json()).then((d) => { if (on && d && typeof d.visitors === 'number') setVis(d.visitors); }).catch(() => {});
+    return () => { on = false; };
+  }, []);
   return (
     <footer
       style={{
@@ -67,6 +76,7 @@ export default function Footer() {
           <div style={{ fontSize: 12, color: NEUTRAL.muted, marginTop: 5, lineHeight: 1.5 }}>
             Consensus lists and timed quizzes for everything worth knowing.
           </div>
+          {vis != null && (<div style={{ fontSize: 11.5, color: NEUTRAL.soft, marginTop: 10 }}>{vis.toLocaleString()} visitors</div>)}
         </div>
         {COLS.map((col) => (
           <div key={col.head}>

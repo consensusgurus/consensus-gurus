@@ -49,14 +49,7 @@ export default function SiteHeader({ active = 'lists', maxWidth = 1180, visitors
   // One consistent site-wide visitors figure on EVERY page: fetch it here so the
   // home, quizzes, list-detail, and quiz-play headers all show the same number,
   // regardless of what (if anything) each page passes in.
-  const [vis, setVis] = useState(typeof visitors === 'number' ? visitors : null);
-  useEffect(() => {
-    let on = true;
-    fetch('/api/visitors').then((r) => r.json()).then((d) => {
-      if (on && d && typeof d.visitors === 'number') setVis(d.visitors);
-    }).catch(() => {});
-    return () => { on = false; };
-  }, []);
+  // Visitor count moved to the footer (Footer.jsx) so an async load can't shift the header nav.
   return (
     <div style={{ fontFamily: FONT }}>
       <style>{`
@@ -92,12 +85,6 @@ export default function SiteHeader({ active = 'lists', maxWidth = 1180, visitors
             </span>
           </div>
           <div className="sh-right">
-            <div className="sh-stat">
-              {typeof vis === 'number' ? (<>
-                <span className="sh-vis-full">{`${vis.toLocaleString()} visitors`}</span>
-                <span className="sh-vis-compact">{`${compactVis(vis)} visitors`}</span>
-              </>) : ''}
-            </div>
             <nav className="sh-nav">
               <Link href="/" className={`sh-navbtn${active === 'lists' ? ' on' : ''}`}>Lists <span className="sh-navct">({LIST_COUNT.toLocaleString()})</span></Link>
               <Link href="/quizzes" className={`sh-navbtn${active === 'quizzes' ? ' on' : ''}`}>Quizzes <span className="sh-navct">({QUIZ_COUNT.toLocaleString()})</span></Link>

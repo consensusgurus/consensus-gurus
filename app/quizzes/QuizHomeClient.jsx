@@ -443,7 +443,7 @@ export default function QuizHomeClient() {
       <Grain />
       <style>{css}</style>
       <SiteHeader active="quizzes" />
-      <div className="qzh" style={{ maxWidth: 1180, margin: '0 auto', padding: '20px 24px 70px', position: 'relative' }}>
+      <div className="qzh" style={{ maxWidth: 1180, margin: '0 auto', padding: '12px 24px 70px', position: 'relative' }}>
 
         {/* player bar */}
         <div className="card qz-playerbar" style={{ flexDirection: 'row', alignItems: 'center', flexWrap: 'wrap', gap: 16, padding: '11px 14px', margin: '4px 0 12px', overflow: 'visible', position: 'relative', zIndex: 40 }}>

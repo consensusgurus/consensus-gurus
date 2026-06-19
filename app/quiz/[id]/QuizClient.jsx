@@ -984,8 +984,9 @@ export default function QuizClient({ quizId }) {
     const bCatObj = eloBefore && eloBefore.byCategory && eloBefore.byCategory[eloDept];
     const aCat = aCatObj ? aCatObj.rank : null;
     const bCat = bCatObj ? bCatObj.rank : null;
+    const perGame = (eloAfter.recent && eloAfter.recent[0] && typeof eloAfter.recent[0].delta === 'number') ? eloAfter.recent[0].delta : (bRating != null ? aRating - bRating : null);
     const rows = [
-      { label: 'ELO rating', value: fmtN(aRating), was: bRating != null ? `was ${fmtN(bRating)}` : null, delta: bRating != null ? aRating - bRating : null, isNew: bRating == null },
+      { label: 'ELO rating', value: fmtN(aRating), was: perGame != null ? `was ${fmtN(aRating - perGame)}` : null, delta: perGame, isNew: bRating == null },
       { label: 'Global rank', value: aGlobal != null ? `#${fmtN(aGlobal)}` : '\u2014', was: bGlobal != null ? `was #${fmtN(bGlobal)}` : 'new entry', delta: (bGlobal != null && aGlobal != null) ? bGlobal - aGlobal : null, isNew: bGlobal == null },
       { label: `${eloDeptLabel} rank`, value: aCat != null ? `#${fmtN(aCat)}` : '\u2014', was: bCat != null ? `was #${fmtN(bCat)}` : 'new entry', delta: (bCat != null && aCat != null) ? bCat - aCat : null, isNew: bCat == null },
     ];
