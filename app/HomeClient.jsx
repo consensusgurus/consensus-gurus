@@ -373,12 +373,48 @@ function isProductList(list) {
   return listInCategory(list, 'shops');
 }
 
+// A "chain restaurant list" for homepage placement = a list whose subject is a
+// fast-food or casual-dining chain (e.g. "Best Wendy's Menu Items", "Best-Run
+// McDonald's in Manhattan"). These read as too low-brow to headline the page, so
+// they are held out of the first two rows of the default Discover view (owner
+// rule, 2026-06-19). Detection is by brand name in the title, since such lists
+// can also arrive as reader submissions that carry no special tag.
+const CHAIN_BRANDS = [
+  'mcdonald', 'wendy', 'burger king', 'taco bell', 'panda express', 'chipotle',
+  'chick-fil-a', 'chick fil a', 'popeyes', 'kfc', 'kentucky fried chicken',
+  'starbucks', 'dunkin', 'domino', 'pizza hut', 'little caesar', 'papa john',
+  'arby', 'sonic drive', 'five guys', 'in-n-out', 'in n out', 'shake shack',
+  'whataburger', 'raising cane', 'jack in the box', "carl's jr", 'carls jr',
+  'hardee', 'dairy queen', 'jersey mike', 'jimmy john', 'firehouse subs',
+  'panera', 'tim hortons', "chili's", 'chilis', 'olive garden', 'outback',
+  'applebee', 'ihop', 'denny', 'cracker barrel', 'cheesecake factory',
+  'buffalo wild wings', 'wingstop', 'red lobster', 'red robin', 'texas roadhouse',
+  "chang's", 'waffle house', 'white castle', 'del taco', 'el pollo loco', 'qdoba',
+  "moe's southwest", 'culver', 'bojangles', 'zaxby', 'checkers', 'krispy kreme',
+  'auntie anne', 'cinnabon', 'baskin', 'cold stone', 'jamba juice', 'smoothie king',
+  'wawa', 'sheetz', 'dutch bros', 'caribou coffee', "peet's coffee", 'krystal',
+];
+function isChainRestaurantList(list) {
+  const t = (list.title || '').toLowerCase();
+  // Subway the sandwich chain, but never the transit system (e.g. "Best
+  // Breweries on the NYC Subway System").
+  if (
+    /\bsubway\b/.test(t) &&
+    !/subway\s*(system|station|line|stop|train|car|map|series|tile)/.test(t) &&
+    /(sandwich|sub|menu|order|footlong)/.test(t)
+  ) {
+    return true;
+  }
+  return CHAIN_BRANDS.some((b) => t.includes(b));
+}
+
 // First two rows of the default Discover view show ONLY restaurants / specialty
 // food (the Eating bucket) or lodging (the Travel bucket). Bars and dive bars,
 // products/tech, movies and other entertainment, and miscellaneous are held back
 // to later rows. Exclusions win over overlap: a list also tagged as a product or
 // a bar is treated as such and excluded even if it carries a food/travel tag.
 function leadEligible(list) {
+  if (isChainRestaurantList(list)) return false;
   if (isProductList(list)) return false;
   if (listInCategory(list, 'bars-nightlife')) return false;
   return listInCategory(list, 'restaurants') || listInCategory(list, 'travel');
