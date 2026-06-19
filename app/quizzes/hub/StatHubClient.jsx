@@ -6,7 +6,7 @@ import {
 } from 'lucide-react';
 import { QUIZZES, getQuiz } from '@/lib/quizzes';
 import { quizDept as deptOf, DEPT_COLOR, DEPT_LABEL, DEPT_NAV } from '@/lib/quiz-departments';
-import { CHALLENGES, getChallenge, DEFAULT_CHALLENGE_ID, challengeQuizIds, challengeColumns } from '@/lib/challenges';
+import { CHALLENGES, getChallenge, DEFAULT_CHALLENGE_ID, challengeQuizIds, challengeColumns, dailyChallengeId, challengeMenu } from '@/lib/challenges';
 import SiteHeader from '../../SiteHeader';
 import Grain from '../../Grain';
 import Footer from '../../Footer';
@@ -248,8 +248,11 @@ export default function StatHubClient() {
   // Deep link: /quizzes/hub?player=<key> opens that player's profile on load.
   useEffect(() => {
     if (typeof window === 'undefined') return;
-    const pk = new URLSearchParams(window.location.search).get('player');
+    const sp = new URLSearchParams(window.location.search);
+    const pk = sp.get('player');
     if (pk) setViewKey(pk);
+    const tb = sp.get('tab');
+    if (tb && TABS.some((x) => x.t === tb)) setTab(tb);
   }, []);
   const viewing = !!viewKey;
   const profile = viewing ? viewProfile : me;
@@ -687,7 +690,9 @@ function chUpdated(iso) { if (!iso) return ''; try { return new Date(iso).toLoca
 // restyled to the Stat Hub theme. Self-fetches per selected challenge so the
 // selector + refresh work in place; highlights the current player's row.
 function ChallengesPanel({ me }) {
-  const [chId, setChId] = useState(DEFAULT_CHALLENGE_ID);
+  const [chId, setChId] = useState(() => dailyChallengeId());
+  const [menuSort, setMenuSort] = useState('new');
+  const menu = useMemo(() => challengeMenu(), []);
   const [data, setData] = useState(null);
   const [loaded, setLoaded] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
@@ -695,6 +700,7 @@ function ChallengesPanel({ me }) {
 
   const ch = getChallenge(chId) || CHALLENGES[0];
   const cols = challengeColumns(ch);
+  const colLabel = (col) => { if (col.label) return col.label; const q = getQuiz(col.quizId); return (q && (q.navTitle || cleanTitle(q.title))) || col.quizId; };
   const colTotal = {};
   for (const c of cols) { const q = getQuiz(c.quizId); colTotal[c.quizId] = q && Array.isArray(q.answers) ? q.answers.length : 0; }
   const totalPossible = Object.values(colTotal).reduce((a, b) => a + b, 0);
@@ -760,20 +766,41 @@ function ChallengesPanel({ me }) {
       <div className="card" style={{ padding: '16px 18px' }}>
         <div style={{ display: 'flex', alignItems: 'baseline', gap: 10, flexWrap: 'wrap' }}>
           <span style={{ background: C.accsoft, color: C.accent, fontSize: 11, fontWeight: 700, padding: '3px 10px', borderRadius: 6 }}>{ch.kicker || 'Challenge'}</span>
-          <span style={{ fontSize: 11.5, color: C.muted, display: 'inline-flex', alignItems: 'center', gap: 5 }}><Clock size={12} /> opens {ch.sinceLabel}</span>
+          {ch.closedLabel
+            ? <span style={{ fontSize: 11.5, color: C.danger, fontWeight: 700, display: 'inline-flex', alignItems: 'center', gap: 5 }}><Clock size={12} /> {ch.closedLabel}</span>
+            : <span style={{ fontSize: 11.5, color: C.muted, display: 'inline-flex', alignItems: 'center', gap: 5 }}><Clock size={12} /> {ch.daily ? 'Resets daily at midnight ET' : `opens ${ch.sinceLabel}`}</span>}
         </div>
         <div style={{ fontSize: 22, fontWeight: 800, letterSpacing: '-0.02em', marginTop: 8 }}>{ch.title}</div>
         <div style={{ fontSize: 13, color: C.muted, marginTop: 3, maxWidth: 760 }}>{ch.blurb}</div>
         {ch.prize ? (<div className="chg-prize"><Trophy size={13} strokeWidth={2.4} /> {ch.prize}</div>) : null}
 
-        {CHALLENGES.length > 1 && (
-          <div style={{ display: 'flex', gap: 7, flexWrap: 'wrap', marginTop: 14 }}>
-            {CHALLENGES.map((c) => {
-              const on = c.id === ch.id;
-              return <button key={c.id} onClick={() => setChId(c.id)} style={{ padding: '7px 14px', background: on ? C.accent : '#fff', color: on ? '#fff' : C.ink, border: `1px solid ${on ? C.accent : C.line}`, borderRadius: 8, font: 'inherit', fontFamily: FONT, fontSize: 12, fontWeight: 700, cursor: 'pointer' }}>{c.title.replace(/^The\s+/, '')}</button>;
-            })}
+        {ch.daily && (
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap', marginTop: 14 }}>
+            <span style={{ fontSize: 11, fontWeight: 700, letterSpacing: '.04em', textTransform: 'uppercase', color: C.soft }}>Play today</span>
+            {cols.map((col) => (
+              <Link key={col.quizId} href={`/quiz/${col.quizId}`} style={{ display: 'inline-flex', alignItems: 'center', gap: 6, background: C.accent, color: '#fff', padding: '7px 13px', borderRadius: 8, fontFamily: FONT, fontSize: 12, fontWeight: 700, textDecoration: 'none' }}>{colLabel(col)} <ArrowLeft size={13} style={{ transform: 'rotate(180deg)' }} /></Link>
+            ))}
           </div>
         )}
+
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap', marginTop: 14 }}>
+          <span style={{ fontSize: 11, fontWeight: 700, letterSpacing: '.04em', textTransform: 'uppercase', color: C.soft }}>Challenge</span>
+          <select value={ch.id} onChange={(e) => setChId(e.target.value)} style={{ padding: '8px 12px', border: `1px solid ${C.line}`, borderRadius: 8, fontFamily: FONT, fontSize: 13, fontWeight: 600, color: C.ink, background: '#fff', cursor: 'pointer', maxWidth: 280 }}>
+            <optgroup label="Daily Challenge">
+              {(menuSort === 'new' ? menu.filter((it) => it.daily) : menu.filter((it) => it.daily).slice().reverse()).map((it) => (
+                <option key={it.id} value={it.id}>{it.label}</option>
+              ))}
+            </optgroup>
+            {menu.some((it) => !it.daily) && (
+              <optgroup label="Events">
+                {menu.filter((it) => !it.daily).map((it) => (
+                  <option key={it.id} value={it.id}>{it.label}{it.closed ? ' (closed)' : ''}</option>
+                ))}
+              </optgroup>
+            )}
+          </select>
+          <button onClick={() => setMenuSort((x) => (x === 'new' ? 'old' : 'new'))} className="chg-btn">{menuSort === 'new' ? 'Newest first' : 'Oldest first'}</button>
+        </div>
 
         <div className="chg-meta">
           <span><b>{data ? data.totalRegisteredPlayers : '\u2014'}</b> registered players</span>
@@ -803,7 +830,7 @@ function ChallengesPanel({ me }) {
                 </tr>
                 <tr>
                   {ch.groups.map((g) => g.columns.map((col) => (
-                    <th key={col.quizId} className="chg-sub" style={{ '--ac': g.color }}>{col.icon} {col.label}</th>
+                    <th key={col.quizId} className="chg-sub" style={{ '--ac': g.color }}>{col.icon} {col.label || colLabel(col)}</th>
                   )))}
                 </tr>
               </thead>

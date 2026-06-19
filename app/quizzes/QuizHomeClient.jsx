@@ -12,6 +12,7 @@ import { QUIZZES } from '@/lib/quizzes';
 import {
   quizDept as deptOf, DEPT_COLOR, DEPT_LABEL, DEPT_NAV,
 } from '@/lib/quiz-departments';
+import { getDailyChallenge, dailyChallengeId } from '@/lib/challenges';
 import Grain from '../Grain';
 import Footer from '../Footer';
 
@@ -188,6 +189,10 @@ export default function QuizHomeClient() {
   const [view, setView] = useState('compact'); // 'compact' | 'detailed' browse layout
   const [statsById, setStatsById] = useState({}); // /api/quiz/stats keyed by quizId
   const [signupOpen, setSignupOpen] = useState(false);
+  const [dailyLb, setDailyLb] = useState(null); // today's daily-challenge standings (registered players)
+  // Today's daily challenge (deterministic from the date; no server state needed).
+  const daily = useMemo(() => getDailyChallenge(), []);
+  const dailyCat = daily ? daily.accent : '';
   // Restore the saved browse-view preference once on mount.
   useEffect(() => {
     try { const v = localStorage.getItem('sot_quiz_browse_view'); if (v === 'detailed' || v === 'compact') setView(v); } catch {}
@@ -242,6 +247,9 @@ export default function QuizHomeClient() {
     }).catch(() => {});
     fetch('/api/quiz/stats').then((r) => r.json()).then((d) => {
       if (d && Array.isArray(d.quizzes)) setStatsById(Object.fromEntries(d.quizzes.map((q) => [q.quizId, q])));
+    }).catch(() => {});
+    fetch(`/api/quiz/challenge-leaderboard?id=${encodeURIComponent(dailyChallengeId())}`).then((r) => r.json()).then((d) => {
+      if (d && Array.isArray(d.users)) setDailyLb(d.users);
     }).catch(() => {});
   }, []);
 
@@ -309,19 +317,29 @@ export default function QuizHomeClient() {
   // Each slide sorts the board by that slide's metric (desc; ties by rating then
   // name), scoped to the selected category (the elo API already returns the
   // per-category metric values). The Skill Rating slide DOES show the rating.
-  const LB_METRICS = [
-    { key: 'rating', label: 'Top Skill Rating', fmt: (v) => (v || 0).toLocaleString(), ms: 7000 },
-    { key: 'correct', label: 'Most Correct Answers', fmt: (v) => (v || 0).toLocaleString(), ms: 5000 },
-    { key: 'completed', label: 'Most Quizzes Aced (100%)', fmt: (v) => (v || 0).toLocaleString(), ms: 5000 },
-    { key: 'daysPlayed', label: 'Most Days Played', fmt: (v) => (v || 0).toLocaleString(), ms: 5000 },
-    { key: 'accuracy', label: 'Highest Accuracy', fmt: (v) => `${v || 0}%`, ms: 5000 },
-  ];
-  const lbMetric = LB_METRICS[lbIdx];
+  // Today's daily-challenge standings, ranked by total correct then least time.
+  const dailyRows = useMemo(() => (dailyLb || []).slice()
+    .sort((a, b) => (b.totalCorrect || 0) - (a.totalCorrect || 0) || (a.totalTime || 0) - (b.totalTime || 0) || (a.username || '').localeCompare(b.username || ''))
+    .slice(0, 10), [dailyLb]);
+  // The daily-challenge slide joins the rotation ONLY once >=2 registered
+  // players have played today's challenge.
+  const LB_METRICS = useMemo(() => {
+    const base = [
+      { key: 'rating', label: 'Top Skill Rating', fmt: (v) => (v || 0).toLocaleString(), ms: 7000 },
+      { key: 'correct', label: 'Most Correct Answers', fmt: (v) => (v || 0).toLocaleString(), ms: 5000 },
+      { key: 'completed', label: 'Most Quizzes Aced (100%)', fmt: (v) => (v || 0).toLocaleString(), ms: 5000 },
+      { key: 'daysPlayed', label: 'Most Days Played', fmt: (v) => (v || 0).toLocaleString(), ms: 5000 },
+      { key: 'accuracy', label: 'Highest Accuracy', fmt: (v) => `${v || 0}%`, ms: 5000 },
+    ];
+    if (dailyRows.length >= 2) base.splice(1, 0, { key: 'dailyChallenge', special: true, label: `Today's Challenge${dailyCat ? ` · ${dailyCat}` : ''}`, fmt: (v) => (v || 0).toLocaleString(), ms: 6000 });
+    return base;
+  }, [dailyRows.length, dailyCat]);
+  const lbMetric = LB_METRICS[Math.min(lbIdx, LB_METRICS.length - 1)];
   // Per-slide timeout: the ELO slide holds 7s, every other slide 5s.
   useEffect(() => {
     const id = setTimeout(() => setLbIdx((i) => (i + 1) % LB_METRICS.length), lbMetric.ms);
     return () => clearTimeout(id);
-  }, [lbIdx, lbMetric.ms]);
+  }, [lbIdx, lbMetric.ms, LB_METRICS.length]);
   // Sort the displayed board by the active slide's metric, scoped to the current
   // category (eloBoard is already category-scoped via the /api/quiz/elo refetch).
   const leaderRows = useMemo(() => {
@@ -504,18 +522,30 @@ export default function QuizHomeClient() {
           {/* leaderboard */}
           <div className="card">
             <div className="head">
-              <span className="lbl" style={{ color: C.ink }}>{lbMetric.label}{scope === 'all' ? '' : ` · ${byKey[scope]?.label}`}</span>
-              <Link href="/quizzes/hub" className="qlink"><span style={{ fontSize: 10, fontWeight: 700, letterSpacing: '.05em', textTransform: 'uppercase', color: C.soft }}>Full →</span></Link>
+              <span className="lbl" style={{ color: C.ink }}>{lbMetric.label}{lbMetric.special || scope === 'all' ? '' : ` · ${byKey[scope]?.label}`}</span>
+              <Link href={lbMetric.special ? '/quizzes/hub?tab=challenges' : '/quizzes/hub'} className="qlink"><span style={{ fontSize: 10, fontWeight: 700, letterSpacing: '.05em', textTransform: 'uppercase', color: C.soft }}>Full →</span></Link>
             </div>
             <div style={{ flex: 1, padding: '3px 0' }}>
-              {leaderRows.length === 0 && <div style={{ padding: '12px 13px', fontSize: 12, color: C.soft }}>No ranked players yet.</div>}
-              {leaderRows.map((r, i) => (
-                <div className="lrow" key={r.userKey || i}>
-                  <Medal i={i} />
-                  <span className="qtitle">{r.userKey ? <Link href={`/quizzes/hub?player=${encodeURIComponent(r.userKey)}`} style={{ color: 'inherit', textDecoration: 'none' }}><WhoTag name={r.name} isAnon={r.isAnon} /></Link> : <WhoTag name={r.name} isAnon={r.isAnon} />}</span>
-                  <span style={{ flex: 'none', fontWeight: 700, fontVariantNumeric: 'tabular-nums' }}>{lbMetric.fmt(r[lbMetric.key])}</span>
-                </div>
-              ))}
+              {lbMetric.special ? (
+                dailyRows.map((r, i) => (
+                  <div className="lrow" key={`d${i}`}>
+                    <Medal i={i} />
+                    <span className="qtitle"><WhoTag name={r.username || 'Player'} isAnon={false} /></span>
+                    <span style={{ flex: 'none', fontWeight: 700, fontVariantNumeric: 'tabular-nums' }}>{(r.totalCorrect || 0).toLocaleString()}</span>
+                  </div>
+                ))
+              ) : (
+                <>
+                  {leaderRows.length === 0 && <div style={{ padding: '12px 13px', fontSize: 12, color: C.soft }}>No ranked players yet.</div>}
+                  {leaderRows.map((r, i) => (
+                    <div className="lrow" key={r.userKey || i}>
+                      <Medal i={i} />
+                      <span className="qtitle">{r.userKey ? <Link href={`/quizzes/hub?player=${encodeURIComponent(r.userKey)}`} style={{ color: 'inherit', textDecoration: 'none' }}><WhoTag name={r.name} isAnon={r.isAnon} /></Link> : <WhoTag name={r.name} isAnon={r.isAnon} />}</span>
+                      <span style={{ flex: 'none', fontWeight: 700, fontVariantNumeric: 'tabular-nums' }}>{lbMetric.fmt(r[lbMetric.key])}</span>
+                    </div>
+                  ))}
+                </>
+              )}
             </div>
           </div>
 
@@ -563,6 +593,16 @@ export default function QuizHomeClient() {
                 : listMode === 'mostplayed' ? `Most Played · ${mostPlayedAll.length}`
                 : 'Live · Quizzes Played'}
             </h2>
+          )}
+          {daily && (
+            <Link href="/quizzes/hub?tab=challenges" style={{ flex: '0 0 auto', display: 'flex', alignItems: 'center', gap: 9, background: C.accent, color: '#fff', padding: '8px 14px', borderRadius: 10, textDecoration: 'none' }}>
+              <Flame size={17} style={{ flex: 'none' }} />
+              <span style={{ lineHeight: 1.15 }}>
+                <span style={{ display: 'block', fontSize: 13, fontWeight: 800 }}>Daily Challenge</span>
+                <span style={{ display: 'block', fontSize: 10, fontWeight: 600, opacity: 0.85 }}>Today{dailyCat ? ` · ${dailyCat}` : ''}</span>
+              </span>
+              <ArrowRight size={15} style={{ flex: 'none' }} />
+            </Link>
           )}
           <div style={{ position: 'relative', flex: '1 1 200px' }}>
             <Search size={16} style={{ position: 'absolute', left: 12, top: '50%', transform: 'translateY(-50%)', color: C.soft }} />
