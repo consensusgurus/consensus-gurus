@@ -556,7 +556,7 @@ export default function QuizClient({ quizId }) {
     const elapsed = startRef.current ? Math.min(quiz.timeLimit, Math.round((Date.now() - startRef.current) / 1000)) : quiz.timeLimit;
     setLastElapsed(elapsed);
     setStats(recordResult(quizId, finalScore));
-    setHint(win ? `Perfect — all ${total} named in ${fmtTime(elapsed)}!` : `Time! You got ${finalScore}/${total}.`);
+    setHint(win ? `Perfect — all ${total} named in ${fmtTime(elapsed)}!` : (quiz.strike ? `Struck out — ${finalScore}/${total} before the miss.` : `Time! You got ${finalScore}/${total}.`));
     setHintBad(!win);
     setGameOverDismissed(false);
     // Map games AND tile games (bank/type-it) keep the board on screen behind
@@ -1290,7 +1290,7 @@ export default function QuizClient({ quizId }) {
             <div style={{ fontFamily: MONO, fontSize: 12, minHeight: 15, marginTop: 2, marginBottom: 8, color: hintBad ? COLORS.ember : COLORS.faded }}>{hint}</div>
 
             {photoMode ? (
-            <PhotoBoard items={quiz.answers} started={started} ended={ended} revealed={revealed} onMatch={onPairMatch} onWrong={onBankWrong} onEnd={onPairEnd} onHint={onPairHint} answerNoun={quiz.noun} photoAspect={quiz.photoAspect} stickyTop={stickyTop} />
+            <PhotoBoard items={quiz.answers} started={started} ended={ended} revealed={revealed} onMatch={onPairMatch} onWrong={onBankWrong} onEnd={onPairEnd} onHint={onPairHint} answerNoun={quiz.noun} photoAspect={quiz.photoAspect} strike={quiz.strike} noSkip={quiz.strike} stickyTop={stickyTop} />
             ) : typeMode ? (
             <TypeItBoard items={quiz.answers} started={started} ended={ended} revealed={revealed} onMatch={onPairMatch} onWrong={onBankWrong} onEnd={onPairEnd} onHint={onPairHint} promptLabel={quiz.leftLabel} answerNoun={quiz.noun} stickyTop={stickyTop} />
             ) : bankMode ? (

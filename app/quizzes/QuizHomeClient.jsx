@@ -567,10 +567,10 @@ export default function QuizHomeClient() {
 
         {/* player bar */}
         <div ref={playerBarRef} className="card qz-playerbar" style={{ flexDirection: 'row', alignItems: 'center', flexWrap: 'wrap', gap: 16, padding: '11px 14px', margin: '0 0 12px', overflow: 'visible', position: 'relative', zIndex: 40 }}>
-          {me && me.signed && me.name ? (
+          {me && me.found && me.name ? (
             <div style={{ display: 'flex', flexDirection: 'column', minWidth: 0 }}>
               <div className="lbl">Player</div>
-              <div className="qz-pname" style={{ display: 'flex', alignItems: 'center', gap: 5, fontSize: 16, fontWeight: 800, color: C.ink, lineHeight: 1.15, minWidth: 0 }}><span style={{ minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{me.name}</span><BadgeCheck size={13} strokeWidth={2.5} style={{ color: C.accent, flex: 'none' }} /></div>
+              <div className="qz-pname" style={{ display: 'flex', alignItems: 'center', gap: 5, fontSize: 16, fontWeight: 800, color: C.ink, lineHeight: 1.15, minWidth: 0 }}><span style={{ minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{me.name}</span>{me.signed ? <BadgeCheck size={13} strokeWidth={2.5} style={{ color: C.accent, flex: 'none' }} /> : <button onClick={() => setSignupOpen(true)} title="Sign up to claim a display name" style={{ flex: 'none', fontSize: 9, fontWeight: 700, letterSpacing: '0.04em', textTransform: 'uppercase', color: C.accent, background: 'none', border: `1px solid ${C.line}`, borderRadius: 4, padding: '1px 5px', cursor: 'pointer' }}>guest</button>}</div>
             </div>
           ) : me && me.signed ? (
             <button onClick={() => { if (quizzesRef.current) quizzesRef.current.scrollIntoView({ behavior: 'smooth', block: 'start' }); }} style={{ display: 'inline-flex', alignItems: 'center', gap: 6, background: C.accent, color: '#fff', border: 'none', borderRadius: 9, padding: '9px 14px', fontFamily: 'Manrope, system-ui, -apple-system, sans-serif', fontWeight: 700, fontSize: 13, cursor: 'pointer', whiteSpace: 'nowrap' }}><Play size={15} /> Play</button>
