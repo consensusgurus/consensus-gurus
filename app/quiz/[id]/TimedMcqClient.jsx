@@ -363,9 +363,7 @@ export default function TimedMcqClient({ quizId, mobile = false }) {
   function share() {
     const correct = results.filter((r) => r.correct).length;
     const pct = total ? Math.round((correct / total) * 100) : 0;
-    const text = phase === 'done'
-      ? `I got ${correct}/${total} right (${pct}%) on "${quiz.title}" at Source of Truths. Beat the clock and beat me.`
-      : `${total} questions, ${perSec} seconds each, answer fast for points. "${quiz.title}" at Source of Truths.`;
+    const text = 'Can you beat my score?';
     if (navigator.share) {
       navigator.share({ title: quiz.title, text, url: shareUrl }).catch(() => {});
     } else {

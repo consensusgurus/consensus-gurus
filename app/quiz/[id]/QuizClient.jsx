@@ -849,9 +849,7 @@ export default function QuizClient({ quizId }) {
   const shareUrl = typeof window !== 'undefined' ? window.location.href : `https://sourceoftruths.com/quiz/${quiz.id}`;
   function share() {
     const pct = total ? Math.round((dispScore / total) * 100) : 0;
-    const text = ended
-      ? `I scored ${dispScore}/${total} (${pct}%) on "${quiz.title}" at Source of Truths. Can you beat me?`
-      : `How well do you know "${quiz.title}"? Take the timed quiz at Source of Truths.`;
+    const text = 'Can you beat my score?';
     if (navigator.share) {
       navigator.share({ title: quiz.title, text, url: shareUrl }).catch(() => {});
     } else {

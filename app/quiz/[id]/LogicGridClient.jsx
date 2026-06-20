@@ -324,9 +324,7 @@ export default function LogicGridClient({ quizId, mobile = false }) {
   const shareUrl = typeof window !== 'undefined' ? window.location.href : `https://sourceoftruths.com/quiz/${quiz.id}`;
   function share() {
     const pct = total ? Math.round((score / total) * 100) : 0;
-    const text = phase === 'done'
-      ? `I placed ${score}/${total} (${pct}%) on "${quiz.title}" at Source of Truths. Can you solve the grid?`
-      : `Can you solve all ${total} boxes? "${quiz.title}" at Source of Truths.`;
+    const text = 'Can you beat my score?';
     if (navigator.share) {
       navigator.share({ title: quiz.title, text, url: shareUrl }).catch(() => {});
     } else {

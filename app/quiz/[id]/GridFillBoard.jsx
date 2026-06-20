@@ -354,9 +354,7 @@ export default function GridFillBoard({ quizId, mobile = false }) {
   const clock = fmtTime(time);
   const shareUrl = typeof window !== 'undefined' ? window.location.href : `https://sourceoftruths.com/quiz/${quiz.id}`;
   function share() {
-    const text = phase === 'done'
-      ? `I filled ${score}/${totalCells} on "${quiz.title}" at Source of Truths. Can you beat me?`
-      : `Can you name the biggest companies of every era? "${quiz.title}" at Source of Truths.`;
+    const text = 'Can you beat my score?';
     if (navigator.share) {
       navigator.share({ title: quiz.title, text, url: shareUrl }).catch(() => {});
     } else {

@@ -334,7 +334,7 @@ export default function QuizHomeClient() {
     for (const k of Object.keys(me.byCategory)) {
       const c = me.byCategory[k];
       if (!c || !(c.correct > 0)) continue;
-      if (!best || c.correct > best.correct || (c.correct === best.correct && (c.accuracy || 0) > (best.accuracy || 0))) best = { key: k, correct: c.correct, accuracy: c.accuracy || 0 };
+      if (!best || c.correct > best.correct || (c.correct === best.correct && (c.accuracy || 0) > (best.accuracy || 0))) best = { key: k, correct: c.correct, accuracy: c.accuracy || 0, rank: c.rank, catTotal: c.catTotal };
     }
     return best;
   }, [me]);
@@ -368,11 +368,16 @@ export default function QuizHomeClient() {
     // Highest Accuracy needs a real sample: only players with >=3 unique
     // quizzes played qualify (a 100% from one quiz shouldn't top the board).
     const pool = k === 'accuracy' ? eloBoard.filter((p) => (p.played || 0) >= 3) : eloBoard;
-    return pool.slice().sort((a, b) =>
+    const sorted = pool.slice().sort((a, b) =>
       ((b[k] || 0) - (a[k] || 0))
       || ((b.rating || 0) - (a.rating || 0))
       || (a.name || '').localeCompare(b.name || '')
-    ).slice(0, boardsExpanded ? 10 : 3);
+    );
+    // Hide guests from the public board WHEN >=3 registered players can fill the
+    // top three; otherwise keep guests so the board isn't sparse.
+    const named = sorted.filter((p) => !p.isAnon);
+    const list = named.length >= 3 ? named : sorted;
+    return list.slice(0, boardsExpanded ? 10 : 3);
   }, [eloBoard, lbMetric.key, boardsExpanded]);
 
   // ── live feed (scoped by quiz department) ──
@@ -468,7 +473,6 @@ export default function QuizHomeClient() {
     .qzh .qmeta{flex:none;display:flex;align-items:center;gap:10px;font-size:10.5px;}
     .qzh .hubbtn{display:flex;align-items:center;gap:7px;background:${C.accent};color:#fff;padding:10px 15px;border-radius:10px;font-weight:700;font-size:13px;text-decoration:none;white-space:nowrap;}
     @media(max-width:560px){.qz-playerbar{flex-wrap:wrap !important;align-items:center !important;gap:10px 14px !important;}.qz-playerbar .qz-div{display:none !important;}.qz-playerbar .qz-stats{flex:1 1 100% !important;margin-left:0 !important;justify-content:space-between !important;gap:10px !important;}.qz-playerbar .dd{flex:1 1 0 !important;min-width:0 !important;align-self:stretch !important;}.qz-playerbar .dd .ddbtn{width:100% !important;justify-content:center !important;height:100% !important;box-sizing:border-box !important;}.qz-playerbar .hubbtn{flex:1 1 0 !important;justify-content:center !important;align-self:stretch !important;}.qz-daily{flex:1 1 100% !important;justify-content:center !important;}}
-    @media(max-width:560px){.qzh .qz-bestcat{display:none;}}
     .qzh .hubbtn:hover{filter:brightness(1.06);}
     .qzh .crumb1{font-size:18px;font-weight:800;letter-spacing:-0.02em;}
     .qzh .crumb2{font-size:18px;font-weight:600;color:${C.accent};}
@@ -507,10 +511,13 @@ export default function QuizHomeClient() {
           {bestCat ? (
             <div className="qz-bestcat">
               <div className="lbl">Best category</div>
-              <div style={{ fontSize: 17, fontWeight: 700, color: C.ink, lineHeight: 1.2 }}>{byKey[bestCat.key]?.label || DEPT_LABEL[bestCat.key] || '—'}</div>
+              <div style={{ display: 'flex', alignItems: 'baseline', gap: 5, whiteSpace: 'nowrap' }}>
+                <span style={{ fontSize: 14, fontWeight: 700, color: C.ink, lineHeight: 1.2 }}>{byKey[bestCat.key]?.label || DEPT_LABEL[bestCat.key] || '—'}</span>
+                {bestCat.rank ? <span style={{ fontSize: 11, color: C.muted }}>#{bestCat.rank}{bestCat.catTotal ? ` of ${bestCat.catTotal.toLocaleString()}` : ''}</span> : null}
+              </div>
             </div>
           ) : null}
-          <div className="qz-stats" style={{ display: 'flex', gap: 22, marginLeft: 'auto', flexWrap: 'wrap' }}>
+          <div className="qz-stats" style={{ display: 'flex', flex: '1 1 auto', justifyContent: 'space-evenly', gap: 12, marginLeft: 18, flexWrap: 'wrap' }}>
             <div><div style={{ display: 'flex', alignItems: 'baseline', gap: 4 }}><span style={{ fontSize: 17, fontWeight: 700 }}>{playerStats && playerStats.completed != null ? playerStats.completed : '—'}</span>{playerStats && playerStats.completed != null && scopeCount ? <span style={{ fontSize: 11, fontWeight: 600, color: C.soft }}>({playerStats.completed > 0 && playerStats.completed / scopeCount < 0.005 ? '<1' : Math.round((playerStats.completed / scopeCount) * 100)}%)</span> : null}</div><div className="lbl">completed</div></div>
             <div><div style={{ fontSize: 17, fontWeight: 700 }}>{playerStats && playerStats.played != null ? playerStats.played : '—'}</div><div className="lbl">played</div></div>
             <div><div style={{ fontSize: 17, fontWeight: 700 }}>{playerStats && playerStats.correct != null ? playerStats.correct.toLocaleString() : '—'}</div><div className="lbl">correct</div></div>

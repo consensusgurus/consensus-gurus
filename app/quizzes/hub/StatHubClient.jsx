@@ -302,7 +302,7 @@ export default function StatHubClient() {
 .qzhub .metric-lbl{display:flex;justify-content:space-between;align-items:center;gap:6px;flex-wrap:nowrap;}
     @media(max-width:600px){.qzhub .metric-lbl{flex-wrap:wrap;}}
     @media(max-width:680px){.qzhub .rgrid{grid-template-columns:1fr !important;}}
-    @media(max-width:560px){.qzhub .shpbar{gap:8px 12px !important;padding:13px 14px !important;}.qzhub .shpbar-id{order:1;}.qzhub .shpbar-share{order:2;margin-left:auto !important;width:auto !important;padding:8px 13px !important;}.qzhub .shpbar-iddiv,.qzhub .shpbar-maindiv{display:none !important;}.qzhub .shpbar-main{order:3;flex-basis:100% !important;width:100% !important;}}
+    @media(max-width:560px){.qzhub .shpbar{gap:8px 12px !important;padding:13px 14px !important;}.qzhub .shpbar-id{order:1;}.qzhub .shpbar-share{order:2;margin-left:auto !important;width:auto !important;padding:8px 13px !important;}.qzhub .shpbar-iddiv,.qzhub .shpbar-maindiv{display:none !important;}.qzhub .shpbar-main{order:3;flex-basis:100% !important;width:100% !important;gap:14px !important;}.qzhub .shpbar-main > div:nth-child(3){gap:14px !important;}.qzhub .sh-mext{display:none !important;}.qzhub .sh-rank{font-size:30px !important;}}
   `;
 
   return (
@@ -333,7 +333,7 @@ export default function StatHubClient() {
           <div className="shpbar-main" style={{ display: 'flex', alignItems: 'center', gap: 20, flexWrap: 'wrap' }}>
             <div style={{ display: 'flex', flexDirection: 'column' }}>
               <span className="lbl">Overall Rank</span>
-              <span style={{ fontSize: 42, fontWeight: 800, color: C.accent, lineHeight: 1 }}>{found && profile.rank ? `#${profile.rank}` : '\u2014'}</span>
+              <span className="sh-rank" style={{ fontSize: 42, fontWeight: 800, color: C.accent, lineHeight: 1 }}>{found && profile.rank ? `#${profile.rank}` : '\u2014'}</span>
               <span style={{ fontSize: 11.5, color: C.muted, marginTop: 3 }}>{found && profile.totalPlayers ? `of ${profile.totalPlayers.toLocaleString()} players` : 'Play your first quiz to populate'}</span>
             </div>
             <div className="shpbar-maindiv" style={{ width: 1, height: 50, background: C.line }} />
@@ -342,9 +342,11 @@ export default function StatHubClient() {
                 <div className="lbl">Skill Rating</div>
                 <div style={{ fontSize: 21, fontWeight: 800, color: C.ink }}>{found ? rating.toLocaleString() : '\u2014'}{found ? <span style={{ background: tierBg, color: tierFg, fontSize: 10, fontWeight: 700, padding: '2px 7px', borderRadius: 5, verticalAlign: 2, marginLeft: 6 }}>{(tierLabel || '').replace(/ Tier$/, '')}</span> : null}</div>
               </div>
-              <ChipMetric label="Completed" value={found ? profile.activity.completed : '\u2014'} rank={found && profile.ranks ? profile.ranks.completed : null} />
+              <ChipMetric cls="sh-mext" label="Completed" value={found ? profile.activity.completed : '\u2014'} rank={found && profile.ranks ? profile.ranks.completed : null} />
               <ChipMetric label="Correct" value={found ? profile.activity.correct.toLocaleString() : '\u2014'} rank={found && profile.ranks ? profile.ranks.correct : null} />
               <ChipMetric label="Accuracy" value={found ? `${profile.activity.accuracy}%` : '\u2014'} rank={found && profile.ranks ? profile.ranks.accuracy : null} />
+              <ChipMetric cls="sh-mext" label="Played" value={found ? profile.activity.played : '\u2014'} rank={found && profile.ranks ? profile.ranks.played : null} />
+              <ChipMetric cls="sh-mext" label="Days" value={found ? (profile.activity.daysPlayed || 0) : '\u2014'} rank={found && profile.ranks ? profile.ranks.daysPlayed : null} />
             </div>
           </div>
           {found ? (
@@ -382,9 +384,9 @@ export default function StatHubClient() {
 
 // ─── small helpers ──────────────────────────────────────────────────────────
 // A compact metric for the profile header: label, value, and a "#rank" chip.
-function ChipMetric({ label, value, rank }) {
+function ChipMetric({ label, value, rank, cls }) {
   return (
-    <div>
+    <div className={cls}>
       <div className="lbl">{label}</div>
       <div style={{ fontSize: 18, fontWeight: 700 }}>{value}<RankChip rank={rank} /></div>
     </div>
@@ -468,7 +470,7 @@ function PlayerPanel({ me, scope, cats, byKey, totalQuizzes, board, myName, myAn
 
   const toggle = (
     <div style={{ display: 'flex', gap: 3, background: '#eceef1', borderRadius: 9, padding: 3, flex: 1, width: '100%', boxSizing: 'border-box' }}>
-      {[['ranking', 'Ranking'], ['category', 'Category'], ['activity', 'Activity'], ['rating', 'Rating']].map(([v, lbl]) => (
+      {[['ranking', 'Ranking'], ['category', 'Category'], ['rating', 'Skill Rating'], ['activity', 'Activity']].map(([v, lbl]) => (
         <button key={v} onClick={() => setPview(v)} style={{ flex: 1, textAlign: 'center', border: 'none', background: pview === v ? '#fff' : 'transparent', color: pview === v ? C.ink : C.muted, fontWeight: pview === v ? 700 : 600, boxShadow: pview === v ? '0 1px 2px rgba(20,22,28,0.06)' : 'none', borderRadius: 7, padding: '7px 6px', font: 'inherit', fontFamily: FONT, fontSize: 12.5, cursor: 'pointer' }}>{lbl}</button>
       ))}
     </div>
@@ -722,7 +724,7 @@ function ChallengesPanel({ me }) {
   const doShare = () => {
     const base = typeof window !== 'undefined' ? window.location.origin : 'https://sourceoftruths.com';
     const url = `${base}/quizzes/hub?tab=challenges&ch=${encodeURIComponent(ch.id)}`;
-    const text = `${ch.title} on Source of Truths.${ch.prize ? ' There is a prize on the line for the winner.' : ''} Think you can top the leaderboard?`;
+    const text = 'Can you beat my score?';
     if (typeof navigator !== 'undefined' && navigator.share) navigator.share({ title: ch.title, text, url }).catch(() => {});
     else if (typeof navigator !== 'undefined' && navigator.clipboard) navigator.clipboard.writeText(`${text} ${url}`).then(() => { setShared(true); setTimeout(() => setShared(false), 1800); }).catch(() => {});
   };
@@ -895,6 +897,9 @@ function RatingPanel({ me, titleById, viewing }) {
           <p style={{ fontSize: 13, color: C.muted, lineHeight: 1.6, margin: '0 0 10px' }}>
             Every quiz you finish is a match against that quiz's difficulty. Beat the expected score and your rating rises; fall short and it dips. Heavier, harder quizzes move it more.
           </p>
+          <p style={{ fontSize: 13, color: C.muted, lineHeight: 1.6, margin: '0 0 10px' }}>
+            <b style={{ color: C.ink }}>Inactivity decay:</b> when you stop playing, your rating drifts back toward the {comp.start.toLocaleString()} baseline, reaching it after three months away. Play any quiz to reset the clock.
+          </p>
           <div className="formula">
             E = 1 / (1 + 10<sup>(Dq − R) / 400</sup>)<br />
             R′ = R + K · (S − E)
@@ -910,6 +915,7 @@ function RatingPanel({ me, titleById, viewing }) {
             <div className="hrow"><span style={{ flex: 1 }}>K-Factor (Volatility)</span><span style={{ fontWeight: 700 }}>{comp.k}</span></div>
             <div className="hrow"><span style={{ flex: 1 }}>Matches Played</span><span style={{ fontWeight: 700 }}>{comp.matches}</span></div>
             <div className="hrow"><span style={{ flex: 1 }}>Net Rating From Results</span><span className="score" style={{ color: comp.netDelta >= 0 ? C.accent : C.danger }}>{comp.netDelta >= 0 ? `+${comp.netDelta}` : comp.netDelta}</span></div>
+            <div className="hrow"><span style={{ flex: 1 }}>Inactivity Decay</span><span className="score" style={{ color: (comp.decayDelta || 0) < 0 ? C.danger : C.muted }}>{(comp.decayDelta || 0) === 0 ? '0' : comp.decayDelta}</span></div>
             <div className="hrow" style={{ borderTop: `2px solid ${C.ink}` }}><span style={{ flex: 1, fontWeight: 700 }}>Current Rating</span><span style={{ fontWeight: 800, color: C.accent }}>{comp.rating.toLocaleString()}</span></div>
           </div>
         </div>
