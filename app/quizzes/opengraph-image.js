@@ -1,32 +1,17 @@
 import { ImageResponse } from 'next/og'
 import React from 'react'
 import { QUIZZES } from '@/lib/quizzes'
-import { supabaseAdmin } from '@/lib/supabase-server'
-import { fetchAllRows } from '@/lib/fetch-all'
 
 export const runtime = 'nodejs';
 // Regenerate hourly so the featured row tracks current popularity without
 // hammering the database on every scrape.
 export const revalidate = 3600;
 
-export const alt = 'Source of Truths quizzes: test what you know'
+export const alt = 'Source of Truths quizzes: test your knowledge'
 export const size = { width: 1200, height: 630 }
 export const contentType = 'image/png'
 
 const h = React.createElement
-
-// Curated marquee used only to fill the featured row when there aren't yet
-// enough played quizzes to rank by popularity.
-const FALLBACK_IDS = [
-  'top-grossing-films-1990s',
-  'best-selling-albums-all-time',
-  'most-streamed-spotify-songs',
-  'best-selling-games-all-time',
-]
-
-function strip(title) {
-  return (title || '').replace(/^Name the /, '').replace(/^Name /, '')
-}
 
 // Rebranded ringed blue/gold brand icon (matches the homepage + per-quiz cards),
 // emitted as an SVG data URI so Satori lays it out as one img.
@@ -48,23 +33,6 @@ async function woff(w) {
   return null
 }
 
-// The quizzes with the most completed plays, most-played first. Returns null on
-// any failure so the caller can fall back to the curated marquee.
-async function quizzesByPlays() {
-  try {
-    const { data, error } = await fetchAllRows(supabaseAdmin, 'quiz_results', 'quiz_id', ['quiz_id'])
-    if (error || !Array.isArray(data)) return null
-    const byQuiz = {}
-    for (const r of data) byQuiz[r.quiz_id] = (byQuiz[r.quiz_id] || 0) + 1
-    const ranked = (QUIZZES || [])
-      .filter((q) => byQuiz[q.id])
-      .sort((a, b) => (byQuiz[b.id] - byQuiz[a.id]) || a.title.localeCompare(b.title))
-    return ranked.length ? ranked : null
-  } catch (e) {
-    return null
-  }
-}
-
 export default async function Image() {
   const [w8, w7, w6] = await Promise.all([woff(800), woff(700), woff(600)])
   const any = w8 || w7 || w6
@@ -74,18 +42,14 @@ export default async function Image() {
     : []
 
   const count = Array.isArray(QUIZZES) ? QUIZZES.length : 0
-  const byId = Object.fromEntries((QUIZZES || []).map((q) => [q.id, q]))
 
-  let featured = (await quizzesByPlays()) || []
-  if (featured.length < 4) {
-    const seen = new Set(featured.map((q) => q.id))
-    const fill = [...FALLBACK_IDS.map((id) => byId[id]).filter(Boolean), ...(QUIZZES || [])]
-    for (const q of fill) {
-      if (featured.length >= 4) break
-      if (!seen.has(q.id)) { featured.push(q); seen.add(q.id) }
-    }
-  }
-  featured = featured.slice(0, 4)
+  // Three fixed sample quizzes showcase the range of formats (name / click /
+  // match). Kept to three so the featured row doesn't feel dense.
+  const SAMPLES = [
+    'Name the NYC Pizzeria from the Pizza Photo',
+    'Click the European Country with No Outlines',
+    'Match the Slogan to the Company',
+  ]
 
   const T = (txt, style) => h('div', { style: { display: 'flex', ...style } }, txt)
 
@@ -103,15 +67,15 @@ export default async function Image() {
         h('div', { key: 'l1', style: { display: 'flex', width: '100%', height: '2px', background: '#e2e5ea', marginTop: '10px' } }),
         h('div', { key: 'l2', style: { display: 'flex', width: '210px', height: '4px', background: '#fbb615', marginTop: '3px' } }),
       ]),
-      T('Test what you know.', { fontSize: 74, fontWeight: 800, letterSpacing: '-1.5px', color: '#1c1e24', lineHeight: 1.0, marginBottom: 14 }),
+      T('Test Your Knowledge.', { fontSize: 74, fontWeight: 800, letterSpacing: '-1.5px', color: '#1c1e24', lineHeight: 1.0, marginBottom: 14 }),
       T(`${count} timed quizzes across film, music, sports, and beyond. Name them, match them, map them, beat the clock.`, { fontSize: 26, fontWeight: 600, color: '#6b7280', lineHeight: 1.3, maxWidth: '92%' }),
     ]),
     h('div', { key: 'feat', style: { display: 'flex', flexDirection: 'column' } },
-      featured.map((q, i) => h('div', { key: i, style: { display: 'flex', alignItems: 'center', marginBottom: '8px' } }, [
+      SAMPLES.map((s, i) => h('div', { key: i, style: { display: 'flex', alignItems: 'center', marginBottom: '8px' } }, [
         h('div', { key: 't', style: { display: 'flex', width: 36, alignItems: 'center' } }, [
           h('div', { key: 'tri', style: { width: 0, height: 0, borderTop: '9px solid transparent', borderBottom: '9px solid transparent', borderLeft: '15px solid #2563eb' } }),
         ]),
-        h('div', { key: 'n', style: { display: 'flex', fontSize: 30, fontWeight: 600, color: '#1c1e24', lineHeight: 1.15 } }, strip(q.title)),
+        h('div', { key: 'n', style: { display: 'flex', fontSize: 30, fontWeight: 600, color: '#1c1e24', lineHeight: 1.15 } }, s),
       ]))
     ),
     h('div', { key: 'ft', style: { display: 'flex', alignItems: 'center', justifyContent: 'space-between', borderTop: '1px solid #e2e5ea', paddingTop: '16px', fontSize: 19 } }, [

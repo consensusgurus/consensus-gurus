@@ -48,7 +48,7 @@ export async function GET() {
       correctToday += sc;
       if (r.total > 0 && (Number(r.score) || 0) === Number(r.total)) perfectToday += 1;
       if (r.user_id) {
-        const cur = byUser.get(r.user_id) || { username: r.username || 'Player', correct: 0, quizzes: 0 };
+        const cur = byUser.get(r.user_id) || { userId: r.user_id, username: r.username || 'Player', correct: 0, quizzes: 0 };
         cur.correct += sc;
         cur.quizzes += 1;
         if ((!cur.username || cur.username === 'Player') && r.username) cur.username = r.username;
@@ -59,12 +59,12 @@ export async function GET() {
     const leaders = vals
       .filter((u) => u.correct > 0)
       .sort((a, b) => b.correct - a.correct || String(a.username).localeCompare(String(b.username)))
-      .map((u) => ({ username: u.username, correct: u.correct }))
+      .map((u) => ({ username: u.username, correct: u.correct, userKey: 'u:' + u.userId }))
       .slice(0, 10);
     const quizLeaders = vals
       .filter((u) => u.quizzes > 0)
       .sort((a, b) => b.quizzes - a.quizzes || b.correct - a.correct || String(a.username).localeCompare(String(b.username)))
-      .map((u) => ({ username: u.username, quizzes: u.quizzes }))
+      .map((u) => ({ username: u.username, quizzes: u.quizzes, userKey: 'u:' + u.userId }))
       .slice(0, 10);
     return NextResponse.json({ leaders, quizLeaders, correctToday, perfectToday, playsToday: rows.length });
   } catch (e) {

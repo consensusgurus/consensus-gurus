@@ -36,7 +36,11 @@ function summarize(rows) {
     .slice(0, 10)
     .map((r) => ({ username: r.username, userKey: 'u:' + r.user_id, score: r.score, timeElapsed: r.time_elapsed, tryNum: tryOf.get(r), playedAt: r.created_at }));
   const leaderboardAll = buildAllLeaderboard(rows);
-  return { plays, best, topTime: Number.isFinite(topTime) ? topTime : null, leaderboard, leaderboardAll };
+  // Exact score distribution over ALL completed attempts, so the client can
+  // report the real share of attempts a finished run beat (no modeled curve).
+  const scoreDist = {};
+  for (const r of rows) { const sv = Number(r.score) || 0; scoreDist[sv] = (scoreDist[sv] || 0) + 1; }
+  return { plays, best, topTime: Number.isFinite(topTime) ? topTime : null, leaderboard, leaderboardAll, scoreDist };
 }
 
 // POST /api/quiz/result  { quizId, score, total, timeElapsed, email? }

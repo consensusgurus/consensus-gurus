@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect, useLayoutEffect, useMemo, useRef } from 'react';
 import { useRouter } from 'next/navigation';
-import { ArrowLeft, Share2, Check, X, Flag, Trophy, HelpCircle, Eye, SkipForward } from 'lucide-react';
+import { ArrowLeft, Share2, Check, X, Flag, Trophy, HelpCircle, Eye, SkipForward, Crown } from 'lucide-react';
 import { QUIZZES, getQuiz } from '@/lib/quizzes';
 import { quizDept as deptOf, DEPT_LABEL } from '@/lib/quiz-departments';
 import Grain from '../../Grain';
@@ -196,9 +196,99 @@ function getAnonId() {
   }
 }
 
-function percentile(score, total) {
-  const frac = total ? score / total : 0;
-  return Math.round(Math.min(99, Math.max(2, Math.pow(frac, 1.35) * 100)));
+
+// Real share of OTHER completed attempts this run beat, from the recorded score
+// distribution (board.scoreDist). null when there are no other attempts yet.
+function pctAttemptsBeaten(scoreDist, plays, myScore) {
+  if (!scoreDist || typeof myScore !== 'number') return null;
+  let beaten = 0;
+  for (const k in scoreDist) { if (Number(k) < myScore) beaten += scoreDist[k] || 0; }
+  const others = (plays || 0) - 1;
+  if (others <= 0) return null;
+  return Math.round((beaten / others) * 100);
+}
+
+// Self-contained confetti / fireworks celebration drawn on a full-viewport
+// canvas. kind 'big' (gold fireworks + crown, for an all-time top score) or
+// 'small' (a quick multicolor burst, for a perfect run that is not the top).
+function QuizCelebration({ kind, onDone }) {
+  const ref = useRef(null);
+  const doneRef = useRef(onDone);
+  doneRef.current = onDone;
+  useEffect(() => {
+    if (!kind) return undefined;
+    const canvas = ref.current;
+    if (!canvas) return undefined;
+    const ctx = canvas.getContext('2d');
+    const DPR = Math.min(window.devicePixelRatio || 1, 2);
+    let W = 0, H = 0;
+    const size = () => { W = window.innerWidth; H = window.innerHeight; canvas.width = W * DPR; canvas.height = H * DPR; ctx.setTransform(DPR, 0, 0, DPR, 0, 0); };
+    size();
+    window.addEventListener('resize', size);
+    const big = kind === 'big';
+    const GOLD = ['#fbb615', '#ffe24d', '#f59008', '#ffcb45'];
+    const MIX = ['#2563eb', '#3b74f0', '#10b981', '#fbb615', '#ffffff', '#ef476f'];
+    const pal = big ? GOLD : MIX;
+    const rnd = (a, b) => a + Math.random() * (b - a);
+    let parts = [];
+    const burst = (cx, cy, n, power) => {
+      for (let i = 0; i < n; i++) {
+        const a = rnd(0, Math.PI * 2), sp = rnd(0.3, 1) * power;
+        parts.push({ x: cx, y: cy, vx: Math.cos(a) * sp, vy: Math.sin(a) * sp - rnd(1, 4), g: 0.12 + Math.random() * 0.06, rot: rnd(0, 6.28), vr: rnd(-0.3, 0.3), s: rnd(5, 12), c: pal[(Math.random() * pal.length) | 0], sh: Math.random() < 0.5 ? 'r' : 'c', life: 0, max: rnd(70, 140) });
+      }
+    };
+    const cx = W / 2, cy = H * 0.4;
+    burst(cx, cy, big ? 90 : 80, big ? 9 : 8);
+    const shots = big
+      ? [[cx, cy - 50], [cx - 110, cy + 10], [cx + 110, cy + 10], [cx - 60, cy - 90], [cx + 60, cy - 90], [cx, cy + 60], [cx - 150, cy - 20], [cx + 150, cy - 20]]
+      : [[cx - 70, cy - 10], [cx + 70, cy - 10]];
+    let k = 0;
+    const iv = setInterval(() => { const sh = shots[k++]; if (!sh) { clearInterval(iv); return; } burst(sh[0], sh[1], big ? 46 : 34, big ? 9 : 6); }, big ? 220 : 160);
+    const start = performance.now();
+    const fountainStop = start + (big ? 2600 : 1300);
+    const stopAt = start + (big ? 3800 : 2300);
+    let raf = 0;
+    let finished = false;
+    const finish = () => { if (finished) return; finished = true; cancelAnimationFrame(raf); clearInterval(iv); window.removeEventListener('resize', size); if (doneRef.current) doneRef.current(); };
+    const frame = (now) => {
+      ctx.clearRect(0, 0, W, H);
+      if (now < fountainStop) {
+        for (let i = 0; i < (big ? 4 : 3); i++) parts.push({ x: rnd(0, W), y: -10, vx: rnd(-1, 1), vy: rnd(1.5, 3.5), g: 0.05, rot: rnd(0, 6.28), vr: rnd(-0.3, 0.3), s: rnd(5, 10), c: pal[(Math.random() * pal.length) | 0], sh: Math.random() < 0.5 ? 'r' : 'c', life: 0, max: rnd(140, 220) });
+      }
+      const gFade = now > stopAt - 500 ? Math.max(0, (stopAt - now) / 500) : 1;
+      for (let i = parts.length - 1; i >= 0; i--) {
+        const p = parts[i];
+        p.life++; p.vy += p.g; p.x += p.vx; p.y += p.vy; p.rot += p.vr;
+        const al = p.life > p.max - 30 ? Math.max(0, (p.max - p.life) / 30) : 1;
+        ctx.globalAlpha = al * gFade;
+        ctx.fillStyle = p.c;
+        ctx.save(); ctx.translate(p.x, p.y); ctx.rotate(p.rot);
+        if (p.sh === 'r') ctx.fillRect(-p.s / 2, -p.s / 3, p.s, p.s * 0.66);
+        else { ctx.beginPath(); ctx.arc(0, 0, p.s / 2, 0, 6.28); ctx.fill(); }
+        ctx.restore();
+        if (p.life >= p.max || p.y > H + 30) parts.splice(i, 1);
+      }
+      ctx.globalAlpha = 1;
+      if (now < stopAt) raf = requestAnimationFrame(frame);
+      else finish();
+    };
+    raf = requestAnimationFrame(frame);
+    return finish;
+  }, [kind]);
+  if (!kind) return null;
+  return (
+    <div aria-hidden="true" style={{ position: 'fixed', inset: 0, zIndex: 9999, pointerEvents: 'none' }}>
+      <canvas ref={ref} style={{ width: '100%', height: '100%', display: 'block' }} />
+      {kind === 'big' && (
+        <div style={{ position: 'absolute', left: '50%', top: '20%', transform: 'translateX(-50%)', animation: 'sotCrownPop 3.6s ease forwards' }}>
+          <div style={{ width: 74, height: 74, borderRadius: '50%', background: '#fbb615', display: 'flex', alignItems: 'center', justifyContent: 'center', border: '3px solid #fff', boxShadow: '0 8px 26px rgba(245,144,8,0.55)' }}>
+            <Crown size={38} color="#7a4a00" strokeWidth={2.2} />
+          </div>
+        </div>
+      )}
+      <style>{`@keyframes sotCrownPop{0%{opacity:0;transform:translateX(-50%) translateY(-34px) scale(.5)}10%{opacity:1;transform:translateX(-50%) translateY(0) scale(1)}82%{opacity:1;transform:translateX(-50%) translateY(0) scale(1)}100%{opacity:0;transform:translateX(-50%) translateY(-8px) scale(.96)}}`}</style>
+    </div>
+  );
 }
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -300,7 +390,7 @@ export default function QuizClient({ quizId }) {
   const pairsMatchedRef = useRef(0);
 
   const [stats, setStats] = useState({ attempts: 0, best: 0, totalCorrect: 0 });
-  const [board, setBoard] = useState({ plays: 0, best: null, topTime: null, leaderboard: [], leaderboardAll: [] });
+  const [board, setBoard] = useState({ plays: 0, best: null, topTime: null, leaderboard: [], leaderboardAll: [], scoreDist: {} });
   const [lbView, setLbView] = useState('registered');
   const [identity, setIdentity] = useState(null); // { username, email }
 
@@ -321,6 +411,7 @@ export default function QuizClient({ quizId }) {
   const [copied, setCopied] = useState(false);
   const [revealed, setRevealed] = useState(false); // non-list quizzes: misses shown after username gate
   const [gameOverDismissed, setGameOverDismissed] = useState(false); // hides the Game Over overlay once acknowledged
+  const [celebration, setCelebration] = useState(null); // null | 'small' (perfect, not top) | 'big' (all-time top score)
 
   // Critique? modal (mirrors the list-page Request Review modal; routes to the
   // same /api/complaints pipeline -> admin Notices tab + daily digest email).
@@ -398,13 +489,28 @@ export default function QuizClient({ quizId }) {
   // (this run is already counted in board.best/board.topTime, so equality = top).
   const isTopScore = ended && board.best != null && lastElapsed != null
     && dispScore === board.best && board.topTime != null && lastElapsed <= board.topTime;
+
+  // Result description from REAL play data (no modeled probability): the top
+  // score, a perfect run that just was not the fastest, or the actual share of
+  // other completed attempts this run beat.
+  const attemptsPct = pctAttemptsBeaten(board.scoreDist, board.plays, dispScore);
+  const resultBlurb = isTopScore
+    ? 'you are the top score'
+    : dispScore === total
+      ? 'perfect, but too slow for first'
+      : (attemptsPct != null ? `you beat ${attemptsPct}% of attempts` : 'your first completed run');
+  const resultLine = isTopScore
+    ? 'You are the top score.'
+    : dispScore === total
+      ? 'Perfect, but too slow for first.'
+      : (attemptsPct != null ? `You beat ${attemptsPct}% of attempts.` : 'Your first completed run.');
   const activeIdx = found.findIndex((x) => !x);
   const foundNamesSet = mapMode ? new Set(answers.filter((a, i) => found[i]).map((a) => a.t)) : null;
 
   function refreshBoard() {
     fetch(`/api/quiz/board?quizId=${encodeURIComponent(quizId)}`)
       .then((r) => r.json())
-      .then((d) => { if (d && !d.error) setBoard({ plays: d.plays || 0, best: d.best != null ? Math.min(d.best, total) : null, topTime: d.topTime ?? null, leaderboard: d.leaderboard || [], leaderboardAll: d.leaderboardAll || [] }); })
+      .then((d) => { if (d && !d.error) setBoard({ plays: d.plays || 0, best: d.best != null ? Math.min(d.best, total) : null, topTime: d.topTime ?? null, leaderboard: d.leaderboard || [], leaderboardAll: d.leaderboardAll || [], scoreDist: d.scoreDist || {} }); })
       .catch(() => {});
   }
 
@@ -466,7 +572,13 @@ export default function QuizClient({ quizId }) {
       body: JSON.stringify({ quizId, score: finalScore, total, timeElapsed: elapsed, email: identity?.email || undefined, anonId: getAnonId() }),
     })
       .then((r) => r.json())
-      .then((d) => { if (d && !d.error) { setBoard({ plays: d.plays || 0, best: d.best != null ? Math.min(d.best, total) : null, topTime: d.topTime ?? null, leaderboard: d.leaderboard || [], leaderboardAll: d.leaderboardAll || [] }); setLastResultId(d.resultId ?? null); } })
+      .then((d) => { if (d && !d.error) {
+        const freshBest = d.best != null ? Math.min(d.best, total) : null;
+        setBoard({ plays: d.plays || 0, best: freshBest, topTime: d.topTime ?? null, leaderboard: d.leaderboard || [], leaderboardAll: d.leaderboardAll || [], scoreDist: d.scoreDist || {} });
+        setLastResultId(d.resultId ?? null);
+        const topNow = freshBest != null && finalScore === freshBest && d.topTime != null && elapsed <= d.topTime;
+        if (topNow) setCelebration('big'); else if (finalScore === total) setCelebration('small');
+      } })
       .then(() => fetchQuizMe(setEloAfter))
       .catch(() => {});
   }
@@ -489,7 +601,7 @@ export default function QuizClient({ quizId }) {
       const id = { username: d.username, email: d.email };
       try { localStorage.setItem('sot_quiz_identity', JSON.stringify(id)); } catch {}
       setIdentity(id);
-      setBoard({ plays: d.plays || 0, best: d.best != null ? Math.min(d.best, total) : null, topTime: d.topTime ?? null, leaderboard: d.leaderboard || [], leaderboardAll: d.leaderboardAll || [] });
+      setBoard({ plays: d.plays || 0, best: d.best != null ? Math.min(d.best, total) : null, topTime: d.topTime ?? null, leaderboard: d.leaderboard || [], leaderboardAll: d.leaderboardAll || [], scoreDist: d.scoreDist || {} });
       setClaimErr(false);
       setClaimOpen(false);
       if (canReveal) {
@@ -1015,6 +1127,7 @@ export default function QuizClient({ quizId }) {
 
   return (
     <div style={{ minHeight: '100vh', background: COLORS.cream, color: COLORS.ink, position: 'relative', overflowX: 'clip' }}>
+      <QuizCelebration kind={celebration} onDone={() => setCelebration(null)} />
       <div style={{ position: 'relative', zIndex: 2, maxWidth: 1180, margin: '0 auto', padding: '8px 24px 80px' }}>
 
         <style>{`@import url('https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap');`}</style>
@@ -1375,7 +1488,7 @@ export default function QuizClient({ quizId }) {
             {ended && (
               <div style={{ marginTop: 22, padding: 24, borderRadius: 10, border: `1.5px solid ${COLORS.ink}`, background: COLORS.paper, textAlign: 'center' }}>
                 <div style={{ fontFamily: MONO, fontSize: 12, letterSpacing: '0.16em', textTransform: 'uppercase', color: COLORS.ember, marginBottom: 8 }}>{dispScore === total ? 'Perfect score' : time <= 0 ? 'Time!' : tileMode ? 'Out of moves' : 'Gave up'}</div>
-                <div style={{ fontFamily: SERIF, fontWeight: 700, fontSize: 26, lineHeight: 1.1, marginBottom: 10 }}>{dispScore} of {total} · {isTopScore ? 'you are the top score' : `you beat ${percentile(dispScore, total)}% of players`}</div>
+                <div style={{ fontFamily: SERIF, fontWeight: 700, fontSize: 26, lineHeight: 1.1, marginBottom: 10 }}>{dispScore} of {total} · {resultBlurb}</div>
                 <p style={{ fontFamily: SANS, fontSize: 15, color: '#4a4339', maxWidth: 440, margin: '0 auto 18px' }}>
                   {board.best != null ? (dispScore >= board.best ? `That matches the high score of ${board.best}.` : `The high score to beat is ${board.best}.`) : 'Be the first to set the pace.'}
                   {quiz.listId ? ' See the ones you missed in the full ranking, with sources and the consensus breakdown.' : canReveal ? (revealed ? ' The ones you missed are filled in above, highlighted.' : ' Create a display name above to reveal the ones you missed.') : ''}
@@ -1545,23 +1658,26 @@ export default function QuizClient({ quizId }) {
             {(() => {
               const win = dispScore === total;
               const timeout = !win && time <= 0;
-              const heading = win ? 'Perfect!' : timeout ? "Time's Up" : 'Game Over';
+              const celebrate = isTopScore || win;
+              const heading = isTopScore ? 'New record!' : win ? 'Perfect!' : timeout ? "Time's Up" : 'Game Over';
               const reason = win
                 ? `All ${total} found${lastElapsed != null ? ` in ${fmtTime(lastElapsed)}` : ''}.`
-                : timeout
-                  ? 'The clock ran out.'
-                  : (mapMode && quiz.suddenDeath)
-                    ? 'One wrong click ends the run.'
-                    : 'You ended the round.';
+                : isTopScore
+                  ? `Top score on the board${lastElapsed != null ? ` in ${fmtTime(lastElapsed)}` : ''}.`
+                  : timeout
+                    ? 'The clock ran out.'
+                    : (mapMode && quiz.suddenDeath)
+                      ? 'One wrong click ends the run.'
+                      : 'You ended the round.';
               return (
                 <>
-                  <div style={{ display: 'inline-flex', marginBottom: 12, color: win ? COLORS.forest : COLORS.ember }}>
-                    {win ? <Trophy size={40} strokeWidth={2} /> : <Flag size={40} strokeWidth={2} />}
+                  <div style={{ display: 'inline-flex', marginBottom: 12, color: celebrate ? COLORS.forest : COLORS.ember }}>
+                    {celebrate ? <Trophy size={40} strokeWidth={2} /> : <Flag size={40} strokeWidth={2} />}
                   </div>
-                  <div style={{ fontFamily: MONO, fontSize: 12, letterSpacing: '0.24em', textTransform: 'uppercase', color: win ? COLORS.forest : COLORS.ember, marginBottom: 8 }}>{heading}</div>
+                  <div style={{ fontFamily: MONO, fontSize: 12, letterSpacing: '0.24em', textTransform: 'uppercase', color: celebrate ? COLORS.forest : COLORS.ember, marginBottom: 8 }}>{heading}</div>
                   <div style={{ fontFamily: SERIF, fontWeight: 800, fontSize: 40, lineHeight: 1, marginBottom: 6 }}>{dispScore}<span style={{ fontSize: 24, color: COLORS.faded }}> / {total}</span></div>
                   <p style={{ fontFamily: SERIF, fontStyle: 'italic', fontSize: 16, color: COLORS.faded, margin: '0 0 4px' }}>{reason}</p>
-                  <p style={{ fontFamily: SANS, fontSize: 14, color: '#4a4339', margin: '0 0 20px' }}>{isTopScore ? 'You are the top score.' : <>You beat {percentile(dispScore, total)}% of players.{board.best != null ? (dispScore >= board.best ? ' That ties the high score.' : ` High score to beat: ${board.best}.`) : ''}</>}</p>
+                  <p style={{ fontFamily: SANS, fontSize: 14, color: '#4a4339', margin: '0 0 20px' }}>{resultLine}</p>
                   {eloPanel}
                   <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'stretch', gap: 10, width: '100%', maxWidth: 300, margin: '0 auto' }}>
                     <button onClick={() => { try { sessionStorage.setItem('sot_quiz_retry', quizId); } catch (e) { /* no-op */ } window.location.reload(); }} style={{ width: '100%', boxSizing: 'border-box', fontFamily: MONO, fontSize: 12, letterSpacing: '0.12em', textTransform: 'uppercase', fontWeight: 700, padding: '13px 22px', borderRadius: 10, border: `1.5px solid ${COLORS.ember}`, background: COLORS.ember, color: '#fff', cursor: 'pointer', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 8 }}>Retry with 1 click</button>

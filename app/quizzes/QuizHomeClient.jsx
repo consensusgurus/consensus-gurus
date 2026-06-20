@@ -187,6 +187,7 @@ export default function QuizHomeClient() {
   const [totals, setTotals] = useState({ byQuiz: {}, leaders: {}, leaderKeys: {}, today: 0 });
   const [eloBoard, setEloBoard] = useState([]); // [{rank,name,isAnon,userKey}]
   const [eloScope, setEloScope] = useState('all');
+  const [catBoards, setCatBoards] = useState({}); // { dept: [{rank,name,isAnon,userKey,rating}] } for the "Top Rated <Category>" slides
   const [recent, setRecent] = useState([]); // [{quizId,username,score,total,playedAt,isAnon,attempt}]
   const [me, setMe] = useState(null);
   const [lbIdx, setLbIdx] = useState(0); // which leaderboard stat is showing
@@ -274,6 +275,14 @@ export default function QuizHomeClient() {
     }).catch(() => {});
     return () => { alive = false; };
   }, [scope]);
+
+  // Per-category skill-rating boards (computed once) power the rotating
+  // "Top Rated <Category>" leaderboard slides.
+  useEffect(() => {
+    fetch('/api/quiz/elo-categories').then((r) => r.json()).then((d) => {
+      if (d && d.boards) setCatBoards(d.boards);
+    }).catch(() => {});
+  }, []);
 
   // Current player's stats (overall — used for the player bar + pinned "You").
   useEffect(() => {
@@ -370,8 +379,15 @@ export default function QuizHomeClient() {
     if (todayCorrectRows.length >= 1) extra.push({ key: 'correctToday', special: true, label: 'Correct Today', fmt: (v) => (v || 0).toLocaleString(), ms: 5000 });
     if (todayQuizRows.length >= 1) extra.push({ key: 'quizzesToday', special: true, label: 'Quizzes Today', fmt: (v) => (v || 0).toLocaleString(), ms: 5000 });
     if (extra.length) base.splice(dailyRows.length >= 2 ? 2 : 1, 0, ...extra);
-    return base;
-  }, [dailyRows.length, dailyCat, todayCorrectRows.length, todayQuizRows.length]);
+    // Per-category "Top Rated <Category>" slides join the rotation only on the
+    // overall view (Category: All), in DEPT_NAV order, skipping empty boards.
+    const catSlides = scope === 'all'
+      ? DEPT_NAV
+          .filter((d) => Array.isArray(catBoards[d.id]) && catBoards[d.id].length > 0)
+          .map((d) => ({ key: 'catRating', catKey: d.id, special: true, label: `Top Rated ${DEPT_LABEL[d.id] || d.label}`, fmt: (v) => (v || 0).toLocaleString(), ms: 5000 }))
+      : [];
+    return [...base, ...catSlides];
+  }, [dailyRows.length, dailyCat, todayCorrectRows.length, todayQuizRows.length, scope, catBoards]);
   const lbMetric = LB_METRICS[Math.min(lbIdx, LB_METRICS.length - 1)];
   // Per-slide timeout: the ELO slide holds 7s, every other slide 5s.
   useEffect(() => {
@@ -595,18 +611,29 @@ export default function QuizHomeClient() {
           <div className="card">
             <div className="head" onClick={() => setBoardsExpanded((v) => !v)}>
               <span className="lbl" style={{ color: C.ink }}>{lbMetric.label}{lbMetric.special || scope === 'all' ? '' : ` · ${byKey[scope]?.label}`}</span>
-              <Link href={lbMetric.special ? '/quizzes/hub?tab=challenges' : '/quizzes/hub'} onClick={(e) => e.stopPropagation()} className="qlink"><span style={{ fontSize: 11, fontWeight: 700, color: C.accent }}>View all</span></Link>
+              <Link href={lbMetric.special && lbMetric.key !== 'catRating' ? '/quizzes/hub?tab=challenges' : '/quizzes/hub'} onClick={(e) => e.stopPropagation()} className="qlink"><span style={{ fontSize: 11, fontWeight: 700, color: C.accent }}>View all</span></Link>
             </div>
             <div style={{ flex: 1, padding: '3px 0' }}>
               {lbMetric.special ? (
                 (() => {
+                  if (lbMetric.key === 'catRating') {
+                    const rows = (catBoards[lbMetric.catKey] || []).slice(0, boardsExpanded ? 10 : 3);
+                    if (rows.length === 0) return <div style={{ padding: '12px 13px', fontSize: 12, color: C.soft }}>No ranked players yet.</div>;
+                    return rows.map((r, i) => (
+                      <div className="lrow" key={r.userKey || i}>
+                        <Medal i={i} />
+                        <span className="qtitle">{r.userKey ? <Link href={`/quizzes/hub?player=${encodeURIComponent(r.userKey)}`} style={{ color: 'inherit', textDecoration: 'none' }}><WhoTag name={r.name} isAnon={r.isAnon} /></Link> : <WhoTag name={r.name} isAnon={r.isAnon} />}</span>
+                        <span style={{ flex: 'none', fontWeight: 700, fontVariantNumeric: 'tabular-nums' }}>{lbMetric.fmt(r.rating)}</span>
+                      </div>
+                    ));
+                  }
                   const rows = lbMetric.key === 'dailyChallenge' ? dailyRows : lbMetric.key === 'correctToday' ? todayCorrectRows : todayQuizRows;
                   const valOf = lbMetric.key === 'dailyChallenge' ? ((r) => r.totalCorrect) : lbMetric.key === 'correctToday' ? ((r) => r.correct) : ((r) => r.quizzes);
                   if (rows.length === 0) return <div style={{ padding: '12px 13px', fontSize: 12, color: C.soft }}>No plays yet today.</div>;
                   return rows.map((r, i) => (
                     <div className="lrow" key={`s${i}`}>
                       <Medal i={i} />
-                      <span className="qtitle"><WhoTag name={r.username || 'Player'} isAnon={false} /></span>
+                      <span className="qtitle">{r.userKey ? <Link href={`/quizzes/hub?player=${encodeURIComponent(r.userKey)}`} style={{ color: 'inherit', textDecoration: 'none' }}><WhoTag name={r.username || 'Player'} isAnon={false} /></Link> : <WhoTag name={r.username || 'Player'} isAnon={false} />}</span>
                       <span style={{ flex: 'none', fontWeight: 700, fontVariantNumeric: 'tabular-nums' }}>{(valOf(r) || 0).toLocaleString()}</span>
                     </div>
                   ));

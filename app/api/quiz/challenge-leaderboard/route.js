@@ -71,7 +71,7 @@ export async function GET(request) {
       const uid = k.slice(0, sep);
       const quizId = k.slice(sep + 2);
       let u = byUser.get(uid);
-      if (!u) { u = { username: nameById.get(uid) || 'Player', scores: {}, times: {}, totalCorrect: 0, totalTime: 0, quizzesPlayed: 0 }; byUser.set(uid, u); }
+      if (!u) { u = { userKey: 'u:' + uid, username: nameById.get(uid) || 'Player', scores: {}, times: {}, totalCorrect: 0, totalTime: 0, quizzesPlayed: 0 }; byUser.set(uid, u); }
       u.scores[quizId] = v.correct;
       u.times[quizId] = Number.isFinite(v.time) ? v.time : 0;
       u.totalCorrect += v.correct;
