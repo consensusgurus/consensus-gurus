@@ -924,8 +924,9 @@ function Home({ lists, viewCounts, voteData, extras, trending = {}, openList, on
         .nt-wrap{max-width:1180px;margin:0 auto;padding:8px 24px 70px;}
         .nt-stickytop{position:sticky;top:0;z-index:50;background:#f7f8fa;}
         .nt-pillsbar{max-width:1180px;margin:0 auto;padding:8px 24px 0;}
+        .nt-toolwrap{max-width:1180px;margin:0 auto;padding:0 24px;}
         .nt-bodywrap{padding-top:0;}
-        @media(max-width:560px){.nt-stickytop{position:static;}.nt-pillsbar{padding:8px 14px 0;}}
+        @media(max-width:560px){.nt-stickytop{position:static;}.nt-pillsbar{padding:8px 14px 0;}.nt-toolwrap{padding:0 14px;}}
         .nt-lbl{font-size:9.5px;font-weight:700;letter-spacing:.07em;text-transform:uppercase;color:${NT.soft};}
         .nt-crumb1{font-size:18px;font-weight:800;letter-spacing:-0.02em;color:${NT.ink};text-decoration:none;}
         .nt-crumb2{font-size:18px;font-weight:600;color:${NT.accent};}
@@ -1010,9 +1011,7 @@ function Home({ lists, viewCounts, voteData, extras, trending = {}, openList, on
           )}
         </div>
       </div>
-      </div>
-
-      <div className="nt-wrap nt-bodywrap">
+      <div className="nt-wrap nt-toolwrap">
         {/* toolbar */}
         <div className="nt-toolbar" onClick={(e) => e.stopPropagation()}>
           <div className="nt-field">
@@ -1034,7 +1033,10 @@ function Home({ lists, viewCounts, voteData, extras, trending = {}, openList, on
           </div>
           <Link className="nt-tbtn primary" href="/request"><Plus size={15} strokeWidth={2.5} /> Request a list</Link>
         </div>
+      </div>
+      </div>
 
+      <div className="nt-wrap nt-bodywrap">
         {/* masonry grid */}
         {sorted.length > 0 ? (
           <div className="nt-grid" ref={gridRef}>
