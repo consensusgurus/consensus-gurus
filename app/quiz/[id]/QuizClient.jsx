@@ -1736,6 +1736,9 @@ export default function QuizClient({ quizId }) {
                     style={{ flex: 1, minWidth: 140, boxSizing: 'border-box', padding: 12, borderRadius: 10, border: `1.5px solid ${COLORS.ink}`, background: COLORS.paper, fontFamily: SANS, fontSize: 14, color: COLORS.ink, outline: 'none' }}
                   />
                 </div>
+                <p style={{ fontFamily: MONO, fontSize: 11, color: COLORS.faded, margin: '-2px 0 14px', letterSpacing: '0.02em' }}>
+                  Include your email for a direct response.
+                </p>
                 <textarea
                   value={qMsg}
                   onChange={(e) => setQMsg(e.target.value)}

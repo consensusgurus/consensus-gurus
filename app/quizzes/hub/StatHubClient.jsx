@@ -359,7 +359,7 @@ export default function StatHubClient() {
     .qzhub .qz-pname{max-width:160px;}
     @media(max-width:560px){.qzhub .qz-pname{max-width:120px;}}
     @media(max-width:560px){.qzhub .qz-srank{display:none !important;}}
-    @media(max-width:560px){.qz-playerbar{flex-wrap:wrap !important;align-items:center !important;gap:10px 14px !important;}.qz-playerbar .qz-div{display:none !important;}.qz-playerbar .qz-stats{order:9 !important;flex:1 1 100% !important;margin-left:0 !important;justify-content:space-between !important;gap:10px !important;}.qz-playerbar .qz-bestcat{order:3 !important;}.qz-playerbar .hubbtn{order:4 !important;margin-left:auto !important;flex:0 0 auto !important;}}
+    @media(max-width:560px){.qz-playerbar{flex-wrap:wrap !important;align-items:center !important;gap:10px 14px !important;}.qz-playerbar .qz-div{display:none !important;}.qz-playerbar .qz-skill-empty{display:none !important;}.qz-playerbar .qz-stats{order:9 !important;flex:1 1 100% !important;margin-left:0 !important;justify-content:space-between !important;gap:10px !important;}.qz-playerbar .qz-bestcat{order:3 !important;}.qz-playerbar .hubbtn{order:4 !important;margin-left:auto !important;flex:0 0 auto !important;}}
   `;
 
   return (
@@ -384,7 +384,7 @@ export default function StatHubClient() {
             <button onClick={() => setSignupOpen(true)} style={{ display: 'inline-flex', alignItems: 'center', gap: 6, background: C.accent, color: '#fff', border: 'none', borderRadius: 9, padding: '9px 14px', fontFamily: FONT, fontWeight: 700, fontSize: 13, cursor: 'pointer', whiteSpace: 'nowrap' }}><UserPlus size={15} /> Sign up</button>
           )}
           <div className="qz-div" style={{ width: 1, height: 34, background: C.line }} />
-          <div>
+          <div className={`qz-skill${found && profile.rank ? '' : ' qz-skill-empty'}`}>
             <div className="lbl">Skill rank</div>
             {found && profile.rank ? (
               <div style={{ display: 'flex', alignItems: 'baseline', gap: 5 }}>
