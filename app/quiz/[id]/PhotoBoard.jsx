@@ -129,8 +129,24 @@ export default function PhotoBoard({ items, started, ended, revealed, onMatch, o
   }
   function onChange(e) {
     const v = e.target.value;
-    if (live && cur != null && accepts(v, list[cur])) submit(v, false);
-    else setVal(v);
+    if (!(live && cur != null)) { setVal(v); return; }
+    // Correct answer for the CURRENT shape always wins: advance immediately.
+    if (accepts(v, list[cur])) { submit(v, false); return; }
+    // Strike mode: end the run the instant the typed text equals ANY OTHER
+    // answer's name/alias (no Enter needed), e.g. typing "ohio" on a non-Ohio
+    // shape. Guard: if the text is still a prefix of some longer valid name
+    // (e.g. "niger" while typing "nigeria"), wait rather than end.
+    if (strike) {
+      const nv = deArticle(norm(v));
+      if (nv.length >= 3) {
+        const cands = (a) => [norm(a.t)].concat((a.keys || []).map(norm)).map(deArticle);
+        const stillTyping = list.some((a) => cands(a).some((sN) => sN.length > nv.length && sN.startsWith(nv)));
+        if (!stillTyping && list.some((a, j) => j !== cur && cands(a).some((sN) => sN === nv))) {
+          flashIt(false); setVal(''); if (onEnd) onEnd(false, matched.size); return;
+        }
+      }
+    }
+    setVal(v);
   }
   function onKey(e) {
     if (e.key !== 'Enter' || !live) return;
