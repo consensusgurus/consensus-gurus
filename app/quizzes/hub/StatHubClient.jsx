@@ -2,7 +2,7 @@
 import React, { useState, useEffect, useMemo, useRef } from 'react';
 import Link from 'next/link';
 import {
-  ArrowLeft, BadgeCheck, User, ListChecks, Flame, FunctionSquare, Clock, Trophy, RefreshCw, Share2, Download, UserPlus, X,
+  ArrowLeft, BadgeCheck, User, ListChecks, Flame, FunctionSquare, Clock, Trophy, RefreshCw, Share2, Download, UserPlus, Play, X,
 } from 'lucide-react';
 import { QUIZZES, getQuiz } from '@/lib/quizzes';
 import { quizDept as deptOf, DEPT_COLOR, DEPT_LABEL, DEPT_NAV } from '@/lib/quiz-departments';
@@ -113,7 +113,7 @@ function SignupModal({ onClose }) {
         </div>
         <p style={{ fontSize: 13, color: C.muted, margin: '0 0 16px', lineHeight: 1.5 }}>Pick a display name to appear on the leaderboards. Email is optional, only used to recover your name on another device. No password needed.</p>
         {err && <div style={{ marginBottom: 12, padding: 10, borderRadius: 8, background: 'rgba(192,57,43,0.08)', border: '1px solid rgba(192,57,43,0.4)', color: '#c0392b', fontSize: 13 }}>{err}</div>}
-        <input value={u} onChange={(e) => setU(e.target.value)} placeholder="Display name" maxLength={40} style={inp} />
+        <input value={u} onChange={(e) => setU(e.target.value)} placeholder="Display name" maxLength={15} style={inp} />
         <input value={em} onChange={(e) => setEm(e.target.value)} placeholder="Email (optional)" maxLength={120} style={{ ...inp, marginTop: 10 }} />
         <button onClick={submit} disabled={busy} style={{ marginTop: 16, width: '100%', background: C.accent, color: '#fff', border: 'none', borderRadius: 10, padding: '12px', fontFamily: FONT, fontWeight: 700, fontSize: 14, cursor: busy ? 'wait' : 'pointer', opacity: busy ? 0.6 : 1 }}>{busy ? 'Joining…' : 'Join the leaderboard'}</button>
       </div>
@@ -377,6 +377,8 @@ export default function StatHubClient() {
               <div className="lbl">Player</div>
               <div className="qz-pname" style={{ display: 'flex', alignItems: 'center', gap: 5, fontSize: 16, fontWeight: 800, color: C.ink, lineHeight: 1.15, minWidth: 0 }}><span style={{ minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{profile.name}</span>{!profile.isAnon ? <BadgeCheck size={13} strokeWidth={2.5} style={{ color: C.accent, flex: 'none' }} /> : null}</div>
             </div>
+          ) : me && me.signed ? (
+            <Link href="/quizzes" style={{ display: 'inline-flex', alignItems: 'center', gap: 6, background: C.accent, color: '#fff', borderRadius: 9, padding: '9px 14px', fontFamily: FONT, fontWeight: 700, fontSize: 13, cursor: 'pointer', whiteSpace: 'nowrap', textDecoration: 'none' }}><Play size={15} /> Play</Link>
           ) : (
             <button onClick={() => setSignupOpen(true)} style={{ display: 'inline-flex', alignItems: 'center', gap: 6, background: C.accent, color: '#fff', border: 'none', borderRadius: 9, padding: '9px 14px', fontFamily: FONT, fontWeight: 700, fontSize: 13, cursor: 'pointer', whiteSpace: 'nowrap' }}><UserPlus size={15} /> Sign up</button>
           )}

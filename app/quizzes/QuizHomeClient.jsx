@@ -6,7 +6,7 @@ import SiteHeader from '../SiteHeader';
 import {
   Search, ChevronDown, ArrowRight, BarChart3, Crown, Sparkles, Flame,
   BadgeCheck, Clapperboard, Music, Gamepad2, Plane, Globe, Utensils,
-  Briefcase, Leaf, Tv, BookOpen, Landmark, Trophy, UserPlus, X,
+  Briefcase, Leaf, Tv, BookOpen, Landmark, Trophy, UserPlus, Play, X,
 } from 'lucide-react';
 import { QUIZZES } from '@/lib/quizzes';
 import {
@@ -165,7 +165,7 @@ function SignupModal({ onClose }) {
         </div>
         <p style={{ fontSize: 13, color: C.muted, margin: '0 0 16px', lineHeight: 1.5 }}>Pick a display name to appear on the leaderboards. Email is optional, only used to recover your name on another device. No password needed.</p>
         {err && <div style={{ marginBottom: 12, padding: 10, borderRadius: 8, background: 'rgba(192,57,43,0.08)', border: '1px solid rgba(192,57,43,0.4)', color: '#c0392b', fontSize: 13 }}>{err}</div>}
-        <input value={u} onChange={(e) => setU(e.target.value)} placeholder="Display name" maxLength={40} style={inp} />
+        <input value={u} onChange={(e) => setU(e.target.value)} placeholder="Display name" maxLength={15} style={inp} />
         <input value={em} onChange={(e) => setEm(e.target.value)} placeholder="Email (optional)" maxLength={120} style={{ ...inp, marginTop: 10 }} />
         <button onClick={submit} disabled={busy} style={{ marginTop: 16, width: '100%', background: C.accent, color: '#fff', border: 'none', borderRadius: 10, padding: '12px', fontFamily: 'Manrope, system-ui, -apple-system, sans-serif', fontWeight: 700, fontSize: 14, cursor: busy ? 'wait' : 'pointer', opacity: busy ? 0.6 : 1 }}>{busy ? 'Joining…' : 'Join the leaderboard'}</button>
       </div>
@@ -179,6 +179,7 @@ export default function QuizHomeClient() {
   const [ddOpen, setDdOpen] = useState(false);
   const playerBarRef = useRef(null);
   const bestCatRef = useRef(null);
+  const quizzesRef = useRef(null);
   const [search, setSearch] = useState('');
   const [listMode, setListMode] = useState(null); // null | 'newest' | 'mostplayed' | 'live' (View all expansions)
   const [boardsExpanded, setBoardsExpanded] = useState(false); // header click expands both boards 5 -> 10
@@ -551,6 +552,8 @@ export default function QuizHomeClient() {
               <div className="lbl">Player</div>
               <div className="qz-pname" style={{ display: 'flex', alignItems: 'center', gap: 5, fontSize: 16, fontWeight: 800, color: C.ink, lineHeight: 1.15, minWidth: 0 }}><span style={{ minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{me.name}</span><BadgeCheck size={13} strokeWidth={2.5} style={{ color: C.accent, flex: 'none' }} /></div>
             </div>
+          ) : me && me.signed ? (
+            <button onClick={() => { if (quizzesRef.current) quizzesRef.current.scrollIntoView({ behavior: 'smooth', block: 'start' }); }} style={{ display: 'inline-flex', alignItems: 'center', gap: 6, background: C.accent, color: '#fff', border: 'none', borderRadius: 9, padding: '9px 14px', fontFamily: 'Manrope, system-ui, -apple-system, sans-serif', fontWeight: 700, fontSize: 13, cursor: 'pointer', whiteSpace: 'nowrap' }}><Play size={15} /> Play</button>
           ) : (
             <button onClick={() => setSignupOpen(true)} style={{ display: 'inline-flex', alignItems: 'center', gap: 6, background: C.accent, color: '#fff', border: 'none', borderRadius: 9, padding: '9px 14px', fontFamily: 'Manrope, system-ui, -apple-system, sans-serif', fontWeight: 700, fontSize: 13, cursor: 'pointer', whiteSpace: 'nowrap' }}><UserPlus size={15} /> Sign up</button>
           )}
@@ -655,7 +658,7 @@ export default function QuizHomeClient() {
         </div>
 
         {/* browse header + search */}
-        <div className="qz-browserow" style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 12, flexWrap: 'wrap' }}>
+        <div ref={quizzesRef} className="qz-browserow" style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 12, flexWrap: 'wrap' }}>
           {!(!searchResults && scope === 'all' && !listMode) && (
             <h2 style={{ fontSize: 17, fontWeight: 800, margin: 0, whiteSpace: 'nowrap', display: 'flex', alignItems: 'center', gap: 10 }}>
               {listMode && !searchResults && scope === 'all' && (
