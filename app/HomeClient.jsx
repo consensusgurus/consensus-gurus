@@ -981,7 +981,7 @@ function Home({ lists, viewCounts, voteData, extras, trending = {}, openList, on
         .nt-rel:hover{background:#fff;border-color:${NT.accent};}
         .nt-rel-t{flex:1 1 auto;min-width:0;font-size:12.5px;font-weight:700;line-height:1.2;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
         .nt-rel-a{flex:none;color:${NT.accent};font-weight:800;}
-        @media(max-width:560px){.nt-wrap{padding:16px 14px 60px;}.nt-tagline{display:none;}.nt-pillsbar{display:none !important;}.nt-mfilter{display:inline-flex !important;flex:none;}.nt-field{flex:1 1 auto;}.nt-sortwrap{display:none !important;}.nt-tbtn.primary{display:none !important;}.nt-msheet{display:block;flex:1 1 100%;width:100%;}}
+        @media(max-width:560px){.nt-wrap{padding:16px 14px 60px;}.nt-tagline{display:none;}.nt-pillsbar{display:none !important;}.nt-mfilter{display:inline-flex !important;flex:none;}.nt-field{flex:1 1 auto;}.nt-sortwrap{display:none !important;}.nt-tbtn.primary{display:none !important;}.nt-msheet{display:block;flex:1 1 100%;width:100%;}.nt-toolbar{margin-bottom:10px;}.nt-bodywrap{padding-top:0 !important;}}
       `}</style>
 
       <div className="nt-stickytop">
