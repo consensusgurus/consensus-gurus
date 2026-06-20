@@ -464,6 +464,8 @@ export default function QuizHomeClient() {
     .qzh .qcols{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:6px 26px;}
     .qzh .qfull{column-count:2;column-gap:26px;}
     .qzh .qfull > a{display:flex;break-inside:avoid;-webkit-column-break-inside:avoid;}
+    .qzh .qflow{column-width:310px;column-gap:26px;}
+    .qzh .qflow > a{display:flex;break-inside:avoid;-webkit-column-break-inside:avoid;}
     @media(max-width:680px){.qzh .qfull{column-count:1;}}
     .qzh .colhead{display:flex;align-items:center;gap:9px;padding:7px 0;border-bottom:2px solid ${C.ink};margin-bottom:3px;}
     .qzh .viewall{margin-left:auto;font-size:10px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;}
@@ -663,7 +665,7 @@ export default function QuizHomeClient() {
           searchResults.length === 0 ? (
             <div style={{ padding: '18px 2px', color: C.soft, fontSize: 14 }}>No quizzes match “{search}”.</div>
           ) : (
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill,minmax(310px,1fr))', gap: '0 26px' }}>
+            <div className="qflow">
               {searchResults.map((r) => {
                 const cc = (DEPT_COLOR[r.dept] || DEPT_COLOR.misc).c;
                 return (
@@ -694,7 +696,7 @@ export default function QuizHomeClient() {
             ))}
           </div>
         ) : listMode ? (
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill,minmax(310px,1fr))', gap: '0 26px' }}>
+          <div className="qflow">
             {(listMode === 'newest' ? newestAll : mostPlayedAll).map((q) => {
               const cc = (DEPT_COLOR[q.dept] || DEPT_COLOR.misc).c;
               return (

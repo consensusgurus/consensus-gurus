@@ -922,6 +922,10 @@ function Home({ lists, viewCounts, voteData, extras, trending = {}, openList, on
       <style>{`
         @import url('https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap');
         .nt-wrap{max-width:1180px;margin:0 auto;padding:8px 24px 70px;}
+        .nt-stickytop{position:sticky;top:0;z-index:50;background:#f7f8fa;}
+        .nt-pillsbar{max-width:1180px;margin:0 auto;padding:8px 24px 0;}
+        .nt-bodywrap{padding-top:0;}
+        @media(max-width:560px){.nt-stickytop{position:static;}.nt-pillsbar{padding:8px 14px 0;}}
         .nt-lbl{font-size:9.5px;font-weight:700;letter-spacing:.07em;text-transform:uppercase;color:${NT.soft};}
         .nt-crumb1{font-size:18px;font-weight:800;letter-spacing:-0.02em;color:${NT.ink};text-decoration:none;}
         .nt-crumb2{font-size:18px;font-weight:600;color:${NT.accent};}
@@ -975,9 +979,9 @@ function Home({ lists, viewCounts, voteData, extras, trending = {}, openList, on
         @media(max-width:560px){.nt-wrap{padding:16px 14px 60px;}.nt-tagline{display:none;}.nt-field{flex:1 1 100%;}.nt-sortwrap{flex:1 1 0;}.nt-sortwrap .nt-tbtn{width:100%;justify-content:center;}.nt-tbtn.primary{flex:1 1 0;justify-content:center;}}
       `}</style>
 
+      <div className="nt-stickytop">
       <SiteHeader active="lists" visitors={totalViews} />
-
-      <div className="nt-wrap">
+      <div className="nt-pillsbar">
         {/* category pills + By City / By Topic */}
         <div className="nt-pills" onClick={(e) => e.stopPropagation()}>
           {visibleTypes.map(catPill)}
@@ -1005,7 +1009,10 @@ function Home({ lists, viewCounts, voteData, extras, trending = {}, openList, on
             </div>
           )}
         </div>
+      </div>
+      </div>
 
+      <div className="nt-wrap nt-bodywrap">
         {/* toolbar */}
         <div className="nt-toolbar" onClick={(e) => e.stopPropagation()}>
           <div className="nt-field">

@@ -2,7 +2,7 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import Link from 'next/link';
 import {
-  ArrowLeft, User, ListChecks, Flame, FunctionSquare, Clock, Trophy, RefreshCw, Share2, Download, UserPlus, X,
+  ArrowLeft, BadgeCheck, User, ListChecks, Flame, FunctionSquare, Clock, Trophy, RefreshCw, Share2, Download, UserPlus, X,
 } from 'lucide-react';
 import { QUIZZES, getQuiz } from '@/lib/quizzes';
 import { quizDept as deptOf, DEPT_COLOR, DEPT_LABEL, DEPT_NAV } from '@/lib/quiz-departments';
@@ -258,6 +258,17 @@ export default function StatHubClient() {
   const profile = viewing ? viewProfile : me;
   const found = profile && profile.found;
   const rating = profile ? (profile.rating || 1500) : 1500;
+  const bestCat = useMemo(() => {
+    const bc = profile && profile.byCategory;
+    if (!bc) return null;
+    let best = null;
+    for (const k of Object.keys(bc)) {
+      const c = bc[k];
+      if (!c || !(c.correct > 0)) continue;
+      if (!best || c.correct > best.correct || (c.correct === best.correct && (c.accuracy || 0) > (best.accuracy || 0))) best = { key: k, correct: c.correct, accuracy: c.accuracy || 0, rank: c.rank, catTotal: c.catTotal };
+    }
+    return best;
+  }, [profile]);
   const tierLabel = profile && profile.tier ? profile.tier : 'Unrated';
   const tierBg = profile && profile.tierBg ? profile.tierBg : '#eceef1';
   const tierFg = profile && profile.tierFg ? profile.tierFg : C.muted;
@@ -303,6 +314,10 @@ export default function StatHubClient() {
     @media(max-width:600px){.qzhub .metric-lbl{flex-wrap:wrap;}}
     @media(max-width:680px){.qzhub .rgrid{grid-template-columns:1fr !important;}}
     @media(max-width:560px){.qzhub .shpbar{gap:8px 12px !important;padding:13px 14px !important;}.qzhub .shpbar-id{order:1;}.qzhub .shpbar-share{order:2;margin-left:auto !important;width:auto !important;padding:8px 13px !important;}.qzhub .shpbar-iddiv,.qzhub .shpbar-maindiv{display:none !important;}.qzhub .shpbar-main{order:3;flex-basis:100% !important;width:100% !important;gap:14px !important;}.qzhub .shpbar-main > div:nth-child(3){gap:14px !important;}.qzhub .sh-mext{display:none !important;}.qzhub .sh-rank{font-size:30px !important;}}
+    .qzhub .lbl2{font-size:10px;font-weight:600;letter-spacing:.04em;text-transform:uppercase;color:${C.muted};}
+    .qzhub .hubbtn{display:flex;align-items:center;gap:7px;background:${C.accent};color:#fff;padding:10px 15px;border-radius:10px;font-weight:700;font-size:13px;border:none;cursor:pointer;white-space:nowrap;}
+    .qzhub .hubbtn:hover{filter:brightness(1.06);}
+    @media(max-width:560px){.qz-playerbar{flex-wrap:wrap !important;align-items:center !important;gap:10px 14px !important;}.qz-playerbar .qz-div{display:none !important;}.qz-playerbar .qz-stats{flex:1 1 100% !important;margin-left:0 !important;justify-content:space-between !important;gap:10px !important;}.qz-playerbar .hubbtn{flex:1 1 0 !important;justify-content:center !important;align-self:stretch !important;}}
   `;
 
   return (
@@ -314,43 +329,45 @@ export default function StatHubClient() {
         {/* Shared site header on every page */}
         <SiteHeader active="quizzes" bare />
 
-        {/* profile header — leads with OVERALL RANK (largest element) */}
-        <div className="card shpbar" style={{ display: 'flex', flexDirection: 'row', alignItems: 'center', flexWrap: 'wrap', gap: 18, padding: '15px 18px', marginTop: 12, overflow: 'visible', position: 'relative', zIndex: 40 }}>
-          {(viewing ? (profile && profile.name) : true) ? (
-            <>
-              <div className="shpbar-id" style={{ display: 'flex', alignItems: 'center', minWidth: 0 }}>
-                {viewing ? (
-                  <div style={{ fontSize: 22, fontWeight: 800, letterSpacing: '-0.02em', color: C.ink }}>{profile.name}</div>
-                ) : (me && me.signed && me.name ? (
-                  <div style={{ fontSize: 22, fontWeight: 800, letterSpacing: '-0.02em', color: C.ink }}>{me.name}</div>
-                ) : (
-                  <button onClick={() => setSignupOpen(true)} style={{ display: 'inline-flex', alignItems: 'center', gap: 6, background: C.accent, color: '#fff', border: 'none', borderRadius: 9, padding: '9px 14px', fontFamily: FONT, fontWeight: 700, fontSize: 13, cursor: 'pointer', whiteSpace: 'nowrap' }}><UserPlus size={15} /> Sign up</button>
-                ))}
+        {/* player bar — same layout as the main quiz page; Share Stats in place of Sort + Stat Hub */}
+        <div className="card qz-playerbar" style={{ flexDirection: 'row', alignItems: 'center', flexWrap: 'wrap', gap: 16, padding: '11px 14px', marginTop: 12, overflow: 'visible', position: 'relative', zIndex: 40 }}>
+          {profile && profile.name ? (
+            <div style={{ display: 'flex', flexDirection: 'column', minWidth: 0 }}>
+              <div className="lbl">Player</div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 5, fontSize: 16, fontWeight: 800, color: C.ink, lineHeight: 1.15, maxWidth: 180, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{profile.name}{!profile.isAnon ? <BadgeCheck size={13} strokeWidth={2.5} style={{ color: C.accent, flex: 'none' }} /> : null}</div>
+            </div>
+          ) : (
+            <button onClick={() => setSignupOpen(true)} style={{ display: 'inline-flex', alignItems: 'center', gap: 6, background: C.accent, color: '#fff', border: 'none', borderRadius: 9, padding: '9px 14px', fontFamily: FONT, fontWeight: 700, fontSize: 13, cursor: 'pointer', whiteSpace: 'nowrap' }}><UserPlus size={15} /> Sign up</button>
+          )}
+          <div className="qz-div" style={{ width: 1, height: 34, background: C.line }} />
+          <div>
+            <div className="lbl">Skill rank</div>
+            {found && profile.rank ? (
+              <div style={{ display: 'flex', alignItems: 'baseline', gap: 5 }}>
+                <span style={{ fontSize: 22, fontWeight: 700, color: C.accent, lineHeight: 1 }}>{`#${profile.rank}`}</span>
+                {profile.totalPlayers ? <span style={{ fontSize: 11, color: C.muted }}>of {profile.totalPlayers.toLocaleString()}</span> : null}
               </div>
-              <div className="shpbar-iddiv" style={{ width: 1, height: 50, background: C.line }} />
-            </>
+            ) : (
+              <div style={{ fontSize: 12, fontWeight: 600, color: C.muted, lineHeight: 1.2, marginTop: 2, maxWidth: 160 }}>Play your first quiz to populate</div>
+            )}
+          </div>
+          {bestCat ? (
+            <div className="qz-bestcat">
+              <div className="lbl">Best category</div>
+              <div style={{ display: 'flex', alignItems: 'baseline', gap: 5, whiteSpace: 'nowrap' }}>
+                <span style={{ fontSize: 14, fontWeight: 700, color: C.ink, lineHeight: 1.2 }}>{DEPT_LABEL[bestCat.key] || bestCat.key}</span>
+                {bestCat.rank ? <span style={{ fontSize: 11, color: C.muted }}>#{bestCat.rank}{bestCat.catTotal ? ` of ${bestCat.catTotal.toLocaleString()}` : ''}</span> : null}
+              </div>
+            </div>
           ) : null}
-          <div className="shpbar-main" style={{ display: 'flex', alignItems: 'center', gap: 20, flexWrap: 'wrap' }}>
-            <div style={{ display: 'flex', flexDirection: 'column' }}>
-              <span className="lbl">Overall Rank</span>
-              <span className="sh-rank" style={{ fontSize: 42, fontWeight: 800, color: C.accent, lineHeight: 1 }}>{found && profile.rank ? `#${profile.rank}` : '\u2014'}</span>
-              <span style={{ fontSize: 11.5, color: C.muted, marginTop: 3 }}>{found && profile.totalPlayers ? `of ${profile.totalPlayers.toLocaleString()} players` : 'Play your first quiz to populate'}</span>
-            </div>
-            <div className="shpbar-maindiv" style={{ width: 1, height: 50, background: C.line }} />
-            <div style={{ display: 'flex', alignItems: 'center', gap: 20, flexWrap: 'wrap' }}>
-              <div>
-                <div className="lbl">Skill Rating</div>
-                <div style={{ fontSize: 21, fontWeight: 800, color: C.ink }}>{found ? rating.toLocaleString() : '\u2014'}{found ? <span style={{ background: tierBg, color: tierFg, fontSize: 10, fontWeight: 700, padding: '2px 7px', borderRadius: 5, verticalAlign: 2, marginLeft: 6 }}>{(tierLabel || '').replace(/ Tier$/, '')}</span> : null}</div>
-              </div>
-              <ChipMetric cls="sh-mext" label="Completed" value={found ? profile.activity.completed : '\u2014'} rank={found && profile.ranks ? profile.ranks.completed : null} />
-              <ChipMetric label="Correct" value={found ? profile.activity.correct.toLocaleString() : '\u2014'} rank={found && profile.ranks ? profile.ranks.correct : null} />
-              <ChipMetric label="Accuracy" value={found ? `${profile.activity.accuracy}%` : '\u2014'} rank={found && profile.ranks ? profile.ranks.accuracy : null} />
-              <ChipMetric cls="sh-mext" label="Played" value={found ? profile.activity.played : '\u2014'} rank={found && profile.ranks ? profile.ranks.played : null} />
-              <ChipMetric cls="sh-mext" label="Days" value={found ? (profile.activity.daysPlayed || 0) : '\u2014'} rank={found && profile.ranks ? profile.ranks.daysPlayed : null} />
-            </div>
+          <div className="qz-stats" style={{ display: 'flex', flex: '1 1 auto', justifyContent: 'space-evenly', gap: 12, marginLeft: 18, flexWrap: 'wrap' }}>
+            <div><div style={{ display: 'flex', alignItems: 'baseline', gap: 4 }}><span style={{ fontSize: 17, fontWeight: 700 }}>{found ? profile.activity.completed : '—'}</span>{found && catalog.length ? <span style={{ fontSize: 11, fontWeight: 600, color: C.soft }}>({profile.activity.completed > 0 && profile.activity.completed / catalog.length < 0.005 ? '<1' : Math.round((profile.activity.completed / catalog.length) * 100)}%)</span> : null}</div><div className="lbl">completed</div></div>
+            <div><div style={{ fontSize: 17, fontWeight: 700 }}>{found ? profile.activity.played : '—'}</div><div className="lbl">played</div></div>
+            <div><div style={{ fontSize: 17, fontWeight: 700 }}>{found ? profile.activity.correct.toLocaleString() : '—'}</div><div className="lbl">correct</div></div>
+            <div><div style={{ fontSize: 17, fontWeight: 700 }}>{found ? `${profile.activity.accuracy}%` : '—'}</div><div className="lbl">accuracy</div></div>
           </div>
           {found ? (
-            <button onClick={() => setShareOpen(true)} className="shpbar-share" style={{ marginLeft: 'auto', display: 'inline-flex', alignItems: 'center', gap: 7, background: C.accent, color: '#fff', border: 'none', borderRadius: 9, padding: '10px 15px', fontFamily: FONT, fontWeight: 700, fontSize: 13, cursor: 'pointer', whiteSpace: 'nowrap' }}><Share2 size={15} strokeWidth={2.4} /> Share Stats</button>
+            <button onClick={() => setShareOpen(true)} className="hubbtn"><Share2 size={15} strokeWidth={2.4} /> Share Stats</button>
           ) : null}
         </div>
 
