@@ -293,8 +293,7 @@ export default function StatHubClient() {
       if (w === lastW) return;
       lastW = w;
       const el = bestCatRef.current;
-      if (!el) return;
-      el.style.display = '';
+      if (el) el.style.display = '';
       const maxRows = w <= 560 ? 2 : 1;
       // Count visual rows by each child's vertical CENTER: with align-items:center
       // all items on one flex line share a center, so this is robust to the
@@ -305,7 +304,8 @@ export default function StatHubClient() {
         const cen = child.offsetTop + child.offsetHeight / 2;
         if (!rows.some((x) => Math.abs(x - cen) <= 6)) rows.push(cen);
       }
-      el.style.display = rows.length > maxRows ? 'none' : '';
+      if (el) el.style.display = rows.length > maxRows ? 'none' : '';
+      bar.classList.toggle('hub-bleed', rows.length === 1 && w > 560);
     };
     const ro = new ResizeObserver(evaluate);
     ro.observe(bar);
@@ -353,6 +353,7 @@ export default function StatHubClient() {
     @media(max-width:560px){.qzhub .shpbar{gap:8px 12px !important;padding:13px 14px !important;}.qzhub .shpbar-id{order:1;}.qzhub .shpbar-share{order:2;margin-left:auto !important;width:auto !important;padding:8px 13px !important;}.qzhub .shpbar-iddiv,.qzhub .shpbar-maindiv{display:none !important;}.qzhub .shpbar-main{order:3;flex-basis:100% !important;width:100% !important;gap:14px !important;}.qzhub .shpbar-main > div:nth-child(3){gap:14px !important;}.qzhub .sh-mext{display:none !important;}.qzhub .sh-rank{font-size:30px !important;}}
     .qzhub .lbl2{font-size:10px;font-weight:600;letter-spacing:.04em;text-transform:uppercase;color:${C.muted};}
     .qzhub .hubbtn{display:flex;align-items:center;gap:7px;background:${C.accent};color:#fff;padding:10px 15px;border-radius:10px;font-family:${FONT};font-weight:700;font-size:13px;border:none;cursor:pointer;white-space:nowrap;}
+    .qzhub .qz-playerbar.hub-bleed .hubbtn{align-self:stretch;padding:0 18px;margin:-11px -14px -11px 0;border-radius:0 11px 11px 0;}
     .qzhub .hubbtn:hover{filter:brightness(1.06);}
     .qzhub .qz-srank{font-size:11px;font-weight:600;color:${C.soft};}
     .qzhub .qz-pname{max-width:160px;}
