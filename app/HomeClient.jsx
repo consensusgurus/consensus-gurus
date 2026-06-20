@@ -535,6 +535,7 @@ function Home({ lists, viewCounts, voteData, extras, trending = {}, openList, on
   const [sortOpen, setSortOpen] = useState(false);
   // V2 department-nav dropdown panel: null | 'city' | 'topic'
   const [navMenu, setNavMenu] = useState(null);
+  const [filtersOpen, setFiltersOpen] = useState(false);
   // Horizontal-scroll affordance for the department nav ribbon: tracks whether
   // there is more content to scroll to the left / right, so we can show a small
   // arrow indicator (mobile users otherwise can't tell the ribbon scrolls).
@@ -665,15 +666,16 @@ function Home({ lists, viewCounts, voteData, extras, trending = {}, openList, on
 
   // Close the category / sort dropdowns when clicking anywhere outside.
   useEffect(() => {
-    if (!catOpen && !sortOpen && !navMenu) return undefined;
+    if (!catOpen && !sortOpen && !navMenu && !filtersOpen) return undefined;
     const close = () => {
       setCatOpen(false);
       setSortOpen(false);
       setNavMenu(null);
+      setFiltersOpen(false);
     };
     document.addEventListener('click', close);
     return () => document.removeEventListener('click', close);
-  }, [catOpen, sortOpen, navMenu]);
+  }, [catOpen, sortOpen, navMenu, filtersOpen]);
 
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase();
@@ -952,6 +954,8 @@ function Home({ lists, viewCounts, voteData, extras, trending = {}, openList, on
         .nt-field .nt-clear{position:absolute;right:8px;top:50%;transform:translateY(-50%);background:none;border:none;color:${NT.soft};cursor:pointer;display:flex;padding:4px;}
         .nt-tbtn{display:flex;align-items:center;gap:7px;border:1px solid ${NT.line};background:#fff;border-radius:10px;padding:10px 13px;font-family:inherit;font-size:13px;font-weight:600;color:${NT.ink};cursor:pointer;white-space:nowrap;}
         .nt-tbtn.primary{background:${NT.accent};border-color:${NT.accent};color:#fff;font-weight:700;text-decoration:none;}
+        .nt-mfilter{display:none;}
+        .nt-msheet{display:none;box-sizing:border-box;background:#fff;border:1px solid ${NT.line};border-radius:12px;padding:4px 14px 14px;}
         .nt-sortmenu{position:absolute;top:calc(100% + 6px);z-index:30;min-width:190px;background:#fff;border:1px solid ${NT.line};border-radius:10px;box-shadow:0 12px 30px rgba(20,22,28,0.12);overflow:hidden;}
         .nt-sortitem{width:100%;display:block;text-align:left;border:none;background:#fff;padding:10px 14px;font-family:inherit;font-size:13px;font-weight:600;color:${NT.ink};cursor:pointer;}
         .nt-sortitem.on,.nt-sortitem:hover{background:${NT.accsoft};color:${NT.accent};}
@@ -977,7 +981,7 @@ function Home({ lists, viewCounts, voteData, extras, trending = {}, openList, on
         .nt-rel:hover{background:#fff;border-color:${NT.accent};}
         .nt-rel-t{flex:1 1 auto;min-width:0;font-size:12.5px;font-weight:700;line-height:1.2;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
         .nt-rel-a{flex:none;color:${NT.accent};font-weight:800;}
-        @media(max-width:560px){.nt-wrap{padding:16px 14px 60px;}.nt-tagline{display:none;}.nt-field{flex:1 1 100%;}.nt-sortwrap{flex:1 1 0;}.nt-sortwrap .nt-tbtn{width:100%;justify-content:center;}.nt-tbtn.primary{flex:1 1 0;justify-content:center;}}
+        @media(max-width:560px){.nt-wrap{padding:16px 14px 60px;}.nt-tagline{display:none;}.nt-pillsbar{display:none !important;}.nt-mfilter{display:inline-flex !important;flex:none;}.nt-field{flex:1 1 auto;}.nt-sortwrap{display:none !important;}.nt-tbtn.primary{display:none !important;}.nt-msheet{display:block;flex:1 1 100%;width:100%;}}
       `}</style>
 
       <div className="nt-stickytop">
@@ -1014,6 +1018,7 @@ function Home({ lists, viewCounts, voteData, extras, trending = {}, openList, on
       <div className="nt-wrap nt-toolwrap">
         {/* toolbar */}
         <div className="nt-toolbar" onClick={(e) => e.stopPropagation()}>
+          <button className="nt-mfilter nt-tbtn" onClick={() => { setFiltersOpen((o) => !o); setNavMenu(null); setSortOpen(false); }}>Filters <ChevronDown size={14} strokeWidth={2.5} style={{ color: NT.soft, transform: filtersOpen ? 'rotate(180deg)' : 'none' }} /></button>
           <div className="nt-field">
             <Search size={16} strokeWidth={2.25} />
             <input value={query} onChange={(e) => setQuery(e.target.value)} placeholder="Search lists…" autoComplete="off" />
@@ -1032,6 +1037,17 @@ function Home({ lists, viewCounts, voteData, extras, trending = {}, openList, on
             )}
           </div>
           <Link className="nt-tbtn primary" href="/request"><Plus size={15} strokeWidth={2.5} /> Request a list</Link>
+          {filtersOpen && (
+            <div className="nt-msheet">
+              <div className="nt-phead" style={{ marginTop: 2 }}>Categories</div>
+              <div style={{ display: 'flex', flexWrap: 'wrap', gap: 7 }}>{visibleTypes.map(catPill)}</div>
+              {cityFilters.length > 0 && (<><div className="nt-phead">By City</div><div style={{ display: 'flex', flexWrap: 'wrap', gap: 7 }}>{cityFilters.map(narrowChip)}</div></>)}
+              {visibleRegions.length > 0 && (<><div className="nt-phead">By Region</div><div style={{ display: 'flex', flexWrap: 'wrap', gap: 7 }}>{visibleRegions.map(narrowChip)}</div></>)}
+              {visibleTopics.length > 0 && (<><div className="nt-phead">By Topic</div><div style={{ display: 'flex', flexWrap: 'wrap', gap: 7 }}>{visibleTopics.map(narrowChip)}</div></>)}
+              <div className="nt-phead">Sort by</div>
+              <div style={{ display: 'flex', flexWrap: 'wrap', gap: 7 }}>{sortButtons.map((opt) => (<button key={opt.id} className={'nt-chip' + (sortBy === opt.id ? ' on' : '')} onClick={() => setSortBy(opt.id)}>{opt.label}</button>))}</div>
+            </div>
+          )}
         </div>
       </div>
       </div>
