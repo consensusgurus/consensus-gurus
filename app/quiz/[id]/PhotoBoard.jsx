@@ -175,6 +175,9 @@ export default function PhotoBoard({ items, started, ended, revealed, onMatch, o
               spellCheck={false}
               style={{ flex: 1, minWidth: 0, boxSizing: 'border-box', fontFamily: SANS, fontSize: 18, padding: '14px 16px', borderRadius: 10, border: `2px solid ${borderColor}`, background: live ? '#fff' : COLORS.paper, color: COLORS.ink, opacity: live ? 1 : 0.6, transition: 'border-color .15s' }}
             />
+            {live && cur != null && noSkip && (
+              <button onMouseDown={(e) => e.preventDefault()} onClick={() => submit(val, true)} title="Submit your guess" style={{ flex: 'none', fontFamily: MONO, fontSize: 12, letterSpacing: '0.08em', textTransform: 'uppercase', fontWeight: 700, padding: '0 22px', background: COLORS.ember, color: '#fff', borderRadius: 10, border: 'none', cursor: 'pointer' }}>Guess</button>
+            )}
             {live && cur != null && !noSkip && (
               <button onMouseDown={(e) => e.preventDefault()} onClick={back} title="Go back to the previous photo." style={{ flex: 'none', fontFamily: MONO, fontSize: 10, letterSpacing: '0.16em', textTransform: 'uppercase', fontWeight: 700, padding: '0 11px', background: 'transparent', color: COLORS.ink, borderRadius: 10, border: `1.5px solid ${COLORS.ink}`, cursor: 'pointer' }}>&larr; Back</button>
             )}
