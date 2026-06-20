@@ -984,8 +984,8 @@ function Home({ lists, viewCounts, voteData, extras, trending = {}, openList, on
         @media(max-width:560px){.nt-wrap{padding:16px 14px 60px;}.nt-tagline{display:none;}.nt-pillsbar{display:none !important;}.nt-mfilter{display:inline-flex !important;flex:none;}.nt-field{flex:1 1 auto;}.nt-sortwrap{display:none !important;}.nt-tbtn.primary{display:none !important;}.nt-msheet{display:block;flex:1 1 100%;width:100%;}.nt-toolbar{margin-bottom:10px;}.nt-toolwrap{padding:10px 14px 0 !important;}.nt-bodywrap{padding-top:0 !important;}}
       `}</style>
 
-      <div className="nt-stickytop">
       <SiteHeader active="lists" visitors={totalViews} />
+      <div className="nt-stickytop">
       <div className="nt-pillsbar">
         {/* category pills + By City / By Topic */}
         <div className="nt-pills" onClick={(e) => e.stopPropagation()}>
