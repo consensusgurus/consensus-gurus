@@ -530,6 +530,8 @@ export default function QuizHomeClient() {
     .qzh .qz-catbtn .ddmenu{left:0;right:auto;}
     .qzh .qz-catbtn{align-self:stretch;}
     .qzh .qz-srank{font-size:11px;font-weight:600;color:${C.soft};}
+    .qzh .qz-pname{max-width:160px;}
+    @media(max-width:560px){.qzh .qz-pname{max-width:120px;}}
     @media(max-width:560px){.qzh .qz-srank{display:none !important;}}
     .qzh .qz-catbtn .ddbtn{height:100%;box-sizing:border-box;}
     @media(max-width:560px){.qzh .qz-browserow{align-items:stretch !important;}.qzh .qz-catbtn{flex:1 1 0 !important;min-width:0;}.qzh .qz-catbtn .ddbtn{width:100%;justify-content:center;height:100%;box-sizing:border-box;}.qzh .qz-daily{flex:1 1 0 !important;justify-content:center !important;align-self:stretch;}.qzh .qz-searchwrap{flex:1 1 100% !important;}}
@@ -547,7 +549,7 @@ export default function QuizHomeClient() {
           {me && me.signed && me.name ? (
             <div style={{ display: 'flex', flexDirection: 'column', minWidth: 0 }}>
               <div className="lbl">Player</div>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 5, fontSize: 16, fontWeight: 800, color: C.ink, lineHeight: 1.15, maxWidth: 180, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{me.name}<BadgeCheck size={13} strokeWidth={2.5} style={{ color: C.accent, flex: 'none' }} /></div>
+              <div className="qz-pname" style={{ display: 'flex', alignItems: 'center', gap: 5, fontSize: 16, fontWeight: 800, color: C.ink, lineHeight: 1.15, minWidth: 0 }}><span style={{ minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{me.name}</span><BadgeCheck size={13} strokeWidth={2.5} style={{ color: C.accent, flex: 'none' }} /></div>
             </div>
           ) : (
             <button onClick={() => setSignupOpen(true)} style={{ display: 'inline-flex', alignItems: 'center', gap: 6, background: C.accent, color: '#fff', border: 'none', borderRadius: 9, padding: '9px 14px', fontFamily: 'Manrope, system-ui, -apple-system, sans-serif', fontWeight: 700, fontSize: 13, cursor: 'pointer', whiteSpace: 'nowrap' }}><UserPlus size={15} /> Sign up</button>

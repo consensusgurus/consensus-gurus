@@ -928,7 +928,7 @@ function Home({ lists, viewCounts, voteData, extras, trending = {}, openList, on
         .nt-pillsbar{max-width:1180px;margin:0 auto;padding:8px 24px 0;}
         .nt-toolwrap{max-width:1180px;margin:0 auto;padding:0 24px;}
         .nt-bodywrap{padding-top:0;}
-        @media(max-width:560px){.nt-stickytop{position:static;}.nt-pillsbar{padding:8px 14px 0;}.nt-toolwrap{padding:0 14px;}}
+        @media(max-width:560px){.nt-pillsbar{padding:8px 14px 0;}.nt-toolwrap{padding:0 14px;}}
         .nt-lbl{font-size:9.5px;font-weight:700;letter-spacing:.07em;text-transform:uppercase;color:${NT.soft};}
         .nt-crumb1{font-size:18px;font-weight:800;letter-spacing:-0.02em;color:${NT.ink};text-decoration:none;}
         .nt-crumb2{font-size:18px;font-weight:600;color:${NT.accent};}
