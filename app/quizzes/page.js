@@ -4,7 +4,7 @@ import { QUIZZES } from '@/lib/quizzes';
 export function generateMetadata() {
   const count = Array.isArray(QUIZZES) ? QUIZZES.filter((q) => !q.unlisted).length : 0;
   const title = 'Quizzes | Source of Truths';
-  const description = `Test what you actually know. ${count} timed quizzes across films, music, geography, sports, brands, and beyond: name-them-all, matching, map, and multiple-choice. Beat the clock, then the leaderboard.`;
+  const description = `Test your knowledge. ${count} timed quizzes across films, music, geography, sports, brands, and beyond: name-them-all, matching, map, and multiple-choice. Beat the clock, then the leaderboard.`;
   const url = '/quizzes';
 
   return {
@@ -12,7 +12,7 @@ export function generateMetadata() {
     description,
     alternates: { canonical: url },
     openGraph: {
-      title: 'Source of Truths Quizzes: Test What You Know',
+      title: 'Source of Truths Quizzes: Test Your Knowledge',
       description,
       url,
       type: 'website',
@@ -20,7 +20,7 @@ export function generateMetadata() {
     },
     twitter: {
       card: 'summary_large_image',
-      title: 'Source of Truths Quizzes: Test What You Know',
+      title: 'Source of Truths Quizzes: Test Your Knowledge',
       description,
     },
   };
