@@ -167,7 +167,7 @@ export default function LeaderboardClient() {
           <p style={{ fontFamily: 'DM Mono, monospace', fontSize: 11, letterSpacing: '0.03em', color: COLORS.faded, margin: '0 0 18px', maxWidth: 720 }}>
             {metric === 'daily'
               ? 'The signed-up player who banked the most correct answers each day. A fresh champion is crowned every day.'
-              : `${view === 'anon' ? 'Players who never signed up, batched by browser and shown under a random number.' : view === 'combined' ? 'Registered and anonymous players merged into one combined ranking.' : 'Signed-up players only. Switch to Anonymous or Combined to see everyone else.'}${period === 'today' ? ' Showing today only.' : ''}`}
+              : `${view === 'anon' ? 'Players who never signed up, batched by browser and shown under a stable Guest handle.' : view === 'combined' ? 'Registered and anonymous players merged into one combined ranking.' : 'Signed-up players only. Switch to Anonymous or Combined to see everyone else.'}${period === 'today' ? ' Showing today only.' : ''}`}
           </p>
           {loaded ? (
             <div className="lb-single">

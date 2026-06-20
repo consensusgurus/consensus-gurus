@@ -23,7 +23,9 @@ export async function GET(request) {
 
     const { data, error } = await loadQuizResults(supabaseAdmin);
     if (error) { console.error('quiz me error', error); return NextResponse.json({ found: false }); }
-    const { players } = computeElo(data || [], { recentN: 60, rankFor: myKey });
+    // recentN large so the Stat Hub Activity log shows the player's FULL play
+    // history (every game, exact timestamps), not just the last handful.
+    const { players } = computeElo(data || [], { recentN: 100000, rankFor: myKey });
     return NextResponse.json(buildProfile(players, myKey, { signed, username }));
   } catch (e) {
     console.error('quiz me exception', e);

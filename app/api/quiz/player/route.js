@@ -17,7 +17,8 @@ export async function GET(request) {
   try {
     const { data, error } = await loadQuizResults(supabaseAdmin);
     if (error) { console.error('quiz player error', error); return NextResponse.json({ found: false }); }
-    const { players } = computeElo(data || [], { rankFor: key });
+    // recentN large so a viewed player's Activity log shows their FULL history.
+    const { players } = computeElo(data || [], { recentN: 100000, rankFor: key });
 
     let myKey = key;
     if (!myKey && uname) {

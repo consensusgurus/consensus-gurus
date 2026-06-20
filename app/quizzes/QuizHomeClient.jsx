@@ -1,5 +1,5 @@
 'use client';
-import React, { useState, useEffect, useMemo, useRef } from 'react';
+import React, { useState, useEffect, useMemo, useRef, createContext, useContext } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import SiteHeader from '../SiteHeader';
@@ -7,12 +7,13 @@ import {
   Search, ChevronDown, ArrowRight, BarChart3, Crown, Sparkles, Flame,
   BadgeCheck, Clapperboard, Music, Gamepad2, Plane, Globe, Utensils,
   Briefcase, Leaf, Tv, BookOpen, Landmark, Trophy, UserPlus, Play, X,
+  Check, CheckCircle2,
 } from 'lucide-react';
 import { QUIZZES } from '@/lib/quizzes';
 import {
   quizDept as deptOf, DEPT_COLOR, DEPT_LABEL, DEPT_NAV,
 } from '@/lib/quiz-departments';
-import { getDailyChallenge, dailyChallengeId } from '@/lib/challenges';
+import { getDailyChallenge, dailyChallengeId, openChallenges } from '@/lib/challenges';
 import Grain from '../Grain';
 import Footer from '../Footer';
 
@@ -49,6 +50,23 @@ const C = {
 };
 const MEDAL = ['#e8b43a', '#b8bcc4', '#c8814b'];
 const FONT = "'Manrope', system-ui, -apple-system, sans-serif";
+
+// Per-quiz completion status for the CURRENT player, supplied once at the top of
+// the tree so any quiz row can show a check (played) or a circled check (aced at
+// 100%) without threading props. Visible only to that player (built from their
+// own profile). Empty for signed-out/preview visitors.
+const QuizDoneContext = createContext({ played: null, completed: null });
+function DoneMark({ id, size = 13 }) {
+  const { played, completed } = useContext(QuizDoneContext);
+  if (!id || (!played && !completed)) return null;
+  if (completed && completed.has(id)) {
+    return <CheckCircle2 size={size} strokeWidth={2.5} style={{ color: C.accent, flex: 'none', marginLeft: 5, verticalAlign: '-2px' }} aria-label="Completed (100%)" />;
+  }
+  if (played && played.has(id)) {
+    return <Check size={size} strokeWidth={2.75} style={{ color: C.live, flex: 'none', marginLeft: 5, verticalAlign: '-2px' }} aria-label="Played" />;
+  }
+  return null;
+}
 
 // One lucide icon per department (no global CSS / webfonts).
 const DEPT_ICON = {
@@ -199,6 +217,16 @@ export default function QuizHomeClient() {
   // Today's daily challenge (deterministic from the date; no server state needed).
   const daily = useMemo(() => getDailyChallenge(), []);
   const dailyCat = daily ? daily.accent : '';
+  // Every challenge open right now (today's daily + open events like the Outline
+  // Challenge). The header CTA rotates through these like the leaderboard slides.
+  const openChs = useMemo(() => openChallenges(), []);
+  const [chSlide, setChSlide] = useState(0);
+  useEffect(() => {
+    if (openChs.length < 2) return;
+    const id = setTimeout(() => setChSlide((i) => (i + 1) % openChs.length), 5000);
+    return () => clearTimeout(id);
+  }, [chSlide, openChs.length]);
+  const curCh = openChs.length ? openChs[chSlide % openChs.length] : null;
   // Restore the saved browse-view preference once on mount.
   useEffect(() => {
     try { const v = localStorage.getItem('sot_quiz_browse_view'); if (v === 'detailed' || v === 'compact') setView(v); } catch {}
@@ -558,7 +586,13 @@ export default function QuizHomeClient() {
     @media(max-width:560px){.qzh .qz-browserow{align-items:stretch !important;}.qzh .qz-catbtn{flex:1 1 0 !important;min-width:0;}.qzh .qz-catbtn .ddbtn{width:100%;justify-content:center;height:100%;box-sizing:border-box;}.qzh .qz-daily{flex:1 1 0 !important;justify-content:center !important;align-self:stretch;}.qzh .qz-searchwrap{flex:1 1 100% !important;}}
   `;
 
+  const doneCtx = useMemo(() => ({
+    played: (me && me.found && Array.isArray(me.playedIds)) ? new Set(me.playedIds) : null,
+    completed: (me && me.found && Array.isArray(me.completedIds)) ? new Set(me.completedIds) : null,
+  }), [me]);
+
   return (
+    <QuizDoneContext.Provider value={doneCtx}>
     <div style={{ background: C.bg, minHeight: '100vh', position: 'relative' }}>
       <Grain />
       <style>{css}</style>
@@ -579,7 +613,7 @@ export default function QuizHomeClient() {
           )}
           <div className="qz-div" style={{ width: 1, height: 34, background: C.line }} />
           <div className={`qz-skill${playerStats && playerStats.rank ? '' : ' qz-skill-empty'}`}>
-            <div className="lbl">Skill rank{scope === 'all' ? '' : ` · ${byKey[scope]?.label}`}</div>
+            <div className="lbl">Rank{scope === 'all' ? '' : ` · ${byKey[scope]?.label}`}</div>
             {playerStats && playerStats.rank ? (
               <div style={{ display: 'flex', alignItems: 'baseline', gap: 5 }}>
                 <span style={{ fontSize: 17, fontWeight: 700, color: C.accent, lineHeight: 1 }}>{`#${playerStats.rank}`}</span>
@@ -591,7 +625,9 @@ export default function QuizHomeClient() {
           </div>
           <div className="qz-stats" style={{ display: 'flex', flex: '1 1 auto', justifyContent: 'space-evenly', gap: 12, marginLeft: 18, flexWrap: 'wrap' }}>
             <div><div style={{ display: 'flex', alignItems: 'baseline', gap: 4 }}><span style={{ fontSize: 17, fontWeight: 700 }}>{playerStats && playerStats.played != null ? playerStats.played : '—'}</span>{playerStats && playerStats.playedRank ? <span className="qz-srank">#{playerStats.playedRank}</span> : null}</div><div className="lbl">played</div></div>
+            {playerStats ? (
             <div><div style={{ display: 'flex', alignItems: 'baseline', gap: 4 }}><span style={{ fontSize: 17, fontWeight: 700 }}>{playerStats && playerStats.correct != null ? playerStats.correct.toLocaleString() : '—'}</span>{playerStats && playerStats.correctRank ? <span className="qz-srank">#{playerStats.correctRank}</span> : null}</div><div className="lbl">correct</div></div>
+            ) : null}
             <div><div style={{ display: 'flex', alignItems: 'baseline', gap: 4 }}><span style={{ fontSize: 17, fontWeight: 700 }}>{playerStats && playerStats.accuracy != null ? `${playerStats.accuracy}%` : '—'}</span>{playerStats && playerStats.accuracyRank ? <span className="qz-srank">#{playerStats.accuracyRank}</span> : null}</div><div className="lbl">accuracy</div></div>
             <div><div style={{ display: 'flex', alignItems: 'baseline', gap: 4 }}><span style={{ fontSize: 17, fontWeight: 700 }}>{playerStats && playerStats.completed != null ? playerStats.completed : '—'}</span>{playerStats && playerStats.completed != null && scopeCount ? <span style={{ fontSize: 11, fontWeight: 600, color: C.soft }}>({playerStats.completed > 0 && playerStats.completed / scopeCount < 0.005 ? '<1' : Math.round((playerStats.completed / scopeCount) * 100)}%)</span> : null}{playerStats && playerStats.completedRank ? <span className="qz-srank">#{playerStats.completedRank}</span> : null}</div><div className="lbl">completed</div></div>
           </div>
@@ -723,13 +759,20 @@ export default function QuizHomeClient() {
               </div>
             )}
           </div>
-          {daily && (
-            <Link href="/quizzes/hub?tab=challenges" className="qz-daily" style={{ flex: '0 0 auto', display: 'flex', alignItems: 'center', gap: 9, background: C.accent, color: '#fff', padding: '8px 14px', borderRadius: 10, textDecoration: 'none' }}>
+          {curCh && (
+            <Link key={curCh.id} href={`/quizzes/hub?tab=challenges&ch=${encodeURIComponent(curCh.id)}`} className="qz-daily" style={{ flex: '0 0 auto', display: 'flex', alignItems: 'center', gap: 9, background: C.accent, color: '#fff', padding: '8px 14px', borderRadius: 10, textDecoration: 'none' }} title={openChs.length > 1 ? `${openChs.length} challenges open now` : undefined}>
               <Flame size={17} style={{ flex: 'none' }} />
               <span style={{ lineHeight: 1.15 }}>
-                <span style={{ display: 'block', fontSize: 13, fontWeight: 800 }}>Daily Challenge</span>
-                <span style={{ display: 'block', fontSize: 10, fontWeight: 600, opacity: 0.85 }}>Today{dailyCat ? ` · ${dailyCat}` : ''}</span>
+                <span style={{ display: 'block', fontSize: 13, fontWeight: 800 }}>{curCh.title}</span>
+                <span style={{ display: 'block', fontSize: 10, fontWeight: 600, opacity: 0.85 }}>{curCh.sub || 'Open now'}</span>
               </span>
+              {openChs.length > 1 ? (
+                <span aria-hidden="true" style={{ display: 'flex', gap: 3, flex: 'none', marginLeft: 1 }}>
+                  {openChs.map((_, i) => (
+                    <span key={i} style={{ width: 5, height: 5, borderRadius: '50%', background: '#fff', opacity: i === (chSlide % openChs.length) ? 1 : 0.4 }} />
+                  ))}
+                </span>
+              ) : null}
               <ArrowRight size={15} style={{ flex: 'none' }} />
             </Link>
           )}
@@ -761,7 +804,7 @@ export default function QuizHomeClient() {
                 return (
                   <Link href={`/quiz/${r.id}`} className="qrow" key={r.id} title={r.rawTitle || r.title}>
                     <span className="dot" style={{ background: cc, alignSelf: 'center' }} />
-                    <span className="qtitle">{stripVerb(r.title)}</span>
+                    <span className="qtitle">{stripVerb(r.title)}<DoneMark id={r.id} /></span>
                     <span className="qmeta" style={{ color: C.soft, fontSize: 10, fontWeight: 600, letterSpacing: '.04em', textTransform: 'uppercase' }}>{DEPT_LABEL[r.dept]}</span>
                   </Link>
                 );
@@ -792,7 +835,7 @@ export default function QuizHomeClient() {
               return (
                 <Link href={`/quiz/${q.id}`} className="qrow" key={q.id} title={q.rawTitle || q.title}>
                   <span className="dot" style={{ background: cc, alignSelf: 'center' }} />
-                  <span className="qtitle">{stripVerb(q.title)}</span>
+                  <span className="qtitle">{stripVerb(q.title)}<DoneMark id={q.id} /></span>
                   <span className="qmeta">{listMode === 'newest' ? <NewRight q={q} /> : <PlaysRight id={q.id} plays={plays} leader={leader} leaderKey={leaderKey} color={C.accent} />}</span>
                 </Link>
               );
@@ -818,6 +861,7 @@ export default function QuizHomeClient() {
 
       <Footer />
     </div>
+    </QuizDoneContext.Provider>
   );
 }
 
@@ -906,7 +950,7 @@ function CategoryFull({ cat, plays, leader, leaderKey }) {
       <div className="qfull">
         {rows.map((q) => (
           <Link href={`/quiz/${q.id}`} className="qrow" key={q.id} title={q.rawTitle || q.title}>
-            <span className="qtitle">{stripVerb(q.title)}</span>
+            <span className="qtitle">{stripVerb(q.title)}<DoneMark id={q.id} /></span>
             <span className="qmeta"><PlaysRight id={q.id} plays={plays} leader={leader} leaderKey={leaderKey} color={color} hidePlays /></span>
           </Link>
         ))}
@@ -929,7 +973,7 @@ function BrowseColumn({ label, Icon, color, tint, rows, cta, onCta }) {
       </div>
       {rows.map(({ q, right }) => (
         <Link href={`/quiz/${q.id}`} className="qrow" key={q.id} title={q.rawTitle || q.title}>
-          <span className="qtitle">{stripVerb(q.title)}</span>
+          <span className="qtitle">{stripVerb(q.title)}<DoneMark id={q.id} /></span>
           <span className="qmeta">{right}</span>
         </Link>
       ))}

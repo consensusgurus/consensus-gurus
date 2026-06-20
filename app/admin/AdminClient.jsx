@@ -1349,8 +1349,9 @@ function AnonPlayersPanel({ players }) {
   const list = players || [];
 
   const visible = useMemo(() => {
-    const digits = query.replace(/[^0-9]/g, '');
-    const arr = !digits ? list.slice() : list.filter((p) => String(p.num).includes(digits));
+    const q = query.trim().toLowerCase();
+    const digits = q.replace(/[^0-9]/g, '');
+    const arr = !q ? list.slice() : list.filter((p) => String(p.label || '').toLowerCase().includes(q) || (digits && String(p.num).includes(digits)));
     if (sortBy === 'recent') {
       arr.sort((a, b) => (Date.parse(b.lastPlayed || '') || 0) - (Date.parse(a.lastPlayed || '') || 0));
     } else {
@@ -1371,7 +1372,7 @@ function AnonPlayersPanel({ players }) {
   return (
     <div>
       <p style={{ fontFamily: 'Manrope, system-ui, -apple-system, sans-serif', fontSize: 13, color: COLORS.faded, margin: '0 0 14px' }}>
-        Players who completed quizzes without signing up, batched by browser and shown under a stable random number.
+        Players who completed quizzes without signing up, batched by browser and shown under a stable Guest handle.
         {' '}{list.length} anonymous player{list.length === 1 ? '' : 's'}, {totalPlays} play{totalPlays === 1 ? '' : 's'} total.
         {' '}Click a row to see every quiz that player played and when.
       </p>
@@ -1384,7 +1385,7 @@ function AnonPlayersPanel({ players }) {
           );
         })}
       </div>
-      <input value={query} onChange={(e) => setQuery(e.target.value)} placeholder="Filter by player number\u2026" style={{ width: '100%', padding: '10px 12px', background: COLORS.paper, border: `1px solid ${COLORS.line}`, color: COLORS.ink, fontFamily: 'DM Mono, monospace', fontSize: 12, outline: 'none', boxSizing: 'border-box', marginBottom: 16 }} />
+      <input value={query} onChange={(e) => setQuery(e.target.value)} placeholder="Filter by guest handle or number\u2026" style={{ width: '100%', padding: '10px 12px', background: COLORS.paper, border: `1px solid ${COLORS.line}`, color: COLORS.ink, fontFamily: 'DM Mono, monospace', fontSize: 12, outline: 'none', boxSizing: 'border-box', marginBottom: 16 }} />
       {visible.length === 0 ? (
         <div style={{ padding: '40px 20px', textAlign: 'center', fontFamily: 'Manrope, system-ui, -apple-system, sans-serif', fontStyle: 'italic', fontSize: 16, color: COLORS.faded, border: `1px dashed ${COLORS.line}` }}>No matches.</div>
       ) : (

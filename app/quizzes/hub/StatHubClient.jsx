@@ -2,7 +2,7 @@
 import React, { useState, useEffect, useMemo, useRef } from 'react';
 import Link from 'next/link';
 import {
-  ArrowLeft, BadgeCheck, User, ListChecks, Flame, FunctionSquare, Clock, Trophy, RefreshCw, Share2, Download, UserPlus, Play, X,
+  ArrowLeft, BadgeCheck, User, ListChecks, Flame, FunctionSquare, Clock, Trophy, RefreshCw, Share2, Download, UserPlus, Play, X, Check, CheckCircle2,
 } from 'lucide-react';
 import { QUIZZES, getQuiz } from '@/lib/quizzes';
 import { quizDept as deptOf, DEPT_COLOR, DEPT_LABEL, DEPT_NAV } from '@/lib/quiz-departments';
@@ -190,7 +190,7 @@ export default function StatHubClient() {
 
   const [me, setMe] = useState(null);
   const [stats, setStats] = useState([]);     // /api/quiz/stats
-  const [totals, setTotals] = useState({ byQuiz: {}, leaders: {}, total: 0, totalTime: 0 });
+  const [totals, setTotals] = useState({ byQuiz: {}, leaders: {}, leaderKeys: {}, total: 0, totalTime: 0 });
   const [shareOpen, setShareOpen] = useState(false);
   const [signupOpen, setSignupOpen] = useState(false);
   const [board, setBoard] = useState(null); // full Elo ranking of every player (incl. anon)
@@ -229,7 +229,7 @@ export default function StatHubClient() {
       setMe({ found: false });
     }
     fetch('/api/quiz/stats').then((r) => r.json()).then((d) => { if (d && Array.isArray(d.quizzes)) setStats(d.quizzes); }).catch(() => {});
-    fetch('/api/quiz/totals').then((r) => r.json()).then((d) => { if (d && !d.error) setTotals({ byQuiz: d.byQuiz || {}, leaders: d.leaders || {}, total: d.total || 0, totalTime: d.totalTime || 0 }); }).catch(() => {});
+    fetch('/api/quiz/totals').then((r) => r.json()).then((d) => { if (d && !d.error) setTotals({ byQuiz: d.byQuiz || {}, leaders: d.leaders || {}, leaderKeys: d.leaderKeys || {}, total: d.total || 0, totalTime: d.totalTime || 0 }); }).catch(() => {});
     fetch('/api/quiz/elo?full=1').then((r) => r.json()).then((d) => { if (d && Array.isArray(d.players)) setBoard(d.players); }).catch(() => {});
   }, []);
 
@@ -386,7 +386,7 @@ export default function StatHubClient() {
           )}
           <div className="qz-div" style={{ width: 1, height: 34, background: C.line }} />
           <div className={`qz-skill${found && profile.rank ? '' : ' qz-skill-empty'}`}>
-            <div className="lbl">Skill rank</div>
+            <div className="lbl">Rank</div>
             {found && profile.rank ? (
               <div style={{ display: 'flex', alignItems: 'baseline', gap: 5 }}>
                 <span style={{ fontSize: 17, fontWeight: 700, color: C.accent, lineHeight: 1 }}>{`#${profile.rank}`}</span>
@@ -398,7 +398,7 @@ export default function StatHubClient() {
           </div>
           <div className="qz-stats" style={{ display: 'flex', flex: '1 1 auto', justifyContent: 'space-evenly', gap: 12, marginLeft: 18, flexWrap: 'wrap' }}>
             <div><div style={{ display: 'flex', alignItems: 'baseline', gap: 4 }}><span style={{ fontSize: 17, fontWeight: 700 }}>{found ? profile.activity.played : '—'}</span>{found && profile.ranks && profile.ranks.played ? <span className="qz-srank">#{profile.ranks.played}</span> : null}</div><div className="lbl">played</div></div>
-            <div><div style={{ display: 'flex', alignItems: 'baseline', gap: 4 }}><span style={{ fontSize: 17, fontWeight: 700 }}>{found ? profile.activity.correct.toLocaleString() : '—'}</span>{found && profile.ranks && profile.ranks.correct ? <span className="qz-srank">#{profile.ranks.correct}</span> : null}</div><div className="lbl">correct</div></div>
+            {found ? (<div><div style={{ display: 'flex', alignItems: 'baseline', gap: 4 }}><span style={{ fontSize: 17, fontWeight: 700 }}>{found ? profile.activity.correct.toLocaleString() : '—'}</span>{found && profile.ranks && profile.ranks.correct ? <span className="qz-srank">#{profile.ranks.correct}</span> : null}</div><div className="lbl">correct</div></div>) : null}
             <div><div style={{ display: 'flex', alignItems: 'baseline', gap: 4 }}><span style={{ fontSize: 17, fontWeight: 700 }}>{found ? `${profile.activity.accuracy}%` : '—'}</span>{found && profile.ranks && profile.ranks.accuracy ? <span className="qz-srank">#{profile.ranks.accuracy}</span> : null}</div><div className="lbl">accuracy</div></div>
             <div><div style={{ display: 'flex', alignItems: 'baseline', gap: 4 }}><span style={{ fontSize: 17, fontWeight: 700 }}>{found ? profile.activity.completed : '—'}</span>{found && catalog.length ? <span style={{ fontSize: 11, fontWeight: 600, color: C.soft }}>({profile.activity.completed > 0 && profile.activity.completed / catalog.length < 0.005 ? '<1' : Math.round((profile.activity.completed / catalog.length) * 100)}%)</span> : null}{found && profile.ranks && profile.ranks.completed ? <span className="qz-srank">#{profile.ranks.completed}</span> : null}</div><div className="lbl">completed</div></div>
           </div>
@@ -433,7 +433,7 @@ export default function StatHubClient() {
         </div>
 
         {tab === 'player' && <PlayerPanel me={profile} scope={scope} cats={cats} byKey={byKey} totalQuizzes={catalog.length} board={board} myName={myName} myAnonKey={myAnonKey} titleById={titleById} pview={pview} setPview={setPview} viewKey={viewKey} onSelectPlayer={(k) => { const mine = (me && me.userKey && k === me.userKey) || (myAnonKey && k === myAnonKey); setViewKey(mine ? null : k); setPview(mine ? 'ranking' : 'category'); }} />}
-        {tab === 'quizzes' && <QuizzesPanel me={profile} scope={scope} byKey={byKey} catalog={catalog} stats={statsById} totals={totals} totalPlays={totalPlays} />}
+        {tab === 'quizzes' && <QuizzesPanel me={profile} myProfile={me} scope={scope} byKey={byKey} catalog={catalog} stats={statsById} totals={totals} totalPlays={totalPlays} onSelectPlayer={(k) => { setViewKey(k); setPview('category'); setTab('player'); }} />}
         {tab === 'challenges' && <ChallengesPanel me={profile} />}
       </div>
 
@@ -619,7 +619,7 @@ function ActivityFeed({ recent, titleById, viewing }) {
         <tbody>
           {recent.map((m, i) => {
             const title = (titleById && titleById[m.quizId]) || m.quizId;
-            const when = m.createdAt ? new Date(m.createdAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : '\u2014';
+            const when = m.createdAt ? new Date(m.createdAt).toLocaleString('en-US', { month: 'short', day: 'numeric', year: 'numeric', hour: 'numeric', minute: '2-digit' }) : '\u2014';
             return (
               <tr key={i}>
                 <td style={{ fontWeight: 600, whiteSpace: 'nowrap' }}><Link href={`/quiz/${m.quizId}`} style={{ color: C.ink, textDecoration: 'none' }}>{title}</Link></td>
@@ -698,10 +698,12 @@ function UserBaseBody({ board, myName, myAnonKey, onSelectPlayer, viewKey }) {
 }
 
 // ─── Quizzes tab ────────────────────────────────────────────────────────────
-function QuizzesPanel({ me, scope, byKey, catalog, stats, totals, totalPlays }) {
+function QuizzesPanel({ me, myProfile, scope, byKey, catalog, stats, totals, totalPlays, onSelectPlayer }) {
   const found = me && me.found;
+  const donePlayed = new Set((myProfile && myProfile.playedIds) || []);
+  const doneCompleted = new Set((myProfile && myProfile.completedIds) || []);
   const pool = scope === 'all' ? catalog : catalog.filter((q) => q.dept === scope);
-  const rows = pool.map((q) => ({ q, s: stats[q.id] || { plays: 0, avgScorePct: 0 }, leader: totals.leaders[q.id] || '' }))
+  const rows = pool.map((q) => ({ q, s: stats[q.id] || { plays: 0, avgScorePct: 0 }, leader: totals.leaders[q.id] || '', leaderKey: (totals.leaderKeys && totals.leaderKeys[q.id]) || '' }))
     .sort((a, b) => (b.s.plays || 0) - (a.s.plays || 0) || a.q.title.localeCompare(b.q.title));
   const playedTotal = found ? me.activity.played : 0;
   const avgScore = found ? me.activity.accuracy : 0;
@@ -726,14 +728,14 @@ function QuizzesPanel({ me, scope, byKey, catalog, stats, totals, totalPlays }) 
               <th>Top Scorer</th>
             </tr></thead>
             <tbody>
-              {rows.map(({ q, s, leader }) => (
+              {rows.map(({ q, s, leader, leaderKey }) => (
                 <tr key={q.id}>
                   <td style={{ fontWeight: 600, maxWidth: 280, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                    <Link href={`/quiz/${q.id}`} className="qlink">{q.title}</Link>
+                    <Link href={`/quiz/${q.id}`} className="qlink">{q.title}</Link>{doneCompleted.has(q.id) ? <CheckCircle2 size={13} strokeWidth={2.5} style={{ color: C.accent, marginLeft: 5, verticalAlign: '-2px' }} aria-label="Completed (100%)" /> : donePlayed.has(q.id) ? <Check size={13} strokeWidth={2.75} style={{ color: '#10b981', marginLeft: 5, verticalAlign: '-2px' }} aria-label="Played" /> : null}
                   </td>
                   <td className="score" style={{ textAlign: 'right' }}>{(s.plays || 0).toLocaleString()}</td>
                   <td style={{ textAlign: 'right' }}>{s.avgScorePct || 0}%</td>
-                  <td>{leader || <span style={{ color: C.soft }}>Empty</span>}</td>
+                  <td>{leader ? (leaderKey ? <button onClick={() => onSelectPlayer && onSelectPlayer(leaderKey)} style={{ border: 'none', background: 'transparent', padding: 0, font: 'inherit', fontFamily: FONT, color: C.accent, cursor: 'pointer', textAlign: 'left' }}>{leader}</button> : leader) : <span style={{ color: C.soft }}>Empty</span>}</td>
                 </tr>
               ))}
             </tbody>
@@ -839,9 +841,11 @@ function ChallengesPanel({ me }) {
       <div className="card" style={{ padding: '16px 18px' }}>
         <div style={{ display: 'flex', alignItems: 'baseline', gap: 10, flexWrap: 'wrap' }}>
           <span style={{ background: C.accsoft, color: C.accent, fontSize: 11, fontWeight: 700, padding: '3px 10px', borderRadius: 6 }}>{ch.kicker || 'Challenge'}</span>
-          {ch.closedLabel
-            ? <span style={{ fontSize: 11.5, color: C.danger, fontWeight: 700, display: 'inline-flex', alignItems: 'center', gap: 5 }}><Clock size={12} /> {ch.closedLabel}</span>
-            : <span style={{ fontSize: 11.5, color: C.muted, display: 'inline-flex', alignItems: 'center', gap: 5 }}><Clock size={12} /> {ch.daily ? 'Resets daily at midnight ET' : `opens ${ch.sinceLabel}`}</span>}
+          {(ch.until && Date.parse(ch.until) <= Date.now())
+            ? <span style={{ fontSize: 11.5, color: C.danger, fontWeight: 700, display: 'inline-flex', alignItems: 'center', gap: 5 }}><Clock size={12} /> {ch.closedLabel || (ch.daily ? 'This day is over, results frozen' : 'Closed, results frozen')}</span>
+            : ch.closesLabel
+              ? <span style={{ fontSize: 11.5, color: C.muted, display: 'inline-flex', alignItems: 'center', gap: 5 }}><Clock size={12} /> {ch.closesLabel}</span>
+              : <span style={{ fontSize: 11.5, color: C.muted, display: 'inline-flex', alignItems: 'center', gap: 5 }}><Clock size={12} /> {ch.daily ? 'Resets daily at midnight ET' : `opens ${ch.sinceLabel}`}</span>}
         </div>
         <div style={{ fontSize: 22, fontWeight: 800, letterSpacing: '-0.02em', marginTop: 8 }}>{ch.title}</div>
         <div style={{ fontSize: 13, color: C.muted, marginTop: 3, maxWidth: 760 }}>{ch.blurb}</div>
