@@ -177,6 +177,8 @@ function SignupModal({ onClose }) {
 export default function QuizHomeClient() {
   const [scope, setScope] = useState('all');
   const [ddOpen, setDdOpen] = useState(false);
+  const playerBarRef = useRef(null);
+  const bestCatRef = useRef(null);
   const [search, setSearch] = useState('');
   const [listMode, setListMode] = useState(null); // null | 'newest' | 'mostplayed' | 'live' (View all expansions)
   const [boardsExpanded, setBoardsExpanded] = useState(false); // header click expands both boards 5 -> 10
@@ -437,6 +439,32 @@ export default function QuizHomeClient() {
     return catalog.filter((c) => c.rawTitle.toLowerCase().includes(q) || c.title.toLowerCase().includes(q)).slice(0, 80);
   }, [search, catalog]);
 
+  // Hide "Best category" only when the player bar is forced to wrap to a new
+  // row. Gated on width change so toggling the element (a height-only change)
+  // can't cause a feedback loop. Below the mobile breakpoint CSS owns layout.
+  useEffect(() => {
+    const bar = playerBarRef.current;
+    if (!bar) return;
+    let lastW = -1;
+    const evaluate = () => {
+      const w = bar.clientWidth;
+      if (w === lastW) return;
+      lastW = w;
+      const el = bestCatRef.current;
+      if (!el) return;
+      if (w <= 560) { el.style.display = ''; return; }
+      el.style.display = '';
+      const baseTop = bar.firstElementChild ? bar.firstElementChild.offsetTop : 0;
+      let wrapped = false;
+      for (const child of bar.children) { if (child.offsetTop > baseTop + 4) { wrapped = true; break; } }
+      el.style.display = wrapped ? 'none' : '';
+    };
+    const ro = new ResizeObserver(evaluate);
+    ro.observe(bar);
+    evaluate();
+    return () => ro.disconnect();
+  }, [bestCat, playerStats, scope]);
+
   const css = `
     @import url('https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap');
     .qzh{font-family:${FONT};color:${C.ink};}
@@ -479,6 +507,8 @@ export default function QuizHomeClient() {
     .qzh .crumb1{font-size:18px;font-weight:800;letter-spacing:-0.02em;}
     .qzh .crumb2{font-size:18px;font-weight:600;color:${C.accent};}
     .qzh a.qlink{text-decoration:none;color:inherit;}
+    .qzh .qz-catbtn .ddmenu{left:0;right:auto;}
+    @media(max-width:560px){.qzh .qz-browserow{align-items:stretch !important;}.qzh .qz-catbtn{flex:1 1 0 !important;min-width:0;}.qzh .qz-catbtn .ddbtn{width:100%;justify-content:center;height:100%;box-sizing:border-box;}.qzh .qz-daily{flex:1 1 0 !important;justify-content:center !important;align-self:stretch;}.qzh .qz-searchwrap{flex:1 1 100% !important;}}
   `;
 
   return (
@@ -489,7 +519,7 @@ export default function QuizHomeClient() {
       <div className="qzh" style={{ maxWidth: 1180, margin: '0 auto', padding: '12px 24px 70px', position: 'relative' }}>
 
         {/* player bar */}
-        <div className="card qz-playerbar" style={{ flexDirection: 'row', alignItems: 'center', flexWrap: 'wrap', gap: 16, padding: '11px 14px', margin: '0 0 12px', overflow: 'visible', position: 'relative', zIndex: 40 }}>
+        <div ref={playerBarRef} className="card qz-playerbar" style={{ flexDirection: 'row', alignItems: 'center', flexWrap: 'wrap', gap: 16, padding: '11px 14px', margin: '0 0 12px', overflow: 'visible', position: 'relative', zIndex: 40 }}>
           {me && me.signed && me.name ? (
             <div style={{ display: 'flex', flexDirection: 'column', minWidth: 0 }}>
               <div className="lbl">Player</div>
@@ -503,15 +533,21 @@ export default function QuizHomeClient() {
             <div className="lbl">Skill rank{scope === 'all' ? '' : ` · ${byKey[scope]?.label}`}</div>
             {playerStats && playerStats.rank ? (
               <div style={{ display: 'flex', alignItems: 'baseline', gap: 5 }}>
-                <span style={{ fontSize: 22, fontWeight: 700, color: C.accent, lineHeight: 1 }}>{`#${playerStats.rank}`}</span>
+                <span style={{ fontSize: 17, fontWeight: 700, color: C.accent, lineHeight: 1 }}>{`#${playerStats.rank}`}</span>
                 {playerStats.denom ? <span style={{ fontSize: 11, color: C.muted }}>of {playerStats.denom.toLocaleString()}</span> : null}
               </div>
             ) : (
               <div style={{ fontSize: 12, fontWeight: 600, color: C.muted, lineHeight: 1.2, marginTop: 2, maxWidth: 160 }}>Play your first quiz to populate</div>
             )}
           </div>
+          <div className="qz-stats" style={{ display: 'flex', flex: '1 1 auto', justifyContent: 'space-evenly', gap: 12, marginLeft: 18, flexWrap: 'wrap' }}>
+            <div><div style={{ fontSize: 17, fontWeight: 700 }}>{playerStats && playerStats.played != null ? playerStats.played : '—'}</div><div className="lbl">played</div></div>
+            <div><div style={{ fontSize: 17, fontWeight: 700 }}>{playerStats && playerStats.correct != null ? playerStats.correct.toLocaleString() : '—'}</div><div className="lbl">correct</div></div>
+            <div><div style={{ fontSize: 17, fontWeight: 700 }}>{playerStats && playerStats.accuracy != null ? `${playerStats.accuracy}%` : '—'}</div><div className="lbl">accuracy</div></div>
+            <div><div style={{ display: 'flex', alignItems: 'baseline', gap: 4 }}><span style={{ fontSize: 17, fontWeight: 700 }}>{playerStats && playerStats.completed != null ? playerStats.completed : '—'}</span>{playerStats && playerStats.completed != null && scopeCount ? <span style={{ fontSize: 11, fontWeight: 600, color: C.soft }}>({playerStats.completed > 0 && playerStats.completed / scopeCount < 0.005 ? '<1' : Math.round((playerStats.completed / scopeCount) * 100)}%)</span> : null}</div><div className="lbl">completed</div></div>
+          </div>
           {bestCat ? (
-            <div className="qz-bestcat">
+            <div className="qz-bestcat" ref={bestCatRef}>
               <div className="lbl">Best category</div>
               <div style={{ display: 'flex', alignItems: 'baseline', gap: 5, whiteSpace: 'nowrap' }}>
                 <span style={{ fontSize: 14, fontWeight: 700, color: C.ink, lineHeight: 1.2 }}>{byKey[bestCat.key]?.label || DEPT_LABEL[bestCat.key] || '—'}</span>
@@ -519,33 +555,6 @@ export default function QuizHomeClient() {
               </div>
             </div>
           ) : null}
-          <div className="qz-stats" style={{ display: 'flex', flex: '1 1 auto', justifyContent: 'space-evenly', gap: 12, marginLeft: 18, flexWrap: 'wrap' }}>
-            <div><div style={{ display: 'flex', alignItems: 'baseline', gap: 4 }}><span style={{ fontSize: 17, fontWeight: 700 }}>{playerStats && playerStats.completed != null ? playerStats.completed : '—'}</span>{playerStats && playerStats.completed != null && scopeCount ? <span style={{ fontSize: 11, fontWeight: 600, color: C.soft }}>({playerStats.completed > 0 && playerStats.completed / scopeCount < 0.005 ? '<1' : Math.round((playerStats.completed / scopeCount) * 100)}%)</span> : null}</div><div className="lbl">completed</div></div>
-            <div><div style={{ fontSize: 17, fontWeight: 700 }}>{playerStats && playerStats.played != null ? playerStats.played : '—'}</div><div className="lbl">played</div></div>
-            <div><div style={{ fontSize: 17, fontWeight: 700 }}>{playerStats && playerStats.correct != null ? playerStats.correct.toLocaleString() : '—'}</div><div className="lbl">correct</div></div>
-            <div><div style={{ fontSize: 17, fontWeight: 700 }}>{playerStats && playerStats.accuracy != null ? `${playerStats.accuracy}%` : '—'}</div><div className="lbl">accuracy</div></div>
-          </div>
-          <div className="dd">
-            <button className="ddbtn" onClick={(e) => { e.stopPropagation(); setDdOpen((o) => !o); }}>
-              <span className="dot" style={{ background: scope === 'all' ? C.ink : (byKey[scope]?.c || C.ink) }} />
-              <span style={{ fontWeight: 600, fontSize: 13 }}>{scope === 'all' ? 'Sort: All' : byKey[scope]?.label}</span>
-              <ChevronDown size={16} style={{ color: C.muted }} />
-            </button>
-            {ddOpen && (
-              <div className="ddmenu" onClick={(e) => e.stopPropagation()}>
-                <div className="dditem ddall" onClick={() => { setScope('all'); setDdOpen(false); setSearch(''); setListMode(null); }}>
-                  <span className="dot" style={{ background: C.ink }} /><span style={{ flex: 1 }}>All Categories</span>
-                  <span style={{ fontSize: 11, color: C.soft }}>{totalCount}</span>
-                </div>
-                {cats.map((c) => (
-                  <div key={c.key} className="dditem" onClick={() => { setScope(c.key); setDdOpen(false); setSearch(''); setListMode(null); }}>
-                    <span className="dot" style={{ background: c.c }} /><span style={{ flex: 1 }}>{c.label}</span>
-                    <span style={{ fontSize: 11, color: C.soft }}>{c.count}</span>
-                  </div>
-                ))}
-              </div>
-            )}
-          </div>
           <Link className="hubbtn" href="/quizzes/hub"><BarChart3 size={16} /> Stat Hub <ArrowRight size={15} /></Link>
         </div>
 
@@ -620,7 +629,7 @@ export default function QuizHomeClient() {
         </div>
 
         {/* browse header + search */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 12, flexWrap: 'wrap' }}>
+        <div className="qz-browserow" style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 12, flexWrap: 'wrap' }}>
           {!(!searchResults && scope === 'all' && !listMode) && (
             <h2 style={{ fontSize: 17, fontWeight: 800, margin: 0, whiteSpace: 'nowrap', display: 'flex', alignItems: 'center', gap: 10 }}>
               {listMode && !searchResults && scope === 'all' && (
@@ -633,6 +642,27 @@ export default function QuizHomeClient() {
                 : 'Live · Quizzes Played'}
             </h2>
           )}
+          <div className="dd qz-catbtn" onClick={(e) => e.stopPropagation()}>
+            <button className="ddbtn" onClick={(e) => { e.stopPropagation(); setDdOpen((o) => !o); }}>
+              <span className="dot" style={{ background: scope === 'all' ? C.ink : (byKey[scope]?.c || C.ink) }} />
+              <span style={{ fontWeight: 600, fontSize: 13 }}>{scope === 'all' ? 'Category: All' : byKey[scope]?.label}</span>
+              <ChevronDown size={16} style={{ color: C.muted }} />
+            </button>
+            {ddOpen && (
+              <div className="ddmenu" onClick={(e) => e.stopPropagation()}>
+                <div className="dditem ddall" onClick={() => { setScope('all'); setDdOpen(false); setSearch(''); setListMode(null); }}>
+                  <span className="dot" style={{ background: C.ink }} /><span style={{ flex: 1 }}>All Categories</span>
+                  <span style={{ fontSize: 11, color: C.soft }}>{totalCount}</span>
+                </div>
+                {cats.map((c) => (
+                  <div key={c.key} className="dditem" onClick={() => { setScope(c.key); setDdOpen(false); setSearch(''); setListMode(null); }}>
+                    <span className="dot" style={{ background: c.c }} /><span style={{ flex: 1 }}>{c.label}</span>
+                    <span style={{ fontSize: 11, color: C.soft }}>{c.count}</span>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
           {daily && (
             <Link href="/quizzes/hub?tab=challenges" className="qz-daily" style={{ flex: '0 0 auto', display: 'flex', alignItems: 'center', gap: 9, background: C.accent, color: '#fff', padding: '8px 14px', borderRadius: 10, textDecoration: 'none' }}>
               <Flame size={17} style={{ flex: 'none' }} />
@@ -643,7 +673,7 @@ export default function QuizHomeClient() {
               <ArrowRight size={15} style={{ flex: 'none' }} />
             </Link>
           )}
-          <div style={{ position: 'relative', flex: '1 1 200px' }}>
+          <div className="qz-searchwrap" style={{ position: 'relative', flex: '1 1 200px' }}>
             <Search size={16} style={{ position: 'absolute', left: 12, top: '50%', transform: 'translateY(-50%)', color: C.soft }} />
             <input
               value={search}

@@ -1,5 +1,5 @@
 'use client';
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useRef } from 'react';
 import Link from 'next/link';
 import {
   ArrowLeft, BadgeCheck, User, ListChecks, Flame, FunctionSquare, Clock, Trophy, RefreshCw, Share2, Download, UserPlus, X,
@@ -276,6 +276,31 @@ export default function StatHubClient() {
   const statsById = useMemo(() => Object.fromEntries(stats.map((s) => [s.quizId, s])), [stats]);
   const totalPlays = useMemo(() => stats.reduce((a, s) => a + (s.plays || 0), 0), [stats]);
 
+  const playerBarRef = useRef(null);
+  const bestCatRef = useRef(null);
+  useEffect(() => {
+    const bar = playerBarRef.current;
+    if (!bar) return;
+    let lastW = -1;
+    const evaluate = () => {
+      const w = bar.clientWidth;
+      if (w === lastW) return;
+      lastW = w;
+      const el = bestCatRef.current;
+      if (!el) return;
+      if (w <= 560) { el.style.display = ''; return; }
+      el.style.display = '';
+      const baseTop = bar.firstElementChild ? bar.firstElementChild.offsetTop : 0;
+      let wrapped = false;
+      for (const child of bar.children) { if (child.offsetTop > baseTop + 4) { wrapped = true; break; } }
+      el.style.display = wrapped ? 'none' : '';
+    };
+    const ro = new ResizeObserver(evaluate);
+    ro.observe(bar);
+    evaluate();
+    return () => ro.disconnect();
+  }, [bestCat, profile, found]);
+
   const css = `
     @import url('https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap');
     .qzhub{font-family:${FONT};color:${C.ink};}
@@ -315,7 +340,7 @@ export default function StatHubClient() {
     @media(max-width:680px){.qzhub .rgrid{grid-template-columns:1fr !important;}}
     @media(max-width:560px){.qzhub .shpbar{gap:8px 12px !important;padding:13px 14px !important;}.qzhub .shpbar-id{order:1;}.qzhub .shpbar-share{order:2;margin-left:auto !important;width:auto !important;padding:8px 13px !important;}.qzhub .shpbar-iddiv,.qzhub .shpbar-maindiv{display:none !important;}.qzhub .shpbar-main{order:3;flex-basis:100% !important;width:100% !important;gap:14px !important;}.qzhub .shpbar-main > div:nth-child(3){gap:14px !important;}.qzhub .sh-mext{display:none !important;}.qzhub .sh-rank{font-size:30px !important;}}
     .qzhub .lbl2{font-size:10px;font-weight:600;letter-spacing:.04em;text-transform:uppercase;color:${C.muted};}
-    .qzhub .hubbtn{display:flex;align-items:center;gap:7px;background:${C.accent};color:#fff;padding:10px 15px;border-radius:10px;font-weight:700;font-size:13px;border:none;cursor:pointer;white-space:nowrap;}
+    .qzhub .hubbtn{display:flex;align-items:center;gap:7px;background:${C.accent};color:#fff;padding:10px 15px;border-radius:10px;font-family:${FONT};font-weight:700;font-size:13px;border:none;cursor:pointer;white-space:nowrap;}
     .qzhub .hubbtn:hover{filter:brightness(1.06);}
     @media(max-width:560px){.qz-playerbar{flex-wrap:wrap !important;align-items:center !important;gap:10px 14px !important;}.qz-playerbar .qz-div{display:none !important;}.qz-playerbar .qz-stats{flex:1 1 100% !important;margin-left:0 !important;justify-content:space-between !important;gap:10px !important;}.qz-playerbar .hubbtn{flex:1 1 0 !important;justify-content:center !important;align-self:stretch !important;}}
   `;
@@ -330,7 +355,7 @@ export default function StatHubClient() {
         <SiteHeader active="quizzes" bare />
 
         {/* player bar — same layout as the main quiz page; Share Stats in place of Sort + Stat Hub */}
-        <div className="card qz-playerbar" style={{ display: 'flex', flexDirection: 'row', alignItems: 'center', flexWrap: 'wrap', gap: 16, padding: '11px 14px', marginTop: 12, overflow: 'visible', position: 'relative', zIndex: 40 }}>
+        <div ref={playerBarRef} className="card qz-playerbar" style={{ display: 'flex', flexDirection: 'row', alignItems: 'center', flexWrap: 'wrap', gap: 16, padding: '11px 14px', marginTop: 12, overflow: 'visible', position: 'relative', zIndex: 40 }}>
           {profile && profile.name ? (
             <div style={{ display: 'flex', flexDirection: 'column', minWidth: 0 }}>
               <div className="lbl">Player</div>
@@ -344,15 +369,21 @@ export default function StatHubClient() {
             <div className="lbl">Skill rank</div>
             {found && profile.rank ? (
               <div style={{ display: 'flex', alignItems: 'baseline', gap: 5 }}>
-                <span style={{ fontSize: 22, fontWeight: 700, color: C.accent, lineHeight: 1 }}>{`#${profile.rank}`}</span>
+                <span style={{ fontSize: 17, fontWeight: 700, color: C.accent, lineHeight: 1 }}>{`#${profile.rank}`}</span>
                 {profile.totalPlayers ? <span style={{ fontSize: 11, color: C.muted }}>of {profile.totalPlayers.toLocaleString()}</span> : null}
               </div>
             ) : (
               <div style={{ fontSize: 12, fontWeight: 600, color: C.muted, lineHeight: 1.2, marginTop: 2, maxWidth: 160 }}>Play your first quiz to populate</div>
             )}
           </div>
+          <div className="qz-stats" style={{ display: 'flex', flex: '1 1 auto', justifyContent: 'space-evenly', gap: 12, marginLeft: 18, flexWrap: 'wrap' }}>
+            <div><div style={{ fontSize: 17, fontWeight: 700 }}>{found ? profile.activity.played : '—'}</div><div className="lbl">played</div></div>
+            <div><div style={{ fontSize: 17, fontWeight: 700 }}>{found ? profile.activity.correct.toLocaleString() : '—'}</div><div className="lbl">correct</div></div>
+            <div><div style={{ fontSize: 17, fontWeight: 700 }}>{found ? `${profile.activity.accuracy}%` : '—'}</div><div className="lbl">accuracy</div></div>
+            <div><div style={{ display: 'flex', alignItems: 'baseline', gap: 4 }}><span style={{ fontSize: 17, fontWeight: 700 }}>{found ? profile.activity.completed : '—'}</span>{found && catalog.length ? <span style={{ fontSize: 11, fontWeight: 600, color: C.soft }}>({profile.activity.completed > 0 && profile.activity.completed / catalog.length < 0.005 ? '<1' : Math.round((profile.activity.completed / catalog.length) * 100)}%)</span> : null}</div><div className="lbl">completed</div></div>
+          </div>
           {bestCat ? (
-            <div className="qz-bestcat">
+            <div className="qz-bestcat" ref={bestCatRef}>
               <div className="lbl">Best category</div>
               <div style={{ display: 'flex', alignItems: 'baseline', gap: 5, whiteSpace: 'nowrap' }}>
                 <span style={{ fontSize: 14, fontWeight: 700, color: C.ink, lineHeight: 1.2 }}>{DEPT_LABEL[bestCat.key] || bestCat.key}</span>
@@ -360,12 +391,6 @@ export default function StatHubClient() {
               </div>
             </div>
           ) : null}
-          <div className="qz-stats" style={{ display: 'flex', flex: '1 1 auto', justifyContent: 'space-evenly', gap: 12, marginLeft: 18, flexWrap: 'wrap' }}>
-            <div><div style={{ display: 'flex', alignItems: 'baseline', gap: 4 }}><span style={{ fontSize: 17, fontWeight: 700 }}>{found ? profile.activity.completed : '—'}</span>{found && catalog.length ? <span style={{ fontSize: 11, fontWeight: 600, color: C.soft }}>({profile.activity.completed > 0 && profile.activity.completed / catalog.length < 0.005 ? '<1' : Math.round((profile.activity.completed / catalog.length) * 100)}%)</span> : null}</div><div className="lbl">completed</div></div>
-            <div><div style={{ fontSize: 17, fontWeight: 700 }}>{found ? profile.activity.played : '—'}</div><div className="lbl">played</div></div>
-            <div><div style={{ fontSize: 17, fontWeight: 700 }}>{found ? profile.activity.correct.toLocaleString() : '—'}</div><div className="lbl">correct</div></div>
-            <div><div style={{ fontSize: 17, fontWeight: 700 }}>{found ? `${profile.activity.accuracy}%` : '—'}</div><div className="lbl">accuracy</div></div>
-          </div>
           {found ? (
             <button onClick={() => setShareOpen(true)} className="hubbtn"><Share2 size={15} strokeWidth={2.4} /> Share Stats</button>
           ) : null}
