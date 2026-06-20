@@ -1,0 +1,186 @@
+import { cache } from 'react';
+import { notFound } from 'next/navigation';
+import DetailClient from './DetailClient';
+import { LISTS } from '@/lib/data';
+import { getSources } from '@/lib/helpers';
+import { supabase } from '@/lib/supabase';
+
+// Re-render each list page (and its metadata) at most hourly so the SEO
+// description and JSON-LD track the live, vote-inclusive consensus instead
+// of the static ai seed. Pages stay statically served between revalidations.
+export const revalidate = 3600;
+
+function getItemNames(items, count) {
+  if (!Array.isArray(items)) return [];
+  return items
+    .slice(0, count)
+    .map((item) => (typeof item === 'string' ? item : item?.name || item?.title || ''))
+    .filter(Boolean);
+}
+
+// Compute the same consensus the page renders: Borda over publications plus
+// the live People vote (and user extras) from Supabase. Cached per render
+// pass so generateMetadata and the page body share one fetch.
+const getConsensusItems = cache(async (listId) => {
+  const list = LISTS.find((l) => l.id === listId);
+  if (!list) return [];
+
+  const seed = list.sources?.ai?.items || list.vote?.items || [];
+  const seedItems = Array.isArray(seed) ? seed : [];
+
+  // Non-consensus modes (facts / scores / unranked / votes) render the ai
+  // seed order on the page; mirror that here.
+  if (
+    list.mode === 'facts' ||
+    list.mode === 'scores' ||
+    list.mode === 'unranked' ||
+    list.mode === 'votes'
+  ) {
+    return seedItems;
+  }
+
+  try {
+    const [votesRes, extrasRes] = await Promise.all([
+      supabase.from('votes').select('item_name,score').eq('list_id', list.id),
+      supabase.from('extras').select('item_name').eq('list_id', list.id),
+    ]);
+
+    // Same shaping as /api/bootstrap: key `${listId}::${name}`, clamp legacy
+    // negative scores to 0.
+    const voteData = {};
+    (votesRes.data || []).forEach((row) => {
+      voteData[`${list.id}::${row.item_name.toLowerCase().trim()}`] = Math.max(0, row.score);
+    });
+    const extras = (extrasRes.data || []).map((r) => r.item_name);
+
+    const sources = getSources(list, voteData, extras);
+    const consensus = Array.isArray(sources)
+      ? sources.find((s) => s.id === 'consensus')
+      : null;
+    if (consensus && Array.isArray(consensus.items) && consensus.items.length > 0) {
+      return consensus.items;
+    }
+  } catch (e) {
+    console.error('live consensus for metadata failed', list.id, e);
+  }
+
+  // Graceful fallback: publications-only consensus, then the seed.
+  try {
+    const sources = getSources(list);
+    const consensus = Array.isArray(sources)
+      ? sources.find((s) => s.id === 'consensus')
+      : null;
+    if (consensus && Array.isArray(consensus.items) && consensus.items.length > 0) {
+      return consensus.items;
+    }
+  } catch (e) {
+    // fall through to seed
+  }
+  return seedItems;
+});
+
+function generateSeoDescription(list, consensusItems) {
+  const top3 = getItemNames(consensusItems, 3);
+  const top3Str = top3.join(', ');
+
+  const sourceKeys = Object.keys(list.sources || {}).filter((k) => k !== 'ai');
+  const sourceCount = sourceKeys.length;
+
+  if (list.mode === 'facts' || list.mode === 'scores' || list.mode === 'unranked') {
+    const sourceLabel = list.sources?.ai?.label || 'authoritative rankings';
+    return `${list.title}, ranked by ${sourceLabel}. Includes ${top3Str}. See the full ranking at Source of Truths.`;
+  }
+
+  if (list.mode === 'votes') {
+    return `${list.title}, ranked by readers. Vote on the picks including ${top3Str}. Cast your vote at Source of Truths.`;
+  }
+
+  if (sourceCount >= 2) {
+    return `${list.title}: compare rankings from ${sourceCount} expert publications and reader votes. Top picks: ${top3Str}.`;
+  }
+  return `${list.title}: expert rankings and reader votes. Top picks: ${top3Str}.`;
+}
+
+function buildStructuredData(list, baseUrl, consensusItems) {
+  const itemNames = getItemNames(consensusItems, 10);
+
+  if (itemNames.length === 0) return null;
+
+  return {
+    '@context': 'https://schema.org',
+    '@type': 'ItemList',
+    name: list.title,
+    description: list.blurb,
+    url: `${baseUrl}/list/${list.id}`,
+    numberOfItems: itemNames.length,
+    itemListOrder: 'https://schema.org/ItemListOrderDescending',
+    itemListElement: itemNames.map((name, idx) => ({
+      '@type': 'ListItem',
+      position: idx + 1,
+      name,
+    })),
+  };
+}
+
+export async function generateMetadata({ params }) {
+  const id = decodeURIComponent(params.id);
+  const list = LISTS.find((l) => l.id === id);
+
+  if (!list) {
+    return { title: 'List not found' };
+  }
+
+  const consensusItems = await getConsensusItems(id);
+  const url = `/list/${encodeURIComponent(id)}`;
+  const description = generateSeoDescription(list, consensusItems);
+
+  return {
+    title: list.title,
+    description,
+    alternates: { canonical: url },
+    openGraph: {
+      title: `${list.title} | Source of Truths`,
+      description,
+      url,
+      type: 'article',
+      siteName: 'Source of Truths',
+    },
+    twitter: {
+      card: 'summary_large_image',
+      title: `${list.title} | Source of Truths`,
+      description,
+    },
+  };
+}
+
+// On-demand ISR (Vercel support, 2026-06-11): do NOT prerender all ~450 list
+// pages at build. Each is ~1.28MB; together with the snapshot pages that is
+// >1.1GB of static output, which overruns Vercel's post-build deploy agent
+// (a separate memory limit that bigger build machines do NOT raise). Returning
+// [] renders each page on first request and CDN-caches it via `revalidate`.
+export const dynamicParams = true;
+
+export function generateStaticParams() {
+  return [];
+}
+
+export default async function ListPage({ params }) {
+  const id = decodeURIComponent(params.id);
+  const list = LISTS.find((l) => l.id === id);
+  if (!list) notFound();
+  const baseUrl = 'https://sourceoftruths.com';
+  const consensusItems = list ? await getConsensusItems(id) : [];
+  const jsonLd = list ? buildStructuredData(list, baseUrl, consensusItems) : null;
+
+  return (
+    <>
+      {jsonLd && (
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+        />
+      )}
+      <DetailClient key="list-overview" listId={id} />
+    </>
+  );
+}

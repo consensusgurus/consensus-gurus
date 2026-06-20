@@ -1,0 +1,65 @@
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  background: #f7f8fa;
+  color: #1c1e24;
+  font-family: 'DM Sans', system-ui, sans-serif;
+}
+
+html {
+  scroll-behavior: smooth;
+  /* Disable mobile-browser font boosting: long un-wrappable labels and the
+     scaled 1080px share posters otherwise get inconsistently inflated text. */
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+}
+
+input::placeholder,
+textarea::placeholder {
+  color: #7a6f5e;
+  opacity: 0.55;
+}
+
+input:focus,
+textarea:focus {
+  border-bottom-color: #c0392b !important;
+}
+
+select:focus {
+  outline: none;
+}
+
+a {
+  color: inherit;
+}
+
+/* Shared browse/list tile styles (used by BrowseTile + NTQuizTile on the
+   browse page AND the "More Lists" grid on list detail pages). Global so the
+   classes are styled wherever the tile component is rendered, not only inside
+   the browse page's inline <style>. */
+.nt-tile{height:100%;background:#fff;border:1px solid rgba(20,22,28,0.09);border-radius:12px;overflow:hidden;display:flex;flex-direction:column;text-decoration:none;color:#1c1e24;font-family:'Manrope',system-ui,-apple-system,sans-serif;transition:box-shadow .15s,transform .15s;}
+.nt-tile:hover{box-shadow:0 8px 24px rgba(20,22,28,0.10);transform:translateY(-2px);}
+.nt-timg{position:relative;height:180px;display:flex;align-items:center;justify-content:center;}
+.nt-tcat{position:absolute;top:8px;left:8px;font-size:9px;font-weight:800;letter-spacing:.05em;text-transform:uppercase;color:#fff;padding:3px 7px 3px 6px;border-radius:6px;display:inline-flex;align-items:center;gap:4px;box-shadow:0 1px 3px rgba(0,0,0,0.18);}
+.nt-tbadge{position:absolute;bottom:8px;left:8px;background:rgba(28,30,36,0.85);color:#fff;font-size:11px;font-weight:800;padding:2px 8px;border-radius:6px;}
+.nt-tbody{padding:12px 14px 13px;display:flex;flex-direction:column;flex:1 1 auto;}
+.nt-ttitle{font-size:16px;font-weight:800;line-height:1.18;letter-spacing:-0.01em;margin:0 0 9px;}
+.nt-lbl{font-size:9.5px;font-weight:700;letter-spacing:.07em;text-transform:uppercase;color:#9aa0ab;}
+.nt-crow{display:flex;align-items:flex-start;gap:9px;padding:5px 0;border-bottom:1px dashed rgba(20,22,28,0.12);font-size:12.5px;}
+.nt-crow:last-of-type{border-bottom:none;}
+.nt-cnum{flex:none;width:18px;height:18px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:800;margin-top:1px;}
+.nt-cname{flex:1 1 auto;min-width:0;line-height:1.3;}
+.nt-tfoot{display:flex;align-items:center;justify-content:space-between;margin-top:auto;padding-top:9px;border-top:1px solid rgba(20,22,28,0.09);}
+.nt-tfoot span{font-size:9.5px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;color:#9aa0ab;display:flex;align-items:center;gap:4px;}
+.nt-relwrap{flex:1 1 0;min-height:0;position:relative;overflow:hidden;margin-top:10px;}
+.nt-rel{display:flex;align-items:center;justify-content:space-between;gap:8px;background:#f7f8fa;border:1px solid rgba(20,22,28,0.09);border-radius:8px;padding:8px 11px;cursor:pointer;color:#1c1e24;transition:background .12s,border-color .12s;}
+.nt-rel:hover{background:#fff;border-color:#2563eb;}
+.nt-rel-t{flex:1 1 auto;min-width:0;font-size:12.5px;font-weight:700;line-height:1.2;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.nt-rel-a{flex:none;color:#2563eb;font-weight:800;}
+
+/* Round interactive controls site-wide (quiz tiles, Play/Give-up buttons, modal
+   buttons, inputs). Inline border-radius (where set) still overrides this. */
+button, input, textarea, select { border-radius: 8px; }
