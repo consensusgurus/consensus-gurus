@@ -924,11 +924,11 @@ function Home({ lists, viewCounts, voteData, extras, trending = {}, openList, on
       <style>{`
         @import url('https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap');
         .nt-wrap{max-width:1180px;margin:0 auto;padding:8px 24px 70px;}
-        .nt-stickytop{position:sticky;top:0;z-index:50;background:#f7f8fa;padding-bottom:16px;}
+        .nt-stickytop{position:sticky;top:0;z-index:50;background:#f7f8fa;}
         .nt-pillsbar{max-width:1180px;margin:0 auto;padding:8px 24px 0;}
         .nt-toolwrap{max-width:1180px;margin:0 auto;padding:0 24px;}
         .nt-bodywrap{padding-top:0;}
-        @media(max-width:560px){.nt-stickytop{position:static;padding-bottom:0;}.nt-pillsbar{padding:8px 14px 0;}.nt-toolwrap{padding:0 14px;}}
+        @media(max-width:560px){.nt-stickytop{position:static;}.nt-pillsbar{padding:8px 14px 0;}.nt-toolwrap{padding:0 14px;}}
         .nt-lbl{font-size:9.5px;font-weight:700;letter-spacing:.07em;text-transform:uppercase;color:${NT.soft};}
         .nt-crumb1{font-size:18px;font-weight:800;letter-spacing:-0.02em;color:${NT.ink};text-decoration:none;}
         .nt-crumb2{font-size:18px;font-weight:600;color:${NT.accent};}
@@ -947,7 +947,7 @@ function Home({ lists, viewCounts, voteData, extras, trending = {}, openList, on
         .nt-chip.on{background:${NT.accent};border-color:${NT.accent};color:#fff;}
         .nt-phead{font-size:9.5px;font-weight:800;letter-spacing:.16em;text-transform:uppercase;color:${NT.soft};margin:14px 0 8px;}
         .nt-phead:first-child{margin-top:0;}
-        .nt-toolbar{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-bottom:0;position:relative;}
+        .nt-toolbar{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-bottom:18px;position:relative;}
         .nt-field{position:relative;flex:1 1 280px;min-width:0;}
         .nt-field svg{position:absolute;left:12px;top:50%;transform:translateY(-50%);color:${NT.soft};}
         .nt-field input{width:100%;padding:10px 34px 10px 36px;border:1px solid ${NT.line};border-radius:10px;font-family:inherit;font-size:13.5px;background:#fff;outline:none;color:${NT.ink};}

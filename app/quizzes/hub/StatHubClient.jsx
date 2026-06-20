@@ -296,13 +296,16 @@ export default function StatHubClient() {
       if (!el) return;
       el.style.display = '';
       const maxRows = w <= 560 ? 2 : 1;
-      const tops = [];
+      // Count visual rows by each child's vertical CENTER: with align-items:center
+      // all items on one flex line share a center, so this is robust to the
+      // differing item heights that make raw offsetTop read as multiple rows.
+      const rows = [];
       for (const child of bar.children) {
         if (child.offsetWidth === 0 && child.offsetHeight === 0) continue;
-        const t = child.offsetTop;
-        if (!tops.some((x) => Math.abs(x - t) <= 2)) tops.push(t);
+        const cen = child.offsetTop + child.offsetHeight / 2;
+        if (!rows.some((x) => Math.abs(x - cen) <= 6)) rows.push(cen);
       }
-      el.style.display = tops.length > maxRows ? 'none' : '';
+      el.style.display = rows.length > maxRows ? 'none' : '';
     };
     const ro = new ResizeObserver(evaluate);
     ro.observe(bar);
