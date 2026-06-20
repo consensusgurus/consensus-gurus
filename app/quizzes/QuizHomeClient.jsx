@@ -306,6 +306,10 @@ export default function QuizHomeClient() {
         played: a.played ?? null,
         completed: a.completed ?? null,
         accuracy: a.accuracy ?? null,
+        playedRank: (me.ranks && me.ranks.played) || null,
+        correctRank: (me.ranks && me.ranks.correct) || null,
+        completedRank: (me.ranks && me.ranks.completed) || null,
+        accuracyRank: (me.ranks && me.ranks.accuracy) || null,
       };
     }
     const c = me.byCategory ? me.byCategory[scope] : null;
@@ -317,6 +321,10 @@ export default function QuizHomeClient() {
       played: c.played ?? null,
       completed: c.completed ?? null,
       accuracy: c.accuracy ?? null,
+      playedRank: c.playedRank || null,
+      correctRank: c.correctRank || null,
+      completedRank: c.completedRank || null,
+      accuracyRank: c.accuracyRank || null,
     };
   }, [me, scope]);
 
@@ -521,6 +529,8 @@ export default function QuizHomeClient() {
     .qzh a.qlink{text-decoration:none;color:inherit;}
     .qzh .qz-catbtn .ddmenu{left:0;right:auto;}
     .qzh .qz-catbtn{align-self:stretch;}
+    .qzh .qz-srank{font-size:11px;font-weight:600;color:${C.soft};}
+    @media(max-width:560px){.qzh .qz-srank{display:none !important;}}
     .qzh .qz-catbtn .ddbtn{height:100%;box-sizing:border-box;}
     @media(max-width:560px){.qzh .qz-browserow{align-items:stretch !important;}.qzh .qz-catbtn{flex:1 1 0 !important;min-width:0;}.qzh .qz-catbtn .ddbtn{width:100%;justify-content:center;height:100%;box-sizing:border-box;}.qzh .qz-daily{flex:1 1 0 !important;justify-content:center !important;align-self:stretch;}.qzh .qz-searchwrap{flex:1 1 100% !important;}}
   `;
@@ -555,10 +565,10 @@ export default function QuizHomeClient() {
             )}
           </div>
           <div className="qz-stats" style={{ display: 'flex', flex: '1 1 auto', justifyContent: 'space-evenly', gap: 12, marginLeft: 18, flexWrap: 'wrap' }}>
-            <div><div style={{ fontSize: 17, fontWeight: 700 }}>{playerStats && playerStats.played != null ? playerStats.played : '—'}</div><div className="lbl">played</div></div>
-            <div><div style={{ fontSize: 17, fontWeight: 700 }}>{playerStats && playerStats.correct != null ? playerStats.correct.toLocaleString() : '—'}</div><div className="lbl">correct</div></div>
-            <div><div style={{ fontSize: 17, fontWeight: 700 }}>{playerStats && playerStats.accuracy != null ? `${playerStats.accuracy}%` : '—'}</div><div className="lbl">accuracy</div></div>
-            <div><div style={{ display: 'flex', alignItems: 'baseline', gap: 4 }}><span style={{ fontSize: 17, fontWeight: 700 }}>{playerStats && playerStats.completed != null ? playerStats.completed : '—'}</span>{playerStats && playerStats.completed != null && scopeCount ? <span style={{ fontSize: 11, fontWeight: 600, color: C.soft }}>({playerStats.completed > 0 && playerStats.completed / scopeCount < 0.005 ? '<1' : Math.round((playerStats.completed / scopeCount) * 100)}%)</span> : null}</div><div className="lbl">completed</div></div>
+            <div><div style={{ display: 'flex', alignItems: 'baseline', gap: 4 }}><span style={{ fontSize: 17, fontWeight: 700 }}>{playerStats && playerStats.played != null ? playerStats.played : '—'}</span>{playerStats && playerStats.playedRank ? <span className="qz-srank">#{playerStats.playedRank}</span> : null}</div><div className="lbl">played</div></div>
+            <div><div style={{ display: 'flex', alignItems: 'baseline', gap: 4 }}><span style={{ fontSize: 17, fontWeight: 700 }}>{playerStats && playerStats.correct != null ? playerStats.correct.toLocaleString() : '—'}</span>{playerStats && playerStats.correctRank ? <span className="qz-srank">#{playerStats.correctRank}</span> : null}</div><div className="lbl">correct</div></div>
+            <div><div style={{ display: 'flex', alignItems: 'baseline', gap: 4 }}><span style={{ fontSize: 17, fontWeight: 700 }}>{playerStats && playerStats.accuracy != null ? `${playerStats.accuracy}%` : '—'}</span>{playerStats && playerStats.accuracyRank ? <span className="qz-srank">#{playerStats.accuracyRank}</span> : null}</div><div className="lbl">accuracy</div></div>
+            <div><div style={{ display: 'flex', alignItems: 'baseline', gap: 4 }}><span style={{ fontSize: 17, fontWeight: 700 }}>{playerStats && playerStats.completed != null ? playerStats.completed : '—'}</span>{playerStats && playerStats.completed != null && scopeCount ? <span style={{ fontSize: 11, fontWeight: 600, color: C.soft }}>({playerStats.completed > 0 && playerStats.completed / scopeCount < 0.005 ? '<1' : Math.round((playerStats.completed / scopeCount) * 100)}%)</span> : null}{playerStats && playerStats.completedRank ? <span className="qz-srank">#{playerStats.completedRank}</span> : null}</div><div className="lbl">completed</div></div>
           </div>
           {bestCat ? (
             <div className="qz-bestcat" ref={bestCatRef}>

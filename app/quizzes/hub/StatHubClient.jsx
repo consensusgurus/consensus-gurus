@@ -354,6 +354,8 @@ export default function StatHubClient() {
     .qzhub .lbl2{font-size:10px;font-weight:600;letter-spacing:.04em;text-transform:uppercase;color:${C.muted};}
     .qzhub .hubbtn{display:flex;align-items:center;gap:7px;background:${C.accent};color:#fff;padding:10px 15px;border-radius:10px;font-family:${FONT};font-weight:700;font-size:13px;border:none;cursor:pointer;white-space:nowrap;}
     .qzhub .hubbtn:hover{filter:brightness(1.06);}
+    .qzhub .qz-srank{font-size:11px;font-weight:600;color:${C.soft};}
+    @media(max-width:560px){.qzhub .qz-srank{display:none !important;}}
     @media(max-width:560px){.qz-playerbar{flex-wrap:wrap !important;align-items:center !important;gap:10px 14px !important;}.qz-playerbar .qz-div{display:none !important;}.qz-playerbar .qz-stats{order:9 !important;flex:1 1 100% !important;margin-left:0 !important;justify-content:space-between !important;gap:10px !important;}.qz-playerbar .qz-bestcat{order:3 !important;}.qz-playerbar .hubbtn{order:4 !important;margin-left:auto !important;flex:0 0 auto !important;}}
   `;
 
@@ -389,10 +391,10 @@ export default function StatHubClient() {
             )}
           </div>
           <div className="qz-stats" style={{ display: 'flex', flex: '1 1 auto', justifyContent: 'space-evenly', gap: 12, marginLeft: 18, flexWrap: 'wrap' }}>
-            <div><div style={{ fontSize: 17, fontWeight: 700 }}>{found ? profile.activity.played : '—'}</div><div className="lbl">played</div></div>
-            <div><div style={{ fontSize: 17, fontWeight: 700 }}>{found ? profile.activity.correct.toLocaleString() : '—'}</div><div className="lbl">correct</div></div>
-            <div><div style={{ fontSize: 17, fontWeight: 700 }}>{found ? `${profile.activity.accuracy}%` : '—'}</div><div className="lbl">accuracy</div></div>
-            <div><div style={{ display: 'flex', alignItems: 'baseline', gap: 4 }}><span style={{ fontSize: 17, fontWeight: 700 }}>{found ? profile.activity.completed : '—'}</span>{found && catalog.length ? <span style={{ fontSize: 11, fontWeight: 600, color: C.soft }}>({profile.activity.completed > 0 && profile.activity.completed / catalog.length < 0.005 ? '<1' : Math.round((profile.activity.completed / catalog.length) * 100)}%)</span> : null}</div><div className="lbl">completed</div></div>
+            <div><div style={{ display: 'flex', alignItems: 'baseline', gap: 4 }}><span style={{ fontSize: 17, fontWeight: 700 }}>{found ? profile.activity.played : '—'}</span>{found && profile.ranks && profile.ranks.played ? <span className="qz-srank">#{profile.ranks.played}</span> : null}</div><div className="lbl">played</div></div>
+            <div><div style={{ display: 'flex', alignItems: 'baseline', gap: 4 }}><span style={{ fontSize: 17, fontWeight: 700 }}>{found ? profile.activity.correct.toLocaleString() : '—'}</span>{found && profile.ranks && profile.ranks.correct ? <span className="qz-srank">#{profile.ranks.correct}</span> : null}</div><div className="lbl">correct</div></div>
+            <div><div style={{ display: 'flex', alignItems: 'baseline', gap: 4 }}><span style={{ fontSize: 17, fontWeight: 700 }}>{found ? `${profile.activity.accuracy}%` : '—'}</span>{found && profile.ranks && profile.ranks.accuracy ? <span className="qz-srank">#{profile.ranks.accuracy}</span> : null}</div><div className="lbl">accuracy</div></div>
+            <div><div style={{ display: 'flex', alignItems: 'baseline', gap: 4 }}><span style={{ fontSize: 17, fontWeight: 700 }}>{found ? profile.activity.completed : '—'}</span>{found && catalog.length ? <span style={{ fontSize: 11, fontWeight: 600, color: C.soft }}>({profile.activity.completed > 0 && profile.activity.completed / catalog.length < 0.005 ? '<1' : Math.round((profile.activity.completed / catalog.length) * 100)}%)</span> : null}{found && profile.ranks && profile.ranks.completed ? <span className="qz-srank">#{profile.ranks.completed}</span> : null}</div><div className="lbl">completed</div></div>
           </div>
           {bestCat ? (
             <div className="qz-bestcat" ref={bestCatRef}>
