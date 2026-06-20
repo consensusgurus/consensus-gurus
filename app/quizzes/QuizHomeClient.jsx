@@ -332,11 +332,17 @@ export default function QuizHomeClient() {
   const todayQuizRows = useMemo(() => (todayData.byQuizzes || []).slice(0, boardsExpanded ? 10 : 3), [todayData, boardsExpanded]);
   const bestCat = useMemo(() => {
     if (!me || !me.byCategory) return null;
+    // Best category = where the player ranks highest on COMPLETED; ties break to
+    // skill (rating) rank in that category, then to played rank.
     let best = null;
     for (const k of Object.keys(me.byCategory)) {
       const c = me.byCategory[k];
-      if (!c || !(c.correct > 0)) continue;
-      if (!best || c.correct > best.correct || (c.correct === best.correct && (c.accuracy || 0) > (best.accuracy || 0))) best = { key: k, correct: c.correct, accuracy: c.accuracy || 0, rank: c.rank, catTotal: c.catTotal };
+      if (!c || !(c.matches > 0)) continue;
+      const cand = { key: k, rank: c.completedRank ?? c.rank, catTotal: c.catTotal,
+        cR: c.completedRank ?? Infinity, sR: c.rank ?? Infinity, pR: c.playedRank ?? Infinity };
+      if (!best || cand.cR < best.cR
+          || (cand.cR === best.cR && cand.sR < best.sR)
+          || (cand.cR === best.cR && cand.sR === best.sR && cand.pR < best.pR)) best = cand;
     }
     return best;
   }, [me]);
@@ -452,12 +458,15 @@ export default function QuizHomeClient() {
       lastW = w;
       const el = bestCatRef.current;
       if (!el) return;
-      if (w <= 560) { el.style.display = ''; return; }
       el.style.display = '';
-      const baseTop = bar.firstElementChild ? bar.firstElementChild.offsetTop : 0;
-      let wrapped = false;
-      for (const child of bar.children) { if (child.offsetTop > baseTop + 4) { wrapped = true; break; } }
-      el.style.display = wrapped ? 'none' : '';
+      const maxRows = w <= 560 ? 2 : 1;
+      const tops = [];
+      for (const child of bar.children) {
+        if (child.offsetWidth === 0 && child.offsetHeight === 0) continue;
+        const t = child.offsetTop;
+        if (!tops.some((x) => Math.abs(x - t) <= 2)) tops.push(t);
+      }
+      el.style.display = tops.length > maxRows ? 'none' : '';
     };
     const ro = new ResizeObserver(evaluate);
     ro.observe(bar);
@@ -502,12 +511,14 @@ export default function QuizHomeClient() {
     .qzh .qrow .qtitle{font-size:13px;font-weight:500;}
     .qzh .qmeta{flex:none;display:flex;align-items:center;gap:10px;font-size:10.5px;}
     .qzh .hubbtn{display:flex;align-items:center;gap:7px;background:${C.accent};color:#fff;padding:10px 15px;border-radius:10px;font-weight:700;font-size:13px;text-decoration:none;white-space:nowrap;}
-    @media(max-width:560px){.qz-playerbar{flex-wrap:wrap !important;align-items:center !important;gap:10px 14px !important;}.qz-playerbar .qz-div{display:none !important;}.qz-playerbar .qz-stats{flex:1 1 100% !important;margin-left:0 !important;justify-content:space-between !important;gap:10px !important;}.qz-playerbar .dd{flex:1 1 0 !important;min-width:0 !important;align-self:stretch !important;}.qz-playerbar .dd .ddbtn{width:100% !important;justify-content:center !important;height:100% !important;box-sizing:border-box !important;}.qz-playerbar .hubbtn{flex:1 1 0 !important;justify-content:center !important;align-self:stretch !important;}.qz-daily{flex:1 1 100% !important;justify-content:center !important;}.qzh .boards{display:none !important;}.qz-submit{display:none !important;}}
+    @media(max-width:560px){.qz-playerbar{flex-wrap:wrap !important;align-items:center !important;gap:10px 14px !important;}.qz-playerbar .qz-div{display:none !important;}.qz-playerbar .qz-stats{order:9 !important;flex:1 1 100% !important;margin-left:0 !important;justify-content:space-between !important;gap:10px !important;}.qz-playerbar .qz-bestcat{order:3 !important;}.qz-playerbar .hubbtn{order:4 !important;margin-left:auto !important;flex:0 0 auto !important;}.qzh .boards{display:none !important;}.qz-submit{display:none !important;}}
     .qzh .hubbtn:hover{filter:brightness(1.06);}
     .qzh .crumb1{font-size:18px;font-weight:800;letter-spacing:-0.02em;}
     .qzh .crumb2{font-size:18px;font-weight:600;color:${C.accent};}
     .qzh a.qlink{text-decoration:none;color:inherit;}
     .qzh .qz-catbtn .ddmenu{left:0;right:auto;}
+    .qzh .qz-catbtn{align-self:stretch;}
+    .qzh .qz-catbtn .ddbtn{height:100%;box-sizing:border-box;}
     @media(max-width:560px){.qzh .qz-browserow{align-items:stretch !important;}.qzh .qz-catbtn{flex:1 1 0 !important;min-width:0;}.qzh .qz-catbtn .ddbtn{width:100%;justify-content:center;height:100%;box-sizing:border-box;}.qzh .qz-daily{flex:1 1 0 !important;justify-content:center !important;align-self:stretch;}.qzh .qz-searchwrap{flex:1 1 100% !important;}}
   `;
 
