@@ -1157,7 +1157,7 @@ export default function QuizClient({ quizId }) {
                   autoCapitalize="none"
                   autoCorrect="off"
                   spellCheck={false}
-                  style={{ flex: 1, fontFamily: SANS, fontSize: 17, padding: '14px 16px', borderRadius: 10, border: `1.5px solid ${COLORS.ink}`, borderRadius: 8, background: !started || ended ? COLORS.paper : '#eceef1', color: COLORS.ink, opacity: !started || ended ? 0.5 : 1 }}
+                  style={{ flex: 1, minWidth: 0, fontFamily: SANS, fontSize: 17, padding: '14px 16px', borderRadius: 10, border: `1.5px solid ${COLORS.ink}`, borderRadius: 8, background: !started || ended ? COLORS.paper : '#eceef1', color: COLORS.ink, opacity: !started || ended ? 0.5 : 1 }}
                 />
               )}
               <div style={{ position: 'relative', display: 'flex', flex: (matched && !ordered) || mapMode || tileMode ? 1 : 'none' }}>

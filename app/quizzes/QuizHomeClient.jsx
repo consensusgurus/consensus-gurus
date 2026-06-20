@@ -489,7 +489,7 @@ export default function QuizHomeClient() {
     /* Ranking leaderboard (1st card) on the narrow LEFT track; the last-played
        feed (2nd card) on the wide RIGHT track. Natural source order, no reorder. */
     @media(max-width:680px){.qzh .boards{grid-template-columns:1fr;}}
-    .qzh .qcols{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:6px 26px;}
+    .qzh .qcols{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(100%,300px),1fr));gap:6px 26px;}
     .qzh .qfull{column-count:2;column-gap:26px;}
     .qzh .qfull > a{display:flex;break-inside:avoid;-webkit-column-break-inside:avoid;}
     .qzh .qflow{column-width:310px;column-gap:26px;}
