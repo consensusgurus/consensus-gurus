@@ -571,7 +571,7 @@ export default function QuizHomeClient() {
     .qzh .ddbtn{display:flex;align-items:center;gap:8px;background:#fff;border:1px solid ${C.line};border-radius:10px;padding:9px 12px;cursor:pointer;font:inherit;}
     .qzh .ddmenu{position:absolute;top:calc(100% + 6px);right:0;z-index:30;background:#fff;border:1px solid ${C.line};border-radius:10px;box-shadow:0 8px 24px rgba(20,22,28,0.12);padding:6px;min-width:430px;display:grid;grid-template-columns:1fr 1fr;gap:1px 4px;}
     .qzh .ddmenu .ddall{grid-column:1 / -1;}
-    @media(max-width:560px){.qzh .dd{position:static !important;}.qzh .ddmenu{left:0;right:0;width:auto;min-width:0;max-width:none;grid-template-columns:1fr 1fr;}}
+    @media(max-width:560px){.qzh .ddmenu{left:0;right:auto;width:max-content;min-width:200px;max-width:88vw;grid-template-columns:1fr;max-height:60vh;overflow-y:auto;}}
     .qzh .dditem{display:flex;align-items:center;gap:9px;padding:7px 9px;border-radius:7px;cursor:pointer;font-size:13px;}
     .qzh .dditem:hover{background:${C.bg};}
     .qzh .dot{width:9px;height:9px;border-radius:3px;flex:none;}
