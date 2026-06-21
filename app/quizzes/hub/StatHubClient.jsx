@@ -2,7 +2,7 @@
 import React, { useState, useEffect, useMemo, useRef } from 'react';
 import Link from 'next/link';
 import {
-  ArrowLeft, BadgeCheck, User, ListChecks, Flame, FunctionSquare, Clock, Trophy, RefreshCw, Share2, Download, UserPlus, Play, X, Check, CheckCircle2,
+  ArrowLeft, BadgeCheck, User, ListChecks, Flame, FunctionSquare, Clock, Trophy, RefreshCw, Share2, Download, UserPlus, Play, X, Check, Star,
 } from 'lucide-react';
 import { QUIZZES, getQuiz } from '@/lib/quizzes';
 import { quizDept as deptOf, DEPT_COLOR, DEPT_LABEL, DEPT_NAV } from '@/lib/quiz-departments';
@@ -505,7 +505,7 @@ function PlayerPanel({ me, scope, cats, byKey, totalQuizzes, board, myName, myAn
 
   // Column sort for the Category Detail table. The Overall row is rendered
   // separately and stays pinned on top; only these category rows get sorted.
-  const [catSort, setCatSort] = useState({ col: null, dir: 'desc' });
+  const [catSort, setCatSort] = useState({ col: 'rating', dir: 'desc' });
   const sortedCatRows = useMemo(() => {
     if (!catSort.col) return catRows;
     const col = CAT_COLS.find((cc) => cc.key === catSort.col) || CAT_COLS[0];
@@ -644,7 +644,7 @@ function UserBaseBody({ board, myName, myAnonKey, onSelectPlayer, viewKey }) {
   if (!board) return <div style={{ fontSize: 13, color: C.soft, padding: '6px 0' }}>Loading the full ranking…</div>;
   if (!board.length) return <div style={{ fontSize: 13, color: C.soft, padding: '6px 0' }}>No ranked players yet.</div>;
   const COLS = [
-    { key: 'rank', label: '#', w: 44, align: 'left' },
+    { key: 'rank', label: 'Rank', w: 60, align: 'left' },
     { key: 'name', label: 'Player', align: 'left', get: (p) => (p.name || '').toLowerCase() },
     { key: 'rating', label: 'Skill Rating', align: 'right', get: (p) => p.rating || 0 },
     { key: 'correct', label: 'Correct', align: 'right', get: (p) => p.correct || 0 },
@@ -731,7 +731,7 @@ function QuizzesPanel({ me, myProfile, scope, byKey, catalog, stats, totals, tot
               {rows.map(({ q, s, leader, leaderKey }) => (
                 <tr key={q.id}>
                   <td style={{ fontWeight: 600, maxWidth: 280, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                    <Link href={`/quiz/${q.id}`} className="qlink">{q.title}</Link>{doneCompleted.has(q.id) ? <CheckCircle2 size={13} strokeWidth={2.5} style={{ color: C.accent, marginLeft: 5, verticalAlign: '-2px' }} aria-label="Completed (100%)" /> : donePlayed.has(q.id) ? <Check size={13} strokeWidth={2.75} style={{ color: '#10b981', marginLeft: 5, verticalAlign: '-2px' }} aria-label="Played" /> : null}
+                    <Link href={`/quiz/${q.id}`} className="qlink">{q.title}</Link>{doneCompleted.has(q.id) ? <Star size={13} strokeWidth={1.5} fill="#e8b43a" color="#e8b43a" style={{ marginLeft: 5, verticalAlign: '-2px' }} aria-label="Completed (100%)" /> : donePlayed.has(q.id) ? <Check size={13} strokeWidth={2.75} style={{ color: '#10b981', marginLeft: 5, verticalAlign: '-2px' }} aria-label="Played" /> : null}
                   </td>
                   <td className="score" style={{ textAlign: 'right' }}>{(s.plays || 0).toLocaleString()}</td>
                   <td style={{ textAlign: 'right' }}>{s.avgScorePct || 0}%</td>

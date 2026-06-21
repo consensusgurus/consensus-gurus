@@ -7,7 +7,7 @@ import {
   Search, ChevronDown, ArrowRight, BarChart3, Crown, Sparkles, Flame,
   BadgeCheck, Clapperboard, Music, Gamepad2, Plane, Globe, Utensils,
   Briefcase, Leaf, Tv, BookOpen, Landmark, Trophy, UserPlus, Play, X,
-  Check, CheckCircle2,
+  Check, Star,
 } from 'lucide-react';
 import { QUIZZES } from '@/lib/quizzes';
 import {
@@ -60,7 +60,7 @@ function DoneMark({ id, size = 13 }) {
   const { played, completed } = useContext(QuizDoneContext);
   if (!id || (!played && !completed)) return null;
   if (completed && completed.has(id)) {
-    return <CheckCircle2 size={size} strokeWidth={2.5} style={{ color: C.accent, flex: 'none', marginLeft: 5, verticalAlign: '-2px' }} aria-label="Completed (100%)" />;
+    return <Star size={size} strokeWidth={1.5} fill="#e8b43a" color="#e8b43a" style={{ flex: 'none', marginLeft: 5, verticalAlign: '-2px' }} aria-label="Completed (100%)" />;
   }
   if (played && played.has(id)) {
     return <Check size={size} strokeWidth={2.75} style={{ color: C.live, flex: 'none', marginLeft: 5, verticalAlign: '-2px' }} aria-label="Played" />;
