@@ -585,17 +585,17 @@ export default function QuizHomeClient() {
     .qzh .qflow{column-width:310px;column-gap:26px;}
     .qzh .qflow > a{display:flex;break-inside:avoid;-webkit-column-break-inside:avoid;}
     @media(max-width:680px){.qzh .qfull{column-count:1;}}
-    .qzh .colhead{display:flex;align-items:center;gap:9px;padding:7px 0;border-bottom:2px solid ${C.ink};margin-bottom:3px;}
+    .qzh .colhead{display:flex;align-items:center;gap:9px;padding:8px 11px;border-bottom:2px solid ${C.ink};border-radius:8px 8px 0 0;margin-bottom:3px;}
     .qzh .viewall{margin-left:auto;font-size:10px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;}
     .qzh .qrow{display:flex;align-items:baseline;gap:10px;padding:6px 0;border-bottom:1px solid rgba(20,22,28,0.07);text-decoration:none;color:${C.ink};min-width:0;overflow:hidden;}
     .qzh .qrow:hover .qtitle{color:${C.accent};}
     .qzh .qrow .qtitle{font-size:13px;font-weight:500;}
     .qzh .qmeta{flex:none;display:flex;align-items:center;gap:10px;font-size:10.5px;}
-    .qzh .hubbtn{display:flex;align-items:center;gap:7px;background:${C.accent};color:#fff;padding:10px 15px;border-radius:10px;font-weight:700;font-size:13px;text-decoration:none;white-space:nowrap;}
-    .qzh .qz-playerbar.hub-bleed .hubbtn{align-self:stretch;padding:0 18px;margin:-11px -14px -11px 0;border-radius:0 11px 11px 0;}
+    .qzh .hubbtn{display:flex;align-items:center;gap:7px;background:#fff;color:${C.accent};border:1px solid #cddffb;border-right:3px solid ${C.accent};padding:10px 15px;border-radius:10px;font-weight:700;font-size:13px;text-decoration:none;white-space:nowrap;}
+    .qzh .qz-playerbar.hub-bleed .hubbtn{align-self:stretch;padding:0 18px;margin:-11px -14px -11px 0;border-radius:0 11px 11px 0;border-top:none;border-bottom:none;border-left:none;}
     .qz-playerbar .qz-skill-empty{display:none !important;}
     @media(max-width:560px){.qz-playerbar{flex-wrap:wrap !important;align-items:center !important;gap:10px 14px !important;}.qz-playerbar .qz-div{display:none !important;}.qz-playerbar .qz-stats{order:9 !important;flex:1 1 100% !important;margin-left:0 !important;justify-content:space-between !important;gap:10px !important;}.qz-playerbar .qz-bestcat{order:3 !important;}.qz-playerbar .hubbtn{order:4 !important;margin-left:auto !important;flex:0 0 auto !important;}.qzh .boards{display:none !important;}.qz-submit{display:none !important;}}
-    .qzh .hubbtn:hover{filter:brightness(1.06);}
+    .qzh .hubbtn:hover{background:${C.accsoft};}
     .qzh .crumb1{font-size:18px;font-weight:800;letter-spacing:-0.02em;}
     .qzh .crumb2{font-size:18px;font-weight:600;color:${C.accent};}
     .qzh a.qlink{text-decoration:none;color:inherit;}
@@ -607,6 +607,11 @@ export default function QuizHomeClient() {
     @media(max-width:560px){.qzh .qz-srank{display:none !important;}}
     .qzh .qz-catbtn .ddbtn{height:100%;box-sizing:border-box;}
     @media(max-width:560px){.qzh .qz-browserow{align-items:stretch !important;}.qzh .qz-catbtn{flex:1 1 0 !important;min-width:0;}.qzh .qz-catbtn .ddbtn{width:100%;justify-content:center;height:100%;box-sizing:border-box;}.qzh .qz-daily{flex:1 1 0 !important;justify-content:center !important;align-self:stretch;}.qzh .qz-searchwrap{flex:1 1 100% !important;}}
+    /* Mobile: the category menu can be taller than the space below its button,
+       and the outside-click overlay freezes the page so the page itself can't
+       scroll to reveal the rest. Anchor it as a viewport-bounded fixed sheet so
+       every category is reachable via the menu's own internal scroll. */
+    @media(max-width:560px){.qzh .qz-catbtn .ddmenu{position:fixed;left:50%;right:auto;transform:translateX(-50%);top:auto;bottom:12px;width:92vw;max-width:92vw;min-width:0;max-height:72vh;overflow-y:auto;-webkit-overflow-scrolling:touch;overscroll-behavior:contain;grid-template-columns:1fr 1fr;box-shadow:0 -8px 28px rgba(20,22,28,0.18);}}
   `;
 
   const doneCtx = useMemo(() => ({
@@ -630,9 +635,9 @@ export default function QuizHomeClient() {
               <div className="qz-pname" style={{ display: 'flex', alignItems: 'center', gap: 5, fontSize: 16, fontWeight: 800, color: C.ink, lineHeight: 1.15, minWidth: 0 }}><span style={{ minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{me.name}</span>{me.signed ? <BadgeCheck size={13} strokeWidth={2.5} style={{ color: C.accent, flex: 'none' }} /> : <button onClick={() => setSignupOpen(true)} title="Sign up to claim a display name" style={{ flex: 'none', fontSize: 9, fontWeight: 700, letterSpacing: '0.04em', textTransform: 'uppercase', color: C.accent, background: 'none', border: `1px solid ${C.line}`, borderRadius: 4, padding: '1px 5px', cursor: 'pointer' }}>guest</button>}</div>
             </div>
           ) : me && me.signed ? (
-            <button onClick={() => { if (quizzesRef.current) quizzesRef.current.scrollIntoView({ behavior: 'smooth', block: 'start' }); }} style={{ display: 'inline-flex', alignItems: 'center', gap: 6, background: C.accent, color: '#fff', border: 'none', borderRadius: 9, padding: '9px 14px', fontFamily: 'Manrope, system-ui, -apple-system, sans-serif', fontWeight: 700, fontSize: 13, cursor: 'pointer', whiteSpace: 'nowrap' }}><Play size={15} /> Play</button>
+            <button onClick={() => { if (quizzesRef.current) quizzesRef.current.scrollIntoView({ behavior: 'smooth', block: 'start' }); }} style={{ display: 'inline-flex', alignItems: 'center', gap: 6, background: '#fff', color: C.accent, border: '1px solid #cddffb', borderLeft: `3px solid ${C.accent}`, borderRadius: 9, padding: '9px 14px', fontFamily: 'Manrope, system-ui, -apple-system, sans-serif', fontWeight: 700, fontSize: 13, cursor: 'pointer', whiteSpace: 'nowrap' }}><Play size={15} /> Play</button>
           ) : (
-            <button onClick={() => setSignupOpen(true)} style={{ display: 'inline-flex', alignItems: 'center', gap: 6, background: C.accent, color: '#fff', border: 'none', borderRadius: 9, padding: '9px 14px', fontFamily: 'Manrope, system-ui, -apple-system, sans-serif', fontWeight: 700, fontSize: 13, cursor: 'pointer', whiteSpace: 'nowrap' }}><UserPlus size={15} /> Sign up</button>
+            <button onClick={() => setSignupOpen(true)} style={{ display: 'inline-flex', alignItems: 'center', gap: 6, background: '#fff', color: C.accent, border: '1px solid #cddffb', borderLeft: `3px solid ${C.accent}`, borderRadius: 9, padding: '9px 14px', fontFamily: 'Manrope, system-ui, -apple-system, sans-serif', fontWeight: 700, fontSize: 13, cursor: 'pointer', whiteSpace: 'nowrap' }}><UserPlus size={15} /> Sign up</button>
           )}
           <div className="qz-div" style={{ width: 1, height: 34, background: C.line }} />
           <div className={`qz-skill${playerStats && playerStats.rank ? '' : ' qz-skill-empty'}`}>
@@ -810,7 +815,7 @@ export default function QuizHomeClient() {
             )}
           </div>
           {curCh && (
-            <Link key={curCh.id} href={`/quizzes/hub?tab=challenges&ch=${encodeURIComponent(curCh.id)}`} className="qz-daily" style={{ flex: '0 0 auto', display: 'flex', alignItems: 'center', gap: 9, background: C.accent, color: '#fff', padding: '8px 14px', borderRadius: 10, textDecoration: 'none' }} title={openChs.length > 1 ? `${openChs.length} challenges open now` : undefined}>
+            <Link key={curCh.id} href={`/quizzes/hub?tab=challenges&ch=${encodeURIComponent(curCh.id)}`} className="qz-daily" style={{ flex: '0 0 auto', display: 'flex', alignItems: 'center', gap: 9, background: C.accsoft, color: C.accent, border: '1px solid #cddffb', padding: '8px 14px', borderRadius: 10, textDecoration: 'none' }} title={openChs.length > 1 ? `${openChs.length} challenges open now` : undefined}>
               <Flame size={17} style={{ flex: 'none' }} />
               <span style={{ lineHeight: 1.15, display: 'grid' }}>
                 {openChs.map((c, i) => (
@@ -823,7 +828,7 @@ export default function QuizHomeClient() {
               {openChs.length > 1 ? (
                 <span aria-hidden="true" style={{ display: 'flex', gap: 3, flex: 'none', marginLeft: 1 }}>
                   {openChs.map((_, i) => (
-                    <span key={i} style={{ width: 5, height: 5, borderRadius: '50%', background: '#fff', opacity: i === (chSlide % openChs.length) ? 1 : 0.4 }} />
+                    <span key={i} style={{ width: 5, height: 5, borderRadius: '50%', background: C.accent, opacity: i === (chSlide % openChs.length) ? 1 : 0.4 }} />
                   ))}
                 </span>
               ) : null}
@@ -1016,11 +1021,11 @@ function CategoryFull({ cat, plays, leader, leaderKey }) {
   const { Icon, c: color, t: tint } = cat;
   return (
     <section style={{ minWidth: 0 }}>
-      <div className="colhead" style={{ borderColor: color }}>
+      <div className="colhead" style={{ borderColor: color, background: `color-mix(in srgb, ${color} 6%, #fff)` }}>
         <span style={{ width: 24, height: 24, borderRadius: 7, background: tint, color, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
           <Icon size={14} />
         </span>
-        <h3 style={{ fontSize: 15, fontWeight: 700, margin: 0 }}>{cat.label}</h3>
+        <h3 style={{ fontSize: 15, fontWeight: 700, margin: 0, color }}>{cat.label}</h3>
         <span className="viewall" style={{ color }}>{cat.count} quizzes</span>
       </div>
       <div className="qfull">
@@ -1038,11 +1043,11 @@ function CategoryFull({ cat, plays, leader, leaderKey }) {
 function BrowseColumn({ label, Icon, color, tint, rows, cta, onCta }) {
   return (
     <section style={{ minWidth: 0 }}>
-      <div className="colhead" style={{ borderColor: color }}>
+      <div className="colhead" style={{ borderColor: color, background: `color-mix(in srgb, ${color} 6%, #fff)` }}>
         <span style={{ width: 24, height: 24, borderRadius: 7, background: tint, color, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
           <Icon size={14} />
         </span>
-        <h3 style={{ fontSize: 15, fontWeight: 700, margin: 0 }}>{label}</h3>
+        <h3 style={{ fontSize: 15, fontWeight: 700, margin: 0, color }}>{label}</h3>
         {onCta
           ? <button type="button" onClick={onCta} className="viewall" style={{ color, background: 'none', border: 'none', padding: 0, cursor: 'pointer', fontFamily: 'inherit', fontSize: 10, fontWeight: 700 }}>{cta}</button>
           : <span className="viewall" style={{ color }}>{cta}</span>}

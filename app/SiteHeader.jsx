@@ -61,7 +61,7 @@ export default function SiteHeader({ active = 'lists', maxWidth = 1180, visitors
         .sh-nav{display:flex;align-items:center;gap:12px;justify-content:flex-end;flex-wrap:wrap;}
         .sh-navbtn{display:inline-flex;align-items:center;gap:5px;text-decoration:none;font-size:13.5px;font-weight:700;color:${C.ink};border:1px solid ${C.line};border-radius:8px;padding:7px 13px;background:#fff;transition:background .15s,border-color .15s,color .15s;}
         .sh-navbtn:hover{border-color:${C.accent};color:${C.accent};}
-        .sh-navbtn.on{background:${C.accent};border-color:${C.accent};color:#fff;}
+        .sh-navbtn.on{background:#e8effb;border-color:#cddffb;color:${C.accent};}
         .sh-navct{font-weight:600;opacity:0.65;font-size:12px;}
         .sh-stat{font-size:11.5px;color:${C.muted};letter-spacing:0.01em;white-space:nowrap;}
         .sh-vis-compact{display:none;}
