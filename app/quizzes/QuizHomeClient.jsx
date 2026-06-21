@@ -815,6 +815,21 @@ export default function QuizHomeClient() {
               </div>
             )}
           </div>
+          <div className="qz-searchwrap" style={{ position: 'relative', flex: '1 1 200px' }}>
+            <Search size={16} style={{ position: 'absolute', left: 12, top: '50%', transform: 'translateY(-50%)', color: C.soft }} />
+            <input
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              placeholder="Search quizzes…"
+              autoComplete="off"
+              style={{ width: '100%', padding: '9px 12px 9px 36px', border: `1px solid ${C.line}`, borderRadius: 10, font: 'inherit', fontFamily: FONT, fontSize: 13.5, background: '#fff', color: C.ink, outline: 'none', boxSizing: 'border-box' }}
+            />
+          </div>
+          {(!searchResults && scope === 'all' && !listMode) && (
+            <Link href="/submit?for=quiz" className="qz-submit" style={{ flex: '0 0 auto', display: 'flex', alignItems: 'center', gap: 6, background: '#fff', color: C.soft, border: `1px solid ${C.line}`, padding: '8px 14px', borderRadius: 10, fontFamily: FONT, fontWeight: 500, fontSize: 12.5, textDecoration: 'none', whiteSpace: 'nowrap' }}>
+              Submit a Quiz
+            </Link>
+          )}
           {curCh && (
             <Link key={curCh.id} href={`/quizzes/hub?tab=challenges&ch=${encodeURIComponent(curCh.id)}`} className="qz-daily" style={{ flex: '0 0 auto', display: 'flex', alignItems: 'center', gap: 9, background: C.accsoft, color: C.accent, border: '1px solid #cddffb', padding: '8px 14px', borderRadius: 10, textDecoration: 'none' }} title={openChs.length > 1 ? `${openChs.length} challenges open now` : undefined}>
               <Flame size={17} style={{ flex: 'none' }} />
@@ -834,21 +849,6 @@ export default function QuizHomeClient() {
                 </span>
               ) : null}
               <ArrowRight size={15} style={{ flex: 'none' }} />
-            </Link>
-          )}
-          <div className="qz-searchwrap" style={{ position: 'relative', flex: '1 1 200px' }}>
-            <Search size={16} style={{ position: 'absolute', left: 12, top: '50%', transform: 'translateY(-50%)', color: C.soft }} />
-            <input
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              placeholder="Search quizzes…"
-              autoComplete="off"
-              style={{ width: '100%', padding: '9px 12px 9px 36px', border: `1px solid ${C.line}`, borderRadius: 10, font: 'inherit', fontFamily: FONT, fontSize: 13.5, background: '#fff', color: C.ink, outline: 'none', boxSizing: 'border-box' }}
-            />
-          </div>
-          {(!searchResults && scope === 'all' && !listMode) && (
-            <Link href="/submit?for=quiz" className="qz-submit" style={{ flex: '0 0 auto', display: 'flex', alignItems: 'center', gap: 6, background: '#fff', color: C.soft, border: `1px solid ${C.line}`, padding: '8px 14px', borderRadius: 10, fontFamily: FONT, fontWeight: 500, fontSize: 12.5, textDecoration: 'none', whiteSpace: 'nowrap' }}>
-              Submit a Quiz
             </Link>
           )}
         </div>
