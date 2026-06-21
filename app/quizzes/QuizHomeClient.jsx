@@ -50,6 +50,7 @@ const C = {
 };
 const MEDAL = ['#e8b43a', '#b8bcc4', '#c8814b'];
 const FONT = "'Manrope', system-ui, -apple-system, sans-serif";
+const STATUS_LABEL = { unplayed: 'Unplayed', played: 'Played', completed: 'Completed' };
 
 // Per-quiz completion status for the CURRENT player, supplied once at the top of
 // the tree so any quiz row can show a check (played) or a circled check (aced at
@@ -200,6 +201,7 @@ export default function QuizHomeClient() {
   const quizzesRef = useRef(null);
   const [search, setSearch] = useState('');
   const [listMode, setListMode] = useState(null); // null | 'newest' | 'mostplayed' | 'live' (View all expansions)
+  const [doneFilter, setDoneFilter] = useState('all'); // 'all' | 'unplayed' | 'played' | 'completed' (my-progress filter)
   const [boardsExpanded, setBoardsExpanded] = useState(false); // header click expands both boards 5 -> 10
 
   const [totals, setTotals] = useState({ byQuiz: {}, leaders: {}, leaderKeys: {}, today: 0 });
@@ -270,6 +272,27 @@ export default function QuizHomeClient() {
 
   const totalCount = catalog.length;
   const scopeCount = scope === 'all' ? totalCount : (byKey[scope]?.count || 0);
+  // My-progress filter: split the catalog by the player's played/aced status,
+  // matching the row icons (green check = played, gold star = aced at 100%).
+  const statusSets = useMemo(() => ({
+    played: new Set((me && me.found && me.playedIds) || []),
+    completed: new Set((me && me.found && me.completedIds) || []),
+  }), [me]);
+  const statusCounts = useMemo(() => {
+    const pl = statusSets.played, cp = statusSets.completed;
+    const playedNotAced = [...pl].filter((id) => !cp.has(id)).length;
+    return { unplayed: Math.max(0, totalCount - pl.size), played: playedNotAced, completed: cp.size };
+  }, [statusSets, totalCount]);
+  const statusList = useMemo(() => {
+    if (doneFilter === 'all') return null;
+    const pl = statusSets.played, cp = statusSets.completed;
+    return catalog.filter((q) => {
+      const p = pl.has(q.id), c = cp.has(q.id);
+      if (doneFilter === 'completed') return c;
+      if (doneFilter === 'played') return p && !c;
+      return !p; // unplayed
+    }).sort((a, b) => a.title.localeCompare(b.title));
+  }, [doneFilter, catalog, statusSets]);
 
   // ── data loads ──
   useEffect(() => {
@@ -726,12 +749,13 @@ export default function QuizHomeClient() {
 
         {/* browse header + search */}
         <div ref={quizzesRef} className="qz-browserow" style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 12, flexWrap: 'wrap' }}>
-          {!(!searchResults && scope === 'all' && !listMode) && (
+          {!(!searchResults && scope === 'all' && !listMode && doneFilter === 'all') && (
             <h2 style={{ fontSize: 17, fontWeight: 800, margin: 0, whiteSpace: 'nowrap', display: 'flex', alignItems: 'center', gap: 10 }}>
-              {listMode && !searchResults && scope === 'all' && (
-                <button type="button" onClick={() => setListMode(null)} style={{ background: 'none', border: 'none', padding: 0, cursor: 'pointer', color: C.accent, fontWeight: 700, fontSize: 14 }}>‹ Back</button>
+              {(listMode || doneFilter !== 'all') && !searchResults && scope === 'all' && (
+                <button type="button" onClick={() => { setListMode(null); setDoneFilter('all'); }} style={{ background: 'none', border: 'none', padding: 0, cursor: 'pointer', color: C.accent, fontWeight: 700, fontSize: 14 }}>‹ Back</button>
               )}
               {searchResults ? `Search Results · ${searchResults.length}`
+                : doneFilter !== 'all' ? `${STATUS_LABEL[doneFilter]} Quizzes · ${(statusList || []).length}`
                 : scope !== 'all' ? `${byKey[scope]?.label} Quizzes`
                 : listMode === 'newest' ? `Newest Quizzes · ${newestAll.length}`
                 : listMode === 'mostplayed' ? `Most Played · ${mostPlayedAll.length}`
@@ -741,17 +765,30 @@ export default function QuizHomeClient() {
           <div className="dd qz-catbtn" onClick={(e) => e.stopPropagation()}>
             <button className="ddbtn" onClick={(e) => { e.stopPropagation(); setDdOpen((o) => !o); }}>
               <span className="dot" style={{ background: scope === 'all' ? C.ink : (byKey[scope]?.c || C.ink) }} />
-              <span style={{ fontWeight: 600, fontSize: 13 }}>{scope === 'all' ? 'Category: All' : byKey[scope]?.label}</span>
+              <span style={{ fontWeight: 600, fontSize: 13 }}>{doneFilter !== 'all' ? STATUS_LABEL[doneFilter] : (scope === 'all' ? 'Category: All' : byKey[scope]?.label)}</span>
               <ChevronDown size={16} style={{ color: C.muted }} />
             </button>
             {ddOpen && (
               <div className="ddmenu" onClick={(e) => e.stopPropagation()}>
-                <div className="dditem ddall" onClick={() => { setScope('all'); setDdOpen(false); setSearch(''); setListMode(null); }}>
+                {me && me.found && (
+                  <>
+                    <div className="ddall" style={{ fontSize: 10, fontWeight: 700, letterSpacing: '.04em', textTransform: 'uppercase', color: C.soft, padding: '4px 9px 2px' }}>My progress</div>
+                    {[['unplayed', 'Unplayed'], ['played', 'Played'], ['completed', 'Completed']].map(([k, lbl]) => (
+                      <div key={k} className="dditem ddall" onClick={() => { setDoneFilter(k); setScope('all'); setDdOpen(false); setSearch(''); setListMode(null); }} style={doneFilter === k ? { background: C.accsoft } : undefined}>
+                        {k === 'completed' ? <Star size={14} strokeWidth={1.5} fill="#e8b43a" color="#e8b43a" /> : k === 'played' ? <Check size={14} strokeWidth={2.75} style={{ color: C.live }} /> : <span style={{ width: 13, height: 13, borderRadius: '50%', border: `1.5px solid ${C.soft}`, display: 'inline-block' }} />}
+                        <span style={{ flex: 1 }}>{lbl}</span>
+                        <span style={{ fontSize: 11, color: C.soft }}>{statusCounts[k]}</span>
+                      </div>
+                    ))}
+                    <div className="ddall" style={{ height: 1, background: C.line, margin: '5px 2px' }} />
+                  </>
+                )}
+                <div className="dditem ddall" onClick={() => { setScope('all'); setDoneFilter('all'); setDdOpen(false); setSearch(''); setListMode(null); }}>
                   <span className="dot" style={{ background: C.ink }} /><span style={{ flex: 1 }}>All Categories</span>
                   <span style={{ fontSize: 11, color: C.soft }}>{totalCount}</span>
                 </div>
                 {cats.map((c) => (
-                  <div key={c.key} className="dditem" onClick={() => { setScope(c.key); setDdOpen(false); setSearch(''); setListMode(null); }}>
+                  <div key={c.key} className="dditem" onClick={() => { setScope(c.key); setDoneFilter('all'); setDdOpen(false); setSearch(''); setListMode(null); }}>
                     <span className="dot" style={{ background: c.c }} /><span style={{ flex: 1 }}>{c.label}</span>
                     <span style={{ fontSize: 11, color: C.soft }}>{c.count}</span>
                   </div>
@@ -762,9 +799,13 @@ export default function QuizHomeClient() {
           {curCh && (
             <Link key={curCh.id} href={`/quizzes/hub?tab=challenges&ch=${encodeURIComponent(curCh.id)}`} className="qz-daily" style={{ flex: '0 0 auto', display: 'flex', alignItems: 'center', gap: 9, background: C.accent, color: '#fff', padding: '8px 14px', borderRadius: 10, textDecoration: 'none' }} title={openChs.length > 1 ? `${openChs.length} challenges open now` : undefined}>
               <Flame size={17} style={{ flex: 'none' }} />
-              <span style={{ lineHeight: 1.15 }}>
-                <span style={{ display: 'block', fontSize: 13, fontWeight: 800 }}>{curCh.title}</span>
-                <span style={{ display: 'block', fontSize: 10, fontWeight: 600, opacity: 0.85 }}>{curCh.sub || 'Open now'}</span>
+              <span style={{ lineHeight: 1.15, display: 'grid' }}>
+                {openChs.map((c, i) => (
+                  <span key={c.id} style={{ gridArea: '1 / 1', visibility: i === (chSlide % openChs.length) ? 'visible' : 'hidden' }}>
+                    <span style={{ display: 'block', fontSize: 13, fontWeight: 800 }}>{c.title}</span>
+                    <span style={{ display: 'block', fontSize: 10, fontWeight: 600, opacity: 0.85 }}>{c.sub || 'Open now'}</span>
+                  </span>
+                ))}
               </span>
               {openChs.length > 1 ? (
                 <span aria-hidden="true" style={{ display: 'flex', gap: 3, flex: 'none', marginLeft: 1 }}>
@@ -804,12 +845,29 @@ export default function QuizHomeClient() {
                 return (
                   <Link href={`/quiz/${r.id}`} className="qrow" key={r.id} title={r.rawTitle || r.title}>
                     <span className="dot" style={{ background: cc, alignSelf: 'center' }} />
-                    <span className="qtitle">{stripVerb(r.title)}<DoneMark id={r.id} /></span>
+                    <span className="qtitle">{stripVerb(r.title)}</span><DoneMark id={r.id} />
                     <span className="qmeta" style={{ color: C.soft, fontSize: 10, fontWeight: 600, letterSpacing: '.04em', textTransform: 'uppercase' }}>{DEPT_LABEL[r.dept]}</span>
                   </Link>
                 );
               })}
             </div>
+          )
+        ) : doneFilter !== 'all' ? (
+          (statusList && statusList.length) ? (
+            <div className="qflow">
+              {statusList.map((q) => {
+                const cc = (DEPT_COLOR[q.dept] || DEPT_COLOR.misc).c;
+                return (
+                  <Link href={`/quiz/${q.id}`} className="qrow" key={q.id} title={q.rawTitle || q.title}>
+                    <span className="dot" style={{ background: cc, alignSelf: 'center' }} />
+                    <span className="qtitle">{stripVerb(q.title)}</span><DoneMark id={q.id} />
+                    <span className="qmeta" style={{ color: C.soft, fontSize: 10, fontWeight: 600, letterSpacing: '.04em', textTransform: 'uppercase' }}>{DEPT_LABEL[q.dept]}</span>
+                  </Link>
+                );
+              })}
+            </div>
+          ) : (
+            <div style={{ padding: '18px 2px', color: C.soft, fontSize: 14 }}>{doneFilter === 'unplayed' ? 'You have played every quiz. Nice.' : doneFilter === 'completed' ? 'No quizzes aced at 100% yet. Go get a perfect score.' : 'No quizzes in progress yet. Play one to start.'}</div>
           )
         ) : scope !== 'all' ? (
           <CategoryFull cat={byKey[scope]} plays={plays} leader={leader} leaderKey={leaderKey} />
@@ -835,7 +893,7 @@ export default function QuizHomeClient() {
               return (
                 <Link href={`/quiz/${q.id}`} className="qrow" key={q.id} title={q.rawTitle || q.title}>
                   <span className="dot" style={{ background: cc, alignSelf: 'center' }} />
-                  <span className="qtitle">{stripVerb(q.title)}<DoneMark id={q.id} /></span>
+                  <span className="qtitle">{stripVerb(q.title)}</span><DoneMark id={q.id} />
                   <span className="qmeta">{listMode === 'newest' ? <NewRight q={q} /> : <PlaysRight id={q.id} plays={plays} leader={leader} leaderKey={leaderKey} color={C.accent} />}</span>
                 </Link>
               );
@@ -858,6 +916,11 @@ export default function QuizHomeClient() {
 
       {/* close the dropdown on outside click */}
       {ddOpen && <div onClick={() => setDdOpen(false)} style={{ position: 'fixed', inset: 0, zIndex: 20 }} />}
+
+      <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: 20, flexWrap: 'wrap', margin: '30px 0 8px', fontSize: 12.5, color: C.muted, fontFamily: FONT }}>
+        <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}><Check size={14} strokeWidth={2.75} style={{ color: C.live }} /> Played</span>
+        <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}><Star size={14} strokeWidth={1.5} fill="#e8b43a" color="#e8b43a" /> Completed (100%)</span>
+      </div>
 
       <Footer />
     </div>
@@ -950,7 +1013,7 @@ function CategoryFull({ cat, plays, leader, leaderKey }) {
       <div className="qfull">
         {rows.map((q) => (
           <Link href={`/quiz/${q.id}`} className="qrow" key={q.id} title={q.rawTitle || q.title}>
-            <span className="qtitle">{stripVerb(q.title)}<DoneMark id={q.id} /></span>
+            <span className="qtitle">{stripVerb(q.title)}</span><DoneMark id={q.id} />
             <span className="qmeta"><PlaysRight id={q.id} plays={plays} leader={leader} leaderKey={leaderKey} color={color} hidePlays /></span>
           </Link>
         ))}
@@ -973,7 +1036,7 @@ function BrowseColumn({ label, Icon, color, tint, rows, cta, onCta }) {
       </div>
       {rows.map(({ q, right }) => (
         <Link href={`/quiz/${q.id}`} className="qrow" key={q.id} title={q.rawTitle || q.title}>
-          <span className="qtitle">{stripVerb(q.title)}<DoneMark id={q.id} /></span>
+          <span className="qtitle">{stripVerb(q.title)}</span><DoneMark id={q.id} />
           <span className="qmeta">{right}</span>
         </Link>
       ))}

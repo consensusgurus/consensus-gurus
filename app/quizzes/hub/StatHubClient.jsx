@@ -439,6 +439,10 @@ export default function StatHubClient() {
 
       {shareOpen && found && <ShareStatsModal profile={profile} byKey={byKey} onClose={() => setShareOpen(false)} />}
       {signupOpen && <SignupModal onClose={() => setSignupOpen(false)} />}
+      <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: 20, flexWrap: 'wrap', margin: '30px 0 8px', fontSize: 12.5, color: C.muted, fontFamily: FONT }}>
+        <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}><Check size={14} strokeWidth={2.75} style={{ color: '#10b981' }} /> Played</span>
+        <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}><Star size={14} strokeWidth={1.5} fill="#e8b43a" color="#e8b43a" /> Completed (100%)</span>
+      </div>
       <Footer />
     </div>
   );
@@ -730,8 +734,11 @@ function QuizzesPanel({ me, myProfile, scope, byKey, catalog, stats, totals, tot
             <tbody>
               {rows.map(({ q, s, leader, leaderKey }) => (
                 <tr key={q.id}>
-                  <td style={{ fontWeight: 600, maxWidth: 280, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                    <Link href={`/quiz/${q.id}`} className="qlink">{q.title}</Link>{doneCompleted.has(q.id) ? <Star size={13} strokeWidth={1.5} fill="#e8b43a" color="#e8b43a" style={{ marginLeft: 5, verticalAlign: '-2px' }} aria-label="Completed (100%)" /> : donePlayed.has(q.id) ? <Check size={13} strokeWidth={2.75} style={{ color: '#10b981', marginLeft: 5, verticalAlign: '-2px' }} aria-label="Played" /> : null}
+                  <td style={{ fontWeight: 600, maxWidth: 280 }}>
+                    <span style={{ display: 'flex', alignItems: 'center', minWidth: 0 }}>
+                      <Link href={`/quiz/${q.id}`} className="qlink" style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', minWidth: 0 }}>{q.title}</Link>
+                      {doneCompleted.has(q.id) ? <Star size={13} strokeWidth={1.5} fill="#e8b43a" color="#e8b43a" style={{ flex: 'none', marginLeft: 5 }} aria-label="Completed (100%)" /> : donePlayed.has(q.id) ? <Check size={13} strokeWidth={2.75} style={{ flex: 'none', color: '#10b981', marginLeft: 5 }} aria-label="Played" /> : null}
+                    </span>
                   </td>
                   <td className="score" style={{ textAlign: 'right' }}>{(s.plays || 0).toLocaleString()}</td>
                   <td style={{ textAlign: 'right' }}>{s.avgScorePct || 0}%</td>
@@ -762,7 +769,6 @@ function ChallengesPanel({ me }) {
     }
     return dailyChallengeId();
   });
-  const [menuSort, setMenuSort] = useState('new');
   const menu = useMemo(() => challengeMenu(), []);
   const [data, setData] = useState(null);
   const [loaded, setLoaded] = useState(false);
@@ -812,6 +818,7 @@ function ChallengesPanel({ me }) {
         .chg-grp-ico{font-size:13px;display:block;line-height:1;margin-bottom:2px;}
         .chg-grp-nm{font-weight:700;font-size:9.5px;color:${C.ink};}
         .chg-sub{padding:3px 3px 4px;text-align:center;font-size:8px;letter-spacing:.02em;text-transform:uppercase;color:var(--ac);font-weight:700;border-bottom:1px solid ${C.line};border-left:1px solid rgba(20,22,28,0.04);background:${C.bg};}
+        .chg-sub a:hover{text-decoration:underline !important;}
         .chg-corner{position:sticky;left:0;z-index:2;background:${C.bg};text-align:left;padding:6px 10px;font-weight:700;font-size:10px;color:${C.ink};border-bottom:2px solid ${C.accent};border-right:2px solid ${C.line};}
         .chg-thc{padding:5px 5px;font-size:8px;letter-spacing:.02em;text-transform:uppercase;color:${C.muted};border-bottom:1px solid ${C.line};text-align:center;vertical-align:bottom;background:${C.bg};font-weight:700;}
         .chg-thc.chg-first{border-left:2px solid ${C.line};}
@@ -851,9 +858,9 @@ function ChallengesPanel({ me }) {
         <div style={{ fontSize: 13, color: C.muted, marginTop: 3, maxWidth: 760 }}>{ch.blurb}</div>
         {ch.prize ? (<div className="chg-prize"><Trophy size={13} strokeWidth={2.4} /> {ch.prize}</div>) : null}
 
-        {ch.daily && (
+        {cols.length <= 3 && (
           <div style={{ marginTop: 14 }}>
-            <span style={{ fontSize: 11, fontWeight: 700, letterSpacing: '.04em', textTransform: 'uppercase', color: C.soft }}>Play today</span>
+            <span style={{ fontSize: 11, fontWeight: 700, letterSpacing: '.04em', textTransform: 'uppercase', color: C.soft }}>{ch.daily ? 'Play today' : 'Play the quizzes'}</span>
             <div className="chg-play">
               {cols.map((col) => (
                 <Link key={col.quizId} href={`/quiz/${col.quizId}`} className="chg-playchip">{colLabel(col)} <ArrowLeft size={13} style={{ transform: 'rotate(180deg)', flex: 'none' }} /></Link>
@@ -866,7 +873,7 @@ function ChallengesPanel({ me }) {
           <span style={{ fontSize: 11, fontWeight: 700, letterSpacing: '.04em', textTransform: 'uppercase', color: C.soft }}>Challenge</span>
           <select value={ch.id} onChange={(e) => setChId(e.target.value)} style={{ padding: '8px 12px', border: `1px solid ${C.line}`, borderRadius: 8, fontFamily: FONT, fontSize: 13, fontWeight: 600, color: C.ink, background: '#fff', cursor: 'pointer', maxWidth: 280 }}>
             <optgroup label="Daily Challenge">
-              {(menuSort === 'new' ? menu.filter((it) => it.daily) : menu.filter((it) => it.daily).slice().reverse()).map((it) => (
+              {menu.filter((it) => it.daily).map((it) => (
                 <option key={it.id} value={it.id}>{it.label}</option>
               ))}
             </optgroup>
@@ -878,7 +885,6 @@ function ChallengesPanel({ me }) {
               </optgroup>
             )}
           </select>
-          <button onClick={() => setMenuSort((x) => (x === 'new' ? 'old' : 'new'))} className="chg-btn">{menuSort === 'new' ? 'Newest first' : 'Oldest first'}</button>
         </div>
 
         <div className="chg-meta">
@@ -909,7 +915,7 @@ function ChallengesPanel({ me }) {
                 </tr>
                 <tr>
                   {ch.groups.map((g) => g.columns.map((col) => (
-                    <th key={col.quizId} className="chg-sub" style={{ '--ac': g.color }}>{col.icon} {col.label || colLabel(col)}</th>
+                    <th key={col.quizId} className="chg-sub" style={{ '--ac': g.color }}><Link href={`/quiz/${col.quizId}`} style={{ color: 'inherit', textDecoration: 'none' }}>{col.icon} {col.label || colLabel(col)}</Link></th>
                   )))}
                 </tr>
               </thead>
