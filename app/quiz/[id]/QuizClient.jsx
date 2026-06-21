@@ -1130,7 +1130,16 @@ export default function QuizClient({ quizId }) {
       <QuizCelebration kind={celebration} onDone={() => setCelebration(null)} />
       <div style={{ position: 'relative', zIndex: 2, maxWidth: 1180, margin: '0 auto', padding: '8px 24px 80px' }}>
 
-        <style>{`@import url('https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap');`}</style>
+        <style>{`@import url('https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap');
+.qzlg-grid{display:grid;gap:8px;grid-template-columns:repeat(auto-fill,minmax(112px,1fr));}
+.qzlg-grid.qzlg-big{grid-template-columns:repeat(auto-fill,minmax(140px,1fr));}
+.qzlg-cell-tall{height:208px;}
+.qzlg-img-tall{max-height:204px;}
+@media(min-width:760px){
+  .qzlg-grid.qzlg-big{grid-template-columns:repeat(auto-fill,minmax(208px,1fr));}
+  .qzlg-cell-tall{height:312px;}
+  .qzlg-img-tall{max-height:308px;}
+}`}</style>
 
         <SiteHeader active="quizzes" bare />
 
@@ -1313,7 +1322,7 @@ export default function QuizClient({ quizId }) {
               <MapQuizBoard region={quiz.region || 'europe'} noBorders={quiz.noBorders} started={started} ended={ended} revealed={revealed} foundNames={foundNamesSet} flash={flash} onPick={pickCountry} mobile={mobile} />
             </div>
             ) : logosMode ? (
-            <ul style={{ margin: 0, padding: 0, listStyle: 'none', display: 'grid', gridTemplateColumns: `repeat(auto-fill, minmax(${tallTiles || squareTiles ? 134 : 112}px, 1fr))`, gap: 8 }}>
+            <ul className={`qzlg-grid${tallTiles || squareTiles ? ' qzlg-big' : ''}`} style={{ margin: 0, padding: 0, listStyle: 'none' }}>
               {displayOrder.map((i) => {
                 const a = answers[i];
                 const f = found[i];
@@ -1321,9 +1330,9 @@ export default function QuizClient({ quizId }) {
                 const bd = f ? COLORS.forest : reveal ? COLORS.rust : COLORS.faded + '33';
                 return (
                   <li key={i} ref={setFlipRef(i)} style={{ borderRadius: 10, border: `1px solid ${bd}`, borderRadius: 10, background: '#fff', display: 'flex', flexDirection: 'column', alignItems: 'center', padding: tallTiles || squareTiles ? 6 : 8, transition: 'background .2s, border-color .2s, box-shadow .2s', boxShadow: f ? `inset 0 -3px 0 ${COLORS.forest}` : reveal ? `inset 0 -3px 0 ${COLORS.rust}` : 'none' }}>
-                    <div style={{ ...(squareTiles ? { aspectRatio: '1 / 1' } : { height: tallTiles ? 208 : 62 }), width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '2px' }}>
+                    <div className={tallTiles ? 'qzlg-cell-tall' : ''} style={{ ...(squareTiles ? { aspectRatio: '1 / 1' } : tallTiles ? {} : { height: 62 }), width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '2px' }}>
                       {started || ended ? (
-                        <img src={a.img} alt={f || reveal ? a.t : `Image ${i + 1}`} loading="lazy" style={{ maxWidth: tallTiles || squareTiles ? '100%' : '90%', maxHeight: squareTiles ? '100%' : tallTiles ? 206 : 56, objectFit: 'contain' }} />
+                        <img src={a.img} alt={f || reveal ? a.t : `Image ${i + 1}`} loading="lazy" className={tallTiles ? 'qzlg-img-tall' : ''} style={{ maxWidth: tallTiles || squareTiles ? '100%' : '90%', maxHeight: squareTiles ? '100%' : tallTiles ? undefined : 56, objectFit: 'contain' }} />
                       ) : (
                         <span aria-hidden="true" style={{ fontFamily: MONO, fontSize: tallTiles || squareTiles ? 40 : 26, color: COLORS.faded, opacity: 0.3 }}>?</span>
                       )}
