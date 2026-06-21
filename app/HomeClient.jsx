@@ -955,7 +955,7 @@ function Home({ lists, viewCounts, voteData, extras, trending = {}, openList, on
         .nt-tbtn{display:flex;align-items:center;gap:7px;border:1px solid ${NT.line};background:#fff;border-radius:10px;padding:10px 13px;font-family:inherit;font-size:13px;font-weight:600;color:${NT.ink};cursor:pointer;white-space:nowrap;}
         .nt-tbtn.primary{background:${NT.accent};border-color:${NT.accent};color:#fff;font-weight:700;text-decoration:none;}
         .nt-mfilter{display:none;}
-        .nt-msheet{display:none;box-sizing:border-box;background:#fff;border:1px solid ${NT.line};border-radius:12px;padding:4px 14px 14px;}
+        .nt-msheet{display:none;box-sizing:border-box;background:#fff;border:1px solid ${NT.line};border-radius:12px;padding:4px 14px 14px;max-height:calc(100dvh - 120px);overflow-y:auto;-webkit-overflow-scrolling:touch;overscroll-behavior:contain;}
         .nt-sortmenu{position:absolute;top:calc(100% + 6px);z-index:30;min-width:190px;background:#fff;border:1px solid ${NT.line};border-radius:10px;box-shadow:0 12px 30px rgba(20,22,28,0.12);overflow:hidden;}
         .nt-sortitem{width:100%;display:block;text-align:left;border:none;background:#fff;padding:10px 14px;font-family:inherit;font-size:13px;font-weight:600;color:${NT.ink};cursor:pointer;}
         .nt-sortitem.on,.nt-sortitem:hover{background:${NT.accsoft};color:${NT.accent};}

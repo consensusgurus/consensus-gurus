@@ -318,7 +318,6 @@ export default function StatHubClient() {
     .qzhub{font-family:${FONT};color:${C.ink};}
     .qzhub .lbl{font-size:10px;font-weight:600;letter-spacing:.04em;text-transform:uppercase;color:${C.muted};}
     .qzhub .card{background:${C.surface};border:1px solid ${C.line};border-radius:12px;overflow:hidden;min-width:0;}
-    .qzhub .qz-playerbar{background:#e8effb;border-color:#cddffb;}
     .qzhub .metric{background:${C.bg};border-radius:10px;padding:12px 14px;}
     .qzhub .metric .v{font-size:21px;font-weight:700;}
     .qzhub .rankchip{font-size:10px;font-weight:700;color:${C.accent};background:${C.accsoft};border-radius:5px;padding:1px 6px;letter-spacing:0;text-transform:none;margin-left:6px;}

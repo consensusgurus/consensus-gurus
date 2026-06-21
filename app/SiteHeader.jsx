@@ -51,10 +51,10 @@ export default function SiteHeader({ active = 'lists', maxWidth = 1180, visitors
   // regardless of what (if anything) each page passes in.
   // Visitor count moved to the footer (Footer.jsx) so an async load can't shift the header nav.
   return (
-    <div style={bare ? { fontFamily: FONT, background: '#2563eb', marginLeft: -24, marginRight: -24, paddingLeft: 24, paddingRight: 24 } : { fontFamily: FONT, background: '#2563eb' }}>
+    <div style={{ fontFamily: FONT }}>
       <style>{`
         @import url('https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap');
-        .sh-bar{display:flex;align-items:center;justify-content:space-between;gap:16px;padding-bottom:10px;border-bottom:1px solid rgba(255,255,255,0.16);flex-wrap:wrap;}
+        .sh-bar{display:flex;align-items:center;justify-content:space-between;gap:16px;padding:11px 16px;background:#2563eb;border-radius:14px;flex-wrap:wrap;}
         .sh-brand{display:flex;align-items:center;gap:11px;text-decoration:none;flex:none;}
         .sh-word{font-size:21px;font-weight:800;letter-spacing:-0.025em;line-height:1;color:#fff;}
         .sh-right{display:flex;align-items:center;justify-content:flex-end;gap:14px;}
@@ -78,10 +78,10 @@ export default function SiteHeader({ active = 'lists', maxWidth = 1180, visitors
       <div style={bare ? { padding: '2px 0 0' } : { maxWidth, margin: '0 auto', padding: '10px 24px 0' }}>
         <div className="sh-bar">
           <div className="sh-brand">
-            <Link href="/" style={{ flex: 'none', display: 'flex', background: '#fff', borderRadius: 9, padding: 4 }} aria-label="Source of Truths home"><Logo size={30} /></Link>
+            <Link href="/" style={{ flex: 'none', display: 'flex' }} aria-label="Source of Truths home"><Logo size={34} /></Link>
             <span style={{ display: 'flex', flexDirection: 'column' }}>
-              <Link href="/" className="sh-word" style={{ textDecoration: 'none', color: 'inherit' }}>Source <span style={{ color: 'rgba(255,255,255,0.72)', fontWeight: 600 }}>of</span> Truths</Link>
-              <span style={{ fontSize: 9.5, fontWeight: 800, letterSpacing: 'normal', textTransform: 'uppercase', color: 'rgba(255,255,255,0.82)', marginTop: 3 }}>Where <SourcesPopover align="left" href="/experts-and-aggregators" label={`${SOURCE_COUNT.toLocaleString()} Experts and Aggregators`} /> Agree</span>
+              <Link href="/" className="sh-word" style={{ textDecoration: 'none', color: '#fff' }}>Source <span style={{ color: '#fff', fontWeight: 600 }}>of</span> Truths</Link>
+              <span style={{ fontSize: 9.5, fontWeight: 800, letterSpacing: 'normal', textTransform: 'uppercase', color: '#fff', marginTop: 3 }}>Where <SourcesPopover align="left" href="/experts-and-aggregators" label={`${SOURCE_COUNT.toLocaleString()} Experts and Aggregators`} /> Agree</span>
             </span>
           </div>
           <div className="sh-right">
