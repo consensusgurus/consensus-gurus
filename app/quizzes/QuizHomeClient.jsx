@@ -571,7 +571,7 @@ export default function QuizHomeClient() {
     .qzh .ddbtn{display:flex;align-items:center;gap:8px;background:#fff;border:1px solid ${C.line};border-radius:10px;padding:9px 12px;cursor:pointer;font:inherit;}
     .qzh .ddmenu{position:absolute;top:calc(100% + 6px);right:0;z-index:30;background:#fff;border:1px solid ${C.line};border-radius:10px;box-shadow:0 8px 24px rgba(20,22,28,0.12);padding:6px;min-width:430px;display:grid;grid-template-columns:1fr 1fr;gap:1px 4px;}
     .qzh .ddmenu .ddall{grid-column:1 / -1;}
-    @media(max-width:560px){.qzh .ddmenu{left:0;right:auto;width:max-content;min-width:200px;max-width:88vw;grid-template-columns:1fr;max-height:60vh;overflow-y:auto;}}
+    @media(max-width:560px){.qzh .ddmenu{left:0;right:auto;width:88vw;min-width:0;max-width:88vw;grid-template-columns:1fr 1fr;max-height:60vh;overflow-y:auto;}}
     .qzh .dditem{display:flex;align-items:center;gap:9px;padding:7px 9px;border-radius:7px;cursor:pointer;font-size:13px;}
     .qzh .dditem:hover{background:${C.bg};}
     .qzh .dot{width:9px;height:9px;border-radius:3px;flex:none;}
@@ -749,7 +749,7 @@ export default function QuizHomeClient() {
 
         {/* browse header + search */}
         <div ref={quizzesRef} className="qz-browserow" style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 12, flexWrap: 'wrap' }}>
-          {!(!searchResults && scope === 'all' && !listMode && doneFilter === 'all') && (
+          {(searchResults || listMode || doneFilter !== 'all') && (
             <h2 style={{ fontSize: 17, fontWeight: 800, margin: 0, whiteSpace: 'nowrap', display: 'flex', alignItems: 'center', gap: 10 }}>
               {(listMode || doneFilter !== 'all') && !searchResults && scope === 'all' && (
                 <button type="button" onClick={() => { setListMode(null); setDoneFilter('all'); }} style={{ background: 'none', border: 'none', padding: 0, cursor: 'pointer', color: C.accent, fontWeight: 700, fontSize: 14 }}>‹ Back</button>
@@ -779,6 +779,19 @@ export default function QuizHomeClient() {
                         <span style={{ flex: 1 }}>{lbl}</span>
                         <span style={{ fontSize: 11, color: C.soft }}>{statusCounts[k]}</span>
                       </div>
+                    ))}
+                    <div className="ddall" style={{ height: 1, background: C.line, margin: '5px 2px' }} />
+                  </>
+                )}
+                {openChs.length > 0 && (
+                  <>
+                    <div className="ddall" style={{ fontSize: 10, fontWeight: 700, letterSpacing: '.04em', textTransform: 'uppercase', color: C.soft, padding: '4px 9px 2px' }}>Active challenges</div>
+                    {openChs.map((c) => (
+                      <Link key={c.id} href={`/quizzes/hub?tab=challenges&ch=${encodeURIComponent(c.id)}`} className="dditem ddall" onClick={() => setDdOpen(false)} style={{ textDecoration: 'none', color: C.ink }}>
+                        <Flame size={14} style={{ color: C.accent, flex: 'none' }} />
+                        <span style={{ flex: 1 }}>{c.title}</span>
+                        <span style={{ fontSize: 11, color: C.soft, whiteSpace: 'nowrap' }}>{c.sub}</span>
+                      </Link>
                     ))}
                     <div className="ddall" style={{ height: 1, background: C.line, margin: '5px 2px' }} />
                   </>
