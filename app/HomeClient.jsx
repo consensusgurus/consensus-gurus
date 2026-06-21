@@ -620,8 +620,9 @@ function Home({ lists, viewCounts, voteData, extras, trending = {}, openList, on
   // has been stable for a moment, then stop. We bail the instant the user scrolls
   // or keys so we never fight them, and cap the whole thing with a hard budget.
   useEffect(() => {
+    try { if ('scrollRestoration' in history) history.scrollRestoration = 'manual'; } catch (e) {}
     try { sessionStorage.removeItem('sot-home-restore'); } catch (e) {}
-    if (!restore || typeof restore.scrollY !== 'number' || restore.scrollY <= 0) return undefined;
+    if (!restore || typeof restore.scrollY !== 'number' || restore.scrollY <= 0) { try { window.scrollTo(0, 0); } catch (e) {} return undefined; }
     if (typeof window === 'undefined' || typeof requestAnimationFrame === 'undefined') return undefined;
     const targetY = restore.scrollY;
     const HARD_BUDGET = 4000; // ms — give up if the page never settles
@@ -955,7 +956,7 @@ function Home({ lists, viewCounts, voteData, extras, trending = {}, openList, on
         .nt-tbtn{display:flex;align-items:center;gap:7px;border:1px solid ${NT.line};background:#fff;border-radius:10px;padding:10px 13px;font-family:inherit;font-size:13px;font-weight:600;color:${NT.ink};cursor:pointer;white-space:nowrap;}
         .nt-tbtn.primary{background:${NT.accent};border-color:${NT.accent};color:#fff;font-weight:700;text-decoration:none;}
         .nt-mfilter{display:none;}
-        .nt-msheet{display:none;box-sizing:border-box;background:#fff;border:1px solid ${NT.line};border-radius:12px;padding:4px 14px 14px;max-height:calc(100dvh - 120px);overflow-y:auto;-webkit-overflow-scrolling:touch;overscroll-behavior:contain;}
+        .nt-msheet{display:none;box-sizing:border-box;background:#fff;border:1px solid ${NT.line};border-radius:12px;padding:4px 14px calc(14px + env(safe-area-inset-bottom) + 76px);max-height:calc(100dvh - 120px);overflow-y:auto;-webkit-overflow-scrolling:touch;overscroll-behavior:contain;}
         .nt-sortmenu{position:absolute;top:calc(100% + 6px);z-index:30;min-width:190px;background:#fff;border:1px solid ${NT.line};border-radius:10px;box-shadow:0 12px 30px rgba(20,22,28,0.12);overflow:hidden;}
         .nt-sortitem{width:100%;display:block;text-align:left;border:none;background:#fff;padding:10px 14px;font-family:inherit;font-size:13px;font-weight:600;color:${NT.ink};cursor:pointer;}
         .nt-sortitem.on,.nt-sortitem:hover{background:${NT.accsoft};color:${NT.accent};}
@@ -1858,7 +1859,7 @@ export default function HomeClient() {
           <SiteHeader active="lists" />
           <div style={{ maxWidth: 1180, margin: '0 auto', padding: '36px 24px 80px' }}>
             <div style={{ textAlign: 'center', padding: '34px 0 26px' }}>
-              <h1 style={{ fontSize: 'clamp(30px, 6vw, 52px)', fontWeight: 800, letterSpacing: '-0.03em', margin: '0 0 10px' }}>Source <span style={{ color: NT.accent }}>of</span> Truths</h1>
+              <h1 style={{ fontSize: 'clamp(30px, 6vw, 52px)', fontWeight: 800, letterSpacing: '-0.03em', margin: '0 0 10px' }}>Source <span style={{ color: '#000' }}>of</span> Truths</h1>
               <p style={{ fontSize: 12.5, fontWeight: 800, letterSpacing: 'normal', textTransform: 'uppercase', color: NT.muted, margin: '0 0 18px' }}>Where Experts and Aggregators Agree</p>
               <p style={{ maxWidth: 660, margin: '0 auto', fontSize: 16, lineHeight: 1.6, color: NT.muted }}>Curated rankings built from expert critics and everyday reviewers, weighed across hundreds of sources using Borda consensus scoring, so you can see what we all actually agree on, from the best restaurants and hotels to films, books, and products.</p>
               <p style={{ fontSize: 13, color: NT.soft, marginTop: 22 }}>seeking truths…</p>

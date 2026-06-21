@@ -80,7 +80,7 @@ export default function SiteHeader({ active = 'lists', maxWidth = 1180, visitors
           <div className="sh-brand">
             <Link href="/" style={{ flex: 'none', display: 'flex' }} aria-label="Source of Truths home"><Logo size={34} /></Link>
             <span style={{ display: 'flex', flexDirection: 'column' }}>
-              <Link href="/" className="sh-word" style={{ textDecoration: 'none', color: '#fff' }}>Source <span style={{ color: '#fff', fontWeight: 600 }}>of</span> Truths</Link>
+              <Link href="/" className="sh-word" style={{ textDecoration: 'underline', textDecorationColor: 'rgba(255,255,255,0.35)', textUnderlineOffset: '3px', textDecorationThickness: '1px', color: '#fff' }}>Source <span style={{ color: '#000', fontWeight: 600 }}>of</span> Truths</Link>
               <span style={{ fontSize: 9.5, fontWeight: 800, letterSpacing: 'normal', textTransform: 'uppercase', color: '#fff', marginTop: 3 }}>Where <SourcesPopover align="left" href="/experts-and-aggregators" label={`${SOURCE_COUNT.toLocaleString()} Experts and Aggregators`} /> Agree</span>
             </span>
           </div>
