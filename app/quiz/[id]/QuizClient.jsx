@@ -642,7 +642,7 @@ export default function QuizClient({ quizId }) {
     } else if (photoMatchMode) {
       setHint(`Tap the title tile that matches the ${quiz.noun || 'picture'} shown. Every tap spends a guess.`);
     } else {
-      setHint(ordered ? 'Go — answer in order, from the top.' : matched ? (quiz.noun ? `Go — type each ${quiz.noun}.` : "Go — name each year's winner.") : 'Go — name them all.');
+      setHint(ordered ? (quiz.strike ? 'Go — name them in order, from the top. One wrong answer ends it.' : 'Go — answer in order, from the top.') : matched ? (quiz.noun ? `Go — type each ${quiz.noun}.` : "Go — name each year's winner.") : 'Go — name them all.');
     }
     setHintBad(false);
     timerRef.current = setInterval(() => {
@@ -750,9 +750,18 @@ export default function QuizClient({ quizId }) {
       fireCue(true);
       if (next.every(Boolean)) endGame(true, next);
     } else {
+      fireCue(false);
+      // Sudden-death ordered quiz (quiz.strike): a wrong Enter ends the run on
+      // the spot. The live keystroke handler (autoOrdered) never strikes, so a
+      // player typing toward the correct answer is safe until they hit Enter.
+      if (quiz.strike) {
+        setHint(`Struck out — ${a.label != null ? a.label + ': ' : ''}${a.t} was next.`);
+        setHintBad(true);
+        endGame(false);
+        return;
+      }
       setHint(`Not the ${a.label != null ? a.label + ' ' : ''}answer. Work down in order, try again.`);
       setHintBad(true);
-      fireCue(false);
     }
   }
   function onOrderedKey(e) {
@@ -1014,6 +1023,15 @@ export default function QuizClient({ quizId }) {
     return null;
   })();
   const colSplit = explicitCols; // fixed-grid render path uses this
+  // Long answer lists (e.g. a 100-city or 54-country quiz) spill off the screen
+  // as full-height rows. When the list is large, switch the plain/matched answer
+  // rows to a COMPACT scale (smaller padding/type) and allow more columns, so far
+  // more tiles fit on one screen. Only the text-row path compacts; map/tile/image
+  // boards manage their own density. `rz` carries the per-row dimensions.
+  const compactList = !mapMode && !tileMode && !logosMode && answers.length >= 30;
+  const rz = compactList
+    ? { pad: '3px 8px', gap: 8, mb: 4, rank: 12, rankW: 18, name: 12, dash: 10, check: 13 }
+    : { pad: '13px 16px', gap: 16, mb: 8, rank: 22, rankW: 30, name: 19, dash: 13, check: 17 };
   const autoColCount = (() => {
     if (quiz.singleColumn || explicitCols) return 1;
     // These formats render their own board, not the answer list.
@@ -1024,12 +1042,23 @@ export default function QuizClient({ quizId }) {
       return Math.max(m, String((a && a.t) || '').length + labelLen);
     }, 0);
     let widthCap;
-    if (maxLen <= 14) widthCap = 4;
-    else if (maxLen <= 28) widthCap = 3;
-    else if (maxLen <= 40) widthCap = 2;
-    else widthCap = 1;
-    // Aim for at least ~6 rows per column so columns never look sparse.
-    let cols = Math.max(1, Math.min(widthCap, Math.floor(n / 6)));
+    if (compactList) {
+      // Tiny rows on big quizzes: pack as many columns as width allows.
+      // Readability is intentionally deprioritized so far more answers fit.
+      if (maxLen <= 12) widthCap = 7;
+      else if (maxLen <= 20) widthCap = 6;
+      else if (maxLen <= 34) widthCap = 5;
+      else if (maxLen <= 46) widthCap = 4;
+      else widthCap = 3;
+    } else {
+      if (maxLen <= 14) widthCap = 4;
+      else if (maxLen <= 28) widthCap = 3;
+      else if (maxLen <= 40) widthCap = 2;
+      else widthCap = 1;
+    }
+    // Aim for ~12 rows per column when compact (denser), else ~6.
+    const rowsTarget = compactList ? 8 : 6;
+    let cols = Math.max(1, Math.min(widthCap, Math.floor(n / rowsTarget)));
     const per = Math.ceil(n / Math.max(1, cols));
     cols = Math.ceil(n / per); // trim a near-empty trailing column
     return Math.max(1, cols);
@@ -1274,7 +1303,7 @@ export default function QuizClient({ quizId }) {
                     else { setGuess(v); }
                   }}
                   onKeyDown={ordered ? onOrderedKey : onKey}
-                  placeholder={started ? (ordered ? `Type the ${quiz.noun || 'answer'} for ${answers[activeIdx] ? answers[activeIdx].label : ''}…` : `Type ${/^[aeiou]/.test(quiz.noun || '') ? 'an' : 'a'} ${quiz.noun || 'answer'}…`) : 'Press Play to begin…'}
+                  placeholder={started ? (ordered ? ((answers[activeIdx] && answers[activeIdx].label != null) ? `Type the ${quiz.noun || 'answer'} for ${answers[activeIdx].label}…` : `Type the next ${quiz.noun || 'answer'}…`) : `Type ${/^[aeiou]/.test(quiz.noun || '') ? 'an' : 'a'} ${quiz.noun || 'answer'}…`) : 'Press Play to begin…'}
                   autoComplete="off"
                   autoCapitalize="none"
                   autoCorrect="off"
@@ -1394,16 +1423,16 @@ export default function QuizClient({ quizId }) {
                 const isActive = ordered && started && !ended && i === activeIdx;
                 const reveal = ended && revealed && !f; // a missed answer, now filled in
                 return (
-                  <li key={i} ref={setFlipRef(i)} style={{ display: 'flex', alignItems: 'center', gap: 16, padding: '13px 16px', borderRadius: 10, border: `1px solid ${f ? COLORS.forest : isActive ? COLORS.ember : reveal ? COLORS.rust : COLORS.faded + '33'}`, marginBottom: 8, background: reveal ? '#f6ead9' : f || isActive ? '#fff' : COLORS.paper, boxShadow: isActive ? `inset 4px 0 0 ${COLORS.ember}` : reveal ? `inset 4px 0 0 ${COLORS.rust}` : 'none', transition: 'background .2s, border-color .2s, box-shadow .2s, color .2s' }}>
+                  <li key={i} ref={setFlipRef(i)} style={{ display: 'flex', alignItems: 'center', gap: rz.gap, padding: rz.pad, borderRadius: 10, border: `1px solid ${f ? COLORS.forest : isActive ? COLORS.ember : reveal ? COLORS.rust : COLORS.faded + '33'}`, marginBottom: rz.mb, background: reveal ? '#f6ead9' : f || isActive ? '#fff' : COLORS.paper, boxShadow: isActive ? `inset 4px 0 0 ${COLORS.ember}` : reveal ? `inset 4px 0 0 ${COLORS.rust}` : 'none', transition: 'background .2s, border-color .2s, box-shadow .2s, color .2s' }}>
                     {a.label != null ? (
                       <span style={{ fontFamily: MONO, fontWeight: 700, fontSize: 15, minWidth: 52, maxWidth: '50%', overflowWrap: 'anywhere', wordBreak: 'break-word', whiteSpace: 'normal', lineHeight: 1.2, color: COLORS.ember, flex: 'none', textAlign: 'left', letterSpacing: '0.04em' }}>{a.label}</span>
                     ) : (
-                      <span style={{ fontFamily: SERIF, fontWeight: 800, fontSize: 22, width: 30, color: COLORS.ember, flex: 'none', textAlign: 'center' }}>{i + 1}</span>
+                      <span style={{ fontFamily: SERIF, fontWeight: 800, fontSize: rz.rank, width: rz.rankW, color: COLORS.ember, flex: 'none', textAlign: 'center' }}>{i + 1}</span>
                     )}
                     {f ? (
-                      <span style={{ fontFamily: SERIF, fontSize: 19, fontWeight: 500, flex: 1 }}>{a.t}</span>
+                      <span style={{ fontFamily: SERIF, fontSize: rz.name, fontWeight: 500, flex: 1 }}>{a.t}</span>
                     ) : reveal ? (
-                      <span style={{ fontFamily: SERIF, fontSize: 19, fontWeight: 500, flex: 1, color: COLORS.rust }}>{a.t}</span>
+                      <span style={{ fontFamily: SERIF, fontSize: rz.name, fontWeight: 500, flex: 1, color: COLORS.rust }}>{a.t}</span>
                     ) : (matched && !ordered) ? (
                       <input
                         ref={(el) => { slotRefs.current[i] = el; if (i === 0) inputRef.current = el; }}
@@ -1421,12 +1450,12 @@ export default function QuizClient({ quizId }) {
                     ) : isActive ? (
                       <span style={{ fontFamily: SANS, fontSize: 14, fontStyle: 'italic', color: COLORS.ember, flex: 1 }}>Type it in the box above</span>
                     ) : (
-                      <span style={{ fontFamily: MONO, fontSize: 13, letterSpacing: '0.06em', color: COLORS.faded, opacity: 0.55, flex: 1 }}>— — — — —</span>
+                      <span style={{ fontFamily: MONO, fontSize: rz.dash, letterSpacing: '0.06em', color: COLORS.faded, opacity: 0.55, flex: 1 }}>— — — — —</span>
                     )}
                     {reveal ? (
                       <span style={{ flex: 'none', fontFamily: MONO, fontSize: 9, letterSpacing: '0.12em', textTransform: 'uppercase', color: COLORS.rust, fontWeight: 700 }}>Missed</span>
                     ) : (
-                      <span style={{ width: 20, flex: 'none', color: COLORS.forest, opacity: f ? 1 : 0 }}><Check size={17} strokeWidth={3} /></span>
+                      <span style={{ width: 20, flex: 'none', color: COLORS.forest, opacity: f ? 1 : 0 }}><Check size={rz.check} strokeWidth={3} /></span>
                     )}
                   </li>
                 );
