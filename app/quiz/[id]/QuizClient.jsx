@@ -1157,7 +1157,7 @@ export default function QuizClient({ quizId }) {
   return (
     <div style={{ minHeight: '100vh', background: COLORS.cream, color: COLORS.ink, position: 'relative', overflowX: 'clip' }}>
       <QuizCelebration kind={celebration} onDone={() => setCelebration(null)} />
-      <div style={{ position: 'relative', zIndex: 2, maxWidth: 1180, margin: '0 auto', padding: '8px 24px 80px' }}>
+      <div className="qz-pagewrap" style={{ position: 'relative', zIndex: 2, maxWidth: 1180, margin: '0 auto', padding: '8px 24px 80px' }}><style>{`@media(max-width:560px){.qz-pagewrap{padding-left:14px !important;padding-right:14px !important;}}`}</style>
 
         <style>{`@import url('https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap');
 .qzlg-grid{display:grid;gap:8px;grid-template-columns:repeat(auto-fill,minmax(112px,1fr));}

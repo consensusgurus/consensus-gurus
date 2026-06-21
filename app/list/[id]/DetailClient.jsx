@@ -546,7 +546,7 @@ function ListDetail({ list, viewCount, voteData, userVotes, extras, relatedLists
   }
 
   return (
-    <div style={{ position: 'relative', zIndex: 2, maxWidth: 1180, margin: '0 auto', padding: '8px 24px 80px' }}>
+    <div className="lt-pagewrap" style={{ position: 'relative', zIndex: 2, maxWidth: 1180, margin: '0 auto', padding: '8px 24px 80px' }}><style>{`@media(max-width:560px){.lt-pagewrap{padding-left:14px !important;padding-right:14px !important;}}`}</style>
       {!compact && <SiteHeader active="lists" bare />}
 
       {!compact && <div style={{ paddingBottom: 0, marginTop: 12 }}>

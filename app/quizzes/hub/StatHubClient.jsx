@@ -361,6 +361,7 @@ export default function StatHubClient() {
     @media(max-width:560px){.qzhub .qz-srank{display:none !important;}}
     .qz-playerbar .qz-skill-empty{display:none !important;}
     @media(max-width:560px){.qz-playerbar{flex-wrap:wrap !important;align-items:center !important;gap:10px 14px !important;}.qz-playerbar .qz-div{display:none !important;}.qz-playerbar .qz-stats{order:9 !important;flex:1 1 100% !important;margin-left:0 !important;justify-content:space-between !important;gap:10px !important;}.qz-playerbar .qz-bestcat{order:3 !important;}.qz-playerbar .hubbtn{order:4 !important;margin-left:auto !important;flex:0 0 auto !important;}}
+    @media(max-width:560px){.qzhub{padding-left:14px !important;padding-right:14px !important;}}
   `;
 
   return (
@@ -368,10 +369,10 @@ export default function StatHubClient() {
       <Grain />
       <style>{css}</style>
       <SiteHeader active="quizzes" />
-      <div className="qzhub" style={{ maxWidth: 1180, margin: '0 auto', padding: '8px 24px 70px', position: 'relative' }}>
+      <div className="qzhub" style={{ maxWidth: 1180, margin: '0 auto', padding: '12px 24px 70px', position: 'relative' }}>
 
         {/* player bar — same layout as the main quiz page; Share Stats in place of Sort + Stat Hub */}
-        <div ref={playerBarRef} className="card qz-playerbar" style={{ display: 'flex', flexDirection: 'row', alignItems: 'center', flexWrap: 'wrap', gap: 16, padding: '11px 14px', marginTop: 12, overflow: 'visible', position: 'relative', zIndex: 40 }}>
+        <div ref={playerBarRef} className="card qz-playerbar" style={{ display: 'flex', flexDirection: 'row', alignItems: 'center', flexWrap: 'wrap', gap: 16, padding: '11px 14px', marginTop: 0, overflow: 'visible', position: 'relative', zIndex: 40 }}>
           {profile && profile.name ? (
             <div style={{ display: 'flex', flexDirection: 'column', minWidth: 0 }}>
               <div className="lbl">Player</div>
