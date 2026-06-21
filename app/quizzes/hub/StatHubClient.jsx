@@ -318,6 +318,7 @@ export default function StatHubClient() {
     .qzhub{font-family:${FONT};color:${C.ink};}
     .qzhub .lbl{font-size:10px;font-weight:600;letter-spacing:.04em;text-transform:uppercase;color:${C.muted};}
     .qzhub .card{background:${C.surface};border:1px solid ${C.line};border-radius:12px;overflow:hidden;min-width:0;}
+    .qzhub .qz-playerbar{background:#e8effb;border-color:#cddffb;}
     .qzhub .metric{background:${C.bg};border-radius:10px;padding:12px 14px;}
     .qzhub .metric .v{font-size:21px;font-weight:700;}
     .qzhub .rankchip{font-size:10px;font-weight:700;color:${C.accent};background:${C.accsoft};border-radius:5px;padding:1px 6px;letter-spacing:0;text-transform:none;margin-left:6px;}
@@ -352,9 +353,9 @@ export default function StatHubClient() {
     @media(max-width:680px){.qzhub .rgrid{grid-template-columns:1fr !important;}}
     @media(max-width:560px){.qzhub .shpbar{gap:8px 12px !important;padding:13px 14px !important;}.qzhub .shpbar-id{order:1;}.qzhub .shpbar-share{order:2;margin-left:auto !important;width:auto !important;padding:8px 13px !important;}.qzhub .shpbar-iddiv,.qzhub .shpbar-maindiv{display:none !important;}.qzhub .shpbar-main{order:3;flex-basis:100% !important;width:100% !important;gap:14px !important;}.qzhub .shpbar-main > div:nth-child(3){gap:14px !important;}.qzhub .sh-mext{display:none !important;}.qzhub .sh-rank{font-size:30px !important;}}
     .qzhub .lbl2{font-size:10px;font-weight:600;letter-spacing:.04em;text-transform:uppercase;color:${C.muted};}
-    .qzhub .hubbtn{display:flex;align-items:center;gap:7px;background:${C.accent};color:#fff;padding:10px 15px;border-radius:10px;font-family:${FONT};font-weight:700;font-size:13px;border:none;cursor:pointer;white-space:nowrap;}
-    .qzhub .qz-playerbar.hub-bleed .hubbtn{align-self:stretch;padding:0 18px;margin:-11px -14px -11px 0;border-radius:0 11px 11px 0;}
-    .qzhub .hubbtn:hover{filter:brightness(1.06);}
+    .qzhub .hubbtn{display:flex;align-items:center;gap:7px;background:#fff;color:${C.accent};border:1px solid #cddffb;border-right:3px solid ${C.accent};padding:10px 15px;border-radius:10px;font-family:${FONT};font-weight:700;font-size:13px;cursor:pointer;white-space:nowrap;}
+    .qzhub .qz-playerbar.hub-bleed .hubbtn{align-self:stretch;padding:0 18px;margin:-11px -14px -11px 0;border-radius:0 11px 11px 0;border-top:none;border-bottom:none;border-left:none;}
+    .qzhub .hubbtn:hover{background:${C.accsoft};}
     .qzhub .qz-srank{font-size:11px;font-weight:600;color:${C.soft};}
     .qzhub .qz-pname{max-width:160px;}
     @media(max-width:560px){.qzhub .qz-pname{max-width:120px;}}
@@ -367,10 +368,8 @@ export default function StatHubClient() {
     <div style={{ background: C.bg, minHeight: '100vh', position: 'relative' }}>
       <Grain />
       <style>{css}</style>
+      <SiteHeader active="quizzes" />
       <div className="qzhub" style={{ maxWidth: 1180, margin: '0 auto', padding: '8px 24px 70px', position: 'relative' }}>
-
-        {/* Shared site header on every page */}
-        <SiteHeader active="quizzes" bare />
 
         {/* player bar — same layout as the main quiz page; Share Stats in place of Sort + Stat Hub */}
         <div ref={playerBarRef} className="card qz-playerbar" style={{ display: 'flex', flexDirection: 'row', alignItems: 'center', flexWrap: 'wrap', gap: 16, padding: '11px 14px', marginTop: 12, overflow: 'visible', position: 'relative', zIndex: 40 }}>
@@ -380,9 +379,9 @@ export default function StatHubClient() {
               <div className="qz-pname" style={{ display: 'flex', alignItems: 'center', gap: 5, fontSize: 16, fontWeight: 800, color: C.ink, lineHeight: 1.15, minWidth: 0 }}><span style={{ minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{profile.name}</span>{!profile.isAnon ? <BadgeCheck size={13} strokeWidth={2.5} style={{ color: C.accent, flex: 'none' }} /> : null}</div>
             </div>
           ) : me && me.signed ? (
-            <Link href="/quizzes" style={{ display: 'inline-flex', alignItems: 'center', gap: 6, background: C.accent, color: '#fff', borderRadius: 9, padding: '9px 14px', fontFamily: FONT, fontWeight: 700, fontSize: 13, cursor: 'pointer', whiteSpace: 'nowrap', textDecoration: 'none' }}><Play size={15} /> Play</Link>
+            <Link href="/quizzes" style={{ display: 'inline-flex', alignItems: 'center', gap: 6, background: '#fff', color: C.accent, border: '1px solid #cddffb', borderLeft: `3px solid ${C.accent}`, borderRadius: 9, padding: '9px 14px', fontFamily: FONT, fontWeight: 700, fontSize: 13, cursor: 'pointer', whiteSpace: 'nowrap', textDecoration: 'none' }}><Play size={15} /> Play</Link>
           ) : (
-            <button onClick={() => setSignupOpen(true)} style={{ display: 'inline-flex', alignItems: 'center', gap: 6, background: C.accent, color: '#fff', border: 'none', borderRadius: 9, padding: '9px 14px', fontFamily: FONT, fontWeight: 700, fontSize: 13, cursor: 'pointer', whiteSpace: 'nowrap' }}><UserPlus size={15} /> Sign up</button>
+            <button onClick={() => setSignupOpen(true)} style={{ display: 'inline-flex', alignItems: 'center', gap: 6, background: '#fff', color: C.accent, border: '1px solid #cddffb', borderLeft: `3px solid ${C.accent}`, borderRadius: 9, padding: '9px 14px', fontFamily: FONT, fontWeight: 700, fontSize: 13, cursor: 'pointer', whiteSpace: 'nowrap' }}><UserPlus size={15} /> Sign up</button>
           )}
           <div className="qz-div" style={{ width: 1, height: 34, background: C.line }} />
           <div className={`qz-skill${found && profile.rank ? '' : ' qz-skill-empty'}`}>
@@ -419,7 +418,7 @@ export default function StatHubClient() {
         {viewing ? (
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 10, background: C.accsoft, border: `1px solid ${C.line}`, borderRadius: 10, padding: '8px 14px', marginTop: 10 }}>
             <span style={{ fontSize: 13, color: C.ink }}>Viewing <b>{(viewProfile && viewProfile.name) || 'player'}</b>{"'"}s stats</span>
-            <button onClick={() => { setViewKey(null); if (typeof window !== 'undefined' && window.history) window.history.replaceState(null, '', '/quizzes/hub'); }} style={{ border: 'none', background: C.accent, color: '#fff', borderRadius: 7, padding: '6px 13px', font: 'inherit', fontFamily: FONT, fontSize: 12, fontWeight: 700, cursor: 'pointer' }}>Back to my stats</button>
+            <button onClick={() => { setViewKey(null); if (typeof window !== 'undefined' && window.history) window.history.replaceState(null, '', '/quizzes/hub'); }} style={{ border: '1px solid #cddffb', background: '#fff', color: C.accent, borderRadius: 7, padding: '6px 13px', font: 'inherit', fontFamily: FONT, fontSize: 12, fontWeight: 700, cursor: 'pointer' }}>Back to my stats</button>
           </div>
         ) : null}
 
@@ -709,30 +708,47 @@ function QuizzesPanel({ me, myProfile, scope, byKey, catalog, stats, totals, tot
   const pool = scope === 'all' ? catalog : catalog.filter((q) => q.dept === scope);
   const rows = pool.map((q) => ({ q, s: stats[q.id] || { plays: 0, avgScorePct: 0 }, leader: totals.leaders[q.id] || '', leaderKey: (totals.leaderKeys && totals.leaderKeys[q.id]) || '' }))
     .sort((a, b) => (b.s.plays || 0) - (a.s.plays || 0) || a.q.title.localeCompare(b.q.title));
-  const playedTotal = found ? me.activity.played : 0;
-  const avgScore = found ? me.activity.accuracy : 0;
+  const totalCorrect = rows.reduce((acc, r) => acc + (r.s.correct || 0), 0);
+  const totalPerfect = rows.reduce((acc, r) => acc + (r.s.perfect || 0), 0);
+  const totalTime = totals.totalTime || 0;
+  const [sort, setSort] = useState({ col: 'plays', dir: 'desc' });
+  const QUIZ_COLS = [
+    { key: 'title', label: 'Quiz', align: 'left', get: (r) => r.q.title.toLowerCase() },
+    { key: 'plays', label: 'Plays', align: 'right', get: (r) => r.s.plays || 0 },
+    { key: 'correct', label: 'Correct', align: 'right', get: (r) => r.s.correct || 0 },
+    { key: 'perfect', label: 'Perfect', align: 'right', get: (r) => r.s.perfect || 0 },
+    { key: 'time', label: 'Time', align: 'right', get: (r) => r.s.totalTime || 0 },
+    { key: 'leader', label: 'Top Scorer', align: 'left', get: null },
+  ];
+  const activeCol = QUIZ_COLS.find((c) => c.key === sort.col) || QUIZ_COLS[1];
+  const sortedRows = [...rows].sort((a, b) => {
+    const av = activeCol.get ? activeCol.get(a) : 0;
+    const bv = activeCol.get ? activeCol.get(b) : 0;
+    let cmp = typeof av === 'string' ? av.localeCompare(bv) : av - bv;
+    if (sort.dir === 'desc') cmp = -cmp;
+    return cmp || (b.s.plays || 0) - (a.s.plays || 0);
+  });
+  const clickSort = (c) => { if (!c.get) return; setSort((stt) => stt.col === c.key ? { col: c.key, dir: stt.dir === 'desc' ? 'asc' : 'desc' } : { col: c.key, dir: c.key === 'title' ? 'asc' : 'desc' }); };
 
   return (
     <div>
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(120px,1fr))', gap: 10, marginBottom: 16 }}>
-        <Metric label="Quizzes" value={(scope === 'all' ? catalog.length : pool.length).toLocaleString()} />
         <Metric label="Total Plays" value={totalPlays.toLocaleString()} />
-        <Metric label="Time Played" value={fmtPlayTime(totals.totalTime || 0)} />
-        <Metric label="You've Played" value={found ? playedTotal : '—'} />
-        <Metric label="Your Avg Accuracy" value={found ? `${avgScore}%` : '—'} />
+        <Metric label="Correct Answers" value={totalCorrect.toLocaleString()} />
+        <Metric label="Perfect Quizzes" value={totalPerfect.toLocaleString()} />
+        <Metric label="Time Spent" value={fmtPlayTime(totalTime)} />
       </div>
       <div className="card" style={{ padding: '4px 6px' }}>
         <div style={{ padding: '10px 10px 4px', fontSize: 13, fontWeight: 700 }}>All Quizzes <span style={{ fontWeight: 600, color: C.soft }}>({rows.length.toLocaleString()})</span></div>
         <div style={{ overflow: 'auto', maxHeight: 620 }}>
           <table>
             <thead><tr>
-              <th>Quiz</th>
-              <th style={{ textAlign: 'right' }}>Plays</th>
-              <th style={{ textAlign: 'right' }}>Avg</th>
-              <th>Top Scorer</th>
+              {QUIZ_COLS.map((c) => (
+                <th key={c.key} onClick={() => clickSort(c)} style={{ textAlign: c.align, whiteSpace: 'nowrap', userSelect: 'none', cursor: c.get ? 'pointer' : 'default', color: c.get && sort.col === c.key ? C.accent : undefined }}>{c.label}{c.get && sort.col === c.key ? (sort.dir === 'desc' ? ' ↓' : ' ↑') : ''}</th>
+              ))}
             </tr></thead>
             <tbody>
-              {rows.map(({ q, s, leader, leaderKey }) => (
+              {sortedRows.map(({ q, s, leader, leaderKey }) => (
                 <tr key={q.id}>
                   <td style={{ fontWeight: 600, maxWidth: 280 }}>
                     <span style={{ display: 'flex', alignItems: 'center', minWidth: 0 }}>
@@ -741,7 +757,9 @@ function QuizzesPanel({ me, myProfile, scope, byKey, catalog, stats, totals, tot
                     </span>
                   </td>
                   <td className="score" style={{ textAlign: 'right' }}>{(s.plays || 0).toLocaleString()}</td>
-                  <td style={{ textAlign: 'right' }}>{s.avgScorePct || 0}%</td>
+                  <td style={{ textAlign: 'right' }}>{(s.correct || 0).toLocaleString()}</td>
+                  <td style={{ textAlign: 'right' }}>{(s.perfect || 0).toLocaleString()}</td>
+                  <td style={{ textAlign: 'right', whiteSpace: 'nowrap' }}>{fmtPlayTime(s.totalTime || 0)}</td>
                   <td>{leader ? (leaderKey ? <button onClick={() => onSelectPlayer && onSelectPlayer(leaderKey)} style={{ border: 'none', background: 'transparent', padding: 0, font: 'inherit', fontFamily: FONT, color: C.accent, cursor: 'pointer', textAlign: 'left' }}>{leader}</button> : leader) : <span style={{ color: C.soft }}>Empty</span>}</td>
                 </tr>
               ))}

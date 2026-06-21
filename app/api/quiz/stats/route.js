@@ -35,7 +35,7 @@ export async function GET() {
       const id = r.quiz_id;
       if (!id) continue;
       let a = agg.get(id);
-      if (!a) { a = { plays: 0, plays24h: 0, signedPlays: 0, players: new Set(), scoreSum: 0, totalSum: 0, pctSum: 0, timeSum: 0, timeN: 0, bestScore: 0 }; agg.set(id, a); }
+      if (!a) { a = { plays: 0, plays24h: 0, signedPlays: 0, players: new Set(), scoreSum: 0, totalSum: 0, pctSum: 0, timeSum: 0, timeN: 0, bestScore: 0, perfect: 0 }; agg.set(id, a); }
       a.plays += 1;
       if (r.created_at && new Date(r.created_at).getTime() >= cutoff24) a.plays24h += 1;
       // Distinct player, anonymous included: user_id, else anon_id, else this row.
@@ -49,6 +49,7 @@ export async function GET() {
       if (total > 0) a.pctSum += score / total;
       if (Number.isFinite(Number(r.time_elapsed))) { a.timeSum += Number(r.time_elapsed); a.timeN += 1; }
       if (score > a.bestScore) a.bestScore = score;
+      if (total > 0 && score === total) a.perfect += 1;
     }
     const quizzes = [...agg.entries()].map(([quizId, a]) => ({
       quizId,
@@ -60,6 +61,8 @@ export async function GET() {
       avgScore: a.plays ? Math.round(a.scoreSum / a.plays) : 0,
       avgTotal: a.plays ? Math.round(a.totalSum / a.plays) : 0,
       totalTime: a.timeSum || 0, // total seconds spent across all plays
+      correct: a.scoreSum, // total correct answers across all plays
+      perfect: a.perfect, // perfect-score (100%) completions
       bestScore: a.bestScore,
     })).sort((x, y) => y.plays - x.plays || x.quizId.localeCompare(y.quizId));
     return NextResponse.json({ quizzes });
