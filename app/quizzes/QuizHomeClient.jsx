@@ -632,6 +632,17 @@ export default function QuizHomeClient() {
       .qzh .boards.show-lb .live-card{display:none !important;}
       .qzh .boards.show-live .lb-card{display:none !important;}
     }
+    /* Mobile landscape (short viewport): keep the browse row on ONE line by letting the
+       search field shrink, and stretch all four controls to a single shared height. */
+    @media (orientation: landscape) and (max-height: 500px){
+      .qzh .qz-browserow{flex-wrap:nowrap !important;align-items:stretch !important;gap:8px !important;}
+      .qzh .qz-catbtn{flex:0 0 auto !important;align-self:stretch;}
+      .qzh .qz-catbtn .ddbtn{height:100%;box-sizing:border-box;}
+      .qzh .qz-searchwrap{flex:1 1 0 !important;min-width:90px !important;}
+      .qzh .qz-searchwrap input{height:100%;box-sizing:border-box;}
+      .qzh .qz-submit{flex:0 0 auto !important;align-self:stretch;box-sizing:border-box;}
+      .qzh .qz-daily{flex:0 0 auto !important;align-self:stretch;box-sizing:border-box;}
+    }
   `;
 
   const doneCtx = useMemo(() => ({
