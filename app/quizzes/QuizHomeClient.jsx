@@ -508,10 +508,16 @@ export default function QuizHomeClient() {
   const liveAll = useMemo(() => recent.map((p) => ({ ...p, title: titleById[p.quizId] || cleanTitle(p.quizId) })), [recent, titleById]);
 
   function colRows(cat, lim, exclude) {
-    return cat.quizzes.slice()
-      .filter((q) => !exclude || !exclude.has(q.id))
-      .sort((a, b) => plays(b.id) - plays(a.id) || a.title.localeCompare(b.title))
-      .slice(0, lim);
+    const sorted = cat.quizzes.slice()
+      .sort((a, b) => plays(b.id) - plays(a.id) || a.title.localeCompare(b.title));
+    if (!exclude) return sorted.slice(0, lim);
+    const primary = sorted.filter((q) => !exclude.has(q.id));
+    // Backfill short department columns (e.g. a small/new-heavy dept whose newest
+    // quizzes are surfaced in the Newest column and thus excluded) so the card is
+    // never left near-empty; big columns never run short and keep full de-dup.
+    if (primary.length >= lim) return primary.slice(0, lim);
+    const backfill = sorted.filter((q) => exclude.has(q.id));
+    return primary.concat(backfill).slice(0, lim);
   }
 
   // Search across the whole catalog.
