@@ -581,6 +581,8 @@ export default function QuizHomeClient() {
     .qzh .ddmenu .ddall{grid-column:1 / -1;}
     @media(max-width:560px){.qzh .ddmenu{left:0;right:auto;width:88vw;min-width:0;max-width:88vw;grid-template-columns:1fr 1fr;max-height:60vh;overflow-y:auto;}}
     .qzh .dditem{display:flex;align-items:center;gap:9px;padding:7px 9px;border-radius:7px;cursor:pointer;font-size:13px;}
+    .qzh .ddhead{display:none;}
+    @media(max-width:560px){.qzh .ddhead{display:flex !important;align-items:center;justify-content:space-between;position:sticky;top:0;background:#fff;margin:-6px -6px 5px;padding:10px 12px;border-bottom:1px solid ${C.line};z-index:3;font-weight:700;font-size:13px;color:${C.ink};}.qzh .ddhead .ddclose{background:#eef1f6;border:none;border-radius:8px;width:34px;height:34px;font-size:17px;line-height:1;cursor:pointer;color:${C.ink};display:flex;align-items:center;justify-content:center;flex:none;}}
     .qzh .dditem:hover{background:${C.bg};}
     .qzh .dot{width:9px;height:9px;border-radius:3px;flex:none;}
     .qzh .boards{display:grid;grid-template-columns:1fr 2fr;gap:12px;align-items:stretch;margin-bottom:12px;}
@@ -829,6 +831,7 @@ export default function QuizHomeClient() {
             </button>
             {ddOpen && (
               <div className="ddmenu" onClick={(e) => e.stopPropagation()}>
+                <div className="ddall ddhead"><span>Categories</span><button type="button" className="ddclose" aria-label="Close" onClick={() => setDdOpen(false)}>✕</button></div>
                 {me && me.found && (
                   <>
                     <div className="ddall" style={{ fontSize: 10, fontWeight: 700, letterSpacing: '.04em', textTransform: 'uppercase', color: C.soft, padding: '4px 9px 2px' }}>My progress</div>
