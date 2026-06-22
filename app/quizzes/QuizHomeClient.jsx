@@ -624,7 +624,7 @@ export default function QuizHomeClient() {
        and the outside-click overlay freezes the page so the page itself can't
        scroll to reveal the rest. Anchor it as a viewport-bounded fixed sheet so
        every category is reachable via the menu's own internal scroll. */
-    @media(max-width:560px){.qzh .qz-catbtn .ddmenu{position:fixed;left:50%;right:auto;transform:translateX(-50%);top:auto;bottom:12px;width:92vw;max-width:92vw;min-width:0;max-height:72vh;overflow-y:auto;-webkit-overflow-scrolling:touch;overscroll-behavior:contain;grid-template-columns:1fr 1fr;box-shadow:0 -8px 28px rgba(20,22,28,0.18);}}
+    @media(max-width:560px){.qzh .qz-catbtn .ddmenu{position:fixed;z-index:60;left:50%;right:auto;transform:translateX(-50%);top:auto;bottom:12px;width:92vw;max-width:92vw;min-width:0;max-height:72vh;overflow-y:auto;-webkit-overflow-scrolling:touch;overscroll-behavior:contain;grid-template-columns:1fr 1fr;box-shadow:0 -8px 28px rgba(20,22,28,0.18);}}
     /* Mobile: surface the leaderboard + last-played boards (otherwise display:none on phones)
        as two side-by-side toggle buttons; tapping one expands its existing card full-width below. */
     @media(max-width:560px){
