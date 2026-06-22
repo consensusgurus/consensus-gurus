@@ -632,6 +632,8 @@ export default function QuizHomeClient() {
       .qzh .qz-mobtoggle .mtbtn{flex:1 1 0;min-width:0;display:flex;align-items:center;gap:7px;background:#fff;border:1px solid ${C.line};border-radius:10px;padding:10px 12px;cursor:pointer;font:inherit;color:${C.ink};font-weight:700;font-size:12.5px;}
       .qzh .qz-mobtoggle .mtbtn.active{background:#f3f7ff;border-color:#cddffb;color:${C.accent};}
       .qzh .qz-mobtoggle .mtbtn .mtlbl{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+      .qzh .qz-mobtoggle .mtbtn{justify-content:center !important;}
+      .qzh .qz-mobtoggle .mtbtn svg:last-child{margin-left:0 !important;}
       .qzh .boards.show-lb,.qzh .boards.show-live{display:block !important;grid-template-columns:1fr;}
       .qzh .boards.show-lb .live-card{display:none !important;}
       .qzh .boards.show-live .lb-card{display:none !important;}

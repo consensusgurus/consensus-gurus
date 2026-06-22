@@ -721,9 +721,10 @@ export default function QuizClient({ quizId }) {
       if (next.every(Boolean)) endGame(true, next);
       else focusNextSlot(i, next);
     } else {
-      setHint(quiz.noun ? "Not quite. Try again." : "Not that year's winner. Try again.");
       setHintBad(true);
       fireCue(false);
+      if (slideshow && quiz.strike) { setHint(`Struck out — ${a.label != null ? a.label + ': ' : ''}${a.t} was the answer.`); endGame(false); }
+      else setHint(quiz.noun ? "Not quite. Try again." : "Not that year's winner. Try again.");
     }
   }
   function onSlotKey(i, e) {
