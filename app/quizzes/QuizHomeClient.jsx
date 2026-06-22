@@ -203,6 +203,7 @@ export default function QuizHomeClient() {
   const [listMode, setListMode] = useState(null); // null | 'newest' | 'mostplayed' | 'live' (View all expansions)
   const [doneFilter, setDoneFilter] = useState('all'); // 'all' | 'unplayed' | 'played' | 'completed' (my-progress filter)
   const [boardsExpanded, setBoardsExpanded] = useState(false); // header click expands both boards 5 -> 10
+  const [mobileBoard, setMobileBoard] = useState(null); // mobile-only: null | 'lb' | 'live' (which board panel is shown)
 
   const [totals, setTotals] = useState({ byQuiz: {}, leaders: {}, leaderKeys: {}, today: 0 });
   const [eloBoard, setEloBoard] = useState([]); // [{rank,name,isAnon,userKey}]
@@ -583,6 +584,7 @@ export default function QuizHomeClient() {
     .qzh .dditem:hover{background:${C.bg};}
     .qzh .dot{width:9px;height:9px;border-radius:3px;flex:none;}
     .qzh .boards{display:grid;grid-template-columns:1fr 2fr;gap:12px;align-items:stretch;margin-bottom:12px;}
+    .qzh .qz-mobtoggle{display:none;}
     /* Ranking leaderboard (1st card) on the narrow LEFT track; the last-played
        feed (2nd card) on the wide RIGHT track. Natural source order, no reorder. */
     @media(max-width:680px){.qzh .boards{grid-template-columns:1fr;}}
@@ -619,6 +621,17 @@ export default function QuizHomeClient() {
        scroll to reveal the rest. Anchor it as a viewport-bounded fixed sheet so
        every category is reachable via the menu's own internal scroll. */
     @media(max-width:560px){.qzh .qz-catbtn .ddmenu{position:fixed;left:50%;right:auto;transform:translateX(-50%);top:auto;bottom:12px;width:92vw;max-width:92vw;min-width:0;max-height:72vh;overflow-y:auto;-webkit-overflow-scrolling:touch;overscroll-behavior:contain;grid-template-columns:1fr 1fr;box-shadow:0 -8px 28px rgba(20,22,28,0.18);}}
+    /* Mobile: surface the leaderboard + last-played boards (otherwise display:none on phones)
+       as two side-by-side toggle buttons; tapping one expands its existing card full-width below. */
+    @media(max-width:560px){
+      .qzh .qz-mobtoggle{display:flex;gap:8px;margin-bottom:10px;}
+      .qzh .qz-mobtoggle .mtbtn{flex:1 1 0;min-width:0;display:flex;align-items:center;gap:7px;background:#fff;border:1px solid ${C.line};border-radius:10px;padding:10px 12px;cursor:pointer;font:inherit;color:${C.ink};font-weight:700;font-size:12.5px;}
+      .qzh .qz-mobtoggle .mtbtn.active{background:#f3f7ff;border-color:#cddffb;color:${C.accent};}
+      .qzh .qz-mobtoggle .mtbtn .mtlbl{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+      .qzh .boards.show-lb,.qzh .boards.show-live{display:block !important;grid-template-columns:1fr;}
+      .qzh .boards.show-lb .live-card{display:none !important;}
+      .qzh .boards.show-live .lb-card{display:none !important;}
+    }
   `;
 
   const doneCtx = useMemo(() => ({
@@ -684,9 +697,22 @@ export default function QuizHomeClient() {
         {signupOpen && <SignupModal onClose={() => setSignupOpen(false)} />}
 
         {/* boards */}
-        <div className="boards">
+        {/* mobile-only toggle: two side-by-side buttons; the selected one expands its existing card full-width below. Hidden >560px, where both boards show normally. */}
+        <div className="qz-mobtoggle">
+          <button type="button" className={`mtbtn${mobileBoard === 'lb' ? ' active' : ''}`} onClick={() => setMobileBoard((v) => (v === 'lb' ? null : 'lb'))} aria-expanded={mobileBoard === 'lb'}>
+            <Trophy size={15} strokeWidth={2} style={{ color: '#e0a32e', flex: 'none' }} />
+            <span className="mtlbl">Leaderboard</span>
+            <ChevronDown size={14} strokeWidth={2.5} style={{ marginLeft: 'auto', flex: 'none', transform: mobileBoard === 'lb' ? 'rotate(180deg)' : 'none', transition: 'transform .15s' }} />
+          </button>
+          <button type="button" className={`mtbtn${mobileBoard === 'live' ? ' active' : ''}`} onClick={() => setMobileBoard((v) => (v === 'live' ? null : 'live'))} aria-expanded={mobileBoard === 'live'}>
+            <span style={{ width: 8, height: 8, borderRadius: '50%', background: C.live, flex: 'none', animation: 'qzp 1.6s infinite' }} />
+            <span className="mtlbl">Last played</span>
+            <ChevronDown size={14} strokeWidth={2.5} style={{ marginLeft: 'auto', flex: 'none', transform: mobileBoard === 'live' ? 'rotate(180deg)' : 'none', transition: 'transform .15s' }} />
+          </button>
+        </div>
+        <div className={`boards${mobileBoard === 'lb' ? ' show-lb' : mobileBoard === 'live' ? ' show-live' : ''}`}>
           {/* leaderboard */}
-          <div className="card">
+          <div className="card lb-card">
             <div className="head" onClick={() => setBoardsExpanded((v) => !v)}>
               <span className="lbl" style={{ color: C.ink }}>{lbMetric.label}{lbMetric.special || scope === 'all' ? '' : ` · ${byKey[scope]?.label}`}</span>
               <Link href={lbMetric.special && lbMetric.key !== 'catRating' ? '/quizzes/hub?tab=challenges' : '/quizzes/hub'} onClick={(e) => e.stopPropagation()} className="qlink"><span style={{ fontSize: 11, fontWeight: 700, color: C.accent }}>View all</span></Link>
@@ -732,7 +758,7 @@ export default function QuizHomeClient() {
           </div>
 
           {/* live feed */}
-          <div className="card">
+          <div className="card live-card">
             <div className="head" onClick={() => setBoardsExpanded((v) => !v)}>
               <span style={{ display: 'flex', alignItems: 'center', gap: 7 }}>
                 <span style={{ width: 8, height: 8, borderRadius: '50%', background: C.live, animation: 'qzp 1.6s infinite' }} />
