@@ -1062,7 +1062,7 @@ export default function QuizClient({ quizId }) {
     let cols = Math.max(1, Math.min(widthCap, Math.floor(n / rowsTarget)));
     const per = Math.ceil(n / Math.max(1, cols));
     cols = Math.ceil(n / per); // trim a near-empty trailing column
-    return Math.max(1, cols);
+    return Math.max(1, Math.min(cols, 5)); // cap: only ~5 columns of 200px fit the page width; more wrap a column to full width
   })();
   const asOfRaw = quiz.publishedDate || (quiz.publishedAt ? quiz.publishedAt.slice(0, 10) : null);
   const asOfLabel = asOfRaw ? new Date(asOfRaw + 'T12:00:00Z').toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric', timeZone: 'UTC' }) : null;
