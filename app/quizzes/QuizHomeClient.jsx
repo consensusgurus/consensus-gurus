@@ -625,6 +625,7 @@ export default function QuizHomeClient() {
        scroll to reveal the rest. Anchor it as a viewport-bounded fixed sheet so
        every category is reachable via the menu's own internal scroll. */
     @media(max-width:560px){.qzh .qz-catbtn .ddmenu{position:fixed;z-index:60;left:50%;right:auto;transform:translateX(-50%);top:auto;bottom:12px;width:92vw;max-width:92vw;min-width:0;max-height:72vh;overflow-y:auto;-webkit-overflow-scrolling:touch;overscroll-behavior:contain;grid-template-columns:1fr 1fr;box-shadow:0 -8px 28px rgba(20,22,28,0.18);}}
+    @media(max-width:560px){.qzh .qz-dd-overlay{z-index:55 !important;background:rgba(20,22,28,0.4);}}
     /* Mobile: surface the leaderboard + last-played boards (otherwise display:none on phones)
        as two side-by-side toggle buttons; tapping one expands its existing card full-width below. */
     @media(max-width:560px){
@@ -986,7 +987,7 @@ export default function QuizHomeClient() {
       </div>
 
       {/* close the dropdown on outside click */}
-      {ddOpen && <div onClick={() => setDdOpen(false)} style={{ position: 'fixed', inset: 0, zIndex: 20 }} />}
+      {ddOpen && <div className="qz-dd-overlay" onClick={() => setDdOpen(false)} style={{ position: 'fixed', inset: 0, zIndex: 20 }} />}
 
       <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: 20, flexWrap: 'wrap', margin: '30px 0 8px', fontSize: 12.5, color: C.muted, fontFamily: FONT }}>
         <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}><Check size={14} strokeWidth={2.75} style={{ color: C.live }} /> Played</span>
