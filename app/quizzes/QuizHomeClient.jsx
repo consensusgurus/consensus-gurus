@@ -615,7 +615,7 @@ export default function QuizHomeClient() {
     @media(max-width:560px){.qzh .qz-pname{max-width:120px;}}
     @media(max-width:560px){.qzh .qz-srank{display:none !important;}}
     .qzh .qz-catbtn .ddbtn{height:100%;box-sizing:border-box;}
-    @media(max-width:560px){.qzh .qz-browserow{align-items:stretch !important;}.qzh .qz-catbtn{flex:1 1 0 !important;min-width:0;}.qzh .qz-catbtn .ddbtn{width:100%;justify-content:center;height:100%;box-sizing:border-box;}.qzh .qz-daily{flex:1 1 0 !important;justify-content:center !important;align-self:stretch;}.qzh .qz-searchwrap{flex:1 1 100% !important;}}
+    @media(max-width:560px){.qzh .qz-browserow{align-items:stretch !important;}.qzh .qz-catbtn{flex:1 1 0 !important;min-width:0;order:1 !important;}.qzh .qz-catbtn .ddbtn{width:100%;justify-content:center;height:100%;box-sizing:border-box;}.qzh .qz-daily{flex:1 1 0 !important;justify-content:center !important;align-self:stretch;order:2 !important;}.qzh .qz-searchwrap{flex:1 1 100% !important;order:3 !important;}}
     /* Mobile: the category menu can be taller than the space below its button,
        and the outside-click overlay freezes the page so the page itself can't
        scroll to reveal the rest. Anchor it as a viewport-bounded fixed sheet so
