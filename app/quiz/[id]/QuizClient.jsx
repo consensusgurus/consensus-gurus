@@ -1114,6 +1114,9 @@ export default function QuizClient({ quizId }) {
 
         <style>{`@import url('https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap');
 .qzlg-grid{display:grid;gap:8px;grid-template-columns:repeat(auto-fill,minmax(112px,1fr));}
+.qz-acols{display:grid;gap:3px 8px;grid-template-columns:repeat(var(--accolsm,3),minmax(0,1fr));}
+.qz-acols>li{margin-bottom:0 !important;}
+@media(min-width:560px){.qz-acols{grid-template-columns:repeat(var(--accols,3),minmax(0,1fr));}}
 .qzlg-grid.qzlg-big{grid-template-columns:repeat(auto-fill,minmax(140px,1fr));}
 .qzlg-cell-tall{height:208px;}
 .qzlg-img-tall{max-height:204px;}
@@ -1336,7 +1339,12 @@ export default function QuizClient({ quizId }) {
                 const reveal = ended && revealed && !f;
                 const solved = found.filter(Boolean).length;
                 const navDisabled = !started;
-                const go = (d) => setSlideIdx((p) => Math.min(Math.max(p + d, 0), last));
+                // Circular nav that skips already-solved clues while playing: Next past
+                // the end wraps to the start, Back before the start wraps to the end, and
+                // you never land back on (re-see) an accepted answer. After the game ends,
+                // cycle through every slot so missed answers can be reviewed.
+                const navTarget = (d) => { const n = answers.length; for (let k = 1; k <= n; k++) { const j = (((i + d * k) % n) + n) % n; if (j === i) break; if (ended || !found[j]) return j; } return i; };
+                const go = (d) => { const j = navTarget(d); if (j !== i) setSlideIdx(j); };
                 const adv = () => { const n = answers.length; for (let k = 1; k <= n; k++) { const j = (i + k) % n; if (j !== i && !found[j]) { setSlideIdx(j); return; } } };
                 return (
                   <div>
@@ -1364,9 +1372,9 @@ export default function QuizClient({ quizId }) {
                       )}
                     </div>
                     <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginTop: 14, gap: 12 }}>
-                      <button onClick={() => go(-1)} disabled={navDisabled || i === 0} style={{ fontFamily: MONO, fontSize: 12, letterSpacing: '0.08em', textTransform: 'uppercase', fontWeight: 700, padding: '11px 20px', borderRadius: 8, border: `1.5px solid ${COLORS.ink}`, background: 'transparent', color: COLORS.ink, cursor: (navDisabled || i === 0) ? 'default' : 'pointer', opacity: (navDisabled || i === 0) ? 0.4 : 1 }}>&larr; Back</button>
+                      <button onClick={() => go(-1)} disabled={navDisabled || navTarget(-1) === i} style={{ fontFamily: MONO, fontSize: 12, letterSpacing: '0.08em', textTransform: 'uppercase', fontWeight: 700, padding: '11px 20px', borderRadius: 8, border: `1.5px solid ${COLORS.ink}`, background: 'transparent', color: COLORS.ink, cursor: (navDisabled || navTarget(-1) === i) ? 'default' : 'pointer', opacity: (navDisabled || navTarget(-1) === i) ? 0.4 : 1 }}>&larr; Back</button>
                       <span style={{ fontFamily: MONO, fontSize: 12, color: COLORS.faded }}>{f ? 'Solved' : reveal ? 'Missed' : (started ? 'Type your answer' : 'Press Play')}</span>
-                      <button onClick={() => go(1)} disabled={navDisabled || i === last} style={{ fontFamily: MONO, fontSize: 12, letterSpacing: '0.08em', textTransform: 'uppercase', fontWeight: 700, padding: '11px 20px', borderRadius: 8, border: 'none', background: COLORS.ember, color: '#fff', cursor: (navDisabled || i === last) ? 'default' : 'pointer', opacity: (navDisabled || i === last) ? 0.4 : 1 }}>Next &rarr;</button>
+                      <button onClick={() => go(1)} disabled={navDisabled || navTarget(1) === i} style={{ fontFamily: MONO, fontSize: 12, letterSpacing: '0.08em', textTransform: 'uppercase', fontWeight: 700, padding: '11px 20px', borderRadius: 8, border: 'none', background: COLORS.ember, color: '#fff', cursor: (navDisabled || navTarget(1) === i) ? 'default' : 'pointer', opacity: (navDisabled || navTarget(1) === i) ? 0.4 : 1 }}>Next &rarr;</button>
                     </div>
                   </div>
                 );
@@ -1452,6 +1460,18 @@ export default function QuizClient({ quizId }) {
                 );
               }
               if (autoColCount > 1) {
+                // Compact (long) lists use a responsive grid so phones still show
+                // 2-3 columns instead of collapsing to one; desktop keeps the full
+                // autoColCount. displayOrder is row-major, so solved items sink to
+                // the bottom rows and the next unsolved stays near the input.
+                if (compactList) {
+                  const mobileCols = Math.min(3, autoColCount);
+                  return (
+                    <ol className="qz-acols" style={{ margin: 0, padding: 0, listStyle: 'none', '--accols': autoColCount, '--accolsm': mobileCols }}>
+                      {displayOrder.map((i) => renderRow(answers[i], i))}
+                    </ol>
+                  );
+                }
                 // Auto-wrapped columns follow displayOrder (column-major), so as
                 // items are solved they sink toward the last column's bottom and
                 // the next unsolved one stays near the input bar.
