@@ -12,6 +12,7 @@
 import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { ArrowLeft, Share2, Check, X, Flag, Trophy, HelpCircle, Zap, ScrollText } from 'lucide-react';
+import QuizStandings from './QuizStandings';
 import LeaderboardSnippet from './LeaderboardSnippet';
 import { getQuiz, QUIZZES } from '@/lib/quizzes';
 import { quizDept as deptOf, DEPT_LABEL } from '@/lib/quiz-departments';
@@ -402,47 +403,7 @@ export default function TimedMcqClient({ quizId, mobile = false }) {
 
   const eloDept = deptOf(quiz);
   const eloDeptLabel = DEPT_LABEL[eloDept] || 'Category';
-  const eloPanel = eloAfter ? (() => {
-    const fmtN = (x) => (x == null ? null : x.toLocaleString());
-    const aRating = eloAfter.rating;
-    const bRating = eloBefore && eloBefore.rating != null ? eloBefore.rating : null;
-    const aGlobal = eloAfter.rank != null ? eloAfter.rank : null;
-    const bGlobal = eloBefore && eloBefore.found ? eloBefore.rank : null;
-    const aCatObj = eloAfter.byCategory && eloAfter.byCategory[eloDept];
-    const bCatObj = eloBefore && eloBefore.byCategory && eloBefore.byCategory[eloDept];
-    const aCat = aCatObj ? aCatObj.rank : null;
-    const bCat = bCatObj ? bCatObj.rank : null;
-    const perGame = (eloAfter.recent && eloAfter.recent[0] && typeof eloAfter.recent[0].delta === 'number') ? eloAfter.recent[0].delta : (bRating != null ? aRating - bRating : null);
-    const rg = (eloAfter.recent && eloAfter.recent[0]) ? eloAfter.recent[0] : null;
-    const rows = [
-      { label: 'ELO rating', value: fmtN(aRating), was: bRating != null ? `was ${fmtN(bRating)}` : (perGame != null ? `was ${fmtN(aRating - perGame)}` : null), delta: bRating != null ? aRating - bRating : perGame, isNew: bRating == null },
-      { label: 'Global rank', value: aGlobal != null ? `#${fmtN(aGlobal)}` : '—', was: bGlobal != null ? `was #${fmtN(bGlobal)}` : 'new entry', delta: (bGlobal != null && aGlobal != null) ? bGlobal - aGlobal : ((rg && typeof rg.rankDelta === 'number') ? rg.rankDelta : null), isNew: bGlobal == null },
-      { label: `${eloDeptLabel} rank`, value: aCat != null ? `#${fmtN(aCat)}` : '—', was: bCat != null ? `was #${fmtN(bCat)}` : 'new entry', delta: (bCat != null && aCat != null) ? bCat - aCat : ((rg && typeof rg.catRankDelta === 'number') ? rg.catRankDelta : null), isNew: bCat == null },
-    ];
-    return (
-      <div style={{ flex: '1 1 0', minWidth: 0, background: '#fbf7ef', border: `1px solid ${COLORS.faded}33` }}>
-        <div style={{ fontFamily: MONO, fontSize: 9, letterSpacing: '0.18em', textTransform: 'uppercase', color: COLORS.ember, textAlign: 'center', padding: '9px 0 1px' }}>Your standing</div>
-        {rows.map((r, i) => (
-          <div key={r.label} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '7px 13px', borderTop: i === 0 ? 'none' : `1px solid ${COLORS.faded}22` }}>
-            <div style={{ textAlign: 'left' }}>
-              <div style={{ fontFamily: MONO, fontSize: 9, letterSpacing: '0.13em', textTransform: 'uppercase', color: COLORS.faded }}>{r.label}</div>
-              <div style={{ fontFamily: SERIF, fontWeight: 800, fontSize: 15, lineHeight: 1.15, color: COLORS.ink }}>{r.value}</div>
-            </div>
-            <div style={{ textAlign: 'right' }}>
-              {r.was ? <div style={{ fontFamily: MONO, fontSize: 10, color: COLORS.faded }}>{r.was}</div> : null}
-              {r.isNew ? (
-                <div style={{ fontFamily: MONO, fontSize: 11, fontWeight: 700, color: COLORS.forest, background: '#e7ecdf', padding: '3px 8px', display: 'inline-block', marginTop: 3 }}>NEW</div>
-              ) : (r.delta == null || r.delta === 0) ? (
-                <div style={{ fontFamily: MONO, fontSize: 11, color: COLORS.faded, marginTop: 3 }}>±0</div>
-              ) : (
-                <div style={{ fontFamily: MONO, fontSize: 12, fontWeight: 700, color: r.delta > 0 ? COLORS.forest : COLORS.ember, background: r.delta > 0 ? '#e7ecdf' : '#f6e2dd', padding: '3px 8px', display: 'inline-block', marginTop: 3 }}>{r.delta > 0 ? '▲' : '▼'} {Math.abs(r.delta).toLocaleString()}</div>
-              )}
-            </div>
-          </div>
-        ))}
-      </div>
-    );
-  })() : null;
+  const eloPanel = <QuizStandings eloAfter={eloAfter} eloBefore={eloBefore} eloDept={eloDept} eloDeptLabel={eloDeptLabel} fill />;
 
 
   return (
