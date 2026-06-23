@@ -13,7 +13,7 @@ import { QUIZZES } from '@/lib/quizzes';
 import {
   quizDept as deptOf, DEPT_COLOR, DEPT_LABEL, DEPT_NAV,
 } from '@/lib/quiz-departments';
-import { getDailyChallenge, dailyChallengeId, openChallenges } from '@/lib/challenges';
+import { getDailyChallenge, dailyChallengeId, openChallenges, DAILY_CHALLENGE_ON } from '@/lib/challenges';
 import Grain from '../Grain';
 import Footer from '../Footer';
 
@@ -308,7 +308,7 @@ export default function QuizHomeClient() {
     fetch('/api/quiz/stats').then((r) => r.json()).then((d) => {
       if (d && Array.isArray(d.quizzes)) setStatsById(Object.fromEntries(d.quizzes.map((q) => [q.quizId, q])));
     }).catch(() => {});
-    fetch(`/api/quiz/challenge-leaderboard?id=${encodeURIComponent(dailyChallengeId())}`).then((r) => r.json()).then((d) => {
+    if (DAILY_CHALLENGE_ON) fetch(`/api/quiz/challenge-leaderboard?id=${encodeURIComponent(dailyChallengeId())}`).then((r) => r.json()).then((d) => {
       if (d && Array.isArray(d.users)) setDailyLb(d.users);
     }).catch(() => {});
     fetch('/api/quiz/today').then((r) => r.json()).then((d) => {
@@ -428,11 +428,11 @@ export default function QuizHomeClient() {
       { key: 'daysPlayed', label: 'Most Days Played', fmt: (v) => (v || 0).toLocaleString(), ms: 5000 },
       { key: 'accuracy', label: 'Highest Accuracy', fmt: (v) => `${v || 0}%`, ms: 5000 },
     ];
-    if (dailyRows.length >= 2) base.splice(1, 0, { key: 'dailyChallenge', special: true, label: `Today's Challenge${dailyCat ? ` · ${dailyCat}` : ''}`, fmt: (v) => (v || 0).toLocaleString(), ms: 6000 });
+    if (DAILY_CHALLENGE_ON && dailyRows.length >= 2) base.splice(1, 0, { key: 'dailyChallenge', special: true, label: `Today's Challenge${dailyCat ? ` · ${dailyCat}` : ''}`, fmt: (v) => (v || 0).toLocaleString(), ms: 6000 });
     const extra = [];
     if (todayCorrectRows.length >= 1) extra.push({ key: 'correctToday', special: true, label: 'Correct Today', fmt: (v) => (v || 0).toLocaleString(), ms: 5000 });
     if (todayQuizRows.length >= 1) extra.push({ key: 'quizzesToday', special: true, label: 'Quizzes Today', fmt: (v) => (v || 0).toLocaleString(), ms: 5000 });
-    if (extra.length) base.splice(dailyRows.length >= 2 ? 2 : 1, 0, ...extra);
+    if (extra.length) base.splice((DAILY_CHALLENGE_ON && dailyRows.length >= 2) ? 2 : 1, 0, ...extra);
     // Per-category "Top Rated <Category>" slides join the rotation only on the
     // overall view (Category: All), in DEPT_NAV order, skipping empty boards.
     const catSlides = scope === 'all'

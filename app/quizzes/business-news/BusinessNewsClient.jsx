@@ -29,7 +29,7 @@ const COMPANY_META = {
 // Thematic (sector) quizzes shown in the right-hand column. Add a sector here
 // and the row button appears automatically when its quiz exists in QUIZZES.
 const SECTOR_META = {
-  'restaurant-sector-update': { name: 'Restaurants', emoji: '🍽️', sub: 'Earnings, closures & consumer trends' },
+  'restaurant-sector-update': { name: 'Restaurants', emoji: '🍽️', sub: 'Earnings, closures & consumer trends', date: 'June 2026' },
 };
 
 const NEWS_RE = /^(daily-market-news|daily-business|weekly-business|earnings-reporter)/;
@@ -57,6 +57,14 @@ function companyName(q) {
   const m = COMPANY_META[q.id];
   if (m) return m.name;
   return (q.title || '').replace(/\s+\d?[QH].*$/i, '').replace(/\s+Earnings.*$/i, '').trim() || q.title;
+}
+function newsLabel(q) {
+  const m = q.id.match(/(\d{4})-(\d{2})-(\d{2})$/);
+  const date = m ? `${+m[2]}/${+m[3]}/${m[1].slice(2)}` : '';
+  let type = 'Daily Market News';
+  if (/^earnings-reporter/.test(q.id)) type = 'Earnings Reporter';
+  else if (/^weekly-business/.test(q.id)) type = 'Weekly Business';
+  return date ? `${type} ${date}` : (q.title || '');
 }
 
 function Favicon({ domain, label }) {
@@ -134,6 +142,8 @@ export default function BusinessNewsClient() {
     .bnh .sbody{flex:1;min-width:0;display:flex;flex-direction:column;}
     .bnh .sname{font-size:14px;font-weight:800;color:${C.ink};}
     .bnh .ssub{font-size:12px;font-weight:600;color:${C.soft};margin-top:2px;}
+    .bnh .sname,.bnh .ssub{display:block;}
+    .bnh .sdate{flex:none;font-size:10.5px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;color:${C.soft};margin-right:2px;}
     .bnh .smeta{font-size:10.5px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;color:${C.soft};margin-top:3px;}
     .bnh .splay{flex:none;width:34px;height:34px;border-radius:50%;background:${C.accent};color:#fff;display:flex;align-items:center;justify-content:center;font-size:13px;}
     .bnh .sbtn-soon{border-style:dashed;background:transparent;}
@@ -179,8 +189,8 @@ export default function BusinessNewsClient() {
               {newsShown.map((q, i) => (
                 <Link key={q.id} href={`/quiz/${q.id}`} className="qrow" title={q.title}>
                   <span className="dot" />
-                  <span className="qtitle">{q.title}</span>
-                  <span className={`qmeta${i === 0 && !newsExpanded ? ' is-new' : ''}`}>{i === 0 && !newsExpanded ? 'Newest' : shortDate(q)}</span>
+                  <span className="qtitle">{newsLabel(q)}</span>
+                  {i === 0 && !newsExpanded ? <span className="qmeta is-new">Newest</span> : null}
                 </Link>
               ))}
             </div>
@@ -205,6 +215,7 @@ export default function BusinessNewsClient() {
                     <span className="sname">{meta.name}</span>
                     <span className="ssub">{meta.sub}</span>
                   </span>
+                  {meta.date ? <span className="sdate">{meta.date}</span> : null}
                   <span className="splay" aria-hidden="true">▶</span>
                 </Link>
               ))}
