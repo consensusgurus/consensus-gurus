@@ -321,8 +321,8 @@ export default function GridFillBoard({ quizId, mobile = false }) {
 
   async function submitJoin() {
     setJoinErr(false);
-    if (!jName.trim() || jName.trim().length > 40) { setJoinErr(true); setJoinMsg('Pick a username (max 40 characters).'); return; }
-    if (!EMAIL_RE.test(jEmail.trim())) { setJoinErr(true); setJoinMsg('Enter a valid email.'); return; }
+    if (!jName.trim() || jName.trim().length > 15) { setJoinErr(true); setJoinMsg('Pick a username (max 15 characters).'); return; }
+    if (jEmail.trim() && !EMAIL_RE.test(jEmail.trim())) { setJoinErr(true); setJoinMsg('Enter a valid email or leave it blank.'); return; }
     setJoinBusy(true);
     try {
       const res = await fetch('/api/quiz/join', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ username: jName.trim(), email: jEmail.trim(), anonId: getAnonId() }) });
@@ -652,13 +652,13 @@ export default function GridFillBoard({ quizId, mobile = false }) {
               Sign up and your username will appear on the leaderboard after you finish a game. No password needed.
             </p>
             <p style={{ fontFamily: MONO, fontSize: 12, color: COLORS.faded, margin: '0 0 22px' }}>
-              Your username is shown publicly; your email is kept private.
+              Your username is shown publicly. Email is optional and kept private.
             </p>
 
             <label style={labelStyle}>Username</label>
-            <input value={jName} onChange={(e) => setJName(e.target.value)} maxLength={40} placeholder="e.g. ceomogul" style={fieldStyle} />
-            <label style={{ ...labelStyle, marginTop: 16 }}>Email</label>
-            <input value={jEmail} onChange={(e) => setJEmail(e.target.value)} type="email" placeholder="you@email.com" style={fieldStyle} />
+            <input value={jName} onChange={(e) => setJName(e.target.value)} maxLength={15} placeholder="e.g. ceomogul" style={fieldStyle} />
+            <label style={{ ...labelStyle, marginTop: 16 }}>Email (optional)</label>
+            <input value={jEmail} onChange={(e) => setJEmail(e.target.value)} type="email" placeholder="you@email.com (optional)" style={fieldStyle} />
 
             <button onClick={submitJoin} disabled={joinBusy} style={{ marginTop: 22, width: '100%', fontFamily: MONO, fontSize: 13, letterSpacing: '0.1em', textTransform: 'uppercase', fontWeight: 700, lineHeight: '48px', border: 'none', background: COLORS.ember, color: '#fff', cursor: joinBusy ? 'default' : 'pointer', opacity: joinBusy ? 0.6 : 1 }}>
               {joinBusy ? 'Joining…' : identity ? 'Update my name' : 'Join the leaderboard'}
