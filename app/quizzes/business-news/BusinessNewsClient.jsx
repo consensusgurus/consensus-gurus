@@ -5,6 +5,7 @@ import SiteHeader from '../../SiteHeader';
 import Grain from '../../Grain';
 import Footer from '../../Footer';
 import { QUIZZES } from '@/lib/quizzes';
+import { COMPANY_META } from '@/lib/company-quiz-meta';
 
 // ─── palette / type (matches the Quizzes home) ──────────────────────────────
 const C = {
@@ -13,23 +14,15 @@ const C = {
 };
 const FONT = "'Manrope', system-ui, -apple-system, sans-serif";
 
-// Earnings quizzes render with a company favicon + ticker chip. Register a
-// company here (the domain powers the favicon; ticker is the chip). Any new
-// "<co>-<q>q<yy>-earnings-quiz" is picked up automatically; without a registry
-// entry it shows a letter badge and a name derived from the title.
-const COMPANY_META = {
-  'micron-lightning-50': { ticker: 'MU', name: 'Micron', domain: 'micron.com' },
-  'fedex-2q26-earnings-quiz': { ticker: 'FDX', name: 'FedEx', domain: 'fedex.com' },
-  'tripcom-2q26-earnings-quiz': { ticker: 'TCOM', name: 'Trip.com', domain: 'trip.com' },
-  'blackberry-2q26-earnings-quiz': { ticker: 'BB', name: 'BlackBerry', domain: 'blackberry.com' },
-  'darden-2q26-earnings-quiz': { ticker: 'DRI', name: 'Darden', domain: 'darden.com' },
-  'winnebago-2q26-earnings-quiz': { ticker: 'WGO', name: 'Winnebago', domain: 'winnebago.com' },
-};
+// COMPANY_META (favicon + ticker registry) is shared with the share-image
+// routes; see lib/company-quiz-meta.js.
 
 // Thematic (sector) quizzes shown in the right-hand column. Add a sector here
 // and the row button appears automatically when its quiz exists in QUIZZES.
 const SECTOR_META = {
   'restaurant-sector-update': { name: 'Restaurants', emoji: '🍽️', sub: 'Earnings, closures & consumer trends', date: 'June 2026' },
+  'saas-sector-update': { name: 'SaaS & Software', emoji: '☁️', sub: 'The software selloff & AI disruption', date: 'June 2026' },
+  'quantum-sector-update': { name: 'Quantum Computing', emoji: '⚛️', sub: 'Quantum stocks, milestones & hype', date: 'June 2026' },
 };
 
 const NEWS_RE = /^(daily-market-news|daily-business|weekly-business|earnings-reporter)/;

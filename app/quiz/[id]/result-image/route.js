@@ -1,5 +1,6 @@
 import { getQuiz } from '@/lib/quizzes';
 import { renderQuizResultCard } from '@/lib/og-brand-card';
+import { companyDomainForQuiz } from '@/lib/company-quiz-meta';
 
 export const runtime = 'nodejs';
 
@@ -17,5 +18,6 @@ export async function GET(req, { params }) {
     title: quiz ? quiz.title : 'Source of Truths Quiz',
     category: quiz ? quiz.category : 'Quiz',
     score, total, pct,
+    faviconDomain: companyDomainForQuiz(id),
   });
 }

@@ -419,13 +419,13 @@ export default function TimedMcqClient({ quizId, mobile = false }) {
       { label: `${eloDeptLabel} rank`, value: aCat != null ? `#${fmtN(aCat)}` : '—', was: bCat != null ? `was #${fmtN(bCat)}` : 'new entry', delta: (bCat != null && aCat != null) ? bCat - aCat : ((rg && typeof rg.catRankDelta === 'number') ? rg.catRankDelta : null), isNew: bCat == null },
     ];
     return (
-      <div style={{ margin: '18px auto 0', maxWidth: 300, background: '#fbf7ef', border: `1px solid ${COLORS.faded}33` }}>
+      <div style={{ flex: '1 1 0', minWidth: 0, background: '#fbf7ef', border: `1px solid ${COLORS.faded}33` }}>
         <div style={{ fontFamily: MONO, fontSize: 9, letterSpacing: '0.18em', textTransform: 'uppercase', color: COLORS.ember, textAlign: 'center', padding: '9px 0 1px' }}>Your standing</div>
         {rows.map((r, i) => (
-          <div key={r.label} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '9px 14px', borderTop: i === 0 ? 'none' : `1px solid ${COLORS.faded}22` }}>
+          <div key={r.label} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '7px 13px', borderTop: i === 0 ? 'none' : `1px solid ${COLORS.faded}22` }}>
             <div style={{ textAlign: 'left' }}>
               <div style={{ fontFamily: MONO, fontSize: 9, letterSpacing: '0.13em', textTransform: 'uppercase', color: COLORS.faded }}>{r.label}</div>
-              <div style={{ fontFamily: SERIF, fontWeight: 800, fontSize: 19, lineHeight: 1.15, color: COLORS.ink }}>{r.value}</div>
+              <div style={{ fontFamily: SERIF, fontWeight: 800, fontSize: 15, lineHeight: 1.15, color: COLORS.ink }}>{r.value}</div>
             </div>
             <div style={{ textAlign: 'right' }}>
               {r.was ? <div style={{ fontFamily: MONO, fontSize: 10, color: COLORS.faded }}>{r.was}</div> : null}
@@ -442,6 +442,45 @@ export default function TimedMcqClient({ quizId, mobile = false }) {
       </div>
     );
   })() : null;
+
+  // Leaderboard snippet for the results card: top 3, then the finishing place
+  // if it is outside the top 3. Sits beside the rating panel at the same size.
+  const lbSnippet = (() => {
+    const rows = (identity ? board.leaderboard : board.leaderboardAll) || [];
+    let myRank = null;
+    if (lastElapsed != null) {
+      let better = 0;
+      for (const r of rows) { if (r.score > points || (r.score === points && (r.timeElapsed != null ? r.timeElapsed : Infinity) < lastElapsed)) better++; }
+      myRank = better + 1;
+    }
+    const top = rows.slice(0, 3);
+    const showYou = myRank != null && myRank > 3;
+    const mkRow = (rank, name, score, mine) => (
+      <div key={`lb${rank}-${name}`} style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '7px 13px', borderTop: `1px solid ${COLORS.faded}14`, background: mine ? '#eef3ff' : 'transparent' }}>
+        <span style={{ fontFamily: SERIF, fontWeight: 800, fontSize: 15, width: 22, flex: 'none', color: mine ? COLORS.ember : (rank <= 3 ? COLORS.ember : COLORS.faded) }}>{rank}</span>
+        <span style={{ flex: 1, minWidth: 0, fontSize: 13, fontWeight: mine ? 800 : 500, color: mine ? COLORS.ember : COLORS.ink, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{name}</span>
+        <span style={{ fontFamily: MONO, fontSize: 13, flex: 'none' }}>{score}</span>
+      </div>
+    );
+    return (
+      <div style={{ flex: '1 1 0', minWidth: 0, background: '#fff', border: `1px solid ${COLORS.faded}33` }}>
+        <div style={{ fontFamily: MONO, fontSize: 9, letterSpacing: '0.18em', textTransform: 'uppercase', color: COLORS.ember, textAlign: 'center', padding: '9px 0 3px' }}>Leaderboard</div>
+        {rows.length === 0 ? (
+          <div style={{ padding: '8px 13px 14px', fontFamily: SERIF, fontStyle: 'italic', fontSize: 14, color: COLORS.faded }}>No scores yet. Post yours to lead.</div>
+        ) : (
+          <>
+            {top.map((r, i) => mkRow(i + 1, (r.username || 'Player') + (identity && r.username === identity.username ? ' (you)' : ''), r.score, !!(identity && r.username === identity.username)))}
+            {showYou ? (
+              <>
+                <div style={{ textAlign: 'center', color: COLORS.faded, fontSize: 12, letterSpacing: '0.3em', padding: '2px 0 0', borderTop: `1px solid ${COLORS.faded}14` }}>...</div>
+                {mkRow(myRank, identity ? `${identity.username} (you)` : 'You', points, true)}
+              </>
+            ) : null}
+          </>
+        )}
+      </div>
+    );
+  })();
 
   return (
     <div style={{ minHeight: '100vh', background: COLORS.cream, color: COLORS.ink, position: 'relative', overflow: 'clip' }}>
@@ -613,7 +652,14 @@ export default function TimedMcqClient({ quizId, mobile = false }) {
                   <p style={{ fontFamily: SANS, fontSize: 15, color: '#4a4339', maxWidth: 440, margin: '0 auto 18px' }}>
                     {board.best != null ? (points >= board.best ? `That is the high score to beat.` : `The high score to beat is ${board.best}.`) : 'Be the first to set the pace.'}
                   </p>
-                  <div style={{ display: 'flex', gap: 10, justifyContent: 'center', flexWrap: 'wrap' }}>
+                </div>
+
+                <div style={{ display: 'flex', gap: 14, marginTop: 18, flexWrap: 'wrap', alignItems: 'stretch' }}>
+                  {lbSnippet}
+                  {eloPanel}
+                </div>
+
+                <div style={{ display: 'flex', gap: 10, justifyContent: 'center', flexWrap: 'wrap', marginTop: 18 }}>
                     {!mcqRevealed && (
                       <button onClick={() => setMcqRevealed(true)} style={{ fontFamily: MONO, fontSize: 13, letterSpacing: '0.08em', textTransform: 'uppercase', fontWeight: 700, lineHeight: '46px', width: 210, padding: 0, boxSizing: 'border-box', background: COLORS.ember, color: '#fff', border: 'none', cursor: 'pointer', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 8 }}>
                         <ScrollText size={14} strokeWidth={2.5} /> Quiz Summary
@@ -627,10 +673,7 @@ export default function TimedMcqClient({ quizId, mobile = false }) {
                     <button onClick={share} style={{ fontFamily: MONO, fontSize: 13, letterSpacing: '0.08em', textTransform: 'uppercase', fontWeight: 700, lineHeight: '46px', width: 210, padding: 0, boxSizing: 'border-box', background: COLORS.ink, color: COLORS.cream, border: 'none', cursor: 'pointer', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 8 }}>
                       <Share2 size={14} strokeWidth={2.5} /> {copied ? 'Link copied!' : 'Challenge a friend'}
                     </button>
-                  </div>
                 </div>
-
-                {eloPanel}
 
                 {/* Per-question recap (answer key) - hidden until revealed */}
                 {!mcqRevealed && (

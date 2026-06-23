@@ -2569,3 +2569,77 @@ and mobile (owner decision, 2026-06-19).
   a new map/matched/pairs/grid-fill quiz is mobile-ready with no extra work. When adding a NEW
   board format that renders poorly on a phone, add the same `mobile`-gated branch INSIDE that board
   component only; never reintroduce header/footer branching.
+
+---
+
+## Business News quiz hub (`/quizzes/business-news`) — maintenance (built 2026-06-23)
+
+The Business News hub is a curated landing page for the site's business/markets quizzes. It lives at
+`app/quizzes/business-news/page.js` (server, metadata/share copy) + `BusinessNewsClient.jsx` (client).
+Three sections, each auto-populated from data so adding a quiz is a one-line registry edit:
+
+- **News Recaps** — every quiz whose id matches `NEWS_RE`
+  (`/^(daily-market-news|daily-business|weekly-business|earnings-reporter)/`, excluding `mobile-preview`),
+  newest first, displayed with a NORMALIZED label `"<Type> m/d/yy"` derived from the id (the underlying
+  quiz `title` is NOT renamed). Capped at 6 (`NEWS_MAX`, sized to match three thematic buttons) with a
+  "Show all" expander.
+- **Thematic Updates** — sector quizzes registered in `SECTOR_META` (inline in `BusinessNewsClient.jsx`):
+  `{ name, emoji, sub, date }`, rendered as row buttons with the date chip for relevancy. Reserves
+  `SECTOR_SLOTS` (3) slots; unused slots show muted "Coming soon" placeholders.
+- **Company Earnings** — quizzes in `COMPANY_META` OR matching `EARN_RE`
+  (`/-\dq\d\d-earnings-quiz$/i`), shown as favicon cards (ticker chip + question count), with a
+  company search box, capped at 24 (`CO_MAX`) with expander.
+
+**`COMPANY_META` is shared, in `lib/company-quiz-meta.js`** (`{ id: { ticker, name, domain } }`), imported by
+BOTH the hub (favicon + ticker) and the share-image routes (favicon baked into the card). Add a company
+there to wire both at once. Favicons come from Google s2 (`google.com/s2/favicons?domain=<domain>&sz=...`)
+with a letter-badge fallback.
+
+### Business-news quizzes are timed-mcq, category `Business`
+
+All hub quizzes use `format: 'timed-mcq'`, `category: 'Business'`, `maxPerQuestion: 10`, `perQuestionTime: 20`,
+`graceSeconds: 4`. Company earnings quizzes are 20 Q (200 pts); sector quizzes are 30 Q (`timeLimit: 600`,
+300 pts). The timed-mcq intro headline reads **"Test your knowledge."** (in `TimedMcqClient.jsx`), never
+"Beat the clock." Always **shuffle each question's choices before shipping** so the correct index is evenly
+spread (no all-B); keep the curated lead question at array index 0 (it is not reordered by the shuffle).
+
+**Lead question = the single BEST question, ideally subjectively framed (with a real factual answer), at
+index 0.** It is FEATURED on the share card. Curate it per quiz (e.g. "Which software giant has been the
+biggest casualty of the 2025 SaaS selloff?" -> Atlassian). To keep the count, replace the now-duplicate
+factual question rather than adding a 31st.
+
+### Share images (featured-question card)
+
+`lib/og-brand-card.js` `renderQuizQuestionCard` renders a card showing the quiz's FIRST question + its four
+options (answer not revealed), the quiz title (right-aligned, dark, on the "Question 1 of N" line), the
+company favicon top-right (company quizzes), and a "PLAY FREE, TOP THE LEADERBOARD" CTA. The OG route
+(`opengraph-image.js`, reused by `twitter-image.js`) and the promo route (`share-image/route.js`) use it for
+any quiz where `category === 'Business' && format === 'timed-mcq'`; everything else uses the normal title
+card. `result-image/route.js` keeps the score card but adds the company favicon. Favicon fetch is wrapped in
+try/catch (returns null -> renders without it), so a fetch failure never breaks the static OG generation.
+
+### Completion popup (every timed-mcq quiz)
+
+The results card in `TimedMcqClient.jsx` shows, under the score box, two equal-size cards side by side:
+**Leaderboard** snippet on the LEFT (top 3, then the finishing place if outside the top 3, highlighted) and
+**Your standing** (ELO rating + global/category ranks, with smaller text) on the RIGHT, then all three
+buttons (Quiz Summary, Post to Leaderboard, Challenge a friend) UNDERNEATH.
+
+### Daily Challenge is OFF (button is the hub link)
+
+`DAILY_CHALLENGE_ON = false` in `lib/challenges.js` suppresses the daily challenge from `openChallenges`,
+`challengeMenu`, and the board rotation, so the `/quizzes` rotating button collapses to a static
+"Business News / Quiz Hub" link (it rotates `openChallenges()` + a `business-news` entry). Flip the flag back
+on to restore the daily challenge.
+
+### Adding a quiz to the hub
+
+- **Company earnings quiz:** build a `timed-mcq` quiz with id `<company>-<q>q<yy>-earnings-quiz` (20 Q), add a
+  `QUIZ_DEPT` entry -> `'business'`, and add `COMPANY_META[id] = { ticker, name, domain }`. It auto-appears in
+  Company Earnings, gets a favicon on its share card, and a featured-question share card.
+- **Sector/thematic quiz:** build a `timed-mcq` quiz id `<topic>-sector-update`, title `"... Update Quiz (Month YYYY)"`,
+  30 Q / 300 pts, curated subjective Q1, add `QUIZ_DEPT` -> `'business'`, and add
+  `SECTOR_META[id] = { name, emoji, sub, date }`.
+- **News recap quiz:** id matching `NEWS_RE`; it auto-lists, no registry edit needed.
+- Every new quiz needs a distinct `publishedAt` stamped at push time and a `QUIZ_DEPT` entry. After deploy,
+  IndexNow-ping the new `/quiz/<id>` URLs (the hub URL is already live).
