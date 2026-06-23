@@ -21,7 +21,8 @@ const FONT = "'Manrope', system-ui, -apple-system, sans-serif";
 // and the row button appears automatically when its quiz exists in QUIZZES.
 const SECTOR_META = {
   'restaurant-sector-update': { name: 'Restaurants', emoji: '🍽️', sub: 'Earnings, closures & consumer trends', date: 'June 2026' },
-  'saas-sector-update': { name: 'SaaS & Software', emoji: '☁️', sub: 'The software selloff & AI disruption', date: 'June 2026' },
+  'saas-sector-update': { name: 'Software', emoji: '☁️', sub: 'The software selloff & AI disruption', date: 'June 2026' },
+  'housing-sector-update': { name: 'Housing', emoji: '🏠', sub: 'Starts, rates & homebuilder pain', date: 'June 2026' },
   'quantum-sector-update': { name: 'Quantum Computing', emoji: '⚛️', sub: 'Quantum stocks, milestones & hype', date: 'June 2026' },
 };
 
