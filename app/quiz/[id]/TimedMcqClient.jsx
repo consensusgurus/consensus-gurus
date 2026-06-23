@@ -522,7 +522,7 @@ export default function TimedMcqClient({ quizId, mobile = false }) {
             {phase === 'idle' && (
               <div style={{ textAlign: 'center', padding: '26px 24px 30px', borderRadius: 10, border: `1.5px solid ${COLORS.ink}`, background: COLORS.paper }}>
                 <Zap size={26} strokeWidth={2.2} style={{ color: COLORS.ember }} />
-                <h2 style={{ fontFamily: SERIF, fontWeight: 800, fontSize: 26, margin: '8px 0 6px' }}>Beat the clock.</h2>
+                <h2 style={{ fontFamily: SERIF, fontWeight: 800, fontSize: 26, margin: '8px 0 6px' }}>Test your knowledge.</h2>
                 <p style={{ fontFamily: SANS, fontSize: 15, lineHeight: 1.5, color: '#4a4339', maxWidth: 460, margin: '0 auto 6px' }}>
                   {total} questions, four answers each. You get {perSec} seconds per question, and the points you bank for a right answer fall as the clock ticks. Answer within about {Math.round(graceMs/1000)} seconds for the full {maxPer}; after that the points decay to the buzzer. A wrong answer scores zero.
                 </p>

@@ -567,7 +567,7 @@ export default function QuizHomeClient() {
     .qzh{font-family:${FONT};color:${C.ink};}
     .qzh .lbl{font-size:10px;font-weight:600;letter-spacing:.04em;text-transform:uppercase;color:${C.muted};}
     .qzh .card{background:${C.surface};border:1px solid ${C.line};border-radius:12px;display:flex;flex-direction:column;overflow:hidden;min-width:0;}
-    .qzh .boards .card{background:#f3f7ff;border-color:#e1ebfb;}
+    .qzh .boards .card{background:${C.surface};border-color:${C.line};}
     .qzh .head{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:10px 13px 9px;border-bottom:1px solid ${C.line};min-height:42px;cursor:pointer;}
     .qzh .head .lbl{flex:1 1 auto;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
     .qzh .head .qlink{flex:none;white-space:nowrap;}
