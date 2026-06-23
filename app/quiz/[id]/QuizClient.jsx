@@ -3,6 +3,7 @@
 import React, { useState, useEffect, useLayoutEffect, useMemo, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { ArrowLeft, Share2, Check, X, Flag, Trophy, HelpCircle, Eye, SkipForward, Crown } from 'lucide-react';
+import JoinLeaderboardForm from './JoinLeaderboardForm';
 import QuizStandings from './QuizStandings';
 import LeaderboardSnippet from './LeaderboardSnippet';
 import { QUIZZES, getQuiz } from '@/lib/quizzes';
@@ -923,32 +924,6 @@ export default function QuizClient({ quizId }) {
     setHintBad(true);
   }
 
-  async function submitJoin() {
-    setJoinErr(false);
-    if (!jName.trim() || jName.trim().length > 15) { setJoinErr(true); setJoinMsg('Pick a display name (max 15 characters).'); return; }
-    if (jEmail.trim() && !EMAIL_RE.test(jEmail.trim())) { setJoinErr(true); setJoinMsg('Enter a valid email or leave it blank.'); return; }
-    setJoinBusy(true);
-    try {
-      const res = await fetch('/api/quiz/join', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ username: jName.trim(), email: jEmail.trim() || undefined, anonId: getAnonId() }),
-      });
-      const d = await res.json();
-      if (d.error) { setJoinErr(true); setJoinMsg(d.error); setJoinBusy(false); return; }
-      const id = { username: d.username, email: d.email };
-      try { localStorage.setItem('sot_quiz_identity', JSON.stringify(id)); } catch {}
-      setIdentity(id);
-      setJoinErr(false);
-      refreshBoard();
-      setJoinMsg(`You're in. "${d.username}" is on the leaderboard, including any games you already finished.`);
-      setTab('stats');
-    } catch (e) {
-      setJoinErr(true);
-      setJoinMsg('Could not join right now. Try again.');
-    }
-    setJoinBusy(false);
-  }
 
   async function submitQuestion() {
     if (qBusy) return;
@@ -1608,41 +1583,7 @@ export default function QuizClient({ quizId }) {
 
         {/* ── JOIN THE LEADERBOARD (sign-up) ── */}
         {tab === 'join' && (
-          <div style={{ maxWidth: 440, margin: '0 auto' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 12 }}>
-              <Trophy size={22} strokeWidth={2.2} style={{ color: COLORS.ember }} />
-              <h2 style={{ fontFamily: SERIF, fontWeight: 800, fontSize: 26, margin: 0 }}>Join the Leaderboard</h2>
-            </div>
-            <p style={{ fontFamily: SANS, fontSize: 15, color: '#4a4339', margin: '0 0 6px' }}>
-              Sign up with a display name and it appears on the leaderboard after you finish a game. No password needed.
-            </p>
-            <p style={{ fontFamily: SANS, fontSize: 15, color: '#4a4339', margin: '0 0 6px' }}>
-              Adding an email lets you reconnect on another device or after clearing your browser. Without one, your spot is saved in this browser.
-            </p>
-            <p style={{ fontFamily: MONO, fontSize: 12, color: COLORS.faded, margin: '0 0 22px' }}>
-              Your display name is shown publicly. Email is optional, required only for prizes, and kept private.
-            </p>
-
-            <label style={labelStyle}>Display Name</label>
-            <input value={jName} onChange={(e) => setJName(e.target.value)} maxLength={15} placeholder="e.g. skyhopper42" autoCapitalize="none" autoCorrect="off" spellCheck={false} style={fieldStyle} />
-            <label style={{ ...labelStyle, marginTop: 16 }}>Email (optional, required for prizes)</label>
-            <input value={jEmail} onChange={(e) => setJEmail(e.target.value)} type="email" placeholder="you@email.com" autoCapitalize="none" autoCorrect="off" spellCheck={false} style={fieldStyle} />
-
-            <button onClick={submitJoin} disabled={joinBusy} style={{ marginTop: 22, width: '100%', fontFamily: MONO, fontSize: 13, letterSpacing: '0.1em', textTransform: 'uppercase', fontWeight: 700, lineHeight: '48px', border: 'none', background: COLORS.ember, color: '#fff', cursor: joinBusy ? 'default' : 'pointer', opacity: joinBusy ? 0.6 : 1 }}>
-              {joinBusy ? 'Joining…' : identity ? 'Update my name' : 'Join the leaderboard'}
-            </button>
-
-            {joinMsg && (
-              <p style={{ fontFamily: MONO, fontSize: 12, marginTop: 14, color: joinErr ? COLORS.ember : COLORS.forest }}>{joinMsg}</p>
-            )}
-            {identity && !joinMsg && (
-              <p style={{ fontFamily: MONO, fontSize: 12, marginTop: 14, color: COLORS.faded }}>You're signed up as "{identity.username}". Finish a game to post your score.</p>
-            )}
-
-            <button onClick={() => setTab('stats')} style={{ marginTop: 18, background: 'transparent', border: 'none', color: COLORS.faded, cursor: 'pointer', fontFamily: MONO, fontSize: 11, letterSpacing: '0.12em', textTransform: 'uppercase', textDecoration: 'underline', padding: 0 }}>
-              View the leaderboard →
-            </button>
-          </div>
+          <JoinLeaderboardForm identity={identity} onJoined={(id) => { setIdentity(id); refreshBoard(); setTab('stats'); }} onViewLeaderboard={() => setTab('stats')} />
         )}
 
         {asOfLabel && (
