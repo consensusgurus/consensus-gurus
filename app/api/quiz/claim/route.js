@@ -50,8 +50,8 @@ export async function POST(request) {
     if (!quizId || quizId.length > 100) {
       return NextResponse.json({ error: 'quizId required' }, { status: 400 });
     }
-    if (!username || username.length > 40) {
-      return NextResponse.json({ error: 'Display name required (max 40 characters).' }, { status: 400 });
+    if (!username || username.length > 15) {
+      return NextResponse.json({ error: 'Display name required (max 15 characters).' }, { status: 400 });
     }
     if (looksLikeEmail(username)) {
       return NextResponse.json({ error: 'Display name cannot be an email address.' }, { status: 400 });

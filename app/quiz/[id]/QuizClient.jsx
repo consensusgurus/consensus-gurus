@@ -587,7 +587,7 @@ export default function QuizClient({ quizId }) {
   // join by email, then attach THIS result row to the new identity.
   async function submitClaim() {
     setClaimErr(false);
-    if (!jName.trim() || jName.trim().length > 40) { setClaimErr(true); setClaimMsg('Pick a display name (max 40 characters).'); return; }
+    if (!jName.trim() || jName.trim().length > 15) { setClaimErr(true); setClaimMsg('Pick a display name (max 15 characters).'); return; }
     if (jEmail.trim() && !EMAIL_RE.test(jEmail.trim())) { setClaimErr(true); setClaimMsg('Enter a valid email or leave it blank.'); return; }
     setClaimBusy(true);
     try {
@@ -923,7 +923,7 @@ export default function QuizClient({ quizId }) {
 
   async function submitJoin() {
     setJoinErr(false);
-    if (!jName.trim() || jName.trim().length > 40) { setJoinErr(true); setJoinMsg('Pick a display name (max 40 characters).'); return; }
+    if (!jName.trim() || jName.trim().length > 15) { setJoinErr(true); setJoinMsg('Pick a display name (max 15 characters).'); return; }
     if (jEmail.trim() && !EMAIL_RE.test(jEmail.trim())) { setJoinErr(true); setJoinMsg('Enter a valid email or leave it blank.'); return; }
     setJoinBusy(true);
     try {
@@ -1250,7 +1250,7 @@ export default function QuizClient({ quizId }) {
                       ? `Pick a display name to reveal the answers you missed. It also posts this ${dispScore}/${total} to the leaderboard. Email is optional (required only for prizes), and no password is needed.`
                       : `Pick a display name to post this ${dispScore}/${total} to the leaderboard. Email is optional (required only for prizes), and no password is needed.`}
                   </p>
-                  <input value={jName} onChange={(e) => setJName(e.target.value)} maxLength={40} placeholder="Display Name" autoCapitalize="none" autoCorrect="off" spellCheck={false} style={fieldStyle} />
+                  <input value={jName} onChange={(e) => setJName(e.target.value)} maxLength={15} placeholder="Display Name" autoCapitalize="none" autoCorrect="off" spellCheck={false} style={fieldStyle} />
                   <input value={jEmail} onChange={(e) => setJEmail(e.target.value)} type="email" placeholder="Email (optional, required for prizes)" autoCapitalize="none" autoCorrect="off" spellCheck={false} style={{ ...fieldStyle, marginTop: 10 }} />
                   <button onClick={submitClaim} disabled={claimBusy} style={{ marginTop: 12, width: '100%', fontFamily: MONO, fontSize: 13, letterSpacing: '0.1em', textTransform: 'uppercase', fontWeight: 700, lineHeight: '46px', border: 'none', background: COLORS.ember, color: '#fff', cursor: claimBusy ? 'default' : 'pointer', opacity: claimBusy ? 0.6 : 1 }}>
                     {claimBusy ? (canReveal ? 'Revealing…' : 'Posting…') : (canReveal ? 'Reveal the answers' : 'Post this to the leaderboard')}
@@ -1665,7 +1665,7 @@ export default function QuizClient({ quizId }) {
             </p>
 
             <label style={labelStyle}>Display Name</label>
-            <input value={jName} onChange={(e) => setJName(e.target.value)} maxLength={40} placeholder="e.g. skyhopper42" autoCapitalize="none" autoCorrect="off" spellCheck={false} style={fieldStyle} />
+            <input value={jName} onChange={(e) => setJName(e.target.value)} maxLength={15} placeholder="e.g. skyhopper42" autoCapitalize="none" autoCorrect="off" spellCheck={false} style={fieldStyle} />
             <label style={{ ...labelStyle, marginTop: 16 }}>Email (optional, required for prizes)</label>
             <input value={jEmail} onChange={(e) => setJEmail(e.target.value)} type="email" placeholder="you@email.com" autoCapitalize="none" autoCorrect="off" spellCheck={false} style={fieldStyle} />
 
@@ -1745,6 +1745,7 @@ export default function QuizClient({ quizId }) {
                   <div style={{ fontFamily: SERIF, fontWeight: 800, fontSize: 40, lineHeight: 1, marginBottom: 6 }}>{dispScore}<span style={{ fontSize: 24, color: COLORS.faded }}> / {total}</span></div>
                   <p style={{ fontFamily: SERIF, fontStyle: 'italic', fontSize: 16, color: COLORS.faded, margin: '0 0 4px' }}>{reason}</p>
                   <p style={{ fontFamily: SANS, fontSize: 14, color: '#4a4339', margin: '0 0 20px' }}>{resultLine}</p>
+                  {(() => { const rows = (identity ? board.leaderboard : board.leaderboardAll) || []; if (!rows.length) return null; let myRank = null; if (lastElapsed != null) { let b = 0; for (const r of rows) { if (r.score > dispScore || (r.score === dispScore && (r.timeElapsed != null ? r.timeElapsed : Infinity) < lastElapsed)) b++; } myRank = b + 1; } const top = rows.slice(0, 3); const showYou = myRank != null && myRank > 3; const mkRow = (rank, name, sc, mine) => (<div key={`lb${rank}-${name}`} style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '7px 13px', borderTop: `1px solid ${COLORS.faded}14`, background: mine ? '#eef3ff' : 'transparent' }}><span style={{ fontFamily: SERIF, fontWeight: 800, fontSize: 15, width: 22, flex: 'none', color: mine ? COLORS.ember : (rank <= 3 ? COLORS.ember : COLORS.faded) }}>{rank}</span><span style={{ flex: 1, minWidth: 0, fontSize: 13, fontWeight: mine ? 800 : 500, color: mine ? COLORS.ember : COLORS.ink, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{name}</span><span style={{ fontFamily: MONO, fontSize: 13, flex: 'none' }}>{sc}</span></div>); return (<div style={{ margin: '0 auto 18px', maxWidth: 320, background: '#fff', border: `1px solid ${COLORS.faded}33` }}><div style={{ fontFamily: MONO, fontSize: 9, letterSpacing: '0.18em', textTransform: 'uppercase', color: COLORS.ember, textAlign: 'center', padding: '9px 0 3px' }}>Leaderboard</div>{top.map((r, i) => mkRow(i + 1, (r.username || 'Player') + (identity && r.username === identity.username ? ' (you)' : ''), r.score, !!(identity && r.username === identity.username)))}{showYou ? (<><div style={{ textAlign: 'center', color: COLORS.faded, fontSize: 12, letterSpacing: '0.3em', padding: '2px 0 0', borderTop: `1px solid ${COLORS.faded}14` }}>...</div>{mkRow(myRank, identity ? `${identity.username} (you)` : 'You', dispScore, true)}</>) : null}</div>); })()}
                   {eloPanel}
                   <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'stretch', gap: 10, width: '100%', maxWidth: 300, margin: '0 auto' }}>
                     <button onClick={() => { try { sessionStorage.setItem('sot_quiz_retry', quizId); } catch (e) { /* no-op */ } window.location.reload(); }} style={{ width: '100%', boxSizing: 'border-box', fontFamily: MONO, fontSize: 12, letterSpacing: '0.12em', textTransform: 'uppercase', fontWeight: 700, padding: '13px 22px', borderRadius: 10, border: `1.5px solid ${COLORS.ember}`, background: COLORS.ember, color: '#fff', cursor: 'pointer', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 8 }}>Retry with 1 click</button>
