@@ -9,17 +9,17 @@ const SOURCE_COUNT = getAllSources().length;
 export const metadata = {
   metadataBase: new URL('https://sourceoftruths.com'),
   title: `Source of Truths | Where ${SOURCE_COUNT} Experts and Aggregators Agree`,
-  description: `Where ${SOURCE_COUNT} experts and aggregators agree. Consensus rankings of the best restaurants, hotels, products, films, and more, scored from expert and reader sources.`,
+  description: `Where ${SOURCE_COUNT} experts and aggregators agree. Consensus best-of lists for restaurants, hotels, products, films, and books, plus 1,000+ trivia quizzes.`,
   openGraph: {
     title: `Source of Truths | Where ${SOURCE_COUNT} Experts and Aggregators Agree`,
-    description: `Where ${SOURCE_COUNT} experts and aggregators agree. Consensus rankings of the best restaurants, hotels, products, films, and more, scored from expert and reader sources.`,
+    description: `Where ${SOURCE_COUNT} experts and aggregators agree. Consensus best-of lists for restaurants, hotels, products, films, and books, plus 1,000+ trivia quizzes.`,
     url: 'https://sourceoftruths.com',
     type: 'website',
   },
   twitter: {
     card: 'summary_large_image',
     title: `Source of Truths | Where ${SOURCE_COUNT} Experts and Aggregators Agree`,
-    description: `Where ${SOURCE_COUNT} experts and aggregators agree. Consensus rankings of the best restaurants, hotels, products, films, and more, scored from expert and reader sources.`,
+    description: `Where ${SOURCE_COUNT} experts and aggregators agree. Consensus best-of lists for restaurants, hotels, products, films, and books, plus 1,000+ trivia quizzes.`,
   },
 formatDetection: {
     telephone: false,
@@ -58,7 +58,7 @@ const collectionJsonLd = {
   '@type': 'CollectionPage',
   name: 'Source of Truths',
   url: 'https://sourceoftruths.com',
-  description: 'Curated ranked lists built from expert sources and reader consensus. Browse the best in dining, travel, entertainment, and products across categories including restaurants, bars, hotels, books, films, and curated products.',
+  description: 'Curated ranked lists built from expert sources and reader consensus. Browse the best in dining, travel, entertainment, and products across categories including restaurants, bars, hotels, books, films, and curated products, plus over 1,000 trivia quizzes.',
   publisher: {
     '@type': 'Organization',
     name: 'Source of Truths',
