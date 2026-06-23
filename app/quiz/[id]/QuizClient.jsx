@@ -645,7 +645,7 @@ export default function QuizClient({ quizId }) {
     } else if (photoMatchMode) {
       setHint(`Tap the title tile that matches the ${quiz.noun || 'picture'} shown. Every tap spends a guess.`);
     } else {
-      setHint(ordered ? (quiz.strike ? 'Go — name them in order, from the top. One wrong answer ends it.' : 'Go — answer in order, from the top.') : matched ? (quiz.noun ? `Go — type each ${quiz.noun}.` : "Go — name each year's winner.") : 'Go — name them all.');
+      setHint(ordered ? (quiz.strike ? 'Go — name them in order, from the top. One wrong answer ends it.' : 'Go — answer in order, from the top.') : matched ? (quiz.noun ? `Go — type each ${quiz.noun}.` : "Go — name each year's winner.") : (quiz.strike ? 'Go — one wrong answer ends the run. Name them all.' : 'Go — name them all.'));
     }
     setHintBad(false);
     timerRef.current = setInterval(() => {
@@ -685,6 +685,14 @@ export default function QuizClient({ quizId }) {
         if (next.every(Boolean)) endGame(true, next);
         return;
       }
+    }
+    if (quiz.strike) {
+      const tried = (raw || '').trim();
+      setHint(`Struck out${tried ? ` — "${tried}"` : ''} is not in the top ${total}. Game over.`);
+      setHintBad(true);
+      fireCue(false);
+      endGame(false);
+      return;
     }
     setHint('Not on the list — try another.');
     setHintBad(true);
