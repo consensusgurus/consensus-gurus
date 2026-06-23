@@ -6,6 +6,7 @@ import Grain from '../../Grain';
 import Footer from '../../Footer';
 import { QUIZZES } from '@/lib/quizzes';
 import { COMPANY_META } from '@/lib/company-quiz-meta';
+import { SECTOR_META, BN_NEWS_RE as NEWS_RE, BN_EARN_RE as EARN_RE } from '@/lib/business-news-hub';
 
 // ─── palette / type (matches the Quizzes home) ──────────────────────────────
 const C = {
@@ -19,15 +20,7 @@ const FONT = "'Manrope', system-ui, -apple-system, sans-serif";
 
 // Thematic (sector) quizzes shown in the right-hand column. Add a sector here
 // and the row button appears automatically when its quiz exists in QUIZZES.
-const SECTOR_META = {
-  'restaurant-sector-update': { name: 'Restaurants', emoji: '🍽️', sub: 'Earnings, closures & consumer trends', date: 'June 2026' },
-  'saas-sector-update': { name: 'Software', emoji: '☁️', sub: 'The software selloff & AI disruption', date: 'June 2026' },
-  'housing-sector-update': { name: 'Housing', emoji: '🏠', sub: 'Starts, rates & homebuilder pain', date: 'June 2026' },
-  'quantum-sector-update': { name: 'Quantum Computing', emoji: '⚛️', sub: 'Quantum stocks, milestones & hype', date: 'June 2026' },
-};
 
-const NEWS_RE = /^(daily-market-news|daily-business|weekly-business|earnings-reporter)/;
-const EARN_RE = /-\dq\d\d-earnings-quiz$/i;
 const NEWS_MAX = 6;     // sized so the column matches three thematic buttons
 const CO_MAX = 24;
 const SECTOR_SLOTS = 3; // reserve three sector rows; fill spare slots with "coming soon"

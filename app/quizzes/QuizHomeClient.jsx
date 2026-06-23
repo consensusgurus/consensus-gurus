@@ -14,6 +14,7 @@ import {
   quizDept as deptOf, DEPT_COLOR, DEPT_LABEL, DEPT_NAV,
 } from '@/lib/quiz-departments';
 import { getDailyChallenge, dailyChallengeId, openChallenges, DAILY_CHALLENGE_ON } from '@/lib/challenges';
+import { isBusinessNewsHubQuiz } from '@/lib/business-news-hub';
 import Grain from '../Grain';
 import Footer from '../Footer';
 
@@ -481,7 +482,7 @@ export default function QuizHomeClient() {
   // excluding anything already in Newest, then each category column excluding
   // everything shown in Newest + Most Played. No quiz appears twice on the page.
   const newest = useMemo(() => catalog.slice()
-    .filter((q) => !/daily-market|weekly-business|daily-business/.test(q.id))
+    .filter((q) => !isBusinessNewsHubQuiz(q.id))
     .sort((a, b) => (a.publishedAt < b.publishedAt ? 1 : a.publishedAt > b.publishedAt ? -1 : 0))
     .slice(0, 6), [catalog]);
   const newestIds = useMemo(() => new Set(newest.map((q) => q.id)), [newest]);
@@ -504,14 +505,17 @@ export default function QuizHomeClient() {
   }, [scope, newestIds, mostPlayed]);
   // Full "View all" lists (every quiz, not the 6-row column preview).
   const newestAll = useMemo(() => catalog.slice()
-    .filter((q) => !/daily-market|weekly-business|daily-business/.test(q.id))
+    .filter((q) => !isBusinessNewsHubQuiz(q.id))
     .sort((a, b) => (a.publishedAt < b.publishedAt ? 1 : a.publishedAt > b.publishedAt ? -1 : 0)), [catalog]);
   const mostPlayedAll = useMemo(() => catalog.slice()
     .sort((a, b) => plays(b.id) - plays(a.id) || a.title.localeCompare(b.title)), [catalog, totals]);
   const liveAll = useMemo(() => recent.map((p) => ({ ...p, title: titleById[p.quizId] || cleanTitle(p.quizId) })), [recent, titleById]);
 
   function colRows(cat, lim, exclude) {
-    const sorted = cat.quizzes.slice()
+    // Business tile preview hides the whole Business News quiz hub (daily/weekly
+    // recaps, company earnings, sector updates); they still show under View all.
+    const base = cat.key === 'business' ? cat.quizzes.filter((q) => !isBusinessNewsHubQuiz(q.id)) : cat.quizzes;
+    const sorted = base.slice()
       .sort((a, b) => plays(b.id) - plays(a.id) || a.title.localeCompare(b.title));
     if (!exclude) return sorted.slice(0, lim);
     const primary = sorted.filter((q) => !exclude.has(q.id));

@@ -1621,7 +1621,7 @@ export default function QuizClient({ quizId }) {
           onClick={() => setGameOverDismissed(true)}
           style={{ position: 'fixed', inset: 0, zIndex: 70, background: 'rgba(26,22,17,0.62)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '6vh 16px' }}
         >
-          <div onClick={(e) => e.stopPropagation()} style={{ width: '100%', maxWidth: 440, background: COLORS.cream, borderRadius: 10, border: `2px solid ${COLORS.ink}`, padding: '28px 26px', textAlign: 'center', boxShadow: '0 18px 60px rgba(26,22,17,0.4)' }}>
+          <div onClick={(e) => e.stopPropagation()} style={{ width: '100%', maxWidth: 440, background: COLORS.cream, borderRadius: 10, border: `2px solid ${COLORS.ink}`, padding: '28px 26px', textAlign: 'center', boxShadow: '0 18px 60px rgba(26,22,17,0.4)', maxHeight: '88vh', overflowY: 'auto' }}>
             {(() => {
               const win = dispScore === total;
               const timeout = !win && time <= 0;
