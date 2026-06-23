@@ -969,15 +969,28 @@ export default function QuizClient({ quizId }) {
 
   const clock = fmtTime(time);
   const shareUrl = typeof window !== 'undefined' ? window.location.href : `https://sourceoftruths.com/quiz/${quiz.id}`;
+  const sharePct = total ? Math.round((dispScore / total) * 100) : 0;
+  const resultMsg = ended ? `I scored ${dispScore}/${total} on "${quiz.title}". Can you beat me?` : `Can you beat my score on "${quiz.title}"?`;
+  const resultImgUrl = `https://sourceoftruths.com/quiz/${quiz.id}/result-image?s=${dispScore}&t=${total}&p=${sharePct}`;
   function share() {
-    const pct = total ? Math.round((dispScore / total) * 100) : 0;
-    const text = 'Can you beat my score?';
     if (navigator.share) {
-      navigator.share({ title: quiz.title, text, url: shareUrl }).catch(() => {});
+      navigator.share({ title: quiz.title, text: resultMsg, url: shareUrl }).catch(() => {});
     } else {
-      navigator.clipboard?.writeText(`${text} ${shareUrl}`).then(() => { setCopied(true); setTimeout(() => setCopied(false), 1800); });
+      navigator.clipboard?.writeText(`${resultMsg} ${shareUrl}`).then(() => { setCopied(true); setTimeout(() => setCopied(false), 1800); });
     }
   }
+  function platformShareUrl(kind) {
+    const u = encodeURIComponent(shareUrl);
+    const t = encodeURIComponent(resultMsg);
+    if (kind === 'x') return `https://twitter.com/intent/tweet?text=${t}&url=${u}`;
+    if (kind === 'reddit') return `https://www.reddit.com/submit?url=${u}&title=${t}`;
+    if (kind === 'facebook') return `https://www.facebook.com/sharer/sharer.php?u=${u}`;
+    if (kind === 'whatsapp') return `https://api.whatsapp.com/send?text=${t}%20${u}`;
+    return shareUrl;
+  }
+  function openShare(kind) { try { window.open(platformShareUrl(kind), '_blank', 'noopener,noreferrer'); } catch (e) {} }
+  function copyResult() { try { navigator.clipboard?.writeText(`${resultMsg}\n${shareUrl}`).then(() => { setCopied(true); setTimeout(() => setCopied(false), 1800); }); } catch (e) {} }
+  async function downloadResultImage() { try { const r = await fetch(resultImgUrl); const b = await r.blob(); const u = URL.createObjectURL(b); const a = document.createElement('a'); a.href = u; a.download = `source-of-truths-${quiz.id}-score.png`; document.body.appendChild(a); a.click(); a.remove(); URL.revokeObjectURL(u); } catch (e) {} }
 
   function chip(key, label, icon) {
     const active = tab === key;
@@ -1614,10 +1627,19 @@ export default function QuizClient({ quizId }) {
         {/* ── SHARE ── */}
         {tab === 'share' && (
           <div style={{ textAlign: 'center', padding: '12px 0 8px' }}>
-            <p style={{ fontFamily: SERIF, fontStyle: 'italic', fontSize: 19, color: COLORS.ink, maxWidth: 480, margin: '0 auto 20px' }}>{ended ? `You scored ${dispScore} of ${total}. Challenge someone to beat it.` : 'Send this quiz to someone who thinks they know better.'}</p>
-            <button onClick={share} style={{ fontFamily: MONO, fontSize: 13, letterSpacing: '0.08em', textTransform: 'uppercase', fontWeight: 700, padding: '0 28px', lineHeight: '46px', border: 'none', background: COLORS.ember, color: '#fff', cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: 8 }}>
-              <Share2 size={14} strokeWidth={2.5} /> {copied ? 'Link copied!' : (ended ? 'Challenge a friend' : 'Share this quiz')}
-            </button>
+            <p style={{ fontFamily: SERIF, fontStyle: 'italic', fontSize: 19, color: COLORS.ink, maxWidth: 480, margin: '0 auto 18px' }}>{ended ? `You scored ${dispScore} of ${total}. Challenge someone to beat it.` : 'Send this quiz to someone who thinks they know better.'}</p>
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, justifyContent: 'center', marginBottom: 14 }}>
+              {[['x', 'X'], ['reddit', 'Reddit'], ['facebook', 'Facebook'], ['whatsapp', 'WhatsApp']].map(([k, label]) => (
+                <button key={k} onClick={() => openShare(k)} style={{ fontFamily: MONO, fontSize: 12, letterSpacing: '0.06em', textTransform: 'uppercase', fontWeight: 700, padding: '10px 18px', borderRadius: 10, border: `1.5px solid ${COLORS.ink}`, background: COLORS.cream, color: COLORS.ink, cursor: 'pointer' }}>{label}</button>
+              ))}
+            </div>
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, justifyContent: 'center' }}>
+              <button onClick={share} style={{ fontFamily: MONO, fontSize: 12, letterSpacing: '0.06em', textTransform: 'uppercase', fontWeight: 700, padding: '10px 20px', borderRadius: 10, border: 'none', background: COLORS.ember, color: '#fff', cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: 8 }}><Share2 size={14} strokeWidth={2.5} /> {copied ? 'Copied!' : 'Share'}</button>
+              <button onClick={copyResult} style={{ fontFamily: MONO, fontSize: 12, letterSpacing: '0.06em', textTransform: 'uppercase', fontWeight: 700, padding: '10px 20px', borderRadius: 10, border: `1.5px solid ${COLORS.ink}`, background: COLORS.cream, color: COLORS.ink, cursor: 'pointer' }}>Copy result</button>
+              {ended && (
+                <button onClick={downloadResultImage} style={{ fontFamily: MONO, fontSize: 12, letterSpacing: '0.06em', textTransform: 'uppercase', fontWeight: 700, padding: '10px 20px', borderRadius: 10, border: `1.5px solid ${COLORS.ink}`, background: COLORS.cream, color: COLORS.ink, cursor: 'pointer' }}>Download image</button>
+              )}
+            </div>
             <div style={{ fontFamily: MONO, fontSize: 12, color: COLORS.faded, marginTop: 16, wordBreak: 'break-all' }}>{shareUrl}</div>
           </div>
         )}
