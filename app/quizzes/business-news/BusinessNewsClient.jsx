@@ -131,7 +131,7 @@ export default function BusinessNewsClient() {
     .bnh .sbtn{display:flex;align-items:center;gap:13px;background:${C.surface};border:1px solid ${C.line};border-radius:13px;padding:13px 15px;min-height:66px;transition:border-color .15s,box-shadow .15s;}
     .bnh a.sbtn:hover{border-color:#cddffb;box-shadow:0 1px 0 #eef2f8,0 6px 18px rgba(20,40,80,.06);}
     .bnh .sfav{width:42px;height:42px;border-radius:11px;flex:none;background:#f3f5f8;border:1px solid ${C.line};display:flex;align-items:center;justify-content:center;font-size:22px;line-height:1;}
-    .bnh .sbody{flex:1;min-width:0;}
+    .bnh .sbody{flex:1;min-width:0;display:flex;flex-direction:column;}
     .bnh .sname{font-size:14px;font-weight:800;color:${C.ink};}
     .bnh .ssub{font-size:12px;font-weight:600;color:${C.soft};margin-top:2px;}
     .bnh .smeta{font-size:10.5px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;color:${C.soft};margin-top:3px;}
@@ -204,7 +204,6 @@ export default function BusinessNewsClient() {
                   <span className="sbody">
                     <span className="sname">{meta.name}</span>
                     <span className="ssub">{meta.sub}</span>
-                    <span className="smeta">{qCount(q)} questions</span>
                   </span>
                   <span className="splay" aria-hidden="true">▶</span>
                 </Link>
