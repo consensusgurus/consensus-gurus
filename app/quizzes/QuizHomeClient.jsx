@@ -223,13 +223,15 @@ export default function QuizHomeClient() {
   // Every challenge open right now (today's daily + open events like the Outline
   // Challenge). The header CTA rotates through these like the leaderboard slides.
   const openChs = useMemo(() => openChallenges(), []);
+  // The header CTA also surfaces the Business News quiz hub as a rotating slide.
+  const rotation = useMemo(() => [...openChs, { id: 'business-news', title: 'Business News', sub: 'Quiz Hub', href: '/quizzes/business-news' }], [openChs]);
   const [chSlide, setChSlide] = useState(0);
   useEffect(() => {
-    if (openChs.length < 2) return;
-    const id = setTimeout(() => setChSlide((i) => (i + 1) % openChs.length), 5000);
+    if (rotation.length < 2) return;
+    const id = setTimeout(() => setChSlide((i) => (i + 1) % rotation.length), 5000);
     return () => clearTimeout(id);
-  }, [chSlide, openChs.length]);
-  const curCh = openChs.length ? openChs[chSlide % openChs.length] : null;
+  }, [chSlide, rotation.length]);
+  const curCh = rotation.length ? rotation[chSlide % rotation.length] : null;
   // Restore the saved browse-view preference once on mount.
   useEffect(() => {
     try { const v = localStorage.getItem('sot_quiz_browse_view'); if (v === 'detailed' || v === 'compact') setView(v); } catch {}
@@ -887,20 +889,20 @@ export default function QuizHomeClient() {
             </Link>
           )}
           {curCh && (
-            <Link key={curCh.id} href={`/quizzes/hub?tab=challenges&ch=${encodeURIComponent(curCh.id)}`} className="qz-daily" style={{ flex: '0 0 auto', display: 'flex', alignItems: 'center', gap: 9, background: C.accsoft, color: C.accent, border: '1px solid #cddffb', padding: '8px 14px', borderRadius: 10, textDecoration: 'none' }} title={openChs.length > 1 ? `${openChs.length} challenges open now` : undefined}>
+            <Link key={curCh.id} href={curCh.href || `/quizzes/hub?tab=challenges&ch=${encodeURIComponent(curCh.id)}`} className="qz-daily" style={{ flex: '0 0 auto', display: 'flex', alignItems: 'center', gap: 9, background: C.accsoft, color: C.accent, border: '1px solid #cddffb', padding: '8px 14px', borderRadius: 10, textDecoration: 'none' }} title={curCh.title}>
               <Flame size={17} style={{ flex: 'none' }} />
               <span style={{ lineHeight: 1.15, display: 'grid' }}>
-                {openChs.map((c, i) => (
-                  <span key={c.id} style={{ gridArea: '1 / 1', visibility: i === (chSlide % openChs.length) ? 'visible' : 'hidden' }}>
+                {rotation.map((c, i) => (
+                  <span key={c.id} style={{ gridArea: '1 / 1', visibility: i === (chSlide % rotation.length) ? 'visible' : 'hidden' }}>
                     <span style={{ display: 'block', fontSize: 13, fontWeight: 800 }}>{c.title}</span>
                     <span style={{ display: 'block', fontSize: 10, fontWeight: 600, opacity: 0.85 }}>{c.sub || 'Open now'}</span>
                   </span>
                 ))}
               </span>
-              {openChs.length > 1 ? (
+              {rotation.length > 1 ? (
                 <span aria-hidden="true" style={{ display: 'flex', gap: 3, flex: 'none', marginLeft: 1 }}>
-                  {openChs.map((_, i) => (
-                    <span key={i} style={{ width: 5, height: 5, borderRadius: '50%', background: C.accent, opacity: i === (chSlide % openChs.length) ? 1 : 0.4 }} />
+                  {rotation.map((_, i) => (
+                    <span key={i} style={{ width: 5, height: 5, borderRadius: '50%', background: C.accent, opacity: i === (chSlide % rotation.length) ? 1 : 0.4 }} />
                   ))}
                 </span>
               ) : null}
