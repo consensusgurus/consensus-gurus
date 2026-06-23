@@ -12,6 +12,7 @@
 import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { ArrowLeft, Share2, Check, X, Flag, Trophy, HelpCircle, Zap, ScrollText } from 'lucide-react';
+import LeaderboardSnippet from './LeaderboardSnippet';
 import { getQuiz, QUIZZES } from '@/lib/quizzes';
 import { quizDept as deptOf, DEPT_LABEL } from '@/lib/quiz-departments';
 import Grain from '../../Grain';
@@ -443,44 +444,6 @@ export default function TimedMcqClient({ quizId, mobile = false }) {
     );
   })() : null;
 
-  // Leaderboard snippet for the results card: top 3, then the finishing place
-  // if it is outside the top 3. Sits beside the rating panel at the same size.
-  const lbSnippet = (() => {
-    const rows = (identity ? board.leaderboard : board.leaderboardAll) || [];
-    let myRank = null;
-    if (lastElapsed != null) {
-      let better = 0;
-      for (const r of rows) { if (r.score > points || (r.score === points && (r.timeElapsed != null ? r.timeElapsed : Infinity) < lastElapsed)) better++; }
-      myRank = better + 1;
-    }
-    const top = rows.slice(0, 3);
-    const showYou = myRank != null && myRank > 3;
-    const mkRow = (rank, name, score, mine) => (
-      <div key={`lb${rank}-${name}`} style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '7px 13px', borderTop: `1px solid ${COLORS.faded}14`, background: mine ? '#eef3ff' : 'transparent' }}>
-        <span style={{ fontFamily: SERIF, fontWeight: 800, fontSize: 15, width: 22, flex: 'none', color: mine ? COLORS.ember : (rank <= 3 ? COLORS.ember : COLORS.faded) }}>{rank}</span>
-        <span style={{ flex: 1, minWidth: 0, fontSize: 13, fontWeight: mine ? 800 : 500, color: mine ? COLORS.ember : COLORS.ink, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{name}</span>
-        <span style={{ fontFamily: MONO, fontSize: 13, flex: 'none' }}>{score}</span>
-      </div>
-    );
-    return (
-      <div style={{ flex: '1 1 0', minWidth: 0, background: '#fff', border: `1px solid ${COLORS.faded}33` }}>
-        <div style={{ fontFamily: MONO, fontSize: 9, letterSpacing: '0.18em', textTransform: 'uppercase', color: COLORS.ember, textAlign: 'center', padding: '9px 0 3px' }}>Leaderboard</div>
-        {rows.length === 0 ? (
-          <div style={{ padding: '8px 13px 14px', fontFamily: SERIF, fontStyle: 'italic', fontSize: 14, color: COLORS.faded }}>No scores yet. Post yours to lead.</div>
-        ) : (
-          <>
-            {top.map((r, i) => mkRow(i + 1, (r.username || 'Player') + (identity && r.username === identity.username ? ' (you)' : ''), r.score, !!(identity && r.username === identity.username)))}
-            {showYou ? (
-              <>
-                <div style={{ textAlign: 'center', color: COLORS.faded, fontSize: 12, letterSpacing: '0.3em', padding: '2px 0 0', borderTop: `1px solid ${COLORS.faded}14` }}>...</div>
-                {mkRow(myRank, identity ? `${identity.username} (you)` : 'You', points, true)}
-              </>
-            ) : null}
-          </>
-        )}
-      </div>
-    );
-  })();
 
   return (
     <div style={{ minHeight: '100vh', background: COLORS.cream, color: COLORS.ink, position: 'relative', overflow: 'clip' }}>
@@ -655,7 +618,7 @@ export default function TimedMcqClient({ quizId, mobile = false }) {
                 </div>
 
                 <div style={{ display: 'flex', gap: 14, marginTop: 18, flexWrap: 'wrap', alignItems: 'stretch' }}>
-                  {lbSnippet}
+                  <LeaderboardSnippet board={board} identity={identity} score={points} lastElapsed={lastElapsed} fill />
                   {eloPanel}
                 </div>
 
