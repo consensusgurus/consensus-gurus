@@ -971,7 +971,7 @@ export default function QuizClient({ quizId }) {
   const shareUrl = typeof window !== 'undefined' ? window.location.href : `https://sourceoftruths.com/quiz/${quiz.id}`;
   const sharePct = total ? Math.round((dispScore / total) * 100) : 0;
   const resultMsg = ended ? `I scored ${dispScore}/${total} on "${quiz.title}". Can you beat me?` : `Can you beat my score on "${quiz.title}"?`;
-  const resultImgUrl = `https://sourceoftruths.com/quiz/${quiz.id}/result-image?s=${dispScore}&t=${total}&p=${sharePct}`;
+  const resultImgUrl = `https://sourceoftruths.com/quiz/${quiz.id}/result-image?s=${dispScore}&t=${total}&p=${attemptsPct || 0}`;
   function share() {
     if (navigator.share) {
       navigator.share({ title: quiz.title, text: resultMsg, url: shareUrl }).catch(() => {});
