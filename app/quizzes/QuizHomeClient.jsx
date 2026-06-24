@@ -216,6 +216,7 @@ export default function QuizHomeClient() {
   const [view, setView] = useState('compact'); // 'compact' | 'detailed' browse layout
   const [statsById, setStatsById] = useState({}); // /api/quiz/stats keyed by quizId
   const [signupOpen, setSignupOpen] = useState(false);
+  const [statsOpen, setStatsOpen] = useState(false);
   const [dailyLb, setDailyLb] = useState(null); // today's daily-challenge standings (registered players)
   const [todayData, setTodayData] = useState({ byCorrect: [], byQuizzes: [] }); // /api/quiz/today leaders
   // Today's daily challenge (deterministic from the date; no server state needed).
@@ -612,7 +613,8 @@ export default function QuizHomeClient() {
     .qzh .qz-playerbar.hub-bleed .hubbtn{align-self:stretch;padding:0 18px;margin:-11px -14px -11px 0;border-radius:0 11px 11px 0;border-top:none;border-bottom:none;border-left:none;}
     .qz-playerbar .qz-skill-empty{display:none !important;}
     .qz-playerbar .lbl{font-size:10px;font-weight:600;letter-spacing:.04em;text-transform:uppercase;color:#6b7280;margin-bottom:2px;}
-    @media(max-width:560px){.qz-playerbar{flex-wrap:wrap !important;align-items:center !important;gap:10px 14px !important;}.qz-playerbar .qz-div{display:none !important;}.qz-playerbar .qz-stats{order:9 !important;flex:1 1 100% !important;margin-left:0 !important;justify-content:space-between !important;gap:10px !important;}.qz-playerbar .qz-bestcat{order:3 !important;}.qz-playerbar .hubbtn{order:4 !important;margin-left:auto !important;flex:0 0 auto !important;}.qzh .boards{display:none !important;}.qz-submit{display:none !important;}.qzh{padding-left:14px !important;padding-right:14px !important;}}
+    .qz-chev{display:none;}
+    @media(max-width:560px){.qz-playerbar{flex-wrap:wrap !important;align-items:center !important;gap:10px 14px !important;}.qz-playerbar .qz-div{display:none !important;}.qz-playerbar:not(.open) .qz-stats{display:none !important;}.qz-playerbar.open .qz-stats{order:9 !important;flex:1 1 100% !important;margin-left:0 !important;justify-content:space-between !important;gap:10px !important;}.qz-playerbar{cursor:pointer;}.qz-chev{display:inline-flex !important;}.qz-playerbar .qz-bestcat{order:3 !important;}.qz-playerbar .hubbtn{order:4 !important;margin-left:auto !important;flex:0 0 auto !important;}.qzh .boards{display:none !important;}.qz-submit{display:none !important;}.qzh{padding-left:14px !important;padding-right:14px !important;}}
     .qzh .hubbtn:hover{background:${C.accsoft};}
     .qzh .crumb1{font-size:18px;font-weight:800;letter-spacing:-0.02em;}
     .qzh .crumb2{font-size:18px;font-weight:600;color:${C.accent};}
@@ -672,7 +674,7 @@ export default function QuizHomeClient() {
       <Grain />
       <style>{css}</style>
       <SiteHeader active="quizzes" inlay={(
-        <div ref={playerBarRef} className="qz-playerbar" style={{ display: 'flex', flexDirection: 'row', alignItems: 'center', flexWrap: 'wrap', gap: 16, padding: '10px 12px', overflow: 'visible', background: '#fff', borderRadius: 11 }}>
+        <div ref={playerBarRef} onClick={() => setStatsOpen((v) => !v)} className={`qz-playerbar${statsOpen ? ' open' : ''}`} style={{ display: 'flex', flexDirection: 'row', alignItems: 'center', flexWrap: 'wrap', gap: 16, padding: '10px 12px', overflow: 'visible', background: '#fff', borderRadius: 11 }}>
           {me && me.found && me.name ? (
             <div style={{ display: 'flex', flexDirection: 'column', minWidth: 0 }}>
               <div className="lbl">Player</div>
@@ -681,7 +683,7 @@ export default function QuizHomeClient() {
           ) : me && me.signed ? (
             <button onClick={() => { if (quizzesRef.current) quizzesRef.current.scrollIntoView({ behavior: 'smooth', block: 'start' }); }} style={{ display: 'inline-flex', alignItems: 'center', gap: 6, background: '#fff', color: C.accent, border: '1px solid #cddffb', borderLeft: `3px solid ${C.accent}`, borderRadius: 9, padding: '9px 14px', fontFamily: 'Manrope, system-ui, -apple-system, sans-serif', fontWeight: 700, fontSize: 13, cursor: 'pointer', whiteSpace: 'nowrap' }}><Play size={15} /> Play</button>
           ) : (
-            <button onClick={() => setSignupOpen(true)} style={{ display: 'inline-flex', alignItems: 'center', gap: 6, background: '#fff', color: C.accent, border: '1px solid #cddffb', borderLeft: `3px solid ${C.accent}`, borderRadius: 9, padding: '9px 14px', fontFamily: 'Manrope, system-ui, -apple-system, sans-serif', fontWeight: 700, fontSize: 13, cursor: 'pointer', whiteSpace: 'nowrap' }}><UserPlus size={15} /> Sign up</button>
+            <button onClick={() => setSignupOpen(true)} style={{ display: 'inline-flex', alignItems: 'center', gap: 6, background: C.accent, color: '#fff', border: 'none', borderRadius: 9, padding: '9px 14px', fontFamily: 'Manrope, system-ui, -apple-system, sans-serif', fontWeight: 700, fontSize: 13, cursor: 'pointer', whiteSpace: 'nowrap' }}><UserPlus size={15} /> Sign up</button>
           )}
           {me && me.found ? (<>
           <div className="qz-div" style={{ width: 1, height: 34, background: C.line }} />
@@ -706,6 +708,7 @@ export default function QuizHomeClient() {
             <div><div style={{ display: 'flex', alignItems: 'baseline', gap: 4 }}><span style={{ fontSize: 17, fontWeight: 700 }}>{playerStats && playerStats.completed != null ? playerStats.completed : '—'}</span>{playerStats && playerStats.completed != null && scopeCount ? <span style={{ fontSize: 11, fontWeight: 600, color: C.soft }}>({playerStats.completed > 0 && playerStats.completed / scopeCount < 0.005 ? '<1' : Math.round((playerStats.completed / scopeCount) * 100)}%)</span> : null}{playerStats && playerStats.completedRank ? <span className="qz-srank">#{playerStats.completedRank}</span> : null}</div><div className="lbl">completed</div></div>
           </div>
 
+          <ChevronDown className="qz-chev" size={15} strokeWidth={2.5} style={{ color: '#9aa0aa', transition: 'transform .15s', transform: statsOpen ? 'rotate(180deg)' : 'none' }} />
           <Link className="hubbtn" href="/quizzes/hub" style={{ display: 'inline-flex', alignItems: 'center', gap: 6, background: '#e9f1fd', color: C.accent, border: '1px solid #cfe0fa', borderRadius: 9, padding: '8px 13px', fontWeight: 700, fontSize: 13, textDecoration: 'none', whiteSpace: 'nowrap' }}><BarChart3 size={15} /> Stat Hub <ArrowRight size={14} /></Link>
         </div>
         )} />

@@ -58,8 +58,6 @@ export default function SiteHeader({ active = 'lists', maxWidth = 1180, visitors
           .sh-bar{border-radius:0;padding:11px 14px;}
           .sh-top{flex-wrap:nowrap;}
           .sh-word{font-size:18px;}
-          .sh-word-full{display:none;}
-          .sh-word-sot{display:inline;}
           .sh-tag{display:none;}
           .sh-right{gap:0;}
           .sh-nav{gap:2px;flex-wrap:nowrap;background:rgba(255,255,255,0.16);border-radius:999px;padding:2px;}
