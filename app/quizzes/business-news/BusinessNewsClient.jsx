@@ -2,6 +2,7 @@
 import React, { useState, useMemo } from 'react';
 import Link from 'next/link';
 import SiteHeader from '../../SiteHeader';
+import QuizPlayerBar from '../../quiz/[id]/QuizPlayerBar';
 import Grain from '../../Grain';
 import Footer from '../../Footer';
 import { QUIZZES } from '@/lib/quizzes';
@@ -159,7 +160,7 @@ export default function BusinessNewsClient() {
     <div style={{ background: C.bg, minHeight: '100vh', position: 'relative' }}>
       <Grain />
       <style>{css}</style>
-      <SiteHeader active="quizzes" />
+      <SiteHeader active="quizzes" inlay={<QuizPlayerBar />} />
       <div className="bnh" style={{ maxWidth: 1180, margin: '0 auto', padding: '20px 24px 80px', position: 'relative', fontFamily: FONT }}>
         <div className="eyebrow">Business · Quiz Hub</div>
         <h1>Business News</h1>

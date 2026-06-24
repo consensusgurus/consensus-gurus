@@ -8,6 +8,7 @@ import { QUIZZES, getQuiz } from '@/lib/quizzes';
 import { quizDept as deptOf, DEPT_COLOR, DEPT_LABEL, DEPT_NAV } from '@/lib/quiz-departments';
 import { CHALLENGES, getChallenge, DEFAULT_CHALLENGE_ID, challengeQuizIds, challengeColumns, dailyChallengeId, challengeMenu } from '@/lib/challenges';
 import SiteHeader from '../../SiteHeader';
+import QuizPlayerBar from '../../quiz/[id]/QuizPlayerBar';
 import Grain from '../../Grain';
 import Footer from '../../Footer';
 
@@ -368,7 +369,7 @@ export default function StatHubClient() {
     <div style={{ background: C.bg, minHeight: '100vh', position: 'relative' }}>
       <Grain />
       <style>{css}</style>
-      <SiteHeader active="quizzes" />
+      <SiteHeader active="quizzes" inlay={<QuizPlayerBar />} />
       <div className="qzhub" style={{ maxWidth: 1180, margin: '0 auto', padding: '12px 24px 70px', position: 'relative' }}>
 
         {/* player bar — same layout as the main quiz page; Share Stats in place of Sort + Stat Hub */}
