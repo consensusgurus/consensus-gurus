@@ -5,8 +5,9 @@ import { BadgeCheck, UserPlus, ChevronDown, ArrowRight, X } from 'lucide-react';
 import { DEPT_LABEL } from '@/lib/quiz-departments';
 
 const ACCENT='#2563eb', INK='#1c1e24', MUTED='#6b7280', SOFT='#aeb4bd', LINE='rgba(20,22,28,0.09)';
-const lbl={fontSize:10,fontWeight:600,letterSpacing:'.04em',textTransform:'uppercase',color:MUTED,marginBottom:2};
-const chip={display:'inline-flex',alignItems:'center',gap:6,background:'#e9f1fd',color:ACCENT,border:'1px solid #cfe0fa',borderRadius:9,padding:'8px 14px',fontWeight:700,fontSize:13,textDecoration:'none',whiteSpace:'nowrap',cursor:'pointer',fontFamily:'inherit'};
+const BARBG='#1e54cf', ONBLUE='#ffffff', ONBLUE_SOFT='#bcd2fb', ONBLUE_LINE='rgba(255,255,255,0.22)';
+const lbl={fontSize:10,fontWeight:600,letterSpacing:'.04em',textTransform:'uppercase',color:ONBLUE_SOFT,marginBottom:2};
+const chip={display:'inline-flex',alignItems:'center',gap:6,background:'#3b74e8',color:'#fff',border:'1px solid rgba(255,255,255,0.35)',borderRadius:9,padding:'8px 14px',fontWeight:700,fontSize:13,textDecoration:'none',whiteSpace:'nowrap',cursor:'pointer',fontFamily:'inherit'};
 
 function getAnonId(){try{return localStorage.getItem('sot_quiz_anon');}catch{return null;}}
 function ensureAnonId(){
@@ -59,8 +60,8 @@ function Stat({value, rank, label, cls}){
   return (
     <div className={cls}>
       <div style={{display:'flex',alignItems:'baseline',gap:3}}>
-        <span style={{fontSize:17,fontWeight:700,color:ACCENT}}>{value}</span>
-        {rank?<span style={{fontSize:11,fontWeight:700,color:SOFT}}>#{rank}</span>:null}
+        <span style={{fontSize:17,fontWeight:700,color:ONBLUE}}>{value}</span>
+        {rank?<span style={{fontSize:11,fontWeight:700,color:ONBLUE_SOFT}}>#{rank}</span>:null}
       </div>
       <div style={lbl}>{label}</div>
     </div>
@@ -100,22 +101,22 @@ export default function QuizPlayerBar({ me: meProp, controlled = false, rightAct
     ? <button onClick={(e)=>{e.stopPropagation(); onShare&&onShare();}} style={chip}>Share Stats</button>
     : <Link href="/quizzes/hub" onClick={e=>e.stopPropagation()} style={chip}>Stat Hub <ArrowRight size={14}/></Link>;
   return (
-    <div className="qpb" style={{display:'flex',flexDirection:'row',alignItems:'center',flexWrap:'nowrap',gap:16,padding:'10px 14px',background:'#fff',borderRadius:11,minHeight:56,boxSizing:'border-box',overflow:'hidden'}}>
+    <div className="qpb" style={{display:'flex',flexDirection:'row',alignItems:'center',flexWrap:'nowrap',gap:16,padding:'10px 14px',background:BARBG,borderRadius:11,minHeight:56,boxSizing:'border-box',overflow:'hidden'}}>
       <style>{`.qpb-chev{display:none;}@media(max-width:1023px){.qpb-bestcat{display:none !important;}}@media(max-width:920px){.qpb-s-correct{display:none !important;}}@media(max-width:820px){.qpb-s-accuracy{display:none !important;}}@media(max-width:700px){.qpb-s-played{display:none !important;}}@media(max-width:560px){.qpb .qpb-stats{display:none !important;}.qpb-hub{margin-left:auto !important;}}`}</style>
       <div style={{display:'flex',flexDirection:'column',minWidth:0}}>
         <div style={lbl}>Player</div>
         {found?(
-          <div style={{display:'flex',alignItems:'center',gap:5,fontSize:16,fontWeight:800,color:INK,lineHeight:1.15,minWidth:0}}><span style={{minWidth:0,overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>{me.name}</span>{me.signed?<BadgeCheck size={13} strokeWidth={2.5} style={{color:ACCENT,flex:'none'}}/>:null}</div>
+          <div style={{display:'flex',alignItems:'center',gap:5,fontSize:16,fontWeight:800,color:ONBLUE,lineHeight:1.15,minWidth:0}}><span style={{minWidth:0,overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>{me.name}</span>{me.signed?<BadgeCheck size={13} strokeWidth={2.5} style={{color:ONBLUE,flex:'none'}}/>:null}</div>
         ):determined?(
-          <button onClick={e=>{e.stopPropagation(); setSignupOpen(true);}} style={{display:'inline-flex',alignItems:'center',gap:5,fontSize:14,fontWeight:800,color:ACCENT,lineHeight:1.15,background:'none',border:'none',padding:0,cursor:'pointer',fontFamily:'inherit'}}><UserPlus size={14}/> Sign up</button>
+          <button onClick={e=>{e.stopPropagation(); setSignupOpen(true);}} style={{display:'inline-flex',alignItems:'center',gap:5,fontSize:14,fontWeight:800,color:ONBLUE,lineHeight:1.15,background:'none',border:'none',padding:0,cursor:'pointer',fontFamily:'inherit'}}><UserPlus size={14}/> Sign up</button>
         ):(
-          <div style={{fontSize:16,fontWeight:800,color:SOFT,lineHeight:1.15}}>{dash}</div>
+          <div style={{fontSize:16,fontWeight:800,color:ONBLUE_SOFT,lineHeight:1.15}}>{dash}</div>
         )}
       </div>
-      <div style={{width:1,height:34,background:LINE}}/>
+      <div style={{width:1,height:34,background:ONBLUE_LINE}}/>
       <div>
         <div style={lbl}>Rank</div>
-        <div style={{display:'flex',alignItems:'baseline',gap:5}}><span style={{fontSize:17,fontWeight:800,color:rank?ACCENT:SOFT,lineHeight:1}}>{rank?`#${rank}`:dash}</span>{rank&&denom?<span style={{fontSize:11,color:MUTED}}>of {denom.toLocaleString()}</span>:null}</div>
+        <div style={{display:'flex',alignItems:'baseline',gap:5}}><span style={{fontSize:17,fontWeight:800,color:rank?ONBLUE:ONBLUE_SOFT,lineHeight:1}}>{rank?`#${rank}`:dash}</span>{rank&&denom?<span style={{fontSize:11,color:ONBLUE_SOFT}}>of {denom.toLocaleString()}</span>:null}</div>
       </div>
       <div className="qpb-stats" style={{display:'flex',flex:'1 1 auto',minWidth:0,justifyContent:'space-evenly',gap:14,marginLeft:18,flexWrap:'nowrap'}}>
         <Stat value={found&&a.played!=null?a.played:dash} rank={found?rk.played:null} label="Played" cls="qpb-s-played"/>
@@ -127,8 +128,8 @@ export default function QuizPlayerBar({ me: meProp, controlled = false, rightAct
         <div className="qpb-bestcat">
           <div style={lbl}>Best category</div>
           <div style={{display:'flex',alignItems:'baseline',gap:5,whiteSpace:'nowrap'}}>
-            <span style={{fontSize:14,fontWeight:700,color:INK,lineHeight:1.2}}>{DEPT_LABEL[bestCat.key]||'—'}</span>
-            {bestCat.rank?<span style={{fontSize:11,color:MUTED}}>#{bestCat.rank}{bestCat.catTotal?` of ${bestCat.catTotal.toLocaleString()}`:''}</span>:null}
+            <span style={{fontSize:14,fontWeight:700,color:ONBLUE,lineHeight:1.2}}>{DEPT_LABEL[bestCat.key]||'—'}</span>
+            {bestCat.rank?<span style={{fontSize:11,color:ONBLUE_SOFT}}>#{bestCat.rank}{bestCat.catTotal?` of ${bestCat.catTotal.toLocaleString()}`:''}</span>:null}
           </div>
         </div>
       ):null}

@@ -35,12 +35,13 @@ function Logo({ size = 40 }) {
   );
 }
 
-export default function SiteHeader({ active = 'lists', maxWidth = 1180, visitors, bare = false, inlay = null }) {
+export default function SiteHeader({ active = 'lists', maxWidth = 1180, visitors, bare = false, inlay = null, flush = false }) {
   return (
     <div className="sh-root" style={{ fontFamily: FONT }}>
       <style>{`
         @import url('https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap');
         .sh-bar{display:flex;flex-direction:column;padding:12px 16px;background:#2563eb;border-radius:16px;}
+        .sh-bar.flush{border-radius:16px 16px 0 0;}
         .sh-top{display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:nowrap;}
         .sh-inlay{margin-top:12px;}
         .sh-outer{padding:10px 24px 0;}
@@ -71,7 +72,7 @@ export default function SiteHeader({ active = 'lists', maxWidth = 1180, visitors
         }
       `}</style>
       <div className={bare ? undefined : 'sh-outer'} style={bare ? { padding: '2px 0 0' } : { maxWidth, margin: '0 auto' }}>
-        <div className="sh-bar">
+        <div className={`sh-bar${flush ? ' flush' : ''}`}>
           <div className="sh-top">
             <div className="sh-brand">
               <Link href="/" style={{ flex: 'none', display: 'flex' }} aria-label="Source of Truths home"><Logo size={34} /></Link>

@@ -680,7 +680,7 @@ export default function QuizHomeClient() {
     <div style={{ background: C.bg, minHeight: '100vh', position: 'relative' }}>
       <Grain />
       <style>{css}</style>
-      <SiteHeader active="quizzes" inlay={<QuizPlayerBar />} />
+      <SiteHeader active="quizzes" flush inlay={<QuizPlayerBar />} />
       <div className="qzh" style={{ maxWidth: 1180, margin: '0 auto', padding: '12px 24px 70px', position: 'relative' }}>
 
         {signupOpen && <SignupModal onClose={() => setSignupOpen(false)} />}

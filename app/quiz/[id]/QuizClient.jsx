@@ -1144,7 +1144,7 @@ export default function QuizClient({ quizId }) {
   .qzlg-img-tall{max-height:308px;}
 }`}</style>
 
-        <SiteHeader active="quizzes" bare inlay={<QuizPlayerBar />} />
+        <SiteHeader active="quizzes" bare flush inlay={<QuizPlayerBar />} />
 
         {/* Header */}
         <div style={{ paddingBottom: 0, marginTop: 12 }}>
