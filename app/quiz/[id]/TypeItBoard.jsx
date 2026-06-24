@@ -1,0 +1,177 @@
+'use client';
+
+import React, { useMemo, useState, useRef } from 'react';
+
+// Typed-recall board (`format: 'type-it'`). ONE clue (e.g. an airport) shows at a
+// time in the clue bar with a Next button to cycle through clues not yet solved;
+// below sits a single text input where you TYPE the answer (e.g. the IATA code).
+// Same guess-budget model as the bank/map boards: one guess per item, a wrong
+// submitted answer spends a guess, Next skips for free. A correct answer is
+// auto-accepted as you type (or on Enter) and advances to the next clue. Reports
+// up to QuizClient via onMatch/onWrong/onEnd/onHint exactly like BankQuizBoard.
+
+const COLORS = {
+  cream: '#f7f8fa', paper: '#eceef1', ink: '#1c1e24', ember: '#2563eb',
+  rust: '#c0392b', forest: '#10b981', faded: '#6b7280',
+};
+const MONO = "'Manrope', system-ui, -apple-system, sans-serif";
+const SERIF = "'Manrope', system-ui, -apple-system, sans-serif";
+const SANS = "'Manrope', system-ui, -apple-system, sans-serif";
+
+function shuffle(arr) {
+  const a = arr.slice();
+  for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; }
+  return a;
+}
+function norm(s) { return (s || '').toLowerCase().replace(/[^a-z0-9 ]/g, ' ').replace(/\s+/g, ' ').trim(); }
+function deArticle(s) { return s.replace(/^(?:the|a|an) (?=.{2})/, ''); }
+function keyHit(g, key) {
+  const k = deArticle(norm(key)); if (!k) return false;
+  if (g.includes(k)) return true;
+  const kt = k.split(' '); if (kt.length < 2) return false;
+  const gt = g.split(' '); return kt.every((w) => gt.includes(w));
+}
+function anyKey(g, keys) { return (keys || []).some((k) => keyHit(g, k)); }
+function accepts(raw, item) {
+  const g = norm(raw); if (!g) return false;
+  if (anyKey(g, item.keys)) return true;
+  if (item.anti && anyKey(g, item.anti)) return false;
+  return deArticle(g) === deArticle(norm(item.t));
+}
+
+export default function TypeItBoard({ items, started, ended, revealed, onMatch, onWrong, onEnd, onHint, promptLabel, answerNoun, stickyTop = 150 }) {
+  const list = items || [];
+  const total = list.length;
+  const order = useMemo(() => shuffle(list.map((_, i) => i)), [list]);
+  const [matched, setMatched] = useState(() => new Set());
+  const [errors, setErrors] = useState(0);
+  const [cur, setCur] = useState(() => (order.length ? order[0] : null));
+  const [val, setVal] = useState('');
+  const [flash, setFlash] = useState(null); // { ok, key }
+  const inputRef = useRef(null);
+
+  const live = started && !ended;
+  const guessesLeft = Math.max(0, total - matched.size - errors);
+  const remaining = total - matched.size;
+  const noun = answerNoun || 'answer';
+
+  function nextIdx(fromCur, doneSet) {
+    if (!order.length) return null;
+    const start = order.indexOf(fromCur);
+    for (let s = 1; s <= order.length; s++) {
+      const p = order[(start + s) % order.length];
+      if (!doneSet.has(p)) return p;
+    }
+    return null;
+  }
+  function prevIdx(fromCur, doneSet) {
+    if (!order.length) return null;
+    const L = order.length;
+    const start = order.indexOf(fromCur);
+    for (let s = 1; s <= L; s++) {
+      const p = order[((start - s) % L + L) % L];
+      if (!doneSet.has(p)) return p;
+    }
+    return null;
+  }
+  function flashIt(ok) {
+    const key = Date.now(); setFlash({ ok, key });
+    setTimeout(() => setFlash((f) => (f && f.key === key ? null : f)), 480);
+  }
+  function submit(raw, viaEnter) {
+    if (!live || cur == null) return false;
+    if (accepts(raw, list[cur])) {
+      const nm = new Set(matched); nm.add(cur);
+      setMatched(nm); setVal(''); flashIt(true);
+      if (onMatch) onMatch(cur, nm.size, list[cur].t, list[cur].label);
+      const np = nextIdx(cur, nm);
+      if (np == null) { setCur(null); if (onEnd) onEnd(true, nm.size); }
+      else setCur(np);
+      return true;
+    }
+    if (viaEnter && norm(raw)) {
+      // Misses are not counted against the player: flash, clear, and let them
+      // keep guessing (use Next to cycle) until they solve it or time runs out.
+      flashIt(false); setVal('');
+    }
+    return false;
+  }
+  function onChange(e) {
+    const v = e.target.value;
+    if (live && cur != null && accepts(v, list[cur])) submit(v, false);
+    else setVal(v);
+  }
+  function onKey(e) {
+    if (e.key !== 'Enter' || !live) return;
+    submit(val, true);
+  }
+  function skip() {
+    if (!live || cur == null) return;
+    const np = nextIdx(cur, matched);
+    if (np != null && np !== cur) { setCur(np); setVal(''); if (onHint) onHint(`Next: ${list[np].label}`, false); }
+    else if (onHint) onHint('That is the last one — take your shot.', false);
+    if (inputRef.current) inputRef.current.focus();
+  }
+  function back() {
+    if (!live || cur == null) return;
+    const np = prevIdx(cur, matched);
+    if (np != null && np !== cur) { setCur(np); setVal(''); if (onHint) onHint(`Back: ${list[np].label}`, false); }
+    else if (onHint) onHint('That is the only one left — take your shot.', false);
+    if (inputRef.current) inputRef.current.focus();
+  }
+
+  const promptText = !started ? 'Press Play to start' : ended ? 'Game over' : (cur != null ? list[cur].label : 'All done');
+  const borderColor = flash ? (flash.ok ? COLORS.forest : COLORS.ember) : COLORS.ink;
+
+  return (
+    <div>
+      {/* Frozen answer bar: input ON TOP (abuts the score block, light so any
+          1px overlap is invisible), clue BELOW it. The whole bar is sticky just
+          under the score/timer block. Next/Back use onMouseDown preventDefault +
+          refocus so tapping them never blurs the input (keyboard stays open, no
+          reflow that would slide the bar behind the stats on mobile). */}
+      <div style={{ position: 'sticky', top: stickyTop, zIndex: 4, background: COLORS.cream, paddingTop: 4, paddingBottom: 8 }}>
+        {live && (
+          <div style={{ display: 'flex', gap: 10, marginBottom: 10 }}>
+            <input
+              ref={inputRef}
+              value={val}
+              disabled={!live}
+              onChange={onChange}
+              onKeyDown={onKey}
+              placeholder={live ? `Type the ${noun}…` : ''}
+              autoComplete="off"
+              autoCapitalize="none"
+              autoCorrect="off"
+              spellCheck={false}
+              style={{ flex: 1, minWidth: 0, boxSizing: 'border-box', fontFamily: SANS, fontSize: 18, padding: '14px 16px', borderRadius: 10, border: `2px solid ${borderColor}`, background: '#fff', color: COLORS.ink, transition: 'border-color .15s' }}
+            />
+            {cur != null && (
+              <button onMouseDown={(e) => e.preventDefault()} onClick={back} title="Go back to the previous clue." style={{ flex: 'none', fontFamily: MONO, fontSize: 10, letterSpacing: '0.16em', textTransform: 'uppercase', fontWeight: 700, padding: '0 13px', background: 'transparent', color: COLORS.ink, borderRadius: 10, border: `1.5px solid ${COLORS.ink}`, cursor: 'pointer' }}>&larr; Back</button>
+            )}
+            {cur != null && (
+              <button onMouseDown={(e) => e.preventDefault()} onClick={skip} title="Skip to the next clue without spending a guess, you can come back." style={{ flex: 'none', fontFamily: MONO, fontSize: 10, letterSpacing: '0.16em', textTransform: 'uppercase', fontWeight: 700, padding: '0 13px', background: 'transparent', color: COLORS.ink, borderRadius: 10, border: `1.5px solid ${COLORS.ink}`, cursor: 'pointer' }}>Next &rarr;</button>
+            )}
+          </div>
+        )}
+        <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: 12, background: live ? COLORS.ink : COLORS.paper, color: live ? COLORS.cream : COLORS.faded, borderRadius: 10, border: `1px solid ${COLORS.faded}33`, padding: '14px 16px', minHeight: 30 }}>
+          <span style={{ fontFamily: MONO, fontSize: 11, letterSpacing: '0.2em', textTransform: 'uppercase', opacity: 0.7, flex: 'none' }}>{promptLabel || 'Clue'}</span>
+          <span style={{ fontFamily: SERIF, fontWeight: 800, fontSize: 'clamp(20px, 3.4vw, 28px)', lineHeight: 1.15, flex: '1 1 320px', minWidth: 'min(100%, 220px)', overflowWrap: 'break-word', wordBreak: 'normal', hyphens: 'none' }}>{promptText}</span>
+        </div>
+      </div>
+      {ended && (
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(155px, 1fr))', gap: 8 }}>
+          {list.map((it, i) => {
+            const got = matched.has(i);
+            return (
+              <div key={i} style={{ borderRadius: 10, border: `1px solid ${got ? COLORS.forest : COLORS.faded + '55'}`, background: got ? '#e8efdd' : '#fbf7ef', padding: '8px 11px', borderRadius: 2, display: 'flex', flexDirection: 'column', gap: 2 }}>
+                <span style={{ fontFamily: MONO, fontSize: 10, letterSpacing: '0.06em', textTransform: 'uppercase', color: COLORS.faded, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{it.label}</span>
+                <span style={{ fontFamily: SERIF, fontWeight: 800, fontSize: 17, lineHeight: 1.1, color: got ? COLORS.forest : (revealed ? COLORS.rust : COLORS.faded) }}>{got ? '✓ ' + it.t : (revealed ? it.t : '• • •')}</span>
+              </div>
+            );
+          })}
+        </div>
+      )}
+    </div>
+  );
+}
