@@ -19,7 +19,7 @@ function Stat({value, rank, label}){
     <div>
       <div style={{display:'flex',alignItems:'baseline',gap:3}}>
         <span style={{fontSize:17,fontWeight:700,color:ACCENT}}>{value}</span>
-        {rank?<span style={{fontSize:9,fontWeight:700,color:SOFT}}>#{rank}</span>:null}
+        {rank?<span style={{fontSize:11,fontWeight:700,color:SOFT}}>#{rank}</span>:null}
       </div>
       <div style={lbl}>{label}</div>
     </div>
@@ -44,7 +44,7 @@ export default function QuizPlayerBar(){
   const rank=me&&((me.ranks&&me.ranks.rating)||me.rank);
   const denom=me&&me.totalPlayers;
   return (
-    <div className={`qpb${open?' open':''}`} onClick={()=>setOpen(v=>!v)} style={{display:'flex',flexDirection:'row',alignItems:'center',flexWrap:'wrap',gap:16,padding:'10px 14px',background:'#fff',borderRadius:11}}>
+    <div className={`qpb${open?' open':''}`} onClick={()=>setOpen(v=>!v)} style={{display:'flex',flexDirection:'row',alignItems:'center',flexWrap:'wrap',gap:16,padding:'10px 14px',background:'#fff',borderRadius:11,minHeight:54,boxSizing:'border-box'}}>
       <style>{`.qpb-chev{display:none;}@media(max-width:560px){.qpb{cursor:pointer;}.qpb:not(.open) .qpb-stats{display:none !important;}.qpb.open .qpb-stats{order:9 !important;flex:1 1 100% !important;margin-left:0 !important;justify-content:space-between !important;}.qpb-chev{display:inline-flex !important;}.qpb-hub{margin-left:auto !important;}}`}</style>
       {found?(
         <div style={{display:'flex',flexDirection:'column',minWidth:0}}>
