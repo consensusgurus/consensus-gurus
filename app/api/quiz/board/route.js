@@ -54,15 +54,23 @@ export async function GET(request) {
     return NextResponse.json({ error: 'quizId required' }, { status: 400 });
   }
   try {
-    const { data, error } = await supabaseAdmin
-      .from('quiz_results')
-      .select('id, user_id, username, score, time_elapsed, anon_id, created_at')
-      .eq('quiz_id', quizId);
-    if (error) {
-      console.error('quiz board error', error);
-      return NextResponse.json({ error: 'db error' }, { status: 500 });
+    const data = [];
+    for (let from = 0; ; from += 1000) {
+      const { data: page, error } = await supabaseAdmin
+        .from('quiz_results')
+        .select('id, user_id, username, score, time_elapsed, anon_id, created_at')
+        .eq('quiz_id', quizId)
+        .order('id', { ascending: true })
+        .range(from, from + 999);
+      if (error) {
+        console.error('quiz board error', error);
+        return NextResponse.json({ error: 'db error' }, { status: 500 });
+      }
+      if (!page || page.length === 0) break;
+      data.push(...page);
+      if (page.length < 1000) break;
     }
-    return NextResponse.json(summarize(data || []));
+    return NextResponse.json(summarize(data));
   } catch (e) {
     return NextResponse.json({ error: 'db error' }, { status: 500 });
   }

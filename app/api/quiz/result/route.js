@@ -100,11 +100,19 @@ export async function POST(request) {
       return NextResponse.json({ error: 'db error' }, { status: 500 });
     }
 
-    const { data } = await supabaseAdmin
-      .from('quiz_results')
-      .select('id, user_id, username, score, time_elapsed, anon_id, created_at')
-      .eq('quiz_id', quizId);
-    return NextResponse.json({ ...summarize(data || []), resultId: inserted?.id ?? null });
+    const data = [];
+    for (let from = 0; ; from += 1000) {
+      const { data: page } = await supabaseAdmin
+        .from('quiz_results')
+        .select('id, user_id, username, score, time_elapsed, anon_id, created_at')
+        .eq('quiz_id', quizId)
+        .order('id', { ascending: true })
+        .range(from, from + 999);
+      if (!page || page.length === 0) break;
+      data.push(...page);
+      if (page.length < 1000) break;
+    }
+    return NextResponse.json({ ...summarize(data), resultId: inserted?.id ?? null });
   } catch (e) {
     return NextResponse.json({ error: 'invalid request' }, { status: 400 });
   }

@@ -16,7 +16,7 @@ const CSS = `.qz-lbstrip{scrollbar-width:none;-ms-overflow-style:none;}
 .qz-lbstrip::-webkit-scrollbar{display:none;}
 .qz-lbnm{max-width:150px;overflow:hidden;text-overflow:ellipsis;}
 @media(max-width:560px){
-  .qz-lbstrip .qz-lbe-2,.qz-lbstrip .qz-lbe-3,.qz-lbstrip .qz-lbpl{display:none;}
+  .qz-lbstrip .qz-lbe-2,.qz-lbstrip .qz-lbe-3,.qz-lbstrip .qz-lbpl{display:none !important;}
   .qz-lbnm{max-width:108px;}
 }`;
 
