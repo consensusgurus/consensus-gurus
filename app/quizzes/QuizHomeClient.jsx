@@ -3,6 +3,7 @@ import React, { useState, useEffect, useMemo, useRef, createContext, useContext 
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import SiteHeader from '../SiteHeader';
+import QuizPlayerBar from '../quiz/[id]/QuizPlayerBar';
 import {
   Search, ChevronDown, ArrowRight, BarChart3, Crown, Sparkles, Flame,
   BadgeCheck, Clapperboard, Music, Gamepad2, Plane, Globe, Utensils,
@@ -679,54 +680,7 @@ export default function QuizHomeClient() {
     <div style={{ background: C.bg, minHeight: '100vh', position: 'relative' }}>
       <Grain />
       <style>{css}</style>
-      <SiteHeader active="quizzes" inlay={(
-        <div ref={playerBarRef} onClick={() => setStatsOpen((v) => !v)} className={`qz-playerbar${statsOpen ? ' open' : ''}`} style={{ display: 'flex', flexDirection: 'row', alignItems: 'center', flexWrap: 'wrap', gap: 16, padding: '10px 12px', overflow: 'visible', background: '#fff', borderRadius: 11 }}>
-          {me && me.found && me.name ? (
-            <div style={{ display: 'flex', flexDirection: 'column', minWidth: 0 }}>
-              <div className="lbl">Player</div>
-              <div className="qz-pname" style={{ display: 'flex', alignItems: 'center', gap: 5, fontSize: 16, fontWeight: 800, color: C.ink, lineHeight: 1.15, minWidth: 0 }}><span style={{ minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{me.name}</span>{me.signed ? <BadgeCheck size={13} strokeWidth={2.5} style={{ color: C.accent, flex: 'none' }} /> : <button onClick={() => setSignupOpen(true)} title="Sign up to claim a display name" style={{ flex: 'none', fontSize: 9, fontWeight: 700, letterSpacing: '0.04em', textTransform: 'uppercase', color: C.accent, background: 'none', border: `1px solid ${C.line}`, borderRadius: 4, padding: '1px 5px', cursor: 'pointer' }}>guest</button>}</div>
-            </div>
-          ) : me && me.signed ? (
-            <button onClick={() => { if (quizzesRef.current) quizzesRef.current.scrollIntoView({ behavior: 'smooth', block: 'start' }); }} style={{ display: 'inline-flex', alignItems: 'center', gap: 6, background: '#fff', color: C.accent, border: '1px solid #cddffb', borderLeft: `3px solid ${C.accent}`, borderRadius: 9, padding: '9px 14px', fontFamily: 'Manrope, system-ui, -apple-system, sans-serif', fontWeight: 700, fontSize: 13, cursor: 'pointer', whiteSpace: 'nowrap' }}><Play size={15} /> Play</button>
-          ) : (
-            <button onClick={() => setSignupOpen(true)} style={{ display: 'inline-flex', alignItems: 'center', gap: 6, background: C.accent, color: '#fff', border: 'none', borderRadius: 9, padding: '9px 14px', fontFamily: 'Manrope, system-ui, -apple-system, sans-serif', fontWeight: 700, fontSize: 13, cursor: 'pointer', whiteSpace: 'nowrap' }}><UserPlus size={15} /> Sign up</button>
-          )}
-          {me && me.found ? (<>
-          <div className="qz-div" style={{ width: 1, height: 34, background: C.line }} />
-          <div className={`qz-skill${playerStats && playerStats.rank ? '' : ' qz-skill-empty'}`}>
-            <div className="lbl">Rank{scope === 'all' ? '' : ` · ${byKey[scope]?.label}`}</div>
-            {playerStats && playerStats.rank ? (
-              <div style={{ display: 'flex', alignItems: 'baseline', gap: 5 }}>
-                <span style={{ fontSize: 17, fontWeight: 700, color: C.accent, lineHeight: 1 }}>{`#${playerStats.rank}`}</span>
-                {playerStats.denom ? <span style={{ fontSize: 11, color: C.muted }}>of {playerStats.denom.toLocaleString()}</span> : null}
-              </div>
-            ) : (
-              <div style={{ fontSize: 12, fontWeight: 600, color: C.muted, lineHeight: 1.2, marginTop: 2, maxWidth: 160 }}>Play your first quiz to populate</div>
-            )}
-          </div>
-          </>) : (
-            <div className="qz-empty" style={{ flex: '1 1 60px', minWidth: 0, color: C.muted, fontSize: 13, fontWeight: 600, lineHeight: 1.25 }}>Play one quiz to see your stats</div>
-          )}
-          <div className="qz-stats" style={{ display: 'flex', flex: '1 1 auto', justifyContent: 'space-evenly', gap: 12, marginLeft: 18, flexWrap: 'wrap' }}>
-            <div><div style={{ display: 'flex', alignItems: 'baseline', gap: 4 }}><span style={{ fontSize: 15, fontWeight: 700, color: C.accent }}>{playerStats && playerStats.played != null ? playerStats.played : '—'}</span>{playerStats && playerStats.playedRank ? <span className="qz-srank">#{playerStats.playedRank}</span> : null}</div><div className="lbl">played</div></div>
-            <div><div style={{ display: 'flex', alignItems: 'baseline', gap: 4 }}><span style={{ fontSize: 15, fontWeight: 700, color: C.accent }}>{playerStats && playerStats.correct != null ? playerStats.correct.toLocaleString() : '—'}</span>{playerStats && playerStats.correctRank ? <span className="qz-srank">#{playerStats.correctRank}</span> : null}</div><div className="lbl">correct</div></div>
-            <div><div style={{ display: 'flex', alignItems: 'baseline', gap: 4 }}><span style={{ fontSize: 15, fontWeight: 700, color: C.accent }}>{playerStats && playerStats.accuracy != null ? `${playerStats.accuracy}%` : '—'}</span>{playerStats && playerStats.accuracyRank ? <span className="qz-srank">#{playerStats.accuracyRank}</span> : null}</div><div className="lbl">accuracy</div></div>
-            <div><div style={{ display: 'flex', alignItems: 'baseline', gap: 4 }}><span style={{ fontSize: 15, fontWeight: 700, color: C.accent }}>{playerStats && playerStats.completed != null ? playerStats.completed : '—'}</span>{playerStats && playerStats.completed != null && scopeCount ? <span style={{ fontSize: 11, fontWeight: 600, color: C.soft }}>({playerStats.completed > 0 && playerStats.completed / scopeCount < 0.005 ? '<1' : Math.round((playerStats.completed / scopeCount) * 100)}%)</span> : null}{playerStats && playerStats.completedRank ? <span className="qz-srank">#{playerStats.completedRank}</span> : null}</div><div className="lbl">completed</div></div>
-          </div>
-
-          {bestCat ? (
-            <div className="qz-bestcat" ref={bestCatRef}>
-              <div className="lbl">Best category</div>
-              <div style={{ display: 'flex', alignItems: 'baseline', gap: 5, whiteSpace: 'nowrap' }}>
-                <span style={{ fontSize: 14, fontWeight: 700, color: C.ink, lineHeight: 1.2 }}>{byKey[bestCat.key]?.label || DEPT_LABEL[bestCat.key] || '—'}</span>
-                {bestCat.rank ? <span style={{ fontSize: 10, color: C.muted }}>#{bestCat.rank}{bestCat.catTotal ? ` of ${bestCat.catTotal.toLocaleString()}` : ''}</span> : null}
-              </div>
-            </div>
-          ) : null}
-          <ChevronDown className="qz-chev" size={15} strokeWidth={2.5} style={{ color: '#9aa0aa', transition: 'transform .15s', transform: statsOpen ? 'rotate(180deg)' : 'none' }} />
-          <Link className="hubbtn" href="/quizzes/hub" style={{ display: 'inline-flex', alignItems: 'center', gap: 6, background: '#e9f1fd', color: C.accent, border: '1px solid #cfe0fa', borderRadius: 9, padding: '8px 13px', fontWeight: 700, fontSize: 13, textDecoration: 'none', whiteSpace: 'nowrap' }}><BarChart3 size={15} /> Stat Hub <ArrowRight size={14} /></Link>
-        </div>
-        )} />
+      <SiteHeader active="quizzes" inlay={<QuizPlayerBar />} />
       <div className="qzh" style={{ maxWidth: 1180, margin: '0 auto', padding: '12px 24px 70px', position: 'relative' }}>
 
         {signupOpen && <SignupModal onClose={() => setSignupOpen(false)} />}
