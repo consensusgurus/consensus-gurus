@@ -1151,7 +1151,7 @@ export default function QuizClient({ quizId }) {
           <div style={{ display: 'flex', alignItems: 'flex-end', gap: 'clamp(16px, 4vw, 28px)' }}>
             <h1 style={{ fontFamily: SERIF, fontWeight: 800, fontSize: 'clamp(24px, 4vw, 38px)', lineHeight: 1.02, letterSpacing: '-0.02em', margin: 0, color: COLORS.ink, fontVariationSettings: '"SOFT" 100' }}>{quiz.title}</h1>
           </div>
-          <p style={{ fontFamily: SANS, fontSize: 15, lineHeight: 1.55, margin: '8px 0 0', color: COLORS.faded, maxWidth: 680 }}>{quiz.blurb}{!identity ? <> <button onClick={() => setTab('join')} style={{ background: 'none', border: 'none', padding: 0, font: 'inherit', color: COLORS.ember, fontWeight: 700, cursor: 'pointer' }}>Sign up to save your scores &rarr;</button></> : null}</p>
+          <p style={{ fontFamily: SANS, fontSize: 15, lineHeight: 1.55, margin: '8px 0 0', color: COLORS.faded, maxWidth: 680 }}>{quiz.blurb}</p>
           {tab !== 'stats' && <LeaderboardStrip board={board} identity={identity} onOpen={() => setTab('stats')} />}
         </div>
 
@@ -1217,25 +1217,15 @@ export default function QuizClient({ quizId }) {
                 the top of the viewport. The nav ribbon above is NOT sticky, so
                 this is the only frozen element; the list/board scrolls under. */}
             <div ref={scoreRef} style={{ position: 'sticky', top: 0, zIndex: 24, background: COLORS.cream }}>
-            {(!mapMode && !tileMode && (!matched || ordered)) && (
-            <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, marginBottom: 8 }}>
+            <div style={{ display: 'flex', flexWrap: 'nowrap', alignItems: 'center', gap: 8, marginBottom: 6 }}>
               {(() => {
-                const base = { display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 5, flex: 'none', height: 48, padding: '0 14px', border: `1px solid ${COLORS.line}`, borderRadius: 10, background: '#fff', fontFamily: SERIF, fontWeight: 800, fontSize: 17, lineHeight: 1 };
+                const base = { display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 4, flex: 'none', height: 46, padding: '0 12px', border: `1px solid ${COLORS.line}`, borderRadius: 9, background: '#fff', fontFamily: SERIF, fontWeight: 800, fontSize: 16, lineHeight: 1 };
                 const live = started && !ended;
-                const mid = mapMode ? { v: (guessesLeft == null ? total : guessesLeft), hot: (guessesLeft == null ? total : guessesLeft) <= 3, t: (quiz.suddenDeath ? 'States left' : 'Guesses left') }
-                  : (bankMode || photoMatchMode) ? { v: Math.max(0, total - pairsMatched - pairsErrors), hot: (total - pairsMatched - pairsErrors) <= 3, t: 'Guesses left' }
-                  : (typeMode || photoMode) ? { v: Math.max(0, total - pairsMatched), hot: false, t: 'Remaining' }
-                  : tileMode ? { v: pairsErrors, hot: pairsErrors > 0, t: 'Errors' }
-                  : null;
                 return (<>
-                  <span style={base} title="Your score">{dispScore}<span style={{ fontSize: 12, color: COLORS.soft, fontWeight: 700 }}>/{total}</span></span>
-                  {mid ? <span style={{ ...base, color: mid.hot && live ? COLORS.ember : COLORS.ink }} title={mid.t}>{mid.v}</span> : null}
+                  <span style={base} title="Your score">{dispScore}<span style={{ fontSize: 11, color: COLORS.soft, fontWeight: 700 }}>/{total}</span></span>
                   <span style={{ ...base, fontFamily: MONO, color: time <= 10 && live ? COLORS.ember : COLORS.ink }} title="Time left">{clock}</span>
                 </>);
               })()}
-            </div>
-            )}
-            <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, marginBottom: 6 }}>
               {!mapMode && !tileMode && (!matched || ordered) && (
                 <input
                   ref={inputRef}
@@ -1254,22 +1244,6 @@ export default function QuizClient({ quizId }) {
                   spellCheck={false}
                   style={{ flex: 1, minWidth: 0, fontFamily: SANS, fontSize: 17, padding: '14px 16px', borderRadius: 10, border: `1.5px solid ${COLORS.ink}`, borderRadius: 8, background: !started || ended ? COLORS.paper : '#eceef1', color: COLORS.ink, opacity: !started || ended ? 0.5 : 1 }}
                 />
-              )}
-              {(mapMode || tileMode || (matched && !ordered)) && (
-              (() => {
-                const base = { display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 5, flex: 'none', height: 48, padding: '0 14px', border: `1px solid ${COLORS.line}`, borderRadius: 10, background: '#fff', fontFamily: SERIF, fontWeight: 800, fontSize: 17, lineHeight: 1 };
-                const live = started && !ended;
-                const mid = mapMode ? { v: (guessesLeft == null ? total : guessesLeft), hot: (guessesLeft == null ? total : guessesLeft) <= 3, t: (quiz.suddenDeath ? 'States left' : 'Guesses left') }
-                  : (bankMode || photoMatchMode) ? { v: Math.max(0, total - pairsMatched - pairsErrors), hot: (total - pairsMatched - pairsErrors) <= 3, t: 'Guesses left' }
-                  : (typeMode || photoMode) ? { v: Math.max(0, total - pairsMatched), hot: false, t: 'Remaining' }
-                  : tileMode ? { v: pairsErrors, hot: pairsErrors > 0, t: 'Errors' }
-                  : null;
-                return (<>
-                  <span style={base} title="Your score">{dispScore}<span style={{ fontSize: 12, color: COLORS.soft, fontWeight: 700 }}>/{total}</span></span>
-                  {mid ? <span style={{ ...base, color: mid.hot && live ? COLORS.ember : COLORS.ink }} title={mid.t}>{mid.v}</span> : null}
-                  <span style={{ ...base, fontFamily: MONO, color: time <= 10 && live ? COLORS.ember : COLORS.ink }} title="Time left">{clock}</span>
-                </>);
-              })()
               )}
               <div style={{ position: 'relative', display: 'flex', flex: (matched && !ordered) || mapMode || tileMode ? 1 : 'none' }}>
               <button onClick={start} disabled={started || ended} style={{ flex: 1, fontFamily: MONO, fontSize: 13, letterSpacing: '0.08em', textTransform: 'uppercase', fontWeight: 700, padding: '0 22px', height: matched || mapMode || tileMode ? 52 : 'auto', border: 'none', background: COLORS.ember, color: '#fff', cursor: started || ended ? 'default' : 'pointer', opacity: started || ended ? 0.5 : 1 }}>
