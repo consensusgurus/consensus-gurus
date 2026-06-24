@@ -15,6 +15,7 @@ import { ArrowLeft, Share2, Check, X, Flag, Trophy, HelpCircle, Zap, ScrollText 
 import JoinLeaderboardForm from './JoinLeaderboardForm';
 import QuizStandings from './QuizStandings';
 import LeaderboardSnippet from './LeaderboardSnippet';
+import LeaderboardStrip from './LeaderboardStrip';
 import { getQuiz, QUIZZES } from '@/lib/quizzes';
 import { quizDept as deptOf, DEPT_LABEL } from '@/lib/quiz-departments';
 import Grain from '../../Grain';
@@ -394,6 +395,7 @@ export default function TimedMcqClient({ quizId, mobile = false }) {
         <div style={{ paddingBottom: 0, marginTop: 8 }}>
           <h1 style={{ fontFamily: SANS, fontWeight: 800, fontSize: 'clamp(28px, 4.5vw, 44px)', lineHeight: 1.05, letterSpacing: '-0.025em', margin: 0, color: COLORS.ink }}>{quiz.title}</h1>
           <p style={{ fontFamily: SANS, fontSize: 15, lineHeight: 1.55, margin: '10px 0 0', color: COLORS.faded, maxWidth: 680 }}>{quiz.blurb}</p>
+          {tab !== 'stats' && <LeaderboardStrip board={board} identity={identity} onOpen={() => setTab('stats')} />}
         </div>
 
         <div style={{ display: 'flex', gap: 16, marginTop: 14, justifyContent: 'flex-end' }}>

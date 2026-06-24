@@ -6,6 +6,7 @@ import { ArrowLeft, Share2, Check, X, Flag, Trophy, HelpCircle, Eye, SkipForward
 import JoinLeaderboardForm from './JoinLeaderboardForm';
 import QuizStandings from './QuizStandings';
 import LeaderboardSnippet from './LeaderboardSnippet';
+import LeaderboardStrip from './LeaderboardStrip';
 import { QUIZZES, getQuiz } from '@/lib/quizzes';
 import { quizDept as deptOf, DEPT_LABEL } from '@/lib/quiz-departments';
 import Grain from '../../Grain';
@@ -1144,6 +1145,7 @@ export default function QuizClient({ quizId }) {
             <h1 style={{ fontFamily: SERIF, fontWeight: 800, fontSize: 'clamp(24px, 4vw, 38px)', lineHeight: 1.02, letterSpacing: '-0.02em', margin: 0, color: COLORS.ink, fontVariationSettings: '"SOFT" 100' }}>{quiz.title}</h1>
           </div>
           <p style={{ fontFamily: SANS, fontSize: 15, lineHeight: 1.55, margin: '8px 0 0', color: COLORS.faded, maxWidth: 680 }}>{quiz.blurb}</p>
+          {tab !== 'stats' && <LeaderboardStrip board={board} identity={identity} onOpen={() => setTab('stats')} />}
         </div>
 
         <div style={{ display: 'flex', gap: 16, marginTop: 14, justifyContent: 'flex-end' }}>
@@ -1421,7 +1423,7 @@ export default function QuizClient({ quizId }) {
                     ) : isActive ? (
                       <span style={{ fontFamily: SANS, fontSize: 14, fontStyle: 'italic', color: COLORS.ember, flex: 1 }}>Type it in the box above</span>
                     ) : (
-                      <span style={{ fontFamily: MONO, fontSize: rz.dash, letterSpacing: '0.06em', color: COLORS.faded, opacity: 0.55, flex: 1 }}>— — — — —</span>
+                      <span style={{ fontFamily: MONO, fontSize: rz.dash, letterSpacing: '0.06em', color: COLORS.faded, opacity: 0.55, flex: 1, whiteSpace: 'nowrap', overflow: 'hidden' }}>— — —</span>
                     )}
                     {reveal ? (
                       <span style={{ flex: 'none', fontFamily: MONO, fontSize: 9, letterSpacing: '0.12em', textTransform: 'uppercase', color: COLORS.rust, fontWeight: 700 }}>Missed</span>

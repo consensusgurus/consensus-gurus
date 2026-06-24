@@ -15,6 +15,7 @@ import { useRouter } from 'next/navigation';
 import { ArrowLeft, Share2, Check, X, Flag, Trophy, HelpCircle, LayoutGrid } from 'lucide-react';
 import JoinLeaderboardForm from './JoinLeaderboardForm';
 import LeaderboardSnippet from './LeaderboardSnippet';
+import LeaderboardStrip from './LeaderboardStrip';
 import { getQuiz } from '@/lib/quizzes';
 import Grain from '../../Grain';
 import Footer from '../../Footer';
@@ -413,6 +414,7 @@ export default function GridFillBoard({ quizId, mobile = false }) {
             </div>
           </div>
           <p style={{ fontFamily: SERIF, fontStyle: 'italic', fontSize: 16, lineHeight: 1.45, margin: '12px 0 0', color: COLORS.faded, maxWidth: 640 }}>{quiz.blurb}</p>
+          {tab !== 'stats' && <LeaderboardStrip board={board} identity={identity} onOpen={() => setTab('stats')} />}
         </div>
 
         {/* Ribbon (not sticky - the scoreboard + input pin to the top instead) */}
