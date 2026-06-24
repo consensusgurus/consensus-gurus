@@ -205,6 +205,12 @@ export default function QuizHomeClient() {
   const [doneFilter, setDoneFilter] = useState('all'); // 'all' | 'unplayed' | 'played' | 'completed' (my-progress filter)
   const [boardsExpanded, setBoardsExpanded] = useState(false); // header click expands both boards 5 -> 10
   const [mobileBoard, setMobileBoard] = useState(null); // mobile-only: null | 'lb' | 'live' (which board panel is shown)
+  const lastTapRef = useRef({ k: null, t: 0 });
+  const dblTapBoard = (k) => {
+    const now = Date.now(); const last = lastTapRef.current;
+    if (last.k === k && now - last.t < 400) { setMobileBoard((v) => (v === k ? null : k)); lastTapRef.current = { k: null, t: 0 }; }
+    else { lastTapRef.current = { k, t: now }; }
+  };
 
   const [totals, setTotals] = useState({ byQuiz: {}, leaders: {}, leaderKeys: {}, today: 0 });
   const [eloBoard, setEloBoard] = useState([]); // [{rank,name,isAnon,userKey}]
@@ -728,12 +734,12 @@ export default function QuizHomeClient() {
         {/* boards */}
         {/* mobile-only toggle: two side-by-side buttons; the selected one expands its existing card full-width below. Hidden >560px, where both boards show normally. */}
         <div className="qz-mobtoggle">
-          <button type="button" className={`mtbtn${mobileBoard === 'lb' ? ' active' : ''}`} onClick={() => setMobileBoard((v) => (v === 'lb' ? null : 'lb'))} aria-expanded={mobileBoard === 'lb'}>
+          <button type="button" className={`mtbtn${mobileBoard === 'lb' ? ' active' : ''}`} onClick={() => dblTapBoard('lb')} aria-expanded={mobileBoard === 'lb'} title="Double-tap to open">
             <Trophy size={15} strokeWidth={2} style={{ color: '#e0a32e', flex: 'none' }} />
             <span className="mtlbl">Leaderboard</span>
             <ChevronDown size={14} strokeWidth={2.5} style={{ marginLeft: 'auto', flex: 'none', transform: mobileBoard === 'lb' ? 'rotate(180deg)' : 'none', transition: 'transform .15s' }} />
           </button>
-          <button type="button" className={`mtbtn${mobileBoard === 'live' ? ' active' : ''}`} onClick={() => setMobileBoard((v) => (v === 'live' ? null : 'live'))} aria-expanded={mobileBoard === 'live'}>
+          <button type="button" className={`mtbtn${mobileBoard === 'live' ? ' active' : ''}`} onClick={() => dblTapBoard('live')} aria-expanded={mobileBoard === 'live'} title="Double-tap to open">
             <span style={{ width: 8, height: 8, borderRadius: '50%', background: C.live, flex: 'none', animation: 'qzp 1.6s infinite' }} />
             <span className="mtlbl">Last played</span>
             <ChevronDown size={14} strokeWidth={2.5} style={{ marginLeft: 'auto', flex: 'none', transform: mobileBoard === 'live' ? 'rotate(180deg)' : 'none', transition: 'transform .15s' }} />

@@ -8,6 +8,7 @@ const SOURCE_COUNT = getAllSources().length;
 
 export const metadata = {
   metadataBase: new URL('https://sourceoftruths.com'),
+  appleWebApp: { capable: true, statusBarStyle: 'black-translucent', title: 'Source of Truths' },
   title: `Source of Truths | Where ${SOURCE_COUNT} Experts and Aggregators Agree`,
   description: `Where ${SOURCE_COUNT} experts and aggregators agree. Consensus best-of lists for restaurants, hotels, products, films, and books, plus 1,000+ trivia quizzes.`,
   openGraph: {
