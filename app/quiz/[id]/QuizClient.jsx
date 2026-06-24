@@ -1155,11 +1155,6 @@ export default function QuizClient({ quizId }) {
           {tab !== 'stats' && <LeaderboardStrip board={board} identity={identity} onOpen={() => setTab('stats')} />}
         </div>
 
-        <div style={{ display: 'flex', gap: 16, marginTop: 14, justifyContent: 'flex-end' }}>
-          <button onClick={() => setTab('share')} style={{ background: 'none', border: 'none', cursor: 'pointer', fontFamily: SANS, fontSize: 12.5, fontWeight: 600, color: tab === 'share' ? COLORS.ember : COLORS.faded, display: 'flex', alignItems: 'center', gap: 5 }}><Share2 size={13} strokeWidth={2.5} /> Share</button>
-          <button onClick={() => { setQSent(false); setQOpen(true); }} style={{ background: 'none', border: 'none', cursor: 'pointer', fontFamily: SANS, fontSize: 12.5, fontWeight: 600, color: COLORS.faded, display: 'flex', alignItems: 'center', gap: 5 }}><HelpCircle size={13} strokeWidth={2.5} /> Error(s)?</button>
-        </div>
-
         {/* Ribbon */}
         <div style={{ marginTop: 8 }}>
           <div style={{ position: 'relative' }}>
@@ -1222,6 +1217,22 @@ export default function QuizClient({ quizId }) {
                 the top of the viewport. The nav ribbon above is NOT sticky, so
                 this is the only frozen element; the list/board scrolls under. */}
             <div ref={scoreRef} style={{ position: 'sticky', top: 0, zIndex: 24, background: COLORS.cream }}>
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, marginBottom: 8 }}>
+              {(() => {
+                const base = { display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 5, flex: 'none', height: 48, padding: '0 14px', border: `1px solid ${COLORS.line}`, borderRadius: 10, background: '#fff', fontFamily: SERIF, fontWeight: 800, fontSize: 17, lineHeight: 1 };
+                const live = started && !ended;
+                const mid = mapMode ? { v: (guessesLeft == null ? total : guessesLeft), hot: (guessesLeft == null ? total : guessesLeft) <= 3, t: (quiz.suddenDeath ? 'States left' : 'Guesses left') }
+                  : (bankMode || photoMatchMode) ? { v: Math.max(0, total - pairsMatched - pairsErrors), hot: (total - pairsMatched - pairsErrors) <= 3, t: 'Guesses left' }
+                  : (typeMode || photoMode) ? { v: Math.max(0, total - pairsMatched), hot: false, t: 'Remaining' }
+                  : tileMode ? { v: pairsErrors, hot: pairsErrors > 0, t: 'Errors' }
+                  : null;
+                return (<>
+                  <span style={base} title="Your score">{dispScore}<span style={{ fontSize: 12, color: COLORS.soft, fontWeight: 700 }}>/{total}</span></span>
+                  {mid ? <span style={{ ...base, color: mid.hot && live ? COLORS.ember : COLORS.ink }} title={mid.t}>{mid.v}</span> : null}
+                  <span style={{ ...base, fontFamily: MONO, color: time <= 10 && live ? COLORS.ember : COLORS.ink }} title="Time left">{clock}</span>
+                </>);
+              })()}
+            </div>
             <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, marginBottom: 6 }}>
               {!mapMode && !tileMode && (!matched || ordered) && (
                 <input
@@ -1242,20 +1253,6 @@ export default function QuizClient({ quizId }) {
                   style={{ flex: 1, minWidth: 0, fontFamily: SANS, fontSize: 17, padding: '14px 16px', borderRadius: 10, border: `1.5px solid ${COLORS.ink}`, borderRadius: 8, background: !started || ended ? COLORS.paper : '#eceef1', color: COLORS.ink, opacity: !started || ended ? 0.5 : 1 }}
                 />
               )}
-              {(() => {
-                const base = { display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 5, flex: 'none', height: 48, padding: '0 14px', border: `1px solid ${COLORS.line}`, borderRadius: 10, background: '#fff', fontFamily: SERIF, fontWeight: 800, fontSize: 17, lineHeight: 1 };
-                const live = started && !ended;
-                const mid = mapMode ? { v: (guessesLeft == null ? total : guessesLeft), hot: (guessesLeft == null ? total : guessesLeft) <= 3, t: (quiz.suddenDeath ? 'States left' : 'Guesses left') }
-                  : (bankMode || photoMatchMode) ? { v: Math.max(0, total - pairsMatched - pairsErrors), hot: (total - pairsMatched - pairsErrors) <= 3, t: 'Guesses left' }
-                  : (typeMode || photoMode) ? { v: Math.max(0, total - pairsMatched), hot: false, t: 'Remaining' }
-                  : tileMode ? { v: pairsErrors, hot: pairsErrors > 0, t: 'Errors' }
-                  : null;
-                return (<>
-                  <span style={base} title="Your score">{dispScore}<span style={{ fontSize: 12, color: COLORS.soft, fontWeight: 700 }}>/{total}</span></span>
-                  {mid ? <span style={{ ...base, color: mid.hot && live ? COLORS.ember : COLORS.ink }} title={mid.t}>{mid.v}</span> : null}
-                  <span style={{ ...base, fontFamily: MONO, color: time <= 10 && live ? COLORS.ember : COLORS.ink }} title="Time left">{clock}</span>
-                </>);
-              })()}
               <div style={{ position: 'relative', display: 'flex', flex: (matched && !ordered) || mapMode || tileMode ? 1 : 'none' }}>
               <button onClick={start} disabled={started || ended} style={{ flex: 1, fontFamily: MONO, fontSize: 13, letterSpacing: '0.08em', textTransform: 'uppercase', fontWeight: 700, padding: '0 22px', height: matched || mapMode || tileMode ? 52 : 'auto', border: 'none', background: COLORS.ember, color: '#fff', cursor: started || ended ? 'default' : 'pointer', opacity: started || ended ? 0.5 : 1 }}>
                 {ended ? 'Done' : started ? 'Playing' : (matched && !ordered) ? (quiz.noun ? 'Play' : 'Play — name each year') : 'Play'}
@@ -1501,8 +1498,8 @@ export default function QuizClient({ quizId }) {
                 <Flag size={14} strokeWidth={2.5} color="#fff" /> Give up
               </button>
               {ended && (
-                <button onClick={share} style={{ fontFamily: MONO, fontSize: 12, letterSpacing: '0.12em', textTransform: 'uppercase', fontWeight: 700, padding: '12px 26px', border: 'none', background: COLORS.ink, color: COLORS.cream, cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: 8 }}>
-                  <Share2 size={14} strokeWidth={2.5} /> {copied ? 'Link copied!' : 'Challenge a friend'}
+                <button onClick={() => setTab('share')} style={{ fontFamily: MONO, fontSize: 12, letterSpacing: '0.12em', textTransform: 'uppercase', fontWeight: 700, padding: '12px 26px', border: 'none', background: COLORS.ink, color: COLORS.cream, cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: 8 }}>
+                  <Share2 size={14} strokeWidth={2.5} /> Share
                 </button>
               )}
               {ended && (
