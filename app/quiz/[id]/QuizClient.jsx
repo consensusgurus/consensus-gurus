@@ -1,13 +1,14 @@
 'use client';
 
 import React, { useState, useEffect, useLayoutEffect, useMemo, useRef } from 'react';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { ArrowLeft, Share2, Check, X, Flag, Trophy, HelpCircle, Eye, SkipForward, Crown, RotateCcw, Shuffle } from 'lucide-react';
 import JoinLeaderboardForm from './JoinLeaderboardForm';
 import QuizStandings from './QuizStandings';
 import LeaderboardSnippet from './LeaderboardSnippet';
 import LeaderboardStrip from './LeaderboardStrip';
 import { QUIZZES, getQuiz } from '@/lib/quizzes';
+import { getChallenge, challengeQuizIds } from '@/lib/challenges';
 import { quizDept as deptOf, DEPT_LABEL } from '@/lib/quiz-departments';
 import Grain from '../../Grain';
 import Footer from '../../Footer';
@@ -307,7 +308,25 @@ const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 export default function QuizClient({ quizId }) {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const quiz = useMemo(() => getQuiz(quizId), [quizId]);
+
+  // ── Daily Challenge run context (?ch=<challengeId>&i=<stepIndex>) ──
+  // A "run" walks the player through a challenge's three quizzes in order.
+  // The run is ACTIVE only when the challenge resolves, the step index is a
+  // valid slot, and this quiz is the quiz that belongs in that slot. When
+  // inactive, every challenge value below is null/false and the page behaves
+  // exactly as it does outside a challenge (no HUD, no advance controls).
+  const chId = searchParams ? searchParams.get('ch') : null;
+  const chIRaw = searchParams ? searchParams.get('i') : null;
+  const chStepIdx = chIRaw != null && /^\d+$/.test(chIRaw) ? parseInt(chIRaw, 10) : null;
+  const challenge = chId ? getChallenge(chId) : null;
+  const chStepIds = challenge ? challengeQuizIds(challenge) : [];
+  const chN = chStepIds.length;
+  const runActive = !!(challenge && chStepIdx != null && chStepIdx >= 0 && chStepIdx < chN && chStepIds[chStepIdx] === quizId);
+  const chNextStep = runActive ? chStepIdx + 1 : null;
+  const chHasNext = runActive && chNextStep < chN;
+  const chAccent = challenge ? (challenge.accent || 'Daily Challenge') : '';
 
   if (!quiz) {
     return (
@@ -425,6 +444,13 @@ export default function QuizClient({ quizId }) {
   const [gameOverDismissed, setGameOverDismissed] = useState(false); // hides the Game Over overlay once acknowledged
   const [celebration, setCelebration] = useState(null); // null | 'small' (perfect, not top) | 'big' (all-time top score)
 
+  // Daily Challenge runner: auto-advance countdown (seconds remaining) and a
+  // one-shot guard so the just-finished quiz's outcome is written to the
+  // run-state in localStorage exactly once per finish.
+  const [chCountdown, setChCountdown] = useState(null); // null = not counting; else integer seconds
+  const chWroteRef = useRef(false);
+  const chAdvanceTimer = useRef(null);
+
   // Critique? modal (mirrors the list-page Request Review modal; routes to the
   // same /api/complaints pipeline -> admin Notices tab + daily digest email).
   const [qOpen, setQOpen] = useState(false);
@@ -456,6 +482,25 @@ export default function QuizClient({ quizId }) {
   const endRef = useRef(null);
   endRef.current = endGame;
   const scoreRef = useRef(null);
+
+  // Daily Challenge runner navigation + auto-advance. When the countdown is
+  // active it ticks once a second; the final tick navigates to the next step
+  // (or the summary page on the last quiz). The Next/Results button below can
+  // fire goNextStep() immediately. The timer is cleared on unmount.
+  function goNextStep() {
+    if (chAdvanceTimer.current) { clearInterval(chAdvanceTimer.current); chAdvanceTimer.current = null; }
+    if (!runActive) return;
+    if (chHasNext) router.push(`/quiz/${chStepIds[chNextStep]}?ch=${encodeURIComponent(chId)}&i=${chNextStep}`);
+    else router.push(`/challenge/${encodeURIComponent(chId)}?done=1`);
+  }
+  useEffect(() => {
+    if (chCountdown == null || !runActive) return;
+    if (chCountdown <= 0) { goNextStep(); return; }
+    chAdvanceTimer.current = setInterval(() => {
+      setChCountdown((c) => (c == null ? c : c - 1));
+    }, 1000);
+    return () => { if (chAdvanceTimer.current) { clearInterval(chAdvanceTimer.current); chAdvanceTimer.current = null; } };
+  }, [chCountdown, runActive]);
   const [ribScroll, setRibScroll] = useState({ left: false, right: false });
   // Measured height of the frozen score/answer block, so each format's clue bar
   // (map Find, photo/bank/type prompt) can stick FLUSH right beneath it. The
@@ -567,6 +612,24 @@ export default function QuizClient({ quizId }) {
     const finalScore = scoreOverride != null ? scoreOverride : tileMode ? pairsMatchedRef.current : (foundOverride || found).filter(Boolean).length;
     const elapsed = startRef.current ? Math.min(quiz.timeLimit, Math.round((Date.now() - startRef.current) / 1000)) : quiz.timeLimit;
     setLastElapsed(elapsed);
+    // Daily Challenge runner: record this quiz's outcome into the shared
+    // run-state (sot_chrun_<chId>) and kick off the auto-advance countdown.
+    // Only when an actual challenge run is active for this exact quiz/step.
+    if (runActive && !chWroteRef.current) {
+      chWroteRef.current = true;
+      try {
+        const key = `sot_chrun_${chId}`;
+        let run;
+        try { run = JSON.parse(localStorage.getItem(key) || 'null'); } catch (e) { run = null; }
+        if (!run || typeof run !== 'object') run = { ids: chStepIds, scores: {}, startedAt: Date.now() };
+        if (!run.ids || !Array.isArray(run.ids)) run.ids = chStepIds;
+        if (!run.scores || typeof run.scores !== 'object') run.scores = {};
+        run.scores[quizId] = { score: finalScore, total, timeElapsed: elapsed };
+        run.updatedAt = Date.now();
+        localStorage.setItem(key, JSON.stringify(run));
+      } catch (e) { /* localStorage unavailable; advance still works */ }
+      setChCountdown(6);
+    }
     setStats(recordResult(quizId, finalScore));
     setHint(win ? `Perfect — all ${total} named in ${fmtTime(elapsed)}!` : (quiz.strike ? `Struck out — ${finalScore}/${total} before the miss.` : `Time! You got ${finalScore}/${total}.`));
     setHintBad(!win);
@@ -1155,6 +1218,19 @@ export default function QuizClient({ quizId }) {
             <h1 style={{ fontFamily: SERIF, fontWeight: 800, fontSize: 'clamp(24px, 4vw, 38px)', lineHeight: 1.02, letterSpacing: '-0.02em', margin: 0, color: COLORS.ink, fontVariationSettings: '"SOFT" 100' }}>{quiz.title}</h1>
           </div>
           <p style={{ fontFamily: SANS, fontSize: 15, lineHeight: 1.55, margin: '8px 0 0', color: COLORS.faded, maxWidth: 680 }}>{quiz.blurb}</p>
+          {runActive && (
+            <div style={{ marginTop: 12, display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12, flexWrap: 'wrap', padding: '8px 14px', borderRadius: 10, border: `1.5px solid ${COLORS.accBorder}`, background: COLORS.accSoft }}>
+              <span style={{ fontFamily: MONO, fontSize: 11, letterSpacing: '0.14em', textTransform: 'uppercase', fontWeight: 700, color: COLORS.ember }}>Daily Challenge · {chAccent}</span>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}>
+                  {chStepIds.map((_, k) => (
+                    <span key={k} style={{ width: 9, height: 9, borderRadius: '50%', boxSizing: 'border-box', background: k < chStepIdx ? COLORS.ember : 'transparent', border: k === chStepIdx ? `2.5px solid ${COLORS.ember}` : `1.5px solid ${COLORS.accBorder}` }} />
+                  ))}
+                </span>
+                <span style={{ fontFamily: MONO, fontSize: 11, letterSpacing: '0.1em', textTransform: 'uppercase', fontWeight: 700, color: COLORS.faded }}>Quiz {chStepIdx + 1} of {chN}</span>
+              </div>
+            </div>
+          )}
           {tab !== 'stats' && <LeaderboardStrip board={board} identity={identity} onOpen={() => setTab('stats')} />}
         </div>
 
@@ -1652,6 +1728,16 @@ export default function QuizClient({ quizId }) {
                   <p style={{ fontFamily: SANS, fontSize: 14, color: '#4a4339', margin: '0 0 12px' }}>{resultLine}</p>
                   <LeaderboardSnippet board={board} identity={identity} score={dispScore} lastElapsed={lastElapsed} />
                   {eloPanel}
+                  {runActive && (
+                    <button
+                      onClick={goNextStep}
+                      style={{ width: '100%', maxWidth: 340, margin: '0 auto 12px', boxSizing: 'border-box', fontFamily: MONO, fontSize: 13, letterSpacing: '0.06em', textTransform: 'uppercase', fontWeight: 800, padding: '15px 18px', borderRadius: 10, border: 'none', background: COLORS.ember, color: '#fff', cursor: 'pointer', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 8, boxShadow: '0 6px 18px rgba(37,99,235,0.32)' }}
+                    >
+                      {chHasNext
+                        ? (chCountdown != null && chCountdown > 0 ? `Next quiz in ${chCountdown}\u2026` : `Next quiz (${chNextStep + 1} of ${chN}) \u2192`)
+                        : (chCountdown != null && chCountdown > 0 ? `Your results in ${chCountdown}\u2026` : 'See your results \u2192')}
+                    </button>
+                  )}
                   <div style={{ width: '100%', maxWidth: 340, margin: '0 auto' }}>
                     <button onClick={() => { try { sessionStorage.setItem('sot_quiz_retry', quizId); } catch (e) { /* no-op */ } window.location.reload(); }} style={{ width: '100%', boxSizing: 'border-box', fontFamily: MONO, fontSize: 12, letterSpacing: '0.1em', textTransform: 'uppercase', fontWeight: 700, padding: '13px 18px', borderRadius: 10, border: `1.5px solid ${COLORS.forest}`, background: COLORS.forest, color: '#fff', cursor: 'pointer', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 8, marginBottom: 8 }}><RotateCcw size={14} strokeWidth={2.5} /> Retry with 1 click</button>
                     <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8, marginBottom: 8 }}>

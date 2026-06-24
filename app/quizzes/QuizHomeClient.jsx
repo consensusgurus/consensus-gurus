@@ -14,7 +14,7 @@ import { QUIZZES } from '@/lib/quizzes';
 import {
   quizDept as deptOf, DEPT_COLOR, DEPT_LABEL, DEPT_NAV,
 } from '@/lib/quiz-departments';
-import { getDailyChallenge, dailyChallengeId, openChallenges, DAILY_CHALLENGE_ON } from '@/lib/challenges';
+import { getDailyChallenge, dailyChallengeId, openChallenges, challengeQuizIds, DAILY_CHALLENGE_ON } from '@/lib/challenges';
 import { isBusinessNewsHubQuiz } from '@/lib/business-news-hub';
 import Grain from '../Grain';
 import Footer from '../Footer';
@@ -225,6 +225,7 @@ export default function QuizHomeClient() {
   const [signupOpen, setSignupOpen] = useState(false);
   const [statsOpen, setStatsOpen] = useState(false);
   const [dailyLb, setDailyLb] = useState(null); // today's daily-challenge standings (registered players)
+  const [chRun, setChRun] = useState(null); // local run-state for today's daily challenge (completion ticks)
   const [todayData, setTodayData] = useState({ byCorrect: [], byQuizzes: [] }); // /api/quiz/today leaders
   // Today's daily challenge (deterministic from the date; no server state needed).
   const daily = useMemo(() => getDailyChallenge(), []);
@@ -257,6 +258,16 @@ export default function QuizHomeClient() {
   })), []);
 
   const titleById = useMemo(() => Object.fromEntries(catalog.map((q) => [q.id, q.title])), [catalog]);
+
+  // Today's daily challenge: ordered quiz ids + local completion (run-state).
+  const dailyId = daily ? daily.id : null;
+  const dailyIds = useMemo(() => (daily ? challengeQuizIds(daily) : []), [daily]);
+  const chScores = (chRun && chRun.scores) || {};
+  const dailyDoneCount = dailyIds.filter((id) => chScores[id]).length;
+  const dailyAllDone = dailyIds.length > 0 && dailyDoneCount === dailyIds.length;
+  const dailyNextIdx = (() => { const k = dailyIds.findIndex((id) => !chScores[id]); return k < 0 ? 0 : k; })();
+  const dailyEntryUrl = (dailyId && dailyIds.length) ? `/quiz/${dailyIds[dailyNextIdx]}?ch=${encodeURIComponent(dailyId)}&i=${dailyNextIdx}` : '/quizzes';
+  const dailyDateLabel = daily ? (() => { try { return new Date(`${daily.date}T12:00:00Z`).toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' }); } catch { return ''; } })() : '';
 
   // Departments present, with counts, ordered by size desc (mockup order).
   const cats = useMemo(() => {
@@ -324,6 +335,18 @@ export default function QuizHomeClient() {
       if (d) setTodayData({ byCorrect: Array.isArray(d.leaders) ? d.leaders : [], byQuizzes: Array.isArray(d.quizLeaders) ? d.quizLeaders : [] });
     }).catch(() => {});
   }, []);
+
+  // Read today's daily-challenge run-state from localStorage (drives the box's
+  // per-quiz completion ticks); refresh on focus so finishing a quiz updates it.
+  useEffect(() => {
+    if (!dailyId) return;
+    const read = () => { try { setChRun(JSON.parse(localStorage.getItem(`sot_chrun_${dailyId}`) || 'null')); } catch { setChRun(null); } };
+    read();
+    const onVis = () => { if (!document.hidden) read(); };
+    document.addEventListener('visibilitychange', onVis);
+    window.addEventListener('focus', read);
+    return () => { document.removeEventListener('visibilitychange', onVis); window.removeEventListener('focus', read); };
+  }, [dailyId]);
 
   // Elo leaderboard re-loads when the scope changes.
   useEffect(() => {
@@ -599,7 +622,7 @@ export default function QuizHomeClient() {
     @media(max-width:560px){.qzh .ddhead{display:flex !important;align-items:center;justify-content:space-between;position:sticky;top:0;background:#fff;margin:-6px -6px 5px;padding:10px 12px;border-bottom:1px solid ${C.line};z-index:3;font-weight:700;font-size:13px;color:${C.ink};}.qzh .ddhead .ddclose{background:#eef1f6;border:none;border-radius:8px;width:34px;height:34px;font-size:17px;line-height:1;cursor:pointer;color:${C.ink};display:flex;align-items:center;justify-content:center;flex:none;}}
     .qzh .dditem:hover{background:${C.bg};}
     .qzh .dot{width:9px;height:9px;border-radius:3px;flex:none;}
-    .qzh .boards{display:grid;grid-template-columns:1fr 2fr;gap:12px;align-items:stretch;margin-bottom:12px;}
+    .qzh .boards{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.45fr) minmax(0,1.1fr);gap:12px;align-items:stretch;margin-bottom:12px;}
     .qzh .qz-mobtoggle{display:none;}
     /* Ranking leaderboard (1st card) on the narrow LEFT track; the last-played
        feed (2nd card) on the wide RIGHT track. Natural source order, no reorder. */
@@ -621,7 +644,7 @@ export default function QuizHomeClient() {
     .qz-playerbar .qz-skill-empty{display:none !important;}
     .qz-playerbar .lbl{font-size:10px;font-weight:600;letter-spacing:.04em;text-transform:uppercase;color:#6b7280;margin-bottom:2px;}
     .qz-chev{display:none;}
-    @media(max-width:560px){.qz-playerbar{flex-wrap:wrap !important;align-items:center !important;gap:10px 14px !important;}.qz-playerbar .qz-div{display:none !important;}.qz-playerbar:not(.open) .qz-stats{display:none !important;}.qz-playerbar.open .qz-stats{order:9 !important;flex:1 1 100% !important;margin-left:0 !important;justify-content:space-between !important;gap:10px !important;}.qz-playerbar{cursor:pointer;}.qz-chev{display:inline-flex !important;}.qz-playerbar .qz-bestcat{display:none !important;}.qz-playerbar .hubbtn{order:4 !important;margin-left:auto !important;flex:0 0 auto !important;}.qzh .boards{display:none !important;}.qz-submit{display:none !important;}.qzh{padding-left:14px !important;padding-right:14px !important;}}
+    @media(max-width:560px){.qz-playerbar{flex-wrap:wrap !important;align-items:center !important;gap:10px 14px !important;}.qz-playerbar .qz-div{display:none !important;}.qz-playerbar:not(.open) .qz-stats{display:none !important;}.qz-playerbar.open .qz-stats{order:9 !important;flex:1 1 100% !important;margin-left:0 !important;justify-content:space-between !important;gap:10px !important;}.qz-playerbar{cursor:pointer;}.qz-chev{display:inline-flex !important;}.qz-playerbar .qz-bestcat{display:none !important;}.qz-playerbar .hubbtn{order:4 !important;margin-left:auto !important;flex:0 0 auto !important;}.qzh .boards{display:flex !important;flex-direction:column;gap:12px;}.qzh .boards .lb-card,.qzh .boards .live-card{display:none !important;}.qzh .daily-card{order:-1;}.qz-submit{display:none !important;}.qzh{padding-left:14px !important;padding-right:14px !important;}}
     .qzh .hubbtn:hover{background:${C.accsoft};}
     .qzh .crumb1{font-size:18px;font-weight:800;letter-spacing:-0.02em;}
     .qzh .crumb2{font-size:18px;font-weight:600;color:${C.accent};}
@@ -653,9 +676,8 @@ export default function QuizHomeClient() {
       .qzh .qz-mobtoggle .mtbtn .mtlbl{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
       .qzh .qz-mobtoggle .mtbtn{justify-content:center !important;}
       .qzh .qz-mobtoggle .mtbtn svg:last-child{margin-left:0 !important;}
-      .qzh .boards.show-lb,.qzh .boards.show-live{display:block !important;grid-template-columns:1fr;}
-      .qzh .boards.show-lb .live-card{display:none !important;}
-      .qzh .boards.show-live .lb-card{display:none !important;}
+      .qzh .boards.show-lb .lb-card{display:flex !important;}
+      .qzh .boards.show-live .live-card{display:flex !important;}
     }
     /* Mobile landscape (short viewport): keep the browse row on ONE line by letting the
        search field shrink, and stretch all four controls to a single shared height. */
@@ -766,7 +788,7 @@ export default function QuizHomeClient() {
                     <span className="qtitle" style={{ fontWeight: 600 }}>{f.title}</span>
                     <span className="qmeta" style={{ gap: 8 }}>
                       <PlayerLink userKey={f.userKey}><WhoTag name={f.name || 'Guest'} isAnon={f.isAnon} /></PlayerLink>
-                      <span className="score lf-extra">{f.score}/{f.total}</span>
+                      <span className="lf-extra" style={{ flex: 'none', fontSize: 11, fontWeight: 700, padding: '2px 7px', borderRadius: 7, fontVariantNumeric: 'tabular-nums', background: f.total && f.score / f.total >= 0.8 ? '#e7f7ed' : '#eef1f6', color: f.total && f.score / f.total >= 0.8 ? '#16a34a' : C.soft }}>{f.score}/{f.total}</span>
                       <span className="att lf-extra">{f.attempt > 1 ? `attempt ${f.attempt}` : '1st try'}</span>
                       <span style={{ color: C.soft }}>{relTime(f.playedAt)}</span>
                     </span>
@@ -775,6 +797,40 @@ export default function QuizHomeClient() {
               ))}
             </div>
           </div>
+
+          {/* daily challenge */}
+          {daily && DAILY_CHALLENGE_ON && (
+            <div className="card daily-card">
+              <div className="head" style={{ cursor: 'default' }}>
+                <span style={{ display: 'flex', alignItems: 'center', gap: 7, minWidth: 0 }}>
+                  <Flame size={15} style={{ color: C.accent, flex: 'none' }} />
+                  <span className="lbl" style={{ color: C.ink }}>Daily Challenge{dailyCat ? ` · ${dailyCat}` : ''}</span>
+                </span>
+                <Link href={`/challenge/${dailyId}`} className="qlink"><span style={{ fontSize: 11, fontWeight: 700, color: C.accent }}>{dailyAllDone ? 'Results' : 'View'}</span></Link>
+              </div>
+              <div style={{ flex: 1, display: 'flex', flexDirection: 'column', padding: '8px 13px 11px' }}>
+                <div style={{ fontSize: 11, color: C.soft, fontWeight: 600, marginBottom: 7 }}>{dailyDateLabel}{dailyDateLabel ? ' · ' : ''}{dailyDoneCount}/{dailyIds.length} done</div>
+                <div style={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
+                  {dailyIds.map((qid, k) => {
+                    const done = !!chScores[qid];
+                    return (
+                      <Link key={qid} href={`/quiz/${qid}?ch=${encodeURIComponent(dailyId)}&i=${k}`} className="qlink">
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 9, padding: '6px 0', borderBottom: k < dailyIds.length - 1 ? '1px solid rgba(20,22,28,0.07)' : 'none' }}>
+                          <span style={{ width: 19, height: 19, borderRadius: 6, flex: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 10.5, fontWeight: 700, background: done ? C.live : '#eef1f6', color: done ? '#fff' : C.soft }}>{done ? <Check size={12} strokeWidth={3} /> : k + 1}</span>
+                          <span style={{ flex: '1 1 auto', minWidth: 0, fontSize: 12.5, fontWeight: 500, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', color: C.ink }}>{stripVerb(titleById[qid] || qid)}</span>
+                          {done ? <span style={{ flex: 'none', fontSize: 11, fontWeight: 700, color: C.live, fontVariantNumeric: 'tabular-nums' }}>{chScores[qid].score}/{chScores[qid].total}</span> : null}
+                        </div>
+                      </Link>
+                    );
+                  })}
+                </div>
+                <Link href={dailyAllDone ? `/challenge/${dailyId}?done=1` : dailyEntryUrl} style={{ marginTop: 9, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 7, background: C.accent, color: '#fff', borderRadius: 10, padding: '10px', fontWeight: 700, fontSize: 13, textDecoration: 'none' }}>
+                  {dailyAllDone ? 'See your results' : dailyDoneCount > 0 ? 'Continue challenge' : 'Play today’s challenge'}
+                  <ArrowRight size={15} style={{ flex: 'none' }} />
+                </Link>
+              </div>
+            </div>
+          )}
         </div>
 
         {/* browse header + search */}
@@ -924,7 +980,7 @@ export default function QuizHomeClient() {
                 <span className="qtitle">{stripVerb(f.title)}</span>
                 <span className="qmeta" style={{ gap: 8 }}>
                   <PlayerLink userKey={f.userKey}><WhoTag name={f.name || 'Guest'} isAnon={f.isAnon} /></PlayerLink>
-                  <span className="score lf-extra">{f.score}/{f.total}</span>
+                  <span className="lf-extra" style={{ flex: 'none', fontSize: 11, fontWeight: 700, padding: '2px 7px', borderRadius: 7, fontVariantNumeric: 'tabular-nums', background: f.total && f.score / f.total >= 0.8 ? '#e7f7ed' : '#eef1f6', color: f.total && f.score / f.total >= 0.8 ? '#16a34a' : C.soft }}>{f.score}/{f.total}</span>
                   <span className="lf-extra" style={{ color: C.soft }}>{relTime(f.playedAt)}</span>
                 </span>
               </Link>
@@ -945,10 +1001,10 @@ export default function QuizHomeClient() {
           </div>
         ) : (
           <div className="qcols">
-            <BrowseColumn label="Newest" Icon={Sparkles} color={C.accent} tint={C.accsoft}
-              rows={newest.map((q) => ({ q, right: <NewRight q={q} /> }))} cta="View all ›" onCta={() => setListMode('newest')} />
             <BrowseColumn label="Most Played" Icon={Flame} color="#c2691c" tint="#f4e2cd"
               rows={mostPlayed.map((q) => ({ q, right: <PlaysRight id={q.id} plays={plays} leader={leader} leaderKey={leaderKey} color="#c2691c" hidePlays /> }))} cta="View all ›" onCta={() => setListMode('mostplayed')} />
+            <BrowseColumn label="Newest" Icon={Sparkles} color={C.accent} tint={C.accsoft}
+              rows={newest.map((q) => ({ q, right: <NewRight q={q} /> }))} cta="View all ›" onCta={() => setListMode('newest')} />
             {cats.map((c) => (
               <BrowseColumn key={c.key} label={c.label} Icon={c.Icon} color={c.c} tint={c.t}
                 rows={colRows(c, 6, shownIds).map((q) => ({ q, right: <PlaysRight id={q.id} plays={plays} leader={leader} leaderKey={leaderKey} color={c.c} hidePlays /> }))}
