@@ -58,6 +58,7 @@ export default function SiteHeader({ active = 'lists', maxWidth = 1180, visitors
         .sh-outer{padding:10px 24px 0;}
         .sh-brand{display:flex;align-items:center;gap:11px;text-decoration:none;flex:none;}
         .sh-word{font-size:21px;font-weight:800;letter-spacing:-0.025em;line-height:1;color:#fff;}
+        .sh-word-sot{display:none;}
         .sh-right{display:flex;align-items:center;justify-content:flex-end;gap:14px;}
         .sh-nav{display:flex;align-items:center;gap:12px;justify-content:flex-end;flex-wrap:wrap;}
         .sh-navbtn{display:inline-flex;align-items:center;gap:5px;text-decoration:none;font-size:13.5px;font-weight:700;color:#fff;border:1px solid rgba(255,255,255,0.45);border-radius:8px;padding:7px 13px;background:transparent;transition:background .15s,border-color .15s,color .15s;}
@@ -75,6 +76,10 @@ export default function SiteHeader({ active = 'lists', maxWidth = 1180, visitors
           .sh-stat{font-size:11px;margin-top:0;line-height:1.4;white-space:nowrap;flex:none;}
           .sh-vis-full{display:none;}
           .sh-vis-compact{display:inline;}
+          .sh-word-full{display:none;}
+          .sh-word-sot{display:inline;}
+          .sh-tag{display:none;}
+          .sh-navct{display:none;}
         }
       `}</style>
       <div className={bare ? undefined : 'sh-outer'} style={bare ? { padding: '2px 0 0' } : { maxWidth, margin: '0 auto' }}>
@@ -82,8 +87,8 @@ export default function SiteHeader({ active = 'lists', maxWidth = 1180, visitors
           <div className="sh-brand">
             <Link href="/" style={{ flex: 'none', display: 'flex' }} aria-label="Source of Truths home"><Logo size={34} /></Link>
             <span style={{ display: 'flex', flexDirection: 'column' }}>
-              <Link href="/" className="sh-word" style={{ textDecoration: 'underline', textDecorationColor: 'rgba(255,255,255,0.35)', textUnderlineOffset: '3px', textDecorationThickness: '1px', color: '#fff' }}>Source <span style={{ color: '#000', fontWeight: 600 }}>of</span> Truths</Link>
-              <span style={{ fontSize: 9.5, fontWeight: 800, letterSpacing: 'normal', textTransform: 'uppercase', color: '#fff', marginTop: 3 }}>Where <SourcesPopover align="left" onDark href="/experts-and-aggregators" label={`${SOURCE_COUNT.toLocaleString()} Experts and Aggregators`} /> Agree</span>
+              <Link href="/" className="sh-word" style={{ textDecoration: 'underline', textDecorationColor: 'rgba(255,255,255,0.35)', textUnderlineOffset: '3px', textDecorationThickness: '1px', color: '#fff' }}><span className="sh-word-full">Source <span style={{ color: '#c9ced8', fontWeight: 600 }}>of</span> Truths</span><span className="sh-word-sot">S<span style={{ color: '#c9ced8', fontWeight: 600 }}>o</span>T</span></Link>
+              <span className="sh-tag" style={{ fontSize: 9.5, fontWeight: 800, letterSpacing: 'normal', textTransform: 'uppercase', color: '#fff', marginTop: 3 }}>Where <SourcesPopover align="left" onDark href="/experts-and-aggregators" label={`${SOURCE_COUNT.toLocaleString()} Experts and Aggregators`} /> Agree</span>
             </span>
           </div>
           <div className="sh-right">
