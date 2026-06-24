@@ -532,7 +532,7 @@ export default function GridFillBoard({ quizId, mobile = false }) {
                     </p>
                     <LeaderboardSnippet board={board} identity={identity} score={score} lastElapsed={lastElapsed} />
                     <div style={{ display: 'flex', gap: 10, justifyContent: 'center', flexWrap: 'wrap' }}>
-                      <button onClick={playAgain} style={{ fontFamily: MONO, fontSize: 13, letterSpacing: '0.08em', textTransform: 'uppercase', fontWeight: 700, lineHeight: '46px', padding: '0 28px', background: COLORS.ember, color: '#fff', border: 'none', cursor: 'pointer' }}>Play again</button>
+                      <button onClick={playAgain} style={{ fontFamily: MONO, fontSize: 13, letterSpacing: '0.08em', textTransform: 'uppercase', fontWeight: 700, lineHeight: '46px', padding: '0 28px', background: COLORS.forest, color: '#fff', border: 'none', cursor: 'pointer' }}>Play again</button>
                       {!identity && (
                         <button onClick={() => setTab('join')} style={{ fontFamily: MONO, fontSize: 13, letterSpacing: '0.08em', textTransform: 'uppercase', fontWeight: 700, lineHeight: '46px', padding: '0 24px', background: 'transparent', color: COLORS.ink, borderRadius: 10, border: `1.5px solid ${COLORS.ink}`, cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: 8 }}>
                           <Trophy size={14} strokeWidth={2.5} /> Join the leaderboard

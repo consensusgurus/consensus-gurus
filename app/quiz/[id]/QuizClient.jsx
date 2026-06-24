@@ -1625,7 +1625,7 @@ export default function QuizClient({ quizId }) {
           onClick={() => setGameOverDismissed(true)}
           style={{ position: 'fixed', inset: 0, zIndex: 70, background: 'rgba(26,22,17,0.62)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '6vh 16px' }}
         >
-          <div onClick={(e) => e.stopPropagation()} style={{ width: '100%', maxWidth: 440, background: COLORS.cream, borderRadius: 10, border: `2px solid ${COLORS.ink}`, padding: '22px 24px', textAlign: 'center', boxShadow: '0 18px 60px rgba(26,22,17,0.4)', maxHeight: '92vh', overflowY: 'auto' }}>
+          <div onClick={(e) => e.stopPropagation()} style={{ width: '100%', maxWidth: 440, background: COLORS.cream, borderRadius: 10, border: `2px solid ${COLORS.ink}`, padding: '18px 22px', textAlign: 'center', boxShadow: '0 18px 60px rgba(26,22,17,0.4)', maxHeight: '92vh', overflowY: 'auto' }}>
             {(() => {
               const win = dispScore === total;
               const timeout = !win && time <= 0;
@@ -1642,13 +1642,10 @@ export default function QuizClient({ quizId }) {
                       : 'You ended the round.';
               return (
                 <>
-                  <div style={{ display: 'inline-flex', marginBottom: 8, color: celebrate ? COLORS.forest : COLORS.ember }}>
-                    {celebrate ? <Trophy size={34} strokeWidth={2} /> : <Flag size={34} strokeWidth={2} />}
-                  </div>
                   <div style={{ fontFamily: MONO, fontSize: 12, letterSpacing: '0.24em', textTransform: 'uppercase', color: celebrate ? COLORS.forest : COLORS.ember, marginBottom: 6 }}>{heading}</div>
                   <div style={{ fontFamily: SERIF, fontWeight: 800, fontSize: 34, lineHeight: 1, marginBottom: 4 }}>{dispScore}<span style={{ fontSize: 20, color: COLORS.faded }}> / {total}</span></div>
                   <p style={{ fontFamily: SERIF, fontStyle: 'italic', fontSize: 16, color: COLORS.faded, margin: '0 0 4px' }}>{reason}</p>
-                  <p style={{ fontFamily: SANS, fontSize: 14, color: '#4a4339', margin: '0 0 14px' }}>{resultLine}</p>
+                  <p style={{ fontFamily: SANS, fontSize: 14, color: '#4a4339', margin: '0 0 12px' }}>{resultLine}</p>
                   <LeaderboardSnippet board={board} identity={identity} score={dispScore} lastElapsed={lastElapsed} />
                   {eloPanel}
                   <div style={{ width: '100%', maxWidth: 340, margin: '0 auto' }}>

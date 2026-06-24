@@ -564,7 +564,7 @@ export default function TimedMcqClient({ quizId, mobile = false }) {
 
                 <div style={{ display: 'flex', gap: 10, justifyContent: 'center', flexWrap: 'wrap', marginTop: 18 }}>
                     {!mcqRevealed && (
-                      <button onClick={() => setMcqRevealed(true)} style={{ fontFamily: MONO, fontSize: 13, letterSpacing: '0.08em', textTransform: 'uppercase', fontWeight: 700, lineHeight: '46px', width: 210, padding: 0, boxSizing: 'border-box', background: COLORS.ember, color: '#fff', border: 'none', cursor: 'pointer', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 8 }}>
+                      <button onClick={() => setMcqRevealed(true)} style={{ fontFamily: MONO, fontSize: 13, letterSpacing: '0.08em', textTransform: 'uppercase', fontWeight: 700, lineHeight: '46px', width: 210, padding: 0, boxSizing: 'border-box', background: COLORS.forest, color: '#fff', border: 'none', cursor: 'pointer', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 8 }}>
                         <ScrollText size={14} strokeWidth={2.5} /> Quiz Summary
                       </button>
                     )}
