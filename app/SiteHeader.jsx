@@ -42,6 +42,8 @@ export default function SiteHeader({ active = 'lists', maxWidth = 1180, visitors
         @import url('https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap');
         .sh-bar{display:flex;flex-direction:column;padding:12px 16px;background:#2563eb;border-radius:16px;}
         .sh-bar.flush{border-radius:16px 16px 0 0;}
+        .qzf-line{position:absolute;top:0;bottom:0;left:24px;right:24px;border-left:1px solid rgba(20,22,28,0.09);border-right:1px solid rgba(20,22,28,0.09);border-bottom:1px solid rgba(20,22,28,0.09);border-bottom-left-radius:16px;border-bottom-right-radius:16px;pointer-events:none;z-index:0;}
+        @media(max-width:560px){.qzf-line{display:none;}.qzf-w{padding-left:14px !important;padding-right:14px !important;}}
         .sh-top{display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:nowrap;}
         .sh-inlay{margin-top:12px;}
         .sh-outer{padding:10px 24px 0;}

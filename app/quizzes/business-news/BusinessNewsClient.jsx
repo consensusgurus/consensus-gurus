@@ -161,7 +161,7 @@ export default function BusinessNewsClient() {
       <Grain />
       <style>{css}</style>
       <SiteHeader active="quizzes" flush inlay={<QuizPlayerBar />} />
-      <div className="bnh" style={{ maxWidth: 1180, margin: '0 auto', padding: '20px 24px 80px', position: 'relative', fontFamily: FONT }}>
+      <div className="bnh qzf-w" style={{ maxWidth: 1180, margin: '0 auto', padding: '20px 38px 80px', position: 'relative', fontFamily: FONT }}><div className="qzf-line" aria-hidden="true" />
         <div className="eyebrow">Business · Quiz Hub</div>
         <h1>Business News</h1>
         <p className="bn-lede">Test yourself on the day&apos;s market-moving headlines and prep for the companies reporting earnings this week. New quizzes drop every trading day.</p>

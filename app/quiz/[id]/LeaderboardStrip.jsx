@@ -15,6 +15,8 @@ const MEDAL = [C.gold, C.silver, C.bronze];
 const CSS = `.qz-lbstrip{scrollbar-width:none;-ms-overflow-style:none;}
 .qz-lbstrip::-webkit-scrollbar{display:none;}
 .qz-lbnm{max-width:150px;overflow:hidden;text-overflow:ellipsis;}
+@media(max-width:860px){.qz-lbstrip .qz-lbpl{display:none !important;}}
+@media(max-width:720px){.qz-lbstrip .qz-lbe-3{display:none !important;}}
 @media(max-width:560px){
   .qz-lbstrip .qz-lbe-2,.qz-lbstrip .qz-lbe-3,.qz-lbstrip .qz-lbpl{display:none !important;}
   .qz-lbnm{max-width:108px;}
@@ -46,6 +48,7 @@ export default function LeaderboardStrip({ board, identity, onOpen }) {
   const mine = (r) => !!(identity && r.username === identity.username);
   return wrap(
     <>
+      <span className="qz-lbscroll" style={{ display: 'flex', alignItems: 'center', flex: '1 1 auto', minWidth: 0, overflow: 'hidden' }}>
       {top.map((r, i) => (
         <span key={`${r.username || 'p'}-${i}`} className={`qz-lbe qz-lbe-${i + 1}`} style={{ flex: 'none', display: 'inline-flex', alignItems: 'center', gap: 6, marginRight: 13 }}>
           <span style={{ width: 17, height: 17, borderRadius: '50%', background: MEDAL[i], color: '#fff', fontSize: 9, fontWeight: 800, display: 'flex', alignItems: 'center', justifyContent: 'center', flex: 'none' }}>{i + 1}</span>
@@ -54,7 +57,8 @@ export default function LeaderboardStrip({ board, identity, onOpen }) {
         </span>
       ))}
       {plays ? <span className="qz-lbpl" style={{ flex: 'none', fontSize: 11.5, color: C.soft }}>&middot; {plays.toLocaleString()} {plays === 1 ? 'play' : 'plays'}</span> : null}
-      <span style={{ flex: 'none', marginLeft: 'auto', paddingLeft: 14, fontSize: 11, fontWeight: 700, color: C.acc }}>View all &rarr;</span>
+      </span>
+      <span style={{ flex: 'none', marginLeft: 12, paddingLeft: 12, borderLeft: `1px solid ${C.line}`, fontSize: 11, fontWeight: 700, color: C.acc }}>View all &rarr;</span>
     </>
   );
 }

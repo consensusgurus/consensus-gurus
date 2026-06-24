@@ -371,7 +371,7 @@ export default function StatHubClient() {
       <Grain />
       <style>{css}</style>
       <SiteHeader active="quizzes" flush inlay={<QuizPlayerBar controlled me={statBarMe} rightAction="share" onShare={() => setShareOpen(true)} />} />
-      <div className="qzhub" style={{ maxWidth: 1180, margin: '0 auto', padding: '12px 24px 70px', position: 'relative' }}>
+      <div className="qzhub qzf-w" style={{ maxWidth: 1180, margin: '0 auto', padding: '12px 38px 70px', position: 'relative' }}><div className="qzf-line" aria-hidden="true" />
 
         {viewing ? (
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 10, background: C.accsoft, border: `1px solid ${C.line}`, borderRadius: 10, padding: '8px 14px', marginTop: 10 }}>
