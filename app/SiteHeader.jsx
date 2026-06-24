@@ -43,7 +43,7 @@ function Logo({ size = 40 }) {
   );
 }
 
-export default function SiteHeader({ active = 'lists', maxWidth = 1180, visitors, bare = false }) {
+export default function SiteHeader({ active = 'lists', maxWidth = 1180, visitors, bare = false, seam = '' }) {
   const linkStyle = (isOn) => ({ textDecoration: 'none', fontSize: 14, fontWeight: isOn ? 700 : 500, color: isOn ? C.ink : C.muted });
   const plain = { color: 'inherit', textDecoration: 'none' };
   // One consistent site-wide visitors figure on EVERY page: fetch it here so the
@@ -55,6 +55,7 @@ export default function SiteHeader({ active = 'lists', maxWidth = 1180, visitors
       <style>{`
         @import url('https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap');
         .sh-bar{display:flex;align-items:center;justify-content:space-between;gap:16px;padding:11px 16px;background:#2563eb;border-radius:14px;flex-wrap:wrap;}
+        .sh-bar.sh-seam-quiz,.sh-bar.sh-seam-lists{border-bottom-left-radius:0;border-bottom-right-radius:0;}
         .sh-outer{padding:10px 24px 0;}
         .sh-brand{display:flex;align-items:center;gap:11px;text-decoration:none;flex:none;}
         .sh-word{font-size:21px;font-weight:800;letter-spacing:-0.025em;line-height:1;color:#fff;}
@@ -80,10 +81,11 @@ export default function SiteHeader({ active = 'lists', maxWidth = 1180, visitors
           .sh-word-sot{display:inline;}
           .sh-tag{display:none;}
           .sh-navct{display:none;}
+          .sh-bar.sh-seam-lists{border-bottom-left-radius:14px;border-bottom-right-radius:14px;}
         }
       `}</style>
       <div className={bare ? undefined : 'sh-outer'} style={bare ? { padding: '2px 0 0' } : { maxWidth, margin: '0 auto' }}>
-        <div className="sh-bar">
+        <div className={`sh-bar${seam ? ' sh-seam-' + seam : ''}`}>
           <div className="sh-brand">
             <Link href="/" style={{ flex: 'none', display: 'flex' }} aria-label="Source of Truths home"><Logo size={34} /></Link>
             <span style={{ display: 'flex', flexDirection: 'row', alignItems: 'baseline', gap: 8, flexWrap: 'wrap' }}>

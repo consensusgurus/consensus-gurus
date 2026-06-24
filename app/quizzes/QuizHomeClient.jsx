@@ -670,11 +670,11 @@ export default function QuizHomeClient() {
     <div style={{ background: C.bg, minHeight: '100vh', position: 'relative' }}>
       <Grain />
       <style>{css}</style>
-      <SiteHeader active="quizzes" />
-      <div className="qzh" style={{ maxWidth: 1180, margin: '0 auto', padding: '12px 24px 70px', position: 'relative' }}>
+      <SiteHeader active="quizzes" seam="quiz" />
+      <div className="qzh" style={{ maxWidth: 1180, margin: '0 auto', padding: '0 24px 70px', position: 'relative' }}>
 
         {/* player bar */}
-        <div ref={playerBarRef} className="card qz-playerbar" style={{ flexDirection: 'row', alignItems: 'center', flexWrap: 'wrap', gap: 16, padding: '11px 14px', margin: '0 0 12px', overflow: 'visible', position: 'relative', zIndex: 40 }}>
+        <div ref={playerBarRef} className="card qz-playerbar" style={{ flexDirection: 'row', alignItems: 'center', flexWrap: 'wrap', gap: 16, padding: '11px 14px', margin: '0 0 12px', overflow: 'visible', position: 'relative', zIndex: 40, borderTopLeftRadius: 0, borderTopRightRadius: 0 }}>
           {me && me.found && me.name ? (
             <div style={{ display: 'flex', flexDirection: 'column', minWidth: 0 }}>
               <div className="lbl">Player</div>
