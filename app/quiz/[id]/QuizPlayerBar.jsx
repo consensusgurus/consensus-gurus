@@ -2,6 +2,7 @@
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { BarChart3, ArrowRight, BadgeCheck, UserPlus, ChevronDown } from 'lucide-react';
+import { DEPT_LABEL } from '@/lib/quiz-departments';
 
 // One shared player stat bar used in the SiteHeader inlay on every quiz surface
 // (hub, play pages, Stat Hub, Business News). Self-fetches /api/quiz/me. Stat
@@ -43,9 +44,17 @@ export default function QuizPlayerBar(){
   const rk=(me&&me.ranks)||{};
   const rank=me&&((me.ranks&&me.ranks.rating)||me.rank);
   const denom=me&&me.totalPlayers;
+  let bestCat=null;
+  if(me&&me.byCategory){
+    for(const k of Object.keys(me.byCategory)){
+      const c=me.byCategory[k]; if(!c||!(c.matches>0)) continue;
+      const cand={key:k, rank:c.completedRank??c.rank, catTotal:c.catTotal, cR:c.completedRank??Infinity, sR:c.rank??Infinity, pR:c.playedRank??Infinity};
+      if(!bestCat||cand.cR<bestCat.cR||(cand.cR===bestCat.cR&&cand.sR<bestCat.sR)||(cand.cR===bestCat.cR&&cand.sR===bestCat.sR&&cand.pR<bestCat.pR)) bestCat=cand;
+    }
+  }
   return (
     <div className={`qpb${open?' open':''}`} onClick={()=>setOpen(v=>!v)} style={{display:'flex',flexDirection:'row',alignItems:'center',flexWrap:'wrap',gap:16,padding:'10px 14px',background:'#fff',borderRadius:11,minHeight:54,boxSizing:'border-box'}}>
-      <style>{`.qpb-chev{display:none;}@media(max-width:560px){.qpb{cursor:pointer;}.qpb:not(.open) .qpb-stats{display:none !important;}.qpb.open .qpb-stats{order:9 !important;flex:1 1 100% !important;margin-left:0 !important;justify-content:space-between !important;}.qpb-chev{display:inline-flex !important;}.qpb-hub{margin-left:auto !important;}}`}</style>
+      <style>{`.qpb-chev{display:none;}@media(max-width:1023px){.qpb-bestcat{display:none !important;}}@media(max-width:560px){.qpb{cursor:pointer;}.qpb:not(.open) .qpb-stats{display:none !important;}.qpb.open .qpb-stats{order:9 !important;flex:1 1 100% !important;margin-left:0 !important;justify-content:space-between !important;}.qpb-chev{display:inline-flex !important;}.qpb-hub{margin-left:auto !important;}}`}</style>
       {found?(
         <div style={{display:'flex',flexDirection:'column',minWidth:0}}>
           <div style={lbl}>Player</div>
@@ -70,6 +79,15 @@ export default function QuizPlayerBar(){
       </>):(
         <div style={{flex:'1 1 60px',minWidth:0,color:MUTED,fontSize:13,fontWeight:600}}>Play to track your stats</div>
       )}
+      {found && bestCat ? (
+        <div className="qpb-bestcat">
+          <div style={lbl}>Best category</div>
+          <div style={{display:'flex',alignItems:'baseline',gap:5,whiteSpace:'nowrap'}}>
+            <span style={{fontSize:14,fontWeight:700,color:INK,lineHeight:1.2}}>{DEPT_LABEL[bestCat.key]||'—'}</span>
+            {bestCat.rank?<span style={{fontSize:11,color:MUTED}}>#{bestCat.rank}{bestCat.catTotal?` of ${bestCat.catTotal.toLocaleString()}`:''}</span>:null}
+          </div>
+        </div>
+      ) : null}
       <span className="qpb-hub"><Link href="/quizzes/hub" onClick={e=>e.stopPropagation()} style={{display:'inline-flex',alignItems:'center',gap:6,background:'#e9f1fd',color:ACCENT,border:'1px solid #cfe0fa',borderRadius:9,padding:'8px 13px',fontWeight:700,fontSize:13,textDecoration:'none',whiteSpace:'nowrap'}}><BarChart3 size={15}/> Stat Hub <ArrowRight size={14}/></Link></span>
     </div>
   );
