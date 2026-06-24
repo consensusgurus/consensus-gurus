@@ -647,9 +647,9 @@ export default function QuizHomeClient() {
     /* Mobile: surface the leaderboard + last-played boards (otherwise display:none on phones)
        as two side-by-side toggle buttons; tapping one expands its existing card full-width below. */
     @media(max-width:560px){
-      .qzh .qz-mobtoggle{display:flex;gap:8px;margin-bottom:10px;}
-      .qzh .qz-mobtoggle .mtbtn{flex:1 1 0;min-width:0;display:flex;align-items:center;gap:7px;background:#fff;border:1px solid ${C.line};border-radius:10px;padding:10px 12px;cursor:pointer;font:inherit;color:${C.ink};font-weight:700;font-size:12.5px;}
-      .qzh .qz-mobtoggle .mtbtn.active{background:#f3f7ff;border-color:#cddffb;color:${C.accent};}
+      .qzh .qz-mobtoggle{display:flex;gap:4px;margin-bottom:12px;background:#eef1f5;border-radius:12px;padding:4px;}
+      .qzh .qz-mobtoggle .mtbtn{flex:1 1 0;min-width:0;display:flex;align-items:center;justify-content:center;gap:7px;background:transparent;border:none;border-radius:9px;padding:9px 12px;cursor:pointer;font:inherit;color:${C.soft};font-weight:700;font-size:12.5px;}
+      .qzh .qz-mobtoggle .mtbtn.active{background:#fff;color:${C.ink};box-shadow:0 1px 2px rgba(20,22,28,0.06);}
       .qzh .qz-mobtoggle .mtbtn .mtlbl{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
       .qzh .qz-mobtoggle .mtbtn{justify-content:center !important;}
       .qzh .qz-mobtoggle .mtbtn svg:last-child{margin-left:0 !important;}
