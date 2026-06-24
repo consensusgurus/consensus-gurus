@@ -1,3 +1,4 @@
+import { Suspense } from 'react';
 import QuizClient from './QuizClient';
 import { QUIZZES, getQuiz } from '@/lib/quizzes';
 
@@ -60,7 +61,9 @@ export default function QuizPage({ params }) {
           dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
         />
       )}
-      <QuizClient quizId={id} />
+      <Suspense fallback={null}>
+        <QuizClient quizId={id} />
+      </Suspense>
     </>
   );
 }
