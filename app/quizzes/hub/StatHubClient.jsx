@@ -332,11 +332,12 @@ export default function StatHubClient() {
     .qzhub .dditem{display:flex;align-items:center;gap:9px;padding:7px 9px;border-radius:7px;cursor:pointer;font-size:13px;}
     .qzhub .dditem:hover{background:${C.bg};}
     .qzhub .dot{width:9px;height:9px;border-radius:3px;flex:none;}
-    .qzhub .tabs{display:flex;gap:6px;background:#eceef1;border-radius:10px;padding:4px;margin:16px 0;}
-    .qzhub .tab{flex:1;border:none;background:transparent;border-radius:7px;padding:9px;font:inherit;font-family:${FONT};font-size:13px;color:${C.muted};cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px;}
+    .qzhub .tabs{display:flex;gap:4px;background:transparent;padding:0;margin:18px 0 16px;border-bottom:1px solid ${C.line};}
+    .qzhub .tab{border:1px solid transparent;background:transparent;border-radius:10px 10px 0 0;padding:11px 20px;margin-bottom:-1px;font:inherit;font-family:${FONT};font-size:13.5px;font-weight:600;color:${C.muted};cursor:pointer;display:flex;align-items:center;justify-content:center;gap:7px;}
     .qzhub .tabcue{display:none;}
-    @media(max-width:680px){.qzhub .tab{font-size:12px;padding:9px 4px;gap:4px;}}
-    .qzhub .tab.on{background:#fff;color:${C.ink};font-weight:700;box-shadow:0 1px 2px rgba(20,22,28,0.06);}
+    @media(max-width:680px){.qzhub .tabs{gap:2px;}.qzhub .tab{flex:1;font-size:12px;padding:10px 6px;gap:5px;}}
+    .qzhub .tab.on{background:${C.surface};color:${C.ink};font-weight:700;border-color:${C.line};border-bottom-color:${C.surface};}
+    .qzhub .tab.on svg{color:${C.accent};}
     .qzhub .hrow{display:flex;align-items:center;gap:10px;padding:7px 0;border-top:1px solid rgba(20,22,28,0.07);font-size:13px;}
     .qzhub .score{font-weight:700;color:${C.accent};font-variant-numeric:tabular-nums;}
     .qzhub table{width:100%;border-collapse:collapse;font-size:12.5px;}
@@ -492,9 +493,9 @@ function PlayerPanel({ me, scope, cats, byKey, totalQuizzes, board, myName, myAn
     : { col: col.key, dir: col.key === 'label' ? 'asc' : 'desc' }));
 
   const toggle = (
-    <div style={{ display: 'flex', gap: 3, background: '#eceef1', borderRadius: 9, padding: 3, flex: 1, width: '100%', boxSizing: 'border-box' }}>
+    <div style={{ display: 'flex', gap: 22, width: '100%', borderBottom: `1px solid ${C.line}`, boxSizing: 'border-box', overflowX: 'auto' }}>
       {[['ranking', 'Ranking'], ['category', 'Category'], ['rating', 'Skill Rating'], ['activity', 'Activity']].map(([v, lbl]) => (
-        <button key={v} onClick={() => setPview(v)} style={{ flex: 1, textAlign: 'center', border: 'none', background: pview === v ? '#fff' : 'transparent', color: pview === v ? C.ink : C.muted, fontWeight: pview === v ? 700 : 600, boxShadow: pview === v ? '0 1px 2px rgba(20,22,28,0.06)' : 'none', borderRadius: 7, padding: '7px 6px', font: 'inherit', fontFamily: FONT, fontSize: 12.5, cursor: 'pointer' }}>{lbl}</button>
+        <button key={v} onClick={() => setPview(v)} style={{ border: 'none', background: 'transparent', color: pview === v ? C.accent : C.muted, fontWeight: pview === v ? 700 : 600, borderBottom: pview === v ? `2px solid ${C.accent}` : '2px solid transparent', marginBottom: -1, padding: '10px 2px', font: 'inherit', fontFamily: FONT, fontSize: 13, whiteSpace: 'nowrap', cursor: 'pointer' }}>{lbl}</button>
       ))}
     </div>
   );
