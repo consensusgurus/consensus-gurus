@@ -611,6 +611,7 @@ export default function QuizHomeClient() {
     .qzh .hubbtn{display:flex;align-items:center;gap:7px;background:#fff;color:${C.accent};border:1px solid #cddffb;border-right:3px solid ${C.accent};padding:10px 15px;border-radius:10px;font-weight:700;font-size:13px;text-decoration:none;white-space:nowrap;}
     .qzh .qz-playerbar.hub-bleed .hubbtn{align-self:stretch;padding:0 18px;margin:-11px -14px -11px 0;border-radius:0 11px 11px 0;border-top:none;border-bottom:none;border-left:none;}
     .qz-playerbar .qz-skill-empty{display:none !important;}
+    .qz-playerbar .lbl{font-size:10px;font-weight:600;letter-spacing:.04em;text-transform:uppercase;color:#6b7280;margin-bottom:2px;}
     @media(max-width:560px){.qz-playerbar{flex-wrap:wrap !important;align-items:center !important;gap:10px 14px !important;}.qz-playerbar .qz-div{display:none !important;}.qz-playerbar .qz-stats{order:9 !important;flex:1 1 100% !important;margin-left:0 !important;justify-content:space-between !important;gap:10px !important;}.qz-playerbar .qz-bestcat{order:3 !important;}.qz-playerbar .hubbtn{order:4 !important;margin-left:auto !important;flex:0 0 auto !important;}.qzh .boards{display:none !important;}.qz-submit{display:none !important;}.qzh{padding-left:14px !important;padding-right:14px !important;}}
     .qzh .hubbtn:hover{background:${C.accsoft};}
     .qzh .crumb1{font-size:18px;font-weight:800;letter-spacing:-0.02em;}
@@ -670,11 +671,8 @@ export default function QuizHomeClient() {
     <div style={{ background: C.bg, minHeight: '100vh', position: 'relative' }}>
       <Grain />
       <style>{css}</style>
-      <SiteHeader active="quizzes" seam="quiz" />
-      <div className="qzh" style={{ maxWidth: 1180, margin: '0 auto', padding: '0 24px 70px', position: 'relative' }}>
-
-        {/* player bar */}
-        <div ref={playerBarRef} className="card qz-playerbar" style={{ flexDirection: 'row', alignItems: 'center', flexWrap: 'wrap', gap: 16, padding: '11px 14px', margin: '0 0 12px', overflow: 'visible', position: 'relative', zIndex: 40, borderTopLeftRadius: 0, borderTopRightRadius: 0 }}>
+      <SiteHeader active="quizzes" inlay={(
+        <div ref={playerBarRef} className="qz-playerbar" style={{ display: 'flex', flexDirection: 'row', alignItems: 'center', flexWrap: 'wrap', gap: 16, padding: '10px 12px', overflow: 'visible', background: '#fff', borderRadius: 11 }}>
           {me && me.found && me.name ? (
             <div style={{ display: 'flex', flexDirection: 'column', minWidth: 0 }}>
               <div className="lbl">Player</div>
@@ -707,18 +705,11 @@ export default function QuizHomeClient() {
             <div><div style={{ display: 'flex', alignItems: 'baseline', gap: 4 }}><span style={{ fontSize: 17, fontWeight: 700 }}>{playerStats && playerStats.accuracy != null ? `${playerStats.accuracy}%` : '—'}</span>{playerStats && playerStats.accuracyRank ? <span className="qz-srank">#{playerStats.accuracyRank}</span> : null}</div><div className="lbl">accuracy</div></div>
             <div><div style={{ display: 'flex', alignItems: 'baseline', gap: 4 }}><span style={{ fontSize: 17, fontWeight: 700 }}>{playerStats && playerStats.completed != null ? playerStats.completed : '—'}</span>{playerStats && playerStats.completed != null && scopeCount ? <span style={{ fontSize: 11, fontWeight: 600, color: C.soft }}>({playerStats.completed > 0 && playerStats.completed / scopeCount < 0.005 ? '<1' : Math.round((playerStats.completed / scopeCount) * 100)}%)</span> : null}{playerStats && playerStats.completedRank ? <span className="qz-srank">#{playerStats.completedRank}</span> : null}</div><div className="lbl">completed</div></div>
           </div>
-          {bestCat ? (
-            <div className="qz-bestcat" ref={bestCatRef}>
-              <div className="lbl">Best category</div>
-              <div style={{ display: 'flex', alignItems: 'baseline', gap: 5, whiteSpace: 'nowrap' }}>
-                <span style={{ fontSize: 14, fontWeight: 700, color: C.ink, lineHeight: 1.2 }}>{byKey[bestCat.key]?.label || DEPT_LABEL[bestCat.key] || '—'}</span>
-                {bestCat.rank ? <span style={{ fontSize: 11, color: C.muted }}>#{bestCat.rank}{bestCat.catTotal ? ` of ${bestCat.catTotal.toLocaleString()}` : ''}</span> : null}
-              </div>
-            </div>
-          ) : null}
 
-          <Link className="hubbtn" href="/quizzes/hub"><BarChart3 size={16} /> Stat Hub <ArrowRight size={15} /></Link>
+          <Link className="hubbtn" href="/quizzes/hub" style={{ display: 'inline-flex', alignItems: 'center', gap: 6, background: '#e9f1fd', color: C.accent, border: '1px solid #cfe0fa', borderRadius: 9, padding: '8px 13px', fontWeight: 700, fontSize: 13, textDecoration: 'none', whiteSpace: 'nowrap' }}><BarChart3 size={15} /> Stat Hub <ArrowRight size={14} /></Link>
         </div>
+        )} />
+      <div className="qzh" style={{ maxWidth: 1180, margin: '0 auto', padding: '12px 24px 70px', position: 'relative' }}>
 
         {signupOpen && <SignupModal onClose={() => setSignupOpen(false)} />}
 
