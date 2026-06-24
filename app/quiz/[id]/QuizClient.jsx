@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect, useLayoutEffect, useMemo, useRef } from 'react';
 import { useRouter } from 'next/navigation';
-import { ArrowLeft, Share2, Check, X, Flag, Trophy, HelpCircle, Eye, SkipForward, Crown } from 'lucide-react';
+import { ArrowLeft, Share2, Check, X, Flag, Trophy, HelpCircle, Eye, SkipForward, Crown, RotateCcw, Shuffle } from 'lucide-react';
 import JoinLeaderboardForm from './JoinLeaderboardForm';
 import QuizStandings from './QuizStandings';
 import LeaderboardSnippet from './LeaderboardSnippet';
@@ -1625,7 +1625,7 @@ export default function QuizClient({ quizId }) {
           onClick={() => setGameOverDismissed(true)}
           style={{ position: 'fixed', inset: 0, zIndex: 70, background: 'rgba(26,22,17,0.62)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '6vh 16px' }}
         >
-          <div onClick={(e) => e.stopPropagation()} style={{ width: '100%', maxWidth: 440, background: COLORS.cream, borderRadius: 10, border: `2px solid ${COLORS.ink}`, padding: '28px 26px', textAlign: 'center', boxShadow: '0 18px 60px rgba(26,22,17,0.4)', maxHeight: '88vh', overflowY: 'auto' }}>
+          <div onClick={(e) => e.stopPropagation()} style={{ width: '100%', maxWidth: 440, background: COLORS.cream, borderRadius: 10, border: `2px solid ${COLORS.ink}`, padding: '22px 24px', textAlign: 'center', boxShadow: '0 18px 60px rgba(26,22,17,0.4)', maxHeight: '92vh', overflowY: 'auto' }}>
             {(() => {
               const win = dispScore === total;
               const timeout = !win && time <= 0;
@@ -1642,22 +1642,24 @@ export default function QuizClient({ quizId }) {
                       : 'You ended the round.';
               return (
                 <>
-                  <div style={{ display: 'inline-flex', marginBottom: 12, color: celebrate ? COLORS.forest : COLORS.ember }}>
-                    {celebrate ? <Trophy size={40} strokeWidth={2} /> : <Flag size={40} strokeWidth={2} />}
+                  <div style={{ display: 'inline-flex', marginBottom: 8, color: celebrate ? COLORS.forest : COLORS.ember }}>
+                    {celebrate ? <Trophy size={34} strokeWidth={2} /> : <Flag size={34} strokeWidth={2} />}
                   </div>
-                  <div style={{ fontFamily: MONO, fontSize: 12, letterSpacing: '0.24em', textTransform: 'uppercase', color: celebrate ? COLORS.forest : COLORS.ember, marginBottom: 8 }}>{heading}</div>
-                  <div style={{ fontFamily: SERIF, fontWeight: 800, fontSize: 40, lineHeight: 1, marginBottom: 6 }}>{dispScore}<span style={{ fontSize: 24, color: COLORS.faded }}> / {total}</span></div>
+                  <div style={{ fontFamily: MONO, fontSize: 12, letterSpacing: '0.24em', textTransform: 'uppercase', color: celebrate ? COLORS.forest : COLORS.ember, marginBottom: 6 }}>{heading}</div>
+                  <div style={{ fontFamily: SERIF, fontWeight: 800, fontSize: 34, lineHeight: 1, marginBottom: 4 }}>{dispScore}<span style={{ fontSize: 20, color: COLORS.faded }}> / {total}</span></div>
                   <p style={{ fontFamily: SERIF, fontStyle: 'italic', fontSize: 16, color: COLORS.faded, margin: '0 0 4px' }}>{reason}</p>
-                  <p style={{ fontFamily: SANS, fontSize: 14, color: '#4a4339', margin: '0 0 20px' }}>{resultLine}</p>
+                  <p style={{ fontFamily: SANS, fontSize: 14, color: '#4a4339', margin: '0 0 14px' }}>{resultLine}</p>
                   <LeaderboardSnippet board={board} identity={identity} score={dispScore} lastElapsed={lastElapsed} />
                   {eloPanel}
-                  <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'stretch', gap: 10, width: '100%', maxWidth: 300, margin: '0 auto' }}>
-                    <button onClick={() => { try { sessionStorage.setItem('sot_quiz_retry', quizId); } catch (e) { /* no-op */ } window.location.reload(); }} style={{ width: '100%', boxSizing: 'border-box', fontFamily: MONO, fontSize: 12, letterSpacing: '0.12em', textTransform: 'uppercase', fontWeight: 700, padding: '13px 22px', borderRadius: 10, border: `1.5px solid ${COLORS.ember}`, background: COLORS.ember, color: '#fff', cursor: 'pointer', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 8 }}>Retry with 1 click</button>
-                    <button onClick={() => { setGameOverDismissed(true); if (identity) { setTab('stats'); } else { setClaimMsg(''); setClaimErr(false); setClaimOpen(true); setTab('play'); } }} style={{ width: '100%', boxSizing: 'border-box', fontFamily: MONO, fontSize: 12, letterSpacing: '0.12em', textTransform: 'uppercase', fontWeight: 700, padding: '13px 22px', borderRadius: 10, border: `1.5px solid ${COLORS.ink}`, background: COLORS.ink, color: COLORS.cream, cursor: 'pointer', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 8 }}><Trophy size={14} strokeWidth={2.5} /> Post to Leaderboard</button>
-                    <button onClick={() => { setGameOverDismissed(true); }} style={{ width: '100%', boxSizing: 'border-box', fontFamily: MONO, fontSize: 12, letterSpacing: '0.12em', textTransform: 'uppercase', fontWeight: 700, padding: '13px 22px', borderRadius: 10, border: `1.5px solid ${COLORS.ink}`, background: COLORS.ink, color: COLORS.cream, cursor: 'pointer', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 8 }}>Back to Quiz Page</button>
-                    <button onClick={share} style={{ width: '100%', boxSizing: 'border-box', fontFamily: MONO, fontSize: 12, letterSpacing: '0.12em', textTransform: 'uppercase', fontWeight: 700, padding: '13px 22px', borderRadius: 10, border: `1.5px solid ${COLORS.ink}`, background: COLORS.ink, color: COLORS.cream, cursor: 'pointer', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 8 }}><Share2 size={14} strokeWidth={2.5} /> {copied ? 'Link copied!' : 'Challenge a friend'}</button>
-                    <button onClick={() => { const pool = QUIZZES.filter((qq) => qq && qq.id && qq.id !== quizId); const r = pool[Math.floor(Math.random() * pool.length)]; if (r) router.push(`/quiz/${r.id}`); }} style={{ width: '100%', boxSizing: 'border-box', fontFamily: MONO, fontSize: 12, letterSpacing: '0.12em', textTransform: 'uppercase', fontWeight: 700, padding: '13px 22px', borderRadius: 10, border: `1.5px solid ${COLORS.ember}`, background: COLORS.ember, color: '#fff', cursor: 'pointer', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 8 }}>Random Quiz</button>
-                    <button onClick={() => router.push('/quizzes')} style={{ width: '100%', boxSizing: 'border-box', fontFamily: MONO, fontSize: 12, letterSpacing: '0.12em', textTransform: 'uppercase', fontWeight: 700, padding: '13px 22px', borderRadius: 10, border: `1.5px solid ${COLORS.ink}`, background: COLORS.ink, color: COLORS.cream, cursor: 'pointer', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 8 }}>All Quizzes</button>
+                  <div style={{ width: '100%', maxWidth: 340, margin: '0 auto' }}>
+                    <button onClick={() => { try { sessionStorage.setItem('sot_quiz_retry', quizId); } catch (e) { /* no-op */ } window.location.reload(); }} style={{ width: '100%', boxSizing: 'border-box', fontFamily: MONO, fontSize: 12, letterSpacing: '0.1em', textTransform: 'uppercase', fontWeight: 700, padding: '13px 18px', borderRadius: 10, border: `1.5px solid ${COLORS.forest}`, background: COLORS.forest, color: '#fff', cursor: 'pointer', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 8, marginBottom: 8 }}><RotateCcw size={14} strokeWidth={2.5} /> Retry with 1 click</button>
+                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8, marginBottom: 8 }}>
+                      <button onClick={() => { setGameOverDismissed(true); if (identity) { setTab('stats'); } else { setClaimMsg(''); setClaimErr(false); setClaimOpen(true); setTab('play'); } }} style={{ width: '100%', boxSizing: 'border-box', fontFamily: MONO, fontSize: 11, letterSpacing: '0.04em', textTransform: 'uppercase', fontWeight: 700, padding: '11px 8px', borderRadius: 10, border: `1.5px solid ${COLORS.ink}`, background: COLORS.ink, color: COLORS.cream, cursor: 'pointer', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 6, lineHeight: 1.2, textAlign: 'center' }}><Trophy size={13} strokeWidth={2.5} /> Post to Leaderboard</button>
+                      <button onClick={share} style={{ width: '100%', boxSizing: 'border-box', fontFamily: MONO, fontSize: 11, letterSpacing: '0.04em', textTransform: 'uppercase', fontWeight: 700, padding: '11px 8px', borderRadius: 10, border: `1.5px solid ${COLORS.ink}`, background: COLORS.ink, color: COLORS.cream, cursor: 'pointer', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 6, lineHeight: 1.2, textAlign: 'center' }}><Share2 size={13} strokeWidth={2.5} /> {copied ? 'Link copied!' : 'Challenge a friend'}</button>
+                      <button onClick={() => { setGameOverDismissed(true); }} style={{ width: '100%', boxSizing: 'border-box', fontFamily: MONO, fontSize: 11, letterSpacing: '0.04em', textTransform: 'uppercase', fontWeight: 700, padding: '11px 8px', borderRadius: 10, border: `1.5px solid ${COLORS.ink}`, background: COLORS.ink, color: COLORS.cream, cursor: 'pointer', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 6, lineHeight: 1.2, textAlign: 'center' }}>Back to Quiz Page</button>
+                      <button onClick={() => router.push('/quizzes')} style={{ width: '100%', boxSizing: 'border-box', fontFamily: MONO, fontSize: 11, letterSpacing: '0.04em', textTransform: 'uppercase', fontWeight: 700, padding: '11px 8px', borderRadius: 10, border: `1.5px solid ${COLORS.ink}`, background: COLORS.ink, color: COLORS.cream, cursor: 'pointer', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 6, lineHeight: 1.2, textAlign: 'center' }}>All Quizzes</button>
+                    </div>
+                    <button onClick={() => { const pool = QUIZZES.filter((qq) => qq && qq.id && qq.id !== quizId); const r = pool[Math.floor(Math.random() * pool.length)]; if (r) router.push(`/quiz/${r.id}`); }} style={{ width: '100%', boxSizing: 'border-box', fontFamily: MONO, fontSize: 12, letterSpacing: '0.1em', textTransform: 'uppercase', fontWeight: 700, padding: '13px 18px', borderRadius: 10, border: `1.5px solid ${COLORS.forest}`, background: COLORS.forest, color: '#fff', cursor: 'pointer', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 8 }}><Shuffle size={14} strokeWidth={2.5} /> Random Quiz</button>
                   </div>
                 </>
               );
