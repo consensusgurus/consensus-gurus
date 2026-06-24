@@ -1025,6 +1025,7 @@ export default function QuizClient({ quizId }) {
   }
 
   const clock = fmtTime(time);
+  const clockMax = fmtTime(quiz.timeLimit);
   const shareUrl = typeof window !== 'undefined' ? window.location.href : `https://sourceoftruths.com/quiz/${quiz.id}`;
   const sharePct = total ? Math.round((dispScore / total) * 100) : 0;
   const resultMsg = ended ? `I scored ${dispScore}/${total} on "${quiz.title}". Can you beat me?` : `Can you beat my score on "${quiz.title}"?`;
@@ -1301,8 +1302,8 @@ export default function QuizClient({ quizId }) {
                 const base = { display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 4, flex: 'none', height: 50, padding: '0 12px', border: `1px solid ${COLORS.line}`, borderRadius: 9, background: '#fff', fontFamily: SERIF, fontWeight: 800, fontSize: 16, lineHeight: 1 };
                 const live = started && !ended;
                 return (<>
-                  <span style={base} title="Your score">{dispScore}<span style={{ fontSize: 11, color: COLORS.soft, fontWeight: 700 }}>/{total}</span></span>
-                  <span style={{ ...base, fontFamily: MONO, color: time <= 10 && live ? COLORS.ember : COLORS.ink }} title="Time left">{clock}</span>
+                  <span style={{ ...base, fontVariantNumeric: 'tabular-nums' }} title="Your score">{dispScore}<span style={{ fontSize: 11, color: COLORS.soft, fontWeight: 700 }}>/{total}</span></span>
+                  <span style={{ ...base, fontFamily: MONO, fontVariantNumeric: 'tabular-nums', minWidth: `calc(${clockMax.length}ch + 26px)`, color: time <= 10 && live ? COLORS.ember : COLORS.ink }} title="Time left">{clock}</span>
                 </>);
               })()}
               {!mapMode && !tileMode && (!matched || ordered) && (
