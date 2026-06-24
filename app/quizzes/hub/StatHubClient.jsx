@@ -493,7 +493,7 @@ function PlayerPanel({ me, scope, cats, byKey, totalQuizzes, board, myName, myAn
     : { col: col.key, dir: col.key === 'label' ? 'asc' : 'desc' }));
 
   const toggle = (
-    <div style={{ display: 'flex', gap: 22, width: '100%', borderBottom: `1px solid ${C.line}`, boxSizing: 'border-box', overflowX: 'auto' }}>
+    <div style={{ display: 'flex', gap: 22, width: '100%', borderBottom: `1px solid ${C.line}`, boxSizing: 'border-box', overflowX: 'auto', overflowY: 'hidden' }}>
       {[['ranking', 'Ranking'], ['category', 'Category'], ['rating', 'Skill Rating'], ['activity', 'Activity']].map(([v, lbl]) => (
         <button key={v} onClick={() => setPview(v)} style={{ border: 'none', background: 'transparent', color: pview === v ? C.accent : C.muted, fontWeight: pview === v ? 700 : 600, borderBottom: pview === v ? `2px solid ${C.accent}` : '2px solid transparent', marginBottom: -1, padding: '10px 2px', font: 'inherit', fontFamily: FONT, fontSize: 13, whiteSpace: 'nowrap', cursor: 'pointer' }}>{lbl}</button>
       ))}
