@@ -156,6 +156,25 @@ function Medal({ i }) {
   return <span style={{ flex: 'none', width: 18, textAlign: 'center', fontSize: 11, color: C.soft }}>{i + 1}</span>;
 }
 
+// Leaderboard row: medal + name + value, with a gold/silver/bronze (neutral
+// for 4th+) progress bar under the name scaled to the top score.
+function LbRow({ i, name, value, frac }) {
+  const col = i < 3 ? MEDAL[i] : C.soft;
+  const w = Math.max(4, Math.min(100, Math.round((frac || 0) * 100)));
+  return (
+    <div className="lrow">
+      <Medal i={i} />
+      <div style={{ flex: '1 1 auto', minWidth: 0 }}>
+        <div style={{ display: 'flex', alignItems: 'baseline', gap: 8 }}>
+          <span className="qtitle" style={{ flex: '1 1 auto' }}>{name}</span>
+          <span style={{ flex: 'none', fontWeight: 700, fontVariantNumeric: 'tabular-nums' }}>{value}</span>
+        </div>
+        <div style={{ height: 3, borderRadius: 3, background: '#eef1f5', marginTop: 4, overflow: 'hidden' }}><div style={{ height: '100%', width: `${w}%`, background: col }} /></div>
+      </div>
+    </div>
+  );
+}
+
 // Sign-up popup: claim a display name (email optional) so the player's name
 // shows on the leaderboards. Posts to /api/quiz/join, stores identity, reloads.
 function SignupModal({ onClose }) {
@@ -431,9 +450,9 @@ export default function QuizHomeClient() {
   // Today's daily-challenge standings, ranked by total correct then least time.
   const dailyRows = useMemo(() => (dailyLb || []).slice()
     .sort((a, b) => (b.totalCorrect || 0) - (a.totalCorrect || 0) || (a.totalTime || 0) - (b.totalTime || 0) || (a.username || '').localeCompare(b.username || ''))
-    .slice(0, boardsExpanded ? 10 : 3), [dailyLb, boardsExpanded]);
-  const todayCorrectRows = useMemo(() => (todayData.byCorrect || []).slice(0, boardsExpanded ? 10 : 3), [todayData, boardsExpanded]);
-  const todayQuizRows = useMemo(() => (todayData.byQuizzes || []).slice(0, boardsExpanded ? 10 : 3), [todayData, boardsExpanded]);
+    .slice(0, boardsExpanded ? 10 : 5), [dailyLb, boardsExpanded]);
+  const todayCorrectRows = useMemo(() => (todayData.byCorrect || []).slice(0, boardsExpanded ? 10 : 5), [todayData, boardsExpanded]);
+  const todayQuizRows = useMemo(() => (todayData.byQuizzes || []).slice(0, boardsExpanded ? 10 : 5), [todayData, boardsExpanded]);
   const bestCat = useMemo(() => {
     if (!me || !me.byCategory) return null;
     // Best category = where the player ranks highest on COMPLETED; ties break to
@@ -496,14 +515,14 @@ export default function QuizHomeClient() {
     // top three; otherwise keep guests so the board isn't sparse.
     const named = sorted.filter((p) => !p.isAnon);
     const list = named.length >= 3 ? named : sorted;
-    return list.slice(0, boardsExpanded ? 10 : 3);
+    return list.slice(0, boardsExpanded ? 10 : 5);
   }, [eloBoard, lbMetric.key, boardsExpanded]);
 
   // ── live feed (scoped by quiz department) ──
   const liveRows = useMemo(() => {
     const rows = recent.map((p) => ({ ...p, dept: deptOf({ id: p.quizId }), title: titleById[p.quizId] || cleanTitle(p.quizId) }));
     const scoped = scope === 'all' ? rows : rows.filter((r) => r.dept === scope);
-    return scoped.slice(0, boardsExpanded ? 10 : 3);
+    return scoped.slice(0, boardsExpanded ? 10 : 4);
   }, [recent, scope, titleById, boardsExpanded]);
 
   const playsToday = totals.today || 0;
@@ -732,7 +751,7 @@ export default function QuizHomeClient() {
               {lbMetric.special ? (
                 (() => {
                   if (lbMetric.key === 'catRating') {
-                    const rows = (catBoards[lbMetric.catKey] || []).slice(0, boardsExpanded ? 10 : 3);
+                    const rows = (catBoards[lbMetric.catKey] || []).slice(0, boardsExpanded ? 10 : 5);
                     if (rows.length === 0) return <div style={{ padding: '12px 13px', fontSize: 12, color: C.soft }}>No ranked players yet.</div>;
                     return rows.map((r, i) => (
                       <div className="lrow" key={r.userKey || i}>
@@ -746,22 +765,18 @@ export default function QuizHomeClient() {
                   const valOf = lbMetric.key === 'dailyChallenge' ? ((r) => r.totalCorrect) : lbMetric.key === 'correctToday' ? ((r) => r.correct) : ((r) => r.quizzes);
                   if (rows.length === 0) return <div style={{ padding: '12px 13px', fontSize: 12, color: C.soft }}>No plays yet today.</div>;
                   return rows.map((r, i) => (
-                    <div className="lrow" key={`s${i}`}>
-                      <Medal i={i} />
-                      <span className="qtitle">{r.userKey ? <Link href={`/quizzes/hub?player=${encodeURIComponent(r.userKey)}`} style={{ color: 'inherit', textDecoration: 'none' }}><WhoTag name={r.username || 'Player'} isAnon={false} /></Link> : <WhoTag name={r.username || 'Player'} isAnon={false} />}</span>
-                      <span style={{ flex: 'none', fontWeight: 700, fontVariantNumeric: 'tabular-nums' }}>{(valOf(r) || 0).toLocaleString()}</span>
-                    </div>
+                    <LbRow key={`s${i}`} i={i}
+                      name={r.userKey ? <Link href={`/quizzes/hub?player=${encodeURIComponent(r.userKey)}`} style={{ color: 'inherit', textDecoration: 'none' }}><WhoTag name={r.username || 'Player'} isAnon={false} /></Link> : <WhoTag name={r.username || 'Player'} isAnon={false} />}
+                      value={(valOf(r) || 0).toLocaleString()} frac={(valOf(r) || 0) / (valOf(rows[0]) || 1)} />
                   ));
                 })()
               ) : (
                 <>
                   {leaderRows.length === 0 && <div style={{ padding: '12px 13px', fontSize: 12, color: C.soft }}>No ranked players yet.</div>}
                   {leaderRows.map((r, i) => (
-                    <div className="lrow" key={r.userKey || i}>
-                      <Medal i={i} />
-                      <span className="qtitle">{r.userKey ? <Link href={`/quizzes/hub?player=${encodeURIComponent(r.userKey)}`} style={{ color: 'inherit', textDecoration: 'none' }}><WhoTag name={r.name} isAnon={r.isAnon} /></Link> : <WhoTag name={r.name} isAnon={r.isAnon} />}</span>
-                      <span style={{ flex: 'none', fontWeight: 700, fontVariantNumeric: 'tabular-nums' }}>{lbMetric.fmt(r[lbMetric.key])}</span>
-                    </div>
+                    <LbRow key={r.userKey || i} i={i}
+                      name={r.userKey ? <Link href={`/quizzes/hub?player=${encodeURIComponent(r.userKey)}`} style={{ color: 'inherit', textDecoration: 'none' }}><WhoTag name={r.name} isAnon={r.isAnon} /></Link> : <WhoTag name={r.name} isAnon={r.isAnon} />}
+                      value={lbMetric.fmt(r[lbMetric.key])} frac={(r[lbMetric.key] || 0) / (leaderRows[0]?.[lbMetric.key] || 1)} />
                   ))}
                 </>
               )}
@@ -784,13 +799,13 @@ export default function QuizHomeClient() {
               {liveRows.length === 0 && <div style={{ padding: '12px 13px', fontSize: 12, color: C.soft }}>No recent plays{scope === 'all' ? '' : ' in this category'} yet.</div>}
               {liveRows.map((f, i) => (
                 <Link href={`/quiz/${f.quizId}`} className="qlink" key={i}>
-                  <div className="lrow" style={{ gap: 9 }}>
+                  <div className="lrow" style={{ gap: 4, flexDirection: 'column', alignItems: 'stretch', padding: '7px 13px' }}>
                     <span className="qtitle" style={{ fontWeight: 600 }}>{f.title}</span>
-                    <span className="qmeta" style={{ gap: 8 }}>
+                    <span style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 10.5, color: C.soft }}>
                       <PlayerLink userKey={f.userKey}><WhoTag name={f.name || 'Guest'} isAnon={f.isAnon} /></PlayerLink>
-                      <span className="lf-extra" style={{ flex: 'none', fontSize: 11, fontWeight: 700, padding: '2px 7px', borderRadius: 7, fontVariantNumeric: 'tabular-nums', background: f.total && f.score / f.total >= 0.8 ? '#e7f7ed' : '#eef1f6', color: f.total && f.score / f.total >= 0.8 ? '#16a34a' : C.soft }}>{f.score}/{f.total}</span>
-                      <span className="att lf-extra">{f.attempt > 1 ? `attempt ${f.attempt}` : '1st try'}</span>
-                      <span style={{ color: C.soft }}>{relTime(f.playedAt)}</span>
+                      <span style={{ flex: 'none', fontWeight: 700, padding: '1px 6px', borderRadius: 6, fontVariantNumeric: 'tabular-nums', background: f.total && f.score / f.total >= 0.8 ? '#e7f7ed' : '#eef1f6', color: f.total && f.score / f.total >= 0.8 ? '#16a34a' : C.soft }}>{f.score}/{f.total}</span>
+                      <span style={{ fontWeight: 700 }}>{f.attempt > 1 ? `attempt ${f.attempt}` : '1st try'}</span>
+                      <span style={{ marginLeft: 'auto' }}>{relTime(f.playedAt)}</span>
                     </span>
                   </div>
                 </Link>
