@@ -623,7 +623,7 @@ export default function QuizHomeClient() {
     .qzh .card{background:${C.surface};border:1px solid ${C.line};border-radius:12px;display:flex;flex-direction:column;overflow:hidden;min-width:0;}
     .qzh .boards .card{background:${C.surface};border-color:${C.line};}
     .qzh .head{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:10px 13px 9px;background:#f1f3f6;border-bottom:1px solid ${C.line};min-height:42px;cursor:pointer;}
-    .qzh .head .lbl{flex:1 1 auto;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+    .qzh .head .lbl{flex:1 1 auto;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:12.5px;}
     .qzh .head .qlink{flex:none;white-space:nowrap;}
     .qzh .lrow{display:flex;align-items:center;gap:9px;padding:5.5px 13px;font-size:12.5px;}
     .qzh .qtitle{flex:1 1 auto;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
@@ -641,7 +641,7 @@ export default function QuizHomeClient() {
     @media(max-width:560px){.qzh .ddhead{display:flex !important;align-items:center;justify-content:space-between;position:sticky;top:0;background:#fff;margin:-6px -6px 5px;padding:10px 12px;border-bottom:1px solid ${C.line};z-index:3;font-weight:700;font-size:13px;color:${C.ink};}.qzh .ddhead .ddclose{background:#eef1f6;border:none;border-radius:8px;width:34px;height:34px;font-size:17px;line-height:1;cursor:pointer;color:${C.ink};display:flex;align-items:center;justify-content:center;flex:none;}}
     .qzh .dditem:hover{background:${C.bg};}
     .qzh .dot{width:9px;height:9px;border-radius:3px;flex:none;}
-    .qzh .boards{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.45fr) minmax(0,1.1fr);gap:12px;align-items:stretch;margin-bottom:12px;}
+    .qzh .boards{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.5fr) minmax(0,1fr);gap:12px;align-items:stretch;margin-bottom:12px;}
     .qzh .qz-mobtoggle{display:none;}
     /* Ranking leaderboard (1st card) on the narrow LEFT track; the last-played
        feed (2nd card) on the wide RIGHT track. Natural source order, no reorder. */
@@ -747,18 +747,16 @@ export default function QuizHomeClient() {
               <span className="lbl" style={{ color: C.ink }}>{lbMetric.label}{lbMetric.special || scope === 'all' ? '' : ` · ${byKey[scope]?.label}`}</span>
               <Link href={lbMetric.special && lbMetric.key !== 'catRating' ? '/quizzes/hub?tab=challenges' : '/quizzes/hub'} onClick={(e) => e.stopPropagation()} className="qlink"><span style={{ fontSize: 11, fontWeight: 700, color: C.accent }}>View all</span></Link>
             </div>
-            <div style={{ flex: 1, padding: '3px 0' }}>
+            <div style={{ flex: 1, padding: '3px 0', display: 'flex', flexDirection: 'column', justifyContent: 'space-evenly' }}>
               {lbMetric.special ? (
                 (() => {
                   if (lbMetric.key === 'catRating') {
                     const rows = (catBoards[lbMetric.catKey] || []).slice(0, boardsExpanded ? 10 : 5);
                     if (rows.length === 0) return <div style={{ padding: '12px 13px', fontSize: 12, color: C.soft }}>No ranked players yet.</div>;
                     return rows.map((r, i) => (
-                      <div className="lrow" key={r.userKey || i}>
-                        <Medal i={i} />
-                        <span className="qtitle">{r.userKey ? <Link href={`/quizzes/hub?player=${encodeURIComponent(r.userKey)}`} style={{ color: 'inherit', textDecoration: 'none' }}><WhoTag name={r.name} isAnon={r.isAnon} /></Link> : <WhoTag name={r.name} isAnon={r.isAnon} />}</span>
-                        <span style={{ flex: 'none', fontWeight: 700, fontVariantNumeric: 'tabular-nums' }}>{lbMetric.fmt(r.rating)}</span>
-                      </div>
+                      <LbRow key={r.userKey || i} i={i}
+                        name={r.userKey ? <Link href={`/quizzes/hub?player=${encodeURIComponent(r.userKey)}`} style={{ color: 'inherit', textDecoration: 'none' }}><WhoTag name={r.name} isAnon={r.isAnon} /></Link> : <WhoTag name={r.name} isAnon={r.isAnon} />}
+                        value={lbMetric.fmt(r.rating)} frac={(r.rating || 0) / (rows[0]?.rating || 1)} />
                     ));
                   }
                   const rows = lbMetric.key === 'dailyChallenge' ? dailyRows : lbMetric.key === 'correctToday' ? todayCorrectRows : todayQuizRows;
@@ -795,7 +793,7 @@ export default function QuizHomeClient() {
                 <button type="button" onClick={(e) => { e.stopPropagation(); setListMode('live'); }} style={{ background: 'none', border: 'none', padding: 0, cursor: 'pointer', color: C.accent, fontWeight: 700, fontSize: 11, whiteSpace: 'nowrap' }}>View all</button>
               </span>
             </div>
-            <div style={{ flex: 1, padding: '3px 0' }}>
+            <div style={{ flex: 1, padding: '3px 0', display: 'flex', flexDirection: 'column', justifyContent: 'space-evenly' }}>
               {liveRows.length === 0 && <div style={{ padding: '12px 13px', fontSize: 12, color: C.soft }}>No recent plays{scope === 'all' ? '' : ' in this category'} yet.</div>}
               {liveRows.map((f, i) => (
                 <Link href={`/quiz/${f.quizId}`} className="qlink" key={i}>
@@ -825,7 +823,7 @@ export default function QuizHomeClient() {
               </div>
               <div style={{ flex: 1, display: 'flex', flexDirection: 'column', padding: '8px 13px 11px' }}>
                 <div style={{ fontSize: 11, color: C.soft, fontWeight: 600, marginBottom: 7 }}>{dailyDateLabel}{dailyDateLabel ? ' · ' : ''}{dailyDoneCount}/{dailyIds.length} done</div>
-                <div style={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
+                <div style={{ flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'space-evenly' }}>
                   {dailyIds.map((qid, k) => {
                     const done = !!chScores[qid];
                     return (
