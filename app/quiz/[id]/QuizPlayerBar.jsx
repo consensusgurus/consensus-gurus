@@ -1,7 +1,7 @@
 'use client';
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { BadgeCheck, UserPlus, ChevronDown } from 'lucide-react';
+import { BadgeCheck, UserPlus, ChevronDown, ArrowRight } from 'lucide-react';
 import { DEPT_LABEL } from '@/lib/quiz-departments';
 
 // One shared player stat bar used in the SiteHeader inlay on every quiz surface.
@@ -87,7 +87,7 @@ export default function QuizPlayerBar(){
           </div>
         </div>
       ):null}
-      <span className="qpb-hub"><Link href="/quizzes/hub" onClick={e=>e.stopPropagation()} style={{display:'inline-flex',alignItems:'center',gap:6,background:'#e9f1fd',color:ACCENT,border:'1px solid #cfe0fa',borderRadius:9,padding:'8px 14px',fontWeight:700,fontSize:13,textDecoration:'none',whiteSpace:'nowrap'}}>Stat Hub</Link></span>
+      <span className="qpb-hub"><Link href="/quizzes/hub" onClick={e=>e.stopPropagation()} style={{display:'inline-flex',alignItems:'center',gap:6,background:'#e9f1fd',color:ACCENT,border:'1px solid #cfe0fa',borderRadius:9,padding:'8px 14px',fontWeight:700,fontSize:13,textDecoration:'none',whiteSpace:'nowrap'}}>Stat Hub <ArrowRight size={14}/></Link></span>
     </div>
   );
 }
