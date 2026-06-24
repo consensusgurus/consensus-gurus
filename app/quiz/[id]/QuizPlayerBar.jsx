@@ -4,12 +4,16 @@ import Link from 'next/link';
 import { BadgeCheck, UserPlus, ChevronDown, ArrowRight } from 'lucide-react';
 import { DEPT_LABEL } from '@/lib/quiz-departments';
 
-// One shared player stat bar used in the SiteHeader inlay on every quiz surface.
-// Renders a STABLE skeleton (same structure in every state) so values just fill
-// in when /api/quiz/me resolves — no layout swap, no load/resize jitter. Mobile
-// collapses to player + rank + Stat Hub; tap to expand the stats.
+// The one shared player stat bar, used in the SiteHeader inlay on every quiz
+// surface so it is byte-identical (same height, same stats) everywhere. The
+// ONLY thing that varies is the right-hand button: a "Stat Hub" link by default,
+// or a "Share Stats" action when rightAction="share" (the Stat Hub page). Pass
+// `controlled` + `me` to drive it from a supplied profile (Stat Hub); otherwise
+// it self-fetches /api/quiz/me. A stable skeleton (— placeholders) means values
+// just fill in on load — no layout swap, no jitter.
 const ACCENT='#2563eb', INK='#1c1e24', MUTED='#6b7280', SOFT='#aeb4bd', LINE='rgba(20,22,28,0.09)';
 const lbl={fontSize:10,fontWeight:600,letterSpacing:'.04em',textTransform:'uppercase',color:MUTED,marginBottom:2};
+const chip={display:'inline-flex',alignItems:'center',gap:6,background:'#e9f1fd',color:ACCENT,border:'1px solid #cfe0fa',borderRadius:9,padding:'8px 14px',fontWeight:700,fontSize:13,textDecoration:'none',whiteSpace:'nowrap',cursor:'pointer',fontFamily:'inherit'};
 
 function getAnonId(){try{return localStorage.getItem('sot_quiz_anon');}catch{return null;}}
 function getIdentity(){try{return JSON.parse(localStorage.getItem('sot_quiz_identity'));}catch{return null;}}
@@ -26,10 +30,11 @@ function Stat({value, rank, label}){
   );
 }
 
-export default function QuizPlayerBar(){
-  const [me,setMe]=useState(undefined); // undefined=loading, null=guest, object=fetched
-  const [open,setOpen]=useState(false);
+export default function QuizPlayerBar({ me: meProp, controlled = false, rightAction = 'stathub', onShare }){
+  const [meState,setMe]=useState(undefined);
+  const me = controlled ? meProp : meState;
   useEffect(()=>{
+    if(controlled) return;
     const ident=getIdentity(); const anonId=getAnonId();
     const email=ident&&ident.email?ident.email:'';
     if(!anonId&&!email){setMe(null);return;}
@@ -37,7 +42,7 @@ export default function QuizPlayerBar(){
     if(anonId)params.set('anonId',anonId);
     if(email)params.set('email',email);
     fetch(`/api/quiz/me?${params.toString()}`).then(r=>r.json()).then(d=>setMe(d||null)).catch(()=>setMe(null));
-  },[]);
+  },[controlled]);
   const found=me&&me.found;
   const determined=me!==undefined;
   const a=(found&&me.activity)||{};
@@ -53,9 +58,12 @@ export default function QuizPlayerBar(){
     }
   }
   const dash='—';
+  const rightBtn = rightAction==='share'
+    ? <button onClick={(e)=>{e.stopPropagation(); onShare&&onShare();}} style={chip}>Share Stats</button>
+    : <Link href="/quizzes/hub" onClick={e=>e.stopPropagation()} style={chip}>Stat Hub <ArrowRight size={14}/></Link>;
   return (
-    <div className={`qpb${open?' open':''}`} onClick={()=>setOpen(v=>!v)} style={{display:'flex',flexDirection:'row',alignItems:'center',flexWrap:'wrap',gap:16,padding:'10px 14px',background:'#fff',borderRadius:11,minHeight:56,boxSizing:'border-box'}}>
-      <style>{`.qpb-chev{display:none;}@media(max-width:1023px){.qpb-bestcat{display:none !important;}}@media(max-width:560px){.qpb{cursor:pointer;}.qpb:not(.open) .qpb-stats{display:none !important;}.qpb.open .qpb-stats{order:9 !important;flex:1 1 100% !important;margin-left:0 !important;justify-content:space-between !important;}.qpb-chev{display:inline-flex !important;}.qpb-hub{margin-left:auto !important;}}`}</style>
+    <div className="qpb" style={{display:'flex',flexDirection:'row',alignItems:'center',flexWrap:'wrap',gap:16,padding:'10px 14px',background:'#fff',borderRadius:11,minHeight:56,boxSizing:'border-box'}}>
+      <style>{`.qpb-chev{display:none;}@media(max-width:1023px){.qpb-bestcat{display:none !important;}}@media(max-width:560px){.qpb .qpb-stats{display:none !important;}.qpb-hub{margin-left:auto !important;}}`}</style>
       <div style={{display:'flex',flexDirection:'column',minWidth:0}}>
         <div style={lbl}>Player</div>
         {found?(
@@ -71,7 +79,6 @@ export default function QuizPlayerBar(){
         <div style={lbl}>Rank</div>
         <div style={{display:'flex',alignItems:'baseline',gap:5}}><span style={{fontSize:17,fontWeight:800,color:rank?ACCENT:SOFT,lineHeight:1}}>{rank?`#${rank}`:dash}</span>{rank&&denom?<span style={{fontSize:11,color:MUTED}}>of {denom.toLocaleString()}</span>:null}</div>
       </div>
-      <ChevronDown className="qpb-chev" size={15} strokeWidth={2.5} style={{color:'#9aa0aa',transition:'transform .15s',transform:open?'rotate(180deg)':'none'}}/>
       <div className="qpb-stats" style={{display:'flex',flex:'1 1 auto',justifyContent:'space-evenly',gap:14,marginLeft:18,flexWrap:'wrap'}}>
         <Stat value={found&&a.played!=null?a.played:dash} rank={found?rk.played:null} label="Played"/>
         <Stat value={found&&a.correct!=null?a.correct.toLocaleString():dash} rank={found?rk.correct:null} label="Correct"/>
@@ -87,7 +94,7 @@ export default function QuizPlayerBar(){
           </div>
         </div>
       ):null}
-      <span className="qpb-hub"><Link href="/quizzes/hub" onClick={e=>e.stopPropagation()} style={{display:'inline-flex',alignItems:'center',gap:6,background:'#e9f1fd',color:ACCENT,border:'1px solid #cfe0fa',borderRadius:9,padding:'8px 14px',fontWeight:700,fontSize:13,textDecoration:'none',whiteSpace:'nowrap'}}>Stat Hub <ArrowRight size={14}/></Link></span>
+      <span className="qpb-hub">{rightBtn}</span>
     </div>
   );
 }

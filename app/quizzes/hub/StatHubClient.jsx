@@ -258,6 +258,7 @@ export default function StatHubClient() {
   const viewing = !!viewKey;
   const profile = viewing ? viewProfile : me;
   const found = profile && profile.found;
+  const statBarMe = profile == null ? undefined : (profile.found ? { ...profile, signed: !profile.isAnon } : { found: false });
   const rating = profile ? (profile.rating || 1500) : 1500;
   const bestCat = useMemo(() => {
     const bc = profile && profile.byCategory;
@@ -369,52 +370,7 @@ export default function StatHubClient() {
     <div style={{ background: C.bg, minHeight: '100vh', position: 'relative' }}>
       <Grain />
       <style>{css}</style>
-      <SiteHeader active="quizzes" inlay={(
-          <div className="qzhub" style={{ maxWidth: 'none', margin: 0, padding: 0 }}>
-        <div ref={playerBarRef} className="card qz-playerbar" style={{ display: 'flex', flexDirection: 'row', alignItems: 'center', flexWrap: 'wrap', gap: 16, padding: '11px 14px', marginTop: 0, overflow: 'visible', background: '#fff', borderRadius: 11, minHeight: 56, boxSizing: 'border-box' }}>
-          {profile && profile.name ? (
-            <div style={{ display: 'flex', flexDirection: 'column', minWidth: 0 }}>
-              <div className="lbl">Player</div>
-              <div className="qz-pname" style={{ display: 'flex', alignItems: 'center', gap: 5, fontSize: 16, fontWeight: 800, color: C.ink, lineHeight: 1.15, minWidth: 0 }}><span style={{ minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{profile.name}</span>{!profile.isAnon ? <BadgeCheck size={13} strokeWidth={2.5} style={{ color: C.accent, flex: 'none' }} /> : null}</div>
-            </div>
-          ) : me && me.signed ? (
-            <Link href="/quizzes" style={{ display: 'inline-flex', alignItems: 'center', gap: 6, background: '#fff', color: C.accent, border: '1px solid #cddffb', borderLeft: `3px solid ${C.accent}`, borderRadius: 9, padding: '9px 14px', fontFamily: FONT, fontWeight: 700, fontSize: 13, cursor: 'pointer', whiteSpace: 'nowrap', textDecoration: 'none' }}><Play size={15} /> Play</Link>
-          ) : (
-            <button onClick={() => setSignupOpen(true)} style={{ display: 'inline-flex', alignItems: 'center', gap: 6, background: '#fff', color: C.accent, border: '1px solid #cddffb', borderLeft: `3px solid ${C.accent}`, borderRadius: 9, padding: '9px 14px', fontFamily: FONT, fontWeight: 700, fontSize: 13, cursor: 'pointer', whiteSpace: 'nowrap' }}><UserPlus size={15} /> Sign up</button>
-          )}
-          <div className="qz-div" style={{ width: 1, height: 34, background: C.line }} />
-          <div className={`qz-skill${found && profile.rank ? '' : ' qz-skill-empty'}`}>
-            <div className="lbl">Rank</div>
-            {found && profile.rank ? (
-              <div style={{ display: 'flex', alignItems: 'baseline', gap: 5 }}>
-                <span style={{ fontSize: 17, fontWeight: 700, color: C.accent, lineHeight: 1 }}>{`#${profile.rank}`}</span>
-                {profile.totalPlayers ? <span style={{ fontSize: 11, color: C.muted }}>of {profile.totalPlayers.toLocaleString()}</span> : null}
-              </div>
-            ) : (
-              <div style={{ fontSize: 12, fontWeight: 600, color: C.muted, lineHeight: 1.2, marginTop: 2, maxWidth: 160 }}>Play your first quiz to populate</div>
-            )}
-          </div>
-          <div className="qz-stats" style={{ display: 'flex', flex: '1 1 auto', justifyContent: 'space-evenly', gap: 12, marginLeft: 18, flexWrap: 'wrap' }}>
-            <div><div style={{ display: 'flex', alignItems: 'baseline', gap: 4 }}><span style={{ fontSize: 17, fontWeight: 700 }}>{found ? profile.activity.played : '—'}</span>{found && profile.ranks && profile.ranks.played ? <span className="qz-srank">#{profile.ranks.played}</span> : null}</div><div className="lbl">played</div></div>
-            {found ? (<div><div style={{ display: 'flex', alignItems: 'baseline', gap: 4 }}><span style={{ fontSize: 17, fontWeight: 700 }}>{found ? profile.activity.correct.toLocaleString() : '—'}</span>{found && profile.ranks && profile.ranks.correct ? <span className="qz-srank">#{profile.ranks.correct}</span> : null}</div><div className="lbl">correct</div></div>) : null}
-            <div><div style={{ display: 'flex', alignItems: 'baseline', gap: 4 }}><span style={{ fontSize: 17, fontWeight: 700 }}>{found ? `${profile.activity.accuracy}%` : '—'}</span>{found && profile.ranks && profile.ranks.accuracy ? <span className="qz-srank">#{profile.ranks.accuracy}</span> : null}</div><div className="lbl">accuracy</div></div>
-            <div><div style={{ display: 'flex', alignItems: 'baseline', gap: 4 }}><span style={{ fontSize: 17, fontWeight: 700 }}>{found ? profile.activity.completed : '—'}</span>{found && catalog.length ? <span style={{ fontSize: 11, fontWeight: 600, color: C.soft }}>({profile.activity.completed > 0 && profile.activity.completed / catalog.length < 0.005 ? '<1' : Math.round((profile.activity.completed / catalog.length) * 100)}%)</span> : null}{found && profile.ranks && profile.ranks.completed ? <span className="qz-srank">#{profile.ranks.completed}</span> : null}</div><div className="lbl">completed</div></div>
-          </div>
-          {bestCat ? (
-            <div className="qz-bestcat" ref={bestCatRef}>
-              <div className="lbl">Best category</div>
-              <div style={{ display: 'flex', alignItems: 'baseline', gap: 5, whiteSpace: 'nowrap' }}>
-                <span style={{ fontSize: 14, fontWeight: 700, color: C.ink, lineHeight: 1.2 }}>{DEPT_LABEL[bestCat.key] || bestCat.key}</span>
-                {bestCat.rank ? <span style={{ fontSize: 11, color: C.muted }}>#{bestCat.rank}{bestCat.catTotal ? ` of ${bestCat.catTotal.toLocaleString()}` : ''}</span> : null}
-              </div>
-            </div>
-          ) : null}
-          {found ? (
-            <button onClick={() => setShareOpen(true)} className="hubbtn">Share Stats</button>
-          ) : null}
-        </div>
-          </div>
-        )} />
+      <SiteHeader active="quizzes" inlay={<QuizPlayerBar controlled me={statBarMe} rightAction="share" onShare={() => setShareOpen(true)} />} />
       <div className="qzhub" style={{ maxWidth: 1180, margin: '0 auto', padding: '12px 24px 70px', position: 'relative' }}>
 
         {viewing ? (
