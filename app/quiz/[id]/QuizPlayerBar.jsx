@@ -1,22 +1,59 @@
 'use client';
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { BadgeCheck, UserPlus, ChevronDown, ArrowRight } from 'lucide-react';
+import { BadgeCheck, UserPlus, ChevronDown, ArrowRight, X } from 'lucide-react';
 import { DEPT_LABEL } from '@/lib/quiz-departments';
 
-// The one shared player stat bar, used in the SiteHeader inlay on every quiz
-// surface so it is byte-identical (same height, same stats) everywhere. The
-// ONLY thing that varies is the right-hand button: a "Stat Hub" link by default,
-// or a "Share Stats" action when rightAction="share" (the Stat Hub page). Pass
-// `controlled` + `me` to drive it from a supplied profile (Stat Hub); otherwise
-// it self-fetches /api/quiz/me. A stable skeleton (— placeholders) means values
-// just fill in on load — no layout swap, no jitter.
 const ACCENT='#2563eb', INK='#1c1e24', MUTED='#6b7280', SOFT='#aeb4bd', LINE='rgba(20,22,28,0.09)';
 const lbl={fontSize:10,fontWeight:600,letterSpacing:'.04em',textTransform:'uppercase',color:MUTED,marginBottom:2};
 const chip={display:'inline-flex',alignItems:'center',gap:6,background:'#e9f1fd',color:ACCENT,border:'1px solid #cfe0fa',borderRadius:9,padding:'8px 14px',fontWeight:700,fontSize:13,textDecoration:'none',whiteSpace:'nowrap',cursor:'pointer',fontFamily:'inherit'};
 
 function getAnonId(){try{return localStorage.getItem('sot_quiz_anon');}catch{return null;}}
+function ensureAnonId(){
+  try{
+    let a=localStorage.getItem('sot_quiz_anon');
+    if(!a){a=(window.crypto&&crypto.randomUUID)?crypto.randomUUID():`a_${Date.now()}_${Math.random().toString(36).slice(2)}`;localStorage.setItem('sot_quiz_anon',a);}
+    return a;
+  }catch{return null;}
+}
 function getIdentity(){try{return JSON.parse(localStorage.getItem('sot_quiz_identity'));}catch{return null;}}
+
+// Self-contained sign-up modal so the player-bar "Sign up" button actually signs
+// the player up wherever the bar appears (index, quiz pages, Stat Hub), instead
+// of routing to a page with no obvious sign-up. Posts to /api/quiz/join, stores
+// the identity, and reloads so every surface picks up the signed-in state.
+function SignupModal({ onClose }){
+  const [u,setU]=useState(''); const [em,setEm]=useState(''); const [busy,setBusy]=useState(false); const [err,setErr]=useState('');
+  const inp={width:'100%',boxSizing:'border-box',border:`1px solid ${LINE}`,borderRadius:10,padding:'11px 13px',fontFamily:'inherit',fontSize:15,color:INK,outline:'none'};
+  async function submit(){
+    setErr('');
+    if(!u.trim()){setErr('Pick a display name');return;}
+    setBusy(true);
+    try{
+      const r=await fetch('/api/quiz/join',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({username:u.trim(),email:em.trim()||undefined,anonId:ensureAnonId()})});
+      const d=await r.json();
+      if(d&&d.username){
+        try{localStorage.setItem('sot_quiz_identity',JSON.stringify({username:d.username,email:d.email||undefined}));}catch(e){}
+        window.location.reload();
+      }else{setErr((d&&d.error)||'Could not sign up. Try again.');setBusy(false);}
+    }catch(e){setErr('Could not sign up. Try again.');setBusy(false);}
+  }
+  return (
+    <div onClick={onClose} style={{position:'fixed',inset:0,zIndex:300,background:'rgba(20,22,28,0.45)',display:'flex',alignItems:'center',justifyContent:'center',padding:20}}>
+      <div onClick={e=>e.stopPropagation()} style={{width:380,maxWidth:'100%',background:'#fff',borderRadius:14,border:`1px solid ${LINE}`,padding:22,fontFamily:'inherit'}}>
+        <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',marginBottom:4}}>
+          <div style={{fontSize:18,fontWeight:800,color:INK}}>Claim your name</div>
+          <button onClick={onClose} aria-label="Close" style={{border:'none',background:'transparent',cursor:'pointer',color:SOFT,display:'flex'}}><X size={18}/></button>
+        </div>
+        <p style={{fontSize:13,color:MUTED,margin:'0 0 16px',lineHeight:1.5}}>Pick a display name to appear on the leaderboards. Email is optional, only used to recover your name on another device. No password needed.</p>
+        {err&&<div style={{marginBottom:12,padding:10,borderRadius:8,background:'rgba(192,57,43,0.08)',border:'1px solid rgba(192,57,43,0.4)',color:'#c0392b',fontSize:13}}>{err}</div>}
+        <input value={u} onChange={e=>setU(e.target.value)} placeholder="Display name" maxLength={15} autoCapitalize="none" autoCorrect="off" spellCheck={false} style={inp}/>
+        <input value={em} onChange={e=>setEm(e.target.value)} placeholder="Email (optional)" maxLength={120} type="email" autoCapitalize="none" autoCorrect="off" spellCheck={false} style={{...inp,marginTop:10}}/>
+        <button onClick={submit} disabled={busy} style={{marginTop:16,width:'100%',background:ACCENT,color:'#fff',border:'none',borderRadius:10,padding:'12px',fontFamily:'inherit',fontWeight:700,fontSize:14,cursor:busy?'wait':'pointer',opacity:busy?0.6:1}}>{busy?'Joining…':'Join the leaderboard'}</button>
+      </div>
+    </div>
+  );
+}
 
 function Stat({value, rank, label}){
   return (
@@ -32,6 +69,7 @@ function Stat({value, rank, label}){
 
 export default function QuizPlayerBar({ me: meProp, controlled = false, rightAction = 'stathub', onShare }){
   const [meState,setMe]=useState(undefined);
+  const [signupOpen,setSignupOpen]=useState(false);
   const me = controlled ? meProp : meState;
   useEffect(()=>{
     if(controlled) return;
@@ -69,7 +107,7 @@ export default function QuizPlayerBar({ me: meProp, controlled = false, rightAct
         {found?(
           <div style={{display:'flex',alignItems:'center',gap:5,fontSize:16,fontWeight:800,color:INK,lineHeight:1.15,minWidth:0}}><span style={{minWidth:0,overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>{me.name}</span>{me.signed?<BadgeCheck size={13} strokeWidth={2.5} style={{color:ACCENT,flex:'none'}}/>:null}</div>
         ):determined?(
-          <Link href="/quizzes/hub" onClick={e=>e.stopPropagation()} style={{display:'inline-flex',alignItems:'center',gap:5,fontSize:14,fontWeight:800,color:ACCENT,lineHeight:1.15,textDecoration:'none'}}><UserPlus size={14}/> Sign up</Link>
+          <button onClick={e=>{e.stopPropagation(); setSignupOpen(true);}} style={{display:'inline-flex',alignItems:'center',gap:5,fontSize:14,fontWeight:800,color:ACCENT,lineHeight:1.15,background:'none',border:'none',padding:0,cursor:'pointer',fontFamily:'inherit'}}><UserPlus size={14}/> Sign up</button>
         ):(
           <div style={{fontSize:16,fontWeight:800,color:SOFT,lineHeight:1.15}}>{dash}</div>
         )}
@@ -95,6 +133,7 @@ export default function QuizPlayerBar({ me: meProp, controlled = false, rightAct
         </div>
       ):null}
       <span className="qpb-hub">{rightBtn}</span>
+      {signupOpen && <SignupModal onClose={()=>setSignupOpen(false)} />}
     </div>
   );
 }
