@@ -1140,9 +1140,9 @@ export default function QuizClient({ quizId }) {
         {/* Header */}
         <div style={{ paddingBottom: 0, marginTop: 12 }}>
           <div style={{ display: 'flex', alignItems: 'flex-end', gap: 'clamp(16px, 4vw, 28px)' }}>
-            <h1 style={{ fontFamily: SERIF, fontWeight: 800, fontSize: 'clamp(30px, 5vw, 50px)', lineHeight: 1.02, letterSpacing: '-0.02em', margin: 0, color: COLORS.ink, fontVariationSettings: '"SOFT" 100' }}>{quiz.title}</h1>
+            <h1 style={{ fontFamily: SERIF, fontWeight: 800, fontSize: 'clamp(24px, 4vw, 38px)', lineHeight: 1.02, letterSpacing: '-0.02em', margin: 0, color: COLORS.ink, fontVariationSettings: '"SOFT" 100' }}>{quiz.title}</h1>
           </div>
-          <p style={{ fontFamily: SANS, fontSize: 15, lineHeight: 1.55, margin: '10px 0 0', color: COLORS.faded, maxWidth: 680 }}>{quiz.blurb}</p>
+          <p style={{ fontFamily: SANS, fontSize: 15, lineHeight: 1.55, margin: '8px 0 0', color: COLORS.faded, maxWidth: 680 }}>{quiz.blurb}</p>
         </div>
 
         <div style={{ display: 'flex', gap: 16, marginTop: 14, justifyContent: 'flex-end' }}>
@@ -1216,7 +1216,7 @@ export default function QuizClient({ quizId }) {
           </div>
         )}
 
-        <div style={{ marginTop: 24 }} />
+        <div style={{ marginTop: 12 }} />
 
         {/* ── PLAY ── */}
         {tab === 'play' && (
