@@ -40,6 +40,13 @@ const COLORS = {
   paper: '#eceef1',
   ink: '#1c1e24',
   ember: '#2563eb',
+  soft: '#9aa0ab',
+  line: 'rgba(20,22,28,0.09)',
+  accSoft: '#eef3ff',
+  accBorder: '#cddffb',
+  gold: '#e8b43a',
+  silver: '#aeb4bd',
+  bronze: '#c88a55',
   rust: '#c0392b',
   forest: '#10b981',
   faded: '#6b7280',
@@ -1144,7 +1151,7 @@ export default function QuizClient({ quizId }) {
           <div style={{ display: 'flex', alignItems: 'flex-end', gap: 'clamp(16px, 4vw, 28px)' }}>
             <h1 style={{ fontFamily: SERIF, fontWeight: 800, fontSize: 'clamp(24px, 4vw, 38px)', lineHeight: 1.02, letterSpacing: '-0.02em', margin: 0, color: COLORS.ink, fontVariationSettings: '"SOFT" 100' }}>{quiz.title}</h1>
           </div>
-          <p style={{ fontFamily: SANS, fontSize: 15, lineHeight: 1.55, margin: '8px 0 0', color: COLORS.faded, maxWidth: 680 }}>{quiz.blurb}</p>
+          <p style={{ fontFamily: SANS, fontSize: 15, lineHeight: 1.55, margin: '8px 0 0', color: COLORS.faded, maxWidth: 680 }}>{quiz.blurb}{!identity ? <> <button onClick={() => setTab('join')} style={{ background: 'none', border: 'none', padding: 0, font: 'inherit', color: COLORS.ember, fontWeight: 700, cursor: 'pointer' }}>Sign up to save your scores &rarr;</button></> : null}</p>
           {tab !== 'stats' && <LeaderboardStrip board={board} identity={identity} onOpen={() => setTab('stats')} />}
         </div>
 
@@ -1157,13 +1164,6 @@ export default function QuizClient({ quizId }) {
         <div style={{ marginTop: 8 }}>
           <div style={{ position: 'relative' }}>
             <style>{`@keyframes qzCueR{0%,100%{transform:translate(0,-50%);}50%{transform:translate(3px,-50%);}}@keyframes qzCueL{0%,100%{transform:translate(0,-50%);}50%{transform:translate(-3px,-50%);}}.qz-cue{position:absolute;top:50%;z-index:3;display:flex;align-items:center;justify-content:center;width:26px;height:26px;border-radius:50%;background:${COLORS.ember};color:#fff;box-shadow:0 1px 4px rgba(26,22,17,0.45);pointer-events:none;font-size:15px;line-height:1;}.qz-cue-r{right:10px;animation:qzCueR 1.4s ease-in-out infinite;}.qz-cue-l{left:10px;animation:qzCueL 1.4s ease-in-out infinite;}@media(min-width:760px){.qz-cue{display:none;}}.qz-ribbon{scrollbar-width:none;-ms-overflow-style:none;}.qz-ribbon::-webkit-scrollbar{display:none;}@keyframes qzCueOk{0%{transform:scale(.96);opacity:0;}55%{transform:scale(1.03);}100%{transform:scale(1);opacity:1;}}@keyframes qzCueNo{0%,100%{transform:translateX(0);}15%{transform:translateX(-7px);}30%{transform:translateX(6px);}45%{transform:translateX(-5px);}60%{transform:translateX(4px);}75%{transform:translateX(-2px);}}`}</style>
-            <div ref={ribbonRef} className="qz-ribbon" style={{ display: 'flex', alignItems: 'stretch', flexWrap: 'nowrap', overflowX: 'auto', background: '#eceef1', borderRadius: 10, padding: 4, gap: 6 }}>
-              {chip('play', 'Play')}
-              {chip('stats', 'Leaderboard')}
-              {chip('join', 'Sign-up', <Trophy size={12} strokeWidth={2.5} />)}
-            </div>
-            {ribScroll.left && <span aria-hidden="true" className="qz-cue qz-cue-l">&#8249;</span>}
-            {ribScroll.right && <span aria-hidden="true" className="qz-cue qz-cue-r">&#8250;</span>}
           </div>
         </div>
 
@@ -1222,44 +1222,7 @@ export default function QuizClient({ quizId }) {
                 the top of the viewport. The nav ribbon above is NOT sticky, so
                 this is the only frozen element; the list/board scrolls under. */}
             <div ref={scoreRef} style={{ position: 'sticky', top: 0, zIndex: 24, background: COLORS.cream }}>
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', alignItems: 'center', background: COLORS.paper, borderRadius: 10, border: `1px solid ${COLORS.faded}33`, borderRadius: 12, padding: '16px 8px', marginBottom: 0 }}>
-              <div style={{ textAlign: 'center', padding: '0 8px' }}>
-                <div style={{ fontFamily: SERIF, fontWeight: 800, fontSize: 34, lineHeight: 1 }}>{dispScore}<span style={{ fontSize: 20, color: COLORS.faded }}>/{total}</span></div>
-                <div style={{ fontFamily: MONO, fontSize: 11, letterSpacing: '0.12em', textTransform: 'uppercase', color: COLORS.faded }}>Your score</div>
-              </div>
-              {mapMode ? (
-              <div style={{ textAlign: 'center', padding: '0 8px', borderLeft: `1px solid ${COLORS.faded}33` }}>
-                <div style={{ fontFamily: SERIF, fontWeight: 800, fontSize: 34, lineHeight: 1, color: (guessesLeft == null ? total : guessesLeft) <= 3 && started && !ended ? COLORS.ember : COLORS.ink }}>{guessesLeft == null ? total : guessesLeft}</div>
-                <div style={{ fontFamily: MONO, fontSize: 11, letterSpacing: '0.12em', textTransform: 'uppercase', color: COLORS.faded }}>{quiz.suddenDeath ? 'States left' : 'Guesses left'}</div>
-              </div>
-              ) : bankMode || photoMatchMode ? (
-              <div style={{ textAlign: 'center', padding: '0 8px', borderLeft: `1px solid ${COLORS.faded}33` }}>
-                <div style={{ fontFamily: SERIF, fontWeight: 800, fontSize: 34, lineHeight: 1, color: (total - pairsMatched - pairsErrors) <= 3 && started && !ended ? COLORS.ember : COLORS.ink }}>{Math.max(0, total - pairsMatched - pairsErrors)}</div>
-                <div style={{ fontFamily: MONO, fontSize: 11, letterSpacing: '0.12em', textTransform: 'uppercase', color: COLORS.faded }}>Guesses left</div>
-              </div>
-              ) : (typeMode || photoMode) ? (
-              <div style={{ textAlign: 'center', padding: '0 8px', borderLeft: `1px solid ${COLORS.faded}33` }}>
-                <div style={{ fontFamily: SERIF, fontWeight: 800, fontSize: 34, lineHeight: 1, color: COLORS.ink }}>{Math.max(0, total - pairsMatched)}</div>
-                <div style={{ fontFamily: MONO, fontSize: 11, letterSpacing: '0.12em', textTransform: 'uppercase', color: COLORS.faded }}>Remaining</div>
-              </div>
-              ) : tileMode ? (
-              <div style={{ textAlign: 'center', padding: '0 8px', borderLeft: `1px solid ${COLORS.faded}33` }}>
-                <div style={{ fontFamily: SERIF, fontWeight: 800, fontSize: 34, lineHeight: 1, color: pairsErrors > 0 ? COLORS.ember : COLORS.ink }}>{pairsErrors}</div>
-                <div style={{ fontFamily: MONO, fontSize: 11, letterSpacing: '0.12em', textTransform: 'uppercase', color: COLORS.faded }}>Errors</div>
-              </div>
-              ) : (
-              <div style={{ textAlign: 'center', padding: '0 8px', borderLeft: `1px solid ${COLORS.faded}33` }}>
-                <div style={{ fontFamily: SERIF, fontWeight: 800, fontSize: 34, lineHeight: 1 }}><Count value={board.plays} /></div>
-                <div style={{ fontFamily: MONO, fontSize: 11, letterSpacing: '0.12em', textTransform: 'uppercase', color: COLORS.faded }}>Total plays</div>
-              </div>
-              )}
-              <div style={{ textAlign: 'center', padding: '0 8px', borderLeft: `1px solid ${COLORS.faded}33` }}>
-                <div style={{ fontFamily: MONO, fontSize: 24, color: time <= 10 && started && !ended ? COLORS.ember : COLORS.ink }}>{clock}</div>
-                <div style={{ fontFamily: MONO, fontSize: 11, letterSpacing: '0.12em', textTransform: 'uppercase', color: COLORS.faded }}>Time left</div>
-              </div>
-            </div>
-
-            <div style={{ display: 'flex', gap: 10, marginBottom: 6 }}>
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, marginBottom: 6 }}>
               {!mapMode && !tileMode && (!matched || ordered) && (
                 <input
                   ref={inputRef}
@@ -1279,6 +1242,20 @@ export default function QuizClient({ quizId }) {
                   style={{ flex: 1, minWidth: 0, fontFamily: SANS, fontSize: 17, padding: '14px 16px', borderRadius: 10, border: `1.5px solid ${COLORS.ink}`, borderRadius: 8, background: !started || ended ? COLORS.paper : '#eceef1', color: COLORS.ink, opacity: !started || ended ? 0.5 : 1 }}
                 />
               )}
+              {(() => {
+                const base = { display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 5, flex: 'none', height: 48, padding: '0 14px', border: `1px solid ${COLORS.line}`, borderRadius: 10, background: '#fff', fontFamily: SERIF, fontWeight: 800, fontSize: 17, lineHeight: 1 };
+                const live = started && !ended;
+                const mid = mapMode ? { v: (guessesLeft == null ? total : guessesLeft), hot: (guessesLeft == null ? total : guessesLeft) <= 3, t: (quiz.suddenDeath ? 'States left' : 'Guesses left') }
+                  : (bankMode || photoMatchMode) ? { v: Math.max(0, total - pairsMatched - pairsErrors), hot: (total - pairsMatched - pairsErrors) <= 3, t: 'Guesses left' }
+                  : (typeMode || photoMode) ? { v: Math.max(0, total - pairsMatched), hot: false, t: 'Remaining' }
+                  : tileMode ? { v: pairsErrors, hot: pairsErrors > 0, t: 'Errors' }
+                  : null;
+                return (<>
+                  <span style={base} title="Your score">{dispScore}<span style={{ fontSize: 12, color: COLORS.soft, fontWeight: 700 }}>/{total}</span></span>
+                  {mid ? <span style={{ ...base, color: mid.hot && live ? COLORS.ember : COLORS.ink }} title={mid.t}>{mid.v}</span> : null}
+                  <span style={{ ...base, fontFamily: MONO, color: time <= 10 && live ? COLORS.ember : COLORS.ink }} title="Time left">{clock}</span>
+                </>);
+              })()}
               <div style={{ position: 'relative', display: 'flex', flex: (matched && !ordered) || mapMode || tileMode ? 1 : 'none' }}>
               <button onClick={start} disabled={started || ended} style={{ flex: 1, fontFamily: MONO, fontSize: 13, letterSpacing: '0.08em', textTransform: 'uppercase', fontWeight: 700, padding: '0 22px', height: matched || mapMode || tileMode ? 52 : 'auto', border: 'none', background: COLORS.ember, color: '#fff', cursor: started || ended ? 'default' : 'pointer', opacity: started || ended ? 0.5 : 1 }}>
                 {ended ? 'Done' : started ? 'Playing' : (matched && !ordered) ? (quiz.noun ? 'Play' : 'Play — name each year') : 'Play'}
@@ -1396,7 +1373,7 @@ export default function QuizClient({ quizId }) {
                 const isActive = ordered && started && !ended && i === activeIdx;
                 const reveal = ended && revealed && !f; // a missed answer, now filled in
                 return (
-                  <li key={i} ref={setFlipRef(i)} style={{ display: 'flex', alignItems: 'center', gap: rz.gap, padding: rz.pad, borderRadius: 10, border: `1px solid ${f ? COLORS.forest : isActive ? COLORS.ember : reveal ? COLORS.rust : COLORS.faded + '33'}`, marginBottom: rz.mb, background: reveal ? '#f6ead9' : f || isActive ? '#fff' : COLORS.paper, boxShadow: isActive ? `inset 4px 0 0 ${COLORS.ember}` : reveal ? `inset 4px 0 0 ${COLORS.rust}` : 'none', transition: 'background .2s, border-color .2s, box-shadow .2s, color .2s' }}>
+                  <li key={i} ref={setFlipRef(i)} style={{ display: 'flex', alignItems: 'center', gap: rz.gap, padding: rz.pad, borderRadius: 10, border: `1px solid ${f ? COLORS.accBorder : isActive ? COLORS.ember : reveal ? COLORS.rust : COLORS.line}`, marginBottom: rz.mb, background: reveal ? '#fdecec' : f ? COLORS.accSoft : '#fff', boxShadow: isActive ? `inset 4px 0 0 ${COLORS.ember}` : reveal ? `inset 4px 0 0 ${COLORS.rust}` : 'none', transition: 'background .2s, border-color .2s, box-shadow .2s, color .2s' }}>
                     {a.label != null ? (
                       <span style={{ fontFamily: MONO, fontWeight: 700, fontSize: 15, minWidth: 52, maxWidth: '50%', overflowWrap: 'anywhere', wordBreak: 'break-word', whiteSpace: 'normal', lineHeight: 1.2, color: COLORS.ember, flex: 'none', textAlign: 'left', letterSpacing: '0.04em' }}>{a.label}</span>
                     ) : (
@@ -1528,6 +1505,11 @@ export default function QuizClient({ quizId }) {
                   <Share2 size={14} strokeWidth={2.5} /> {copied ? 'Link copied!' : 'Challenge a friend'}
                 </button>
               )}
+              {ended && (
+                <button onClick={() => { setQSent(false); setQOpen(true); }} style={{ fontFamily: MONO, fontSize: 12, letterSpacing: '0.12em', textTransform: 'uppercase', fontWeight: 700, padding: '12px 26px', border: `1px solid ${COLORS.line}`, background: '#fff', color: COLORS.faded, cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: 8 }}>
+                  <HelpCircle size={14} strokeWidth={2.5} /> Report an error
+                </button>
+              )}
             </div>
           </>
         )}
@@ -1535,6 +1517,7 @@ export default function QuizClient({ quizId }) {
         {/* ── STATS & LEADERBOARD (quiz stats + leaderboard) ── */}
         {tab === 'stats' && (
           <div>
+            <button onClick={() => setTab('play')} style={{ display: 'inline-flex', alignItems: 'center', gap: 5, background: 'none', border: 'none', cursor: 'pointer', fontFamily: SANS, fontSize: 12.5, fontWeight: 600, color: COLORS.ember, padding: 0, marginBottom: 16 }}><ArrowLeft size={13} strokeWidth={2.5} /> Back to quiz</button>
             <div style={{ fontFamily: MONO, fontSize: 11, letterSpacing: '0.16em', textTransform: 'uppercase', color: COLORS.ember, marginBottom: 14 }}>Quiz stats</div>
             {board.plays === 0 ? (
               <p style={{ fontFamily: SERIF, fontStyle: 'italic', fontSize: 17, color: COLORS.faded }}>No one has played this quiz yet. Be the first to set the pace.</p>
@@ -1553,11 +1536,11 @@ export default function QuizClient({ quizId }) {
               </div>
 
               {board.plays > 0 && (
-                <div style={{ display: 'flex', marginBottom: 14, borderRadius: 10, border: `1px solid ${COLORS.faded}55`, width: 'fit-content' }}>
-                  {[['registered', 'Registered'], ['all', 'All players']].map(([k, label], idx) => {
+                <div style={{ display: 'inline-flex', gap: 4, marginBottom: 14, borderRadius: 10, background: '#eef1f5', padding: 4, width: 'fit-content' }}>
+                  {[['registered', 'Registered'], ['all', 'All players']].map(([k, label]) => {
                     const on = lbView === k;
                     return (
-                      <button key={k} onClick={() => setLbView(k)} style={{ padding: '6px 14px', background: on ? COLORS.ink : 'transparent', color: on ? '#fff' : COLORS.faded, border: 'none', borderLeft: idx === 0 ? 'none' : `1px solid ${COLORS.faded}55`, fontFamily: MONO, fontSize: 10, letterSpacing: '0.12em', textTransform: 'uppercase', fontWeight: 700, cursor: 'pointer' }}>{label}</button>
+                      <button key={k} onClick={() => setLbView(k)} style={{ padding: '6px 14px', background: on ? '#fff' : 'transparent', color: on ? COLORS.ink : COLORS.soft, border: 'none', borderRadius: 7, fontFamily: SANS, fontSize: 11, letterSpacing: '0.04em', fontWeight: 700, cursor: 'pointer', boxShadow: on ? '0 1px 2px rgba(20,22,28,0.06)' : 'none' }}>{label}</button>
                     );
                   })}
                 </div>
@@ -1575,7 +1558,7 @@ export default function QuizClient({ quizId }) {
                   {lb.map((row, i) => {
                     const mine = identity && row.username === identity.username;
                     return (
-                      <div key={i} style={{ display: 'grid', gridTemplateColumns: '40px 1fr 76px 64px', gap: 8, alignItems: 'center', padding: '11px 14px', marginBottom: 6, background: mine ? '#fff' : COLORS.paper, borderRadius: 10, border: `1px solid ${mine ? COLORS.ember : COLORS.faded + '22'}` }}>
+                      <div key={i} style={{ display: 'grid', gridTemplateColumns: '40px 1fr 76px 64px', gap: 8, alignItems: 'center', padding: '11px 14px', marginBottom: 6, background: mine ? COLORS.accSoft : '#fff', borderRadius: 10, border: `1px solid ${mine ? COLORS.accBorder : COLORS.line}` }}>
                         <span style={{ fontFamily: SERIF, fontWeight: 800, fontSize: 18, color: lbRanks[i] <= 3 ? COLORS.ember : COLORS.faded }}>{lbTied[i] ? `T${lbRanks[i]}` : lbRanks[i]}</span>
                         <span style={{ minWidth: 0, display: 'flex', flexDirection: 'column', gap: 2 }}>
                           <span style={{ fontFamily: SERIF, fontSize: 17, fontWeight: 500, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{row.userKey ? <a href={`/quizzes/hub?player=${encodeURIComponent(row.userKey)}`} style={{ color: 'inherit', textDecoration: 'none', borderBottom: `1px dotted ${COLORS.faded}88`, cursor: 'pointer' }}>{row.username}</a> : row.username}{mine ? ' (you)' : ''}{row.tryNum ? <span style={{ fontFamily: MONO, fontSize: 11, fontWeight: 400, color: COLORS.faded, marginLeft: 6 }}>{row.tryNum > 1 ? '(retried)' : '(1st Try)'}</span> : ''}</span>
@@ -1595,6 +1578,7 @@ export default function QuizClient({ quizId }) {
         {/* ── SHARE ── */}
         {tab === 'share' && (
           <div style={{ textAlign: 'center', padding: '12px 0 8px' }}>
+            <div style={{ textAlign: 'left' }}><button onClick={() => setTab('play')} style={{ display: 'inline-flex', alignItems: 'center', gap: 5, background: 'none', border: 'none', cursor: 'pointer', fontFamily: SANS, fontSize: 12.5, fontWeight: 600, color: COLORS.ember, padding: 0, marginBottom: 16 }}><ArrowLeft size={13} strokeWidth={2.5} /> Back to quiz</button></div>
             <p style={{ fontFamily: SERIF, fontStyle: 'italic', fontSize: 19, color: COLORS.ink, maxWidth: 480, margin: '0 auto 18px' }}>{ended ? `You scored ${dispScore} of ${total}. Challenge someone to beat it.` : 'Send this quiz to someone who thinks they know better.'}</p>
             <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, justifyContent: 'center', marginBottom: 14 }}>
               {[['x', 'X'], ['reddit', 'Reddit'], ['facebook', 'Facebook'], ['whatsapp', 'WhatsApp']].map(([k, label]) => (
@@ -1615,7 +1599,7 @@ export default function QuizClient({ quizId }) {
 
         {/* ── JOIN THE LEADERBOARD (sign-up) ── */}
         {tab === 'join' && (
-          <JoinLeaderboardForm identity={identity} onJoined={(id) => { setIdentity(id); refreshBoard(); setTab('stats'); }} onViewLeaderboard={() => setTab('stats')} />
+          <div><button onClick={() => setTab('play')} style={{ display: 'inline-flex', alignItems: 'center', gap: 5, background: 'none', border: 'none', cursor: 'pointer', fontFamily: SANS, fontSize: 12.5, fontWeight: 600, color: COLORS.ember, padding: 0, marginBottom: 16 }}><ArrowLeft size={13} strokeWidth={2.5} /> Back to quiz</button><JoinLeaderboardForm identity={identity} onJoined={(id) => { setIdentity(id); refreshBoard(); setTab('stats'); }} onViewLeaderboard={() => setTab('stats')} /></div>
         )}
 
         {asOfLabel && (
@@ -1782,9 +1766,9 @@ const fieldStyle = { width: '100%', fontFamily: SANS, fontSize: 16, padding: '12
 
 function StatBox({ label, value, accent }) {
   return (
-    <div style={{ background: accent ? COLORS.paper : '#eceef1', borderRadius: 10, border: `1px solid ${COLORS.faded}33`, padding: '18px 16px', textAlign: 'center' }}>
-      <div style={{ fontFamily: SERIF, fontWeight: 800, fontSize: 30, lineHeight: 1, color: accent ? COLORS.ember : COLORS.ink }}>{value}</div>
-      <div style={{ fontFamily: MONO, fontSize: 10, letterSpacing: '0.12em', textTransform: 'uppercase', color: COLORS.faded, marginTop: 8 }}>{label}</div>
+    <div style={{ background: '#fff', borderRadius: 12, border: `1px solid ${COLORS.line}`, padding: '16px 14px', textAlign: 'center' }}>
+      <div style={{ fontFamily: SERIF, fontWeight: 800, fontSize: 28, lineHeight: 1, color: accent ? COLORS.ember : COLORS.ink }}>{value}</div>
+      <div style={{ fontFamily: SANS, fontSize: 10, fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase', color: COLORS.soft, marginTop: 7 }}>{label}</div>
     </div>
   );
 }

@@ -11,6 +11,7 @@ body {
 
 html {
   scroll-behavior: smooth;
+  scrollbar-gutter: stable;
   /* Disable mobile-browser font boosting: long un-wrappable labels and the
      scaled 1080px share posters otherwise get inconsistently inflated text. */
   -webkit-text-size-adjust: 100%;
