@@ -51,10 +51,10 @@ export default function QuizPlayerBar() {
         </div>
         <ChevronDown className="qpb-chev" size={15} strokeWidth={2.5} style={{ color: '#9aa0aa', transition: 'transform .15s', transform: open ? 'rotate(180deg)' : 'none' }} />
         <div className="qpb-stats" style={{ display: 'flex', flex: '1 1 auto', justifyContent: 'space-evenly', gap: 12, marginLeft: 18, flexWrap: 'wrap' }}>
-          <div><div style={{ fontSize: 17, fontWeight: 700 }}>{a.played != null ? a.played : '—'}</div><div style={lbl}>played</div></div>
-          <div><div style={{ fontSize: 17, fontWeight: 700 }}>{a.correct != null ? a.correct.toLocaleString() : '—'}</div><div style={lbl}>correct</div></div>
-          <div><div style={{ fontSize: 17, fontWeight: 700 }}>{a.accuracy != null ? `${a.accuracy}%` : '—'}</div><div style={lbl}>accuracy</div></div>
-          <div><div style={{ fontSize: 17, fontWeight: 700 }}>{a.completed != null ? a.completed : '—'}</div><div style={lbl}>completed</div></div>
+          <div><div style={{ fontSize: 17, fontWeight: 700, color: ACCENT }}>{a.played != null ? a.played : '—'}</div><div style={lbl}>played</div></div>
+          <div><div style={{ fontSize: 17, fontWeight: 700, color: ACCENT }}>{a.correct != null ? a.correct.toLocaleString() : '—'}</div><div style={lbl}>correct</div></div>
+          <div><div style={{ fontSize: 17, fontWeight: 700, color: ACCENT }}>{a.accuracy != null ? `${a.accuracy}%` : '—'}</div><div style={lbl}>accuracy</div></div>
+          <div><div style={{ fontSize: 17, fontWeight: 700, color: ACCENT }}>{a.completed != null ? a.completed : '—'}</div><div style={lbl}>completed</div></div>
         </div>
       </>) : (
         <div style={{ flex: '1 1 60px', minWidth: 0, color: MUTED, fontSize: 13, fontWeight: 600 }}>Play to track your stats</div>

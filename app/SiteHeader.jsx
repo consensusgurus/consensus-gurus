@@ -37,7 +37,7 @@ function Logo({ size = 40 }) {
 
 export default function SiteHeader({ active = 'lists', maxWidth = 1180, visitors, bare = false, inlay = null }) {
   return (
-    <div style={{ fontFamily: FONT }}>
+    <div className="sh-root" style={{ fontFamily: FONT }}>
       <style>{`
         @import url('https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap');
         .sh-bar{display:flex;flex-direction:column;padding:12px 16px;background:#2563eb;border-radius:16px;}
@@ -55,7 +55,8 @@ export default function SiteHeader({ active = 'lists', maxWidth = 1180, visitors
         .sh-navct{font-weight:600;opacity:0.65;font-size:12px;}
         @media(max-width:560px){
           .sh-outer{padding:0;}
-          .sh-bar{border-radius:0;padding:11px 14px;}
+          .sh-root{width:100vw;margin-left:calc(50% - 50vw);}
+          .sh-bar{border-radius:0;padding:calc(11px + env(safe-area-inset-top)) 14px 11px;}
           .sh-top{flex-wrap:nowrap;}
           .sh-word{font-size:18px;}
           .sh-tag{display:none;}

@@ -31,7 +31,7 @@ export const viewport = {
   initialScale: 1,
   maximumScale: 5,
   userScalable: true,
-  themeColor: '#2563eb',
+  viewportFit: 'cover', themeColor: '#2563eb',
 };
 
 const websiteJsonLd = {
