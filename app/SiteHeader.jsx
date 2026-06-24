@@ -41,8 +41,8 @@ export default function SiteHeader({ active = 'lists', maxWidth = 1180, visitors
       <style>{`
         @import url('https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap');
         .sh-bar{display:flex;flex-direction:column;padding:12px 16px;background:#2563eb;border-radius:16px;}
-        .sh-top{display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap;position:relative;z-index:5;}
-        .sh-inlay{margin-top:12px;position:relative;z-index:1;}
+        .sh-top{display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap;}
+        .sh-inlay{margin-top:12px;}
         .sh-outer{padding:10px 24px 0;}
         .sh-brand{display:flex;align-items:center;gap:11px;text-decoration:none;flex:none;}
         .sh-word{font-size:21px;font-weight:800;letter-spacing:-0.025em;line-height:1;color:#fff;}
