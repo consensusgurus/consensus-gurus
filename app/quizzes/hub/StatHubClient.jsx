@@ -371,7 +371,7 @@ export default function StatHubClient() {
       <style>{css}</style>
       <SiteHeader active="quizzes" inlay={(
           <div className="qzhub" style={{ maxWidth: 'none', margin: 0, padding: 0 }}>
-        <div ref={playerBarRef} className="card qz-playerbar" style={{ display: 'flex', flexDirection: 'row', alignItems: 'center', flexWrap: 'wrap', gap: 16, padding: '11px 14px', marginTop: 0, overflow: 'visible', background: '#fff', borderRadius: 11 }}>
+        <div ref={playerBarRef} className="card qz-playerbar" style={{ display: 'flex', flexDirection: 'row', alignItems: 'center', flexWrap: 'wrap', gap: 16, padding: '11px 14px', marginTop: 0, overflow: 'visible', background: '#fff', borderRadius: 11, minHeight: 56, boxSizing: 'border-box' }}>
           {profile && profile.name ? (
             <div style={{ display: 'flex', flexDirection: 'column', minWidth: 0 }}>
               <div className="lbl">Player</div>
@@ -410,7 +410,7 @@ export default function StatHubClient() {
             </div>
           ) : null}
           {found ? (
-            <button onClick={() => setShareOpen(true)} className="hubbtn"><Share2 size={15} strokeWidth={2.4} /> Share Stats</button>
+            <button onClick={() => setShareOpen(true)} className="hubbtn">Share Stats</button>
           ) : null}
         </div>
           </div>
