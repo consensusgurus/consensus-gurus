@@ -926,7 +926,7 @@ function Home({ lists, viewCounts, voteData, extras, trending = {}, openList, on
         @import url('https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap');
         .nt-wrap{max-width:1180px;margin:0 auto;padding:8px 24px 70px;}
         .nt-stickytop{position:sticky;top:0;z-index:50;background:#f7f8fa;}
-        .nt-pillsbar{max-width:1180px;margin:0 auto;padding:0 24px 0;}
+        .nt-pillsbar{max-width:1180px;margin:0 auto;padding:8px 24px 0;}
         .nt-toolwrap{max-width:1180px;margin:0 auto;padding:0 24px;}
         .nt-bodywrap{padding-top:0;}
         @media(max-width:560px){.nt-pillsbar{padding:8px 14px 0;}.nt-toolwrap{padding:0 14px;}}
@@ -939,7 +939,7 @@ function Home({ lists, viewCounts, voteData, extras, trending = {}, openList, on
         .nt-stat b{color:${NT.ink};}
         .nt-tagline{font-size:12px;color:${NT.muted};line-height:1.5;max-width:430px;}
         .nt-tagline b{color:${NT.ink};}
-        .nt-pills{display:flex;gap:7px;flex-wrap:wrap;margin:0;padding:10px 14px;position:relative;background:#fff;border:1px solid rgba(20,22,28,0.09);border-top:none;border-radius:0 0 14px 14px;}
+        .nt-pills{display:flex;gap:7px;flex-wrap:wrap;margin:4px 0 12px;position:relative;}
         .nt-pill{font-size:12px;font-weight:700;letter-spacing:.03em;text-transform:uppercase;padding:7px 10px;border-radius:9px;border:1px solid ${NT.line};background:#fff;color:${NT.muted};cursor:pointer;display:flex;flex:1 1 auto;align-items:center;justify-content:center;gap:5px;font-family:inherit;white-space:nowrap;}
         .nt-pill.on{color:#fff;}
         .nt-pill.ghost.on{background:${NT.ink};border-color:${NT.ink};color:#fff;}
@@ -985,7 +985,7 @@ function Home({ lists, viewCounts, voteData, extras, trending = {}, openList, on
         @media(max-width:560px){.nt-wrap{padding:16px 14px 60px;}.nt-tagline{display:none;}.nt-pillsbar{display:none !important;}.nt-mfilter{display:inline-flex !important;flex:none;}.nt-field{flex:1 1 auto;}.nt-sortwrap{display:none !important;}.nt-tbtn.primary{display:none !important;}.nt-msheet{display:block;flex:1 1 100%;width:100%;}.nt-toolbar{margin-bottom:10px;}.nt-toolwrap{padding:10px 14px 0 !important;}.nt-bodywrap{padding-top:0 !important;}}
       `}</style>
 
-      <SiteHeader active="lists" visitors={totalViews} seam="lists" />
+      <SiteHeader active="lists" visitors={totalViews} />
       <div className="nt-stickytop">
       <div className="nt-pillsbar">
         {/* category pills + By City / By Topic */}
