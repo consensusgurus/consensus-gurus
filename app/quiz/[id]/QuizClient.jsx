@@ -1025,12 +1025,12 @@ export default function QuizClient({ quizId }) {
     return null;
   })();
   const colSplit = explicitCols; // fixed-grid render path uses this
-  // Long answer lists (e.g. a 100-city or 54-country quiz) spill off the screen
-  // as full-height rows. When the list is large, switch the plain/matched answer
-  // rows to a COMPACT scale (smaller padding/type) and allow more columns, so far
-  // more tiles fit on one screen. Only the text-row path compacts; map/tile/image
-  // boards manage their own density. `rz` carries the per-row dimensions.
-  const compactList = !mapMode && !tileMode && !logosMode && answers.length >= 30;
+  // Answer rows render at a COMPACT scale (small padding/type) for EVERY text
+  // list, not just long ones, so the tiles stay tight and many fit on a phone
+  // screen, and short lists still break into multiple columns. Only the text-row
+  // path compacts; map/tile/image boards manage their own density. `rz` carries
+  // the per-row dimensions.
+  const compactList = !mapMode && !tileMode && !logosMode;
   const rz = compactList
     ? { pad: '3px 8px', gap: 8, mb: 4, rank: 12, rankW: 18, name: 12, dash: 10, check: 13 }
     : { pad: '13px 16px', gap: 16, mb: 8, rank: 22, rankW: 30, name: 19, dash: 13, check: 17 };
@@ -1045,7 +1045,7 @@ export default function QuizClient({ quizId }) {
     }, 0);
     let widthCap;
     if (compactList) {
-      // Tiny rows on big quizzes: pack as many columns as width allows.
+      // Tiny rows: pack as many columns as the answer width allows.
       // Readability is intentionally deprioritized so far more answers fit.
       if (maxLen <= 12) widthCap = 7;
       else if (maxLen <= 20) widthCap = 6;
@@ -1058,8 +1058,9 @@ export default function QuizClient({ quizId }) {
       else if (maxLen <= 40) widthCap = 2;
       else widthCap = 1;
     }
-    // Aim for ~12 rows per column when compact (denser), else ~6.
-    const rowsTarget = compactList ? 8 : 6;
+    // ~5 rows per column when compact so even a 10-answer quiz splits into 2-3
+    // columns (denser, more fits on a phone); else ~6.
+    const rowsTarget = compactList ? 5 : 6;
     let cols = Math.max(1, Math.min(widthCap, Math.floor(n / rowsTarget)));
     const per = Math.ceil(n / Math.max(1, cols));
     cols = Math.ceil(n / per); // trim a near-empty trailing column
