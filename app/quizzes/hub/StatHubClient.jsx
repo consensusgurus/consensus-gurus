@@ -369,11 +369,9 @@ export default function StatHubClient() {
     <div style={{ background: C.bg, minHeight: '100vh', position: 'relative' }}>
       <Grain />
       <style>{css}</style>
-      <SiteHeader active="quizzes" />
-      <div className="qzhub" style={{ maxWidth: 1180, margin: '0 auto', padding: '12px 24px 70px', position: 'relative' }}>
-
-        {/* player bar — same layout as the main quiz page; Share Stats in place of Sort + Stat Hub */}
-        <div ref={playerBarRef} className="card qz-playerbar" style={{ display: 'flex', flexDirection: 'row', alignItems: 'center', flexWrap: 'wrap', gap: 16, padding: '11px 14px', marginTop: 0, overflow: 'visible', position: 'relative', zIndex: 40 }}>
+      <SiteHeader active="quizzes" inlay={(
+          <div className="qzhub" style={{ maxWidth: 'none', margin: 0, padding: 0 }}>
+        <div ref={playerBarRef} className="card qz-playerbar" style={{ display: 'flex', flexDirection: 'row', alignItems: 'center', flexWrap: 'wrap', gap: 16, padding: '11px 14px', marginTop: 0, overflow: 'visible', background: '#fff', borderRadius: 11 }}>
           {profile && profile.name ? (
             <div style={{ display: 'flex', flexDirection: 'column', minWidth: 0 }}>
               <div className="lbl">Player</div>
@@ -415,6 +413,9 @@ export default function StatHubClient() {
             <button onClick={() => setShareOpen(true)} className="hubbtn"><Share2 size={15} strokeWidth={2.4} /> Share Stats</button>
           ) : null}
         </div>
+          </div>
+        )} />
+      <div className="qzhub" style={{ maxWidth: 1180, margin: '0 auto', padding: '12px 24px 70px', position: 'relative' }}>
 
         {viewing ? (
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 10, background: C.accsoft, border: `1px solid ${C.line}`, borderRadius: 10, padding: '8px 14px', marginTop: 10 }}>
