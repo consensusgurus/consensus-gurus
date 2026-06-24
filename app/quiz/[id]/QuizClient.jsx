@@ -1078,14 +1078,18 @@ export default function QuizClient({ quizId }) {
   const asOfLabel = asOfRaw ? new Date(asOfRaw + 'T12:00:00Z').toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric', timeZone: 'UTC' }) : null;
 
   // ── Solved-item cycling ──────────────────────────────────────────────────
-  // Move answered items to the bottom so the next unanswered one is always near
-  // the input bar. Keeps the action at the top of the page, which makes the
-  // long-list scroll (and the sticky-input fight on mobile) a non-issue. Only
-  // the single-input name-them-all modes (plain list + image grid) cycle;
-  // matched/ordered per-slot, map, and tile boards keep their fixed order, and
-  // multi-column (colSplit) layouts are left alone. Each item keeps its own rank
-  // number because the row/tile is always handed its ORIGINAL index.
-  const cyclingOn = started && !ended && !matched && !mapMode && !tileMode && !explicitCols;
+  // Whether answered items slide to the bottom so the next unanswered one stays
+  // near the input bar. DEFAULT IS OFF: tiles stay in their original (usually
+  // ranked) position, so a player watches the list fill in by rank. The only
+  // formats that move by default are the independent-answer IMAGE grids
+  // (logos / posters / album covers), whose order carries no meaning. Any quiz
+  // can override the default with quiz.moveTiles (true forces movement, false
+  // pins the order). matched/ordered per-slot, map, and tile boards always keep
+  // their fixed order, and multi-column (colSplit) layouts are left alone. Each
+  // item keeps its own rank number because the row/tile is always handed its
+  // ORIGINAL index. See the cycling note in CLAUDE.md.
+  const moveTilesPref = quiz.moveTiles != null ? quiz.moveTiles : logosMode;
+  const cyclingOn = started && !ended && !matched && !mapMode && !tileMode && !explicitCols && moveTilesPref;
   const displayOrder = useMemo(() => {
     const base = answers.map((_, i) => i);
     if (!cyclingOn) return base;
