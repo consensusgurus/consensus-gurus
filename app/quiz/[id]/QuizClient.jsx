@@ -1217,6 +1217,11 @@ export default function QuizClient({ quizId }) {
   const eloDeptLabel = DEPT_LABEL[eloDept] || 'Category';
   const eloPanel = <QuizStandings eloAfter={eloAfter} eloBefore={eloBefore} eloDept={eloDept} eloDeptLabel={eloDeptLabel} />;
 
+  // Mobile "app" play mode: once a game is in progress on a phone, collapse the non-essential chrome (blurb, leaderboard strip,
+  // full-size title) so the answer board fills the screen. Desktop and the
+  // pre-game state are untouched.
+  const mAppPlay = mobile === true && tab === 'play' && started && !ended;
+
   return (
     <div style={{ minHeight: '100vh', background: COLORS.cream, color: COLORS.ink, position: 'relative', overflowX: 'clip' }}>
       <QuizCelebration kind={celebration} onDone={() => setCelebration(null)} />
@@ -1238,11 +1243,11 @@ export default function QuizClient({ quizId }) {
 }`}</style>
 
         {/* Header */}
-        <div style={{ paddingBottom: 0, marginTop: 12 }}>
+        <div style={{ paddingBottom: 0, marginTop: mAppPlay ? 4 : 12 }}>
           <div style={{ display: 'flex', alignItems: 'flex-end', gap: 'clamp(16px, 4vw, 28px)' }}>
-            <h1 style={{ fontFamily: SERIF, fontWeight: 800, fontSize: 'clamp(24px, 4vw, 38px)', lineHeight: 1.02, letterSpacing: '-0.02em', margin: 0, color: COLORS.ink, fontVariationSettings: '"SOFT" 100' }}>{quiz.title}</h1>
+            <h1 style={{ fontFamily: SERIF, fontWeight: 800, fontSize: mAppPlay ? 17 : 'clamp(24px, 4vw, 38px)', lineHeight: 1.02, letterSpacing: '-0.02em', margin: 0, color: COLORS.ink, fontVariationSettings: '"SOFT" 100' }}>{quiz.title}</h1>
           </div>
-          <p style={{ fontFamily: SANS, fontSize: 15, lineHeight: 1.55, margin: '8px 0 0', color: COLORS.faded, maxWidth: 680 }}>{quiz.blurb}</p>
+          {!mAppPlay && <p style={{ fontFamily: SANS, fontSize: 15, lineHeight: 1.55, margin: '8px 0 0', color: COLORS.faded, maxWidth: 680 }}>{quiz.blurb}</p>}
           {runActive && (
             <div style={{ marginTop: 12, display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12, flexWrap: 'wrap', padding: '8px 14px', borderRadius: 10, border: `1.5px solid ${COLORS.accBorder}`, background: COLORS.accSoft }}>
               <span style={{ fontFamily: MONO, fontSize: 11, letterSpacing: '0.14em', textTransform: 'uppercase', fontWeight: 700, color: COLORS.ember }}>Daily Challenge · {chAccent}</span>
@@ -1256,7 +1261,7 @@ export default function QuizClient({ quizId }) {
               </div>
             </div>
           )}
-          {tab !== 'stats' && <LeaderboardStrip board={board} identity={identity} onOpen={() => setTab('stats')} />}
+          {tab !== 'stats' && !mAppPlay && <LeaderboardStrip board={board} identity={identity} onOpen={() => setTab('stats')} />}
         </div>
 
         {/* Ribbon */}
@@ -1362,6 +1367,15 @@ export default function QuizClient({ quizId }) {
               )}
               </div>
             </div>
+            {mAppPlay && (
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '0 2px 7px', fontFamily: MONO, fontSize: 11, fontWeight: 700, color: COLORS.faded }}>
+                <span style={{ fontVariantNumeric: 'tabular-nums' }}>{dispScore}/{total}</span>
+                <span style={{ position: 'relative', flex: 1, height: 6, borderRadius: 4, background: COLORS.paper, overflow: 'hidden' }}>
+                  <span style={{ position: 'absolute', top: 0, bottom: 0, left: 0, right: `${100 - (total ? Math.round((dispScore / total) * 100) : 0)}%`, background: COLORS.ember, borderRadius: 4, transition: 'right .3s' }} />
+                </span>
+                <span style={{ fontVariantNumeric: 'tabular-nums' }}>{total ? Math.round((dispScore / total) * 100) : 0}%</span>
+              </div>
+            )}
             </div>
             <div style={{ fontFamily: MONO, fontSize: 12, minHeight: 15, marginTop: 2, marginBottom: 8, color: hintBad ? COLORS.ember : COLORS.faded, ...(portraitPhoto ? { maxWidth: PHOTO_COL, marginLeft: 'auto', marginRight: 'auto' } : null) }}>{hint}</div>
 
@@ -1702,18 +1716,18 @@ export default function QuizClient({ quizId }) {
           <div><button onClick={() => setTab('play')} style={{ display: 'inline-flex', alignItems: 'center', gap: 5, background: 'none', border: 'none', cursor: 'pointer', fontFamily: SANS, fontSize: 12.5, fontWeight: 600, color: COLORS.ember, padding: 0, marginBottom: 16 }}><ArrowLeft size={13} strokeWidth={2.5} /> Back to quiz</button><JoinLeaderboardForm identity={identity} onJoined={(id) => { setIdentity(id); refreshBoard(); setTab('stats'); }} onViewLeaderboard={() => setTab('stats')} /></div>
         )}
 
-        {asOfLabel && (
-          <div style={{ marginTop: 36, paddingTop: 16, borderTop: `1px solid ${COLORS.faded}33`, fontFamily: MONO, fontSize: 11, letterSpacing: '0.1em', textTransform: 'uppercase', color: COLORS.faded, textAlign: 'center' }}>
-            Data as of {asOfLabel}
-          </div>
-        )}
-        {quiz.source && (
-          <div style={{ marginTop: 40, paddingTop: 18, borderTop: `1px solid ${COLORS.faded}33`, fontFamily: MONO, fontSize: 11, letterSpacing: '0.04em', color: COLORS.faded }}>
-            Source:{' '}
-            {quiz.source.url ? (
-              <a href={quiz.source.url} target="_blank" rel="noopener noreferrer" style={{ color: COLORS.ember }}>{quiz.source.label}</a>
-            ) : (
-              quiz.source.label
+        {(asOfLabel || quiz.source) && (
+          <div style={{ marginTop: 36, paddingTop: 16, borderTop: `1px solid ${COLORS.faded}33`, fontFamily: MONO, fontSize: 11, letterSpacing: '0.06em', color: COLORS.faded, textAlign: 'center' }}>
+            {asOfLabel && <span style={{ textTransform: 'uppercase', letterSpacing: '0.1em' }}>Data as of {asOfLabel}</span>}
+            {asOfLabel && quiz.source && <span style={{ opacity: 0.6 }}>{'  \u00b7  '}</span>}
+            {quiz.source && (
+              <>Source:{' '}
+                {quiz.source.url ? (
+                  <a href={quiz.source.url} target="_blank" rel="noopener noreferrer" style={{ color: COLORS.ember }}>{quiz.source.label}</a>
+                ) : (
+                  quiz.source.label
+                )}
+              </>
             )}
           </div>
         )}
