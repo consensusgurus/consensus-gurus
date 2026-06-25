@@ -69,7 +69,7 @@ export async function POST(request) {
     if (!quizId || quizId.length > 100) {
       return NextResponse.json({ error: 'quizId required' }, { status: 400 });
     }
-    if (!Number.isInteger(score) || !Number.isInteger(total) || total <= 0 || total > 1000 || score < 0 || score > total) {
+    if (!Number.isInteger(score) || !Number.isInteger(total) || total <= 0 || total > 100000 || score < 0 || score > total) {
       return NextResponse.json({ error: 'bad score' }, { status: 400 });
     }
     if (!Number.isInteger(timeElapsed) || timeElapsed < 0 || timeElapsed > 36000) {
