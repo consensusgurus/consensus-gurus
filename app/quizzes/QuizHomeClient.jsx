@@ -748,9 +748,10 @@ export default function QuizHomeClient() {
       .qzh .qz-searchwrap input{font-size:16px !important;}
       .qzh .qz-mobhub{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-top:14px;background:${C.accsoft};color:${C.accent};border:1px solid #cddffb;border-radius:12px;padding:14px 16px;text-decoration:none;font-family:${FONT};}
       .qzh .lblive-card{display:flex;flex-direction:column;}
-      .qzh .lblive-tabs{display:flex;gap:5px;flex:1 1 auto;min-width:0;}
-      .qzh .lblive-tab{flex:1 1 0;min-width:0;display:flex;align-items:center;justify-content:flex-start;gap:6px;background:transparent;border:none;border-radius:8px;padding:6px 8px;font:inherit;font-weight:700;font-size:12.5px;color:#5f5e5a;cursor:pointer;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
-      .qzh .lblive-tab.on{background:#eef2f7;color:#1c1e24;}
+      .qzh .lblive-head{background:#fff !important;}
+      .qzh .lblive-tabs{display:flex;gap:4px;flex:1 1 auto;min-width:0;background:#eef1f5;border-radius:10px;padding:4px;}
+      .qzh .lblive-tab{flex:1 1 0;min-width:0;display:flex;align-items:center;justify-content:center;gap:6px;background:transparent;border:none;border-radius:8px;padding:8px 6px;font:inherit;font-weight:700;font-size:11px;letter-spacing:.04em;text-transform:uppercase;color:#5f5e5a;cursor:pointer;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+      .qzh .lblive-tab.on{background:#fff;color:#1c1e24;box-shadow:0 1px 2px rgba(20,22,28,0.08);}
       .qzh .lblive-tab .livedot2{width:8px;height:8px;border-radius:50%;background:#9aa1ab;flex:none;}
       .qzh .lblive-body{max-height:50vh;overflow-y:auto;padding:3px 0;}
     }
@@ -836,7 +837,6 @@ export default function QuizHomeClient() {
               </div>
               <span style={{ display: 'flex', alignItems: 'center', gap: 10, flex: 'none' }}>
                 {lbLiveTab === 'lb' ? <Link href="/quizzes/hub" onClick={(e) => e.stopPropagation()} className="qlink vall" style={{ fontSize: 11, fontWeight: 700, color: C.accent }}>View all</Link> : lbLiveTab === 'live' ? <button type="button" onClick={(e) => { e.stopPropagation(); setListMode('live'); }} className="vall" style={{ background: 'none', border: 'none', padding: 0, cursor: 'pointer', color: C.accent, fontWeight: 700, fontSize: 11 }}>View all</button> : null}
-                <ChevronDown className="accchev" size={16} strokeWidth={2.5} onClick={() => setLbLiveTab((t) => t ? null : 'lb')} style={{ flex: 'none', color: C.soft, cursor: 'pointer', transform: lbLiveTab ? 'rotate(180deg)' : 'none' }} />
               </span>
             </div>
             <div className="lblive-body">

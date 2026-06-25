@@ -85,7 +85,7 @@ export default function SiteHeader({ active = 'lists', maxWidth = 1180, visitors
             </div>
             <div className="sh-right">
               <nav className="sh-nav">
-                <Link href="/" className={`sh-navbtn${active === 'lists' ? ' on' : ''}`}>Lists <span className="sh-navct">({LIST_COUNT.toLocaleString()})</span></Link>
+                <Link href="/" className={`sh-navbtn${active === 'lists' ? ' on' : ''}`}>Top 10 Lists <span className="sh-navct">({LIST_COUNT.toLocaleString()})</span></Link>
                 <Link href="/quizzes" className={`sh-navbtn${active === 'quizzes' ? ' on' : ''}`}>Quizzes <span className="sh-navct">({QUIZ_COUNT.toLocaleString()})</span></Link>
               </nav>
             </div>
