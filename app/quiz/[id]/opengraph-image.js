@@ -6,9 +6,12 @@ export const runtime = 'nodejs'
 export const alt = 'Source of Truths quiz'
 export { size, contentType } from '@/lib/og-brand-card'
 
+// On-demand: do NOT prerender all quiz share cards at build (~1,200 quizzes x
+// 2 Satori renders dominated build time). Returning [] renders each card on the
+// first request and CDN-caches it; dynamicParams=true allows any quiz id.
+export const dynamicParams = true
 export function generateStaticParams() {
-  if (!Array.isArray(QUIZZES)) return []
-  return QUIZZES.map((q) => ({ id: q.id }))
+  return []
 }
 
 // Rebranded share card (Manrope, near-white, blue/gold logo) — matches the

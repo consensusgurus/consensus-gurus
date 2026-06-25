@@ -4,9 +4,14 @@ import { QUIZZES, getQuiz } from '@/lib/quizzes';
 
 export const revalidate = 3600;
 
+// On-demand ISR: do NOT prerender all ~1,200 quiz pages at build (each imports
+// the 2.6MB quizzes.js; together they dominated build time). [] renders each
+// page on first request and CDN-caches it via `revalidate`; dynamicParams=true
+// allows any quiz id to render on demand.
+export const dynamicParams = true;
+
 export function generateStaticParams() {
-  if (!Array.isArray(QUIZZES)) return [];
-  return QUIZZES.map((q) => ({ id: q.id }));
+  return [];
 }
 
 export async function generateMetadata({ params }) {
