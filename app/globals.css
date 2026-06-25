@@ -64,3 +64,10 @@ a {
 /* Round interactive controls site-wide (quiz tiles, Play/Give-up buttons, modal
    buttons, inputs). Inline border-radius (where set) still overrides this. */
 button, input, textarea, select { border-radius: 8px; }
+
+/* Prevent iOS Safari from auto-zooming when a text field is focused (it zooms
+   whenever the focused input's font-size is below 16px). Mobile widths only,
+   so desktop input sizing is unchanged. */
+@media (max-width: 560px) {
+  input, textarea, select { font-size: 16px !important; }
+}

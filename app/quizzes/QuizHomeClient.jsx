@@ -246,8 +246,9 @@ export default function QuizHomeClient() {
   const [dailyLb, setDailyLb] = useState(null); // today's daily-challenge standings (registered players)
   const [chRun, setChRun] = useState(null); // local run-state for today's daily challenge (completion ticks)
   const [isMobile, setIsMobile] = useState(false);
-  const [acc, setAcc] = useState({ lb: true }); // mobile-only: which accordion panels are open
+  const [acc, setAcc] = useState({ lb: true, mostplayed: true }); // mobile-only: which accordion panels are open
   const toggleAcc = (k) => setAcc((o) => ({ ...o, [k]: !o[k] }));
+  const mobLbOpen = isMobile && !!acc.lb; // mobile leaderboard unfurled -> show more rows + scroll
   useEffect(() => {
     if (typeof window === 'undefined' || !window.matchMedia) return;
     const mq = window.matchMedia('(max-width:560px)');
@@ -466,9 +467,9 @@ export default function QuizHomeClient() {
   // Today's daily-challenge standings, ranked by total correct then least time.
   const dailyRows = useMemo(() => (dailyLb || []).slice()
     .sort((a, b) => (b.totalCorrect || 0) - (a.totalCorrect || 0) || (a.totalTime || 0) - (b.totalTime || 0) || (a.username || '').localeCompare(b.username || ''))
-    .slice(0, boardsExpanded ? 10 : 5), [dailyLb, boardsExpanded]);
-  const todayCorrectRows = useMemo(() => (todayData.byCorrect || []).slice(0, boardsExpanded ? 10 : 5), [todayData, boardsExpanded]);
-  const todayQuizRows = useMemo(() => (todayData.byQuizzes || []).slice(0, boardsExpanded ? 10 : 5), [todayData, boardsExpanded]);
+    .slice(0, (boardsExpanded || mobLbOpen) ? 10 : 5), [dailyLb, boardsExpanded, mobLbOpen]);
+  const todayCorrectRows = useMemo(() => (todayData.byCorrect || []).slice(0, (boardsExpanded || mobLbOpen) ? 10 : 5), [todayData, boardsExpanded, mobLbOpen]);
+  const todayQuizRows = useMemo(() => (todayData.byQuizzes || []).slice(0, (boardsExpanded || mobLbOpen) ? 10 : 5), [todayData, boardsExpanded, mobLbOpen]);
   const bestCat = useMemo(() => {
     if (!me || !me.byCategory) return null;
     // Best category = where the player ranks highest on COMPLETED; ties break to
@@ -531,8 +532,8 @@ export default function QuizHomeClient() {
     // top three; otherwise keep guests so the board isn't sparse.
     const named = sorted.filter((p) => !p.isAnon);
     const list = named.length >= 3 ? named : sorted;
-    return list.slice(0, boardsExpanded ? 10 : 5);
-  }, [eloBoard, lbMetric.key, boardsExpanded]);
+    return list.slice(0, (boardsExpanded || mobLbOpen) ? 10 : 5);
+  }, [eloBoard, lbMetric.key, boardsExpanded, mobLbOpen]);
 
   // ── live feed (scoped by quiz department) ──
   const liveRows = useMemo(() => {
@@ -679,7 +680,7 @@ export default function QuizHomeClient() {
     .qz-playerbar .qz-skill-empty{display:none !important;}
     .qz-playerbar .lbl{font-size:10px;font-weight:600;letter-spacing:.04em;text-transform:uppercase;color:#6b7280;margin-bottom:2px;}
     .qz-chev{display:none;}
-    @media(max-width:560px){.qz-playerbar{flex-wrap:wrap !important;align-items:center !important;gap:10px 14px !important;}.qz-playerbar .qz-div{display:none !important;}.qz-playerbar:not(.open) .qz-stats{display:none !important;}.qz-playerbar.open .qz-stats{order:9 !important;flex:1 1 100% !important;margin-left:0 !important;justify-content:space-between !important;gap:10px !important;}.qz-playerbar{cursor:pointer;}.qz-chev{display:inline-flex !important;}.qz-playerbar .qz-bestcat{display:none !important;}.qz-playerbar .hubbtn{order:4 !important;margin-left:auto !important;flex:0 0 auto !important;}.qzh .boards{display:flex !important;flex-direction:column;gap:12px;}.qzh .boards .lb-card{order:1;}.qzh .boards .daily-card{order:2;}.qzh .boards .live-card{order:3;}.qz-submit{display:none !important;}.qzh{padding-left:14px !important;padding-right:14px !important;}}
+    @media(max-width:560px){.qz-playerbar{flex-wrap:wrap !important;align-items:center !important;gap:10px 14px !important;}.qz-playerbar .qz-div{display:none !important;}.qz-playerbar:not(.open) .qz-stats{display:none !important;}.qz-playerbar.open .qz-stats{order:9 !important;flex:1 1 100% !important;margin-left:0 !important;justify-content:space-between !important;gap:10px !important;}.qz-playerbar{cursor:pointer;}.qz-chev{display:inline-flex !important;}.qz-playerbar .qz-bestcat{display:none !important;}.qz-playerbar .hubbtn{order:4 !important;margin-left:auto !important;flex:0 0 auto !important;}.qzh .boards{display:flex !important;flex-direction:column;gap:12px;}.qzh .boards .lb-card{order:1;}.qzh .boards .live-card{order:2;}.qzh .boards .daily-card{order:3;}.qz-submit{display:none !important;}.qzh{padding-left:14px !important;padding-right:14px !important;}}
     .qzh .hubbtn:hover{background:${C.accsoft};}
     .qzh .crumb1{font-size:18px;font-weight:800;letter-spacing:-0.02em;}
     .qzh .crumb2{font-size:18px;font-weight:600;color:${C.accent};}
@@ -695,7 +696,7 @@ export default function QuizHomeClient() {
     @media(max-width:560px){.qzh .qz-pname{max-width:120px;}}
     @media(max-width:560px){.qzh .qz-srank{display:none !important;}}
     .qzh .qz-catbtn .ddbtn{height:100%;box-sizing:border-box;}
-    @media(max-width:560px){.qzh .qz-browserow{align-items:stretch !important;gap:8px !important;}.qzh .qz-catbtn{flex:0 0 calc(50% - 4px) !important;max-width:calc(50% - 4px) !important;min-width:0;order:1 !important;}.qzh .qz-catbtn .ddbtn{width:100%;justify-content:center;height:100%;box-sizing:border-box;}.qzh .qz-daily{flex:0 0 calc(50% - 4px) !important;max-width:calc(50% - 4px) !important;min-width:0 !important;justify-content:center !important;align-self:stretch;order:2 !important;overflow:hidden !important;}.qzh .qz-searchwrap{flex:1 1 100% !important;order:3 !important;}}
+    @media(max-width:560px){.qzh .qz-browserow{align-items:stretch !important;gap:8px !important;}.qzh .qz-catbtn{display:none !important;}.qzh .qz-daily{display:none !important;}.qzh .qz-searchwrap{flex:1 1 100% !important;order:3 !important;}}
     /* Mobile: the category menu can be taller than the space below its button,
        and the outside-click overlay freezes the page so the page itself can't
        scroll to reveal the rest. Anchor it as a viewport-bounded fixed sheet so
@@ -737,12 +738,15 @@ export default function QuizHomeClient() {
       .qzh .colhead .colicon{background:#eef2f7 !important;color:#374151 !important;}
       .qzh .colhead h3{color:#1c1e24 !important;}
       .qzh .colhead .viewall{color:#2563eb !important;}
-      .qzh .donemark{color:#2563eb !important;fill:#2563eb !important;stroke:#2563eb !important;}
       .qzh .medaldot{background:#eef2f7 !important;color:#1c1e24 !important;}
       .qzh .lbbar{background:#2563eb !important;}
       .qzh .dot{background:#9aa1ab !important;}
       .qzh .scorebadge{background:#eef1f6 !important;color:#5f5e5a !important;}
       .qzh .daytick.done{background:#2563eb !important;}
+      .qzh .mc-closed .vall{display:none !important;}
+      .qzh .vall{text-transform:uppercase !important;font-size:10px !important;font-weight:700 !important;letter-spacing:.05em !important;}
+      .qzh .lb-card.mc-open .lbbody{max-height:50vh;overflow-y:auto;justify-content:flex-start;}
+      .qzh .qz-searchwrap input{font-size:16px !important;}
     }
   `;
 
@@ -768,18 +772,18 @@ export default function QuizHomeClient() {
             <div className="head" onClick={() => { if (isMobile) toggleAcc('lb'); else setBoardsExpanded((v) => !v); }}>
               <span style={{ display: 'flex', alignItems: 'center', gap: 7, minWidth: 0 }}>
                 <Crown size={15} strokeWidth={2} style={{ color: C.ink, flex: 'none' }} />
-                <span className="lbl" style={{ color: C.ink }}>{lbMetric.label}{lbMetric.special || scope === 'all' ? '' : ` · ${byKey[scope]?.label}`}</span>
+                <span className="lbl" style={{ color: C.ink }}>{isMobile && !acc.lb ? 'Leaderboard' : `${lbMetric.label}${lbMetric.special || scope === 'all' ? '' : ` · ${byKey[scope]?.label}`}`}</span>
               </span>
               <span style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-                <Link href={lbMetric.special && lbMetric.key !== 'catRating' ? '/quizzes/hub?tab=challenges' : '/quizzes/hub'} onClick={(e) => e.stopPropagation()} className="qlink"><span style={{ fontSize: 11, fontWeight: 700, color: C.accent }}>View all</span></Link>
+                <Link href={lbMetric.special && lbMetric.key !== 'catRating' ? '/quizzes/hub?tab=challenges' : '/quizzes/hub'} onClick={(e) => e.stopPropagation()} className="qlink"><span className="vall" style={{ fontSize: 11, fontWeight: 700, color: C.accent }}>View all</span></Link>
                 <ChevronDown className="accchev" size={16} strokeWidth={2.5} style={{ flex: 'none', color: C.soft, transform: acc.lb ? 'none' : 'rotate(-90deg)' }} />
               </span>
             </div>
-            <div style={{ flex: 1, padding: '3px 0', display: 'flex', flexDirection: 'column', justifyContent: 'space-evenly' }}>
+            <div className="lbbody" style={{ flex: 1, padding: '3px 0', display: 'flex', flexDirection: 'column', justifyContent: 'space-evenly' }}>
               {lbMetric.special ? (
                 (() => {
                   if (lbMetric.key === 'catRating') {
-                    const rows = (catBoards[lbMetric.catKey] || []).slice(0, boardsExpanded ? 10 : 5);
+                    const rows = (catBoards[lbMetric.catKey] || []).slice(0, (boardsExpanded || mobLbOpen) ? 10 : 5);
                     if (rows.length === 0) return <div style={{ padding: '12px 13px', fontSize: 12, color: C.soft }}>No ranked players yet.</div>;
                     return rows.map((r, i) => (
                       <LbRow key={r.userKey || i} i={i}
@@ -817,8 +821,8 @@ export default function QuizHomeClient() {
                 <span className="lbl" style={{ color: C.ink }}>Live · Quizzes Played{scope === 'all' ? '' : ` · ${byKey[scope]?.label}`}</span>
               </span>
               <span style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-                {playsToday ? <span style={{ fontSize: 10, fontWeight: 700, letterSpacing: '.05em', textTransform: 'uppercase', color: C.soft }}>{playsToday.toLocaleString()} Plays Today</span> : null}
-                <button type="button" onClick={(e) => { e.stopPropagation(); setListMode('live'); }} style={{ background: 'none', border: 'none', padding: 0, cursor: 'pointer', color: C.accent, fontWeight: 700, fontSize: 11, whiteSpace: 'nowrap' }}>View all</button>
+                {playsToday ? <span className="vall" style={{ fontSize: 10, fontWeight: 700, letterSpacing: '.05em', textTransform: 'uppercase', color: C.soft }}>{playsToday.toLocaleString()} Plays Today</span> : null}
+                <button type="button" onClick={(e) => { e.stopPropagation(); setListMode('live'); }} className="vall" style={{ background: 'none', border: 'none', padding: 0, cursor: 'pointer', color: C.accent, fontWeight: 700, fontSize: 11, whiteSpace: 'nowrap' }}>View all</button>
                 <ChevronDown className="accchev" size={16} strokeWidth={2.5} style={{ flex: 'none', color: C.soft, transform: acc.live ? 'none' : 'rotate(-90deg)' }} />
               </span>
             </div>
@@ -852,7 +856,7 @@ export default function QuizHomeClient() {
                   <span className="lbl" style={{ color: C.ink }}>Daily Challenge{dailyCat ? ` · ${dailyCat}` : ''}</span>
                 </span>
                 <span style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-                  <Link href={`/challenge/${dailyId}`} className="qlink"><span style={{ fontSize: 11, fontWeight: 700, color: C.accent }}>{dailyAllDone ? 'Results' : 'View'}</span></Link>
+                  <Link href={`/challenge/${dailyId}`} className="qlink"><span className="vall" style={{ fontSize: 11, fontWeight: 700, color: C.accent }}>{isMobile ? 'View all' : (dailyAllDone ? 'Results' : 'View')}</span></Link>
                   <ChevronDown className="accchev" size={16} strokeWidth={2.5} style={{ flex: 'none', color: C.soft, transform: acc.daily ? 'none' : 'rotate(-90deg)' }} />
                 </span>
               </div>
@@ -1179,8 +1183,8 @@ function BrowseColumn({ label, Icon, color, tint, rows, cta, onCta, open = true,
         </span>
         <h3 style={{ fontSize: 15, fontWeight: 700, margin: 0, color }}>{label}</h3>
         {onCta
-          ? <button type="button" onClick={(e) => { e.stopPropagation(); onCta(); }} className="viewall" style={{ color, background: 'none', border: 'none', padding: 0, cursor: 'pointer', fontFamily: 'inherit', fontSize: 10, fontWeight: 700 }}>{cta}</button>
-          : <span className="viewall" style={{ color }}>{cta}</span>}
+          ? <button type="button" onClick={(e) => { e.stopPropagation(); onCta(); }} className="viewall vall" style={{ color, background: 'none', border: 'none', padding: 0, cursor: 'pointer', fontFamily: 'inherit', fontSize: 10, fontWeight: 700 }}>{isMobile ? 'View all' : cta}</button>
+          : <span className="viewall vall" style={{ color }}>{isMobile ? 'View all' : cta}</span>}
         <ChevronDown className="accchev" size={16} strokeWidth={2.5} style={{ flex: 'none', color: C.soft, transform: open ? 'none' : 'rotate(-90deg)' }} />
       </div>
       {rows.map(({ q, right }) => (
