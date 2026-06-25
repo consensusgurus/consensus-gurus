@@ -282,9 +282,14 @@ export default function QuizHomeClient() {
   const dailyId = daily ? daily.id : null;
   const dailyIds = useMemo(() => (daily ? challengeQuizIds(daily) : []), [daily]);
   const chScores = (chRun && chRun.scores) || {};
-  const dailyDoneCount = dailyIds.filter((id) => chScores[id]).length;
+  // Server-truth completion for the signed-in player (cross-device): the daily
+  // challenge leaderboard carries each registered user's per-quiz scores today.
+  const myDaily = useMemo(() => (dailyLb || []).find((u) => (me && me.userKey && u.userKey === me.userKey) || (me && me.username && u.username && u.username.toLowerCase() === me.username.toLowerCase())) || null, [dailyLb, me]);
+  const serverScores = (myDaily && myDaily.scores) || {};
+  const dailyIsDone = (id) => !!chScores[id] || serverScores[id] != null;
+  const dailyDoneCount = dailyIds.filter(dailyIsDone).length;
   const dailyAllDone = dailyIds.length > 0 && dailyDoneCount === dailyIds.length;
-  const dailyNextIdx = (() => { const k = dailyIds.findIndex((id) => !chScores[id]); return k < 0 ? 0 : k; })();
+  const dailyNextIdx = (() => { const k = dailyIds.findIndex((id) => !dailyIsDone(id)); return k < 0 ? 0 : k; })();
   const dailyEntryUrl = (dailyId && dailyIds.length) ? `/quiz/${dailyIds[dailyNextIdx]}?ch=${encodeURIComponent(dailyId)}&i=${dailyNextIdx}` : '/quizzes';
   const dailyDateLabel = daily ? (() => { try { return new Date(`${daily.date}T12:00:00Z`).toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' }); } catch { return ''; } })() : '';
 
@@ -828,13 +833,13 @@ export default function QuizHomeClient() {
                 <div style={{ fontSize: 11, color: C.soft, fontWeight: 600, marginBottom: 7 }}>{dailyDateLabel}{dailyDateLabel ? ' · ' : ''}{dailyDoneCount}/{dailyIds.length} done</div>
                 <div style={{ flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'space-evenly' }}>
                   {dailyIds.map((qid, k) => {
-                    const done = !!chScores[qid];
+                    const done = dailyIsDone(qid);
                     return (
                       <Link key={qid} href={`/quiz/${qid}?ch=${encodeURIComponent(dailyId)}&i=${k}`} className="qlink">
                         <div style={{ display: 'flex', alignItems: 'center', gap: 9, padding: '6px 0', borderBottom: k < dailyIds.length - 1 ? '1px solid rgba(20,22,28,0.07)' : 'none' }}>
                           <span style={{ width: 19, height: 19, borderRadius: 6, flex: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 10.5, fontWeight: 700, background: done ? C.live : '#eef1f6', color: done ? '#fff' : C.soft }}>{done ? <Check size={12} strokeWidth={3} /> : k + 1}</span>
                           <span style={{ flex: '1 1 auto', minWidth: 0, fontSize: 12.5, fontWeight: 500, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', color: C.ink }}>{stripVerb(titleById[qid] || qid)}</span>
-                          {done ? <span style={{ flex: 'none', fontSize: 11, fontWeight: 700, color: C.live, fontVariantNumeric: 'tabular-nums' }}>{chScores[qid].score}/{chScores[qid].total}</span> : null}
+                          {chScores[qid] ? <span style={{ flex: 'none', fontSize: 11, fontWeight: 700, color: C.live, fontVariantNumeric: 'tabular-nums' }}>{chScores[qid].score}/{chScores[qid].total}</span> : null}
                         </div>
                       </Link>
                     );
