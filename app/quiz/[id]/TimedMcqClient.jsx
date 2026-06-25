@@ -22,6 +22,7 @@ import Grain from '../../Grain';
 import Footer from '../../Footer';
 import SiteHeader from '../../SiteHeader';
 import QuizPlayerBar from './QuizPlayerBar';
+import { isMobileDevice } from '@/lib/is-mobile';
 import Count from '../../Count';
 
 const COLORS = {
@@ -152,7 +153,7 @@ export default function TimedMcqClient({ quizId, mobile = false }) {
   const [lastElapsed, setLastElapsed] = useState(null);
 
   const [stats, setStats] = useState({ attempts: 0, best: 0, totalCorrect: 0 });
-  const [board, setBoard] = useState({ plays: 0, best: null, topTime: null, leaderboard: [], leaderboardAll: [] });
+  const [board, setBoard] = useState({ plays: 0, best: null, topTime: null, leaderboard: [], leaderboardAll: [], leaderboardMobile: [], leaderboardFirst: [] });
   const [lbView, setLbView] = useState('registered');
   const [identity, setIdentity] = useState(null);
   const [eloBefore, setEloBefore] = useState(null);
@@ -204,7 +205,7 @@ export default function TimedMcqClient({ quizId, mobile = false }) {
   function refreshBoard() {
     fetch(`/api/quiz/board?quizId=${encodeURIComponent(quizId)}`)
       .then((r) => r.json())
-      .then((d) => { if (d && !d.error) setBoard({ plays: d.plays || 0, best: d.best ?? null, topTime: d.topTime ?? null, leaderboard: d.leaderboard || [], leaderboardAll: d.leaderboardAll || [] }); })
+      .then((d) => { if (d && !d.error) setBoard({ plays: d.plays || 0, best: d.best ?? null, topTime: d.topTime ?? null, leaderboard: d.leaderboard || [], leaderboardAll: d.leaderboardAll || [], leaderboardMobile: d.leaderboardMobile || [], leaderboardFirst: d.leaderboardFirst || [] }); })
       .catch(() => {});
   }
 
@@ -306,10 +307,10 @@ export default function TimedMcqClient({ quizId, mobile = false }) {
           method: 'POST',
           keepalive: true,
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ quizId, score: finalPoints, total: maxPoints, correct: prev.filter((r) => r.correct).length, timeElapsed: elapsed, email: identity?.email || undefined, anonId: getAnonId() }),
+          body: JSON.stringify({ quizId, score: finalPoints, total: maxPoints, correct: prev.filter((r) => r.correct).length, timeElapsed: elapsed, email: identity?.email || undefined, anonId: getAnonId(), isMobile: isMobileDevice() }),
         })
           .then((r) => r.json())
-          .then((d) => { if (d && !d.error) setBoard({ plays: d.plays || 0, best: d.best ?? null, topTime: d.topTime ?? null, leaderboard: d.leaderboard || [], leaderboardAll: d.leaderboardAll || [] }); })
+          .then((d) => { if (d && !d.error) setBoard({ plays: d.plays || 0, best: d.best ?? null, topTime: d.topTime ?? null, leaderboard: d.leaderboard || [], leaderboardAll: d.leaderboardAll || [], leaderboardMobile: d.leaderboardMobile || [], leaderboardFirst: d.leaderboardFirst || [] }); })
           .then(() => fetchQuizMe(setEloAfter))
           .catch(() => { fetchQuizMe(setEloAfter); });
       } else {
@@ -372,7 +373,7 @@ export default function TimedMcqClient({ quizId, mobile = false }) {
   }
 
   const bestLabel = board.best != null ? board.best : '—';
-  const lbRows = lbView === 'all' ? (board.leaderboardAll || []) : board.leaderboard;
+  const lbRows = lbView === 'all' ? (board.leaderboardAll || []) : lbView === 'mobile' ? (board.leaderboardMobile || []) : lbView === 'first' ? (board.leaderboardFirst || []) : board.leaderboard;
   const q = questions[qIndex];
   const frac = Math.max(0, Math.min(1, remaining / perMs));
   const liveValue = Math.max(0, Math.round(maxPer * ptsFrac(remaining)));        // points if you answer right now
@@ -629,7 +630,7 @@ export default function TimedMcqClient({ quizId, mobile = false }) {
 
               {board.plays > 0 && (
                 <div style={{ display: 'flex', marginBottom: 14, borderRadius: 10, border: `1px solid ${COLORS.faded}55`, width: 'fit-content' }}>
-                  {[['registered', 'Registered'], ['all', 'All players']].map(([k, label], idx) => {
+                  {[['registered', 'Registered'], ['all', 'All players'], ['mobile', 'Mobile'], ['first', 'First try']].map(([k, label], idx) => {
                     const on = lbView === k;
                     return (
                       <button key={k} onClick={() => setLbView(k)} style={{ padding: '6px 14px', background: on ? COLORS.ink : 'transparent', color: on ? '#fff' : COLORS.faded, border: 'none', borderLeft: idx === 0 ? 'none' : `1px solid ${COLORS.faded}55`, fontFamily: MONO, fontSize: 10, letterSpacing: '0.12em', textTransform: 'uppercase', fontWeight: 700, cursor: 'pointer' }}>{label}</button>
@@ -640,7 +641,7 @@ export default function TimedMcqClient({ quizId, mobile = false }) {
 
               {lbRows.length === 0 ? (
                 <p style={{ fontFamily: SERIF, fontStyle: 'italic', fontSize: 16, color: COLORS.faded }}>
-                  No one has posted a score yet. <button onClick={() => setTab('join')} style={{ background: 'none', border: 'none', padding: 0, color: COLORS.ember, font: 'inherit', fontStyle: 'italic', textDecoration: 'underline', cursor: 'pointer' }}>Join the leaderboard</button> and be first.
+                  {lbView === 'mobile' ? 'No mobile games on the board yet.' : lbView === 'first' ? 'No first-attempt scores on the board yet.' : <>No one has posted a score yet. <button onClick={() => setTab('join')} style={{ background: 'none', border: 'none', padding: 0, color: COLORS.ember, font: 'inherit', fontStyle: 'italic', textDecoration: 'underline', cursor: 'pointer' }}>Join the leaderboard</button> and be first.</>}
                 </p>
               ) : (
                 <div>

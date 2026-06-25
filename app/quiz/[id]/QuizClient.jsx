@@ -15,6 +15,7 @@ import Footer from '../../Footer';
 import Count from '../../Count';
 import SiteHeader from '../../SiteHeader';
 import QuizPlayerBar from './QuizPlayerBar';
+import { isMobileDevice } from '@/lib/is-mobile';
 import useIsMobile from './useIsMobile';
 import dynamic from 'next/dynamic';
 
@@ -453,7 +454,7 @@ export default function QuizClient({ quizId }) {
   const pairsMatchedRef = useRef(0);
 
   const [stats, setStats] = useState({ attempts: 0, best: 0, totalCorrect: 0 });
-  const [board, setBoard] = useState({ plays: 0, best: null, topTime: null, leaderboard: [], leaderboardAll: [], scoreDist: {} });
+  const [board, setBoard] = useState({ plays: 0, best: null, topTime: null, leaderboard: [], leaderboardAll: [], leaderboardMobile: [], leaderboardFirst: [], scoreDist: {} });
   const [lbView, setLbView] = useState('registered');
   const [identity, setIdentity] = useState(null); // { username, email }
 
@@ -611,7 +612,7 @@ export default function QuizClient({ quizId }) {
   function refreshBoard() {
     fetch(`/api/quiz/board?quizId=${encodeURIComponent(quizId)}`)
       .then((r) => r.json())
-      .then((d) => { if (d && !d.error) setBoard({ plays: d.plays || 0, best: d.best != null ? Math.min(d.best, total) : null, topTime: d.topTime ?? null, leaderboard: d.leaderboard || [], leaderboardAll: d.leaderboardAll || [], scoreDist: d.scoreDist || {} }); })
+      .then((d) => { if (d && !d.error) setBoard({ plays: d.plays || 0, best: d.best != null ? Math.min(d.best, total) : null, topTime: d.topTime ?? null, leaderboard: d.leaderboard || [], leaderboardAll: d.leaderboardAll || [], leaderboardMobile: d.leaderboardMobile || [], leaderboardFirst: d.leaderboardFirst || [], scoreDist: d.scoreDist || {} }); })
       .catch(() => {});
   }
 
@@ -688,12 +689,12 @@ export default function QuizClient({ quizId }) {
     fetch('/api/quiz/result', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ quizId, score: finalScore, total, timeElapsed: elapsed, email: identity?.email || undefined, anonId: getAnonId() }),
+      body: JSON.stringify({ quizId, score: finalScore, total, timeElapsed: elapsed, email: identity?.email || undefined, anonId: getAnonId(), isMobile: isMobileDevice() }),
     })
       .then((r) => r.json())
       .then((d) => { if (d && !d.error) {
         const freshBest = d.best != null ? Math.min(d.best, total) : null;
-        setBoard({ plays: d.plays || 0, best: freshBest, topTime: d.topTime ?? null, leaderboard: d.leaderboard || [], leaderboardAll: d.leaderboardAll || [], scoreDist: d.scoreDist || {} });
+        setBoard({ plays: d.plays || 0, best: freshBest, topTime: d.topTime ?? null, leaderboard: d.leaderboard || [], leaderboardAll: d.leaderboardAll || [], leaderboardMobile: d.leaderboardMobile || [], leaderboardFirst: d.leaderboardFirst || [], scoreDist: d.scoreDist || {} });
         setLastResultId(d.resultId ?? null);
         const topNow = freshBest != null && finalScore === freshBest && d.topTime != null && elapsed <= d.topTime;
         if (topNow) setCelebration('big'); else if (finalScore === total) setCelebration('small');
@@ -720,7 +721,7 @@ export default function QuizClient({ quizId }) {
       const id = { username: d.username, email: d.email };
       try { localStorage.setItem('sot_quiz_identity', JSON.stringify(id)); } catch {}
       setIdentity(id);
-      setBoard({ plays: d.plays || 0, best: d.best != null ? Math.min(d.best, total) : null, topTime: d.topTime ?? null, leaderboard: d.leaderboard || [], leaderboardAll: d.leaderboardAll || [], scoreDist: d.scoreDist || {} });
+      setBoard({ plays: d.plays || 0, best: d.best != null ? Math.min(d.best, total) : null, topTime: d.topTime ?? null, leaderboard: d.leaderboard || [], leaderboardAll: d.leaderboardAll || [], leaderboardMobile: d.leaderboardMobile || [], leaderboardFirst: d.leaderboardFirst || [], scoreDist: d.scoreDist || {} });
       setClaimErr(false);
       setClaimOpen(false);
       if (canReveal) {
@@ -1116,7 +1117,7 @@ export default function QuizClient({ quizId }) {
   const bestLabel = board.best != null ? board.best : '—';
   // Leaderboard ranks with ties: equal score AND time share a rank (and are
   // ordered alphabetically by the API), so they display as a tie (T#).
-  const lb = lbView === 'all' ? (board.leaderboardAll || []) : board.leaderboard;
+  const lb = lbView === 'all' ? (board.leaderboardAll || []) : lbView === 'mobile' ? (board.leaderboardMobile || []) : lbView === 'first' ? (board.leaderboardFirst || []) : board.leaderboard;
   const lbRanks = [];
   const lbTied = [];
   for (let i = 0; i < lb.length; i++) {
@@ -1723,7 +1724,7 @@ export default function QuizClient({ quizId }) {
 
               {board.plays > 0 && (
                 <div style={{ display: 'inline-flex', gap: 4, marginBottom: 14, borderRadius: 10, background: '#eef1f5', padding: 4, width: 'fit-content' }}>
-                  {[['registered', 'Registered'], ['all', 'All players']].map(([k, label]) => {
+                  {[['registered', 'Registered'], ['all', 'All players'], ['mobile', 'Mobile'], ['first', 'First try']].map(([k, label]) => {
                     const on = lbView === k;
                     return (
                       <button key={k} onClick={() => setLbView(k)} style={{ padding: '6px 14px', background: on ? '#fff' : 'transparent', color: on ? COLORS.ink : COLORS.soft, border: 'none', borderRadius: 7, fontFamily: SANS, fontSize: 11, letterSpacing: '0.04em', fontWeight: 700, cursor: 'pointer', boxShadow: on ? '0 1px 2px rgba(20,22,28,0.06)' : 'none' }}>{label}</button>
@@ -1734,7 +1735,7 @@ export default function QuizClient({ quizId }) {
 
               {lb.length === 0 ? (
                 <p style={{ fontFamily: SERIF, fontStyle: 'italic', fontSize: 16, color: COLORS.faded }}>
-                  No one has posted a score yet. <button onClick={() => setTab('join')} style={{ background: 'none', border: 'none', padding: 0, color: COLORS.ember, font: 'inherit', fontStyle: 'italic', textDecoration: 'underline', cursor: 'pointer' }}>Join the leaderboard</button> and be first.
+                  {lbView === 'mobile' ? 'No mobile games on the board yet.' : lbView === 'first' ? 'No first-attempt scores on the board yet.' : <>No one has posted a score yet. <button onClick={() => setTab('join')} style={{ background: 'none', border: 'none', padding: 0, color: COLORS.ember, font: 'inherit', fontStyle: 'italic', textDecoration: 'underline', cursor: 'pointer' }}>Join the leaderboard</button> and be first.</>}
                 </p>
               ) : (
                 <div>

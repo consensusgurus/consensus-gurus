@@ -31,16 +31,23 @@ function summarize(rows) {
       tryByUser[r.user_id] = (tryByUser[r.user_id] || 0) + 1;
       tryOf.set(r, tryByUser[r.user_id]);
     });
-  const leaderboard = signed
+  const rankSigned = (subset) => subset
+    .slice()
     .sort((a, b) => b.score - a.score || a.time_elapsed - b.time_elapsed || (a.username || '').localeCompare(b.username || ''))
     .slice(0, 10)
     .map((r) => ({ username: r.username, userKey: 'u:' + r.user_id, score: r.score, timeElapsed: r.time_elapsed, tryNum: tryOf.get(r), playedAt: r.created_at }));
+  const leaderboard = rankSigned(signed);
+  // "Mobile" = signed games played on a phone/tablet (is_mobile true; legacy
+  // and unknown rows are NULL and excluded). "First try" = each signed player's
+  // earliest completed game only (attempt #1, per tryOf).
+  const leaderboardMobile = rankSigned(signed.filter((r) => r.is_mobile === true));
+  const leaderboardFirst = rankSigned(signed.filter((r) => tryOf.get(r) === 1));
   const leaderboardAll = buildAllLeaderboard(rows);
   // Exact score distribution over ALL completed attempts, so the client can
   // report the real share of attempts a finished run beat (no modeled curve).
   const scoreDist = {};
   for (const r of rows) { const sv = Number(r.score) || 0; scoreDist[sv] = (scoreDist[sv] || 0) + 1; }
-  return { plays, best, topTime: Number.isFinite(topTime) ? topTime : null, leaderboard, leaderboardAll, scoreDist };
+  return { plays, best, topTime: Number.isFinite(topTime) ? topTime : null, leaderboard, leaderboardMobile, leaderboardFirst, leaderboardAll, scoreDist };
 }
 
 // POST /api/quiz/result  { quizId, score, total, timeElapsed, email? }
@@ -57,6 +64,7 @@ export async function POST(request) {
     const { score, total, timeElapsed, email } = body;
     const correct = Number.isInteger(body.correct) ? Math.max(0, Math.min(total, body.correct)) : null;
     const anonId = typeof body.anonId === 'string' && body.anonId.trim() ? body.anonId.trim().slice(0, 64) : null;
+    const isMobile = typeof body.isMobile === 'boolean' ? body.isMobile : null;
 
     if (!quizId || quizId.length > 100) {
       return NextResponse.json({ error: 'quizId required' }, { status: 400 });
@@ -84,8 +92,11 @@ export async function POST(request) {
     };
     // Try the richest row first, then drop optional columns that a not-yet-applied
     // migration may be missing (correct_count -> migration 24, anon_id -> 22).
+    const withCorrect = correct != null ? { correct_count: correct } : {};
+    const withMobile = isMobile != null ? { is_mobile: isMobile } : {};
     const attempts = [
-      { ...baseRow, anon_id: anonId, ...(correct != null ? { correct_count: correct } : {}) },
+      { ...baseRow, anon_id: anonId, ...withCorrect, ...withMobile },
+      { ...baseRow, anon_id: anonId, ...withCorrect },
       { ...baseRow, anon_id: anonId },
       baseRow,
     ];
@@ -101,13 +112,17 @@ export async function POST(request) {
     }
 
     const data = [];
+    let cols = 'id, user_id, username, score, time_elapsed, anon_id, created_at, is_mobile';
     for (let from = 0; ; from += 1000) {
-      const { data: page } = await supabaseAdmin
+      let { data: page, error } = await supabaseAdmin
         .from('quiz_results')
-        .select('id, user_id, username, score, time_elapsed, anon_id, created_at')
+        .select(cols)
         .eq('quiz_id', quizId)
         .order('id', { ascending: true })
         .range(from, from + 999);
+      if (error && cols.includes(', is_mobile') && (error.code === '42703' || error.code === 'PGRST204' || /column|schema cache/i.test(error.message || ''))) {
+        cols = cols.replace(', is_mobile', ''); from -= 1000; continue;
+      }
       if (!page || page.length === 0) break;
       data.push(...page);
       if (page.length < 1000) break;
