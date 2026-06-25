@@ -27,6 +27,7 @@ const LogicGridBoard = dynamic(() => import('./LogicGridClient'), { ssr: false, 
 const PhotoBoard = dynamic(() => import('./PhotoBoard'), { ssr: false, loading: () => null });
 const PhotoMatchBoard = dynamic(() => import('./PhotoMatchBoard'), { ssr: false, loading: () => null });
 const GridFillBoard = dynamic(() => import('./GridFillBoard'), { ssr: false, loading: () => null });
+const WordScrambleBoard = dynamic(() => import('./WordScrambleBoard'), { ssr: false, loading: () => null });
 
 function shuffleIdx(n) {
   const a = [...Array(n).keys()];
@@ -359,6 +360,7 @@ export default function QuizClient({ quizId }) {
   const pairsMode = quiz.format === 'pairs';
   const bankMode = quiz.format === 'bank';
   const typeMode = quiz.format === 'type-it';
+  const scrambleMode = quiz.format === 'word-scramble';
   const photoMode = quiz.format === 'photo';
   // Portrait photo quizzes (e.g. 3/4 headshots) render the image as a narrow
   // centered card; constrain the score/time/Play bar to the same column so it
@@ -369,7 +371,7 @@ export default function QuizClient({ quizId }) {
   const logosMode = quiz.format === 'logos' || quiz.format === 'posters' || quiz.format === 'images';
   const tallTiles = quiz.format === 'posters' || quiz.imgTall === true;
   const squareTiles = quiz.imgSquare === true;
-  const tileMode = pairsMode || bankMode || typeMode || photoMode || photoMatchMode;
+  const tileMode = pairsMode || bankMode || typeMode || scrambleMode || photoMode || photoMatchMode;
   // Tile-mode (bank/pairs) quizzes are answered one prompt per PAIR, so the score
   // denominator is the pair count, not the number of distinct answer tiles. A
   // many-to-one bank quiz (e.g. cocktail -> base spirit: 16 cocktails, 6 spirits)
@@ -717,6 +719,8 @@ export default function QuizClient({ quizId }) {
       setHint('Pick a slogan, then the company it belongs to.');
     } else if (typeMode) {
       setHint('Type the answer for the clue above. Next skips it for now.');
+    } else if (scrambleMode) {
+      setHint('Unscramble the letters to name the country. Next skips it for now.');
     } else if (photoMode) {
       setHint(`Name the ${quiz.noun || 'city'} in the photo above. Next skips it for now.`);
     } else if (photoMatchMode) {
@@ -1114,7 +1118,7 @@ export default function QuizClient({ quizId }) {
   const autoColCount = (() => {
     if (quiz.singleColumn || explicitCols) return 1;
     // These formats render their own board, not the answer list.
-    if (mapMode || pairsMode || bankMode || typeMode || photoMode || photoMatchMode) return 1;
+    if (mapMode || pairsMode || bankMode || typeMode || scrambleMode || photoMode || photoMatchMode) return 1;
     const n = answers.length;
     const maxLen = answers.reduce((m, a) => {
       const labelLen = a && a.label != null ? String(a.label).length + 2 : 0;
@@ -1350,6 +1354,8 @@ export default function QuizClient({ quizId }) {
             <PhotoBoard items={quiz.answers} started={started} ended={ended} revealed={revealed} onMatch={onPairMatch} onWrong={onBankWrong} onEnd={onPairEnd} onHint={onPairHint} answerNoun={quiz.noun} photoAspect={quiz.photoAspect} strike={quiz.strike} noSkip={quiz.strike} stickyTop={stickyTop} />
             ) : typeMode ? (
             <TypeItBoard items={quiz.answers} started={started} ended={ended} revealed={revealed} onMatch={onPairMatch} onWrong={onBankWrong} onEnd={onPairEnd} onHint={onPairHint} promptLabel={quiz.leftLabel} answerNoun={quiz.noun} stickyTop={stickyTop} />
+            ) : scrambleMode ? (
+            <WordScrambleBoard items={quiz.answers} started={started} ended={ended} revealed={revealed} onMatch={onPairMatch} onWrong={onBankWrong} onEnd={onPairEnd} onHint={onPairHint} promptLabel={quiz.leftLabel} answerNoun={quiz.noun} stickyTop={stickyTop} />
             ) : bankMode ? (
             <BankQuizBoard pairs={quiz.pairs} started={started} ended={ended} revealed={revealed} onMatch={onPairMatch} onWrong={onBankWrong} onEnd={onPairEnd} onHint={onPairHint} promptLabel={quiz.leftLabel} bankLabel={quiz.rightLabel} stickyTop={stickyTop} />
             ) : photoMatchMode ? (
