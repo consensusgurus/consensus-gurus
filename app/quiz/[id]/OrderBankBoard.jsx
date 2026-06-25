@@ -137,7 +137,7 @@ export default function OrderBankBoard({
               <li key={i} style={{ display: 'flex', alignItems: 'center', gap: 10, border: `1px solid ${bd}`, background: bg, borderRadius: 2, padding: '7px 11px' }}>
                 <span style={{ fontFamily: MONO, fontSize: 12, fontWeight: 700, color: numColor, minWidth: 24, textAlign: 'right' }}>{i + 1}</span>
                 <span style={{ fontFamily: SERIF, fontSize: 15, fontWeight: reached ? 700 : 600, color: COLORS.ink, lineHeight: 1.2 }}>
-                  {reached ? '✓ ' : missedSlot ? '✗ ' : ''}{it.t}
+                  {reached ? `✓ ${it.t}` : revealed ? `${missedSlot ? '✗ ' : ''}${it.t}` : '• • •'}
                 </span>
               </li>
             );
@@ -145,7 +145,7 @@ export default function OrderBankBoard({
         </ol>
         {struck && wrongPick != null && (
           <p style={{ fontFamily: MONO, fontSize: 12, color: COLORS.rust, marginTop: 12 }}>
-            You tapped <strong>{items[wrongPick].t}</strong> for slot #{placed + 1}. The next {noun} was <strong>{items[placed] ? items[placed].t : ''}</strong>.
+            You tapped <strong>{items[wrongPick].t}</strong> for slot #{placed + 1}.{revealed ? <> The next {noun} was <strong>{items[placed] ? items[placed].t : ''}</strong>.</> : ' Reveal the answers to see the rest of the order.'}
           </p>
         )}
       </div>
