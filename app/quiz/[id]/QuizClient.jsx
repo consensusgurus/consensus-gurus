@@ -1344,7 +1344,7 @@ export default function QuizClient({ quizId }) {
               </div>
             </div>
             </div>
-            <div style={{ fontFamily: MONO, fontSize: 12, minHeight: 15, marginTop: 2, marginBottom: 8, color: hintBad ? COLORS.ember : COLORS.faded }}>{hint}</div>
+            <div style={{ fontFamily: MONO, fontSize: 12, minHeight: 15, marginTop: 2, marginBottom: 8, color: hintBad ? COLORS.ember : COLORS.faded, ...(portraitPhoto ? { maxWidth: PHOTO_COL, marginLeft: 'auto', marginRight: 'auto' } : null) }}>{hint}</div>
 
             {photoMode ? (
             <PhotoBoard items={quiz.answers} started={started} ended={ended} revealed={revealed} onMatch={onPairMatch} onWrong={onBankWrong} onEnd={onPairEnd} onHint={onPairHint} answerNoun={quiz.noun} photoAspect={quiz.photoAspect} strike={quiz.strike} noSkip={quiz.strike} stickyTop={stickyTop} />
