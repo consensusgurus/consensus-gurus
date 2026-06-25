@@ -21,6 +21,7 @@ import dynamic from 'next/dynamic';
 const MapQuizBoard = dynamic(() => import('./MapQuizBoard'), { ssr: false, loading: () => null });
 const MatchQuizBoard = dynamic(() => import('./MatchQuizBoard'), { ssr: false, loading: () => null });
 const BankQuizBoard = dynamic(() => import('./BankQuizBoard'), { ssr: false, loading: () => null });
+const OrderBankBoard = dynamic(() => import('./OrderBankBoard'), { ssr: false, loading: () => null });
 const TypeItBoard = dynamic(() => import('./TypeItBoard'), { ssr: false, loading: () => null });
 const TimedMcqBoard = dynamic(() => import('./TimedMcqClient'), { ssr: false, loading: () => null });
 const LogicGridBoard = dynamic(() => import('./LogicGridClient'), { ssr: false, loading: () => null });
@@ -359,6 +360,7 @@ export default function QuizClient({ quizId }) {
   const mapMode = quiz.format === 'map';
   const pairsMode = quiz.format === 'pairs';
   const bankMode = quiz.format === 'bank';
+  const orderBankMode = quiz.format === 'order-bank';
   const typeMode = quiz.format === 'type-it';
   const scrambleMode = quiz.format === 'word-scramble';
   const photoMode = quiz.format === 'photo';
@@ -371,7 +373,7 @@ export default function QuizClient({ quizId }) {
   const logosMode = quiz.format === 'logos' || quiz.format === 'posters' || quiz.format === 'images';
   const tallTiles = quiz.format === 'posters' || quiz.imgTall === true;
   const squareTiles = quiz.imgSquare === true;
-  const tileMode = pairsMode || bankMode || typeMode || scrambleMode || photoMode || photoMatchMode;
+  const tileMode = pairsMode || bankMode || typeMode || scrambleMode || photoMode || photoMatchMode || orderBankMode;
   // Tile-mode (bank/pairs) quizzes are answered one prompt per PAIR, so the score
   // denominator is the pair count, not the number of distinct answer tiles. A
   // many-to-one bank quiz (e.g. cocktail -> base spirit: 16 cocktails, 6 spirits)
@@ -750,6 +752,8 @@ export default function QuizClient({ quizId }) {
         : `Find ${answers[ord[0]].t} — click it. You get ${total} guesses, one per country.`);
     } else if (bankMode) {
       setHint('Match the prompt to a tile in the bank below.');
+    } else if (orderBankMode) {
+      setHint(`Tap the ${quiz.noun || 'film'}s in order, oldest first. One wrong tap ends the run.`);
     } else if (pairsMode) {
       setHint('Pick a slogan, then the company it belongs to.');
     } else if (typeMode) {
@@ -1451,6 +1455,8 @@ export default function QuizClient({ quizId }) {
             <WordScrambleBoard items={quiz.answers} started={started} ended={ended} revealed={revealed} onMatch={onPairMatch} onWrong={onBankWrong} onEnd={onPairEnd} onHint={onPairHint} promptLabel={quiz.leftLabel} answerNoun={quiz.noun} stickyTop={stickyTop} mobile={mobile} />
             ) : bankMode ? (
             <BankQuizBoard pairs={quiz.pairs} started={started} ended={ended} revealed={revealed} onMatch={onPairMatch} onWrong={onBankWrong} onEnd={onPairEnd} onHint={onPairHint} promptLabel={quiz.leftLabel} bankLabel={quiz.rightLabel} stickyTop={stickyTop} mobile={mobile} />
+            ) : orderBankMode ? (
+            <OrderBankBoard items={quiz.answers} started={started} ended={ended} revealed={revealed} onMatch={onPairMatch} onWrong={onBankWrong} onEnd={onPairEnd} onHint={onPairHint} answerNoun={quiz.noun} stickyTop={stickyTop} mobile={mobile} />
             ) : photoMatchMode ? (
             <PhotoMatchBoard items={quiz.answers} started={started} ended={ended} revealed={revealed} onMatch={onPairMatch} onWrong={onBankWrong} onEnd={onPairEnd} onHint={onPairHint} answerNoun={quiz.noun} stickyTop={stickyTop} mobile={mobile} />
             ) : pairsMode ? (
