@@ -30,7 +30,7 @@ function buzz(ok) {
   try { if (typeof navigator !== 'undefined' && navigator.vibrate) navigator.vibrate(ok ? 18 : [0, 32, 48, 32]); } catch (e) {}
 }
 
-export default function PhotoMatchBoard({ items, started, ended, revealed, onMatch, onWrong, onEnd, onHint, answerNoun, stickyTop = 150 }) {
+export default function PhotoMatchBoard({ items, started, ended, revealed, onMatch, onWrong, onEnd, onHint, answerNoun, stickyTop = 150, mobile = false }) {
   const list = items || [];
   const total = list.length;
   const noun = answerNoun || 'picture';
@@ -48,6 +48,10 @@ export default function PhotoMatchBoard({ items, started, ended, revealed, onMat
   const [flash, setFlash] = useState(null); // { key, ok }
 
   const live = started && !ended;
+  const dock = mobile && live;
+  const barStyle = dock
+    ? { position: 'fixed', left: 0, right: 0, bottom: 0, zIndex: 40, background: COLORS.cream, padding: '10px 14px', paddingBottom: 'calc(10px + env(safe-area-inset-bottom))', borderTop: `1px solid ${COLORS.faded}22`, boxShadow: '0 -6px 18px rgba(20,22,28,0.10)', display: 'flex', alignItems: 'center', gap: 10 }
+    : { position: 'sticky', top: stickyTop, zIndex: 4, background: COLORS.cream, paddingTop: 4, paddingBottom: 8, display: 'flex', alignItems: 'center', gap: 10 };
 
   // Preconnect + warm the whole deck so cycling pictures never blanks.
   useEffect(() => {
@@ -136,7 +140,7 @@ export default function PhotoMatchBoard({ items, started, ended, revealed, onMat
   return (
     <div>
       {/* Slideshow prompt: one picture at a time. */}
-      <div style={{ position: 'sticky', top: stickyTop, zIndex: 4, background: COLORS.cream, paddingTop: 4, paddingBottom: 8, display: 'flex', alignItems: 'center', gap: 10 }}>
+      <div style={barStyle}>
         <span style={{ fontFamily: MONO, fontSize: 11, letterSpacing: '0.14em', textTransform: 'uppercase', color: live ? COLORS.ink : COLORS.faded }}>
           {live ? `Tap the title of this ${noun}.` : 'Press Play to start'}
         </span>
@@ -172,6 +176,7 @@ export default function PhotoMatchBoard({ items, started, ended, revealed, onMat
           );
         })}
       </div>
+      {dock && <div aria-hidden="true" style={{ height: 'calc(110px + env(safe-area-inset-bottom))' }} />}
     </div>
   );
 }

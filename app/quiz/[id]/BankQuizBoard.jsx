@@ -46,7 +46,7 @@ function shuffle(arr) {
   return a;
 }
 
-export default function BankQuizBoard({ pairs, started, ended, revealed, onMatch, onWrong, onEnd, onHint, promptLabel, bankLabel, stickyTop = 150 }) {
+export default function BankQuizBoard({ pairs, started, ended, revealed, onMatch, onWrong, onEnd, onHint, promptLabel, bankLabel, stickyTop = 150, mobile = false }) {
   // pairs[i] === [answer, prompt]: answer = the tile (e.g. headquarters city),
   // prompt = the clue shown one at a time (e.g. company).
   const total = pairs.length;
@@ -71,6 +71,10 @@ export default function BankQuizBoard({ pairs, started, ended, revealed, onMatch
   const [flash, setFlash] = useState(null); // { key, ok }
 
   const live = started && !ended;
+  const dock = mobile && live;
+  const barStyle = dock
+    ? { position: 'fixed', left: 0, right: 0, bottom: 0, zIndex: 40, display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: 12, background: live ? COLORS.ink : COLORS.paper, color: live ? COLORS.cream : COLORS.faded, borderTop: `1px solid ${COLORS.faded}33`, padding: '12px 16px', paddingBottom: 'calc(12px + env(safe-area-inset-bottom))', minHeight: 30, boxShadow: '0 -6px 18px rgba(20,22,28,0.10)' }
+    : { position: 'sticky', top: stickyTop, zIndex: 4, display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: 12, background: live ? COLORS.ink : COLORS.paper, color: live ? COLORS.cream : COLORS.faded, borderRadius: 10, border: `1px solid ${COLORS.faded}33`, padding: '14px 16px', marginBottom: 10, minHeight: 30 };
   const guessesLeft = total - matched.size - errors;
   const remaining = total - matched.size;
 
@@ -185,7 +189,7 @@ export default function BankQuizBoard({ pairs, started, ended, revealed, onMatch
 
   return (
     <div>
-      <div style={{ position: 'sticky', top: stickyTop, zIndex: 4, display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: 12, background: live ? COLORS.ink : COLORS.paper, color: live ? COLORS.cream : COLORS.faded, borderRadius: 10, border: `1px solid ${COLORS.faded}33`, padding: '14px 16px', marginBottom: 10, minHeight: 30 }}>
+      <div style={barStyle}>
         <span style={{ fontFamily: MONO, fontSize: 11, letterSpacing: '0.2em', textTransform: 'uppercase', opacity: 0.7, flex: 'none' }}>{promptLabel || 'Prompt'}</span>
         {(() => { const clueText = !started ? 'Press Play to start' : (ended ? 'Game over' : (cur != null ? pairs[cur][1] : 'All done')); return (<span key={clueText} style={{ fontFamily: SERIF, fontWeight: 800, fontSize: 'clamp(20px, 3.4vw, 28px)', lineHeight: 1.15, flex: '1 1 320px', minWidth: 0, overflowWrap: 'break-word', transform: 'translateZ(0)' }}>{clueText}</span>); })()}
         {live && cur != null && (
@@ -232,6 +236,7 @@ export default function BankQuizBoard({ pairs, started, ended, revealed, onMatch
           })}
         </div>
       )}
+      {dock && <div aria-hidden="true" style={{ height: 'calc(110px + env(safe-area-inset-bottom))' }} />}
     </div>
   );
 }

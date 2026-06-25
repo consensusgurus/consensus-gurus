@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useMemo, useState, useRef } from 'react';
+import React, { useMemo, useState, useRef, useEffect } from 'react';
 
 // Typed-recall board (`format: 'type-it'`). ONE clue (e.g. an airport) shows at a
 // time in the clue bar with a Next button to cycle through clues not yet solved;
@@ -39,7 +39,7 @@ function accepts(raw, item) {
   return deArticle(g) === deArticle(norm(item.t));
 }
 
-export default function TypeItBoard({ items, started, ended, revealed, onMatch, onWrong, onEnd, onHint, promptLabel, answerNoun, stickyTop = 150 }) {
+export default function TypeItBoard({ items, started, ended, revealed, onMatch, onWrong, onEnd, onHint, promptLabel, answerNoun, stickyTop = 150, mobile = false }) {
   const list = items || [];
   const total = list.length;
   const order = useMemo(() => shuffle(list.map((_, i) => i)), [list]);
@@ -51,6 +51,21 @@ export default function TypeItBoard({ items, started, ended, revealed, onMatch, 
   const inputRef = useRef(null);
 
   const live = started && !ended;
+  const [kbInset, setKbInset] = useState(0);
+  useEffect(() => {
+    if (!(mobile && started && !ended)) { setKbInset(0); return undefined; }
+    const vv = window.visualViewport;
+    if (!vv) return undefined;
+    const onVV = () => setKbInset(Math.max(0, Math.round(window.innerHeight - vv.height - vv.offsetTop)));
+    onVV();
+    vv.addEventListener('resize', onVV);
+    vv.addEventListener('scroll', onVV);
+    return () => { vv.removeEventListener('resize', onVV); vv.removeEventListener('scroll', onVV); };
+  }, [mobile, started, ended]);
+  const dock = mobile && live;
+  const barStyle = dock
+    ? { position: 'fixed', left: 0, right: 0, bottom: kbInset, zIndex: 40, background: COLORS.cream, padding: '8px 14px', paddingBottom: kbInset > 0 ? 8 : 'calc(8px + env(safe-area-inset-bottom))', borderTop: `1px solid ${COLORS.faded}22`, boxShadow: '0 -6px 18px rgba(20,22,28,0.10)' }
+    : { position: 'sticky', top: stickyTop, zIndex: 4, background: COLORS.cream, paddingTop: 4, paddingBottom: 8 };
   const guessesLeft = Math.max(0, total - matched.size - errors);
   const remaining = total - matched.size;
   const noun = answerNoun || 'answer';
@@ -130,7 +145,7 @@ export default function TypeItBoard({ items, started, ended, revealed, onMatch, 
           under the score/timer block. Next/Back use onMouseDown preventDefault +
           refocus so tapping them never blurs the input (keyboard stays open, no
           reflow that would slide the bar behind the stats on mobile). */}
-      <div style={{ position: 'sticky', top: stickyTop, zIndex: 4, background: COLORS.cream, paddingTop: 4, paddingBottom: 8 }}>
+      <div style={barStyle}>
         {live && (
           <div style={{ display: 'flex', gap: 10, marginBottom: 10 }}>
             <input

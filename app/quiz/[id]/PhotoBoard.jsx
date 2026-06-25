@@ -42,7 +42,7 @@ function accepts(raw, item) {
   return deArticle(g) === deArticle(norm(item.t));
 }
 
-export default function PhotoBoard({ items, started, ended, revealed, onMatch, onWrong, onEnd, onHint, answerNoun, photoAspect = '4 / 3', stickyTop = 150, strike = false, noSkip = false }) {
+export default function PhotoBoard({ items, started, ended, revealed, onMatch, onWrong, onEnd, onHint, answerNoun, photoAspect = '4 / 3', stickyTop = 150, strike = false, noSkip = false, mobile = false }) {
   const list = items || [];
   const total = list.length;
   const order = useMemo(() => shuffle(list.map((_, i) => i)), [list]);
@@ -54,6 +54,21 @@ export default function PhotoBoard({ items, started, ended, revealed, onMatch, o
   const inputRef = useRef(null);
 
   const live = started && !ended;
+  const [kbInset, setKbInset] = useState(0);
+  useEffect(() => {
+    if (!(mobile && started && !ended)) { setKbInset(0); return undefined; }
+    const vv = window.visualViewport;
+    if (!vv) return undefined;
+    const onVV = () => setKbInset(Math.max(0, Math.round(window.innerHeight - vv.height - vv.offsetTop)));
+    onVV();
+    vv.addEventListener('resize', onVV);
+    vv.addEventListener('scroll', onVV);
+    return () => { vv.removeEventListener('resize', onVV); vv.removeEventListener('scroll', onVV); };
+  }, [mobile, started, ended]);
+  const dock = mobile && live;
+  const barStyle = dock
+    ? { position: 'fixed', left: 0, right: 0, bottom: kbInset, zIndex: 40, background: COLORS.cream, padding: '8px 14px', paddingBottom: kbInset > 0 ? 8 : 'calc(8px + env(safe-area-inset-bottom))', borderTop: `1px solid ${COLORS.faded}22`, boxShadow: '0 -6px 18px rgba(20,22,28,0.10)' }
+    : { position: 'sticky', top: stickyTop, zIndex: 4, background: COLORS.cream, paddingTop: 4, paddingBottom: 8 };
   const guessesLeft = Math.max(0, total - matched.size - errors);
   const remaining = total - matched.size;
   const noun = answerNoun || 'city';
@@ -176,7 +191,7 @@ export default function PhotoBoard({ items, started, ended, revealed, onMatch, o
           the screen; the photo scrolls below. The input element is never remounted
           between photos, so it keeps focus after a correct answer or Next. */}
       {live && (
-        <div style={{ position: 'sticky', top: stickyTop, zIndex: 4, background: COLORS.cream, paddingTop: 4, paddingBottom: 8 }}>
+        <div style={barStyle}>
           <div style={{ display: 'flex', gap: 10, marginBottom: 8, ...(portrait ? { maxWidth: 420, marginLeft: 'auto', marginRight: 'auto' } : null) }}>
             <input
               ref={inputRef}
@@ -246,6 +261,7 @@ export default function PhotoBoard({ items, started, ended, revealed, onMatch, o
           })}
         </div>
       )}
+      {dock && <div aria-hidden="true" style={{ height: 'calc(110px + env(safe-area-inset-bottom))' }} />}
     </div>
   );
 }

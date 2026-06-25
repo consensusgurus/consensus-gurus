@@ -60,7 +60,7 @@ function Tiles({ text }) {
   );
 }
 
-export default function WordScrambleBoard({ items, started, ended, revealed, onMatch, onWrong, onEnd, onHint, promptLabel, answerNoun, stickyTop = 150 }) {
+export default function WordScrambleBoard({ items, started, ended, revealed, onMatch, onWrong, onEnd, onHint, promptLabel, answerNoun, stickyTop = 150, mobile = false }) {
   const list = items || [];
   const total = list.length;
   const order = useMemo(() => shuffle(list.map((_, i) => i)), [list]);
@@ -72,6 +72,21 @@ export default function WordScrambleBoard({ items, started, ended, revealed, onM
   const inputRef = useRef(null);
 
   const live = started && !ended;
+  const [kbInset, setKbInset] = useState(0);
+  useEffect(() => {
+    if (!(mobile && started && !ended)) { setKbInset(0); return undefined; }
+    const vv = window.visualViewport;
+    if (!vv) return undefined;
+    const onVV = () => setKbInset(Math.max(0, Math.round(window.innerHeight - vv.height - vv.offsetTop)));
+    onVV();
+    vv.addEventListener('resize', onVV);
+    vv.addEventListener('scroll', onVV);
+    return () => { vv.removeEventListener('resize', onVV); vv.removeEventListener('scroll', onVV); };
+  }, [mobile, started, ended]);
+  const dock = mobile && live;
+  const barStyle = dock
+    ? { position: 'fixed', left: 0, right: 0, bottom: kbInset, zIndex: 40, background: COLORS.cream, padding: '8px 14px', paddingBottom: kbInset > 0 ? 8 : 'calc(8px + env(safe-area-inset-bottom))', borderTop: `1px solid ${COLORS.faded}22`, boxShadow: '0 -6px 18px rgba(20,22,28,0.10)' }
+    : { position: 'sticky', top: stickyTop, zIndex: 4, background: COLORS.cream, paddingTop: 4, paddingBottom: 8 };
   const noun = answerNoun || 'country';
   const curLabel = cur != null && list[cur] ? (list[cur].label || list[cur].t) : '';
   useEffect(() => { setDisp(curLabel); }, [curLabel]);
@@ -122,7 +137,7 @@ export default function WordScrambleBoard({ items, started, ended, revealed, onM
 
   return (
     <div>
-      <div style={{ position: 'sticky', top: stickyTop, zIndex: 4, background: COLORS.cream, paddingTop: 4, paddingBottom: 8 }}>
+      <div style={barStyle}>
         {live && (
           <div style={{ display: 'flex', gap: 10, marginBottom: 10 }}>
             <input
