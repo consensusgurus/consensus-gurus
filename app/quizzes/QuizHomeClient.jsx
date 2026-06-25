@@ -249,7 +249,7 @@ export default function QuizHomeClient() {
   const [acc, setAcc] = useState({ mostplayed: true, newest: true, daily: true }); // mobile-only: which accordion panels are open
   const [lbLiveTab, setLbLiveTab] = useState(null); // mobile combined leaderboard/live: null | 'lb' | 'live'
   const toggleAcc = (k) => setAcc((o) => ({ ...o, [k]: !o[k] }));
-  const mobLbOpen = isMobile && lbLiveTab === 'lb'; // mobile leaderboard tab active -> more rows + scroll
+  const mobLbOpen = false; // mobile leaderboard shows top 5 (desktop click-to-expand still applies via boardsExpanded)
   useEffect(() => {
     if (typeof window === 'undefined' || !window.matchMedia) return;
     const mq = window.matchMedia('(max-width:560px)');
