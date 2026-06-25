@@ -360,6 +360,11 @@ export default function QuizClient({ quizId }) {
   const bankMode = quiz.format === 'bank';
   const typeMode = quiz.format === 'type-it';
   const photoMode = quiz.format === 'photo';
+  // Portrait photo quizzes (e.g. 3/4 headshots) render the image as a narrow
+  // centered card; constrain the score/time/Play bar to the same column so it
+  // sits directly above the photo instead of spanning the full page width.
+  const PHOTO_COL = 420;
+  const portraitPhoto = photoMode && (() => { const a = String(quiz.photoAspect || '').split('/'); return a.length === 2 && parseFloat(a[0]) < parseFloat(a[1]); })();
   const photoMatchMode = quiz.format === 'photo-match';
   const logosMode = quiz.format === 'logos' || quiz.format === 'posters' || quiz.format === 'images';
   const tallTiles = quiz.format === 'posters' || quiz.imgTall === true;
@@ -1297,7 +1302,7 @@ export default function QuizClient({ quizId }) {
                 the top of the viewport. The nav ribbon above is NOT sticky, so
                 this is the only frozen element; the list/board scrolls under. */}
             <div ref={scoreRef} style={{ position: 'sticky', top: 0, zIndex: 24, background: COLORS.cream }}>
-            <div style={{ display: 'flex', flexWrap: 'nowrap', alignItems: 'center', gap: 8, margin: '4px 0 8px' }}>
+            <div style={{ display: 'flex', flexWrap: 'nowrap', alignItems: 'center', gap: 8, margin: '4px 0 8px', ...(portraitPhoto ? { maxWidth: PHOTO_COL, marginLeft: 'auto', marginRight: 'auto' } : null) }}>
               {(() => {
                 const base = { display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 4, flex: 'none', height: 50, padding: '0 12px', border: `1px solid ${COLORS.line}`, borderRadius: 9, background: '#fff', fontFamily: SERIF, fontWeight: 800, fontSize: 16, lineHeight: 1 };
                 const live = started && !ended;

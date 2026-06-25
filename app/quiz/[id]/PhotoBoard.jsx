@@ -177,7 +177,7 @@ export default function PhotoBoard({ items, started, ended, revealed, onMatch, o
           between photos, so it keeps focus after a correct answer or Next. */}
       {live && (
         <div style={{ position: 'sticky', top: stickyTop, zIndex: 4, background: COLORS.cream, paddingTop: 4, paddingBottom: 8 }}>
-          <div style={{ display: 'flex', gap: 10, marginBottom: 8 }}>
+          <div style={{ display: 'flex', gap: 10, marginBottom: 8, ...(portrait ? { maxWidth: 420, marginLeft: 'auto', marginRight: 'auto' } : null) }}>
             <input
               ref={inputRef}
               value={val}
@@ -219,7 +219,7 @@ export default function PhotoBoard({ items, started, ended, revealed, onMatch, o
           </div>
         </div>
       ) : (
-      <div style={{ position: 'relative', width: '100%', aspectRatio: photoAspect, maxHeight: 500, ...(portrait ? { maxWidth: 380, marginLeft: 'auto', marginRight: 'auto' } : null), background: COLORS.ink, borderRadius: 10, border: `2px solid ${borderColor}`, overflow: 'hidden', marginBottom: 10, transition: 'border-color .15s' }}>
+      <div style={{ position: 'relative', width: '100%', aspectRatio: photoAspect, maxHeight: 500, ...(portrait ? { maxWidth: 420, maxHeight: 560, marginLeft: 'auto', marginRight: 'auto' } : null), background: COLORS.ink, borderRadius: 10, border: `2px solid ${borderColor}`, overflow: 'hidden', marginBottom: 10, transition: 'border-color .15s' }}>
         {live && curItem ? (
           <img src={curItem.img} alt={`Name the ${noun} in this photo`} style={{ width: '100%', height: '100%', objectFit: 'contain', display: 'block' }} />
         ) : (
