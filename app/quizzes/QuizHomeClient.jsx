@@ -246,7 +246,7 @@ export default function QuizHomeClient() {
   const [dailyLb, setDailyLb] = useState(null); // today's daily-challenge standings (registered players)
   const [chRun, setChRun] = useState(null); // local run-state for today's daily challenge (completion ticks)
   const [isMobile, setIsMobile] = useState(false);
-  const [acc, setAcc] = useState({ lb: true, mostplayed: true }); // mobile-only: which accordion panels are open
+  const [acc, setAcc] = useState({ mostplayed: true, newest: true }); // mobile-only: which accordion panels are open
   const toggleAcc = (k) => setAcc((o) => ({ ...o, [k]: !o[k] }));
   const mobLbOpen = isMobile && !!acc.lb; // mobile leaderboard unfurled -> show more rows + scroll
   useEffect(() => {
@@ -726,6 +726,7 @@ export default function QuizHomeClient() {
       .qzh .qz-submit{flex:0 0 auto !important;align-self:stretch;box-sizing:border-box;}
       .qzh .qz-daily{flex:0 0 auto !important;align-self:stretch;box-sizing:border-box;}
     }
+    .qzh .qz-mobhub{display:none;}
     .qzh .accchev{display:none;}
     @media(max-width:560px){
       .qzh .boards .head{cursor:pointer;}
@@ -747,6 +748,7 @@ export default function QuizHomeClient() {
       .qzh .vall{text-transform:uppercase !important;font-size:10px !important;font-weight:700 !important;letter-spacing:.05em !important;}
       .qzh .lb-card.mc-open .lbbody{max-height:50vh;overflow-y:auto;justify-content:flex-start;}
       .qzh .qz-searchwrap input{font-size:16px !important;}
+      .qzh .qz-mobhub{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-top:14px;background:${C.accsoft};color:${C.accent};border:1px solid #cddffb;border-radius:12px;padding:14px 16px;text-decoration:none;font-family:${FONT};}
     }
   `;
 
@@ -776,7 +778,7 @@ export default function QuizHomeClient() {
               </span>
               <span style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
                 <Link href={lbMetric.special && lbMetric.key !== 'catRating' ? '/quizzes/hub?tab=challenges' : '/quizzes/hub'} onClick={(e) => e.stopPropagation()} className="qlink"><span className="vall" style={{ fontSize: 11, fontWeight: 700, color: C.accent }}>View all</span></Link>
-                <ChevronDown className="accchev" size={16} strokeWidth={2.5} style={{ flex: 'none', color: C.soft, transform: acc.lb ? 'none' : 'rotate(-90deg)' }} />
+                <ChevronDown className="accchev" size={16} strokeWidth={2.5} style={{ flex: 'none', color: C.soft, transform: acc.lb ? 'rotate(180deg)' : 'none' }} />
               </span>
             </div>
             <div className="lbbody" style={{ flex: 1, padding: '3px 0', display: 'flex', flexDirection: 'column', justifyContent: 'space-evenly' }}>
@@ -823,7 +825,7 @@ export default function QuizHomeClient() {
               <span style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
                 {playsToday ? <span className="vall" style={{ fontSize: 10, fontWeight: 700, letterSpacing: '.05em', textTransform: 'uppercase', color: C.soft }}>{playsToday.toLocaleString()} Plays Today</span> : null}
                 <button type="button" onClick={(e) => { e.stopPropagation(); setListMode('live'); }} className="vall" style={{ background: 'none', border: 'none', padding: 0, cursor: 'pointer', color: C.accent, fontWeight: 700, fontSize: 11, whiteSpace: 'nowrap' }}>View all</button>
-                <ChevronDown className="accchev" size={16} strokeWidth={2.5} style={{ flex: 'none', color: C.soft, transform: acc.live ? 'none' : 'rotate(-90deg)' }} />
+                <ChevronDown className="accchev" size={16} strokeWidth={2.5} style={{ flex: 'none', color: C.soft, transform: acc.live ? 'rotate(180deg)' : 'none' }} />
               </span>
             </div>
             <div style={{ flex: 1, padding: '3px 0', display: 'flex', flexDirection: 'column', justifyContent: 'space-evenly' }}>
@@ -857,7 +859,7 @@ export default function QuizHomeClient() {
                 </span>
                 <span style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
                   <Link href={`/challenge/${dailyId}`} className="qlink"><span className="vall" style={{ fontSize: 11, fontWeight: 700, color: C.accent }}>{isMobile ? 'View all' : (dailyAllDone ? 'Results' : 'View')}</span></Link>
-                  <ChevronDown className="accchev" size={16} strokeWidth={2.5} style={{ flex: 'none', color: C.soft, transform: acc.daily ? 'none' : 'rotate(-90deg)' }} />
+                  <ChevronDown className="accchev" size={16} strokeWidth={2.5} style={{ flex: 'none', color: C.soft, transform: acc.daily ? 'rotate(180deg)' : 'none' }} />
                 </span>
               </div>
               <div style={{ flex: 1, display: 'flex', flexDirection: 'column', padding: '8px 13px 11px' }}>
@@ -1064,6 +1066,18 @@ export default function QuizHomeClient() {
             ))}
           </div>
         )}
+        {(!searchResults && scope === 'all' && !listMode && doneFilter === 'all') && (
+          <Link href="/quizzes/business-news" className="qz-mobhub">
+            <span style={{ display: 'flex', alignItems: 'center', gap: 11, minWidth: 0 }}>
+              <Flame size={18} style={{ flex: 'none' }} />
+              <span style={{ display: 'grid', lineHeight: 1.2 }}>
+                <span style={{ fontSize: 14, fontWeight: 800 }}>Business News</span>
+                <span style={{ fontSize: 11, fontWeight: 600, opacity: 0.85 }}>Quiz Hub</span>
+              </span>
+            </span>
+            <ArrowRight size={18} style={{ flex: 'none' }} />
+          </Link>
+        )}
       </div>
 
       {/* close the dropdown on outside click */}
@@ -1185,7 +1199,7 @@ function BrowseColumn({ label, Icon, color, tint, rows, cta, onCta, open = true,
         {onCta
           ? <button type="button" onClick={(e) => { e.stopPropagation(); onCta(); }} className="viewall vall" style={{ color, background: 'none', border: 'none', padding: 0, cursor: 'pointer', fontFamily: 'inherit', fontSize: 10, fontWeight: 700 }}>{isMobile ? 'View all' : cta}</button>
           : <span className="viewall vall" style={{ color }}>{isMobile ? 'View all' : cta}</span>}
-        <ChevronDown className="accchev" size={16} strokeWidth={2.5} style={{ flex: 'none', color: C.soft, transform: open ? 'none' : 'rotate(-90deg)' }} />
+        <ChevronDown className="accchev" size={16} strokeWidth={2.5} style={{ flex: 'none', color: C.soft, transform: open ? 'rotate(180deg)' : 'none' }} />
       </div>
       {rows.map(({ q, right }) => (
         <Link href={`/quiz/${q.id}`} className="qrow" key={q.id} title={q.rawTitle || q.title}>
