@@ -100,7 +100,9 @@ export default function ChallengeClient({ id }) {
       <Grain />
       <SiteHeader active="quizzes" flush inlay={<QuizPlayerBar />} />
 
-      <div style={{ position: 'relative', zIndex: 2, maxWidth: 720, margin: '0 auto', padding: '14px 20px 80px' }}>
+      <div className="qzf-w" style={{ position: 'relative', zIndex: 2, maxWidth: 1180, margin: '0 auto', padding: '8px 38px 80px' }}>
+        <div className="qzf-line" aria-hidden="true" />
+        <div style={{ position: 'relative', zIndex: 1, maxWidth: 680, margin: '0 auto' }}>
         <Link href="/quizzes" style={{ display: 'inline-flex', alignItems: 'center', gap: 6, fontFamily: FONT, fontSize: 12, letterSpacing: '0.1em', textTransform: 'uppercase', fontWeight: 700, color: COLORS.faded, textDecoration: 'none', marginTop: 6 }}>
           <ArrowLeft size={14} strokeWidth={2.5} /> All quizzes
         </Link>
@@ -162,6 +164,7 @@ export default function ChallengeClient({ id }) {
           <Link href="/quizzes" style={{ boxSizing: 'border-box', fontFamily: FONT, fontSize: 12, letterSpacing: '0.08em', textTransform: 'uppercase', fontWeight: 700, padding: '13px 18px', borderRadius: 10, border: `1.5px solid ${COLORS.ink}`, background: '#fff', color: COLORS.ink, textDecoration: 'none', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 8 }}>
             Back to all quizzes
           </Link>
+        </div>
         </div>
       </div>
 

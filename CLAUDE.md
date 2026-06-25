@@ -2639,6 +2639,32 @@ The results card in `TimedMcqClient.jsx` shows, under the score box, two equal-s
 **Your standing** (ELO rating + global/category ranks, with smaller text) on the RIGHT, then all three
 buttons (Quiz Summary, Post to Leaderboard, Challenge a friend) UNDERNEATH.
 
+### Daily Challenge: OBJECTIVE/FACTUAL quizzes only, never consensus lists (owner rule, 2026-06-25)
+
+Every quiz placed in `DAILY_SCHEDULE` (lib/challenges.js) must have a single, defensible correct
+order that is a matter of FACT, not editorial taste. The Daily Challenge scores players on a "name
+them all / in order" basis, so a subjectively ranked list has no honest answer key and must never be
+used.
+
+- **ALLOWED:** facts-mode lists and standalone factual quizzes whose order is data, e.g. best-selling,
+  top-grossing, biggest/largest/most, capitals, champions/title counts, stat leaders, awards-by-year,
+  box-office filmographies (tarantino-films, coen-brothers-films), and matched/bank/map/photo quizzes
+  built on a cited objective source.
+- **BANNED:** any quiz derived from a subjective "Best X" editorial CONSENSUS list, i.e. a quiz whose
+  paired `listId` points to a Borda/vote list (anything that is NOT `mode: 'facts'`), or whose quiz
+  `source` reads "Based on the consensus of <publications>". Critic-consensus director rankings
+  (hitchcock-movies, kubrick-movies, john-hughes-movies, bigelow-movies) are banned even though
+  box-office filmographies of the same directors are fine.
+- **How to check before adding an entry:** open lib/quizzes.js, find the quiz id. If it has a
+  `listId` whose lib/data.js list is not `mode: 'facts'`, or its `source` contains "consensus of",
+  do NOT use it. There is a matching HARD-RULE comment block directly above `DAILY_SCHEDULE` in
+  lib/challenges.js.
+- **Editing the schedule:** you may swap today's or any NOT-YET-OCCURRED index, but NEVER edit an
+  index whose Eastern date has already passed (it would rewrite that day's frozen leaderboard). A
+  past entry that happens to contain a now-banned consensus quiz is left as frozen history; the ban
+  applies to today and all future selections. (First applied 2026-06-25: idx 6,13,16,17,30,42,43,45,
+  58,65,95 were scrubbed of consensus quizzes; idx 3, already past, was deliberately left untouched.)
+
 ### Daily Challenge is OFF (button is the hub link)
 
 `DAILY_CHALLENGE_ON = false` in `lib/challenges.js` suppresses the daily challenge from `openChallenges`,
