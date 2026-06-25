@@ -52,6 +52,7 @@ export default function PhotoBoard({ items, started, ended, revealed, onMatch, o
   const [val, setVal] = useState('');
   const [flash, setFlash] = useState(null); // { ok, key }
   const inputRef = useRef(null);
+  const clueRef = useRef(null);
 
   const live = started && !ended;
   const [kbInset, setKbInset] = useState(0);
@@ -69,6 +70,22 @@ export default function PhotoBoard({ items, started, ended, revealed, onMatch, o
   const barStyle = dock
     ? { position: 'fixed', left: 0, right: 0, bottom: kbInset, zIndex: 40, background: COLORS.cream, padding: '8px 14px', paddingBottom: kbInset > 0 ? 8 : 'calc(8px + env(safe-area-inset-bottom))', borderTop: `1px solid ${COLORS.faded}22`, boxShadow: '0 -6px 18px rgba(20,22,28,0.10)' }
     : { position: 'sticky', top: stickyTop, zIndex: 4, background: COLORS.cream, paddingTop: 4, paddingBottom: 8 };
+  // The input is docked at the bottom on mobile, so focusing it would otherwise
+  // jump the page to the bottom and scroll the photo clue off-screen. Re-center
+  // the photo in view on focus (and when the photo changes while still focused).
+  function centerClue() {
+    if (!dock) return;
+    const el = clueRef.current;
+    if (el && typeof el.scrollIntoView === 'function') el.scrollIntoView({ block: 'center', behavior: 'smooth' });
+  }
+  useEffect(() => {
+    if (!dock) return undefined;
+    if (inputRef.current && document.activeElement === inputRef.current) {
+      const t = setTimeout(centerClue, 60);
+      return () => clearTimeout(t);
+    }
+    return undefined;
+  }, [cur, dock]);
   const guessesLeft = Math.max(0, total - matched.size - errors);
   const remaining = total - matched.size;
   const noun = answerNoun || 'city';
@@ -199,6 +216,7 @@ export default function PhotoBoard({ items, started, ended, revealed, onMatch, o
               disabled={!live}
               onChange={onChange}
               onKeyDown={onKey}
+              onFocus={() => { setTimeout(centerClue, 60); setTimeout(centerClue, 350); }}
               placeholder={live ? `Type the ${noun}…` : ''}
               autoComplete="off"
               autoCapitalize="none"
@@ -219,6 +237,7 @@ export default function PhotoBoard({ items, started, ended, revealed, onMatch, o
         </div>
       )}
       {/* Photo prompt — only this changes between answers; scrolls beneath the frozen bar. */}
+      <div ref={clueRef}>
       {live && curItem && curItem.mask !== undefined ? (
         // Masked photo (e.g. ski trail maps with names blacked out): render the
         // image at its NATURAL aspect inside a wrapper sized to the image, so the
@@ -242,6 +261,7 @@ export default function PhotoBoard({ items, started, ended, revealed, onMatch, o
         )}
       </div>
       )}
+      </div>
       {ended && (
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(150px, 1fr))', gap: 8 }}>
           {list.map((it, i) => {

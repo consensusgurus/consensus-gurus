@@ -394,11 +394,17 @@ export default function QuizClient({ quizId }) {
   // id (so date slugs like ...-2026-06-14 are never mis-grouped).
   const seriesParts = (() => {
     const stripped = quiz.id.replace(/-\d+$/, '');
-    const base = QUIZZES.some((x) => x.id === stripped) ? stripped : null;
-    if (!base) return [];
-    const partNum = (id) => { const m = id.match(/-(\d+)$/); return m ? parseInt(m[1], 10) : 1; };
+    // Guard against mis-grouping date slugs: a base ending in a year/date (e.g.
+    // 'weekly-business-quiz-2026-06') is never a series, and a 4-digit (>=1000)
+    // trailing number is a year, not a part number. A series is otherwise any
+    // set of quizzes sharing the same stripped base, whether part 1 is unnumbered
+    // ('movie-taglines' + '-2') or numbered ('word-scramble-countries-1' + '-2').
+    const m = quiz.id.match(/-(\d+)$/);
+    const suffix = m ? parseInt(m[1], 10) : null;
+    if ((suffix != null && suffix >= 1000) || /-\d{4}(-\d{2})*$/.test(stripped)) return [];
+    const partNum = (id) => { const mm = id.match(/-(\d+)$/); return mm ? parseInt(mm[1], 10) : 1; };
     return QUIZZES
-      .filter((x) => x.id !== quiz.id && !x.hideFromRelated && x.id.replace(/-\d+$/, '') === base)
+      .filter((x) => x.id !== quiz.id && !x.hideFromRelated && x.id.replace(/-\d+$/, '') === stripped)
       .sort((a, b) => partNum(a.id) - partNum(b.id));
   })();
   const seriesIds = new Set(seriesParts.map((x) => x.id));
@@ -409,11 +415,9 @@ export default function QuizClient({ quizId }) {
     // 'movie-taglines') plus its numbered siblings ('movie-taglines-2'); we only
     // treat the stripped base as a set when it is itself a real quiz id, so an
     // unrelated trailing number (e.g. a date slug) is never mis-grouped.
-    const stripped = quiz.id.replace(/-\d+$/, '');
-    const partBase = QUIZZES.some((x) => x.id === stripped) ? stripped : null;
-    const parts = partBase
-      ? QUIZZES.filter((x) => x.id !== quiz.id && !x.hideFromRelated && x.id.replace(/-\d+$/, '') === partBase)
-      : [];
+    // Leading parts of a multi-part series (reuses the same detection as
+    // seriesParts so numbered-from-1 series like word-scramble-countries work).
+    const parts = seriesParts;
     const sameCat = QUIZZES.filter((x) => x.id !== quiz.id && !x.hideFromRelated && quiz.category && x.category === quiz.category);
     const sameDept = QUIZZES.filter((x) => x.id !== quiz.id && !x.hideFromRelated && deptOf(x) === d);
     const rest = QUIZZES.filter((x) => x.id !== quiz.id && !x.hideFromRelated);
