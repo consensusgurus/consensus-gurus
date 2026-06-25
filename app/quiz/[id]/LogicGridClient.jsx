@@ -141,6 +141,23 @@ export default function LogicGridClient({ quizId, mobile = false }) {
 
   // ── Game state ──
   const [phase, setPhase] = useState('idle'); // idle | playing | done
+  // Mobile: dock the scoreboard + answer input to the bottom thumb zone during
+  // play, lifting above the on-screen keyboard via visualViewport.
+  const [kbInset, setKbInset] = useState(0);
+  useEffect(() => {
+    if (!(mobile && phase === 'playing')) { setKbInset(0); return undefined; }
+    const vv = window.visualViewport;
+    if (!vv) return undefined;
+    const onVV = () => setKbInset(Math.max(0, Math.round(window.innerHeight - vv.height - vv.offsetTop)));
+    onVV();
+    vv.addEventListener('resize', onVV);
+    vv.addEventListener('scroll', onVV);
+    return () => { vv.removeEventListener('resize', onVV); vv.removeEventListener('scroll', onVV); };
+  }, [mobile, phase]);
+  const dock = mobile && phase === 'playing';
+  const playBarStyle = dock
+    ? { position: 'fixed', left: 0, right: 0, bottom: kbInset, zIndex: 40, background: COLORS.cream, padding: '8px 12px', paddingBottom: kbInset > 0 ? 6 : 'calc(8px + env(safe-area-inset-bottom))', borderTop: `1px solid ${COLORS.faded}22`, boxShadow: '0 -7px 18px rgba(20,22,28,0.12)' }
+    : { position: 'sticky', top: 0, zIndex: 24, background: COLORS.cream, paddingBottom: 4 };
   const [solved, setSolved] = useState(() => new Array(total).fill(false));
   const [active, setActive] = useState(null);  // index of the selected cell
   const [guess, setGuess] = useState('');
@@ -389,7 +406,7 @@ export default function LogicGridClient({ quizId, mobile = false }) {
             {/* Freeze the score/time bar AND the answer input together at the top
                 (44 = ribbon height), mirroring the name-them-all board, so the answer
                 box is always reachable while the clue grid scrolls underneath. */}
-            <div style={{ position: 'sticky', top: 0, zIndex: 24, background: COLORS.cream, paddingBottom: 4 }}>
+            <div style={playBarStyle}>
             {/* Scoreboard */}
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', alignItems: 'center', background: COLORS.paper, borderRadius: 10, border: `1px solid ${COLORS.faded}33`, padding: '16px 8px', marginBottom: 0 }}>
               <div style={{ textAlign: 'center', padding: '0 8px' }}>
@@ -545,6 +562,7 @@ export default function LogicGridClient({ quizId, mobile = false }) {
                 )}
               </>
             )}
+          {dock && <div aria-hidden="true" style={{ height: 'calc(170px + env(safe-area-inset-bottom))' }} />}
           </>
         )}
 

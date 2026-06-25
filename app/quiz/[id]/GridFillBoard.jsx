@@ -149,6 +149,23 @@ export default function GridFillBoard({ quizId, mobile = false }) {
 
   // ── Game state ──
   const [phase, setPhase] = useState('idle'); // idle | playing | done
+  // Mobile: dock the scoreboard + answer input to the bottom thumb zone during
+  // play, lifting above the on-screen keyboard via visualViewport.
+  const [kbInset, setKbInset] = useState(0);
+  useEffect(() => {
+    if (!(mobile && phase === 'playing')) { setKbInset(0); return undefined; }
+    const vv = window.visualViewport;
+    if (!vv) return undefined;
+    const onVV = () => setKbInset(Math.max(0, Math.round(window.innerHeight - vv.height - vv.offsetTop)));
+    onVV();
+    vv.addEventListener('resize', onVV);
+    vv.addEventListener('scroll', onVV);
+    return () => { vv.removeEventListener('resize', onVV); vv.removeEventListener('scroll', onVV); };
+  }, [mobile, phase]);
+  const dock = mobile && phase === 'playing';
+  const playBarStyle = dock
+    ? { position: 'fixed', left: 0, right: 0, bottom: kbInset, zIndex: 40, background: COLORS.cream, padding: '8px 12px', paddingBottom: kbInset > 0 ? 6 : 'calc(8px + env(safe-area-inset-bottom))', borderTop: `1px solid ${COLORS.faded}22`, boxShadow: '0 -7px 18px rgba(20,22,28,0.12)' }
+    : { position: 'sticky', top: 0, zIndex: 24, background: COLORS.cream, paddingTop: 6, paddingBottom: 8, marginBottom: 8 };
   const [found, setFound] = useState(() => new Set()); // company ids
   const [guess, setGuess] = useState('');
   const [time, setTime] = useState(quiz.timeLimit);
@@ -439,7 +456,7 @@ export default function GridFillBoard({ quizId, mobile = false }) {
         {tab === 'play' && (
           <>
             {/* Sticky top: the scoreboard + live input pin to the top of the viewport */}
-            <div style={{ position: 'sticky', top: 0, zIndex: 24, background: COLORS.cream, paddingTop: 6, paddingBottom: 8, marginBottom: 8 }}>
+            <div style={playBarStyle}>
             {/* Scoreboard */}
             <div style={{ display: 'grid', gridTemplateColumns: mobile ? 'repeat(2, 1fr)' : 'repeat(4, 1fr)', alignItems: 'center', background: COLORS.paper, borderRadius: 10, border: `1px solid ${COLORS.faded}33`, padding: '16px 8px', marginBottom: 0 }}>
               <div style={{ textAlign: 'center', padding: '0 8px' }}>
@@ -542,6 +559,7 @@ export default function GridFillBoard({ quizId, mobile = false }) {
                 )}
               </div>
             )}
+          {dock && <div aria-hidden="true" style={{ height: 'calc(170px + env(safe-area-inset-bottom))' }} />}
           </>
         )}
 
