@@ -1967,6 +1967,20 @@ are affected and good non-giveaway clues exist.
   substring of "dallas", so it would mis-credit a Dallas guess; use `'vegas'`. Likewise drop codes
   like `'can'` (Guangzhou) that are common substrings of unrelated words. When in doubt prefer the
   full name over a 3-letter code, or add an `anti` guard.
+- **Typed quizzes auto-match on EVERY keystroke, so a short code that is a PREFIX of another answer is
+  unsafe even WITH an `anti` guard (owner rule, 2026-06-24).** The default/photo/matched/ordered formats
+  accept a guess the MOMENT the field matches an unsolved answer (`autoName`/`autoSlot`/`autoOrdered` in
+  `QuizClient.jsx`), not on Enter, so the guess is tested at every PREFIX of what the player types. An
+  `anti` only fires once the full blocking word is present, which is too late: a key that completes
+  inside a prefix of a DIFFERENT answer banks the wrong slot before the guard can block. Adding `'san'`
+  to San Diego steals the answer from someone typing "san francisco" (matches at "san"); `'ath'` on
+  Athens steals from "heathrow" (matches at "heath"); the `anti: ['san francisco']` / `anti: ['heathrow']`
+  guard cannot help because the field auto-clears at the prefix. (`'las'` for Las Vegas is the rare safe
+  case: "las" only completes inside the FULL word "dallas", at which same keystroke Dallas's own earlier
+  slot matches first, and the `anti` covers the residual already-solved case.) **Rule: never add a
+  3-letter code (or any short key) that is a substring of another answer in the same quiz. On airport
+  quizzes the canonical answer a player types is the CITY or AIRPORT NAME, not the IATA code; keep a
+  code as a key only where it is not a substring of any other answer or key in that quiz.**
 - **Verify before shipping:** run each answer's own `t` (and every other answer's `t`) through the
   matcher and confirm nothing cross-matches the wrong slot. Because matching is now any-order, also
   check that a multi-word key's words don't all coincidentally appear in another default-format
