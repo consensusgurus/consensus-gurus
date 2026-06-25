@@ -63,10 +63,10 @@ function DoneMark({ id, size = 13 }) {
   const { played, completed } = useContext(QuizDoneContext);
   if (!id || (!played && !completed)) return null;
   if (completed && completed.has(id)) {
-    return <Star size={size} strokeWidth={1.5} fill="#e8b43a" color="#e8b43a" style={{ flex: 'none', marginLeft: 5, verticalAlign: '-2px' }} aria-label="Completed (100%)" />;
+    return <Star className="donemark" size={size} strokeWidth={1.5} fill="#e8b43a" color="#e8b43a" style={{ flex: 'none', marginLeft: 5, verticalAlign: '-2px' }} aria-label="Completed (100%)" />;
   }
   if (played && played.has(id)) {
-    return <Check size={size} strokeWidth={2.75} style={{ color: C.live, flex: 'none', marginLeft: 5, verticalAlign: '-2px' }} aria-label="Played" />;
+    return <Check className="donemark" size={size} strokeWidth={2.75} style={{ color: C.live, flex: 'none', marginLeft: 5, verticalAlign: '-2px' }} aria-label="Played" />;
   }
   return null;
 }
@@ -151,7 +151,7 @@ function WhoTag({ name, isAnon }) {
 
 function Medal({ i }) {
   if (i < 3) return (
-    <span style={{ flex: 'none', width: 18, height: 18, borderRadius: '50%', background: MEDAL[i], display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 10, fontWeight: 700, color: C.ink }}>{i + 1}</span>
+    <span className="medaldot" style={{ flex: 'none', width: 18, height: 18, borderRadius: '50%', background: MEDAL[i], display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 10, fontWeight: 700, color: C.ink }}>{i + 1}</span>
   );
   return <span style={{ flex: 'none', width: 18, textAlign: 'center', fontSize: 11, color: C.soft }}>{i + 1}</span>;
 }
@@ -169,7 +169,7 @@ function LbRow({ i, name, value, frac }) {
           <span className="qtitle" style={{ flex: '1 1 auto' }}>{name}</span>
           <span style={{ flex: 'none', fontWeight: 700, fontVariantNumeric: 'tabular-nums' }}>{value}</span>
         </div>
-        <div style={{ height: 3, borderRadius: 3, background: '#eef1f5', marginTop: 4, overflow: 'hidden' }}><div style={{ height: '100%', width: `${w}%`, background: col }} /></div>
+        <div style={{ height: 3, borderRadius: 3, background: '#eef1f5', marginTop: 4, overflow: 'hidden' }}><div className="lbbar" style={{ height: '100%', width: `${w}%`, background: col }} /></div>
       </div>
     </div>
   );
@@ -245,6 +245,17 @@ export default function QuizHomeClient() {
   const [statsOpen, setStatsOpen] = useState(false);
   const [dailyLb, setDailyLb] = useState(null); // today's daily-challenge standings (registered players)
   const [chRun, setChRun] = useState(null); // local run-state for today's daily challenge (completion ticks)
+  const [isMobile, setIsMobile] = useState(false);
+  const [acc, setAcc] = useState({ lb: true }); // mobile-only: which accordion panels are open
+  const toggleAcc = (k) => setAcc((o) => ({ ...o, [k]: !o[k] }));
+  useEffect(() => {
+    if (typeof window === 'undefined' || !window.matchMedia) return;
+    const mq = window.matchMedia('(max-width:560px)');
+    const on = () => setIsMobile(mq.matches);
+    on();
+    mq.addEventListener('change', on);
+    return () => mq.removeEventListener('change', on);
+  }, []);
   const [todayData, setTodayData] = useState({ byCorrect: [], byQuizzes: [] }); // /api/quiz/today leaders
   // Today's daily challenge (deterministic from the date; no server state needed).
   const daily = useMemo(() => getDailyChallenge(), []);
@@ -668,7 +679,7 @@ export default function QuizHomeClient() {
     .qz-playerbar .qz-skill-empty{display:none !important;}
     .qz-playerbar .lbl{font-size:10px;font-weight:600;letter-spacing:.04em;text-transform:uppercase;color:#6b7280;margin-bottom:2px;}
     .qz-chev{display:none;}
-    @media(max-width:560px){.qz-playerbar{flex-wrap:wrap !important;align-items:center !important;gap:10px 14px !important;}.qz-playerbar .qz-div{display:none !important;}.qz-playerbar:not(.open) .qz-stats{display:none !important;}.qz-playerbar.open .qz-stats{order:9 !important;flex:1 1 100% !important;margin-left:0 !important;justify-content:space-between !important;gap:10px !important;}.qz-playerbar{cursor:pointer;}.qz-chev{display:inline-flex !important;}.qz-playerbar .qz-bestcat{display:none !important;}.qz-playerbar .hubbtn{order:4 !important;margin-left:auto !important;flex:0 0 auto !important;}.qzh .boards{display:flex !important;flex-direction:column;gap:12px;}.qzh .boards .lb-card,.qzh .boards .live-card{display:none !important;}.qz-submit{display:none !important;}.qzh{padding-left:14px !important;padding-right:14px !important;}}
+    @media(max-width:560px){.qz-playerbar{flex-wrap:wrap !important;align-items:center !important;gap:10px 14px !important;}.qz-playerbar .qz-div{display:none !important;}.qz-playerbar:not(.open) .qz-stats{display:none !important;}.qz-playerbar.open .qz-stats{order:9 !important;flex:1 1 100% !important;margin-left:0 !important;justify-content:space-between !important;gap:10px !important;}.qz-playerbar{cursor:pointer;}.qz-chev{display:inline-flex !important;}.qz-playerbar .qz-bestcat{display:none !important;}.qz-playerbar .hubbtn{order:4 !important;margin-left:auto !important;flex:0 0 auto !important;}.qzh .boards{display:flex !important;flex-direction:column;gap:12px;}.qzh .boards .lb-card{order:1;}.qzh .boards .daily-card{order:2;}.qzh .boards .live-card{order:3;}.qz-submit{display:none !important;}.qzh{padding-left:14px !important;padding-right:14px !important;}}
     .qzh .hubbtn:hover{background:${C.accsoft};}
     .qzh .crumb1{font-size:18px;font-weight:800;letter-spacing:-0.02em;}
     .qzh .crumb2{font-size:18px;font-weight:600;color:${C.accent};}
@@ -714,6 +725,25 @@ export default function QuizHomeClient() {
       .qzh .qz-submit{flex:0 0 auto !important;align-self:stretch;box-sizing:border-box;}
       .qzh .qz-daily{flex:0 0 auto !important;align-self:stretch;box-sizing:border-box;}
     }
+    .qzh .accchev{display:none;}
+    @media(max-width:560px){
+      .qzh .boards .head{cursor:pointer;}
+      .qzh .accchev{display:inline-flex !important;transition:transform .15s;}
+      .qzh .boards .card.mc-closed > div:not(.head){display:none !important;}
+      .qzh section.mc-closed > .qrow{display:none !important;}
+      .qzh .dailyicon{color:#374151 !important;}
+      .qzh .livedot{background:#9aa1ab !important;animation:none !important;}
+      .qzh .colhead{background:#fff !important;}
+      .qzh .colhead .colicon{background:#eef2f7 !important;color:#374151 !important;}
+      .qzh .colhead h3{color:#1c1e24 !important;}
+      .qzh .colhead .viewall{color:#2563eb !important;}
+      .qzh .donemark{color:#2563eb !important;fill:#2563eb !important;stroke:#2563eb !important;}
+      .qzh .medaldot{background:#eef2f7 !important;color:#1c1e24 !important;}
+      .qzh .lbbar{background:#2563eb !important;}
+      .qzh .dot{background:#9aa1ab !important;}
+      .qzh .scorebadge{background:#eef1f6 !important;color:#5f5e5a !important;}
+      .qzh .daytick.done{background:#2563eb !important;}
+    }
   `;
 
   const doneCtx = useMemo(() => ({
@@ -732,25 +762,18 @@ export default function QuizHomeClient() {
         {signupOpen && <SignupModal onClose={() => setSignupOpen(false)} />}
 
         {/* boards */}
-        {/* mobile-only toggle: two side-by-side buttons; the selected one expands its existing card full-width below. Hidden >560px, where both boards show normally. */}
-        <div className="qz-mobtoggle">
-          <button type="button" className={`mtbtn${mobileBoard === 'lb' ? ' active' : ''}`} onClick={() => setMobileBoard((v) => (v === 'lb' ? null : 'lb'))} aria-expanded={mobileBoard === 'lb'}>
-            <Trophy size={15} strokeWidth={2} style={{ color: '#e0a32e', flex: 'none' }} />
-            <span className="mtlbl">Leaderboard</span>
-            <ChevronDown size={14} strokeWidth={2.5} style={{ marginLeft: 'auto', flex: 'none', transform: mobileBoard === 'lb' ? 'rotate(180deg)' : 'none', transition: 'transform .15s' }} />
-          </button>
-          <button type="button" className={`mtbtn${mobileBoard === 'live' ? ' active' : ''}`} onClick={() => setMobileBoard((v) => (v === 'live' ? null : 'live'))} aria-expanded={mobileBoard === 'live'}>
-            <span style={{ width: 8, height: 8, borderRadius: '50%', background: C.live, flex: 'none', animation: 'qzp 1.6s infinite' }} />
-            <span className="mtlbl">Last played</span>
-            <ChevronDown size={14} strokeWidth={2.5} style={{ marginLeft: 'auto', flex: 'none', transform: mobileBoard === 'live' ? 'rotate(180deg)' : 'none', transition: 'transform .15s' }} />
-          </button>
-        </div>
-        <div className={`boards${mobileBoard === 'lb' ? ' show-lb' : mobileBoard === 'live' ? ' show-live' : ''}`}>
+        <div className="boards">
           {/* leaderboard */}
-          <div className="card lb-card">
-            <div className="head" onClick={() => setBoardsExpanded((v) => !v)}>
-              <span className="lbl" style={{ color: C.ink }}>{lbMetric.label}{lbMetric.special || scope === 'all' ? '' : ` · ${byKey[scope]?.label}`}</span>
-              <Link href={lbMetric.special && lbMetric.key !== 'catRating' ? '/quizzes/hub?tab=challenges' : '/quizzes/hub'} onClick={(e) => e.stopPropagation()} className="qlink"><span style={{ fontSize: 11, fontWeight: 700, color: C.accent }}>View all</span></Link>
+          <div className={`card lb-card mc-${acc.lb ? 'open' : 'closed'}`}>
+            <div className="head" onClick={() => { if (isMobile) toggleAcc('lb'); else setBoardsExpanded((v) => !v); }}>
+              <span style={{ display: 'flex', alignItems: 'center', gap: 7, minWidth: 0 }}>
+                <Crown size={15} strokeWidth={2} style={{ color: C.ink, flex: 'none' }} />
+                <span className="lbl" style={{ color: C.ink }}>{lbMetric.label}{lbMetric.special || scope === 'all' ? '' : ` · ${byKey[scope]?.label}`}</span>
+              </span>
+              <span style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                <Link href={lbMetric.special && lbMetric.key !== 'catRating' ? '/quizzes/hub?tab=challenges' : '/quizzes/hub'} onClick={(e) => e.stopPropagation()} className="qlink"><span style={{ fontSize: 11, fontWeight: 700, color: C.accent }}>View all</span></Link>
+                <ChevronDown className="accchev" size={16} strokeWidth={2.5} style={{ flex: 'none', color: C.soft, transform: acc.lb ? 'none' : 'rotate(-90deg)' }} />
+              </span>
             </div>
             <div style={{ flex: 1, padding: '3px 0', display: 'flex', flexDirection: 'column', justifyContent: 'space-evenly' }}>
               {lbMetric.special ? (
@@ -787,15 +810,16 @@ export default function QuizHomeClient() {
           </div>
 
           {/* live feed */}
-          <div className="card live-card">
-            <div className="head" onClick={() => setBoardsExpanded((v) => !v)}>
+          <div className={`card live-card mc-${acc.live ? 'open' : 'closed'}`}>
+            <div className="head" onClick={() => { if (isMobile) toggleAcc('live'); else setBoardsExpanded((v) => !v); }}>
               <span style={{ display: 'flex', alignItems: 'center', gap: 7 }}>
-                <span style={{ width: 8, height: 8, borderRadius: '50%', background: C.live, animation: 'qzp 1.6s infinite' }} />
+                <span className="livedot" style={{ width: 8, height: 8, borderRadius: '50%', background: C.live, animation: 'qzp 1.6s infinite' }} />
                 <span className="lbl" style={{ color: C.ink }}>Live · Quizzes Played{scope === 'all' ? '' : ` · ${byKey[scope]?.label}`}</span>
               </span>
               <span style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
                 {playsToday ? <span style={{ fontSize: 10, fontWeight: 700, letterSpacing: '.05em', textTransform: 'uppercase', color: C.soft }}>{playsToday.toLocaleString()} Plays Today</span> : null}
                 <button type="button" onClick={(e) => { e.stopPropagation(); setListMode('live'); }} style={{ background: 'none', border: 'none', padding: 0, cursor: 'pointer', color: C.accent, fontWeight: 700, fontSize: 11, whiteSpace: 'nowrap' }}>View all</button>
+                <ChevronDown className="accchev" size={16} strokeWidth={2.5} style={{ flex: 'none', color: C.soft, transform: acc.live ? 'none' : 'rotate(-90deg)' }} />
               </span>
             </div>
             <div style={{ flex: 1, padding: '3px 0', display: 'flex', flexDirection: 'column', justifyContent: 'space-evenly' }}>
@@ -809,7 +833,7 @@ export default function QuizHomeClient() {
                     </span>
                     <span style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 10.5, color: C.soft }}>
                       <PlayerLink userKey={f.userKey}><WhoTag name={f.name || 'Guest'} isAnon={f.isAnon} /></PlayerLink>
-                      <span style={{ flex: 'none', fontWeight: 700, padding: '1px 6px', borderRadius: 6, fontVariantNumeric: 'tabular-nums', background: f.total && f.score / f.total >= 0.8 ? '#e7f7ed' : '#eef1f6', color: f.total && f.score / f.total >= 0.8 ? '#16a34a' : C.soft }}>{f.score}/{f.total}</span>
+                      <span className="scorebadge" style={{ flex: 'none', fontWeight: 700, padding: '1px 6px', borderRadius: 6, fontVariantNumeric: 'tabular-nums', background: f.total && f.score / f.total >= 0.8 ? '#e7f7ed' : '#eef1f6', color: f.total && f.score / f.total >= 0.8 ? '#16a34a' : C.soft }}>{f.score}/{f.total}</span>
                       <span style={{ fontWeight: 700 }}>{f.attempt > 1 ? `attempt ${f.attempt}` : '1st try'}</span>
                       <span style={{ marginLeft: 'auto' }}>{relTime(f.playedAt)}</span>
                     </span>
@@ -821,13 +845,16 @@ export default function QuizHomeClient() {
 
           {/* daily challenge */}
           {daily && DAILY_CHALLENGE_ON && (
-            <div className="card daily-card">
-              <div className="head" style={{ cursor: 'default' }}>
+            <div className={`card daily-card mc-${acc.daily ? 'open' : 'closed'}`}>
+              <div className="head" onClick={() => { if (isMobile) toggleAcc('daily'); }} style={{ cursor: isMobile ? 'pointer' : 'default' }}>
                 <span style={{ display: 'flex', alignItems: 'center', gap: 7, minWidth: 0 }}>
-                  <Flame size={15} style={{ color: C.accent, flex: 'none' }} />
+                  <Flame className="dailyicon" size={15} style={{ color: C.accent, flex: 'none' }} />
                   <span className="lbl" style={{ color: C.ink }}>Daily Challenge{dailyCat ? ` · ${dailyCat}` : ''}</span>
                 </span>
-                <Link href={`/challenge/${dailyId}`} className="qlink"><span style={{ fontSize: 11, fontWeight: 700, color: C.accent }}>{dailyAllDone ? 'Results' : 'View'}</span></Link>
+                <span style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                  <Link href={`/challenge/${dailyId}`} className="qlink"><span style={{ fontSize: 11, fontWeight: 700, color: C.accent }}>{dailyAllDone ? 'Results' : 'View'}</span></Link>
+                  <ChevronDown className="accchev" size={16} strokeWidth={2.5} style={{ flex: 'none', color: C.soft, transform: acc.daily ? 'none' : 'rotate(-90deg)' }} />
+                </span>
               </div>
               <div style={{ flex: 1, display: 'flex', flexDirection: 'column', padding: '8px 13px 11px' }}>
                 <div style={{ fontSize: 11, color: C.soft, fontWeight: 600, marginBottom: 7 }}>{dailyDateLabel}{dailyDateLabel ? ' · ' : ''}{dailyDoneCount}/{dailyIds.length} done</div>
@@ -837,7 +864,7 @@ export default function QuizHomeClient() {
                     return (
                       <Link key={qid} href={`/quiz/${qid}?ch=${encodeURIComponent(dailyId)}&i=${k}`} className="qlink">
                         <div style={{ display: 'flex', alignItems: 'center', gap: 9, padding: '6px 0', borderBottom: k < dailyIds.length - 1 ? '1px solid rgba(20,22,28,0.07)' : 'none' }}>
-                          <span style={{ width: 19, height: 19, borderRadius: 6, flex: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 10.5, fontWeight: 700, background: done ? C.live : '#eef1f6', color: done ? '#fff' : C.soft }}>{done ? <Check size={12} strokeWidth={3} /> : k + 1}</span>
+                          <span className={`daytick${done ? ' done' : ''}`} style={{ width: 19, height: 19, borderRadius: 6, flex: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 10.5, fontWeight: 700, background: done ? C.live : '#eef1f6', color: done ? '#fff' : C.soft }}>{done ? <Check size={12} strokeWidth={3} /> : k + 1}</span>
                           <span style={{ flex: '1 1 auto', minWidth: 0, fontSize: 12.5, fontWeight: 500, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', color: C.ink }}>{stripVerb(titleById[qid] || qid)}</span>
                           {chScores[qid] ? <span style={{ flex: 'none', fontSize: 11, fontWeight: 700, color: C.live, fontVariantNumeric: 'tabular-nums' }}>{chScores[qid].score}/{chScores[qid].total}</span> : null}
                         </div>
@@ -1001,7 +1028,7 @@ export default function QuizHomeClient() {
                 <span className="qtitle">{stripVerb(f.title)}</span>
                 <span className="qmeta" style={{ gap: 8 }}>
                   <PlayerLink userKey={f.userKey}><WhoTag name={f.name || 'Guest'} isAnon={f.isAnon} /></PlayerLink>
-                  <span className="lf-extra" style={{ flex: 'none', fontSize: 11, fontWeight: 700, padding: '2px 7px', borderRadius: 7, fontVariantNumeric: 'tabular-nums', background: f.total && f.score / f.total >= 0.8 ? '#e7f7ed' : '#eef1f6', color: f.total && f.score / f.total >= 0.8 ? '#16a34a' : C.soft }}>{f.score}/{f.total}</span>
+                  <span className="lf-extra scorebadge" style={{ flex: 'none', fontSize: 11, fontWeight: 700, padding: '2px 7px', borderRadius: 7, fontVariantNumeric: 'tabular-nums', background: f.total && f.score / f.total >= 0.8 ? '#e7f7ed' : '#eef1f6', color: f.total && f.score / f.total >= 0.8 ? '#16a34a' : C.soft }}>{f.score}/{f.total}</span>
                   <span className="lf-extra" style={{ color: C.soft }}>{relTime(f.playedAt)}</span>
                 </span>
               </Link>
@@ -1023,13 +1050,13 @@ export default function QuizHomeClient() {
         ) : (
           <div className="qcols">
             <BrowseColumn label="Most Played" Icon={Flame} color="#c2691c" tint="#f4e2cd"
-              rows={mostPlayed.map((q) => ({ q, right: <PlaysRight id={q.id} plays={plays} leader={leader} leaderKey={leaderKey} color="#c2691c" hidePlays /> }))} cta="View all ›" onCta={() => setListMode('mostplayed')} />
+              rows={mostPlayed.map((q) => ({ q, right: <PlaysRight id={q.id} plays={plays} leader={leader} leaderKey={leaderKey} color="#c2691c" hidePlays /> }))} cta="View all ›" onCta={() => setListMode('mostplayed')} open={!!acc.mostplayed} onToggle={() => toggleAcc('mostplayed')} isMobile={isMobile} />
             <BrowseColumn label="Newest" Icon={Sparkles} color={C.accent} tint={C.accsoft}
-              rows={newest.map((q) => ({ q, right: <NewRight q={q} /> }))} cta="View all ›" onCta={() => setListMode('newest')} />
+              rows={newest.map((q) => ({ q, right: <NewRight q={q} /> }))} cta="View all ›" onCta={() => setListMode('newest')} open={!!acc.newest} onToggle={() => toggleAcc('newest')} isMobile={isMobile} />
             {cats.map((c) => (
               <BrowseColumn key={c.key} label={c.label} Icon={c.Icon} color={c.c} tint={c.t}
                 rows={colRows(c, 6, shownIds).map((q) => ({ q, right: <PlaysRight id={q.id} plays={plays} leader={leader} leaderKey={leaderKey} color={c.c} hidePlays /> }))}
-                cta={`View all ${c.count} ›`} onCta={() => setScope(c.key)} />
+                cta={`View all ${c.count} ›`} onCta={() => setScope(c.key)} open={!!acc[c.key]} onToggle={() => toggleAcc(c.key)} isMobile={isMobile} />
             ))}
           </div>
         )}
@@ -1039,8 +1066,8 @@ export default function QuizHomeClient() {
       {ddOpen && <div className="qz-dd-overlay" onClick={() => setDdOpen(false)} style={{ position: 'fixed', inset: 0, zIndex: 20 }} />}
 
       <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: 20, flexWrap: 'wrap', margin: '30px 0 8px', fontSize: 12.5, color: C.muted, fontFamily: FONT }}>
-        <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}><Check size={14} strokeWidth={2.75} style={{ color: C.live }} /> Played</span>
-        <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}><Star size={14} strokeWidth={1.5} fill="#e8b43a" color="#e8b43a" /> Completed (100%)</span>
+        <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}><Check className="donemark" size={14} strokeWidth={2.75} style={{ color: C.live }} /> Played</span>
+        <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}><Star className="donemark" size={14} strokeWidth={1.5} fill="#e8b43a" color="#e8b43a" /> Completed (100%)</span>
       </div>
 
       <Footer />
@@ -1143,17 +1170,18 @@ function CategoryFull({ cat, plays, leader, leaderKey }) {
   );
 }
 
-function BrowseColumn({ label, Icon, color, tint, rows, cta, onCta }) {
+function BrowseColumn({ label, Icon, color, tint, rows, cta, onCta, open = true, onToggle, isMobile }) {
   return (
-    <section style={{ minWidth: 0 }}>
-      <div className="colhead" style={{ borderColor: color, background: `color-mix(in srgb, ${color} 6%, #fff)` }}>
-        <span style={{ width: 24, height: 24, borderRadius: 7, background: tint, color, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+    <section className={`mc-${open ? 'open' : 'closed'}`} style={{ minWidth: 0 }}>
+      <div className="colhead" onClick={() => { if (isMobile && onToggle) onToggle(); }} style={{ borderColor: color, background: `color-mix(in srgb, ${color} 6%, #fff)`, cursor: isMobile ? 'pointer' : 'default' }}>
+        <span className="colicon" style={{ width: 24, height: 24, borderRadius: 7, background: tint, color, display: 'flex', alignItems: 'center', justifyContent: 'center', flex: 'none' }}>
           <Icon size={14} />
         </span>
         <h3 style={{ fontSize: 15, fontWeight: 700, margin: 0, color }}>{label}</h3>
         {onCta
-          ? <button type="button" onClick={onCta} className="viewall" style={{ color, background: 'none', border: 'none', padding: 0, cursor: 'pointer', fontFamily: 'inherit', fontSize: 10, fontWeight: 700 }}>{cta}</button>
+          ? <button type="button" onClick={(e) => { e.stopPropagation(); onCta(); }} className="viewall" style={{ color, background: 'none', border: 'none', padding: 0, cursor: 'pointer', fontFamily: 'inherit', fontSize: 10, fontWeight: 700 }}>{cta}</button>
           : <span className="viewall" style={{ color }}>{cta}</span>}
+        <ChevronDown className="accchev" size={16} strokeWidth={2.5} style={{ flex: 'none', color: C.soft, transform: open ? 'none' : 'rotate(-90deg)' }} />
       </div>
       {rows.map(({ q, right }) => (
         <Link href={`/quiz/${q.id}`} className="qrow" key={q.id} title={q.rawTitle || q.title}>
