@@ -739,11 +739,7 @@ export default function QuizHomeClient() {
       .qzh .colhead .colicon{background:#eef2f7 !important;color:#374151 !important;}
       .qzh .colhead h3{color:#1c1e24 !important;}
       .qzh .colhead .viewall{color:#2563eb !important;}
-      .qzh .medaldot{background:#eef2f7 !important;color:#1c1e24 !important;}
-      .qzh .lbbar{background:#2563eb !important;}
       .qzh .dot{background:#9aa1ab !important;}
-      .qzh .scorebadge{background:#eef1f6 !important;color:#5f5e5a !important;}
-      .qzh .daytick.done{background:#2563eb !important;}
       .qzh .mc-closed .vall{display:none !important;}
       .qzh .vall{text-transform:uppercase !important;font-size:10px !important;font-weight:700 !important;letter-spacing:.05em !important;}
       .qzh .lb-card.mc-open .lbbody{max-height:50vh;overflow-y:auto;justify-content:flex-start;}
