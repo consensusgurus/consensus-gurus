@@ -383,6 +383,21 @@ export default function QuizClient({ quizId }) {
   // no map board (the plain "table" quizzes). List quizzes already send you to
   // the full ranking to see misses; map quizzes have no table to fill in.
   const canReveal = !quiz.listId;
+  // Sibling parts of a multi-part series (Part 1, Part 2, ...), ordered by part
+  // number, so we can surface "the rest of the series" on its own once a quiz is
+  // finished. Same part-set detection as the recommendations below: a base quiz id
+  // plus its numbered siblings, only when the stripped base is itself a real quiz
+  // id (so date slugs like ...-2026-06-14 are never mis-grouped).
+  const seriesParts = (() => {
+    const stripped = quiz.id.replace(/-\d+$/, '');
+    const base = QUIZZES.some((x) => x.id === stripped) ? stripped : null;
+    if (!base) return [];
+    const partNum = (id) => { const m = id.match(/-(\d+)$/); return m ? parseInt(m[1], 10) : 1; };
+    return QUIZZES
+      .filter((x) => x.id !== quiz.id && !x.hideFromRelated && x.id.replace(/-\d+$/, '') === base)
+      .sort((a, b) => partNum(a.id) - partNum(b.id));
+  })();
+  const seriesIds = new Set(seriesParts.map((x) => x.id));
   const moreLikeThis = (() => {
     const d = deptOf(quiz);
     // Other parts of a multi-part quiz (pt 2, pt 3...) ALWAYS lead, so they are
@@ -1703,11 +1718,29 @@ export default function QuizClient({ quizId }) {
           </div>
         )}
 
-        {moreLikeThis.length > 0 && (
+        {ended && seriesParts.length > 0 && (
+          <div style={{ marginTop: 40, paddingTop: 24, borderTop: `1px solid ${COLORS.faded}33` }}>
+            <div style={{ fontFamily: MONO, fontSize: 11, letterSpacing: '0.16em', textTransform: 'uppercase', color: COLORS.ember, marginBottom: 16 }}>Rest of the series</div>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(220px, 1fr))', gap: 10 }}>
+              {seriesParts.map((sp) => {
+                const m = sp.id.match(/-(\d+)$/);
+                const partLabel = `Part ${m ? m[1] : '1'}`;
+                return (
+                  <a key={sp.id} href={`/quiz/${sp.id}`} style={{ textDecoration: 'none', color: COLORS.ink, background: COLORS.paper, borderRadius: 10, border: `1px solid ${COLORS.ember}55`, padding: '12px 14px', display: 'block', transition: 'all 0.15s ease' }}>
+                    <div style={{ fontFamily: MONO, fontSize: 9, letterSpacing: '0.16em', textTransform: 'uppercase', color: COLORS.ember, fontWeight: 700, marginBottom: 6 }}>{partLabel}</div>
+                    <div style={{ fontFamily: SERIF, fontSize: 16, fontWeight: 600, lineHeight: 1.15 }}>{sp.title}</div>
+                  </a>
+                );
+              })}
+            </div>
+          </div>
+        )}
+
+        {(ended ? moreLikeThis.filter((rq) => !seriesIds.has(rq.id)) : moreLikeThis).length > 0 && (
           <div style={{ marginTop: 40, paddingTop: 24, borderTop: `1px solid ${COLORS.faded}33` }}>
             <div style={{ fontFamily: MONO, fontSize: 11, letterSpacing: '0.16em', textTransform: 'uppercase', color: COLORS.ember, marginBottom: 16 }}>More quizzes</div>
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))', gap: 10 }}>
-              {moreLikeThis.map((rq) => (
+              {(ended ? moreLikeThis.filter((rq) => !seriesIds.has(rq.id)) : moreLikeThis).map((rq) => (
                 <a key={rq.id} href={`/quiz/${rq.id}`} style={{ textDecoration: 'none', color: COLORS.ink, background: COLORS.paper, borderRadius: 10, border: `1px solid ${COLORS.faded}33`, padding: '12px 14px', display: 'block', transition: 'all 0.15s ease' }}>
                   <div style={{ fontFamily: MONO, fontSize: 9, letterSpacing: '0.16em', textTransform: 'uppercase', color: COLORS.ember, fontWeight: 700, marginBottom: 6 }}>{rq.category || 'Quiz'}</div>
                   <div style={{ fontFamily: SERIF, fontSize: 16, fontWeight: 600, lineHeight: 1.15 }}>{rq.title}</div>
