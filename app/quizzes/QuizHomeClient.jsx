@@ -756,6 +756,7 @@ export default function QuizHomeClient() {
       .qzh .lblive-tab.on{background:#fff;color:#1c1e24;box-shadow:0 1px 2px rgba(20,22,28,0.08);}
       .qzh .lblive-tab .livedot2{width:8px;height:8px;border-radius:50%;background:#9aa1ab;flex:none;}
       .qzh .lblive-body{max-height:50vh;overflow-y:auto;padding:3px 0;}
+      .qzh .lblive-sub{position:sticky;top:0;z-index:1;display:block;padding:9px 13px 8px;background:#fff;border-bottom:1px solid ${C.line};font-size:10px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;color:${C.soft};overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
     }
   `;
 
@@ -842,7 +843,17 @@ export default function QuizHomeClient() {
               </span>
             </div>
             <div className="lblive-body">
-              {lbLiveTab === 'lb' ? renderLb() : lbLiveTab === 'live' ? renderLive() : null}
+              {lbLiveTab === 'lb' ? (
+                <>
+                  <div className="lblive-sub">{`${lbMetric.label}${lbMetric.special || scope === 'all' ? '' : ` · ${byKey[scope]?.label}`}`}</div>
+                  {renderLb()}
+                </>
+              ) : lbLiveTab === 'live' ? (
+                <>
+                  <div className="lblive-sub">{`${playsToday ? `${playsToday.toLocaleString()} Plays Today` : 'Live Quiz Feed'}${scope === 'all' ? '' : ` · ${byKey[scope]?.label}`}`}</div>
+                  {renderLive()}
+                </>
+              ) : null}
             </div>
           </div>
           {/* leaderboard */}
