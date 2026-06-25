@@ -4,8 +4,8 @@ import React, { useMemo, useState } from 'react';
 
 // Ordered answer-bank, sudden-death board (`format: 'order-bank'`).
 //
-// The player is shown ONE shuffled bank of answer tiles (e.g. every MCU film)
-// and must tap them in the correct sequence (release order). Each correct tap
+// The player is shown ONE bank of answer tiles (e.g. every MCU film), sorted
+// alphabetically, and must tap them in the correct sequence (release order). Each tap
 // fills the next numbered slot, turns the tile green, and removes it from the
 // bank. The FIRST wrong tap ends the run on the spot (sudden death — the quiz
 // carries `strike: true`). The clock (owned by QuizClient) ending also ends the
@@ -29,15 +29,6 @@ const MONO = "'Manrope', system-ui, -apple-system, sans-serif";
 const SERIF = "'Manrope', system-ui, -apple-system, sans-serif";
 const SANS = "'Manrope', system-ui, -apple-system, sans-serif";
 
-function shuffle(arr) {
-  const a = arr.slice();
-  for (let i = a.length - 1; i > 0; i--) {
-    const j = Math.floor(Math.random() * (i + 1));
-    [a[i], a[j]] = [a[j], a[i]];
-  }
-  return a;
-}
-
 export default function OrderBankBoard({
   items,
   started,
@@ -53,7 +44,12 @@ export default function OrderBankBoard({
 }) {
   const total = items.length;
   const noun = answerNoun || 'film';
-  const bankOrder = useMemo(() => shuffle(items.map((_, i) => i)), [items]);
+  // Bank tiles are sorted alphabetically by title so the bank is a stable,
+  // scannable reference (the challenge is the ORDER, not finding the tile).
+  const bankOrder = useMemo(
+    () => items.map((_, i) => i).sort((a, b) => items[a].t.localeCompare(items[b].t)),
+    [items]
+  );
 
   const [placed, setPlaced] = useState(0); // count correctly placed so far (= index of next slot)
   const [struck, setStruck] = useState(false); // a wrong tap happened
