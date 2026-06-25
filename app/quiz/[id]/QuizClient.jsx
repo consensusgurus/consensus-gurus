@@ -378,6 +378,10 @@ export default function QuizClient({ quizId }) {
   // otherwise mis-displays as 13/6 and drives the guesses-left counter negative.
   const total = tileMode && Array.isArray(quiz.pairs) ? quiz.pairs.length : answers.length;
   const ordered = matched && quiz.ordered === true;
+  // Inline single-input formats (default name-them-all, logos/posters/images,
+  // ordered-matched): the answer input + Play live in QuizClient itself, so
+  // they can dock to the bottom thumb bar on mobile.
+  const inlineInput = !mapMode && !tileMode && (!matched || ordered);
   const slideshow = matched && !ordered && quiz.slideshow === true;
   // The "reveal the answers" gate is only for quizzes with no companion list and
   // no map board (the plain "table" quizzes). List quizzes already send you to
@@ -528,6 +532,8 @@ export default function QuizClient({ quizId }) {
   // (map Find, photo/bank/type prompt) can stick FLUSH right beneath it. The
   // score block pins to the top (top:0); the nav ribbon is not sticky.
   const [scoreH, setScoreH] = useState(150);
+  // On-screen keyboard height, so the mobile bottom control bar rides above it.
+  const [kbInset, setKbInset] = useState(0);
   const stickyTop = scoreH;
   useEffect(() => {
     const measure = () => { if (scoreRef.current) setScoreH(scoreRef.current.offsetHeight); };
@@ -535,6 +541,16 @@ export default function QuizClient({ quizId }) {
     window.addEventListener('resize', measure);
     return () => window.removeEventListener('resize', measure);
   }, [tab, started, ended, mapMode]);
+  useEffect(() => {
+    if (!(mobile === true && inlineInput)) { setKbInset(0); return; }
+    const vv = window.visualViewport;
+    if (!vv) return undefined;
+    const onVV = () => setKbInset(Math.max(0, Math.round(window.innerHeight - vv.height - vv.offsetTop)));
+    onVV();
+    vv.addEventListener('resize', onVV);
+    vv.addEventListener('scroll', onVV);
+    return () => { vv.removeEventListener('resize', onVV); vv.removeEventListener('scroll', onVV); };
+  }, [mobile, inlineInput]);
   useEffect(() => {
     const el = ribbonRef.current;
     if (!el) return undefined;
@@ -1221,6 +1237,9 @@ export default function QuizClient({ quizId }) {
   // full-size title) so the answer board fills the screen. Desktop and the
   // pre-game state are untouched.
   const mAppPlay = mobile === true && tab === 'play' && started && !ended;
+  // Mobile thumb-zone: dock the input + Play to a fixed bottom bar during play
+  // on the inline-input formats. HUD (score/timer/progress) stays pinned up top.
+  const bottomDock = mobile === true && inlineInput && !ended;
 
   return (
     <div style={{ minHeight: '100vh', background: COLORS.cream, color: COLORS.ink, position: 'relative', overflowX: 'clip' }}>
@@ -1335,7 +1354,7 @@ export default function QuizClient({ quizId }) {
                   <span style={{ ...base, fontFamily: MONO, fontVariantNumeric: 'tabular-nums', minWidth: `calc(${clockMax.length}ch + 26px)`, color: time <= 10 && live ? COLORS.ember : COLORS.ink }} title="Time left">{clock}</span>
                 </>);
               })()}
-              {!mapMode && !tileMode && (!matched || ordered) && (
+              {!bottomDock && !mapMode && !tileMode && (!matched || ordered) && (
                 <input
                   ref={inputRef}
                   value={guess}
@@ -1354,6 +1373,51 @@ export default function QuizClient({ quizId }) {
                   style={{ flex: 1, minWidth: 0, fontFamily: SANS, fontSize: 17, height: 50, boxSizing: 'border-box', padding: '0 16px', border: `1.5px solid ${COLORS.ink}`, borderRadius: 8, background: !started || ended ? COLORS.paper : '#eceef1', color: COLORS.ink, opacity: !started || ended ? 0.5 : 1 }}
                 />
               )}
+              {!bottomDock && (<div style={{ position: 'relative', display: 'flex', flex: (matched && !ordered) || mapMode || tileMode ? 1 : 'none' }}>
+              <button onClick={start} disabled={started || ended} style={{ flex: 1, fontFamily: MONO, fontSize: 13, letterSpacing: '0.08em', textTransform: 'uppercase', fontWeight: 700, padding: '0 22px', height: 50, border: 'none', background: COLORS.ember, color: '#fff', cursor: started || ended ? 'default' : 'pointer', opacity: started || ended ? 0.5 : 1 }}>
+                {ended ? 'Done' : started ? 'Playing' : (matched && !ordered) ? (quiz.noun ? 'Play' : 'Play — name each year') : 'Play'}
+              </button>
+              {/* Correct/wrong verdict pops over the Play button (replaces the old
+                  full-width banner, which forced a large gap below the input). */}
+              {cue && started && !ended && (
+                <div key={cue.id} aria-live="assertive" style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', background: cue.ok ? COLORS.forest : COLORS.ember, color: '#fff', pointerEvents: 'none', animation: `${cue.ok ? 'qzCueOk' : 'qzCueNo'} .45s ease both` }}>
+                  {cue.ok ? <Check size={22} strokeWidth={3} /> : <X size={22} strokeWidth={3} />}
+                </div>
+              )}
+              </div>)}
+            </div>
+            {mAppPlay && (
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '0 2px 7px', fontFamily: MONO, fontSize: 11, fontWeight: 700, color: COLORS.faded }}>
+                <span style={{ fontVariantNumeric: 'tabular-nums' }}>{dispScore}/{total}</span>
+                <span style={{ position: 'relative', flex: 1, height: 6, borderRadius: 4, background: COLORS.paper, overflow: 'hidden' }}>
+                  <span style={{ position: 'absolute', top: 0, bottom: 0, left: 0, right: `${100 - (total ? Math.round((dispScore / total) * 100) : 0)}%`, background: COLORS.ember, borderRadius: 4, transition: 'right .3s' }} />
+                </span>
+                <span style={{ fontVariantNumeric: 'tabular-nums' }}>{total ? Math.round((dispScore / total) * 100) : 0}%</span>
+              </div>
+            )}
+            </div>
+            {!bottomDock && <div style={{ fontFamily: MONO, fontSize: 12, minHeight: 15, marginTop: 2, marginBottom: 8, color: hintBad ? COLORS.ember : COLORS.faded, ...(portraitPhoto ? { maxWidth: PHOTO_COL, marginLeft: 'auto', marginRight: 'auto' } : null) }}>{hint}</div>}
+            {bottomDock && (
+              <div style={{ position: 'fixed', left: 0, right: 0, bottom: kbInset, zIndex: 40, background: COLORS.cream, borderTop: `1px solid ${COLORS.line}`, boxShadow: '0 -6px 18px rgba(20,22,28,0.10)', padding: '9px 14px', paddingBottom: kbInset > 0 ? 9 : 'calc(9px + env(safe-area-inset-bottom))' }}>
+                {hint && <div style={{ fontFamily: MONO, fontSize: 12, marginBottom: 6, color: hintBad ? COLORS.ember : COLORS.faded, textAlign: 'center', minHeight: 14 }}>{hint}</div>}
+                <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                <input
+                  ref={inputRef}
+                  value={guess}
+                  disabled={!started || ended}
+                  onChange={(e) => {
+                    const v = e.target.value;
+                    if (started && !ended && (ordered ? autoOrdered(v) : autoName(v))) { setGuess(''); }
+                    else { setGuess(v); }
+                  }}
+                  onKeyDown={ordered ? onOrderedKey : onKey}
+                  placeholder={started ? (ordered ? ((answers[activeIdx] && answers[activeIdx].label != null) ? `Type the ${quiz.noun || 'answer'} for ${answers[activeIdx].label}…` : `Type the next ${quiz.noun || 'answer'}…`) : `Type ${/^[aeiou]/.test(quiz.noun || '') ? 'an' : 'a'} ${quiz.noun || 'answer'}…`) : 'Press Play to begin…'}
+                  autoComplete="off"
+                  autoCapitalize="none"
+                  autoCorrect="off"
+                  spellCheck={false}
+                  style={{ flex: 1, minWidth: 0, fontFamily: SANS, fontSize: 17, height: 50, boxSizing: 'border-box', padding: '0 16px', border: `1.5px solid ${COLORS.ink}`, borderRadius: 8, background: !started || ended ? COLORS.paper : '#eceef1', color: COLORS.ink, opacity: !started || ended ? 0.5 : 1 }}
+                />
               <div style={{ position: 'relative', display: 'flex', flex: (matched && !ordered) || mapMode || tileMode ? 1 : 'none' }}>
               <button onClick={start} disabled={started || ended} style={{ flex: 1, fontFamily: MONO, fontSize: 13, letterSpacing: '0.08em', textTransform: 'uppercase', fontWeight: 700, padding: '0 22px', height: 50, border: 'none', background: COLORS.ember, color: '#fff', cursor: started || ended ? 'default' : 'pointer', opacity: started || ended ? 0.5 : 1 }}>
                 {ended ? 'Done' : started ? 'Playing' : (matched && !ordered) ? (quiz.noun ? 'Play' : 'Play — name each year') : 'Play'}
@@ -1366,18 +1430,9 @@ export default function QuizClient({ quizId }) {
                 </div>
               )}
               </div>
-            </div>
-            {mAppPlay && (
-              <div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '0 2px 7px', fontFamily: MONO, fontSize: 11, fontWeight: 700, color: COLORS.faded }}>
-                <span style={{ fontVariantNumeric: 'tabular-nums' }}>{dispScore}/{total}</span>
-                <span style={{ position: 'relative', flex: 1, height: 6, borderRadius: 4, background: COLORS.paper, overflow: 'hidden' }}>
-                  <span style={{ position: 'absolute', top: 0, bottom: 0, left: 0, right: `${100 - (total ? Math.round((dispScore / total) * 100) : 0)}%`, background: COLORS.ember, borderRadius: 4, transition: 'right .3s' }} />
-                </span>
-                <span style={{ fontVariantNumeric: 'tabular-nums' }}>{total ? Math.round((dispScore / total) * 100) : 0}%</span>
+                </div>
               </div>
             )}
-            </div>
-            <div style={{ fontFamily: MONO, fontSize: 12, minHeight: 15, marginTop: 2, marginBottom: 8, color: hintBad ? COLORS.ember : COLORS.faded, ...(portraitPhoto ? { maxWidth: PHOTO_COL, marginLeft: 'auto', marginRight: 'auto' } : null) }}>{hint}</div>
 
             {photoMode ? (
             <PhotoBoard items={quiz.answers} started={started} ended={ended} revealed={revealed} onMatch={onPairMatch} onWrong={onBankWrong} onEnd={onPairEnd} onHint={onPairHint} answerNoun={quiz.noun} photoAspect={quiz.photoAspect} strike={quiz.strike} noSkip={quiz.strike} stickyTop={stickyTop} />
@@ -1625,6 +1680,7 @@ export default function QuizClient({ quizId }) {
                 </button>
               )}
             </div>
+            {bottomDock && <div aria-hidden="true" style={{ height: 'calc(108px + env(safe-area-inset-bottom))' }} />}
           </>
         )}
 
