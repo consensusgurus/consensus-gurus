@@ -8,7 +8,7 @@ import {
   Search, ChevronDown, ArrowRight, BarChart3, Crown, Sparkles, Flame,
   BadgeCheck, Clapperboard, Music, Gamepad2, Plane, Globe, Utensils,
   Briefcase, Leaf, Tv, BookOpen, Landmark, Trophy, UserPlus, Play, X,
-  Check, Star,
+  Check, Star, Target,
 } from 'lucide-react';
 import { QUIZZES } from '@/lib/quizzes';
 import {
@@ -246,9 +246,10 @@ export default function QuizHomeClient() {
   const [dailyLb, setDailyLb] = useState(null); // today's daily-challenge standings (registered players)
   const [chRun, setChRun] = useState(null); // local run-state for today's daily challenge (completion ticks)
   const [isMobile, setIsMobile] = useState(false);
-  const [acc, setAcc] = useState({ mostplayed: true, newest: true }); // mobile-only: which accordion panels are open
+  const [acc, setAcc] = useState({ mostplayed: true, newest: true, daily: true }); // mobile-only: which accordion panels are open
+  const [lbLiveTab, setLbLiveTab] = useState(null); // mobile combined leaderboard/live: null | 'lb' | 'live'
   const toggleAcc = (k) => setAcc((o) => ({ ...o, [k]: !o[k] }));
-  const mobLbOpen = isMobile && !!acc.lb; // mobile leaderboard unfurled -> show more rows + scroll
+  const mobLbOpen = isMobile && lbLiveTab === 'lb'; // mobile leaderboard tab active -> more rows + scroll
   useEffect(() => {
     if (typeof window === 'undefined' || !window.matchMedia) return;
     const mq = window.matchMedia('(max-width:560px)');
@@ -680,7 +681,7 @@ export default function QuizHomeClient() {
     .qz-playerbar .qz-skill-empty{display:none !important;}
     .qz-playerbar .lbl{font-size:10px;font-weight:600;letter-spacing:.04em;text-transform:uppercase;color:#6b7280;margin-bottom:2px;}
     .qz-chev{display:none;}
-    @media(max-width:560px){.qz-playerbar{flex-wrap:wrap !important;align-items:center !important;gap:10px 14px !important;}.qz-playerbar .qz-div{display:none !important;}.qz-playerbar:not(.open) .qz-stats{display:none !important;}.qz-playerbar.open .qz-stats{order:9 !important;flex:1 1 100% !important;margin-left:0 !important;justify-content:space-between !important;gap:10px !important;}.qz-playerbar{cursor:pointer;}.qz-chev{display:inline-flex !important;}.qz-playerbar .qz-bestcat{display:none !important;}.qz-playerbar .hubbtn{order:4 !important;margin-left:auto !important;flex:0 0 auto !important;}.qzh .boards{display:flex !important;flex-direction:column;gap:12px;}.qzh .boards .lb-card{order:1;}.qzh .boards .live-card{order:2;}.qzh .boards .daily-card{order:3;}.qz-submit{display:none !important;}.qzh{padding-left:14px !important;padding-right:14px !important;}}
+    @media(max-width:560px){.qz-playerbar{flex-wrap:wrap !important;align-items:center !important;gap:10px 14px !important;}.qz-playerbar .qz-div{display:none !important;}.qz-playerbar:not(.open) .qz-stats{display:none !important;}.qz-playerbar.open .qz-stats{order:9 !important;flex:1 1 100% !important;margin-left:0 !important;justify-content:space-between !important;gap:10px !important;}.qz-playerbar{cursor:pointer;}.qz-chev{display:inline-flex !important;}.qz-playerbar .qz-bestcat{display:none !important;}.qz-playerbar .hubbtn{order:4 !important;margin-left:auto !important;flex:0 0 auto !important;}.qzh .boards{display:flex !important;flex-direction:column;gap:12px;}.qzh .boards .lb-card{display:none !important;}.qzh .boards .live-card{display:none !important;}.qzh .boards .lblive-card{order:1;}.qzh .boards .daily-card{order:2;}.qz-submit{display:none !important;}.qzh{padding-left:14px !important;padding-right:14px !important;}}
     .qzh .hubbtn:hover{background:${C.accsoft};}
     .qzh .crumb1{font-size:18px;font-weight:800;letter-spacing:-0.02em;}
     .qzh .crumb2{font-size:18px;font-weight:600;color:${C.accent};}
@@ -727,6 +728,7 @@ export default function QuizHomeClient() {
       .qzh .qz-daily{flex:0 0 auto !important;align-self:stretch;box-sizing:border-box;}
     }
     .qzh .qz-mobhub{display:none;}
+    .qzh .lblive-card{display:none;}
     .qzh .accchev{display:none;}
     @media(max-width:560px){
       .qzh .boards .head{cursor:pointer;}
@@ -745,40 +747,17 @@ export default function QuizHomeClient() {
       .qzh .lb-card.mc-open .lbbody{max-height:50vh;overflow-y:auto;justify-content:flex-start;}
       .qzh .qz-searchwrap input{font-size:16px !important;}
       .qzh .qz-mobhub{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-top:14px;background:${C.accsoft};color:${C.accent};border:1px solid #cddffb;border-radius:12px;padding:14px 16px;text-decoration:none;font-family:${FONT};}
+      .qzh .lblive-card{display:flex;flex-direction:column;}
+      .qzh .lblive-tabs{display:flex;gap:5px;flex:1 1 auto;min-width:0;}
+      .qzh .lblive-tab{flex:1 1 0;min-width:0;display:flex;align-items:center;justify-content:flex-start;gap:6px;background:transparent;border:none;border-radius:8px;padding:6px 8px;font:inherit;font-weight:700;font-size:12.5px;color:#5f5e5a;cursor:pointer;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+      .qzh .lblive-tab.on{background:#eef2f7;color:#1c1e24;}
+      .qzh .lblive-tab .livedot2{width:8px;height:8px;border-radius:50%;background:#9aa1ab;flex:none;}
+      .qzh .lblive-body{max-height:50vh;overflow-y:auto;padding:3px 0;}
     }
   `;
 
-  const doneCtx = useMemo(() => ({
-    played: (me && me.found && Array.isArray(me.playedIds)) ? new Set(me.playedIds) : null,
-    completed: (me && me.found && Array.isArray(me.completedIds)) ? new Set(me.completedIds) : null,
-  }), [me]);
-
-  return (
-    <QuizDoneContext.Provider value={doneCtx}>
-    <div style={{ background: C.bg, minHeight: '100vh', position: 'relative' }}>
-      <Grain />
-      <style>{css}</style>
-      <SiteHeader active="quizzes" flush inlay={<QuizPlayerBar />} />
-      <div className="qzh qzf-w" style={{ maxWidth: 1180, margin: '0 auto', padding: '12px 38px 70px', position: 'relative' }}><div className="qzf-line" aria-hidden="true" />
-
-        {signupOpen && <SignupModal onClose={() => setSignupOpen(false)} />}
-
-        {/* boards */}
-        <div className="boards">
-          {/* leaderboard */}
-          <div className={`card lb-card mc-${acc.lb ? 'open' : 'closed'}`}>
-            <div className="head" onClick={() => { if (isMobile) toggleAcc('lb'); else setBoardsExpanded((v) => !v); }}>
-              <span style={{ display: 'flex', alignItems: 'center', gap: 7, minWidth: 0 }}>
-                <Crown size={15} strokeWidth={2} style={{ color: C.ink, flex: 'none' }} />
-                <span className="lbl" style={{ color: C.ink }}>{isMobile && !acc.lb ? 'Leaderboard' : `${lbMetric.label}${lbMetric.special || scope === 'all' ? '' : ` · ${byKey[scope]?.label}`}`}</span>
-              </span>
-              <span style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-                <Link href={lbMetric.special && lbMetric.key !== 'catRating' ? '/quizzes/hub?tab=challenges' : '/quizzes/hub'} onClick={(e) => e.stopPropagation()} className="qlink"><span className="vall" style={{ fontSize: 11, fontWeight: 700, color: C.accent }}>View all</span></Link>
-                <ChevronDown className="accchev" size={16} strokeWidth={2.5} style={{ flex: 'none', color: C.soft, transform: acc.lb ? 'rotate(180deg)' : 'none' }} />
-              </span>
-            </div>
-            <div className="lbbody" style={{ flex: 1, padding: '3px 0', display: 'flex', flexDirection: 'column', justifyContent: 'space-evenly' }}>
-              {lbMetric.special ? (
+  const renderLb = () => (
+    lbMetric.special ? (
                 (() => {
                   if (lbMetric.key === 'catRating') {
                     const rows = (catBoards[lbMetric.catKey] || []).slice(0, (boardsExpanded || mobLbOpen) ? 10 : 5);
@@ -807,25 +786,11 @@ export default function QuizHomeClient() {
                       value={lbMetric.fmt(r[lbMetric.key])} frac={(r[lbMetric.key] || 0) / (leaderRows[0]?.[lbMetric.key] || 1)} />
                   ))}
                 </>
-              )}
-            </div>
-          </div>
-
-          {/* live feed */}
-          <div className={`card live-card mc-${acc.live ? 'open' : 'closed'}`}>
-            <div className="head" onClick={() => { if (isMobile) toggleAcc('live'); else setBoardsExpanded((v) => !v); }}>
-              <span style={{ display: 'flex', alignItems: 'center', gap: 7 }}>
-                <span className="livedot" style={{ width: 8, height: 8, borderRadius: '50%', background: C.live, animation: 'qzp 1.6s infinite' }} />
-                <span className="lbl" style={{ color: C.ink }}>Live · Quizzes Played{scope === 'all' ? '' : ` · ${byKey[scope]?.label}`}</span>
-              </span>
-              <span style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-                {playsToday ? <span className="vall" style={{ fontSize: 10, fontWeight: 700, letterSpacing: '.05em', textTransform: 'uppercase', color: C.soft }}>{playsToday.toLocaleString()} Plays Today</span> : null}
-                <button type="button" onClick={(e) => { e.stopPropagation(); setListMode('live'); }} className="vall" style={{ background: 'none', border: 'none', padding: 0, cursor: 'pointer', color: C.accent, fontWeight: 700, fontSize: 11, whiteSpace: 'nowrap' }}>View all</button>
-                <ChevronDown className="accchev" size={16} strokeWidth={2.5} style={{ flex: 'none', color: C.soft, transform: acc.live ? 'rotate(180deg)' : 'none' }} />
-              </span>
-            </div>
-            <div style={{ flex: 1, padding: '3px 0', display: 'flex', flexDirection: 'column', justifyContent: 'space-evenly' }}>
-              {liveRows.length === 0 && <div style={{ padding: '12px 13px', fontSize: 12, color: C.soft }}>No recent plays{scope === 'all' ? '' : ' in this category'} yet.</div>}
+              )
+  );
+  const renderLive = () => (
+    <>
+      {liveRows.length === 0 && <div style={{ padding: '12px 13px', fontSize: 12, color: C.soft }}>No recent plays{scope === 'all' ? '' : ' in this category'} yet.</div>}
               {liveRows.map((f, i) => (
                 <Link href={`/quiz/${f.quizId}`} className="qlink" key={i}>
                   <div className="lrow" style={{ gap: 4, flexDirection: 'column', alignItems: 'stretch', padding: '7px 13px' }}>
@@ -834,7 +799,7 @@ export default function QuizHomeClient() {
                       {dailyIds.includes(f.quizId) ? <span style={{ flex: 'none', display: 'inline-flex', alignItems: 'center', gap: 3, fontSize: 9, fontWeight: 800, letterSpacing: '.03em', textTransform: 'uppercase', color: C.accent, background: C.accsoft, padding: '1px 6px', borderRadius: 6 }}><Flame size={10} />Daily</span> : null}
                     </span>
                     <span style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 10.5, color: C.soft }}>
-                      <PlayerLink userKey={f.userKey}><WhoTag name={f.name || 'Guest'} isAnon={f.isAnon} /></PlayerLink>
+                      <span style={{ fontWeight: 600 }}>User</span>
                       <span className="scorebadge" style={{ flex: 'none', fontWeight: 700, padding: '1px 6px', borderRadius: 6, fontVariantNumeric: 'tabular-nums', background: f.total && f.score / f.total >= 0.8 ? '#e7f7ed' : '#eef1f6', color: f.total && f.score / f.total >= 0.8 ? '#16a34a' : C.soft }}>{f.score}/{f.total}</span>
                       <span style={{ fontWeight: 700 }}>{f.attempt > 1 ? `attempt ${f.attempt}` : '1st try'}</span>
                       <span style={{ marginLeft: 'auto' }}>{relTime(f.playedAt)}</span>
@@ -842,6 +807,76 @@ export default function QuizHomeClient() {
                   </div>
                 </Link>
               ))}
+    </>
+  );
+
+  const doneCtx = useMemo(() => ({
+    played: (me && me.found && Array.isArray(me.playedIds)) ? new Set(me.playedIds) : null,
+    completed: (me && me.found && Array.isArray(me.completedIds)) ? new Set(me.completedIds) : null,
+  }), [me]);
+
+  return (
+    <QuizDoneContext.Provider value={doneCtx}>
+    <div style={{ background: C.bg, minHeight: '100vh', position: 'relative' }}>
+      <Grain />
+      <style>{css}</style>
+      <SiteHeader active="quizzes" flush inlay={<QuizPlayerBar />} />
+      <div className="qzh qzf-w" style={{ maxWidth: 1180, margin: '0 auto', padding: '12px 38px 70px', position: 'relative' }}><div className="qzf-line" aria-hidden="true" />
+
+        {signupOpen && <SignupModal onClose={() => setSignupOpen(false)} />}
+
+        {/* boards */}
+        <div className="boards">
+          {/* mobile combined leaderboard / live feed toggle */}
+          <div className={`card lblive-card mc-${lbLiveTab ? 'open' : 'closed'}`}>
+            <div className="head lblive-head">
+              <div className="lblive-tabs">
+                <button type="button" className={`lblive-tab${lbLiveTab === 'lb' ? ' on' : ''}`} onClick={() => setLbLiveTab((t) => t === 'lb' ? null : 'lb')}><Crown size={14} strokeWidth={2} style={{ flex: 'none' }} />Leaderboard</button>
+                <button type="button" className={`lblive-tab${lbLiveTab === 'live' ? ' on' : ''}`} onClick={() => setLbLiveTab((t) => t === 'live' ? null : 'live')}><span className="livedot2" />Live Quiz Feed</button>
+              </div>
+              <span style={{ display: 'flex', alignItems: 'center', gap: 10, flex: 'none' }}>
+                {lbLiveTab === 'lb' ? <Link href="/quizzes/hub" onClick={(e) => e.stopPropagation()} className="qlink vall" style={{ fontSize: 11, fontWeight: 700, color: C.accent }}>View all</Link> : lbLiveTab === 'live' ? <button type="button" onClick={(e) => { e.stopPropagation(); setListMode('live'); }} className="vall" style={{ background: 'none', border: 'none', padding: 0, cursor: 'pointer', color: C.accent, fontWeight: 700, fontSize: 11 }}>View all</button> : null}
+                <ChevronDown className="accchev" size={16} strokeWidth={2.5} onClick={() => setLbLiveTab((t) => t ? null : 'lb')} style={{ flex: 'none', color: C.soft, cursor: 'pointer', transform: lbLiveTab ? 'rotate(180deg)' : 'none' }} />
+              </span>
+            </div>
+            <div className="lblive-body">
+              {lbLiveTab === 'lb' ? renderLb() : lbLiveTab === 'live' ? renderLive() : null}
+            </div>
+          </div>
+          {/* leaderboard */}
+          <div className={`card lb-card mc-${acc.lb ? 'open' : 'closed'}`}>
+            <div className="head" onClick={() => { if (isMobile) toggleAcc('lb'); else setBoardsExpanded((v) => !v); }}>
+              <span style={{ display: 'flex', alignItems: 'center', gap: 7, minWidth: 0 }}>
+                <Crown size={15} strokeWidth={2} style={{ color: C.ink, flex: 'none' }} />
+                <span className="lbl" style={{ color: C.ink }}>{isMobile && !acc.lb ? 'Leaderboard' : `${lbMetric.label}${lbMetric.special || scope === 'all' ? '' : ` · ${byKey[scope]?.label}`}`}</span>
+              </span>
+              <span style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                <Link href={lbMetric.special && lbMetric.key !== 'catRating' ? '/quizzes/hub?tab=challenges' : '/quizzes/hub'} onClick={(e) => e.stopPropagation()} className="qlink"><span className="vall" style={{ fontSize: 11, fontWeight: 700, color: C.accent }}>View all</span></Link>
+                <ChevronDown className="accchev" size={16} strokeWidth={2.5} style={{ flex: 'none', color: C.soft, transform: acc.lb ? 'rotate(180deg)' : 'none' }} />
+              </span>
+            </div>
+            <div className="lbbody" style={{ flex: 1, padding: '3px 0', display: 'flex', flexDirection: 'column', justifyContent: 'space-evenly' }}>
+              {renderLb()}
+
+            </div>
+          </div>
+
+          {/* live feed */}
+          <div className={`card live-card mc-${acc.live ? 'open' : 'closed'}`}>
+            <div className="head" onClick={() => { if (isMobile) toggleAcc('live'); else setBoardsExpanded((v) => !v); }}>
+              <span style={{ display: 'flex', alignItems: 'center', gap: 7 }}>
+                <span className="livedot" style={{ width: 8, height: 8, borderRadius: '50%', background: C.live, animation: 'qzp 1.6s infinite' }} />
+                <span className="lbl" style={{ color: C.ink }}>Live Quiz Feed{scope === 'all' ? '' : ` · ${byKey[scope]?.label}`}</span>
+              </span>
+              <span style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                {playsToday ? <span className="vall" style={{ fontSize: 10, fontWeight: 700, letterSpacing: '.05em', textTransform: 'uppercase', color: C.soft }}>{playsToday.toLocaleString()} Plays Today</span> : null}
+                <button type="button" onClick={(e) => { e.stopPropagation(); setListMode('live'); }} className="vall" style={{ background: 'none', border: 'none', padding: 0, cursor: 'pointer', color: C.accent, fontWeight: 700, fontSize: 11, whiteSpace: 'nowrap' }}>View all</button>
+                <ChevronDown className="accchev" size={16} strokeWidth={2.5} style={{ flex: 'none', color: C.soft, transform: acc.live ? 'rotate(180deg)' : 'none' }} />
+              </span>
+            </div>
+            <div style={{ flex: 1, padding: '3px 0', display: 'flex', flexDirection: 'column', justifyContent: 'space-evenly' }}>
+              {renderLive()}
+
             </div>
           </div>
 
@@ -850,7 +885,7 @@ export default function QuizHomeClient() {
             <div className={`card daily-card mc-${acc.daily ? 'open' : 'closed'}`}>
               <div className="head" onClick={() => { if (isMobile) toggleAcc('daily'); }} style={{ cursor: isMobile ? 'pointer' : 'default' }}>
                 <span style={{ display: 'flex', alignItems: 'center', gap: 7, minWidth: 0 }}>
-                  <Flame className="dailyicon" size={15} style={{ color: C.accent, flex: 'none' }} />
+                  <Target className="dailyicon" size={15} style={{ color: C.accent, flex: 'none' }} />
                   <span className="lbl" style={{ color: C.ink }}>Daily Challenge{dailyCat ? ` · ${dailyCat}` : ''}</span>
                 </span>
                 <span style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
@@ -859,7 +894,15 @@ export default function QuizHomeClient() {
                 </span>
               </div>
               <div style={{ flex: 1, display: 'flex', flexDirection: 'column', padding: '8px 13px 11px' }}>
-                <div style={{ fontSize: 11, color: C.soft, fontWeight: 600, marginBottom: 7 }}>{dailyDateLabel}{dailyDateLabel ? ' · ' : ''}{dailyDoneCount}/{dailyIds.length} done</div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 11, color: C.soft, fontWeight: 600, marginBottom: 7 }}>
+                  <span style={{ whiteSpace: 'nowrap' }}>{dailyDateLabel}{dailyDateLabel ? ' · ' : ''}{dailyDoneCount}/{dailyIds.length} done</span>
+                  {dailyRows.length > 0 && (
+                    <span style={{ marginLeft: 'auto', minWidth: 0, display: 'inline-flex', alignItems: 'center', gap: 4, color: C.ink }} title={`Daily leader: ${dailyRows[0].username || 'Player'}`}>
+                      <Crown size={12} strokeWidth={2} style={{ color: '#e8b43a', flex: 'none' }} />
+                      <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', maxWidth: 120 }}>{dailyRows[0].username || 'Player'}</span>
+                    </span>
+                  )}
+                </div>
                 <div style={{ flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'space-evenly' }}>
                   {dailyIds.map((qid, k) => {
                     const done = dailyIsDone(qid);
@@ -885,17 +928,17 @@ export default function QuizHomeClient() {
 
         {/* browse header + search */}
         <div ref={quizzesRef} className="qz-browserow" style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 12, flexWrap: 'wrap' }}>
-          {(searchResults || listMode || doneFilter !== 'all') && (
+          {(searchResults || listMode || doneFilter !== 'all' || scope !== 'all') && (
             <h2 style={{ fontSize: 17, fontWeight: 800, margin: 0, whiteSpace: 'nowrap', display: 'flex', alignItems: 'center', gap: 10 }}>
-              {(listMode || doneFilter !== 'all') && !searchResults && scope === 'all' && (
-                <button type="button" onClick={() => { setListMode(null); setDoneFilter('all'); }} style={{ background: 'none', border: 'none', padding: 0, cursor: 'pointer', color: C.accent, fontWeight: 700, fontSize: 14 }}>‹ Back</button>
+              {!searchResults && (listMode || doneFilter !== 'all' || scope !== 'all') && (
+                <button type="button" onClick={() => { setListMode(null); setDoneFilter('all'); setScope('all'); }} style={{ background: 'none', border: 'none', padding: 0, cursor: 'pointer', color: C.accent, fontWeight: 700, fontSize: 14 }}>‹ Back</button>
               )}
               {searchResults ? `Search Results · ${searchResults.length}`
                 : doneFilter !== 'all' ? `${STATUS_LABEL[doneFilter]} Quizzes · ${(statusList || []).length}`
                 : scope !== 'all' ? `${byKey[scope]?.label} Quizzes`
                 : listMode === 'newest' ? `Newest Quizzes · ${newestAll.length}`
                 : listMode === 'mostplayed' ? `Most Played · ${mostPlayedAll.length}`
-                : 'Live · Quizzes Played'}
+                : 'Live Quiz Feed'}
             </h2>
           )}
           <div className="dd qz-catbtn" onClick={(e) => e.stopPropagation()}>
@@ -1029,7 +1072,7 @@ export default function QuizHomeClient() {
               <Link href={`/quiz/${f.quizId}`} className="qrow" key={i} title={f.title}>
                 <span className="qtitle">{stripVerb(f.title)}</span>
                 <span className="qmeta" style={{ gap: 8 }}>
-                  <PlayerLink userKey={f.userKey}><WhoTag name={f.name || 'Guest'} isAnon={f.isAnon} /></PlayerLink>
+                  <span style={{ fontWeight: 600 }}>User</span>
                   <span className="lf-extra scorebadge" style={{ flex: 'none', fontSize: 11, fontWeight: 700, padding: '2px 7px', borderRadius: 7, fontVariantNumeric: 'tabular-nums', background: f.total && f.score / f.total >= 0.8 ? '#e7f7ed' : '#eef1f6', color: f.total && f.score / f.total >= 0.8 ? '#16a34a' : C.soft }}>{f.score}/{f.total}</span>
                   <span className="lf-extra" style={{ color: C.soft }}>{relTime(f.playedAt)}</span>
                 </span>
@@ -1057,7 +1100,7 @@ export default function QuizHomeClient() {
               rows={newest.map((q) => ({ q, right: <NewRight q={q} /> }))} cta="View all ›" onCta={() => setListMode('newest')} open={!!acc.newest} onToggle={() => toggleAcc('newest')} isMobile={isMobile} />
             {cats.map((c) => (
               <BrowseColumn key={c.key} label={c.label} Icon={c.Icon} color={c.c} tint={c.t}
-                rows={colRows(c, 6, shownIds).map((q) => ({ q, right: <PlaysRight id={q.id} plays={plays} leader={leader} leaderKey={leaderKey} color={c.c} hidePlays /> }))}
+                rows={colRows(c, isMobile ? 20 : 6, shownIds).map((q) => ({ q, right: <PlaysRight id={q.id} plays={plays} leader={leader} leaderKey={leaderKey} color={c.c} hidePlays /> }))}
                 cta={`View all ${c.count} ›`} onCta={() => setScope(c.key)} open={!!acc[c.key]} onToggle={() => toggleAcc(c.key)} isMobile={isMobile} />
             ))}
           </div>
