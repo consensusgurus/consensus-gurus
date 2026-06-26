@@ -483,6 +483,12 @@ export default function MapPlaceClient({ quizId }) {
                   <div style={{ position: 'absolute', left: 0, top: 0, bottom: 0, width: `${timeFrac * 100}%`, background: lowClock ? COLORS.ember : COLORS.forest, transition: `width ${TICK_MS}ms linear` }} />
                 </div>
               )}
+              {phase === 'playing' && (
+                <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'center', gap: 10, marginTop: 10, flexWrap: 'wrap' }}>
+                  <span style={{ fontFamily: MONO, fontSize: 11, letterSpacing: '0.16em', textTransform: 'uppercase', color: COLORS.ember }}>Find</span>
+                  <span style={{ fontFamily: SERIF, fontWeight: 800, fontSize: 'clamp(20px, 3.2vw, 28px)', lineHeight: 1.1, textAlign: 'center' }}>{promptCity ? promptCity.name : ''}</span>
+                </div>
+              )}
             </div>
             )}
 
@@ -509,10 +515,6 @@ export default function MapPlaceClient({ quizId }) {
             {/* PLAYING — the prompt + map */}
             {phase === 'playing' && (
               <div style={{ marginTop: 12 }}>
-                <div style={{ display: 'flex', alignItems: 'baseline', gap: 10, justifyContent: 'center', marginBottom: 10 }}>
-                  <span style={{ fontFamily: MONO, fontSize: 11, letterSpacing: '0.16em', textTransform: 'uppercase', color: COLORS.ember }}>Find</span>
-                  <span style={{ fontFamily: SERIF, fontWeight: 800, fontSize: 'clamp(22px, 3.4vw, 30px)', lineHeight: 1.05 }}>{promptCity ? promptCity.name : ''}</span>
-                </div>
                 <div style={{ maxWidth: 820, margin: '0 auto', borderRadius: 8, overflow: 'hidden', border: `1px solid ${COLORS.faded}55` }}>
                   <div ref={mapElRef} style={{ height: 'clamp(440px, 66vh, 660px)', width: '100%', background: '#0b1a2b', cursor: 'crosshair' }} />
                 </div>
