@@ -1,5 +1,6 @@
 'use client';
 import React, { useEffect } from 'react';
+import { createPortal } from 'react-dom';
 
 // Shared full-screen results popup for every quiz board.
 //
@@ -16,6 +17,10 @@ import React, { useEffect } from 'react';
 //   standings    <QuizStandings ... fill /> node (optional)
 //   actions      the action buttons (Play again / Share / Report / ...)
 //   children     optional recap content shown inside the scrollable card
+//
+// Rendered through a portal to document.body so it escapes the page's
+// positioned wrapper (which shares z-index:2 with the footer) and reliably
+// sits above all page chrome — header and footer included.
 //
 // The board keeps ownership of all handlers; this component is presentational.
 
@@ -48,8 +53,9 @@ export default function QuizResultModal({
   }, [open]);
 
   if (!open) return null;
+  if (typeof document === 'undefined') return null;
 
-  return (
+  const overlay = (
     <div
       role="dialog"
       aria-modal="true"
@@ -126,4 +132,6 @@ export default function QuizResultModal({
       </div>
     </div>
   );
+
+  return createPortal(overlay, document.body);
 }
