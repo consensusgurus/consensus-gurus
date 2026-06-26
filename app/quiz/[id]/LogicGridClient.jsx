@@ -22,6 +22,7 @@ import Footer from '../../Footer';
 import SiteHeader from '../../SiteHeader';
 import QuizPlayerBar from './QuizPlayerBar';
 import { isMobileDevice } from '@/lib/is-mobile';
+import { LB_POPS, LB_FILTERS, pickLb, lbEmptyNote } from '@/lib/quiz-lb';
 import Count from '../../Count';
 
 const COLORS = {
@@ -171,8 +172,9 @@ export default function LogicGridClient({ quizId, mobile = false }) {
   const [revealed, setRevealed] = useState(false); // after end: misses filled in
 
   const [stats, setStats] = useState({ attempts: 0, best: 0, totalCorrect: 0 });
-  const [board, setBoard] = useState({ plays: 0, best: null, topTime: null, leaderboard: [], leaderboardAll: [], leaderboardMobile: [], leaderboardFirst: [] });
-  const [lbView, setLbView] = useState('registered');
+  const [board, setBoard] = useState({ plays: 0, best: null, topTime: null, leaderboard: [], leaderboardAll: [], leaderboardMobile: [], leaderboardFirst: [], leaderboards: {} });
+  const [lbPop, setLbPop] = useState('registered');
+  const [lbFilter, setLbFilter] = useState('all');
   const [identity, setIdentity] = useState(null);
 
   // Join form
@@ -205,7 +207,7 @@ export default function LogicGridClient({ quizId, mobile = false }) {
   function refreshBoard() {
     fetch(`/api/quiz/board?quizId=${encodeURIComponent(quizId)}`)
       .then((r) => r.json())
-      .then((d) => { if (d && !d.error) setBoard({ plays: d.plays || 0, best: d.best ?? null, topTime: d.topTime ?? null, leaderboard: d.leaderboard || [], leaderboardAll: d.leaderboardAll || [], leaderboardMobile: d.leaderboardMobile || [], leaderboardFirst: d.leaderboardFirst || [] }); })
+      .then((d) => { if (d && !d.error) setBoard({ plays: d.plays || 0, best: d.best ?? null, topTime: d.topTime ?? null, leaderboard: d.leaderboard || [], leaderboardAll: d.leaderboardAll || [], leaderboardMobile: d.leaderboardMobile || [], leaderboardFirst: d.leaderboardFirst || [], leaderboards: d.leaderboards || {} }); })
       .catch(() => {});
   }
 
@@ -248,7 +250,7 @@ export default function LogicGridClient({ quizId, mobile = false }) {
       body: JSON.stringify({ quizId, score: finalScore, total, timeElapsed: elapsed, email: identity?.email || undefined, anonId: getAnonId(), isMobile: isMobileDevice() }),
     })
       .then((r) => r.json())
-      .then((d) => { if (d && !d.error) setBoard({ plays: d.plays || 0, best: d.best ?? null, topTime: d.topTime ?? null, leaderboard: d.leaderboard || [], leaderboardAll: d.leaderboardAll || [], leaderboardMobile: d.leaderboardMobile || [], leaderboardFirst: d.leaderboardFirst || [] }); })
+      .then((d) => { if (d && !d.error) setBoard({ plays: d.plays || 0, best: d.best ?? null, topTime: d.topTime ?? null, leaderboard: d.leaderboard || [], leaderboardAll: d.leaderboardAll || [], leaderboardMobile: d.leaderboardMobile || [], leaderboardFirst: d.leaderboardFirst || [], leaderboards: d.leaderboards || {} }); })
       .catch(() => {});
   }
 
@@ -353,7 +355,7 @@ export default function LogicGridClient({ quizId, mobile = false }) {
   }
 
   const bestLabel = board.best != null ? board.best : '—';
-  const lbRows = lbView === 'all' ? (board.leaderboardAll || []) : lbView === 'mobile' ? (board.leaderboardMobile || []) : lbView === 'first' ? (board.leaderboardFirst || []) : board.leaderboard;
+  const lbRows = pickLb(board, lbPop, lbFilter);
   const activeCell = active != null ? cells[active] : null;
   // Group cells into rows for the grid (cells are stored in row-major order).
   const rows = [];
@@ -596,19 +598,29 @@ export default function LogicGridClient({ quizId, mobile = false }) {
               </div>
 
               {board.plays > 0 && (
-                <div style={{ display: 'flex', marginBottom: 14, borderRadius: 10, border: `1px solid ${COLORS.faded}55`, width: 'fit-content' }}>
-                  {[['registered', 'Registered'], ['all', 'All players'], ['mobile', 'Mobile'], ['first', 'First try']].map(([k, label], idx) => {
-                    const on = lbView === k;
-                    return (
-                      <button key={k} onClick={() => setLbView(k)} style={{ padding: '6px 14px', background: on ? COLORS.ink : 'transparent', color: on ? '#fff' : COLORS.faded, border: 'none', borderLeft: idx === 0 ? 'none' : `1px solid ${COLORS.faded}55`, fontFamily: MONO, fontSize: 10, letterSpacing: '0.12em', textTransform: 'uppercase', fontWeight: 700, cursor: 'pointer' }}>{label}</button>
-                    );
-                  })}
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 6, marginBottom: 14, width: 'fit-content' }}>
+                  <div style={{ display: 'flex', borderRadius: 10, border: `1px solid ${COLORS.faded}55`, width: 'fit-content' }}>
+                    {LB_POPS.map(([k, label], idx) => {
+                      const on = lbPop === k;
+                      return (
+                        <button key={k} onClick={() => setLbPop(k)} style={{ padding: '6px 14px', background: on ? COLORS.ink : 'transparent', color: on ? '#fff' : COLORS.faded, border: 'none', borderLeft: idx === 0 ? 'none' : `1px solid ${COLORS.faded}55`, fontFamily: MONO, fontSize: 10, letterSpacing: '0.12em', textTransform: 'uppercase', fontWeight: 700, cursor: 'pointer' }}>{label}</button>
+                      );
+                    })}
+                  </div>
+                  <div style={{ display: 'flex', borderRadius: 10, border: `1px solid ${COLORS.faded}55`, width: 'fit-content' }}>
+                    {LB_FILTERS.map(([k, label], idx) => {
+                      const on = lbFilter === k;
+                      return (
+                        <button key={k} onClick={() => setLbFilter(k)} style={{ padding: '6px 14px', background: on ? COLORS.ink : 'transparent', color: on ? '#fff' : COLORS.faded, border: 'none', borderLeft: idx === 0 ? 'none' : `1px solid ${COLORS.faded}55`, fontFamily: MONO, fontSize: 10, letterSpacing: '0.12em', textTransform: 'uppercase', fontWeight: 700, cursor: 'pointer' }}>{label}</button>
+                      );
+                    })}
+                  </div>
                 </div>
               )}
 
               {lbRows.length === 0 ? (
                 <p style={{ fontFamily: SERIF, fontStyle: 'italic', fontSize: 16, color: COLORS.faded }}>
-                  {lbView === 'mobile' ? 'No mobile games on the board yet.' : lbView === 'first' ? 'No first-attempt scores on the board yet.' : <>No one has posted a score yet. <button onClick={() => setTab('join')} style={{ background: 'none', border: 'none', padding: 0, color: COLORS.ember, font: 'inherit', fontStyle: 'italic', textDecoration: 'underline', cursor: 'pointer' }}>Join the leaderboard</button> and be first.</>}
+                  {lbEmptyNote(lbFilter) || <>No one has posted a score yet. <button onClick={() => setTab('join')} style={{ background: 'none', border: 'none', padding: 0, color: COLORS.ember, font: 'inherit', fontStyle: 'italic', textDecoration: 'underline', cursor: 'pointer' }}>Join the leaderboard</button> and be first.</>}
                 </p>
               ) : (
                 <div>

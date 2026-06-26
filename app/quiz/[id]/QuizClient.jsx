@@ -16,6 +16,7 @@ import Count from '../../Count';
 import SiteHeader from '../../SiteHeader';
 import QuizPlayerBar from './QuizPlayerBar';
 import { isMobileDevice } from '@/lib/is-mobile';
+import { LB_POPS, LB_FILTERS, pickLb, lbEmptyNote } from '@/lib/quiz-lb';
 import useIsMobile from './useIsMobile';
 import dynamic from 'next/dynamic';
 
@@ -466,8 +467,9 @@ export default function QuizClient({ quizId }) {
   const pairsMatchedRef = useRef(0);
 
   const [stats, setStats] = useState({ attempts: 0, best: 0, totalCorrect: 0 });
-  const [board, setBoard] = useState({ plays: 0, best: null, topTime: null, leaderboard: [], leaderboardAll: [], leaderboardMobile: [], leaderboardFirst: [], scoreDist: {} });
-  const [lbView, setLbView] = useState('registered');
+  const [board, setBoard] = useState({ plays: 0, best: null, topTime: null, leaderboard: [], leaderboardAll: [], leaderboardMobile: [], leaderboardFirst: [], leaderboards: {}, scoreDist: {} });
+  const [lbPop, setLbPop] = useState('registered');
+  const [lbFilter, setLbFilter] = useState('all');
   const [identity, setIdentity] = useState(null); // { username, email }
 
   // Join form
@@ -624,7 +626,7 @@ export default function QuizClient({ quizId }) {
   function refreshBoard() {
     fetch(`/api/quiz/board?quizId=${encodeURIComponent(quizId)}`)
       .then((r) => r.json())
-      .then((d) => { if (d && !d.error) setBoard({ plays: d.plays || 0, best: d.best != null ? Math.min(d.best, total) : null, topTime: d.topTime ?? null, leaderboard: d.leaderboard || [], leaderboardAll: d.leaderboardAll || [], leaderboardMobile: d.leaderboardMobile || [], leaderboardFirst: d.leaderboardFirst || [], scoreDist: d.scoreDist || {} }); })
+      .then((d) => { if (d && !d.error) setBoard({ plays: d.plays || 0, best: d.best != null ? Math.min(d.best, total) : null, topTime: d.topTime ?? null, leaderboard: d.leaderboard || [], leaderboardAll: d.leaderboardAll || [], leaderboardMobile: d.leaderboardMobile || [], leaderboardFirst: d.leaderboardFirst || [], leaderboards: d.leaderboards || {}, scoreDist: d.scoreDist || {} }); })
       .catch(() => {});
   }
 
@@ -706,7 +708,7 @@ export default function QuizClient({ quizId }) {
       .then((r) => r.json())
       .then((d) => { if (d && !d.error) {
         const freshBest = d.best != null ? Math.min(d.best, total) : null;
-        setBoard({ plays: d.plays || 0, best: freshBest, topTime: d.topTime ?? null, leaderboard: d.leaderboard || [], leaderboardAll: d.leaderboardAll || [], leaderboardMobile: d.leaderboardMobile || [], leaderboardFirst: d.leaderboardFirst || [], scoreDist: d.scoreDist || {} });
+        setBoard({ plays: d.plays || 0, best: freshBest, topTime: d.topTime ?? null, leaderboard: d.leaderboard || [], leaderboardAll: d.leaderboardAll || [], leaderboardMobile: d.leaderboardMobile || [], leaderboardFirst: d.leaderboardFirst || [], leaderboards: d.leaderboards || {}, scoreDist: d.scoreDist || {} });
         setLastResultId(d.resultId ?? null);
         const topNow = freshBest != null && finalScore === freshBest && d.topTime != null && elapsed <= d.topTime;
         if (topNow) setCelebration('big'); else if (finalScore === total) setCelebration('small');
@@ -733,7 +735,7 @@ export default function QuizClient({ quizId }) {
       const id = { username: d.username, email: d.email };
       try { localStorage.setItem('sot_quiz_identity', JSON.stringify(id)); } catch {}
       setIdentity(id);
-      setBoard({ plays: d.plays || 0, best: d.best != null ? Math.min(d.best, total) : null, topTime: d.topTime ?? null, leaderboard: d.leaderboard || [], leaderboardAll: d.leaderboardAll || [], leaderboardMobile: d.leaderboardMobile || [], leaderboardFirst: d.leaderboardFirst || [], scoreDist: d.scoreDist || {} });
+      setBoard({ plays: d.plays || 0, best: d.best != null ? Math.min(d.best, total) : null, topTime: d.topTime ?? null, leaderboard: d.leaderboard || [], leaderboardAll: d.leaderboardAll || [], leaderboardMobile: d.leaderboardMobile || [], leaderboardFirst: d.leaderboardFirst || [], leaderboards: d.leaderboards || {}, scoreDist: d.scoreDist || {} });
       setClaimErr(false);
       setClaimOpen(false);
       if (canReveal) {
@@ -1129,7 +1131,7 @@ export default function QuizClient({ quizId }) {
   const bestLabel = board.best != null ? board.best : '—';
   // Leaderboard ranks with ties: equal score AND time share a rank (and are
   // ordered alphabetically by the API), so they display as a tie (T#).
-  const lb = lbView === 'all' ? (board.leaderboardAll || []) : lbView === 'mobile' ? (board.leaderboardMobile || []) : lbView === 'first' ? (board.leaderboardFirst || []) : board.leaderboard;
+  const lb = pickLb(board, lbPop, lbFilter);
   const lbRanks = [];
   const lbTied = [];
   for (let i = 0; i < lb.length; i++) {
@@ -1735,19 +1737,29 @@ export default function QuizClient({ quizId }) {
               </div>
 
               {board.plays > 0 && (
-                <div style={{ display: 'inline-flex', gap: 4, marginBottom: 14, borderRadius: 10, background: '#eef1f5', padding: 4, width: 'fit-content' }}>
-                  {[['registered', 'Registered'], ['all', 'All players'], ['mobile', 'Mobile'], ['first', 'First try']].map(([k, label]) => {
-                    const on = lbView === k;
-                    return (
-                      <button key={k} onClick={() => setLbView(k)} style={{ padding: '6px 14px', background: on ? '#fff' : 'transparent', color: on ? COLORS.ink : COLORS.soft, border: 'none', borderRadius: 7, fontFamily: SANS, fontSize: 11, letterSpacing: '0.04em', fontWeight: 700, cursor: 'pointer', boxShadow: on ? '0 1px 2px rgba(20,22,28,0.06)' : 'none' }}>{label}</button>
-                    );
-                  })}
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 6, marginBottom: 14, width: 'fit-content' }}>
+                  <div style={{ display: 'inline-flex', gap: 4, borderRadius: 10, background: '#eef1f5', padding: 4, width: 'fit-content' }}>
+                    {LB_POPS.map(([k, label]) => {
+                      const on = lbPop === k;
+                      return (
+                        <button key={k} onClick={() => setLbPop(k)} style={{ padding: '6px 14px', background: on ? '#fff' : 'transparent', color: on ? COLORS.ink : COLORS.soft, border: 'none', borderRadius: 7, fontFamily: SANS, fontSize: 11, letterSpacing: '0.04em', fontWeight: 700, cursor: 'pointer', boxShadow: on ? '0 1px 2px rgba(20,22,28,0.06)' : 'none' }}>{label}</button>
+                      );
+                    })}
+                  </div>
+                  <div style={{ display: 'inline-flex', gap: 4, borderRadius: 10, background: '#eef1f5', padding: 4, width: 'fit-content' }}>
+                    {LB_FILTERS.map(([k, label]) => {
+                      const on = lbFilter === k;
+                      return (
+                        <button key={k} onClick={() => setLbFilter(k)} style={{ padding: '6px 14px', background: on ? '#fff' : 'transparent', color: on ? COLORS.ink : COLORS.soft, border: 'none', borderRadius: 7, fontFamily: SANS, fontSize: 11, letterSpacing: '0.04em', fontWeight: 700, cursor: 'pointer', boxShadow: on ? '0 1px 2px rgba(20,22,28,0.06)' : 'none' }}>{label}</button>
+                      );
+                    })}
+                  </div>
                 </div>
               )}
 
               {lb.length === 0 ? (
                 <p style={{ fontFamily: SERIF, fontStyle: 'italic', fontSize: 16, color: COLORS.faded }}>
-                  {lbView === 'mobile' ? 'No mobile games on the board yet.' : lbView === 'first' ? 'No first-attempt scores on the board yet.' : <>No one has posted a score yet. <button onClick={() => setTab('join')} style={{ background: 'none', border: 'none', padding: 0, color: COLORS.ember, font: 'inherit', fontStyle: 'italic', textDecoration: 'underline', cursor: 'pointer' }}>Join the leaderboard</button> and be first.</>}
+                  {lbEmptyNote(lbFilter) || <>No one has posted a score yet. <button onClick={() => setTab('join')} style={{ background: 'none', border: 'none', padding: 0, color: COLORS.ember, font: 'inherit', fontStyle: 'italic', textDecoration: 'underline', cursor: 'pointer' }}>Join the leaderboard</button> and be first.</>}
                 </p>
               ) : (
                 <div>

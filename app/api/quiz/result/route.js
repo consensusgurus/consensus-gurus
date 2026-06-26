@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import { supabaseAdmin } from '@/lib/supabase-server';
 import { findQuizIdentity } from '@/lib/quiz-identity';
-import { buildAllLeaderboard } from '@/lib/quiz-anon';
+import { buildLeaderboardMatrix } from '@/lib/quiz-anon';
 
 export const dynamic = 'force-dynamic';
 export const fetchCache = 'force-no-store';
@@ -15,40 +15,23 @@ function summarize(rows) {
   const topTime = best != null
     ? Math.min(...rows.filter((r) => r.score === best).map((r) => (r.time_elapsed ?? Infinity)))
     : null;
-  // Signed-up players only, but EVERY qualifying play is listed (a single
-  // player can appear more than once). Top 10 by score desc, then fastest time.
-  // Per-user chronological attempt number (1 = that player's first completed
-  // game for this quiz), assigned by row id ascending. Lets the UI tag each
-  // leaderboard entry "(1st Try)", "(2nd Try)"... so multiple plays from the
-  // same person are distinguishable.
-  const signed = rows.filter((r) => r.user_id);
-  const tryByUser = {};
-  const tryOf = new Map();
-  signed
-    .slice()
-    .sort((a, b) => (a.id || 0) - (b.id || 0))
-    .forEach((r) => {
-      tryByUser[r.user_id] = (tryByUser[r.user_id] || 0) + 1;
-      tryOf.set(r, tryByUser[r.user_id]);
-    });
-  const rankSigned = (subset) => subset
-    .slice()
-    .sort((a, b) => b.score - a.score || a.time_elapsed - b.time_elapsed || (a.username || '').localeCompare(b.username || ''))
-    .slice(0, 10)
-    .map((r) => ({ username: r.username, userKey: 'u:' + r.user_id, score: r.score, timeElapsed: r.time_elapsed, tryNum: tryOf.get(r), playedAt: r.created_at }));
-  const leaderboard = rankSigned(signed);
-  // "Mobile" includes ALL players (registered + anonymous), filtered to games
-  // played on a phone/tablet (is_mobile true). Anonymous mobile plays appear as
-  // "Player #NNNNN", mirroring the All-players view. Legacy/unknown rows are NULL
-  // and excluded. (First Try stays registered-only.)
-  const leaderboardMobile = buildAllLeaderboard(rows.filter((r) => r.is_mobile === true));
-  const leaderboardFirst = rankSigned(signed.filter((r) => tryOf.get(r) === 1));
-  const leaderboardAll = buildAllLeaderboard(rows);
+  // Two composable leaderboard axes (population x filter) -> 6 boards, keyed
+  // "<population>:<filter>" in `leaderboards`. Anonymous players appear in every
+  // view EXCEPT 'registered:*'; in particular 'all:first' lists everyone's first
+  // attempt (anon included), which the "All players + First try" toggle shows.
+  // Legacy flat keys are kept for the compact strip/snippet and older clients:
+  // leaderboardFirst now resolves to 'all:first' so anonymous first plays are
+  // no longer dropped.
+  const leaderboards = buildLeaderboardMatrix(rows);
+  const leaderboard = leaderboards['registered:all'];
+  const leaderboardMobile = leaderboards['all:mobile'];
+  const leaderboardFirst = leaderboards['all:first'];
+  const leaderboardAll = leaderboards['all:all'];
   // Exact score distribution over ALL completed attempts, so the client can
   // report the real share of attempts a finished run beat (no modeled curve).
   const scoreDist = {};
   for (const r of rows) { const sv = Number(r.score) || 0; scoreDist[sv] = (scoreDist[sv] || 0) + 1; }
-  return { plays, best, topTime: Number.isFinite(topTime) ? topTime : null, leaderboard, leaderboardMobile, leaderboardFirst, leaderboardAll, scoreDist };
+  return { plays, best, topTime: Number.isFinite(topTime) ? topTime : null, leaderboard, leaderboardMobile, leaderboardFirst, leaderboardAll, leaderboards, scoreDist };
 }
 
 // POST /api/quiz/result  { quizId, score, total, timeElapsed, email? }
