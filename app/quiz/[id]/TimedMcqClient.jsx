@@ -17,6 +17,7 @@ import QuizStandings from './QuizStandings';
 import LeaderboardSnippet from './LeaderboardSnippet';
 import LeaderboardStrip from './LeaderboardStrip';
 import QuizResultModal from './QuizResultModal';
+import { similarQuizId } from '@/lib/quiz-similar';
 import { getQuiz, QUIZZES } from '@/lib/quizzes';
 import { quizDept as deptOf, DEPT_LABEL } from '@/lib/quiz-departments';
 import Grain from '../../Grain';
@@ -148,6 +149,7 @@ export default function TimedMcqClient({ quizId, mobile = false }) {
 
   // ── Game state ──
   const [phase, setPhase] = useState('idle'); // idle | playing | reveal | done
+  const [dismissed, setDismissed] = useState(false);
   const [qIndex, setQIndex] = useState(0);
   const [remaining, setRemaining] = useState(perMs);
   const [picked, setPicked] = useState(null);   // chosen option index, or null on timeout
@@ -255,6 +257,7 @@ export default function TimedMcqClient({ quizId, mobile = false }) {
   }
 
   function startGame() {
+    setDismissed(false);
     if (phase !== 'idle') return;
     endedRef.current = false;
     setResults([]);
@@ -540,7 +543,8 @@ export default function TimedMcqClient({ quizId, mobile = false }) {
             {/* DONE — results popup */}
             {phase === 'done' && (
               <QuizResultModal
-                open
+                open={!dismissed}
+                onClose={() => setDismissed(true)}
                 eyebrow={points === maxPoints ? 'Theoretical maximum' : answeredCount < total ? 'Ended early' : 'Final score'}
                 score={points}
                 total={maxPoints}
@@ -548,54 +552,12 @@ export default function TimedMcqClient({ quizId, mobile = false }) {
                 subline={board.best != null ? (points >= board.best ? `That is the high score to beat.` : `The high score to beat is ${board.best}.`) : 'Be the first to set the pace.'}
                 leaderboard={<LeaderboardSnippet board={board} identity={identity} score={points} lastElapsed={lastElapsed} fill />}
                 standings={eloPanel}
-                actions={<>
-                    {!mcqRevealed && (
-                      <button onClick={() => setMcqRevealed(true)} style={{ fontFamily: MONO, fontSize: 13, letterSpacing: '0.08em', textTransform: 'uppercase', fontWeight: 700, lineHeight: '46px', width: 210, padding: 0, boxSizing: 'border-box', background: COLORS.forest, color: '#fff', border: 'none', cursor: 'pointer', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 8 }}>
-                        <ScrollText size={14} strokeWidth={2.5} /> Quiz Summary
-                      </button>
-                    )}
-                    {!identity && (
-                      <button onClick={() => setTab('join')} style={{ fontFamily: MONO, fontSize: 13, letterSpacing: '0.08em', textTransform: 'uppercase', fontWeight: 700, lineHeight: '46px', width: 210, padding: 0, boxSizing: 'border-box', background: 'transparent', color: COLORS.ink, borderRadius: 10, border: `1.5px solid ${COLORS.ink}`, cursor: 'pointer', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 8 }}>
-                        <Trophy size={14} strokeWidth={2.5} /> Post to Leaderboard
-                      </button>
-                    )}
-                    <button onClick={() => setTab('share')} style={{ fontFamily: MONO, fontSize: 13, letterSpacing: '0.08em', textTransform: 'uppercase', fontWeight: 700, lineHeight: '46px', width: 210, padding: 0, boxSizing: 'border-box', background: COLORS.ink, color: COLORS.cream, border: 'none', cursor: 'pointer', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 8 }}>
-                      <Share2 size={14} strokeWidth={2.5} /> Share
-                    </button>
-                    <button onClick={() => { setQSent(false); setQOpen(true); }} style={{ fontFamily: MONO, fontSize: 13, letterSpacing: '0.08em', textTransform: 'uppercase', fontWeight: 700, lineHeight: '46px', width: 210, padding: 0, boxSizing: 'border-box', background: '#fff', color: COLORS.faded, border: `1px solid ${COLORS.faded}55`, cursor: 'pointer', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 8 }}>
-                      <HelpCircle size={14} strokeWidth={2.5} /> Report an error
-                    </button>
-                </>}
-              >
-                                {/* Per-question recap (answer key) - hidden until revealed */}
-                {!mcqRevealed && (
-                  <p style={{ fontFamily: MONO, fontSize: 12, letterSpacing: '0.06em', textTransform: 'uppercase', color: COLORS.faded, textAlign: 'center', marginTop: 22 }}>Press Quiz Summary for the results and the story behind each answer.</p>
-                )}
-                {mcqRevealed && (
-                <ol style={{ margin: '18px 0 0', padding: 0, listStyle: 'none' }}>
-                  {questions.map((qq, i) => {
-                    const r = results[i];
-                    const answered = !!r;
-                    const good = answered && r.correct;
-                    return (
-                      <li key={i} style={{ display: 'flex', alignItems: 'flex-start', gap: 14, padding: '12px 16px', borderRadius: 10, border: `1px solid ${good ? COLORS.forest : COLORS.faded + '33'}`, marginBottom: 8, background: good ? '#fff' : COLORS.paper }}>
-                        <span style={{ width: 22, flex: 'none', color: good ? COLORS.forest : COLORS.ember }}>{good ? <Check size={17} strokeWidth={3} /> : <X size={17} strokeWidth={3} />}</span>
-                        <span style={{ flex: 1, fontFamily: SANS, fontSize: 14, lineHeight: 1.35 }}>
-                          <span style={{ color: '#4a4339' }}>{qq.q}</span>
-                          <span style={{ display: 'block', fontFamily: MONO, fontSize: 12, color: COLORS.faded, marginTop: 3 }}>
-                            Answer: <span style={{ color: COLORS.ink }}>{qq.choices[qq.correct]}</span>
-                          </span>
-                          {qq.note && (
-                            <span style={{ display: 'block', fontFamily: SANS, fontSize: 13, color: '#4a4339', marginTop: 6, lineHeight: 1.45 }}>{qq.note}</span>
-                          )}
-                        </span>
-                        <span style={{ fontFamily: MONO, fontSize: 14, color: good ? COLORS.forest : COLORS.faded, flex: 'none' }}>+{answered ? r.pts : 0}</span>
-                      </li>
-                    );
-                  })}
-                </ol>
-                )}
-              </QuizResultModal>
+                onPlayAgain={startGame}
+                onPlaySimilar={() => { const sid = similarQuizId(quiz); if (sid) router.push(`/quiz/${sid}`); }}
+                onLeaderboard={() => setTab('stats')}
+                onShare={() => setTab('share')}
+                onReport={() => { setQSent(false); setQOpen(true); }}
+              />
             )}
           </>
         )}

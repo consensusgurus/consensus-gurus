@@ -30,6 +30,7 @@ import QuizStandings from './QuizStandings';
 import LeaderboardSnippet from './LeaderboardSnippet';
 import LeaderboardStrip from './LeaderboardStrip';
 import QuizResultModal from './QuizResultModal';
+import { similarQuizId } from '@/lib/quiz-similar';
 import { getQuiz, QUIZZES } from '@/lib/quizzes';
 import { quizDept as deptOf, DEPT_LABEL } from '@/lib/quiz-departments';
 import Grain from '../../Grain';
@@ -128,6 +129,7 @@ export default function GlobePlaceClient({ quizId }) {
 
   // ── Game state ──
   const [phase, setPhase] = useState('idle'); // idle | playing | done
+  const [dismissed, setDismissed] = useState(false);
   const [order, setOrder] = useState([]);        // shuffled city indices
   const [idx, setIdx] = useState(0);             // how many places prompted/placed
   const [placements, setPlacements] = useState([]); // [{ cityIdx, glat, glon, pts, miles }]
@@ -315,6 +317,7 @@ export default function GlobePlaceClient({ quizId }) {
 
   function giveUp() { if (phase === 'playing') finishGame(); }
   function playAgain() {
+    setDismissed(false);
     setPhase('idle'); setPlacements([]); setFlashIdx(-1); setIdx(0);
     setRemaining(timeLimit * 1000); setRevealAll(false); endedRef.current = false; revealingRef.current = false;
   }
@@ -481,7 +484,8 @@ export default function GlobePlaceClient({ quizId }) {
             {/* DONE — results popup */}
             {phase === 'done' && (
               <QuizResultModal
-                open
+                open={!dismissed}
+                onClose={() => setDismissed(true)}
                 eyebrow={points === maxPoints ? 'Perfect globe' : placements.length < total ? 'Ended early' : 'Final score'}
                 score={points}
                 total={maxPoints}
@@ -489,47 +493,12 @@ export default function GlobePlaceClient({ quizId }) {
                 subline={board.best != null ? (points >= board.best ? `That is the high score to beat.` : `The high score to beat is ${board.best}.`) : 'Be the first to set the pace.'}
                 leaderboard={<LeaderboardSnippet board={board} identity={identity} score={points} lastElapsed={lastElapsed} fill />}
                 standings={eloPanel}
-                actions={<>
-                  <button onClick={playAgain} style={{ fontFamily: MONO, fontSize: 13, letterSpacing: '0.08em', textTransform: 'uppercase', fontWeight: 700, lineHeight: '46px', width: 210, padding: 0, boxSizing: 'border-box', background: COLORS.ember, color: '#fff', border: 'none', cursor: 'pointer' }}>Play again</button>
-                  {!identity && (
-                    <button onClick={() => setTab('join')} style={{ fontFamily: MONO, fontSize: 13, letterSpacing: '0.08em', textTransform: 'uppercase', fontWeight: 700, lineHeight: '46px', width: 210, padding: 0, boxSizing: 'border-box', background: 'transparent', color: COLORS.ink, borderRadius: 10, border: `1.5px solid ${COLORS.ink}`, cursor: 'pointer', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 8 }}>
-                      <Trophy size={14} strokeWidth={2.5} /> Post to Leaderboard
-                    </button>
-                  )}
-                  <button onClick={() => setTab('share')} style={{ fontFamily: MONO, fontSize: 13, letterSpacing: '0.08em', textTransform: 'uppercase', fontWeight: 700, lineHeight: '46px', width: 210, padding: 0, boxSizing: 'border-box', background: COLORS.ink, color: COLORS.cream, border: 'none', cursor: 'pointer', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 8 }}>
-                    <Share2 size={14} strokeWidth={2.5} /> Share
-                  </button>
-                  <button onClick={() => { setQSent(false); setQOpen(true); }} style={{ fontFamily: MONO, fontSize: 13, letterSpacing: '0.08em', textTransform: 'uppercase', fontWeight: 700, lineHeight: '46px', width: 210, padding: 0, boxSizing: 'border-box', background: '#fff', color: COLORS.faded, border: `1px solid ${COLORS.faded}55`, cursor: 'pointer', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 8 }}>
-                    <HelpCircle size={14} strokeWidth={2.5} /> Report an error
-                  </button>
-                </>}
-              >
-                                {/* The globe with every place revealed */}
-                <div style={{ display: 'flex', justifyContent: 'center', marginTop: 22 }}>
-                  {!revealAll ? (
-                    <button onClick={() => setRevealAll(true)} style={{ fontFamily: MONO, fontSize: 13, letterSpacing: '0.08em', textTransform: 'uppercase', fontWeight: 700, lineHeight: '46px', padding: '0 26px', background: COLORS.forest, color: '#fff', border: 'none', cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: 8 }}>
-                      <ScrollText size={14} strokeWidth={2.5} /> Show the globe
-                    </button>
-                  ) : (
-                    <div style={{ maxWidth: 560, width: '100%' }}>
-                      <div style={{ display: 'flex', justifyContent: 'center' }}>
-                        <div style={{ width: gw, maxWidth: '100%', borderRadius: 10, overflow: 'hidden', border: `1px solid ${COLORS.faded}44`, background: '#05070d' }}>
-                          <GlobeView layers={recapLayers} size={gw} interactive={false} globeRef={globeRef} onReady={onGlobeReady} onClick={handleGlobeClick} />
-                        </div>
-                      </div>
-                      <ol style={{ margin: '16px 0 0', padding: 0, listStyle: 'none' }}>
-                        {recap.map((row, i) => (
-                          <li key={i} style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '10px 14px', borderRadius: 10, border: `1px solid ${row.pts >= maxPer * 0.7 ? COLORS.forest : COLORS.faded + '33'}`, marginBottom: 8, background: row.pts >= maxPer * 0.7 ? '#fff' : COLORS.paper }}>
-                            <span style={{ flex: 1, fontFamily: SANS, fontSize: 15, fontWeight: 600 }}>{row.name}</span>
-                            <span style={{ fontFamily: MONO, fontSize: 12, color: COLORS.faded }}>{Math.round(row.miles)} mi off</span>
-                            <span style={{ fontFamily: MONO, fontSize: 14, color: row.pts >= maxPer * 0.7 ? COLORS.forest : COLORS.faded, minWidth: 44, textAlign: 'right' }}>+{row.pts}</span>
-                          </li>
-                        ))}
-                      </ol>
-                    </div>
-                  )}
-                </div>
-              </QuizResultModal>
+                onPlayAgain={playAgain}
+                onPlaySimilar={() => { const sid = similarQuizId(quiz); if (sid) router.push(`/quiz/${sid}`); }}
+                onLeaderboard={() => setTab('stats')}
+                onShare={() => setTab('share')}
+                onReport={() => { setQSent(false); setQOpen(true); }}
+              />
             )}
           </div>
         )}

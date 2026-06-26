@@ -1,39 +1,55 @@
 'use client';
 import React, { useEffect } from 'react';
 import { createPortal } from 'react-dom';
+import { X, RotateCcw, Shuffle, Trophy, Share2 } from 'lucide-react';
 
 // Shared full-screen results popup for every quiz board.
 //
-// Replaces the old inline results card that sat UNDER the live in-game
-// scoreboard HUD (which left the same score printed three times on the page).
-// This renders as a centered modal over a dimmed/blurred backdrop, so the game
-// chrome behind it is no longer legible and the final score appears exactly
-// once. The board passes the already-computed pieces as props/slots:
-//   eyebrow     small uppercase tag ("Ended early" / "Final score" / ...)
-//   score,total the single big score readout
-//   headline    the one-line result summary (placed/percentile/top-score)
-//   subline     the "high score to beat" sentence
-//   leaderboard  <LeaderboardSnippet ... fill /> node (optional)
-//   standings    <QuizStandings ... fill /> node (optional)
-//   actions      the action buttons (Play again / Share / Report / ...)
-//   children     optional recap content shown inside the scrollable card
+// Standard end-of-game layout (one place, used by every board so they stay in
+// sync): a dismissable centered card over a dimmed/blurred backdrop, rendered
+// through a portal to document.body so it sits above all page chrome. Shows the
+// score once, the ELO standing + leaderboard, then a 2-column action grid
+//   [ Play Again | Play Similar ]
+//   [ Leaderboard | Share       ]
+// and a small "Report an error" text link. An X in the top-right closes the
+// popup (the board controls `open`, so closing reveals the page behind).
 //
-// Rendered through a portal to document.body so it escapes the page's
-// positioned wrapper (which shares z-index:2 with the footer) and reliably
-// sits above all page chrome — header and footer included.
-//
-// The board keeps ownership of all handlers; this component is presentational.
+// Props: open, onClose (X), eyebrow, score, total, headline, subline,
+// leaderboard / standings nodes, and the onPlayAgain / onPlaySimilar /
+// onLeaderboard / onShare / onReport handlers. A handler left undefined hides
+// its control.
 
 const C = {
   cream: '#f7f8fa',
   ink: '#1c1e24',
   ember: '#2563eb',
+  forest: '#10b981',
   faded: '#6b7280',
 };
 const FONT = "'Manrope', system-ui, -apple-system, sans-serif";
 
+const cellBase = {
+  fontFamily: FONT,
+  fontSize: 13,
+  letterSpacing: '0.06em',
+  textTransform: 'uppercase',
+  fontWeight: 700,
+  lineHeight: '46px',
+  width: '100%',
+  padding: '0 8px',
+  boxSizing: 'border-box',
+  border: 'none',
+  borderRadius: 10,
+  cursor: 'pointer',
+  display: 'inline-flex',
+  alignItems: 'center',
+  justifyContent: 'center',
+  gap: 8,
+};
+
 export default function QuizResultModal({
   open,
+  onClose,
   eyebrow,
   score,
   total,
@@ -41,10 +57,12 @@ export default function QuizResultModal({
   subline,
   leaderboard = null,
   standings = null,
-  actions = null,
-  children = null,
+  onPlayAgain,
+  onPlaySimilar,
+  onLeaderboard,
+  onShare,
+  onReport,
 }) {
-  // Lock background scroll while the popup is open.
   useEffect(() => {
     if (!open) return undefined;
     const prev = document.body.style.overflow;
@@ -76,56 +94,103 @@ export default function QuizResultModal({
     >
       <div
         style={{
+          position: 'relative',
           width: '100%',
-          maxWidth: 520,
+          maxWidth: 460,
           margin: 'auto',
           background: C.cream,
           borderRadius: 16,
           boxShadow: '0 24px 70px rgba(0,0,0,0.45)',
-          padding: 'clamp(22px, 4.5vw, 34px)',
+          padding: 'clamp(22px, 4.5vw, 32px)',
         }}
       >
+        {/* Close (X) */}
+        {onClose ? (
+          <button
+            onClick={onClose}
+            aria-label="Close"
+            style={{
+              position: 'absolute',
+              top: 12,
+              right: 12,
+              width: 34,
+              height: 34,
+              display: 'inline-flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              borderRadius: 999,
+              border: `1px solid ${C.faded}33`,
+              background: '#fff',
+              color: C.faded,
+              cursor: 'pointer',
+            }}
+          >
+            <X size={17} strokeWidth={2.5} />
+          </button>
+        ) : null}
+
         {/* Summary — the score, printed once */}
-        <div style={{ textAlign: 'center' }}>
+        <div style={{ textAlign: 'center', padding: '0 28px' }}>
           {eyebrow ? (
             <div style={{ fontFamily: FONT, fontSize: 12, fontWeight: 700, letterSpacing: '0.16em', textTransform: 'uppercase', color: C.ember, marginBottom: 10 }}>
               {eyebrow}
             </div>
           ) : null}
-          <div style={{ fontFamily: FONT, fontWeight: 800, fontSize: 'clamp(46px, 13vw, 58px)', lineHeight: 1, letterSpacing: '-0.02em' }}>
+          <div style={{ fontFamily: FONT, fontWeight: 800, fontSize: 'clamp(44px, 12vw, 56px)', lineHeight: 1, letterSpacing: '-0.02em' }}>
             {score}
             <span style={{ fontSize: 'clamp(22px, 6vw, 28px)', color: C.faded }}>/{total}</span>
           </div>
           {headline ? (
-            <div style={{ fontFamily: FONT, fontWeight: 700, fontSize: 'clamp(17px, 4.6vw, 20px)', lineHeight: 1.2, margin: '12px 0 8px' }}>
+            <div style={{ fontFamily: FONT, fontWeight: 700, fontSize: 'clamp(16px, 4.4vw, 19px)', lineHeight: 1.2, margin: '12px 0 8px' }}>
               {headline}
             </div>
           ) : null}
           {subline ? (
-            <p style={{ fontFamily: FONT, fontSize: 14.5, color: C.faded, maxWidth: 420, margin: '0 auto' }}>
+            <p style={{ fontFamily: FONT, fontSize: 14, color: C.faded, maxWidth: 400, margin: '0 auto' }}>
               {subline}
             </p>
           ) : null}
         </div>
 
-        {/* Standing — leaderboard + ELO, side by side then stacked on mobile */}
+        {/* ELO standing + leaderboard */}
         {(leaderboard || standings) ? (
-          <div className="qzm-row" style={{ display: 'flex', gap: 12, marginTop: 20, flexWrap: 'wrap', alignItems: 'stretch' }}>
+          <div className="qzm-row" style={{ display: 'flex', gap: 12, marginTop: 18, flexWrap: 'wrap', alignItems: 'stretch' }}>
             {leaderboard}
             {standings}
           </div>
         ) : null}
 
-        {/* Actions */}
-        {actions ? (
-          <div style={{ display: 'flex', gap: 10, justifyContent: 'center', flexWrap: 'wrap', marginTop: 20 }}>
-            {actions}
-          </div>
-        ) : null}
+        {/* Action grid: [Play Again | Play Similar] / [Leaderboard | Share] */}
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, marginTop: 18 }}>
+          {onPlayAgain ? (
+            <button onClick={onPlayAgain} style={{ ...cellBase, background: C.ember, color: '#fff' }}>
+              <RotateCcw size={14} strokeWidth={2.5} /> Play Again
+            </button>
+          ) : <span />}
+          {onPlaySimilar ? (
+            <button onClick={onPlaySimilar} style={{ ...cellBase, background: C.forest, color: '#fff' }}>
+              <Shuffle size={14} strokeWidth={2.5} /> Play Similar
+            </button>
+          ) : <span />}
+          {onLeaderboard ? (
+            <button onClick={onLeaderboard} style={{ ...cellBase, background: '#fff', color: C.ink, border: `1.5px solid ${C.ink}` }}>
+              <Trophy size={14} strokeWidth={2.5} /> Leaderboard
+            </button>
+          ) : <span />}
+          {onShare ? (
+            <button onClick={onShare} style={{ ...cellBase, background: C.ink, color: C.cream }}>
+              <Share2 size={14} strokeWidth={2.5} /> Share
+            </button>
+          ) : <span />}
+        </div>
 
-        {/* Optional recap (revealed map / globe / per-question summary) */}
-        {children ? (
-          <div style={{ marginTop: 22 }}>{children}</div>
+        {/* Report link */}
+        {onReport ? (
+          <div style={{ textAlign: 'center', marginTop: 14 }}>
+            <button onClick={onReport} style={{ background: 'none', border: 'none', padding: 4, cursor: 'pointer', fontFamily: FONT, fontSize: 12, fontWeight: 600, color: C.faded, textDecoration: 'underline', textUnderlineOffset: 3 }}>
+              Report an error
+            </button>
+          </div>
         ) : null}
 
         <style>{`@media(max-width:440px){.qzm-row{flex-direction:column !important;}}`}</style>

@@ -17,6 +17,7 @@ import JoinLeaderboardForm from './JoinLeaderboardForm';
 import LeaderboardSnippet from './LeaderboardSnippet';
 import LeaderboardStrip from './LeaderboardStrip';
 import QuizResultModal from './QuizResultModal';
+import { similarQuizId } from '@/lib/quiz-similar';
 import { getQuiz } from '@/lib/quizzes';
 import Grain from '../../Grain';
 import Footer from '../../Footer';
@@ -543,28 +544,21 @@ export default function GridFillBoard({ quizId, mobile = false }) {
                 {/* DONE — results popup (the revealed grid stays behind it) */}
                 {phase === 'done' && (
                   <QuizResultModal
-                    open={!reviewing}
-                    eyebrow={score === totalCells ? 'Perfect score' : time <= 0 ? 'Time!' : 'Gave up'}
-                    score={score}
-                    total={totalCells}
-                    headline={isTopScore ? 'You are the top score' : `You beat ${percentile(score, totalCells)}% of players`}
-                    subline={`You named ${found.size} of ${totalCompanies} companies. ${board.best != null ? (score >= board.best ? `That matches the high score of ${board.best}.` : `The high score to beat is ${board.best}.`) : 'Be the first to set the pace.'}`}
-                    leaderboard={<LeaderboardSnippet board={board} identity={identity} score={score} lastElapsed={lastElapsed} fill />}
-                    actions={<>
-                      <button onClick={playAgain} style={{ fontFamily: MONO, fontSize: 13, letterSpacing: '0.08em', textTransform: 'uppercase', fontWeight: 700, lineHeight: '46px', padding: '0 28px', background: COLORS.ember, color: '#fff', border: 'none', cursor: 'pointer' }}>Play again</button>
-                      <button onClick={() => setReviewing(true)} style={{ fontFamily: MONO, fontSize: 13, letterSpacing: '0.08em', textTransform: 'uppercase', fontWeight: 700, lineHeight: '46px', padding: '0 24px', background: COLORS.forest, color: '#fff', border: 'none', cursor: 'pointer', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 8 }}><LayoutGrid size={14} strokeWidth={2.5} /> See your grid</button>
-                      {!identity && (
-                        <button onClick={() => setTab('join')} style={{ fontFamily: MONO, fontSize: 13, letterSpacing: '0.08em', textTransform: 'uppercase', fontWeight: 700, lineHeight: '46px', padding: '0 24px', background: 'transparent', color: COLORS.ink, borderRadius: 10, border: `1.5px solid ${COLORS.ink}`, cursor: 'pointer', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 8 }}>
-                          <Trophy size={14} strokeWidth={2.5} /> Join the leaderboard
-                        </button>
-                      )}
-                    </>}
-                  />
-                )}
-                {phase === 'done' && reviewing && (
-                  <div style={{ position: 'fixed', left: 0, right: 0, bottom: 0, zIndex: 49, display: 'flex', justifyContent: 'center', padding: '0 0 16px', pointerEvents: 'none' }}>
-                    <button onClick={() => setReviewing(false)} style={{ pointerEvents: 'auto', fontFamily: MONO, fontSize: 13, letterSpacing: '0.08em', textTransform: 'uppercase', fontWeight: 700, lineHeight: '48px', padding: '0 30px', background: COLORS.ink, color: '#fff', border: 'none', borderRadius: 999, cursor: 'pointer', boxShadow: '0 10px 26px rgba(0,0,0,0.32)' }}>Back to results</button>
-                  </div>
+                open={!reviewing}
+                onClose={() => setReviewing(true)}
+                eyebrow={score === totalCells ? 'Perfect score' : time <= 0 ? 'Time!' : 'Gave up'}
+                score={score}
+                total={totalCells}
+                headline={isTopScore ? 'You are the top score' : `You beat ${percentile(score, totalCells)}% of players`}
+                subline={`You named ${found.size} of ${totalCompanies} companies. ${board.best != null ? (score >= board.best ? `That matches the high score of ${board.best}.` : `The high score to beat is ${board.best}.`) : 'Be the first to set the pace.'}`}
+                leaderboard={<LeaderboardSnippet board={board} identity={identity} score={score} lastElapsed={lastElapsed} fill />}
+                standings={null}
+                onPlayAgain={playAgain}
+                onPlaySimilar={() => { const sid = similarQuizId(quiz); if (sid) router.push(`/quiz/${sid}`); }}
+                onLeaderboard={() => setTab('stats')}
+                onShare={() => setTab('share')}
+                onReport={() => { setQSent(false); setQOpen(true); }}
+              />
                 )}
               </div>
             )}
