@@ -16,6 +16,7 @@ import { ArrowLeft, Share2, Check, X, Flag, Trophy, HelpCircle, LayoutGrid } fro
 import JoinLeaderboardForm from './JoinLeaderboardForm';
 import LeaderboardSnippet from './LeaderboardSnippet';
 import LeaderboardStrip from './LeaderboardStrip';
+import QuizResultModal from './QuizResultModal';
 import { getQuiz } from '@/lib/quizzes';
 import Grain from '../../Grain';
 import Footer from '../../Footer';
@@ -150,6 +151,7 @@ export default function GridFillBoard({ quizId, mobile = false }) {
 
   // ── Game state ──
   const [phase, setPhase] = useState('idle'); // idle | playing | done
+  const [reviewing, setReviewing] = useState(false); // done: popup vs reviewing the grid
   // Mobile: dock the scoreboard + answer input to the bottom thumb zone during
   // play, lifting above the on-screen keyboard via visualViewport.
   const [kbInset, setKbInset] = useState(0);
@@ -239,6 +241,7 @@ export default function GridFillBoard({ quizId, mobile = false }) {
   function focusInput() { setTimeout(() => { if (inputRef.current) inputRef.current.focus(); }, 0); }
 
   function start() {
+    setReviewing(false);
     if (phase !== 'idle') return;
     endedRef.current = false;
     foundRef.current = new Set();
@@ -330,6 +333,7 @@ export default function GridFillBoard({ quizId, mobile = false }) {
   function giveUp() { if (phase === 'playing') finish(false); }
 
   function playAgain() {
+    setReviewing(false);
     endedRef.current = false;
     foundRef.current = new Set();
     setPhase('idle');
@@ -457,7 +461,7 @@ export default function GridFillBoard({ quizId, mobile = false }) {
         {tab === 'play' && (
           <>
             {/* Sticky top: the scoreboard + live input pin to the top of the viewport */}
-            <div style={playBarStyle}>
+            <div style={phase === 'done' ? { display: 'none' } : playBarStyle}>
             {/* Scoreboard */}
             <div style={{ display: 'grid', gridTemplateColumns: mobile ? 'repeat(2, 1fr)' : 'repeat(4, 1fr)', alignItems: 'center', background: COLORS.paper, borderRadius: 10, border: `1px solid ${COLORS.faded}33`, padding: '16px 8px', marginBottom: 0 }}>
               <div style={{ textAlign: 'center', padding: '0 8px' }}>
@@ -534,28 +538,30 @@ export default function GridFillBoard({ quizId, mobile = false }) {
                   </div>
                 )}
 
-                {/* DONE — results card under the (now revealed) grid */}
+                {/* DONE — results popup (the revealed grid stays behind it) */}
                 {phase === 'done' && (
-                  <div style={{ padding: 24, borderRadius: 10, border: `1.5px solid ${COLORS.ink}`, background: COLORS.paper, textAlign: 'center', marginTop: 18 }}>
-                    <div style={{ fontFamily: MONO, fontSize: 12, letterSpacing: '0.16em', textTransform: 'uppercase', color: COLORS.ember, marginBottom: 8 }}>
-                      {score === totalCells ? 'Perfect score' : time <= 0 ? 'Time!' : 'Gave up'}
-                    </div>
-                    <div style={{ fontFamily: SERIF, fontWeight: 800, fontSize: 44, lineHeight: 1, marginBottom: 6 }}>{score}<span style={{ fontSize: 24, color: COLORS.faded }}>/{totalCells}</span></div>
-                    <div style={{ fontFamily: SERIF, fontWeight: 700, fontSize: 20, lineHeight: 1.15, marginBottom: 10 }}>
-                      {isTopScore ? 'You are the top score' : `You beat ${percentile(score, totalCells)}% of players`}
-                    </div>
-                    <p style={{ fontFamily: SANS, fontSize: 15, color: '#4a4339', maxWidth: 460, margin: '0 auto 18px' }}>
-                      You named {found.size} of {totalCompanies} companies. {board.best != null ? (score >= board.best ? `That matches the high score of ${board.best}.` : `The high score to beat is ${board.best}.`) : 'Be the first to set the pace.'} Missed cells are shown in rust above.
-                    </p>
-                    <LeaderboardSnippet board={board} identity={identity} score={score} lastElapsed={lastElapsed} />
-                    <div style={{ display: 'flex', gap: 10, justifyContent: 'center', flexWrap: 'wrap' }}>
-                      <button onClick={playAgain} style={{ fontFamily: MONO, fontSize: 13, letterSpacing: '0.08em', textTransform: 'uppercase', fontWeight: 700, lineHeight: '46px', padding: '0 28px', background: COLORS.forest, color: '#fff', border: 'none', cursor: 'pointer' }}>Play again</button>
+                  <QuizResultModal
+                    open={!reviewing}
+                    eyebrow={score === totalCells ? 'Perfect score' : time <= 0 ? 'Time!' : 'Gave up'}
+                    score={score}
+                    total={totalCells}
+                    headline={isTopScore ? 'You are the top score' : `You beat ${percentile(score, totalCells)}% of players`}
+                    subline={`You named ${found.size} of ${totalCompanies} companies. ${board.best != null ? (score >= board.best ? `That matches the high score of ${board.best}.` : `The high score to beat is ${board.best}.`) : 'Be the first to set the pace.'}`}
+                    leaderboard={<LeaderboardSnippet board={board} identity={identity} score={score} lastElapsed={lastElapsed} fill />}
+                    actions={<>
+                      <button onClick={playAgain} style={{ fontFamily: MONO, fontSize: 13, letterSpacing: '0.08em', textTransform: 'uppercase', fontWeight: 700, lineHeight: '46px', padding: '0 28px', background: COLORS.ember, color: '#fff', border: 'none', cursor: 'pointer' }}>Play again</button>
+                      <button onClick={() => setReviewing(true)} style={{ fontFamily: MONO, fontSize: 13, letterSpacing: '0.08em', textTransform: 'uppercase', fontWeight: 700, lineHeight: '46px', padding: '0 24px', background: COLORS.forest, color: '#fff', border: 'none', cursor: 'pointer', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 8 }}><LayoutGrid size={14} strokeWidth={2.5} /> See your grid</button>
                       {!identity && (
-                        <button onClick={() => setTab('join')} style={{ fontFamily: MONO, fontSize: 13, letterSpacing: '0.08em', textTransform: 'uppercase', fontWeight: 700, lineHeight: '46px', padding: '0 24px', background: 'transparent', color: COLORS.ink, borderRadius: 10, border: `1.5px solid ${COLORS.ink}`, cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: 8 }}>
+                        <button onClick={() => setTab('join')} style={{ fontFamily: MONO, fontSize: 13, letterSpacing: '0.08em', textTransform: 'uppercase', fontWeight: 700, lineHeight: '46px', padding: '0 24px', background: 'transparent', color: COLORS.ink, borderRadius: 10, border: `1.5px solid ${COLORS.ink}`, cursor: 'pointer', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 8 }}>
                           <Trophy size={14} strokeWidth={2.5} /> Join the leaderboard
                         </button>
                       )}
-                    </div>
+                    </>}
+                  />
+                )}
+                {phase === 'done' && reviewing && (
+                  <div style={{ position: 'fixed', left: 0, right: 0, bottom: 0, zIndex: 49, display: 'flex', justifyContent: 'center', padding: '0 0 16px', pointerEvents: 'none' }}>
+                    <button onClick={() => setReviewing(false)} style={{ pointerEvents: 'auto', fontFamily: MONO, fontSize: 13, letterSpacing: '0.08em', textTransform: 'uppercase', fontWeight: 700, lineHeight: '48px', padding: '0 30px', background: COLORS.ink, color: '#fff', border: 'none', borderRadius: 999, cursor: 'pointer', boxShadow: '0 10px 26px rgba(0,0,0,0.32)' }}>Back to results</button>
                   </div>
                 )}
               </div>
