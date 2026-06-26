@@ -19,6 +19,8 @@ import { isMobileDevice } from '@/lib/is-mobile';
 import { LB_POPS, LB_FILTERS, pickLb, lbEmptyNote } from '@/lib/quiz-lb';
 import useIsMobile from './useIsMobile';
 import dynamic from 'next/dynamic';
+import { flushSync } from 'react-dom';
+import QuizPlayOverlay from './QuizPlayOverlay';
 
 const MapQuizBoard = dynamic(() => import('./MapQuizBoard'), { ssr: false, loading: () => null });
 const MatchQuizBoard = dynamic(() => import('./MatchQuizBoard'), { ssr: false, loading: () => null });
@@ -696,7 +698,10 @@ export default function QuizClient({ quizId }) {
     // Map games AND tile games (bank/type-it) keep the board on screen behind
     // the Game Over card so their answer grid is revealed; other formats still
     // jump to the results/leaderboard tab as before.
-    if (!mapMode && !tileMode) setTab('stats');
+    // On mobile the default typed format keeps the player on the Play tab so the
+    // fullscreen play popup stays open and shows the end-of-game summary inside
+    // it; everywhere else still jumps to the results/leaderboard tab.
+    if (!mapMode && !tileMode && !(mobile === true && defaultTyped)) setTab('stats');
 
     // Record the completed game (makes play count + average real; attributes
     // to the leaderboard if signed up).
@@ -755,7 +760,13 @@ export default function QuizClient({ quizId }) {
 
   function start() {
     if (started || ended) return;
-    setStarted(true);
+    // On mobile the default typed format opens the fullscreen play popup the
+    // moment Play is pressed. Commit started=true synchronously (flushSync) so
+    // the popup + its input mount inside this same tap gesture; the focus() at
+    // the end of start() then opens the on-screen keyboard (iOS only allows it
+    // from within a user gesture, not after an async re-render).
+    if (mobile === true && defaultTyped) flushSync(() => setStarted(true));
+    else setStarted(true);
     startRef.current = Date.now();
     if (mapMode) {
       const ord = shuffleIdx(total);
@@ -1260,6 +1271,14 @@ export default function QuizClient({ quizId }) {
   // full-size title) so the answer board fills the screen. Desktop and the
   // pre-game state are untouched.
   const mAppPlay = mobile === true && tab === 'play' && started && !ended;
+  // Default name-them-all typed format (single top input; ranked/grid answer
+  // list). Excludes map, the tile/bank boards, image grids, slideshow, and the
+  // per-slot matched grids, which keep their own layout in phase 1.
+  const defaultTyped = !mapMode && !tileMode && !matched && !logosMode && !slideshow;
+  // Mobile fullscreen play popup: open from Play press through the end of the
+  // game (it also hosts the end-of-game summary, so it stays open while ended
+  // and on the Play tab). Desktop never opens it; the play surface stays inline.
+  const mPlayOverlay = mobile === true && defaultTyped && started && tab === 'play';
   // Mobile thumb-zone: dock the input + Play to a fixed bottom bar during play
   // on the inline-input formats. HUD (score/timer/progress) stays pinned up top.
   const bottomDock = mobile === true && inlineInput && !ended;
@@ -1368,7 +1387,15 @@ export default function QuizClient({ quizId }) {
 
         {/* ── PLAY ── */}
         {tab === 'play' && (
-          <>
+          <QuizPlayOverlay open={mPlayOverlay}>
+            {/* Compact title row, shown only inside the mobile fullscreen popup
+                (the page title/header is covered by the overlay). */}
+            {mPlayOverlay && (
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '0 0 8px' }}>
+                <Logo size={18} />
+                <span style={{ fontFamily: SERIF, fontWeight: 800, fontSize: 15, lineHeight: 1.1, color: COLORS.ink, minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{quiz.title}</span>
+              </div>
+            )}
             {/* Freeze the score/time bar AND the answer input together, pinned to
                 the top of the viewport. The nav ribbon above is NOT sticky, so
                 this is the only frozen element; the list/board scrolls under. */}
@@ -1692,6 +1719,13 @@ export default function QuizClient({ quizId }) {
             )}
 
             <div style={{ marginTop: 22, display: 'flex', gap: 10, justifyContent: 'center', flexWrap: 'wrap' }}>
+              {/* Leave the mobile play popup once the game is over: drop to the
+                  page's full results, leaderboard, reveal and share. */}
+              {mPlayOverlay && ended && (
+                <button onClick={() => setTab('stats')} style={{ fontFamily: MONO, fontSize: 12, letterSpacing: '0.12em', textTransform: 'uppercase', fontWeight: 700, padding: '12px 26px', border: 'none', background: COLORS.ember, color: '#fff', cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: 8 }}>
+                  <Trophy size={14} strokeWidth={2.5} /> See full results
+                </button>
+              )}
               <button onClick={() => endGame(false)} disabled={ended || !started} style={{ fontFamily: MONO, fontSize: 12, letterSpacing: '0.12em', textTransform: 'uppercase', fontWeight: 700, padding: '12px 26px', border: 'none', background: COLORS.ember, color: '#fff', cursor: ended || !started ? 'default' : 'pointer', opacity: ended || !started ? 0.4 : 1, display: 'inline-flex', alignItems: 'center', gap: 8 }}>
                 <Flag size={14} strokeWidth={2.5} color="#fff" /> Give up
               </button>
@@ -1712,7 +1746,7 @@ export default function QuizClient({ quizId }) {
               )}
             </div>
             {bottomDock && <div aria-hidden="true" style={{ height: 'calc(108px + env(safe-area-inset-bottom))' }} />}
-          </>
+          </QuizPlayOverlay>
         )}
 
         {/* ── STATS & LEADERBOARD (quiz stats + leaderboard) ── */}
