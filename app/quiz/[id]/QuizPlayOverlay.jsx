@@ -28,7 +28,7 @@ export default function QuizPlayOverlay({ open, background = '#f7f8fa', children
     document.body.style.overflow = 'hidden';
     const vv = typeof window !== 'undefined' ? window.visualViewport : null;
     const update = () => {
-      if (vv) setVp({ top: vv.offsetTop, left: vv.offsetLeft, width: vv.width, height: vv.height });
+      if (vv) setVp({ top: vv.offsetTop, left: vv.offsetLeft, width: vv.width, height: window.innerHeight - vv.offsetTop });
     };
     update();
     if (vv) {

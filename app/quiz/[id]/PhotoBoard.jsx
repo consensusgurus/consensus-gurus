@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useMemo, useState, useRef, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 
 // Photo-recall board (`format: 'photo'`). ONE landmark photo shows at a time with
 // a Next button to cycle through photos not yet solved; below sits a single text
@@ -53,6 +54,8 @@ export default function PhotoBoard({ items, started, ended, revealed, onMatch, o
   const [flash, setFlash] = useState(null); // { ok, key }
   const inputRef = useRef(null);
   const clueRef = useRef(null);
+  const [zoomOn, setZoomOn] = useState(false); // tap-to-zoom lightbox open
+  const [zoomed, setZoomed] = useState(false); // lightbox: fit vs ~2.3x
 
   const live = started && !ended;
   const [kbInset, setKbInset] = useState(0);
@@ -202,6 +205,13 @@ export default function PhotoBoard({ items, started, ended, revealed, onMatch, o
   const curItem = cur != null ? list[cur] : null;
   const borderColor = flash ? (flash.ok ? COLORS.forest : COLORS.ember) : COLORS.ink;
 
+  // Tap the photo to open a fullscreen zoom view. Blur the input first so the
+  // keyboard drops (the zoom view is for looking, not typing) and pinch-zoom is
+  // free of the keyboard. Masked photos keep their ink masks in the zoom view so
+  // zooming never reveals a redacted answer.
+  function openZoom() { if (!(live && curItem)) return; try { if (inputRef.current) inputRef.current.blur(); } catch (e) {} setZoomed(false); setZoomOn(true); }
+  function closeZoom() { setZoomOn(false); setZoomed(false); }
+
   return (
     <div>
       {/* Answer bar — frozen FLUSH beneath the score/time block so it never leaves
@@ -245,7 +255,7 @@ export default function PhotoBoard({ items, started, ended, revealed, onMatch, o
         // image's own aspect ratio. Each mask is an opaque ink bar redacting a
         // logo / name printed on the photo.
         <div style={{ width: '100%', display: 'flex', justifyContent: 'center', marginBottom: 10 }}>
-          <div style={{ position: 'relative', display: 'inline-block', lineHeight: 0, maxWidth: '100%', background: COLORS.ink, borderRadius: 10, border: `2px solid ${borderColor}`, transition: 'border-color .15s' }}>
+          <div onClick={openZoom} style={{ position: 'relative', display: 'inline-block', lineHeight: 0, maxWidth: '100%', background: COLORS.ink, borderRadius: 10, border: `2px solid ${borderColor}`, transition: 'border-color .15s', cursor: live && curItem ? 'zoom-in' : 'default' }}>
             <img src={curItem.img} alt={`Name the ${noun} in this photo`} style={{ display: 'block', width: 'auto', height: 'auto', maxWidth: '100%', maxHeight: 520 }} />
             {(curItem.mask || []).map((m, mi) => (
               <div key={mi} style={{ position: 'absolute', left: `${m.x}%`, top: `${m.y}%`, width: `${m.w}%`, height: `${m.h}%`, background: COLORS.ink }} />
@@ -253,7 +263,7 @@ export default function PhotoBoard({ items, started, ended, revealed, onMatch, o
           </div>
         </div>
       ) : (
-      <div style={{ position: 'relative', width: '100%', aspectRatio: photoAspect, maxHeight: 500, ...(portrait ? { maxWidth: 420, maxHeight: 560, marginLeft: 'auto', marginRight: 'auto' } : null), background: COLORS.ink, borderRadius: 10, border: `2px solid ${borderColor}`, overflow: 'hidden', marginBottom: 10, transition: 'border-color .15s' }}>
+      <div onClick={openZoom} style={{ position: 'relative', width: '100%', aspectRatio: photoAspect, maxHeight: 500, ...(portrait ? { maxWidth: 420, maxHeight: 560, marginLeft: 'auto', marginRight: 'auto' } : null), background: COLORS.ink, borderRadius: 10, border: `2px solid ${borderColor}`, overflow: 'hidden', marginBottom: 10, transition: 'border-color .15s', cursor: live && curItem ? 'zoom-in' : 'default' }}>
         {live && curItem ? (
           <img src={curItem.img} alt={`Name the ${noun} in this photo`} style={{ width: '100%', height: '100%', objectFit: 'contain', display: 'block' }} />
         ) : (
@@ -262,6 +272,7 @@ export default function PhotoBoard({ items, started, ended, revealed, onMatch, o
       </div>
       )}
       </div>
+      {live && curItem && <div style={{ textAlign: 'center', fontFamily: MONO, fontSize: 10, letterSpacing: '0.08em', textTransform: 'uppercase', color: COLORS.faded, marginTop: -2, marginBottom: 8 }}>Tap the photo to zoom</div>}
       {ended && (
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(150px, 1fr))', gap: 8 }}>
           {list.map((it, i) => {
@@ -280,6 +291,20 @@ export default function PhotoBoard({ items, started, ended, revealed, onMatch, o
             );
           })}
         </div>
+      )}
+      {zoomOn && curItem && createPortal(
+        (<div onClick={closeZoom} style={{ position: 'fixed', inset: 0, zIndex: 120, background: 'rgba(8,8,10,0.95)', overflow: 'auto', WebkitOverflowScrolling: 'touch', overscrollBehavior: 'contain' }}>
+          <button onClick={(e) => { e.stopPropagation(); closeZoom(); }} aria-label="Close" style={{ position: 'fixed', top: 'calc(10px + env(safe-area-inset-top))', right: 12, zIndex: 2, width: 42, height: 42, borderRadius: '50%', border: 'none', background: 'rgba(255,255,255,0.18)', color: '#fff', fontSize: 20, lineHeight: '42px', textAlign: 'center', cursor: 'pointer' }}>&#10005;</button>
+          <div style={{ width: '100%', minHeight: '100%', boxSizing: 'border-box', padding: 16, textAlign: 'center', display: zoomed ? 'block' : 'flex', alignItems: zoomed ? undefined : 'center', justifyContent: zoomed ? undefined : 'center' }}>
+            <div onClick={(e) => { e.stopPropagation(); setZoomed((z) => !z); }} style={{ position: 'relative', display: 'inline-block', lineHeight: 0, width: zoomed ? '230%' : 'auto', maxWidth: zoomed ? 'none' : '100%', cursor: zoomed ? 'zoom-out' : 'zoom-in' }}>
+              <img src={curItem.img} alt={`Name the ${noun} in this photo`} style={{ display: 'block', width: zoomed ? '100%' : 'auto', height: 'auto', maxWidth: zoomed ? 'none' : '100%', maxHeight: zoomed ? 'none' : '86vh' }} />
+              {(curItem.mask || []).map((m, mi) => (
+                <div key={mi} style={{ position: 'absolute', left: `${m.x}%`, top: `${m.y}%`, width: `${m.w}%`, height: `${m.h}%`, background: COLORS.ink }} />
+              ))}
+            </div>
+          </div>
+        </div>),
+        document.body
       )}
       {dock && <div aria-hidden="true" style={{ height: 'calc(110px + env(safe-area-inset-bottom))' }} />}
     </div>
