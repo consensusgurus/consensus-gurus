@@ -515,14 +515,6 @@ export default function MapPlaceClient({ quizId, mobile = false }) {
               <div style={{ textAlign: 'center', padding: '26px 24px 30px', borderRadius: 10, border: `1.5px solid ${COLORS.ink}`, background: COLORS.paper, marginTop: 12 }}>
                 <MapPin size={26} strokeWidth={2.2} style={{ color: COLORS.ember }} />
                 <h2 style={{ fontFamily: SERIF, fontWeight: 800, fontSize: 26, margin: '8px 0 6px' }}>Know the city?</h2>
-                <p style={{ fontFamily: SANS, fontSize: 15, lineHeight: 1.5, color: '#4a4339', maxWidth: 480, margin: '0 auto 6px' }}>
-                  {total} places, {clockSecs} seconds each, on a straight-down aerial of the city. A name appears, click where you think it sits. Closer lands more points, up to {maxPer} a spot. Miss the clock and the round scores zero.
-                </p>
-                {quiz.playNote && (
-                  <p style={{ fontFamily: SANS, fontSize: 14, lineHeight: 1.5, color: COLORS.ember, fontWeight: 600, maxWidth: 480, margin: '0 auto 6px' }}>
-                    {quiz.playNote}
-                  </p>
-                )}
                 <p style={{ fontFamily: MONO, fontSize: 12, letterSpacing: '0.06em', color: COLORS.faded, margin: '0 0 20px' }}>
                   {maxPoints} points in play. {maxPoints} means all {total} dead-on.
                 </p>
