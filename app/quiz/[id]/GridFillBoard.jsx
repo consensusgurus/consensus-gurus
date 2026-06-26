@@ -551,7 +551,7 @@ export default function GridFillBoard({ quizId, mobile = false }) {
                 {/* DONE — results popup (the revealed grid stays behind it) */}
                 {phase === 'done' && (
                   <>
-                    <QuizDoneRecap score={score} total={totalCells} onPlayAgain={playAgain} onShare={() => setTab('share')} onResults={() => setReviewing(false)} />
+                    <QuizDoneRecap score={score} total={totalCells} onPlayAgain={playAgain} onShare={() => setTab('share')} onPlaySimilar={() => { const sid = similarQuizId(quiz); if (sid) router.push(`/quiz/${sid}`); }} />
                   <QuizResultModal
                 open={!reviewing}
                 onClose={() => setReviewing(true)}

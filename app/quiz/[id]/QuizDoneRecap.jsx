@@ -1,49 +1,49 @@
 'use client';
 import React from 'react';
-import { RotateCcw, Share2, ListChecks } from 'lucide-react';
+import { RotateCcw, Shuffle, Share2 } from 'lucide-react';
 
 // Persistent end-of-quiz results panel.
 //
-// Every quiz board ends by popping the shared QuizResultModal, but that modal is
+// Every quiz board ends by popping the shared QuizResultModal, which is
 // dismissable (its X sets the board's `dismissed`/`reviewing` flag). On the
 // map/geo/globe/timed boards the play area behind the modal was EMPTY once the
 // popup was closed, so a finished game showed a blank screen. This panel renders
-// in that same spot so dismissing the popup reveals a real results screen: the
-// final score, an answer key (the correct answers, with how the player did), and
-// a Play Again button — plus See full results (reopens the popup) and Share.
+// in that same spot so closing the popup reveals a real results screen: a
+// compact two-row header (final score, then Play Again / Play Similar / Share)
+// and, where supplied, an answer key (the correct answers and how the player did).
 //
 // Props:
 //   score, total      — the final tally, printed once.
 //   rows              — optional answer-key rows: [{ label, detail?, sub?, good? }].
-//                       label = the correct answer; detail = small note (e.g. "0.3 mi off");
-//                       sub = trailing points (e.g. "+80"); good = green-highlight a strong row.
-//                       Omit on boards that already reveal their answers (a grid behind the modal).
+//                       Omit on boards that already reveal their answers behind the modal.
 //   answersTitle      — heading above the rows.
-//   onPlayAgain, onShare, onResults — handlers; a missing one hides its button.
+//   onPlayAgain, onPlaySimilar, onShare — handlers; a missing one drops its button.
 
 const C = { cream: '#f7f8fa', paper: '#eceef1', ink: '#1c1e24', ember: '#2563eb', forest: '#10b981', faded: '#6b7280' };
 const FONT = "'Manrope', system-ui, -apple-system, sans-serif";
 
-function solid(bg, fg) {
-  return { fontFamily: FONT, fontSize: 12, letterSpacing: '0.06em', textTransform: 'uppercase', fontWeight: 700, padding: '0 18px', lineHeight: '42px', border: 'none', borderRadius: 10, background: bg, color: fg, cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: 7 };
-}
-function outline() {
-  return { fontFamily: FONT, fontSize: 12, letterSpacing: '0.06em', textTransform: 'uppercase', fontWeight: 700, padding: '0 18px', lineHeight: '42px', borderRadius: 10, background: '#fff', color: C.ink, border: `1.5px solid ${C.ink}`, cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: 7 };
+function btn(bg, fg, outline) {
+  return { fontFamily: FONT, fontSize: 11, letterSpacing: '0.02em', textTransform: 'uppercase', fontWeight: 700, padding: '0 6px', lineHeight: '42px', border: outline ? `1.5px solid ${C.ink}` : 'none', borderRadius: 10, background: bg, color: fg, cursor: 'pointer', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 6, whiteSpace: 'nowrap', overflow: 'hidden' };
 }
 
-export default function QuizDoneRecap({ score, total, rows = null, answersTitle = 'The answers', onPlayAgain, onShare, onResults }) {
+export default function QuizDoneRecap({ score, total, rows = null, answersTitle = 'The answers', onPlayAgain, onPlaySimilar, onShare }) {
+  const btns = [];
+  if (onPlayAgain) btns.push(<button key="a" onClick={onPlayAgain} style={btn(C.ember, '#fff')}><RotateCcw size={13} strokeWidth={2.5} /> Play Again</button>);
+  if (onPlaySimilar) btns.push(<button key="s" onClick={onPlaySimilar} style={btn(C.forest, '#fff')}><Shuffle size={13} strokeWidth={2.5} /> Play Similar</button>);
+  if (onShare) btns.push(<button key="h" onClick={onShare} style={btn(C.ink, C.cream)}><Share2 size={13} strokeWidth={2.5} /> Share</button>);
+
   return (
     <div style={{ marginTop: 12 }}>
-      <div style={{ display: 'flex', flexWrap: 'wrap', gap: 12, alignItems: 'center', justifyContent: 'space-between', background: C.paper, borderRadius: 12, border: `1px solid ${C.faded}33`, padding: '14px 18px' }}>
-        <div style={{ minWidth: 0 }}>
-          <div style={{ fontFamily: FONT, fontWeight: 800, fontSize: 28, lineHeight: 1 }}>{score}<span style={{ fontSize: 18, color: C.faded }}>/{total}</span></div>
-          <div style={{ fontFamily: FONT, fontSize: 11, letterSpacing: '0.12em', textTransform: 'uppercase', color: C.faded, marginTop: 4 }}>Final score</div>
+      <div style={{ background: C.paper, borderRadius: 12, border: `1px solid ${C.faded}33`, padding: '13px 14px' }}>
+        <div style={{ display: 'flex', alignItems: 'baseline', gap: 10, marginBottom: 12 }}>
+          <div style={{ fontFamily: FONT, fontWeight: 800, fontSize: 26, lineHeight: 1 }}>{score}<span style={{ fontSize: 17, color: C.faded }}>/{total}</span></div>
+          <div style={{ fontFamily: FONT, fontSize: 11, letterSpacing: '0.12em', textTransform: 'uppercase', color: C.faded }}>Final score</div>
         </div>
-        <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
-          {onPlayAgain ? <button onClick={onPlayAgain} style={solid(C.ember, '#fff')}><RotateCcw size={14} strokeWidth={2.5} /> Play Again</button> : null}
-          {onResults ? <button onClick={onResults} style={outline()}><ListChecks size={14} strokeWidth={2.5} /> See full results</button> : null}
-          {onShare ? <button onClick={onShare} style={solid(C.ink, C.cream)}><Share2 size={14} strokeWidth={2.5} /> Share</button> : null}
-        </div>
+        {btns.length > 0 ? (
+          <div style={{ display: 'grid', gridTemplateColumns: `repeat(${btns.length}, minmax(0, 1fr))`, gap: 8 }}>
+            {btns}
+          </div>
+        ) : null}
       </div>
 
       {rows && rows.length > 0 ? (
