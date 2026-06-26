@@ -16,6 +16,7 @@ import JoinLeaderboardForm from './JoinLeaderboardForm';
 import QuizStandings from './QuizStandings';
 import LeaderboardSnippet from './LeaderboardSnippet';
 import LeaderboardStrip from './LeaderboardStrip';
+import QuizResultModal from './QuizResultModal';
 import { getQuiz, QUIZZES } from '@/lib/quizzes';
 import { quizDept as deptOf, DEPT_LABEL } from '@/lib/quiz-departments';
 import Grain from '../../Grain';
@@ -410,7 +411,7 @@ export default function TimedMcqClient({ quizId, mobile = false }) {
             {/* Freeze the score/timer bar at the top (44 = ribbon height), mirroring the
                 name-them-all board so the countdown and points stay visible as the
                 question and options scroll underneath. */}
-            <div style={{ position: 'sticky', top: 0, zIndex: 24, background: COLORS.cream, paddingBottom: 4 }}>
+            <div style={{ position: 'sticky', top: 0, zIndex: 24, background: COLORS.cream, paddingBottom: 4, display: phase === 'done' ? 'none' : undefined }}>
             {/* Scoreboard */}
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 'clamp(6px, 2vw, 16px)', background: COLORS.paper, borderRadius: 10, border: `1px solid ${COLORS.faded}33`, borderRadius: 12, padding: '14px clamp(12px, 3.5vw, 20px)', marginBottom: 0 }}>
               <div style={{ minWidth: 0 }}>
@@ -534,28 +535,18 @@ export default function TimedMcqClient({ quizId, mobile = false }) {
               </div>
             )}
 
-            {/* DONE — results card */}
+            {/* DONE — results popup */}
             {phase === 'done' && (
-              <div>
-                <div style={{ padding: 24, borderRadius: 10, border: `1.5px solid ${COLORS.ink}`, background: COLORS.paper, textAlign: 'center' }}>
-                  <div style={{ fontFamily: MONO, fontSize: 12, letterSpacing: '0.16em', textTransform: 'uppercase', color: COLORS.ember, marginBottom: 8 }}>
-                    {points === maxPoints ? 'Theoretical maximum' : answeredCount < total ? 'Ended early' : 'Final score'}
-                  </div>
-                  <div style={{ fontFamily: SERIF, fontWeight: 800, fontSize: 44, lineHeight: 1, marginBottom: 6 }}>{points}<span style={{ fontSize: 24, color: COLORS.faded }}>/{maxPoints}</span></div>
-                  <div style={{ fontFamily: SERIF, fontWeight: 700, fontSize: 20, lineHeight: 1.15, marginBottom: 10 }}>
-                    {results.filter((r) => r.correct).length} of {total} right · {isTopScore ? 'you are the top score' : `you beat ${percentile(points, maxPoints)}% of players`}
-                  </div>
-                  <p style={{ fontFamily: SANS, fontSize: 15, color: '#4a4339', maxWidth: 440, margin: '0 auto 18px' }}>
-                    {board.best != null ? (points >= board.best ? `That is the high score to beat.` : `The high score to beat is ${board.best}.`) : 'Be the first to set the pace.'}
-                  </p>
-                </div>
-
-                <div className="qz-resrow" style={{ display: 'flex', gap: 14, marginTop: 18, flexWrap: 'wrap', alignItems: 'stretch' }}>
-                  <LeaderboardSnippet board={board} identity={identity} score={points} lastElapsed={lastElapsed} fill />
-                  {eloPanel}
-                </div>
-
-                <div style={{ display: 'flex', gap: 10, justifyContent: 'center', flexWrap: 'wrap', marginTop: 18 }}>
+              <QuizResultModal
+                open
+                eyebrow={points === maxPoints ? 'Theoretical maximum' : answeredCount < total ? 'Ended early' : 'Final score'}
+                score={points}
+                total={maxPoints}
+                headline={`${results.filter((r) => r.correct).length} of ${total} right · ${isTopScore ? 'you are the top score' : `you beat ${percentile(points, maxPoints)}% of players`}`}
+                subline={board.best != null ? (points >= board.best ? `That is the high score to beat.` : `The high score to beat is ${board.best}.`) : 'Be the first to set the pace.'}
+                leaderboard={<LeaderboardSnippet board={board} identity={identity} score={points} lastElapsed={lastElapsed} fill />}
+                standings={eloPanel}
+                actions={<>
                     {!mcqRevealed && (
                       <button onClick={() => setMcqRevealed(true)} style={{ fontFamily: MONO, fontSize: 13, letterSpacing: '0.08em', textTransform: 'uppercase', fontWeight: 700, lineHeight: '46px', width: 210, padding: 0, boxSizing: 'border-box', background: COLORS.forest, color: '#fff', border: 'none', cursor: 'pointer', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 8 }}>
                         <ScrollText size={14} strokeWidth={2.5} /> Quiz Summary
@@ -572,9 +563,9 @@ export default function TimedMcqClient({ quizId, mobile = false }) {
                     <button onClick={() => { setQSent(false); setQOpen(true); }} style={{ fontFamily: MONO, fontSize: 13, letterSpacing: '0.08em', textTransform: 'uppercase', fontWeight: 700, lineHeight: '46px', width: 210, padding: 0, boxSizing: 'border-box', background: '#fff', color: COLORS.faded, border: `1px solid ${COLORS.faded}55`, cursor: 'pointer', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 8 }}>
                       <HelpCircle size={14} strokeWidth={2.5} /> Report an error
                     </button>
-                </div>
-
-                {/* Per-question recap (answer key) - hidden until revealed */}
+                </>}
+              >
+                                {/* Per-question recap (answer key) - hidden until revealed */}
                 {!mcqRevealed && (
                   <p style={{ fontFamily: MONO, fontSize: 12, letterSpacing: '0.06em', textTransform: 'uppercase', color: COLORS.faded, textAlign: 'center', marginTop: 22 }}>Press Quiz Summary for the results and the story behind each answer.</p>
                 )}
@@ -602,7 +593,7 @@ export default function TimedMcqClient({ quizId, mobile = false }) {
                   })}
                 </ol>
                 )}
-              </div>
+              </QuizResultModal>
             )}
           </>
         )}
