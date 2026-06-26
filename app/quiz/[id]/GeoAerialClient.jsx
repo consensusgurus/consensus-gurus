@@ -487,7 +487,7 @@ export default function MapPlaceClient({ quizId, mobile = false }) {
                     {phase === 'playing' ? (
                       <>
                         <div style={{ fontFamily: MONO, fontSize: 10, letterSpacing: '0.16em', textTransform: 'uppercase', color: COLORS.ember, marginBottom: 3 }}>Find</div>
-                        <div style={{ fontFamily: SERIF, fontWeight: 800, fontSize: 'clamp(17px, 2.8vw, 26px)', lineHeight: 1.1, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{promptCity ? promptCity.name : ''}</div>
+                        <div style={{ fontFamily: SERIF, fontWeight: 800, fontSize: 'clamp(17px, 2.8vw, 26px)', lineHeight: 1.1, overflowWrap: 'break-word', wordBreak: 'break-word' }}>{promptCity ? promptCity.name : ''}</div>
                       </>
                     ) : (
                       <>
