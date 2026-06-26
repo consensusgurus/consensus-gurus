@@ -23,6 +23,7 @@ import Grain from '../../Grain';
 import Footer from '../../Footer';
 import SiteHeader from '../../SiteHeader';
 import QuizPlayerBar from './QuizPlayerBar';
+import QuizPlayOverlay from './QuizPlayOverlay';
 import { isMobileDevice } from '@/lib/is-mobile';
 import { LB_POPS, LB_FILTERS, pickLb, lbEmptyNote } from '@/lib/quiz-lb';
 import Count from '../../Count';
@@ -363,6 +364,11 @@ export default function LogicGridClient({ quizId, mobile = false }) {
   const rows = [];
   for (let r = 0; r < total / cols; r++) rows.push(cells.slice(r * cols, r * cols + cols));
 
+  // Mobile fullscreen play popup: open while the game is actively running.
+  // On 'done' it closes and the QuizResultModal popup takes over; pre-game
+  // ('idle') the board renders inline as before.
+  const mPlayOverlay = mobile === true && phase === 'playing';
+
   return (
     <div style={{ minHeight: '100vh', background: COLORS.cream, color: COLORS.ink, position: 'relative', overflow: 'clip' }}>
       <Grain />
@@ -410,7 +416,7 @@ export default function LogicGridClient({ quizId, mobile = false }) {
 
         {/* ── PLAY ── */}
         {tab === 'play' && (
-          <>
+          <QuizPlayOverlay open={mPlayOverlay}>
             {/* Freeze the score/time bar AND the answer input together at the top
                 (44 = ribbon height), mirroring the name-them-all board, so the answer
                 box is always reachable while the clue grid scrolls underneath. */}
@@ -569,7 +575,7 @@ export default function LogicGridClient({ quizId, mobile = false }) {
               </>
             )}
           {dock && <div aria-hidden="true" style={{ height: 'calc(170px + env(safe-area-inset-bottom))' }} />}
-          </>
+          </QuizPlayOverlay>
         )}
 
         {/* ── STATS & LEADERBOARD ── */}

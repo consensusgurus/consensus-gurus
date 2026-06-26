@@ -363,13 +363,13 @@ export default function QuizClient({ quizId }) {
     return <GridFillBoard quizId={quizId} mobile={mobile} />;
   }
   if (quiz.format === 'place-map') {
-    return <MapPlaceBoard quizId={quizId} />;
+    return <MapPlaceBoard quizId={quizId} mobile={mobile} />;
   }
   if (quiz.format === 'geo-aerial') {
-    return <GeoAerialBoard quizId={quizId} />;
+    return <GeoAerialBoard quizId={quizId} mobile={mobile} />;
   }
   if (quiz.format === 'globe') {
-    return <GlobePlaceBoard quizId={quizId} />;
+    return <GlobePlaceBoard quizId={quizId} mobile={mobile} />;
   }
   const answers = quiz.answers;
   const matched = quiz.format === 'matched';

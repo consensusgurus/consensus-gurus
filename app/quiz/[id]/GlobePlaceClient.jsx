@@ -38,6 +38,7 @@ import Grain from '../../Grain';
 import Footer from '../../Footer';
 import SiteHeader from '../../SiteHeader';
 import QuizPlayerBar from './QuizPlayerBar';
+import QuizPlayOverlay from './QuizPlayOverlay';
 import { isMobileDevice } from '@/lib/is-mobile';
 import { LB_POPS, LB_FILTERS, pickLb, lbEmptyNote } from '@/lib/quiz-lb';
 import Count from '../../Count';
@@ -109,7 +110,7 @@ function milesBetween(aLat, aLon, bLat, bLon) {
 
 const TICK_MS = 100;
 
-export default function GlobePlaceClient({ quizId }) {
+export default function GlobePlaceClient({ quizId, mobile = false }) {
   const router = useRouter();
   const quiz = useMemo(() => getQuiz(quizId), [quizId]);
 
@@ -394,6 +395,11 @@ export default function GlobePlaceClient({ quizId }) {
 
   const recap = phase === 'done' ? placements.map((p) => ({ name: cities[p.cityIdx].name, miles: p.miles, pts: p.pts })).sort((a, b) => b.pts - a.pts) : [];
 
+  // Mobile fullscreen play popup: open while the game is actively running.
+  // On 'done' it closes and the QuizResultModal popup takes over; pre-game
+  // ('idle') the board renders inline as before.
+  const mPlayOverlay = mobile === true && phase === 'playing';
+
   return (
     <div style={{ minHeight: '100vh', background: COLORS.cream, color: COLORS.ink, position: 'relative', overflow: 'clip' }}>
       <div style={{ position: 'relative', zIndex: 3 }}><SiteHeader active="quizzes" flush inlay={<QuizPlayerBar />} /></div>
@@ -412,6 +418,7 @@ export default function GlobePlaceClient({ quizId }) {
 
         {/* ── PLAY ── */}
         {tab === 'play' && (
+          <QuizPlayOverlay open={mPlayOverlay}>
           <div ref={wrapRef}>
             {/* Scoreboard + timer (sticky) */}
             <div style={{ position: 'sticky', top: 0, zIndex: 24, background: COLORS.cream, paddingBottom: 4, display: phase === 'done' ? 'none' : undefined }}>
@@ -506,6 +513,7 @@ export default function GlobePlaceClient({ quizId }) {
               </>
             )}
           </div>
+          </QuizPlayOverlay>
         )}
 
         {/* ── STATS ── */}

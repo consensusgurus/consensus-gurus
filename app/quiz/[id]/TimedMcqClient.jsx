@@ -25,6 +25,7 @@ import Grain from '../../Grain';
 import Footer from '../../Footer';
 import SiteHeader from '../../SiteHeader';
 import QuizPlayerBar from './QuizPlayerBar';
+import QuizPlayOverlay from './QuizPlayOverlay';
 import { isMobileDevice } from '@/lib/is-mobile';
 import { LB_POPS, LB_FILTERS, pickLb, lbEmptyNote } from '@/lib/quiz-lb';
 import Count from '../../Count';
@@ -389,6 +390,11 @@ export default function TimedMcqClient({ quizId, mobile = false }) {
   const eloPanel = <QuizStandings eloAfter={eloAfter} eloBefore={eloBefore} eloDept={eloDept} eloDeptLabel={eloDeptLabel} fill />;
 
 
+  // Mobile fullscreen play popup: open while the game is actively running.
+  // On 'done' it closes and the QuizResultModal popup takes over; pre-game
+  // ('idle') the board renders inline as before.
+  const mPlayOverlay = mobile === true && (phase === 'playing' || phase === 'reveal');
+
   return (
     <div style={{ minHeight: '100vh', background: COLORS.cream, color: COLORS.ink, position: 'relative', overflow: 'clip' }}>
       <div style={{ position: 'relative', zIndex: 3 }}><SiteHeader active="quizzes" flush inlay={<QuizPlayerBar />} /></div>
@@ -410,7 +416,7 @@ export default function TimedMcqClient({ quizId, mobile = false }) {
 
         {/* ── PLAY ── */}
         {tab === 'play' && (
-          <>
+          <QuizPlayOverlay open={mPlayOverlay}>
             {/* Freeze the score/timer bar at the top (44 = ribbon height), mirroring the
                 name-them-all board so the countdown and points stay visible as the
                 question and options scroll underneath. */}
@@ -563,7 +569,7 @@ export default function TimedMcqClient({ quizId, mobile = false }) {
               />
               </>
             )}
-          </>
+          </QuizPlayOverlay>
         )}
 
         {/* ── STATS ── */}
