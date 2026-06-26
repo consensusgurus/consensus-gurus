@@ -25,6 +25,7 @@ import JoinLeaderboardForm from './JoinLeaderboardForm';
 import QuizStandings from './QuizStandings';
 import LeaderboardSnippet from './LeaderboardSnippet';
 import LeaderboardStrip from './LeaderboardStrip';
+import QuizResultModal from './QuizResultModal';
 import { getQuiz, QUIZZES } from '@/lib/quizzes';
 import { quizDept as deptOf, DEPT_LABEL } from '@/lib/quiz-departments';
 import { PLACE_MAP_GEO } from '@/lib/place-map-geo';
@@ -418,7 +419,8 @@ export default function MapPlaceClient({ quizId }) {
         {/* ── PLAY ── */}
         {tab === 'play' && (
           <>
-            {/* Scoreboard + timer (sticky) */}
+            {/* Scoreboard + timer (sticky) — hidden once the results popup takes over */}
+            {phase !== 'done' && (
             <div style={{ position: 'sticky', top: 0, zIndex: 24, background: COLORS.cream, paddingBottom: 4 }}>
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 'clamp(6px, 2vw, 16px)', background: COLORS.paper, borderRadius: 12, border: `1px solid ${COLORS.faded}33`, padding: '14px clamp(12px, 3.5vw, 20px)' }}>
                 <div style={{ minWidth: 0 }}>
@@ -440,6 +442,7 @@ export default function MapPlaceClient({ quizId }) {
                 </div>
               )}
             </div>
+            )}
 
             {/* IDLE — start screen */}
             {phase === 'idle' && (
@@ -484,28 +487,18 @@ export default function MapPlaceClient({ quizId }) {
               </div>
             )}
 
-            {/* DONE — results card */}
+            {/* DONE — results popup */}
             {phase === 'done' && (
-              <div style={{ marginTop: 12 }}>
-                <div style={{ padding: 24, borderRadius: 10, border: `1.5px solid ${COLORS.ink}`, background: COLORS.paper, textAlign: 'center' }}>
-                  <div style={{ fontFamily: MONO, fontSize: 12, letterSpacing: '0.16em', textTransform: 'uppercase', color: COLORS.ember, marginBottom: 8 }}>
-                    {points === maxPoints ? 'Perfect map' : placements.length < total ? 'Ended early' : 'Final score'}
-                  </div>
-                  <div style={{ fontFamily: SERIF, fontWeight: 800, fontSize: 44, lineHeight: 1, marginBottom: 6 }}>{points}<span style={{ fontSize: 24, color: COLORS.faded }}>/{maxPoints}</span></div>
-                  <div style={{ fontFamily: SERIF, fontWeight: 700, fontSize: 20, lineHeight: 1.15, marginBottom: 10 }}>
-                    {placements.length} of {total} placed · {isTopScore ? 'you are the top score' : `you beat ${percentile(points, maxPoints)}% of players`}
-                  </div>
-                  <p style={{ fontFamily: SANS, fontSize: 15, color: '#4a4339', maxWidth: 440, margin: '0 auto 18px' }}>
-                    {board.best != null ? (points >= board.best ? `That is the high score to beat.` : `The high score to beat is ${board.best}.`) : 'Be the first to set the pace.'}
-                  </p>
-                </div>
-
-                <div className="qz-resrow" style={{ display: 'flex', gap: 14, marginTop: 18, flexWrap: 'wrap', alignItems: 'stretch' }}>
-                  <LeaderboardSnippet board={board} identity={identity} score={points} lastElapsed={lastElapsed} fill />
-                  {eloPanel}
-                </div>
-
-                <div style={{ display: 'flex', gap: 10, justifyContent: 'center', flexWrap: 'wrap', marginTop: 18 }}>
+              <QuizResultModal
+                open
+                eyebrow={points === maxPoints ? 'Perfect map' : placements.length < total ? 'Ended early' : 'Final score'}
+                score={points}
+                total={maxPoints}
+                headline={`${placements.length} of ${total} placed · ${isTopScore ? 'you are the top score' : `you beat ${percentile(points, maxPoints)}% of players`}`}
+                subline={board.best != null ? (points >= board.best ? `That is the high score to beat.` : `The high score to beat is ${board.best}.`) : 'Be the first to set the pace.'}
+                leaderboard={<LeaderboardSnippet board={board} identity={identity} score={points} lastElapsed={lastElapsed} fill />}
+                standings={eloPanel}
+                actions={<>
                   <button onClick={playAgain} style={{ fontFamily: MONO, fontSize: 13, letterSpacing: '0.08em', textTransform: 'uppercase', fontWeight: 700, lineHeight: '46px', width: 210, padding: 0, boxSizing: 'border-box', background: COLORS.ember, color: '#fff', border: 'none', cursor: 'pointer' }}>Play again</button>
                   {!identity && (
                     <button onClick={() => setTab('join')} style={{ fontFamily: MONO, fontSize: 13, letterSpacing: '0.08em', textTransform: 'uppercase', fontWeight: 700, lineHeight: '46px', width: 210, padding: 0, boxSizing: 'border-box', background: 'transparent', color: COLORS.ink, borderRadius: 10, border: `1.5px solid ${COLORS.ink}`, cursor: 'pointer', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 8 }}>
@@ -518,10 +511,10 @@ export default function MapPlaceClient({ quizId }) {
                   <button onClick={() => { setQSent(false); setQOpen(true); }} style={{ fontFamily: MONO, fontSize: 13, letterSpacing: '0.08em', textTransform: 'uppercase', fontWeight: 700, lineHeight: '46px', width: 210, padding: 0, boxSizing: 'border-box', background: '#fff', color: COLORS.faded, border: `1px solid ${COLORS.faded}55`, cursor: 'pointer', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 8 }}>
                     <HelpCircle size={14} strokeWidth={2.5} /> Report an error
                   </button>
-                </div>
-
+                </>}
+              >
                 {/* The map with every city revealed */}
-                <div style={{ display: 'flex', justifyContent: 'center', marginTop: 22 }}>
+                <div style={{ display: 'flex', justifyContent: 'center' }}>
                   {!revealAll ? (
                     <button onClick={() => setRevealAll(true)} style={{ fontFamily: MONO, fontSize: 13, letterSpacing: '0.08em', textTransform: 'uppercase', fontWeight: 700, lineHeight: '46px', padding: '0 26px', background: COLORS.forest, color: '#fff', border: 'none', cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: 8 }}>
                       <ScrollText size={14} strokeWidth={2.5} /> Show the map
@@ -549,7 +542,7 @@ export default function MapPlaceClient({ quizId }) {
                     </div>
                   )}
                 </div>
-              </div>
+              </QuizResultModal>
             )}
           </>
         )}
