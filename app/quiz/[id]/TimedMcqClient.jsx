@@ -17,6 +17,7 @@ import QuizStandings from './QuizStandings';
 import LeaderboardSnippet from './LeaderboardSnippet';
 import LeaderboardStrip from './LeaderboardStrip';
 import QuizResultModal from './QuizResultModal';
+import QuizDoneRecap from './QuizDoneRecap';
 import { similarQuizId } from '@/lib/quiz-similar';
 import { getQuiz, QUIZZES } from '@/lib/quizzes';
 import { quizDept as deptOf, DEPT_LABEL } from '@/lib/quiz-departments';
@@ -539,7 +540,12 @@ export default function TimedMcqClient({ quizId, mobile = false }) {
 
             {/* DONE — results popup */}
             {phase === 'done' && (
-              <QuizResultModal
+              <>
+                {(() => {
+                  const recapRows = questions.map((qq, i) => { const r = results[i]; return { label: qq.choices[qq.correct], detail: r ? (r.correct ? 'Correct' : 'Missed') : 'No answer', sub: `+${r ? (r.pts || 0) : 0}`, good: !!(r && r.correct) }; });
+                  return <QuizDoneRecap score={points} total={maxPoints} rows={recapRows} answersTitle="The correct answers" onPlayAgain={startGame} onShare={() => setTab('share')} onResults={() => setDismissed(false)} />;
+                })()}
+                <QuizResultModal
                 open={!dismissed}
                 onClose={() => setDismissed(true)}
                 eyebrow={points === maxPoints ? 'Theoretical maximum' : answeredCount < total ? 'Ended early' : 'Final score'}
@@ -555,6 +561,7 @@ export default function TimedMcqClient({ quizId, mobile = false }) {
                 onShare={() => setTab('share')}
                 onReport={() => { setQSent(false); setQOpen(true); }}
               />
+              </>
             )}
           </>
         )}

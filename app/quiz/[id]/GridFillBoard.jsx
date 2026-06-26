@@ -17,6 +17,7 @@ import JoinLeaderboardForm from './JoinLeaderboardForm';
 import LeaderboardSnippet from './LeaderboardSnippet';
 import LeaderboardStrip from './LeaderboardStrip';
 import QuizResultModal from './QuizResultModal';
+import QuizDoneRecap from './QuizDoneRecap';
 import { similarQuizId } from '@/lib/quiz-similar';
 import { getQuiz } from '@/lib/quizzes';
 import Grain from '../../Grain';
@@ -543,6 +544,8 @@ export default function GridFillBoard({ quizId, mobile = false }) {
 
                 {/* DONE — results popup (the revealed grid stays behind it) */}
                 {phase === 'done' && (
+                  <>
+                    <QuizDoneRecap score={score} total={totalCells} onPlayAgain={playAgain} onShare={() => setTab('share')} onResults={() => setReviewing(false)} />
                   <QuizResultModal
                 open={!reviewing}
                 onClose={() => setReviewing(true)}
@@ -559,6 +562,7 @@ export default function GridFillBoard({ quizId, mobile = false }) {
                 onShare={() => setTab('share')}
                 onReport={() => { setQSent(false); setQOpen(true); }}
               />
+                  </>
                 )}
               </div>
             )}

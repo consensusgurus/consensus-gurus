@@ -16,6 +16,7 @@ import JoinLeaderboardForm from './JoinLeaderboardForm';
 import LeaderboardSnippet from './LeaderboardSnippet';
 import LeaderboardStrip from './LeaderboardStrip';
 import QuizResultModal from './QuizResultModal';
+import QuizDoneRecap from './QuizDoneRecap';
 import { similarQuizId } from '@/lib/quiz-similar';
 import { getQuiz } from '@/lib/quizzes';
 import Grain from '../../Grain';
@@ -536,6 +537,8 @@ export default function LogicGridClient({ quizId, mobile = false }) {
 
                 {/* DONE — results popup (the solved grid stays behind it) */}
                 {phase === 'done' && (
+                  <>
+                    <QuizDoneRecap score={score} total={total} onPlayAgain={() => { setReviewing(false); setPhase('idle'); setSolved(new Array(total).fill(false)); setActive(null); setGuess(''); setTime(quiz.timeLimit); setRevealed(false); endedRef.current = false; setHint('Press Start to read the clues and begin.'); setHintBad(false); }} onShare={() => setTab('share')} onResults={() => setReviewing(false)} />
                   <QuizResultModal
                 open={!reviewing}
                 onClose={() => setReviewing(true)}
@@ -552,6 +555,7 @@ export default function LogicGridClient({ quizId, mobile = false }) {
                 onShare={() => setTab('share')}
                 onReport={() => { setQSent(false); setQOpen(true); }}
               />
+                  </>
                 )}
 
                 {/* Give up */}
