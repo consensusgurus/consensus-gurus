@@ -160,8 +160,10 @@ export default function GlobePlaceClient({ quizId }) {
   const revealingRef = useRef(false);
   const viewedRef = useRef(false);
   const globeRef = useRef(null);
+  const phaseRef = useRef('idle');
   const wrapRef = useRef(null);
 
+  phaseRef.current = phase;
   const points = placements.reduce((s, p) => s + (p.pts || 0), 0);
   const isTopScore = phase === 'done' && board.best != null && lastElapsed != null
     && points === board.best && board.topTime != null && lastElapsed <= board.topTime;
@@ -226,7 +228,7 @@ export default function GlobePlaceClient({ quizId }) {
     try {
       g.pointOfView({ lat: 18, lng: 30, altitude: 2.4 }, 0);
       const c = g.controls();
-      c.autoRotate = true; c.autoRotateSpeed = 0.5; c.enableZoom = true;
+      c.autoRotate = phaseRef.current !== 'playing'; c.autoRotateSpeed = 0.5; c.enableZoom = true;
     } catch (e) {}
   }
 
