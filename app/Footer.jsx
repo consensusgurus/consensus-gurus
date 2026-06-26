@@ -27,7 +27,7 @@ const COLS = [
     head: 'Quizzes',
     links: [
       { label: 'Browse Quizzes', href: '/quizzes' },
-      { label: 'NYC Restaurant Geo Guesser', href: '/quiz/nyc-restaurant-geo-guesser' },
+      { label: 'NYC Restaurant Geo Guesser \u00b7 Pt 1', href: '/quiz/nyc-restaurant-geo-guesser' },
       { label: 'Stat Hub', href: '/quizzes/hub' },
       { label: 'Request a Quiz', href: '/request' },
     ],
