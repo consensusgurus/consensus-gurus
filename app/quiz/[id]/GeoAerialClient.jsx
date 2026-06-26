@@ -463,7 +463,7 @@ export default function MapPlaceClient({ quizId }) {
           <>
             {/* Scoreboard + timer (sticky) — hidden once the results popup takes over */}
             {phase !== 'done' && (
-            <div style={{ position: 'sticky', top: 0, zIndex: 24, background: COLORS.cream, paddingBottom: 4 }}>
+            <div style={{ position: 'sticky', top: 0, zIndex: 1200, background: COLORS.cream, paddingBottom: 4 }}>
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 'clamp(6px, 2vw, 16px)', background: COLORS.paper, borderRadius: 12, border: `1px solid ${COLORS.faded}33`, padding: '14px clamp(12px, 3.5vw, 20px)' }}>
                 <div style={{ minWidth: 0 }}>
                   <div style={{ fontFamily: SERIF, fontWeight: 800, fontSize: 'clamp(22px, 6.4vw, 34px)', lineHeight: 1 }}>{points}<span style={{ fontSize: 'clamp(14px, 4vw, 20px)', color: COLORS.faded }}>/{maxPoints}</span></div>
@@ -516,7 +516,7 @@ export default function MapPlaceClient({ quizId }) {
             {phase === 'playing' && (
               <div style={{ marginTop: 12 }}>
                 <div style={{ maxWidth: 820, margin: '0 auto', borderRadius: 8, overflow: 'hidden', border: `1px solid ${COLORS.faded}55` }}>
-                  <div ref={mapElRef} style={{ height: 'clamp(440px, 66vh, 660px)', width: '100%', background: '#0b1a2b', cursor: 'crosshair' }} />
+                  <div ref={mapElRef} style={{ height: 'clamp(440px, 66vh, 660px)', width: '100%', background: '#0b1a2b', cursor: 'crosshair', position: 'relative', zIndex: 0 }} />
                 </div>
                 <div style={{ marginTop: 16, display: 'flex', gap: 10, justifyContent: 'center', flexWrap: 'wrap' }}>
                   <button onClick={giveUp} style={ghostBtn(false)}><Flag size={12} strokeWidth={2.5} /> End now</button>
