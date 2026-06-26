@@ -219,6 +219,7 @@ export default function GlobePlaceClient({ quizId }) {
       c.autoRotate = phase !== 'playing';
       c.autoRotateSpeed = 0.5;
       c.enableZoom = true;
+      c.rotateSpeed = 0.7;
     } catch (e) {}
   }, [phase]);
 
@@ -228,7 +229,7 @@ export default function GlobePlaceClient({ quizId }) {
     try {
       g.pointOfView({ lat: 18, lng: 30, altitude: 2.4 }, 0);
       const c = g.controls();
-      c.autoRotate = phaseRef.current !== 'playing'; c.autoRotateSpeed = 0.5; c.enableZoom = true;
+      c.autoRotate = phaseRef.current !== 'playing'; c.autoRotateSpeed = 0.5; c.enableZoom = true; c.rotateSpeed = 0.7;
     } catch (e) {}
   }
 
