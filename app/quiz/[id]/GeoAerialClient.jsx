@@ -510,7 +510,7 @@ export default function MapPlaceClient({ quizId, mobile = false }) {
                 <MapPin size={26} strokeWidth={2.2} style={{ color: COLORS.ember }} />
                 <h2 style={{ fontFamily: SERIF, fontWeight: 800, fontSize: 26, margin: '8px 0 6px' }}>Know the city?</h2>
                 <p style={{ fontFamily: SANS, fontSize: 15, lineHeight: 1.5, color: '#4a4339', maxWidth: 480, margin: '0 auto 6px' }}>
-                  {total} iconic restaurants, {clockSecs} seconds each, on a straight-down aerial of New York. A name appears, click where you think it sits. Closer lands more points, up to {maxPer} a spot. Miss the clock and the round scores zero.
+                  {total} places, {clockSecs} seconds each, on a straight-down aerial of New York. A name appears, click where you think it sits. Closer lands more points, up to {maxPer} a spot. Miss the clock and the round scores zero.
                 </p>
                 <p style={{ fontFamily: MONO, fontSize: 12, letterSpacing: '0.06em', color: COLORS.faded, margin: '0 0 20px' }}>
                   {maxPoints} points in play. {maxPoints} means all {total} dead-on.
