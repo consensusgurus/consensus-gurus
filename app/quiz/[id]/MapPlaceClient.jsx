@@ -129,6 +129,7 @@ export default function MapPlaceClient({ quizId }) {
       W, H,
       mainPath: pathOf(region.mainland),
       islandPaths: (region.islands || []).filter((r) => r.length >= 4).map(pathOf),
+      lakePaths: (region.lakes || []).filter((r) => r.length >= 4).map(pathOf),
       proj, invX, invY,
     };
   }, [quiz]);
@@ -472,6 +473,7 @@ export default function MapPlaceClient({ quizId }) {
                     <rect x="0" y="0" width={geo ? geo.W : 640} height={geo ? geo.H : 600} fill={MAP.sea} />
                     {geo && <path d={geo.mainPath} fill={MAP.land} stroke={MAP.line} strokeWidth={1} strokeLinejoin="round" />}
                     {geo && geo.islandPaths.map((d, i) => <path key={i} d={d} fill={MAP.land} stroke={MAP.line} strokeWidth={0.8} />)}
+                    {geo && geo.lakePaths.map((d, i) => <path key={'lk' + i} d={d} fill={MAP.sea} stroke={MAP.line} strokeWidth={0.6} />)}
                     <Markers />
                   </svg>
                 </div>
@@ -531,6 +533,7 @@ export default function MapPlaceClient({ quizId }) {
                           <rect x="0" y="0" width={geo ? geo.W : 640} height={geo ? geo.H : 600} fill={MAP.sea} />
                           {geo && <path d={geo.mainPath} fill={MAP.land} stroke={MAP.line} strokeWidth={1} strokeLinejoin="round" />}
                           {geo && geo.islandPaths.map((d, i) => <path key={i} d={d} fill={MAP.land} stroke={MAP.line} strokeWidth={0.8} />)}
+                          {geo && geo.lakePaths.map((d, i) => <path key={'lk' + i} d={d} fill={MAP.sea} stroke={MAP.line} strokeWidth={0.6} />)}
                           <Markers />
                         </svg>
                       </div>
