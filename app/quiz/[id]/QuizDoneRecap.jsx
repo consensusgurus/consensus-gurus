@@ -4,18 +4,18 @@ import { RotateCcw, Shuffle, Share2 } from 'lucide-react';
 
 // Persistent end-of-quiz results panel.
 //
-// Every quiz board ends by popping the shared QuizResultModal, which is
-// dismissable (its X sets the board's `dismissed`/`reviewing` flag). On the
-// map/geo/globe/timed boards the play area behind the modal was EMPTY once the
-// popup was closed, so a finished game showed a blank screen. This panel renders
-// in that same spot so closing the popup reveals a real results screen: a
-// compact two-row header (final score, then Play Again / Play Similar / Share)
-// and, where supplied, an answer key (the correct answers and how the player did).
+// Every quiz board ends by popping a results popup (the QuizResultModal on the
+// map/geo/globe/timed/grid boards, the Game Over overlay in QuizClient), which
+// is dismissable. This panel renders in the play area so closing the popup
+// reveals a usable results screen instead of nothing: a compact header (final
+// score, then Play Again / Play Similar / Share) and, where supplied, an answer
+// key (the correct answers and how the player did).
 //
 // Props:
-//   score, total      — the final tally, printed once.
+//   score, total      — the final tally, printed once (omit with hideScore when
+//                       the board already shows a live scoreboard while ended).
+//   hideScore         — drop the score line, render just the action buttons.
 //   rows              — optional answer-key rows: [{ label, detail?, sub?, good? }].
-//                       Omit on boards that already reveal their answers behind the modal.
 //   answersTitle      — heading above the rows.
 //   onPlayAgain, onPlaySimilar, onShare — handlers; a missing one drops its button.
 
@@ -26,7 +26,7 @@ function btn(bg, fg, outline) {
   return { fontFamily: FONT, fontSize: 11, letterSpacing: '0.02em', textTransform: 'uppercase', fontWeight: 700, padding: '0 6px', lineHeight: '42px', border: outline ? `1.5px solid ${C.ink}` : 'none', borderRadius: 10, background: bg, color: fg, cursor: 'pointer', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 6, whiteSpace: 'nowrap', overflow: 'hidden' };
 }
 
-export default function QuizDoneRecap({ score, total, rows = null, answersTitle = 'The answers', onPlayAgain, onPlaySimilar, onShare }) {
+export default function QuizDoneRecap({ score, total, hideScore = false, rows = null, answersTitle = 'The answers', onPlayAgain, onPlaySimilar, onShare }) {
   const btns = [];
   if (onPlayAgain) btns.push(<button key="a" onClick={onPlayAgain} style={btn(C.ember, '#fff')}><RotateCcw size={13} strokeWidth={2.5} /> Play Again</button>);
   if (onPlaySimilar) btns.push(<button key="s" onClick={onPlaySimilar} style={btn(C.forest, '#fff')}><Shuffle size={13} strokeWidth={2.5} /> Play Similar</button>);
@@ -34,11 +34,13 @@ export default function QuizDoneRecap({ score, total, rows = null, answersTitle 
 
   return (
     <div style={{ marginTop: 12 }}>
-      <div style={{ background: C.paper, borderRadius: 12, border: `1px solid ${C.faded}33`, padding: '13px 14px' }}>
-        <div style={{ display: 'flex', alignItems: 'baseline', gap: 10, marginBottom: 12 }}>
-          <div style={{ fontFamily: FONT, fontWeight: 800, fontSize: 26, lineHeight: 1 }}>{score}<span style={{ fontSize: 17, color: C.faded }}>/{total}</span></div>
-          <div style={{ fontFamily: FONT, fontSize: 11, letterSpacing: '0.12em', textTransform: 'uppercase', color: C.faded }}>Final score</div>
-        </div>
+      <div style={{ background: C.paper, borderRadius: 12, border: `1px solid ${C.faded}33`, padding: hideScore ? '12px 14px' : '13px 14px' }}>
+        {hideScore ? null : (
+          <div style={{ display: 'flex', alignItems: 'baseline', gap: 10, marginBottom: 12 }}>
+            <div style={{ fontFamily: FONT, fontWeight: 800, fontSize: 26, lineHeight: 1 }}>{score}<span style={{ fontSize: 17, color: C.faded }}>/{total}</span></div>
+            <div style={{ fontFamily: FONT, fontSize: 11, letterSpacing: '0.12em', textTransform: 'uppercase', color: C.faded }}>Final score</div>
+          </div>
+        )}
         {btns.length > 0 ? (
           <div style={{ display: 'grid', gridTemplateColumns: `repeat(${btns.length}, minmax(0, 1fr))`, gap: 8 }}>
             {btns}
