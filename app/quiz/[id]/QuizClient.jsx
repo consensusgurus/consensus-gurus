@@ -119,6 +119,33 @@ function keyHit(g, key) {
 function anyKey(g, keys) {
   return (keys || []).some((k) => keyHit(g, k));
 }
+// Sudden-death live helper: is the partial typed guess `g` still on track to
+// reach one of `keys`? True when `g` is a prefix of an accepted form, or when
+// the words of a multi-word key can still all be completed (any order). Used
+// ONLY by strike ordered quizzes to end the run the instant a wrong character
+// makes the current target unreachable, without waiting for Enter.
+function couldReach(g, keys) {
+  if (!g) return true;
+  const gt = g.split(' ');
+  const lastPartial = gt[gt.length - 1];
+  const completed = gt.slice(0, -1);
+  for (const key of keys || []) {
+    const k = deArticle(norm(key));
+    if (!k) continue;
+    if (k.startsWith(g)) return true;
+    const kt = k.split(' ');
+    if (kt.length < 2) continue;
+    const remaining = kt.slice();
+    let ok = true;
+    for (const w of completed) {
+      const idx = remaining.indexOf(w);
+      if (idx === -1) { ok = false; break; }
+      remaining.splice(idx, 1);
+    }
+    if (ok && (lastPartial === '' || remaining.some((w) => w.startsWith(lastPartial)))) return true;
+  }
+  return false;
+}
 // The bare name a player naturally types: the answer's display `t` with any
 // parenthetical disambiguator stripped ("Moscow (Idaho)" -> "moscow"). Authored
 // `keys` sometimes only list the disambiguated forms ("moscow idaho"), which a
@@ -967,6 +994,16 @@ export default function QuizClient({ quizId }) {
       setHintBad(false);
       fireCue(true);
       if (next.every(Boolean)) endGame(true, next);
+      return true;
+    }
+    // Sudden-death ordered quiz (quiz.strike): end the run the instant the typed
+    // text can no longer reach the current target answer (a wrong character),
+    // without waiting for Enter. Non-strike ordered quizzes never strike here.
+    if (quiz.strike && !couldReach(g, [...(a.keys || []), ...(nameKeys[i] || [])])) {
+      fireCue(false);
+      setHint(`Struck out — ${a.label != null ? a.label + ': ' : ''}${a.t} was next.`);
+      setHintBad(true);
+      endGame(false);
       return true;
     }
     return false;
