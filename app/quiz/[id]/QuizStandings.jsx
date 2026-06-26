@@ -29,9 +29,9 @@ export default function QuizStandings({ eloAfter, eloBefore, eloDept, eloDeptLab
   ];
   const outer = fill ? { flex: '1 1 0', minWidth: 0 } : { margin: '0 auto 18px', maxWidth: 360 };
   return (
-    <div style={{ ...outer, background: '#fbf7ef', border: `1px solid ${C.faded}33` }}>
+    <div style={{ ...outer, background: '#fbf7ef', border: `1px solid ${C.faded}33`, overflow: 'hidden' }}>
       <div style={{ fontFamily: FONT, fontSize: 9, letterSpacing: '0.18em', textTransform: 'uppercase', color: C.ember, textAlign: 'center', padding: '9px 0 8px' }}>Your standing</div>
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', borderTop: `1px solid ${C.faded}22` }}>
+      <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0,1fr) minmax(0,1fr) minmax(0,1fr)', borderTop: `1px solid ${C.faded}22` }}>
         {rows.map((r, i) => (
           <div key={r.label} style={{ padding: '11px 6px 13px', textAlign: 'center', borderLeft: i === 0 ? 'none' : `1px solid ${C.faded}22` }}>
             <div style={{ fontFamily: FONT, fontSize: 8.5, fontWeight: 600, letterSpacing: '0.1em', textTransform: 'uppercase', color: C.faded, marginBottom: 6, lineHeight: 1.25, minHeight: 22, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>{r.label}</div>

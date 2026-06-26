@@ -388,7 +388,7 @@ export default function TimedMcqClient({ quizId, mobile = false }) {
   return (
     <div style={{ minHeight: '100vh', background: COLORS.cream, color: COLORS.ink, position: 'relative', overflow: 'clip' }}>
       <div style={{ position: 'relative', zIndex: 3 }}><SiteHeader active="quizzes" flush inlay={<QuizPlayerBar />} /></div>
-      <div className="qzf-w" style={{ position: 'relative', zIndex: 2, maxWidth: 1180, margin: '0 auto', padding: '4px 38px 80px' }}><div className="qzf-line" aria-hidden="true" />
+      <div className="qzf-w" style={{ position: 'relative', zIndex: 2, maxWidth: 1180, margin: '0 auto', padding: '4px 38px 80px' }}><style>{`@media(max-width:560px){.qzf-w{padding-left:14px !important;padding-right:14px !important;}}@media(max-width:480px){.qz-resrow{flex-direction:column !important;}}`}</style><div className="qzf-line" aria-hidden="true" />
 
         <style>{`@import url('https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap');`}</style>
 
@@ -412,17 +412,17 @@ export default function TimedMcqClient({ quizId, mobile = false }) {
                 question and options scroll underneath. */}
             <div style={{ position: 'sticky', top: 0, zIndex: 24, background: COLORS.cream, paddingBottom: 4 }}>
             {/* Scoreboard */}
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 16, background: COLORS.paper, borderRadius: 10, border: `1px solid ${COLORS.faded}33`, borderRadius: 12, padding: '16px 20px', marginBottom: 0 }}>
-              <div>
-                <div style={{ fontFamily: SERIF, fontWeight: 800, fontSize: 34, lineHeight: 1 }}>{points}<span style={{ fontSize: 20, color: COLORS.faded }}>/{maxPoints}</span></div>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 'clamp(6px, 2vw, 16px)', background: COLORS.paper, borderRadius: 10, border: `1px solid ${COLORS.faded}33`, borderRadius: 12, padding: '14px clamp(12px, 3.5vw, 20px)', marginBottom: 0 }}>
+              <div style={{ minWidth: 0 }}>
+                <div style={{ fontFamily: SERIF, fontWeight: 800, fontSize: 'clamp(22px, 6.4vw, 34px)', lineHeight: 1 }}>{points}<span style={{ fontSize: 'clamp(14px, 4vw, 20px)', color: COLORS.faded }}>/{maxPoints}</span></div>
                 <div style={{ fontFamily: MONO, fontSize: 11, letterSpacing: '0.12em', textTransform: 'uppercase', color: COLORS.faded }}>Points</div>
               </div>
-              <div style={{ textAlign: 'center', borderLeft: `1px solid ${COLORS.faded}33`, borderRight: `1px solid ${COLORS.faded}33`, padding: '0 22px' }}>
-                <div style={{ fontFamily: SERIF, fontWeight: 800, fontSize: 34, lineHeight: 1, color: COLORS.ember }}>{bestLabel}</div>
+              <div style={{ textAlign: 'center', borderLeft: `1px solid ${COLORS.faded}33`, borderRight: `1px solid ${COLORS.faded}33`, padding: '0 clamp(8px, 2.5vw, 22px)' }}>
+                <div style={{ fontFamily: SERIF, fontWeight: 800, fontSize: 'clamp(22px, 6.4vw, 34px)', lineHeight: 1, color: COLORS.ember }}>{bestLabel}</div>
                 <div style={{ fontFamily: MONO, fontSize: 11, letterSpacing: '0.12em', textTransform: 'uppercase', color: COLORS.faded }}>Best · <Count value={board.plays} /> {board.plays === 1 ? 'play' : 'plays'}</div>
               </div>
-              <div style={{ textAlign: 'right' }}>
-                <div style={{ fontFamily: MONO, fontSize: 24, color: phase === 'idle' || phase === 'done' ? COLORS.faded : COLORS.ink }}>
+              <div style={{ textAlign: 'right', minWidth: 0 }}>
+                <div style={{ fontFamily: MONO, fontSize: 'clamp(18px, 5vw, 24px)', color: phase === 'idle' || phase === 'done' ? COLORS.faded : COLORS.ink }}>
                   {phase === 'idle' ? `Q —/${total}` : `Q ${Math.min(qIndex + 1, total)}/${total}`}
                 </div>
                 <div style={{ fontFamily: MONO, fontSize: 11, letterSpacing: '0.12em', textTransform: 'uppercase', color: COLORS.faded }}>Question</div>
@@ -550,7 +550,7 @@ export default function TimedMcqClient({ quizId, mobile = false }) {
                   </p>
                 </div>
 
-                <div style={{ display: 'flex', gap: 14, marginTop: 18, flexWrap: 'wrap', alignItems: 'stretch' }}>
+                <div className="qz-resrow" style={{ display: 'flex', gap: 14, marginTop: 18, flexWrap: 'wrap', alignItems: 'stretch' }}>
                   <LeaderboardSnippet board={board} identity={identity} score={points} lastElapsed={lastElapsed} fill />
                   {eloPanel}
                 </div>
