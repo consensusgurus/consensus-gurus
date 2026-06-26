@@ -1289,7 +1289,10 @@ export default function QuizClient({ quizId }) {
   // on the inline-input formats. HUD (score/timer/progress) stays pinned up top.
   const bottomDock = mobile === true && inlineInput && !ended;
   // Map format: dock the Find/Skip clue bar to the bottom thumb zone on mobile.
-  const mapBarDock = mobile === true && mapMode && started && !ended;
+  // Inside the mobile play popup the Find/Skip clue sits ABOVE the map (its
+  // sticky in-flow position), not bottom-docked; bottom-docking is only for the
+  // inline (non-popup) mobile layout.
+  const mapBarDock = mobile === true && mapMode && started && !ended && !mPlayOverlay;
   const mapBarStyle = mapBarDock
     ? { position: 'fixed', left: 0, right: 0, bottom: 0, zIndex: 40, display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: 12, background: COLORS.ink, color: COLORS.cream, borderTop: `1px solid ${COLORS.faded}33`, padding: '12px 16px', paddingBottom: 'calc(12px + env(safe-area-inset-bottom))', minHeight: 30, boxShadow: '0 -6px 18px rgba(20,22,28,0.10)' }
     : { position: 'sticky', top: stickyTop, zIndex: 4, display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: 12, background: started && !ended ? COLORS.ink : COLORS.paper, color: started && !ended ? COLORS.cream : COLORS.faded, borderRadius: 10, border: `1px solid ${COLORS.faded}33`, padding: '12px 16px', marginBottom: 10, minHeight: 30 };
