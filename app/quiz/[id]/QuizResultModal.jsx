@@ -152,11 +152,11 @@ export default function QuizResultModal({
           ) : null}
         </div>
 
-        {/* ELO standing + leaderboard */}
+        {/* Leaderboard + ELO standing, stacked full width */}
         {(leaderboard || standings) ? (
-          <div className="qzm-row" style={{ display: 'flex', gap: 12, marginTop: 18, flexWrap: 'wrap', alignItems: 'stretch' }}>
+          <div style={{ marginTop: 18 }}>
             {leaderboard}
-            {standings}
+            {standings ? <div style={{ marginTop: 12 }}>{standings}</div> : null}
           </div>
         ) : null}
 
@@ -193,7 +193,6 @@ export default function QuizResultModal({
           </div>
         ) : null}
 
-        <style>{`@media(max-width:440px){.qzm-row{flex-direction:column !important;}}`}</style>
       </div>
     </div>
   );

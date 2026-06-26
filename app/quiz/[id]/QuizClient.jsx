@@ -21,6 +21,7 @@ import useIsMobile from './useIsMobile';
 import dynamic from 'next/dynamic';
 import { flushSync } from 'react-dom';
 import QuizPlayOverlay from './QuizPlayOverlay';
+import { similarQuizId } from '@/lib/quiz-similar';
 
 const MapQuizBoard = dynamic(() => import('./MapQuizBoard'), { ssr: false, loading: () => null });
 const MatchQuizBoard = dynamic(() => import('./MatchQuizBoard'), { ssr: false, loading: () => null });
@@ -1289,10 +1290,7 @@ export default function QuizClient({ quizId }) {
   // on the inline-input formats. HUD (score/timer/progress) stays pinned up top.
   const bottomDock = mobile === true && inlineInput && !ended;
   // Map format: dock the Find/Skip clue bar to the bottom thumb zone on mobile.
-  // Inside the mobile play popup the Find/Skip clue sits ABOVE the map (its
-  // sticky in-flow position), not bottom-docked; bottom-docking is only for the
-  // inline (non-popup) mobile layout.
-  const mapBarDock = mobile === true && mapMode && started && !ended && !mPlayOverlay;
+  const mapBarDock = mobile === true && mapMode && started && !ended;
   const mapBarStyle = mapBarDock
     ? { position: 'fixed', left: 0, right: 0, bottom: 0, zIndex: 40, display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: 12, background: COLORS.ink, color: COLORS.cream, borderTop: `1px solid ${COLORS.faded}33`, padding: '12px 16px', paddingBottom: 'calc(12px + env(safe-area-inset-bottom))', minHeight: 30, boxShadow: '0 -6px 18px rgba(20,22,28,0.10)' }
     : { position: 'sticky', top: stickyTop, zIndex: 4, display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: 12, background: started && !ended ? COLORS.ink : COLORS.paper, color: started && !ended ? COLORS.cream : COLORS.faded, borderRadius: 10, border: `1px solid ${COLORS.faded}33`, padding: '12px 16px', marginBottom: 10, minHeight: 30 };
@@ -1909,7 +1907,7 @@ export default function QuizClient({ quizId }) {
           onClick={() => setGameOverDismissed(true)}
           style={{ position: 'fixed', inset: 0, zIndex: 70, background: 'rgba(26,22,17,0.62)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '6vh 16px' }}
         >
-          <div onClick={(e) => e.stopPropagation()} style={{ width: '100%', maxWidth: 440, background: COLORS.cream, borderRadius: 10, border: `2px solid ${COLORS.ink}`, padding: '18px 22px', textAlign: 'center', boxShadow: '0 18px 60px rgba(26,22,17,0.4)', maxHeight: '92vh', overflowY: 'auto' }}>
+          <div onClick={(e) => e.stopPropagation()} style={{ position: 'relative', width: '100%', maxWidth: 440, background: COLORS.cream, borderRadius: 10, border: `2px solid ${COLORS.ink}`, padding: '18px 22px', textAlign: 'center', boxShadow: '0 18px 60px rgba(26,22,17,0.4)', maxHeight: '92vh', overflowY: 'auto' }}><button onClick={() => setGameOverDismissed(true)} aria-label="Close" style={{ position: 'absolute', top: 12, right: 12, width: 34, height: 34, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', borderRadius: 999, border: `1px solid ${COLORS.faded}33`, background: '#fff', color: COLORS.faded, cursor: 'pointer' }}><X size={17} strokeWidth={2.5} /></button>
             {(() => {
               const win = dispScore === total;
               const timeout = !win && time <= 0;
@@ -1942,15 +1940,16 @@ export default function QuizClient({ quizId }) {
                         : (chCountdown != null && chCountdown > 0 ? `Your results in ${chCountdown}\u2026` : 'See your results \u2192')}
                     </button>
                   )}
-                  <div style={{ width: '100%', maxWidth: 340, margin: '0 auto' }}>
-                    <button onClick={() => { try { sessionStorage.setItem('sot_quiz_retry', quizId); } catch (e) { /* no-op */ } window.location.reload(); }} style={{ width: '100%', boxSizing: 'border-box', fontFamily: MONO, fontSize: 12, letterSpacing: '0.1em', textTransform: 'uppercase', fontWeight: 700, padding: '13px 18px', borderRadius: 10, border: `1.5px solid ${COLORS.forest}`, background: COLORS.forest, color: '#fff', cursor: 'pointer', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 8, marginBottom: 8 }}><RotateCcw size={14} strokeWidth={2.5} /> Retry with 1 click</button>
-                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8, marginBottom: 8 }}>
-                      <button onClick={() => { setGameOverDismissed(true); if (identity) { setTab('stats'); } else { setClaimMsg(''); setClaimErr(false); setClaimOpen(true); setTab('play'); } }} style={{ width: '100%', boxSizing: 'border-box', fontFamily: MONO, fontSize: 11, letterSpacing: '0.04em', textTransform: 'uppercase', fontWeight: 700, padding: '11px 8px', borderRadius: 10, border: `1.5px solid ${COLORS.ink}`, background: COLORS.ink, color: COLORS.cream, cursor: 'pointer', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 6, lineHeight: 1.2, textAlign: 'center' }}><Trophy size={13} strokeWidth={2.5} /> Post to Leaderboard</button>
-                      <button onClick={share} style={{ width: '100%', boxSizing: 'border-box', fontFamily: MONO, fontSize: 11, letterSpacing: '0.04em', textTransform: 'uppercase', fontWeight: 700, padding: '11px 8px', borderRadius: 10, border: `1.5px solid ${COLORS.ink}`, background: COLORS.ink, color: COLORS.cream, cursor: 'pointer', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 6, lineHeight: 1.2, textAlign: 'center' }}><Share2 size={13} strokeWidth={2.5} /> {copied ? 'Link copied!' : 'Challenge a friend'}</button>
-                      <button onClick={() => { setGameOverDismissed(true); }} style={{ width: '100%', boxSizing: 'border-box', fontFamily: MONO, fontSize: 11, letterSpacing: '0.04em', textTransform: 'uppercase', fontWeight: 700, padding: '11px 8px', borderRadius: 10, border: `1.5px solid ${COLORS.ink}`, background: COLORS.ink, color: COLORS.cream, cursor: 'pointer', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 6, lineHeight: 1.2, textAlign: 'center' }}>Back to Quiz Page</button>
-                      <button onClick={() => router.push('/quizzes')} style={{ width: '100%', boxSizing: 'border-box', fontFamily: MONO, fontSize: 11, letterSpacing: '0.04em', textTransform: 'uppercase', fontWeight: 700, padding: '11px 8px', borderRadius: 10, border: `1.5px solid ${COLORS.ink}`, background: COLORS.ink, color: COLORS.cream, cursor: 'pointer', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 6, lineHeight: 1.2, textAlign: 'center' }}>All Quizzes</button>
+                  <div style={{ width: '100%', maxWidth: 360, margin: '0 auto' }}>
+                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
+                      <button onClick={() => { try { sessionStorage.setItem('sot_quiz_retry', quizId); } catch (e) { /* no-op */ } window.location.reload(); }} style={{ fontFamily: MONO, fontSize: 12, letterSpacing: '0.06em', textTransform: 'uppercase', fontWeight: 700, lineHeight: '46px', width: '100%', padding: '0 8px', boxSizing: 'border-box', borderRadius: 10, cursor: 'pointer', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 8, background: COLORS.ember, color: '#fff', border: 'none' }}><RotateCcw size={14} strokeWidth={2.5} /> Play Again</button>
+                      <button onClick={() => { const sid = similarQuizId(quiz); if (sid) router.push(`/quiz/${sid}`); }} style={{ fontFamily: MONO, fontSize: 12, letterSpacing: '0.06em', textTransform: 'uppercase', fontWeight: 700, lineHeight: '46px', width: '100%', padding: '0 8px', boxSizing: 'border-box', borderRadius: 10, cursor: 'pointer', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 8, background: COLORS.forest, color: '#fff', border: 'none' }}><Shuffle size={14} strokeWidth={2.5} /> Play Similar</button>
+                      <button onClick={() => { setGameOverDismissed(true); setTab('stats'); }} style={{ fontFamily: MONO, fontSize: 12, letterSpacing: '0.06em', textTransform: 'uppercase', fontWeight: 700, lineHeight: '46px', width: '100%', padding: '0 8px', boxSizing: 'border-box', borderRadius: 10, cursor: 'pointer', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 8, background: '#fff', color: COLORS.ink, border: `1.5px solid ${COLORS.ink}` }}><Trophy size={14} strokeWidth={2.5} /> Leaderboard</button>
+                      <button onClick={share} style={{ fontFamily: MONO, fontSize: 12, letterSpacing: '0.06em', textTransform: 'uppercase', fontWeight: 700, lineHeight: '46px', width: '100%', padding: '0 8px', boxSizing: 'border-box', borderRadius: 10, cursor: 'pointer', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 8, background: COLORS.ink, color: COLORS.cream, border: 'none' }}><Share2 size={14} strokeWidth={2.5} /> Share</button>
                     </div>
-                    <button onClick={() => { const series = seriesParts.filter((qq) => qq && qq.id); const sameCat = QUIZZES.filter((qq) => qq && qq.id && qq.id !== quizId && !qq.hideFromRelated && quiz.category && qq.category === quiz.category && !seriesIds.has(qq.id)); const pool = series.concat(sameCat); const choices = pool.length ? pool : QUIZZES.filter((qq) => qq && qq.id && qq.id !== quizId); const r = choices[Math.floor(Math.random() * choices.length)]; if (r) router.push(`/quiz/${r.id}`); }} style={{ width: '100%', boxSizing: 'border-box', fontFamily: MONO, fontSize: 12, letterSpacing: '0.1em', textTransform: 'uppercase', fontWeight: 700, padding: '13px 18px', borderRadius: 10, border: `1.5px solid ${COLORS.forest}`, background: COLORS.forest, color: '#fff', cursor: 'pointer', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 8 }}><Shuffle size={14} strokeWidth={2.5} /> Similar Quiz</button>
+                    <div style={{ textAlign: 'center', marginTop: 12 }}>
+                      <button onClick={() => { setGameOverDismissed(true); setQSent(false); setQOpen(true); }} style={{ background: 'none', border: 'none', padding: 4, cursor: 'pointer', fontFamily: MONO, fontSize: 12, fontWeight: 600, color: COLORS.faded, textDecoration: 'underline', textUnderlineOffset: 3 }}>Report an error</button>
+                    </div>
                   </div>
                 </>
               );
