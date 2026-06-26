@@ -132,7 +132,7 @@ export default function GlobePlaceClient({ quizId }) {
   const [flashIdx, setFlashIdx] = useState(-1);   // placement index currently flashing its truth
   const [remaining, setRemaining] = useState(timeLimit * 1000);
   const [lastElapsed, setLastElapsed] = useState(null);
-  const [gw, setGw] = useState(520);
+  const [gw, setGw] = useState(680);
 
   const [stats, setStats] = useState({ attempts: 0, best: 0, totalCorrect: 0 });
   const [board, setBoard] = useState({ plays: 0, best: null, topTime: null, leaderboard: [], leaderboardAll: [], leaderboardMobile: [], leaderboardFirst: [] });
@@ -204,7 +204,7 @@ export default function GlobePlaceClient({ quizId }) {
 
   // Keep the globe sized to its column.
   useEffect(() => {
-    function measure() { if (wrapRef.current) setGw(Math.max(260, Math.min(wrapRef.current.clientWidth, 560))); }
+    function measure() { if (wrapRef.current) setGw(Math.max(260, Math.min(wrapRef.current.clientWidth, 760))); }
     measure();
     window.addEventListener('resize', measure);
     return () => window.removeEventListener('resize', measure);
@@ -219,7 +219,7 @@ export default function GlobePlaceClient({ quizId }) {
       c.autoRotate = phase !== 'playing';
       c.autoRotateSpeed = 0.5;
       c.enableZoom = true;
-      c.rotateSpeed = 0.7;
+      c.rotateSpeed = 0.6;
     } catch (e) {}
   }, [phase]);
 
@@ -229,7 +229,7 @@ export default function GlobePlaceClient({ quizId }) {
     try {
       g.pointOfView({ lat: 18, lng: 30, altitude: 2.4 }, 0);
       const c = g.controls();
-      c.autoRotate = phaseRef.current !== 'playing'; c.autoRotateSpeed = 0.5; c.enableZoom = true; c.rotateSpeed = 0.7;
+      c.autoRotate = phaseRef.current !== 'playing'; c.autoRotateSpeed = 0.5; c.enableZoom = true; c.rotateSpeed = 0.6;
     } catch (e) {}
   }
 
