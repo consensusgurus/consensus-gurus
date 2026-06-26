@@ -464,31 +464,36 @@ export default function MapPlaceClient({ quizId }) {
             {/* Scoreboard + timer (sticky) — hidden once the results popup takes over */}
             {phase !== 'done' && (
             <div style={{ position: 'sticky', top: 0, zIndex: 1200, background: COLORS.cream, paddingBottom: 4 }}>
-              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 'clamp(6px, 2vw, 16px)', background: COLORS.paper, borderRadius: 12, border: `1px solid ${COLORS.faded}33`, padding: '14px clamp(12px, 3.5vw, 20px)' }}>
-                <div style={{ minWidth: 0 }}>
-                  <div style={{ fontFamily: SERIF, fontWeight: 800, fontSize: 'clamp(22px, 6.4vw, 34px)', lineHeight: 1 }}>{points}<span style={{ fontSize: 'clamp(14px, 4vw, 20px)', color: COLORS.faded }}>/{maxPoints}</span></div>
-                  <div style={{ fontFamily: MONO, fontSize: 11, letterSpacing: '0.12em', textTransform: 'uppercase', color: COLORS.faded }}>Points</div>
+              <div style={{ background: COLORS.paper, borderRadius: 12, border: `1px solid ${COLORS.faded}33`, padding: '12px clamp(12px, 3.5vw, 20px)' }}>
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 'clamp(10px, 2.5vw, 20px)' }}>
+                  <div style={{ flex: 'none' }}>
+                    <div style={{ fontFamily: SERIF, fontWeight: 800, fontSize: 'clamp(20px, 5vw, 32px)', lineHeight: 1 }}>{points}<span style={{ fontSize: 'clamp(13px, 3vw, 18px)', color: COLORS.faded }}>/{maxPoints}</span></div>
+                    <div style={{ fontFamily: MONO, fontSize: 10, letterSpacing: '0.12em', textTransform: 'uppercase', color: COLORS.faded }}>Points</div>
+                  </div>
+                  <div style={{ flex: 1, minWidth: 0, textAlign: 'center', borderLeft: `1px solid ${COLORS.faded}33`, borderRight: `1px solid ${COLORS.faded}33`, padding: '0 clamp(8px, 2vw, 18px)' }}>
+                    {phase === 'playing' ? (
+                      <>
+                        <div style={{ fontFamily: MONO, fontSize: 10, letterSpacing: '0.16em', textTransform: 'uppercase', color: COLORS.ember, marginBottom: 3 }}>Find</div>
+                        <div style={{ fontFamily: SERIF, fontWeight: 800, fontSize: 'clamp(17px, 2.8vw, 26px)', lineHeight: 1.1, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{promptCity ? promptCity.name : ''}</div>
+                      </>
+                    ) : (
+                      <>
+                        <div style={{ fontFamily: SERIF, fontWeight: 800, fontSize: 'clamp(20px, 5vw, 32px)', lineHeight: 1, color: COLORS.ember }}>{bestLabel}</div>
+                        <div style={{ fontFamily: MONO, fontSize: 10, letterSpacing: '0.12em', textTransform: 'uppercase', color: COLORS.faded }}>Best · <Count value={board.plays} /> {board.plays === 1 ? 'play' : 'plays'}</div>
+                      </>
+                    )}
+                  </div>
+                  <div style={{ flex: 'none', textAlign: 'right' }}>
+                    <div style={{ fontFamily: MONO, fontSize: 'clamp(18px, 4.5vw, 28px)', lineHeight: 1, color: phase === 'playing' ? (lowClock ? COLORS.ember : COLORS.ink) : COLORS.faded }}>{phase === 'playing' ? fmtTime(secsLeft) : fmtTime(clockSecs)}</div>
+                    <div style={{ fontFamily: MONO, fontSize: 10, letterSpacing: '0.12em', textTransform: 'uppercase', color: COLORS.faded }}>{phase === 'idle' ? `${total} rounds` : `Round ${Math.min(idx + (phase === 'playing' ? 1 : 0), total)}/${total}`}</div>
+                  </div>
                 </div>
-                <div style={{ textAlign: 'center', borderLeft: `1px solid ${COLORS.faded}33`, borderRight: `1px solid ${COLORS.faded}33`, padding: '0 clamp(8px, 2.5vw, 22px)' }}>
-                  <div style={{ fontFamily: SERIF, fontWeight: 800, fontSize: 'clamp(22px, 6.4vw, 34px)', lineHeight: 1, color: COLORS.ember }}>{bestLabel}</div>
-                  <div style={{ fontFamily: MONO, fontSize: 11, letterSpacing: '0.12em', textTransform: 'uppercase', color: COLORS.faded }}>Best · <Count value={board.plays} /> {board.plays === 1 ? 'play' : 'plays'}</div>
-                </div>
-                <div style={{ textAlign: 'right', minWidth: 0 }}>
-                  <div style={{ fontFamily: MONO, fontSize: 'clamp(19px, 5.6vw, 28px)', lineHeight: 1, color: phase === 'playing' ? (lowClock ? COLORS.ember : COLORS.ink) : COLORS.faded }}>{phase === 'playing' ? fmtTime(secsLeft) : fmtTime(clockSecs)}</div>
-                  <div style={{ fontFamily: MONO, fontSize: 11, letterSpacing: '0.12em', textTransform: 'uppercase', color: COLORS.faded }}>{phase === 'idle' ? `${total} rounds` : `Round ${Math.min(idx + (phase === 'playing' ? 1 : 0), total)}/${total}`}</div>
-                </div>
+                {phase === 'playing' && (
+                  <div style={{ height: 8, marginTop: 10, background: COLORS.cream, borderRadius: 6, position: 'relative', overflow: 'hidden' }}>
+                    <div style={{ position: 'absolute', left: 0, top: 0, bottom: 0, width: `${timeFrac * 100}%`, background: lowClock ? COLORS.ember : COLORS.forest, transition: `width ${TICK_MS}ms linear` }} />
+                  </div>
+                )}
               </div>
-              {phase === 'playing' && (
-                <div style={{ height: 10, marginTop: 8, background: COLORS.paper, borderRadius: 10, border: `1px solid ${COLORS.faded}44`, position: 'relative', overflow: 'hidden' }}>
-                  <div style={{ position: 'absolute', left: 0, top: 0, bottom: 0, width: `${timeFrac * 100}%`, background: lowClock ? COLORS.ember : COLORS.forest, transition: `width ${TICK_MS}ms linear` }} />
-                </div>
-              )}
-              {phase === 'playing' && (
-                <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'center', gap: 10, marginTop: 10, flexWrap: 'wrap' }}>
-                  <span style={{ fontFamily: MONO, fontSize: 11, letterSpacing: '0.16em', textTransform: 'uppercase', color: COLORS.ember }}>Find</span>
-                  <span style={{ fontFamily: SERIF, fontWeight: 800, fontSize: 'clamp(20px, 3.2vw, 28px)', lineHeight: 1.1, textAlign: 'center' }}>{promptCity ? promptCity.name : ''}</span>
-                </div>
-              )}
             </div>
             )}
 
