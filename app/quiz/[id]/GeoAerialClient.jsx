@@ -109,9 +109,15 @@ export default function MapPlaceClient({ quizId, mobile = false }) {
   const quiz = useMemo(() => getQuiz(quizId), [quizId]);
 
   // ── Aerial map setup (Leaflet loaded from CDN at runtime; no SVG projection) ──
-  const TILE_URL = 'https://maps{s}.nyc.gov/xyz/1.0.0/photo/2018/{z}/{x}/{y}.png8';
-  const NYC_VIEW = [40.758, -73.978];
-  const NYC_ZOOM = 12;
+  const BM = (quiz && quiz.basemap) || {};
+  const TILE_URL = BM.tileUrl || 'https://maps{s}.nyc.gov/xyz/1.0.0/photo/2018/{z}/{x}/{y}.png8';
+  const TILE_SUBDOMAINS = BM.subdomains != null ? BM.subdomains : '1234';
+  const TILE_ATTR = BM.attribution || '&copy; City of New York';
+  const TILE_MAXNATIVE = BM.maxNativeZoom || 19;
+  const TILE_BOUNDS = BM.tileBounds || [[40.4888, -74.2759], [40.9279, -73.6896]];
+  const MAP_MAXBOUNDS = BM.maxBounds || [[40.49, -74.27], [40.93, -73.69]];
+  const NYC_VIEW = BM.center || [40.758, -73.978];
+  const NYC_ZOOM = BM.zoom || 12;
   const geo = useMemo(() => (quiz && Array.isArray(quiz.cities) && quiz.cities.length ? { ready: true } : null), [quiz]);
   const [leafletReady, setLeafletReady] = useState(false);
   const mapElRef = useRef(null);
@@ -236,8 +242,8 @@ export default function MapPlaceClient({ quizId, mobile = false }) {
     if (phase !== 'playing' || !leafletReady || !mapElRef.current || mapRef.current) return;
     const L = window.L;
     const map = L.map(mapElRef.current, { minZoom: 11, maxZoom: 19, zoomControl: true }).setView(NYC_VIEW, NYC_ZOOM);
-    map.setMaxBounds(L.latLngBounds([40.49, -74.27], [40.93, -73.69]));
-    L.tileLayer(TILE_URL, { subdomains: '1234', minNativeZoom: 8, maxNativeZoom: 19, maxZoom: 19, bounds: L.latLngBounds([40.4888, -74.2759], [40.9279, -73.6896]), attribution: '&copy; City of New York' }).addTo(map);
+    map.setMaxBounds(L.latLngBounds(MAP_MAXBOUNDS[0], MAP_MAXBOUNDS[1]));
+    L.tileLayer(TILE_URL, { subdomains: TILE_SUBDOMAINS, minNativeZoom: 8, maxNativeZoom: TILE_MAXNATIVE, maxZoom: 19, bounds: L.latLngBounds(TILE_BOUNDS[0], TILE_BOUNDS[1]), attribution: TILE_ATTR }).addTo(map);
     map.on('click', (e) => { if (phaseRef.current === 'playing' && !resolvedRef.current) resolveRef.current(e.latlng); });
     mapRef.current = map;
     setTimeout(() => { try { map.invalidateSize(); } catch (e) {} }, 60);
