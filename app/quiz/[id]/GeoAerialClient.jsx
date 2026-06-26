@@ -325,10 +325,9 @@ export default function MapPlaceClient({ quizId }) {
     setPlacements((prev) => {
       const finalPoints = prev.reduce((s, p) => s + (p.pts || 0), 0);
       const elapsed = startRef.current ? Math.min(clockSecs * total, Math.round((Date.now() - startRef.current) / 1000)) : clockSecs * total;
-      const firstAttempt = loadStats(quizId).attempts === 0; // only the first play posts to the leaderboard
       setLastElapsed(elapsed);
       setStats(recordResult(quizId, finalPoints));
-      if (firstAttempt) {
+      {
         fetch('/api/quiz/result', {
           method: 'POST',
           keepalive: true,
@@ -339,8 +338,6 @@ export default function MapPlaceClient({ quizId }) {
           .then((d) => { if (d && !d.error) setBoard({ plays: d.plays || 0, best: d.best ?? null, topTime: d.topTime ?? null, leaderboard: d.leaderboard || [], leaderboardAll: d.leaderboardAll || [], leaderboardMobile: d.leaderboardMobile || [], leaderboardFirst: d.leaderboardFirst || [], leaderboards: d.leaderboards || {} }); })
           .then(() => fetchQuizMe(setEloAfter))
           .catch(() => { fetchQuizMe(setEloAfter); });
-      } else {
-        fetchQuizMe(setEloAfter);
       }
       return prev;
     });

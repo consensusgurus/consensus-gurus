@@ -305,10 +305,9 @@ export default function TimedMcqClient({ quizId, mobile = false }) {
     setResults((prev) => {
       const finalPoints = prev.reduce((s, r) => s + (r.pts || 0), 0);
       const elapsed = startRef.current ? Math.round((Date.now() - startRef.current) / 1000) : total * perSec;
-      const firstAttempt = loadStats(quizId).attempts === 0; // only the first play counts on the leaderboard
       setLastElapsed(elapsed);
       setStats(recordResult(quizId, finalPoints));
-      if (firstAttempt) {
+      {
         fetch('/api/quiz/result', {
           method: 'POST',
           keepalive: true,
@@ -319,8 +318,6 @@ export default function TimedMcqClient({ quizId, mobile = false }) {
           .then((d) => { if (d && !d.error) setBoard({ plays: d.plays || 0, best: d.best ?? null, topTime: d.topTime ?? null, leaderboard: d.leaderboard || [], leaderboardAll: d.leaderboardAll || [], leaderboardMobile: d.leaderboardMobile || [], leaderboardFirst: d.leaderboardFirst || [], leaderboards: d.leaderboards || {} }); })
           .then(() => fetchQuizMe(setEloAfter))
           .catch(() => { fetchQuizMe(setEloAfter); });
-      } else {
-        fetchQuizMe(setEloAfter);
       }
       return prev;
     });
