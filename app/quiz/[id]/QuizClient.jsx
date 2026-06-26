@@ -1275,10 +1275,16 @@ export default function QuizClient({ quizId }) {
   // list). Excludes map, the tile/bank boards, image grids, slideshow, and the
   // per-slot matched grids, which keep their own layout in phase 1.
   const defaultTyped = !mapMode && !tileMode && !matched && !logosMode && !slideshow;
+  // Formats whose live play moves into the mobile fullscreen popup. Phase 1: the
+  // default typed name-them-all. Phase 2: the click-the-country map (format
+  // 'map', including the no-outline regional maps like asia-no-outline). The
+  // geo-guesser boards (place-map / globe / geo-aerial) are separate full-page
+  // components handled earlier and are not affected here.
+  const overlayFormat = defaultTyped || mapMode;
   // Mobile fullscreen play popup: open from Play press through the end of the
   // game (it also hosts the end-of-game summary, so it stays open while ended
   // and on the Play tab). Desktop never opens it; the play surface stays inline.
-  const mPlayOverlay = mobile === true && defaultTyped && started && tab === 'play';
+  const mPlayOverlay = mobile === true && overlayFormat && started && tab === 'play';
   // Mobile thumb-zone: dock the input + Play to a fixed bottom bar during play
   // on the inline-input formats. HUD (score/timer/progress) stays pinned up top.
   const bottomDock = mobile === true && inlineInput && !ended;
