@@ -25,6 +25,7 @@ export default function sitemap() {
   const staticPages = [
     { url: baseUrl, lastModified: newestList, changeFrequency: 'daily', priority: 1.0 },
     { url: `${baseUrl}/quizzes`, lastModified: newestQuiz, changeFrequency: 'daily', priority: 0.8 },
+    { url: `${baseUrl}/geo/nyc-restaurants`, lastModified: new Date('2026-06-25'), changeFrequency: 'monthly', priority: 0.6 },
     { url: `${baseUrl}/sporcle-alternative`, lastModified: newestQuiz, changeFrequency: 'monthly', priority: 0.6 },
     { url: `${baseUrl}/experts-and-aggregators`, lastModified: newestList, changeFrequency: 'weekly', priority: 0.5 },
     { url: `${baseUrl}/request`, lastModified: new Date('2026-01-01'), changeFrequency: 'monthly', priority: 0.5 },
