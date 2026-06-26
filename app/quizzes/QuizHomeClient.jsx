@@ -599,7 +599,11 @@ export default function QuizHomeClient() {
   const searchResults = useMemo(() => {
     const q = search.trim().toLowerCase();
     if (!q) return null;
-    return catalog.filter((c) => c.rawTitle.toLowerCase().includes(q) || c.title.toLowerCase().includes(q)).slice(0, 80);
+    const terms = q.split(/\s+/).filter(Boolean);
+    return catalog.filter((c) => {
+      const hay = (c.rawTitle + ' ' + c.title).toLowerCase();
+      return terms.every((t) => hay.includes(t));
+    }).slice(0, 80);
   }, [search, catalog]);
 
   // Hide "Best category" only when the player bar is forced to wrap to a new
