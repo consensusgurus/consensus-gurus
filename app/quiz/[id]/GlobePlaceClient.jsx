@@ -381,40 +381,9 @@ export default function GlobePlaceClient({ quizId }) {
     }
     return { pts, arcs };
   }
-  const liveLayers = buildGlobeLayers(false);
-  const recapLayers = buildGlobeLayers(true);
+  const liveLayers = useMemo(() => buildGlobeLayers(false), [placements, flashIdx, phase]);
+  const recapLayers = useMemo(() => buildGlobeLayers(true), [placements, phase]);
 
-  function GlobeView({ layers, size, interactive }) {
-    return (
-      <Globe
-        ref={globeRef}
-        width={size}
-        height={Math.round(size * 0.84)}
-        backgroundColor="rgba(0,0,0,0)"
-        globeImageUrl={GLOBE_IMG}
-        bumpImageUrl={GLOBE_BUMP}
-        showAtmosphere
-        atmosphereColor="#9ec3e8"
-        atmosphereAltitude={0.16}
-        onGlobeReady={onGlobeReady}
-        onGlobeClick={interactive ? handleGlobeClick : undefined}
-        pointsData={layers.pts}
-        pointLat="lat"
-        pointLng="lng"
-        pointColor="color"
-        pointAltitude={0.012}
-        pointRadius="r"
-        pointLabel="label"
-        arcsData={layers.arcs}
-        arcColor={() => [GUESS_C, TRUTH_C]}
-        arcStroke={0.5}
-        arcDashLength={0.5}
-        arcDashGap={0.12}
-        arcDashAnimateTime={0}
-        arcAltitudeAutoScale={0.4}
-      />
-    );
-  }
 
   const recap = phase === 'done' ? placements.map((p) => ({ name: cities[p.cityIdx].name, miles: p.miles, pts: p.pts })).sort((a, b) => b.pts - a.pts) : [];
 
@@ -478,7 +447,7 @@ export default function GlobePlaceClient({ quizId }) {
                   </button>
                 </div>
                 <div style={{ display: 'flex', justifyContent: 'center', marginTop: 22, opacity: 0.5, pointerEvents: 'none' }}>
-                  <div style={{ width: gw, maxWidth: '100%' }}><GlobeView layers={{ pts: [], arcs: [] }} size={gw} interactive={false} /></div>
+                  <div style={{ width: gw, maxWidth: '100%' }}><GlobeView layers={{ pts: [], arcs: [] }} size={gw} interactive={false} globeRef={globeRef} onReady={onGlobeReady} onClick={handleGlobeClick} /></div>
                 </div>
               </div>
             )}
@@ -492,7 +461,7 @@ export default function GlobePlaceClient({ quizId }) {
                 </div>
                 <div style={{ display: 'flex', justifyContent: 'center' }}>
                   <div style={{ width: gw, maxWidth: '100%', borderRadius: 10, overflow: 'hidden', border: `1px solid ${COLORS.faded}44`, background: '#05070d', cursor: 'crosshair' }}>
-                    <GlobeView layers={liveLayers} size={gw} interactive />
+                    <GlobeView layers={liveLayers} size={gw} interactive globeRef={globeRef} onReady={onGlobeReady} onClick={handleGlobeClick} />
                   </div>
                 </div>
                 <p style={{ fontFamily: MONO, fontSize: 11, letterSpacing: '0.06em', color: COLORS.faded, textAlign: 'center', margin: '10px 0 0' }}>Drag to spin · click where it stands</p>
@@ -549,7 +518,7 @@ export default function GlobePlaceClient({ quizId }) {
                     <div style={{ maxWidth: 560, width: '100%' }}>
                       <div style={{ display: 'flex', justifyContent: 'center' }}>
                         <div style={{ width: gw, maxWidth: '100%', borderRadius: 10, overflow: 'hidden', border: `1px solid ${COLORS.faded}44`, background: '#05070d' }}>
-                          <GlobeView layers={recapLayers} size={gw} interactive={false} />
+                          <GlobeView layers={recapLayers} size={gw} interactive={false} globeRef={globeRef} onReady={onGlobeReady} onClick={handleGlobeClick} />
                         </div>
                       </div>
                       <ol style={{ margin: '16px 0 0', padding: 0, listStyle: 'none' }}>
@@ -733,5 +702,37 @@ function StatBox({ label, value, accent }) {
       <div style={{ fontFamily: SERIF, fontWeight: 800, fontSize: 30, lineHeight: 1, color: accent ? COLORS.ember : COLORS.ink }}>{value}</div>
       <div style={{ fontFamily: MONO, fontSize: 10, letterSpacing: '0.12em', textTransform: 'uppercase', color: COLORS.faded, marginTop: 8 }}>{label}</div>
     </div>
+  );
+}
+
+function GlobeView({ layers, size, interactive, globeRef, onReady, onClick }) {
+  return (
+    <Globe
+      ref={globeRef}
+      width={size}
+      height={Math.round(size * 0.84)}
+      backgroundColor="rgba(0,0,0,0)"
+      globeImageUrl={GLOBE_IMG}
+      bumpImageUrl={GLOBE_BUMP}
+      showAtmosphere
+      atmosphereColor="#9ec3e8"
+      atmosphereAltitude={0.16}
+      onGlobeReady={onReady}
+      onGlobeClick={interactive ? onClick : undefined}
+      pointsData={layers.pts}
+      pointLat="lat"
+      pointLng="lng"
+      pointColor="color"
+      pointAltitude={0.012}
+      pointRadius="r"
+      pointLabel="label"
+      arcsData={layers.arcs}
+      arcColor={() => [GUESS_C, TRUTH_C]}
+      arcStroke={0.5}
+      arcDashLength={0.5}
+      arcDashGap={0.12}
+      arcDashAnimateTime={0}
+      arcAltitudeAutoScale={0.4}
+    />
   );
 }
