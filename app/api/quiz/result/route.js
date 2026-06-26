@@ -37,10 +37,11 @@ function summarize(rows) {
     .slice(0, 10)
     .map((r) => ({ username: r.username, userKey: 'u:' + r.user_id, score: r.score, timeElapsed: r.time_elapsed, tryNum: tryOf.get(r), playedAt: r.created_at }));
   const leaderboard = rankSigned(signed);
-  // "Mobile" = signed games played on a phone/tablet (is_mobile true; legacy
-  // and unknown rows are NULL and excluded). "First try" = each signed player's
-  // earliest completed game only (attempt #1, per tryOf).
-  const leaderboardMobile = rankSigned(signed.filter((r) => r.is_mobile === true));
+  // "Mobile" includes ALL players (registered + anonymous), filtered to games
+  // played on a phone/tablet (is_mobile true). Anonymous mobile plays appear as
+  // "Player #NNNNN", mirroring the All-players view. Legacy/unknown rows are NULL
+  // and excluded. (First Try stays registered-only.)
+  const leaderboardMobile = buildAllLeaderboard(rows.filter((r) => r.is_mobile === true));
   const leaderboardFirst = rankSigned(signed.filter((r) => tryOf.get(r) === 1));
   const leaderboardAll = buildAllLeaderboard(rows);
   // Exact score distribution over ALL completed attempts, so the client can
