@@ -19,6 +19,7 @@ import QuizResultModal from './QuizResultModal';
 import QuizDoneRecap from './QuizDoneRecap';
 import { similarQuizId } from '@/lib/quiz-similar';
 import { getQuiz } from '@/lib/quizzes';
+import { useChallengeRun, ChallengeRunOverlay } from './useChallengeRun';
 import Grain from '../../Grain';
 import Footer from '../../Footer';
 import SiteHeader from '../../SiteHeader';
@@ -112,6 +113,7 @@ const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 export default function LogicGridClient({ quizId, mobile = false }) {
   const router = useRouter();
   const quiz = useMemo(() => getQuiz(quizId), [quizId]);
+  const chRun = useChallengeRun(quizId);
 
   if (!quiz) {
     return (
@@ -243,6 +245,7 @@ export default function LogicGridClient({ quizId, mobile = false }) {
     const finalScore = finalSolved.filter(Boolean).length;
     const elapsed = startRef.current ? Math.min(quiz.timeLimit, Math.round((Date.now() - startRef.current) / 1000)) : quiz.timeLimit;
     setLastElapsed(elapsed);
+    chRun.recordStep(finalScore, total, elapsed);
     setStats(recordResult(quizId, finalScore));
     setRevealed(true);
     setHint(win ? `Solved — all ${total} boxes in ${fmtTime(elapsed)}!` : `Time's up. You placed ${finalScore}/${total}.`);
@@ -372,6 +375,7 @@ export default function LogicGridClient({ quizId, mobile = false }) {
   return (
     <div style={{ minHeight: '100vh', background: COLORS.cream, color: COLORS.ink, position: 'relative', overflow: 'clip' }}>
       <Grain />
+      <ChallengeRunOverlay run={chRun} />
       <div style={{ position: 'relative', zIndex: 3 }}><SiteHeader active="quizzes" flush inlay={<QuizPlayerBar />} /></div>
       <div className="qzf-w" style={{ position: 'relative', zIndex: 2, maxWidth: 1180, margin: '0 auto', padding: '4px 38px 80px' }}><style>{`@media(max-width:560px){.qzf-w{padding-left:14px !important;padding-right:14px !important;}}`}</style><div className="qzf-line" aria-hidden="true" />
 

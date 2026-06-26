@@ -29,6 +29,7 @@ import QuizResultModal from './QuizResultModal';
 import QuizDoneRecap from './QuizDoneRecap';
 import { similarQuizId } from '@/lib/quiz-similar';
 import { getQuiz, QUIZZES } from '@/lib/quizzes';
+import { useChallengeRun, ChallengeRunOverlay } from './useChallengeRun';
 import { quizDept as deptOf, DEPT_LABEL } from '@/lib/quiz-departments';
 import { PLACE_MAP_GEO } from '@/lib/place-map-geo';
 import Grain from '../../Grain';
@@ -107,6 +108,7 @@ const TICK_MS = 100;
 export default function MapPlaceClient({ quizId, mobile = false }) {
   const router = useRouter();
   const quiz = useMemo(() => getQuiz(quizId), [quizId]);
+  const chRun = useChallengeRun(quizId);
 
   // ── Projection + outline paths (built once from the region geometry + cities) ──
   const geo = useMemo(() => {
@@ -290,6 +292,7 @@ export default function MapPlaceClient({ quizId, mobile = false }) {
       const finalPoints = prev.reduce((s, p) => s + (p.pts || 0), 0);
       const elapsed = startRef.current ? Math.min(timeLimit, Math.round((Date.now() - startRef.current) / 1000)) : timeLimit;
       setLastElapsed(elapsed);
+      chRun.recordStep(finalPoints, maxPoints, elapsed);
       setStats(recordResult(quizId, finalPoints));
       {
         fetch('/api/quiz/result', {
@@ -411,6 +414,7 @@ export default function MapPlaceClient({ quizId, mobile = false }) {
 
   return (
     <div style={{ minHeight: '100vh', background: COLORS.cream, color: COLORS.ink, position: 'relative', overflow: 'clip' }}>
+      <ChallengeRunOverlay run={chRun} />
       <div style={{ position: 'relative', zIndex: 3 }}><SiteHeader active="quizzes" flush inlay={<QuizPlayerBar />} /></div>
       <div className="qzf-w" style={{ position: 'relative', zIndex: 2, maxWidth: 1180, margin: '0 auto', padding: '4px 38px 80px' }}><style>{`@media(max-width:560px){.qzf-w{padding-left:14px !important;padding-right:14px !important;}}@media(max-width:480px){.qz-resrow{flex-direction:column !important;}}`}</style><div className="qzf-line" aria-hidden="true" />
 

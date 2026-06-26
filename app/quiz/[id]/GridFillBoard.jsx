@@ -20,6 +20,7 @@ import QuizResultModal from './QuizResultModal';
 import QuizDoneRecap from './QuizDoneRecap';
 import { similarQuizId } from '@/lib/quiz-similar';
 import { getQuiz } from '@/lib/quizzes';
+import { useChallengeRun, ChallengeRunOverlay } from './useChallengeRun';
 import Grain from '../../Grain';
 import Footer from '../../Footer';
 import SiteHeader from '../../SiteHeader';
@@ -127,6 +128,7 @@ const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 export default function GridFillBoard({ quizId, mobile = false }) {
   const router = useRouter();
   const quiz = useMemo(() => getQuiz(quizId), [quizId]);
+  const chRun = useChallengeRun(quizId);
 
   if (!quiz) {
     return (
@@ -322,6 +324,7 @@ export default function GridFillBoard({ quizId, mobile = false }) {
     columns.forEach((c) => (c.items || []).forEach((it) => { if (finalFound.has(it.id)) finalScore++; }));
     const elapsed = startRef.current ? Math.min(quiz.timeLimit, Math.round((Date.now() - startRef.current) / 1000)) : quiz.timeLimit;
     setLastElapsed(elapsed);
+    chRun.recordStep(finalScore, totalCells, elapsed);
     setStats(recordResult(quizId, finalScore));
     setHint(win ? `Perfect! All ${totalCells} cells in ${fmtTime(elapsed)}.` : `Done. You filled ${finalScore}/${totalCells} cells.`);
     setHintBad(!win);
@@ -430,6 +433,7 @@ export default function GridFillBoard({ quizId, mobile = false }) {
   return (
     <div style={{ minHeight: '100vh', background: COLORS.cream, color: COLORS.ink, position: 'relative', overflow: 'clip' }}>
       <Grain />
+      <ChallengeRunOverlay run={chRun} />
       <div style={{ position: 'relative', zIndex: 3 }}><SiteHeader active="quizzes" flush inlay={<QuizPlayerBar />} /></div>
       <div className="qzf-w" style={{ position: 'relative', zIndex: 2, maxWidth: 1180, margin: '0 auto', padding: '4px 38px 80px' }}><style>{`@media(max-width:560px){.qzf-w{padding-left:14px !important;padding-right:14px !important;}}`}</style><div className="qzf-line" aria-hidden="true" />
 
