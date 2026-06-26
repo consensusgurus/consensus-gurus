@@ -64,7 +64,7 @@ export default function QuizPlayOverlay({ open, background = '#f7f8fa', children
         overflowY: 'auto',
         WebkitOverflowScrolling: 'touch',
         overscrollBehavior: 'contain',
-        padding: '12px 14px 0',
+        padding: 'calc(12px + env(safe-area-inset-top)) calc(14px + env(safe-area-inset-right)) 0 calc(14px + env(safe-area-inset-left))',
         boxSizing: 'border-box',
       }}
     >
