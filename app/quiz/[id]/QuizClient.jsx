@@ -31,6 +31,7 @@ const PhotoMatchBoard = dynamic(() => import('./PhotoMatchBoard'), { ssr: false,
 const GridFillBoard = dynamic(() => import('./GridFillBoard'), { ssr: false, loading: () => null });
 const WordScrambleBoard = dynamic(() => import('./WordScrambleBoard'), { ssr: false, loading: () => null });
 const MapPlaceBoard = dynamic(() => import('./MapPlaceClient'), { ssr: false, loading: () => null });
+const GlobePlaceBoard = dynamic(() => import('./GlobePlaceClient'), { ssr: false, loading: () => null });
 
 function shuffleIdx(n) {
   const a = [...Array(n).keys()];
@@ -358,6 +359,9 @@ export default function QuizClient({ quizId }) {
   }
   if (quiz.format === 'place-map') {
     return <MapPlaceBoard quizId={quizId} />;
+  }
+  if (quiz.format === 'globe') {
+    return <GlobePlaceBoard quizId={quizId} />;
   }
   const answers = quiz.answers;
   const matched = quiz.format === 'matched';
