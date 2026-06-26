@@ -56,11 +56,12 @@ export default function PhotoBoard({ items, started, ended, revealed, onMatch, o
 
   const live = started && !ended;
   const [kbInset, setKbInset] = useState(0);
+  const [vvH, setVvH] = useState(0); // visual-viewport height (shrinks when the keyboard opens)
   useEffect(() => {
-    if (!(mobile && started && !ended)) { setKbInset(0); return undefined; }
+    if (!(mobile && started && !ended)) { setKbInset(0); setVvH(0); return undefined; }
     const vv = window.visualViewport;
     if (!vv) return undefined;
-    const onVV = () => setKbInset(Math.max(0, Math.round(window.innerHeight - vv.height - vv.offsetTop)));
+    const onVV = () => { setKbInset(Math.max(0, Math.round(window.innerHeight - vv.height - vv.offsetTop))); setVvH(vv.height); };
     onVV();
     vv.addEventListener('resize', onVV);
     vv.addEventListener('scroll', onVV);
@@ -76,7 +77,7 @@ export default function PhotoBoard({ items, started, ended, revealed, onMatch, o
   function centerClue() {
     if (!dock) return;
     const el = clueRef.current;
-    if (el && typeof el.scrollIntoView === 'function') el.scrollIntoView({ block: 'center', behavior: 'smooth' });
+    if (el && typeof el.scrollIntoView === 'function') el.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
   }
   useEffect(() => {
     if (!dock) return undefined;
@@ -91,6 +92,14 @@ export default function PhotoBoard({ items, started, ended, revealed, onMatch, o
   const noun = answerNoun || 'city';
   const _ar = String(photoAspect).split('/');
   const portrait = parseFloat(_ar[0]) < parseFloat(_ar[1]);
+  // With the keyboard open the visible area shrinks. Cap the photo so it fits
+  // ABOVE the docked input, so the page never has to scroll (which is what was
+  // sliding the photo off-screen the moment the input was focused). Only kicks
+  // in while docked with the keyboard up; otherwise the normal caps apply.
+  const fitCap = dock && vvH ? Math.max(140, Math.round(vvH - stickyTop - 185)) : null;
+  const photoMax = fitCap ? Math.min(500, fitCap) : 500;
+  const photoMaxPortrait = fitCap ? Math.min(560, fitCap) : 560;
+  const photoMaxMasked = fitCap ? Math.min(520, fitCap) : 520;
 
   useEffect(() => {
     const origins = new Set();
@@ -246,14 +255,14 @@ export default function PhotoBoard({ items, started, ended, revealed, onMatch, o
         // logo / name printed on the photo.
         <div style={{ width: '100%', display: 'flex', justifyContent: 'center', marginBottom: 10 }}>
           <div style={{ position: 'relative', display: 'inline-block', lineHeight: 0, maxWidth: '100%', background: COLORS.ink, borderRadius: 10, border: `2px solid ${borderColor}`, transition: 'border-color .15s' }}>
-            <img src={curItem.img} alt={`Name the ${noun} in this photo`} style={{ display: 'block', width: 'auto', height: 'auto', maxWidth: '100%', maxHeight: 520 }} />
+            <img src={curItem.img} alt={`Name the ${noun} in this photo`} style={{ display: 'block', width: 'auto', height: 'auto', maxWidth: '100%', maxHeight: photoMaxMasked }} />
             {(curItem.mask || []).map((m, mi) => (
               <div key={mi} style={{ position: 'absolute', left: `${m.x}%`, top: `${m.y}%`, width: `${m.w}%`, height: `${m.h}%`, background: COLORS.ink }} />
             ))}
           </div>
         </div>
       ) : (
-      <div style={{ position: 'relative', width: '100%', aspectRatio: photoAspect, maxHeight: 500, ...(portrait ? { maxWidth: 420, maxHeight: 560, marginLeft: 'auto', marginRight: 'auto' } : null), background: COLORS.ink, borderRadius: 10, border: `2px solid ${borderColor}`, overflow: 'hidden', marginBottom: 10, transition: 'border-color .15s' }}>
+      <div style={{ position: 'relative', width: '100%', aspectRatio: photoAspect, maxHeight: photoMax, ...(portrait ? { maxWidth: 420, maxHeight: photoMaxPortrait, marginLeft: 'auto', marginRight: 'auto' } : null), background: COLORS.ink, borderRadius: 10, border: `2px solid ${borderColor}`, overflow: 'hidden', marginBottom: 10, transition: 'border-color .15s' }}>
         {live && curItem ? (
           <img src={curItem.img} alt={`Name the ${noun} in this photo`} style={{ width: '100%', height: '100%', objectFit: 'contain', display: 'block' }} />
         ) : (
