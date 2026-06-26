@@ -702,7 +702,7 @@ export default function QuizClient({ quizId }) {
     // On mobile the default typed format keeps the player on the Play tab so the
     // fullscreen play popup stays open and shows the end-of-game summary inside
     // it; everywhere else still jumps to the results/leaderboard tab.
-    if (!mapMode && !tileMode && !(mobile === true && defaultTyped)) setTab('stats');
+    if (!mapMode && !tileMode && mobile !== true) setTab('stats');
 
     // Record the completed game (makes play count + average real; attributes
     // to the leaderboard if signed up).
@@ -766,7 +766,7 @@ export default function QuizClient({ quizId }) {
     // the popup + its input mount inside this same tap gesture; the focus() at
     // the end of start() then opens the on-screen keyboard (iOS only allows it
     // from within a user gesture, not after an async re-render).
-    if (mobile === true && defaultTyped) flushSync(() => setStarted(true));
+    if (mobile === true) flushSync(() => setStarted(true));
     else setStarted(true);
     startRef.current = Date.now();
     if (mapMode) {
@@ -1279,9 +1279,10 @@ export default function QuizClient({ quizId }) {
   // Formats whose live play moves into the mobile fullscreen popup. Phase 1: the
   // default typed name-them-all. Phase 2: the click-the-country map (format
   // 'map', including the no-outline regional maps like asia-no-outline). The
-  // geo-guesser boards (place-map / globe / geo-aerial) are separate full-page
-  // components handled earlier and are not affected here.
-  const overlayFormat = defaultTyped || mapMode;
+  // Every format QuizClient itself renders uses the mobile popup. The
+  // standalone boards (timed-mcq / logic-grid / grid-fill / place-map /
+  // geo-aerial / globe) early-return above and wrap their own play surface.
+  const overlayFormat = true;
   // Mobile fullscreen play popup: open from Play press through the end of the
   // game (it also hosts the end-of-game summary, so it stays open while ended
   // and on the Play tab). Desktop never opens it; the play surface stays inline.
@@ -1296,7 +1297,7 @@ export default function QuizClient({ quizId }) {
   const mapBarDock = mobile === true && mapMode && started && !ended && !mPlayOverlay;
   const mapBarStyle = mapBarDock
     ? { position: 'fixed', left: 0, right: 0, bottom: 0, zIndex: 40, display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: 12, background: COLORS.ink, color: COLORS.cream, borderTop: `1px solid ${COLORS.faded}33`, padding: '12px 16px', paddingBottom: 'calc(12px + env(safe-area-inset-bottom))', minHeight: 30, boxShadow: '0 -6px 18px rgba(20,22,28,0.10)' }
-    : { position: 'sticky', top: stickyTop, zIndex: 4, display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: 12, background: started && !ended ? COLORS.ink : COLORS.paper, color: started && !ended ? COLORS.cream : COLORS.faded, borderRadius: 10, border: `1px solid ${COLORS.faded}33`, padding: '12px 16px', marginBottom: 10, minHeight: 30 };
+    : { position: 'sticky', top: stickyTop, zIndex: 4, display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: 10, background: started && !ended ? COLORS.ink : COLORS.paper, color: started && !ended ? COLORS.cream : COLORS.faded, borderRadius: 10, border: `1px solid ${COLORS.faded}33`, padding: '7px 14px', marginBottom: 8, minHeight: 0 };
 
   return (
     <div style={{ minHeight: '100vh', background: COLORS.cream, color: COLORS.ink, position: 'relative', overflowX: 'clip' }}>
@@ -1517,7 +1518,7 @@ export default function QuizClient({ quizId }) {
             <div>
               <div style={mapBarStyle}>
                 <span style={{ fontFamily: MONO, fontSize: 11, letterSpacing: '0.2em', textTransform: 'uppercase', opacity: 0.7, flex: 'none' }}>Find</span>
-                {(() => { const clueText = ended ? 'Game over' : started ? (curName || '—') : 'Press Play to start'; return (<span key={clueText} style={{ fontFamily: SERIF, fontWeight: 800, fontSize: 'clamp(20px, 3.4vw, 26px)', lineHeight: 1.1, flex: '1 1 320px', minWidth: 0, overflowWrap: 'break-word', transform: 'translateZ(0)' }}>{clueText}</span>); })()}
+                {(() => { const clueText = ended ? 'Game over' : started ? (curName || '—') : 'Press Play to start'; return (<span key={clueText} style={{ fontFamily: SERIF, fontWeight: 800, fontSize: 'clamp(16px, 4.2vw, 21px)', lineHeight: 1.15, flex: '1 1 auto', minWidth: 0, overflowWrap: 'break-word', transform: 'translateZ(0)' }}>{clueText}</span>); })()}
                 {started && !ended && (
                   <button onClick={skipCountry} title="Can't find it? Skip and come back to it later." style={{ marginLeft: 'auto', flex: 'none', fontFamily: MONO, fontSize: 10, letterSpacing: '0.16em', textTransform: 'uppercase', fontWeight: 700, padding: '8px 14px', background: 'transparent', color: COLORS.cream, border: '1px solid rgba(244,237,224,0.4)', cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: 6 }}>
                     <SkipForward size={12} strokeWidth={2.5} /> Skip
