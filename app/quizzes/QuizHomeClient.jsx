@@ -95,7 +95,7 @@ function cleanTitle(t) { return (t || '').replace(/^Name (the )?/i, '').trim(); 
 // title for a tighter, scannable label. The FULL title is kept as the link's
 // tooltip. e.g. "Click the Countries of Europe" -> "Countries of Europe",
 // "Match the Slogan to the Company" -> "Slogan to the Company".
-const VERB_RE = /^(Click|Name|Guess|Find|Identify|Locate|Pick|Select|Match|Pinpoint)\b\s*(all the|the|these)?\s*/i;
+const VERB_RE = /^(Click|Name|Guess|Find|Identify|Pick|Select|Match|Pinpoint)\b\s*(all the|the|these)?\s*/i;
 function stripVerb(t) {
   const out = (t || '').replace(VERB_RE, '').trim();
   return out || (t || '');
