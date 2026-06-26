@@ -31,6 +31,7 @@ const PhotoMatchBoard = dynamic(() => import('./PhotoMatchBoard'), { ssr: false,
 const GridFillBoard = dynamic(() => import('./GridFillBoard'), { ssr: false, loading: () => null });
 const WordScrambleBoard = dynamic(() => import('./WordScrambleBoard'), { ssr: false, loading: () => null });
 const MapPlaceBoard = dynamic(() => import('./MapPlaceClient'), { ssr: false, loading: () => null });
+const GeoAerialBoard = dynamic(() => import('./GeoAerialClient'), { ssr: false, loading: () => null });
 const GlobePlaceBoard = dynamic(() => import('./GlobePlaceClient'), { ssr: false, loading: () => null });
 
 function shuffleIdx(n) {
@@ -359,6 +360,9 @@ export default function QuizClient({ quizId }) {
   }
   if (quiz.format === 'place-map') {
     return <MapPlaceBoard quizId={quizId} />;
+  }
+  if (quiz.format === 'geo-aerial') {
+    return <GeoAerialBoard quizId={quizId} />;
   }
   if (quiz.format === 'globe') {
     return <GlobePlaceBoard quizId={quizId} />;
