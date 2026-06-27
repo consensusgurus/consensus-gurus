@@ -11,6 +11,54 @@ import { HERO_IMAGES } from '@/lib/hero-images';
 
 export const dynamic = 'force-dynamic';
 
+// quiz_results carries optional traffic-metadata columns (is_mobile -> migration
+// 25, country/region/ua_browser/ua_os -> migration 26) that may not be applied
+// yet. Read the richest column set, and on a missing-column error progressively
+// drop the meta columns, then anon_id, so the admin page never hard-fails on a
+// not-yet-migrated database.
+async function fetchQuizResults() {
+  const order = [['created_at', false], 'id'];
+  const colSets = [
+    'id, quiz_id, user_id, score, total, time_elapsed, created_at, anon_id, is_mobile, country, region, ua_browser, ua_os',
+    'id, quiz_id, user_id, score, total, time_elapsed, created_at, anon_id',
+    'id, quiz_id, user_id, score, total, time_elapsed, created_at',
+  ];
+  let last = null;
+  for (const cols of colSets) {
+    last = await fetchAllRows(supabaseAdmin, 'quiz_results', cols, order);
+    if (!last.error) return last;
+    const code = last.error.code;
+    const missing = code === '42703' || code === 'PGRST204' || /column|schema cache/i.test(last.error.message || '');
+    if (!missing) return last; // a real error, not a missing column — surface it
+  }
+  return last;
+}
+
+// Per-play traffic metadata, derived from a quiz_results row. device is
+// Mobile/Desktop from the boolean is_mobile (null -> shown as "—"); geo is the
+// country, or "country-region" when a subdivision is known (e.g. US-CA);
+// browser is the coarse parsed user-agent browser.
+function playMeta(r) {
+  return {
+    device: r.is_mobile === true ? 'Mobile' : r.is_mobile === false ? 'Desktop' : null,
+    geo: r.country ? (r.region ? `${r.country}-${r.region}` : r.country) : null,
+    browser: r.ua_browser || null,
+  };
+}
+
+// Distinct non-null values of a field across a player's plays, preserving the
+// plays' order (which arrives newest-first), so the admin MultiCell shows the
+// most-recent value first with a "+N" for the rest.
+function distinctNewestFirst(plays, field) {
+  const seen = new Set();
+  const out = [];
+  for (const p of plays || []) {
+    const v = p[field];
+    if (v && !seen.has(v)) { seen.add(v); out.push(v); }
+  }
+  return out;
+}
+
 export const metadata = {
   title: 'Editor\'s Desk | Source of Truths',
   robots: { index: false, follow: false },
@@ -49,7 +97,7 @@ export default async function AdminPage() {
     // counts + average score per quiz.
     supabaseAdmin.rpc('quiz_trending_views', { p_hours: 24 }),
     fetchAllRows(supabaseAdmin, 'quiz_views', 'quiz_id, count', ['quiz_id']),
-    fetchAllRows(supabaseAdmin, 'quiz_results', 'id, quiz_id, user_id, score, total, time_elapsed, created_at, anon_id', [['created_at', false], 'id']),
+    fetchQuizResults(),
   ]);
 
   if (submissionsRes.error) {
@@ -225,12 +273,15 @@ export default async function AdminPage() {
   const quizTotalViewsMap = new Map(
     ((quizTotalViewsRes && quizTotalViewsRes.data) || []).map((row) => [row.quiz_id, Number(row.count) || 0])
   );
-  // plays + score sum per quiz, from completed games.
+  // plays + score sum per quiz, from completed games, plus a mobile-play count
+  // (is_mobile === true) so Quiz Stats can show the mobile share per quiz.
   const quizPlaysMap = new Map();
   const quizScoreSumMap = new Map();
+  const quizMobileMap = new Map();
   for (const r of (quizResultsRes && quizResultsRes.data) || []) {
     quizPlaysMap.set(r.quiz_id, (quizPlaysMap.get(r.quiz_id) || 0) + 1);
     quizScoreSumMap.set(r.quiz_id, (quizScoreSumMap.get(r.quiz_id) || 0) + (Number(r.score) || 0));
+    if (r.is_mobile === true) quizMobileMap.set(r.quiz_id, (quizMobileMap.get(r.quiz_id) || 0) + 1);
   }
   const quizTitles = new Map((Array.isArray(QUIZZES) ? QUIZZES : []).map((q) => [q.id, q.title]));
   // Per-signup play history: every completed game attributed to each user
@@ -248,6 +299,7 @@ export default async function AdminPage() {
       total: r.total,
       timeElapsed: r.time_elapsed,
       createdAt: r.created_at,
+      ...playMeta(r),
     });
   }
   // Anonymous players: completed games with no signed-up user_id, batched by
@@ -269,20 +321,34 @@ export default async function AdminPage() {
       total: r.total,
       timeElapsed: r.time_elapsed,
       createdAt: r.created_at,
+      ...playMeta(r),
     });
   }
-  const anonPlayers = anonPlayersBase.map((p) => ({
-    ...p,
-    history: (anonHistoryByKey.get(p.key) || []).sort((a, b) =>
+  const anonPlayers = anonPlayersBase.map((p) => {
+    const history = (anonHistoryByKey.get(p.key) || []).sort((a, b) =>
       String(b.createdAt || '').localeCompare(String(a.createdAt || ''))
-    ),
-  }));
+    );
+    return {
+      ...p,
+      history,
+      devices: distinctNewestFirst(history, 'device'),
+      browsers: distinctNewestFirst(history, 'browser'),
+      geos: distinctNewestFirst(history, 'geo'),
+    };
+  });
 
   const quizSignupsWithPlays = quizSignups.map((s) => {
     const plays = (playsByUser.get(s.id) || []).sort((a, b) =>
       String(b.createdAt || '').localeCompare(String(a.createdAt || ''))
     );
-    return { ...s, plays, playCount: plays.length };
+    return {
+      ...s,
+      plays,
+      playCount: plays.length,
+      devices: distinctNewestFirst(plays, 'device'),
+      browsers: distinctNewestFirst(plays, 'browser'),
+      geos: distinctNewestFirst(plays, 'geo'),
+    };
   });
   const quizIds = new Set([
     ...(Array.isArray(QUIZZES) ? QUIZZES.map((q) => q.id) : []),
@@ -300,6 +366,7 @@ export default async function AdminPage() {
         views24h: quizViews24Map.get(quizId) || 0,
         viewsTotal: quizTotalViewsMap.get(quizId) || 0,
         plays,
+        mobilePlays: quizMobileMap.get(quizId) || 0,
         avgScore: plays > 0 ? Math.round((scoreSum / plays) * 10) / 10 : null,
       };
     })

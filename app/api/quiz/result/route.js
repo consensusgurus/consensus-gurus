@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { supabaseAdmin } from '@/lib/supabase-server';
 import { findQuizIdentity } from '@/lib/quiz-identity';
 import { buildLeaderboardMatrix } from '@/lib/quiz-anon';
+import { parseUa, countryFromRequest, regionFromRequest } from '@/lib/ua';
 
 export const dynamic = 'force-dynamic';
 export const fetchCache = 'force-no-store';
@@ -48,7 +49,13 @@ export async function POST(request) {
     const { score, total, timeElapsed, email } = body;
     const correct = Number.isInteger(body.correct) ? Math.max(0, Math.min(total, body.correct)) : null;
     const anonId = typeof body.anonId === 'string' && body.anonId.trim() ? body.anonId.trim().slice(0, 64) : null;
-    const isMobile = typeof body.isMobile === 'boolean' ? body.isMobile : null;
+    // Traffic metadata: client may pass an explicit isMobile flag; otherwise we
+    // derive it (and the browser/OS) from the user-agent. Country/region come
+    // from Vercel's edge geo headers (null off-Vercel). All best-effort.
+    const ua = parseUa(request.headers.get('user-agent'));
+    const isMobile = typeof body.isMobile === 'boolean' ? body.isMobile : ua.isMobile;
+    const country = countryFromRequest(request);
+    const region = regionFromRequest(request);
 
     if (!quizId || quizId.length > 100) {
       return NextResponse.json({ error: 'quizId required' }, { status: 400 });
@@ -75,10 +82,17 @@ export async function POST(request) {
       time_elapsed: timeElapsed,
     };
     // Try the richest row first, then drop optional columns that a not-yet-applied
-    // migration may be missing (correct_count -> migration 24, anon_id -> 22).
+    // migration may be missing (country/region/ua_* -> migration 26,
+    // is_mobile -> 25, correct_count -> 24, anon_id -> 22).
     const withCorrect = correct != null ? { correct_count: correct } : {};
     const withMobile = isMobile != null ? { is_mobile: isMobile } : {};
+    const withMeta = {};
+    if (country) withMeta.country = country;
+    if (region) withMeta.region = region;
+    if (ua.browser) withMeta.ua_browser = ua.browser;
+    if (ua.os) withMeta.ua_os = ua.os;
     const attempts = [
+      { ...baseRow, anon_id: anonId, ...withCorrect, ...withMobile, ...withMeta },
       { ...baseRow, anon_id: anonId, ...withCorrect, ...withMobile },
       { ...baseRow, anon_id: anonId, ...withCorrect },
       { ...baseRow, anon_id: anonId },
