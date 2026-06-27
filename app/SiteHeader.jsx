@@ -60,7 +60,7 @@ export default function SiteHeader({ active = 'lists', maxWidth = 1180, visitors
         @media(max-width:560px){
           .sh-outer{padding:0;}
           .sh-root{width:100vw;margin-left:calc(50% - 50vw);}
-          .sh-bar{border-radius:0;padding:calc(11px + env(safe-area-inset-top)) 14px 11px;}
+          .sh-bar,.sh-bar.flush{border-radius:0;padding:calc(11px + env(safe-area-inset-top)) 14px 11px;}
           .sh-top{flex-wrap:nowrap;}
           .sh-word{font-size:18px;}
           .sh-tag{display:none;}
