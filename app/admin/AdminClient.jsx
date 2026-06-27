@@ -172,6 +172,64 @@ function PlayerSummary({ stats }) {
   );
 }
 
+// Group a player's plays into sessions (one per calendar day — the project's
+// established "session" = a distinct day played) with per-day plays, quizzes,
+// average score %, and total time. Newest day first.
+function sessionsFromPlays(plays) {
+  const byDay = new Map();
+  for (const p of plays || []) {
+    const d = new Date(p.createdAt);
+    if (Number.isNaN(d.getTime())) continue;
+    const key = d.toDateString();
+    let g = byDay.get(key);
+    if (!g) { g = { day: key, latest: p.createdAt, items: [] }; byDay.set(key, g); }
+    g.items.push(p);
+    if (String(p.createdAt) > String(g.latest)) g.latest = p.createdAt;
+  }
+  return [...byDay.values()].map((g) => {
+    let scoreSum = 0, scoreN = 0, timeSum = 0;
+    const quizzes = new Set();
+    for (const p of g.items) {
+      if (typeof p.score === 'number' && typeof p.total === 'number' && p.total > 0) { scoreSum += Math.min(1, p.score / p.total); scoreN += 1; }
+      if (typeof p.timeElapsed === 'number' && p.timeElapsed >= 0) timeSum += p.timeElapsed;
+      quizzes.add(p.title || p.quizId);
+    }
+    return { day: g.day, latest: g.latest, plays: g.items.length, quizzes: quizzes.size, acc: scoreN ? Math.round((scoreSum / scoreN) * 100) : null, time: timeSum };
+  }).sort((a, b) => String(b.latest).localeCompare(String(a.latest)));
+}
+
+// Per-session (per-day) table shown in an expanded player row, above the
+// individual play history.
+function SessionTable({ plays }) {
+  const sessions = sessionsFromPlays(plays);
+  if (!sessions.length) return null;
+  return (
+    <div style={{ marginBottom: 12 }}>
+      <div style={{ fontFamily: 'DM Mono, monospace', fontSize: 9, letterSpacing: '0.12em', textTransform: 'uppercase', color: COLORS.faded, margin: '2px 0 6px' }}>
+        Sessions · {sessions.length} day{sessions.length === 1 ? '' : 's'}
+      </div>
+      <div style={{ border: `1px solid ${COLORS.ink}33`, background: COLORS.paper }}>
+        <div style={{ display: 'flex', gap: 14, fontFamily: 'DM Mono, monospace', fontSize: 9, letterSpacing: '0.12em', textTransform: 'uppercase', color: COLORS.faded, padding: '8px 12px', borderBottom: `1px solid ${COLORS.ink}33` }}>
+          <span style={{ flex: '0 0 110px' }}>Day</span>
+          <span style={{ flex: '0 0 56px', textAlign: 'right' }}>Plays</span>
+          <span style={{ flex: '0 0 64px', textAlign: 'right' }}>Quizzes</span>
+          <span style={{ flex: '0 0 52px', textAlign: 'right' }}>Avg %</span>
+          <span style={{ flex: '0 0 72px', textAlign: 'right' }}>Time</span>
+        </div>
+        {sessions.map((s, j) => (
+          <div key={s.day} style={{ display: 'flex', gap: 14, alignItems: 'center', fontFamily: 'Manrope, system-ui, -apple-system, sans-serif', fontSize: 12, color: COLORS.ink, padding: '7px 12px', borderBottom: j < sessions.length - 1 ? `1px solid ${COLORS.ink}1a` : 'none' }}>
+            <span style={{ flex: '0 0 110px', fontFamily: 'DM Mono, monospace', fontSize: 11 }}>{fmtShort(s.latest)}</span>
+            <span style={{ flex: '0 0 56px', textAlign: 'right', fontFamily: 'DM Mono, monospace', fontSize: 11, fontWeight: 700, color: COLORS.ember }}>{s.plays}</span>
+            <span style={{ flex: '0 0 64px', textAlign: 'right', fontFamily: 'DM Mono, monospace', fontSize: 11 }}>{s.quizzes}</span>
+            <span style={{ flex: '0 0 52px', textAlign: 'right', fontFamily: 'DM Mono, monospace', fontSize: 11, color: COLORS.faded }}>{s.acc != null ? `${s.acc}%` : '—'}</span>
+            <span style={{ flex: '0 0 72px', textAlign: 'right', fontFamily: 'DM Mono, monospace', fontSize: 11, color: COLORS.faded }}>{fmtDuration(s.time)}</span>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
 // ----- Click-to-sort table infrastructure (shared by all analytics tables) ----
 // A header cell click sorts by that column. Re-clicking the active column flips
 // direction; switching columns picks a sensible default (descending for
@@ -1105,7 +1163,6 @@ function QuizSignupsPanel({ signups }) {
             <SortHead label="Username" k="name" sort={sort} flex={2} type="string" />
             <SortHead label="Email" k="email" sort={sort} flex={2} type="string" />
             <SortHead label="Plays" k="plays" sort={sort} flex="0 0 42px" align="right" />
-            <SortHead label="Acc" k="acc" sort={sort} flex="0 0 46px" align="right" />
             <SortHead label="Device" k="device" sort={sort} flex="0 0 60px" type="string" />
             <SortHead label="OS" k="os" sort={sort} flex="0 0 56px" type="string" />
             <SortHead label="Geo" k="geo" sort={sort} flex="0 0 110px" type="string" />
@@ -1137,9 +1194,6 @@ function QuizSignupsPanel({ signups }) {
                   <span style={{ flex: '0 0 42px', textAlign: 'right', fontFamily: 'DM Mono, monospace', fontSize: 12, fontWeight: 700, color: playCount > 0 ? COLORS.ember : COLORS.faded }}>
                     {playCount}
                   </span>
-                  <span style={{ flex: '0 0 46px', textAlign: 'right', fontFamily: 'DM Mono, monospace', fontSize: 12, color: (s.stats && s.stats.accuracy != null) ? COLORS.ink : COLORS.faded }}>
-                    {s.stats && s.stats.accuracy != null ? `${s.stats.accuracy}%` : '—'}
-                  </span>
                   <MultiCell values={s.devices} flex="0 0 60px" />
                   <MultiCell values={s.oses} flex="0 0 56px" />
                   <MultiCell values={s.geos} flex="0 0 110px" />
@@ -1156,6 +1210,7 @@ function QuizSignupsPanel({ signups }) {
                 {open && (
                   <div style={{ padding: '4px 14px 14px 48px', background: `${COLORS.ink}0a` }}>
                     <PlayerSummary stats={s.stats} />
+                    <SessionTable plays={plays} />
                     {playCount === 0 ? (
                       <p style={{ fontFamily: 'Manrope, system-ui, -apple-system, sans-serif', fontStyle: 'italic', fontSize: 14, color: COLORS.faded, margin: '8px 0' }}>
                         Signed up but hasn&apos;t completed a quiz yet.
@@ -1599,7 +1654,6 @@ function AnonPlayersPanel({ players }) {
             <span style={{ flex: '0 0 28px' }}>#</span>
             <SortHead label="Player" k="player" sort={sort} flex={2} type="string" />
             <SortHead label="Plays" k="plays" sort={sort} flex="0 0 42px" align="right" />
-            <SortHead label="Acc" k="acc" sort={sort} flex="0 0 46px" align="right" />
             <SortHead label="Device" k="device" sort={sort} flex="0 0 62px" type="string" />
             <SortHead label="OS" k="os" sort={sort} flex="0 0 58px" type="string" />
             <SortHead label="Geo" k="geo" sort={sort} flex="0 0 118px" type="string" />
@@ -1618,7 +1672,6 @@ function AnonPlayersPanel({ players }) {
                   </span>
                   <span style={{ flex: 2, minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', fontFamily: 'Manrope, system-ui, -apple-system, sans-serif', fontWeight: 700 }}>{p.label}</span>
                   <span style={{ flex: '0 0 42px', textAlign: 'right', fontFamily: 'DM Mono, monospace', fontSize: 12, fontWeight: 700, color: p.plays > 0 ? COLORS.ember : COLORS.faded }}>{p.plays}</span>
-                  <span style={{ flex: '0 0 46px', textAlign: 'right', fontFamily: 'DM Mono, monospace', fontSize: 12, color: (p.stats && p.stats.accuracy != null) ? COLORS.ink : COLORS.faded }}>{p.stats && p.stats.accuracy != null ? `${p.stats.accuracy}%` : '\u2014'}</span>
                   <MultiCell values={p.devices} flex="0 0 62px" />
                   <MultiCell values={p.oses} flex="0 0 58px" />
                   <MultiCell values={p.geos} flex="0 0 118px" />
@@ -1628,6 +1681,7 @@ function AnonPlayersPanel({ players }) {
                 {open && (
                   <div style={{ padding: '4px 14px 14px 48px', background: `${COLORS.ink}0a` }}>
                     <PlayerSummary stats={p.stats} />
+                    <SessionTable plays={history} />
                     {history.length === 0 ? (
                       <p style={{ fontFamily: 'Manrope, system-ui, -apple-system, sans-serif', fontStyle: 'italic', fontSize: 14, color: COLORS.faded, margin: '8px 0' }}>No completed games recorded.</p>
                     ) : (
@@ -1762,7 +1816,6 @@ function AllPlayersPanel({ signups, anonPlayers }) {
             <SortHead label="Player" k="name" sort={sort} flex={2} type="string" />
             <SortHead label="Type" k="type" sort={sort} flex="0 0 76px" type="string" />
             <SortHead label="Plays" k="plays" sort={sort} flex="0 0 42px" align="right" />
-            <SortHead label="Acc" k="acc" sort={sort} flex="0 0 46px" align="right" />
             <SortHead label="Device" k="device" sort={sort} flex="0 0 62px" type="string" />
             <SortHead label="OS" k="os" sort={sort} flex="0 0 58px" type="string" />
             <SortHead label="Geo" k="geo" sort={sort} flex="0 0 118px" type="string" />
@@ -1786,7 +1839,6 @@ function AllPlayersPanel({ signups, anonPlayers }) {
                   </span>
                   <span style={{ flex: '0 0 76px', fontFamily: 'DM Mono, monospace', fontSize: 10, letterSpacing: '0.06em', textTransform: 'uppercase', color: reg ? COLORS.ember : COLORS.faded }}>{reg ? 'Registered' : 'Anon'}</span>
                   <span style={{ flex: '0 0 42px', textAlign: 'right', fontFamily: 'DM Mono, monospace', fontSize: 12, fontWeight: 700, color: r.plays > 0 ? COLORS.ember : COLORS.faded }}>{r.plays}</span>
-                  <span style={{ flex: '0 0 46px', textAlign: 'right', fontFamily: 'DM Mono, monospace', fontSize: 12, color: r.accuracy != null ? COLORS.ink : COLORS.faded }}>{r.accuracy != null ? `${r.accuracy}%` : '—'}</span>
                   <MultiCell values={r.devices} flex="0 0 62px" />
                   <MultiCell values={r.oses} flex="0 0 58px" />
                   <MultiCell values={r.geos} flex="0 0 118px" />
@@ -1796,6 +1848,7 @@ function AllPlayersPanel({ signups, anonPlayers }) {
                 {open && (
                   <div style={{ padding: '4px 14px 14px 48px', background: `${COLORS.ink}0a` }}>
                     <PlayerSummary stats={r.stats} />
+                    <SessionTable plays={history} />
                     {history.length === 0 ? (
                       <p style={{ fontFamily: 'Manrope, system-ui, -apple-system, sans-serif', fontStyle: 'italic', fontSize: 14, color: COLORS.faded, margin: '8px 0' }}>No completed games recorded.</p>
                     ) : (
