@@ -39,6 +39,7 @@ const MapPlaceBoard = dynamic(() => import('./MapPlaceClient'), { ssr: false, lo
 const GeoAerialBoard = dynamic(() => import('./GeoAerialClient'), { ssr: false, loading: () => null });
 const GlobePlaceBoard = dynamic(() => import('./GlobePlaceClient'), { ssr: false, loading: () => null });
 const SurviveStateBoard = dynamic(() => import('./SurviveStateBoard'), { ssr: false, loading: () => null });
+const LogicGameBoard = dynamic(() => import('./LogicGameClient'), { ssr: false, loading: () => null });
 
 function shuffleIdx(n) {
   const a = [...Array(n).keys()];
@@ -402,6 +403,9 @@ export default function QuizClient({ quizId }) {
   }
   if (quiz.format === 'survive-state') {
     return <SurviveStateBoard quizId={quizId} mobile={mobile} />;
+  }
+  if (quiz.format === 'logic-game') {
+    return <LogicGameBoard quizId={quizId} mobile={mobile} />;
   }
   const answers = quiz.answers;
   const matched = quiz.format === 'matched';
