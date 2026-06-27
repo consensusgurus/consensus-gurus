@@ -11,15 +11,17 @@ import { HERO_IMAGES } from '@/lib/hero-images';
 
 export const dynamic = 'force-dynamic';
 
-// quiz_results carries optional traffic-metadata columns (is_mobile -> migration
-// 25, country/region/ua_browser/ua_os -> migration 26) that may not be applied
-// yet. Read the richest column set, and on a missing-column error progressively
-// drop the meta columns, then anon_id, so the admin page never hard-fails on a
-// not-yet-migrated database.
+// quiz_results carries optional metadata columns added over several migrations
+// (correct_count -> 24, is_mobile -> 25, country/region/ua_browser/ua_os -> 26,
+// city/timezone/referrer/language -> 27) that may not all be applied yet. Read
+// the richest column set, and on a missing-column error progressively drop the
+// newest columns, so the admin page never hard-fails on a not-yet-migrated DB.
 async function fetchQuizResults() {
   const order = [['created_at', false], 'id'];
   const colSets = [
-    'id, quiz_id, user_id, score, total, time_elapsed, created_at, anon_id, is_mobile, country, region, ua_browser, ua_os',
+    'id, quiz_id, user_id, score, total, correct_count, time_elapsed, created_at, anon_id, is_mobile, country, region, ua_browser, ua_os, city, timezone, referrer, language',
+    'id, quiz_id, user_id, score, total, correct_count, time_elapsed, created_at, anon_id, is_mobile, country, region, ua_browser, ua_os',
+    'id, quiz_id, user_id, score, total, correct_count, time_elapsed, created_at, anon_id',
     'id, quiz_id, user_id, score, total, time_elapsed, created_at, anon_id',
     'id, quiz_id, user_id, score, total, time_elapsed, created_at',
   ];
@@ -35,14 +37,19 @@ async function fetchQuizResults() {
 }
 
 // Per-play traffic metadata, derived from a quiz_results row. device is
-// Mobile/Desktop from the boolean is_mobile (null -> shown as "—"); geo is the
-// country, or "country-region" when a subdivision is known (e.g. US-CA);
-// browser is the coarse parsed user-agent browser.
+// Mobile/Desktop from is_mobile (null -> "—"); geo is the finest available
+// "City, Region, Country" (e.g. "Austin, TX, US"); browser/os are the coarse
+// parsed user-agent; timezone/language/referrer come from migration 27.
 function playMeta(r) {
+  const geoParts = [r.city, r.region, r.country].filter(Boolean);
   return {
     device: r.is_mobile === true ? 'Mobile' : r.is_mobile === false ? 'Desktop' : null,
-    geo: r.country ? (r.region ? `${r.country}-${r.region}` : r.country) : null,
+    geo: geoParts.length ? geoParts.join(', ') : null,
     browser: r.ua_browser || null,
+    os: r.ua_os || null,
+    timezone: r.timezone || null,
+    language: r.language || null,
+    referrer: r.referrer || null,
   };
 }
 
@@ -57,6 +64,59 @@ function distinctNewestFirst(plays, field) {
     if (v && !seen.has(v)) { seen.add(v); out.push(v); }
   }
   return out;
+}
+
+// Aggregate a player's whole play history into the engagement / tenure /
+// behavioral stats the admin surfaces (and the distinct device/os/geo/etc sets).
+// Works for registered and anonymous players alike, from the same play-row shape.
+function playerStats(plays) {
+  const list = plays || [];
+  let bestScore = null, timeSum = 0, timeN = 0, accSum = 0, accN = 0, perfect = 0, firstSeen = '', lastSeen = '';
+  const quizCount = new Map();
+  const days = new Set();
+  const hours = new Array(24).fill(0);
+  const dows = new Array(7).fill(0);
+  for (const p of list) {
+    if (typeof p.score === 'number') bestScore = bestScore == null ? p.score : Math.max(bestScore, p.score);
+    if (typeof p.timeElapsed === 'number' && p.timeElapsed >= 0) { timeSum += p.timeElapsed; timeN += 1; }
+    if (typeof p.correct === 'number' && typeof p.total === 'number' && p.total > 0) { accSum += p.correct / p.total; accN += 1; }
+    if (typeof p.total === 'number' && p.total > 0 && p.score === p.total) perfect += 1;
+    const label = p.title || p.quizId;
+    if (label) quizCount.set(label, (quizCount.get(label) || 0) + 1);
+    const c = String(p.createdAt || '');
+    if (c) {
+      if (!firstSeen || c < firstSeen) firstSeen = c;
+      if (!lastSeen || c > lastSeen) lastSeen = c;
+      const d = new Date(p.createdAt);
+      if (!Number.isNaN(d.getTime())) { days.add(d.toDateString()); hours[d.getHours()] += 1; dows[d.getDay()] += 1; }
+    }
+  }
+  let mostPlayed = null, mostN = 0;
+  for (const [q, cnt] of quizCount) if (cnt > mostN) { mostN = cnt; mostPlayed = q; }
+  const anyTime = hours.some((v) => v > 0);
+  const peakHour = anyTime ? hours.reduce((b, v, i, a) => (v > a[b] ? i : b), 0) : null;
+  const peakDow = anyTime ? dows.reduce((b, v, i, a) => (v > a[b] ? i : b), 0) : null;
+  return {
+    plays: list.length,
+    quizzes: quizCount.size,
+    accuracy: accN ? Math.round((accSum / accN) * 100) : null,
+    bestScore,
+    avgTime: timeN ? Math.round(timeSum / timeN) : null,
+    perfect,
+    firstSeen: firstSeen || null,
+    lastSeen: lastSeen || null,
+    activeDays: days.size,
+    mostPlayed: mostPlayed ? { title: mostPlayed, count: mostN } : null,
+    peakHour,
+    peakDow,
+    devices: distinctNewestFirst(list, 'device'),
+    oses: distinctNewestFirst(list, 'os'),
+    browsers: distinctNewestFirst(list, 'browser'),
+    geos: distinctNewestFirst(list, 'geo'),
+    timezones: distinctNewestFirst(list, 'timezone'),
+    languages: distinctNewestFirst(list, 'language'),
+    referrers: distinctNewestFirst(list, 'referrer'),
+  };
 }
 
 export const metadata = {
@@ -297,6 +357,7 @@ export default async function AdminPage() {
       title: quizTitles.get(r.quiz_id) || r.quiz_id,
       score: r.score,
       total: r.total,
+      correct: r.correct_count != null ? r.correct_count : null,
       timeElapsed: r.time_elapsed,
       createdAt: r.created_at,
       ...playMeta(r),
@@ -319,6 +380,7 @@ export default async function AdminPage() {
       title: quizTitles.get(r.quiz_id) || r.quiz_id,
       score: r.score,
       total: r.total,
+      correct: r.correct_count != null ? r.correct_count : null,
       timeElapsed: r.time_elapsed,
       createdAt: r.created_at,
       ...playMeta(r),
@@ -328,12 +390,15 @@ export default async function AdminPage() {
     const history = (anonHistoryByKey.get(p.key) || []).sort((a, b) =>
       String(b.createdAt || '').localeCompare(String(a.createdAt || ''))
     );
+    const stats = playerStats(history);
     return {
       ...p,
       history,
-      devices: distinctNewestFirst(history, 'device'),
-      browsers: distinctNewestFirst(history, 'browser'),
-      geos: distinctNewestFirst(history, 'geo'),
+      stats,
+      devices: stats.devices,
+      browsers: stats.browsers,
+      geos: stats.geos,
+      oses: stats.oses,
     };
   });
 
@@ -341,13 +406,16 @@ export default async function AdminPage() {
     const plays = (playsByUser.get(s.id) || []).sort((a, b) =>
       String(b.createdAt || '').localeCompare(String(a.createdAt || ''))
     );
+    const stats = playerStats(plays);
     return {
       ...s,
       plays,
       playCount: plays.length,
-      devices: distinctNewestFirst(plays, 'device'),
-      browsers: distinctNewestFirst(plays, 'browser'),
-      geos: distinctNewestFirst(plays, 'geo'),
+      stats,
+      devices: stats.devices,
+      browsers: stats.browsers,
+      geos: stats.geos,
+      oses: stats.oses,
     };
   });
   const quizIds = new Set([

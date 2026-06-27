@@ -100,6 +100,78 @@ function fmtShortDateTime(iso) {
   }
 }
 
+const DOW = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+
+// Seconds -> "1m 23s" / "45s", for the avg-time-per-game stat.
+function fmtDuration(secs) {
+  const s = Number(secs);
+  if (!Number.isFinite(s) || s < 0) return '—';
+  const m = Math.floor(s / 60);
+  const r = Math.round(s % 60);
+  return m > 0 ? `${m}m ${r}s` : `${r}s`;
+}
+
+// 0-23 hour -> "8 PM".
+function fmtHour(h) {
+  if (h == null) return '—';
+  const ap = h < 12 ? 'AM' : 'PM';
+  const h12 = h % 12 === 0 ? 12 : h % 12;
+  return `${h12} ${ap}`;
+}
+
+// A timestamp rendered in a given IANA timezone (the player's), so "last played"
+// can be shown in THEIR local time, not just the admin's. Falls back to the
+// admin-local compact format when no timezone is known.
+function fmtLocalTime(iso, tz) {
+  if (!iso) return '—';
+  try {
+    const opts = { month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' };
+    if (tz) opts.timeZone = tz;
+    return new Date(iso).toLocaleString(undefined, opts);
+  } catch {
+    return fmtShortDateTime(iso);
+  }
+}
+
+// One labeled stat in the expanded player summary grid.
+function Stat({ label, value }) {
+  return (
+    <div style={{ minWidth: 0 }}>
+      <div style={{ fontFamily: 'DM Mono, monospace', fontSize: 9, letterSpacing: '0.1em', textTransform: 'uppercase', color: COLORS.faded }}>{label}</div>
+      <div style={{ fontFamily: 'Manrope, system-ui, -apple-system, sans-serif', fontSize: 14, fontWeight: 700, color: COLORS.ink, marginTop: 1, overflow: 'hidden', textOverflow: 'ellipsis' }}>{value}</div>
+    </div>
+  );
+}
+
+// The per-player stat grid shown at the top of an expanded row: engagement,
+// tenure, behavioral, and the full device/OS/browser/geo/timezone/language/
+// traffic-source sets. Surfaces everything the columns can't fit.
+function PlayerSummary({ stats }) {
+  if (!stats) return null;
+  const s = stats;
+  const tz = (s.timezones && s.timezones[0]) || null;
+  const join = (arr) => (arr && arr.length ? arr.join(', ') : '—');
+  return (
+    <div style={{ display: 'flex', flexWrap: 'wrap', gap: '14px 28px', padding: '10px 12px 16px' }}>
+      <Stat label="Plays" value={s.plays} />
+      <Stat label="Quizzes" value={s.quizzes} />
+      <Stat label="Accuracy" value={s.accuracy != null ? `${s.accuracy}%` : '—'} />
+      <Stat label="Best score" value={s.bestScore != null ? s.bestScore : '—'} />
+      <Stat label="Perfect" value={s.perfect} />
+      <Stat label="Avg time" value={fmtDuration(s.avgTime)} />
+      <Stat label="First seen" value={s.firstSeen ? fmtShort(s.firstSeen) : '—'} />
+      <Stat label="Active days" value={s.activeDays} />
+      <Stat label="Most played" value={s.mostPlayed ? `${s.mostPlayed.title} (${s.mostPlayed.count})` : '—'} />
+      <Stat label="Peak time" value={s.peakHour != null ? `${fmtHour(s.peakHour)} · ${DOW[s.peakDow] || ''}` : '—'} />
+      <Stat label="Timezone" value={join(s.timezones)} />
+      <Stat label="Local last play" value={tz && s.lastSeen ? fmtLocalTime(s.lastSeen, tz) : '—'} />
+      <Stat label="Language" value={join(s.languages)} />
+      <Stat label="Browser" value={join(s.browsers)} />
+      <Stat label="Traffic source" value={join(s.referrers)} />
+    </div>
+  );
+}
+
 // ----- Click-to-sort table infrastructure (shared by all analytics tables) ----
 // A header cell click sorts by that column. Re-clicking the active column flips
 // direction; switching columns picks a sensible default (descending for
@@ -925,10 +997,11 @@ function QuizSignupsPanel({ signups }) {
     name: (s) => s.username || '',
     email: (s) => s.email || '',
     plays: (s) => s.playCount || 0,
-    days: (s) => s.daysPlayed || 0,
+    acc: (s) => (s.stats && s.stats.accuracy != null ? s.stats.accuracy : -1),
     device: (s) => (s.devices && s.devices[0]) || '',
-    browser: (s) => (s.browsers && s.browsers[0]) || '',
+    os: (s) => (s.oses && s.oses[0]) || '',
     geo: (s) => (s.geos && s.geos[0]) || '',
+    first: (s) => Date.parse((s.stats && s.stats.firstSeen) || '') || 0,
     recent: (s) => Date.parse(s.lastPlayedAt || '') || 0,
     joined: (s) => Date.parse(s.createdAt || '') || 0,
   };
@@ -974,8 +1047,7 @@ function QuizSignupsPanel({ signups }) {
       <p style={{ fontFamily: 'Manrope, system-ui, -apple-system, sans-serif', fontSize: 13, color: COLORS.faded, margin: '0 0 14px' }}>
         Email signups from the quiz leaderboard join form.
         {' '}{signups.length} signup{signups.length === 1 ? '' : 's'} total.
-        {' '}Days = distinct calendar days a person played (separate sessions).
-        {' '}Click a row to see every quiz that person has played. Click a column header to sort.
+        {' '}Click a row for the player's full stats (best score, accuracy, timezone, traffic source, and more) and play history. Click a column header to sort.
       </p>
       <div style={{ display: 'flex', gap: 10, marginBottom: 16 }}>
         <input
@@ -1029,16 +1101,17 @@ function QuizSignupsPanel({ signups }) {
       ) : (
         <div style={{ border: `1px solid ${COLORS.line}`, background: COLORS.paper, borderRadius: 12 }}>
           <div style={{ display: 'flex', gap: 16, position: 'sticky', top: 0, zIndex: 1, background: COLORS.cream, fontFamily: 'DM Mono, monospace', fontSize: 10, letterSpacing: '0.14em', textTransform: 'uppercase', color: COLORS.faded, padding: '10px 14px', borderBottom: `1px solid ${COLORS.line}` }}>
-            <span style={{ flex: '0 0 32px' }}>#</span>
+            <span style={{ flex: '0 0 28px' }}>#</span>
             <SortHead label="Username" k="name" sort={sort} flex={2} type="string" />
             <SortHead label="Email" k="email" sort={sort} flex={2} type="string" />
-            <SortHead label="Plays" k="plays" sort={sort} flex="0 0 50px" align="right" />
-            <SortHead label="Days" k="days" sort={sort} flex="0 0 44px" align="right" />
-            <SortHead label="Device" k="device" sort={sort} flex="0 0 80px" type="string" />
-            <SortHead label="Browser" k="browser" sort={sort} flex="0 0 84px" type="string" />
-            <SortHead label="Geo" k="geo" sort={sort} flex="0 0 84px" type="string" />
-            <SortHead label="Last" k="recent" sort={sort} flex="0 0 104px" align="right" />
-            <SortHead label="Joined" k="joined" sort={sort} flex="0 0 64px" align="right" />
+            <SortHead label="Plays" k="plays" sort={sort} flex="0 0 42px" align="right" />
+            <SortHead label="Acc" k="acc" sort={sort} flex="0 0 46px" align="right" />
+            <SortHead label="Device" k="device" sort={sort} flex="0 0 60px" type="string" />
+            <SortHead label="OS" k="os" sort={sort} flex="0 0 56px" type="string" />
+            <SortHead label="Geo" k="geo" sort={sort} flex="0 0 110px" type="string" />
+            <SortHead label="First" k="first" sort={sort} flex="0 0 58px" align="right" />
+            <SortHead label="Last" k="recent" sort={sort} flex="0 0 92px" align="right" />
+            <SortHead label="Joined" k="joined" sort={sort} flex="0 0 56px" align="right" />
           </div>
           {visible.map((s, i) => {
             const plays = s.plays || [];
@@ -1051,34 +1124,38 @@ function QuizSignupsPanel({ signups }) {
                   onClick={() => setExpandedId(open ? null : s.id)}
                   style={{ display: 'flex', gap: 16, alignItems: 'center', fontFamily: 'Manrope, system-ui, -apple-system, sans-serif', fontSize: 13, color: COLORS.ink, padding: '9px 14px', cursor: 'pointer', background: open ? `${COLORS.ink}0a` : 'transparent' }}
                 >
-                  <span style={{ flex: '0 0 32px', fontFamily: 'DM Mono, monospace', fontSize: 11, color: COLORS.faded, display: 'flex', alignItems: 'center', gap: 4 }}>
+                  <span style={{ flex: '0 0 28px', fontFamily: 'DM Mono, monospace', fontSize: 11, color: COLORS.faded, display: 'flex', alignItems: 'center', gap: 4 }}>
                     <span style={{ display: 'inline-block', width: 8, transform: open ? 'rotate(90deg)' : 'none', transition: 'transform 0.12s' }}>▸</span>
                     {i + 1}
                   </span>
-                  <span style={{ flex: 2, minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', fontWeight: 600 }}>
+                  <span style={{ flex: 2, minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', fontWeight: 600, fontFamily: 'Manrope, system-ui, -apple-system, sans-serif' }}>
                     {s.username}
                   </span>
                   <span style={{ flex: 2, minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', fontFamily: 'DM Mono, monospace', fontSize: 12 }}>
                     <a href={`mailto:${s.email}`} onClick={(e) => e.stopPropagation()} style={{ color: COLORS.ink, textDecoration: 'none' }}>{s.email}</a>
                   </span>
-                  <span style={{ flex: '0 0 50px', textAlign: 'right', fontFamily: 'DM Mono, monospace', fontSize: 12, fontWeight: 700, color: playCount > 0 ? COLORS.ember : COLORS.faded }}>
+                  <span style={{ flex: '0 0 42px', textAlign: 'right', fontFamily: 'DM Mono, monospace', fontSize: 12, fontWeight: 700, color: playCount > 0 ? COLORS.ember : COLORS.faded }}>
                     {playCount}
                   </span>
-                  <span style={{ flex: '0 0 44px', textAlign: 'right', fontFamily: 'DM Mono, monospace', fontSize: 12, fontWeight: 700, color: daysPlayed > 0 ? COLORS.ink : COLORS.faded }}>
-                    {daysPlayed}
+                  <span style={{ flex: '0 0 46px', textAlign: 'right', fontFamily: 'DM Mono, monospace', fontSize: 12, color: (s.stats && s.stats.accuracy != null) ? COLORS.ink : COLORS.faded }}>
+                    {s.stats && s.stats.accuracy != null ? `${s.stats.accuracy}%` : '—'}
                   </span>
-                  <MultiCell values={s.devices} flex="0 0 80px" />
-                  <MultiCell values={s.browsers} flex="0 0 84px" />
-                  <MultiCell values={s.geos} flex="0 0 84px" />
-                  <span style={{ flex: '0 0 104px', textAlign: 'right', fontFamily: 'DM Mono, monospace', fontSize: 11, color: COLORS.faded }}>
+                  <MultiCell values={s.devices} flex="0 0 60px" />
+                  <MultiCell values={s.oses} flex="0 0 56px" />
+                  <MultiCell values={s.geos} flex="0 0 110px" />
+                  <span style={{ flex: '0 0 58px', textAlign: 'right', fontFamily: 'DM Mono, monospace', fontSize: 11, color: COLORS.faded }}>
+                    {s.stats && s.stats.firstSeen ? fmtShort(s.stats.firstSeen) : '—'}
+                  </span>
+                  <span style={{ flex: '0 0 92px', textAlign: 'right', fontFamily: 'DM Mono, monospace', fontSize: 11, color: COLORS.faded }}>
                     {s.lastPlayedAt ? fmtShortDateTime(s.lastPlayedAt) : '—'}
                   </span>
-                  <span style={{ flex: '0 0 64px', textAlign: 'right', fontFamily: 'DM Mono, monospace', fontSize: 11, color: COLORS.faded }}>
+                  <span style={{ flex: '0 0 56px', textAlign: 'right', fontFamily: 'DM Mono, monospace', fontSize: 11, color: COLORS.faded }}>
                     {fmtShort(s.createdAt)}
                   </span>
                 </div>
                 {open && (
                   <div style={{ padding: '4px 14px 14px 48px', background: `${COLORS.ink}0a` }}>
+                    <PlayerSummary stats={s.stats} />
                     {playCount === 0 ? (
                       <p style={{ fontFamily: 'Manrope, system-ui, -apple-system, sans-serif', fontStyle: 'italic', fontSize: 14, color: COLORS.faded, margin: '8px 0' }}>
                         Signed up but hasn&apos;t completed a quiz yet.
@@ -1481,14 +1558,12 @@ function AnonPlayersPanel({ players }) {
 
   const accessors = {
     player: (p) => p.label || '',
-    quizzes: (p) => p.quizzes || 0,
     plays: (p) => p.plays || 0,
-    correct: (p) => p.correct || 0,
-    perfect: (p) => p.perfect || 0,
-    accuracy: (p) => p.accuracy || 0,
+    acc: (p) => (p.stats && p.stats.accuracy != null ? p.stats.accuracy : -1),
     device: (p) => (p.devices && p.devices[0]) || '',
-    browser: (p) => (p.browsers && p.browsers[0]) || '',
+    os: (p) => (p.oses && p.oses[0]) || '',
     geo: (p) => (p.geos && p.geos[0]) || '',
+    first: (p) => Date.parse((p.stats && p.stats.firstSeen) || '') || 0,
     recent: (p) => Date.parse(p.lastPlayed || '') || 0,
   };
 
@@ -1521,17 +1596,15 @@ function AnonPlayersPanel({ players }) {
       ) : (
         <div style={{ border: `1px solid ${COLORS.line}`, background: COLORS.paper, borderRadius: 12 }}>
           <div style={{ display: 'flex', gap: 16, position: 'sticky', top: 0, zIndex: 1, background: COLORS.cream, fontFamily: 'DM Mono, monospace', fontSize: 10, letterSpacing: '0.14em', textTransform: 'uppercase', color: COLORS.faded, padding: '10px 14px', borderBottom: `1px solid ${COLORS.line}` }}>
-            <span style={{ flex: '0 0 32px' }}>#</span>
+            <span style={{ flex: '0 0 28px' }}>#</span>
             <SortHead label="Player" k="player" sort={sort} flex={2} type="string" />
-            <SortHead label="Quizzes" k="quizzes" sort={sort} flex="0 0 62px" align="right" />
-            <SortHead label="Plays" k="plays" sort={sort} flex="0 0 50px" align="right" />
-            <SortHead label="Correct" k="correct" sort={sort} flex="0 0 60px" align="right" />
-            <SortHead label="Perfect" k="perfect" sort={sort} flex="0 0 58px" align="right" />
-            <SortHead label="Acc" k="accuracy" sort={sort} flex="0 0 54px" align="right" />
-            <SortHead label="Device" k="device" sort={sort} flex="0 0 78px" type="string" />
-            <SortHead label="Browser" k="browser" sort={sort} flex="0 0 84px" type="string" />
-            <SortHead label="Geo" k="geo" sort={sort} flex="0 0 78px" type="string" />
-            <SortHead label="Last" k="recent" sort={sort} flex="0 0 104px" align="right" />
+            <SortHead label="Plays" k="plays" sort={sort} flex="0 0 42px" align="right" />
+            <SortHead label="Acc" k="acc" sort={sort} flex="0 0 46px" align="right" />
+            <SortHead label="Device" k="device" sort={sort} flex="0 0 62px" type="string" />
+            <SortHead label="OS" k="os" sort={sort} flex="0 0 58px" type="string" />
+            <SortHead label="Geo" k="geo" sort={sort} flex="0 0 118px" type="string" />
+            <SortHead label="First" k="first" sort={sort} flex="0 0 60px" align="right" />
+            <SortHead label="Last" k="recent" sort={sort} flex="0 0 92px" align="right" />
           </div>
           {visible.map((p, i) => {
             const open = expandedKey === p.key;
@@ -1543,19 +1616,18 @@ function AnonPlayersPanel({ players }) {
                     <span style={{ display: 'inline-block', width: 8, transform: open ? 'rotate(90deg)' : 'none', transition: 'transform 0.12s' }}>&#9656;</span>
                     {i + 1}
                   </span>
-                  <span style={{ flex: 2, minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', fontFamily: 'DM Mono, monospace', fontWeight: 700 }}>{p.label}</span>
-                  <span style={{ flex: '0 0 62px', textAlign: 'right', fontFamily: 'DM Mono, monospace', fontSize: 12 }}>{p.quizzes}</span>
-                  <span style={{ flex: '0 0 50px', textAlign: 'right', fontFamily: 'DM Mono, monospace', fontSize: 12, fontWeight: 700, color: p.plays > 0 ? COLORS.ember : COLORS.faded }}>{p.plays}</span>
-                  <span style={{ flex: '0 0 60px', textAlign: 'right', fontFamily: 'DM Mono, monospace', fontSize: 12 }}>{p.correct}</span>
-                  <span style={{ flex: '0 0 58px', textAlign: 'right', fontFamily: 'DM Mono, monospace', fontSize: 12, color: p.perfect > 0 ? COLORS.ink : COLORS.faded }}>{p.perfect}</span>
-                  <span style={{ flex: '0 0 54px', textAlign: 'right', fontFamily: 'DM Mono, monospace', fontSize: 12, color: COLORS.faded }}>{p.accuracy}%</span>
-                  <MultiCell values={p.devices} flex="0 0 78px" />
-                  <MultiCell values={p.browsers} flex="0 0 84px" />
-                  <MultiCell values={p.geos} flex="0 0 78px" />
-                  <span style={{ flex: '0 0 104px', textAlign: 'right', fontFamily: 'DM Mono, monospace', fontSize: 11, color: COLORS.faded }}>{p.lastPlayed ? fmtShortDateTime(p.lastPlayed) : '\u2014'}</span>
+                  <span style={{ flex: 2, minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', fontFamily: 'Manrope, system-ui, -apple-system, sans-serif', fontWeight: 700 }}>{p.label}</span>
+                  <span style={{ flex: '0 0 42px', textAlign: 'right', fontFamily: 'DM Mono, monospace', fontSize: 12, fontWeight: 700, color: p.plays > 0 ? COLORS.ember : COLORS.faded }}>{p.plays}</span>
+                  <span style={{ flex: '0 0 46px', textAlign: 'right', fontFamily: 'DM Mono, monospace', fontSize: 12, color: (p.stats && p.stats.accuracy != null) ? COLORS.ink : COLORS.faded }}>{p.stats && p.stats.accuracy != null ? `${p.stats.accuracy}%` : '\u2014'}</span>
+                  <MultiCell values={p.devices} flex="0 0 62px" />
+                  <MultiCell values={p.oses} flex="0 0 58px" />
+                  <MultiCell values={p.geos} flex="0 0 118px" />
+                  <span style={{ flex: '0 0 60px', textAlign: 'right', fontFamily: 'DM Mono, monospace', fontSize: 11, color: COLORS.faded }}>{p.stats && p.stats.firstSeen ? fmtShort(p.stats.firstSeen) : '\u2014'}</span>
+                  <span style={{ flex: '0 0 92px', textAlign: 'right', fontFamily: 'DM Mono, monospace', fontSize: 11, color: COLORS.faded }}>{p.lastPlayed ? fmtShortDateTime(p.lastPlayed) : '\u2014'}</span>
                 </div>
                 {open && (
                   <div style={{ padding: '4px 14px 14px 48px', background: `${COLORS.ink}0a` }}>
+                    <PlayerSummary stats={p.stats} />
                     {history.length === 0 ? (
                       <p style={{ fontFamily: 'Manrope, system-ui, -apple-system, sans-serif', fontStyle: 'italic', fontSize: 14, color: COLORS.faded, margin: '8px 0' }}>No completed games recorded.</p>
                     ) : (
@@ -1613,9 +1685,12 @@ function AllPlayersPanel({ signups, anonPlayers }) {
         email: s.email || null,
         plays: s.playCount != null ? s.playCount : plays.length,
         lastAt: (plays[0] && plays[0].createdAt) || '',
+        accuracy: s.stats ? s.stats.accuracy : null,
+        firstSeen: s.stats ? s.stats.firstSeen : null,
         devices: s.devices,
-        browsers: s.browsers,
+        oses: s.oses,
         geos: s.geos,
+        stats: s.stats,
         history: plays,
       };
     });
@@ -1626,9 +1701,12 @@ function AllPlayersPanel({ signups, anonPlayers }) {
       email: null,
       plays: p.plays || 0,
       lastAt: p.lastPlayed || '',
+      accuracy: p.stats ? p.stats.accuracy : null,
+      firstSeen: p.stats ? p.stats.firstSeen : null,
       devices: p.devices,
-      browsers: p.browsers,
+      oses: p.oses,
       geos: p.geos,
+      stats: p.stats,
       history: p.history || [],
     }));
     return [...reg, ...anon];
@@ -1638,9 +1716,11 @@ function AllPlayersPanel({ signups, anonPlayers }) {
     name: (r) => r.name || '',
     type: (r) => r.type || '',
     plays: (r) => r.plays || 0,
+    acc: (r) => (r.accuracy == null ? -1 : r.accuracy),
     device: (r) => (r.devices && r.devices[0]) || '',
-    browser: (r) => (r.browsers && r.browsers[0]) || '',
+    os: (r) => (r.oses && r.oses[0]) || '',
     geo: (r) => (r.geos && r.geos[0]) || '',
+    first: (r) => Date.parse(r.firstSeen || '') || 0,
     last: (r) => Date.parse(r.lastAt || '') || 0,
   };
 
@@ -1678,14 +1758,16 @@ function AllPlayersPanel({ signups, anonPlayers }) {
       ) : (
         <div style={{ border: `1px solid ${COLORS.line}`, background: COLORS.paper, borderRadius: 12 }}>
           <div style={{ display: 'flex', gap: 16, position: 'sticky', top: 0, zIndex: 1, background: COLORS.cream, fontFamily: 'DM Mono, monospace', fontSize: 10, letterSpacing: '0.14em', textTransform: 'uppercase', color: COLORS.faded, padding: '10px 14px', borderBottom: `1px solid ${COLORS.line}` }}>
-            <span style={{ flex: '0 0 32px' }}>#</span>
+            <span style={{ flex: '0 0 28px' }}>#</span>
             <SortHead label="Player" k="name" sort={sort} flex={2} type="string" />
-            <SortHead label="Type" k="type" sort={sort} flex="0 0 92px" type="string" />
-            <SortHead label="Plays" k="plays" sort={sort} flex="0 0 56px" align="right" />
-            <SortHead label="Device" k="device" sort={sort} flex="0 0 80px" type="string" />
-            <SortHead label="Browser" k="browser" sort={sort} flex="0 0 84px" type="string" />
-            <SortHead label="Geo" k="geo" sort={sort} flex="0 0 84px" type="string" />
-            <SortHead label="Last" k="last" sort={sort} flex="0 0 104px" align="right" />
+            <SortHead label="Type" k="type" sort={sort} flex="0 0 76px" type="string" />
+            <SortHead label="Plays" k="plays" sort={sort} flex="0 0 42px" align="right" />
+            <SortHead label="Acc" k="acc" sort={sort} flex="0 0 46px" align="right" />
+            <SortHead label="Device" k="device" sort={sort} flex="0 0 62px" type="string" />
+            <SortHead label="OS" k="os" sort={sort} flex="0 0 58px" type="string" />
+            <SortHead label="Geo" k="geo" sort={sort} flex="0 0 118px" type="string" />
+            <SortHead label="First" k="first" sort={sort} flex="0 0 60px" align="right" />
+            <SortHead label="Last" k="last" sort={sort} flex="0 0 92px" align="right" />
           </div>
           {visible.map((r, i) => {
             const open = expandedKey === r.key;
@@ -1694,23 +1776,26 @@ function AllPlayersPanel({ signups, anonPlayers }) {
             return (
               <div key={r.key} style={{ borderBottom: i < visible.length - 1 ? rowBorder : 'none' }}>
                 <div onClick={() => setExpandedKey(open ? null : r.key)} style={{ display: 'flex', gap: 16, alignItems: 'center', fontFamily: 'Manrope, system-ui, -apple-system, sans-serif', fontSize: 13, color: COLORS.ink, padding: '9px 14px', cursor: 'pointer', background: open ? `${COLORS.ink}0a` : 'transparent' }}>
-                  <span style={{ flex: '0 0 32px', fontFamily: 'DM Mono, monospace', fontSize: 11, color: COLORS.faded, display: 'flex', alignItems: 'center', gap: 4 }}>
+                  <span style={{ flex: '0 0 28px', fontFamily: 'DM Mono, monospace', fontSize: 11, color: COLORS.faded, display: 'flex', alignItems: 'center', gap: 4 }}>
                     <span style={{ display: 'inline-block', width: 8, transform: open ? 'rotate(90deg)' : 'none', transition: 'transform 0.12s' }}>&#9656;</span>
                     {i + 1}
                   </span>
-                  <span style={{ flex: 2, minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', fontWeight: 600, fontFamily: reg ? 'Manrope, system-ui, -apple-system, sans-serif' : 'DM Mono, monospace' }}>
+                  <span style={{ flex: 2, minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', fontWeight: 600, fontFamily: 'Manrope, system-ui, -apple-system, sans-serif' }}>
                     {r.name}
                     {r.email ? <span style={{ color: COLORS.faded, fontWeight: 400, fontFamily: 'DM Mono, monospace', fontSize: 11 }}>{' · '}{r.email}</span> : null}
                   </span>
-                  <span style={{ flex: '0 0 92px', fontFamily: 'DM Mono, monospace', fontSize: 10, letterSpacing: '0.06em', textTransform: 'uppercase', color: reg ? COLORS.ember : COLORS.faded }}>{reg ? 'Registered' : 'Anon'}</span>
-                  <span style={{ flex: '0 0 56px', textAlign: 'right', fontFamily: 'DM Mono, monospace', fontSize: 12, fontWeight: 700, color: r.plays > 0 ? COLORS.ember : COLORS.faded }}>{r.plays}</span>
-                  <MultiCell values={r.devices} flex="0 0 80px" />
-                  <MultiCell values={r.browsers} flex="0 0 84px" />
-                  <MultiCell values={r.geos} flex="0 0 84px" />
-                  <span style={{ flex: '0 0 104px', textAlign: 'right', fontFamily: 'DM Mono, monospace', fontSize: 11, color: COLORS.faded }}>{r.lastAt ? fmtShortDateTime(r.lastAt) : '—'}</span>
+                  <span style={{ flex: '0 0 76px', fontFamily: 'DM Mono, monospace', fontSize: 10, letterSpacing: '0.06em', textTransform: 'uppercase', color: reg ? COLORS.ember : COLORS.faded }}>{reg ? 'Registered' : 'Anon'}</span>
+                  <span style={{ flex: '0 0 42px', textAlign: 'right', fontFamily: 'DM Mono, monospace', fontSize: 12, fontWeight: 700, color: r.plays > 0 ? COLORS.ember : COLORS.faded }}>{r.plays}</span>
+                  <span style={{ flex: '0 0 46px', textAlign: 'right', fontFamily: 'DM Mono, monospace', fontSize: 12, color: r.accuracy != null ? COLORS.ink : COLORS.faded }}>{r.accuracy != null ? `${r.accuracy}%` : '—'}</span>
+                  <MultiCell values={r.devices} flex="0 0 62px" />
+                  <MultiCell values={r.oses} flex="0 0 58px" />
+                  <MultiCell values={r.geos} flex="0 0 118px" />
+                  <span style={{ flex: '0 0 60px', textAlign: 'right', fontFamily: 'DM Mono, monospace', fontSize: 11, color: COLORS.faded }}>{r.firstSeen ? fmtShort(r.firstSeen) : '—'}</span>
+                  <span style={{ flex: '0 0 92px', textAlign: 'right', fontFamily: 'DM Mono, monospace', fontSize: 11, color: COLORS.faded }}>{r.lastAt ? fmtShortDateTime(r.lastAt) : '—'}</span>
                 </div>
                 {open && (
                   <div style={{ padding: '4px 14px 14px 48px', background: `${COLORS.ink}0a` }}>
+                    <PlayerSummary stats={r.stats} />
                     {history.length === 0 ? (
                       <p style={{ fontFamily: 'Manrope, system-ui, -apple-system, sans-serif', fontStyle: 'italic', fontSize: 14, color: COLORS.faded, margin: '8px 0' }}>No completed games recorded.</p>
                     ) : (

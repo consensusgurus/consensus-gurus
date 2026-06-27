@@ -317,7 +317,7 @@ export default function TimedMcqClient({ quizId, mobile = false }) {
           method: 'POST',
           keepalive: true,
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ quizId, score: finalPoints, total: maxPoints, correct: prev.filter((r) => r.correct).length, timeElapsed: elapsed, email: identity?.email || undefined, anonId: getAnonId(), isMobile: isMobileDevice() }),
+          body: JSON.stringify({ quizId, score: finalPoints, total: maxPoints, correct: prev.filter((r) => r.correct).length, timeElapsed: elapsed, email: identity?.email || undefined, anonId: getAnonId(), isMobile: isMobileDevice(), referrer: (typeof document !== 'undefined' ? document.referrer : '') }),
         })
           .then((r) => r.json())
           .then((d) => { if (d && !d.error) setBoard({ plays: d.plays || 0, best: d.best ?? null, topTime: d.topTime ?? null, leaderboard: d.leaderboard || [], leaderboardAll: d.leaderboardAll || [], leaderboardMobile: d.leaderboardMobile || [], leaderboardFirst: d.leaderboardFirst || [], leaderboards: d.leaderboards || {} }); })

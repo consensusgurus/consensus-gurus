@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server';
 import { supabaseAdmin } from '@/lib/supabase-server';
 import { findQuizIdentity } from '@/lib/quiz-identity';
 import { buildLeaderboardMatrix } from '@/lib/quiz-anon';
-import { parseUa, countryFromRequest, regionFromRequest } from '@/lib/ua';
+import { parseUa, countryFromRequest, regionFromRequest, cityFromRequest, timezoneFromRequest, languageFromRequest, referrerHost } from '@/lib/ua';
 
 export const dynamic = 'force-dynamic';
 export const fetchCache = 'force-no-store';
@@ -56,6 +56,22 @@ export async function POST(request) {
     const isMobile = typeof body.isMobile === 'boolean' ? body.isMobile : ua.isMobile;
     const country = countryFromRequest(request);
     const region = regionFromRequest(request);
+    // Finer traffic metadata (migration 27). city/timezone come from Vercel edge
+    // geo headers; language from Accept-Language; referrer is the browser's
+    // document.referrer sent in the body (the request's own Referer header is
+    // just the quiz page, so it can't reveal the real traffic source) reduced to
+    // a bare host. A self-referral (our own host) is labeled "internal"; an empty
+    // referrer is "direct".
+    const city = cityFromRequest(request);
+    const timezone = timezoneFromRequest(request);
+    const language = languageFromRequest(request);
+    let referrer = null;
+    if (typeof body.referrer === 'string' && body.referrer.trim()) {
+      const h = referrerHost(body.referrer);
+      referrer = h ? (/(^|\.)sourceoftruths\.com$/i.test(h) ? 'internal' : h) : null;
+    } else if (body.referrer === '' || body.referrer === null) {
+      referrer = 'direct';
+    }
 
     if (!quizId || quizId.length > 100) {
       return NextResponse.json({ error: 'quizId required' }, { status: 400 });
@@ -91,7 +107,13 @@ export async function POST(request) {
     if (region) withMeta.region = region;
     if (ua.browser) withMeta.ua_browser = ua.browser;
     if (ua.os) withMeta.ua_os = ua.os;
+    const withMeta27 = {};
+    if (city) withMeta27.city = city;
+    if (timezone) withMeta27.timezone = timezone;
+    if (referrer) withMeta27.referrer = referrer;
+    if (language) withMeta27.language = language;
     const attempts = [
+      { ...baseRow, anon_id: anonId, ...withCorrect, ...withMobile, ...withMeta, ...withMeta27 },
       { ...baseRow, anon_id: anonId, ...withCorrect, ...withMobile, ...withMeta },
       { ...baseRow, anon_id: anonId, ...withCorrect, ...withMobile },
       { ...baseRow, anon_id: anonId, ...withCorrect },

@@ -264,7 +264,7 @@ export default function SurviveStateBoard({ quizId, mobile = false }) {
         fetch('/api/quiz/result', {
           method: 'POST', keepalive: true,
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ quizId, score: finalScore, total, correct: finalScore, timeElapsed: el, email: identity?.email || undefined, anonId: getAnonId() }),
+          body: JSON.stringify({ quizId, score: finalScore, total, correct: finalScore, timeElapsed: el, email: identity?.email || undefined, anonId: getAnonId(), referrer: (typeof document !== 'undefined' ? document.referrer : '') }),
         })
           .then((r) => r.json())
           .then((d) => { if (d && !d.error) setBoard({ plays: d.plays || 0, best: d.best ?? null, topTime: d.topTime ?? null, leaderboard: d.leaderboard || [], leaderboardAll: d.leaderboardAll || [] }); })
