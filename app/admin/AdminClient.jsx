@@ -149,8 +149,6 @@ function Stat({ label, value }) {
 function PlayerSummary({ stats }) {
   if (!stats) return null;
   const s = stats;
-  const tz = (s.timezones && s.timezones[0]) || null;
-  const join = (arr) => (arr && arr.length ? arr.join(', ') : '—');
   return (
     <div style={{ display: 'flex', flexWrap: 'wrap', gap: '14px 28px', padding: '10px 12px 16px' }}>
       <Stat label="Plays" value={s.plays} />
@@ -163,11 +161,6 @@ function PlayerSummary({ stats }) {
       <Stat label="Active days" value={s.activeDays} />
       <Stat label="Most played" value={s.mostPlayed ? `${s.mostPlayed.title} (${s.mostPlayed.count})` : '—'} />
       <Stat label="Peak time" value={s.peakHour != null ? `${fmtHour(s.peakHour)} · ${DOW[s.peakDow] || ''}` : '—'} />
-      <Stat label="Timezone" value={join(s.timezones)} />
-      <Stat label="Local last play" value={tz && s.lastSeen ? fmtLocalTime(s.lastSeen, tz) : '—'} />
-      <Stat label="Language" value={join(s.languages)} />
-      <Stat label="Browser" value={join(s.browsers)} />
-      <Stat label="Traffic source" value={join(s.referrers)} />
     </div>
   );
 }
@@ -186,43 +179,71 @@ function sessionsFromPlays(plays) {
     g.items.push(p);
     if (String(p.createdAt) > String(g.latest)) g.latest = p.createdAt;
   }
+  const distinct = (items, f) => {
+    const seen = new Set();
+    const out = [];
+    for (const p of items) { const v = p[f]; if (v && !seen.has(v)) { seen.add(v); out.push(v); } }
+    return out;
+  };
   return [...byDay.values()].map((g) => {
     let scoreSum = 0, scoreN = 0, timeSum = 0;
-    const quizzes = new Set();
     for (const p of g.items) {
       if (typeof p.score === 'number' && typeof p.total === 'number' && p.total > 0) { scoreSum += Math.min(1, p.score / p.total); scoreN += 1; }
       if (typeof p.timeElapsed === 'number' && p.timeElapsed >= 0) timeSum += p.timeElapsed;
-      quizzes.add(p.title || p.quizId);
     }
-    return { day: g.day, latest: g.latest, plays: g.items.length, quizzes: quizzes.size, acc: scoreN ? Math.round((scoreSum / scoreN) * 100) : null, time: timeSum };
+    return {
+      day: g.day, latest: g.latest, plays: g.items.length,
+      acc: scoreN ? Math.round((scoreSum / scoreN) * 100) : null, time: timeSum,
+      devices: distinct(g.items, 'device'), oses: distinct(g.items, 'os'),
+      browsers: distinct(g.items, 'browser'), geos: distinct(g.items, 'geo'),
+      timezones: distinct(g.items, 'timezone'), languages: distinct(g.items, 'language'),
+      referrers: distinct(g.items, 'referrer'),
+    };
   }).sort((a, b) => String(b.latest).localeCompare(String(a.latest)));
 }
 
 // Per-session (per-day) table shown in an expanded player row, above the
-// individual play history.
+// individual play history. Each session carries that day's context — device,
+// OS, browser, location, timezone, language, traffic source — since those can
+// change from one session to the next.
 function SessionTable({ plays }) {
   const sessions = sessionsFromPlays(plays);
   if (!sessions.length) return null;
+  const H = ({ label, flex, right }) => (
+    <span style={{ flex, textAlign: right ? 'right' : 'left' }}>{label}</span>
+  );
   return (
     <div style={{ marginBottom: 12 }}>
       <div style={{ fontFamily: 'DM Mono, monospace', fontSize: 9, letterSpacing: '0.12em', textTransform: 'uppercase', color: COLORS.faded, margin: '2px 0 6px' }}>
         Sessions · {sessions.length} day{sessions.length === 1 ? '' : 's'}
       </div>
       <div style={{ border: `1px solid ${COLORS.ink}33`, background: COLORS.paper }}>
-        <div style={{ display: 'flex', gap: 14, fontFamily: 'DM Mono, monospace', fontSize: 9, letterSpacing: '0.12em', textTransform: 'uppercase', color: COLORS.faded, padding: '8px 12px', borderBottom: `1px solid ${COLORS.ink}33` }}>
-          <span style={{ flex: '0 0 110px' }}>Day</span>
-          <span style={{ flex: '0 0 56px', textAlign: 'right' }}>Plays</span>
-          <span style={{ flex: '0 0 64px', textAlign: 'right' }}>Quizzes</span>
-          <span style={{ flex: '0 0 52px', textAlign: 'right' }}>Avg %</span>
-          <span style={{ flex: '0 0 72px', textAlign: 'right' }}>Time</span>
+        <div style={{ display: 'flex', gap: 12, fontFamily: 'DM Mono, monospace', fontSize: 9, letterSpacing: '0.12em', textTransform: 'uppercase', color: COLORS.faded, padding: '8px 12px', borderBottom: `1px solid ${COLORS.ink}33` }}>
+          <H label="Day" flex="0 0 86px" />
+          <H label="Plays" flex="0 0 38px" right />
+          <H label="Avg %" flex="0 0 42px" right />
+          <H label="Time" flex="0 0 54px" right />
+          <H label="Device" flex="0 0 52px" />
+          <H label="OS" flex="0 0 52px" />
+          <H label="Browser" flex="0 0 60px" />
+          <H label="Geo" flex="0 0 96px" />
+          <H label="Timezone" flex="0 0 116px" />
+          <H label="Lang" flex="0 0 50px" />
+          <H label="Source" flex="0 0 84px" />
         </div>
         {sessions.map((s, j) => (
-          <div key={s.day} style={{ display: 'flex', gap: 14, alignItems: 'center', fontFamily: 'Manrope, system-ui, -apple-system, sans-serif', fontSize: 12, color: COLORS.ink, padding: '7px 12px', borderBottom: j < sessions.length - 1 ? `1px solid ${COLORS.ink}1a` : 'none' }}>
-            <span style={{ flex: '0 0 110px', fontFamily: 'DM Mono, monospace', fontSize: 11 }}>{fmtShort(s.latest)}</span>
-            <span style={{ flex: '0 0 56px', textAlign: 'right', fontFamily: 'DM Mono, monospace', fontSize: 11, fontWeight: 700, color: COLORS.ember }}>{s.plays}</span>
-            <span style={{ flex: '0 0 64px', textAlign: 'right', fontFamily: 'DM Mono, monospace', fontSize: 11 }}>{s.quizzes}</span>
-            <span style={{ flex: '0 0 52px', textAlign: 'right', fontFamily: 'DM Mono, monospace', fontSize: 11, color: COLORS.faded }}>{s.acc != null ? `${s.acc}%` : '—'}</span>
-            <span style={{ flex: '0 0 72px', textAlign: 'right', fontFamily: 'DM Mono, monospace', fontSize: 11, color: COLORS.faded }}>{fmtDuration(s.time)}</span>
+          <div key={s.day} style={{ display: 'flex', gap: 12, alignItems: 'center', fontFamily: 'Manrope, system-ui, -apple-system, sans-serif', fontSize: 12, color: COLORS.ink, padding: '7px 12px', borderBottom: j < sessions.length - 1 ? `1px solid ${COLORS.ink}1a` : 'none' }}>
+            <span style={{ flex: '0 0 86px', fontFamily: 'DM Mono, monospace', fontSize: 11 }}>{fmtShort(s.latest)}</span>
+            <span style={{ flex: '0 0 38px', textAlign: 'right', fontFamily: 'DM Mono, monospace', fontSize: 11, fontWeight: 700, color: COLORS.ember }}>{s.plays}</span>
+            <span style={{ flex: '0 0 42px', textAlign: 'right', fontFamily: 'DM Mono, monospace', fontSize: 11, color: COLORS.faded }}>{s.acc != null ? `${s.acc}%` : '—'}</span>
+            <span style={{ flex: '0 0 54px', textAlign: 'right', fontFamily: 'DM Mono, monospace', fontSize: 11, color: COLORS.faded }}>{fmtDuration(s.time)}</span>
+            <MultiCell values={s.devices} flex="0 0 52px" />
+            <MultiCell values={s.oses} flex="0 0 52px" />
+            <MultiCell values={s.browsers} flex="0 0 60px" />
+            <MultiCell values={s.geos} flex="0 0 96px" />
+            <MultiCell values={s.timezones} flex="0 0 116px" />
+            <MultiCell values={s.languages} flex="0 0 50px" />
+            <MultiCell values={s.referrers} flex="0 0 84px" />
           </div>
         ))}
       </div>
