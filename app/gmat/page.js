@@ -1,15 +1,15 @@
 import ExamQuizClient from '../exams/ExamQuizClient';
 import { EXAMS } from '../exams/examData';
 
-const exam = EXAMS.lsat;
+const exam = EXAMS.gmat;
 
 export const metadata = {
   title: `${exam.label} Practice — Where Will You Get In? | Source of Truths`,
   description: exam.blurb,
   robots: { index: false, follow: false },
-  alternates: { canonical: '/lsat' },
+  alternates: { canonical: '/gmat' },
 };
 
-export default function LsatPage() {
-  return <ExamQuizClient examKey="lsat" />;
+export default function GmatPage() {
+  return <ExamQuizClient examKey="gmat" />;
 }
