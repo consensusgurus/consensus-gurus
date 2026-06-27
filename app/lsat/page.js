@@ -5,7 +5,7 @@ import LsatQuizClient from './LsatQuizClient';
 export const metadata = {
   title: 'LSAT Practice — Where Will You Get In? | Source of Truths',
   description:
-    'Ten hard LSAT-style logical reasoning questions, 35 seconds each. See which law schools your score puts in reach.',
+    'Ten hard LSAT-style logical reasoning questions, 75 seconds each. See which law schools your score puts in reach.',
   robots: { index: false, follow: false },
   alternates: { canonical: '/lsat' },
 };

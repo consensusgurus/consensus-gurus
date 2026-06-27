@@ -31,7 +31,7 @@ const COLORS = {
 };
 const FONT = "'Manrope', system-ui, -apple-system, sans-serif";
 
-const PER_SEC = 35;
+const PER_SEC = 75;
 const PER_MS = PER_SEC * 1000;
 const MAX_PER = 35;
 const GRACE_MS = 3000;
@@ -361,7 +361,7 @@ export default function LsatQuizClient() {
           </h1>
         </div>
         <p style={{ fontFamily: FONT, fontSize: 15.5, lineHeight: 1.55, margin: '12px 0 0', color: COLORS.faded, maxWidth: 640 }}>
-          Ten hard LSAT-style logical reasoning questions, 35 seconds each. We’ll match your score to a shortlist of law schools.
+          Ten hard LSAT-style logical reasoning questions, 75 seconds each. We’ll match your score to a shortlist of law schools.
         </p>
 
         <div style={{ marginTop: 22 }} />
