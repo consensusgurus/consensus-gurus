@@ -3,7 +3,7 @@
 // Standardized-test hub — landing page for the six "Where Will You Get In?"
 // practice quizzes. Hidden / unlinked; the per-exam back button returns here.
 
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { ArrowLeft, ArrowRight, GraduationCap } from 'lucide-react';
 import Grain from '../Grain';
 import Footer from '../Footer';
@@ -19,14 +19,26 @@ const COLORS = {
 const FONT = "'Manrope', system-ui, -apple-system, sans-serif";
 
 export default function ExamHubClient() {
+  const [views, setViews] = useState({});
+  useEffect(() => {
+    fetch('/api/bootstrap')
+      .then((r) => r.json())
+      .then((d) => {
+        const v = (d && d.views) || {};
+        const next = {};
+        EXAM_ORDER.forEach((k) => { const n = v[`quiz::exam-${k}`]; if (typeof n === 'number') next[k] = n; });
+        setViews(next);
+      })
+      .catch(() => {});
+  }, []);
   return (
     <div style={{ minHeight: '100vh', background: COLORS.cream, color: COLORS.ink, position: 'relative', overflow: 'clip', fontFamily: FONT }}>
       <Grain />
       <style>{"@import url('https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap');"}</style>
 
       <div style={{ position: 'relative', zIndex: 2, maxWidth: 760, margin: '0 auto', padding: '22px 22px 80px' }}>
-        <a href="/" style={{ display: 'inline-flex', alignItems: 'center', gap: 5, textDecoration: 'none', color: COLORS.ember, fontFamily: FONT, fontSize: 12.5, fontWeight: 600, marginBottom: 18 }}>
-          <ArrowLeft size={13} strokeWidth={2.5} /> Source of Truths
+        <a href="/quizzes" style={{ display: 'inline-flex', alignItems: 'center', gap: 5, textDecoration: 'none', color: COLORS.ember, fontFamily: FONT, fontSize: 12.5, fontWeight: 600, marginBottom: 18 }}>
+          <ArrowLeft size={13} strokeWidth={2.5} /> Quizzes
         </a>
 
         <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginTop: 6 }}>
@@ -52,7 +64,7 @@ export default function ExamHubClient() {
                   <span style={{ fontSize: 22, fontWeight: 800, letterSpacing: '-0.01em' }}>{e.label}</span>
                   <span style={{ display: 'block', fontSize: 13.5, color: COLORS.faded, marginTop: 3, fontWeight: 500 }}>{e.tagline}</span>
                   <span style={{ display: 'block', fontSize: 12, color: COLORS.faded, marginTop: 6, letterSpacing: '0.04em' }}>
-                    10 questions · ranked {e.payoffNoun} payoff
+                    10 questions · ranked {e.payoffNoun} payoff{typeof views[key] === 'number' ? ` · ${views[key].toLocaleString()} ${views[key] === 1 ? 'view' : 'views'}` : ''}
                   </span>
                 </span>
                 <ArrowRight size={20} strokeWidth={2.5} style={{ color: COLORS.ember, flex: 'none' }} />

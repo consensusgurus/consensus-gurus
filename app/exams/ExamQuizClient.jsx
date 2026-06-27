@@ -52,11 +52,24 @@ export default function ExamQuizClient({ examKey }) {
   const [picked, setPicked] = useState(null);
   const [results, setResults] = useState([]); // [{ correct, choice }]
   const [copied, setCopied] = useState(false);
+  const [views, setViews] = useState(null);
 
   const timerRef = useRef(null);
   const deadlineRef = useRef(0);
+  const viewedRef = useRef(false);
 
   useEffect(() => () => clearInterval(timerRef.current), []);
+
+  // Record one page view (view-only — no scoring/leaderboard) and show the
+  // running total at the bottom of the page.
+  useEffect(() => {
+    if (!EXAMS[examKey] || viewedRef.current) return;
+    viewedRef.current = true;
+    fetch('/api/quiz/view', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ quizId: `exam-${examKey}` }) })
+      .then((r) => r.json())
+      .then((d) => { if (d && typeof d.count === 'number') setViews(d.count); })
+      .catch(() => {});
+  }, [examKey]);
 
   if (!exam) {
     return (
@@ -355,6 +368,11 @@ export default function ExamQuizClient({ examKey }) {
         <div style={{ marginTop: 40, paddingTop: 18, borderTop: `1px solid ${COLORS.faded}33`, fontSize: 11, letterSpacing: '0.04em', color: COLORS.faded, lineHeight: 1.6 }}>
           Questions are original, written in {exam.label} style. {exam.rankingNote}
         </div>
+        {views != null && (
+          <div style={{ marginTop: 14, fontSize: 11, letterSpacing: '0.12em', textTransform: 'uppercase', color: COLORS.faded, fontWeight: 700 }}>
+            {views.toLocaleString()} {views === 1 ? 'view' : 'views'}
+          </div>
+        )}
       </div>
 
       <Footer />
