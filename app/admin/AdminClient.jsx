@@ -84,6 +84,22 @@ function fmtShort(iso) {
   }
 }
 
+// Compact M/D/YY + time-of-day, for the "last played" columns where the time of
+// day matters (two sessions on the same day are distinguishable). e.g.
+// "6/15/26 2:23 PM".
+function fmtShortDateTime(iso) {
+  if (!iso) return '—';
+  try {
+    const d = new Date(iso);
+    if (Number.isNaN(d.getTime())) return iso;
+    const date = `${d.getMonth() + 1}/${d.getDate()}/${String(d.getFullYear()).slice(-2)}`;
+    const time = d.toLocaleTimeString(undefined, { hour: 'numeric', minute: '2-digit' });
+    return `${date} ${time}`;
+  } catch {
+    return iso;
+  }
+}
+
 // ----- Click-to-sort table infrastructure (shared by all analytics tables) ----
 // A header cell click sorts by that column. Re-clicking the active column flips
 // direction; switching columns picks a sensible default (descending for
@@ -1021,7 +1037,7 @@ function QuizSignupsPanel({ signups }) {
             <SortHead label="Device" k="device" sort={sort} flex="0 0 80px" type="string" />
             <SortHead label="Browser" k="browser" sort={sort} flex="0 0 84px" type="string" />
             <SortHead label="Geo" k="geo" sort={sort} flex="0 0 84px" type="string" />
-            <SortHead label="Last" k="recent" sort={sort} flex="0 0 64px" align="right" />
+            <SortHead label="Last" k="recent" sort={sort} flex="0 0 104px" align="right" />
             <SortHead label="Joined" k="joined" sort={sort} flex="0 0 64px" align="right" />
           </div>
           {visible.map((s, i) => {
@@ -1054,8 +1070,8 @@ function QuizSignupsPanel({ signups }) {
                   <MultiCell values={s.devices} flex="0 0 80px" />
                   <MultiCell values={s.browsers} flex="0 0 84px" />
                   <MultiCell values={s.geos} flex="0 0 84px" />
-                  <span style={{ flex: '0 0 64px', textAlign: 'right', fontFamily: 'DM Mono, monospace', fontSize: 11, color: COLORS.faded }}>
-                    {s.lastPlayedAt ? fmtShort(s.lastPlayedAt) : '—'}
+                  <span style={{ flex: '0 0 104px', textAlign: 'right', fontFamily: 'DM Mono, monospace', fontSize: 11, color: COLORS.faded }}>
+                    {s.lastPlayedAt ? fmtShortDateTime(s.lastPlayedAt) : '—'}
                   </span>
                   <span style={{ flex: '0 0 64px', textAlign: 'right', fontFamily: 'DM Mono, monospace', fontSize: 11, color: COLORS.faded }}>
                     {fmtShort(s.createdAt)}
@@ -1515,7 +1531,7 @@ function AnonPlayersPanel({ players }) {
             <SortHead label="Device" k="device" sort={sort} flex="0 0 78px" type="string" />
             <SortHead label="Browser" k="browser" sort={sort} flex="0 0 84px" type="string" />
             <SortHead label="Geo" k="geo" sort={sort} flex="0 0 78px" type="string" />
-            <SortHead label="Last" k="recent" sort={sort} flex="0 0 64px" align="right" />
+            <SortHead label="Last" k="recent" sort={sort} flex="0 0 104px" align="right" />
           </div>
           {visible.map((p, i) => {
             const open = expandedKey === p.key;
@@ -1536,7 +1552,7 @@ function AnonPlayersPanel({ players }) {
                   <MultiCell values={p.devices} flex="0 0 78px" />
                   <MultiCell values={p.browsers} flex="0 0 84px" />
                   <MultiCell values={p.geos} flex="0 0 78px" />
-                  <span style={{ flex: '0 0 64px', textAlign: 'right', fontFamily: 'DM Mono, monospace', fontSize: 11, color: COLORS.faded }}>{p.lastPlayed ? fmtShort(p.lastPlayed) : '\u2014'}</span>
+                  <span style={{ flex: '0 0 104px', textAlign: 'right', fontFamily: 'DM Mono, monospace', fontSize: 11, color: COLORS.faded }}>{p.lastPlayed ? fmtShortDateTime(p.lastPlayed) : '\u2014'}</span>
                 </div>
                 {open && (
                   <div style={{ padding: '4px 14px 14px 48px', background: `${COLORS.ink}0a` }}>
@@ -1577,52 +1593,244 @@ function AnonPlayersPanel({ players }) {
   );
 }
 
-// Analytics tab: one panel switched between four audiences/views by a toggle
-// bar (Registered players, Anonymous players, per-Quiz stats, per-List views).
-// Replaces the old stacked layout so only one table is on screen at a time.
+// All players, registered AND anonymous, in one unified table. Registered rows
+// carry the username/email; anonymous rows carry the stable Guest handle. The
+// shared columns (plays, device/browser/geo, last played) line up so the whole
+// audience can be ranked together, and each row still expands to its play
+// history. This backs the "All" sub-view of Quiz Plays.
+function AllPlayersPanel({ signups, anonPlayers }) {
+  const [query, setQuery] = useState('');
+  const [expandedKey, setExpandedKey] = useState(null);
+  const sort = useSort('last', 'desc');
+
+  const rows = useMemo(() => {
+    const reg = (signups || []).map((s) => {
+      const plays = s.plays || [];
+      return {
+        key: `u:${s.id}`,
+        type: 'Registered',
+        name: s.username || '(no name)',
+        email: s.email || null,
+        plays: s.playCount != null ? s.playCount : plays.length,
+        lastAt: (plays[0] && plays[0].createdAt) || '',
+        devices: s.devices,
+        browsers: s.browsers,
+        geos: s.geos,
+        history: plays,
+      };
+    });
+    const anon = (anonPlayers || []).map((p) => ({
+      key: p.key,
+      type: 'Anonymous',
+      name: p.label,
+      email: null,
+      plays: p.plays || 0,
+      lastAt: p.lastPlayed || '',
+      devices: p.devices,
+      browsers: p.browsers,
+      geos: p.geos,
+      history: p.history || [],
+    }));
+    return [...reg, ...anon];
+  }, [signups, anonPlayers]);
+
+  const accessors = {
+    name: (r) => r.name || '',
+    type: (r) => r.type || '',
+    plays: (r) => r.plays || 0,
+    device: (r) => (r.devices && r.devices[0]) || '',
+    browser: (r) => (r.browsers && r.browsers[0]) || '',
+    geo: (r) => (r.geos && r.geos[0]) || '',
+    last: (r) => Date.parse(r.lastAt || '') || 0,
+  };
+
+  const visible = useMemo(() => {
+    const q = query.trim().toLowerCase();
+    const filtered = !q
+      ? rows
+      : rows.filter((r) => (r.name || '').toLowerCase().includes(q) || (r.email || '').toLowerCase().includes(q));
+    return applySort(filtered, sort.key, sort.dir, accessors);
+  }, [rows, query, sort.key, sort.dir]);
+
+  if (!rows.length) {
+    return (
+      <div style={{ padding: '60px 20px', textAlign: 'center', fontFamily: 'Manrope, system-ui, -apple-system, sans-serif', fontStyle: 'italic', fontSize: 18, color: COLORS.faded, border: `1px dashed ${COLORS.line}` }}>
+        No players yet.
+      </div>
+    );
+  }
+
+  const rowBorder = `1px solid ${COLORS.ink}22`;
+  const totalPlays = rows.reduce((n, r) => n + (r.plays || 0), 0);
+  const regCount = (signups || []).length;
+  const anonCount = (anonPlayers || []).length;
+
+  return (
+    <div>
+      <p style={{ fontFamily: 'Manrope, system-ui, -apple-system, sans-serif', fontSize: 13, color: COLORS.faded, margin: '0 0 14px' }}>
+        Every player, registered and anonymous, in one table.
+        {' '}{rows.length} player{rows.length === 1 ? '' : 's'} ({regCount} registered, {anonCount} anonymous), {totalPlays} play{totalPlays === 1 ? '' : 's'} total.
+        {' '}Click a row to see that player&apos;s games. Click a column header to sort.
+      </p>
+      <input value={query} onChange={(e) => setQuery(e.target.value)} placeholder="Filter by name or email…" style={{ width: '100%', padding: '10px 12px', background: COLORS.paper, border: `1px solid ${COLORS.line}`, color: COLORS.ink, fontFamily: 'DM Mono, monospace', fontSize: 12, outline: 'none', boxSizing: 'border-box', marginBottom: 16 }} />
+      {visible.length === 0 ? (
+        <div style={{ padding: '40px 20px', textAlign: 'center', fontFamily: 'Manrope, system-ui, -apple-system, sans-serif', fontStyle: 'italic', fontSize: 16, color: COLORS.faded, border: `1px dashed ${COLORS.line}` }}>No matches.</div>
+      ) : (
+        <div style={{ border: `1px solid ${COLORS.line}`, background: COLORS.paper, borderRadius: 12 }}>
+          <div style={{ display: 'flex', position: 'sticky', top: 0, zIndex: 1, background: COLORS.cream, fontFamily: 'DM Mono, monospace', fontSize: 10, letterSpacing: '0.14em', textTransform: 'uppercase', color: COLORS.faded, padding: '10px 14px', borderBottom: `1px solid ${COLORS.line}` }}>
+            <span style={{ flex: '0 0 32px' }}>#</span>
+            <SortHead label="Player" k="name" sort={sort} flex={2} type="string" />
+            <SortHead label="Type" k="type" sort={sort} flex="0 0 92px" type="string" />
+            <SortHead label="Plays" k="plays" sort={sort} flex="0 0 56px" align="right" />
+            <SortHead label="Device" k="device" sort={sort} flex="0 0 80px" type="string" />
+            <SortHead label="Browser" k="browser" sort={sort} flex="0 0 84px" type="string" />
+            <SortHead label="Geo" k="geo" sort={sort} flex="0 0 84px" type="string" />
+            <SortHead label="Last" k="last" sort={sort} flex="0 0 104px" align="right" />
+          </div>
+          {visible.map((r, i) => {
+            const open = expandedKey === r.key;
+            const reg = r.type === 'Registered';
+            const history = r.history || [];
+            return (
+              <div key={r.key} style={{ borderBottom: i < visible.length - 1 ? rowBorder : 'none' }}>
+                <div onClick={() => setExpandedKey(open ? null : r.key)} style={{ display: 'flex', alignItems: 'center', fontFamily: 'Manrope, system-ui, -apple-system, sans-serif', fontSize: 13, color: COLORS.ink, padding: '9px 14px', cursor: 'pointer', background: open ? `${COLORS.ink}0a` : 'transparent' }}>
+                  <span style={{ flex: '0 0 32px', fontFamily: 'DM Mono, monospace', fontSize: 11, color: COLORS.faded, display: 'flex', alignItems: 'center', gap: 4 }}>
+                    <span style={{ display: 'inline-block', width: 8, transform: open ? 'rotate(90deg)' : 'none', transition: 'transform 0.12s' }}>&#9656;</span>
+                    {i + 1}
+                  </span>
+                  <span style={{ flex: 2, minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', fontWeight: 600, fontFamily: reg ? 'Manrope, system-ui, -apple-system, sans-serif' : 'DM Mono, monospace' }}>
+                    {r.name}
+                    {r.email ? <span style={{ color: COLORS.faded, fontWeight: 400, fontFamily: 'DM Mono, monospace', fontSize: 11 }}>{' · '}{r.email}</span> : null}
+                  </span>
+                  <span style={{ flex: '0 0 92px', fontFamily: 'DM Mono, monospace', fontSize: 10, letterSpacing: '0.06em', textTransform: 'uppercase', color: reg ? COLORS.ember : COLORS.faded }}>{reg ? 'Registered' : 'Anon'}</span>
+                  <span style={{ flex: '0 0 56px', textAlign: 'right', fontFamily: 'DM Mono, monospace', fontSize: 12, fontWeight: 700, color: r.plays > 0 ? COLORS.ember : COLORS.faded }}>{r.plays}</span>
+                  <MultiCell values={r.devices} flex="0 0 80px" />
+                  <MultiCell values={r.browsers} flex="0 0 84px" />
+                  <MultiCell values={r.geos} flex="0 0 84px" />
+                  <span style={{ flex: '0 0 104px', textAlign: 'right', fontFamily: 'DM Mono, monospace', fontSize: 11, color: COLORS.faded }}>{r.lastAt ? fmtShortDateTime(r.lastAt) : '—'}</span>
+                </div>
+                {open && (
+                  <div style={{ padding: '4px 14px 14px 48px', background: `${COLORS.ink}0a` }}>
+                    {history.length === 0 ? (
+                      <p style={{ fontFamily: 'Manrope, system-ui, -apple-system, sans-serif', fontStyle: 'italic', fontSize: 14, color: COLORS.faded, margin: '8px 0' }}>No completed games recorded.</p>
+                    ) : (
+                      <div style={{ border: `1px solid ${COLORS.ink}33`, background: COLORS.paper }}>
+                        <div style={{ display: 'flex', fontFamily: 'DM Mono, monospace', fontSize: 9, letterSpacing: '0.12em', textTransform: 'uppercase', color: COLORS.faded, padding: '8px 12px', borderBottom: `1px solid ${COLORS.ink}33` }}>
+                          <span style={{ flex: 3 }}>Quiz</span>
+                          <span style={{ flex: '0 0 76px', textAlign: 'right' }}>Score</span>
+                          <span style={{ flex: '0 0 56px', textAlign: 'right' }}>Time</span>
+                          <span style={{ flex: '0 0 78px' }}>Device</span>
+                          <span style={{ flex: '0 0 78px' }}>Geo</span>
+                          <span style={{ flex: '0 0 130px', textAlign: 'right' }}>Played</span>
+                        </div>
+                        {history.map((x, j) => (
+                          <div key={`${x.quizId}-${j}`} style={{ display: 'flex', alignItems: 'center', fontFamily: 'Manrope, system-ui, -apple-system, sans-serif', fontSize: 12, color: COLORS.ink, padding: '7px 12px', borderBottom: j < history.length - 1 ? `1px solid ${COLORS.ink}1a` : 'none' }}>
+                            <span style={{ flex: 3, minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                              <Link href={`/quiz/${encodeURIComponent(x.quizId)}`} target="_blank" style={{ color: COLORS.ink, textDecoration: 'none' }}>{x.title}</Link>
+                            </span>
+                            <span style={{ flex: '0 0 76px', textAlign: 'right', fontFamily: 'DM Mono, monospace', fontSize: 11 }}>{x.score}{x.total != null ? `/${x.total}` : ''}</span>
+                            <span style={{ flex: '0 0 56px', textAlign: 'right', fontFamily: 'DM Mono, monospace', fontSize: 11, color: COLORS.faded }}>{formatClock(x.timeElapsed)}</span>
+                            <span style={{ flex: '0 0 78px', fontFamily: 'DM Mono, monospace', fontSize: 10, color: x.device ? COLORS.ink : COLORS.faded }}>{x.device || '—'}</span>
+                            <span style={{ flex: '0 0 78px', fontFamily: 'DM Mono, monospace', fontSize: 10, color: x.geo ? COLORS.ink : COLORS.faded }}>{x.geo || '—'}</span>
+                            <span style={{ flex: '0 0 130px', textAlign: 'right', fontFamily: 'DM Mono, monospace', fontSize: 10, color: COLORS.faded }}>{fmtShortDateTime(x.createdAt)}</span>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                )}
+              </div>
+            );
+          })}
+        </div>
+      )}
+    </div>
+  );
+}
+
+// Analytics tab: one panel switched between Quiz Plays, Quiz Stats and List
+// Views. Quiz Plays has its own sub-toggle (All / Registered / Anonymous) so the
+// whole audience can be seen at once or split by account type. Only one table is
+// on screen at a time.
 function AnalyticsPanel({ views, viewsTotal, quizStats, quizPlaysTotal, signups, anonPlayers }) {
-  const [view, setView] = useState('registered');
+  const [view, setView] = useState('plays');
+  const [playsView, setPlaysView] = useState('all');
+  const regCount = (signups || []).length;
+  const anonCount = (anonPlayers || []).length;
   const tabs = [
-    ['registered', 'Registered', (signups || []).length],
-    ['anonymous', 'Anonymous', (anonPlayers || []).length],
+    ['plays', 'Quiz Plays', regCount + anonCount],
     ['quizstats', 'Quiz Stats', (quizStats || []).length],
     ['listviews', 'List Views', (views || []).length],
   ];
+  const subTabs = [
+    ['all', 'All', regCount + anonCount],
+    ['registered', 'Registered', regCount],
+    ['anonymous', 'Anonymous', anonCount],
+  ];
+  const tabStyle = (on) => ({
+    padding: '8px 14px',
+    background: on ? COLORS.ember : 'transparent',
+    border: `1px solid ${on ? COLORS.ember : COLORS.line}`,
+    color: on ? COLORS.paper : COLORS.ink,
+    fontFamily: 'DM Mono, monospace',
+    fontSize: 11,
+    letterSpacing: '0.1em',
+    textTransform: 'uppercase',
+    fontWeight: 600,
+    cursor: 'pointer',
+    display: 'flex',
+    alignItems: 'center',
+    gap: 6,
+  });
+  const subTabStyle = (on) => ({
+    padding: '6px 12px',
+    background: on ? `${COLORS.ember}1a` : 'transparent',
+    border: `1px solid ${on ? COLORS.ember : COLORS.line}`,
+    color: on ? COLORS.ember : COLORS.faded,
+    fontFamily: 'DM Mono, monospace',
+    fontSize: 10,
+    letterSpacing: '0.08em',
+    textTransform: 'uppercase',
+    fontWeight: 600,
+    cursor: 'pointer',
+    display: 'flex',
+    alignItems: 'center',
+    gap: 5,
+  });
   return (
     <div>
-      <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginBottom: 22 }}>
+      <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginBottom: view === 'plays' ? 12 : 22 }}>
         {tabs.map(([key, label, count]) => {
           const on = view === key;
           return (
-            <button
-              key={key}
-              onClick={() => setView(key)}
-              style={{
-                padding: '8px 14px',
-                background: on ? COLORS.ember : 'transparent',
-                border: `1px solid ${on ? COLORS.ember : COLORS.line}`,
-                color: on ? COLORS.paper : COLORS.ink,
-                fontFamily: 'DM Mono, monospace',
-                fontSize: 11,
-                letterSpacing: '0.1em',
-                textTransform: 'uppercase',
-                fontWeight: 600,
-                cursor: 'pointer',
-                display: 'flex',
-                alignItems: 'center',
-                gap: 6,
-              }}
-            >
+            <button key={key} onClick={() => setView(key)} style={tabStyle(on)}>
               {label}
               <span style={{ opacity: 0.6 }}>{count}</span>
             </button>
           );
         })}
       </div>
-      {view === 'registered' ? (
-        <QuizSignupsPanel signups={signups} />
-      ) : view === 'anonymous' ? (
-        <AnonPlayersPanel players={anonPlayers} />
+      {view === 'plays' && (
+        <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', marginBottom: 22, paddingLeft: 2 }}>
+          {subTabs.map(([key, label, count]) => {
+            const on = playsView === key;
+            return (
+              <button key={key} onClick={() => setPlaysView(key)} style={subTabStyle(on)}>
+                {label}
+                <span style={{ opacity: 0.6 }}>{count}</span>
+              </button>
+            );
+          })}
+        </div>
+      )}
+      {view === 'plays' ? (
+        playsView === 'registered' ? (
+          <QuizSignupsPanel signups={signups} />
+        ) : playsView === 'anonymous' ? (
+          <AnonPlayersPanel players={anonPlayers} />
+        ) : (
+          <AllPlayersPanel signups={signups} anonPlayers={anonPlayers} />
+        )
       ) : view === 'quizstats' ? (
         <QuizStatsPanel stats={quizStats} playsTotal={quizPlaysTotal} />
       ) : (
