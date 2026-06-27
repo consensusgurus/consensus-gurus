@@ -79,7 +79,17 @@ function playerStats(plays) {
   for (const p of list) {
     if (typeof p.score === 'number') bestScore = bestScore == null ? p.score : Math.max(bestScore, p.score);
     if (typeof p.timeElapsed === 'number' && p.timeElapsed >= 0) { timeSum += p.timeElapsed; timeN += 1; }
-    if (typeof p.correct === 'number' && typeof p.total === 'number' && p.total > 0) { accSum += p.correct / p.total; accN += 1; }
+    // Accuracy = score as a fraction of the max possible (score/total), averaged
+    // over plays. This is the ONLY consistent measure across formats: typed
+    // "name them all" quizzes don't record correct_count, and the timed
+    // multiple-choice / survival quizzes store total as MAX POINTS (e.g. 300)
+    // while correct_count is a question count (e.g. 9) — so correct_count/total
+    // would read ~3%. score is always 0..total, so score/total is 0..1 for every
+    // quiz and matches the "perfect" definition (score === total).
+    if (typeof p.score === 'number' && typeof p.total === 'number' && p.total > 0) {
+      accSum += Math.max(0, Math.min(1, p.score / p.total));
+      accN += 1;
+    }
     if (typeof p.total === 'number' && p.total > 0 && p.score === p.total) perfect += 1;
     const label = p.title || p.quizId;
     if (label) quizCount.set(label, (quizCount.get(label) || 0) + 1);
