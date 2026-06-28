@@ -799,26 +799,62 @@ export default function AdminClient({ initialLists, initialExtras = [], initialC
 // Cap long admin tables to roughly 25 visible rows, then scroll vertically.
 const TABLE_MAX_H = 940;
 
-function ViewsPanel({ views, total }) {
+// Page views: unified visitor counts for list pages and quiz pages over the
+// rolling past 24 hours and all-time. `mode` switches the table between the
+// combined feed ('all'), lists only, or quizzes only. Quiz rows also carry
+// completed-game plays (all-time and last 24h), folded in from the former
+// standalone Quiz Stats tab; lists have no play data, so those columns read an
+// em-dash in the combined view.
+function PageViewsPanel({ lists, quizzes, mode }) {
   const [query, setQuery] = useState('');
   const sort = useSort('views24h', 'desc');
+
+  const rows = useMemo(() => {
+    const L = (lists || []).map((v) => ({
+      kind: 'list',
+      id: v.listId,
+      title: v.title || '',
+      href: `/list/${encodeURIComponent(v.listId)}`,
+      views24h: v.views24h || 0,
+      viewsTotal: v.viewsTotal || 0,
+      plays: null,
+      plays24h: null,
+    }));
+    const Q = (quizzes || []).map((q) => ({
+      kind: 'quiz',
+      id: q.quizId,
+      title: q.title || '',
+      href: `/quiz/${encodeURIComponent(q.quizId)}`,
+      views24h: q.views24h || 0,
+      viewsTotal: q.viewsTotal || 0,
+      plays: q.plays || 0,
+      plays24h: q.plays24h || 0,
+    }));
+    if (mode === 'lists') return L;
+    if (mode === 'quizzes') return Q;
+    return [...L, ...Q];
+  }, [lists, quizzes, mode]);
+
   const accessors = {
-    title: (v) => v.title || '',
-    views24h: (v) => v.views24h || 0,
-    viewsTotal: (v) => v.viewsTotal || 0,
+    title: (r) => r.title || '',
+    type: (r) => r.kind,
+    views24h: (r) => r.views24h || 0,
+    viewsTotal: (r) => r.viewsTotal || 0,
+    plays: (r) => (r.plays == null ? -1 : r.plays),
+    plays24h: (r) => (r.plays24h == null ? -1 : r.plays24h),
   };
 
   const visible = useMemo(() => {
     const q = query.trim().toLowerCase();
     const filtered = !q
-      ? views
-      : views.filter(
-          (v) => v.title.toLowerCase().includes(q) || v.listId.toLowerCase().includes(q)
+      ? rows
+      : rows.filter(
+          (r) => r.title.toLowerCase().includes(q) || r.id.toLowerCase().includes(q)
         );
     return applySort(filtered, sort.key, sort.dir, accessors);
-  }, [views, query, sort.key, sort.dir]);
+  }, [rows, query, sort.key, sort.dir]);
 
-  if (!views || views.length === 0) {
+  if (!rows || rows.length === 0) {
     return (
       <div
         style={{
@@ -837,19 +873,29 @@ function ViewsPanel({ views, total }) {
   }
 
   const rowBorder = `1px solid ${COLORS.ink}22`;
-  const activeLists = views.filter((v) => v.views24h > 0).length;
+  const total24h = rows.reduce((n, r) => n + (r.views24h || 0), 0);
+  const activeCount = rows.filter((r) => r.views24h > 0).length;
+  const plays24Total = rows.reduce((n, r) => n + (r.plays24h || 0), 0);
+  const noun = mode === 'lists' ? 'list' : mode === 'quizzes' ? 'quiz' : 'page';
+  const showType = mode === 'all';
+  const showPlays = mode !== 'lists';
+  const titleLabel = mode === 'lists' ? 'List' : mode === 'quizzes' ? 'Quiz' : 'Page';
+  const blurb =
+    mode === 'quizzes'
+      ? `Per-quiz visitors over the rolling past 24 hours and all-time, plus completed-game plays. Busiest first. ${total24h} view${total24h === 1 ? '' : 's'} and ${plays24Total} play${plays24Total === 1 ? '' : 's'} in the last day.`
+      : mode === 'lists'
+      ? `Visitor counts per list page over the rolling past 24 hours, busiest first. ${total24h} view${total24h === 1 ? '' : 's'} across ${activeCount} list${activeCount === 1 ? '' : 's'}. All-time totals shown for context.`
+      : `Page views across lists and quizzes over the rolling past 24 hours, busiest first. ${total24h} view${total24h === 1 ? '' : 's'} across ${activeCount} active page${activeCount === 1 ? '' : 's'} in the last day.`;
 
   return (
     <div>
       <p style={{ fontFamily: 'Manrope, system-ui, -apple-system, sans-serif', fontSize: 13, color: COLORS.faded, margin: '0 0 14px' }}>
-        Visitor counts per list page over the rolling past 24 hours, busiest first.
-        {' '}{total} view{total === 1 ? '' : 's'} across {activeLists} list{activeLists === 1 ? '' : 's'}.
-        All-time totals shown for context.
+        {blurb}
       </p>
       <input
         value={query}
         onChange={(e) => setQuery(e.target.value)}
-        placeholder="Filter by list title or id…"
+        placeholder={`Filter by ${noun} title or id...`}
         style={{
           width: '100%',
           padding: '10px 12px',
@@ -881,164 +927,49 @@ function ViewsPanel({ views, total }) {
         <div style={{ border: `1px solid ${COLORS.line}`, background: COLORS.paper, borderRadius: 12 }}>
           <div style={{ display: 'flex', gap: 16, position: 'sticky', top: 0, zIndex: 1, background: COLORS.cream, fontFamily: 'DM Mono, monospace', fontSize: 10, letterSpacing: '0.14em', textTransform: 'uppercase', color: COLORS.faded, padding: '10px 14px', borderBottom: `1px solid ${COLORS.line}` }}>
             <span style={{ flex: '0 0 36px' }}>#</span>
-            <SortHead label="List" k="title" sort={sort} flex={3} type="string" />
-            <SortHead label="Last 24h" k="views24h" sort={sort} flex="0 0 100px" align="right" />
-            <SortHead label="All time" k="viewsTotal" sort={sort} flex="0 0 100px" align="right" />
+            {showType && <SortHead label="Type" k="type" sort={sort} flex="0 0 56px" type="string" />}
+            <SortHead label={titleLabel} k="title" sort={sort} flex={3} type="string" />
+            <SortHead label="Views 24h" k="views24h" sort={sort} flex="0 0 88px" align="right" />
+            <SortHead label="Views all" k="viewsTotal" sort={sort} flex="0 0 88px" align="right" />
+            {showPlays && <SortHead label="Plays 24h" k="plays24h" sort={sort} flex="0 0 84px" align="right" />}
+            {showPlays && <SortHead label="Plays all" k="plays" sort={sort} flex="0 0 84px" align="right" />}
           </div>
-          {visible.map((v, i) => (
-            <div
-              key={v.listId}
-              style={{ display: 'flex', gap: 16, alignItems: 'center', fontFamily: 'Manrope, system-ui, -apple-system, sans-serif', fontSize: 13, color: COLORS.ink, padding: '9px 14px', borderBottom: i < visible.length - 1 ? rowBorder : 'none', opacity: v.views24h > 0 ? 1 : 0.55 }}
-            >
-              <span style={{ flex: '0 0 36px', fontFamily: 'DM Mono, monospace', fontSize: 11, color: COLORS.faded }}>
-                {i + 1}
-              </span>
-              <span style={{ flex: 3, minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                <Link href={`/list/${encodeURIComponent(v.listId)}`} target="_blank" style={{ color: COLORS.ink, textDecoration: 'none' }}>
-                  {v.title}
-                </Link>
-              </span>
-              <span style={{ flex: '0 0 100px', textAlign: 'right', fontFamily: 'DM Mono, monospace', fontWeight: 700, color: v.views24h > 0 ? COLORS.ember : COLORS.faded }}>
-                {v.views24h}
-              </span>
-              <span style={{ flex: '0 0 100px', textAlign: 'right', fontFamily: 'DM Mono, monospace', fontSize: 11, color: COLORS.faded }}>
-                {v.viewsTotal}
-              </span>
-            </div>
-          ))}
-        </div>
-      )}
-    </div>
-  );
-}
-
-// Quiz signups: the email leads captured by the /quiz "join the leaderboard"
-// form. One row per email (username + email + date joined), newest first.
-// Quiz stats: per-quiz analytics — visitors over the rolling past 24 hours and
-// all-time, plus completed-game plays and average score. Mirrors ViewsPanel.
-function QuizStatsPanel({ stats, playsTotal }) {
-  const [query, setQuery] = useState('');
-  const sort = useSort('views24h', 'desc');
-  const accessors = {
-    title: (s) => s.title || '',
-    views24h: (s) => s.views24h || 0,
-    viewsTotal: (s) => s.viewsTotal || 0,
-    plays: (s) => s.plays || 0,
-    mobile: (s) => s.mobilePlays || 0,
-    avg: (s) => (s.avgScore == null ? -1 : s.avgScore),
-  };
-
-  const visible = useMemo(() => {
-    const q = query.trim().toLowerCase();
-    const filtered = !q
-      ? stats
-      : stats.filter(
-          (s) => s.title.toLowerCase().includes(q) || s.quizId.toLowerCase().includes(q)
-        );
-    return applySort(filtered, sort.key, sort.dir, accessors);
-  }, [stats, query, sort.key, sort.dir]);
-
-  if (!stats || stats.length === 0) {
-    return (
-      <div
-        style={{
-          padding: '60px 20px',
-          textAlign: 'center',
-          fontFamily: 'Manrope, system-ui, -apple-system, sans-serif',
-          fontStyle: 'italic',
-          fontSize: 18,
-          color: COLORS.faded,
-          border: `1px dashed ${COLORS.line}`,
-        }}
-      >
-        No quiz activity yet.
-      </div>
-    );
-  }
-
-  const rowBorder = `1px solid ${COLORS.ink}22`;
-  const views24Total = stats.reduce((n, s) => n + (s.views24h || 0), 0);
-
-  return (
-    <div>
-      <p style={{ fontFamily: 'Manrope, system-ui, -apple-system, sans-serif', fontSize: 13, color: COLORS.faded, margin: '0 0 14px' }}>
-        Per-quiz visitors over the rolling past 24 hours and all-time, plus
-        completed-game plays and average score. Busiest first.
-        {' '}{views24Total} view{views24Total === 1 ? '' : 's'} and {playsTotal} play{playsTotal === 1 ? '' : 's'} in the last day.
-      </p>
-      <input
-        value={query}
-        onChange={(e) => setQuery(e.target.value)}
-        placeholder="Filter by quiz title or id…"
-        style={{
-          width: '100%',
-          padding: '10px 12px',
-          background: COLORS.paper,
-          border: `1px solid ${COLORS.line}`,
-          color: COLORS.ink,
-          fontFamily: 'DM Mono, monospace',
-          fontSize: 12,
-          outline: 'none',
-          marginBottom: 16,
-          boxSizing: 'border-box',
-        }}
-      />
-      {visible.length === 0 ? (
-        <div
-          style={{
-            padding: '40px 20px',
-            textAlign: 'center',
-            fontFamily: 'Manrope, system-ui, -apple-system, sans-serif',
-            fontStyle: 'italic',
-            fontSize: 16,
-            color: COLORS.faded,
-            border: `1px dashed ${COLORS.line}`,
-          }}
-        >
-          No matches.
-        </div>
-      ) : (
-        <div style={{ border: `1px solid ${COLORS.line}`, background: COLORS.paper, borderRadius: 12 }}>
-          <div style={{ display: 'flex', gap: 16, position: 'sticky', top: 0, zIndex: 1, background: COLORS.cream, fontFamily: 'DM Mono, monospace', fontSize: 10, letterSpacing: '0.14em', textTransform: 'uppercase', color: COLORS.faded, padding: '10px 14px', borderBottom: `1px solid ${COLORS.line}` }}>
-            <span style={{ flex: '0 0 36px' }}>#</span>
-            <SortHead label="Quiz" k="title" sort={sort} flex={3} type="string" />
-            <SortHead label="Views 24h" k="views24h" sort={sort} flex="0 0 84px" align="right" />
-            <SortHead label="Views all" k="viewsTotal" sort={sort} flex="0 0 84px" align="right" />
-            <SortHead label="Plays" k="plays" sort={sort} flex="0 0 64px" align="right" />
-            <SortHead label="Mobile" k="mobile" sort={sort} flex="0 0 92px" align="right" />
-            <SortHead label="Avg" k="avg" sort={sort} flex="0 0 64px" align="right" />
-          </div>
-          {visible.map((s, i) => {
-            const active = s.views24h > 0 || s.plays > 0;
-            const mobilePct = s.plays > 0 ? Math.round((s.mobilePlays / s.plays) * 100) : 0;
+          {visible.map((r, i) => {
+            const active = r.views24h > 0 || (r.plays24h || 0) > 0;
             return (
               <div
-                key={s.quizId}
+                key={`${r.kind}:${r.id}`}
                 style={{ display: 'flex', gap: 16, alignItems: 'center', fontFamily: 'Manrope, system-ui, -apple-system, sans-serif', fontSize: 13, color: COLORS.ink, padding: '9px 14px', borderBottom: i < visible.length - 1 ? rowBorder : 'none', opacity: active ? 1 : 0.55 }}
               >
                 <span style={{ flex: '0 0 36px', fontFamily: 'DM Mono, monospace', fontSize: 11, color: COLORS.faded }}>
                   {i + 1}
                 </span>
+                {showType && (
+                  <span style={{ flex: '0 0 56px', fontFamily: 'DM Mono, monospace', fontSize: 10, letterSpacing: '0.08em', textTransform: 'uppercase', color: r.kind === 'quiz' ? COLORS.ember : COLORS.faded }}>
+                    {r.kind === 'quiz' ? 'Quiz' : 'List'}
+                  </span>
+                )}
                 <span style={{ flex: 3, minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                  <Link href={`/quiz/${encodeURIComponent(s.quizId)}`} target="_blank" style={{ color: COLORS.ink, textDecoration: 'none' }}>
-                    {s.title}
+                  <Link href={r.href} target="_blank" style={{ color: COLORS.ink, textDecoration: 'none' }}>
+                    {r.title || r.id}
                   </Link>
                 </span>
-                <span style={{ flex: '0 0 84px', textAlign: 'right', fontFamily: 'DM Mono, monospace', fontWeight: 700, color: s.views24h > 0 ? COLORS.ember : COLORS.faded }}>
-                  {s.views24h}
+                <span style={{ flex: '0 0 88px', textAlign: 'right', fontFamily: 'DM Mono, monospace', fontWeight: 700, color: r.views24h > 0 ? COLORS.ember : COLORS.faded }}>
+                  {r.views24h}
                 </span>
-                <span style={{ flex: '0 0 84px', textAlign: 'right', fontFamily: 'DM Mono, monospace', fontSize: 11, color: COLORS.faded }}>
-                  {s.viewsTotal}
+                <span style={{ flex: '0 0 88px', textAlign: 'right', fontFamily: 'DM Mono, monospace', fontSize: 11, color: COLORS.faded }}>
+                  {r.viewsTotal}
                 </span>
-                <span style={{ flex: '0 0 64px', textAlign: 'right', fontFamily: 'DM Mono, monospace', fontWeight: 700, color: s.plays > 0 ? COLORS.ink : COLORS.faded }}>
-                  {s.plays}
-                </span>
-                <span style={{ flex: '0 0 92px', textAlign: 'right', fontFamily: 'DM Mono, monospace', fontSize: 11, color: s.mobilePlays > 0 ? COLORS.ink : COLORS.faded }}>
-                  {s.mobilePlays > 0 ? `${s.mobilePlays} · ${mobilePct}%` : '—'}
-                </span>
-                <span style={{ flex: '0 0 64px', textAlign: 'right', fontFamily: 'DM Mono, monospace', fontSize: 11, color: COLORS.faded }}>
-                  {s.avgScore != null ? s.avgScore : '—'}
-                </span>
+                {showPlays && (
+                  <span style={{ flex: '0 0 84px', textAlign: 'right', fontFamily: 'DM Mono, monospace', fontWeight: 700, color: (r.plays24h || 0) > 0 ? COLORS.ink : COLORS.faded }}>
+                    {r.plays24h == null ? '—' : r.plays24h}
+                  </span>
+                )}
+                {showPlays && (
+                  <span style={{ flex: '0 0 84px', textAlign: 'right', fontFamily: 'DM Mono, monospace', fontSize: 11, color: COLORS.faded }}>
+                    {r.plays == null ? '—' : r.plays}
+                  </span>
+                )}
               </div>
             );
           })}
@@ -1048,6 +979,8 @@ function QuizStatsPanel({ stats, playsTotal }) {
   );
 }
 
+// Quiz signups: the email leads captured by the /quiz "join the leaderboard"
+// form. One row per email (username + email + date joined), newest first.
 function QuizSignupsPanel({ signups }) {
   const [query, setQuery] = useState('');
   const [expandedId, setExpandedId] = useState(null);
@@ -1907,25 +1840,36 @@ function AllPlayersPanel({ signups, anonPlayers }) {
   );
 }
 
-// Analytics tab: one panel switched between Quiz Plays, Quiz Stats and List
-// Views. Quiz Plays has its own sub-toggle (All / Registered / Anonymous) so the
-// whole audience can be seen at once or split by account type. Only one table is
-// on screen at a time.
+// Analytics tab: switched between Quiz Plays and Page Views. Quiz Plays has its
+// own sub-toggle (All / Registered / Anonymous). Page Views has a sub-toggle
+// (All / Lists / Quizzes) over the unified PageViewsPanel; quiz page views and
+// the former Quiz Stats play columns are folded in there. Only one table is on
+// screen at a time.
 function AnalyticsPanel({ views, viewsTotal, quizStats, quizPlaysTotal, signups, anonPlayers }) {
   const [view, setView] = useState('plays');
   const [playsView, setPlaysView] = useState('all');
+  const [pvView, setPvView] = useState('all');
   const regCount = (signups || []).length;
   const anonCount = (anonPlayers || []).length;
+  const listCount = (views || []).length;
+  const quizCount = (quizStats || []).length;
   const tabs = [
     ['plays', 'Quiz Plays', regCount + anonCount],
-    ['quizstats', 'Quiz Stats', (quizStats || []).length],
-    ['listviews', 'List Views', (views || []).length],
+    ['pageviews', 'Page Views', listCount + quizCount],
   ];
-  const subTabs = [
+  const playsSub = [
     ['all', 'All', regCount + anonCount],
     ['registered', 'Registered', regCount],
     ['anonymous', 'Anonymous', anonCount],
   ];
+  const pvSub = [
+    ['all', 'All', listCount + quizCount],
+    ['lists', 'Lists', listCount],
+    ['quizzes', 'Quizzes', quizCount],
+  ];
+  const subTabs = view === 'plays' ? playsSub : pvSub;
+  const subActive = view === 'plays' ? playsView : pvView;
+  const setSub = view === 'plays' ? setPlaysView : setPvView;
   const tabStyle = (on) => ({
     padding: '8px 14px',
     background: on ? COLORS.ember : 'transparent',
@@ -1958,7 +1902,7 @@ function AnalyticsPanel({ views, viewsTotal, quizStats, quizPlaysTotal, signups,
   });
   return (
     <div>
-      <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginBottom: view === 'plays' ? 12 : 22 }}>
+      <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginBottom: 12 }}>
         {tabs.map(([key, label, count]) => {
           const on = view === key;
           return (
@@ -1969,19 +1913,17 @@ function AnalyticsPanel({ views, viewsTotal, quizStats, quizPlaysTotal, signups,
           );
         })}
       </div>
-      {view === 'plays' && (
-        <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', marginBottom: 22, paddingLeft: 2 }}>
-          {subTabs.map(([key, label, count]) => {
-            const on = playsView === key;
-            return (
-              <button key={key} onClick={() => setPlaysView(key)} style={subTabStyle(on)}>
-                {label}
-                <span style={{ opacity: 0.6 }}>{count}</span>
-              </button>
-            );
-          })}
-        </div>
-      )}
+      <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', marginBottom: 22, paddingLeft: 2 }}>
+        {subTabs.map(([key, label, count]) => {
+          const on = subActive === key;
+          return (
+            <button key={key} onClick={() => setSub(key)} style={subTabStyle(on)}>
+              {label}
+              <span style={{ opacity: 0.6 }}>{count}</span>
+            </button>
+          );
+        })}
+      </div>
       {view === 'plays' ? (
         playsView === 'registered' ? (
           <QuizSignupsPanel signups={signups} />
@@ -1990,10 +1932,8 @@ function AnalyticsPanel({ views, viewsTotal, quizStats, quizPlaysTotal, signups,
         ) : (
           <AllPlayersPanel signups={signups} anonPlayers={anonPlayers} />
         )
-      ) : view === 'quizstats' ? (
-        <QuizStatsPanel stats={quizStats} playsTotal={quizPlaysTotal} />
       ) : (
-        <ViewsPanel views={views} total={viewsTotal} />
+        <PageViewsPanel lists={views} quizzes={quizStats} mode={pvView} />
       )}
     </div>
   );

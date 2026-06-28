@@ -274,6 +274,25 @@ export default function QuizHomeClient() {
     return () => clearTimeout(id);
   }, [chSlide, rotation.length]);
   const curCh = rotation.length ? rotation[chSlide % rotation.length] : null;
+  // Count visits to the quizzes index in the per-quiz analytics, under the
+  // pseudo quiz id 'home' (mirrors the homepage's 'home' list-view row).
+  // Deduped to once per browser session. Restored 2026-06-28 after the June 18
+  // redesign dropped it.
+  useEffect(() => {
+    let seen = false;
+    try {
+      seen = sessionStorage.getItem('sot-quizhome-viewed') === '1';
+      if (!seen) sessionStorage.setItem('sot-quizhome-viewed', '1');
+    } catch (e) { /* sessionStorage unavailable: count this load */ }
+    if (!seen) {
+      fetch('/api/quiz/view', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ quizId: 'home' }),
+      }).catch(() => {});
+    }
+  }, []);
+
   // Restore the saved browse-view preference once on mount.
   useEffect(() => {
     try { const v = localStorage.getItem('sot_quiz_browse_view'); if (v === 'detailed' || v === 'compact') setView(v); } catch {}

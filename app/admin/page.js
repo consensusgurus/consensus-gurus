@@ -359,10 +359,15 @@ export default async function AdminPage() {
   // plays + score sum per quiz, from completed games, plus a mobile-play count
   // (is_mobile === true) so Quiz Stats can show the mobile share per quiz.
   const quizPlaysMap = new Map();
+  const quizPlays24Map = new Map();
   const quizScoreSumMap = new Map();
   const quizMobileMap = new Map();
+  const quizPlaysCutoff24 = Date.now() - 24 * 60 * 60 * 1000;
   for (const r of (quizResultsRes && quizResultsRes.data) || []) {
     quizPlaysMap.set(r.quiz_id, (quizPlaysMap.get(r.quiz_id) || 0) + 1);
+    if (r.created_at && new Date(r.created_at).getTime() >= quizPlaysCutoff24) {
+      quizPlays24Map.set(r.quiz_id, (quizPlays24Map.get(r.quiz_id) || 0) + 1);
+    }
     quizScoreSumMap.set(r.quiz_id, (quizScoreSumMap.get(r.quiz_id) || 0) + (Number(r.score) || 0));
     if (r.is_mobile === true) quizMobileMap.set(r.quiz_id, (quizMobileMap.get(r.quiz_id) || 0) + 1);
   }
@@ -457,6 +462,7 @@ export default async function AdminPage() {
         views24h: quizViews24Map.get(quizId) || 0,
         viewsTotal: quizTotalViewsMap.get(quizId) || 0,
         plays,
+        plays24h: quizPlays24Map.get(quizId) || 0,
         mobilePlays: quizMobileMap.get(quizId) || 0,
         avgScore: plays > 0 ? Math.round((scoreSum / plays) * 10) / 10 : null,
       };
