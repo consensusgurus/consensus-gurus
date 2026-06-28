@@ -11,10 +11,9 @@ const Eye = () => (
   <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7z" /><circle cx="12" cy="12" r="3" /></svg>
 );
 
-// Kids Corner hub. A landing page that lists kids' games and learning
-// activities as tiles; live games (Treats Match, Pizza Match, Dog Match) run on
-// the shared MatchGame engine. New activities drop in as ACTIVITIES entries.
-// Styled to match the live site (Manrope, #f7f8fa, white cards, blue accent).
+// Kids Corner hub. Lists the playable matching games as tiles; each runs on the
+// shared MatchGame engine. New games drop in as ACTIVITIES entries. Styled to
+// match the live site (Manrope, #f7f8fa surface, white cards, blue #2563eb).
 const C = { ink: '#1c1e24', accent: '#2563eb', muted: '#6b7280', soft: '#9aa0ab', line: 'rgba(20,22,28,0.09)' };
 const FONT = "'Manrope', system-ui, -apple-system, sans-serif";
 
@@ -36,17 +35,24 @@ const DOG_PREVIEW = [
   '<svg viewBox="0 0 100 100"><path d="M30 32 l-7 -18 16 9z" fill="#5f6772"/><path d="M70 32 l7 -18 -16 9z" fill="#5f6772"/><circle cx="50" cy="50" r="26" fill="#8b95a0"/><path d="M50 28 q-9 8 -9 22 q0 8 9 14 q9 -6 9 -14 q0 -14 -9 -22z" fill="#f2f5f8"/><ellipse cx="50" cy="62" rx="8" ry="7" fill="#f2f5f8"/><circle cx="50" cy="58" r="3" fill="#2a2a2a"/><circle cx="42" cy="48" r="2.8" fill="#3a6a9a"/><circle cx="58" cy="48" r="2.8" fill="#3a6a9a"/></svg>',
 ];
 
-const ICON_COUNT = '<svg viewBox="0 0 100 100"><g fill="none" stroke="#1d9e75" stroke-width="7" stroke-linecap="round"><path d="M34 26 L26 26 L26 74"/><path d="M52 26 q22 0 22 14 q0 14 -22 18 q22 4 22 18 q0 14 -22 14"/></g></svg>';
-const ICON_SHAPES = '<svg viewBox="0 0 100 100"><circle cx="32" cy="34" r="16" fill="#e24b4a"/><rect x="52" y="50" width="30" height="30" rx="5" fill="#2563eb"/><path d="M30 58 L46 86 L14 86 Z" fill="#f2b705"/></svg>';
-const ICON_SPOT = '<svg viewBox="0 0 100 100"><g fill="none" stroke="#7f5ad6" stroke-width="7" stroke-linecap="round"><circle cx="42" cy="42" r="22"/><path d="M58 58 L78 78"/></g></svg>';
+const ADD_PREVIEW = [
+  '<svg viewBox="0 0 100 100"><text x="50" y="55" font-size="30" font-family="Manrope, system-ui, sans-serif" font-weight="700" text-anchor="middle" dominant-baseline="central" fill="#1c1e24">1+1</text></svg>',
+  '<svg viewBox="0 0 100 100"><text x="50" y="55" font-size="56" font-family="Manrope, system-ui, sans-serif" font-weight="800" text-anchor="middle" dominant-baseline="central" fill="#2563eb">2</text></svg>',
+  '<svg viewBox="0 0 100 100"><text x="50" y="55" font-size="30" font-family="Manrope, system-ui, sans-serif" font-weight="700" text-anchor="middle" dominant-baseline="central" fill="#1c1e24">3+4</text></svg>',
+];
+
+const LETTER_PREVIEW = [
+  '<svg viewBox="0 0 100 100"><text x="50" y="56" font-size="62" font-family="Manrope, system-ui, sans-serif" font-weight="800" text-anchor="middle" dominant-baseline="central" fill="#1c1e24">A</text></svg>',
+  '<svg viewBox="0 0 100 100"><text x="50" y="56" font-size="62" font-family="Manrope, system-ui, sans-serif" font-weight="800" text-anchor="middle" dominant-baseline="central" fill="#2563eb">a</text></svg>',
+  '<svg viewBox="0 0 100 100"><text x="50" y="56" font-size="62" font-family="Manrope, system-ui, sans-serif" font-weight="800" text-anchor="middle" dominant-baseline="central" fill="#1c1e24">B</text></svg>',
+];
 
 const ACTIVITIES = [
-  { id: 'memory-match', href: '/kids/memory-match', title: 'Treats Match', desc: 'Flip the cards and find the matching treats. One player or two.', tag: 'Game', ready: true, band: '#eef3fe', preview: PREVIEW },
-  { id: 'pizza-match', href: '/kids/pizza-match', title: 'Pizza Match', desc: 'Find all fourteen matching pizzas. One player or two.', tag: 'Game', ready: true, band: '#fdeede', preview: PIZZA_PREVIEW },
-  { id: 'dog-match', href: '/kids/dog-match', title: 'Dog Match', desc: 'Find all fourteen matching dog breeds. One player or two.', tag: 'Game', ready: true, band: '#eaf6ef', preview: DOG_PREVIEW },
-  { id: 'counting', title: 'Counting Fun', desc: 'Tap and count along with friendly pictures.', tag: 'Learning', ready: false, band: '#e7f6ef', icon: ICON_COUNT },
-  { id: 'shapes', title: 'Shapes & Colors', desc: 'Match the shape to its color and name.', tag: 'Learning', ready: false, band: '#fdeedd', icon: ICON_SHAPES },
-  { id: 'spot', title: 'Spot the Difference', desc: 'Find what changed between two pictures.', tag: 'Game', ready: false, band: '#f1ecfb', icon: ICON_SPOT },
+  { id: 'memory-match', href: '/kids/memory-match', title: 'Treats Match', desc: 'Flip the cards and find the matching treats. Up to four players.', tag: 'Game', ready: true, band: '#eef3fe', preview: PREVIEW },
+  { id: 'pizza-match', href: '/kids/pizza-match', title: 'Pizza Match', desc: 'Find all fourteen matching pizzas. Up to four players.', tag: 'Game', ready: true, band: '#fdeede', preview: PIZZA_PREVIEW },
+  { id: 'dog-match', href: '/kids/dog-match', title: 'Dog Match', desc: 'Find all fourteen matching dog breeds. Up to four players.', tag: 'Game', ready: true, band: '#eaf6ef', preview: DOG_PREVIEW },
+  { id: 'addition-match', href: '/kids/addition-match', title: 'Addition Match', desc: 'Match each addition to its answer. Fourteen pairs.', tag: 'Learning', ready: true, band: '#eef3fe', preview: ADD_PREVIEW },
+  { id: 'letter-match', href: '/kids/letter-match', title: 'Letter Match', desc: 'Match capital and lowercase letters. Twenty-six pairs.', tag: 'Learning', ready: true, band: '#fde7f0', preview: LETTER_PREVIEW },
 ];
 
 function Tile({ a }) {
