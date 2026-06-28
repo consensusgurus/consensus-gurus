@@ -39,7 +39,7 @@ const Trophy = () => (
   <svg viewBox="0 0 24 24" width="40" height="40" fill="none" stroke="#0f6e56" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M8 21h8M12 17v4M7 4h10v5a5 5 0 0 1-10 0z" /><path d="M7 6H4v2a3 3 0 0 0 3 3M17 6h3v2a3 3 0 0 1-3 3" /></svg>
 );
 
-export default function MatchGame({ items, pairs, title, intro, quizId, cols = 5, maxCard, backLabel = 'All Kids games' }) {
+export default function MatchGame({ items, pairs, title, intro, quizId, cols = 5, maxCard, backLabel = 'Back to all games' }) {
   const pairList = pairs || (items || []).map((it) => ({ a: it.s, b: it.s, name: it.n }));
   const N = pairList.length;
 
@@ -215,7 +215,7 @@ export default function MatchGame({ items, pairs, title, intro, quizId, cols = 5
           .mm-views{display:flex;align-items:center;justify-content:center;gap:6px;font-size:13px;color:${C.soft};font-weight:600;margin:20px 0 0;}
         `}</style>
 
-        <Link href="/kids" style={{ display: 'inline-flex', alignItems: 'center', gap: 6, fontSize: 13, fontWeight: 700, color: C.ink, textDecoration: 'none', marginBottom: 14, border: `1px solid ${C.line}`, background: '#fff', padding: '7px 13px', borderRadius: 10 }}>
+        <Link href="/kids" style={{ display: 'inline-flex', alignItems: 'center', gap: 6, fontSize: 13, fontWeight: 700, color: C.muted, textDecoration: 'none', marginBottom: 12 }}>
           <span style={{ fontSize: 16, lineHeight: 1 }}>&#8592;</span> {backLabel}
         </Link>
 

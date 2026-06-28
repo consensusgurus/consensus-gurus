@@ -382,6 +382,9 @@ export default async function AdminPage() {
     'kids-color-match': { title: 'Kids · Color Match', href: '/kids/color-match' },
     'kids-addition-match': { title: 'Kids · Addition Match', href: '/kids/addition-match' },
     'kids-letter-match': { title: 'Kids · Letter Match', href: '/kids/letter-match' },
+    'kids-fantasy-match': { title: 'Kids · Fantasy Match', href: '/kids/fantasy-match' },
+    'kids-word-match': { title: 'Kids · Word Match', href: '/kids/word-match' },
+    'kids-number-match': { title: 'Kids · Number Match', href: '/kids/number-match' },
   };
   for (const [id, m] of Object.entries(KIDS_PAGES)) quizTitles.set(id, m.title);
   // Per-signup play history: every completed game attributed to each user

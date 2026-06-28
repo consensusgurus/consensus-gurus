@@ -53,6 +53,24 @@ const COLOR_PREVIEW = [
   '<svg viewBox="0 0 100 100"><circle cx="50" cy="50" r="33" fill="#2f7be0"/></svg>',
 ];
 
+const FANTASY_PREVIEW = [
+  '<svg viewBox="0 0 100 100"><path d="M40 86 L36 56 Q34 40 47 33 L41 30 Q45 24 53 27 L57 18 Q61 27 56 35 Q70 41 70 58 L66 86 Z" fill="#fdfdff" stroke="#e8e2ee" stroke-width="1.5"/><path d="M55 13 L61 31 L47 31 Z" fill="#f3c14e"/><path d="M58 31 Q77 37 72 60 Q70 74 59 82 Q68 65 59 49 Q57 39 58 31 Z" fill="#ef6ea0"/><circle cx="49" cy="46" r="3" fill="#3a2a3a"/></svg>',
+  '<svg viewBox="0 0 100 100"><path d="M50 54 L80 92 L20 92 Z" fill="#ee6fae"/><path d="M30 42 Q30 66 39 80 L35 52 Q35 36 50 33 Q65 36 65 52 L61 80 Q70 66 70 42 Q70 21 50 21 Q30 21 30 42 Z" fill="#6b4423"/><circle cx="50" cy="43" r="15" fill="#f6cba0"/><path d="M37 30 L41 23 L46 30 L50 21 L54 30 L59 23 L63 30 Z" fill="#f3c14e"/><circle cx="44" cy="43" r="1.8" fill="#3a2a2a"/><circle cx="56" cy="43" r="1.8" fill="#3a2a2a"/></svg>',
+  '<svg viewBox="0 0 100 100"><path d="M56 44 Q82 30 88 56 Q76 50 66 60 Q74 46 56 44 Z" fill="#a82d2d"/><path d="M28 72 Q20 62 28 50 Q36 38 56 42 Q68 45 70 57 Q70 67 60 72 L63 82 L54 74 Q42 78 36 73 L33 82 Z" fill="#d83b3b"/><path d="M24 60 L32 56 L31 66 Z" fill="#d83b3b"/><path d="M46 40 L49 30 L52 40 Z" fill="#f0e0c0"/><path d="M56 40 L60 31 L62 41 Z" fill="#f0e0c0"/><circle cx="40" cy="54" r="3" fill="#2a1a1a"/></svg>',
+];
+
+const WORD_PREVIEW = [
+  '<svg viewBox="0 0 100 100"><text x="50" y="55" font-size="26" font-family="Manrope, system-ui, sans-serif" font-weight="800" text-anchor="middle" dominant-baseline="central" fill="#1c1e24">Dog</text></svg>',
+  '<svg viewBox="0 0 100 100"><ellipse cx="30" cy="48" rx="9" ry="16" fill="#a06a2e"/><ellipse cx="70" cy="48" rx="9" ry="16" fill="#a06a2e"/><circle cx="50" cy="50" r="24" fill="#c8893a"/><ellipse cx="50" cy="62" rx="12" ry="10" fill="#e8c08a"/><circle cx="50" cy="58" r="3.5" fill="#2a1a0a"/><circle cx="42" cy="46" r="3" fill="#2a1a0a"/><circle cx="58" cy="46" r="3" fill="#2a1a0a"/></svg>',
+  '<svg viewBox="0 0 100 100"><g stroke="#f5b800" stroke-width="4" stroke-linecap="round"><path d="M50 14 V24"/><path d="M50 76 V86"/><path d="M14 50 H24"/><path d="M76 50 H86"/><path d="M24 24 l7 7"/><path d="M69 69 l7 7"/><path d="M76 24 l-7 7"/><path d="M31 69 l-7 7"/></g><circle cx="50" cy="50" r="18" fill="#f5c518"/></svg>',
+];
+
+const NUMBER_PREVIEW = [
+  '<svg viewBox="0 0 100 100"><text x="50" y="55" font-size="54" font-family="Manrope, system-ui, sans-serif" font-weight="800" text-anchor="middle" dominant-baseline="central" fill="#2563eb">7</text></svg>',
+  '<svg viewBox="0 0 100 100"><text x="50" y="55" font-size="22" font-family="Manrope, system-ui, sans-serif" font-weight="700" text-anchor="middle" dominant-baseline="central" fill="#1c1e24">Seven</text></svg>',
+  '<svg viewBox="0 0 100 100"><text x="50" y="55" font-size="54" font-family="Manrope, system-ui, sans-serif" font-weight="800" text-anchor="middle" dominant-baseline="central" fill="#2563eb">3</text></svg>',
+];
+
 const ACTIVITIES = [
   { id: 'memory-match', href: '/kids/memory-match', title: 'Treats Match', desc: 'Flip the cards and find the matching treats. Up to four players.', tag: 'Game', ready: true, band: '#eef3fe', preview: PREVIEW },
   { id: 'pizza-match', href: '/kids/pizza-match', title: 'Pizza Match', desc: 'Find all fourteen matching pizzas. Up to four players.', tag: 'Game', ready: true, band: '#fdeede', preview: PIZZA_PREVIEW },
@@ -60,6 +78,9 @@ const ACTIVITIES = [
   { id: 'color-match', href: '/kids/color-match', title: 'Color Match', desc: 'Match each color word to its color. Ten pairs.', tag: 'Learning', ready: true, band: '#fdeaea', preview: COLOR_PREVIEW },
   { id: 'addition-match', href: '/kids/addition-match', title: 'Addition Match', desc: 'Match each addition to its answer. Fourteen pairs.', tag: 'Learning', ready: true, band: '#eef3fe', preview: ADD_PREVIEW },
   { id: 'letter-match', href: '/kids/letter-match', title: 'Letter Match', desc: 'Match capital and lowercase letters. Twenty-six pairs.', tag: 'Learning', ready: true, band: '#fde7f0', preview: LETTER_PREVIEW },
+  { id: 'fantasy-match', href: '/kids/fantasy-match', title: 'Fantasy Match', desc: 'Match unicorns, princesses, princes, castles, and dragons. Fifteen pairs.', tag: 'Game', ready: true, band: '#f1ecfb', preview: FANTASY_PREVIEW },
+  { id: 'word-match', href: '/kids/word-match', title: 'Word Match', desc: 'Match each word to its picture. Twelve pairs.', tag: 'Learning', ready: true, band: '#e7f6ef', preview: WORD_PREVIEW },
+  { id: 'number-match', href: '/kids/number-match', title: 'Number Match', desc: 'Match each number to its spelling, 0 to 15. Sixteen pairs.', tag: 'Learning', ready: true, band: '#eef3fe', preview: NUMBER_PREVIEW },
 ];
 
 function Tile({ a }) {
