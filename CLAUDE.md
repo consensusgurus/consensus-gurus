@@ -2410,6 +2410,19 @@ slots into the existing board with no backend change. The page identity is store
    `opengraph-image.js` are already format-agnostic, they use only `quiz.title` and `quiz.blurb`. As
    long as a new format object carries a title and blurb, the share card and `<head>` are correct.
 4. **No separate registration.** `/quizzes` lists every entry in `QUIZZES` automatically.
+5. **Wire the abandon flush (every board, no exceptions) (owner rule, 2026-06-27: abandon = count).**
+   A quiz only records a result when the game FINISHES; a mid-quiz exit (back button, tab/window
+   close) would otherwise be lost. Every board calls `useAbandonFlush` from `./useAbandonFlush` so an
+   in-progress exit still posts a NORMAL result via `pagehide` (partial score and all, which DOES enter
+   averages/leaderboard, per the owner's choice). In a new board: add
+   `const abandon = useAbandonFlush(() => <payload-or-null>)` near the other hooks, returning the
+   `/api/quiz/result` body (the same shape that board's finish posts) ONLY when the game is started and
+   not yet finished (return null when idle/done, and gate on first-attempt where the finish path does);
+   then call `abandon.markFlushed()` at the top of the finish handler so the exit never double-posts.
+   Delivery is sendBeacon with a keepalive-fetch fallback; `pagehide` (not `visibilitychange`) avoids
+   false abandons from a tab-switch-and-return. All 9 existing boards already do this (QuizClient,
+   TimedMcqClient, GeoAerialClient, MapPlaceClient, GlobePlaceClient, LogicGameClient, LogicGridClient,
+   GridFillBoard, SurviveStateBoard).
 
 ### Timed multiple-choice (`format: 'timed-mcq'`) data shape and scoring
 
