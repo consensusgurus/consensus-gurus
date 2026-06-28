@@ -32,6 +32,13 @@ const COLS = [
     ],
   },
   {
+    head: 'More',
+    links: [
+      { label: 'Kids Corner', href: '/kids' },
+      { label: 'Practice Tests', href: '/exams' },
+    ],
+  },
+  {
     head: 'Legal',
     links: [
       { label: 'Privacy', href: '/privacy' },

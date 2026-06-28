@@ -824,7 +824,7 @@ function PageViewsPanel({ lists, quizzes, mode }) {
       kind: 'quiz',
       id: q.quizId,
       title: q.title || '',
-      href: `/quiz/${encodeURIComponent(q.quizId)}`,
+      href: q.href || `/quiz/${encodeURIComponent(q.quizId)}`,
       views24h: q.views24h || 0,
       viewsTotal: q.viewsTotal || 0,
       plays: q.plays || 0,

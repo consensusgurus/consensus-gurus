@@ -4,6 +4,8 @@ import SourcesPopover from './SourcesPopover';
 import { getAllSources } from '@/lib/sources';
 import { LISTS } from '@/lib/data';
 import { QUIZZES } from '@/lib/quizzes';
+import { KIDS_GAMES } from '@/lib/kids';
+import { EXAM_ORDER } from './exams/examData';
 
 // Shared site header. Blue header card with the brand + Lists/Quizzes nav on the
 // top row, and an optional INLAY slot (a white pill the page passes in) below it:
@@ -14,7 +16,11 @@ const C = { ink: '#1c1e24', accent: '#2563eb', muted: '#6b7280', line: 'rgba(20,
 const FONT = "'Manrope', system-ui, -apple-system, sans-serif";
 const SOURCE_COUNT = getAllSources().length;
 const LIST_COUNT = LISTS.length;
-const QUIZ_COUNT = Array.isArray(QUIZZES) ? QUIZZES.length : 0;
+// Total "quizzes" shown in the header: trivia quizzes + live Kids Corner games
+// + exam practice tests.
+const QUIZ_COUNT = (Array.isArray(QUIZZES) ? QUIZZES.length : 0)
+  + (Array.isArray(KIDS_GAMES) ? KIDS_GAMES.length : 0)
+  + (Array.isArray(EXAM_ORDER) ? EXAM_ORDER.length : 0);
 
 function Logo({ size = 40 }) {
   return (

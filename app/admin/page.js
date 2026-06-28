@@ -372,6 +372,13 @@ export default async function AdminPage() {
     if (r.is_mobile === true) quizMobileMap.set(r.quiz_id, (quizMobileMap.get(r.quiz_id) || 0) + 1);
   }
   const quizTitles = new Map((Array.isArray(QUIZZES) ? QUIZZES : []).map((q) => [q.id, q.title]));
+  // Non-quiz pages whose page views are tracked through the quiz-view system so
+  // they surface in this analytics panel (the Kids zone hub and games).
+  const KIDS_PAGES = {
+    kids: { title: 'Kids Corner (hub)', href: '/kids' },
+    'kids-memory-match': { title: 'Kids · Memory Match', href: '/kids/memory-match' },
+  };
+  for (const [id, m] of Object.entries(KIDS_PAGES)) quizTitles.set(id, m.title);
   // Per-signup play history: every completed game attributed to each user
   // (quiz_results.user_id -> quiz_users.id), newest first, with the quiz title
   // resolved. Lets the Quiz Signups panel show which quizzes a person played
@@ -459,6 +466,7 @@ export default async function AdminPage() {
       return {
         quizId,
         title: quizTitles.get(quizId) || quizId,
+        href: KIDS_PAGES[quizId] ? KIDS_PAGES[quizId].href : `/quiz/${encodeURIComponent(quizId)}`,
         views24h: quizViews24Map.get(quizId) || 0,
         viewsTotal: quizTotalViewsMap.get(quizId) || 0,
         plays,
