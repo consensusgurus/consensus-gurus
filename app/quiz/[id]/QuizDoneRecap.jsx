@@ -27,7 +27,7 @@ function btn(bg, fg, outline) {
   return { fontFamily: FONT, fontSize: 11, letterSpacing: '0.02em', textTransform: 'uppercase', fontWeight: 700, padding: '0 6px', lineHeight: '42px', border: outline ? `1.5px solid ${C.ink}` : 'none', borderRadius: 10, background: bg, color: fg, cursor: 'pointer', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 6, whiteSpace: 'nowrap', overflow: 'hidden' };
 }
 
-export default function QuizDoneRecap({ score, total, hideScore = false, rows = null, answersTitle = 'The answers', quiz = null, onPlayAgain, onPlaySimilar, onShare }) {
+export default function QuizDoneRecap({ score, total, hideScore = false, rows = null, answersTitle = 'The answers', quiz = null, mobile = false, onPlayAgain, onPlaySimilar, onShare }) {
   // The "play next" pick (next unplayed series part, else unplayed in the same
   // category/department, else any) shown by TITLE on a full-width button below
   // the action row. Computed client-side; falls back to the generic "Play
@@ -46,7 +46,7 @@ export default function QuizDoneRecap({ score, total, hideScore = false, rows = 
             <div style={{ fontFamily: FONT, fontSize: 11, letterSpacing: '0.12em', textTransform: 'uppercase', color: C.faded }}>Final score</div>
           </div>
         )}
-        <div style={{ display: 'grid', gap: 8 }}>
+        <div style={{ display: 'grid', gap: 8, gridTemplateColumns: mobile ? '1fr' : 'repeat(3, minmax(0, 1fr))', alignItems: 'stretch' }}>
           {onPlayAgain ? (
             <button onClick={onPlayAgain} style={btn(C.ember, '#fff')}><RotateCcw size={13} strokeWidth={2.5} /> Play Again</button>
           ) : null}

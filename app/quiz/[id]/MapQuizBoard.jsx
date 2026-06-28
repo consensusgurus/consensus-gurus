@@ -30,7 +30,8 @@ const CTRL_ACCENT = '#2563eb';
 // renders small on a wide-but-short region (e.g. the no-outline lower-48). These
 // presets let the player enlarge it past the play column with the full-bleed
 // technique (centered on the viewport; the page scrolls vertically - never a
-// separate window). 'lg' is the default so maps open larger than the old cap.
+// separate window). 'fit' is the default so maps open at the play-column width;
+// the player can still bump to Large/Full, and the choice is remembered.
 const SIZES = {
   fit: { label: 'Fit', width: '680px', bleed: false },
   lg: { label: 'Large', width: 'min(1100px, 94vw)', bleed: true },
@@ -42,7 +43,7 @@ const SIZE_KEY = 'sot_map_size';
 export default function MapQuizBoard({ region, started, ended, revealed, foundNames, flash, onPick, noBorders: noBordersProp, mobile = false }) {
   const [geo, setGeo] = useState(null);
   const [hover, setHover] = useState(null);
-  const [size, setSize] = useState('lg');
+  const [size, setSize] = useState('fit');
   const isMobile = mobile;
 
   // Restore the saved size preference (ssr:false, so localStorage is safe;

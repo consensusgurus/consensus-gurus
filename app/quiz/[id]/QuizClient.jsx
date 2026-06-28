@@ -1446,7 +1446,7 @@ export default function QuizClient({ quizId }) {
         </div>
 
         {ended && (
-          <QuizDoneRecap quiz={quiz} hideScore score={dispScore} total={total} onPlayAgain={restartRound} onPlaySimilar={() => { const sid = similarQuizId(quiz); if (sid) router.push(`/quiz/${sid}`); }} onShare={share} />
+          <QuizDoneRecap quiz={quiz} mobile={mobile} hideScore score={dispScore} total={total} onPlayAgain={restartRound} onPlaySimilar={() => { const sid = similarQuizId(quiz); if (sid) router.push(`/quiz/${sid}`); }} onShare={share} />
         )}
 
         {ended && (
@@ -2051,14 +2051,14 @@ export default function QuizClient({ quizId }) {
                   {runActive && (
                     <button
                       onClick={goNextStep}
-                      style={{ width: '100%', maxWidth: 340, margin: '0 auto 12px', boxSizing: 'border-box', fontFamily: MONO, fontSize: 13, letterSpacing: '0.06em', textTransform: 'uppercase', fontWeight: 800, padding: '15px 18px', borderRadius: 10, border: 'none', background: COLORS.ember, color: '#fff', cursor: 'pointer', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 8, boxShadow: '0 6px 18px rgba(37,99,235,0.32)' }}
+                      style={{ width: '100%', margin: '0 0 12px', boxSizing: 'border-box', fontFamily: MONO, fontSize: 13, letterSpacing: '0.06em', textTransform: 'uppercase', fontWeight: 800, padding: '15px 18px', borderRadius: 10, border: 'none', background: COLORS.ember, color: '#fff', cursor: 'pointer', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 8, boxShadow: '0 6px 18px rgba(37,99,235,0.32)' }}
                     >
                       {chHasNext
                         ? (chCountdown != null && chCountdown > 0 ? `Next quiz in ${chCountdown}\u2026` : `Next quiz (${chNextStep + 1} of ${chN}) \u2192`)
                         : (chCountdown != null && chCountdown > 0 ? `Your results in ${chCountdown}\u2026` : 'See your results \u2192')}
                     </button>
                   )}
-                  <div style={{ width: '100%', maxWidth: 360, margin: '0 auto' }}>
+                  <div style={{ width: '100%' }}>
                     <div style={{ display: 'grid', gap: 10 }}>
                       <button onClick={restartRound} style={{ fontFamily: MONO, fontSize: 12, letterSpacing: '0.06em', textTransform: 'uppercase', fontWeight: 700, lineHeight: '46px', width: '100%', padding: '0 8px', boxSizing: 'border-box', borderRadius: 10, cursor: 'pointer', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 8, background: COLORS.ember, color: '#fff', border: 'none' }}><RotateCcw size={14} strokeWidth={2.5} /> Play Again</button>
                       {nextMeta ? (
