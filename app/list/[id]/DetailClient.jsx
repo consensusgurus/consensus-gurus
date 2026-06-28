@@ -1191,6 +1191,8 @@ function entryPicsConfig(list) {
   // always "Pics:", regardless of other tags.
   const venueKey = `${list.title || ''} ${list.id || ''}`.toLowerCase();
   const isVenue = /brewer|beach[\s-]?club|winer|distiller/.test(venueKey);
+  const isGolf = /golf/.test(venueKey);
+  if (isGolf) return { label: 'Pics:', links: [['tripadvisor', 'TripAdvisor'], ['google', 'Google']] };
   if (isVenue) return { label: 'Pics:', links: [['yelp', yelpLabel], ['google', 'Google']] };
   // Bars / nightlife: checked before food so the branch order stays identical
   // to the overview-page mirror (labels are all "Pics:" now).
