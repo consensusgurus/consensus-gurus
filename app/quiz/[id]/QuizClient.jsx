@@ -2029,11 +2029,24 @@ export default function QuizClient({ quizId }) {
                       : 'You ended the round.';
               return (
                 <>
-                  <div style={{ fontFamily: MONO, fontSize: 12, letterSpacing: '0.24em', textTransform: 'uppercase', color: celebrate ? COLORS.forest : COLORS.ember, marginBottom: 6 }}>{heading}</div>
-                  <div style={{ fontFamily: SERIF, fontWeight: 800, fontSize: 34, lineHeight: 1, marginBottom: 4 }}>{dispScore}<span style={{ fontSize: 20, color: COLORS.faded }}> / {total}</span></div>
-                  <p style={{ fontFamily: SERIF, fontStyle: 'italic', fontSize: 16, color: COLORS.faded, margin: '0 0 4px' }}>{reason}</p>
-                  <p style={{ fontFamily: SANS, fontSize: 14, color: '#4a4339', margin: '0 0 12px' }}>{resultLine}</p>
-                  <LeaderboardSnippet board={board} identity={identity} score={dispScore} lastElapsed={lastElapsed} />
+                  {(() => {
+                    const lbRows = (identity ? board.leaderboard : board.leaderboardAll) || [];
+                    const summary = (
+                      <div style={{ flex: '1 1 0', minWidth: 0 }}>
+                        <div style={{ fontFamily: MONO, fontSize: 12, letterSpacing: '0.24em', textTransform: 'uppercase', color: celebrate ? COLORS.forest : COLORS.ember, marginBottom: 6 }}>{heading}</div>
+                        <div style={{ fontFamily: SERIF, fontWeight: 800, fontSize: 32, lineHeight: 1, marginBottom: 4 }}>{dispScore}<span style={{ fontSize: 19, color: COLORS.faded }}> / {total}</span></div>
+                        <p style={{ fontFamily: SERIF, fontStyle: 'italic', fontSize: 15, color: COLORS.faded, margin: '0 0 4px' }}>{reason}</p>
+                        <p style={{ fontFamily: SANS, fontSize: 13, color: '#4a4339', margin: 0 }}>{resultLine}</p>
+                      </div>
+                    );
+                    if (!lbRows.length) return <div style={{ marginBottom: 12 }}>{summary}</div>;
+                    return (
+                      <div style={{ display: 'flex', gap: 14, alignItems: 'center', marginBottom: 12 }}>
+                        {summary}
+                        <LeaderboardSnippet board={board} identity={identity} score={dispScore} lastElapsed={lastElapsed} fill />
+                      </div>
+                    );
+                  })()}
                   {eloPanel}
                   {runActive && (
                     <button
@@ -2046,18 +2059,20 @@ export default function QuizClient({ quizId }) {
                     </button>
                   )}
                   <div style={{ width: '100%', maxWidth: 360, margin: '0 auto' }}>
-                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
+                    <div style={{ display: 'grid', gap: 10 }}>
                       <button onClick={restartRound} style={{ fontFamily: MONO, fontSize: 12, letterSpacing: '0.06em', textTransform: 'uppercase', fontWeight: 700, lineHeight: '46px', width: '100%', padding: '0 8px', boxSizing: 'border-box', borderRadius: 10, cursor: 'pointer', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 8, background: COLORS.ember, color: '#fff', border: 'none' }}><RotateCcw size={14} strokeWidth={2.5} /> Play Again</button>
                       {nextMeta ? (
-                        <button onClick={() => router.push(`/quiz/${nextMeta.id}`)} title={nextMeta.title} style={{ fontFamily: MONO, width: '100%', padding: '6px 10px', boxSizing: 'border-box', borderRadius: 10, cursor: 'pointer', display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'flex-start', gap: 2, overflow: 'hidden', background: COLORS.forest, color: '#fff', border: 'none', textAlign: 'left' }}>
-                          <span style={{ fontSize: 8.5, letterSpacing: '0.13em', textTransform: 'uppercase', fontWeight: 800, opacity: 0.9, display: 'inline-flex', alignItems: 'center', gap: 4 }}><Play size={10} strokeWidth={3} /> {nextMeta.label}{nextMeta.badge ? ` · ${nextMeta.badge.part}/${nextMeta.badge.total}` : ''}</span>
-                          <span style={{ width: '100%', fontSize: 12.5, fontWeight: 700, lineHeight: 1.1, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{nextMeta.title}</span>
+                        <button onClick={() => router.push(`/quiz/${nextMeta.id}`)} title={nextMeta.title} style={{ fontFamily: MONO, width: '100%', minHeight: 46, padding: '8px 14px', boxSizing: 'border-box', borderRadius: 10, cursor: 'pointer', display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'flex-start', gap: 3, background: COLORS.forest, color: '#fff', border: 'none', textAlign: 'left' }}>
+                          <span style={{ fontSize: 9, letterSpacing: '0.13em', textTransform: 'uppercase', fontWeight: 800, opacity: 0.9, display: 'inline-flex', alignItems: 'center', gap: 4 }}><Play size={11} strokeWidth={3} /> {nextMeta.label}{nextMeta.badge ? ` · part ${nextMeta.badge.part} of ${nextMeta.badge.total}` : ''}</span>
+                          <span style={{ width: '100%', fontSize: 14, fontWeight: 700, lineHeight: 1.18 }}>{nextMeta.title}</span>
                         </button>
                       ) : (
                         <button onClick={() => { const sid = similarQuizId(quiz); if (sid) router.push(`/quiz/${sid}`); }} style={{ fontFamily: MONO, fontSize: 12, letterSpacing: '0.06em', textTransform: 'uppercase', fontWeight: 700, lineHeight: '46px', width: '100%', padding: '0 8px', boxSizing: 'border-box', borderRadius: 10, cursor: 'pointer', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 8, background: COLORS.forest, color: '#fff', border: 'none' }}><Shuffle size={14} strokeWidth={2.5} /> Play Similar</button>
                       )}
-                      <button onClick={() => { setGameOverDismissed(true); setTab('stats'); }} style={{ fontFamily: MONO, fontSize: 12, letterSpacing: '0.06em', textTransform: 'uppercase', fontWeight: 700, lineHeight: '46px', width: '100%', padding: '0 8px', boxSizing: 'border-box', borderRadius: 10, cursor: 'pointer', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 8, background: '#fff', color: COLORS.ink, border: `1.5px solid ${COLORS.ink}` }}><Trophy size={14} strokeWidth={2.5} /> Leaderboard</button>
-                      <button onClick={share} style={{ fontFamily: MONO, fontSize: 12, letterSpacing: '0.06em', textTransform: 'uppercase', fontWeight: 700, lineHeight: '46px', width: '100%', padding: '0 8px', boxSizing: 'border-box', borderRadius: 10, cursor: 'pointer', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 8, background: COLORS.ink, color: COLORS.cream, border: 'none' }}><Share2 size={14} strokeWidth={2.5} /> Share</button>
+                      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
+                        <button onClick={() => { setGameOverDismissed(true); setTab('stats'); }} style={{ fontFamily: MONO, fontSize: 12, letterSpacing: '0.06em', textTransform: 'uppercase', fontWeight: 700, lineHeight: '46px', width: '100%', padding: '0 8px', boxSizing: 'border-box', borderRadius: 10, cursor: 'pointer', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 8, background: '#fff', color: COLORS.ink, border: `1.5px solid ${COLORS.ink}` }}><Trophy size={14} strokeWidth={2.5} /> Leaderboard</button>
+                        <button onClick={share} style={{ fontFamily: MONO, fontSize: 12, letterSpacing: '0.06em', textTransform: 'uppercase', fontWeight: 700, lineHeight: '46px', width: '100%', padding: '0 8px', boxSizing: 'border-box', borderRadius: 10, cursor: 'pointer', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 8, background: COLORS.ink, color: COLORS.cream, border: 'none' }}><Share2 size={14} strokeWidth={2.5} /> Share</button>
+                      </div>
                     </div>
                     <div style={{ textAlign: 'center', marginTop: 12 }}>
                       <button onClick={() => { setGameOverDismissed(true); setQSent(false); setQOpen(true); }} style={{ background: 'none', border: 'none', padding: 4, cursor: 'pointer', fontFamily: MONO, fontSize: 12, fontWeight: 600, color: COLORS.faded, textDecoration: 'underline', textUnderlineOffset: 3 }}>Report an error</button>

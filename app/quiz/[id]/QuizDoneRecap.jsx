@@ -37,11 +37,6 @@ export default function QuizDoneRecap({ score, total, hideScore = false, rows = 
     try { return nextQuizMeta(quiz); } catch (e) { return null; }
   }, [quiz]);
 
-  const btns = [];
-  if (onPlayAgain) btns.push(<button key="a" onClick={onPlayAgain} style={btn(C.ember, '#fff')}><RotateCcw size={13} strokeWidth={2.5} /> Play Again</button>);
-  if (onPlaySimilar && !nextMeta) btns.push(<button key="s" onClick={onPlaySimilar} style={btn(C.forest, '#fff')}><Shuffle size={13} strokeWidth={2.5} /> Play Similar</button>);
-  if (onShare) btns.push(<button key="h" onClick={onShare} style={btn(C.ink, C.cream)}><Share2 size={13} strokeWidth={2.5} /> Share</button>);
-
   return (
     <div style={{ marginTop: 12 }}>
       <div style={{ background: C.paper, borderRadius: 12, border: `1px solid ${C.faded}33`, padding: hideScore ? '12px 14px' : '13px 14px' }}>
@@ -51,21 +46,28 @@ export default function QuizDoneRecap({ score, total, hideScore = false, rows = 
             <div style={{ fontFamily: FONT, fontSize: 11, letterSpacing: '0.12em', textTransform: 'uppercase', color: C.faded }}>Final score</div>
           </div>
         )}
-        {btns.length > 0 ? (
-          <div style={{ display: 'grid', gridTemplateColumns: `repeat(${btns.length}, minmax(0, 1fr))`, gap: 8 }}>
-            {btns}
-          </div>
-        ) : null}
-        {onPlaySimilar && nextMeta ? (
-          <button onClick={onPlaySimilar} style={{ marginTop: 8, width: '100%', boxSizing: 'border-box', textAlign: 'left', padding: '9px 12px 10px', borderRadius: 10, border: 'none', background: C.forest, color: '#fff', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 10 }}>
-            <Play size={18} strokeWidth={2.5} style={{ flexShrink: 0 }} />
-            <span style={{ minWidth: 0, flex: 1 }}>
-              <span style={{ display: 'block', fontFamily: FONT, fontSize: 9, letterSpacing: '0.13em', textTransform: 'uppercase', fontWeight: 800, opacity: 0.88 }}>{nextMeta.label}{nextMeta.badge ? ` · part ${nextMeta.badge.part} of ${nextMeta.badge.total}` : ''}</span>
-              <span style={{ display: 'block', fontFamily: FONT, fontSize: 14, fontWeight: 700, lineHeight: 1.12, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{nextMeta.title}</span>
-            </span>
-            <ArrowRight size={16} strokeWidth={2.5} style={{ flexShrink: 0 }} />
-          </button>
-        ) : null}
+        <div style={{ display: 'grid', gap: 8 }}>
+          {onPlayAgain ? (
+            <button onClick={onPlayAgain} style={btn(C.ember, '#fff')}><RotateCcw size={13} strokeWidth={2.5} /> Play Again</button>
+          ) : null}
+          {onPlaySimilar ? (
+            nextMeta ? (
+              <button onClick={onPlaySimilar} style={{ width: '100%', boxSizing: 'border-box', textAlign: 'left', padding: '8px 12px', borderRadius: 10, border: 'none', background: C.forest, color: '#fff', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 10 }}>
+                <Play size={18} strokeWidth={2.5} style={{ flexShrink: 0 }} />
+                <span style={{ minWidth: 0, flex: 1 }}>
+                  <span style={{ display: 'block', fontFamily: FONT, fontSize: 9, letterSpacing: '0.13em', textTransform: 'uppercase', fontWeight: 800, opacity: 0.88 }}>{nextMeta.label}{nextMeta.badge ? ` · part ${nextMeta.badge.part} of ${nextMeta.badge.total}` : ''}</span>
+                  <span style={{ display: 'block', fontFamily: FONT, fontSize: 14, fontWeight: 700, lineHeight: 1.18 }}>{nextMeta.title}</span>
+                </span>
+                <ArrowRight size={16} strokeWidth={2.5} style={{ flexShrink: 0 }} />
+              </button>
+            ) : (
+              <button onClick={onPlaySimilar} style={btn(C.forest, '#fff')}><Shuffle size={13} strokeWidth={2.5} /> Play Similar</button>
+            )
+          ) : null}
+          {onShare ? (
+            <button onClick={onShare} style={btn(C.ink, C.cream)}><Share2 size={13} strokeWidth={2.5} /> Share</button>
+          ) : null}
+        </div>
       </div>
 
       {rows && rows.length > 0 ? (

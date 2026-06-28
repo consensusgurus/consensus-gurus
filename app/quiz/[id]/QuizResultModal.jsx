@@ -138,66 +138,70 @@ export default function QuizResultModal({
           </button>
         ) : null}
 
-        {/* Summary — the score, printed once */}
-        <div style={{ textAlign: 'center', padding: '0 28px' }}>
-          {eyebrow ? (
-            <div style={{ fontFamily: FONT, fontSize: 12, fontWeight: 700, letterSpacing: '0.16em', textTransform: 'uppercase', color: C.ember, marginBottom: 10 }}>
-              {eyebrow}
+        {/* Summary (left) and leaderboard (right), side by side to save height */}
+        <div style={{ display: 'flex', gap: 16, alignItems: 'center', marginTop: 2 }}>
+          <div style={{ flex: '1 1 0', minWidth: 0, textAlign: 'center' }}>
+            {eyebrow ? (
+              <div style={{ fontFamily: FONT, fontSize: 11, fontWeight: 700, letterSpacing: '0.14em', textTransform: 'uppercase', color: C.ember, marginBottom: 6 }}>
+                {eyebrow}
+              </div>
+            ) : null}
+            <div style={{ fontFamily: FONT, fontWeight: 800, fontSize: 'clamp(34px, 10vw, 46px)', lineHeight: 1, letterSpacing: '-0.02em' }}>
+              {score}
+              <span style={{ fontSize: 'clamp(18px, 5vw, 24px)', color: C.faded }}>/{total}</span>
             </div>
-          ) : null}
-          <div style={{ fontFamily: FONT, fontWeight: 800, fontSize: 'clamp(44px, 12vw, 56px)', lineHeight: 1, letterSpacing: '-0.02em' }}>
-            {score}
-            <span style={{ fontSize: 'clamp(22px, 6vw, 28px)', color: C.faded }}>/{total}</span>
+            {headline ? (
+              <div style={{ fontFamily: FONT, fontWeight: 700, fontSize: 15, lineHeight: 1.2, margin: '8px 0 4px' }}>
+                {headline}
+              </div>
+            ) : null}
+            {subline ? (
+              <p style={{ fontFamily: FONT, fontSize: 12.5, color: C.faded, margin: 0 }}>
+                {subline}
+              </p>
+            ) : null}
           </div>
-          {headline ? (
-            <div style={{ fontFamily: FONT, fontWeight: 700, fontSize: 'clamp(16px, 4.4vw, 19px)', lineHeight: 1.2, margin: '12px 0 8px' }}>
-              {headline}
-            </div>
-          ) : null}
-          {subline ? (
-            <p style={{ fontFamily: FONT, fontSize: 14, color: C.faded, maxWidth: 400, margin: '0 auto' }}>
-              {subline}
-            </p>
+          {leaderboard ? (
+            <div style={{ flex: '1 1 0', minWidth: 0 }}>{leaderboard}</div>
           ) : null}
         </div>
 
-        {/* Leaderboard + ELO standing, stacked full width */}
-        {(leaderboard || standings) ? (
-          <div style={{ marginTop: 18 }}>
-            {leaderboard}
-            {standings ? <div style={{ marginTop: 12 }}>{standings}</div> : null}
-          </div>
-        ) : null}
+        {standings ? <div style={{ marginTop: 12 }}>{standings}</div> : null}
 
-        {/* Action grid: [Play Again | Play Similar] / [Leaderboard | Share] */}
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, marginTop: 18 }}>
+        {/* Actions: Play Again and Play Next each on their own full-width row,
+            then Leaderboard + Share paired. */}
+        <div style={{ display: 'grid', gap: 10, marginTop: 18 }}>
           {onPlayAgain ? (
             <button onClick={onPlayAgain} style={{ ...cellBase, background: C.ember, color: '#fff' }}>
               <RotateCcw size={14} strokeWidth={2.5} /> Play Again
             </button>
-          ) : <span />}
+          ) : null}
           {onPlaySimilar ? (
             nextMeta ? (
-              <button onClick={onPlaySimilar} title={nextMeta.title} style={{ ...cellBase, lineHeight: 1.1, textTransform: 'none', letterSpacing: 0, padding: '6px 10px', textAlign: 'left', display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'flex-start', gap: 2, overflow: 'hidden', background: C.forest, color: '#fff' }}>
-                <span style={{ fontFamily: FONT, fontSize: 8.5, letterSpacing: '0.13em', textTransform: 'uppercase', fontWeight: 800, opacity: 0.9, display: 'inline-flex', alignItems: 'center', gap: 4 }}><Play size={10} strokeWidth={3} /> {nextMeta.label}{nextMeta.badge ? ` · ${nextMeta.badge.part}/${nextMeta.badge.total}` : ''}</span>
-                <span style={{ width: '100%', fontSize: 12.5, fontWeight: 700, lineHeight: 1.1, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{nextMeta.title}</span>
+              <button onClick={onPlaySimilar} title={nextMeta.title} style={{ ...cellBase, height: 'auto', minHeight: 46, lineHeight: 1.18, textTransform: 'none', letterSpacing: 0, padding: '8px 14px', textAlign: 'left', display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'flex-start', gap: 3, background: C.forest, color: '#fff' }}>
+                <span style={{ fontFamily: FONT, fontSize: 9, letterSpacing: '0.13em', textTransform: 'uppercase', fontWeight: 800, opacity: 0.9, display: 'inline-flex', alignItems: 'center', gap: 4 }}><Play size={11} strokeWidth={3} /> {nextMeta.label}{nextMeta.badge ? ` · part ${nextMeta.badge.part} of ${nextMeta.badge.total}` : ''}</span>
+                <span style={{ width: '100%', fontSize: 14, fontWeight: 700, lineHeight: 1.18 }}>{nextMeta.title}</span>
               </button>
             ) : (
               <button onClick={onPlaySimilar} style={{ ...cellBase, background: C.forest, color: '#fff' }}>
                 <Shuffle size={14} strokeWidth={2.5} /> Play Similar
               </button>
             )
-          ) : <span />}
-          {onLeaderboard ? (
-            <button onClick={onLeaderboard} style={{ ...cellBase, background: '#fff', color: C.ink, border: `1.5px solid ${C.ink}` }}>
-              <Trophy size={14} strokeWidth={2.5} /> Leaderboard
-            </button>
-          ) : <span />}
-          {onShare ? (
-            <button onClick={onShare} style={{ ...cellBase, background: C.ink, color: C.cream }}>
-              <Share2 size={14} strokeWidth={2.5} /> Share
-            </button>
-          ) : <span />}
+          ) : null}
+          {(onLeaderboard || onShare) ? (
+            <div style={{ display: 'grid', gridTemplateColumns: onLeaderboard && onShare ? '1fr 1fr' : '1fr', gap: 10 }}>
+              {onLeaderboard ? (
+                <button onClick={onLeaderboard} style={{ ...cellBase, background: '#fff', color: C.ink, border: `1.5px solid ${C.ink}` }}>
+                  <Trophy size={14} strokeWidth={2.5} /> Leaderboard
+                </button>
+              ) : null}
+              {onShare ? (
+                <button onClick={onShare} style={{ ...cellBase, background: C.ink, color: C.cream }}>
+                  <Share2 size={14} strokeWidth={2.5} /> Share
+                </button>
+              ) : null}
+            </div>
+          ) : null}
         </div>
 
         {/* Report link */}
