@@ -559,8 +559,8 @@ export default function LogicGridClient({ quizId, mobile = false }) {
                 {/* DONE — results popup (the solved grid stays behind it) */}
                 {phase === 'done' && (
                   <>
-                    <QuizDoneRecap score={score} total={total} onPlayAgain={() => { setReviewing(false); setPhase('idle'); setSolved(new Array(total).fill(false)); setActive(null); setGuess(''); setTime(quiz.timeLimit); setRevealed(false); endedRef.current = false; setHint('Press Start to read the clues and begin.'); setHintBad(false); }} onShare={() => setTab('share')} onPlaySimilar={() => { const sid = similarQuizId(quiz); if (sid) router.push(`/quiz/${sid}`); }} />
-                  <QuizResultModal
+                    <QuizDoneRecap quiz={quiz} score={score} total={total} onPlayAgain={() => { setReviewing(false); setPhase('idle'); setSolved(new Array(total).fill(false)); setActive(null); setGuess(''); setTime(quiz.timeLimit); setRevealed(false); endedRef.current = false; setHint('Press Start to read the clues and begin.'); setHintBad(false); }} onShare={() => setTab('share')} onPlaySimilar={() => { const sid = similarQuizId(quiz); if (sid) router.push(`/quiz/${sid}`); }} />
+                  <QuizResultModal quiz={quiz}
                 open={!reviewing}
                 onClose={() => setReviewing(true)}
                 eyebrow={score === total ? 'Grid solved' : time <= 0 ? "Time's up" : 'Gave up'}

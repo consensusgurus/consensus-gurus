@@ -1,6 +1,7 @@
 'use client';
-import React from 'react';
-import { RotateCcw, Shuffle, Share2 } from 'lucide-react';
+import React, { useMemo } from 'react';
+import { RotateCcw, Shuffle, Share2, Play, ArrowRight } from 'lucide-react';
+import { nextQuizMeta } from '@/lib/quiz-similar';
 
 // Persistent end-of-quiz results panel.
 //
@@ -26,10 +27,19 @@ function btn(bg, fg, outline) {
   return { fontFamily: FONT, fontSize: 11, letterSpacing: '0.02em', textTransform: 'uppercase', fontWeight: 700, padding: '0 6px', lineHeight: '42px', border: outline ? `1.5px solid ${C.ink}` : 'none', borderRadius: 10, background: bg, color: fg, cursor: 'pointer', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 6, whiteSpace: 'nowrap', overflow: 'hidden' };
 }
 
-export default function QuizDoneRecap({ score, total, hideScore = false, rows = null, answersTitle = 'The answers', onPlayAgain, onPlaySimilar, onShare }) {
+export default function QuizDoneRecap({ score, total, hideScore = false, rows = null, answersTitle = 'The answers', quiz = null, onPlayAgain, onPlaySimilar, onShare }) {
+  // The "play next" pick (next unplayed series part, else unplayed in the same
+  // category/department, else any) shown by TITLE on a full-width button below
+  // the action row. Computed client-side; falls back to the generic "Play
+  // Similar" button when no quiz is supplied or no pick exists.
+  const nextMeta = useMemo(() => {
+    if (typeof window === 'undefined' || !quiz) return null;
+    try { return nextQuizMeta(quiz); } catch (e) { return null; }
+  }, [quiz]);
+
   const btns = [];
   if (onPlayAgain) btns.push(<button key="a" onClick={onPlayAgain} style={btn(C.ember, '#fff')}><RotateCcw size={13} strokeWidth={2.5} /> Play Again</button>);
-  if (onPlaySimilar) btns.push(<button key="s" onClick={onPlaySimilar} style={btn(C.forest, '#fff')}><Shuffle size={13} strokeWidth={2.5} /> Play Similar</button>);
+  if (onPlaySimilar && !nextMeta) btns.push(<button key="s" onClick={onPlaySimilar} style={btn(C.forest, '#fff')}><Shuffle size={13} strokeWidth={2.5} /> Play Similar</button>);
   if (onShare) btns.push(<button key="h" onClick={onShare} style={btn(C.ink, C.cream)}><Share2 size={13} strokeWidth={2.5} /> Share</button>);
 
   return (
@@ -45,6 +55,16 @@ export default function QuizDoneRecap({ score, total, hideScore = false, rows = 
           <div style={{ display: 'grid', gridTemplateColumns: `repeat(${btns.length}, minmax(0, 1fr))`, gap: 8 }}>
             {btns}
           </div>
+        ) : null}
+        {onPlaySimilar && nextMeta ? (
+          <button onClick={onPlaySimilar} style={{ marginTop: 8, width: '100%', boxSizing: 'border-box', textAlign: 'left', padding: '9px 12px 10px', borderRadius: 10, border: 'none', background: C.forest, color: '#fff', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 10 }}>
+            <Play size={18} strokeWidth={2.5} style={{ flexShrink: 0 }} />
+            <span style={{ minWidth: 0, flex: 1 }}>
+              <span style={{ display: 'block', fontFamily: FONT, fontSize: 9, letterSpacing: '0.13em', textTransform: 'uppercase', fontWeight: 800, opacity: 0.88 }}>{nextMeta.label}{nextMeta.badge ? ` · part ${nextMeta.badge.part} of ${nextMeta.badge.total}` : ''}</span>
+              <span style={{ display: 'block', fontFamily: FONT, fontSize: 14, fontWeight: 700, lineHeight: 1.12, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{nextMeta.title}</span>
+            </span>
+            <ArrowRight size={16} strokeWidth={2.5} style={{ flexShrink: 0 }} />
+          </button>
         ) : null}
       </div>
 

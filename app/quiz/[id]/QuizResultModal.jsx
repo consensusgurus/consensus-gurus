@@ -1,7 +1,8 @@
 'use client';
-import React, { useEffect } from 'react';
+import React, { useEffect, useMemo } from 'react';
 import { createPortal } from 'react-dom';
-import { X, RotateCcw, Shuffle, Trophy, Share2 } from 'lucide-react';
+import { X, RotateCcw, Shuffle, Trophy, Share2, Play } from 'lucide-react';
+import { nextQuizMeta } from '@/lib/quiz-similar';
 
 // Shared full-screen results popup for every quiz board.
 //
@@ -57,12 +58,20 @@ export default function QuizResultModal({
   subline,
   leaderboard = null,
   standings = null,
+  quiz = null,
   onPlayAgain,
   onPlaySimilar,
   onLeaderboard,
   onShare,
   onReport,
 }) {
+  // The "play next" pick shown by title on the Play Similar cell (next unplayed
+  // series part, else unplayed same category/department). Navigation is still
+  // onPlaySimilar, which resolves to the same deterministic pick.
+  const nextMeta = useMemo(() => {
+    if (typeof window === 'undefined' || !quiz) return null;
+    try { return nextQuizMeta(quiz); } catch (e) { return null; }
+  }, [quiz]);
   useEffect(() => {
     if (!open) return undefined;
     const prev = document.body.style.overflow;
@@ -168,9 +177,16 @@ export default function QuizResultModal({
             </button>
           ) : <span />}
           {onPlaySimilar ? (
-            <button onClick={onPlaySimilar} style={{ ...cellBase, background: C.forest, color: '#fff' }}>
-              <Shuffle size={14} strokeWidth={2.5} /> Play Similar
-            </button>
+            nextMeta ? (
+              <button onClick={onPlaySimilar} title={nextMeta.title} style={{ ...cellBase, lineHeight: 1.1, textTransform: 'none', letterSpacing: 0, padding: '6px 10px', textAlign: 'left', display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'flex-start', gap: 2, overflow: 'hidden', background: C.forest, color: '#fff' }}>
+                <span style={{ fontFamily: FONT, fontSize: 8.5, letterSpacing: '0.13em', textTransform: 'uppercase', fontWeight: 800, opacity: 0.9, display: 'inline-flex', alignItems: 'center', gap: 4 }}><Play size={10} strokeWidth={3} /> {nextMeta.label}{nextMeta.badge ? ` · ${nextMeta.badge.part}/${nextMeta.badge.total}` : ''}</span>
+                <span style={{ width: '100%', fontSize: 12.5, fontWeight: 700, lineHeight: 1.1, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{nextMeta.title}</span>
+              </button>
+            ) : (
+              <button onClick={onPlaySimilar} style={{ ...cellBase, background: C.forest, color: '#fff' }}>
+                <Shuffle size={14} strokeWidth={2.5} /> Play Similar
+              </button>
+            )
           ) : <span />}
           {onLeaderboard ? (
             <button onClick={onLeaderboard} style={{ ...cellBase, background: '#fff', color: C.ink, border: `1.5px solid ${C.ink}` }}>

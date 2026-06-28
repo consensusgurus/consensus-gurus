@@ -22,7 +22,8 @@ import useIsMobile from './useIsMobile';
 import dynamic from 'next/dynamic';
 import { flushSync } from 'react-dom';
 import QuizPlayOverlay from './QuizPlayOverlay';
-import { similarQuizId } from '@/lib/quiz-similar';
+import { similarQuizId, nextQuizMeta } from '@/lib/quiz-similar';
+import { ArrowRight, Play } from 'lucide-react';
 import QuizDoneRecap from './QuizDoneRecap';
 
 const MapQuizBoard = dynamic(() => import('./MapQuizBoard'), { ssr: false, loading: () => null });
@@ -1323,6 +1324,9 @@ export default function QuizClient({ quizId }) {
 
   const eloDept = deptOf(quiz);
   const eloDeptLabel = DEPT_LABEL[eloDept] || 'Category';
+  // "Play next" pick shown by title on the Game Over overlay's Play Similar
+  // button (recomputed when the round ends so a just-played quiz drops out).
+  const nextMeta = useMemo(() => { try { return nextQuizMeta(quiz); } catch (e) { return null; } }, [quiz, ended]);
   const eloPanel = <QuizStandings eloAfter={eloAfter} eloBefore={eloBefore} eloDept={eloDept} eloDeptLabel={eloDeptLabel} />;
 
   // Mobile "app" play mode: once a game is in progress on a phone, collapse the non-essential chrome (blurb, leaderboard strip,
@@ -1406,7 +1410,7 @@ export default function QuizClient({ quizId }) {
         </div>
 
         {ended && (
-          <QuizDoneRecap hideScore score={dispScore} total={total} onPlayAgain={() => { try { sessionStorage.setItem('sot_quiz_retry', quizId); } catch (e) { /* no-op */ } window.location.reload(); }} onPlaySimilar={() => { const sid = similarQuizId(quiz); if (sid) router.push(`/quiz/${sid}`); }} onShare={share} />
+          <QuizDoneRecap quiz={quiz} hideScore score={dispScore} total={total} onPlayAgain={() => { try { sessionStorage.setItem('sot_quiz_retry', quizId); } catch (e) { /* no-op */ } window.location.reload(); }} onPlaySimilar={() => { const sid = similarQuizId(quiz); if (sid) router.push(`/quiz/${sid}`); }} onShare={share} />
         )}
 
         {ended && (
@@ -2008,7 +2012,14 @@ export default function QuizClient({ quizId }) {
                   <div style={{ width: '100%', maxWidth: 360, margin: '0 auto' }}>
                     <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
                       <button onClick={() => { try { sessionStorage.setItem('sot_quiz_retry', quizId); } catch (e) { /* no-op */ } window.location.reload(); }} style={{ fontFamily: MONO, fontSize: 12, letterSpacing: '0.06em', textTransform: 'uppercase', fontWeight: 700, lineHeight: '46px', width: '100%', padding: '0 8px', boxSizing: 'border-box', borderRadius: 10, cursor: 'pointer', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 8, background: COLORS.ember, color: '#fff', border: 'none' }}><RotateCcw size={14} strokeWidth={2.5} /> Play Again</button>
-                      <button onClick={() => { const sid = similarQuizId(quiz); if (sid) router.push(`/quiz/${sid}`); }} style={{ fontFamily: MONO, fontSize: 12, letterSpacing: '0.06em', textTransform: 'uppercase', fontWeight: 700, lineHeight: '46px', width: '100%', padding: '0 8px', boxSizing: 'border-box', borderRadius: 10, cursor: 'pointer', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 8, background: COLORS.forest, color: '#fff', border: 'none' }}><Shuffle size={14} strokeWidth={2.5} /> Play Similar</button>
+                      {nextMeta ? (
+                        <button onClick={() => router.push(`/quiz/${nextMeta.id}`)} title={nextMeta.title} style={{ fontFamily: MONO, width: '100%', padding: '6px 10px', boxSizing: 'border-box', borderRadius: 10, cursor: 'pointer', display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'flex-start', gap: 2, overflow: 'hidden', background: COLORS.forest, color: '#fff', border: 'none', textAlign: 'left' }}>
+                          <span style={{ fontSize: 8.5, letterSpacing: '0.13em', textTransform: 'uppercase', fontWeight: 800, opacity: 0.9, display: 'inline-flex', alignItems: 'center', gap: 4 }}><Play size={10} strokeWidth={3} /> {nextMeta.label}{nextMeta.badge ? ` · ${nextMeta.badge.part}/${nextMeta.badge.total}` : ''}</span>
+                          <span style={{ width: '100%', fontSize: 12.5, fontWeight: 700, lineHeight: 1.1, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{nextMeta.title}</span>
+                        </button>
+                      ) : (
+                        <button onClick={() => { const sid = similarQuizId(quiz); if (sid) router.push(`/quiz/${sid}`); }} style={{ fontFamily: MONO, fontSize: 12, letterSpacing: '0.06em', textTransform: 'uppercase', fontWeight: 700, lineHeight: '46px', width: '100%', padding: '0 8px', boxSizing: 'border-box', borderRadius: 10, cursor: 'pointer', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 8, background: COLORS.forest, color: '#fff', border: 'none' }}><Shuffle size={14} strokeWidth={2.5} /> Play Similar</button>
+                      )}
                       <button onClick={() => { setGameOverDismissed(true); setTab('stats'); }} style={{ fontFamily: MONO, fontSize: 12, letterSpacing: '0.06em', textTransform: 'uppercase', fontWeight: 700, lineHeight: '46px', width: '100%', padding: '0 8px', boxSizing: 'border-box', borderRadius: 10, cursor: 'pointer', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 8, background: '#fff', color: COLORS.ink, border: `1.5px solid ${COLORS.ink}` }}><Trophy size={14} strokeWidth={2.5} /> Leaderboard</button>
                       <button onClick={share} style={{ fontFamily: MONO, fontSize: 12, letterSpacing: '0.06em', textTransform: 'uppercase', fontWeight: 700, lineHeight: '46px', width: '100%', padding: '0 8px', boxSizing: 'border-box', borderRadius: 10, cursor: 'pointer', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 8, background: COLORS.ink, color: COLORS.cream, border: 'none' }}><Share2 size={14} strokeWidth={2.5} /> Share</button>
                     </div>

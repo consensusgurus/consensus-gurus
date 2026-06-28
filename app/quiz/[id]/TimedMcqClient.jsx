@@ -565,9 +565,9 @@ export default function TimedMcqClient({ quizId, mobile = false }) {
               <>
                 {(() => {
                   const recapRows = questions.map((qq, i) => { const r = results[i]; return { label: qq.choices[qq.correct], detail: r ? (r.correct ? 'Correct' : 'Missed') : 'No answer', sub: `+${r ? (r.pts || 0) : 0}`, good: !!(r && r.correct) }; });
-                  return <QuizDoneRecap score={points} total={maxPoints} rows={recapRows} answersTitle="The correct answers" onPlayAgain={startGame} onShare={() => setTab('share')} onPlaySimilar={() => { const sid = similarQuizId(quiz); if (sid) router.push(`/quiz/${sid}`); }} />;
+                  return <QuizDoneRecap quiz={quiz} score={points} total={maxPoints} rows={recapRows} answersTitle="The correct answers" onPlayAgain={startGame} onShare={() => setTab('share')} onPlaySimilar={() => { const sid = similarQuizId(quiz); if (sid) router.push(`/quiz/${sid}`); }} />;
                 })()}
-                <QuizResultModal
+                <QuizResultModal quiz={quiz}
                 open={!dismissed}
                 onClose={() => setDismissed(true)}
                 eyebrow={points === maxPoints ? 'Theoretical maximum' : answeredCount < total ? 'Ended early' : 'Final score'}
