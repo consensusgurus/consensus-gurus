@@ -1610,7 +1610,7 @@ export default function QuizClient({ quizId }) {
             ) : bankMode ? (
             <BankQuizBoard pairs={quiz.pairs} started={started} ended={ended} revealed={revealed} onMatch={onPairMatch} onWrong={onBankWrong} onEnd={onPairEnd} onHint={onPairHint} promptLabel={quiz.leftLabel} bankLabel={quiz.rightLabel} stickyTop={stickyTop} mobile={mobile} />
             ) : orderBankMode ? (
-            <OrderBankBoard items={quiz.answers} started={started} ended={ended} revealed={revealed} onMatch={onPairMatch} onWrong={onBankWrong} onEnd={onPairEnd} onHint={onPairHint} answerNoun={quiz.noun} stickyTop={stickyTop} mobile={mobile} />
+            <OrderBankBoard items={quiz.answers} started={started} ended={ended} revealed={revealed} onMatch={onPairMatch} onWrong={onBankWrong} onEnd={onPairEnd} onHint={onPairHint} answerNoun={quiz.noun} directions={quiz.directions} bankLabel={quiz.bankLabel} stickyTop={stickyTop} mobile={mobile} />
             ) : photoMatchMode ? (
             <PhotoMatchBoard items={quiz.answers} started={started} ended={ended} revealed={revealed} onMatch={onPairMatch} onWrong={onBankWrong} onEnd={onPairEnd} onHint={onPairHint} answerNoun={quiz.noun} stickyTop={stickyTop} mobile={mobile} />
             ) : pairsMode ? (

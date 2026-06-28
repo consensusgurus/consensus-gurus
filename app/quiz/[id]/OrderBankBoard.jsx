@@ -39,6 +39,8 @@ export default function OrderBankBoard({
   onEnd,
   onHint,
   answerNoun,
+  directions,
+  bankLabel,
   stickyTop = 150,
   mobile = false,
 }) {
@@ -103,12 +105,15 @@ export default function OrderBankBoard({
     minHeight: 30,
   };
 
+  const showDirections = started && !ended && placed < total && !!directions;
   const barText = !started
     ? 'Press Play to start'
     : ended
     ? 'Game over'
     : placed >= total
     ? 'All in order — perfect!'
+    : directions
+    ? directions
     : `Next: #${placed + 1} of ${total}`;
 
   // Ended view: reveal the full correct order. Reached = green, the missed slot
@@ -117,7 +122,7 @@ export default function OrderBankBoard({
     return (
       <div>
         <div style={{ ...barStyle, position: 'static' }}>
-          <span style={{ fontFamily: MONO, fontSize: 11, letterSpacing: '0.2em', textTransform: 'uppercase', opacity: 0.7, flex: 'none' }}>Release order</span>
+          <span style={{ fontFamily: MONO, fontSize: 11, letterSpacing: '0.2em', textTransform: 'uppercase', opacity: 0.7, flex: 'none' }}>{bankLabel || 'Release order'}</span>
           <span style={{ fontFamily: SERIF, fontWeight: 800, fontSize: 'clamp(18px, 3vw, 24px)', flex: '1 1 auto' }}>
             You placed {placed} of {total} in order.
           </span>
@@ -151,8 +156,8 @@ export default function OrderBankBoard({
   return (
     <div>
       <div style={barStyle}>
-        <span style={{ fontFamily: MONO, fontSize: 11, letterSpacing: '0.2em', textTransform: 'uppercase', opacity: 0.7, flex: 'none' }}>Release order</span>
-        <span key={barText} style={{ fontFamily: SERIF, fontWeight: 800, fontSize: 'clamp(20px, 3.4vw, 28px)', lineHeight: 1.15, flex: '1 1 220px', minWidth: 0 }}>{barText}</span>
+        <span style={{ fontFamily: MONO, fontSize: 11, letterSpacing: '0.2em', textTransform: 'uppercase', opacity: 0.7, flex: 'none' }}>{bankLabel || 'Release order'}</span>
+        <span key={barText} style={{ fontFamily: SERIF, fontWeight: showDirections ? 700 : 800, fontSize: showDirections ? 'clamp(14px, 2.4vw, 18px)' : 'clamp(20px, 3.4vw, 28px)', lineHeight: 1.2, flex: '1 1 220px', minWidth: 0 }}>{barText}</span>
         {live && (
           <span style={{ marginLeft: 'auto', flex: 'none', fontFamily: MONO, fontSize: 11, letterSpacing: '0.14em', textTransform: 'uppercase', opacity: 0.8 }}>
             {placed}/{total} placed
