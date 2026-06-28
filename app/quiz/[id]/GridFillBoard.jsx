@@ -21,6 +21,7 @@ import QuizDoneRecap from './QuizDoneRecap';
 import { similarQuizId } from '@/lib/quiz-similar';
 import { getQuiz } from '@/lib/quizzes';
 import { useChallengeRun, ChallengeRunOverlay } from './useChallengeRun';
+import useAbandonFlush from './useAbandonFlush';
 import Grain from '../../Grain';
 import Footer from '../../Footer';
 import SiteHeader from '../../SiteHeader';
@@ -245,6 +246,18 @@ export default function GridFillBoard({ quizId, mobile = false }) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [quizId]);
 
+  // Record an in-progress game if the player leaves before finishing.
+  const abandon = useAbandonFlush(() => {
+    if (endedRef.current || !startRef.current) return null;
+    if (phase === 'idle' || phase === 'done') return null;
+    const elapsed = Math.min(quiz.timeLimit, Math.round((Date.now() - startRef.current) / 1000));
+    if (!elapsed) return null;
+    const finalFound = foundRef.current;
+    let finalScore = 0;
+    columns.forEach((c) => (c.items || []).forEach((it) => { if (finalFound.has(it.id)) finalScore++; }));
+    return { quizId, score: finalScore, total: totalCells, timeElapsed: elapsed, email: identity?.email || undefined, anonId: getAnonId() };
+  });
+
   function focusInput() { setTimeout(() => { if (inputRef.current) inputRef.current.focus(); }, 0); }
 
   function start() {
@@ -314,6 +327,7 @@ export default function GridFillBoard({ quizId, mobile = false }) {
 
   function finish(win, foundOverride) {
     if (endedRef.current) return;
+    abandon.markFlushed();
     endedRef.current = true;
     clearInterval(timerRef.current);
     clearTimeout(justRef.current);

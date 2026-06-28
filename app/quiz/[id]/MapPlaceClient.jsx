@@ -30,6 +30,7 @@ import QuizDoneRecap from './QuizDoneRecap';
 import { similarQuizId } from '@/lib/quiz-similar';
 import { getQuiz, QUIZZES } from '@/lib/quizzes';
 import { useChallengeRun, ChallengeRunOverlay } from './useChallengeRun';
+import useAbandonFlush from './useAbandonFlush';
 import { quizDept as deptOf, DEPT_LABEL } from '@/lib/quiz-departments';
 import { PLACE_MAP_GEO } from '@/lib/place-map-geo';
 import Grain from '../../Grain';
@@ -232,6 +233,16 @@ export default function MapPlaceClient({ quizId, mobile = false }) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [quizId]);
 
+  // Record an in-progress game if the player leaves before finishing.
+  const abandon = useAbandonFlush(() => {
+    if (endedRef.current || !startRef.current) return null;
+    if (phase === 'idle' || phase === 'done') return null;
+    if (loadStats(quizId).attempts !== 0) return null;
+    const elapsed = Math.min(timeLimit, Math.round((Date.now() - startRef.current) / 1000));
+    if (!elapsed) return null;
+    return { quizId, score: placements.reduce((s, p) => s + (p.pts || 0), 0), total: maxPoints, timeElapsed: elapsed, email: identity?.email || undefined, anonId: getAnonId(), isMobile: isMobileDevice() };
+  });
+
   function stopTimer() { clearInterval(timerRef.current); timerRef.current = null; }
 
   function startGame() {
@@ -284,6 +295,7 @@ export default function MapPlaceClient({ quizId, mobile = false }) {
 
   function finishGame() {
     if (endedRef.current) return;
+    abandon.markFlushed();
     endedRef.current = true;
     stopTimer();
     setPhase('done');

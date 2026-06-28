@@ -20,6 +20,7 @@ import QuizDoneRecap from './QuizDoneRecap';
 import { similarQuizId } from '@/lib/quiz-similar';
 import { getQuiz } from '@/lib/quizzes';
 import { useChallengeRun, ChallengeRunOverlay } from './useChallengeRun';
+import useAbandonFlush from './useAbandonFlush';
 import Grain from '../../Grain';
 import Footer from '../../Footer';
 import SiteHeader from '../../SiteHeader';
@@ -235,8 +236,18 @@ export default function LogicGridClient({ quizId, mobile = false }) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [quizId]);
 
+  // Record an in-progress game if the player leaves before finishing.
+  const abandon = useAbandonFlush(() => {
+    if (endedRef.current || !startRef.current) return null;
+    if (phase === 'idle' || phase === 'done') return null;
+    const elapsed = Math.min(quiz.timeLimit, Math.round((Date.now() - startRef.current) / 1000));
+    if (!elapsed) return null;
+    return { quizId, score: solved.filter(Boolean).length, total, timeElapsed: elapsed, email: identity?.email || undefined, anonId: getAnonId() };
+  });
+
   function endGame(win, solvedOverride) {
     if (endedRef.current) return;
+    abandon.markFlushed();
     endedRef.current = true;
     setPhase('done');
     clearInterval(timerRef.current);

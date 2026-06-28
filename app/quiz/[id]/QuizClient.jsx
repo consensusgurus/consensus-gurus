@@ -16,6 +16,7 @@ import Count from '../../Count';
 import SiteHeader from '../../SiteHeader';
 import QuizPlayerBar from './QuizPlayerBar';
 import { isMobileDevice } from '@/lib/is-mobile';
+import useAbandonFlush from './useAbandonFlush';
 import { LB_POPS, LB_FILTERS, pickLb, lbEmptyNote } from '@/lib/quiz-lb';
 import useIsMobile from './useIsMobile';
 import dynamic from 'next/dynamic';
@@ -703,8 +704,18 @@ export default function QuizClient({ quizId }) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [quizId]);
 
+  // Record an in-progress game if the player leaves before finishing.
+  const abandon = useAbandonFlush(() => {
+    if (!started || ended || !startRef.current) return null;
+    const elapsed = Math.min(quiz.timeLimit, Math.round((Date.now() - startRef.current) / 1000));
+    if (!elapsed) return null;
+    const score = tileMode ? pairsMatchedRef.current : found.filter(Boolean).length;
+    return { quizId, score, total, timeElapsed: elapsed, email: identity?.email || undefined, anonId: getAnonId(), isMobile: isMobileDevice() };
+  });
+
   function endGame(win, foundOverride, scoreOverride) {
     if (ended) return;
+    abandon.markFlushed();
     setEnded(true);
     clearInterval(timerRef.current);
     const finalScore = scoreOverride != null ? scoreOverride : tileMode ? pairsMatchedRef.current : (foundOverride || found).filter(Boolean).length;

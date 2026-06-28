@@ -23,6 +23,7 @@ import LeaderboardSnippet from './LeaderboardSnippet';
 import LeaderboardStrip from './LeaderboardStrip';
 import { getQuiz, QUIZZES } from '@/lib/quizzes';
 import { useChallengeRun, ChallengeRunOverlay } from './useChallengeRun';
+import useAbandonFlush from './useAbandonFlush';
 import { quizDept as deptOf, DEPT_LABEL } from '@/lib/quiz-departments';
 import Grain from '../../Grain';
 import Footer from '../../Footer';
@@ -216,6 +217,17 @@ export default function SurviveStateBoard({ quizId, mobile = false }) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [quizId]);
 
+  // Record an in-progress game if the player leaves before finishing.
+  const abandon = useAbandonFlush(() => {
+    if (endedRef.current || !startRef.current) return null;
+    if (phase === 'idle' || phase === 'done') return null;
+    if (loadStats(quizId).attempts !== 0) return null;
+    const el = Math.round((Date.now() - startRef.current) / 1000);
+    if (!el) return null;
+    const finalScore = results.filter((r) => r.correct).length;
+    return { quizId, score: finalScore, total, correct: finalScore, timeElapsed: el, email: identity?.email || undefined, anonId: getAnonId() };
+  });
+
   // Keep the input focused on the current prompt.
   useEffect(() => {
     if (phase === 'playing' && inputRef.current) {
@@ -248,6 +260,7 @@ export default function SurviveStateBoard({ quizId, mobile = false }) {
 
   function finishGame(missEntry) {
     if (endedRef.current) return;
+    abandon.markFlushed();
     endedRef.current = true;
     clearInterval(timerRef.current);
     const el = startRef.current ? Math.round((Date.now() - startRef.current) / 1000) : 0;

@@ -69,6 +69,19 @@ function distinctNewestFirst(plays, field) {
 // Aggregate a player's whole play history into the engagement / tenure /
 // behavioral stats the admin surfaces (and the distinct device/os/geo/etc sets).
 // Works for registered and anonymous players alike, from the same play-row shape.
+// Bucket play timestamps in US Eastern so "Peak time" and active-day counts use
+// the admin's (Eastern) clock, matching the client-rendered "Last" column. This
+// page renders server-side in UTC, so Date.getHours()/getDay() would report UTC.
+const ET_FMT = new Intl.DateTimeFormat('en-US', {
+  timeZone: 'America/New_York', weekday: 'short', hour: '2-digit', hourCycle: 'h23',
+  year: 'numeric', month: '2-digit', day: '2-digit',
+});
+const ET_DOW = { Sun: 0, Mon: 1, Tue: 2, Wed: 3, Thu: 4, Fri: 5, Sat: 6 };
+function etParts(d) {
+  const parts = ET_FMT.formatToParts(d);
+  const get = (t) => { const p = parts.find((x) => x.type === t); return p ? p.value : ''; };
+  return { hour: parseInt(get('hour'), 10) % 24, dow: ET_DOW[get('weekday')] ?? 0, day: `${get('year')}-${get('month')}-${get('day')}` };
+}
 function playerStats(plays) {
   const list = plays || [];
   let bestScore = null, timeSum = 0, timeN = 0, accSum = 0, accN = 0, perfect = 0, firstSeen = '', lastSeen = '';
@@ -98,7 +111,7 @@ function playerStats(plays) {
       if (!firstSeen || c < firstSeen) firstSeen = c;
       if (!lastSeen || c > lastSeen) lastSeen = c;
       const d = new Date(p.createdAt);
-      if (!Number.isNaN(d.getTime())) { days.add(d.toDateString()); hours[d.getHours()] += 1; dows[d.getDay()] += 1; }
+      if (!Number.isNaN(d.getTime())) { const et = etParts(d); days.add(et.day); hours[et.hour] += 1; dows[et.dow] += 1; }
     }
   }
   let mostPlayed = null, mostN = 0;

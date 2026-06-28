@@ -19,6 +19,7 @@ import LeaderboardSnippet from './LeaderboardSnippet';
 import LeaderboardStrip from './LeaderboardStrip';
 import { getQuiz, QUIZZES } from '@/lib/quizzes';
 import { useChallengeRun, ChallengeRunOverlay } from './useChallengeRun';
+import useAbandonFlush from './useAbandonFlush';
 import { quizDept as deptOf, DEPT_LABEL } from '@/lib/quiz-departments';
 import Grain from '../../Grain';
 import Footer from '../../Footer';
@@ -181,6 +182,19 @@ export default function LogicGameClient({ quizId, mobile = false }) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [quizId]);
 
+  // Record an in-progress game if the player leaves before finishing.
+  const abandon = useAbandonFlush(() => {
+    if (endedRef.current || !startRef.current) return null;
+    if (phase === 'idle' || phase === 'done') return null;
+    if (loadStats(quizId).attempts !== 0) return null;
+    const elapsed = Math.min(limitSec, Math.round((Date.now() - startRef.current) / 1000));
+    if (!elapsed) return null;
+    const correct = picks.reduce((s, p, i) => s + (p != null && p === questions[i]?.correct ? 1 : 0), 0);
+    let referrer = '';
+    try { referrer = document.referrer ? new URL(document.referrer).host : ''; } catch (e) {}
+    return { quizId, score: correct, total, correct, timeElapsed: elapsed, email: identity?.email || undefined, anonId: getAnonId(), isMobile: !!mobile, referrer };
+  });
+
   function stopTimer() { clearInterval(timerRef.current); timerRef.current = null; }
 
   function startGame() {
@@ -207,6 +221,7 @@ export default function LogicGameClient({ quizId, mobile = false }) {
 
   function finishGame(byTimeout = false) {
     if (endedRef.current) return;
+    abandon.markFlushed();
     endedRef.current = true;
     stopTimer();
     setPhase('done');
