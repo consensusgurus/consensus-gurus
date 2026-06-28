@@ -16,8 +16,8 @@ export default function LetterMatchClient() {
   return (
     <MatchGame
       pairs={PAIRS}
-      cols={7}
-      boardMax={560}
+      cols={16}
+      maxCard={72}
       quizId="kids-letter-match"
       title="Letter Match"
       intro="Match each capital letter to its lowercase letter, like A with a. Find all twenty-six pairs. Play on your own, or with up to four players."

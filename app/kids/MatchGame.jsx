@@ -13,13 +13,15 @@ import { formatCount } from '../Count';
 //  - `items`: [{ n, s }] -> each item appears twice (identical pairs), e.g. the
 //    Treats / Pizza / Dog games.
 //  - `pairs`: [{ a, b, name }] -> the two cards of a pair show DIFFERENT faces
-//    (a and b), e.g. Addition (equation <-> answer) and Letters (UPPER <-> lower).
-// Each face is an inline SVG string.
+//    (a and b), e.g. Addition (equation <-> answer), Letters (UPPER <-> lower),
+//    Colors (word <-> swatch). Each face is an inline SVG string.
 //
-// `cols` sets the column count; the board is sized to the viewport height (and an
-// optional `boardMax` px cap) so the cards fit on one screen and shrink to fit a
-// phone (larger on desktop/tablet). Players (1-4) are chosen on a pre-game screen,
-// then Start begins a turn-based game. The page-view count is recorded through the
+// Sizing: the card size defaults to a per-device "fit" value (computed from the
+// viewport so the whole board fits one screen, larger on desktop/tablet than on
+// a phone), and a Size slider lets the player make the squares bigger or smaller
+// on any device. `cols` caps how many columns the board can use; `maxCard` caps
+// the default card size (so dense boards do not balloon on big screens). Players
+// (1-4) are chosen on a pre-game screen. Page views are recorded via the
 // quiz-view system (the given `quizId`).
 const C = { ink: '#1c1e24', accent: '#2563eb', muted: '#6b7280', soft: '#9aa0ab', line: 'rgba(20,22,28,0.09)' };
 const FONT = "'Manrope', system-ui, -apple-system, sans-serif";
@@ -37,13 +39,9 @@ const Trophy = () => (
   <svg viewBox="0 0 24 24" width="40" height="40" fill="none" stroke="#0f6e56" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M8 21h8M12 17v4M7 4h10v5a5 5 0 0 1-10 0z" /><path d="M7 6H4v2a3 3 0 0 0 3 3M17 6h3v2a3 3 0 0 1-3 3" /></svg>
 );
 
-export default function MatchGame({ items, pairs, title, intro, quizId, cols = 5, boardMax, backLabel = 'Back to Kids Corner' }) {
+export default function MatchGame({ items, pairs, title, intro, quizId, cols = 5, maxCard, backLabel = 'All Kids games' }) {
   const pairList = pairs || (items || []).map((it) => ({ a: it.s, b: it.s, name: it.n }));
   const N = pairList.length;
-  const rows = Math.ceil((N * 2) / cols);
-  const ratio = cols / rows;
-  const heightFit = `calc((100vh - 320px) * ${ratio.toFixed(4)})`;
-  const boardW = boardMax ? `min(100%, ${boardMax}px, ${heightFit})` : `min(100%, ${heightFit})`;
 
   function buildDeck() {
     const d = [];
@@ -64,6 +62,8 @@ export default function MatchGame({ items, pairs, title, intro, quizId, cols = 5
   const [scores, setScores] = useState({ 1: 0 });
   const [won, setWon] = useState(false);
   const [views, setViews] = useState(null);
+  const [vp, setVp] = useState({ w: 1200, h: 800 });
+  const [size, setSize] = useState(0);
 
   const flipRef = useRef([]);
   const doneRef = useRef([]);
@@ -78,12 +78,48 @@ export default function MatchGame({ items, pairs, title, intro, quizId, cols = 5
     return () => { on = false; };
   }, [quizId]);
 
+  useEffect(() => {
+    const f = () => setVp({ w: window.innerWidth, h: window.innerHeight });
+    f();
+    window.addEventListener('resize', f);
+    return () => window.removeEventListener('resize', f);
+  }, []);
+
+  // Default ("fit") card size: largest square that fits all cards on one screen.
+  function fitSize(w, h) {
+    const T = N * 2;
+    const availW = Math.min(w, 1180) - (w <= 560 ? 28 : 44);
+    const availH = Math.max(240, h - (316 + (numPlayers > 1 ? 70 : 0)));
+    const gap = 10;
+    let best = 0;
+    for (let c = Math.min(cols, T); c >= 1; c--) {
+      const rows = Math.ceil(T / c);
+      const cw = (availW - (c - 1) * gap) / c;
+      const ch = (availH - (rows - 1) * gap) / rows;
+      const s = Math.min(cw, ch);
+      if (s > best) best = s;
+    }
+    if (maxCard && best > maxCard) best = maxCard;
+    return Math.max(40, Math.min(140, Math.floor(best)));
+  }
+
+  useEffect(() => {
+    setSize((s) => (s === 0 ? fitSize(vp.w, vp.h) : s));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [vp, numPlayers]);
+
+  const sizePx = size || 64;
+  const gap = sizePx <= 46 ? 6 : 9;
+  const availW = Math.min(vp.w, 1180) - (vp.w <= 560 ? 28 : 44);
+  const colsNow = Math.max(1, Math.min(cols, N * 2, Math.floor((availW + gap) / (sizePx + gap))));
+
   function start() {
     const sc = {};
     for (let i = 1; i <= numPlayers; i++) sc[i] = 0;
     setDeck(buildDeck());
     flipRef.current = []; doneRef.current = []; lock.current = false;
     setFlipped([]); setDone([]); setCur(1); setScores(sc); setWon(false);
+    setSize(fitSize(vp.w, vp.h));
     setPhase('play');
   }
   function toSelect() {
@@ -145,6 +181,9 @@ export default function MatchGame({ items, pairs, title, intro, quizId, cols = 5
           .mm-reset:hover{border-color:${C.accent};color:${C.accent};}
           .mm-textbtn{border:none;background:transparent;color:${C.muted};font-family:${FONT};font-weight:700;font-size:13.5px;padding:8px 6px;border-radius:8px;cursor:pointer;}
           .mm-textbtn:hover{color:${C.accent};}
+          .mm-size{display:inline-flex;align-items:center;gap:8px;margin-left:auto;}
+          .mm-size span{font-size:12.5px;font-weight:700;color:${C.soft};text-transform:uppercase;letter-spacing:.04em;}
+          .mm-size input[type=range]{width:118px;accent-color:${C.accent};cursor:pointer;}
           .mm-setup{background:#fff;border:1px solid ${C.line};border-radius:16px;padding:26px 22px;max-width:420px;margin:8px auto 0;text-align:center;}
           .mm-setup-q{font-size:16px;font-weight:700;color:${C.ink};margin:0 0 16px;}
           .mm-pnums{display:flex;gap:10px;justify-content:center;margin:0 0 20px;}
@@ -159,7 +198,7 @@ export default function MatchGame({ items, pairs, title, intro, quizId, cols = 5
           .mm-pl.on .l{color:${C.accent};}
           .mm-pl .v{font-size:22px;font-weight:800;margin:2px 0 0;color:${C.ink};}
           .mm-board-wrap{position:relative;margin:0 auto;}
-          .mm-board{display:grid;gap:12px;}
+          .mm-board{display:grid;justify-content:center;}
           .mm-card{position:relative;aspect-ratio:1;border:none;background:transparent;padding:0;cursor:pointer;perspective:700px;}
           .mm-inner{position:absolute;inset:0;transition:transform .35s;transform-style:preserve-3d;}
           .mm-card.flip .mm-inner,.mm-card.done .mm-inner{transform:rotateY(180deg);}
@@ -168,17 +207,15 @@ export default function MatchGame({ items, pairs, title, intro, quizId, cols = 5
           .mm-back{background:#fff;border:2px solid ${C.line};transform:rotateY(180deg);}
           .mm-card.done .mm-back{border-color:#1d9e75;background:#e7f6ef;}
           .mm-card.done{cursor:default;}
-          .mm-back svg{width:78%;height:78%;}
+          .mm-back svg{width:80%;height:80%;}
           .mm-win{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;background:rgba(231,246,239,.96);border-radius:16px;padding:1rem;}
           .mm-win h3{font-size:21px;font-weight:800;margin:8px 0 4px;color:#04342c;}
           .mm-win p{font-size:14px;color:#0f6e56;margin:0 0 16px;font-weight:600;}
           .mm-win-row{display:flex;gap:10px;}
           .mm-views{display:flex;align-items:center;justify-content:center;gap:6px;font-size:13px;color:${C.soft};font-weight:600;margin:20px 0 0;}
-          @media(max-width:560px){.mm-board{gap:7px;}}
-          @media(max-width:380px){.mm-board{gap:5px;}}
         `}</style>
 
-        <Link href="/kids" style={{ display: 'inline-flex', alignItems: 'center', gap: 6, fontSize: 13, fontWeight: 700, color: C.muted, textDecoration: 'none', marginBottom: 12 }}>
+        <Link href="/kids" style={{ display: 'inline-flex', alignItems: 'center', gap: 6, fontSize: 13, fontWeight: 700, color: C.ink, textDecoration: 'none', marginBottom: 14, border: `1px solid ${C.line}`, background: '#fff', padding: '7px 13px', borderRadius: 10 }}>
           <span style={{ fontSize: 16, lineHeight: 1 }}>&#8592;</span> {backLabel}
         </Link>
 
@@ -199,9 +236,13 @@ export default function MatchGame({ items, pairs, title, intro, quizId, cols = 5
           </div>
         ) : (
           <>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap', margin: '0 0 16px' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap', margin: '0 0 16px' }}>
               <button className="mm-reset" onClick={start}><Refresh /> New game</button>
               <button className="mm-textbtn" onClick={toSelect}>Change players</button>
+              <label className="mm-size">
+                <span>Size</span>
+                <input type="range" min="40" max="150" step="4" value={sizePx} onChange={(e) => setSize(Number(e.target.value))} aria-label="Card size" />
+              </label>
             </div>
 
             {numPlayers > 1 && (
@@ -212,8 +253,8 @@ export default function MatchGame({ items, pairs, title, intro, quizId, cols = 5
               </div>
             )}
 
-            <div className="mm-board-wrap" style={{ width: boardW }}>
-              <div className="mm-board" style={{ gridTemplateColumns: `repeat(${cols}, 1fr)` }}>
+            <div className="mm-board-wrap">
+              <div className="mm-board" style={{ gridTemplateColumns: `repeat(${colsNow}, ${sizePx}px)`, gap: `${gap}px` }}>
                 {deck.map((c, i) => {
                   const up = flipped.includes(i) || done.includes(i);
                   const isDone = done.includes(i);

@@ -47,10 +47,17 @@ const LETTER_PREVIEW = [
   '<svg viewBox="0 0 100 100"><text x="50" y="56" font-size="62" font-family="Manrope, system-ui, sans-serif" font-weight="800" text-anchor="middle" dominant-baseline="central" fill="#1c1e24">B</text></svg>',
 ];
 
+const COLOR_PREVIEW = [
+  '<svg viewBox="0 0 100 100"><text x="50" y="55" font-size="26" font-family="Manrope, system-ui, sans-serif" font-weight="800" text-anchor="middle" dominant-baseline="central" fill="#1c1e24">Red</text></svg>',
+  '<svg viewBox="0 0 100 100"><circle cx="50" cy="50" r="33" fill="#e23b3b"/></svg>',
+  '<svg viewBox="0 0 100 100"><circle cx="50" cy="50" r="33" fill="#2f7be0"/></svg>',
+];
+
 const ACTIVITIES = [
   { id: 'memory-match', href: '/kids/memory-match', title: 'Treats Match', desc: 'Flip the cards and find the matching treats. Up to four players.', tag: 'Game', ready: true, band: '#eef3fe', preview: PREVIEW },
   { id: 'pizza-match', href: '/kids/pizza-match', title: 'Pizza Match', desc: 'Find all fourteen matching pizzas. Up to four players.', tag: 'Game', ready: true, band: '#fdeede', preview: PIZZA_PREVIEW },
   { id: 'dog-match', href: '/kids/dog-match', title: 'Dog Match', desc: 'Find all fourteen matching dog breeds. Up to four players.', tag: 'Game', ready: true, band: '#eaf6ef', preview: DOG_PREVIEW },
+  { id: 'color-match', href: '/kids/color-match', title: 'Color Match', desc: 'Match each color word to its color. Ten pairs.', tag: 'Learning', ready: true, band: '#fdeaea', preview: COLOR_PREVIEW },
   { id: 'addition-match', href: '/kids/addition-match', title: 'Addition Match', desc: 'Match each addition to its answer. Fourteen pairs.', tag: 'Learning', ready: true, band: '#eef3fe', preview: ADD_PREVIEW },
   { id: 'letter-match', href: '/kids/letter-match', title: 'Letter Match', desc: 'Match capital and lowercase letters. Twenty-six pairs.', tag: 'Learning', ready: true, band: '#fde7f0', preview: LETTER_PREVIEW },
 ];

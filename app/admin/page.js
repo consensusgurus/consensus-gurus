@@ -379,6 +379,7 @@ export default async function AdminPage() {
     'kids-memory-match': { title: 'Kids · Treats Match', href: '/kids/memory-match' },
     'kids-pizza-match': { title: 'Kids · Pizza Match', href: '/kids/pizza-match' },
     'kids-dog-match': { title: 'Kids · Dog Match', href: '/kids/dog-match' },
+    'kids-color-match': { title: 'Kids · Color Match', href: '/kids/color-match' },
     'kids-addition-match': { title: 'Kids · Addition Match', href: '/kids/addition-match' },
     'kids-letter-match': { title: 'Kids · Letter Match', href: '/kids/letter-match' },
   };
