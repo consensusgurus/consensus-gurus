@@ -376,7 +376,9 @@ export default async function AdminPage() {
   // they surface in this analytics panel (the Kids zone hub and games).
   const KIDS_PAGES = {
     kids: { title: 'Kids Corner (hub)', href: '/kids' },
-    'kids-memory-match': { title: 'Kids · Memory Match', href: '/kids/memory-match' },
+    'kids-memory-match': { title: 'Kids · Treats Match', href: '/kids/memory-match' },
+    'kids-pizza-match': { title: 'Kids · Pizza Match', href: '/kids/pizza-match' },
+    'kids-dog-match': { title: 'Kids · Dog Match', href: '/kids/dog-match' },
   };
   for (const [id, m] of Object.entries(KIDS_PAGES)) quizTitles.set(id, m.title);
   // Per-signup play history: every completed game attributed to each user

@@ -12,9 +12,9 @@ const Eye = () => (
 );
 
 // Kids Corner hub. A landing page that lists kids' games and learning
-// activities as tiles; the first playable one is Memory Match. New activities
-// drop in as additional entries in ACTIVITIES. Styled to match the live site
-// (Manrope, #f7f8fa surface, white cards, blue #2563eb accent, sentence case).
+// activities as tiles; live games (Treats Match, Pizza Match, Dog Match) run on
+// the shared MatchGame engine. New activities drop in as ACTIVITIES entries.
+// Styled to match the live site (Manrope, #f7f8fa, white cards, blue accent).
 const C = { ink: '#1c1e24', accent: '#2563eb', muted: '#6b7280', soft: '#9aa0ab', line: 'rgba(20,22,28,0.09)' };
 const FONT = "'Manrope', system-ui, -apple-system, sans-serif";
 
@@ -24,12 +24,26 @@ const PREVIEW = [
   '<svg viewBox="0 0 100 100"><g><rect x="16" y="40" width="68" height="22" rx="11" fill="#e7b96a"/><rect x="22" y="46" width="56" height="12" rx="6" fill="#c0392b"/><path d="M26 52 q6 -6 12 0 q6 6 12 0 q6 -6 12 0 q6 6 10 0" fill="none" stroke="#f2c14e" stroke-width="3" stroke-linecap="round"/></g></svg>',
 ];
 
+const PIZZA_PREVIEW = [
+  '<svg viewBox="0 0 100 100"><circle cx="50" cy="50" r="40" fill="#e0a85a"/><circle cx="50" cy="50" r="33" fill="#f4d58a"/><g fill="#c0392b"><circle cx="40" cy="40" r="5.5"/><circle cx="60" cy="42" r="5.5"/><circle cx="50" cy="54" r="5.5"/><circle cx="38" cy="60" r="5.5"/><circle cx="62" cy="60" r="5.5"/></g></svg>',
+  '<svg viewBox="0 0 100 100"><circle cx="50" cy="50" r="40" fill="#e0a85a"/><circle cx="50" cy="50" r="33" fill="#f4d58a"/><g fill="#bda079"><ellipse cx="42" cy="44" rx="6" ry="4"/><rect x="40" y="46" width="4" height="5" rx="1"/><ellipse cx="60" cy="50" rx="6" ry="4"/><rect x="58" y="52" width="4" height="5" rx="1"/><ellipse cx="48" cy="62" rx="6" ry="4"/><rect x="46" y="64" width="4" height="5" rx="1"/></g></svg>',
+  '<svg viewBox="0 0 100 100"><circle cx="50" cy="50" r="40" fill="#e0a85a"/><circle cx="50" cy="50" r="33" fill="#7a9a4a"/><g fill="#e6dba0"><circle cx="42" cy="44" r="2.5"/><circle cx="58" cy="46" r="2.5"/><circle cx="48" cy="58" r="2.5"/><circle cx="61" cy="58" r="2.5"/></g><circle cx="52" cy="49" r="4.5" fill="#fff" opacity="0.85"/></svg>',
+];
+
+const DOG_PREVIEW = [
+  '<svg viewBox="0 0 100 100"><ellipse cx="28" cy="46" rx="10" ry="18" fill="#c8893a"/><ellipse cx="72" cy="46" rx="10" ry="18" fill="#c8893a"/><circle cx="50" cy="48" r="26" fill="#e0a24e"/><ellipse cx="50" cy="62" rx="13" ry="11" fill="#efc480"/><circle cx="50" cy="58" r="3.5" fill="#3a2a1a"/><circle cx="41" cy="44" r="3" fill="#3a2a1a"/><circle cx="59" cy="44" r="3" fill="#3a2a1a"/></svg>',
+  '<svg viewBox="0 0 100 100"><ellipse cx="26" cy="44" rx="9" ry="16" fill="#2a2a2a"/><ellipse cx="74" cy="44" rx="9" ry="16" fill="#cfcfcf"/><circle cx="50" cy="48" r="26" fill="#fafafa"/><ellipse cx="50" cy="62" rx="13" ry="11" fill="#fff"/><circle cx="50" cy="58" r="3.5" fill="#2a2a2a"/><circle cx="41" cy="44" r="3" fill="#2a2a2a"/><circle cx="59" cy="44" r="3" fill="#2a2a2a"/><g fill="#2a2a2a"><circle cx="38" cy="54" r="3"/><circle cx="62" cy="50" r="2.5"/><circle cx="58" cy="64" r="2.5"/></g></svg>',
+  '<svg viewBox="0 0 100 100"><path d="M30 32 l-7 -18 16 9z" fill="#5f6772"/><path d="M70 32 l7 -18 -16 9z" fill="#5f6772"/><circle cx="50" cy="50" r="26" fill="#8b95a0"/><path d="M50 28 q-9 8 -9 22 q0 8 9 14 q9 -6 9 -14 q0 -14 -9 -22z" fill="#f2f5f8"/><ellipse cx="50" cy="62" rx="8" ry="7" fill="#f2f5f8"/><circle cx="50" cy="58" r="3" fill="#2a2a2a"/><circle cx="42" cy="48" r="2.8" fill="#3a6a9a"/><circle cx="58" cy="48" r="2.8" fill="#3a6a9a"/></svg>',
+];
+
 const ICON_COUNT = '<svg viewBox="0 0 100 100"><g fill="none" stroke="#1d9e75" stroke-width="7" stroke-linecap="round"><path d="M34 26 L26 26 L26 74"/><path d="M52 26 q22 0 22 14 q0 14 -22 18 q22 4 22 18 q0 14 -22 14"/></g></svg>';
 const ICON_SHAPES = '<svg viewBox="0 0 100 100"><circle cx="32" cy="34" r="16" fill="#e24b4a"/><rect x="52" y="50" width="30" height="30" rx="5" fill="#2563eb"/><path d="M30 58 L46 86 L14 86 Z" fill="#f2b705"/></svg>';
 const ICON_SPOT = '<svg viewBox="0 0 100 100"><g fill="none" stroke="#7f5ad6" stroke-width="7" stroke-linecap="round"><circle cx="42" cy="42" r="22"/><path d="M58 58 L78 78"/></g></svg>';
 
 const ACTIVITIES = [
-  { id: 'memory-match', href: '/kids/memory-match', title: 'Memory Match', desc: 'Flip the cards and find the matching snacks. One player or two.', tag: 'Game', ready: true, band: '#eef3fe', preview: PREVIEW },
+  { id: 'memory-match', href: '/kids/memory-match', title: 'Treats Match', desc: 'Flip the cards and find the matching treats. One player or two.', tag: 'Game', ready: true, band: '#eef3fe', preview: PREVIEW },
+  { id: 'pizza-match', href: '/kids/pizza-match', title: 'Pizza Match', desc: 'Find all fourteen matching pizzas. One player or two.', tag: 'Game', ready: true, band: '#fdeede', preview: PIZZA_PREVIEW },
+  { id: 'dog-match', href: '/kids/dog-match', title: 'Dog Match', desc: 'Find all fourteen matching dog breeds. One player or two.', tag: 'Game', ready: true, band: '#eaf6ef', preview: DOG_PREVIEW },
   { id: 'counting', title: 'Counting Fun', desc: 'Tap and count along with friendly pictures.', tag: 'Learning', ready: false, band: '#e7f6ef', icon: ICON_COUNT },
   { id: 'shapes', title: 'Shapes & Colors', desc: 'Match the shape to its color and name.', tag: 'Learning', ready: false, band: '#fdeedd', icon: ICON_SHAPES },
   { id: 'spot', title: 'Spot the Difference', desc: 'Find what changed between two pictures.', tag: 'Game', ready: false, band: '#f1ecfb', icon: ICON_SPOT },
@@ -103,7 +117,7 @@ export default function KidsHubClient() {
         <span style={{ fontSize: 11, fontWeight: 800, letterSpacing: '.08em', textTransform: 'uppercase', color: C.accent }}>Kids Corner</span>
         <h1 style={{ fontSize: 32, fontWeight: 800, letterSpacing: '-0.025em', margin: '6px 0 8px' }}>Games and Learning for Kids</h1>
         <p style={{ fontSize: 16, color: C.muted, lineHeight: 1.55, margin: 0, maxWidth: 600 }}>
-          A growing collection of simple, free games and activities. No sign-up, no ads in the way, just tap and play. Start with Memory Match below.
+          A growing collection of simple, free games and activities. No sign-up, no ads in the way, just tap and play. Pick a game below to start.
         </p>
 
         <div className="kc-grid">
