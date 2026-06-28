@@ -807,8 +807,8 @@ export default function QuizClient({ quizId }) {
     setClaimBusy(false);
   }
 
-  function start() {
-    if (started || ended) return;
+  function start(force) {
+    if (!force && (started || ended)) return;
     // On mobile the default typed format opens the fullscreen play popup the
     // moment Play is pressed. Commit started=true synchronously (flushSync) so
     // the popup + its input mount inside this same tap gesture; the focus() at
@@ -850,6 +850,42 @@ export default function QuizClient({ quizId }) {
       });
     }, 1000);
     if (inputRef.current) inputRef.current.focus();
+  }
+
+  // Restart in place: reset every per-round state atom to its initial value and
+  // immediately begin a fresh game, with NO page reload. Backs the Game Over
+  // "Play Again" button. start(true) bypasses the started/ended guard, and its
+  // setStarted(true) wins over the setStarted(false) reset in the same batch.
+  function restartRound() {
+    clearInterval(timerRef.current);
+    clearTimeout(cueTimer.current);
+    if (chAdvanceTimer.current) { clearInterval(chAdvanceTimer.current); chAdvanceTimer.current = null; }
+    chWroteRef.current = false;
+    pairsMatchedRef.current = 0;
+    orderRef.current = null;
+    startRef.current = null;
+    setEnded(false);
+    setStarted(false);
+    setGameOverDismissed(false);
+    setFound(new Array(total).fill(false));
+    setSlideIdx(0);
+    setTime(quiz.timeLimit);
+    setHint('');
+    setHintBad(false);
+    setCue(null);
+    setGuess('');
+    setCurName(null);
+    setFlash(null);
+    setGuessesLeft(null);
+    setLastElapsed(null);
+    setPairsMatched(0);
+    setPairsErrors(0);
+    setChCountdown(null);
+    setCelebration(null);
+    setRevealed(false);
+    setCopied(false);
+    setTab('play');
+    start(true);
   }
 
   // Flash a bold colored verdict and buzz the device so a right/wrong result
@@ -1410,7 +1446,7 @@ export default function QuizClient({ quizId }) {
         </div>
 
         {ended && (
-          <QuizDoneRecap quiz={quiz} hideScore score={dispScore} total={total} onPlayAgain={() => { try { sessionStorage.setItem('sot_quiz_retry', quizId); } catch (e) { /* no-op */ } window.location.reload(); }} onPlaySimilar={() => { const sid = similarQuizId(quiz); if (sid) router.push(`/quiz/${sid}`); }} onShare={share} />
+          <QuizDoneRecap quiz={quiz} hideScore score={dispScore} total={total} onPlayAgain={restartRound} onPlaySimilar={() => { const sid = similarQuizId(quiz); if (sid) router.push(`/quiz/${sid}`); }} onShare={share} />
         )}
 
         {ended && (
@@ -2011,7 +2047,7 @@ export default function QuizClient({ quizId }) {
                   )}
                   <div style={{ width: '100%', maxWidth: 360, margin: '0 auto' }}>
                     <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
-                      <button onClick={() => { try { sessionStorage.setItem('sot_quiz_retry', quizId); } catch (e) { /* no-op */ } window.location.reload(); }} style={{ fontFamily: MONO, fontSize: 12, letterSpacing: '0.06em', textTransform: 'uppercase', fontWeight: 700, lineHeight: '46px', width: '100%', padding: '0 8px', boxSizing: 'border-box', borderRadius: 10, cursor: 'pointer', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 8, background: COLORS.ember, color: '#fff', border: 'none' }}><RotateCcw size={14} strokeWidth={2.5} /> Play Again</button>
+                      <button onClick={restartRound} style={{ fontFamily: MONO, fontSize: 12, letterSpacing: '0.06em', textTransform: 'uppercase', fontWeight: 700, lineHeight: '46px', width: '100%', padding: '0 8px', boxSizing: 'border-box', borderRadius: 10, cursor: 'pointer', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 8, background: COLORS.ember, color: '#fff', border: 'none' }}><RotateCcw size={14} strokeWidth={2.5} /> Play Again</button>
                       {nextMeta ? (
                         <button onClick={() => router.push(`/quiz/${nextMeta.id}`)} title={nextMeta.title} style={{ fontFamily: MONO, width: '100%', padding: '6px 10px', boxSizing: 'border-box', borderRadius: 10, cursor: 'pointer', display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'flex-start', gap: 2, overflow: 'hidden', background: COLORS.forest, color: '#fff', border: 'none', textAlign: 'left' }}>
                           <span style={{ fontSize: 8.5, letterSpacing: '0.13em', textTransform: 'uppercase', fontWeight: 800, opacity: 0.9, display: 'inline-flex', alignItems: 'center', gap: 4 }}><Play size={10} strokeWidth={3} /> {nextMeta.label}{nextMeta.badge ? ` · ${nextMeta.badge.part}/${nextMeta.badge.total}` : ''}</span>

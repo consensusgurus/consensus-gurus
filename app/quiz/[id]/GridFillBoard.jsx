@@ -260,9 +260,9 @@ export default function GridFillBoard({ quizId, mobile = false }) {
 
   function focusInput() { setTimeout(() => { if (inputRef.current) inputRef.current.focus(); }, 0); }
 
-  function start() {
+  function start(force) {
     setReviewing(false);
-    if (phase !== 'idle') return;
+    if (!force && phase !== 'idle') return;
     endedRef.current = false;
     foundRef.current = new Set();
     setFound(new Set());
@@ -355,16 +355,12 @@ export default function GridFillBoard({ quizId, mobile = false }) {
   function giveUp() { if (phase === 'playing') finish(false); }
 
   function playAgain() {
-    setReviewing(false);
-    endedRef.current = false;
-    foundRef.current = new Set();
-    setPhase('idle');
-    setFound(new Set());
-    setGuess('');
-    setTime(quiz.timeLimit);
-    setHint('Press Play to start the clock.');
-    setHintBad(false);
+    // Restart immediately into a fresh round (no return to the idle screen).
+    // start() decrements the clock but never resets it, so refill it here (the
+    // idle path used to) before the fresh round begins.
     setLastElapsed(null);
+    setTime(quiz.timeLimit);
+    start(true);
   }
 
 

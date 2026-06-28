@@ -316,8 +316,9 @@ export default function MapPlaceClient({ quizId, mobile = false }) {
   }
   resolveRef.current = recordGuess;
 
-  function startGame() {
-    if (phase !== 'idle' || !geo || !leafletReady) return;
+  function startGame(force) {
+    if (!force && phase !== 'idle') return;
+    if (!geo || !leafletReady) return;
     endedRef.current = false;
     revealingRef.current = false;
     const ord = cities.map((_, i) => i);
@@ -365,11 +366,9 @@ export default function MapPlaceClient({ quizId, mobile = false }) {
 
   function giveUp() { if (phase === 'playing') finishGame(); }
   function playAgain() {
+    // Restart immediately into a fresh round (no return to the idle screen).
     setDismissed(false);
-    stopTimer(); clearLayers();
-    resolvedRef.current = false; idxRef.current = 0; orderRef.current = [];
-    setPhase('idle'); setPlacements([]); setFlashIdx(-1); setIdx(0);
-    setRemaining(clockSecs * 1000); setRevealAll(false); endedRef.current = false; revealingRef.current = false;
+    startGame(true);
   }
 
   async function submitQuestion() {

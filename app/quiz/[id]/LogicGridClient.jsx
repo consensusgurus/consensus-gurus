@@ -271,9 +271,9 @@ export default function LogicGridClient({ quizId, mobile = false }) {
       .catch(() => {});
   }
 
-  function startGame() {
+  function startGame(force) {
     setReviewing(false);
-    if (phase !== 'idle') return;
+    if (!force && phase !== 'idle') return;
     endedRef.current = false;
     setPhase('playing');
     startRef.current = Date.now();
@@ -559,7 +559,7 @@ export default function LogicGridClient({ quizId, mobile = false }) {
                 {/* DONE — results popup (the solved grid stays behind it) */}
                 {phase === 'done' && (
                   <>
-                    <QuizDoneRecap quiz={quiz} score={score} total={total} onPlayAgain={() => { setReviewing(false); setPhase('idle'); setSolved(new Array(total).fill(false)); setActive(null); setGuess(''); setTime(quiz.timeLimit); setRevealed(false); endedRef.current = false; setHint('Press Start to read the clues and begin.'); setHintBad(false); }} onShare={() => setTab('share')} onPlaySimilar={() => { const sid = similarQuizId(quiz); if (sid) router.push(`/quiz/${sid}`); }} />
+                    <QuizDoneRecap quiz={quiz} score={score} total={total} onPlayAgain={() => { setSolved(new Array(total).fill(false)); setActive(null); setGuess(''); setTime(quiz.timeLimit); setRevealed(false); endedRef.current = false; setHintBad(false); startGame(true); }} onShare={() => setTab('share')} onPlaySimilar={() => { const sid = similarQuizId(quiz); if (sid) router.push(`/quiz/${sid}`); }} />
                   <QuizResultModal quiz={quiz}
                 open={!reviewing}
                 onClose={() => setReviewing(true)}
@@ -570,7 +570,7 @@ export default function LogicGridClient({ quizId, mobile = false }) {
                 subline={board.best != null ? (score >= board.best ? `That matches the high score of ${board.best}.` : `The high score to beat is ${board.best}.`) : 'Be the first to set the pace.'}
                 leaderboard={<LeaderboardSnippet board={board} identity={identity} score={score} lastElapsed={lastElapsed} fill />}
                 standings={null}
-                onPlayAgain={() => { setReviewing(false); setPhase('idle'); setSolved(new Array(total).fill(false)); setActive(null); setGuess(''); setTime(quiz.timeLimit); setRevealed(false); endedRef.current = false; setHint('Press Start to read the clues and begin.'); setHintBad(false); }}
+                onPlayAgain={() => { setSolved(new Array(total).fill(false)); setActive(null); setGuess(''); setTime(quiz.timeLimit); setRevealed(false); endedRef.current = false; setHintBad(false); startGame(true); }}
                 onPlaySimilar={() => { const sid = similarQuizId(quiz); if (sid) router.push(`/quiz/${sid}`); }}
                 onLeaderboard={() => setTab('stats')}
                 onShare={() => setTab('share')}

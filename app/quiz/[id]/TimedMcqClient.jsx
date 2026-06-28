@@ -271,9 +271,9 @@ export default function TimedMcqClient({ quizId, mobile = false }) {
     }, TICK_MS);
   }
 
-  function startGame() {
+  function startGame(force) {
     setDismissed(false);
-    if (phase !== 'idle') return;
+    if (!force && phase !== 'idle') return;
     endedRef.current = false;
     setResults([]);
     startRef.current = Date.now();
@@ -565,7 +565,7 @@ export default function TimedMcqClient({ quizId, mobile = false }) {
               <>
                 {(() => {
                   const recapRows = questions.map((qq, i) => { const r = results[i]; return { label: qq.choices[qq.correct], detail: r ? (r.correct ? 'Correct' : 'Missed') : 'No answer', sub: `+${r ? (r.pts || 0) : 0}`, good: !!(r && r.correct) }; });
-                  return <QuizDoneRecap quiz={quiz} score={points} total={maxPoints} rows={recapRows} answersTitle="The correct answers" onPlayAgain={startGame} onShare={() => setTab('share')} onPlaySimilar={() => { const sid = similarQuizId(quiz); if (sid) router.push(`/quiz/${sid}`); }} />;
+                  return <QuizDoneRecap quiz={quiz} score={points} total={maxPoints} rows={recapRows} answersTitle="The correct answers" onPlayAgain={() => startGame(true)} onShare={() => setTab('share')} onPlaySimilar={() => { const sid = similarQuizId(quiz); if (sid) router.push(`/quiz/${sid}`); }} />;
                 })()}
                 <QuizResultModal quiz={quiz}
                 open={!dismissed}
@@ -577,7 +577,7 @@ export default function TimedMcqClient({ quizId, mobile = false }) {
                 subline={board.best != null ? (points >= board.best ? `That is the high score to beat.` : `The high score to beat is ${board.best}.`) : 'Be the first to set the pace.'}
                 leaderboard={<LeaderboardSnippet board={board} identity={identity} score={points} lastElapsed={lastElapsed} fill />}
                 standings={eloPanel}
-                onPlayAgain={startGame}
+                onPlayAgain={() => startGame(true)}
                 onPlaySimilar={() => { const sid = similarQuizId(quiz); if (sid) router.push(`/quiz/${sid}`); }}
                 onLeaderboard={() => setTab('stats')}
                 onShare={() => setTab('share')}
