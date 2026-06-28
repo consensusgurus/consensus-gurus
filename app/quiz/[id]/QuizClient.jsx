@@ -1806,7 +1806,7 @@ export default function QuizClient({ quizId }) {
                 </button>
               )}
             </div>
-            {bottomDock && <div aria-hidden="true" style={{ height: 'calc(108px + env(safe-area-inset-bottom))' }} />}
+            {(bottomDock || (mobile === true && photoMode && started && !ended)) && <div aria-hidden="true" style={{ height: 'calc(120px + env(safe-area-inset-bottom))' }} />}
           </QuizPlayOverlay>
         )}
 
