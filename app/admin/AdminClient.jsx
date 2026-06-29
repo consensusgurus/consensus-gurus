@@ -137,8 +137,8 @@ function fmtLocalTime(iso, tz) {
 function Stat({ label, value }) {
   return (
     <div style={{ minWidth: 0 }}>
-      <div style={{ fontFamily: 'DM Mono, monospace', fontSize: 9, letterSpacing: '0.1em', textTransform: 'uppercase', color: COLORS.faded }}>{label}</div>
-      <div style={{ fontFamily: 'Manrope, system-ui, -apple-system, sans-serif', fontSize: 14, fontWeight: 700, color: COLORS.ink, marginTop: 1, overflow: 'hidden', textOverflow: 'ellipsis' }}>{value}</div>
+      <div style={{ fontFamily: 'DM Mono, monospace', fontSize: 10, letterSpacing: '0.1em', textTransform: 'uppercase', color: COLORS.faded }}>{label}</div>
+      <div style={{ fontFamily: 'Manrope, system-ui, -apple-system, sans-serif', fontSize: 10, fontWeight: 700, color: COLORS.ink, marginTop: 1, overflow: 'hidden', textOverflow: 'ellipsis' }}>{value}</div>
     </div>
   );
 }
@@ -150,7 +150,7 @@ function PlayerSummary({ stats }) {
   if (!stats) return null;
   const s = stats;
   return (
-    <div style={{ display: 'flex', flexWrap: 'wrap', gap: '14px 28px', padding: '10px 12px 16px' }}>
+    <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px 28px', padding: '4px 12px 8px' }}>
       <Stat label="Plays" value={s.plays} />
       <Stat label="Quizzes" value={s.quizzes} />
       <Stat label="Accuracy" value={s.accuracy != null ? `${s.accuracy}%` : '—'} />
@@ -214,11 +214,11 @@ function SessionTable({ plays }) {
   );
   return (
     <div style={{ marginBottom: 12 }}>
-      <div style={{ fontFamily: 'DM Mono, monospace', fontSize: 9, letterSpacing: '0.12em', textTransform: 'uppercase', color: COLORS.faded, margin: '2px 0 6px' }}>
+      <div style={{ fontFamily: 'DM Mono, monospace', fontSize: 10, letterSpacing: '0.12em', textTransform: 'uppercase', color: COLORS.faded, margin: '2px 0 6px' }}>
         Sessions · {sessions.length} day{sessions.length === 1 ? '' : 's'}
       </div>
       <div style={{ border: `1px solid ${COLORS.ink}33`, background: COLORS.paper }}>
-        <div style={{ display: 'flex', gap: 12, fontFamily: 'DM Mono, monospace', fontSize: 9, letterSpacing: '0.12em', textTransform: 'uppercase', color: COLORS.faded, padding: '8px 12px', borderBottom: `1px solid ${COLORS.ink}33` }}>
+        <div style={{ display: 'flex', gap: 12, fontFamily: 'DM Mono, monospace', fontSize: 10, letterSpacing: '0.12em', textTransform: 'uppercase', color: COLORS.faded, padding: '3px 12px', borderBottom: `1px solid ${COLORS.ink}33` }}>
           <H label="Day" flex="0 0 86px" />
           <H label="Plays" flex="0 0 38px" right />
           <H label="Avg %" flex="0 0 42px" right />
@@ -232,11 +232,11 @@ function SessionTable({ plays }) {
           <H label="Source" flex="0 0 84px" />
         </div>
         {sessions.map((s, j) => (
-          <div key={s.day} style={{ display: 'flex', gap: 12, alignItems: 'center', fontFamily: 'Manrope, system-ui, -apple-system, sans-serif', fontSize: 12, color: COLORS.ink, padding: '7px 12px', borderBottom: j < sessions.length - 1 ? `1px solid ${COLORS.ink}1a` : 'none' }}>
-            <span style={{ flex: '0 0 86px', fontFamily: 'DM Mono, monospace', fontSize: 11 }}>{fmtShort(s.latest)}</span>
-            <span style={{ flex: '0 0 38px', textAlign: 'right', fontFamily: 'DM Mono, monospace', fontSize: 11, fontWeight: 700, color: COLORS.ember }}>{s.plays}</span>
-            <span style={{ flex: '0 0 42px', textAlign: 'right', fontFamily: 'DM Mono, monospace', fontSize: 11, color: COLORS.faded }}>{s.acc != null ? `${s.acc}%` : '—'}</span>
-            <span style={{ flex: '0 0 54px', textAlign: 'right', fontFamily: 'DM Mono, monospace', fontSize: 11, color: COLORS.faded }}>{fmtDuration(s.time)}</span>
+          <div key={s.day} style={{ display: 'flex', gap: 12, alignItems: 'center', fontFamily: 'Manrope, system-ui, -apple-system, sans-serif', fontSize: 10, color: COLORS.ink, padding: '3px 12px', borderBottom: j < sessions.length - 1 ? `1px solid ${COLORS.ink}1a` : 'none' }}>
+            <span style={{ flex: '0 0 86px', fontFamily: 'DM Mono, monospace', fontSize: 10 }}>{fmtShort(s.latest)}</span>
+            <span style={{ flex: '0 0 38px', textAlign: 'right', fontFamily: 'DM Mono, monospace', fontSize: 10, fontWeight: 700, color: COLORS.ember }}>{s.plays}</span>
+            <span style={{ flex: '0 0 42px', textAlign: 'right', fontFamily: 'DM Mono, monospace', fontSize: 10, color: COLORS.faded }}>{s.acc != null ? `${s.acc}%` : '—'}</span>
+            <span style={{ flex: '0 0 54px', textAlign: 'right', fontFamily: 'DM Mono, monospace', fontSize: 10, color: COLORS.faded }}>{fmtDuration(s.time)}</span>
             <MultiCell values={s.devices} flex="0 0 52px" />
             <MultiCell values={s.oses} flex="0 0 52px" />
             <MultiCell values={s.browsers} flex="0 0 60px" />
@@ -338,7 +338,7 @@ function MultiCell({ values, flex, align = 'left' }) {
         textOverflow: 'ellipsis',
         whiteSpace: 'nowrap',
         fontFamily: 'DM Mono, monospace',
-        fontSize: 11,
+        fontSize: 10,
         color: arr.length ? COLORS.ink : COLORS.faded,
       }}
     >
@@ -889,7 +889,7 @@ function PageViewsPanel({ lists, quizzes, mode }) {
 
   return (
     <div>
-      <p style={{ fontFamily: 'Manrope, system-ui, -apple-system, sans-serif', fontSize: 13, color: COLORS.faded, margin: '0 0 14px' }}>
+      <p style={{ fontFamily: 'Manrope, system-ui, -apple-system, sans-serif', fontSize: 10, color: COLORS.faded, margin: '0 0 14px' }}>
         {blurb}
       </p>
       <input
@@ -903,7 +903,7 @@ function PageViewsPanel({ lists, quizzes, mode }) {
           border: `1px solid ${COLORS.line}`,
           color: COLORS.ink,
           fontFamily: 'DM Mono, monospace',
-          fontSize: 12,
+          fontSize: 10,
           outline: 'none',
           marginBottom: 16,
           boxSizing: 'border-box',
@@ -925,7 +925,7 @@ function PageViewsPanel({ lists, quizzes, mode }) {
         </div>
       ) : (
         <div style={{ border: `1px solid ${COLORS.line}`, background: COLORS.paper, borderRadius: 12 }}>
-          <div style={{ display: 'flex', gap: 16, position: 'sticky', top: 0, zIndex: 1, background: COLORS.cream, fontFamily: 'DM Mono, monospace', fontSize: 10, letterSpacing: '0.14em', textTransform: 'uppercase', color: COLORS.faded, padding: '10px 14px', borderBottom: `1px solid ${COLORS.line}` }}>
+          <div style={{ display: 'flex', gap: 16, position: 'sticky', top: 0, zIndex: 1, background: COLORS.cream, fontFamily: 'DM Mono, monospace', fontSize: 10, letterSpacing: '0.14em', textTransform: 'uppercase', color: COLORS.faded, padding: '5px 14px', borderBottom: `1px solid ${COLORS.line}` }}>
             <span style={{ flex: '0 0 36px' }}>#</span>
             {showType && <SortHead label="Type" k="type" sort={sort} flex="0 0 56px" type="string" />}
             <SortHead label={titleLabel} k="title" sort={sort} flex={3} type="string" />
@@ -939,9 +939,9 @@ function PageViewsPanel({ lists, quizzes, mode }) {
             return (
               <div
                 key={`${r.kind}:${r.id}`}
-                style={{ display: 'flex', gap: 16, alignItems: 'center', fontFamily: 'Manrope, system-ui, -apple-system, sans-serif', fontSize: 13, color: COLORS.ink, padding: '9px 14px', borderBottom: i < visible.length - 1 ? rowBorder : 'none', opacity: active ? 1 : 0.55 }}
+                style={{ display: 'flex', gap: 16, alignItems: 'center', fontFamily: 'Manrope, system-ui, -apple-system, sans-serif', fontSize: 10, color: COLORS.ink, padding: '3px 14px', borderBottom: i < visible.length - 1 ? rowBorder : 'none', opacity: active ? 1 : 0.55 }}
               >
-                <span style={{ flex: '0 0 36px', fontFamily: 'DM Mono, monospace', fontSize: 11, color: COLORS.faded }}>
+                <span style={{ flex: '0 0 36px', fontFamily: 'DM Mono, monospace', fontSize: 10, color: COLORS.faded }}>
                   {i + 1}
                 </span>
                 {showType && (
@@ -957,7 +957,7 @@ function PageViewsPanel({ lists, quizzes, mode }) {
                 <span style={{ flex: '0 0 88px', textAlign: 'right', fontFamily: 'DM Mono, monospace', fontWeight: 700, color: r.views24h > 0 ? COLORS.ember : COLORS.faded }}>
                   {r.views24h}
                 </span>
-                <span style={{ flex: '0 0 88px', textAlign: 'right', fontFamily: 'DM Mono, monospace', fontSize: 11, color: COLORS.faded }}>
+                <span style={{ flex: '0 0 88px', textAlign: 'right', fontFamily: 'DM Mono, monospace', fontSize: 10, color: COLORS.faded }}>
                   {r.viewsTotal}
                 </span>
                 {showPlays && (
@@ -966,7 +966,7 @@ function PageViewsPanel({ lists, quizzes, mode }) {
                   </span>
                 )}
                 {showPlays && (
-                  <span style={{ flex: '0 0 84px', textAlign: 'right', fontFamily: 'DM Mono, monospace', fontSize: 11, color: COLORS.faded }}>
+                  <span style={{ flex: '0 0 84px', textAlign: 'right', fontFamily: 'DM Mono, monospace', fontSize: 10, color: COLORS.faded }}>
                     {r.plays == null ? '—' : r.plays}
                   </span>
                 )}
@@ -1056,7 +1056,7 @@ function QuizSignupsPanel({ signups }) {
 
   return (
     <div>
-      <p style={{ fontFamily: 'Manrope, system-ui, -apple-system, sans-serif', fontSize: 13, color: COLORS.faded, margin: '0 0 14px' }}>
+      <p style={{ fontFamily: 'Manrope, system-ui, -apple-system, sans-serif', fontSize: 10, color: COLORS.faded, margin: '0 0 14px' }}>
         Email signups from the quiz leaderboard join form.
         {' '}{signups.length} signup{signups.length === 1 ? '' : 's'} total.
         {' '}Click a row for the player's full stats (best score, accuracy, timezone, traffic source, and more) and play history. Click a column header to sort.
@@ -1073,7 +1073,7 @@ function QuizSignupsPanel({ signups }) {
             border: `1px solid ${COLORS.line}`,
             color: COLORS.ink,
             fontFamily: 'DM Mono, monospace',
-            fontSize: 12,
+            fontSize: 10,
             outline: 'none',
             boxSizing: 'border-box',
           }}
@@ -1081,12 +1081,12 @@ function QuizSignupsPanel({ signups }) {
         <button
           onClick={copyEmails}
           style={{
-            padding: '10px 14px',
+            padding: '5px 14px',
             background: COLORS.ink,
             border: `1px solid ${COLORS.line}`,
             color: COLORS.paper,
             fontFamily: 'DM Mono, monospace',
-            fontSize: 11,
+            fontSize: 10,
             letterSpacing: '0.1em',
             textTransform: 'uppercase',
             cursor: 'pointer',
@@ -1112,7 +1112,7 @@ function QuizSignupsPanel({ signups }) {
         </div>
       ) : (
         <div style={{ border: `1px solid ${COLORS.line}`, background: COLORS.paper, borderRadius: 12 }}>
-          <div style={{ display: 'flex', gap: 16, position: 'sticky', top: 0, zIndex: 1, background: COLORS.cream, fontFamily: 'DM Mono, monospace', fontSize: 10, letterSpacing: '0.14em', textTransform: 'uppercase', color: COLORS.faded, padding: '10px 14px', borderBottom: `1px solid ${COLORS.line}` }}>
+          <div style={{ display: 'flex', gap: 16, position: 'sticky', top: 0, zIndex: 1, background: COLORS.cream, fontFamily: 'DM Mono, monospace', fontSize: 10, letterSpacing: '0.14em', textTransform: 'uppercase', color: COLORS.faded, padding: '5px 14px', borderBottom: `1px solid ${COLORS.line}` }}>
             <span style={{ flex: '0 0 28px' }}>#</span>
             <SortHead label="Username" k="name" sort={sort} flex={2} type="string" />
             <SortHead label="Email" k="email" sort={sort} flex={2} type="string" />
@@ -1133,31 +1133,31 @@ function QuizSignupsPanel({ signups }) {
               <div key={s.id} style={{ borderBottom: i < visible.length - 1 ? rowBorder : 'none' }}>
                 <div
                   onClick={() => setExpandedId(open ? null : s.id)}
-                  style={{ display: 'flex', gap: 16, alignItems: 'center', fontFamily: 'Manrope, system-ui, -apple-system, sans-serif', fontSize: 13, color: COLORS.ink, padding: '9px 14px', cursor: 'pointer', background: open ? `${COLORS.ink}0a` : 'transparent' }}
+                  style={{ display: 'flex', gap: 16, alignItems: 'center', fontFamily: 'Manrope, system-ui, -apple-system, sans-serif', fontSize: 10, color: COLORS.ink, padding: '3px 14px', cursor: 'pointer', background: open ? `${COLORS.ink}0a` : 'transparent' }}
                 >
-                  <span style={{ flex: '0 0 28px', fontFamily: 'DM Mono, monospace', fontSize: 11, color: COLORS.faded, display: 'flex', alignItems: 'center', gap: 4 }}>
+                  <span style={{ flex: '0 0 28px', fontFamily: 'DM Mono, monospace', fontSize: 10, color: COLORS.faded, display: 'flex', alignItems: 'center', gap: 4 }}>
                     <span style={{ display: 'inline-block', width: 8, transform: open ? 'rotate(90deg)' : 'none', transition: 'transform 0.12s' }}>▸</span>
                     {i + 1}
                   </span>
                   <span style={{ flex: 2, minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', fontWeight: 600, fontFamily: 'Manrope, system-ui, -apple-system, sans-serif' }}>
                     {s.username}
                   </span>
-                  <span style={{ flex: 2, minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', fontFamily: 'DM Mono, monospace', fontSize: 12 }}>
+                  <span style={{ flex: 2, minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', fontFamily: 'DM Mono, monospace', fontSize: 10 }}>
                     <a href={`mailto:${s.email}`} onClick={(e) => e.stopPropagation()} style={{ color: COLORS.ink, textDecoration: 'none' }}>{s.email}</a>
                   </span>
-                  <span style={{ flex: '0 0 42px', textAlign: 'right', fontFamily: 'DM Mono, monospace', fontSize: 12, fontWeight: 700, color: playCount > 0 ? COLORS.ember : COLORS.faded }}>
+                  <span style={{ flex: '0 0 42px', textAlign: 'right', fontFamily: 'DM Mono, monospace', fontSize: 10, fontWeight: 700, color: playCount > 0 ? COLORS.ember : COLORS.faded }}>
                     {playCount}
                   </span>
                   <MultiCell values={s.devices} flex="0 0 60px" />
                   <MultiCell values={s.oses} flex="0 0 56px" />
                   <MultiCell values={s.geos} flex="0 0 110px" />
-                  <span style={{ flex: '0 0 58px', textAlign: 'right', fontFamily: 'DM Mono, monospace', fontSize: 11, color: COLORS.faded }}>
+                  <span style={{ flex: '0 0 58px', textAlign: 'right', fontFamily: 'DM Mono, monospace', fontSize: 10, color: COLORS.faded }}>
                     {s.stats && s.stats.firstSeen ? fmtShort(s.stats.firstSeen) : '—'}
                   </span>
-                  <span style={{ flex: '0 0 92px', textAlign: 'right', fontFamily: 'DM Mono, monospace', fontSize: 11, color: COLORS.faded }}>
+                  <span style={{ flex: '0 0 92px', textAlign: 'right', fontFamily: 'DM Mono, monospace', fontSize: 10, color: COLORS.faded }}>
                     {s.lastPlayedAt ? fmtShortDateTime(s.lastPlayedAt) : '—'}
                   </span>
-                  <span style={{ flex: '0 0 56px', textAlign: 'right', fontFamily: 'DM Mono, monospace', fontSize: 11, color: COLORS.faded }}>
+                  <span style={{ flex: '0 0 56px', textAlign: 'right', fontFamily: 'DM Mono, monospace', fontSize: 10, color: COLORS.faded }}>
                     {fmtShort(s.createdAt)}
                   </span>
                 </div>
@@ -1166,12 +1166,12 @@ function QuizSignupsPanel({ signups }) {
                     <PlayerSummary stats={s.stats} />
                     <SessionTable plays={plays} />
                     {playCount === 0 ? (
-                      <p style={{ fontFamily: 'Manrope, system-ui, -apple-system, sans-serif', fontStyle: 'italic', fontSize: 14, color: COLORS.faded, margin: '8px 0' }}>
+                      <p style={{ fontFamily: 'Manrope, system-ui, -apple-system, sans-serif', fontStyle: 'italic', fontSize: 10, color: COLORS.faded, margin: '8px 0' }}>
                         Signed up but hasn&apos;t completed a quiz yet.
                       </p>
                     ) : (
                       <div style={{ border: `1px solid ${COLORS.ink}33`, background: COLORS.paper }}>
-                        <div style={{ display: 'flex', gap: 14, fontFamily: 'DM Mono, monospace', fontSize: 9, letterSpacing: '0.12em', textTransform: 'uppercase', color: COLORS.faded, padding: '8px 12px', borderBottom: `1px solid ${COLORS.ink}33` }}>
+                        <div style={{ display: 'flex', gap: 14, fontFamily: 'DM Mono, monospace', fontSize: 10, letterSpacing: '0.12em', textTransform: 'uppercase', color: COLORS.faded, padding: '3px 12px', borderBottom: `1px solid ${COLORS.ink}33` }}>
                           <span style={{ flex: 3 }}>Quiz</span>
                           <span style={{ flex: '0 0 76px', textAlign: 'right' }}>Score</span>
                           <span style={{ flex: '0 0 56px', textAlign: 'right' }}>Time</span>
@@ -1182,17 +1182,17 @@ function QuizSignupsPanel({ signups }) {
                         {plays.map((p, j) => (
                           <div
                             key={`${p.quizId}-${j}`}
-                            style={{ display: 'flex', gap: 14, alignItems: 'center', fontFamily: 'Manrope, system-ui, -apple-system, sans-serif', fontSize: 12, color: COLORS.ink, padding: '7px 12px', borderBottom: j < plays.length - 1 ? `1px solid ${COLORS.ink}1a` : 'none' }}
+                            style={{ display: 'flex', gap: 14, alignItems: 'center', fontFamily: 'Manrope, system-ui, -apple-system, sans-serif', fontSize: 10, color: COLORS.ink, padding: '3px 12px', borderBottom: j < plays.length - 1 ? `1px solid ${COLORS.ink}1a` : 'none' }}
                           >
                             <span style={{ flex: 3, minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                               <Link href={`/quiz/${encodeURIComponent(p.quizId)}`} target="_blank" style={{ color: COLORS.ink, textDecoration: 'none' }}>
                                 {p.title}
                               </Link>
                             </span>
-                            <span style={{ flex: '0 0 76px', textAlign: 'right', fontFamily: 'DM Mono, monospace', fontSize: 11 }}>
+                            <span style={{ flex: '0 0 76px', textAlign: 'right', fontFamily: 'DM Mono, monospace', fontSize: 10 }}>
                               {p.score}{p.total != null ? `/${p.total}` : ''}
                             </span>
-                            <span style={{ flex: '0 0 56px', textAlign: 'right', fontFamily: 'DM Mono, monospace', fontSize: 11, color: COLORS.faded }}>
+                            <span style={{ flex: '0 0 56px', textAlign: 'right', fontFamily: 'DM Mono, monospace', fontSize: 10, color: COLORS.faded }}>
                               {formatClock(p.timeElapsed)}
                             </span>
                             <span style={{ flex: '0 0 78px', fontFamily: 'DM Mono, monospace', fontSize: 10, color: p.device ? COLORS.ink : COLORS.faded }}>
@@ -1594,17 +1594,17 @@ function AnonPlayersPanel({ players }) {
   const totalPlays = list.reduce((n, p) => n + (p.plays || 0), 0);
   return (
     <div>
-      <p style={{ fontFamily: 'Manrope, system-ui, -apple-system, sans-serif', fontSize: 13, color: COLORS.faded, margin: '0 0 14px' }}>
+      <p style={{ fontFamily: 'Manrope, system-ui, -apple-system, sans-serif', fontSize: 10, color: COLORS.faded, margin: '0 0 14px' }}>
         Players who completed quizzes without signing up, batched by browser and shown under a stable Guest handle.
         {' '}{list.length} anonymous player{list.length === 1 ? '' : 's'}, {totalPlays} play{totalPlays === 1 ? '' : 's'} total.
         {' '}Click a row to see every quiz that player played and when. Click a column header to sort.
       </p>
-      <input value={query} onChange={(e) => setQuery(e.target.value)} placeholder="Filter by guest handle or number\u2026" style={{ width: '100%', padding: '10px 12px', background: COLORS.paper, border: `1px solid ${COLORS.line}`, color: COLORS.ink, fontFamily: 'DM Mono, monospace', fontSize: 12, outline: 'none', boxSizing: 'border-box', marginBottom: 16 }} />
+      <input value={query} onChange={(e) => setQuery(e.target.value)} placeholder="Filter by guest handle or number\u2026" style={{ width: '100%', padding: '10px 12px', background: COLORS.paper, border: `1px solid ${COLORS.line}`, color: COLORS.ink, fontFamily: 'DM Mono, monospace', fontSize: 10, outline: 'none', boxSizing: 'border-box', marginBottom: 16 }} />
       {visible.length === 0 ? (
         <div style={{ padding: '40px 20px', textAlign: 'center', fontFamily: 'Manrope, system-ui, -apple-system, sans-serif', fontStyle: 'italic', fontSize: 16, color: COLORS.faded, border: `1px dashed ${COLORS.line}` }}>No matches.</div>
       ) : (
         <div style={{ border: `1px solid ${COLORS.line}`, background: COLORS.paper, borderRadius: 12 }}>
-          <div style={{ display: 'flex', gap: 16, position: 'sticky', top: 0, zIndex: 1, background: COLORS.cream, fontFamily: 'DM Mono, monospace', fontSize: 10, letterSpacing: '0.14em', textTransform: 'uppercase', color: COLORS.faded, padding: '10px 14px', borderBottom: `1px solid ${COLORS.line}` }}>
+          <div style={{ display: 'flex', gap: 16, position: 'sticky', top: 0, zIndex: 1, background: COLORS.cream, fontFamily: 'DM Mono, monospace', fontSize: 10, letterSpacing: '0.14em', textTransform: 'uppercase', color: COLORS.faded, padding: '5px 14px', borderBottom: `1px solid ${COLORS.line}` }}>
             <span style={{ flex: '0 0 28px' }}>#</span>
             <SortHead label="Player" k="player" sort={sort} flex={2} type="string" />
             <SortHead label="Plays" k="plays" sort={sort} flex="0 0 42px" align="right" />
@@ -1619,28 +1619,28 @@ function AnonPlayersPanel({ players }) {
             const history = p.history || [];
             return (
               <div key={p.key} style={{ borderBottom: i < visible.length - 1 ? rowBorder : 'none' }}>
-                <div onClick={() => setExpandedKey(open ? null : p.key)} style={{ display: 'flex', gap: 16, alignItems: 'center', fontFamily: 'Manrope, system-ui, -apple-system, sans-serif', fontSize: 13, color: COLORS.ink, padding: '9px 14px', cursor: 'pointer', background: open ? `${COLORS.ink}0a` : 'transparent' }}>
-                  <span style={{ flex: '0 0 32px', fontFamily: 'DM Mono, monospace', fontSize: 11, color: COLORS.faded, display: 'flex', alignItems: 'center', gap: 4 }}>
+                <div onClick={() => setExpandedKey(open ? null : p.key)} style={{ display: 'flex', gap: 16, alignItems: 'center', fontFamily: 'Manrope, system-ui, -apple-system, sans-serif', fontSize: 10, color: COLORS.ink, padding: '3px 14px', cursor: 'pointer', background: open ? `${COLORS.ink}0a` : 'transparent' }}>
+                  <span style={{ flex: '0 0 32px', fontFamily: 'DM Mono, monospace', fontSize: 10, color: COLORS.faded, display: 'flex', alignItems: 'center', gap: 4 }}>
                     <span style={{ display: 'inline-block', width: 8, transform: open ? 'rotate(90deg)' : 'none', transition: 'transform 0.12s' }}>&#9656;</span>
                     {i + 1}
                   </span>
                   <span style={{ flex: 2, minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', fontFamily: 'Manrope, system-ui, -apple-system, sans-serif', fontWeight: 700 }}>{p.label}</span>
-                  <span style={{ flex: '0 0 42px', textAlign: 'right', fontFamily: 'DM Mono, monospace', fontSize: 12, fontWeight: 700, color: p.plays > 0 ? COLORS.ember : COLORS.faded }}>{p.plays}</span>
+                  <span style={{ flex: '0 0 42px', textAlign: 'right', fontFamily: 'DM Mono, monospace', fontSize: 10, fontWeight: 700, color: p.plays > 0 ? COLORS.ember : COLORS.faded }}>{p.plays}</span>
                   <MultiCell values={p.devices} flex="0 0 62px" />
                   <MultiCell values={p.oses} flex="0 0 58px" />
                   <MultiCell values={p.geos} flex="0 0 118px" />
-                  <span style={{ flex: '0 0 60px', textAlign: 'right', fontFamily: 'DM Mono, monospace', fontSize: 11, color: COLORS.faded }}>{p.stats && p.stats.firstSeen ? fmtShort(p.stats.firstSeen) : '\u2014'}</span>
-                  <span style={{ flex: '0 0 92px', textAlign: 'right', fontFamily: 'DM Mono, monospace', fontSize: 11, color: COLORS.faded }}>{p.lastPlayed ? fmtShortDateTime(p.lastPlayed) : '\u2014'}</span>
+                  <span style={{ flex: '0 0 60px', textAlign: 'right', fontFamily: 'DM Mono, monospace', fontSize: 10, color: COLORS.faded }}>{p.stats && p.stats.firstSeen ? fmtShort(p.stats.firstSeen) : '\u2014'}</span>
+                  <span style={{ flex: '0 0 92px', textAlign: 'right', fontFamily: 'DM Mono, monospace', fontSize: 10, color: COLORS.faded }}>{p.lastPlayed ? fmtShortDateTime(p.lastPlayed) : '\u2014'}</span>
                 </div>
                 {open && (
                   <div style={{ padding: '4px 14px 14px 48px', background: `${COLORS.ink}0a` }}>
                     <PlayerSummary stats={p.stats} />
                     <SessionTable plays={history} />
                     {history.length === 0 ? (
-                      <p style={{ fontFamily: 'Manrope, system-ui, -apple-system, sans-serif', fontStyle: 'italic', fontSize: 14, color: COLORS.faded, margin: '8px 0' }}>No completed games recorded.</p>
+                      <p style={{ fontFamily: 'Manrope, system-ui, -apple-system, sans-serif', fontStyle: 'italic', fontSize: 10, color: COLORS.faded, margin: '8px 0' }}>No completed games recorded.</p>
                     ) : (
                       <div style={{ border: `1px solid ${COLORS.ink}33`, background: COLORS.paper }}>
-                        <div style={{ display: 'flex', gap: 14, fontFamily: 'DM Mono, monospace', fontSize: 9, letterSpacing: '0.12em', textTransform: 'uppercase', color: COLORS.faded, padding: '8px 12px', borderBottom: `1px solid ${COLORS.ink}33` }}>
+                        <div style={{ display: 'flex', gap: 14, fontFamily: 'DM Mono, monospace', fontSize: 10, letterSpacing: '0.12em', textTransform: 'uppercase', color: COLORS.faded, padding: '3px 12px', borderBottom: `1px solid ${COLORS.ink}33` }}>
                           <span style={{ flex: 3 }}>Quiz</span>
                           <span style={{ flex: '0 0 76px', textAlign: 'right' }}>Score</span>
                           <span style={{ flex: '0 0 56px', textAlign: 'right' }}>Time</span>
@@ -1649,12 +1649,12 @@ function AnonPlayersPanel({ players }) {
                           <span style={{ flex: '0 0 130px', textAlign: 'right' }}>Played</span>
                         </div>
                         {history.map((x, j) => (
-                          <div key={`${x.quizId}-${j}`} style={{ display: 'flex', gap: 14, alignItems: 'center', fontFamily: 'Manrope, system-ui, -apple-system, sans-serif', fontSize: 12, color: COLORS.ink, padding: '7px 12px', borderBottom: j < history.length - 1 ? `1px solid ${COLORS.ink}1a` : 'none' }}>
+                          <div key={`${x.quizId}-${j}`} style={{ display: 'flex', gap: 14, alignItems: 'center', fontFamily: 'Manrope, system-ui, -apple-system, sans-serif', fontSize: 10, color: COLORS.ink, padding: '3px 12px', borderBottom: j < history.length - 1 ? `1px solid ${COLORS.ink}1a` : 'none' }}>
                             <span style={{ flex: 3, minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                               <Link href={`/quiz/${encodeURIComponent(x.quizId)}`} target="_blank" style={{ color: COLORS.ink, textDecoration: 'none' }}>{x.title}</Link>
                             </span>
-                            <span style={{ flex: '0 0 76px', textAlign: 'right', fontFamily: 'DM Mono, monospace', fontSize: 11 }}>{x.score}{x.total != null ? `/${x.total}` : ''}</span>
-                            <span style={{ flex: '0 0 56px', textAlign: 'right', fontFamily: 'DM Mono, monospace', fontSize: 11, color: COLORS.faded }}>{formatClock(x.timeElapsed)}</span>
+                            <span style={{ flex: '0 0 76px', textAlign: 'right', fontFamily: 'DM Mono, monospace', fontSize: 10 }}>{x.score}{x.total != null ? `/${x.total}` : ''}</span>
+                            <span style={{ flex: '0 0 56px', textAlign: 'right', fontFamily: 'DM Mono, monospace', fontSize: 10, color: COLORS.faded }}>{formatClock(x.timeElapsed)}</span>
                             <span style={{ flex: '0 0 78px', fontFamily: 'DM Mono, monospace', fontSize: 10, color: x.device ? COLORS.ink : COLORS.faded }}>{x.device || '—'}</span>
                             <span style={{ flex: '0 0 78px', fontFamily: 'DM Mono, monospace', fontSize: 10, color: x.geo ? COLORS.ink : COLORS.faded }}>{x.geo || '—'}</span>
                             <span style={{ flex: '0 0 130px', textAlign: 'right', fontFamily: 'DM Mono, monospace', fontSize: 10, color: COLORS.faded }}>{formatDayTime(x.createdAt)}</span>
@@ -1755,17 +1755,17 @@ function AllPlayersPanel({ signups, anonPlayers }) {
 
   return (
     <div>
-      <p style={{ fontFamily: 'Manrope, system-ui, -apple-system, sans-serif', fontSize: 13, color: COLORS.faded, margin: '0 0 14px' }}>
+      <p style={{ fontFamily: 'Manrope, system-ui, -apple-system, sans-serif', fontSize: 10, color: COLORS.faded, margin: '0 0 14px' }}>
         Every player, registered and anonymous, in one table.
         {' '}{rows.length} player{rows.length === 1 ? '' : 's'} ({regCount} registered, {anonCount} anonymous), {totalPlays} play{totalPlays === 1 ? '' : 's'} total.
         {' '}Click a row to see that player&apos;s games. Click a column header to sort.
       </p>
-      <input value={query} onChange={(e) => setQuery(e.target.value)} placeholder="Filter by name or email…" style={{ width: '100%', padding: '10px 12px', background: COLORS.paper, border: `1px solid ${COLORS.line}`, color: COLORS.ink, fontFamily: 'DM Mono, monospace', fontSize: 12, outline: 'none', boxSizing: 'border-box', marginBottom: 16 }} />
+      <input value={query} onChange={(e) => setQuery(e.target.value)} placeholder="Filter by name or email…" style={{ width: '100%', padding: '10px 12px', background: COLORS.paper, border: `1px solid ${COLORS.line}`, color: COLORS.ink, fontFamily: 'DM Mono, monospace', fontSize: 10, outline: 'none', boxSizing: 'border-box', marginBottom: 16 }} />
       {visible.length === 0 ? (
         <div style={{ padding: '40px 20px', textAlign: 'center', fontFamily: 'Manrope, system-ui, -apple-system, sans-serif', fontStyle: 'italic', fontSize: 16, color: COLORS.faded, border: `1px dashed ${COLORS.line}` }}>No matches.</div>
       ) : (
         <div style={{ border: `1px solid ${COLORS.line}`, background: COLORS.paper, borderRadius: 12 }}>
-          <div style={{ display: 'flex', gap: 16, position: 'sticky', top: 0, zIndex: 1, background: COLORS.cream, fontFamily: 'DM Mono, monospace', fontSize: 10, letterSpacing: '0.14em', textTransform: 'uppercase', color: COLORS.faded, padding: '10px 14px', borderBottom: `1px solid ${COLORS.line}` }}>
+          <div style={{ display: 'flex', gap: 16, position: 'sticky', top: 0, zIndex: 1, background: COLORS.cream, fontFamily: 'DM Mono, monospace', fontSize: 10, letterSpacing: '0.14em', textTransform: 'uppercase', color: COLORS.faded, padding: '5px 14px', borderBottom: `1px solid ${COLORS.line}` }}>
             <span style={{ flex: '0 0 28px' }}>#</span>
             <SortHead label="Player" k="name" sort={sort} flex={2} type="string" />
             <SortHead label="Type" k="type" sort={sort} flex="0 0 76px" type="string" />
@@ -1782,32 +1782,32 @@ function AllPlayersPanel({ signups, anonPlayers }) {
             const history = r.history || [];
             return (
               <div key={r.key} style={{ borderBottom: i < visible.length - 1 ? rowBorder : 'none' }}>
-                <div onClick={() => setExpandedKey(open ? null : r.key)} style={{ display: 'flex', gap: 16, alignItems: 'center', fontFamily: 'Manrope, system-ui, -apple-system, sans-serif', fontSize: 13, color: COLORS.ink, padding: '9px 14px', cursor: 'pointer', background: open ? `${COLORS.ink}0a` : 'transparent' }}>
-                  <span style={{ flex: '0 0 28px', fontFamily: 'DM Mono, monospace', fontSize: 11, color: COLORS.faded, display: 'flex', alignItems: 'center', gap: 4 }}>
+                <div onClick={() => setExpandedKey(open ? null : r.key)} style={{ display: 'flex', gap: 16, alignItems: 'center', fontFamily: 'Manrope, system-ui, -apple-system, sans-serif', fontSize: 10, color: COLORS.ink, padding: '3px 14px', cursor: 'pointer', background: open ? `${COLORS.ink}0a` : 'transparent' }}>
+                  <span style={{ flex: '0 0 28px', fontFamily: 'DM Mono, monospace', fontSize: 10, color: COLORS.faded, display: 'flex', alignItems: 'center', gap: 4 }}>
                     <span style={{ display: 'inline-block', width: 8, transform: open ? 'rotate(90deg)' : 'none', transition: 'transform 0.12s' }}>&#9656;</span>
                     {i + 1}
                   </span>
                   <span style={{ flex: 2, minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', fontWeight: 600, fontFamily: 'Manrope, system-ui, -apple-system, sans-serif' }}>
                     {r.name}
-                    {r.email ? <span style={{ color: COLORS.faded, fontWeight: 400, fontFamily: 'DM Mono, monospace', fontSize: 11 }}>{' · '}{r.email}</span> : null}
+                    {r.email ? <span style={{ color: COLORS.faded, fontWeight: 400, fontFamily: 'DM Mono, monospace', fontSize: 10 }}>{' · '}{r.email}</span> : null}
                   </span>
                   <span style={{ flex: '0 0 76px', fontFamily: 'DM Mono, monospace', fontSize: 10, letterSpacing: '0.06em', textTransform: 'uppercase', color: reg ? COLORS.ember : COLORS.faded }}>{reg ? 'Registered' : 'Anon'}</span>
-                  <span style={{ flex: '0 0 42px', textAlign: 'right', fontFamily: 'DM Mono, monospace', fontSize: 12, fontWeight: 700, color: r.plays > 0 ? COLORS.ember : COLORS.faded }}>{r.plays}</span>
+                  <span style={{ flex: '0 0 42px', textAlign: 'right', fontFamily: 'DM Mono, monospace', fontSize: 10, fontWeight: 700, color: r.plays > 0 ? COLORS.ember : COLORS.faded }}>{r.plays}</span>
                   <MultiCell values={r.devices} flex="0 0 62px" />
                   <MultiCell values={r.oses} flex="0 0 58px" />
                   <MultiCell values={r.geos} flex="0 0 118px" />
-                  <span style={{ flex: '0 0 60px', textAlign: 'right', fontFamily: 'DM Mono, monospace', fontSize: 11, color: COLORS.faded }}>{r.firstSeen ? fmtShort(r.firstSeen) : '—'}</span>
-                  <span style={{ flex: '0 0 92px', textAlign: 'right', fontFamily: 'DM Mono, monospace', fontSize: 11, color: COLORS.faded }}>{r.lastAt ? fmtShortDateTime(r.lastAt) : '—'}</span>
+                  <span style={{ flex: '0 0 60px', textAlign: 'right', fontFamily: 'DM Mono, monospace', fontSize: 10, color: COLORS.faded }}>{r.firstSeen ? fmtShort(r.firstSeen) : '—'}</span>
+                  <span style={{ flex: '0 0 92px', textAlign: 'right', fontFamily: 'DM Mono, monospace', fontSize: 10, color: COLORS.faded }}>{r.lastAt ? fmtShortDateTime(r.lastAt) : '—'}</span>
                 </div>
                 {open && (
                   <div style={{ padding: '4px 14px 14px 48px', background: `${COLORS.ink}0a` }}>
                     <PlayerSummary stats={r.stats} />
                     <SessionTable plays={history} />
                     {history.length === 0 ? (
-                      <p style={{ fontFamily: 'Manrope, system-ui, -apple-system, sans-serif', fontStyle: 'italic', fontSize: 14, color: COLORS.faded, margin: '8px 0' }}>No completed games recorded.</p>
+                      <p style={{ fontFamily: 'Manrope, system-ui, -apple-system, sans-serif', fontStyle: 'italic', fontSize: 10, color: COLORS.faded, margin: '8px 0' }}>No completed games recorded.</p>
                     ) : (
                       <div style={{ border: `1px solid ${COLORS.ink}33`, background: COLORS.paper }}>
-                        <div style={{ display: 'flex', gap: 14, fontFamily: 'DM Mono, monospace', fontSize: 9, letterSpacing: '0.12em', textTransform: 'uppercase', color: COLORS.faded, padding: '8px 12px', borderBottom: `1px solid ${COLORS.ink}33` }}>
+                        <div style={{ display: 'flex', gap: 14, fontFamily: 'DM Mono, monospace', fontSize: 10, letterSpacing: '0.12em', textTransform: 'uppercase', color: COLORS.faded, padding: '3px 12px', borderBottom: `1px solid ${COLORS.ink}33` }}>
                           <span style={{ flex: 3 }}>Quiz</span>
                           <span style={{ flex: '0 0 76px', textAlign: 'right' }}>Score</span>
                           <span style={{ flex: '0 0 56px', textAlign: 'right' }}>Time</span>
@@ -1816,12 +1816,12 @@ function AllPlayersPanel({ signups, anonPlayers }) {
                           <span style={{ flex: '0 0 130px', textAlign: 'right' }}>Played</span>
                         </div>
                         {history.map((x, j) => (
-                          <div key={`${x.quizId}-${j}`} style={{ display: 'flex', gap: 14, alignItems: 'center', fontFamily: 'Manrope, system-ui, -apple-system, sans-serif', fontSize: 12, color: COLORS.ink, padding: '7px 12px', borderBottom: j < history.length - 1 ? `1px solid ${COLORS.ink}1a` : 'none' }}>
+                          <div key={`${x.quizId}-${j}`} style={{ display: 'flex', gap: 14, alignItems: 'center', fontFamily: 'Manrope, system-ui, -apple-system, sans-serif', fontSize: 10, color: COLORS.ink, padding: '3px 12px', borderBottom: j < history.length - 1 ? `1px solid ${COLORS.ink}1a` : 'none' }}>
                             <span style={{ flex: 3, minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                               <Link href={`/quiz/${encodeURIComponent(x.quizId)}`} target="_blank" style={{ color: COLORS.ink, textDecoration: 'none' }}>{x.title}</Link>
                             </span>
-                            <span style={{ flex: '0 0 76px', textAlign: 'right', fontFamily: 'DM Mono, monospace', fontSize: 11 }}>{x.score}{x.total != null ? `/${x.total}` : ''}</span>
-                            <span style={{ flex: '0 0 56px', textAlign: 'right', fontFamily: 'DM Mono, monospace', fontSize: 11, color: COLORS.faded }}>{formatClock(x.timeElapsed)}</span>
+                            <span style={{ flex: '0 0 76px', textAlign: 'right', fontFamily: 'DM Mono, monospace', fontSize: 10 }}>{x.score}{x.total != null ? `/${x.total}` : ''}</span>
+                            <span style={{ flex: '0 0 56px', textAlign: 'right', fontFamily: 'DM Mono, monospace', fontSize: 10, color: COLORS.faded }}>{formatClock(x.timeElapsed)}</span>
                             <span style={{ flex: '0 0 78px', fontFamily: 'DM Mono, monospace', fontSize: 10, color: x.device ? COLORS.ink : COLORS.faded }}>{x.device || '—'}</span>
                             <span style={{ flex: '0 0 78px', fontFamily: 'DM Mono, monospace', fontSize: 10, color: x.geo ? COLORS.ink : COLORS.faded }}>{x.geo || '—'}</span>
                             <span style={{ flex: '0 0 130px', textAlign: 'right', fontFamily: 'DM Mono, monospace', fontSize: 10, color: COLORS.faded }}>{fmtShortDateTime(x.createdAt)}</span>
