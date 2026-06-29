@@ -1121,7 +1121,7 @@ function QuizSignupsPanel({ signups }) {
             <SortHead label="OS" k="os" sort={sort} flex="0 0 56px" type="string" />
             <SortHead label="Geo" k="geo" sort={sort} flex="0 0 110px" type="string" />
             <SortHead label="First" k="first" sort={sort} flex="0 0 58px" align="right" />
-            <SortHead label="Last" k="recent" sort={sort} flex="0 0 92px" align="right" />
+            <SortHead label="Last" k="recent" sort={sort} flex="0 0 118px" align="right" />
             <SortHead label="Joined" k="joined" sort={sort} flex="0 0 56px" align="right" />
           </div>
           {visible.map((s, i) => {
@@ -1154,7 +1154,7 @@ function QuizSignupsPanel({ signups }) {
                   <span style={{ flex: '0 0 58px', textAlign: 'right', fontFamily: 'DM Mono, monospace', fontSize: 10, color: COLORS.faded }}>
                     {s.stats && s.stats.firstSeen ? fmtShort(s.stats.firstSeen) : '—'}
                   </span>
-                  <span style={{ flex: '0 0 92px', textAlign: 'right', fontFamily: 'DM Mono, monospace', fontSize: 10, color: COLORS.faded }}>
+                  <span style={{ flex: '0 0 118px', textAlign: 'right', fontFamily: 'DM Mono, monospace', fontSize: 10, color: COLORS.faded }}>
                     {s.lastPlayedAt ? fmtShortDateTime(s.lastPlayedAt) : '—'}
                   </span>
                   <span style={{ flex: '0 0 56px', textAlign: 'right', fontFamily: 'DM Mono, monospace', fontSize: 10, color: COLORS.faded }}>
@@ -1612,7 +1612,7 @@ function AnonPlayersPanel({ players }) {
             <SortHead label="OS" k="os" sort={sort} flex="0 0 58px" type="string" />
             <SortHead label="Geo" k="geo" sort={sort} flex="0 0 118px" type="string" />
             <SortHead label="First" k="first" sort={sort} flex="0 0 60px" align="right" />
-            <SortHead label="Last" k="recent" sort={sort} flex="0 0 92px" align="right" />
+            <SortHead label="Last" k="recent" sort={sort} flex="0 0 118px" align="right" />
           </div>
           {visible.map((p, i) => {
             const open = expandedKey === p.key;
@@ -1630,7 +1630,7 @@ function AnonPlayersPanel({ players }) {
                   <MultiCell values={p.oses} flex="0 0 58px" />
                   <MultiCell values={p.geos} flex="0 0 118px" />
                   <span style={{ flex: '0 0 60px', textAlign: 'right', fontFamily: 'DM Mono, monospace', fontSize: 10, color: COLORS.faded }}>{p.stats && p.stats.firstSeen ? fmtShort(p.stats.firstSeen) : '\u2014'}</span>
-                  <span style={{ flex: '0 0 92px', textAlign: 'right', fontFamily: 'DM Mono, monospace', fontSize: 10, color: COLORS.faded }}>{p.lastPlayed ? fmtShortDateTime(p.lastPlayed) : '\u2014'}</span>
+                  <span style={{ flex: '0 0 118px', textAlign: 'right', fontFamily: 'DM Mono, monospace', fontSize: 10, color: COLORS.faded }}>{p.lastPlayed ? fmtShortDateTime(p.lastPlayed) : '\u2014'}</span>
                 </div>
                 {open && (
                   <div style={{ padding: '4px 14px 14px 48px', background: `${COLORS.ink}0a` }}>
@@ -1774,7 +1774,7 @@ function AllPlayersPanel({ signups, anonPlayers }) {
             <SortHead label="OS" k="os" sort={sort} flex="0 0 58px" type="string" />
             <SortHead label="Geo" k="geo" sort={sort} flex="0 0 118px" type="string" />
             <SortHead label="First" k="first" sort={sort} flex="0 0 60px" align="right" />
-            <SortHead label="Last" k="last" sort={sort} flex="0 0 92px" align="right" />
+            <SortHead label="Last" k="last" sort={sort} flex="0 0 118px" align="right" />
           </div>
           {visible.map((r, i) => {
             const open = expandedKey === r.key;
@@ -1797,7 +1797,7 @@ function AllPlayersPanel({ signups, anonPlayers }) {
                   <MultiCell values={r.oses} flex="0 0 58px" />
                   <MultiCell values={r.geos} flex="0 0 118px" />
                   <span style={{ flex: '0 0 60px', textAlign: 'right', fontFamily: 'DM Mono, monospace', fontSize: 10, color: COLORS.faded }}>{r.firstSeen ? fmtShort(r.firstSeen) : '—'}</span>
-                  <span style={{ flex: '0 0 92px', textAlign: 'right', fontFamily: 'DM Mono, monospace', fontSize: 10, color: COLORS.faded }}>{r.lastAt ? fmtShortDateTime(r.lastAt) : '—'}</span>
+                  <span style={{ flex: '0 0 118px', textAlign: 'right', fontFamily: 'DM Mono, monospace', fontSize: 10, color: COLORS.faded }}>{r.lastAt ? fmtShortDateTime(r.lastAt) : '—'}</span>
                 </div>
                 {open && (
                   <div style={{ padding: '4px 14px 14px 48px', background: `${COLORS.ink}0a` }}>
