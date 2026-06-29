@@ -1509,7 +1509,12 @@ export default function QuizClient({ quizId }) {
             {mPlayOverlay && (
               <div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '0 0 8px' }}>
                 <Logo size={18} />
-                <span style={{ fontFamily: SERIF, fontWeight: 800, fontSize: 15, lineHeight: 1.1, color: COLORS.ink, minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{quiz.title}</span>
+                <span style={{ fontFamily: SERIF, fontWeight: 800, fontSize: 15, lineHeight: 1.1, color: COLORS.ink, flex: '1 1 auto', minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{quiz.title}</span>
+                {started && !ended && (
+                  <button onClick={() => { endGame(false); setTab('stats'); }} aria-label="Quit this quiz and see results" style={{ flex: 'none', display: 'inline-flex', alignItems: 'center', gap: 5, fontFamily: MONO, fontSize: 11, letterSpacing: '0.1em', textTransform: 'uppercase', fontWeight: 700, padding: '6px 11px', borderRadius: 8, border: `1px solid ${COLORS.line}`, background: '#fff', color: COLORS.faded, cursor: 'pointer' }}>
+                    <X size={13} strokeWidth={2.5} /> Quit
+                  </button>
+                )}
               </div>
             )}
             {/* Freeze the score/time bar AND the answer input together, pinned to

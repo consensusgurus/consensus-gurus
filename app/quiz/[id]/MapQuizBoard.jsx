@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 
 // Lazy, per-region geometry — each import() is a static specifier so webpack
 // code-splits one chunk per region; only the played region's geometry loads.
@@ -40,11 +40,26 @@ const SIZES = {
 const SIZE_ORDER = ['fit', 'lg', 'xl'];
 const SIZE_KEY = 'sot_map_size';
 
+const MAX_ZOOM = 6;
+
 export default function MapQuizBoard({ region, started, ended, revealed, foundNames, flash, onPick, noBorders: noBordersProp, mobile = false }) {
   const [geo, setGeo] = useState(null);
   const [hover, setHover] = useState(null);
   const [size, setSize] = useState('fit');
   const isMobile = mobile;
+
+  // Pinch-to-zoom + drag-to-pan, mobile only. The whole concern of a phone map
+  // quiz is that small countries / island markers are nearly impossible to tap
+  // accurately at full-region scale; zooming makes them thumb-sized. `view` is a
+  // scale + translate applied to a wrapping <g> in viewBox units. Desktop never
+  // touches it (handlers gated on isMobile), so it stays identity there and the
+  // render is byte-for-byte the prior behavior.
+  const [view, setView] = useState({ s: 1, tx: 0, ty: 0 });
+  const viewRef = useRef(view);
+  viewRef.current = view;
+  const svgRef = useRef(null);
+  const ptrs = useRef(new Map());
+  const gesture = useRef({ dist: 0, panned: false, lastX: 0, lastY: 0 });
 
   // Restore the saved size preference (ssr:false, so localStorage is safe;
   // read in an effect to avoid a hydration mismatch).
@@ -66,6 +81,14 @@ export default function MapQuizBoard({ region, started, ended, revealed, foundNa
     load().then((g) => { if (live) setGeo(g); }).catch(() => {});
     return () => { live = false; };
   }, [region]);
+
+  // Reset the zoom whenever a new round starts/ends so a fresh game always
+  // opens at the full-region view.
+  useEffect(() => {
+    const id = { s: 1, tx: 0, ty: 0 };
+    viewRef.current = id;
+    setView(id);
+  }, [started, ended]);
 
   const live = started && !ended;
   // A "no borders" map (e.g. the lower-48 states quiz) renders as a single blank
@@ -100,6 +123,87 @@ export default function MapQuizBoard({ region, started, ended, revealed, foundNa
     ? { width: sz.width, maxWidth: '96vw', position: 'relative', left: '50%', transform: 'translateX(-50%)' }
     : { maxWidth: 680, margin: '0 auto' };
 
+  // Parse the region viewBox ("minX minY width height") so the gesture math can
+  // convert screen coordinates into the SVG's own coordinate system.
+  const vb = String(geo.viewBox || '0 0 100 100').trim().split(/\s+/).map(Number);
+  const vbX = vb[0] || 0, vbY = vb[1] || 0, vbW = vb[2] || 100, vbH = vb[3] || 100;
+  const zoomed = view.s > 1.001;
+
+  function clampView(v) {
+    const s = Math.max(1, Math.min(MAX_ZOOM, v.s));
+    // Keep the transformed content covering the visible viewBox window so the
+    // player can never pan the map off-screen into empty sea.
+    const txMin = (vbX + vbW) * (1 - s), txMax = vbX * (1 - s);
+    const tyMin = (vbY + vbH) * (1 - s), tyMax = vbY * (1 - s);
+    return {
+      s,
+      tx: Math.min(txMax, Math.max(txMin, v.tx)),
+      ty: Math.min(tyMax, Math.max(tyMin, v.ty)),
+    };
+  }
+
+  function applyView(v) { const nv = clampView(v); viewRef.current = nv; setView(nv); }
+
+  function toVB(clientX, clientY) {
+    const r = svgRef.current.getBoundingClientRect();
+    return {
+      fx: vbX + ((clientX - r.left) / r.width) * vbW,
+      fy: vbY + ((clientY - r.top) / r.height) * vbH,
+    };
+  }
+  function pinchDist() { const [a, b] = [...ptrs.current.values()]; return Math.hypot(a.x - b.x, a.y - b.y); }
+  function pinchMid() { const [a, b] = [...ptrs.current.values()]; return { x: (a.x + b.x) / 2, y: (a.y + b.y) / 2 }; }
+
+  function onPointerDown(e) {
+    if (!isMobile) return;
+    ptrs.current.set(e.pointerId, { x: e.clientX, y: e.clientY });
+    gesture.current.panned = false;
+    if (ptrs.current.size === 1) { gesture.current.lastX = e.clientX; gesture.current.lastY = e.clientY; }
+    if (ptrs.current.size === 2) { gesture.current.dist = pinchDist(); }
+  }
+  function onPointerMove(e) {
+    if (!isMobile || !ptrs.current.has(e.pointerId)) return;
+    ptrs.current.set(e.pointerId, { x: e.clientX, y: e.clientY });
+    if (ptrs.current.size >= 2) {
+      const d = pinchDist();
+      if (gesture.current.dist > 0) {
+        const mid = pinchMid();
+        const { fx, fy } = toVB(mid.x, mid.y);
+        const v0 = viewRef.current;
+        const s1 = Math.max(1, Math.min(MAX_ZOOM, v0.s * (d / gesture.current.dist)));
+        const k = s1 / v0.s;
+        applyView({ s: s1, tx: fx - k * (fx - v0.tx), ty: fy - k * (fy - v0.ty) });
+        gesture.current.panned = true;
+      }
+      gesture.current.dist = d;
+    } else if (ptrs.current.size === 1 && viewRef.current.s > 1) {
+      const dxPx = e.clientX - gesture.current.lastX;
+      const dyPx = e.clientY - gesture.current.lastY;
+      gesture.current.lastX = e.clientX; gesture.current.lastY = e.clientY;
+      if (Math.abs(dxPx) + Math.abs(dyPx) > 1.5) gesture.current.panned = true;
+      const r = svgRef.current.getBoundingClientRect();
+      const v0 = viewRef.current;
+      applyView({ s: v0.s, tx: v0.tx + dxPx * (vbW / r.width), ty: v0.ty + dyPx * (vbH / r.height) });
+    }
+  }
+  function onPointerUp(e) {
+    if (!isMobile) return;
+    ptrs.current.delete(e.pointerId);
+    if (ptrs.current.size < 2) gesture.current.dist = 0;
+    if (ptrs.current.size === 1) { const [p] = [...ptrs.current.values()]; gesture.current.lastX = p.x; gesture.current.lastY = p.y; }
+  }
+  // A pan/pinch ends on touchup over some country path; swallow the click it
+  // would otherwise synthesize so panning never accidentally guesses a country.
+  function onClickCaptureMap(e) {
+    if (gesture.current.panned) { e.stopPropagation(); e.preventDefault(); gesture.current.panned = false; }
+  }
+  function resetZoom() { applyView({ s: 1, tx: 0, ty: 0 }); }
+
+  // When zoomed we own all touch (pan); at rest a one-finger vertical drag still
+  // scrolls the page, while pan-y still lets our handler intercept the 2-finger
+  // pinch.
+  const touchAct = isMobile ? (zoomed ? 'none' : 'pan-y') : 'manipulation';
+
   return (
     <div>
       {!isMobile && (
@@ -125,14 +229,34 @@ export default function MapQuizBoard({ region, started, ended, revealed, foundNa
         })}
       </div>
       )}
-      <div style={{ ...wrapStyle, border: '1px solid rgba(138,130,118,0.25)', borderRadius: 2, overflow: 'hidden', background: SEA }}>
+      <div style={{ ...wrapStyle, position: 'relative', border: '1px solid rgba(138,130,118,0.25)', borderRadius: 2, overflow: 'hidden', background: SEA }}>
+      {isMobile && (
+        <div style={{ position: 'absolute', top: 8, left: 8, zIndex: 5, fontFamily: "'Manrope', system-ui, sans-serif", fontSize: 10, fontWeight: 700, letterSpacing: '0.06em', color: '#5f7585', background: 'rgba(255,255,255,0.82)', borderRadius: 6, padding: '4px 8px', pointerEvents: 'none' }}>
+          {zoomed ? 'Drag to pan · pinch to zoom' : 'Pinch to zoom in'}
+        </div>
+      )}
+      {isMobile && zoomed && (
+        <button
+          onClick={resetZoom}
+          style={{ position: 'absolute', top: 8, right: 8, zIndex: 6, fontFamily: "'Manrope', system-ui, sans-serif", fontSize: 11, fontWeight: 700, letterSpacing: '0.04em', padding: '6px 12px', cursor: 'pointer', borderRadius: 6, border: `1px solid ${CTRL_ACCENT}`, background: '#fff', color: CTRL_ACCENT }}
+        >
+          Reset
+        </button>
+      )}
       <svg
+        ref={svgRef}
         viewBox={geo.viewBox}
-        style={{ display: 'block', width: '100%', height: 'auto', touchAction: 'manipulation' }}
+        style={{ display: 'block', width: '100%', height: 'auto', touchAction: touchAct }}
         role="img"
         aria-label="Map. Click the country named in the prompt above."
+        onPointerDown={onPointerDown}
+        onPointerMove={onPointerMove}
+        onPointerUp={onPointerUp}
+        onPointerCancel={onPointerUp}
+        onClickCapture={onClickCaptureMap}
       >
         <rect x="0" y="0" width={geo.width} height={geo.height} fill={SEA} />
+        <g transform={`translate(${view.tx} ${view.ty}) scale(${view.s})`}>
         {geo.paths.map((p) => {
           const f = fillFor(p.name, LAND);
           // Borderless map: stroke each path with its OWN fill color so the
@@ -213,6 +337,7 @@ export default function MapQuizBoard({ region, started, ended, revealed, foundNa
             </g>
           );
         })}
+        </g>
       </svg>
       </div>
     </div>

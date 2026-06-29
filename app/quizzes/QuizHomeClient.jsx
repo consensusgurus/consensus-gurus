@@ -686,9 +686,9 @@ export default function QuizHomeClient() {
     .qzh .qz-mobtoggle{display:none;}
     /* Desktop: leaderboard LEFT (1fr), daily challenge WIDE MIDDLE (1.5fr),
        last-played feed RIGHT (1fr) via the min-width:681px order rule below. */
-    @media(max-width:680px){.qzh .boards{grid-template-columns:1fr;}}
+    @media(max-width:760px){.qzh .boards{grid-template-columns:1fr;}}
     /* Desktop (3-col) only: daily challenge in the WIDE middle track, last-played feed on the RIGHT, leaderboard LEFT. Tablet single-col (<=680) and mobile (<=560) unchanged. */
-    @media(min-width:681px){.qzh .boards .lb-card{order:1;}.qzh .boards .daily-card{order:2;}.qzh .boards .live-card{order:3;}}
+    @media(min-width:761px){.qzh .boards .lb-card{order:1;}.qzh .boards .daily-card{order:2;}.qzh .boards .live-card{order:3;}}
     .qzh .qcols{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(100%,300px),1fr));gap:6px 26px;}
     .qzh .qfull{column-count:2;column-gap:26px;}
     .qzh .qfull > a{display:flex;break-inside:avoid;-webkit-column-break-inside:avoid;}
