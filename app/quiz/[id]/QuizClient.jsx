@@ -1711,7 +1711,7 @@ export default function QuizClient({ quizId }) {
                     {a.label != null ? (
                       <span style={{ fontFamily: MONO, fontWeight: 700, fontSize: 15, minWidth: 52, maxWidth: '50%', overflowWrap: 'anywhere', wordBreak: 'break-word', whiteSpace: 'normal', lineHeight: 1.2, color: COLORS.ember, flex: 'none', textAlign: 'left', letterSpacing: '0.04em' }}>{a.label}</span>
                     ) : (
-                      <span style={{ fontFamily: SERIF, fontWeight: 800, fontSize: rz.rank, width: rz.rankW, color: COLORS.ember, flex: 'none', textAlign: 'center' }}>{i + 1}</span>
+                      quiz.hideNumbers ? null : <span style={{ fontFamily: SERIF, fontWeight: 800, fontSize: rz.rank, width: rz.rankW, color: COLORS.ember, flex: 'none', textAlign: 'center' }}>{i + 1}</span>
                     )}
                     {f ? (
                       <span style={{ fontFamily: SERIF, fontSize: rz.name, fontWeight: 500, flex: 1 }}>{a.t}</span>
@@ -1998,9 +1998,9 @@ export default function QuizClient({ quizId }) {
             <div style={{ fontFamily: MONO, fontSize: 11, letterSpacing: '0.16em', textTransform: 'uppercase', color: COLORS.ember, marginBottom: 16 }}>More quizzes</div>
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))', gap: 10 }}>
               {(ended ? moreLikeThis.filter((rq) => !seriesIds.has(rq.id)) : moreLikeThis).map((rq) => (
-                <a key={rq.id} href={`/quiz/${rq.id}`} style={{ textDecoration: 'none', color: COLORS.ink, background: COLORS.paper, borderRadius: 10, border: `1px solid ${COLORS.faded}33`, padding: '12px 14px', display: 'block', transition: 'all 0.15s ease' }}>
-                  <div style={{ fontFamily: MONO, fontSize: 9, letterSpacing: '0.16em', textTransform: 'uppercase', color: COLORS.ember, fontWeight: 700, marginBottom: 6 }}>{rq.category || 'Quiz'}</div>
-                  <div style={{ fontFamily: SERIF, fontSize: 16, fontWeight: 600, lineHeight: 1.15 }}>{rq.title}</div>
+                <a key={rq.id} href={`/quiz/${rq.id}`} style={{ textDecoration: 'none', color: '#fff', background: COLORS.ember, borderRadius: 10, border: `1px solid ${COLORS.ember}`, padding: '12px 14px', display: 'block', transition: 'all 0.15s ease', boxShadow: '0 4px 14px rgba(37,99,235,0.28)' }}>
+                  <div style={{ fontFamily: MONO, fontSize: 9, letterSpacing: '0.16em', textTransform: 'uppercase', color: 'rgba(255,255,255,0.82)', fontWeight: 700, marginBottom: 6 }}>{rq.category || 'Quiz'}</div>
+                  <div style={{ fontFamily: SERIF, fontSize: 16, fontWeight: 600, lineHeight: 1.15, color: '#fff' }}>{rq.title}</div>
                 </a>
               ))}
             </div>
