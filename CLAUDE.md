@@ -1881,18 +1881,20 @@ responses a player must produce, the more time they get, on a 15-second-quantize
   (sports career/stat leaders, geography top-10s, hard trivia, multi-team/franchise lists) may use
   120s instead of 90s. This is the ONLY sanctioned deviation at the 10-answer level; pop-culture,
   food, film, and other lighter quizzes stay at the 90s baseline. Existing 120s quizzes keep their 120.
-- **Ceiling, the single largest quiz on the site = 7:00 (420 seconds).** As of June 2026 the largest
-  is `countries-of-africa` at 54 answers, so 54 answers = 420s. The ceiling is pinned to whatever the
-  current largest quiz is: if a new quiz ever exceeds it, that quiz becomes the new 420s maximum and
-  every 11+-answer quiz rescales against the new largest count.
-- **In between (11+ answers), scale proportionally and round to the nearest 15 seconds (halves round
-  up):**
+- **No ceiling, the clock keeps scaling up for longer quizzes (owner rule, 2026-06-30).** There is NO
+  maximum time and the per-answer rate is FIXED: every answer above 10 adds a flat 7.5 seconds (the
+  rate the old 54-answer = 420s point implied), extended without any cap. Longer quizzes simply get
+  proportionally more time. `countries-of-africa` (54) stays 420s; a much longer quiz just gets more
+  (e.g. 116 answers = 885s, 14:45). This RETIRES the earlier "ceiling pinned to the largest quiz,
+  rescale every 11+-answer quiz against Nmax" mechanic: adding a longer quiz never rescales any other
+  quiz, because the rate no longer depends on the largest quiz's size.
+- **For 11+ answers, scale at the fixed rate and round to the nearest 15 seconds (halves round up),
+  with no upper bound:**
 
-  `seconds = roundTo15( 90 + (n - 10) * (420 - 90) / (Nmax - 10) )`
+  `seconds = roundTo15( 90 + (n - 10) * 7.5 )`
 
-  where `n` is the quiz's answer count and `Nmax` is the largest answer count on the site (currently
-  54). With Nmax = 54 the per-answer step is 7.5s, so `seconds = roundTo15( 90 + (n - 10) * 7.5 )`.
-  Worked values: 12 -> 1:45, 23 -> 3:15, 25 -> 3:30, 46 -> 6:00, 47 -> 6:15, 54 -> 7:00.
+  where `n` is the quiz's answer count (unbounded: no Nmax, no cap). Worked values: 12 -> 1:45,
+  23 -> 3:15, 25 -> 3:30, 46 -> 6:00, 47 -> 6:15, 54 -> 7:00, 80 -> 10:45, 116 -> 14:45.
 
 - **Guess-in-order quizzes get 2x the scaled time (owner rule, 2026-06-13).** Any quiz with
   `ordered: true` (the labeled, guess-in-sequence format) is markedly harder than a free-order
