@@ -27,6 +27,7 @@ import { ArrowRight, Play } from 'lucide-react';
 import QuizDoneRecap from './QuizDoneRecap';
 
 const MapQuizBoard = dynamic(() => import('./MapQuizBoard'), { ssr: false, loading: () => null });
+const StreetMapBoard = dynamic(() => import('./StreetMapBoard'), { ssr: false, loading: () => null });
 const MatchQuizBoard = dynamic(() => import('./MatchQuizBoard'), { ssr: false, loading: () => null });
 const BankQuizBoard = dynamic(() => import('./BankQuizBoard'), { ssr: false, loading: () => null });
 const OrderBankBoard = dynamic(() => import('./OrderBankBoard'), { ssr: false, loading: () => null });
@@ -417,6 +418,7 @@ export default function QuizClient({ quizId }) {
   const matched = quiz.format === 'matched';
   const nameKeys = useMemo(() => buildImplicitNameKeys(answers), [answers]);
   const mapMode = quiz.format === 'map';
+  const streetMapMode = quiz.format === 'street-map';
   const pairsMode = quiz.format === 'pairs';
   const bankMode = quiz.format === 'bank';
   const orderBankMode = quiz.format === 'order-bank';
@@ -1638,6 +1640,8 @@ export default function QuizClient({ quizId }) {
               <MapQuizBoard region={quiz.region || 'europe'} noBorders={quiz.noBorders} started={started} ended={ended} revealed={revealed} foundNames={foundNamesSet} flash={flash} onPick={pickCountry} mobile={mobile} />
               {mapBarDock && <div aria-hidden="true" style={{ height: 'calc(116px + env(safe-area-inset-bottom))' }} />}
             </div>
+            ) : streetMapMode ? (
+            <StreetMapBoard answers={answers} found={found} revealed={revealed} region={quiz.region} mobile={mobile} />
             ) : logosMode ? (
             <ul className={`qzlg-grid${tallTiles || squareTiles ? ' qzlg-big' : ''}`} style={{ margin: 0, padding: 0, listStyle: 'none' }}>
               {displayOrder.map((i) => {
