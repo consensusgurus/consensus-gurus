@@ -57,7 +57,7 @@ const FONT = "'Manrope', system-ui, -apple-system, sans-serif";
 const STATUS_LABEL = { unplayed: 'Unplayed', played: 'Played', completed: 'Completed' };
 // Quiz of the Day is computed per render from the hero registry + rotation (see the qotd useMemo).
 const DEPT_HERO = {
-  movies: 'https://upload.wikimedia.org/wikipedia/commons/thumb/b/b1/Ptuj%2C_city_cinema.jpg/960px-Ptuj%2C_city_cinema.jpg',
+  movies: 'https://upload.wikimedia.org/wikipedia/commons/thumb/2/2f/Hollywood_sign_%288485145044%29.jpg/1280px-Hollywood_sign_%288485145044%29.jpg',
   music: 'https://upload.wikimedia.org/wikipedia/commons/thumb/a/a7/D%C3%BClmen%2C_D%C3%BClmener_Sommer%2C_Open-Air-Konzert%2C_%22Bounce%22_--_2018_--_0051.jpg/960px-D%C3%BClmen%2C_D%C3%BClmener_Sommer%2C_Open-Air-Konzert%2C_%22Bounce%22_--_2018_--_0051.jpg',
   gaming: 'https://upload.wikimedia.org/wikipedia/commons/thumb/b/b7/Universum_TV_Multispiel_2006.jpg/960px-Universum_TV_Multispiel_2006.jpg',
   travel: 'https://upload.wikimedia.org/wikipedia/commons/thumb/7/73/Beach_at_Fort_Lauderdale.jpg/960px-Beach_at_Fort_Lauderdale.jpg',
@@ -675,22 +675,7 @@ export default function QuizHomeClient() {
     for (const f of liveAll) { if (!f || !f.quizId || seen.has(f.quizId)) continue; seen.add(f.quizId); out.push(f); if (out.length >= 6) break; }
     return out;
   }, [liveAll]);
-  const [newestHero, setNewestHero] = useState('');
-  useEffect(() => {
-    setNewestHero('');
-    const nq = newest[0] && (QUIZZES || []).find((x) => x && x.id === newest[0].id);
-    if (!nq) return;
-    const ans = nq.answers || [];
-    const withImg = ans.find((a) => a && a.img);
-    if (withImg) { setNewestHero(withImg.img); return; }
-    const first = ans[0] || (nq.pairs && nq.pairs[0] ? { t: nq.pairs[0][0] } : null);
-    const term = first && (first.t || first.label);
-    if (!term) return;
-    let alive = true;
-    fetch(`https://en.wikipedia.org/w/api.php?action=query&format=json&origin=*&redirects=1&prop=pageimages&piprop=thumbnail&pithumbsize=600&titles=${encodeURIComponent(term)}`)
-      .then((r) => r.json()).then((d) => { if (!alive) return; const pg = d && d.query && d.query.pages && Object.values(d.query.pages)[0]; if (pg && pg.thumbnail && pg.thumbnail.source) setNewestHero(pg.thumbnail.source); }).catch(() => {});
-    return () => { alive = false; };
-  }, [newest]);
+  // Newest-tile hero resolves deterministically from QUIZ_HEROES / DEPT_HERO (no async lookup, so it never flashes a fallback photo first).
   const [chCopied, setChCopied] = useState(false);
   const [mDaily, setMDaily] = useState(false);
   const [mLb, setMLb] = useState(false);
@@ -1137,7 +1122,7 @@ export default function QuizHomeClient() {
               </div>
             ) : <div />}
 
-            {newest[0] ? (() => { const nc = byKey[newest[0].dept] || {}; const NIcon = nc.Icon || Sparkles; const nqh = QUIZ_HEROES[newest[0].id]; const nHero = nqh ? nqh.src : (newestHero || DEPT_HERO[newest[0].dept]); const nPos = nqh ? nqh.pos : undefined; return (
+            {newest[0] ? (() => { const nc = byKey[newest[0].dept] || {}; const NIcon = nc.Icon || Sparkles; const nqh = QUIZ_HEROES[newest[0].id]; const nHero = nqh ? nqh.src : DEPT_HERO[newest[0].dept]; const nPos = nqh ? nqh.pos : undefined; return (
               <Link href={`/quiz/${newest[0].id}`} className="ntile" style={nHero ? { backgroundImage: `url("${nHero}")`, backgroundPosition: nPos || 'center' } : { background: nc.c || C.accent }}>
                 <span className="ntile-tag" style={{ color: C.accent }}><Sparkles size={10} style={{ verticalAlign: -1 }} /> NEWEST QUIZ</span>
                 <div className="ntile-ov">
