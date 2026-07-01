@@ -771,7 +771,7 @@ export default function QuizHomeClient() {
     .qzh .th-r2{display:grid;grid-template-columns:minmax(0,1.15fr) minmax(0,0.82fr) minmax(0,1fr);gap:12px;align-items:stretch;}
     @media(max-width:820px){.qzh .thub{flex-direction:column;}.qzh .th-r2{grid-template-columns:1fr 1fr;}.qzh .th-r2 .dtile{grid-column:1 / -1;}}
     @media(max-width:560px){.qzh .th-r2{grid-template-columns:1fr;}.qzh .th-rail{display:none !important;}.qzh .th-r2 .ntile{order:-1;min-height:250px;background-position:center 12%;}.qzh .duelbtn{display:none !important;}}
-    .qzh .dtile{background:${C.accent};border-radius:14px;padding:14px 16px;color:#fff;display:flex;flex-direction:column;min-height:184px;}
+    .qzh .dtile{background:${C.accent};border-radius:14px;padding:14px 16px;color:#fff;display:flex;flex-direction:column;min-height:190px;}
     .qzh .dtile-head{display:flex;align-items:center;gap:8px;margin-bottom:9px;}
     .qzh .dtile-chip{font-size:10px;font-weight:800;background:rgba(255,255,255,0.2);border-radius:12px;padding:2px 9px;text-transform:uppercase;letter-spacing:.04em;}
     .qzh .dtile-prog{display:flex;gap:5px;margin-bottom:10px;}
@@ -785,7 +785,7 @@ export default function QuizHomeClient() {
     .qzh .ntile-ov{position:relative;z-index:1;padding:16px 14px 13px;background:linear-gradient(to top, rgba(8,15,35,0.88), rgba(8,15,35,0.45) 55%, rgba(8,15,35,0));}
     .qzh .ntile-t{font-size:16px;font-weight:800;letter-spacing:-.3px;line-height:1.14;color:#fff;}
     .qzh .ntile-p{margin-top:8px;font-size:13px;font-weight:800;color:#fff;}
-    .qzh .lbtile{background:#fff;border:1px solid ${C.line};border-radius:14px;padding:12px 15px;flex:1;display:flex;flex-direction:column;min-height:128px;overflow:hidden;}
+    .qzh .lbtile{background:#fff;border:1px solid ${C.line};border-radius:14px;padding:12px 15px;flex:1;display:flex;flex-direction:column;min-height:132px;overflow:hidden;}
     .qzh .lbtile-head{display:flex;align-items:center;gap:7px;margin-bottom:6px;}
     .qzh .duelbtn{background:${C.accent};color:#fff;border:none;border-radius:12px;padding:12px;font-weight:800;font-size:12px;font-family:inherit;display:flex;align-items:center;justify-content:center;gap:8px;cursor:pointer;flex:none;}
     .qzh .rail{background:#fff;border:1px solid ${C.line};border-radius:14px;padding:11px;display:flex;flex-direction:column;}
@@ -1031,7 +1031,7 @@ export default function QuizHomeClient() {
                   <Link href="/quizzes/hub" className="qlink" onClick={(e) => e.stopPropagation()} style={{ fontSize: 10, fontWeight: 800, color: C.accent, flex: 'none' }}>View all</Link>
                   <ChevronDown className="lchev" size={16} strokeWidth={2.5} style={{ color: C.soft, transform: mLb ? 'rotate(180deg)' : 'none' }} />
                 </div>
-                <div className="lbtile-collapse" style={{ flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'space-around' }}>{renderLb()}</div>
+                <div className="lbtile-collapse" style={{ height: 108, display: 'flex', flexDirection: 'column', justifyContent: 'center', overflow: 'hidden' }}>{renderLb()}</div>
               </div>
               <button type="button" onClick={shareChallenge} className="duelbtn"><Swords size={16} /> Challenge a friend or user to a duel</button>
             </div>
