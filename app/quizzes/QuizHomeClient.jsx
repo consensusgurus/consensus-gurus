@@ -57,11 +57,11 @@ const FONT = "'Manrope', system-ui, -apple-system, sans-serif";
 const STATUS_LABEL = { unplayed: 'Unplayed', played: 'Played', completed: 'Completed' };
 // Featured "Quiz of the Day" banner (full-width hero at the top of the hub).
 const QUIZ_OF_DAY = {
-  id: 'nyc-restaurant-geo-guesser',
-  eyebrow: 'Quiz of the Day · Geography',
-  title: 'NYC Restaurant Geo Guesser',
-  blurb: 'Ten iconic New York restaurants on a straight-down aerial. A name drops and you get 45 seconds to pin where it sits.',
-  hero: 'https://upload.wikimedia.org/wikipedia/commons/thumb/b/b2/Katz%27s_Delicatessen_%2851623899326%29.jpg/1920px-Katz%27s_Delicatessen_%2851623899326%29.jpg',
+  id: 'f1-circuit-from-a-photo',
+  eyebrow: 'Quiz of the Day · Formula 1',
+  title: 'Name the F1 Circuit from a Photo',
+  blurb: 'Twenty Formula 1 venues, one photo each: a grandstand, a skyline, a legendary corner. Can you name every track?',
+  hero: 'https://upload.wikimedia.org/wikipedia/commons/thumb/5/50/2005_Monaco_GP2%2C_Monaco_Grand_Prix_Support_Race%2C_Monte_Carlo%2C_21st_May.jpg/1280px-2005_Monaco_GP2%2C_Monaco_Grand_Prix_Support_Race%2C_Monte_Carlo%2C_21st_May.jpg',
 };
 const DEPT_HERO = {
   movies: 'https://upload.wikimedia.org/wikipedia/commons/thumb/b/b1/Ptuj%2C_city_cinema.jpg/960px-Ptuj%2C_city_cinema.jpg',
