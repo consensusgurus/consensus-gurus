@@ -121,7 +121,16 @@ export default function ExamQuizClient({ examKey }) {
 
   function next() {
     if (qIndex + 1 < total) beginQuestion(qIndex + 1);
-    else { stopTimer(); setPhase('done'); }
+    else {
+      stopTimer();
+      setPhase('done');
+      // Mark this practice test finished (once) so it counts toward the
+      // Standardized Tests mastery bar on /quizzes. Read by QuizHomeClient.
+      try {
+        const done = JSON.parse(localStorage.getItem('sot_exam_done') || '{}');
+        if (!done[examKey]) { done[examKey] = true; localStorage.setItem('sot_exam_done', JSON.stringify(done)); }
+      } catch {}
+    }
   }
 
   function giveUp() { stopTimer(); setPhase('done'); }

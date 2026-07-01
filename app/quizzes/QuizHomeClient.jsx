@@ -131,6 +131,11 @@ const EXAM_TILE_ROWS = [
   { id: 'act', title: 'ACT', href: '/act' },
   { id: 'gre', title: 'GRE', href: '/gre' },
 ];
+// The six standardized-test practice tests (/lsat, /gmat, /sat, /act, /gre,
+// /mcat). Finishing one (tracked in localStorage 'sot_exam_done' by
+// ExamQuizClient) counts toward the Standardized Tests mastery bar alongside
+// the LSAT logic-game quizzes (dept 'school').
+const EXAM_SLUGS = ['lsat', 'gmat', 'sat', 'act', 'gre', 'mcat'];
 function stripVerb(t) {
   const out = (t || '').replace(VERB_RE, '').trim();
   return out || (t || '');
@@ -280,6 +285,7 @@ export default function QuizHomeClient() {
   const [statsOpen, setStatsOpen] = useState(false);
   const [dailyLb, setDailyLb] = useState(null); // today's daily-challenge standings (registered players)
   const [chRun, setChRun] = useState(null); // local run-state for today's daily challenge (completion ticks)
+  const [examsDone, setExamsDone] = useState({}); // { <examSlug>: true } finished practice tests (localStorage 'sot_exam_done')
   const [isMobile, setIsMobile] = useState(false);
   const [acc, setAcc] = useState({ lastplayed: true, mostplayed: true, newest: true, daily: true }); // mobile-only: which accordion panels are open
   const [lbLiveTab, setLbLiveTab] = useState(null); // mobile combined leaderboard/live: null | 'lb' | 'live'
@@ -450,6 +456,18 @@ export default function QuizHomeClient() {
     window.addEventListener('focus', read);
     return () => { document.removeEventListener('visibilitychange', onVis); window.removeEventListener('focus', read); };
   }, [dailyId]);
+
+  // Standardized-test practice completions (finished once, stored by
+  // ExamQuizClient); refresh on focus so finishing a test updates the
+  // Standardized Tests mastery bar.
+  useEffect(() => {
+    const read = () => { try { setExamsDone(JSON.parse(localStorage.getItem('sot_exam_done') || '{}') || {}); } catch { setExamsDone({}); } };
+    read();
+    const onVis = () => { if (!document.hidden) read(); };
+    document.addEventListener('visibilitychange', onVis);
+    window.addEventListener('focus', read);
+    return () => { document.removeEventListener('visibilitychange', onVis); window.removeEventListener('focus', read); };
+  }, []);
 
   // Elo leaderboard re-loads when the scope changes.
   useEffect(() => {
@@ -720,10 +738,16 @@ export default function QuizHomeClient() {
   const catMastery = useMemo(() => {
     if (!cats || !cats.length) return [];
     const bc = (me && me.byCategory) || {};
+    // Standardized Tests (dept 'school') completion blends the LSAT logic-game
+    // quizzes with the six practice tests: denominator = logic games + 6 tests,
+    // numerator = distinct logic games played + distinct tests finished once.
+    const examsDoneCount = EXAM_SLUGS.filter((s) => examsDone && examsDone[s]).length;
     const rows = cats.map((c) => {
       const cc = bc[c.key] || {};
-      const total = c.count || 0;
-      const pct = total > 0 ? Math.round(((cc.played || 0) / total) * 100) : 0;
+      let played = cc.played || 0;
+      let total = c.count || 0;
+      if (c.key === 'school') { played += examsDoneCount; total += EXAM_SLUGS.length; }
+      const pct = total > 0 ? Math.round((played / total) * 100) : 0;
       return { key: c.key, label: c.label, pct };
     }).sort((a, b) => b.pct - a.pct || a.label.localeCompare(b.label));
     if (!rows.length || rows[0].pct === 0) return [];
@@ -734,7 +758,7 @@ export default function QuizHomeClient() {
       const S = 82 - t * 34;
       return { key: r.key, label: r.label, acc: r.pct, color: `hsl(222, ${S}%, ${L}%)`, text: L < 62 ? '#fff' : '#0e1d40' };
     });
-  }, [me, cats]);
+  }, [me, cats, examsDone]);
 
   function colRows(cat, lim, exclude) {
     // Business tile preview hides the whole Business News quiz hub (daily/weekly
