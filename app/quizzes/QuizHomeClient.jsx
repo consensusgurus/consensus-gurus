@@ -911,7 +911,7 @@ export default function QuizHomeClient() {
       .qzh .qz-daily{flex:0 0 auto !important;align-self:stretch;box-sizing:border-box;}
     }
     .qzh .qz-mobhub{display:none;}
-    .qzh .lblive-card{display:none;}
+    .qzh .duelbtn-mob{display:none;}    .qzh .lblive-card{display:none;}
     .qzh .accchev{display:none;}
     @media(max-width:560px){
       .qzh .boards .head{cursor:pointer;}
@@ -930,7 +930,7 @@ export default function QuizHomeClient() {
       .qzh .lb-card.mc-open .lbbody{max-height:50vh;overflow-y:auto;justify-content:flex-start;}
       .qzh .qz-searchwrap input{font-size:16px !important;}
       .qzh .qz-mobhub{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-top:14px;background:${C.accsoft};color:${C.accent};border:1px solid #cddffb;border-radius:12px;padding:14px 16px;text-decoration:none;font-family:${FONT};}
-      .qzh .lblive-card{display:flex;flex-direction:column;}
+      .qzh .duelbtn-mob{display:flex;align-items:center;justify-content:center;gap:8px;margin-top:12px;background:${C.accent};color:#fff;border:none;border-radius:12px;padding:14px;font-weight:800;font-size:14px;text-decoration:none;font-family:${FONT};}      .qzh .lblive-card{display:flex;flex-direction:column;}
       .qzh .lblive-head{background:#fff !important;}
       .qzh .lblive-tabs{display:flex;gap:4px;flex:1 1 auto;min-width:0;background:#eef1f5;border-radius:10px;padding:4px;}
       .qzh .lblive-tab{flex:1 1 0;min-width:0;display:flex;align-items:center;justify-content:center;gap:6px;background:transparent;border:none;border-radius:8px;padding:8px 6px;font:inherit;font-weight:700;font-size:11px;letter-spacing:.04em;text-transform:uppercase;color:#5f5e5a;cursor:pointer;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
@@ -1339,7 +1339,9 @@ export default function QuizHomeClient() {
           </div>
         )}
         {(!searchResults && scope === 'all' && !listMode && doneFilter === 'all') && (
-          <Link href="/quizzes/business-news" className="qz-mobhub">
+          <Link href="/duel/new" className="duelbtn-mob"><Swords size={18} /> Challenge a Friend to a Duel</Link>
+        )}
+        {(!searchResults && scope === 'all' && !listMode && doneFilter === 'all') && (          <Link href="/quizzes/business-news" className="qz-mobhub">
             <span style={{ display: 'flex', alignItems: 'center', gap: 11, minWidth: 0 }}>
               <Flame size={18} style={{ flex: 'none' }} />
               <span style={{ display: 'grid', lineHeight: 1.2 }}>

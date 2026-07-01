@@ -69,7 +69,7 @@ export default function NewDuelPage() {
   }
 
   const inp = { width: '100%', boxSizing: 'border-box', padding: '11px 13px', border: `1px solid ${C.line}`, borderRadius: 10, fontFamily: FONT, fontSize: 14, outline: 'none' };
-  const devOpts = [{ v: 'any', l: 'Any device' }, { v: 'mobile', l: 'Mobile only' }, { v: 'desktop', l: 'Desktop only' }];
+  const devOpts = [{ v: 'any', l: 'Any Device' }, { v: 'mobile', l: 'Mobile Only' }, { v: 'desktop', l: 'Desktop Only' }];
 
   return (
     <div style={{ minHeight: '100vh', background: C.bg, fontFamily: FONT, color: C.ink, position: 'relative' }}>
@@ -78,7 +78,7 @@ export default function NewDuelPage() {
       <div className="qzf-w" style={{ maxWidth: 1180, margin: '0 auto', padding: '12px 38px 70px', position: 'relative' }}>
         <div className="qzf-line" aria-hidden="true" />
         <div style={{ maxWidth: 720, margin: '0 auto' }}>
-          <Link href="/quizzes" style={{ fontSize: 13, fontWeight: 700, color: C.accent, textDecoration: 'none' }}>← Back to quizzes</Link>
+          <Link href="/quizzes" style={{ fontSize: 13, fontWeight: 700, color: C.accent, textDecoration: 'none' }}>← Back to Quizzes</Link>
           <div style={{ marginTop: 16, marginBottom: 4, fontSize: 11, fontWeight: 800, letterSpacing: '.12em', textTransform: 'uppercase', color: C.accent }}>Start a duel</div>
           <h1 style={{ fontSize: 26, fontWeight: 800, letterSpacing: '-0.02em', margin: '0 0 6px' }}>Challenge someone to a quiz</h1>
           <p style={{ color: C.muted, fontSize: 15, margin: '0 0 20px' }}>Pick a quiz. Challenge a specific player by name, or just share the invite link with anyone. Higher score wins (fastest on a tie).</p>
