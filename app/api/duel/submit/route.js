@@ -14,7 +14,8 @@ function decideWinner(cs, ct, os, ot) {
 
 // POST /api/duel/submit  { token, anonId, name }
 // Records the caller's side from their OWN best quiz_results play on the duel's
-// quiz since the duel was created (so no quiz board needs to change).
+// quiz since the duel was created. If the duel requires a device class, only a
+// play on that device counts (fairness: desktop is a big advantage).
 export async function POST(request) {
   try {
     const b = (await request.json()) || {};
@@ -34,17 +35,27 @@ export async function POST(request) {
       return NextResponse.json({ error: 'duel_full' }, { status: 409 });
     }
 
-    const { data: plays, error: pe } = await supabaseAdmin.from('quiz_results')
-      .select('score, total, time_elapsed, created_at')
-      .eq('quiz_id', duel.quiz_id)
-      .eq('anon_id', anonId)
-      .gte('created_at', duel.created_at)
-      .order('score', { ascending: false })
-      .order('time_elapsed', { ascending: true })
-      .limit(1);
+    let sel = supabaseAdmin.from('quiz_results')
+      .select('score, total, time_elapsed, created_at, is_mobile')
+      .eq('quiz_id', duel.quiz_id).eq('anon_id', anonId).gte('created_at', duel.created_at)
+      .order('score', { ascending: false }).order('time_elapsed', { ascending: true }).limit(30);
+    let { data: plays, error: pe } = await sel;
+    if (pe && (pe.code === '42703' || /is_mobile|schema cache/i.test(pe.message || ''))) {
+      ({ data: plays, error: pe } = await supabaseAdmin.from('quiz_results')
+        .select('score, total, time_elapsed, created_at').eq('quiz_id', duel.quiz_id).eq('anon_id', anonId)
+        .gte('created_at', duel.created_at).order('score', { ascending: false }).order('time_elapsed', { ascending: true }).limit(30));
+    }
     if (pe) return NextResponse.json({ error: 'db error' }, { status: 500 });
     if (!plays || !plays.length) return NextResponse.json({ error: 'no_play' }, { status: 409 });
-    const play = plays[0];
+
+    const dev = duel.device || 'any';
+    let pool = plays;
+    if (dev !== 'any') {
+      const wantMobile = dev === 'mobile';
+      pool = plays.filter((p) => typeof p.is_mobile === 'boolean' && p.is_mobile === wantMobile);
+      if (!pool.length) return NextResponse.json({ error: 'device_mismatch', device: dev }, { status: 409 });
+    }
+    const play = pool[0];
 
     const patch = {};
     if (isChallenger) {

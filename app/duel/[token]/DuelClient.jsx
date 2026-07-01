@@ -13,6 +13,7 @@ const FONT = "'Manrope', system-ui, -apple-system, sans-serif";
 function anonId() { if (typeof window === 'undefined') return null; try { return localStorage.getItem('sot_quiz_anon'); } catch { return null; } }
 function storedName() { if (typeof window === 'undefined') return ''; try { const j = JSON.parse(localStorage.getItem('sot_quiz_identity')); return (j && j.username) || ''; } catch { return ''; } }
 function fmtTime(s) { if (s == null) return ''; const m = Math.floor(s / 60), ss = s % 60; return `${m}:${String(ss).padStart(2, '0')}`; }
+function devLabel(d) { return d === 'mobile' ? 'Mobile only' : d === 'desktop' ? 'Desktop only' : ''; }
 
 export default function DuelClient({ token }) {
   const [duel, setDuel] = useState(null);
@@ -44,6 +45,7 @@ export default function DuelClient({ token }) {
 
   const quiz = duel ? QUIZZES.find((q) => q.id === duel.quiz_id) : null;
   const quizTitle = quiz ? quiz.title : (duel ? duel.quiz_id : '');
+  const dev = (duel && duel.device) || 'any';
   const side = duel && me.anon
     ? (duel.challenger_anon === me.anon ? 'challenger' : (duel.opponent_anon === me.anon ? 'opponent' : 'new'))
     : 'new';
@@ -59,6 +61,7 @@ export default function DuelClient({ token }) {
       const d = await r.json();
       if (d && d.duel) { setDuel(d.duel); setMe((m) => ({ ...m, name: nm })); }
       else if (d && d.error === 'no_play') setMsg(`Play ${quizTitle} first, then come back and submit your score.`);
+      else if (d && d.error === 'device_mismatch') setMsg(`This duel is ${d.device} only. Play on ${d.device === 'mobile' ? 'your phone' : 'a computer'}, then submit.`);
       else if (d && d.error === 'duel_full') setMsg('This duel already has two players.');
       else setMsg('Could not submit. Try again.');
     } catch { setMsg('Could not submit. Try again.'); }
@@ -103,7 +106,10 @@ export default function DuelClient({ token }) {
 
           {state === 'ready' && duel && (
             <>
-              <div style={{ marginTop: 16, marginBottom: 4, fontSize: 11, fontWeight: 800, letterSpacing: '.12em', textTransform: 'uppercase', color: C.accent }}>Duel</div>
+              <div style={{ marginTop: 16, marginBottom: 4, display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap' }}>
+                <span style={{ fontSize: 11, fontWeight: 800, letterSpacing: '.12em', textTransform: 'uppercase', color: C.accent }}>Duel</span>
+                {dev !== 'any' && <span style={{ fontSize: 10, fontWeight: 800, letterSpacing: '.06em', textTransform: 'uppercase', color: '#fff', background: C.ink, borderRadius: 999, padding: '3px 9px' }}>{devLabel(dev)}</span>}
+              </div>
               <h1 style={{ fontSize: 26, fontWeight: 800, letterSpacing: '-0.02em', margin: '0 0 18px' }}>{quizTitle}</h1>
 
               <div style={{ display: 'flex', gap: 12, alignItems: 'stretch' }}>
@@ -128,7 +134,7 @@ export default function DuelClient({ token }) {
                   ) : (
                     <>
                       <div style={{ fontSize: 16, fontWeight: 800, marginBottom: 4 }}>{side === 'challenger' ? 'Play your round' : `${duel.challenger_name} challenged you`}</div>
-                      <div style={{ color: C.muted, fontSize: 14, marginBottom: 14 }}>Play {quizTitle}, then come back here and submit your score.</div>
+                      <div style={{ color: C.muted, fontSize: 14, marginBottom: 14 }}>Play {quizTitle}{dev !== 'any' ? ` on ${dev === 'mobile' ? 'your phone' : 'a computer'} (this duel is ${dev} only)` : ''}, then come back here and submit your score.</div>
                       {!me.name && (
                         <input value={nameInput} onChange={(e) => setNameInput(e.target.value)} placeholder="Your name" maxLength={40}
                           style={{ width: '100%', boxSizing: 'border-box', padding: '10px 12px', border: `1px solid ${C.line}`, borderRadius: 10, fontFamily: FONT, fontSize: 14, marginBottom: 12, outline: 'none' }} />
@@ -150,7 +156,7 @@ export default function DuelClient({ token }) {
                     style={{ flex: '1 1 220px', minWidth: 0, boxSizing: 'border-box', padding: '10px 12px', border: `1px solid ${C.line}`, borderRadius: 10, fontFamily: FONT, fontSize: 13, background: '#fff', color: C.muted, outline: 'none' }} />
                   <button onClick={copyLink} style={{ background: C.accent, color: '#fff', border: 'none', padding: '10px 18px', borderRadius: 10, fontWeight: 800, cursor: 'pointer', fontFamily: FONT }}>{copied ? 'Copied!' : 'Copy'}</button>
                 </div>
-                <div style={{ marginTop: 8, fontSize: 12, color: C.soft }}>Send this to whoever you want to duel. They open it, play the same quiz, and the winner is decided automatically.</div>
+                <div style={{ marginTop: 8, fontSize: 12, color: C.soft }}>Send this to whoever you want to duel. They open it, play the same quiz{dev !== 'any' ? ` on ${dev === 'mobile' ? 'mobile' : 'desktop'}` : ''}, and the winner is decided automatically.</div>
               </div>
 
               <div style={{ marginTop: 20, textAlign: 'center' }}>

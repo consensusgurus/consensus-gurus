@@ -27,25 +27,16 @@ export default function NewDuelPage() {
   const [busy, setBusy] = useState(false);
   const [oppQ, setOppQ] = useState('');
   const [oppResults, setOppResults] = useState([]);
-  const [opp, setOpp] = useState(null); // { anon, name }
+  const [opp, setOpp] = useState(null);
   const [myAnon, setMyAnon] = useState('');
+  const [device, setDevice] = useState('any');
 
   useEffect(() => { setName(storedName()); setMyAnon(ensureAnon() || ''); }, []);
-
-  // pre-target from a click-a-user link (?opponent=<anon>&oppName=<name>)
   useEffect(() => {
-    try {
-      const p = new URLSearchParams(window.location.search);
-      const oa = p.get('opponent'); const on = p.get('oppName');
-      if (oa) setOpp({ anon: oa, name: on || 'Player' });
-    } catch {}
+    try { const p = new URLSearchParams(window.location.search); const oa = p.get('opponent'); const on = p.get('oppName'); if (oa) setOpp({ anon: oa, name: on || 'Player' }); } catch {}
   }, []);
-
-  // live player search
   useEffect(() => {
-    let alive = true;
-    const s = oppQ.trim();
-    if (opp) return;
+    let alive = true; const s = oppQ.trim(); if (opp) return;
     const t = setTimeout(() => {
       fetch(`/api/duel/players?q=${encodeURIComponent(s)}&exclude=${encodeURIComponent(myAnon)}`)
         .then((r) => r.json()).then((d) => { if (alive && d && Array.isArray(d.players)) setOppResults(d.players); }).catch(() => {});
@@ -67,7 +58,7 @@ export default function NewDuelPage() {
     const nm = (name || storedName() || 'Player').trim().slice(0, 40);
     try { const j = JSON.parse(localStorage.getItem('sot_quiz_identity')) || {}; localStorage.setItem('sot_quiz_identity', JSON.stringify({ ...j, username: nm })); } catch {}
     try {
-      const body = { quizId, anonId: anon, name: nm };
+      const body = { quizId, anonId: anon, name: nm, device };
       if (opp && opp.anon) { body.opponentAnon = opp.anon; body.opponentName = opp.name; }
       const r = await fetch('/api/duel/create', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
       const d = await r.json();
@@ -78,6 +69,7 @@ export default function NewDuelPage() {
   }
 
   const inp = { width: '100%', boxSizing: 'border-box', padding: '11px 13px', border: `1px solid ${C.line}`, borderRadius: 10, fontFamily: FONT, fontSize: 14, outline: 'none' };
+  const devOpts = [{ v: 'any', l: 'Any device' }, { v: 'mobile', l: 'Mobile only' }, { v: 'desktop', l: 'Desktop only' }];
 
   return (
     <div style={{ minHeight: '100vh', background: C.bg, fontFamily: FONT, color: C.ink, position: 'relative' }}>
@@ -113,6 +105,14 @@ export default function NewDuelPage() {
               )}
             </div>
           )}
+
+          <label style={{ display: 'block', fontSize: 12, fontWeight: 700, color: C.soft, marginBottom: 6 }}>DEVICE (KEEP IT FAIR)</label>
+          <div style={{ display: 'flex', gap: 8, marginBottom: 4, flexWrap: 'wrap' }}>
+            {devOpts.map((o) => (
+              <button key={o.v} onClick={() => setDevice(o.v)} style={{ flex: '1 1 120px', padding: '10px 12px', borderRadius: 10, border: `1.5px solid ${device === o.v ? C.accent : C.line}`, background: device === o.v ? C.accent : '#fff', color: device === o.v ? '#fff' : C.ink, fontFamily: FONT, fontWeight: 800, fontSize: 13, cursor: 'pointer' }}>{o.l}</button>
+            ))}
+          </div>
+          <p style={{ color: C.soft, fontSize: 12, margin: '0 0 18px' }}>Playing on a computer is a big advantage on many quizzes. Require the same device so it{"'"}s a fair fight (for example, mobile vs mobile).</p>
 
           <label style={{ display: 'block', fontSize: 12, fontWeight: 700, color: C.soft, marginBottom: 6 }}>PICK A QUIZ{opp ? ` TO CHALLENGE ${opp.name.toUpperCase()}` : ''}</label>
           <input value={q} onChange={(e) => setQ(e.target.value)} placeholder="Search quizzes…" style={{ ...inp, marginBottom: 12 }} />
