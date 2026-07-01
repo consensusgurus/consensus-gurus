@@ -133,7 +133,7 @@ export default function NewDuelPage() {
               <button key={x.id} onClick={() => start(x.id)} disabled={busy}
                 style={{ textAlign: 'left', display: 'flex', minWidth: 0, alignItems: 'center', justifyContent: 'space-between', gap: 10, background: C.surface, border: `1px solid ${C.line}`, borderRadius: 10, padding: '12px 14px', cursor: busy ? 'default' : 'pointer', fontFamily: FONT }}>
                 <span style={{ minWidth: 0, overflow: 'hidden' }}>
-                  <span style={{ display: 'block', fontSize: 15, fontWeight: 700, color: C.ink, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{x.title}</span>
+                  <span style={{ display: 'block', fontSize: 15, fontWeight: 700, color: C.ink, overflowWrap: 'anywhere' }}>{x.title}</span>
                   <span style={{ display: 'block', fontSize: 11, fontWeight: 700, letterSpacing: '.05em', textTransform: 'uppercase', color: C.soft }}>{x.category || 'Quiz'}</span>
                 </span>
                 <span style={{ flex: 'none', fontSize: 12, fontWeight: 800, color: '#fff', background: C.accent, padding: '6px 12px', borderRadius: 999 }}>Challenge</span>
