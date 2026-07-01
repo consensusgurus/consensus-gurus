@@ -1719,17 +1719,20 @@ export default function QuizClient({ quizId }) {
                 const f = found[i];
                 const isActive = ordered && started && !ended && i === activeIdx;
                 const reveal = ended && revealed && !f; // a missed answer, now filled in
+                const nameWrap = /\s/.test(String(a.t || '').trim())
+                  ? { whiteSpace: 'normal', overflowWrap: 'normal', wordBreak: 'normal' } // multi-word: wrap at spaces, never mid-word
+                  : { whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }; // single word: ellipsis, don't break
                 return (
                   <li key={i} ref={setFlipRef(i)} style={{ display: 'flex', alignItems: 'center', gap: rz.gap, padding: rz.pad, borderRadius: 10, border: `1px solid ${f ? COLORS.accBorder : isActive ? COLORS.ember : reveal ? COLORS.rust : COLORS.line}`, marginBottom: rz.mb, background: reveal ? '#fdecec' : f ? COLORS.accSoft : '#fff', boxShadow: isActive ? `inset 4px 0 0 ${COLORS.ember}` : reveal ? `inset 4px 0 0 ${COLORS.rust}` : 'none', transition: 'background .2s, border-color .2s, box-shadow .2s, color .2s' }}>
                     {a.label != null ? (
-                      <span style={{ fontFamily: MONO, fontWeight: 700, fontSize: 15, minWidth: 52, maxWidth: '50%', overflowWrap: 'anywhere', wordBreak: 'break-word', whiteSpace: 'normal', lineHeight: 1.2, color: COLORS.ember, flex: 'none', textAlign: 'left', letterSpacing: '0.04em' }}>{a.label}</span>
+                      <span style={{ fontFamily: MONO, fontWeight: 500, fontSize: 12, minWidth: 44, maxWidth: '50%', overflowWrap: 'normal', wordBreak: 'normal', whiteSpace: 'normal', lineHeight: 1.2, color: COLORS.ember, flex: 'none', textAlign: 'left', letterSpacing: '0.04em' }}>{a.label}</span>
                     ) : (
                       quiz.hideNumbers ? null : <span style={{ fontFamily: SERIF, fontWeight: 800, fontSize: rz.rank, width: rz.rankW, color: COLORS.ember, flex: 'none', textAlign: 'center' }}>{i + 1}</span>
                     )}
                     {f ? (
-                      <span style={{ fontFamily: SERIF, fontSize: a.label != null ? 11 : rz.name, fontWeight: a.label != null ? 400 : 500, flex: 1, minWidth: 0, overflowWrap: 'anywhere', wordBreak: 'break-word', lineHeight: 1.2 }}>{a.t}</span>
+                      <span style={{ fontFamily: SERIF, fontSize: a.label != null ? 11 : rz.name, fontWeight: a.label != null ? 400 : 500, flex: 1, minWidth: 0, lineHeight: 1.2, ...nameWrap }}>{a.t}</span>
                     ) : reveal ? (
-                      <span style={{ fontFamily: SERIF, fontSize: a.label != null ? 11 : rz.name, fontWeight: a.label != null ? 400 : 500, flex: 1, minWidth: 0, overflowWrap: 'anywhere', wordBreak: 'break-word', lineHeight: 1.2, color: COLORS.rust }}>{a.t}</span>
+                      <span style={{ fontFamily: SERIF, fontSize: a.label != null ? 11 : rz.name, fontWeight: a.label != null ? 400 : 500, flex: 1, minWidth: 0, lineHeight: 1.2, color: COLORS.rust, ...nameWrap }}>{a.t}</span>
                     ) : (matched && !ordered) ? (
                       <input
                         ref={(el) => { slotRefs.current[i] = el; if (i === 0) inputRef.current = el; }}
