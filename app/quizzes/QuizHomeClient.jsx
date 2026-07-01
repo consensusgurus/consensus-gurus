@@ -451,6 +451,14 @@ export default function QuizHomeClient() {
     }).catch(() => {});
   }, []);
 
+  const [pendingDuels, setPendingDuels] = useState([]);
+  const [duelDismiss, setDuelDismiss] = useState(false);
+  useEffect(() => {
+    const anon = getAnonId();
+    if (!anon) return;
+    fetch(`/api/duel/pending?anonId=${encodeURIComponent(anon)}`).then((r) => r.json()).then((d) => { if (d && Array.isArray(d.pending)) setPendingDuels(d.pending); }).catch(() => {});
+  }, []);
+
   // Current player's stats (overall — used for the player bar + pinned "You").
   useEffect(() => {
     const ident = getIdentity();
@@ -984,6 +992,16 @@ export default function QuizHomeClient() {
       <SiteHeader active="quizzes" flush inlay={<QuizPlayerBar />} />
       <div className="qzh qzf-w" style={{ maxWidth: 1180, margin: '0 auto', padding: '12px 38px 70px', position: 'relative' }}><style>{`@media(max-width:560px){.qzf-w{padding-left:14px !important;padding-right:14px !important;}}`}</style><div className="qzf-line" aria-hidden="true" />
 
+        {pendingDuels.length > 0 && !duelDismiss && (
+          <div style={{ position: 'fixed', right: 16, bottom: 16, zIndex: 90, maxWidth: 340, background: '#fff', border: `1px solid ${C.line}`, borderLeft: `4px solid ${C.accent}`, borderRadius: 12, boxShadow: '0 10px 34px rgba(20,22,28,0.18)', padding: '14px 16px 15px', fontFamily: FONT }}>
+            <button onClick={() => setDuelDismiss(true)} aria-label="Dismiss" style={{ position: 'absolute', top: 6, right: 8, width: 24, height: 24, border: 'none', background: 'transparent', color: C.soft, cursor: 'pointer', fontSize: 17, lineHeight: 1 }}>×</button>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 7, fontSize: 11, fontWeight: 800, letterSpacing: '.06em', textTransform: 'uppercase', color: C.accent, marginBottom: 6 }}><Swords size={14} /> Duel challenge</div>
+            <div style={{ fontSize: 14, fontWeight: 700, color: C.ink, marginBottom: 4 }}>{(pendingDuels[0].challenger_name || 'Someone')} challenged you{pendingDuels.length > 1 ? ` (+${pendingDuels.length - 1} more)` : ''}</div>
+            <div style={{ fontSize: 12.5, color: C.muted, marginBottom: 12 }}>{(titleById[pendingDuels[0].quiz_id] || pendingDuels[0].quiz_id)}. Your move.</div>
+            <a href={`/duel/${pendingDuels[0].token}`} style={{ display: 'inline-block', background: C.accent, color: '#fff', padding: '9px 16px', borderRadius: 9, fontWeight: 800, fontSize: 13, textDecoration: 'none' }}>Play now →</a>
+          </div>
+        )}
+
         {signupOpen && <SignupModal onClose={() => setSignupOpen(false)} />}
 
         <div className="thub">
@@ -1046,7 +1064,7 @@ export default function QuizHomeClient() {
                 </div>
                 <div className="lbtile-collapse" style={{ height: 108, display: 'flex', flexDirection: 'column', justifyContent: 'center', overflow: 'hidden' }}>{renderLb()}</div>
               </div>
-              <button type="button" onClick={shareChallenge} className="duelbtn"><Swords size={16} /> Challenge a friend or user to a duel</button>
+              <Link href="/duel/new" className="duelbtn" style={{ textDecoration: 'none' }}><Swords size={16} /> Challenge a friend or user to a duel</Link>
             </div>
           </div>
 
