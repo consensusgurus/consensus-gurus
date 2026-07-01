@@ -625,6 +625,22 @@ export default function QuizHomeClient() {
     for (const f of liveAll) { if (!f || !f.quizId || seen.has(f.quizId)) continue; seen.add(f.quizId); out.push(f); if (out.length >= 6) break; }
     return out;
   }, [liveAll]);
+  const [newestHero, setNewestHero] = useState('');
+  useEffect(() => {
+    setNewestHero('');
+    const nq = newest[0] && (QUIZZES || []).find((x) => x && x.id === newest[0].id);
+    if (!nq) return;
+    const ans = nq.answers || [];
+    const withImg = ans.find((a) => a && a.img);
+    if (withImg) { setNewestHero(withImg.img); return; }
+    const first = ans[0] || (nq.pairs && nq.pairs[0] ? { t: nq.pairs[0][0] } : null);
+    const term = first && (first.t || first.label);
+    if (!term) return;
+    let alive = true;
+    fetch(`https://en.wikipedia.org/w/api.php?action=query&format=json&origin=*&redirects=1&prop=pageimages&piprop=thumbnail&pithumbsize=600&titles=${encodeURIComponent(term)}`)
+      .then((r) => r.json()).then((d) => { if (!alive) return; const pg = d && d.query && d.query.pages && Object.values(d.query.pages)[0]; if (pg && pg.thumbnail && pg.thumbnail.source) setNewestHero(pg.thumbnail.source); }).catch(() => {});
+    return () => { alive = false; };
+  }, [newest]);
   const [chCopied, setChCopied] = useState(false);
   const [mDaily, setMDaily] = useState(false);
   const [mLb, setMLb] = useState(false);
@@ -749,12 +765,12 @@ export default function QuizHomeClient() {
     .qzh .qotd:hover .qotd-play{background:#1d4ed8;}
     .qzh .qotd-stats{font-size:12px;color:#9fb0d4;font-weight:600;display:inline-flex;align-items:center;gap:6px;min-width:0;}
     @media(max-width:760px){.qzh .qotd{flex-direction:column;}.qzh .qotd-photo{flex:none;height:128px;}.qzh .qotd-title{font-size:21px;}}
-    .qzh .thub{display:grid;grid-template-columns:minmax(0,1fr) 208px;grid-template-rows:auto auto;gap:12px;margin-bottom:14px;align-items:stretch;}
-    .qzh .th-qotd{grid-column:1;grid-row:1;min-height:184px;}
-    .qzh .th-rail{grid-column:2;grid-row:1 / 3;}
-    .qzh .th-r2{grid-column:1;grid-row:2;display:grid;grid-template-columns:minmax(0,1.15fr) minmax(0,0.82fr) minmax(0,1fr);gap:12px;align-items:stretch;}
-    @media(max-width:820px){.qzh .thub{display:flex;flex-direction:column;}.qzh .th-r2{grid-template-columns:1fr 1fr;}}
-    @media(max-width:560px){.qzh .th-r2{grid-template-columns:1fr;}.qzh .th-rail{display:none !important;}.qzh .th-r2 .ntile{display:none !important;}.qzh .duelbtn{display:none !important;}.qzh .th-qotd{min-height:0 !important;}}
+    .qzh .thub{display:flex;gap:12px;margin-bottom:14px;align-items:stretch;}
+    .qzh .thub-left{flex:1 1 auto;min-width:0;display:flex;flex-direction:column;gap:12px;}
+    .qzh .th-rail{flex:0 0 208px;}
+    .qzh .th-r2{display:grid;grid-template-columns:minmax(0,1.15fr) minmax(0,0.82fr) minmax(0,1fr);gap:12px;align-items:stretch;}
+    @media(max-width:820px){.qzh .thub{flex-direction:column;}.qzh .th-r2{grid-template-columns:1fr 1fr;}}
+    @media(max-width:560px){.qzh .th-r2{grid-template-columns:1fr;}.qzh .th-rail{display:none !important;}.qzh .th-r2 .ntile{display:none !important;}.qzh .duelbtn{display:none !important;}}
     .qzh .dtile{background:${C.accent};border-radius:14px;padding:14px 16px;color:#fff;display:flex;flex-direction:column;min-height:184px;}
     .qzh .dtile-head{display:flex;align-items:center;gap:8px;margin-bottom:9px;}
     .qzh .dtile-chip{font-size:10px;font-weight:800;background:rgba(255,255,255,0.2);border-radius:12px;padding:2px 9px;text-transform:uppercase;letter-spacing:.04em;}
@@ -774,7 +790,7 @@ export default function QuizHomeClient() {
     .qzh .duelbtn{background:${C.accent};color:#fff;border:none;border-radius:12px;padding:12px;font-weight:800;font-size:12px;font-family:inherit;display:flex;align-items:center;justify-content:center;gap:8px;cursor:pointer;flex:none;}
     .qzh .rail{background:#fff;border:1px solid ${C.line};border-radius:14px;padding:11px;display:flex;flex-direction:column;}
     .qzh .rail-bars{flex:1;display:flex;flex-direction:column;}
-    .qzh .rseg{display:flex;align-items:center;gap:6px;padding:0 11px;font-size:11px;font-weight:600;border:none;cursor:pointer;width:100%;}
+    .qzh .rseg{display:flex;align-items:center;gap:6px;padding:0 11px;font-size:11px;font-weight:600;border:none;border-radius:0;margin:0;cursor:pointer;width:100%;}
     .qzh .rail-bars .rseg:first-child{border-radius:12px 12px 0 0;}
     .qzh .rail-bars .rseg:last-child{border-radius:0 0 12px 12px;}
     .qzh .rseg:hover{filter:brightness(1.06);}
@@ -957,6 +973,7 @@ export default function QuizHomeClient() {
         {signupOpen && <SignupModal onClose={() => setSignupOpen(false)} />}
 
         <div className="thub">
+          <div className="thub-left">
           <Link href={`/quiz/${QUIZ_OF_DAY.id}`} className="qotd th-qotd" aria-label={`Quiz of the day: ${QUIZ_OF_DAY.title}`}>
             <div className="qotd-photo" style={{ backgroundImage: `url("${QUIZ_OF_DAY.hero}")` }} aria-hidden="true" />
             <div className="qotd-body">
@@ -996,7 +1013,7 @@ export default function QuizHomeClient() {
             ) : <div />}
 
             {newest[0] ? (() => { const nc = byKey[newest[0].dept] || {}; const NIcon = nc.Icon || Sparkles; return (
-              <Link href={`/quiz/${newest[0].id}`} className="ntile" style={DEPT_HERO[newest[0].dept] ? { backgroundImage: `url("${DEPT_HERO[newest[0].dept]}")` } : { background: nc.c || C.accent }}>
+              <Link href={`/quiz/${newest[0].id}`} className="ntile" style={(newestHero || DEPT_HERO[newest[0].dept]) ? { backgroundImage: `url("${newestHero || DEPT_HERO[newest[0].dept]}")` } : { background: nc.c || C.accent }}>
                 <span className="ntile-tag" style={{ color: C.accent }}><Sparkles size={10} style={{ verticalAlign: -1 }} /> NEWEST QUIZ</span>
                 <div className="ntile-ov">
                   <div className="ntile-t">{stripVerb(newest[0].title)}</div>
@@ -1019,6 +1036,7 @@ export default function QuizHomeClient() {
             </div>
           </div>
 
+          </div>
           <div className="rail th-rail">
             <div style={{ display: 'flex', alignItems: 'center', gap: 5, marginBottom: 9 }}><BarChart3 size={14} style={{ color: C.accent, flex: 'none' }} /><span className="x8" style={{ fontSize: 11.5, fontWeight: 800, letterSpacing: '.03em' }}>CATEGORY MASTERY</span></div>
             {catMastery.length > 0 ? (
