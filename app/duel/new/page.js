@@ -6,6 +6,7 @@ import SiteHeader from '../../SiteHeader';
 import QuizPlayerBar from '../../quiz/[id]/QuizPlayerBar';
 import Grain from '../../Grain';
 import Footer from '../../Footer';
+import DuelSignup from '../DuelSignup';
 import { QUIZZES } from '@/lib/quizzes';
 
 const C = { bg: '#f7f8fa', surface: '#fff', ink: '#1c1e24', muted: '#6b7280', soft: '#9aa0ab', line: 'rgba(20,22,28,0.10)', accent: '#2563eb', accsoft: '#e8effb' };
@@ -30,6 +31,8 @@ export default function NewDuelPage() {
   const [opp, setOpp] = useState(null);
   const [myAnon, setMyAnon] = useState('');
   const [device, setDevice] = useState('any');
+  const [signupOpen, setSignupOpen] = useState(false);
+  const [pendingQuiz, setPendingQuiz] = useState(null);
 
   useEffect(() => { setName(storedName()); setMyAnon(ensureAnon() || ''); }, []);
   useEffect(() => {
@@ -53,10 +56,11 @@ export default function NewDuelPage() {
 
   async function start(quizId) {
     if (busy) return;
+    // A duel name is never free text: guests must claim a display name first.
+    const nm = (name || storedName() || '').trim().slice(0, 40);
+    if (!nm) { setPendingQuiz(quizId); setSignupOpen(true); return; }
     setBusy(true);
     const anon = ensureAnon();
-    const nm = (name || storedName() || 'Player').trim().slice(0, 40);
-    try { const j = JSON.parse(localStorage.getItem('sot_quiz_identity')) || {}; localStorage.setItem('sot_quiz_identity', JSON.stringify({ ...j, username: nm })); } catch {}
     try {
       const body = { quizId, anonId: anon, name: nm, device };
       if (opp && opp.anon) { body.opponentAnon = opp.anon; body.opponentName = opp.name; }
@@ -74,6 +78,7 @@ export default function NewDuelPage() {
   return (
     <div style={{ minHeight: '100vh', background: C.bg, fontFamily: FONT, color: C.ink, position: 'relative' }}>
       <Grain />
+      {signupOpen && <DuelSignup anonId={myAnon} onClose={() => { setSignupOpen(false); setPendingQuiz(null); }} onDone={(un) => { setName(un); setSignupOpen(false); const pq = pendingQuiz; setPendingQuiz(null); if (pq) start(pq); }} />}
       <SiteHeader active="quizzes" flush inlay={<QuizPlayerBar />} />
       <div className="qzf-w" style={{ maxWidth: 1180, margin: '0 auto', padding: '12px 38px 70px', position: 'relative' }}>
         <div className="qzf-line" aria-hidden="true" />
@@ -84,7 +89,14 @@ export default function NewDuelPage() {
           <p style={{ color: C.muted, fontSize: 15, margin: '0 0 20px' }}>Pick a quiz. Challenge a specific player by name, or just share the invite link with anyone. Higher score wins (fastest on a tie).</p>
 
           <label style={{ display: 'block', fontSize: 12, fontWeight: 700, color: C.soft, marginBottom: 6 }}>YOUR NAME</label>
-          <input value={name} onChange={(e) => setName(e.target.value)} placeholder="Your name" maxLength={40} style={{ ...inp, marginBottom: 16 }} />
+          {name ? (
+            <div style={{ background: C.accsoft, border: `1px solid #cddffb`, borderRadius: 10, padding: '11px 14px', marginBottom: 16, fontSize: 14, color: C.ink }}>Dueling as <span style={{ fontWeight: 800, color: C.accent }}>{name}</span></div>
+          ) : (
+            <>
+              <button onClick={() => setSignupOpen(true)} style={{ width: '100%', boxSizing: 'border-box', textAlign: 'left', background: '#fff', color: C.accent, border: `1.5px solid ${C.accent}`, borderRadius: 10, padding: '11px 14px', marginBottom: 6, fontFamily: FONT, fontWeight: 800, fontSize: 14, cursor: 'pointer' }}>Claim a display name to duel +</button>
+              <p style={{ color: C.soft, fontSize: 12, margin: '0 0 16px' }}>Duels are not anonymous: claim a display name so no one can play under someone else{"'"}s name. Takes a moment, no password.</p>
+            </>
+          )}
 
           <label style={{ display: 'block', fontSize: 12, fontWeight: 700, color: C.soft, marginBottom: 6 }}>CHALLENGE A SPECIFIC PLAYER (OPTIONAL)</label>
           {opp ? (

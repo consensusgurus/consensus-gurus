@@ -5,6 +5,7 @@ import SiteHeader from '../../SiteHeader';
 import QuizPlayerBar from '../../quiz/[id]/QuizPlayerBar';
 import Grain from '../../Grain';
 import Footer from '../../Footer';
+import DuelSignup from '../DuelSignup';
 import { QUIZZES } from '@/lib/quizzes';
 
 const C = { bg: '#f7f8fa', surface: '#fff', ink: '#1c1e24', muted: '#6b7280', soft: '#9aa0ab', line: 'rgba(20,22,28,0.10)', accent: '#2563eb', accsoft: '#e8effb', gold: '#e8b43a', win: '#16a34a', lose: '#c0392b' };
@@ -24,6 +25,7 @@ export default function DuelClient({ token }) {
   const [busy, setBusy] = useState(false);
   const [msg, setMsg] = useState('');
   const [copied, setCopied] = useState(false);
+  const [signupOpen, setSignupOpen] = useState(false);
 
   useEffect(() => { setMe({ anon: anonId(), name: storedName() }); setNameInput(storedName()); }, []);
 
@@ -54,10 +56,10 @@ export default function DuelClient({ token }) {
   const done = duel && (duel.status === 'complete' || duel.status === 'declined');
 
   async function submit() {
+    const nm = (me.name || storedName() || '').trim().slice(0, 40);
+    if (!nm) { setSignupOpen(true); return; }  // no free-text: claim a name first
     setBusy(true); setMsg('');
     try {
-      const nm = (nameInput || me.name || 'Player').trim().slice(0, 40);
-      try { const j = JSON.parse(localStorage.getItem('sot_quiz_identity')) || {}; localStorage.setItem('sot_quiz_identity', JSON.stringify({ ...j, username: nm })); } catch {}
       const r = await fetch('/api/duel/submit', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ token, anonId: me.anon, name: nm }) });
       const d = await r.json();
       if (d && d.duel) { setDuel(d.duel); setMe((m) => ({ ...m, name: nm })); }
@@ -72,7 +74,7 @@ export default function DuelClient({ token }) {
   async function decline() {
     setBusy(true); setMsg('');
     try {
-      const nm = (nameInput || me.name || 'Player').trim().slice(0, 40);
+      const nm = (me.name || storedName() || 'Player').trim().slice(0, 40);
       const r = await fetch('/api/duel/decline', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ token, anonId: me.anon, name: nm }) });
       const d = await r.json();
       if (d && d.duel) setDuel(d.duel);
@@ -103,6 +105,7 @@ export default function DuelClient({ token }) {
   return (
     <div style={{ minHeight: '100vh', background: C.bg, fontFamily: FONT, color: C.ink, position: 'relative' }}>
       <Grain />
+      {signupOpen && <DuelSignup anonId={me.anon} onClose={() => setSignupOpen(false)} onDone={(un) => { setMe((m) => ({ ...m, name: un })); setSignupOpen(false); }} />}
       <SiteHeader active="quizzes" flush inlay={<QuizPlayerBar />} />
       <div className="qzf-w" style={{ maxWidth: 1180, margin: '0 auto', padding: '12px 38px 70px', position: 'relative' }}>
         <div className="qzf-line" aria-hidden="true" />
@@ -157,8 +160,7 @@ export default function DuelClient({ token }) {
                       <div style={{ fontSize: 16, fontWeight: 800, marginBottom: 4 }}>{side === 'challenger' ? 'Play your round' : `${duel.challenger_name} challenged you`}</div>
                       <div style={{ color: C.muted, fontSize: 14, marginBottom: 14 }}>Tap {'"'}Play the quiz{'"'} (opens a new tab){dev !== 'any' ? ` — play on ${dev === 'mobile' ? 'your phone' : 'a computer'}, this duel is ${dev} only` : ''}. When you finish, come back to this tab and tap {'"'}submit my score{'"'}. It uses your best score automatically.</div>
                       {!me.name && (
-                        <input value={nameInput} onChange={(e) => setNameInput(e.target.value)} placeholder="Your name" maxLength={40}
-                          style={{ width: '100%', boxSizing: 'border-box', padding: '10px 12px', border: `1px solid ${C.line}`, borderRadius: 10, fontFamily: FONT, fontSize: 14, marginBottom: 12, outline: 'none' }} />
+                        <button onClick={() => setSignupOpen(true)} style={{ width: '100%', boxSizing: 'border-box', textAlign: 'left', background: '#fff', color: C.accent, border: `1.5px solid ${C.accent}`, borderRadius: 10, padding: '10px 12px', marginBottom: 12, fontFamily: FONT, fontWeight: 800, fontSize: 14, cursor: 'pointer' }}>Claim your display name to play +</button>
                       )}
                       <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
                         <a href={`/quiz/${duel.quiz_id}`} target="_blank" rel="noopener noreferrer" style={{ flex: '1 1 160px', textAlign: 'center', background: C.accent, color: '#fff', padding: '12px 16px', borderRadius: 10, fontWeight: 800, textDecoration: 'none' }}>Play the Quiz →</a>
