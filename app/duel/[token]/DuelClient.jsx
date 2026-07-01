@@ -2,6 +2,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import Link from 'next/link';
 import SiteHeader from '../../SiteHeader';
+import QuizPlayerBar from '../../quiz/[id]/QuizPlayerBar';
 import Grain from '../../Grain';
 import Footer from '../../Footer';
 import { QUIZZES } from '@/lib/quizzes';
@@ -15,7 +16,7 @@ function fmtTime(s) { if (s == null) return ''; const m = Math.floor(s / 60), ss
 
 export default function DuelClient({ token }) {
   const [duel, setDuel] = useState(null);
-  const [state, setState] = useState('loading'); // loading | ready | error
+  const [state, setState] = useState('loading');
   const [errCode, setErrCode] = useState('');
   const [me, setMe] = useState({ anon: null, name: '' });
   const [nameInput, setNameInput] = useState('');
@@ -35,8 +36,6 @@ export default function DuelClient({ token }) {
   }, [token]);
 
   useEffect(() => { load(); }, [load]);
-
-  // Poll while waiting for the other player.
   useEffect(() => {
     if (!duel || duel.status === 'complete') return;
     const id = setInterval(load, 6000);
@@ -71,9 +70,6 @@ export default function DuelClient({ token }) {
     try { navigator.clipboard.writeText(url).then(() => { setCopied(true); setTimeout(() => setCopied(false), 1800); }); } catch {}
   }
 
-  const wrap = { minHeight: '100vh', background: C.bg, fontFamily: FONT, color: C.ink, position: 'relative' };
-  const container = { maxWidth: 720, margin: '0 auto', padding: '26px 18px 60px' };
-
   function Side({ who, name, score, total, time, winnerFlag }) {
     const waiting = score == null;
     return (
@@ -87,11 +83,12 @@ export default function DuelClient({ token }) {
   }
 
   return (
-    <div style={wrap}>
+    <div style={{ minHeight: '100vh', background: C.bg, fontFamily: FONT, color: C.ink, position: 'relative' }}>
       <Grain />
-      <div style={{ position: 'relative', zIndex: 1 }}>
-        <SiteHeader />
-        <div style={container}>
+      <SiteHeader active="quizzes" flush inlay={<QuizPlayerBar />} />
+      <div className="qzf-w" style={{ maxWidth: 1180, margin: '0 auto', padding: '12px 38px 70px', position: 'relative' }}>
+        <div className="qzf-line" aria-hidden="true" />
+        <div style={{ maxWidth: 720, margin: '0 auto' }}>
           <Link href="/quizzes" style={{ fontSize: 13, fontWeight: 700, color: C.accent, textDecoration: 'none' }}>← Back to quizzes</Link>
 
           {state === 'loading' && <div style={{ marginTop: 40, color: C.soft, fontWeight: 600 }}>Loading duel…</div>}
@@ -162,8 +159,8 @@ export default function DuelClient({ token }) {
             </>
           )}
         </div>
-        <Footer />
       </div>
+      <Footer />
     </div>
   );
 }

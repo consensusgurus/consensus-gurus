@@ -11,8 +11,7 @@ function makeToken() {
   return s;
 }
 
-// POST /api/duel/create  { quizId, anonId, name, opponentAnon? }
-// Creates a duel the caller (challenger) will play; returns the invite token.
+// POST /api/duel/create  { quizId, anonId, name, opponentAnon?, opponentName? }
 export async function POST(request) {
   try {
     const b = (await request.json()) || {};
@@ -20,6 +19,7 @@ export async function POST(request) {
     const anonId = typeof b.anonId === 'string' && b.anonId.trim() ? b.anonId.trim().slice(0, 64) : null;
     const name = (typeof b.name === 'string' ? b.name.trim() : '').slice(0, 40) || 'Player';
     const opponentAnon = typeof b.opponentAnon === 'string' && b.opponentAnon.trim() ? b.opponentAnon.trim().slice(0, 64) : null;
+    const opponentName = (typeof b.opponentName === 'string' ? b.opponentName.trim() : '').slice(0, 40) || null;
     if (!quizId || quizId.length > 100) return NextResponse.json({ error: 'quizId required' }, { status: 400 });
     if (!anonId) return NextResponse.json({ error: 'anonId required' }, { status: 400 });
 
@@ -27,7 +27,7 @@ export async function POST(request) {
     for (let tries = 0; tries < 5; tries++) {
       ({ data: inserted, error: err } = await supabaseAdmin
         .from('quiz_duels')
-        .insert({ token: tk, quiz_id: quizId, challenger_anon: anonId, challenger_name: name, opponent_anon: opponentAnon, status: 'open' })
+        .insert({ token: tk, quiz_id: quizId, challenger_anon: anonId, challenger_name: name, opponent_anon: opponentAnon, opponent_name: opponentAnon ? opponentName : null, status: 'open' })
         .select('token')
         .single());
       if (!err) break;

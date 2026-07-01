@@ -3,6 +3,7 @@ import React, { useState, useMemo, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import SiteHeader from '../../SiteHeader';
+import QuizPlayerBar from '../../quiz/[id]/QuizPlayerBar';
 import Grain from '../../Grain';
 import Footer from '../../Footer';
 import { QUIZZES } from '@/lib/quizzes';
@@ -24,7 +25,33 @@ export default function NewDuelPage() {
   const [q, setQ] = useState('');
   const [name, setName] = useState('');
   const [busy, setBusy] = useState(false);
-  useEffect(() => { setName(storedName()); }, []);
+  const [oppQ, setOppQ] = useState('');
+  const [oppResults, setOppResults] = useState([]);
+  const [opp, setOpp] = useState(null); // { anon, name }
+  const [myAnon, setMyAnon] = useState('');
+
+  useEffect(() => { setName(storedName()); setMyAnon(ensureAnon() || ''); }, []);
+
+  // pre-target from a click-a-user link (?opponent=<anon>&oppName=<name>)
+  useEffect(() => {
+    try {
+      const p = new URLSearchParams(window.location.search);
+      const oa = p.get('opponent'); const on = p.get('oppName');
+      if (oa) setOpp({ anon: oa, name: on || 'Player' });
+    } catch {}
+  }, []);
+
+  // live player search
+  useEffect(() => {
+    let alive = true;
+    const s = oppQ.trim();
+    if (opp) return;
+    const t = setTimeout(() => {
+      fetch(`/api/duel/players?q=${encodeURIComponent(s)}&exclude=${encodeURIComponent(myAnon)}`)
+        .then((r) => r.json()).then((d) => { if (alive && d && Array.isArray(d.players)) setOppResults(d.players); }).catch(() => {});
+    }, 220);
+    return () => { alive = false; clearTimeout(t); };
+  }, [oppQ, opp, myAnon]);
 
   const results = useMemo(() => {
     const s = q.trim().toLowerCase();
@@ -40,7 +67,9 @@ export default function NewDuelPage() {
     const nm = (name || storedName() || 'Player').trim().slice(0, 40);
     try { const j = JSON.parse(localStorage.getItem('sot_quiz_identity')) || {}; localStorage.setItem('sot_quiz_identity', JSON.stringify({ ...j, username: nm })); } catch {}
     try {
-      const r = await fetch('/api/duel/create', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ quizId, anonId: anon, name: nm }) });
+      const body = { quizId, anonId: anon, name: nm };
+      if (opp && opp.anon) { body.opponentAnon = opp.anon; body.opponentName = opp.name; }
+      const r = await fetch('/api/duel/create', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
       const d = await r.json();
       if (d && d.token) { router.push(`/duel/${d.token}`); return; }
       if (d && d.error === 'duels_not_ready') { alert('Duels are being switched on. Check back shortly.'); }
@@ -48,25 +77,45 @@ export default function NewDuelPage() {
     setBusy(false);
   }
 
+  const inp = { width: '100%', boxSizing: 'border-box', padding: '11px 13px', border: `1px solid ${C.line}`, borderRadius: 10, fontFamily: FONT, fontSize: 14, outline: 'none' };
+
   return (
     <div style={{ minHeight: '100vh', background: C.bg, fontFamily: FONT, color: C.ink, position: 'relative' }}>
       <Grain />
-      <div style={{ position: 'relative', zIndex: 1 }}>
-        <SiteHeader />
-        <div style={{ maxWidth: 720, margin: '0 auto', padding: '26px 18px 60px' }}>
+      <SiteHeader active="quizzes" flush inlay={<QuizPlayerBar />} />
+      <div className="qzf-w" style={{ maxWidth: 1180, margin: '0 auto', padding: '12px 38px 70px', position: 'relative' }}>
+        <div className="qzf-line" aria-hidden="true" />
+        <div style={{ maxWidth: 720, margin: '0 auto' }}>
           <Link href="/quizzes" style={{ fontSize: 13, fontWeight: 700, color: C.accent, textDecoration: 'none' }}>← Back to quizzes</Link>
           <div style={{ marginTop: 16, marginBottom: 4, fontSize: 11, fontWeight: 800, letterSpacing: '.12em', textTransform: 'uppercase', color: C.accent }}>Start a duel</div>
           <h1 style={{ fontSize: 26, fontWeight: 800, letterSpacing: '-0.02em', margin: '0 0 6px' }}>Challenge someone to a quiz</h1>
-          <p style={{ color: C.muted, fontSize: 15, margin: '0 0 20px' }}>Pick a quiz. You'll get a link to send. You both play the same quiz, and the higher score (fastest on a tie) wins.</p>
+          <p style={{ color: C.muted, fontSize: 15, margin: '0 0 20px' }}>Pick a quiz. Challenge a specific player by name, or just share the invite link with anyone. Higher score wins (fastest on a tie).</p>
 
           <label style={{ display: 'block', fontSize: 12, fontWeight: 700, color: C.soft, marginBottom: 6 }}>YOUR NAME</label>
-          <input value={name} onChange={(e) => setName(e.target.value)} placeholder="Your name" maxLength={40}
-            style={{ width: '100%', boxSizing: 'border-box', padding: '11px 13px', border: `1px solid ${C.line}`, borderRadius: 10, fontFamily: FONT, fontSize: 14, marginBottom: 16, outline: 'none' }} />
+          <input value={name} onChange={(e) => setName(e.target.value)} placeholder="Your name" maxLength={40} style={{ ...inp, marginBottom: 16 }} />
 
-          <label style={{ display: 'block', fontSize: 12, fontWeight: 700, color: C.soft, marginBottom: 6 }}>PICK A QUIZ</label>
-          <input value={q} onChange={(e) => setQ(e.target.value)} placeholder="Search quizzes…" autoFocus
-            style={{ width: '100%', boxSizing: 'border-box', padding: '11px 13px', border: `1px solid ${C.line}`, borderRadius: 10, fontFamily: FONT, fontSize: 14, marginBottom: 12, outline: 'none' }} />
+          <label style={{ display: 'block', fontSize: 12, fontWeight: 700, color: C.soft, marginBottom: 6 }}>CHALLENGE A SPECIFIC PLAYER (OPTIONAL)</label>
+          {opp ? (
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 10, background: C.accsoft, border: `1px solid #cddffb`, borderRadius: 10, padding: '10px 14px', marginBottom: 16 }}>
+              <span style={{ fontSize: 14, fontWeight: 700, color: C.ink }}>Challenging <span style={{ color: C.accent }}>{opp.name}</span> — they get a pop-up to play</span>
+              <button onClick={() => { setOpp(null); setOppQ(''); }} style={{ border: 'none', background: 'transparent', color: C.accent, fontWeight: 800, cursor: 'pointer', fontFamily: FONT, fontSize: 13 }}>Clear</button>
+            </div>
+          ) : (
+            <div style={{ marginBottom: 16 }}>
+              <input value={oppQ} onChange={(e) => setOppQ(e.target.value)} placeholder="Search players by name (or leave blank for a shareable link)…" style={inp} />
+              {oppQ.trim() && (
+                <div style={{ marginTop: 6, border: `1px solid ${C.line}`, borderRadius: 10, overflow: 'hidden', maxHeight: 220, overflowY: 'auto' }}>
+                  {oppResults.length === 0 && <div style={{ padding: '10px 14px', color: C.soft, fontSize: 13 }}>No players match. You can still share the invite link.</div>}
+                  {oppResults.map((p) => (
+                    <button key={p.anon} onClick={() => setOpp(p)} style={{ display: 'block', width: '100%', textAlign: 'left', padding: '10px 14px', border: 'none', borderBottom: `1px solid ${C.line}`, background: '#fff', cursor: 'pointer', fontFamily: FONT, fontSize: 14, fontWeight: 600, color: C.ink }}>{p.name}</button>
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
 
+          <label style={{ display: 'block', fontSize: 12, fontWeight: 700, color: C.soft, marginBottom: 6 }}>PICK A QUIZ{opp ? ` TO CHALLENGE ${opp.name.toUpperCase()}` : ''}</label>
+          <input value={q} onChange={(e) => setQ(e.target.value)} placeholder="Search quizzes…" style={{ ...inp, marginBottom: 12 }} />
           <div style={{ display: 'grid', gap: 8 }}>
             {results.map((x) => (
               <button key={x.id} onClick={() => start(x.id)} disabled={busy}
@@ -81,8 +130,8 @@ export default function NewDuelPage() {
             {results.length === 0 && <div style={{ color: C.soft, fontSize: 14, padding: '8px 2px' }}>No quizzes match that search.</div>}
           </div>
         </div>
-        <Footer />
       </div>
+      <Footer />
     </div>
   );
 }
