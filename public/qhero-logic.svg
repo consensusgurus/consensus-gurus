@@ -1,0 +1,45 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1160 300" width="1160" height="300">
+  <defs>
+    <linearGradient id="lbg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#2f6fe0"/><stop offset="1" stop-color="#1b3f8f"/>
+    </linearGradient>
+  </defs>
+  <rect width="1160" height="300" fill="url(#lbg)"/>
+  <!-- faint big puzzle-piece watermark, left -->
+  <path d="M70 150 h58 a24 24 0 0 1 48 0 h58 v58 a24 24 0 0 0 0 48 v58 h-164 v-164 z" fill="#ffffff" opacity="0.06"/>
+  <!-- sequencing tokens, right-center -->
+  <g font-family="Manrope, Arial, sans-serif" font-weight="800">
+    <g transform="translate(520,96)">
+      <g><rect width="70" height="70" rx="12" fill="#ffffff"/><circle cx="35" cy="32" r="20" fill="#2f6fe0"/><text x="35" y="40" font-size="24" fill="#fff" text-anchor="middle">A</text><text x="35" y="90" font-size="15" fill="#cfe0ff" text-anchor="middle" font-weight="700">1</text></g>
+      <g transform="translate(90,0)"><rect width="70" height="70" rx="12" fill="#ffffff"/><circle cx="35" cy="32" r="20" fill="#7a4fb0"/><text x="35" y="40" font-size="24" fill="#fff" text-anchor="middle">D</text><text x="35" y="90" font-size="15" fill="#cfe0ff" text-anchor="middle" font-weight="700">2</text></g>
+      <g transform="translate(180,0)"><rect width="70" height="70" rx="12" fill="#ffffff"/><circle cx="35" cy="32" r="20" fill="#1f8b6e"/><text x="35" y="40" font-size="24" fill="#fff" text-anchor="middle">B</text><text x="35" y="90" font-size="15" fill="#cfe0ff" text-anchor="middle" font-weight="700">3</text></g>
+      <g transform="translate(270,0)"><rect width="70" height="70" rx="12" fill="#ffffff" opacity="0.35" stroke="#ffffff" stroke-width="2" stroke-dasharray="6 5"/><text x="35" y="90" font-size="15" fill="#cfe0ff" text-anchor="middle" font-weight="700">4</text></g>
+    </g>
+  </g>
+  <!-- constraint grid, far right, with drawn check / x / dash marks -->
+  <g transform="translate(880,64)">
+    <rect width="216" height="174" rx="14" fill="#ffffff"/>
+    <g stroke="#dbe6f7" stroke-width="2">
+      <line x1="0" y1="58" x2="216" y2="58"/><line x1="0" y1="116" x2="216" y2="116"/>
+      <line x1="72" y1="0" x2="72" y2="174"/><line x1="144" y1="0" x2="144" y2="174"/>
+    </g>
+    <!-- check marks (green) -->
+    <g fill="none" stroke="#1f8b6e" stroke-width="6" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M24 30 l9 10 16 -20"/>
+      <path d="M96 88 l9 10 16 -20"/>
+      <path d="M168 146 l9 10 16 -20"/>
+    </g>
+    <!-- x marks (red) -->
+    <g stroke="#e0523b" stroke-width="6" stroke-linecap="round">
+      <path d="M98 22 l20 20 M118 22 l-20 20"/>
+      <path d="M170 80 l20 20 M190 80 l-20 20"/>
+      <path d="M26 138 l20 20 M46 138 l-20 20"/>
+    </g>
+    <!-- dashes (neutral) -->
+    <g stroke="#c3ccda" stroke-width="6" stroke-linecap="round">
+      <path d="M160 29 h24"/>
+      <path d="M24 87 h24"/>
+      <path d="M96 145 h24"/>
+    </g>
+  </g>
+</svg>

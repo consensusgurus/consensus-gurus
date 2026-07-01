@@ -8,9 +8,10 @@ import {
   Search, ChevronDown, ArrowRight, BarChart3, Crown, Sparkles, Flame,
   BadgeCheck, Clapperboard, Music, Gamepad2, Plane, Globe, Utensils,
   Briefcase, Leaf, Tv, BookOpen, Landmark, Trophy, UserPlus, Play, X,
-  Check, Star, Target, Swords, ChevronRight,
+  Check, Star, Target, Swords, ChevronRight, Newspaper, Blocks, GraduationCap,
 } from 'lucide-react';
 import { QUIZZES } from '@/lib/quizzes';
+import { KIDS_GAMES } from '@/lib/kids';
 import { CATEGORY_HEROES } from '@/lib/quiz-category-heroes';
 import {
   quizDept as deptOf, DEPT_COLOR, DEPT_LABEL, DEPT_NAV,
@@ -121,6 +122,21 @@ function cleanTitle(t) { return (t || '').replace(/^Name (the )?/i, '').trim(); 
 // "Match the Slogan to the Company" -> "Slogan to the Company".
 const VERB_RE = /^(Click|Name|Guess|Find|Identify|Pick|Select|Match|Pinpoint)\b\s*(all the|the|these)?\s*/i;
 const FALLBACK_HERO = 'https://upload.wikimedia.org/wikipedia/commons/thumb/e/e1/Earth%27s_City_Lights_by_DMSP%2C_1994-1995_%28large%29.jpg/1280px-Earth%27s_City_Lights_by_DMSP%2C_1994-1995_%28large%29.jpg';
+// Promo tiles pinned to the very end of the browse grid (they link OUT of the
+// main quiz catalog). Heroes are local SVGs in /public.
+const PROMO_HERO = {
+  business: '/qhero-business.svg',
+  kids: '/qhero-kids.svg',
+  tests: '/qhero-tests.svg',
+};
+// Rows shown inside the Standardized Tests tile (the six /exams practice tests).
+const EXAM_TILE_ROWS = [
+  { id: 'lsat', title: 'LSAT', href: '/lsat' },
+  { id: 'gmat', title: 'GMAT', href: '/gmat' },
+  { id: 'sat', title: 'SAT', href: '/sat' },
+  { id: 'act', title: 'ACT', href: '/act' },
+  { id: 'gre', title: 'GRE', href: '/gre' },
+];
 function stripVerb(t) {
   const out = (t || '').replace(VERB_RE, '').trim();
   return out || (t || '');
@@ -290,8 +306,9 @@ export default function QuizHomeClient() {
   // Every challenge open right now (today's daily + open events like the Outline
   // Challenge). The header CTA rotates through these like the leaderboard slides.
   const openChs = useMemo(() => openChallenges(), []);
-  // The header CTA also surfaces the Business News quiz hub as a rotating slide.
-  const rotation = useMemo(() => [{ id: 'business-news', title: 'Business News', sub: 'Quiz Hub', href: '/quizzes/business-news' }], []);
+  // Business News moved to its own tile at the end of the browse grid, so the
+  // browse-row rotating CTA is now empty (curCh becomes null → nothing renders).
+  const rotation = useMemo(() => [], []);
   const [chSlide, setChSlide] = useState(0);
   useEffect(() => {
     if (rotation.length < 2) return;
@@ -618,6 +635,12 @@ export default function QuizHomeClient() {
     .filter((q) => !isBusinessNewsHubQuiz(q.id))
     .sort((a, b) => (a.publishedAt < b.publishedAt ? 1 : a.publishedAt > b.publishedAt ? -1 : 0))
     .slice(0, 6), [catalog]);
+  // Business News hub quizzes (market-moving recaps, earnings, sector updates),
+  // newest first — shown inside the Business News promo tile.
+  const businessNewsRows = useMemo(() => catalog.slice()
+    .filter((q) => isBusinessNewsHubQuiz(q.id))
+    .sort((a, b) => (a.publishedAt < b.publishedAt ? 1 : a.publishedAt > b.publishedAt ? -1 : 0))
+    .slice(0, 6), [catalog]);
   const newestIds = useMemo(() => new Set(newest.map((q) => q.id)), [newest]);
   const mostPlayed = useMemo(() => {
     let pool;
@@ -790,7 +813,7 @@ export default function QuizHomeClient() {
     .qzh .qotd:hover .qotd-play{background:#1d4ed8;}
     .qzh .qotd-stats{font-size:12px;color:#9fb0d4;font-weight:600;display:inline-flex;align-items:center;gap:6px;min-width:0;}
     @media(max-width:760px){.qzh .qotd{flex-direction:column;min-height:0;}.qzh .qotd-photo{flex:none;height:128px;}.qzh .qotd-title{font-size:21px;}}
-    .qzh .thub{display:flex;gap:12px;margin-bottom:14px;align-items:stretch;}
+    .qzh .thub{display:flex;gap:12px;margin-bottom:14px;align-items:flex-start;}
     .qzh .thub-left{flex:1 1 auto;min-width:0;display:flex;flex-direction:column;gap:12px;}
     .qzh .th-rail{flex:0 0 208px;}
     .qzh .th-r2{display:grid;grid-template-columns:minmax(0,1.15fr) minmax(0,0.82fr) minmax(0,1fr);gap:12px;align-items:stretch;}
@@ -815,7 +838,7 @@ export default function QuizHomeClient() {
     .qzh .duelbtn{background:${C.accent};color:#fff;border:none;border-radius:12px;padding:12px;font-weight:800;font-size:12px;font-family:inherit;display:flex;align-items:center;justify-content:center;gap:8px;cursor:pointer;flex:none;}
     .qzh .rail{background:#fff;border:1px solid ${C.line};border-radius:14px;padding:11px;display:flex;flex-direction:column;}
     .qzh .rail-bars{flex:1;display:flex;flex-direction:column;}
-    .qzh .rseg{display:flex;align-items:center;gap:6px;padding:0 11px;font-size:11px;font-weight:600;border:none;border-radius:0;margin:0;cursor:pointer;width:100%;}
+    .qzh .rseg{display:flex;align-items:center;gap:6px;padding:9px 11px;font-size:11.5px;font-weight:600;border:none;border-radius:0;margin:0;cursor:pointer;width:100%;min-height:34px;box-sizing:border-box;}
     .qzh .rail-bars .rseg:first-child{border-radius:12px 12px 0 0;}
     .qzh .rail-bars .rseg:last-child{border-radius:0 0 12px 12px;}
     .qzh .rseg:hover{filter:brightness(1.06);}
@@ -828,6 +851,13 @@ export default function QuizHomeClient() {
       .qzh .lbtile{min-height:0 !important;}
       .qzh .dtile.mc-closed{min-height:0;padding-bottom:12px;}
       .qzh .lbtile.mc-closed .lbtile-collapse{display:none !important;}
+      /* Collapsed leaderboard on mobile mirrors the blue Daily Challenge tile;
+         stays white on desktop and when expanded. */
+      .qzh .lbtile.mc-closed{background:${C.accent};border-color:${C.accent};}
+      .qzh .lbtile.mc-closed .lbtile-head{color:#fff;}
+      .qzh .lbtile.mc-closed .lbtile-head .x8{color:#fff !important;}
+      .qzh .lbtile.mc-closed .lbtile-head a{color:#fff !important;}
+      .qzh .lbtile.mc-closed .lbtile-head .lchev{color:#fff !important;}
     }
     .qzh .boards{display:grid;grid-template-columns:minmax(0,1.6fr) minmax(0,1fr);gap:12px;align-items:stretch;margin-bottom:12px;}
     .qzh .qz-mobtoggle{display:none;}
@@ -1100,7 +1130,7 @@ export default function QuizHomeClient() {
                       </Link>
                     ); })}
                   </div>
-                  <Link href={dailyAllDone ? `/challenge/${dailyId}?done=1` : dailyEntryUrl} className="dtile-cta">{dailyAllDone ? 'See your results' : dailyDoneCount > 0 ? 'Continue challenge' : 'Play today’s challenge'}{dailyRows && dailyRows.length ? <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4 }}><Crown size={12} style={{ color: '#e8b43a' }} /> {dailyRows[0].username || 'Player'}</span> : <ArrowRight size={15} style={{ flex: 'none' }} />}</Link>
+                  <Link href={dailyAllDone ? `/challenge/${dailyId}?done=1` : dailyEntryUrl} className="dtile-cta">{dailyAllDone ? 'See Your Results' : dailyDoneCount > 0 ? 'Continue Challenge' : 'Play Today’s Challenge'}{dailyRows && dailyRows.length ? <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4 }}><Crown size={12} style={{ color: '#e8b43a' }} /> {dailyRows[0].username || 'Player'}</span> : <ArrowRight size={15} style={{ flex: 'none' }} />}</Link>
                 </div>
               </div>
             ) : <div />}
@@ -1336,21 +1366,23 @@ export default function QuizHomeClient() {
                   cta={`View all ${c.count} ›`} onCta={() => setScope(c.key)} />
               );
             })}
+            {/* Promo tiles — always the last three (Standardized Tests last). */}
+            <BrowseColumn label="Business News" Icon={Newspaper} color="#4d6b8a" tint="#dbe4ee"
+              heroUrl={PROMO_HERO.business} heroHref="/quizzes/business-news" heroCta="Open" heroTitle="Market-moving business quizzes"
+              rows={businessNewsRows.map((q) => ({ q, href: `/quiz/${q.id}`, right: <PlaysRight id={q.id} plays={plays} leader={leader} leaderKey={leaderKey} color="#4d6b8a" hidePlays /> }))}
+              cta="View all ›" ctaHref="/quizzes/business-news" />
+            <BrowseColumn label="Kids Corner" Icon={Blocks} color="#3ea0e0" tint="#d7ecfb"
+              heroUrl={PROMO_HERO.kids} heroHref="/kids" heroCta="Play" heroTitle="Tap-and-play games for kids"
+              rows={KIDS_GAMES.slice(0, 6).map((g) => ({ q: { id: g.id, title: g.title, rawTitle: g.title }, href: g.href }))}
+              cta="View all ›" ctaHref="/kids" />
+            <BrowseColumn label="Standardized Tests" Icon={GraduationCap} color="#2f6f9f" tint="#d9e6f0"
+              heroUrl={PROMO_HERO.tests} heroHref="/exams" heroCta="Start" heroTitle="Where will you get in?"
+              rows={EXAM_TILE_ROWS.map((e) => ({ q: { id: e.id, title: e.title, rawTitle: e.title }, href: e.href }))}
+              cta="View all ›" ctaHref="/exams" />
           </div>
         )}
         {(!searchResults && scope === 'all' && !listMode && doneFilter === 'all') && (
           <Link href="/duel/new" className="duelbtn-mob"><Swords size={18} /> Challenge a Friend to a Duel</Link>
-        )}
-        {(!searchResults && scope === 'all' && !listMode && doneFilter === 'all') && (          <Link href="/quizzes/business-news" className="qz-mobhub">
-            <span style={{ display: 'flex', alignItems: 'center', gap: 11, minWidth: 0 }}>
-              <Flame size={18} style={{ flex: 'none' }} />
-              <span style={{ display: 'grid', lineHeight: 1.2 }}>
-                <span style={{ fontSize: 14, fontWeight: 800 }}>Business News</span>
-                <span style={{ fontSize: 11, fontWeight: 600, opacity: 0.85 }}>Quiz Hub</span>
-              </span>
-            </span>
-            <ArrowRight size={18} style={{ flex: 'none' }} />
-          </Link>
         )}
       </div>
 
@@ -1462,19 +1494,20 @@ function CategoryFull({ cat, plays, leader, leaderKey }) {
   );
 }
 
-function BrowseColumn({ label, Icon, color, tint, rows, cta, onCta, heroUrl, heroPos, heroId, heroTitle, heroPlays, heroLeader, filled }) {
+function BrowseColumn({ label, Icon, color, tint, rows, cta, onCta, ctaHref, heroUrl, heroPos, heroId, heroHref, heroCta, heroTitle, heroPlays, heroLeader, filled }) {
   const hasHero = !!heroUrl;
   const blueHead = hasHero || filled;
   const headFg = blueHead ? '#fff' : color;
+  const heroLink = heroHref || (heroId ? `/quiz/${heroId}` : '#');
   return (
     <section className={`mc-open${(hasHero || filled) ? ' catcard' : ''}`} style={{ minWidth: 0 }}>
       {hasHero ? (
-        <Link href={`/quiz/${heroId}`} className="cc-hero" style={{ backgroundImage: `url("${heroUrl}")`, backgroundPosition: heroPos || 'center' }} title={heroTitle}>
+        <Link href={heroLink} className="cc-hero" style={{ backgroundImage: `url("${heroUrl}")`, backgroundPosition: heroPos || 'center' }} title={heroTitle}>
           <span className="cc-ov" />
-          <span className="cc-stat">{heroPlays > 0 ? `${heroPlays.toLocaleString()} plays` : 'New quiz'}{heroLeader ? <><span aria-hidden="true"> · </span><Crown size={11} style={{ color: '#e8b43a', flex: 'none' }} /> {heroLeader}</> : null}</span>
+          {heroId ? <span className="cc-stat">{heroPlays > 0 ? `${heroPlays.toLocaleString()} plays` : 'New quiz'}{heroLeader ? <><span aria-hidden="true"> · </span><Crown size={11} style={{ color: '#e8b43a', flex: 'none' }} /> {heroLeader}</> : null}</span> : null}
           <div className="cc-btm">
             <span className="cc-htitle">{stripVerb(heroTitle)}</span>
-            <span className="cc-play">Play <ArrowRight size={13} style={{ verticalAlign: -2 }} /></span>
+            <span className="cc-play">{heroCta || 'Play'} <ArrowRight size={13} style={{ verticalAlign: -2 }} /></span>
           </div>
         </Link>
       ) : null}
@@ -1483,12 +1516,14 @@ function BrowseColumn({ label, Icon, color, tint, rows, cta, onCta, heroUrl, her
           <Icon size={14} />
         </span>
         <h3 style={{ fontSize: 17, fontWeight: 800, margin: 0, color: headFg }}>{label}</h3>
-        {onCta
+        {ctaHref
+          ? <Link href={ctaHref} className="viewall vall" style={{ color: headFg, textDecoration: 'none', fontSize: 10, fontWeight: 700 }}>{cta}</Link>
+          : onCta
           ? <button type="button" onClick={(e) => { e.stopPropagation(); onCta(); }} className="viewall vall" style={{ color: headFg, background: 'none', border: 'none', padding: 0, cursor: 'pointer', fontFamily: 'inherit', fontSize: 10, fontWeight: 700 }}>{cta}</button>
           : <span className="viewall vall" style={{ color: headFg }}>{cta}</span>}
       </div>
-      {rows.map(({ q, right }) => (
-        <Link href={`/quiz/${q.id}`} className="qrow" key={q.id} title={q.rawTitle || q.title}>
+      {rows.map(({ q, right, href }) => (
+        <Link href={href || `/quiz/${q.id}`} className="qrow" key={q.id} title={q.rawTitle || q.title}>
           <span className="qtitle">{stripVerb(q.title)}</span><DoneMark id={q.id} />
           <span className="qmeta">{right}</span>
         </Link>

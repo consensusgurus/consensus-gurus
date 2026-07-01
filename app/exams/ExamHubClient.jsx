@@ -18,6 +18,21 @@ const COLORS = {
 };
 const FONT = "'Manrope', system-ui, -apple-system, sans-serif";
 
+// The LSAT's classic analytical-reasoning puzzles (a.k.a. logic games). These
+// live in lib/quizzes.js as format: 'logic-game' quizzes and play at /quiz/<id>.
+const LOGIC_GAMES = [
+  { id: 'lsat-logic-game-gallery-wall', name: 'The Gallery Wall' },
+  { id: 'lsat-logic-game-service-bay', name: 'The Service Bay' },
+  { id: 'lsat-logic-game-recital-order', name: 'The Recital Order' },
+  { id: 'lsat-logic-game-debate-lineup', name: 'The Debate Lineup' },
+  { id: 'lsat-logic-game-tasting-flight', name: 'The Tasting Flight' },
+  { id: 'lsat-logic-game-closing-shift', name: 'The Closing Shift' },
+  { id: 'lsat-logic-game-festival-headliners', name: 'The Festival Headliners' },
+  { id: 'lsat-logic-game-garden-bed', name: 'The Garden Bed' },
+  { id: 'lsat-logic-game-expert-panel', name: 'The Expert Panel' },
+  { id: 'lsat-logic-game-festival-lineup', name: 'A Festival Lineup' },
+];
+
 export default function ExamHubClient() {
   const [views, setViews] = useState({});
   useEffect(() => {
@@ -71,6 +86,33 @@ export default function ExamHubClient() {
               </a>
             );
           })}
+        </div>
+
+        {/* ── LSAT Logic Games (analytical reasoning) — School Tests ── */}
+        <div style={{ marginTop: 44 }}>
+          <div style={{ position: 'relative', borderRadius: 14, overflow: 'hidden', minHeight: 156, backgroundImage: "url('/qhero-logic.svg')", backgroundSize: 'cover', backgroundPosition: 'right center', backgroundColor: '#2f6fe0' }}>
+            <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(90deg, rgba(12,26,55,0.88) 0%, rgba(12,26,55,0.55) 44%, rgba(12,26,55,0.05) 100%)' }} />
+            <div style={{ position: 'relative', padding: '22px 24px' }}>
+              <span style={{ fontSize: 11, fontWeight: 800, letterSpacing: '0.12em', textTransform: 'uppercase', color: '#bcd2ff' }}>School Tests</span>
+              <h2 style={{ fontFamily: FONT, fontWeight: 800, fontSize: 'clamp(24px, 4vw, 34px)', lineHeight: 1.05, letterSpacing: '-0.02em', margin: '7px 0 0', color: '#fff' }}>LSAT Logic Games</h2>
+              <p style={{ fontFamily: FONT, fontSize: 14, lineHeight: 1.5, margin: '9px 0 0', color: '#dbe6fb', maxWidth: 440 }}>The LSAT's classic analytical reasoning puzzles: read the setup and rules, then answer. Ten original games, from sequencing to grouping.</p>
+            </div>
+          </div>
+          <div style={{ marginTop: 14, display: 'grid', gridTemplateColumns: '1fr', gap: 10 }}>
+            {LOGIC_GAMES.map((g) => (
+              <a
+                key={g.id}
+                href={`/quiz/${g.id}`}
+                style={{ display: 'flex', alignItems: 'center', gap: 16, textDecoration: 'none', color: COLORS.ink, background: '#fff', border: `1.5px solid ${COLORS.faded}33`, borderLeft: `5px solid ${COLORS.ember}`, borderRadius: 10, padding: '15px 20px' }}
+              >
+                <span style={{ flex: 1 }}>
+                  <span style={{ fontSize: 17, fontWeight: 800, letterSpacing: '-0.01em' }}>{g.name}</span>
+                  <span style={{ display: 'block', fontSize: 12.5, color: COLORS.faded, marginTop: 3, fontWeight: 500 }}>LSAT analytical reasoning</span>
+                </span>
+                <ArrowRight size={20} strokeWidth={2.5} style={{ color: COLORS.ember, flex: 'none' }} />
+              </a>
+            ))}
+          </div>
         </div>
 
         <p style={{ fontSize: 12, color: COLORS.faded, margin: '24px 0 0', lineHeight: 1.5 }}>
