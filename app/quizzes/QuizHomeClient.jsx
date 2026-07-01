@@ -628,8 +628,10 @@ export default function QuizHomeClient() {
       .sort((a, b) => b.acc - a.acc);
     const n = rows.length;
     return rows.map((r, i) => {
-      const L = n > 1 ? 34 + (i / (n - 1)) * 46 : 44;
-      return { key: r.key, label: r.label, acc: Math.round(r.acc), color: `hsl(222, 74%, ${L}%)`, text: L < 60 ? '#fff' : '#0e1d40' };
+      const t = n > 1 ? i / (n - 1) : 0;
+      const L = 30 + t * 60;
+      const S = 78 - t * 66;
+      return { key: r.key, label: r.label, acc: Math.round(r.acc), color: `hsl(220, ${S}%, ${L}%)`, text: L < 58 ? '#fff' : '#0e1d40' };
     });
   }, [me, byKey]);
 
@@ -728,32 +730,31 @@ export default function QuizHomeClient() {
     .qzh .qotd:hover .qotd-play{background:#1d4ed8;}
     .qzh .qotd-stats{font-size:12px;color:#9fb0d4;font-weight:600;display:inline-flex;align-items:center;gap:6px;min-width:0;}
     @media(max-width:760px){.qzh .qotd{flex-direction:column;}.qzh .qotd-photo{flex:none;height:128px;}.qzh .qotd-title{font-size:21px;}}
-    .qzh .thub{display:grid;grid-template-columns:1fr 1fr 0.95fr 152px;grid-template-rows:auto auto;gap:12px;margin-bottom:14px;align-items:stretch;}
-    .qzh .th-qotd{grid-column:1 / 3;grid-row:1;}
-    .qzh .th-new{grid-column:3;grid-row:1;}
-    .qzh .th-rail{grid-column:4;grid-row:1 / 3;}
-    .qzh .th-r2{grid-column:1 / 4;grid-row:2;display:grid;grid-template-columns:1.7fr 1fr;gap:12px;align-items:stretch;}
-    @media(max-width:820px){.qzh .thub{display:flex;flex-direction:column;}}
-    @media(max-width:560px){.qzh .th-r2{grid-template-columns:1fr;}}
-    .qzh .dtile{background:${C.accent};border-radius:14px;padding:14px 16px;color:#fff;display:flex;flex-direction:column;}
+    .qzh .thub{display:grid;grid-template-columns:minmax(0,1fr) 186px;grid-template-rows:auto auto;gap:12px;margin-bottom:14px;align-items:stretch;}
+    .qzh .th-qotd{grid-column:1;grid-row:1;}
+    .qzh .th-rail{grid-column:2;grid-row:1 / 3;}
+    .qzh .th-r2{grid-column:1;grid-row:2;display:grid;grid-template-columns:232px minmax(0,1fr) minmax(0,1fr);gap:12px;align-items:stretch;}
+    @media(max-width:820px){.qzh .thub{display:flex;flex-direction:column;}.qzh .th-r2{grid-template-columns:1fr 1fr;}}
+    @media(max-width:560px){.qzh .th-r2{grid-template-columns:1fr;}.qzh .th-rail{display:none !important;}.qzh .th-r2 .ntile{display:none !important;}.qzh .duelbtn{display:none !important;}}
+    .qzh .dtile{background:${C.accent};border-radius:14px;padding:14px 16px;color:#fff;display:flex;flex-direction:column;min-height:184px;}
     .qzh .dtile-head{display:flex;align-items:center;gap:8px;margin-bottom:9px;}
     .qzh .dtile-chip{font-size:10px;font-weight:800;background:rgba(255,255,255,0.2);border-radius:12px;padding:2px 9px;text-transform:uppercase;letter-spacing:.04em;}
     .qzh .dtile-prog{display:flex;gap:5px;margin-bottom:10px;}
     .qzh .dtile-rows{display:flex;flex-direction:column;gap:2px;margin-bottom:10px;}
-    .qzh .dtile-row{display:flex;align-items:center;gap:8px;font-size:12.5px;font-weight:700;color:#fff;text-decoration:none;padding:2px 0;}
+    .qzh .dtile-row{display:flex;align-items:center;gap:8px;font-size:12px;font-weight:700;color:#fff;text-decoration:none;padding:2px 0;}
     .qzh .dtile-num{width:16px;height:16px;border-radius:50%;border:2px solid rgba(255,255,255,0.6);flex:none;font-size:9px;display:flex;align-items:center;justify-content:center;}
     .qzh .dtile-name{flex:1 1 auto;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
-    .qzh .dtile-cta{margin-top:auto;display:flex;align-items:center;justify-content:center;gap:7px;background:#fff;color:${C.accent};border-radius:10px;padding:11px;font-weight:800;font-size:13px;text-decoration:none;}
-    .qzh .ntile{background:#fff;border:1px solid ${C.line};border-radius:14px;overflow:hidden;text-decoration:none;color:${C.ink};display:flex;flex-direction:column;height:100%;}
-    .qzh .ntile-hero{height:118px;display:flex;align-items:center;justify-content:center;position:relative;flex:none;}
-    .qzh .ntile-tag{position:absolute;top:10px;left:12px;font-size:9px;font-weight:800;letter-spacing:.08em;background:#fff;border-radius:10px;padding:3px 9px;}
-    .qzh .ntile-body{padding:13px 15px;flex:1;display:flex;flex-direction:column;}
+    .qzh .dtile-cta{margin-top:auto;display:flex;align-items:center;justify-content:center;gap:7px;background:#fff;color:${C.accent};border-radius:10px;padding:10px;font-weight:800;font-size:12.5px;text-decoration:none;}
+    .qzh .ntile{background:#fff;border:1px solid ${C.line};border-radius:14px;overflow:hidden;text-decoration:none;color:${C.ink};display:flex;flex-direction:column;}
+    .qzh .ntile-hero{height:96px;display:flex;align-items:center;justify-content:center;position:relative;flex:none;}
+    .qzh .ntile-tag{position:absolute;top:9px;left:11px;font-size:9px;font-weight:800;letter-spacing:.08em;background:#fff;border-radius:10px;padding:3px 9px;}
+    .qzh .ntile-body{padding:12px 14px;flex:1;display:flex;flex-direction:column;}
     .qzh .lbtile{background:#fff;border:1px solid ${C.line};border-radius:14px;padding:12px 15px;flex:1;display:flex;flex-direction:column;min-height:0;overflow:hidden;}
     .qzh .lbtile-head{display:flex;align-items:center;gap:7px;margin-bottom:6px;}
-    .qzh .duelbtn{background:${C.accent};color:#fff;border:none;border-radius:12px;padding:12px;font-weight:800;font-size:12.5px;font-family:inherit;display:flex;align-items:center;justify-content:center;gap:8px;cursor:pointer;flex:none;}
+    .qzh .duelbtn{background:${C.accent};color:#fff;border:none;border-radius:12px;padding:12px;font-weight:800;font-size:12px;font-family:inherit;display:flex;align-items:center;justify-content:center;gap:8px;cursor:pointer;flex:none;}
     .qzh .rail{background:#fff;border:1px solid ${C.line};border-radius:14px;padding:11px;display:flex;flex-direction:column;}
-    .qzh .rail-bars{flex:1;display:flex;flex-direction:column;border-radius:8px;overflow:hidden;min-height:230px;}
-    .qzh .rseg{display:flex;align-items:center;gap:5px;padding:0 9px;font-size:10.5px;font-weight:800;border:none;cursor:pointer;width:100%;}
+    .qzh .rail-bars{flex:1;display:flex;flex-direction:column;border-radius:8px;overflow:hidden;min-height:250px;}
+    .qzh .rseg{display:flex;align-items:center;gap:5px;padding:0 11px;font-size:11px;font-weight:800;border:none;cursor:pointer;width:100%;}
     .qzh .rseg:hover{filter:brightness(1.08);}
     .qzh .rseg .rnm{flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;text-align:left;}
     .qzh .dchev,.qzh .lchev{display:none;}
@@ -761,9 +762,8 @@ export default function QuizHomeClient() {
       .qzh .dtile-head,.qzh .lbtile-head{cursor:pointer;}
       .qzh .dchev,.qzh .lchev{display:inline-flex;flex:none;transition:transform .15s;}
       .qzh .dtile.mc-closed .dtile-collapse{display:none !important;}
-      .qzh .dtile.mc-closed{padding-bottom:12px;}
+      .qzh .dtile.mc-closed{min-height:0;padding-bottom:12px;}
       .qzh .lbtile.mc-closed .lbtile-collapse{display:none !important;}
-      .qzh .rail-bars{min-height:0;}
     }
     .qzh .boards{display:grid;grid-template-columns:minmax(0,1.6fr) minmax(0,1fr);gap:12px;align-items:stretch;margin-bottom:12px;}
     .qzh .qz-mobtoggle{display:none;}
@@ -878,7 +878,7 @@ export default function QuizHomeClient() {
                         value={lbMetric.fmt(r.rating)} frac={(r.rating || 0) / (rows[0]?.rating || 1)} />
                     ));
                   }
-                  const rows = lbMetric.key === 'dailyChallenge' ? dailyRows : lbMetric.key === 'correctToday' ? todayCorrectRows : todayQuizRows;
+                  const rows = (lbMetric.key === 'dailyChallenge' ? dailyRows : lbMetric.key === 'correctToday' ? todayCorrectRows : todayQuizRows).slice(0, 3);
                   const valOf = lbMetric.key === 'dailyChallenge' ? ((r) => r.totalCorrect) : lbMetric.key === 'correctToday' ? ((r) => r.correct) : ((r) => r.quizzes);
                   if (rows.length === 0) return <div style={{ padding: '12px 13px', fontSize: 12, color: C.soft }}>No plays yet today.</div>;
                   return rows.map((r, i) => (
@@ -948,20 +948,6 @@ export default function QuizHomeClient() {
             </div>
           </Link>
 
-          {newest[0] ? (() => { const nc = byKey[newest[0].dept] || {}; const NIcon = nc.Icon || Sparkles; return (
-            <Link href={`/quiz/${newest[0].id}`} className="ntile th-new">
-              <div className="ntile-hero" style={{ background: nc.t || C.accsoft, color: nc.c || C.accent }}>
-                <NIcon size={42} />
-                <span className="ntile-tag" style={{ color: nc.c || C.accent }}><Sparkles size={10} style={{ verticalAlign: -1 }} /> NEWEST QUIZ</span>
-              </div>
-              <div className="ntile-body">
-                <div style={{ fontSize: 16, fontWeight: 800, letterSpacing: '-.3px', lineHeight: 1.12 }}>{stripVerb(newest[0].title)}</div>
-                <div style={{ fontSize: 11.5, color: C.soft, fontWeight: 600, marginTop: 4 }}>{nc.label ? `${nc.label} · ` : ''}just added</div>
-                <div style={{ marginTop: 'auto', fontSize: 13, color: C.accent, fontWeight: 800 }}>Play <ArrowRight size={13} style={{ verticalAlign: -1 }} /></div>
-              </div>
-            </Link>
-          ); })() : <div className="th-new" />}
-
           <div className="th-r2">
             {daily && DAILY_CHALLENGE_ON ? (
               <div className={`dtile mc-${mDaily ? 'open' : 'closed'}`}>
@@ -979,7 +965,6 @@ export default function QuizHomeClient() {
                       <Link key={qid} href={`/quiz/${qid}?ch=${encodeURIComponent(dailyId)}&i=${k}`} className="dtile-row">
                         {done ? <Check size={13} strokeWidth={3} style={{ color: '#a5f3c9', flex: 'none' }} /> : <span className="dtile-num">{k + 1}</span>}
                         <span className="dtile-name">{stripVerb(titleById[qid] || qid)}</span>
-                        {chScores[qid] ? <span style={{ flex: 'none', fontWeight: 800, opacity: 0.9 }}>{chScores[qid].score}/{chScores[qid].total}</span> : null}
                       </Link>
                     ); })}
                   </div>
@@ -987,6 +972,21 @@ export default function QuizHomeClient() {
                 </div>
               </div>
             ) : <div />}
+
+            {newest[0] ? (() => { const nc = byKey[newest[0].dept] || {}; const NIcon = nc.Icon || Sparkles; return (
+              <Link href={`/quiz/${newest[0].id}`} className="ntile">
+                <div className="ntile-hero" style={{ background: nc.t || C.accsoft, color: nc.c || C.accent }}>
+                  <NIcon size={38} />
+                  <span className="ntile-tag" style={{ color: nc.c || C.accent }}><Sparkles size={10} style={{ verticalAlign: -1 }} /> NEWEST QUIZ</span>
+                </div>
+                <div className="ntile-body">
+                  <div style={{ fontSize: 15.5, fontWeight: 800, letterSpacing: '-.3px', lineHeight: 1.12 }}>{stripVerb(newest[0].title)}</div>
+                  <div style={{ fontSize: 11.5, color: C.soft, fontWeight: 600, marginTop: 4 }}>{nc.label ? `${nc.label} · ` : ''}just added</div>
+                  <div style={{ marginTop: 'auto', fontSize: 13, color: C.accent, fontWeight: 800 }}>Play <ArrowRight size={13} style={{ verticalAlign: -1 }} /></div>
+                </div>
+              </Link>
+            ); })() : <div />}
+
             <div style={{ display: 'flex', flexDirection: 'column', gap: 12, minWidth: 0 }}>
               <div className={`lbtile mc-${mLb ? 'open' : 'closed'}`}>
                 <div className="lbtile-head" onClick={() => { if (isMobile) setMLb((v) => !v); }}>
@@ -1002,8 +1002,7 @@ export default function QuizHomeClient() {
           </div>
 
           <div className="rail th-rail">
-            <div style={{ display: 'flex', alignItems: 'center', gap: 5 }}><BarChart3 size={14} style={{ color: C.accent, flex: 'none' }} /><span className="x8" style={{ fontSize: 12, fontWeight: 800 }}>Category mastery</span></div>
-            <div style={{ fontSize: 9, color: C.soft, fontWeight: 700, letterSpacing: '.04em', textTransform: 'uppercase', margin: '2px 0 8px' }}>Tap to filter</div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 5, marginBottom: 9 }}><BarChart3 size={14} style={{ color: C.accent, flex: 'none' }} /><span className="x8" style={{ fontSize: 11.5, fontWeight: 800, letterSpacing: '.03em' }}>CATEGORY MASTERY</span></div>
             {catMastery.length > 0 ? (
               <div className="rail-bars">
                 {catMastery.map((m) => (
