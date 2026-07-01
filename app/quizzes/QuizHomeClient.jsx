@@ -120,6 +120,7 @@ function cleanTitle(t) { return (t || '').replace(/^Name (the )?/i, '').trim(); 
 // tooltip. e.g. "Click the Countries of Europe" -> "Countries of Europe",
 // "Match the Slogan to the Company" -> "Slogan to the Company".
 const VERB_RE = /^(Click|Name|Guess|Find|Identify|Pick|Select|Match|Pinpoint)\b\s*(all the|the|these)?\s*/i;
+const FALLBACK_HERO = 'https://upload.wikimedia.org/wikipedia/commons/thumb/5/5d/Scrabble_game_in_progress.jpg/1280px-Scrabble_game_in_progress.jpg';
 function stripVerb(t) {
   const out = (t || '').replace(VERB_RE, '').trim();
   return out || (t || '');
@@ -825,13 +826,16 @@ export default function QuizHomeClient() {
     .qzh .qrow .qtitle{font-size:13px;font-weight:500;}
     .qzh .qmeta{flex:none;display:flex;align-items:center;gap:10px;font-size:10.5px;}
     .qzh .catcard{border:1px solid ${C.line};border-radius:12px;overflow:hidden;background:#fff;display:flex;flex-direction:column;padding-bottom:4px;}
-    .qzh .cc-hero{position:relative;display:block;min-height:134px;background-size:cover;background-position:center;background-color:${C.accsoft};text-decoration:none;}
-    .qzh .cc-ov{position:absolute;inset:0;background:linear-gradient(to top, rgba(8,15,35,0.9), rgba(8,15,35,0.42) 55%, rgba(8,15,35,0.02));z-index:1;}
-    .qzh .cc-tag{position:absolute;top:9px;left:9px;z-index:2;font-size:9px;font-weight:800;letter-spacing:.06em;background:#fff;border-radius:10px;padding:3px 9px;display:inline-flex;align-items:center;gap:3px;line-height:1;}
-    .qzh .cc-htitle{position:absolute;left:12px;right:12px;bottom:10px;z-index:2;color:#fff;font-size:15px;font-weight:800;letter-spacing:-.2px;line-height:1.15;text-shadow:0 1px 8px rgba(0,0,0,.45);}
+    .qzh .cc-hero{position:relative;display:block;min-height:184px;background-size:cover;background-position:center;background-color:${C.accsoft};text-decoration:none;}
+    .qzh .cc-ov{position:absolute;inset:0;background:linear-gradient(to top, rgba(8,15,35,0.92), rgba(8,15,35,0.4) 52%, rgba(8,15,35,0.05));z-index:1;}
+    .qzh .cc-stat{position:absolute;top:10px;left:12px;z-index:2;font-size:10px;font-weight:700;color:#fff;display:inline-flex;align-items:center;gap:3px;text-shadow:0 1px 6px rgba(0,0,0,.65);}
+    .qzh .cc-btm{position:absolute;left:12px;right:12px;bottom:11px;z-index:2;display:flex;flex-direction:column;gap:5px;}
+    .qzh .cc-htitle{color:#fff;font-size:17px;font-weight:800;letter-spacing:-.2px;line-height:1.14;text-shadow:0 1px 8px rgba(0,0,0,.5);}
+    .qzh .cc-play{font-size:13px;font-weight:800;color:#fff;display:inline-flex;align-items:center;gap:4px;}
     .qzh .catcard .colhead.cc-head{border-radius:0;border-top:none;margin-bottom:0;}
     .qzh .catcard .qrow{padding-left:11px;padding-right:11px;}
     .qzh .catcard .qrow:last-child{border-bottom:none;}
+    .qzh .colhead.cc-filled{border-bottom:none;}
     .qzh .hubbtn{display:flex;align-items:center;gap:7px;background:#fff;color:${C.accent};border:1px solid #cddffb;border-right:3px solid ${C.accent};padding:10px 15px;border-radius:10px;font-weight:700;font-size:13px;text-decoration:none;white-space:nowrap;}
     .qzh .qz-playerbar.hub-bleed .hubbtn{align-self:stretch;padding:0 18px;margin:-11px -14px -11px 0;border-radius:0 11px 11px 0;border-top:none;border-bottom:none;border-left:none;}
     .qz-playerbar .qz-skill-empty{display:none !important;}
@@ -1230,27 +1234,26 @@ export default function QuizHomeClient() {
           </div>
         ) : (
           <div className="qcols">
-            <BrowseColumn label={<>Last Played{playsToday ? <span style={{ fontSize: 10.5, fontWeight: 700, color: C.soft }}> · {playsToday.toLocaleString()} plays today</span> : null}</>} Icon={Play} color="#10b981" tint="#d8f3e6"
-              rows={lastPlayed.map((f) => ({ q: { id: f.quizId, title: f.title, rawTitle: f.title }, right: (<><span className="score" style={{ fontSize: 11, color: f.total && f.score / f.total >= 0.8 ? '#16a34a' : C.soft }}>{f.score}/{f.total}</span><span style={{ color: C.soft }}>{relTime(f.playedAt)}</span></>) }))} cta="View all ›" onCta={() => setListMode('live')} open={!!acc.lastplayed} onToggle={() => toggleAcc('lastplayed')} isMobile={isMobile} />
-            <BrowseColumn label="Newest" Icon={Sparkles} color={C.accent} tint={C.accsoft}
-              rows={newest.map((q) => ({ q, right: <NewRight q={q} /> }))} cta="View all ›" onCta={() => setListMode('newest')} open={!!acc.newest} onToggle={() => toggleAcc('newest')} isMobile={isMobile} />
-            <BrowseColumn label="Most Played" Icon={Flame} color="#c2691c" tint="#f4e2cd"
-              rows={mostPlayed.map((q) => ({ q, right: <PlaysRight id={q.id} plays={plays} leader={leader} leaderKey={leaderKey} color="#c2691c" hidePlays /> }))} cta="View all ›" onCta={() => setListMode('mostplayed')} open={!!acc.mostplayed} onToggle={() => toggleAcc('mostplayed')} isMobile={isMobile} />
+            <BrowseColumn label={<>Last Played{playsToday ? <span style={{ fontSize: 10.5, fontWeight: 700, color: 'rgba(255,255,255,0.82)' }}> · {playsToday.toLocaleString()} plays today</span> : null}</>} Icon={Play} color="#10b981" tint="#d8f3e6" filled
+              rows={lastPlayed.slice(0, 3).map((f) => ({ q: { id: f.quizId, title: f.title, rawTitle: f.title }, right: (<><span className="score" style={{ fontSize: 11, color: f.total && f.score / f.total >= 0.8 ? '#16a34a' : C.soft }}>{f.score}/{f.total}</span><span style={{ color: C.soft }}>{relTime(f.playedAt)}</span></>) }))} cta="View all ›" onCta={() => setListMode('live')} />
+            <BrowseColumn label="Newest" Icon={Sparkles} color={C.accent} tint={C.accsoft} filled
+              rows={newest.slice(0, 3).map((q) => ({ q, right: <NewRight q={q} /> }))} cta="View all ›" onCta={() => setListMode('newest')} />
+            <BrowseColumn label="Most Played" Icon={Flame} color="#c2691c" tint="#f4e2cd" filled
+              rows={mostPlayed.slice(0, 3).map((q) => ({ q, right: <PlaysRight id={q.id} plays={plays} leader={leader} leaderKey={leaderKey} color="#c2691c" hidePlays /> }))} cta="View all ›" onCta={() => setListMode('mostplayed')} />
             {cats.map((c) => {
               const ch = CATEGORY_HEROES[c.key];
-              const heroId = ch && ch.quizId;
-              const heroUrl = ch && ch.hero;
+              const topQ = c.quizzes.slice().sort((a, b) => plays(b.id) - plays(a.id) || a.title.localeCompare(b.title))[0];
+              const heroId = ch ? ch.quizId : (topQ && topQ.id);
+              const heroUrl = ch ? ch.hero : FALLBACK_HERO;
               const heroTitle = heroId ? (titleById[heroId] || '') : '';
-              const lim = isMobile ? 20 : 6;
               const exSet = heroId ? new Set([...shownIds, heroId]) : shownIds;
-              const rowq = colRows(c, lim + 1, exSet).filter((q) => q.id !== heroId).slice(0, lim);
-              const deptPlays = c.quizzes.reduce((s, q) => s + (plays(q.id) || 0), 0);
+              const rowq = colRows(c, 7, exSet).filter((q) => q.id !== heroId).slice(0, 6);
               return (
                 <BrowseColumn key={c.key} label={c.label} Icon={c.Icon} color={c.c} tint={c.t}
                   heroUrl={heroUrl} heroId={heroId} heroTitle={heroTitle}
-                  meta={heroUrl ? `${c.count} quizzes · ${deptPlays.toLocaleString()} plays` : null}
+                  heroPlays={heroId ? plays(heroId) : 0} heroLeader={heroId ? leader(heroId) : ''}
                   rows={rowq.map((q) => ({ q, right: <PlaysRight id={q.id} plays={plays} leader={leader} leaderKey={leaderKey} color={c.c} hidePlays /> }))}
-                  cta={`View all ${c.count} ›`} onCta={() => setScope(c.key)} open={!!acc[c.key]} onToggle={() => toggleAcc(c.key)} isMobile={isMobile} />
+                  cta={`View all ${c.count} ›`} onCta={() => setScope(c.key)} />
               );
             })}
           </div>
@@ -1377,30 +1380,29 @@ function CategoryFull({ cat, plays, leader, leaderKey }) {
   );
 }
 
-function BrowseColumn({ label, Icon, color, tint, rows, cta, onCta, open = true, onToggle, isMobile, heroUrl, heroId, heroTitle, meta }) {
+function BrowseColumn({ label, Icon, color, tint, rows, cta, onCta, heroUrl, heroId, heroTitle, heroPlays, heroLeader, filled }) {
   const hasHero = !!heroUrl;
-  const labelText = typeof label === 'string' ? label : '';
+  const headFg = filled ? '#fff' : color;
   return (
-    <section className={`mc-${open ? 'open' : 'closed'}${hasHero ? ' catcard' : ''}`} style={{ minWidth: 0 }}>
+    <section className={`mc-open${hasHero ? ' catcard' : ''}`} style={{ minWidth: 0 }}>
       {hasHero ? (
         <Link href={`/quiz/${heroId}`} className="cc-hero" style={{ backgroundImage: `url("${heroUrl}")` }} title={heroTitle}>
-          <span className="cc-tag" style={{ color }}><Icon size={11} style={{ verticalAlign: -2 }} /> {labelText.toUpperCase()}</span>
           <span className="cc-ov" />
-          <span className="cc-htitle">{stripVerb(heroTitle)}</span>
+          <span className="cc-stat">{heroPlays > 0 ? `${heroPlays.toLocaleString()} plays` : 'New quiz'}{heroLeader ? <><span aria-hidden="true"> · </span><Crown size={11} style={{ color: '#e8b43a', flex: 'none' }} /> {heroLeader}</> : null}</span>
+          <div className="cc-btm">
+            <span className="cc-htitle">{stripVerb(heroTitle)}</span>
+            <span className="cc-play">Play <ArrowRight size={13} style={{ verticalAlign: -2 }} /></span>
+          </div>
         </Link>
       ) : null}
-      <div className={`colhead${hasHero ? ' cc-head' : ''}`} onClick={() => { if (isMobile && onToggle) onToggle(); }} style={{ borderColor: color, background: hasHero ? '#fff' : `color-mix(in srgb, ${color} 6%, #fff)`, cursor: isMobile ? 'pointer' : 'default' }}>
-        <span className="colicon" style={{ width: 24, height: 24, borderRadius: 7, background: tint, color, display: 'flex', alignItems: 'center', justifyContent: 'center', flex: 'none' }}>
+      <div className={`colhead${hasHero ? ' cc-head' : ''}${filled ? ' cc-filled' : ''}`} style={{ borderColor: filled ? C.accent : color, background: filled ? C.accent : (hasHero ? '#fff' : `color-mix(in srgb, ${color} 6%, #fff)`) }}>
+        <span className="colicon" style={{ width: 24, height: 24, borderRadius: 7, background: filled ? 'rgba(255,255,255,0.22)' : tint, color: filled ? '#fff' : color, display: 'flex', alignItems: 'center', justifyContent: 'center', flex: 'none' }}>
           <Icon size={14} />
         </span>
-        <span style={{ display: 'grid', minWidth: 0, gap: 0 }}>
-          <h3 style={{ fontSize: 15, fontWeight: 700, margin: 0, color, lineHeight: 1.1 }}>{label}</h3>
-          {meta ? <span style={{ fontSize: 10, fontWeight: 600, color: C.soft, marginTop: 1 }}>{meta}</span> : null}
-        </span>
+        <h3 style={{ fontSize: 17, fontWeight: 800, margin: 0, color: headFg }}>{label}</h3>
         {onCta
-          ? <button type="button" onClick={(e) => { e.stopPropagation(); onCta(); }} className="viewall vall" style={{ color, background: 'none', border: 'none', padding: 0, cursor: 'pointer', fontFamily: 'inherit', fontSize: 10, fontWeight: 700 }}>{isMobile ? 'View all' : cta}</button>
-          : <span className="viewall vall" style={{ color }}>{isMobile ? 'View all' : cta}</span>}
-        <ChevronDown className="accchev" size={16} strokeWidth={2.5} style={{ flex: 'none', color: C.soft, transform: open ? 'rotate(180deg)' : 'none' }} />
+          ? <button type="button" onClick={(e) => { e.stopPropagation(); onCta(); }} className="viewall vall" style={{ color: headFg, background: 'none', border: 'none', padding: 0, cursor: 'pointer', fontFamily: 'inherit', fontSize: 10, fontWeight: 700 }}>{cta}</button>
+          : <span className="viewall vall" style={{ color: headFg }}>{cta}</span>}
       </div>
       {rows.map(({ q, right }) => (
         <Link href={`/quiz/${q.id}`} className="qrow" key={q.id} title={q.rawTitle || q.title}>
