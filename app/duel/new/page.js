@@ -85,7 +85,7 @@ export default function NewDuelPage() {
         <div style={{ maxWidth: 720, margin: '0 auto' }}>
           <Link href="/quizzes" style={{ fontSize: 13, fontWeight: 700, color: C.accent, textDecoration: 'none' }}>← Back to Quizzes</Link>
           <div style={{ marginTop: 16, marginBottom: 4, fontSize: 11, fontWeight: 800, letterSpacing: '.12em', textTransform: 'uppercase', color: C.accent }}>Start a duel</div>
-          <h1 style={{ fontSize: 26, fontWeight: 800, letterSpacing: '-0.02em', margin: '0 0 6px' }}>Challenge someone to a quiz</h1>
+          <h1 style={{ fontSize: 26, fontWeight: 800, letterSpacing: '-0.02em', margin: '0 0 6px' }}>Challenge Someone to a Quiz</h1>
           <p style={{ color: C.muted, fontSize: 15, margin: '0 0 20px' }}>Pick a quiz. Challenge a specific player by name, or just share the invite link with anyone. Higher score wins (fastest on a tie).</p>
 
           <label style={{ display: 'block', fontSize: 12, fontWeight: 700, color: C.soft, marginBottom: 6 }}>YOUR NAME</label>
@@ -136,7 +136,7 @@ export default function NewDuelPage() {
                   <span style={{ display: 'block', fontSize: 15, fontWeight: 700, color: C.ink, overflowWrap: 'anywhere' }}>{x.title}</span>
                   <span style={{ display: 'block', fontSize: 11, fontWeight: 700, letterSpacing: '.05em', textTransform: 'uppercase', color: C.soft }}>{x.category || 'Quiz'}</span>
                 </span>
-                <span style={{ flex: 'none', fontSize: 12, fontWeight: 800, color: '#fff', background: C.accent, padding: '6px 12px', borderRadius: 999 }}>Challenge</span>
+                <span style={{ flex: 'none', fontSize: 12, fontWeight: 800, color: '#fff', background: C.accent, padding: '6px 12px', borderRadius: 999 }}>Click to Challenge</span>
               </button>
             ))}
             {results.length === 0 && <div style={{ color: C.soft, fontSize: 14, padding: '8px 2px' }}>No quizzes match that search.</div>}

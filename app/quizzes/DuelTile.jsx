@@ -1,7 +1,7 @@
 'use client';
 import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { useRouter } from 'next/navigation';
-import { Swords, UserPlus, ListChecks, ArrowRight, X } from 'lucide-react';
+import { Swords, UserPlus, ListChecks, ArrowRight, X, ChevronDown } from 'lucide-react';
 import { QUIZZES } from '@/lib/quizzes';
 
 const NAVY = '#0e1d40', ACCENT = '#2563eb', AMBER = '#f8b84a';
@@ -9,10 +9,12 @@ const FONT = "'Manrope', system-ui, -apple-system, sans-serif";
 
 function getAnon() { try { return localStorage.getItem('sot_quiz_anon') || ''; } catch { return ''; } }
 
-// Quick-start duel composer that lives in the quiz-hub tile grid. Pick an
-// opponent (optional) and a quiz, then jump to /duel/new with both prefilled.
+// Quick-start duel composer in the quiz-hub tile grid. Pick an opponent
+// (optional) and a quiz, then jump to /duel/new with both prefilled. On mobile
+// it collapses to a tappable header (dropdown) so it reads like the other tiles.
 export default function DuelTile() {
   const router = useRouter();
+  const [open, setOpen] = useState(false);
   const [myAnon, setMyAnon] = useState('');
   const [oppQ, setOppQ] = useState('');
   const [oppResults, setOppResults] = useState([]);
@@ -50,6 +52,8 @@ export default function DuelTile() {
     return () => document.removeEventListener('mousedown', h);
   }, []);
 
+  function toggle() { if (typeof window !== 'undefined' && window.innerWidth <= 560) setOpen((o) => !o); }
+
   function start() {
     const p = new URLSearchParams();
     if (opp && opp.anon) { p.set('opponent', opp.anon); p.set('oppName', opp.name || 'Player'); }
@@ -67,64 +71,72 @@ export default function DuelTile() {
   const picked = { flex: 1, minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', fontSize: 12.5, color: '#eaf0fb', fontWeight: 700 };
 
   return (
-    <div className="dueltile" ref={wrapRef} style={{ background: NAVY, borderRadius: 14, padding: '14px 15px', color: '#fff', display: 'flex', flexDirection: 'column', minHeight: 190, minWidth: 0, fontFamily: FONT }}>
-      <div style={{ fontSize: 10, fontWeight: 800, letterSpacing: '.14em', textTransform: 'uppercase', color: AMBER }}>1 v 1 Duel</div>
-      <div style={{ display: 'flex', alignItems: 'center', gap: 8, margin: '6px 0 4px' }}>
-        <Swords size={18} style={{ color: AMBER, flex: 'none' }} />
-        <span style={{ fontSize: 15, fontWeight: 800, lineHeight: 1.15 }}>Challenge a Friend or User to a Duel</span>
+    <div className={`dueltile ${open ? 'mc-open' : 'mc-closed'}`} ref={wrapRef} style={{ background: NAVY, borderRadius: 14, padding: '14px 15px', color: '#fff', display: 'flex', flexDirection: 'column', minHeight: 190, minWidth: 0, fontFamily: FONT }}>
+      <div className="dueltile-head" onClick={toggle} style={{ display: 'flex', alignItems: 'flex-start', gap: 8 }}>
+        <div style={{ flex: 1, minWidth: 0 }}>
+          <div style={{ fontSize: 10, fontWeight: 800, letterSpacing: '.14em', textTransform: 'uppercase', color: AMBER }}>1 v 1 Duel</div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 4 }}>
+            <Swords size={18} style={{ color: AMBER, flex: 'none' }} />
+            <span style={{ fontSize: 15, fontWeight: 800, lineHeight: 1.15 }}>Challenge a Friend or User to a Duel</span>
+          </div>
+        </div>
+        <ChevronDown className="dueltile-chev" size={18} strokeWidth={2.5} style={{ color: '#9fb0d4', flex: 'none', transform: open ? 'rotate(180deg)' : 'none' }} />
       </div>
-      <div style={{ fontSize: 11, color: '#9fb0d4', lineHeight: 1.4, marginBottom: 11 }}>Pick an opponent and a quiz, then race the same clock.</div>
 
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 8, marginBottom: 12 }}>
-        <div style={field}>
-          <div style={inputBox} onClick={() => setOppOpen(true)}>
-            <UserPlus size={15} style={{ color: '#9fb0d4', flex: 'none' }} />
-            {opp ? (
-              <>
-                <span style={picked}>{opp.name}</span>
-                <button aria-label="Clear opponent" onClick={(e) => { e.stopPropagation(); setOpp(null); setOppQ(''); }} style={clearBtn}><X size={14} /></button>
-              </>
-            ) : (
-              <input value={oppQ} onChange={(e) => { setOppQ(e.target.value); setOppOpen(true); }} onFocus={() => setOppOpen(true)} placeholder="Choose an opponent (optional)" style={inputEl} />
+      <div className="dueltile-body" style={{ display: 'flex', flexDirection: 'column', flex: 1 }}>
+        <div style={{ fontSize: 11, color: '#9fb0d4', lineHeight: 1.4, margin: '10px 0 11px' }}>Pick an opponent and a quiz, then race the same clock.</div>
+
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 8, marginBottom: 12 }}>
+          <div style={field}>
+            <div style={inputBox} onClick={() => setOppOpen(true)}>
+              <UserPlus size={15} style={{ color: '#9fb0d4', flex: 'none' }} />
+              {opp ? (
+                <>
+                  <span style={picked}>{opp.name}</span>
+                  <button aria-label="Clear opponent" onClick={(e) => { e.stopPropagation(); setOpp(null); setOppQ(''); }} style={clearBtn}><X size={14} /></button>
+                </>
+              ) : (
+                <input value={oppQ} onChange={(e) => { setOppQ(e.target.value); setOppOpen(true); }} onFocus={() => setOppOpen(true)} placeholder="Choose an opponent (optional)" style={inputEl} />
+              )}
+            </div>
+            {oppOpen && !opp && oppQ.trim() && (
+              <div style={menu}>
+                {oppResults.length === 0 ? <div style={{ padding: '8px 10px', fontSize: 12, color: '#6b7280' }}>No players match. Leave blank for a shareable link.</div>
+                  : oppResults.map((p) => (
+                    <button key={p.anon} onClick={() => { setOpp(p); setOppOpen(false); }} style={item}>{p.name}</button>
+                  ))}
+              </div>
             )}
           </div>
-          {oppOpen && !opp && oppQ.trim() && (
-            <div style={menu}>
-              {oppResults.length === 0 ? <div style={{ padding: '8px 10px', fontSize: 12, color: '#6b7280' }}>No players match. Leave blank for a shareable link.</div>
-                : oppResults.map((p) => (
-                  <button key={p.anon} onClick={() => { setOpp(p); setOppOpen(false); }} style={item}>{p.name}</button>
+
+          <div style={field}>
+            <div style={inputBox} onClick={() => setQuizOpen(true)}>
+              <ListChecks size={15} style={{ color: '#9fb0d4', flex: 'none' }} />
+              {quiz ? (
+                <>
+                  <span style={picked}>{quiz.title}</span>
+                  <button aria-label="Clear quiz" onClick={(e) => { e.stopPropagation(); setQuiz(null); setQuizQ(''); }} style={clearBtn}><X size={14} /></button>
+                </>
+              ) : (
+                <input value={quizQ} onChange={(e) => { setQuizQ(e.target.value); setQuizOpen(true); }} onFocus={() => setQuizOpen(true)} placeholder="Choose a quiz" style={inputEl} />
+              )}
+            </div>
+            {quizOpen && !quiz && (
+              <div style={menu}>
+                {quizResults.map((x) => (
+                  <button key={x.id} onClick={() => { setQuiz({ id: x.id, title: x.title }); setQuizOpen(false); }} style={item}>
+                    <span style={{ display: 'block', fontWeight: 700, fontSize: 13, color: '#1c1e24', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{x.title}</span>
+                    <span style={{ display: 'block', fontSize: 10.5, fontWeight: 700, letterSpacing: '.05em', textTransform: 'uppercase', color: '#9aa0ab' }}>{x.category || 'Quiz'}</span>
+                  </button>
                 ))}
-            </div>
-          )}
-        </div>
-
-        <div style={field}>
-          <div style={inputBox} onClick={() => setQuizOpen(true)}>
-            <ListChecks size={15} style={{ color: '#9fb0d4', flex: 'none' }} />
-            {quiz ? (
-              <>
-                <span style={picked}>{quiz.title}</span>
-                <button aria-label="Clear quiz" onClick={(e) => { e.stopPropagation(); setQuiz(null); setQuizQ(''); }} style={clearBtn}><X size={14} /></button>
-              </>
-            ) : (
-              <input value={quizQ} onChange={(e) => { setQuizQ(e.target.value); setQuizOpen(true); }} onFocus={() => setQuizOpen(true)} placeholder="Choose a quiz" style={inputEl} />
+                {quizResults.length === 0 && <div style={{ padding: '8px 10px', fontSize: 12, color: '#6b7280' }}>No quizzes match.</div>}
+              </div>
             )}
           </div>
-          {quizOpen && !quiz && (
-            <div style={menu}>
-              {quizResults.map((x) => (
-                <button key={x.id} onClick={() => { setQuiz({ id: x.id, title: x.title }); setQuizOpen(false); }} style={item}>
-                  <span style={{ display: 'block', fontWeight: 700, fontSize: 13, color: '#1c1e24', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{x.title}</span>
-                  <span style={{ display: 'block', fontSize: 10.5, fontWeight: 700, letterSpacing: '.05em', textTransform: 'uppercase', color: '#9aa0ab' }}>{x.category || 'Quiz'}</span>
-                </button>
-              ))}
-              {quizResults.length === 0 && <div style={{ padding: '8px 10px', fontSize: 12, color: '#6b7280' }}>No quizzes match.</div>}
-            </div>
-          )}
         </div>
-      </div>
 
-      <button onClick={start} style={{ marginTop: 'auto', width: '100%', background: ACCENT, color: '#fff', border: 'none', borderRadius: 10, padding: '11px', fontFamily: FONT, fontWeight: 800, fontSize: 13, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 7 }}>Start a Duel <ArrowRight size={15} /></button>
+        <button onClick={start} style={{ marginTop: 'auto', width: '100%', background: ACCENT, color: '#fff', border: 'none', borderRadius: 10, padding: '11px', fontFamily: FONT, fontWeight: 800, fontSize: 13, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 7 }}>Start a Duel <ArrowRight size={15} /></button>
+      </div>
     </div>
   );
 }

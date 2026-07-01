@@ -618,7 +618,7 @@ export default function QuizHomeClient() {
     );
     // Guests are included in the public board (owner rule 2026-06-30).
     const list = sorted;
-    return list.slice(0, 3);
+    return list.slice(0, 6);
   }, [eloBoard, lbMetric.key, boardsExpanded, mobLbOpen]);
 
   // Compact top-3 for the active leaderboard slide, shown in the player stat
@@ -628,11 +628,11 @@ export default function QuizHomeClient() {
     let rows = [];
     if (lbMetric.special) {
       if (lbMetric.key === 'catRating') {
-        rows = (catBoards[lbMetric.catKey] || []).slice(0, 3).map((r) => ({ name: r.name || 'Player', value: lbMetric.fmt(r.rating) }));
+        rows = (catBoards[lbMetric.catKey] || []).slice(0, 6).map((r) => ({ name: r.name || 'Player', value: lbMetric.fmt(r.rating) }));
       } else {
         const src = lbMetric.key === 'dailyChallenge' ? dailyRows : lbMetric.key === 'correctToday' ? todayCorrectRows : todayQuizRows;
         const valOf = lbMetric.key === 'dailyChallenge' ? ((r) => r.totalCorrect) : lbMetric.key === 'correctToday' ? ((r) => r.correct) : ((r) => r.quizzes);
-        rows = src.slice(0, 3).map((r) => ({ name: r.username || 'Player', value: (valOf(r) || 0).toLocaleString() }));
+        rows = src.slice(0, 6).map((r) => ({ name: r.username || 'Player', value: (valOf(r) || 0).toLocaleString() }));
       }
     } else {
       rows = leaderRows.map((r) => ({ name: r.name || 'Player', value: lbMetric.fmt(r[lbMetric.key]) }));
@@ -674,6 +674,17 @@ export default function QuizHomeClient() {
       .sort((a, b) => b.p - a.p || a.title.localeCompare(b.title))
       .slice(0, 6);
   }, [catalog, byKey, scope, totals, newestIds]);
+
+  // Trending = highest-plays quiz that is NOT in the top-3 most played, NOT the
+  // newest, and NOT the quiz of the day. Drives the second hero tile.
+  const trending = useMemo(() => {
+    const ranked = catalog.map((q) => ({ ...q, p: plays(q.id) })).filter((q) => q.p > 0)
+      .sort((a, b) => b.p - a.p || (a.title || '').localeCompare(b.title || ''));
+    const excl = new Set(ranked.slice(0, 3).map((q) => q.id));
+    if (newest[0]) excl.add(newest[0].id);
+    if (qotd) excl.add(qotd.id);
+    return ranked.find((q) => !excl.has(q.id)) || null;
+  }, [catalog, newest, qotd, totals]);
   // Ids already surfaced in the Newest + Most Played columns (all-scope only).
   const shownIds = useMemo(() => {
     if (scope !== 'all') return new Set();
@@ -818,6 +829,15 @@ export default function QuizHomeClient() {
     .qzh .qotd-foot{display:flex;align-items:center;gap:14px;margin-top:15px;flex-wrap:wrap;}
     .qzh .qotd-play{display:inline-flex;align-items:center;gap:7px;background:${C.accent};color:#fff;border-radius:9px;padding:10px 20px;font-weight:800;font-size:14px;}
     .qzh .qotd:hover .qotd-play{background:#1d4ed8;}
+    .qzh .th-heroes{display:grid;grid-template-columns:minmax(0,1.5fr) minmax(0,1fr);gap:12px;}
+    @media(max-width:760px){.qzh .th-heroes{grid-template-columns:1fr;}}
+    .qzh .ttile{position:relative;border:1px solid ${C.line};border-radius:14px;overflow:hidden;text-decoration:none;display:flex;flex-direction:column;justify-content:flex-end;min-height:190px;background-size:cover;background-position:center;background-color:#0e1d40;}
+    .qzh .ttile-tag{position:absolute;top:12px;left:12px;font-size:10px;font-weight:800;letter-spacing:.08em;background:#fff;border-radius:10px;padding:4px 10px;z-index:2;color:#c2410c;display:inline-flex;align-items:center;gap:4px;}
+    .qzh .ttile-ov{position:relative;z-index:1;padding:18px 16px 15px;background:linear-gradient(to top, rgba(8,15,35,0.9), rgba(8,15,35,0.45) 55%, rgba(8,15,35,0));}
+    .qzh .ttile-t{font-size:20px;font-weight:800;letter-spacing:-.3px;line-height:1.1;color:#fff;}
+    .qzh .ttile-foot{display:flex;align-items:center;gap:12px;margin-top:9px;}
+    .qzh .ttile-p{font-size:13px;font-weight:800;color:#fff;}
+    .qzh .ttile-plays{font-size:12px;font-weight:600;color:#9fb0d4;}
     .qzh .qotd-stats{font-size:12px;color:#9fb0d4;font-weight:600;display:inline-flex;align-items:center;gap:6px;min-width:0;}
     @media(max-width:760px){.qzh .qotd{flex-direction:column;min-height:0;}.qzh .qotd-photo{flex:none;height:128px;}.qzh .qotd-title{font-size:21px;}}
     .qzh .thub{display:flex;gap:12px;margin-bottom:26px;align-items:stretch;}
@@ -843,7 +863,8 @@ export default function QuizHomeClient() {
     .qzh .lbtile{background:#fff;border:1px solid ${C.line};border-radius:14px;padding:12px 15px;flex:1;display:flex;flex-direction:column;min-height:132px;overflow:hidden;}
     .qzh .lbtile-head{display:flex;align-items:center;gap:7px;margin-bottom:6px;}
     .qzh .duelbtn{background:${C.accent};color:#fff;border:none;border-radius:12px;padding:12px;font-weight:800;font-size:12px;font-family:inherit;display:flex;align-items:center;justify-content:center;gap:8px;cursor:pointer;flex:none;}
-    @media(max-width:560px){.qzh .dueltile{display:none !important;}}
+    .qzh .dueltile-chev{display:none;}
+    @media(max-width:560px){.qzh .dueltile{min-height:0 !important;}.qzh .dueltile-head{cursor:pointer;}.qzh .dueltile-chev{display:inline-flex !important;transition:transform .15s;}.qzh .dueltile.mc-closed .dueltile-body{display:none !important;}}
     .qzh .rail{background:#fff;border:1px solid ${C.line};border-radius:14px;padding:11px;display:flex;flex-direction:column;}
     .qzh .rail-bars{flex:1;display:flex;flex-direction:column;}
     .qzh .rseg{display:flex;align-items:center;gap:6px;padding:0 11px;font-size:11px;font-weight:600;border:none;border-radius:0;margin:0;cursor:pointer;width:100%;min-height:26px;}
@@ -1105,18 +1126,28 @@ export default function QuizHomeClient() {
 
         <div className="thub">
           <div className="thub-left">
+          <div className="th-heroes">
           {qotd && (<Link href={`/quiz/${qotd.id}`} className="qotd th-qotd" aria-label={`Quiz of the day: ${qotd.title}`}>
             <div className="qotd-photo" style={{ backgroundImage: `url("${qotd.hero}")`, backgroundPosition: qotd.pos || 'center' }} aria-hidden="true" />
             <div className="qotd-body">
               <div className="qotd-eyebrow">{qotd.eyebrow}</div>
               <div className="qotd-title">{qotd.title}</div>
-              <div className="qotd-meta">{qotd.blurb}</div>
               <div className="qotd-foot">
                 <span className="qotd-play"><Play size={15} fill="#fff" strokeWidth={0} />Play now</span>
                 <span className="qotd-stats">{plays(qotd.id) > 0 ? <span>{plays(qotd.id).toLocaleString()} plays</span> : <span>New quiz</span>}{leader(qotd.id) ? <><span aria-hidden="true">·</span><Crown size={13} style={{ color: '#e8b43a', flex: 'none' }} /><span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{leader(qotd.id)} leads</span></> : null}</span>
               </div>
             </div>
           </Link>)}
+          {trending ? (() => { const tc = byKey[trending.dept] || {}; const tqh = QUIZ_HEROES[trending.id]; const tHero = tqh ? tqh.src : DEPT_HERO[trending.dept]; const tPos = tqh ? tqh.pos : undefined; return (
+            <Link href={`/quiz/${trending.id}`} className="ttile" style={tHero ? { backgroundImage: `url("${tHero}")`, backgroundPosition: tPos || 'center' } : { background: tc.c || C.accent }}>
+              <span className="ttile-tag"><Flame size={11} style={{ verticalAlign: -1 }} /> TRENDING</span>
+              <div className="ttile-ov">
+                <div className="ttile-t">{stripVerb(trending.title)}</div>
+                <div className="ttile-foot"><span className="ttile-p">Play <ArrowRight size={13} style={{ verticalAlign: -1 }} /></span>{plays(trending.id) > 0 ? <span className="ttile-plays">{plays(trending.id).toLocaleString()} plays</span> : null}</div>
+              </div>
+            </Link>
+          ); })() : null}
+          </div>
 
           <div className="th-r2">
             {daily && DAILY_CHALLENGE_ON ? (
@@ -1378,9 +1409,6 @@ export default function QuizHomeClient() {
               rows={EXAM_TILE_ROWS.map((e) => ({ q: { id: e.id, title: e.title, rawTitle: e.title }, href: e.href }))}
               cta="View all ›" ctaHref="/exams" />
           </div>
-        )}
-        {(!searchResults && scope === 'all' && !listMode && doneFilter === 'all') && (
-          <Link href="/duel/new" className="duelbtn-mob"><Swords size={18} /> Challenge a Friend to a Duel</Link>
         )}
       </div>
 

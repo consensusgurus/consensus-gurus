@@ -1,5 +1,5 @@
 'use client';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
 import { BadgeCheck, UserPlus, ChevronDown, ArrowRight, X, Crown } from 'lucide-react';
 import { DEPT_LABEL } from '@/lib/quiz-departments';
@@ -100,13 +100,34 @@ export default function QuizPlayerBar({ me: meProp, controlled = false, rightAct
   const dash='—';
   const signed = !!(found && me && me.signed);
   const hubMode = leaderboard != null;
-  const lbRows = (leaderboard && Array.isArray(leaderboard.rows)) ? leaderboard.rows.slice(0, 3) : [];
+  const lbRows = (leaderboard && Array.isArray(leaderboard.rows)) ? leaderboard.rows.slice(0, 6) : [];
   const rightBtn = rightAction==='share'
     ? <button onClick={(e)=>{e.stopPropagation(); onShare&&onShare();}} style={chip}>Share Stats</button>
     : <Link href="/quizzes/hub" onClick={e=>e.stopPropagation()} style={chip}>{(found && !signed)?'Sign Up / Stat Hub':'Stat Hub'} <ArrowRight size={14}/></Link>;
+  const lbRef = useRef(null);
+  useEffect(() => {
+    const wrap = lbRef.current; if (!wrap) return;
+    const rows = wrap.querySelector('.qpb-lbrows'); if (!rows) return;
+    const fit = () => {
+      const kids = Array.from(rows.children);
+      kids.forEach((k) => { k.style.display = ''; });
+      const avail = rows.clientWidth; let used = 0, over = false;
+      kids.forEach((k, idx) => {
+        if (over) { k.style.display = 'none'; return; }
+        const w = k.getBoundingClientRect().width;
+        const next = used + (idx > 0 ? 16 : 0) + w;
+        if (idx > 0 && next > avail) { over = true; k.style.display = 'none'; }
+        else used = next;
+      });
+    };
+    fit();
+    const ro = new ResizeObserver(fit); ro.observe(wrap);
+    window.addEventListener('resize', fit);
+    return () => { ro.disconnect(); window.removeEventListener('resize', fit); };
+  }, [lbRows, hubMode]);
   return (
     <div className="qpb" style={{display:'flex',flexDirection:'row',alignItems:'center',flexWrap:'nowrap',gap:16,padding:'10px 14px',background:BARBG,borderRadius:11,minHeight:56,boxSizing:'border-box',overflow:'hidden'}}>
-      <style>{`.qpb-chev{display:none;}@media(max-width:1023px){.qpb-bestcat{display:none !important;}}@media(max-width:920px){.qpb-s-correct{display:none !important;}}@media(max-width:820px){.qpb-s-accuracy{display:none !important;}}@media(max-width:700px){.qpb-s-played{display:none !important;}}@media(max-width:560px){.qpb .qpb-stats{display:none !important;}.qpb-hub{margin-left:auto !important;}}@media(max-width:980px){.qpb-lb3{display:none !important;}}@media(max-width:840px){.qpb-lb2{display:none !important;}}@media(max-width:620px){.qpb-lb{display:none !important;}.qpb-hub{margin-left:auto !important;}}`}</style>
+      <style>{`.qpb-chev{display:none;}@media(max-width:1023px){.qpb-bestcat{display:none !important;}}@media(max-width:920px){.qpb-s-correct{display:none !important;}}@media(max-width:820px){.qpb-s-accuracy{display:none !important;}}@media(max-width:700px){.qpb-s-played{display:none !important;}}@media(max-width:620px){.qpb-lb,.qpb-lbdiv{display:none !important;}.qpb-hub{margin-left:auto !important;}}@media(max-width:560px){.qpb .qpb-stats{display:none !important;}.qpb-s-completed{display:none !important;}.qpb-hub{margin-left:auto !important;}}`}</style>
       <div style={{display:'flex',flexDirection:'column',minWidth:0}}>
         <div style={lbl}>Player</div>
         {found?(
@@ -128,7 +149,7 @@ export default function QuizPlayerBar({ me: meProp, controlled = false, rightAct
           {lbRows.length ? (
             <>
               <div className="qpb-lbdiv" style={{width:2,height:34,background:'rgba(255,255,255,0.32)',borderRadius:2,flex:'none'}}/>
-              <div className="qpb-lb" style={{flex:'1 1 auto',minWidth:0,overflow:'hidden'}}>
+              <div className="qpb-lb" ref={lbRef} style={{flex:'1 1 auto',minWidth:0,overflow:'hidden'}}>
                 <div style={{...lbl,display:'flex',alignItems:'center',gap:5,marginBottom:3,whiteSpace:'nowrap',overflow:'hidden',textOverflow:'ellipsis'}}><Crown size={12} strokeWidth={2} style={{color:'#e8b43a',flex:'none'}}/>{leaderboard.label}</div>
                 <div className="qpb-lbrows" style={{display:'flex',flexWrap:'nowrap',gap:16,whiteSpace:'nowrap',overflow:'hidden',fontSize:12,color:ONBLUE}}>
                   {lbRows.map((r,i)=>(<span key={i} className={`qpb-lb${i+1}`}><b style={{color:MEDAL[i]||ONBLUE_SOFT}}>{i+1}</b>&nbsp; <span style={{fontWeight:600}}>{r.name}</span> <b>{r.value}</b></span>))}
