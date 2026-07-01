@@ -61,6 +61,21 @@ const QUIZ_OF_DAY = {
   blurb: 'Ten iconic New York restaurants on a straight-down aerial. A name drops and you get 45 seconds to pin where it sits.',
   hero: 'https://upload.wikimedia.org/wikipedia/commons/thumb/b/b2/Katz%27s_Delicatessen_%2851623899326%29.jpg/1920px-Katz%27s_Delicatessen_%2851623899326%29.jpg',
 };
+const DEPT_HERO = {
+  movies: 'https://upload.wikimedia.org/wikipedia/commons/thumb/b/b1/Ptuj%2C_city_cinema.jpg/960px-Ptuj%2C_city_cinema.jpg',
+  music: 'https://upload.wikimedia.org/wikipedia/commons/thumb/a/a7/D%C3%BClmen%2C_D%C3%BClmener_Sommer%2C_Open-Air-Konzert%2C_%22Bounce%22_--_2018_--_0051.jpg/960px-D%C3%BClmen%2C_D%C3%BClmener_Sommer%2C_Open-Air-Konzert%2C_%22Bounce%22_--_2018_--_0051.jpg',
+  gaming: 'https://upload.wikimedia.org/wikipedia/commons/thumb/b/b7/Universum_TV_Multispiel_2006.jpg/960px-Universum_TV_Multispiel_2006.jpg',
+  travel: 'https://upload.wikimedia.org/wikipedia/commons/thumb/7/73/Beach_at_Fort_Lauderdale.jpg/960px-Beach_at_Fort_Lauderdale.jpg',
+  sports: 'https://upload.wikimedia.org/wikipedia/commons/thumb/c/cb/Narendra_Modi_Stadium_view_from_the_gallery.jpg/960px-Narendra_Modi_Stadium_view_from_the_gallery.jpg',
+  geography: 'https://upload.wikimedia.org/wikipedia/commons/thumb/2/2d/Meteosat-12-fci-march-equinox-2025-noon.jpg/960px-Meteosat-12-fci-march-equinox-2025-noon.jpg',
+  food: 'https://upload.wikimedia.org/wikipedia/commons/thumb/6/62/Barbieri_-_ViaSophia25668.jpg/960px-Barbieri_-_ViaSophia25668.jpg',
+  business: 'https://upload.wikimedia.org/wikipedia/commons/thumb/d/dc/NYC_Downtown_Manhattan_Skyline_seen_from_Paulus_Hook_2019-12-20_IMG_7347_FRD.jpg/960px-NYC_Downtown_Manhattan_Skyline_seen_from_Paulus_Hook_2019-12-20_IMG_7347_FRD.jpg',
+  science: 'https://upload.wikimedia.org/wikipedia/commons/thumb/0/06/Startrails_above_Gunung_Bromo_-_Indonesia.jpg/960px-Startrails_above_Gunung_Bromo_-_Indonesia.jpg',
+  entertainment: 'https://upload.wikimedia.org/wikipedia/commons/thumb/d/db/%ED%8F%AC%EC%8B%9C%EC%A6%8C%EC%8A%A4_%EC%82%B0%EB%A6%AC%EC%98%A4%EB%8C%84%EC%8A%A4%ED%83%80%EC%9E%84_2025.jpg/960px-%ED%8F%AC%EC%8B%9C%EC%A6%8C%EC%8A%A4_%EC%82%B0%EB%A6%AC%EC%98%A4%EB%8C%84%EC%8A%A4%ED%83%80%EC%9E%84_2025.jpg',
+  literature: 'https://upload.wikimedia.org/wikipedia/commons/thumb/a/a3/SanDiegoCityCollegeLearningResource_-_bookshelf.jpg/960px-SanDiegoCityCollegeLearningResource_-_bookshelf.jpg',
+  history: 'https://upload.wikimedia.org/wikipedia/commons/thumb/d/de/Colosseo_2020.jpg/960px-Colosseo_2020.jpg',
+  arts: 'https://upload.wikimedia.org/wikipedia/commons/thumb/d/d9/Museo_Chileno_de_Arte_Precolombino_-_2020_-_10.jpg/960px-Museo_Chileno_de_Arte_Precolombino_-_2020_-_10.jpg',
+};
 
 // Per-quiz completion status for the CURRENT player, supplied once at the top of
 // the tree so any quiz row can show a check (played) or a circled check (aced at
@@ -633,8 +648,9 @@ export default function QuizHomeClient() {
     const n = rows.length;
     return rows.map((r, i) => {
       const t = n > 1 ? i / (n - 1) : 0;
-      const L = 52 + t * 33;
-      return { key: r.key, label: r.label, acc: r.pct, color: `hsl(222, 80%, ${L}%)`, text: L < 68 ? '#fff' : '#0e1d40' };
+      const L = 47 + t * 50;
+      const S = 82 - t * 34;
+      return { key: r.key, label: r.label, acc: r.pct, color: `hsl(222, ${S}%, ${L}%)`, text: L < 62 ? '#fff' : '#0e1d40' };
     });
   }, [me, cats]);
 
@@ -738,7 +754,7 @@ export default function QuizHomeClient() {
     .qzh .th-rail{grid-column:2;grid-row:1 / 3;}
     .qzh .th-r2{grid-column:1;grid-row:2;display:grid;grid-template-columns:minmax(0,1.15fr) minmax(0,0.82fr) minmax(0,1fr);gap:12px;align-items:stretch;}
     @media(max-width:820px){.qzh .thub{display:flex;flex-direction:column;}.qzh .th-r2{grid-template-columns:1fr 1fr;}}
-    @media(max-width:560px){.qzh .th-r2{grid-template-columns:1fr;}.qzh .th-rail{display:none !important;}.qzh .th-r2 .ntile{display:none !important;}.qzh .duelbtn{display:none !important;}}
+    @media(max-width:560px){.qzh .th-r2{grid-template-columns:1fr;}.qzh .th-rail{display:none !important;}.qzh .th-r2 .ntile{display:none !important;}.qzh .duelbtn{display:none !important;}.qzh .th-qotd{min-height:0 !important;}}
     .qzh .dtile{background:${C.accent};border-radius:14px;padding:14px 16px;color:#fff;display:flex;flex-direction:column;min-height:184px;}
     .qzh .dtile-head{display:flex;align-items:center;gap:8px;margin-bottom:9px;}
     .qzh .dtile-chip{font-size:10px;font-weight:800;background:rgba(255,255,255,0.2);border-radius:12px;padding:2px 9px;text-transform:uppercase;letter-spacing:.04em;}
@@ -748,17 +764,20 @@ export default function QuizHomeClient() {
     .qzh .dtile-num{width:16px;height:16px;border-radius:50%;border:2px solid rgba(255,255,255,0.6);flex:none;font-size:9px;display:flex;align-items:center;justify-content:center;}
     .qzh .dtile-name{flex:1 1 auto;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
     .qzh .dtile-cta{margin-top:auto;display:flex;align-items:center;justify-content:center;gap:7px;background:#fff;color:${C.accent};border-radius:10px;padding:10px;font-weight:800;font-size:12.5px;text-decoration:none;}
-    .qzh .ntile{background:#fff;border:1px solid ${C.line};border-radius:14px;overflow:hidden;text-decoration:none;color:${C.ink};display:flex;flex-direction:column;}
-    .qzh .ntile-hero{height:96px;display:flex;align-items:center;justify-content:center;position:relative;flex:none;}
-    .qzh .ntile-tag{position:absolute;top:9px;left:11px;font-size:9px;font-weight:800;letter-spacing:.08em;background:#fff;border-radius:10px;padding:3px 9px;}
-    .qzh .ntile-body{padding:12px 14px;flex:1;display:flex;flex-direction:column;}
+    .qzh .ntile{position:relative;border:1px solid ${C.line};border-radius:14px;overflow:hidden;text-decoration:none;display:flex;flex-direction:column;justify-content:flex-end;min-height:172px;background-size:cover;background-position:center;background-color:${C.accsoft};}
+    .qzh .ntile-tag{position:absolute;top:10px;left:11px;font-size:9px;font-weight:800;letter-spacing:.08em;background:#fff;border-radius:10px;padding:3px 9px;z-index:2;}
+    .qzh .ntile-ov{position:relative;z-index:1;padding:16px 14px 13px;background:linear-gradient(to top, rgba(8,15,35,0.88), rgba(8,15,35,0.45) 55%, rgba(8,15,35,0));}
+    .qzh .ntile-t{font-size:16px;font-weight:800;letter-spacing:-.3px;line-height:1.14;color:#fff;}
+    .qzh .ntile-p{margin-top:8px;font-size:13px;font-weight:800;color:#fff;}
     .qzh .lbtile{background:#fff;border:1px solid ${C.line};border-radius:14px;padding:12px 15px;flex:1;display:flex;flex-direction:column;min-height:0;overflow:hidden;}
     .qzh .lbtile-head{display:flex;align-items:center;gap:7px;margin-bottom:6px;}
     .qzh .duelbtn{background:${C.accent};color:#fff;border:none;border-radius:12px;padding:12px;font-weight:800;font-size:12px;font-family:inherit;display:flex;align-items:center;justify-content:center;gap:8px;cursor:pointer;flex:none;}
     .qzh .rail{background:#fff;border:1px solid ${C.line};border-radius:14px;padding:11px;display:flex;flex-direction:column;}
-    .qzh .rail-bars{flex:1;display:flex;flex-direction:column;border-radius:12px;overflow:hidden;min-height:0;}
-    .qzh .rseg{display:flex;align-items:center;gap:6px;padding:0 10px;font-size:10.5px;font-weight:600;border:none;cursor:pointer;width:100%;}
-    .qzh .rseg:hover{filter:brightness(1.08);}
+    .qzh .rail-bars{flex:1;display:flex;flex-direction:column;}
+    .qzh .rseg{display:flex;align-items:center;gap:6px;padding:0 11px;font-size:11px;font-weight:600;border:none;cursor:pointer;width:100%;}
+    .qzh .rail-bars .rseg:first-child{border-radius:12px 12px 0 0;}
+    .qzh .rail-bars .rseg:last-child{border-radius:0 0 12px 12px;}
+    .qzh .rseg:hover{filter:brightness(1.06);}
     .qzh .rseg .rnm{flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;text-align:left;}
     .qzh .dchev,.qzh .lchev{display:none;}
     @media(max-width:560px){
@@ -971,21 +990,17 @@ export default function QuizHomeClient() {
                       </Link>
                     ); })}
                   </div>
-                  <Link href={dailyAllDone ? `/challenge/${dailyId}?done=1` : dailyEntryUrl} className="dtile-cta">{dailyAllDone ? 'See your results' : dailyDoneCount > 0 ? 'Continue challenge' : 'Play today’s challenge'}<ArrowRight size={15} style={{ flex: 'none' }} /></Link>
+                  <Link href={dailyAllDone ? `/challenge/${dailyId}?done=1` : dailyEntryUrl} className="dtile-cta">{dailyAllDone ? 'See your results' : dailyDoneCount > 0 ? 'Continue challenge' : 'Play today’s challenge'}{dailyRows && dailyRows.length ? <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4 }}><Crown size={12} style={{ color: '#e8b43a' }} /> {dailyRows[0].username || 'Player'}</span> : <ArrowRight size={15} style={{ flex: 'none' }} />}</Link>
                 </div>
               </div>
             ) : <div />}
 
             {newest[0] ? (() => { const nc = byKey[newest[0].dept] || {}; const NIcon = nc.Icon || Sparkles; return (
-              <Link href={`/quiz/${newest[0].id}`} className="ntile">
-                <div className="ntile-hero" style={{ background: nc.t || C.accsoft, color: nc.c || C.accent }}>
-                  <NIcon size={38} />
-                  <span className="ntile-tag" style={{ color: nc.c || C.accent }}><Sparkles size={10} style={{ verticalAlign: -1 }} /> NEWEST QUIZ</span>
-                </div>
-                <div className="ntile-body">
-                  <div style={{ fontSize: 15.5, fontWeight: 800, letterSpacing: '-.3px', lineHeight: 1.12 }}>{stripVerb(newest[0].title)}</div>
-                  <div style={{ fontSize: 11.5, color: C.soft, fontWeight: 600, marginTop: 4 }}>{nc.label ? `${nc.label} · ` : ''}just added</div>
-                  <div style={{ marginTop: 'auto', fontSize: 13, color: C.accent, fontWeight: 800 }}>Play <ArrowRight size={13} style={{ verticalAlign: -1 }} /></div>
+              <Link href={`/quiz/${newest[0].id}`} className="ntile" style={DEPT_HERO[newest[0].dept] ? { backgroundImage: `url("${DEPT_HERO[newest[0].dept]}")` } : { background: nc.c || C.accent }}>
+                <span className="ntile-tag" style={{ color: C.accent }}><Sparkles size={10} style={{ verticalAlign: -1 }} /> NEWEST QUIZ</span>
+                <div className="ntile-ov">
+                  <div className="ntile-t">{stripVerb(newest[0].title)}</div>
+                  <div className="ntile-p">Play <ArrowRight size={13} style={{ verticalAlign: -1 }} /></div>
                 </div>
               </Link>
             ); })() : <div />}
@@ -994,7 +1009,7 @@ export default function QuizHomeClient() {
               <div className={`lbtile mc-${mLb ? 'open' : 'closed'}`}>
                 <div className="lbtile-head" onClick={() => { if (isMobile) setMLb((v) => !v); }}>
                   <Crown size={15} strokeWidth={2} style={{ color: '#e8b43a', flex: 'none' }} />
-                  <span className="x8" style={{ fontSize: 13, fontWeight: 800, flex: 1, minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{isMobile ? 'Leaderboard' : (lbMetric.label + (lbMetric.special || scope === 'all' ? '' : ' · ' + ((byKey[scope] && byKey[scope].label) || '')))}</span>
+                  <span className="x8" style={{ fontSize: 13, fontWeight: 800, flex: 1, minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{(isMobile && !mLb) ? 'Leaderboard' : (lbMetric.label + (lbMetric.special || scope === 'all' ? '' : ' · ' + ((byKey[scope] && byKey[scope].label) || '')))}</span>
                   <Link href="/quizzes/hub" className="qlink" onClick={(e) => e.stopPropagation()} style={{ fontSize: 10, fontWeight: 800, color: C.accent, flex: 'none' }}>View all</Link>
                   <ChevronDown className="lchev" size={16} strokeWidth={2.5} style={{ color: C.soft, transform: mLb ? 'rotate(180deg)' : 'none' }} />
                 </div>
