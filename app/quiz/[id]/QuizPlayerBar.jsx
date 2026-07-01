@@ -150,8 +150,8 @@ export default function QuizPlayerBar({ me: meProp, controlled = false, rightAct
             <>
               <div className="qpb-lbdiv" style={{width:2,height:34,background:'rgba(255,255,255,0.32)',borderRadius:2,flex:'none'}}/>
               <div className="qpb-lb" ref={lbRef} style={{flex:'1 1 auto',minWidth:0,overflow:'hidden',display:'flex',alignItems:'center',gap:16}}>
-                <div style={{...lbl,display:'inline-flex',alignItems:'center',gap:5,marginBottom:0,flex:'none',whiteSpace:'nowrap'}}><Crown size={12} strokeWidth={2} style={{color:'#e8b43a',flex:'none'}}/>{leaderboard.label}</div>
-                <div className="qpb-lbrows" style={{display:'flex',flexWrap:'nowrap',gap:22,whiteSpace:'nowrap',overflow:'hidden',alignItems:'center',flex:'1 1 auto',minWidth:0}}>
+                <div style={{...lbl,fontSize:13,display:'inline-flex',alignItems:'center',gap:6,marginBottom:0,flex:'none',whiteSpace:'nowrap'}}><Crown size={12} strokeWidth={2} style={{color:'#e8b43a',flex:'none'}}/>{leaderboard.label}</div>
+                <div className="qpb-lbrows" style={{display:'flex',flexWrap:'nowrap',gap:22,whiteSpace:'nowrap',overflow:'hidden',alignItems:'center',justifyContent:'space-evenly',flex:'1 1 auto',minWidth:0}}>
                   {lbRows.map((r,i)=>(<span key={i} className={`qpb-lb${i+1}`} style={{display:'inline-flex',alignItems:'center',gap:6,fontSize:16,fontWeight:800,color:ONBLUE}}><Medal size={16} strokeWidth={2} style={{color:MEDAL[i]||ONBLUE_SOFT,flex:'none'}}/>{r.name}</span>))}
                 </div>
               </div>
