@@ -813,7 +813,7 @@ export default function QuizHomeClient() {
     @media(max-width:760px){.qzh .boards{grid-template-columns:1fr;}}
     /* Desktop (3-col) only: daily challenge in the WIDE middle track, last-played feed on the RIGHT, leaderboard LEFT. Tablet single-col (<=680) and mobile (<=560) unchanged. */
     @media(min-width:761px){.qzh .boards .daily-card{order:1;}.qzh .boards .lb-card{order:2;}.qzh .boards .live-card{display:none;}}
-    .qzh .qcols{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(100%,300px),1fr));gap:6px 26px;}
+    .qzh .qcols{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(100%,300px),1fr));gap:12px;}
     .qzh .qfull{column-count:2;column-gap:26px;}
     .qzh .qfull > a{display:flex;break-inside:avoid;-webkit-column-break-inside:avoid;}
     .qzh .qflow{column-width:310px;column-gap:26px;}
