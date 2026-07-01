@@ -2,7 +2,7 @@
 import React, { useState, useEffect, useMemo, useRef } from 'react';
 import Link from 'next/link';
 import {
-  ArrowLeft, BadgeCheck, User, ListChecks, Flame, FunctionSquare, Clock, Trophy, RefreshCw, Share2, Download, UserPlus, Play, X, Check, Star, Swords,} from 'lucide-react';
+  ArrowLeft, BadgeCheck, User, ListChecks, Flame, FunctionSquare, Clock, Trophy, RefreshCw, Share2, Download, UserPlus, Play, X, Check, Star, Swords, ChevronRight,} from 'lucide-react';
 import { QUIZZES, getQuiz } from '@/lib/quizzes';
 import { quizDept as deptOf, DEPT_COLOR, DEPT_LABEL, DEPT_NAV } from '@/lib/quiz-departments';
 import { CHALLENGES, getChallenge, DEFAULT_CHALLENGE_ID, challengeQuizIds, challengeColumns, dailyChallengeId, challengeMenu } from '@/lib/challenges';
@@ -184,12 +184,13 @@ function ShareStatsModal({ profile, byKey, onClose }) {
   );
 }
 
-function DuelsPanel() {
+function DuelsPanel({ onSelectPlayer }) {
   const [data, setData] = useState({ yourMove: [], awaiting: [], completed: [] });
   const [ladder, setLadder] = useState([]);
   const [muteAll, setMuteAll] = useState(false);
   const [muted, setMuted] = useState({});
   const [loaded, setLoaded] = useState(false);
+  const [openLadder, setOpenLadder] = useState(null); // anon of the expanded ladder row
   useEffect(() => {
     const anon = getAnonId();
     if (anon) fetch(`/api/duel/list?anonId=${encodeURIComponent(anon)}`).then((r) => r.json()).then((d) => { if (d) setData({ yourMove: d.yourMove || [], awaiting: d.awaiting || [], completed: d.completed || [] }); }).catch(() => {}).finally(() => setLoaded(true));
@@ -205,10 +206,21 @@ function DuelsPanel() {
   const mutedEntries = Object.entries(muted);
   const card = { background: C.surface, border: `1px solid ${C.line}`, borderRadius: 12, padding: 16, marginBottom: 14 };
   const hd = { fontSize: 13, fontWeight: 800, letterSpacing: '.04em', textTransform: 'uppercase', color: C.soft, margin: '0 0 10px' };
+  // The other player in a duel, from the current player's perspective.
+  function foeName(d) {
+    const other = d.challenger_anon === anon ? d.opponent_name : d.challenger_name;
+    return other || null;
+  }
   function Row({ d, right }) {
+    const foe = foeName(d);
     return (
       <a href={`/duel/${d.token}`} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 10, padding: '9px 0', borderBottom: `1px solid ${C.line}`, textDecoration: 'none', color: C.ink }}>
-        <span style={{ minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', fontSize: 14, fontWeight: 600 }}>{qtitle(d.quiz_id)}</span>
+        <span style={{ minWidth: 0, overflow: 'hidden' }}>
+          <span style={{ display: 'block', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', fontSize: 14, fontWeight: 600 }}>{qtitle(d.quiz_id)}</span>
+          <span style={{ display: 'block', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', fontSize: 12, fontWeight: 600, color: C.soft, marginTop: 1 }}>
+            {foe ? <>vs <span style={{ color: C.accent }}>{foe}</span></> : 'Open invite'}
+          </span>
+        </span>
         <span style={{ flex: 'none', fontSize: 12, fontWeight: 700, color: C.soft }}>{right}</span>
       </a>
     );
@@ -230,14 +242,48 @@ function DuelsPanel() {
       {empty && (<div style={{ ...card, color: C.muted, fontSize: 14 }}>No duels yet. Challenge someone to get started.</div>)}
       <div style={card}>
         <div style={hd}>Duel Ladder</div>
-        {ladder.length === 0 ? <div style={{ color: C.muted, fontSize: 13 }}>No completed duels yet.</div> : ladder.slice(0, 15).map((p, i) => (
-          <div key={p.anon} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '8px 0', borderBottom: `1px solid ${C.line}` }}>
-            <span style={{ width: 22, textAlign: 'right', fontWeight: 800, color: C.soft, fontSize: 13 }}>{i + 1}</span>
-            <span style={{ flex: 1, minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', fontWeight: 700, fontSize: 14 }}>{p.name}</span>
-            <span style={{ flex: 'none', fontSize: 13, fontWeight: 700 }}>{p.wins}-{p.losses}{p.ties ? `-${p.ties}` : ''}</span>
-            <span style={{ flex: 'none', fontSize: 12, fontWeight: 700, color: C.soft, width: 44, textAlign: 'right' }}>{p.winPct}%</span>
-          </div>
-        ))}
+        {ladder.length === 0 ? <div style={{ color: C.muted, fontSize: 13 }}>No completed duels yet.</div> : ladder.slice(0, 15).map((p, i) => {
+          const matches = Array.isArray(p.matches) ? p.matches : [];
+          const open = openLadder === p.anon;
+          const canOpen = matches.length > 0;
+          return (
+            <div key={p.anon} style={{ borderBottom: `1px solid ${C.line}` }}>
+              <div
+                onClick={() => canOpen && setOpenLadder(open ? null : p.anon)}
+                role={canOpen ? 'button' : undefined}
+                style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '8px 0', cursor: canOpen ? 'pointer' : 'default' }}
+              >
+                <span style={{ width: 22, textAlign: 'right', fontWeight: 800, color: C.soft, fontSize: 13 }}>{i + 1}</span>
+                <span
+                  onClick={(e) => { e.stopPropagation(); if (onSelectPlayer) onSelectPlayer(p.key || `a:${p.anon}`); }}
+                  title="View profile"
+                  style={{ flex: 1, minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', fontWeight: 700, fontSize: 14, color: C.accent, cursor: 'pointer' }}
+                >{p.name}</span>
+                <span style={{ flex: 'none', fontSize: 13, fontWeight: 700 }}>{p.wins}-{p.losses}{p.ties ? `-${p.ties}` : ''}</span>
+                <span style={{ flex: 'none', fontSize: 12, fontWeight: 700, color: C.soft, width: 44, textAlign: 'right' }}>{p.winPct}%</span>
+                <ChevronRight size={15} style={{ flex: 'none', color: C.soft, opacity: canOpen ? 1 : 0.25, transform: open ? 'rotate(90deg)' : 'none', transition: 'transform .15s' }} />
+              </div>
+              {open && canOpen && (
+                <div style={{ padding: '2px 0 10px 32px' }}>
+                  {matches.map((m, j) => {
+                    const won = m.result === 'win', tie = m.result === 'tie';
+                    const clr = tie ? C.soft : won ? C.live : C.danger;
+                    const lbl = tie ? 'Tie' : won ? 'Won' : 'Lost';
+                    return (
+                      <div key={j} style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '5px 0', fontSize: 12.5 }}>
+                        <span style={{ flex: 'none', width: 34, fontWeight: 800, color: clr }}>{lbl}</span>
+                        <span style={{ flex: 'none', color: C.muted }}>vs</span>
+                        <span style={{ flex: 'none', fontWeight: 700, color: C.ink, maxWidth: 120, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{m.vs}</span>
+                        <span style={{ flex: 1, minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', color: C.soft }}>{qtitle(m.quizId)}</span>
+                        {m.my != null && m.their != null ? <span style={{ flex: 'none', fontWeight: 700, color: C.soft, fontVariantNumeric: 'tabular-nums' }}>{m.my}-{m.their}</span> : null}
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
+          );
+        })}
       </div>
       <div style={card}>
         <div style={hd}>Alert Settings</div>
@@ -481,7 +527,7 @@ export default function StatHubClient() {
         {tab === 'player' && <PlayerPanel me={profile} scope={scope} cats={cats} byKey={byKey} totalQuizzes={catalog.length} board={board} myName={myName} myAnonKey={myAnonKey} titleById={titleById} pview={pview} setPview={setPview} viewKey={viewKey} onSelectPlayer={(k) => { const mine = (me && me.userKey && k === me.userKey) || (myAnonKey && k === myAnonKey); setViewKey(mine ? null : k); setPview(mine ? 'ranking' : 'category'); }} />}
         {tab === 'quizzes' && <QuizzesPanel me={profile} myProfile={me} scope={scope} byKey={byKey} catalog={catalog} stats={statsById} totals={totals} totalPlays={totalPlays} onSelectPlayer={(k) => { setViewKey(k); setPview('category'); setTab('player'); }} />}
         {tab === 'challenges' && <ChallengesPanel me={profile} />}
-        {tab === 'duels' && <DuelsPanel />}      </div>
+        {tab === 'duels' && <DuelsPanel onSelectPlayer={(k) => { setViewKey(k); setPview('category'); setTab('player'); }} />}      </div>
 
       {shareOpen && found && <ShareStatsModal profile={profile} byKey={byKey} onClose={() => setShareOpen(false)} />}
       {signupOpen && <SignupModal onClose={() => setSignupOpen(false)} />}
