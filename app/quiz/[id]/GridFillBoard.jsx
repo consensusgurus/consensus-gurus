@@ -559,6 +559,9 @@ export default function GridFillBoard({ quizId, mobile = false }) {
                     <button onClick={giveUp} style={ghostBtn(false)}>
                       <Flag size={12} strokeWidth={2.5} /> Give up
                     </button>
+                    <button onClick={() => setTab('stats')} style={{ ...ghostBtn(false), marginLeft: 10 }}>
+                      <Trophy size={12} strokeWidth={2.5} /> Leaderboard
+                    </button>
                   </div>
                 )}
 

@@ -585,6 +585,9 @@ export default function LogicGridClient({ quizId, mobile = false }) {
                     <button onClick={() => endGame(false)} style={{ fontFamily: MONO, fontSize: 12, letterSpacing: '0.12em', textTransform: 'uppercase', fontWeight: 700, padding: '12px 26px', border: 'none', background: COLORS.ember, color: '#fff', cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: 8 }}>
                       <Flag size={14} strokeWidth={2.5} color="#fff" /> Give up
                     </button>
+                    <button onClick={() => setTab('stats')} style={{ fontFamily: MONO, fontSize: 12, letterSpacing: '0.12em', textTransform: 'uppercase', fontWeight: 700, padding: '12px 26px', border: `1.5px solid ${COLORS.ink}`, background: COLORS.cream, color: COLORS.ink, cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: 8 }}>
+                      <Trophy size={14} strokeWidth={2.5} /> Leaderboard
+                    </button>
                   </div>
                 )}
               </>

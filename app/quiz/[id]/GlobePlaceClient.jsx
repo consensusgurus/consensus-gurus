@@ -497,6 +497,7 @@ export default function GlobePlaceClient({ quizId, mobile = false }) {
                 <p style={{ fontFamily: MONO, fontSize: 11, letterSpacing: '0.06em', color: COLORS.faded, textAlign: 'center', margin: '10px 0 0' }}>Drag to spin · click where it stands</p>
                 <div style={{ marginTop: 14, display: 'flex', gap: 10, justifyContent: 'center', flexWrap: 'wrap' }}>
                   <button onClick={giveUp} style={ghostBtn(false)}><Flag size={12} strokeWidth={2.5} /> End now</button>
+                  <button onClick={() => setTab('stats')} style={ghostBtn(false)}><Trophy size={12} strokeWidth={2.5} /> Leaderboard</button>
                   <button onClick={share} style={ghostBtn(false)}><Share2 size={12} strokeWidth={2.5} /> {copied ? 'Copied!' : 'Share'}</button>
                 </div>
               </div>
