@@ -456,7 +456,7 @@ export default function StatHubClient() {
           </div>
         ) : null}
 
-        {!viewing && !myName ? (
+        {!viewing && me && !(me.found && !me.isAnon) ? (
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 14, flexWrap: 'wrap', background: C.accsoft, border: `1px solid ${C.line}`, borderRadius: 12, padding: '14px 18px', marginTop: 12 }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 12, minWidth: 0 }}>
               <div style={{ width: 38, height: 38, borderRadius: 10, background: C.accent, color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', flex: 'none' }}><UserPlus size={20} /></div>
@@ -963,7 +963,7 @@ function ChallengesPanel({ me }) {
         {!loaded ? (
           <div style={{ fontSize: 13, color: C.soft, padding: '24px 0' }}>Loading the standings…</div>
         ) : users.length === 0 ? (
-          <div style={{ fontSize: 13, color: C.soft, padding: '24px 0' }}>No registered players have played yet. Sign up before a quiz to put your name in the running.</div>
+          <div style={{ fontSize: 13, color: C.soft, padding: '24px 0' }}>No registered players have played yet. Sign Up before a quiz to put your name in the running.</div>
         ) : (
           <div className="chg-scroll">
             <table className="chg-table">

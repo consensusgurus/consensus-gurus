@@ -100,7 +100,7 @@ export default function QuizPlayerBar({ me: meProp, controlled = false, rightAct
   const signed = !!(found && me && me.signed);
   const rightBtn = rightAction==='share'
     ? <button onClick={(e)=>{e.stopPropagation(); onShare&&onShare();}} style={chip}>Share Stats</button>
-    : <Link href="/quizzes/hub" onClick={e=>e.stopPropagation()} style={chip}>{signed?'Stat Hub':'Sign up / Stat Hub'} <ArrowRight size={14}/></Link>;
+    : <Link href="/quizzes/hub" onClick={e=>e.stopPropagation()} style={chip}>{signed?'Stat Hub':'Sign Up / Stat Hub'} <ArrowRight size={14}/></Link>;
   return (
     <div className="qpb" style={{display:'flex',flexDirection:'row',alignItems:'center',flexWrap:'nowrap',gap:16,padding:'10px 14px',background:BARBG,borderRadius:11,minHeight:56,boxSizing:'border-box',overflow:'hidden'}}>
       <style>{`.qpb-chev{display:none;}@media(max-width:1023px){.qpb-bestcat{display:none !important;}}@media(max-width:920px){.qpb-s-correct{display:none !important;}}@media(max-width:820px){.qpb-s-accuracy{display:none !important;}}@media(max-width:700px){.qpb-s-played{display:none !important;}}@media(max-width:560px){.qpb .qpb-stats{display:none !important;}.qpb-hub{margin-left:auto !important;}}`}</style>
@@ -109,7 +109,7 @@ export default function QuizPlayerBar({ me: meProp, controlled = false, rightAct
         {found?(
           <div style={{display:'flex',alignItems:'center',gap:5,fontSize:16,fontWeight:800,color:ONBLUE,lineHeight:1.15,minWidth:0}}><span style={{minWidth:0,overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>{me.name}</span>{me.signed?<BadgeCheck size={13} strokeWidth={2.5} style={{color:ONBLUE,flex:'none'}}/>:null}</div>
         ):determined?(
-          <button onClick={e=>{e.stopPropagation(); setSignupOpen(true);}} style={{display:'inline-flex',alignItems:'center',gap:5,fontSize:14,fontWeight:800,color:ONBLUE,lineHeight:1.15,background:'none',border:'none',padding:0,cursor:'pointer',fontFamily:'inherit'}}><UserPlus size={14}/> Sign up</button>
+          <button onClick={e=>{e.stopPropagation(); setSignupOpen(true);}} style={{display:'inline-flex',alignItems:'center',gap:5,fontSize:14,fontWeight:800,color:ONBLUE,lineHeight:1.15,background:'none',border:'none',padding:0,cursor:'pointer',fontFamily:'inherit'}}><UserPlus size={14}/> Sign Up</button>
         ):(
           <div style={{fontSize:16,fontWeight:800,color:ONBLUE_SOFT,lineHeight:1.15}}>{dash}</div>
         )}

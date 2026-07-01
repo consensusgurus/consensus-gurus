@@ -59,7 +59,7 @@ export default function JoinLeaderboardForm({ identity, onJoined, onViewLeaderbo
         <h2 style={{ fontFamily: FONT, fontWeight: 800, fontSize: 26, margin: 0, color: C.ink }}>Join the Leaderboard</h2>
       </div>
       <p style={{ fontFamily: FONT, fontSize: 15, color: '#4a4339', margin: '0 0 6px' }}>
-        Sign up with a display name and it appears on the leaderboard after you finish a game. No password needed.
+        Sign Up with a display name and it appears on the leaderboard after you finish a game. No password needed.
       </p>
       <p style={{ fontFamily: FONT, fontSize: 12, color: C.faded, margin: '0 0 22px' }}>
         Your display name is shown publicly. Email is optional, required only for prizes, and kept private.

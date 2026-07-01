@@ -124,7 +124,7 @@ export default function LeaderboardClient() {
             The <span style={{ fontStyle: 'italic', fontWeight: 400, color: COLORS.ember }}>Quiz</span> Leaderboard
           </h1>
           <p style={{ fontFamily: 'Manrope, system-ui, -apple-system, sans-serif', fontStyle: 'italic', fontSize: 17, lineHeight: 1.5, color: COLORS.faded, margin: 0, maxWidth: 720 }}>
-            Every signed-up player, ranked five ways: total plays, correct answers banked, distinct quizzes finished, quizzes scored a perfect 100%, and the daily champion. Pick a category below. Sign up before a quiz to put your name in the running.
+            Every signed-up player, ranked five ways: total plays, correct answers banked, distinct quizzes finished, quizzes scored a perfect 100%, and the daily champion. Pick a category below. Sign Up before a quiz to put your name in the running.
           </p>
           <div style={{ borderBottom: `1px solid ${COLORS.ink}`, marginTop: 22 }} />
           <div style={{ borderBottom: `2px solid ${COLORS.ember}` }} />
