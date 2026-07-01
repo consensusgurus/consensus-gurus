@@ -128,11 +128,11 @@ export default function NewDuelPage() {
 
           <label style={{ display: 'block', fontSize: 12, fontWeight: 700, color: C.soft, marginBottom: 6 }}>PICK A QUIZ{opp ? ` TO CHALLENGE ${opp.name.toUpperCase()}` : ''}</label>
           <input value={q} onChange={(e) => setQ(e.target.value)} placeholder="Search quizzes…" style={{ ...inp, marginBottom: 12 }} />
-          <div style={{ display: 'grid', gap: 8 }}>
+          <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1fr)', gap: 8 }}>
             {results.map((x) => (
               <button key={x.id} onClick={() => start(x.id)} disabled={busy}
-                style={{ textAlign: 'left', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 10, background: C.surface, border: `1px solid ${C.line}`, borderRadius: 10, padding: '12px 14px', cursor: busy ? 'default' : 'pointer', fontFamily: FONT }}>
-                <span style={{ minWidth: 0 }}>
+                style={{ textAlign: 'left', display: 'flex', minWidth: 0, alignItems: 'center', justifyContent: 'space-between', gap: 10, background: C.surface, border: `1px solid ${C.line}`, borderRadius: 10, padding: '12px 14px', cursor: busy ? 'default' : 'pointer', fontFamily: FONT }}>
+                <span style={{ minWidth: 0, overflow: 'hidden' }}>
                   <span style={{ display: 'block', fontSize: 15, fontWeight: 700, color: C.ink, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{x.title}</span>
                   <span style={{ display: 'block', fontSize: 11, fontWeight: 700, letterSpacing: '.05em', textTransform: 'uppercase', color: C.soft }}>{x.category || 'Quiz'}</span>
                 </span>
