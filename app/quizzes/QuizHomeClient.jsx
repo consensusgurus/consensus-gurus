@@ -618,7 +618,7 @@ export default function QuizHomeClient() {
     );
     // Guests are included in the public board (owner rule 2026-06-30).
     const list = sorted;
-    return list.slice(0, 6);
+    return list.slice(0, 20);
   }, [eloBoard, lbMetric.key, boardsExpanded, mobLbOpen]);
 
   // Compact top-3 for the active leaderboard slide, shown in the player stat
@@ -628,14 +628,14 @@ export default function QuizHomeClient() {
     let rows = [];
     if (lbMetric.special) {
       if (lbMetric.key === 'catRating') {
-        rows = (catBoards[lbMetric.catKey] || []).slice(0, 6).map((r) => ({ name: r.name || 'Player', value: lbMetric.fmt(r.rating) }));
+        rows = (catBoards[lbMetric.catKey] || []).filter((r) => !r.isAnon).slice(0, 3).map((r) => ({ name: r.name || 'Player', value: lbMetric.fmt(r.rating) }));
       } else {
         const src = lbMetric.key === 'dailyChallenge' ? dailyRows : lbMetric.key === 'correctToday' ? todayCorrectRows : todayQuizRows;
         const valOf = lbMetric.key === 'dailyChallenge' ? ((r) => r.totalCorrect) : lbMetric.key === 'correctToday' ? ((r) => r.correct) : ((r) => r.quizzes);
-        rows = src.slice(0, 6).map((r) => ({ name: r.username || 'Player', value: (valOf(r) || 0).toLocaleString() }));
+        rows = src.filter((r) => !r.isAnon).slice(0, 3).map((r) => ({ name: r.username || 'Player', value: (valOf(r) || 0).toLocaleString() }));
       }
     } else {
-      rows = leaderRows.map((r) => ({ name: r.name || 'Player', value: lbMetric.fmt(r[lbMetric.key]) }));
+      rows = leaderRows.filter((r) => !r.isAnon).slice(0, 3).map((r) => ({ name: r.name || 'Player', value: lbMetric.fmt(r[lbMetric.key]) }));
     }
     return { label, rows };
   }, [lbMetric, scope, byKey, catBoards, dailyRows, todayCorrectRows, todayQuizRows, leaderRows]);
@@ -811,7 +811,8 @@ export default function QuizHomeClient() {
     @media(max-width:680px){.qzh .lf-extra{display:none;}}
     @keyframes qzp{0%{opacity:1}50%{opacity:.35}100%{opacity:1}}
     .qzh .dd{position:relative;}
-    .qzh .ddbtn{display:flex;align-items:center;gap:8px;background:#fff;border:1px solid ${C.line};border-radius:10px;padding:9px 12px;cursor:pointer;font:inherit;}
+    .qzh .ddbtn{display:flex;align-items:center;gap:8px;background:#fff;border:1.5px solid #b8c0cc;border-radius:10px;padding:9px 12px;cursor:pointer;font:inherit;}
+    .qzh .qz-searchwrap input::placeholder{color:#5b6472;opacity:1;}
     .qzh .ddmenu{position:absolute;top:calc(100% + 6px);right:0;z-index:30;background:#fff;border:1px solid ${C.line};border-radius:10px;box-shadow:0 8px 24px rgba(20,22,28,0.12);padding:6px;min-width:430px;display:grid;grid-template-columns:1fr 1fr;gap:1px 4px;}
     .qzh .ddmenu .ddall{grid-column:1 / -1;}
     @media(max-width:560px){.qzh .ddmenu{left:0;right:auto;width:88vw;min-width:0;max-width:88vw;grid-template-columns:1fr 1fr;max-height:60vh;overflow-y:auto;}}
@@ -821,7 +822,7 @@ export default function QuizHomeClient() {
     .qzh .dditem:hover{background:${C.bg};}
     .qzh .dot{width:9px;height:9px;border-radius:3px;flex:none;}
     .qzh .qotd{display:flex;align-items:stretch;gap:0;background:#0e1d40;border:1px solid ${C.line};border-radius:14px;overflow:hidden;min-height:215px;text-decoration:none;color:#fff;}
-    .qzh .qotd-photo{flex:0 0 42%;background-size:cover;background-position:center;min-height:180px;}
+    .qzh .qotd-photo{flex:0 0 48%;background-size:cover;background-position:center;min-height:180px;}
     .qzh .qotd-body{flex:1 1 auto;min-width:0;padding:18px 22px;display:flex;flex-direction:column;justify-content:center;}
     .qzh .qotd-eyebrow{font-size:10px;font-weight:800;letter-spacing:.14em;text-transform:uppercase;color:#f8b84a;margin-bottom:7px;}
     .qzh .qotd-title{font-size:28px;font-weight:800;letter-spacing:-.02em;line-height:1.04;color:#fff;}
@@ -1130,11 +1131,11 @@ export default function QuizHomeClient() {
           {qotd && (<Link href={`/quiz/${qotd.id}`} className="qotd th-qotd" aria-label={`Quiz of the day: ${qotd.title}`}>
             <div className="qotd-photo" style={{ backgroundImage: `url("${qotd.hero}")`, backgroundPosition: qotd.pos || 'center' }} aria-hidden="true" />
             <div className="qotd-body">
-              <div className="qotd-eyebrow">{qotd.eyebrow}</div>
+              <div className="qotd-eyebrow" style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}><span>Quiz of the Day</span>{leader(qotd.id) ? <span style={{ textTransform: 'none', letterSpacing: 0, color: '#9fb0d4', fontWeight: 700, display: 'inline-flex', alignItems: 'center', gap: 4 }}><Crown size={12} style={{ color: '#e8b43a', flex: 'none' }} />{leader(qotd.id)} leads</span> : null}</div>
               <div className="qotd-title">{qotd.title}</div>
               <div className="qotd-foot">
                 <span className="qotd-play"><Play size={15} fill="#fff" strokeWidth={0} />Play now</span>
-                <span className="qotd-stats">{plays(qotd.id) > 0 ? <span>{plays(qotd.id).toLocaleString()} plays</span> : <span>New quiz</span>}{leader(qotd.id) ? <><span aria-hidden="true">·</span><Crown size={13} style={{ color: '#e8b43a', flex: 'none' }} /><span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{leader(qotd.id)} leads</span></> : null}</span>
+                <span className="qotd-stats">{plays(qotd.id) > 0 ? <span>{plays(qotd.id).toLocaleString()} plays</span> : <span>New quiz</span>}</span>
               </div>
             </div>
           </Link>)}
@@ -1257,7 +1258,7 @@ export default function QuizHomeClient() {
               onChange={(e) => setSearch(e.target.value)}
               placeholder="Search quizzes…"
               autoComplete="off"
-              style={{ width: '100%', padding: '9px 12px 9px 36px', border: `1px solid ${C.line}`, borderRadius: 10, font: 'inherit', fontFamily: FONT, fontSize: 13.5, background: '#fff', color: C.ink, outline: 'none', boxSizing: 'border-box' }}
+              style={{ width: '100%', padding: '9px 12px 9px 36px', border: '1.5px solid #b8c0cc', borderRadius: 10, font: 'inherit', fontFamily: FONT, fontSize: 13.5, background: '#fff', color: C.ink, outline: 'none', boxSizing: 'border-box' }}
             />
           </div>
           {(!searchResults && scope === 'all' && !listMode) && (
