@@ -100,7 +100,7 @@ export default function QuizPlayerBar({ me: meProp, controlled = false, rightAct
   const signed = !!(found && me && me.signed);
   const rightBtn = rightAction==='share'
     ? <button onClick={(e)=>{e.stopPropagation(); onShare&&onShare();}} style={chip}>Share Stats</button>
-    : <Link href="/quizzes/hub" onClick={e=>e.stopPropagation()} style={chip}>{signed?'Stat Hub':'Sign Up / Stat Hub'} <ArrowRight size={14}/></Link>;
+    : <Link href="/quizzes/hub" onClick={e=>e.stopPropagation()} style={chip}>{(found && !signed)?'Sign Up / Stat Hub':'Stat Hub'} <ArrowRight size={14}/></Link>;
   return (
     <div className="qpb" style={{display:'flex',flexDirection:'row',alignItems:'center',flexWrap:'nowrap',gap:16,padding:'10px 14px',background:BARBG,borderRadius:11,minHeight:56,boxSizing:'border-box',overflow:'hidden'}}>
       <style>{`.qpb-chev{display:none;}@media(max-width:1023px){.qpb-bestcat{display:none !important;}}@media(max-width:920px){.qpb-s-correct{display:none !important;}}@media(max-width:820px){.qpb-s-accuracy{display:none !important;}}@media(max-width:700px){.qpb-s-played{display:none !important;}}@media(max-width:560px){.qpb .qpb-stats{display:none !important;}.qpb-hub{margin-left:auto !important;}}`}</style>

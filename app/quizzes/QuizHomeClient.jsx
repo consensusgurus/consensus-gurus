@@ -813,7 +813,7 @@ export default function QuizHomeClient() {
     .qzh .qotd:hover .qotd-play{background:#1d4ed8;}
     .qzh .qotd-stats{font-size:12px;color:#9fb0d4;font-weight:600;display:inline-flex;align-items:center;gap:6px;min-width:0;}
     @media(max-width:760px){.qzh .qotd{flex-direction:column;min-height:0;}.qzh .qotd-photo{flex:none;height:128px;}.qzh .qotd-title{font-size:21px;}}
-    .qzh .thub{display:flex;gap:12px;margin-bottom:14px;align-items:stretch;}
+    .qzh .thub{display:flex;gap:12px;margin-bottom:26px;align-items:stretch;}
     .qzh .thub-left{flex:1 1 auto;min-width:0;display:flex;flex-direction:column;gap:12px;}
     .qzh .th-rail{flex:0 0 208px;}
     .qzh .th-r2{display:grid;grid-template-columns:minmax(0,1.15fr) minmax(0,0.82fr) minmax(0,1fr);gap:12px;align-items:stretch;}
@@ -1160,7 +1160,7 @@ export default function QuizHomeClient() {
           </div>
 
         {/* browse header + search (in the left column, beside the mastery rail) */}
-        <div ref={quizzesRef} className="qz-browserow" style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 12, flexWrap: 'wrap' }}>
+        <div ref={quizzesRef} className="qz-browserow" style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 0, flexWrap: 'wrap' }}>
           {(searchResults || listMode || doneFilter !== 'all' || scope !== 'all') && (
             <h2 style={{ fontSize: 17, fontWeight: 800, margin: 0, whiteSpace: 'nowrap', display: 'flex', alignItems: 'center', gap: 10 }}>
               {!searchResults && (listMode || doneFilter !== 'all' || scope !== 'all') && (

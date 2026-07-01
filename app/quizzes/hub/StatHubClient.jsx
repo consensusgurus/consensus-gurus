@@ -465,7 +465,7 @@ export default function StatHubClient() {
                 <div style={{ fontSize: 13, color: C.muted, lineHeight: 1.45, marginTop: 2 }}>Add a display name (email optional) to put your scores on the leaderboards and keep your stats across devices. No password needed.</div>
               </div>
             </div>
-            <button onClick={() => setSignupOpen(true)} style={{ flex: 'none', display: 'inline-flex', alignItems: 'center', gap: 7, background: C.accent, color: '#fff', border: 'none', borderRadius: 10, padding: '11px 18px', fontFamily: FONT, fontWeight: 700, fontSize: 14, cursor: 'pointer' }}><UserPlus size={15} /> Add name &amp; email</button>
+            <button onClick={() => setSignupOpen(true)} style={{ flex: 'none', display: 'inline-flex', alignItems: 'center', gap: 7, background: C.accent, color: '#fff', border: 'none', borderRadius: 10, padding: '11px 18px', fontFamily: FONT, fontWeight: 700, fontSize: 14, cursor: 'pointer' }}><UserPlus size={15} /> Create name</button>
           </div>
         ) : null}
 
