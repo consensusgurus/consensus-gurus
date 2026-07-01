@@ -730,10 +730,10 @@ export default function QuizHomeClient() {
     .qzh .qotd:hover .qotd-play{background:#1d4ed8;}
     .qzh .qotd-stats{font-size:12px;color:#9fb0d4;font-weight:600;display:inline-flex;align-items:center;gap:6px;min-width:0;}
     @media(max-width:760px){.qzh .qotd{flex-direction:column;}.qzh .qotd-photo{flex:none;height:128px;}.qzh .qotd-title{font-size:21px;}}
-    .qzh .thub{display:grid;grid-template-columns:minmax(0,1fr) 186px;grid-template-rows:auto auto;gap:12px;margin-bottom:14px;align-items:stretch;}
-    .qzh .th-qotd{grid-column:1;grid-row:1;}
+    .qzh .thub{display:grid;grid-template-columns:minmax(0,1fr) 208px;grid-template-rows:auto auto;gap:12px;margin-bottom:14px;align-items:stretch;}
+    .qzh .th-qotd{grid-column:1;grid-row:1;min-height:184px;}
     .qzh .th-rail{grid-column:2;grid-row:1 / 3;}
-    .qzh .th-r2{grid-column:1;grid-row:2;display:grid;grid-template-columns:232px minmax(0,1fr) minmax(0,1fr);gap:12px;align-items:stretch;}
+    .qzh .th-r2{grid-column:1;grid-row:2;display:grid;grid-template-columns:minmax(0,1.15fr) minmax(0,0.82fr) minmax(0,1fr);gap:12px;align-items:stretch;}
     @media(max-width:820px){.qzh .thub{display:flex;flex-direction:column;}.qzh .th-r2{grid-template-columns:1fr 1fr;}}
     @media(max-width:560px){.qzh .th-r2{grid-template-columns:1fr;}.qzh .th-rail{display:none !important;}.qzh .th-r2 .ntile{display:none !important;}.qzh .duelbtn{display:none !important;}}
     .qzh .dtile{background:${C.accent};border-radius:14px;padding:14px 16px;color:#fff;display:flex;flex-direction:column;min-height:184px;}
@@ -753,8 +753,8 @@ export default function QuizHomeClient() {
     .qzh .lbtile-head{display:flex;align-items:center;gap:7px;margin-bottom:6px;}
     .qzh .duelbtn{background:${C.accent};color:#fff;border:none;border-radius:12px;padding:12px;font-weight:800;font-size:12px;font-family:inherit;display:flex;align-items:center;justify-content:center;gap:8px;cursor:pointer;flex:none;}
     .qzh .rail{background:#fff;border:1px solid ${C.line};border-radius:14px;padding:11px;display:flex;flex-direction:column;}
-    .qzh .rail-bars{flex:1;display:flex;flex-direction:column;border-radius:8px;overflow:hidden;min-height:250px;}
-    .qzh .rseg{display:flex;align-items:center;gap:5px;padding:0 11px;font-size:11px;font-weight:800;border:none;cursor:pointer;width:100%;}
+    .qzh .rail-bars{flex:1;display:flex;flex-direction:column;border-radius:8px;overflow:hidden;min-height:0;}
+    .qzh .rseg{display:flex;align-items:center;gap:6px;padding:0 10px;font-size:10.5px;font-weight:600;border:none;cursor:pointer;width:100%;}
     .qzh .rseg:hover{filter:brightness(1.08);}
     .qzh .rseg .rnm{flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;text-align:left;}
     .qzh .dchev,.qzh .lchev{display:none;}
