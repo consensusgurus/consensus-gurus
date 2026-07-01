@@ -548,18 +548,16 @@ export default function QuizHomeClient() {
   // category (eloBoard is already category-scoped via the /api/quiz/elo refetch).
   const leaderRows = useMemo(() => {
     const k = lbMetric.key;
-    // Highest Accuracy needs a real sample: only players with >=3 unique
+    // Highest Accuracy needs a real sample: only players with >=10 unique
     // quizzes played qualify (a 100% from one quiz shouldn't top the board).
-    const pool = k === 'accuracy' ? eloBoard.filter((p) => (p.played || 0) >= 3) : eloBoard;
+    const pool = k === 'accuracy' ? eloBoard.filter((p) => (p.played || 0) >= 10) : eloBoard;
     const sorted = pool.slice().sort((a, b) =>
       ((b[k] || 0) - (a[k] || 0))
       || ((b.rating || 0) - (a.rating || 0))
       || (a.name || '').localeCompare(b.name || '')
     );
-    // Hide guests from the public board WHEN >=3 registered players can fill the
-    // top three; otherwise keep guests so the board isn't sparse.
-    const named = sorted.filter((p) => !p.isAnon);
-    const list = named.length >= 3 ? named : sorted;
+    // Guests are included in the public board (owner rule 2026-06-30).
+    const list = sorted;
     return list.slice(0, (boardsExpanded || mobLbOpen) ? 10 : 5);
   }, [eloBoard, lbMetric.key, boardsExpanded, mobLbOpen]);
 
@@ -852,8 +850,7 @@ export default function QuizHomeClient() {
                       {dailyIds.includes(f.quizId) ? <span style={{ flex: 'none', display: 'inline-flex', alignItems: 'center', gap: 3, fontSize: 9, fontWeight: 800, letterSpacing: '.03em', textTransform: 'uppercase', color: C.accent, background: C.accsoft, padding: '1px 6px', borderRadius: 6 }}><Flame size={10} />Daily</span> : null}
                     </span>
                     <span style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 10.5, color: C.soft }}>
-                      <span style={{ fontWeight: 600 }}>User</span>
-                      <span className="scorebadge" style={{ flex: 'none', fontWeight: 700, padding: '1px 6px', borderRadius: 6, fontVariantNumeric: 'tabular-nums', background: f.total && f.score / f.total >= 0.8 ? '#e7f7ed' : '#eef1f6', color: f.total && f.score / f.total >= 0.8 ? '#16a34a' : C.soft }}>{f.score}/{f.total}</span>
+                          <span className="scorebadge" style={{ flex: 'none', fontWeight: 700, padding: '1px 6px', borderRadius: 6, fontVariantNumeric: 'tabular-nums', background: f.total && f.score / f.total >= 0.8 ? '#e7f7ed' : '#eef1f6', color: f.total && f.score / f.total >= 0.8 ? '#16a34a' : C.soft }}>{f.score}/{f.total}</span>
                       <span style={{ fontWeight: 700 }}>{f.attempt > 1 ? `attempt ${f.attempt}` : '1st try'}</span>
                       <span style={{ marginLeft: 'auto' }}>{relTime(f.playedAt)}</span>
                     </span>
@@ -1154,7 +1151,6 @@ export default function QuizHomeClient() {
               <Link href={`/quiz/${f.quizId}`} className="qrow" key={i} title={f.title}>
                 <span className="qtitle">{stripVerb(f.title)}</span>
                 <span className="qmeta" style={{ gap: 8 }}>
-                  <span style={{ fontWeight: 600 }}>User</span>
                   <span className="lf-extra scorebadge" style={{ flex: 'none', fontSize: 11, fontWeight: 700, padding: '2px 7px', borderRadius: 7, fontVariantNumeric: 'tabular-nums', background: f.total && f.score / f.total >= 0.8 ? '#e7f7ed' : '#eef1f6', color: f.total && f.score / f.total >= 0.8 ? '#16a34a' : C.soft }}>{f.score}/{f.total}</span>
                   <span className="lf-extra" style={{ color: C.soft }}>{relTime(f.playedAt)}</span>
                 </span>

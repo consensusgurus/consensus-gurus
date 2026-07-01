@@ -23,6 +23,7 @@ const CSS = `.qz-lbstrip{scrollbar-width:none;-ms-overflow-style:none;}
 }`;
 
 export default function LeaderboardStrip({ board, identity, onOpen }) {
+  return null; // disabled: leaderboard strip removed from quiz pages (owner 2026-06-30)
   const rows = (identity ? board && board.leaderboard : board && board.leaderboardAll) || [];
   const plays = (board && board.plays) || 0;
   const wrap = (kids) => (
