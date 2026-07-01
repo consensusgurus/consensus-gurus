@@ -558,7 +558,7 @@ export default function QuizHomeClient() {
     );
     // Guests are included in the public board (owner rule 2026-06-30).
     const list = sorted;
-    return list.slice(0, (boardsExpanded || mobLbOpen) ? 10 : 5);
+    return list.slice(0, 3);
   }, [eloBoard, lbMetric.key, boardsExpanded, mobLbOpen]);
 
   // ── live feed (scoped by quiz department) ──
@@ -611,6 +611,8 @@ export default function QuizHomeClient() {
     return out;
   }, [liveAll]);
   const [chCopied, setChCopied] = useState(false);
+  const [mDaily, setMDaily] = useState(false);
+  const [mLb, setMLb] = useState(false);
   function shareChallenge() {
     const url = (typeof window !== 'undefined' ? window.location.origin : '') + `/quiz/${QUIZ_OF_DAY.id}`;
     const data = { title: 'Source of Truths', text: 'Can you beat me on today’s quiz?', url };
@@ -620,13 +622,15 @@ export default function QuizHomeClient() {
   function goCat(key) { setScope(key); setDoneFilter('all'); setListMode(null); setSearch(''); try { if (quizzesRef.current) quizzesRef.current.scrollIntoView({ behavior: 'smooth', block: 'start' }); } catch {} }
   const catMastery = useMemo(() => {
     if (!me || !me.byCategory) return [];
-    const ramp = ['#1d4ed8', '#2563eb', '#3b82f6', '#60a5fa', '#93c5fd', '#bfdbfe'];
-    return Object.keys(me.byCategory)
+    const rows = Object.keys(me.byCategory)
       .map((k) => ({ key: k, acc: me.byCategory[k] && me.byCategory[k].accuracy, played: (me.byCategory[k] && me.byCategory[k].played) || 0, label: (byKey[k] && byKey[k].label) || DEPT_LABEL[k] || k }))
       .filter((r) => r.played > 0 && typeof r.acc === 'number')
-      .sort((a, b) => b.acc - a.acc)
-      .slice(0, 6)
-      .map((r, i) => ({ key: r.key, label: r.label, acc: Math.round(r.acc), color: ramp[i], text: i < 3 ? '#fff' : '#0e1d40' }));
+      .sort((a, b) => b.acc - a.acc);
+    const n = rows.length;
+    return rows.map((r, i) => {
+      const L = n > 1 ? 34 + (i / (n - 1)) * 46 : 44;
+      return { key: r.key, label: r.label, acc: Math.round(r.acc), color: `hsl(222, 74%, ${L}%)`, text: L < 60 ? '#fff' : '#0e1d40' };
+    });
   }, [me, byKey]);
 
   function colRows(cat, lim, exclude) {
@@ -724,30 +728,43 @@ export default function QuizHomeClient() {
     .qzh .qotd:hover .qotd-play{background:#1d4ed8;}
     .qzh .qotd-stats{font-size:12px;color:#9fb0d4;font-weight:600;display:inline-flex;align-items:center;gap:6px;min-width:0;}
     @media(max-width:760px){.qzh .qotd{flex-direction:column;}.qzh .qotd-photo{flex:none;height:128px;}.qzh .qotd-title{font-size:21px;}}
-    .qzh .tl1{display:grid;grid-template-columns:minmax(0,1.5fr) minmax(0,1fr);gap:12px;margin-bottom:12px;}
-    .qzh .tl2{display:grid;grid-template-columns:1.15fr 1.35fr 1.5fr;gap:12px;margin-bottom:12px;align-items:start;}
-    @media(max-width:760px){.qzh .tl1{grid-template-columns:1fr;}.qzh .tl2{grid-template-columns:1fr;}}
+    .qzh .thub{display:grid;grid-template-columns:1fr 1fr 0.95fr 152px;grid-template-rows:auto auto;gap:12px;margin-bottom:14px;align-items:stretch;}
+    .qzh .th-qotd{grid-column:1 / 3;grid-row:1;}
+    .qzh .th-new{grid-column:3;grid-row:1;}
+    .qzh .th-rail{grid-column:4;grid-row:1 / 3;}
+    .qzh .th-r2{grid-column:1 / 4;grid-row:2;display:grid;grid-template-columns:1.7fr 1fr;gap:12px;align-items:stretch;}
+    @media(max-width:820px){.qzh .thub{display:flex;flex-direction:column;}}
+    @media(max-width:560px){.qzh .th-r2{grid-template-columns:1fr;}}
     .qzh .dtile{background:${C.accent};border-radius:14px;padding:14px 16px;color:#fff;display:flex;flex-direction:column;}
     .qzh .dtile-head{display:flex;align-items:center;gap:8px;margin-bottom:9px;}
-    .qzh .dtile-chip{font-size:10px;font-weight:800;background:rgba(255,255,255,.2);border-radius:12px;padding:2px 9px;text-transform:uppercase;letter-spacing:.04em;}
+    .qzh .dtile-chip{font-size:10px;font-weight:800;background:rgba(255,255,255,0.2);border-radius:12px;padding:2px 9px;text-transform:uppercase;letter-spacing:.04em;}
     .qzh .dtile-prog{display:flex;gap:5px;margin-bottom:10px;}
     .qzh .dtile-rows{display:flex;flex-direction:column;gap:2px;margin-bottom:10px;}
     .qzh .dtile-row{display:flex;align-items:center;gap:8px;font-size:12.5px;font-weight:700;color:#fff;text-decoration:none;padding:2px 0;}
-    .qzh .dtile-num{width:16px;height:16px;border-radius:50%;border:2px solid rgba(255,255,255,.6);flex:none;font-size:9px;display:flex;align-items:center;justify-content:center;}
+    .qzh .dtile-num{width:16px;height:16px;border-radius:50%;border:2px solid rgba(255,255,255,0.6);flex:none;font-size:9px;display:flex;align-items:center;justify-content:center;}
     .qzh .dtile-name{flex:1 1 auto;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
-    .qzh .dtile-cta{margin-top:auto;display:flex;align-items:center;justify-content:center;gap:7px;background:#fff;color:${C.accent};border-radius:10px;padding:10px;font-weight:800;font-size:13px;text-decoration:none;}
-    .qzh .tl2-col{display:flex;flex-direction:column;gap:12px;}
-    .qzh .tl2-btn{background:#fff;border:1px solid ${C.line};border-radius:12px;padding:11px 13px;display:flex;align-items:center;gap:11px;text-decoration:none;color:${C.ink};flex:1;cursor:pointer;font-family:inherit;text-align:left;}
-    .qzh .tl2-btn-accent{background:${C.accsoft};border-color:#cddffb;}
-    .qzh .tl2-ico{width:38px;height:38px;border-radius:10px;display:flex;align-items:center;justify-content:center;flex:none;}
-    .qzh .tl2-eyebrow{display:block;font-size:9px;font-weight:800;letter-spacing:.1em;color:${C.accent};}
-    .qzh .tl2-title{display:block;font-size:13.5px;font-weight:800;letter-spacing:-.3px;line-height:1.08;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
-    .qzh .tl2-sub{display:block;font-size:11px;color:#3f6bc4;font-weight:600;margin-top:1px;}
-    .qzh .lbtile,.qzh .cattile{background:#fff;border:1px solid ${C.line};border-radius:12px;padding:12px 15px;min-width:0;}
-    .qzh .lbtile-head,.qzh .cattile-head{display:flex;align-items:center;gap:7px;margin-bottom:8px;}
-    .qzh .cattile-bars{display:flex;flex-direction:column;overflow:hidden;border-radius:7px;}
-    .qzh .catseg{display:flex;align-items:center;justify-content:space-between;padding:0 10px;height:18px;font-size:10.5px;font-weight:800;border:none;cursor:pointer;font-family:inherit;width:100%;}
-    .qzh .catseg:hover{filter:brightness(1.08);}
+    .qzh .dtile-cta{margin-top:auto;display:flex;align-items:center;justify-content:center;gap:7px;background:#fff;color:${C.accent};border-radius:10px;padding:11px;font-weight:800;font-size:13px;text-decoration:none;}
+    .qzh .ntile{background:#fff;border:1px solid ${C.line};border-radius:14px;overflow:hidden;text-decoration:none;color:${C.ink};display:flex;flex-direction:column;height:100%;}
+    .qzh .ntile-hero{height:118px;display:flex;align-items:center;justify-content:center;position:relative;flex:none;}
+    .qzh .ntile-tag{position:absolute;top:10px;left:12px;font-size:9px;font-weight:800;letter-spacing:.08em;background:#fff;border-radius:10px;padding:3px 9px;}
+    .qzh .ntile-body{padding:13px 15px;flex:1;display:flex;flex-direction:column;}
+    .qzh .lbtile{background:#fff;border:1px solid ${C.line};border-radius:14px;padding:12px 15px;flex:1;display:flex;flex-direction:column;min-height:0;overflow:hidden;}
+    .qzh .lbtile-head{display:flex;align-items:center;gap:7px;margin-bottom:6px;}
+    .qzh .duelbtn{background:${C.accent};color:#fff;border:none;border-radius:12px;padding:12px;font-weight:800;font-size:12.5px;font-family:inherit;display:flex;align-items:center;justify-content:center;gap:8px;cursor:pointer;flex:none;}
+    .qzh .rail{background:#fff;border:1px solid ${C.line};border-radius:14px;padding:11px;display:flex;flex-direction:column;}
+    .qzh .rail-bars{flex:1;display:flex;flex-direction:column;border-radius:8px;overflow:hidden;min-height:230px;}
+    .qzh .rseg{display:flex;align-items:center;gap:5px;padding:0 9px;font-size:10.5px;font-weight:800;border:none;cursor:pointer;width:100%;}
+    .qzh .rseg:hover{filter:brightness(1.08);}
+    .qzh .rseg .rnm{flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;text-align:left;}
+    .qzh .dchev,.qzh .lchev{display:none;}
+    @media(max-width:560px){
+      .qzh .dtile-head,.qzh .lbtile-head{cursor:pointer;}
+      .qzh .dchev,.qzh .lchev{display:inline-flex;flex:none;transition:transform .15s;}
+      .qzh .dtile.mc-closed .dtile-collapse{display:none !important;}
+      .qzh .dtile.mc-closed{padding-bottom:12px;}
+      .qzh .lbtile.mc-closed .lbtile-collapse{display:none !important;}
+      .qzh .rail-bars{min-height:0;}
+    }
     .qzh .boards{display:grid;grid-template-columns:minmax(0,1.6fr) minmax(0,1fr);gap:12px;align-items:stretch;margin-bottom:12px;}
     .qzh .qz-mobtoggle{display:none;}
     /* Desktop: leaderboard LEFT (1fr), daily challenge WIDE MIDDLE (1.5fr),
@@ -853,7 +870,7 @@ export default function QuizHomeClient() {
     lbMetric.special ? (
                 (() => {
                   if (lbMetric.key === 'catRating') {
-                    const rows = (catBoards[lbMetric.catKey] || []).slice(0, (boardsExpanded || mobLbOpen) ? 10 : 5);
+                    const rows = (catBoards[lbMetric.catKey] || []).slice(0, 3);
                     if (rows.length === 0) return <div style={{ padding: '12px 13px', fontSize: 12, color: C.soft }}>No ranked players yet.</div>;
                     return rows.map((r, i) => (
                       <LbRow key={r.userKey || i} i={i}
@@ -917,9 +934,8 @@ export default function QuizHomeClient() {
 
         {signupOpen && <SignupModal onClose={() => setSignupOpen(false)} />}
 
-        {/* line 1: Quiz of the Day + Daily Challenge */}
-        <div className="tl1">
-          <Link href={`/quiz/${QUIZ_OF_DAY.id}`} className="qotd" aria-label={`Quiz of the day: ${QUIZ_OF_DAY.title}`}>
+        <div className="thub">
+          <Link href={`/quiz/${QUIZ_OF_DAY.id}`} className="qotd th-qotd" aria-label={`Quiz of the day: ${QUIZ_OF_DAY.title}`}>
             <div className="qotd-photo" style={{ backgroundImage: `url("${QUIZ_OF_DAY.hero}")` }} aria-hidden="true" />
             <div className="qotd-body">
               <div className="qotd-eyebrow">{QUIZ_OF_DAY.eyebrow}</div>
@@ -927,91 +943,79 @@ export default function QuizHomeClient() {
               <div className="qotd-meta">{QUIZ_OF_DAY.blurb}</div>
               <div className="qotd-foot">
                 <span className="qotd-play"><Play size={15} fill="#fff" strokeWidth={0} />Play now</span>
-                <span className="qotd-stats">
-                  {plays(QUIZ_OF_DAY.id) > 0 ? <span>{plays(QUIZ_OF_DAY.id).toLocaleString()} plays</span> : <span>New quiz</span>}
-                  {leader(QUIZ_OF_DAY.id) ? <><span aria-hidden="true">·</span><Crown size={13} style={{ color: '#e8b43a', flex: 'none' }} /><span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{leader(QUIZ_OF_DAY.id)} leads</span></> : null}
-                </span>
+                <span className="qotd-stats">{plays(QUIZ_OF_DAY.id) > 0 ? <span>{plays(QUIZ_OF_DAY.id).toLocaleString()} plays</span> : <span>New quiz</span>}{leader(QUIZ_OF_DAY.id) ? <><span aria-hidden="true">·</span><Crown size={13} style={{ color: '#e8b43a', flex: 'none' }} /><span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{leader(QUIZ_OF_DAY.id)} leads</span></> : null}</span>
               </div>
             </div>
           </Link>
-          {daily && DAILY_CHALLENGE_ON && (
-            <div className="dtile">
-              <div className="dtile-head">
-                <Target size={16} style={{ flex: 'none' }} />
-                <span className="x8" style={{ fontSize: 14, fontWeight: 800 }}>Daily Challenge</span>
-                {dailyCat ? <span className="dtile-chip">{dailyCat}</span> : null}
-                <span style={{ marginLeft: 'auto', fontSize: 12, fontWeight: 800 }}>{dailyDoneCount}/{dailyIds.length}</span>
-              </div>
-              <div className="dtile-prog">
-                {dailyIds.map((qid) => (<span key={qid} style={{ flex: 1, height: 6, borderRadius: 3, background: dailyIsDone(qid) ? '#a5f3c9' : 'rgba(255,255,255,0.3)' }} />))}
-              </div>
-              <div className="dtile-rows">
-                {dailyIds.map((qid, k) => {
-                  const done = dailyIsDone(qid);
-                  return (
-                    <Link key={qid} href={`/quiz/${qid}?ch=${encodeURIComponent(dailyId)}&i=${k}`} className="dtile-row">
-                      {done ? <Check size={13} strokeWidth={3} style={{ color: '#a5f3c9', flex: 'none' }} /> : <span className="dtile-num">{k + 1}</span>}
-                      <span className="dtile-name">{stripVerb(titleById[qid] || qid)}</span>
-                      {chScores[qid] ? <span style={{ flex: 'none', fontWeight: 800, opacity: 0.9 }}>{chScores[qid].score}/{chScores[qid].total}</span> : null}
-                    </Link>
-                  );
-                })}
-              </div>
-              <Link href={dailyAllDone ? `/challenge/${dailyId}?done=1` : dailyEntryUrl} className="dtile-cta">
-                {dailyAllDone ? 'See your results' : dailyDoneCount > 0 ? 'Continue challenge' : 'Play today’s challenge'}
-                <ArrowRight size={15} style={{ flex: 'none' }} />
-              </Link>
-            </div>
-          )}
-        </div>
 
-        {/* line 2: newest + challenge + leaderboard + category mastery */}
-        <div className="tl2" style={catMastery.length ? undefined : { gridTemplateColumns: 'minmax(0,1.15fr) minmax(0,2fr)' }}>
-          <div className="tl2-col">
-            {newest[0] ? (() => { const nc = byKey[newest[0].dept] || {}; const NIcon = nc.Icon || Sparkles; return (
-              <Link href={`/quiz/${newest[0].id}`} className="tl2-btn">
-                <span className="tl2-ico" style={{ background: nc.t || C.accsoft, color: nc.c || C.accent }}><NIcon size={20} /></span>
-                <span style={{ minWidth: 0, flex: 1 }}>
-                  <span className="tl2-eyebrow"><Sparkles size={11} style={{ verticalAlign: -1 }} /> NEWEST QUIZ</span>
-                  <span className="tl2-title">{stripVerb(newest[0].title)}</span>
-                </span>
-              </Link>
-            ); })() : null}
-            <button type="button" onClick={shareChallenge} className="tl2-btn tl2-btn-accent">
-              <span className="tl2-ico" style={{ background: C.accent, color: '#fff' }}><Swords size={20} /></span>
-              <span style={{ minWidth: 0, flex: 1 }}>
-                <span className="tl2-title" style={{ color: '#1748b0' }}>Challenge a friend</span>
-                <span className="tl2-sub">{chCopied ? 'Link copied!' : 'Send a link'}</span>
-              </span>
-            </button>
+          {newest[0] ? (() => { const nc = byKey[newest[0].dept] || {}; const NIcon = nc.Icon || Sparkles; return (
+            <Link href={`/quiz/${newest[0].id}`} className="ntile th-new">
+              <div className="ntile-hero" style={{ background: nc.t || C.accsoft, color: nc.c || C.accent }}>
+                <NIcon size={42} />
+                <span className="ntile-tag" style={{ color: nc.c || C.accent }}><Sparkles size={10} style={{ verticalAlign: -1 }} /> NEWEST QUIZ</span>
+              </div>
+              <div className="ntile-body">
+                <div style={{ fontSize: 16, fontWeight: 800, letterSpacing: '-.3px', lineHeight: 1.12 }}>{stripVerb(newest[0].title)}</div>
+                <div style={{ fontSize: 11.5, color: C.soft, fontWeight: 600, marginTop: 4 }}>{nc.label ? `${nc.label} · ` : ''}just added</div>
+                <div style={{ marginTop: 'auto', fontSize: 13, color: C.accent, fontWeight: 800 }}>Play <ArrowRight size={13} style={{ verticalAlign: -1 }} /></div>
+              </div>
+            </Link>
+          ); })() : <div className="th-new" />}
+
+          <div className="th-r2">
+            {daily && DAILY_CHALLENGE_ON ? (
+              <div className={`dtile mc-${mDaily ? 'open' : 'closed'}`}>
+                <div className="dtile-head" onClick={() => { if (isMobile) setMDaily((v) => !v); }}>
+                  <Target size={16} style={{ flex: 'none' }} />
+                  <span className="x8" style={{ fontSize: 14, fontWeight: 800 }}>Daily Challenge</span>
+                  {dailyCat ? <span className="dtile-chip">{dailyCat}</span> : null}
+                  <span style={{ marginLeft: 'auto', fontSize: 12, fontWeight: 800 }}>{dailyDoneCount}/{dailyIds.length}</span>
+                  <ChevronDown className="dchev" size={16} strokeWidth={2.5} style={{ color: '#fff', transform: mDaily ? 'rotate(180deg)' : 'none' }} />
+                </div>
+                <div className="dtile-collapse" style={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
+                  <div className="dtile-prog">{dailyIds.map((qid) => (<span key={qid} style={{ flex: 1, height: 6, borderRadius: 3, background: dailyIsDone(qid) ? '#a5f3c9' : 'rgba(255,255,255,0.3)' }} />))}</div>
+                  <div className="dtile-rows">
+                    {dailyIds.map((qid, k) => { const done = dailyIsDone(qid); return (
+                      <Link key={qid} href={`/quiz/${qid}?ch=${encodeURIComponent(dailyId)}&i=${k}`} className="dtile-row">
+                        {done ? <Check size={13} strokeWidth={3} style={{ color: '#a5f3c9', flex: 'none' }} /> : <span className="dtile-num">{k + 1}</span>}
+                        <span className="dtile-name">{stripVerb(titleById[qid] || qid)}</span>
+                        {chScores[qid] ? <span style={{ flex: 'none', fontWeight: 800, opacity: 0.9 }}>{chScores[qid].score}/{chScores[qid].total}</span> : null}
+                      </Link>
+                    ); })}
+                  </div>
+                  <Link href={dailyAllDone ? `/challenge/${dailyId}?done=1` : dailyEntryUrl} className="dtile-cta">{dailyAllDone ? 'See your results' : dailyDoneCount > 0 ? 'Continue challenge' : 'Play today’s challenge'}<ArrowRight size={15} style={{ flex: 'none' }} /></Link>
+                </div>
+              </div>
+            ) : <div />}
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 12, minWidth: 0 }}>
+              <div className={`lbtile mc-${mLb ? 'open' : 'closed'}`}>
+                <div className="lbtile-head" onClick={() => { if (isMobile) setMLb((v) => !v); }}>
+                  <Crown size={15} strokeWidth={2} style={{ color: '#e8b43a', flex: 'none' }} />
+                  <span className="x8" style={{ fontSize: 13, fontWeight: 800, flex: 1, minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{lbMetric.label}{lbMetric.special || scope === 'all' ? '' : ` · ${byKey[scope]?.label}`}</span>
+                  <Link href="/quizzes/hub" className="qlink" onClick={(e) => e.stopPropagation()} style={{ fontSize: 10, fontWeight: 800, color: C.accent, flex: 'none' }}>View all</Link>
+                  <ChevronDown className="lchev" size={16} strokeWidth={2.5} style={{ color: C.soft, transform: mLb ? 'rotate(180deg)' : 'none' }} />
+                </div>
+                <div className="lbtile-collapse" style={{ flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'space-around' }}>{renderLb()}</div>
+              </div>
+              <button type="button" onClick={shareChallenge} className="duelbtn"><Swords size={16} /> Challenge a friend or user to a duel</button>
+            </div>
           </div>
 
-          <div className="lbtile">
-            <div className="lbtile-head">
-              <Crown size={15} strokeWidth={2} style={{ color: '#e8b43a', flex: 'none' }} />
-              <span className="x8" style={{ fontSize: 13.5, fontWeight: 800, flex: 1, minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{lbMetric.label}{lbMetric.special || scope === 'all' ? '' : ` · ${byKey[scope]?.label}`}</span>
-              <Link href="/quizzes/hub" className="qlink" style={{ fontSize: 10, fontWeight: 800, color: C.accent, flex: 'none' }}>View all</Link>
-            </div>
-            <div>{renderLb()}</div>
-          </div>
-
-          {catMastery.length > 0 && (
-            <div className="cattile">
-              <div className="cattile-head">
-                <BarChart3 size={15} style={{ color: C.accent, flex: 'none' }} />
-                <span className="x8" style={{ fontSize: 13.5, fontWeight: 800 }}>Category mastery</span>
-                <span style={{ marginLeft: 'auto', fontSize: 10, color: C.soft, fontWeight: 700 }}>tap to filter</span>
-              </div>
-              <div className="cattile-bars">
+          <div className="rail th-rail">
+            <div style={{ display: 'flex', alignItems: 'center', gap: 5 }}><BarChart3 size={14} style={{ color: C.accent, flex: 'none' }} /><span className="x8" style={{ fontSize: 12, fontWeight: 800 }}>Category mastery</span></div>
+            <div style={{ fontSize: 9, color: C.soft, fontWeight: 700, letterSpacing: '.04em', textTransform: 'uppercase', margin: '2px 0 8px' }}>Tap to filter</div>
+            {catMastery.length > 0 ? (
+              <div className="rail-bars">
                 {catMastery.map((m) => (
-                  <button type="button" key={m.key} onClick={() => goCat(m.key)} className="catseg" style={{ background: m.color, color: m.text }}>
-                    <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{m.label}</span>
-                    <span style={{ display: 'flex', alignItems: 'center', gap: 4, flex: 'none' }}>{m.acc}% <ChevronRight size={11} style={{ opacity: 0.7 }} /></span>
+                  <button type="button" key={m.key} onClick={() => goCat(m.key)} className="rseg" style={{ flex: 1, background: m.color, color: m.text }}>
+                    <span className="rnm">{m.label}</span><span>{m.acc}%</span><ChevronRight size={11} style={{ opacity: 0.7 }} />
                   </button>
                 ))}
               </div>
-            </div>
-          )}
+            ) : (
+              <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', textAlign: 'center', fontSize: 11, color: C.soft, fontWeight: 600, padding: '0 6px' }}>Play a few quizzes to build your category mastery.</div>
+            )}
+          </div>
         </div>
 
         {/* browse header + search */}
@@ -1181,7 +1185,7 @@ export default function QuizHomeClient() {
           </div>
         ) : (
           <div className="qcols">
-            <BrowseColumn label="Last Played" Icon={Play} color="#10b981" tint="#d8f3e6"
+            <BrowseColumn label={<>Last Played{playsToday ? <span style={{ fontSize: 10.5, fontWeight: 700, color: C.soft }}> · {playsToday.toLocaleString()} plays today</span> : null}</>} Icon={Play} color="#10b981" tint="#d8f3e6"
               rows={lastPlayed.map((f) => ({ q: { id: f.quizId, title: f.title, rawTitle: f.title }, right: (<><span className="score" style={{ fontSize: 11, color: f.total && f.score / f.total >= 0.8 ? '#16a34a' : C.soft }}>{f.score}/{f.total}</span><span style={{ color: C.soft }}>{relTime(f.playedAt)}</span></>) }))} cta="View all ›" onCta={() => setListMode('live')} open={!!acc.lastplayed} onToggle={() => toggleAcc('lastplayed')} isMobile={isMobile} />
             <BrowseColumn label="Newest" Icon={Sparkles} color={C.accent} tint={C.accsoft}
               rows={newest.map((q) => ({ q, right: <NewRight q={q} /> }))} cta="View all ›" onCta={() => setListMode('newest')} open={!!acc.newest} onToggle={() => toggleAcc('newest')} isMobile={isMobile} />
