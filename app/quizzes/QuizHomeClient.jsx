@@ -769,7 +769,7 @@ export default function QuizHomeClient() {
     .qzh .thub-left{flex:1 1 auto;min-width:0;display:flex;flex-direction:column;gap:12px;}
     .qzh .th-rail{flex:0 0 208px;}
     .qzh .th-r2{display:grid;grid-template-columns:minmax(0,1.15fr) minmax(0,0.82fr) minmax(0,1fr);gap:12px;align-items:stretch;}
-    @media(max-width:820px){.qzh .thub{flex-direction:column;}.qzh .th-r2{grid-template-columns:1fr 1fr;}}
+    @media(max-width:820px){.qzh .thub{flex-direction:column;}.qzh .th-r2{grid-template-columns:1fr 1fr;}.qzh .th-r2 .dtile{grid-column:1 / -1;}}
     @media(max-width:560px){.qzh .th-r2{grid-template-columns:1fr;}.qzh .th-rail{display:none !important;}.qzh .th-r2 .ntile{order:-1;min-height:250px;background-position:center 12%;}.qzh .duelbtn{display:none !important;}}
     .qzh .dtile{background:${C.accent};border-radius:14px;padding:14px 16px;color:#fff;display:flex;flex-direction:column;min-height:184px;}
     .qzh .dtile-head{display:flex;align-items:center;gap:8px;margin-bottom:9px;}
