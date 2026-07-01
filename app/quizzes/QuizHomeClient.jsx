@@ -620,13 +620,13 @@ export default function QuizHomeClient() {
   function goCat(key) { setScope(key); setDoneFilter('all'); setListMode(null); setSearch(''); try { if (quizzesRef.current) quizzesRef.current.scrollIntoView({ behavior: 'smooth', block: 'start' }); } catch {} }
   const catMastery = useMemo(() => {
     if (!me || !me.byCategory) return [];
-    const shade = (a) => a >= 85 ? '#1d4ed8' : a >= 70 ? '#2563eb' : a >= 60 ? '#3b82f6' : a >= 50 ? '#60a5fa' : a >= 40 ? '#93c5fd' : '#bfdbfe';
+    const ramp = ['#1d4ed8', '#2563eb', '#3b82f6', '#60a5fa', '#93c5fd', '#bfdbfe'];
     return Object.keys(me.byCategory)
       .map((k) => ({ key: k, acc: me.byCategory[k] && me.byCategory[k].accuracy, played: (me.byCategory[k] && me.byCategory[k].played) || 0, label: (byKey[k] && byKey[k].label) || DEPT_LABEL[k] || k }))
       .filter((r) => r.played > 0 && typeof r.acc === 'number')
       .sort((a, b) => b.acc - a.acc)
       .slice(0, 6)
-      .map((r) => ({ key: r.key, label: r.label, acc: Math.round(r.acc), color: shade(r.acc), text: r.acc >= 60 ? '#fff' : '#0e1d40' }));
+      .map((r, i) => ({ key: r.key, label: r.label, acc: Math.round(r.acc), color: ramp[i], text: i < 3 ? '#fff' : '#0e1d40' }));
   }, [me, byKey]);
 
   function colRows(cat, lim, exclude) {
@@ -966,7 +966,7 @@ export default function QuizHomeClient() {
         </div>
 
         {/* line 2: newest + challenge + leaderboard + category mastery */}
-        <div className="tl2">
+        <div className="tl2" style={catMastery.length ? undefined : { gridTemplateColumns: 'minmax(0,1.15fr) minmax(0,2fr)' }}>
           <div className="tl2-col">
             {newest[0] ? (() => { const nc = byKey[newest[0].dept] || {}; const NIcon = nc.Icon || Sparkles; return (
               <Link href={`/quiz/${newest[0].id}`} className="tl2-btn">
