@@ -2698,3 +2698,33 @@ on to restore the daily challenge.
 - **News recap quiz:** id matching `NEWS_RE`; it auto-lists, no registry edit needed.
 - Every new quiz needs a distinct `publishedAt` stamped at push time and a `QUIZ_DEPT` entry. After deploy,
   IndexNow-ping the new `/quiz/<id>` URLs (the hub URL is already live).
+
+## Quiz hub hero system: per-quiz registry + QOTD rotation (2026-07-01)
+
+The featured photos on `/quizzes` are driven by ONE per-quiz registry,
+`lib/quiz-heroes.js` (`QUIZ_HEROES`, keyed by quiz id -> `{ src, pos? }`). This
+SUPERSEDES the old `lib/quiz-category-heroes.js` (`CATEGORY_HEROES`), which is now
+unused (left in the tree, do not add to it). `QuizHomeClient.jsx` imports
+`QUIZ_HEROES` + `qotdIdFor` from `lib/quiz-heroes.js`.
+
+All three featured slots only ever show a quiz that is IN `QUIZ_HEROES`, so no slot
+is ever heroless:
+- **Category card** = the most-PLAYED quiz in that category that has a registry hero
+  (falls back to the department photo `DEPT_HERO` only if the category has zero heroed
+  quizzes). It follows live plays but never hands off to a challenger without a hero.
+- **Newest tile** = the actual newest quiz; its registry hero is preferred, else the
+  live Wikipedia lookup, else `DEPT_HERO` (never blank).
+- **Quiz of the Day** = `qotdIdFor(easternYmd())`: a per-date pin in `QOTD_OVERRIDES`
+  wins; otherwise it auto-rotates each Eastern midnight over `QOTD_POOL`. Title,
+  eyebrow, and blurb come from the chosen quiz; the photo from the registry. It flips
+  on its own at ET midnight with NO deploy.
+
+To feature a quiz on a specific day: add `QOTD_OVERRIDES['YYYY-MM-DD'] = '<id>'` (the
+id MUST be in `QUIZ_HEROES`). To make any quiz eligible for a featured slot: add it to
+`QUIZ_HEROES` (JPEG/PNG only, verified through `/_next/image`) and, for QOTD rotation,
+to `QOTD_POOL`. Heroes must never be WebP/AVIF.
+
+Audit before shipping hero changes: `node scripts/audit-quiz-heroes.mjs` (checks the
+QOTD schedule for the next 14 days, hero-id orphans, and JPEG/PNG format). Category
+leaders and the newest tile also depend on LIVE play counts, so those aren't
+build-checkable.

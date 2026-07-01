@@ -12,11 +12,11 @@ import {
 } from 'lucide-react';
 import { QUIZZES } from '@/lib/quizzes';
 import { KIDS_GAMES } from '@/lib/kids';
-import { CATEGORY_HEROES } from '@/lib/quiz-category-heroes';
+import { QUIZ_HEROES, qotdIdFor } from '@/lib/quiz-heroes';
 import {
   quizDept as deptOf, DEPT_COLOR, DEPT_LABEL, DEPT_NAV,
 } from '@/lib/quiz-departments';
-import { getDailyChallenge, dailyChallengeId, openChallenges, challengeQuizIds, DAILY_CHALLENGE_ON } from '@/lib/challenges';
+import { getDailyChallenge, dailyChallengeId, openChallenges, challengeQuizIds, DAILY_CHALLENGE_ON, easternYmd } from '@/lib/challenges';
 import { isBusinessNewsHubQuiz } from '@/lib/business-news-hub';
 import Grain from '../Grain';
 import Footer from '../Footer';
@@ -55,14 +55,7 @@ const C = {
 const MEDAL = ['#e8b43a', '#b8bcc4', '#c8814b'];
 const FONT = "'Manrope', system-ui, -apple-system, sans-serif";
 const STATUS_LABEL = { unplayed: 'Unplayed', played: 'Played', completed: 'Completed' };
-// Featured "Quiz of the Day" banner (full-width hero at the top of the hub).
-const QUIZ_OF_DAY = {
-  id: 'f1-circuit-from-a-photo',
-  eyebrow: 'Quiz of the Day · Formula 1',
-  title: 'Name the F1 Circuit from a Photo',
-  blurb: 'Twenty Formula 1 venues, one photo each: a grandstand, a skyline, a legendary corner. Can you name every track?',
-  hero: 'https://upload.wikimedia.org/wikipedia/commons/thumb/5/50/2005_Monaco_GP2%2C_Monaco_Grand_Prix_Support_Race%2C_Monte_Carlo%2C_21st_May.jpg/1280px-2005_Monaco_GP2%2C_Monaco_Grand_Prix_Support_Race%2C_Monte_Carlo%2C_21st_May.jpg',
-};
+// Quiz of the Day is computed per render from the hero registry + rotation (see the qotd useMemo).
 const DEPT_HERO = {
   movies: 'https://upload.wikimedia.org/wikipedia/commons/thumb/b/b1/Ptuj%2C_city_cinema.jpg/960px-Ptuj%2C_city_cinema.jpg',
   music: 'https://upload.wikimedia.org/wikipedia/commons/thumb/a/a7/D%C3%BClmen%2C_D%C3%BClmener_Sommer%2C_Open-Air-Konzert%2C_%22Bounce%22_--_2018_--_0051.jpg/960px-D%C3%BClmen%2C_D%C3%BClmener_Sommer%2C_Open-Air-Konzert%2C_%22Bounce%22_--_2018_--_0051.jpg',
@@ -302,6 +295,15 @@ export default function QuizHomeClient() {
   const [todayData, setTodayData] = useState({ byCorrect: [], byQuizzes: [] }); // /api/quiz/today leaders
   // Today's daily challenge (deterministic from the date; no server state needed).
   const daily = useMemo(() => getDailyChallenge(), []);
+  const qotd = useMemo(() => {
+    const existing = new Set(QUIZZES.map((q) => q.id));
+    let id = qotdIdFor(easternYmd(), existing);
+    let q = id ? QUIZZES.find((x) => x.id === id) : null;
+    if (!q) { for (const hid of Object.keys(QUIZ_HEROES)) { const cand = QUIZZES.find((x) => x.id === hid); if (cand) { q = cand; id = hid; break; } } }
+    if (!q) return null;
+    const h = QUIZ_HEROES[id] || {};
+    return { id: q.id, eyebrow: `Quiz of the Day · ${DEPT_LABEL[deptOf(q)] || 'Quiz'}`, title: cleanTitle(q.title), blurb: q.blurb || '', hero: h.src || '', pos: h.pos };
+  }, []);
   const dailyCat = daily ? daily.accent : '';
   // Every challenge open right now (today's daily + open events like the Outline
   // Challenge). The header CTA rotates through these like the leaderboard slides.
@@ -693,7 +695,7 @@ export default function QuizHomeClient() {
   const [mDaily, setMDaily] = useState(false);
   const [mLb, setMLb] = useState(false);
   function shareChallenge() {
-    const url = (typeof window !== 'undefined' ? window.location.origin : '') + `/quiz/${QUIZ_OF_DAY.id}`;
+    const url = (typeof window !== 'undefined' ? window.location.origin : '') + `/quiz/${qotd ? qotd.id : ''}`;
     const data = { title: 'Source of Truths', text: 'Can you beat me on today’s quiz?', url };
     if (typeof navigator !== 'undefined' && navigator.share) { navigator.share(data).catch(() => {}); }
     else if (typeof navigator !== 'undefined' && navigator.clipboard) { navigator.clipboard.writeText(url).then(() => { setChCopied(true); setTimeout(() => setChCopied(false), 2000); }).catch(() => {}); }
@@ -1097,18 +1099,18 @@ export default function QuizHomeClient() {
 
         <div className="thub">
           <div className="thub-left">
-          <Link href={`/quiz/${QUIZ_OF_DAY.id}`} className="qotd th-qotd" aria-label={`Quiz of the day: ${QUIZ_OF_DAY.title}`}>
-            <div className="qotd-photo" style={{ backgroundImage: `url("${QUIZ_OF_DAY.hero}")` }} aria-hidden="true" />
+          {qotd && (<Link href={`/quiz/${qotd.id}`} className="qotd th-qotd" aria-label={`Quiz of the day: ${qotd.title}`}>
+            <div className="qotd-photo" style={{ backgroundImage: `url("${qotd.hero}")`, backgroundPosition: qotd.pos || 'center' }} aria-hidden="true" />
             <div className="qotd-body">
-              <div className="qotd-eyebrow">{QUIZ_OF_DAY.eyebrow}</div>
-              <div className="qotd-title">{QUIZ_OF_DAY.title}</div>
-              <div className="qotd-meta">{QUIZ_OF_DAY.blurb}</div>
+              <div className="qotd-eyebrow">{qotd.eyebrow}</div>
+              <div className="qotd-title">{qotd.title}</div>
+              <div className="qotd-meta">{qotd.blurb}</div>
               <div className="qotd-foot">
                 <span className="qotd-play"><Play size={15} fill="#fff" strokeWidth={0} />Play now</span>
-                <span className="qotd-stats">{plays(QUIZ_OF_DAY.id) > 0 ? <span>{plays(QUIZ_OF_DAY.id).toLocaleString()} plays</span> : <span>New quiz</span>}{leader(QUIZ_OF_DAY.id) ? <><span aria-hidden="true">·</span><Crown size={13} style={{ color: '#e8b43a', flex: 'none' }} /><span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{leader(QUIZ_OF_DAY.id)} leads</span></> : null}</span>
+                <span className="qotd-stats">{plays(qotd.id) > 0 ? <span>{plays(qotd.id).toLocaleString()} plays</span> : <span>New quiz</span>}{leader(qotd.id) ? <><span aria-hidden="true">·</span><Crown size={13} style={{ color: '#e8b43a', flex: 'none' }} /><span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{leader(qotd.id)} leads</span></> : null}</span>
               </div>
             </div>
-          </Link>
+          </Link>)}
 
           <div className="th-r2">
             {daily && DAILY_CHALLENGE_ON ? (
@@ -1135,8 +1137,8 @@ export default function QuizHomeClient() {
               </div>
             ) : <div />}
 
-            {newest[0] ? (() => { const nc = byKey[newest[0].dept] || {}; const NIcon = nc.Icon || Sparkles; return (
-              <Link href={`/quiz/${newest[0].id}`} className="ntile" style={(newestHero || DEPT_HERO[newest[0].dept]) ? { backgroundImage: `url("${newestHero || DEPT_HERO[newest[0].dept]}")` } : { background: nc.c || C.accent }}>
+            {newest[0] ? (() => { const nc = byKey[newest[0].dept] || {}; const NIcon = nc.Icon || Sparkles; const nqh = QUIZ_HEROES[newest[0].id]; const nHero = nqh ? nqh.src : (newestHero || DEPT_HERO[newest[0].dept]); const nPos = nqh ? nqh.pos : undefined; return (
+              <Link href={`/quiz/${newest[0].id}`} className="ntile" style={nHero ? { backgroundImage: `url("${nHero}")`, backgroundPosition: nPos || 'center' } : { background: nc.c || C.accent }}>
                 <span className="ntile-tag" style={{ color: C.accent }}><Sparkles size={10} style={{ verticalAlign: -1 }} /> NEWEST QUIZ</span>
                 <div className="ntile-ov">
                   <div className="ntile-t">{stripVerb(newest[0].title)}</div>
@@ -1349,11 +1351,13 @@ export default function QuizHomeClient() {
             <BrowseColumn label="Newest" Icon={Sparkles} color={C.accent} tint={C.accsoft} filled
               rows={newest.slice(0, 3).map((q) => ({ q, right: <NewRight q={q} /> }))} cta="View all ›" onCta={() => setListMode('newest')} />
             {cats.filter((c) => c.key !== 'school').map((c) => {
-              const ch = CATEGORY_HEROES[c.key];
               const topQ = c.quizzes.slice().sort((a, b) => plays(b.id) - plays(a.id) || a.title.localeCompare(b.title))[0];
-              const heroId = ch ? ch.quizId : (topQ && topQ.id);
-              const heroUrl = ch ? ch.hero : FALLBACK_HERO;
-              const heroPos = ch ? ch.pos : undefined;
+              const heroCand = c.quizzes.slice().filter((q) => QUIZ_HEROES[q.id]).sort((a, b) => plays(b.id) - plays(a.id) || a.title.localeCompare(b.title))[0];
+              const heroQ = heroCand || topQ;
+              const heroId = heroQ && heroQ.id;
+              const hh = heroId ? QUIZ_HEROES[heroId] : null;
+              const heroUrl = hh ? hh.src : (DEPT_HERO[c.key] || FALLBACK_HERO);
+              const heroPos = hh ? hh.pos : undefined;
               const heroTitle = heroId ? (titleById[heroId] || '') : '';
               const exSet = heroId ? new Set([...shownIds, heroId]) : shownIds;
               const rowq = colRows(c, 7, exSet).filter((q) => q.id !== heroId).slice(0, 6);
