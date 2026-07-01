@@ -329,6 +329,8 @@ export default function QuizHomeClient() {
     id: q.id,
     title: q.navTitle || cleanTitle(q.title) || q.id,
     rawTitle: q.title || '',
+    category: q.category || '',
+    blurb: q.blurb || '',
     dept: deptOf(q),
     publishedAt: q.publishedAt || (q.publishedDate ? `${q.publishedDate}T12:00:00Z` : ''),
   })), []);
@@ -702,7 +704,7 @@ export default function QuizHomeClient() {
     if (!q) return null;
     const terms = q.split(/\s+/).filter(Boolean);
     return catalog.filter((c) => {
-      const hay = (c.rawTitle + ' ' + c.title).toLowerCase();
+      const hay = (c.rawTitle + ' ' + c.title + ' ' + c.category + ' ' + c.blurb).toLowerCase();
       return terms.every((t) => hay.includes(t));
     }).slice(0, 80);
   }, [search, catalog]);
