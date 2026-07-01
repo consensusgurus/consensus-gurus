@@ -821,7 +821,7 @@ export default function QuizHomeClient() {
     .qzh .dditem:hover{background:${C.bg};}
     .qzh .dot{width:9px;height:9px;border-radius:3px;flex:none;}
     .qzh .qotd{display:flex;align-items:stretch;gap:0;background:#0e1d40;border:1px solid ${C.line};border-radius:14px;overflow:hidden;min-height:215px;text-decoration:none;color:#fff;}
-    .qzh .qotd-photo{flex:0 0 32%;background-size:cover;background-position:center;min-height:180px;}
+    .qzh .qotd-photo{flex:0 0 42%;background-size:cover;background-position:center;min-height:180px;}
     .qzh .qotd-body{flex:1 1 auto;min-width:0;padding:18px 22px;display:flex;flex-direction:column;justify-content:center;}
     .qzh .qotd-eyebrow{font-size:10px;font-weight:800;letter-spacing:.14em;text-transform:uppercase;color:#f8b84a;margin-bottom:7px;}
     .qzh .qotd-title{font-size:28px;font-weight:800;letter-spacing:-.02em;line-height:1.04;color:#fff;}

@@ -100,7 +100,7 @@ export default function QuizPlayerBar({ me: meProp, controlled = false, rightAct
   const dash='—';
   const signed = !!(found && me && me.signed);
   const hubMode = leaderboard != null;
-  const lbRows = (leaderboard && Array.isArray(leaderboard.rows)) ? leaderboard.rows.slice(0, 6) : [];
+  const lbRows = (leaderboard && Array.isArray(leaderboard.rows)) ? leaderboard.rows.slice(0, 5) : [];
   const rightBtn = rightAction==='share'
     ? <button onClick={(e)=>{e.stopPropagation(); onShare&&onShare();}} style={chip}>Share Stats</button>
     : <Link href="/quizzes/hub" onClick={e=>e.stopPropagation()} style={chip}>{(found && !signed)?'Sign Up / Stat Hub':'Stat Hub'} <ArrowRight size={14}/></Link>;
@@ -115,7 +115,7 @@ export default function QuizPlayerBar({ me: meProp, controlled = false, rightAct
       kids.forEach((k, idx) => {
         if (over) { k.style.display = 'none'; return; }
         const w = k.getBoundingClientRect().width;
-        const next = used + (idx > 0 ? 16 : 0) + w;
+        const next = used + (idx > 0 ? 24 : 0) + w;
         if (idx > 0 && next > avail) { over = true; k.style.display = 'none'; }
         else used = next;
       });
@@ -151,7 +151,7 @@ export default function QuizPlayerBar({ me: meProp, controlled = false, rightAct
               <div className="qpb-lbdiv" style={{width:2,height:34,background:'rgba(255,255,255,0.32)',borderRadius:2,flex:'none'}}/>
               <div className="qpb-lb" ref={lbRef} style={{flex:'1 1 auto',minWidth:0,overflow:'hidden'}}>
                 <div style={{...lbl,display:'flex',alignItems:'center',gap:5,marginBottom:3,whiteSpace:'nowrap',overflow:'hidden',textOverflow:'ellipsis'}}><Crown size={12} strokeWidth={2} style={{color:'#e8b43a',flex:'none'}}/>{leaderboard.label}</div>
-                <div className="qpb-lbrows" style={{display:'flex',flexWrap:'nowrap',gap:16,whiteSpace:'nowrap',overflow:'hidden',fontSize:12,color:ONBLUE}}>
+                <div className="qpb-lbrows" style={{display:'flex',flexWrap:'nowrap',gap:24,whiteSpace:'nowrap',overflow:'hidden',fontSize:12,color:ONBLUE}}>
                   {lbRows.map((r,i)=>(<span key={i} className={`qpb-lb${i+1}`}><b style={{color:MEDAL[i]||ONBLUE_SOFT}}>{i+1}</b>&nbsp; <span style={{fontWeight:600}}>{r.name}</span> <b>{r.value}</b></span>))}
                 </div>
               </div>
