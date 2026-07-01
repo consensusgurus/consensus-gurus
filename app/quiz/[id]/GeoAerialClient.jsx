@@ -531,6 +531,9 @@ export default function MapPlaceClient({ quizId, mobile = false }) {
                 </p>
                 <div style={{ display: 'flex', gap: 10, justifyContent: 'center', flexWrap: 'wrap', alignItems: 'center' }}>
                   <button onClick={startGame} disabled={!leafletReady} style={{ fontFamily: MONO, fontSize: 14, letterSpacing: '0.1em', textTransform: 'uppercase', fontWeight: 700, padding: '0 40px', lineHeight: '52px', border: 'none', background: COLORS.ember, color: '#fff', cursor: leafletReady ? 'pointer' : 'default', opacity: leafletReady ? 1 : 0.5 }}>{leafletReady ? 'Start' : 'Loading map…'}</button>
+                  <button onClick={() => setTab('stats')} style={{ fontFamily: MONO, fontSize: 13, letterSpacing: '0.08em', textTransform: 'uppercase', fontWeight: 700, padding: '0 28px', lineHeight: '52px', border: `1.5px solid ${COLORS.ink}`, background: COLORS.cream, color: COLORS.ink, cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: 8 }}>
+                    <Trophy size={14} strokeWidth={2.5} /> Leaderboard
+                  </button>
                   <button onClick={share} style={{ fontFamily: MONO, fontSize: 13, letterSpacing: '0.08em', textTransform: 'uppercase', fontWeight: 700, padding: '0 28px', lineHeight: '52px', border: `1.5px solid ${COLORS.ink}`, background: COLORS.cream, color: COLORS.ink, cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: 8 }}>
                     <Share2 size={14} strokeWidth={2.5} /> {copied ? 'Copied!' : 'Share'}
                   </button>
