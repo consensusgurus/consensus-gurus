@@ -8,7 +8,7 @@ import {
   Search, ChevronDown, ArrowRight, BarChart3, Crown, Sparkles, Flame,
   BadgeCheck, Clapperboard, Music, Gamepad2, Plane, Globe, Utensils,
   Briefcase, Leaf, Tv, BookOpen, Landmark, Trophy, UserPlus, Play, X,
-  Check, Star, Target,
+  Check, Star, Target, Swords, ChevronRight,
 } from 'lucide-react';
 import { QUIZZES } from '@/lib/quizzes';
 import {
@@ -610,6 +610,24 @@ export default function QuizHomeClient() {
     for (const f of liveAll) { if (!f || !f.quizId || seen.has(f.quizId)) continue; seen.add(f.quizId); out.push(f); if (out.length >= 6) break; }
     return out;
   }, [liveAll]);
+  const [chCopied, setChCopied] = useState(false);
+  function shareChallenge() {
+    const url = (typeof window !== 'undefined' ? window.location.origin : '') + `/quiz/${QUIZ_OF_DAY.id}`;
+    const data = { title: 'Source of Truths', text: 'Can you beat me on today’s quiz?', url };
+    if (typeof navigator !== 'undefined' && navigator.share) { navigator.share(data).catch(() => {}); }
+    else if (typeof navigator !== 'undefined' && navigator.clipboard) { navigator.clipboard.writeText(url).then(() => { setChCopied(true); setTimeout(() => setChCopied(false), 2000); }).catch(() => {}); }
+  }
+  function goCat(key) { setScope(key); setDoneFilter('all'); setListMode(null); setSearch(''); try { if (quizzesRef.current) quizzesRef.current.scrollIntoView({ behavior: 'smooth', block: 'start' }); } catch {} }
+  const catMastery = useMemo(() => {
+    if (!me || !me.byCategory) return [];
+    const shade = (a) => a >= 85 ? '#1d4ed8' : a >= 70 ? '#2563eb' : a >= 60 ? '#3b82f6' : a >= 50 ? '#60a5fa' : a >= 40 ? '#93c5fd' : '#bfdbfe';
+    return Object.keys(me.byCategory)
+      .map((k) => ({ key: k, acc: me.byCategory[k] && me.byCategory[k].accuracy, played: (me.byCategory[k] && me.byCategory[k].played) || 0, label: (byKey[k] && byKey[k].label) || DEPT_LABEL[k] || k }))
+      .filter((r) => r.played > 0 && typeof r.acc === 'number')
+      .sort((a, b) => b.acc - a.acc)
+      .slice(0, 6)
+      .map((r) => ({ key: r.key, label: r.label, acc: Math.round(r.acc), color: shade(r.acc), text: r.acc >= 60 ? '#fff' : '#0e1d40' }));
+  }, [me, byKey]);
 
   function colRows(cat, lim, exclude) {
     // Business tile preview hides the whole Business News quiz hub (daily/weekly
@@ -706,6 +724,30 @@ export default function QuizHomeClient() {
     .qzh .qotd:hover .qotd-play{background:#1d4ed8;}
     .qzh .qotd-stats{font-size:12px;color:#9fb0d4;font-weight:600;display:inline-flex;align-items:center;gap:6px;min-width:0;}
     @media(max-width:760px){.qzh .qotd{flex-direction:column;}.qzh .qotd-photo{flex:none;height:128px;}.qzh .qotd-title{font-size:21px;}}
+    .qzh .tl1{display:grid;grid-template-columns:minmax(0,1.5fr) minmax(0,1fr);gap:12px;margin-bottom:12px;}
+    .qzh .tl2{display:grid;grid-template-columns:1.15fr 1.35fr 1.5fr;gap:12px;margin-bottom:12px;align-items:start;}
+    @media(max-width:760px){.qzh .tl1{grid-template-columns:1fr;}.qzh .tl2{grid-template-columns:1fr;}}
+    .qzh .dtile{background:${C.accent};border-radius:14px;padding:14px 16px;color:#fff;display:flex;flex-direction:column;}
+    .qzh .dtile-head{display:flex;align-items:center;gap:8px;margin-bottom:9px;}
+    .qzh .dtile-chip{font-size:10px;font-weight:800;background:rgba(255,255,255,.2);border-radius:12px;padding:2px 9px;text-transform:uppercase;letter-spacing:.04em;}
+    .qzh .dtile-prog{display:flex;gap:5px;margin-bottom:10px;}
+    .qzh .dtile-rows{display:flex;flex-direction:column;gap:2px;margin-bottom:10px;}
+    .qzh .dtile-row{display:flex;align-items:center;gap:8px;font-size:12.5px;font-weight:700;color:#fff;text-decoration:none;padding:2px 0;}
+    .qzh .dtile-num{width:16px;height:16px;border-radius:50%;border:2px solid rgba(255,255,255,.6);flex:none;font-size:9px;display:flex;align-items:center;justify-content:center;}
+    .qzh .dtile-name{flex:1 1 auto;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+    .qzh .dtile-cta{margin-top:auto;display:flex;align-items:center;justify-content:center;gap:7px;background:#fff;color:${C.accent};border-radius:10px;padding:10px;font-weight:800;font-size:13px;text-decoration:none;}
+    .qzh .tl2-col{display:flex;flex-direction:column;gap:12px;}
+    .qzh .tl2-btn{background:#fff;border:1px solid ${C.line};border-radius:12px;padding:11px 13px;display:flex;align-items:center;gap:11px;text-decoration:none;color:${C.ink};flex:1;cursor:pointer;font-family:inherit;text-align:left;}
+    .qzh .tl2-btn-accent{background:${C.accsoft};border-color:#cddffb;}
+    .qzh .tl2-ico{width:38px;height:38px;border-radius:10px;display:flex;align-items:center;justify-content:center;flex:none;}
+    .qzh .tl2-eyebrow{display:block;font-size:9px;font-weight:800;letter-spacing:.1em;color:${C.accent};}
+    .qzh .tl2-title{display:block;font-size:13.5px;font-weight:800;letter-spacing:-.3px;line-height:1.08;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+    .qzh .tl2-sub{display:block;font-size:11px;color:#3f6bc4;font-weight:600;margin-top:1px;}
+    .qzh .lbtile,.qzh .cattile{background:#fff;border:1px solid ${C.line};border-radius:12px;padding:12px 15px;min-width:0;}
+    .qzh .lbtile-head,.qzh .cattile-head{display:flex;align-items:center;gap:7px;margin-bottom:8px;}
+    .qzh .cattile-bars{display:flex;flex-direction:column;overflow:hidden;border-radius:7px;}
+    .qzh .catseg{display:flex;align-items:center;justify-content:space-between;padding:0 10px;height:18px;font-size:10.5px;font-weight:800;border:none;cursor:pointer;font-family:inherit;width:100%;}
+    .qzh .catseg:hover{filter:brightness(1.08);}
     .qzh .boards{display:grid;grid-template-columns:minmax(0,1.6fr) minmax(0,1fr);gap:12px;align-items:stretch;margin-bottom:12px;}
     .qzh .qz-mobtoggle{display:none;}
     /* Desktop: leaderboard LEFT (1fr), daily challenge WIDE MIDDLE (1.5fr),
@@ -875,131 +917,98 @@ export default function QuizHomeClient() {
 
         {signupOpen && <SignupModal onClose={() => setSignupOpen(false)} />}
 
-        {/* Quiz of the Day banner */}
-        <Link href={`/quiz/${QUIZ_OF_DAY.id}`} className="qotd" aria-label={`Quiz of the day: ${QUIZ_OF_DAY.title}`}>
-          <div className="qotd-photo" style={{ backgroundImage: `url("${QUIZ_OF_DAY.hero}")` }} aria-hidden="true" />
-          <div className="qotd-body">
-            <div className="qotd-eyebrow">{QUIZ_OF_DAY.eyebrow}</div>
-            <div className="qotd-title">{QUIZ_OF_DAY.title}</div>
-            <div className="qotd-meta">{QUIZ_OF_DAY.blurb}</div>
-            <div className="qotd-foot">
-              <span className="qotd-play"><Play size={15} fill="#fff" strokeWidth={0} />Play now</span>
-              <span className="qotd-stats">
-                {plays(QUIZ_OF_DAY.id) > 0 ? <span>{plays(QUIZ_OF_DAY.id).toLocaleString()} plays</span> : <span>New quiz</span>}
-                <span aria-hidden="true">·</span>
-                {leader(QUIZ_OF_DAY.id)
-                  ? <><Crown size={13} style={{ color: '#e8b43a', flex: 'none' }} /><span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{leader(QUIZ_OF_DAY.id)} leads</span></>
-                  : <span>Be the first to top it</span>}
-              </span>
-            </div>
-          </div>
-        </Link>
-
-        {/* boards */}
-        <div className="boards">
-          {/* mobile combined leaderboard / live feed toggle */}
-          <div className={`card lblive-card mc-${lbLiveTab ? 'open' : 'closed'}`}>
-            <div className="head lblive-head">
-              <div className="lblive-tabs">
-                <button type="button" className={`lblive-tab${lbLiveTab === 'lb' ? ' on' : ''}`} onClick={() => setLbLiveTab((t) => t === 'lb' ? null : 'lb')}><Crown size={14} strokeWidth={2} style={{ flex: 'none' }} />Leaderboard</button>
-                <button type="button" className={`lblive-tab${lbLiveTab === 'live' ? ' on' : ''}`} onClick={() => setLbLiveTab((t) => t === 'live' ? null : 'live')}><span className="livedot2" />Live Quiz Feed</button>
+        {/* line 1: Quiz of the Day + Daily Challenge */}
+        <div className="tl1">
+          <Link href={`/quiz/${QUIZ_OF_DAY.id}`} className="qotd" aria-label={`Quiz of the day: ${QUIZ_OF_DAY.title}`}>
+            <div className="qotd-photo" style={{ backgroundImage: `url("${QUIZ_OF_DAY.hero}")` }} aria-hidden="true" />
+            <div className="qotd-body">
+              <div className="qotd-eyebrow">{QUIZ_OF_DAY.eyebrow}</div>
+              <div className="qotd-title">{QUIZ_OF_DAY.title}</div>
+              <div className="qotd-meta">{QUIZ_OF_DAY.blurb}</div>
+              <div className="qotd-foot">
+                <span className="qotd-play"><Play size={15} fill="#fff" strokeWidth={0} />Play now</span>
+                <span className="qotd-stats">
+                  {plays(QUIZ_OF_DAY.id) > 0 ? <span>{plays(QUIZ_OF_DAY.id).toLocaleString()} plays</span> : <span>New quiz</span>}
+                  {leader(QUIZ_OF_DAY.id) ? <><span aria-hidden="true">·</span><Crown size={13} style={{ color: '#e8b43a', flex: 'none' }} /><span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{leader(QUIZ_OF_DAY.id)} leads</span></> : null}
+                </span>
               </div>
-              <span style={{ display: 'flex', alignItems: 'center', gap: 10, flex: 'none' }}>
-                {lbLiveTab === 'lb' ? <Link href="/quizzes/hub" onClick={(e) => e.stopPropagation()} className="qlink vall" style={{ fontSize: 11, fontWeight: 700, color: C.accent }}>View all</Link> : lbLiveTab === 'live' ? <button type="button" onClick={(e) => { e.stopPropagation(); setListMode('live'); }} className="vall" style={{ background: 'none', border: 'none', padding: 0, cursor: 'pointer', color: C.accent, fontWeight: 700, fontSize: 11 }}>View all</button> : null}
-              </span>
             </div>
-            <div className="lblive-body">
-              {lbLiveTab === 'lb' ? (
-                <>
-                  <div className="lblive-sub">{`${lbMetric.label}${lbMetric.special || scope === 'all' ? '' : ` · ${byKey[scope]?.label}`}`}</div>
-                  {renderLb()}
-                </>
-              ) : lbLiveTab === 'live' ? (
-                <>
-                  <div className="lblive-sub">{`${playsToday ? `${playsToday.toLocaleString()} Plays Today` : 'Live Quiz Feed'}${scope === 'all' ? '' : ` · ${byKey[scope]?.label}`}`}</div>
-                  {renderLive()}
-                </>
-              ) : null}
-            </div>
-          </div>
-          {/* leaderboard */}
-          <div className={`card lb-card mc-${acc.lb ? 'open' : 'closed'}`}>
-            <div className="head" onClick={() => { if (isMobile) toggleAcc('lb'); else setBoardsExpanded((v) => !v); }}>
-              <span style={{ display: 'flex', alignItems: 'center', gap: 7, minWidth: 0 }}>
-                <Crown size={15} strokeWidth={2} style={{ color: C.ink, flex: 'none' }} />
-                <span className="lbl" style={{ color: C.ink }}>{isMobile && !acc.lb ? 'Leaderboard' : `${lbMetric.label}${lbMetric.special || scope === 'all' ? '' : ` · ${byKey[scope]?.label}`}`}</span>
-              </span>
-              <span style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-                <Link href={lbMetric.special && lbMetric.key !== 'catRating' ? '/quizzes/hub?tab=challenges' : '/quizzes/hub'} onClick={(e) => e.stopPropagation()} className="qlink"><span className="vall" style={{ fontSize: 11, fontWeight: 700, color: C.accent }}>View all</span></Link>
-                <ChevronDown className="accchev" size={16} strokeWidth={2.5} style={{ flex: 'none', color: C.soft, transform: acc.lb ? 'rotate(180deg)' : 'none' }} />
-              </span>
-            </div>
-            <div className="lbbody" style={{ flex: 1, padding: '3px 0', display: 'flex', flexDirection: 'column', justifyContent: 'space-evenly' }}>
-              {renderLb()}
-
-            </div>
-          </div>
-
-          {/* live feed */}
-          <div className={`card live-card mc-${acc.live ? 'open' : 'closed'}`}>
-            <div className="head" onClick={() => { if (isMobile) toggleAcc('live'); else setBoardsExpanded((v) => !v); }}>
-              <span style={{ display: 'flex', alignItems: 'center', gap: 7 }}>
-                <span className="livedot" style={{ width: 8, height: 8, borderRadius: '50%', background: C.live, animation: 'qzp 1.6s infinite' }} />
-                <span className="lbl" style={{ color: C.ink }}>Live Quiz Feed{scope === 'all' ? '' : ` · ${byKey[scope]?.label}`}</span>
-              </span>
-              <span style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-                {playsToday ? <span className="vall" style={{ fontSize: 10, fontWeight: 700, letterSpacing: '.05em', textTransform: 'uppercase', color: C.soft }}>{playsToday.toLocaleString()} Plays Today</span> : null}
-                <button type="button" onClick={(e) => { e.stopPropagation(); setListMode('live'); }} className="vall" style={{ background: 'none', border: 'none', padding: 0, cursor: 'pointer', color: C.accent, fontWeight: 700, fontSize: 11, whiteSpace: 'nowrap' }}>View all</button>
-                <ChevronDown className="accchev" size={16} strokeWidth={2.5} style={{ flex: 'none', color: C.soft, transform: acc.live ? 'rotate(180deg)' : 'none' }} />
-              </span>
-            </div>
-            <div style={{ flex: 1, padding: '3px 0', display: 'flex', flexDirection: 'column', justifyContent: 'space-evenly' }}>
-              {renderLive()}
-
-            </div>
-          </div>
-
-          {/* daily challenge */}
+          </Link>
           {daily && DAILY_CHALLENGE_ON && (
-            <div className={`card daily-card mc-${acc.daily ? 'open' : 'closed'}`}>
-              <div className="head" onClick={() => { if (isMobile) toggleAcc('daily'); }} style={{ cursor: isMobile ? 'pointer' : 'default' }}>
-                <span style={{ display: 'flex', alignItems: 'center', gap: 7, minWidth: 0 }}>
-                  <Target className="dailyicon" size={15} style={{ color: C.accent, flex: 'none' }} />
-                  <span className="lbl" style={{ color: C.ink }}>Daily Challenge{dailyCat ? ` · ${dailyCat}` : ''}</span>
-                </span>
-                <span style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-                  <Link href={`/challenge/${dailyId}`} className="qlink"><span className="vall" style={{ fontSize: 11, fontWeight: 700, color: C.accent }}>{isMobile ? 'View all' : (dailyAllDone ? 'Results' : 'View')}</span></Link>
-                  <ChevronDown className="accchev" size={16} strokeWidth={2.5} style={{ flex: 'none', color: C.soft, transform: acc.daily ? 'rotate(180deg)' : 'none' }} />
-                </span>
+            <div className="dtile">
+              <div className="dtile-head">
+                <Target size={16} style={{ flex: 'none' }} />
+                <span className="x8" style={{ fontSize: 14, fontWeight: 800 }}>Daily Challenge</span>
+                {dailyCat ? <span className="dtile-chip">{dailyCat}</span> : null}
+                <span style={{ marginLeft: 'auto', fontSize: 12, fontWeight: 800 }}>{dailyDoneCount}/{dailyIds.length}</span>
               </div>
-              <div style={{ flex: 1, display: 'flex', flexDirection: 'column', padding: '8px 13px 11px' }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 11, color: C.soft, fontWeight: 600, marginBottom: 7 }}>
-                  <span style={{ whiteSpace: 'nowrap' }}>{dailyDateLabel}{dailyDateLabel ? ' · ' : ''}{dailyDoneCount}/{dailyIds.length} done</span>
-                  {dailyRows.length > 0 && (
-                    <span style={{ marginLeft: 'auto', minWidth: 0, display: 'inline-flex', alignItems: 'center', gap: 4, color: C.ink }} title={`Daily leader: ${dailyRows[0].username || 'Player'}`}>
-                      <Crown size={12} strokeWidth={2} style={{ color: '#e8b43a', flex: 'none' }} />
-                      <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', maxWidth: 120 }}>{dailyRows[0].username || 'Player'}</span>
-                    </span>
-                  )}
-                </div>
-                <div style={{ flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'space-evenly' }}>
-                  {dailyIds.map((qid, k) => {
-                    const done = dailyIsDone(qid);
-                    return (
-                      <Link key={qid} href={`/quiz/${qid}?ch=${encodeURIComponent(dailyId)}&i=${k}`} className="qlink">
-                        <div style={{ display: 'flex', alignItems: 'center', gap: 9, padding: '6px 0', borderBottom: k < dailyIds.length - 1 ? '1px solid rgba(20,22,28,0.07)' : 'none' }}>
-                          <span className={`daytick${done ? ' done' : ''}`} style={{ width: 19, height: 19, borderRadius: 6, flex: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 10.5, fontWeight: 700, background: done ? C.live : '#eef1f6', color: done ? '#fff' : C.soft }}>{done ? <Check size={12} strokeWidth={3} /> : k + 1}</span>
-                          <span style={{ flex: '1 1 auto', minWidth: 0, fontSize: 12.5, fontWeight: 500, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', color: C.ink }}>{stripVerb(titleById[qid] || qid)}</span>
-                          {chScores[qid] ? <span style={{ flex: 'none', fontSize: 11, fontWeight: 700, color: C.live, fontVariantNumeric: 'tabular-nums' }}>{chScores[qid].score}/{chScores[qid].total}</span> : null}
-                        </div>
-                      </Link>
-                    );
-                  })}
-                </div>
-                <Link href={dailyAllDone ? `/challenge/${dailyId}?done=1` : dailyEntryUrl} style={{ marginTop: 9, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 7, background: C.accent, color: '#fff', borderRadius: 10, padding: '10px', fontWeight: 700, fontSize: 13, textDecoration: 'none' }}>
-                  {dailyAllDone ? 'See your results' : dailyDoneCount > 0 ? 'Continue challenge' : 'Play today’s challenge'}
-                  <ArrowRight size={15} style={{ flex: 'none' }} />
-                </Link>
+              <div className="dtile-prog">
+                {dailyIds.map((qid) => (<span key={qid} style={{ flex: 1, height: 6, borderRadius: 3, background: dailyIsDone(qid) ? '#a5f3c9' : 'rgba(255,255,255,0.3)' }} />))}
+              </div>
+              <div className="dtile-rows">
+                {dailyIds.map((qid, k) => {
+                  const done = dailyIsDone(qid);
+                  return (
+                    <Link key={qid} href={`/quiz/${qid}?ch=${encodeURIComponent(dailyId)}&i=${k}`} className="dtile-row">
+                      {done ? <Check size={13} strokeWidth={3} style={{ color: '#a5f3c9', flex: 'none' }} /> : <span className="dtile-num">{k + 1}</span>}
+                      <span className="dtile-name">{stripVerb(titleById[qid] || qid)}</span>
+                      {chScores[qid] ? <span style={{ flex: 'none', fontWeight: 800, opacity: 0.9 }}>{chScores[qid].score}/{chScores[qid].total}</span> : null}
+                    </Link>
+                  );
+                })}
+              </div>
+              <Link href={dailyAllDone ? `/challenge/${dailyId}?done=1` : dailyEntryUrl} className="dtile-cta">
+                {dailyAllDone ? 'See your results' : dailyDoneCount > 0 ? 'Continue challenge' : 'Play today’s challenge'}
+                <ArrowRight size={15} style={{ flex: 'none' }} />
+              </Link>
+            </div>
+          )}
+        </div>
+
+        {/* line 2: newest + challenge + leaderboard + category mastery */}
+        <div className="tl2">
+          <div className="tl2-col">
+            {newest[0] ? (() => { const nc = byKey[newest[0].dept] || {}; const NIcon = nc.Icon || Sparkles; return (
+              <Link href={`/quiz/${newest[0].id}`} className="tl2-btn">
+                <span className="tl2-ico" style={{ background: nc.t || C.accsoft, color: nc.c || C.accent }}><NIcon size={20} /></span>
+                <span style={{ minWidth: 0, flex: 1 }}>
+                  <span className="tl2-eyebrow"><Sparkles size={11} style={{ verticalAlign: -1 }} /> NEWEST QUIZ</span>
+                  <span className="tl2-title">{stripVerb(newest[0].title)}</span>
+                </span>
+              </Link>
+            ); })() : null}
+            <button type="button" onClick={shareChallenge} className="tl2-btn tl2-btn-accent">
+              <span className="tl2-ico" style={{ background: C.accent, color: '#fff' }}><Swords size={20} /></span>
+              <span style={{ minWidth: 0, flex: 1 }}>
+                <span className="tl2-title" style={{ color: '#1748b0' }}>Challenge a friend</span>
+                <span className="tl2-sub">{chCopied ? 'Link copied!' : 'Send a link'}</span>
+              </span>
+            </button>
+          </div>
+
+          <div className="lbtile">
+            <div className="lbtile-head">
+              <Crown size={15} strokeWidth={2} style={{ color: '#e8b43a', flex: 'none' }} />
+              <span className="x8" style={{ fontSize: 13.5, fontWeight: 800, flex: 1, minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{lbMetric.label}{lbMetric.special || scope === 'all' ? '' : ` · ${byKey[scope]?.label}`}</span>
+              <Link href="/quizzes/hub" className="qlink" style={{ fontSize: 10, fontWeight: 800, color: C.accent, flex: 'none' }}>View all</Link>
+            </div>
+            <div>{renderLb()}</div>
+          </div>
+
+          {catMastery.length > 0 && (
+            <div className="cattile">
+              <div className="cattile-head">
+                <BarChart3 size={15} style={{ color: C.accent, flex: 'none' }} />
+                <span className="x8" style={{ fontSize: 13.5, fontWeight: 800 }}>Category mastery</span>
+                <span style={{ marginLeft: 'auto', fontSize: 10, color: C.soft, fontWeight: 700 }}>tap to filter</span>
+              </div>
+              <div className="cattile-bars">
+                {catMastery.map((m) => (
+                  <button type="button" key={m.key} onClick={() => goCat(m.key)} className="catseg" style={{ background: m.color, color: m.text }}>
+                    <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{m.label}</span>
+                    <span style={{ display: 'flex', alignItems: 'center', gap: 4, flex: 'none' }}>{m.acc}% <ChevronRight size={11} style={{ opacity: 0.7 }} /></span>
+                  </button>
+                ))}
               </div>
             </div>
           )}
