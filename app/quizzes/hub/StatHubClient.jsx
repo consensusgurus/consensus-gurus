@@ -2,7 +2,7 @@
 import React, { useState, useEffect, useMemo, useRef } from 'react';
 import Link from 'next/link';
 import {
-  ArrowLeft, BadgeCheck, User, ListChecks, Flame, FunctionSquare, Clock, Trophy, RefreshCw, Share2, Download, UserPlus, Play, X, Check, Star, Swords, ChevronRight,} from 'lucide-react';
+  ArrowLeft, BadgeCheck, User, ListChecks, Flame, FunctionSquare, Clock, Trophy, RefreshCw, Share2, Download, UserPlus, Play, X, Check, Star, Swords, ChevronDown,} from 'lucide-react';
 import { QUIZZES, getQuiz } from '@/lib/quizzes';
 import { quizDept as deptOf, DEPT_COLOR, DEPT_LABEL, DEPT_NAV } from '@/lib/quiz-departments';
 import { CHALLENGES, getChallenge, DEFAULT_CHALLENGE_ID, challengeQuizIds, challengeColumns, dailyChallengeId, challengeMenu } from '@/lib/challenges';
@@ -211,18 +211,45 @@ function DuelsPanel({ onSelectPlayer }) {
     const other = d.challenger_anon === anon ? d.opponent_name : d.challenger_name;
     return other || null;
   }
-  function Row({ d, right }) {
+  // Turn down an incoming challenge. Only the challenged player may decline
+  // (the API rejects a challenger declining their own duel).
+  async function decline(d) {
+    const a = getAnonId();
+    if (!a) return;
+    if (typeof window !== 'undefined' && !window.confirm('Decline this duel?')) return;
+    const ident = getIdentity();
+    const nm = (ident && ident.username) || 'Player';
+    try {
+      const r = await fetch('/api/duel/decline', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ token: d.token, anonId: a, name: nm }) });
+      const j = await r.json();
+      if (j && j.duel) {
+        setData((prev) => ({
+          yourMove: prev.yourMove.filter((x) => x.token !== d.token),
+          awaiting: prev.awaiting.filter((x) => x.token !== d.token),
+          completed: [j.duel, ...prev.completed],
+        }));
+      }
+    } catch (e) {}
+  }
+  function Row({ d, right, canDecline }) {
     const foe = foeName(d);
     return (
-      <a href={`/duel/${d.token}`} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 10, padding: '9px 0', borderBottom: `1px solid ${C.line}`, textDecoration: 'none', color: C.ink }}>
-        <span style={{ minWidth: 0, overflow: 'hidden' }}>
-          <span style={{ display: 'block', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', fontSize: 14, fontWeight: 600 }}>{qtitle(d.quiz_id)}</span>
-          <span style={{ display: 'block', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', fontSize: 12, fontWeight: 600, color: C.soft, marginTop: 1 }}>
-            {foe ? <>vs <span style={{ color: C.accent }}>{foe}</span></> : 'Open invite'}
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 10, padding: '9px 0', borderBottom: `1px solid ${C.line}` }}>
+        <a href={`/duel/${d.token}`} style={{ display: 'flex', alignItems: 'center', gap: 10, flex: 1, minWidth: 0, textDecoration: 'none', color: C.ink }}>
+          <span style={{ minWidth: 0, overflow: 'hidden' }}>
+            <span style={{ display: 'block', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', fontSize: 14, fontWeight: 600 }}>{qtitle(d.quiz_id)}</span>
+            <span style={{ display: 'block', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', fontSize: 12, fontWeight: 600, color: C.soft, marginTop: 1 }}>
+              {foe ? <>vs <span style={{ color: C.accent }}>{foe}</span></> : 'Open invite'}
+            </span>
           </span>
+        </a>
+        <span style={{ flex: 'none', display: 'flex', alignItems: 'center', gap: 14 }}>
+          {canDecline ? (
+            <button onClick={() => decline(d)} style={{ background: 'transparent', border: `1px solid ${C.line}`, color: C.danger, borderRadius: 8, padding: '5px 12px', fontFamily: FONT, fontWeight: 700, fontSize: 12, cursor: 'pointer' }}>Decline</button>
+          ) : null}
+          <a href={`/duel/${d.token}`} style={{ fontSize: 12, fontWeight: 700, color: C.soft, textDecoration: 'none' }}>{right}</a>
         </span>
-        <span style={{ flex: 'none', fontSize: 12, fontWeight: 700, color: C.soft }}>{right}</span>
-      </a>
+      </div>
     );
   }
   function outcomeText(d) {
@@ -236,7 +263,7 @@ function DuelsPanel({ onSelectPlayer }) {
   return (
     <div>
       <a href="/duel/new" style={{ display: 'inline-flex', alignItems: 'center', gap: 8, background: C.accent, color: '#fff', padding: '11px 18px', borderRadius: 10, fontWeight: 800, fontSize: 14, textDecoration: 'none', marginBottom: 16 }}><Swords size={16} /> Start a Duel</a>
-      {data.yourMove.length > 0 && (<div style={card}><div style={hd}>Your Move</div>{data.yourMove.map((d) => <Row key={d.token} d={d} right="Play →" />)}</div>)}
+      {data.yourMove.length > 0 && (<div style={card}><div style={hd}>Your Move</div>{data.yourMove.map((d) => <Row key={d.token} d={d} right="Play →" canDecline={d.challenger_anon !== anon} />)}</div>)}
       {data.awaiting.length > 0 && (<div style={card}><div style={hd}>Waiting on Opponent</div>{data.awaiting.map((d) => <Row key={d.token} d={d} right="Pending" />)}</div>)}
       {data.completed.length > 0 && (<div style={card}><div style={hd}>Recent Results</div>{data.completed.slice(0, 8).map((d) => <Row key={d.token} d={d} right={outcomeText(d)} />)}</div>)}
       {empty && (<div style={{ ...card, color: C.muted, fontSize: 14 }}>No duels yet. Challenge someone to get started.</div>)}
@@ -261,7 +288,7 @@ function DuelsPanel({ onSelectPlayer }) {
                 >{p.name}</span>
                 <span style={{ flex: 'none', fontSize: 13, fontWeight: 700 }}>{p.wins}-{p.losses}{p.ties ? `-${p.ties}` : ''}</span>
                 <span style={{ flex: 'none', fontSize: 12, fontWeight: 700, color: C.soft, width: 44, textAlign: 'right' }}>{p.winPct}%</span>
-                <ChevronRight size={15} style={{ flex: 'none', color: C.soft, opacity: canOpen ? 1 : 0.25, transform: open ? 'rotate(90deg)' : 'none', transition: 'transform .15s' }} />
+                <ChevronDown size={15} style={{ flex: 'none', color: C.soft, opacity: canOpen ? 1 : 0.25, transform: open ? 'rotate(180deg)' : 'none', transition: 'transform .15s' }} />
               </div>
               {open && canOpen && (
                 <div style={{ padding: '2px 0 10px 32px' }}>
