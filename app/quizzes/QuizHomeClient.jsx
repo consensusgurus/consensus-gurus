@@ -53,6 +53,14 @@ const C = {
 const MEDAL = ['#e8b43a', '#b8bcc4', '#c8814b'];
 const FONT = "'Manrope', system-ui, -apple-system, sans-serif";
 const STATUS_LABEL = { unplayed: 'Unplayed', played: 'Played', completed: 'Completed' };
+// Featured "Quiz of the Day" banner (full-width hero at the top of the hub).
+const QUIZ_OF_DAY = {
+  id: 'nyc-restaurant-geo-guesser',
+  eyebrow: 'Quiz of the Day · Geography',
+  title: 'NYC Restaurant Geo Guesser',
+  blurb: 'Ten iconic New York restaurants on a straight-down aerial. A name drops and you get 45 seconds to pin where it sits.',
+  hero: 'https://upload.wikimedia.org/wikipedia/commons/thumb/b/b2/Katz%27s_Delicatessen_%2851623899326%29.jpg/1920px-Katz%27s_Delicatessen_%2851623899326%29.jpg',
+};
 
 // Per-quiz completion status for the CURRENT player, supplied once at the top of
 // the tree so any quiz row can show a check (played) or a circled check (aced at
@@ -246,7 +254,7 @@ export default function QuizHomeClient() {
   const [dailyLb, setDailyLb] = useState(null); // today's daily-challenge standings (registered players)
   const [chRun, setChRun] = useState(null); // local run-state for today's daily challenge (completion ticks)
   const [isMobile, setIsMobile] = useState(false);
-  const [acc, setAcc] = useState({ mostplayed: true, newest: true, daily: true }); // mobile-only: which accordion panels are open
+  const [acc, setAcc] = useState({ lastplayed: true, mostplayed: true, newest: true, daily: true }); // mobile-only: which accordion panels are open
   const [lbLiveTab, setLbLiveTab] = useState(null); // mobile combined leaderboard/live: null | 'lb' | 'live'
   const toggleAcc = (k) => setAcc((o) => ({ ...o, [k]: !o[k] }));
   const mobLbOpen = false; // mobile leaderboard shows top 5 (desktop click-to-expand still applies via boardsExpanded)
@@ -597,6 +605,13 @@ export default function QuizHomeClient() {
   const mostPlayedAll = useMemo(() => catalog.slice()
     .sort((a, b) => plays(b.id) - plays(a.id) || a.title.localeCompare(b.title)), [catalog, totals]);
   const liveAll = useMemo(() => recent.map((p) => ({ ...p, title: titleById[p.quizId] || cleanTitle(p.quizId) })), [recent, titleById]);
+  // "Last Played" browse column: most recent plays, deduped to distinct quizzes
+  // (the live feed relocated into the browse grid as the first column).
+  const lastPlayed = useMemo(() => {
+    const seen = new Set(); const out = [];
+    for (const f of liveAll) { if (!f || !f.quizId || seen.has(f.quizId)) continue; seen.add(f.quizId); out.push(f); if (out.length >= 6) break; }
+    return out;
+  }, [liveAll]);
 
   function colRows(cat, lim, exclude) {
     // Business tile preview hides the whole Business News quiz hub (daily/weekly
@@ -682,13 +697,24 @@ export default function QuizHomeClient() {
     @media(max-width:560px){.qzh .ddhead{display:flex !important;align-items:center;justify-content:space-between;position:sticky;top:0;background:#fff;margin:-6px -6px 5px;padding:10px 12px;border-bottom:1px solid ${C.line};z-index:3;font-weight:700;font-size:13px;color:${C.ink};}.qzh .ddhead .ddclose{background:#eef1f6;border:none;border-radius:8px;width:34px;height:34px;font-size:17px;line-height:1;cursor:pointer;color:${C.ink};display:flex;align-items:center;justify-content:center;flex:none;}}
     .qzh .dditem:hover{background:${C.bg};}
     .qzh .dot{width:9px;height:9px;border-radius:3px;flex:none;}
-    .qzh .boards{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.5fr) minmax(0,1fr);gap:12px;align-items:stretch;margin-bottom:12px;}
+    .qzh .qotd{display:flex;align-items:stretch;gap:0;background:#0e1d40;border:1px solid ${C.line};border-radius:14px;overflow:hidden;margin-bottom:12px;text-decoration:none;color:#fff;}
+    .qzh .qotd-photo{flex:0 0 32%;background-size:cover;background-position:center;min-height:158px;}
+    .qzh .qotd-body{flex:1 1 auto;min-width:0;padding:18px 22px;display:flex;flex-direction:column;justify-content:center;}
+    .qzh .qotd-eyebrow{font-size:10px;font-weight:800;letter-spacing:.14em;text-transform:uppercase;color:#f8b84a;margin-bottom:7px;}
+    .qzh .qotd-title{font-size:26px;font-weight:800;letter-spacing:-.02em;line-height:1.04;color:#fff;}
+    .qzh .qotd-meta{font-size:13px;color:#9fb0d4;margin-top:7px;max-width:560px;line-height:1.45;}
+    .qzh .qotd-foot{display:flex;align-items:center;gap:14px;margin-top:15px;flex-wrap:wrap;}
+    .qzh .qotd-play{display:inline-flex;align-items:center;gap:7px;background:${C.accent};color:#fff;border-radius:9px;padding:10px 20px;font-weight:800;font-size:14px;}
+    .qzh .qotd:hover .qotd-play{background:#1d4ed8;}
+    .qzh .qotd-stats{font-size:12px;color:#9fb0d4;font-weight:600;display:inline-flex;align-items:center;gap:6px;min-width:0;}
+    @media(max-width:760px){.qzh .qotd{flex-direction:column;}.qzh .qotd-photo{flex:none;height:128px;}.qzh .qotd-title{font-size:21px;}}
+    .qzh .boards{display:grid;grid-template-columns:minmax(0,1.6fr) minmax(0,1fr);gap:12px;align-items:stretch;margin-bottom:12px;}
     .qzh .qz-mobtoggle{display:none;}
     /* Desktop: leaderboard LEFT (1fr), daily challenge WIDE MIDDLE (1.5fr),
        last-played feed RIGHT (1fr) via the min-width:681px order rule below. */
     @media(max-width:760px){.qzh .boards{grid-template-columns:1fr;}}
     /* Desktop (3-col) only: daily challenge in the WIDE middle track, last-played feed on the RIGHT, leaderboard LEFT. Tablet single-col (<=680) and mobile (<=560) unchanged. */
-    @media(min-width:761px){.qzh .boards .lb-card{order:1;}.qzh .boards .daily-card{order:2;}.qzh .boards .live-card{order:3;}}
+    @media(min-width:761px){.qzh .boards .daily-card{order:1;}.qzh .boards .lb-card{order:2;}.qzh .boards .live-card{display:none;}}
     .qzh .qcols{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(100%,300px),1fr));gap:6px 26px;}
     .qzh .qfull{column-count:2;column-gap:26px;}
     .qzh .qfull > a{display:flex;break-inside:avoid;-webkit-column-break-inside:avoid;}
@@ -851,6 +877,26 @@ export default function QuizHomeClient() {
       <div className="qzh qzf-w" style={{ maxWidth: 1180, margin: '0 auto', padding: '12px 38px 70px', position: 'relative' }}><style>{`@media(max-width:560px){.qzf-w{padding-left:14px !important;padding-right:14px !important;}}`}</style><div className="qzf-line" aria-hidden="true" />
 
         {signupOpen && <SignupModal onClose={() => setSignupOpen(false)} />}
+
+        {/* Quiz of the Day banner */}
+        <Link href={`/quiz/${QUIZ_OF_DAY.id}`} className="qotd" aria-label={`Quiz of the day: ${QUIZ_OF_DAY.title}`}>
+          <div className="qotd-photo" style={{ backgroundImage: `url("${QUIZ_OF_DAY.hero}")` }} aria-hidden="true" />
+          <div className="qotd-body">
+            <div className="qotd-eyebrow">{QUIZ_OF_DAY.eyebrow}</div>
+            <div className="qotd-title">{QUIZ_OF_DAY.title}</div>
+            <div className="qotd-meta">{QUIZ_OF_DAY.blurb}</div>
+            <div className="qotd-foot">
+              <span className="qotd-play"><Play size={15} fill="#fff" strokeWidth={0} />Play now</span>
+              <span className="qotd-stats">
+                {plays(QUIZ_OF_DAY.id) > 0 ? <span>{plays(QUIZ_OF_DAY.id).toLocaleString()} plays</span> : <span>New quiz</span>}
+                <span aria-hidden="true">·</span>
+                {leader(QUIZ_OF_DAY.id)
+                  ? <><Crown size={13} style={{ color: '#e8b43a', flex: 'none' }} /><span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{leader(QUIZ_OF_DAY.id)} leads</span></>
+                  : <span>Be the first to top it</span>}
+              </span>
+            </div>
+          </div>
+        </Link>
 
         {/* boards */}
         <div className="boards">
@@ -1130,10 +1176,12 @@ export default function QuizHomeClient() {
           </div>
         ) : (
           <div className="qcols">
-            <BrowseColumn label="Most Played" Icon={Flame} color="#c2691c" tint="#f4e2cd"
-              rows={mostPlayed.map((q) => ({ q, right: <PlaysRight id={q.id} plays={plays} leader={leader} leaderKey={leaderKey} color="#c2691c" hidePlays /> }))} cta="View all ›" onCta={() => setListMode('mostplayed')} open={!!acc.mostplayed} onToggle={() => toggleAcc('mostplayed')} isMobile={isMobile} />
+            <BrowseColumn label="Last Played" Icon={Play} color="#10b981" tint="#d8f3e6"
+              rows={lastPlayed.map((f) => ({ q: { id: f.quizId, title: f.title, rawTitle: f.title }, right: (<><span className="score" style={{ fontSize: 11, color: f.total && f.score / f.total >= 0.8 ? '#16a34a' : C.soft }}>{f.score}/{f.total}</span><span style={{ color: C.soft }}>{relTime(f.playedAt)}</span></>) }))} cta="View all ›" onCta={() => setListMode('live')} open={!!acc.lastplayed} onToggle={() => toggleAcc('lastplayed')} isMobile={isMobile} />
             <BrowseColumn label="Newest" Icon={Sparkles} color={C.accent} tint={C.accsoft}
               rows={newest.map((q) => ({ q, right: <NewRight q={q} /> }))} cta="View all ›" onCta={() => setListMode('newest')} open={!!acc.newest} onToggle={() => toggleAcc('newest')} isMobile={isMobile} />
+            <BrowseColumn label="Most Played" Icon={Flame} color="#c2691c" tint="#f4e2cd"
+              rows={mostPlayed.map((q) => ({ q, right: <PlaysRight id={q.id} plays={plays} leader={leader} leaderKey={leaderKey} color="#c2691c" hidePlays /> }))} cta="View all ›" onCta={() => setListMode('mostplayed')} open={!!acc.mostplayed} onToggle={() => toggleAcc('mostplayed')} isMobile={isMobile} />
             {cats.map((c) => (
               <BrowseColumn key={c.key} label={c.label} Icon={c.Icon} color={c.c} tint={c.t}
                 rows={colRows(c, isMobile ? 20 : 6, shownIds).map((q) => ({ q, right: <PlaysRight id={q.id} plays={plays} leader={leader} leaderKey={leaderKey} color={c.c} hidePlays /> }))}
