@@ -621,19 +621,21 @@ export default function QuizHomeClient() {
   }
   function goCat(key) { setScope(key); setDoneFilter('all'); setListMode(null); setSearch(''); try { if (quizzesRef.current) quizzesRef.current.scrollIntoView({ behavior: 'smooth', block: 'start' }); } catch {} }
   const catMastery = useMemo(() => {
-    if (!me || !me.byCategory) return [];
-    const rows = Object.keys(me.byCategory)
-      .map((k) => ({ key: k, acc: me.byCategory[k] && me.byCategory[k].accuracy, played: (me.byCategory[k] && me.byCategory[k].played) || 0, label: (byKey[k] && byKey[k].label) || DEPT_LABEL[k] || k }))
-      .filter((r) => r.played > 0 && typeof r.acc === 'number')
-      .sort((a, b) => b.acc - a.acc);
+    if (!cats || !cats.length) return [];
+    const bc = (me && me.byCategory) || {};
+    const rows = cats.map((c) => {
+      const cc = bc[c.key] || {};
+      const total = c.count || 0;
+      const pct = total > 0 ? Math.round(((cc.completed || 0) / total) * 100) : 0;
+      return { key: c.key, label: c.label, pct };
+    }).sort((a, b) => b.pct - a.pct || a.label.localeCompare(b.label));
     const n = rows.length;
     return rows.map((r, i) => {
       const t = n > 1 ? i / (n - 1) : 0;
-      const L = 30 + t * 60;
-      const S = 78 - t * 66;
-      return { key: r.key, label: r.label, acc: Math.round(r.acc), color: `hsl(220, ${S}%, ${L}%)`, text: L < 58 ? '#fff' : '#0e1d40' };
+      const L = 52 + t * 33;
+      return { key: r.key, label: r.label, acc: r.pct, color: `hsl(222, 80%, ${L}%)`, text: L < 68 ? '#fff' : '#0e1d40' };
     });
-  }, [me, byKey]);
+  }, [me, cats]);
 
   function colRows(cat, lim, exclude) {
     // Business tile preview hides the whole Business News quiz hub (daily/weekly
@@ -753,7 +755,7 @@ export default function QuizHomeClient() {
     .qzh .lbtile-head{display:flex;align-items:center;gap:7px;margin-bottom:6px;}
     .qzh .duelbtn{background:${C.accent};color:#fff;border:none;border-radius:12px;padding:12px;font-weight:800;font-size:12px;font-family:inherit;display:flex;align-items:center;justify-content:center;gap:8px;cursor:pointer;flex:none;}
     .qzh .rail{background:#fff;border:1px solid ${C.line};border-radius:14px;padding:11px;display:flex;flex-direction:column;}
-    .qzh .rail-bars{flex:1;display:flex;flex-direction:column;border-radius:8px;overflow:hidden;min-height:0;}
+    .qzh .rail-bars{flex:1;display:flex;flex-direction:column;border-radius:12px;overflow:hidden;min-height:0;}
     .qzh .rseg{display:flex;align-items:center;gap:6px;padding:0 10px;font-size:10.5px;font-weight:600;border:none;cursor:pointer;width:100%;}
     .qzh .rseg:hover{filter:brightness(1.08);}
     .qzh .rseg .rnm{flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;text-align:left;}
@@ -991,7 +993,7 @@ export default function QuizHomeClient() {
               <div className={`lbtile mc-${mLb ? 'open' : 'closed'}`}>
                 <div className="lbtile-head" onClick={() => { if (isMobile) setMLb((v) => !v); }}>
                   <Crown size={15} strokeWidth={2} style={{ color: '#e8b43a', flex: 'none' }} />
-                  <span className="x8" style={{ fontSize: 13, fontWeight: 800, flex: 1, minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{lbMetric.label}{lbMetric.special || scope === 'all' ? '' : ` · ${byKey[scope]?.label}`}</span>
+                  <span className="x8" style={{ fontSize: 13, fontWeight: 800, flex: 1, minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{isMobile ? 'Leaderboard' : (lbMetric.label + (lbMetric.special || scope === 'all' ? '' : ' · ' + ((byKey[scope] && byKey[scope].label) || '')))}</span>
                   <Link href="/quizzes/hub" className="qlink" onClick={(e) => e.stopPropagation()} style={{ fontSize: 10, fontWeight: 800, color: C.accent, flex: 'none' }}>View all</Link>
                   <ChevronDown className="lchev" size={16} strokeWidth={2.5} style={{ color: C.soft, transform: mLb ? 'rotate(180deg)' : 'none' }} />
                 </div>
