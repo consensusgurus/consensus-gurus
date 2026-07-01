@@ -1727,9 +1727,9 @@ export default function QuizClient({ quizId }) {
                       quiz.hideNumbers ? null : <span style={{ fontFamily: SERIF, fontWeight: 800, fontSize: rz.rank, width: rz.rankW, color: COLORS.ember, flex: 'none', textAlign: 'center' }}>{i + 1}</span>
                     )}
                     {f ? (
-                      <span style={{ fontFamily: SERIF, fontSize: rz.name, fontWeight: 500, flex: 1 }}>{a.t}</span>
+                      <span style={{ fontFamily: SERIF, fontSize: a.label != null ? 11 : rz.name, fontWeight: a.label != null ? 400 : 500, flex: 1, minWidth: 0, overflowWrap: 'anywhere', wordBreak: 'break-word', lineHeight: 1.2 }}>{a.t}</span>
                     ) : reveal ? (
-                      <span style={{ fontFamily: SERIF, fontSize: rz.name, fontWeight: 500, flex: 1, color: COLORS.rust }}>{a.t}</span>
+                      <span style={{ fontFamily: SERIF, fontSize: a.label != null ? 11 : rz.name, fontWeight: a.label != null ? 400 : 500, flex: 1, minWidth: 0, overflowWrap: 'anywhere', wordBreak: 'break-word', lineHeight: 1.2, color: COLORS.rust }}>{a.t}</span>
                     ) : (matched && !ordered) ? (
                       <input
                         ref={(el) => { slotRefs.current[i] = el; if (i === 0) inputRef.current = el; }}
@@ -1801,7 +1801,8 @@ export default function QuizClient({ quizId }) {
                 // autoColCount. displayOrder is row-major, so solved items sink to
                 // the bottom rows and the next unsolved stays near the input.
                 if (compactList) {
-                  const mobileCols = Math.min(3, autoColCount);
+                  const hasLabels = answers.some((a) => a && a.label != null);
+                  const mobileCols = Math.min(hasLabels ? 2 : 3, autoColCount);
                   return (
                     <ol className="qz-acols" style={{ margin: 0, padding: 0, listStyle: 'none', '--accols': autoColCount, '--accolsm': mobileCols }}>
                       {displayOrder.map((i) => renderRow(answers[i], i))}
