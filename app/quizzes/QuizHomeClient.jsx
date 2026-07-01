@@ -800,6 +800,7 @@ export default function QuizHomeClient() {
       .qzh .dtile-head,.qzh .lbtile-head{cursor:pointer;}
       .qzh .dchev,.qzh .lchev{display:inline-flex;flex:none;transition:transform .15s;}
       .qzh .dtile.mc-closed .dtile-collapse{display:none !important;}
+      .qzh .lbtile{min-height:0 !important;}
       .qzh .dtile.mc-closed{min-height:0;padding-bottom:12px;}
       .qzh .lbtile.mc-closed .lbtile-collapse{display:none !important;}
     }
