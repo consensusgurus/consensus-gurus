@@ -1141,7 +1141,7 @@ export default function QuizHomeClient() {
             />
           </div>
           {(!searchResults && scope === 'all' && !listMode) && (
-            <Link href="/submit?for=quiz" className="qz-submit" style={{ flex: '0 0 auto', display: 'flex', alignItems: 'center', gap: 6, background: '#fff', color: C.soft, border: `1px solid ${C.line}`, padding: '8px 14px', borderRadius: 10, fontFamily: FONT, fontWeight: 500, fontSize: 12.5, textDecoration: 'none', whiteSpace: 'nowrap' }}>
+            <Link href="/submit?for=quiz" className="qz-submit" style={{ flex: '0 0 auto', display: 'flex', alignItems: 'center', gap: 6, background: C.accent, color: '#fff', border: `1px solid ${C.accent}`, padding: '8px 14px', borderRadius: 10, fontFamily: FONT, fontWeight: 700, fontSize: 12.5, textDecoration: 'none', whiteSpace: 'nowrap' }}>
               Submit a Quiz
             </Link>
           )}
@@ -1236,10 +1236,10 @@ export default function QuizHomeClient() {
           <div className="qcols">
             <BrowseColumn label={<>Last Played{playsToday ? <span style={{ fontSize: 10.5, fontWeight: 700, color: 'rgba(255,255,255,0.82)' }}> · {playsToday.toLocaleString()} plays today</span> : null}</>} Icon={Play} color="#10b981" tint="#d8f3e6" filled
               rows={lastPlayed.slice(0, 3).map((f) => ({ q: { id: f.quizId, title: f.title, rawTitle: f.title }, right: (<><span className="score" style={{ fontSize: 11, color: f.total && f.score / f.total >= 0.8 ? '#16a34a' : C.soft }}>{f.score}/{f.total}</span><span style={{ color: C.soft }}>{relTime(f.playedAt)}</span></>) }))} cta="View all ›" onCta={() => setListMode('live')} />
-            <BrowseColumn label="Newest" Icon={Sparkles} color={C.accent} tint={C.accsoft} filled
-              rows={newest.slice(0, 3).map((q) => ({ q, right: <NewRight q={q} /> }))} cta="View all ›" onCta={() => setListMode('newest')} />
             <BrowseColumn label="Most Played" Icon={Flame} color="#c2691c" tint="#f4e2cd" filled
               rows={mostPlayed.slice(0, 3).map((q) => ({ q, right: <PlaysRight id={q.id} plays={plays} leader={leader} leaderKey={leaderKey} color="#c2691c" hidePlays /> }))} cta="View all ›" onCta={() => setListMode('mostplayed')} />
+            <BrowseColumn label="Newest" Icon={Sparkles} color={C.accent} tint={C.accsoft} filled
+              rows={newest.slice(0, 3).map((q) => ({ q, right: <NewRight q={q} /> }))} cta="View all ›" onCta={() => setListMode('newest')} />
             {cats.map((c) => {
               const ch = CATEGORY_HEROES[c.key];
               const topQ = c.quizzes.slice().sort((a, b) => plays(b.id) - plays(a.id) || a.title.localeCompare(b.title))[0];
@@ -1384,7 +1384,7 @@ function BrowseColumn({ label, Icon, color, tint, rows, cta, onCta, heroUrl, her
   const hasHero = !!heroUrl;
   const headFg = filled ? '#fff' : color;
   return (
-    <section className={`mc-open${hasHero ? ' catcard' : ''}`} style={{ minWidth: 0 }}>
+    <section className={`mc-open${(hasHero || filled) ? ' catcard' : ''}`} style={{ minWidth: 0 }}>
       {hasHero ? (
         <Link href={`/quiz/${heroId}`} className="cc-hero" style={{ backgroundImage: `url("${heroUrl}")` }} title={heroTitle}>
           <span className="cc-ov" />
@@ -1395,7 +1395,7 @@ function BrowseColumn({ label, Icon, color, tint, rows, cta, onCta, heroUrl, her
           </div>
         </Link>
       ) : null}
-      <div className={`colhead${hasHero ? ' cc-head' : ''}${filled ? ' cc-filled' : ''}`} style={{ borderColor: filled ? C.accent : color, background: filled ? C.accent : (hasHero ? '#fff' : `color-mix(in srgb, ${color} 6%, #fff)`) }}>
+      <div className={`colhead${(hasHero || filled) ? ' cc-head' : ''}${filled ? ' cc-filled' : ''}`} style={{ borderColor: filled ? C.accent : color, background: filled ? C.accent : (hasHero ? '#fff' : `color-mix(in srgb, ${color} 6%, #fff)`) }}>
         <span className="colicon" style={{ width: 24, height: 24, borderRadius: 7, background: filled ? 'rgba(255,255,255,0.22)' : tint, color: filled ? '#fff' : color, display: 'flex', alignItems: 'center', justifyContent: 'center', flex: 'none' }}>
           <Icon size={14} />
         </span>
