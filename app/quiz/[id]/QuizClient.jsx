@@ -422,7 +422,8 @@ export default function QuizClient({ quizId }) {
   const pairsMode = quiz.format === 'pairs';
   const bankMode = quiz.format === 'bank';
   const orderBankMode = quiz.format === 'order-bank';
-  const typeMode = quiz.format === 'type-it';
+  const typeMode = quiz.format === 'type-it' || quiz.format === 'careers';
+  const careersMode = quiz.format === 'careers';
   const scrambleMode = quiz.format === 'word-scramble';
   const photoMode = quiz.format === 'photo';
   // Portrait photo quizzes (e.g. 3/4 headshots) render the image as a narrow
@@ -1615,7 +1616,7 @@ export default function QuizClient({ quizId }) {
             {photoMode ? (
             <PhotoBoard items={quiz.answers} started={started} ended={ended} revealed={revealed} onMatch={onPairMatch} onWrong={onBankWrong} onEnd={onPairEnd} onHint={onPairHint} answerNoun={quiz.noun} photoAspect={quiz.photoAspect} strike={quiz.strike} noSkip={quiz.strike} stickyTop={stickyTop} mobile={mobile} />
             ) : typeMode ? (
-            <TypeItBoard items={quiz.answers} started={started} ended={ended} revealed={revealed} onMatch={onPairMatch} onWrong={onBankWrong} onEnd={onPairEnd} onHint={onPairHint} promptLabel={quiz.leftLabel} answerNoun={quiz.noun} stickyTop={stickyTop} mobile={mobile} />
+            <TypeItBoard items={quiz.answers} started={started} ended={ended} revealed={revealed} onMatch={onPairMatch} onWrong={onBankWrong} onEnd={onPairEnd} onHint={onPairHint} promptLabel={quiz.leftLabel} answerNoun={quiz.noun} clueVariant={careersMode ? 'careers' : undefined} stickyTop={stickyTop} mobile={mobile} />
             ) : scrambleMode ? (
             <WordScrambleBoard items={quiz.answers} started={started} ended={ended} revealed={revealed} onMatch={onPairMatch} onWrong={onBankWrong} onEnd={onPairEnd} onHint={onPairHint} promptLabel={quiz.leftLabel} answerNoun={quiz.noun} stickyTop={stickyTop} mobile={mobile} />
             ) : bankMode ? (

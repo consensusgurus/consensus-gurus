@@ -39,7 +39,7 @@ function accepts(raw, item) {
   return deArticle(g) === deArticle(norm(item.t));
 }
 
-export default function TypeItBoard({ items, started, ended, revealed, onMatch, onWrong, onEnd, onHint, promptLabel, answerNoun, stickyTop = 150, mobile = false }) {
+export default function TypeItBoard({ items, started, ended, revealed, onMatch, onWrong, onEnd, onHint, promptLabel, answerNoun, clueVariant, stickyTop = 150, mobile = false }) {
   const list = items || [];
   const total = list.length;
   const order = useMemo(() => shuffle(list.map((_, i) => i)), [list]);
@@ -169,10 +169,29 @@ export default function TypeItBoard({ items, started, ended, revealed, onMatch, 
             )}
           </div>
         )}
+        {clueVariant === 'careers' ? (
+        <div style={{ background: '#ffffff', color: COLORS.ink, borderRadius: 12, border: `1px solid ${COLORS.faded}44`, padding: '14px 16px' }}>
+          <div style={{ textAlign: 'center', fontFamily: SERIF, fontWeight: 800, fontSize: 15, letterSpacing: '0.01em', color: COLORS.ink, paddingBottom: 8, marginBottom: 8, borderBottom: `1px solid ${COLORS.faded}33` }}>Career history</div>
+          {(live && cur != null) ? (
+            <ul style={{ listStyle: 'none', margin: 0, padding: 0 }}>
+              {(list[cur].stints || []).map((s, si) => (
+                <li key={si} style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'baseline', gap: 6, padding: '3px 0', lineHeight: 1.4 }}>
+                  <span style={{ fontFamily: SANS, fontWeight: 700, fontSize: 'clamp(15px, 2.6vw, 19px)', color: COLORS.ember }}>{s.team}</span>
+                  <span style={{ fontFamily: SANS, fontSize: 'clamp(14px, 2.4vw, 17px)', color: COLORS.faded }}>({s.years}){s.note ? '*' : ''}</span>
+                </li>
+              ))}
+              {list[cur].note ? (<li style={{ marginTop: 8, paddingTop: 6, borderTop: `1px solid ${COLORS.faded}33`, fontFamily: SANS, fontStyle: 'italic', fontSize: 12, color: COLORS.faded }}>* Offseason and/or practice squad member only</li>) : null}
+            </ul>
+          ) : (
+            <div style={{ textAlign: 'center', fontFamily: SERIF, fontSize: 18, color: COLORS.faded, padding: '12px 0' }}>{!started ? 'Press Play to start' : ended ? 'Game over' : 'All done'}</div>
+          )}
+        </div>
+        ) : (
         <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: 12, background: live ? COLORS.ink : COLORS.paper, color: live ? COLORS.cream : COLORS.faded, borderRadius: 10, border: `1px solid ${COLORS.faded}33`, padding: '14px 16px', minHeight: 30 }}>
           <span style={{ fontFamily: MONO, fontSize: 11, letterSpacing: '0.2em', textTransform: 'uppercase', opacity: 0.7, flex: 'none' }}>{promptLabel || 'Clue'}</span>
           <span style={{ fontFamily: SERIF, fontWeight: 800, fontSize: 'clamp(20px, 3.4vw, 28px)', lineHeight: 1.15, flex: '1 1 320px', minWidth: 'min(100%, 220px)', overflowWrap: 'break-word', wordBreak: 'normal', hyphens: 'none' }}>{promptText}</span>
         </div>
+        )}
       </div>
       {ended && (
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(155px, 1fr))', gap: 8 }}>
