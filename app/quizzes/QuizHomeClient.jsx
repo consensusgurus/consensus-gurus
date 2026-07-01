@@ -453,13 +453,26 @@ export default function QuizHomeClient() {
     }).catch(() => {});
   }, []);
 
-  const [pendingDuels, setPendingDuels] = useState([]);
-  const [duelDismiss, setDuelDismiss] = useState(false);
-  useEffect(() => {
+  const [duelNotif, setDuelNotif] = useState({ challenges: [], results: [] });
+  const [duelSeen, setDuelSeen] = useState({});
+  const [duelLater, setDuelLater] = useState({});
+  const [duelMuted, setDuelMuted] = useState({});
+  const [duelMuteAll, setDuelMuteAll] = useState(false);
+  function loadDuelNotif() {
     const anon = getAnonId();
     if (!anon) return;
-    fetch(`/api/duel/pending?anonId=${encodeURIComponent(anon)}`).then((r) => r.json()).then((d) => { if (d && Array.isArray(d.pending)) setPendingDuels(d.pending); }).catch(() => {});
+    fetch(`/api/duel/notifications?anonId=${encodeURIComponent(anon)}`).then((r) => r.json()).then((d) => { if (d) setDuelNotif({ challenges: d.challenges || [], results: d.results || [] }); }).catch(() => {});
+  }
+  useEffect(() => {
+    try { setDuelSeen(JSON.parse(localStorage.getItem('sot_duel_seen') || '{}') || {}); } catch {}
+    try { setDuelMuted(JSON.parse(localStorage.getItem('sot_duel_muted') || '{}') || {}); } catch {}
+    try { setDuelMuteAll(localStorage.getItem('sot_duel_mute_all') === '1'); } catch {}
+    loadDuelNotif();
   }, []);
+  async function duelDecline(token) { const idn = getIdentity(); const nm = (idn && idn.username) || 'Player'; try { await fetch('/api/duel/decline', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ token, anonId: getAnonId(), name: nm }) }); } catch {} loadDuelNotif(); }
+  function duelSeenAdd(token) { setDuelSeen((s) => { const n = { ...s, [token]: 1 }; try { localStorage.setItem('sot_duel_seen', JSON.stringify(n)); } catch {} return n; }); }
+  function duelLaterAdd(token) { setDuelLater((s) => ({ ...s, [token]: 1 })); }
+  function duelMuteAdd(anon, name, token) { if (!anon) { duelLaterAdd(token); return; } setDuelMuted((m) => { const n = { ...m, [anon]: name || 'Player' }; try { localStorage.setItem('sot_duel_muted', JSON.stringify(n)); } catch {} return n; }); setDuelLater((s) => ({ ...s, [token]: 1 })); }
 
   // Current player's stats (overall — used for the player bar + pinned "You").
   useEffect(() => {
@@ -994,15 +1007,61 @@ export default function QuizHomeClient() {
       <SiteHeader active="quizzes" flush inlay={<QuizPlayerBar />} />
       <div className="qzh qzf-w" style={{ maxWidth: 1180, margin: '0 auto', padding: '12px 38px 70px', position: 'relative' }}><style>{`@media(max-width:560px){.qzf-w{padding-left:14px !important;padding-right:14px !important;}}`}</style><div className="qzf-line" aria-hidden="true" />
 
-        {pendingDuels.length > 0 && !duelDismiss && (
-          <div style={{ position: 'fixed', right: 16, bottom: 16, zIndex: 90, maxWidth: 340, background: '#fff', border: `1px solid ${C.line}`, borderLeft: `4px solid ${C.accent}`, borderRadius: 12, boxShadow: '0 10px 34px rgba(20,22,28,0.18)', padding: '14px 16px 15px', fontFamily: FONT }}>
-            <button onClick={() => setDuelDismiss(true)} aria-label="Dismiss" style={{ position: 'absolute', top: 6, right: 8, width: 24, height: 24, border: 'none', background: 'transparent', color: C.soft, cursor: 'pointer', fontSize: 17, lineHeight: 1 }}>×</button>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 7, fontSize: 11, fontWeight: 800, letterSpacing: '.06em', textTransform: 'uppercase', color: C.accent, marginBottom: 6 }}><Swords size={14} /> Duel challenge</div>
-            <div style={{ fontSize: 14, fontWeight: 700, color: C.ink, marginBottom: 4 }}>{(pendingDuels[0].challenger_name || 'Someone')} challenged you{pendingDuels.length > 1 ? ` (+${pendingDuels.length - 1} more)` : ''}</div>
-            <div style={{ fontSize: 12.5, color: C.muted, marginBottom: 12 }}>{(titleById[pendingDuels[0].quiz_id] || pendingDuels[0].quiz_id)}. Your move.</div>
-            <a href={`/duel/${pendingDuels[0].token}`} style={{ display: 'inline-block', background: C.accent, color: '#fff', padding: '9px 16px', borderRadius: 9, fontWeight: 800, fontSize: 13, textDecoration: 'none' }}>Play now →</a>
-          </div>
-        )}
+        {(() => {
+          if (duelMuteAll) return null;
+          const myA = getAnonId();
+          const q = [];
+          (duelNotif.challenges || []).forEach((c) => { if (duelLater[c.token]) return; if (c.challenger_anon && duelMuted[c.challenger_anon]) return; q.push({ kind: 'challenge', ...c }); });
+          (duelNotif.results || []).forEach((r) => { if (duelSeen[r.token]) return; const iAmCh = r.challenger_anon === myA; if (r.status === 'declined' && !iAmCh) return; q.push({ kind: 'result', iAmCh, ...r }); });
+          if (!q.length) return null;
+          const it = q[0];
+          const qTitle = (titleById[it.quiz_id] || it.quiz_id);
+          const more = q.length > 1 ? q.length - 1 : 0;
+          let outcome = '';
+          if (it.kind === 'result') {
+            if (it.status === 'declined') outcome = `${it.opponent_name || 'Your opponent'} turned down your duel`;
+            else if (it.winner === 'tie') outcome = 'It was a tie!';
+            else { const iWon = (it.iAmCh && it.winner === 'challenger') || (!it.iAmCh && it.winner === 'opponent'); outcome = iWon ? 'You won your duel!' : 'You lost your duel'; }
+          }
+          const txtBtn = { background: 'transparent', border: 'none', fontFamily: FONT, fontWeight: 800, fontSize: 13, cursor: 'pointer' };
+          return (
+            <div style={{ position: 'fixed', right: 18, bottom: 18, zIndex: 90, width: 352, maxWidth: 'calc(100vw - 28px)', background: '#fff', borderRadius: 16, border: `2px solid ${C.accent}`, boxShadow: '0 16px 44px rgba(20,22,28,0.22)', overflow: 'hidden', fontFamily: FONT }}>
+              <div style={{ background: C.accent, color: '#fff', padding: '11px 15px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                <span style={{ fontSize: 12, fontWeight: 800, letterSpacing: '.08em', display: 'inline-flex', alignItems: 'center', gap: 7 }}><Swords size={16} /> {it.kind === 'challenge' ? 'DUEL CHALLENGE' : 'DUEL RESULT'}</span>
+                <button onClick={() => it.kind === 'challenge' ? duelLaterAdd(it.token) : duelSeenAdd(it.token)} aria-label="Dismiss" style={{ border: 'none', background: 'transparent', color: '#fff', cursor: 'pointer', fontSize: 18, lineHeight: 1, opacity: 0.85 }}>×</button>
+              </div>
+              <div style={{ padding: '16px 16px 15px' }}>
+                {it.kind === 'challenge' ? (
+                  <>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                      <span style={{ width: 36, height: 36, borderRadius: '50%', background: C.accsoft, color: C.accent, display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 800, fontSize: 13 }}>{(it.challenger_name || 'P').slice(0, 2).toUpperCase()}</span>
+                      <span style={{ fontSize: 12, fontWeight: 800, color: C.soft }}>VS</span>
+                      <span style={{ width: 36, height: 36, borderRadius: '50%', background: '#faedd0', color: '#a9781a', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 800, fontSize: 12 }}>YOU</span>
+                      {it.device && it.device !== 'any' && <span style={{ marginLeft: 'auto', fontSize: 10, fontWeight: 800, color: '#fff', background: C.ink, borderRadius: 999, padding: '3px 9px', textTransform: 'uppercase' }}>{it.device === 'mobile' ? 'Mobile Only' : 'Desktop Only'}</span>}
+                    </div>
+                    <div style={{ fontSize: 18, fontWeight: 800, color: C.ink, margin: '13px 0 3px' }}>{it.challenger_name || 'Someone'} Challenged You</div>
+                    <div style={{ fontSize: 13, color: C.muted, marginBottom: 14 }}>{qTitle}{more ? ` · +${more} More` : ''}</div>
+                    <a href={`/duel/${it.token}`} style={{ display: 'block', textAlign: 'center', background: C.accent, color: '#fff', padding: '12px', borderRadius: 10, fontWeight: 800, fontSize: 15, textDecoration: 'none' }}>Play Now →</a>
+                    <div style={{ display: 'flex', justifyContent: 'center', flexWrap: 'wrap', gap: 16, marginTop: 11 }}>
+                      <button onClick={() => duelDecline(it.token)} style={{ ...txtBtn, color: '#c0392b' }}>Turn Down</button>
+                      <button onClick={() => duelLaterAdd(it.token)} style={{ ...txtBtn, color: C.soft }}>Maybe Later</button>
+                      <button onClick={() => duelMuteAdd(it.challenger_anon, it.challenger_name, it.token)} style={{ ...txtBtn, color: C.soft }}>Mute User</button>
+                    </div>
+                  </>
+                ) : (
+                  <>
+                    <div style={{ fontSize: 20, fontWeight: 800, color: C.ink, marginBottom: 3 }}>{outcome}</div>
+                    <div style={{ fontSize: 13, color: C.muted, marginBottom: 14 }}>{qTitle}{more ? ` · +${more} More` : ''}</div>
+                    <a href={`/duel/${it.token}`} style={{ display: 'block', textAlign: 'center', background: C.accent, color: '#fff', padding: '11px', borderRadius: 10, fontWeight: 800, fontSize: 14, textDecoration: 'none' }}>See Duel →</a>
+                    <div style={{ display: 'flex', justifyContent: 'center', marginTop: 11 }}>
+                      <button onClick={() => duelSeenAdd(it.token)} style={{ ...txtBtn, color: C.soft }}>Dismiss</button>
+                    </div>
+                  </>
+                )}
+              </div>
+            </div>
+          );
+        })()}
 
         {signupOpen && <SignupModal onClose={() => setSignupOpen(false)} />}
 
@@ -1066,7 +1125,7 @@ export default function QuizHomeClient() {
                 </div>
                 <div className="lbtile-collapse" style={{ height: 108, display: 'flex', flexDirection: 'column', justifyContent: 'center', overflow: 'hidden' }}>{renderLb()}</div>
               </div>
-              <Link href="/duel/new" className="duelbtn" style={{ textDecoration: 'none' }}><Swords size={16} /> Challenge a friend or user to a duel</Link>
+              <Link href="/duel/new" className="duelbtn" style={{ textDecoration: 'none' }}><Swords size={16} /> Challenge a Friend or User to a Duel</Link>
             </div>
           </div>
 
