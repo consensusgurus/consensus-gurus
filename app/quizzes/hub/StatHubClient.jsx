@@ -2,8 +2,7 @@
 import React, { useState, useEffect, useMemo, useRef } from 'react';
 import Link from 'next/link';
 import {
-  ArrowLeft, BadgeCheck, User, ListChecks, Flame, FunctionSquare, Clock, Trophy, RefreshCw, Share2, Download, UserPlus, Play, X, Check, Star,
-} from 'lucide-react';
+  ArrowLeft, BadgeCheck, User, ListChecks, Flame, FunctionSquare, Clock, Trophy, RefreshCw, Share2, Download, UserPlus, Play, X, Check, Star, Swords,} from 'lucide-react';
 import { QUIZZES, getQuiz } from '@/lib/quizzes';
 import { quizDept as deptOf, DEPT_COLOR, DEPT_LABEL, DEPT_NAV } from '@/lib/quiz-departments';
 import { CHALLENGES, getChallenge, DEFAULT_CHALLENGE_ID, challengeQuizIds, challengeColumns, dailyChallengeId, challengeMenu } from '@/lib/challenges';
@@ -79,7 +78,7 @@ const TABS = [
   { t: 'player', label: 'Player', Icon: User },
   { t: 'quizzes', label: 'Quizzes', Icon: ListChecks },
   { t: 'challenges', label: 'Challenges', Icon: Flame },
-];
+  { t: 'duels', label: 'Duels', Icon: Swords },];
 
 // Share Stats: a shareable player card (overall rank, skill rating + tier,
 // completed/correct/accuracy with their ranks, top-3 categories) plus a copy
@@ -180,6 +179,82 @@ function ShareStatsModal({ profile, byKey, onClose }) {
           <a href={`/api/quiz/share-card?key=${encodeURIComponent(profile.userKey || '')}`} target="_blank" rel="noopener noreferrer" download="source-of-truths-stats.png" style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 7, border: `1px solid ${C.line}`, background: '#fff', color: C.ink, borderRadius: 10, padding: '11px 14px', fontFamily: FONT, fontWeight: 700, fontSize: 13, cursor: 'pointer', textDecoration: 'none' }}><Download size={15} strokeWidth={2.4} /> Image</a>
           <button onClick={onClose} style={{ border: `1px solid ${C.line}`, background: '#fff', color: C.ink, borderRadius: 10, padding: '11px 16px', fontFamily: FONT, fontWeight: 700, fontSize: 13, cursor: 'pointer' }}>Close</button>
         </div>
+      </div>
+    </div>
+  );
+}
+
+function DuelsPanel() {
+  const [data, setData] = useState({ yourMove: [], awaiting: [], completed: [] });
+  const [ladder, setLadder] = useState([]);
+  const [muteAll, setMuteAll] = useState(false);
+  const [muted, setMuted] = useState({});
+  const [loaded, setLoaded] = useState(false);
+  useEffect(() => {
+    const anon = getAnonId();
+    if (anon) fetch(`/api/duel/list?anonId=${encodeURIComponent(anon)}`).then((r) => r.json()).then((d) => { if (d) setData({ yourMove: d.yourMove || [], awaiting: d.awaiting || [], completed: d.completed || [] }); }).catch(() => {}).finally(() => setLoaded(true));
+    else setLoaded(true);
+    fetch('/api/duel/ladder').then((r) => r.json()).then((d) => { if (d && Array.isArray(d.ladder)) setLadder(d.ladder); }).catch(() => {});
+    try { setMuteAll(localStorage.getItem('sot_duel_mute_all') === '1'); } catch {}
+    try { setMuted(JSON.parse(localStorage.getItem('sot_duel_muted') || '{}') || {}); } catch {}
+  }, []);
+  function toggleMuteAll() { setMuteAll((v) => { const n = !v; try { localStorage.setItem('sot_duel_mute_all', n ? '1' : '0'); } catch {} return n; }); }
+  function unmute(a) { setMuted((m) => { const n = { ...m }; delete n[a]; try { localStorage.setItem('sot_duel_muted', JSON.stringify(n)); } catch {} return n; }); }
+  const anon = getAnonId();
+  const qtitle = (id) => { const q = getQuiz(id); return (q && q.title) || id; };
+  const mutedEntries = Object.entries(muted);
+  const card = { background: C.surface, border: `1px solid ${C.line}`, borderRadius: 12, padding: 16, marginBottom: 14 };
+  const hd = { fontSize: 13, fontWeight: 800, letterSpacing: '.04em', textTransform: 'uppercase', color: C.soft, margin: '0 0 10px' };
+  function Row({ d, right }) {
+    return (
+      <a href={`/duel/${d.token}`} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 10, padding: '9px 0', borderBottom: `1px solid ${C.line}`, textDecoration: 'none', color: C.ink }}>
+        <span style={{ minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', fontSize: 14, fontWeight: 600 }}>{qtitle(d.quiz_id)}</span>
+        <span style={{ flex: 'none', fontSize: 12, fontWeight: 700, color: C.soft }}>{right}</span>
+      </a>
+    );
+  }
+  function outcomeText(d) {
+    if (d.status === 'declined') return d.challenger_anon === anon ? 'Turned down' : 'You declined';
+    const iAmCh = d.challenger_anon === anon;
+    if (d.winner === 'tie') return 'Tie';
+    const iWon = (iAmCh && d.winner === 'challenger') || (!iAmCh && d.winner === 'opponent');
+    return iWon ? 'Won' : 'Lost';
+  }
+  const empty = loaded && !data.yourMove.length && !data.awaiting.length && !data.completed.length;
+  return (
+    <div>
+      <a href="/duel/new" style={{ display: 'inline-flex', alignItems: 'center', gap: 8, background: C.accent, color: '#fff', padding: '11px 18px', borderRadius: 10, fontWeight: 800, fontSize: 14, textDecoration: 'none', marginBottom: 16 }}><Swords size={16} /> Start a Duel</a>
+      {data.yourMove.length > 0 && (<div style={card}><div style={hd}>Your Move</div>{data.yourMove.map((d) => <Row key={d.token} d={d} right="Play →" />)}</div>)}
+      {data.awaiting.length > 0 && (<div style={card}><div style={hd}>Waiting on Opponent</div>{data.awaiting.map((d) => <Row key={d.token} d={d} right="Pending" />)}</div>)}
+      {data.completed.length > 0 && (<div style={card}><div style={hd}>Recent Results</div>{data.completed.slice(0, 8).map((d) => <Row key={d.token} d={d} right={outcomeText(d)} />)}</div>)}
+      {empty && (<div style={{ ...card, color: C.muted, fontSize: 14 }}>No duels yet. Challenge someone to get started.</div>)}
+      <div style={card}>
+        <div style={hd}>Duel Ladder</div>
+        {ladder.length === 0 ? <div style={{ color: C.muted, fontSize: 13 }}>No completed duels yet.</div> : ladder.slice(0, 15).map((p, i) => (
+          <div key={p.anon} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '8px 0', borderBottom: `1px solid ${C.line}` }}>
+            <span style={{ width: 22, textAlign: 'right', fontWeight: 800, color: C.soft, fontSize: 13 }}>{i + 1}</span>
+            <span style={{ flex: 1, minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', fontWeight: 700, fontSize: 14 }}>{p.name}</span>
+            <span style={{ flex: 'none', fontSize: 13, fontWeight: 700 }}>{p.wins}-{p.losses}{p.ties ? `-${p.ties}` : ''}</span>
+            <span style={{ flex: 'none', fontSize: 12, fontWeight: 700, color: C.soft, width: 44, textAlign: 'right' }}>{p.winPct}%</span>
+          </div>
+        ))}
+      </div>
+      <div style={card}>
+        <div style={hd}>Alert Settings</div>
+        <label onClick={toggleMuteAll} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12, cursor: 'pointer', padding: '4px 0' }}>
+          <span style={{ fontSize: 14, fontWeight: 600 }}>Mute all duel alerts</span>
+          <span style={{ width: 44, height: 26, borderRadius: 999, background: muteAll ? C.accent : '#cfd4dc', position: 'relative', flex: 'none' }}>
+            <span style={{ position: 'absolute', top: 3, left: muteAll ? 21 : 3, width: 20, height: 20, borderRadius: '50%', background: '#fff' }} />
+          </span>
+        </label>
+        <div style={{ fontSize: 12, color: C.soft, marginTop: 4 }}>When on, you won{"'"}t get any duel challenge pop-ups.</div>
+        <div style={{ marginTop: 14, fontSize: 12, fontWeight: 800, color: C.soft, textTransform: 'uppercase', letterSpacing: '.04em' }}>Muted Players</div>
+        {mutedEntries.length === 0 ? <div style={{ color: C.muted, fontSize: 13, marginTop: 6 }}>No muted players.</div> : mutedEntries.map(([a, nm]) => (
+          <div key={a} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 10, padding: '8px 0', borderBottom: `1px solid ${C.line}` }}>
+            <span style={{ fontSize: 14, fontWeight: 600 }}>{nm || 'Player'}</span>
+            <button onClick={() => unmute(a)} style={{ background: 'transparent', border: `1px solid ${C.accent}`, color: C.accent, borderRadius: 8, padding: '5px 12px', fontFamily: FONT, fontWeight: 700, fontSize: 12, cursor: 'pointer' }}>Unmute</button>
+          </div>
+        ))}
       </div>
     </div>
   );
@@ -393,7 +468,7 @@ export default function StatHubClient() {
         {tab === 'player' && <PlayerPanel me={profile} scope={scope} cats={cats} byKey={byKey} totalQuizzes={catalog.length} board={board} myName={myName} myAnonKey={myAnonKey} titleById={titleById} pview={pview} setPview={setPview} viewKey={viewKey} onSelectPlayer={(k) => { const mine = (me && me.userKey && k === me.userKey) || (myAnonKey && k === myAnonKey); setViewKey(mine ? null : k); setPview(mine ? 'ranking' : 'category'); }} />}
         {tab === 'quizzes' && <QuizzesPanel me={profile} myProfile={me} scope={scope} byKey={byKey} catalog={catalog} stats={statsById} totals={totals} totalPlays={totalPlays} onSelectPlayer={(k) => { setViewKey(k); setPview('category'); setTab('player'); }} />}
         {tab === 'challenges' && <ChallengesPanel me={profile} />}
-      </div>
+        {tab === 'duels' && <DuelsPanel />}      </div>
 
       {shareOpen && found && <ShareStatsModal profile={profile} byKey={byKey} onClose={() => setShareOpen(false)} />}
       {signupOpen && <SignupModal onClose={() => setSignupOpen(false)} />}
