@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import SiteHeader from '../SiteHeader';
 import QuizPlayerBar from '../quiz/[id]/QuizPlayerBar';
+import DuelTile from './DuelTile';
 import {
   Search, ChevronDown, ArrowRight, BarChart3, Crown, Sparkles, Flame,
   BadgeCheck, Clapperboard, Music, Gamepad2, Plane, Globe, Utensils,
@@ -620,6 +621,25 @@ export default function QuizHomeClient() {
     return list.slice(0, 3);
   }, [eloBoard, lbMetric.key, boardsExpanded, mobLbOpen]);
 
+  // Compact top-3 for the active leaderboard slide, shown in the player stat
+  // bar on the quiz hub (the leaderboard lives in the stat line here).
+  const lbBar = useMemo(() => {
+    const label = lbMetric.label + (lbMetric.special || scope === 'all' ? '' : ' · ' + ((byKey[scope] && byKey[scope].label) || ''));
+    let rows = [];
+    if (lbMetric.special) {
+      if (lbMetric.key === 'catRating') {
+        rows = (catBoards[lbMetric.catKey] || []).slice(0, 3).map((r) => ({ name: r.name || 'Player', value: lbMetric.fmt(r.rating) }));
+      } else {
+        const src = lbMetric.key === 'dailyChallenge' ? dailyRows : lbMetric.key === 'correctToday' ? todayCorrectRows : todayQuizRows;
+        const valOf = lbMetric.key === 'dailyChallenge' ? ((r) => r.totalCorrect) : lbMetric.key === 'correctToday' ? ((r) => r.correct) : ((r) => r.quizzes);
+        rows = src.slice(0, 3).map((r) => ({ name: r.username || 'Player', value: (valOf(r) || 0).toLocaleString() }));
+      }
+    } else {
+      rows = leaderRows.map((r) => ({ name: r.name || 'Player', value: lbMetric.fmt(r[lbMetric.key]) }));
+    }
+    return { label, rows };
+  }, [lbMetric, scope, byKey, catBoards, dailyRows, todayCorrectRows, todayQuizRows, leaderRows]);
+
   // ── live feed (scoped by quiz department) ──
   const liveRows = useMemo(() => {
     const rows = recent.map((p) => ({ ...p, dept: deptOf({ id: p.quizId }), title: titleById[p.quizId] || cleanTitle(p.quizId) }));
@@ -823,6 +843,7 @@ export default function QuizHomeClient() {
     .qzh .lbtile{background:#fff;border:1px solid ${C.line};border-radius:14px;padding:12px 15px;flex:1;display:flex;flex-direction:column;min-height:132px;overflow:hidden;}
     .qzh .lbtile-head{display:flex;align-items:center;gap:7px;margin-bottom:6px;}
     .qzh .duelbtn{background:${C.accent};color:#fff;border:none;border-radius:12px;padding:12px;font-weight:800;font-size:12px;font-family:inherit;display:flex;align-items:center;justify-content:center;gap:8px;cursor:pointer;flex:none;}
+    @media(max-width:560px){.qzh .dueltile{display:none !important;}}
     .qzh .rail{background:#fff;border:1px solid ${C.line};border-radius:14px;padding:11px;display:flex;flex-direction:column;}
     .qzh .rail-bars{flex:1;display:flex;flex-direction:column;}
     .qzh .rseg{display:flex;align-items:center;gap:6px;padding:0 11px;font-size:11px;font-weight:600;border:none;border-radius:0;margin:0;cursor:pointer;width:100%;min-height:26px;}
@@ -1021,7 +1042,7 @@ export default function QuizHomeClient() {
     <div style={{ background: C.bg, minHeight: '100vh', position: 'relative' }}>
       <Grain />
       <style>{css}</style>
-      <SiteHeader active="quizzes" flush inlay={<QuizPlayerBar />} />
+      <SiteHeader active="quizzes" flush inlay={<QuizPlayerBar leaderboard={lbBar} />} />
       <div className="qzh qzf-w" style={{ maxWidth: 1180, margin: '0 auto', padding: '12px 38px 70px', position: 'relative' }}><style>{`@media(max-width:560px){.qzf-w{padding-left:14px !important;padding-right:14px !important;}}`}</style><div className="qzf-line" aria-hidden="true" />
 
         {(() => {
@@ -1132,18 +1153,7 @@ export default function QuizHomeClient() {
               </Link>
             ); })() : <div />}
 
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 12, minWidth: 0 }}>
-              <div className={`lbtile mc-${mLb ? 'open' : 'closed'}`}>
-                <div className="lbtile-head" onClick={() => { if (isMobile) setMLb((v) => !v); }}>
-                  <Crown size={15} strokeWidth={2} style={{ color: '#e8b43a', flex: 'none' }} />
-                  <span className="x8" style={{ fontSize: 13, fontWeight: 800, flex: 1, minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{(isMobile && !mLb) ? 'Leaderboard' : (lbMetric.label + (lbMetric.special || scope === 'all' ? '' : ' · ' + ((byKey[scope] && byKey[scope].label) || '')))}</span>
-                  <Link href="/quizzes/hub" className="qlink" onClick={(e) => e.stopPropagation()} style={{ fontSize: 10, fontWeight: 800, color: C.accent, flex: 'none' }}>View all</Link>
-                  <ChevronDown className="lchev" size={16} strokeWidth={2.5} style={{ color: C.soft, transform: mLb ? 'rotate(180deg)' : 'none' }} />
-                </div>
-                <div className="lbtile-collapse" style={{ height: 108, display: 'flex', flexDirection: 'column', justifyContent: 'center', overflow: 'hidden' }}>{renderLb()}</div>
-              </div>
-              <Link href="/duel/new" className="duelbtn" style={{ textDecoration: 'none' }}><Swords size={16} /> Challenge a Friend or User to a Duel</Link>
-            </div>
+            <DuelTile />
           </div>
 
         {/* browse header + search (in the left column, beside the mastery rail) */}

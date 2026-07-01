@@ -1,11 +1,12 @@
 'use client';
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { BadgeCheck, UserPlus, ChevronDown, ArrowRight, X } from 'lucide-react';
+import { BadgeCheck, UserPlus, ChevronDown, ArrowRight, X, Crown } from 'lucide-react';
 import { DEPT_LABEL } from '@/lib/quiz-departments';
 
 const ACCENT='#2563eb', INK='#1c1e24', MUTED='#6b7280', SOFT='#aeb4bd', LINE='rgba(20,22,28,0.09)';
 const BARBG='#1e54cf', ONBLUE='#ffffff', ONBLUE_SOFT='#bcd2fb', ONBLUE_LINE='rgba(255,255,255,0.22)';
+const MEDAL=['#e8b43a','#c3c7cf','#cf8b4e'];
 const lbl={fontSize:10,fontWeight:600,letterSpacing:'.04em',textTransform:'uppercase',color:ONBLUE_SOFT,marginBottom:2};
 const chip={display:'inline-flex',alignItems:'center',gap:6,background:'#3b74e8',color:'#fff',border:'1px solid rgba(255,255,255,0.35)',borderRadius:9,padding:'8px 14px',fontWeight:700,fontSize:13,textDecoration:'none',whiteSpace:'nowrap',cursor:'pointer',fontFamily:'inherit'};
 
@@ -68,7 +69,7 @@ function Stat({value, rank, label, cls}){
   );
 }
 
-export default function QuizPlayerBar({ me: meProp, controlled = false, rightAction = 'stathub', onShare }){
+export default function QuizPlayerBar({ me: meProp, controlled = false, rightAction = 'stathub', onShare, leaderboard = null }){
   const [meState,setMe]=useState(undefined);
   const [signupOpen,setSignupOpen]=useState(false);
   const me = controlled ? meProp : meState;
@@ -98,12 +99,14 @@ export default function QuizPlayerBar({ me: meProp, controlled = false, rightAct
   }
   const dash='—';
   const signed = !!(found && me && me.signed);
+  const hubMode = leaderboard != null;
+  const lbRows = (leaderboard && Array.isArray(leaderboard.rows)) ? leaderboard.rows.slice(0, 3) : [];
   const rightBtn = rightAction==='share'
     ? <button onClick={(e)=>{e.stopPropagation(); onShare&&onShare();}} style={chip}>Share Stats</button>
     : <Link href="/quizzes/hub" onClick={e=>e.stopPropagation()} style={chip}>{(found && !signed)?'Sign Up / Stat Hub':'Stat Hub'} <ArrowRight size={14}/></Link>;
   return (
     <div className="qpb" style={{display:'flex',flexDirection:'row',alignItems:'center',flexWrap:'nowrap',gap:16,padding:'10px 14px',background:BARBG,borderRadius:11,minHeight:56,boxSizing:'border-box',overflow:'hidden'}}>
-      <style>{`.qpb-chev{display:none;}@media(max-width:1023px){.qpb-bestcat{display:none !important;}}@media(max-width:920px){.qpb-s-correct{display:none !important;}}@media(max-width:820px){.qpb-s-accuracy{display:none !important;}}@media(max-width:700px){.qpb-s-played{display:none !important;}}@media(max-width:560px){.qpb .qpb-stats{display:none !important;}.qpb-hub{margin-left:auto !important;}}`}</style>
+      <style>{`.qpb-chev{display:none;}@media(max-width:1023px){.qpb-bestcat{display:none !important;}}@media(max-width:920px){.qpb-s-correct{display:none !important;}}@media(max-width:820px){.qpb-s-accuracy{display:none !important;}}@media(max-width:700px){.qpb-s-played{display:none !important;}}@media(max-width:560px){.qpb .qpb-stats{display:none !important;}.qpb-hub{margin-left:auto !important;}}@media(max-width:980px){.qpb-lb3{display:none !important;}}@media(max-width:840px){.qpb-lb2{display:none !important;}}@media(max-width:620px){.qpb-lb{display:none !important;}.qpb-hub{margin-left:auto !important;}}`}</style>
       <div style={{display:'flex',flexDirection:'column',minWidth:0}}>
         <div style={lbl}>Player</div>
         {found?(
@@ -119,21 +122,40 @@ export default function QuizPlayerBar({ me: meProp, controlled = false, rightAct
         <div style={lbl}>Rank</div>
         <div style={{display:'flex',alignItems:'baseline',gap:5}}><span style={{fontSize:17,fontWeight:800,color:rank?ONBLUE:ONBLUE_SOFT,lineHeight:1}}>{rank?`#${rank}`:dash}</span>{rank&&denom?<span style={{fontSize:11,color:ONBLUE_SOFT}}>of {denom.toLocaleString()}</span>:null}</div>
       </div>
-      <div className="qpb-stats" style={{display:'flex',flex:'1 1 auto',minWidth:0,justifyContent:'space-evenly',gap:14,marginLeft:18,flexWrap:'nowrap'}}>
-        <Stat value={found&&a.played!=null?a.played:dash} rank={found?rk.played:null} label="Played" cls="qpb-s-played"/>
-        <Stat value={found&&a.correct!=null?a.correct.toLocaleString():dash} rank={found?rk.correct:null} label="Correct" cls="qpb-s-correct"/>
-        <Stat value={found&&a.accuracy!=null?`${a.accuracy}%`:dash} rank={found?rk.accuracy:null} label="Accuracy" cls="qpb-s-accuracy"/>
-        <Stat value={found&&a.completed!=null?a.completed:dash} rank={found?rk.completed:null} label="Completed" cls="qpb-s-completed"/>
-      </div>
-      {bestCat?(
-        <div className="qpb-bestcat">
-          <div style={lbl}>Best category</div>
-          <div style={{display:'flex',alignItems:'baseline',gap:5,whiteSpace:'nowrap'}}>
-            <span style={{fontSize:14,fontWeight:700,color:ONBLUE,lineHeight:1.2}}>{DEPT_LABEL[bestCat.key]||'—'}</span>
-            {bestCat.rank?<span style={{fontSize:11,color:ONBLUE_SOFT}}>#{bestCat.rank}{bestCat.catTotal?` of ${bestCat.catTotal.toLocaleString()}`:''}</span>:null}
+      {hubMode ? (
+        <>
+          <Stat value={found&&a.completed!=null?a.completed:dash} rank={found?rk.completed:null} label="Completed" cls="qpb-s-completed"/>
+          {lbRows.length ? (
+            <>
+              <div className="qpb-lbdiv" style={{width:2,height:34,background:'rgba(255,255,255,0.32)',borderRadius:2,flex:'none'}}/>
+              <div className="qpb-lb" style={{flex:'1 1 auto',minWidth:0,overflow:'hidden'}}>
+                <div style={{...lbl,display:'flex',alignItems:'center',gap:5,marginBottom:3,whiteSpace:'nowrap',overflow:'hidden',textOverflow:'ellipsis'}}><Crown size={12} strokeWidth={2} style={{color:'#e8b43a',flex:'none'}}/>{leaderboard.label}</div>
+                <div className="qpb-lbrows" style={{display:'flex',flexWrap:'nowrap',gap:16,whiteSpace:'nowrap',overflow:'hidden',fontSize:12,color:ONBLUE}}>
+                  {lbRows.map((r,i)=>(<span key={i} className={`qpb-lb${i+1}`}><b style={{color:MEDAL[i]||ONBLUE_SOFT}}>{i+1}</b>&nbsp; <span style={{fontWeight:600}}>{r.name}</span> <b>{r.value}</b></span>))}
+                </div>
+              </div>
+            </>
+          ) : <div style={{flex:'1 1 auto'}}/>}
+        </>
+      ) : (
+        <>
+          <div className="qpb-stats" style={{display:'flex',flex:'1 1 auto',minWidth:0,justifyContent:'space-evenly',gap:14,marginLeft:18,flexWrap:'nowrap'}}>
+            <Stat value={found&&a.played!=null?a.played:dash} rank={found?rk.played:null} label="Played" cls="qpb-s-played"/>
+            <Stat value={found&&a.correct!=null?a.correct.toLocaleString():dash} rank={found?rk.correct:null} label="Correct" cls="qpb-s-correct"/>
+            <Stat value={found&&a.accuracy!=null?`${a.accuracy}%`:dash} rank={found?rk.accuracy:null} label="Accuracy" cls="qpb-s-accuracy"/>
+            <Stat value={found&&a.completed!=null?a.completed:dash} rank={found?rk.completed:null} label="Completed" cls="qpb-s-completed"/>
           </div>
-        </div>
-      ):null}
+          {bestCat?(
+            <div className="qpb-bestcat">
+              <div style={lbl}>Best category</div>
+              <div style={{display:'flex',alignItems:'baseline',gap:5,whiteSpace:'nowrap'}}>
+                <span style={{fontSize:14,fontWeight:700,color:ONBLUE,lineHeight:1.2}}>{DEPT_LABEL[bestCat.key]||'—'}</span>
+                {bestCat.rank?<span style={{fontSize:11,color:ONBLUE_SOFT}}>#{bestCat.rank}{bestCat.catTotal?` of ${bestCat.catTotal.toLocaleString()}`:''}</span>:null}
+              </div>
+            </div>
+          ):null}
+        </>
+      )}
       <span className="qpb-hub">{rightBtn}</span>
       {signupOpen && <SignupModal onClose={()=>setSignupOpen(false)} />}
     </div>

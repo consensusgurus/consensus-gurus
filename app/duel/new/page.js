@@ -36,7 +36,7 @@ export default function NewDuelPage() {
 
   useEffect(() => { setName(storedName()); setMyAnon(ensureAnon() || ''); }, []);
   useEffect(() => {
-    try { const p = new URLSearchParams(window.location.search); const oa = p.get('opponent'); const on = p.get('oppName'); if (oa) setOpp({ anon: oa, name: on || 'Player' }); } catch {}
+    try { const p = new URLSearchParams(window.location.search); const oa = p.get('opponent'); const on = p.get('oppName'); if (oa) setOpp({ anon: oa, name: on || 'Player' }); const qz = p.get('quiz'); if (qz) { const fq = QUIZZES.find((x) => x.id === qz); if (fq) setQ(fq.title || ''); } } catch {}
   }, []);
   useEffect(() => {
     let alive = true; const s = oppQ.trim(); if (opp) return;
