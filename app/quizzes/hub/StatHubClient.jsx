@@ -231,7 +231,25 @@ function DuelsPanel({ onSelectPlayer }) {
       }
     } catch (e) {}
   }
-  function Row({ d, right, canDecline }) {
+  // Dismiss your OWN pending invite (you are the challenger). Removes it from
+  // Your Move for good; the opponent turns a duel down via decline instead.
+  async function cancel(d) {
+    const a = getAnonId();
+    if (!a) return;
+    if (typeof window !== 'undefined' && !window.confirm('Dismiss this duel invite?')) return;
+    try {
+      const r = await fetch('/api/duel/cancel', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ token: d.token, anonId: a }) });
+      const j = await r.json();
+      if (j && j.duel) {
+        setData((prev) => ({
+          yourMove: prev.yourMove.filter((x) => x.token !== d.token),
+          awaiting: prev.awaiting.filter((x) => x.token !== d.token),
+          completed: prev.completed,
+        }));
+      }
+    } catch (e) {}
+  }
+  function Row({ d, right, canDecline, canDismiss }) {
     const foe = foeName(d);
     return (
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 10, padding: '9px 0', borderBottom: `1px solid ${C.line}` }}>
@@ -246,6 +264,9 @@ function DuelsPanel({ onSelectPlayer }) {
         <span style={{ flex: 'none', display: 'flex', alignItems: 'center', gap: 14 }}>
           {canDecline ? (
             <button onClick={() => decline(d)} style={{ background: 'transparent', border: `1px solid ${C.line}`, color: C.danger, borderRadius: 8, padding: '5px 12px', fontFamily: FONT, fontWeight: 700, fontSize: 12, cursor: 'pointer' }}>Decline</button>
+          ) : null}
+          {canDismiss ? (
+            <button onClick={() => cancel(d)} style={{ background: 'transparent', border: `1px solid ${C.line}`, color: C.muted, borderRadius: 8, padding: '5px 12px', fontFamily: FONT, fontWeight: 700, fontSize: 12, cursor: 'pointer' }}>Dismiss</button>
           ) : null}
           <a href={`/duel/${d.token}`} style={{ fontSize: 12, fontWeight: 700, color: C.soft, textDecoration: 'none' }}>{right}</a>
         </span>
@@ -263,7 +284,7 @@ function DuelsPanel({ onSelectPlayer }) {
   return (
     <div>
       <a href="/duel/new" style={{ display: 'inline-flex', alignItems: 'center', gap: 8, background: C.accent, color: '#fff', padding: '11px 18px', borderRadius: 10, fontWeight: 800, fontSize: 14, textDecoration: 'none', marginBottom: 16 }}><Swords size={16} /> Start a Duel</a>
-      {data.yourMove.length > 0 && (<div style={card}><div style={hd}>Your Move</div>{data.yourMove.map((d) => <Row key={d.token} d={d} right="Play →" canDecline={d.challenger_anon !== anon} />)}</div>)}
+      {data.yourMove.length > 0 && (<div style={card}><div style={hd}>Your Move</div>{data.yourMove.map((d) => <Row key={d.token} d={d} right="Play →" canDecline={d.challenger_anon !== anon} canDismiss={d.challenger_anon === anon} />)}</div>)}
       {data.awaiting.length > 0 && (<div style={card}><div style={hd}>Waiting on Opponent</div>{data.awaiting.map((d) => <Row key={d.token} d={d} right="Pending" />)}</div>)}
       {data.completed.length > 0 && (<div style={card}><div style={hd}>Recent Results</div>{data.completed.slice(0, 8).map((d) => <Row key={d.token} d={d} right={outcomeText(d)} />)}</div>)}
       {empty && (<div style={{ ...card, color: C.muted, fontSize: 14 }}>No duels yet. Challenge someone to get started.</div>)}

@@ -20,9 +20,13 @@ export async function GET(request) {
     if (error) return NextResponse.json({ yourMove: [], awaiting: [], completed: [] });
     const yourMove = [], awaiting = [], completed = [];
     for (const d of (data || [])) {
+      // Cancelled duels are dismissed for good and shown nowhere.
+      if (d.status === 'cancelled') continue;
       const isChal = d.challenger_anon === anonId;
       const myScore = isChal ? d.challenger_score : d.opponent_score;
-      if (d.status === 'complete') completed.push(d);
+      // Terminal duels (played to a result, or turned down) go to Recent Results,
+      // never back into Your Move on reload.
+      if (d.status === 'complete' || d.status === 'declined') completed.push(d);
       else if (!isChal && d.challenger_score != null && d.opponent_score == null) yourMove.push(d);
       else if (myScore == null) yourMove.push(d);
       else awaiting.push(d);
