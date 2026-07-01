@@ -120,7 +120,7 @@ function cleanTitle(t) { return (t || '').replace(/^Name (the )?/i, '').trim(); 
 // tooltip. e.g. "Click the Countries of Europe" -> "Countries of Europe",
 // "Match the Slogan to the Company" -> "Slogan to the Company".
 const VERB_RE = /^(Click|Name|Guess|Find|Identify|Pick|Select|Match|Pinpoint)\b\s*(all the|the|these)?\s*/i;
-const FALLBACK_HERO = 'https://upload.wikimedia.org/wikipedia/commons/thumb/5/5d/Scrabble_game_in_progress.jpg/1280px-Scrabble_game_in_progress.jpg';
+const FALLBACK_HERO = 'https://upload.wikimedia.org/wikipedia/commons/thumb/e/e1/Earth%27s_City_Lights_by_DMSP%2C_1994-1995_%28large%29.jpg/1280px-Earth%27s_City_Lights_by_DMSP%2C_1994-1995_%28large%29.jpg';
 function stripVerb(t) {
   const out = (t || '').replace(VERB_RE, '').trim();
   return out || (t || '');
@@ -834,13 +834,13 @@ export default function QuizHomeClient() {
     .qzh .qrow .qtitle{font-size:13px;font-weight:500;}
     .qzh .qmeta{flex:none;display:flex;align-items:center;gap:10px;font-size:10.5px;}
     .qzh .catcard{border:1px solid ${C.line};border-radius:12px;overflow:hidden;background:#fff;display:flex;flex-direction:column;padding-bottom:4px;}
-    .qzh .cc-hero{position:relative;display:block;min-height:184px;background-size:cover;background-position:center;background-color:${C.accsoft};text-decoration:none;}
+    .qzh .cc-hero{position:relative;display:block;min-height:210px;background-size:cover;background-position:center;background-color:${C.accsoft};text-decoration:none;}
     .qzh .cc-ov{position:absolute;inset:0;background:linear-gradient(to top, rgba(8,15,35,0.92), rgba(8,15,35,0.4) 52%, rgba(8,15,35,0.05));z-index:1;}
     .qzh .cc-stat{position:absolute;top:10px;left:12px;z-index:2;font-size:10px;font-weight:700;color:#fff;display:inline-flex;align-items:center;gap:3px;text-shadow:0 1px 6px rgba(0,0,0,.65);}
     .qzh .cc-btm{position:absolute;left:12px;right:12px;bottom:11px;z-index:2;display:flex;flex-direction:column;gap:5px;}
     .qzh .cc-htitle{color:#fff;font-size:17px;font-weight:800;letter-spacing:-.2px;line-height:1.14;text-shadow:0 1px 8px rgba(0,0,0,.5);}
     .qzh .cc-play{font-size:13px;font-weight:800;color:#fff;display:inline-flex;align-items:center;gap:4px;}
-    .qzh .catcard .colhead.cc-head{border-radius:0;border-top:none;margin-bottom:0;}
+    .qzh .catcard .colhead.cc-head{border-radius:0;border:none;margin:0;order:-1;}
     .qzh .catcard .qrow{padding-left:11px;padding-right:11px;}
     .qzh .catcard .qrow:last-child{border-bottom:none;}
     .qzh .colhead.cc-filled{border-bottom:none;}
@@ -905,10 +905,10 @@ export default function QuizHomeClient() {
       .qzh section.mc-closed > .qrow{display:none !important;}
       .qzh .dailyicon{color:#374151 !important;}
       .qzh .livedot{background:#9aa1ab !important;animation:none !important;}
-      .qzh .colhead{background:#fff !important;}
-      .qzh .colhead .colicon{background:#eef2f7 !important;color:#374151 !important;}
-      .qzh .colhead h3{color:#1c1e24 !important;}
-      .qzh .colhead .viewall{color:#2563eb !important;}
+      .qzh .colhead{background:${C.accent} !important;}
+      .qzh .colhead .colicon{background:rgba(255,255,255,0.22) !important;color:#fff !important;}
+      .qzh .colhead h3{color:#fff !important;}
+      .qzh .colhead .viewall{color:#fff !important;}
       .qzh .dot{background:#9aa1ab !important;}
       .qzh .mc-closed .vall{display:none !important;}
       .qzh .vall{text-transform:uppercase !important;font-size:10px !important;font-weight:700 !important;letter-spacing:.05em !important;}
@@ -1263,12 +1263,13 @@ export default function QuizHomeClient() {
               const topQ = c.quizzes.slice().sort((a, b) => plays(b.id) - plays(a.id) || a.title.localeCompare(b.title))[0];
               const heroId = ch ? ch.quizId : (topQ && topQ.id);
               const heroUrl = ch ? ch.hero : FALLBACK_HERO;
+              const heroPos = ch ? ch.pos : undefined;
               const heroTitle = heroId ? (titleById[heroId] || '') : '';
               const exSet = heroId ? new Set([...shownIds, heroId]) : shownIds;
               const rowq = colRows(c, 7, exSet).filter((q) => q.id !== heroId).slice(0, 6);
               return (
                 <BrowseColumn key={c.key} label={c.label} Icon={c.Icon} color={c.c} tint={c.t}
-                  heroUrl={heroUrl} heroId={heroId} heroTitle={heroTitle}
+                  heroUrl={heroUrl} heroPos={heroPos} heroId={heroId} heroTitle={heroTitle}
                   heroPlays={heroId ? plays(heroId) : 0} heroLeader={heroId ? leader(heroId) : ''}
                   rows={rowq.map((q) => ({ q, right: <PlaysRight id={q.id} plays={plays} leader={leader} leaderKey={leaderKey} color={c.c} hidePlays /> }))}
                   cta={`View all ${c.count} ›`} onCta={() => setScope(c.key)} />
@@ -1379,12 +1380,12 @@ function CategoryFull({ cat, plays, leader, leaderKey }) {
   const { Icon, c: color, t: tint } = cat;
   return (
     <section style={{ minWidth: 0 }}>
-      <div className="colhead" style={{ borderColor: color, background: `color-mix(in srgb, ${color} 6%, #fff)` }}>
-        <span style={{ width: 24, height: 24, borderRadius: 7, background: tint, color, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+      <div className="colhead" style={{ borderColor: C.accent, background: C.accent }}>
+        <span style={{ width: 24, height: 24, borderRadius: 7, background: 'rgba(255,255,255,0.22)', color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
           <Icon size={14} />
         </span>
-        <h3 style={{ fontSize: 15, fontWeight: 700, margin: 0, color }}>{cat.label}</h3>
-        <span className="viewall" style={{ color }}>{cat.count} quizzes</span>
+        <h3 style={{ fontSize: 15, fontWeight: 700, margin: 0, color: '#fff' }}>{cat.label}</h3>
+        <span className="viewall" style={{ color: '#fff' }}>{cat.count} quizzes</span>
       </div>
       <div className="qfull">
         {rows.map((q) => (
@@ -1398,13 +1399,14 @@ function CategoryFull({ cat, plays, leader, leaderKey }) {
   );
 }
 
-function BrowseColumn({ label, Icon, color, tint, rows, cta, onCta, heroUrl, heroId, heroTitle, heroPlays, heroLeader, filled }) {
+function BrowseColumn({ label, Icon, color, tint, rows, cta, onCta, heroUrl, heroPos, heroId, heroTitle, heroPlays, heroLeader, filled }) {
   const hasHero = !!heroUrl;
-  const headFg = filled ? '#fff' : color;
+  const blueHead = hasHero || filled;
+  const headFg = blueHead ? '#fff' : color;
   return (
     <section className={`mc-open${(hasHero || filled) ? ' catcard' : ''}`} style={{ minWidth: 0 }}>
       {hasHero ? (
-        <Link href={`/quiz/${heroId}`} className="cc-hero" style={{ backgroundImage: `url("${heroUrl}")` }} title={heroTitle}>
+        <Link href={`/quiz/${heroId}`} className="cc-hero" style={{ backgroundImage: `url("${heroUrl}")`, backgroundPosition: heroPos || 'center' }} title={heroTitle}>
           <span className="cc-ov" />
           <span className="cc-stat">{heroPlays > 0 ? `${heroPlays.toLocaleString()} plays` : 'New quiz'}{heroLeader ? <><span aria-hidden="true"> · </span><Crown size={11} style={{ color: '#e8b43a', flex: 'none' }} /> {heroLeader}</> : null}</span>
           <div className="cc-btm">
@@ -1413,8 +1415,8 @@ function BrowseColumn({ label, Icon, color, tint, rows, cta, onCta, heroUrl, her
           </div>
         </Link>
       ) : null}
-      <div className={`colhead${(hasHero || filled) ? ' cc-head' : ''}${filled ? ' cc-filled' : ''}`} style={{ borderColor: filled ? C.accent : color, background: filled ? C.accent : (hasHero ? '#fff' : `color-mix(in srgb, ${color} 6%, #fff)`) }}>
-        <span className="colicon" style={{ width: 24, height: 24, borderRadius: 7, background: filled ? 'rgba(255,255,255,0.22)' : tint, color: filled ? '#fff' : color, display: 'flex', alignItems: 'center', justifyContent: 'center', flex: 'none' }}>
+      <div className={`colhead${(hasHero || filled) ? ' cc-head' : ''}${filled ? ' cc-filled' : ''}`} style={{ borderColor: blueHead ? C.accent : color, background: blueHead ? C.accent : `color-mix(in srgb, ${color} 6%, #fff)` }}>
+        <span className="colicon" style={{ width: 24, height: 24, borderRadius: 7, background: blueHead ? 'rgba(255,255,255,0.22)' : tint, color: blueHead ? '#fff' : color, display: 'flex', alignItems: 'center', justifyContent: 'center', flex: 'none' }}>
           <Icon size={14} />
         </span>
         <h3 style={{ fontSize: 17, fontWeight: 800, margin: 0, color: headFg }}>{label}</h3>
