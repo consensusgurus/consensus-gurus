@@ -626,9 +626,10 @@ export default function QuizHomeClient() {
     const rows = cats.map((c) => {
       const cc = bc[c.key] || {};
       const total = c.count || 0;
-      const pct = total > 0 ? Math.round(((cc.completed || 0) / total) * 100) : 0;
+      const pct = total > 0 ? Math.round(((cc.played || 0) / total) * 100) : 0;
       return { key: c.key, label: c.label, pct };
     }).sort((a, b) => b.pct - a.pct || a.label.localeCompare(b.label));
+    if (!rows.length || rows[0].pct === 0) return [];
     const n = rows.length;
     return rows.map((r, i) => {
       const t = n > 1 ? i / (n - 1) : 0;
