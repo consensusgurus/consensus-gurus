@@ -63,7 +63,7 @@ export default function DuelTile() {
   }
 
   const field = { position: 'relative' };
-  const inputBox = { display: 'flex', alignItems: 'center', gap: 9, background: 'rgba(255,255,255,0.08)', border: '1px solid rgba(255,255,255,0.22)', borderRadius: 9, padding: '9px 11px', cursor: 'text' };
+  const inputBox = { display: 'flex', alignItems: 'center', gap: 9, background: 'rgba(255,255,255,0.08)', border: '1px solid rgba(255,255,255,0.22)', borderRadius: 9, padding: '8px 11px', cursor: 'text' };
   const inputEl = { flex: 1, minWidth: 0, background: 'transparent', border: 'none', outline: 'none', color: '#eaf0fb', fontFamily: FONT, fontSize: 12.5 };
   const menu = { position: 'absolute', top: 'calc(100% + 4px)', left: 0, right: 0, zIndex: 40, background: '#fff', border: '1px solid rgba(20,22,28,0.12)', borderRadius: 10, boxShadow: '0 10px 28px rgba(8,15,35,0.28)', maxHeight: 210, overflowY: 'auto', padding: 4 };
   const item = { display: 'block', width: '100%', textAlign: 'left', border: 'none', background: 'transparent', padding: '8px 10px', borderRadius: 7, cursor: 'pointer', fontFamily: FONT, fontSize: 13, color: '#1c1e24' };
@@ -77,16 +77,14 @@ export default function DuelTile() {
           <div style={{ fontSize: 10, fontWeight: 800, letterSpacing: '.14em', textTransform: 'uppercase', color: AMBER }}>1 v 1 Duel</div>
           <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 4 }}>
             <Swords size={18} style={{ color: AMBER, flex: 'none' }} />
-            <span style={{ fontSize: 15, fontWeight: 800, lineHeight: 1.15 }}>Challenge a Friend or User to a Duel</span>
+            <span style={{ fontSize: 15, fontWeight: 800, lineHeight: 1.15 }}>Challenge Someone to a Duel</span>
           </div>
         </div>
         <ChevronDown className="dueltile-chev" size={18} strokeWidth={2.5} style={{ color: '#9fb0d4', flex: 'none', transform: open ? 'rotate(180deg)' : 'none' }} />
       </div>
 
       <div className="dueltile-body" style={{ display: 'flex', flexDirection: 'column', flex: 1 }}>
-        <div style={{ fontSize: 11, color: '#9fb0d4', lineHeight: 1.4, margin: '10px 0 11px' }}>Pick an opponent and a quiz, then race the same clock.</div>
-
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 8, marginBottom: 12 }}>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 8, margin: '11px 0 12px' }}>
           <div style={field}>
             <div style={inputBox} onClick={() => setOppOpen(true)}>
               <UserPlus size={15} style={{ color: '#9fb0d4', flex: 'none' }} />
@@ -135,7 +133,7 @@ export default function DuelTile() {
           </div>
         </div>
 
-        <button onClick={start} style={{ marginTop: 'auto', width: '100%', background: ACCENT, color: '#fff', border: 'none', borderRadius: 10, padding: '11px', fontFamily: FONT, fontWeight: 800, fontSize: 13, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 7 }}>Start a Duel <ArrowRight size={15} /></button>
+        <button onClick={start} style={{ marginTop: 'auto', width: '100%', background: ACCENT, color: '#fff', border: 'none', borderRadius: 10, padding: '10px', fontFamily: FONT, fontWeight: 800, fontSize: 13, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 7 }}>Start a Duel <ArrowRight size={15} /></button>
       </div>
     </div>
   );
