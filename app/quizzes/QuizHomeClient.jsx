@@ -101,7 +101,7 @@ const DEPT_ICON = {
   movies: Clapperboard, music: Music, gaming: Gamepad2, travel: Plane,
   sports: Trophy, geography: Globe, food: Utensils, business: Briefcase,
   science: Leaf, entertainment: Tv, literature: BookOpen, history: Landmark,
-  misc: Sparkles,
+  school: GraduationCap, misc: Sparkles,
 };
 
 function seededShuffle(arr, seed) {
@@ -813,7 +813,7 @@ export default function QuizHomeClient() {
     .qzh .qotd:hover .qotd-play{background:#1d4ed8;}
     .qzh .qotd-stats{font-size:12px;color:#9fb0d4;font-weight:600;display:inline-flex;align-items:center;gap:6px;min-width:0;}
     @media(max-width:760px){.qzh .qotd{flex-direction:column;min-height:0;}.qzh .qotd-photo{flex:none;height:128px;}.qzh .qotd-title{font-size:21px;}}
-    .qzh .thub{display:flex;gap:12px;margin-bottom:14px;align-items:flex-start;}
+    .qzh .thub{display:flex;gap:12px;margin-bottom:14px;align-items:stretch;}
     .qzh .thub-left{flex:1 1 auto;min-width:0;display:flex;flex-direction:column;gap:12px;}
     .qzh .th-rail{flex:0 0 208px;}
     .qzh .th-r2{display:grid;grid-template-columns:minmax(0,1.15fr) minmax(0,0.82fr) minmax(0,1fr);gap:12px;align-items:stretch;}
@@ -838,7 +838,7 @@ export default function QuizHomeClient() {
     .qzh .duelbtn{background:${C.accent};color:#fff;border:none;border-radius:12px;padding:12px;font-weight:800;font-size:12px;font-family:inherit;display:flex;align-items:center;justify-content:center;gap:8px;cursor:pointer;flex:none;}
     .qzh .rail{background:#fff;border:1px solid ${C.line};border-radius:14px;padding:11px;display:flex;flex-direction:column;}
     .qzh .rail-bars{flex:1;display:flex;flex-direction:column;}
-    .qzh .rseg{display:flex;align-items:center;gap:6px;padding:9px 11px;font-size:11.5px;font-weight:600;border:none;border-radius:0;margin:0;cursor:pointer;width:100%;min-height:34px;box-sizing:border-box;}
+    .qzh .rseg{display:flex;align-items:center;gap:6px;padding:0 11px;font-size:11px;font-weight:600;border:none;border-radius:0;margin:0;cursor:pointer;width:100%;min-height:26px;}
     .qzh .rail-bars .rseg:first-child{border-radius:12px 12px 0 0;}
     .qzh .rail-bars .rseg:last-child{border-radius:0 0 12px 12px;}
     .qzh .rseg:hover{filter:brightness(1.06);}
@@ -1159,24 +1159,7 @@ export default function QuizHomeClient() {
             </div>
           </div>
 
-          </div>
-          <div className="rail th-rail">
-            <div style={{ display: 'flex', alignItems: 'center', gap: 5, marginBottom: 9 }}><BarChart3 size={14} style={{ color: C.accent, flex: 'none' }} /><span className="x8" style={{ fontSize: 11.5, fontWeight: 800, letterSpacing: '.03em' }}>CATEGORY MASTERY</span></div>
-            {catMastery.length > 0 ? (
-              <div className="rail-bars">
-                {catMastery.map((m) => (
-                  <button type="button" key={m.key} onClick={() => goCat(m.key)} className="rseg" style={{ flex: 1, background: m.color, color: m.text }}>
-                    <span className="rnm">{m.label}</span><span>{m.acc}%</span><ChevronRight size={11} style={{ opacity: 0.7 }} />
-                  </button>
-                ))}
-              </div>
-            ) : (
-              <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', textAlign: 'center', fontSize: 11, color: C.soft, fontWeight: 600, padding: '0 6px' }}>Play a few quizzes to build your category mastery.</div>
-            )}
-          </div>
-        </div>
-
-        {/* browse header + search */}
+        {/* browse header + search (in the left column, beside the mastery rail) */}
         <div ref={quizzesRef} className="qz-browserow" style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 12, flexWrap: 'wrap' }}>
           {(searchResults || listMode || doneFilter !== 'all' || scope !== 'all') && (
             <h2 style={{ fontSize: 17, fontWeight: 800, margin: 0, whiteSpace: 'nowrap', display: 'flex', alignItems: 'center', gap: 10 }}>
@@ -1276,6 +1259,22 @@ export default function QuizHomeClient() {
             </Link>
           )}
         </div>
+          </div>
+          <div className="rail th-rail">
+            <div style={{ display: 'flex', alignItems: 'center', gap: 5, marginBottom: 9 }}><BarChart3 size={14} style={{ color: C.accent, flex: 'none' }} /><span className="x8" style={{ fontSize: 11.5, fontWeight: 800, letterSpacing: '.03em' }}>CATEGORY MASTERY</span></div>
+            {catMastery.length > 0 ? (
+              <div className="rail-bars">
+                {catMastery.map((m) => (
+                  <button type="button" key={m.key} onClick={() => goCat(m.key)} className="rseg" style={{ flex: 1, background: m.color, color: m.text }}>
+                    <span className="rnm">{m.label}</span><span>{m.acc}%</span><ChevronRight size={11} style={{ opacity: 0.7 }} />
+                  </button>
+                ))}
+              </div>
+            ) : (
+              <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', textAlign: 'center', fontSize: 11, color: C.soft, fontWeight: 600, padding: '0 6px' }}>Play a few quizzes to build your category mastery.</div>
+            )}
+          </div>
+        </div>
 
         {/* lists */}
         {searchResults ? (
@@ -1349,7 +1348,7 @@ export default function QuizHomeClient() {
               rows={mostPlayed.slice(0, 3).map((q) => ({ q, right: <PlaysRight id={q.id} plays={plays} leader={leader} leaderKey={leaderKey} color="#c2691c" hidePlays /> }))} cta="View all ›" onCta={() => setListMode('mostplayed')} />
             <BrowseColumn label="Newest" Icon={Sparkles} color={C.accent} tint={C.accsoft} filled
               rows={newest.slice(0, 3).map((q) => ({ q, right: <NewRight q={q} /> }))} cta="View all ›" onCta={() => setListMode('newest')} />
-            {cats.map((c) => {
+            {cats.filter((c) => c.key !== 'school').map((c) => {
               const ch = CATEGORY_HEROES[c.key];
               const topQ = c.quizzes.slice().sort((a, b) => plays(b.id) - plays(a.id) || a.title.localeCompare(b.title))[0];
               const heroId = ch ? ch.quizId : (topQ && topQ.id);
