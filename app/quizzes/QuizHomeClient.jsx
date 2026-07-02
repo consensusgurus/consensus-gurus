@@ -877,8 +877,8 @@ export default function QuizHomeClient() {
     .qzh .ttile-t{font-size:20px;font-weight:800;letter-spacing:-.3px;line-height:1.1;color:#fff;}
     .qzh .ttile-foot{display:flex;align-items:center;gap:12px;margin-top:9px;}
     .qzh .ttile-p{font-size:13px;font-weight:800;color:#fff;}
-    .qzh .ttile-plays{font-size:12px;font-weight:600;color:#9fb0d4;}
-    .qzh .qotd-stats{font-size:12px;color:#9fb0d4;font-weight:600;display:inline-flex;align-items:center;gap:6px;min-width:0;}
+    .qzh .ttile-plays{font-size:12px;font-weight:800;color:#fff;}
+    .qzh .qotd-stats{font-size:12px;color:#fff;font-weight:800;display:inline-flex;align-items:center;gap:6px;min-width:0;}
     @media(max-width:760px){.qzh .qotd{flex-direction:column;min-height:0;}.qzh .qotd-photo{flex:none;height:128px;}.qzh .qotd-title{font-size:21px;}}
     .qzh .thub{display:flex;gap:12px;margin-bottom:26px;align-items:stretch;}
     .qzh .thub-left{flex:1 1 auto;min-width:0;display:flex;flex-direction:column;gap:12px;}
@@ -912,7 +912,7 @@ export default function QuizHomeClient() {
     .qzh .rseg{flex:1;min-height:0;display:flex;flex-direction:column;justify-content:center;gap:3px;background:transparent;border:none;border-radius:6px;margin:0;padding:2px 6px;cursor:pointer;width:100%;text-align:left;}
     .qzh .rseg:hover{background:#16294f;}
     .qzh .rseg-top{display:flex;align-items:center;justify-content:space-between;}
-    .qzh .rseg .rnm{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:12px;font-weight:600;color:#e6edfb;}
+    .qzh .rseg .rnm{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:12px;font-weight:600;color:#f8b84a;}
     .qzh .rseg .rpct{font-size:11px;font-weight:700;flex:none;margin-left:8px;color:#5b8bff;}
     .qzh .rtrack{height:4px;border-radius:2px;background:#1b305a;overflow:hidden;}
     .qzh .rfill{height:100%;border-radius:2px;background:#5b8bff;}

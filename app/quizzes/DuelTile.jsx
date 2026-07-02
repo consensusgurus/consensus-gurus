@@ -212,7 +212,7 @@ export default function DuelTile() {
                 {last.tie ? `${last.wName} tied ${last.lName}` : `${last.wName} defeated ${last.lName}`}
               </span>
             </div>
-            <div style={{ fontSize: 12.5, color: '#c7d3ee', fontWeight: 600, marginTop: 7, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+            <div style={{ fontSize: 12.5, color: '#c7d3ee', fontWeight: 600, marginTop: 7, lineHeight: 1.35 }}>
               {last.scores ? `${last.scores} on ` : 'On '}{last.quizTitle}
             </div>
             <button
