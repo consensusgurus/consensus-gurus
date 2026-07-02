@@ -158,6 +158,7 @@ function PlayerSummary({ stats }) {
       <Stat label="Perfect" value={s.perfect} />
       <Stat label="Avg time" value={fmtDuration(s.avgTime)} />
       <Stat label="First seen" value={s.firstSeen ? fmtShort(s.firstSeen) : '—'} />
+      <Stat label="Sessions" value={s.sessions != null ? s.sessions : '—'} />
       <Stat label="Active days" value={s.activeDays} />
       <Stat label="Most played" value={s.mostPlayed ? `${s.mostPlayed.title} (${s.mostPlayed.count})` : '—'} />
       <Stat label="Peak time" value={s.peakHour != null ? `${fmtHour(s.peakHour)} · ${DOW[s.peakDow] || ''}` : '—'} />
@@ -165,19 +166,27 @@ function PlayerSummary({ stats }) {
   );
 }
 
-// Group a player's plays into sessions (one per calendar day — the project's
-// established "session" = a distinct day played) with per-day plays, quizzes,
-// average score %, and total time. Newest day first.
+// Group a player's plays into sessions (gap-based sittings: a new session
+// starts when the gap since the previous play exceeds 30 minutes) with
+// per-session plays, average score %, and total time. Newest session first.
+// Mirrors the SESSION_GAP_MS definition in app/admin/page.js playerStats.
+const SESSION_GAP_MS = 30 * 60 * 1000;
 function sessionsFromPlays(plays) {
-  const byDay = new Map();
-  for (const p of plays || []) {
-    const d = new Date(p.createdAt);
-    if (Number.isNaN(d.getTime())) continue;
-    const key = d.toDateString();
-    let g = byDay.get(key);
-    if (!g) { g = { day: key, latest: p.createdAt, items: [] }; byDay.set(key, g); }
-    g.items.push(p);
-    if (String(p.createdAt) > String(g.latest)) g.latest = p.createdAt;
+  const sorted = (plays || [])
+    .filter((p) => !Number.isNaN(Date.parse(p.createdAt)))
+    .slice()
+    .sort((a, b) => Date.parse(a.createdAt) - Date.parse(b.createdAt));
+  const groups = [];
+  for (const p of sorted) {
+    const t = Date.parse(p.createdAt);
+    const g = groups[groups.length - 1];
+    if (!g || t - g.lastT > SESSION_GAP_MS) {
+      groups.push({ start: p.createdAt, latest: p.createdAt, lastT: t, items: [p] });
+    } else {
+      g.items.push(p);
+      g.latest = p.createdAt;
+      g.lastT = t;
+    }
   }
   const distinct = (items, f) => {
     const seen = new Set();
@@ -185,14 +194,14 @@ function sessionsFromPlays(plays) {
     for (const p of items) { const v = p[f]; if (v && !seen.has(v)) { seen.add(v); out.push(v); } }
     return out;
   };
-  return [...byDay.values()].map((g) => {
+  return groups.map((g) => {
     let scoreSum = 0, scoreN = 0, timeSum = 0;
     for (const p of g.items) {
       if (typeof p.score === 'number' && typeof p.total === 'number' && p.total > 0) { scoreSum += Math.min(1, p.score / p.total); scoreN += 1; }
       if (typeof p.timeElapsed === 'number' && p.timeElapsed >= 0) timeSum += p.timeElapsed;
     }
     return {
-      day: g.day, latest: g.latest, plays: g.items.length,
+      start: g.start, latest: g.latest, plays: g.items.length,
       acc: scoreN ? Math.round((scoreSum / scoreN) * 100) : null, time: timeSum,
       devices: distinct(g.items, 'device'), oses: distinct(g.items, 'os'),
       browsers: distinct(g.items, 'browser'), geos: distinct(g.items, 'geo'),
@@ -215,11 +224,11 @@ function SessionTable({ plays }) {
   return (
     <div style={{ marginBottom: 12 }}>
       <div style={{ fontFamily: 'DM Mono, monospace', fontSize: 10, letterSpacing: '0.12em', textTransform: 'uppercase', color: COLORS.faded, margin: '2px 0 6px' }}>
-        Sessions · {sessions.length} day{sessions.length === 1 ? '' : 's'}
+        Sessions · {sessions.length}
       </div>
       <div style={{ border: `1px solid ${COLORS.ink}33`, background: COLORS.paper }}>
         <div style={{ display: 'flex', gap: 12, fontFamily: 'DM Mono, monospace', fontSize: 10, letterSpacing: '0.12em', textTransform: 'uppercase', color: COLORS.faded, padding: '3px 12px', borderBottom: `1px solid ${COLORS.ink}33` }}>
-          <H label="Day" flex="0 0 86px" />
+          <H label="Session" flex="0 0 118px" />
           <H label="Plays" flex="0 0 38px" right />
           <H label="Avg %" flex="0 0 42px" right />
           <H label="Time" flex="0 0 54px" right />
@@ -232,8 +241,8 @@ function SessionTable({ plays }) {
           <H label="Source" flex="0 0 84px" />
         </div>
         {sessions.map((s, j) => (
-          <div key={s.day} style={{ display: 'flex', gap: 12, alignItems: 'center', fontFamily: 'Manrope, system-ui, -apple-system, sans-serif', fontSize: 10, color: COLORS.ink, padding: '3px 12px', borderBottom: j < sessions.length - 1 ? `1px solid ${COLORS.ink}1a` : 'none' }}>
-            <span style={{ flex: '0 0 86px', fontFamily: 'DM Mono, monospace', fontSize: 10 }}>{fmtShort(s.latest)}</span>
+          <div key={s.start} style={{ display: 'flex', gap: 12, alignItems: 'center', fontFamily: 'Manrope, system-ui, -apple-system, sans-serif', fontSize: 10, color: COLORS.ink, padding: '3px 12px', borderBottom: j < sessions.length - 1 ? `1px solid ${COLORS.ink}1a` : 'none' }}>
+            <span style={{ flex: '0 0 118px', fontFamily: 'DM Mono, monospace', fontSize: 10 }}>{fmtShortDateTime(s.start)}</span>
             <span style={{ flex: '0 0 38px', textAlign: 'right', fontFamily: 'DM Mono, monospace', fontSize: 10, fontWeight: 700, color: COLORS.ember }}>{s.plays}</span>
             <span style={{ flex: '0 0 42px', textAlign: 'right', fontFamily: 'DM Mono, monospace', fontSize: 10, color: COLORS.faded }}>{s.acc != null ? `${s.acc}%` : '—'}</span>
             <span style={{ flex: '0 0 54px', textAlign: 'right', fontFamily: 'DM Mono, monospace', fontSize: 10, color: COLORS.faded }}>{fmtDuration(s.time)}</span>
@@ -1692,7 +1701,7 @@ function AllPlayersPanel({ signups, anonPlayers }) {
         name: s.username || '(no name)',
         email: s.email || null,
         plays: s.playCount != null ? s.playCount : plays.length,
-        sessions: s.stats ? s.stats.activeDays : 0,
+        sessions: s.stats ? s.stats.sessions : 0,
         lastAt: (plays[0] && plays[0].createdAt) || '',
         accuracy: s.stats ? s.stats.accuracy : null,
         firstSeen: s.stats ? s.stats.firstSeen : null,
@@ -1709,7 +1718,7 @@ function AllPlayersPanel({ signups, anonPlayers }) {
       name: p.label,
       email: null,
       plays: p.plays || 0,
-      sessions: p.stats ? p.stats.activeDays : 0,
+      sessions: p.stats ? p.stats.sessions : 0,
       lastAt: p.lastPlayed || '',
       accuracy: p.stats ? p.stats.accuracy : null,
       firstSeen: p.stats ? p.stats.firstSeen : null,

@@ -82,6 +82,10 @@ function etParts(d) {
   const get = (t) => { const p = parts.find((x) => x.type === t); return p ? p.value : ''; };
   return { hour: parseInt(get('hour'), 10) % 24, dow: ET_DOW[get('weekday')] ?? 0, day: `${get('year')}-${get('month')}-${get('day')}` };
 }
+// A session is a sitting, not a day: a new session starts when the gap since
+// the player's previous play exceeds SESSION_GAP_MS (30 minutes). Mirrored by
+// sessionsFromPlays in AdminClient.jsx.
+const SESSION_GAP_MS = 30 * 60 * 1000;
 function playerStats(plays) {
   const list = plays || [];
   let bestScore = null, timeSum = 0, timeN = 0, accSum = 0, accN = 0, perfect = 0, firstSeen = '', lastSeen = '';
@@ -114,6 +118,11 @@ function playerStats(plays) {
       if (!Number.isNaN(d.getTime())) { const et = etParts(d); days.add(et.day); hours[et.hour] += 1; dows[et.dow] += 1; }
     }
   }
+  const times = [];
+  for (const p of list) { const t = Date.parse(p.createdAt); if (!Number.isNaN(t)) times.push(t); }
+  times.sort((a, b) => a - b);
+  let sessions = 0;
+  for (let i = 0; i < times.length; i++) if (i === 0 || times[i] - times[i - 1] > SESSION_GAP_MS) sessions += 1;
   let mostPlayed = null, mostN = 0;
   for (const [q, cnt] of quizCount) if (cnt > mostN) { mostN = cnt; mostPlayed = q; }
   const anyTime = hours.some((v) => v > 0);
@@ -129,6 +138,7 @@ function playerStats(plays) {
     firstSeen: firstSeen || null,
     lastSeen: lastSeen || null,
     activeDays: days.size,
+    sessions,
     mostPlayed: mostPlayed ? { title: mostPlayed, count: mostN } : null,
     peakHour,
     peakDow,
