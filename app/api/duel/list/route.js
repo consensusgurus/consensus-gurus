@@ -29,10 +29,11 @@ export async function GET(request) {
       if (d.status === 'cancelled') continue;
       const isChal = mine.has(d.challenger_anon);
       const myScore = isChal ? d.challenger_score : d.opponent_score;
-      if (d.status === 'complete' || d.status === 'declined') completed.push(d);
-      else if (!isChal && d.challenger_score != null && d.opponent_score == null) yourMove.push(d);
-      else if (myScore == null) yourMove.push(d);
-      else awaiting.push(d);
+      const row = Object.assign({}, d, { mine: isChal ? 'challenger' : 'opponent' });
+      if (d.status === 'complete' || d.status === 'declined') completed.push(row);
+      else if (!isChal && d.challenger_score != null && d.opponent_score == null) yourMove.push(row);
+      else if (myScore == null) yourMove.push(row);
+      else awaiting.push(row);
     }
     return NextResponse.json({ yourMove, awaiting, completed });
   } catch (e) {

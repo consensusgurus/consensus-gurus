@@ -1104,7 +1104,7 @@ export default function QuizHomeClient() {
           const myA = getAnonId();
           const q = [];
           (duelNotif.challenges || []).forEach((c) => { if (duelLater[c.token]) return; if (c.challenger_anon && duelMuted[c.challenger_anon]) return; q.push({ kind: 'challenge', ...c }); });
-          (duelNotif.results || []).forEach((r) => { if (duelSeen[r.token]) return; const iAmCh = r.challenger_anon === myA; if (r.status === 'declined' && !iAmCh) return; q.push({ kind: 'result', iAmCh, ...r }); });
+          (duelNotif.results || []).forEach((r) => { if (duelSeen[r.token]) return; const iAmCh = r.mine ? r.mine === 'challenger' : r.challenger_anon === myA; if (r.status === 'declined' && !iAmCh) return; q.push({ kind: 'result', iAmCh, ...r }); });
           if (!q.length) return null;
           const it = q[0];
           const qTitle = (titleById[it.quiz_id] || it.quiz_id);

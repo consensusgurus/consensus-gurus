@@ -209,7 +209,7 @@ function DuelsPanel({ onSelectPlayer }) {
   const hd = { fontSize: 13, fontWeight: 800, letterSpacing: '.04em', textTransform: 'uppercase', color: C.soft, margin: '0 0 10px' };
   // The other player in a duel, from the current player's perspective.
   function foeName(d) {
-    const other = d.challenger_anon === anon ? d.opponent_name : d.challenger_name;
+    const other = (d.mine ? d.mine === 'challenger' : d.challenger_anon === anon) ? d.opponent_name : d.challenger_name;
     return other || null;
   }
   // Turn down an incoming challenge. Only the challenged player may decline
@@ -275,8 +275,8 @@ function DuelsPanel({ onSelectPlayer }) {
     );
   }
   function outcomeText(d) {
-    if (d.status === 'declined') return d.challenger_anon === anon ? 'Turned down' : 'You declined';
-    const iAmCh = d.challenger_anon === anon;
+    if (d.status === 'declined') return (d.mine ? d.mine === 'challenger' : d.challenger_anon === anon) ? 'Turned down' : 'You declined';
+    const iAmCh = d.mine ? d.mine === 'challenger' : d.challenger_anon === anon;
     if (d.winner === 'tie') return 'Tie';
     const iWon = (iAmCh && d.winner === 'challenger') || (!iAmCh && d.winner === 'opponent');
     return iWon ? 'Won' : 'Lost';
@@ -285,7 +285,7 @@ function DuelsPanel({ onSelectPlayer }) {
   return (
     <div>
       <a href="/duel/new" style={{ display: 'inline-flex', alignItems: 'center', gap: 8, background: C.accent, color: '#fff', padding: '11px 18px', borderRadius: 10, fontWeight: 800, fontSize: 14, textDecoration: 'none', marginBottom: 16 }}><Swords size={16} /> Start a Duel</a>
-      {data.yourMove.length > 0 && (<div style={card}><div style={hd}>Your Move</div>{data.yourMove.map((d) => <Row key={d.token} d={d} right="Play →" canDecline={d.challenger_anon !== anon} canDismiss={d.challenger_anon === anon} />)}</div>)}
+      {data.yourMove.length > 0 && (<div style={card}><div style={hd}>Your Move</div>{data.yourMove.map((d) => <Row key={d.token} d={d} right="Play →" canDecline={d.mine ? d.mine === 'opponent' : d.challenger_anon !== anon} canDismiss={d.mine ? d.mine === 'challenger' : d.challenger_anon === anon} />)}</div>)}
       {data.awaiting.length > 0 && (<div style={card}><div style={hd}>Waiting on Opponent</div>{data.awaiting.map((d) => <Row key={d.token} d={d} right="Pending" />)}</div>)}
       {data.completed.length > 0 && (<div style={card}><div style={hd}>Recent Results</div>{data.completed.slice(0, 8).map((d) => <Row key={d.token} d={d} right={outcomeText(d)} />)}</div>)}
       {empty && (<div style={{ ...card, color: C.muted, fontSize: 14 }}>No duels yet. Challenge someone to get started.</div>)}

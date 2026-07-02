@@ -33,7 +33,9 @@ export async function GET(request) {
       .in('status', ['complete', 'declined'])
       .order('completed_at', { ascending: false })
       .limit(20);
-    return NextResponse.json({ challenges: ch || [], results: res || [] });
+    const rset = new Set(anons);
+    const results = (res || []).map((r) => Object.assign({}, r, { mine: rset.has(r.challenger_anon) ? 'challenger' : 'opponent' }));
+    return NextResponse.json({ challenges: ch || [], results });
   } catch (e) {
     return NextResponse.json({ challenges: [], results: [] });
   }

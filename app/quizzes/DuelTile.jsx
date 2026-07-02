@@ -106,7 +106,7 @@ export default function DuelTile() {
             <div style={{ fontSize: 10, fontWeight: 800, letterSpacing: '.12em', textTransform: 'uppercase', color: '#9fb0d4' }}>Your Duels</div>
             {[...myDuels.map((d) => ({ d, waiting: false })), ...sentDuels.map((d) => ({ d, waiting: true }))].slice(0, 4).map(({ d, waiting }) => {
               const q = QUIZZES.find((x) => x.id === d.quiz_id);
-              const iAmChallenger = d.challenger_anon === myAnon;
+              const iAmChallenger = d.mine ? d.mine === 'challenger' : (d.challenger_anon === myAnon);
               const foe = iAmChallenger ? d.opponent_name : d.challenger_name;
               const sub = waiting
                 ? (foe ? `Waiting on ${foe}` : 'Waiting for opponent')
