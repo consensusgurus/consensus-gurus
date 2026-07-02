@@ -1692,6 +1692,7 @@ function AllPlayersPanel({ signups, anonPlayers }) {
         name: s.username || '(no name)',
         email: s.email || null,
         plays: s.playCount != null ? s.playCount : plays.length,
+        sessions: s.stats ? s.stats.activeDays : 0,
         lastAt: (plays[0] && plays[0].createdAt) || '',
         accuracy: s.stats ? s.stats.accuracy : null,
         firstSeen: s.stats ? s.stats.firstSeen : null,
@@ -1708,6 +1709,7 @@ function AllPlayersPanel({ signups, anonPlayers }) {
       name: p.label,
       email: null,
       plays: p.plays || 0,
+      sessions: p.stats ? p.stats.activeDays : 0,
       lastAt: p.lastPlayed || '',
       accuracy: p.stats ? p.stats.accuracy : null,
       firstSeen: p.stats ? p.stats.firstSeen : null,
@@ -1724,6 +1726,7 @@ function AllPlayersPanel({ signups, anonPlayers }) {
     name: (r) => r.name || '',
     type: (r) => r.type || '',
     plays: (r) => r.plays || 0,
+    sessions: (r) => r.sessions || 0,
     acc: (r) => (r.accuracy == null ? -1 : r.accuracy),
     device: (r) => (r.devices && r.devices[0]) || '',
     os: (r) => (r.oses && r.oses[0]) || '',
@@ -1770,6 +1773,7 @@ function AllPlayersPanel({ signups, anonPlayers }) {
             <SortHead label="Player" k="name" sort={sort} flex={2} type="string" />
             <SortHead label="Type" k="type" sort={sort} flex="0 0 76px" type="string" />
             <SortHead label="Plays" k="plays" sort={sort} flex="0 0 42px" align="right" />
+            <SortHead label="Sessions" k="sessions" sort={sort} flex="0 0 62px" align="right" />
             <SortHead label="Device" k="device" sort={sort} flex="0 0 62px" type="string" />
             <SortHead label="OS" k="os" sort={sort} flex="0 0 58px" type="string" />
             <SortHead label="Geo" k="geo" sort={sort} flex="0 0 118px" type="string" />
@@ -1793,6 +1797,7 @@ function AllPlayersPanel({ signups, anonPlayers }) {
                   </span>
                   <span style={{ flex: '0 0 76px', fontFamily: 'DM Mono, monospace', fontSize: 10, letterSpacing: '0.06em', textTransform: 'uppercase', color: reg ? COLORS.ember : COLORS.faded }}>{reg ? 'Registered' : 'Anon'}</span>
                   <span style={{ flex: '0 0 42px', textAlign: 'right', fontFamily: 'DM Mono, monospace', fontSize: 10, fontWeight: 700, color: r.plays > 0 ? COLORS.ember : COLORS.faded }}>{r.plays}</span>
+                  <span style={{ flex: '0 0 62px', textAlign: 'right', fontFamily: 'DM Mono, monospace', fontSize: 10, color: r.sessions > 0 ? COLORS.ink : COLORS.faded }}>{r.sessions}</span>
                   <MultiCell values={r.devices} flex="0 0 62px" />
                   <MultiCell values={r.oses} flex="0 0 58px" />
                   <MultiCell values={r.geos} flex="0 0 118px" />
