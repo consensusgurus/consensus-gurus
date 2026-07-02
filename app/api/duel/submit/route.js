@@ -15,8 +15,12 @@ function decideWinner(cs, ct, os, ot) {
 
 // POST /api/duel/submit  { token, anonId, name, email? }
 // Records the caller's side from their best quiz_results play (across ALL of the
-// account's browser anons) on the duel's quiz since the duel was created, so the
-// duel can be played from any of the account's devices.
+// account's browser anons) on the duel's quiz, so the duel can be played from any
+// of the account's devices. Qualifying window: the CHALLENGER typically creates
+// the duel right AFTER finishing a round (the end-game Challenge Someone flow),
+// so their window opens CHALLENGER_GRACE_MS before the duel was created; the
+// opponent accepts an existing challenge, so only their plays after creation
+// count (no dusting off an old score).
 export async function POST(request) {
   try {
     const b = (await request.json()) || {};
@@ -35,6 +39,10 @@ export async function POST(request) {
     const anons = await resolveAnonSet(supabaseAdmin, { anonId, email });
     const mine = new Set(anons);
     const isChallenger = !!duel.challenger_anon && mine.has(duel.challenger_anon);
+    const CHALLENGER_GRACE_MS = 60 * 60 * 1000;
+    const sinceIso = isChallenger
+      ? new Date(new Date(duel.created_at).getTime() - CHALLENGER_GRACE_MS).toISOString()
+      : duel.created_at;
     const isOpponent = !!duel.opponent_anon && mine.has(duel.opponent_anon);
     if (!isChallenger && duel.opponent_anon && !isOpponent) {
       return NextResponse.json({ error: 'duel_full' }, { status: 409 });
@@ -42,13 +50,13 @@ export async function POST(request) {
 
     let sel = supabaseAdmin.from('quiz_results')
       .select('score, total, time_elapsed, created_at, is_mobile')
-      .eq('quiz_id', duel.quiz_id).in('anon_id', anons).gte('created_at', duel.created_at)
+      .eq('quiz_id', duel.quiz_id).in('anon_id', anons).gte('created_at', sinceIso)
       .order('score', { ascending: false }).order('time_elapsed', { ascending: true }).limit(30);
     let { data: plays, error: pe } = await sel;
     if (pe && (pe.code === '42703' || /is_mobile|schema cache/i.test(pe.message || ''))) {
       ({ data: plays, error: pe } = await supabaseAdmin.from('quiz_results')
         .select('score, total, time_elapsed, created_at').eq('quiz_id', duel.quiz_id).in('anon_id', anons)
-        .gte('created_at', duel.created_at).order('score', { ascending: false }).order('time_elapsed', { ascending: true }).limit(30));
+        .gte('created_at', sinceIso).order('score', { ascending: false }).order('time_elapsed', { ascending: true }).limit(30));
     }
     if (pe) return NextResponse.json({ error: 'db error' }, { status: 500 });
     if (!plays || !plays.length) return NextResponse.json({ error: 'no_play' }, { status: 409 });
