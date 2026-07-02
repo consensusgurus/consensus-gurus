@@ -1211,7 +1211,7 @@ export default function QuizHomeClient() {
                 <div className="ttile-foot" style={{ flexWrap: 'nowrap' }}><span className="ttile-p" style={{ flex: 'none' }}>Play <ArrowRight size={13} style={{ verticalAlign: -1 }} /></span>{leader(trending.id) ? <span className="ttile-plays" style={{ display: 'inline-flex', alignItems: 'center', gap: 4, minWidth: 0 }}><Crown size={12} style={{ color: '#e8b43a', flex: 'none' }} /><span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{leader(trending.id)}</span></span> : null}</div>
               </div>
             </Link>
-          ); })() : null}
+          ); })() : <div />}
 
             <DuelTile />
           </div>
