@@ -125,11 +125,12 @@ const PROMO_HERO = {
 };
 // Rows shown inside the Standardized Tests tile (the six /exams practice tests).
 const EXAM_TILE_ROWS = [
-  { id: 'lsat', title: 'LSAT', href: '/lsat' },
   { id: 'gmat', title: 'GMAT', href: '/gmat' },
   { id: 'sat', title: 'SAT', href: '/sat' },
   { id: 'act', title: 'ACT', href: '/act' },
   { id: 'gre', title: 'GRE', href: '/gre' },
+  { id: 'lsat', title: 'LSAT', href: '/lsat' },
+  { id: 'lsat-logic-game-gallery-wall', title: 'Logic Games: The Gallery Wall', rawTitle: 'LSAT Logic Games: The Gallery Wall', href: '/quiz/lsat-logic-game-gallery-wall' },
 ];
 // The six standardized-test practice tests (/lsat, /gmat, /sat, /act, /gre,
 // /mcat). Finishing one (tracked in localStorage 'sot_exam_done' by
