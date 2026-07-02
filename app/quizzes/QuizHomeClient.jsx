@@ -758,8 +758,10 @@ export default function QuizHomeClient() {
     if (!rows.length || rows[0].pct === 0) return [];
     return rows.map((r) => {
       const p = r.pct;
-      const color = p >= 40 ? '#5b8bff' : p >= 18 ? '#3f6fe0' : p >= 10 ? '#345bbf' : '#2a4794';
-      return { key: r.key, label: r.label, acc: p, color };
+      const L = 34 + (Math.min(p, 60) / 60) * 40;
+      const color = `hsl(222, 70%, ${L}%)`;
+      const text = L < 58 ? '#eaf1ff' : '#0e1d40';
+      return { key: r.key, label: r.label, acc: p, color, text };
     });
   }, [me, cats, examsDone]);
 
@@ -894,16 +896,14 @@ export default function QuizHomeClient() {
     .qzh .duelbtn{background:${C.accent};color:#fff;border:none;border-radius:12px;padding:12px;font-weight:800;font-size:12px;font-family:inherit;display:flex;align-items:center;justify-content:center;gap:8px;cursor:pointer;flex:none;}
     .qzh .dueltile-chev{display:none;}
     @media(max-width:560px){.qzh .dueltile{min-height:0 !important;}.qzh .dueltile-head{cursor:pointer;}.qzh .dueltile-chev{display:inline-flex !important;transition:transform .15s;}.qzh .dueltile.mc-closed .dueltile-body{display:none !important;}}
-    .qzh .rail{background:#0e1d40;border:1px solid #1e3a6b;border-radius:14px;padding:13px 13px 12px;display:flex;flex-direction:column;}
-    .qzh .rail-head{display:flex;align-items:center;gap:5px;margin-bottom:11px;}
-    .qzh .rail-bars{flex:1;display:flex;flex-direction:column;gap:2px;}
-    .qzh .rseg{display:block;background:transparent;border:none;border-radius:8px;margin:0;padding:6px 7px;cursor:pointer;width:100%;text-align:left;}
-    .qzh .rseg:hover{background:#16294f;}
-    .qzh .rseg-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:5px;}
-    .qzh .rseg .rnm{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:12.5px;font-weight:500;color:#e6edfb;}
-    .qzh .rseg .rpct{font-size:11.5px;font-weight:700;flex:none;margin-left:8px;}
-    .qzh .rtrack{height:5px;border-radius:3px;background:#1b305a;overflow:hidden;}
-    .qzh .rfill{height:100%;border-radius:3px;}
+    .qzh .rail{background:#0e1d40;border:1px solid #1e3a6b;border-radius:14px;padding:11px;display:flex;flex-direction:column;}
+    .qzh .rail-head{display:flex;align-items:center;gap:5px;margin-bottom:9px;}
+    .qzh .rail-bars{flex:1;display:flex;flex-direction:column;}
+    .qzh .rseg{display:flex;align-items:center;gap:6px;padding:0 11px;font-size:11px;font-weight:700;border:none;border-radius:0;margin:0;cursor:pointer;width:100%;min-height:24px;}
+    .qzh .rail-bars .rseg:first-child{border-radius:10px 10px 0 0;}
+    .qzh .rail-bars .rseg:last-child{border-radius:0 0 10px 10px;}
+    .qzh .rseg:hover{filter:brightness(1.12);}
+    .qzh .rseg .rnm{flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;text-align:left;}
     .qzh .dchev,.qzh .lchev{display:none;}
     @media(max-width:560px){
       .qzh .dtile-head,.qzh .lbtile-head{cursor:pointer;}
@@ -1325,9 +1325,8 @@ export default function QuizHomeClient() {
             {catMastery.length > 0 ? (
               <div className="rail-bars">
                 {catMastery.map((m) => (
-                  <button type="button" key={m.key} onClick={() => goCat(m.key)} className="rseg">
-                    <div className="rseg-top"><span className="rnm">{m.label}</span><span className="rpct" style={{ color: m.color }}>{m.acc}%</span></div>
-                    <div className="rtrack"><div className="rfill" style={{ width: `${m.acc}%`, background: m.color }} /></div>
+                  <button type="button" key={m.key} onClick={() => goCat(m.key)} className="rseg" style={{ flex: 1, background: m.color, color: m.text }}>
+                    <span className="rnm">{m.label}</span><span>{m.acc}%</span>
                   </button>
                 ))}
               </div>
