@@ -912,7 +912,7 @@ export default function QuizHomeClient() {
     .qzh .rseg{flex:1;min-height:0;display:flex;flex-direction:column;justify-content:center;gap:3px;background:transparent;border:none;border-radius:6px;margin:0;padding:2px 6px;cursor:pointer;width:100%;text-align:left;}
     .qzh .rseg:hover{background:#16294f;}
     .qzh .rseg-top{display:flex;align-items:center;justify-content:space-between;}
-    .qzh .rseg .rnm{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:12px;font-weight:600;color:#f8b84a;}
+    .qzh .rseg .rnm{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:12px;font-weight:600;color:#e6edfb;}
     .qzh .rseg .rpct{font-size:11px;font-weight:700;flex:none;margin-left:8px;color:#5b8bff;}
     .qzh .rtrack{height:4px;border-radius:2px;background:#1b305a;overflow:hidden;}
     .qzh .rfill{height:100%;border-radius:2px;background:#5b8bff;}
@@ -1334,7 +1334,7 @@ export default function QuizHomeClient() {
         </div>
           </div>
           <div className="rail th-rail">
-            <div className="rail-head"><BarChart3 size={14} style={{ color: '#5b8bff', flex: 'none' }} /><span className="x8" style={{ fontSize: 11.5, fontWeight: 800, letterSpacing: '.03em', color: '#cdd9f2' }}>CATEGORY MASTERY</span></div>
+            <div className="rail-head"><BarChart3 size={14} style={{ color: '#5b8bff', flex: 'none' }} /><span className="x8" style={{ fontSize: 11.5, fontWeight: 800, letterSpacing: '.03em', color: '#f8b84a' }}>CATEGORY MASTERY</span></div>
             {catMastery.length > 0 ? (
               <div className="rail-bars">
                 {catMastery.map((m) => (
