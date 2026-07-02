@@ -745,7 +745,7 @@ export default function StatHubClient() {
     <div style={{ background: C.bg, minHeight: '100vh', position: 'relative' }}>
       <Grain />
       <style>{css}</style>
-      <SiteHeader active="quizzes" flush inlay={<QuizPlayerBar controlled me={statBarMe} rightAction="share" onShare={() => { if (found) setShareOpen(true); else setSignupOpen(true); }} />} />
+      <SiteHeader active="quizzes" flush inlay={<QuizPlayerBar controlled me={statBarMe} rightAction="share" onShare={() => setShareOpen(true)} />} />
       <div className="qzhub qzf-w" style={{ maxWidth: 1180, margin: '0 auto', padding: '12px 38px 70px', position: 'relative' }}><div className="qzf-line" aria-hidden="true" />
 
         {viewing ? (
@@ -785,21 +785,21 @@ export default function StatHubClient() {
                   <span style={bigSt('player')}>{meFound && me.rank ? <>#{me.rank} <span style={smSt('player')}>of {(me.totalPlayers || 0).toLocaleString()}</span></> : '—'}</span>
                   <span style={subSt('player')}>{meFound ? `${(me.rating || 1500).toLocaleString()} skill rating` : 'Play to get ranked'}</span>
                 </button>
-                <button className={`tile${on('quizzes') ? ' on' : ''}`} onClick={() => setTab('quizzes')}>
-                  <span style={lblSt('quizzes')}><ListChecks size={15} /> Quizzes</span>
-                  <span style={bigSt('quizzes')}>{meFound ? (me.activity.played || 0).toLocaleString() : '0'} <span style={smSt('quizzes')}>played</span></span>
-                  <span style={subSt('quizzes')}>{catalog.length.toLocaleString()} on the site</span>
+                <button className={`tile${on('duels') ? ' on' : ''}`} onClick={() => setTab('duels')}>
+                  {waiting > 0 ? <span className="tilebadge">{waiting}</span> : null}
+                  <span style={lblSt('duels')}><Swords size={15} /> Duels</span>
+                  <span style={bigSt('duels')}>{myDuel ? <>{myDuel.wins}-{myDuel.losses}{myDuel.ties ? `-${myDuel.ties}` : ''}{myDuelStreak ? <span style={{ fontSize: 12, fontWeight: 800, marginLeft: 6, color: on('duels') ? '#fff' : (myDuelStreak.kind === 'win' ? C.live : C.danger) }}>{myDuelStreak.kind === 'win' ? 'W' : 'L'}{myDuelStreak.n}</span> : null}</> : '—'}</span>
+                  <span style={subSt('duels', waiting > 0)}>{waiting > 0 ? `${waiting} waiting on you` : myDuel ? `${myDuel.winPct}% win rate` : 'Challenge someone'}</span>
                 </button>
                 <button className={`tile${on('challenges') ? ' on' : ''}`} onClick={() => setTab('challenges')}>
                   <span style={lblSt('challenges')}><Flame size={15} /> Challenges</span>
                   <span style={bigSt('challenges')}>Daily</span>
                   <span style={subSt('challenges')}>today{"'"}s board is live</span>
                 </button>
-                <button className={`tile${on('duels') ? ' on' : ''}`} onClick={() => setTab('duels')}>
-                  {waiting > 0 ? <span className="tilebadge">{waiting}</span> : null}
-                  <span style={lblSt('duels')}><Swords size={15} /> Duels</span>
-                  <span style={bigSt('duels')}>{myDuel ? <>{myDuel.wins}-{myDuel.losses}{myDuel.ties ? `-${myDuel.ties}` : ''}{myDuelStreak ? <span style={{ fontSize: 12, fontWeight: 800, marginLeft: 6, color: on('duels') ? '#fff' : (myDuelStreak.kind === 'win' ? C.live : C.danger) }}>{myDuelStreak.kind === 'win' ? 'W' : 'L'}{myDuelStreak.n}</span> : null}</> : '—'}</span>
-                  <span style={subSt('duels', waiting > 0)}>{waiting > 0 ? `${waiting} waiting on you` : myDuel ? `${myDuel.winPct}% win rate` : 'Challenge someone'}</span>
+                <button className={`tile${on('quizzes') ? ' on' : ''}`} onClick={() => setTab('quizzes')}>
+                  <span style={lblSt('quizzes')}><ListChecks size={15} /> Quizzes</span>
+                  <span style={bigSt('quizzes')}>{meFound ? (me.activity.played || 0).toLocaleString() : '0'} <span style={smSt('quizzes')}>played</span></span>
+                  <span style={subSt('quizzes')}>{catalog.length.toLocaleString()} on the site</span>
                 </button>
               </>
             );
@@ -1386,6 +1386,40 @@ const CH_TINT = { 1: 'rgba(232,180,58,0.12)', 2: 'rgba(184,188,196,0.16)', 3: 'r
 function chMmss(s) { const n = Math.max(0, Math.round(Number(s) || 0)); return `${Math.floor(n / 60)}:${String(n % 60).padStart(2, '0')}`; }
 function chUpdated(iso) { if (!iso) return ''; try { return new Date(iso).toLocaleString('en-US', { timeZone: 'America/New_York', month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' }) + ' ET'; } catch (e) { return ''; } }
 
+// Winners' Circle: the #1 finisher of every challenge, dailies and events
+// together, from /api/quiz/challenge-winners. Tapping a row opens that
+// challenge's full leaderboard in place.
+function WinnersCircle({ winners, loaded, onOpen }) {
+  if (!loaded && !winners) return <div className="card" style={{ padding: '16px 18px', fontSize: 13, color: C.soft }}>Rounding up the winners…</div>;
+  const list = winners || [];
+  if (!list.length) return <div className="card" style={{ padding: '16px 18px', fontSize: 13, color: C.soft }}>No challenge results yet.</div>;
+  const dailies = list.filter((w) => w.daily);
+  const events = list.filter((w) => !w.daily);
+  const hd = { fontSize: 11, fontWeight: 800, letterSpacing: '.05em', textTransform: 'uppercase', color: C.soft, margin: '14px 0 2px' };
+  const Row = ({ w }) => (
+    <button onClick={() => onOpen && onOpen(w.id)} title="Open the full board" style={{ display: 'flex', alignItems: 'center', gap: 10, width: '100%', textAlign: 'left', border: 'none', background: 'transparent', padding: '9px 0', borderBottom: `1px solid ${C.line}`, cursor: 'pointer', fontFamily: FONT }}>
+      <span style={{ flex: 'none', width: 26, height: 26, borderRadius: '50%', background: w.winner ? '#fbf2dc' : '#eef0f2', color: w.winner ? '#e8b43a' : C.soft, display: 'flex', alignItems: 'center', justifyContent: 'center' }}><Trophy size={13} /></span>
+      <span style={{ flex: '0 0 auto', width: 132, fontSize: 12, fontWeight: 700, color: C.muted, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{w.label}</span>
+      <span style={{ flex: 1, minWidth: 60, fontSize: 13.5, fontWeight: 800, color: w.winner ? C.accent : C.soft, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{w.winner ? w.winner.username : (w.closed ? 'No finishers' : 'No entries yet')}</span>
+      {w.winner ? <span className="wc-score" style={{ flex: 'none', fontSize: 11.5, fontWeight: 700, color: C.muted, fontVariantNumeric: 'tabular-nums' }}>{w.winner.totalCorrect} correct · {chMmss(w.winner.totalTime)}</span> : null}
+      {!w.closed ? <span style={{ flex: 'none', fontSize: 9.5, fontWeight: 800, letterSpacing: '.04em', background: '#e6f7f0', color: '#0b7a55', borderRadius: 999, padding: '2px 7px' }}>LIVE</span> : null}
+    </button>
+  );
+  return (
+    <div className="card" style={{ padding: '16px 18px' }}>
+      <style>{`@media(max-width:560px){.qzhub .wc-score{display:none;}}`}</style>
+      <div style={{ fontSize: 18, fontWeight: 800, letterSpacing: '-0.01em' }}>Winners{"'"} Circle</div>
+      <div style={{ fontSize: 12.5, color: C.muted, marginTop: 3, maxWidth: 700 }}>The top finisher of every challenge, dailies and events together. LIVE means the window is still open and the leader can still be caught. Tap a row for the full board.</div>
+      <div style={hd}>Daily Challenges</div>
+      {dailies.map((w) => <Row key={w.id} w={w} />)}
+      {events.length > 0 ? (<>
+        <div style={{ ...hd, marginTop: 16 }}>Events</div>
+        {events.map((w) => <Row key={w.id} w={w} />)}
+      </>) : null}
+    </div>
+  );
+}
+
 // Full challenge standings grid (mirrors the standalone leaderboard page),
 // restyled to the Stat Hub theme. Self-fetches per selected challenge so the
 // selector + refresh work in place; highlights the current player's row.
@@ -1401,6 +1435,14 @@ function ChallengesPanel({ me }) {
   const [loaded, setLoaded] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
   const [shared, setShared] = useState(false);
+  // Leaderboard vs Winners' Circle view; winners load once, on first open.
+  const [view, setView] = useState('board');
+  const [winners, setWinners] = useState(null);
+  const [winLoaded, setWinLoaded] = useState(false);
+  useEffect(() => {
+    if (view !== 'winners' || winners) return;
+    fetch('/api/quiz/challenge-winners').then((r) => r.json()).then((d) => { if (d && Array.isArray(d.winners)) setWinners(d.winners); }).catch(() => {}).finally(() => setWinLoaded(true));
+  }, [view, winners]);
 
   const ch = getChallenge(chId) || CHALLENGES[0];
   const cols = challengeColumns(ch);
@@ -1441,6 +1483,7 @@ function ChallengesPanel({ me }) {
         .chg-scroll{overflow-x:auto;border:1px solid ${C.line};border-radius:12px;background:${C.surface};margin-top:14px;}
         .chg-table{border-collapse:separate;border-spacing:0;width:100%;font-variant-numeric:tabular-nums;font-size:10px;}
         .chg-table th,.chg-table td{white-space:nowrap;}
+        .chg-table th.chg-sub{white-space:normal;vertical-align:middle;min-width:86px;line-height:1.35;word-break:normal;}
         .chg-grp{padding:6px 3px 4px;text-align:center;border-bottom:2px solid var(--ac);border-left:1px solid ${C.line};background:${C.bg};}
         .chg-grp-ico{font-size:13px;display:block;line-height:1;margin-bottom:2px;}
         .chg-grp-nm{font-weight:700;font-size:9.5px;color:${C.ink};}
@@ -1472,6 +1515,13 @@ function ChallengesPanel({ me }) {
         @media(max-width:600px){.chg-play{display:grid;grid-template-columns:1fr;grid-auto-rows:1fr;}.chg-playchip{width:100%;box-sizing:border-box;}}
       `}</style>
 
+      <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginBottom: 12 }}>
+        <button className={`pill${view === 'board' ? ' on' : ''}`} onClick={() => setView('board')}><ListChecks size={14} /> Leaderboard</button>
+        <button className={`pill${view === 'winners' ? ' on' : ''}`} onClick={() => setView('winners')}><Trophy size={14} /> Winners{"'"} Circle</button>
+      </div>
+      {view === 'winners' ? (
+        <WinnersCircle winners={winners} loaded={winLoaded} onOpen={(id) => { setChId(id); setView('board'); }} />
+      ) : (
       <div className="card" style={{ padding: '16px 18px' }}>
         <div style={{ display: 'flex', alignItems: 'baseline', gap: 10, flexWrap: 'wrap' }}>
           <span style={{ background: C.accsoft, color: C.accent, fontSize: 11, fontWeight: 700, padding: '3px 10px', borderRadius: 6 }}>{ch.kicker || 'Challenge'}</span>
@@ -1579,6 +1629,7 @@ function ChallengesPanel({ me }) {
         </div>
         <p className="chg-foot">Cells show how much of each quiz a player has completed (correct ÷ quiz total) on their {ch.firstAttemptOnly ? 'first attempt' : 'best attempt'} since the window opened; hover a cell for the raw count and time, a dot (·) means they haven{"'"}t taken that quiz yet. Ranking is by <b>total correct</b> across every quiz, ties broken by <b>least total time</b>. Only signed-up players appear. Hit Refresh for the latest.</p>
       </div>
+      )}
     </div>
   );
 }
