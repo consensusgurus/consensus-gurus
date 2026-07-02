@@ -1269,6 +1269,74 @@ export default function QuizClient({ quizId }) {
     const nextSame = i < lb.length - 1 && lb[i].score === lb[i + 1].score && lb[i].timeElapsed === lb[i + 1].timeElapsed;
     lbTied[i] = prevSame || nextSame;
   }
+  const fullLeaderboard = (
+    <>
+            <div style={{ fontFamily: MONO, fontSize: 11, letterSpacing: '0.16em', textTransform: 'uppercase', color: COLORS.ember, marginBottom: 14 }}>Quiz stats</div>
+            {board.plays === 0 ? (
+              <p style={{ fontFamily: SERIF, fontStyle: 'italic', fontSize: 17, color: COLORS.faded }}>No one has played this quiz yet. Be the first to set the pace.</p>
+            ) : (
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 12 }}>
+                <StatBox label="Total plays" value={<Count value={board.plays} />} />
+                <StatBox label="Best score" value={board.best != null ? `${board.best}/${total}` : '—'} />
+                <StatBox label="On the leaderboard" value={lb.length} />
+              </div>
+            )}
+
+            <div style={{ borderTop: `1px solid ${COLORS.faded}33`, marginTop: 26, paddingTop: 20 }}>
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 14 }}>
+                <div style={{ fontFamily: MONO, fontSize: 11, letterSpacing: '0.16em', textTransform: 'uppercase', color: COLORS.faded }}>Leaderboard</div>
+                <div style={{ fontFamily: MONO, fontSize: 11, letterSpacing: '0.08em', color: COLORS.faded }}>{bestLabel} best · <Count value={board.plays} /> {board.plays === 1 ? 'play' : 'plays'}</div>
+              </div>
+
+              {board.plays > 0 && (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 6, marginBottom: 14, width: 'fit-content' }}>
+                  <div style={{ display: 'inline-flex', gap: 4, borderRadius: 10, background: '#eef1f5', padding: 4, width: 'fit-content' }}>
+                    {LB_POPS.map(([k, label]) => {
+                      const on = lbPop === k;
+                      return (
+                        <button key={k} onClick={() => setLbPop(k)} style={{ padding: '6px 14px', background: on ? '#fff' : 'transparent', color: on ? COLORS.ink : COLORS.soft, border: 'none', borderRadius: 7, fontFamily: SANS, fontSize: 11, letterSpacing: '0.04em', fontWeight: 700, cursor: 'pointer', boxShadow: on ? '0 1px 2px rgba(20,22,28,0.06)' : 'none' }}>{label}</button>
+                      );
+                    })}
+                  </div>
+                  <div style={{ display: 'inline-flex', gap: 4, borderRadius: 10, background: '#eef1f5', padding: 4, width: 'fit-content' }}>
+                    {LB_FILTERS.map(([k, label]) => {
+                      const on = lbFilter === k;
+                      return (
+                        <button key={k} onClick={() => setLbFilter(k)} style={{ padding: '6px 14px', background: on ? '#fff' : 'transparent', color: on ? COLORS.ink : COLORS.soft, border: 'none', borderRadius: 7, fontFamily: SANS, fontSize: 11, letterSpacing: '0.04em', fontWeight: 700, cursor: 'pointer', boxShadow: on ? '0 1px 2px rgba(20,22,28,0.06)' : 'none' }}>{label}</button>
+                      );
+                    })}
+                  </div>
+                </div>
+              )}
+
+              {lb.length === 0 ? (
+                <p style={{ fontFamily: SERIF, fontStyle: 'italic', fontSize: 16, color: COLORS.faded }}>
+                  {lbEmptyNote(lbFilter) || <>No one has posted a score yet. <button onClick={() => setTab('join')} style={{ background: 'none', border: 'none', padding: 0, color: COLORS.ember, font: 'inherit', fontStyle: 'italic', textDecoration: 'underline', cursor: 'pointer' }}>Join the leaderboard</button> and be first.</>}
+                </p>
+              ) : (
+                <div>
+                  <div style={{ display: 'grid', gridTemplateColumns: '40px 1fr 76px 64px', gap: 8, padding: '0 14px 8px', fontFamily: MONO, fontSize: 10, letterSpacing: '0.12em', textTransform: 'uppercase', color: COLORS.faded }}>
+                    <span>#</span><span>Display Name</span><span style={{ textAlign: 'right' }}>Correct</span><span style={{ textAlign: 'right' }}>Time</span>
+                  </div>
+                  {lb.map((row, i) => {
+                    const mine = identity && row.username === identity.username;
+                    return (
+                      <div key={i} style={{ display: 'grid', gridTemplateColumns: '40px 1fr 76px 64px', gap: 8, alignItems: 'center', padding: '11px 14px', marginBottom: 6, background: mine ? COLORS.accSoft : '#fff', borderRadius: 10, border: `1px solid ${mine ? COLORS.accBorder : COLORS.line}` }}>
+                        <span style={{ fontFamily: SERIF, fontWeight: 800, fontSize: 18, color: lbRanks[i] <= 3 ? COLORS.ember : COLORS.faded }}>{lbTied[i] ? `T${lbRanks[i]}` : lbRanks[i]}</span>
+                        <span style={{ minWidth: 0, display: 'flex', flexDirection: 'column', gap: 2 }}>
+                          <span style={{ fontFamily: SERIF, fontSize: 17, fontWeight: 500, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{row.userKey ? <a href={`/quizzes/hub?player=${encodeURIComponent(row.userKey)}`} style={{ color: 'inherit', textDecoration: 'none', borderBottom: `1px dotted ${COLORS.faded}88`, cursor: 'pointer' }}>{row.username}</a> : row.username}{mine ? ' (you)' : ''}{row.tryNum ? <span style={{ fontFamily: MONO, fontSize: 11, fontWeight: 400, color: COLORS.faded, marginLeft: 6 }}>{row.tryNum > 1 ? '(retried)' : '(1st Try)'}</span> : ''}</span>
+                          {row.playedAt ? <span style={{ fontFamily: MONO, fontSize: 10.5, color: COLORS.faded }}>{fmtWhen(row.playedAt)}</span> : null}
+                        </span>
+                        <span style={{ fontFamily: MONO, fontSize: 14, textAlign: 'right' }}>{row.score}/{total}</span>
+                        <span style={{ fontFamily: MONO, fontSize: 14, textAlign: 'right', color: COLORS.faded }}>{fmtTime(row.timeElapsed)}</span>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
+    </>
+  );
 
   // Column layout. An EXPLICIT quiz.columnSplit is a fixed reference grid (e.g.
   // a periodic-table block) and is NEVER reordered. Everything else long enough
@@ -1468,87 +1536,78 @@ export default function QuizClient({ quizId }) {
           </div>
         </div>
 
-        {/* ── RESULTS (shared inline end-of-game screen, desktop + mobile) ──
-            Replaces the old Game Over modal overlay AND the stacked recap +
-            reveal blocks with ONE coherent card: score + result line, the
-            leaderboard snippet, standings, the action row, and the
-            reveal/sign-up sub-block. The finished board renders below it (with
-            the missed answers gated behind sign-up exactly as before). */}
+        {/* ── RESULTS (shared inline end screen, desktop + mobile). No popup:
+            score + percentile top-left, placement top-right, three stacked
+            actions, reveal (jumps to the board), then the REAL leaderboard
+            element (same as the Leaderboard tab), then the answer board. */}
         {ended && (() => {
           const win = dispScore === total;
           const timeout = !win && time <= 0;
-          const celebrate = isTopScore || win;
           const heading = isTopScore ? 'New record' : win ? 'Perfect' : timeout ? "Time's up" : 'Game over';
-          const lbRows = (identity ? board.leaderboard : board.leaderboardAll) || [];
-          const actBtn = { fontFamily: MONO, fontSize: 12, letterSpacing: '0.05em', textTransform: 'uppercase', fontWeight: 700, borderRadius: 10, padding: '13px 10px', cursor: 'pointer', border: 'none', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 7, textDecoration: 'none', boxSizing: 'border-box' };
+          const myIdx = identity ? lb.findIndex((r) => r.username === identity.username) : -1;
+          const myRank = myIdx >= 0 ? lbRanks[myIdx] : null;
+          const jumpToBoard = () => { if (typeof document !== 'undefined') { const el = document.getElementById('quiz-board'); if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' }); } };
+          const stackBtn = { fontFamily: MONO, fontSize: 12.5, letterSpacing: '0.04em', textTransform: 'uppercase', fontWeight: 700, borderRadius: 10, padding: '14px 12px', cursor: 'pointer', border: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, width: '100%', boxSizing: 'border-box', textDecoration: 'none' };
           return (
-            <div style={{ maxWidth: 560, margin: '14px auto 0', background: '#fff', border: `1px solid ${COLORS.line}`, borderRadius: 14, padding: mobile === true ? '18px 16px' : '24px 24px 20px' }}>
-              <div style={{ display: 'flex', gap: 18, alignItems: 'flex-start', flexWrap: 'wrap' }}>
-                <div style={{ flex: '1 1 210px', minWidth: 190 }}>
-                  <div style={{ fontFamily: MONO, fontSize: 11, letterSpacing: '0.16em', textTransform: 'uppercase', fontWeight: 800, color: celebrate ? COLORS.forest : COLORS.ember, marginBottom: 7 }}>{heading}</div>
-                  <div style={{ fontFamily: SERIF, fontWeight: 800, fontSize: 40, lineHeight: 1 }}>{dispScore}<span style={{ fontSize: 22, color: COLORS.faded }}> / {total}</span></div>
-                  <p style={{ fontFamily: SANS, fontSize: 13, color: '#4a4339', margin: '8px 0 0', lineHeight: 1.4 }}>{resultLine}{board.best != null && dispScore < board.best ? ` High score to beat is ${board.best}.` : ''}{lastElapsed != null ? ` · ${fmtTime(lastElapsed)}` : ''}</p>
+            <div style={{ marginTop: 16 }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 16, marginBottom: 18 }}>
+                <div>
+                  <div style={{ fontFamily: MONO, fontSize: 11, letterSpacing: '0.16em', textTransform: 'uppercase', fontWeight: 800, color: (isTopScore || win) ? COLORS.forest : COLORS.ember, marginBottom: 6 }}>{heading}</div>
+                  <div style={{ fontFamily: SERIF, fontWeight: 800, fontSize: 38, lineHeight: 1 }}>{dispScore}<span style={{ fontSize: 22, color: COLORS.faded }}> / {total}</span></div>
+                  <p style={{ fontFamily: SANS, fontSize: 13, color: '#4a4339', margin: '6px 0 0' }}>{resultLine}{lastElapsed != null ? ` · ${fmtTime(lastElapsed)}` : ''}</p>
                 </div>
-                {lbRows.length ? (
-                  <div style={{ flex: '1 1 190px', minWidth: 170 }}>
-                    <LeaderboardSnippet board={board} identity={identity} score={dispScore} lastElapsed={lastElapsed} fill />
+                {myRank != null && (
+                  <div style={{ textAlign: 'right', flex: 'none' }}>
+                    <div style={{ fontFamily: MONO, fontSize: 9, letterSpacing: '0.1em', textTransform: 'uppercase', fontWeight: 800, color: COLORS.faded, marginBottom: 2 }}>You placed</div>
+                    <div style={{ fontFamily: SERIF, fontWeight: 800, fontSize: 46, lineHeight: 1, color: COLORS.ember }}>#{myRank}</div>
                   </div>
-                ) : null}
+                )}
               </div>
-              {eloPanel}
               {runActive && (
-                <button onClick={goNextStep} style={{ ...actBtn, width: '100%', marginTop: 14, padding: '15px 18px', background: COLORS.ember, color: '#fff', fontSize: 13, letterSpacing: '0.06em' }}>
+                <button onClick={goNextStep} style={{ ...stackBtn, marginBottom: 9, background: COLORS.ember, color: '#fff', fontSize: 13 }}>
                   {chHasNext
                     ? (chCountdown != null && chCountdown > 0 ? `Next quiz in ${chCountdown}…` : `Next quiz (${chNextStep + 1} of ${chN}) →`)
                     : (chCountdown != null && chCountdown > 0 ? `Your results in ${chCountdown}…` : 'See your results →')}
                 </button>
               )}
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 9, marginTop: 16 }}>
-                <button onClick={restartRound} style={{ ...actBtn, background: COLORS.ember, color: '#fff' }}><RotateCcw size={14} strokeWidth={2.5} /> Play again</button>
-                <button onClick={() => { const sid = nextMeta ? nextMeta.id : similarQuizId(quiz); if (sid) router.push(`/quiz/${sid}`); }} title={nextMeta ? nextMeta.title : undefined} style={{ ...actBtn, background: COLORS.forest, color: '#fff' }}><Shuffle size={14} strokeWidth={2.5} /> Play similar</button>
-                <button onClick={() => setTab('stats')} style={{ ...actBtn, background: '#fff', color: COLORS.ink, border: `1.5px solid ${COLORS.ink}` }}><Trophy size={14} strokeWidth={2.5} /> Leaderboard</button>
-                <a href={`/duel/new?quiz=${encodeURIComponent(quiz.id)}`} style={{ ...actBtn, background: COLORS.ink, color: '#fff' }}><Swords size={14} strokeWidth={2.5} /> Challenge a friend</a>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 9 }}>
+                <button onClick={restartRound} style={{ ...stackBtn, background: COLORS.ember, color: '#fff' }}><RotateCcw size={15} strokeWidth={2.5} /> Play again</button>
+                <button onClick={() => { const sid = nextMeta ? nextMeta.id : similarQuizId(quiz); if (sid) router.push(`/quiz/${sid}`); }} title={nextMeta ? nextMeta.title : undefined} style={{ ...stackBtn, background: COLORS.forest, color: '#fff' }}><Shuffle size={15} strokeWidth={2.5} /> Play similar</button>
+                <a href={`/duel/new?quiz=${encodeURIComponent(quiz.id)}`} style={{ ...stackBtn, background: COLORS.ink, color: '#fff' }}><Swords size={15} strokeWidth={2.5} /> Challenge a friend</a>
               </div>
-              <div style={{ marginTop: 14, paddingTop: 14, borderTop: `1px solid ${COLORS.line}` }}>
-                <div style={{ display: 'flex', gap: 10, justifyContent: 'center', alignItems: 'flex-start', flexWrap: 'wrap' }}>
-                  {quiz.listId && (
-                    <a href={`/list/${quiz.listId}`} style={{ display: 'inline-block', fontFamily: MONO, fontSize: 13, letterSpacing: '0.08em', textTransform: 'uppercase', fontWeight: 700, lineHeight: '46px', padding: '0 28px', background: COLORS.ember, color: '#fff', textDecoration: 'none', borderRadius: 10 }}>See the full list detail</a>
-                  )}
-                  {canReveal && identity && !revealed && (
-                    <button onClick={() => { setRevealed(true); setTab('play'); }} style={{ fontFamily: MONO, fontSize: 13, letterSpacing: '0.08em', textTransform: 'uppercase', fontWeight: 700, lineHeight: '46px', padding: '0 24px', background: COLORS.ember, color: '#fff', border: 'none', borderRadius: 10, cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: 8 }}>
-                      <Eye size={14} strokeWidth={2.5} /> Reveal answers
-                    </button>
-                  )}
-                  {canReveal && revealed && (
-                    <span style={{ fontFamily: MONO, fontSize: 12, letterSpacing: '0.06em', color: COLORS.forest, lineHeight: '46px' }}>Answers revealed below, your misses are highlighted.</span>
-                  )}
-                  {!identity && !claimOpen && (
-                    <button onClick={() => { setClaimMsg(''); setClaimErr(false); setClaimOpen(true); }} style={{ fontFamily: MONO, fontSize: 13, letterSpacing: '0.08em', textTransform: 'uppercase', fontWeight: 700, lineHeight: '46px', padding: '0 24px', background: COLORS.ember, color: '#fff', border: 'none', borderRadius: 10, cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: 8 }}>
+              <div style={{ marginTop: 9 }}>
+                {quiz.listId && (
+                  <a href={`/list/${quiz.listId}`} style={{ ...stackBtn, background: '#fff', color: COLORS.ember, border: `1.5px solid ${COLORS.ember}` }}>See the full list detail</a>
+                )}
+                {canReveal && identity && !revealed && (
+                  <button onClick={() => { setRevealed(true); setTab('play'); jumpToBoard(); }} style={{ ...stackBtn, background: '#fff', color: COLORS.ember, border: `1.5px solid ${COLORS.ember}` }}><Eye size={15} strokeWidth={2.5} /> Reveal answers below</button>
+                )}
+                {canReveal && revealed && (
+                  <button onClick={jumpToBoard} style={{ ...stackBtn, background: '#fff', color: COLORS.forest, border: `1.5px solid ${COLORS.forest}` }}><Eye size={15} strokeWidth={2.5} /> Jump to answers</button>
+                )}
+                {!identity && !claimOpen && (
+                  <button onClick={() => { setClaimMsg(''); setClaimErr(false); setClaimOpen(true); }} style={{ ...stackBtn, background: '#fff', color: COLORS.ember, border: `1.5px solid ${COLORS.ember}` }}>{canReveal ? (<><Eye size={15} strokeWidth={2.5} /> Reveal answers below</>) : (<><Trophy size={15} strokeWidth={2.5} /> Post this to the leaderboard</>)}</button>
+                )}
+                {!identity && claimOpen && (
+                  <div style={{ maxWidth: 420, margin: '0 auto' }}>
+                    <p style={{ fontFamily: SANS, fontSize: 13, color: '#4a4339', margin: '0 0 10px', textAlign: 'center' }}>
                       {canReveal
-                        ? (<><Eye size={14} strokeWidth={2.5} /> Reveal answers</>)
-                        : (<><Trophy size={14} strokeWidth={2.5} /> Post this to the leaderboard</>)}
-                    </button>
-                  )}
-                  {!identity && claimOpen && (
-                    <div style={{ flexBasis: '100%', maxWidth: 420, margin: '0 auto' }}>
-                      <p style={{ fontFamily: SANS, fontSize: 13, color: '#4a4339', margin: '0 0 10px', textAlign: 'center' }}>
-                        {canReveal
-                          ? `Pick a display name to reveal the answers you missed. It also posts this ${dispScore}/${total} to the leaderboard. Email is optional (required only for prizes), and no password is needed.`
-                          : `Pick a display name to post this ${dispScore}/${total} to the leaderboard. Email is optional (required only for prizes), and no password is needed.`}
-                      </p>
-                      <input value={jName} onChange={(e) => setJName(e.target.value)} maxLength={15} placeholder="Display Name" autoCapitalize="none" autoCorrect="off" spellCheck={false} style={fieldStyle} />
-                      <input value={jEmail} onChange={(e) => setJEmail(e.target.value)} type="email" placeholder="Email (optional, required for prizes)" autoCapitalize="none" autoCorrect="off" spellCheck={false} style={{ ...fieldStyle, marginTop: 10 }} />
-                      <button onClick={submitClaim} disabled={claimBusy} style={{ marginTop: 12, width: '100%', fontFamily: MONO, fontSize: 13, letterSpacing: '0.1em', textTransform: 'uppercase', fontWeight: 700, lineHeight: '46px', border: 'none', borderRadius: 10, background: COLORS.ember, color: '#fff', cursor: claimBusy ? 'default' : 'pointer', opacity: claimBusy ? 0.6 : 1 }}>
-                        {claimBusy ? (canReveal ? 'Revealing…' : 'Posting…') : (canReveal ? 'Reveal the answers' : 'Post this to the leaderboard')}
-                      </button>
-                    </div>
-                  )}
-                  {claimMsg && (
-                    <p style={{ flexBasis: '100%', fontFamily: MONO, fontSize: 12, margin: '6px 0 0', textAlign: 'center', color: claimErr ? COLORS.ember : COLORS.forest }}>{claimMsg}</p>
-                  )}
-                </div>
+                        ? `Pick a display name to reveal the answers you missed. It also posts this ${dispScore}/${total} to the leaderboard. Email is optional (required only for prizes), and no password is needed.`
+                        : `Pick a display name to post this ${dispScore}/${total} to the leaderboard. Email is optional (required only for prizes), and no password is needed.`}
+                    </p>
+                    <input value={jName} onChange={(e) => setJName(e.target.value)} maxLength={15} placeholder="Display Name" autoCapitalize="none" autoCorrect="off" spellCheck={false} style={fieldStyle} />
+                    <input value={jEmail} onChange={(e) => setJEmail(e.target.value)} type="email" placeholder="Email (optional, required for prizes)" autoCapitalize="none" autoCorrect="off" spellCheck={false} style={{ ...fieldStyle, marginTop: 10 }} />
+                    <button onClick={submitClaim} disabled={claimBusy} style={{ ...stackBtn, marginTop: 12, background: COLORS.ember, color: '#fff', opacity: claimBusy ? 0.6 : 1 }}>{claimBusy ? (canReveal ? 'Revealing…' : 'Posting…') : (canReveal ? 'Reveal the answers' : 'Post this to the leaderboard')}</button>
+                  </div>
+                )}
+                {claimMsg && (
+                  <p style={{ fontFamily: MONO, fontSize: 12, margin: '8px 0 0', textAlign: 'center', color: claimErr ? COLORS.ember : COLORS.forest }}>{claimMsg}</p>
+                )}
               </div>
-              <div style={{ textAlign: 'center', marginTop: 12 }}>
+              <div style={{ marginTop: 24, paddingTop: 20, borderTop: `1px solid ${COLORS.line}` }}>
+                {fullLeaderboard}
+              </div>
+              <div style={{ textAlign: 'center', marginTop: 14 }}>
                 <button onClick={() => { setQSent(false); setQOpen(true); }} style={{ background: 'none', border: 'none', padding: 4, cursor: 'pointer', fontFamily: MONO, fontSize: 12, fontWeight: 600, color: COLORS.faded, textDecoration: 'underline', textUnderlineOffset: 3 }}>Report an error</button>
               </div>
             </div>
@@ -1576,7 +1635,7 @@ export default function QuizClient({ quizId }) {
             {/* Freeze the score/time bar AND the answer input together, pinned to
                 the top of the viewport. The nav ribbon above is NOT sticky, so
                 this is the only frozen element; the list/board scrolls under. */}
-            <div ref={scoreRef} style={{ position: 'sticky', top: 0, zIndex: 24, background: COLORS.cream }}>
+            <div ref={scoreRef} id="quiz-board" style={{ position: 'sticky', top: 0, zIndex: 24, background: COLORS.cream }}>
             <div style={{ display: 'flex', flexWrap: 'nowrap', alignItems: 'center', gap: 8, margin: '4px 0 8px', ...(portraitPhoto ? { maxWidth: PHOTO_COL, marginLeft: 'auto', marginRight: 'auto' } : null) }}>
               {(() => {
                 const base = { display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 4, flex: 'none', height: 50, padding: '0 12px', border: `1px solid ${COLORS.line}`, borderRadius: 9, background: '#fff', fontFamily: SERIF, fontWeight: 800, fontSize: 16, lineHeight: 1 };
@@ -1922,70 +1981,7 @@ export default function QuizClient({ quizId }) {
         {tab === 'stats' && (
           <div>
             <button onClick={() => setTab('play')} style={{ display: 'inline-flex', alignItems: 'center', gap: 5, background: 'none', border: 'none', cursor: 'pointer', fontFamily: SANS, fontSize: 12.5, fontWeight: 600, color: COLORS.ember, padding: 0, marginBottom: 16 }}><ArrowLeft size={13} strokeWidth={2.5} /> Back to quiz</button>
-            <div style={{ fontFamily: MONO, fontSize: 11, letterSpacing: '0.16em', textTransform: 'uppercase', color: COLORS.ember, marginBottom: 14 }}>Quiz stats</div>
-            {board.plays === 0 ? (
-              <p style={{ fontFamily: SERIF, fontStyle: 'italic', fontSize: 17, color: COLORS.faded }}>No one has played this quiz yet. Be the first to set the pace.</p>
-            ) : (
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 12 }}>
-                <StatBox label="Total plays" value={<Count value={board.plays} />} />
-                <StatBox label="Best score" value={board.best != null ? `${board.best}/${total}` : '—'} />
-                <StatBox label="On the leaderboard" value={lb.length} />
-              </div>
-            )}
-
-            <div style={{ borderTop: `1px solid ${COLORS.faded}33`, marginTop: 26, paddingTop: 20 }}>
-              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 14 }}>
-                <div style={{ fontFamily: MONO, fontSize: 11, letterSpacing: '0.16em', textTransform: 'uppercase', color: COLORS.faded }}>Leaderboard</div>
-                <div style={{ fontFamily: MONO, fontSize: 11, letterSpacing: '0.08em', color: COLORS.faded }}>{bestLabel} best · <Count value={board.plays} /> {board.plays === 1 ? 'play' : 'plays'}</div>
-              </div>
-
-              {board.plays > 0 && (
-                <div style={{ display: 'flex', flexDirection: 'column', gap: 6, marginBottom: 14, width: 'fit-content' }}>
-                  <div style={{ display: 'inline-flex', gap: 4, borderRadius: 10, background: '#eef1f5', padding: 4, width: 'fit-content' }}>
-                    {LB_POPS.map(([k, label]) => {
-                      const on = lbPop === k;
-                      return (
-                        <button key={k} onClick={() => setLbPop(k)} style={{ padding: '6px 14px', background: on ? '#fff' : 'transparent', color: on ? COLORS.ink : COLORS.soft, border: 'none', borderRadius: 7, fontFamily: SANS, fontSize: 11, letterSpacing: '0.04em', fontWeight: 700, cursor: 'pointer', boxShadow: on ? '0 1px 2px rgba(20,22,28,0.06)' : 'none' }}>{label}</button>
-                      );
-                    })}
-                  </div>
-                  <div style={{ display: 'inline-flex', gap: 4, borderRadius: 10, background: '#eef1f5', padding: 4, width: 'fit-content' }}>
-                    {LB_FILTERS.map(([k, label]) => {
-                      const on = lbFilter === k;
-                      return (
-                        <button key={k} onClick={() => setLbFilter(k)} style={{ padding: '6px 14px', background: on ? '#fff' : 'transparent', color: on ? COLORS.ink : COLORS.soft, border: 'none', borderRadius: 7, fontFamily: SANS, fontSize: 11, letterSpacing: '0.04em', fontWeight: 700, cursor: 'pointer', boxShadow: on ? '0 1px 2px rgba(20,22,28,0.06)' : 'none' }}>{label}</button>
-                      );
-                    })}
-                  </div>
-                </div>
-              )}
-
-              {lb.length === 0 ? (
-                <p style={{ fontFamily: SERIF, fontStyle: 'italic', fontSize: 16, color: COLORS.faded }}>
-                  {lbEmptyNote(lbFilter) || <>No one has posted a score yet. <button onClick={() => setTab('join')} style={{ background: 'none', border: 'none', padding: 0, color: COLORS.ember, font: 'inherit', fontStyle: 'italic', textDecoration: 'underline', cursor: 'pointer' }}>Join the leaderboard</button> and be first.</>}
-                </p>
-              ) : (
-                <div>
-                  <div style={{ display: 'grid', gridTemplateColumns: '40px 1fr 76px 64px', gap: 8, padding: '0 14px 8px', fontFamily: MONO, fontSize: 10, letterSpacing: '0.12em', textTransform: 'uppercase', color: COLORS.faded }}>
-                    <span>#</span><span>Display Name</span><span style={{ textAlign: 'right' }}>Correct</span><span style={{ textAlign: 'right' }}>Time</span>
-                  </div>
-                  {lb.map((row, i) => {
-                    const mine = identity && row.username === identity.username;
-                    return (
-                      <div key={i} style={{ display: 'grid', gridTemplateColumns: '40px 1fr 76px 64px', gap: 8, alignItems: 'center', padding: '11px 14px', marginBottom: 6, background: mine ? COLORS.accSoft : '#fff', borderRadius: 10, border: `1px solid ${mine ? COLORS.accBorder : COLORS.line}` }}>
-                        <span style={{ fontFamily: SERIF, fontWeight: 800, fontSize: 18, color: lbRanks[i] <= 3 ? COLORS.ember : COLORS.faded }}>{lbTied[i] ? `T${lbRanks[i]}` : lbRanks[i]}</span>
-                        <span style={{ minWidth: 0, display: 'flex', flexDirection: 'column', gap: 2 }}>
-                          <span style={{ fontFamily: SERIF, fontSize: 17, fontWeight: 500, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{row.userKey ? <a href={`/quizzes/hub?player=${encodeURIComponent(row.userKey)}`} style={{ color: 'inherit', textDecoration: 'none', borderBottom: `1px dotted ${COLORS.faded}88`, cursor: 'pointer' }}>{row.username}</a> : row.username}{mine ? ' (you)' : ''}{row.tryNum ? <span style={{ fontFamily: MONO, fontSize: 11, fontWeight: 400, color: COLORS.faded, marginLeft: 6 }}>{row.tryNum > 1 ? '(retried)' : '(1st Try)'}</span> : ''}</span>
-                          {row.playedAt ? <span style={{ fontFamily: MONO, fontSize: 10.5, color: COLORS.faded }}>{fmtWhen(row.playedAt)}</span> : null}
-                        </span>
-                        <span style={{ fontFamily: MONO, fontSize: 14, textAlign: 'right' }}>{row.score}/{total}</span>
-                        <span style={{ fontFamily: MONO, fontSize: 14, textAlign: 'right', color: COLORS.faded }}>{fmtTime(row.timeElapsed)}</span>
-                      </div>
-                    );
-                  })}
-                </div>
-              )}
-            </div>
+            {fullLeaderboard}
           </div>
         )}
 
