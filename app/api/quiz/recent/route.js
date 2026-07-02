@@ -11,7 +11,9 @@ export const fetchCache = 'force-no-store';
 
 // GET /api/quiz/recent -> { plays: [{quizId, username, score, total, playedAt,
 //   isAnon, attempt}] }
-// The 99 most recent completed games, newest first. Powers the /quizzes live
+// The 1000 most recent completed games, newest first (a deep window so the
+// Last Played board can still surface 5 distinct quizzes when the newest plays
+// are dominated by a single quiz). Powers the /quizzes live
 // feed + Last Played board. `attempt` is that PLAYER's chronological attempt
 // number of that quiz (1 = first time), computed by counting their earlier rows
 // for the same quiz; `isAnon` flags a play with no signed account.
@@ -21,7 +23,7 @@ export async function GET() {
       .from('quiz_results')
       .select('id, quiz_id, user_id, anon_id, username, score, total, created_at')
       .order('created_at', { ascending: false })
-      .limit(99);
+      .limit(1000);
     if (error) {
       console.error('quiz recent error', error);
       return NextResponse.json({ plays: [] });

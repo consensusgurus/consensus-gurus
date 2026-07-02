@@ -721,13 +721,13 @@ export default function QuizHomeClient() {
   // "Last Played" browse column: most recent plays, deduped to distinct quizzes
   // (the live feed relocated into the browse grid as the first column).
   const lastPlayed = useMemo(() => {
-    // Multiplier: how many of the recent raw plays (scanning back as far as the
-    // feed supplies, up to 99) were this quiz, so repeat plays hidden by the
-    // distinct-quiz dedupe still surface as "xN". Capped x99. The wide window
-    // lets the distinct-quiz list fill its 5 rows even when the newest plays are
-    // dominated by one quiz.
+    // Multiplier: how many of the recent raw plays (across the whole fetched
+    // feed, which now reaches back ~1000 games) were this quiz, so repeat plays
+    // hidden by the distinct-quiz dedupe still surface as "xN". Capped x99. The
+    // deep window lets the distinct-quiz list fill its 5 rows even when the
+    // newest plays are dominated by a single quiz.
     const windowCounts = {};
-    for (const f of liveAll.slice(0, 99)) { if (f && f.quizId) windowCounts[f.quizId] = (windowCounts[f.quizId] || 0) + 1; }
+    for (const f of liveAll) { if (f && f.quizId) windowCounts[f.quizId] = (windowCounts[f.quizId] || 0) + 1; }
     const seen = new Set(); const out = [];
     for (const f of liveAll) { if (!f || !f.quizId || seen.has(f.quizId)) continue; seen.add(f.quizId); out.push({ ...f, mult: Math.min(99, windowCounts[f.quizId] || 1) }); if (out.length >= 15) break; }
     return out;
