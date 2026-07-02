@@ -140,7 +140,7 @@ export default function DuelClient({ token }) {
       <div className="qzf-w" style={{ maxWidth: 1180, margin: '0 auto', padding: '12px 38px 70px', position: 'relative' }}>
         <div className="qzf-line" aria-hidden="true" />
         <div style={{ maxWidth: 720, margin: '0 auto' }}>
-          <Link href="/quizzes" style={{ fontSize: 13, fontWeight: 700, color: C.accent, textDecoration: 'none' }}>← Back to Quizzes</Link>
+          <Link href="/quizzes/hub?tab=duels" style={{ fontSize: 13, fontWeight: 700, color: C.accent, textDecoration: 'none' }}>← Back to Duels</Link>
 
           {state === 'loading' && <div style={{ marginTop: 40, color: C.soft, fontWeight: 600 }}>Loading duel…</div>}
 
