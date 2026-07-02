@@ -70,6 +70,9 @@ export default function QuizDoneRecap({ score, total, hideScore = false, rows = 
             <a href={`/duel/new?quiz=${encodeURIComponent(quiz.id)}`} style={{ ...btn(C.ink, C.cream), textDecoration: 'none' }}><Swords size={13} strokeWidth={2.5} /> Challenge Someone</a>
           ) : null}
         </div>
+        <div style={{ textAlign: 'center', marginTop: 10 }}>
+          <a href="/quizzes/hub?tab=duels" style={{ fontFamily: FONT, fontSize: 12, fontWeight: 600, color: C.faded, textDecoration: 'underline', textUnderlineOffset: 3 }}>Duel Leaderboard</a>
+        </div>
       </div>
 
       {rows && rows.length > 0 ? (

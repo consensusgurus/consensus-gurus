@@ -2110,7 +2110,8 @@ export default function QuizClient({ quizId }) {
                         <a href={`/duel/new?quiz=${encodeURIComponent(quizId)}`} style={{ fontFamily: MONO, fontSize: 12, letterSpacing: '0.04em', textTransform: 'uppercase', fontWeight: 700, lineHeight: '46px', width: '100%', padding: '0 8px', boxSizing: 'border-box', borderRadius: 10, cursor: 'pointer', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 6, whiteSpace: 'nowrap', background: COLORS.ink, color: COLORS.cream, border: 'none', textDecoration: 'none' }}><Swords size={14} strokeWidth={2.5} /> Challenge Someone</a>
                       </div>
                     </div>
-                    <div style={{ textAlign: 'center', marginTop: 12 }}>
+                    <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: 22, marginTop: 12 }}>
+                      <a href="/quizzes/hub?tab=duels" style={{ padding: 4, fontFamily: MONO, fontSize: 12, fontWeight: 600, color: COLORS.faded, textDecoration: 'underline', textUnderlineOffset: 3 }}>Duel Leaderboard</a>
                       <button onClick={() => { setGameOverDismissed(true); setQSent(false); setQOpen(true); }} style={{ background: 'none', border: 'none', padding: 4, cursor: 'pointer', fontFamily: MONO, fontSize: 12, fontWeight: 600, color: COLORS.faded, textDecoration: 'underline', textUnderlineOffset: 3 }}>Report an error</button>
                     </div>
                   </div>

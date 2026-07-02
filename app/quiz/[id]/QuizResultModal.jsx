@@ -207,14 +207,15 @@ export default function QuizResultModal({
           ) : null}
         </div>
 
-        {/* Report link */}
-        {onReport ? (
-          <div style={{ textAlign: 'center', marginTop: 14 }}>
+        {/* Footer links: duel ladder + report */}
+        <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: 22, marginTop: 14 }}>
+          <a href="/quizzes/hub?tab=duels" style={{ padding: 4, fontFamily: FONT, fontSize: 12, fontWeight: 600, color: C.faded, textDecoration: 'underline', textUnderlineOffset: 3 }}>Duel Leaderboard</a>
+          {onReport ? (
             <button onClick={onReport} style={{ background: 'none', border: 'none', padding: 4, cursor: 'pointer', fontFamily: FONT, fontSize: 12, fontWeight: 600, color: C.faded, textDecoration: 'underline', textUnderlineOffset: 3 }}>
               Report an error
             </button>
-          </div>
-        ) : null}
+          ) : null}
+        </div>
 
       </div>
     </div>

@@ -455,6 +455,9 @@ export default function HigherLowerBoard({ quizId, mobile = false }) {
                   <a href={`/duel/new?quiz=${encodeURIComponent(quizId)}`} style={{ fontFamily: MONO, fontSize: 13, letterSpacing: '0.04em', textTransform: 'uppercase', fontWeight: 700, lineHeight: '46px', width: 210, padding: 0, boxSizing: 'border-box', background: COLORS.ink, color: COLORS.cream, border: 'none', cursor: 'pointer', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 6, whiteSpace: 'nowrap', textDecoration: 'none' }}>
                     <Swords size={14} strokeWidth={2.5} /> Challenge Someone
                   </a>
+                  <a href="/quizzes/hub?tab=duels" style={{ fontFamily: MONO, fontSize: 13, letterSpacing: '0.04em', textTransform: 'uppercase', fontWeight: 700, lineHeight: '46px', width: 210, padding: 0, boxSizing: 'border-box', background: '#fff', color: COLORS.ink, border: `1.5px solid ${COLORS.ink}`, cursor: 'pointer', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 6, whiteSpace: 'nowrap', textDecoration: 'none' }}>
+                    <Trophy size={14} strokeWidth={2.5} /> Duel Leaderboard
+                  </a>
                   <button onClick={() => { setQSent(false); setQOpen(true); }} style={{ fontFamily: MONO, fontSize: 13, letterSpacing: '0.08em', textTransform: 'uppercase', fontWeight: 700, lineHeight: '46px', width: 210, padding: 0, boxSizing: 'border-box', background: '#fff', color: COLORS.faded, border: `1px solid ${COLORS.faded}55`, cursor: 'pointer', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 8 }}>
                     <HelpCircle size={14} strokeWidth={2.5} /> Report an error
                   </button>

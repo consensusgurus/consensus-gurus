@@ -219,8 +219,9 @@ export default function DuelClient({ token }) {
                 </div>
               )}
 
-              <div style={{ marginTop: 20, textAlign: 'center' }}>
+              <div style={{ marginTop: 20, display: 'flex', justifyContent: 'center', gap: 24, flexWrap: 'wrap' }}>
                 <Link href="/duel/new" style={{ fontSize: 13, fontWeight: 700, color: C.accent, textDecoration: 'none' }}>Start Another Duel</Link>
+                <Link href="/quizzes/hub?tab=duels" style={{ fontSize: 13, fontWeight: 700, color: C.accent, textDecoration: 'none' }}>Duel Leaderboard</Link>
               </div>
             </>
           )}
