@@ -273,7 +273,7 @@ export default function QuizHomeClient() {
     else { lastTapRef.current = { k, t: now }; }
   };
 
-  const [totals, setTotals] = useState({ byQuiz: {}, leaders: {}, leaderKeys: {}, today: 0 });
+  const [totals, setTotals] = useState({ byQuiz: {}, recent7: {}, leaders: {}, leaderKeys: {}, today: 0 });
   const [eloBoard, setEloBoard] = useState([]); // [{rank,name,isAnon,userKey}]
   const [eloScope, setEloScope] = useState('all');
   const [catBoards, setCatBoards] = useState({}); // { dept: [{rank,name,isAnon,userKey,rating}] } for the "Top Rated <Category>" slides
@@ -430,7 +430,7 @@ export default function QuizHomeClient() {
   // ── data loads ──
   useEffect(() => {
     fetch('/api/quiz/totals').then((r) => r.json()).then((d) => {
-      if (d && !d.error) setTotals({ byQuiz: d.byQuiz || {}, leaders: d.leaders || {}, leaderKeys: d.leaderKeys || {}, today: d.today || 0 });
+      if (d && !d.error) setTotals({ byQuiz: d.byQuiz || {}, recent7: d.recent7 || {}, leaders: d.leaders || {}, leaderKeys: d.leaderKeys || {}, today: d.today || 0 });
     }).catch(() => {});
     fetch('/api/quiz/recent').then((r) => r.json()).then((d) => {
       if (d && Array.isArray(d.plays)) setRecent(d.plays);
@@ -701,12 +701,21 @@ export default function QuizHomeClient() {
   // Trending = highest-plays quiz that is NOT in the top-3 most played, NOT the
   // newest, and NOT the quiz of the day. Drives the second hero tile.
   const trending = useMemo(() => {
-    const ranked = catalog.map((q) => ({ ...q, p: plays(q.id) })).filter((q) => q.p > 0)
+    const week = (id) => (totals.recent7 && totals.recent7[id]) || 0;
+    // Exclusions stay the same: the top-3 most-played (ALL-TIME, since those are
+    // the tiles shown in the Most Played board), the newest quiz, and the quiz of
+    // the day, so the tile never repeats what is already featured elsewhere.
+    const rankedAll = catalog.map((q) => ({ ...q, p: plays(q.id) })).filter((q) => q.p > 0)
       .sort((a, b) => b.p - a.p || (a.title || '').localeCompare(b.title || ''));
-    const excl = new Set(ranked.slice(0, 3).map((q) => q.id));
+    const excl = new Set(rankedAll.slice(0, 3).map((q) => q.id));
     if (newest[0]) excl.add(newest[0].id);
     if (qotd) excl.add(qotd.id);
-    return ranked.find((q) => !excl.has(q.id)) || null;
+    // Pick the single most-played quiz OVER THE LAST 7 DAYS among the rest. Fall
+    // back to the all-time pick only if nothing was played this week (edge case),
+    // so the tile never goes empty.
+    const rankedWeek = catalog.map((q) => ({ ...q, p: week(q.id) })).filter((q) => q.p > 0)
+      .sort((a, b) => b.p - a.p || (a.title || '').localeCompare(b.title || ''));
+    return rankedWeek.find((q) => !excl.has(q.id)) || rankedAll.find((q) => !excl.has(q.id)) || null;
   }, [catalog, newest, qotd, totals]);
   // Ids already surfaced in the Newest + Most Played columns (all-scope only).
   const shownIds = useMemo(() => {
