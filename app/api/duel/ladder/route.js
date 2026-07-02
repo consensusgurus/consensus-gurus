@@ -18,7 +18,7 @@ export async function GET(request) {
     // Records each completed duel from ONE player's perspective: bumps their
     // W/L/T tally and appends a match (result + who it was against + the quiz
     // and final scores) so the ladder row can expand to a game history.
-    const bump = (anon, name, result, foeName, quizId, myScore, theirScore) => {
+    const bump = (anon, name, result, foeName, foeAnon, quizId, myScore, theirScore) => {
       if (!anon) return;
       let g = by.get(anon);
       if (!g) { g = { anon, name: name || 'Player', wins: 0, losses: 0, ties: 0, matches: [] }; by.set(anon, g); }
@@ -26,7 +26,7 @@ export async function GET(request) {
       g[result === 'win' ? 'wins' : result === 'loss' ? 'losses' : 'ties'] += 1;
       if (g.matches.length < 40) {
         g.matches.push({
-          result, quizId: quizId || '', vs: foeName || 'Player',
+          result, quizId: quizId || '', vs: foeName || 'Player', vsAnon: foeAnon || null,
           my: Number.isFinite(myScore) ? myScore : null,
           their: Number.isFinite(theirScore) ? theirScore : null,
         });
@@ -34,8 +34,8 @@ export async function GET(request) {
     };
     for (const d of (data || [])) {
       const cw = d.winner === 'challenger', ow = d.winner === 'opponent', tie = d.winner === 'tie';
-      bump(d.challenger_anon, d.challenger_name, tie ? 'tie' : cw ? 'win' : 'loss', d.opponent_name, d.quiz_id, d.challenger_score, d.opponent_score);
-      bump(d.opponent_anon, d.opponent_name, tie ? 'tie' : ow ? 'win' : 'loss', d.challenger_name, d.quiz_id, d.opponent_score, d.challenger_score);
+      bump(d.challenger_anon, d.challenger_name, tie ? 'tie' : cw ? 'win' : 'loss', d.opponent_name, d.opponent_anon, d.quiz_id, d.challenger_score, d.opponent_score);
+      bump(d.opponent_anon, d.opponent_name, tie ? 'tie' : ow ? 'win' : 'loss', d.challenger_name, d.challenger_anon, d.quiz_id, d.opponent_score, d.challenger_score);
     }
     const ranked = [...by.values()].map((g) => {
       const played = g.wins + g.losses + g.ties;

@@ -2,7 +2,7 @@
 import React, { useState, useEffect, useMemo, useRef } from 'react';
 import Link from 'next/link';
 import {
-  ArrowLeft, BadgeCheck, User, ListChecks, Flame, FunctionSquare, Clock, Trophy, RefreshCw, Share2, Download, UserPlus, Play, X, Check, Star, Swords, ChevronDown,} from 'lucide-react';
+  ArrowLeft, BadgeCheck, User, ListChecks, Flame, FunctionSquare, Clock, Trophy, RefreshCw, Share2, Download, UserPlus, Play, X, Check, Star, Swords, ChevronDown, Crown, Target, ArrowUpRight,} from 'lucide-react';
 import { QUIZZES, getQuiz } from '@/lib/quizzes';
 import { quizDept as deptOf, DEPT_COLOR, DEPT_LABEL, DEPT_NAV } from '@/lib/quiz-departments';
 import { CHALLENGES, getChallenge, DEFAULT_CHALLENGE_ID, challengeQuizIds, challengeColumns, dailyChallengeId, challengeMenu } from '@/lib/challenges';
@@ -185,6 +185,41 @@ function ShareStatsModal({ profile, byKey, onClose }) {
   );
 }
 
+// ─── Duels tab ──────────────────────────────────────────────────────────────
+// Shared bits for the Duel Arena: initials avatars, last-5 form dots, and the
+// win-rate ring. All derive from data the ladder/list APIs already return.
+function initialsOf(name) {
+  const s = String(name || '').trim();
+  if (!s) return '?';
+  const parts = s.split(/[\s_-]+/).filter(Boolean);
+  if (parts.length >= 2) return (parts[0][0] + parts[1][0]).toUpperCase();
+  return s.slice(0, 2).toUpperCase();
+}
+function Avatar({ name, bg, fg, size = 34 }) {
+  return <span style={{ width: size, height: size, borderRadius: '50%', background: bg, color: fg, display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 800, fontSize: Math.max(11, Math.round(size * 0.35)), flex: 'none' }}>{initialsOf(name)}</span>;
+}
+// Last-5 duel results as dots, oldest to newest left to right.
+function FormDots({ results }) {
+  const seq = (results || []).slice(0, 5).reverse();
+  if (!seq.length) return null;
+  return (
+    <span title="Last 5 duels, oldest to newest" style={{ display: 'inline-flex', gap: 3, flex: 'none' }}>
+      {seq.map((r, i) => <span key={i} className="fdot" style={{ background: r === 'win' ? C.live : r === 'loss' ? C.danger : '#cfd4dc' }} />)}
+    </span>
+  );
+}
+function WinRing({ pct, size = 40 }) {
+  const r = size / 2 - 3.5;
+  const circ = 2 * Math.PI * r;
+  const on = (Math.max(0, Math.min(100, pct || 0)) / 100) * circ;
+  return (
+    <svg width={size} height={size} viewBox={`0 0 ${size} ${size}`} aria-hidden="true" style={{ flex: 'none' }}>
+      <circle cx={size / 2} cy={size / 2} r={r} fill="none" stroke={C.accsoft} strokeWidth="5" />
+      <circle cx={size / 2} cy={size / 2} r={r} fill="none" stroke={C.accent} strokeWidth="5" strokeDasharray={`${on} ${circ - on}`} strokeLinecap="round" transform={`rotate(-90 ${size / 2} ${size / 2})`} />
+    </svg>
+  );
+}
+
 function DuelsPanel({ onSelectPlayer }) {
   const [data, setData] = useState({ yourMove: [], awaiting: [], completed: [] });
   const [ladder, setLadder] = useState([]);
@@ -208,10 +243,9 @@ function DuelsPanel({ onSelectPlayer }) {
   const card = { background: C.surface, border: `1px solid ${C.line}`, borderRadius: 12, padding: 16, marginBottom: 14 };
   const hd = { fontSize: 13, fontWeight: 800, letterSpacing: '.04em', textTransform: 'uppercase', color: C.soft, margin: '0 0 10px' };
   // The other player in a duel, from the current player's perspective.
-  function foeName(d) {
-    const other = (d.mine ? d.mine === 'challenger' : d.challenger_anon === anon) ? d.opponent_name : d.challenger_name;
-    return other || null;
-  }
+  const iAmChallenger = (d) => (d.mine ? d.mine === 'challenger' : d.challenger_anon === anon);
+  function foeName(d) { return (iAmChallenger(d) ? d.opponent_name : d.challenger_name) || null; }
+  function foeAnonOf(d) { return iAmChallenger(d) ? d.opponent_anon : d.challenger_anon; }
   // Turn down an incoming challenge. Only the challenged player may decline
   // (the API rejects a challenger declining their own duel).
   async function decline(d) {
@@ -250,70 +284,217 @@ function DuelsPanel({ onSelectPlayer }) {
       }
     } catch (e) {}
   }
-  function Row({ d, right, canDecline, canDismiss }) {
+  // 'win' | 'loss' | 'tie' | 'declined-them' (they passed) | 'declined-me'
+  function outcomeOf(d) {
+    if (d.status === 'declined') return iAmChallenger(d) ? 'declined-them' : 'declined-me';
+    if (d.winner === 'tie') return 'tie';
+    return ((iAmChallenger(d) && d.winner === 'challenger') || (!iAmChallenger(d) && d.winner === 'opponent')) ? 'win' : 'loss';
+  }
+  function myScores(d) {
+    return iAmChallenger(d) ? { my: d.challenger_score, their: d.opponent_score } : { my: d.opponent_score, their: d.challenger_score };
+  }
+  // My ladder entry plus what the arena hero derives from it: streak and rival.
+  const mine = useMemo(() => ladder.find((p) => p.anon === anon) || null, [ladder, anon]);
+  const myPos = useMemo(() => (mine ? ladder.indexOf(mine) + 1 : null), [ladder, mine]);
+  const streak = useMemo(() => {
+    const ms = (mine && mine.matches) || [];
+    if (!ms.length || ms[0].result === 'tie') return null;
+    let n = 0;
+    for (const m of ms) { if (m.result === ms[0].result) n += 1; else break; }
+    return { kind: ms[0].result, n };
+  }, [mine]);
+  // Rival = the player I have faced most (2+ duels), with our head-to-head.
+  const rival = useMemo(() => {
+    const ms = (mine && mine.matches) || [];
+    const by = new Map();
+    for (const m of ms) {
+      const k = m.vsAnon || `n:${m.vs}`;
+      let g = by.get(k);
+      if (!g) { g = { anon: m.vsAnon || null, name: m.vs, met: 0, w: 0, l: 0, t: 0 }; by.set(k, g); }
+      g.met += 1;
+      if (m.result === 'win') g.w += 1; else if (m.result === 'loss') g.l += 1; else g.t += 1;
+    }
+    let best = null;
+    for (const g of by.values()) if (g.met >= 2 && (!best || g.met > best.met)) best = g;
+    return best;
+  }, [mine]);
+  const rivalKey = useMemo(() => {
+    if (!rival || !rival.anon) return null;
+    const row = ladder.find((p) => p.anon === rival.anon);
+    return (row && row.key) || `a:${rival.anon}`;
+  }, [rival, ladder]);
+  const rematchHref = (nm, a2, quizId) => (a2
+    ? `/duel/new?opponent=${encodeURIComponent(a2)}&oppName=${encodeURIComponent(nm || 'Player')}${quizId ? `&quiz=${encodeURIComponent(quizId)}` : ''}`
+    : '/duel/new');
+  const smallBtn = (clr) => ({ background: 'transparent', border: `1px solid ${C.line}`, color: clr, borderRadius: 8, padding: '5px 12px', fontFamily: FONT, fontWeight: 700, fontSize: 12, cursor: 'pointer', flex: 'none' });
+  const empty = loaded && !data.yourMove.length && !data.awaiting.length && !data.completed.length;
+
+  // A pending duel as a VS matchup card. Cards in Your Move pulse gently.
+  function MoveCard({ d, pulse }) {
     const foe = foeName(d);
+    const iAmCh = iAmChallenger(d);
     return (
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 10, padding: '9px 0', borderBottom: `1px solid ${C.line}` }}>
-        <a href={`/duel/${d.token}`} style={{ display: 'flex', alignItems: 'center', gap: 10, flex: 1, minWidth: 0, textDecoration: 'none', color: C.ink }}>
-          <span style={{ minWidth: 0, overflow: 'hidden' }}>
-            <span style={{ display: 'block', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', fontSize: 14, fontWeight: 600 }}>{qtitle(d.quiz_id)}</span>
-            <span style={{ display: 'block', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', fontSize: 12, fontWeight: 600, color: C.soft, marginTop: 1 }}>
-              {foe ? <>vs <span style={{ color: C.accent }}>{foe}</span></> : 'Open invite'}
-            </span>
+      <div className={pulse ? 'duelpulse' : undefined} style={{ ...card, marginBottom: 8, padding: '13px 14px' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 12, flexWrap: 'wrap' }}>
+          <span style={{ display: 'flex', alignItems: 'center', gap: 8, flex: 'none' }}>
+            <Avatar name={(getIdentity() && getIdentity().username) || 'You'} bg={C.accsoft} fg={C.accent} />
+            <span style={{ fontSize: 11, fontWeight: 800, color: C.soft }}>VS</span>
+            <Avatar name={foe || '?'} bg="#fdeeee" fg={C.danger} />
           </span>
-        </a>
-        <span style={{ flex: 'none', display: 'flex', alignItems: 'center', gap: 14 }}>
-          {canDecline ? (
-            <button onClick={() => decline(d)} style={{ background: 'transparent', border: `1px solid ${C.line}`, color: C.danger, borderRadius: 8, padding: '5px 12px', fontFamily: FONT, fontWeight: 700, fontSize: 12, cursor: 'pointer' }}>Decline</button>
-          ) : null}
-          {canDismiss ? (
-            <button onClick={() => cancel(d)} style={{ background: 'transparent', border: `1px solid ${C.line}`, color: C.muted, borderRadius: 8, padding: '5px 12px', fontFamily: FONT, fontWeight: 700, fontSize: 12, cursor: 'pointer' }}>Dismiss</button>
-          ) : null}
-          <a href={`/duel/${d.token}`} style={{ fontSize: 12, fontWeight: 700, color: C.soft, textDecoration: 'none' }}>{right}</a>
-        </span>
+          <a href={`/duel/${d.token}`} style={{ flex: 1, minWidth: 150, textDecoration: 'none', color: C.ink }}>
+            <span style={{ display: 'block', fontSize: 13.5, fontWeight: 700 }}>{foe ? (iAmCh ? <>You challenged <span style={{ color: C.accent }}>{foe}</span></> : <><span style={{ color: C.accent }}>{foe}</span> challenged you</>) : 'Open invite'}</span>
+            <span style={{ display: 'block', fontSize: 12, fontWeight: 600, color: C.muted, marginTop: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{qtitle(d.quiz_id)}</span>
+          </a>
+          {pulse && !iAmCh ? <span style={{ flex: 'none', fontSize: 10, fontWeight: 800, letterSpacing: '.05em', background: C.accsoft, color: C.accent, borderRadius: 999, padding: '4px 10px' }}>YOUR TURN</span> : null}
+          {pulse && !iAmCh ? <button onClick={() => decline(d)} style={smallBtn(C.danger)}>Decline</button> : null}
+          {pulse && iAmCh ? <button onClick={() => cancel(d)} style={smallBtn(C.muted)}>Dismiss</button> : null}
+          {pulse ? (
+            <a href={`/duel/${d.token}`} style={{ flex: 'none', display: 'inline-flex', alignItems: 'center', gap: 6, background: C.accent, color: '#fff', borderRadius: 9, padding: '7px 14px', fontSize: 12.5, fontWeight: 800, textDecoration: 'none' }}><Play size={13} /> Play</a>
+          ) : (
+            <span style={{ flex: 'none', fontSize: 12, fontWeight: 700, color: C.soft }}>Pending</span>
+          )}
+        </div>
       </div>
     );
   }
-  function outcomeText(d) {
-    if (d.status === 'declined') return (d.mine ? d.mine === 'challenger' : d.challenger_anon === anon) ? 'Turned down' : 'You declined';
-    const iAmCh = d.mine ? d.mine === 'challenger' : d.challenger_anon === anon;
-    if (d.winner === 'tie') return 'Tie';
-    const iWon = (iAmCh && d.winner === 'challenger') || (!iAmCh && d.winner === 'opponent');
-    return iWon ? 'Won' : 'Lost';
-  }
-  const empty = loaded && !data.yourMove.length && !data.awaiting.length && !data.completed.length;
+
   return (
     <div>
-      <a href="/duel/new" style={{ display: 'inline-flex', alignItems: 'center', gap: 8, background: C.accent, color: '#fff', padding: '11px 18px', borderRadius: 10, fontWeight: 800, fontSize: 14, textDecoration: 'none', marginBottom: 16 }}><Swords size={16} /> Start a Duel</a>
-      {data.yourMove.length > 0 && (<div style={card}><div style={hd}>Your Move</div>{data.yourMove.map((d) => <Row key={d.token} d={d} right="Play →" canDecline={d.mine ? d.mine === 'opponent' : d.challenger_anon !== anon} canDismiss={d.mine ? d.mine === 'challenger' : d.challenger_anon === anon} />)}</div>)}
-      {data.awaiting.length > 0 && (<div style={card}><div style={hd}>Waiting on Opponent</div>{data.awaiting.map((d) => <Row key={d.token} d={d} right="Pending" />)}</div>)}
-      {data.completed.length > 0 && (<div style={card}><div style={hd}>Recent Results</div>{data.completed.slice(0, 8).map((d) => <Row key={d.token} d={d} right={outcomeText(d)} />)}</div>)}
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 10, flexWrap: 'wrap', marginBottom: 14 }}>
+        <div style={{ fontSize: 15, fontWeight: 800 }}>Duel Arena</div>
+        <a href="/duel/new" style={{ display: 'inline-flex', alignItems: 'center', gap: 8, background: C.accent, color: '#fff', padding: '10px 17px', borderRadius: 10, fontWeight: 800, fontSize: 13.5, textDecoration: 'none' }}><Swords size={16} /> Start a Duel</a>
+      </div>
+
+      {mine ? (
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(150px,1fr))', gap: 10, marginBottom: 14 }}>
+          <div style={{ ...card, marginBottom: 0, padding: '12px 14px' }}>
+            <div className="lbl">Your Record</div>
+            <div style={{ fontSize: 25, fontWeight: 800, marginTop: 2, fontVariantNumeric: 'tabular-nums' }}>{mine.wins}<span style={{ color: C.soft }}>-</span>{mine.losses}{mine.ties ? <><span style={{ color: C.soft }}>-</span>{mine.ties}</> : null}</div>
+            <div style={{ fontSize: 11, color: C.muted, fontWeight: 600, marginTop: 2 }}>#{myPos} on the ladder</div>
+          </div>
+          <div style={{ ...card, marginBottom: 0, padding: '12px 14px' }}>
+            <div className="lbl">Win Rate</div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginTop: 4 }}>
+              <WinRing pct={mine.winPct} size={38} />
+              <span>
+                <span style={{ display: 'block', fontSize: 19, fontWeight: 800 }}>{mine.winPct}%</span>
+                <span style={{ display: 'block', fontSize: 10.5, color: C.muted, fontWeight: 600 }}>{mine.played} duel{mine.played === 1 ? '' : 's'}</span>
+              </span>
+            </div>
+          </div>
+          <div style={{ ...card, marginBottom: 0, padding: '12px 14px' }}>
+            <div className="lbl">Streak</div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 7, marginTop: 2 }}>
+              {streak && streak.kind === 'win' && streak.n >= 2 ? <span className="flameon" style={{ display: 'inline-flex', color: '#f59008' }}><Flame size={21} /></span> : null}
+              <span style={{ fontSize: 23, fontWeight: 800, color: streak ? (streak.kind === 'win' ? C.live : C.danger) : C.soft }}>{streak ? `${streak.kind === 'win' ? 'W' : 'L'}${streak.n}` : '-'}</span>
+            </div>
+            <div style={{ marginTop: 5, display: 'flex', alignItems: 'center', gap: 6 }}>
+              <span style={{ fontSize: 10, color: C.soft, fontWeight: 800, letterSpacing: '.04em' }}>LAST 5</span>
+              <FormDots results={(mine.matches || []).map((m) => m.result)} />
+            </div>
+          </div>
+        </div>
+      ) : (loaded && empty ? (
+        <div style={{ ...card, padding: '14px 16px', color: C.muted, fontSize: 13.5, fontWeight: 600 }}>
+          No duels yet. Challenge a friend or an open opponent, and your record, streak, and ladder spot show up here.
+        </div>
+      ) : null)}
+
+      {rival ? (
+        <div style={{ ...card, padding: '13px 14px', border: '1.5px solid #f0d9a8', background: '#fffdf5' }}>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 10, flexWrap: 'wrap' }}>
+            <span style={{ display: 'flex', alignItems: 'center', gap: 11, minWidth: 0 }}>
+              <Avatar name={rival.name} bg="#fbf2dc" fg="#a97b12" />
+              <span style={{ minWidth: 0 }}>
+                <span style={{ display: 'block', fontSize: 13, fontWeight: 800 }}><span style={{ color: '#a97b12' }}>Your rival:</span>{' '}
+                  {rivalKey ? <button onClick={() => onSelectPlayer && onSelectPlayer(rivalKey)} style={{ border: 'none', background: 'transparent', padding: 0, font: 'inherit', fontFamily: FONT, fontWeight: 800, color: C.accent, cursor: 'pointer' }}>{rival.name}</button> : rival.name}
+                </span>
+                <span style={{ display: 'block', fontSize: 12, color: C.muted, fontWeight: 600, marginTop: 1 }}>
+                  {rival.w > rival.l ? `You lead ${rival.w}-${rival.l} all time. Keep it that way.` : rival.w < rival.l ? `You trail ${rival.w}-${rival.l} all time. One win closes the gap.` : `Dead even at ${rival.w}-${rival.l}. Next duel breaks the tie.`}
+                </span>
+              </span>
+            </span>
+            <a href={rematchHref(rival.name, rival.anon, null)} style={{ flex: 'none', fontSize: 12, fontWeight: 800, color: C.accent, border: `1px solid ${C.accent}`, borderRadius: 8, padding: '6px 13px', textDecoration: 'none' }}>Rematch</a>
+          </div>
+        </div>
+      ) : null}
+
+      {data.yourMove.length > 0 && (
+        <div style={{ marginBottom: 8 }}>
+          <div style={hd}>Your Move · {data.yourMove.length}</div>
+          {data.yourMove.map((d) => <MoveCard key={d.token} d={d} pulse />)}
+        </div>
+      )}
+      {data.awaiting.length > 0 && (
+        <div style={{ marginBottom: 8 }}>
+          <div style={hd}>Waiting on Opponent</div>
+          {data.awaiting.map((d) => <MoveCard key={d.token} d={d} />)}
+        </div>
+      )}
+
+      {data.completed.length > 0 && (
+        <div>
+          <div style={hd}>Latest Duels</div>
+          <div style={{ ...card, padding: '4px 14px' }}>
+            {data.completed.slice(0, 8).map((d, i, arr) => {
+              const o = outcomeOf(d);
+              const foe = foeName(d);
+              const fa = foeAnonOf(d);
+              const sc = myScores(d);
+              const chip = o === 'win' ? { t: 'WON', bg: '#e6f7f0', fg: '#0b7a55' }
+                : o === 'loss' ? { t: 'LOST', bg: '#fdeeee', fg: C.danger }
+                : o === 'tie' ? { t: 'TIE', bg: '#eef0f2', fg: C.muted }
+                : { t: 'DECLINED', bg: '#eef0f2', fg: C.soft };
+              return (
+                <div key={d.token} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '10px 0', borderBottom: i < arr.length - 1 ? `1px solid ${C.line}` : 'none' }}>
+                  <span style={{ flex: 'none', width: 62, textAlign: 'center', fontSize: 10, fontWeight: 800, borderRadius: 6, padding: '3px 0', background: chip.bg, color: chip.fg }}>{chip.t}</span>
+                  <a href={`/duel/${d.token}`} style={{ flex: 1, minWidth: 0, display: 'flex', alignItems: 'center', gap: 10, textDecoration: 'none', color: C.ink }}>
+                    <span style={{ flex: 'none', fontSize: 13, fontWeight: 800, fontVariantNumeric: 'tabular-nums' }}>
+                      {Number.isFinite(sc.my) && Number.isFinite(sc.their) ? <>You {sc.my} - {sc.their} </> : null}
+                      <span style={{ color: C.accent }}>{foe || 'Open invite'}</span>
+                    </span>
+                    <span className="duelqt" style={{ flex: 1, minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', fontSize: 12, color: C.soft, fontWeight: 600 }}>{qtitle(d.quiz_id)}</span>
+                  </a>
+                  {(o === 'win' || o === 'loss' || o === 'tie') && foe ? (
+                    <a href={rematchHref(foe, fa, d.quiz_id)} style={{ flex: 'none', fontSize: 11.5, fontWeight: 800, color: C.accent, textDecoration: 'none' }}>{o === 'loss' ? 'Avenge' : 'Rematch'}</a>
+                  ) : null}
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      )}
       {empty && (<div style={{ ...card, color: C.muted, fontSize: 14 }}>No duels yet. Challenge someone to get started.</div>)}
+
       <div style={card}>
         <div style={hd}>Duel Ladder</div>
         {ladder.length === 0 ? <div style={{ color: C.muted, fontSize: 13 }}>No completed duels yet.</div> : ladder.slice(0, 15).map((p, i) => {
           const matches = Array.isArray(p.matches) ? p.matches : [];
           const open = openLadder === p.anon;
           const canOpen = matches.length > 0;
+          const isMe = p.anon === anon;
+          const mi = i < 3 ? i : -1;
           return (
-            <div key={p.anon} style={{ borderBottom: `1px solid ${C.line}` }}>
+            <div key={p.anon} style={{ borderBottom: `1px solid ${C.line}`, ...(isMe ? { background: C.accsoft, margin: '0 -16px', padding: '0 16px' } : {}) }}>
               <div
                 onClick={() => canOpen && setOpenLadder(open ? null : p.anon)}
                 role={canOpen ? 'button' : undefined}
-                style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '8px 0', cursor: canOpen ? 'pointer' : 'default' }}
+                style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '9px 0', cursor: canOpen ? 'pointer' : 'default' }}
               >
-                <span style={{ width: 22, textAlign: 'right', fontWeight: 800, color: C.soft, fontSize: 13 }}>{i + 1}</span>
+                <span style={{ flex: 'none', width: 25, height: 25, borderRadius: '50%', background: mi >= 0 ? MEDAL_BG[mi] : '#eef0f2', color: mi >= 0 ? MEDAL[mi] : C.soft, display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 800, fontSize: 11.5 }}>{i + 1}</span>
                 <span
                   onClick={(e) => { e.stopPropagation(); if (onSelectPlayer) onSelectPlayer(p.key || `a:${p.anon}`); }}
                   title="View profile"
-                  style={{ flex: 1, minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', fontWeight: 700, fontSize: 14, color: C.accent, cursor: 'pointer' }}
-                >{p.name}</span>
-                <span style={{ flex: 'none', fontSize: 13, fontWeight: 700 }}>{p.wins}-{p.losses}{p.ties ? `-${p.ties}` : ''}</span>
-                <span style={{ flex: 'none', fontSize: 12, fontWeight: 700, color: C.soft, width: 44, textAlign: 'right' }}>{p.winPct}%</span>
+                  style={{ flex: 1, minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', fontWeight: isMe ? 800 : 700, fontSize: 14, color: C.accent, cursor: 'pointer' }}
+                >{p.name}{isMe ? <span style={{ fontSize: 9.5, color: C.accent, fontWeight: 800, marginLeft: 6 }}>YOU</span> : null}</span>
+                <span style={{ flex: 'none', fontSize: 13, fontWeight: 800, fontVariantNumeric: 'tabular-nums' }}>{p.wins}-{p.losses}{p.ties ? `-${p.ties}` : ''}</span>
+                <span className="lbar" style={{ flex: 'none', width: 86, height: 7, borderRadius: 999, background: isMe ? '#fff' : '#eef0f2', overflow: 'hidden' }}><span style={{ display: 'block', width: `${Math.max(3, Math.min(100, p.winPct || 0))}%`, height: '100%', background: C.accent, borderRadius: 999 }} /></span>
+                <span style={{ flex: 'none', fontSize: 12, fontWeight: 800, color: C.muted, width: 38, textAlign: 'right' }}>{p.winPct}%</span>
+                <span className="lform"><FormDots results={matches.map((m) => m.result)} /></span>
                 <ChevronDown size={15} style={{ flex: 'none', color: C.soft, opacity: canOpen ? 1 : 0.25, transform: open ? 'rotate(180deg)' : 'none', transition: 'transform .15s' }} />
               </div>
               {open && canOpen && (
-                <div style={{ padding: '2px 0 10px 32px' }}>
+                <div style={{ padding: '2px 0 10px 35px' }}>
                   {matches.map((m, j) => {
                     const won = m.result === 'win', tie = m.result === 'tie';
                     const clr = tie ? C.soft : won ? C.live : C.danger;
@@ -535,6 +716,13 @@ export default function StatHubClient() {
     .qz-playerbar .qz-skill-empty{display:none !important;}
     @media(max-width:560px){.qz-playerbar{flex-wrap:wrap !important;align-items:center !important;gap:10px 14px !important;}.qz-playerbar .qz-div{display:none !important;}.qz-playerbar .qz-stats{order:9 !important;flex:1 1 100% !important;margin-left:0 !important;justify-content:space-between !important;gap:10px !important;}.qz-playerbar .qz-bestcat{order:3 !important;}.qz-playerbar .hubbtn{order:4 !important;margin-left:auto !important;flex:0 0 auto !important;}}
     @media(max-width:560px){.qzhub{padding-left:14px !important;padding-right:14px !important;}}
+    .qzhub .fdot{width:9px;height:9px;border-radius:50%;display:inline-block;}
+    .qzhub .duelpulse{animation:qzpulse 2s ease-in-out infinite;}
+    .qzhub .flameon{animation:qzflame 1.4s ease-in-out infinite;}
+    @keyframes qzpulse{0%,100%{box-shadow:0 0 0 0 rgba(37,99,235,.25);}50%{box-shadow:0 0 0 7px rgba(37,99,235,0);}}
+    @keyframes qzflame{0%,100%{transform:scale(1);}50%{transform:scale(1.16);}}
+    @media (prefers-reduced-motion: reduce){.qzhub .duelpulse,.qzhub .flameon{animation:none;}}
+    @media(max-width:640px){.qzhub .lbar{display:none;}.qzhub .lform{display:none;}.qzhub .duelqt{display:none;}}
   `;
 
   return (
@@ -639,41 +827,6 @@ function Metric({ label, value, sub, rank, total, avg }) {
 function PlayerPanel({ me, scope, cats, byKey, totalQuizzes, board, myName, myAnonKey, titleById, pview, setPview, viewKey, onSelectPlayer }) {
   const found = me && me.found;
   const viewing = !!viewKey;
-  const a = found ? me.activity : { correct: 0, answered: 0, played: 0, completed: 0, accuracy: 0, daysPlayed: 0 };
-  const ranks = (found && me.ranks) || {};
-  const base = (found && me.base) || {};
-  const totalPlayers = (found && me.totalPlayers) || 0;
-  const pctTotal = totalQuizzes ? Math.round((a.played / totalQuizzes) * 100) : 0;
-  const pctCompleted = a.played ? Math.round((a.completed / a.played) * 100) : 0;
-  const byCat = (found && me.byCategory) || {};
-  const catRows = (scope === 'all' ? cats : cats.filter((c) => c.key === scope));
-
-  // Column sort for the Category Detail table. The Overall row is rendered
-  // separately and stays pinned on top; only these category rows get sorted.
-  const [catSort, setCatSort] = useState({ col: 'rating', dir: 'desc' });
-  const sortedCatRows = useMemo(() => {
-    if (!catSort.col) return catRows;
-    const col = CAT_COLS.find((cc) => cc.key === catSort.col) || CAT_COLS[0];
-    const arr = [...catRows];
-    arr.sort((A, B) => {
-      const crA = byCat[A.key], crB = byCat[B.key];
-      if (col.key !== 'label') {
-        // categories the player hasn't touched have no stats; always sink them.
-        if (!crA && !crB) return A.label.localeCompare(B.label);
-        if (!crA) return 1;
-        if (!crB) return -1;
-      }
-      const av = col.get(A, crA || {});
-      const bv = col.get(B, crB || {});
-      let cmp = typeof av === 'string' ? av.localeCompare(bv) : ((av || 0) - (bv || 0));
-      if (catSort.dir === 'desc') cmp = -cmp;
-      return cmp;
-    });
-    return arr;
-  }, [catRows, catSort, byCat]);
-  const clickCatSort = (col) => setCatSort((st) => (st.col === col.key
-    ? { col: col.key, dir: st.dir === 'desc' ? 'asc' : 'desc' }
-    : { col: col.key, dir: col.key === 'label' ? 'asc' : 'desc' }));
 
   const toggle = (
     <div style={{ display: 'flex', gap: 22, width: '100%', borderBottom: `1px solid ${C.line}`, boxSizing: 'border-box', overflowX: 'auto', overflowY: 'hidden' }}>
@@ -690,108 +843,346 @@ function PlayerPanel({ me, scope, cats, byKey, totalQuizzes, board, myName, myAn
       </div>
       {pview === 'rating' ? (
         <RatingPanel me={me} titleById={titleById} viewing={viewing} />
+      ) : pview === 'activity' ? (
+        <ActivityFeed recent={found ? me.recent : []} titleById={titleById} viewing={viewing} />
+      ) : pview === 'category' ? (
+        <CategoryView me={me} scope={scope} cats={cats} totalQuizzes={totalQuizzes} viewing={viewing} />
       ) : (
       <div className="card" style={{ padding: '14px 16px' }}>
-        {pview === 'ranking' ? (
-          <UserBaseBody board={board} myName={myName} myAnonKey={myAnonKey} onSelectPlayer={onSelectPlayer} viewKey={viewKey} />
-        ) : pview === 'activity' ? (
-          <ActivityFeed recent={found ? me.recent : []} titleById={titleById} viewing={viewing} />
-        ) : !found ? (
-          <div style={{ fontSize: 13, color: C.soft, padding: '6px 0' }}>Play a few quizzes and your breakdown shows up here.</div>
-        ) : (
-          <div style={{ overflow: 'auto' }}>
-            <table>
-              <thead><tr>
-                {CAT_COLS.map((col) => (
-                  <th key={col.key} onClick={() => clickCatSort(col)} style={{ textAlign: col.align, whiteSpace: 'nowrap', cursor: 'pointer', userSelect: 'none', color: catSort.col === col.key ? C.accent : undefined }}>
-                    {col.label}{catSort.col === col.key ? (catSort.dir === 'desc' ? ' \u2193' : ' \u2191') : ''}
-                  </th>
-                ))}
-              </tr></thead>
-              <tbody>
-                {scope === 'all' ? (
-                  <tr style={{ background: '#f3f7fe' }}>
-                    <td style={{ fontWeight: 800, whiteSpace: 'nowrap' }}>Overall</td>
-                    <td style={{ textAlign: 'right', whiteSpace: 'nowrap' }}><b>{a.correct.toLocaleString()}</b><RankChip rank={ranks.correct} />{base.correct != null ? <div style={{ fontSize: 9.5, color: C.muted }}>avg {base.correct.toLocaleString()}</div> : null}</td>
-                    <td style={{ textAlign: 'right', whiteSpace: 'nowrap' }}><b>{a.played.toLocaleString()}</b><RankChip rank={ranks.played} />{base.played != null ? <div style={{ fontSize: 9.5, color: C.muted }}>avg {base.played.toLocaleString()}</div> : null}</td>
-                    <td style={{ textAlign: 'right', whiteSpace: 'nowrap' }}><b>{a.completed.toLocaleString()}</b>{totalQuizzes ? <span style={{ fontSize: 10, color: C.soft, marginLeft: 4 }}>({completedPct(a.completed, totalQuizzes)})</span> : null}<RankChip rank={ranks.completed} />{base.completed != null ? <div style={{ fontSize: 9.5, color: C.muted }}>avg {base.completed.toLocaleString()}</div> : null}</td>
-                    <td style={{ textAlign: 'right', whiteSpace: 'nowrap' }}><b>{a.accuracy}%</b><RankChip rank={ranks.accuracy} />{base.accuracy != null ? <div style={{ fontSize: 9.5, color: C.muted }}>avg {base.accuracy}%</div> : null}</td>
-                    <td style={{ textAlign: 'right', whiteSpace: 'nowrap' }}><b>{a.daysPlayed || 0}</b><RankChip rank={ranks.daysPlayed} />{base.daysPlayed != null ? <div style={{ fontSize: 9.5, color: C.muted }}>avg {base.daysPlayed.toLocaleString()}</div> : null}</td>
-                    <td className="score" style={{ textAlign: 'right', color: C.accent, whiteSpace: 'nowrap' }}><b>{(me.rating || 1500).toLocaleString()}</b><RankChip rank={ranks.rating} total={totalPlayers} />{base.rating != null ? <div style={{ fontSize: 9.5, color: C.muted }}>avg {base.rating.toLocaleString()}</div> : null}</td>
-                  </tr>
-                ) : null}
-                {sortedCatRows.map((c) => {
-                  const cr = byCat[c.key];
-                  const muted = !cr;
-                  return (
-                    <tr key={c.key}>
-                      <td style={{ fontWeight: 600, whiteSpace: 'nowrap' }}><span className="dot" style={{ background: c.c, display: 'inline-block', marginRight: 8, verticalAlign: 'middle' }} />{c.label}</td>
-                      <td style={{ textAlign: 'right', color: muted ? C.soft : C.ink, whiteSpace: 'nowrap' }}>{cr ? cr.correct.toLocaleString() : '\u2014'}{cr && cr.correctRank ? <RankChip rank={cr.correctRank} /> : null}</td>
-                      <td style={{ textAlign: 'right', color: muted ? C.soft : C.ink, whiteSpace: 'nowrap' }}>{cr ? (cr.played != null ? cr.played : cr.matches) : '\u2014'}{cr && cr.playedRank ? <RankChip rank={cr.playedRank} /> : null}</td>
-                      <td style={{ textAlign: 'right', color: muted ? C.soft : C.ink, whiteSpace: 'nowrap' }}>{cr ? <>{cr.completed}{c.count ? <span style={{ fontSize: 10, color: C.soft, marginLeft: 4 }}>({completedPct(cr.completed, c.count)})</span> : null}</> : '\u2014'}{cr && cr.completedRank ? <RankChip rank={cr.completedRank} /> : null}</td>
-                      <td style={{ textAlign: 'right', color: muted ? C.soft : C.ink, whiteSpace: 'nowrap' }}>{cr ? `${cr.accuracy}%` : '\u2014'}{cr && cr.accuracyRank ? <RankChip rank={cr.accuracyRank} /> : null}</td>
-                      <td style={{ textAlign: 'right', color: muted ? C.soft : C.ink, whiteSpace: 'nowrap' }}>{cr ? (cr.daysPlayed || 0) : '\u2014'}{cr && cr.daysRank ? <RankChip rank={cr.daysRank} /> : null}</td>
-                      <td className="score" style={{ textAlign: 'right', color: muted ? C.soft : C.accent, whiteSpace: 'nowrap' }}>{cr ? cr.rating.toLocaleString() : '\u2014'}{cr && cr.rank ? <RankChip rank={cr.rank} total={cr.catTotal} /> : null}</td>
-                    </tr>
-                  );
-                })}
-              </tbody>
-            </table>
-            <div style={{ fontSize: 10.5, color: C.soft, marginTop: 8 }}>The Overall row ranks you against all {totalPlayers.toLocaleString()} players on every metric (avg = player-base average) and stays pinned on top. Each #rank chip in a category row is your standing among the players active in that category. Tap any column header to sort.</div>
-          </div>
-        )}
+        <UserBaseBody board={board} myName={myName} myAnonKey={myAnonKey} onSelectPlayer={onSelectPlayer} viewKey={viewKey} />
       </div>
       )}
     </div>
   );
 }
 
-// Per-quiz play feed: the current player's recent games, newest first, each
-// linking to that quiz. Lives under the Player tab's "Activity Feed" view.
-function ActivityFeed({ recent, titleById, viewing }) {
-  if (!recent || !recent.length) return <div style={{ fontSize: 13, color: C.soft, padding: '6px 0' }}>No games on record yet. Play a quiz and it shows up here.</div>;
+// ─── Category view: cards by default, the classic table behind a toggle ─────
+function CategoryView({ me, scope, cats, totalQuizzes, viewing }) {
+  const found = me && me.found;
+  const [mode, setMode] = useState('cards');
+  const a = found ? me.activity : { correct: 0, answered: 0, played: 0, completed: 0, accuracy: 0, daysPlayed: 0 };
+  const ranks = (found && me.ranks) || {};
+  const base = (found && me.base) || {};
+  const totalPlayers = (found && me.totalPlayers) || 0;
+  const byCat = (found && me.byCategory) || {};
+  const catRows = (scope === 'all' ? cats : cats.filter((c) => c.key === scope));
+
+  // Column sort for the table mode. The Overall row stays pinned on top.
+  const [catSort, setCatSort] = useState({ col: 'rating', dir: 'desc' });
+  const sortedCatRows = useMemo(() => {
+    if (!catSort.col) return catRows;
+    const col = CAT_COLS.find((cc) => cc.key === catSort.col) || CAT_COLS[0];
+    const arr = [...catRows];
+    arr.sort((A, B) => {
+      const crA = byCat[A.key], crB = byCat[B.key];
+      if (col.key !== 'label') {
+        if (!crA && !crB) return A.label.localeCompare(B.label);
+        if (!crA) return 1;
+        if (!crB) return -1;
+      }
+      const av = col.get(A, crA || {});
+      const bv = col.get(B, crB || {});
+      let cmp = typeof av === 'string' ? av.localeCompare(bv) : ((av || 0) - (bv || 0));
+      if (catSort.dir === 'desc') cmp = -cmp;
+      return cmp;
+    });
+    return arr;
+  }, [catRows, catSort, byCat]);
+  const clickCatSort = (col) => setCatSort((st) => (st.col === col.key
+    ? { col: col.key, dir: st.dir === 'desc' ? 'asc' : 'desc' }
+    : { col: col.key, dir: col.key === 'label' ? 'asc' : 'desc' }));
+
+  // Card-mode ordering: played categories by rating desc, unplayed after.
+  const playedCats = catRows.filter((c) => byCat[c.key] && byCat[c.key].matches > 0)
+    .sort((x, y) => (byCat[y.key].rating || 0) - (byCat[x.key].rating || 0));
+  const unplayedCats = catRows.filter((c) => !byCat[c.key] || !(byCat[c.key].matches > 0));
+  // Crown = best rating RANK (the standing, not the raw number); ties break to
+  // the higher rating.
+  let crownKey = null;
+  for (const c of playedCats) {
+    const cr = byCat[c.key];
+    if (!crownKey) { crownKey = c.key; continue; }
+    const b = byCat[crownKey];
+    if ((cr.rank || 9e9) < (b.rank || 9e9) || ((cr.rank || 9e9) === (b.rank || 9e9) && (cr.rating || 0) > (b.rating || 0))) crownKey = c.key;
+  }
+  const maxR = playedCats.length ? Math.max(...playedCats.map((c) => byCat[c.key].rating || 0)) : 1500;
+  const barPct = (r) => Math.round(Math.max(12, Math.min(100, ((r - 1250) / Math.max(1, maxR - 1250)) * 100)));
+
+  if (!found) return <div className="card" style={{ padding: '14px 16px', fontSize: 13, color: C.soft }}>Play a few quizzes and the category breakdown shows up here.</div>;
+
+  const modeBtn = (v, lbl) => (
+    <button onClick={() => setMode(v)} className={`pvbtn${mode === v ? ' on' : ''}`} style={mode === v ? undefined : undefined}>{lbl}</button>
+  );
+
   return (
-    <div style={{ overflow: 'auto', maxHeight: 600 }}>
-      <table>
-        <thead><tr>
-          <th>Quiz</th>
-          <th style={{ textAlign: 'right' }}>When</th>
-          <th style={{ textAlign: 'right' }}>{viewing ? 'User %' : 'Your %'}</th>
-          <th style={{ textAlign: 'right' }}>Rating &Delta;</th>
-          <th style={{ textAlign: 'right' }}>Rank &Delta;</th>
-          <th style={{ textAlign: 'right' }}>Cat. Rank &Delta;</th>
-        </tr></thead>
-        <tbody>
-          {recent.map((m, i) => {
-            const title = (titleById && titleById[m.quizId]) || m.quizId;
-            const when = m.createdAt ? new Date(m.createdAt).toLocaleString('en-US', { month: 'short', day: 'numeric', year: 'numeric', hour: 'numeric', minute: '2-digit' }) : '\u2014';
+    <div>
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: 2, marginBottom: 10, background: '#eef0f2', borderRadius: 8, padding: 3, width: 'fit-content', marginLeft: 'auto' }}>
+        {modeBtn('cards', 'Cards')}
+        {modeBtn('table', 'Table')}
+      </div>
+      {mode === 'cards' ? (
+        <div>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(200px,1fr))', gap: 10 }}>
+            {playedCats.map((c) => {
+              const cr = byCat[c.key];
+              const crowned = c.key === crownKey && playedCats.length > 1;
+              const first = (cr.rank || 0) === 1;
+              return (
+                <div key={c.key} className="card" style={{ padding: '13px 14px', position: 'relative', ...(crowned ? { border: '1.5px solid #f0d9a8', background: '#fffdf5' } : {}) }}>
+                  {crowned ? <span style={{ position: 'absolute', top: 10, right: 12, color: '#e8b43a', display: 'flex' }} title={viewing ? 'Best category' : 'Your best category'}><Crown size={17} /></span> : null}
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 7 }}>
+                    <span className="dot" style={{ background: c.c, borderRadius: '50%', width: 9, height: 9 }} />
+                    <span style={{ fontSize: 13, fontWeight: 800 }}>{c.label}</span>
+                  </div>
+                  <div style={{ display: 'flex', alignItems: 'baseline', gap: 8, marginTop: 6, flexWrap: 'wrap' }}>
+                    <span style={{ fontSize: 21, fontWeight: 800, color: C.accent, fontVariantNumeric: 'tabular-nums' }}>{(cr.rating || 0).toLocaleString()}</span>
+                    {cr.rank ? <span style={{ fontSize: 10.5, fontWeight: 800, background: first ? '#fbf2dc' : C.accsoft, color: first ? '#a97b12' : C.accent, borderRadius: 999, padding: '2px 8px' }}>#{cr.rank}{cr.catTotal ? ` of ${cr.catTotal.toLocaleString()}` : ''}</span> : null}
+                  </div>
+                  <div style={{ height: 6, borderRadius: 999, background: '#eef0f2', overflow: 'hidden', marginTop: 8 }}><div style={{ width: `${barPct(cr.rating || 0)}%`, height: '100%', background: c.c, borderRadius: 999 }} /></div>
+                  <div style={{ fontSize: 11, color: C.muted, fontWeight: 600, marginTop: 7 }}>
+                    {cr.accuracy}% accuracy · {cr.completed} completed{crowned && first ? (viewing ? ' · crown category' : ' · your crown to defend') : ''}
+                  </div>
+                </div>
+              );
+            })}
+            {unplayedCats.map((c) => (
+              <div key={c.key} style={{ border: `1.5px dashed ${C.line}`, borderRadius: 12, padding: '13px 14px', minWidth: 0 }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 7 }}>
+                  <span style={{ width: 9, height: 9, borderRadius: '50%', background: '#b4b2a9', flex: 'none' }} />
+                  <span style={{ fontSize: 13, fontWeight: 800, color: C.muted }}>{c.label}</span>
+                </div>
+                <div style={{ fontSize: 12, color: C.soft, fontWeight: 600, marginTop: 8 }}>Unplayed. One quiz puts {viewing ? 'this player' : 'you'} on this board.</div>
+                <Link href="/quizzes" style={{ display: 'inline-block', marginTop: 8, fontSize: 11.5, fontWeight: 800, color: C.accent, textDecoration: 'none' }}>Browse {c.label} quizzes →</Link>
+              </div>
+            ))}
+          </div>
+          <div style={{ fontSize: 10.5, color: C.soft, marginTop: 10 }}>Each #rank chip is the standing among players active in that category. The bar compares skill ratings across {viewing ? 'this player' : 'your'}{viewing ? "'s" : ''} categories.</div>
+        </div>
+      ) : (
+      <div className="card" style={{ padding: '14px 16px' }}>
+        <div style={{ overflow: 'auto' }}>
+          <table>
+            <thead><tr>
+              {CAT_COLS.map((col) => (
+                <th key={col.key} onClick={() => clickCatSort(col)} style={{ textAlign: col.align, whiteSpace: 'nowrap', cursor: 'pointer', userSelect: 'none', color: catSort.col === col.key ? C.accent : undefined }}>
+                  {col.label}{catSort.col === col.key ? (catSort.dir === 'desc' ? ' ↓' : ' ↑') : ''}
+                </th>
+              ))}
+            </tr></thead>
+            <tbody>
+              {scope === 'all' ? (
+                <tr style={{ background: '#f3f7fe' }}>
+                  <td style={{ fontWeight: 800, whiteSpace: 'nowrap' }}>Overall</td>
+                  <td style={{ textAlign: 'right', whiteSpace: 'nowrap' }}><b>{a.correct.toLocaleString()}</b><RankChip rank={ranks.correct} />{base.correct != null ? <div style={{ fontSize: 9.5, color: C.muted }}>avg {base.correct.toLocaleString()}</div> : null}</td>
+                  <td style={{ textAlign: 'right', whiteSpace: 'nowrap' }}><b>{a.played.toLocaleString()}</b><RankChip rank={ranks.played} />{base.played != null ? <div style={{ fontSize: 9.5, color: C.muted }}>avg {base.played.toLocaleString()}</div> : null}</td>
+                  <td style={{ textAlign: 'right', whiteSpace: 'nowrap' }}><b>{a.completed.toLocaleString()}</b>{totalQuizzes ? <span style={{ fontSize: 10, color: C.soft, marginLeft: 4 }}>({completedPct(a.completed, totalQuizzes)})</span> : null}<RankChip rank={ranks.completed} />{base.completed != null ? <div style={{ fontSize: 9.5, color: C.muted }}>avg {base.completed.toLocaleString()}</div> : null}</td>
+                  <td style={{ textAlign: 'right', whiteSpace: 'nowrap' }}><b>{a.accuracy}%</b><RankChip rank={ranks.accuracy} />{base.accuracy != null ? <div style={{ fontSize: 9.5, color: C.muted }}>avg {base.accuracy}%</div> : null}</td>
+                  <td style={{ textAlign: 'right', whiteSpace: 'nowrap' }}><b>{a.daysPlayed || 0}</b><RankChip rank={ranks.daysPlayed} />{base.daysPlayed != null ? <div style={{ fontSize: 9.5, color: C.muted }}>avg {base.daysPlayed.toLocaleString()}</div> : null}</td>
+                  <td className="score" style={{ textAlign: 'right', color: C.accent, whiteSpace: 'nowrap' }}><b>{(me.rating || 1500).toLocaleString()}</b><RankChip rank={ranks.rating} total={totalPlayers} />{base.rating != null ? <div style={{ fontSize: 9.5, color: C.muted }}>avg {base.rating.toLocaleString()}</div> : null}</td>
+                </tr>
+              ) : null}
+              {sortedCatRows.map((c) => {
+                const cr = byCat[c.key];
+                const muted = !cr;
+                return (
+                  <tr key={c.key}>
+                    <td style={{ fontWeight: 600, whiteSpace: 'nowrap' }}><span className="dot" style={{ background: c.c, display: 'inline-block', marginRight: 8, verticalAlign: 'middle' }} />{c.label}</td>
+                    <td style={{ textAlign: 'right', color: muted ? C.soft : C.ink, whiteSpace: 'nowrap' }}>{cr ? cr.correct.toLocaleString() : '—'}{cr && cr.correctRank ? <RankChip rank={cr.correctRank} /> : null}</td>
+                    <td style={{ textAlign: 'right', color: muted ? C.soft : C.ink, whiteSpace: 'nowrap' }}>{cr ? (cr.played != null ? cr.played : cr.matches) : '—'}{cr && cr.playedRank ? <RankChip rank={cr.playedRank} /> : null}</td>
+                    <td style={{ textAlign: 'right', color: muted ? C.soft : C.ink, whiteSpace: 'nowrap' }}>{cr ? <>{cr.completed}{c.count ? <span style={{ fontSize: 10, color: C.soft, marginLeft: 4 }}>({completedPct(cr.completed, c.count)})</span> : null}</> : '—'}{cr && cr.completedRank ? <RankChip rank={cr.completedRank} /> : null}</td>
+                    <td style={{ textAlign: 'right', color: muted ? C.soft : C.ink, whiteSpace: 'nowrap' }}>{cr ? `${cr.accuracy}%` : '—'}{cr && cr.accuracyRank ? <RankChip rank={cr.accuracyRank} /> : null}</td>
+                    <td style={{ textAlign: 'right', color: muted ? C.soft : C.ink, whiteSpace: 'nowrap' }}>{cr ? (cr.daysPlayed || 0) : '—'}{cr && cr.daysRank ? <RankChip rank={cr.daysRank} /> : null}</td>
+                    <td className="score" style={{ textAlign: 'right', color: muted ? C.soft : C.accent, whiteSpace: 'nowrap' }}>{cr ? cr.rating.toLocaleString() : '—'}{cr && cr.rank ? <RankChip rank={cr.rank} total={cr.catTotal} /> : null}</td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+          <div style={{ fontSize: 10.5, color: C.soft, marginTop: 8 }}>The Overall row ranks you against all {totalPlayers.toLocaleString()} players on every metric (avg = player-base average) and stays pinned on top. Each #rank chip in a category row is your standing among the players active in that category. Tap any column header to sort.</div>
+        </div>
+      </div>
+      )}
+    </div>
+  );
+}
+
+// Activity view: play-streak stats + a 12-week heatmap, milestone highlights
+// (perfects, personal bests, big rating jumps), then the full game log. All of
+// it derives client-side from `recent`, which carries the player's FULL history.
+function ActivityFeed({ recent, titleById, viewing }) {
+  const who = viewing ? 'This player' : 'You';
+  if (!recent || !recent.length) return <div className="card" style={{ padding: '14px 16px', fontSize: 13, color: C.soft }}>No games on record yet. Play a quiz and it shows up here.</div>;
+  const DAY = 86400000;
+  const keyOf = (t) => new Date(t).toISOString().slice(0, 10);
+  const counts = new Map();
+  for (const m of recent) { const k = m.createdAt ? String(m.createdAt).slice(0, 10) : null; if (k) counts.set(k, (counts.get(k) || 0) + 1); }
+  // Current streak: consecutive UTC days ending today (or yesterday, so an
+  // unplayed today doesn't zero a live streak).
+  let curStreak = 0;
+  { let t = Date.now(); if (!counts.has(keyOf(t))) t -= DAY; while (counts.has(keyOf(t))) { curStreak += 1; t -= DAY; } }
+  let bestStreak = 0;
+  { const keys = [...counts.keys()].sort(); let run = 0, prev = null;
+    for (const k of keys) { const t = Date.parse(k); run = prev != null && t - prev === DAY ? run + 1 : 1; prev = t; if (run > bestStreak) bestStreak = run; } }
+  const daysPlayed = counts.size;
+  // Heatmap cells: the last 84 days, oldest first, filled column-major so each
+  // column is a week and the newest week sits on the right.
+  const HM = ['#eef0f2', '#b5d4f4', '#85b7eb', '#2563eb'];
+  const cells = [];
+  { const start = Date.now() - 83 * DAY;
+    for (let i = 0; i < 84; i++) { const n = counts.get(keyOf(start + i * DAY)) || 0; cells.push(n === 0 ? 0 : n === 1 ? 1 : n <= 3 ? 2 : 3); } }
+  // Milestones, oldest-to-newest so "personal best" compares against real history.
+  const hist = recent.slice().reverse();
+  const bestByQuiz = new Map();
+  const events = [];
+  const tOf = (id) => (titleById && titleById[id]) || id;
+  for (const m of hist) {
+    const prevB = bestByQuiz.get(m.quizId);
+    if (m.scorePct === 100 && (prevB == null || prevB < 100)) {
+      events.push({ kind: 'perfect', quizId: m.quizId, when: m.createdAt, chip: '100%' });
+    } else if (prevB != null && m.scorePct > prevB) {
+      events.push({ kind: 'pb', quizId: m.quizId, when: m.createdAt, sub: `${m.scorePct}%, up from ${prevB}%`, chip: `+${m.scorePct - prevB}%` });
+    }
+    if ((m.delta || 0) >= 12) events.push({ kind: 'surge', quizId: m.quizId, when: m.createdAt, sub: `${m.scorePct}% on a heavyweight quiz`, chip: `+${m.delta}` });
+    if (prevB == null || m.scorePct > prevB) bestByQuiz.set(m.quizId, m.scorePct);
+  }
+  const mile = events.slice(-8).reverse();
+  const fmtWhen = (iso) => (iso ? new Date(iso).toLocaleString('en-US', { month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' }) : '—');
+  const MK = {
+    perfect: { bg: '#fbf2dc', fg: '#a97b12', Icon: Star, label: (q) => `Perfect score on ${q}` },
+    pb: { bg: '#e6f7f0', fg: '#0b7a55', Icon: Trophy, label: (q) => `New personal best on ${q}` },
+    surge: { bg: C.accsoft, fg: C.accent, Icon: ArrowUpRight, label: (q) => `Big rating jump on ${q}` },
+  };
+  const statLbl = { fontSize: 10, color: C.soft, fontWeight: 800, letterSpacing: '.05em', textTransform: 'uppercase' };
+  return (
+    <div>
+      <div className="card" style={{ padding: '14px 16px', marginBottom: 10 }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 18, flexWrap: 'wrap' }}>
+          <span style={{ flex: 'none' }}>
+            <span style={{ display: 'flex', alignItems: 'center', gap: 5 }}>
+              {curStreak >= 2 ? <span className="flameon" style={{ display: 'inline-flex', color: '#f59008' }}><Flame size={19} /></span> : null}
+              <span style={{ fontSize: 23, fontWeight: 800 }}>{curStreak}</span>
+            </span>
+            <span style={statLbl}>Day streak</span>
+          </span>
+          <span style={{ flex: 'none' }}>
+            <span style={{ display: 'block', fontSize: 23, fontWeight: 800 }}>{bestStreak}</span>
+            <span style={statLbl}>Best streak</span>
+          </span>
+          <span style={{ flex: 'none' }}>
+            <span style={{ display: 'block', fontSize: 23, fontWeight: 800 }}>{daysPlayed}</span>
+            <span style={statLbl}>Days played</span>
+          </span>
+          <span style={{ flex: 1, minWidth: 200 }}>
+            <span style={{ display: 'grid', gridTemplateRows: 'repeat(7, 10px)', gridAutoFlow: 'column', gridAutoColumns: '10px', gap: 3, justifyContent: 'end' }}>
+              {cells.map((lv, i) => <span key={i} style={{ width: 10, height: 10, borderRadius: 3, background: HM[lv] }} />)}
+            </span>
+            <span style={{ display: 'block', fontSize: 10, color: C.soft, fontWeight: 700, textAlign: 'right', marginTop: 5, letterSpacing: '.04em' }}>LAST 12 WEEKS · DARKER = MORE PLAYED</span>
+          </span>
+        </div>
+      </div>
+      {mile.length > 0 && (
+        <div className="card" style={{ padding: '6px 14px', marginBottom: 10 }}>
+          <div style={{ padding: '8px 0 2px', fontSize: 13, fontWeight: 800 }}>Milestones</div>
+          {mile.map((ev, i) => {
+            const mk = MK[ev.kind];
+            const Ic = mk.Icon;
             return (
-              <tr key={i}>
-                <td style={{ fontWeight: 600, whiteSpace: 'nowrap' }}><Link href={`/quiz/${m.quizId}`} style={{ color: C.ink, textDecoration: 'none' }}>{title}</Link></td>
-                <td style={{ textAlign: 'right', color: C.muted, whiteSpace: 'nowrap' }}>{when}</td>
-                <td style={{ textAlign: 'right' }}>{m.scorePct}%</td>
-                <td className="score" style={{ textAlign: 'right', color: (m.delta >= 0) ? C.accent : C.danger, fontWeight: 700 }}>{m.delta >= 0 ? `+${m.delta}` : m.delta}</td>
-                <td style={{ textAlign: 'right', fontWeight: 700, color: m.rankDelta > 0 ? C.accent : m.rankDelta < 0 ? C.danger : C.muted }}>{m.rankDelta == null ? '\u2014' : m.rankDelta === 0 ? '\u00b10' : m.rankDelta > 0 ? `+${m.rankDelta}` : m.rankDelta}</td>
-                <td style={{ textAlign: 'right', fontWeight: 700, color: m.catRankDelta > 0 ? C.accent : m.catRankDelta < 0 ? C.danger : C.muted }}>{m.catRankDelta == null ? '\u2014' : m.catRankDelta === 0 ? '\u00b10' : m.catRankDelta > 0 ? `+${m.catRankDelta}` : m.catRankDelta}</td>
-              </tr>
+              <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '9px 0', borderBottom: i < mile.length - 1 ? `1px solid ${C.line}` : 'none' }}>
+                <span style={{ flex: 'none', width: 30, height: 30, borderRadius: 9, background: mk.bg, color: mk.fg, display: 'flex', alignItems: 'center', justifyContent: 'center' }}><Ic size={15} /></span>
+                <span style={{ flex: 1, minWidth: 0 }}>
+                  <Link href={`/quiz/${ev.quizId}`} style={{ display: 'block', fontSize: 13, fontWeight: 700, color: C.ink, textDecoration: 'none', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{mk.label(tOf(ev.quizId))}</Link>
+                  <span style={{ display: 'block', fontSize: 11.5, color: C.soft, fontWeight: 600 }}>{fmtWhen(ev.when)}{ev.sub ? ` · ${ev.sub}` : ''}</span>
+                </span>
+                <span style={{ flex: 'none', fontSize: 11, fontWeight: 800, background: mk.bg, color: mk.fg, borderRadius: 999, padding: '2px 8px' }}>{ev.chip}</span>
+              </div>
             );
           })}
-        </tbody>
-      </table>
+        </div>
+      )}
+      <div className="card" style={{ padding: '4px 14px' }}>
+        <div style={{ padding: '10px 0 4px', fontSize: 13, fontWeight: 800 }}>Full Game Log</div>
+        <div style={{ overflow: 'auto', maxHeight: 600 }}>
+          <table>
+            <thead><tr>
+              <th>Quiz</th>
+              <th style={{ textAlign: 'right' }}>When</th>
+              <th style={{ textAlign: 'right' }}>{viewing ? 'User %' : 'Your %'}</th>
+              <th style={{ textAlign: 'right' }}>Rating &Delta;</th>
+              <th style={{ textAlign: 'right' }}>Rank &Delta;</th>
+              <th style={{ textAlign: 'right' }}>Cat. Rank &Delta;</th>
+            </tr></thead>
+            <tbody>
+              {recent.map((m, i) => {
+                const title = (titleById && titleById[m.quizId]) || m.quizId;
+                const when = m.createdAt ? new Date(m.createdAt).toLocaleString('en-US', { month: 'short', day: 'numeric', year: 'numeric', hour: 'numeric', minute: '2-digit' }) : '—';
+                return (
+                  <tr key={i}>
+                    <td style={{ fontWeight: 600, whiteSpace: 'nowrap' }}><Link href={`/quiz/${m.quizId}`} style={{ color: C.ink, textDecoration: 'none' }}>{title}</Link></td>
+                    <td style={{ textAlign: 'right', color: C.muted, whiteSpace: 'nowrap' }}>{when}</td>
+                    <td style={{ textAlign: 'right' }}>{m.scorePct}%</td>
+                    <td className="score" style={{ textAlign: 'right', color: (m.delta >= 0) ? C.accent : C.danger, fontWeight: 700 }}>{m.delta >= 0 ? `+${m.delta}` : m.delta}</td>
+                    <td style={{ textAlign: 'right', fontWeight: 700, color: m.rankDelta > 0 ? C.accent : m.rankDelta < 0 ? C.danger : C.muted }}>{m.rankDelta == null ? '—' : m.rankDelta === 0 ? '±0' : m.rankDelta > 0 ? `+${m.rankDelta}` : m.rankDelta}</td>
+                    <td style={{ textAlign: 'right', fontWeight: 700, color: m.catRankDelta > 0 ? C.accent : m.catRankDelta < 0 ? C.danger : C.muted }}>{m.catRankDelta == null ? '—' : m.catRankDelta === 0 ? '±0' : m.catRankDelta > 0 ? `+${m.catRankDelta}` : m.catRankDelta}</td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+        </div>
+      </div>
     </div>
   );
 }
 
 // Full ranking BODY (no card chrome; the card, title, and toggle live in
-// PlayerPanel). Every player registered + anonymous, current row highlighted.
+// PlayerPanel). Podium + chase card on top, then every player registered +
+// anonymous in the sortable table, current row highlighted.
+const tierNameOf = (r) => (r >= 1800 ? 'Master' : r >= 1650 ? 'Diamond' : r >= 1500 ? 'Gold' : r >= 1350 ? 'Silver' : 'Bronze');
 function UserBaseBody({ board, myName, myAnonKey, onSelectPlayer, viewKey }) {
   const [sort, setSort] = useState({ col: 'rating', dir: 'desc' });
   if (!board) return <div style={{ fontSize: 13, color: C.soft, padding: '6px 0' }}>Loading the full ranking…</div>;
   if (!board.length) return <div style={{ fontSize: 13, color: C.soft, padding: '6px 0' }}>No ranked players yet.</div>;
+  const isMine = (p) => (myAnonKey && p.userKey === myAnonKey) || (myName && !p.isAnon && p.name === myName);
+  const hasTrend = board.some((p) => p.trend7d !== undefined);
+  const trendCell = (p) => {
+    if (p.trend7d === undefined) return <span style={{ color: C.soft }}>—</span>;
+    if (p.trend7d == null) return <span style={{ fontSize: 10.5, fontWeight: 800, color: C.soft, letterSpacing: '.03em' }}>NEW</span>;
+    if (p.trend7d > 0) return <span style={{ fontWeight: 800, color: C.live }}>▲ {p.trend7d}</span>;
+    if (p.trend7d < 0) return <span style={{ fontWeight: 800, color: C.danger }}>▼ {Math.abs(p.trend7d)}</span>;
+    return <span style={{ fontWeight: 700, color: C.muted }}>±0</span>;
+  };
+  // Podium + chase read the board in its served (rating) order regardless of
+  // how the table below is sorted.
+  const top3 = board.slice(0, 3);
+  const myIdx = board.findIndex(isMine);
+  const my = myIdx >= 0 ? board[myIdx] : null;
+  let chase = null;
+  if (my) {
+    if (myIdx === 0) {
+      const second = board[1];
+      chase = { title: 'You hold #1', sub: second ? `${second.name} is ${Math.max(0, (my.rating || 0) - (second.rating || 0))} pts behind you. Stay sharp.` : 'The board is yours.', pct: 100, cta: 'Defend #1' };
+    } else {
+      const ahead = board[myIdx - 1];
+      const below = board[myIdx + 1];
+      const gap = Math.max(0, (ahead.rating || 0) - (my.rating || 0));
+      let sub = gap === 0 ? `You are tied with ${ahead.name} at ${(my.rating || 0).toLocaleString()}.` : `${ahead.name} sits at ${(ahead.rating || 0).toLocaleString()}.`;
+      if (below) {
+        const back = Math.max(0, (my.rating || 0) - (below.rating || 0));
+        sub += back === 0 ? ` ${below.name} is tied right behind you.` : ` ${below.name} is ${back} pts behind you.`;
+      }
+      chase = {
+        title: gap === 0 ? `Tied for #${myIdx}: any game breaks it` : `The chase: ${gap} pts to #${myIdx}`,
+        sub,
+        pct: Math.round(Math.max(6, Math.min(96, ((my.rating || 0) / Math.max(1, ahead.rating || 1)) * 100))),
+        cta: `Chase #${myIdx}`,
+      };
+    }
+  }
   const COLS = [
     { key: 'rank', label: 'Rank', w: 60, align: 'left' },
     { key: 'name', label: 'Player', align: 'left', get: (p) => (p.name || '').toLowerCase() },
     { key: 'rating', label: 'Skill Rating', align: 'right', get: (p) => p.rating || 0 },
+    ...(hasTrend ? [{ key: 'trend', label: '7-Day', align: 'right', get: (p) => (p.trend7d == null ? -1e9 : p.trend7d) }] : []),
     { key: 'correct', label: 'Correct', align: 'right', get: (p) => p.correct || 0 },
     { key: 'completed', label: 'Completed', align: 'right', get: (p) => p.completed || 0 },
     { key: 'daysPlayed', label: 'Days', align: 'right', get: (p) => p.daysPlayed || 0 },
@@ -808,7 +1199,37 @@ function UserBaseBody({ board, myName, myAnonKey, onSelectPlayer, viewKey }) {
   const clickSort = (c) => { if (!c.get) return; setSort((st) => st.col === c.key ? { col: c.key, dir: st.dir === 'desc' ? 'asc' : 'desc' } : { col: c.key, dir: c.key === 'name' ? 'asc' : 'desc' }); };
   return (
     <div>
-      <div style={{ fontSize: 11, color: C.soft, marginBottom: 10 }}>All {board.length.toLocaleString()} players, anonymous guests included. Tap a column to sort; your row is highlighted.</div>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(160px,1fr))', gap: 10, marginBottom: 12 }}>
+        {top3.map((p, i) => {
+          const mine = isMine(p);
+          return (
+            <div key={p.userKey} style={{ background: mine ? '#f3f7fe' : C.bg, border: `1px solid ${mine ? '#c6d8f5' : C.line}`, borderTop: `3px solid ${MEDAL[i]}`, borderRadius: '0 0 12px 12px', padding: i === 0 ? '15px 14px' : '13px 14px', textAlign: 'center', minWidth: 0 }}>
+              <span style={{ position: 'relative', display: 'inline-flex', flexDirection: 'column', alignItems: 'center' }}>
+                {i === 0 ? <span style={{ color: MEDAL[0], display: 'flex', marginBottom: 1 }}><Crown size={15} /></span> : null}
+                <Avatar name={p.name} bg={MEDAL_BG[i]} fg={MEDAL[i]} size={i === 0 ? 44 : 38} />
+              </span>
+              <div style={{ marginTop: 6, fontSize: i === 0 ? 13.5 : 13, fontWeight: 800, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                <button onClick={() => onSelectPlayer && onSelectPlayer(p.userKey)} style={{ border: 'none', background: 'transparent', padding: 0, font: 'inherit', fontFamily: FONT, fontWeight: 800, color: mine ? C.ink : C.accent, cursor: 'pointer' }}>{p.name}</button>
+                {mine ? <span style={{ fontSize: 9.5, color: C.accent, fontWeight: 800, marginLeft: 5 }}>YOU</span> : null}
+              </div>
+              <div style={{ fontSize: i === 0 ? 22 : 19, fontWeight: 800, marginTop: 1, fontVariantNumeric: 'tabular-nums' }}>{(p.rating || 0).toLocaleString()}</div>
+              <div style={{ fontSize: 10, color: C.soft, fontWeight: 800, letterSpacing: '.05em', marginTop: 1 }}>{tierNameOf(p.rating || 0).toUpperCase()} · {p.accuracy || 0}% ACC</div>
+            </div>
+          );
+        })}
+      </div>
+      {chase ? (
+        <div style={{ background: C.bg, borderRadius: 12, padding: '13px 14px', marginBottom: 12, display: 'flex', alignItems: 'center', gap: 12, flexWrap: 'wrap' }}>
+          <span style={{ flex: 'none', color: C.accent, background: C.accsoft, borderRadius: 10, width: 36, height: 36, display: 'flex', alignItems: 'center', justifyContent: 'center' }}><Target size={19} /></span>
+          <span style={{ flex: 1, minWidth: 200 }}>
+            <span style={{ display: 'block', fontSize: 13, fontWeight: 800 }}>{chase.title}</span>
+            <span style={{ display: 'block', fontSize: 12, color: C.muted, fontWeight: 600, marginTop: 1 }}>{chase.sub}</span>
+            <span style={{ display: 'block', height: 6, borderRadius: 999, background: '#e4e7ec', marginTop: 8, overflow: 'hidden' }}><span style={{ display: 'block', width: `${chase.pct}%`, height: '100%', background: C.accent, borderRadius: 999 }} /></span>
+          </span>
+          <Link href="/quizzes" style={{ flex: 'none', fontSize: 12, fontWeight: 800, color: '#fff', background: C.accent, borderRadius: 9, padding: '8px 14px', textDecoration: 'none' }}>{chase.cta}</Link>
+        </div>
+      ) : null}
+      <div style={{ fontSize: 11, color: C.soft, marginBottom: 10 }}>All {board.length.toLocaleString()} players, anonymous guests included. Tap a column to sort; your row is highlighted.{hasTrend ? ' 7-Day = skill-rating movement over the last week.' : ''}</div>
       <div style={{ overflow: 'auto', maxHeight: 600 }}>
         <table>
           <thead><tr>
@@ -820,7 +1241,7 @@ function UserBaseBody({ board, myName, myAnonKey, onSelectPlayer, viewKey }) {
           </tr></thead>
           <tbody>
             {sorted.map((p, idx) => {
-              const mine = (myAnonKey && p.userKey === myAnonKey) || (myName && !p.isAnon && p.name === myName);
+              const mine = isMine(p);
               const viewed = !!viewKey && p.userKey === viewKey && !mine;
               const mi = idx < 3 ? idx : -1;
               return (
@@ -828,6 +1249,7 @@ function UserBaseBody({ board, myName, myAnonKey, onSelectPlayer, viewKey }) {
                   <td style={{ fontWeight: 800, color: mi >= 0 ? MEDAL[mi] : C.soft }}>{idx + 1}</td>
                   <td style={{ fontWeight: (mine || viewed) ? 800 : 600, whiteSpace: 'nowrap' }}><button onClick={() => onSelectPlayer && onSelectPlayer(p.userKey)} style={{ border: 'none', background: 'transparent', padding: 0, font: 'inherit', fontFamily: FONT, fontWeight: 'inherit', color: C.accent, cursor: 'pointer', textAlign: 'left' }}>{p.name}</button>{p.isAnon ? <span style={{ fontSize: 10, color: C.soft, fontWeight: 600, marginLeft: 6 }}>guest</span> : null}{mine ? <span style={{ fontSize: 10, color: C.accent, fontWeight: 700, marginLeft: 6 }}>you</span> : null}{viewed ? <span style={{ fontSize: 10, color: '#b5560f', fontWeight: 700, marginLeft: 6 }}>viewing</span> : null}</td>
                   <td className="score" style={{ textAlign: 'right', color: C.accent, fontWeight: 700 }}>{(p.rating || 0).toLocaleString()}</td>
+                  {hasTrend ? <td style={{ textAlign: 'right', whiteSpace: 'nowrap' }}>{trendCell(p)}</td> : null}
                   <td style={{ textAlign: 'right' }}>{(p.correct || 0).toLocaleString()}</td>
                   <td style={{ textAlign: 'right' }}>{p.completed || 0}</td>
                   <td style={{ textAlign: 'right' }}>{p.daysPlayed || 0}</td>
@@ -1116,42 +1538,120 @@ function ChallengesPanel({ me }) {
   );
 }
 // ─── Rating tab ─────────────────────────────────────────────────────────────
+// Skill Rating view: the trend chart and tier progress lead; the Elo formula
+// explainer and components collapse behind a "How this works" toggle.
+const TIER_STEPS = [1350, 1500, 1650, 1800];
+const TIER_NAMES = ['Bronze', 'Silver', 'Gold', 'Diamond', 'Master'];
 function RatingPanel({ me, titleById, viewing }) {
   const found = me && me.found;
   const comp = found ? me.components : { start: 1500, k: 24, matches: 0, netDelta: 0, rating: 1500 };
   const recent = (found && me.recent) || [];
+  const [how, setHow] = useState(false);
+  const rating = found ? (me.rating || 1500) : 1500;
+
+  // Rebuild the rating series from the full match history (oldest first).
+  const hist = recent.slice().reverse();
+  const series = [comp.start];
+  { let cum = comp.start; for (const m of hist) { cum += (m.delta || 0); series.push(cum); } }
+  const peak = Math.round(Math.max(...series));
+  const peakIdx = series.indexOf(Math.max(...series));
+  const peakWhen = peakIdx > 0 && hist[peakIdx - 1] && hist[peakIdx - 1].createdAt
+    ? new Date(hist[peakIdx - 1].createdAt).toLocaleString('en-US', { month: 'short', day: 'numeric' }) : null;
+  const weekCut = Date.now() - 7 * 86400000;
+  const weekDelta = Math.round(hist.reduce((acc, m) => acc + ((m.createdAt && Date.parse(m.createdAt) >= weekCut) ? (m.delta || 0) : 0), 0));
+
+  // Chart geometry: last 80 points, scaled to the data with padding; the next
+  // tier line is drawn only when it falls inside the visible range.
+  const pts = series.slice(-80);
+  const W = 600, H = 110, PAD = 8;
+  let lo = Math.min(...pts), hi = Math.max(...pts);
+  if (hi - lo < 30) { const mid = (hi + lo) / 2; lo = mid - 15; hi = mid + 15; }
+  const X = (i) => (pts.length > 1 ? (i / (pts.length - 1)) * W : W / 2);
+  const Y = (v) => H - PAD - ((v - lo) / Math.max(1, hi - lo)) * (H - 2 * PAD);
+  const line = pts.map((v, i) => `${i === 0 ? 'M' : 'L'}${Math.round(X(i) * 10) / 10},${Math.round(Y(v) * 10) / 10}`).join(' ');
+  const area = `${line} L${W},${H} L0,${H} Z`;
+  const nextStep = TIER_STEPS.find((t) => t > rating) || null;
+  const nextName = nextStep ? TIER_NAMES[TIER_STEPS.indexOf(nextStep) + 1] : null;
+  const bandLo = [...TIER_STEPS].reverse().find((t) => t <= rating) || 1200;
+  const bandPct = nextStep ? Math.round(Math.max(4, Math.min(100, ((rating - bandLo) / (nextStep - bandLo)) * 100))) : 100;
+  const tierLineVisible = nextStep != null && nextStep >= lo && nextStep <= hi;
+  const tierLabel = found && me.tier ? me.tier : 'Unrated';
+  const tierBg = found && me.tierBg ? me.tierBg : '#eceef1';
+  const tierFg = found && me.tierFg ? me.tierFg : C.muted;
+
+  const explainerCards = (
+    <div className="rgrid" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, marginBottom: 14 }}>
+      <div className="card" style={{ padding: '14px 16px' }}>
+        <div style={{ fontSize: 14, fontWeight: 700, marginBottom: 8 }}>How Your Skill Rating Works</div>
+        <p style={{ fontSize: 13, color: C.muted, lineHeight: 1.6, margin: '0 0 10px' }}>
+          Every quiz you finish is a match against that quiz's difficulty. Beat the expected score and your rating rises; fall short and it dips. Heavier, harder quizzes move it more.
+        </p>
+        <p style={{ fontSize: 13, color: C.muted, lineHeight: 1.6, margin: '0 0 10px' }}>
+          <b style={{ color: C.ink }}>Inactivity decay:</b> when you stop playing, your rating drifts back toward the {comp.start.toLocaleString()} baseline, reaching it after three months away. Play any quiz to reset the clock.
+        </p>
+        <div className="formula">
+          E = 1 / (1 + 10<sup>(Dq − R) / 400</sup>)<br />
+          R′ = R + K · (S − E)
+        </div>
+        <div style={{ fontSize: 11.5, color: C.muted, lineHeight: 1.8, marginTop: 10 }}>
+          R = your rating · Dq = quiz difficulty · S = your result (score fraction, 0–1) · E = expected result · K = {comp.k} (volatility)
+        </div>
+      </div>
+      <div className="card" style={{ padding: '14px 16px' }}>
+        <div style={{ fontSize: 14, fontWeight: 700, marginBottom: 10 }}>{viewing ? 'Components' : 'Your Components'}</div>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 0 }}>
+          <div className="hrow" style={{ borderTop: 'none' }}><span style={{ flex: 1 }}>Season Start Rating</span><span style={{ fontWeight: 700 }}>{comp.start.toLocaleString()}</span></div>
+          <div className="hrow"><span style={{ flex: 1 }}>K-Factor (Volatility)</span><span style={{ fontWeight: 700 }}>{comp.k}</span></div>
+          <div className="hrow"><span style={{ flex: 1 }}>Matches Played</span><span style={{ fontWeight: 700 }}>{comp.matches}</span></div>
+          <div className="hrow"><span style={{ flex: 1 }}>Net Rating From Results</span><span className="score" style={{ color: comp.netDelta >= 0 ? C.accent : C.danger }}>{comp.netDelta >= 0 ? `+${comp.netDelta}` : comp.netDelta}</span></div>
+          <div className="hrow"><span style={{ flex: 1 }}>Inactivity Decay</span><span className="score" style={{ color: (comp.decayDelta || 0) < 0 ? C.danger : C.muted }}>{(comp.decayDelta || 0) === 0 ? '0' : comp.decayDelta}</span></div>
+          <div className="hrow" style={{ borderTop: `2px solid ${C.ink}` }}><span style={{ flex: 1, fontWeight: 700 }}>Current Rating</span><span style={{ fontWeight: 800, color: C.accent }}>{comp.rating.toLocaleString()}</span></div>
+        </div>
+      </div>
+    </div>
+  );
 
   return (
     <div>
-      <div className="rgrid" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, marginBottom: 14 }}>
-        <div className="card" style={{ padding: '14px 16px' }}>
-          <div style={{ fontSize: 14, fontWeight: 700, marginBottom: 8 }}>How Your Skill Rating Works</div>
-          <p style={{ fontSize: 13, color: C.muted, lineHeight: 1.6, margin: '0 0 10px' }}>
-            Every quiz you finish is a match against that quiz's difficulty. Beat the expected score and your rating rises; fall short and it dips. Heavier, harder quizzes move it more.
-          </p>
-          <p style={{ fontSize: 13, color: C.muted, lineHeight: 1.6, margin: '0 0 10px' }}>
-            <b style={{ color: C.ink }}>Inactivity decay:</b> when you stop playing, your rating drifts back toward the {comp.start.toLocaleString()} baseline, reaching it after three months away. Play any quiz to reset the clock.
-          </p>
-          <div className="formula">
-            E = 1 / (1 + 10<sup>(Dq − R) / 400</sup>)<br />
-            R′ = R + K · (S − E)
-          </div>
-          <div style={{ fontSize: 11.5, color: C.muted, lineHeight: 1.8, marginTop: 10 }}>
-            R = your rating · Dq = quiz difficulty · S = your result (score fraction, 0–1) · E = expected result · K = {comp.k} (volatility)
-          </div>
+      <div className="card" style={{ padding: '14px 16px', marginBottom: 12 }}>
+        <div style={{ display: 'flex', alignItems: 'baseline', gap: 10, flexWrap: 'wrap' }}>
+          <span style={{ fontSize: 30, fontWeight: 800, color: C.accent, fontVariantNumeric: 'tabular-nums' }}>{rating.toLocaleString()}</span>
+          {comp.matches > 0 ? (
+            <span style={{ fontSize: 11, fontWeight: 800, background: weekDelta > 0 ? '#e6f7f0' : weekDelta < 0 ? '#fdeeee' : '#eef0f2', color: weekDelta > 0 ? '#0b7a55' : weekDelta < 0 ? C.danger : C.muted, borderRadius: 999, padding: '3px 9px' }}>
+              {weekDelta > 0 ? `▲ ${weekDelta} this week` : weekDelta < 0 ? `▼ ${Math.abs(weekDelta)} this week` : 'Flat this week'}
+            </span>
+          ) : null}
+          <span style={{ fontSize: 11, fontWeight: 800, background: tierBg, color: tierFg, borderRadius: 999, padding: '3px 9px', textTransform: 'uppercase', letterSpacing: '.03em' }}>{tierLabel}</span>
+          <span style={{ flex: 1 }} />
+          {comp.matches > 0 ? <span style={{ fontSize: 11, color: C.soft, fontWeight: 800, letterSpacing: '.04em' }}>PEAK {peak.toLocaleString()}{peakWhen ? ` · ${peakWhen.toUpperCase()}` : ''}</span> : null}
         </div>
-        <div className="card" style={{ padding: '14px 16px' }}>
-          <div style={{ fontSize: 14, fontWeight: 700, marginBottom: 10 }}>{viewing ? 'Components' : 'Your Components'}</div>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 0 }}>
-            <div className="hrow" style={{ borderTop: 'none' }}><span style={{ flex: 1 }}>Season Start Rating</span><span style={{ fontWeight: 700 }}>{comp.start.toLocaleString()}</span></div>
-            <div className="hrow"><span style={{ flex: 1 }}>K-Factor (Volatility)</span><span style={{ fontWeight: 700 }}>{comp.k}</span></div>
-            <div className="hrow"><span style={{ flex: 1 }}>Matches Played</span><span style={{ fontWeight: 700 }}>{comp.matches}</span></div>
-            <div className="hrow"><span style={{ flex: 1 }}>Net Rating From Results</span><span className="score" style={{ color: comp.netDelta >= 0 ? C.accent : C.danger }}>{comp.netDelta >= 0 ? `+${comp.netDelta}` : comp.netDelta}</span></div>
-            <div className="hrow"><span style={{ flex: 1 }}>Inactivity Decay</span><span className="score" style={{ color: (comp.decayDelta || 0) < 0 ? C.danger : C.muted }}>{(comp.decayDelta || 0) === 0 ? '0' : comp.decayDelta}</span></div>
-            <div className="hrow" style={{ borderTop: `2px solid ${C.ink}` }}><span style={{ flex: 1, fontWeight: 700 }}>Current Rating</span><span style={{ fontWeight: 800, color: C.accent }}>{comp.rating.toLocaleString()}</span></div>
-          </div>
+        {pts.length >= 3 ? (
+          <svg viewBox={`0 0 ${W} ${H}`} width="100%" height="110" preserveAspectRatio="none" aria-hidden="true" style={{ marginTop: 8, display: 'block' }}>
+            <path d={area} fill={C.accsoft} opacity="0.7" />
+            <path d={line} fill="none" stroke={C.accent} strokeWidth="2.5" strokeLinejoin="round" />
+            {tierLineVisible ? (
+              <g>
+                <line x1="0" y1={Y(nextStep)} x2={W} y2={Y(nextStep)} stroke="#e8b43a" strokeWidth="1.5" strokeDasharray="5 5" />
+                <text x="6" y={Math.max(11, Y(nextStep) - 5)} fontSize="11" fontWeight="700" fill="#a97b12" fontFamily={FONT}>{nextName} at {nextStep.toLocaleString()}</text>
+              </g>
+            ) : null}
+            <circle cx={X(pts.length - 1)} cy={Y(pts[pts.length - 1])} r="4" fill={C.accent} />
+          </svg>
+        ) : (
+          <div style={{ fontSize: 13, color: C.soft, padding: '14px 0 6px' }}>{viewing ? 'A few more finished quizzes and the rating trend chart appears here.' : 'Finish a few quizzes and your rating trend chart appears here.'}</div>
+        )}
+        <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginTop: 10, flexWrap: 'wrap' }}>
+          <span style={{ fontSize: 11, fontWeight: 800, color: tierFg, letterSpacing: '.04em', textTransform: 'uppercase', flex: 'none' }}>{tierLabel.replace(' Tier', '')}</span>
+          <span style={{ flex: 1, minWidth: 120, height: 8, borderRadius: 999, background: '#eef0f2', overflow: 'hidden' }}><span style={{ display: 'block', width: `${bandPct}%`, height: '100%', background: C.accent, borderRadius: 999 }} /></span>
+          <span style={{ fontSize: 11, fontWeight: 800, color: C.soft, letterSpacing: '.04em', flex: 'none' }}>{nextStep ? `${Math.max(0, nextStep - rating).toLocaleString()} PTS TO ${nextName.toUpperCase()}` : 'TOP TIER'}</span>
         </div>
       </div>
+
+      <button onClick={() => setHow((v) => !v)} style={{ display: 'inline-flex', alignItems: 'center', gap: 6, border: 'none', background: 'transparent', color: C.accent, fontFamily: FONT, fontSize: 12.5, fontWeight: 800, cursor: 'pointer', padding: '2px 0', marginBottom: 12 }}>
+        <ChevronDown size={15} style={{ transform: how ? 'rotate(180deg)' : 'none', transition: 'transform .15s' }} /> How your skill rating works
+      </button>
+      {how ? explainerCards : null}
+
       <div className="card" style={{ padding: '4px 6px' }}>
         <div style={{ padding: '12px 12px 4px', fontSize: 14, fontWeight: 700 }}>Recent Matches</div>
         <div style={{ overflow: 'auto' }}>
@@ -1168,7 +1668,7 @@ function RatingPanel({ me, titleById, viewing }) {
               {recent.length === 0 && (
                 <tr><td colSpan={6} style={{ color: C.soft }}>No matches yet. Finish a quiz to start your rating.</td></tr>
               )}
-              {recent.map((m, i) => (
+              {recent.slice(0, 40).map((m, i) => (
                 <tr key={i}>
                   <td style={{ fontWeight: 600, maxWidth: 260, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                     <Link href={`/quiz/${m.quizId}`} className="qlink">{titleById[m.quizId] || cleanTitle(m.quizId)}</Link>

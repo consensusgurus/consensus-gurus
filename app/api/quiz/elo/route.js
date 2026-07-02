@@ -27,6 +27,15 @@ export async function GET(request) {
     // rankPlayers already scopes every metric (rating/correct/completed/days/
     // accuracy) to the requested category, and includes guests.
     const ranked = rankPlayers(players, scope);
+    // 7-day movement for the Stat Hub's full board: replay the results as they
+    // stood a week ago (decay evaluated as of that moment) and diff overall
+    // ratings. null = the player had no games a week ago (shows as NEW).
+    let prevPlayers = null;
+    if (full && scope === 'all') {
+      const cutoff = Date.now() - 7 * 86400000;
+      const weekRows = (data || []).filter((r) => (Date.parse(r.created_at || '') || 0) <= cutoff);
+      prevPlayers = computeElo(weekRows, { nowMs: cutoff }).players;
+    }
     const out = ranked.slice(0, full ? 2000 : TOP_N).map((p, i) => ({
       rank: i + 1,
       name: p.name,
@@ -38,6 +47,7 @@ export async function GET(request) {
       daysPlayed: p.daysPlayed,
       accuracy: p.accuracy,
       played: p.played,
+      ...(prevPlayers ? { trend7d: prevPlayers.has(p.key) ? p.rating - prevPlayers.get(p.key).rating : null } : {}),
     }));
     return NextResponse.json({ scope, total: out.length, players: out });
   } catch (e) {
