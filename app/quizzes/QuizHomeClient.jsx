@@ -500,7 +500,9 @@ export default function QuizHomeClient() {
   function loadDuelNotif() {
     const anon = getAnonId();
     if (!anon) return;
-    fetch(`/api/duel/notifications?anonId=${encodeURIComponent(anon)}`).then((r) => r.json()).then((d) => { if (d) setDuelNotif({ challenges: d.challenges || [], results: d.results || [] }); }).catch(() => {});
+    const em = getIdentity();
+    const emq = em && em.email ? `&email=${encodeURIComponent(em.email)}` : '';
+    fetch(`/api/duel/notifications?anonId=${encodeURIComponent(anon)}${emq}`).then((r) => r.json()).then((d) => { if (d) setDuelNotif({ challenges: d.challenges || [], results: d.results || [] }); }).catch(() => {});
   }
   useEffect(() => {
     try { setDuelSeen(JSON.parse(localStorage.getItem('sot_duel_seen') || '{}') || {}); } catch {}
@@ -508,7 +510,7 @@ export default function QuizHomeClient() {
     try { setDuelMuteAll(localStorage.getItem('sot_duel_mute_all') === '1'); } catch {}
     loadDuelNotif();
   }, []);
-  async function duelDecline(token) { const idn = getIdentity(); const nm = (idn && idn.username) || 'Player'; try { await fetch('/api/duel/decline', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ token, anonId: getAnonId(), name: nm }) }); } catch {} loadDuelNotif(); }
+  async function duelDecline(token) { const idn = getIdentity(); const nm = (idn && idn.username) || 'Player'; try { await fetch('/api/duel/decline', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ token, anonId: getAnonId(), name: nm, email: (idn && idn.email) || undefined }) }); } catch {} loadDuelNotif(); }
   function duelSeenAdd(token) { setDuelSeen((s) => { const n = { ...s, [token]: 1 }; try { localStorage.setItem('sot_duel_seen', JSON.stringify(n)); } catch {} return n; }); }
   function duelLaterAdd(token) { setDuelLater((s) => ({ ...s, [token]: 1 })); }
   function duelMuteAdd(anon, name, token) { if (!anon) { duelLaterAdd(token); return; } setDuelMuted((m) => { const n = { ...m, [anon]: name || 'Player' }; try { localStorage.setItem('sot_duel_muted', JSON.stringify(n)); } catch {} return n; }); setDuelLater((s) => ({ ...s, [token]: 1 })); }

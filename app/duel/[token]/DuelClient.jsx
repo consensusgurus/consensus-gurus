@@ -13,11 +13,13 @@ const FONT = "'Manrope', system-ui, -apple-system, sans-serif";
 
 function anonId() { if (typeof window === 'undefined') return null; try { return localStorage.getItem('sot_quiz_anon'); } catch { return null; } }
 function storedName() { if (typeof window === 'undefined') return ''; try { const j = JSON.parse(localStorage.getItem('sot_quiz_identity')); return (j && j.username) || ''; } catch { return ''; } }
+function storedEmail() { if (typeof window === 'undefined') return ''; try { const j = JSON.parse(localStorage.getItem('sot_quiz_identity')); return (j && j.email) || ''; } catch { return ''; } }
 function fmtTime(s) { if (s == null) return ''; const m = Math.floor(s / 60), ss = s % 60; return `${m}:${String(ss).padStart(2, '0')}`; }
 function devLabel(d) { return d === 'mobile' ? 'Mobile only' : d === 'desktop' ? 'Desktop only' : ''; }
 
 export default function DuelClient({ token }) {
   const [duel, setDuel] = useState(null);
+  const [mine, setMine] = useState('new'); // server-resolved side across the account's browsers
   const [state, setState] = useState('loading');
   const [errCode, setErrCode] = useState('');
   const [me, setMe] = useState({ anon: null, name: '' });
@@ -31,9 +33,13 @@ export default function DuelClient({ token }) {
 
   const load = useCallback(async () => {
     try {
-      const r = await fetch(`/api/duel/get?token=${encodeURIComponent(token)}`);
+      const qs = new URLSearchParams({ token });
+      const a = anonId(); const em = storedEmail();
+      if (a) qs.set('anonId', a);
+      if (em) qs.set('email', em);
+      const r = await fetch(`/api/duel/get?${qs.toString()}`);
       const d = await r.json();
-      if (d && d.duel) { setDuel(d.duel); setState('ready'); }
+      if (d && d.duel) { setDuel(d.duel); if (d.mine) setMine(d.mine); setState('ready'); }
       else { setErrCode(d && d.error || 'error'); setState('error'); }
     } catch { setErrCode('error'); setState('error'); }
   }, [token]);
@@ -43,18 +49,17 @@ export default function DuelClient({ token }) {
   // (challenger or the named opponent); an open-invite viewer joins explicitly.
   const autoSubmit = useCallback(async () => {
     if (!duel || !me.anon) return;
-    const mySide = duel.challenger_anon === me.anon ? 'challenger' : (duel.opponent_anon === me.anon ? 'opponent' : 'new');
-    if (mySide === 'new') return;
-    const already = mySide === 'challenger' ? duel.challenger_score : duel.opponent_score;
+    if (mine === 'new') return;
+    const already = mine === 'challenger' ? duel.challenger_score : duel.opponent_score;
     if (already != null) return;
     const nm = (me.name || storedName() || '').trim().slice(0, 40);
     if (!nm) return;
     try {
-      const r = await fetch('/api/duel/submit', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ token, anonId: me.anon, name: nm }) });
+      const r = await fetch('/api/duel/submit', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ token, anonId: me.anon, name: nm, email: storedEmail() || undefined }) });
       const d = await r.json();
       if (d && d.duel) setDuel(d.duel);
     } catch {}
-  }, [duel, me.anon, me.name, token]);
+  }, [duel, me.anon, me.name, token, mine]);
 
   useEffect(() => { load(); }, [load]);
   useEffect(() => {
@@ -72,9 +77,10 @@ export default function DuelClient({ token }) {
   const quiz = duel ? QUIZZES.find((q) => q.id === duel.quiz_id) : null;
   const quizTitle = quiz ? quiz.title : (duel ? duel.quiz_id : '');
   const dev = (duel && duel.device) || 'any';
-  const side = duel && me.anon
+  const localSide = duel && me.anon
     ? (duel.challenger_anon === me.anon ? 'challenger' : (duel.opponent_anon === me.anon ? 'opponent' : 'new'))
     : 'new';
+  const side = mine !== 'new' ? mine : localSide;
   const myScore = side === 'challenger' ? duel?.challenger_score : side === 'opponent' ? duel?.opponent_score : null;
   const iSubmitted = myScore != null;
   const done = duel && (duel.status === 'complete' || duel.status === 'declined');
@@ -84,7 +90,7 @@ export default function DuelClient({ token }) {
     if (!nm) { setSignupOpen(true); return; }  // no free-text: claim a name first
     setBusy(true); setMsg('');
     try {
-      const r = await fetch('/api/duel/submit', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ token, anonId: me.anon, name: nm }) });
+      const r = await fetch('/api/duel/submit', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ token, anonId: me.anon, name: nm, email: storedEmail() || undefined }) });
       const d = await r.json();
       if (d && d.duel) { setDuel(d.duel); setMe((m) => ({ ...m, name: nm })); }
       else if (d && d.error === 'no_play') setMsg(`Play ${quizTitle} first (in the other tab), then come back here and tap submit.`);
@@ -99,7 +105,7 @@ export default function DuelClient({ token }) {
     setBusy(true); setMsg('');
     try {
       const nm = (me.name || storedName() || 'Player').trim().slice(0, 40);
-      const r = await fetch('/api/duel/decline', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ token, anonId: me.anon, name: nm }) });
+      const r = await fetch('/api/duel/decline', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ token, anonId: me.anon, name: nm, email: storedEmail() || undefined }) });
       const d = await r.json();
       if (d && d.duel) setDuel(d.duel);
       else setMsg('Could not turn down. Try again.');

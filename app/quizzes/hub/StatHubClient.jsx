@@ -30,6 +30,7 @@ function RankChip({ rank, total }) {
 function cleanTitle(t) { return (t || '').replace(/^Name (the )?/i, '').trim(); }
 function getAnonId() { if (typeof window === 'undefined') return null; try { return localStorage.getItem('sot_quiz_anon'); } catch { return null; } }
 function getIdentity() { if (typeof window === 'undefined') return null; try { return JSON.parse(localStorage.getItem('sot_quiz_identity')); } catch { return null; } }
+function getEmail() { const j = getIdentity(); return (j && j.email) || ''; }
 function mmss(s) { if (!Number.isFinite(s)) return '—'; const m = Math.floor(s / 60); const sec = Math.round(s % 60); return `${m}:${String(sec).padStart(2, '0')}`; }
 
 
@@ -193,7 +194,7 @@ function DuelsPanel({ onSelectPlayer }) {
   const [openLadder, setOpenLadder] = useState(null); // anon of the expanded ladder row
   useEffect(() => {
     const anon = getAnonId();
-    if (anon) fetch(`/api/duel/list?anonId=${encodeURIComponent(anon)}`).then((r) => r.json()).then((d) => { if (d) setData({ yourMove: d.yourMove || [], awaiting: d.awaiting || [], completed: d.completed || [] }); }).catch(() => {}).finally(() => setLoaded(true));
+    if (anon) fetch(`/api/duel/list?anonId=${encodeURIComponent(anon)}${getEmail() ? `&email=${encodeURIComponent(getEmail())}` : ''}`).then((r) => r.json()).then((d) => { if (d) setData({ yourMove: d.yourMove || [], awaiting: d.awaiting || [], completed: d.completed || [] }); }).catch(() => {}).finally(() => setLoaded(true));
     else setLoaded(true);
     fetch('/api/duel/ladder').then((r) => r.json()).then((d) => { if (d && Array.isArray(d.ladder)) setLadder(d.ladder); }).catch(() => {});
     try { setMuteAll(localStorage.getItem('sot_duel_mute_all') === '1'); } catch {}
@@ -220,7 +221,7 @@ function DuelsPanel({ onSelectPlayer }) {
     const ident = getIdentity();
     const nm = (ident && ident.username) || 'Player';
     try {
-      const r = await fetch('/api/duel/decline', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ token: d.token, anonId: a, name: nm }) });
+      const r = await fetch('/api/duel/decline', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ token: d.token, anonId: a, name: nm, email: (ident && ident.email) || undefined }) });
       const j = await r.json();
       if (j && j.duel) {
         setData((prev) => ({
@@ -238,7 +239,7 @@ function DuelsPanel({ onSelectPlayer }) {
     if (!a) return;
     if (typeof window !== 'undefined' && !window.confirm('Dismiss this duel invite?')) return;
     try {
-      const r = await fetch('/api/duel/cancel', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ token: d.token, anonId: a }) });
+      const r = await fetch('/api/duel/cancel', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ token: d.token, anonId: a, email: getEmail() || undefined }) });
       const j = await r.json();
       if (j && j.duel) {
         setData((prev) => ({

@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { supabaseAdmin } from '@/lib/supabase-server';
+import { resolveAnonSet } from '@/lib/quiz-identity';
 
 export const dynamic = 'force-dynamic';
 export const fetchCache = 'force-no-store';
@@ -12,15 +13,16 @@ function decideWinner(cs, ct, os, ot) {
   return 'tie';
 }
 
-// POST /api/duel/submit  { token, anonId, name }
-// Records the caller's side from their OWN best quiz_results play on the duel's
-// quiz since the duel was created. If the duel requires a device class, only a
-// play on that device counts (fairness: desktop is a big advantage).
+// POST /api/duel/submit  { token, anonId, name, email? }
+// Records the caller's side from their best quiz_results play (across ALL of the
+// account's browser anons) on the duel's quiz since the duel was created, so the
+// duel can be played from any of the account's devices.
 export async function POST(request) {
   try {
     const b = (await request.json()) || {};
     const token = (typeof b.token === 'string' ? b.token.trim() : '');
     const anonId = typeof b.anonId === 'string' && b.anonId.trim() ? b.anonId.trim().slice(0, 64) : null;
+    const email = typeof b.email === 'string' && b.email.trim() ? b.email.trim() : null;
     const name = (typeof b.name === 'string' ? b.name.trim() : '').slice(0, 40) || 'Player';
     if (!token || !anonId) return NextResponse.json({ error: 'token and anonId required' }, { status: 400 });
 
@@ -30,19 +32,22 @@ export async function POST(request) {
     if (!duel) return NextResponse.json({ error: 'not_found' }, { status: 404 });
     if (duel.status === 'complete') return NextResponse.json({ duel });
 
-    const isChallenger = !!duel.challenger_anon && duel.challenger_anon === anonId;
-    if (!isChallenger && duel.opponent_anon && duel.opponent_anon !== anonId) {
+    const anons = await resolveAnonSet(supabaseAdmin, { anonId, email });
+    const mine = new Set(anons);
+    const isChallenger = !!duel.challenger_anon && mine.has(duel.challenger_anon);
+    const isOpponent = !!duel.opponent_anon && mine.has(duel.opponent_anon);
+    if (!isChallenger && duel.opponent_anon && !isOpponent) {
       return NextResponse.json({ error: 'duel_full' }, { status: 409 });
     }
 
     let sel = supabaseAdmin.from('quiz_results')
       .select('score, total, time_elapsed, created_at, is_mobile')
-      .eq('quiz_id', duel.quiz_id).eq('anon_id', anonId).gte('created_at', duel.created_at)
+      .eq('quiz_id', duel.quiz_id).in('anon_id', anons).gte('created_at', duel.created_at)
       .order('score', { ascending: false }).order('time_elapsed', { ascending: true }).limit(30);
     let { data: plays, error: pe } = await sel;
     if (pe && (pe.code === '42703' || /is_mobile|schema cache/i.test(pe.message || ''))) {
       ({ data: plays, error: pe } = await supabaseAdmin.from('quiz_results')
-        .select('score, total, time_elapsed, created_at').eq('quiz_id', duel.quiz_id).eq('anon_id', anonId)
+        .select('score, total, time_elapsed, created_at').eq('quiz_id', duel.quiz_id).in('anon_id', anons)
         .gte('created_at', duel.created_at).order('score', { ascending: false }).order('time_elapsed', { ascending: true }).limit(30));
     }
     if (pe) return NextResponse.json({ error: 'db error' }, { status: 500 });
@@ -62,7 +67,7 @@ export async function POST(request) {
       patch.challenger_score = play.score; patch.challenger_total = play.total; patch.challenger_time = play.time_elapsed == null ? null : play.time_elapsed;
       patch.challenger_name = name;
     } else {
-      patch.opponent_anon = anonId; patch.opponent_name = name;
+      patch.opponent_anon = duel.opponent_anon || anonId; patch.opponent_name = name;
       patch.opponent_score = play.score; patch.opponent_total = play.total; patch.opponent_time = play.time_elapsed == null ? null : play.time_elapsed;
     }
     const cs = isChallenger ? play.score : duel.challenger_score;

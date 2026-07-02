@@ -8,6 +8,7 @@ const NAVY = '#0e1d40', ACCENT = '#2563eb', AMBER = '#f8b84a';
 const FONT = "'Manrope', system-ui, -apple-system, sans-serif";
 
 function getAnon() { try { return localStorage.getItem('sot_quiz_anon') || ''; } catch { return ''; } }
+function getEmail() { try { const j = JSON.parse(localStorage.getItem('sot_quiz_identity')); return (j && j.email) || ''; } catch { return ''; } }
 
 // Quick-start duel composer in the quiz-hub tile grid. Pick an opponent
 // (optional) and a quiz, then jump to /duel/new with both prefilled. On mobile
@@ -36,7 +37,7 @@ export default function DuelTile() {
     const a = getAnon();
     if (!a) return;
     let alive = true;
-    fetch(`/api/duel/list?anonId=${encodeURIComponent(a)}`)
+    fetch(`/api/duel/list?anonId=${encodeURIComponent(a)}${getEmail() ? `&email=${encodeURIComponent(getEmail())}` : ''}`)
       .then((r) => r.json())
       .then((d) => { if (alive && d) { setMyDuels(Array.isArray(d.yourMove) ? d.yourMove : []); setSentDuels(Array.isArray(d.awaiting) ? d.awaiting : []); } })
       .catch(() => {});

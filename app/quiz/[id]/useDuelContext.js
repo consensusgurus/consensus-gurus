@@ -16,6 +16,7 @@ const TTL = 2 * 60 * 60 * 1000; // 2h: long enough for one sitting, short enough
 
 function anonId() { try { return localStorage.getItem('sot_quiz_anon'); } catch { return null; } }
 function storedName() { try { const j = JSON.parse(localStorage.getItem('sot_quiz_identity')); return (j && j.username) || ''; } catch { return ''; } }
+function storedEmail() { try { const j = JSON.parse(localStorage.getItem('sot_quiz_identity')); return (j && j.email) || ''; } catch { return ''; } }
 
 export default function useDuelContext(quizId, searchParams) {
   const [token, setToken] = useState(null);
@@ -73,7 +74,7 @@ export default function useDuelContext(quizId, searchParams) {
         const r = await fetch('/api/duel/submit', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ token, anonId: a, name: nm }),
+          body: JSON.stringify({ token, anonId: a, name: nm, email: storedEmail() || undefined }),
         });
         const d = await r.json();
         if (!alive) return;
