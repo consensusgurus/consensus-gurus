@@ -1565,14 +1565,16 @@ function RatingPanel({ me, titleById, viewing }) {
   // labels stay crisp) as a smoothed curve over light gridlines.
   const chartRef = useRef(null);
   const [cw, setCw] = useState(0);
+  // Re-measure whenever the chart div can (re)appear: the profile fetch
+  // resolves AFTER the first render, so a mount-only effect would find no
+  // element and the chart would never draw.
+  const hasChart = series.length >= 4;
   useEffect(() => {
-    const el = chartRef.current;
-    if (!el) return;
-    const upd = () => setCw(el.clientWidth || 600);
+    const upd = () => { const el = chartRef.current; if (el) setCw(el.clientWidth || 600); };
     upd();
     window.addEventListener('resize', upd);
     return () => window.removeEventListener('resize', upd);
-  }, []);
+  }, [hasChart, found]);
   const nextStep = TIER_STEPS.find((t) => t > rating) || null;
   const nextName = nextStep ? TIER_NAMES[TIER_STEPS.indexOf(nextStep) + 1] : null;
   const bandLo = [...TIER_STEPS].reverse().find((t) => t <= rating) || 1200;
@@ -1627,7 +1629,7 @@ function RatingPanel({ me, titleById, viewing }) {
           <span style={{ flex: 1 }} />
           {comp.matches > 0 ? <span style={{ fontSize: 11, color: C.soft, fontWeight: 800, letterSpacing: '.04em' }}>PEAK {peak.toLocaleString()}{peakWhen ? ` · ${peakWhen.toUpperCase()}` : ''}</span> : null}
         </div>
-        {series.length >= 4 ? (
+        {hasChart ? (
           <div ref={chartRef} style={{ marginTop: 10 }}>
             {cw > 0 ? (() => {
               const W = cw, H = 150, T = 14, B = 8, Lp = 6, Rp = 6;
