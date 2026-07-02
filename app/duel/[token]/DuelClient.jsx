@@ -93,7 +93,7 @@ export default function DuelClient({ token }) {
       const r = await fetch('/api/duel/submit', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ token, anonId: me.anon, name: nm, email: storedEmail() || undefined }) });
       const d = await r.json();
       if (d && d.duel) { setDuel(d.duel); setMe((m) => ({ ...m, name: nm })); }
-      else if (d && d.error === 'no_play') setMsg(`Play ${quizTitle} first (in the other tab), then come back here and tap submit.`);
+      else if (d && d.error === 'no_play') setMsg(`No recent play of ${quizTitle} found. Tap Play the Quiz and your score sends to this duel automatically when you finish. (Rounds played within the last hour count too.)`);
       else if (d && d.error === 'device_mismatch') setMsg(`This duel is ${d.device} only. Play on ${d.device === 'mobile' ? 'your phone' : 'a computer'}, then submit.`);
       else if (d && d.error === 'duel_full') setMsg('This duel already has two players.');
       else setMsg('Could not submit. Try again.');
@@ -188,7 +188,7 @@ export default function DuelClient({ token }) {
                   ) : (
                     <>
                       <div style={{ fontSize: 16, fontWeight: 800, marginBottom: 4 }}>{side === 'challenger' ? 'Play your round' : `${duel.challenger_name} challenged you`}</div>
-                      <div style={{ color: C.muted, fontSize: 14, marginBottom: 14 }}>Tap {'"'}Play the quiz{'"'}{dev !== 'any' ? ` on ${dev === 'mobile' ? 'your phone' : 'a computer'} (this duel is ${dev} only)` : ''}. When you finish, your score is sent to this duel automatically. You can also return here and tap submit.</div>
+                      <div style={{ color: C.muted, fontSize: 14, marginBottom: 14 }}>Tap {'"'}Play the quiz{'"'}{dev !== 'any' ? ` on ${dev === 'mobile' ? 'your phone' : 'a computer'} (this duel is ${dev} only)` : ''}. When you finish, your score is sent to this duel automatically.</div>
                       {!me.name && (
                         <button onClick={() => setSignupOpen(true)} style={{ width: '100%', boxSizing: 'border-box', textAlign: 'left', background: '#fff', color: C.accent, border: `1.5px solid ${C.accent}`, borderRadius: 10, padding: '10px 12px', marginBottom: 12, fontFamily: FONT, fontWeight: 800, fontSize: 14, cursor: 'pointer' }}>Claim your display name to play +</button>
                       )}
