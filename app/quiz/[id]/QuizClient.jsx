@@ -491,12 +491,36 @@ export default function QuizClient({ quizId }) {
     // Leading parts of a multi-part series (reuses the same detection as
     // seriesParts so numbered-from-1 series like word-scramble-countries work).
     const parts = seriesParts;
+    // Family tier: quizzes of the SAME KIND as this one, so a distinct-per-title
+    // family (every "<Show> Character Match", every "Match the Capital to the
+    // Country in <Region>", the photo/poster/cover sets, etc.) groups together even
+    // when each entry has its own category. Detected from a title SIGNATURE: two
+    // quizzes are family-related when they share the same two-word title suffix OR
+    // the same three-word title prefix, after stripping a trailing "(Pt. N)". The
+    // two-word suffix catches "... Character Match"; the three-word prefix catches
+    // "Match the Capital ..." while staying specific enough to avoid the generic
+    // "Name the ..." over-grouping.
+    const famSig = (t) => {
+      const w = String(t || '')
+        .replace(/\((?:pt\.?|part)\s*[\divx]+\)\s*$/i, '')
+        .toLowerCase().replace(/[^a-z0-9\s]/g, ' ').split(/\s+/).filter(Boolean);
+      return { suf: w.length >= 2 ? w.slice(-2).join(' ') : null,
+               pre: w.length >= 3 ? w.slice(0, 3).join(' ') : null };
+    };
+    const fam0 = famSig(quiz.title);
+    const family = (fam0.suf || fam0.pre)
+      ? QUIZZES.filter((x) => {
+          if (x.id === quiz.id || x.hideFromRelated) return false;
+          const s2 = famSig(x.title);
+          return (fam0.suf && s2.suf === fam0.suf) || (fam0.pre && s2.pre === fam0.pre);
+        })
+      : [];
     const sameCat = QUIZZES.filter((x) => x.id !== quiz.id && !x.hideFromRelated && quiz.category && x.category === quiz.category);
     const sameDept = QUIZZES.filter((x) => x.id !== quiz.id && !x.hideFromRelated && deptOf(x) === d);
     const rest = QUIZZES.filter((x) => x.id !== quiz.id && !x.hideFromRelated);
     const seen = new Set();
     const out = [];
-    for (const x of [...parts, ...sameCat, ...sameDept, ...rest]) {
+    for (const x of [...parts, ...family, ...sameCat, ...sameDept, ...rest]) {
       if (!seen.has(x.id)) { seen.add(x.id); out.push(x); }
     }
     return out.slice(0, 8);
