@@ -195,6 +195,13 @@ function initialsOf(name) {
   if (parts.length >= 2) return (parts[0][0] + parts[1][0]).toUpperCase();
   return s.slice(0, 2).toUpperCase();
 }
+function duelStreakOf(matches) {
+  const ms = matches || [];
+  if (!ms.length || ms[0].result === 'tie') return null;
+  let n = 0;
+  for (const m of ms) { if (m.result === ms[0].result) n += 1; else break; }
+  return { kind: ms[0].result, n };
+}
 function Avatar({ name, bg, fg, size = 34 }) {
   return <span style={{ width: size, height: size, borderRadius: '50%', background: bg, color: fg, display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 800, fontSize: Math.max(11, Math.round(size * 0.35)), flex: 'none' }}>{initialsOf(name)}</span>;
 }
@@ -220,18 +227,11 @@ function WinRing({ pct, size = 40 }) {
   );
 }
 
-function DuelsPanel({ onSelectPlayer }) {
-  const [data, setData] = useState({ yourMove: [], awaiting: [], completed: [] });
-  const [ladder, setLadder] = useState([]);
+function DuelsPanel({ data, setData, ladder, loaded, onSelectPlayer }) {
   const [muteAll, setMuteAll] = useState(false);
   const [muted, setMuted] = useState({});
-  const [loaded, setLoaded] = useState(false);
   const [openLadder, setOpenLadder] = useState(null); // anon of the expanded ladder row
   useEffect(() => {
-    const anon = getAnonId();
-    if (anon) fetch(`/api/duel/list?anonId=${encodeURIComponent(anon)}${getEmail() ? `&email=${encodeURIComponent(getEmail())}` : ''}`).then((r) => r.json()).then((d) => { if (d) setData({ yourMove: d.yourMove || [], awaiting: d.awaiting || [], completed: d.completed || [] }); }).catch(() => {}).finally(() => setLoaded(true));
-    else setLoaded(true);
-    fetch('/api/duel/ladder').then((r) => r.json()).then((d) => { if (d && Array.isArray(d.ladder)) setLadder(d.ladder); }).catch(() => {});
     try { setMuteAll(localStorage.getItem('sot_duel_mute_all') === '1'); } catch {}
     try { setMuted(JSON.parse(localStorage.getItem('sot_duel_muted') || '{}') || {}); } catch {}
   }, []);
@@ -296,13 +296,7 @@ function DuelsPanel({ onSelectPlayer }) {
   // My ladder entry plus what the arena hero derives from it: streak and rival.
   const mine = useMemo(() => ladder.find((p) => p.anon === anon) || null, [ladder, anon]);
   const myPos = useMemo(() => (mine ? ladder.indexOf(mine) + 1 : null), [ladder, mine]);
-  const streak = useMemo(() => {
-    const ms = (mine && mine.matches) || [];
-    if (!ms.length || ms[0].result === 'tie') return null;
-    let n = 0;
-    for (const m of ms) { if (m.result === ms[0].result) n += 1; else break; }
-    return { kind: ms[0].result, n };
-  }, [mine]);
+  const streak = useMemo(() => duelStreakOf(mine && mine.matches), [mine]);
   // Rival = the player I have faced most (2+ duels), with our head-to-head.
   const rival = useMemo(() => {
     const ms = (mine && mine.matches) || [];
@@ -546,6 +540,19 @@ export default function StatHubClient() {
   const [shareOpen, setShareOpen] = useState(false);
   const [signupOpen, setSignupOpen] = useState(false);
   const [board, setBoard] = useState(null); // full Elo ranking of every player (incl. anon)
+  // Duel data lives at page level so the Duels nav tile can show the live
+  // record, streak, and waiting-on-you badge before the tab is ever opened.
+  const [duels, setDuels] = useState({ yourMove: [], awaiting: [], completed: [] });
+  const [duelLadder, setDuelLadder] = useState([]);
+  const [duelsLoaded, setDuelsLoaded] = useState(false);
+  useEffect(() => {
+    const anon = getAnonId();
+    if (anon) fetch(`/api/duel/list?anonId=${encodeURIComponent(anon)}${getEmail() ? `&email=${encodeURIComponent(getEmail())}` : ''}`).then((r) => r.json()).then((d) => { if (d) setDuels({ yourMove: d.yourMove || [], awaiting: d.awaiting || [], completed: d.completed || [] }); }).catch(() => {}).finally(() => setDuelsLoaded(true));
+    else setDuelsLoaded(true);
+    fetch('/api/duel/ladder').then((r) => r.json()).then((d) => { if (d && Array.isArray(d.ladder)) setDuelLadder(d.ladder); }).catch(() => {});
+  }, []);
+  const myDuel = useMemo(() => { const a = getAnonId(); return duelLadder.find((p) => p.anon === a) || null; }, [duelLadder]);
+  const myDuelStreak = useMemo(() => duelStreakOf(myDuel && myDuel.matches), [myDuel]);
 
   const catalog = useMemo(() => (QUIZZES || []).filter((q) => q && q.id).map((q) => ({
     id: q.id, title: q.navTitle || cleanTitle(q.title) || q.id, dept: deptOf(q),
@@ -723,6 +730,15 @@ export default function StatHubClient() {
     @keyframes qzflame{0%,100%{transform:scale(1);}50%{transform:scale(1.16);}}
     @media (prefers-reduced-motion: reduce){.qzhub .duelpulse,.qzhub .flameon{animation:none;}}
     @media(max-width:640px){.qzhub .lbar{display:none;}.qzhub .lform{display:none;}.qzhub .duelqt{display:none;}}
+    .qzhub .tiles{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin:18px 0 14px;}
+    @media(max-width:680px){.qzhub .tiles{grid-template-columns:1fr 1fr;gap:8px;}}
+    .qzhub .tile{position:relative;text-align:left;background:#fff;border:1px solid rgba(20,22,28,0.09);border-radius:12px;padding:12px 14px;font-family:${FONT};cursor:pointer;min-width:0;transition:border-color .12s;}
+    .qzhub .tile:hover{border-color:#cddffb;}
+    .qzhub .tile.on{background:${C.accent};border-color:${C.accent};}
+    .qzhub .tilebadge{position:absolute;top:9px;right:11px;background:${C.danger};color:#fff;font-size:10px;font-weight:800;border-radius:999px;padding:2px 7px;}
+    .qzhub .pill{display:inline-flex;align-items:center;gap:6px;background:#fff;border:1px solid rgba(20,22,28,0.09);color:${C.muted};border-radius:999px;padding:7px 15px;font-size:12.5px;font-weight:700;cursor:pointer;font-family:${FONT};}
+    .qzhub .pill:hover{border-color:#cddffb;}
+    .qzhub .pill.on{background:${C.accent};border-color:${C.accent};color:#fff;font-weight:800;}
   `;
 
   return (
@@ -752,19 +768,48 @@ export default function StatHubClient() {
           </div>
         ) : null}
 
-        {/* tabs */}
-        <div className="tabs">
-          {TABS.map(({ t, label, Icon }) => (
-            <button key={t} className={`tab${tab === t ? ' on' : ''}`} onClick={() => setTab(t)}>
-              <Icon size={15} /> {label}
-            </button>
-          ))}
+        {/* nav tiles: each main section is a live stat card */}
+        <div className="tiles">
+          {(() => {
+            const meFound = me && me.found;
+            const on = (t) => tab === t;
+            const lblSt = (t) => ({ display: 'flex', alignItems: 'center', gap: 7, fontSize: 13, fontWeight: 800, color: on(t) ? '#fff' : C.muted });
+            const bigSt = (t) => ({ display: 'block', fontSize: 18, fontWeight: 800, marginTop: 5, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', color: on(t) ? '#fff' : C.ink, fontVariantNumeric: 'tabular-nums' });
+            const smSt = (t) => ({ fontSize: 11, fontWeight: 700, color: on(t) ? 'rgba(255,255,255,0.75)' : C.soft });
+            const subSt = (t, warn) => ({ display: 'block', fontSize: 10.5, fontWeight: 700, marginTop: 2, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', color: warn ? (on(t) ? '#ffd9d3' : C.danger) : (on(t) ? 'rgba(255,255,255,0.75)' : C.soft) });
+            const waiting = duels.yourMove.length;
+            return (
+              <>
+                <button className={`tile${on('player') ? ' on' : ''}`} onClick={() => setTab('player')}>
+                  <span style={lblSt('player')}><User size={15} /> Player</span>
+                  <span style={bigSt('player')}>{meFound && me.rank ? <>#{me.rank} <span style={smSt('player')}>of {(me.totalPlayers || 0).toLocaleString()}</span></> : '—'}</span>
+                  <span style={subSt('player')}>{meFound ? `${(me.rating || 1500).toLocaleString()} skill rating` : 'Play to get ranked'}</span>
+                </button>
+                <button className={`tile${on('quizzes') ? ' on' : ''}`} onClick={() => setTab('quizzes')}>
+                  <span style={lblSt('quizzes')}><ListChecks size={15} /> Quizzes</span>
+                  <span style={bigSt('quizzes')}>{meFound ? (me.activity.played || 0).toLocaleString() : '0'} <span style={smSt('quizzes')}>played</span></span>
+                  <span style={subSt('quizzes')}>{catalog.length.toLocaleString()} on the site</span>
+                </button>
+                <button className={`tile${on('challenges') ? ' on' : ''}`} onClick={() => setTab('challenges')}>
+                  <span style={lblSt('challenges')}><Flame size={15} /> Challenges</span>
+                  <span style={bigSt('challenges')}>Daily</span>
+                  <span style={subSt('challenges')}>today{"'"}s board is live</span>
+                </button>
+                <button className={`tile${on('duels') ? ' on' : ''}`} onClick={() => setTab('duels')}>
+                  {waiting > 0 ? <span className="tilebadge">{waiting}</span> : null}
+                  <span style={lblSt('duels')}><Swords size={15} /> Duels</span>
+                  <span style={bigSt('duels')}>{myDuel ? <>{myDuel.wins}-{myDuel.losses}{myDuel.ties ? `-${myDuel.ties}` : ''}{myDuelStreak ? <span style={{ fontSize: 12, fontWeight: 800, marginLeft: 6, color: on('duels') ? '#fff' : (myDuelStreak.kind === 'win' ? C.live : C.danger) }}>{myDuelStreak.kind === 'win' ? 'W' : 'L'}{myDuelStreak.n}</span> : null}</> : '—'}</span>
+                  <span style={subSt('duels', waiting > 0)}>{waiting > 0 ? `${waiting} waiting on you` : myDuel ? `${myDuel.winPct}% win rate` : 'Challenge someone'}</span>
+                </button>
+              </>
+            );
+          })()}
         </div>
 
         {tab === 'player' && <PlayerPanel me={profile} scope={scope} cats={cats} byKey={byKey} totalQuizzes={catalog.length} board={board} myName={myName} myAnonKey={myAnonKey} titleById={titleById} pview={pview} setPview={setPview} viewKey={viewKey} onSelectPlayer={(k) => { const mine = (me && me.userKey && k === me.userKey) || (myAnonKey && k === myAnonKey); setViewKey(mine ? null : k); setPview(mine ? 'ranking' : 'category'); }} />}
         {tab === 'quizzes' && <QuizzesPanel me={profile} myProfile={me} scope={scope} byKey={byKey} catalog={catalog} stats={statsById} totals={totals} totalPlays={totalPlays} onSelectPlayer={(k) => { setViewKey(k); setPview('category'); setTab('player'); }} />}
         {tab === 'challenges' && <ChallengesPanel me={profile} />}
-        {tab === 'duels' && <DuelsPanel onSelectPlayer={(k) => { setViewKey(k); setPview('category'); setTab('player'); }} />}      </div>
+        {tab === 'duels' && <DuelsPanel data={duels} setData={setDuels} ladder={duelLadder} loaded={duelsLoaded} onSelectPlayer={(k) => { setViewKey(k); setPview('category'); setTab('player'); }} />}      </div>
 
       {shareOpen && found && <ShareStatsModal profile={profile} byKey={byKey} onClose={() => setShareOpen(false)} />}
       {signupOpen && <SignupModal onClose={() => setSignupOpen(false)} />}
@@ -829,9 +874,9 @@ function PlayerPanel({ me, scope, cats, byKey, totalQuizzes, board, myName, myAn
   const viewing = !!viewKey;
 
   const toggle = (
-    <div style={{ display: 'flex', gap: 22, width: '100%', borderBottom: `1px solid ${C.line}`, boxSizing: 'border-box', overflowX: 'auto', overflowY: 'hidden' }}>
-      {[['ranking', 'Ranking'], ['category', 'Category'], ['rating', 'Skill Rating'], ['activity', 'Activity']].map(([v, lbl]) => (
-        <button key={v} onClick={() => setPview(v)} style={{ border: 'none', background: 'transparent', color: pview === v ? C.accent : C.muted, fontWeight: pview === v ? 700 : 600, borderBottom: pview === v ? `2px solid ${C.accent}` : '2px solid transparent', marginBottom: -1, padding: '10px 2px', font: 'inherit', fontFamily: FONT, fontSize: 13, whiteSpace: 'nowrap', cursor: 'pointer' }}>{lbl}</button>
+    <div style={{ display: 'flex', gap: 8, width: '100%', flexWrap: 'wrap' }}>
+      {[['ranking', 'Ranking', Trophy], ['category', 'Category', ListChecks], ['rating', 'Skill Rating', FunctionSquare], ['activity', 'Activity', Clock]].map(([v, lbl, Ic]) => (
+        <button key={v} className={`pill${pview === v ? ' on' : ''}`} onClick={() => setPview(v)}><Ic size={14} /> {lbl}</button>
       ))}
     </div>
   );
