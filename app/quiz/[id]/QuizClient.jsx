@@ -1482,7 +1482,7 @@ export default function QuizClient({ quizId }) {
           const lbRows = (identity ? board.leaderboard : board.leaderboardAll) || [];
           const actBtn = { fontFamily: MONO, fontSize: 12, letterSpacing: '0.05em', textTransform: 'uppercase', fontWeight: 700, borderRadius: 10, padding: '13px 10px', cursor: 'pointer', border: 'none', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 7, textDecoration: 'none', boxSizing: 'border-box' };
           return (
-            <div style={{ marginTop: 14, background: '#fff', border: `1px solid ${COLORS.line}`, borderRadius: 14, padding: mobile === true ? '18px 16px' : '22px 22px 20px' }}>
+            <div style={{ maxWidth: 560, margin: '14px auto 0', background: '#fff', border: `1px solid ${COLORS.line}`, borderRadius: 14, padding: mobile === true ? '18px 16px' : '24px 24px 20px' }}>
               <div style={{ display: 'flex', gap: 18, alignItems: 'flex-start', flexWrap: 'wrap' }}>
                 <div style={{ flex: '1 1 210px', minWidth: 190 }}>
                   <div style={{ fontFamily: MONO, fontSize: 11, letterSpacing: '0.16em', textTransform: 'uppercase', fontWeight: 800, color: celebrate ? COLORS.forest : COLORS.ember, marginBottom: 7 }}>{heading}</div>
