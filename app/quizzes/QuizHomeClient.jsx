@@ -9,7 +9,7 @@ import {
   Search, ChevronDown, ArrowRight, BarChart3, Crown, Sparkles, Flame,
   BadgeCheck, Clapperboard, Music, Gamepad2, Plane, Globe, Utensils,
   Briefcase, Leaf, Tv, BookOpen, Landmark, Trophy, UserPlus, Play, X,
-  Check, Star, Target, Swords, ChevronRight, Newspaper, Blocks, GraduationCap,
+  Check, Star, Target, Swords, Newspaper, Blocks, GraduationCap,
 } from 'lucide-react';
 import { QUIZZES } from '@/lib/quizzes';
 import { KIDS_GAMES } from '@/lib/kids';
@@ -756,12 +756,10 @@ export default function QuizHomeClient() {
       return { key: c.key, label: c.label, pct };
     }).sort((a, b) => b.pct - a.pct || a.label.localeCompare(b.label));
     if (!rows.length || rows[0].pct === 0) return [];
-    const n = rows.length;
-    return rows.map((r, i) => {
-      const t = n > 1 ? i / (n - 1) : 0;
-      const L = 47 + t * 50;
-      const S = 82 - t * 34;
-      return { key: r.key, label: r.label, acc: r.pct, color: `hsl(222, ${S}%, ${L}%)`, text: L < 62 ? '#fff' : '#0e1d40' };
+    return rows.map((r) => {
+      const p = r.pct;
+      const color = p >= 40 ? '#5b8bff' : p >= 18 ? '#3f6fe0' : p >= 10 ? '#345bbf' : '#2a4794';
+      return { key: r.key, label: r.label, acc: p, color };
     });
   }, [me, cats, examsDone]);
 
@@ -877,7 +875,7 @@ export default function QuizHomeClient() {
     .qzh .th-r2 .th-slot-hold{min-height:215px;}
     @media(max-width:820px){.qzh .thub{flex-direction:column;}.qzh .th-r2{grid-template-columns:1fr 1fr;}.qzh .th-r2 .dtile{grid-column:1 / -1;}}
     @media(max-width:560px){.qzh .th-r2{grid-template-columns:1fr;}.qzh .th-rail{display:none !important;}.qzh .th-heroes .ntile{min-height:220px;background-position:center 12%;}.qzh .th-r2 .ttile{order:1;min-height:220px;}.qzh .th-r2 .dtile{order:2;}.qzh .th-r2 .dueltile{order:3;}.qzh .th-r2 .th-slot-hold{display:none;}.qzh .duelbtn{display:none !important;}}
-    .qzh .dtile{background:${C.accent};border-radius:14px;padding:14px 16px;color:#fff;display:flex;flex-direction:column;min-height:190px;}
+    .qzh .dtile{background:#0e1d40;border-radius:14px;padding:14px 15px;color:#fff;display:flex;flex-direction:column;min-height:190px;}
     .qzh .dtile-head{display:flex;align-items:center;gap:8px;margin-bottom:9px;}
     .qzh .dtile-chip{font-size:10px;font-weight:800;background:rgba(255,255,255,0.2);border-radius:12px;padding:2px 9px;text-transform:uppercase;letter-spacing:.04em;}
     .qzh .dtile-prog{display:flex;gap:5px;margin-bottom:10px;}
@@ -885,7 +883,7 @@ export default function QuizHomeClient() {
     .qzh .dtile-row{display:flex;align-items:center;gap:8px;font-size:12px;font-weight:700;color:#fff;text-decoration:none;padding:2px 0;}
     .qzh .dtile-num{width:16px;height:16px;border-radius:50%;border:2px solid rgba(255,255,255,0.6);flex:none;font-size:9px;display:flex;align-items:center;justify-content:center;}
     .qzh .dtile-name{flex:1 1 auto;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
-    .qzh .dtile-cta{margin-top:auto;display:flex;align-items:center;justify-content:center;gap:7px;background:#fff;color:${C.accent};border-radius:10px;padding:10px;font-weight:800;font-size:12.5px;text-decoration:none;}
+    .qzh .dtile-cta{margin-top:auto;display:flex;align-items:center;justify-content:center;gap:7px;background:${C.accent};color:#fff;border-radius:10px;padding:10px;font-weight:800;font-size:12.5px;text-decoration:none;}
     .qzh .ntile{position:relative;border:1px solid ${C.line};border-radius:14px;overflow:hidden;text-decoration:none;display:flex;flex-direction:column;justify-content:flex-end;min-height:172px;background-size:cover;background-position:center 22%;background-color:${C.accsoft};}
     .qzh .ntile-tag{position:absolute;top:10px;left:11px;font-size:9px;font-weight:800;letter-spacing:.08em;background:#fff;border-radius:10px;padding:3px 9px;z-index:2;}
     .qzh .ntile-ov{position:relative;z-index:1;padding:16px 14px 13px;background:linear-gradient(to top, rgba(8,15,35,0.88), rgba(8,15,35,0.45) 55%, rgba(8,15,35,0));}
@@ -896,13 +894,16 @@ export default function QuizHomeClient() {
     .qzh .duelbtn{background:${C.accent};color:#fff;border:none;border-radius:12px;padding:12px;font-weight:800;font-size:12px;font-family:inherit;display:flex;align-items:center;justify-content:center;gap:8px;cursor:pointer;flex:none;}
     .qzh .dueltile-chev{display:none;}
     @media(max-width:560px){.qzh .dueltile{min-height:0 !important;}.qzh .dueltile-head{cursor:pointer;}.qzh .dueltile-chev{display:inline-flex !important;transition:transform .15s;}.qzh .dueltile.mc-closed .dueltile-body{display:none !important;}}
-    .qzh .rail{background:#fff;border:1px solid ${C.line};border-radius:14px;padding:11px;display:flex;flex-direction:column;}
-    .qzh .rail-bars{flex:1;display:flex;flex-direction:column;}
-    .qzh .rseg{display:flex;align-items:center;gap:6px;padding:0 11px;font-size:11px;font-weight:600;border:none;border-radius:0;margin:0;cursor:pointer;width:100%;min-height:26px;}
-    .qzh .rail-bars .rseg:first-child{border-radius:12px 12px 0 0;}
-    .qzh .rail-bars .rseg:last-child{border-radius:0 0 12px 12px;}
-    .qzh .rseg:hover{filter:brightness(1.06);}
-    .qzh .rseg .rnm{flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;text-align:left;}
+    .qzh .rail{background:#0e1d40;border:1px solid #1e3a6b;border-radius:14px;padding:13px 13px 12px;display:flex;flex-direction:column;}
+    .qzh .rail-head{display:flex;align-items:center;gap:5px;margin-bottom:11px;}
+    .qzh .rail-bars{flex:1;display:flex;flex-direction:column;gap:2px;}
+    .qzh .rseg{display:block;background:transparent;border:none;border-radius:8px;margin:0;padding:6px 7px;cursor:pointer;width:100%;text-align:left;}
+    .qzh .rseg:hover{background:#16294f;}
+    .qzh .rseg-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:5px;}
+    .qzh .rseg .rnm{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:12.5px;font-weight:500;color:#e6edfb;}
+    .qzh .rseg .rpct{font-size:11.5px;font-weight:700;flex:none;margin-left:8px;}
+    .qzh .rtrack{height:5px;border-radius:3px;background:#1b305a;overflow:hidden;}
+    .qzh .rfill{height:100%;border-radius:3px;}
     .qzh .dchev,.qzh .lchev{display:none;}
     @media(max-width:560px){
       .qzh .dtile-head,.qzh .lbtile-head{cursor:pointer;}
@@ -1184,7 +1185,7 @@ export default function QuizHomeClient() {
             {daily && DAILY_CHALLENGE_ON ? (
               <div className={`dtile mc-${mDaily ? 'open' : 'closed'}`}>
                 <div className="dtile-head" onClick={() => { if (isMobile) setMDaily((v) => !v); }}>
-                  <Target size={16} style={{ flex: 'none' }} />
+                  <Target size={16} style={{ flex: 'none', color: '#f8b84a' }} />
                   <span className="x8" style={{ fontSize: 14, fontWeight: 800 }}>Daily Challenge</span>
                   {dailyCat ? <span className="dtile-chip">{dailyCat}</span> : null}
                   <span style={{ marginLeft: 'auto', fontSize: 12, fontWeight: 800 }}>{dailyDoneCount}/{dailyIds.length}</span>
@@ -1320,17 +1321,18 @@ export default function QuizHomeClient() {
         </div>
           </div>
           <div className="rail th-rail">
-            <div style={{ display: 'flex', alignItems: 'center', gap: 5, marginBottom: 9 }}><BarChart3 size={14} style={{ color: C.accent, flex: 'none' }} /><span className="x8" style={{ fontSize: 11.5, fontWeight: 800, letterSpacing: '.03em' }}>CATEGORY MASTERY</span></div>
+            <div className="rail-head"><BarChart3 size={14} style={{ color: '#5b8bff', flex: 'none' }} /><span className="x8" style={{ fontSize: 11.5, fontWeight: 800, letterSpacing: '.03em', color: '#cdd9f2' }}>CATEGORY MASTERY</span></div>
             {catMastery.length > 0 ? (
               <div className="rail-bars">
                 {catMastery.map((m) => (
-                  <button type="button" key={m.key} onClick={() => goCat(m.key)} className="rseg" style={{ flex: 1, background: m.color, color: m.text }}>
-                    <span className="rnm">{m.label}</span><span>{m.acc}%</span><ChevronRight size={11} style={{ opacity: 0.7 }} />
+                  <button type="button" key={m.key} onClick={() => goCat(m.key)} className="rseg">
+                    <div className="rseg-top"><span className="rnm">{m.label}</span><span className="rpct" style={{ color: m.color }}>{m.acc}%</span></div>
+                    <div className="rtrack"><div className="rfill" style={{ width: `${m.acc}%`, background: m.color }} /></div>
                   </button>
                 ))}
               </div>
             ) : (
-              <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', textAlign: 'center', fontSize: 11, color: C.soft, fontWeight: 600, padding: '0 6px' }}>Play a few quizzes to build your category mastery.</div>
+              <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', textAlign: 'center', fontSize: 11, color: '#7d92bd', fontWeight: 600, padding: '0 6px' }}>Play a few quizzes to build your category mastery.</div>
             )}
           </div>
         </div>
