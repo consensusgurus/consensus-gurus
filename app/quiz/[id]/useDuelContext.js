@@ -1,6 +1,6 @@
 'use client';
 import React, { useState, useEffect, useRef } from 'react';
-import { Swords } from 'lucide-react';
+import { Swords, X } from 'lucide-react';
 
 // Universal duel context for a quiz page. Works for EVERY board format because
 // QuizClient calls this hook once, above its per-format early returns, and drops
@@ -104,7 +104,8 @@ const FONT = "'Manrope', system-ui, -apple-system, sans-serif";
 // to the duel; once their score is in it flips to a clear confirmation + a button
 // to view the result.
 export function DuelBanner({ token, info, submitted }) {
-  if (!token) return null;
+  const [hidden, setHidden] = useState(false);
+  if (!token || hidden) return null;
   let foe = null;
   try {
     const a = localStorage.getItem('sot_quiz_anon');
@@ -134,6 +135,7 @@ export function DuelBanner({ token, info, submitted }) {
           <a href={href} style={{ ...btn, background: '#eef2fb', color: ACCENT }}>Back to duel</a>
         </>
       )}
+      <button onClick={() => setHidden(true)} aria-label="Dismiss" style={{ flex: 'none', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', width: 28, height: 28, borderRadius: 999, border: 'none', background: 'transparent', color: '#9aa0ab', cursor: 'pointer', padding: 0 }}><X size={16} strokeWidth={2.5} /></button>
       <style>{`@media(max-width:560px){.sot-duel-banner{bottom:78px !important;}}`}</style>
     </div>
   );
