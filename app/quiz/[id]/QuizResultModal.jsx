@@ -199,7 +199,7 @@ export default function QuizResultModal({
                 </button>
               ) : null}
               {duelHref ? (
-                <a href={duelHref} style={{ ...cellBase, background: C.ink, color: C.cream, textDecoration: 'none', whiteSpace: 'nowrap', fontSize: 12, letterSpacing: '0.04em', gap: 6 }}>
+                <a href={duelHref} style={{ ...cellBase, background: C.ink, color: C.cream, textDecoration: 'none', whiteSpace: 'nowrap', fontSize: 12, letterSpacing: '0.04em', gap: 6, borderRadius: 999 }}>
                   <Swords size={14} strokeWidth={2.5} /> Challenge Someone
                 </a>
               ) : null}

@@ -11,7 +11,7 @@
 
 import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { useRouter } from 'next/navigation';
-import { ArrowLeft, Share2, Check, X, Flag, Trophy, HelpCircle, Zap, ScrollText } from 'lucide-react';
+import { ArrowLeft, Share2, Check, X, Flag, Trophy, HelpCircle, Zap, ScrollText, Swords } from 'lucide-react';
 import JoinLeaderboardForm from './JoinLeaderboardForm';
 import QuizStandings from './QuizStandings';
 import LeaderboardSnippet from './LeaderboardSnippet';
@@ -423,7 +423,7 @@ export default function TimedMcqClient({ quizId, mobile = false }) {
         <div style={{ paddingBottom: 0, marginTop: 8 }}>
           <h1 style={{ fontFamily: SANS, fontWeight: 800, fontSize: 'clamp(28px, 4.5vw, 44px)', lineHeight: 1.05, letterSpacing: '-0.025em', margin: 0, color: COLORS.ink }}>{quiz.title}</h1>
           <p style={{ fontFamily: SANS, fontSize: 15, lineHeight: 1.55, margin: '10px 0 0', color: COLORS.faded, maxWidth: 680 }}>{quiz.blurb}</p>
-          {tab !== 'stats' && <LeaderboardStrip board={board} identity={identity} onOpen={() => setTab('stats')} />}
+          {tab !== 'stats' && phase !== 'playing' && <LeaderboardStrip board={board} identity={identity} onOpen={() => setTab('stats')} />}
         </div>
 
         {/* Tab ribbon removed: the top-of-page LeaderboardStrip is the single
@@ -547,12 +547,6 @@ export default function TimedMcqClient({ quizId, mobile = false }) {
                   <button onClick={giveUp} style={ghostBtn(false)}>
                     <Flag size={12} strokeWidth={2.5} /> End now
                   </button>
-                  <button onClick={() => setTab('stats')} style={ghostBtn(false)}>
-                    <Trophy size={12} strokeWidth={2.5} /> Leaderboard
-                  </button>
-                  <button onClick={share} style={ghostBtn(false)}>
-                    <Share2 size={12} strokeWidth={2.5} /> {copied ? 'Copied!' : 'Share'}
-                  </button>
                 </div>
               </div>
             )}
@@ -673,9 +667,9 @@ export default function TimedMcqClient({ quizId, mobile = false }) {
                 <button onClick={downloadResultImage} style={{ fontFamily: MONO, fontSize: 12, letterSpacing: '0.06em', textTransform: 'uppercase', fontWeight: 700, padding: '10px 20px', borderRadius: 10, border: `1.5px solid ${COLORS.ink}`, background: COLORS.cream, color: COLORS.ink, cursor: 'pointer' }}>Download image</button>
               )}
             </div>
-            <button onClick={share} style={{ fontFamily: MONO, fontSize: 13, letterSpacing: '0.08em', textTransform: 'uppercase', fontWeight: 700, padding: '0 28px', lineHeight: '46px', border: 'none', background: COLORS.ember, color: '#fff', cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: 8 }}>
-              <Share2 size={14} strokeWidth={2.5} /> {copied ? 'Link copied!' : (phase === 'done' ? 'Challenge a friend' : 'Share this quiz')}
-            </button>
+            <a href={`/duel/new?quiz=${encodeURIComponent(quizId)}`} style={{ fontFamily: MONO, fontSize: 13, letterSpacing: '0.08em', textTransform: 'uppercase', fontWeight: 700, padding: '0 28px', lineHeight: '46px', border: 'none', borderRadius: 999, background: COLORS.ink, color: '#fff', cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: 8, textDecoration: 'none' }}>
+              <Swords size={14} strokeWidth={2.5} /> Challenge Someone
+            </a>
             <div style={{ fontFamily: MONO, fontSize: 12, color: COLORS.faded, marginTop: 16, wordBreak: 'break-all' }}>{shareUrl}</div>
           </div>
         )}

@@ -40,7 +40,7 @@ export default function QuizIdleActions({ onStart, startLabel = 'Start', startDi
       <button onClick={onStart} disabled={startDisabled} style={{ ...base, background: C.ember, color: '#fff', opacity: startDisabled ? 0.5 : 1, cursor: startDisabled ? 'default' : 'pointer' }}>
         {startLabel}
       </button>
-      <a href={`/duel/new?quiz=${encodeURIComponent(quizId || '')}`} style={{ ...base, background: C.ink, color: '#fff' }}>
+      <a href={`/duel/new?quiz=${encodeURIComponent(quizId || '')}`} style={{ ...base, background: C.ink, color: '#fff', borderRadius: 999 }}>
         <Swords size={14} strokeWidth={2.5} /> Challenge Someone
       </a>
       <button onClick={onLeaderboard} style={{ ...base, background: C.cream, color: C.ink, border: `1.5px solid ${C.ink}` }}>

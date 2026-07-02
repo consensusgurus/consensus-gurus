@@ -1547,7 +1547,7 @@ export default function QuizClient({ quizId }) {
               </div>
             </div>
           )}
-          {tab !== 'stats' && !mAppPlay && <LeaderboardStrip board={board} identity={identity} onOpen={() => setTab('stats')} />}
+          {tab !== 'stats' && !mAppPlay && (!started || ended) && <LeaderboardStrip board={board} identity={identity} onOpen={() => setTab('stats')} />}
         </div>
 
         {/* Ribbon */}
@@ -1594,7 +1594,7 @@ export default function QuizClient({ quizId }) {
               <div style={{ display: 'flex', flexDirection: 'column', gap: 9 }}>
                 <button onClick={restartRound} style={{ ...stackBtn, background: COLORS.ember, color: '#fff' }}><RotateCcw size={15} strokeWidth={2.5} /> Play again</button>
                 <button onClick={() => { const sid = nextMeta ? nextMeta.id : similarQuizId(quiz); if (sid) router.push(`/quiz/${sid}`); }} title={nextMeta ? nextMeta.title : undefined} style={{ ...stackBtn, background: COLORS.forest, color: '#fff' }}><Shuffle size={15} strokeWidth={2.5} /> Play similar</button>
-                <a href={`/duel/new?quiz=${encodeURIComponent(quiz.id)}`} style={{ ...stackBtn, background: COLORS.ink, color: '#fff' }}><Swords size={15} strokeWidth={2.5} /> Challenge a friend</a>
+                <a href={`/duel/new?quiz=${encodeURIComponent(quiz.id)}`} style={{ ...stackBtn, background: COLORS.ink, color: '#fff', borderRadius: 999 }}><Swords size={15} strokeWidth={2.5} /> Challenge Someone</a>
               </div>
               <div style={{ marginTop: 9 }}>
                 {quiz.listId && (
@@ -1990,15 +1990,9 @@ export default function QuizClient({ quizId }) {
             )}
 
             {started && !ended && (
-              <div style={{ marginTop: 22, gap: 10, justifyContent: 'center', display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))', maxWidth: 640, marginLeft: 'auto', marginRight: 'auto' }}>
-                <button onClick={() => endGame(false)} disabled={!started} style={{ fontFamily: MONO, fontSize: 12, letterSpacing: '0.12em', textTransform: 'uppercase', fontWeight: 700, padding: '12px 26px', border: 'none', background: COLORS.ember, color: '#fff', cursor: !started ? 'default' : 'pointer', opacity: !started ? 0.4 : 1, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 8 }}>
+              <div style={{ marginTop: 22, display: 'flex', justifyContent: 'center' }}>
+                <button onClick={() => endGame(false)} style={{ fontFamily: MONO, fontSize: 12, letterSpacing: '0.12em', textTransform: 'uppercase', fontWeight: 700, padding: '12px 40px', border: 'none', background: COLORS.ember, color: '#fff', cursor: 'pointer', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 8 }}>
                   <Flag size={14} strokeWidth={2.5} color="#fff" /> Give up
-                </button>
-                <button onClick={() => setTab('stats')} style={{ fontFamily: MONO, fontSize: 12, letterSpacing: '0.12em', textTransform: 'uppercase', fontWeight: 700, padding: '12px 26px', border: `1.5px solid ${COLORS.ink}`, background: COLORS.cream, color: COLORS.ink, cursor: 'pointer', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 8 }}>
-                  <Trophy size={14} strokeWidth={2.5} /> Leaderboard
-                </button>
-                <button onClick={share} style={{ fontFamily: MONO, fontSize: 12, letterSpacing: '0.12em', textTransform: 'uppercase', fontWeight: 700, padding: '12px 26px', border: `1.5px solid ${COLORS.ink}`, background: COLORS.cream, color: COLORS.ink, cursor: 'pointer', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 8 }}>
-                  <Share2 size={14} strokeWidth={2.5} /> {copied ? 'Copied!' : 'Share'}
                 </button>
               </div>
             )}
@@ -2025,7 +2019,7 @@ export default function QuizClient({ quizId }) {
               ))}
             </div>
             <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, justifyContent: 'center' }}>
-              <button onClick={share} style={{ fontFamily: MONO, fontSize: 12, letterSpacing: '0.06em', textTransform: 'uppercase', fontWeight: 700, padding: '10px 20px', borderRadius: 10, border: 'none', background: COLORS.ember, color: '#fff', cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: 8 }}><Share2 size={14} strokeWidth={2.5} /> {copied ? 'Copied!' : 'Share'}</button>
+              <a href={`/duel/new?quiz=${encodeURIComponent(quiz.id)}`} style={{ fontFamily: MONO, fontSize: 12, letterSpacing: '0.06em', textTransform: 'uppercase', fontWeight: 700, padding: '10px 20px', borderRadius: 999, border: 'none', background: COLORS.ink, color: '#fff', cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: 8, textDecoration: 'none' }}><Swords size={14} strokeWidth={2.5} /> Challenge Someone</a>
               <button onClick={copyResult} style={{ fontFamily: MONO, fontSize: 12, letterSpacing: '0.06em', textTransform: 'uppercase', fontWeight: 700, padding: '10px 20px', borderRadius: 10, border: `1.5px solid ${COLORS.ink}`, background: COLORS.cream, color: COLORS.ink, cursor: 'pointer' }}>Copy result</button>
               <button onClick={downloadPromoImage} style={{ fontFamily: MONO, fontSize: 12, letterSpacing: '0.06em', textTransform: 'uppercase', fontWeight: 700, padding: '10px 20px', borderRadius: 10, border: `1.5px solid ${COLORS.ink}`, background: COLORS.cream, color: COLORS.ink, cursor: 'pointer' }}>Save quiz image</button>
               {ended && (

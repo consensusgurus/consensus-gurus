@@ -314,7 +314,7 @@ export default function LogicGameClient({ quizId, mobile = false }) {
         <div style={{ paddingBottom: 0, marginTop: 8 }}>
           <h1 style={{ fontFamily: SANS, fontWeight: 800, fontSize: 'clamp(28px, 4.5vw, 44px)', lineHeight: 1.05, letterSpacing: '-0.025em', margin: 0, color: COLORS.ink }}>{quiz.title}</h1>
           <p style={{ fontFamily: SANS, fontSize: 15, lineHeight: 1.55, margin: '10px 0 0', color: COLORS.faded, maxWidth: 680 }}>{quiz.blurb}</p>
-          {tab !== 'stats' && <LeaderboardStrip board={board} identity={identity} onOpen={() => setTab('stats')} />}
+          {tab !== 'stats' && phase !== 'playing' && <LeaderboardStrip board={board} identity={identity} onOpen={() => setTab('stats')} />}
         </div>
 
         <div style={{ marginTop: 24 }} />
@@ -462,7 +462,7 @@ export default function LogicGameClient({ quizId, mobile = false }) {
                       <Trophy size={14} strokeWidth={2.5} /> Post to Leaderboard
                     </button>
                   )}
-                  <a href={`/duel/new?quiz=${encodeURIComponent(quizId)}`} style={{ fontFamily: MONO, fontSize: 13, letterSpacing: '0.04em', textTransform: 'uppercase', fontWeight: 700, lineHeight: '46px', width: 180, padding: 0, boxSizing: 'border-box', background: COLORS.ink, color: COLORS.cream, border: 'none', cursor: 'pointer', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 6, whiteSpace: 'nowrap', textDecoration: 'none' }}>
+                  <a href={`/duel/new?quiz=${encodeURIComponent(quizId)}`} style={{ fontFamily: MONO, fontSize: 13, letterSpacing: '0.04em', textTransform: 'uppercase', fontWeight: 700, lineHeight: '46px', width: 180, padding: 0, boxSizing: 'border-box', background: COLORS.ink, color: COLORS.cream, border: 'none', cursor: 'pointer', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 6, whiteSpace: 'nowrap', textDecoration: 'none', borderRadius: 999 }}>
                     <Swords size={14} strokeWidth={2.5} /> Challenge Someone
                   </a>
                   <a href="/quizzes/hub?tab=duels" style={{ fontFamily: MONO, fontSize: 13, letterSpacing: '0.04em', textTransform: 'uppercase', fontWeight: 700, lineHeight: '46px', width: 180, padding: 0, boxSizing: 'border-box', background: '#fff', color: COLORS.ink, border: `1.5px solid ${COLORS.ink}`, cursor: 'pointer', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 6, whiteSpace: 'nowrap', textDecoration: 'none' }}>
