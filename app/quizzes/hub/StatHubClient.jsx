@@ -859,7 +859,7 @@ function PlayerPanel({ me, scope, cats, byKey, totalQuizzes, board, myName, myAn
 // ─── Category view: cards by default, the classic table behind a toggle ─────
 function CategoryView({ me, scope, cats, totalQuizzes, viewing }) {
   const found = me && me.found;
-  const [mode, setMode] = useState('cards');
+  const [mode, setMode] = useState('table');
   const a = found ? me.activity : { correct: 0, answered: 0, played: 0, completed: 0, accuracy: 0, daysPlayed: 0 };
   const ranks = (found && me.ranks) || {};
   const base = (found && me.base) || {};
@@ -917,8 +917,8 @@ function CategoryView({ me, scope, cats, totalQuizzes, viewing }) {
   return (
     <div>
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: 2, marginBottom: 10, background: '#eef0f2', borderRadius: 8, padding: 3, width: 'fit-content', marginLeft: 'auto' }}>
-        {modeBtn('cards', 'Cards')}
         {modeBtn('table', 'Table')}
+        {modeBtn('cards', 'Cards')}
       </div>
       {mode === 'cards' ? (
         <div>
@@ -1203,17 +1203,17 @@ function UserBaseBody({ board, myName, myAnonKey, onSelectPlayer, viewKey }) {
         {top3.map((p, i) => {
           const mine = isMine(p);
           return (
-            <div key={p.userKey} style={{ background: mine ? '#f3f7fe' : C.bg, border: `1px solid ${mine ? '#c6d8f5' : C.line}`, borderTop: `3px solid ${MEDAL[i]}`, borderRadius: '0 0 12px 12px', padding: i === 0 ? '15px 14px' : '13px 14px', textAlign: 'center', minWidth: 0 }}>
-              <span style={{ position: 'relative', display: 'inline-flex', flexDirection: 'column', alignItems: 'center' }}>
-                {i === 0 ? <span style={{ color: MEDAL[0], display: 'flex', marginBottom: 1 }}><Crown size={15} /></span> : null}
-                <Avatar name={p.name} bg={MEDAL_BG[i]} fg={MEDAL[i]} size={i === 0 ? 44 : 38} />
+            <div key={p.userKey} style={{ background: mine ? '#f3f7fe' : C.bg, border: `1px solid ${mine ? '#c6d8f5' : C.line}`, borderTop: `3px solid ${MEDAL[i]}`, borderRadius: '0 0 12px 12px', padding: '14px 12px 12px', textAlign: 'center', minWidth: 0, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'flex-start' }}>
+              <span style={{ position: 'relative', display: 'inline-flex', flex: 'none' }}>
+                <Avatar name={p.name} bg={MEDAL_BG[i]} fg={MEDAL[i]} size={40} />
+                {i === 0 ? <span style={{ position: 'absolute', top: -7, right: -9, width: 19, height: 19, borderRadius: '50%', background: '#fff', border: `1px solid ${C.line}`, color: MEDAL[0], display: 'flex', alignItems: 'center', justifyContent: 'center' }}><Crown size={11} /></span> : null}
               </span>
-              <div style={{ marginTop: 6, fontSize: i === 0 ? 13.5 : 13, fontWeight: 800, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+              <div style={{ marginTop: 7, fontSize: 13, fontWeight: 800, lineHeight: 1.2, maxWidth: '100%', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                 <button onClick={() => onSelectPlayer && onSelectPlayer(p.userKey)} style={{ border: 'none', background: 'transparent', padding: 0, font: 'inherit', fontFamily: FONT, fontWeight: 800, color: mine ? C.ink : C.accent, cursor: 'pointer' }}>{p.name}</button>
                 {mine ? <span style={{ fontSize: 9.5, color: C.accent, fontWeight: 800, marginLeft: 5 }}>YOU</span> : null}
               </div>
-              <div style={{ fontSize: i === 0 ? 22 : 19, fontWeight: 800, marginTop: 1, fontVariantNumeric: 'tabular-nums' }}>{(p.rating || 0).toLocaleString()}</div>
-              <div style={{ fontSize: 10, color: C.soft, fontWeight: 800, letterSpacing: '.05em', marginTop: 1 }}>{tierNameOf(p.rating || 0).toUpperCase()} · {p.accuracy || 0}% ACC</div>
+              <div style={{ fontSize: 20, fontWeight: 800, marginTop: 2, lineHeight: 1.15, fontVariantNumeric: 'tabular-nums' }}>{(p.rating || 0).toLocaleString()}</div>
+              <div style={{ fontSize: 10, color: C.soft, fontWeight: 800, letterSpacing: '.05em', marginTop: 2 }}>{tierNameOf(p.rating || 0).toUpperCase()} · {p.accuracy || 0}% ACC</div>
             </div>
           );
         })}
@@ -1560,21 +1560,23 @@ function RatingPanel({ me, titleById, viewing }) {
   const weekCut = Date.now() - 7 * 86400000;
   const weekDelta = Math.round(hist.reduce((acc, m) => acc + ((m.createdAt && Date.parse(m.createdAt) >= weekCut) ? (m.delta || 0) : 0), 0));
 
-  // Chart geometry: last 80 points, scaled to the data with padding; the next
-  // tier line is drawn only when it falls inside the visible range.
-  const pts = series.slice(-80);
-  const W = 600, H = 110, PAD = 8;
-  let lo = Math.min(...pts), hi = Math.max(...pts);
-  if (hi - lo < 30) { const mid = (hi + lo) / 2; lo = mid - 15; hi = mid + 15; }
-  const X = (i) => (pts.length > 1 ? (i / (pts.length - 1)) * W : W / 2);
-  const Y = (v) => H - PAD - ((v - lo) / Math.max(1, hi - lo)) * (H - 2 * PAD);
-  const line = pts.map((v, i) => `${i === 0 ? 'M' : 'L'}${Math.round(X(i) * 10) / 10},${Math.round(Y(v) * 10) / 10}`).join(' ');
-  const area = `${line} L${W},${H} L0,${H} Z`;
+  // Chart: the full rating history sampled to ~70 points and drawn at the
+  // container's real pixel width (no viewBox stretching, so the stroke and
+  // labels stay crisp) as a smoothed curve over light gridlines.
+  const chartRef = useRef(null);
+  const [cw, setCw] = useState(0);
+  useEffect(() => {
+    const el = chartRef.current;
+    if (!el) return;
+    const upd = () => setCw(el.clientWidth || 600);
+    upd();
+    window.addEventListener('resize', upd);
+    return () => window.removeEventListener('resize', upd);
+  }, []);
   const nextStep = TIER_STEPS.find((t) => t > rating) || null;
   const nextName = nextStep ? TIER_NAMES[TIER_STEPS.indexOf(nextStep) + 1] : null;
   const bandLo = [...TIER_STEPS].reverse().find((t) => t <= rating) || 1200;
   const bandPct = nextStep ? Math.round(Math.max(4, Math.min(100, ((rating - bandLo) / (nextStep - bandLo)) * 100))) : 100;
-  const tierLineVisible = nextStep != null && nextStep >= lo && nextStep <= hi;
   const tierLabel = found && me.tier ? me.tier : 'Unrated';
   const tierBg = found && me.tierBg ? me.tierBg : '#eceef1';
   const tierFg = found && me.tierFg ? me.tierFg : C.muted;
@@ -1625,18 +1627,49 @@ function RatingPanel({ me, titleById, viewing }) {
           <span style={{ flex: 1 }} />
           {comp.matches > 0 ? <span style={{ fontSize: 11, color: C.soft, fontWeight: 800, letterSpacing: '.04em' }}>PEAK {peak.toLocaleString()}{peakWhen ? ` · ${peakWhen.toUpperCase()}` : ''}</span> : null}
         </div>
-        {pts.length >= 3 ? (
-          <svg viewBox={`0 0 ${W} ${H}`} width="100%" height="110" preserveAspectRatio="none" aria-hidden="true" style={{ marginTop: 8, display: 'block' }}>
-            <path d={area} fill={C.accsoft} opacity="0.7" />
-            <path d={line} fill="none" stroke={C.accent} strokeWidth="2.5" strokeLinejoin="round" />
-            {tierLineVisible ? (
-              <g>
-                <line x1="0" y1={Y(nextStep)} x2={W} y2={Y(nextStep)} stroke="#e8b43a" strokeWidth="1.5" strokeDasharray="5 5" />
-                <text x="6" y={Math.max(11, Y(nextStep) - 5)} fontSize="11" fontWeight="700" fill="#a97b12" fontFamily={FONT}>{nextName} at {nextStep.toLocaleString()}</text>
-              </g>
-            ) : null}
-            <circle cx={X(pts.length - 1)} cy={Y(pts[pts.length - 1])} r="4" fill={C.accent} />
-          </svg>
+        {series.length >= 4 ? (
+          <div ref={chartRef} style={{ marginTop: 10 }}>
+            {cw > 0 ? (() => {
+              const W = cw, H = 150, T = 14, B = 8, Lp = 6, Rp = 6;
+              let pts = series;
+              if (pts.length > 70) { pts = []; for (let i = 0; i < 70; i++) pts.push(series[Math.round((i * (series.length - 1)) / 69)]); }
+              let lo = Math.min(...pts), hi = Math.max(...pts);
+              if (nextStep != null && nextStep > hi && nextStep - hi <= 35) hi = nextStep + 6;
+              if (hi - lo < 40) { const mid = (hi + lo) / 2; lo = mid - 20; hi = mid + 20; }
+              const vpad = (hi - lo) * 0.06;
+              lo -= vpad; hi += vpad;
+              const X = (i) => Lp + (pts.length > 1 ? (i / (pts.length - 1)) * (W - Lp - Rp) : 0);
+              const Y = (v) => T + (1 - (v - lo) / (hi - lo)) * (H - T - B);
+              const P = pts.map((v, i) => [Math.round(X(i) * 10) / 10, Math.round(Y(v) * 10) / 10]);
+              let d = `M${P[0][0]},${P[0][1]}`;
+              for (let i = 0; i < P.length - 1; i++) {
+                const p0 = P[Math.max(0, i - 1)], p1 = P[i], p2 = P[i + 1], p3 = P[Math.min(P.length - 1, i + 2)];
+                d += `C${(p1[0] + (p2[0] - p0[0]) / 6).toFixed(1)},${(p1[1] + (p2[1] - p0[1]) / 6).toFixed(1)} ${(p2[0] - (p3[0] - p1[0]) / 6).toFixed(1)},${(p2[1] - (p3[1] - p1[1]) / 6).toFixed(1)} ${p2[0]},${p2[1]}`;
+              }
+              const area = `${d} L${P[P.length - 1][0]},${H - B} L${P[0][0]},${H - B} Z`;
+              const ticks = [lo + (hi - lo) * 0.18, lo + (hi - lo) * 0.5, lo + (hi - lo) * 0.82].map((v) => Math.round(v / 5) * 5);
+              const tierY = nextStep != null && nextStep >= lo && nextStep <= hi ? Y(nextStep) : null;
+              return (
+                <svg width={W} height={H} viewBox={`0 0 ${W} ${H}`} aria-hidden="true" style={{ display: 'block' }}>
+                  {ticks.map((v, i) => (
+                    <g key={i}>
+                      <line x1={Lp} y1={Y(v)} x2={W - Rp} y2={Y(v)} stroke={C.line} strokeWidth="1" />
+                      <text x={W - Rp - 2} y={Y(v) - 4} fontSize="10" fontWeight="700" fill={C.soft} fontFamily={FONT} textAnchor="end">{v.toLocaleString()}</text>
+                    </g>
+                  ))}
+                  <path d={area} fill={C.accsoft} opacity="0.6" />
+                  <path d={d} fill="none" stroke={C.accent} strokeWidth="2.25" strokeLinejoin="round" strokeLinecap="round" />
+                  {tierY != null ? (
+                    <g>
+                      <line x1={Lp} y1={tierY} x2={W - Rp} y2={tierY} stroke="#e8b43a" strokeWidth="1.5" strokeDasharray="5 5" />
+                      <text x={Lp + 2} y={Math.max(11, tierY - 5)} fontSize="10.5" fontWeight="800" fill="#a97b12" fontFamily={FONT}>{nextName} at {nextStep.toLocaleString()}</text>
+                    </g>
+                  ) : null}
+                  <circle cx={P[P.length - 1][0]} cy={P[P.length - 1][1]} r="4" fill={C.accent} stroke="#fff" strokeWidth="1.5" />
+                </svg>
+              );
+            })() : <div style={{ height: 150 }} />}
+          </div>
         ) : (
           <div style={{ fontSize: 13, color: C.soft, padding: '14px 0 6px' }}>{viewing ? 'A few more finished quizzes and the rating trend chart appears here.' : 'Finish a few quizzes and your rating trend chart appears here.'}</div>
         )}
