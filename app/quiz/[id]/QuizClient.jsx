@@ -17,6 +17,7 @@ import SiteHeader from '../../SiteHeader';
 import QuizPlayerBar from './QuizPlayerBar';
 import { isMobileDevice } from '@/lib/is-mobile';
 import useAbandonFlush from './useAbandonFlush';
+import useDuelContext, { DuelBanner } from './useDuelContext';
 import { LB_POPS, LB_FILTERS, pickLb, lbEmptyNote } from '@/lib/quiz-lb';
 import useIsMobile from './useIsMobile';
 import dynamic from 'next/dynamic';
@@ -387,32 +388,36 @@ export default function QuizClient({ quizId }) {
 
   const isMobileVP = useIsMobile();
   const mobile = isMobileVP;
+  // Duel context: if this quiz was opened from a duel (?duel=<token>),
+  // auto-submit the player's score when they finish and show a return bar.
+  const { duelToken, duelInfo, duelSubmitted } = useDuelContext(quizId, searchParams);
+  const duelBanner = <DuelBanner token={duelToken} info={duelInfo} submitted={duelSubmitted} />;
   if (quiz.format === 'timed-mcq') {
-    return <TimedMcqBoard quizId={quizId} mobile={mobile} />;
+    return (<>{duelBanner}<TimedMcqBoard quizId={quizId} mobile={mobile} /></>);
   }
   if (quiz.format === 'logic-grid') {
-    return <LogicGridBoard quizId={quizId} mobile={mobile} />;
+    return (<>{duelBanner}<LogicGridBoard quizId={quizId} mobile={mobile} /></>);
   }
   if (quiz.format === 'grid-fill') {
-    return <GridFillBoard quizId={quizId} mobile={mobile} />;
+    return (<>{duelBanner}<GridFillBoard quizId={quizId} mobile={mobile} /></>);
   }
   if (quiz.format === 'place-map') {
-    return <MapPlaceBoard quizId={quizId} mobile={mobile} />;
+    return (<>{duelBanner}<MapPlaceBoard quizId={quizId} mobile={mobile} /></>);
   }
   if (quiz.format === 'geo-aerial') {
-    return <GeoAerialBoard quizId={quizId} mobile={mobile} />;
+    return (<>{duelBanner}<GeoAerialBoard quizId={quizId} mobile={mobile} /></>);
   }
   if (quiz.format === 'globe') {
-    return <GlobePlaceBoard quizId={quizId} mobile={mobile} />;
+    return (<>{duelBanner}<GlobePlaceBoard quizId={quizId} mobile={mobile} /></>);
   }
   if (quiz.format === 'survive-state') {
-    return <SurviveStateBoard quizId={quizId} mobile={mobile} />;
+    return (<>{duelBanner}<SurviveStateBoard quizId={quizId} mobile={mobile} /></>);
   }
   if (quiz.format === 'logic-game') {
-    return <LogicGameBoard quizId={quizId} mobile={mobile} />;
+    return (<>{duelBanner}<LogicGameBoard quizId={quizId} mobile={mobile} /></>);
   }
   if (quiz.format === 'higher-lower') {
-    return <HigherLowerBoard quizId={quizId} mobile={mobile} />;
+    return (<>{duelBanner}<HigherLowerBoard quizId={quizId} mobile={mobile} /></>);
   }
   const answers = quiz.answers;
   const matched = quiz.format === 'matched';
@@ -1406,6 +1411,7 @@ export default function QuizClient({ quizId }) {
   return (
     <div style={{ minHeight: '100vh', background: COLORS.cream, color: COLORS.ink, position: 'relative', overflowX: 'clip' }}>
       <QuizCelebration kind={celebration} onDone={() => setCelebration(null)} />
+      {duelBanner}
       <SiteHeader active="quizzes" flush inlay={<QuizPlayerBar />} />
       <div className="qz-pagewrap" style={{ position: 'relative', zIndex: 2, maxWidth: 1180, margin: '0 auto', padding: '8px 38px 80px' }}><style>{`@media(max-width:560px){.qz-pagewrap{padding-left:14px !important;padding-right:14px !important;}}`}</style><div className="qzf-line" aria-hidden="true" />
 

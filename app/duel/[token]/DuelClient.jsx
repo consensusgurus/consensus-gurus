@@ -38,12 +38,36 @@ export default function DuelClient({ token }) {
     } catch { setErrCode('error'); setState('error'); }
   }, [token]);
 
+  // Silently attach the caller's score once they've played, so no manual
+  // "submit my score" tap is needed. Only for players already in the duel
+  // (challenger or the named opponent); an open-invite viewer joins explicitly.
+  const autoSubmit = useCallback(async () => {
+    if (!duel || !me.anon) return;
+    const mySide = duel.challenger_anon === me.anon ? 'challenger' : (duel.opponent_anon === me.anon ? 'opponent' : 'new');
+    if (mySide === 'new') return;
+    const already = mySide === 'challenger' ? duel.challenger_score : duel.opponent_score;
+    if (already != null) return;
+    const nm = (me.name || storedName() || '').trim().slice(0, 40);
+    if (!nm) return;
+    try {
+      const r = await fetch('/api/duel/submit', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ token, anonId: me.anon, name: nm }) });
+      const d = await r.json();
+      if (d && d.duel) setDuel(d.duel);
+    } catch {}
+  }, [duel, me.anon, me.name, token]);
+
   useEffect(() => { load(); }, [load]);
   useEffect(() => {
     if (!duel || duel.status === 'complete' || duel.status === 'declined') return;
-    const id = setInterval(load, 6000);
+    const id = setInterval(() => { load(); autoSubmit(); }, 6000);
     return () => clearInterval(id);
-  }, [duel, load]);
+  }, [duel, load, autoSubmit]);
+  // Returning from playing (tab visible again) refreshes and attaches the score at once.
+  useEffect(() => {
+    function onVis() { if (typeof document !== 'undefined' && document.visibilityState === 'visible') { load(); autoSubmit(); } }
+    if (typeof document !== 'undefined') document.addEventListener('visibilitychange', onVis);
+    return () => { if (typeof document !== 'undefined') document.removeEventListener('visibilitychange', onVis); };
+  }, [load, autoSubmit]);
 
   const quiz = duel ? QUIZZES.find((q) => q.id === duel.quiz_id) : null;
   const quizTitle = quiz ? quiz.title : (duel ? duel.quiz_id : '');
@@ -158,12 +182,12 @@ export default function DuelClient({ token }) {
                   ) : (
                     <>
                       <div style={{ fontSize: 16, fontWeight: 800, marginBottom: 4 }}>{side === 'challenger' ? 'Play your round' : `${duel.challenger_name} challenged you`}</div>
-                      <div style={{ color: C.muted, fontSize: 14, marginBottom: 14 }}>Tap {'"'}Play the quiz{'"'} (opens a new tab){dev !== 'any' ? ` — play on ${dev === 'mobile' ? 'your phone' : 'a computer'}, this duel is ${dev} only` : ''}. When you finish, come back to this tab and tap {'"'}submit my score{'"'}. It uses your best score automatically.</div>
+                      <div style={{ color: C.muted, fontSize: 14, marginBottom: 14 }}>Tap {'"'}Play the quiz{'"'}{dev !== 'any' ? ` on ${dev === 'mobile' ? 'your phone' : 'a computer'} (this duel is ${dev} only)` : ''}. When you finish, your score is sent to this duel automatically. You can also return here and tap submit.</div>
                       {!me.name && (
                         <button onClick={() => setSignupOpen(true)} style={{ width: '100%', boxSizing: 'border-box', textAlign: 'left', background: '#fff', color: C.accent, border: `1.5px solid ${C.accent}`, borderRadius: 10, padding: '10px 12px', marginBottom: 12, fontFamily: FONT, fontWeight: 800, fontSize: 14, cursor: 'pointer' }}>Claim your display name to play +</button>
                       )}
                       <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
-                        <a href={`/quiz/${duel.quiz_id}`} target="_blank" rel="noopener noreferrer" style={{ flex: '1 1 160px', textAlign: 'center', background: C.accent, color: '#fff', padding: '12px 16px', borderRadius: 10, fontWeight: 800, textDecoration: 'none' }}>Play the Quiz →</a>
+                        <a href={`/quiz/${duel.quiz_id}?duel=${token}`} style={{ flex: '1 1 160px', textAlign: 'center', background: C.accent, color: '#fff', padding: '12px 16px', borderRadius: 10, fontWeight: 800, textDecoration: 'none' }}>Play the Quiz →</a>
                         <button onClick={submit} disabled={busy} style={{ flex: '1 1 160px', background: C.surface, color: C.accent, border: `1.5px solid ${C.accent}`, padding: '12px 16px', borderRadius: 10, fontWeight: 800, cursor: 'pointer', fontFamily: FONT }}>{busy ? 'Working…' : "I've Played — Submit My Score"}</button>
                       </div>
                       {side !== 'challenger' && (

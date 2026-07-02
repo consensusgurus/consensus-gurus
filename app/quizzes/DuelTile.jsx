@@ -1,7 +1,7 @@
 'use client';
 import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { useRouter } from 'next/navigation';
-import { Swords, UserPlus, ListChecks, ArrowRight, X, ChevronDown } from 'lucide-react';
+import { Swords, UserPlus, ListChecks, ArrowRight, X, ChevronDown, Play } from 'lucide-react';
 import { QUIZZES } from '@/lib/quizzes';
 
 const NAVY = '#0e1d40', ACCENT = '#2563eb', AMBER = '#f8b84a';
@@ -24,8 +24,22 @@ export default function DuelTile() {
   const [quiz, setQuiz] = useState(null);
   const [quizOpen, setQuizOpen] = useState(false);
   const wrapRef = useRef(null);
+  const [myDuels, setMyDuels] = useState([]);
 
   useEffect(() => { setMyAnon(getAnon()); }, []);
+
+  // Surface the player's actionable duels (incoming challenges + their own open
+  // invites) right on the tile, so challenges are visible without digging.
+  useEffect(() => {
+    const a = getAnon();
+    if (!a) return;
+    let alive = true;
+    fetch(`/api/duel/list?anonId=${encodeURIComponent(a)}`)
+      .then((r) => r.json())
+      .then((d) => { if (alive && d && Array.isArray(d.yourMove)) setMyDuels(d.yourMove); })
+      .catch(() => {});
+    return () => { alive = false; };
+  }, []);
 
   useEffect(() => {
     if (opp) return;
@@ -84,6 +98,25 @@ export default function DuelTile() {
       </div>
 
       <div className="dueltile-body" style={{ display: 'flex', flexDirection: 'column', flex: 1 }}>
+        {myDuels.length > 0 && (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 6, margin: '11px 0 4px' }}>
+            <div style={{ fontSize: 10, fontWeight: 800, letterSpacing: '.12em', textTransform: 'uppercase', color: '#9fb0d4' }}>Your Challenges</div>
+            {myDuels.slice(0, 3).map((d) => {
+              const q = QUIZZES.find((x) => x.id === d.quiz_id);
+              const incoming = d.challenger_anon !== myAnon;
+              const foe = incoming ? d.challenger_name : d.opponent_name;
+              return (
+                <a key={d.token} href={`/duel/${d.token}`} style={{ display: 'flex', alignItems: 'center', gap: 8, textDecoration: 'none', background: 'rgba(255,255,255,0.08)', border: '1px solid rgba(255,255,255,0.16)', borderRadius: 9, padding: '7px 10px' }}>
+                  <span style={{ flex: 1, minWidth: 0 }}>
+                    <span style={{ display: 'block', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', fontSize: 12.5, fontWeight: 700, color: '#eaf0fb' }}>{(q && q.title) || d.quiz_id}</span>
+                    <span style={{ display: 'block', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', fontSize: 11, fontWeight: 600, color: '#9fb0d4' }}>{foe ? (incoming ? `${foe} challenged you` : `vs ${foe}`) : 'Open invite'}</span>
+                  </span>
+                  <span style={{ flex: 'none', display: 'inline-flex', alignItems: 'center', gap: 5, background: incoming ? AMBER : 'rgba(255,255,255,0.14)', color: incoming ? '#1c1e24' : '#eaf0fb', borderRadius: 999, padding: '5px 11px', fontWeight: 800, fontSize: 11.5 }}>{incoming ? <><Play size={12} fill="#1c1e24" strokeWidth={0} /> Play</> : 'View'}</span>
+                </a>
+              );
+            })}
+          </div>
+        )}
         <div style={{ display: 'flex', flexDirection: 'column', gap: 8, margin: '11px 0 12px' }}>
           <div style={field}>
             <div style={inputBox} onClick={() => setOppOpen(true)}>
