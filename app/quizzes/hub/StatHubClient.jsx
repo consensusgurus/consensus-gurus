@@ -745,7 +745,7 @@ export default function StatHubClient() {
     <div style={{ background: C.bg, minHeight: '100vh', position: 'relative' }}>
       <Grain />
       <style>{css}</style>
-      <SiteHeader active="quizzes" flush inlay={<QuizPlayerBar controlled me={statBarMe} rightAction="share" onShare={() => setShareOpen(true)} />} />
+      <SiteHeader active="quizzes" flush inlay={<QuizPlayerBar controlled me={statBarMe} rightAction="share" onShare={() => { if (found) setShareOpen(true); else setSignupOpen(true); }} />} />
       <div className="qzhub qzf-w" style={{ maxWidth: 1180, margin: '0 auto', padding: '12px 38px 70px', position: 'relative' }}><div className="qzf-line" aria-hidden="true" />
 
         {viewing ? (
