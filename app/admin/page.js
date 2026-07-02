@@ -142,6 +142,29 @@ function playerStats(plays) {
   };
 }
 
+// Active-user counts (DAU/WAU/MAU) from completed quiz games. A player's
+// identity is their registered user_id, else their browser anon_id, else the
+// row id (a lone anonymous play). A player counts once per rolling window if
+// they finished any game inside it. This is the "active players" signal,
+// available from existing data with full history; the broader "unique visitors"
+// signal comes from visitor_active_counts() once migration 30 is applied.
+function activePlayerCounts(rows) {
+  const now = Date.now();
+  const DAY = 24 * 60 * 60 * 1000;
+  const dau = new Set(), wau = new Set(), mau = new Set();
+  for (const r of rows || []) {
+    const t = r.created_at ? new Date(r.created_at).getTime() : NaN;
+    if (Number.isNaN(t)) continue;
+    const age = now - t;
+    if (age > 30 * DAY) continue;
+    const key = r.user_id ? `u:${r.user_id}` : r.anon_id ? `a:${r.anon_id}` : `r:${r.id}`;
+    mau.add(key);
+    if (age <= 7 * DAY) wau.add(key);
+    if (age <= DAY) dau.add(key);
+  }
+  return { dau: dau.size, wau: wau.size, mau: mau.size };
+}
+
 export const metadata = {
   title: 'Editor\'s Desk | Source of Truths',
   robots: { index: false, follow: false },
@@ -152,7 +175,7 @@ export default async function AdminPage() {
     redirect('/admin/login');
   }
 
-  const [submissionsRes, extrasRes, votesRes, complaintsRes, voteEventsRes, alertsRes, trendingRes, totalViewsRes, listCommentsRes, voteCountsRes, editorNotesRes, quizUsersRes, quizTrendingRes, quizTotalViewsRes, quizResultsRes] = await Promise.all([
+  const [submissionsRes, extrasRes, votesRes, complaintsRes, voteEventsRes, alertsRes, trendingRes, totalViewsRes, listCommentsRes, voteCountsRes, editorNotesRes, quizUsersRes, quizTrendingRes, quizTotalViewsRes, quizResultsRes, visitorActiveRes] = await Promise.all([
     fetchAllRows(supabaseAdmin, 'user_lists', '*', [['submitted_at', false], 'id']),
     fetchAllRows(supabaseAdmin, 'extras', 'list_id, item_name, added_at', [['added_at', false], 'list_id', 'item_name']),
     fetchAllRows(supabaseAdmin, 'votes', 'list_id, item_name, score, updated_at', [['updated_at', false], 'list_id', 'item_name']),
@@ -181,6 +204,9 @@ export default async function AdminPage() {
     supabaseAdmin.rpc('quiz_trending_views', { p_hours: 24 }),
     fetchAllRows(supabaseAdmin, 'quiz_views', 'quiz_id, count', ['quiz_id']),
     fetchQuizResults(),
+    // Site-wide distinct-visitor DAU/WAU/MAU (migration 30). Best-effort:
+    // returns an error if the RPC/columns aren't applied yet, handled below.
+    supabaseAdmin.rpc('visitor_active_counts'),
   ]);
 
   if (submissionsRes.error) {
@@ -491,6 +517,19 @@ export default async function AdminPage() {
         a.title.localeCompare(b.title)
     );
 
+  // DAU/WAU/MAU. players = distinct quiz players (works now, full history);
+  // visitors = distinct site visitors from visitor_active_counts() (fills in
+  // once migration 30 is applied, else null so the UI shows a "pending" note).
+  const activePlayers = activePlayerCounts((quizResultsRes && quizResultsRes.data) || []);
+  if (visitorActiveRes && visitorActiveRes.error) {
+    console.error('admin visitor_active_counts fetch error', visitorActiveRes.error);
+  }
+  const vRow = (visitorActiveRes && Array.isArray(visitorActiveRes.data) && visitorActiveRes.data[0]) || null;
+  const activeVisitors = vRow
+    ? { dau: Number(vRow.dau) || 0, wau: Number(vRow.wau) || 0, mau: Number(vRow.mau) || 0 }
+    : null;
+  const activeUsers = { players: activePlayers, visitors: activeVisitors };
+
   return (
     <AdminClient
       initialLists={lists}
@@ -505,6 +544,7 @@ export default async function AdminPage() {
       initialQuizSignups={quizSignupsWithPlays}
       initialQuizStats={quizStats}
       initialAnonPlayers={anonPlayers}
+      initialActiveUsers={activeUsers}
     />
   );
 }

@@ -362,7 +362,7 @@ function mapsPlaceUrl(name) {
   return `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(cleaned)}`;
 }
 
-export default function AdminClient({ initialLists, initialExtras = [], initialComplaints = [], initialVoteStandings = [], initialVoteEvents = [], initialComments = [], initialAlerts = [], initialViews24h = [], initialEditorNotes = [], initialQuizSignups = [], initialQuizStats = [], initialAnonPlayers = [] }) {
+export default function AdminClient({ initialLists, initialExtras = [], initialComplaints = [], initialVoteStandings = [], initialVoteEvents = [], initialComments = [], initialAlerts = [], initialViews24h = [], initialEditorNotes = [], initialQuizSignups = [], initialQuizStats = [], initialAnonPlayers = [], initialActiveUsers = { players: { dau: 0, wau: 0, mau: 0 }, visitors: null } }) {
   const router = useRouter();
   const [lists, setLists] = useState(initialLists);
   const [extras, setExtras] = useState(initialExtras);
@@ -748,7 +748,7 @@ export default function AdminClient({ initialLists, initialExtras = [], initialC
         </div>
 
         {tab === 'analytics' ? (
-          <AnalyticsPanel views={views24h} viewsTotal={views24hTotal} quizStats={quizStats} quizPlaysTotal={quizPlaysTotal} signups={quizSignups} anonPlayers={anonPlayers} />
+          <AnalyticsPanel views={views24h} viewsTotal={views24hTotal} quizStats={quizStats} quizPlaysTotal={quizPlaysTotal} signups={quizSignups} anonPlayers={anonPlayers} activeUsers={initialActiveUsers} />
         ) : tab === 'research' ? (
           <ResearchNotesPanel alerts={alerts} busy={busy} onResolve={resolveAlert} notes={editorNotes} lists={LISTS} onAddNote={addNote} onDeleteNote={deleteNote} />
         ) : tab === 'feedback' ? (
@@ -1845,7 +1845,81 @@ function AllPlayersPanel({ signups, anonPlayers }) {
 // (All / Lists / Quizzes) over the unified PageViewsPanel; quiz page views and
 // the former Quiz Stats play columns are folded in there. Only one table is on
 // screen at a time.
-function AnalyticsPanel({ views, viewsTotal, quizStats, quizPlaysTotal, signups, anonPlayers }) {
+// DAU / WAU / MAU strip pinned to the top of the Analytics tab. Two signals
+// side by side: "Active players" (distinct quiz players — registered + anonymous
+// browsers — from existing data, with full history) and "Unique visitors"
+// (distinct site visitors across all pages, from visitor_active_counts(); shows
+// a pending note until migration 30 is applied and data accrues).
+function ActiveUsersStrip({ data }) {
+  const players = (data && data.players) || { dau: 0, wau: 0, mau: 0 };
+  const visitors = data && data.visitors ? data.visitors : null;
+  const cols = [
+    ['DAU', 'dau', 'past 24 hours'],
+    ['WAU', 'wau', 'past 7 days'],
+    ['MAU', 'mau', 'past 30 days'],
+  ];
+  const nf = (n) => (typeof n === 'number' ? n.toLocaleString() : '\u2014');
+  const card = (label, value, sub, accent, dim) => (
+    <div
+      key={label}
+      style={{
+        flex: 1,
+        minWidth: 92,
+        background: COLORS.paper,
+        border: `1px solid ${COLORS.line}`,
+        borderRadius: 12,
+        padding: '11px 14px',
+        opacity: dim ? 0.55 : 1,
+      }}
+    >
+      <div style={{ fontFamily: 'DM Mono, monospace', fontSize: 10, letterSpacing: '0.16em', textTransform: 'uppercase', color: COLORS.faded }}>
+        {label}
+      </div>
+      <div style={{ fontFamily: 'Manrope, system-ui, -apple-system, sans-serif', fontWeight: 800, fontSize: 26, lineHeight: 1.1, color: accent, marginTop: 2 }}>
+        {value}
+      </div>
+      <div style={{ fontFamily: 'DM Mono, monospace', fontSize: 9, letterSpacing: '0.07em', textTransform: 'uppercase', color: COLORS.faded, marginTop: 3 }}>
+        {sub}
+      </div>
+    </div>
+  );
+  const group = (heading, note, vals, accent, dim) => (
+    <div style={{ flex: '1 1 320px', minWidth: 280 }}>
+      <div style={{ display: 'flex', alignItems: 'baseline', gap: 8, marginBottom: 7 }}>
+        <span style={{ fontFamily: 'DM Mono, monospace', fontSize: 11, letterSpacing: '0.12em', textTransform: 'uppercase', fontWeight: 600, color: COLORS.ink }}>
+          {heading}
+        </span>
+        {note && (
+          <span style={{ fontFamily: 'Manrope, system-ui, -apple-system, sans-serif', fontSize: 10, fontStyle: 'italic', color: COLORS.faded }}>
+            {note}
+          </span>
+        )}
+      </div>
+      <div style={{ display: 'flex', gap: 8 }}>
+        {cols.map(([label, key, sub]) => card(label, vals ? nf(vals[key]) : '\u2014', sub, accent, dim))}
+      </div>
+    </div>
+  );
+  return (
+    <div style={{ marginBottom: 26 }}>
+      <div style={{ fontFamily: 'DM Mono, monospace', fontSize: 12, letterSpacing: '0.14em', textTransform: 'uppercase', fontWeight: 600, color: COLORS.ink, marginBottom: 12 }}>
+        Active Users
+      </div>
+      <div style={{ display: 'flex', gap: 24, flexWrap: 'wrap' }}>
+        {group('Active players', 'distinct quiz players', players, COLORS.ember, false)}
+        {group(
+          'Unique visitors',
+          visitors ? 'distinct site visitors' : 'pending migration 30',
+          visitors,
+          COLORS.forest,
+          !visitors
+        )}
+      </div>
+    </div>
+  );
+}
+
+function AnalyticsPanel({ views, viewsTotal, quizStats, quizPlaysTotal, signups, anonPlayers, activeUsers }) {
   const [view, setView] = useState('plays');
   const [playsView, setPlaysView] = useState('all');
   const [pvView, setPvView] = useState('all');
@@ -1902,6 +1976,7 @@ function AnalyticsPanel({ views, viewsTotal, quizStats, quizPlaysTotal, signups,
   });
   return (
     <div>
+      <ActiveUsersStrip data={activeUsers} />
       <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginBottom: 12 }}>
         {tabs.map(([key, label, count]) => {
           const on = view === key;

@@ -36,6 +36,12 @@ export async function POST(request) {
     const ua = parseUa(request.headers.get('user-agent'));
     const base = { quiz_id: quizId.trim() };
     const meta = {};
+    // Stable per-browser id from the sot_vid cookie (set client-side by
+    // VisitorBeacon), used for distinct-visitor DAU/WAU/MAU. Best-effort: it
+    // lives in the droppable meta bag so a not-yet-applied migration (30) falls
+    // back to a bare insert. Cap length defensively.
+    const vid = request.cookies.get('sot_vid')?.value;
+    if (vid && vid.length <= 64) meta.visitor_id = vid;
     const country = countryFromRequest(request);
     const region = regionFromRequest(request);
     if (country) meta.country = country;
