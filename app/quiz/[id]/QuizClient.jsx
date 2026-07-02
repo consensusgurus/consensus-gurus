@@ -25,7 +25,6 @@ import { flushSync } from 'react-dom';
 import QuizPlayOverlay from './QuizPlayOverlay';
 import { similarQuizId, nextQuizMeta, familyQuizzes } from '@/lib/quiz-similar';
 import { ArrowRight, Play } from 'lucide-react';
-import QuizDoneRecap from './QuizDoneRecap';
 
 const MapQuizBoard = dynamic(() => import('./MapQuizBoard'), { ssr: false, loading: () => null });
 const StreetMapBoard = dynamic(() => import('./StreetMapBoard'), { ssr: false, loading: () => null });
@@ -1401,10 +1400,12 @@ export default function QuizClient({ quizId }) {
   // standalone boards (timed-mcq / logic-grid / grid-fill / place-map /
   // geo-aerial / globe) early-return above and wrap their own play surface.
   const overlayFormat = true;
-  // Mobile fullscreen play popup: open from Play press through the end of the
-  // game (it also hosts the end-of-game summary, so it stays open while ended
-  // and on the Play tab). Desktop never opens it; the play surface stays inline.
-  const mPlayOverlay = mobile === true && overlayFormat && started && tab === 'play';
+  // Mobile fullscreen play popup: open from Play press until the game ends. The
+  // MOMENT the round is over it closes and the player drops to the shared inline
+  // results screen (score, leaderboard, actions) in normal page flow, the same
+  // one desktop shows. Gameplay itself is unchanged; only the post-end surface
+  // moved out of the overlay. Desktop never opens it; the play surface stays inline.
+  const mPlayOverlay = mobile === true && overlayFormat && started && tab === 'play' && !ended;
   // Mobile thumb-zone: dock the input + Play to a fixed bottom bar during play
   // on the inline-input formats. HUD (score/timer/progress) stays pinned up top.
   const bottomDock = mobile === true && inlineInput && !ended;
@@ -1467,55 +1468,92 @@ export default function QuizClient({ quizId }) {
           </div>
         </div>
 
-        {ended && (
-          <QuizDoneRecap quiz={quiz} mobile={mobile} hideScore score={dispScore} total={total} onPlayAgain={restartRound} onPlaySimilar={() => { const sid = similarQuizId(quiz); if (sid) router.push(`/quiz/${sid}`); }} onShare={share} />
-        )}
-
-        {ended && (
-          <div style={{ marginTop: 16, padding: '14px 18px', borderRadius: 10, border: `1px solid ${COLORS.faded}33`, background: COLORS.paper }}>
-            <div style={{ display: 'flex', gap: 10, justifyContent: 'center', alignItems: 'flex-start', flexWrap: 'wrap' }}>
-              {quiz.listId && (
-                <a href={`/list/${quiz.listId}`} style={{ display: 'inline-block', fontFamily: MONO, fontSize: 13, letterSpacing: '0.08em', textTransform: 'uppercase', fontWeight: 700, lineHeight: '46px', padding: '0 28px', background: COLORS.ember, color: '#fff', textDecoration: 'none' }}>See the full list detail</a>
-              )}
-              {/* Non-list quizzes: reveal the missed answers in place. Already
-                  signed-up players get a one-click reveal in place of the
-                  list-detail button; the new-player path is the signup button
-                  below, which reveals on success. */}
-              {canReveal && identity && !revealed && (
-                <button onClick={() => { setRevealed(true); setTab('play'); }} style={{ fontFamily: MONO, fontSize: 13, letterSpacing: '0.08em', textTransform: 'uppercase', fontWeight: 700, lineHeight: '46px', padding: '0 24px', background: COLORS.ember, color: '#fff', border: 'none', cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: 8 }}>
-                  <Eye size={14} strokeWidth={2.5} /> Reveal Answers
-                </button>
-              )}
-              {canReveal && revealed && (
-                <span style={{ fontFamily: MONO, fontSize: 12, letterSpacing: '0.06em', color: COLORS.forest, lineHeight: '46px' }}>Answers revealed below — your misses are highlighted.</span>
-              )}
-              {!identity && !claimOpen && (
-                <button onClick={() => { setClaimMsg(''); setClaimErr(false); setClaimOpen(true); }} style={{ fontFamily: MONO, fontSize: 13, letterSpacing: '0.08em', textTransform: 'uppercase', fontWeight: 700, lineHeight: '46px', padding: '0 24px', background: COLORS.ember, color: '#fff', border: 'none', cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: 8 }}>
-                  {canReveal
-                    ? (<><Eye size={14} strokeWidth={2.5} /> Reveal Answers</>)
-                    : (<><Trophy size={14} strokeWidth={2.5} /> Post this to the leaderboard</>)}
-                </button>
-              )}
-              {!identity && claimOpen && (
-                <div style={{ flexBasis: '100%', maxWidth: 420, margin: '0 auto' }}>
-                  <p style={{ fontFamily: SANS, fontSize: 13, color: '#4a4339', margin: '0 0 10px', textAlign: 'center' }}>
-                    {canReveal
-                      ? `Pick a display name to reveal the answers you missed. It also posts this ${dispScore}/${total} to the leaderboard. Email is optional (required only for prizes), and no password is needed.`
-                      : `Pick a display name to post this ${dispScore}/${total} to the leaderboard. Email is optional (required only for prizes), and no password is needed.`}
-                  </p>
-                  <input value={jName} onChange={(e) => setJName(e.target.value)} maxLength={15} placeholder="Display Name" autoCapitalize="none" autoCorrect="off" spellCheck={false} style={fieldStyle} />
-                  <input value={jEmail} onChange={(e) => setJEmail(e.target.value)} type="email" placeholder="Email (optional, required for prizes)" autoCapitalize="none" autoCorrect="off" spellCheck={false} style={{ ...fieldStyle, marginTop: 10 }} />
-                  <button onClick={submitClaim} disabled={claimBusy} style={{ marginTop: 12, width: '100%', fontFamily: MONO, fontSize: 13, letterSpacing: '0.1em', textTransform: 'uppercase', fontWeight: 700, lineHeight: '46px', border: 'none', background: COLORS.ember, color: '#fff', cursor: claimBusy ? 'default' : 'pointer', opacity: claimBusy ? 0.6 : 1 }}>
-                    {claimBusy ? (canReveal ? 'Revealing…' : 'Posting…') : (canReveal ? 'Reveal the answers' : 'Post this to the leaderboard')}
-                  </button>
+        {/* ── RESULTS (shared inline end-of-game screen, desktop + mobile) ──
+            Replaces the old Game Over modal overlay AND the stacked recap +
+            reveal blocks with ONE coherent card: score + result line, the
+            leaderboard snippet, standings, the action row, and the
+            reveal/sign-up sub-block. The finished board renders below it (with
+            the missed answers gated behind sign-up exactly as before). */}
+        {ended && (() => {
+          const win = dispScore === total;
+          const timeout = !win && time <= 0;
+          const celebrate = isTopScore || win;
+          const heading = isTopScore ? 'New record' : win ? 'Perfect' : timeout ? "Time's up" : 'Game over';
+          const lbRows = (identity ? board.leaderboard : board.leaderboardAll) || [];
+          const actBtn = { fontFamily: MONO, fontSize: 12, letterSpacing: '0.05em', textTransform: 'uppercase', fontWeight: 700, borderRadius: 10, padding: '13px 10px', cursor: 'pointer', border: 'none', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 7, textDecoration: 'none', boxSizing: 'border-box' };
+          return (
+            <div style={{ marginTop: 14, background: '#fff', border: `1px solid ${COLORS.line}`, borderRadius: 14, padding: mobile === true ? '18px 16px' : '22px 22px 20px' }}>
+              <div style={{ display: 'flex', gap: 18, alignItems: 'flex-start', flexWrap: 'wrap' }}>
+                <div style={{ flex: '1 1 210px', minWidth: 190 }}>
+                  <div style={{ fontFamily: MONO, fontSize: 11, letterSpacing: '0.16em', textTransform: 'uppercase', fontWeight: 800, color: celebrate ? COLORS.forest : COLORS.ember, marginBottom: 7 }}>{heading}</div>
+                  <div style={{ fontFamily: SERIF, fontWeight: 800, fontSize: 40, lineHeight: 1 }}>{dispScore}<span style={{ fontSize: 22, color: COLORS.faded }}> / {total}</span></div>
+                  <p style={{ fontFamily: SANS, fontSize: 13, color: '#4a4339', margin: '8px 0 0', lineHeight: 1.4 }}>{resultLine}{board.best != null && dispScore < board.best ? ` High score to beat is ${board.best}.` : ''}{lastElapsed != null ? ` · ${fmtTime(lastElapsed)}` : ''}</p>
                 </div>
+                {lbRows.length ? (
+                  <div style={{ flex: '1 1 190px', minWidth: 170 }}>
+                    <LeaderboardSnippet board={board} identity={identity} score={dispScore} lastElapsed={lastElapsed} fill />
+                  </div>
+                ) : null}
+              </div>
+              {eloPanel}
+              {runActive && (
+                <button onClick={goNextStep} style={{ ...actBtn, width: '100%', marginTop: 14, padding: '15px 18px', background: COLORS.ember, color: '#fff', fontSize: 13, letterSpacing: '0.06em' }}>
+                  {chHasNext
+                    ? (chCountdown != null && chCountdown > 0 ? `Next quiz in ${chCountdown}…` : `Next quiz (${chNextStep + 1} of ${chN}) →`)
+                    : (chCountdown != null && chCountdown > 0 ? `Your results in ${chCountdown}…` : 'See your results →')}
+                </button>
               )}
-              {claimMsg && (
-                <p style={{ flexBasis: '100%', fontFamily: MONO, fontSize: 12, margin: '6px 0 0', textAlign: 'center', color: claimErr ? COLORS.ember : COLORS.forest }}>{claimMsg}</p>
-              )}
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 9, marginTop: 16 }}>
+                <button onClick={restartRound} style={{ ...actBtn, background: COLORS.ember, color: '#fff' }}><RotateCcw size={14} strokeWidth={2.5} /> Play again</button>
+                <button onClick={() => { const sid = nextMeta ? nextMeta.id : similarQuizId(quiz); if (sid) router.push(`/quiz/${sid}`); }} title={nextMeta ? nextMeta.title : undefined} style={{ ...actBtn, background: COLORS.forest, color: '#fff' }}><Shuffle size={14} strokeWidth={2.5} /> Play similar</button>
+                <button onClick={() => setTab('stats')} style={{ ...actBtn, background: '#fff', color: COLORS.ink, border: `1.5px solid ${COLORS.ink}` }}><Trophy size={14} strokeWidth={2.5} /> Leaderboard</button>
+                <a href={`/duel/new?quiz=${encodeURIComponent(quiz.id)}`} style={{ ...actBtn, background: COLORS.ink, color: '#fff' }}><Swords size={14} strokeWidth={2.5} /> Challenge a friend</a>
+              </div>
+              <div style={{ marginTop: 14, paddingTop: 14, borderTop: `1px solid ${COLORS.line}` }}>
+                <div style={{ display: 'flex', gap: 10, justifyContent: 'center', alignItems: 'flex-start', flexWrap: 'wrap' }}>
+                  {quiz.listId && (
+                    <a href={`/list/${quiz.listId}`} style={{ display: 'inline-block', fontFamily: MONO, fontSize: 13, letterSpacing: '0.08em', textTransform: 'uppercase', fontWeight: 700, lineHeight: '46px', padding: '0 28px', background: COLORS.ember, color: '#fff', textDecoration: 'none', borderRadius: 10 }}>See the full list detail</a>
+                  )}
+                  {canReveal && identity && !revealed && (
+                    <button onClick={() => { setRevealed(true); setTab('play'); }} style={{ fontFamily: MONO, fontSize: 13, letterSpacing: '0.08em', textTransform: 'uppercase', fontWeight: 700, lineHeight: '46px', padding: '0 24px', background: COLORS.ember, color: '#fff', border: 'none', borderRadius: 10, cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: 8 }}>
+                      <Eye size={14} strokeWidth={2.5} /> Reveal answers
+                    </button>
+                  )}
+                  {canReveal && revealed && (
+                    <span style={{ fontFamily: MONO, fontSize: 12, letterSpacing: '0.06em', color: COLORS.forest, lineHeight: '46px' }}>Answers revealed below, your misses are highlighted.</span>
+                  )}
+                  {!identity && !claimOpen && (
+                    <button onClick={() => { setClaimMsg(''); setClaimErr(false); setClaimOpen(true); }} style={{ fontFamily: MONO, fontSize: 13, letterSpacing: '0.08em', textTransform: 'uppercase', fontWeight: 700, lineHeight: '46px', padding: '0 24px', background: COLORS.ember, color: '#fff', border: 'none', borderRadius: 10, cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: 8 }}>
+                      {canReveal
+                        ? (<><Eye size={14} strokeWidth={2.5} /> Reveal answers</>)
+                        : (<><Trophy size={14} strokeWidth={2.5} /> Post this to the leaderboard</>)}
+                    </button>
+                  )}
+                  {!identity && claimOpen && (
+                    <div style={{ flexBasis: '100%', maxWidth: 420, margin: '0 auto' }}>
+                      <p style={{ fontFamily: SANS, fontSize: 13, color: '#4a4339', margin: '0 0 10px', textAlign: 'center' }}>
+                        {canReveal
+                          ? `Pick a display name to reveal the answers you missed. It also posts this ${dispScore}/${total} to the leaderboard. Email is optional (required only for prizes), and no password is needed.`
+                          : `Pick a display name to post this ${dispScore}/${total} to the leaderboard. Email is optional (required only for prizes), and no password is needed.`}
+                      </p>
+                      <input value={jName} onChange={(e) => setJName(e.target.value)} maxLength={15} placeholder="Display Name" autoCapitalize="none" autoCorrect="off" spellCheck={false} style={fieldStyle} />
+                      <input value={jEmail} onChange={(e) => setJEmail(e.target.value)} type="email" placeholder="Email (optional, required for prizes)" autoCapitalize="none" autoCorrect="off" spellCheck={false} style={{ ...fieldStyle, marginTop: 10 }} />
+                      <button onClick={submitClaim} disabled={claimBusy} style={{ marginTop: 12, width: '100%', fontFamily: MONO, fontSize: 13, letterSpacing: '0.1em', textTransform: 'uppercase', fontWeight: 700, lineHeight: '46px', border: 'none', borderRadius: 10, background: COLORS.ember, color: '#fff', cursor: claimBusy ? 'default' : 'pointer', opacity: claimBusy ? 0.6 : 1 }}>
+                        {claimBusy ? (canReveal ? 'Revealing…' : 'Posting…') : (canReveal ? 'Reveal the answers' : 'Post this to the leaderboard')}
+                      </button>
+                    </div>
+                  )}
+                  {claimMsg && (
+                    <p style={{ flexBasis: '100%', fontFamily: MONO, fontSize: 12, margin: '6px 0 0', textAlign: 'center', color: claimErr ? COLORS.ember : COLORS.forest }}>{claimMsg}</p>
+                  )}
+                </div>
+              </div>
+              <div style={{ textAlign: 'center', marginTop: 12 }}>
+                <button onClick={() => { setQSent(false); setQOpen(true); }} style={{ background: 'none', border: 'none', padding: 4, cursor: 'pointer', fontFamily: MONO, fontSize: 12, fontWeight: 600, color: COLORS.faded, textDecoration: 'underline', textUnderlineOffset: 3 }}>Report an error</button>
+              </div>
             </div>
-          </div>
-        )}
+          );
+        })()}
 
         <div style={{ marginTop: 12 }} />
 
@@ -1863,36 +1901,19 @@ export default function QuizClient({ quizId }) {
               </div>
             )}
 
-            <div style={{ marginTop: 22, gap: 10, justifyContent: 'center', ...(mobile === true && ended ? { display: 'grid', gridTemplateColumns: '1fr' } : { display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))', maxWidth: 640, marginLeft: 'auto', marginRight: 'auto' }) }}>
-              {/* Leave the mobile play popup once the game is over: drop to the
-                  page's full results, leaderboard, reveal and share. */}
-              {mPlayOverlay && ended && (
-                <button onClick={() => setTab('stats')} style={{ fontFamily: MONO, fontSize: 12, letterSpacing: '0.12em', textTransform: 'uppercase', fontWeight: 700, padding: '12px 26px', border: 'none', background: COLORS.ember, color: '#fff', cursor: 'pointer', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 8 }}>
-                  <ArrowLeft size={14} strokeWidth={2.5} /> Back
+            {!ended && (
+              <div style={{ marginTop: 22, gap: 10, justifyContent: 'center', display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))', maxWidth: 640, marginLeft: 'auto', marginRight: 'auto' }}>
+                <button onClick={() => endGame(false)} disabled={!started} style={{ fontFamily: MONO, fontSize: 12, letterSpacing: '0.12em', textTransform: 'uppercase', fontWeight: 700, padding: '12px 26px', border: 'none', background: COLORS.ember, color: '#fff', cursor: !started ? 'default' : 'pointer', opacity: !started ? 0.4 : 1, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 8 }}>
+                  <Flag size={14} strokeWidth={2.5} color="#fff" /> Give up
                 </button>
-              )}
-              <button onClick={() => endGame(false)} disabled={ended || !started} style={{ fontFamily: MONO, fontSize: 12, letterSpacing: '0.12em', textTransform: 'uppercase', fontWeight: 700, padding: '12px 26px', border: 'none', background: COLORS.ember, color: '#fff', cursor: ended || !started ? 'default' : 'pointer', opacity: ended || !started ? 0.4 : 1, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 8 }}>
-                <Flag size={14} strokeWidth={2.5} color="#fff" /> Give up
-              </button>
-              <button onClick={() => setTab('stats')} style={{ fontFamily: MONO, fontSize: 12, letterSpacing: '0.12em', textTransform: 'uppercase', fontWeight: 700, padding: '12px 26px', border: `1.5px solid ${COLORS.ink}`, background: COLORS.cream, color: COLORS.ink, cursor: 'pointer', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 8 }}>
-                <Trophy size={14} strokeWidth={2.5} /> Leaderboard
-              </button>
-              {!ended && (
+                <button onClick={() => setTab('stats')} style={{ fontFamily: MONO, fontSize: 12, letterSpacing: '0.12em', textTransform: 'uppercase', fontWeight: 700, padding: '12px 26px', border: `1.5px solid ${COLORS.ink}`, background: COLORS.cream, color: COLORS.ink, cursor: 'pointer', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 8 }}>
+                  <Trophy size={14} strokeWidth={2.5} /> Leaderboard
+                </button>
                 <button onClick={share} style={{ fontFamily: MONO, fontSize: 12, letterSpacing: '0.12em', textTransform: 'uppercase', fontWeight: 700, padding: '12px 26px', border: `1.5px solid ${COLORS.ink}`, background: COLORS.cream, color: COLORS.ink, cursor: 'pointer', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 8 }}>
                   <Share2 size={14} strokeWidth={2.5} /> {copied ? 'Copied!' : 'Share'}
                 </button>
-              )}
-              {ended && (
-                <button onClick={() => setTab('share')} style={{ fontFamily: MONO, fontSize: 12, letterSpacing: '0.12em', textTransform: 'uppercase', fontWeight: 700, padding: '12px 26px', border: 'none', background: COLORS.ink, color: COLORS.cream, cursor: 'pointer', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 8 }}>
-                  <Share2 size={14} strokeWidth={2.5} /> Share
-                </button>
-              )}
-              {ended && (
-                <button onClick={() => { setQSent(false); setQOpen(true); }} style={{ fontFamily: MONO, fontSize: 12, letterSpacing: '0.12em', textTransform: 'uppercase', fontWeight: 700, padding: '12px 26px', border: `1px solid ${COLORS.line}`, background: '#fff', color: COLORS.faded, cursor: 'pointer', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 8 }}>
-                  <HelpCircle size={14} strokeWidth={2.5} /> Report an error
-                </button>
-              )}
-            </div>
+              </div>
+            )}
             {(bottomDock || (mobile === true && photoMode && started && !ended)) && <div aria-hidden="true" style={{ height: 'calc(120px + env(safe-area-inset-bottom))' }} />}
           </QuizPlayOverlay>
         )}
@@ -2043,84 +2064,10 @@ export default function QuizClient({ quizId }) {
           </div>
         )}
       </div>
-      {ended && !gameOverDismissed && (
-        <div
-          onClick={() => setGameOverDismissed(true)}
-          style={{ position: 'fixed', inset: 0, zIndex: 70, background: 'rgba(26,22,17,0.62)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '6vh 16px' }}
-        >
-          <div onClick={(e) => e.stopPropagation()} style={{ position: 'relative', width: '100%', maxWidth: 440, background: COLORS.cream, borderRadius: 10, border: `2px solid ${COLORS.ink}`, padding: '18px 22px', textAlign: 'center', boxShadow: '0 18px 60px rgba(26,22,17,0.4)', maxHeight: '92vh', overflowY: 'auto' }}><button onClick={() => setGameOverDismissed(true)} aria-label="Close" style={{ position: 'absolute', top: 12, right: 12, width: 34, height: 34, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', borderRadius: 999, border: `1px solid ${COLORS.faded}33`, background: '#fff', color: COLORS.faded, cursor: 'pointer' }}><X size={17} strokeWidth={2.5} /></button>
-            {(() => {
-              const win = dispScore === total;
-              const timeout = !win && time <= 0;
-              const celebrate = isTopScore || win;
-              const heading = isTopScore ? 'New record!' : win ? 'Perfect!' : timeout ? "Time's Up" : 'Game Over';
-              const reason = win
-                ? `All ${total} found${lastElapsed != null ? ` in ${fmtTime(lastElapsed)}` : ''}.`
-                : isTopScore
-                  ? `Top score on the board${lastElapsed != null ? ` in ${fmtTime(lastElapsed)}` : ''}.`
-                  : timeout
-                    ? 'The clock ran out.'
-                    : (mapMode && quiz.suddenDeath)
-                      ? 'One wrong click ends the run.'
-                      : 'You ended the round.';
-              return (
-                <>
-                  {(() => {
-                    const lbRows = (identity ? board.leaderboard : board.leaderboardAll) || [];
-                    const summary = (
-                      <div style={{ flex: '1 1 0', minWidth: 0 }}>
-                        <div style={{ fontFamily: MONO, fontSize: 12, letterSpacing: '0.24em', textTransform: 'uppercase', color: celebrate ? COLORS.forest : COLORS.ember, marginBottom: 6 }}>{heading}</div>
-                        <div style={{ fontFamily: SERIF, fontWeight: 800, fontSize: 32, lineHeight: 1, marginBottom: 4 }}>{dispScore}<span style={{ fontSize: 19, color: COLORS.faded }}> / {total}</span></div>
-                        <p style={{ fontFamily: SERIF, fontStyle: 'italic', fontSize: 15, color: COLORS.faded, margin: '0 0 4px' }}>{reason}</p>
-                        <p style={{ fontFamily: SANS, fontSize: 13, color: '#4a4339', margin: 0 }}>{resultLine}</p>
-                      </div>
-                    );
-                    if (!lbRows.length) return <div style={{ marginBottom: 12 }}>{summary}</div>;
-                    return (
-                      <div style={{ display: 'flex', gap: 14, alignItems: 'center', marginBottom: 12 }}>
-                        {summary}
-                        <LeaderboardSnippet board={board} identity={identity} score={dispScore} lastElapsed={lastElapsed} fill />
-                      </div>
-                    );
-                  })()}
-                  {eloPanel}
-                  {runActive && (
-                    <button
-                      onClick={goNextStep}
-                      style={{ width: '100%', margin: '0 0 12px', boxSizing: 'border-box', fontFamily: MONO, fontSize: 13, letterSpacing: '0.06em', textTransform: 'uppercase', fontWeight: 800, padding: '15px 18px', borderRadius: 10, border: 'none', background: COLORS.ember, color: '#fff', cursor: 'pointer', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 8, boxShadow: '0 6px 18px rgba(37,99,235,0.32)' }}
-                    >
-                      {chHasNext
-                        ? (chCountdown != null && chCountdown > 0 ? `Next quiz in ${chCountdown}\u2026` : `Next quiz (${chNextStep + 1} of ${chN}) \u2192`)
-                        : (chCountdown != null && chCountdown > 0 ? `Your results in ${chCountdown}\u2026` : 'See your results \u2192')}
-                    </button>
-                  )}
-                  <div style={{ width: '100%' }}>
-                    <div style={{ display: 'grid', gap: 10 }}>
-                      <button onClick={restartRound} style={{ fontFamily: MONO, fontSize: 12, letterSpacing: '0.06em', textTransform: 'uppercase', fontWeight: 700, lineHeight: '46px', width: '100%', padding: '0 8px', boxSizing: 'border-box', borderRadius: 10, cursor: 'pointer', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 8, background: COLORS.ember, color: '#fff', border: 'none' }}><RotateCcw size={14} strokeWidth={2.5} /> Play Again</button>
-                      {nextMeta ? (
-                        <button onClick={() => router.push(`/quiz/${nextMeta.id}`)} title={nextMeta.title} style={{ fontFamily: MONO, width: '100%', minHeight: 46, padding: '8px 14px', boxSizing: 'border-box', borderRadius: 10, cursor: 'pointer', display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'flex-start', gap: 3, background: COLORS.forest, color: '#fff', border: 'none', textAlign: 'left' }}>
-                          <span style={{ fontSize: 9, letterSpacing: '0.13em', textTransform: 'uppercase', fontWeight: 800, opacity: 0.9, display: 'inline-flex', alignItems: 'center', gap: 4 }}><Play size={11} strokeWidth={3} /> {nextMeta.label}{nextMeta.badge ? ` · part ${nextMeta.badge.part} of ${nextMeta.badge.total}` : ''}</span>
-                          <span style={{ width: '100%', fontSize: 14, fontWeight: 700, lineHeight: 1.18 }}>{nextMeta.title}</span>
-                        </button>
-                      ) : (
-                        <button onClick={() => { const sid = similarQuizId(quiz); if (sid) router.push(`/quiz/${sid}`); }} style={{ fontFamily: MONO, fontSize: 12, letterSpacing: '0.06em', textTransform: 'uppercase', fontWeight: 700, lineHeight: '46px', width: '100%', padding: '0 8px', boxSizing: 'border-box', borderRadius: 10, cursor: 'pointer', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 8, background: COLORS.forest, color: '#fff', border: 'none' }}><Shuffle size={14} strokeWidth={2.5} /> Play Similar</button>
-                      )}
-                      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(170px, 1fr))', gap: 10 }}>
-                        <button onClick={() => { setGameOverDismissed(true); setTab('stats'); }} style={{ fontFamily: MONO, fontSize: 12, letterSpacing: '0.06em', textTransform: 'uppercase', fontWeight: 700, lineHeight: '46px', width: '100%', padding: '0 8px', boxSizing: 'border-box', borderRadius: 10, cursor: 'pointer', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 8, background: '#fff', color: COLORS.ink, border: `1.5px solid ${COLORS.ink}` }}><Trophy size={14} strokeWidth={2.5} /> Leaderboard</button>
-                        <a href={`/duel/new?quiz=${encodeURIComponent(quizId)}`} style={{ fontFamily: MONO, fontSize: 12, letterSpacing: '0.04em', textTransform: 'uppercase', fontWeight: 700, lineHeight: '46px', width: '100%', padding: '0 8px', boxSizing: 'border-box', borderRadius: 10, cursor: 'pointer', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 6, whiteSpace: 'nowrap', background: COLORS.ink, color: COLORS.cream, border: 'none', textDecoration: 'none' }}><Swords size={14} strokeWidth={2.5} /> Challenge Someone</a>
-                      </div>
-                    </div>
-                    <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: 22, marginTop: 12 }}>
-                      <a href="/quizzes/hub?tab=duels" style={{ padding: 4, fontFamily: MONO, fontSize: 12, fontWeight: 600, color: COLORS.faded, textDecoration: 'underline', textUnderlineOffset: 3 }}>Duel Leaderboard</a>
-                      <button onClick={() => { setGameOverDismissed(true); setQSent(false); setQOpen(true); }} style={{ background: 'none', border: 'none', padding: 4, cursor: 'pointer', fontFamily: MONO, fontSize: 12, fontWeight: 600, color: COLORS.faded, textDecoration: 'underline', textUnderlineOffset: 3 }}>Report an error</button>
-                    </div>
-                  </div>
-                </>
-              );
-            })()}
-          </div>
-        </div>
-      )}
+      {/* Game Over modal removed 2026-07-02: the end-of-game surface is now the
+          inline results card in the play area (shared by desktop + mobile, which
+          drops out of the play overlay the moment the round ends), so there is no
+          overlay to dismiss. The gameOverDismissed state is retained but unused. */}
       {qOpen && (
         <div
           onClick={() => setQOpen(false)}
