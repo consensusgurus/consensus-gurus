@@ -18,7 +18,6 @@ import QuizPlayerBar from './QuizPlayerBar';
 import { isMobileDevice } from '@/lib/is-mobile';
 import useAbandonFlush from './useAbandonFlush';
 import useDuelContext, { DuelBanner } from './useDuelContext';
-import QuizIdleActions from './QuizIdleActions';
 import { LB_POPS, LB_FILTERS, pickLb, lbEmptyNote } from '@/lib/quiz-lb';
 import useIsMobile from './useIsMobile';
 import dynamic from 'next/dynamic';
@@ -1216,26 +1215,6 @@ export default function QuizClient({ quizId }) {
 
   const clock = fmtTime(time);
   const clockMax = fmtTime(quiz.timeLimit);
-  // Covered-board intro (pre-start): every format shows the same idle card with
-  // Start / Challenge Someone / Leaderboard before the board is revealed
-  // (owner rule, 2026-07-02). The board itself renders only once started.
-  const introHeadline = mapMode || streetMapMode ? 'Find them all.'
-    : (bankMode || pairsMode || photoMatchMode || orderBankMode) ? 'Match them all.'
-    : scrambleMode ? 'Unscramble them all.'
-    : 'Name them all.';
-  const introMech = mapMode ? 'A name appears; click it on the map.'
-    : streetMapMode ? 'A name appears; find and click it on the map.'
-    : bankMode ? 'One clue at a time; tap the matching tile in the bank below.'
-    : pairsMode ? 'Match the two columns, one pick at a time.'
-    : photoMatchMode ? 'Tap the photo that matches each prompt.'
-    : orderBankMode ? 'Tap the tiles into the right order.'
-    : scrambleMode ? 'Unscramble each one; it locks in the moment the letters match.'
-    : photoMode ? `Type the ${quiz.noun || 'answer'} for each photo; correct answers lock in the moment they match, no Enter needed.`
-    : (matched && !ordered) ? `Type each ${quiz.noun || 'answer'} into its slot; correct answers lock in the moment they match, no Enter needed.`
-    : ordered ? 'The answers must come in order; the highlighted slot shows what is next, and a correct answer locks in the moment it matches.'
-    : typeMode ? `One clue at a time; type the ${quiz.noun || 'answer'}. Correct answers lock in the moment they match, no Enter needed.`
-    : `Type ${/^[aeiou]/.test(quiz.noun || '') ? 'an' : 'a'} ${quiz.noun || 'answer'} and it locks in the moment it matches, no Enter needed.`;
-  const introBody = `${total} ${total === 1 ? 'answer' : 'answers'}, ${clockMax} on the clock. ${introMech} Solve as many as you can; time is the tiebreak.`;
   const shareUrl = typeof window !== 'undefined' ? window.location.href : `https://sourceoftruths.com/quiz/${quiz.id}`;
   const sharePct = total ? Math.round((dispScore / total) * 100) : 0;
   const resultMsg = ended ? `I scored ${dispScore}/${total} on "${quiz.title}". Can you beat me?` : `Can you beat my score on "${quiz.title}"?`;
@@ -1292,21 +1271,10 @@ export default function QuizClient({ quizId }) {
   }
   const fullLeaderboard = (
     <>
-            <div style={{ fontFamily: MONO, fontSize: 11, letterSpacing: '0.16em', textTransform: 'uppercase', color: COLORS.ember, marginBottom: 14 }}>Quiz stats</div>
-            {board.plays === 0 ? (
-              <p style={{ fontFamily: SERIF, fontStyle: 'italic', fontSize: 17, color: COLORS.faded }}>No one has played this quiz yet. Be the first to set the pace.</p>
-            ) : (
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 12 }}>
-                <StatBox label="Total plays" value={<Count value={board.plays} />} />
-                <StatBox label="Best score" value={board.best != null ? `${board.best}/${total}` : '—'} />
-                <StatBox label="On the leaderboard" value={lb.length} />
-              </div>
-            )}
-
-            <div style={{ borderTop: `1px solid ${COLORS.faded}33`, marginTop: 26, paddingTop: 20 }}>
+            <div>
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 14 }}>
                 <div style={{ fontFamily: MONO, fontSize: 11, letterSpacing: '0.16em', textTransform: 'uppercase', color: COLORS.faded }}>Leaderboard</div>
-                <div style={{ fontFamily: MONO, fontSize: 11, letterSpacing: '0.08em', color: COLORS.faded }}>{bestLabel} best · <Count value={board.plays} /> {board.plays === 1 ? 'play' : 'plays'}</div>
+                <div style={{ fontFamily: MONO, fontSize: 11, letterSpacing: '0.08em', color: COLORS.faded }}>{bestLabel} best score · <Count value={board.plays} /> {board.plays === 1 ? 'play' : 'plays'}</div>
               </div>
 
               {board.plays > 0 && (
@@ -1358,6 +1326,21 @@ export default function QuizClient({ quizId }) {
             </div>
     </>
   );
+
+  const similarList = ended ? moreLikeThis.filter((rq) => !seriesIds.has(rq.id)) : moreLikeThis;
+  const similarQuizzes = similarList.length > 0 ? (
+    <div style={{ marginTop: 24, paddingTop: 20, borderTop: `1px solid ${COLORS.line}` }}>
+      <div style={{ fontFamily: MONO, fontSize: 11, letterSpacing: '0.16em', textTransform: 'uppercase', color: COLORS.ember, marginBottom: 16 }}>Similar quizzes</div>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))', gap: 10 }}>
+        {similarList.map((rq) => (
+          <a key={rq.id} href={`/quiz/${rq.id}`} style={{ textDecoration: 'none', color: '#fff', background: '#2563eb', borderRadius: 10, border: '1px solid #2563eb', padding: '12px 14px', display: 'block' }}>
+            <div style={{ fontFamily: MONO, fontSize: 9, letterSpacing: '0.16em', textTransform: 'uppercase', color: 'rgba(255,255,255,0.82)', fontWeight: 700, marginBottom: 6 }}>{rq.category || 'Quiz'}</div>
+            <div style={{ fontFamily: SERIF, fontSize: 16, fontWeight: 600, lineHeight: 1.15, color: '#fff' }}>{rq.title}</div>
+          </a>
+        ))}
+      </div>
+    </div>
+  ) : null;
 
   // Column layout. An EXPLICIT quiz.columnSplit is a fixed reference grid (e.g.
   // a periodic-table block) and is NEVER reordered. Everything else long enough
@@ -1547,7 +1530,7 @@ export default function QuizClient({ quizId }) {
               </div>
             </div>
           )}
-          {tab !== 'stats' && !mAppPlay && (!started || ended) && <LeaderboardStrip board={board} identity={identity} onOpen={() => setTab('stats')} />}
+          {tab !== 'stats' && !mAppPlay && <LeaderboardStrip board={board} identity={identity} onOpen={() => setTab('stats')} />}
         </div>
 
         {/* Ribbon */}
@@ -1565,8 +1548,14 @@ export default function QuizClient({ quizId }) {
           const win = dispScore === total;
           const timeout = !win && time <= 0;
           const heading = isTopScore ? 'New record' : win ? 'Perfect' : timeout ? "Time's up" : 'Game over';
-          const myIdx = identity ? lb.findIndex((r) => r.username === identity.username) : -1;
-          const myRank = myIdx >= 0 ? lbRanks[myIdx] : null;
+          const myRank = (() => {
+            const rows = board.leaderboardAll || [];
+            if (identity) { const i = rows.findIndex((r) => r.username === identity.username); if (i >= 0) return i + 1; }
+            if (lastElapsed == null || !rows.length) return null;
+            let better = 0;
+            for (const r of rows) { if (r.score > dispScore || (r.score === dispScore && r.timeElapsed < lastElapsed)) better++; }
+            return better + 1;
+          })();
           const jumpToBoard = () => { if (typeof document !== 'undefined') { const el = document.getElementById('quiz-board'); if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' }); } };
           const stackBtn = { fontFamily: MONO, fontSize: 12.5, letterSpacing: '0.04em', textTransform: 'uppercase', fontWeight: 700, borderRadius: 10, padding: '14px 12px', cursor: 'pointer', border: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, width: '100%', boxSizing: 'border-box', textDecoration: 'none' };
           return (
@@ -1593,8 +1582,7 @@ export default function QuizClient({ quizId }) {
               )}
               <div style={{ display: 'flex', flexDirection: 'column', gap: 9 }}>
                 <button onClick={restartRound} style={{ ...stackBtn, background: COLORS.ember, color: '#fff' }}><RotateCcw size={15} strokeWidth={2.5} /> Play again</button>
-                <button onClick={() => { const sid = nextMeta ? nextMeta.id : similarQuizId(quiz); if (sid) router.push(`/quiz/${sid}`); }} title={nextMeta ? nextMeta.title : undefined} style={{ ...stackBtn, background: COLORS.forest, color: '#fff' }}><Shuffle size={15} strokeWidth={2.5} /> Play similar</button>
-                <a href={`/duel/new?quiz=${encodeURIComponent(quiz.id)}`} style={{ ...stackBtn, background: COLORS.ink, color: '#fff', borderRadius: 999 }}><Swords size={15} strokeWidth={2.5} /> Challenge Someone</a>
+                <a href={`/duel/new?quiz=${encodeURIComponent(quiz.id)}`} style={{ ...stackBtn, background: COLORS.ink, color: '#fff' }}><Swords size={15} strokeWidth={2.5} /> Challenge a friend</a>
               </div>
               <div style={{ marginTop: 9 }}>
                 {quiz.listId && (
@@ -1625,6 +1613,7 @@ export default function QuizClient({ quizId }) {
                   <p style={{ fontFamily: MONO, fontSize: 12, margin: '8px 0 0', textAlign: 'center', color: claimErr ? COLORS.ember : COLORS.forest }}>{claimMsg}</p>
                 )}
               </div>
+              {similarQuizzes}
               <div style={{ marginTop: 24, paddingTop: 20, borderTop: `1px solid ${COLORS.line}` }}>
                 {fullLeaderboard}
               </div>
@@ -1666,7 +1655,7 @@ export default function QuizClient({ quizId }) {
                   <span style={{ ...base, fontFamily: MONO, fontVariantNumeric: 'tabular-nums', minWidth: `calc(${clockMax.length}ch + 26px)`, color: time <= 10 && live ? COLORS.ember : COLORS.ink }} title="Time left">{clock}</span>
                 </>);
               })()}
-              {(started || ended) && !bottomDock && !mapMode && !tileMode && (!matched || ordered) && (
+              {!bottomDock && !mapMode && !tileMode && (!matched || ordered) && (
                 <input
                   ref={inputRef}
                   value={guess}
@@ -1685,7 +1674,7 @@ export default function QuizClient({ quizId }) {
                   style={{ flex: 1, minWidth: 0, fontFamily: SANS, fontSize: 17, height: 50, boxSizing: 'border-box', padding: '0 16px', border: `1.5px solid ${COLORS.ink}`, borderRadius: 8, background: !started || ended ? COLORS.paper : '#eceef1', color: COLORS.ink, opacity: !started || ended ? 0.5 : 1 }}
                 />
               )}
-              {(started || ended) && !bottomDock && (<div style={{ position: 'relative', display: 'flex', flex: (matched && !ordered) || mapMode || tileMode ? 1 : 'none' }}>
+              {!bottomDock && (<div style={{ position: 'relative', display: 'flex', flex: (matched && !ordered) || mapMode || tileMode ? 1 : 'none' }}>
               <button onClick={start} disabled={started || ended} style={{ flex: 1, fontFamily: MONO, fontSize: 13, letterSpacing: '0.08em', textTransform: 'uppercase', fontWeight: 700, padding: '0 22px', height: 50, border: 'none', background: COLORS.ember, color: '#fff', cursor: started || ended ? 'default' : 'pointer', opacity: started || ended ? 0.5 : 1 }}>
                 {ended ? 'Done' : started ? 'Playing' : (matched && !ordered) ? (quiz.noun ? 'Play' : 'Play — name each year') : 'Play'}
               </button>
@@ -1709,7 +1698,7 @@ export default function QuizClient({ quizId }) {
             )}
             </div>
             {!bottomDock && <div style={{ fontFamily: MONO, fontSize: 12, minHeight: 15, marginTop: 2, marginBottom: 8, color: hintBad ? COLORS.ember : COLORS.faded, ...(portraitPhoto ? { maxWidth: PHOTO_COL, marginLeft: 'auto', marginRight: 'auto' } : null) }}>{hint}</div>}
-            {bottomDock && started && (
+            {bottomDock && (
               <div style={{ position: 'fixed', left: 0, right: 0, bottom: kbInset, zIndex: 40, background: COLORS.cream, borderTop: `1px solid ${COLORS.line}`, boxShadow: '0 -6px 18px rgba(20,22,28,0.10)', padding: '9px 14px', paddingBottom: kbInset > 0 ? 9 : 'calc(9px + env(safe-area-inset-bottom))' }}>
                 {hint && <div style={{ fontFamily: MONO, fontSize: 12, marginBottom: 6, color: hintBad ? COLORS.ember : COLORS.faded, textAlign: 'center', minHeight: 14 }}>{hint}</div>}
                 <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
@@ -1746,15 +1735,7 @@ export default function QuizClient({ quizId }) {
               </div>
             )}
 
-            {!started && !ended && (
-              <div style={{ textAlign: 'center', padding: '26px 24px 30px', borderRadius: 10, border: `1.5px solid ${COLORS.ink}`, background: COLORS.paper, marginTop: 4 }}>
-                <h2 style={{ fontFamily: SERIF, fontWeight: 800, fontSize: 26, margin: '2px 0 6px' }}>{introHeadline}</h2>
-                <p style={{ fontFamily: SANS, fontSize: 15, lineHeight: 1.5, color: '#4a4339', maxWidth: 470, margin: '0 auto 6px' }}>{introBody}</p>
-                <QuizIdleActions onStart={start} quizId={quiz.id} onLeaderboard={() => setTab('stats')} />
-              </div>
-            )}
-
-            {(started || ended) && (photoMode ? (
+            {photoMode ? (
             <PhotoBoard items={quiz.answers} started={started} ended={ended} revealed={revealed} onMatch={onPairMatch} onWrong={onBankWrong} onEnd={onPairEnd} onHint={onPairHint} answerNoun={quiz.noun} photoAspect={quiz.photoAspect} strike={quiz.strike} noSkip={quiz.strike} stickyTop={stickyTop} mobile={mobile} />
             ) : typeMode ? (
             <TypeItBoard items={quiz.answers} started={started} ended={ended} revealed={revealed} onMatch={onPairMatch} onWrong={onBankWrong} onEnd={onPairEnd} onHint={onPairHint} promptLabel={quiz.leftLabel} answerNoun={quiz.noun} clueVariant={careersMode ? 'careers' : undefined} stickyTop={stickyTop} mobile={mobile} />
@@ -1976,7 +1957,7 @@ export default function QuizClient({ quizId }) {
                 </ol>
               );
             })()
-            ))}
+            )}
 
             {ended && (
               <div style={{ marginTop: 22, padding: 24, borderRadius: 10, border: `1.5px solid ${COLORS.ink}`, background: COLORS.paper, textAlign: 'center' }}>
@@ -1989,14 +1970,20 @@ export default function QuizClient({ quizId }) {
               </div>
             )}
 
-            {started && !ended && (
-              <div style={{ marginTop: 22, display: 'flex', justifyContent: 'center' }}>
-                <button onClick={() => endGame(false)} style={{ fontFamily: MONO, fontSize: 12, letterSpacing: '0.12em', textTransform: 'uppercase', fontWeight: 700, padding: '12px 40px', border: 'none', background: COLORS.ember, color: '#fff', cursor: 'pointer', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 8 }}>
+            {!ended && (
+              <div style={{ marginTop: 22, gap: 10, justifyContent: 'center', display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))', maxWidth: 640, marginLeft: 'auto', marginRight: 'auto' }}>
+                <button onClick={() => endGame(false)} disabled={!started} style={{ fontFamily: MONO, fontSize: 12, letterSpacing: '0.12em', textTransform: 'uppercase', fontWeight: 700, padding: '12px 26px', border: 'none', background: COLORS.ember, color: '#fff', cursor: !started ? 'default' : 'pointer', opacity: !started ? 0.4 : 1, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 8 }}>
                   <Flag size={14} strokeWidth={2.5} color="#fff" /> Give up
+                </button>
+                <button onClick={() => setTab('stats')} style={{ fontFamily: MONO, fontSize: 12, letterSpacing: '0.12em', textTransform: 'uppercase', fontWeight: 700, padding: '12px 26px', border: `1.5px solid ${COLORS.ink}`, background: COLORS.cream, color: COLORS.ink, cursor: 'pointer', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 8 }}>
+                  <Trophy size={14} strokeWidth={2.5} /> Leaderboard
+                </button>
+                <button onClick={share} style={{ fontFamily: MONO, fontSize: 12, letterSpacing: '0.12em', textTransform: 'uppercase', fontWeight: 700, padding: '12px 26px', border: `1.5px solid ${COLORS.ink}`, background: COLORS.cream, color: COLORS.ink, cursor: 'pointer', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 8 }}>
+                  <Share2 size={14} strokeWidth={2.5} /> {copied ? 'Copied!' : 'Share'}
                 </button>
               </div>
             )}
-            {((bottomDock && started) || (mobile === true && photoMode && started && !ended)) && <div aria-hidden="true" style={{ height: 'calc(120px + env(safe-area-inset-bottom))' }} />}
+            {(bottomDock || (mobile === true && photoMode && started && !ended)) && <div aria-hidden="true" style={{ height: 'calc(120px + env(safe-area-inset-bottom))' }} />}
           </QuizPlayOverlay>
         )}
 
@@ -2019,7 +2006,7 @@ export default function QuizClient({ quizId }) {
               ))}
             </div>
             <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, justifyContent: 'center' }}>
-              <a href={`/duel/new?quiz=${encodeURIComponent(quiz.id)}`} style={{ fontFamily: MONO, fontSize: 12, letterSpacing: '0.06em', textTransform: 'uppercase', fontWeight: 700, padding: '10px 20px', borderRadius: 999, border: 'none', background: COLORS.ink, color: '#fff', cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: 8, textDecoration: 'none' }}><Swords size={14} strokeWidth={2.5} /> Challenge Someone</a>
+              <button onClick={share} style={{ fontFamily: MONO, fontSize: 12, letterSpacing: '0.06em', textTransform: 'uppercase', fontWeight: 700, padding: '10px 20px', borderRadius: 10, border: 'none', background: COLORS.ember, color: '#fff', cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: 8 }}><Share2 size={14} strokeWidth={2.5} /> {copied ? 'Copied!' : 'Share'}</button>
               <button onClick={copyResult} style={{ fontFamily: MONO, fontSize: 12, letterSpacing: '0.06em', textTransform: 'uppercase', fontWeight: 700, padding: '10px 20px', borderRadius: 10, border: `1.5px solid ${COLORS.ink}`, background: COLORS.cream, color: COLORS.ink, cursor: 'pointer' }}>Copy result</button>
               <button onClick={downloadPromoImage} style={{ fontFamily: MONO, fontSize: 12, letterSpacing: '0.06em', textTransform: 'uppercase', fontWeight: 700, padding: '10px 20px', borderRadius: 10, border: `1.5px solid ${COLORS.ink}`, background: COLORS.cream, color: COLORS.ink, cursor: 'pointer' }}>Save quiz image</button>
               {ended && (
@@ -2069,19 +2056,7 @@ export default function QuizClient({ quizId }) {
           </div>
         )}
 
-        {(ended ? moreLikeThis.filter((rq) => !seriesIds.has(rq.id)) : moreLikeThis).length > 0 && (
-          <div style={{ marginTop: 40, paddingTop: 24, borderTop: `1px solid ${COLORS.faded}33` }}>
-            <div style={{ fontFamily: MONO, fontSize: 11, letterSpacing: '0.16em', textTransform: 'uppercase', color: COLORS.ember, marginBottom: 16 }}>More quizzes</div>
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))', gap: 10 }}>
-              {(ended ? moreLikeThis.filter((rq) => !seriesIds.has(rq.id)) : moreLikeThis).map((rq) => (
-                <a key={rq.id} href={`/quiz/${rq.id}`} style={{ textDecoration: 'none', color: '#fff', background: '#2563eb', borderRadius: 10, border: '1px solid #2563eb', padding: '12px 14px', display: 'block', transition: 'all 0.15s ease', boxShadow: '0 4px 14px rgba(37,99,235,0.28)' }}>
-                  <div style={{ fontFamily: MONO, fontSize: 9, letterSpacing: '0.16em', textTransform: 'uppercase', color: 'rgba(255,255,255,0.82)', fontWeight: 700, marginBottom: 6 }}>{rq.category || 'Quiz'}</div>
-                  <div style={{ fontFamily: SERIF, fontSize: 16, fontWeight: 600, lineHeight: 1.15, color: '#fff' }}>{rq.title}</div>
-                </a>
-              ))}
-            </div>
-          </div>
-        )}
+        {!(ended && tab === 'play') && similarQuizzes}
       </div>
       {/* Game Over modal removed 2026-07-02: the end-of-game surface is now the
           inline results card in the play area (shared by desktop + mobile, which
