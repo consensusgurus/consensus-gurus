@@ -1,14 +1,13 @@
 'use client';
 import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { useRouter } from 'next/navigation';
-import { Swords, UserPlus, ListChecks, ArrowRight, X, ChevronDown, Play } from 'lucide-react';
+import { Swords, UserPlus, ListChecks, ArrowRight, X, ChevronDown } from 'lucide-react';
 import { QUIZZES } from '@/lib/quizzes';
 
 const NAVY = '#0e1d40', ACCENT = '#2563eb', AMBER = '#f8b84a';
 const FONT = "'Manrope', system-ui, -apple-system, sans-serif";
 
 function getAnon() { try { return localStorage.getItem('sot_quiz_anon') || ''; } catch { return ''; } }
-function getEmail() { try { const j = JSON.parse(localStorage.getItem('sot_quiz_identity')); return (j && j.email) || ''; } catch { return ''; } }
 
 // Quick-start duel composer in the quiz-hub tile grid. Pick an opponent
 // (optional) and a quiz, then jump to /duel/new with both prefilled. On mobile
@@ -25,24 +24,8 @@ export default function DuelTile() {
   const [quiz, setQuiz] = useState(null);
   const [quizOpen, setQuizOpen] = useState(false);
   const wrapRef = useRef(null);
-  const [myDuels, setMyDuels] = useState([]);
-  const [sentDuels, setSentDuels] = useState([]);
 
   useEffect(() => { setMyAnon(getAnon()); }, []);
-
-  // Surface the player's duels on the tile: ones needing their move (incoming
-  // challenges + their own not-yet-played invites) AND ones they sent that are
-  // waiting on the opponent, so nothing is hidden away in the hub.
-  useEffect(() => {
-    const a = getAnon();
-    if (!a) return;
-    let alive = true;
-    fetch(`/api/duel/list?anonId=${encodeURIComponent(a)}${getEmail() ? `&email=${encodeURIComponent(getEmail())}` : ''}`)
-      .then((r) => r.json())
-      .then((d) => { if (alive && d) { setMyDuels(Array.isArray(d.yourMove) ? d.yourMove : []); setSentDuels(Array.isArray(d.awaiting) ? d.awaiting : []); } })
-      .catch(() => {});
-    return () => { alive = false; };
-  }, []);
 
   useEffect(() => {
     if (opp) return;
@@ -101,28 +84,6 @@ export default function DuelTile() {
       </div>
 
       <div className="dueltile-body" style={{ display: 'flex', flexDirection: 'column', flex: 1 }}>
-        {(myDuels.length > 0 || sentDuels.length > 0) && (
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 6, margin: '11px 0 4px' }}>
-            <div style={{ fontSize: 10, fontWeight: 800, letterSpacing: '.12em', textTransform: 'uppercase', color: '#9fb0d4' }}>Your Duels</div>
-            {[...myDuels.map((d) => ({ d, waiting: false })), ...sentDuels.map((d) => ({ d, waiting: true }))].slice(0, 4).map(({ d, waiting }) => {
-              const q = QUIZZES.find((x) => x.id === d.quiz_id);
-              const iAmChallenger = d.mine ? d.mine === 'challenger' : (d.challenger_anon === myAnon);
-              const foe = iAmChallenger ? d.opponent_name : d.challenger_name;
-              const sub = waiting
-                ? (foe ? `Waiting on ${foe}` : 'Waiting for opponent')
-                : (iAmChallenger ? (foe ? `vs ${foe}` : 'Open invite') : `${foe || 'Someone'} challenged you`);
-              return (
-                <a key={d.token} href={`/duel/${d.token}`} style={{ display: 'flex', alignItems: 'center', gap: 8, textDecoration: 'none', background: 'rgba(255,255,255,0.08)', border: '1px solid rgba(255,255,255,0.16)', borderRadius: 9, padding: '7px 10px' }}>
-                  <span style={{ flex: 1, minWidth: 0 }}>
-                    <span style={{ display: 'block', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', fontSize: 12.5, fontWeight: 700, color: '#eaf0fb' }}>{(q && q.title) || d.quiz_id}</span>
-                    <span style={{ display: 'block', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', fontSize: 11, fontWeight: 600, color: '#9fb0d4' }}>{sub}</span>
-                  </span>
-                  <span style={{ flex: 'none', display: 'inline-flex', alignItems: 'center', gap: 5, background: waiting ? 'rgba(255,255,255,0.12)' : AMBER, color: waiting ? '#9fb0d4' : '#1c1e24', borderRadius: 999, padding: '5px 11px', fontWeight: 800, fontSize: 11.5 }}>{waiting ? 'Waiting' : <><Play size={12} fill="#1c1e24" strokeWidth={0} /> Play</>}</span>
-                </a>
-              );
-            })}
-          </div>
-        )}
         <div style={{ display: 'flex', flexDirection: 'column', gap: 8, margin: '11px 0 12px' }}>
           <div style={field}>
             <div style={inputBox} onClick={() => setOppOpen(true)}>
