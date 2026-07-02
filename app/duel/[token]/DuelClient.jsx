@@ -207,7 +207,10 @@ export default function DuelClient({ token }) {
                 </div>
               )}
 
-              {!declined && (
+              {/* The invite link is only useful while the duel still needs a play:
+                  once complete (or declined) the token page just shows the result,
+                  so the box is hidden to avoid reading like a rematch link. */}
+              {!done && (
                 <div style={{ marginTop: 18, background: C.accsoft, border: `1px solid ${C.line}`, borderRadius: 14, padding: 16 }}>
                   <div style={{ fontSize: 12, fontWeight: 800, letterSpacing: '.04em', textTransform: 'uppercase', color: C.accent, marginBottom: 8 }}>Invite link</div>
                   <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
