@@ -720,8 +720,12 @@ export default function QuizHomeClient() {
   // "Last Played" browse column: most recent plays, deduped to distinct quizzes
   // (the live feed relocated into the browse grid as the first column).
   const lastPlayed = useMemo(() => {
+    // Multiplier: how many of the last 5 raw plays were this quiz (capped x5), so
+    // repeat plays hidden by the distinct-quiz dedupe still surface as "xN".
+    const windowCounts = {};
+    for (const f of liveAll.slice(0, 5)) { if (f && f.quizId) windowCounts[f.quizId] = (windowCounts[f.quizId] || 0) + 1; }
     const seen = new Set(); const out = [];
-    for (const f of liveAll) { if (!f || !f.quizId || seen.has(f.quizId)) continue; seen.add(f.quizId); out.push(f); if (out.length >= 6) break; }
+    for (const f of liveAll) { if (!f || !f.quizId || seen.has(f.quizId)) continue; seen.add(f.quizId); out.push({ ...f, mult: Math.min(5, windowCounts[f.quizId] || 1) }); if (out.length >= 5) break; }
     return out;
   }, [liveAll]);
   // Newest-tile hero resolves deterministically from QUIZ_HEROES / DEPT_HERO (no async lookup, so it never flashes a fallback photo first).
@@ -921,6 +925,7 @@ export default function QuizHomeClient() {
     /* Desktop (3-col) only: daily challenge in the WIDE middle track, last-played feed on the RIGHT, leaderboard LEFT. Tablet single-col (<=680) and mobile (<=560) unchanged. */
     @media(min-width:761px){.qzh .boards .daily-card{order:1;}.qzh .boards .lb-card{order:2;}.qzh .boards .live-card{display:none;}}
     .qzh .qcols{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(100%,300px),1fr));gap:12px;}
+    .qzh .fillcol .qrow{flex:1 1 0;align-items:center;}
     .qzh .qfull{column-count:2;column-gap:26px;}
     .qzh .qfull > a{display:flex;break-inside:avoid;-webkit-column-break-inside:avoid;}
     .qzh .qflow{column-width:310px;column-gap:26px;}
@@ -1163,15 +1168,15 @@ export default function QuizHomeClient() {
               </div>
             </div>
           </Link>)}
-          {trending ? (() => { const tc = byKey[trending.dept] || {}; const tqh = QUIZ_HEROES[trending.id]; const tHero = tqh ? tqh.src : DEPT_HERO[trending.dept]; const tPos = tqh ? tqh.pos : undefined; return (
-            <Link href={`/quiz/${trending.id}`} className="ttile" style={tHero ? { backgroundImage: `url("${tHero}")`, backgroundPosition: tPos || 'center' } : { background: tc.c || C.accent }}>
-              <span className="ttile-tag"><Flame size={11} style={{ verticalAlign: -1 }} /> TRENDING</span>
-              <div className="ttile-ov">
-                <div className="ttile-t">{stripVerb(trending.title)}</div>
-                <div className="ttile-foot"><span className="ttile-p">Play <ArrowRight size={13} style={{ verticalAlign: -1 }} /></span>{plays(trending.id) > 0 ? <span className="ttile-plays">{plays(trending.id).toLocaleString()} plays</span> : null}{leader(trending.id) ? <span className="ttile-plays" style={{ display: 'inline-flex', alignItems: 'center', gap: 4 }}><Crown size={12} style={{ color: '#e8b43a', flex: 'none' }} />{leader(trending.id)}</span> : null}</div>
-              </div>
-            </Link>
-          ); })() : null}
+          {newest[0] ? (() => { const nc = byKey[newest[0].dept] || {}; const NIcon = nc.Icon || Sparkles; const nqh = QUIZ_HEROES[newest[0].id]; const nHero = nqh ? nqh.src : DEPT_HERO[newest[0].dept]; const nPos = nqh ? nqh.pos : undefined; return (
+              <Link href={`/quiz/${newest[0].id}`} className="ntile" style={nHero ? { backgroundImage: `url("${nHero}")`, backgroundPosition: nPos || 'center' } : { background: nc.c || C.accent }}>
+                <span className="ntile-tag" style={{ color: C.accent }}><Sparkles size={10} style={{ verticalAlign: -1 }} /> NEWEST</span>
+                <div className="ntile-ov">
+                  <div className="ntile-t">{stripVerb(newest[0].title)}</div>
+                  <div className="ntile-p" style={{ display: 'flex', alignItems: 'center', gap: 12 }}><span>Play <ArrowRight size={13} style={{ verticalAlign: -1 }} /></span>{leader(newest[0].id) ? <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4 }}><Crown size={12} style={{ color: '#e8b43a', flex: 'none' }} />{leader(newest[0].id)}</span> : null}</div>
+                </div>
+              </Link>
+            ); })() : <div />}
           </div>
 
           <div className="th-r2">
@@ -1199,15 +1204,15 @@ export default function QuizHomeClient() {
               </div>
             ) : <div />}
 
-            {newest[0] ? (() => { const nc = byKey[newest[0].dept] || {}; const NIcon = nc.Icon || Sparkles; const nqh = QUIZ_HEROES[newest[0].id]; const nHero = nqh ? nqh.src : DEPT_HERO[newest[0].dept]; const nPos = nqh ? nqh.pos : undefined; return (
-              <Link href={`/quiz/${newest[0].id}`} className="ntile" style={nHero ? { backgroundImage: `url("${nHero}")`, backgroundPosition: nPos || 'center' } : { background: nc.c || C.accent }}>
-                <span className="ntile-tag" style={{ color: C.accent }}><Sparkles size={10} style={{ verticalAlign: -1 }} /> NEWEST</span>
-                <div className="ntile-ov">
-                  <div className="ntile-t">{stripVerb(newest[0].title)}</div>
-                  <div className="ntile-p" style={{ display: 'flex', alignItems: 'center', gap: 12 }}><span>Play <ArrowRight size={13} style={{ verticalAlign: -1 }} /></span>{leader(newest[0].id) ? <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4 }}><Crown size={12} style={{ color: '#e8b43a', flex: 'none' }} />{leader(newest[0].id)}</span> : null}</div>
-                </div>
-              </Link>
-            ); })() : <div />}
+            {trending ? (() => { const tc = byKey[trending.dept] || {}; const tqh = QUIZ_HEROES[trending.id]; const tHero = tqh ? tqh.src : DEPT_HERO[trending.dept]; const tPos = tqh ? tqh.pos : undefined; return (
+            <Link href={`/quiz/${trending.id}`} className="ttile" style={tHero ? { backgroundImage: `url("${tHero}")`, backgroundPosition: tPos || 'center' } : { background: tc.c || C.accent }}>
+              <span className="ttile-tag"><Flame size={11} style={{ verticalAlign: -1 }} /> TRENDING</span>
+              <div className="ttile-ov">
+                <div className="ttile-t">{stripVerb(trending.title)}</div>
+                <div className="ttile-foot"><span className="ttile-p">Play <ArrowRight size={13} style={{ verticalAlign: -1 }} /></span>{plays(trending.id) > 0 ? <span className="ttile-plays">{plays(trending.id).toLocaleString()} plays</span> : null}{leader(trending.id) ? <span className="ttile-plays" style={{ display: 'inline-flex', alignItems: 'center', gap: 4 }}><Crown size={12} style={{ color: '#e8b43a', flex: 'none' }} />{leader(trending.id)}</span> : null}</div>
+              </div>
+            </Link>
+          ); })() : null}
 
             <DuelTile />
           </div>
@@ -1396,11 +1401,11 @@ export default function QuizHomeClient() {
         ) : (
           <div className="qcols">
             <BrowseColumn label={<>Last Played{playsToday ? <span style={{ fontSize: 10.5, fontWeight: 700, color: 'rgba(255,255,255,0.82)' }}> · {playsToday.toLocaleString()} plays today</span> : null}</>} Icon={Play} color="#10b981" tint="#d8f3e6" filled
-              rows={lastPlayed.slice(0, 6).map((f) => ({ q: { id: f.quizId, title: f.title, rawTitle: f.title }, right: (<><span className="score" style={{ fontSize: 11, color: f.total && f.score / f.total >= 0.8 ? '#16a34a' : C.soft }}>{f.score}/{f.total}</span><span style={{ color: C.soft }}>{relTime(f.playedAt)}</span></>) }))} cta="View all ›" onCta={() => setListMode('live')} />
+              rows={lastPlayed.slice(0, 5).map((f) => ({ q: { id: f.quizId, title: f.title, rawTitle: f.title }, right: (<>{f.mult > 1 ? <span style={{ fontSize: 10, fontWeight: 800, color: '#10b981', background: '#d8f3e6', borderRadius: 6, padding: '1px 6px' }}>×{f.mult}</span> : null}<span className="score" style={{ fontSize: 11, color: f.total && f.score / f.total >= 0.8 ? '#16a34a' : C.soft }}>{f.score}/{f.total}</span><span style={{ color: C.soft }}>{relTime(f.playedAt)}</span></>) }))} cta="View all ›" onCta={() => setListMode('live')} />
             <BrowseColumn label="Most Played" Icon={Flame} color="#c2691c" tint="#f4e2cd" filled
-              rows={mostPlayed.slice(0, 6).map((q) => ({ q, right: <PlaysRight id={q.id} plays={plays} leader={leader} leaderKey={leaderKey} color="#c2691c" hidePlays /> }))} cta="View all ›" onCta={() => setListMode('mostplayed')} />
+              rows={mostPlayed.slice(0, 5).map((q) => ({ q, right: <PlaysRight id={q.id} plays={plays} leader={leader} leaderKey={leaderKey} color="#c2691c" hidePlays /> }))} cta="View all ›" onCta={() => setListMode('mostplayed')} />
             <BrowseColumn label="Newest" Icon={Sparkles} color={C.accent} tint={C.accsoft} filled
-              rows={newest.slice(0, 6).map((q) => ({ q, right: <NewRight q={q} /> }))} cta="View all ›" onCta={() => setListMode('newest')} />
+              rows={newest.slice(0, 5).map((q) => ({ q, right: <NewRight q={q} /> }))} cta="View all ›" onCta={() => setListMode('newest')} />
             {cats.filter((c) => c.key !== 'school').map((c) => {
               const topQ = c.quizzes.slice().sort((a, b) => plays(b.id) - plays(a.id) || a.title.localeCompare(b.title))[0];
               const heroCand = c.quizzes.slice().filter((q) => QUIZ_HEROES[q.id]).sort((a, b) => plays(b.id) - plays(a.id) || a.title.localeCompare(b.title))[0];
@@ -1551,7 +1556,7 @@ function BrowseColumn({ label, Icon, color, tint, rows, cta, onCta, ctaHref, her
   const headFg = blueHead ? '#fff' : color;
   const heroLink = heroHref || (heroId ? `/quiz/${heroId}` : '#');
   return (
-    <section className={`mc-open${(hasHero || filled) ? ' catcard' : ''}`} style={{ minWidth: 0 }}>
+    <section className={`mc-open${(hasHero || filled) ? ' catcard' : ''}${filled ? ' fillcol' : ''}`} style={{ minWidth: 0 }}>
       {hasHero ? (
         <Link href={heroLink} className="cc-hero" style={{ backgroundImage: `url("${heroUrl}")`, backgroundPosition: heroPos || 'center' }} title={heroTitle}>
           <span className="cc-ov" />
