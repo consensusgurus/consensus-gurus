@@ -35,7 +35,20 @@ export async function GET(request) {
       .limit(20);
     const rset = new Set(anons);
     const results = (res || []).map((r) => Object.assign({}, r, { mine: rset.has(r.challenger_anon) ? 'challenger' : 'opponent' }));
-    return NextResponse.json({ challenges: ch || [], results });
+    // yourTurn: duels the ACCOUNT challenged where the opponent has now played
+    // but the challenger hasn't -> nudge the challenger that it's their move.
+    const { data: turn } = await supabaseAdmin
+      .from('quiz_duels')
+      .select('token, quiz_id, challenger_name, opponent_name, opponent_score, status, created_at')
+      .in('challenger_anon', anons)
+      .is('challenger_score', null)
+      .not('opponent_score', 'is', null)
+      .neq('status', 'complete')
+      .neq('status', 'declined')
+      .neq('status', 'cancelled')
+      .order('created_at', { ascending: false })
+      .limit(10);
+    return NextResponse.json({ challenges: ch || [], results, yourTurn: turn || [] });
   } catch (e) {
     return NextResponse.json({ challenges: [], results: [] });
   }
