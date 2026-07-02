@@ -77,7 +77,7 @@ export default function QuizPlayerBar({ me: meProp, controlled = false, rightAct
     if(controlled) return;
     const ident=getIdentity(); const anonId=getAnonId();
     const email=ident&&ident.email?ident.email:'';
-    if(!anonId&&!email){setMe(null);return;}
+    /* signed-out visitors still fetch (empty params) so the bar shows the total player count */
     const params=new URLSearchParams();
     if(anonId)params.set('anonId',anonId);
     if(email)params.set('email',email);
@@ -88,7 +88,7 @@ export default function QuizPlayerBar({ me: meProp, controlled = false, rightAct
   const a=(found&&me.activity)||{};
   const rk=(found&&me.ranks)||{};
   const rank=found&&((me.ranks&&me.ranks.rating)||me.rank);
-  const denom=found&&me.totalPlayers;
+  const denom=(me&&me.totalPlayers)||0;
   let bestCat=null;
   if(found&&me.byCategory){
     for(const k of Object.keys(me.byCategory)){
@@ -141,7 +141,7 @@ export default function QuizPlayerBar({ me: meProp, controlled = false, rightAct
       <div style={{width:1,height:34,background:ONBLUE_LINE}}/>
       <div>
         <div style={lbl}>Rank</div>
-        <div style={{display:'flex',alignItems:'baseline',gap:5}}><span style={{fontSize:17,fontWeight:800,color:rank?ONBLUE:ONBLUE_SOFT,lineHeight:1}}>{rank?`#${rank}`:dash}</span>{rank&&denom?<span style={{fontSize:11,color:ONBLUE_SOFT}}>of {denom.toLocaleString()}</span>:null}</div>
+        <div style={{display:'flex',alignItems:'baseline',gap:5}}><span style={{fontSize:17,fontWeight:800,color:rank?ONBLUE:ONBLUE_SOFT,lineHeight:1}}>{rank?`#${rank}`:dash}</span>{denom?<span style={{fontSize:11,color:ONBLUE_SOFT}}>of {denom.toLocaleString()}</span>:null}</div>
       </div>
       {hubMode ? (
         <>
@@ -150,7 +150,7 @@ export default function QuizPlayerBar({ me: meProp, controlled = false, rightAct
             <>
               <div className="qpb-lbdiv" style={{width:2,height:34,background:'rgba(255,255,255,0.32)',borderRadius:2,flex:'none'}}/>
               <div className="qpb-lb" ref={lbRef} style={{flex:'1 1 auto',minWidth:0,overflow:'hidden',display:'flex',alignItems:'center',gap:16}}>
-                <div style={{...lbl,fontSize:13,display:'inline-flex',alignItems:'center',gap:6,marginBottom:0,flex:'none',whiteSpace:'nowrap'}}><Crown size={12} strokeWidth={2} style={{color:'#e8b43a',flex:'none'}}/>{leaderboard.label}</div>
+                <div style={{...lbl,fontSize:13,display:'inline-flex',alignItems:'center',gap:6,marginBottom:0,flex:'none',whiteSpace:'nowrap'}}><Crown size={12} strokeWidth={2} style={{color:'#e8b43a',flex:'none'}}/>{(()=>{const s=String(leaderboard.label||'');const i=s.indexOf(': ');if(i<0)return s;return <>{s.slice(0,i+1)} <span style={{fontWeight:800,color:ONBLUE}}>{s.slice(i+2)}</span></>;})()}</div>
                 <div className="qpb-lbrows" style={{display:'flex',flexWrap:'nowrap',gap:22,whiteSpace:'nowrap',overflow:'hidden',alignItems:'center',justifyContent:'space-evenly',flex:'1 1 auto',minWidth:0}}>
                   {lbRows.map((r,i)=>(<span key={i} className={`qpb-lb${i+1}`} style={{display:'inline-flex',alignItems:'center',gap:6,fontSize:16,fontWeight:800,color:ONBLUE}}><Medal size={16} strokeWidth={2} style={{color:MEDAL[i]||ONBLUE_SOFT,flex:'none'}}/>{r.name}</span>))}
                 </div>

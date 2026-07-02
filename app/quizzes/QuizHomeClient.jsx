@@ -612,7 +612,7 @@ export default function QuizHomeClient() {
     const catSlides = scope === 'all'
       ? DEPT_NAV
           .filter((d) => Array.isArray(catBoards[d.id]) && catBoards[d.id].length > 0)
-          .map((d) => ({ key: 'catRating', catKey: d.id, special: true, label: `Top Rated ${DEPT_LABEL[d.id] || d.label}`, fmt: (v) => (v || 0).toLocaleString(), ms: 5000 }))
+          .map((d) => ({ key: 'catRating', catKey: d.id, special: true, label: `Top Rated: ${DEPT_LABEL[d.id] || d.label}`, fmt: (v) => (v || 0).toLocaleString(), ms: 5000 }))
       : [];
     return [...base, ...catSlides];
   }, [dailyRows.length, dailyCat, todayCorrectRows.length, todayQuizRows.length, scope, catBoards]);
@@ -1168,7 +1168,7 @@ export default function QuizHomeClient() {
               <span className="ttile-tag"><Flame size={11} style={{ verticalAlign: -1 }} /> TRENDING</span>
               <div className="ttile-ov">
                 <div className="ttile-t">{stripVerb(trending.title)}</div>
-                <div className="ttile-foot"><span className="ttile-p">Play <ArrowRight size={13} style={{ verticalAlign: -1 }} /></span>{plays(trending.id) > 0 ? <span className="ttile-plays">{plays(trending.id).toLocaleString()} plays</span> : null}</div>
+                <div className="ttile-foot"><span className="ttile-p">Play <ArrowRight size={13} style={{ verticalAlign: -1 }} /></span>{plays(trending.id) > 0 ? <span className="ttile-plays">{plays(trending.id).toLocaleString()} plays</span> : null}{leader(trending.id) ? <span className="ttile-plays" style={{ display: 'inline-flex', alignItems: 'center', gap: 4 }}><Crown size={12} style={{ color: '#e8b43a', flex: 'none' }} />{leader(trending.id)}</span> : null}</div>
               </div>
             </Link>
           ); })() : null}
@@ -1201,10 +1201,10 @@ export default function QuizHomeClient() {
 
             {newest[0] ? (() => { const nc = byKey[newest[0].dept] || {}; const NIcon = nc.Icon || Sparkles; const nqh = QUIZ_HEROES[newest[0].id]; const nHero = nqh ? nqh.src : DEPT_HERO[newest[0].dept]; const nPos = nqh ? nqh.pos : undefined; return (
               <Link href={`/quiz/${newest[0].id}`} className="ntile" style={nHero ? { backgroundImage: `url("${nHero}")`, backgroundPosition: nPos || 'center' } : { background: nc.c || C.accent }}>
-                <span className="ntile-tag" style={{ color: C.accent }}><Sparkles size={10} style={{ verticalAlign: -1 }} /> NEWEST QUIZ</span>
+                <span className="ntile-tag" style={{ color: C.accent }}><Sparkles size={10} style={{ verticalAlign: -1 }} /> NEWEST</span>
                 <div className="ntile-ov">
                   <div className="ntile-t">{stripVerb(newest[0].title)}</div>
-                  <div className="ntile-p">Play <ArrowRight size={13} style={{ verticalAlign: -1 }} /></div>
+                  <div className="ntile-p" style={{ display: 'flex', alignItems: 'center', gap: 12 }}><span>Play <ArrowRight size={13} style={{ verticalAlign: -1 }} /></span>{leader(newest[0].id) ? <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4 }}><Crown size={12} style={{ color: '#e8b43a', flex: 'none' }} />{leader(newest[0].id)}</span> : null}</div>
                 </div>
               </Link>
             ); })() : <div />}
@@ -1396,11 +1396,11 @@ export default function QuizHomeClient() {
         ) : (
           <div className="qcols">
             <BrowseColumn label={<>Last Played{playsToday ? <span style={{ fontSize: 10.5, fontWeight: 700, color: 'rgba(255,255,255,0.82)' }}> · {playsToday.toLocaleString()} plays today</span> : null}</>} Icon={Play} color="#10b981" tint="#d8f3e6" filled
-              rows={lastPlayed.slice(0, 3).map((f) => ({ q: { id: f.quizId, title: f.title, rawTitle: f.title }, right: (<><span className="score" style={{ fontSize: 11, color: f.total && f.score / f.total >= 0.8 ? '#16a34a' : C.soft }}>{f.score}/{f.total}</span><span style={{ color: C.soft }}>{relTime(f.playedAt)}</span></>) }))} cta="View all ›" onCta={() => setListMode('live')} />
+              rows={lastPlayed.slice(0, 6).map((f) => ({ q: { id: f.quizId, title: f.title, rawTitle: f.title }, right: (<><span className="score" style={{ fontSize: 11, color: f.total && f.score / f.total >= 0.8 ? '#16a34a' : C.soft }}>{f.score}/{f.total}</span><span style={{ color: C.soft }}>{relTime(f.playedAt)}</span></>) }))} cta="View all ›" onCta={() => setListMode('live')} />
             <BrowseColumn label="Most Played" Icon={Flame} color="#c2691c" tint="#f4e2cd" filled
-              rows={mostPlayed.slice(0, 3).map((q) => ({ q, right: <PlaysRight id={q.id} plays={plays} leader={leader} leaderKey={leaderKey} color="#c2691c" hidePlays /> }))} cta="View all ›" onCta={() => setListMode('mostplayed')} />
+              rows={mostPlayed.slice(0, 6).map((q) => ({ q, right: <PlaysRight id={q.id} plays={plays} leader={leader} leaderKey={leaderKey} color="#c2691c" hidePlays /> }))} cta="View all ›" onCta={() => setListMode('mostplayed')} />
             <BrowseColumn label="Newest" Icon={Sparkles} color={C.accent} tint={C.accsoft} filled
-              rows={newest.slice(0, 3).map((q) => ({ q, right: <NewRight q={q} /> }))} cta="View all ›" onCta={() => setListMode('newest')} />
+              rows={newest.slice(0, 6).map((q) => ({ q, right: <NewRight q={q} /> }))} cta="View all ›" onCta={() => setListMode('newest')} />
             {cats.filter((c) => c.key !== 'school').map((c) => {
               const topQ = c.quizzes.slice().sort((a, b) => plays(b.id) - plays(a.id) || a.title.localeCompare(b.title))[0];
               const heroCand = c.quizzes.slice().filter((q) => QUIZ_HEROES[q.id]).sort((a, b) => plays(b.id) - plays(a.id) || a.title.localeCompare(b.title))[0];
@@ -1420,19 +1420,19 @@ export default function QuizHomeClient() {
                   cta={`View all ${c.count} ›`} onCta={() => setScope(c.key)} />
               );
             })}
-            {/* Promo tiles — always the last three (Standardized Tests last). */}
+            {/* Promo tiles — always the last three (Kids Corner last). */}
             <BrowseColumn label="Business News" Icon={Newspaper} color="#4d6b8a" tint="#dbe4ee"
               heroUrl={PROMO_HERO.business} heroHref="/quizzes/business-news" heroCta="Open" heroTitle="Market-moving business quizzes"
               rows={businessNewsRows.map((q) => ({ q, href: `/quiz/${q.id}`, right: <PlaysRight id={q.id} plays={plays} leader={leader} leaderKey={leaderKey} color="#4d6b8a" hidePlays /> }))}
               cta="View all ›" ctaHref="/quizzes/business-news" />
-            <BrowseColumn label="Kids Corner" Icon={Blocks} color="#3ea0e0" tint="#d7ecfb"
-              heroUrl={PROMO_HERO.kids} heroHref="/kids" heroCta="Play" heroTitle="Tap-and-play games for kids"
-              rows={KIDS_GAMES.slice(0, 6).map((g) => ({ q: { id: g.id, title: g.title, rawTitle: g.title }, href: g.href }))}
-              cta="View all ›" ctaHref="/kids" />
             <BrowseColumn label="Standardized Tests" Icon={GraduationCap} color="#2f6f9f" tint="#d9e6f0"
               heroUrl={PROMO_HERO.tests} heroHref="/exams" heroCta="Start" heroTitle="Where will you get in?"
               rows={EXAM_TILE_ROWS.map((e) => ({ q: { id: e.id, title: e.title, rawTitle: e.title }, href: e.href }))}
               cta="View all ›" ctaHref="/exams" />
+            <BrowseColumn label="Kids Corner" Icon={Blocks} color="#3ea0e0" tint="#d7ecfb"
+              heroUrl={PROMO_HERO.kids} heroHref="/kids" heroCta="Play" heroTitle="Tap-and-play games for kids"
+              rows={KIDS_GAMES.slice(0, 6).map((g) => ({ q: { id: g.id, title: g.title, rawTitle: g.title }, href: g.href }))}
+              cta="View all ›" ctaHref="/kids" />
           </div>
         )}
       </div>
