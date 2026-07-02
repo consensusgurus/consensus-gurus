@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect, useLayoutEffect, useMemo, useRef } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { ArrowLeft, Share2, Check, X, Flag, Trophy, HelpCircle, Eye, SkipForward, Crown, RotateCcw, Shuffle } from 'lucide-react';
+import { ArrowLeft, Share2, Check, X, Flag, Trophy, HelpCircle, Eye, SkipForward, Crown, RotateCcw, Shuffle, Swords } from 'lucide-react';
 import JoinLeaderboardForm from './JoinLeaderboardForm';
 import QuizStandings from './QuizStandings';
 import LeaderboardSnippet from './LeaderboardSnippet';
@@ -2105,9 +2105,9 @@ export default function QuizClient({ quizId }) {
                       ) : (
                         <button onClick={() => { const sid = similarQuizId(quiz); if (sid) router.push(`/quiz/${sid}`); }} style={{ fontFamily: MONO, fontSize: 12, letterSpacing: '0.06em', textTransform: 'uppercase', fontWeight: 700, lineHeight: '46px', width: '100%', padding: '0 8px', boxSizing: 'border-box', borderRadius: 10, cursor: 'pointer', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 8, background: COLORS.forest, color: '#fff', border: 'none' }}><Shuffle size={14} strokeWidth={2.5} /> Play Similar</button>
                       )}
-                      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
+                      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(170px, 1fr))', gap: 10 }}>
                         <button onClick={() => { setGameOverDismissed(true); setTab('stats'); }} style={{ fontFamily: MONO, fontSize: 12, letterSpacing: '0.06em', textTransform: 'uppercase', fontWeight: 700, lineHeight: '46px', width: '100%', padding: '0 8px', boxSizing: 'border-box', borderRadius: 10, cursor: 'pointer', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 8, background: '#fff', color: COLORS.ink, border: `1.5px solid ${COLORS.ink}` }}><Trophy size={14} strokeWidth={2.5} /> Leaderboard</button>
-                        <button onClick={share} style={{ fontFamily: MONO, fontSize: 12, letterSpacing: '0.06em', textTransform: 'uppercase', fontWeight: 700, lineHeight: '46px', width: '100%', padding: '0 8px', boxSizing: 'border-box', borderRadius: 10, cursor: 'pointer', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 8, background: COLORS.ink, color: COLORS.cream, border: 'none' }}><Share2 size={14} strokeWidth={2.5} /> Share</button>
+                        <a href={`/duel/new?quiz=${encodeURIComponent(quizId)}`} style={{ fontFamily: MONO, fontSize: 12, letterSpacing: '0.04em', textTransform: 'uppercase', fontWeight: 700, lineHeight: '46px', width: '100%', padding: '0 8px', boxSizing: 'border-box', borderRadius: 10, cursor: 'pointer', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 6, whiteSpace: 'nowrap', background: COLORS.ink, color: COLORS.cream, border: 'none', textDecoration: 'none' }}><Swords size={14} strokeWidth={2.5} /> Challenge Someone</a>
                       </div>
                     </div>
                     <div style={{ textAlign: 'center', marginTop: 12 }}>

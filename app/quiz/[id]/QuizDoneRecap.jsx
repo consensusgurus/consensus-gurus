@@ -1,6 +1,6 @@
 'use client';
 import React, { useMemo } from 'react';
-import { RotateCcw, Shuffle, Share2, Play, ArrowRight } from 'lucide-react';
+import { RotateCcw, Shuffle, Swords, Play, ArrowRight } from 'lucide-react';
 import { nextQuizMeta } from '@/lib/quiz-similar';
 
 // Persistent end-of-quiz results panel.
@@ -18,7 +18,9 @@ import { nextQuizMeta } from '@/lib/quiz-similar';
 //   hideScore         — drop the score line, render just the action buttons.
 //   rows              — optional answer-key rows: [{ label, detail?, sub?, good? }].
 //   answersTitle      — heading above the rows.
-//   onPlayAgain, onPlaySimilar, onShare — handlers; a missing one drops its button.
+//   onPlayAgain, onPlaySimilar — handlers; a missing one drops its button. The
+//   Challenge Someone button links to the duel composer with this quiz
+//   prefilled (needs `quiz`); the old onShare prop is accepted but ignored.
 
 const C = { cream: '#f7f8fa', paper: '#eceef1', ink: '#1c1e24', ember: '#2563eb', forest: '#10b981', faded: '#6b7280' };
 const FONT = "'Manrope', system-ui, -apple-system, sans-serif";
@@ -27,7 +29,7 @@ function btn(bg, fg, outline) {
   return { fontFamily: FONT, fontSize: 11, letterSpacing: '0.02em', textTransform: 'uppercase', fontWeight: 700, padding: '0 6px', lineHeight: '42px', border: outline ? `1.5px solid ${C.ink}` : 'none', borderRadius: 10, background: bg, color: fg, cursor: 'pointer', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 6, whiteSpace: 'nowrap', overflow: 'hidden' };
 }
 
-export default function QuizDoneRecap({ score, total, hideScore = false, rows = null, answersTitle = 'The answers', quiz = null, mobile = false, onPlayAgain, onPlaySimilar, onShare }) {
+export default function QuizDoneRecap({ score, total, hideScore = false, rows = null, answersTitle = 'The answers', quiz = null, mobile = false, onPlayAgain, onPlaySimilar }) {
   // The "play next" pick (next unplayed series part, else unplayed in the same
   // category/department, else any) shown by TITLE on a full-width button below
   // the action row. Computed client-side; falls back to the generic "Play
@@ -64,8 +66,8 @@ export default function QuizDoneRecap({ score, total, hideScore = false, rows = 
               <button onClick={onPlaySimilar} style={btn(C.forest, '#fff')}><Shuffle size={13} strokeWidth={2.5} /> Play Similar</button>
             )
           ) : null}
-          {onShare ? (
-            <button onClick={onShare} style={btn(C.ink, C.cream)}><Share2 size={13} strokeWidth={2.5} /> Share</button>
+          {quiz && quiz.id ? (
+            <a href={`/duel/new?quiz=${encodeURIComponent(quiz.id)}`} style={{ ...btn(C.ink, C.cream), textDecoration: 'none' }}><Swords size={13} strokeWidth={2.5} /> Challenge Someone</a>
           ) : null}
         </div>
       </div>

@@ -1,7 +1,7 @@
 'use client';
 import React, { useEffect, useMemo } from 'react';
 import { createPortal } from 'react-dom';
-import { X, RotateCcw, Shuffle, Trophy, Share2, Play } from 'lucide-react';
+import { X, RotateCcw, Shuffle, Trophy, Swords, Play } from 'lucide-react';
 import { nextQuizMeta } from '@/lib/quiz-similar';
 
 // Shared full-screen results popup for every quiz board.
@@ -11,14 +11,16 @@ import { nextQuizMeta } from '@/lib/quiz-similar';
 // through a portal to document.body so it sits above all page chrome. Shows the
 // score once, the ELO standing + leaderboard, then a 2-column action grid
 //   [ Play Again | Play Similar ]
-//   [ Leaderboard | Share       ]
+//   [ Leaderboard | Challenge Someone ]
 // and a small "Report an error" text link. An X in the top-right closes the
 // popup (the board controls `open`, so closing reveals the page behind).
 //
 // Props: open, onClose (X), eyebrow, score, total, headline, subline,
 // leaderboard / standings nodes, and the onPlayAgain / onPlaySimilar /
-// onLeaderboard / onShare / onReport handlers. A handler left undefined hides
-// its control.
+// onLeaderboard / onReport handlers. A handler left undefined hides its
+// control. The Challenge Someone cell links to the duel composer with this
+// quiz prefilled (shown whenever `quiz` is supplied); the old onShare prop is
+// accepted but ignored.
 
 const C = {
   cream: '#f7f8fa',
@@ -62,7 +64,6 @@ export default function QuizResultModal({
   onPlayAgain,
   onPlaySimilar,
   onLeaderboard,
-  onShare,
   onReport,
 }) {
   // The "play next" pick shown by title on the Play Similar cell (next unplayed
@@ -72,6 +73,8 @@ export default function QuizResultModal({
     if (typeof window === 'undefined' || !quiz) return null;
     try { return nextQuizMeta(quiz); } catch (e) { return null; }
   }, [quiz]);
+  // End-game duel CTA: straight into the duel composer with this quiz picked.
+  const duelHref = quiz && quiz.id ? `/duel/new?quiz=${encodeURIComponent(quiz.id)}` : null;
   useEffect(() => {
     if (!open) return undefined;
     const prev = document.body.style.overflow;
@@ -188,17 +191,17 @@ export default function QuizResultModal({
               </button>
             )
           ) : null}
-          {(onLeaderboard || onShare) ? (
-            <div style={{ display: 'grid', gridTemplateColumns: onLeaderboard && onShare ? '1fr 1fr' : '1fr', gap: 10 }}>
+          {(onLeaderboard || duelHref) ? (
+            <div style={{ display: 'grid', gridTemplateColumns: onLeaderboard && duelHref ? 'repeat(auto-fit, minmax(170px, 1fr))' : '1fr', gap: 10 }}>
               {onLeaderboard ? (
                 <button onClick={onLeaderboard} style={{ ...cellBase, background: '#fff', color: C.ink, border: `1.5px solid ${C.ink}` }}>
                   <Trophy size={14} strokeWidth={2.5} /> Leaderboard
                 </button>
               ) : null}
-              {onShare ? (
-                <button onClick={onShare} style={{ ...cellBase, background: C.ink, color: C.cream }}>
-                  <Share2 size={14} strokeWidth={2.5} /> Share
-                </button>
+              {duelHref ? (
+                <a href={duelHref} style={{ ...cellBase, background: C.ink, color: C.cream, textDecoration: 'none', whiteSpace: 'nowrap', fontSize: 12, letterSpacing: '0.04em', gap: 6 }}>
+                  <Swords size={14} strokeWidth={2.5} /> Challenge Someone
+                </a>
               ) : null}
             </div>
           ) : null}

@@ -12,7 +12,7 @@
 
 import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { useRouter } from 'next/navigation';
-import { ArrowLeft, Share2, Check, X, Flag, Trophy, HelpCircle, BrainCircuit, ScrollText, Clock } from 'lucide-react';
+import { ArrowLeft, Share2, Check, X, Flag, Trophy, HelpCircle, BrainCircuit, ScrollText, Clock, Swords } from 'lucide-react';
 import JoinLeaderboardForm from './JoinLeaderboardForm';
 import QuizStandings from './QuizStandings';
 import LeaderboardSnippet from './LeaderboardSnippet';
@@ -469,9 +469,9 @@ export default function LogicGameClient({ quizId, mobile = false }) {
                       <Trophy size={14} strokeWidth={2.5} /> Post to Leaderboard
                     </button>
                   )}
-                  <button onClick={() => setTab('share')} style={{ fontFamily: MONO, fontSize: 13, letterSpacing: '0.08em', textTransform: 'uppercase', fontWeight: 700, lineHeight: '46px', width: 180, padding: 0, boxSizing: 'border-box', background: COLORS.ink, color: COLORS.cream, border: 'none', cursor: 'pointer', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 8 }}>
-                    <Share2 size={14} strokeWidth={2.5} /> Share
-                  </button>
+                  <a href={`/duel/new?quiz=${encodeURIComponent(quizId)}`} style={{ fontFamily: MONO, fontSize: 13, letterSpacing: '0.04em', textTransform: 'uppercase', fontWeight: 700, lineHeight: '46px', width: 180, padding: 0, boxSizing: 'border-box', background: COLORS.ink, color: COLORS.cream, border: 'none', cursor: 'pointer', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 6, whiteSpace: 'nowrap', textDecoration: 'none' }}>
+                    <Swords size={14} strokeWidth={2.5} /> Challenge Someone
+                  </a>
                   <button onClick={() => { setQSent(false); setQOpen(true); }} style={{ fontFamily: MONO, fontSize: 13, letterSpacing: '0.08em', textTransform: 'uppercase', fontWeight: 700, lineHeight: '46px', width: 180, padding: 0, boxSizing: 'border-box', background: '#fff', color: COLORS.faded, border: `1px solid ${COLORS.faded}55`, cursor: 'pointer', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 8 }}>
                     <HelpCircle size={14} strokeWidth={2.5} /> Report an error
                   </button>
