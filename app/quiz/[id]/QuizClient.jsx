@@ -770,7 +770,7 @@ export default function QuizClient({ quizId }) {
     // On mobile the default typed format keeps the player on the Play tab so the
     // fullscreen play popup stays open and shows the end-of-game summary inside
     // it; everywhere else still jumps to the results/leaderboard tab.
-    if (!mapMode && !tileMode && mobile !== true) setTab('stats');
+    // Stay on the Play tab at end so the inline results (with the full leaderboard) render there; no auto-jump to stats.
 
     // Record the completed game (makes play count + average real; attributes
     // to the leaderboard if signed up).
@@ -818,7 +818,7 @@ export default function QuizClient({ quizId }) {
         setTab('play');
       } else {
         setClaimMsg(`Posted! You're on the leaderboard below.`);
-        setTab('stats');
+        setTab('play');
       }
     } catch (e) {
       setClaimErr(true);
@@ -1540,7 +1540,7 @@ export default function QuizClient({ quizId }) {
             score + percentile top-left, placement top-right, three stacked
             actions, reveal (jumps to the board), then the REAL leaderboard
             element (same as the Leaderboard tab), then the answer board. */}
-        {ended && (() => {
+        {ended && tab === 'play' && (() => {
           const win = dispScore === total;
           const timeout = !win && time <= 0;
           const heading = isTopScore ? 'New record' : win ? 'Perfect' : timeout ? "Time's up" : 'Game over';
@@ -1549,7 +1549,7 @@ export default function QuizClient({ quizId }) {
           const jumpToBoard = () => { if (typeof document !== 'undefined') { const el = document.getElementById('quiz-board'); if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' }); } };
           const stackBtn = { fontFamily: MONO, fontSize: 12.5, letterSpacing: '0.04em', textTransform: 'uppercase', fontWeight: 700, borderRadius: 10, padding: '14px 12px', cursor: 'pointer', border: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, width: '100%', boxSizing: 'border-box', textDecoration: 'none' };
           return (
-            <div style={{ marginTop: 16 }}>
+            <div style={{ maxWidth: 600, margin: '16px auto 0' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 16, marginBottom: 18 }}>
                 <div>
                   <div style={{ fontFamily: MONO, fontSize: 11, letterSpacing: '0.16em', textTransform: 'uppercase', fontWeight: 800, color: (isTopScore || win) ? COLORS.forest : COLORS.ember, marginBottom: 6 }}>{heading}</div>
