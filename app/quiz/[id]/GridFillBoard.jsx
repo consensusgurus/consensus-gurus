@@ -27,6 +27,7 @@ import Footer from '../../Footer';
 import SiteHeader from '../../SiteHeader';
 import QuizPlayerBar from './QuizPlayerBar';
 import QuizPlayOverlay from './QuizPlayOverlay';
+import QuizIdleActions from './QuizIdleActions';
 import { isMobileDevice } from '@/lib/is-mobile';
 import { LB_POPS, LB_FILTERS, pickLb, lbEmptyNote } from '@/lib/quiz-lb';
 import Count from '../../Count';
@@ -540,14 +541,7 @@ export default function GridFillBoard({ quizId, mobile = false }) {
                 <p style={{ fontFamily: MONO, fontSize: 12, letterSpacing: '0.06em', color: COLORS.faded, margin: '0 0 20px' }}>
                   Hint: the long-reigning giants that stayed on top for decades unlock the most cells.
                 </p>
-                <div style={{ display: 'flex', gap: 10, justifyContent: 'center', flexWrap: 'wrap' }}>
-                <button onClick={start} style={{ fontFamily: MONO, fontSize: 14, letterSpacing: '0.1em', textTransform: 'uppercase', fontWeight: 700, padding: '0 40px', lineHeight: '52px', border: 'none', background: COLORS.ember, color: '#fff', cursor: 'pointer' }}>
-                  Play
-                </button>
-                  <button onClick={() => setTab('stats')} style={{ fontFamily: MONO, fontSize: 13, letterSpacing: '0.08em', textTransform: 'uppercase', fontWeight: 700, padding: '0 28px', lineHeight: '52px', border: `1.5px solid ${COLORS.ink}`, background: COLORS.cream, color: COLORS.ink, cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: 8 }}>
-                    <Trophy size={14} strokeWidth={2.5} /> Leaderboard
-                  </button>
-                </div>
+                <QuizIdleActions onStart={start} quizId={quizId} onLeaderboard={() => setTab('stats')} />
               </div>
             )}
 

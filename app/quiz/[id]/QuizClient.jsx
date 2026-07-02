@@ -18,6 +18,7 @@ import QuizPlayerBar from './QuizPlayerBar';
 import { isMobileDevice } from '@/lib/is-mobile';
 import useAbandonFlush from './useAbandonFlush';
 import useDuelContext, { DuelBanner } from './useDuelContext';
+import QuizIdleActions from './QuizIdleActions';
 import { LB_POPS, LB_FILTERS, pickLb, lbEmptyNote } from '@/lib/quiz-lb';
 import useIsMobile from './useIsMobile';
 import dynamic from 'next/dynamic';
@@ -1215,6 +1216,26 @@ export default function QuizClient({ quizId }) {
 
   const clock = fmtTime(time);
   const clockMax = fmtTime(quiz.timeLimit);
+  // Covered-board intro (pre-start): every format shows the same idle card with
+  // Start / Challenge Someone / Leaderboard before the board is revealed
+  // (owner rule, 2026-07-02). The board itself renders only once started.
+  const introHeadline = mapMode || streetMapMode ? 'Find them all.'
+    : (bankMode || pairsMode || photoMatchMode || orderBankMode) ? 'Match them all.'
+    : scrambleMode ? 'Unscramble them all.'
+    : 'Name them all.';
+  const introMech = mapMode ? 'A name appears; click it on the map.'
+    : streetMapMode ? 'A name appears; find and click it on the map.'
+    : bankMode ? 'One clue at a time; tap the matching tile in the bank below.'
+    : pairsMode ? 'Match the two columns, one pick at a time.'
+    : photoMatchMode ? 'Tap the photo that matches each prompt.'
+    : orderBankMode ? 'Tap the tiles into the right order.'
+    : scrambleMode ? 'Unscramble each one; it locks in the moment the letters match.'
+    : photoMode ? `Type the ${quiz.noun || 'answer'} for each photo; correct answers lock in the moment they match, no Enter needed.`
+    : (matched && !ordered) ? `Type each ${quiz.noun || 'answer'} into its slot; correct answers lock in the moment they match, no Enter needed.`
+    : ordered ? 'The answers must come in order; the highlighted slot shows what is next, and a correct answer locks in the moment it matches.'
+    : typeMode ? `One clue at a time; type the ${quiz.noun || 'answer'}. Correct answers lock in the moment they match, no Enter needed.`
+    : `Type ${/^[aeiou]/.test(quiz.noun || '') ? 'an' : 'a'} ${quiz.noun || 'answer'} and it locks in the moment it matches, no Enter needed.`;
+  const introBody = `${total} ${total === 1 ? 'answer' : 'answers'}, ${clockMax} on the clock. ${introMech} Solve as many as you can; time is the tiebreak.`;
   const shareUrl = typeof window !== 'undefined' ? window.location.href : `https://sourceoftruths.com/quiz/${quiz.id}`;
   const sharePct = total ? Math.round((dispScore / total) * 100) : 0;
   const resultMsg = ended ? `I scored ${dispScore}/${total} on "${quiz.title}". Can you beat me?` : `Can you beat my score on "${quiz.title}"?`;
@@ -1645,7 +1666,7 @@ export default function QuizClient({ quizId }) {
                   <span style={{ ...base, fontFamily: MONO, fontVariantNumeric: 'tabular-nums', minWidth: `calc(${clockMax.length}ch + 26px)`, color: time <= 10 && live ? COLORS.ember : COLORS.ink }} title="Time left">{clock}</span>
                 </>);
               })()}
-              {!bottomDock && !mapMode && !tileMode && (!matched || ordered) && (
+              {(started || ended) && !bottomDock && !mapMode && !tileMode && (!matched || ordered) && (
                 <input
                   ref={inputRef}
                   value={guess}
@@ -1664,7 +1685,7 @@ export default function QuizClient({ quizId }) {
                   style={{ flex: 1, minWidth: 0, fontFamily: SANS, fontSize: 17, height: 50, boxSizing: 'border-box', padding: '0 16px', border: `1.5px solid ${COLORS.ink}`, borderRadius: 8, background: !started || ended ? COLORS.paper : '#eceef1', color: COLORS.ink, opacity: !started || ended ? 0.5 : 1 }}
                 />
               )}
-              {!bottomDock && (<div style={{ position: 'relative', display: 'flex', flex: (matched && !ordered) || mapMode || tileMode ? 1 : 'none' }}>
+              {(started || ended) && !bottomDock && (<div style={{ position: 'relative', display: 'flex', flex: (matched && !ordered) || mapMode || tileMode ? 1 : 'none' }}>
               <button onClick={start} disabled={started || ended} style={{ flex: 1, fontFamily: MONO, fontSize: 13, letterSpacing: '0.08em', textTransform: 'uppercase', fontWeight: 700, padding: '0 22px', height: 50, border: 'none', background: COLORS.ember, color: '#fff', cursor: started || ended ? 'default' : 'pointer', opacity: started || ended ? 0.5 : 1 }}>
                 {ended ? 'Done' : started ? 'Playing' : (matched && !ordered) ? (quiz.noun ? 'Play' : 'Play — name each year') : 'Play'}
               </button>
@@ -1688,7 +1709,7 @@ export default function QuizClient({ quizId }) {
             )}
             </div>
             {!bottomDock && <div style={{ fontFamily: MONO, fontSize: 12, minHeight: 15, marginTop: 2, marginBottom: 8, color: hintBad ? COLORS.ember : COLORS.faded, ...(portraitPhoto ? { maxWidth: PHOTO_COL, marginLeft: 'auto', marginRight: 'auto' } : null) }}>{hint}</div>}
-            {bottomDock && (
+            {bottomDock && started && (
               <div style={{ position: 'fixed', left: 0, right: 0, bottom: kbInset, zIndex: 40, background: COLORS.cream, borderTop: `1px solid ${COLORS.line}`, boxShadow: '0 -6px 18px rgba(20,22,28,0.10)', padding: '9px 14px', paddingBottom: kbInset > 0 ? 9 : 'calc(9px + env(safe-area-inset-bottom))' }}>
                 {hint && <div style={{ fontFamily: MONO, fontSize: 12, marginBottom: 6, color: hintBad ? COLORS.ember : COLORS.faded, textAlign: 'center', minHeight: 14 }}>{hint}</div>}
                 <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
@@ -1725,7 +1746,15 @@ export default function QuizClient({ quizId }) {
               </div>
             )}
 
-            {photoMode ? (
+            {!started && !ended && (
+              <div style={{ textAlign: 'center', padding: '26px 24px 30px', borderRadius: 10, border: `1.5px solid ${COLORS.ink}`, background: COLORS.paper, marginTop: 4 }}>
+                <h2 style={{ fontFamily: SERIF, fontWeight: 800, fontSize: 26, margin: '2px 0 6px' }}>{introHeadline}</h2>
+                <p style={{ fontFamily: SANS, fontSize: 15, lineHeight: 1.5, color: '#4a4339', maxWidth: 470, margin: '0 auto 6px' }}>{introBody}</p>
+                <QuizIdleActions onStart={start} quizId={quiz.id} onLeaderboard={() => setTab('stats')} />
+              </div>
+            )}
+
+            {(started || ended) && (photoMode ? (
             <PhotoBoard items={quiz.answers} started={started} ended={ended} revealed={revealed} onMatch={onPairMatch} onWrong={onBankWrong} onEnd={onPairEnd} onHint={onPairHint} answerNoun={quiz.noun} photoAspect={quiz.photoAspect} strike={quiz.strike} noSkip={quiz.strike} stickyTop={stickyTop} mobile={mobile} />
             ) : typeMode ? (
             <TypeItBoard items={quiz.answers} started={started} ended={ended} revealed={revealed} onMatch={onPairMatch} onWrong={onBankWrong} onEnd={onPairEnd} onHint={onPairHint} promptLabel={quiz.leftLabel} answerNoun={quiz.noun} clueVariant={careersMode ? 'careers' : undefined} stickyTop={stickyTop} mobile={mobile} />
@@ -1947,7 +1976,7 @@ export default function QuizClient({ quizId }) {
                 </ol>
               );
             })()
-            )}
+            ))}
 
             {ended && (
               <div style={{ marginTop: 22, padding: 24, borderRadius: 10, border: `1.5px solid ${COLORS.ink}`, background: COLORS.paper, textAlign: 'center' }}>
@@ -1960,7 +1989,7 @@ export default function QuizClient({ quizId }) {
               </div>
             )}
 
-            {!ended && (
+            {started && !ended && (
               <div style={{ marginTop: 22, gap: 10, justifyContent: 'center', display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))', maxWidth: 640, marginLeft: 'auto', marginRight: 'auto' }}>
                 <button onClick={() => endGame(false)} disabled={!started} style={{ fontFamily: MONO, fontSize: 12, letterSpacing: '0.12em', textTransform: 'uppercase', fontWeight: 700, padding: '12px 26px', border: 'none', background: COLORS.ember, color: '#fff', cursor: !started ? 'default' : 'pointer', opacity: !started ? 0.4 : 1, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 8 }}>
                   <Flag size={14} strokeWidth={2.5} color="#fff" /> Give up
@@ -1973,7 +2002,7 @@ export default function QuizClient({ quizId }) {
                 </button>
               </div>
             )}
-            {(bottomDock || (mobile === true && photoMode && started && !ended)) && <div aria-hidden="true" style={{ height: 'calc(120px + env(safe-area-inset-bottom))' }} />}
+            {((bottomDock && started) || (mobile === true && photoMode && started && !ended)) && <div aria-hidden="true" style={{ height: 'calc(120px + env(safe-area-inset-bottom))' }} />}
           </QuizPlayOverlay>
         )}
 

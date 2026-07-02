@@ -25,6 +25,7 @@ import Grain from '../../Grain';
 import Footer from '../../Footer';
 import SiteHeader from '../../SiteHeader';
 import QuizPlayerBar from './QuizPlayerBar';
+import QuizIdleActions from './QuizIdleActions';
 import Count from '../../Count';
 
 const COLORS = {
@@ -361,15 +362,7 @@ export default function LogicGameClient({ quizId, mobile = false }) {
                   <p style={{ fontFamily: MONO, fontSize: 12, letterSpacing: '0.06em', color: COLORS.faded, margin: '0 0 18px' }}>
                     Scored on accuracy. Ties on the leaderboard go to whoever finished faster.
                   </p>
-                  <div style={{ display: 'flex', gap: 10, justifyContent: 'center', flexWrap: 'wrap' }}>
-                    <button onClick={startGame} style={{ fontFamily: MONO, fontSize: 14, letterSpacing: '0.1em', textTransform: 'uppercase', fontWeight: 700, padding: '0 40px', lineHeight: '52px', border: 'none', background: COLORS.ember, color: '#fff', cursor: 'pointer' }}>Start the clock</button>
-                    <button onClick={() => setTab('stats')} style={{ fontFamily: MONO, fontSize: 13, letterSpacing: '0.08em', textTransform: 'uppercase', fontWeight: 700, padding: '0 28px', lineHeight: '52px', border: `1.5px solid ${COLORS.ink}`, background: COLORS.cream, color: COLORS.ink, cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: 8 }}>
-                      <Trophy size={14} strokeWidth={2.5} /> Leaderboard
-                    </button>
-                    <button onClick={share} style={{ fontFamily: MONO, fontSize: 13, letterSpacing: '0.08em', textTransform: 'uppercase', fontWeight: 700, padding: '0 28px', lineHeight: '52px', border: `1.5px solid ${COLORS.ink}`, background: COLORS.cream, color: COLORS.ink, cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: 8 }}>
-                      <Share2 size={14} strokeWidth={2.5} /> {copied ? 'Copied!' : 'Share'}
-                    </button>
-                  </div>
+                  <QuizIdleActions onStart={startGame} quizId={quizId} onLeaderboard={() => setTab('stats')} />
                 </div>
               </div>
             )}
