@@ -1,6 +1,7 @@
 'use client';
 import React, { useState, useEffect, useCallback } from 'react';
 import Link from 'next/link';
+import { Swords } from 'lucide-react';
 import SiteHeader from '../../SiteHeader';
 import QuizPlayerBar from '../../quiz/[id]/QuizPlayerBar';
 import Grain from '../../Grain';
@@ -140,7 +141,7 @@ export default function DuelClient({ token }) {
       <div className="qzf-w" style={{ maxWidth: 1180, margin: '0 auto', padding: '12px 38px 70px', position: 'relative' }}>
         <div className="qzf-line" aria-hidden="true" />
         <div style={{ maxWidth: 720, margin: '0 auto' }}>
-          <Link href="/quizzes/hub?tab=duels" style={{ fontSize: 13, fontWeight: 700, color: C.accent, textDecoration: 'none' }}>← Back to Duels</Link>
+          <Link href="/quizzes/hub?tab=duels" style={{ fontSize: 13, fontWeight: 700, color: C.accent, textDecoration: 'none' }}>← Duel Leaderboard</Link>
 
           {state === 'loading' && <div style={{ marginTop: 40, color: C.soft, fontWeight: 600 }}>Loading duel…</div>}
 
@@ -222,9 +223,8 @@ export default function DuelClient({ token }) {
                 </div>
               )}
 
-              <div style={{ marginTop: 20, display: 'flex', justifyContent: 'center', gap: 24, flexWrap: 'wrap' }}>
-                <Link href="/duel/new" style={{ fontSize: 13, fontWeight: 700, color: C.accent, textDecoration: 'none' }}>Start Another Duel</Link>
-                <Link href="/quizzes/hub?tab=duels" style={{ fontSize: 13, fontWeight: 700, color: C.accent, textDecoration: 'none' }}>Duel Leaderboard</Link>
+              <div style={{ marginTop: 22, display: 'flex', justifyContent: 'center' }}>
+                <Link href="/duel/new" style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 9, background: `linear-gradient(135deg, ${C.accent} 0%, #1d4ed8 100%)`, color: '#fff', padding: '14px 30px', borderRadius: 12, fontWeight: 800, fontSize: 15, letterSpacing: '0.01em', textDecoration: 'none', boxShadow: '0 10px 26px rgba(37,99,235,0.38)' }}><Swords size={18} /> Start Another Duel</Link>
               </div>
             </>
           )}
