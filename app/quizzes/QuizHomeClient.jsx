@@ -725,6 +725,13 @@ export default function QuizHomeClient() {
     return set;
   }, [scope, newestIds, mostPlayed]);
   // Full "View all" lists (every quiz, not the 6-row column preview).
+  // Conditional navy backdrops for the hero-tile leader chips: probe the photo
+  // behind each footer overlay (scrim folded in) and pill only when too light.
+  const nHeroProbe = newest[0] ? ((QUIZ_HEROES[newest[0].id] && QUIZ_HEROES[newest[0].id].src) || DEPT_HERO[newest[0].dept] || null) : null;
+  const [ntileProbeRef, ntilePill] = usePillProbe(nHeroProbe, PILL_REGION_FOOTER, 0.72, true);
+  const tHeroProbe = trending ? ((QUIZ_HEROES[trending.id] && QUIZ_HEROES[trending.id].src) || DEPT_HERO[trending.dept] || null) : null;
+  const [ttileProbeRef, ttilePill] = usePillProbe(tHeroProbe, PILL_REGION_FOOTER, 0.72, true);
+
   const newestAll = useMemo(() => catalog.slice()
     .filter((q) => !isBusinessNewsHubQuiz(q.id))
     .sort((a, b) => (a.publishedAt < b.publishedAt ? 1 : a.publishedAt > b.publishedAt ? -1 : 0)), [catalog]);
@@ -955,7 +962,9 @@ export default function QuizHomeClient() {
     .qzh .catcard{border:1px solid ${C.line};border-radius:12px;overflow:hidden;background:#fff;display:flex;flex-direction:column;padding-bottom:4px;}
     .qzh .cc-hero{position:relative;display:block;min-height:210px;background-size:cover;background-position:center;background-color:${C.accsoft};text-decoration:none;}
     .qzh .cc-ov{position:absolute;inset:0;background:linear-gradient(to top, rgba(8,15,35,0.92), rgba(8,15,35,0.4) 52%, rgba(8,15,35,0.05));z-index:1;}
-    .qzh .cc-stat{position:absolute;top:8px;left:10px;z-index:2;font-size:10px;font-weight:700;color:#fff;display:inline-flex;align-items:center;gap:3px;background:rgba(17,32,74,.82);border-radius:999px;padding:3px 9px;max-width:calc(100% - 20px);white-space:nowrap;overflow:hidden;backdrop-filter:blur(2px);}
+    .qzh .cc-stat{position:absolute;top:8px;left:10px;z-index:2;font-size:10px;font-weight:700;color:#fff;display:inline-flex;align-items:center;gap:3px;border-radius:999px;padding:3px 9px;max-width:calc(100% - 20px);white-space:nowrap;overflow:hidden;text-shadow:0 1px 6px rgba(0,0,0,.65);transition:background-color .18s ease;}
+    .qzh .cc-stat.pill{background:rgba(17,32,74,.82);backdrop-filter:blur(2px);text-shadow:none;}
+    .qzh .hpill{background:rgba(17,32,74,.85);border-radius:999px;padding:2px 8px;backdrop-filter:blur(2px);}
     .qzh .cc-btm{position:absolute;left:12px;right:12px;bottom:11px;z-index:2;display:flex;flex-direction:column;gap:5px;}
     .qzh .cc-htitle{color:#fff;font-size:17px;font-weight:800;letter-spacing:-.2px;line-height:1.14;text-shadow:0 1px 8px rgba(0,0,0,.5);}
     .qzh .cc-play{font-size:13px;font-weight:800;color:#fff;display:inline-flex;align-items:center;gap:4px;}
@@ -1187,9 +1196,9 @@ export default function QuizHomeClient() {
           {newest[0] ? (() => { const nc = byKey[newest[0].dept] || {}; const NIcon = nc.Icon || Sparkles; const nqh = QUIZ_HEROES[newest[0].id]; const nHero = nqh ? nqh.src : DEPT_HERO[newest[0].dept]; const nPos = nqh ? nqh.pos : undefined; return (
               <Link href={`/quiz/${newest[0].id}`} className="ntile" style={nHero ? { backgroundImage: `url("${nHero}")`, backgroundPosition: nPos || 'center' } : { background: nc.c || C.accent }}>
                 <span className="ntile-tag" style={{ color: C.accent }}><Sparkles size={10} style={{ verticalAlign: -1 }} /> NEWEST</span>
-                <div className="ntile-ov">
+                <div className="ntile-ov" ref={ntileProbeRef}>
                   <div className="ntile-t">{stripVerb(newest[0].title)}</div>
-                  <div className="ntile-p" style={{ display: 'flex', alignItems: 'center', gap: 12 }}><span>Play <ArrowRight size={13} style={{ verticalAlign: -1 }} /></span>{leader(newest[0].id) ? <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4 }}><Crown size={12} style={{ color: '#e8b43a', flex: 'none' }} />{leader(newest[0].id)}</span> : null}</div>
+                  <div className="ntile-p" style={{ display: 'flex', alignItems: 'center', gap: 12 }}><span>Play <ArrowRight size={13} style={{ verticalAlign: -1 }} /></span>{leader(newest[0].id) ? <span className={ntilePill ? 'hpill' : undefined} style={{ display: 'inline-flex', alignItems: 'center', gap: 4 }}><Crown size={12} style={{ color: '#e8b43a', flex: 'none' }} />{leader(newest[0].id)}</span> : null}</div>
                 </div>
               </Link>
             ); })() : <div />}
@@ -1223,9 +1232,9 @@ export default function QuizHomeClient() {
             {trending ? (() => { const tc = byKey[trending.dept] || {}; const tqh = QUIZ_HEROES[trending.id]; const tHero = tqh ? tqh.src : DEPT_HERO[trending.dept]; const tPos = tqh ? tqh.pos : undefined; return (
             <Link href={`/quiz/${trending.id}`} className="ttile" style={tHero ? { backgroundImage: `url("${tHero}")`, backgroundPosition: tPos || 'center' } : { background: tc.c || C.accent }}>
               <span className="ttile-tag"><Flame size={11} style={{ verticalAlign: -1 }} /> TRENDING</span>
-              <div className="ttile-ov">
+              <div className="ttile-ov" ref={ttileProbeRef}>
                 <div className="ttile-t">{stripVerb(trending.title)}</div>
-                <div className="ttile-foot" style={{ flexWrap: 'nowrap' }}><span className="ttile-p" style={{ flex: 'none' }}>Play <ArrowRight size={13} style={{ verticalAlign: -1 }} /></span>{leader(trending.id) ? <span className="ttile-plays" style={{ display: 'inline-flex', alignItems: 'center', gap: 4, minWidth: 0 }}><Crown size={12} style={{ color: '#e8b43a', flex: 'none' }} /><span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{leader(trending.id)}</span></span> : null}</div>
+                <div className="ttile-foot" style={{ flexWrap: 'nowrap' }}><span className="ttile-p" style={{ flex: 'none' }}>Play <ArrowRight size={13} style={{ verticalAlign: -1 }} /></span>{leader(trending.id) ? <span className={`ttile-plays${ttilePill ? ' hpill' : ''}`} style={{ display: 'inline-flex', alignItems: 'center', gap: 4, minWidth: 0 }}><Crown size={12} style={{ color: '#e8b43a', flex: 'none' }} /><span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{leader(trending.id)}</span></span> : null}</div>
               </div>
             </Link>
           ); })() : <div className="th-slot-hold" />}
@@ -1567,6 +1576,66 @@ function CategoryFull({ cat, plays, leader, leaderKey }) {
   );
 }
 
+// ---------- Conditional overlay backdrop (navy pill only when the photo needs it) ----------
+// Samples the region of a cover-cropped hero photo that sits behind a small white
+// text overlay and reports whether bare white text would blend in (light or busy
+// area), in which case the caller adds a navy backdrop pill. `region` is
+// [x0,y0,x1,y1] in fractions of the tile box; `scrim` (0..1) folds in any dark
+// gradient already covering that region; `useParentBox` measures the ref
+// element's parent (for refs attached to an inner overlay div). Fails safe: if
+// the image cannot be read even via the same-origin optimizer, the pill goes on.
+const PILL_REGION_TOPLEFT = [0.02, 0.02, 0.66, 0.18];
+const PILL_REGION_FOOTER = [0.03, 0.76, 0.97, 0.98];
+function usePillProbe(url, region, scrim, useParentBox) {
+  const ref = useRef(null);
+  const [pill, setPill] = useState(false);
+  useEffect(() => {
+    if (!url) { setPill(false); return undefined; }
+    let dead = false;
+    const raw = ref.current;
+    const el = useParentBox && raw && raw.parentElement ? raw.parentElement : raw;
+    const box = el && el.getBoundingClientRect ? el.getBoundingClientRect() : null;
+    const tw = box && box.width > 10 ? box.width : 340;
+    const th = box && box.height > 10 ? box.height : 215;
+    const proxied = `/_next/image?url=${encodeURIComponent(url)}&w=384&q=50`;
+    const attempt = (src, last) => {
+      const img = new Image();
+      img.crossOrigin = 'anonymous';
+      img.onload = () => {
+        if (dead) return;
+        try {
+          const W = 96;
+          const H = Math.max(24, Math.round((W * th) / tw));
+          const c = document.createElement('canvas');
+          c.width = W; c.height = H;
+          const g = c.getContext('2d', { willReadFrequently: true });
+          const sc = Math.max(W / img.naturalWidth, H / img.naturalHeight);
+          g.drawImage(img, (W - img.naturalWidth * sc) / 2, (H - img.naturalHeight * sc) / 2, img.naturalWidth * sc, img.naturalHeight * sc);
+          const rx = Math.max(0, Math.floor(region[0] * W));
+          const ry = Math.max(0, Math.floor(region[1] * H));
+          const rw = Math.min(W - rx, Math.max(1, Math.ceil((region[2] - region[0]) * W)));
+          const rh = Math.min(H - ry, Math.max(1, Math.ceil((region[3] - region[1]) * H)));
+          const d = g.getImageData(rx, ry, rw, rh).data;
+          let sum = 0; let bright = 0; const n = d.length / 4;
+          for (let i = 0; i < d.length; i += 4) {
+            let L = (0.2126 * d[i] + 0.7152 * d[i + 1] + 0.0722 * d[i + 2]) / 255;
+            L = L * (1 - scrim) + 0.05 * scrim;
+            sum += L; if (L > 0.6) bright += 1;
+          }
+          if (!dead) setPill(sum / n > 0.44 || bright / n > 0.3);
+        } catch (e) {
+          if (!dead) { if (last) setPill(true); else attempt(proxied, true); }
+        }
+      };
+      img.onerror = () => { if (!dead) { if (last) setPill(true); else attempt(proxied, true); } };
+      img.src = src;
+    };
+    attempt(url, false);
+    return () => { dead = true; };
+  }, [url, scrim]);
+  return [ref, pill];
+}
+
 function BrowseColumn({ label, Icon, color, tint, rows, cta, onCta, ctaHref, heroUrl, heroPos, heroId, heroHref, heroCta, heroTitle, heroPlays, heroLeader, filled, fill, baseCount }) {
   const hasHero = !!heroUrl;
   const blueHead = hasHero || filled;
@@ -1576,6 +1645,7 @@ function BrowseColumn({ label, Icon, color, tint, rows, cta, onCta, ctaHref, her
   const secRef = useRef(null);
   const headRef = useRef(null);
   const [shown, setShown] = useState(base);
+  const [pillRef, statPill] = usePillProbe(hasHero && heroId ? heroUrl : null, PILL_REGION_TOPLEFT, 0.06, false);
   // Landscape-mobile only: when a filled column lands on a grid row beside a
   // taller hero tile it gets stretched, leaving blank space. Instead of empty
   // rows, add more quiz-title rows until the extra height is filled.
@@ -1604,8 +1674,8 @@ function BrowseColumn({ label, Icon, color, tint, rows, cta, onCta, ctaHref, her
     <section ref={secRef} className={`mc-open${(hasHero || filled) ? ' catcard' : ''}`} style={{ minWidth: 0 }}>
       {hasHero ? (
         <Link href={heroLink} className="cc-hero" style={{ backgroundImage: `url("${heroUrl}")`, backgroundPosition: heroPos || 'center' }} title={heroTitle}>
-          <span className="cc-ov" />
-          {heroId ? <span className="cc-stat">{heroPlays > 0 ? `${heroPlays.toLocaleString()} plays` : 'New quiz'}{heroLeader ? <><span aria-hidden="true"> · </span><Crown size={11} style={{ color: '#e8b43a', flex: 'none' }} /> {heroLeader}</> : null}</span> : null}
+          <span className="cc-ov" ref={pillRef} />
+          {heroId ? <span className={`cc-stat${statPill ? ' pill' : ''}`}>{heroPlays > 0 ? `${heroPlays.toLocaleString()} plays` : 'New quiz'}{heroLeader ? <><span aria-hidden="true"> · </span><Crown size={11} style={{ color: '#e8b43a', flex: 'none' }} /> {heroLeader}</> : null}</span> : null}
           <div className="cc-btm">
             <span className="cc-htitle">{stripVerb(heroTitle)}</span>
             <span className="cc-play">{heroCta || 'Play'} <ArrowRight size={13} style={{ verticalAlign: -2 }} /></span>
