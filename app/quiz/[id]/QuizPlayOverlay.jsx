@@ -28,7 +28,13 @@ export default function QuizPlayOverlay({ open, background = '#f7f8fa', children
     document.body.style.overflow = 'hidden';
     const vv = typeof window !== 'undefined' ? window.visualViewport : null;
     const update = () => {
-      if (vv) setVp({ top: vv.offsetTop, left: vv.offsetLeft, width: vv.width, height: window.innerHeight - vv.offsetTop });
+      // Height MUST be the VISUAL viewport height (area above the keyboard), not
+      // the full layout height: window.innerHeight stays full when the on-screen
+      // keyboard opens (iOS), so innerHeight-based sizing left the overlay bottom
+      // (and the last ~1/3 of a long answer list) stranded BEHIND the keyboard,
+      // unreachable at max scroll. vv.height is exactly the visible band, so the
+      // internal scroll can bring every row up above the keyboard + bottom-docked input.
+      if (vv) setVp({ top: vv.offsetTop, left: vv.offsetLeft, width: vv.width, height: vv.height });
     };
     update();
     if (vv) {

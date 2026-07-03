@@ -1997,7 +1997,7 @@ export default function QuizClient({ quizId }) {
                 </button>
               </div>
             )}
-            {((bottomDock && started) || (mobile === true && photoMode && started && !ended)) && <div aria-hidden="true" style={{ height: 'calc(120px + env(safe-area-inset-bottom))' }} />}
+            {((bottomDock && started) || (mobile === true && photoMode && started && !ended)) && <div aria-hidden="true" style={{ height: 'calc(136px + env(safe-area-inset-bottom))' }} />}
           </QuizPlayOverlay>
         )}
 
