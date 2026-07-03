@@ -59,10 +59,10 @@ function SignupModal({ onClose }){
 
 function Stat({value, rank, label, cls}){
   return (
-    <div className={cls}>
+    <div className={cls} style={{height:33}}>
       <div style={lbl}>{label}</div>
       <div style={{display:'flex',alignItems:'baseline',gap:3}}>
-        <span style={{fontSize:17,fontWeight:700,color:ONBLUE}}>{value}</span>
+        <span style={{fontSize:17,fontWeight:700,color:ONBLUE,lineHeight:1}}>{value}</span>
         {rank?<span style={{fontSize:11,fontWeight:700,color:ONBLUE_SOFT}}>#{rank}</span>:null}
       </div>
     </div>
@@ -128,10 +128,10 @@ export default function QuizPlayerBar({ me: meProp, controlled = false, rightAct
   return (
     <div className="qpb" style={{display:'flex',flexDirection:'row',alignItems:'center',flexWrap:'nowrap',gap:16,padding:'10px 14px',background:BARBG,borderRadius:11,minHeight:56,boxSizing:'border-box',overflow:'hidden'}}>
       <style>{`.qpb-chev{display:none;}@media(max-width:1023px){.qpb-bestcat{display:none !important;}}@media(max-width:920px){.qpb-s-correct{display:none !important;}}@media(max-width:820px){.qpb-s-accuracy{display:none !important;}}@media(max-width:700px){.qpb-s-played{display:none !important;}}@media(max-width:620px){.qpb-lb,.qpb-lbdiv{display:none !important;}.qpb-hub{margin-left:auto !important;}}@media(max-width:560px){.qpb .qpb-stats{display:none !important;}.qpb-s-completed{display:none !important;}.qpb-hub{margin-left:auto !important;}}`}</style>
-      <div style={{display:'flex',flexDirection:'column',minWidth:0}}>
+      <div style={{display:'flex',flexDirection:'column',minWidth:0,height:33}}>
         <div style={lbl}>Player</div>
         {found?(
-          <div style={{display:'flex',alignItems:'center',gap:5,fontSize:16,fontWeight:800,color:ONBLUE,lineHeight:1.15,minWidth:0}}><span style={{minWidth:0,overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>{me.name}</span>{me.signed?<BadgeCheck size={13} strokeWidth={2.5} style={{color:ONBLUE,flex:'none'}}/>:null}</div>
+          <div style={{display:'flex',alignItems:'center',gap:5,fontSize:16,fontWeight:800,color:ONBLUE,lineHeight:1.05,minWidth:0}}><span style={{minWidth:0,overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>{me.name}</span>{me.signed?<BadgeCheck size={13} strokeWidth={2.5} style={{color:ONBLUE,flex:'none'}}/>:null}</div>
         ):determined?(
           <button onClick={e=>{e.stopPropagation(); setSignupOpen(true);}} style={{display:'inline-flex',alignItems:'center',gap:5,fontSize:14,fontWeight:800,color:ONBLUE,lineHeight:1.15,background:'none',border:'none',padding:0,cursor:'pointer',fontFamily:'inherit'}}><UserPlus size={14}/> Sign Up</button>
         ):(
@@ -139,7 +139,7 @@ export default function QuizPlayerBar({ me: meProp, controlled = false, rightAct
         )}
       </div>
       <div style={{width:1,height:34,background:ONBLUE_LINE}}/>
-      <div>
+      <div style={{height:33}}>
         <div style={lbl}>Rank</div>
         <div style={{display:'flex',alignItems:'baseline',gap:5}}><span style={{fontSize:17,fontWeight:800,color:rank?ONBLUE:ONBLUE_SOFT,lineHeight:1}}>{rank?`#${rank}`:dash}</span>{denom?<span style={{fontSize:11,color:ONBLUE_SOFT}}>of {denom.toLocaleString()}</span>:null}</div>
       </div>
@@ -167,7 +167,7 @@ export default function QuizPlayerBar({ me: meProp, controlled = false, rightAct
             <Stat value={found&&a.completed!=null?a.completed:dash} rank={found?rk.completed:null} label="Completed" cls="qpb-s-completed"/>
           </div>
           {bestCat?(
-            <div className="qpb-bestcat">
+            <div className="qpb-bestcat" style={{height:33}}>
               <div style={lbl}>Best category</div>
               <div style={{display:'flex',alignItems:'baseline',gap:5,whiteSpace:'nowrap'}}>
                 <span style={{fontSize:14,fontWeight:700,color:ONBLUE,lineHeight:1.2}}>{DEPT_LABEL[bestCat.key]||'—'}</span>
