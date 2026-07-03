@@ -40,7 +40,7 @@ const websiteJsonLd = {
   '@context': 'https://schema.org',
   '@type': 'WebSite',
   name: 'Source of Truths',
-  alternateName: `Source of Truths | Where ${SOURCE_COUNT} Experts and Aggregators Agree`,
+  alternateName: 'SoT',
   url: 'https://sourceoftruths.com',
   description: `Where ${SOURCE_COUNT} experts and aggregators agree, built from expert and reader sources using Borda consensus scoring.`,
 };
@@ -49,9 +49,13 @@ const organizationJsonLd = {
   '@context': 'https://schema.org',
   '@type': 'Organization',
   name: 'Source of Truths',
-  alternateName: `Source of Truths | Where ${SOURCE_COUNT} Experts and Aggregators Agree`,
+  alternateName: 'SoT',
   url: 'https://sourceoftruths.com',
   logo: 'https://sourceoftruths.com/icon.png',
+  sameAs: [
+    'https://x.com/sourceoftruths',
+    'https://www.instagram.com/source_of_truths/',
+  ],
   description: `Where ${SOURCE_COUNT} experts and aggregators agree, scored by expert and reader consensus using Borda methodology.`,
 };
 
