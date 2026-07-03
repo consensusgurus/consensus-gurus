@@ -21,6 +21,8 @@ export default function QuizIdleActions({ onStart, startLabel = 'Start', startDi
   };
   const startStyle = { ...base };
   delete startStyle.height; // height comes from the .qz-start class (2x on desktop, 1x on mobile)
+  delete startStyle.fontSize; // font-size (and letter-spacing) come from the .qz-start class so it isn't overridden by the inline base
+  delete startStyle.letterSpacing;
   return (
     <div style={{ maxWidth: 640, margin: '16px auto 0', ...style }}>
       <style>{`.qz-start{height:104px;font-size:21px;letter-spacing:0.08em;}@media (max-width:760px){.qz-start{height:52px;font-size:12.5px;letter-spacing:0.05em;}}`}</style>
