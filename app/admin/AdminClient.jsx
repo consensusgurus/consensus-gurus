@@ -817,6 +817,24 @@ const TABLE_MAX_H = 940;
 function PageViewsPanel({ lists, quizzes, mode }) {
   const [query, setQuery] = useState('');
   const sort = useSort('views24h', 'desc');
+  const [expanded, setExpanded] = useState(null); // listId of open source-breakdown row
+  const [details, setDetails] = useState({});      // listId -> { loading | error | data }
+
+  // Lazily load one list's 24h source breakdown on first expand.
+  const toggle = async (listId) => {
+    if (expanded === listId) { setExpanded(null); return; }
+    setExpanded(listId);
+    if (details[listId] && !details[listId].error) return;
+    setDetails((d) => ({ ...d, [listId]: { loading: true } }));
+    try {
+      const res = await fetch(`/api/admin/list-sources?listId=${encodeURIComponent(listId)}&hours=24`);
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) throw new Error(data.error || `HTTP ${res.status}`);
+      setDetails((d) => ({ ...d, [listId]: { data } }));
+    } catch (e) {
+      setDetails((d) => ({ ...d, [listId]: { error: String(e.message || e) } }));
+    }
+  };
 
   const rows = useMemo(() => {
     const L = (lists || []).map((v) => ({
@@ -899,7 +917,7 @@ function PageViewsPanel({ lists, quizzes, mode }) {
   return (
     <div>
       <p style={{ fontFamily: 'Manrope, system-ui, -apple-system, sans-serif', fontSize: 10, color: COLORS.faded, margin: '0 0 14px' }}>
-        {blurb}
+        {blurb}{mode !== 'quizzes' ? ' Click a list row for its bot/human split and traffic sources.' : ''}
       </p>
       <input
         value={query}
@@ -945,45 +963,136 @@ function PageViewsPanel({ lists, quizzes, mode }) {
           </div>
           {visible.map((r, i) => {
             const active = r.views24h > 0 || (r.plays24h || 0) > 0;
+            const isList = r.kind === 'list';
+            const isOpen = isList && expanded === r.id;
             return (
-              <div
-                key={`${r.kind}:${r.id}`}
-                style={{ display: 'flex', gap: 16, alignItems: 'center', fontFamily: 'Manrope, system-ui, -apple-system, sans-serif', fontSize: 10, color: COLORS.ink, padding: '3px 14px', borderBottom: i < visible.length - 1 ? rowBorder : 'none', opacity: active ? 1 : 0.55 }}
-              >
-                <span style={{ flex: '0 0 36px', fontFamily: 'DM Mono, monospace', fontSize: 10, color: COLORS.faded }}>
-                  {i + 1}
-                </span>
-                {showType && (
-                  <span style={{ flex: '0 0 56px', fontFamily: 'DM Mono, monospace', fontSize: 10, letterSpacing: '0.08em', textTransform: 'uppercase', color: r.kind === 'quiz' ? COLORS.ember : COLORS.faded }}>
-                    {r.kind === 'quiz' ? 'Quiz' : 'List'}
+              <React.Fragment key={`${r.kind}:${r.id}`}>
+                <div
+                  onClick={isList ? () => toggle(r.id) : undefined}
+                  role={isList ? 'button' : undefined}
+                  aria-expanded={isList ? isOpen : undefined}
+                  style={{ display: 'flex', gap: 16, alignItems: 'center', cursor: isList ? 'pointer' : 'default', fontFamily: 'Manrope, system-ui, -apple-system, sans-serif', fontSize: 10, color: COLORS.ink, padding: '3px 14px', borderBottom: (isOpen || i < visible.length - 1) ? rowBorder : 'none', background: isOpen ? `${COLORS.ink}0a` : 'transparent', opacity: active ? 1 : 0.55 }}
+                >
+                  <span style={{ flex: '0 0 36px', display: 'flex', alignItems: 'center', gap: 4, fontFamily: 'DM Mono, monospace', fontSize: 10, color: COLORS.faded }}>
+                    {isList && (
+                      <span style={{ display: 'inline-block', width: 7, transform: isOpen ? 'rotate(90deg)' : 'none', transition: 'transform 0.12s' }}>▸</span>
+                    )}
+                    {i + 1}
                   </span>
-                )}
-                <span style={{ flex: 3, minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                  <Link href={r.href} target="_blank" style={{ color: COLORS.ink, textDecoration: 'none' }}>
-                    {r.title || r.id}
-                  </Link>
-                </span>
-                <span style={{ flex: '0 0 88px', textAlign: 'right', fontFamily: 'DM Mono, monospace', fontWeight: 700, color: r.views24h > 0 ? COLORS.ember : COLORS.faded }}>
-                  {r.views24h}
-                </span>
-                <span style={{ flex: '0 0 88px', textAlign: 'right', fontFamily: 'DM Mono, monospace', fontSize: 10, color: COLORS.faded }}>
-                  {r.viewsTotal}
-                </span>
-                {showPlays && (
-                  <span style={{ flex: '0 0 84px', textAlign: 'right', fontFamily: 'DM Mono, monospace', fontWeight: 700, color: (r.plays24h || 0) > 0 ? COLORS.ink : COLORS.faded }}>
-                    {r.plays24h == null ? '—' : r.plays24h}
+                  {showType && (
+                    <span style={{ flex: '0 0 56px', fontFamily: 'DM Mono, monospace', fontSize: 10, letterSpacing: '0.08em', textTransform: 'uppercase', color: r.kind === 'quiz' ? COLORS.ember : COLORS.faded }}>
+                      {r.kind === 'quiz' ? 'Quiz' : 'List'}
+                    </span>
+                  )}
+                  <span style={{ flex: 3, minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                    <Link href={r.href} target="_blank" onClick={(e) => e.stopPropagation()} style={{ color: COLORS.ink, textDecoration: 'none' }}>
+                      {r.title || r.id}
+                    </Link>
                   </span>
-                )}
-                {showPlays && (
-                  <span style={{ flex: '0 0 84px', textAlign: 'right', fontFamily: 'DM Mono, monospace', fontSize: 10, color: COLORS.faded }}>
-                    {r.plays == null ? '—' : r.plays}
+                  <span style={{ flex: '0 0 88px', textAlign: 'right', fontFamily: 'DM Mono, monospace', fontWeight: 700, color: r.views24h > 0 ? COLORS.ember : COLORS.faded }}>
+                    {r.views24h}
                   </span>
-                )}
-              </div>
+                  <span style={{ flex: '0 0 88px', textAlign: 'right', fontFamily: 'DM Mono, monospace', fontSize: 10, color: COLORS.faded }}>
+                    {r.viewsTotal}
+                  </span>
+                  {showPlays && (
+                    <span style={{ flex: '0 0 84px', textAlign: 'right', fontFamily: 'DM Mono, monospace', fontWeight: 700, color: (r.plays24h || 0) > 0 ? COLORS.ink : COLORS.faded }}>
+                      {r.plays24h == null ? '—' : r.plays24h}
+                    </span>
+                  )}
+                  {showPlays && (
+                    <span style={{ flex: '0 0 84px', textAlign: 'right', fontFamily: 'DM Mono, monospace', fontSize: 10, color: COLORS.faded }}>
+                      {r.plays == null ? '—' : r.plays}
+                    </span>
+                  )}
+                </div>
+                {isOpen && <SourceBreakdown state={details[r.id]} />}
+              </React.Fragment>
             );
           })}
         </div>
       )}
+    </div>
+  );
+}
+
+// Colors for the five traffic channels in the expanded source breakdown.
+const CHANNEL_COLORS = {
+  organic: COLORS.forest,
+  social: COLORS.rust,
+  referral: COLORS.faded,
+  direct: COLORS.ink,
+  internal: '#8a7d63',
+  unknown: COLORS.faded,
+};
+
+// Expanded detail row under a list in PageViewsPanel: bot/human split, channel
+// mix, top referrer hosts, and top countries for the last 24h. `state` is the
+// per-list fetch slot: { loading } | { error } | { data }.
+function SourceBreakdown({ state }) {
+  const wrap = { padding: '10px 14px 14px 44px', background: `${COLORS.ink}0a`, borderBottom: `1px solid ${COLORS.ink}22`, fontFamily: 'Manrope, system-ui, -apple-system, sans-serif', fontSize: 10, color: COLORS.ink };
+  const mono = { fontFamily: 'DM Mono, monospace' };
+  if (!state || state.loading) return <div style={{ ...wrap, ...mono, color: COLORS.faded }}>Loading sources...</div>;
+  if (state.error) return <div style={{ ...wrap, ...mono, color: COLORS.ember }}>Could not load sources: {state.error}</div>;
+  const d = state.data;
+  if (!d || d.total === 0) return <div style={{ ...wrap, ...mono, color: COLORS.faded }}>No views in the last 24h.</div>;
+  const label = { ...mono, fontSize: 9, letterSpacing: '0.12em', textTransform: 'uppercase', color: COLORS.faded, marginBottom: 5 };
+  const kv = { ...mono, fontSize: 10, display: 'flex', justifyContent: 'space-between', gap: 12 };
+  const channels = (d.channels || []).filter((c) => c.count > 0);
+  return (
+    <div style={wrap}>
+      {d.attribution === false && (
+        <div style={{ ...mono, color: COLORS.rust, marginBottom: 8 }}>
+          Attribution columns not applied yet (run migration 31) — showing countries only.
+        </div>
+      )}
+      <div style={{ display: 'flex', flexWrap: 'wrap', gap: 26, rowGap: 12 }}>
+        {d.humans != null && (
+          <div>
+            <div style={label}>Humans vs bots</div>
+            <div style={{ ...mono, fontSize: 12 }}>
+              <span style={{ color: COLORS.forest, fontWeight: 700 }}>{d.humans}</span> human
+              {' · '}
+              <span style={{ color: COLORS.ember, fontWeight: 700 }}>{d.bots}</span> bot
+              {' '}<span style={{ color: COLORS.faded }}>({d.botPct}%)</span>
+            </div>
+          </div>
+        )}
+        {channels.length > 0 && (
+          <div>
+            <div style={label}>Channels (human)</div>
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: 5 }}>
+              {channels.map((c) => (
+                <span key={c.channel} style={{ ...mono, fontSize: 10, color: COLORS.cream, background: CHANNEL_COLORS[c.channel] || COLORS.faded, padding: '2px 6px', borderRadius: 3 }}>
+                  {c.channel} {c.count}
+                </span>
+              ))}
+            </div>
+          </div>
+        )}
+        <div style={{ minWidth: 170 }}>
+          <div style={label}>Top referrers (human)</div>
+          {(!d.topReferrers || d.topReferrers.length === 0) ? (
+            <div style={{ ...mono, color: COLORS.faded }}>None (direct / untagged)</div>
+          ) : d.topReferrers.map((r) => (
+            <div key={r.host} style={{ ...kv, maxWidth: 280 }}>
+              <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{r.host}</span>
+              <span style={{ color: COLORS.faded }}>{r.count}</span>
+            </div>
+          ))}
+        </div>
+        <div style={{ minWidth: 120 }}>
+          <div style={label}>Top countries</div>
+          {(!d.topCountries || d.topCountries.length === 0) ? (
+            <div style={{ ...mono, color: COLORS.faded }}>—</div>
+          ) : d.topCountries.map((c) => (
+            <div key={c.country} style={{ ...kv, maxWidth: 180 }}>
+              <span>{c.country}</span>
+              <span style={{ color: COLORS.faded }}>{c.count}</span>
+            </div>
+          ))}
+        </div>
+      </div>
     </div>
   );
 }
