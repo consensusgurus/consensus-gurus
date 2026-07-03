@@ -19,6 +19,8 @@ function ensureAnonId(){
   }catch{return null;}
 }
 function getIdentity(){try{return JSON.parse(localStorage.getItem('sot_quiz_identity'));}catch{return null;}}
+// Ranks over 999 render as 1.0k / 1.1k etc. so long ranks (e.g. '800 of 1,200') don't wrap out of the bar.
+function fmtK(n){return (typeof n==='number'&&n>999)?(n/1000).toFixed(1)+'k':(n!=null?n.toLocaleString():n);}
 
 // Self-contained sign-up modal so the player-bar "Sign up" button actually signs
 // the player up wherever the bar appears (index, quiz pages, Stat Hub), instead
@@ -63,7 +65,7 @@ function Stat({value, rank, label, cls}){
       <div style={lbl}>{label}</div>
       <div style={{display:'flex',alignItems:'baseline',gap:3}}>
         <span style={{fontSize:17,fontWeight:700,color:ONBLUE,lineHeight:1}}>{value}</span>
-        {rank?<span style={{fontSize:11,fontWeight:700,color:ONBLUE_SOFT}}>#{rank}</span>:null}
+        {rank?<span style={{fontSize:11,fontWeight:700,color:ONBLUE_SOFT}}>#{fmtK(rank)}</span>:null}
       </div>
     </div>
   );
@@ -127,8 +129,8 @@ export default function QuizPlayerBar({ me: meProp, controlled = false, rightAct
   }, [lbRows, hubMode]);
   return (
     <div className="qpb" style={{display:'flex',flexDirection:'row',alignItems:'center',flexWrap:'nowrap',gap:16,padding:'10px 14px',background:BARBG,borderRadius:11,minHeight:56,boxSizing:'border-box',overflow:'hidden'}}>
-      <style>{`.qpb-chev{display:none;}@media(max-width:1023px){.qpb-bestcat{display:none !important;}}@media(max-width:920px){.qpb-s-correct{display:none !important;}}@media(max-width:820px){.qpb-s-accuracy{display:none !important;}}@media(max-width:700px){.qpb-s-played{display:none !important;}}@media(max-width:620px){.qpb-lb,.qpb-lbdiv{display:none !important;}.qpb-hub{margin-left:auto !important;}}@media(max-width:560px){.qpb .qpb-stats{display:none !important;}.qpb-s-completed{display:none !important;}.qpb-hub{margin-left:auto !important;}}`}</style>
-      <div style={{display:'flex',flexDirection:'column',minWidth:0,height:33}}>
+      <style>{`.qpb-chev{display:none;}@media(max-width:1023px){.qpb-bestcat{display:none !important;}}@media(max-width:920px){.qpb-s-correct{display:none !important;}}@media(max-width:820px){.qpb-s-accuracy{display:none !important;}}@media(max-width:700px){.qpb-s-played{display:none !important;}}@media(max-width:620px){.qpb-lb,.qpb-lbdiv{display:none !important;}.qpb-hub{margin-left:auto !important;}}@media(max-width:560px){.qpb-guest{display:none !important;}.qpb .qpb-stats{display:none !important;}.qpb-s-completed{display:none !important;}.qpb-hub{margin-left:auto !important;}}`}</style>
+      <div className={found&&!signed?'qpb-guest':''} style={{display:'flex',flexDirection:'column',minWidth:0,height:33}}>
         <div style={lbl}>Player</div>
         {found?(
           <div style={{display:'flex',alignItems:'center',gap:5,fontSize:16,fontWeight:800,color:ONBLUE,lineHeight:1.05,minWidth:0}}><span style={{minWidth:0,overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>{me.name}</span>{me.signed?<BadgeCheck size={13} strokeWidth={2.5} style={{color:ONBLUE,flex:'none'}}/>:null}</div>
@@ -138,10 +140,10 @@ export default function QuizPlayerBar({ me: meProp, controlled = false, rightAct
           <div style={{fontSize:16,fontWeight:800,color:ONBLUE_SOFT,lineHeight:1.15}}>{dash}</div>
         )}
       </div>
-      <div style={{width:1,height:34,background:ONBLUE_LINE}}/>
+      <div className={found&&!signed?'qpb-guest':''} style={{width:1,height:34,background:ONBLUE_LINE}}/>
       <div style={{height:33}}>
         <div style={lbl}>Rank</div>
-        <div style={{display:'flex',alignItems:'baseline',gap:5}}><span style={{fontSize:17,fontWeight:800,color:rank?ONBLUE:ONBLUE_SOFT,lineHeight:1}}>{rank?`#${rank}`:dash}</span>{denom?<span style={{fontSize:11,color:ONBLUE_SOFT}}>of {denom.toLocaleString()}</span>:null}</div>
+        <div style={{display:'flex',alignItems:'baseline',gap:5,whiteSpace:'nowrap'}}><span style={{fontSize:17,fontWeight:800,color:rank?ONBLUE:ONBLUE_SOFT,lineHeight:1}}>{rank?`#${fmtK(rank)}`:dash}</span>{denom?<span style={{fontSize:11,color:ONBLUE_SOFT}}>of {fmtK(denom)}</span>:null}</div>
       </div>
       {hubMode ? (
         <>
@@ -171,7 +173,7 @@ export default function QuizPlayerBar({ me: meProp, controlled = false, rightAct
               <div style={lbl}>Best category</div>
               <div style={{display:'flex',alignItems:'baseline',gap:5,whiteSpace:'nowrap'}}>
                 <span style={{fontSize:14,fontWeight:700,color:ONBLUE,lineHeight:1.2}}>{DEPT_LABEL[bestCat.key]||'—'}</span>
-                {bestCat.rank?<span style={{fontSize:11,color:ONBLUE_SOFT}}>#{bestCat.rank}{bestCat.catTotal?` of ${bestCat.catTotal.toLocaleString()}`:''}</span>:null}
+                {bestCat.rank?<span style={{fontSize:11,color:ONBLUE_SOFT}}>#{fmtK(bestCat.rank)}{bestCat.catTotal?` of ${fmtK(bestCat.catTotal)}`:''}</span>:null}
               </div>
             </div>
           ):null}
