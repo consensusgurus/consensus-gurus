@@ -1,7 +1,6 @@
 import { NextResponse } from 'next/server';
 import { supabaseAdmin } from '@/lib/supabase-server';
 import { resolveQuizIdentity, attributeAnonGames, validEmail, looksLikeEmail } from '@/lib/quiz-identity';
-import { QUIZ_SESSION_COOKIE, makeQuizSessionToken, quizSessionCookieOptions } from '@/lib/quiz-session';
 
 export const dynamic = 'force-dynamic';
 export const fetchCache = 'force-no-store';
@@ -103,11 +102,7 @@ export async function POST(request) {
       data.push(...page);
       if (page.length < 1000) break;
     }
-    const res = NextResponse.json({ ...summarize(data), username: user.username, email: user.email || null });
-    // Keep this browser signed in durably (survives localStorage eviction).
-    const token = makeQuizSessionToken(user);
-    if (token) res.cookies.set(QUIZ_SESSION_COOKIE, token, quizSessionCookieOptions());
-    return res;
+    return NextResponse.json({ ...summarize(data), username: user.username, email: user.email || null });
   } catch (e) {
     return NextResponse.json({ error: 'invalid request' }, { status: 400 });
   }

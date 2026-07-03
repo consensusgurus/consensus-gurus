@@ -30,22 +30,7 @@ export default function DuelClient({ token }) {
   const [copied, setCopied] = useState(false);
   const [signupOpen, setSignupOpen] = useState(false);
 
-  useEffect(() => {
-    const a = anonId(); const local = storedName();
-    setMe({ anon: a, name: local }); setNameInput(local);
-    if (local) return;
-    // Restore identity from the durable server session so a returning player on a
-    // new browser (or after Safari evicted localStorage) isn't re-prompted.
-    fetch('/api/quiz/session', { cache: 'no-store' })
-      .then((r) => r.json())
-      .then((d) => {
-        if (d && d.username) {
-          try { const j = JSON.parse(localStorage.getItem('sot_quiz_identity')) || {}; localStorage.setItem('sot_quiz_identity', JSON.stringify({ ...j, username: d.username, email: d.email || j.email })); } catch (e) {}
-          setMe((m) => ({ ...m, name: d.username })); setNameInput(d.username);
-        }
-      })
-      .catch(() => {});
-  }, []);
+  useEffect(() => { setMe({ anon: anonId(), name: storedName() }); setNameInput(storedName()); }, []);
 
   const load = useCallback(async () => {
     try {

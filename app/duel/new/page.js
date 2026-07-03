@@ -34,23 +34,7 @@ export default function NewDuelPage() {
   const [signupOpen, setSignupOpen] = useState(false);
   const [pendingQuiz, setPendingQuiz] = useState(null);
 
-  useEffect(() => {
-    setMyAnon(ensureAnon() || '');
-    const local = storedName();
-    if (local) { setName(local); return; }
-    // No local identity (new browser, or Safari evicted localStorage): restore it
-    // from the durable server session so a returning player isn't re-prompted to
-    // claim a name they already have.
-    fetch('/api/quiz/session', { cache: 'no-store' })
-      .then((r) => r.json())
-      .then((d) => {
-        if (d && d.username) {
-          try { const j = JSON.parse(localStorage.getItem('sot_quiz_identity')) || {}; localStorage.setItem('sot_quiz_identity', JSON.stringify({ ...j, username: d.username, email: d.email || j.email })); } catch (e) {}
-          setName(d.username);
-        }
-      })
-      .catch(() => {});
-  }, []);
+  useEffect(() => { setName(storedName()); setMyAnon(ensureAnon() || ''); }, []);
   useEffect(() => {
     try { const p = new URLSearchParams(window.location.search); const oa = p.get('opponent'); const on = p.get('oppName'); if (oa) setOpp({ anon: oa, name: on || 'Player' }); const qz = p.get('quiz'); if (qz) { const fq = QUIZZES.find((x) => x.id === qz); if (fq) setQ(fq.title || ''); } } catch {}
   }, []);
