@@ -1515,6 +1515,7 @@ export default function QuizClient({ quizId }) {
     <div style={{ minHeight: '100vh', background: COLORS.cream, color: COLORS.ink, position: 'relative', overflowX: 'clip' }}>
       <QuizCelebration kind={celebration} onDone={() => setCelebration(null)} />
       {duelBanner}
+      <style>{`input:focus::placeholder{color:transparent}`}</style>
       <SiteHeader active="quizzes" flush inlay={<QuizPlayerBar />} />
       <div className="qz-pagewrap" style={{ position: 'relative', zIndex: 2, maxWidth: 1180, margin: '0 auto', padding: '8px 38px 80px' }}><style>{`@media(max-width:560px){.qz-pagewrap{padding-left:14px !important;padding-right:14px !important;}}`}</style><div className="qzf-line" aria-hidden="true" />
 
@@ -2079,7 +2080,6 @@ export default function QuizClient({ quizId }) {
           </div>
         )}
 
-        {!(ended && tab === 'play') && similarQuizzes}
       </div>
       {/* Game Over modal removed 2026-07-02: the end-of-game surface is now the
           inline results card in the play area (shared by desktop + mobile, which

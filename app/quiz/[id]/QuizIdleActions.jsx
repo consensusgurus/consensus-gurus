@@ -23,7 +23,7 @@ export default function QuizIdleActions({ onStart, startLabel = 'Start', startDi
   delete startStyle.height; // height comes from the .qz-start class (2x on desktop, 1x on mobile)
   return (
     <div style={{ maxWidth: 640, margin: '16px auto 0', ...style }}>
-      <style>{`.qz-start{height:104px;font-size:15px;letter-spacing:0.08em;}@media (max-width:760px){.qz-start{height:52px;font-size:12.5px;letter-spacing:0.05em;}}`}</style>
+      <style>{`.qz-start{height:104px;font-size:21px;letter-spacing:0.08em;}@media (max-width:760px){.qz-start{height:52px;font-size:12.5px;letter-spacing:0.05em;}}`}</style>
       <button className="qz-start" onClick={onStart} disabled={startDisabled} style={{ ...startStyle, width: '100%', background: C.ember, color: '#fff', opacity: startDisabled ? 0.5 : 1, cursor: startDisabled ? 'default' : 'pointer' }}>
         {startLabel}
       </button>

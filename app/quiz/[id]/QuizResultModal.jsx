@@ -46,9 +46,10 @@ export default function QuizResultModal({
     const stripped = quiz.id.replace(/-\d+$/, '');
     const fam = QUIZZES.filter((x) => x.id !== quiz.id && !x.hideFromRelated && x.id.replace(/-\d+$/, '') === stripped);
     const cat = QUIZZES.filter((x) => x.id !== quiz.id && !x.hideFromRelated && quiz.category && x.category === quiz.category);
+    const rest = QUIZZES.filter((x) => x.id !== quiz.id && !x.hideFromRelated);
     const seen = new Set();
     const out = [];
-    for (const x of [...fam, ...cat]) { if (!seen.has(x.id)) { seen.add(x.id); out.push(x); } }
+    for (const x of [...fam, ...cat, ...rest]) { if (!seen.has(x.id)) { seen.add(x.id); out.push(x); } }
     return out.slice(0, 8);
   }, [quiz]);
 
