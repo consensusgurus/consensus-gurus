@@ -32,10 +32,10 @@ const COLS = [
     ],
   },
   {
-    head: 'More',
+    head: 'Follow',
     links: [
-      { label: 'Kids Corner', href: '/kids' },
-      { label: 'Practice Tests', href: '/exams' },
+      { label: 'Instagram', href: 'https://www.instagram.com/source_of_truths/', external: true },
+      { label: 'X', href: 'https://x.com/sourceoftruths', external: true },
     ],
   },
   {
@@ -101,13 +101,25 @@ export default function Footer() {
             </div>
             <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
               {col.links.map((l) => (
-                <Link
-                  key={l.label}
-                  href={l.href}
-                  style={{ fontSize: 12.5, color: NEUTRAL.muted, textDecoration: 'none' }}
-                >
-                  {l.label}
-                </Link>
+                l.external ? (
+                  <a
+                    key={l.label}
+                    href={l.href}
+                    target="_blank"
+                    rel="noopener"
+                    style={{ fontSize: 12.5, color: NEUTRAL.muted, textDecoration: 'none' }}
+                  >
+                    {l.label}
+                  </a>
+                ) : (
+                  <Link
+                    key={l.label}
+                    href={l.href}
+                    style={{ fontSize: 12.5, color: NEUTRAL.muted, textDecoration: 'none' }}
+                  >
+                    {l.label}
+                  </Link>
+                )
               ))}
             </div>
           </div>
