@@ -10,6 +10,8 @@
 //   • The correct state auto-advances to the next prompt the instant it is
 //     fully typed (Enter also works).
 //   • Pressing Enter on anything that is not the correct state is a strike.
+//   • An answer may carry alt: [...] extra accepted forms (aliases); a complete
+//     state name that is a PREFIX of any accepted form never auto-strikes.
 // One strike ends the run. Score = prompts cleared before the miss (0..N).
 // Random order every play. Reuses the same /api/quiz/* endpoints, leaderboard,
 // challenge-run support, and visual language as the other boards.
@@ -176,7 +178,7 @@ export default function SurviveStateBoard({ quizId, mobile = false }) {
 
   const score = results.filter((r) => r.correct).length;
   const cur = phase === 'playing' && order.length ? items[order[pos]] : null;
-  const curCorrect = cur ? norm(cur.t) : '';
+  const curAccept = cur ? [norm(cur.t), ...((cur.alt || []).map(norm))] : [];
 
   const isTopScore = phase === 'done' && board.best != null && lastElapsed != null
     && score === board.best && board.topTime != null && lastElapsed <= board.topTime;
@@ -319,11 +321,11 @@ export default function SurviveStateBoard({ quizId, mobile = false }) {
     setValue(v);
     const g = norm(v);
     if (!g) return;
-    if (g === curCorrect) { advance(); return; }
+    if (curAccept.includes(g)) { advance(); return; }
     // A completed, recognized state that is NOT the answer (and is not a prefix
-    // of the answer, so a player typing toward the right state is never cut off)
-    // ends the run on the spot.
-    if (STATE_SET.has(g) && !curCorrect.startsWith(g)) { strike(v); }
+    // of any accepted form of the answer, so a player typing toward the right
+    // answer is never cut off) ends the run on the spot.
+    if (STATE_SET.has(g) && !curAccept.some((a) => a.startsWith(g))) { strike(v); }
   }
 
   // Enter submits the current text: correct advances, anything else is a strike.
@@ -332,7 +334,7 @@ export default function SurviveStateBoard({ quizId, mobile = false }) {
     e.preventDefault();
     const g = norm(value);
     if (!g) return; // empty Enter is ignored, never a strike
-    if (g === curCorrect) { advance(); return; }
+    if (curAccept.includes(g)) { advance(); return; }
     strike(value);
   }
 
@@ -430,7 +432,7 @@ export default function SurviveStateBoard({ quizId, mobile = false }) {
                 <MapPin size={26} strokeWidth={2.2} style={{ color: COLORS.ember }} />
                 <h2 style={{ fontFamily: SERIF, fontWeight: 800, fontSize: 26, margin: '8px 0 6px' }}>One strike. Name the state.</h2>
                 <p style={{ fontFamily: SANS, fontSize: 15, lineHeight: 1.5, color: '#4a4339', maxWidth: 480, margin: '0 auto 6px' }}>
-                  {total} {promptLabel.toLowerCase()}s, one at a time, in a different order every run. Type the U.S. {answerNoun} each one actually sits in. The right {answerNoun} jumps you to the next the instant you finish typing it, and one wrong {answerNoun} ends the run on the spot, no Enter needed.
+                  {total} {promptLabel.toLowerCase()}s, one at a time, in a different order every run. Type the {quiz.regionWord || `U.S. ${answerNoun}`} each one actually sits in. The right {answerNoun} jumps you to the next the instant you finish typing it, and one wrong {answerNoun} ends the run on the spot, no Enter needed.
                 </p>
                 <p style={{ fontFamily: MONO, fontSize: 12, letterSpacing: '0.06em', color: COLORS.faded, margin: '0 0 20px' }}>
                   How far can you get without a miss?
@@ -558,7 +560,7 @@ export default function SurviveStateBoard({ quizId, mobile = false }) {
         {tab === 'share' && (
           <div style={{ textAlign: 'center', padding: '12px 0 8px' }}>
             <div style={{ textAlign: 'left' }}><button onClick={() => setTab('play')} style={backLink}><ArrowLeft size={13} strokeWidth={2.5} /> Back to quiz</button></div>
-            <p style={{ fontFamily: SERIF, fontStyle: 'italic', fontSize: 19, color: COLORS.ink, maxWidth: 480, margin: '0 auto 20px' }}>{phase === 'done' ? `You named ${score} of ${total}. Challenge someone to beat it.` : 'Send this quiz to someone who thinks they know their NFL geography.'}</p>
+            <p style={{ fontFamily: SERIF, fontStyle: 'italic', fontSize: 19, color: COLORS.ink, maxWidth: 480, margin: '0 auto 20px' }}>{phase === 'done' ? `You named ${score} of ${total}. Challenge someone to beat it.` : `Send this quiz to someone who thinks they know their ${promptLabel.toLowerCase()} geography.`}</p>
             <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, justifyContent: 'center', marginBottom: 12 }}>
               {[['x', 'X'], ['reddit', 'Reddit'], ['facebook', 'Facebook'], ['whatsapp', 'WhatsApp']].map(([k, label]) => (
                 <button key={k} onClick={() => openShare(k)} style={{ fontFamily: MONO, fontSize: 12, letterSpacing: '0.06em', textTransform: 'uppercase', fontWeight: 700, padding: '10px 18px', borderRadius: 10, border: `1.5px solid ${COLORS.ink}`, background: COLORS.cream, color: COLORS.ink, cursor: 'pointer' }}>{label}</button>

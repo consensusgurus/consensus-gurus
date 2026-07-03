@@ -2461,6 +2461,28 @@ slots into the existing board with no backend change. The page identity is store
   the results card, and the Stats/Share/Join/Critique tabs. Posts `score` (points) / `total` (max) to
   the shared result API.
 
+## Survival quizzes (`format: 'survive-state'`) — one strike, name the state
+
+Board: `app/quiz/[id]/SurviveStateBoard.jsx` (full-page board, no timeLimit countdown — the clock
+counts up; the stored `timeLimit` field is vestigial series convention). One prompt at a time in a
+random order every run; typing the complete correct answer auto-advances with no Enter; typing a
+complete
+WRONG U.S. state name (or pressing Enter on any wrong text) ends the run instantly. Score = prompts
+cleared. Only the first attempt posts to the leaderboard. Data shape:
+`answers: [{ stadium, team, t, alt? }]` — the prompt renders `stadium` (whatever the venue type,
+the field name stays `stadium`), `promptLabel` captions it ('Stadium' / 'Arena' / 'Ballpark'), `t` is
+the canonical answer, and optional `alt: []` lists extra accepted forms. The auto-strike list is the
+50 states + District of Columbia only; a complete state name that is a PREFIX of any accepted form
+never auto-strikes (so `t: 'District of Columbia', alt: ['Washington DC', 'DC']` lets a player type
+"washington dc" without dying at "washington"). `noun` is the answer word used in the copy
+('state', or 'state or province' for leagues with a Toronto team), and `regionWord` (added
+2026-07-02) replaces the idle screen's default "U.S. <noun>" phrase for quizzes whose answers are
+not all U.S. states. Non-US answers (e.g. 'Ontario') are typed exactly; they are not in the
+auto-strike set, so a wrong province only strikes on Enter. Series: `nfl-stadium-state-1-strike`,
+`college-stadium-state-1-strike` (Pt 1-3), `nba-arena-state-1-strike`, `mlb-ballpark-state-1-strike`
+(the NBA/MLB pair carry Ontario + District of Columbia answers and say "state or province" in the
+blurb, which is rules copy, not an answer hint).
+
 ## Quiz page formatting and consistency rules (owner rule, 2026-06-12)
 
 EVERY quiz page, regardless of `format` (name-them-all, `map`, `pairs`, `matched`, `timed-mcq`, and any
@@ -2680,12 +2702,14 @@ used.
   applies to today and all future selections. (First applied 2026-06-25: idx 6,13,16,17,30,42,43,45,
   58,65,95 were scrubbed of consensus quizzes; idx 3, already past, was deliberately left untouched.)
 
-### Daily Challenge is OFF (button is the hub link)
+### Daily Challenge toggle (`DAILY_CHALLENGE_ON` in `lib/challenges.js`) — currently ON
 
-`DAILY_CHALLENGE_ON = false` in `lib/challenges.js` suppresses the daily challenge from `openChallenges`,
-`challengeMenu`, and the board rotation, so the `/quizzes` rotating button collapses to a static
-"Business News / Quiz Hub" link (it rotates `openChallenges()` + a `business-news` entry). Flip the flag back
-on to restore the daily challenge.
+`DAILY_CHALLENGE_ON = true` as of 2026-07-02 (this section previously said OFF and had gone stale;
+verify the flag on origin before relying on this file). When true, the daily challenge appears in
+`openChallenges`, `challengeMenu`, and the `/quizzes` board rotation, governed by the factual-only
+`DAILY_SCHEDULE` rule above. Setting it to false suppresses all of that and collapses the rotating
+button to a static "Business News / Quiz Hub" link (it rotates `openChallenges()` + a
+`business-news` entry).
 
 ### Adding a quiz to the hub
 
