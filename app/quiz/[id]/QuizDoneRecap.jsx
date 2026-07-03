@@ -67,7 +67,7 @@ export default function QuizDoneRecap({ score, total, hideScore = false, rows = 
             )
           ) : null}
           {quiz && quiz.id ? (
-            <a href={`/duel/new?quiz=${encodeURIComponent(quiz.id)}`} style={{ ...btn(C.ink, C.cream), textDecoration: 'none', borderRadius: 999 }}><Swords size={13} strokeWidth={2.5} /> Challenge Someone</a>
+            <a href={`/duel/new?quiz=${encodeURIComponent(quiz.id)}`} style={{ ...btn(C.ink, C.cream), textDecoration: 'none', borderRadius: 10 }}><Swords size={13} strokeWidth={2.5} /> Challenge Someone</a>
           ) : null}
         </div>
         <div style={{ textAlign: 'center', marginTop: 10 }}>
