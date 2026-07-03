@@ -1649,15 +1649,16 @@ function BrowseColumn({ label, Icon, color, tint, rows, cta, onCta, ctaHref, her
   const headRef = useRef(null);
   const [shown, setShown] = useState(base);
   const [pillRef, statPill] = usePillProbe(hasHero && heroId ? heroUrl : null, PILL_REGION_TOPLEFT, 0.06, false);
-  // Landscape-mobile only: when a filled column lands on a grid row beside a
-  // taller hero tile it gets stretched, leaving blank space. Instead of empty
-  // rows, add more quiz-title rows until the extra height is filled.
+  // When a filled column (Last Played / Most Played / Newest) lands on a grid
+  // row beside a taller hero card it gets stretched by align-items:stretch,
+  // leaving blank space. Instead of an empty gap, add more quiz-title rows to
+  // fill the extra height. Runs on every viewport (desktop included): floor()
+  // keeps the filled content <= the stretched height, so this column never
+  // grows past its hero neighbour and so can't feed back into grid sizing.
   useEffect(() => {
     if (!fill || typeof window === 'undefined') return;
     const sec = secRef.current; if (!sec) return;
-    const mq = window.matchMedia('(orientation: landscape) and (max-height: 500px)');
     const measure = () => {
-      if (!mq.matches) { setShown(base); return; }
       const headH = headRef.current ? headRef.current.offsetHeight : 44;
       const firstRow = sec.querySelector('.qrow');
       const rowH = firstRow ? firstRow.getBoundingClientRect().height : 34;
@@ -1668,9 +1669,8 @@ function BrowseColumn({ label, Icon, color, tint, rows, cta, onCta, ctaHref, her
     measure();
     const ro = new ResizeObserver(measure);
     ro.observe(sec);
-    if (mq.addEventListener) mq.addEventListener('change', measure);
     window.addEventListener('resize', measure);
-    return () => { ro.disconnect(); if (mq.removeEventListener) mq.removeEventListener('change', measure); window.removeEventListener('resize', measure); };
+    return () => { ro.disconnect(); window.removeEventListener('resize', measure); };
   }, [fill, base, rows.length]);
   const shownRows = fill ? rows.slice(0, shown) : rows;
   return (
