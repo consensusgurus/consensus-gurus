@@ -1539,6 +1539,14 @@ export default function QuizClient({ quizId }) {
             <h1 style={{ fontFamily: SERIF, fontWeight: 800, fontSize: mAppPlay ? 17 : 'clamp(24px, 4vw, 38px)', lineHeight: 1.02, letterSpacing: '-0.02em', margin: 0, color: COLORS.ink, fontVariationSettings: '"SOFT" 100' }}>{quiz.title}</h1>
           </div>
           {!mAppPlay && <p style={{ fontFamily: SANS, fontSize: 15, lineHeight: 1.55, margin: '8px 0 0', color: COLORS.faded, maxWidth: 680 }}>{quiz.blurb}</p>}
+          {!mAppPlay && quiz.heroImg && (
+            <div style={{ marginTop: 14, borderRadius: 10, overflow: 'hidden', border: `1px solid ${COLORS.faded}33`, background: COLORS.paper, position: 'relative' }}>
+              <img src={quiz.heroImg} alt={quiz.heroAlt || quiz.title} loading="lazy" style={{ display: 'block', width: '100%', height: 'clamp(150px, 26vw, 260px)', objectFit: 'cover', objectPosition: quiz.heroPos || 'center 22%' }} />
+              {quiz.heroCredit && (
+                <div style={{ position: 'absolute', bottom: 0, right: 0, fontFamily: MONO, fontSize: 9, letterSpacing: '0.08em', color: '#fff', background: 'rgba(26,22,17,0.55)', padding: '2px 7px' }}>{quiz.heroCredit}</div>
+              )}
+            </div>
+          )}
           {runActive && (
             <div style={{ marginTop: 12, display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12, flexWrap: 'wrap', padding: '8px 14px', borderRadius: 10, border: `1.5px solid ${COLORS.accBorder}`, background: COLORS.accSoft }}>
               <span style={{ fontFamily: MONO, fontSize: 11, letterSpacing: '0.14em', textTransform: 'uppercase', fontWeight: 700, color: COLORS.ember }}>Daily Challenge · {chAccent}</span>
