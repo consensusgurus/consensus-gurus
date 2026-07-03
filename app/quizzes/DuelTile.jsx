@@ -20,10 +20,11 @@ function timeAgo(iso) {
 }
 
 // Quick-start duel composer in the quiz-hub tile grid. Pick an opponent
-// (optional) and a quiz, then jump to /duel/new with both prefilled. On both
-// desktop and mobile the tile periodically FLIPS to a back face teasing the most
-// recently completed duel (from /api/duel/latest) with a Duel Leaderboard CTA;
-// the flip pauses whenever the user is hovering or has begun composing.
+// (optional) and a quiz, then jump to /duel/new with both prefilled. On desktop
+// the tile periodically FLIPS to a back face teasing the most recently completed
+// duel (from /api/duel/latest) with a Duel Leaderboard CTA; the flip pauses
+// whenever the user is hovering or has begun composing. On mobile the tile is a
+// tap-to-collapse card that defaults to that latest-duel teaser (no flip).
 export default function DuelTile() {
   const router = useRouter();
   const [open, setOpen] = useState(false);
@@ -77,13 +78,14 @@ export default function DuelTile() {
     return () => document.removeEventListener('mousedown', h);
   }, []);
 
-  // Auto-flip loop: form face holds ~8s, latest-duel face ~6.5s. Flips on all
-  // widths (mobile included), but never while the user is hovering, composing,
-  // or after they've focused an input (interacted).
+  // Auto-flip loop: form face holds ~8s, latest-duel face ~6.5s. Never flips on
+  // mobile (there the tile is a collapsible latest-duel card), never while the
+  // user is hovering, composing, or after they've focused an input (interacted).
   const composing = oppOpen || quizOpen || !!opp || !!quiz || !!oppQ.trim() || !!quizQ.trim();
   const paused = hovered || interacted || composing;
   useEffect(() => {
     if (!latest || paused) return;
+    if (typeof window !== 'undefined' && window.innerWidth <= 560) return;
     const t = setTimeout(() => setFace((f) => (f === 'form' ? 'last' : 'form')), face === 'form' ? 8000 : 6500);
     return () => clearTimeout(t);
   }, [face, latest, paused]);
@@ -123,13 +125,13 @@ export default function DuelTile() {
 
   return (
     <div
-      className={`dueltile ${open ? 'mc-open' : 'mc-closed'}`}
+      className={`dueltile ${last ? 'has-mob-last' : ''} ${open ? 'mc-open' : 'mc-closed'}`}
       ref={wrapRef}
       onMouseEnter={() => setHovered(true)}
       onMouseLeave={() => setHovered(false)}
       style={{ background: NAVY, borderRadius: 14, padding: '14px 15px', color: '#fff', display: 'flex', flexDirection: 'column', minHeight: 190, minWidth: 0, fontFamily: FONT, perspective: 1100 }}
     >
-      <div style={{ position: 'relative', flex: 1, display: 'flex', flexDirection: 'column', transformStyle: 'preserve-3d', transition: 'transform .65s cubic-bezier(.3,.7,.25,1)', transform: face === 'last' ? 'rotateY(180deg)' : 'rotateY(0deg)' }}>
+      <div className="duel-flip" style={{ position: 'relative', flex: 1, display: 'flex', flexDirection: 'column', transformStyle: 'preserve-3d', transition: 'transform .65s cubic-bezier(.3,.7,.25,1)', transform: face === 'last' ? 'rotateY(180deg)' : 'rotateY(0deg)' }}>
         {/* FRONT: the duel composer */}
         <div style={{ ...faceBase, flex: 1, pointerEvents: face === 'form' ? 'auto' : 'none' }}>
           <div className="dueltile-head" onClick={toggle} style={{ display: 'flex', alignItems: 'flex-start', gap: 8 }}>
@@ -223,6 +225,28 @@ export default function DuelTile() {
           </div>
         )}
       </div>
+      {last && (
+        <div className="duel-mob-last">
+          <div className="dueltile-head" onClick={toggle} style={{ display: 'flex', alignItems: 'flex-start', gap: 8 }}>
+            <div style={{ flex: 1, minWidth: 0 }}>
+              <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', gap: 8 }}>
+                <div style={{ fontSize: 10, fontWeight: 800, letterSpacing: '.14em', textTransform: 'uppercase', color: AMBER }}>Latest Duel</div>
+                {last.ago ? <div style={{ fontSize: 10.5, fontWeight: 700, color: '#9fb0d4', flex: 'none' }}>{last.ago}</div> : null}
+              </div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 4 }}>
+                <Trophy size={18} style={{ color: AMBER, flex: 'none' }} />
+                <span style={{ fontSize: 15, fontWeight: 800, lineHeight: 1.2, minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis' }}>{last.tie ? `${last.wName} tied ${last.lName}` : `${last.wName} defeated ${last.lName}`}</span>
+              </div>
+            </div>
+            <ChevronDown className="dueltile-chev" size={18} strokeWidth={2.5} style={{ color: '#9fb0d4', flex: 'none', transform: open ? 'rotate(180deg)' : 'none' }} />
+          </div>
+          <div className="dueltile-body" style={{ display: 'flex', flexDirection: 'column', flex: 1 }}>
+            <div style={{ fontSize: 12.5, color: '#c7d3ee', fontWeight: 600, marginTop: 9, lineHeight: 1.35 }}>{last.scores ? `${last.scores} on ` : 'On '}{last.quizTitle}</div>
+            <a href="/quizzes/hub?tab=duels" style={{ ...ctaBtn, textDecoration: 'none', marginTop: 12 }}>See the Duel Leaderboard <ArrowRight size={15} /></a>
+            <button onClick={start} style={{ ...ctaBtn, background: 'transparent', border: '1px solid rgba(255,255,255,0.28)', marginTop: 8 }}>Start a Duel <ArrowRight size={15} /></button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

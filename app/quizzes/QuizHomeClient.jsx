@@ -905,6 +905,8 @@ export default function QuizHomeClient() {
     .qzh .lbtile-head{display:flex;align-items:center;gap:7px;margin-bottom:6px;}
     .qzh .duelbtn{background:${C.accent};color:#fff;border:none;border-radius:12px;padding:12px;font-weight:800;font-size:12px;font-family:inherit;display:flex;align-items:center;justify-content:center;gap:8px;cursor:pointer;flex:none;}
     .qzh .dueltile-chev{display:none;}
+    .qzh .duel-mob-last{display:none;flex-direction:column;flex:1;}
+    @media(max-width:560px){.qzh .dueltile{min-height:0 !important;}.qzh .dueltile-head{cursor:pointer;}.qzh .dueltile-chev{display:inline-flex !important;transition:transform .15s;}.qzh .dueltile.mc-closed .dueltile-body{display:none !important;}.qzh .dueltile.has-mob-last .duel-flip{display:none !important;}.qzh .dueltile.has-mob-last .duel-mob-last{display:flex !important;}}
     .qzh .rail{background:#0e1d40;border:1px solid #1e3a6b;border-radius:14px;padding:11px 11px 9px;display:flex;flex-direction:column;}
     .qzh .rail-head{display:flex;align-items:center;gap:5px;margin-bottom:8px;}
     .qzh .rail-bars{flex:1;display:flex;flex-direction:column;}
