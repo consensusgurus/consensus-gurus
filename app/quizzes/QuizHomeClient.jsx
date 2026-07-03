@@ -1649,26 +1649,42 @@ function BrowseColumn({ label, Icon, color, tint, rows, cta, onCta, ctaHref, her
   const headRef = useRef(null);
   const [shown, setShown] = useState(base);
   const [pillRef, statPill] = usePillProbe(hasHero && heroId ? heroUrl : null, PILL_REGION_TOPLEFT, 0.06, false);
-  // When a filled column (Last Played / Most Played / Newest) lands on a grid
-  // row beside a taller hero card it gets stretched by align-items:stretch,
-  // leaving blank space. Instead of an empty gap, add more quiz-title rows to
-  // fill the extra height. Runs on every viewport (desktop included): floor()
-  // keeps the filled content <= the stretched height, so this column never
-  // grows past its hero neighbour and so can't feed back into grid sizing.
+  // A filled column (Last Played / Most Played / Newest) that shares a grid row
+  // with a taller hero card gets stretched by align-items:stretch, leaving a
+  // blank gap below its rows. Fill that gap with more quiz-title rows. We size
+  // to the hero sibling's own (fixed) height, NOT this column's stretched
+  // height: sizing to self would let a filled column prop up its own grid row
+  // and ratchet taller on resize (ResizeObserver feedback). Sizing to the hero
+  // means no feedback loop, and the column collapses back to `base` whenever it
+  // no longer sits beside a hero (e.g. after resizing 2-col -> 3-col). Works on
+  // every viewport, desktop included.
   useEffect(() => {
     if (!fill || typeof window === 'undefined') return;
     const sec = secRef.current; if (!sec) return;
     const measure = () => {
-      const headH = headRef.current ? headRef.current.offsetHeight : 44;
-      const firstRow = sec.querySelector('.qrow');
-      const rowH = firstRow ? firstRow.getBoundingClientRect().height : 34;
-      const avail = sec.clientHeight - headH;
-      const n = Math.max(base, Math.floor(avail / Math.max(1, rowH)));
+      const grid = sec.parentElement; if (!grid) return;
+      const myTop = sec.getBoundingClientRect().top;
+      let rowHeroH = 0;
+      for (const sib of grid.children) {
+        if (sib === sec) continue;
+        const r = sib.getBoundingClientRect();
+        if (Math.abs(r.top - myTop) > 2) continue;            // same grid row only
+        if (sib.querySelector('.cc-hero')) rowHeroH = Math.max(rowHeroH, r.height);
+      }
+      let n = base;
+      if (rowHeroH > 0) {
+        const headH = headRef.current ? headRef.current.offsetHeight : 44;
+        const firstRow = sec.querySelector('.qrow');
+        const rowH = firstRow ? firstRow.getBoundingClientRect().height : 34;
+        n = Math.max(base, Math.floor((rowHeroH - headH) / Math.max(1, rowH)));
+      }
       setShown(Math.min(rows.length, n));
     };
     measure();
+    const grid = sec.parentElement;
     const ro = new ResizeObserver(measure);
     ro.observe(sec);
+    if (grid) ro.observe(grid);
     window.addEventListener('resize', measure);
     return () => { ro.disconnect(); window.removeEventListener('resize', measure); };
   }, [fill, base, rows.length]);
