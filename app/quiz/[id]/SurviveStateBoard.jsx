@@ -20,6 +20,8 @@ import { ArrowLeft, Share2, Check, X, Flag, Trophy, HelpCircle, MapPin, Heart, S
 import JoinLeaderboardForm from './JoinLeaderboardForm';
 import QuizStandings from './QuizStandings';
 import LeaderboardSnippet from './LeaderboardSnippet';
+import QuizResultModal from './QuizResultModal';
+import QuizLeaderboard from './QuizLeaderboard';
 import LeaderboardStrip from './LeaderboardStrip';
 import { getQuiz, QUIZZES } from '@/lib/quizzes';
 import { useChallengeRun, ChallengeRunOverlay } from './useChallengeRun';
@@ -474,77 +476,19 @@ export default function SurviveStateBoard({ quizId, mobile = false }) {
 
             {/* DONE — results card */}
             {phase === 'done' && (
-              <div style={{ marginTop: 8 }}>
-                <div style={{ padding: 24, borderRadius: 10, border: `1.5px solid ${COLORS.ink}`, background: COLORS.paper, textAlign: 'center' }}>
-                  <div style={{ fontFamily: MONO, fontSize: 12, letterSpacing: '0.16em', textTransform: 'uppercase', color: perfect ? COLORS.forest : COLORS.ember, marginBottom: 8 }}>
-                    {perfect ? 'Cleared the board' : 'Struck out'}
-                  </div>
-                  <div style={{ fontFamily: SERIF, fontWeight: 800, fontSize: 44, lineHeight: 1, marginBottom: 6 }}>{score}<span style={{ fontSize: 24, color: COLORS.faded }}>/{total}</span></div>
-                  <div style={{ fontFamily: SERIF, fontWeight: 700, fontSize: 20, lineHeight: 1.15, marginBottom: 10 }}>
-                    {perfect ? `All ${total} named in ${fmtTime(lastElapsed)}` : `${isTopScore ? 'you are the top score' : `you beat ${percentile(score, total)}% of players`}`}
-                  </div>
-                  {missed && (
-                    <p style={{ fontFamily: SANS, fontSize: 15, color: '#4a4339', maxWidth: 460, margin: '0 auto 6px' }}>
-                      <strong>{missed.stadium}</strong> is in <strong>{missed.state}</strong>{missed.guess && norm(missed.guess) !== norm(missed.state) ? `, not ${missed.guess.trim()}` : ''}.
-                    </p>
-                  )}
-                  <p style={{ fontFamily: SANS, fontSize: 15, color: '#4a4339', maxWidth: 440, margin: '4px auto 18px' }}>
-                    {board.best != null ? (score >= board.best ? `That is the high score to beat.` : `The high score to beat is ${board.best}.`) : 'Be the first to set the pace.'}
-                  </p>
-                  <div style={{ display: 'flex', gap: 10, justifyContent: 'center', flexWrap: 'wrap' }}>
-                    <button onClick={startGame} style={{ fontFamily: MONO, fontSize: 13, letterSpacing: '0.08em', textTransform: 'uppercase', fontWeight: 700, padding: '0 30px', lineHeight: '46px', border: 'none', background: COLORS.ember, color: '#fff', cursor: 'pointer' }}>Play again</button>
-                  </div>
-                </div>
-
-                <div style={{ display: 'flex', gap: 14, marginTop: 18, flexWrap: 'wrap', alignItems: 'stretch' }}>
-                  <LeaderboardSnippet board={board} identity={identity} score={score} lastElapsed={lastElapsed} fill />
-                  {eloPanel}
-                </div>
-
-                <div style={{ display: 'flex', gap: 10, justifyContent: 'center', flexWrap: 'wrap', marginTop: 18 }}>
-                  <button onClick={() => setRecapOpen((v) => !v)} style={{ fontFamily: MONO, fontSize: 13, letterSpacing: '0.08em', textTransform: 'uppercase', fontWeight: 700, lineHeight: '46px', width: 210, padding: 0, boxSizing: 'border-box', background: COLORS.forest, color: '#fff', border: 'none', cursor: 'pointer', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 8 }}>
-                    <MapPin size={14} strokeWidth={2.5} /> {recapOpen ? 'Hide answers' : 'See all answers'}
-                  </button>
-                  {!identity && (
-                    <button onClick={() => setTab('join')} style={{ fontFamily: MONO, fontSize: 13, letterSpacing: '0.08em', textTransform: 'uppercase', fontWeight: 700, lineHeight: '46px', width: 210, padding: 0, boxSizing: 'border-box', background: 'transparent', color: COLORS.ink, borderRadius: 10, border: `1.5px solid ${COLORS.ink}`, cursor: 'pointer', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 8 }}>
-                      <Trophy size={14} strokeWidth={2.5} /> Post to Leaderboard
-                    </button>
-                  )}
-                  <a href={`/duel/new?quiz=${encodeURIComponent(quizId)}`} style={{ fontFamily: MONO, fontSize: 13, letterSpacing: '0.04em', textTransform: 'uppercase', fontWeight: 700, lineHeight: '46px', width: 210, padding: 0, boxSizing: 'border-box', background: COLORS.ink, color: COLORS.cream, border: 'none', cursor: 'pointer', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 6, whiteSpace: 'nowrap', textDecoration: 'none', borderRadius: 10 }}>
-                    <Swords size={14} strokeWidth={2.5} /> Challenge Someone
-                  </a>
-                  <a href="/quizzes/hub?tab=duels" style={{ fontFamily: MONO, fontSize: 13, letterSpacing: '0.04em', textTransform: 'uppercase', fontWeight: 700, lineHeight: '46px', width: 210, padding: 0, boxSizing: 'border-box', background: '#fff', color: COLORS.ink, border: `1.5px solid ${COLORS.ink}`, cursor: 'pointer', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 6, whiteSpace: 'nowrap', textDecoration: 'none' }}>
-                    <Trophy size={14} strokeWidth={2.5} /> Duel Leaderboard
-                  </a>
-                  <button onClick={() => { setQSent(false); setQOpen(true); }} style={{ fontFamily: MONO, fontSize: 13, letterSpacing: '0.08em', textTransform: 'uppercase', fontWeight: 700, lineHeight: '46px', width: 210, padding: 0, boxSizing: 'border-box', background: '#fff', color: COLORS.faded, border: `1px solid ${COLORS.faded}55`, cursor: 'pointer', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 8 }}>
-                    <HelpCircle size={14} strokeWidth={2.5} /> Report an error
-                  </button>
-                </div>
-
-                {/* Answer recap — every prompt in play order */}
-                {recapOpen && (
-                  <ol style={{ margin: '18px 0 0', padding: 0, listStyle: 'none' }}>
-                    {order.map((idx, i) => {
-                      const a = items[idx];
-                      const r = results[i];
-                      const answered = r && r.correct;
-                      const isMiss = r && !r.correct;
-                      return (
-                        <li key={i} style={{ display: 'flex', alignItems: 'flex-start', gap: 14, padding: '12px 16px', borderRadius: 10, border: `1px solid ${answered ? COLORS.forest : (isMiss ? COLORS.rust : COLORS.faded + '33')}`, marginBottom: 8, background: answered ? '#fff' : COLORS.paper }}>
-                          <span style={{ width: 22, flex: 'none', color: answered ? COLORS.forest : COLORS.rust }}>{answered ? <Check size={17} strokeWidth={3} /> : <X size={17} strokeWidth={3} />}</span>
-                          <span style={{ flex: 1, fontFamily: SANS, fontSize: 14, lineHeight: 1.35 }}>
-                            <span style={{ fontWeight: 600 }}>{a.stadium}</span>
-                            {a.team && <span style={{ color: COLORS.faded }}> · {a.team}</span>}
-                            <span style={{ display: 'block', fontFamily: MONO, fontSize: 12, color: COLORS.faded, marginTop: 3 }}>
-                              {a.t}{isMiss && r.guess && norm(r.guess) !== norm(a.t) ? <span style={{ color: COLORS.rust }}> · you said {r.guess.trim()}</span> : ''}
-                            </span>
-                          </span>
-                        </li>
-                      );
-                    })}
-                  </ol>
-                )}
-              </div>
+              <QuizResultModal quiz={quiz}
+                open
+                eyebrow={perfect ? 'Cleared the board' : 'Struck out'}
+                score={score}
+                total={total}
+                headline={perfect ? `All ${total} named in ${fmtTime(lastElapsed)}` : (isTopScore ? 'you are the top score' : `you beat ${percentile(score, total)}% of players`)}
+                subline={board.best != null ? (score >= board.best ? `That is the high score to beat.` : `The high score to beat is ${board.best}.`) : 'Be the first to set the pace.'}
+                placement={(() => { const rows = board.leaderboardAll || []; if (identity) { const i = rows.findIndex((r) => r.username === identity.username); if (i >= 0) return i + 1; } if (lastElapsed == null || !rows.length) return null; let b = 0; for (const r of rows) { if (r.score > score || (r.score === score && r.timeElapsed < lastElapsed)) b++; } return b + 1; })()}
+                leaderboard={<QuizLeaderboard board={board} identity={identity} total={total} />}
+                standings={eloPanel}
+                onPlayAgain={startGame}
+                onReport={() => { setQSent(false); setQOpen(true); }}
+              />
             )}
           </>
         )}
