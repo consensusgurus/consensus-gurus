@@ -955,7 +955,7 @@ export default function QuizHomeClient() {
     .qzh .catcard{border:1px solid ${C.line};border-radius:12px;overflow:hidden;background:#fff;display:flex;flex-direction:column;padding-bottom:4px;}
     .qzh .cc-hero{position:relative;display:block;min-height:210px;background-size:cover;background-position:center;background-color:${C.accsoft};text-decoration:none;}
     .qzh .cc-ov{position:absolute;inset:0;background:linear-gradient(to top, rgba(8,15,35,0.92), rgba(8,15,35,0.4) 52%, rgba(8,15,35,0.05));z-index:1;}
-    .qzh .cc-stat{position:absolute;top:10px;left:12px;z-index:2;font-size:10px;font-weight:700;color:#fff;display:inline-flex;align-items:center;gap:3px;text-shadow:0 1px 6px rgba(0,0,0,.65);}
+    .qzh .cc-stat{position:absolute;top:8px;left:10px;z-index:2;font-size:10px;font-weight:700;color:#fff;display:inline-flex;align-items:center;gap:3px;background:rgba(17,32,74,.82);border-radius:999px;padding:3px 9px;max-width:calc(100% - 20px);white-space:nowrap;overflow:hidden;backdrop-filter:blur(2px);}
     .qzh .cc-btm{position:absolute;left:12px;right:12px;bottom:11px;z-index:2;display:flex;flex-direction:column;gap:5px;}
     .qzh .cc-htitle{color:#fff;font-size:17px;font-weight:800;letter-spacing:-.2px;line-height:1.14;text-shadow:0 1px 8px rgba(0,0,0,.5);}
     .qzh .cc-play{font-size:13px;font-weight:800;color:#fff;display:inline-flex;align-items:center;gap:4px;}
