@@ -15,10 +15,10 @@ import { EXAM_ORDER } from './exams/examData';
 const C = { ink: '#1c1e24', accent: '#2563eb', muted: '#6b7280', line: 'rgba(20,22,28,0.09)' };
 const FONT = "'Manrope', system-ui, -apple-system, sans-serif";
 const SOURCE_COUNT = getAllSources().length;
-const LIST_COUNT = LISTS.length;
+export const LIST_COUNT = LISTS.length;
 // Total "quizzes" shown in the header: trivia quizzes + live Kids Corner games
 // + exam practice tests.
-const QUIZ_COUNT = (Array.isArray(QUIZZES) ? QUIZZES.length : 0)
+export const QUIZ_COUNT = (Array.isArray(QUIZZES) ? QUIZZES.length : 0)
   + (Array.isArray(KIDS_GAMES) ? KIDS_GAMES.length : 0)
   + (Array.isArray(EXAM_ORDER) ? EXAM_ORDER.length : 0);
 
@@ -61,7 +61,6 @@ export default function SiteHeader({ active = 'lists', maxWidth = 1180, visitors
         .sh-navbtn{display:inline-flex;align-items:center;gap:5px;text-decoration:none;font-size:13.5px;font-weight:700;color:#fff;border:1px solid rgba(255,255,255,0.45);border-radius:8px;padding:7px 13px;background:transparent;transition:background .15s,border-color .15s,color .15s;}
         .sh-navbtn:hover{background:rgba(255,255,255,0.14);border-color:#fff;color:#fff;}
         .sh-navbtn.on{background:#fff;border-color:#fff;color:#2563eb;}
-        .sh-navct{font-weight:600;opacity:0.65;font-size:12px;}
         @media(max-width:860px){.sh-tag{display:none;}}
         @media(max-width:560px){
           .sh-outer{padding:0;}
@@ -75,7 +74,6 @@ export default function SiteHeader({ active = 'lists', maxWidth = 1180, visitors
           .sh-navbtn{flex:none;border:none;padding:6px 13px;border-radius:999px;font-size:11.5px;}
           .sh-navbtn:hover{background:transparent;color:#fff;}
           .sh-navbtn.on{background:#fff;color:#2563eb;}
-          .sh-navct{display:none;}
           .sh-inlay{margin-top:10px;}
         }
       `}</style>
@@ -91,8 +89,8 @@ export default function SiteHeader({ active = 'lists', maxWidth = 1180, visitors
             </div>
             <div className="sh-right">
               <nav className="sh-nav">
-                <Link href="/" className={`sh-navbtn${active === 'lists' ? ' on' : ''}`}>Top 10 Lists <span className="sh-navct">({LIST_COUNT.toLocaleString()})</span></Link>
-                <Link href="/quizzes" className={`sh-navbtn${active === 'quizzes' ? ' on' : ''}`}>Quizzes <span className="sh-navct">({QUIZ_COUNT.toLocaleString()})</span></Link>
+                <Link href="/" className={`sh-navbtn${active === 'lists' ? ' on' : ''}`}>Top 10 Lists</Link>
+                <Link href="/quizzes" className={`sh-navbtn${active === 'quizzes' ? ' on' : ''}`}>Quizzes</Link>
               </nav>
             </div>
           </div>

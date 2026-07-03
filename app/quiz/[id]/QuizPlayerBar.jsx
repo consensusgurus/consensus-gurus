@@ -60,11 +60,11 @@ function SignupModal({ onClose }){
 function Stat({value, rank, label, cls}){
   return (
     <div className={cls}>
+      <div style={lbl}>{label}</div>
       <div style={{display:'flex',alignItems:'baseline',gap:3}}>
         <span style={{fontSize:17,fontWeight:700,color:ONBLUE}}>{value}</span>
         {rank?<span style={{fontSize:11,fontWeight:700,color:ONBLUE_SOFT}}>#{rank}</span>:null}
       </div>
-      <div style={lbl}>{label}</div>
     </div>
   );
 }
@@ -148,7 +148,7 @@ export default function QuizPlayerBar({ me: meProp, controlled = false, rightAct
           <Stat value={found&&a.completed!=null?a.completed:dash} rank={found?rk.completed:null} label="Completed" cls="qpb-s-completed"/>
           {lbRows.length ? (
             <>
-              <div className="qpb-lbdiv" style={{width:2,height:34,background:'rgba(255,255,255,0.32)',borderRadius:2,flex:'none'}}/>
+              <div className="qpb-lbdiv" style={{width:3,height:34,background:'rgba(255,255,255,0.42)',borderRadius:2,flex:'none'}}/>
               <div className="qpb-lb" ref={lbRef} style={{flex:'1 1 auto',minWidth:0,overflow:'hidden',display:'flex',alignItems:'center',gap:16}}>
                 <div style={{...lbl,fontSize:13,display:'inline-flex',alignItems:'center',gap:6,marginBottom:0,flex:'none',whiteSpace:'nowrap',fontWeight:800,color:ONBLUE}}><Crown size={12} strokeWidth={2} style={{color:'#e8b43a',flex:'none'}}/>{leaderboard.label}</div>
                 <div className="qpb-lbrows" style={{display:'flex',flexWrap:'nowrap',gap:22,whiteSpace:'nowrap',overflow:'hidden',alignItems:'center',justifyContent:'space-evenly',flex:'1 1 auto',minWidth:0}}>

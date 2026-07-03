@@ -1022,7 +1022,7 @@ function Home({ lists, viewCounts, voteData, extras, trending = {}, openList, on
           <button className="nt-mfilter nt-tbtn" onClick={() => { setFiltersOpen((o) => !o); setNavMenu(null); setSortOpen(false); }}>Filters <ChevronDown size={14} strokeWidth={2.5} style={{ color: NT.soft, transform: filtersOpen ? 'rotate(180deg)' : 'none' }} /></button>
           <div className="nt-field">
             <Search size={16} strokeWidth={2.25} />
-            <input value={query} onChange={(e) => setQuery(e.target.value)} placeholder="Search lists…" autoComplete="off" />
+            <input value={query} onChange={(e) => setQuery(e.target.value)} placeholder={`Search ${LISTS.length.toLocaleString()} lists…`} autoComplete="off" />
             {query && <button className="nt-clear" aria-label="Clear search" onClick={() => setQuery('')}><X size={15} strokeWidth={2.5} /></button>}
           </div>
           <div className="nt-sortwrap" style={{ position: 'relative' }}>

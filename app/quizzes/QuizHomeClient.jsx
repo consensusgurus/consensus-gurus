@@ -2,7 +2,7 @@
 import React, { useState, useEffect, useMemo, useRef, createContext, useContext } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import SiteHeader from '../SiteHeader';
+import SiteHeader, { QUIZ_COUNT } from '../SiteHeader';
 import QuizPlayerBar from '../quiz/[id]/QuizPlayerBar';
 import DuelTile from './DuelTile';
 import {
@@ -617,7 +617,7 @@ export default function QuizHomeClient() {
     const catSlides = scope === 'all'
       ? DEPT_NAV
           .filter((d) => Array.isArray(catBoards[d.id]) && catBoards[d.id].length > 0)
-          .map((d) => ({ key: 'catRating', catKey: d.id, special: true, label: `Top Rated: ${DEPT_LABEL[d.id] || d.label}`, fmt: (v) => (v || 0).toLocaleString(), ms: 5000 }))
+          .map((d) => ({ key: 'catRating', catKey: d.id, special: true, label: `${DEPT_LABEL[d.id] || d.label} Top Rated`, fmt: (v) => (v || 0).toLocaleString(), ms: 5000 }))
       : [];
     return [...base, ...catSlides];
   }, [dailyRows.length, dailyCat, todayCorrectRows.length, todayQuizRows.length, scope, catBoards]);
@@ -647,7 +647,7 @@ export default function QuizHomeClient() {
   // Compact top-3 for the active leaderboard slide, shown in the player stat
   // bar on the quiz hub (the leaderboard lives in the stat line here).
   const lbBar = useMemo(() => {
-    const label = lbMetric.label + (lbMetric.special || scope === 'all' ? '' : ' · ' + ((byKey[scope] && byKey[scope].label) || ''));
+    const label = (lbMetric.special || scope === 'all' ? lbMetric.label : `${(byKey[scope] && byKey[scope].label) || ''} ${lbMetric.label}`.trim()) + ':';
     let rows = [];
     if (lbMetric.special) {
       if (lbMetric.key === 'catRating') {
@@ -1301,7 +1301,7 @@ export default function QuizHomeClient() {
             <input
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              placeholder="Search quizzes…"
+              placeholder={`Search ${QUIZ_COUNT.toLocaleString()} quizzes…`}
               autoComplete="off"
               style={{ width: '100%', padding: '9px 12px 9px 36px', border: '1.5px solid #b8c0cc', borderRadius: 10, font: 'inherit', fontFamily: FONT, fontSize: 13.5, background: '#fff', color: C.ink, outline: 'none', boxSizing: 'border-box' }}
             />
