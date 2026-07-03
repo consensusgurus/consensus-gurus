@@ -20,9 +20,8 @@ function timeAgo(iso) {
 }
 
 // Quick-start duel composer in the quiz-hub tile grid. Pick an opponent
-// (optional) and a quiz, then jump to /duel/new with both prefilled. On mobile
-// it collapses to a tappable header (dropdown) so it reads like the other tiles.
-// On desktop the tile periodically FLIPS to a back face teasing the most
+// (optional) and a quiz, then jump to /duel/new with both prefilled. On both
+// desktop and mobile the tile periodically FLIPS to a back face teasing the most
 // recently completed duel (from /api/duel/latest) with a Duel Leaderboard CTA;
 // the flip pauses whenever the user is hovering or has begun composing.
 export default function DuelTile() {
@@ -78,14 +77,13 @@ export default function DuelTile() {
     return () => document.removeEventListener('mousedown', h);
   }, []);
 
-  // Auto-flip loop: form face holds ~8s, latest-duel face ~6.5s. Never flips
-  // on mobile (the tile is a collapsible header there), never while the user
-  // is hovering, composing, or after they've focused an input (interacted).
+  // Auto-flip loop: form face holds ~8s, latest-duel face ~6.5s. Flips on all
+  // widths (mobile included), but never while the user is hovering, composing,
+  // or after they've focused an input (interacted).
   const composing = oppOpen || quizOpen || !!opp || !!quiz || !!oppQ.trim() || !!quizQ.trim();
   const paused = hovered || interacted || composing;
   useEffect(() => {
     if (!latest || paused) return;
-    if (typeof window !== 'undefined' && window.innerWidth <= 560) return;
     const t = setTimeout(() => setFace((f) => (f === 'form' ? 'last' : 'form')), face === 'form' ? 8000 : 6500);
     return () => clearTimeout(t);
   }, [face, latest, paused]);

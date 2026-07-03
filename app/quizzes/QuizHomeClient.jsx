@@ -886,7 +886,7 @@ export default function QuizHomeClient() {
     .qzh .th-r2{display:grid;grid-template-columns:minmax(0,1.15fr) minmax(0,0.82fr) minmax(0,1fr);gap:12px;align-items:stretch;}
     .qzh .th-r2 .th-slot-hold{min-height:215px;}
     @media(max-width:820px){.qzh .thub{flex-direction:column;}.qzh .th-r2{grid-template-columns:1fr 1fr;}.qzh .th-r2 .dtile{grid-column:1 / -1;}}
-    @media(max-width:560px){.qzh .th-r2{grid-template-columns:1fr;}.qzh .th-rail{display:none !important;}.qzh .th-heroes .ntile{min-height:220px;background-position:center 12%;}.qzh .th-r2 .ttile{order:1;min-height:220px;}.qzh .th-r2 .dtile{order:2;}.qzh .th-r2 .dueltile{order:3;}.qzh .th-r2 .th-slot-hold{display:none;}.qzh .duelbtn{display:none !important;}}
+    @media(max-width:560px){.qzh .th-r2{grid-template-columns:minmax(0,1fr);}.qzh .th-rail{display:none !important;}.qzh .th-heroes .ntile{min-height:220px;background-position:center 12%;}.qzh .th-r2 .ttile{order:1;min-height:220px;}.qzh .th-r2 .dtile{order:2;}.qzh .th-r2 .dueltile{order:3;}.qzh .th-r2 .th-slot-hold{display:none;}.qzh .duelbtn{display:none !important;}}
     .qzh .dtile{background:#0e1d40;border-radius:14px;padding:14px 15px;color:#fff;display:flex;flex-direction:column;min-height:190px;}
     .qzh .dtile-head{display:flex;align-items:center;gap:8px;margin-bottom:9px;}
     .qzh .dtile-chip{font-size:10px;font-weight:800;background:rgba(255,255,255,0.2);border-radius:12px;padding:2px 9px;text-transform:uppercase;letter-spacing:.04em;}
@@ -905,7 +905,6 @@ export default function QuizHomeClient() {
     .qzh .lbtile-head{display:flex;align-items:center;gap:7px;margin-bottom:6px;}
     .qzh .duelbtn{background:${C.accent};color:#fff;border:none;border-radius:12px;padding:12px;font-weight:800;font-size:12px;font-family:inherit;display:flex;align-items:center;justify-content:center;gap:8px;cursor:pointer;flex:none;}
     .qzh .dueltile-chev{display:none;}
-    @media(max-width:560px){.qzh .dueltile{min-height:0 !important;}.qzh .dueltile-head{cursor:pointer;}.qzh .dueltile-chev{display:inline-flex !important;transition:transform .15s;}.qzh .dueltile.mc-closed .dueltile-body{display:none !important;}}
     .qzh .rail{background:#0e1d40;border:1px solid #1e3a6b;border-radius:14px;padding:11px 11px 9px;display:flex;flex-direction:column;}
     .qzh .rail-head{display:flex;align-items:center;gap:5px;margin-bottom:8px;}
     .qzh .rail-bars{flex:1;display:flex;flex-direction:column;}
@@ -1179,7 +1178,7 @@ export default function QuizHomeClient() {
               <div className="qotd-title">{qotd.title}</div>
               <div className="qotd-foot">
                 <span className="qotd-play"><Play size={15} fill="#fff" strokeWidth={0} />Play now</span>
-                <span className="qotd-stats">{leader(qotd.id) ? <><Crown size={12} style={{ color: '#e8b43a', flex: 'none' }} />{leader(qotd.id)} leads</> : (plays(qotd.id) > 0 ? null : <span>New quiz</span>)}</span>
+                <span className="qotd-stats">{leader(qotd.id) ? <><Crown size={12} style={{ color: '#e8b43a', flex: 'none' }} />{leader(qotd.id)}</> : (plays(qotd.id) > 0 ? null : <span>New quiz</span>)}</span>
               </div>
             </div>
           </Link>)}
