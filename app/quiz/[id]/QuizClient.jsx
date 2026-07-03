@@ -1768,7 +1768,7 @@ export default function QuizClient({ quizId }) {
             {(started || ended) && (photoMode ? (
             <PhotoBoard items={quiz.answers} started={started} ended={ended} revealed={revealed} onMatch={onPairMatch} onWrong={onBankWrong} onEnd={onPairEnd} onHint={onPairHint} answerNoun={quiz.noun} photoAspect={quiz.photoAspect} strike={quiz.strike} noSkip={quiz.strike} stickyTop={stickyTop} mobile={mobile} />
             ) : typeMode ? (
-            <TypeItBoard items={quiz.answers} started={started} ended={ended} revealed={revealed} onMatch={onPairMatch} onWrong={onBankWrong} onEnd={onPairEnd} onHint={onPairHint} promptLabel={quiz.leftLabel} answerNoun={quiz.noun} clueVariant={careersMode ? 'careers' : undefined} stickyTop={stickyTop} mobile={mobile} />
+            <TypeItBoard items={quiz.answers} started={started} ended={ended} revealed={revealed} onMatch={onPairMatch} onWrong={onBankWrong} onEnd={onPairEnd} onHint={onPairHint} promptLabel={quiz.leftLabel} answerNoun={quiz.noun} clueVariant={careersMode ? 'careers' : undefined} sequential={quiz.sequential === true} stickyTop={stickyTop} mobile={mobile} />
             ) : scrambleMode ? (
             <WordScrambleBoard items={quiz.answers} started={started} ended={ended} revealed={revealed} onMatch={onPairMatch} onWrong={onBankWrong} onEnd={onPairEnd} onHint={onPairHint} promptLabel={quiz.leftLabel} answerNoun={quiz.noun} stickyTop={stickyTop} mobile={mobile} />
             ) : bankMode ? (

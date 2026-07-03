@@ -40,10 +40,12 @@ function accepts(raw, item) {
   return deArticle(g) === deArticle(norm(item.t));
 }
 
-export default function TypeItBoard({ items, started, ended, revealed, onMatch, onWrong, onEnd, onHint, promptLabel, answerNoun, clueVariant, stickyTop = 150, mobile = false }) {
+export default function TypeItBoard({ items, started, ended, revealed, onMatch, onWrong, onEnd, onHint, promptLabel, answerNoun, clueVariant, sequential = false, stickyTop = 150, mobile = false }) {
   const list = items || [];
   const total = list.length;
-  const order = useMemo(() => shuffle(list.map((_, i) => i)), [list]);
+  // `sequential` (opt-in via quiz.sequential) keeps the authored clue order
+  // instead of shuffling, so a quiz can play as a strict countdown (e.g. 2026->1986).
+  const order = useMemo(() => (sequential ? list.map((_, i) => i) : shuffle(list.map((_, i) => i))), [list, sequential]);
   const [matched, setMatched] = useState(() => new Set());
   const [errors, setErrors] = useState(0);
   const [cur, setCur] = useState(() => (order.length ? order[0] : null));
