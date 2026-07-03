@@ -22,7 +22,11 @@ if (orphans.length) { problems += orphans.length; console.log('ORPHAN hero ids (
 else console.log('OK  every hero id exists in quizzes.js');
 
 // 2. Format (JPEG/PNG only)
-const bad = heroIds.filter((id) => !/\.(jpe?g|png)$/i.test(QUIZ_HEROES[id].src.split('?')[0]));
+// files.skimap.org serves extensionless hash URLs that are JPEG (content-type verified live
+// 2026-07-03); it is the same host the trail-map quiz images use. Heroes render as CSS
+// background-image, so the extension is a static heuristic only.
+const EXTENSIONLESS_JPEG_HOSTS = /^https:\/\/files\.skimap\.org\//;
+const bad = heroIds.filter((id) => !EXTENSIONLESS_JPEG_HOSTS.test(QUIZ_HEROES[id].src) && !/\.(jpe?g|png)$/i.test(QUIZ_HEROES[id].src.split('?')[0]));
 if (bad.length) { problems += bad.length; console.log('\nBAD hero format (must be .jpg/.jpeg/.png, no webp/avif):'); bad.forEach((id) => console.log('  - ' + id + ' -> ' + QUIZ_HEROES[id].src)); }
 else console.log('OK  every hero src is JPEG/PNG');
 
