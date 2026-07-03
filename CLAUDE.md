@@ -2752,3 +2752,5 @@ Audit before shipping hero changes: `node scripts/audit-quiz-heroes.mjs` (checks
 QOTD schedule for the next 14 days, hero-id orphans, and JPEG/PNG format). Category
 leaders and the newest tile also depend on LIVE play counts, so those aren't
 build-checkable.
+
+**HARD RULE (owner, 2026-07-03): the newest quiz ALWAYS needs a real registry hero.** The quiz with the latest `publishedAt` drives the `/quizzes` **Newest tile**, so whenever you publish a quiz (or a batch), the newest-stamped id MUST get a `QUIZ_HEROES` entry (JPEG/PNG, verified through `/_next/image`) in the SAME push that ships the quiz — never leave the newest quiz to the Wikipedia-lookup / `DEPT_HERO` fallback. When shipping several quizzes at once, at a minimum the newest one is heroed (ideally hero every new quiz). After deploy, VERIFY the Newest tile on `/quizzes` renders the intended photo.
