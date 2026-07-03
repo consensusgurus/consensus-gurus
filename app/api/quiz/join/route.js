@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { supabaseAdmin } from '@/lib/supabase-server';
 import { resolveQuizIdentity, attributeAnonGames, validEmail, looksLikeEmail } from '@/lib/quiz-identity';
+import { QUIZ_SESSION_COOKIE, makeQuizSessionToken, quizSessionCookieOptions } from '@/lib/quiz-session';
 
 export const dynamic = 'force-dynamic';
 
@@ -36,7 +37,12 @@ export async function POST(request) {
       return NextResponse.json({ error: 'Could not join right now.' }, { status: 500 });
     }
     await attributeAnonGames(supabaseAdmin, anonId, user);
-    return NextResponse.json({ username: user.username, email: user.email || null });
+    const res = NextResponse.json({ username: user.username, email: user.email || null });
+    // Durable, HTTP-only session so this browser stays signed in even if
+    // localStorage is evicted, and a returning visit restores the identity.
+    const token = makeQuizSessionToken(user);
+    if (token) res.cookies.set(QUIZ_SESSION_COOKIE, token, quizSessionCookieOptions());
+    return res;
   } catch (e) {
     return NextResponse.json({ error: 'Invalid request.' }, { status: 400 });
   }
