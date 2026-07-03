@@ -514,8 +514,9 @@ export default function QuizHomeClient() {
     return () => clearInterval(_dnPoll);
   }, []);
   async function duelDecline(token) { const idn = getIdentity(); const nm = (idn && idn.username) || 'Player'; try { await fetch('/api/duel/decline', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ token, anonId: getAnonId(), name: nm, email: (idn && idn.email) || undefined }) }); } catch {} loadDuelNotif(); }
-  function duelSeenAdd(token) { setDuelSeen((s) => { const n = { ...s, [token]: 1 }; try { localStorage.setItem('sot_duel_seen', JSON.stringify(n)); } catch {} return n; }); }
-  function duelLaterAdd(token) { setDuelLater((s) => { const n = { ...s, [token]: 1 }; try { localStorage.setItem('sot_duel_later', JSON.stringify(n)); } catch {} return n; }); }
+  function duelDismissServer(token, kind) { try { const anon = getAnonId(); if (!anon) return; const idn = getIdentity(); fetch('/api/duel/dismiss', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ token, kind, anonId: anon, email: (idn && idn.email) || undefined }) }).catch(() => {}); } catch {} }
+  function duelSeenAdd(token) { duelDismissServer(token, 'seen'); setDuelSeen((s) => { const n = { ...s, [token]: 1 }; try { localStorage.setItem('sot_duel_seen', JSON.stringify(n)); } catch {} return n; }); }
+  function duelLaterAdd(token) { duelDismissServer(token, 'later'); setDuelLater((s) => { const n = { ...s, [token]: 1 }; try { localStorage.setItem('sot_duel_later', JSON.stringify(n)); } catch {} return n; }); }
   function duelMuteAdd(anon, name, token) { if (!anon) { duelLaterAdd(token); return; } setDuelMuted((m) => { const n = { ...m, [anon]: name || 'Player' }; try { localStorage.setItem('sot_duel_muted', JSON.stringify(n)); } catch {} return n; }); duelLaterAdd(token); }
 
   // Current player's stats (overall — used for the player bar + pinned "You").

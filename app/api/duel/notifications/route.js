@@ -17,6 +17,16 @@ export async function GET(request) {
     const email = (sp.get('email') || '').trim() || null;
     if (!anonId) return NextResponse.json({ challenges: [], results: [] });
     const anons = await resolveAnonSet(supabaseAdmin, { anonId, email });
+    // Account-level dismissals: any duel a member anon has dismissed is hidden
+    // on every device. Best-effort -- empty (no filtering) until migration 32.
+    const laterDismissed = new Set(); const seenDismissed = new Set();
+    try {
+      const { data: dis } = await supabaseAdmin
+        .from('quiz_duel_dismissals')
+        .select('duel_token, kind')
+        .in('anon_id', anons);
+      for (const d of (dis || [])) { if (d.kind === 'seen') seenDismissed.add(d.duel_token); else laterDismissed.add(d.duel_token); }
+    } catch (e) { /* pre-migration: no dismissals table */ }
     const { data: ch } = await supabaseAdmin
       .from('quiz_duels')
       .select('token, quiz_id, challenger_anon, challenger_name, challenger_score, device, created_at')
@@ -48,7 +58,11 @@ export async function GET(request) {
       .neq('status', 'cancelled')
       .order('created_at', { ascending: false })
       .limit(10);
-    return NextResponse.json({ challenges: ch || [], results, yourTurn: turn || [] });
+    return NextResponse.json({
+      challenges: (ch || []).filter((c) => !laterDismissed.has(c.token)),
+      results: results.filter((r) => !seenDismissed.has(r.token)),
+      yourTurn: (turn || []).filter((t) => !laterDismissed.has(t.token)),
+    });
   } catch (e) {
     return NextResponse.json({ challenges: [], results: [] });
   }
