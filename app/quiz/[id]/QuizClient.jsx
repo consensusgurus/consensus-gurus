@@ -1989,16 +1989,6 @@ export default function QuizClient({ quizId }) {
             })()
             ))}
 
-            {ended && (
-              <div style={{ marginTop: 22, padding: 24, borderRadius: 10, border: `1.5px solid ${COLORS.ink}`, background: COLORS.paper, textAlign: 'center' }}>
-                <div style={{ fontFamily: MONO, fontSize: 12, letterSpacing: '0.16em', textTransform: 'uppercase', color: COLORS.ember, marginBottom: 8 }}>{dispScore === total ? 'Perfect score' : time <= 0 ? 'Time!' : tileMode ? 'Out of moves' : 'Gave up'}</div>
-                <div style={{ fontFamily: SERIF, fontWeight: 700, fontSize: 26, lineHeight: 1.1, marginBottom: 10 }}>{dispScore} of {total} · {resultBlurb}</div>
-                <p style={{ fontFamily: SANS, fontSize: 15, color: '#4a4339', maxWidth: 440, margin: '0 auto 18px' }}>
-                  {board.best != null ? (dispScore >= board.best ? `That matches the high score of ${board.best}.` : `The high score to beat is ${board.best}.`) : 'Be the first to set the pace.'}
-                  {quiz.listId ? ' See the ones you missed in the full ranking, with sources and the consensus breakdown.' : canReveal ? (revealed ? ' The ones you missed are filled in above, highlighted.' : ' Create a display name above to reveal the ones you missed.') : ''}
-                </p>
-              </div>
-            )}
 
             {started && !ended && (
               <div style={{ marginTop: 22, display: 'flex', justifyContent: 'center' }}>
