@@ -19,7 +19,6 @@ import QuizStandings from './QuizStandings';
 import LeaderboardSnippet from './LeaderboardSnippet';
 import LeaderboardStrip from './LeaderboardStrip';
 import QuizResultModal from './QuizResultModal';
-import QuizDoneRecap from './QuizDoneRecap';
 import { similarQuizId } from '@/lib/quiz-similar';
 import { getQuiz, QUIZZES } from '@/lib/quizzes';
 import { useChallengeRun, ChallengeRunOverlay } from './useChallengeRun';
@@ -472,10 +471,6 @@ export default function ConnectionsBoard({ quizId, mobile = false }) {
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 8, marginBottom: 18 }}>
                   {groups.map((_, gi) => <GroupRow key={gi} gi={gi} />)}
                 </div>
-                {(() => {
-                  const recapRows = groups.map((g, gi) => ({ label: g.label, detail: g.members.join(', '), sub: solvedIdx.includes(gi) ? 'Solved' : 'Missed', good: solvedIdx.includes(gi) }));
-                  return <QuizDoneRecap quiz={quiz} mobile={mobile} score={points} total={maxPoints} rows={recapRows} answersTitle="The four groups" onPlayAgain={() => startGame(true)} onShare={() => setTab('share')} onPlaySimilar={() => { const sid = similarQuizId(quiz); if (sid) router.push(`/quiz/${sid}`); }} />;
-                })()}
                 <QuizResultModal quiz={quiz}
                   open={!dismissed}
                   onClose={() => setDismissed(true)}

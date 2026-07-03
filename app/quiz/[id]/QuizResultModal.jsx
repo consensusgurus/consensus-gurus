@@ -1,58 +1,32 @@
 'use client';
-import React, { useEffect, useMemo } from 'react';
-import { createPortal } from 'react-dom';
-import { X, RotateCcw, Shuffle, Trophy, Swords, Play } from 'lucide-react';
-import { nextQuizMeta } from '@/lib/quiz-similar';
+import React, { useMemo } from 'react';
+import { RotateCcw, Swords } from 'lucide-react';
+import { QUIZZES } from '@/lib/quizzes';
 
-// Shared full-screen results popup for every quiz board.
+// Shared end-of-game results for every quiz board (owner rule, 2026-07-02).
 //
-// Standard end-of-game layout (one place, used by every board so they stay in
-// sync): a dismissable centered card over a dimmed/blurred backdrop, rendered
-// through a portal to document.body so it sits above all page chrome. Shows the
-// score once, the ELO standing + leaderboard, then a 2-column action grid
-//   [ Play Again | Play Similar ]
-//   [ Leaderboard | Challenge Someone ]
-// and a small "Report an error" text link. An X in the top-right closes the
-// popup (the board controls `open`, so closing reveals the page behind).
+// This used to be a dismissable popup over a dimmed backdrop. It is now an
+// INLINE results panel rendered in normal page flow (no portal, no overlay, no
+// close X), matching the QuizClient results screen so every quiz type looks the
+// same: score + percentile top-left, placement number top-right, the two
+// stacked actions (Play again, Challenge a friend), a "Similar quizzes" grid,
+// then the full leaderboard element the board passes in, then a Report link.
 //
-// Props: open, onClose (X), eyebrow, score, total, headline, subline,
-// leaderboard / standings nodes, and the onPlayAgain / onPlaySimilar /
-// onLeaderboard / onReport handlers. A handler left undefined hides its
-// control. The Challenge Someone cell links to the duel composer with this
-// quiz prefilled (shown whenever `quiz` is supplied); the old onShare prop is
-// accepted but ignored.
+// The board still controls visibility with `open` and places this component
+// where the results should appear. onClose / onPlaySimilar / onLeaderboard are
+// accepted for back-compat but ignored (no popup to close; Play similar was
+// replaced by the Similar quizzes grid; the leaderboard is shown inline).
+//
+// Props: open, eyebrow, score, total, headline, subline, placement (number|null
+// for the top-right rank), leaderboard (node = the full leaderboard element),
+// standings (node), quiz (Challenge + Similar quizzes), onPlayAgain, onReport.
 
-const C = {
-  cream: '#f7f8fa',
-  ink: '#1c1e24',
-  ember: '#2563eb',
-  forest: '#10b981',
-  faded: '#6b7280',
-};
+const C = { cream: '#f7f8fa', ink: '#1c1e24', ember: '#2563eb', forest: '#10b981', faded: '#6b7280', line: 'rgba(20,22,28,0.09)' };
 const FONT = "'Manrope', system-ui, -apple-system, sans-serif";
-
-const cellBase = {
-  fontFamily: FONT,
-  fontSize: 13,
-  letterSpacing: '0.06em',
-  textTransform: 'uppercase',
-  fontWeight: 700,
-  lineHeight: '46px',
-  width: '100%',
-  padding: '0 8px',
-  boxSizing: 'border-box',
-  border: 'none',
-  borderRadius: 10,
-  cursor: 'pointer',
-  display: 'inline-flex',
-  alignItems: 'center',
-  justifyContent: 'center',
-  gap: 8,
-};
+const stackBtn = { fontFamily: FONT, fontSize: 12.5, letterSpacing: '0.04em', textTransform: 'uppercase', fontWeight: 700, borderRadius: 10, padding: '14px 12px', cursor: 'pointer', border: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, width: '100%', boxSizing: 'border-box', textDecoration: 'none' };
 
 export default function QuizResultModal({
   open,
-  onClose,
   eyebrow,
   score,
   total,
@@ -61,165 +35,67 @@ export default function QuizResultModal({
   leaderboard = null,
   standings = null,
   quiz = null,
+  placement = null,
   onPlayAgain,
-  onPlaySimilar,
-  onLeaderboard,
   onReport,
+  onClose, onPlaySimilar, onLeaderboard,
 }) {
-  // The "play next" pick shown by title on the Play Similar cell (next unplayed
-  // series part, else unplayed same category/department). Navigation is still
-  // onPlaySimilar, which resolves to the same deterministic pick.
-  const nextMeta = useMemo(() => {
-    if (typeof window === 'undefined' || !quiz) return null;
-    try { return nextQuizMeta(quiz); } catch (e) { return null; }
-  }, [quiz]);
-  // End-game duel CTA: straight into the duel composer with this quiz picked.
   const duelHref = quiz && quiz.id ? `/duel/new?quiz=${encodeURIComponent(quiz.id)}` : null;
-  useEffect(() => {
-    if (!open) return undefined;
-    const prev = document.body.style.overflow;
-    document.body.style.overflow = 'hidden';
-    return () => { document.body.style.overflow = prev; };
-  }, [open]);
+  const similar = useMemo(() => {
+    if (!quiz) return [];
+    const stripped = quiz.id.replace(/-\d+$/, '');
+    const fam = QUIZZES.filter((x) => x.id !== quiz.id && !x.hideFromRelated && x.id.replace(/-\d+$/, '') === stripped);
+    const cat = QUIZZES.filter((x) => x.id !== quiz.id && !x.hideFromRelated && quiz.category && x.category === quiz.category);
+    const seen = new Set();
+    const out = [];
+    for (const x of [...fam, ...cat]) { if (!seen.has(x.id)) { seen.add(x.id); out.push(x); } }
+    return out.slice(0, 8);
+  }, [quiz]);
 
   if (!open) return null;
-  if (typeof document === 'undefined') return null;
 
-  const overlay = (
-    <div
-      role="dialog"
-      aria-modal="true"
-      style={{
-        position: 'fixed',
-        inset: 0,
-        zIndex: 50,
-        display: 'flex',
-        alignItems: 'flex-start',
-        justifyContent: 'center',
-        padding: 'clamp(12px, 4vw, 44px) clamp(10px, 3vw, 24px)',
-        background: 'rgba(17, 19, 24, 0.72)',
-        backdropFilter: 'blur(4px)',
-        WebkitBackdropFilter: 'blur(4px)',
-        overflowY: 'auto',
-        WebkitOverflowScrolling: 'touch',
-      }}
-    >
-      <div
-        style={{
-          position: 'relative',
-          width: '100%',
-          maxWidth: 460,
-          margin: 'auto',
-          background: C.cream,
-          borderRadius: 16,
-          boxShadow: '0 24px 70px rgba(0,0,0,0.45)',
-          padding: 'clamp(22px, 4.5vw, 32px)',
-        }}
-      >
-        {/* Close (X) */}
-        {onClose ? (
-          <button
-            onClick={onClose}
-            aria-label="Close"
-            style={{
-              position: 'absolute',
-              top: 12,
-              right: 12,
-              width: 34,
-              height: 34,
-              display: 'inline-flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              borderRadius: 999,
-              border: `1px solid ${C.faded}33`,
-              background: '#fff',
-              color: C.faded,
-              cursor: 'pointer',
-            }}
-          >
-            <X size={17} strokeWidth={2.5} />
-          </button>
-        ) : null}
-
-        {/* Summary (left) and leaderboard (right), side by side to save height */}
-        <div style={{ display: 'flex', gap: 16, alignItems: 'center', marginTop: 2 }}>
-          <div style={{ flex: '1 1 0', minWidth: 0, textAlign: 'center' }}>
-            {eyebrow ? (
-              <div style={{ fontFamily: FONT, fontSize: 11, fontWeight: 700, letterSpacing: '0.14em', textTransform: 'uppercase', color: C.ember, marginBottom: 6 }}>
-                {eyebrow}
-              </div>
-            ) : null}
-            <div style={{ fontFamily: FONT, fontWeight: 800, fontSize: 'clamp(34px, 10vw, 46px)', lineHeight: 1, letterSpacing: '-0.02em' }}>
-              {score}
-              <span style={{ fontSize: 'clamp(18px, 5vw, 24px)', color: C.faded }}>/{total}</span>
-            </div>
-            {headline ? (
-              <div style={{ fontFamily: FONT, fontWeight: 700, fontSize: 15, lineHeight: 1.2, margin: '8px 0 4px' }}>
-                {headline}
-              </div>
-            ) : null}
-            {subline ? (
-              <p style={{ fontFamily: FONT, fontSize: 12.5, color: C.faded, margin: 0 }}>
-                {subline}
-              </p>
-            ) : null}
+  return (
+    <div style={{ maxWidth: 600, margin: '16px auto 0' }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 16, marginBottom: 18 }}>
+        <div>
+          {eyebrow ? <div style={{ fontFamily: FONT, fontSize: 11, fontWeight: 800, letterSpacing: '0.16em', textTransform: 'uppercase', color: C.ember, marginBottom: 6 }}>{eyebrow}</div> : null}
+          <div style={{ fontFamily: FONT, fontWeight: 800, fontSize: 38, lineHeight: 1 }}>{score}<span style={{ fontSize: 22, color: C.faded }}> / {total}</span></div>
+          {(headline || subline) ? <p style={{ fontFamily: FONT, fontSize: 13, color: '#4a4339', margin: '6px 0 0' }}>{headline}{headline && subline ? ' · ' : ''}{subline}</p> : null}
+        </div>
+        {placement != null ? (
+          <div style={{ textAlign: 'right', flex: 'none' }}>
+            <div style={{ fontFamily: FONT, fontSize: 9, letterSpacing: '0.1em', textTransform: 'uppercase', fontWeight: 800, color: C.faded, marginBottom: 2 }}>You placed</div>
+            <div style={{ fontFamily: FONT, fontWeight: 800, fontSize: 46, lineHeight: 1, color: C.ember }}>#{placement}</div>
           </div>
-          {leaderboard ? (
-            <div style={{ flex: '1 1 0', minWidth: 0 }}>{leaderboard}</div>
-          ) : null}
+        ) : null}
+      </div>
+
+      {standings ? <div style={{ marginBottom: 12 }}>{standings}</div> : null}
+
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 9 }}>
+        {onPlayAgain ? <button onClick={onPlayAgain} style={{ ...stackBtn, background: C.ember, color: '#fff' }}><RotateCcw size={15} strokeWidth={2.5} /> Play again</button> : null}
+        {duelHref ? <a href={duelHref} style={{ ...stackBtn, background: C.ink, color: '#fff' }}><Swords size={15} strokeWidth={2.5} /> Challenge a friend</a> : null}
+      </div>
+
+      {similar.length > 0 ? (
+        <div style={{ marginTop: 24, paddingTop: 20, borderTop: `1px solid ${C.line}` }}>
+          <div style={{ fontFamily: FONT, fontSize: 11, letterSpacing: '0.16em', textTransform: 'uppercase', color: C.ember, marginBottom: 16 }}>Similar quizzes</div>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))', gap: 10 }}>
+            {similar.map((rq) => (
+              <a key={rq.id} href={`/quiz/${rq.id}`} style={{ textDecoration: 'none', color: '#fff', background: '#2563eb', borderRadius: 10, border: '1px solid #2563eb', padding: '12px 14px', display: 'block' }}>
+                <div style={{ fontFamily: FONT, fontSize: 9, letterSpacing: '0.16em', textTransform: 'uppercase', color: 'rgba(255,255,255,0.82)', fontWeight: 700, marginBottom: 6 }}>{rq.category || 'Quiz'}</div>
+                <div style={{ fontFamily: FONT, fontSize: 16, fontWeight: 600, lineHeight: 1.15, color: '#fff' }}>{rq.title}</div>
+              </a>
+            ))}
+          </div>
         </div>
+      ) : null}
 
-        {standings ? <div style={{ marginTop: 12 }}>{standings}</div> : null}
+      {leaderboard ? <div style={{ marginTop: 24, paddingTop: 20, borderTop: `1px solid ${C.line}` }}>{leaderboard}</div> : null}
 
-        {/* Actions: Play Again and Play Next each on their own full-width row,
-            then Leaderboard + Share paired. */}
-        <div style={{ display: 'grid', gap: 10, marginTop: 18 }}>
-          {onPlayAgain ? (
-            <button onClick={onPlayAgain} style={{ ...cellBase, background: C.ember, color: '#fff' }}>
-              <RotateCcw size={14} strokeWidth={2.5} /> Play Again
-            </button>
-          ) : null}
-          {onPlaySimilar ? (
-            nextMeta ? (
-              <button onClick={onPlaySimilar} title={nextMeta.title} style={{ ...cellBase, height: 'auto', minHeight: 46, lineHeight: 1.18, textTransform: 'none', letterSpacing: 0, padding: '8px 14px', textAlign: 'left', display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'flex-start', gap: 3, background: C.forest, color: '#fff' }}>
-                <span style={{ fontFamily: FONT, fontSize: 9, letterSpacing: '0.13em', textTransform: 'uppercase', fontWeight: 800, opacity: 0.9, display: 'inline-flex', alignItems: 'center', gap: 4 }}><Play size={11} strokeWidth={3} /> {nextMeta.label}{nextMeta.badge ? ` · part ${nextMeta.badge.part} of ${nextMeta.badge.total}` : ''}</span>
-                <span style={{ width: '100%', fontSize: 14, fontWeight: 700, lineHeight: 1.18 }}>{nextMeta.title}</span>
-              </button>
-            ) : (
-              <button onClick={onPlaySimilar} style={{ ...cellBase, background: C.forest, color: '#fff' }}>
-                <Shuffle size={14} strokeWidth={2.5} /> Play Similar
-              </button>
-            )
-          ) : null}
-          {(onLeaderboard || duelHref) ? (
-            <div style={{ display: 'grid', gridTemplateColumns: onLeaderboard && duelHref ? 'repeat(auto-fit, minmax(170px, 1fr))' : '1fr', gap: 10 }}>
-              {onLeaderboard ? (
-                <button onClick={onLeaderboard} style={{ ...cellBase, background: '#fff', color: C.ink, border: `1.5px solid ${C.ink}` }}>
-                  <Trophy size={14} strokeWidth={2.5} /> Leaderboard
-                </button>
-              ) : null}
-              {duelHref ? (
-                <a href={duelHref} style={{ ...cellBase, background: C.ink, color: C.cream, textDecoration: 'none', whiteSpace: 'nowrap', fontSize: 12, letterSpacing: '0.04em', gap: 6, borderRadius: 999 }}>
-                  <Swords size={14} strokeWidth={2.5} /> Challenge Someone
-                </a>
-              ) : null}
-            </div>
-          ) : null}
-        </div>
-
-        {/* Footer links: duel ladder + report */}
-        <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: 22, marginTop: 14 }}>
-          <a href="/quizzes/hub?tab=duels" style={{ padding: 4, fontFamily: FONT, fontSize: 12, fontWeight: 600, color: C.faded, textDecoration: 'underline', textUnderlineOffset: 3 }}>Duel Leaderboard</a>
-          {onReport ? (
-            <button onClick={onReport} style={{ background: 'none', border: 'none', padding: 4, cursor: 'pointer', fontFamily: FONT, fontSize: 12, fontWeight: 600, color: C.faded, textDecoration: 'underline', textUnderlineOffset: 3 }}>
-              Report an error
-            </button>
-          ) : null}
-        </div>
-
+      <div style={{ textAlign: 'center', marginTop: 14 }}>
+        {onReport ? <button onClick={onReport} style={{ background: 'none', border: 'none', padding: 4, cursor: 'pointer', fontFamily: FONT, fontSize: 12, fontWeight: 600, color: C.faded, textDecoration: 'underline', textUnderlineOffset: 3 }}>Report an error</button> : null}
       </div>
     </div>
   );
-
-  return createPortal(overlay, document.body);
 }

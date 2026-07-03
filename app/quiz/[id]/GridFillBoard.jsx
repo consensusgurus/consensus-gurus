@@ -17,7 +17,6 @@ import JoinLeaderboardForm from './JoinLeaderboardForm';
 import LeaderboardSnippet from './LeaderboardSnippet';
 import LeaderboardStrip from './LeaderboardStrip';
 import QuizResultModal from './QuizResultModal';
-import QuizDoneRecap from './QuizDoneRecap';
 import { similarQuizId } from '@/lib/quiz-similar';
 import { getQuiz } from '@/lib/quizzes';
 import { useChallengeRun, ChallengeRunOverlay } from './useChallengeRun';
@@ -567,7 +566,6 @@ export default function GridFillBoard({ quizId, mobile = false }) {
                 {/* DONE — results popup (the revealed grid stays behind it) */}
                 {phase === 'done' && (
                   <>
-                    <QuizDoneRecap quiz={quiz} mobile={mobile} score={score} total={totalCells} onPlayAgain={playAgain} onShare={() => setTab('share')} onPlaySimilar={() => { const sid = similarQuizId(quiz); if (sid) router.push(`/quiz/${sid}`); }} />
                   <QuizResultModal quiz={quiz}
                 open={!reviewing}
                 onClose={() => setReviewing(true)}

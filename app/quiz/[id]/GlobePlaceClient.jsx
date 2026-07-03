@@ -30,7 +30,6 @@ import QuizStandings from './QuizStandings';
 import LeaderboardSnippet from './LeaderboardSnippet';
 import LeaderboardStrip from './LeaderboardStrip';
 import QuizResultModal from './QuizResultModal';
-import QuizDoneRecap from './QuizDoneRecap';
 import { similarQuizId } from '@/lib/quiz-similar';
 import { getQuiz, QUIZZES } from '@/lib/quizzes';
 import { useChallengeRun, ChallengeRunOverlay } from './useChallengeRun';
@@ -500,11 +499,6 @@ export default function GlobePlaceClient({ quizId, mobile = false }) {
             {/* DONE — results popup */}
             {phase === 'done' && (
               <>
-                {(() => {
-                  const placedByCity = {}; placements.forEach((p) => { placedByCity[p.cityIdx] = p; });
-                  const recapRows = cities.map((c, ci) => { const p = placedByCity[ci]; const pts = p ? (p.pts || 0) : 0; return { label: c.name, detail: p && p.miles != null ? (p.miles < 0.1 ? `${Math.round(p.miles * 5280)} ft off` : `${p.miles.toFixed(1)} mi off`) : 'no guess', sub: `+${pts}`, good: pts >= maxPer * 0.7 }; });
-                  return <QuizDoneRecap quiz={quiz} mobile={mobile} score={points} total={maxPoints} rows={recapRows} answersTitle="Where they actually are" onPlayAgain={playAgain} onShare={() => setTab('share')} onPlaySimilar={() => { const sid = similarQuizId(quiz); if (sid) router.push(`/quiz/${sid}`); }} />;
-                })()}
                 <QuizResultModal quiz={quiz}
                 open={!dismissed}
                 onClose={() => setDismissed(true)}

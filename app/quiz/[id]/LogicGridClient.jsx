@@ -16,7 +16,6 @@ import JoinLeaderboardForm from './JoinLeaderboardForm';
 import LeaderboardSnippet from './LeaderboardSnippet';
 import LeaderboardStrip from './LeaderboardStrip';
 import QuizResultModal from './QuizResultModal';
-import QuizDoneRecap from './QuizDoneRecap';
 import { similarQuizId } from '@/lib/quiz-similar';
 import { getQuiz } from '@/lib/quizzes';
 import { useChallengeRun, ChallengeRunOverlay } from './useChallengeRun';
@@ -558,7 +557,6 @@ export default function LogicGridClient({ quizId, mobile = false }) {
                 {/* DONE — results popup (the solved grid stays behind it) */}
                 {phase === 'done' && (
                   <>
-                    <QuizDoneRecap quiz={quiz} mobile={mobile} score={score} total={total} onPlayAgain={() => { setSolved(new Array(total).fill(false)); setActive(null); setGuess(''); setTime(quiz.timeLimit); setRevealed(false); endedRef.current = false; setHintBad(false); startGame(true); }} onShare={() => setTab('share')} onPlaySimilar={() => { const sid = similarQuizId(quiz); if (sid) router.push(`/quiz/${sid}`); }} />
                   <QuizResultModal quiz={quiz}
                 open={!reviewing}
                 onClose={() => setReviewing(true)}
