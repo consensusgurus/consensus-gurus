@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useMemo, useState, useRef, useEffect } from 'react';
+import ClueBox from './ClueBox';
 
 // Typed-recall board (`format: 'type-it'`). ONE clue (e.g. an airport) shows at a
 // time in the clue bar with a Next button to cycle through clues not yet solved;
@@ -189,7 +190,7 @@ export default function TypeItBoard({ items, started, ended, revealed, onMatch, 
         ) : (
         <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: 12, background: live ? COLORS.ink : COLORS.paper, color: live ? COLORS.cream : COLORS.faded, borderRadius: 10, border: `1px solid ${COLORS.faded}33`, padding: '14px 16px', minHeight: 30 }}>
           <span style={{ fontFamily: MONO, fontSize: 11, letterSpacing: '0.2em', textTransform: 'uppercase', opacity: 0.7, flex: 'none' }}>{promptLabel || 'Clue'}</span>
-          <span style={{ fontFamily: SERIF, fontWeight: 800, fontSize: 'clamp(20px, 3.4vw, 28px)', lineHeight: 1.15, flex: '1 1 320px', minWidth: 'min(100%, 220px)', overflowWrap: 'break-word', wordBreak: 'normal', hyphens: 'none' }}>{promptText}</span>
+          <ClueBox current={promptText} clues={list.map((x) => x.label)} align="left" style={{ flex: '1 1 320px', minWidth: 'min(100%, 220px)' }} textStyle={{ fontFamily: SERIF, fontWeight: 800, fontSize: 'clamp(20px, 3.4vw, 28px)', lineHeight: 1.15, overflowWrap: 'break-word', wordBreak: 'normal', hyphens: 'none' }} />
         </div>
         )}
       </div>

@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useMemo, useState } from 'react';
+import ClueBox from './ClueBox';
 
 // Single-bank matching board (`format: 'bank'`). ONE prompt (the clue, e.g. a
 // company) shows at a time with a Next button to cycle through the prompts not
@@ -191,7 +192,7 @@ export default function BankQuizBoard({ pairs, started, ended, revealed, onMatch
     <div>
       <div style={barStyle}>
         <span style={{ fontFamily: MONO, fontSize: 11, letterSpacing: '0.2em', textTransform: 'uppercase', opacity: 0.7, flex: 'none' }}>{promptLabel || 'Prompt'}</span>
-        {(() => { const clueText = !started ? 'Press Play to start' : (ended ? 'Game over' : (cur != null ? pairs[cur][1] : 'All done')); return (<span key={clueText} style={{ fontFamily: SERIF, fontWeight: 800, fontSize: 'clamp(20px, 3.4vw, 28px)', lineHeight: 1.15, flex: '1 1 320px', minWidth: 0, overflowWrap: 'break-word', transform: 'translateZ(0)' }}>{clueText}</span>); })()}
+        {(() => { const clueText = !started ? 'Press Play to start' : (ended ? 'Game over' : (cur != null ? pairs[cur][1] : 'All done')); return (<ClueBox current={clueText} clues={pairs.map((p) => p[1])} align="left" style={{ flex: '1 1 320px', minWidth: 0 }} textStyle={{ fontFamily: SERIF, fontWeight: 800, fontSize: 'clamp(20px, 3.4vw, 28px)', lineHeight: 1.15, overflowWrap: 'break-word' }} />); })()}
         {live && cur != null && (
           <button onClick={back} title="Go back to the previous prompt." style={{ marginLeft: 'auto', flex: 'none', fontFamily: MONO, fontSize: 10, letterSpacing: '0.16em', textTransform: 'uppercase', fontWeight: 700, padding: '9px 16px', background: 'transparent', color: COLORS.cream, border: '1px solid rgba(244,237,224,0.4)', cursor: 'pointer' }}>&larr; Back</button>
         )}

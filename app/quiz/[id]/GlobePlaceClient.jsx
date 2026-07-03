@@ -31,6 +31,7 @@ import LeaderboardSnippet from './LeaderboardSnippet';
 import LeaderboardStrip from './LeaderboardStrip';
 import QuizResultModal from './QuizResultModal';
 import QuizLeaderboard from './QuizLeaderboard';
+import ClueBox from './ClueBox';
 import { similarQuizId } from '@/lib/quiz-similar';
 import { getQuiz, QUIZZES } from '@/lib/quizzes';
 import { useChallengeRun, ChallengeRunOverlay } from './useChallengeRun';
@@ -483,7 +484,7 @@ export default function GlobePlaceClient({ quizId, mobile = false }) {
               <div style={{ marginTop: 12 }}>
                 <div style={{ display: 'flex', alignItems: 'baseline', gap: 10, justifyContent: 'center', marginBottom: 10 }}>
                   <span style={{ fontFamily: MONO, fontSize: 11, letterSpacing: '0.16em', textTransform: 'uppercase', color: COLORS.ember }}>Find</span>
-                  <span style={{ fontFamily: SERIF, fontWeight: 800, fontSize: 'clamp(22px, 3.4vw, 30px)', lineHeight: 1.05 }}>{promptCity ? promptCity.name : ''}</span>
+                  <ClueBox current={promptCity ? promptCity.name : ''} clues={cities.map((c) => c.name)} textStyle={{ fontFamily: SERIF, fontWeight: 800, fontSize: 'clamp(22px, 3.4vw, 30px)', lineHeight: 1.05 }} />
                 </div>
                 <div style={{ display: 'flex', justifyContent: 'center' }}>
                   <div style={{ width: gw, maxWidth: '100%', borderRadius: 10, overflow: 'hidden', border: `1px solid ${COLORS.faded}44`, background: '#05070d', cursor: 'crosshair' }}>

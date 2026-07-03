@@ -27,6 +27,7 @@ import LeaderboardSnippet from './LeaderboardSnippet';
 import LeaderboardStrip from './LeaderboardStrip';
 import QuizResultModal from './QuizResultModal';
 import QuizLeaderboard from './QuizLeaderboard';
+import ClueBox from './ClueBox';
 import { similarQuizId } from '@/lib/quiz-similar';
 import { getQuiz, QUIZZES } from '@/lib/quizzes';
 import useAbandonFlush from './useAbandonFlush';
@@ -499,7 +500,7 @@ export default function MapPlaceClient({ quizId, mobile = false }) {
                     {phase === 'playing' ? (
                       <>
                         <div style={{ fontFamily: MONO, fontSize: 10, letterSpacing: '0.16em', textTransform: 'uppercase', color: COLORS.ember, marginBottom: 3 }}>Find</div>
-                        <div style={{ fontFamily: SERIF, fontWeight: 800, fontSize: 'clamp(17px, 2.8vw, 26px)', lineHeight: 1.1, overflowWrap: 'break-word', wordBreak: 'break-word' }}>{promptCity ? promptCity.name : ''}</div>
+                        <ClueBox current={promptCity ? promptCity.name : ''} clues={cities.map((c) => c.name)} textStyle={{ fontFamily: SERIF, fontWeight: 800, fontSize: 'clamp(17px, 2.8vw, 26px)', lineHeight: 1.1, overflowWrap: 'break-word', wordBreak: 'break-word' }} />
                       </>
                     ) : (
                       <>

@@ -27,6 +27,7 @@ import LeaderboardSnippet from './LeaderboardSnippet';
 import LeaderboardStrip from './LeaderboardStrip';
 import QuizResultModal from './QuizResultModal';
 import QuizLeaderboard from './QuizLeaderboard';
+import ClueBox from './ClueBox';
 import { similarQuizId } from '@/lib/quiz-similar';
 import { getQuiz, QUIZZES } from '@/lib/quizzes';
 import { useChallengeRun, ChallengeRunOverlay } from './useChallengeRun';
@@ -488,7 +489,7 @@ export default function MapPlaceClient({ quizId, mobile = false }) {
               <div style={{ marginTop: 12 }}>
                 <div style={{ display: 'flex', alignItems: 'baseline', gap: 10, justifyContent: 'center', marginBottom: 10 }}>
                   <span style={{ fontFamily: MONO, fontSize: 11, letterSpacing: '0.16em', textTransform: 'uppercase', color: COLORS.ember }}>Find</span>
-                  <span style={{ fontFamily: SERIF, fontWeight: 800, fontSize: 'clamp(22px, 3.4vw, 30px)', lineHeight: 1.05 }}>{promptCity ? promptCity.name : ''}</span>
+                  <ClueBox current={promptCity ? promptCity.name : ''} clues={cities.map((c) => c.name)} textStyle={{ fontFamily: SERIF, fontWeight: 800, fontSize: 'clamp(22px, 3.4vw, 30px)', lineHeight: 1.05 }} />
                 </div>
                 <div style={{ maxWidth: 560, margin: '0 auto', borderRadius: 6, overflow: 'hidden', border: `1px solid ${COLORS.faded}44`, background: MAP.sea }}>
                   <svg ref={svgRef} viewBox={`0 0 ${geo ? geo.W : 640} ${geo ? geo.H.toFixed(1) : 600}`} onClick={handleMapClick} style={{ display: 'block', width: '100%', height: 'auto', cursor: 'crosshair', touchAction: 'manipulation' }} role="img" aria-label="State map. Click as close as you can to the named city.">
