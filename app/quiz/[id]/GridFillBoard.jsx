@@ -17,6 +17,7 @@ import JoinLeaderboardForm from './JoinLeaderboardForm';
 import LeaderboardSnippet from './LeaderboardSnippet';
 import LeaderboardStrip from './LeaderboardStrip';
 import QuizResultModal from './QuizResultModal';
+import QuizLeaderboard from './QuizLeaderboard';
 import { similarQuizId } from '@/lib/quiz-similar';
 import { getQuiz } from '@/lib/quizzes';
 import { useChallengeRun, ChallengeRunOverlay } from './useChallengeRun';
@@ -574,7 +575,8 @@ export default function GridFillBoard({ quizId, mobile = false }) {
                 total={totalCells}
                 headline={isTopScore ? 'You are the top score' : `You beat ${percentile(score, totalCells)}% of players`}
                 subline={`You named ${found.size} of ${totalCompanies} companies. ${board.best != null ? (score >= board.best ? `That matches the high score of ${board.best}.` : `The high score to beat is ${board.best}.`) : 'Be the first to set the pace.'}`}
-                leaderboard={<LeaderboardSnippet board={board} identity={identity} score={score} lastElapsed={lastElapsed} fill />}
+                leaderboard={<QuizLeaderboard board={board} identity={identity} total={totalCells} />}
+                placement={(() => { const rows = board.leaderboardAll || []; if (identity) { const i = rows.findIndex((r) => r.username === identity.username); if (i >= 0) return i + 1; } if (lastElapsed == null || !rows.length) return null; let b = 0; for (const r of rows) { if (r.score > score || (r.score === score && r.timeElapsed < lastElapsed)) b++; } return b + 1; })()}
                 standings={null}
                 onPlayAgain={playAgain}
                 onPlaySimilar={() => { const sid = similarQuizId(quiz); if (sid) router.push(`/quiz/${sid}`); }}

@@ -19,6 +19,7 @@ import QuizStandings from './QuizStandings';
 import LeaderboardSnippet from './LeaderboardSnippet';
 import LeaderboardStrip from './LeaderboardStrip';
 import QuizResultModal from './QuizResultModal';
+import QuizLeaderboard from './QuizLeaderboard';
 import { similarQuizId } from '@/lib/quiz-similar';
 import { getQuiz, QUIZZES } from '@/lib/quizzes';
 import { useChallengeRun, ChallengeRunOverlay } from './useChallengeRun';
@@ -479,7 +480,8 @@ export default function ConnectionsBoard({ quizId, mobile = false }) {
                   total={maxPoints}
                   headline={`${points} of ${maxPoints} groups · ${isTopScore ? 'you are the top score' : `you beat ${percentile(points, maxPoints)}% of players`}`}
                   subline={board.best != null ? (points >= board.best ? `That is the score to beat.` : `The score to beat is ${board.best}.`) : 'Be the first to set the pace.'}
-                  leaderboard={<LeaderboardSnippet board={board} identity={identity} score={points} lastElapsed={lastElapsed} fill />}
+                  leaderboard={<QuizLeaderboard board={board} identity={identity} total={maxPoints} />}
+                  placement={(() => { const rows = board.leaderboardAll || []; if (identity) { const i = rows.findIndex((r) => r.username === identity.username); if (i >= 0) return i + 1; } if (lastElapsed == null || !rows.length) return null; let b = 0; for (const r of rows) { if (r.score > points || (r.score === points && r.timeElapsed < lastElapsed)) b++; } return b + 1; })()}
                   standings={eloPanel}
                   onPlayAgain={() => startGame(true)}
                   onPlaySimilar={() => { const sid = similarQuizId(quiz); if (sid) router.push(`/quiz/${sid}`); }}
