@@ -120,9 +120,15 @@ function keyHit(g, key) {
   if (!k) return false;
   if (g.includes(k)) return true;
   const kt = k.split(' ');
-  if (kt.length < 2) return false;
-  const gt = g.split(' ');
-  return kt.every((w) => gt.includes(w));
+  if (kt.length >= 2) {
+    const gt = g.split(' ');
+    if (kt.every((w) => gt.includes(w))) return true;
+  }
+  // Space-insensitive whole-answer match: "sanmarino" === "san marino",
+  // "unitedstates" === "united states". Full-string equality only (never a
+  // substring), so it can never glue a short key onto its neighbours (no
+  // "la" -> "dallas", "as" -> "kansas"). Adds 0 cross-answer collisions.
+  return g.replace(/ /g, '') === k.replace(/ /g, '');
 }
 function anyKey(g, keys) {
   return (keys || []).some((k) => keyHit(g, k));
@@ -141,6 +147,7 @@ function couldReach(g, keys) {
     const k = deArticle(norm(key));
     if (!k) continue;
     if (k.startsWith(g)) return true;
+    if (k.replace(/ /g, '').startsWith(g.replace(/ /g, ''))) return true; // spaceless typing stays reachable
     const kt = k.split(' ');
     if (kt.length < 2) continue;
     const remaining = kt.slice();

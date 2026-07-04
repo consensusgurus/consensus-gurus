@@ -29,8 +29,9 @@ function deArticle(s) { return s.replace(/^(?:the|a|an) (?=.{2})/, ''); }
 function keyHit(g, key) {
   const k = deArticle(norm(key)); if (!k) return false;
   if (g.includes(k)) return true;
-  const kt = k.split(' '); if (kt.length < 2) return false;
-  const gt = g.split(' '); return kt.every((w) => gt.includes(w));
+  const kt = k.split(' ');
+  if (kt.length >= 2) { const gt = g.split(' '); if (kt.every((w) => gt.includes(w))) return true; }
+  return g.replace(/ /g, '') === k.replace(/ /g, ''); // space-insensitive whole-answer match ("sanmarino" === "san marino")
 }
 function anyKey(g, keys) { return (keys || []).some((k) => keyHit(g, k)); }
 function accepts(raw, item) {
