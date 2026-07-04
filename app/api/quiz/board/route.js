@@ -3,7 +3,7 @@ import { supabaseAdmin } from '@/lib/supabase-server';
 import { buildLeaderboardMatrix } from '@/lib/quiz-anon';
 
 export const dynamic = 'force-dynamic';
-export const fetchCache = 'force-no-store';
+const CACHE_HEADERS = { 'Cache-Control': 'public, s-maxage=30, stale-while-revalidate=60' };
 
 // Summarize completed games for a quiz into play count, average correct, and
 // the leaderboard (each signed-up user's best attempt, ranked by score desc
@@ -66,7 +66,7 @@ export async function GET(request) {
       data.push(...page);
       if (page.length < 1000) break;
     }
-    return NextResponse.json(summarize(data));
+    return NextResponse.json(summarize(data), { headers: CACHE_HEADERS });
   } catch (e) {
     return NextResponse.json({ error: 'db error' }, { status: 500 });
   }

@@ -4,7 +4,7 @@ import { fetchAllRows } from '@/lib/fetch-all';
 import { correctAnswersOf } from '@/lib/quiz-scoring';
 
 export const dynamic = 'force-dynamic';
-export const fetchCache = 'force-no-store';
+const CACHE_HEADERS = { 'Cache-Control': 'public, s-maxage=60, stale-while-revalidate=120' };
 
 // GET /api/quiz/totals -> { total, byQuiz, recent7, recent12h, trendingByQuiz, trendingWindowH }
 // Aggregate play counts across every quiz (all completed games, signed-up or
@@ -120,7 +120,7 @@ export async function GET() {
         .slice(0, 3)
         .map(([name]) => name);
     }
-    return NextResponse.json({ total: rows.length, today, totalCorrect, totalPerfect, totalTime, todayTime, byQuiz, recent7, recent12h, trendingByQuiz, trendingWindowH, leaders, leaderKeys, topLeaders });
+    return NextResponse.json({ total: rows.length, today, totalCorrect, totalPerfect, totalTime, todayTime, byQuiz, recent7, recent12h, trendingByQuiz, trendingWindowH, leaders, leaderKeys, topLeaders }, { headers: CACHE_HEADERS });
   } catch (e) {
     return NextResponse.json({ total: 0, byQuiz: {}, recent7: {}, recent12h: {}, trendingByQuiz: {}, trendingWindowH: 0, leaders: {} });
   }

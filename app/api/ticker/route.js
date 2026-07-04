@@ -9,7 +9,7 @@ import { supabaseAdmin } from '@/lib/supabase-server';
 import { LISTS } from '@/lib/data';
 
 export const dynamic = 'force-dynamic';
-export const revalidate = 0;
+const CACHE_HEADERS = { 'Cache-Control': 'public, s-maxage=300, stale-while-revalidate=600' };
 
 const MOVEMENT_TYPES = ['moved', 'entered_top10', 'entered_top3', 'exited_top10', 'exited_top3'];
 
@@ -79,7 +79,7 @@ export async function GET() {
       }
     }
 
-    return NextResponse.json({ entries });
+    return NextResponse.json({ entries }, { headers: CACHE_HEADERS });
   } catch (err) {
     console.error('ticker error', err);
     return NextResponse.json({ entries: [] });

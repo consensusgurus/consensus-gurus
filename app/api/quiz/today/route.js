@@ -3,7 +3,7 @@ import { supabaseAdmin } from '@/lib/supabase-server';
 import { correctAnswersOf } from '@/lib/quiz-scoring';
 
 export const dynamic = 'force-dynamic';
-export const fetchCache = 'force-no-store';
+const CACHE_HEADERS = { 'Cache-Control': 'public, s-maxage=60, stale-while-revalidate=120' };
 
 // Midnight "today" in US Eastern (handles EST/EDT) as a UTC epoch ms. Eastern
 // midnight is 05:00Z under EST and 04:00Z under EDT; pick whichever candidate
@@ -66,7 +66,7 @@ export async function GET() {
       .sort((a, b) => b.quizzes - a.quizzes || b.correct - a.correct || String(a.username).localeCompare(String(b.username)))
       .map((u) => ({ username: u.username, quizzes: u.quizzes, userKey: 'u:' + u.userId }))
       .slice(0, 10);
-    return NextResponse.json({ leaders, quizLeaders, correctToday, perfectToday, playsToday: rows.length });
+    return NextResponse.json({ leaders, quizLeaders, correctToday, perfectToday, playsToday: rows.length }, { headers: CACHE_HEADERS });
   } catch (e) {
     return NextResponse.json({ leaders: [], correctToday: 0, perfectToday: 0, playsToday: 0 });
   }

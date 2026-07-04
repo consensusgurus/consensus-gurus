@@ -7,7 +7,7 @@ import { QUIZZES } from '@/lib/quizzes';
 const HIDDEN_QUIZ_IDS = new Set((QUIZZES || []).filter((q) => q && (q.unlisted || q.mobilePreview)).map((q) => q.id));
 
 export const dynamic = 'force-dynamic';
-export const fetchCache = 'force-no-store';
+const CACHE_HEADERS = { 'Cache-Control': 'public, s-maxage=30, stale-while-revalidate=90' };
 
 // GET /api/quiz/recent -> { plays: [{quizId, username, score, total, playedAt,
 //   isAnon, attempt}] }
@@ -74,7 +74,7 @@ export async function GET() {
         attempt,
       };
     });
-    return NextResponse.json({ plays });
+    return NextResponse.json({ plays }, { headers: CACHE_HEADERS });
   } catch (e) {
     return NextResponse.json({ plays: [] });
   }

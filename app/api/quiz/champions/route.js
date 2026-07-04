@@ -4,7 +4,7 @@ import { buildAnonPlayers } from '@/lib/quiz-anon';
 import { correctAnswersOf } from '@/lib/quiz-scoring';
 
 export const dynamic = 'force-dynamic';
-export const fetchCache = 'force-no-store';
+const CACHE_HEADERS = { 'Cache-Control': 'public, s-maxage=120, stale-while-revalidate=300' };
 
 const MIN_QUIZZES = 5;
 
@@ -208,7 +208,7 @@ export async function GET() {
     const today = { ...buildChampions(todayRows), anonPlayers: buildAnonPlayers(todayRows) };
     const dailyChampions = buildDailyChampions(rows);
     // `anonymous` retained for back-compat (the /quizzes Players board total).
-    return NextResponse.json({ ...buildChampions(rows), ...anon, anonPlayers, today, dailyChampions, anonymous: anon.anonPlays });
+    return NextResponse.json({ ...buildChampions(rows), ...anon, anonPlayers, today, dailyChampions, anonymous: anon.anonPlays }, { headers: CACHE_HEADERS });
   } catch (e) {
     console.error('quiz champions error', e);
     return NextResponse.json({ totalPlays: [], completed: [], weighted: [], accuracy: [], correctAnswers: [], perfectQuizzes: [], minQuizzes: MIN_QUIZZES, anonPlayers: [], today: { totalPlays: [], completed: [], correctAnswers: [], perfectQuizzes: [], anonPlayers: [] }, dailyChampions: [], anonymous: 0, anonPlays: 0, anonCompleted: 0, anonWeighted: 0, anonAccuracy: 0 });

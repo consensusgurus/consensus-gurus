@@ -3,7 +3,7 @@ import { supabase } from '@/lib/supabase';
 import { fetchAllRows } from '@/lib/fetch-all';
 
 export const dynamic = 'force-dynamic';
-export const revalidate = 0;
+const CACHE_HEADERS = { 'Cache-Control': 'public, s-maxage=300, stale-while-revalidate=600' };
 
 export async function GET() {
   try {
@@ -62,7 +62,7 @@ export async function GET() {
       trending[row.list_id] = Number(row.cnt) || 0;
     });
 
-    return NextResponse.json({ votes, views, extras, userLists, trending });
+    return NextResponse.json({ votes, views, extras, userLists, trending }, { headers: CACHE_HEADERS });
   } catch (e) {
     console.error('bootstrap error', e);
     return NextResponse.json(
