@@ -2,7 +2,7 @@
 
 // Place-on-the-globe quiz board (format: 'globe').
 //
-// A photo-textured 3D globe (globe.gl / three.js, via react-globe.gl) is shown
+// A MapLibre-GL globe (globe projection + free OpenFreeMap vector tiles) is shown
 // and the player has a single shared clock (default 300s) to click as close as
 // possible to each of N named places. Each place is worth up to maxPerCity
 // points (default 100): full credit within fullMiles of the true spot, decaying
@@ -23,7 +23,7 @@
 
 import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { useRouter } from 'next/navigation';
-import Globe from 'react-globe.gl';
+import maplibregl from 'maplibre-gl';
 import { ArrowLeft, Share2, Flag, Trophy, HelpCircle, MapPin, ScrollText, Swords } from 'lucide-react';
 import JoinLeaderboardForm from './JoinLeaderboardForm';
 import QuizStandings from './QuizStandings';
@@ -60,8 +60,7 @@ const MONO = "'Manrope', system-ui, -apple-system, sans-serif";
 const SERIF = "'Manrope', system-ui, -apple-system, sans-serif";
 const SANS = "'Manrope', system-ui, -apple-system, sans-serif";
 
-const GLOBE_IMG = 'https://unpkg.com/three-globe/example/img/earth-blue-marble.jpg';
-const GLOBE_BUMP = 'https://unpkg.com/three-globe/example/img/earth-topology.png';
+const GLOBE_STYLE = 'https://tiles.openfreemap.org/styles/liberty';
 const GUESS_C = '#ff5a4d';
 const TRUTH_C = '#36e0a0';
 
@@ -681,34 +680,187 @@ function StatBox({ label, value, accent }) {
   );
 }
 
+// ── MapLibre helpers ─────────────────────────────────────────────────────────
+// react-globe.gl altitude (camera distance) → MapLibre zoom. Lower = closer.
+function altToZoom(alt) {
+  if (alt == null) return 1.4;
+  if (alt <= 1.6) return 4.2;   // tight reveal
+  if (alt <= 2.0) return 3.2;   // reveal a place
+  return 1.4;                   // whole-globe default
+}
+
+// Great-circle polyline between two lon/lat points, so the guess→truth arc
+// hugs the globe instead of cutting a straight chord through it.
+function gcArc(aLng, aLat, bLng, bLat, n) {
+  const seg = n || 48;
+  const rad = Math.PI / 180, deg = 180 / Math.PI;
+  const p1 = aLat * rad, l1 = aLng * rad, p2 = bLat * rad, l2 = bLng * rad;
+  const dp = p2 - p1, dl = l2 - l1;
+  const hav = Math.sin(dp / 2) ** 2 + Math.cos(p1) * Math.cos(p2) * Math.sin(dl / 2) ** 2;
+  const d = 2 * Math.asin(Math.min(1, Math.sqrt(hav)));
+  if (!d) return [[aLng, aLat], [bLng, bLat]];
+  const out = [];
+  for (let i = 0; i <= seg; i++) {
+    const f = i / seg;
+    const A = Math.sin((1 - f) * d) / Math.sin(d);
+    const B = Math.sin(f * d) / Math.sin(d);
+    const x = A * Math.cos(p1) * Math.cos(l1) + B * Math.cos(p2) * Math.cos(l2);
+    const y = A * Math.cos(p1) * Math.sin(l1) + B * Math.cos(p2) * Math.sin(l2);
+    const z = A * Math.sin(p1) + B * Math.sin(p2);
+    out.push([Math.atan2(y, x) * deg, Math.atan2(z, Math.sqrt(x * x + y * y)) * deg]);
+  }
+  return out;
+}
+
+function layersToGeo(layers) {
+  const pts = (layers && layers.pts) || [];
+  const arcs = (layers && layers.arcs) || [];
+  return {
+    pts: { type: 'FeatureCollection', features: pts.map((p) => ({ type: 'Feature', properties: { color: p.color, r: p.r, label: p.label || '' }, geometry: { type: 'Point', coordinates: [p.lng, p.lat] } })) },
+    arcs: { type: 'FeatureCollection', features: arcs.map((a) => ({ type: 'Feature', properties: {}, geometry: { type: 'LineString', coordinates: gcArc(a.startLng, a.startLat, a.endLng, a.endLat) } })) },
+  };
+}
+
+function ensureMaplibreCss() {
+  if (typeof document === 'undefined' || document.getElementById('maplibre-gl-css')) return;
+  const link = document.createElement('link');
+  link.id = 'maplibre-gl-css';
+  link.rel = 'stylesheet';
+  link.href = 'https://unpkg.com/maplibre-gl@5.24.0/dist/maplibre-gl.css';
+  document.head.appendChild(link);
+}
+
+// A MapLibre-GL globe (globe projection + free, keyless OpenFreeMap vector
+// tiles) drop-in for the old react-globe.gl view. The parent still drives it
+// through a `globeRef` shim exposing pointOfView()/controls(), so the game
+// logic above is untouched; guesses/truths/arcs render as GeoJSON layers.
 function GlobeView({ layers, size, interactive, globeRef, onReady, onClick }) {
-  return (
-    <Globe
-      ref={globeRef}
-      width={size}
-      height={Math.round(size * 0.84)}
-      backgroundColor="rgba(0,0,0,0)"
-      globeImageUrl={GLOBE_IMG}
-      bumpImageUrl={GLOBE_BUMP}
-      showAtmosphere
-      atmosphereColor="#9ec3e8"
-      atmosphereAltitude={0.16}
-      onGlobeReady={onReady}
-      onGlobeClick={interactive ? onClick : undefined}
-      pointsData={layers.pts}
-      pointLat="lat"
-      pointLng="lng"
-      pointColor="color"
-      pointAltitude={0.012}
-      pointRadius="r"
-      pointLabel="label"
-      arcsData={layers.arcs}
-      arcColor={() => [GUESS_C, TRUTH_C]}
-      arcStroke={0.5}
-      arcDashLength={0.5}
-      arcDashGap={0.12}
-      arcDashAnimateTime={0}
-      arcAltitudeAutoScale={0.4}
-    />
-  );
+  const containerRef = useRef(null);
+  const mapRef = useRef(null);
+  const readyRef = useRef(false);
+  const layersRef = useRef(layers);
+  const onClickRef = useRef(onClick);
+  const onReadyRef = useRef(onReady);
+  const spinRef = useRef({ on: false, raf: 0, speed: 0.5, dragging: false });
+  const h = Math.round(size * 0.84);
+
+  useEffect(() => { onClickRef.current = onClick; });
+  useEffect(() => { onReadyRef.current = onReady; });
+
+  // Create the map exactly once for this mount.
+  useEffect(() => {
+    if (!containerRef.current) return undefined;
+    ensureMaplibreCss();
+    let map;
+    try {
+      map = new maplibregl.Map({
+        container: containerRef.current,
+        style: GLOBE_STYLE,
+        center: [30, 18],
+        zoom: 1.4,
+        minZoom: 0.6,
+        maxZoom: 16,
+        interactive: !!interactive,
+        dragRotate: false,
+        pitchWithRotate: false,
+        renderWorldCopies: false,
+        attributionControl: false,
+      });
+    } catch (e) { return undefined; }
+    mapRef.current = map;
+
+    const spin = spinRef.current;
+    function stepSpin() {
+      spin.raf = requestAnimationFrame(stepSpin);
+      if (!spin.on || spin.dragging) return;
+      try {
+        const c = map.getCenter();
+        c.lng = ((c.lng + spin.speed * 0.08 + 540) % 360) - 180;
+        map.setCenter(c);
+      } catch (e) {}
+    }
+    function setSpin(on) { spin.on = on; if (on && !spin.raf) stepSpin(); }
+
+    // Shim mirroring the react-globe.gl API the parent calls.
+    const controls = {};
+    Object.defineProperty(controls, 'autoRotate', { configurable: true, get() { return spin.on; }, set(v) { setSpin(!!v); } });
+    Object.defineProperty(controls, 'autoRotateSpeed', { configurable: true, get() { return spin.speed; }, set(v) { spin.speed = v || 0.5; } });
+    Object.defineProperty(controls, 'enableZoom', { configurable: true, get() { try { return map.scrollZoom.isEnabled(); } catch (e) { return true; } }, set(v) { try { v ? map.scrollZoom.enable() : map.scrollZoom.disable(); } catch (e) {} } });
+    Object.defineProperty(controls, 'rotateSpeed', { configurable: true, get() { return 1; }, set() {} });
+
+    globeRef.current = {
+      pointOfView(pov, ms) {
+        const o = pov || {};
+        try { map.easeTo({ center: [o.lng, o.lat], zoom: altToZoom(o.altitude), duration: ms || 0 }); } catch (e) {}
+      },
+      controls() { return controls; },
+      _map: map,
+    };
+
+    map.on('dragstart', () => { spin.dragging = true; });
+    map.on('dragend', () => { spin.dragging = false; });
+
+    function applyLayers(ls) {
+      if (!readyRef.current || !ls) return;
+      try {
+        const g = layersToGeo(ls);
+        const sp = map.getSource('sot-pts'); if (sp) sp.setData(g.pts);
+        const sa = map.getSource('sot-arcs'); if (sa) sa.setData(g.arcs);
+      } catch (e) {}
+    }
+    map._applyLayers = applyLayers;
+
+    map.on('load', () => {
+      try { map.setProjection({ type: 'globe' }); } catch (e) {}
+      try {
+        map.setSky({
+          'sky-color': '#0a1526', 'horizon-color': '#9ec3e8', 'fog-color': '#dfeaf6',
+          'sky-horizon-blend': 0.6, 'horizon-fog-blend': 0.6, 'fog-ground-blend': 0.4,
+          'atmosphere-blend': ['interpolate', ['linear'], ['zoom'], 0, 0.9, 5, 0.4, 7, 0],
+        });
+      } catch (e) {}
+      try {
+        map.addSource('sot-arcs', { type: 'geojson', data: { type: 'FeatureCollection', features: [] } });
+        map.addSource('sot-pts', { type: 'geojson', data: { type: 'FeatureCollection', features: [] } });
+        map.addLayer({ id: 'sot-arc', type: 'line', source: 'sot-arcs', layout: { 'line-cap': 'round', 'line-join': 'round' }, paint: { 'line-color': '#111318', 'line-width': 2, 'line-opacity': 0.75, 'line-dasharray': [1.6, 1.1] } });
+        map.addLayer({ id: 'sot-pt-halo', type: 'circle', source: 'sot-pts', paint: { 'circle-radius': ['+', ['*', ['get', 'r'], 15], 5], 'circle-color': ['get', 'color'], 'circle-opacity': 0.22, 'circle-blur': 0.3 } });
+        map.addLayer({ id: 'sot-pt', type: 'circle', source: 'sot-pts', paint: { 'circle-radius': ['*', ['get', 'r'], 15], 'circle-color': ['get', 'color'], 'circle-stroke-color': '#0c1220', 'circle-stroke-width': 2 } });
+        map.addLayer({ id: 'sot-pt-label', type: 'symbol', source: 'sot-pts', filter: ['!=', ['get', 'label'], ''], layout: { 'text-field': ['get', 'label'], 'text-font': ['Noto Sans Bold'], 'text-size': 13, 'text-offset': [0, -1.5], 'text-anchor': 'bottom', 'text-allow-overlap': true, 'text-max-width': 12 }, paint: { 'text-color': '#0c1220', 'text-halo-color': '#ffffff', 'text-halo-width': 2 } });
+      } catch (e) {}
+      readyRef.current = true;
+      applyLayers(layersRef.current);
+      if (interactive) {
+        try { map.getCanvas().style.cursor = 'crosshair'; } catch (e) {}
+        try { map.addControl(new maplibregl.NavigationControl({ showCompass: false, visualizePitch: false }), 'top-right'); } catch (e) {}
+        map.on('click', (e) => { if (onClickRef.current) onClickRef.current({ lat: e.lngLat.lat, lng: e.lngLat.lng }); });
+      }
+      try { map.addControl(new maplibregl.AttributionControl({ compact: true, customAttribution: '© OpenFreeMap © OpenMapTiles © OpenStreetMap' })); } catch (e) {}
+      if (onReadyRef.current) onReadyRef.current();
+    });
+
+    return () => {
+      try { cancelAnimationFrame(spin.raf); } catch (e) {}
+      spin.raf = 0; spin.on = false;
+      if (globeRef.current && globeRef.current._map === map) globeRef.current = null;
+      try { map.remove(); } catch (e) {}
+      if (mapRef.current === map) mapRef.current = null;
+      readyRef.current = false;
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  // Push placements/arcs to the map whenever the derived layers change.
+  useEffect(() => {
+    layersRef.current = layers;
+    const map = mapRef.current;
+    if (map && map._applyLayers) map._applyLayers(layers);
+  }, [layers]);
+
+  // Keep the canvas sized to its column.
+  useEffect(() => {
+    const map = mapRef.current;
+    if (map) { try { map.resize(); } catch (e) {} }
+  }, [size, h]);
+
+  return <div ref={containerRef} style={{ width: size, height: h, background: '#0a1526' }} />;
 }
