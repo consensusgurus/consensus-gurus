@@ -76,7 +76,10 @@ export default function SourcesPopover({ label, emphasis, align, href, onDark })
           <style>{`
             .sot-pop{
               position:absolute;top:calc(100% + 10px);${align === 'left' ? 'left:0;right:auto;' : 'right:0;left:auto;'}
-              z-index:50;width:min(720px,90vw);max-height:64vh;overflow-y:auto;
+              /* Must beat the homepage sticky nav (.nt-stickytop, z-index:50), which is a
+                 later DOM sibling in the same stacking context and would otherwise tie-break
+                 on top of us. 60 clears it while staying under the modal tier. */
+              z-index:60;width:min(720px,90vw);max-height:64vh;overflow-y:auto;
               background:#ffffff;border:1px solid rgba(20,22,28,0.12);border-radius:14px;
               box-shadow:0 14px 44px rgba(20,22,28,0.18);padding:0;text-align:left;cursor:default;
             }
