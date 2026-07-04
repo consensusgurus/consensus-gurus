@@ -667,7 +667,7 @@ export default function QuizHomeClient() {
 
   // ── live feed (scoped by quiz department) ──
   const liveRows = useMemo(() => {
-    const rows = recent.map((p) => ({ ...p, dept: deptOf({ id: p.quizId }), title: titleById[p.quizId] || cleanTitle(p.quizId) }));
+    const rows = recent.filter((p) => p && p.quizId && titleById[p.quizId]).map((p) => ({ ...p, dept: deptOf({ id: p.quizId }), title: titleById[p.quizId] }));
     const scoped = scope === 'all' ? rows : rows.filter((r) => r.dept === scope);
     return scoped.slice(0, boardsExpanded ? 10 : 4);
   }, [recent, scope, titleById, boardsExpanded]);
@@ -739,7 +739,7 @@ export default function QuizHomeClient() {
     .sort((a, b) => (a.publishedAt < b.publishedAt ? 1 : a.publishedAt > b.publishedAt ? -1 : 0)), [catalog]);
   const mostPlayedAll = useMemo(() => catalog.slice()
     .sort((a, b) => plays(b.id) - plays(a.id) || a.title.localeCompare(b.title)), [catalog, totals]);
-  const liveAll = useMemo(() => recent.map((p) => ({ ...p, title: titleById[p.quizId] || cleanTitle(p.quizId) })), [recent, titleById]);
+  const liveAll = useMemo(() => recent.filter((p) => p && p.quizId && titleById[p.quizId]).map((p) => ({ ...p, title: titleById[p.quizId] })), [recent, titleById]);
   // "Last Played" browse column: most recent plays, deduped to distinct quizzes
   // (the live feed relocated into the browse grid as the first column).
   const lastPlayed = useMemo(() => {
