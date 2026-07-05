@@ -73,6 +73,14 @@ const DEPT_HERO = {
   arts: 'https://upload.wikimedia.org/wikipedia/commons/thumb/d/d9/Museo_Chileno_de_Arte_Precolombino_-_2020_-_10.jpg/960px-Museo_Chileno_de_Arte_Precolombino_-_2020_-_10.jpg',
 };
 
+// Alternate department heroes, used ONLY when the Trending tile would repeat
+// the Newest tile's image (both quizzes falling back to the same DEPT_HERO,
+// or two quizzes sharing one hero). A department without an entry falls back
+// to its plain category-color block instead of repeating the photo.
+const DEPT_HERO_ALT = {
+  geography: 'https://upload.wikimedia.org/wikipedia/commons/thumb/9/97/The_Earth_seen_from_Apollo_17.jpg/960px-The_Earth_seen_from_Apollo_17.jpg',
+};
+
 // Per-quiz completion status for the CURRENT player, supplied once at the top of
 // the tree so any quiz row can show a check (played) or a circled check (aced at
 // 100%) without threading props. Visible only to that player (built from their
@@ -729,10 +737,20 @@ export default function QuizHomeClient() {
   // Full "View all" lists (every quiz, not the 6-row column preview).
   // Conditional navy backdrops for the hero-tile leader chips: probe the photo
   // behind each footer overlay (scrim folded in) and pill only when too light.
-  const nHeroProbe = newest[0] ? ((QUIZ_HEROES[newest[0].id] && QUIZ_HEROES[newest[0].id].src) || DEPT_HERO[newest[0].dept] || null) : null;
-  const [ntileProbeRef, ntilePill] = usePillProbe(nHeroProbe, PILL_REGION_FOOTER, 0.72, true);
-  const tHeroProbe = trending ? ((QUIZ_HEROES[trending.id] && QUIZ_HEROES[trending.id].src) || DEPT_HERO[trending.dept] || null) : null;
-  const [ttileProbeRef, ttilePill] = usePillProbe(tHeroProbe, PILL_REGION_FOOTER, 0.72, true);
+  const nQH = newest[0] ? QUIZ_HEROES[newest[0].id] : null;
+  const nHero = newest[0] ? ((nQH && nQH.src) || DEPT_HERO[newest[0].dept] || null) : null;
+  const nHeroPos = nQH ? nQH.pos : undefined;
+  const [ntileProbeRef, ntilePill] = usePillProbe(nHero, PILL_REGION_FOOTER, 0.72, true);
+  // Rule: the Trending tile may never repeat the Newest tile's hero image.
+  // When both resolve to the same src, Trending swaps to the department's
+  // alternate hero (DEPT_HERO_ALT), or to its category-color block if the
+  // department has no alternate. Computed BEFORE the pill probe so the probe
+  // samples the image actually rendered.
+  const tQH = trending ? QUIZ_HEROES[trending.id] : null;
+  let tHero = trending ? ((tQH && tQH.src) || DEPT_HERO[trending.dept] || null) : null;
+  let tHeroPos = tQH ? tQH.pos : undefined;
+  if (tHero && tHero === nHero) { tHero = DEPT_HERO_ALT[trending.dept] || null; tHeroPos = undefined; }
+  const [ttileProbeRef, ttilePill] = usePillProbe(tHero, PILL_REGION_FOOTER, 0.72, true);
 
   const newestAll = useMemo(() => catalog.slice()
     .filter((q) => !isBusinessNewsHubQuiz(q.id))
@@ -895,7 +913,7 @@ export default function QuizHomeClient() {
     .qzh .th-r2{display:grid;grid-template-columns:minmax(0,1.15fr) minmax(0,0.82fr) minmax(0,1fr);gap:12px;align-items:stretch;}
     .qzh .th-r2 .th-slot-hold{min-height:215px;}
     @media(max-width:820px){.qzh .thub{flex-direction:column;}.qzh .th-r2{grid-template-columns:1fr 1fr;}.qzh .th-r2 .dtile{grid-column:1 / -1;}}
-    @media(max-width:560px){.qzh .th-r2{grid-template-columns:minmax(0,1fr);}.qzh .th-rail{display:none !important;}.qzh .th-heroes .ntile{min-height:220px;background-position:center 12%;}.qzh .th-r2 .ttile{order:1;min-height:220px;}.qzh .th-r2 .dtile{order:2;}.qzh .th-r2 .dueltile{order:3;}.qzh .th-r2 .th-slot-hold{display:none;}.qzh .duelbtn{display:none !important;}}
+    @media(max-width:560px){.qzh .th-r2{grid-template-columns:minmax(0,1fr);}.qzh .th-rail{display:none !important;}.qzh .th-heroes .ntile{min-height:220px;background-position:center 12%;}.qzh .th-r2 .ttile{order:1;min-height:220px;}.qzh .th-r2 .dtile{order:2;}.qzh .th-r2 .dueltile{order:3;}.qzh .th-r2 .th-slot-hold{display:none;}.qzh .duelbtn{display:none !important;}/* Stacked full-width hero tiles: Newest matches Trending typography on mobile */.qzh .ntile-t{font-size:20px;}.qzh .ntile-tag{font-size:10px;padding:4px 10px;top:12px;left:12px;}.qzh .ntile-ov{padding:18px 16px 15px;}}
     .qzh .dtile{background:#0e1d40;border-radius:14px;padding:14px 15px;color:#fff;display:flex;flex-direction:column;min-height:190px;}
     .qzh .dtile-head{display:flex;align-items:center;gap:8px;margin-bottom:9px;}
     .qzh .dtile-chip{font-size:10px;font-weight:800;background:rgba(255,255,255,0.2);border-radius:12px;padding:2px 9px;text-transform:uppercase;letter-spacing:.04em;}
@@ -1198,7 +1216,7 @@ export default function QuizHomeClient() {
               </div>
             </div>
           </Link>)}
-          {newest[0] ? (() => { const nc = byKey[newest[0].dept] || {}; const NIcon = nc.Icon || Sparkles; const nqh = QUIZ_HEROES[newest[0].id]; const nHero = nqh ? nqh.src : DEPT_HERO[newest[0].dept]; const nPos = nqh ? nqh.pos : undefined; return (
+          {newest[0] ? (() => { const nc = byKey[newest[0].dept] || {}; const NIcon = nc.Icon || Sparkles; const nPos = nHeroPos; return (
               <Link href={`/quiz/${newest[0].id}`} className="ntile" style={nHero ? { backgroundImage: `url("${nHero}")`, backgroundPosition: nPos || 'center' } : { background: nc.c || C.accent }}>
                 <span className="ntile-tag" style={{ color: C.accent }}><Sparkles size={10} style={{ verticalAlign: -1 }} /> NEWEST</span>
                 <div className="ntile-ov" ref={ntileProbeRef}>
@@ -1234,7 +1252,7 @@ export default function QuizHomeClient() {
               </div>
             ) : <div />}
 
-            {trending ? (() => { const tc = byKey[trending.dept] || {}; const tqh = QUIZ_HEROES[trending.id]; const tHero = tqh ? tqh.src : DEPT_HERO[trending.dept]; const tPos = tqh ? tqh.pos : undefined; return (
+            {trending ? (() => { const tc = byKey[trending.dept] || {}; const tPos = tHeroPos; return (
             <Link href={`/quiz/${trending.id}`} className="ttile" style={tHero ? { backgroundImage: `url("${tHero}")`, backgroundPosition: tPos || 'center' } : { background: tc.c || C.accent }}>
               <span className="ttile-tag"><Flame size={11} style={{ verticalAlign: -1 }} /> TRENDING</span>
               <div className="ttile-ov" ref={ttileProbeRef}>
