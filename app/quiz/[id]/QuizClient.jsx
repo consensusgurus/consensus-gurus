@@ -850,7 +850,9 @@ export default function QuizClient({ quizId }) {
       orderRef.current = ord;
       setCurName(answers[ord[0]].t);
       setGuessesLeft(total);
-      setHint(quiz.suddenDeath
+      setHint(quiz.erase
+        ? `Erase ${answers[ord[0]].t} — click it to wipe it off the map. One wrong click ends the run, and there is no skipping.`
+        : quiz.suddenDeath
         ? `Find ${answers[ord[0]].t} — click it. One wrong click ends the game.`
         : `Find ${answers[ord[0]].t} — click it. You get ${total} guesses, one per country.`);
     } else if (bankMode) {
@@ -1116,7 +1118,7 @@ export default function QuizClient({ quizId }) {
     if (i < 0) return;
     // Clicking a country you've already named is harmless and free.
     if (found[i]) {
-      if (name !== curName) { setFlash({ name, ok: false }); setTimeout(() => setFlash((f) => (f && f.name === name ? null : f)), 400); }
+      if (!quiz.erase && name !== curName) { setFlash({ name, ok: false }); setTimeout(() => setFlash((f) => (f && f.name === name ? null : f)), 400); }
       return;
     }
     // Every genuine pick (right OR wrong) spends one guess from the budget,
@@ -1137,7 +1139,9 @@ export default function QuizClient({ quizId }) {
       if (left <= 0) { setHint(`Correct — ${name}. That was your last guess.`); setHintBad(false); setCurName(null); endGame(false, next); return; }
       const nn = answers[remaining[0]].t;
       setCurName(nn);
-      setHint(quiz.suddenDeath
+      setHint(quiz.erase
+        ? `Erased ${name}. ${left} to go. Now erase ${nn}.`
+        : quiz.suddenDeath
         ? `Correct — ${name}. ${left} to go. Now find ${nn}.`
         : `Correct — ${name}. ${left} ${left === 1 ? 'guess' : 'guesses'} left. Now find ${nn}.`);
       setHintBad(false);
@@ -1789,15 +1793,15 @@ export default function QuizClient({ quizId }) {
             ) : mapMode ? (
             <div>
               <div style={mapBarStyle}>
-                <span style={{ fontFamily: MONO, fontSize: 11, letterSpacing: '0.2em', textTransform: 'uppercase', opacity: 0.7, flex: 'none' }}>Find</span>
+                <span style={{ fontFamily: MONO, fontSize: 11, letterSpacing: '0.2em', textTransform: 'uppercase', opacity: 0.7, flex: 'none' }}>{quiz.erase ? 'Erase' : 'Find'}</span>
                 {(() => { const clueText = ended ? 'Game over' : started ? (curName || '—') : 'Press Play to start'; return (<span key={clueText} style={{ fontFamily: SERIF, fontWeight: 800, fontSize: 'clamp(16px, 4.2vw, 21px)', lineHeight: 1.15, flex: '1 1 auto', minWidth: 0, overflowWrap: 'break-word', transform: 'translateZ(0)' }}>{clueText}</span>); })()}
-                {started && !ended && (
+                {started && !ended && !quiz.erase && (
                   <button onClick={skipCountry} title="Can't find it? Skip and come back to it later." style={{ marginLeft: 'auto', flex: 'none', fontFamily: MONO, fontSize: 10, letterSpacing: '0.16em', textTransform: 'uppercase', fontWeight: 700, padding: '8px 14px', background: 'transparent', color: COLORS.cream, border: '1px solid rgba(244,237,224,0.4)', cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: 6 }}>
                     <SkipForward size={12} strokeWidth={2.5} /> Skip
                   </button>
                 )}
               </div>
-              <MapQuizBoard region={quiz.region || 'europe'} noBorders={quiz.noBorders} started={started} ended={ended} revealed={revealed} foundNames={foundNamesSet} flash={flash} onPick={pickCountry} mobile={mobile} />
+              <MapQuizBoard region={quiz.region || 'europe'} noBorders={quiz.noBorders} started={started} ended={ended} revealed={revealed} foundNames={foundNamesSet} flash={flash} onPick={pickCountry} erase={!!quiz.erase} mobile={mobile} />
               {mapBarDock && <div aria-hidden="true" style={{ height: 'calc(116px + env(safe-area-inset-bottom))' }} />}
             </div>
             ) : streetMapMode ? (

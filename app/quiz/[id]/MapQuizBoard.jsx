@@ -44,7 +44,7 @@ const SIZE_KEY = 'sot_map_size';
 
 const MAX_ZOOM = 6;
 
-export default function MapQuizBoard({ region, started, ended, revealed, foundNames, flash, onPick, noBorders: noBordersProp, mobile = false }) {
+export default function MapQuizBoard({ region, started, ended, revealed, foundNames, flash, onPick, noBorders: noBordersProp, erase = false, mobile = false }) {
   const [geo, setGeo] = useState(null);
   const [hover, setHover] = useState(null);
   const [size, setSize] = useState('fit');
@@ -100,7 +100,9 @@ export default function MapQuizBoard({ region, started, ended, revealed, foundNa
   const noBorders = !!(geo && geo.noBorders) || !!noBordersProp;
 
   function fillFor(name, base) {
-    if (foundNames && foundNames.has(name)) return GREEN;
+    // Erase mode: a found region is wiped off the map — painted as open sea
+    // (fill AND stroke) so it reads as a hole in the silhouette, not a win mark.
+    if (foundNames && foundNames.has(name)) return erase ? SEA : GREEN;
     if (revealed) return RED;
     if (flash && flash.name === name) return flash.ok ? GREEN : RED;
     if (hover === name && live && !noBorders) return HOVER;
@@ -281,6 +283,9 @@ export default function MapQuizBoard({ region, started, ended, revealed, foundNa
           );
         })}
         {geo.markers.map((m) => {
+          // Erase mode: an erased island marker vanishes entirely (box, leader
+          // line and anchor dot), same as an erased mainland region.
+          if (erase && foundNames && foundNames.has(m.name)) return null;
           const s = isMobile ? 13 : 9;
           // A marker with lx/ly is a callout: the clickable box is pulled out
           // into open water at (lx,ly) and a leader line ties it back to the
