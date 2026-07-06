@@ -428,7 +428,7 @@ export default function CrosslockClient() {
       <div style={{ position: 'relative', zIndex: 2, maxWidth: 980, margin: '0 auto', padding: '14px 16px 70px', fontFamily: SANS }}>
         <style>{`
           .cl-cols{display:grid;grid-template-columns:minmax(0,auto) minmax(280px,1fr);gap:30px;align-items:start;}
-          @media(max-width:860px){.cl-cols{grid-template-columns:1fr;gap:18px;}}
+          @media(max-width:860px){.cl-cols{grid-template-columns:1fr;gap:16px;}.cl-side{order:-1;}.cl-cat{min-height:0 !important;padding:8px 11px !important;}}
           .cl-grid{--cs:42px;}
           @media(max-width:560px){.cl-grid{--cs:calc((100vw - 62px)/10);}}
           .cl-key{border:none;font-family:${SANS};font-weight:800;cursor:pointer;border-radius:6px;padding:0;touch-action:manipulation;}
@@ -536,8 +536,8 @@ export default function CrosslockClient() {
             )}
           </div>
 
-          {/* right: categories + filing + result */}
-          <div>
+          {/* right: categories + filing + result (ordered above the grid on mobile — they are the clues) */}
+          <div className="cl-side">
             <div style={{ fontSize: 12.5, fontWeight: 800, textTransform: 'uppercase', letterSpacing: '.05em', color: COLORS.faded, marginBottom: 8 }}>
               The categories &mdash; each hides two of the eight words
             </div>
@@ -547,7 +547,7 @@ export default function CrosslockClient() {
                 const filed = Object.keys(g.assigned).filter((w) => g.assigned[w] === ci);
                 const clickable = playing && pick;
                 return (
-                  <div key={ci} onClick={clickable ? () => fileWord(pick, ci) : undefined}
+                  <div key={ci} className="cl-cat" onClick={clickable ? () => fileWord(pick, ci) : undefined}
                     style={{ background: cc.bg, borderRadius: 10, padding: '10px 12px', minHeight: 74, cursor: clickable ? 'pointer' : 'default', outline: clickable ? `2.5px dashed ${cc.tc}` : 'none', outlineOffset: 2 }}>
                     <div style={{ color: cc.tc, fontWeight: 800, fontSize: 12.5, textTransform: 'uppercase', letterSpacing: '.03em', lineHeight: 1.25, marginBottom: 7 }}>{cat.name}</div>
                     <div style={{ display: 'flex', gap: 5, flexWrap: 'wrap' }}>
