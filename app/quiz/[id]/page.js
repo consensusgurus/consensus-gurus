@@ -1,4 +1,5 @@
 import { Suspense } from 'react';
+import { redirect } from 'next/navigation';
 import QuizClient from './QuizClient';
 import { QUIZZES, getQuiz } from '@/lib/quizzes';
 
@@ -47,6 +48,10 @@ export async function generateMetadata({ params }) {
 export default function QuizPage({ params }) {
   const id = decodeURIComponent(params.id);
   const quiz = getQuiz(id);
+
+  // Crosslock lives on its own page; the catalog entry exists so the hub,
+  // search, and sitemap can surface it. Send players to the real board.
+  if (quiz && quiz.format === 'crosslock') redirect('/crosslock');
 
   const jsonLd = quiz
     ? {
