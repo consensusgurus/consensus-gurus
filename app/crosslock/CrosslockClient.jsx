@@ -101,7 +101,7 @@ function fmtTime(ms) {
   return `${Math.floor(s / 60)}:${String(s % 60).padStart(2, '0')}`;
 }
 
-// Standard Wordle marking with duplicate handling.
+// Per-letter feedback marking with duplicate handling.
 export function computeMarks(guess, answer) {
   const n = answer.length;
   const marks = Array(n).fill('x');
