@@ -1,12 +1,13 @@
 'use client';
 
-// Crosslock — Crossword × Wordle × Connections.
+// Crosslock — a clue-less mini crossword with letter-feedback guessing and
+// hidden category pairs.
 //
 // Eight hidden words interlock in a mini crossword grid. There are no clues:
-// the only hints are four Connections-style categories, each owning exactly
-// two of the eight words (which slots? that's the puzzle). Every slot is
-// solved Wordle-style — type any letters, get green/yellow feedback — and
-// green letters lock into the grid, bleeding into crossing slots. The whole
+// the only hints are four categories, each owning exactly two of the eight
+// words (which slots? that's the puzzle). Every slot is solved by guessing —
+// type any letters, get locked/close feedback per letter — and locked
+// letters stay in the grid, bleeding into crossing slots. The whole
 // board shares one guess budget. Solved words must then be filed under their
 // category: completing a pair refunds a guess, filing wrong costs a strike
 // (four strikes ends the game).
@@ -30,7 +31,7 @@ const COLORS = {
 };
 const SANS = "'Manrope', system-ui, -apple-system, sans-serif";
 
-// Same difficulty palette as the site's Connections boards (easy -> hard).
+// Same difficulty palette as the site's group-guessing quiz boards (easy -> hard).
 const CAT_COLORS = [
   { bg: '#e6b93f', tc: '#5c4a06', sq: '\u{1F7E8}' },
   { bg: '#5aa96a', tc: '#173f1f', sq: '\u{1F7E9}' },
@@ -447,7 +448,7 @@ export default function CrosslockClient() {
           </button>
         </div>
         <p style={{ margin: '0 0 14px', fontSize: 13.5, color: COLORS.faded, fontWeight: 600 }}>
-          Crossword &times; Wordle &times; Connections. No clues &mdash; the four categories below are the only hints.
+          A crossword with no clues &mdash; the four categories are the only hints. One shared guess budget.
         </p>
 
         {/* status strip */}
@@ -624,7 +625,7 @@ export default function CrosslockClient() {
             </div>
             <div style={{ fontSize: 14, lineHeight: 1.6, color: COLORS.ink, fontWeight: 600 }}>
               <p style={{ margin: '0 0 10px' }}><b>Eight words</b> interlock in the grid. There are no clues &mdash; the <b>four categories</b> are the only hints. Each category owns exactly <b>two</b> of the eight words.</p>
-              <p style={{ margin: '0 0 10px' }}><b>Guess like Wordle.</b> Tap a slot, type any letters, hit enter. <span style={{ background: COLORS.ink, color: '#fff', borderRadius: 4, padding: '1px 6px', fontWeight: 800 }}>Dark</span> = right letter, right square &mdash; it locks into the grid, including for the crossing word. <span style={{ background: '#e6b93f', color: '#5c4a06', borderRadius: 4, padding: '1px 6px', fontWeight: 800 }}>Yellow</span> = in this word, different square.</p>
+              <p style={{ margin: '0 0 10px' }}><b>Guess to reveal.</b> Tap a slot, type any letters, hit enter. <span style={{ background: COLORS.ink, color: '#fff', borderRadius: 4, padding: '1px 6px', fontWeight: 800 }}>Dark</span> = right letter, right square &mdash; it locks into the grid, including for the crossing word. <span style={{ background: '#e6b93f', color: '#5c4a06', borderRadius: 4, padding: '1px 6px', fontWeight: 800 }}>Yellow</span> = in this word, different square.</p>
               <p style={{ margin: '0 0 10px' }}><b>The whole board shares {PUZZLE.guesses} guesses.</b> Crossings are your friend: a locked letter narrows every word it touches.</p>
               <p style={{ margin: '0 0 10px' }}><b>File your solves.</b> After solving a word, tap it and file it under a category. Completing a pair correctly refunds <b>+1 guess</b>. Filing wrong costs a <b>strike</b> &mdash; four strikes and the game ends. Beware: some words look right in two categories.</p>
               <p style={{ margin: 0, color: COLORS.faded, fontSize: 12.5 }}>Win by solving all eight words and filing all four pairs. If every letter of a word gets locked by crossings, it solves itself &mdash; free.</p>
