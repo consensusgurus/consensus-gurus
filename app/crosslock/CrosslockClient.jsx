@@ -20,6 +20,10 @@ import { HelpCircle, Share2, RotateCcw, X, ChevronLeft, ChevronRight } from 'luc
 import Grain from '../Grain';
 import Footer from '../Footer';
 import SiteHeader from '../SiteHeader';
+import JoinLeaderboardForm from '../quiz/[id]/JoinLeaderboardForm';
+import QuizLeaderboard from '../quiz/[id]/QuizLeaderboard';
+import LeaderboardStrip from '../quiz/[id]/LeaderboardStrip';
+import { isMobileDevice } from '@/lib/is-mobile';
 
 const COLORS = {
   cream: '#f7f8fa',
@@ -41,6 +45,7 @@ const CAT_COLORS = [
 
 const PUZZLE = {
   num: 1,
+  quizId: 'crosslock-7-6-26',
   dateLabel: 'July 6, 2026',
   guesses: 18,
   categories: [
@@ -101,6 +106,21 @@ function fmtTime(ms) {
   return `${Math.floor(s / 60)}:${String(s % 60).padStart(2, '0')}`;
 }
 
+// Same anon identity the other quiz boards use, so plays attribute correctly
+// and a later leaderboard join claims this browser's past results.
+function getAnonId() {
+  if (typeof window === 'undefined') return null;
+  try {
+    let a = localStorage.getItem('sot_quiz_anon');
+    if (!a) {
+      a = (window.crypto && crypto.randomUUID) ? crypto.randomUUID() : `a_${Date.now()}_${Math.random().toString(36).slice(2)}`;
+      localStorage.setItem('sot_quiz_anon', a);
+    }
+    return a;
+  } catch (e) { return null; }
+}
+const EMPTY_BOARD = { plays: 0, best: null, topTime: null, leaderboard: [], leaderboardAll: [], leaderboardMobile: [], leaderboardFirst: [], leaderboards: {} };
+
 // Per-letter feedback marking with duplicate handling.
 export function computeMarks(guess, answer) {
   const n = answer.length;
@@ -144,7 +164,11 @@ export default function CrosslockClient() {
   const [toast, setToast] = useState(null);
   const [copied, setCopied] = useState(false);
   const [hydrated, setHydrated] = useState(false);
+  const [board, setBoard] = useState(EMPTY_BOARD);
+  const [identity, setIdentity] = useState(null);
+  const [showLb, setShowLb] = useState(false);
   const toastTimer = useRef(null);
+  const viewedRef = useRef(false);
 
   // ---- persistence ----
   useEffect(() => {
@@ -162,6 +186,22 @@ export default function CrosslockClient() {
     if (!hydrated) return;
     try { localStorage.setItem(STORE_KEY, JSON.stringify(g)); } catch (e) {}
   }, [g, hydrated]);
+
+  // ---- metrics + leaderboard (same /api/quiz/* flow as every other board) ----
+  useEffect(() => {
+    try {
+      const id = JSON.parse(localStorage.getItem('sot_quiz_identity'));
+      if (id && id.email) setIdentity(id);
+    } catch (e) {}
+    fetch(`/api/quiz/board?quizId=${encodeURIComponent(PUZZLE.quizId)}`)
+      .then((r) => r.json())
+      .then((d) => { if (d && !d.error) setBoard({ ...EMPTY_BOARD, ...d }); })
+      .catch(() => {});
+    if (!viewedRef.current) {
+      viewedRef.current = true;
+      fetch('/api/quiz/view', { method: 'POST', keepalive: true, headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ quizId: PUZZLE.quizId }) }).catch(() => {});
+    }
+  }, []);
 
   function say(msg) {
     setToast(msg);
@@ -259,10 +299,30 @@ export default function CrosslockClient() {
     if (!allSolved && g2.left <= 0) {
       g2.status = 'lost';
       g2.tEnd = Date.now();
+      postResult(g2);
     }
     setTyped('');
     if (g2.solved[sel] && g2.status === 'playing') setSel(nextUnsolved(g2, sel));
     setG(g2);
+  }
+
+  // One completed game = one play (win or loss). Score = words solved of 8,
+  // time is the tiebreak — same shape the connections-format boards report.
+  // Only game-end transitions post, so resumed/saved games never double-count;
+  // replays post again on their own completion, matching the site-wide metric.
+  function postResult(g2) {
+    const el = g2.t0 ? Math.max(1, Math.round(((g2.tEnd || Date.now()) - g2.t0) / 1000)) : 1;
+    try {
+      fetch('/api/quiz/result', {
+        method: 'POST',
+        keepalive: true,
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ quizId: PUZZLE.quizId, score: g2.order.length, total: PUZZLE.slots.length, correct: g2.order.length, timeElapsed: el, email: identity?.email || undefined, anonId: getAnonId(), isMobile: isMobileDevice(), referrer: (typeof document !== 'undefined' ? document.referrer : '') }),
+      })
+        .then((r) => r.json())
+        .then((d) => { if (d && !d.error) setBoard({ ...EMPTY_BOARD, ...d }); })
+        .catch(() => {});
+    } catch (e) {}
   }
 
   function fileWord(word, ci) {
@@ -277,6 +337,7 @@ export default function CrosslockClient() {
       if (allFiled && PUZZLE.slots.every((s) => g2.solved[s.id])) {
         g2.status = 'won';
         g2.tEnd = Date.now();
+        postResult(g2);
       }
       setG(g2);
       setPick(null);
@@ -586,7 +647,24 @@ export default function CrosslockClient() {
                   <button className="cl-btn" onClick={copyShare}><Share2 size={15} /> {copied ? 'Copied' : 'Share result'}</button>
                   <button className="cl-btn" onClick={resetGame} style={{ borderColor: '#c3c8cf', color: COLORS.faded }}><RotateCcw size={15} /> Replay</button>
                 </div>
-                <p style={{ fontSize: 12, color: COLORS.faded, fontWeight: 600, margin: '12px 0 0' }}>Puzzle #2 is coming. This one's a quiet launch &mdash; if you found it, you were meant to.</p>
+                <p style={{ fontSize: 12, color: COLORS.faded, fontWeight: 600, margin: '12px 0 0' }}>Puzzle #2 is coming soon.</p>
+              </div>
+            )}
+
+            {/* leaderboard: strip + expandable full board + join form */}
+            {!playing && (
+              <div style={{ marginBottom: 12 }}>
+                <LeaderboardStrip board={board} identity={identity} onOpen={() => setShowLb(true)} />
+              </div>
+            )}
+            {!playing && showLb && (
+              <div style={{ background: '#fff', border: '1.5px solid rgba(20,22,28,0.12)', borderRadius: 12, padding: '12px 14px', marginBottom: 12 }}>
+                <QuizLeaderboard board={board} identity={identity} total={PUZZLE.slots.length} />
+              </div>
+            )}
+            {!playing && !identity && (
+              <div style={{ marginBottom: 12 }}>
+                <JoinLeaderboardForm identity={identity} onJoined={(id) => { setIdentity(id); setShowLb(true); }} onViewLeaderboard={() => setShowLb(true)} />
               </div>
             )}
           </div>
