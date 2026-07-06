@@ -8,9 +8,9 @@
 // words (which slots? that's the puzzle). Every slot is solved by guessing —
 // type any letters, get locked/close feedback per letter — and locked
 // letters stay in the grid, bleeding into crossing slots. The whole
-// board shares one guess budget. Solved words must then be filed under their
-// category: completing a pair refunds a guess, filing wrong costs a strike
-// (four strikes ends the game).
+// board shares one guess budget. Solved words are then filed under their
+// category to finish. Filing is penalty-free — the categories' job is to be
+// the clues (and the traps) during the guessing phase.
 //
 // Soft launch: this page is intentionally NOT linked from the homepage, the
 // /quizzes hub, or the sitemap. Reachable only at /crosslock.
@@ -42,7 +42,7 @@ const CAT_COLORS = [
 const PUZZLE = {
   num: 1,
   dateLabel: 'July 6, 2026',
-  guesses: 16,
+  guesses: 18,
   categories: [
     { name: 'Card games', words: ['HEARTS', 'BRIDGE'] },
     { name: 'Musical instruments', words: ['ORGAN', 'VIOLA'] },
@@ -129,7 +129,6 @@ const FRESH = {
   lastGuess: {},       // slotId -> { word, marks[] }
   assigned: {},        // WORD -> category index (correct filings only)
   order: [],           // slotIds in solve order
-  strikes: 0,
   left: PUZZLE.guesses,
   status: 'playing',   // playing | won | lost
   t0: null,
@@ -273,24 +272,17 @@ export default function CrosslockClient() {
       const assigned2 = { ...g.assigned, [word]: ci };
       const g2 = { ...g, assigned: assigned2 };
       const pairDone = PUZZLE.categories[ci].words.every((w) => assigned2[w] === ci);
-      if (pairDone) {
-        g2.left = g.left + 1;
-        say(`${PUZZLE.categories[ci].name} complete — +1 guess back`);
-      }
+      if (pairDone) say(`${PUZZLE.categories[ci].name} — pair complete`);
       const allFiled = PUZZLE.slots.every((s) => assigned2[s.word] !== undefined);
       if (allFiled && PUZZLE.slots.every((s) => g2.solved[s.id])) {
         g2.status = 'won';
         g2.tEnd = Date.now();
       }
       setG(g2);
+      setPick(null);
     } else {
-      const strikes2 = g.strikes + 1;
-      const g2 = { ...g, strikes: strikes2 };
-      if (strikes2 >= 4) { g2.status = 'lost'; g2.tEnd = Date.now(); }
-      else say(`Not ${PUZZLE.categories[ci].name.toLowerCase()} — strike ${strikes2} of 4`);
-      setG(g2);
+      say(`Not ${PUZZLE.categories[ci].name.toLowerCase()} — try another spot`);
     }
-    setPick(null);
   }
 
   function cellClick(r, c) {
@@ -324,8 +316,8 @@ export default function CrosslockClient() {
       .map((sid) => CAT_COLORS[catOfWord(SLOT[sid].word)].sq + (g.slotGuesses[sid] || 0))
       .join(' ');
     const head = g.status === 'won'
-      ? `Solved in ${guessesUsed} guesses · ${g.strikes} strike${g.strikes === 1 ? '' : 's'} · ${elapsed}`
-      : `${g.order.length}/8 words · ${g.strikes} strike${g.strikes === 1 ? '' : 's'}`;
+      ? `Solved in ${guessesUsed} guesses · ${elapsed}`
+      : `${g.order.length}/8 words`;
     return `Crosslock #${PUZZLE.num}\n${head}\n${squares}${g.order.length < 8 ? ' ⬛'.repeat(8 - g.order.length) : ''}\nsourceoftruths.com/crosslock`;
   }
   function copyShare() {
@@ -460,12 +452,6 @@ export default function CrosslockClient() {
               <div style={{ width: `${Math.max(0, Math.min(100, (g.left / PUZZLE.guesses) * 100))}%`, height: '100%', background: g.left <= 3 ? COLORS.rust : COLORS.ember, transition: 'width .2s' }} />
             </div>
           </div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 7 }}>
-            <span style={{ fontSize: 12.5, fontWeight: 800, textTransform: 'uppercase', letterSpacing: '.05em', color: COLORS.faded }}>Strikes</span>
-            {[0, 1, 2, 3].map((i) => (
-              <span key={i} style={{ width: 11, height: 11, borderRadius: '50%', background: i < g.strikes ? COLORS.rust : 'transparent', border: `2px solid ${i < g.strikes ? COLORS.rust : '#c3c8cf'}` }} />
-            ))}
-          </div>
           <div style={{ fontSize: 12.5, fontWeight: 700, color: COLORS.faded }}>{g.order.length}/8 words solved</div>
         </div>
 
@@ -572,7 +558,7 @@ export default function CrosslockClient() {
             {playing && solvedUnfiled.length > 0 && (
               <div style={{ background: '#fff', border: '1.5px solid rgba(20,22,28,0.12)', borderRadius: 10, padding: '10px 12px', marginBottom: 14 }}>
                 <div style={{ fontSize: 12, fontWeight: 800, color: COLORS.ink, marginBottom: 7 }}>
-                  {pick ? <>Filing <span style={{ color: COLORS.ember }}>{pick}</span> &mdash; tap its category (wrong = strike)</> : 'Solved — tap a word, then its category. Complete a pair, get +1 guess.'}
+                  {pick ? <>Filing <span style={{ color: COLORS.ember }}>{pick}</span> &mdash; tap its category</> : 'Solved — tap a word, then tap its category.'}
                 </div>
                 <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
                   {solvedUnfiled.map((w) => (
@@ -589,11 +575,11 @@ export default function CrosslockClient() {
             {!playing && (
               <div style={{ background: '#fff', border: `2px solid ${COLORS.ink}`, borderRadius: 12, padding: '16px 16px 14px', marginBottom: 14 }}>
                 <div style={{ fontSize: 19, fontWeight: 800, color: won ? COLORS.ink : COLORS.rust, marginBottom: 4 }}>
-                  {won ? 'Locked it.' : g.strikes >= 4 ? 'Four strikes.' : 'Out of guesses.'}
+                  {won ? 'Locked it.' : 'Out of guesses.'}
                 </div>
                 <div style={{ fontSize: 13.5, fontWeight: 700, color: COLORS.faded, marginBottom: 12 }}>
                   {won
-                    ? <>{guessesUsed} guesses &middot; {g.strikes} strike{g.strikes === 1 ? '' : 's'} &middot; {elapsed}</>
+                    ? <>{guessesUsed} guesses &middot; {elapsed}</>
                     : <>{g.order.length} of 8 words &middot; the reveal is on the board</>}
                 </div>
                 <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
@@ -627,7 +613,7 @@ export default function CrosslockClient() {
               <p style={{ margin: '0 0 10px' }}><b>Eight words</b> interlock in the grid. There are no clues &mdash; the <b>four categories</b> are the only hints. Each category owns exactly <b>two</b> of the eight words.</p>
               <p style={{ margin: '0 0 10px' }}><b>Guess to reveal.</b> Tap a slot, type any letters, hit enter. <span style={{ background: COLORS.ink, color: '#fff', borderRadius: 4, padding: '1px 6px', fontWeight: 800 }}>Dark</span> = right letter, right square &mdash; it locks into the grid, including for the crossing word. <span style={{ background: '#e6b93f', color: '#5c4a06', borderRadius: 4, padding: '1px 6px', fontWeight: 800 }}>Yellow</span> = in this word, different square.</p>
               <p style={{ margin: '0 0 10px' }}><b>The whole board shares {PUZZLE.guesses} guesses.</b> Crossings are your friend: a locked letter narrows every word it touches.</p>
-              <p style={{ margin: '0 0 10px' }}><b>File your solves.</b> After solving a word, tap it and file it under a category. Completing a pair correctly refunds <b>+1 guess</b>. Filing wrong costs a <b>strike</b> &mdash; four strikes and the game ends. Beware: some words look right in two categories.</p>
+              <p style={{ margin: '0 0 10px' }}><b>File your solves.</b> After solving a word, tap it and file it under its category to finish the puzzle. No penalty for filing wrong &mdash; but while you guess, beware: some words look right in two categories.</p>
               <p style={{ margin: 0, color: COLORS.faded, fontSize: 12.5 }}>Win by solving all eight words and filing all four pairs. If every letter of a word gets locked by crossings, it solves itself &mdash; free.</p>
             </div>
             <button className="cl-btn" onClick={() => { setShowHelp(false); try { localStorage.setItem(HELP_KEY, '1'); } catch (e) {} }} style={{ marginTop: 14, background: COLORS.ink, color: '#fff' }}>Play</button>
