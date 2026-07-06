@@ -22,7 +22,6 @@ import Footer from '../Footer';
 import SiteHeader from '../SiteHeader';
 import JoinLeaderboardForm from '../quiz/[id]/JoinLeaderboardForm';
 import QuizLeaderboard from '../quiz/[id]/QuizLeaderboard';
-import LeaderboardStrip from '../quiz/[id]/LeaderboardStrip';
 import { isMobileDevice } from '@/lib/is-mobile';
 
 const COLORS = {
@@ -166,7 +165,6 @@ export default function CrosslockClient() {
   const [hydrated, setHydrated] = useState(false);
   const [board, setBoard] = useState(EMPTY_BOARD);
   const [identity, setIdentity] = useState(null);
-  const [showLb, setShowLb] = useState(false);
   const toastTimer = useRef(null);
   const viewedRef = useRef(false);
 
@@ -651,20 +649,15 @@ export default function CrosslockClient() {
               </div>
             )}
 
-            {/* leaderboard: strip + expandable full board + join form */}
+            {/* leaderboard (no strip — owner removed strips from quiz pages 2026-06-30) */}
             {!playing && (
-              <div style={{ marginBottom: 12 }}>
-                <LeaderboardStrip board={board} identity={identity} onOpen={() => setShowLb(true)} />
-              </div>
-            )}
-            {!playing && showLb && (
               <div style={{ background: '#fff', border: '1.5px solid rgba(20,22,28,0.12)', borderRadius: 12, padding: '12px 14px', marginBottom: 12 }}>
                 <QuizLeaderboard board={board} identity={identity} total={PUZZLE.slots.length} />
               </div>
             )}
             {!playing && !identity && (
               <div style={{ marginBottom: 12 }}>
-                <JoinLeaderboardForm identity={identity} onJoined={(id) => { setIdentity(id); setShowLb(true); }} onViewLeaderboard={() => setShowLb(true)} />
+                <JoinLeaderboardForm identity={identity} onJoined={(id) => setIdentity(id)} onViewLeaderboard={() => {}} />
               </div>
             )}
           </div>
