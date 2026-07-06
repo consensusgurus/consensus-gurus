@@ -3,6 +3,7 @@ import { supabaseAdmin } from '@/lib/supabase-server';
 import { buildLeaderboardMatrix } from '@/lib/quiz-anon';
 
 export const dynamic = 'force-dynamic';
+export const fetchCache = 'force-no-store';
 const CACHE_HEADERS = { 'Cache-Control': 'public, s-maxage=30, stale-while-revalidate=60' };
 
 // Summarize completed games for a quiz into play count, average correct, and

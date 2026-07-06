@@ -4,6 +4,7 @@ import { buildAnonPlayers } from '@/lib/quiz-anon';
 import { correctAnswersOf } from '@/lib/quiz-scoring';
 
 export const dynamic = 'force-dynamic';
+export const fetchCache = 'force-no-store';
 const CACHE_HEADERS = { 'Cache-Control': 'public, s-maxage=120, stale-while-revalidate=300' };
 
 const MIN_QUIZZES = 5;

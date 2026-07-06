@@ -3,6 +3,7 @@ import { supabaseAdmin } from '@/lib/supabase-server';
 import { correctAnswersOf } from '@/lib/quiz-scoring';
 
 export const dynamic = 'force-dynamic';
+export const fetchCache = 'force-no-store';
 const CACHE_HEADERS = { 'Cache-Control': 'public, s-maxage=60, stale-while-revalidate=120' };
 
 // Midnight "today" in US Eastern (handles EST/EDT) as a UTC epoch ms. Eastern

@@ -4,6 +4,7 @@ import { fetchAllRows } from '@/lib/fetch-all';
 import { correctAnswersOf } from '@/lib/quiz-scoring';
 
 export const dynamic = 'force-dynamic';
+export const fetchCache = 'force-no-store';
 const CACHE_HEADERS = { 'Cache-Control': 'public, s-maxage=60, stale-while-revalidate=120' };
 
 // GET /api/quiz/totals -> { total, byQuiz, recent7, recent12h, trendingByQuiz, trendingWindowH }

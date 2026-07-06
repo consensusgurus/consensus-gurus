@@ -9,6 +9,7 @@ import { supabaseAdmin } from '@/lib/supabase-server';
 import { LISTS } from '@/lib/data';
 
 export const dynamic = 'force-dynamic';
+export const fetchCache = 'force-no-store';
 const CACHE_HEADERS = { 'Cache-Control': 'public, s-maxage=300, stale-while-revalidate=600' };
 
 const MOVEMENT_TYPES = ['moved', 'entered_top10', 'entered_top3', 'exited_top10', 'exited_top3'];

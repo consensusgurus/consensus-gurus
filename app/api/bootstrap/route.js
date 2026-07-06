@@ -3,6 +3,7 @@ import { supabase } from '@/lib/supabase';
 import { fetchAllRows } from '@/lib/fetch-all';
 
 export const dynamic = 'force-dynamic';
+export const fetchCache = 'force-no-store';
 const CACHE_HEADERS = { 'Cache-Control': 'public, s-maxage=300, stale-while-revalidate=600' };
 
 export async function GET() {
