@@ -49,9 +49,11 @@ export default function QuizPage({ params }) {
   const id = decodeURIComponent(params.id);
   const quiz = getQuiz(id);
 
-  // Crosslock lives on its own page; the catalog entry exists so the hub,
+  // Crux lives on its own page; the catalog entry exists so the hub,
   // search, and sitemap can surface it. Send players to the real board.
-  if (quiz && quiz.format === 'crosslock') redirect('/crosslock');
+  // (Legacy id from the few hours it launched as Crosslock, 2026-07-06.)
+  if (id === 'crosslock-7-6-26') redirect('/crux');
+  if (quiz && quiz.format === 'crux') redirect('/crux');
 
   const jsonLd = quiz
     ? {

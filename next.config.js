@@ -9,6 +9,13 @@ const nextConfig = {
   },
   async redirects() {
     return [
+      // Renamed 2026-07-06: the Crosslock word game relaunched as Crux (same
+      // game, same puzzle #1). Old links 308 to the new home.
+      {
+        source: '/crosslock',
+        destination: '/crux',
+        permanent: true,
+      },
       // Renamed 2026-06-19: 'Inputs' rebranded to 'Experts and Aggregators'.
       // Old /sources and /inputs both 308 to the new path.
       {

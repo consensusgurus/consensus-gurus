@@ -1,6 +1,6 @@
 'use client';
 
-// Crosslock — a clue-less mini crossword with letter-feedback guessing and
+// Crux — a clue-less mini crossword with letter-feedback guessing and
 // hidden category pairs.
 //
 // Eight hidden words interlock in a mini crossword grid. There are no clues:
@@ -13,7 +13,7 @@
 // the clues (and the traps) during the guessing phase.
 //
 // Soft launch: this page is intentionally NOT linked from the homepage, the
-// /quizzes hub, or the sitemap. Reachable only at /crosslock.
+// /quizzes hub, or the sitemap. Reachable only at /crux.
 
 import React, { useState, useEffect, useMemo, useRef, useCallback } from 'react';
 import { HelpCircle, Share2, RotateCcw, X, ChevronLeft, ChevronRight } from 'lucide-react';
@@ -44,7 +44,7 @@ const CAT_COLORS = [
 
 const PUZZLE = {
   num: 1,
-  quizId: 'crosslock-7-6-26',
+  quizId: 'crux-7-6-26',
   dateLabel: 'July 6, 2026',
   guesses: 18,
   categories: [
@@ -68,8 +68,8 @@ const PUZZLE = {
 };
 const ROWS = 9;
 const COLS = 10;
-const STORE_KEY = `sot_crosslock_${PUZZLE.num}`;
-const HELP_KEY = 'sot_crosslock_help_seen';
+const STORE_KEY = `sot_crux_${PUZZLE.num}`;
+const HELP_KEY = 'sot_crux_help_seen';
 
 const SLOT = Object.fromEntries(PUZZLE.slots.map((s) => [s.id, s]));
 
@@ -154,7 +154,7 @@ const FRESH = {
   tEnd: null,
 };
 
-export default function CrosslockClient() {
+export default function CruxClient() {
   const [g, setG] = useState(FRESH);
   const [sel, setSel] = useState('1D');
   const [typed, setTyped] = useState('');
@@ -377,7 +377,7 @@ export default function CrosslockClient() {
     const head = g.status === 'won'
       ? `Solved in ${guessesUsed} guesses · ${elapsed}`
       : `${g.order.length}/8 words`;
-    return `Crosslock #${PUZZLE.num}\n${head}\n${squares}${g.order.length < 8 ? ' ⬛'.repeat(8 - g.order.length) : ''}\nsourceoftruths.com/crosslock`;
+    return `Crux #${PUZZLE.num}\n${head}\n${squares}${g.order.length < 8 ? ' ⬛'.repeat(8 - g.order.length) : ''}\nsourceoftruths.com/crux`;
   }
   function copyShare() {
     try {
@@ -491,7 +491,7 @@ export default function CrosslockClient() {
 
         {/* header */}
         <div style={{ display: 'flex', alignItems: 'baseline', gap: 12, flexWrap: 'wrap', marginBottom: 2 }}>
-          <h1 style={{ margin: 0, fontSize: 30, fontWeight: 800, letterSpacing: '-0.02em', color: COLORS.ink }}>Crosslock</h1>
+          <h1 style={{ margin: 0, fontSize: 30, fontWeight: 800, letterSpacing: '-0.02em', color: COLORS.ink }}>Crux</h1>
           <span style={{ fontSize: 13, fontWeight: 800, color: '#fff', background: COLORS.ember, borderRadius: 6, padding: '2px 8px' }}>#{PUZZLE.num}</span>
           <span style={{ fontSize: 13, fontWeight: 700, color: COLORS.faded }}>{PUZZLE.dateLabel}</span>
           <button onClick={() => setShowHelp(true)} aria-label="How to play" style={{ marginLeft: 'auto', background: 'none', border: 'none', cursor: 'pointer', color: COLORS.faded, display: 'flex', alignItems: 'center', gap: 5, fontFamily: SANS, fontWeight: 700, fontSize: 13 }}>
