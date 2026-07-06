@@ -1512,7 +1512,7 @@ function ChallengesPanel({ me }) {
         .chg-prize{display:inline-flex;align-items:center;gap:8px;margin-top:12px;padding:8px 13px;background:${C.accent};color:#fff;font-size:12px;font-weight:700;border-radius:8px;}
         .chg-play{display:flex;flex-wrap:wrap;gap:8px;margin-top:8px;}
         .chg-playchip{display:inline-flex;align-items:center;justify-content:center;gap:6px;background:${C.accent};color:#fff;padding:8px 14px;border-radius:8px;font-family:${FONT};font-size:12px;font-weight:700;text-decoration:none;text-align:center;}
-        @media(max-width:600px){.chg-play{display:grid;grid-template-columns:1fr;grid-auto-rows:1fr;}.chg-playchip{width:100%;box-sizing:border-box;}}
+        @media(max-width:600px){.chg-play{display:grid;grid-template-columns:repeat(2,1fr);grid-auto-rows:1fr;}.chg-play:has(> :nth-child(4):last-child),.chg-play:has(> :nth-child(-n+3):last-child){grid-template-columns:1fr;}.chg-playchip{width:100%;box-sizing:border-box;}}
       `}</style>
 
       <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginBottom: 12 }}>
@@ -1535,7 +1535,7 @@ function ChallengesPanel({ me }) {
         <div style={{ fontSize: 13, color: C.muted, marginTop: 3, maxWidth: 760 }}>{ch.blurb}</div>
         {ch.prize ? (<div className="chg-prize"><Trophy size={13} strokeWidth={2.4} /> {ch.prize}</div>) : null}
 
-        {cols.length <= 3 && (
+        {cols.length > 0 && (
           <div style={{ marginTop: 14 }}>
             <span style={{ fontSize: 11, fontWeight: 700, letterSpacing: '.04em', textTransform: 'uppercase', color: C.soft }}>{ch.daily ? 'Play today' : 'Play the quizzes'}</span>
             <div className="chg-play">
