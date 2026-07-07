@@ -16,11 +16,13 @@
 // /quizzes hub, or the sitemap. Reachable only at /crux.
 
 import React, { useState, useEffect, useMemo, useRef, useCallback } from 'react';
+import { useSearchParams } from 'next/navigation';
 import { HelpCircle, Share2, RotateCcw, X, ChevronLeft, ChevronRight, Swords } from 'lucide-react';
 import Grain from '../Grain';
 import Footer from '../Footer';
 import SiteHeader from '../SiteHeader';
 import QuizPlayerBar from '../quiz/[id]/QuizPlayerBar';
+import useDuelContext, { DuelBanner } from '../quiz/[id]/useDuelContext';
 import JoinLeaderboardForm from '../quiz/[id]/JoinLeaderboardForm';
 import QuizLeaderboard from '../quiz/[id]/QuizLeaderboard';
 import { isMobileDevice } from '@/lib/is-mobile';
@@ -394,10 +396,11 @@ export default function CruxClient({ forceNum = null }) {
   const [showHelp, setShowHelp] = useState(false);
   const [toast, setToast] = useState(null);
   const [copied, setCopied] = useState(false);
-  const [challenged, setChallenged] = useState(false);
   const [hydrated, setHydrated] = useState(false);
   const [board, setBoard] = useState(EMPTY_BOARD);
   const [identity, setIdentity] = useState(null);
+  const searchParams = useSearchParams();
+  const { duelToken, duelInfo, duelSubmitted } = useDuelContext(PUZZLE.quizId, searchParams);
   const toastTimer = useRef(null);
   const viewedRef = useRef(false);
 
@@ -620,25 +623,6 @@ export default function CruxClient({ forceNum = null }) {
       navigator.clipboard?.writeText(text).then(() => {
         setCopied(true);
         setTimeout(() => setCopied(false), 1800);
-      });
-    } catch (e) {}
-  }
-  function challengeFriend() {
-    const isToday = PUZZLE.num === pickPuzzle(null).num;
-    const url = `https://sourceoftruths.com/crux${isToday ? '' : `?p=${PUZZLE.num}`}`;
-    const msg = g.status === 'won'
-      ? `I got to the crux of the matter in ${guessesUsed} guesses. Think you can beat me?`
-      : `Crux #${PUZZLE.num} \u2014 eight hidden words, four secret categories, eighteen shared guesses. Think you can crack it?`;
-    try {
-      if (typeof navigator !== 'undefined' && navigator.share) {
-        navigator.share({ title: `Crux #${PUZZLE.num}`, text: msg, url }).catch(() => {});
-        return;
-      }
-    } catch (e) {}
-    try {
-      navigator.clipboard?.writeText(`${msg} ${url}`).then(() => {
-        setChallenged(true);
-        setTimeout(() => setChallenged(false), 1800);
       });
     } catch (e) {}
   }
@@ -915,9 +899,9 @@ export default function CruxClient({ forceNum = null }) {
         {/* standard quiz-page bottom: challenge + join + leaderboard (always) */}
         <div style={{ maxWidth: 640, margin: '36px auto 0' }}>
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: 10 }}>
-            <button onClick={challengeFriend} style={{ fontFamily: SANS, fontSize: 12.5, letterSpacing: '0.05em', textTransform: 'uppercase', fontWeight: 700, height: 52, padding: '0 10px', borderRadius: 10, border: 'none', background: COLORS.ink, color: '#fff', cursor: 'pointer', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 8, whiteSpace: 'nowrap' }}>
-              <Swords size={14} strokeWidth={2.5} /> {challenged ? 'Link copied' : 'Challenge a Friend'}
-            </button>
+            <a href={`/duel/new?quiz=${encodeURIComponent(PUZZLE.quizId)}`} style={{ fontFamily: SANS, fontSize: 12.5, letterSpacing: '0.05em', textTransform: 'uppercase', fontWeight: 700, height: 52, padding: '0 10px', borderRadius: 10, border: 'none', background: COLORS.ink, color: '#fff', cursor: 'pointer', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 8, whiteSpace: 'nowrap', textDecoration: 'none' }}>
+              <Swords size={14} strokeWidth={2.5} /> Challenge a Friend
+            </a>
             <button onClick={copyShare} style={{ fontFamily: SANS, fontSize: 12.5, letterSpacing: '0.05em', textTransform: 'uppercase', fontWeight: 700, height: 52, padding: '0 10px', borderRadius: 10, border: `1.5px solid ${COLORS.ink}`, background: COLORS.cream, color: COLORS.ink, cursor: 'pointer', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 8, whiteSpace: 'nowrap' }}>
               <Share2 size={14} strokeWidth={2.5} /> {copied ? 'Copied' : playing ? 'Share This Puzzle' : 'Share Result'}
             </button>
@@ -932,6 +916,8 @@ export default function CruxClient({ forceNum = null }) {
           <QuizLeaderboard board={board} identity={identity} total={PUZZLE.slots.length} />
         </div>
       </div>
+
+      <DuelBanner token={duelToken} info={duelInfo} submitted={duelSubmitted} />
 
       {/* toast */}
       {toast && (

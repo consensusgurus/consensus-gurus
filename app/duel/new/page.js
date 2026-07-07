@@ -49,7 +49,7 @@ export default function NewDuelPage() {
 
   const results = useMemo(() => {
     const s = q.trim().toLowerCase();
-    const pool = QUIZZES.filter((x) => !x.unlisted);
+    const pool = QUIZZES.filter((x) => !x.unlisted && (!x.publishedAt || Date.parse(x.publishedAt) <= Date.now()));
     if (!s) return pool.slice(0, 40);
     return pool.filter((x) => (x.title || '').toLowerCase().includes(s) || (x.category || '').toLowerCase().includes(s)).slice(0, 60);
   }, [q]);

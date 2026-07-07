@@ -1,6 +1,7 @@
 import { Suspense } from 'react';
 import { redirect } from 'next/navigation';
 import QuizClient from './QuizClient';
+import CruxRedirect from './CruxRedirect';
 import { QUIZZES, getQuiz } from '@/lib/quizzes';
 
 export const revalidate = 3600;
@@ -50,10 +51,11 @@ export default function QuizPage({ params }) {
   const quiz = getQuiz(id);
 
   // Crux lives on its own page; the catalog entry exists so the hub,
-  // search, and sitemap can surface it. Send players to the real board.
+  // search, and sitemap can surface it. Send players to the real board via a
+  // client-side hop that preserves ?duel=/?ch= params (see CruxRedirect).
   // (Legacy id from the few hours it launched as Crosslock, 2026-07-06.)
   if (id === 'crosslock-7-6-26') redirect('/crux?p=1');
-  if (quiz && quiz.format === 'crux') redirect(quiz.cruxNum ? `/crux?p=${quiz.cruxNum}` : '/crux');
+  if (quiz && quiz.format === 'crux') return <CruxRedirect num={quiz.cruxNum || null} />;
 
   const jsonLd = quiz
     ? {

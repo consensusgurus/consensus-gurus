@@ -67,7 +67,7 @@ export default function DuelTile() {
 
   const quizResults = useMemo(() => {
     const s = quizQ.trim().toLowerCase();
-    const pool = QUIZZES.filter((x) => !x.unlisted && x.format !== 'crux');
+    const pool = QUIZZES.filter((x) => !x.unlisted && (!x.publishedAt || Date.parse(x.publishedAt) <= Date.now()));
     if (!s) return pool.slice(0, 8);
     return pool.filter((x) => (x.title || '').toLowerCase().includes(s) || (x.category || '').toLowerCase().includes(s)).slice(0, 12);
   }, [quizQ]);

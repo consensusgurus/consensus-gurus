@@ -1,3 +1,4 @@
+import { Suspense } from 'react';
 import CruxClient from './CruxClient';
 
 // Crux soft launch: intentionally NOT in the sitemap, the /quizzes hub,
@@ -27,5 +28,9 @@ export const metadata = {
 export default function CruxPage({ searchParams }) {
   const n = Number(searchParams && searchParams.p);
   const forceNum = Number.isInteger(n) && n > 0 ? n : null;
-  return <CruxClient key={forceNum || 'today'} forceNum={forceNum} />;
+  return (
+    <Suspense fallback={null}>
+      <CruxClient key={forceNum || 'today'} forceNum={forceNum} />
+    </Suspense>
+  );
 }
