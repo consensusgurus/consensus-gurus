@@ -570,6 +570,9 @@ export default function CruxClient({ forceNum = null }) {
           .cl-btn:hover{background:${COLORS.paper};}
         `}</style>
 
+        {/* game content recentered: the qzf box is 1180, the game stays 960 */}
+        <div style={{ maxWidth: 960, margin: '0 auto' }}>
+
         {/* header */}
         <div style={{ display: 'flex', alignItems: 'baseline', gap: 12, flexWrap: 'wrap', marginBottom: 2 }}>
           <h1 style={{ margin: 0, fontSize: 30, fontWeight: 800, letterSpacing: '-0.02em', color: COLORS.ink }}>Crux</h1>
@@ -732,6 +735,7 @@ export default function CruxClient({ forceNum = null }) {
 
           </div>
         </div>
+        </div>
 
         {/* standard quiz-page bottom: challenge + join + leaderboard (always) */}
         <div style={{ maxWidth: 640, margin: '36px auto 0' }}>
@@ -746,7 +750,7 @@ export default function CruxClient({ forceNum = null }) {
         </div>
         {!identity && (
           <div style={{ maxWidth: 640, margin: '18px auto 0' }}>
-            <JoinLeaderboardForm identity={identity} onJoined={(id) => setIdentity(id)} onViewLeaderboard={() => {}} />
+            <JoinLeaderboardForm identity={identity} onJoined={(id) => setIdentity(id)} />
           </div>
         )}
         <div style={{ maxWidth: 760, margin: '26px auto 0', background: '#fff', border: '1.5px solid rgba(20,22,28,0.12)', borderRadius: 12, padding: '14px 16px' }}>
