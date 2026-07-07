@@ -2,7 +2,6 @@
 
 import React, { useMemo, useState, useRef, useEffect } from 'react';
 import ClueBox from './ClueBox';
-import OnscreenKeyboard, { useOsk, keysNeedDigits } from './OnscreenKeyboard';
 
 // Typed-recall board (`format: 'type-it'`). ONE clue (e.g. an airport) shows at a
 // time in the clue bar with a Next button to cycle through clues not yet solved;
@@ -68,14 +67,6 @@ export default function TypeItBoard({ items, started, ended, revealed, onMatch, 
     return () => { vv.removeEventListener('resize', onVV); vv.removeEventListener('scroll', onVV); };
   }, [mobile, started, ended]);
   const dock = mobile && live;
-  const osk = useOsk(mobile, live);
-  const oskDigits = useMemo(() => keysNeedDigits(list), [list]);
-  function oskKey(k) {
-    if (!live) return;
-    if (k === 'BACK') { applyVal(val.slice(0, -1)); return; }
-    if (k === 'ENTER') { submit(val, true); return; }
-    applyVal(val + (k === ' ' ? ' ' : k.toLowerCase()));
-  }
   const barStyle = dock
     ? { position: 'fixed', left: 0, right: 0, bottom: kbInset, zIndex: 40, background: COLORS.cream, padding: '8px 14px', paddingBottom: kbInset > 0 ? 8 : 'calc(8px + env(safe-area-inset-bottom))', borderTop: `1px solid ${COLORS.faded}22`, boxShadow: '0 -6px 18px rgba(20,22,28,0.10)', display: 'flex', flexDirection: 'column-reverse', gap: 8 }
     : { position: 'sticky', top: stickyTop, zIndex: 4, background: COLORS.cream, paddingTop: 4, paddingBottom: 8 };
@@ -124,11 +115,11 @@ export default function TypeItBoard({ items, started, ended, revealed, onMatch, 
     }
     return false;
   }
-  function applyVal(v) {
+  function onChange(e) {
+    const v = e.target.value;
     if (live && cur != null && accepts(v, list[cur])) submit(v, false);
     else setVal(v);
   }
-  function onChange(e) { applyVal(e.target.value); }
   function onKey(e) {
     if (e.key !== 'Enter' || !live) return;
     submit(val, true);
@@ -159,14 +150,6 @@ export default function TypeItBoard({ items, started, ended, revealed, onMatch, 
           refocus so tapping them never blurs the input (keyboard stays open, no
           reflow that would slide the bar behind the stats on mobile). */}
       <div style={barStyle}>
-        {osk.on && (
-          <OnscreenKeyboard onKey={oskKey} withDigits={oskDigits} onToggle={osk.toggle} />
-        )}
-        {osk.showRestore && (
-          <div style={{ textAlign: 'center' }}>
-            <button type="button" onClick={osk.toggle} style={{ background: 'none', border: 'none', color: COLORS.faded, fontFamily: SANS, fontWeight: 700, fontSize: 11, textDecoration: 'underline', cursor: 'pointer', padding: 2 }}>Use game keyboard</button>
-          </div>
-        )}
         {live && (
           <div style={{ display: 'flex', gap: 10, marginBottom: 10 }}>
             <input
@@ -175,7 +158,6 @@ export default function TypeItBoard({ items, started, ended, revealed, onMatch, 
               disabled={!live}
               onChange={onChange}
               onKeyDown={onKey}
-              inputMode={osk.on ? 'none' : undefined}
               placeholder={live ? `Type the ${noun}…` : ''}
               autoComplete="off"
               autoCapitalize="none"
