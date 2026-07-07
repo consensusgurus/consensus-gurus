@@ -52,8 +52,8 @@ export default function QuizPage({ params }) {
   // Crux lives on its own page; the catalog entry exists so the hub,
   // search, and sitemap can surface it. Send players to the real board.
   // (Legacy id from the few hours it launched as Crosslock, 2026-07-06.)
-  if (id === 'crosslock-7-6-26') redirect('/crux');
-  if (quiz && quiz.format === 'crux') redirect('/crux');
+  if (id === 'crosslock-7-6-26') redirect('/crux?p=1');
+  if (quiz && quiz.format === 'crux') redirect(quiz.cruxNum ? `/crux?p=${quiz.cruxNum}` : '/crux');
 
   const jsonLd = quiz
     ? {

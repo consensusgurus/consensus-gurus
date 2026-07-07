@@ -34,44 +34,96 @@ const COLORS = {
 };
 const SANS = "'Manrope', system-ui, -apple-system, sans-serif";
 
-// Same difficulty palette as the site's group-guessing quiz boards (easy -> hard).
+// Crux's own category palette, easiest -> trickiest: coral, teal, steel,
+// plum. Deliberately NOT the yellow/green/blue/purple quartet other grouping
+// games use; the share line uses colored circles (not squares) for the same
+// reason.
 const CAT_COLORS = [
-  { bg: '#e6b93f', tc: '#5c4a06', sq: '\u{1F7E8}' },
-  { bg: '#5aa96a', tc: '#173f1f', sq: '\u{1F7E9}' },
-  { bg: '#5a97dd', tc: '#0c3a66', sq: '\u{1F7E6}' },
-  { bg: '#9b82d8', tc: '#2e1f60', sq: '\u{1F7EA}' },
+  { bg: '#e2795c', tc: '#54190a', sq: '\u{1F7E0}' },
+  { bg: '#45a08c', tc: '#0d3a30', sq: '\u{1F7E2}' },
+  { bg: '#6d9cc4', tc: '#10375a', sq: '\u{1F535}' },
+  { bg: '#c76d95', tc: '#47102e', sq: '\u{1F7E3}' },
 ];
 
-const PUZZLE = {
-  num: 1,
-  quizId: 'crux-7-6-26',
-  dateLabel: 'July 6, 2026',
-  guesses: 18,
-  categories: [
-    { name: 'Card games', words: ['HEARTS', 'BRIDGE'] },
-    { name: 'Musical instruments', words: ['ORGAN', 'VIOLA'] },
-    { name: 'Body parts', words: ['SPLEEN', 'TEMPLE'] },
-    { name: 'Structures', words: ['TOWER', 'STEEPLE'] },
-  ],
-  // 9x10 lattice, machine-searched: every crossing letter-checked, no
-  // adjacent cells outside a shared slot, all eight words connected.
-  slots: [
-    { id: '1D', word: 'VIOLA', row: 0, col: 1, dir: 'D' },
-    { id: '2D', word: 'HEARTS', row: 1, col: 3, dir: 'D' },
-    { id: '3D', word: 'BRIDGE', row: 1, col: 9, dir: 'D' },
-    { id: '4A', word: 'TOWER', row: 2, col: 0, dir: 'A' },
-    { id: '5D', word: 'SPLEEN', row: 3, col: 5, dir: 'D' },
-    { id: '6D', word: 'TEMPLE', row: 3, col: 7, dir: 'D' },
-    { id: '7A', word: 'STEEPLE', row: 6, col: 3, dir: 'A' },
-    { id: '8A', word: 'ORGAN', row: 8, col: 1, dir: 'A' },
-  ],
-};
-const ROWS = 9;
-const COLS = 10;
-const STORE_KEY = `sot_crux_${PUZZLE.num}`;
+// ─── Puzzles ────────────────────────────────────────────────────────────────
+// One entry per drop. `live` gates by Eastern date: /crux plays the newest
+// puzzle whose live date has arrived, so future puzzles can be banked here
+// and ship themselves at ET midnight. Each puzzle keys its own localStorage
+// save (sot_crux_<num>), catalog id, and leaderboard. /crux?p=N pins an
+// archived puzzle (the hub's dated tiles link that way).
+const PUZZLES = [
+  {
+    num: 1,
+    quizId: 'crux-7-6-26',
+    live: '2026-07-06',
+    dateLabel: 'July 6, 2026',
+    guesses: 18,
+    rows: 9,
+    cols: 10,
+    categories: [
+      { name: 'Card games', words: ['HEARTS', 'BRIDGE'] },
+      { name: 'Musical instruments', words: ['ORGAN', 'VIOLA'] },
+      { name: 'Body parts', words: ['SPLEEN', 'TEMPLE'] },
+      { name: 'Structures', words: ['TOWER', 'STEEPLE'] },
+    ],
+    slots: [
+      { id: '1D', word: 'VIOLA', row: 0, col: 1, dir: 'D' },
+      { id: '2D', word: 'HEARTS', row: 1, col: 3, dir: 'D' },
+      { id: '3D', word: 'BRIDGE', row: 1, col: 9, dir: 'D' },
+      { id: '4A', word: 'TOWER', row: 2, col: 0, dir: 'A' },
+      { id: '5D', word: 'SPLEEN', row: 3, col: 5, dir: 'D' },
+      { id: '6D', word: 'TEMPLE', row: 3, col: 7, dir: 'D' },
+      { id: '7A', word: 'STEEPLE', row: 6, col: 3, dir: 'A' },
+      { id: '8A', word: 'ORGAN', row: 8, col: 1, dir: 'A' },
+    ],
+  },
+  {
+    num: 2,
+    quizId: 'crux-7-7-26',
+    live: '2026-07-07',
+    dateLabel: 'July 7, 2026',
+    guesses: 18,
+    rows: 9,
+    cols: 9,
+    // Trap cycle: PUNCH looks boxing (it's a drink), SWING looks boxing (it's
+    // a dance), HOOK looks fishing (it's a punch), REEL looks like a dance
+    // (it's fishing gear). HOOK even crosses TACKLE on the board.
+    categories: [
+      { name: 'Party drinks', words: ['PUNCH', 'CIDER'] },
+      { name: 'Dances', words: ['SWING', 'TANGO'] },
+      { name: 'Boxing blows', words: ['HOOK', 'UPPERCUT'] },
+      { name: 'Fishing gear', words: ['REEL', 'TACKLE'] },
+    ],
+    slots: [
+      { id: '1A', word: 'PUNCH', row: 0, col: 2, dir: 'A' },
+      { id: '2D', word: 'HOOK', row: 0, col: 6, dir: 'D' },
+      { id: '3D', word: 'UPPERCUT', row: 0, col: 8, dir: 'D' },
+      { id: '4D', word: 'TANGO', row: 2, col: 4, dir: 'D' },
+      { id: '5A', word: 'TACKLE', row: 3, col: 3, dir: 'A' },
+      { id: '6D', word: 'CIDER', row: 4, col: 2, dir: 'D' },
+      { id: '7A', word: 'SWING', row: 5, col: 0, dir: 'A' },
+      { id: '8A', word: 'REEL', row: 8, col: 2, dir: 'A' },
+    ],
+  },
+];
 const HELP_KEY = 'sot_crux_help_seen';
 
-const SLOT = Object.fromEntries(PUZZLE.slots.map((s) => [s.id, s]));
+function etToday() {
+  try {
+    return new Date().toLocaleDateString('en-CA', { timeZone: 'America/New_York' });
+  } catch (e) {
+    return new Date().toISOString().slice(0, 10);
+  }
+}
+function pickPuzzle(forceNum) {
+  if (forceNum) {
+    const p = PUZZLES.find((x) => x.num === forceNum);
+    if (p) return p;
+  }
+  const today = etToday();
+  const open = PUZZLES.filter((p) => p.live <= today);
+  return open.length ? open[open.length - 1] : PUZZLES[0];
+}
 
 function slotCells(s) {
   return s.word.split('').map((ch, i) => ({
@@ -82,9 +134,9 @@ function slotCells(s) {
 }
 
 // key "r,c" -> { ch, slots: [slotIds] }
-const CELLS = (() => {
+function buildCells(puzzle) {
   const m = new Map();
-  for (const s of PUZZLE.slots) {
+  for (const s of puzzle.slots) {
     for (const cl of slotCells(s)) {
       const k = `${cl.r},${cl.c}`;
       if (!m.has(k)) m.set(k, { ch: cl.ch, slots: [] });
@@ -92,10 +144,6 @@ const CELLS = (() => {
     }
   }
   return m;
-})();
-
-function catOfWord(w) {
-  return PUZZLE.categories.findIndex((c) => c.words.includes(w));
 }
 function slotLabel(id) {
   return `${parseInt(id, 10)}-${id.endsWith('A') ? 'Across' : 'Down'}`;
@@ -138,25 +186,33 @@ export function computeMarks(guess, answer) {
   return marks;
 }
 
-const FRESH = {
-  v: 1,
-  greens: {},          // "r,c" -> true (letter is locked correct)
-  solved: {},          // slotId -> true
-  slotGuesses: {},     // slotId -> guesses spent on that slot
-  present: {},         // slotId -> "ABC" letters known in word (yellow)
-  absent: {},          // slotId -> "XYZ" letters known absent
-  lastGuess: {},       // slotId -> { word, marks[] }
-  assigned: {},        // WORD -> category index (correct filings only)
-  order: [],           // slotIds in solve order
-  left: PUZZLE.guesses,
-  status: 'playing',   // playing | won | lost
-  t0: null,
-  tEnd: null,
-};
+function freshState(puzzle) {
+  return {
+    v: 1,
+    greens: {},          // "r,c" -> true (letter is locked correct)
+    solved: {},          // slotId -> true
+    slotGuesses: {},     // slotId -> guesses spent on that slot
+    present: {},         // slotId -> "ABC" letters known in word
+    absent: {},          // slotId -> "XYZ" letters known absent
+    lastGuess: {},       // slotId -> { word, marks[] }
+    assigned: {},        // WORD -> category index (correct filings only)
+    order: [],           // slotIds in solve order
+    left: puzzle.guesses,
+    status: 'playing',   // playing | won | lost
+    t0: null,
+    tEnd: null,
+  };
+}
 
-export default function CruxClient() {
-  const [g, setG] = useState(FRESH);
-  const [sel, setSel] = useState('1D');
+export default function CruxClient({ forceNum = null }) {
+  const PUZZLE = useMemo(() => pickPuzzle(forceNum), [forceNum]);
+  const ROWS = PUZZLE.rows;
+  const COLS = PUZZLE.cols;
+  const STORE_KEY = `sot_crux_${PUZZLE.num}`;
+  const SLOT = useMemo(() => Object.fromEntries(PUZZLE.slots.map((s) => [s.id, s])), [PUZZLE]);
+  const CELLS = useMemo(() => buildCells(PUZZLE), [PUZZLE]);
+  const [g, setG] = useState(() => freshState(PUZZLE));
+  const [sel, setSel] = useState(PUZZLE.slots[0].id);
   const [typed, setTyped] = useState('');
   const [pick, setPick] = useState(null); // solved word chosen for filing
   const [showHelp, setShowHelp] = useState(false);
@@ -174,7 +230,7 @@ export default function CruxClient() {
       const raw = localStorage.getItem(STORE_KEY);
       if (raw) {
         const saved = JSON.parse(raw);
-        if (saved && saved.v === 1) setG({ ...FRESH, ...saved });
+        if (saved && saved.v === 1) setG({ ...freshState(PUZZLE), ...saved });
       }
       if (!localStorage.getItem(HELP_KEY)) setShowHelp(true);
     } catch (e) {}
@@ -364,7 +420,7 @@ export default function CruxClient() {
 
   function resetGame() {
     try { localStorage.removeItem(STORE_KEY); } catch (e) {}
-    setG(FRESH); setSel('1D'); setTyped(''); setPick(null);
+    setG(freshState(PUZZLE)); setSel(PUZZLE.slots[0].id); setTyped(''); setPick(null);
   }
 
   const guessesUsed = Object.values(g.slotGuesses).reduce((a, b) => a + b, 0);
@@ -372,7 +428,7 @@ export default function CruxClient() {
 
   function shareText() {
     const squares = g.order
-      .map((sid) => CAT_COLORS[catOfWord(SLOT[sid].word)].sq + (g.slotGuesses[sid] || 0))
+      .map((sid) => CAT_COLORS[PUZZLE.categories.findIndex((c) => c.words.includes(SLOT[sid].word))].sq + (g.slotGuesses[sid] || 0))
       .join(' ');
     const head = g.status === 'won'
       ? `Solved in ${guessesUsed} guesses · ${elapsed}`
@@ -481,7 +537,7 @@ export default function CruxClient() {
           .cl-cols{display:grid;grid-template-columns:minmax(0,auto) minmax(280px,1fr);gap:30px;align-items:start;}
           @media(max-width:860px){.cl-cols{grid-template-columns:1fr;gap:16px;}.cl-side{order:-1;}.cl-cat{min-height:0 !important;padding:8px 11px !important;}}
           .cl-grid{--cs:42px;}
-          @media(max-width:560px){.cl-grid{--cs:calc((100vw - 62px)/10);}}
+          @media(max-width:560px){.cl-grid{--cs:calc((100vw - ${35 + (COLS - 1) * 3}px)/${COLS});}}
           .cl-key{border:none;font-family:${SANS};font-weight:800;cursor:pointer;border-radius:6px;padding:0;touch-action:manipulation;}
           .cl-grid > div{touch-action:manipulation;}
           .cl-key:active{transform:scale(0.94);}
@@ -517,7 +573,7 @@ export default function CruxClient() {
         <div className="cl-cols">
           {/* left: board + input */}
           <div>
-            <div className="cl-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(10, var(--cs))', gridTemplateRows: 'repeat(9, var(--cs))', gap: 3, marginBottom: 12 }}>
+            <div className="cl-grid" style={{ display: 'grid', gridTemplateColumns: `repeat(${COLS}, var(--cs))`, gridTemplateRows: `repeat(${ROWS}, var(--cs))`, gap: 3, marginBottom: 12 }}>
               {[...CELLS.entries()].map(([k, info]) => {
                 const [r, c] = k.split(',').map(Number);
                 return (
@@ -634,7 +690,7 @@ export default function CruxClient() {
             {!playing && (
               <div style={{ background: '#fff', border: `2px solid ${COLORS.ink}`, borderRadius: 12, padding: '16px 16px 14px', marginBottom: 14 }}>
                 <div style={{ fontSize: 19, fontWeight: 800, color: won ? COLORS.ink : COLORS.rust, marginBottom: 4 }}>
-                  {won ? 'Locked it.' : 'Out of guesses.'}
+                  {won ? 'You got to the crux of the matter.' : 'Out of guesses.'}
                 </div>
                 <div style={{ fontSize: 13.5, fontWeight: 700, color: COLORS.faded, marginBottom: 12 }}>
                   {won
@@ -645,7 +701,7 @@ export default function CruxClient() {
                   <button className="cl-btn" onClick={copyShare}><Share2 size={15} /> {copied ? 'Copied' : 'Share result'}</button>
                   <button className="cl-btn" onClick={resetGame} style={{ borderColor: '#c3c8cf', color: COLORS.faded }}><RotateCcw size={15} /> Replay</button>
                 </div>
-                <p style={{ fontSize: 12, color: COLORS.faded, fontWeight: 600, margin: '12px 0 0' }}>Puzzle #2 is coming soon.</p>
+                <p style={{ fontSize: 12, color: COLORS.faded, fontWeight: 600, margin: '12px 0 0' }}>A new puzzle drops at midnight Eastern.</p>
               </div>
             )}
 

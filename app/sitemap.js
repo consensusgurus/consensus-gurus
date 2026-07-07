@@ -14,7 +14,7 @@ export default function sitemap() {
   // Quiz dates drive the /quizzes index lastModified and each /quiz/[id] entry.
   // Unlisted quizzes (mobile-preview clones) stay out of the sitemap so they
   // are reachable only by direct link.
-  const visibleQuizzes = QUIZZES.filter((quiz) => !quiz.unlisted);
+  const visibleQuizzes = QUIZZES.filter((quiz) => !quiz.unlisted && (!quiz.publishedAt || Date.parse(quiz.publishedAt) <= Date.now()));
   const quizDates = visibleQuizzes.map((quiz) =>
     new Date(quiz.publishedAt || `${quiz.publishedDate}T12:00:00Z`)
   );

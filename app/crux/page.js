@@ -24,6 +24,8 @@ export const metadata = {
   },
 };
 
-export default function CruxPage() {
-  return <CruxClient />;
+export default function CruxPage({ searchParams }) {
+  const n = Number(searchParams && searchParams.p);
+  const forceNum = Number.isInteger(n) && n > 0 ? n : null;
+  return <CruxClient key={forceNum || 'today'} forceNum={forceNum} />;
 }
