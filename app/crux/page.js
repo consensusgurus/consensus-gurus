@@ -18,7 +18,7 @@ export const metadata = {
     siteName: 'Source of Truths',
   },
   twitter: {
-    card: 'summary',
+    card: 'summary_large_image',
     title: 'Crux — A Daily Word Game',
     description:
       'Eight interlocking words, zero clues, four secret categories, eighteen shared guesses.',
