@@ -16,10 +16,11 @@
 // /quizzes hub, or the sitemap. Reachable only at /crux.
 
 import React, { useState, useEffect, useMemo, useRef, useCallback } from 'react';
-import { HelpCircle, Share2, RotateCcw, X, ChevronLeft, ChevronRight } from 'lucide-react';
+import { HelpCircle, Share2, RotateCcw, X, ChevronLeft, ChevronRight, Swords } from 'lucide-react';
 import Grain from '../Grain';
 import Footer from '../Footer';
 import SiteHeader from '../SiteHeader';
+import QuizPlayerBar from '../quiz/[id]/QuizPlayerBar';
 import JoinLeaderboardForm from '../quiz/[id]/JoinLeaderboardForm';
 import QuizLeaderboard from '../quiz/[id]/QuizLeaderboard';
 import { isMobileDevice } from '@/lib/is-mobile';
@@ -218,6 +219,7 @@ export default function CruxClient({ forceNum = null }) {
   const [showHelp, setShowHelp] = useState(false);
   const [toast, setToast] = useState(null);
   const [copied, setCopied] = useState(false);
+  const [challenged, setChallenged] = useState(false);
   const [hydrated, setHydrated] = useState(false);
   const [board, setBoard] = useState(EMPTY_BOARD);
   const [identity, setIdentity] = useState(null);
@@ -436,10 +438,32 @@ export default function CruxClient({ forceNum = null }) {
     return `Crux #${PUZZLE.num}\n${head}\n${squares}${g.order.length < 8 ? ' ⬛'.repeat(8 - g.order.length) : ''}\nsourceoftruths.com/crux`;
   }
   function copyShare() {
+    const text = playing
+      ? `Crux #${PUZZLE.num} \u2014 a crossword with no clues. Can you crack it?\nsourceoftruths.com/crux`
+      : shareText();
     try {
-      navigator.clipboard?.writeText(shareText()).then(() => {
+      navigator.clipboard?.writeText(text).then(() => {
         setCopied(true);
         setTimeout(() => setCopied(false), 1800);
+      });
+    } catch (e) {}
+  }
+  function challengeFriend() {
+    const isToday = PUZZLE.num === pickPuzzle(null).num;
+    const url = `https://sourceoftruths.com/crux${isToday ? '' : `?p=${PUZZLE.num}`}`;
+    const msg = g.status === 'won'
+      ? `I got to the crux of the matter in ${guessesUsed} guesses. Think you can beat me?`
+      : `Crux #${PUZZLE.num} \u2014 eight hidden words, four secret categories, eighteen shared guesses. Think you can crack it?`;
+    try {
+      if (typeof navigator !== 'undefined' && navigator.share) {
+        navigator.share({ title: `Crux #${PUZZLE.num}`, text: msg, url }).catch(() => {});
+        return;
+      }
+    } catch (e) {}
+    try {
+      navigator.clipboard?.writeText(`${msg} ${url}`).then(() => {
+        setChallenged(true);
+        setTimeout(() => setChallenged(false), 1800);
       });
     } catch (e) {}
   }
@@ -530,9 +554,10 @@ export default function CruxClient({ forceNum = null }) {
   return (
     <div style={{ minHeight: '100vh', background: COLORS.cream, position: 'relative' }}>
       <Grain />
-      <div style={{ position: 'relative', zIndex: 3 }}><SiteHeader active="quizzes" /></div>
+      <div style={{ position: 'relative', zIndex: 3 }}><SiteHeader active="quizzes" flush inlay={<QuizPlayerBar />} /></div>
 
-      <div style={{ position: 'relative', zIndex: 2, maxWidth: 980, margin: '0 auto', padding: '14px 16px 70px', fontFamily: SANS }}>
+      <div className="qzf-w" style={{ position: 'relative', zIndex: 2, maxWidth: 1180, margin: '0 auto', padding: '8px 38px 80px', fontFamily: SANS }}>
+        <div className="qzf-line" aria-hidden="true" />
         <style>{`
           .cl-cols{display:grid;grid-template-columns:minmax(0,auto) minmax(280px,1fr);gap:30px;align-items:start;}
           @media(max-width:860px){.cl-cols{grid-template-columns:1fr;gap:16px;}.cl-side{order:-1;}.cl-cat{min-height:0 !important;padding:8px 11px !important;}}
@@ -705,18 +730,27 @@ export default function CruxClient({ forceNum = null }) {
               </div>
             )}
 
-            {/* leaderboard (no strip — owner removed strips from quiz pages 2026-06-30) */}
-            {!playing && (
-              <div style={{ background: '#fff', border: '1.5px solid rgba(20,22,28,0.12)', borderRadius: 12, padding: '12px 14px', marginBottom: 12 }}>
-                <QuizLeaderboard board={board} identity={identity} total={PUZZLE.slots.length} />
-              </div>
-            )}
-            {!playing && !identity && (
-              <div style={{ marginBottom: 12 }}>
-                <JoinLeaderboardForm identity={identity} onJoined={(id) => setIdentity(id)} onViewLeaderboard={() => {}} />
-              </div>
-            )}
           </div>
+        </div>
+
+        {/* standard quiz-page bottom: challenge + join + leaderboard (always) */}
+        <div style={{ maxWidth: 640, margin: '36px auto 0' }}>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: 10 }}>
+            <button onClick={challengeFriend} style={{ fontFamily: SANS, fontSize: 12.5, letterSpacing: '0.05em', textTransform: 'uppercase', fontWeight: 700, height: 52, padding: '0 10px', borderRadius: 10, border: 'none', background: COLORS.ink, color: '#fff', cursor: 'pointer', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 8, whiteSpace: 'nowrap' }}>
+              <Swords size={14} strokeWidth={2.5} /> {challenged ? 'Link copied' : 'Challenge a Friend'}
+            </button>
+            <button onClick={copyShare} style={{ fontFamily: SANS, fontSize: 12.5, letterSpacing: '0.05em', textTransform: 'uppercase', fontWeight: 700, height: 52, padding: '0 10px', borderRadius: 10, border: `1.5px solid ${COLORS.ink}`, background: COLORS.cream, color: COLORS.ink, cursor: 'pointer', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 8, whiteSpace: 'nowrap' }}>
+              <Share2 size={14} strokeWidth={2.5} /> {copied ? 'Copied' : playing ? 'Share This Puzzle' : 'Share Result'}
+            </button>
+          </div>
+        </div>
+        {!identity && (
+          <div style={{ maxWidth: 640, margin: '18px auto 0' }}>
+            <JoinLeaderboardForm identity={identity} onJoined={(id) => setIdentity(id)} onViewLeaderboard={() => {}} />
+          </div>
+        )}
+        <div style={{ maxWidth: 760, margin: '26px auto 0', background: '#fff', border: '1.5px solid rgba(20,22,28,0.12)', borderRadius: 12, padding: '14px 16px' }}>
+          <QuizLeaderboard board={board} identity={identity} total={PUZZLE.slots.length} />
         </div>
       </div>
 
