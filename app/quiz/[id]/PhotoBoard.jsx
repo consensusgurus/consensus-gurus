@@ -2,6 +2,7 @@
 
 import React, { useMemo, useState, useRef, useEffect } from 'react';
 import { createPortal } from 'react-dom';
+import OnscreenKeyboard, { useOsk, keysNeedDigits, oskHeight } from './OnscreenKeyboard';
 
 // Photo-recall board (`format: 'photo'`). ONE landmark photo shows at a time with
 // a Next button to cycle through photos not yet solved; below sits a single text
@@ -70,6 +71,15 @@ export default function PhotoBoard({ items, started, ended, revealed, onMatch, o
     return () => { vv.removeEventListener('resize', onVV); vv.removeEventListener('scroll', onVV); };
   }, [mobile, started, ended]);
   const dock = mobile && live;
+  const osk = useOsk(mobile, live);
+  const oskDigits = useMemo(() => keysNeedDigits(list), [list]);
+  function oskKey(k) {
+    if (!live) return;
+    if (k === 'BACK') { applyVal(val.slice(0, -1)); return; }
+    if (k === 'ENTER') { submit(val, true); return; }
+    applyVal(val + (k === ' ' ? ' ' : k.toLowerCase()));
+  }
+  const photoCap = `max(140px, calc(100vh - ${oskDigits ? 540 : 490}px))`;
   const barStyle = dock
     ? { position: 'fixed', left: 0, right: 0, bottom: kbInset, zIndex: 40, background: COLORS.cream, padding: '8px 14px', paddingBottom: kbInset > 0 ? 8 : 'calc(8px + env(safe-area-inset-bottom))', borderTop: `1px solid ${COLORS.faded}22`, boxShadow: '0 -6px 18px rgba(20,22,28,0.10)' }
     : { position: 'sticky', top: stickyTop, zIndex: 4, background: COLORS.cream, paddingTop: 4, paddingBottom: 8 };
@@ -162,8 +172,7 @@ export default function PhotoBoard({ items, started, ended, revealed, onMatch, o
     }
     return false;
   }
-  function onChange(e) {
-    const v = e.target.value;
+  function applyVal(v) {
     if (!(live && cur != null)) { setVal(v); return; }
     // Correct answer for the CURRENT shape always wins: advance immediately.
     if (accepts(v, list[cur])) { submit(v, false); return; }
@@ -183,6 +192,7 @@ export default function PhotoBoard({ items, started, ended, revealed, onMatch, o
     }
     setVal(v);
   }
+  function onChange(e) { applyVal(e.target.value); }
   function onKey(e) {
     if (e.key !== 'Enter' || !live) return;
     submit(val, true);
@@ -227,6 +237,7 @@ export default function PhotoBoard({ items, started, ended, revealed, onMatch, o
               onChange={onChange}
               onKeyDown={onKey}
               onFocus={() => { setTimeout(centerClue, 60); setTimeout(centerClue, 350); }}
+              inputMode={osk.on ? 'none' : undefined}
               placeholder={live ? `Type the ${noun}…` : ''}
               autoComplete="off"
               autoCapitalize="none"
@@ -244,6 +255,14 @@ export default function PhotoBoard({ items, started, ended, revealed, onMatch, o
               <button onMouseDown={(e) => e.preventDefault()} onClick={skip} title="Skip to the next photo without spending a guess, you can come back." style={{ flex: 'none', fontFamily: MONO, fontSize: 10, letterSpacing: '0.16em', textTransform: 'uppercase', fontWeight: 700, padding: '0 11px', background: 'transparent', color: COLORS.ink, borderRadius: 10, border: `1.5px solid ${COLORS.ink}`, cursor: 'pointer' }}>Next &rarr;</button>
             )}
           </div>
+          {osk.on && (
+            <OnscreenKeyboard onKey={oskKey} withDigits={oskDigits} onToggle={osk.toggle} />
+          )}
+          {osk.showRestore && (
+            <div style={{ textAlign: 'center' }}>
+              <button type="button" onClick={osk.toggle} style={{ background: 'none', border: 'none', color: COLORS.faded, fontFamily: SANS, fontWeight: 700, fontSize: 11, textDecoration: 'underline', cursor: 'pointer', padding: 2 }}>Use game keyboard</button>
+            </div>
+          )}
         </div>
       )}
       {/* Photo prompt — only this changes between answers; scrolls beneath the frozen bar. */}
@@ -256,14 +275,14 @@ export default function PhotoBoard({ items, started, ended, revealed, onMatch, o
         // logo / name printed on the photo.
         <div style={{ width: '100%', display: 'flex', justifyContent: 'center', marginBottom: 10 }}>
           <div onClick={openZoom} style={{ position: 'relative', display: 'inline-block', lineHeight: 0, maxWidth: '100%', background: COLORS.ink, borderRadius: 10, border: `2px solid ${borderColor}`, transition: 'border-color .15s', cursor: live && curItem ? 'zoom-in' : 'default' }}>
-            <img src={curItem.img} alt={`Name the ${noun} in this photo`} style={{ display: 'block', width: 'auto', height: 'auto', maxWidth: '100%', maxHeight: 520 }} />
+            <img src={curItem.img} alt={`Name the ${noun} in this photo`} style={{ display: 'block', width: 'auto', height: 'auto', maxWidth: '100%', maxHeight: osk.on ? photoCap : 520 }} />
             {(curItem.mask || []).map((m, mi) => (
               <div key={mi} style={{ position: 'absolute', left: `${m.x}%`, top: `${m.y}%`, width: `${m.w}%`, height: `${m.h}%`, background: COLORS.ink }} />
             ))}
           </div>
         </div>
       ) : (
-      <div onClick={openZoom} style={{ position: 'relative', width: '100%', aspectRatio: photoAspect, maxHeight: 500, ...(portrait ? { maxWidth: 420, maxHeight: 560, marginLeft: 'auto', marginRight: 'auto' } : null), background: COLORS.ink, borderRadius: 10, border: `2px solid ${borderColor}`, overflow: 'hidden', marginBottom: 10, transition: 'border-color .15s', cursor: live && curItem ? 'zoom-in' : 'default' }}>
+      <div onClick={openZoom} style={{ position: 'relative', width: '100%', aspectRatio: photoAspect, maxHeight: 500, ...(portrait ? { maxWidth: 420, maxHeight: 560, marginLeft: 'auto', marginRight: 'auto' } : null), ...(osk.on ? { maxHeight: photoCap } : null), background: COLORS.ink, borderRadius: 10, border: `2px solid ${borderColor}`, overflow: 'hidden', marginBottom: 10, transition: 'border-color .15s', cursor: live && curItem ? 'zoom-in' : 'default' }}>
         {live && curItem ? (
           <img src={curItem.img} alt={`Name the ${noun} in this photo`} style={{ width: '100%', height: '100%', objectFit: 'contain', display: 'block' }} />
         ) : (
@@ -306,7 +325,7 @@ export default function PhotoBoard({ items, started, ended, revealed, onMatch, o
         </div>),
         document.body
       )}
-      {dock && <div aria-hidden="true" style={{ height: 'calc(110px + env(safe-area-inset-bottom))' }} />}
+      {dock && <div aria-hidden="true" style={{ height: `calc(${110 + (osk.on ? oskHeight(oskDigits) : 0)}px + env(safe-area-inset-bottom))` }} />}
     </div>
   );
 }

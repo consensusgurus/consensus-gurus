@@ -12,6 +12,7 @@
 
 import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { useRouter } from 'next/navigation';
+import OnscreenKeyboard, { useOsk, oskHeight } from './OnscreenKeyboard';
 import { ArrowLeft, Share2, Check, X, Flag, Trophy, HelpCircle, LayoutGrid, Swords } from 'lucide-react';
 import JoinLeaderboardForm from './JoinLeaderboardForm';
 import LeaderboardSnippet from './LeaderboardSnippet';
@@ -174,6 +175,14 @@ export default function GridFillBoard({ quizId, mobile = false }) {
     return () => { vv.removeEventListener('resize', onVV); vv.removeEventListener('scroll', onVV); };
   }, [mobile, phase]);
   const dock = mobile && phase === 'playing';
+  const osk = useOsk(mobile, phase === 'playing');
+  const oskDigits = useMemo(() => /[0-9]/.test(Object.values(companies).map((c) => [(c && c.name) || ''].concat((c && c.tickers) || []).join(' ')).join(' ')), [companies]);
+  function oskKey(k) {
+    if (phase !== 'playing') return;
+    if (k === 'BACK') { onType(guess.slice(0, -1)); return; }
+    if (k === 'ENTER') { submitGuess(guess); return; }
+    onType(guess + (k === ' ' ? ' ' : k.toLowerCase()));
+  }
   const playBarStyle = dock
     ? { position: 'fixed', left: 0, right: 0, bottom: kbInset, zIndex: 40, background: COLORS.cream, padding: '8px 12px', paddingBottom: kbInset > 0 ? 6 : 'calc(8px + env(safe-area-inset-bottom))', borderTop: `1px solid ${COLORS.faded}22`, boxShadow: '0 -7px 18px rgba(20,22,28,0.12)' }
     : { position: 'sticky', top: 0, zIndex: 24, background: COLORS.cream, paddingTop: 6, paddingBottom: 8, marginBottom: 8 };
@@ -514,6 +523,7 @@ export default function GridFillBoard({ quizId, mobile = false }) {
                     value={guess}
                     onChange={(e) => onType(e.target.value)}
                     onKeyDown={onKey}
+                    inputMode={osk.on ? 'none' : undefined}
                     placeholder="Start typing a company or ticker…"
                     autoComplete="off"
                     autoCapitalize="none"
@@ -526,6 +536,14 @@ export default function GridFillBoard({ quizId, mobile = false }) {
                   </button>
                 </div>
                 <div style={{ fontFamily: MONO, fontSize: 12, minHeight: 18, marginTop: 6, color: hintBad ? COLORS.ember : COLORS.forest }}>{hint}</div>
+                {osk.on && (
+                  <OnscreenKeyboard onKey={oskKey} withDigits={oskDigits} onToggle={osk.toggle} style={{ marginTop: 4 }} />
+                )}
+                {osk.showRestore && (
+                  <div style={{ textAlign: 'center' }}>
+                    <button type="button" onClick={osk.toggle} style={{ background: 'none', border: 'none', color: COLORS.faded, fontFamily: SANS, fontWeight: 700, fontSize: 11, textDecoration: 'underline', cursor: 'pointer', padding: 2 }}>Use game keyboard</button>
+                  </div>
+                )}
               </div>
             )}
             </div>
@@ -588,7 +606,7 @@ export default function GridFillBoard({ quizId, mobile = false }) {
                 )}
               </div>
             )}
-          {dock && <div aria-hidden="true" style={{ height: 'calc(170px + env(safe-area-inset-bottom))' }} />}
+          {dock && <div aria-hidden="true" style={{ height: `calc(${170 + (osk.on ? oskHeight(oskDigits) : 0)}px + env(safe-area-inset-bottom))` }} />}
           </QuizPlayOverlay>
         )}
 

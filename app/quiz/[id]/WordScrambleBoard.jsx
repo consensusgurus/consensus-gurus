@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useMemo, useState, useRef, useEffect } from 'react';
+import OnscreenKeyboard, { useOsk, keysNeedDigits } from './OnscreenKeyboard';
 
 // Word-scramble board (`format: 'word-scramble'`). ONE scrambled country shows
 // at a time as letter tiles; below sits a single text input where you TYPE the
@@ -84,6 +85,14 @@ export default function WordScrambleBoard({ items, started, ended, revealed, onM
     return () => { vv.removeEventListener('resize', onVV); vv.removeEventListener('scroll', onVV); };
   }, [mobile, started, ended]);
   const dock = mobile && live;
+  const osk = useOsk(mobile, live);
+  const oskDigits = useMemo(() => keysNeedDigits(list), [list]);
+  function oskKey(k) {
+    if (!live) return;
+    if (k === 'BACK') { applyVal(val.slice(0, -1)); return; }
+    if (k === 'ENTER') { submit(val, true); return; }
+    applyVal(val + (k === ' ' ? ' ' : k.toLowerCase()));
+  }
   const barStyle = dock
     ? { position: 'fixed', left: 0, right: 0, bottom: kbInset, zIndex: 40, background: COLORS.cream, padding: '8px 14px', paddingBottom: kbInset > 0 ? 8 : 'calc(8px + env(safe-area-inset-bottom))', borderTop: `1px solid ${COLORS.faded}22`, boxShadow: '0 -6px 18px rgba(20,22,28,0.10)', display: 'flex', flexDirection: 'column-reverse', gap: 8 }
     : { position: 'sticky', top: stickyTop, zIndex: 4, background: COLORS.cream, paddingTop: 4, paddingBottom: 8 };
@@ -116,7 +125,8 @@ export default function WordScrambleBoard({ items, started, ended, revealed, onM
     if (viaEnter && norm(raw)) { flashIt(false); setVal(''); }
     return false;
   }
-  function onChange(e) { const v = e.target.value; if (live && cur != null && accepts(v, list[cur])) submit(v, false); else setVal(v); }
+  function applyVal(v) { if (live && cur != null && accepts(v, list[cur])) submit(v, false); else setVal(v); }
+  function onChange(e) { applyVal(e.target.value); }
   function onKey(e) { if (e.key !== 'Enter' || !live) return; submit(val, true); }
   function skip() {
     if (!live || cur == null) return;
@@ -138,10 +148,19 @@ export default function WordScrambleBoard({ items, started, ended, revealed, onM
   return (
     <div>
       <div style={barStyle}>
+        {osk.on && (
+          <OnscreenKeyboard onKey={oskKey} withDigits={oskDigits} onToggle={osk.toggle} />
+        )}
+        {osk.showRestore && (
+          <div style={{ textAlign: 'center' }}>
+            <button type="button" onClick={osk.toggle} style={{ background: 'none', border: 'none', color: COLORS.faded, fontFamily: SANS, fontWeight: 700, fontSize: 11, textDecoration: 'underline', cursor: 'pointer', padding: 2 }}>Use game keyboard</button>
+          </div>
+        )}
         {live && (
           <div style={{ display: 'flex', gap: 10, marginBottom: 10 }}>
             <input
               ref={inputRef} value={val} disabled={!live} onChange={onChange} onKeyDown={onKey}
+              inputMode={osk.on ? 'none' : undefined}
               placeholder={live ? `Type the ${noun}…` : ''}
               autoComplete="off" autoCapitalize="none" autoCorrect="off" spellCheck={false}
               style={{ flex: 1, minWidth: 0, boxSizing: 'border-box', fontFamily: SANS, fontSize: 18, padding: '14px 16px', borderRadius: 10, border: `2px solid ${borderColor}`, background: '#fff', color: COLORS.ink, transition: 'border-color .15s' }}
