@@ -619,6 +619,8 @@ export default function CruxClient({ forceNum = null }) {
   }
 
   const guessesUsed = Object.values(g.slotGuesses).reduce((a, b) => a + b, 0);
+  const prevPuzzle = PUZZLES.find((x) => x.num === PUZZLE.num - 1) || null;
+  const isTodays = PUZZLE.num === pickPuzzle(null).num;
   const elapsed = g.t0 ? fmtTime((g.tEnd || Date.now()) - g.t0) : '0:00';
 
   function shareText() {
@@ -924,7 +926,17 @@ export default function CruxClient({ forceNum = null }) {
                   <button className="cl-btn" onClick={copyShare}><Share2 size={15} /> {copied ? 'Copied' : 'Share result'}</button>
                   <button className="cl-btn" onClick={resetGame} style={{ borderColor: '#c3c8cf', color: COLORS.faded }}><RotateCcw size={15} /> Replay</button>
                 </div>
-                <p style={{ fontSize: 12, color: COLORS.faded, fontWeight: 600, margin: '12px 0 0' }}>A new puzzle drops at midnight Eastern.</p>
+                <p style={{ fontSize: 12, color: COLORS.faded, fontWeight: 600, margin: '12px 0 0' }}>
+                  A new puzzle drops at midnight Eastern.
+                  {prevPuzzle && (
+                    <>
+                      {' '}Meanwhile:{' '}
+                      <a href={`/crux?p=${prevPuzzle.num}`} style={{ color: COLORS.ember, fontWeight: 800, textDecoration: 'underline' }}>
+                        play {isTodays ? "yesterday's Crux" : `the ${prevPuzzle.dateLabel.replace(', 2026', '')} Crux`} &rarr;
+                      </a>
+                    </>
+                  )}
+                </p>
               </div>
             )}
 
