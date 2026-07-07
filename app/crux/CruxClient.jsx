@@ -375,7 +375,7 @@ function freshState(puzzle) {
     lastGuess: {},       // slotId -> { word, marks[] }
     assigned: {},        // WORD -> category index (correct filings only)
     order: [],           // slotIds in solve order
-    lockTries: 0,        // failed Lock-it-in attempts (verdict is count-only)
+    filedRight: null,    // set by the single Lock-it-in: words correctly categorized
     left: puzzle.guesses,
     status: 'playing',   // playing | won | lost
     t0: null,
@@ -397,6 +397,7 @@ export default function CruxClient({ forceNum = null }) {
   const [showHelp, setShowHelp] = useState(false);
   const [toast, setToast] = useState(null);
   const [copied, setCopied] = useState(false);
+  const [armLock, setArmLock] = useState(false);
   const [hydrated, setHydrated] = useState(false);
   const [board, setBoard] = useState(EMPTY_BOARD);
   const [identity, setIdentity] = useState(null);
@@ -545,14 +546,15 @@ export default function CruxClient({ forceNum = null }) {
   // time is the tiebreak — same shape the connections-format boards report.
   // Only game-end transitions post, so resumed/saved games never double-count;
   // replays post again on their own completion, matching the site-wide metric.
-  function postResult(g2) {
+  function postResult(g2, scoreOverride) {
+    const sc = scoreOverride != null ? scoreOverride : g2.order.length;
     const el = g2.t0 ? Math.max(1, Math.round(((g2.tEnd || Date.now()) - g2.t0) / 1000)) : 1;
     try {
       fetch('/api/quiz/result', {
         method: 'POST',
         keepalive: true,
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ quizId: PUZZLE.quizId, score: g2.order.length, total: PUZZLE.slots.length, correct: g2.order.length, timeElapsed: el, email: identity?.email || undefined, anonId: getAnonId(), isMobile: isMobileDevice(), referrer: (typeof document !== 'undefined' ? document.referrer : '') }),
+        body: JSON.stringify({ quizId: PUZZLE.quizId, score: sc, total: PUZZLE.slots.length, correct: sc, timeElapsed: el, email: identity?.email || undefined, anonId: getAnonId(), isMobile: isMobileDevice(), referrer: (typeof document !== 'undefined' ? document.referrer : '') }),
       })
         .then((r) => r.json())
         .then((d) => { if (d && !d.error) setBoard({ ...EMPTY_BOARD, ...d }); })
@@ -580,20 +582,16 @@ export default function CruxClient({ forceNum = null }) {
     setG({ ...g, assigned: assigned2 });
     setPick(null);
   }
+  // ONE lock-in, and it concludes the game (owner decision 2026-07-07): the
+  // final score is however many words sit in the right category. No retries.
   function lockIn() {
     if (!playing) return;
     const allSolved = PUZZLE.slots.every((s) => g.solved[s.id]);
     const allPlaced = PUZZLE.slots.every((s) => g.assigned[s.word] !== undefined);
     if (!allSolved || !allPlaced) return;
-    const wrong = PUZZLE.slots.filter((s) => !PUZZLE.categories[g.assigned[s.word]].words.includes(s.word)).length;
-    const g2 = { ...g, lockTries: (g.lockTries || 0) + 1 };
-    if (wrong === 0) {
-      g2.status = 'won';
-      g2.tEnd = Date.now();
-      postResult(g2);
-    } else {
-      say(wrong === 1 ? '1 word is in the wrong category — rearrange and lock in again' : `${wrong} words are in the wrong category — rearrange and lock in again`);
-    }
+    const right = PUZZLE.slots.filter((s) => PUZZLE.categories[g.assigned[s.word]].words.includes(s.word)).length;
+    const g2 = { ...g, filedRight: right, status: right === PUZZLE.slots.length ? 'won' : 'lost', tEnd: Date.now() };
+    postResult(g2, right);
     setG(g2);
   }
 
@@ -629,7 +627,9 @@ export default function CruxClient({ forceNum = null }) {
       .join(' ');
     const head = g.status === 'won'
       ? `Solved in ${guessesUsed} guesses · ${elapsed}`
-      : `${g.order.length}/8 words`;
+      : g.filedRight != null
+        ? `Locked in ${g.filedRight}/8`
+        : `${g.order.length}/8 words`;
     return `Crux #${PUZZLE.num}\n${head}\n${squares}${g.order.length < 8 ? ' ⬛'.repeat(8 - g.order.length) : ''}\nsourceoftruths.com/crux`;
   }
   function copyShare() {
@@ -899,10 +899,11 @@ export default function CruxClient({ forceNum = null }) {
               </div>
             )}
 
-            {/* lock it in: the only moment placements are judged */}
+            {/* lock it in: single shot, concludes the game — armed two-tap */}
             {readyToLock && (
-              <button onClick={lockIn} style={{ width: '100%', fontFamily: SANS, fontWeight: 800, fontSize: 15, letterSpacing: '0.05em', textTransform: 'uppercase', padding: '15px 10px', borderRadius: 10, border: 'none', background: COLORS.ember, color: '#fff', cursor: 'pointer', marginBottom: 14 }}>
-                Lock it in
+              <button onClick={() => { if (armLock) { lockIn(); } else { setArmLock(true); setTimeout(() => setArmLock(false), 3500); } }}
+                style={{ width: '100%', fontFamily: SANS, fontWeight: 800, fontSize: 15, letterSpacing: '0.05em', textTransform: 'uppercase', padding: '15px 10px', borderRadius: 10, border: 'none', background: armLock ? COLORS.rust : COLORS.ember, color: '#fff', cursor: 'pointer', marginBottom: 14 }}>
+                {armLock ? 'Tap again — one lock-in only' : 'Lock it in'}
               </button>
             )}
 
@@ -910,12 +911,14 @@ export default function CruxClient({ forceNum = null }) {
             {!playing && (
               <div style={{ background: '#fff', border: `2px solid ${COLORS.ink}`, borderRadius: 12, padding: '16px 16px 14px', marginBottom: 14 }}>
                 <div style={{ fontSize: 19, fontWeight: 800, color: won ? COLORS.ink : COLORS.rust, marginBottom: 4 }}>
-                  {won ? 'You got to the crux of the matter.' : 'Out of guesses.'}
+                  {won ? 'You got to the crux of the matter.' : g.filedRight != null ? `Locked in at ${g.filedRight}/8.` : 'Out of guesses.'}
                 </div>
                 <div style={{ fontSize: 13.5, fontWeight: 700, color: COLORS.faded, marginBottom: 12 }}>
                   {won
                     ? <>{guessesUsed} guesses &middot; {elapsed}</>
-                    : <>{g.order.length} of 8 words &middot; the reveal is on the board</>}
+                    : g.filedRight != null
+                      ? <>{g.filedRight} of 8 in the right category &middot; the reveal is on the board</>
+                      : <>{g.order.length} of 8 words &middot; the reveal is on the board</>}
                 </div>
                 <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
                   <button className="cl-btn" onClick={copyShare}><Share2 size={15} /> {copied ? 'Copied' : 'Share result'}</button>
@@ -972,7 +975,7 @@ export default function CruxClient({ forceNum = null }) {
               <p style={{ margin: '0 0 10px' }}><b>Eight words</b> interlock in the grid. There are no clues &mdash; the <b>four categories</b> are the only hints. Each category owns exactly <b>two</b> of the eight words.</p>
               <p style={{ margin: '0 0 10px' }}><b>Guess to reveal.</b> Tap a slot, type any letters, hit enter. <span style={{ background: COLORS.ink, color: '#fff', borderRadius: 4, padding: '1px 6px', fontWeight: 800 }}>Dark</span> = right letter, right square &mdash; it locks into the grid, including for the crossing word. <span style={{ background: '#e6b93f', color: '#5c4a06', borderRadius: 4, padding: '1px 6px', fontWeight: 800 }}>Yellow</span> = in this word, different square.</p>
               <p style={{ margin: '0 0 10px' }}><b>The whole board shares {PUZZLE.guesses} guesses.</b> Crossings are your friend: a locked letter narrows every word it touches.</p>
-              <p style={{ margin: '0 0 10px' }}><b>File your solves.</b> Tap a solved word, then a category, to place it &mdash; placements stay secret, and tapping a placed word takes it back. When all eight are placed, <b>lock it in</b>: you learn how many are misfiled, never which. Beware: some words look right in two categories.</p>
+              <p style={{ margin: '0 0 10px' }}><b>File your solves.</b> Tap a solved word, then a category, to place it &mdash; placements stay secret, and tapping a placed word takes it back. When all eight are placed, <b>lock it in &mdash; you get exactly one</b>. Your final score is how many words sit in the right category. Beware: some words look right in two categories.</p>
               <p style={{ margin: 0, color: COLORS.faded, fontSize: 12.5 }}>Win by solving all eight words and filing all four pairs. If every letter of a word gets locked by crossings, it solves itself &mdash; free.</p>
             </div>
             <button className="cl-btn" onClick={() => { setShowHelp(false); try { localStorage.setItem(HELP_KEY, '1'); } catch (e) {} }} style={{ marginTop: 14, background: COLORS.ink, color: '#fff' }}>Play</button>
