@@ -37,15 +37,13 @@ const COLORS = {
 };
 const SANS = "'Manrope', system-ui, -apple-system, sans-serif";
 
-// Crux's own category palette, easiest -> trickiest: coral, teal, steel,
-// plum. Deliberately NOT the yellow/green/blue/purple quartet other grouping
-// games use; the share line uses colored circles (not squares) for the same
-// reason.
+// Category palette, easiest -> trickiest (owner reverted to the classic
+// quartet 2026-07-07 — matches the Links boards' difficulty colors).
 const CAT_COLORS = [
-  { bg: '#e2795c', tc: '#54190a', sq: '\u{1F7E0}' },
-  { bg: '#45a08c', tc: '#0d3a30', sq: '\u{1F7E2}' },
-  { bg: '#6d9cc4', tc: '#10375a', sq: '\u{1F535}' },
-  { bg: '#c76d95', tc: '#47102e', sq: '\u{1F7E3}' },
+  { bg: '#e6b93f', tc: '#5c4a06', sq: '\u{1F7E8}' },
+  { bg: '#5aa96a', tc: '#173f1f', sq: '\u{1F7E9}' },
+  { bg: '#5a97dd', tc: '#0c3a66', sq: '\u{1F7E6}' },
+  { bg: '#9b82d8', tc: '#2e1f60', sq: '\u{1F7EA}' },
 ];
 
 // ─── Puzzles ────────────────────────────────────────────────────────────────
