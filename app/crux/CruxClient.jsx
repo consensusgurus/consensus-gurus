@@ -633,26 +633,20 @@ export default function CruxClient({ forceNum = null }) {
   const isTodays = PUZZLE.num === pickPuzzle(null).num;
   const elapsed = g.t0 ? fmtTime((g.tEnd || Date.now()) - g.t0) : '0:00';
 
-  // Wordle-style copyable grid: row 1 = solve order in category colors,
-  // row 2 = placement verdicts (color = right home, black = misfiled,
-  // white = never solved/placed). No letters or words leak.
+  // Wordle-style copyable grid, one row in solve order: category color =
+  // solved AND filed right (placing right implies solving), black = solved
+  // but misfiled, white = never solved. No letters or words leak.
   function shareText() {
-    const sqOf = (sid) => CAT_COLORS[PUZZLE.categories.findIndex((c) => c.words.includes(SLOT[sid].word))].sq;
-    const solvedRow = [];
-    const placedRow = [];
-    for (const sid of g.order) {
-      solvedRow.push(sqOf(sid));
+    const cells = g.order.map((sid) => {
       const w = SLOT[sid].word;
       const ci = g.assigned[w];
-      placedRow.push(ci !== undefined ? (PUZZLE.categories[ci].words.includes(w) ? sqOf(sid) : '⬛') : '⬜');
-    }
-    for (let i = g.order.length; i < PUZZLE.slots.length; i++) {
-      solvedRow.push('⬜');
-      placedRow.push('⬜');
-    }
+      const right = ci !== undefined && PUZZLE.categories[ci].words.includes(w);
+      return right ? CAT_COLORS[PUZZLE.categories.findIndex((c) => c.words.includes(w))].sq : '⬛';
+    });
+    for (let i = g.order.length; i < PUZZLE.slots.length; i++) cells.push('⬜');
     const score = g.status === 'won' ? PUZZLE.slots.length * 2 : g.order.length + (g.filedRight || 0);
     const head = `Crux #${PUZZLE.num} · ${score}/16 · ${guessesUsed} guess${guessesUsed === 1 ? '' : 'es'} · ${elapsed}`;
-    return `${head}\n${solvedRow.join('')}\n${placedRow.join('')}\nsourceoftruths.com/crux`;
+    return `${head}\n${cells.join('')}\nsourceoftruths.com/crux`;
   }
   function copyShare() {
     const text = playing
