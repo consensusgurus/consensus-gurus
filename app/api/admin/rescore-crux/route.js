@@ -18,6 +18,16 @@ export async function GET(request) {
   if (url.searchParams.get('key') !== KEY) {
     return new NextResponse('forbidden', { status: 403, headers: { 'Content-Type': 'text/plain' } });
   }
+  if (url.searchParams.get('dry') === '1') {
+    const { data: rows, error: qerr } = await supabaseAdmin
+      .from('quiz_results')
+      .select('id, quiz_id, score, correct_count, created_at, username')
+      .in('quiz_id', ['crux-7-6-26', 'crux-7-7-26'])
+      .order('created_at', { ascending: true });
+    if (qerr) return new NextResponse('qerr: ' + qerr.message, { status: 500, headers: { 'Content-Type': 'text/plain' } });
+    const lines = (rows || []).map((r) => [r.quiz_id, r.score, r.correct_count, r.created_at, r.username || 'anon'].join(' | '));
+    return new NextResponse('rows ' + (rows || []).length + '\n' + lines.join('\n'), { headers: { 'Content-Type': 'text/plain' } });
+  }
   const { data, error } = await supabaseAdmin
     .from('quiz_results')
     .update({ score: 16, correct_count: 16 })
