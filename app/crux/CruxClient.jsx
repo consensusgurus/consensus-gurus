@@ -633,17 +633,14 @@ export default function CruxClient({ forceNum = null }) {
   const isTodays = PUZZLE.num === pickPuzzle(null).num;
   const elapsed = g.t0 ? fmtTime((g.tEnd || Date.now()) - g.t0) : '0:00';
 
-  // Wordle-style copyable grid, one row in solve order: category color =
-  // solved AND filed right (placing right implies solving), black = solved
-  // but misfiled, white = never solved. No letters or words leak.
+  // Copyable grid, one row GROUPED BY CATEGORY (yellow pair, green pair,
+  // blue pair, red pair): color = that word solved AND filed right, black =
+  // missed (unsolved or misfiled). No letters or words leak.
   function shareText() {
-    const cells = g.order.map((sid) => {
-      const w = SLOT[sid].word;
-      const ci = g.assigned[w];
-      const right = ci !== undefined && PUZZLE.categories[ci].words.includes(w);
-      return right ? CAT_COLORS[PUZZLE.categories.findIndex((c) => c.words.includes(w))].sq : '⬛';
+    const cells = [];
+    PUZZLE.categories.forEach((cat, ci) => {
+      for (const w of cat.words) cells.push(g.assigned[w] === ci ? CAT_COLORS[ci].sq : '⬛');
     });
-    for (let i = g.order.length; i < PUZZLE.slots.length; i++) cells.push('⬜');
     const score = g.status === 'won' ? PUZZLE.slots.length * 2 : g.order.length + (g.filedRight || 0);
     const head = `Crux #${PUZZLE.num} · ${score}/16 · ${guessesUsed} guess${guessesUsed === 1 ? '' : 'es'} · ${elapsed}`;
     return `${head}\n${cells.join('')}\nsourceoftruths.com/crux`;
