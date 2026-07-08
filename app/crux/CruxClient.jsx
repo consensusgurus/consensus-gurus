@@ -974,6 +974,8 @@ export default function CruxClient({ forceNum = null }) {
         <div style={{ maxWidth: 760, margin: '26px auto 0', background: '#fff', border: '1.5px solid rgba(20,22,28,0.12)', borderRadius: 12, padding: '14px 16px' }}>
           <QuizLeaderboard board={board} identity={identity} total={PUZZLE.slots.length * 2} />
         </div>
+
+        <p style={{ textAlign: 'center', fontSize: 12, fontStyle: 'italic', fontWeight: 600, color: COLORS.faded, margin: '34px 0 0' }}>For WMM, in memoriam.</p>
       </div>
 
       <DuelBanner token={duelToken} info={duelInfo} submitted={duelSubmitted} />
