@@ -37,13 +37,14 @@ const COLORS = {
 };
 const SANS = "'Manrope', system-ui, -apple-system, sans-serif";
 
-// Category palette, easiest -> trickiest (owner reverted to the classic
-// quartet 2026-07-07 — matches the Links boards' difficulty colors).
+// Category palette, easiest -> trickiest: yellow, green, blue, RED — the
+// fourth is red (owner call 2026-07-07) so the set isn't the familiar
+// grouping-game quartet.
 const CAT_COLORS = [
   { bg: '#e6b93f', tc: '#5c4a06', sq: '\u{1F7E8}' },
   { bg: '#5aa96a', tc: '#173f1f', sq: '\u{1F7E9}' },
   { bg: '#5a97dd', tc: '#0c3a66', sq: '\u{1F7E6}' },
-  { bg: '#9b82d8', tc: '#2e1f60', sq: '\u{1F7EA}' },
+  { bg: '#d96363', tc: '#571212', sq: '\u{1F7E5}' },
 ];
 
 // ─── Puzzles ────────────────────────────────────────────────────────────────
@@ -451,6 +452,7 @@ export default function CruxClient({ forceNum = null }) {
   // ---- input ----
   const onKey = useCallback((k) => {
     if (g.status !== 'playing') return;
+    if (g.left <= 0) return;
     if (!slot || g.solved[sel]) return;
     if (k === 'ENTER') submit();
     else if (k === 'BACK') setTyped((t) => t.slice(0, -1));
@@ -531,9 +533,14 @@ export default function CruxClient({ forceNum = null }) {
 
     const allSolved = PUZZLE.slots.every((s) => g2.solved[s.id]);
     if (!allSolved && g2.left <= 0) {
-      g2.status = 'lost';
-      g2.tEnd = Date.now();
-      postResult(g2);
+      if (g2.order.length === 0) {
+        g2.status = 'lost';
+        g2.filedRight = 0;
+        g2.tEnd = Date.now();
+        postResult(g2, 0);
+      } else {
+        say('Out of guesses — place your solved words, then lock it in');
+      }
     }
     setTyped('');
     if (g2.solved[sel] && g2.status === 'playing') setSel(nextUnsolved(g2, sel));
@@ -552,7 +559,7 @@ export default function CruxClient({ forceNum = null }) {
         method: 'POST',
         keepalive: true,
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ quizId: PUZZLE.quizId, score: sc, total: PUZZLE.slots.length, correct: sc, timeElapsed: el, email: identity?.email || undefined, anonId: getAnonId(), isMobile: isMobileDevice(), referrer: (typeof document !== 'undefined' ? document.referrer : '') }),
+        body: JSON.stringify({ quizId: PUZZLE.quizId, score: sc, total: PUZZLE.slots.length * 2, correct: sc, timeElapsed: el, email: identity?.email || undefined, anonId: getAnonId(), isMobile: isMobileDevice(), referrer: (typeof document !== 'undefined' ? document.referrer : '') }),
       })
         .then((r) => r.json())
         .then((d) => { if (d && !d.error) setBoard({ ...EMPTY_BOARD, ...d }); })
@@ -580,16 +587,21 @@ export default function CruxClient({ forceNum = null }) {
     setG({ ...g, assigned: assigned2 });
     setPick(null);
   }
-  // ONE lock-in, and it concludes the game (owner decision 2026-07-07): the
-  // final score is however many words sit in the right category. No retries.
+  // ONE lock-in, and it concludes the game. Score is out of 16: a point per
+  // word solved plus a point per word correctly categorized. Available at a
+  // full solve, or once the guess budget is spent (place what you solved).
+  // No lock-in, no score — abandoned games never post.
   function lockIn() {
     if (!playing) return;
-    const allSolved = PUZZLE.slots.every((s) => g.solved[s.id]);
-    const allPlaced = PUZZLE.slots.every((s) => g.assigned[s.word] !== undefined);
-    if (!allSolved || !allPlaced) return;
-    const right = PUZZLE.slots.filter((s) => PUZZLE.categories[g.assigned[s.word]].words.includes(s.word)).length;
-    const g2 = { ...g, filedRight: right, status: right === PUZZLE.slots.length ? 'won' : 'lost', tEnd: Date.now() };
-    postResult(g2, right);
+    const solvedSlots = PUZZLE.slots.filter((s) => g.solved[s.id]);
+    const allSolved = solvedSlots.length === PUZZLE.slots.length;
+    const placedAll = solvedSlots.every((s) => g.assigned[s.word] !== undefined);
+    if (!placedAll || solvedSlots.length === 0) return;
+    if (!allSolved && g.left > 0) return;
+    const right = solvedSlots.filter((s) => PUZZLE.categories[g.assigned[s.word]].words.includes(s.word)).length;
+    const score = solvedSlots.length + right;
+    const g2 = { ...g, filedRight: right, status: score === PUZZLE.slots.length * 2 ? 'won' : 'lost', tEnd: Date.now() };
+    postResult(g2, score);
     setG(g2);
   }
 
@@ -628,7 +640,7 @@ export default function CruxClient({ forceNum = null }) {
     const head = g.status === 'won'
       ? `Solved in ${guessesUsed} guesses · ${elapsed}`
       : g.filedRight != null
-        ? `Locked in ${g.filedRight}/8`
+        ? `Locked in ${g.order.length + g.filedRight}/16`
         : `${g.order.length}/8 words`;
     return `Crux #${PUZZLE.num}\n${head}\n${squares}${g.order.length < 8 ? ' ⬛'.repeat(8 - g.order.length) : ''}\nsourceoftruths.com/crux`;
   }
@@ -671,8 +683,9 @@ export default function CruxClient({ forceNum = null }) {
     .filter((s) => g.solved[s.id] && g.assigned[s.word] === undefined)
     .map((s) => s.word);
   const readyToLock = playing
-    && PUZZLE.slots.every((s) => g.solved[s.id])
-    && PUZZLE.slots.every((s) => g.assigned[s.word] !== undefined);
+    && g.order.length > 0
+    && PUZZLE.slots.filter((s) => g.solved[s.id]).every((s) => g.assigned[s.word] !== undefined)
+    && (g.order.length === PUZZLE.slots.length || g.left <= 0);
 
   const lost = g.status === 'lost';
   const won = g.status === 'won';
@@ -823,8 +836,8 @@ export default function CruxClient({ forceNum = null }) {
               </div>
             )}
 
-            {/* keyboard */}
-            {playing && (
+            {/* keyboard (hidden once the budget is spent — filing phase) */}
+            {playing && g.left > 0 && (
               <div style={{ maxWidth: 470 }}>
                 {KB.map((row, ri) => (
                   <div key={ri} style={{ display: 'flex', gap: 4, marginBottom: 5, justifyContent: 'center' }}>
@@ -911,13 +924,13 @@ export default function CruxClient({ forceNum = null }) {
             {!playing && (
               <div style={{ background: '#fff', border: `2px solid ${COLORS.ink}`, borderRadius: 12, padding: '16px 16px 14px', marginBottom: 14 }}>
                 <div style={{ fontSize: 19, fontWeight: 800, color: won ? COLORS.ink : COLORS.rust, marginBottom: 4 }}>
-                  {won ? 'You got to the crux of the matter.' : g.filedRight != null ? `Locked in at ${g.filedRight}/8.` : 'Out of guesses.'}
+                  {won ? 'You got to the crux of the matter.' : g.filedRight != null ? `Locked in at ${g.order.length + g.filedRight}/16.` : 'Out of guesses.'}
                 </div>
                 <div style={{ fontSize: 13.5, fontWeight: 700, color: COLORS.faded, marginBottom: 12 }}>
                   {won
                     ? <>{guessesUsed} guesses &middot; {elapsed}</>
                     : g.filedRight != null
-                      ? <>{g.filedRight} of 8 in the right category &middot; the reveal is on the board</>
+                      ? <>{g.order.length}/8 words &middot; {g.filedRight}/8 placements &middot; the reveal is on the board</>
                       : <>{g.order.length} of 8 words &middot; the reveal is on the board</>}
                 </div>
                 <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
@@ -959,7 +972,7 @@ export default function CruxClient({ forceNum = null }) {
           </div>
         )}
         <div style={{ maxWidth: 760, margin: '26px auto 0', background: '#fff', border: '1.5px solid rgba(20,22,28,0.12)', borderRadius: 12, padding: '14px 16px' }}>
-          <QuizLeaderboard board={board} identity={identity} total={PUZZLE.slots.length} />
+          <QuizLeaderboard board={board} identity={identity} total={PUZZLE.slots.length * 2} />
         </div>
       </div>
 
@@ -985,7 +998,7 @@ export default function CruxClient({ forceNum = null }) {
               <p style={{ margin: '0 0 10px' }}><b>Eight words</b> interlock in the grid. There are no clues &mdash; the <b>four categories</b> are the only hints. Each category owns exactly <b>two</b> of the eight words.</p>
               <p style={{ margin: '0 0 10px' }}><b>Guess to reveal.</b> Tap a slot, type any letters, hit enter. <span style={{ background: COLORS.ink, color: '#fff', borderRadius: 4, padding: '1px 6px', fontWeight: 800 }}>Dark</span> = right letter, right square &mdash; it locks into the grid, including for the crossing word. <span style={{ background: '#e6b93f', color: '#5c4a06', borderRadius: 4, padding: '1px 6px', fontWeight: 800 }}>Yellow</span> = in this word, different square.</p>
               <p style={{ margin: '0 0 10px' }}><b>The whole board shares {PUZZLE.guesses} guesses.</b> Crossings are your friend: a locked letter narrows every word it touches.</p>
-              <p style={{ margin: '0 0 10px' }}><b>File your solves.</b> Tap a solved word, then a category, to place it &mdash; placements stay secret, and tapping a placed word takes it back. When all eight are placed, <b>lock it in &mdash; you get exactly one</b>. Your final score is how many words sit in the right category. Beware: some words look right in two categories.</p>
+              <p style={{ margin: '0 0 10px' }}><b>File your solves.</b> Tap a solved word, then a category, to place it &mdash; placements stay secret, and tapping a placed word takes it back. When every solved word is placed, <b>lock it in &mdash; you get exactly one</b>. Scoring is out of 16: a point per word solved, a point per word in the right category. Out of guesses? You still place what you solved and lock in &mdash; no lock-in, no score. Beware: some words look right in two categories.</p>
               <p style={{ margin: 0, color: COLORS.faded, fontSize: 12.5 }}>Win by solving all eight words and filing all four pairs. If every letter of a word gets locked by crossings, it solves itself &mdash; free.</p>
             </div>
             <button className="cl-btn" onClick={() => { setShowHelp(false); try { localStorage.setItem(HELP_KEY, '1'); } catch (e) {} }} style={{ marginTop: 14, background: COLORS.ink, color: '#fff' }}>Play</button>
