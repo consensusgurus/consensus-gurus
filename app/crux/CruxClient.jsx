@@ -633,16 +633,26 @@ export default function CruxClient({ forceNum = null }) {
   const isTodays = PUZZLE.num === pickPuzzle(null).num;
   const elapsed = g.t0 ? fmtTime((g.tEnd || Date.now()) - g.t0) : '0:00';
 
+  // Wordle-style copyable grid: row 1 = solve order in category colors,
+  // row 2 = placement verdicts (color = right home, black = misfiled,
+  // white = never solved/placed). No letters or words leak.
   function shareText() {
-    const squares = g.order
-      .map((sid) => CAT_COLORS[PUZZLE.categories.findIndex((c) => c.words.includes(SLOT[sid].word))].sq + (g.slotGuesses[sid] || 0))
-      .join(' ');
-    const head = g.status === 'won'
-      ? `Solved in ${guessesUsed} guesses · ${elapsed}`
-      : g.filedRight != null
-        ? `Locked in ${g.order.length + g.filedRight}/16`
-        : `${g.order.length}/8 words`;
-    return `Crux #${PUZZLE.num}\n${head}\n${squares}${g.order.length < 8 ? ' ⬛'.repeat(8 - g.order.length) : ''}\nsourceoftruths.com/crux`;
+    const sqOf = (sid) => CAT_COLORS[PUZZLE.categories.findIndex((c) => c.words.includes(SLOT[sid].word))].sq;
+    const solvedRow = [];
+    const placedRow = [];
+    for (const sid of g.order) {
+      solvedRow.push(sqOf(sid));
+      const w = SLOT[sid].word;
+      const ci = g.assigned[w];
+      placedRow.push(ci !== undefined ? (PUZZLE.categories[ci].words.includes(w) ? sqOf(sid) : '⬛') : '⬜');
+    }
+    for (let i = g.order.length; i < PUZZLE.slots.length; i++) {
+      solvedRow.push('⬜');
+      placedRow.push('⬜');
+    }
+    const score = g.status === 'won' ? PUZZLE.slots.length * 2 : g.order.length + (g.filedRight || 0);
+    const head = `Crux #${PUZZLE.num} · ${score}/16 · ${guessesUsed} guess${guessesUsed === 1 ? '' : 'es'} · ${elapsed}`;
+    return `${head}\n${solvedRow.join('')}\n${placedRow.join('')}\nsourceoftruths.com/crux`;
   }
   function copyShare() {
     const text = playing
