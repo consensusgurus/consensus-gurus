@@ -992,6 +992,15 @@ export default function CruxClient({ forceNum = null }) {
     const text = playing
       ? `Crux #${PUZZLE.num} \u2014 a crossword with no clues. Can you crack it?\nsourceoftruths.com/crux`
       : shareText();
+    // Mobile: native share sheet (like the big daily games) — the receiving
+    // app gets the text directly, line breaks intact, no clipboard quirks.
+    // Desktop: clipboard with the Copied flip.
+    try {
+      if (typeof navigator !== 'undefined' && navigator.share && isMobileDevice()) {
+        navigator.share({ text }).catch(() => {});
+        return;
+      }
+    } catch (e) {}
     try {
       navigator.clipboard?.writeText(text).then(() => {
         setCopied(true);
