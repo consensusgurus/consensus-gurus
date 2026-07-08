@@ -291,6 +291,139 @@ const PUZZLES = [
       { id: '8A', word: 'CROWN', row: 8, col: 2, dir: 'A' },
     ],
   },
+  {
+    num: 10,
+    quizId: 'crux-7-15-26',
+    live: '2026-07-15',
+    dateLabel: 'July 15, 2026',
+    guesses: 18,
+    rows: 10,
+    cols: 8,
+    categories: [
+      { name: 'Birds', words: ['RAVEN', 'FINCH'] },
+      { name: 'Castle features', words: ['MOAT', 'TURRET'] },
+      { name: 'Shades of black', words: ['EBONY', 'JET'] },
+      { name: 'Chess pieces', words: ['KNIGHT', 'ROOK'] },
+    ],
+    slots: [
+      { id: '1A', word: 'ROOK', row: 0, col: 4, dir: 'A' },
+      { id: '2D', word: 'KNIGHT', row: 0, col: 7, dir: 'D' },
+      { id: '3D', word: 'JET', row: 2, col: 0, dir: 'D' },
+      { id: '4D', word: 'MOAT', row: 2, col: 2, dir: 'D' },
+      { id: '5A', word: 'EBONY', row: 3, col: 0, dir: 'A' },
+      { id: '6A', word: 'TURRET', row: 5, col: 2, dir: 'A' },
+      { id: '7D', word: 'RAVEN', row: 5, col: 4, dir: 'D' },
+      { id: '8A', word: 'FINCH', row: 9, col: 2, dir: 'A' },
+    ],
+  },
+  {
+    num: 11,
+    quizId: 'crux-7-16-26',
+    live: '2026-07-16',
+    dateLabel: 'July 16, 2026',
+    guesses: 18,
+    rows: 7,
+    cols: 10,
+    categories: [
+      { name: 'Long journeys', words: ['TREK', 'VOYAGE'] },
+      { name: 'Water sources', words: ['WELL', 'GEYSER'] },
+      { name: 'Ways to tumble', words: ['TRIP', 'STUMBLE'] },
+      { name: 'Seasons', words: ['SPRING', 'FALL'] },
+    ],
+    slots: [
+      { id: '1A', word: 'SPRING', row: 0, col: 1, dir: 'A' },
+      { id: '1D', word: 'STUMBLE', row: 0, col: 1, dir: 'D' },
+      { id: '2D', word: 'GEYSER', row: 0, col: 6, dir: 'D' },
+      { id: '3D', word: 'TREK', row: 0, col: 9, dir: 'D' },
+      { id: '4A', word: 'VOYAGE', row: 2, col: 4, dir: 'A' },
+      { id: '5D', word: 'FALL', row: 3, col: 3, dir: 'D' },
+      { id: '6A', word: 'TRIP', row: 5, col: 5, dir: 'A' },
+      { id: '7A', word: 'WELL', row: 6, col: 0, dir: 'A' },
+    ],
+  },
+  {
+    num: 12,
+    quizId: 'crux-7-17-26',
+    live: '2026-07-17',
+    dateLabel: 'July 17, 2026',
+    guesses: 18,
+    rows: 8,
+    cols: 9,
+    categories: [
+      { name: 'Rocket parts', words: ['STAGE', 'BOOSTER'] },
+      { name: 'Movie-set jobs', words: ['GRIP', 'GAFFER'] },
+      { name: 'Car parts', words: ['CLUTCH', 'FENDER'] },
+      { name: 'Firm holds', words: ['CLASP', 'GRASP'] },
+    ],
+    slots: [
+      { id: '1D', word: 'CLUTCH', row: 0, col: 0, dir: 'D' },
+      { id: '2A', word: 'GRIP', row: 0, col: 4, dir: 'A' },
+      { id: '2D', word: 'GRASP', row: 0, col: 4, dir: 'D' },
+      { id: '3D', word: 'GAFFER', row: 2, col: 6, dir: 'D' },
+      { id: '4D', word: 'FENDER', row: 2, col: 8, dir: 'D' },
+      { id: '5A', word: 'STAGE', row: 3, col: 4, dir: 'A' },
+      { id: '6A', word: 'CLASP', row: 4, col: 0, dir: 'A' },
+      { id: '7A', word: 'BOOSTER', row: 7, col: 0, dir: 'A' },
+    ],
+  },
+  {
+    num: 13,
+    quizId: 'crux-7-18-26',
+    live: '2026-07-18',
+    dateLabel: 'July 18, 2026',
+    guesses: 18,
+    rows: 8,
+    cols: 9,
+    categories: [
+      { name: 'Flower parts', words: ['PETAL', 'STEM'] },
+      { name: 'Computer keys', words: ['SHIFT', 'ESCAPE'] },
+      { name: 'Horse gear', words: ['BRIDLE', 'REINS'] },
+      { name: 'Bike parts', words: ['PEDAL', 'SADDLE'] },
+    ],
+    slots: [
+      { id: '1A', word: 'STEM', row: 0, col: 0, dir: 'A' },
+      { id: '2D', word: 'ESCAPE', row: 0, col: 2, dir: 'D' },
+      { id: '3D', word: 'BRIDLE', row: 0, col: 6, dir: 'D' },
+      { id: '4D', word: 'PETAL', row: 0, col: 8, dir: 'D' },
+      { id: '5A', word: 'SHIFT', row: 2, col: 4, dir: 'A' },
+      { id: '5D', word: 'SADDLE', row: 2, col: 4, dir: 'D' },
+      { id: '6A', word: 'PEDAL', row: 4, col: 2, dir: 'A' },
+      { id: '7A', word: 'REINS', row: 7, col: 3, dir: 'A' },
+    ],
+  },
+  {
+    num: 14,
+    quizId: 'crux-7-19-26',
+    live: '2026-07-19',
+    dateLabel: 'July 19, 2026',
+    guesses: 27,
+    rows: 12,
+    cols: 10,
+    // First SUNDAY EDITION: four categories of THREE (score /24). Traps all
+    // pinned: CRICKET and SQUASH read as sports (their real homes fill the
+    // sports slots), SEAL reads navy, BAT reads sports gear, SUB reads
+    // sandwich, POLO reads shirts.
+    categories: [
+      { name: 'Vegetables', words: ['LEEK', 'RADISH', 'TURNIP'] },
+      { name: 'Navy things', words: ['ANCHOR', 'SUB', 'FLEET'] },
+      { name: 'Sports', words: ['SQUASH', 'RUGBY', 'POLO'] },
+      { name: 'Animals', words: ['BAT', 'CRICKET', 'SEAL'] },
+    ],
+    slots: [
+      { id: '1D', word: 'POLO', row: 0, col: 6, dir: 'D' },
+      { id: '2A', word: 'ANCHOR', row: 1, col: 2, dir: 'A' },
+      { id: '3D', word: 'CRICKET', row: 1, col: 4, dir: 'D' },
+      { id: '4D', word: 'FLEET', row: 3, col: 2, dir: 'D' },
+      { id: '5D', word: 'RADISH', row: 4, col: 8, dir: 'D' },
+      { id: '6A', word: 'LEEK', row: 5, col: 1, dir: 'A' },
+      { id: '7A', word: 'SEAL', row: 5, col: 6, dir: 'A' },
+      { id: '8A', word: 'BAT', row: 7, col: 0, dir: 'A' },
+      { id: '9A', word: 'TURNIP', row: 7, col: 4, dir: 'A' },
+      { id: '10A', word: 'SQUASH', row: 9, col: 3, dir: 'A' },
+      { id: '10D', word: 'SUB', row: 9, col: 3, dir: 'D' },
+      { id: '11A', word: 'RUGBY', row: 11, col: 0, dir: 'A' },
+    ],
+  },
 ];
 const HELP_KEY = 'sot_crux_help_seen';
 
@@ -582,8 +715,8 @@ export default function CruxClient({ forceNum = null }) {
   function fileWord(word, ci) {
     if (!playing) return;
     const occupants = Object.keys(g.assigned).filter((w) => g.assigned[w] === ci && w !== word);
-    if (occupants.length >= 2) {
-      say(`${PUZZLE.categories[ci].name} already holds two — tap a word there to take it back`);
+    if (occupants.length >= PUZZLE.categories[ci].words.length) {
+      say(`${PUZZLE.categories[ci].name} is already full — tap a word there to take it back`);
       return;
     }
     setG({ ...g, assigned: { ...g.assigned, [word]: ci } });
@@ -649,7 +782,7 @@ export default function CruxClient({ forceNum = null }) {
     const rows = PUZZLE.categories.map((cat, ci) =>
       cat.words.map((w) => (g.assigned[w] === ci ? CAT_COLORS[ci].sq : '⬛')).join(''));
     const score = g.status === 'won' ? PUZZLE.slots.length * 2 : g.order.length + (g.filedRight || 0);
-    const head = `Crux #${PUZZLE.num} · ${score}/16 · ${guessesUsed} guess${guessesUsed === 1 ? '' : 'es'} · ${elapsed}`;
+    const head = `Crux #${PUZZLE.num} · ${score}/${PUZZLE.slots.length * 2} · ${guessesUsed} guess${guessesUsed === 1 ? '' : 'es'} · ${elapsed}`;
     return `${head}\n${rows.join('\n')}\nsourceoftruths.com/crux`;
   }
   function copyShare() {
@@ -783,6 +916,9 @@ export default function CruxClient({ forceNum = null }) {
         <div style={{ display: 'flex', alignItems: 'baseline', gap: 12, flexWrap: 'wrap', marginBottom: 2 }}>
           <h1 style={{ margin: 0, fontSize: 30, fontWeight: 800, letterSpacing: '-0.02em', color: COLORS.ink }}>Crux</h1>
           <span style={{ fontSize: 13, fontWeight: 800, color: '#fff', background: COLORS.ember, borderRadius: 6, padding: '2px 8px' }}>#{PUZZLE.num}</span>
+          {PUZZLE.categories[0].words.length === 3 && (
+            <span style={{ fontSize: 13, fontWeight: 800, color: '#fff', background: COLORS.ink, borderRadius: 6, padding: '2px 8px' }}>SUNDAY EDITION</span>
+          )}
           <span style={{ fontSize: 13, fontWeight: 700, color: COLORS.faded }}>{PUZZLE.dateLabel}</span>
           <button onClick={() => setShowHelp(true)} aria-label="How to play" style={{ marginLeft: 'auto', background: 'none', border: 'none', cursor: 'pointer', color: COLORS.faded, display: 'flex', alignItems: 'center', gap: 5, fontFamily: SANS, fontWeight: 700, fontSize: 13 }}>
             <HelpCircle size={18} /> How to play
@@ -801,7 +937,7 @@ export default function CruxClient({ forceNum = null }) {
               <div style={{ width: `${Math.max(0, Math.min(100, (g.left / PUZZLE.guesses) * 100))}%`, height: '100%', background: g.left <= 3 ? COLORS.rust : COLORS.ember, transition: 'width .2s' }} />
             </div>
           </div>
-          <div style={{ fontSize: 12.5, fontWeight: 700, color: COLORS.faded }}>{g.order.length}/8 words solved</div>
+          <div style={{ fontSize: 12.5, fontWeight: 700, color: COLORS.faded }}>{g.order.length}/{PUZZLE.slots.length} words solved</div>
         </div>
 
         <div className="cl-cols">
@@ -886,7 +1022,7 @@ export default function CruxClient({ forceNum = null }) {
                     style={{ background: cc.bg, borderRadius: 10, padding: '10px 12px', minHeight: 74, cursor: clickable ? 'pointer' : 'default', outline: clickable ? `2.5px dashed ${cc.tc}` : 'none', outlineOffset: 2 }}>
                     <div style={{ color: cc.tc, fontWeight: 800, fontSize: 12.5, textTransform: 'uppercase', letterSpacing: '.03em', lineHeight: 1.25, marginBottom: 7 }}>{cat.name}</div>
                     <div style={{ display: 'flex', gap: 5, flexWrap: 'wrap' }}>
-                      {[0, 1].map((i) => {
+                      {cat.words.map((_, i) => {
                         const w = lost ? cat.words[i] : filed[i];
                         if (!w) return <span key={i} style={{ background: 'rgba(255,255,255,0.28)', color: cc.tc, borderRadius: 6, padding: '3px 14px', fontWeight: 800, fontSize: 12.5 }}>?</span>;
                         if (lost) return <span key={i} style={{ background: 'rgba(255,255,255,0.28)', color: cc.tc, borderRadius: 6, padding: '3px 8px', fontWeight: 700, fontSize: 12.5, opacity: 0.85 }}>{w}</span>;
@@ -932,14 +1068,14 @@ export default function CruxClient({ forceNum = null }) {
             {!playing && (
               <div style={{ background: '#fff', border: `2px solid ${COLORS.ink}`, borderRadius: 12, padding: '16px 16px 14px', marginBottom: 14 }}>
                 <div style={{ fontSize: 19, fontWeight: 800, color: won ? COLORS.ink : COLORS.rust, marginBottom: 4 }}>
-                  {won ? 'You got to the crux of the matter.' : g.filedRight != null ? `Locked in at ${g.order.length + g.filedRight}/16.` : 'Out of guesses.'}
+                  {won ? 'You got to the crux of the matter.' : g.filedRight != null ? `Locked in at ${g.order.length + g.filedRight}/${PUZZLE.slots.length * 2}.` : 'Out of guesses.'}
                 </div>
                 <div style={{ fontSize: 13.5, fontWeight: 700, color: COLORS.faded, marginBottom: 12 }}>
                   {won
                     ? <>{guessesUsed} guesses &middot; {elapsed}</>
                     : g.filedRight != null
-                      ? <>{g.order.length}/8 words &middot; {g.filedRight}/8 placements &middot; the reveal is on the board</>
-                      : <>{g.order.length} of 8 words &middot; the reveal is on the board</>}
+                      ? <>{g.order.length}/{PUZZLE.slots.length} words &middot; {g.filedRight}/{PUZZLE.slots.length} placements &middot; the reveal is on the board</>
+                      : <>{g.order.length} of {PUZZLE.slots.length} words &middot; the reveal is on the board</>}
                 </div>
                 <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
                   <button className="cl-btn" onClick={copyShare}><Share2 size={15} /> {copied ? 'Copied' : 'Share result'}</button>
@@ -1005,9 +1141,9 @@ export default function CruxClient({ forceNum = null }) {
               <button onClick={() => { setShowHelp(false); try { localStorage.setItem(HELP_KEY, '1'); } catch (e) {} }} aria-label="Close" style={{ marginLeft: 'auto', background: 'none', border: 'none', cursor: 'pointer', color: COLORS.faded }}><X size={20} /></button>
             </div>
             <div style={{ fontSize: 14, lineHeight: 1.55, color: COLORS.ink, fontWeight: 600 }}>
-              <p style={{ margin: '0 0 9px' }}><b>Eight words</b> interlock in the grid &mdash; no clues. The <b>four categories</b> are the only hints; each hides exactly two of the words.</p>
+              <p style={{ margin: '0 0 9px' }}><b>{PUZZLE.slots.length === 12 ? 'Twelve' : 'Eight'} words</b> interlock in the grid &mdash; no clues. The <b>four categories</b> are the only hints; each hides exactly {PUZZLE.categories[0].words.length === 3 ? 'three' : 'two'} of the words.</p>
               <p style={{ margin: '0 0 9px' }}><b>Guess to reveal:</b> tap a slot, type any letters, hit enter. <span style={{ background: COLORS.ink, color: '#fff', borderRadius: 4, padding: '1px 6px', fontWeight: 800 }}>Dark</span> = right letter, right square (locks in, crossings too). <span style={{ background: '#e6b93f', color: '#5c4a06', borderRadius: 4, padding: '1px 6px', fontWeight: 800 }}>Yellow</span> = in the word, different square. The whole board shares <b>{PUZZLE.guesses} guesses</b>.</p>
-              <p style={{ margin: 0 }}><b>File your solves:</b> tap a word, then a category &mdash; placements stay secret and movable. One <b>lock it in</b> ends the game. Score is out of 16: a point per solved word, a point per correct placement. No lock-in, no score.</p>
+              <p style={{ margin: 0 }}><b>File your solves:</b> tap a word, then a category &mdash; placements stay secret and movable. One <b>lock it in</b> ends the game. Score is out of {PUZZLE.slots.length * 2}: a point per solved word, a point per correct placement. No lock-in, no score.</p>
             </div>
             <button className="cl-btn" onClick={() => { setShowHelp(false); try { localStorage.setItem(HELP_KEY, '1'); } catch (e) {} }} style={{ marginTop: 14, background: COLORS.ink, color: '#fff' }}>Play</button>
           </div>
