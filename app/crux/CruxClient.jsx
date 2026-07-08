@@ -609,6 +609,10 @@ const PUZZLES = [
 ];
 const HELP_KEY = 'sot_crux_help_seen';
 
+// Every puzzle answer is always a legal guess, even the proper nouns that a
+// Scrabble-style list omits (JUNO, MINERVA, URANUS...).
+const ANSWER_WORDS = new Set(PUZZLES.flatMap((pz) => pz.categories.flatMap((c) => c.words.map((w) => w.toLowerCase()))));
+
 function etToday() {
   try {
     return new Date().toLocaleDateString('en-CA', { timeZone: 'America/New_York' });
@@ -727,6 +731,7 @@ export default function CruxClient({ forceNum = null }) {
   const searchParams = useSearchParams();
   const { duelToken, duelInfo, duelSubmitted } = useDuelContext(PUZZLE.quizId, searchParams);
   const toastTimer = useRef(null);
+  const wordSetRef = useRef(null);
   const viewedRef = useRef(false);
 
   // ---- persistence ----
@@ -747,6 +752,15 @@ export default function CruxClient({ forceNum = null }) {
   }, [g, hydrated]);
 
   // ---- metrics + leaderboard (same /api/quiz/* flow as every other board) ----
+  // Guess dictionary (lazy, cached, ~115k words). Fail-open: until it loads,
+  // any letters are accepted — never block play on a fetch.
+  useEffect(() => {
+    fetch('/crux-words.txt')
+      .then((r) => (r.ok ? r.text() : ''))
+      .then((t) => { if (t) wordSetRef.current = new Set(t.split('\n')); })
+      .catch(() => {});
+  }, []);
+
   useEffect(() => {
     try {
       const id = JSON.parse(localStorage.getItem('sot_quiz_identity'));
@@ -824,6 +838,13 @@ export default function CruxClient({ forceNum = null }) {
     let ti = 0;
     const letters = cells.map((cl) => (g.greens[`${cl.r},${cl.c}`] ? cl.ch : typed[ti++]));
     const guess = letters.join('');
+    if (guess !== slot.word && !ANSWER_WORDS.has(guess.toLowerCase())) {
+      const ws = wordSetRef.current;
+      if (ws && !ws.has(guess.toLowerCase())) {
+        say('Not in the word list');
+        return;
+      }
+    }
     const marks = computeMarks(guess, slot.word);
 
     const g2 = { ...g };
@@ -1183,7 +1204,7 @@ export default function CruxClient({ forceNum = null }) {
                   </div>
                 ))}
                 <p style={{ fontSize: 11.5, color: COLORS.faded, fontWeight: 600, margin: '6px 0 0', textAlign: 'center' }}>
-                  Any letters make a legal guess &mdash; the budget is the constraint.
+                  Guesses must be real words &mdash; the budget is the constraint.
                 </p>
               </div>
             )}
@@ -1326,7 +1347,7 @@ export default function CruxClient({ forceNum = null }) {
             </div>
             <div style={{ fontSize: 14, lineHeight: 1.55, color: COLORS.ink, fontWeight: 600 }}>
               <p style={{ margin: '0 0 9px' }}><b>{PUZZLE.slots.length === 12 ? 'Twelve' : 'Eight'} words</b> interlock in the grid &mdash; no clues. The <b>four categories</b> are the only hints; each hides exactly {PUZZLE.categories[0].words.length === 3 ? 'three' : 'two'} of the words.</p>
-              <p style={{ margin: '0 0 9px' }}><b>Guess to reveal:</b> tap a slot, type any letters, hit enter. <span style={{ background: COLORS.ink, color: '#fff', borderRadius: 4, padding: '1px 6px', fontWeight: 800 }}>Dark</span> = right letter, right square (locks in, crossings too). <span style={{ background: '#e6b93f', color: '#5c4a06', borderRadius: 4, padding: '1px 6px', fontWeight: 800 }}>Yellow</span> = in the word, different square. The whole board shares <b>{PUZZLE.guesses} guesses</b>.</p>
+              <p style={{ margin: '0 0 9px' }}><b>Guess to reveal:</b> tap a slot, type a real word, hit enter. <span style={{ background: COLORS.ink, color: '#fff', borderRadius: 4, padding: '1px 6px', fontWeight: 800 }}>Dark</span> = right letter, right square (locks in, crossings too). <span style={{ background: '#e6b93f', color: '#5c4a06', borderRadius: 4, padding: '1px 6px', fontWeight: 800 }}>Yellow</span> = in the word, different square. The whole board shares <b>{PUZZLE.guesses} guesses</b>.</p>
               <p style={{ margin: 0 }}><b>File your solves:</b> tap a word, then a category &mdash; placements stay secret and movable. One <b>lock it in</b> ends the game. Score is out of {PUZZLE.slots.length * 2}: a point per solved word, a point per correct placement. No lock-in, no score.</p>
             </div>
             <button className="cl-btn" onClick={() => { setShowHelp(false); try { localStorage.setItem(HELP_KEY, '1'); } catch (e) {} }} style={{ marginTop: 14, background: COLORS.ink, color: '#fff' }}>Play</button>
