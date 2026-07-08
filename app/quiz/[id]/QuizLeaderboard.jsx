@@ -22,6 +22,8 @@ export default function QuizLeaderboard({ board, identity, total }) {
   const [lbFilter, setLbFilter] = useState('all');
   const bestLabel = board.best != null ? board.best : '—';
   const lb = pickLb(board, lbPop, lbFilter);
+  const hasGuesses = lb.some((r) => r.guessesUsed != null);
+  const gridCols = hasGuesses ? '40px 1fr 76px 70px 64px' : '40px 1fr 76px 64px';
   const lbRanks = [], lbTied = [];
   for (let i = 0; i < lb.length; i++) { const p = i > 0 && lb[i].score === lb[i - 1].score && lb[i].timeElapsed === lb[i - 1].timeElapsed; lbRanks[i] = p ? lbRanks[i - 1] : i + 1; }
   for (let i = 0; i < lb.length; i++) { const p = i > 0 && lb[i].score === lb[i - 1].score && lb[i].timeElapsed === lb[i - 1].timeElapsed; const n = i < lb.length - 1 && lb[i].score === lb[i + 1].score && lb[i].timeElapsed === lb[i + 1].timeElapsed; lbTied[i] = p || n; }
@@ -46,17 +48,18 @@ export default function QuizLeaderboard({ board, identity, total }) {
         <p style={{ fontFamily: FONT, fontStyle: 'italic', fontSize: 16, color: C.faded }}>{lbEmptyNote(lbFilter) || 'No one has posted a score yet. Be the first.'}</p>
       ) : (
         <div>
-          <div style={{ display: 'grid', gridTemplateColumns: '40px 1fr 76px 64px', gap: 8, padding: '0 14px 8px', fontFamily: FONT, fontSize: 10, letterSpacing: '0.12em', textTransform: 'uppercase', color: C.faded }}>
-            <span>#</span><span>Display Name</span><span style={{ textAlign: 'right' }}>Correct</span><span style={{ textAlign: 'right' }}>Time</span>
+          <div style={{ display: 'grid', gridTemplateColumns: gridCols, gap: 8, padding: '0 14px 8px', fontFamily: FONT, fontSize: 10, letterSpacing: '0.12em', textTransform: 'uppercase', color: C.faded }}>
+            <span>#</span><span>Display Name</span><span style={{ textAlign: 'right' }}>Correct</span>{hasGuesses ? <span style={{ textAlign: 'right' }}>Guesses</span> : null}<span style={{ textAlign: 'right' }}>Time</span>
           </div>
           {lb.map((row, i) => { const mine = identity && row.username === identity.username; return (
-            <div key={i} style={{ display: 'grid', gridTemplateColumns: '40px 1fr 76px 64px', gap: 8, alignItems: 'center', padding: '11px 14px', marginBottom: 6, background: mine ? C.accSoft : '#fff', borderRadius: 10, border: `1px solid ${mine ? C.accBorder : C.line}` }}>
+            <div key={i} style={{ display: 'grid', gridTemplateColumns: gridCols, gap: 8, alignItems: 'center', padding: '11px 14px', marginBottom: 6, background: mine ? C.accSoft : '#fff', borderRadius: 10, border: `1px solid ${mine ? C.accBorder : C.line}` }}>
               <span style={{ fontFamily: FONT, fontWeight: 800, fontSize: 18, color: lbRanks[i] <= 3 ? C.ember : C.faded }}>{lbTied[i] ? `T${lbRanks[i]}` : lbRanks[i]}</span>
               <span style={{ minWidth: 0, display: 'flex', flexDirection: 'column', gap: 2 }}>
                 <span style={{ fontFamily: FONT, fontSize: 17, fontWeight: 500, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{row.userKey ? <a href={`/quizzes/hub?player=${encodeURIComponent(row.userKey)}`} style={{ color: 'inherit', textDecoration: 'none', borderBottom: `1px dotted ${C.faded}88` }}>{row.username}</a> : row.username}{mine ? ' (you)' : ''}{row.tryNum ? <span style={{ fontFamily: FONT, fontSize: 11, fontWeight: 400, color: C.faded, marginLeft: 6 }}>{row.tryNum > 1 ? '(retried)' : '(1st Try)'}</span> : ''}</span>
                 {row.playedAt ? <span style={{ fontFamily: FONT, fontSize: 10.5, color: C.faded }}>{fmtWhen(row.playedAt)}</span> : null}
               </span>
               <span style={{ fontFamily: FONT, fontSize: 14, textAlign: 'right' }}>{row.score}/{total}</span>
+              {hasGuesses ? <span style={{ fontFamily: FONT, fontSize: 14, textAlign: 'right', color: C.faded }}>{row.guessesUsed != null ? row.guessesUsed : '\u2014'}</span> : null}
               <span style={{ fontFamily: FONT, fontSize: 14, textAlign: 'right', color: C.faded }}>{fmtTime(row.timeElapsed)}</span>
             </div>
           ); })}

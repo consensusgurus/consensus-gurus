@@ -100,6 +100,8 @@ export async function POST(request) {
     // Try the richest row first, then drop optional columns that a not-yet-applied
     // migration may be missing (country/region/ua_* -> migration 26,
     // is_mobile -> 25, correct_count -> 24, anon_id -> 22).
+    const guessesUsed = Number.isInteger(body.guessesUsed) && body.guessesUsed >= 0 && body.guessesUsed <= 10000 ? body.guessesUsed : null;
+    const withGuesses = guessesUsed != null ? { guesses_used: guessesUsed } : {};
     const withCorrect = correct != null ? { correct_count: correct } : {};
     const withMobile = isMobile != null ? { is_mobile: isMobile } : {};
     const withMeta = {};
@@ -113,6 +115,7 @@ export async function POST(request) {
     if (referrer) withMeta27.referrer = referrer;
     if (language) withMeta27.language = language;
     const attempts = [
+      { ...baseRow, anon_id: anonId, ...withCorrect, ...withMobile, ...withMeta, ...withMeta27, ...withGuesses },
       { ...baseRow, anon_id: anonId, ...withCorrect, ...withMobile, ...withMeta, ...withMeta27 },
       { ...baseRow, anon_id: anonId, ...withCorrect, ...withMobile, ...withMeta },
       { ...baseRow, anon_id: anonId, ...withCorrect, ...withMobile },
@@ -132,7 +135,7 @@ export async function POST(request) {
     }
 
     const data = [];
-    let cols = 'id, user_id, username, score, time_elapsed, anon_id, created_at, is_mobile';
+    let cols = 'id, user_id, username, score, time_elapsed, anon_id, created_at, is_mobile, guesses_used';
     for (let from = 0; ; from += 1000) {
       let { data: page, error } = await supabaseAdmin
         .from('quiz_results')
@@ -140,6 +143,9 @@ export async function POST(request) {
         .eq('quiz_id', quizId)
         .order('id', { ascending: true })
         .range(from, from + 999);
+      if (error && cols.includes(', guesses_used') && (error.code === '42703' || error.code === 'PGRST204' || /column|schema cache/i.test(error.message || ''))) {
+        cols = cols.replace(', guesses_used', ''); from -= 1000; continue;
+      }
       if (error && cols.includes(', is_mobile') && (error.code === '42703' || error.code === 'PGRST204' || /column|schema cache/i.test(error.message || ''))) {
         cols = cols.replace(', is_mobile', ''); from -= 1000; continue;
       }
