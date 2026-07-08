@@ -113,23 +113,27 @@ const PUZZLES = [
     live: '2026-07-08',
     dateLabel: 'July 8, 2026',
     guesses: 18,
-    rows: 8,
-    cols: 7,
+    rows: 9,
+    cols: 8,
+    rev: 2,
+    // rev 2 (2026-07-08): ARCH/CALF -> ELBOW/WRIST. The old body pair was
+    // interchangeable with the shoe pair (arch supports, boot calves) —
+    // two valid solutions. TONGUE/SOLE/SCALE keep the traps, all resolvable.
     categories: [
       { name: 'Fish', words: ['PERCH', 'SOLE'] },
       { name: 'Shoe parts', words: ['HEEL', 'TONGUE'] },
-      { name: 'Body parts', words: ['ARCH', 'CALF'] },
+      { name: 'Body parts', words: ['ELBOW', 'WRIST'] },
       { name: 'Music terms', words: ['SCALE', 'PITCH'] },
     ],
     slots: [
-      { id: '1D', word: 'SOLE', row: 0, col: 1, dir: 'D' },
-      { id: '2A', word: 'CALF', row: 0, col: 3, dir: 'A' },
-      { id: '3D', word: 'ARCH', row: 0, col: 4, dir: 'D' },
-      { id: '4A', word: 'PERCH', row: 3, col: 0, dir: 'A' },
-      { id: '4D', word: 'PITCH', row: 3, col: 0, dir: 'D' },
-      { id: '5D', word: 'HEEL', row: 4, col: 5, dir: 'D' },
-      { id: '6A', word: 'TONGUE', row: 5, col: 0, dir: 'A' },
-      { id: '7A', word: 'SCALE', row: 7, col: 2, dir: 'A' },
+      { id: '1A', word: 'WRIST', row: 0, col: 3, dir: 'A' },
+      { id: '2D', word: 'TONGUE', row: 0, col: 7, dir: 'D' },
+      { id: '3A', word: 'PERCH', row: 3, col: 0, dir: 'A' },
+      { id: '3D', word: 'PITCH', row: 3, col: 0, dir: 'D' },
+      { id: '4A', word: 'SCALE', row: 5, col: 3, dir: 'A' },
+      { id: '4D', word: 'SOLE', row: 5, col: 3, dir: 'D' },
+      { id: '5A', word: 'HEEL', row: 7, col: 0, dir: 'A' },
+      { id: '6A', word: 'ELBOW', row: 8, col: 3, dir: 'A' },
     ],
   },
   {
@@ -239,22 +243,27 @@ const PUZZLES = [
     dateLabel: 'July 13, 2026',
     guesses: 18,
     rows: 9,
-    cols: 9,
+    cols: 8,
+    rev: 2,
+    // rev 2 (2026-07-08): NEPTUNE/JUPITER/VENUS were gods AND planets —
+    // multiple valid solutions. EARTH+URANUS are planets but not Roman gods
+    // (Uranus is Greek); JUNO+MINERVA are gods but not planets. MARS and
+    // MERCURY keep the deception, both resolvable by elimination.
     categories: [
       { name: 'Candy bars', words: ['MARS', 'CRUNCH'] },
       { name: 'Chemical elements', words: ['MERCURY', 'CARBON'] },
-      { name: 'Planets', words: ['NEPTUNE', 'JUPITER'] },
-      { name: 'Roman gods', words: ['VENUS', 'JUNO'] },
+      { name: 'Planets', words: ['EARTH', 'URANUS'] },
+      { name: 'Roman gods', words: ['JUNO', 'MINERVA'] },
     ],
     slots: [
-      { id: '1A', word: 'CRUNCH', row: 0, col: 0, dir: 'A' },
-      { id: '2D', word: 'NEPTUNE', row: 0, col: 3, dir: 'D' },
-      { id: '3D', word: 'MARS', row: 0, col: 7, dir: 'D' },
-      { id: '4A', word: 'JUPITER', row: 2, col: 1, dir: 'A' },
-      { id: '5A', word: 'VENUS', row: 4, col: 0, dir: 'A' },
-      { id: '6D', word: 'JUNO', row: 5, col: 6, dir: 'D' },
-      { id: '7A', word: 'MERCURY', row: 6, col: 2, dir: 'A' },
-      { id: '8A', word: 'CARBON', row: 8, col: 2, dir: 'A' },
+      { id: '1D', word: 'EARTH', row: 0, col: 5, dir: 'D' },
+      { id: '2D', word: 'MERCURY', row: 1, col: 0, dir: 'D' },
+      { id: '3A', word: 'MARS', row: 2, col: 3, dir: 'A' },
+      { id: '3D', word: 'MINERVA', row: 2, col: 3, dir: 'D' },
+      { id: '4A', word: 'CRUNCH', row: 4, col: 0, dir: 'A' },
+      { id: '5D', word: 'JUNO', row: 5, col: 6, dir: 'D' },
+      { id: '6A', word: 'URANUS', row: 6, col: 2, dir: 'A' },
+      { id: '7A', word: 'CARBON', row: 8, col: 2, dir: 'A' },
     ],
   },
   {
@@ -386,7 +395,7 @@ export default function CruxClient({ forceNum = null }) {
   const PUZZLE = useMemo(() => pickPuzzle(forceNum), [forceNum]);
   const ROWS = PUZZLE.rows;
   const COLS = PUZZLE.cols;
-  const STORE_KEY = `sot_crux_${PUZZLE.num}`;
+  const STORE_KEY = `sot_crux_${PUZZLE.num}${PUZZLE.rev ? `_r${PUZZLE.rev}` : ''}`;
   const SLOT = useMemo(() => Object.fromEntries(PUZZLE.slots.map((s) => [s.id, s])), [PUZZLE]);
   const CELLS = useMemo(() => buildCells(PUZZLE), [PUZZLE]);
   const [g, setG] = useState(() => freshState(PUZZLE));
@@ -637,13 +646,11 @@ export default function CruxClient({ forceNum = null }) {
   // blue pair, red pair): color = that word solved AND filed right, black =
   // missed (unsolved or misfiled). No letters or words leak.
   function shareText() {
-    const cells = [];
-    PUZZLE.categories.forEach((cat, ci) => {
-      for (const w of cat.words) cells.push(g.assigned[w] === ci ? CAT_COLORS[ci].sq : '⬛');
-    });
+    const rows = PUZZLE.categories.map((cat, ci) =>
+      cat.words.map((w) => (g.assigned[w] === ci ? CAT_COLORS[ci].sq : '⬛')).join(''));
     const score = g.status === 'won' ? PUZZLE.slots.length * 2 : g.order.length + (g.filedRight || 0);
     const head = `Crux #${PUZZLE.num} · ${score}/16 · ${guessesUsed} guess${guessesUsed === 1 ? '' : 'es'} · ${elapsed}`;
-    return `${head}\n${cells.join('')}\nsourceoftruths.com/crux`;
+    return `${head}\n${rows.join('\n')}\nsourceoftruths.com/crux`;
   }
   function copyShare() {
     const text = playing
