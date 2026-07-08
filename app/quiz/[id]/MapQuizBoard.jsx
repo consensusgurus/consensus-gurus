@@ -44,6 +44,9 @@ const SIZE_ORDER = ['fit', 'lg', 'xl'];
 const SIZE_KEY = 'sot_map_size';
 
 const MAX_ZOOM = 6;
+// The world map packs ~4x the countries of a continental map into one frame,
+// so its slivers (The Gambia, Lebanon) need a deeper pinch to become tappable.
+const MAX_ZOOM_WORLD = 10;
 
 export default function MapQuizBoard({ region, started, ended, revealed, foundNames, flash, onPick, noBorders: noBordersProp, erase = false, mobile = false }) {
   const [geo, setGeo] = useState(null);
@@ -135,7 +138,7 @@ export default function MapQuizBoard({ region, started, ended, revealed, foundNa
   const zoomed = view.s > 1.001;
 
   function clampView(v) {
-    const s = Math.max(1, Math.min(MAX_ZOOM, v.s));
+    const s = Math.max(1, Math.min(region === 'world' ? MAX_ZOOM_WORLD : MAX_ZOOM, v.s));
     // Keep the transformed content covering the visible viewBox window so the
     // player can never pan the map off-screen into empty sea.
     const txMin = (vbX + vbW) * (1 - s), txMax = vbX * (1 - s);
@@ -175,7 +178,7 @@ export default function MapQuizBoard({ region, started, ended, revealed, foundNa
         const mid = pinchMid();
         const { fx, fy } = toVB(mid.x, mid.y);
         const v0 = viewRef.current;
-        const s1 = Math.max(1, Math.min(MAX_ZOOM, v0.s * (d / gesture.current.dist)));
+        const s1 = Math.max(1, Math.min(region === 'world' ? MAX_ZOOM_WORLD : MAX_ZOOM, v0.s * (d / gesture.current.dist)));
         const k = s1 / v0.s;
         applyView({ s: s1, tx: fx - k * (fx - v0.tx), ty: fy - k * (fy - v0.ty) });
         gesture.current.panned = true;
