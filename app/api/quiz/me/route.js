@@ -2,14 +2,14 @@ import { NextResponse } from 'next/server';
 import { supabaseAdmin } from '@/lib/supabase-server';
 import { loadQuizResults } from '@/lib/quiz-results-load';
 import { findQuizIdentity } from '@/lib/quiz-identity';
-import { computeElo } from '@/lib/quiz-elo';
+import { computeXp } from '@/lib/quiz-xp';
 import { buildProfile } from '@/lib/quiz-profile';
 
 export const dynamic = 'force-dynamic';
 export const fetchCache = 'force-no-store';
 
 // GET /api/quiz/me?anonId=&email=
-// The current player's full Elo profile + activity, resolved by the identity the
+// The current player's full XP profile + activity, resolved by the identity the
 // quiz client stores in localStorage (email -> u:<id>, else anon -> a:<anon>).
 export async function GET(request) {
   const { searchParams } = new URL(request.url);
@@ -25,7 +25,7 @@ export async function GET(request) {
     if (error) { console.error('quiz me error', error); return NextResponse.json({ found: false }); }
     // recentN large so the Stat Hub Activity log shows the player's FULL play
     // history (every game, exact timestamps), not just the last handful.
-    const { players } = computeElo(data || [], { recentN: 100000, rankFor: myKey });
+    const { players } = computeXp(data || [], { recentN: 100000, rankFor: myKey });
     return NextResponse.json(buildProfile(players, myKey, { signed, username }));
   } catch (e) {
     console.error('quiz me exception', e);

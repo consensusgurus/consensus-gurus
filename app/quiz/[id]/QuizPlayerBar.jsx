@@ -89,7 +89,7 @@ export default function QuizPlayerBar({ me: meProp, controlled = false, rightAct
   const determined=me!==undefined;
   const a=(found&&me.activity)||{};
   const rk=(found&&me.ranks)||{};
-  const rank=found&&((me.ranks&&me.ranks.rating)||me.rank);
+  const rank=found&&((me.ranks&&me.ranks.xp)||me.rank);
   const denom=(me&&me.totalPlayers)||0;
   let bestCat=null;
   if(found&&me.byCategory){

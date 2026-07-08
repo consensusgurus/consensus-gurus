@@ -1,14 +1,14 @@
 import { NextResponse } from 'next/server';
 import { supabaseAdmin } from '@/lib/supabase-server';
 import { loadQuizResults } from '@/lib/quiz-results-load';
-import { computeElo, displayHandle } from '@/lib/quiz-elo';
+import { computeXp, displayHandle } from '@/lib/quiz-xp';
 import { buildProfile } from '@/lib/quiz-profile';
 
 export const dynamic = 'force-dynamic';
 export const fetchCache = 'force-no-store';
 
 // GET /api/quiz/player?key=u:123 | a:<anon>   (or ?username=Name)
-// Any player's full Elo profile, same shape as /api/quiz/me. Lets the UI link a
+// Any player's full XP profile, same shape as /api/quiz/me. Lets the UI link a
 // player name to their stat detail. Anonymous guests are addressable by a:<anon>.
 export async function GET(request) {
   const { searchParams } = new URL(request.url);
@@ -18,7 +18,7 @@ export async function GET(request) {
     const { data, error } = await loadQuizResults(supabaseAdmin);
     if (error) { console.error('quiz player error', error); return NextResponse.json({ found: false }); }
     // recentN large so a viewed player's Activity log shows their FULL history.
-    const { players } = computeElo(data || [], { recentN: 100000, rankFor: key });
+    const { players } = computeXp(data || [], { recentN: 100000, rankFor: key });
 
     let myKey = key;
     if (!myKey && uname) {

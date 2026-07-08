@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { supabaseAdmin } from '@/lib/supabase-server';
-import { guestHandleFromAnon } from '@/lib/quiz-elo';
+import { guestHandleFromAnon } from '@/lib/quiz-xp';
 
 export const dynamic = 'force-dynamic';
 export const fetchCache = 'force-no-store';

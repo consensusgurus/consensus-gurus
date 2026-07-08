@@ -282,8 +282,8 @@ export default function QuizHomeClient() {
   };
 
   const [totals, setTotals] = useState({ byQuiz: {}, recent7: {}, leaders: {}, leaderKeys: {}, today: 0 });
-  const [eloBoard, setEloBoard] = useState([]); // [{rank,name,isAnon,userKey}]
-  const [eloScope, setEloScope] = useState('all');
+  const [xpBoard, setXpBoard] = useState([]); // [{rank,name,isAnon,userKey}]
+  const [xpScope, setXpScope] = useState('all');
   const [catBoards, setCatBoards] = useState({}); // { dept: [{rank,name,isAnon,userKey,rating}] } for the "Top Rated <Category>" slides
   const [recent, setRecent] = useState([]); // [{quizId,username,score,total,playedAt,isAnon,attempt}]
   const [me, setMe] = useState(null);
@@ -478,24 +478,24 @@ export default function QuizHomeClient() {
     return () => { document.removeEventListener('visibilitychange', onVis); window.removeEventListener('focus', read); };
   }, []);
 
-  // Elo leaderboard re-loads when the scope changes.
+  // XP leaderboard re-loads when the scope changes.
   useEffect(() => {
-    // Pull the FULL ranking (not just top-12-by-rating) so the cycling
-    // leaderboard's non-rating slides (Most Correct, etc.) surface the true
-    // per-metric leaders, not just whoever is already top by rating.
+    // Pull the FULL ranking (not just top-12-by-XP) so the cycling
+    // leaderboard's non-XP slides (Most Correct, etc.) surface the true
+    // per-metric leaders, not just whoever is already top by XP.
     const q = scope === 'all' ? '?full=1' : `?scope=${encodeURIComponent(scope)}&full=1`;
     let alive = true;
-    fetch(`/api/quiz/elo${q}`).then((r) => r.json()).then((d) => {
+    fetch(`/api/quiz/xp${q}`).then((r) => r.json()).then((d) => {
       if (!alive) return;
-      if (d && Array.isArray(d.players)) { setEloBoard(d.players); setEloScope(d.scope || scope); }
+      if (d && Array.isArray(d.players)) { setXpBoard(d.players); setXpScope(d.scope || scope); }
     }).catch(() => {});
     return () => { alive = false; };
   }, [scope]);
 
-  // Per-category skill-rating boards (computed once) power the rotating
-  // "Top Rated <Category>" leaderboard slides.
+  // Per-category XP boards (computed once) power the rotating
+  // "<Category> XP Leaders" leaderboard slides.
   useEffect(() => {
-    fetch('/api/quiz/elo-categories').then((r) => r.json()).then((d) => {
+    fetch('/api/quiz/xp-categories').then((r) => r.json()).then((d) => {
       if (d && d.boards) setCatBoards(d.boards);
     }).catch(() => {});
   }, []);
@@ -553,7 +553,7 @@ export default function QuizHomeClient() {
     if (scope === 'all') {
       const a = me.activity || {};
       return {
-        rank: (me.ranks && me.ranks.rating) || me.rank || null,
+        rank: (me.ranks && me.ranks.xp) || me.rank || null,
         denom: me.totalPlayers || 0,
         correct: a.correct ?? null,
         played: a.played ?? null,
@@ -582,9 +582,9 @@ export default function QuizHomeClient() {
   }, [me, scope]);
 
   // ── leaderboard: re-ranks per slide AND per category ──
-  // Each slide sorts the board by that slide's metric (desc; ties by rating then
-  // name), scoped to the selected category (the elo API already returns the
-  // per-category metric values). The Skill Rating slide DOES show the rating.
+  // Each slide sorts the board by that slide's metric (desc; ties by XP then
+  // name), scoped to the selected category (the XP API already returns the
+  // per-category metric values). The Most XP slide DOES show the XP total.
   // Today's daily-challenge standings, ranked by total correct then least time.
   const dailyRows = useMemo(() => (dailyLb || []).slice()
     .sort((a, b) => (b.totalCorrect || 0) - (a.totalCorrect || 0) || (a.totalTime || 0) - (b.totalTime || 0) || (a.username || '').localeCompare(b.username || ''))
@@ -594,7 +594,7 @@ export default function QuizHomeClient() {
   const bestCat = useMemo(() => {
     if (!me || !me.byCategory) return null;
     // Best category = where the player ranks highest on COMPLETED; ties break to
-    // skill (rating) rank in that category, then to played rank.
+    // XP rank in that category, then to played rank.
     let best = null;
     for (const k of Object.keys(me.byCategory)) {
       const c = me.byCategory[k];
@@ -611,7 +611,7 @@ export default function QuizHomeClient() {
   // players have played today's challenge.
   const LB_METRICS = useMemo(() => {
     const base = [
-      { key: 'rating', label: 'Top Skill Rating', fmt: (v) => (v || 0).toLocaleString(), ms: 7000 },
+      { key: 'xp', label: 'Most XP', fmt: (v) => (v || 0).toLocaleString(), ms: 7000 },
       { key: 'correct', label: 'Most Correct Answers', fmt: (v) => (v || 0).toLocaleString(), ms: 5000 },
       { key: 'completed', label: 'Most Quizzes Aced (100%)', fmt: (v) => (v || 0).toLocaleString(), ms: 5000 },
       { key: 'daysPlayed', label: 'Most Days Played', fmt: (v) => (v || 0).toLocaleString(), ms: 5000 },
@@ -627,32 +627,32 @@ export default function QuizHomeClient() {
     const catSlides = scope === 'all'
       ? DEPT_NAV
           .filter((d) => Array.isArray(catBoards[d.id]) && catBoards[d.id].length > 0)
-          .map((d) => ({ key: 'catRating', catKey: d.id, special: true, label: `${DEPT_LABEL[d.id] || d.label} Top Rated`, fmt: (v) => (v || 0).toLocaleString(), ms: 5000 }))
+          .map((d) => ({ key: 'catRating', catKey: d.id, special: true, label: `${DEPT_LABEL[d.id] || d.label} XP Leaders`, fmt: (v) => (v || 0).toLocaleString(), ms: 5000 }))
       : [];
     return [...base, ...catSlides];
   }, [dailyRows.length, dailyCat, todayCorrectRows.length, todayQuizRows.length, scope, catBoards]);
   const lbMetric = LB_METRICS[Math.min(lbIdx, LB_METRICS.length - 1)];
-  // Per-slide timeout: the ELO slide holds 7s, every other slide 5s.
+  // Per-slide timeout: the XP slide holds 7s, every other slide 5s.
   useEffect(() => {
     const id = setTimeout(() => setLbIdx((i) => (i + 1) % LB_METRICS.length), lbMetric.ms);
     return () => clearTimeout(id);
   }, [lbIdx, lbMetric.ms, LB_METRICS.length]);
   // Sort the displayed board by the active slide's metric, scoped to the current
-  // category (eloBoard is already category-scoped via the /api/quiz/elo refetch).
+  // category (xpBoard is already category-scoped via the /api/quiz/xp refetch).
   const leaderRows = useMemo(() => {
     const k = lbMetric.key;
     // Highest Accuracy needs a real sample: only players with >=10 unique
     // quizzes played qualify (a 100% from one quiz shouldn't top the board).
-    const pool = k === 'accuracy' ? eloBoard.filter((p) => (p.played || 0) >= 10) : eloBoard;
+    const pool = k === 'accuracy' ? xpBoard.filter((p) => (p.played || 0) >= 10) : xpBoard;
     const sorted = pool.slice().sort((a, b) =>
       ((b[k] || 0) - (a[k] || 0))
-      || ((b.rating || 0) - (a.rating || 0))
+      || ((b.xp || 0) - (a.xp || 0))
       || (a.name || '').localeCompare(b.name || '')
     );
     // Guests are included in the public board (owner rule 2026-06-30).
     const list = sorted;
     return list.slice(0, 20);
-  }, [eloBoard, lbMetric.key, boardsExpanded, mobLbOpen]);
+  }, [xpBoard, lbMetric.key, boardsExpanded, mobLbOpen]);
 
   // Compact top-3 for the active leaderboard slide, shown in the player stat
   // bar on the quiz hub (the leaderboard lives in the stat line here).
@@ -661,7 +661,7 @@ export default function QuizHomeClient() {
     let rows = [];
     if (lbMetric.special) {
       if (lbMetric.key === 'catRating') {
-        rows = (catBoards[lbMetric.catKey] || []).filter((r) => !r.isAnon).slice(0, 3).map((r) => ({ name: r.name || 'Player', value: lbMetric.fmt(r.rating) }));
+        rows = (catBoards[lbMetric.catKey] || []).filter((r) => !r.isAnon).slice(0, 3).map((r) => ({ name: r.name || 'Player', value: lbMetric.fmt(r.xp) }));
       } else {
         const src = lbMetric.key === 'dailyChallenge' ? dailyRows : lbMetric.key === 'correctToday' ? todayCorrectRows : todayQuizRows;
         const valOf = lbMetric.key === 'dailyChallenge' ? ((r) => r.totalCorrect) : lbMetric.key === 'correctToday' ? ((r) => r.correct) : ((r) => r.quizzes);
@@ -1086,7 +1086,7 @@ export default function QuizHomeClient() {
                     return rows.map((r, i) => (
                       <LbRow key={r.userKey || i} i={i}
                         name={r.userKey ? <Link href={`/quizzes/hub?player=${encodeURIComponent(r.userKey)}`} style={{ color: 'inherit', textDecoration: 'none' }}><WhoTag name={r.name} isAnon={r.isAnon} /></Link> : <WhoTag name={r.name} isAnon={r.isAnon} />}
-                        value={lbMetric.fmt(r.rating)} frac={(r.rating || 0) / (rows[0]?.rating || 1)} />
+                        value={lbMetric.fmt(r.xp)} frac={(r.xp || 0) / (rows[0]?.xp || 1)} />
                     ));
                   }
                   const rows = (lbMetric.key === 'dailyChallenge' ? dailyRows : lbMetric.key === 'correctToday' ? todayCorrectRows : todayQuizRows).slice(0, 3);

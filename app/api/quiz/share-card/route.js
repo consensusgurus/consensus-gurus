@@ -1,7 +1,7 @@
 import { ImageResponse } from 'next/og';
 import { supabaseAdmin } from '@/lib/supabase-server';
 import { loadQuizResults } from '@/lib/quiz-results-load';
-import { computeElo } from '@/lib/quiz-elo';
+import { computeXp } from '@/lib/quiz-xp';
 import { buildProfile } from '@/lib/quiz-profile';
 import { DEPT_LABEL } from '@/lib/quiz-departments';
 
@@ -9,9 +9,9 @@ export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
 
 // Downloadable Share Stats player card (1080x1080 PNG). Mirrors the in-page
-// ShareStatsModal in app/quizzes/hub/StatHubClient.jsx: overall rank, skill
-// rating + tier, completed/correct/accuracy with ranks, and the top-3
-// categories by rating. GET /api/quiz/share-card?key=u:123|a:<anon>
+// ShareStatsModal in app/quizzes/hub/StatHubClient.jsx: overall rank, level +
+// tier + XP, completed/correct/accuracy with ranks, and the top-3
+// categories by XP. GET /api/quiz/share-card?key=u:123|a:<anon>
 const SZ = 1080;
 const PAL = { bg: '#ffffff', text: '#1c1e24', accent: '#2563eb', faded: '#6b7280', soft: '#9aa0ab', line: 'rgba(20,22,28,0.10)', cell: '#f1f3f6', accsoft: '#e8effb' };
 
@@ -49,7 +49,7 @@ export async function GET(request) {
   let profile = null;
   try {
     const { data, error } = await loadQuizResults(supabaseAdmin);
-    if (!error) { const { players } = computeElo(data || []); profile = buildProfile(players, key || null); }
+    if (!error) { const { players } = computeXp(data || []); profile = buildProfile(players, key || null); }
   } catch (e) { profile = null; }
 
   if (!profile || !profile.found) return textImage('No stats to share yet', fonts, sans);
@@ -58,9 +58,9 @@ export async function GET(request) {
   const r = profile.ranks || {};
   const cats3 = Object.entries(profile.byCategory || {})
     .filter(([, v]) => (v.matches || 0) > 0)
-    .sort((x, y) => (y[1].rating || 0) - (x[1].rating || 0))
+    .sort((x, y) => (y[1].xp || 0) - (x[1].xp || 0))
     .slice(0, 3);
-  const maxR = cats3.length ? Math.max(...cats3.map(([, v]) => v.rating || 0), 1) : 1;
+  const maxR = cats3.length ? Math.max(...cats3.map(([, v]) => v.xp || 0), 1) : 1;
   const catLabel = (k) => DEPT_LABEL[k] || k;
 
   const lbl = (extra) => ({ display: 'flex', fontFamily: sans, fontWeight: 700, fontSize: 22, letterSpacing: '0.08em', textTransform: 'uppercase', color: PAL.faded, ...(extra || {}) });
@@ -89,7 +89,7 @@ export async function GET(request) {
               <span style={{ display: 'flex', fontWeight: 800, fontSize: 76, letterSpacing: '-0.03em', lineHeight: 1 }}>{profile.name}</span>
               <div style={{ display: 'flex', alignItems: 'center', marginTop: 22 }}>
                 <span style={{ display: 'flex', background: profile.tierBg || PAL.cell, color: profile.tierFg || PAL.faded, fontWeight: 700, fontSize: 26, padding: '5px 16px', borderRadius: 10 }}>{(profile.tier || '').replace(/ Tier$/, '')}</span>
-                <span style={{ display: 'flex', fontWeight: 600, fontSize: 26, color: PAL.faded, marginLeft: 16 }}>{`Skill ${Number(profile.rating || 0).toLocaleString()}`}</span>
+                <span style={{ display: 'flex', fontWeight: 600, fontSize: 26, color: PAL.faded, marginLeft: 16 }}>{`Level ${profile.level || 1} · ${Number(profile.xp || 0).toLocaleString()} XP`}</span>
               </div>
             </div>
             <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end' }}>
@@ -113,10 +113,10 @@ export async function GET(request) {
                   <div key={k} style={{ display: 'flex', flexDirection: 'column', marginBottom: 22 }}>
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', marginBottom: 10 }}>
                       <span style={{ display: 'flex', fontWeight: 700, fontSize: 28 }}>{catLabel(k)}</span>
-                      <span style={{ display: 'flex', fontWeight: 700, fontSize: 26, color: PAL.faded }}>{Number(v.rating || 0).toLocaleString()}</span>
+                      <span style={{ display: 'flex', fontWeight: 700, fontSize: 26, color: PAL.faded }}>{`${Number(v.xp || 0).toLocaleString()} XP`}</span>
                     </div>
                     <div style={{ display: 'flex', height: 16, background: PAL.cell, borderRadius: 10 }}>
-                      <div style={{ display: 'flex', width: `${Math.round(((v.rating || 0) / maxR) * 100)}%`, height: '100%', background: PAL.accent, borderRadius: 10 }} />
+                      <div style={{ display: 'flex', width: `${Math.round(((v.xp || 0) / maxR) * 100)}%`, height: '100%', background: PAL.accent, borderRadius: 10 }} />
                     </div>
                   </div>
                 ))}

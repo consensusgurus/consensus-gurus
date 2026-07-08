@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import { supabaseAdmin } from '@/lib/supabase-server';
 import { fetchAllRows } from '@/lib/fetch-all';
-import { guestHandleFromAnon } from '@/lib/quiz-elo';
+import { guestHandleFromAnon } from '@/lib/quiz-xp';
 import { QUIZZES } from '@/lib/quizzes';
 
 const HIDDEN_QUIZ_IDS = new Set((QUIZZES || []).filter((q) => q && (q.unlisted || q.mobilePreview)).map((q) => q.id));

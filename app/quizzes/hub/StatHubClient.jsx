@@ -81,7 +81,7 @@ const TABS = [
   { t: 'challenges', label: 'Challenges', Icon: Flame },
   { t: 'duels', label: 'Duels', Icon: Swords },];
 
-// Share Stats: a shareable player card (overall rank, skill rating + tier,
+// Share Stats: a shareable player card (overall rank, level + tier + XP,
 // completed/correct/accuracy with their ranks, top-3 categories) plus a copy
 // link to this player's Stat Hub profile (?player=<key>).
 // Sign-up popup (mirrors the Browse Quizzes one): claim a display name (email
@@ -128,9 +128,9 @@ function ShareStatsModal({ profile, byKey, onClose }) {
   const r = profile.ranks || {};
   const cats3 = Object.entries(profile.byCategory || {})
     .filter(([, v]) => (v.matches || 0) > 0)
-    .sort((x, y) => (y[1].rating || 0) - (x[1].rating || 0))
+    .sort((x, y) => (y[1].xp || 0) - (x[1].xp || 0))
     .slice(0, 3);
-  const maxR = cats3.length ? Math.max(...cats3.map(([, v]) => v.rating || 0), 1) : 1;
+  const maxR = cats3.length ? Math.max(...cats3.map(([, v]) => v.xp || 0), 1) : 1;
   const label = (k) => (byKey && byKey[k] && byKey[k].label) || k;
   function copy() {
     const origin = typeof window !== 'undefined' ? window.location.origin : 'https://sourceoftruths.com';
@@ -149,7 +149,7 @@ function ShareStatsModal({ profile, byKey, onClose }) {
         <div style={{ display: 'flex', alignItems: 'center', gap: 14, padding: '18px 18px 12px' }}>
           <div style={{ flex: 1, minWidth: 0 }}>
             <div style={{ fontSize: 22, fontWeight: 800, letterSpacing: '-0.02em', lineHeight: 1.05, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{profile.name}</div>
-            <div style={{ marginTop: 5 }}><span style={{ background: profile.tierBg || C.bg, color: profile.tierFg || C.muted, fontSize: 10.5, fontWeight: 700, padding: '2px 8px', borderRadius: 6 }}>{(profile.tier || '').replace(/ Tier$/, '')}</span> <span style={{ fontSize: 12, color: C.muted, fontWeight: 600 }}>Skill {Number(profile.rating || 0).toLocaleString()}</span></div>
+            <div style={{ marginTop: 5 }}><span style={{ background: profile.tierBg || C.bg, color: profile.tierFg || C.muted, fontSize: 10.5, fontWeight: 700, padding: '2px 8px', borderRadius: 6 }}>{(profile.tier || '').replace(/ Tier$/, '')}</span> <span style={{ fontSize: 12, color: C.muted, fontWeight: 600 }}>Level {profile.level || 1} · {Number(profile.xp || 0).toLocaleString()} XP</span></div>
           </div>
           <div style={{ textAlign: 'right' }}>
             <div style={lbl}>Overall rank</div>
@@ -168,8 +168,8 @@ function ShareStatsModal({ profile, byKey, onClose }) {
             <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
               {cats3.map(([k, v]) => (
                 <div key={k}>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: 5 }}><span style={{ fontSize: 12.5, fontWeight: 700 }}>{label(k)}</span><span style={{ fontSize: 12, fontWeight: 700, color: C.muted }}>{Number(v.rating || 0).toLocaleString()}</span></div>
-                  <div style={{ height: 8, background: C.bg, borderRadius: 5, overflow: 'hidden' }}><div style={{ width: `${Math.round(((v.rating || 0) / maxR) * 100)}%`, height: '100%', background: C.accent }} /></div>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: 5 }}><span style={{ fontSize: 12.5, fontWeight: 700 }}>{label(k)}</span><span style={{ fontSize: 12, fontWeight: 700, color: C.muted }}>{Number(v.xp || 0).toLocaleString()} XP</span></div>
+                  <div style={{ height: 8, background: C.bg, borderRadius: 5, overflow: 'hidden' }}><div style={{ width: `${Math.round(((v.xp || 0) / maxR) * 100)}%`, height: '100%', background: C.accent }} /></div>
                 </div>
               ))}
             </div>
@@ -539,7 +539,7 @@ export default function StatHubClient() {
   const [totals, setTotals] = useState({ byQuiz: {}, leaders: {}, leaderKeys: {}, total: 0, totalTime: 0 });
   const [shareOpen, setShareOpen] = useState(false);
   const [signupOpen, setSignupOpen] = useState(false);
-  const [board, setBoard] = useState(null); // full Elo ranking of every player (incl. anon)
+  const [board, setBoard] = useState(null); // full XP ranking of every player (incl. anon)
   // Duel data lives at page level so the Duels nav tile can show the live
   // record, streak, and waiting-on-you badge before the tab is ever opened.
   const [duels, setDuels] = useState({ yourMove: [], awaiting: [], completed: [] });
@@ -589,7 +589,7 @@ export default function StatHubClient() {
     }
     fetch('/api/quiz/stats').then((r) => r.json()).then((d) => { if (d && Array.isArray(d.quizzes)) setStats(d.quizzes); }).catch(() => {});
     fetch('/api/quiz/totals').then((r) => r.json()).then((d) => { if (d && !d.error) setTotals({ byQuiz: d.byQuiz || {}, leaders: d.leaders || {}, leaderKeys: d.leaderKeys || {}, total: d.total || 0, totalTime: d.totalTime || 0 }); }).catch(() => {});
-    fetch('/api/quiz/elo?full=1').then((r) => r.json()).then((d) => { if (d && Array.isArray(d.players)) setBoard(d.players); }).catch(() => {});
+    fetch('/api/quiz/xp?full=1').then((r) => r.json()).then((d) => { if (d && Array.isArray(d.players)) setBoard(d.players); }).catch(() => {});
   }, []);
 
   // Inline player viewing: clicking a player in the ranking loads their full
@@ -617,12 +617,11 @@ export default function StatHubClient() {
   const profile = viewing ? viewProfile : me;
   const found = profile && profile.found;
   const statBarMe = profile == null ? undefined : (profile.found ? { ...profile, signed: !profile.isAnon } : { found: false });
-  const rating = profile ? (profile.rating || 1500) : 1500;
   const bestCat = useMemo(() => {
     const bc = profile && profile.byCategory;
     if (!bc) return null;
     // Best category = where the player ranks highest on COMPLETED; ties break to
-    // skill (rating) rank in that category, then to played rank.
+    // XP rank in that category, then to played rank.
     let best = null;
     for (const k of Object.keys(bc)) {
       const c = bc[k];
@@ -783,7 +782,7 @@ export default function StatHubClient() {
                 <button className={`tile${on('player') ? ' on' : ''}`} onClick={() => setTab('player')}>
                   <span style={lblSt('player')}><User size={15} /> Player</span>
                   <span style={bigSt('player')}>{meFound && me.rank ? <>#{me.rank} <span style={smSt('player')}>of {(me.totalPlayers || 0).toLocaleString()}</span></> : '—'}</span>
-                  <span style={subSt('player')}>{meFound ? `${(me.rating || 1500).toLocaleString()} skill rating` : 'Play to get ranked'}</span>
+                  <span style={subSt('player')}>{meFound ? `Level ${me.level || 1} · ${(me.xp || 0).toLocaleString()} XP` : 'Play to get ranked'}</span>
                 </button>
                 <button className={`tile${on('duels') ? ' on' : ''}`} onClick={() => setTab('duels')}>
                   {waiting > 0 ? <span className="tilebadge">{waiting}</span> : null}
@@ -843,7 +842,7 @@ const CAT_COLS = [
   { key: 'completed', label: 'Completed', align: 'right', get: (c, cr) => cr.completed, chip: 'completedRank' },
   { key: 'accuracy', label: 'Accuracy', align: 'right', get: (c, cr) => cr.accuracy, chip: 'accuracyRank' },
   { key: 'days', label: 'Days', align: 'right', get: (c, cr) => cr.daysPlayed || 0, chip: 'daysRank' },
-  { key: 'rating', label: 'Skill Rating', align: 'right', get: (c, cr) => cr.rating, chip: 'rank' },
+  { key: 'xp', label: 'XP', align: 'right', get: (c, cr) => cr.xp, chip: 'rank' },
 ];
 
 // Share of a quiz pool a player has aced (completed / pool size). Used in the
@@ -875,7 +874,7 @@ function PlayerPanel({ me, scope, cats, byKey, totalQuizzes, board, myName, myAn
 
   const toggle = (
     <div style={{ display: 'flex', gap: 8, width: '100%', flexWrap: 'wrap' }}>
-      {[['ranking', 'Ranking', Trophy], ['category', 'Category', ListChecks], ['rating', 'Skill Rating', FunctionSquare], ['activity', 'Activity', Clock]].map(([v, lbl, Ic]) => (
+      {[['ranking', 'Ranking', Trophy], ['category', 'Category', ListChecks], ['rating', 'XP & Level', FunctionSquare], ['activity', 'Activity', Clock]].map(([v, lbl, Ic]) => (
         <button key={v} className={`pill${pview === v ? ' on' : ''}`} onClick={() => setPview(v)}><Ic size={14} /> {lbl}</button>
       ))}
     </div>
@@ -887,7 +886,7 @@ function PlayerPanel({ me, scope, cats, byKey, totalQuizzes, board, myName, myAn
         {toggle}
       </div>
       {pview === 'rating' ? (
-        <RatingPanel me={me} titleById={titleById} viewing={viewing} />
+        <XpPanel me={me} titleById={titleById} viewing={viewing} />
       ) : pview === 'activity' ? (
         <ActivityFeed recent={found ? me.recent : []} titleById={titleById} viewing={viewing} />
       ) : pview === 'category' ? (
@@ -913,7 +912,7 @@ function CategoryView({ me, scope, cats, totalQuizzes, viewing }) {
   const catRows = (scope === 'all' ? cats : cats.filter((c) => c.key === scope));
 
   // Column sort for the table mode. The Overall row stays pinned on top.
-  const [catSort, setCatSort] = useState({ col: 'rating', dir: 'desc' });
+  const [catSort, setCatSort] = useState({ col: 'xp', dir: 'desc' });
   const sortedCatRows = useMemo(() => {
     if (!catSort.col) return catRows;
     const col = CAT_COLS.find((cc) => cc.key === catSort.col) || CAT_COLS[0];
@@ -937,21 +936,21 @@ function CategoryView({ me, scope, cats, totalQuizzes, viewing }) {
     ? { col: col.key, dir: st.dir === 'desc' ? 'asc' : 'desc' }
     : { col: col.key, dir: col.key === 'label' ? 'asc' : 'desc' }));
 
-  // Card-mode ordering: played categories by rating desc, unplayed after.
+  // Card-mode ordering: played categories by XP desc, unplayed after.
   const playedCats = catRows.filter((c) => byCat[c.key] && byCat[c.key].matches > 0)
-    .sort((x, y) => (byCat[y.key].rating || 0) - (byCat[x.key].rating || 0));
+    .sort((x, y) => (byCat[y.key].xp || 0) - (byCat[x.key].xp || 0));
   const unplayedCats = catRows.filter((c) => !byCat[c.key] || !(byCat[c.key].matches > 0));
-  // Crown = best rating RANK (the standing, not the raw number); ties break to
-  // the higher rating.
+  // Crown = best XP RANK (the standing, not the raw number); ties break to
+  // the higher XP.
   let crownKey = null;
   for (const c of playedCats) {
     const cr = byCat[c.key];
     if (!crownKey) { crownKey = c.key; continue; }
     const b = byCat[crownKey];
-    if ((cr.rank || 9e9) < (b.rank || 9e9) || ((cr.rank || 9e9) === (b.rank || 9e9) && (cr.rating || 0) > (b.rating || 0))) crownKey = c.key;
+    if ((cr.rank || 9e9) < (b.rank || 9e9) || ((cr.rank || 9e9) === (b.rank || 9e9) && (cr.xp || 0) > (b.xp || 0))) crownKey = c.key;
   }
-  const maxR = playedCats.length ? Math.max(...playedCats.map((c) => byCat[c.key].rating || 0)) : 1500;
-  const barPct = (r) => Math.round(Math.max(12, Math.min(100, ((r - 1250) / Math.max(1, maxR - 1250)) * 100)));
+  const maxR = playedCats.length ? Math.max(...playedCats.map((c) => byCat[c.key].xp || 0)) : 0;
+  const barPct = (r) => Math.round(Math.max(12, Math.min(100, ((r || 0) / Math.max(1, maxR)) * 100)));
 
   if (!found) return <div className="card" style={{ padding: '14px 16px', fontSize: 13, color: C.soft }}>Play a few quizzes and the category breakdown shows up here.</div>;
 
@@ -980,10 +979,10 @@ function CategoryView({ me, scope, cats, totalQuizzes, viewing }) {
                     <span style={{ fontSize: 13, fontWeight: 800 }}>{c.label}</span>
                   </div>
                   <div style={{ display: 'flex', alignItems: 'baseline', gap: 8, marginTop: 6, flexWrap: 'wrap' }}>
-                    <span style={{ fontSize: 21, fontWeight: 800, color: C.accent, fontVariantNumeric: 'tabular-nums' }}>{(cr.rating || 0).toLocaleString()}</span>
+                    <span style={{ fontSize: 21, fontWeight: 800, color: C.accent, fontVariantNumeric: 'tabular-nums' }}>{(cr.xp || 0).toLocaleString()}</span>
                     {cr.rank ? <span style={{ fontSize: 10.5, fontWeight: 800, background: first ? '#fbf2dc' : C.accsoft, color: first ? '#a97b12' : C.accent, borderRadius: 999, padding: '2px 8px' }}>#{cr.rank}{cr.catTotal ? ` of ${cr.catTotal.toLocaleString()}` : ''}</span> : null}
                   </div>
-                  <div style={{ height: 6, borderRadius: 999, background: '#eef0f2', overflow: 'hidden', marginTop: 8 }}><div style={{ width: `${barPct(cr.rating || 0)}%`, height: '100%', background: c.c, borderRadius: 999 }} /></div>
+                  <div style={{ height: 6, borderRadius: 999, background: '#eef0f2', overflow: 'hidden', marginTop: 8 }}><div style={{ width: `${barPct(cr.xp || 0)}%`, height: '100%', background: c.c, borderRadius: 999 }} /></div>
                   <div style={{ fontSize: 11, color: C.muted, fontWeight: 600, marginTop: 7 }}>
                     {cr.accuracy}% accuracy · {cr.completed} completed{crowned && first ? (viewing ? ' · crown category' : ' · your crown to defend') : ''}
                   </div>
@@ -1001,7 +1000,7 @@ function CategoryView({ me, scope, cats, totalQuizzes, viewing }) {
               </div>
             ))}
           </div>
-          <div style={{ fontSize: 10.5, color: C.soft, marginTop: 10 }}>Each #rank chip is the standing among players active in that category. The bar compares skill ratings across {viewing ? 'this player' : 'your'}{viewing ? "'s" : ''} categories.</div>
+          <div style={{ fontSize: 10.5, color: C.soft, marginTop: 10 }}>Each #rank chip is the standing among players active in that category. The bar compares XP across {viewing ? 'this player' : 'your'}{viewing ? "'s" : ''} categories.</div>
         </div>
       ) : (
       <div className="card" style={{ padding: '14px 16px' }}>
@@ -1023,7 +1022,7 @@ function CategoryView({ me, scope, cats, totalQuizzes, viewing }) {
                   <td style={{ textAlign: 'right', whiteSpace: 'nowrap' }}><b>{a.completed.toLocaleString()}</b>{totalQuizzes ? <span style={{ fontSize: 10, color: C.soft, marginLeft: 4 }}>({completedPct(a.completed, totalQuizzes)})</span> : null}<RankChip rank={ranks.completed} />{base.completed != null ? <div style={{ fontSize: 9.5, color: C.muted }}>avg {base.completed.toLocaleString()}</div> : null}</td>
                   <td style={{ textAlign: 'right', whiteSpace: 'nowrap' }}><b>{a.accuracy}%</b><RankChip rank={ranks.accuracy} />{base.accuracy != null ? <div style={{ fontSize: 9.5, color: C.muted }}>avg {base.accuracy}%</div> : null}</td>
                   <td style={{ textAlign: 'right', whiteSpace: 'nowrap' }}><b>{a.daysPlayed || 0}</b><RankChip rank={ranks.daysPlayed} />{base.daysPlayed != null ? <div style={{ fontSize: 9.5, color: C.muted }}>avg {base.daysPlayed.toLocaleString()}</div> : null}</td>
-                  <td className="score" style={{ textAlign: 'right', color: C.accent, whiteSpace: 'nowrap' }}><b>{(me.rating || 1500).toLocaleString()}</b><RankChip rank={ranks.rating} total={totalPlayers} />{base.rating != null ? <div style={{ fontSize: 9.5, color: C.muted }}>avg {base.rating.toLocaleString()}</div> : null}</td>
+                  <td className="score" style={{ textAlign: 'right', color: C.accent, whiteSpace: 'nowrap' }}><b>{(me.xp || 0).toLocaleString()}</b><RankChip rank={ranks.xp} total={totalPlayers} />{base.xp != null ? <div style={{ fontSize: 9.5, color: C.muted }}>avg {base.xp.toLocaleString()}</div> : null}</td>
                 </tr>
               ) : null}
               {sortedCatRows.map((c) => {
@@ -1037,7 +1036,7 @@ function CategoryView({ me, scope, cats, totalQuizzes, viewing }) {
                     <td style={{ textAlign: 'right', color: muted ? C.soft : C.ink, whiteSpace: 'nowrap' }}>{cr ? <>{cr.completed}{c.count ? <span style={{ fontSize: 10, color: C.soft, marginLeft: 4 }}>({completedPct(cr.completed, c.count)})</span> : null}</> : '—'}{cr && cr.completedRank ? <RankChip rank={cr.completedRank} /> : null}</td>
                     <td style={{ textAlign: 'right', color: muted ? C.soft : C.ink, whiteSpace: 'nowrap' }}>{cr ? `${cr.accuracy}%` : '—'}{cr && cr.accuracyRank ? <RankChip rank={cr.accuracyRank} /> : null}</td>
                     <td style={{ textAlign: 'right', color: muted ? C.soft : C.ink, whiteSpace: 'nowrap' }}>{cr ? (cr.daysPlayed || 0) : '—'}{cr && cr.daysRank ? <RankChip rank={cr.daysRank} /> : null}</td>
-                    <td className="score" style={{ textAlign: 'right', color: muted ? C.soft : C.accent, whiteSpace: 'nowrap' }}>{cr ? cr.rating.toLocaleString() : '—'}{cr && cr.rank ? <RankChip rank={cr.rank} total={cr.catTotal} /> : null}</td>
+                    <td className="score" style={{ textAlign: 'right', color: muted ? C.soft : C.accent, whiteSpace: 'nowrap' }}>{cr ? cr.xp.toLocaleString() : '—'}{cr && cr.rank ? <RankChip rank={cr.rank} total={cr.catTotal} /> : null}</td>
                   </tr>
                 );
               })}
@@ -1052,7 +1051,7 @@ function CategoryView({ me, scope, cats, totalQuizzes, viewing }) {
 }
 
 // Activity view: play-streak stats + a 12-week heatmap, milestone highlights
-// (perfects, personal bests, big rating jumps), then the full game log. All of
+// (perfects, personal bests, big XP hauls), then the full game log. All of
 // it derives client-side from `recent`, which carries the player's FULL history.
 function ActivityFeed({ recent, titleById, viewing }) {
   const who = viewing ? 'This player' : 'You';
@@ -1087,7 +1086,7 @@ function ActivityFeed({ recent, titleById, viewing }) {
     } else if (prevB != null && m.scorePct > prevB) {
       events.push({ kind: 'pb', quizId: m.quizId, when: m.createdAt, sub: `${m.scorePct}%, up from ${prevB}%`, chip: `+${m.scorePct - prevB}%` });
     }
-    if ((m.delta || 0) >= 12) events.push({ kind: 'surge', quizId: m.quizId, when: m.createdAt, sub: `${m.scorePct}% on a heavyweight quiz`, chip: `+${m.delta}` });
+    if ((m.xp || 0) >= 75) events.push({ kind: 'surge', quizId: m.quizId, when: m.createdAt, sub: `${m.scorePct}% on a heavyweight quiz`, chip: `+${m.xp} XP` });
     if (prevB == null || m.scorePct > prevB) bestByQuiz.set(m.quizId, m.scorePct);
   }
   const mile = events.slice(-8).reverse();
@@ -1095,7 +1094,7 @@ function ActivityFeed({ recent, titleById, viewing }) {
   const MK = {
     perfect: { bg: '#fbf2dc', fg: '#a97b12', Icon: Star, label: (q) => `Perfect score on ${q}` },
     pb: { bg: '#e6f7f0', fg: '#0b7a55', Icon: Trophy, label: (q) => `New personal best on ${q}` },
-    surge: { bg: C.accsoft, fg: C.accent, Icon: ArrowUpRight, label: (q) => `Big rating jump on ${q}` },
+    surge: { bg: C.accsoft, fg: C.accent, Icon: ArrowUpRight, label: (q) => `Big XP haul on ${q}` },
   };
   const statLbl = { fontSize: 10, color: C.soft, fontWeight: 800, letterSpacing: '.05em', textTransform: 'uppercase' };
   return (
@@ -1152,7 +1151,7 @@ function ActivityFeed({ recent, titleById, viewing }) {
               <th>Quiz</th>
               <th style={{ textAlign: 'right' }}>When</th>
               <th style={{ textAlign: 'right' }}>{viewing ? 'User %' : 'Your %'}</th>
-              <th style={{ textAlign: 'right' }}>Rating &Delta;</th>
+              <th style={{ textAlign: 'right' }}>XP</th>
               <th style={{ textAlign: 'right' }}>Rank &Delta;</th>
               <th style={{ textAlign: 'right' }}>Cat. Rank &Delta;</th>
             </tr></thead>
@@ -1165,7 +1164,7 @@ function ActivityFeed({ recent, titleById, viewing }) {
                     <td style={{ fontWeight: 600, whiteSpace: 'nowrap' }}><Link href={`/quiz/${m.quizId}`} style={{ color: C.ink, textDecoration: 'none' }}>{title}</Link></td>
                     <td style={{ textAlign: 'right', color: C.muted, whiteSpace: 'nowrap' }}>{when}</td>
                     <td style={{ textAlign: 'right' }}>{m.scorePct}%</td>
-                    <td className="score" style={{ textAlign: 'right', color: (m.delta >= 0) ? C.accent : C.danger, fontWeight: 700 }}>{m.delta >= 0 ? `+${m.delta}` : m.delta}</td>
+                    <td className="score" style={{ textAlign: 'right', color: (m.xp || 0) > 0 ? C.accent : C.muted, fontWeight: 700 }}>{`+${m.xp || 0}`}</td>
                     <td style={{ textAlign: 'right', fontWeight: 700, color: m.rankDelta > 0 ? C.accent : m.rankDelta < 0 ? C.danger : C.muted }}>{m.rankDelta == null ? '—' : m.rankDelta === 0 ? '±0' : m.rankDelta > 0 ? `+${m.rankDelta}` : m.rankDelta}</td>
                     <td style={{ textAlign: 'right', fontWeight: 700, color: m.catRankDelta > 0 ? C.accent : m.catRankDelta < 0 ? C.danger : C.muted }}>{m.catRankDelta == null ? '—' : m.catRankDelta === 0 ? '±0' : m.catRankDelta > 0 ? `+${m.catRankDelta}` : m.catRankDelta}</td>
                   </tr>
@@ -1182,9 +1181,9 @@ function ActivityFeed({ recent, titleById, viewing }) {
 // Full ranking BODY (no card chrome; the card, title, and toggle live in
 // PlayerPanel). Podium + chase card on top, then every player registered +
 // anonymous in the sortable table, current row highlighted.
-const tierNameOf = (r) => (r >= 1800 ? 'Master' : r >= 1650 ? 'Diamond' : r >= 1500 ? 'Gold' : r >= 1350 ? 'Silver' : 'Bronze');
+const tierNameOf = (lvl) => (lvl >= 18 ? 'Master' : lvl >= 14 ? 'Diamond' : lvl >= 9 ? 'Gold' : lvl >= 5 ? 'Silver' : 'Bronze');
 function UserBaseBody({ board, myName, myAnonKey, onSelectPlayer, viewKey }) {
-  const [sort, setSort] = useState({ col: 'rating', dir: 'desc' });
+  const [sort, setSort] = useState({ col: 'xp', dir: 'desc' });
   if (!board) return <div style={{ fontSize: 13, color: C.soft, padding: '6px 0' }}>Loading the full ranking…</div>;
   if (!board.length) return <div style={{ fontSize: 13, color: C.soft, padding: '6px 0' }}>No ranked players yet.</div>;
   const isMine = (p) => (myAnonKey && p.userKey === myAnonKey) || (myName && !p.isAnon && p.name === myName);
@@ -1196,7 +1195,7 @@ function UserBaseBody({ board, myName, myAnonKey, onSelectPlayer, viewKey }) {
     if (p.trend7d < 0) return <span style={{ fontWeight: 800, color: C.danger }}>▼ {Math.abs(p.trend7d)}</span>;
     return <span style={{ fontWeight: 700, color: C.muted }}>±0</span>;
   };
-  // Podium + chase read the board in its served (rating) order regardless of
+  // Podium + chase read the board in its served (XP) order regardless of
   // how the table below is sorted.
   const top3 = board.slice(0, 3);
   const myIdx = board.findIndex(isMine);
@@ -1205,20 +1204,20 @@ function UserBaseBody({ board, myName, myAnonKey, onSelectPlayer, viewKey }) {
   if (my) {
     if (myIdx === 0) {
       const second = board[1];
-      chase = { title: 'You hold #1', sub: second ? `${second.name} is ${Math.max(0, (my.rating || 0) - (second.rating || 0))} pts behind you. Stay sharp.` : 'The board is yours.', pct: 100, cta: 'Defend #1' };
+      chase = { title: 'You hold #1', sub: second ? `${second.name} is ${Math.max(0, (my.xp || 0) - (second.xp || 0))} XP behind you. Stay sharp.` : 'The board is yours.', pct: 100, cta: 'Defend #1' };
     } else {
       const ahead = board[myIdx - 1];
       const below = board[myIdx + 1];
-      const gap = Math.max(0, (ahead.rating || 0) - (my.rating || 0));
-      let sub = gap === 0 ? `You are tied with ${ahead.name} at ${(my.rating || 0).toLocaleString()}.` : `${ahead.name} sits at ${(ahead.rating || 0).toLocaleString()}.`;
+      const gap = Math.max(0, (ahead.xp || 0) - (my.xp || 0));
+      let sub = gap === 0 ? `You are tied with ${ahead.name} at ${(my.xp || 0).toLocaleString()} XP.` : `${ahead.name} sits at ${(ahead.xp || 0).toLocaleString()} XP.`;
       if (below) {
-        const back = Math.max(0, (my.rating || 0) - (below.rating || 0));
-        sub += back === 0 ? ` ${below.name} is tied right behind you.` : ` ${below.name} is ${back} pts behind you.`;
+        const back = Math.max(0, (my.xp || 0) - (below.xp || 0));
+        sub += back === 0 ? ` ${below.name} is tied right behind you.` : ` ${below.name} is ${back} XP behind you.`;
       }
       chase = {
-        title: gap === 0 ? `Tied for #${myIdx}: any game breaks it` : `The chase: ${gap} pts to #${myIdx}`,
+        title: gap === 0 ? `Tied for #${myIdx}: any game breaks it` : `The chase: ${gap} XP to #${myIdx}`,
         sub,
-        pct: Math.round(Math.max(6, Math.min(96, ((my.rating || 0) / Math.max(1, ahead.rating || 1)) * 100))),
+        pct: Math.round(Math.max(6, Math.min(96, ((my.xp || 0) / Math.max(1, ahead.xp || 1)) * 100))),
         cta: `Chase #${myIdx}`,
       };
     }
@@ -1226,7 +1225,7 @@ function UserBaseBody({ board, myName, myAnonKey, onSelectPlayer, viewKey }) {
   const COLS = [
     { key: 'rank', label: 'Rank', w: 60, align: 'left' },
     { key: 'name', label: 'Player', align: 'left', get: (p) => (p.name || '').toLowerCase() },
-    { key: 'rating', label: 'Skill Rating', align: 'right', get: (p) => p.rating || 0 },
+    { key: 'xp', label: 'XP', align: 'right', get: (p) => p.xp || 0 },
     ...(hasTrend ? [{ key: 'trend', label: '7-Day', align: 'right', get: (p) => (p.trend7d == null ? -1e9 : p.trend7d) }] : []),
     { key: 'correct', label: 'Correct', align: 'right', get: (p) => p.correct || 0 },
     { key: 'completed', label: 'Completed', align: 'right', get: (p) => p.completed || 0 },
@@ -1257,8 +1256,8 @@ function UserBaseBody({ board, myName, myAnonKey, onSelectPlayer, viewKey }) {
                 <button onClick={() => onSelectPlayer && onSelectPlayer(p.userKey)} style={{ border: 'none', background: 'transparent', padding: 0, font: 'inherit', fontFamily: FONT, fontWeight: 800, color: mine ? C.ink : C.accent, cursor: 'pointer' }}>{p.name}</button>
                 {mine ? <span style={{ fontSize: 9.5, color: C.accent, fontWeight: 800, marginLeft: 5 }}>YOU</span> : null}
               </div>
-              <div style={{ fontSize: 20, fontWeight: 800, marginTop: 2, lineHeight: 1.15, fontVariantNumeric: 'tabular-nums' }}>{(p.rating || 0).toLocaleString()}</div>
-              <div style={{ fontSize: 10, color: C.soft, fontWeight: 800, letterSpacing: '.05em', marginTop: 2 }}>{tierNameOf(p.rating || 0).toUpperCase()} · {p.accuracy || 0}% ACC</div>
+              <div style={{ fontSize: 20, fontWeight: 800, marginTop: 2, lineHeight: 1.15, fontVariantNumeric: 'tabular-nums' }}>{(p.xp || 0).toLocaleString()}</div>
+              <div style={{ fontSize: 10, color: C.soft, fontWeight: 800, letterSpacing: '.05em', marginTop: 2 }}>{tierNameOf(p.level || 1).toUpperCase()} · {p.accuracy || 0}% ACC</div>
             </div>
           );
         })}
@@ -1274,7 +1273,7 @@ function UserBaseBody({ board, myName, myAnonKey, onSelectPlayer, viewKey }) {
           <Link href="/quizzes" style={{ flex: 'none', fontSize: 12, fontWeight: 800, color: '#fff', background: C.accent, borderRadius: 9, padding: '8px 14px', textDecoration: 'none' }}>{chase.cta}</Link>
         </div>
       ) : null}
-      <div style={{ fontSize: 11, color: C.soft, marginBottom: 10 }}>All {board.length.toLocaleString()} players, anonymous guests included. Tap a column to sort; your row is highlighted.{hasTrend ? ' 7-Day = skill-rating movement over the last week.' : ''}</div>
+      <div style={{ fontSize: 11, color: C.soft, marginBottom: 10 }}>All {board.length.toLocaleString()} players, anonymous guests included. Tap a column to sort; your row is highlighted.{hasTrend ? ' 7-Day = XP earned over the last week.' : ''}</div>
       <div style={{ overflow: 'auto', maxHeight: 600 }}>
         <table>
           <thead><tr>
@@ -1293,7 +1292,7 @@ function UserBaseBody({ board, myName, myAnonKey, onSelectPlayer, viewKey }) {
                 <tr key={p.userKey} style={mine ? { background: C.accsoft } : (viewed ? { background: '#fdf2e3' } : undefined)}>
                   <td style={{ fontWeight: 800, color: mi >= 0 ? MEDAL[mi] : C.soft }}>{idx + 1}</td>
                   <td style={{ fontWeight: (mine || viewed) ? 800 : 600, whiteSpace: 'nowrap' }}><button onClick={() => onSelectPlayer && onSelectPlayer(p.userKey)} style={{ border: 'none', background: 'transparent', padding: 0, font: 'inherit', fontFamily: FONT, fontWeight: 'inherit', color: C.accent, cursor: 'pointer', textAlign: 'left' }}>{p.name}</button>{p.isAnon ? <span style={{ fontSize: 10, color: C.soft, fontWeight: 600, marginLeft: 6 }}>guest</span> : null}{mine ? <span style={{ fontSize: 10, color: C.accent, fontWeight: 700, marginLeft: 6 }}>you</span> : null}{viewed ? <span style={{ fontSize: 10, color: '#b5560f', fontWeight: 700, marginLeft: 6 }}>viewing</span> : null}</td>
-                  <td className="score" style={{ textAlign: 'right', color: C.accent, fontWeight: 700 }}>{(p.rating || 0).toLocaleString()}</td>
+                  <td className="score" style={{ textAlign: 'right', color: C.accent, fontWeight: 700 }}>{(p.xp || 0).toLocaleString()}</td>
                   {hasTrend ? <td style={{ textAlign: 'right', whiteSpace: 'nowrap' }}>{trendCell(p)}</td> : null}
                   <td style={{ textAlign: 'right' }}>{(p.correct || 0).toLocaleString()}</td>
                   <td style={{ textAlign: 'right' }}>{p.completed || 0}</td>
@@ -1633,37 +1632,29 @@ function ChallengesPanel({ me }) {
     </div>
   );
 }
-// ─── Rating tab ─────────────────────────────────────────────────────────────
-// Skill Rating view: the trend chart and tier progress lead; the Elo formula
-// explainer and components collapse behind a "How this works" toggle.
-const TIER_STEPS = [1350, 1500, 1650, 1800];
-const TIER_NAMES = ['Bronze', 'Silver', 'Gold', 'Diamond', 'Master'];
-function RatingPanel({ me, titleById, viewing }) {
+// ─── XP tab ────────────────────────────────────────────────────────────────
+// XP & Level view: the level, progress to the next level, and the cumulative
+// XP trend chart lead; the formula explainer collapses behind a "How this
+// works" toggle. XP is additive — it never goes down and never decays.
+function XpPanel({ me, titleById, viewing }) {
   const found = me && me.found;
-  const comp = found ? me.components : { start: 1500, k: 24, matches: 0, netDelta: 0, rating: 1500 };
   const recent = (found && me.recent) || [];
+  const prog = (found && me.progress) || { level: 1, xp: 0, levelFloor: 0, levelNext: 25, intoLevel: 0, stepSize: 25, toNext: 25, matches: 0, xp7d: null };
   const [how, setHow] = useState(false);
-  const rating = found ? (me.rating || 1500) : 1500;
+  const xp = found ? (me.xp || 0) : 0;
+  const level = found ? (me.level || 1) : 1;
 
-  // Rebuild the rating series from the full match history (oldest first).
+  // Cumulative XP series from the full game history (oldest first).
   const hist = recent.slice().reverse();
-  const series = [comp.start];
-  { let cum = comp.start; for (const m of hist) { cum += (m.delta || 0); series.push(cum); } }
-  const peak = Math.round(Math.max(...series));
-  const peakIdx = series.indexOf(Math.max(...series));
-  const peakWhen = peakIdx > 0 && hist[peakIdx - 1] && hist[peakIdx - 1].createdAt
-    ? new Date(hist[peakIdx - 1].createdAt).toLocaleString('en-US', { month: 'short', day: 'numeric' }) : null;
+  const series = [0];
+  { let cum = 0; for (const m of hist) { cum += (m.xp || 0); series.push(cum); } }
   const weekCut = Date.now() - 7 * 86400000;
-  const weekDelta = Math.round(hist.reduce((acc, m) => acc + ((m.createdAt && Date.parse(m.createdAt) >= weekCut) ? (m.delta || 0) : 0), 0));
+  const weekGain = Math.round(hist.reduce((acc, m) => acc + ((m.createdAt && Date.parse(m.createdAt) >= weekCut) ? (m.xp || 0) : 0), 0));
 
-  // Chart: the full rating history sampled to ~70 points and drawn at the
-  // container's real pixel width (no viewBox stretching, so the stroke and
-  // labels stay crisp) as a smoothed curve over light gridlines.
+  // Chart: the full XP history sampled to ~70 points and drawn at the
+  // container's real pixel width as a smoothed curve over light gridlines.
   const chartRef = useRef(null);
   const [cw, setCw] = useState(0);
-  // Re-measure whenever the chart div can (re)appear: the profile fetch
-  // resolves AFTER the first render, so a mount-only effect would find no
-  // element and the chart would never draw.
   const hasChart = series.length >= 4;
   useEffect(() => {
     const upd = () => { const el = chartRef.current; if (el) setCw(el.clientWidth || 600); };
@@ -1671,41 +1662,38 @@ function RatingPanel({ me, titleById, viewing }) {
     window.addEventListener('resize', upd);
     return () => window.removeEventListener('resize', upd);
   }, [hasChart, found]);
-  const nextStep = TIER_STEPS.find((t) => t > rating) || null;
-  const nextName = nextStep ? TIER_NAMES[TIER_STEPS.indexOf(nextStep) + 1] : null;
-  const bandLo = [...TIER_STEPS].reverse().find((t) => t <= rating) || 1200;
-  const bandPct = nextStep ? Math.round(Math.max(4, Math.min(100, ((rating - bandLo) / (nextStep - bandLo)) * 100))) : 100;
-  const tierLabel = found && me.tier ? me.tier : 'Unrated';
+  const nextLevelAt = prog.levelNext;
+  const bandPct = prog.stepSize > 0 ? Math.round(Math.max(4, Math.min(100, (prog.intoLevel / prog.stepSize) * 100))) : 100;
+  const tierLabel = found && me.tier ? me.tier : 'Bronze Tier';
   const tierBg = found && me.tierBg ? me.tierBg : '#eceef1';
   const tierFg = found && me.tierFg ? me.tierFg : C.muted;
 
   const explainerCards = (
     <div className="rgrid" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, marginBottom: 14 }}>
       <div className="card" style={{ padding: '14px 16px' }}>
-        <div style={{ fontSize: 14, fontWeight: 700, marginBottom: 8 }}>How Your Skill Rating Works</div>
+        <div style={{ fontSize: 14, fontWeight: 700, marginBottom: 8 }}>How XP Works</div>
         <p style={{ fontSize: 13, color: C.muted, lineHeight: 1.6, margin: '0 0 10px' }}>
-          Every quiz you finish is a match against that quiz's difficulty. Beat the expected score and your rating rises; fall short and it dips. Heavier, harder quizzes move it more.
+          Every quiz you finish ADDS XP: your correct answers, multiplied by the quiz{"'"}s difficulty. Easy quizzes pay 1×, the hardest pay 2×. A perfect 100% game earns a 25% bonus, and replaying a quiz you{"'"}ve already taken pays 25% of the usual XP (first attempts pay full).
         </p>
         <p style={{ fontSize: 13, color: C.muted, lineHeight: 1.6, margin: '0 0 10px' }}>
-          <b style={{ color: C.ink }}>Inactivity decay:</b> when you stop playing, your rating drifts back toward the {comp.start.toLocaleString()} baseline, reaching it after three months away. Play any quiz to reset the clock.
+          <b style={{ color: C.ink }}>XP only goes up.</b> There is no way to lose it and it never decays — every game moves you forward.
         </p>
         <div className="formula">
-          E = 1 / (1 + 10<sup>(Dq − R) / 400</sup>)<br />
-          R′ = R + K · (S − E)
+          XP = correct × (Dq / 1000)<br />
+          × 1.25 if perfect · × 0.25 on replays
         </div>
         <div style={{ fontSize: 11.5, color: C.muted, lineHeight: 1.8, marginTop: 10 }}>
-          R = your rating · Dq = quiz difficulty · S = your result (score fraction, 0–1) · E = expected result · K = {comp.k} (volatility)
+          Dq = quiz difficulty (1,000 easiest – 2,000 hardest) · the step from level L to L+1 costs 25·L XP
         </div>
       </div>
       <div className="card" style={{ padding: '14px 16px' }}>
-        <div style={{ fontSize: 14, fontWeight: 700, marginBottom: 10 }}>{viewing ? 'Components' : 'Your Components'}</div>
+        <div style={{ fontSize: 14, fontWeight: 700, marginBottom: 10 }}>{viewing ? 'Numbers' : 'Your Numbers'}</div>
         <div style={{ display: 'flex', flexDirection: 'column', gap: 0 }}>
-          <div className="hrow" style={{ borderTop: 'none' }}><span style={{ flex: 1 }}>Season Start Rating</span><span style={{ fontWeight: 700 }}>{comp.start.toLocaleString()}</span></div>
-          <div className="hrow"><span style={{ flex: 1 }}>K-Factor (Volatility)</span><span style={{ fontWeight: 700 }}>{comp.k}</span></div>
-          <div className="hrow"><span style={{ flex: 1 }}>Matches Played</span><span style={{ fontWeight: 700 }}>{comp.matches}</span></div>
-          <div className="hrow"><span style={{ flex: 1 }}>Net Rating From Results</span><span className="score" style={{ color: comp.netDelta >= 0 ? C.accent : C.danger }}>{comp.netDelta >= 0 ? `+${comp.netDelta}` : comp.netDelta}</span></div>
-          <div className="hrow"><span style={{ flex: 1 }}>Inactivity Decay</span><span className="score" style={{ color: (comp.decayDelta || 0) < 0 ? C.danger : C.muted }}>{(comp.decayDelta || 0) === 0 ? '0' : comp.decayDelta}</span></div>
-          <div className="hrow" style={{ borderTop: `2px solid ${C.ink}` }}><span style={{ flex: 1, fontWeight: 700 }}>Current Rating</span><span style={{ fontWeight: 800, color: C.accent }}>{comp.rating.toLocaleString()}</span></div>
+          <div className="hrow" style={{ borderTop: 'none' }}><span style={{ flex: 1 }}>Level</span><span style={{ fontWeight: 700 }}>{level}</span></div>
+          <div className="hrow"><span style={{ flex: 1 }}>Games Counted</span><span style={{ fontWeight: 700 }}>{prog.matches}</span></div>
+          <div className="hrow"><span style={{ flex: 1 }}>XP This Week</span><span className="score" style={{ color: weekGain > 0 ? C.accent : C.muted }}>{weekGain > 0 ? `+${weekGain.toLocaleString()}` : '0'}</span></div>
+          <div className="hrow"><span style={{ flex: 1 }}>Next Level At</span><span style={{ fontWeight: 700 }}>{nextLevelAt.toLocaleString()} XP</span></div>
+          <div className="hrow" style={{ borderTop: `2px solid ${C.ink}` }}><span style={{ flex: 1, fontWeight: 700 }}>Total XP</span><span style={{ fontWeight: 800, color: C.accent }}>{xp.toLocaleString()}</span></div>
         </div>
       </div>
     </div>
@@ -1715,15 +1703,16 @@ function RatingPanel({ me, titleById, viewing }) {
     <div>
       <div className="card" style={{ padding: '14px 16px', marginBottom: 12 }}>
         <div style={{ display: 'flex', alignItems: 'baseline', gap: 10, flexWrap: 'wrap' }}>
-          <span style={{ fontSize: 30, fontWeight: 800, color: C.accent, fontVariantNumeric: 'tabular-nums' }}>{rating.toLocaleString()}</span>
-          {comp.matches > 0 ? (
-            <span style={{ fontSize: 11, fontWeight: 800, background: weekDelta > 0 ? '#e6f7f0' : weekDelta < 0 ? '#fdeeee' : '#eef0f2', color: weekDelta > 0 ? '#0b7a55' : weekDelta < 0 ? C.danger : C.muted, borderRadius: 999, padding: '3px 9px' }}>
-              {weekDelta > 0 ? `▲ ${weekDelta} this week` : weekDelta < 0 ? `▼ ${Math.abs(weekDelta)} this week` : 'Flat this week'}
+          <span style={{ fontSize: 30, fontWeight: 800, color: C.accent, fontVariantNumeric: 'tabular-nums' }}>Level {level}</span>
+          <span style={{ fontSize: 15, fontWeight: 700, color: C.muted, fontVariantNumeric: 'tabular-nums' }}>{xp.toLocaleString()} XP</span>
+          {prog.matches > 0 ? (
+            <span style={{ fontSize: 11, fontWeight: 800, background: weekGain > 0 ? '#e6f7f0' : '#eef0f2', color: weekGain > 0 ? '#0b7a55' : C.muted, borderRadius: 999, padding: '3px 9px' }}>
+              {weekGain > 0 ? `▲ ${weekGain.toLocaleString()} XP this week` : 'No XP this week'}
             </span>
           ) : null}
           <span style={{ fontSize: 11, fontWeight: 800, background: tierBg, color: tierFg, borderRadius: 999, padding: '3px 9px', textTransform: 'uppercase', letterSpacing: '.03em' }}>{tierLabel}</span>
           <span style={{ flex: 1 }} />
-          {comp.matches > 0 ? <span style={{ fontSize: 11, color: C.soft, fontWeight: 800, letterSpacing: '.04em' }}>PEAK {peak.toLocaleString()}{peakWhen ? ` · ${peakWhen.toUpperCase()}` : ''}</span> : null}
+          {prog.matches > 0 ? <span style={{ fontSize: 11, color: C.soft, fontWeight: 800, letterSpacing: '.04em' }}>LEVEL {level + 1} AT {nextLevelAt.toLocaleString()} XP</span> : null}
         </div>
         {hasChart ? (
           <div ref={chartRef} style={{ marginTop: 10 }}>
@@ -1732,7 +1721,7 @@ function RatingPanel({ me, titleById, viewing }) {
               let pts = series;
               if (pts.length > 70) { pts = []; for (let i = 0; i < 70; i++) pts.push(series[Math.round((i * (series.length - 1)) / 69)]); }
               let lo = Math.min(...pts), hi = Math.max(...pts);
-              if (nextStep != null && nextStep > hi && nextStep - hi <= 35) hi = nextStep + 6;
+              if (nextLevelAt > hi && nextLevelAt - hi <= Math.max(35, prog.stepSize)) hi = nextLevelAt + Math.max(6, Math.round(prog.stepSize * 0.15));
               if (hi - lo < 40) { const mid = (hi + lo) / 2; lo = mid - 20; hi = mid + 20; }
               const vpad = (hi - lo) * 0.06;
               lo -= vpad; hi += vpad;
@@ -1746,7 +1735,7 @@ function RatingPanel({ me, titleById, viewing }) {
               }
               const area = `${d} L${P[P.length - 1][0]},${H - B} L${P[0][0]},${H - B} Z`;
               const ticks = [lo + (hi - lo) * 0.18, lo + (hi - lo) * 0.5, lo + (hi - lo) * 0.82].map((v) => Math.round(v / 5) * 5);
-              const tierY = nextStep != null && nextStep >= lo && nextStep <= hi ? Y(nextStep) : null;
+              const goalY = nextLevelAt >= lo && nextLevelAt <= hi ? Y(nextLevelAt) : null;
               return (
                 <svg width={W} height={H} viewBox={`0 0 ${W} ${H}`} aria-hidden="true" style={{ display: 'block' }}>
                   {ticks.map((v, i) => (
@@ -1757,10 +1746,10 @@ function RatingPanel({ me, titleById, viewing }) {
                   ))}
                   <path d={area} fill={C.accsoft} opacity="0.6" />
                   <path d={d} fill="none" stroke={C.accent} strokeWidth="2.25" strokeLinejoin="round" strokeLinecap="round" />
-                  {tierY != null ? (
+                  {goalY != null ? (
                     <g>
-                      <line x1={Lp} y1={tierY} x2={W - Rp} y2={tierY} stroke="#e8b43a" strokeWidth="1.5" strokeDasharray="5 5" />
-                      <text x={Lp + 2} y={Math.max(11, tierY - 5)} fontSize="10.5" fontWeight="800" fill="#a97b12" fontFamily={FONT}>{nextName} at {nextStep.toLocaleString()}</text>
+                      <line x1={Lp} y1={goalY} x2={W - Rp} y2={goalY} stroke="#e8b43a" strokeWidth="1.5" strokeDasharray="5 5" />
+                      <text x={Lp + 2} y={Math.max(11, goalY - 5)} fontSize="10.5" fontWeight="800" fill="#a97b12" fontFamily={FONT}>Level {level + 1} at {nextLevelAt.toLocaleString()} XP</text>
                     </g>
                   ) : null}
                   <circle cx={P[P.length - 1][0]} cy={P[P.length - 1][1]} r="4" fill={C.accent} stroke="#fff" strokeWidth="1.5" />
@@ -1769,46 +1758,48 @@ function RatingPanel({ me, titleById, viewing }) {
             })() : <div style={{ height: 150 }} />}
           </div>
         ) : (
-          <div style={{ fontSize: 13, color: C.soft, padding: '14px 0 6px' }}>{viewing ? 'A few more finished quizzes and the rating trend chart appears here.' : 'Finish a few quizzes and your rating trend chart appears here.'}</div>
+          <div style={{ fontSize: 13, color: C.soft, padding: '14px 0 6px' }}>{viewing ? 'A few more finished quizzes and the XP trend chart appears here.' : 'Finish a few quizzes and your XP trend chart appears here.'}</div>
         )}
         <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginTop: 10, flexWrap: 'wrap' }}>
           <span style={{ fontSize: 11, fontWeight: 800, color: tierFg, letterSpacing: '.04em', textTransform: 'uppercase', flex: 'none' }}>{tierLabel.replace(' Tier', '')}</span>
           <span style={{ flex: 1, minWidth: 120, height: 8, borderRadius: 999, background: '#eef0f2', overflow: 'hidden' }}><span style={{ display: 'block', width: `${bandPct}%`, height: '100%', background: C.accent, borderRadius: 999 }} /></span>
-          <span style={{ fontSize: 11, fontWeight: 800, color: C.soft, letterSpacing: '.04em', flex: 'none' }}>{nextStep ? `${Math.max(0, nextStep - rating).toLocaleString()} PTS TO ${nextName.toUpperCase()}` : 'TOP TIER'}</span>
+          <span style={{ fontSize: 11, fontWeight: 800, color: C.soft, letterSpacing: '.04em', flex: 'none' }}>{`${prog.toNext.toLocaleString()} XP TO LEVEL ${level + 1}`}</span>
         </div>
       </div>
 
       <button onClick={() => setHow((v) => !v)} style={{ display: 'inline-flex', alignItems: 'center', gap: 6, border: 'none', background: 'transparent', color: C.accent, fontFamily: FONT, fontSize: 12.5, fontWeight: 800, cursor: 'pointer', padding: '2px 0', marginBottom: 12 }}>
-        <ChevronDown size={15} style={{ transform: how ? 'rotate(180deg)' : 'none', transition: 'transform .15s' }} /> How your skill rating works
+        <ChevronDown size={15} style={{ transform: how ? 'rotate(180deg)' : 'none', transition: 'transform .15s' }} /> How your XP works
       </button>
       {how ? explainerCards : null}
 
       <div className="card" style={{ padding: '4px 6px' }}>
-        <div style={{ padding: '12px 12px 4px', fontSize: 14, fontWeight: 700 }}>Recent Matches</div>
+        <div style={{ padding: '12px 12px 4px', fontSize: 14, fontWeight: 700 }}>Recent XP</div>
         <div style={{ overflow: 'auto' }}>
           <table>
             <thead><tr>
               <th>Quiz</th>
-              <th style={{ textAlign: 'right' }}>Dq</th>
+              <th style={{ textAlign: 'right' }}>Difficulty</th>
               <th style={{ textAlign: 'right' }}>{viewing ? 'User %' : 'Your %'}</th>
-              <th style={{ textAlign: 'right' }}>S</th>
-              <th style={{ textAlign: 'right' }}>E</th>
-              <th style={{ textAlign: 'right' }}>ΔR</th>
+              <th style={{ textAlign: 'right' }}>Notes</th>
+              <th style={{ textAlign: 'right' }}>XP</th>
             </tr></thead>
             <tbody>
               {recent.length === 0 && (
-                <tr><td colSpan={6} style={{ color: C.soft }}>No matches yet. Finish a quiz to start your rating.</td></tr>
+                <tr><td colSpan={5} style={{ color: C.soft }}>No games yet. Finish a quiz to start earning XP.</td></tr>
               )}
               {recent.slice(0, 40).map((m, i) => (
                 <tr key={i}>
                   <td style={{ fontWeight: 600, maxWidth: 260, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                     <Link href={`/quiz/${m.quizId}`} className="qlink">{titleById[m.quizId] || cleanTitle(m.quizId)}</Link>
                   </td>
-                  <td style={{ textAlign: 'right' }}>{m.dq.toLocaleString()}</td>
+                  <td style={{ textAlign: 'right' }}>{(m.dq || 0).toLocaleString()}</td>
                   <td style={{ textAlign: 'right' }}>{m.scorePct}%</td>
-                  <td style={{ textAlign: 'right' }}>{m.S.toFixed(2)}</td>
-                  <td style={{ textAlign: 'right' }}>{m.E.toFixed(2)}</td>
-                  <td className="score" style={{ textAlign: 'right', color: m.delta >= 0 ? C.accent : C.danger }}>{m.delta >= 0 ? `+${m.delta}` : m.delta}</td>
+                  <td style={{ textAlign: 'right', whiteSpace: 'nowrap' }}>
+                    {m.perfect ? <span style={{ fontSize: 10, fontWeight: 800, background: '#fbf2dc', color: '#a97b12', borderRadius: 999, padding: '2px 7px' }}>PERFECT</span> : null}
+                    {m.attempt > 1 ? <span style={{ fontSize: 10, fontWeight: 800, background: '#eef0f2', color: C.muted, borderRadius: 999, padding: '2px 7px', marginLeft: m.perfect ? 4 : 0 }}>REPLAY</span> : null}
+                    {!m.perfect && !(m.attempt > 1) ? <span style={{ color: C.soft }}>—</span> : null}
+                  </td>
+                  <td className="score" style={{ textAlign: 'right', color: (m.xp || 0) > 0 ? C.accent : C.muted }}>{`+${m.xp || 0}`}</td>
                 </tr>
               ))}
             </tbody>
