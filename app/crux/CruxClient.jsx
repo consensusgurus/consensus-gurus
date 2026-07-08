@@ -1010,7 +1010,7 @@ export default function CruxClient({ forceNum = null }) {
           {/* right: categories + filing + result (ordered above the grid on mobile — they are the clues) */}
           <div className="cl-side">
             <div style={{ fontSize: 12.5, fontWeight: 800, textTransform: 'uppercase', letterSpacing: '.05em', color: COLORS.faded, marginBottom: 8 }}>
-              The categories &mdash; each hides two of the eight words
+              The categories &mdash; each hides {PUZZLE.categories[0].words.length === 3 ? 'three' : 'two'} of the {PUZZLE.slots.length === 12 ? 'twelve' : 'eight'} words
             </div>
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8, marginBottom: 14 }}>
               {PUZZLE.categories.map((cat, ci) => {
