@@ -428,9 +428,11 @@ export default function GarbleClient({ forceNum = null }) {
   const [installEvt, setInstallEvt] = useState(null);
   const [showA2hsHelp, setShowA2hsHelp] = useState(false);
   const [standalone, setStandalone] = useState(false);
+  const [mobileUi, setMobileUi] = useState(false); // effect-set so SSR/hydration match
   useEffect(() => {
     try {
       setStandalone(window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true);
+      setMobileUi(isMobileDevice());
     } catch {}
     const onBip = (e) => { e.preventDefault(); setInstallEvt(e); };
     const onInstalled = () => { setStandalone(true); setInstallEvt(null); };
@@ -793,7 +795,7 @@ export default function GarbleClient({ forceNum = null }) {
               <Share2 size={14} strokeWidth={2.5} /> {copied ? 'Copied' : 'Share This Puzzle'}
             </button>
           )}
-          {!standalone && (
+          {mobileUi && !standalone && (
             <button onClick={a2hsClick} style={{ marginTop: playing ? 10 : 0, width: '100%', fontFamily: SANS, fontSize: 13.5, letterSpacing: '0.05em', textTransform: 'uppercase', fontWeight: 800, height: 54, borderRadius: 10, border: 'none', background: '#21b45e', color: '#fff', cursor: 'pointer', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 9, whiteSpace: 'nowrap' }}>
               <Smartphone size={15} strokeWidth={2.5} /> Add to Home Screen
             </button>
