@@ -6,6 +6,7 @@ import { Check, X, Eye, EyeOff, LogOut, Pencil, Trash2, MapPin } from 'lucide-re
 import { LISTS } from '@/lib/data';
 import Grain from '@/app/Grain';
 import GeoMapPanel from './GeoMapPanel';
+import { exportUsersCsv, exportGamesCsv } from './csv-export';
 
 // Local theme palette: the live-site look (Manrope + soft blue) applied to the
 // admin desk. Shadows the magazine COLORS from lib/data so the public site is
@@ -2102,7 +2103,7 @@ function AnalyticsPanel({ views, viewsTotal, quizStats, quizPlaysTotal, signups,
   return (
     <div>
       <ActiveUsersStrip data={activeUsers} />
-      <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginBottom: 12 }}>
+      <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginBottom: 12, alignItems: 'center' }}>
         {tabs.map(([key, label, count]) => {
           const on = view === key;
           return (
@@ -2112,6 +2113,22 @@ function AnalyticsPanel({ views, viewsTotal, quizStats, quizPlaysTotal, signups,
             </button>
           );
         })}
+        <div style={{ marginLeft: 'auto', display: 'flex', gap: 6 }}>
+          <button
+            onClick={() => exportUsersCsv(signups, anonPlayers)}
+            title="One row per player (registered + anonymous) with the full stats the player tables show: plays, sessions, accuracy, devices, locations, first/last seen…"
+            style={{ padding: '7px 12px', background: COLORS.ink, border: `1px solid ${COLORS.ink}`, color: COLORS.cream, fontFamily: 'DM Mono, monospace', fontSize: 10, letterSpacing: '0.08em', textTransform: 'uppercase', fontWeight: 600, cursor: 'pointer' }}
+          >
+            ↓ Users CSV
+          </button>
+          <button
+            onClick={() => exportGamesCsv(signups, anonPlayers)}
+            title="One row per completed game with the per-play detail the expanded rows show: quiz, score, correct, time, device, OS, browser, location, timezone, language, referrer"
+            style={{ padding: '7px 12px', background: COLORS.ink, border: `1px solid ${COLORS.ink}`, color: COLORS.cream, fontFamily: 'DM Mono, monospace', fontSize: 10, letterSpacing: '0.08em', textTransform: 'uppercase', fontWeight: 600, cursor: 'pointer' }}
+          >
+            ↓ Games CSV
+          </button>
+        </div>
       </div>
       {subTabs.length ? (
         <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', marginBottom: 22, paddingLeft: 2 }}>
