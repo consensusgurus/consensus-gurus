@@ -27,10 +27,16 @@ export async function generateMetadata({ params }) {
   const description = quiz.blurb;
   const ogTitle = quiz.title;
 
+  // Crux/Garble catalog stubs render only a client-side hop to the game page.
+  // Canonicalize them to the evergreen game URLs so the dated stubs don't
+  // compete with /crux and /garble in search (they're also out of the sitemap).
+  const gameCanonical =
+    quiz.format === 'crux' ? '/crux' : quiz.format === 'garble' ? '/garble' : null;
+
   return {
     title: `${quiz.title} | Source of Truths`,
     description,
-    alternates: { canonical: url },
+    alternates: { canonical: gameCanonical || url },
     openGraph: {
       title: ogTitle,
       description,
@@ -50,8 +56,9 @@ export default function QuizPage({ params }) {
   const id = decodeURIComponent(params.id);
   const quiz = getQuiz(id);
 
-  // Crux lives on its own page; the catalog entry exists so the hub,
-  // search, and sitemap can surface it. Send players to the real board via a
+  // Crux lives on its own page; the catalog entry exists so the hub and
+  // search can surface it (the sitemap carries /crux + /garble instead, and
+  // these stubs canonicalize there). Send players to the real board via a
   // client-side hop that preserves ?duel=/?ch= params (see CruxRedirect).
   // (Legacy id from the few hours it launched as Crosslock, 2026-07-06.)
   if (id === 'crosslock-7-6-26') redirect('/crux?p=1');

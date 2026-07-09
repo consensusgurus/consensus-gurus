@@ -1412,6 +1412,20 @@ export default function CruxClient({ forceNum = null }) {
         </div>
       )}
 
+      {/* About Crux — crawlable prose for search, server-rendered into the initial HTML */}
+      <section style={{ position: 'relative', zIndex: 2, maxWidth: 760, margin: '0 auto', padding: '10px 24px 42px', fontFamily: SANS }}>
+        <h2 style={{ margin: '0 0 8px', fontSize: 15, fontWeight: 800, letterSpacing: '-0.01em', color: COLORS.ink }}>About Crux</h2>
+        <p style={{ margin: '0 0 8px', fontSize: 13, lineHeight: 1.65, color: COLORS.faded, fontWeight: 600 }}>
+          Crux is a free daily word game from Source of Truths &mdash; a crossword with no clues. Eight hidden words (twelve in the Sunday Edition) interlock in a compact grid, and the only hints are four visible categories; working out which words belong to them is the puzzle.
+        </p>
+        <p style={{ margin: '0 0 8px', fontSize: 13, lineHeight: 1.65, color: COLORS.faded, fontWeight: 600 }}>
+          Guess real words to reveal letters: dark tiles lock a letter into its square and every crossing, yellow tiles mean the letter belongs elsewhere in the word. The whole board shares one guess budget, and a single submit files each solved word under its category &mdash; a point per solve, a point per correct placement.
+        </p>
+        <p style={{ margin: 0, fontSize: 13, lineHeight: 1.65, color: COLORS.faded, fontWeight: 600 }}>
+          A new Crux puzzle arrives every day, with a bigger Sunday Edition each week. No app, no signup &mdash; play free in your browser and compare score, guesses, and time on the daily leaderboard. Prefer scrambles? Try <a href="/garble" style={{ color: COLORS.ink, fontWeight: 800 }}>Garble</a>, our daily word scramble.
+        </p>
+      </section>
+
       <div style={{ position: 'relative', zIndex: 2 }}><Footer /></div>
     </div>
   );

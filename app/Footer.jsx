@@ -27,6 +27,8 @@ const COLS = [
     head: 'Quizzes',
     links: [
       { label: 'Browse Quizzes', href: '/quizzes' },
+      { label: 'Crux — Daily Word Game', href: '/crux' },
+      { label: 'Garble — Daily Word Scramble', href: '/garble' },
       { label: 'Stat Hub', href: '/quizzes/hub' },
       { label: 'Request a Quiz', href: '/request' },
     ],

@@ -1,13 +1,14 @@
 import { Suspense } from 'react';
 import CruxClient from './CruxClient';
 
-// Crux soft launch: intentionally NOT in the sitemap, the /quizzes hub,
-// or any homepage shelf. Reachable only by direct link until it graduates.
+// Crux is fully launched: linked from the hub (dated catalog entries), the
+// footer, and the sitemap (/crux is the canonical, evergreen URL — the dated
+// /quiz/crux-* stubs canonicalize here).
 
 export const metadata = {
-  title: 'Crux — A Daily Word Game | Source of Truths',
+  title: 'Crux — Free Daily Word Game | Source of Truths',
   description:
-    'Eight hidden words interlock in a mini crossword with no clues — the only hints are four categories, and which words belong to them is the puzzle. Guess real words on a shared budget, lock letters into the grid, then file each solved word where it belongs.',
+    'A free daily word game — eight hidden words interlock in a mini crossword with no clues, and four categories are the only hints. New puzzle every day.',
   alternates: { canonical: '/crux' },
   openGraph: {
     title: 'Crux — A Daily Word Game',
@@ -25,12 +26,53 @@ export const metadata = {
   },
 };
 
+const gameJsonLd = {
+  '@context': 'https://schema.org',
+  '@type': 'Game',
+  name: 'Crux',
+  alternateName: 'Crux — Daily Word Game',
+  url: 'https://sourceoftruths.com/crux',
+  description:
+    'A free daily word game: eight hidden words interlock in a mini crossword with no clues. Four categories are the only hints — guess real words on a shared budget, lock letters into the grid, then file each solved word under its category.',
+  genre: ['Word game', 'Puzzle'],
+  gamePlatform: 'Web browser',
+  isAccessibleForFree: true,
+  inLanguage: 'en',
+  numberOfPlayers: { '@type': 'QuantitativeValue', minValue: 1, maxValue: 1 },
+  image: 'https://sourceoftruths.com/quiz-heroes/crux.png',
+  publisher: {
+    '@type': 'Organization',
+    name: 'Source of Truths',
+    url: 'https://sourceoftruths.com',
+  },
+};
+
+const breadcrumbJsonLd = {
+  '@context': 'https://schema.org',
+  '@type': 'BreadcrumbList',
+  itemListElement: [
+    { '@type': 'ListItem', position: 1, name: 'Home', item: 'https://sourceoftruths.com' },
+    { '@type': 'ListItem', position: 2, name: 'Quizzes', item: 'https://sourceoftruths.com/quizzes' },
+    { '@type': 'ListItem', position: 3, name: 'Crux' },
+  ],
+};
+
 export default function CruxPage({ searchParams }) {
   const n = Number(searchParams && searchParams.p);
   const forceNum = Number.isInteger(n) && n > 0 ? n : null;
   return (
-    <Suspense fallback={null}>
-      <CruxClient key={forceNum || 'today'} forceNum={forceNum} />
-    </Suspense>
+    <>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(gameJsonLd) }}
+      />
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbJsonLd) }}
+      />
+      <Suspense fallback={null}>
+        <CruxClient key={forceNum || 'today'} forceNum={forceNum} />
+      </Suspense>
+    </>
   );
 }
