@@ -729,6 +729,7 @@ export default function CruxClient({ forceNum = null }) {
   const [hydrated, setHydrated] = useState(false);
   const [board, setBoard] = useState(EMPTY_BOARD);
   const [identity, setIdentity] = useState(null);
+  const [garbleDoneToday, setGarbleDoneToday] = useState(true);
   const searchParams = useSearchParams();
   const { duelToken, duelInfo, duelSubmitted } = useDuelContext(PUZZLE.quizId, searchParams);
   const toastTimer = useRef(null);
@@ -750,7 +751,21 @@ export default function CruxClient({ forceNum = null }) {
   useEffect(() => {
     if (!hydrated) return;
     try { localStorage.setItem(STORE_KEY, JSON.stringify(g)); } catch (e) {}
-  }, [g, hydrated]);
+    // same-device day breadcrumb for cross-game recommendations — only for
+    // TODAY'S puzzle (archive replays must not mark today as played)
+    try {
+      if (PUZZLE.num === pickPuzzle(null).num) {
+        localStorage.setItem('sot_crux_day', JSON.stringify({ d: etToday(), done: g.status !== 'playing' }));
+      }
+    } catch (e) {}
+  }, [g, hydrated, PUZZLE]);
+
+  useEffect(() => {
+    try {
+      const c = JSON.parse(localStorage.getItem('sot_garble_day') || 'null');
+      setGarbleDoneToday(!!(c && c.d === etToday() && c.done));
+    } catch (e) { setGarbleDoneToday(false); }
+  }, [g.status]);
 
   // ---- metrics + leaderboard (same /api/quiz/* flow as every other board) ----
   // Guess dictionary (lazy, cached, ~115k words). Fail-open: until it loads,
@@ -1297,6 +1312,11 @@ export default function CruxClient({ forceNum = null }) {
                   <button className="cl-btn" onClick={copyShare}><Share2 size={15} /> {copied ? 'Copied' : 'Share result'}</button>
                   <button className="cl-btn" onClick={resetGame} style={{ borderColor: '#c3c8cf', color: COLORS.faded }}><RotateCcw size={15} /> Replay</button>
                 </div>
+                {!garbleDoneToday && (
+                  <a href="/garble" style={{ display: 'block', marginTop: 12, padding: '10px 14px', borderRadius: 10, background: '#fdf6e3', border: '1.5px solid rgba(230,185,63,0.6)', textDecoration: 'none', fontFamily: SANS, fontSize: 13, fontWeight: 700, color: COLORS.ink }}>
+                  Still on the table today: <b style={{ color: '#8a6d1a' }}>Garble</b> &mdash; five garbled words, one clued finale &rarr;
+                  </a>
+                )}
                 <p style={{ fontSize: 12, color: COLORS.faded, fontWeight: 600, margin: '12px 0 0' }}>
                   A new puzzle drops at midnight Eastern.
                   {prevPuzzle && (

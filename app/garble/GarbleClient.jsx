@@ -100,6 +100,7 @@ export default function GarbleClient({ forceNum = null }) {
   const [hydrated, setHydrated] = useState(false);
   const [board, setBoard] = useState(EMPTY_BOARD);
   const [identity, setIdentity] = useState(null);
+  const [cruxDoneToday, setCruxDoneToday] = useState(true);
   const toastTimer = useRef(null);
   const viewedRef = useRef(false);
 
@@ -118,7 +119,21 @@ export default function GarbleClient({ forceNum = null }) {
   useEffect(() => {
     if (!hydrated) return;
     try { localStorage.setItem(STORE_KEY, JSON.stringify(g)); } catch (e) {}
-  }, [g, hydrated, STORE_KEY]);
+    // same-device day breadcrumb for cross-game recommendations — only for
+    // TODAY'S puzzle (archive replays must not mark today as played)
+    try {
+      if (PUZZLE.num === pickPuzzle(null).num) {
+        localStorage.setItem('sot_garble_day', JSON.stringify({ d: etToday(), done: g.status !== 'playing' }));
+      }
+    } catch (e) {}
+  }, [g, hydrated, STORE_KEY, PUZZLE]);
+
+  useEffect(() => {
+    try {
+      const c = JSON.parse(localStorage.getItem('sot_crux_day') || 'null');
+      setCruxDoneToday(!!(c && c.d === etToday() && c.done));
+    } catch (e) { setCruxDoneToday(false); }
+  }, [g.status]);
 
   useEffect(() => {
     try {
@@ -404,7 +419,7 @@ export default function GarbleClient({ forceNum = null }) {
           {ended && (
             <div style={{ background: '#fff', border: `2px solid ${COLORS.ink}`, borderRadius: 12, padding: '16px 16px 14px', marginBottom: 14, maxWidth: 470 }}>
               <div style={{ fontSize: 19, fontWeight: 800, color: won ? COLORS.ember : COLORS.rust, marginBottom: 4 }}>
-                {won ? 'Untangled.' : 'Revealed.'}
+                {won ? 'You cut through the garble.' : 'Revealed.'}
               </div>
               <div style={{ fontSize: 13.5, fontWeight: 700, color: COLORS.faded, marginBottom: 12 }}>
                 {score}/10 &middot; {g.misses} miss{g.misses === 1 ? '' : 'es'} &middot; {elapsed}
@@ -413,6 +428,11 @@ export default function GarbleClient({ forceNum = null }) {
                 <button className="gb-btn" onClick={copyShare}><Share2 size={15} /> {copied ? 'Copied' : 'Share result'}</button>
                 <button className="gb-btn" onClick={resetGame} style={{ borderColor: '#c3c8cf', color: COLORS.faded }}><RotateCcw size={15} /> Replay</button>
               </div>
+              {!cruxDoneToday && (
+                <a href="/crux" style={{ display: 'block', marginTop: 12, padding: '10px 14px', borderRadius: 10, background: '#eef4ff', border: `1.5px solid rgba(37,99,235,0.35)`, textDecoration: 'none', fontFamily: SANS, fontSize: 13, fontWeight: 700, color: COLORS.ink }}>
+                  Still on the table today: <b style={{ color: COLORS.ember }}>Crux</b> &mdash; a crossword with no clues &rarr;
+                </a>
+              )}
             </div>
           )}
         </div>
@@ -445,8 +465,8 @@ export default function GarbleClient({ forceNum = null }) {
           <div onClick={() => setJustWon(false)} style={{ position: 'fixed', inset: 0, zIndex: 85, background: 'rgba(20,22,28,0.45)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16 }}>
             <div onClick={(e) => e.stopPropagation()} style={{ background: '#fff', border: `3px solid ${COLORS.gold}`, borderRadius: 16, padding: '30px 28px 24px', maxWidth: 440, width: '100%', textAlign: 'center', fontFamily: SANS }}>
               <Trophy size={42} strokeWidth={2} style={{ color: COLORS.gold }} />
-              <div style={{ fontSize: 27, fontWeight: 800, color: COLORS.ink, letterSpacing: '-0.01em', margin: '10px 0 6px', lineHeight: 1.2 }}>Untangled: {PUZZLE.final}.</div>
-              <div style={{ fontSize: 15, fontWeight: 700, color: COLORS.faded, marginBottom: 18 }}>{score}/10 &middot; {g.misses} miss{g.misses === 1 ? '' : 'es'} &middot; {elapsed}</div>
+              <div style={{ fontSize: 27, fontWeight: 800, color: COLORS.ink, letterSpacing: '-0.01em', margin: '10px 0 6px', lineHeight: 1.2 }}>You cut through the garble.</div>
+              <div style={{ fontSize: 15, fontWeight: 700, color: COLORS.faded, marginBottom: 18 }}>Garble #{PUZZLE.num} &middot; {score}/10 &middot; {g.misses} miss{g.misses === 1 ? '' : 'es'} &middot; {elapsed}</div>
               <div style={{ display: 'flex', gap: 10, justifyContent: 'center', flexWrap: 'wrap' }}>
                 <button className="gb-btn" onClick={copyShare} style={{ background: COLORS.ember, color: '#fff', borderColor: COLORS.ember }}><Share2 size={15} /> {copied ? 'Copied' : 'Share result'}</button>
                 <button className="gb-btn" onClick={() => setJustWon(false)}>See the board</button>
