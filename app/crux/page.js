@@ -7,12 +7,12 @@ import CruxClient from './CruxClient';
 export const metadata = {
   title: 'Crux — A Daily Word Game | Source of Truths',
   description:
-    'Eight hidden words interlock in a mini crossword with no clues — the only hints are four secret categories, each owning two of the words. Guess any letters on a shared 18-guess budget, lock letters into the grid, then file each solved word under its category.',
+    'Eight hidden words interlock in a mini crossword with no clues — the only hints are four categories, and which words belong to them is the puzzle. Guess real words on a shared budget, lock letters into the grid, then file each solved word where it belongs.',
   alternates: { canonical: '/crux' },
   openGraph: {
     title: 'Crux — A Daily Word Game',
     description:
-      'Eight interlocking words, zero clues, four secret categories, eighteen shared guesses. A new word game from Source of Truths.',
+      'Eight interlocking words, zero clues, four categories to untangle, eighteen shared guesses. A new word game from Source of Truths.',
     url: '/crux',
     type: 'website',
     siteName: 'Source of Truths',
@@ -21,7 +21,7 @@ export const metadata = {
     card: 'summary_large_image',
     title: 'Crux — A Daily Word Game',
     description:
-      'Eight interlocking words, zero clues, four secret categories, eighteen shared guesses.',
+      'Eight interlocking words, zero clues, four categories to untangle, eighteen shared guesses.',
   },
 };
 
