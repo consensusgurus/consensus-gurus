@@ -47,7 +47,7 @@ export async function GET(request) {
   }
   try {
     const data = [];
-    let cols = 'id, user_id, username, score, time_elapsed, anon_id, created_at, is_mobile, guesses_used';
+    let cols = 'id, user_id, username, score, time_elapsed, anon_id, created_at, is_mobile, guesses_used, correct_count';
     for (let from = 0; ; from += 1000) {
       let { data: page, error } = await supabaseAdmin
         .from('quiz_results')

@@ -17,13 +17,20 @@ const FONT = "'Manrope', system-ui, -apple-system, sans-serif";
 function fmtTime(sec) { if (sec == null) return '—'; const m = Math.floor(sec / 60), s = sec % 60; return `${m}:${String(s).padStart(2, '0')}`; }
 function fmtWhen(ts) { try { const d = new Date(ts); return d.toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' }) + ', ' + d.toLocaleTimeString(undefined, { hour: 'numeric', minute: '2-digit' }); } catch (e) { return ''; } }
 
-export default function QuizLeaderboard({ board, identity, total }) {
+export default function QuizLeaderboard({ board, identity, total, wordsCol = null }) {
   const [lbPop, setLbPop] = useState('registered');
   const [lbFilter, setLbFilter] = useState('all');
   const bestLabel = board.best != null ? board.best : '—';
-  const lb = pickLb(board, lbPop, lbFilter);
-  const hasGuesses = lb.some((r) => r.guessesUsed != null);
-  const gridCols = hasGuesses ? '40px 1fr 76px 70px 64px' : '40px 1fr 76px 64px';
+  let lb = pickLb(board, lbPop, lbFilter);
+  // Words mode (Garble): guesses/misses are irrelevant to the board — rank by
+  // score then time, and show words untangled instead of a guesses column.
+  if (wordsCol) lb = lb.slice().sort((a, b) => b.score - a.score || ((a.timeElapsed ?? 0) - (b.timeElapsed ?? 0)));
+  const hasGuesses = !wordsCol && lb.some((r) => r.guessesUsed != null);
+  const fiveCol = hasGuesses || !!wordsCol;
+  const gridCols = fiveCol ? '40px 1fr 76px 70px 64px' : '40px 1fr 76px 64px';
+  // Words untangled: new rows post it as `correct`; older rows fall back to
+  // deriving from score (score > 5 means the finale's 5 points are included).
+  const wordsOf = (r) => { const v = r.correct != null ? r.correct : r.score; return v > wordsCol.total ? v - 5 : v; };
   const lbRanks = [], lbTied = [];
   for (let i = 0; i < lb.length; i++) { const p = i > 0 && lb[i].score === lb[i - 1].score && lb[i].timeElapsed === lb[i - 1].timeElapsed; lbRanks[i] = p ? lbRanks[i - 1] : i + 1; }
   for (let i = 0; i < lb.length; i++) { const p = i > 0 && lb[i].score === lb[i - 1].score && lb[i].timeElapsed === lb[i - 1].timeElapsed; const n = i < lb.length - 1 && lb[i].score === lb[i + 1].score && lb[i].timeElapsed === lb[i + 1].timeElapsed; lbTied[i] = p || n; }
@@ -50,11 +57,11 @@ export default function QuizLeaderboard({ board, identity, total }) {
         <p style={{ fontFamily: FONT, fontStyle: 'italic', fontSize: 16, color: C.faded }}>{lbEmptyNote(lbFilter) || 'No one has posted a score yet. Be the first.'}</p>
       ) : (
         <div>
-          <div className={hasGuesses ? 'qlb-grid' : undefined} style={{ display: 'grid', gridTemplateColumns: hasGuesses ? undefined : gridCols, gap: 8, padding: '0 14px 8px', fontFamily: FONT, fontSize: 10, letterSpacing: '0.12em', textTransform: 'uppercase', color: C.faded }}>
-            <span>#</span><span>Display Name</span><span style={{ textAlign: 'right' }}>Correct</span>{hasGuesses ? <span style={{ textAlign: 'right' }}>Guesses</span> : null}<span className={hasGuesses ? 'qlb-time' : undefined} style={{ textAlign: 'right' }}>Time</span>
+          <div className={fiveCol ? 'qlb-grid' : undefined} style={{ display: 'grid', gridTemplateColumns: fiveCol ? undefined : gridCols, gap: 8, padding: '0 14px 8px', fontFamily: FONT, fontSize: 10, letterSpacing: '0.12em', textTransform: 'uppercase', color: C.faded }}>
+            <span>#</span><span>Display Name</span><span style={{ textAlign: 'right' }}>{wordsCol ? 'Score' : 'Correct'}</span>{hasGuesses ? <span style={{ textAlign: 'right' }}>Guesses</span> : null}{wordsCol ? <span style={{ textAlign: 'right' }}>Words</span> : null}<span className={fiveCol ? 'qlb-time' : undefined} style={{ textAlign: 'right' }}>Time</span>
           </div>
           {lb.map((row, i) => { const mine = identity && row.username === identity.username; return (
-            <div key={i} className={hasGuesses ? 'qlb-grid' : undefined} style={{ display: 'grid', gridTemplateColumns: hasGuesses ? undefined : gridCols, gap: 8, alignItems: 'center', padding: '11px 14px', marginBottom: 6, background: mine ? C.accSoft : '#fff', borderRadius: 10, border: `1px solid ${mine ? C.accBorder : C.line}` }}>
+            <div key={i} className={fiveCol ? 'qlb-grid' : undefined} style={{ display: 'grid', gridTemplateColumns: fiveCol ? undefined : gridCols, gap: 8, alignItems: 'center', padding: '11px 14px', marginBottom: 6, background: mine ? C.accSoft : '#fff', borderRadius: 10, border: `1px solid ${mine ? C.accBorder : C.line}` }}>
               <span style={{ fontFamily: FONT, fontWeight: 800, fontSize: 18, color: lbRanks[i] <= 3 ? C.ember : C.faded }}>{lbTied[i] ? `T${lbRanks[i]}` : lbRanks[i]}</span>
               <span style={{ minWidth: 0, display: 'flex', flexDirection: 'column', gap: 2 }}>
                 <span style={{ fontFamily: FONT, fontSize: 17, fontWeight: 500, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{row.userKey ? <a href={`/quizzes/hub?player=${encodeURIComponent(row.userKey)}`} style={{ color: 'inherit', textDecoration: 'none', borderBottom: `1px dotted ${C.faded}88` }}>{row.username}</a> : row.username}{mine ? ' (you)' : ''}{row.tryNum ? <span style={{ fontFamily: FONT, fontSize: 11, fontWeight: 400, color: C.faded, marginLeft: 6 }}>{row.tryNum > 1 ? '(retried)' : '(1st Try)'}</span> : ''}</span>
@@ -62,7 +69,8 @@ export default function QuizLeaderboard({ board, identity, total }) {
               </span>
               <span style={{ fontFamily: FONT, fontSize: 14, textAlign: 'right' }}>{row.score}/{total}</span>
               {hasGuesses ? <span style={{ fontFamily: FONT, fontSize: 14, textAlign: 'right', color: C.faded }}>{row.guessesUsed != null ? row.guessesUsed : '\u2014'}</span> : null}
-              <span className={hasGuesses ? 'qlb-time' : undefined} style={{ fontFamily: FONT, fontSize: 14, textAlign: 'right', color: C.faded }}>{fmtTime(row.timeElapsed)}</span>
+              {wordsCol ? <span style={{ fontFamily: FONT, fontSize: 14, textAlign: 'right', color: C.faded }}>{wordsOf(row)}/{wordsCol.total}</span> : null}
+              <span className={fiveCol ? 'qlb-time' : undefined} style={{ fontFamily: FONT, fontSize: 14, textAlign: 'right', color: C.faded }}>{fmtTime(row.timeElapsed)}</span>
             </div>
           ); })}
         </div>

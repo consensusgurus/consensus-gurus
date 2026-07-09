@@ -419,6 +419,12 @@ export default function GarbleClient({ forceNum = null }) {
   const [showHelp, setShowHelp] = useState(false);
   const [toast, setToast] = useState(null);
   const [copied, setCopied] = useState(false);
+  const [armReveal, setArmReveal] = useState(false);
+  useEffect(() => {
+    if (!armReveal) return undefined;
+    const t = setTimeout(() => setArmReveal(false), 3500);
+    return () => clearTimeout(t);
+  }, [armReveal]);
   const [installEvt, setInstallEvt] = useState(null);
   const [showA2hsHelp, setShowA2hsHelp] = useState(false);
   const [standalone, setStandalone] = useState(false);
@@ -508,7 +514,7 @@ export default function GarbleClient({ forceNum = null }) {
         method: 'POST',
         keepalive: true,
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ quizId: PUZZLE.quizId, score, total: 10, correct: score, guessesUsed: g2.misses, timeElapsed: el, email: identity?.email || undefined, anonId: getAnonId(), isMobile: isMobileDevice(), referrer: (typeof document !== 'undefined' ? document.referrer : '') }),
+        body: JSON.stringify({ quizId: PUZZLE.quizId, score, total: 10, correct: Object.keys(g2.solved).length, timeElapsed: el, email: identity?.email || undefined, anonId: getAnonId(), isMobile: isMobileDevice(), referrer: (typeof document !== 'undefined' ? document.referrer : '') }),
       })
         .then((r) => r.json())
         .then((d) => { if (d && !d.error) setBoard({ ...EMPTY_BOARD, ...d }); })
@@ -696,11 +702,6 @@ export default function GarbleClient({ forceNum = null }) {
               Misses <span style={{ fontSize: 17, color: g.misses > 5 ? COLORS.rust : COLORS.ink, marginLeft: 4 }}>{g.misses}</span>
             </div>
             <div style={{ fontSize: 12.5, fontWeight: 700, color: COLORS.faded }}>{solvedCount}/5 untangled {g.finalSolved ? '· finale solved' : ''}</div>
-            {playing && (
-              <button onClick={() => endGame(false)} style={{ marginLeft: 'auto', background: 'none', border: 'none', cursor: 'pointer', color: COLORS.faded, fontFamily: SANS, fontWeight: 700, fontSize: 12, display: 'inline-flex', alignItems: 'center', gap: 5 }}>
-                <Eye size={14} /> Reveal &amp; end
-              </button>
-            )}
           </div>
 
           <div style={{ marginBottom: 6 }}>{PUZZLE.words.map((w, i) => wordRow(w, i))}</div>
@@ -750,6 +751,16 @@ export default function GarbleClient({ forceNum = null }) {
               <p style={{ fontSize: 11.5, color: COLORS.faded, fontWeight: 600, margin: '6px 0 0', textAlign: 'center' }}>
                 Use exactly the letters shown. The finale is fair game at any time.
               </p>
+              {/* Reveal is deliberately buried: below the game, only once you have
+                  a display name and have made progress, and it takes two taps. */}
+              {identity && (solvedCount > 0 || g.misses > 0) && (
+                <p style={{ margin: '12px 0 0', textAlign: 'center' }}>
+                  <button onClick={() => { if (armReveal) { setArmReveal(false); endGame(false); } else { setArmReveal(true); } }}
+                    style={{ background: 'none', border: 'none', cursor: 'pointer', fontFamily: SANS, fontWeight: 700, fontSize: 12, color: armReveal ? COLORS.rust : COLORS.faded, textDecoration: 'underline', textUnderlineOffset: 3, display: 'inline-flex', alignItems: 'center', gap: 5 }}>
+                    <Eye size={13} /> {armReveal ? 'Tap again — ends the game and reveals the answers' : 'Reveal answers & end'}
+                  </button>
+                </p>
+              )}
             </div>
           )}
 
@@ -813,7 +824,7 @@ export default function GarbleClient({ forceNum = null }) {
           </div>
         )}
         <div style={{ maxWidth: 760, margin: '26px auto 0', background: '#fff', border: '1.5px solid rgba(20,22,28,0.12)', borderRadius: 12, padding: '14px 16px' }}>
-          <QuizLeaderboard board={board} identity={identity} total={10} />
+          <QuizLeaderboard board={board} identity={identity} total={10} wordsCol={{ total: 5 }} />
         </div>
       </div>
 
