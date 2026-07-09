@@ -17,7 +17,7 @@
 
 import React, { useState, useEffect, useMemo, useRef, useCallback } from 'react';
 import { useSearchParams } from 'next/navigation';
-import { HelpCircle, Share2, RotateCcw, X, ChevronLeft, ChevronRight, Swords, Trophy } from 'lucide-react';
+import { HelpCircle, Share2, RotateCcw, X, ChevronLeft, ChevronRight, Swords, Trophy, Smartphone } from 'lucide-react';
 import Grain from '../Grain';
 import Footer from '../Footer';
 import SiteHeader from '../SiteHeader';
@@ -36,6 +36,14 @@ const COLORS = {
   faded: '#6b7280',
 };
 const SANS = "'Manrope', system-ui, -apple-system, sans-serif";
+
+// iOS/iPadOS never fires beforeinstallprompt — A2HS lives in Safari's share
+// sheet, so the button opens instructions there instead.
+const isIosDevice = () =>
+  typeof navigator !== 'undefined' &&
+  (/iPad|iPhone|iPod/.test(navigator.userAgent || '') ||
+    (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1));
+
 
 // Category palette, easiest -> trickiest: yellow, green, blue, RED — the
 // fourth is red (owner call 2026-07-07) so the set isn't the familiar
@@ -910,6 +918,21 @@ export default function CruxClient({ forceNum = null }) {
   const [showHelp, setShowHelp] = useState(false);
   const [toast, setToast] = useState(null);
   const [copied, setCopied] = useState(false);
+  const [installEvt, setInstallEvt] = useState(null);
+  const [showA2hsHelp, setShowA2hsHelp] = useState(false);
+  const [standalone, setStandalone] = useState(false);
+  useEffect(() => {
+    try {
+      setStandalone(window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true);
+    } catch {}
+    const onBip = (e) => { e.preventDefault(); setInstallEvt(e); };
+    const onInstalled = () => { setStandalone(true); setInstallEvt(null); };
+    window.addEventListener('beforeinstallprompt', onBip);
+    window.addEventListener('appinstalled', onInstalled);
+    return () => { window.removeEventListener('beforeinstallprompt', onBip); window.removeEventListener('appinstalled', onInstalled); };
+  }, []);
+  const a2hsClick = () => { const e = installEvt; if (e) { setInstallEvt(null); e.prompt(); } else { setShowA2hsHelp(true); } };
+
   const [armLock, setArmLock] = useState(false);
   const [justWon, setJustWon] = useState(false);
   const [hydrated, setHydrated] = useState(false);
@@ -1532,8 +1555,32 @@ export default function CruxClient({ forceNum = null }) {
                 <Share2 size={14} strokeWidth={2.5} /> {copied ? 'Copied' : 'Share This Puzzle'}
               </button>
             )}
+            {!forceNum && !standalone && (
+              <button onClick={a2hsClick} style={{ fontFamily: SANS, fontSize: 12.5, letterSpacing: '0.05em', textTransform: 'uppercase', fontWeight: 700, height: 52, padding: '0 10px', borderRadius: 10, border: `1.5px solid ${COLORS.ink}`, background: COLORS.cream, color: COLORS.ink, cursor: 'pointer', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 8, whiteSpace: 'nowrap' }}>
+                <Smartphone size={14} strokeWidth={2.5} /> Add to Home Screen
+              </button>
+            )}
           </div>
         </div>
+        {showA2hsHelp && (
+          <div onClick={() => setShowA2hsHelp(false)} style={{ position: 'fixed', inset: 0, background: 'rgba(20,22,28,0.55)', zIndex: 90, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 18 }}>
+            <div onClick={(e) => e.stopPropagation()} style={{ background: '#fff', borderRadius: 14, maxWidth: 430, width: '100%', padding: '22px 22px 16px', fontFamily: SANS, border: '1.5px solid rgba(20,22,28,0.12)' }}>
+              <div style={{ fontSize: 17, fontWeight: 800, color: COLORS.ink, marginBottom: 8 }}>Add Crux to your Home Screen</div>
+              {isIosDevice() ? (
+                <ol style={{ margin: '0 0 4px', paddingLeft: 20, color: COLORS.ink, fontSize: 14, lineHeight: 1.7 }}>
+                  <li>Tap the <b>Share</b> button in Safari&apos;s toolbar.</li>
+                  <li>Scroll down and tap <b>Add to Home Screen</b>.</li>
+                  <li>Tap <b>Add</b> — the colored-crossword tile opens today&apos;s puzzle, every day.</li>
+                </ol>
+              ) : (
+                <p style={{ margin: '0 0 4px', color: COLORS.ink, fontSize: 14, lineHeight: 1.7 }}>
+                  Open your browser&apos;s menu and choose <b>Add to Home Screen</b> (or <b>Install app</b>). The colored-crossword tile opens today&apos;s puzzle, every day.
+                </p>
+              )}
+              <button onClick={() => setShowA2hsHelp(false)} style={{ marginTop: 10, fontFamily: SANS, fontSize: 12.5, letterSpacing: '0.05em', textTransform: 'uppercase', fontWeight: 700, height: 44, width: '100%', borderRadius: 10, border: 'none', background: COLORS.ink, color: '#fff', cursor: 'pointer' }}>Got it</button>
+            </div>
+          </div>
+        )}
         {!identity && (
           <div style={{ maxWidth: 640, margin: '18px auto 0' }}>
             <JoinLeaderboardForm identity={identity} onJoined={(id) => setIdentity(id)} />

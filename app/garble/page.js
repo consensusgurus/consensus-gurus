@@ -9,6 +9,12 @@ export const metadata = {
   description:
     'A free daily word scramble game — untangle five garbled words, feed their gold letters into a clued finale, and finish in the fewest misses. New puzzle every day.',
   alternates: { canonical: '/garble' },
+  manifest: '/garble.webmanifest',
+  icons: {
+    icon: [{ url: '/garble-icons/favicon-32.png', sizes: '32x32', type: 'image/png' }],
+    apple: [{ url: '/garble-icons/apple-touch-icon.png', sizes: '180x180', type: 'image/png' }],
+  },
+  appleWebApp: { capable: true, statusBarStyle: 'black-translucent', title: 'Garble' },
   openGraph: {
     title: 'Garble — A Daily Word Scramble',
     description:

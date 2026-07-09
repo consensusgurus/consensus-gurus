@@ -1,0 +1,16 @@
+{
+  "id": "/crux",
+  "name": "Crux — Daily Word Game",
+  "short_name": "Crux",
+  "description": "A crossword with no clues — four categories are the only hints. A new puzzle every day from Source of Truths.",
+  "start_url": "/crux?src=pwa",
+  "scope": "/",
+  "display": "standalone",
+  "background_color": "#f7f8fa",
+  "theme_color": "#f7f8fa",
+  "icons": [
+    { "src": "/crux-icons/icon-192.png", "sizes": "192x192", "type": "image/png" },
+    { "src": "/crux-icons/icon-512.png", "sizes": "512x512", "type": "image/png" },
+    { "src": "/crux-icons/icon-512-maskable.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ]
+}
