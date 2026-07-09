@@ -86,7 +86,9 @@ const norm = (s) => String(s || '')
   .normalize('NFD').replace(/[̀-ͯ]/g, '')
   .toLowerCase().replace(/[^a-z0-9]+/g, ' ').trim();
 
-const MIN_POP = 2000;
+// Include every GeoNames entry (even pop-0 locality/borough rows — MaxMind loves
+// reporting London boroughs like Wandsworth/Woolwich that carry no population).
+const MIN_POP = 0;
 const byKey = new Map(); // "cc|norm" -> [{a, lat, lon, pop}]
 const regionAgg = new Map(); // "cc|admin" -> {wLat, wLon, w}
 const countryAgg = new Map(); // cc -> {wLat, wLon, w}
@@ -122,11 +124,85 @@ for (const c of cities) {
 }
 // Manual aliases for common Vercel/MaxMind names that differ from GeoNames canon.
 // The alias candidate goes FIRST even when smaller towns share the plain name
-// (MaxMind's "Washington" means DC, not Washington UT).
+// (MaxMind's "Washington" means DC, not Washington UT). The European pairs are
+// English exonyms MaxMind reports where GeoNames' primary name is local
+// (observed in live /api/admin/geo-map `unresolved`: Antwerp, Seville,
+// Nuremberg, Santarcangelo di Romagna, Stjordal...). Redundant pairs (where
+// GeoNames already uses the English name) are harmless no-ops.
 const ALIASES = [
   ['US|new york', 'US|new york city'],
   ['US|washington', 'US|washington d c'],
+  ['BE|antwerp', 'BE|antwerpen'],
+  ['BE|ghent', 'BE|gent'],
+  ['BE|bruges', 'BE|brugge'],
+  ['ES|seville', 'ES|sevilla'],
+  ['ES|corunna', 'ES|a coruna'],
+  ['DE|nuremberg', 'DE|nurnberg'],
+  ['DE|cologne', 'DE|koln'],
+  ['DE|hanover', 'DE|hannover'],
+  ['DE|munich', 'DE|munchen'],
+  ['CH|lucerne', 'CH|luzern'],
+  ['CH|geneva', 'CH|geneve'],
+  ['SE|gothenburg', 'SE|goteborg'],
+  ['IT|genoa', 'IT|genova'],
+  ['IT|padua', 'IT|padova'],
+  ['IT|santarcangelo di romagna', 'IT|santarcangelo'],
+  ['NO|stjordal', 'NO|stjordalshalsen'],
+  ['AT|vienna', 'AT|wien'],
+  ['CZ|prague', 'CZ|praha'],
+  ['DK|copenhagen', 'DK|kobenhavn'],
+  ['GR|athens', 'GR|athina'],
+  ['PT|lisbon', 'PT|lisboa'],
+  ['PL|warsaw', 'PL|warszawa'],
+  ['RO|bucharest', 'RO|bucuresti'],
+  ['RU|moscow', 'RU|moskva'],
+  ['UA|kyiv', 'UA|kiev'],
 ];
+// Places MaxMind reports that are missing from GeoNames cities1000 entirely
+// (observed live). Hand-pinned coordinates; admin uses the Vercel region code.
+const MANUAL_CITIES = [
+  { cc: 'GR', name: 'Porto Rafti', a: 'I', lat: 37.885, lon: 24.012 },
+  { cc: 'GB', name: 'Muswell Hill', a: 'ENG', lat: 51.59, lon: -0.144 },
+  { cc: 'FR', name: 'Montbozon', a: 'BFC', lat: 47.462, lon: 6.262 },
+];
+// Region centroids keyed by the ISO-3166-2 codes Vercel actually sends, for
+// countries whose GeoNames admin1 codes differ (FR/ES/IT numerics etc.). Only
+// used when a city can't be matched, so approximate centroids are fine.
+const MANUAL_REGIONS = {
+  'ES|CT': [41.8, 1.53], 'ES|AN': [37.46, -4.58], 'ES|MD': [40.42, -3.7], 'ES|VC': [39.4, -0.55],
+  'ES|GA': [42.75, -8.1], 'ES|PV': [43.04, -2.62], 'ES|CL': [41.62, -4.55], 'ES|CM': [39.6, -3.2],
+  'ES|AR': [41.6, -0.9], 'ES|MC': [37.99, -1.13], 'ES|CN': [28.3, -16.0], 'ES|IB': [39.6, 2.95],
+  'FR|IDF': [48.85, 2.35], 'FR|BFC': [47.28, 4.99], 'FR|ARA': [45.55, 4.6], 'FR|OCC': [43.6, 2.2],
+  'FR|NAQ': [45.0, 0.2], 'FR|PAC': [43.6, 6.0], 'FR|HDF': [50.3, 2.8], 'FR|GES': [48.7, 6.2],
+  'FR|BRE': [48.1, -2.9], 'FR|PDL': [47.4, -0.8], 'FR|NOR': [49.2, 0.3], 'FR|CVL': [47.5, 1.7],
+  'FR|COR': [42.15, 9.1],
+  'IT|21': [45.05, 7.65], 'IT|25': [45.55, 9.6], 'IT|34': [45.55, 11.8], 'IT|45': [44.5, 11.3],
+  'IT|52': [43.55, 11.1], 'IT|62': [41.9, 12.7], 'IT|72': [40.9, 14.6], 'IT|75': [40.9, 16.6],
+  'IT|82': [37.8, 14.2], 'IT|42': [44.35, 8.8],
+  'DE|BY': [48.95, 11.4], 'DE|NW': [51.45, 7.55], 'DE|BW': [48.6, 9.1], 'DE|HE': [50.6, 9.0],
+  'DE|BE': [52.52, 13.4], 'DE|HH': [53.55, 10.0], 'DE|NI': [52.75, 9.4], 'DE|SN': [51.05, 13.35],
+  'DE|RP': [49.9, 7.4], 'DE|SH': [54.2, 9.8],
+  'GR|I': [38.0, 23.72], 'GR|B': [40.6, 22.95],
+  'NO|03': [59.91, 10.75], 'NO|50': [63.43, 10.4], 'NO|46': [60.39, 5.32], 'NO|11': [58.97, 5.73],
+  'BE|VLG': [51.05, 4.4], 'BE|WAL': [50.45, 4.85], 'BE|BRU': [50.85, 4.35],
+  'NL|NH': [52.55, 4.85], 'NL|ZH': [52.0, 4.5], 'NL|UT': [52.09, 5.11], 'NL|NB': [51.55, 5.2],
+  'NL|GE': [52.05, 5.9],
+  'CH|ZH': [47.4, 8.55], 'CH|BE': [46.9, 7.45], 'CH|VD': [46.6, 6.6], 'CH|GE': [46.2, 6.15],
+  'AT|9': [48.21, 16.37],
+  'SE|AB': [59.33, 18.07], 'SE|O': [57.7, 11.95], 'SE|M': [55.6, 13.0],
+  'DK|84': [55.68, 12.57],
+  'PT|11': [38.72, -9.14], 'PT|13': [41.15, -8.61],
+  'PL|MZ': [52.23, 21.01], 'PL|DS': [51.11, 17.03], 'PL|MA': [50.06, 19.94],
+  'IE|L': [53.35, -6.26], 'IE|M': [52.3, -8.6], 'IE|C': [53.8, -9.0], 'IE|U': [54.6, -7.3],
+  'FI|18': [60.17, 24.94],
+  'HR|21': [45.81, 15.98],
+  'IL|TA': [32.08, 34.8], 'IL|JM': [31.78, 35.22],
+};
+for (const { cc, name, a, lat, lon } of MANUAL_CITIES) {
+  const key = `${cc}|${norm(name)}`;
+  const entry = { a, lat: +lat.toFixed(2), lon: +lon.toFixed(2), pop: 1 };
+  byKey.set(key, [entry, ...(byKey.get(key) || [])]);
+}
 for (const [from, to] of ALIASES) {
   const src = byKey.get(to);
   if (!src || !src.length) continue;
@@ -138,13 +214,14 @@ let entries = 0;
 const parts = [];
 for (const [key, list] of [...byKey.entries()].sort((a, b) => (a[0] < b[0] ? -1 : 1))) {
   list.sort((x, y) => y.pop - x.pop);
-  const top = list.slice(0, 4);
+  const top = list.slice(0, 6);
   entries += top.length;
   parts.push(key + '~' + top.map((e) => `${e.a},${e.lat},${e.lon}`).join('~'));
 }
 const cityData = parts.join(';');
 const regions = {};
 for (const [rk, r] of regionAgg) { if (rk.split('|')[1]) regions[rk] = [+(r.wLat / r.w).toFixed(2), +(r.wLon / r.w).toFixed(2)]; }
+Object.assign(regions, MANUAL_REGIONS); // ISO-coded overrides win
 const countriesC = {};
 for (const [cc, r] of countryAgg) countriesC[cc] = [+(r.wLat / r.w).toFixed(2), +(r.wLon / r.w).toFixed(2)];
 

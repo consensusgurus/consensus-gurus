@@ -68,6 +68,12 @@ const PRESETS = [
 // pan is a pure translate on top, so the layout only recomputes on zoom).
 const ANGLES = [0, -Math.PI / 4, Math.PI / 4, Math.PI, (-3 * Math.PI) / 4, (3 * Math.PI) / 4, -Math.PI / 2, Math.PI / 2];
 function layoutLabels(pts, k) {
+  // Declutter: zoomed out only the biggest totals get labels (bubbles, hover
+  // tooltips and the table still carry everything); zooming in raises the
+  // budget until every 2+ location is labeled. A label that still can't find
+  // a spot without heavy overlap at this zoom is skipped rather than drawn
+  // illegibly on top of its neighbors.
+  const budget = k < 2 ? 30 : k < 4 ? 70 : k < 8 ? 110 : 150;
   const placed = [];
   const labels = [];
   const obstacles = pts.slice(0, 40).map((p) => ({
@@ -81,8 +87,7 @@ function layoutLabels(pts, k) {
   let n = 0;
   for (const p of pts) {
     if (p.count < 2) continue;
-    if (n >= 150) break;
-    n += 1;
+    if (n >= budget) break;
     const text = `${p.short} ${fmt(p.count)}`;
     const w = text.length * 6.4 + 6;
     const h = 15;
@@ -90,6 +95,7 @@ function layoutLabels(pts, k) {
     const zy = p.y * k;
     let best = null;
     let bestScore = Infinity;
+    let bestBase = 0;
     for (let ring = 0; ring < 3; ring++) {
       const dist = p.r + 10 + ring * 17;
       for (let ai = 0; ai < ANGLES.length; ai++) {
@@ -108,12 +114,14 @@ function layoutLabels(pts, k) {
         for (const o of obstacles) score += overlapArea(rect, o) * 0.6;
         if (score < bestScore) {
           bestScore = score;
+          bestBase = ring * 3 + ai * 0.35;
           best = { rect, ax, ay: ay + vshift, anchor, ang };
         }
       }
       if (best && bestScore <= ring * 3 + ANGLES.length * 0.35) break; // clean spot found on this ring
     }
-    if (!best) continue;
+    if (!best || bestScore - bestBase > 120) continue; // too crowded at this zoom
+    n += 1;
     placed.push(best.rect);
     labels.push({
       key: p.key,
@@ -317,7 +325,7 @@ function BubbleMap({ title, subtitle, accent, points, unitSingular, unitPlural, 
                   <circle
                     r={p.r}
                     fill={accent}
-                    fillOpacity={hover === p.key ? 0.5 : 0.3}
+                    fillOpacity={hover === p.key ? 0.45 : 0.24}
                     stroke={accent}
                     strokeWidth={1.5}
                     strokeDasharray={p.approx ? '3 2' : 'none'}
@@ -444,7 +452,7 @@ export default function GeoMapPanel({ data }) {
         points={d.users || []}
         unitSingular="user"
         unitPlural="users"
-        footnote={`Bubble area = users at that location; labels call out every location with 2+ users. Dashed = approximate pin (city not in the coordinate index, pinned to its region/country). Players with no located game: ${fmt(t.unlocatedPlayers || 0)} (played before tracking began or without geo headers).`}
+        footnote={`Bubble area = users at that location; labels show the largest totals first and every 2+ location as you zoom in. Dashed = approximate pin (city not in the coordinate index, pinned to its region/country). Players with no located game: ${fmt(t.unlocatedPlayers || 0)} (played before tracking began or without geo headers).`}
       />
       <BubbleMap
         title="Games played by location"
@@ -453,7 +461,7 @@ export default function GeoMapPanel({ data }) {
         points={d.plays || []}
         unitSingular="game"
         unitPlural="games"
-        footnote={`Bubble area = games played from that location; labels call out every location with 2+ games. Dashed = approximate pin. Games with no location: ${fmt(t.unlocatedPlays || 0)} of ${fmt(t.plays || 0)} all-time (played before tracking began).`}
+        footnote={`Bubble area = games played from that location; labels show the largest totals first and every 2+ location as you zoom in. Dashed = approximate pin. Games with no location: ${fmt(t.unlocatedPlays || 0)} of ${fmt(t.plays || 0)} all-time (played before tracking began).`}
       />
     </div>
   );

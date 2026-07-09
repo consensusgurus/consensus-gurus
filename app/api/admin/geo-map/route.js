@@ -20,7 +20,15 @@ export const revalidate = 0;
 function tokenOk(request) {
   const expected = process.env.ADMIN_TASK_TOKEN;
   if (!expected) return false;
-  return request.headers.get('x-admin-token') === expected;
+  if (request.headers.get('x-admin-token') === expected) return true;
+  // Query-string variant for tooling that can't set headers. The payload is a
+  // read-only anonymous aggregate (no emails/names), so the exposure of a
+  // query-logged token is limited to this analytics view by design.
+  try {
+    return new URL(request.url).searchParams.get('token') === expected;
+  } catch {
+    return false;
+  }
 }
 
 // The geo columns arrived in migrations 26 (country/region) and 27 (city); read
