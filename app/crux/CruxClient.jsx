@@ -17,7 +17,7 @@
 
 import React, { useState, useEffect, useMemo, useRef, useCallback } from 'react';
 import { useSearchParams } from 'next/navigation';
-import { HelpCircle, Share2, RotateCcw, X, ChevronLeft, ChevronRight, Swords } from 'lucide-react';
+import { HelpCircle, Share2, RotateCcw, X, ChevronLeft, ChevronRight, Swords, Trophy } from 'lucide-react';
 import Grain from '../Grain';
 import Footer from '../Footer';
 import SiteHeader from '../SiteHeader';
@@ -725,6 +725,7 @@ export default function CruxClient({ forceNum = null }) {
   const [toast, setToast] = useState(null);
   const [copied, setCopied] = useState(false);
   const [armLock, setArmLock] = useState(false);
+  const [justWon, setJustWon] = useState(false);
   const [hydrated, setHydrated] = useState(false);
   const [board, setBoard] = useState(EMPTY_BOARD);
   const [identity, setIdentity] = useState(null);
@@ -948,6 +949,7 @@ export default function CruxClient({ forceNum = null }) {
     const g2 = { ...g, filedRight: right, status: score === PUZZLE.slots.length * 2 ? 'won' : 'lost', tEnd: Date.now() };
     postResult(g2, score);
     setG(g2);
+    if (score === PUZZLE.slots.length * 2) setJustWon(true);
   }
 
   function cellClick(r, c) {
@@ -1119,6 +1121,8 @@ export default function CruxClient({ forceNum = null }) {
           .cl-key:active{transform:scale(0.94);}
           .cl-btn{font-family:${SANS};font-weight:800;font-size:14px;border:2px solid ${COLORS.ink};background:#fff;color:${COLORS.ink};border-radius:8px;padding:9px 16px;cursor:pointer;display:inline-flex;align-items:center;gap:7px;}
           .cl-btn:hover{background:${COLORS.paper};}
+          @keyframes cxfall{0%{transform:translateY(-4vh) rotate(0deg);}100%{transform:translateY(108vh) rotate(680deg);}}
+          .cx-conf{position:fixed;top:-3vh;z-index:86;pointer-events:none;border-radius:2px;animation:cxfall linear forwards;}
         `}</style>
 
         {/* game content recentered: the qzf box is 1180, the game stays 960 */}
@@ -1279,7 +1283,7 @@ export default function CruxClient({ forceNum = null }) {
             {/* result */}
             {!playing && (
               <div style={{ background: '#fff', border: `2px solid ${COLORS.ink}`, borderRadius: 12, padding: '16px 16px 14px', marginBottom: 14 }}>
-                <div style={{ fontSize: 19, fontWeight: 800, color: won ? COLORS.ink : COLORS.rust, marginBottom: 4 }}>
+                <div style={{ fontSize: 19, fontWeight: 800, color: won ? COLORS.ember : COLORS.rust, marginBottom: 4 }}>
                   {won ? 'You got to the crux of the matter.' : g.filedRight != null ? `Locked in at ${g.order.length + g.filedRight}/${PUZZLE.slots.length * 2}.` : 'Out of guesses.'}
                 </div>
                 <div style={{ fontSize: 13.5, fontWeight: 700, color: COLORS.faded, marginBottom: 12 }}>
@@ -1335,6 +1339,30 @@ export default function CruxClient({ forceNum = null }) {
 
         <p style={{ textAlign: 'center', fontSize: 12, fontStyle: 'italic', fontWeight: 600, color: COLORS.faded, margin: '34px 0 0' }}>For WMM, in memoriam.</p>
       </div>
+
+      {/* the win moment: confetti + overlay, only on the transition to won */}
+      {justWon && (
+        <>
+          {Array.from({ length: 80 }).map((_, i) => {
+            const confColors = ['#e6b93f', '#5aa96a', '#5a97dd', '#d96363', '#2563eb'];
+            const w = 7 + ((i * 13) % 8);
+            return (
+              <span key={i} className="cx-conf" style={{ left: `${(i * 137) % 100}%`, width: w, height: Math.round(w * 1.5), background: confColors[i % confColors.length], animationDuration: `${2.1 + ((i * 29) % 12) / 10}s`, animationDelay: `${((i * 53) % 70) / 100}s` }} />
+            );
+          })}
+          <div onClick={() => setJustWon(false)} style={{ position: 'fixed', inset: 0, zIndex: 85, background: 'rgba(20,22,28,0.45)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16 }}>
+            <div onClick={(e) => e.stopPropagation()} style={{ background: '#fff', border: `3px solid ${COLORS.ember}`, borderRadius: 16, padding: '30px 28px 24px', maxWidth: 440, width: '100%', textAlign: 'center', fontFamily: SANS }}>
+              <Trophy size={42} strokeWidth={2} style={{ color: '#e6b93f' }} />
+              <div style={{ fontSize: 27, fontWeight: 800, color: COLORS.ink, letterSpacing: '-0.01em', margin: '10px 0 6px', lineHeight: 1.2 }}>You got to the crux of the matter.</div>
+              <div style={{ fontSize: 15, fontWeight: 700, color: COLORS.faded, marginBottom: 18 }}>{PUZZLE.slots.length * 2}/{PUZZLE.slots.length * 2} &middot; {guessesUsed} guess{guessesUsed === 1 ? '' : 'es'} &middot; {elapsed}</div>
+              <div style={{ display: 'flex', gap: 10, justifyContent: 'center', flexWrap: 'wrap' }}>
+                <button className="cl-btn" onClick={copyShare} style={{ background: COLORS.ember, color: '#fff', borderColor: COLORS.ember }}><Share2 size={15} /> {copied ? 'Copied' : 'Share result'}</button>
+                <button className="cl-btn" onClick={() => setJustWon(false)}>See the board</button>
+              </div>
+            </div>
+          </div>
+        </>
+      )}
 
       <DuelBanner token={duelToken} info={duelInfo} submitted={duelSubmitted} />
 
