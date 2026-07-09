@@ -777,18 +777,16 @@ export default function GarbleClient({ forceNum = null }) {
 
         {/* bottom: share invite + join + leaderboard */}
         <div style={{ maxWidth: 640, margin: '30px auto 0' }}>
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: 10 }}>
-            {playing && (
-              <button className="gb-btn" onClick={copyShare} style={{ width: '100%', justifyContent: 'center', textTransform: 'uppercase', fontSize: 12.5, letterSpacing: '0.05em', height: 52 }}>
-                <Share2 size={14} strokeWidth={2.5} /> {copied ? 'Copied' : 'Share This Puzzle'}
-              </button>
-            )}
-            {!forceNum && !standalone && (
-              <button className="gb-btn" onClick={a2hsClick} style={{ width: '100%', justifyContent: 'center', textTransform: 'uppercase', fontSize: 12.5, letterSpacing: '0.05em', height: 52 }}>
-                <Smartphone size={14} strokeWidth={2.5} /> Add to Home Screen
-              </button>
-            )}
-          </div>
+          {playing && (
+            <button className="gb-btn" onClick={copyShare} style={{ width: '100%', justifyContent: 'center', textTransform: 'uppercase', fontSize: 12.5, letterSpacing: '0.05em', height: 52 }}>
+              <Share2 size={14} strokeWidth={2.5} /> {copied ? 'Copied' : 'Share This Puzzle'}
+            </button>
+          )}
+          {!standalone && (
+            <button onClick={a2hsClick} style={{ marginTop: playing ? 10 : 0, width: '100%', fontFamily: SANS, fontSize: 13.5, letterSpacing: '0.05em', textTransform: 'uppercase', fontWeight: 800, height: 54, borderRadius: 10, border: 'none', background: '#21b45e', color: '#fff', cursor: 'pointer', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 9, whiteSpace: 'nowrap' }}>
+              <Smartphone size={15} strokeWidth={2.5} /> Add to Home Screen
+            </button>
+          )}
         </div>
         {showA2hsHelp && (
           <div onClick={() => setShowA2hsHelp(false)} style={{ position: 'fixed', inset: 0, background: 'rgba(20,22,28,0.55)', zIndex: 90, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 18 }}>
