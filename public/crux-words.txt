@@ -71146,6 +71146,7 @@ pawks
 pawky
 pawl
 pawls
+pawn
 pawnable
 pawnage
 pawnages
