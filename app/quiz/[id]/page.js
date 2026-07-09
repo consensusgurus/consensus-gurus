@@ -56,6 +56,7 @@ export default function QuizPage({ params }) {
   // (Legacy id from the few hours it launched as Crosslock, 2026-07-06.)
   if (id === 'crosslock-7-6-26') redirect('/crux?p=1');
   if (quiz && quiz.format === 'crux') return <CruxRedirect num={quiz.cruxNum || null} />;
+  if (quiz && quiz.format === 'garble') return <CruxRedirect num={quiz.gameNum || null} base="/garble" />;
 
   const jsonLd = quiz
     ? {

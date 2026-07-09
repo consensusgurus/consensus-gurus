@@ -2754,3 +2754,61 @@ leaders and the newest tile also depend on LIVE play counts, so those aren't
 build-checkable.
 
 **HARD RULE (owner, 2026-07-03): the newest quiz ALWAYS needs a real registry hero.** The quiz with the latest `publishedAt` drives the `/quizzes` **Newest tile**, so whenever you publish a quiz (or a batch), the newest-stamped id MUST get a `QUIZ_HEROES` entry (JPEG/PNG, verified through `/_next/image`) in the SAME push that ships the quiz — never leave the newest quiz to the Wikipedia-lookup / `DEPT_HERO` fallback. When shipping several quizzes at once, at a minimum the newest one is heroed (ideally hero every new quiz). After deploy, VERIFY the Newest tile on `/quizzes` renders the intended photo.
+
+## Daily word games (Crux + Garble) — design and authoring rules
+
+These games live outside the quiz catalog engine (standalone pages at /crux
+and /garble with their own PUZZLES arrays) but post to the same metrics rails.
+Rules below exist because each one was learned the hard way. Follow them for
+every new puzzle and every new game in this family.
+
+**Cadence and shape**
+- Crux weekdays: 4 categories × 2 words, score /16 (8 solves + 8 placements),
+  18 guesses. Crux Sundays: 4 × 3, score /24, 27 guesses, title suffixed
+  "(Sunday Edition)". The engine derives everything from puzzle data — never
+  hardcode counts in copy or UI.
+- Garble: 5 scrambled words (5s and 6s), marked letters must exactly spell the
+  finale; finale has a punny clue and ends the game when solved.
+- Bank puzzles ahead: catalog entries carry publishedAt at ET midnight
+  (T04:00:00Z); the hub and sitemap hide future-dated entries automatically.
+
+**The uniqueness rule (Crux) — audit EVERY puzzle**
+A puzzle is broken if more than one full assignment of words to categories is
+semantically defensible. For every pair of categories, test whether any word
+subset could swap and still read as correct (arch supports and boot calves
+made ARCH/CALF interchangeable with HEEL/TONGUE; NEPTUNE/JUPITER/VENUS were
+all both Roman gods and planets — both shipped broken and needed same-day
+`rev` fixes). A trap word is only fair if it is PINNED: its tempting wrong
+category must be provably full of words that fit nowhere else. Traps are
+resolvable temptations; ambiguity is a broken answer key. Category names must
+never contain any answer word, and should not echo a trap word.
+
+**The anagram-twin rule (Garble)**
+Every scramble word must have no common-English anagram twin (DUSTY↔STUDY,
+THORN↔NORTH, ETHOS↔THOSE, DINGY↔DYING all caught in authoring). Check twins
+against public/crux-words.txt by sorted-letters; obscure Scrabble-only twins
+are acceptable, common words are not — a player who types a valid unscramble
+must not be punished for the author's collision.
+
+**Word hygiene**
+- No answer-word reuse across a game's whole history (Crux and Garble pools
+  are tracked separately).
+- Crux answers must be typeable under the real-word guess gate: dictionary
+  words pass via public/crux-words.txt; proper-noun answers (JUNO, MINERVA,
+  URANUS) are covered by the ANSWER_WORDS union in the client — keep them in
+  PUZZLES data or they become unguessable.
+- Changing a LIVE puzzle's words or grid requires bumping its `rev` field so
+  in-flight localStorage saves reset cleanly instead of corrupting.
+
+**Naming and copy**
+- Never name Wordle, Connections, or Jumble in user-facing copy or metadata —
+  describe mechanics generically (NYT and Tribune enforce these marks).
+  Categories are visible on the board, so never call them "secret".
+- New game names get a collision search before anything ships (Tangle and
+  Muddle were both taken; Crux and Garble were verified clear).
+
+**Lattice generation (Crux)**
+Machine-search layouts (random-restart assembly): crossings letter-matched,
+word ends open, no orthogonally adjacent cells without a shared slot, all
+slots connected, minimize max(rows, cols); keep ≤12 columns for mobile cells.
+Validate every bank with the full structural sweep before pushing.

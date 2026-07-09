@@ -1274,7 +1274,7 @@ export default function CruxClient({ forceNum = null }) {
             {playing && solvedUnfiled.length > 0 && (
               <div style={{ background: '#fff', border: '1.5px solid rgba(20,22,28,0.12)', borderRadius: 10, padding: '10px 12px', marginBottom: 14 }}>
                 <div style={{ fontSize: 12, fontWeight: 800, color: COLORS.ink, marginBottom: 7 }}>
-                  {pick ? <>Placing <span style={{ color: COLORS.ember }}>{pick}</span> &mdash; tap a category</> : 'Solved — place each word under a category. Nothing is checked until you lock it in.'}
+                  {pick ? <>Placing <span style={{ color: COLORS.ember }}>{pick}</span> &mdash; tap a category</> : 'Solved — place each word under a category. Nothing is checked until you submit.'}
                 </div>
                 <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
                   {solvedUnfiled.map((w) => (
@@ -1290,8 +1290,8 @@ export default function CruxClient({ forceNum = null }) {
             {/* lock it in: single shot, concludes the game — armed two-tap */}
             {readyToLock && (
               <button onClick={() => { if (armLock) { lockIn(); } else { setArmLock(true); setTimeout(() => setArmLock(false), 3500); } }}
-                style={{ width: '100%', fontFamily: SANS, fontWeight: 800, fontSize: 15, letterSpacing: '0.05em', textTransform: 'uppercase', padding: '15px 10px', borderRadius: 10, border: 'none', background: armLock ? COLORS.rust : COLORS.ember, color: '#fff', cursor: 'pointer', marginBottom: 14 }}>
-                {armLock ? 'Tap again — one lock-in only' : 'Lock it in'}
+                style={{ width: '100%', fontFamily: SANS, fontWeight: 800, fontSize: 15, letterSpacing: '0.05em', textTransform: 'uppercase', padding: '15px 10px', borderRadius: 10, border: 'none', background: armLock ? COLORS.ink : COLORS.ember, color: '#fff', cursor: 'pointer', marginBottom: 14 }}>
+                {armLock ? 'Tap again — this ends the game' : 'Submit answers'}
               </button>
             )}
 
@@ -1299,7 +1299,7 @@ export default function CruxClient({ forceNum = null }) {
             {!playing && (
               <div style={{ background: '#fff', border: `2px solid ${COLORS.ink}`, borderRadius: 12, padding: '16px 16px 14px', marginBottom: 14 }}>
                 <div style={{ fontSize: 19, fontWeight: 800, color: won ? COLORS.ember : COLORS.rust, marginBottom: 4 }}>
-                  {won ? 'You got to the crux of the matter.' : g.filedRight != null ? `Locked in at ${g.order.length + g.filedRight}/${PUZZLE.slots.length * 2}.` : 'Out of guesses.'}
+                  {won ? 'You got to the crux of the matter.' : g.filedRight != null ? `Final: ${g.order.length + g.filedRight}/${PUZZLE.slots.length * 2}.` : 'Out of guesses.'}
                 </div>
                 <div style={{ fontSize: 13.5, fontWeight: 700, color: COLORS.faded, marginBottom: 12 }}>
                   {won
@@ -1405,7 +1405,7 @@ export default function CruxClient({ forceNum = null }) {
             <div style={{ fontSize: 14, lineHeight: 1.55, color: COLORS.ink, fontWeight: 600 }}>
               <p style={{ margin: '0 0 9px' }}><b>{PUZZLE.slots.length === 12 ? 'Twelve' : 'Eight'} words</b> interlock in the grid &mdash; no clues. The <b>four categories</b> are the only hints; each hides exactly {PUZZLE.categories[0].words.length === 3 ? 'three' : 'two'} of the words.</p>
               <p style={{ margin: '0 0 9px' }}><b>Guess to reveal:</b> tap a slot, type a real word, hit enter. <span style={{ background: COLORS.ink, color: '#fff', borderRadius: 4, padding: '1px 6px', fontWeight: 800 }}>Dark</span> = right letter, right square (locks in, crossings too). <span style={{ background: '#e6b93f', color: '#5c4a06', borderRadius: 4, padding: '1px 6px', fontWeight: 800 }}>Yellow</span> = in the word, different square. The whole board shares <b>{PUZZLE.guesses} guesses</b>.</p>
-              <p style={{ margin: 0 }}><b>File your solves:</b> tap a word, then a category &mdash; placements stay secret and movable. One <b>lock it in</b> ends the game. Score is out of {PUZZLE.slots.length * 2}: a point per solved word, a point per correct placement. No lock-in, no score.</p>
+              <p style={{ margin: 0 }}><b>File your solves:</b> tap a word, then a category &mdash; placements stay secret and movable. One <b>submit</b> ends the game. Score is out of {PUZZLE.slots.length * 2}: a point per solved word, a point per correct placement. No lock-in, no score.</p>
             </div>
             <button className="cl-btn" onClick={() => { setShowHelp(false); try { localStorage.setItem(HELP_KEY, '1'); } catch (e) {} }} style={{ marginTop: 14, background: COLORS.ink, color: '#fff' }}>Play</button>
           </div>
