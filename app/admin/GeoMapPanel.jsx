@@ -184,12 +184,15 @@ function BubbleMap({ title, subtitle, accent, points, unitSingular, unitPlural, 
 
   const labels = useMemo(() => layoutLabels(pts, view.k), [pts, view.k]);
 
-  // Wheel zoom about the cursor. Native listener: React's onWheel is passive,
-  // and the page must not scroll while zooming the map.
+  // Ctrl/Cmd + wheel zooms about the cursor (Google-Maps-embed convention);
+  // a plain wheel keeps scrolling the page — the map must not trap the admin
+  // page's scroll, and rapid accidental zoom-relayouts were janking the tab.
+  // Native listener because React's onWheel is passive (can't preventDefault).
   useEffect(() => {
     const svg = svgRef.current;
     if (!svg) return undefined;
     const onWheel = (e) => {
+      if (!e.ctrlKey && !e.metaKey) return; // plain scroll = page scroll
       e.preventDefault();
       const rect = svg.getBoundingClientRect();
       const mx = ((e.clientX - rect.left) / rect.width) * W;
@@ -452,7 +455,7 @@ export default function GeoMapPanel({ data }) {
         points={d.users || []}
         unitSingular="user"
         unitPlural="users"
-        footnote={`Bubble area = users at that location; labels show the largest totals first and every 2+ location as you zoom in. Dashed = approximate pin (city not in the coordinate index, pinned to its region/country). Players with no located game: ${fmt(t.unlocatedPlayers || 0)} (played before tracking began or without geo headers).`}
+        footnote={`Drag to pan; zoom with Ctrl/\u2318 + scroll, double-click, the +/\u2212 buttons, or the region presets. Bubble area = users at that location; labels show the largest totals first and every 2+ location as you zoom in. Dashed = approximate pin (city not in the coordinate index, pinned to its region/country). Players with no located game: ${fmt(t.unlocatedPlayers || 0)} (played before tracking began or without geo headers).`}
       />
       <BubbleMap
         title="Games played by location"
@@ -461,7 +464,7 @@ export default function GeoMapPanel({ data }) {
         points={d.plays || []}
         unitSingular="game"
         unitPlural="games"
-        footnote={`Bubble area = games played from that location; labels show the largest totals first and every 2+ location as you zoom in. Dashed = approximate pin. Games with no location: ${fmt(t.unlocatedPlays || 0)} of ${fmt(t.plays || 0)} all-time (played before tracking began).`}
+        footnote={`Drag to pan; zoom with Ctrl/\u2318 + scroll, double-click, the +/\u2212 buttons, or the region presets. Bubble area = games played from that location; labels show the largest totals first and every 2+ location as you zoom in. Dashed = approximate pin. Games with no location: ${fmt(t.unlocatedPlays || 0)} of ${fmt(t.plays || 0)} all-time (played before tracking began).`}
       />
     </div>
   );
