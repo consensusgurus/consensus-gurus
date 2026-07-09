@@ -200,7 +200,7 @@ function BubbleMap({ title, subtitle, accent, points, unitSingular, unitPlural, 
       setPreset('');
       setView((v) => {
         const factor = Math.exp(-e.deltaY * 0.0015);
-        const k = Math.max(1, Math.min(48, v.k * factor));
+        const k = Math.max(1, Math.min(20, v.k * factor));
         const scale = k / v.k;
         return { k, x: mx - (mx - v.x) * scale, y: my - (my - v.y) * scale };
       });
@@ -233,7 +233,7 @@ function BubbleMap({ title, subtitle, accent, points, unitSingular, unitPlural, 
   const zoomBy = (factor) => {
     setPreset('');
     setView((v) => {
-      const k = Math.max(1, Math.min(48, v.k * factor));
+      const k = Math.max(1, Math.min(20, v.k * factor));
       const scale = k / v.k;
       const cx = W / 2;
       const cy = H / 2;
