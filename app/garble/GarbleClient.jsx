@@ -296,7 +296,9 @@ export default function GarbleClient({ forceNum = null }) {
               letter = typed[j] || '';
               bg = typed.length === j ? '#dbe7ff' : '#eef4ff';
               fg = COLORS.ember;
-              border = `2px solid ${typed.length === j ? COLORS.ember : 'rgba(37,99,235,0.55)'}`;
+              // marked cells keep their gold border even while the row is
+              // selected — the blue fill carries selection, gold = finale feed
+              border = marked ? `2.5px solid ${COLORS.gold}` : `2px solid ${typed.length === j ? COLORS.ember : 'rgba(37,99,235,0.55)'}`;
             } else if (marked) {
               border = `2px solid ${COLORS.gold}`;
             }
