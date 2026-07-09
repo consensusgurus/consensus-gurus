@@ -6,6 +6,7 @@ import AdminClient from './AdminClient';
 import { LISTS } from '@/lib/data';
 import { QUIZZES } from '@/lib/quizzes';
 import { buildAnonPlayers } from '@/lib/quiz-anon';
+import { buildGeoMapData } from '@/lib/geo-locate';
 import { DESCRIPTIONS } from '@/lib/descriptions';
 import { HERO_IMAGES } from '@/lib/hero-images';
 
@@ -540,6 +541,11 @@ export default async function AdminPage() {
     : null;
   const activeUsers = { players: activePlayers, visitors: activeVisitors };
 
+  // Player-location maps (Analytics -> Player Map): users + games played by
+  // location over the full located-play history (migrations 26/27), resolved
+  // server-side so the ~2MB coordinate index never ships to the client.
+  const geoMap = buildGeoMapData((quizResultsRes && quizResultsRes.data) || []);
+
   return (
     <AdminClient
       initialLists={lists}
@@ -555,6 +561,7 @@ export default async function AdminPage() {
       initialQuizStats={quizStats}
       initialAnonPlayers={anonPlayers}
       initialActiveUsers={activeUsers}
+      initialGeoMap={geoMap}
     />
   );
 }

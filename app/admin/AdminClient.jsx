@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { Check, X, Eye, EyeOff, LogOut, Pencil, Trash2, MapPin } from 'lucide-react';
 import { LISTS } from '@/lib/data';
 import Grain from '@/app/Grain';
+import GeoMapPanel from './GeoMapPanel';
 
 // Local theme palette: the live-site look (Manrope + soft blue) applied to the
 // admin desk. Shadows the magazine COLORS from lib/data so the public site is
@@ -371,7 +372,7 @@ function mapsPlaceUrl(name) {
   return `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(cleaned)}`;
 }
 
-export default function AdminClient({ initialLists, initialExtras = [], initialComplaints = [], initialVoteStandings = [], initialVoteEvents = [], initialComments = [], initialAlerts = [], initialViews24h = [], initialEditorNotes = [], initialQuizSignups = [], initialQuizStats = [], initialAnonPlayers = [], initialActiveUsers = { players: { dau: 0, wau: 0, mau: 0 }, visitors: null } }) {
+export default function AdminClient({ initialLists, initialExtras = [], initialComplaints = [], initialVoteStandings = [], initialVoteEvents = [], initialComments = [], initialAlerts = [], initialViews24h = [], initialEditorNotes = [], initialQuizSignups = [], initialQuizStats = [], initialAnonPlayers = [], initialActiveUsers = { players: { dau: 0, wau: 0, mau: 0 }, visitors: null }, initialGeoMap = null }) {
   const router = useRouter();
   const [lists, setLists] = useState(initialLists);
   const [extras, setExtras] = useState(initialExtras);
@@ -757,7 +758,7 @@ export default function AdminClient({ initialLists, initialExtras = [], initialC
         </div>
 
         {tab === 'analytics' ? (
-          <AnalyticsPanel views={views24h} viewsTotal={views24hTotal} quizStats={quizStats} quizPlaysTotal={quizPlaysTotal} signups={quizSignups} anonPlayers={anonPlayers} activeUsers={initialActiveUsers} />
+          <AnalyticsPanel views={views24h} viewsTotal={views24hTotal} quizStats={quizStats} quizPlaysTotal={quizPlaysTotal} signups={quizSignups} anonPlayers={anonPlayers} activeUsers={initialActiveUsers} geoMap={initialGeoMap} />
         ) : tab === 'research' ? (
           <ResearchNotesPanel alerts={alerts} busy={busy} onResolve={resolveAlert} notes={editorNotes} lists={LISTS} onAddNote={addNote} onDeleteNote={deleteNote} />
         ) : tab === 'feedback' ? (
@@ -2042,7 +2043,7 @@ function ActiveUsersStrip({ data }) {
   );
 }
 
-function AnalyticsPanel({ views, viewsTotal, quizStats, quizPlaysTotal, signups, anonPlayers, activeUsers }) {
+function AnalyticsPanel({ views, viewsTotal, quizStats, quizPlaysTotal, signups, anonPlayers, activeUsers, geoMap }) {
   const [view, setView] = useState('plays');
   const [playsView, setPlaysView] = useState('all');
   const [pvView, setPvView] = useState('all');
@@ -2053,6 +2054,7 @@ function AnalyticsPanel({ views, viewsTotal, quizStats, quizPlaysTotal, signups,
   const tabs = [
     ['plays', 'Quiz Plays', regCount + anonCount],
     ['pageviews', 'Page Views', listCount + quizCount],
+    ['map', 'Player Map', (geoMap && geoMap.totals && geoMap.totals.locatedPlayers) || 0],
   ];
   const playsSub = [
     ['all', 'All', regCount + anonCount],
@@ -2064,7 +2066,7 @@ function AnalyticsPanel({ views, viewsTotal, quizStats, quizPlaysTotal, signups,
     ['lists', 'Lists', listCount],
     ['quizzes', 'Quizzes', quizCount],
   ];
-  const subTabs = view === 'plays' ? playsSub : pvSub;
+  const subTabs = view === 'plays' ? playsSub : view === 'pageviews' ? pvSub : [];
   const subActive = view === 'plays' ? playsView : pvView;
   const setSub = view === 'plays' ? setPlaysView : setPvView;
   const tabStyle = (on) => ({
@@ -2111,17 +2113,19 @@ function AnalyticsPanel({ views, viewsTotal, quizStats, quizPlaysTotal, signups,
           );
         })}
       </div>
-      <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', marginBottom: 22, paddingLeft: 2 }}>
-        {subTabs.map(([key, label, count]) => {
-          const on = subActive === key;
-          return (
-            <button key={key} onClick={() => setSub(key)} style={subTabStyle(on)}>
-              {label}
-              <span style={{ opacity: 0.6 }}>{count}</span>
-            </button>
-          );
-        })}
-      </div>
+      {subTabs.length ? (
+        <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', marginBottom: 22, paddingLeft: 2 }}>
+          {subTabs.map(([key, label, count]) => {
+            const on = subActive === key;
+            return (
+              <button key={key} onClick={() => setSub(key)} style={subTabStyle(on)}>
+                {label}
+                <span style={{ opacity: 0.6 }}>{count}</span>
+              </button>
+            );
+          })}
+        </div>
+      ) : null}
       {view === 'plays' ? (
         playsView === 'registered' ? (
           <QuizSignupsPanel signups={signups} />
@@ -2130,8 +2134,10 @@ function AnalyticsPanel({ views, viewsTotal, quizStats, quizPlaysTotal, signups,
         ) : (
           <AllPlayersPanel signups={signups} anonPlayers={anonPlayers} />
         )
-      ) : (
+      ) : view === 'pageviews' ? (
         <PageViewsPanel lists={views} quizzes={quizStats} mode={pvView} />
+      ) : (
+        <GeoMapPanel data={geoMap} />
       )}
     </div>
   );
