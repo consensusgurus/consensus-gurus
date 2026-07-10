@@ -15,6 +15,7 @@ const LOADERS = {
   'canada': () => import('@/lib/canada-geo.js').then((m) => m.GEO),
   'central-america': () => import('@/lib/central-america-geo.js').then((m) => m.GEO),
   'southeast-asia': () => import('@/lib/southeast-asia-geo.js').then((m) => m.GEO),
+  'middle-east': () => import('@/lib/middle-east-geo.js').then((m) => m.GEO),
   'caribbean': () => import('@/lib/caribbean-geo.js').then((m) => m.GEO),
   'oceania': () => import('@/lib/oceania-geo.js').then((m) => m.GEO),
   'world': () => import('@/lib/world-geo.js').then((m) => m.GEO),
