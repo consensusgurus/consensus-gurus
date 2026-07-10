@@ -3,6 +3,11 @@
 This file is the single, auto-loaded source of truth for working on sourceoftruths.com. It lives at the
 root of the repo, and Cowork loads it every session, so there is no need to paste anything into chat.
 
+> **Working on a QUIZ (`lib/quizzes.js` / `/quiz/[id]`), not a list?** The rules below are written for the
+> Borda-consensus **lists** in `lib/data.js`. Quiz-specific rules live in **`CLAUDE-QUIZZES.md`** — read
+> that first. Most important quiz rule: never ship map/aerial coordinates or place facts from memory;
+> geocode and **visually verify every image** before staging. See CLAUDE-QUIZZES.md §0.
+
 ## ⚠️ NATIVE VOTING REMOVED (2026-06-18) — overrides everything below
 
 On-site user voting was removed sitewide. The crowd signal now comes only through the
