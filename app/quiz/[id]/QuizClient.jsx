@@ -442,6 +442,8 @@ export default function QuizClient({ quizId }) {
   // (a flag) instead of its name, and every hint that would name the current
   // target is reworded so the flag stays the puzzle.
   const mapImgPrompt = mapMode && !!quiz.mapImgPrompt;
+  const mapCapitalPrompt = mapMode && !!quiz.mapCapitalPrompt;
+  const capOf = (t) => { const a = answers.find((x) => x && x.t === t); return (a && a.cap) || t; };
   const streetMapMode = quiz.format === 'street-map';
   const pairsMode = quiz.format === 'pairs';
   const bankMode = quiz.format === 'bank';
@@ -858,7 +860,9 @@ export default function QuizClient({ quizId }) {
       orderRef.current = ord;
       setCurName(answers[ord[0]].t);
       setGuessesLeft(total);
-      setHint(quiz.erase
+      setHint(mapCapitalPrompt
+        ? `Erase the country whose capital is ${capOf(answers[ord[0]].t)}. Click it to wipe it off the map. One wrong click ends the run, and there is no skipping.`
+        : quiz.erase
         ? `Erase ${answers[ord[0]].t} — click it to wipe it off the map. One wrong click ends the run, and there is no skipping.`
         : quiz.suddenDeath
         ? `Find ${answers[ord[0]].t} — click it. One wrong click ends the game.`
@@ -1149,6 +1153,8 @@ export default function QuizClient({ quizId }) {
       setCurName(nn);
       setHint(mapImgPrompt
         ? `Correct — ${name}. ${left} ${left === 1 ? 'guess' : 'guesses'} left. Next flag is up.`
+        : mapCapitalPrompt
+        ? `Erased ${name}. ${left} to go. Next capital: ${capOf(nn)}.`
         : quiz.erase
         ? `Erased ${name}. ${left} to go. Now erase ${nn}.`
         : quiz.suddenDeath
@@ -1160,7 +1166,7 @@ export default function QuizClient({ quizId }) {
       setTimeout(() => setFlash((f) => (f && f.name === name ? null : f)), 400);
       fireCue(false);
       // Sudden-death map: one wrong click ends the run on the spot.
-      if (quiz.suddenDeath) { setHint(mapImgPrompt ? `That was ${name} — not this flag's country. Game over.` : `That was ${name}, not ${curName}. One wrong click ends it — game over.`); setHintBad(true); endGame(false); return; }
+      if (quiz.suddenDeath) { setHint(mapImgPrompt ? `That was ${name} — not this flag's country. Game over.` : mapCapitalPrompt ? `That was ${name}, not the country whose capital is ${capOf(curName)}. Game over.` : `That was ${name}, not ${curName}. One wrong click ends it — game over.`); setHintBad(true); endGame(false); return; }
       if (left <= 0) { setHint(mapImgPrompt ? `That was ${name} — not this flag's country. Out of guesses.` : `That was ${name}, not ${curName}. Out of guesses.`); setHintBad(true); endGame(false); return; }
       setHint(mapImgPrompt ? `That was ${name} — not this flag's country. ${left} ${left === 1 ? 'guess' : 'guesses'} left.` : `Not ${curName} — try again. ${left} ${left === 1 ? 'guess' : 'guesses'} left.`);
       setHintBad(true);
@@ -1244,7 +1250,7 @@ export default function QuizClient({ quizId }) {
     : (bankMode || pairsMode || photoMatchMode || orderBankMode) ? 'Match them all.'
     : scrambleMode ? 'Unscramble them all.'
     : 'Name them all.';
-  const introMech = mapMode ? (mapImgPrompt ? 'A flag appears; click its country on the map.' : 'A name appears; click it on the map.')
+  const introMech = mapMode ? (mapImgPrompt ? 'A flag appears; click its country on the map.' : mapCapitalPrompt ? 'A capital appears; click its country on the map.' : 'A name appears; click it on the map.')
     : streetMapMode ? 'A name appears; find and click it on the map.'
     : bankMode ? 'One clue at a time; tap the matching tile in the bank below.'
     : pairsMode ? 'Match the two columns, one pick at a time.'
@@ -1809,7 +1815,7 @@ export default function QuizClient({ quizId }) {
                     const src = (answers.find((a) => a.t === curName) || {}).img;
                     if (src) return (<span key={curName} style={{ flex: '1 1 auto', minWidth: 0, display: 'flex', alignItems: 'center' }}><img src={src} alt="Mystery flag" style={{ height: 44, maxWidth: 88, objectFit: 'contain', border: '1px solid rgba(20,22,28,0.25)', borderRadius: 3, background: '#fff', display: 'block' }} /></span>);
                   }
-                  const clueText = ended ? 'Game over' : started ? (curName || '—') : 'Press Play to start'; return (<span key={clueText} style={{ fontFamily: SERIF, fontWeight: 800, fontSize: 'clamp(16px, 4.2vw, 21px)', lineHeight: 1.15, flex: '1 1 auto', minWidth: 0, overflowWrap: 'break-word', transform: 'translateZ(0)' }}>{clueText}</span>); })()}
+                  const clueText = ended ? 'Game over' : started ? (mapCapitalPrompt ? (curName ? capOf(curName) : '—') : (curName || '—')) : 'Press Play to start'; return (<span key={clueText} style={{ fontFamily: SERIF, fontWeight: 800, fontSize: 'clamp(16px, 4.2vw, 21px)', lineHeight: 1.15, flex: '1 1 auto', minWidth: 0, overflowWrap: 'break-word', transform: 'translateZ(0)' }}>{clueText}</span>); })()}
                 {started && !ended && !quiz.erase && (
                   <button onClick={skipCountry} title="Can't find it? Skip and come back to it later." style={{ marginLeft: 'auto', flex: 'none', fontFamily: MONO, fontSize: 10, letterSpacing: '0.16em', textTransform: 'uppercase', fontWeight: 700, padding: '8px 14px', background: 'transparent', color: COLORS.cream, border: '1px solid rgba(244,237,224,0.4)', cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: 6 }}>
                     <SkipForward size={12} strokeWidth={2.5} /> Skip
