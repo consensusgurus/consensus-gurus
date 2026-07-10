@@ -45,6 +45,7 @@ const GlobePlaceBoard = dynamic(() => import('./GlobePlaceClient'), { ssr: false
 const SurviveStateBoard = dynamic(() => import('./SurviveStateBoard'), { ssr: false, loading: () => null });
 const LogicGameBoard = dynamic(() => import('./LogicGameClient'), { ssr: false, loading: () => null });
 const HigherLowerBoard = dynamic(() => import('./HigherLowerBoard'), { ssr: false, loading: () => null });
+const CloserBoard = dynamic(() => import('./CloserBoard'), { ssr: false, loading: () => null });
 const ConnectionsBoard = dynamic(() => import('./ConnectionsBoard'), { ssr: false, loading: () => null });
 
 function shuffleIdx(n) {
@@ -426,6 +427,9 @@ export default function QuizClient({ quizId }) {
   }
   if (quiz.format === 'higher-lower') {
     return (<>{duelBanner}<HigherLowerBoard quizId={quizId} mobile={mobile} /></>);
+  }
+  if (quiz.format === 'closer') {
+    return (<>{duelBanner}<CloserBoard quizId={quizId} mobile={mobile} /></>);
   }
   if (quiz.format === 'connections') {
     return (<>{duelBanner}<ConnectionsBoard quizId={quizId} mobile={mobile} /></>);
