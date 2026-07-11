@@ -670,12 +670,26 @@ export default function GarbleClient({ forceNum = null }) {
     );
   }
 
+  // Keyboard rows — shared between the inline desktop keyboard and the mobile
+  // keyboard. On mobile the keys are pinned to the bottom of the screen (see the
+  // fixed bar near the end of the render) so the scramble rows and finale clue
+  // above can scroll freely without the keys ever covering them.
+  const keyboardRows = ['QWERTYUIOP', 'ASDFGHJKL', 'ZXCVBNM'].map((row, ri) => (
+    <div key={ri} style={{ display: 'flex', gap: 4, marginBottom: 5, justifyContent: 'center' }}>
+      {ri === 2 && <button className="gb-key" onClick={() => onKey('ENTER')} style={{ flex: '1.6 0 0', height: 44, background: COLORS.ember, color: '#fff', fontSize: 11.5 }}>ENTER</button>}
+      {row.split('').map((ch) => (
+        <button key={ch} className="gb-key" onClick={() => onKey(ch)} style={{ flex: '1 0 0', height: 44, background: '#fff', color: COLORS.ink, fontSize: 15, border: '1.5px solid rgba(20,22,28,0.15)' }}>{ch}</button>
+      ))}
+      {ri === 2 && <button className="gb-key" onClick={() => onKey('BACK')} aria-label="Delete" style={{ flex: '1.6 0 0', height: 44, background: COLORS.paper, color: COLORS.ink, fontSize: 16 }}>&#9003;</button>}
+    </div>
+  ));
+
   return (
     <div style={{ minHeight: '100vh', background: COLORS.cream, position: 'relative' }}>
       <Grain />
       <div style={{ position: 'relative', zIndex: 3 }}><SiteHeader active="quizzes" flush inlay={<QuizPlayerBar />} /></div>
 
-      <div className="qzf-w" style={{ position: 'relative', zIndex: 2, maxWidth: 1180, margin: '0 auto', padding: '8px 38px 80px', fontFamily: SANS }}>
+      <div className="qzf-w" style={{ position: 'relative', zIndex: 2, maxWidth: 1180, margin: '0 auto', padding: mobileUi && playing ? '8px 38px calc(185px + env(safe-area-inset-bottom))' : '8px 38px 80px', fontFamily: SANS }}>
         <div className="qzf-line" aria-hidden="true" />
         <div style={{ maxWidth: 900, margin: '0 auto' }}>
           <style>{`
@@ -738,19 +752,13 @@ export default function GarbleClient({ forceNum = null }) {
             </div>
           </div>
 
-          {/* keyboard */}
+          {/* keyboard — desktop shows the keys inline here; on mobile the keys
+              are pinned to the bottom of the screen (fixed bar below) and only
+              the hint + reveal stay in the scroll flow */}
           {playing && (
             <div style={{ maxWidth: 470 }}>
-              {['QWERTYUIOP', 'ASDFGHJKL', 'ZXCVBNM'].map((row, ri) => (
-                <div key={ri} style={{ display: 'flex', gap: 4, marginBottom: 5, justifyContent: 'center' }}>
-                  {ri === 2 && <button className="gb-key" onClick={() => onKey('ENTER')} style={{ flex: '1.6 0 0', height: 44, background: COLORS.ember, color: '#fff', fontSize: 11.5 }}>ENTER</button>}
-                  {row.split('').map((ch) => (
-                    <button key={ch} className="gb-key" onClick={() => onKey(ch)} style={{ flex: '1 0 0', height: 44, background: '#fff', color: COLORS.ink, fontSize: 15, border: '1.5px solid rgba(20,22,28,0.15)' }}>{ch}</button>
-                  ))}
-                  {ri === 2 && <button className="gb-key" onClick={() => onKey('BACK')} aria-label="Delete" style={{ flex: '1.6 0 0', height: 44, background: COLORS.paper, color: COLORS.ink, fontSize: 16 }}>&#9003;</button>}
-                </div>
-              ))}
-              <p style={{ fontSize: 11.5, color: COLORS.faded, fontWeight: 600, margin: '6px 0 0', textAlign: 'center' }}>
+              {!mobileUi && keyboardRows}
+              <p style={{ fontSize: 11.5, color: COLORS.faded, fontWeight: 600, margin: mobileUi ? '0 0 2px' : '6px 0 0', textAlign: 'center' }}>
                 Use exactly the letters shown. The finale is fair game at any time.
               </p>
               {/* Reveal is deliberately buried: below the game, only once you have
@@ -829,6 +837,18 @@ export default function GarbleClient({ forceNum = null }) {
           <QuizLeaderboard board={board} identity={identity} total={10} wordsCol={{ total: 5 }} />
         </div>
       </div>
+
+      {/* Mobile: keyboard pinned to the bottom of the viewport. The puzzle
+          content above scrolls independently (qzf-w gets extra bottom padding
+          while playing), so the word rows and finale clue are never hidden
+          behind the keys — the fix for on-screen keys covering the top clues. */}
+      {playing && mobileUi && (
+        <div style={{ position: 'fixed', left: 0, right: 0, bottom: 0, zIndex: 40, background: COLORS.cream, borderTop: '1.5px solid rgba(20,22,28,0.12)', boxShadow: '0 -4px 16px rgba(20,22,28,0.10)', padding: '8px 8px calc(8px + env(safe-area-inset-bottom))' }}>
+          <div style={{ maxWidth: 470, margin: '0 auto' }}>
+            {keyboardRows}
+          </div>
+        </div>
+      )}
 
       {justWon && (
         <>
