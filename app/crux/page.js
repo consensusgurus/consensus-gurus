@@ -1,5 +1,6 @@
 import { Suspense } from 'react';
 import CruxClient from './CruxClient';
+import { PUZZLES } from './puzzles';
 
 // Crux is fully launched: linked from the hub (dated catalog entries), the
 // footer, and the sitemap (/crux is the canonical, evergreen URL — the dated
@@ -63,7 +64,16 @@ const breadcrumbJsonLd = {
   ],
 };
 
+export const dynamic = 'force-dynamic';
+
+function etTodayServer() {
+  try { return new Date().toLocaleDateString('en-CA', { timeZone: 'America/New_York' }); }
+  catch (e) { return new Date().toISOString().slice(0, 10); }
+}
+
 export default function CruxPage({ searchParams }) {
+  const today = etTodayServer();
+  const visiblePuzzles = PUZZLES.filter((p) => p.live <= today);
   const n = Number(searchParams && searchParams.p);
   const forceNum = Number.isInteger(n) && n > 0 ? n : null;
   return (
@@ -77,7 +87,7 @@ export default function CruxPage({ searchParams }) {
         dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbJsonLd) }}
       />
       <Suspense fallback={null}>
-        <CruxClient key={forceNum || 'today'} forceNum={forceNum} />
+        <CruxClient key={forceNum || 'today'} puzzles={visiblePuzzles} forceNum={forceNum} />
       </Suspense>
     </>
   );

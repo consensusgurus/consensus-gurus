@@ -1,4 +1,5 @@
 import GarbleClient from './GarbleClient';
+import { PUZZLES } from './puzzles';
 
 // Garble is fully launched: linked from the hub (dated catalog entries), the
 // footer, and the sitemap (/garble is the canonical, evergreen URL — the dated
@@ -61,7 +62,16 @@ const breadcrumbJsonLd = {
   ],
 };
 
+export const dynamic = 'force-dynamic';
+
+function etTodayServer() {
+  try { return new Date().toLocaleDateString('en-CA', { timeZone: 'America/New_York' }); }
+  catch (e) { return new Date().toISOString().slice(0, 10); }
+}
+
 export default function GarblePage({ searchParams }) {
+  const today = etTodayServer();
+  const visiblePuzzles = PUZZLES.filter((p) => p.live <= today);
   const n = Number(searchParams && searchParams.p);
   const forceNum = Number.isInteger(n) && n > 0 ? n : null;
   return (
@@ -74,7 +84,7 @@ export default function GarblePage({ searchParams }) {
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbJsonLd) }}
       />
-      <GarbleClient key={forceNum || 'today'} forceNum={forceNum} />
+      <GarbleClient key={forceNum || 'today'} puzzles={visiblePuzzles} forceNum={forceNum} />
     </>
   );
 }

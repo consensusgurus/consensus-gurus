@@ -17,7 +17,7 @@
 
 import React, { useState, useEffect, useMemo, useRef, useCallback } from 'react';
 import { useSearchParams } from 'next/navigation';
-import { HelpCircle, Share2, RotateCcw, X, ChevronLeft, ChevronRight, Swords, Trophy, Smartphone } from 'lucide-react';
+import { HelpCircle, Share2, RotateCcw, X, ChevronLeft, ChevronRight, Swords, Trophy, Smartphone, Lightbulb, BarChart3 } from 'lucide-react';
 import Grain from '../Grain';
 import Footer from '../Footer';
 import SiteHeader from '../SiteHeader';
@@ -61,751 +61,14 @@ const CAT_COLORS = [
 // and ship themselves at ET midnight. Each puzzle keys its own localStorage
 // save (sot_crux_<num>), catalog id, and leaderboard. /crux?p=N pins an
 // archived puzzle (the hub's dated tiles link that way).
-const PUZZLES = [
-  {
-    num: 1,
-    quizId: 'crux-7-6-26',
-    live: '2026-07-06',
-    dateLabel: 'July 6, 2026',
-    guesses: 18,
-    rows: 9,
-    cols: 10,
-    categories: [
-      { name: 'Card games', words: ['HEARTS', 'BRIDGE'] },
-      { name: 'Musical instruments', words: ['ORGAN', 'VIOLA'] },
-      { name: 'Body parts', words: ['SPLEEN', 'TEMPLE'] },
-      { name: 'Structures', words: ['TOWER', 'STEEPLE'] },
-    ],
-    slots: [
-      { id: '1D', word: 'VIOLA', row: 0, col: 1, dir: 'D' },
-      { id: '2D', word: 'HEARTS', row: 1, col: 3, dir: 'D' },
-      { id: '3D', word: 'BRIDGE', row: 1, col: 9, dir: 'D' },
-      { id: '4A', word: 'TOWER', row: 2, col: 0, dir: 'A' },
-      { id: '5D', word: 'SPLEEN', row: 3, col: 5, dir: 'D' },
-      { id: '6D', word: 'TEMPLE', row: 3, col: 7, dir: 'D' },
-      { id: '7A', word: 'STEEPLE', row: 6, col: 3, dir: 'A' },
-      { id: '8A', word: 'ORGAN', row: 8, col: 1, dir: 'A' },
-    ],
-  },
-  {
-    num: 2,
-    quizId: 'crux-7-7-26',
-    live: '2026-07-07',
-    dateLabel: 'July 7, 2026',
-    guesses: 18,
-    rows: 9,
-    cols: 9,
-    // Trap cycle: PUNCH looks boxing (it's a drink), SWING looks boxing (it's
-    // a dance), HOOK looks fishing (it's a punch), REEL looks like a dance
-    // (it's fishing gear). HOOK even crosses TACKLE on the board.
-    categories: [
-      { name: 'Party drinks', words: ['PUNCH', 'CIDER'] },
-      { name: 'Dances', words: ['SWING', 'TANGO'] },
-      { name: 'Boxing blows', words: ['HOOK', 'UPPERCUT'] },
-      { name: 'Fishing gear', words: ['REEL', 'TACKLE'] },
-    ],
-    slots: [
-      { id: '1A', word: 'PUNCH', row: 0, col: 2, dir: 'A' },
-      { id: '2D', word: 'HOOK', row: 0, col: 6, dir: 'D' },
-      { id: '3D', word: 'UPPERCUT', row: 0, col: 8, dir: 'D' },
-      { id: '4D', word: 'TANGO', row: 2, col: 4, dir: 'D' },
-      { id: '5A', word: 'TACKLE', row: 3, col: 3, dir: 'A' },
-      { id: '6D', word: 'CIDER', row: 4, col: 2, dir: 'D' },
-      { id: '7A', word: 'SWING', row: 5, col: 0, dir: 'A' },
-      { id: '8A', word: 'REEL', row: 8, col: 2, dir: 'A' },
-    ],
-  },
-  {
-    num: 3,
-    quizId: 'crux-7-8-26',
-    live: '2026-07-08',
-    dateLabel: 'July 8, 2026',
-    guesses: 18,
-    rows: 9,
-    cols: 8,
-    rev: 2,
-    // rev 2 (2026-07-08): ARCH/CALF -> ELBOW/WRIST. The old body pair was
-    // interchangeable with the shoe pair (arch supports, boot calves) —
-    // two valid solutions. TONGUE/SOLE/SCALE keep the traps, all resolvable.
-    categories: [
-      { name: 'Fish', words: ['PERCH', 'SOLE'] },
-      { name: 'Shoe parts', words: ['HEEL', 'TONGUE'] },
-      { name: 'Body parts', words: ['ELBOW', 'WRIST'] },
-      { name: 'Music terms', words: ['SCALE', 'PITCH'] },
-    ],
-    slots: [
-      { id: '1A', word: 'WRIST', row: 0, col: 3, dir: 'A' },
-      { id: '2D', word: 'TONGUE', row: 0, col: 7, dir: 'D' },
-      { id: '3A', word: 'PERCH', row: 3, col: 0, dir: 'A' },
-      { id: '3D', word: 'PITCH', row: 3, col: 0, dir: 'D' },
-      { id: '4A', word: 'SCALE', row: 5, col: 3, dir: 'A' },
-      { id: '4D', word: 'SOLE', row: 5, col: 3, dir: 'D' },
-      { id: '5A', word: 'HEEL', row: 7, col: 0, dir: 'A' },
-      { id: '6A', word: 'ELBOW', row: 8, col: 3, dir: 'A' },
-    ],
-  },
-  {
-    num: 4,
-    quizId: 'crux-7-9-26',
-    live: '2026-07-09',
-    dateLabel: 'July 9, 2026',
-    guesses: 18,
-    rows: 10,
-    cols: 9,
-    categories: [
-      { name: 'Baking', words: ['DOUGH', 'BATTER'] },
-      { name: 'Money slang', words: ['BUCK', 'LOOT'] },
-      { name: 'Baseball', words: ['MOUND', 'DIAMOND'] },
-      { name: 'Gems', words: ['PEARL', 'OPAL'] },
-    ],
-    slots: [
-      { id: '1D', word: 'PEARL', row: 0, col: 8, dir: 'D' },
-      { id: '2A', word: 'MOUND', row: 1, col: 0, dir: 'A' },
-      { id: '3D', word: 'OPAL', row: 1, col: 1, dir: 'D' },
-      { id: '4D', word: 'DIAMOND', row: 1, col: 4, dir: 'D' },
-      { id: '5A', word: 'BATTER', row: 3, col: 3, dir: 'A' },
-      { id: '6A', word: 'LOOT', row: 5, col: 2, dir: 'A' },
-      { id: '7D', word: 'BUCK', row: 6, col: 6, dir: 'D' },
-      { id: '8A', word: 'DOUGH', row: 7, col: 4, dir: 'A' },
-    ],
-  },
-  {
-    num: 5,
-    quizId: 'crux-7-10-26',
-    live: '2026-07-10',
-    dateLabel: 'July 10, 2026',
-    guesses: 18,
-    rows: 9,
-    cols: 9,
-    categories: [
-      { name: 'Laundry day', words: ['FOLD', 'HAMPER'] },
-      { name: 'Poker terms', words: ['FLUSH', 'ANTE'] },
-      { name: 'Birds', words: ['CRANE', 'SWALLOW'] },
-      { name: 'Golf terms', words: ['IRON', 'EAGLE'] },
-    ],
-    slots: [
-      { id: '1D', word: 'FLUSH', row: 0, col: 2, dir: 'D' },
-      { id: '2D', word: 'EAGLE', row: 0, col: 6, dir: 'D' },
-      { id: '3A', word: 'FOLD', row: 1, col: 0, dir: 'A' },
-      { id: '4D', word: 'HAMPER', row: 2, col: 4, dir: 'D' },
-      { id: '5A', word: 'SWALLOW', row: 3, col: 2, dir: 'A' },
-      { id: '6D', word: 'IRON', row: 5, col: 1, dir: 'D' },
-      { id: '7A', word: 'CRANE', row: 6, col: 0, dir: 'A' },
-      { id: '8A', word: 'ANTE', row: 8, col: 0, dir: 'A' },
-    ],
-  },
-  {
-    num: 6,
-    quizId: 'crux-7-11-26',
-    live: '2026-07-11',
-    dateLabel: 'July 11, 2026',
-    guesses: 18,
-    rows: 6,
-    cols: 11,
-    categories: [
-      { name: 'Fruits', words: ['DATE', 'MANGO'] },
-      { name: 'Toast spreads', words: ['JAM', 'BUTTER'] },
-      { name: 'Music genres', words: ['ROCK', 'METAL'] },
-      { name: 'Terms of endearment', words: ['HONEY', 'PEACH'] },
-    ],
-    slots: [
-      { id: '1A', word: 'JAM', row: 0, col: 0, dir: 'A' },
-      { id: '2D', word: 'METAL', row: 0, col: 2, dir: 'D' },
-      { id: '3D', word: 'PEACH', row: 1, col: 4, dir: 'D' },
-      { id: '4A', word: 'BUTTER', row: 2, col: 0, dir: 'A' },
-      { id: '5D', word: 'DATE', row: 2, col: 7, dir: 'D' },
-      { id: '6D', word: 'ROCK', row: 2, col: 10, dir: 'D' },
-      { id: '7A', word: 'MANGO', row: 3, col: 6, dir: 'A' },
-      { id: '8A', word: 'HONEY', row: 5, col: 4, dir: 'A' },
-    ],
-  },
-  {
-    num: 7,
-    quizId: 'crux-7-12-26',
-    live: '2026-07-12',
-    dateLabel: 'July 12, 2026',
-    guesses: 18,
-    rows: 10,
-    cols: 8,
-    categories: [
-      { name: 'Headwear', words: ['BEANIE', 'VISOR'] },
-      { name: 'Bottle parts', words: ['NECK', 'CAP'] },
-      { name: 'Shirt parts', words: ['COLLAR', 'CUFF'] },
-      { name: 'Guitar parts', words: ['FRET', 'STRING'] },
-    ],
-    slots: [
-      { id: '1A', word: 'COLLAR', row: 0, col: 2, dir: 'A' },
-      { id: '1D', word: 'CUFF', row: 0, col: 2, dir: 'D' },
-      { id: '2D', word: 'BEANIE', row: 2, col: 4, dir: 'D' },
-      { id: '3D', word: 'VISOR', row: 3, col: 0, dir: 'D' },
-      { id: '4A', word: 'FRET', row: 3, col: 2, dir: 'A' },
-      { id: '5A', word: 'STRING', row: 5, col: 0, dir: 'A' },
-      { id: '6A', word: 'NECK', row: 7, col: 3, dir: 'A' },
-      { id: '7D', word: 'CAP', row: 7, col: 5, dir: 'D' },
-    ],
-  },
-  {
-    num: 8,
-    quizId: 'crux-7-13-26',
-    live: '2026-07-13',
-    dateLabel: 'July 13, 2026',
-    guesses: 18,
-    rows: 9,
-    cols: 8,
-    rev: 2,
-    // rev 2 (2026-07-08): NEPTUNE/JUPITER/VENUS were gods AND planets —
-    // multiple valid solutions. EARTH+URANUS are planets but not Roman gods
-    // (Uranus is Greek); JUNO+MINERVA are gods but not planets. MARS and
-    // MERCURY keep the deception, both resolvable by elimination.
-    categories: [
-      { name: 'Candy bars', words: ['MARS', 'CRUNCH'] },
-      { name: 'Chemical elements', words: ['MERCURY', 'CARBON'] },
-      { name: 'Planets', words: ['EARTH', 'URANUS'] },
-      { name: 'Roman gods', words: ['JUNO', 'MINERVA'] },
-    ],
-    slots: [
-      { id: '1D', word: 'EARTH', row: 0, col: 5, dir: 'D' },
-      { id: '2D', word: 'MERCURY', row: 1, col: 0, dir: 'D' },
-      { id: '3A', word: 'MARS', row: 2, col: 3, dir: 'A' },
-      { id: '3D', word: 'MINERVA', row: 2, col: 3, dir: 'D' },
-      { id: '4A', word: 'CRUNCH', row: 4, col: 0, dir: 'A' },
-      { id: '5D', word: 'JUNO', row: 5, col: 6, dir: 'D' },
-      { id: '6A', word: 'URANUS', row: 6, col: 2, dir: 'A' },
-      { id: '7A', word: 'CARBON', row: 8, col: 2, dir: 'A' },
-    ],
-  },
-  {
-    num: 9,
-    quizId: 'crux-7-14-26',
-    live: '2026-07-14',
-    dateLabel: 'July 14, 2026',
-    guesses: 18,
-    rows: 9,
-    cols: 8,
-    categories: [
-      { name: 'Pencil case', words: ['RULER', 'ERASER'] },
-      { name: 'Flowers', words: ['TULIP', 'DAISY'] },
-      { name: 'Eye parts', words: ['PUPIL', 'IRIS'] },
-      { name: 'Royalty', words: ['CROWN', 'THRONE'] },
-    ],
-    slots: [
-      { id: '1A', word: 'TULIP', row: 0, col: 1, dir: 'A' },
-      { id: '2D', word: 'PUPIL', row: 0, col: 5, dir: 'D' },
-      { id: '3D', word: 'THRONE', row: 2, col: 7, dir: 'D' },
-      { id: '4D', word: 'ERASER', row: 3, col: 3, dir: 'D' },
-      { id: '5D', word: 'DAISY', row: 4, col: 0, dir: 'D' },
-      { id: '6A', word: 'RULER', row: 4, col: 3, dir: 'A' },
-      { id: '7A', word: 'IRIS', row: 6, col: 0, dir: 'A' },
-      { id: '8A', word: 'CROWN', row: 8, col: 2, dir: 'A' },
-    ],
-  },
-  {
-    num: 10,
-    quizId: 'crux-7-15-26',
-    live: '2026-07-15',
-    dateLabel: 'July 15, 2026',
-    guesses: 18,
-    rows: 10,
-    cols: 8,
-    categories: [
-      { name: 'Birds', words: ['RAVEN', 'FINCH'] },
-      { name: 'Castle features', words: ['MOAT', 'TURRET'] },
-      { name: 'Shades of black', words: ['EBONY', 'JET'] },
-      { name: 'Chess pieces', words: ['KNIGHT', 'ROOK'] },
-    ],
-    slots: [
-      { id: '1A', word: 'ROOK', row: 0, col: 4, dir: 'A' },
-      { id: '2D', word: 'KNIGHT', row: 0, col: 7, dir: 'D' },
-      { id: '3D', word: 'JET', row: 2, col: 0, dir: 'D' },
-      { id: '4D', word: 'MOAT', row: 2, col: 2, dir: 'D' },
-      { id: '5A', word: 'EBONY', row: 3, col: 0, dir: 'A' },
-      { id: '6A', word: 'TURRET', row: 5, col: 2, dir: 'A' },
-      { id: '7D', word: 'RAVEN', row: 5, col: 4, dir: 'D' },
-      { id: '8A', word: 'FINCH', row: 9, col: 2, dir: 'A' },
-    ],
-  },
-  {
-    num: 11,
-    quizId: 'crux-7-16-26',
-    live: '2026-07-16',
-    dateLabel: 'July 16, 2026',
-    guesses: 18,
-    rows: 7,
-    cols: 10,
-    categories: [
-      { name: 'Long journeys', words: ['TREK', 'VOYAGE'] },
-      { name: 'Water sources', words: ['WELL', 'GEYSER'] },
-      { name: 'Ways to tumble', words: ['TRIP', 'STUMBLE'] },
-      { name: 'Seasons', words: ['SPRING', 'FALL'] },
-    ],
-    slots: [
-      { id: '1A', word: 'SPRING', row: 0, col: 1, dir: 'A' },
-      { id: '1D', word: 'STUMBLE', row: 0, col: 1, dir: 'D' },
-      { id: '2D', word: 'GEYSER', row: 0, col: 6, dir: 'D' },
-      { id: '3D', word: 'TREK', row: 0, col: 9, dir: 'D' },
-      { id: '4A', word: 'VOYAGE', row: 2, col: 4, dir: 'A' },
-      { id: '5D', word: 'FALL', row: 3, col: 3, dir: 'D' },
-      { id: '6A', word: 'TRIP', row: 5, col: 5, dir: 'A' },
-      { id: '7A', word: 'WELL', row: 6, col: 0, dir: 'A' },
-    ],
-  },
-  {
-    num: 12,
-    quizId: 'crux-7-17-26',
-    live: '2026-07-17',
-    dateLabel: 'July 17, 2026',
-    guesses: 18,
-    rows: 8,
-    cols: 9,
-    categories: [
-      { name: 'Rocket parts', words: ['STAGE', 'BOOSTER'] },
-      { name: 'Movie-set jobs', words: ['GRIP', 'GAFFER'] },
-      { name: 'Car parts', words: ['CLUTCH', 'FENDER'] },
-      { name: 'Firm holds', words: ['CLASP', 'GRASP'] },
-    ],
-    slots: [
-      { id: '1D', word: 'CLUTCH', row: 0, col: 0, dir: 'D' },
-      { id: '2A', word: 'GRIP', row: 0, col: 4, dir: 'A' },
-      { id: '2D', word: 'GRASP', row: 0, col: 4, dir: 'D' },
-      { id: '3D', word: 'GAFFER', row: 2, col: 6, dir: 'D' },
-      { id: '4D', word: 'FENDER', row: 2, col: 8, dir: 'D' },
-      { id: '5A', word: 'STAGE', row: 3, col: 4, dir: 'A' },
-      { id: '6A', word: 'CLASP', row: 4, col: 0, dir: 'A' },
-      { id: '7A', word: 'BOOSTER', row: 7, col: 0, dir: 'A' },
-    ],
-  },
-  {
-    num: 13,
-    quizId: 'crux-7-18-26',
-    live: '2026-07-18',
-    dateLabel: 'July 18, 2026',
-    guesses: 18,
-    rows: 8,
-    cols: 9,
-    categories: [
-      { name: 'Flower parts', words: ['PETAL', 'STEM'] },
-      { name: 'Computer keys', words: ['SHIFT', 'ESCAPE'] },
-      { name: 'Horse gear', words: ['BRIDLE', 'REINS'] },
-      { name: 'Bike parts', words: ['PEDAL', 'SADDLE'] },
-    ],
-    slots: [
-      { id: '1A', word: 'STEM', row: 0, col: 0, dir: 'A' },
-      { id: '2D', word: 'ESCAPE', row: 0, col: 2, dir: 'D' },
-      { id: '3D', word: 'BRIDLE', row: 0, col: 6, dir: 'D' },
-      { id: '4D', word: 'PETAL', row: 0, col: 8, dir: 'D' },
-      { id: '5A', word: 'SHIFT', row: 2, col: 4, dir: 'A' },
-      { id: '5D', word: 'SADDLE', row: 2, col: 4, dir: 'D' },
-      { id: '6A', word: 'PEDAL', row: 4, col: 2, dir: 'A' },
-      { id: '7A', word: 'REINS', row: 7, col: 3, dir: 'A' },
-    ],
-  },
-  {
-    num: 14,
-    quizId: 'crux-7-19-26',
-    live: '2026-07-19',
-    dateLabel: 'July 19, 2026',
-    guesses: 27,
-    rows: 12,
-    cols: 10,
-    // First SUNDAY EDITION: four categories of THREE (score /24). Traps all
-    // pinned: CRICKET and SQUASH read as sports (their real homes fill the
-    // sports slots), SEAL reads navy, BAT reads sports gear, SUB reads
-    // sandwich, POLO reads shirts.
-    categories: [
-      { name: 'Vegetables', words: ['LEEK', 'RADISH', 'TURNIP'] },
-      { name: 'Navy things', words: ['ANCHOR', 'SUB', 'FLEET'] },
-      { name: 'Sports', words: ['SQUASH', 'RUGBY', 'POLO'] },
-      { name: 'Animals', words: ['BAT', 'CRICKET', 'SEAL'] },
-    ],
-    slots: [
-      { id: '1D', word: 'POLO', row: 0, col: 6, dir: 'D' },
-      { id: '2A', word: 'ANCHOR', row: 1, col: 2, dir: 'A' },
-      { id: '3D', word: 'CRICKET', row: 1, col: 4, dir: 'D' },
-      { id: '4D', word: 'FLEET', row: 3, col: 2, dir: 'D' },
-      { id: '5D', word: 'RADISH', row: 4, col: 8, dir: 'D' },
-      { id: '6A', word: 'LEEK', row: 5, col: 1, dir: 'A' },
-      { id: '7A', word: 'SEAL', row: 5, col: 6, dir: 'A' },
-      { id: '8A', word: 'BAT', row: 7, col: 0, dir: 'A' },
-      { id: '9A', word: 'TURNIP', row: 7, col: 4, dir: 'A' },
-      { id: '10A', word: 'SQUASH', row: 9, col: 3, dir: 'A' },
-      { id: '10D', word: 'SUB', row: 9, col: 3, dir: 'D' },
-      { id: '11A', word: 'RUGBY', row: 11, col: 0, dir: 'A' },
-    ],
-  },
-  {
-    num: 15,
-    quizId: 'crux-7-20-26',
-    live: '2026-07-20',
-    dateLabel: 'July 20, 2026',
-    guesses: 18,
-    rows: 7,
-    cols: 9,
-    categories: [
-      { name: 'Tennis shots', words: ['LOB', 'VOLLEY'] },
-      { name: 'Dog commands', words: ['SIT', 'STAY'] },
-      { name: 'Hotel spaces', words: ['SUITE', 'LOBBY'] },
-      { name: 'Congress things', words: ['SENATE', 'VETO'] },
-    ],
-    slots: [
-      { id: '1D', word: 'SIT', row: 0, col: 2, dir: 'D' },
-      { id: '2D', word: 'VETO', row: 0, col: 4, dir: 'D' },
-      { id: '3D', word: 'STAY', row: 0, col: 8, dir: 'D' },
-      { id: '4A', word: 'SUITE', row: 1, col: 0, dir: 'A' },
-      { id: '4D', word: 'SENATE', row: 1, col: 0, dir: 'D' },
-      { id: '5A', word: 'VOLLEY', row: 3, col: 3, dir: 'A' },
-      { id: '6D', word: 'LOB', row: 3, col: 6, dir: 'D' },
-      { id: '7A', word: 'LOBBY', row: 5, col: 3, dir: 'A' },
-    ],
-  },
-  {
-    num: 16,
-    quizId: 'crux-7-21-26',
-    live: '2026-07-21',
-    dateLabel: 'July 21, 2026',
-    guesses: 18,
-    rows: 9,
-    cols: 9,
-    categories: [
-      { name: 'Breakfast items', words: ['OMELET', 'WAFFLE'] },
-      { name: 'Pans', words: ['SKILLET', 'WOK'] },
-      { name: 'Hunting things', words: ['DECOY', 'CAMO'] },
-      { name: 'Drum kit parts', words: ['SNARE', 'CYMBAL'] },
-    ],
-    slots: [
-      { id: '1D', word: 'WAFFLE', row: 0, col: 5, dir: 'D' },
-      { id: '2A', word: 'CYMBAL', row: 1, col: 1, dir: 'A' },
-      { id: '3D', word: 'DECOY', row: 3, col: 7, dir: 'D' },
-      { id: '4A', word: 'SKILLET', row: 4, col: 2, dir: 'A' },
-      { id: '4D', word: 'SNARE', row: 4, col: 2, dir: 'D' },
-      { id: '5A', word: 'CAMO', row: 6, col: 1, dir: 'A' },
-      { id: '6A', word: 'WOK', row: 6, col: 6, dir: 'A' },
-      { id: '7A', word: 'OMELET', row: 8, col: 0, dir: 'A' },
-    ],
-  },
-  {
-    num: 17,
-    quizId: 'crux-7-22-26',
-    live: '2026-07-22',
-    dateLabel: 'July 22, 2026',
-    guesses: 18,
-    rows: 8,
-    cols: 8,
-    categories: [
-      { name: 'Beach features', words: ['TIDE', 'DUNE'] },
-      { name: "Santa's gear", words: ['SLEIGH', 'SACK'] },
-      { name: 'Moon features', words: ['CRATER', 'PHASE'] },
-      { name: 'Grammar terms', words: ['TENSE', 'CLAUSE'] },
-    ],
-    slots: [
-      { id: '1A', word: 'SLEIGH', row: 0, col: 1, dir: 'A' },
-      { id: '1D', word: 'SACK', row: 0, col: 1, dir: 'D' },
-      { id: '2A', word: 'CRATER', row: 2, col: 1, dir: 'A' },
-      { id: '3D', word: 'TIDE', row: 2, col: 4, dir: 'D' },
-      { id: '4D', word: 'TENSE', row: 3, col: 7, dir: 'D' },
-      { id: '5A', word: 'DUNE', row: 4, col: 4, dir: 'A' },
-      { id: '6A', word: 'PHASE', row: 5, col: 0, dir: 'A' },
-      { id: '7A', word: 'CLAUSE', row: 7, col: 2, dir: 'A' },
-    ],
-  },
-  {
-    num: 18,
-    quizId: 'crux-7-23-26',
-    live: '2026-07-23',
-    dateLabel: 'July 23, 2026',
-    guesses: 18,
-    rows: 9,
-    cols: 10,
-    categories: [
-      { name: 'Office supplies', words: ['STAPLER', 'BINDER'] },
-      { name: 'Front-door things', words: ['KNOCKER', 'PORCH'] },
-      { name: 'Book parts', words: ['SPINE', 'JACKET'] },
-      { name: 'Gym things', words: ['BARBELL', 'MAT'] },
-    ],
-    slots: [
-      { id: '1D', word: 'STAPLER', row: 0, col: 1, dir: 'D' },
-      { id: '2D', word: 'MAT', row: 0, col: 5, dir: 'D' },
-      { id: '3D', word: 'BINDER', row: 0, col: 7, dir: 'D' },
-      { id: '4A', word: 'JACKET', row: 2, col: 0, dir: 'A' },
-      { id: '5D', word: 'KNOCKER', row: 2, col: 3, dir: 'D' },
-      { id: '6D', word: 'SPINE', row: 4, col: 5, dir: 'D' },
-      { id: '7A', word: 'PORCH', row: 5, col: 5, dir: 'A' },
-      { id: '8A', word: 'BARBELL', row: 8, col: 1, dir: 'A' },
-    ],
-  },
-  {
-    num: 19,
-    quizId: 'crux-7-24-26',
-    live: '2026-07-24',
-    dateLabel: 'July 24, 2026',
-    guesses: 18,
-    rows: 9,
-    cols: 9,
-    categories: [
-      { name: 'Sewing kit', words: ['THIMBLE', 'BOBBIN'] },
-      { name: 'Bar orders', words: ['NEAT', 'DOUBLE'] },
-      { name: 'Story beats', words: ['CLIMAX', 'PROLOGUE'] },
-      { name: 'Cocktail garnishes', words: ['OLIVE', 'TWIST'] },
-    ],
-    slots: [
-      { id: '1A', word: 'PROLOGUE', row: 0, col: 0, dir: 'A' },
-      { id: '2D', word: 'OLIVE', row: 0, col: 2, dir: 'D' },
-      { id: '3D', word: 'DOUBLE', row: 1, col: 8, dir: 'D' },
-      { id: '4A', word: 'CLIMAX', row: 2, col: 0, dir: 'A' },
-      { id: '5D', word: 'BOBBIN', row: 3, col: 6, dir: 'D' },
-      { id: '6A', word: 'NEAT', row: 4, col: 1, dir: 'A' },
-      { id: '7D', word: 'TWIST', row: 4, col: 4, dir: 'D' },
-      { id: '8A', word: 'THIMBLE', row: 6, col: 2, dir: 'A' },
-    ],
-  },
-  {
-    num: 20,
-    quizId: 'crux-7-25-26',
-    live: '2026-07-25',
-    dateLabel: 'July 25, 2026',
-    guesses: 18,
-    rows: 9,
-    cols: 9,
-    categories: [
-      { name: 'Coffee orders', words: ['LATTE', 'DECAF'] },
-      { name: 'Exercises', words: ['SQUAT', 'LUNGE'] },
-      { name: 'Shades of brown', words: ['MOCHA', 'TAN'] },
-      { name: 'Pirate things', words: ['PLANK', 'PARROT'] },
-    ],
-    slots: [
-      { id: '1D', word: 'PLANK', row: 0, col: 2, dir: 'D' },
-      { id: '2D', word: 'DECAF', row: 2, col: 4, dir: 'D' },
-      { id: '3A', word: 'LUNGE', row: 3, col: 0, dir: 'A' },
-      { id: '3D', word: 'LATTE', row: 3, col: 0, dir: 'D' },
-      { id: '4D', word: 'MOCHA', row: 4, col: 7, dir: 'D' },
-      { id: '5A', word: 'PARROT', row: 5, col: 3, dir: 'A' },
-      { id: '6A', word: 'TAN', row: 6, col: 0, dir: 'A' },
-      { id: '7A', word: 'SQUAT', row: 8, col: 4, dir: 'A' },
-    ],
-  },
-  {
-    num: 21,
-    quizId: 'crux-7-26-26',
-    live: '2026-07-26',
-    dateLabel: 'July 26, 2026',
-    guesses: 27,
-    rows: 10,
-    cols: 11,
-    // Sunday Edition #2. BUN is the pivot trap (hair vs burger — pinned:
-    // hair has exactly three viable words). COMBO leans fast-food, DASH
-    // leans sprinting, COLON leans anatomy; all pinned by full categories.
-    categories: [
-      { name: 'Punctuation marks', words: ['DASH', 'COLON', 'COMMA'] },
-      { name: 'Burger parts', words: ['PATTY', 'PICKLE', 'ONION'] },
-      { name: 'Music groups', words: ['TRIO', 'QUARTET', 'COMBO'] },
-      { name: 'Hairstyles', words: ['BUN', 'BRAID', 'BANGS'] },
-    ],
-    slots: [
-      { id: '1D', word: 'BRAID', row: 0, col: 3, dir: 'D' },
-      { id: '2A', word: 'PATTY', row: 2, col: 2, dir: 'A' },
-      { id: '3D', word: 'TRIO', row: 2, col: 5, dir: 'D' },
-      { id: '4D', word: 'ONION', row: 2, col: 10, dir: 'D' },
-      { id: '5A', word: 'BUN', row: 3, col: 8, dir: 'A' },
-      { id: '5D', word: 'BANGS', row: 3, col: 8, dir: 'D' },
-      { id: '6D', word: 'PICKLE', row: 4, col: 0, dir: 'D' },
-      { id: '7A', word: 'COLON', row: 5, col: 4, dir: 'A' },
-      { id: '7D', word: 'COMMA', row: 5, col: 4, dir: 'D' },
-      { id: '8A', word: 'COMBO', row: 6, col: 0, dir: 'A' },
-      { id: '9A', word: 'DASH', row: 7, col: 6, dir: 'A' },
-      { id: '10A', word: 'QUARTET', row: 9, col: 2, dir: 'A' },
-    ],
-  },
-  {
-    num: 22,
-    quizId: 'crux-7-27-26',
-    live: '2026-07-27',
-    dateLabel: 'July 27, 2026',
-    guesses: 18,
-    rows: 8,
-    cols: 9,
-    // BISHOP reads church (it is the chess piece) — pinned: ALTAR+PULPIT fill the church. FAWN reads color (it is the deer); the red shades are named shades.
-    categories: [
-      { name: 'Chess pieces', words: ['BISHOP', 'PAWN'] },
-      { name: 'Parts of a church', words: ['ALTAR', 'PULPIT'] },
-      { name: 'Shades of red', words: ['CRIMSON', 'SCARLET'] },
-      { name: 'Baby animals', words: ['CUB', 'FAWN'] },
-    ],
-    slots: [
-      { id: '1A', word: 'CUB', row: 0, col: 0, dir: 'A' },
-      { id: '1D', word: 'CRIMSON', row: 0, col: 0, dir: 'D' },
-      { id: '2D', word: 'BISHOP', row: 0, col: 2, dir: 'D' },
-      { id: '3D', word: 'PULPIT', row: 0, col: 6, dir: 'D' },
-      { id: '4A', word: 'SCARLET', row: 2, col: 2, dir: 'A' },
-      { id: '5D', word: 'FAWN', row: 4, col: 4, dir: 'D' },
-      { id: '6A', word: 'ALTAR', row: 5, col: 4, dir: 'A' },
-      { id: '7A', word: 'PAWN', row: 7, col: 1, dir: 'A' },
-    ],
-  },
-  {
-    num: 23,
-    quizId: 'crux-7-28-26',
-    live: '2026-07-28',
-    dateLabel: 'July 28, 2026',
-    guesses: 18,
-    rows: 8,
-    cols: 8,
-    // SAW and COMB both read tools (they are the things with teeth) — pinned: HAMMER+CHISEL fill tools, teeth needs two.
-    categories: [
-      { name: 'Things with teeth', words: ['COMB', 'SAW'] },
-      { name: 'Tools', words: ['HAMMER', 'CHISEL'] },
-      { name: 'Zodiac signs', words: ['LIBRA', 'GEMINI'] },
-      { name: 'Breads', words: ['RYE', 'BRIOCHE'] },
-    ],
-    slots: [
-      { id: '1D', word: 'HAMMER', row: 0, col: 1, dir: 'D' },
-      { id: '2A', word: 'COMB', row: 0, col: 4, dir: 'A' },
-      { id: '3D', word: 'BRIOCHE', row: 0, col: 7, dir: 'D' },
-      { id: '4A', word: 'SAW', row: 1, col: 0, dir: 'A' },
-      { id: '5D', word: 'CHISEL', row: 2, col: 3, dir: 'D' },
-      { id: '6D', word: 'LIBRA', row: 3, col: 5, dir: 'D' },
-      { id: '7A', word: 'GEMINI', row: 4, col: 0, dir: 'A' },
-      { id: '8A', word: 'RYE', row: 6, col: 5, dir: 'A' },
-    ],
-  },
-  {
-    num: 24,
-    quizId: 'crux-7-29-26',
-    live: '2026-07-29',
-    dateLabel: 'July 29, 2026',
-    guesses: 18,
-    rows: 8,
-    cols: 8,
-    // CAPE reads vampire and DELTA reads Greek letter (both are the landforms) — pinned: each alternate home fills without them.
-    categories: [
-      { name: 'Coastal landforms', words: ['CAPE', 'DELTA'] },
-      { name: 'Greek letters', words: ['OMEGA', 'SIGMA'] },
-      { name: 'Vampire essentials', words: ['FANG', 'COFFIN'] },
-      { name: 'Fencing swords', words: ['EPEE', 'FOIL'] },
-    ],
-    slots: [
-      { id: '1A', word: 'DELTA', row: 0, col: 1, dir: 'A' },
-      { id: '2D', word: 'EPEE', row: 0, col: 2, dir: 'D' },
-      { id: '3D', word: 'COFFIN', row: 2, col: 0, dir: 'D' },
-      { id: '4A', word: 'FOIL', row: 2, col: 4, dir: 'A' },
-      { id: '4D', word: 'FANG', row: 2, col: 4, dir: 'D' },
-      { id: '5A', word: 'OMEGA', row: 3, col: 0, dir: 'A' },
-      { id: '6D', word: 'CAPE', row: 4, col: 6, dir: 'D' },
-      { id: '7A', word: 'SIGMA', row: 5, col: 2, dir: 'A' },
-    ],
-  },
-  {
-    num: 25,
-    quizId: 'crux-7-30-26',
-    live: '2026-07-30',
-    dateLabel: 'July 30, 2026',
-    guesses: 18,
-    rows: 9,
-    cols: 9,
-    // THYME↔time homophone tease against ERA+EPOCH (homophones are safe traps — they cannot validate semantically).
-    categories: [
-      { name: 'Winter wear', words: ['PARKA', 'MITTEN'] },
-      { name: 'Circus acts', words: ['TRAPEZE', 'CLOWN'] },
-      { name: 'Herbs', words: ['BASIL', 'THYME'] },
-      { name: 'Stretches of time', words: ['ERA', 'EPOCH'] },
-    ],
-    slots: [
-      { id: '1D', word: 'CLOWN', row: 0, col: 8, dir: 'D' },
-      { id: '2D', word: 'EPOCH', row: 1, col: 0, dir: 'D' },
-      { id: '3D', word: 'BASIL', row: 1, col: 4, dir: 'D' },
-      { id: '4A', word: 'PARKA', row: 2, col: 0, dir: 'A' },
-      { id: '5A', word: 'MITTEN', row: 4, col: 3, dir: 'A' },
-      { id: '6D', word: 'THYME', row: 4, col: 6, dir: 'D' },
-      { id: '7D', word: 'ERA', row: 6, col: 2, dir: 'D' },
-      { id: '8A', word: 'TRAPEZE', row: 8, col: 0, dir: 'A' },
-    ],
-  },
-  {
-    num: 26,
-    quizId: 'crux-7-31-26',
-    live: '2026-07-31',
-    dateLabel: 'July 31, 2026',
-    guesses: 18,
-    rows: 10,
-    cols: 9,
-    // CORK reads wine (it is the thing that pops) — pinned: VINTAGE+CELLAR fill wine and BALLOON needs a partner.
-    categories: [
-      { name: 'Things that pop', words: ['CORK', 'BALLOON'] },
-      { name: 'Wine words', words: ['VINTAGE', 'CELLAR'] },
-      { name: 'Boats', words: ['KAYAK', 'FERRY'] },
-      { name: 'Dairy case', words: ['YOGURT', 'CHEDDAR'] },
-    ],
-    slots: [
-      { id: '1D', word: 'VINTAGE', row: 0, col: 1, dir: 'D' },
-      { id: '2A', word: 'CORK', row: 0, col: 5, dir: 'A' },
-      { id: '2D', word: 'CHEDDAR', row: 0, col: 5, dir: 'D' },
-      { id: '3D', word: 'KAYAK', row: 0, col: 8, dir: 'D' },
-      { id: '4A', word: 'FERRY', row: 2, col: 4, dir: 'A' },
-      { id: '5D', word: 'BALLOON', row: 3, col: 3, dir: 'D' },
-      { id: '6A', word: 'CELLAR', row: 6, col: 0, dir: 'A' },
-      { id: '7A', word: 'YOGURT', row: 8, col: 2, dir: 'A' },
-    ],
-  },
-  {
-    num: 27,
-    quizId: 'crux-8-1-26',
-    live: '2026-08-01',
-    dateLabel: 'August 1, 2026',
-    guesses: 18,
-    rows: 9,
-    cols: 8,
-    // Double trap: CHARM reads jewelry (LOCKET+BANGLE fill it) and DRONE reads loud sound (BLARE+CLANG fill it) — both pinned by elimination.
-    categories: [
-      { name: 'Spells', words: ['HEX', 'CHARM'] },
-      { name: 'Jewelry', words: ['LOCKET', 'BANGLE'] },
-      { name: 'Beekeeping', words: ['HIVE', 'DRONE'] },
-      { name: 'Loud sounds', words: ['BLARE', 'CLANG'] },
-    ],
-    slots: [
-      { id: '1A', word: 'LOCKET', row: 0, col: 2, dir: 'A' },
-      { id: '2D', word: 'CLANG', row: 0, col: 4, dir: 'D' },
-      { id: '3A', word: 'CHARM', row: 2, col: 2, dir: 'A' },
-      { id: '4A', word: 'BANGLE', row: 4, col: 1, dir: 'A' },
-      { id: '4D', word: 'BLARE', row: 4, col: 1, dir: 'D' },
-      { id: '5A', word: 'HIVE', row: 6, col: 4, dir: 'A' },
-      { id: '5D', word: 'HEX', row: 6, col: 4, dir: 'D' },
-      { id: '6A', word: 'DRONE', row: 7, col: 0, dir: 'A' },
-    ],
-  },
-  {
-    num: 28,
-    quizId: 'crux-8-2-26',
-    live: '2026-08-02',
-    dateLabel: 'August 2, 2026',
-    guesses: 27,
-    rows: 12,
-    cols: 11,
-    // SAGE (herb/wise), JADE (gem), TRIANGLE (shape) all have off-board readings but no second on-board home; salad bar is full so no green escapes.
-    categories: [
-      { name: 'Salad bar', words: ['CROUTON', 'ROMAINE', 'ARUGULA'] },
-      { name: 'Shades of green', words: ['JADE', 'SAGE', 'EMERALD'] },
-      { name: 'Percussion', words: ['GONG', 'BONGO', 'TRIANGLE'] },
-      { name: '___board', words: ['SURF', 'CHALK', 'CLIP'] },
-    ],
-    slots: [
-      { id: '1A', word: 'SURF', row: 0, col: 0, dir: 'A' },
-      { id: '1D', word: 'SAGE', row: 0, col: 0, dir: 'D' },
-      { id: '2A', word: 'CLIP', row: 0, col: 5, dir: 'A' },
-      { id: '2D', word: 'CHALK', row: 0, col: 5, dir: 'D' },
-      { id: '3D', word: 'ROMAINE', row: 0, col: 10, dir: 'D' },
-      { id: '4D', word: 'CROUTON', row: 2, col: 3, dir: 'D' },
-      { id: '5A', word: 'EMERALD', row: 3, col: 0, dir: 'A' },
-      { id: '6D', word: 'BONGO', row: 3, col: 8, dir: 'D' },
-      { id: '7D', word: 'ARUGULA', row: 5, col: 1, dir: 'D' },
-      { id: '8D', word: 'JADE', row: 5, col: 6, dir: 'D' },
-      { id: '9A', word: 'TRIANGLE', row: 6, col: 3, dir: 'A' },
-      { id: '10A', word: 'GONG', row: 8, col: 1, dir: 'A' },
-    ],
-  },
-];
 const HELP_KEY = 'sot_crux_help_seen';
+const STATS_KEY = 'sot_crux_stats';
 
 // Every puzzle answer is always a legal guess, even the proper nouns that a
 // Scrabble-style list omits (JUNO, MINERVA, URANUS...).
-const ANSWER_WORDS = new Set(PUZZLES.flatMap((pz) => pz.categories.flatMap((c) => c.words.map((w) => w.toLowerCase()))));
+function buildAnswerWords(puzzles) {
+  return new Set(puzzles.flatMap((pz) => pz.categories.flatMap((c) => c.words.map((w) => w.toLowerCase()))));
+}
 
 function etToday() {
   try {
@@ -814,14 +77,14 @@ function etToday() {
     return new Date().toISOString().slice(0, 10);
   }
 }
-function pickPuzzle(forceNum) {
+function pickPuzzle(puzzles, forceNum) {
   if (forceNum) {
-    const p = PUZZLES.find((x) => x.num === forceNum);
+    const p = puzzles.find((x) => x.num === forceNum);
     if (p) return p;
   }
   const today = etToday();
-  const open = PUZZLES.filter((p) => p.live <= today);
-  return open.length ? open[open.length - 1] : PUZZLES[0];
+  const open = puzzles.filter((p) => p.live <= today);
+  return open.length ? open[open.length - 1] : puzzles[0];
 }
 
 function slotCells(s) {
@@ -850,6 +113,83 @@ function slotLabel(id) {
 function fmtTime(ms) {
   const s = Math.max(0, Math.round(ms / 1000));
   return `${Math.floor(s / 60)}:${String(s % 60).padStart(2, '0')}`;
+}
+
+// ms until the next midnight Eastern — the next puzzle drop.
+function msToMidnightET() {
+  try {
+    const now = new Date();
+    const et = new Date(now.toLocaleString('en-US', { timeZone: 'America/New_York' }));
+    const next = new Date(et);
+    next.setHours(24, 0, 0, 0);
+    return next - et;
+  } catch (e) {
+    const now = new Date();
+    const next = new Date(now);
+    next.setHours(24, 0, 0, 0);
+    return next - now;
+  }
+}
+function fmtCountdown(ms) {
+  const s = Math.max(0, Math.floor(ms / 1000));
+  return `${Math.floor(s / 3600)}:${String(Math.floor((s % 3600) / 60)).padStart(2, '0')}:${String(s % 60).padStart(2, '0')}`;
+}
+
+// ─── Personal stats + streak (localStorage) ────────────────────────────────
+// One record per puzzle number, first completion only (replays don't rewrite
+// history). Streak = consecutive puzzle numbers finished, ending at today's
+// number (still alive if today isn't done yet). First run backfills from the
+// per-puzzle saves that already exist in this browser.
+function puzzleStoreKey(p) {
+  return `sot_crux_${p.num}${p.rev ? `_r${p.rev}` : ''}`;
+}
+function backfillStats(puzzles) {
+  const rec = {};
+  for (const p of puzzles) {
+    try {
+      const raw = localStorage.getItem(puzzleStoreKey(p));
+      if (!raw) continue;
+      const sv = JSON.parse(raw);
+      if (!sv || sv.status === 'playing') continue;
+      const total = p.slots.length * 2;
+      const score = sv.status === 'won' ? total : (sv.order || []).length + (sv.filedRight || 0);
+      const guesses = Object.values(sv.slotGuesses || {}).reduce((a, b) => a + b, 0);
+      rec[p.num] = { s: score, t: total, g: guesses, won: sv.status === 'won' };
+    } catch (e) {}
+  }
+  return { v: 1, rec };
+}
+function getStats(puzzles) {
+  try {
+    const s = JSON.parse(localStorage.getItem(STATS_KEY));
+    if (s && s.v === 1 && s.rec) return s;
+  } catch (e) {}
+  const s = backfillStats(puzzles);
+  try { localStorage.setItem(STATS_KEY, JSON.stringify(s)); } catch (e) {}
+  return s;
+}
+function recordStat(puzzles, num, entry) {
+  const s = getStats(puzzles);
+  if (s.rec[num]) return s;
+  const s2 = { ...s, rec: { ...s.rec, [num]: entry } };
+  try { localStorage.setItem(STATS_KEY, JSON.stringify(s2)); } catch (e) {}
+  return s2;
+}
+function deriveStats(s, todayNum) {
+  const rec = s && s.rec ? s.rec : {};
+  const nums = Object.keys(rec).map(Number).sort((a, b) => a - b);
+  const played = nums.length;
+  const perfect = nums.filter((n) => rec[n].won).length;
+  let max = 0, run = 0, prev = null;
+  for (const n of nums) {
+    run = prev != null && n === prev + 1 ? run + 1 : 1;
+    if (run > max) max = run;
+    prev = n;
+  }
+  let cur = 0, at = rec[todayNum] ? todayNum : todayNum - 1;
+  while (rec[at]) { cur++; at--; }
+  const totG = nums.reduce((a, n) => a + (rec[n].g || 0), 0);
+  return { played, perfect, cur, max, avgG: played ? totG / played : 0 };
 }
 
 // Same anon identity the other quiz boards use, so plays attribute correctly
@@ -897,6 +237,7 @@ function freshState(puzzle) {
     assigned: {},        // WORD -> category index (correct filings only)
     order: [],           // slotIds in solve order
     filedRight: null,    // set by the single Lock-it-in: words correctly categorized
+    hintUsed: false,     // the one free letter reveal
     left: puzzle.guesses,
     status: 'playing',   // playing | won | lost
     t0: null,
@@ -904,8 +245,9 @@ function freshState(puzzle) {
   };
 }
 
-export default function CruxClient({ forceNum = null }) {
-  const PUZZLE = useMemo(() => pickPuzzle(forceNum), [forceNum]);
+export default function CruxClient({ puzzles = [], forceNum = null }) {
+  const PUZZLE = useMemo(() => pickPuzzle(puzzles, forceNum), [puzzles, forceNum]);
+  const ANSWER_WORDS = useMemo(() => buildAnswerWords(puzzles), [puzzles]);
   const ROWS = PUZZLE.rows;
   const COLS = PUZZLE.cols;
   const STORE_KEY = `sot_crux_${PUZZLE.num}${PUZZLE.rev ? `_r${PUZZLE.rev}` : ''}`;
@@ -941,6 +283,13 @@ export default function CruxClient({ forceNum = null }) {
   const [board, setBoard] = useState(EMPTY_BOARD);
   const [identity, setIdentity] = useState(null);
   const [garbleDoneToday, setGarbleDoneToday] = useState(true);
+  const [stats, setStats] = useState(null);
+  const [showStats, setShowStats] = useState(false);
+  const [anim, setAnim] = useState(null);        // { id, flip: {key->i}, pulse: {key->true} } for the last guess
+  const [endAnim, setEndAnim] = useState(false); // category cascade, only on the live end transition
+  const [countdown, setCountdown] = useState('');
+  const animSeq = useRef(0);
+  const animTimer = useRef(null);
   const searchParams = useSearchParams();
   const { duelToken, duelInfo, duelSubmitted } = useDuelContext(PUZZLE.quizId, searchParams);
   const toastTimer = useRef(null);
@@ -957,15 +306,25 @@ export default function CruxClient({ forceNum = null }) {
       }
       if (!localStorage.getItem(HELP_KEY)) setShowHelp(true);
     } catch (e) {}
+    try { setStats(getStats(puzzles)); } catch (e) {}
     setHydrated(true);
   }, []);
+
+  // live countdown to the next drop, shown once the game is over
+  useEffect(() => {
+    if (g.status === 'playing') return;
+    const tick = () => setCountdown(fmtCountdown(msToMidnightET()));
+    tick();
+    const iv = setInterval(tick, 1000);
+    return () => clearInterval(iv);
+  }, [g.status]);
   useEffect(() => {
     if (!hydrated) return;
     try { localStorage.setItem(STORE_KEY, JSON.stringify(g)); } catch (e) {}
     // same-device day breadcrumb for cross-game recommendations — only for
     // TODAY'S puzzle (archive replays must not mark today as played)
     try {
-      if (PUZZLE.num === pickPuzzle(null).num) {
+      if (PUZZLE.num === pickPuzzle(puzzles, null).num) {
         localStorage.setItem('sot_crux_day', JSON.stringify({ d: etToday(), done: g.status !== 'playing' }));
       }
     } catch (e) {}
@@ -1026,7 +385,7 @@ export default function CruxClient({ forceNum = null }) {
 
   useEffect(() => {
     function onDown(e) {
-      if (showHelp) return;
+      if (showHelp || showStats) return;
       if (e.metaKey || e.ctrlKey || e.altKey) return;
       const tag = e.target && e.target.tagName;
       if (tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT') return;
@@ -1036,7 +395,7 @@ export default function CruxClient({ forceNum = null }) {
     }
     window.addEventListener('keydown', onDown);
     return () => window.removeEventListener('keydown', onDown);
-  }, [onKey, showHelp]);
+  }, [onKey, showHelp, showStats]);
 
   function sweepAutoSolve(g2) {
     for (const s of PUZZLE.slots) {
@@ -1096,6 +455,24 @@ export default function CruxClient({ forceNum = null }) {
     g2.absent = { ...g.absent, [sel]: [...abs].join('') };
     g2.lastGuess = { ...g.lastGuess, [sel]: { word: guess, marks } };
 
+    // reveal animation: every cell of the guessed slot flips in sequence, and
+    // newly locked letters that also sit in an unsolved crossing slot pulse —
+    // the bleed is the signature mechanic, make it visible.
+    const flip = {};
+    const pulse = {};
+    cells.forEach((cl, i) => {
+      const k = `${cl.r},${cl.c}`;
+      flip[k] = i;
+      if (marks[i] === 'g' && !g.greens[k]) {
+        const inf = CELLS.get(k);
+        if (inf && inf.slots.some((id) => id !== sel && !g.solved[id])) pulse[k] = true;
+      }
+    });
+    animSeq.current += 1;
+    setAnim({ id: animSeq.current, flip, pulse });
+    if (animTimer.current) clearTimeout(animTimer.current);
+    animTimer.current = setTimeout(() => setAnim(null), cells.length * 90 + 1600);
+
     if (guess === slot.word) {
       g2.solved = { ...g2.solved, [sel]: true };
       g2.order = [...g2.order, sel];
@@ -1109,6 +486,7 @@ export default function CruxClient({ forceNum = null }) {
         g2.status = 'lost';
         g2.filedRight = 0;
         g2.tEnd = Date.now();
+        setEndAnim(true);
         postResult(g2, 0);
       } else {
         say('Out of guesses — place your solved words, then lock it in');
@@ -1126,12 +504,16 @@ export default function CruxClient({ forceNum = null }) {
   function postResult(g2, scoreOverride) {
     const sc = scoreOverride != null ? scoreOverride : g2.order.length;
     const el = g2.t0 ? Math.max(1, Math.round(((g2.tEnd || Date.now()) - g2.t0) / 1000)) : 1;
+    const gu = Object.values(g2.slotGuesses || {}).reduce((a, b) => a + b, 0);
+    const total = PUZZLE.slots.length * 2;
+    // personal stats: first completion of this puzzle number only
+    try { setStats(recordStat(puzzles, PUZZLE.num, { s: sc, t: total, g: gu, won: sc === total })); } catch (e) {}
     try {
       fetch('/api/quiz/result', {
         method: 'POST',
         keepalive: true,
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ quizId: PUZZLE.quizId, score: sc, total: PUZZLE.slots.length * 2, correct: sc, guessesUsed: Object.values(g2.slotGuesses || {}).reduce((a, b) => a + b, 0), timeElapsed: el, email: identity?.email || undefined, anonId: getAnonId(), isMobile: isMobileDevice(), referrer: (typeof document !== 'undefined' ? document.referrer : '') }),
+        body: JSON.stringify({ quizId: PUZZLE.quizId, score: sc, total, correct: sc, guessesUsed: gu, timeElapsed: el, email: identity?.email || undefined, anonId: getAnonId(), isMobile: isMobileDevice(), referrer: (typeof document !== 'undefined' ? document.referrer : '') }),
       })
         .then((r) => r.json())
         .then((d) => { if (d && !d.error) setBoard({ ...EMPTY_BOARD, ...d }); })
@@ -1173,9 +555,34 @@ export default function CruxClient({ forceNum = null }) {
     const right = solvedSlots.filter((s) => PUZZLE.categories[g.assigned[s.word]].words.includes(s.word)).length;
     const score = solvedSlots.length + right;
     const g2 = { ...g, filedRight: right, status: score === PUZZLE.slots.length * 2 ? 'won' : 'lost', tEnd: Date.now() };
+    setEndAnim(true);
     postResult(g2, score);
     setG(g2);
     if (score === PUZZLE.slots.length * 2) setJustWon(true);
+  }
+
+  // The one free hint: reveal the next empty letter of the selected slot.
+  // No guess cost, no score penalty — the share text carries a 💡 instead.
+  function revealHint() {
+    if (!playing || g.hintUsed || !slot || g.solved[sel]) return;
+    const target = cells.find((cl) => !g.greens[`${cl.r},${cl.c}`]);
+    if (!target) return;
+    const k = `${target.r},${target.c}`;
+    const g2 = { ...g, hintUsed: true, greens: { ...g.greens, [k]: true } };
+    if (!g2.t0) g2.t0 = Date.now();
+    sweepAutoSolve(g2);
+    animSeq.current += 1;
+    setAnim({ id: animSeq.current, flip: { [k]: 0 }, pulse: {} });
+    if (animTimer.current) clearTimeout(animTimer.current);
+    animTimer.current = setTimeout(() => setAnim(null), 1600);
+    setTyped('');
+    if (g2.solved[sel]) {
+      say(`${slot.word} — solved. File it under a category.`);
+      setSel(nextUnsolved(g2, sel));
+    } else {
+      say('Hint used — that was the one.');
+    }
+    setG(g2);
   }
 
   function cellClick(r, c) {
@@ -1202,9 +609,28 @@ export default function CruxClient({ forceNum = null }) {
   }
 
   const guessesUsed = Object.values(g.slotGuesses).reduce((a, b) => a + b, 0);
-  const prevPuzzle = PUZZLES.find((x) => x.num === PUZZLE.num - 1) || null;
-  const isTodays = PUZZLE.num === pickPuzzle(null).num;
+  const prevPuzzle = puzzles.find((x) => x.num === PUZZLE.num - 1) || null;
+  const isTodays = PUZZLE.num === pickPuzzle(puzzles, null).num;
   const elapsed = g.t0 ? fmtTime((g.tEnd || Date.now()) - g.t0) : '0:00';
+  const myStats = deriveStats(stats, pickPuzzle(puzzles, null).num);
+
+  // Share of players this run beat, from the exact score distribution the
+  // board API returns. Own attempt excluded; hidden under a small sample.
+  const beatPct = (() => {
+    if (g.status === 'playing') return null;
+    const dist = board.scoreDist;
+    if (!dist) return null;
+    const my = g.status === 'won' ? PUZZLE.slots.length * 2 : g.order.length + (g.filedRight || 0);
+    let below = 0, all = 0;
+    for (const [k, v] of Object.entries(dist)) {
+      const n = Number(v) || 0;
+      all += n;
+      if (Number(k) < my) below += n;
+    }
+    const others = all - 1;
+    if (others < 10) return null;
+    return Math.max(0, Math.min(100, Math.round((below / others) * 100)));
+  })();
 
   // Copyable grid, one row GROUPED BY CATEGORY (yellow pair, green pair,
   // blue pair, red pair): color = that word solved AND filed right, black =
@@ -1213,12 +639,21 @@ export default function CruxClient({ forceNum = null }) {
     const rows = PUZZLE.categories.map((cat, ci) =>
       cat.words.map((w) => (g.assigned[w] === ci ? CAT_COLORS[ci].sq : '⬛')).join(''));
     const score = g.status === 'won' ? PUZZLE.slots.length * 2 : g.order.length + (g.filedRight || 0);
-    const head = `Crux #${PUZZLE.num} · ${score}/${PUZZLE.slots.length * 2} · ${guessesUsed} guess${guessesUsed === 1 ? '' : 'es'} · ${elapsed}`;
-    return `${head}\n${rows.join('\n')}\nsourceoftruths.com/crux`;
+    // Hint use is flagged, streak rides along.
+    const guessBit = `${guessesUsed} guess${guessesUsed === 1 ? '' : 'es'}`;
+    const hintBit = g.hintUsed ? ' · 💡' : '';
+    const streakBit = isTodays && myStats.cur >= 2 ? ` · 🔥${myStats.cur}` : '';
+    const head = `Crux #${PUZZLE.num} · ${score}/${PUZZLE.slots.length * 2} · ${guessBit} · ${elapsed}${hintBit}${streakBit}`;
+    return `${head}\n${rows.join('\n')}\n${shareUrl()}`;
+  }
+  // Archive results must link the puzzle they describe — a bare /crux would
+  // hand the recipient a different board than the score they just saw.
+  function shareUrl() {
+    return `sourceoftruths.com/crux${isTodays ? '' : `?p=${PUZZLE.num}`}`;
   }
   function copyShare() {
     const text = playing
-      ? `Crux #${PUZZLE.num} \u2014 a crossword with no clues. Can you crack it?\nsourceoftruths.com/crux`
+      ? `Crux #${PUZZLE.num} \u2014 a crossword with no clues. Can you crack it?\n${shareUrl()}`
       : shareText();
     // Mobile: native share sheet (like the big daily games) — the receiving
     // app gets the text directly, line breaks intact, no clipboard quirks.
@@ -1278,10 +713,12 @@ export default function CruxClient({ forceNum = null }) {
     // Category tint only appears at game end (placements are secret while
     // playing), and always by TRUE category — the reveal moment.
     let cat = null;
+    let catIdx = 0;
     if (!playing) {
       for (const id of info.slots) {
         if (g.solved[id]) {
-          cat = CAT_COLORS[PUZZLE.categories.findIndex((c) => c.words.includes(SLOT[id].word))];
+          catIdx = PUZZLE.categories.findIndex((c) => c.words.includes(SLOT[id].word));
+          cat = CAT_COLORS[catIdx];
           break;
         }
       }
@@ -1295,7 +732,8 @@ export default function CruxClient({ forceNum = null }) {
       gridRow: r + 1, gridColumn: c + 1, position: 'relative',
       transition: 'background .12s,border-color .12s',
     };
-    if (cat) return { ...base, background: cat.bg, color: cat.tc, border: `1.5px solid ${cat.bg}` };
+    // the reveal cascades category by category, only on the live transition
+    if (cat) return { ...base, background: cat.bg, color: cat.tc, border: `1.5px solid ${cat.bg}`, ...(endAnim ? { animation: `cxcat .55s ease ${catIdx * 380}ms backwards` } : {}) };
     if (green) return { ...base, background: COLORS.ink, color: '#fff', border: `1.5px solid ${COLORS.ink}` };
     if (lost) return { ...base, background: '#fff', color: COLORS.rust, border: '1.5px dashed rgba(192,57,43,0.55)' };
     if (inSel) {
@@ -1349,6 +787,11 @@ export default function CruxClient({ forceNum = null }) {
           .cl-btn:hover{background:${COLORS.paper};}
           @keyframes cxfall{0%{transform:translateY(-4vh) rotate(0deg);}100%{transform:translateY(108vh) rotate(680deg);}}
           .cx-conf{position:fixed;top:-3vh;z-index:86;pointer-events:none;border-radius:2px;animation:cxfall linear forwards;}
+          @keyframes cxflipA{from{transform:rotateX(90deg);background:#fff;color:transparent;}}
+          @keyframes cxflipB{from{transform:rotateX(90deg);background:#fff;color:transparent;}}
+          @keyframes cxpulseA{0%{box-shadow:0 0 0 0 rgba(37,99,235,0);}45%{transform:scale(1.18);box-shadow:0 0 0 5px rgba(37,99,235,0.4);}100%{transform:scale(1);box-shadow:0 0 0 0 rgba(37,99,235,0);}}
+          @keyframes cxpulseB{0%{box-shadow:0 0 0 0 rgba(37,99,235,0);}45%{transform:scale(1.18);box-shadow:0 0 0 5px rgba(37,99,235,0.4);}100%{transform:scale(1);box-shadow:0 0 0 0 rgba(37,99,235,0);}}
+          @keyframes cxcat{from{background:#fff;color:transparent;transform:scale(.82);}}
         `}</style>
 
         {/* game content recentered: the qzf box is 1180, the game stays 960 */}
@@ -1362,7 +805,10 @@ export default function CruxClient({ forceNum = null }) {
             <span style={{ fontSize: 13, fontWeight: 800, color: '#fff', background: COLORS.ink, borderRadius: 6, padding: '2px 8px' }}>SUNDAY EDITION</span>
           )}
           <span style={{ fontSize: 13, fontWeight: 700, color: COLORS.faded }}>{PUZZLE.dateLabel}</span>
-          <button onClick={() => setShowHelp(true)} aria-label="How to play" style={{ marginLeft: 'auto', background: 'none', border: 'none', cursor: 'pointer', color: COLORS.faded, display: 'flex', alignItems: 'center', gap: 5, fontFamily: SANS, fontWeight: 700, fontSize: 13 }}>
+          <button onClick={() => setShowStats(true)} aria-label="Your stats" style={{ marginLeft: 'auto', background: 'none', border: 'none', cursor: 'pointer', color: COLORS.faded, display: 'flex', alignItems: 'center', gap: 5, fontFamily: SANS, fontWeight: 700, fontSize: 13 }}>
+            <BarChart3 size={18} /> Stats
+          </button>
+          <button onClick={() => setShowHelp(true)} aria-label="How to play" style={{ background: 'none', border: 'none', cursor: 'pointer', color: COLORS.faded, display: 'flex', alignItems: 'center', gap: 5, fontFamily: SANS, fontWeight: 700, fontSize: 13 }}>
             <HelpCircle size={18} /> How to play
           </button>
         </div>
@@ -1388,8 +834,17 @@ export default function CruxClient({ forceNum = null }) {
             <div className="cl-grid" style={{ display: 'grid', gridTemplateColumns: `repeat(${COLS}, var(--cs))`, gridTemplateRows: `repeat(${ROWS}, var(--cs))`, gap: 3, marginBottom: 12 }}>
               {[...CELLS.entries()].map(([k, info]) => {
                 const [r, c] = k.split(',').map(Number);
+                let st = cellStyle(r, c, info);
+                if (anim) {
+                  // alternate keyframe names so back-to-back guesses restart
+                  const suf = anim.id % 2 ? 'B' : 'A';
+                  const parts = [];
+                  if (anim.flip[k] != null) parts.push(`cxflip${suf} .5s ease ${anim.flip[k] * 90}ms backwards`);
+                  if (anim.pulse[k]) parts.push(`cxpulse${suf} .7s ease ${(anim.flip[k] || 0) * 90 + 520}ms`);
+                  if (parts.length) st = { ...st, animation: parts.join(', ') };
+                }
                 return (
-                  <div key={k} onClick={() => cellClick(r, c)} style={cellStyle(r, c, info)}>
+                  <div key={k} onClick={() => cellClick(r, c)} style={st}>
                     {startNum[k] ? <span style={{ position: 'absolute', top: 1, left: 3, fontSize: 'calc(var(--cs) * 0.22)', fontWeight: 800, opacity: 0.65 }}>{startNum[k]}</span> : null}
                     {cellLetter(r, c, info)}
                   </div>
@@ -1405,6 +860,12 @@ export default function CruxClient({ forceNum = null }) {
                   {slotLabel(sel)} <span style={{ color: COLORS.faded, fontWeight: 700 }}>&middot; {slot.word.length} letters &middot; {(g.slotGuesses[sel] || 0)} guess{(g.slotGuesses[sel] || 0) === 1 ? '' : 'es'} spent</span>
                 </div>
                 <button className="cl-key" onClick={() => cycleSlot(1)} aria-label="Next word" style={{ background: COLORS.paper, width: 30, height: 30, display: 'flex', alignItems: 'center', justifyContent: 'center' }}><ChevronRight size={17} /></button>
+                {!g.hintUsed && (
+                  <button className="cl-key" onClick={revealHint} title="Reveal one letter in this word (one hint per puzzle)"
+                    style={{ marginLeft: 'auto', background: '#fdf6e3', border: '1.5px solid rgba(230,185,63,0.7)', height: 30, padding: '0 10px', display: 'flex', alignItems: 'center', gap: 5, fontSize: 12, fontWeight: 800, color: '#8a6d1a' }}>
+                    <Lightbulb size={14} /> Hint
+                  </button>
+                )}
               </div>
             )}
 
@@ -1512,13 +973,19 @@ export default function CruxClient({ forceNum = null }) {
                 <div style={{ fontSize: 19, fontWeight: 800, color: won ? COLORS.ember : COLORS.rust, marginBottom: 4 }}>
                   {won ? 'You got to the crux of the matter.' : g.filedRight != null ? `Final: ${g.order.length + g.filedRight}/${PUZZLE.slots.length * 2}.` : 'Out of guesses.'}
                 </div>
-                <div style={{ fontSize: 13.5, fontWeight: 700, color: COLORS.faded, marginBottom: 12 }}>
+                <div style={{ fontSize: 13.5, fontWeight: 700, color: COLORS.faded, marginBottom: (beatPct != null || (isTodays && myStats.cur >= 2)) ? 6 : 12 }}>
                   {won
-                    ? <>{guessesUsed} guesses &middot; {elapsed}</>
+                    ? <>{guessesUsed} guesses &middot; {elapsed}{g.hintUsed ? <> &middot; 1 hint</> : null}</>
                     : g.filedRight != null
                       ? <>{g.order.length}/{PUZZLE.slots.length} words &middot; {g.filedRight}/{PUZZLE.slots.length} placements &middot; the reveal is on the board</>
                       : <>{g.order.length} of {PUZZLE.slots.length} words &middot; the reveal is on the board</>}
                 </div>
+                {(beatPct != null || (isTodays && myStats.cur >= 2)) && (
+                  <div style={{ fontSize: 13, fontWeight: 800, marginBottom: 12, display: 'flex', gap: 12, flexWrap: 'wrap' }}>
+                    {beatPct != null && <span style={{ color: COLORS.ember }}>You beat {beatPct}% of players on this puzzle</span>}
+                    {isTodays && myStats.cur >= 2 && <span style={{ color: '#b45309' }}>🔥 {myStats.cur}-day streak</span>}
+                  </div>
+                )}
                 <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
                   <button className="cl-btn" onClick={copyShare}><Share2 size={15} /> {copied ? 'Copied' : 'Share result'}</button>
                   <button className="cl-btn" onClick={resetGame} style={{ borderColor: '#c3c8cf', color: COLORS.faded }}><RotateCcw size={15} /> Replay</button>
@@ -1529,7 +996,7 @@ export default function CruxClient({ forceNum = null }) {
                   </a>
                 )}
                 <p style={{ fontSize: 12, color: COLORS.faded, fontWeight: 600, margin: '12px 0 0' }}>
-                  A new puzzle drops at midnight Eastern.
+                  {countdown ? <>Next Crux in <b style={{ color: COLORS.ink, fontVariantNumeric: 'tabular-nums' }}>{countdown}</b>.</> : 'A new puzzle drops at midnight Eastern.'}
                   {prevPuzzle && (
                     <>
                       {' '}Meanwhile:{' '}
@@ -1640,9 +1107,38 @@ export default function CruxClient({ forceNum = null }) {
             <div style={{ fontSize: 14, lineHeight: 1.55, color: COLORS.ink, fontWeight: 600 }}>
               <p style={{ margin: '0 0 9px' }}><b>{PUZZLE.slots.length === 12 ? 'Twelve' : 'Eight'} words</b> interlock in the grid &mdash; no clues. The <b>four categories</b> are the only hints; each hides exactly {PUZZLE.categories[0].words.length === 3 ? 'three' : 'two'} of the words.</p>
               <p style={{ margin: '0 0 9px' }}><b>Guess to reveal:</b> tap a slot, type a real word, hit enter. <span style={{ background: COLORS.ink, color: '#fff', borderRadius: 4, padding: '1px 6px', fontWeight: 800 }}>Dark</span> = right letter, right square (locks in, crossings too). <span style={{ background: '#e6b93f', color: '#5c4a06', borderRadius: 4, padding: '1px 6px', fontWeight: 800 }}>Yellow</span> = in the word, different square. The whole board shares <b>{PUZZLE.guesses} guesses</b>.</p>
-              <p style={{ margin: 0 }}><b>File your solves:</b> tap a word, then a category &mdash; placements stay secret and movable. One <b>submit</b> ends the game. Score is out of {PUZZLE.slots.length * 2}: a point per solved word, a point per correct placement. No lock-in, no score.</p>
+              <p style={{ margin: '0 0 9px' }}><b>File your solves:</b> tap a word, then a category &mdash; placements stay secret and movable. One <b>submit</b> ends the game. Score is out of {PUZZLE.slots.length * 2}: a point per solved word, a point per correct placement. No lock-in, no score.</p>
+              <p style={{ margin: 0 }}>Stuck? One free <b>hint</b> per puzzle reveals a letter.</p>
             </div>
             <button className="cl-btn" onClick={() => { setShowHelp(false); try { localStorage.setItem(HELP_KEY, '1'); } catch (e) {} }} style={{ marginTop: 14, background: COLORS.ink, color: '#fff' }}>Play</button>
+          </div>
+        </div>
+      )}
+
+      {/* personal stats modal */}
+      {showStats && (
+        <div onClick={() => setShowStats(false)} style={{ position: 'fixed', inset: 0, background: 'rgba(20,22,28,0.55)', zIndex: 70, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16 }}>
+          <div onClick={(e) => e.stopPropagation()} style={{ width: '100%', maxWidth: 400, background: COLORS.cream, borderRadius: 12, border: `2px solid ${COLORS.ink}`, padding: '20px 22px', fontFamily: SANS }}>
+            <div style={{ display: 'flex', alignItems: 'center', marginBottom: 14 }}>
+              <div style={{ fontSize: 21, fontWeight: 800, color: COLORS.ink }}>Your stats</div>
+              <button onClick={() => setShowStats(false)} aria-label="Close" style={{ marginLeft: 'auto', background: 'none', border: 'none', cursor: 'pointer', color: COLORS.faded }}><X size={20} /></button>
+            </div>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, marginBottom: 14 }}>
+              {[
+                { n: myStats.played, l: 'Played' },
+                { n: myStats.played ? `${Math.round((myStats.perfect / myStats.played) * 100)}%` : '—', l: 'Perfect solves' },
+                { n: <>{myStats.cur >= 2 ? '🔥 ' : ''}{myStats.cur}</>, l: 'Current streak' },
+                { n: myStats.max, l: 'Best streak' },
+              ].map((s, i) => (
+                <div key={i} style={{ background: '#fff', border: '1.5px solid rgba(20,22,28,0.12)', borderRadius: 10, padding: '12px 10px', textAlign: 'center' }}>
+                  <div style={{ fontSize: 26, fontWeight: 800, color: COLORS.ink, lineHeight: 1.1 }}>{s.n}</div>
+                  <div style={{ fontSize: 11.5, fontWeight: 700, color: COLORS.faded, textTransform: 'uppercase', letterSpacing: '.04em', marginTop: 3 }}>{s.l}</div>
+                </div>
+              ))}
+            </div>
+            <p style={{ margin: 0, fontSize: 12, color: COLORS.faded, fontWeight: 600, lineHeight: 1.5 }}>
+              {myStats.played ? <>Averaging <b style={{ color: COLORS.ink }}>{myStats.avgG.toFixed(1)}</b> guesses per puzzle. Streaks count consecutive daily puzzles finished &mdash; win or lose, showing up is what counts.</> : 'Finish your first Crux and your record starts here.'}
+            </p>
           </div>
         </div>
       )}
