@@ -1,0 +1,39 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="750" height="1000" viewBox="0 0 750 1000">
+<rect width="750" height="1000" fill="#f2f0ea"/>
+<rect x="32" y="32" width="686" height="936" rx="6" fill="#ffffff" stroke="#d8d5cc" stroke-width="1"/>
+<rect x="46" y="46" width="658" height="908" fill="none" stroke="#1c1e24" stroke-width="3"/>
+<text x="62" y="108" font-family="Helvetica, Arial, sans-serif" font-size="56" font-weight="bold" text-anchor="start" fill="#1c1e24">Nutrition Facts</text>
+<rect x="64" y="124" width="622" height="1" fill="#1c1e24"/>
+<text x="64" y="152" font-family="Helvetica, Arial, sans-serif" font-size="22" font-weight="bold" text-anchor="start" fill="#1c1e24">Serving size</text>
+<text x="686" y="152" font-family="Helvetica, Arial, sans-serif" font-size="22" font-weight="bold" text-anchor="end" fill="#1c1e24">1 Can (12 fl oz)</text>
+<rect x="64" y="167" width="622" height="9" fill="#1c1e24"/>
+<text x="64" y="204" font-family="Helvetica, Arial, sans-serif" font-size="18" font-weight="bold" text-anchor="start" fill="#1c1e24">Amount per serving</text>
+<text x="64" y="246" font-family="Helvetica, Arial, sans-serif" font-size="38" font-weight="bold" text-anchor="start" fill="#1c1e24">Calories</text>
+<text x="686" y="246" font-family="Helvetica, Arial, sans-serif" font-size="50" font-weight="bold" text-anchor="end" fill="#1c1e24">160</text>
+<rect x="64" y="259" width="622" height="5" fill="#1c1e24"/>
+<text x="686" y="288" font-family="Helvetica, Arial, sans-serif" font-size="17" font-weight="bold" text-anchor="end" fill="#1c1e24">% Daily Value*</text>
+<rect x="64" y="296" width="622" height="1" fill="#1c1e24"/>
+<text x="64" y="325" font-family="Helvetica, Arial, sans-serif" font-size="20" fill="#1c1e24"><tspan font-weight="bold">Total Fat</tspan><tspan> 0g</tspan></text>
+<text x="686" y="325" font-family="Helvetica, Arial, sans-serif" font-size="20" font-weight="bold" text-anchor="end" fill="#1c1e24">0%</text>
+<rect x="64" y="334" width="622" height="1" fill="#1c1e24"/>
+<text x="64" y="363" font-family="Helvetica, Arial, sans-serif" font-size="20" fill="#1c1e24"><tspan font-weight="bold">Sodium</tspan><tspan> 85mg</tspan></text>
+<text x="686" y="363" font-family="Helvetica, Arial, sans-serif" font-size="20" font-weight="bold" text-anchor="end" fill="#1c1e24">4%</text>
+<rect x="64" y="372" width="622" height="1" fill="#1c1e24"/>
+<text x="64" y="401" font-family="Helvetica, Arial, sans-serif" font-size="20" fill="#1c1e24"><tspan font-weight="bold">Total Carbohydrate</tspan><tspan> 44g</tspan></text>
+<text x="686" y="401" font-family="Helvetica, Arial, sans-serif" font-size="20" font-weight="bold" text-anchor="end" fill="#1c1e24">16%</text>
+<rect x="64" y="410" width="622" height="1" fill="#1c1e24"/>
+<text x="88" y="439" font-family="Helvetica, Arial, sans-serif" font-size="20" fill="#1c1e24"><tspan>Total Sugars</tspan><tspan> 43g</tspan></text>
+<rect x="64" y="448" width="622" height="1" fill="#1c1e24"/>
+<text x="112" y="477" font-family="Helvetica, Arial, sans-serif" font-size="20"  text-anchor="start" fill="#1c1e24">Includes 43g Added Sugars</text>
+<rect x="64" y="486" width="622" height="1" fill="#1c1e24"/>
+<text x="686" y="477" font-family="Helvetica, Arial, sans-serif" font-size="20" font-weight="bold" text-anchor="end" fill="#1c1e24">86%</text>
+<text x="64" y="515" font-family="Helvetica, Arial, sans-serif" font-size="20" fill="#1c1e24"><tspan font-weight="bold">Protein</tspan><tspan> 0g</tspan></text>
+<rect x="64" y="524" width="622" height="1" fill="#1c1e24"/>
+<rect x="64" y="528" width="622" height="9" fill="#1c1e24"/>
+<text x="64" y="564" font-family="Helvetica, Arial, sans-serif" font-size="19" font-weight="bold" text-anchor="start" fill="#1c1e24">CAFFEINE FREE</text>
+<rect x="64" y="577" width="622" height="4" fill="#1c1e24"/>
+<text x="64" y="614" font-family="Helvetica, Arial, sans-serif" font-size="20" font-weight="bold" text-anchor="start" fill="#1c1e24">INGREDIENTS:</text>
+<text x="64" y="639" font-family="Helvetica, Arial, sans-serif" font-size="18"  text-anchor="start" fill="#1c1e24">CARBONATED WATER, HIGH FRUCTOSE CORN SYRUP, CARAMEL</text>
+<text x="64" y="664" font-family="Helvetica, Arial, sans-serif" font-size="18"  text-anchor="start" fill="#1c1e24">COLOR, SODIUM BENZOATE (PRESERVATIVE), NATURAL AND</text>
+<text x="64" y="689" font-family="Helvetica, Arial, sans-serif" font-size="18"  text-anchor="start" fill="#1c1e24">ARTIFICIAL FLAVORS, QUILLAIA EXTRACT</text>
+</svg>

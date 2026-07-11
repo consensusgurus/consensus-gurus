@@ -1,0 +1,49 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="750" height="1000" viewBox="0 0 750 1000">
+<rect width="750" height="1000" fill="#f2f0ea"/>
+<rect x="32" y="32" width="686" height="936" rx="6" fill="#ffffff" stroke="#d8d5cc" stroke-width="1"/>
+<rect x="46" y="46" width="658" height="908" fill="none" stroke="#1c1e24" stroke-width="3"/>
+<text x="62" y="108" font-family="Helvetica, Arial, sans-serif" font-size="56" font-weight="bold" text-anchor="start" fill="#1c1e24">Nutrition Facts</text>
+<rect x="64" y="124" width="622" height="1" fill="#1c1e24"/>
+<text x="64" y="152" font-family="Helvetica, Arial, sans-serif" font-size="21"  text-anchor="start" fill="#1c1e24">About 24 servings per container</text>
+<text x="64" y="183" font-family="Helvetica, Arial, sans-serif" font-size="22" font-weight="bold" text-anchor="start" fill="#1c1e24">Serving size</text>
+<text x="686" y="183" font-family="Helvetica, Arial, sans-serif" font-size="22" font-weight="bold" text-anchor="end" fill="#1c1e24">5 crackers (16g)</text>
+<rect x="64" y="198" width="622" height="9" fill="#1c1e24"/>
+<text x="64" y="235" font-family="Helvetica, Arial, sans-serif" font-size="18" font-weight="bold" text-anchor="start" fill="#1c1e24">Amount per serving</text>
+<text x="64" y="277" font-family="Helvetica, Arial, sans-serif" font-size="38" font-weight="bold" text-anchor="start" fill="#1c1e24">Calories</text>
+<text x="686" y="277" font-family="Helvetica, Arial, sans-serif" font-size="50" font-weight="bold" text-anchor="end" fill="#1c1e24">80</text>
+<rect x="64" y="290" width="622" height="5" fill="#1c1e24"/>
+<text x="686" y="319" font-family="Helvetica, Arial, sans-serif" font-size="17" font-weight="bold" text-anchor="end" fill="#1c1e24">% Daily Value*</text>
+<rect x="64" y="327" width="622" height="1" fill="#1c1e24"/>
+<text x="64" y="356" font-family="Helvetica, Arial, sans-serif" font-size="20" fill="#1c1e24"><tspan font-weight="bold">Total Fat</tspan><tspan> 4.5g</tspan></text>
+<text x="686" y="356" font-family="Helvetica, Arial, sans-serif" font-size="20" font-weight="bold" text-anchor="end" fill="#1c1e24">6%</text>
+<rect x="64" y="365" width="622" height="1" fill="#1c1e24"/>
+<text x="88" y="394" font-family="Helvetica, Arial, sans-serif" font-size="20" fill="#1c1e24"><tspan>Saturated Fat</tspan><tspan> 1g</tspan></text>
+<text x="686" y="394" font-family="Helvetica, Arial, sans-serif" font-size="20" font-weight="bold" text-anchor="end" fill="#1c1e24">5%</text>
+<rect x="64" y="403" width="622" height="1" fill="#1c1e24"/>
+<text x="64" y="432" font-family="Helvetica, Arial, sans-serif" font-size="20" fill="#1c1e24"><tspan font-weight="bold">Sodium</tspan><tspan> 130mg</tspan></text>
+<text x="686" y="432" font-family="Helvetica, Arial, sans-serif" font-size="20" font-weight="bold" text-anchor="end" fill="#1c1e24">6%</text>
+<rect x="64" y="441" width="622" height="1" fill="#1c1e24"/>
+<text x="64" y="470" font-family="Helvetica, Arial, sans-serif" font-size="20" fill="#1c1e24"><tspan font-weight="bold">Total Carbohydrate</tspan><tspan> 10g</tspan></text>
+<text x="686" y="470" font-family="Helvetica, Arial, sans-serif" font-size="20" font-weight="bold" text-anchor="end" fill="#1c1e24">4%</text>
+<rect x="64" y="479" width="622" height="1" fill="#1c1e24"/>
+<text x="88" y="508" font-family="Helvetica, Arial, sans-serif" font-size="20" fill="#1c1e24"><tspan>Dietary Fiber</tspan><tspan> 0g</tspan></text>
+<text x="686" y="508" font-family="Helvetica, Arial, sans-serif" font-size="20" font-weight="bold" text-anchor="end" fill="#1c1e24">0%</text>
+<rect x="64" y="517" width="622" height="1" fill="#1c1e24"/>
+<text x="88" y="546" font-family="Helvetica, Arial, sans-serif" font-size="20" fill="#1c1e24"><tspan>Total Sugars</tspan><tspan> 1g</tspan></text>
+<rect x="64" y="555" width="622" height="1" fill="#1c1e24"/>
+<text x="112" y="584" font-family="Helvetica, Arial, sans-serif" font-size="20"  text-anchor="start" fill="#1c1e24">Includes 1g Added Sugars</text>
+<rect x="64" y="593" width="622" height="1" fill="#1c1e24"/>
+<text x="686" y="584" font-family="Helvetica, Arial, sans-serif" font-size="20" font-weight="bold" text-anchor="end" fill="#1c1e24">2%</text>
+<text x="64" y="622" font-family="Helvetica, Arial, sans-serif" font-size="20" fill="#1c1e24"><tspan font-weight="bold">Protein</tspan><tspan> 1g</tspan></text>
+<rect x="64" y="631" width="622" height="1" fill="#1c1e24"/>
+<rect x="64" y="635" width="622" height="9" fill="#1c1e24"/>
+<text x="64" y="677" font-family="Helvetica, Arial, sans-serif" font-size="20" font-weight="bold" text-anchor="start" fill="#1c1e24">INGREDIENTS:</text>
+<text x="64" y="702" font-family="Helvetica, Arial, sans-serif" font-size="18"  text-anchor="start" fill="#1c1e24">UNBLEACHED ENRICHED FLOUR (WHEAT FLOUR, NIACIN,</text>
+<text x="64" y="727" font-family="Helvetica, Arial, sans-serif" font-size="18"  text-anchor="start" fill="#1c1e24">REDUCED IRON, THIAMINE MONONITRATE {VITAMIN B1},</text>
+<text x="64" y="752" font-family="Helvetica, Arial, sans-serif" font-size="18"  text-anchor="start" fill="#1c1e24">RIBOFLAVIN {VITAMIN B2}, FOLIC ACID), VEGETABLE OIL</text>
+<text x="64" y="777" font-family="Helvetica, Arial, sans-serif" font-size="18"  text-anchor="start" fill="#1c1e24">(SOYBEAN AND/OR CANOLA AND/OR PALM AND/OR PARTIALLY</text>
+<text x="64" y="802" font-family="Helvetica, Arial, sans-serif" font-size="18"  text-anchor="start" fill="#1c1e24">HYDROGENATED COTTONSEED OIL), SUGAR, SALT, LEAVENING</text>
+<text x="64" y="827" font-family="Helvetica, Arial, sans-serif" font-size="18"  text-anchor="start" fill="#1c1e24">(BAKING SODA AND/OR CALCIUM PHOSPHATE), HIGH FRUCTOSE</text>
+<text x="64" y="852" font-family="Helvetica, Arial, sans-serif" font-size="18"  text-anchor="start" fill="#1c1e24">CORN SYRUP, SOY LECITHIN, MALTED BARLEY ...</text>
+<text x="64" y="883" font-family="Helvetica, Arial, sans-serif" font-size="18" font-weight="bold" text-anchor="start" fill="#1c1e24">CONTAINS: WHEAT, SOY.</text>
+</svg>
