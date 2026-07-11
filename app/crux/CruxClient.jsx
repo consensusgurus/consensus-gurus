@@ -188,8 +188,35 @@ function deriveStats(s, todayNum) {
   }
   let cur = 0, at = rec[todayNum] ? todayNum : todayNum - 1;
   while (rec[at]) { cur++; at--; }
-  const totG = nums.reduce((a, n) => a + (rec[n].g || 0), 0);
-  return { played, perfect, cur, max, avgG: played ? totG / played : 0 };
+  // average guesses only over records that carry a guess count (server-merged
+  // history from other devices doesn't)
+  const withG = nums.filter((n) => typeof rec[n].g === 'number');
+  const totG = withG.reduce((a, n) => a + rec[n].g, 0);
+  return { played, perfect, cur, max, avgG: withG.length ? totG / withG.length : 0, avgN: withG.length };
+}
+
+// Local saves only know about games finished IN THIS BROWSER. The server has
+// every completed play (quiz_results), so prior days and other devices come
+// from /api/quiz/me `recent` history. First attempts only, and a local record
+// wins over the server one (it carries the guess count).
+function mergeServerStats(s, recent, puzzles) {
+  if (!s || !Array.isArray(recent) || !recent.length) return s;
+  const byQuiz = {};
+  for (const p of puzzles) byQuiz[p.quizId] = p;
+  let rec = s.rec, changed = false;
+  for (const m of recent) {
+    const p = m && byQuiz[m.quizId];
+    if (!p || m.attempt !== 1) continue;
+    if (rec[p.num]) continue;
+    const t = p.slots.length * 2;
+    const sc = Math.max(0, Math.min(t, Math.round(((m.scorePct || 0) / 100) * t)));
+    if (!changed) { rec = { ...rec }; changed = true; }
+    rec[p.num] = { s: sc, t, g: null, won: !!m.perfect };
+  }
+  if (!changed) return s;
+  const s2 = { ...s, rec };
+  try { localStorage.setItem(STATS_KEY, JSON.stringify(s2)); } catch (e) {}
+  return s2;
 }
 
 // Same anon identity the other quiz boards use, so plays attribute correctly
@@ -351,6 +378,25 @@ export default function CruxClient({ puzzles = [], forceNum = null }) {
     try {
       const id = JSON.parse(localStorage.getItem('sot_quiz_identity'));
       if (id && id.email) setIdentity(id);
+    } catch (e) {}
+    // cross-device stats: merge this player's server-side play history
+    try {
+      const anon = getAnonId();
+      let em = '';
+      try {
+        const idj = JSON.parse(localStorage.getItem('sot_quiz_identity') || 'null');
+        if (idj && idj.email) em = `&email=${encodeURIComponent(idj.email)}`;
+      } catch (e) {}
+      if (anon || em) {
+        fetch(`/api/quiz/me?anonId=${encodeURIComponent(anon || '')}${em}`)
+          .then((r) => r.json())
+          .then((d) => {
+            if (d && Array.isArray(d.recent)) {
+              setStats((cur) => mergeServerStats(cur || getStats(puzzles), d.recent, puzzles));
+            }
+          })
+          .catch(() => {});
+      }
     } catch (e) {}
     fetch(`/api/quiz/board?quizId=${encodeURIComponent(PUZZLE.quizId)}`)
       .then((r) => r.json())
@@ -1137,7 +1183,7 @@ export default function CruxClient({ puzzles = [], forceNum = null }) {
               ))}
             </div>
             <p style={{ margin: 0, fontSize: 12, color: COLORS.faded, fontWeight: 600, lineHeight: 1.5 }}>
-              {myStats.played ? <>Averaging <b style={{ color: COLORS.ink }}>{myStats.avgG.toFixed(1)}</b> guesses per puzzle. Streaks count consecutive daily puzzles finished &mdash; win or lose, showing up is what counts.</> : 'Finish your first Crux and your record starts here.'}
+              {myStats.played ? <>{myStats.avgN ? <>Averaging <b style={{ color: COLORS.ink }}>{myStats.avgG.toFixed(1)}</b> guesses per puzzle on this device. </> : null}Streaks count consecutive daily puzzles finished, win or lose. Plays on any device count.</> : 'Finish your first Crux and your record starts here.'}
             </p>
           </div>
         </div>
