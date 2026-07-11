@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1000" height="800" viewBox="0 0 1000 800">
+<rect width="1000" height="800" fill="#ffffff"/>
+<rect x="10" y="10" width="980" height="780" rx="14" fill="none" stroke="#00000014" stroke-width="2"/>
+<polyline points="500,90 500,560" fill="none" stroke="#4FB4E4" stroke-width="10" stroke-linejoin="round" stroke-linecap="round"/>
+<polyline points="150,330 850,330" fill="none" stroke="#E10E17" stroke-width="10" stroke-linejoin="round" stroke-linecap="round"/>
+<polyline points="230,130 760,540" fill="none" stroke="#FFD200" stroke-width="10" stroke-linejoin="round" stroke-linecap="round"/>
+<polyline points="230,540 770,140 860,120" fill="none" stroke="#96BF0D" stroke-width="10" stroke-linejoin="round" stroke-linecap="round"/>
+<polyline points="180,250 500,330 840,430" fill="none" stroke="#A60084" stroke-width="10" stroke-linejoin="round" stroke-linecap="round"/>
+<polyline points="300,120 500,330 700,560" fill="none" stroke="#005AA9" stroke-width="10" stroke-linejoin="round" stroke-linecap="round"/>
+<ellipse cx="500" cy="330" rx="200" ry="172" fill="none" stroke="#9C9E9F" stroke-width="12"/>
+<ellipse cx="430" cy="660" rx="150" ry="96" fill="none" stroke="#8FA01E" stroke-width="10"/>
+<circle cx="500" cy="330" r="8" fill="#ffffff" stroke="#2b2b31" stroke-width="3"/><circle cx="340" cy="300" r="8" fill="#ffffff" stroke="#2b2b31" stroke-width="3"/><circle cx="660" cy="300" r="8" fill="#ffffff" stroke="#2b2b31" stroke-width="3"/><circle cx="430" cy="420" r="8" fill="#ffffff" stroke="#2b2b31" stroke-width="3"/>
+</svg>

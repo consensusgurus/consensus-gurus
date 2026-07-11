@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1000" height="800" viewBox="0 0 1000 800">
+<rect width="1000" height="800" fill="#fbfaf8"/>
+<rect x="10" y="10" width="980" height="780" rx="14" fill="none" stroke="#00000014" stroke-width="2"/>
+<polyline points="500,80 500,720" fill="none" stroke="#EF161E" stroke-width="10" stroke-linejoin="round" stroke-linecap="round"/>
+<polyline points="110,400 890,400" fill="none" stroke="#0078BE" stroke-width="10" stroke-linejoin="round" stroke-linecap="round"/>
+<polyline points="175,150 825,650" fill="none" stroke="#8E479C" stroke-width="10" stroke-linejoin="round" stroke-linecap="round"/>
+<polyline points="175,650 825,150" fill="none" stroke="#ED9121" stroke-width="10" stroke-linejoin="round" stroke-linecap="round"/>
+<polyline points="300,105 700,695" fill="none" stroke="#4FB14E" stroke-width="10" stroke-linejoin="round" stroke-linecap="round"/>
+<polyline points="105,300 895,500" fill="none" stroke="#19C1F3" stroke-width="10" stroke-linejoin="round" stroke-linecap="round"/>
+<polyline points="105,500 895,300" fill="none" stroke="#B1D332" stroke-width="10" stroke-linejoin="round" stroke-linecap="round"/>
+<polyline points="300,695 700,105" fill="none" stroke="#FFD702" stroke-width="10" stroke-linejoin="round" stroke-linecap="round"/>
+<ellipse cx="500" cy="400" rx="232" ry="232" fill="none" stroke="#894E35" stroke-width="13"/>
+<circle cx="500" cy="400" r="8" fill="#ffffff" stroke="#2b2b31" stroke-width="3"/><circle cx="732" cy="400" r="8" fill="#ffffff" stroke="#2b2b31" stroke-width="3"/><circle cx="664.048773235279" cy="564.048773235279" r="8" fill="#ffffff" stroke="#2b2b31" stroke-width="3"/><circle cx="500" cy="632" r="8" fill="#ffffff" stroke="#2b2b31" stroke-width="3"/><circle cx="335.951226764721" cy="564.048773235279" r="8" fill="#ffffff" stroke="#2b2b31" stroke-width="3"/><circle cx="268" cy="400" r="8" fill="#ffffff" stroke="#2b2b31" stroke-width="3"/><circle cx="335.9512267647209" cy="235.95122676472099" r="8" fill="#ffffff" stroke="#2b2b31" stroke-width="3"/><circle cx="499.99999999999994" cy="168" r="8" fill="#ffffff" stroke="#2b2b31" stroke-width="3"/><circle cx="664.048773235279" cy="235.95122676472093" r="8" fill="#ffffff" stroke="#2b2b31" stroke-width="3"/>
+</svg>

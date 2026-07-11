@@ -38,3 +38,9 @@ next-env.d.ts
 
 # deploy secrets (PAT + config, never commit)
 .deploy-secrets
+
+# local scratch (safe to delete; never commit)
+_to_delete/
+_to_delete*/
+_reconcile/
+lib/_to_delete_claude/

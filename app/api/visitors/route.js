@@ -3,6 +3,7 @@ import { supabase } from '@/lib/supabase';
 import { fetchAllRows } from '@/lib/fetch-all';
 
 export const dynamic = 'force-dynamic';
+export const fetchCache = 'force-no-store'; // supabase reads must bypass Next's Data Cache, else the sum freezes at the last deploy's value (matches every other data route)
 
 // GET /api/visitors -> { visitors }
 // One site-wide page-view total (list views + quiz-page views), so the shared

@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1000" height="800" viewBox="0 0 1000 800">
+<rect width="1000" height="800" fill="#faf9f6"/>
+<rect x="10" y="10" width="980" height="780" rx="14" fill="none" stroke="#00000014" stroke-width="2"/>
+<path d="M 80 330 C 113.33333333333334 335, 215 340, 280 360 C 345 380, 430 431.6666666666667, 470 450 C 510 468.3333333333333, 481.6666666666667 481.6666666666667, 520 470 C 558.3333333333334 458.3333333333333, 630 391.6666666666667, 700 380 C 770 368.3333333333333, 900 396.6666666666667, 940 400" fill="none" stroke="#a9d4e6" stroke-width="26" stroke-linejoin="round" stroke-linecap="round"/>
+<polyline points="120,400 880,400" fill="none" stroke="#FFCD00" stroke-width="9" stroke-linejoin="round" stroke-linecap="round"/>
+<polyline points="500,140 500,690" fill="none" stroke="#CF009E" stroke-width="9" stroke-linejoin="round" stroke-linecap="round"/>
+<polyline points="170,200 820,640" fill="none" stroke="#62259D" stroke-width="9" stroke-linejoin="round" stroke-linecap="round"/>
+<polyline points="180,640 830,200" fill="none" stroke="#FF7E2E" stroke-width="9" stroke-linejoin="round" stroke-linecap="round"/>
+<polyline points="250,150 560,690" fill="none" stroke="#837902" stroke-width="9" stroke-linejoin="round" stroke-linecap="round"/>
+<polyline points="150,470 500,300 860,300" fill="none" stroke="#FA9ABA" stroke-width="9" stroke-linejoin="round" stroke-linecap="round"/>
+<polyline points="150,300 520,520 840,520" fill="none" stroke="#B6BD00" stroke-width="9" stroke-linejoin="round" stroke-linecap="round"/>
+<path d="M 150 410.00000000000006 A 350 250 0 0 1 850 409.99999999999994" fill="none" stroke="#0064B0" stroke-width="12" stroke-linecap="round"/>
+<path d="M 850 410 A 350 250 0 0 1 150 410.00000000000006" fill="none" stroke="#6ECA97" stroke-width="12" stroke-linecap="round"/>
+<circle cx="500" cy="400" r="8" fill="#ffffff" stroke="#2b2b31" stroke-width="3"/><circle cx="350" cy="320" r="8" fill="#ffffff" stroke="#2b2b31" stroke-width="3"/><circle cx="650" cy="320" r="8" fill="#ffffff" stroke="#2b2b31" stroke-width="3"/><circle cx="400" cy="520" r="8" fill="#ffffff" stroke="#2b2b31" stroke-width="3"/><circle cx="640" cy="500" r="8" fill="#ffffff" stroke="#2b2b31" stroke-width="3"/>
+</svg>
