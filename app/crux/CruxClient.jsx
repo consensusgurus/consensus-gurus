@@ -669,7 +669,6 @@ export default function CruxClient({ puzzles = [], forceNum = null }) {
   const isTodays = PUZZLE.num === pickPuzzle(puzzles, null).num;
   const elapsed = g.t0 ? fmtTime((g.tEnd || Date.now()) - g.t0) : '0:00';
   const myStats = deriveStats(stats, pickPuzzle(puzzles, null).num);
-  const topPlayer = (board.leaderboard && board.leaderboard[0]) || (board.leaderboardAll && board.leaderboardAll[0]) || null;
 
   // Share of players this run beat, from the exact score distribution the
   // board API returns. Own attempt excluded; hidden under a small sample.
@@ -991,7 +990,7 @@ export default function CruxClient({ puzzles = [], forceNum = null }) {
                 const clickable = playing && pick;
                 return (
                   <div key={ci} className="cl-cat" onClick={clickable ? () => fileWord(pick, ci) : undefined}
-                    style={{ background: cc.bg, borderRadius: 8, padding: '10px 12px', minHeight: 74, border: '1.5px solid rgba(28,30,36,0.35)', boxShadow: '2px 2px 0 rgba(28,30,36,0.10)', cursor: clickable ? 'pointer' : 'default', outline: clickable ? `2.5px dashed ${cc.tc}` : 'none', outlineOffset: 2 }}>
+                    style={{ background: cc.bg, borderRadius: 8, padding: '16px 14px', minHeight: 165, display: 'flex', flexDirection: 'column', justifyContent: 'center', border: '1.5px solid rgba(28,30,36,0.35)', boxShadow: '2px 2px 0 rgba(28,30,36,0.10)', cursor: clickable ? 'pointer' : 'default', outline: clickable ? `2.5px dashed ${cc.tc}` : 'none', outlineOffset: 2 }}>
                     <div style={{ color: cc.tc, fontWeight: 800, fontSize: 12.5, textTransform: 'uppercase', letterSpacing: '.03em', lineHeight: 1.25, marginBottom: 7, textShadow: '0 1px 0 rgba(255,255,255,0.35)' }}>{cat.name}</div>
                     <div style={{ display: 'flex', gap: 5, flexWrap: 'wrap' }}>
                       {cat.words.map((_, i) => {
@@ -1009,19 +1008,6 @@ export default function CruxClient({ puzzles = [], forceNum = null }) {
                   </div>
                 );
               })}
-            </div>
-
-            {/* today's top player — name only, links to their Stat Hub */}
-            <div style={{ marginBottom: 14, paddingTop: 12, borderTop: '1px solid rgba(28,30,36,0.14)' }}>
-              <div style={{ fontFamily: MONO, fontSize: 10.5, fontWeight: 500, textTransform: 'uppercase', letterSpacing: '0.1em', color: COLORS.faded, marginBottom: 7 }}>Today&apos;s top player</div>
-              {topPlayer && topPlayer.username ? (
-                <a href={topPlayer.userKey ? `/quizzes/hub?player=${encodeURIComponent(topPlayer.userKey)}` : '/quizzes/hub'}
-                  style={{ display: 'block', background: '#fff', border: '1px solid rgba(28,30,36,0.14)', borderRadius: 8, padding: '10px 12px', fontFamily: SANS, fontWeight: 800, fontSize: 15, color: COLORS.ink, textDecoration: 'none', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                  {topPlayer.username}
-                </a>
-              ) : (
-                <div style={{ background: '#fff', border: '1px solid rgba(28,30,36,0.14)', borderRadius: 8, padding: '10px 12px', fontFamily: SANS, fontWeight: 700, fontSize: 13.5, color: COLORS.faded }}>Be the first to finish.</div>
-              )}
             </div>
 
             {/* filing tray */}
@@ -1107,19 +1093,22 @@ export default function CruxClient({ puzzles = [], forceNum = null }) {
               </button>
             )}
           </div>
-            {/* your streak — quiet mini stat tiles, below the Challenge/Share buttons */}
-            <div style={{ marginTop: 18, paddingTop: 12, borderTop: '1px solid rgba(28,30,36,0.14)', display: 'flex', gap: 6, flexWrap: 'wrap' }}>
-              {[
-                { n: myStats.cur, l: 'Streak' },
-                { n: myStats.played, l: 'Played' },
-                { n: myStats.played ? `${Math.round((myStats.perfect / myStats.played) * 100)}%` : '\u2014', l: 'Perfect' },
-                { n: myStats.max, l: 'Best' },
-              ].map((st, i) => (
-                <div key={i} style={{ flex: '1 1 0', minWidth: 54, background: '#fff', border: '1px solid rgba(28,30,36,0.12)', borderRadius: 7, padding: '6px 5px', textAlign: 'center' }}>
-                  <div style={{ fontSize: 15, fontWeight: 800, color: COLORS.ink, lineHeight: 1.1, fontVariantNumeric: 'tabular-nums' }}>{st.n}</div>
-                  <div style={{ fontSize: 9, fontWeight: 700, color: COLORS.faded, textTransform: 'uppercase', letterSpacing: '0.04em', marginTop: 2 }}>{st.l}</div>
-                </div>
-              ))}
+            {/* your stats — quiet mini stat tiles under a heading, below Challenge/Share */}
+            <div style={{ marginTop: 18, paddingTop: 14, borderTop: '1px solid rgba(28,30,36,0.14)' }}>
+              <div style={{ fontFamily: MONO, fontSize: 10.5, fontWeight: 500, textTransform: 'uppercase', letterSpacing: '0.1em', color: COLORS.faded, marginBottom: 9 }}>Your stats</div>
+              <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
+                {[
+                  { n: myStats.cur, l: 'Streak' },
+                  { n: myStats.played, l: 'Played' },
+                  { n: myStats.played ? `${Math.round((myStats.perfect / myStats.played) * 100)}%` : '\u2014', l: 'Perfect' },
+                  { n: myStats.max, l: 'Best' },
+                ].map((st, i) => (
+                  <div key={i} style={{ flex: '1 1 0', minWidth: 54, background: '#fff', border: '1px solid rgba(28,30,36,0.12)', borderRadius: 7, padding: '6px 5px', textAlign: 'center' }}>
+                    <div style={{ fontSize: 15, fontWeight: 800, color: COLORS.ink, lineHeight: 1.1, fontVariantNumeric: 'tabular-nums' }}>{st.n}</div>
+                    <div style={{ fontSize: 9, fontWeight: 700, color: COLORS.faded, textTransform: 'uppercase', letterSpacing: '0.04em', marginTop: 2 }}>{st.l}</div>
+                  </div>
+                ))}
+              </div>
             </div>
 
           {mobileUi && !standalone && (
