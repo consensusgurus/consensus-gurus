@@ -1,0 +1,754 @@
+'use client';
+
+// Span — cross the map, border by border.
+//
+// Each day: a start country and a destination. Build a chain of countries
+// where every step shares a land border with the last. Par is the shortest
+// possible road. Score is 10 if your final chain matches par, minus one per
+// country over, floor 1 — hops are derived from the chain, so undo truly
+// refunds a step. A country that doesn't border your position is a miss
+// (misses break ties). One free hint walks you one step down a shortest road.
+//
+// Same daily plumbing as Crux: banked puzzles gated by Eastern date on the
+// server (app/span/page.js), per-puzzle localStorage saves, /span?p=N
+// archive pinning, streaks + stats, and the shared /api/quiz/* board flow.
+// The border graph (app/span/borders.js) ships to the client — it holds no
+// answers, just the world.
+
+import React, { useState, useEffect, useMemo, useRef } from 'react';
+import { useSearchParams } from 'next/navigation';
+import { HelpCircle, Share2, RotateCcw, X, Undo2, Flag, Swords, Smartphone, Lightbulb, Eye } from 'lucide-react';
+import Grain from '../Grain';
+import Footer from '../Footer';
+import DailyGamesPromo from '../DailyGamesPromo';
+import useDuelContext, { DuelBanner } from '../quiz/[id]/useDuelContext';
+import JoinLeaderboardForm from '../quiz/[id]/JoinLeaderboardForm';
+import QuizLeaderboard from '../quiz/[id]/QuizLeaderboard';
+import { isMobileDevice } from '@/lib/is-mobile';
+import { buildAdj, buildLookup, shortestRoute, normName, COUNTRIES } from './borders';
+
+const COLORS = {
+  cream: '#f7f8fa',
+  paper: '#eceef1',
+  ink: '#1c1e24',
+  ember: '#2563eb',
+  rust: '#c0392b',
+  faded: '#6b7280',
+  trail: '#15803d',
+  trailSoft: '#eefaf1',
+};
+const SANS = "'Manrope', system-ui, -apple-system, sans-serif";
+const MONO = "'DM Mono', ui-monospace, 'SFMono-Regular', monospace";
+const PAPER = '#fbf9f4';
+const HELP_KEY = 'sot_span_help_seen';
+const STATS_KEY = 'sot_span_stats';
+
+const isIosDevice = () =>
+  typeof navigator !== 'undefined' &&
+  (/iPad|iPhone|iPod/.test(navigator.userAgent || '') ||
+    (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1));
+
+function etToday() {
+  try { return new Date().toLocaleDateString('en-CA', { timeZone: 'America/New_York' }); }
+  catch (e) { return new Date().toISOString().slice(0, 10); }
+}
+function pickPuzzle(puzzles, forceNum) {
+  if (forceNum) { const p = puzzles.find((x) => x.num === forceNum); if (p) return p; }
+  const today = etToday();
+  const open = puzzles.filter((p) => p.live <= today);
+  return open.length ? open[open.length - 1] : puzzles[0];
+}
+function fmtTime(ms) {
+  const s = Math.max(0, Math.round(ms / 1000));
+  return `${Math.floor(s / 60)}:${String(s % 60).padStart(2, '0')}`;
+}
+function msToMidnightET() {
+  try {
+    const now = new Date();
+    const et = new Date(now.toLocaleString('en-US', { timeZone: 'America/New_York' }));
+    const next = new Date(et);
+    next.setHours(24, 0, 0, 0);
+    return next - et;
+  } catch (e) {
+    const now = new Date();
+    const next = new Date(now);
+    next.setHours(24, 0, 0, 0);
+    return next - now;
+  }
+}
+function fmtCountdown(ms) {
+  const s = Math.max(0, Math.floor(ms / 1000));
+  return `${Math.floor(s / 3600)}:${String(Math.floor((s % 3600) / 60)).padStart(2, '0')}:${String(s % 60).padStart(2, '0')}`;
+}
+function getAnonId() {
+  if (typeof window === 'undefined') return null;
+  try {
+    let a = localStorage.getItem('sot_quiz_anon');
+    if (!a) {
+      a = (window.crypto && crypto.randomUUID) ? crypto.randomUUID() : `a_${Date.now()}_${Math.random().toString(36).slice(2)}`;
+      localStorage.setItem('sot_quiz_anon', a);
+    }
+    return a;
+  } catch (e) { return null; }
+}
+const EMPTY_BOARD = { plays: 0, best: null, topTime: null, leaderboard: [], leaderboardAll: [], leaderboardMobile: [], leaderboardFirst: [], leaderboards: {} };
+
+// ─── Personal stats + streak (localStorage), Crux pattern ──────────────────
+function getStats() {
+  try {
+    const s = JSON.parse(localStorage.getItem(STATS_KEY));
+    if (s && s.v === 1 && s.rec) return s;
+  } catch (e) {}
+  return { v: 1, rec: {} };
+}
+function recordStat(num, entry) {
+  const s = getStats();
+  if (s.rec[num]) return s;
+  const s2 = { ...s, rec: { ...s.rec, [num]: entry } };
+  try { localStorage.setItem(STATS_KEY, JSON.stringify(s2)); } catch (e) {}
+  return s2;
+}
+function deriveStats(s, todayNum) {
+  const rec = s && s.rec ? s.rec : {};
+  const nums = Object.keys(rec).map(Number).sort((a, b) => a - b);
+  const played = nums.length;
+  const perfect = nums.filter((n) => rec[n].won).length;
+  let max = 0, run = 0, prev = null;
+  for (const n of nums) {
+    run = prev != null && n === prev + 1 ? run + 1 : 1;
+    if (run > max) max = run;
+    prev = n;
+  }
+  let cur = 0, at = rec[todayNum] ? todayNum : todayNum - 1;
+  while (rec[at]) { cur++; at--; }
+  return { played, perfect, cur, max };
+}
+function mergeServerStats(s, recent, puzzles) {
+  if (!s || !Array.isArray(recent) || !recent.length) return s;
+  const byQuiz = {};
+  for (const p of puzzles) byQuiz[p.quizId] = p;
+  let rec = s.rec, changed = false;
+  for (const m of recent) {
+    const p = m && byQuiz[m.quizId];
+    if (!p || m.attempt !== 1) continue;
+    if (rec[p.num]) continue;
+    const sc = Math.max(0, Math.min(10, Math.round(((m.scorePct || 0) / 100) * 10)));
+    if (!changed) { rec = { ...rec }; changed = true; }
+    rec[p.num] = { s: sc, t: 10, g: null, won: !!m.perfect };
+  }
+  if (!changed) return s;
+  const s2 = { ...s, rec };
+  try { localStorage.setItem(STATS_KEY, JSON.stringify(s2)); } catch (e) {}
+  return s2;
+}
+
+function freshState() {
+  return {
+    v: 1,
+    chain: null,       // [start, ...] — set from PUZZLE on mount
+    misses: 0,         // rejected attempts (no border / unknown / reused)
+    hintUsed: false,
+    status: 'playing', // playing | won | revealed
+    t0: null,
+    tEnd: null,
+  };
+}
+
+export default function SpanClient({ puzzles = [], forceNum = null }) {
+  const PUZZLE = useMemo(() => pickPuzzle(puzzles, forceNum), [puzzles, forceNum]);
+  const STORE_KEY = `sot_span_${PUZZLE.num}`;
+  const ADJ = useMemo(() => buildAdj(), []);
+  const LOOKUP = useMemo(() => buildLookup(), []);
+  const [g, setG] = useState(() => freshState());
+  const [typed, setTyped] = useState('');
+  const [showHelp, setShowHelp] = useState(false);
+  const [toast, setToast] = useState(null);
+  const [copied, setCopied] = useState(false);
+  const [shake, setShake] = useState(false);
+  const [armReveal, setArmReveal] = useState(false);
+  const [justWon, setJustWon] = useState(false);
+  const [hydrated, setHydrated] = useState(false);
+  const [board, setBoard] = useState(EMPTY_BOARD);
+  const [identity, setIdentity] = useState(null);
+  const [stats, setStats] = useState(null);
+  const [player, setPlayer] = useState(null);
+  const [countdown, setCountdown] = useState('');
+  const [installEvt, setInstallEvt] = useState(null);
+  const [showA2hsHelp, setShowA2hsHelp] = useState(false);
+  const [standalone, setStandalone] = useState(false);
+  const [mobileUi, setMobileUi] = useState(false);
+  const searchParams = useSearchParams();
+  const { duelToken, duelInfo, duelSubmitted } = useDuelContext(PUZZLE.quizId, searchParams);
+  const toastTimer = useRef(null);
+  const viewedRef = useRef(false);
+  const inputRef = useRef(null);
+
+  const chain = g.chain || [PUZZLE.start];
+  const head = chain[chain.length - 1];
+  const hops = chain.length - 1; // score meter: final path length vs par
+  const playing = g.status === 'playing';
+  const won = g.status === 'won';
+
+  useEffect(() => {
+    if (!armReveal) return undefined;
+    const t = setTimeout(() => setArmReveal(false), 3500);
+    return () => clearTimeout(t);
+  }, [armReveal]);
+  useEffect(() => {
+    try {
+      setStandalone(window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true);
+      setMobileUi(isMobileDevice());
+    } catch {}
+    const onBip = (e) => { e.preventDefault(); setInstallEvt(e); };
+    const onInstalled = () => { setStandalone(true); setInstallEvt(null); };
+    window.addEventListener('beforeinstallprompt', onBip);
+    window.addEventListener('appinstalled', onInstalled);
+    return () => { window.removeEventListener('beforeinstallprompt', onBip); window.removeEventListener('appinstalled', onInstalled); };
+  }, []);
+  const a2hsClick = () => { const e = installEvt; if (e) { setInstallEvt(null); e.prompt(); } else { setShowA2hsHelp(true); } };
+
+  // ---- persistence ----
+  useEffect(() => {
+    try {
+      const raw = localStorage.getItem(STORE_KEY);
+      if (raw) {
+        const saved = JSON.parse(raw);
+        if (saved && saved.v === 1 && Array.isArray(saved.chain) && saved.chain[0] === PUZZLE.start) setG({ ...freshState(), ...saved });
+      }
+      if (!localStorage.getItem(HELP_KEY)) setShowHelp(true);
+    } catch (e) {}
+    try { setStats(getStats()); } catch (e) {}
+    setHydrated(true);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+  useEffect(() => {
+    if (!hydrated) return;
+    try { localStorage.setItem(STORE_KEY, JSON.stringify(g)); } catch (e) {}
+    // same-device day breadcrumb for cross-game recommendations — only for
+    // TODAY'S puzzle (archive replays must not mark today as played)
+    try {
+      if (PUZZLE.num === pickPuzzle(puzzles, null).num) {
+        localStorage.setItem('sot_span_day', JSON.stringify({ d: etToday(), done: g.status !== 'playing' }));
+      }
+    } catch (e) {}
+  }, [g, hydrated, STORE_KEY, PUZZLE, puzzles]);
+
+  useEffect(() => {
+    if (g.status === 'playing') return;
+    const tick = () => setCountdown(fmtCountdown(msToMidnightET()));
+    tick();
+    const iv = setInterval(tick, 1000);
+    return () => clearInterval(iv);
+  }, [g.status]);
+
+  // ---- metrics + leaderboard (same /api/quiz/* flow as every other board) ----
+  useEffect(() => {
+    try {
+      const id = JSON.parse(localStorage.getItem('sot_quiz_identity'));
+      if (id && id.email) setIdentity(id);
+    } catch (e) {}
+    try {
+      const anon = getAnonId();
+      let em = '';
+      try {
+        const idj = JSON.parse(localStorage.getItem('sot_quiz_identity') || 'null');
+        if (idj && idj.email) em = `&email=${encodeURIComponent(idj.email)}`;
+      } catch (e) {}
+      if (anon || em) {
+        fetch(`/api/quiz/me?anonId=${encodeURIComponent(anon || '')}${em}`)
+          .then((r) => r.json())
+          .then((d) => {
+            if (d && Array.isArray(d.recent)) {
+              setStats((cur) => mergeServerStats(cur || getStats(), d.recent, puzzles));
+            }
+            if (d && d.found && d.name) setPlayer({ name: d.name, rank: (d.ranks && d.ranks.xp) || d.rank || null, key: d.userKey || null });
+          })
+          .catch(() => {});
+      }
+    } catch (e) {}
+    fetch(`/api/quiz/board?quizId=${encodeURIComponent(PUZZLE.quizId)}`)
+      .then((r) => r.json())
+      .then((d) => { if (d && !d.error) setBoard({ ...EMPTY_BOARD, ...d }); })
+      .catch(() => {});
+    if (!viewedRef.current) {
+      viewedRef.current = true;
+      fetch('/api/quiz/view', { method: 'POST', keepalive: true, headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ quizId: PUZZLE.quizId }) }).catch(() => {});
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  function say(msg) {
+    setToast(msg);
+    if (toastTimer.current) clearTimeout(toastTimer.current);
+    toastTimer.current = setTimeout(() => setToast(null), 2400);
+  }
+
+  const elapsed = g.t0 ? fmtTime((g.tEnd || Date.now()) - g.t0) : '0:00';
+  const isTodays = PUZZLE.num === pickPuzzle(puzzles, null).num;
+  const prevPuzzle = puzzles.find((x) => x.num === PUZZLE.num - 1) || null;
+  const myStats = deriveStats(stats, pickPuzzle(puzzles, null).num);
+  const finalScore = won ? Math.max(1, Math.min(10, 10 - (hops - PUZZLE.par))) : 0;
+
+  function postResult(g2, score) {
+    const el = g2.t0 ? Math.max(1, Math.round(((g2.tEnd || Date.now()) - g2.t0) / 1000)) : 1;
+    try { setStats(recordStat(PUZZLE.num, { s: score, t: 10, g: g2.misses, won: g2.status === 'won' && (g2.chain.length - 1) === PUZZLE.par })); } catch (e) {}
+    try {
+      fetch('/api/quiz/result', {
+        method: 'POST',
+        keepalive: true,
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ quizId: PUZZLE.quizId, score, total: 10, correct: g2.status === 'won' ? 1 : 0, guessesUsed: g2.misses, timeElapsed: el, email: identity?.email || undefined, anonId: getAnonId(), isMobile: isMobileDevice(), referrer: (typeof document !== 'undefined' ? document.referrer : '') }),
+      })
+        .then((r) => r.json())
+        .then((d) => { if (d && !d.error) setBoard({ ...EMPTY_BOARD, ...d }); })
+        .catch(() => {});
+    } catch (e) {}
+  }
+
+  function miss(g2, msg) {
+    g2.misses = g2.misses + 1;
+    setShake(true);
+    setTimeout(() => setShake(false), 500);
+    say(msg);
+    setG(g2);
+  }
+
+  function addCountry(name) {
+    if (!playing) return;
+    const g2 = { ...g, chain: [...chain] };
+    if (!g2.t0) g2.t0 = Date.now();
+    const canonical = LOOKUP.get(normName(name));
+    if (!canonical) { miss(g2, 'Not a country on the Span map'); return; }
+    if (chain.includes(canonical)) { miss(g2, `${canonical} is already on your road`); return; }
+    if (!ADJ[head] || !ADJ[head].has(canonical)) { miss(g2, `${canonical} doesn't border ${head}`); return; }
+    g2.chain.push(canonical);
+    setTyped('');
+    if (canonical === PUZZLE.end) {
+      g2.status = 'won';
+      g2.tEnd = Date.now();
+      const score = Math.max(1, Math.min(10, 10 - ((g2.chain.length - 1) - PUZZLE.par)));
+      postResult(g2, score);
+      setG(g2);
+      setJustWon(true);
+      return;
+    }
+    say(`${canonical} — ${g2.chain.length - 1} hop${g2.chain.length - 1 === 1 ? '' : 's'} in.`);
+    setG(g2);
+  }
+
+  function undo() {
+    if (!playing || chain.length <= 1) return;
+    const g2 = { ...g, chain: chain.slice(0, -1) };
+    setG(g2);
+  }
+
+  // One free hint: take one step down a shortest road from where you stand.
+  // It costs its move like any step — the share string carries the 💡.
+  function useHint() {
+    if (!playing || g.hintUsed) return;
+    const route = shortestRoute(ADJ, head, PUZZLE.end);
+    if (!route || route.length < 2) return;
+    const next = route[1];
+    const g2 = { ...g, chain: [...chain, next], hintUsed: true };
+    if (!g2.t0) g2.t0 = Date.now();
+    if (next === PUZZLE.end) {
+      g2.status = 'won';
+      g2.tEnd = Date.now();
+      const score = Math.max(1, Math.min(10, 10 - ((g2.chain.length - 1) - PUZZLE.par)));
+      postResult(g2, score);
+      setG(g2);
+      setJustWon(true);
+      return;
+    }
+    say(`Hint: ${next}. That was the one.`);
+    setG(g2);
+  }
+
+  function revealEnd() {
+    const g2 = { ...g, status: 'revealed', tEnd: Date.now() };
+    if (!g2.t0) g2.t0 = Date.now();
+    postResult(g2, 0);
+    setG(g2);
+  }
+
+  function resetGame() {
+    try { localStorage.removeItem(STORE_KEY); } catch (e) {}
+    setG(freshState()); setTyped(''); setJustWon(false);
+  }
+
+  // typeahead suggestions: prefix matches first, then contains
+  const suggestions = useMemo(() => {
+    if (!playing) return [];
+    const q = normName(typed);
+    if (q.length < 2) return [];
+    const pre = [], mid = [];
+    for (const c of COUNTRIES) {
+      const n = normName(c);
+      if (chain.includes(c)) continue;
+      if (n.startsWith(q)) pre.push(c);
+      else if (n.includes(q)) mid.push(c);
+    }
+    return [...pre, ...mid].slice(0, 6);
+  }, [typed, playing, chain]);
+
+  const beatPct = (() => {
+    if (g.status === 'playing') return null;
+    const dist = board.scoreDist;
+    if (!dist) return null;
+    const my = finalScore;
+    let below = 0, all = 0;
+    for (const [k, v] of Object.entries(dist)) {
+      const n = Number(v) || 0;
+      all += n;
+      if (Number(k) < my) below += n;
+    }
+    const others = all - 1;
+    if (others < 10) return null;
+    return Math.max(0, Math.min(100, Math.round((below / others) * 100)));
+  })();
+
+  function shareText() {
+    const hops = chain.length - 1;
+    const squares = won
+      ? '\u{1F7E9}' + '\u{1F7E6}'.repeat(Math.max(0, hops - 1)) + '\u{1F3C1}'
+      : '\u{1F7E9}' + '\u{1F7E6}'.repeat(Math.max(0, hops)) + '⬛';
+    const hintBit = g.hintUsed ? ' · 💡' : '';
+    const streakBit = isTodays && myStats.cur >= 2 ? ` · streak ${myStats.cur}` : '';
+    const head2 = won
+      ? `Span #${PUZZLE.num} · ${PUZZLE.start} → ${PUZZLE.end} · ${hops} hops (par ${PUZZLE.par}) · ${elapsed}${hintBit}${streakBit}`
+      : `Span #${PUZZLE.num} · ${PUZZLE.start} → ${PUZZLE.end} · gave up at ${hops} hop${hops === 1 ? '' : 's'}${hintBit}`;
+    return `${head2}\n${squares}\n${shareUrl()}`;
+  }
+  function shareUrl() {
+    return `sourceoftruths.com/span${isTodays ? '' : `?p=${PUZZLE.num}`}`;
+  }
+  function copyShare() {
+    const text = playing
+      ? `Span #${PUZZLE.num} — get from ${PUZZLE.start} to ${PUZZLE.end}, border by border. Par is ${PUZZLE.par}.\n${shareUrl()}`
+      : shareText();
+    try {
+      if (typeof navigator !== 'undefined' && navigator.share && isMobileDevice()) {
+        navigator.share({ text }).catch(() => {});
+        return;
+      }
+    } catch (e) {}
+    try {
+      navigator.clipboard?.writeText(text).then(() => {
+        setCopied(true);
+        setTimeout(() => setCopied(false), 1800);
+      });
+    } catch (e) {}
+  }
+
+  const revealRoute = g.status === 'revealed' ? shortestRoute(ADJ, PUZZLE.start, PUZZLE.end) : null;
+
+  function chip(name, kind, key) {
+    const base = { display: 'inline-flex', alignItems: 'center', gap: 6, fontFamily: SANS, fontWeight: 800, fontSize: 13.5, borderRadius: 8, padding: '7px 11px', border: '1.5px solid rgba(28,30,36,0.35)' };
+    if (kind === 'start') return <span key={key} style={{ ...base, background: COLORS.ink, color: '#fff' }}>{name}</span>;
+    if (kind === 'end') return <span key={key} style={{ ...base, background: '#fff', color: COLORS.ink, borderStyle: 'dashed' }}><Flag size={13} /> {name}</span>;
+    if (kind === 'goal') return <span key={key} style={{ ...base, background: COLORS.trail, color: '#fff', borderColor: COLORS.trail }}><Flag size={13} /> {name}</span>;
+    return <span key={key} style={{ ...base, background: COLORS.trailSoft, color: '#14532d', borderColor: 'rgba(21,128,61,0.45)' }}>{name}</span>;
+  }
+  const arrow = (k) => <span key={k} style={{ color: '#9aa0ab', fontWeight: 800 }}>&rarr;</span>;
+
+  return (
+    <div style={{ minHeight: '100vh', background: '#f7f8fa', position: 'relative' }}>
+      <Grain />
+      <div className="sp-wrap" style={{ position: 'relative', zIndex: 2, maxWidth: 1180, margin: '0 auto', padding: '18px 38px 80px', fontFamily: SANS }}>
+        <style>{`
+          @media(max-width:560px){.sp-wrap{padding-left:14px !important;padding-right:14px !important;}}
+          .sp-btn{font-family:${SANS};font-weight:800;font-size:14px;border:2px solid ${COLORS.ink};background:#fff;color:${COLORS.ink};border-radius:8px;padding:9px 16px;cursor:pointer;display:inline-flex;align-items:center;gap:7px;}
+          .sp-btn:hover{background:${COLORS.paper};}
+          @keyframes spshake{0%,100%{transform:translateX(0);}20%,60%{transform:translateX(-5px);}40%,80%{transform:translateX(5px);}}
+          .sp-shake{animation:spshake .45s ease;}
+          @keyframes spfade{from{opacity:0;}}
+          @keyframes spstamp{from{opacity:0;transform:scale(.94);}}
+          .sp-sug{display:block;width:100%;text-align:left;background:#fff;border:none;border-bottom:1px solid rgba(28,30,36,0.08);font-family:${SANS};font-weight:700;font-size:14px;color:${COLORS.ink};padding:9px 13px;cursor:pointer;}
+          .sp-sug:hover{background:#eef4ff;}
+          @media(max-width:520px){.sp-htp-f{display:none;}.sp-htp-s{display:inline;}}
+          .sp-htp-s{display:none;}
+        `}</style>
+
+        <div style={{ maxWidth: 620, margin: '0 auto' }}>
+
+        {/* game-native top strip (Crux pattern): quiet nav + player chip */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: 18, marginBottom: 20, flexWrap: 'wrap' }}>
+          <a href="/quizzes" style={{ fontFamily: MONO, fontSize: 11, letterSpacing: '0.12em', textTransform: 'uppercase', color: COLORS.faded, textDecoration: 'none', borderBottom: '1px solid rgba(28,30,36,0.25)', paddingBottom: 1 }}>Quizzes</a>
+          <a href="/" style={{ fontFamily: MONO, fontSize: 11, letterSpacing: '0.12em', textTransform: 'uppercase', color: COLORS.faded, textDecoration: 'none', borderBottom: '1px solid rgba(28,30,36,0.25)', paddingBottom: 1 }}>Top 10 Lists</a>
+          {player && (
+            <a href={player.key ? `/quizzes/hub?player=${encodeURIComponent(player.key)}` : '/quizzes/hub'} title="Your Stat Hub"
+              style={{ marginLeft: 'auto', display: 'inline-flex', alignItems: 'center', gap: 7, fontFamily: MONO, fontSize: 11, letterSpacing: '0.06em', color: COLORS.ink, background: PAPER, border: '1.5px solid rgba(28,30,36,0.35)', borderRadius: 5, padding: '4px 10px', textDecoration: 'none' }}>
+              <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', maxWidth: 150, fontWeight: 500 }}>{player.name}</span>
+              {player.rank ? <span style={{ color: COLORS.ember, fontWeight: 500 }}>Rank #{player.rank}</span> : null}
+            </a>
+          )}
+        </div>
+
+        {/* masthead: pressed SPAN tiles, trail-green accent */}
+        <div style={{ marginBottom: 16 }}>
+          <div style={{ display: 'flex', gap: 5, alignItems: 'flex-end' }}>
+            {'SPAN'.split('').map((ch, i) => (
+              <div key={i} style={{ width: 46, height: 46, borderRadius: 5, display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: SANS, fontWeight: 900, fontSize: 28, background: i === 2 ? COLORS.trail : COLORS.ink, color: '#fff', boxShadow: 'inset 0 2px 5px rgba(0,0,0,0.5), 0 1px 0 rgba(255,255,255,0.65)' }}>{ch}</div>
+            ))}
+          </div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 13, flexWrap: 'wrap', marginTop: 14, borderTop: '2px solid rgba(28,30,36,0.8)', borderBottom: '1px solid rgba(28,30,36,0.35)', padding: '7px 2px' }}>
+            <h1 style={{ margin: 0, fontFamily: MONO, fontSize: 12, letterSpacing: '0.08em', fontWeight: 500, color: COLORS.ink }}>No. {PUZZLE.num}</h1>
+            <span style={{ fontFamily: SANS, fontStyle: 'italic', fontSize: 14, color: COLORS.ink }}>{PUZZLE.dateLabel}</span>
+            <span style={{ fontFamily: MONO, fontSize: 10.5, letterSpacing: '0.12em', textTransform: 'uppercase', color: COLORS.faded }}>border by border</span>
+            <span style={{ marginLeft: 'auto', display: 'flex', gap: 14 }}>
+              <button onClick={() => setShowHelp(true)} aria-label="How to play" style={{ background: 'none', border: 'none', cursor: 'pointer', color: COLORS.faded, display: 'flex', alignItems: 'center', gap: 5, fontFamily: SANS, fontWeight: 700, fontSize: 12.5, padding: 0 }}>
+                <HelpCircle size={16} /> <span className="sp-htp-f">How to play</span><span className="sp-htp-s">Help</span>
+              </button>
+            </span>
+          </div>
+        </div>
+
+        {/* the assignment */}
+        <div style={{ background: '#fff', border: `2px solid ${COLORS.ink}`, borderRadius: 10, padding: '13px 15px', boxShadow: '5px 5px 0 rgba(28,30,36,0.16)', marginBottom: 12 }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 12, fontFamily: MONO, fontSize: 11.5, letterSpacing: '0.1em', textTransform: 'uppercase', color: COLORS.faded, borderBottom: '1px solid rgba(28,30,36,0.18)', paddingBottom: 8, marginBottom: 12, flexWrap: 'wrap' }}>
+            <span style={{ whiteSpace: 'nowrap' }}><b style={{ color: COLORS.ink, fontWeight: 500 }}>{PUZZLE.start}</b> &rarr; <b style={{ color: COLORS.ink, fontWeight: 500 }}>{PUZZLE.end}</b></span>
+            <span style={{ marginLeft: 'auto', whiteSpace: 'nowrap' }}>par <b style={{ color: COLORS.ink, fontWeight: 500 }}>{PUZZLE.par}</b> &middot; hops <b style={{ color: hops > PUZZLE.par ? COLORS.rust : COLORS.ink, fontWeight: 500 }}>{hops}</b> &middot; misses <b style={{ color: g.misses > 0 ? COLORS.rust : COLORS.ink, fontWeight: 500 }}>{g.misses}</b></span>
+          </div>
+
+          {/* the road so far */}
+          <div className={shake ? 'sp-shake' : undefined} style={{ display: 'flex', alignItems: 'center', gap: 7, flexWrap: 'wrap', marginBottom: 4 }}>
+            {chain.map((c, i) => {
+              const kind = i === 0 ? 'start' : won && i === chain.length - 1 ? 'goal' : 'step';
+              const parts = [chip(c, kind, `c${i}`)];
+              if (i < chain.length - 1) parts.push(arrow(`a${i}`));
+              return parts;
+            })}
+            {!won && [arrow('af'), <span key="dots" style={{ color: '#9aa0ab', fontWeight: 800, letterSpacing: 2 }}>&hellip;</span>, arrow('ae'), chip(PUZZLE.end, 'end', 'endchip')]}
+          </div>
+          {won && <div style={{ fontFamily: MONO, fontSize: 11, color: COLORS.trail, fontWeight: 500, marginTop: 6 }}>Spanned in {chain.length - 1} hop{chain.length - 1 === 1 ? '' : 's'}.</div>}
+        </div>
+
+        {/* input */}
+        {playing && (
+          <div style={{ marginBottom: 12 }}>
+            <div style={{ display: 'flex', gap: 8, alignItems: 'stretch' }}>
+              <div style={{ position: 'relative', flex: 1 }}>
+                <input
+                  ref={inputRef}
+                  value={typed}
+                  onChange={(e) => setTyped(e.target.value)}
+                  onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); if (suggestions.length === 1) addCountry(suggestions[0]); else addCountry(typed); } }}
+                  placeholder={`Next stop from ${head}…`}
+                  autoComplete="off" autoCorrect="off" autoCapitalize="off" spellCheck={false}
+                  style={{ width: '100%', boxSizing: 'border-box', fontFamily: SANS, fontWeight: 700, fontSize: 15, color: COLORS.ink, background: '#fff', border: `2px solid ${COLORS.ink}`, borderRadius: 9, padding: '11px 13px', outline: 'none' }}
+                />
+                {suggestions.length > 0 && (
+                  <div style={{ position: 'absolute', top: '100%', left: 0, right: 0, zIndex: 30, background: '#fff', border: '1.5px solid rgba(28,30,36,0.35)', borderRadius: 9, marginTop: 4, overflow: 'hidden', boxShadow: '0 8px 20px rgba(20,22,28,0.14)' }}>
+                    {suggestions.map((c) => (
+                      <button key={c} className="sp-sug" onMouseDown={(e) => { e.preventDefault(); addCountry(c); }}>{c}</button>
+                    ))}
+                  </div>
+                )}
+              </div>
+              <button className="sp-btn" onClick={() => { if (suggestions.length === 1) addCountry(suggestions[0]); else addCountry(typed); }} style={{ background: COLORS.trail, color: '#fff', borderColor: COLORS.trail }}>Go</button>
+            </div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 9, flexWrap: 'wrap' }}>
+              {chain.length > 1 && (
+                <button className="sp-btn" onClick={undo} style={{ borderColor: '#c3c8cf', color: COLORS.faded, padding: '6px 12px', fontSize: 12.5 }}>
+                  <Undo2 size={14} /> Undo last step
+                </button>
+              )}
+              {!g.hintUsed && (
+                <button className="sp-btn" onClick={useHint} title="Take one step down a shortest road (one hint per puzzle)"
+                  style={{ background: '#fdf6e3', border: '1.5px solid rgba(230,185,63,0.7)', color: '#8a6d1a', padding: '6px 12px', fontSize: 12.5 }}>
+                  <Lightbulb size={14} /> Hint
+                </button>
+              )}
+              {identity && (chain.length > 1 || g.misses > 0) && (
+                <button onClick={() => { if (armReveal) { setArmReveal(false); revealEnd(); } else { setArmReveal(true); } }}
+                  style={{ marginLeft: 'auto', background: 'none', border: 'none', cursor: 'pointer', fontFamily: SANS, fontWeight: 700, fontSize: 12, color: armReveal ? COLORS.rust : COLORS.faded, textDecoration: 'underline', textUnderlineOffset: 3, display: 'inline-flex', alignItems: 'center', gap: 5 }}>
+                  <Eye size={13} /> {armReveal ? 'Tap again — ends the game and shows a shortest road' : 'Reveal a road & end'}
+                </button>
+              )}
+            </div>
+          </div>
+        )}
+
+        {/* result */}
+        {!playing && (
+          <div style={{ background: '#fff', border: `2px solid ${COLORS.ink}`, borderRadius: 12, padding: '16px 16px 14px', marginBottom: 14 }}>
+            <div style={{ fontSize: 19, fontWeight: 800, color: won ? COLORS.trail : COLORS.rust, marginBottom: 4 }}>
+              {won ? (hops === PUZZLE.par ? 'Spanned at par.' : `Spanned, ${hops - PUZZLE.par} over par.`) : 'Revealed.'}
+            </div>
+            <div style={{ fontSize: 13.5, fontWeight: 700, color: COLORS.faded, marginBottom: 6 }}>
+              {won
+                ? <>{finalScore}/10 &middot; {hops} hops (par {PUZZLE.par}) &middot; {g.misses} miss{g.misses === 1 ? '' : 'es'} &middot; {elapsed}{g.hintUsed ? <> &middot; 1 hint</> : null}</>
+                : <>0/10 &middot; a shortest road is below</>}
+            </div>
+            {revealRoute && (
+              <div style={{ display: 'flex', alignItems: 'center', gap: 6, flexWrap: 'wrap', margin: '8px 0 4px' }}>
+                {revealRoute.map((c, i) => {
+                  const parts = [chip(c, i === 0 ? 'start' : i === revealRoute.length - 1 ? 'goal' : 'step', `r${i}`)];
+                  if (i < revealRoute.length - 1) parts.push(arrow(`ra${i}`));
+                  return parts;
+                })}
+              </div>
+            )}
+            {PUZZLE.note && (
+              <div style={{ fontSize: 12.5, fontWeight: 600, color: COLORS.faded, fontStyle: 'italic', margin: '6px 0 10px', lineHeight: 1.5 }}>{PUZZLE.note}</div>
+            )}
+            {(beatPct != null || (isTodays && myStats.cur >= 2)) && (
+              <div style={{ fontSize: 13, fontWeight: 800, marginBottom: 12, display: 'flex', gap: 12, flexWrap: 'wrap' }}>
+                {beatPct != null && <span style={{ color: COLORS.ember }}>You beat {beatPct}% of players on this puzzle</span>}
+                {isTodays && myStats.cur >= 2 && <span style={{ color: '#b45309' }}>{myStats.cur}-day streak</span>}
+              </div>
+            )}
+            <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+              <button className="sp-btn" onClick={copyShare}><Share2 size={15} /> {copied ? 'Copied' : 'Share result'}</button>
+              <button className="sp-btn" onClick={resetGame} style={{ borderColor: '#c3c8cf', color: COLORS.faded }}><RotateCcw size={15} /> Replay</button>
+            </div>
+            <DailyGamesPromo self="span" refresh={g.status} />
+            <p style={{ fontSize: 12, color: COLORS.faded, fontWeight: 600, margin: '12px 0 0' }}>
+              {countdown ? <>Next Span in <b style={{ color: COLORS.ink, fontVariantNumeric: 'tabular-nums' }}>{countdown}</b>.</> : 'A new route drops at midnight Eastern.'}
+              {prevPuzzle && (
+                <>
+                  {' '}Meanwhile:{' '}
+                  <a href={`/span?p=${prevPuzzle.num}`} style={{ color: COLORS.ember, fontWeight: 800, textDecoration: 'underline' }}>
+                    play {isTodays ? "yesterday's Span" : `the ${prevPuzzle.dateLabel.replace(', 2026', '')} Span`} &rarr;
+                  </a>
+                </>
+              )}
+            </p>
+          </div>
+        )}
+
+        {/* standard quiz-page bottom: challenge + stats + join + leaderboard */}
+        <div style={{ margin: '30px auto 0' }}>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: 10 }}>
+            <a href={`/duel/new?quiz=${encodeURIComponent(PUZZLE.quizId)}`} style={{ fontFamily: SANS, fontSize: 12.5, letterSpacing: '0.05em', textTransform: 'uppercase', fontWeight: 700, height: 52, padding: '0 10px', borderRadius: 10, border: 'none', background: COLORS.ink, color: '#fff', cursor: 'pointer', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 8, whiteSpace: 'nowrap', textDecoration: 'none' }}>
+              <Swords size={14} strokeWidth={2.5} /> Challenge a Friend
+            </a>
+            {playing && (
+              <button onClick={copyShare} style={{ fontFamily: SANS, fontSize: 12.5, letterSpacing: '0.05em', textTransform: 'uppercase', fontWeight: 700, height: 52, padding: '0 10px', borderRadius: 10, border: `1.5px solid ${COLORS.ink}`, background: COLORS.cream, color: COLORS.ink, cursor: 'pointer', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 8, whiteSpace: 'nowrap' }}>
+                <Share2 size={14} strokeWidth={2.5} /> {copied ? 'Copied' : 'Share This Puzzle'}
+              </button>
+            )}
+          </div>
+          <div style={{ marginTop: 18, paddingTop: 14, borderTop: '1px solid rgba(28,30,36,0.14)' }}>
+            <div style={{ fontFamily: MONO, fontSize: 10.5, fontWeight: 500, textTransform: 'uppercase', letterSpacing: '0.1em', color: COLORS.faded, marginBottom: 9 }}>Your stats</div>
+            <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
+              {[
+                { n: myStats.cur, l: 'Streak' },
+                { n: myStats.played, l: 'Played' },
+                { n: myStats.played ? `${Math.round((myStats.perfect / myStats.played) * 100)}%` : '—', l: 'At par' },
+                { n: myStats.max, l: 'Best' },
+              ].map((st, i) => (
+                <div key={i} style={{ flex: '1 1 0', minWidth: 54, background: '#fff', border: '1px solid rgba(28,30,36,0.12)', borderRadius: 7, padding: '6px 5px', textAlign: 'center' }}>
+                  <div style={{ fontSize: 15, fontWeight: 800, color: COLORS.ink, lineHeight: 1.1, fontVariantNumeric: 'tabular-nums' }}>{st.n}</div>
+                  <div style={{ fontSize: 9, fontWeight: 700, color: COLORS.faded, textTransform: 'uppercase', letterSpacing: '0.04em', marginTop: 2 }}>{st.l}</div>
+                </div>
+              ))}
+            </div>
+          </div>
+          {mobileUi && !standalone && (
+            <button onClick={a2hsClick} style={{ marginTop: 10, width: '100%', fontFamily: SANS, fontSize: 13.5, letterSpacing: '0.05em', textTransform: 'uppercase', fontWeight: 800, height: 54, borderRadius: 10, border: 'none', background: '#21b45e', color: '#fff', cursor: 'pointer', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 9, whiteSpace: 'nowrap' }}>
+              <Smartphone size={15} strokeWidth={2.5} /> Add to Home Screen
+            </button>
+          )}
+        </div>
+        {showA2hsHelp && (
+          <div onClick={() => setShowA2hsHelp(false)} style={{ position: 'fixed', inset: 0, background: 'rgba(20,22,28,0.55)', zIndex: 90, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 18 }}>
+            <div onClick={(e) => e.stopPropagation()} style={{ background: '#fff', borderRadius: 14, maxWidth: 430, width: '100%', padding: '22px 22px 16px', fontFamily: SANS, border: '1.5px solid rgba(20,22,28,0.12)' }}>
+              <div style={{ fontSize: 17, fontWeight: 800, color: COLORS.ink, marginBottom: 8 }}>Add Span to your Home Screen</div>
+              {isIosDevice() ? (
+                <ol style={{ margin: '0 0 4px', paddingLeft: 20, color: COLORS.ink, fontSize: 14, lineHeight: 1.7 }}>
+                  <li>Tap the <b>Share</b> button in Safari&apos;s toolbar.</li>
+                  <li>Scroll down and tap <b>Add to Home Screen</b>.</li>
+                  <li>Tap <b>Add</b> &mdash; the green-route tile opens today&apos;s puzzle, every day.</li>
+                </ol>
+              ) : (
+                <p style={{ margin: '0 0 4px', color: COLORS.ink, fontSize: 14, lineHeight: 1.7 }}>
+                  Open your browser&apos;s menu and choose <b>Add to Home Screen</b> (or <b>Install app</b>). The green-route tile opens today&apos;s puzzle, every day.
+                </p>
+              )}
+              <button onClick={() => setShowA2hsHelp(false)} style={{ marginTop: 10, fontFamily: SANS, fontSize: 12.5, letterSpacing: '0.05em', textTransform: 'uppercase', fontWeight: 700, height: 44, width: '100%', borderRadius: 10, border: 'none', background: COLORS.ink, color: '#fff', cursor: 'pointer' }}>Got it</button>
+            </div>
+          </div>
+        )}
+        {!identity && (
+          <div style={{ margin: '18px auto 0' }}>
+            <JoinLeaderboardForm identity={identity} onJoined={(id) => { setIdentity(id); if (id && id.username) setPlayer((p) => p || { name: id.username, rank: null }); }} />
+          </div>
+        )}
+        </div>
+
+        <div style={{ maxWidth: 760, margin: '26px auto 0', background: '#fff', border: '1.5px solid rgba(20,22,28,0.12)', borderRadius: 12, padding: '14px 16px' }}>
+          <QuizLeaderboard board={board} identity={identity} total={10} />
+        </div>
+      </div>
+
+      {/* the win moment: keepsake card, Crux pattern */}
+      {justWon && (
+        <div onClick={() => setJustWon(false)} style={{ position: 'fixed', inset: 0, zIndex: 85, background: 'rgba(28,30,36,0.45)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16, animation: 'spfade .4s ease .3s backwards' }}>
+          <div onClick={(e) => e.stopPropagation()} style={{ background: PAPER, border: `3px double ${COLORS.ink}`, borderRadius: 6, padding: '26px 30px 20px', maxWidth: 380, width: '100%', textAlign: 'center', fontFamily: SANS, boxShadow: '6px 6px 0 rgba(28,30,36,0.18)', animation: 'spstamp .45s ease .3s backwards' }}>
+            <div style={{ display: 'flex', gap: 3, justifyContent: 'center', marginBottom: 12 }}>
+              {'SPAN'.split('').map((ch, i) => (
+                <span key={i} style={{ width: 24, height: 24, borderRadius: 3, background: i === 2 ? COLORS.trail : COLORS.ink, color: '#fff', fontFamily: SANS, fontWeight: 900, fontSize: 15, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', boxShadow: 'inset 0 1px 3px rgba(0,0,0,0.5)' }}>{ch}</span>
+              ))}
+            </div>
+            <div style={{ fontFamily: SANS, fontWeight: 900, fontSize: 34, color: COLORS.ink, letterSpacing: '-0.01em', margin: '2px 0 6px', lineHeight: 1.15 }}>{hops === PUZZLE.par ? 'At par.' : 'Spanned.'}</div>
+            <div style={{ fontFamily: MONO, fontSize: 12.5, color: COLORS.faded, marginBottom: 14 }}>No. {PUZZLE.num} &middot; {PUZZLE.start} &rarr; {PUZZLE.end} &middot; {hops} hops (par {PUZZLE.par}) &middot; {elapsed}</div>
+            <div style={{ display: 'flex', gap: 3, justifyContent: 'center', marginBottom: 16, flexWrap: 'wrap' }}>
+              {chain.map((_, i) => (
+                <span key={i} style={{ width: 15, height: 15, borderRadius: 3, background: i === 0 || i === chain.length - 1 ? COLORS.trail : '#5a97dd', border: '1px solid rgba(28,30,36,0.25)' }} />
+              ))}
+            </div>
+            <div style={{ display: 'flex', gap: 10, justifyContent: 'center', flexWrap: 'wrap' }}>
+              <button className="sp-btn" onClick={copyShare} style={{ background: COLORS.trail, color: '#fff', borderColor: COLORS.trail }}><Share2 size={15} /> {copied ? 'Copied' : 'Share result'}</button>
+              <button className="sp-btn" onClick={() => setJustWon(false)}>See the road</button>
+            </div>
+            <div style={{ fontFamily: MONO, fontSize: 10, letterSpacing: '0.1em', color: COLORS.faded, marginTop: 12 }}>sourceoftruths.com/span</div>
+          </div>
+        </div>
+      )}
+
+      <DuelBanner token={duelToken} info={duelInfo} submitted={duelSubmitted} />
+
+      {toast && (
+        <div style={{ position: 'fixed', left: '50%', bottom: 26, transform: 'translateX(-50%)', background: COLORS.ink, color: '#fff', fontFamily: SANS, fontWeight: 800, fontSize: 13.5, padding: '10px 18px', borderRadius: 9, zIndex: 60, boxShadow: '0 6px 18px rgba(20,22,28,0.25)', maxWidth: '86vw', textAlign: 'center' }}>
+          {toast}
+        </div>
+      )}
+
+      {/* help modal */}
+      {showHelp && (
+        <div onClick={() => { setShowHelp(false); try { localStorage.setItem(HELP_KEY, '1'); } catch (e) {} }}
+          style={{ position: 'fixed', inset: 0, background: 'rgba(20,22,28,0.55)', zIndex: 70, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16 }}>
+          <div onClick={(e) => e.stopPropagation()} style={{ width: '100%', maxWidth: 460, background: COLORS.cream, borderRadius: 12, border: `2px solid ${COLORS.ink}`, padding: '20px 22px', fontFamily: SANS, maxHeight: '86vh', overflowY: 'auto' }}>
+            <div style={{ display: 'flex', alignItems: 'center', marginBottom: 10 }}>
+              <div style={{ fontSize: 21, fontWeight: 800, color: COLORS.ink }}>How to play</div>
+              <button onClick={() => { setShowHelp(false); try { localStorage.setItem(HELP_KEY, '1'); } catch (e) {} }} aria-label="Close" style={{ marginLeft: 'auto', background: 'none', border: 'none', cursor: 'pointer', color: COLORS.faded }}><X size={20} /></button>
+            </div>
+            <div style={{ fontSize: 14, lineHeight: 1.55, color: COLORS.ink, fontWeight: 600 }}>
+              <p style={{ margin: '0 0 9px' }}><b>Get from {PUZZLE.start} to {PUZZLE.end}</b> by typing a chain of countries &mdash; each one must share a <b>land border</b> with the last.</p>
+              <p style={{ margin: '0 0 9px' }}><b>Par is {PUZZLE.par}</b>, the shortest road possible. Your score is 10 if your final chain matches par, minus one for each country over. Undo any step for free. A country that doesn&apos;t border your position is a miss &mdash; misses break leaderboard ties.</p>
+              <p style={{ margin: 0 }}>Mainland borders only: overseas territories don&apos;t count (sorry, France&ndash;Brazil), and neither do bridges or tunnels. One free <b>hint</b> walks you one step down a shortest road.</p>
+            </div>
+            <button className="sp-btn" onClick={() => { setShowHelp(false); try { localStorage.setItem(HELP_KEY, '1'); } catch (e) {} }} style={{ marginTop: 14, background: COLORS.ink, color: '#fff' }}>Play</button>
+          </div>
+        </div>
+      )}
+
+      {/* About Span — crawlable prose for search, server-rendered into the initial HTML */}
+      <section style={{ position: 'relative', zIndex: 2, maxWidth: 760, margin: '0 auto', padding: '10px 24px 42px', fontFamily: SANS }}>
+        <h2 style={{ margin: '0 0 8px', fontSize: 15, fontWeight: 800, letterSpacing: '-0.01em', color: COLORS.ink }}>About Span</h2>
+        <p style={{ margin: '0 0 8px', fontSize: 13, lineHeight: 1.65, color: COLORS.faded, fontWeight: 600 }}>
+          Span is a free daily geography game from Source of Truths. Each day hands you two countries; your job is to connect them with the shortest chain of land borders you can find. Par is the shortest road on the map &mdash; match it and you&apos;ve spanned the day.
+        </p>
+        <p style={{ margin: '0 0 8px', fontSize: 13, lineHeight: 1.65, color: COLORS.faded, fontWeight: 600 }}>
+          The map plays by strict rules: mainland land borders only, so overseas territories, bridges, and tunnels don&apos;t count &mdash; which is why Scandinavia&apos;s only way out is through Russia, and why the Sinai is the single land door between Africa and Asia. Contiguous exclaves do count: Kaliningrad, Nakhchivan, and Cabinda are all in play.
+        </p>
+        <p style={{ margin: 0, fontSize: 13, lineHeight: 1.65, color: COLORS.faded, fontWeight: 600 }}>
+          A new route drops every day at midnight Eastern. No app, no signup &mdash; play free in your browser, keep a streak, and race the daily leaderboard. More dailies: <a href="/crux" style={{ color: COLORS.ink, fontWeight: 800 }}>Crux</a>, our crossword with no clues, <a href="/garble" style={{ color: COLORS.ink, fontWeight: 800 }}>Garble</a>, our word scramble, and <a href="/links" style={{ color: COLORS.ink, fontWeight: 800 }}>Links</a>, our word grouping game.
+        </p>
+      </section>
+
+      <div style={{ position: 'relative', zIndex: 2 }}><Footer /></div>
+    </div>
+  );
+}

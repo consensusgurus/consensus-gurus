@@ -1,0 +1,94 @@
+import { Suspense } from 'react';
+import SpanClient from './SpanClient';
+import { PUZZLES } from './puzzles';
+
+// Span launched 2026-07-12 alongside Links: linked from the hub games row,
+// the footer, and the sitemap (/span is the canonical, evergreen URL — the
+// dated /quiz/span-* stubs canonicalize here).
+
+export const metadata = {
+  title: 'Span — Free Daily Geography Border Game | Source of Truths',
+  description:
+    'A free daily geography game — connect two countries with the shortest chain of land borders you can find. Par is the shortest road on the map. New route every day.',
+  alternates: { canonical: '/span' },
+  manifest: '/span.webmanifest',
+  icons: {
+    icon: [{ url: '/span-icons/favicon-32.png', sizes: '32x32', type: 'image/png' }],
+    apple: [{ url: '/span-icons/apple-touch-icon.png', sizes: '180x180', type: 'image/png' }],
+  },
+  appleWebApp: { capable: true, statusBarStyle: 'black-translucent', title: 'Span' },
+  openGraph: {
+    title: 'Span — A Daily Border-Hopping Geography Game',
+    description:
+      'Two countries a day. Chain land borders between them in the fewest moves — par is the shortest road on the map. A new geography game from Source of Truths.',
+    url: '/span',
+    type: 'website',
+    siteName: 'Source of Truths',
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'Span — A Daily Border-Hopping Geography Game',
+    description:
+      'Two countries a day. Chain land borders between them in the fewest moves.',
+  },
+};
+
+const gameJsonLd = {
+  '@context': 'https://schema.org',
+  '@type': 'Game',
+  name: 'Span',
+  alternateName: 'Span — Daily Geography Border Game',
+  url: 'https://sourceoftruths.com/span',
+  description:
+    'A free daily geography game: connect a start country to a destination with a chain of land borders. Par is the shortest possible road — every extra move costs a point, and misses break ties.',
+  genre: ['Geography game', 'Puzzle'],
+  gamePlatform: 'Web browser',
+  isAccessibleForFree: true,
+  inLanguage: 'en',
+  numberOfPlayers: { '@type': 'QuantitativeValue', minValue: 1, maxValue: 1 },
+  image: 'https://sourceoftruths.com/quiz-heroes/span.png',
+  publisher: {
+    '@type': 'Organization',
+    name: 'Source of Truths',
+    url: 'https://sourceoftruths.com',
+  },
+};
+
+const breadcrumbJsonLd = {
+  '@context': 'https://schema.org',
+  '@type': 'BreadcrumbList',
+  itemListElement: [
+    { '@type': 'ListItem', position: 1, name: 'Home', item: 'https://sourceoftruths.com' },
+    { '@type': 'ListItem', position: 2, name: 'Quizzes', item: 'https://sourceoftruths.com/quizzes' },
+    { '@type': 'ListItem', position: 3, name: 'Span' },
+  ],
+};
+
+export const dynamic = 'force-dynamic';
+
+function etTodayServer() {
+  try { return new Date().toLocaleDateString('en-CA', { timeZone: 'America/New_York' }); }
+  catch (e) { return new Date().toISOString().slice(0, 10); }
+}
+
+export default function SpanPage({ searchParams }) {
+  const today = etTodayServer();
+  const visiblePuzzles = PUZZLES.filter((p) => p.live <= today);
+  const n = Number(searchParams && searchParams.p);
+  const forceNum = Number.isInteger(n) && n > 0 ? n : null;
+  return (
+    <>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(gameJsonLd) }}
+      />
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbJsonLd) }}
+      />
+      <Suspense fallback={null}>
+        <SpanClient key={forceNum || 'today'} puzzles={visiblePuzzles} forceNum={forceNum} />
+      </Suspense>
+    </>
+  );
+}

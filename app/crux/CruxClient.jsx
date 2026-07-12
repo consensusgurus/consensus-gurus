@@ -20,6 +20,7 @@ import { useSearchParams } from 'next/navigation';
 import { HelpCircle, Share2, RotateCcw, X, ChevronLeft, ChevronRight, Swords, Smartphone, Lightbulb } from 'lucide-react';
 import Grain from '../Grain';
 import Footer from '../Footer';
+import DailyGamesPromo from '../DailyGamesPromo';
 import useDuelContext, { DuelBanner } from '../quiz/[id]/useDuelContext';
 import JoinLeaderboardForm from '../quiz/[id]/JoinLeaderboardForm';
 import QuizLeaderboard from '../quiz/[id]/QuizLeaderboard';
@@ -314,7 +315,6 @@ export default function CruxClient({ puzzles = [], forceNum = null }) {
   const [hydrated, setHydrated] = useState(false);
   const [board, setBoard] = useState(EMPTY_BOARD);
   const [identity, setIdentity] = useState(null);
-  const [garbleDoneToday, setGarbleDoneToday] = useState(true);
   const [stats, setStats] = useState(null);
   const [player, setPlayer] = useState(null); // { name, rank } for the top-strip chip
   const [anim, setAnim] = useState(null);        // { id, flip: {key->i}, pulse: {key->true} } for the last guess
@@ -361,13 +361,6 @@ export default function CruxClient({ puzzles = [], forceNum = null }) {
       }
     } catch (e) {}
   }, [g, hydrated, PUZZLE]);
-
-  useEffect(() => {
-    try {
-      const c = JSON.parse(localStorage.getItem('sot_garble_day') || 'null');
-      setGarbleDoneToday(!!(c && c.d === etToday() && c.done));
-    } catch (e) { setGarbleDoneToday(false); }
-  }, [g.status]);
 
   // ---- metrics + leaderboard (same /api/quiz/* flow as every other board) ----
   // Guess dictionary (lazy, cached, ~115k words). Fail-open: until it loads,
@@ -1061,11 +1054,7 @@ export default function CruxClient({ puzzles = [], forceNum = null }) {
                   <button className="cl-btn" onClick={copyShare}><Share2 size={15} /> {copied ? 'Copied' : 'Share result'}</button>
                   <button className="cl-btn" onClick={resetGame} style={{ borderColor: '#c3c8cf', color: COLORS.faded }}><RotateCcw size={15} /> Replay</button>
                 </div>
-                {!garbleDoneToday && (
-                  <a href="/garble" style={{ display: 'block', marginTop: 12, padding: '10px 14px', borderRadius: 10, background: '#fdf6e3', border: '1.5px solid rgba(230,185,63,0.6)', textDecoration: 'none', fontFamily: SANS, fontSize: 13, fontWeight: 700, color: COLORS.ink }}>
-                  Still on the table today: <b style={{ color: '#8a6d1a' }}>Garble</b> &mdash; five garbled words, one clued finale &rarr;
-                  </a>
-                )}
+                <DailyGamesPromo self="crux" refresh={g.status} />
                 <p style={{ fontSize: 12, color: COLORS.faded, fontWeight: 600, margin: '12px 0 0' }}>
                   {countdown ? <>Next Crux in <b style={{ color: COLORS.ink, fontVariantNumeric: 'tabular-nums' }}>{countdown}</b>.</> : 'A new puzzle drops at midnight Eastern.'}
                   {prevPuzzle && (

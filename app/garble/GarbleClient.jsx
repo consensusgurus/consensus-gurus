@@ -13,6 +13,7 @@
 import React, { useState, useEffect, useMemo, useRef, useCallback } from 'react';
 import { HelpCircle, Share2, RotateCcw, X, Trophy, Eye, Smartphone } from 'lucide-react';
 import Grain from '../Grain';
+import DailyGamesPromo from '../DailyGamesPromo';
 import Footer from '../Footer';
 import SiteHeader from '../SiteHeader';
 import QuizPlayerBar from '../quiz/[id]/QuizPlayerBar';
@@ -114,7 +115,6 @@ export default function GarbleClient({ puzzles = [], forceNum = null }) {
   const [hydrated, setHydrated] = useState(false);
   const [board, setBoard] = useState(EMPTY_BOARD);
   const [identity, setIdentity] = useState(null);
-  const [cruxDoneToday, setCruxDoneToday] = useState(true);
   const toastTimer = useRef(null);
   const viewedRef = useRef(false);
 
@@ -136,18 +136,11 @@ export default function GarbleClient({ puzzles = [], forceNum = null }) {
     // same-device day breadcrumb for cross-game recommendations — only for
     // TODAY'S puzzle (archive replays must not mark today as played)
     try {
-      if (PUZZLE.num === pickPuzzle(null).num) {
+      if (PUZZLE.num === pickPuzzle(puzzles, null).num) {
         localStorage.setItem('sot_garble_day', JSON.stringify({ d: etToday(), done: g.status !== 'playing' }));
       }
     } catch (e) {}
-  }, [g, hydrated, STORE_KEY, PUZZLE]);
-
-  useEffect(() => {
-    try {
-      const c = JSON.parse(localStorage.getItem('sot_crux_day') || 'null');
-      setCruxDoneToday(!!(c && c.d === etToday() && c.done));
-    } catch (e) { setCruxDoneToday(false); }
-  }, [g.status]);
+  }, [g, hydrated, STORE_KEY, PUZZLE, puzzles]);
 
   useEffect(() => {
     try {
@@ -455,11 +448,7 @@ export default function GarbleClient({ puzzles = [], forceNum = null }) {
                 <button className="gb-btn" onClick={copyShare}><Share2 size={15} /> {copied ? 'Copied' : 'Share result'}</button>
                 <button className="gb-btn" onClick={resetGame} style={{ borderColor: '#c3c8cf', color: COLORS.faded }}><RotateCcw size={15} /> Replay</button>
               </div>
-              {!cruxDoneToday && (
-                <a href="/crux" style={{ display: 'block', marginTop: 12, padding: '10px 14px', borderRadius: 10, background: '#eef4ff', border: `1.5px solid rgba(37,99,235,0.35)`, textDecoration: 'none', fontFamily: SANS, fontSize: 13, fontWeight: 700, color: COLORS.ink }}>
-                  Still on the table today: <b style={{ color: COLORS.ember }}>Crux</b> &mdash; a crossword with no clues &rarr;
-                </a>
-              )}
+              <DailyGamesPromo self="garble" refresh={g.status} />
             </div>
           )}
         </div>

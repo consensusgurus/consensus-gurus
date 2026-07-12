@@ -1,0 +1,724 @@
+'use client';
+
+// Links — sixteen words, four hidden threads.
+//
+// A 4x4 grid of sixteen words hides four groups of four. Select four tiles
+// and submit: a right guess banks the group as a colored bar (yellow, green,
+// blue, red — easiest to trickiest), a wrong guess costs one of four
+// mistakes. "One away" is the only mercy shown. Solve all four before the
+// mistakes run out.
+//
+// Same daily plumbing as Crux: banked puzzles gated by Eastern date on the
+// server (app/links/page.js), per-puzzle localStorage saves, /links?p=N
+// archive pinning, streaks + stats, and the shared /api/quiz/* board flow.
+
+import React, { useState, useEffect, useMemo, useRef, useCallback } from 'react';
+import { useSearchParams } from 'next/navigation';
+import { HelpCircle, Share2, RotateCcw, X, Shuffle, Swords, Smartphone } from 'lucide-react';
+import Grain from '../Grain';
+import Footer from '../Footer';
+import DailyGamesPromo from '../DailyGamesPromo';
+import useDuelContext, { DuelBanner } from '../quiz/[id]/useDuelContext';
+import JoinLeaderboardForm from '../quiz/[id]/JoinLeaderboardForm';
+import QuizLeaderboard from '../quiz/[id]/QuizLeaderboard';
+import { isMobileDevice } from '@/lib/is-mobile';
+
+const COLORS = {
+  cream: '#f7f8fa',
+  paper: '#eceef1',
+  ink: '#1c1e24',
+  ember: '#2563eb',
+  rust: '#c0392b',
+  faded: '#6b7280',
+};
+const SANS = "'Manrope', system-ui, -apple-system, sans-serif";
+const MONO = "'DM Mono', ui-monospace, 'SFMono-Regular', monospace";
+const PAPER = '#fbf9f4';
+
+// Category palette, easiest -> trickiest: yellow, green, blue, RED — the
+// house quartet (same as Crux).
+const CAT_COLORS = [
+  { bg: '#e6b93f', tc: '#5c4a06', sq: '\u{1F7E8}' },
+  { bg: '#5aa96a', tc: '#173f1f', sq: '\u{1F7E9}' },
+  { bg: '#5a97dd', tc: '#0c3a66', sq: '\u{1F7E6}' },
+  { bg: '#d96363', tc: '#571212', sq: '\u{1F7E5}' },
+];
+const MAX_MISTAKES = 4;
+const HELP_KEY = 'sot_links_help_seen';
+const STATS_KEY = 'sot_links_stats';
+
+const isIosDevice = () =>
+  typeof navigator !== 'undefined' &&
+  (/iPad|iPhone|iPod/.test(navigator.userAgent || '') ||
+    (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1));
+
+function etToday() {
+  try { return new Date().toLocaleDateString('en-CA', { timeZone: 'America/New_York' }); }
+  catch (e) { return new Date().toISOString().slice(0, 10); }
+}
+function pickPuzzle(puzzles, forceNum) {
+  if (forceNum) { const p = puzzles.find((x) => x.num === forceNum); if (p) return p; }
+  const today = etToday();
+  const open = puzzles.filter((p) => p.live <= today);
+  return open.length ? open[open.length - 1] : puzzles[0];
+}
+function fmtTime(ms) {
+  const s = Math.max(0, Math.round(ms / 1000));
+  return `${Math.floor(s / 60)}:${String(s % 60).padStart(2, '0')}`;
+}
+function msToMidnightET() {
+  try {
+    const now = new Date();
+    const et = new Date(now.toLocaleString('en-US', { timeZone: 'America/New_York' }));
+    const next = new Date(et);
+    next.setHours(24, 0, 0, 0);
+    return next - et;
+  } catch (e) {
+    const now = new Date();
+    const next = new Date(now);
+    next.setHours(24, 0, 0, 0);
+    return next - now;
+  }
+}
+function fmtCountdown(ms) {
+  const s = Math.max(0, Math.floor(ms / 1000));
+  return `${Math.floor(s / 3600)}:${String(Math.floor((s % 3600) / 60)).padStart(2, '0')}:${String(s % 60).padStart(2, '0')}`;
+}
+function getAnonId() {
+  if (typeof window === 'undefined') return null;
+  try {
+    let a = localStorage.getItem('sot_quiz_anon');
+    if (!a) {
+      a = (window.crypto && crypto.randomUUID) ? crypto.randomUUID() : `a_${Date.now()}_${Math.random().toString(36).slice(2)}`;
+      localStorage.setItem('sot_quiz_anon', a);
+    }
+    return a;
+  } catch (e) { return null; }
+}
+const EMPTY_BOARD = { plays: 0, best: null, topTime: null, leaderboard: [], leaderboardAll: [], leaderboardMobile: [], leaderboardFirst: [], leaderboards: {} };
+
+// ─── Personal stats + streak (localStorage), Crux pattern ──────────────────
+function getStats() {
+  try {
+    const s = JSON.parse(localStorage.getItem(STATS_KEY));
+    if (s && s.v === 1 && s.rec) return s;
+  } catch (e) {}
+  return { v: 1, rec: {} };
+}
+function recordStat(num, entry) {
+  const s = getStats();
+  if (s.rec[num]) return s;
+  const s2 = { ...s, rec: { ...s.rec, [num]: entry } };
+  try { localStorage.setItem(STATS_KEY, JSON.stringify(s2)); } catch (e) {}
+  return s2;
+}
+function deriveStats(s, todayNum) {
+  const rec = s && s.rec ? s.rec : {};
+  const nums = Object.keys(rec).map(Number).sort((a, b) => a - b);
+  const played = nums.length;
+  const perfect = nums.filter((n) => rec[n].won).length;
+  let max = 0, run = 0, prev = null;
+  for (const n of nums) {
+    run = prev != null && n === prev + 1 ? run + 1 : 1;
+    if (run > max) max = run;
+    prev = n;
+  }
+  let cur = 0, at = rec[todayNum] ? todayNum : todayNum - 1;
+  while (rec[at]) { cur++; at--; }
+  return { played, perfect, cur, max };
+}
+function mergeServerStats(s, recent, puzzles) {
+  if (!s || !Array.isArray(recent) || !recent.length) return s;
+  const byQuiz = {};
+  for (const p of puzzles) byQuiz[p.quizId] = p;
+  let rec = s.rec, changed = false;
+  for (const m of recent) {
+    const p = m && byQuiz[m.quizId];
+    if (!p || m.attempt !== 1) continue;
+    if (rec[p.num]) continue;
+    const sc = Math.max(0, Math.min(8, Math.round(((m.scorePct || 0) / 100) * 8)));
+    if (!changed) { rec = { ...rec }; changed = true; }
+    rec[p.num] = { s: sc, t: 8, g: null, won: !!m.perfect };
+  }
+  if (!changed) return s;
+  const s2 = { ...s, rec };
+  try { localStorage.setItem(STATS_KEY, JSON.stringify(s2)); } catch (e) {}
+  return s2;
+}
+
+// The INITIAL deal must be seeded by puzzle number: freshState runs during
+// SSR and again on the client, and a Math.random layout would mismatch on
+// hydration (it would also leak the answer if left unshuffled — the canonical
+// order lists the groups row by row). Same seed -> same board for everyone.
+function mulberry32(seed) {
+  let t = seed >>> 0;
+  return () => {
+    t = (t + 0x6d2b79f5) >>> 0;
+    let r = Math.imul(t ^ (t >>> 15), 1 | t);
+    r = (r + Math.imul(r ^ (r >>> 7), 61 | r)) ^ r;
+    return ((r ^ (r >>> 14)) >>> 0) / 4294967296;
+  };
+}
+function shuffled(arr, rng = Math.random) {
+  const a = [...arr];
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = Math.floor(rng() * (i + 1));
+    [a[i], a[j]] = [a[j], a[i]];
+  }
+  return a;
+}
+
+function freshState(puzzle) {
+  return {
+    v: 1,
+    order: shuffled(puzzle.groups.flatMap((g) => g.words), mulberry32(puzzle.num * 2654435761)), // tile layout
+    solved: [],        // group indices in solve order
+    tries: [],         // each submit: [{w, ci}, x4] — the share grid
+    mistakes: 0,
+    status: 'playing', // playing | won | lost
+    t0: null,
+    tEnd: null,
+  };
+}
+
+export default function LinksClient({ puzzles = [], forceNum = null }) {
+  const PUZZLE = useMemo(() => pickPuzzle(puzzles, forceNum), [puzzles, forceNum]);
+  const STORE_KEY = `sot_links_${PUZZLE.num}`;
+  const wordCat = useMemo(() => {
+    const m = {};
+    PUZZLE.groups.forEach((g, ci) => g.words.forEach((w) => { m[w] = ci; }));
+    return m;
+  }, [PUZZLE]);
+  const [g, setG] = useState(() => freshState(PUZZLE));
+  const [selWords, setSelWords] = useState([]);
+  const [showHelp, setShowHelp] = useState(false);
+  const [toast, setToast] = useState(null);
+  const [copied, setCopied] = useState(false);
+  const [shakeIds, setShakeIds] = useState(null);
+  const [justSolved, setJustSolved] = useState(null); // ci of the group animating in
+  const [justWon, setJustWon] = useState(false);
+  const [hydrated, setHydrated] = useState(false);
+  const [board, setBoard] = useState(EMPTY_BOARD);
+  const [identity, setIdentity] = useState(null);
+  const [stats, setStats] = useState(null);
+  const [player, setPlayer] = useState(null);
+  const [countdown, setCountdown] = useState('');
+  const [installEvt, setInstallEvt] = useState(null);
+  const [showA2hsHelp, setShowA2hsHelp] = useState(false);
+  const [standalone, setStandalone] = useState(false);
+  const [mobileUi, setMobileUi] = useState(false);
+  const searchParams = useSearchParams();
+  const { duelToken, duelInfo, duelSubmitted } = useDuelContext(PUZZLE.quizId, searchParams);
+  const toastTimer = useRef(null);
+  const viewedRef = useRef(false);
+
+  useEffect(() => {
+    try {
+      setStandalone(window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true);
+      setMobileUi(isMobileDevice());
+    } catch {}
+    const onBip = (e) => { e.preventDefault(); setInstallEvt(e); };
+    const onInstalled = () => { setStandalone(true); setInstallEvt(null); };
+    window.addEventListener('beforeinstallprompt', onBip);
+    window.addEventListener('appinstalled', onInstalled);
+    return () => { window.removeEventListener('beforeinstallprompt', onBip); window.removeEventListener('appinstalled', onInstalled); };
+  }, []);
+  const a2hsClick = () => { const e = installEvt; if (e) { setInstallEvt(null); e.prompt(); } else { setShowA2hsHelp(true); } };
+
+  // ---- persistence ----
+  useEffect(() => {
+    try {
+      const raw = localStorage.getItem(STORE_KEY);
+      if (raw) {
+        const saved = JSON.parse(raw);
+        if (saved && saved.v === 1 && Array.isArray(saved.order) && saved.order.length === 16) setG({ ...freshState(PUZZLE), ...saved });
+      }
+      if (!localStorage.getItem(HELP_KEY)) setShowHelp(true);
+    } catch (e) {}
+    try { setStats(getStats()); } catch (e) {}
+    setHydrated(true);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+  useEffect(() => {
+    if (!hydrated) return;
+    try { localStorage.setItem(STORE_KEY, JSON.stringify(g)); } catch (e) {}
+    // same-device day breadcrumb for cross-game recommendations — only for
+    // TODAY'S puzzle (archive replays must not mark today as played)
+    try {
+      if (PUZZLE.num === pickPuzzle(puzzles, null).num) {
+        localStorage.setItem('sot_links_day', JSON.stringify({ d: etToday(), done: g.status !== 'playing' }));
+      }
+    } catch (e) {}
+  }, [g, hydrated, STORE_KEY, PUZZLE, puzzles]);
+
+  useEffect(() => {
+    if (g.status === 'playing') return;
+    const tick = () => setCountdown(fmtCountdown(msToMidnightET()));
+    tick();
+    const iv = setInterval(tick, 1000);
+    return () => clearInterval(iv);
+  }, [g.status]);
+
+  // ---- metrics + leaderboard (same /api/quiz/* flow as every other board) ----
+  useEffect(() => {
+    try {
+      const id = JSON.parse(localStorage.getItem('sot_quiz_identity'));
+      if (id && id.email) setIdentity(id);
+    } catch (e) {}
+    try {
+      const anon = getAnonId();
+      let em = '';
+      try {
+        const idj = JSON.parse(localStorage.getItem('sot_quiz_identity') || 'null');
+        if (idj && idj.email) em = `&email=${encodeURIComponent(idj.email)}`;
+      } catch (e) {}
+      if (anon || em) {
+        fetch(`/api/quiz/me?anonId=${encodeURIComponent(anon || '')}${em}`)
+          .then((r) => r.json())
+          .then((d) => {
+            if (d && Array.isArray(d.recent)) {
+              setStats((cur) => mergeServerStats(cur || getStats(), d.recent, puzzles));
+            }
+            if (d && d.found && d.name) setPlayer({ name: d.name, rank: (d.ranks && d.ranks.xp) || d.rank || null, key: d.userKey || null });
+          })
+          .catch(() => {});
+      }
+    } catch (e) {}
+    fetch(`/api/quiz/board?quizId=${encodeURIComponent(PUZZLE.quizId)}`)
+      .then((r) => r.json())
+      .then((d) => { if (d && !d.error) setBoard({ ...EMPTY_BOARD, ...d }); })
+      .catch(() => {});
+    if (!viewedRef.current) {
+      viewedRef.current = true;
+      fetch('/api/quiz/view', { method: 'POST', keepalive: true, headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ quizId: PUZZLE.quizId }) }).catch(() => {});
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  function say(msg) {
+    setToast(msg);
+    if (toastTimer.current) clearTimeout(toastTimer.current);
+    toastTimer.current = setTimeout(() => setToast(null), 2100);
+  }
+
+  const playing = g.status === 'playing';
+  const won = g.status === 'won';
+  const lost = g.status === 'lost';
+  const solvedWords = useMemo(() => new Set(g.solved.flatMap((ci) => PUZZLE.groups[ci].words)), [g.solved, PUZZLE]);
+  const gridWords = g.order.filter((w) => !solvedWords.has(w));
+  const elapsed = g.t0 ? fmtTime((g.tEnd || Date.now()) - g.t0) : '0:00';
+  const isTodays = PUZZLE.num === pickPuzzle(puzzles, null).num;
+  const prevPuzzle = puzzles.find((x) => x.num === PUZZLE.num - 1) || null;
+  const myStats = deriveStats(stats, pickPuzzle(puzzles, null).num);
+
+  function postResult(g2) {
+    const sc = g2.solved.length * 2;
+    const el = g2.t0 ? Math.max(1, Math.round(((g2.tEnd || Date.now()) - g2.t0) / 1000)) : 1;
+    try { setStats(recordStat(PUZZLE.num, { s: sc, t: 8, g: g2.mistakes, won: g2.solved.length === 4 && g2.mistakes === 0 })); } catch (e) {}
+    try {
+      fetch('/api/quiz/result', {
+        method: 'POST',
+        keepalive: true,
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ quizId: PUZZLE.quizId, score: sc, total: 8, correct: g2.solved.length, guessesUsed: g2.mistakes, timeElapsed: el, email: identity?.email || undefined, anonId: getAnonId(), isMobile: isMobileDevice(), referrer: (typeof document !== 'undefined' ? document.referrer : '') }),
+      })
+        .then((r) => r.json())
+        .then((d) => { if (d && !d.error) setBoard({ ...EMPTY_BOARD, ...d }); })
+        .catch(() => {});
+    } catch (e) {}
+  }
+
+  function toggle(w) {
+    if (!playing) return;
+    setSelWords((cur) => (cur.includes(w) ? cur.filter((x) => x !== w) : cur.length < 4 ? [...cur, w] : cur));
+  }
+
+  function submit() {
+    if (!playing || selWords.length !== 4) return;
+    // duplicate-guess mercy: an already-tried set costs nothing
+    const key = [...selWords].sort().join('|');
+    if (g.tries.some((t) => t.map((x) => x.w).sort().join('|') === key)) { say('Already tried that four'); return; }
+    const g2 = { ...g };
+    if (!g2.t0) g2.t0 = Date.now();
+    const row = selWords.map((w) => ({ w, ci: wordCat[w] }));
+    g2.tries = [...g.tries, row];
+    const cats = new Set(row.map((x) => x.ci));
+    if (cats.size === 1) {
+      const ci = row[0].ci;
+      g2.solved = [...g.solved, ci];
+      setSelWords([]);
+      setJustSolved(ci);
+      setTimeout(() => setJustSolved(null), 900);
+      if (g2.solved.length === 4) {
+        g2.status = 'won';
+        g2.tEnd = Date.now();
+        postResult(g2);
+        setJustWon(true);
+      } else {
+        say(`${PUZZLE.groups[ci].name} — banked.`);
+      }
+    } else {
+      g2.mistakes = g.mistakes + 1;
+      setShakeIds(new Set(selWords));
+      setTimeout(() => setShakeIds(null), 500);
+      const counts = {};
+      row.forEach((x) => { counts[x.ci] = (counts[x.ci] || 0) + 1; });
+      const oneAway = Object.values(counts).some((n) => n === 3);
+      if (g2.mistakes >= MAX_MISTAKES) {
+        g2.status = 'lost';
+        g2.tEnd = Date.now();
+        setSelWords([]);
+        postResult(g2);
+      } else {
+        say(oneAway ? 'One away…' : 'Not a thread.');
+      }
+    }
+    setG(g2);
+  }
+
+  function doShuffle() {
+    if (!playing) return;
+    setG({ ...g, order: shuffled(g.order) });
+  }
+
+  function resetGame() {
+    try { localStorage.removeItem(STORE_KEY); } catch (e) {}
+    setG(freshState(PUZZLE)); setSelWords([]); setJustWon(false);
+  }
+
+  // groups to reveal at the bottom on a loss (unsolved ones, in color order)
+  const unsolvedCis = PUZZLE.groups.map((_, ci) => ci).filter((ci) => !g.solved.includes(ci));
+
+  // Share of players this run beat, from the exact score distribution.
+  const beatPct = (() => {
+    if (g.status === 'playing') return null;
+    const dist = board.scoreDist;
+    if (!dist) return null;
+    const my = g.solved.length * 2;
+    let below = 0, all = 0;
+    for (const [k, v] of Object.entries(dist)) {
+      const n = Number(v) || 0;
+      all += n;
+      if (Number(k) < my) below += n;
+    }
+    const others = all - 1;
+    if (others < 10) return null;
+    return Math.max(0, Math.min(100, Math.round((below / others) * 100)));
+  })();
+
+  function shareText() {
+    const rows = g.tries.map((t) => t.map((x) => CAT_COLORS[x.ci].sq).join('')).join('\n');
+    const mBit = `${g.mistakes} mistake${g.mistakes === 1 ? '' : 's'}`;
+    const streakBit = isTodays && myStats.cur >= 2 ? ` · streak ${myStats.cur}` : '';
+    const head = `Links #${PUZZLE.num} · ${g.solved.length}/4 · ${mBit} · ${elapsed}${streakBit}`;
+    return `${head}\n${rows}\n${shareUrl()}`;
+  }
+  function shareUrl() {
+    return `sourceoftruths.com/links${isTodays ? '' : `?p=${PUZZLE.num}`}`;
+  }
+  function copyShare() {
+    const text = playing
+      ? `Links #${PUZZLE.num} — sixteen words, four hidden threads. Can you untangle them?\n${shareUrl()}`
+      : shareText();
+    try {
+      if (typeof navigator !== 'undefined' && navigator.share && isMobileDevice()) {
+        navigator.share({ text }).catch(() => {});
+        return;
+      }
+    } catch (e) {}
+    try {
+      navigator.clipboard?.writeText(text).then(() => {
+        setCopied(true);
+        setTimeout(() => setCopied(false), 1800);
+      });
+    } catch (e) {}
+  }
+
+  function tileFont(w) {
+    if (w.length >= 11) return 11;
+    if (w.length >= 9) return 12.5;
+    if (w.length >= 7) return 14;
+    return 15.5;
+  }
+
+  return (
+    <div style={{ minHeight: '100vh', background: '#f7f8fa', position: 'relative' }}>
+      <Grain />
+      <div className="lk-wrap" style={{ position: 'relative', zIndex: 2, maxWidth: 1180, margin: '0 auto', padding: '18px 38px 80px', fontFamily: SANS }}>
+        <style>{`
+          @media(max-width:560px){.lk-wrap{padding-left:14px !important;padding-right:14px !important;}}
+          .lk-btn{font-family:${SANS};font-weight:800;font-size:14px;border:2px solid ${COLORS.ink};background:#fff;color:${COLORS.ink};border-radius:8px;padding:9px 16px;cursor:pointer;display:inline-flex;align-items:center;gap:7px;}
+          .lk-btn:hover{background:${COLORS.paper};}
+          .lk-tile{font-family:${SANS};font-weight:800;border-radius:8px;cursor:pointer;border:1.5px solid rgba(28,30,36,0.42);background:#fff;color:${COLORS.ink};display:flex;align-items:center;justify-content:center;text-align:center;padding:4px 3px;min-height:58px;user-select:none;touch-action:manipulation;transition:background .1s,transform .1s;box-shadow:inset 0 1px 2px rgba(28,30,36,0.07);overflow:hidden;}
+          .lk-tile:active{transform:scale(0.96);}
+          .lk-tile.on{background:${COLORS.ink};color:#fff;border-color:${COLORS.ink};box-shadow:inset 0 2px 4px rgba(0,0,0,0.5);}
+          @keyframes lkshake{0%,100%{transform:translateX(0);}20%,60%{transform:translateX(-4px);}40%,80%{transform:translateX(4px);}}
+          .lk-tile.shake{animation:lkshake .45s ease;}
+          @keyframes lkbank{from{opacity:0;transform:scale(.9);}}
+          .lk-bank{animation:lkbank .5s ease backwards;}
+          @keyframes lkfade{from{opacity:0;}}
+          @keyframes lkstamp{from{opacity:0;transform:scale(.94);}}
+          @media(max-width:520px){.lk-htp-f{display:none;}.lk-htp-s{display:inline;}}
+          .lk-htp-s{display:none;}
+        `}</style>
+
+        <div style={{ maxWidth: 560, margin: '0 auto' }}>
+
+        {/* game-native top strip (Crux pattern): quiet nav + player chip */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: 18, marginBottom: 20, flexWrap: 'wrap' }}>
+          <a href="/quizzes" style={{ fontFamily: MONO, fontSize: 11, letterSpacing: '0.12em', textTransform: 'uppercase', color: COLORS.faded, textDecoration: 'none', borderBottom: '1px solid rgba(28,30,36,0.25)', paddingBottom: 1 }}>Quizzes</a>
+          <a href="/" style={{ fontFamily: MONO, fontSize: 11, letterSpacing: '0.12em', textTransform: 'uppercase', color: COLORS.faded, textDecoration: 'none', borderBottom: '1px solid rgba(28,30,36,0.25)', paddingBottom: 1 }}>Top 10 Lists</a>
+          {player && (
+            <a href={player.key ? `/quizzes/hub?player=${encodeURIComponent(player.key)}` : '/quizzes/hub'} title="Your Stat Hub"
+              style={{ marginLeft: 'auto', display: 'inline-flex', alignItems: 'center', gap: 7, fontFamily: MONO, fontSize: 11, letterSpacing: '0.06em', color: COLORS.ink, background: PAPER, border: '1.5px solid rgba(28,30,36,0.35)', borderRadius: 5, padding: '4px 10px', textDecoration: 'none' }}>
+              <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', maxWidth: 150, fontWeight: 500 }}>{player.name}</span>
+              {player.rank ? <span style={{ color: COLORS.ember, fontWeight: 500 }}>Rank #{player.rank}</span> : null}
+            </a>
+          )}
+        </div>
+
+        {/* masthead: pressed LINKS tiles in the four thread colors */}
+        <div style={{ marginBottom: 16 }}>
+          <div style={{ display: 'flex', gap: 5, alignItems: 'flex-end' }}>
+            {'LINKS'.split('').map((ch, i) => (
+              <div key={i} style={{ width: 46, height: 46, borderRadius: 5, display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: SANS, fontWeight: 900, fontSize: 28, background: i === 0 ? COLORS.ink : CAT_COLORS[i - 1].bg, color: '#fff', boxShadow: 'inset 0 2px 5px rgba(0,0,0,0.5), 0 1px 0 rgba(255,255,255,0.65)' }}>{ch}</div>
+            ))}
+          </div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 13, flexWrap: 'wrap', marginTop: 14, borderTop: '2px solid rgba(28,30,36,0.8)', borderBottom: '1px solid rgba(28,30,36,0.35)', padding: '7px 2px' }}>
+            <h1 style={{ margin: 0, fontFamily: MONO, fontSize: 12, letterSpacing: '0.08em', fontWeight: 500, color: COLORS.ink }}>No. {PUZZLE.num}</h1>
+            <span style={{ fontFamily: SANS, fontStyle: 'italic', fontSize: 14, color: COLORS.ink }}>{PUZZLE.dateLabel}</span>
+            <span style={{ fontFamily: MONO, fontSize: 10.5, letterSpacing: '0.12em', textTransform: 'uppercase', color: COLORS.faded }}>four hidden threads</span>
+            <span style={{ marginLeft: 'auto', display: 'flex', gap: 14 }}>
+              <button onClick={() => setShowHelp(true)} aria-label="How to play" style={{ background: 'none', border: 'none', cursor: 'pointer', color: COLORS.faded, display: 'flex', alignItems: 'center', gap: 5, fontFamily: SANS, fontWeight: 700, fontSize: 12.5, padding: 0 }}>
+                <HelpCircle size={16} /> <span className="lk-htp-f">How to play</span><span className="lk-htp-s">Help</span>
+              </button>
+            </span>
+          </div>
+        </div>
+
+        {/* banked groups */}
+        {g.solved.map((ci) => {
+          const cc = CAT_COLORS[ci];
+          return (
+            <div key={ci} className={justSolved === ci ? 'lk-bank' : undefined} style={{ background: cc.bg, border: '1.5px solid rgba(28,30,36,0.35)', borderRadius: 10, padding: '10px 14px', marginBottom: 8, textAlign: 'center', boxShadow: '2px 2px 0 rgba(28,30,36,0.10)' }}>
+              <div style={{ fontWeight: 800, fontSize: 13, textTransform: 'uppercase', letterSpacing: '.04em', color: cc.tc }}>{PUZZLE.groups[ci].name}</div>
+              <div style={{ fontWeight: 700, fontSize: 13.5, color: cc.tc, marginTop: 2 }}>{PUZZLE.groups[ci].words.join(', ')}</div>
+            </div>
+          );
+        })}
+
+        {/* the grid */}
+        {gridWords.length > 0 && (
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 7, marginBottom: 12 }}>
+            {gridWords.map((w) => (
+              <button key={w} onClick={() => toggle(w)}
+                className={`lk-tile${selWords.includes(w) ? ' on' : ''}${shakeIds && shakeIds.has(w) ? ' shake' : ''}`}
+                style={{ fontSize: tileFont(w), letterSpacing: w.length >= 9 ? '-0.02em' : 0 }}>
+                {w}
+              </button>
+            ))}
+          </div>
+        )}
+
+        {/* loss reveal: the threads you missed */}
+        {lost && unsolvedCis.map((ci) => {
+          const cc = CAT_COLORS[ci];
+          return (
+            <div key={ci} style={{ background: '#fff', border: `1.5px dashed ${cc.bg}`, borderRadius: 10, padding: '10px 14px', marginBottom: 8, textAlign: 'center' }}>
+              <div style={{ fontWeight: 800, fontSize: 13, textTransform: 'uppercase', letterSpacing: '.04em', color: cc.tc }}>{PUZZLE.groups[ci].name}</div>
+              <div style={{ fontWeight: 700, fontSize: 13.5, color: COLORS.faded, marginTop: 2 }}>{PUZZLE.groups[ci].words.join(', ')}</div>
+            </div>
+          );
+        })}
+
+        {/* controls + mistake dots */}
+        {playing && (
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap', marginBottom: 14 }}>
+            <button className="lk-btn" onClick={submit} disabled={selWords.length !== 4}
+              style={selWords.length === 4 ? { background: COLORS.ember, color: '#fff', borderColor: COLORS.ember } : { opacity: 0.45, cursor: 'default' }}>
+              Submit four
+            </button>
+            <button className="lk-btn" onClick={doShuffle} style={{ borderColor: '#c3c8cf', color: COLORS.faded }}><Shuffle size={14} /> Shuffle</button>
+            {selWords.length > 0 && (
+              <button className="lk-btn" onClick={() => setSelWords([])} style={{ borderColor: '#c3c8cf', color: COLORS.faded }}>Clear</button>
+            )}
+            <span style={{ marginLeft: 'auto', display: 'inline-flex', alignItems: 'center', gap: 5, fontFamily: MONO, fontSize: 11, letterSpacing: '0.08em', textTransform: 'uppercase', color: COLORS.faded }}>
+              Mistakes
+              {Array.from({ length: MAX_MISTAKES }).map((_, i) => (
+                <span key={i} style={{ width: 10, height: 10, borderRadius: '50%', background: i < g.mistakes ? COLORS.rust : 'rgba(28,30,36,0.15)' }} />
+              ))}
+            </span>
+          </div>
+        )}
+
+        {/* result */}
+        {!playing && (
+          <div style={{ background: '#fff', border: `2px solid ${COLORS.ink}`, borderRadius: 12, padding: '16px 16px 14px', marginBottom: 14 }}>
+            <div style={{ fontSize: 19, fontWeight: 800, color: won ? COLORS.ember : COLORS.rust, marginBottom: 4 }}>
+              {won ? (g.mistakes === 0 ? 'A clean sweep.' : 'All four threads found.') : 'The threads got away.'}
+            </div>
+            <div style={{ fontSize: 13.5, fontWeight: 700, color: COLORS.faded, marginBottom: (beatPct != null || (isTodays && myStats.cur >= 2)) ? 6 : 12 }}>
+              {g.solved.length}/4 groups &middot; {g.mistakes} mistake{g.mistakes === 1 ? '' : 's'} &middot; {elapsed}
+            </div>
+            {(beatPct != null || (isTodays && myStats.cur >= 2)) && (
+              <div style={{ fontSize: 13, fontWeight: 800, marginBottom: 12, display: 'flex', gap: 12, flexWrap: 'wrap' }}>
+                {beatPct != null && <span style={{ color: COLORS.ember }}>You beat {beatPct}% of players on this puzzle</span>}
+                {isTodays && myStats.cur >= 2 && <span style={{ color: '#b45309' }}>{myStats.cur}-day streak</span>}
+              </div>
+            )}
+            <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+              <button className="lk-btn" onClick={copyShare}><Share2 size={15} /> {copied ? 'Copied' : 'Share result'}</button>
+              <button className="lk-btn" onClick={resetGame} style={{ borderColor: '#c3c8cf', color: COLORS.faded }}><RotateCcw size={15} /> Replay</button>
+            </div>
+            <DailyGamesPromo self="links" refresh={g.status} />
+            <p style={{ fontSize: 12, color: COLORS.faded, fontWeight: 600, margin: '12px 0 0' }}>
+              {countdown ? <>Next Links in <b style={{ color: COLORS.ink, fontVariantNumeric: 'tabular-nums' }}>{countdown}</b>.</> : 'A new puzzle drops at midnight Eastern.'}
+              {prevPuzzle && (
+                <>
+                  {' '}Meanwhile:{' '}
+                  <a href={`/links?p=${prevPuzzle.num}`} style={{ color: COLORS.ember, fontWeight: 800, textDecoration: 'underline' }}>
+                    play {isTodays ? "yesterday's Links" : `the ${prevPuzzle.dateLabel.replace(', 2026', '')} Links`} &rarr;
+                  </a>
+                </>
+              )}
+            </p>
+          </div>
+        )}
+
+        {/* standard quiz-page bottom: challenge + stats + join + leaderboard */}
+        <div style={{ margin: '30px auto 0' }}>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: 10 }}>
+            <a href={`/duel/new?quiz=${encodeURIComponent(PUZZLE.quizId)}`} style={{ fontFamily: SANS, fontSize: 12.5, letterSpacing: '0.05em', textTransform: 'uppercase', fontWeight: 700, height: 52, padding: '0 10px', borderRadius: 10, border: 'none', background: COLORS.ink, color: '#fff', cursor: 'pointer', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 8, whiteSpace: 'nowrap', textDecoration: 'none' }}>
+              <Swords size={14} strokeWidth={2.5} /> Challenge a Friend
+            </a>
+            {playing && (
+              <button onClick={copyShare} style={{ fontFamily: SANS, fontSize: 12.5, letterSpacing: '0.05em', textTransform: 'uppercase', fontWeight: 700, height: 52, padding: '0 10px', borderRadius: 10, border: `1.5px solid ${COLORS.ink}`, background: COLORS.cream, color: COLORS.ink, cursor: 'pointer', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 8, whiteSpace: 'nowrap' }}>
+                <Share2 size={14} strokeWidth={2.5} /> {copied ? 'Copied' : 'Share This Puzzle'}
+              </button>
+            )}
+          </div>
+          <div style={{ marginTop: 18, paddingTop: 14, borderTop: '1px solid rgba(28,30,36,0.14)' }}>
+            <div style={{ fontFamily: MONO, fontSize: 10.5, fontWeight: 500, textTransform: 'uppercase', letterSpacing: '0.1em', color: COLORS.faded, marginBottom: 9 }}>Your stats</div>
+            <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
+              {[
+                { n: myStats.cur, l: 'Streak' },
+                { n: myStats.played, l: 'Played' },
+                { n: myStats.played ? `${Math.round((myStats.perfect / myStats.played) * 100)}%` : '—', l: 'Clean' },
+                { n: myStats.max, l: 'Best' },
+              ].map((st, i) => (
+                <div key={i} style={{ flex: '1 1 0', minWidth: 54, background: '#fff', border: '1px solid rgba(28,30,36,0.12)', borderRadius: 7, padding: '6px 5px', textAlign: 'center' }}>
+                  <div style={{ fontSize: 15, fontWeight: 800, color: COLORS.ink, lineHeight: 1.1, fontVariantNumeric: 'tabular-nums' }}>{st.n}</div>
+                  <div style={{ fontSize: 9, fontWeight: 700, color: COLORS.faded, textTransform: 'uppercase', letterSpacing: '0.04em', marginTop: 2 }}>{st.l}</div>
+                </div>
+              ))}
+            </div>
+          </div>
+          {mobileUi && !standalone && (
+            <button onClick={a2hsClick} style={{ marginTop: 10, width: '100%', fontFamily: SANS, fontSize: 13.5, letterSpacing: '0.05em', textTransform: 'uppercase', fontWeight: 800, height: 54, borderRadius: 10, border: 'none', background: '#21b45e', color: '#fff', cursor: 'pointer', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 9, whiteSpace: 'nowrap' }}>
+              <Smartphone size={15} strokeWidth={2.5} /> Add to Home Screen
+            </button>
+          )}
+        </div>
+        {showA2hsHelp && (
+          <div onClick={() => setShowA2hsHelp(false)} style={{ position: 'fixed', inset: 0, background: 'rgba(20,22,28,0.55)', zIndex: 90, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 18 }}>
+            <div onClick={(e) => e.stopPropagation()} style={{ background: '#fff', borderRadius: 14, maxWidth: 430, width: '100%', padding: '22px 22px 16px', fontFamily: SANS, border: '1.5px solid rgba(20,22,28,0.12)' }}>
+              <div style={{ fontSize: 17, fontWeight: 800, color: COLORS.ink, marginBottom: 8 }}>Add Links to your Home Screen</div>
+              {isIosDevice() ? (
+                <ol style={{ margin: '0 0 4px', paddingLeft: 20, color: COLORS.ink, fontSize: 14, lineHeight: 1.7 }}>
+                  <li>Tap the <b>Share</b> button in Safari&apos;s toolbar.</li>
+                  <li>Scroll down and tap <b>Add to Home Screen</b>.</li>
+                  <li>Tap <b>Add</b> &mdash; the four-color tile opens today&apos;s puzzle, every day.</li>
+                </ol>
+              ) : (
+                <p style={{ margin: '0 0 4px', color: COLORS.ink, fontSize: 14, lineHeight: 1.7 }}>
+                  Open your browser&apos;s menu and choose <b>Add to Home Screen</b> (or <b>Install app</b>). The four-color tile opens today&apos;s puzzle, every day.
+                </p>
+              )}
+              <button onClick={() => setShowA2hsHelp(false)} style={{ marginTop: 10, fontFamily: SANS, fontSize: 12.5, letterSpacing: '0.05em', textTransform: 'uppercase', fontWeight: 700, height: 44, width: '100%', borderRadius: 10, border: 'none', background: COLORS.ink, color: '#fff', cursor: 'pointer' }}>Got it</button>
+            </div>
+          </div>
+        )}
+        {!identity && (
+          <div style={{ margin: '18px auto 0' }}>
+            <JoinLeaderboardForm identity={identity} onJoined={(id) => { setIdentity(id); if (id && id.username) setPlayer((p) => p || { name: id.username, rank: null }); }} />
+          </div>
+        )}
+        </div>
+
+        <div style={{ maxWidth: 760, margin: '26px auto 0', background: '#fff', border: '1.5px solid rgba(20,22,28,0.12)', borderRadius: 12, padding: '14px 16px' }}>
+          <QuizLeaderboard board={board} identity={identity} total={8} />
+        </div>
+      </div>
+
+      {/* the win moment: keepsake card, Crux pattern */}
+      {justWon && (
+        <div onClick={() => setJustWon(false)} style={{ position: 'fixed', inset: 0, zIndex: 85, background: 'rgba(28,30,36,0.45)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16, animation: 'lkfade .4s ease .6s backwards' }}>
+          <div onClick={(e) => e.stopPropagation()} style={{ background: PAPER, border: `3px double ${COLORS.ink}`, borderRadius: 6, padding: '26px 30px 20px', maxWidth: 360, width: '100%', textAlign: 'center', fontFamily: SANS, boxShadow: '6px 6px 0 rgba(28,30,36,0.18)', animation: 'lkstamp .45s ease .6s backwards' }}>
+            <div style={{ display: 'flex', gap: 3, justifyContent: 'center', marginBottom: 12 }}>
+              {'LINKS'.split('').map((ch, i) => (
+                <span key={i} style={{ width: 24, height: 24, borderRadius: 3, background: i === 0 ? COLORS.ink : CAT_COLORS[i - 1].bg, color: '#fff', fontFamily: SANS, fontWeight: 900, fontSize: 15, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', boxShadow: 'inset 0 1px 3px rgba(0,0,0,0.5)' }}>{ch}</span>
+              ))}
+            </div>
+            <div style={{ fontFamily: SANS, fontWeight: 900, fontSize: 34, color: COLORS.ink, letterSpacing: '-0.01em', margin: '2px 0 6px', lineHeight: 1.15 }}>{g.mistakes === 0 ? 'Flawless.' : 'Untangled.'}</div>
+            <div style={{ fontFamily: MONO, fontSize: 12.5, color: COLORS.faded, marginBottom: 14 }}>No. {PUZZLE.num} &middot; 4/4 &middot; {g.mistakes} mistake{g.mistakes === 1 ? '' : 's'} &middot; {elapsed}</div>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 3, alignItems: 'center', marginBottom: 16 }}>
+              {g.tries.map((t, i) => (
+                <div key={i} style={{ display: 'flex', gap: 3 }}>
+                  {t.map((x, j) => <span key={j} style={{ width: 15, height: 15, borderRadius: 3, background: CAT_COLORS[x.ci].bg, border: '1px solid rgba(28,30,36,0.25)' }} />)}
+                </div>
+              ))}
+            </div>
+            <div style={{ display: 'flex', gap: 10, justifyContent: 'center', flexWrap: 'wrap' }}>
+              <button className="lk-btn" onClick={copyShare} style={{ background: COLORS.ember, color: '#fff', borderColor: COLORS.ember }}><Share2 size={15} /> {copied ? 'Copied' : 'Share result'}</button>
+              <button className="lk-btn" onClick={() => setJustWon(false)}>See the board</button>
+            </div>
+            <div style={{ fontFamily: MONO, fontSize: 10, letterSpacing: '0.1em', color: COLORS.faded, marginTop: 12 }}>sourceoftruths.com/links</div>
+          </div>
+        </div>
+      )}
+
+      <DuelBanner token={duelToken} info={duelInfo} submitted={duelSubmitted} />
+
+      {toast && (
+        <div style={{ position: 'fixed', left: '50%', bottom: 26, transform: 'translateX(-50%)', background: COLORS.ink, color: '#fff', fontFamily: SANS, fontWeight: 800, fontSize: 13.5, padding: '10px 18px', borderRadius: 9, zIndex: 60, boxShadow: '0 6px 18px rgba(20,22,28,0.25)', maxWidth: '86vw', textAlign: 'center' }}>
+          {toast}
+        </div>
+      )}
+
+      {/* help modal */}
+      {showHelp && (
+        <div onClick={() => { setShowHelp(false); try { localStorage.setItem(HELP_KEY, '1'); } catch (e) {} }}
+          style={{ position: 'fixed', inset: 0, background: 'rgba(20,22,28,0.55)', zIndex: 70, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16 }}>
+          <div onClick={(e) => e.stopPropagation()} style={{ width: '100%', maxWidth: 460, background: COLORS.cream, borderRadius: 12, border: `2px solid ${COLORS.ink}`, padding: '20px 22px', fontFamily: SANS, maxHeight: '86vh', overflowY: 'auto' }}>
+            <div style={{ display: 'flex', alignItems: 'center', marginBottom: 10 }}>
+              <div style={{ fontSize: 21, fontWeight: 800, color: COLORS.ink }}>How to play</div>
+              <button onClick={() => { setShowHelp(false); try { localStorage.setItem(HELP_KEY, '1'); } catch (e) {} }} aria-label="Close" style={{ marginLeft: 'auto', background: 'none', border: 'none', cursor: 'pointer', color: COLORS.faded }}><X size={20} /></button>
+            </div>
+            <div style={{ fontSize: 14, lineHeight: 1.55, color: COLORS.ink, fontWeight: 600 }}>
+              <p style={{ margin: '0 0 9px' }}><b>Sixteen words hide four threads</b> of four &mdash; a shared category each. Tap four words, then <b>Submit</b>.</p>
+              <p style={{ margin: '0 0 9px' }}>Right: the thread banks in its color, <span style={{ background: CAT_COLORS[0].bg, color: CAT_COLORS[0].tc, borderRadius: 4, padding: '1px 6px', fontWeight: 800 }}>yellow</span> easiest to <span style={{ background: CAT_COLORS[3].bg, color: '#fff', borderRadius: 4, padding: '1px 6px', fontWeight: 800 }}>red</span> trickiest. Wrong: one of your <b>four mistakes</b> is gone &mdash; &ldquo;one away&rdquo; is the only hint you get.</p>
+              <p style={{ margin: 0 }}>The words that look like they belong together usually don&apos;t. That&apos;s the game.</p>
+            </div>
+            <button className="lk-btn" onClick={() => { setShowHelp(false); try { localStorage.setItem(HELP_KEY, '1'); } catch (e) {} }} style={{ marginTop: 14, background: COLORS.ink, color: '#fff' }}>Play</button>
+          </div>
+        </div>
+      )}
+
+      {/* About Links — crawlable prose for search, server-rendered into the initial HTML */}
+      <section style={{ position: 'relative', zIndex: 2, maxWidth: 760, margin: '0 auto', padding: '10px 24px 42px', fontFamily: SANS }}>
+        <h2 style={{ margin: '0 0 8px', fontSize: 15, fontWeight: 800, letterSpacing: '-0.01em', color: COLORS.ink }}>About Links</h2>
+        <p style={{ margin: '0 0 8px', fontSize: 13, lineHeight: 1.65, color: COLORS.faded, fontWeight: 600 }}>
+          Links is a free daily word grouping game from Source of Truths. Sixteen words hide four threads of four &mdash; find each thread and bank it in its color, from the easy yellow group to the devious red one. Four mistakes and the board wins.
+        </p>
+        <p style={{ margin: '0 0 8px', fontSize: 13, lineHeight: 1.65, color: COLORS.faded, fontWeight: 600 }}>
+          The trick is the overlap: every puzzle plants words that look like they belong to one thread but pay off in another. Count carefully, eliminate boldly, and save the coin-flips for last. A &ldquo;one away&rdquo; nudge is the only mercy.
+        </p>
+        <p style={{ margin: 0, fontSize: 13, lineHeight: 1.65, color: COLORS.faded, fontWeight: 600 }}>
+          A new Links arrives every day at midnight Eastern. No app, no signup &mdash; play free in your browser, keep a streak, and compare your grid on the daily leaderboard. More dailies: <a href="/crux" style={{ color: COLORS.ink, fontWeight: 800 }}>Crux</a>, our crossword with no clues, <a href="/garble" style={{ color: COLORS.ink, fontWeight: 800 }}>Garble</a>, our word scramble, and <a href="/span" style={{ color: COLORS.ink, fontWeight: 800 }}>Span</a>, our border-hopping geography game.
+        </p>
+      </section>
+
+      <div style={{ position: 'relative', zIndex: 2 }}><Footer /></div>
+    </div>
+  );
+}

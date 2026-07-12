@@ -1,0 +1,94 @@
+import { Suspense } from 'react';
+import LinksClient from './LinksClient';
+import { PUZZLES } from './puzzles';
+
+// Links launched 2026-07-12 alongside Span: linked from the hub games row,
+// the footer, and the sitemap (/links is the canonical, evergreen URL — the
+// dated /quiz/links-* stubs canonicalize here).
+
+export const metadata = {
+  title: 'Links — Free Daily Word Grouping Game | Source of Truths',
+  description:
+    'A free daily word grouping game — sixteen words hide four threads of four. Find every thread before four mistakes find you. New puzzle every day.',
+  alternates: { canonical: '/links' },
+  manifest: '/links.webmanifest',
+  icons: {
+    icon: [{ url: '/links-icons/favicon-32.png', sizes: '32x32', type: 'image/png' }],
+    apple: [{ url: '/links-icons/apple-touch-icon.png', sizes: '180x180', type: 'image/png' }],
+  },
+  appleWebApp: { capable: true, statusBarStyle: 'black-translucent', title: 'Links' },
+  openGraph: {
+    title: 'Links — A Daily Word Grouping Game',
+    description:
+      'Sixteen words, four hidden threads, four mistakes to spare. The words that look like they belong together usually don’t. A new word game from Source of Truths.',
+    url: '/links',
+    type: 'website',
+    siteName: 'Source of Truths',
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'Links — A Daily Word Grouping Game',
+    description:
+      'Sixteen words, four hidden threads, four mistakes to spare.',
+  },
+};
+
+const gameJsonLd = {
+  '@context': 'https://schema.org',
+  '@type': 'Game',
+  name: 'Links',
+  alternateName: 'Links — Daily Word Grouping Game',
+  url: 'https://sourceoftruths.com/links',
+  description:
+    'A free daily word grouping game: sixteen words hide four threads of four. Bank each thread in its color, easiest yellow to trickiest red — four mistakes and the board wins.',
+  genre: ['Word game', 'Puzzle'],
+  gamePlatform: 'Web browser',
+  isAccessibleForFree: true,
+  inLanguage: 'en',
+  numberOfPlayers: { '@type': 'QuantitativeValue', minValue: 1, maxValue: 1 },
+  image: 'https://sourceoftruths.com/quiz-heroes/links.png',
+  publisher: {
+    '@type': 'Organization',
+    name: 'Source of Truths',
+    url: 'https://sourceoftruths.com',
+  },
+};
+
+const breadcrumbJsonLd = {
+  '@context': 'https://schema.org',
+  '@type': 'BreadcrumbList',
+  itemListElement: [
+    { '@type': 'ListItem', position: 1, name: 'Home', item: 'https://sourceoftruths.com' },
+    { '@type': 'ListItem', position: 2, name: 'Quizzes', item: 'https://sourceoftruths.com/quizzes' },
+    { '@type': 'ListItem', position: 3, name: 'Links' },
+  ],
+};
+
+export const dynamic = 'force-dynamic';
+
+function etTodayServer() {
+  try { return new Date().toLocaleDateString('en-CA', { timeZone: 'America/New_York' }); }
+  catch (e) { return new Date().toISOString().slice(0, 10); }
+}
+
+export default function LinksPage({ searchParams }) {
+  const today = etTodayServer();
+  const visiblePuzzles = PUZZLES.filter((p) => p.live <= today);
+  const n = Number(searchParams && searchParams.p);
+  const forceNum = Number.isInteger(n) && n > 0 ? n : null;
+  return (
+    <>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(gameJsonLd) }}
+      />
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbJsonLd) }}
+      />
+      <Suspense fallback={null}>
+        <LinksClient key={forceNum || 'today'} puzzles={visiblePuzzles} forceNum={forceNum} />
+      </Suspense>
+    </>
+  );
+}

@@ -896,6 +896,15 @@ export default function QuizHomeClient() {
     @media(max-width:560px){.qzh .ddhead{display:flex !important;align-items:center;justify-content:space-between;position:sticky;top:0;background:#fff;margin:-6px -6px 5px;padding:10px 12px;border-bottom:1px solid ${C.line};z-index:3;font-weight:700;font-size:13px;color:${C.ink};}.qzh .ddhead .ddclose{background:#eef1f6;border:none;border-radius:8px;width:34px;height:34px;font-size:17px;line-height:1;cursor:pointer;color:${C.ink};display:flex;align-items:center;justify-content:center;flex:none;}}
     .qzh .dditem:hover{background:${C.bg};}
     .qzh .dot{width:9px;height:9px;border-radius:3px;flex:none;}
+    /* Daily games row: four half-height buttons above the hero tiles */
+    .qzh .th-games{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px;margin-bottom:14px;}
+    .qzh .th-game{position:relative;display:flex;flex-direction:column;justify-content:center;gap:1px;min-height:86px;border:1px solid ${C.line};border-radius:14px;background-size:cover;background-position:center;background-color:#0e1d40;padding:11px 15px;text-decoration:none;overflow:hidden;}
+    .qzh .th-game:hover{border-color:#5b8bff;}
+    .qzh .th-game-tag{position:absolute;top:9px;right:11px;font-size:9px;font-weight:800;letter-spacing:.1em;text-transform:uppercase;color:#f8b84a;}
+    .qzh .th-game-t{font-size:17px;font-weight:800;letter-spacing:-.3px;color:#fff;line-height:1.1;}
+    .qzh .th-game-p{font-size:11.5px;font-weight:700;color:#9fb0d4;}
+    @media(max-width:900px){.qzh .th-game-p{display:none;}.qzh .th-game{min-height:64px;}}
+    @media(max-width:760px){.qzh .th-games{grid-template-columns:repeat(2,minmax(0,1fr));gap:9px;}.qzh .th-game{min-height:58px;background-position:right center;}}
     .qzh .qotd{display:flex;align-items:stretch;gap:0;background:#0e1d40;border:1px solid ${C.line};border-radius:14px;overflow:hidden;min-height:215px;text-decoration:none;color:#fff;}
     .qzh .qotd-photo{flex:0 0 48%;background-size:cover;background-position:center;min-height:180px;}
     .qzh .qotd-body{flex:1 1 auto;min-width:0;padding:18px 22px;display:flex;flex-direction:column;justify-content:center;}
@@ -1210,6 +1219,23 @@ export default function QuizHomeClient() {
         })()}
 
         {signupOpen && <SignupModal onClose={() => setSignupOpen(false)} />}
+
+        {/* Daily games row: one button per daily. Art lives in /public/games;
+            each button is ~half the Newest tile's height. */}
+        <div className="th-games">
+          {[
+            { href: '/crux', name: 'Crux', tag: 'A crossword with no clues', img: '/games/btn-crux.png' },
+            { href: '/garble', name: 'Garble', tag: 'Untangle five words', img: '/games/btn-garble.png' },
+            { href: '/links', name: 'Links', tag: 'Four hidden threads', img: '/games/btn-links.png' },
+            { href: '/span', name: 'Span', tag: 'Cross the map', img: '/games/btn-span.png' },
+          ].map((gm) => (
+            <a key={gm.href} href={gm.href} className="th-game" style={{ backgroundImage: `url("${gm.img}")` }} aria-label={`${gm.name} — daily game`}>
+              <span className="th-game-tag">Daily</span>
+              <span className="th-game-t">{gm.name}</span>
+              <span className="th-game-p">{gm.tag} →</span>
+            </a>
+          ))}
+        </div>
 
         <div className="thub">
           <div className="thub-left">

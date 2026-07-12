@@ -27,11 +27,12 @@ export async function generateMetadata({ params }) {
   const description = quiz.blurb;
   const ogTitle = quiz.title;
 
-  // Crux/Garble catalog stubs render only a client-side hop to the game page.
+  // Daily-game catalog stubs render only a client-side hop to the game page.
   // Canonicalize them to the evergreen game URLs so the dated stubs don't
-  // compete with /crux and /garble in search (they're also out of the sitemap).
-  const gameCanonical =
-    quiz.format === 'crux' ? '/crux' : quiz.format === 'garble' ? '/garble' : null;
+  // compete with /crux, /garble, /links, /span in search (they're also out
+  // of the sitemap).
+  const GAME_URLS = { crux: '/crux', garble: '/garble', links: '/links', span: '/span' };
+  const gameCanonical = GAME_URLS[quiz.format] || null;
 
   return {
     title: `${quiz.title} | Source of Truths`,
@@ -64,6 +65,8 @@ export default function QuizPage({ params }) {
   if (id === 'crosslock-7-6-26') redirect('/crux?p=1');
   if (quiz && quiz.format === 'crux') return <CruxRedirect num={quiz.cruxNum || null} />;
   if (quiz && quiz.format === 'garble') return <CruxRedirect num={quiz.gameNum || null} base="/garble" />;
+  if (quiz && quiz.format === 'links') return <CruxRedirect num={quiz.gameNum || null} base="/links" />;
+  if (quiz && quiz.format === 'span') return <CruxRedirect num={quiz.gameNum || null} base="/span" />;
 
   const jsonLd = quiz
     ? {
