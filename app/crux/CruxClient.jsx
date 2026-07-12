@@ -36,11 +36,11 @@ const COLORS = {
 const SANS = "'Manrope', system-ui, -apple-system, sans-serif";
 // Editorial ink-and-paper identity (owner-approved mockup, 2026-07-11).
 // Fraunces + DM Mono are already loaded site-wide by app/layout.js.
-const SERIF = "'Fraunces', Georgia, serif";
+const SERIF = "'Manrope', system-ui, -apple-system, sans-serif";
 const MONO = "'DM Mono', ui-monospace, 'SFMono-Regular', monospace";
 const PAPER = '#fbf9f4';
-const TILE = '#fffdf8';
-const TILE_BORDER = 'rgba(28,30,36,0.28)';
+const TILE = '#ffffff';
+const TILE_BORDER = 'rgba(28,30,36,0.42)';
 
 // iOS/iPadOS never fires beforeinstallprompt — A2HS lives in Safari's share
 // sheet, so the button opens instructions there instead.
@@ -399,7 +399,7 @@ export default function CruxClient({ puzzles = [], forceNum = null }) {
             if (d && Array.isArray(d.recent)) {
               setStats((cur) => mergeServerStats(cur || getStats(puzzles), d.recent, puzzles));
             }
-            if (d && d.found && d.name) setPlayer({ name: d.name, rank: (d.ranks && d.ranks.xp) || d.rank || null });
+            if (d && d.found && d.name) setPlayer({ name: d.name, rank: (d.ranks && d.ranks.xp) || d.rank || null, key: d.userKey || null });
           })
           .catch(() => {});
       }
@@ -669,6 +669,7 @@ export default function CruxClient({ puzzles = [], forceNum = null }) {
   const isTodays = PUZZLE.num === pickPuzzle(puzzles, null).num;
   const elapsed = g.t0 ? fmtTime((g.tEnd || Date.now()) - g.t0) : '0:00';
   const myStats = deriveStats(stats, pickPuzzle(puzzles, null).num);
+  const topPlayer = (board.leaderboard && board.leaderboard[0]) || (board.leaderboardAll && board.leaderboardAll[0]) || null;
 
   // Share of players this run beat, from the exact score distribution the
   // board API returns. Own attempt excluded; hidden under a small sample.
@@ -826,7 +827,7 @@ export default function CruxClient({ puzzles = [], forceNum = null }) {
   const markColor = { g: { bg: COLORS.ink, fg: '#fff' }, y: { bg: '#e6b93f', fg: '#5c4a06' }, x: { bg: '#c9cdd4', fg: '#40434b' } };
 
   return (
-    <div style={{ minHeight: '100vh', background: '#f6f4ee', position: 'relative' }}>
+    <div style={{ minHeight: '100vh', background: '#f7f8fa', position: 'relative' }}>
       <Grain />
       <div className="cx-wrap" style={{ position: 'relative', zIndex: 2, maxWidth: 1180, margin: '0 auto', padding: '18px 38px 80px', fontFamily: SANS }}>
         <style>{`
@@ -861,10 +862,11 @@ export default function CruxClient({ puzzles = [], forceNum = null }) {
           <a href="/quizzes" style={{ fontFamily: MONO, fontSize: 11, letterSpacing: '0.12em', textTransform: 'uppercase', color: COLORS.faded, textDecoration: 'none', borderBottom: '1px solid rgba(28,30,36,0.25)', paddingBottom: 1 }}>Quizzes</a>
           <a href="/" style={{ fontFamily: MONO, fontSize: 11, letterSpacing: '0.12em', textTransform: 'uppercase', color: COLORS.faded, textDecoration: 'none', borderBottom: '1px solid rgba(28,30,36,0.25)', paddingBottom: 1 }}>Top 10 Lists</a>
           {player && (
-            <span style={{ marginLeft: 'auto', display: 'inline-flex', alignItems: 'center', gap: 7, fontFamily: MONO, fontSize: 11, letterSpacing: '0.06em', color: COLORS.ink, background: PAPER, border: '1.5px solid rgba(28,30,36,0.35)', borderRadius: 5, padding: '4px 10px' }}>
+            <a href={player.key ? `/quizzes/hub?player=${encodeURIComponent(player.key)}` : '/quizzes/hub'} title="Your Stat Hub"
+              style={{ marginLeft: 'auto', display: 'inline-flex', alignItems: 'center', gap: 7, fontFamily: MONO, fontSize: 11, letterSpacing: '0.06em', color: COLORS.ink, background: PAPER, border: '1.5px solid rgba(28,30,36,0.35)', borderRadius: 5, padding: '4px 10px', textDecoration: 'none' }}>
               <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', maxWidth: 150, fontWeight: 500 }}>{player.name}</span>
-              {player.rank ? <span style={{ color: COLORS.ember, fontWeight: 500 }}>#{player.rank}</span> : null}
-            </span>
+              {player.rank ? <span style={{ color: COLORS.ember, fontWeight: 500 }}>Rank #{player.rank}</span> : null}
+            </a>
           )}
         </div>
 
@@ -892,7 +894,7 @@ export default function CruxClient({ puzzles = [], forceNum = null }) {
         <div className="cl-cols">
           {/* left: board + input */}
           <div>
-            <div className="cl-panel" style={{ background: PAPER, border: `2px solid ${COLORS.ink}`, borderRadius: 10, padding: '13px 15px 15px', boxShadow: '4px 4px 0 rgba(28,30,36,0.12)', display: 'inline-block', maxWidth: '100%', marginBottom: 12 }}>
+            <div className="cl-panel" style={{ background: '#fff', border: `2px solid ${COLORS.ink}`, borderRadius: 10, padding: '13px 15px 15px', boxShadow: '5px 5px 0 rgba(28,30,36,0.16)', display: 'inline-block', maxWidth: '100%', marginBottom: 12 }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: 12, fontFamily: MONO, fontSize: 11.5, letterSpacing: '0.1em', textTransform: 'uppercase', color: COLORS.faded, borderBottom: '1px solid rgba(28,30,36,0.18)', paddingBottom: 8, marginBottom: 12 }}>
                 <span style={{ whiteSpace: 'nowrap' }}><b style={{ color: g.left <= 3 ? COLORS.rust : COLORS.ink, fontWeight: 500 }}>{g.left}</b> guesses</span>
                 <span style={{ flex: 1, height: 5, background: 'rgba(28,30,36,0.1)', borderRadius: 3, overflow: 'hidden', minWidth: 36 }}>
@@ -1009,19 +1011,17 @@ export default function CruxClient({ puzzles = [], forceNum = null }) {
               })}
             </div>
 
-            {/* streak — quiet mini stat tiles below the categories (Stats button removed) */}
-            <div style={{ marginBottom: 14, paddingTop: 12, borderTop: '1px solid rgba(28,30,36,0.14)', display: 'flex', gap: 6, flexWrap: 'wrap' }}>
-              {[
-                { n: myStats.cur, l: 'Streak' },
-                { n: myStats.played, l: 'Played' },
-                { n: myStats.played ? `${Math.round((myStats.perfect / myStats.played) * 100)}%` : '\u2014', l: 'Perfect' },
-                { n: myStats.max, l: 'Best' },
-              ].map((st, i) => (
-                <div key={i} style={{ flex: '1 1 0', minWidth: 54, background: '#fff', border: '1px solid rgba(28,30,36,0.12)', borderRadius: 7, padding: '6px 5px', textAlign: 'center' }}>
-                  <div style={{ fontSize: 15, fontWeight: 800, color: COLORS.ink, lineHeight: 1.1, fontVariantNumeric: 'tabular-nums' }}>{st.n}</div>
-                  <div style={{ fontSize: 9, fontWeight: 700, color: COLORS.faded, textTransform: 'uppercase', letterSpacing: '0.04em', marginTop: 2 }}>{st.l}</div>
-                </div>
-              ))}
+            {/* today's top player — name only, links to their Stat Hub */}
+            <div style={{ marginBottom: 14, paddingTop: 12, borderTop: '1px solid rgba(28,30,36,0.14)' }}>
+              <div style={{ fontFamily: MONO, fontSize: 10.5, fontWeight: 500, textTransform: 'uppercase', letterSpacing: '0.1em', color: COLORS.faded, marginBottom: 7 }}>Today&apos;s top player</div>
+              {topPlayer && topPlayer.username ? (
+                <a href={topPlayer.userKey ? `/quizzes/hub?player=${encodeURIComponent(topPlayer.userKey)}` : '/quizzes/hub'}
+                  style={{ display: 'block', background: '#fff', border: '1px solid rgba(28,30,36,0.14)', borderRadius: 8, padding: '10px 12px', fontFamily: SANS, fontWeight: 800, fontSize: 15, color: COLORS.ink, textDecoration: 'none', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                  {topPlayer.username}
+                </a>
+              ) : (
+                <div style={{ background: '#fff', border: '1px solid rgba(28,30,36,0.14)', borderRadius: 8, padding: '10px 12px', fontFamily: SANS, fontWeight: 700, fontSize: 13.5, color: COLORS.faded }}>Be the first to finish.</div>
+              )}
             </div>
 
             {/* filing tray */}
@@ -1107,6 +1107,21 @@ export default function CruxClient({ puzzles = [], forceNum = null }) {
               </button>
             )}
           </div>
+            {/* your streak — quiet mini stat tiles, below the Challenge/Share buttons */}
+            <div style={{ marginTop: 18, paddingTop: 12, borderTop: '1px solid rgba(28,30,36,0.14)', display: 'flex', gap: 6, flexWrap: 'wrap' }}>
+              {[
+                { n: myStats.cur, l: 'Streak' },
+                { n: myStats.played, l: 'Played' },
+                { n: myStats.played ? `${Math.round((myStats.perfect / myStats.played) * 100)}%` : '\u2014', l: 'Perfect' },
+                { n: myStats.max, l: 'Best' },
+              ].map((st, i) => (
+                <div key={i} style={{ flex: '1 1 0', minWidth: 54, background: '#fff', border: '1px solid rgba(28,30,36,0.12)', borderRadius: 7, padding: '6px 5px', textAlign: 'center' }}>
+                  <div style={{ fontSize: 15, fontWeight: 800, color: COLORS.ink, lineHeight: 1.1, fontVariantNumeric: 'tabular-nums' }}>{st.n}</div>
+                  <div style={{ fontSize: 9, fontWeight: 700, color: COLORS.faded, textTransform: 'uppercase', letterSpacing: '0.04em', marginTop: 2 }}>{st.l}</div>
+                </div>
+              ))}
+            </div>
+
           {mobileUi && !standalone && (
             <button onClick={a2hsClick} style={{ marginTop: 10, width: '100%', fontFamily: SANS, fontSize: 13.5, letterSpacing: '0.05em', textTransform: 'uppercase', fontWeight: 800, height: 54, borderRadius: 10, border: 'none', background: '#21b45e', color: '#fff', cursor: 'pointer', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 9, whiteSpace: 'nowrap' }}>
               <Smartphone size={15} strokeWidth={2.5} /> Add to Home Screen
