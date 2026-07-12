@@ -17,7 +17,7 @@
 
 import React, { useState, useEffect, useMemo, useRef, useCallback } from 'react';
 import { useSearchParams } from 'next/navigation';
-import { HelpCircle, Share2, RotateCcw, X, ChevronLeft, ChevronRight, Swords, Smartphone, Lightbulb, BarChart3 } from 'lucide-react';
+import { HelpCircle, Share2, RotateCcw, X, ChevronLeft, ChevronRight, Swords, Smartphone, Lightbulb } from 'lucide-react';
 import Grain from '../Grain';
 import Footer from '../Footer';
 import useDuelContext, { DuelBanner } from '../quiz/[id]/useDuelContext';
@@ -317,7 +317,6 @@ export default function CruxClient({ puzzles = [], forceNum = null }) {
   const [garbleDoneToday, setGarbleDoneToday] = useState(true);
   const [stats, setStats] = useState(null);
   const [player, setPlayer] = useState(null); // { name, rank } for the top-strip chip
-  const [showStats, setShowStats] = useState(false);
   const [anim, setAnim] = useState(null);        // { id, flip: {key->i}, pulse: {key->true} } for the last guess
   const [endAnim, setEndAnim] = useState(false); // category cascade, only on the live end transition
   const [countdown, setCountdown] = useState('');
@@ -438,7 +437,7 @@ export default function CruxClient({ puzzles = [], forceNum = null }) {
 
   useEffect(() => {
     function onDown(e) {
-      if (showHelp || showStats) return;
+      if (showHelp) return;
       if (e.metaKey || e.ctrlKey || e.altKey) return;
       const tag = e.target && e.target.tagName;
       if (tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT') return;
@@ -448,7 +447,7 @@ export default function CruxClient({ puzzles = [], forceNum = null }) {
     }
     window.addEventListener('keydown', onDown);
     return () => window.removeEventListener('keydown', onDown);
-  }, [onKey, showHelp, showStats]);
+  }, [onKey, showHelp]);
 
   function sweepAutoSolve(g2) {
     for (const s of PUZZLE.slots) {
@@ -699,7 +698,7 @@ export default function CruxClient({ puzzles = [], forceNum = null }) {
     // Hint use is flagged, streak rides along.
     const guessBit = `${guessesUsed} guess${guessesUsed === 1 ? '' : 'es'}`;
     const hintBit = g.hintUsed ? ' · 💡' : '';
-    const streakBit = isTodays && myStats.cur >= 2 ? ` · 🔥${myStats.cur}` : '';
+    const streakBit = isTodays && myStats.cur >= 2 ? ` · streak ${myStats.cur}` : '';
     const head = `Crux #${PUZZLE.num} · ${score}/${PUZZLE.slots.length * 2} · ${guessBit} · ${elapsed}${hintBit}${streakBit}`;
     return `${head}\n${rows.join('\n')}\n${shareUrl()}`;
   }
@@ -875,7 +874,6 @@ export default function CruxClient({ puzzles = [], forceNum = null }) {
             {'CRUX'.split('').map((ch, i) => (
               <div key={i} style={{ width: 46, height: 46, borderRadius: 5, display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: SERIF, fontWeight: 900, fontSize: 28, background: i === 2 ? COLORS.ember : COLORS.ink, color: '#fff', boxShadow: 'inset 0 2px 5px rgba(0,0,0,0.5), 0 1px 0 rgba(255,255,255,0.65)' }}>{ch}</div>
             ))}
-            <div aria-hidden="true" style={{ width: 36, height: 36, borderRadius: 5, display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: SERIF, fontWeight: 900, fontSize: 20, background: TILE, color: COLORS.ink, border: '1.5px solid rgba(28,30,36,0.35)', boxShadow: 'inset 0 1px 2px rgba(28,30,36,0.08)' }}>?</div>
           </div>
           <div style={{ display: 'flex', alignItems: 'center', gap: 13, flexWrap: 'wrap', marginTop: 14, borderTop: '2px solid rgba(28,30,36,0.8)', borderBottom: '1px solid rgba(28,30,36,0.35)', padding: '7px 2px' }}>
             <h1 style={{ margin: 0, fontFamily: MONO, fontSize: 12, letterSpacing: '0.08em', fontWeight: 500, color: COLORS.ink }}>No. {PUZZLE.num}</h1>
@@ -884,9 +882,6 @@ export default function CruxClient({ puzzles = [], forceNum = null }) {
               ? <span style={{ fontFamily: MONO, fontSize: 10.5, letterSpacing: '0.12em', textTransform: 'uppercase', color: '#fff', background: COLORS.ink, borderRadius: 3, padding: '2px 7px' }}>Sunday Edition</span>
               : <span style={{ fontFamily: MONO, fontSize: 10.5, letterSpacing: '0.12em', textTransform: 'uppercase', color: COLORS.faded }}>a crossword with no clues</span>}
             <span style={{ marginLeft: 'auto', display: 'flex', gap: 14 }}>
-              <button onClick={() => setShowStats(true)} aria-label="Your stats" style={{ background: 'none', border: 'none', cursor: 'pointer', color: COLORS.faded, display: 'flex', alignItems: 'center', gap: 5, fontFamily: SANS, fontWeight: 700, fontSize: 12.5, padding: 0 }}>
-                <BarChart3 size={16} /> Stats
-              </button>
               <button onClick={() => setShowHelp(true)} aria-label="How to play" style={{ background: 'none', border: 'none', cursor: 'pointer', color: COLORS.faded, display: 'flex', alignItems: 'center', gap: 5, fontFamily: SANS, fontWeight: 700, fontSize: 12.5, padding: 0 }}>
                 <HelpCircle size={16} /> How to play
               </button>
@@ -1014,6 +1009,21 @@ export default function CruxClient({ puzzles = [], forceNum = null }) {
               })}
             </div>
 
+            {/* streak — quiet mini stat tiles below the categories (Stats button removed) */}
+            <div style={{ marginBottom: 14, paddingTop: 12, borderTop: '1px solid rgba(28,30,36,0.14)', display: 'flex', gap: 6, flexWrap: 'wrap' }}>
+              {[
+                { n: myStats.cur, l: 'Streak' },
+                { n: myStats.played, l: 'Played' },
+                { n: myStats.played ? `${Math.round((myStats.perfect / myStats.played) * 100)}%` : '\u2014', l: 'Perfect' },
+                { n: myStats.max, l: 'Best' },
+              ].map((st, i) => (
+                <div key={i} style={{ flex: '1 1 0', minWidth: 54, background: '#fff', border: '1px solid rgba(28,30,36,0.12)', borderRadius: 7, padding: '6px 5px', textAlign: 'center' }}>
+                  <div style={{ fontSize: 15, fontWeight: 800, color: COLORS.ink, lineHeight: 1.1, fontVariantNumeric: 'tabular-nums' }}>{st.n}</div>
+                  <div style={{ fontSize: 9, fontWeight: 700, color: COLORS.faded, textTransform: 'uppercase', letterSpacing: '0.04em', marginTop: 2 }}>{st.l}</div>
+                </div>
+              ))}
+            </div>
+
             {/* filing tray */}
             {playing && solvedUnfiled.length > 0 && (
               <div style={{ background: '#fff', border: '1.5px solid rgba(20,22,28,0.12)', borderRadius: 10, padding: '10px 12px', marginBottom: 14 }}>
@@ -1055,7 +1065,7 @@ export default function CruxClient({ puzzles = [], forceNum = null }) {
                 {(beatPct != null || (isTodays && myStats.cur >= 2)) && (
                   <div style={{ fontSize: 13, fontWeight: 800, marginBottom: 12, display: 'flex', gap: 12, flexWrap: 'wrap' }}>
                     {beatPct != null && <span style={{ color: COLORS.ember }}>You beat {beatPct}% of players on this puzzle</span>}
-                    {isTodays && myStats.cur >= 2 && <span style={{ color: '#b45309' }}>🔥 {myStats.cur}-day streak</span>}
+                    {isTodays && myStats.cur >= 2 && <span style={{ color: '#b45309' }}>{myStats.cur}-day streak</span>}
                   </div>
                 )}
                 <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
@@ -1185,34 +1195,6 @@ export default function CruxClient({ puzzles = [], forceNum = null }) {
               <p style={{ margin: 0 }}>Stuck? One free <b>hint</b> per puzzle reveals a letter.</p>
             </div>
             <button className="cl-btn" onClick={() => { setShowHelp(false); try { localStorage.setItem(HELP_KEY, '1'); } catch (e) {} }} style={{ marginTop: 14, background: COLORS.ink, color: '#fff' }}>Play</button>
-          </div>
-        </div>
-      )}
-
-      {/* personal stats modal */}
-      {showStats && (
-        <div onClick={() => setShowStats(false)} style={{ position: 'fixed', inset: 0, background: 'rgba(20,22,28,0.55)', zIndex: 70, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16 }}>
-          <div onClick={(e) => e.stopPropagation()} style={{ width: '100%', maxWidth: 400, background: COLORS.cream, borderRadius: 12, border: `2px solid ${COLORS.ink}`, padding: '20px 22px', fontFamily: SANS }}>
-            <div style={{ display: 'flex', alignItems: 'center', marginBottom: 14 }}>
-              <div style={{ fontSize: 21, fontWeight: 800, color: COLORS.ink }}>Your stats</div>
-              <button onClick={() => setShowStats(false)} aria-label="Close" style={{ marginLeft: 'auto', background: 'none', border: 'none', cursor: 'pointer', color: COLORS.faded }}><X size={20} /></button>
-            </div>
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, marginBottom: 14 }}>
-              {[
-                { n: myStats.played, l: 'Played' },
-                { n: myStats.played ? `${Math.round((myStats.perfect / myStats.played) * 100)}%` : '—', l: 'Perfect solves' },
-                { n: <>{myStats.cur >= 2 ? '🔥 ' : ''}{myStats.cur}</>, l: 'Current streak' },
-                { n: myStats.max, l: 'Best streak' },
-              ].map((s, i) => (
-                <div key={i} style={{ background: '#fff', border: '1.5px solid rgba(20,22,28,0.12)', borderRadius: 10, padding: '12px 10px', textAlign: 'center' }}>
-                  <div style={{ fontSize: 26, fontWeight: 800, color: COLORS.ink, lineHeight: 1.1 }}>{s.n}</div>
-                  <div style={{ fontSize: 11.5, fontWeight: 700, color: COLORS.faded, textTransform: 'uppercase', letterSpacing: '.04em', marginTop: 3 }}>{s.l}</div>
-                </div>
-              ))}
-            </div>
-            <p style={{ margin: 0, fontSize: 12, color: COLORS.faded, fontWeight: 600, lineHeight: 1.5 }}>
-              {myStats.played ? <>{myStats.avgN ? <>Averaging <b style={{ color: COLORS.ink }}>{myStats.avgG.toFixed(1)}</b> guesses per puzzle on this device. </> : null}Streaks count consecutive daily puzzles finished, win or lose. Plays on any device count.</> : 'Finish your first Crux and your record starts here.'}
-            </p>
           </div>
         </div>
       )}
