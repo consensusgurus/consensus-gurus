@@ -20,8 +20,6 @@ import { useSearchParams } from 'next/navigation';
 import { HelpCircle, Share2, RotateCcw, X, ChevronLeft, ChevronRight, Swords, Smartphone, Lightbulb, BarChart3 } from 'lucide-react';
 import Grain from '../Grain';
 import Footer from '../Footer';
-import SiteHeader from '../SiteHeader';
-import QuizPlayerBar from '../quiz/[id]/QuizPlayerBar';
 import useDuelContext, { DuelBanner } from '../quiz/[id]/useDuelContext';
 import JoinLeaderboardForm from '../quiz/[id]/JoinLeaderboardForm';
 import QuizLeaderboard from '../quiz/[id]/QuizLeaderboard';
@@ -318,6 +316,7 @@ export default function CruxClient({ puzzles = [], forceNum = null }) {
   const [identity, setIdentity] = useState(null);
   const [garbleDoneToday, setGarbleDoneToday] = useState(true);
   const [stats, setStats] = useState(null);
+  const [player, setPlayer] = useState(null); // { name, rank } for the top-strip chip
   const [showStats, setShowStats] = useState(false);
   const [anim, setAnim] = useState(null);        // { id, flip: {key->i}, pulse: {key->true} } for the last guess
   const [endAnim, setEndAnim] = useState(false); // category cascade, only on the live end transition
@@ -401,6 +400,7 @@ export default function CruxClient({ puzzles = [], forceNum = null }) {
             if (d && Array.isArray(d.recent)) {
               setStats((cur) => mergeServerStats(cur || getStats(puzzles), d.recent, puzzles));
             }
+            if (d && d.found && d.name) setPlayer({ name: d.name, rank: (d.ranks && d.ranks.xp) || d.rank || null });
           })
           .catch(() => {});
       }
@@ -829,15 +829,12 @@ export default function CruxClient({ puzzles = [], forceNum = null }) {
   return (
     <div style={{ minHeight: '100vh', background: '#f6f4ee', position: 'relative' }}>
       <Grain />
-      <div style={{ position: 'relative', zIndex: 3 }}><SiteHeader active="quizzes" flush inlay={<QuizPlayerBar />} /></div>
-
-      <div className="qzf-w" style={{ position: 'relative', zIndex: 2, maxWidth: 1180, margin: '0 auto', padding: '8px 38px 80px', fontFamily: SANS }}>
-        <div className="qzf-line" aria-hidden="true" />
+      <div className="cx-wrap" style={{ position: 'relative', zIndex: 2, maxWidth: 1180, margin: '0 auto', padding: '18px 38px 80px', fontFamily: SANS }}>
         <style>{`
           .cl-cols{display:grid;grid-template-columns:minmax(0,auto) minmax(280px,1fr);gap:30px;align-items:start;}
           @media(max-width:860px){.cl-cols{grid-template-columns:1fr;gap:16px;}.cl-side{order:-1;}.cl-cat{min-height:0 !important;padding:8px 11px !important;}}
           .cl-grid{--cs:42px;}
-          @media(max-width:560px){.cl-grid{--cs:calc((100vw - ${59 + (COLS - 1) * 3}px)/${COLS});}.cl-panel{padding:10px 10px 12px !important;}}
+          @media(max-width:560px){.cx-wrap{padding-left:14px !important;padding-right:14px !important;}.cl-grid{--cs:calc((100vw - ${59 + (COLS - 1) * 3}px)/${COLS});}.cl-panel{padding:10px 10px 12px !important;}}
           .cl-key{border:none;font-family:${SANS};font-weight:800;cursor:pointer;border-radius:6px;padding:0;touch-action:manipulation;}
           .cl-grid > div{touch-action:manipulation;}
           .cl-key:active{transform:scale(0.94);}
@@ -855,8 +852,22 @@ export default function CruxClient({ puzzles = [], forceNum = null }) {
           @keyframes cxcat{from{background:#fff;color:transparent;transform:scale(.82);}}
         `}</style>
 
-        {/* game content recentered: the qzf box is 1180, the game stays 960 */}
+        {/* game content centered: the page column is 1180, the game stays 960 */}
         <div style={{ maxWidth: 960, margin: '0 auto' }}>
+
+        {/* Crux-native top strip: quiet nav out to the rest of the site,
+            player name + rank on the right. The shared site header is gone —
+            Crux stands as its own identity (owner ruling 2026-07-12). */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: 18, marginBottom: 20, flexWrap: 'wrap' }}>
+          <a href="/quizzes" style={{ fontFamily: MONO, fontSize: 11, letterSpacing: '0.12em', textTransform: 'uppercase', color: COLORS.faded, textDecoration: 'none', borderBottom: '1px solid rgba(28,30,36,0.25)', paddingBottom: 1 }}>Quizzes</a>
+          <a href="/" style={{ fontFamily: MONO, fontSize: 11, letterSpacing: '0.12em', textTransform: 'uppercase', color: COLORS.faded, textDecoration: 'none', borderBottom: '1px solid rgba(28,30,36,0.25)', paddingBottom: 1 }}>Top 10 Lists</a>
+          {player && (
+            <span style={{ marginLeft: 'auto', display: 'inline-flex', alignItems: 'center', gap: 7, fontFamily: MONO, fontSize: 11, letterSpacing: '0.06em', color: COLORS.ink, background: PAPER, border: '1.5px solid rgba(28,30,36,0.35)', borderRadius: 5, padding: '4px 10px' }}>
+              <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', maxWidth: 150, fontWeight: 500 }}>{player.name}</span>
+              {player.rank ? <span style={{ color: COLORS.ember, fontWeight: 500 }}>#{player.rank}</span> : null}
+            </span>
+          )}
+        </div>
 
         {/* masthead: pressed CRUX tiles over a newspaper dateline */}
         <div style={{ marginBottom: 16 }}>
@@ -1113,7 +1124,7 @@ export default function CruxClient({ puzzles = [], forceNum = null }) {
         )}
         {!identity && (
           <div style={{ maxWidth: 640, margin: '18px auto 0' }}>
-            <JoinLeaderboardForm identity={identity} onJoined={(id) => setIdentity(id)} />
+            <JoinLeaderboardForm identity={identity} onJoined={(id) => { setIdentity(id); if (id && id.username) setPlayer((p) => p || { name: id.username, rank: null }); }} />
           </div>
         )}
         <div style={{ maxWidth: 760, margin: '26px auto 0', background: '#fff', border: '1.5px solid rgba(20,22,28,0.12)', borderRadius: 12, padding: '14px 16px' }}>
