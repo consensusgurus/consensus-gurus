@@ -11,7 +11,7 @@ export default function PrivacyPage() {
       kicker="Legal"
       title="Privacy"
       italic="policy"
-      updated="May 2026"
+      updated="July 2026"
     >
       <p>
         This Privacy Policy describes how Source of Truths ("we", "us", "the site") collects and uses information when you visit. We aim to keep things simple and to collect only what we need to operate the site.
@@ -19,21 +19,27 @@ export default function PrivacyPage() {
 
       <H2>What we collect</H2>
       <p>
-        <strong>Votes and submissions.</strong> When you upvote, downvote, add an entry to a list, or submit a new list, we store that action in our database. Submissions are tied to no personal identifier other than the IP address recorded in our server logs.
+        <strong>Quiz and game results.</strong> When you finish a quiz or one of our daily games, we store the result &mdash; which quiz or puzzle it was, your score, guesses and time, whether you played on a mobile device, and the page you arrived from. Results are tied to a random anonymous identifier generated in your browser, not to your name, unless you have joined a leaderboard.
       </p>
       <p>
-        <strong>Local storage in your browser.</strong> We use your browser's local storage to remember which items you have already voted on, so you can change your mind but not vote twice on the same item from the same browser. This data never leaves your device.
+        <strong>Leaderboard names.</strong> Joining a leaderboard is optional. If you join, we store the display name you choose and, if you provide one, an email address used only to recover your name on another device. Emails are never displayed publicly and are not used for marketing.
+      </p>
+      <p>
+        <strong>List submissions.</strong> When you submit a list or suggest an addition to one, we store that submission. It is tied to no personal identifier other than the IP address recorded in our server logs.
+      </p>
+      <p>
+        <strong>Local storage in your browser.</strong> We use your browser's local storage to remember game progress, streaks, past results, and the random anonymous identifier above. This data stays on your device except when a finished score is posted as described above.
       </p>
       <p>
         <strong>Server logs.</strong> Our hosting provider (Vercel) records standard request logs including IP addresses, timestamps, requested URLs, and user agents. These logs are used for debugging and abuse prevention. They are retained according to Vercel's policy.
       </p>
       <p>
-        <strong>Cookies.</strong> We do not use tracking cookies. The only cookie we set is an authentication cookie for site administrators, which is not relevant to ordinary visitors.
+        <strong>Cookies.</strong> We set one first-party cookie containing a random identifier, used only to count how many distinct browsers visit the site. It contains no personal information, is not shared with anyone, and does not follow you across other websites. Site administrators additionally receive an authentication cookie, which is not relevant to ordinary visitors. We do not use third-party advertising or tracking cookies.
       </p>
 
       <H2>Third parties</H2>
       <p>
-        <strong>Supabase</strong> hosts our database. Vote and submission data is stored there. See their privacy policy at supabase.com/privacy.
+        <strong>Supabase</strong> hosts our database. Quiz results, leaderboard names, and list submissions are stored there. See their privacy policy at supabase.com/privacy.
       </p>
       <p>
         <strong>Vercel</strong> hosts the site. See vercel.com/legal/privacy-policy.
@@ -47,17 +53,17 @@ export default function PrivacyPage() {
 
       <H2>What we don't do</H2>
       <p>
-        We do not sell your data. We do not run advertising trackers. We do not build profiles of individual visitors. We do not require an account to read the site or vote.
+        We do not sell your data. We do not run advertising trackers. We do not build advertising profiles of individual visitors. You never need an account: lists, quizzes, and games all work without signing up, and leaderboard names are optional.
       </p>
 
       <H2>Your rights</H2>
       <p>
-        If you submitted a list and want it removed, or you would like to know what we have stored that relates to you, contact us at the email address below. We will respond within a reasonable time.
+        If you joined a leaderboard and want your name or scores removed, if you submitted a list and want it removed, or if you would like to know what we have stored that relates to you, contact us at the email address below. We will respond within a reasonable time.
       </p>
 
       <H2>Children</H2>
       <p>
-        Source of Truths is not directed at children under 13. We do not knowingly collect information from children. If you believe a child has submitted content, please contact us and we will remove it.
+        Most of Source of Truths &mdash; the lists, quizzes, and daily games &mdash; is written for a general audience. Our Kids Corner offers games designed for children: they require no sign-up, ask for no name, email, or other personal information, and progress is stored only on the device. We do not knowingly collect personal information from children under 13 anywhere on the site, and leaderboard sign-up is intended for users 13 and older. If you believe a child under 13 has provided us personal information, please contact us and we will delete it.
       </p>
 
       <H2>Changes to this policy</H2>

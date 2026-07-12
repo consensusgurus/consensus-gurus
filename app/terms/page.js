@@ -11,7 +11,7 @@ export default function TermsPage() {
       kicker="Legal"
       title="Terms of"
       italic="service"
-      updated="May 2026"
+      updated="July 2026"
     >
       <p>
         These Terms of Service govern your use of Source of Truths. By using the site you agree to be bound by them. If you disagree with any part, please do not use the site.
@@ -19,7 +19,7 @@ export default function TermsPage() {
 
       <H2>The service</H2>
       <p>
-        Source of Truths publishes top ten lists drawn from expert rankings, named publications, and reader votes. Readers may vote on items, add entries to existing lists, and submit their own lists. The service is provided free of charge.
+        Source of Truths publishes top ten lists drawn from expert rankings and named publications, alongside free quizzes and daily word games. Readers may suggest additions to existing lists and submit their own lists, and players may optionally claim a display name to appear on quiz leaderboards. The service is provided free of charge.
       </p>
 
       <H2>Submissions and user content</H2>
@@ -35,7 +35,7 @@ export default function TermsPage() {
 
       <H2>Prohibited conduct</H2>
       <p>
-        You agree not to attempt to manipulate the site through bots, scripts, multiple accounts, or any other automated voting or submission scheme. You agree not to interfere with the operation of the site, attempt to access it in unauthorized ways, or use it for any illegal purpose.
+        You agree not to attempt to manipulate the site through bots, scripts, multiple identities, or any other automated submission or leaderboard-manipulation scheme. You agree not to interfere with the operation of the site, attempt to access it in unauthorized ways, or use it for any illegal purpose.
       </p>
 
       <H2>Affiliate links</H2>

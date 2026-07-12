@@ -831,8 +831,11 @@ export default function CruxClient({ puzzles = [], forceNum = null }) {
       <div className="cx-wrap" style={{ position: 'relative', zIndex: 2, maxWidth: 1180, margin: '0 auto', padding: '18px 38px 80px', fontFamily: SANS }}>
         <style>{`
           .cl-cols{display:grid;grid-template-columns:minmax(0,auto) minmax(280px,1fr);gap:30px;align-items:start;}
-          @media(max-width:860px){.cl-cols{grid-template-columns:1fr;gap:16px;}.cl-side{order:-1;}.cl-cat{min-height:0 !important;padding:8px 11px !important;}}
+          @media (max-width:860px), (max-height:520px) and (max-width:1000px){.cl-cols{grid-template-columns:1fr;gap:16px;}.cl-side{order:-1;}.cl-cat{min-height:0 !important;padding:8px 11px !important;}.cl-grid{--cs:min(42px, calc((100vw - ${110 + (COLS - 1) * 3}px)/${COLS}));}}
           .cl-grid{--cs:42px;}
+          @media (min-width:861px) and (min-height:521px){.cl-cats{grid-template-columns:1fr !important;}.cl-cat{display:flex;align-items:center;justify-content:space-between;gap:12px;min-height:0 !important;padding:13px 16px !important;}.cl-cat-nm{margin-bottom:0 !important;}}
+          .cx-htp-s{display:none;}
+          @media(max-width:520px){.cx-htp-f{display:none;}.cx-htp-s{display:inline;}.cx-dl{gap:9px !important;}}
           @media(max-width:560px){.cx-wrap{padding-left:14px !important;padding-right:14px !important;}.cl-grid{--cs:calc((100vw - ${59 + (COLS - 1) * 3}px)/${COLS});}.cl-panel{padding:10px 10px 12px !important;}}
           .cl-key{border:none;font-family:${SANS};font-weight:800;cursor:pointer;border-radius:6px;padding:0;touch-action:manipulation;}
           .cl-grid > div{touch-action:manipulation;}
@@ -876,7 +879,7 @@ export default function CruxClient({ puzzles = [], forceNum = null }) {
               <div key={i} style={{ width: 46, height: 46, borderRadius: 5, display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: SERIF, fontWeight: 900, fontSize: 28, background: i === 2 ? COLORS.ember : COLORS.ink, color: '#fff', boxShadow: 'inset 0 2px 5px rgba(0,0,0,0.5), 0 1px 0 rgba(255,255,255,0.65)' }}>{ch}</div>
             ))}
           </div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 13, flexWrap: 'wrap', marginTop: 14, borderTop: '2px solid rgba(28,30,36,0.8)', borderBottom: '1px solid rgba(28,30,36,0.35)', padding: '7px 2px' }}>
+          <div className="cx-dl" style={{ display: 'flex', alignItems: 'center', gap: 13, flexWrap: 'wrap', marginTop: 14, borderTop: '2px solid rgba(28,30,36,0.8)', borderBottom: '1px solid rgba(28,30,36,0.35)', padding: '7px 2px' }}>
             <h1 style={{ margin: 0, fontFamily: MONO, fontSize: 12, letterSpacing: '0.08em', fontWeight: 500, color: COLORS.ink }}>No. {PUZZLE.num}</h1>
             <span style={{ fontFamily: SERIF, fontStyle: 'italic', fontSize: 14, color: COLORS.ink }}>{PUZZLE.dateLabel}</span>
             {PUZZLE.categories[0].words.length === 3
@@ -884,7 +887,7 @@ export default function CruxClient({ puzzles = [], forceNum = null }) {
               : <span style={{ fontFamily: MONO, fontSize: 10.5, letterSpacing: '0.12em', textTransform: 'uppercase', color: COLORS.faded }}>a crossword with no clues</span>}
             <span style={{ marginLeft: 'auto', display: 'flex', gap: 14 }}>
               <button onClick={() => setShowHelp(true)} aria-label="How to play" style={{ background: 'none', border: 'none', cursor: 'pointer', color: COLORS.faded, display: 'flex', alignItems: 'center', gap: 5, fontFamily: SANS, fontWeight: 700, fontSize: 12.5, padding: 0 }}>
-                <HelpCircle size={16} /> How to play
+                <HelpCircle size={16} /> <span className="cx-htp-f">How to play</span><span className="cx-htp-s">Help</span>
               </button>
             </span>
           </div>
@@ -983,15 +986,15 @@ export default function CruxClient({ puzzles = [], forceNum = null }) {
             <div style={{ fontSize: 12.5, fontWeight: 800, textTransform: 'uppercase', letterSpacing: '.05em', color: COLORS.faded, marginBottom: 8 }}>
               The categories &mdash; each hides {PUZZLE.categories[0].words.length === 3 ? 'three' : 'two'} of the {PUZZLE.slots.length === 12 ? 'twelve' : 'eight'} words
             </div>
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8, marginBottom: 14 }}>
+            <div className="cl-cats" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8, marginBottom: 14 }}>
               {PUZZLE.categories.map((cat, ci) => {
                 const cc = CAT_COLORS[ci];
                 const filed = Object.keys(g.assigned).filter((w) => g.assigned[w] === ci);
                 const clickable = playing && pick;
                 return (
                   <div key={ci} className="cl-cat" onClick={clickable ? () => fileWord(pick, ci) : undefined}
-                    style={{ background: cc.bg, borderRadius: 8, padding: '16px 14px', minHeight: 165, display: 'flex', flexDirection: 'column', justifyContent: 'center', border: '1.5px solid rgba(28,30,36,0.35)', boxShadow: '2px 2px 0 rgba(28,30,36,0.10)', cursor: clickable ? 'pointer' : 'default', outline: clickable ? `2.5px dashed ${cc.tc}` : 'none', outlineOffset: 2 }}>
-                    <div style={{ color: cc.tc, fontWeight: 800, fontSize: 12.5, textTransform: 'uppercase', letterSpacing: '.03em', lineHeight: 1.25, marginBottom: 7, textShadow: '0 1px 0 rgba(255,255,255,0.35)' }}>{cat.name}</div>
+                    style={{ background: cc.bg, borderRadius: 8, padding: '10px 12px', minHeight: 74, border: '1.5px solid rgba(28,30,36,0.35)', boxShadow: '2px 2px 0 rgba(28,30,36,0.10)', cursor: clickable ? 'pointer' : 'default', outline: clickable ? `2.5px dashed ${cc.tc}` : 'none', outlineOffset: 2 }}>
+                    <div className="cl-cat-nm" style={{ color: cc.tc, fontWeight: 800, fontSize: 12.5, textTransform: 'uppercase', letterSpacing: '.03em', lineHeight: 1.25, marginBottom: 7, textShadow: '0 1px 0 rgba(255,255,255,0.35)' }}>{cat.name}</div>
                     <div style={{ display: 'flex', gap: 5, flexWrap: 'wrap' }}>
                       {cat.words.map((_, i) => {
                         const w = lost ? cat.words[i] : filed[i];
