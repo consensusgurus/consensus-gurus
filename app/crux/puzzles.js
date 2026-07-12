@@ -165,24 +165,37 @@ export const PUZZLES = [
     quizId: 'crux-7-12-26',
     live: '2026-07-12',
     dateLabel: 'July 12, 2026',
-    guesses: 18,
-    rows: 10,
-    cols: 8,
+    // rev 2: slot 7 became the first Sunday Edition mid-day — the rev keys a
+    // fresh localStorage save so anyone who started the displaced 8-worder
+    // (now No. 29) doesn't load its state into this grid.
+    rev: 2,
+    guesses: 27,
+    rows: 9,
+    cols: 11,
+    // Sunday Edition No. 1 (Sundays run bigger and harder by design — owner
+    // ruling 2026-07-11). Three deceptions, all pinned by elimination:
+    // VAULT reads gym apparatus (BEAM/RINGS/POMMEL fill the gym), RINGS reads
+    // tree rings (ROOT has no other home), POMMEL reads sword part
+    // (HILT/BLADE/EDGE fill the sword).
     categories: [
-      { name: 'Headwear', words: ['BEANIE', 'VISOR'] },
-      { name: 'Bottle parts', words: ['NECK', 'CAP'] },
-      { name: 'Shirt parts', words: ['COLLAR', 'CUFF'] },
-      { name: 'Guitar parts', words: ['FRET', 'STRING'] },
+      { name: 'Tree parts', words: ['TRUNK', 'BARK', 'ROOT'] },
+      { name: 'Bank things', words: ['VAULT', 'TELLER', 'BRANCH'] },
+      { name: 'Sword parts', words: ['HILT', 'BLADE', 'EDGE'] },
+      { name: 'Gym apparatus', words: ['BEAM', 'RINGS', 'POMMEL'] },
     ],
     slots: [
-      { id: '1A', word: 'COLLAR', row: 0, col: 2, dir: 'A' },
-      { id: '1D', word: 'CUFF', row: 0, col: 2, dir: 'D' },
-      { id: '2D', word: 'BEANIE', row: 2, col: 4, dir: 'D' },
-      { id: '3D', word: 'VISOR', row: 3, col: 0, dir: 'D' },
-      { id: '4A', word: 'FRET', row: 3, col: 2, dir: 'A' },
-      { id: '5A', word: 'STRING', row: 5, col: 0, dir: 'A' },
-      { id: '6A', word: 'NECK', row: 7, col: 3, dir: 'A' },
-      { id: '7D', word: 'CAP', row: 7, col: 5, dir: 'D' },
+      { id: '1D', word: 'BEAM', row: 0, col: 3, dir: 'D' },
+      { id: '2D', word: 'VAULT', row: 0, col: 10, dir: 'D' },
+      { id: '3A', word: 'EDGE', row: 1, col: 0, dir: 'A' },
+      { id: '4D', word: 'TELLER', row: 1, col: 5, dir: 'D' },
+      { id: '5A', word: 'POMMEL', row: 3, col: 0, dir: 'A' },
+      { id: '6D', word: 'BRANCH', row: 3, col: 7, dir: 'D' },
+      { id: '7A', word: 'ROOT', row: 4, col: 7, dir: 'A' },
+      { id: '8A', word: 'BLADE', row: 5, col: 1, dir: 'A' },
+      { id: '8D', word: 'BARK', row: 5, col: 1, dir: 'D' },
+      { id: '9A', word: 'RINGS', row: 6, col: 5, dir: 'A' },
+      { id: '10A', word: 'TRUNK', row: 7, col: 0, dir: 'A' },
+      { id: '11A', word: 'HILT', row: 8, col: 7, dir: 'A' },
     ],
   },
   {
@@ -739,6 +752,31 @@ export const PUZZLES = [
       { id: '8D', word: 'JADE', row: 5, col: 6, dir: 'D' },
       { id: '9A', word: 'TRIANGLE', row: 6, col: 3, dir: 'A' },
       { id: '10A', word: 'GONG', row: 8, col: 1, dir: 'A' },
+    ],
+  },
+  {
+    num: 29,
+    quizId: 'crux-8-3-26',
+    live: '2026-08-03',
+    dateLabel: 'August 3, 2026',
+    guesses: 18,
+    rows: 10,
+    cols: 8,
+    categories: [
+      { name: 'Headwear', words: ['BEANIE', 'VISOR'] },
+      { name: 'Bottle parts', words: ['NECK', 'CAP'] },
+      { name: 'Shirt parts', words: ['COLLAR', 'CUFF'] },
+      { name: 'Guitar parts', words: ['FRET', 'STRING'] },
+    ],
+    slots: [
+      { id: '1A', word: 'COLLAR', row: 0, col: 2, dir: 'A' },
+      { id: '1D', word: 'CUFF', row: 0, col: 2, dir: 'D' },
+      { id: '2D', word: 'BEANIE', row: 2, col: 4, dir: 'D' },
+      { id: '3D', word: 'VISOR', row: 3, col: 0, dir: 'D' },
+      { id: '4A', word: 'FRET', row: 3, col: 2, dir: 'A' },
+      { id: '5A', word: 'STRING', row: 5, col: 0, dir: 'A' },
+      { id: '6A', word: 'NECK', row: 7, col: 3, dir: 'A' },
+      { id: '7D', word: 'CAP', row: 7, col: 5, dir: 'D' },
     ],
   },
 ];

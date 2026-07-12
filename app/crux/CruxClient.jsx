@@ -17,7 +17,7 @@
 
 import React, { useState, useEffect, useMemo, useRef, useCallback } from 'react';
 import { useSearchParams } from 'next/navigation';
-import { HelpCircle, Share2, RotateCcw, X, ChevronLeft, ChevronRight, Swords, Trophy, Smartphone, Lightbulb, BarChart3 } from 'lucide-react';
+import { HelpCircle, Share2, RotateCcw, X, ChevronLeft, ChevronRight, Swords, Smartphone, Lightbulb, BarChart3 } from 'lucide-react';
 import Grain from '../Grain';
 import Footer from '../Footer';
 import SiteHeader from '../SiteHeader';
@@ -36,6 +36,13 @@ const COLORS = {
   faded: '#6b7280',
 };
 const SANS = "'Manrope', system-ui, -apple-system, sans-serif";
+// Editorial ink-and-paper identity (owner-approved mockup, 2026-07-11).
+// Fraunces + DM Mono are already loaded site-wide by app/layout.js.
+const SERIF = "'Fraunces', Georgia, serif";
+const MONO = "'DM Mono', ui-monospace, 'SFMono-Regular', monospace";
+const PAPER = '#fbf9f4';
+const TILE = '#fffdf8';
+const TILE_BORDER = 'rgba(28,30,36,0.28)';
 
 // iOS/iPadOS never fires beforeinstallprompt — A2HS lives in Safari's share
 // sheet, so the button opens instructions there instead.
@@ -411,7 +418,7 @@ export default function CruxClient({ puzzles = [], forceNum = null }) {
   function say(msg) {
     setToast(msg);
     if (toastTimer.current) clearTimeout(toastTimer.current);
-    toastTimer.current = setTimeout(() => setToast(null), 2400);
+    toastTimer.current = setTimeout(() => setToast(null), 1900);
   }
 
   const slot = SLOT[sel];
@@ -517,7 +524,7 @@ export default function CruxClient({ puzzles = [], forceNum = null }) {
     animSeq.current += 1;
     setAnim({ id: animSeq.current, flip, pulse });
     if (animTimer.current) clearTimeout(animTimer.current);
-    animTimer.current = setTimeout(() => setAnim(null), cells.length * 90 + 1600);
+    animTimer.current = setTimeout(() => setAnim(null), cells.length * 60 + 1400);
 
     if (guess === slot.word) {
       g2.solved = { ...g2.solved, [sel]: true };
@@ -539,7 +546,10 @@ export default function CruxClient({ puzzles = [], forceNum = null }) {
       }
     }
     setTyped('');
-    if (g2.solved[sel] && g2.status === 'playing') setSel(nextUnsolved(g2, sel));
+    if (g2.solved[sel] && g2.status === 'playing') {
+      setSel(nextUnsolved(g2, sel));
+      setPick(slot.word); // solved word arms for filing — one tap on a category files it
+    }
     setG(g2);
   }
 
@@ -620,11 +630,12 @@ export default function CruxClient({ puzzles = [], forceNum = null }) {
     animSeq.current += 1;
     setAnim({ id: animSeq.current, flip: { [k]: 0 }, pulse: {} });
     if (animTimer.current) clearTimeout(animTimer.current);
-    animTimer.current = setTimeout(() => setAnim(null), 1600);
+    animTimer.current = setTimeout(() => setAnim(null), 1400);
     setTyped('');
     if (g2.solved[sel]) {
       say(`${slot.word} — solved. File it under a category.`);
       setSel(nextUnsolved(g2, sel));
+      setPick(slot.word);
     } else {
       say('Hint used — that was the one.');
     }
@@ -771,7 +782,7 @@ export default function CruxClient({ puzzles = [], forceNum = null }) {
     }
     const inSel = playing && selCellKeys.has(k) && !g.solved[sel];
     const base = {
-      width: 'var(--cs)', height: 'var(--cs)', borderRadius: 6,
+      width: 'var(--cs)', height: 'var(--cs)', borderRadius: 4,
       display: 'flex', alignItems: 'center', justifyContent: 'center',
       fontFamily: SANS, fontWeight: 800, fontSize: 'calc(var(--cs) * 0.48)',
       cursor: playing ? 'pointer' : 'default', userSelect: 'none',
@@ -779,19 +790,20 @@ export default function CruxClient({ puzzles = [], forceNum = null }) {
       transition: 'background .12s,border-color .12s',
     };
     // the reveal cascades category by category, only on the live transition
-    if (cat) return { ...base, background: cat.bg, color: cat.tc, border: `1.5px solid ${cat.bg}`, ...(endAnim ? { animation: `cxcat .55s ease ${catIdx * 380}ms backwards` } : {}) };
-    if (green) return { ...base, background: COLORS.ink, color: '#fff', border: `1.5px solid ${COLORS.ink}` };
-    if (lost) return { ...base, background: '#fff', color: COLORS.rust, border: '1.5px dashed rgba(192,57,43,0.55)' };
+    // won: diagonal color sweep across the grid; lost: category-by-category reveal
+    if (cat) return { ...base, background: cat.bg, color: cat.tc, border: `1.5px solid ${cat.bg}`, ...(endAnim ? { animation: won ? `cxcat .5s ease ${(r + c) * 55}ms backwards` : `cxcat .55s ease ${catIdx * 380}ms backwards` } : {}) };
+    if (green) return { ...base, background: COLORS.ink, color: '#fff', border: `1.5px solid ${COLORS.ink}`, boxShadow: 'inset 0 2px 4px rgba(0,0,0,0.5), 0 1px 0 rgba(255,255,255,0.5)' };
+    if (lost) return { ...base, background: TILE, color: COLORS.rust, border: '1.5px dashed rgba(192,57,43,0.55)' };
     if (inSel) {
       const isCursor = cursorKey === k;
       return {
         ...base,
-        background: isCursor ? '#dbe7ff' : '#eef4ff',
+        background: isCursor ? '#dce9ff' : '#edf3ff',
         color: COLORS.ember,
-        border: `2px solid ${isCursor ? COLORS.ember : 'rgba(37,99,235,0.55)'}`,
+        border: `2px solid ${isCursor ? COLORS.ember : 'rgba(37,99,235,0.5)'}`,
       };
     }
-    return { ...base, background: '#fff', color: COLORS.ink, border: '1.5px solid rgba(20,22,28,0.18)' };
+    return { ...base, background: TILE, color: COLORS.ink, border: `1.5px solid ${TILE_BORDER}`, boxShadow: 'inset 0 1px 2px rgba(28,30,36,0.07)' };
   }
 
   function cellLetter(r, c, info) {
@@ -815,7 +827,7 @@ export default function CruxClient({ puzzles = [], forceNum = null }) {
   const markColor = { g: { bg: COLORS.ink, fg: '#fff' }, y: { bg: '#e6b93f', fg: '#5c4a06' }, x: { bg: '#c9cdd4', fg: '#40434b' } };
 
   return (
-    <div style={{ minHeight: '100vh', background: COLORS.cream, position: 'relative' }}>
+    <div style={{ minHeight: '100vh', background: '#f6f4ee', position: 'relative' }}>
       <Grain />
       <div style={{ position: 'relative', zIndex: 3 }}><SiteHeader active="quizzes" flush inlay={<QuizPlayerBar />} /></div>
 
@@ -825,14 +837,17 @@ export default function CruxClient({ puzzles = [], forceNum = null }) {
           .cl-cols{display:grid;grid-template-columns:minmax(0,auto) minmax(280px,1fr);gap:30px;align-items:start;}
           @media(max-width:860px){.cl-cols{grid-template-columns:1fr;gap:16px;}.cl-side{order:-1;}.cl-cat{min-height:0 !important;padding:8px 11px !important;}}
           .cl-grid{--cs:42px;}
-          @media(max-width:560px){.cl-grid{--cs:calc((100vw - ${35 + (COLS - 1) * 3}px)/${COLS});}}
+          @media(max-width:560px){.cl-grid{--cs:calc((100vw - ${59 + (COLS - 1) * 3}px)/${COLS});}.cl-panel{padding:10px 10px 12px !important;}}
           .cl-key{border:none;font-family:${SANS};font-weight:800;cursor:pointer;border-radius:6px;padding:0;touch-action:manipulation;}
           .cl-grid > div{touch-action:manipulation;}
           .cl-key:active{transform:scale(0.94);}
           .cl-btn{font-family:${SANS};font-weight:800;font-size:14px;border:2px solid ${COLORS.ink};background:#fff;color:${COLORS.ink};border-radius:8px;padding:9px 16px;cursor:pointer;display:inline-flex;align-items:center;gap:7px;}
           .cl-btn:hover{background:${COLORS.paper};}
-          @keyframes cxfall{0%{transform:translateY(-4vh) rotate(0deg);}100%{transform:translateY(108vh) rotate(680deg);}}
-          .cx-conf{position:fixed;top:-3vh;z-index:86;pointer-events:none;border-radius:2px;animation:cxfall linear forwards;}
+          .cx-cur{position:relative;}
+          .cx-cur::after{content:'';position:absolute;bottom:14%;left:22%;right:22%;height:2.5px;background:#2563eb;animation:cxcaret 1.1s step-end infinite;}
+          @keyframes cxcaret{50%{opacity:0;}}
+          @keyframes cxfade{from{opacity:0;}}
+          @keyframes cxstamp{from{opacity:0;transform:scale(.94);}}
           @keyframes cxflipA{from{transform:rotateX(90deg);background:#fff;color:transparent;}}
           @keyframes cxflipB{from{transform:rotateX(90deg);background:#fff;color:transparent;}}
           @keyframes cxpulseA{0%{box-shadow:0 0 0 0 rgba(37,99,235,0);}45%{transform:scale(1.18);box-shadow:0 0 0 5px rgba(37,99,235,0.4);}100%{transform:scale(1);box-shadow:0 0 0 0 rgba(37,99,235,0);}}
@@ -843,41 +858,43 @@ export default function CruxClient({ puzzles = [], forceNum = null }) {
         {/* game content recentered: the qzf box is 1180, the game stays 960 */}
         <div style={{ maxWidth: 960, margin: '0 auto' }}>
 
-        {/* header */}
-        <div style={{ display: 'flex', alignItems: 'baseline', gap: 12, flexWrap: 'wrap', marginBottom: 2 }}>
-          <h1 style={{ margin: 0, fontSize: 30, fontWeight: 800, letterSpacing: '-0.02em', color: COLORS.ink }}>Crux</h1>
-          <span style={{ fontSize: 13, fontWeight: 800, color: '#fff', background: COLORS.ember, borderRadius: 6, padding: '2px 8px' }}>#{PUZZLE.num}</span>
-          {PUZZLE.categories[0].words.length === 3 && (
-            <span style={{ fontSize: 13, fontWeight: 800, color: '#fff', background: COLORS.ink, borderRadius: 6, padding: '2px 8px' }}>SUNDAY EDITION</span>
-          )}
-          <span style={{ fontSize: 13, fontWeight: 700, color: COLORS.faded }}>{PUZZLE.dateLabel}</span>
-          <button onClick={() => setShowStats(true)} aria-label="Your stats" style={{ marginLeft: 'auto', background: 'none', border: 'none', cursor: 'pointer', color: COLORS.faded, display: 'flex', alignItems: 'center', gap: 5, fontFamily: SANS, fontWeight: 700, fontSize: 13 }}>
-            <BarChart3 size={18} /> Stats
-          </button>
-          <button onClick={() => setShowHelp(true)} aria-label="How to play" style={{ background: 'none', border: 'none', cursor: 'pointer', color: COLORS.faded, display: 'flex', alignItems: 'center', gap: 5, fontFamily: SANS, fontWeight: 700, fontSize: 13 }}>
-            <HelpCircle size={18} /> How to play
-          </button>
-        </div>
-        <p style={{ margin: '0 0 14px', fontSize: 13.5, color: COLORS.faded, fontWeight: 600 }}>
-          A crossword with no clues &mdash; the four categories are the only hints. One shared guess budget.
-        </p>
-
-        {/* status strip */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: 18, flexWrap: 'wrap', marginBottom: 14 }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-            <span style={{ fontSize: 12.5, fontWeight: 800, textTransform: 'uppercase', letterSpacing: '.05em', color: COLORS.faded }}>Guesses</span>
-            <span style={{ fontSize: 17, fontWeight: 800, color: g.left <= 3 ? COLORS.rust : COLORS.ink }}>{g.left}</span>
-            <div style={{ width: 90, height: 7, background: '#e2e5ea', borderRadius: 4, overflow: 'hidden' }}>
-              <div style={{ width: `${Math.max(0, Math.min(100, (g.left / PUZZLE.guesses) * 100))}%`, height: '100%', background: g.left <= 3 ? COLORS.rust : COLORS.ember, transition: 'width .2s' }} />
-            </div>
+        {/* masthead: pressed CRUX tiles over a newspaper dateline */}
+        <div style={{ marginBottom: 16 }}>
+          <div style={{ display: 'flex', gap: 5, alignItems: 'flex-end' }}>
+            {'CRUX'.split('').map((ch, i) => (
+              <div key={i} style={{ width: 46, height: 46, borderRadius: 5, display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: SERIF, fontWeight: 900, fontSize: 28, background: i === 2 ? COLORS.ember : COLORS.ink, color: '#fff', boxShadow: 'inset 0 2px 5px rgba(0,0,0,0.5), 0 1px 0 rgba(255,255,255,0.65)' }}>{ch}</div>
+            ))}
+            <div aria-hidden="true" style={{ width: 36, height: 36, borderRadius: 5, display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: SERIF, fontWeight: 900, fontSize: 20, background: TILE, color: COLORS.ink, border: '1.5px solid rgba(28,30,36,0.35)', boxShadow: 'inset 0 1px 2px rgba(28,30,36,0.08)' }}>?</div>
           </div>
-          <div style={{ fontSize: 12.5, fontWeight: 700, color: COLORS.faded }}>{g.order.length}/{PUZZLE.slots.length} words solved</div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 13, flexWrap: 'wrap', marginTop: 14, borderTop: '2px solid rgba(28,30,36,0.8)', borderBottom: '1px solid rgba(28,30,36,0.35)', padding: '7px 2px' }}>
+            <h1 style={{ margin: 0, fontFamily: MONO, fontSize: 12, letterSpacing: '0.08em', fontWeight: 500, color: COLORS.ink }}>No. {PUZZLE.num}</h1>
+            <span style={{ fontFamily: SERIF, fontStyle: 'italic', fontSize: 14, color: COLORS.ink }}>{PUZZLE.dateLabel}</span>
+            {PUZZLE.categories[0].words.length === 3
+              ? <span style={{ fontFamily: MONO, fontSize: 10.5, letterSpacing: '0.12em', textTransform: 'uppercase', color: '#fff', background: COLORS.ink, borderRadius: 3, padding: '2px 7px' }}>Sunday Edition</span>
+              : <span style={{ fontFamily: MONO, fontSize: 10.5, letterSpacing: '0.12em', textTransform: 'uppercase', color: COLORS.faded }}>a crossword with no clues</span>}
+            <span style={{ marginLeft: 'auto', display: 'flex', gap: 14 }}>
+              <button onClick={() => setShowStats(true)} aria-label="Your stats" style={{ background: 'none', border: 'none', cursor: 'pointer', color: COLORS.faded, display: 'flex', alignItems: 'center', gap: 5, fontFamily: SANS, fontWeight: 700, fontSize: 12.5, padding: 0 }}>
+                <BarChart3 size={16} /> Stats
+              </button>
+              <button onClick={() => setShowHelp(true)} aria-label="How to play" style={{ background: 'none', border: 'none', cursor: 'pointer', color: COLORS.faded, display: 'flex', alignItems: 'center', gap: 5, fontFamily: SANS, fontWeight: 700, fontSize: 12.5, padding: 0 }}>
+                <HelpCircle size={16} /> How to play
+              </button>
+            </span>
+          </div>
         </div>
 
         <div className="cl-cols">
           {/* left: board + input */}
           <div>
-            <div className="cl-grid" style={{ display: 'grid', gridTemplateColumns: `repeat(${COLS}, var(--cs))`, gridTemplateRows: `repeat(${ROWS}, var(--cs))`, gap: 3, marginBottom: 12 }}>
+            <div className="cl-panel" style={{ background: PAPER, border: `2px solid ${COLORS.ink}`, borderRadius: 10, padding: '13px 15px 15px', boxShadow: '4px 4px 0 rgba(28,30,36,0.12)', display: 'inline-block', maxWidth: '100%', marginBottom: 12 }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 12, fontFamily: MONO, fontSize: 11.5, letterSpacing: '0.1em', textTransform: 'uppercase', color: COLORS.faded, borderBottom: '1px solid rgba(28,30,36,0.18)', paddingBottom: 8, marginBottom: 12 }}>
+                <span style={{ whiteSpace: 'nowrap' }}><b style={{ color: g.left <= 3 ? COLORS.rust : COLORS.ink, fontWeight: 500 }}>{g.left}</b> guesses</span>
+                <span style={{ flex: 1, height: 5, background: 'rgba(28,30,36,0.1)', borderRadius: 3, overflow: 'hidden', minWidth: 36 }}>
+                  <span style={{ display: 'block', height: '100%', width: `${Math.max(0, Math.min(100, (g.left / PUZZLE.guesses) * 100))}%`, background: g.left <= 3 ? COLORS.rust : COLORS.ember, transition: 'width .2s' }} />
+                </span>
+                <span style={{ whiteSpace: 'nowrap' }}><b style={{ color: COLORS.ink, fontWeight: 500 }}>{g.order.length}</b>/{PUZZLE.slots.length} words</span>
+              </div>
+              <div className="cl-grid" style={{ display: 'grid', gridTemplateColumns: `repeat(${COLS}, var(--cs))`, gridTemplateRows: `repeat(${ROWS}, var(--cs))`, gap: 3 }}>
               {[...CELLS.entries()].map(([k, info]) => {
                 const [r, c] = k.split(',').map(Number);
                 let st = cellStyle(r, c, info);
@@ -885,17 +902,18 @@ export default function CruxClient({ puzzles = [], forceNum = null }) {
                   // alternate keyframe names so back-to-back guesses restart
                   const suf = anim.id % 2 ? 'B' : 'A';
                   const parts = [];
-                  if (anim.flip[k] != null) parts.push(`cxflip${suf} .5s ease ${anim.flip[k] * 90}ms backwards`);
-                  if (anim.pulse[k]) parts.push(`cxpulse${suf} .7s ease ${(anim.flip[k] || 0) * 90 + 520}ms`);
+                  if (anim.flip[k] != null) parts.push(`cxflip${suf} .38s ease ${anim.flip[k] * 60}ms backwards`);
+                  if (anim.pulse[k]) parts.push(`cxpulse${suf} .55s ease ${(anim.flip[k] || 0) * 60 + 380}ms`);
                   if (parts.length) st = { ...st, animation: parts.join(', ') };
                 }
                 return (
-                  <div key={k} onClick={() => cellClick(r, c)} style={st}>
-                    {startNum[k] ? <span style={{ position: 'absolute', top: 1, left: 3, fontSize: 'calc(var(--cs) * 0.22)', fontWeight: 800, opacity: 0.65 }}>{startNum[k]}</span> : null}
+                  <div key={k} className={cursorKey === k ? 'cx-cur' : undefined} onClick={() => cellClick(r, c)} style={st}>
+                    {startNum[k] ? <span style={{ position: 'absolute', top: 0, left: 3, fontSize: 'calc(var(--cs) * 0.24)', fontFamily: SERIF, fontStyle: 'italic', fontWeight: 700, opacity: 0.55 }}>{startNum[k]}</span> : null}
                     {cellLetter(r, c, info)}
                   </div>
                 );
               })}
+              </div>
             </div>
 
             {/* selected slot bar */}
@@ -949,9 +967,6 @@ export default function CruxClient({ puzzles = [], forceNum = null }) {
                     )}
                   </div>
                 ))}
-                <p style={{ fontSize: 11.5, color: COLORS.faded, fontWeight: 600, margin: '6px 0 0', textAlign: 'center' }}>
-                  Guesses must be real words &mdash; the budget is the constraint.
-                </p>
               </div>
             )}
           </div>
@@ -968,8 +983,8 @@ export default function CruxClient({ puzzles = [], forceNum = null }) {
                 const clickable = playing && pick;
                 return (
                   <div key={ci} className="cl-cat" onClick={clickable ? () => fileWord(pick, ci) : undefined}
-                    style={{ background: cc.bg, borderRadius: 10, padding: '10px 12px', minHeight: 74, cursor: clickable ? 'pointer' : 'default', outline: clickable ? `2.5px dashed ${cc.tc}` : 'none', outlineOffset: 2 }}>
-                    <div style={{ color: cc.tc, fontWeight: 800, fontSize: 12.5, textTransform: 'uppercase', letterSpacing: '.03em', lineHeight: 1.25, marginBottom: 7 }}>{cat.name}</div>
+                    style={{ background: cc.bg, borderRadius: 8, padding: '10px 12px', minHeight: 74, border: '1.5px solid rgba(28,30,36,0.35)', boxShadow: '2px 2px 0 rgba(28,30,36,0.10)', cursor: clickable ? 'pointer' : 'default', outline: clickable ? `2.5px dashed ${cc.tc}` : 'none', outlineOffset: 2 }}>
+                    <div style={{ color: cc.tc, fontWeight: 800, fontSize: 12.5, textTransform: 'uppercase', letterSpacing: '.03em', lineHeight: 1.25, marginBottom: 7, textShadow: '0 1px 0 rgba(255,255,255,0.35)' }}>{cat.name}</div>
                     <div style={{ display: 'flex', gap: 5, flexWrap: 'wrap' }}>
                       {cat.words.map((_, i) => {
                         const w = lost ? cat.words[i] : filed[i];
@@ -1108,28 +1123,30 @@ export default function CruxClient({ puzzles = [], forceNum = null }) {
         <p style={{ textAlign: 'center', fontSize: 12, fontStyle: 'italic', fontWeight: 600, color: COLORS.faded, margin: '34px 0 0' }}>For WMM, in memoriam.</p>
       </div>
 
-      {/* the win moment: confetti + overlay, only on the transition to won */}
+      {/* the win moment: the category colors sweep the grid, then the keepsake
+          card stamps in over it — delayed so the sweep plays out first */}
       {justWon && (
-        <>
-          {Array.from({ length: 80 }).map((_, i) => {
-            const confColors = ['#e6b93f', '#5aa96a', '#5a97dd', '#d96363', '#2563eb'];
-            const w = 7 + ((i * 13) % 8);
-            return (
-              <span key={i} className="cx-conf" style={{ left: `${(i * 137) % 100}%`, width: w, height: Math.round(w * 1.5), background: confColors[i % confColors.length], animationDuration: `${2.1 + ((i * 29) % 12) / 10}s`, animationDelay: `${((i * 53) % 70) / 100}s` }} />
-            );
-          })}
-          <div onClick={() => setJustWon(false)} style={{ position: 'fixed', inset: 0, zIndex: 85, background: 'rgba(20,22,28,0.45)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16 }}>
-            <div onClick={(e) => e.stopPropagation()} style={{ background: '#fff', border: `3px solid ${COLORS.ember}`, borderRadius: 16, padding: '30px 28px 24px', maxWidth: 440, width: '100%', textAlign: 'center', fontFamily: SANS }}>
-              <Trophy size={42} strokeWidth={2} style={{ color: '#e6b93f' }} />
-              <div style={{ fontSize: 27, fontWeight: 800, color: COLORS.ink, letterSpacing: '-0.01em', margin: '10px 0 6px', lineHeight: 1.2 }}>You got to the crux of the matter.</div>
-              <div style={{ fontSize: 15, fontWeight: 700, color: COLORS.faded, marginBottom: 18 }}>{PUZZLE.slots.length * 2}/{PUZZLE.slots.length * 2} &middot; {guessesUsed} guess{guessesUsed === 1 ? '' : 'es'} &middot; {elapsed}</div>
-              <div style={{ display: 'flex', gap: 10, justifyContent: 'center', flexWrap: 'wrap' }}>
-                <button className="cl-btn" onClick={copyShare} style={{ background: COLORS.ember, color: '#fff', borderColor: COLORS.ember }}><Share2 size={15} /> {copied ? 'Copied' : 'Share result'}</button>
-                <button className="cl-btn" onClick={() => setJustWon(false)}>See the board</button>
-              </div>
+        <div onClick={() => setJustWon(false)} style={{ position: 'fixed', inset: 0, zIndex: 85, background: 'rgba(28,30,36,0.45)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16, animation: `cxfade .4s ease ${(ROWS + COLS) * 55 + 500}ms backwards` }}>
+          <div onClick={(e) => e.stopPropagation()} style={{ background: PAPER, border: `3px double ${COLORS.ink}`, borderRadius: 6, padding: '26px 30px 20px', maxWidth: 360, width: '100%', textAlign: 'center', fontFamily: SANS, boxShadow: '6px 6px 0 rgba(28,30,36,0.18)', animation: `cxstamp .45s ease ${(ROWS + COLS) * 55 + 500}ms backwards` }}>
+            <div style={{ display: 'flex', gap: 3, justifyContent: 'center', marginBottom: 12 }}>
+              {'CRUX'.split('').map((ch, i) => (
+                <span key={i} style={{ width: 24, height: 24, borderRadius: 3, background: i === 2 ? COLORS.ember : COLORS.ink, color: '#fff', fontFamily: SERIF, fontWeight: 900, fontSize: 15, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', boxShadow: 'inset 0 1px 3px rgba(0,0,0,0.5)' }}>{ch}</span>
+              ))}
             </div>
+            <div style={{ fontFamily: SERIF, fontWeight: 900, fontSize: 34, color: COLORS.ink, letterSpacing: '-0.01em', margin: '2px 0 6px', lineHeight: 1.15 }}>Solved.</div>
+            <div style={{ fontFamily: MONO, fontSize: 12.5, color: COLORS.faded, marginBottom: 14 }}>No. {PUZZLE.num} &middot; {PUZZLE.slots.length * 2}/{PUZZLE.slots.length * 2} &middot; {guessesUsed} guess{guessesUsed === 1 ? '' : 'es'} &middot; {elapsed}</div>
+            <div style={{ display: 'flex', gap: 3, justifyContent: 'center', marginBottom: 16 }}>
+              {PUZZLE.categories.map((cat, ci) => cat.words.map((w, wi) => (
+                <span key={`${ci}-${wi}`} style={{ width: 15, height: 15, borderRadius: 3, background: CAT_COLORS[ci].bg, border: '1px solid rgba(28,30,36,0.25)' }} />
+              )))}
+            </div>
+            <div style={{ display: 'flex', gap: 10, justifyContent: 'center', flexWrap: 'wrap' }}>
+              <button className="cl-btn" onClick={copyShare} style={{ background: COLORS.ember, color: '#fff', borderColor: COLORS.ember }}><Share2 size={15} /> {copied ? 'Copied' : 'Share result'}</button>
+              <button className="cl-btn" onClick={() => setJustWon(false)}>See the board</button>
+            </div>
+            <div style={{ fontFamily: MONO, fontSize: 10, letterSpacing: '0.1em', color: COLORS.faded, marginTop: 12 }}>sourceoftruths.com/crux</div>
           </div>
-        </>
+        </div>
       )}
 
       <DuelBanner token={duelToken} info={duelInfo} submitted={duelSubmitted} />
