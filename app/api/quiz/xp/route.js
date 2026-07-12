@@ -5,6 +5,9 @@ import { computeXp, rankPlayers } from '@/lib/quiz-xp';
 
 export const dynamic = 'force-dynamic';
 export const fetchCache = 'force-no-store';
+// Same board for every visitor (per scope/full URL): let Vercel's CDN absorb
+// repeat hits instead of hitting Supabase per request (egress fix 2026-07-12).
+const CACHE_HEADERS = { 'Cache-Control': 'public, s-maxage=300, stale-while-revalidate=600' };
 
 // GET /api/quiz/xp[?scope=<dept>][&full=1]
 // XP-RANKED leaderboard for the /quizzes page — every player gets a numbered
@@ -42,7 +45,7 @@ export async function GET(request) {
       played: p.played,
       ...(full && scope === 'all' ? { trend7d: p.xp7d == null ? null : p.xp7d } : {}),
     }));
-    return NextResponse.json({ scope, total: out.length, players: out });
+    return NextResponse.json({ scope, total: out.length, players: out }, { headers: CACHE_HEADERS });
   } catch (e) {
     console.error('quiz xp exception', e);
     return NextResponse.json({ scope, total: 0, players: [] });

@@ -6,6 +6,9 @@ import { DEPT_NAV } from '@/lib/quiz-departments';
 
 export const dynamic = 'force-dynamic';
 export const fetchCache = 'force-no-store';
+// Same boards for every visitor: let Vercel's CDN absorb repeat hits instead
+// of hitting Supabase per request (egress fix 2026-07-12).
+const CACHE_HEADERS = { 'Cache-Control': 'public, s-maxage=300, stale-while-revalidate=600' };
 
 // GET /api/quiz/xp-categories
 // One XP computation, then the XP-ranked top players for EVERY department, so
@@ -41,7 +44,7 @@ export async function GET() {
         played: p.played,
       }));
     }
-    return NextResponse.json({ boards });
+    return NextResponse.json({ boards }, { headers: CACHE_HEADERS });
   } catch (e) {
     console.error('quiz xp-categories exception', e);
     return NextResponse.json({ boards: {} });

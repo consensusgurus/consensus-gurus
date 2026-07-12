@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { supabaseAdmin } from '@/lib/supabase-server';
 import { buildLeaderboardMatrix } from '@/lib/quiz-anon';
+import { loadQuizResultsCached } from '@/lib/quiz-results-cache';
 
 export const dynamic = 'force-dynamic';
 export const fetchCache = 'force-no-store';
@@ -46,30 +47,17 @@ export async function GET(request) {
     return NextResponse.json({ error: 'quizId required' }, { status: 400 });
   }
   try {
-    const data = [];
-    let cols = 'id, user_id, username, score, time_elapsed, anon_id, created_at, is_mobile, guesses_used, correct_count';
-    for (let from = 0; ; from += 1000) {
-      let { data: page, error } = await supabaseAdmin
-        .from('quiz_results')
-        .select(cols)
-        .eq('quiz_id', quizId)
-        .order('id', { ascending: true })
-        .range(from, from + 999);
-      // Drop is_mobile if migration 25 has not been applied yet (missing column).
-      if (error && cols.includes(', guesses_used') && (error.code === '42703' || error.code === 'PGRST204' || /column|schema cache/i.test(error.message || ''))) {
-        cols = cols.replace(', guesses_used', ''); from -= 1000; continue;
-      }
-      if (error && cols.includes(', is_mobile') && (error.code === '42703' || error.code === 'PGRST204' || /column|schema cache/i.test(error.message || ''))) {
-        cols = cols.replace(', is_mobile', ''); from -= 1000; continue;
-      }
-      if (error) {
-        console.error('quiz board error', error);
-        return NextResponse.json({ error: 'db error' }, { status: 500 });
-      }
-      if (!page || page.length === 0) break;
-      data.push(...page);
-      if (page.length < 1000) break;
+    // Egress fix (2026-07-12): filter the shared in-process quiz_results cache
+    // instead of re-reading every row for this quiz from Supabase per request.
+    // The cache column superset includes everything summarize() needs
+    // (time_elapsed, is_mobile, guesses_used, correct_count) and handles the
+    // missing-column fallbacks internally. Rows are already in id order.
+    const { data: all, error } = await loadQuizResultsCached(supabaseAdmin);
+    if (error) {
+      console.error('quiz board error', error);
+      return NextResponse.json({ error: 'db error' }, { status: 500 });
     }
+    const data = (all || []).filter((r) => r.quiz_id === quizId);
     return NextResponse.json(summarize(data), { headers: CACHE_HEADERS });
   } catch (e) {
     return NextResponse.json({ error: 'db error' }, { status: 500 });

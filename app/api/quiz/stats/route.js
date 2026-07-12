@@ -1,9 +1,12 @@
 import { NextResponse } from 'next/server';
 import { supabaseAdmin } from '@/lib/supabase-server';
-import { fetchAllRows } from '@/lib/fetch-all';
+import { loadQuizResultsCached } from '@/lib/quiz-results-cache';
 
 export const dynamic = 'force-dynamic';
 export const fetchCache = 'force-no-store';
+// Same numbers for every visitor: let Vercel's CDN absorb repeat hits instead
+// of recomputing (and re-reading Supabase) per request (egress fix 2026-07-12).
+const CACHE_HEADERS = { 'Cache-Control': 'public, s-maxage=300, stale-while-revalidate=600' };
 
 // GET /api/quiz/stats -> { quizzes: [{ quizId, plays, plays24h, players,
 //   signedPlays, avgScorePct, avgScore, avgTotal, totalTime, bestScore }] }
@@ -18,12 +21,10 @@ export const fetchCache = 'force-no-store';
 // it can't be deduped. `plays24h` = completed games in the trailing 24 hours.
 export async function GET() {
   try {
-    const { data, error } = await fetchAllRows(
-      supabaseAdmin,
-      'quiz_results',
-      'id, quiz_id, user_id, anon_id, score, total, time_elapsed, created_at',
-      ['quiz_id'],
-    );
+    // Shared in-process cache; its column superset covers everything used
+    // here. (Rows arrive in id order rather than quiz_id order, which is fine:
+    // the aggregation below is a single pass keyed by quiz_id.)
+    const { data, error } = await loadQuizResultsCached(supabaseAdmin);
     if (error) {
       console.error('quiz stats error', error);
       return NextResponse.json({ quizzes: [] });
@@ -65,7 +66,7 @@ export async function GET() {
       perfect: a.perfect, // perfect-score (100%) completions
       bestScore: a.bestScore,
     })).sort((x, y) => y.plays - x.plays || x.quizId.localeCompare(y.quizId));
-    return NextResponse.json({ quizzes });
+    return NextResponse.json({ quizzes }, { headers: CACHE_HEADERS });
   } catch (e) {
     console.error('quiz stats exception', e);
     return NextResponse.json({ quizzes: [] });

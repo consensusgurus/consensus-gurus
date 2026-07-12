@@ -295,8 +295,18 @@ export default function ActivityFeed({ list, voteData, extras }) {
 
   useEffect(() => {
     load();
-    const t = setInterval(load, 20000);
-    return () => clearInterval(t);
+    // 20s -> 60s and skip hidden tabs (egress fix 2026-07-12): a backgrounded
+    // list page was re-reading the whole feed three times a minute. The
+    // visibilitychange refresh keeps the feed feeling live on return.
+    const t = setInterval(() => {
+      if (typeof document === 'undefined' || document.visibilityState === 'visible') load();
+    }, 60000);
+    const onVis = () => { if (document.visibilityState === 'visible') load(); };
+    if (typeof document !== 'undefined') document.addEventListener('visibilitychange', onVis);
+    return () => {
+      clearInterval(t);
+      if (typeof document !== 'undefined') document.removeEventListener('visibilitychange', onVis);
+    };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [list.id]);
 

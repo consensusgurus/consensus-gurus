@@ -14,7 +14,9 @@ export async function GET() {
     const [viewsRes, extrasRes, userListsRes, trendingRes, quizViewsRes] = await Promise.all([
       fetchAllRows(supabase, 'views', 'list_id,count', ['list_id']),
       fetchAllRows(supabase, 'extras', 'list_id,item_name', ['list_id', 'item_name']),
-      fetchAllRows(supabase, 'user_lists', '*', [['submitted_at', false], 'id'], (q) => q.eq('published', true)),
+      // Only the columns the reshape below reads (egress fix 2026-07-12):
+      // '*' also shipped every other column of every published list per miss.
+      fetchAllRows(supabase, 'user_lists', 'id,title,category,type,link_type,blurb,default_source,sources,vote_items,links,submitted_at', [['submitted_at', false], 'id'], (q) => q.eq('published', true)),
       supabase.rpc('trending_views', { p_hours: 24 }),
       // Quiz-page view totals (separate quiz_views table). Safe if the table
       // does not exist yet: fetchAllRows returns { data: [] } on error.

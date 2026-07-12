@@ -1,11 +1,13 @@
 import { NextResponse } from 'next/server';
 import { supabaseAdmin } from '@/lib/supabase-server';
-import { fetchAllRows } from '@/lib/fetch-all';
+import { loadQuizResultsCached } from '@/lib/quiz-results-cache';
 import { correctAnswersOf } from '@/lib/quiz-scoring';
 
 export const dynamic = 'force-dynamic';
 export const fetchCache = 'force-no-store';
-const CACHE_HEADERS = { 'Cache-Control': 'public, s-maxage=60, stale-while-revalidate=120' };
+// 60s -> 300s (egress fix 2026-07-12): identical for every visitor, so let the
+// CDN hold it longer; the counters tolerate five minutes of staleness.
+const CACHE_HEADERS = { 'Cache-Control': 'public, s-maxage=300, stale-while-revalidate=600' };
 
 // GET /api/quiz/totals -> { total, byQuiz, recent7, recent12h, trendingByQuiz, trendingWindowH }
 // Aggregate play counts across every quiz (all completed games, signed-up or
@@ -40,7 +42,9 @@ function startOfEasternTodayUTC() {
 
 export async function GET() {
   try {
-    const { data, error } = await fetchAllRows(supabaseAdmin, 'quiz_results', 'quiz_id, created_at, score, total, time_elapsed, user_id, username', ['quiz_id']);
+    // Shared in-process cache (egress fix 2026-07-12); the single pass below
+    // is order-independent, so id order instead of quiz_id order is fine.
+    const { data, error } = await loadQuizResultsCached(supabaseAdmin);
     if (error) {
       console.error('quiz totals error', error);
       return NextResponse.json({ total: 0, byQuiz: {}, recent7: {}, recent12h: {}, trendingByQuiz: {}, trendingWindowH: 0, leaders: {} });

@@ -131,7 +131,9 @@ export async function GET(request) {
           </div>
         </div>
       ),
-      { width: SZ, height: SZ, fonts }
+      // CDN-cache the rendered card per player key so repeat shares and
+      // crawler fetches stop re-reading quiz_results (egress fix 2026-07-12).
+      { width: SZ, height: SZ, fonts, headers: { 'Cache-Control': 'public, s-maxage=600, stale-while-revalidate=1200' } }
     );
   } catch (e) {
     return textImage('Source of Truths', fonts, sans);

@@ -518,8 +518,17 @@ export default function QuizHomeClient() {
     try { setDuelMuted(JSON.parse(localStorage.getItem('sot_duel_muted') || '{}') || {}); } catch {}
     try { setDuelMuteAll(localStorage.getItem('sot_duel_mute_all') === '1'); } catch {}
     loadDuelNotif();
-    const _dnPoll = setInterval(loadDuelNotif, 45000);
-    return () => clearInterval(_dnPoll);
+    // 45s -> 120s and skip hidden tabs (egress fix 2026-07-12); the
+    // visibilitychange refresh catches up as soon as the tab returns.
+    const _dnPoll = setInterval(() => {
+      if (typeof document === 'undefined' || document.visibilityState === 'visible') loadDuelNotif();
+    }, 120000);
+    const _dnVis = () => { if (document.visibilityState === 'visible') loadDuelNotif(); };
+    if (typeof document !== 'undefined') document.addEventListener('visibilitychange', _dnVis);
+    return () => {
+      clearInterval(_dnPoll);
+      if (typeof document !== 'undefined') document.removeEventListener('visibilitychange', _dnVis);
+    };
   }, []);
   async function duelDecline(token) { const idn = getIdentity(); const nm = (idn && idn.username) || 'Player'; try { await fetch('/api/duel/decline', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ token, anonId: getAnonId(), name: nm, email: (idn && idn.email) || undefined }) }); } catch {} loadDuelNotif(); }
   function duelDismissServer(token, kind) { try { const anon = getAnonId(); if (!anon) return; const idn = getIdentity(); fetch('/api/duel/dismiss', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ token, kind, anonId: anon, email: (idn && idn.email) || undefined }) }).catch(() => {}); } catch {} }

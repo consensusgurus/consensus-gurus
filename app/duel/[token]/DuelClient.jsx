@@ -65,7 +65,12 @@ export default function DuelClient({ token }) {
   useEffect(() => { load(); }, [load]);
   useEffect(() => {
     if (!duel || duel.status === 'complete' || duel.status === 'declined') return;
-    const id = setInterval(() => { load(); autoSubmit(); }, 6000);
+    // Skip hidden tabs (egress fix 2026-07-12): the visibilitychange handler
+    // below already refreshes + attaches the score the moment the tab returns.
+    const id = setInterval(() => {
+      if (typeof document !== 'undefined' && document.visibilityState !== 'visible') return;
+      load(); autoSubmit();
+    }, 6000);
     return () => clearInterval(id);
   }, [duel, load, autoSubmit]);
   // Returning from playing (tab visible again) refreshes and attaches the score at once.

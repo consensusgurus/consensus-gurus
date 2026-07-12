@@ -89,7 +89,12 @@ export default function useDuelContext(quizId, searchParams) {
       } catch {}
     }
     attempt();
-    pollRef.current = setInterval(attempt, 5000);
+    // Skip hidden tabs (egress fix 2026-07-12): the score attaches on the
+    // first visible attempt after the player returns.
+    pollRef.current = setInterval(() => {
+      if (typeof document !== 'undefined' && document.visibilityState !== 'visible') return;
+      attempt();
+    }, 5000);
     return () => { alive = false; if (pollRef.current) clearInterval(pollRef.current); };
   }, [token, submitted]);
 
