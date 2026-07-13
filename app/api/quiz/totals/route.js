@@ -51,13 +51,12 @@ export async function GET() {
     }
     const rows = data || [];
     const byQuiz = {};
-    // Best registered (signed-up) entry per quiz: highest score, then fastest
-    // time, then name. Powers the "Current Leader" line on each index tile.
-    const bestLeader = {};
-    // Best entry per (quiz, username), so the homepage quiz tiles can show the
-    // top 3 DISTINCT players per quiz (gold/silver/bronze). Keyed
-    // quiz_id -> Map(username -> { score, time }).
-    const byUserPerQuiz = {};
+    // First attempt per (registered user, quiz), keyed user_id::quiz_id, keeping
+    // the lowest row id. The crown and the homepage top-3 are ranked from these
+    // first attempts AFTER the pass, using the same tiebreak as the quiz-page
+    // leaderboard (score desc, fewest guesses, fastest time, then name) so the
+    // "leader" always matches the #1 row players see in the list.
+    const firstByPair = new Map();
     const recent7 = {};
     const recent12h = {};
     const now = Date.now();
@@ -75,18 +74,11 @@ export async function GET() {
     for (const r of rows) {
       byQuiz[r.quiz_id] = (byQuiz[r.quiz_id] || 0) + 1;
       if (r.user_id && r.username) {
-        const sc = Number(r.score) || 0;
-        const tm = Number.isFinite(Number(r.time_elapsed)) ? Number(r.time_elapsed) : Infinity;
-        const cur = bestLeader[r.quiz_id];
-        if (!cur || sc > cur.score || (sc === cur.score && tm < cur.time) || (sc === cur.score && tm === cur.time && r.username.localeCompare(cur.name) < 0)) {
-          bestLeader[r.quiz_id] = { score: sc, time: tm, name: r.username, userId: r.user_id };
-        }
-        let um = byUserPerQuiz[r.quiz_id];
-        if (!um) { um = new Map(); byUserPerQuiz[r.quiz_id] = um; }
-        const prevU = um.get(r.username);
-        if (!prevU || sc > prevU.score || (sc === prevU.score && tm < prevU.time)) {
-          um.set(r.username, { score: sc, time: tm });
-        }
+        // Keep only the earliest attempt per (user, quiz). Rows arrive in id
+        // order, but compare ids explicitly so this holds regardless of order.
+        const pairKey = r.user_id + '::' + r.quiz_id;
+        const prevF = firstByPair.get(pairKey);
+        if (!prevF || (r.id || 0) < (prevF.id || 0)) firstByPair.set(pairKey, r);
       }
       totalCorrect += correctAnswersOf(r);
       const te = Number(r.time_elapsed);
@@ -113,15 +105,44 @@ export async function GET() {
       if (Object.keys(cum).length >= TREND_MIN_QUIZZES) { trendingWindowH = (k + 1) * TREND_BUCKET_H; break; }
     }
     const trendingByQuiz = { ...cum };
+    // Rank the per-quiz leader crown and the homepage top-3 from FIRST attempts
+    // only. Tiebreak matches the quiz-page leaderboard: score desc, then fewest
+    // guesses, then fastest time, then name. guesses_used may be absent on older
+    // rows (or when the cache drops the column) -> Infinity, so it degrades to
+    // the time tiebreak just like before.
+    const bestLeader = {};       // quiz_id -> best first attempt
+    const byUserPerQuiz = {};    // quiz_id -> Map(username -> { score, guesses, time })
+    for (const r of firstByPair.values()) {
+      const sc = Number(r.score) || 0;
+      const gu = Number.isFinite(Number(r.guesses_used)) ? Number(r.guesses_used) : Infinity;
+      const tm = Number.isFinite(Number(r.time_elapsed)) ? Number(r.time_elapsed) : Infinity;
+      const cur = bestLeader[r.quiz_id];
+      if (!cur
+        || sc > cur.score
+        || (sc === cur.score && gu < cur.guesses)
+        || (sc === cur.score && gu === cur.guesses && tm < cur.time)
+        || (sc === cur.score && gu === cur.guesses && tm === cur.time && r.username.localeCompare(cur.name) < 0)) {
+        bestLeader[r.quiz_id] = { score: sc, guesses: gu, time: tm, name: r.username, userId: r.user_id };
+      }
+      let um = byUserPerQuiz[r.quiz_id];
+      if (!um) { um = new Map(); byUserPerQuiz[r.quiz_id] = um; }
+      const prevU = um.get(r.username);
+      if (!prevU
+        || sc > prevU.score
+        || (sc === prevU.score && gu < prevU.guesses)
+        || (sc === prevU.score && gu === prevU.guesses && tm < prevU.time)) {
+        um.set(r.username, { score: sc, guesses: gu, time: tm });
+      }
+    }
     const leaders = {};
     const leaderKeys = {};
     for (const qid of Object.keys(bestLeader)) { leaders[qid] = bestLeader[qid].name; if (bestLeader[qid].userId) leaderKeys[qid] = `u:${bestLeader[qid].userId}`; }
-    // Top 3 distinct players per quiz (gold/silver/bronze): best score, then
-    // fastest time, then name. Used by the homepage quiz tiles.
+    // Top 3 distinct players per quiz (gold/silver/bronze) from first attempts:
+    // best score, then fewest guesses, then fastest time, then name.
     const topLeaders = {};
     for (const qid of Object.keys(byUserPerQuiz)) {
       topLeaders[qid] = [...byUserPerQuiz[qid].entries()]
-        .sort((a, b) => b[1].score - a[1].score || a[1].time - b[1].time || a[0].localeCompare(b[0]))
+        .sort((a, b) => b[1].score - a[1].score || (a[1].guesses - b[1].guesses) || a[1].time - b[1].time || a[0].localeCompare(b[0]))
         .slice(0, 3)
         .map(([name]) => name);
     }
