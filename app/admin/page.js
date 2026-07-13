@@ -176,6 +176,62 @@ function activePlayerCounts(rows) {
   return { dau: dau.size, wau: wau.size, mau: mau.size };
 }
 
+// Daily-games return play (Analytics -> Return Play). For each of the four
+// daily games (Links, Span, Crux, Garble), bucket players by how many DISTINCT
+// days they have completed it — each daily puzzle has a unique quiz_id per date
+// (e.g. links-7-13-26), so distinct quiz_ids == distinct days a player came
+// back. Also a cross-game breadth histogram: how many of the four games each
+// player has ever touched. Player identity is the same rule the active-user
+// counts use (registered user_id, else browser anon_id, else the lone row id),
+// so anonymous browsers — the bulk of daily-game players — are counted.
+const DAILY_GAMES = [
+  { key: 'links', title: 'Links' },
+  { key: 'span', title: 'Span' },
+  { key: 'crux', title: 'Crux' },
+  { key: 'garble', title: 'Garble' },
+];
+const DAILY_PREFIX_RE = /^(links|span|crux|garble)-/;
+function buildDailyRetention(rows) {
+  const perGame = new Map(DAILY_GAMES.map((g) => [g.key, new Map()])); // key -> (playerKey -> Set(quizId))
+  const breadth = new Map(); // playerKey -> Set(gameKey)
+  for (const r of rows || []) {
+    const qid = r.quiz_id || '';
+    const m = DAILY_PREFIX_RE.exec(qid);
+    if (!m) continue;
+    const gk = m[1];
+    const pkey = r.user_id ? `u:${r.user_id}` : r.anon_id ? `a:${r.anon_id}` : `r:${r.id}`;
+    const gmap = perGame.get(gk);
+    let set = gmap.get(pkey);
+    if (!set) { set = new Set(); gmap.set(pkey, set); }
+    set.add(qid);
+    let gs = breadth.get(pkey);
+    if (!gs) { gs = new Set(); breadth.set(pkey, gs); }
+    gs.add(gk);
+  }
+  const games = DAILY_GAMES.map((g) => {
+    const gmap = perGame.get(g.key);
+    const counts = new Map(); // distinct-days -> number of players
+    let players = 0, dayPlays = 0, returning = 0, maxDays = 0;
+    for (const [, set] of gmap) {
+      const d = set.size;
+      counts.set(d, (counts.get(d) || 0) + 1);
+      players += 1;
+      dayPlays += d;
+      if (d >= 2) returning += 1;
+      if (d > maxDays) maxDays = d;
+    }
+    const histogram = [];
+    for (let d = 1; d <= maxDays; d++) histogram.push({ days: d, count: counts.get(d) || 0 });
+    return { key: g.key, title: g.title, players, dayPlays, returning, maxDays, histogram };
+  });
+  const bcounts = new Map();
+  let bTotal = 0;
+  for (const [, gs] of breadth) { const n = gs.size; bcounts.set(n, (bcounts.get(n) || 0) + 1); bTotal += 1; }
+  const bhist = [];
+  for (let n = 1; n <= DAILY_GAMES.length; n++) bhist.push({ games: n, count: bcounts.get(n) || 0 });
+  return { games, breadth: { total: bTotal, histogram: bhist } };
+}
+
 export const metadata = {
   title: 'Editor\'s Desk | Source of Truths',
   robots: { index: false, follow: false },
@@ -546,6 +602,9 @@ export default async function AdminPage() {
   // server-side so the ~2MB coordinate index never ships to the client.
   const geoMap = buildGeoMapData((quizResultsRes && quizResultsRes.data) || []);
 
+  // Daily-games return-play distribution (Analytics -> Return Play).
+  const dailyRetention = buildDailyRetention((quizResultsRes && quizResultsRes.data) || []);
+
   return (
     <AdminClient
       initialLists={lists}
@@ -562,6 +621,7 @@ export default async function AdminPage() {
       initialAnonPlayers={anonPlayers}
       initialActiveUsers={activeUsers}
       initialGeoMap={geoMap}
+      initialDailyRetention={dailyRetention}
     />
   );
 }

@@ -17,7 +17,7 @@ const FONT = "'Manrope', system-ui, -apple-system, sans-serif";
 function fmtTime(sec) { if (sec == null) return '—'; const m = Math.floor(sec / 60), s = sec % 60; return `${m}:${String(s).padStart(2, '0')}`; }
 function fmtWhen(ts) { try { const d = new Date(ts); return d.toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' }) + ', ' + d.toLocaleTimeString(undefined, { hour: 'numeric', minute: '2-digit' }); } catch (e) { return ''; } }
 
-export default function QuizLeaderboard({ board, identity, total, wordsCol = null }) {
+export default function QuizLeaderboard({ board, identity, total, wordsCol = null, guessLabel = 'Guesses' }) {
   const [lbPop, setLbPop] = useState('registered');
   const [lbFilter, setLbFilter] = useState('all');
   const bestLabel = board.best != null ? board.best : '—';
@@ -60,7 +60,7 @@ export default function QuizLeaderboard({ board, identity, total, wordsCol = nul
       ) : (
         <div>
           <div className={gridClass} style={{ display: 'grid', gridTemplateColumns: gridClass ? undefined : gridCols, gap: 8, padding: '0 14px 8px', fontFamily: FONT, fontSize: 10, letterSpacing: '0.12em', textTransform: 'uppercase', color: C.faded }}>
-            <span>#</span><span>Display Name</span><span style={{ textAlign: 'right' }}>{wordsCol ? 'Score' : 'Correct'}</span>{hasGuesses ? <span style={{ textAlign: 'right' }}>Guesses</span> : null}{wordsCol ? <span style={{ textAlign: 'right' }}>Words</span> : null}{wordsCol ? <span style={{ textAlign: 'right' }}>Misses</span> : null}<span className={gridClass ? 'qlb-time' : undefined} style={{ textAlign: 'right' }}>Time</span>
+            <span>#</span><span>Display Name</span><span style={{ textAlign: 'right' }}>{wordsCol ? 'Score' : 'Correct'}</span>{hasGuesses ? <span style={{ textAlign: 'right' }}>{guessLabel}</span> : null}{wordsCol ? <span style={{ textAlign: 'right' }}>Words</span> : null}{wordsCol ? <span style={{ textAlign: 'right' }}>Misses</span> : null}<span className={gridClass ? 'qlb-time' : undefined} style={{ textAlign: 'right' }}>Time</span>
           </div>
           {lb.map((row, i) => { const mine = identity && row.username === identity.username; return (
             <div key={i} className={gridClass} style={{ display: 'grid', gridTemplateColumns: gridClass ? undefined : gridCols, gap: 8, alignItems: 'center', padding: '11px 14px', marginBottom: 6, background: mine ? C.accSoft : '#fff', borderRadius: 10, border: `1px solid ${mine ? C.accBorder : C.line}` }}>

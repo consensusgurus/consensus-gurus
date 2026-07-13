@@ -373,7 +373,7 @@ function mapsPlaceUrl(name) {
   return `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(cleaned)}`;
 }
 
-export default function AdminClient({ initialLists, initialExtras = [], initialComplaints = [], initialVoteStandings = [], initialVoteEvents = [], initialComments = [], initialAlerts = [], initialViews24h = [], initialEditorNotes = [], initialQuizSignups = [], initialQuizStats = [], initialAnonPlayers = [], initialActiveUsers = { players: { dau: 0, wau: 0, mau: 0 }, visitors: null }, initialGeoMap = null }) {
+export default function AdminClient({ initialLists, initialExtras = [], initialComplaints = [], initialVoteStandings = [], initialVoteEvents = [], initialComments = [], initialAlerts = [], initialViews24h = [], initialEditorNotes = [], initialQuizSignups = [], initialQuizStats = [], initialAnonPlayers = [], initialActiveUsers = { players: { dau: 0, wau: 0, mau: 0 }, visitors: null }, initialGeoMap = null, initialDailyRetention = { games: [], breadth: { total: 0, histogram: [] } } }) {
   const router = useRouter();
   const [lists, setLists] = useState(initialLists);
   const [extras, setExtras] = useState(initialExtras);
@@ -759,7 +759,7 @@ export default function AdminClient({ initialLists, initialExtras = [], initialC
         </div>
 
         {tab === 'analytics' ? (
-          <AnalyticsPanel views={views24h} viewsTotal={views24hTotal} quizStats={quizStats} quizPlaysTotal={quizPlaysTotal} signups={quizSignups} anonPlayers={anonPlayers} activeUsers={initialActiveUsers} geoMap={initialGeoMap} />
+          <AnalyticsPanel views={views24h} viewsTotal={views24hTotal} quizStats={quizStats} quizPlaysTotal={quizPlaysTotal} signups={quizSignups} anonPlayers={anonPlayers} activeUsers={initialActiveUsers} geoMap={initialGeoMap} dailyRetention={initialDailyRetention} />
         ) : tab === 'research' ? (
           <ResearchNotesPanel alerts={alerts} busy={busy} onResolve={resolveAlert} notes={editorNotes} lists={LISTS} onAddNote={addNote} onDeleteNote={deleteNote} />
         ) : tab === 'feedback' ? (
@@ -2044,7 +2044,7 @@ function ActiveUsersStrip({ data }) {
   );
 }
 
-function AnalyticsPanel({ views, viewsTotal, quizStats, quizPlaysTotal, signups, anonPlayers, activeUsers, geoMap }) {
+function AnalyticsPanel({ views, viewsTotal, quizStats, quizPlaysTotal, signups, anonPlayers, activeUsers, geoMap, dailyRetention = { games: [], breadth: { total: 0, histogram: [] } } }) {
   const [view, setView] = useState('plays');
   const [playsView, setPlaysView] = useState('all');
   const [pvView, setPvView] = useState('all');
@@ -2052,9 +2052,11 @@ function AnalyticsPanel({ views, viewsTotal, quizStats, quizPlaysTotal, signups,
   const anonCount = (anonPlayers || []).length;
   const listCount = (views || []).length;
   const quizCount = (quizStats || []).length;
+  const retentionTotal = (dailyRetention && dailyRetention.breadth && dailyRetention.breadth.total) || 0;
   const tabs = [
     ['plays', 'Quiz Plays', regCount + anonCount],
     ['pageviews', 'Page Views', listCount + quizCount],
+    ['retention', 'Return Play', retentionTotal],
     ['map', 'Player Map', (geoMap && geoMap.totals && geoMap.totals.locatedPlayers) || 0],
   ];
   const playsSub = [
@@ -2153,9 +2155,108 @@ function AnalyticsPanel({ views, viewsTotal, quizStats, quizPlaysTotal, signups,
         )
       ) : view === 'pageviews' ? (
         <PageViewsPanel lists={views} quizzes={quizStats} mode={pvView} />
+      ) : view === 'retention' ? (
+        <RetentionPanel data={dailyRetention} />
       ) : (
         <GeoMapPanel data={geoMap} />
       )}
+    </div>
+  );
+}
+
+// Analytics -> Return Play. Shows how many players come back to the daily games.
+// An "All daily games" tab gives the cross-game breadth (players who touched 1
+// of the four games, 2, 3, or all 4); each per-game tab gives that game's
+// return distribution — players by number of DISTINCT days they've completed it
+// (1 day = played once, 2 = came back once more, and so on). Players include
+// anonymous browsers, keyed the same way as the active-user counts.
+function RetentionBars({ rows, unitLabel, accent }) {
+  const max = rows.reduce((m, r) => Math.max(m, r.count), 0);
+  const total = rows.reduce((s, r) => s + r.count, 0);
+  if (!total) {
+    return <p style={{ fontFamily: 'DM Mono, monospace', fontSize: 12, color: COLORS.faded, fontStyle: 'italic' }}>No plays recorded yet.</p>;
+  }
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+      {rows.map((r) => {
+        const pct = total ? Math.round((r.count / total) * 100) : 0;
+        const w = max ? Math.round((r.count / max) * 100) : 0;
+        return (
+          <div key={r.label} style={{ display: 'grid', gridTemplateColumns: '132px 1fr 96px', gap: 12, alignItems: 'center' }}>
+            <div style={{ fontFamily: 'DM Mono, monospace', fontSize: 12, color: COLORS.ink, textAlign: 'right' }}>{r.label}</div>
+            <div style={{ background: COLORS.cream, border: `1px solid ${COLORS.line}`, borderRadius: 5, height: 22, position: 'relative', overflow: 'hidden' }}>
+              <div style={{ position: 'absolute', inset: 0, width: `${w}%`, background: accent, opacity: 0.85, borderRadius: 4 }} />
+            </div>
+            <div style={{ fontFamily: 'DM Mono, monospace', fontSize: 12, color: COLORS.faded, textAlign: 'left' }}>
+              <span style={{ color: COLORS.ink, fontWeight: 700 }}>{r.count.toLocaleString()}</span> {unitLabel}
+              <span style={{ opacity: 0.7 }}> · {pct}%</span>
+            </div>
+          </div>
+        );
+      })}
+    </div>
+  );
+}
+function RetentionPanel({ data }) {
+  const games = (data && data.games) || [];
+  const breadth = (data && data.breadth) || { total: 0, histogram: [] };
+  const [sub, setSub] = useState('all');
+  const subTabStyle = (on) => ({
+    padding: '6px 12px',
+    background: on ? `${COLORS.ember}1a` : 'transparent',
+    border: `1px solid ${on ? COLORS.ember : COLORS.line}`,
+    color: on ? COLORS.ember : COLORS.faded,
+    fontFamily: 'DM Mono, monospace',
+    fontSize: 10,
+    letterSpacing: '0.08em',
+    textTransform: 'uppercase',
+    fontWeight: 600,
+    cursor: 'pointer',
+    display: 'flex',
+    alignItems: 'center',
+    gap: 5,
+  });
+  const subs = [['all', 'All daily games', breadth.total], ...games.map((g) => [g.key, g.title, g.players])];
+  const activeGame = sub === 'all' ? null : games.find((g) => g.key === sub) || null;
+  return (
+    <div>
+      <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', marginBottom: 22, paddingLeft: 2 }}>
+        {subs.map(([key, label, count]) => (
+          <button key={key} onClick={() => setSub(key)} style={subTabStyle(sub === key)}>
+            {label}
+            <span style={{ opacity: 0.6 }}>{count}</span>
+          </button>
+        ))}
+      </div>
+      {sub === 'all' ? (
+        <div>
+          <SectionHeading>Daily games played per user</SectionHeading>
+          <p style={{ fontFamily: 'DM Mono, monospace', fontSize: 11, color: COLORS.faded, margin: '0 0 18px', lineHeight: 1.6 }}>
+            Of the four daily games (Links, Span, Crux, Garble), how many distinct games each player has ever played.
+            <span style={{ color: COLORS.ink }}> {breadth.total.toLocaleString()}</span> players total.
+          </p>
+          <RetentionBars
+            accent={COLORS.ember}
+            unitLabel="players"
+            rows={(breadth.histogram || []).map((h) => ({ label: `${h.games} game${h.games === 1 ? '' : 's'}`, count: h.count }))}
+          />
+        </div>
+      ) : activeGame ? (
+        <div>
+          <SectionHeading>{activeGame.title} — return play</SectionHeading>
+          <p style={{ fontFamily: 'DM Mono, monospace', fontSize: 11, color: COLORS.faded, margin: '0 0 18px', lineHeight: 1.6 }}>
+            Players grouped by how many distinct days they have completed {activeGame.title}.
+            <span style={{ color: COLORS.ink }}> {activeGame.players.toLocaleString()}</span> players ·
+            <span style={{ color: COLORS.ink }}> {activeGame.returning.toLocaleString()}</span> returned at least once
+            {activeGame.players ? <span style={{ opacity: 0.8 }}> ({Math.round((activeGame.returning / activeGame.players) * 100)}%)</span> : null}.
+          </p>
+          <RetentionBars
+            accent={COLORS.forest}
+            unitLabel="players"
+            rows={(activeGame.histogram || []).map((h) => ({ label: `${h.days} day${h.days === 1 ? '' : 's'}`, count: h.count }))}
+          />
+        </div>
+      ) : null}
     </div>
   );
 }

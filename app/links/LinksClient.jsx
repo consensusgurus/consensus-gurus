@@ -648,7 +648,7 @@ export default function LinksClient({ puzzles = [], forceNum = null }) {
 
         <DailyGamesGrid self="links" maxWidth={560} />
         <div style={{ maxWidth: 560, margin: '26px auto 0', background: '#fff', border: '1.5px solid rgba(20,22,28,0.12)', borderRadius: 12, padding: '14px 16px' }}>
-          <QuizLeaderboard board={board} identity={identity} total={8} />
+          <QuizLeaderboard board={board} identity={identity} total={8} guessLabel="Misses" />
         </div>
       </div>
 

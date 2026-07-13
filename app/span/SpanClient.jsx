@@ -680,7 +680,7 @@ export default function SpanClient({ puzzles = [], forceNum = null }) {
 
         <DailyGamesGrid self="span" maxWidth={620} />
         <div style={{ maxWidth: 620, margin: '26px auto 0', background: '#fff', border: '1.5px solid rgba(20,22,28,0.12)', borderRadius: 12, padding: '14px 16px' }}>
-          <QuizLeaderboard board={board} identity={identity} total={10} />
+          <QuizLeaderboard board={board} identity={identity} total={10} guessLabel="Misses" />
         </div>
       </div>
 
