@@ -898,11 +898,13 @@ export default function QuizHomeClient() {
     .qzh .dot{width:9px;height:9px;border-radius:3px;flex:none;}
     /* Daily games row: four half-height buttons above the hero tiles */
     .qzh .th-games{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px;margin-bottom:14px;}
-    .qzh .th-game{position:relative;display:flex;flex-direction:column;justify-content:center;gap:1px;min-height:86px;border:1px solid ${C.line};border-radius:14px;background-size:cover;background-position:right center;background-color:#0e1d40;padding:11px 15px;text-decoration:none;overflow:hidden;}
+    .qzh .th-game{position:relative;display:flex;flex-direction:row;align-items:center;gap:10px;min-height:86px;border:1px solid ${C.line};border-radius:14px;background:#0e1d40;padding:11px 15px;text-decoration:none;overflow:hidden;}
     .qzh .th-game:hover{border-color:#5b8bff;}
+    .qzh .th-game-txt{display:flex;flex-direction:column;gap:1px;min-width:0;flex:1 1 auto;}
+    .qzh .th-game-art{flex:0 0 auto;height:52px;width:auto;}
     .qzh .th-game-tag{font-size:9px;font-weight:800;letter-spacing:.13em;text-transform:uppercase;color:#f8b84a;margin-bottom:3px;}
-    .qzh .th-game-t{font-size:17px;font-weight:800;letter-spacing:-.3px;color:#fff;line-height:1.1;max-width:64%;}
-    .qzh .th-game-p{font-size:11.5px;font-weight:700;color:#9fb0d4;max-width:64%;}
+    .qzh .th-game-t{font-size:17px;font-weight:800;letter-spacing:-.3px;color:#fff;line-height:1.1;}
+    .qzh .th-game-p{font-size:11.5px;font-weight:700;color:#9fb0d4;line-height:1.2;}
     @media(max-width:900px){.qzh .th-game-p{display:none;}.qzh .th-game{min-height:64px;}}
     @media(max-width:760px){.qzh .th-games{grid-template-columns:repeat(2,minmax(0,1fr));gap:9px;}.qzh .th-game{min-height:58px;background-position:right center;}}
     .qzh .qotd{display:flex;align-items:stretch;gap:0;background:#0e1d40;border:1px solid ${C.line};border-radius:14px;overflow:hidden;min-height:215px;text-decoration:none;color:#fff;}
@@ -1224,15 +1226,18 @@ export default function QuizHomeClient() {
             each button is ~half the Newest tile's height. */}
         <div className="th-games">
           {[
-            { href: '/crux', name: 'Crux', tag: 'A crossword with no clues', img: '/games/btn-crux.png' },
+            { href: '/crux', name: 'Crux', tag: 'A clueless crossword', img: '/games/btn-crux.png' },
             { href: '/garble', name: 'Garble', tag: 'Untangle five words', img: '/games/btn-garble.png' },
             { href: '/links', name: 'Links', tag: 'Four hidden threads', img: '/games/btn-links.png' },
             { href: '/span', name: 'Span', tag: 'Cross the map', img: '/games/btn-span.png' },
           ].map((gm) => (
-            <a key={gm.href} href={gm.href} className="th-game" style={{ backgroundImage: `url("${gm.img}")` }} aria-label={`${gm.name} — daily game`}>
-              <span className="th-game-tag">Daily</span>
-              <span className="th-game-t">{gm.name}</span>
-              <span className="th-game-p">{gm.tag} →</span>
+            <a key={gm.href} href={gm.href} className="th-game" aria-label={`${gm.name} — daily game`}>
+              <span className="th-game-txt">
+                <span className="th-game-tag">Daily</span>
+                <span className="th-game-t">{gm.name}</span>
+                <span className="th-game-p">{gm.tag} →</span>
+              </span>
+              <img className="th-game-art" src={gm.img} alt="" aria-hidden="true" />
             </a>
           ))}
         </div>

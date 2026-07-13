@@ -17,6 +17,7 @@ import DailyGamesPromo from '../DailyGamesPromo';
 import Footer from '../Footer';
 import QuizLeaderboard from '../quiz/[id]/QuizLeaderboard';
 import JoinLeaderboardForm from '../quiz/[id]/JoinLeaderboardForm';
+import DailyGamesGrid from '../DailyGamesGrid';
 import { isMobileDevice } from '@/lib/is-mobile';
 
 const COLORS = {
@@ -526,6 +527,7 @@ export default function GarbleClient({ puzzles = [], forceNum = null }) {
             <JoinLeaderboardForm identity={identity} onJoined={(id) => { setIdentity(id); if (id && id.username) setPlayer((p) => p || { name: id.username, rank: null }); }} />
           </div>
         )}
+        <DailyGamesGrid self="garble" maxWidth={640} />
         <div style={{ maxWidth: 640, margin: '26px auto 0', background: '#fff', border: '1.5px solid rgba(20,22,28,0.12)', borderRadius: 12, padding: '14px 16px' }}>
           <QuizLeaderboard board={board} identity={identity} total={10} wordsCol={{ total: 5 }} />
         </div>

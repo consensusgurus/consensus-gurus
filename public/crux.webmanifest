@@ -2,7 +2,7 @@
   "id": "/crux",
   "name": "Crux — Daily Word Game",
   "short_name": "Crux",
-  "description": "A crossword with no clues — four categories are the only hints. A new puzzle every day from Source of Truths.",
+  "description": "A clueless crossword — four categories are the only hints. A new puzzle every day from Source of Truths.",
   "start_url": "/crux?src=pwa",
   "scope": "/",
   "display": "standalone",

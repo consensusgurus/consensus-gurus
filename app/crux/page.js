@@ -9,7 +9,7 @@ import { PUZZLES } from './puzzles';
 export const metadata = {
   title: 'Crux — Free Daily Word Game | Source of Truths',
   description:
-    'A free daily word game — eight hidden words interlock in a mini crossword with no clues, and four categories are the only hints. New puzzle every day.',
+    'A free daily word game — eight hidden words interlock in a clueless mini crossword, and four categories are the only hints. New puzzle every day.',
   alternates: { canonical: '/crux' },
   manifest: '/crux.webmanifest',
   icons: {
@@ -40,7 +40,7 @@ const gameJsonLd = {
   alternateName: 'Crux — Daily Word Game',
   url: 'https://sourceoftruths.com/crux',
   description:
-    'A free daily word game: eight hidden words interlock in a mini crossword with no clues. Four categories are the only hints — guess real words on a shared budget, lock letters into the grid, then file each solved word under its category.',
+    'A free daily word game: eight hidden words interlock in a clueless mini crossword. Four categories are the only hints — guess real words on a shared budget, lock letters into the grid, then file each solved word under its category.',
   genre: ['Word game', 'Puzzle'],
   gamePlatform: 'Web browser',
   isAccessibleForFree: true,

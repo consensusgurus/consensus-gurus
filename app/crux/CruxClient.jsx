@@ -23,6 +23,7 @@ import Footer from '../Footer';
 import DailyGamesPromo from '../DailyGamesPromo';
 import useDuelContext, { DuelBanner } from '../quiz/[id]/useDuelContext';
 import JoinLeaderboardForm from '../quiz/[id]/JoinLeaderboardForm';
+import DailyGamesGrid from '../DailyGamesGrid';
 import QuizLeaderboard from '../quiz/[id]/QuizLeaderboard';
 import { isMobileDevice } from '@/lib/is-mobile';
 
@@ -702,7 +703,7 @@ export default function CruxClient({ puzzles = [], forceNum = null }) {
   }
   function copyShare() {
     const text = playing
-      ? `Crux #${PUZZLE.num} \u2014 a crossword with no clues. Can you crack it?\n${shareUrl()}`
+      ? `Crux #${PUZZLE.num} \u2014 a clueless crossword. Can you crack it?\n${shareUrl()}`
       : shareText();
     // Mobile: native share sheet (like the big daily games) — the receiving
     // app gets the text directly, line breaks intact, no clipboard quirks.
@@ -877,7 +878,7 @@ export default function CruxClient({ puzzles = [], forceNum = null }) {
             <span style={{ fontFamily: SERIF, fontStyle: 'italic', fontSize: 14, color: COLORS.ink }}>{PUZZLE.dateLabel}</span>
             {PUZZLE.categories[0].words.length === 3
               ? <span style={{ fontFamily: MONO, fontSize: 10.5, letterSpacing: '0.12em', textTransform: 'uppercase', color: '#fff', background: COLORS.ink, borderRadius: 3, padding: '2px 7px' }}>Sunday Edition</span>
-              : <span style={{ fontFamily: MONO, fontSize: 10.5, letterSpacing: '0.12em', textTransform: 'uppercase', color: COLORS.faded }}>a crossword with no clues</span>}
+              : <span style={{ fontFamily: MONO, fontSize: 10.5, letterSpacing: '0.12em', textTransform: 'uppercase', color: COLORS.faded }}>a clueless crossword</span>}
             <span style={{ marginLeft: 'auto', display: 'flex', gap: 14 }}>
               <button onClick={() => setShowHelp(true)} aria-label="How to play" style={{ background: 'none', border: 'none', cursor: 'pointer', color: COLORS.faded, display: 'flex', alignItems: 'center', gap: 5, fontFamily: SANS, fontWeight: 700, fontSize: 12.5, padding: 0 }}>
                 <HelpCircle size={16} /> <span className="cx-htp-f">How to play</span><span className="cx-htp-s">Help</span>
@@ -1133,6 +1134,7 @@ export default function CruxClient({ puzzles = [], forceNum = null }) {
             <JoinLeaderboardForm identity={identity} onJoined={(id) => { setIdentity(id); if (id && id.username) setPlayer((p) => p || { name: id.username, rank: null }); }} />
           </div>
         )}
+        <DailyGamesGrid self="crux" maxWidth={640} />
         <div style={{ maxWidth: 760, margin: '26px auto 0', background: '#fff', border: '1.5px solid rgba(20,22,28,0.12)', borderRadius: 12, padding: '14px 16px' }}>
           <QuizLeaderboard board={board} identity={identity} total={PUZZLE.slots.length * 2} />
         </div>
@@ -1199,7 +1201,7 @@ export default function CruxClient({ puzzles = [], forceNum = null }) {
       <section style={{ position: 'relative', zIndex: 2, maxWidth: 760, margin: '0 auto', padding: '10px 24px 42px', fontFamily: SANS }}>
         <h2 style={{ margin: '0 0 8px', fontSize: 15, fontWeight: 800, letterSpacing: '-0.01em', color: COLORS.ink }}>About Crux</h2>
         <p style={{ margin: '0 0 8px', fontSize: 13, lineHeight: 1.65, color: COLORS.faded, fontWeight: 600 }}>
-          Crux is a free daily word game from Source of Truths &mdash; a crossword with no clues. Eight hidden words (twelve in the Sunday Edition) interlock in a compact grid, and the only hints are four visible categories; working out which words belong to them is the puzzle.
+          Crux is a free daily word game from Source of Truths &mdash; a clueless crossword. Eight hidden words (twelve in the Sunday Edition) interlock in a compact grid, and the only hints are four visible categories; working out which words belong to them is the puzzle.
         </p>
         <p style={{ margin: '0 0 8px', fontSize: 13, lineHeight: 1.65, color: COLORS.faded, fontWeight: 600 }}>
           Guess real words to reveal letters: dark tiles lock a letter into its square and every crossing, yellow tiles mean the letter belongs elsewhere in the word. The whole board shares one guess budget, and a single submit files each solved word under its category &mdash; a point per solve, a point per correct placement.
