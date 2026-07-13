@@ -1326,6 +1326,7 @@ function QuizzesPanel({ me, myProfile, scope, byKey, catalog, stats, totals, tot
     { key: 'correct', label: 'Correct', align: 'right', get: (r) => r.s.correct || 0 },
     { key: 'perfect', label: 'Perfect', align: 'right', get: (r) => r.s.perfect || 0 },
     { key: 'time', label: 'Time', align: 'right', get: (r) => r.s.totalTime || 0 },
+    { key: 'perPlay', label: 'Time / Play', align: 'right', get: (r) => ((r.s.plays || 0) > 0 ? (r.s.totalTime || 0) / r.s.plays : 0) },
     { key: 'leader', label: 'Top Scorer', align: 'left', get: null },
   ];
   const activeCol = QUIZ_COLS.find((c) => c.key === sort.col) || QUIZ_COLS[1];
@@ -1368,6 +1369,7 @@ function QuizzesPanel({ me, myProfile, scope, byKey, catalog, stats, totals, tot
                   <td style={{ textAlign: 'right' }}>{(s.correct || 0).toLocaleString()}</td>
                   <td style={{ textAlign: 'right' }}>{(s.perfect || 0).toLocaleString()}</td>
                   <td style={{ textAlign: 'right', whiteSpace: 'nowrap' }}>{fmtPlayTime(s.totalTime || 0)}</td>
+                  <td className="score" style={{ textAlign: 'right', whiteSpace: 'nowrap' }}>{(s.plays || 0) > 0 ? mmss((s.totalTime || 0) / s.plays) : '—'}</td>
                   <td>{leader ? (leaderKey ? <button onClick={() => onSelectPlayer && onSelectPlayer(leaderKey)} style={{ border: 'none', background: 'transparent', padding: 0, font: 'inherit', fontFamily: FONT, color: C.accent, cursor: 'pointer', textAlign: 'left' }}>{leader}</button> : leader) : <span style={{ color: C.soft }}>Empty</span>}</td>
                 </tr>
               ))}
