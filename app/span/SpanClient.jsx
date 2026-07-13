@@ -3,8 +3,8 @@
 // Span — cross the map, border by border.
 //
 // Each day: a start country and a destination. Build a chain of countries
-// where every step shares a land border with the last. Par is the shortest
-// possible road. Score is 10 if your final chain matches par, minus one per
+// where every step shares a land border with the last. The target is the
+// shortest path — score is 10 if your final chain matches it, minus one per
 // country over, floor 1 — hops are derived from the chain, so undo truly
 // refunds a step. A country that doesn't border your position is a miss
 // (misses break ties). One free hint walks you one step down a shortest road.
@@ -415,7 +415,7 @@ export default function SpanClient({ puzzles = [], forceNum = null }) {
     const hintBit = g.hintUsed ? ' · 💡' : '';
     const streakBit = isTodays && myStats.cur >= 2 ? ` · streak ${myStats.cur}` : '';
     const head2 = won
-      ? `Span #${PUZZLE.num} · ${PUZZLE.start} → ${PUZZLE.end} · ${hops} hops (par ${PUZZLE.par}) · ${elapsed}${hintBit}${streakBit}`
+      ? `Span #${PUZZLE.num} · ${PUZZLE.start} → ${PUZZLE.end} · ${hops} hops (shortest ${PUZZLE.par}) · ${elapsed}${hintBit}${streakBit}`
       : `Span #${PUZZLE.num} · ${PUZZLE.start} → ${PUZZLE.end} · gave up at ${hops} hop${hops === 1 ? '' : 's'}${hintBit}`;
     return `${head2}\n${squares}\n${shareUrl()}`;
   }
@@ -424,7 +424,7 @@ export default function SpanClient({ puzzles = [], forceNum = null }) {
   }
   function copyShare() {
     const text = playing
-      ? `Span #${PUZZLE.num} — get from ${PUZZLE.start} to ${PUZZLE.end}, border by border. Par is ${PUZZLE.par}.\n${shareUrl()}`
+      ? `Span #${PUZZLE.num} — get from ${PUZZLE.start} to ${PUZZLE.end}, border by border. Shortest path is ${PUZZLE.par}.\n${shareUrl()}`
       : shareText();
     try {
       if (typeof navigator !== 'undefined' && navigator.share && isMobileDevice()) {
@@ -507,7 +507,7 @@ export default function SpanClient({ puzzles = [], forceNum = null }) {
         <div style={{ background: '#fff', border: `2px solid ${COLORS.ink}`, borderRadius: 10, padding: '13px 15px', boxShadow: '5px 5px 0 rgba(28,30,36,0.16)', marginBottom: 12 }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 12, fontFamily: MONO, fontSize: 11.5, letterSpacing: '0.1em', textTransform: 'uppercase', color: COLORS.faded, borderBottom: '1px solid rgba(28,30,36,0.18)', paddingBottom: 8, marginBottom: 12, flexWrap: 'wrap' }}>
             <span style={{ whiteSpace: 'nowrap' }}><b style={{ color: COLORS.ink, fontWeight: 500 }}>{PUZZLE.start}</b> &rarr; <b style={{ color: COLORS.ink, fontWeight: 500 }}>{PUZZLE.end}</b></span>
-            <span style={{ marginLeft: 'auto', whiteSpace: 'nowrap' }}>par <b style={{ color: COLORS.ink, fontWeight: 500 }}>{PUZZLE.par}</b> &middot; hops <b style={{ color: hops > PUZZLE.par ? COLORS.rust : COLORS.ink, fontWeight: 500 }}>{hops}</b> &middot; misses <b style={{ color: g.misses > 0 ? COLORS.rust : COLORS.ink, fontWeight: 500 }}>{g.misses}</b></span>
+            <span style={{ marginLeft: 'auto', whiteSpace: 'nowrap' }}>shortest <b style={{ color: COLORS.ink, fontWeight: 500 }}>{PUZZLE.par}</b> &middot; hops <b style={{ color: hops > PUZZLE.par ? COLORS.rust : COLORS.ink, fontWeight: 500 }}>{hops}</b> &middot; misses <b style={{ color: g.misses > 0 ? COLORS.rust : COLORS.ink, fontWeight: 500 }}>{g.misses}</b></span>
           </div>
 
           {/* the road so far */}
@@ -573,11 +573,11 @@ export default function SpanClient({ puzzles = [], forceNum = null }) {
         {!playing && (
           <div style={{ background: '#fff', border: `2px solid ${COLORS.ink}`, borderRadius: 12, padding: '16px 16px 14px', marginBottom: 14 }}>
             <div style={{ fontSize: 19, fontWeight: 800, color: won ? COLORS.trail : COLORS.rust, marginBottom: 4 }}>
-              {won ? (hops === PUZZLE.par ? 'Spanned at par.' : `Spanned, ${hops - PUZZLE.par} over par.`) : 'Revealed.'}
+              {won ? (hops === PUZZLE.par ? 'You found the shortest path.' : `Spanned, ${hops - PUZZLE.par} over the shortest.`) : 'Revealed.'}
             </div>
             <div style={{ fontSize: 13.5, fontWeight: 700, color: COLORS.faded, marginBottom: 6 }}>
               {won
-                ? <>{finalScore}/10 &middot; {hops} hops (par {PUZZLE.par}) &middot; {g.misses} miss{g.misses === 1 ? '' : 'es'} &middot; {elapsed}{g.hintUsed ? <> &middot; 1 hint</> : null}</>
+                ? <>{finalScore}/10 &middot; {hops} hops (shortest {PUZZLE.par}) &middot; {g.misses} miss{g.misses === 1 ? '' : 'es'} &middot; {elapsed}{g.hintUsed ? <> &middot; 1 hint</> : null}</>
                 : <>0/10 &middot; a shortest road is below</>}
             </div>
             {revealRoute && (
@@ -635,7 +635,7 @@ export default function SpanClient({ puzzles = [], forceNum = null }) {
               {[
                 { n: myStats.cur, l: 'Streak' },
                 { n: myStats.played, l: 'Played' },
-                { n: myStats.played ? `${Math.round((myStats.perfect / myStats.played) * 100)}%` : '—', l: 'At par' },
+                { n: myStats.played ? `${Math.round((myStats.perfect / myStats.played) * 100)}%` : '—', l: 'Shortest' },
                 { n: myStats.max, l: 'Best' },
               ].map((st, i) => (
                 <div key={i} style={{ flex: '1 1 0', minWidth: 54, background: '#fff', border: '1px solid rgba(28,30,36,0.12)', borderRadius: 7, padding: '6px 5px', textAlign: 'center' }}>
@@ -677,7 +677,7 @@ export default function SpanClient({ puzzles = [], forceNum = null }) {
         )}
         </div>
 
-        <div style={{ maxWidth: 760, margin: '26px auto 0', background: '#fff', border: '1.5px solid rgba(20,22,28,0.12)', borderRadius: 12, padding: '14px 16px' }}>
+        <div style={{ maxWidth: 620, margin: '26px auto 0', background: '#fff', border: '1.5px solid rgba(20,22,28,0.12)', borderRadius: 12, padding: '14px 16px' }}>
           <QuizLeaderboard board={board} identity={identity} total={10} />
         </div>
       </div>
@@ -691,8 +691,8 @@ export default function SpanClient({ puzzles = [], forceNum = null }) {
                 <span key={i} style={{ width: 24, height: 24, borderRadius: 3, background: i === 2 ? COLORS.trail : COLORS.ink, color: '#fff', fontFamily: SANS, fontWeight: 900, fontSize: 15, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', boxShadow: 'inset 0 1px 3px rgba(0,0,0,0.5)' }}>{ch}</span>
               ))}
             </div>
-            <div style={{ fontFamily: SANS, fontWeight: 900, fontSize: 34, color: COLORS.ink, letterSpacing: '-0.01em', margin: '2px 0 6px', lineHeight: 1.15 }}>{hops === PUZZLE.par ? 'At par.' : 'Spanned.'}</div>
-            <div style={{ fontFamily: MONO, fontSize: 12.5, color: COLORS.faded, marginBottom: 14 }}>No. {PUZZLE.num} &middot; {PUZZLE.start} &rarr; {PUZZLE.end} &middot; {hops} hops (par {PUZZLE.par}) &middot; {elapsed}</div>
+            <div style={{ fontFamily: SANS, fontWeight: 900, fontSize: 34, color: COLORS.ink, letterSpacing: '-0.01em', margin: '2px 0 6px', lineHeight: 1.15 }}>{hops === PUZZLE.par ? 'Shortest path!' : 'Spanned.'}</div>
+            <div style={{ fontFamily: MONO, fontSize: 12.5, color: COLORS.faded, marginBottom: 14 }}>No. {PUZZLE.num} &middot; {PUZZLE.start} &rarr; {PUZZLE.end} &middot; {hops} hops (shortest {PUZZLE.par}) &middot; {elapsed}</div>
             <div style={{ display: 'flex', gap: 3, justifyContent: 'center', marginBottom: 16, flexWrap: 'wrap' }}>
               {chain.map((_, i) => (
                 <span key={i} style={{ width: 15, height: 15, borderRadius: 3, background: i === 0 || i === chain.length - 1 ? COLORS.trail : '#5a97dd', border: '1px solid rgba(28,30,36,0.25)' }} />
@@ -726,7 +726,7 @@ export default function SpanClient({ puzzles = [], forceNum = null }) {
             </div>
             <div style={{ fontSize: 14, lineHeight: 1.55, color: COLORS.ink, fontWeight: 600 }}>
               <p style={{ margin: '0 0 9px' }}><b>Get from {PUZZLE.start} to {PUZZLE.end}</b> by typing a chain of countries &mdash; each one must share a <b>land border</b> with the last.</p>
-              <p style={{ margin: '0 0 9px' }}><b>Par is {PUZZLE.par}</b>, the shortest road possible. Your score is 10 if your final chain matches par, minus one for each country over. Undo any step for free. A country that doesn&apos;t border your position is a miss &mdash; misses break leaderboard ties.</p>
+              <p style={{ margin: '0 0 9px' }}><b>The shortest path is {PUZZLE.par} hops.</b> Your score is 10 if your final chain matches it, minus one for each country over. Undo any step for free. A country that doesn&apos;t border your position is a miss &mdash; misses break leaderboard ties.</p>
               <p style={{ margin: 0 }}>Mainland borders only: overseas territories don&apos;t count (sorry, France&ndash;Brazil), and neither do bridges or tunnels. One free <b>hint</b> walks you one step down a shortest road.</p>
             </div>
             <button className="sp-btn" onClick={() => { setShowHelp(false); try { localStorage.setItem(HELP_KEY, '1'); } catch (e) {} }} style={{ marginTop: 14, background: COLORS.ink, color: '#fff' }}>Play</button>
@@ -735,10 +735,10 @@ export default function SpanClient({ puzzles = [], forceNum = null }) {
       )}
 
       {/* About Span — crawlable prose for search, server-rendered into the initial HTML */}
-      <section style={{ position: 'relative', zIndex: 2, maxWidth: 760, margin: '0 auto', padding: '10px 24px 42px', fontFamily: SANS }}>
+      <section style={{ position: 'relative', zIndex: 2, maxWidth: 620, margin: '0 auto', padding: '10px 24px 42px', fontFamily: SANS }}>
         <h2 style={{ margin: '0 0 8px', fontSize: 15, fontWeight: 800, letterSpacing: '-0.01em', color: COLORS.ink }}>About Span</h2>
         <p style={{ margin: '0 0 8px', fontSize: 13, lineHeight: 1.65, color: COLORS.faded, fontWeight: 600 }}>
-          Span is a free daily geography game from Source of Truths. Each day hands you two countries; your job is to connect them with the shortest chain of land borders you can find. Par is the shortest road on the map &mdash; match it and you&apos;ve spanned the day.
+          Span is a free daily geography game from Source of Truths. Each day hands you two countries; your job is to connect them with the shortest chain of land borders you can find. Match the shortest path on the map and you&apos;ve spanned the day.
         </p>
         <p style={{ margin: '0 0 8px', fontSize: 13, lineHeight: 1.65, color: COLORS.faded, fontWeight: 600 }}>
           The map plays by strict rules: mainland land borders only, so overseas territories, bridges, and tunnels don&apos;t count &mdash; which is why Scandinavia&apos;s only way out is through Russia, and why the Sinai is the single land door between Africa and Asia. Contiguous exclaves do count: Kaliningrad, Nakhchivan, and Cabinda are all in play.

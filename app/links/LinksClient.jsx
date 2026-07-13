@@ -645,7 +645,7 @@ export default function LinksClient({ puzzles = [], forceNum = null }) {
         )}
         </div>
 
-        <div style={{ maxWidth: 760, margin: '26px auto 0', background: '#fff', border: '1.5px solid rgba(20,22,28,0.12)', borderRadius: 12, padding: '14px 16px' }}>
+        <div style={{ maxWidth: 560, margin: '26px auto 0', background: '#fff', border: '1.5px solid rgba(20,22,28,0.12)', borderRadius: 12, padding: '14px 16px' }}>
           <QuizLeaderboard board={board} identity={identity} total={8} />
         </div>
       </div>
@@ -705,7 +705,7 @@ export default function LinksClient({ puzzles = [], forceNum = null }) {
       )}
 
       {/* About Links — crawlable prose for search, server-rendered into the initial HTML */}
-      <section style={{ position: 'relative', zIndex: 2, maxWidth: 760, margin: '0 auto', padding: '10px 24px 42px', fontFamily: SANS }}>
+      <section style={{ position: 'relative', zIndex: 2, maxWidth: 560, margin: '0 auto', padding: '10px 24px 42px', fontFamily: SANS }}>
         <h2 style={{ margin: '0 0 8px', fontSize: 15, fontWeight: 800, letterSpacing: '-0.01em', color: COLORS.ink }}>About Links</h2>
         <p style={{ margin: '0 0 8px', fontSize: 13, lineHeight: 1.65, color: COLORS.faded, fontWeight: 600 }}>
           Links is a free daily word grouping game from Source of Truths. Sixteen words hide four threads of four &mdash; find each thread and bank it in its color, from the easy yellow group to the devious red one. Four mistakes and the board wins.

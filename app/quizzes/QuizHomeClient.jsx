@@ -898,11 +898,11 @@ export default function QuizHomeClient() {
     .qzh .dot{width:9px;height:9px;border-radius:3px;flex:none;}
     /* Daily games row: four half-height buttons above the hero tiles */
     .qzh .th-games{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px;margin-bottom:14px;}
-    .qzh .th-game{position:relative;display:flex;flex-direction:column;justify-content:center;gap:1px;min-height:86px;border:1px solid ${C.line};border-radius:14px;background-size:cover;background-position:center;background-color:#0e1d40;padding:11px 15px;text-decoration:none;overflow:hidden;}
+    .qzh .th-game{position:relative;display:flex;flex-direction:column;justify-content:center;gap:1px;min-height:86px;border:1px solid ${C.line};border-radius:14px;background-size:cover;background-position:right center;background-color:#0e1d40;padding:11px 15px;text-decoration:none;overflow:hidden;}
     .qzh .th-game:hover{border-color:#5b8bff;}
-    .qzh .th-game-tag{position:absolute;top:9px;right:11px;font-size:9px;font-weight:800;letter-spacing:.1em;text-transform:uppercase;color:#f8b84a;}
-    .qzh .th-game-t{font-size:17px;font-weight:800;letter-spacing:-.3px;color:#fff;line-height:1.1;}
-    .qzh .th-game-p{font-size:11.5px;font-weight:700;color:#9fb0d4;}
+    .qzh .th-game-tag{font-size:9px;font-weight:800;letter-spacing:.13em;text-transform:uppercase;color:#f8b84a;margin-bottom:3px;}
+    .qzh .th-game-t{font-size:17px;font-weight:800;letter-spacing:-.3px;color:#fff;line-height:1.1;max-width:64%;}
+    .qzh .th-game-p{font-size:11.5px;font-weight:700;color:#9fb0d4;max-width:64%;}
     @media(max-width:900px){.qzh .th-game-p{display:none;}.qzh .th-game{min-height:64px;}}
     @media(max-width:760px){.qzh .th-games{grid-template-columns:repeat(2,minmax(0,1fr));gap:9px;}.qzh .th-game{min-height:58px;background-position:right center;}}
     .qzh .qotd{display:flex;align-items:stretch;gap:0;background:#0e1d40;border:1px solid ${C.line};border-radius:14px;overflow:hidden;min-height:215px;text-decoration:none;color:#fff;}

@@ -15,8 +15,6 @@ import { HelpCircle, Share2, RotateCcw, X, Trophy, Eye, Smartphone } from 'lucid
 import Grain from '../Grain';
 import DailyGamesPromo from '../DailyGamesPromo';
 import Footer from '../Footer';
-import SiteHeader from '../SiteHeader';
-import QuizPlayerBar from '../quiz/[id]/QuizPlayerBar';
 import QuizLeaderboard from '../quiz/[id]/QuizLeaderboard';
 import JoinLeaderboardForm from '../quiz/[id]/JoinLeaderboardForm';
 import { isMobileDevice } from '@/lib/is-mobile';
@@ -32,6 +30,8 @@ const COLORS = {
   goldInk: '#5c4a06',
 };
 const SANS = "'Manrope', system-ui, -apple-system, sans-serif";
+const MONO = "'DM Mono', ui-monospace, 'SFMono-Regular', monospace";
+const PAPER = '#fbf9f4';
 
 // iOS/iPadOS never fires beforeinstallprompt — A2HS lives in Safari's share
 // sheet, so the button opens instructions there instead.
@@ -115,6 +115,7 @@ export default function GarbleClient({ puzzles = [], forceNum = null }) {
   const [hydrated, setHydrated] = useState(false);
   const [board, setBoard] = useState(EMPTY_BOARD);
   const [identity, setIdentity] = useState(null);
+  const [player, setPlayer] = useState(null);
   const toastTimer = useRef(null);
   const viewedRef = useRef(false);
 
@@ -146,6 +147,17 @@ export default function GarbleClient({ puzzles = [], forceNum = null }) {
     try {
       const id = JSON.parse(localStorage.getItem('sot_quiz_identity'));
       if (id && id.email) setIdentity(id);
+    } catch (e) {}
+    try {
+      const anon = getAnonId();
+      let em = '';
+      try { const idj = JSON.parse(localStorage.getItem('sot_quiz_identity') || 'null'); if (idj && idj.email) em = `&email=${encodeURIComponent(idj.email)}`; } catch (e) {}
+      if (anon || em) {
+        fetch(`/api/quiz/me?anonId=${encodeURIComponent(anon || '')}${em}`)
+          .then((r) => r.json())
+          .then((d) => { if (d && d.found && d.name) setPlayer({ name: d.name, rank: (d.ranks && d.ranks.xp) || d.rank || null, key: d.userKey || null }); })
+          .catch(() => {});
+      }
     } catch (e) {}
     fetch(`/api/quiz/board?quizId=${encodeURIComponent(PUZZLE.quizId)}`)
       .then((r) => r.json())
@@ -348,11 +360,8 @@ export default function GarbleClient({ puzzles = [], forceNum = null }) {
   return (
     <div style={{ minHeight: '100vh', background: COLORS.cream, position: 'relative' }}>
       <Grain />
-      <div style={{ position: 'relative', zIndex: 3 }}><SiteHeader active="quizzes" flush inlay={<QuizPlayerBar />} /></div>
-
-      <div className="qzf-w" style={{ position: 'relative', zIndex: 2, maxWidth: 1180, margin: '0 auto', padding: mobileUi && playing ? '8px 38px calc(185px + env(safe-area-inset-bottom))' : '8px 38px 80px', fontFamily: SANS }}>
-        <div className="qzf-line" aria-hidden="true" />
-        <div style={{ maxWidth: 900, margin: '0 auto' }}>
+      <div className="gb-wrap" style={{ position: 'relative', zIndex: 2, maxWidth: 1180, margin: '0 auto', padding: mobileUi && playing ? '18px 38px calc(185px + env(safe-area-inset-bottom))' : '18px 38px 80px', fontFamily: SANS }}>
+        <div style={{ maxWidth: 640, margin: '0 auto' }}>
           <style>{`
             .gb-btn{font-family:${SANS};font-weight:800;font-size:14px;border:2px solid ${COLORS.ink};background:#fff;color:${COLORS.ink};border-radius:8px;padding:9px 16px;cursor:pointer;display:inline-flex;align-items:center;gap:7px;}
             .gb-btn:hover{background:${COLORS.paper};}
@@ -360,19 +369,46 @@ export default function GarbleClient({ puzzles = [], forceNum = null }) {
             .gb-key:active{transform:scale(0.94);}
             @keyframes gbfall{0%{transform:translateY(-4vh) rotate(0deg);}100%{transform:translateY(108vh) rotate(680deg);}}
             .gb-conf{position:fixed;top:-3vh;z-index:86;pointer-events:none;border-radius:2px;animation:gbfall linear forwards;}
+            @media(max-width:560px){.gb-wrap{padding-left:14px !important;padding-right:14px !important;}}
+            .gb-htp-s{display:none;}
+            @media(max-width:520px){.gb-htp-f{display:none;}.gb-htp-s{display:inline;}}
           `}</style>
 
-          <div style={{ display: 'flex', alignItems: 'baseline', gap: 12, flexWrap: 'wrap', marginBottom: 2 }}>
-            <h1 style={{ margin: 0, fontSize: 30, fontWeight: 800, letterSpacing: '-0.02em', color: COLORS.ink }}>Garble</h1>
-            <span style={{ fontSize: 13, fontWeight: 800, color: '#fff', background: COLORS.ember, borderRadius: 6, padding: '2px 8px' }}>#{PUZZLE.num}</span>
-            <span style={{ fontSize: 13, fontWeight: 700, color: COLORS.faded }}>{PUZZLE.dateLabel}</span>
-            <button onClick={() => setShowHelp(true)} aria-label="How to play" style={{ marginLeft: 'auto', background: 'none', border: 'none', cursor: 'pointer', color: COLORS.faded, display: 'flex', alignItems: 'center', gap: 5, fontFamily: SANS, fontWeight: 700, fontSize: 13 }}>
-              <HelpCircle size={18} /> How to play
-            </button>
+          {/* game-native top strip: quiet nav out to the rest of the site,
+              player name + rank on the right — Garble stands as its own identity. */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: 18, marginBottom: 20, flexWrap: 'wrap' }}>
+            <a href="/quizzes" style={{ fontFamily: MONO, fontSize: 11, letterSpacing: '0.12em', textTransform: 'uppercase', color: COLORS.faded, textDecoration: 'none', borderBottom: '1px solid rgba(28,30,36,0.25)', paddingBottom: 1 }}>Quizzes</a>
+            <a href="/" style={{ fontFamily: MONO, fontSize: 11, letterSpacing: '0.12em', textTransform: 'uppercase', color: COLORS.faded, textDecoration: 'none', borderBottom: '1px solid rgba(28,30,36,0.25)', paddingBottom: 1 }}>Top 10 Lists</a>
+            {player && (
+              <a href={player.key ? `/quizzes/hub?player=${encodeURIComponent(player.key)}` : '/quizzes/hub'} title="Your Stat Hub"
+                style={{ marginLeft: 'auto', display: 'inline-flex', alignItems: 'center', gap: 7, fontFamily: MONO, fontSize: 11, letterSpacing: '0.06em', color: COLORS.ink, background: PAPER, border: '1.5px solid rgba(28,30,36,0.35)', borderRadius: 5, padding: '4px 10px', textDecoration: 'none' }}>
+                <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', maxWidth: 150, fontWeight: 500 }}>{player.name}</span>
+                {player.rank ? <span style={{ color: COLORS.ember, fontWeight: 500 }}>Rank #{player.rank}</span> : null}
+              </a>
+            )}
           </div>
-          <p style={{ margin: '0 0 14px', fontSize: 13.5, color: COLORS.faded, fontWeight: 600 }}>
-            Five garbled words. The gold letters feed the finale.
-          </p>
+
+          {/* masthead: pressed GARBLE tiles (gold ends echo the finale-feed) over a dateline */}
+          <div style={{ marginBottom: 16 }}>
+            <div style={{ display: 'flex', gap: 5, alignItems: 'flex-end' }}>
+              {'GARBLE'.split('').map((ch, i) => {
+                const gold = i === 0 || i === 5;
+                return (
+                  <div key={i} style={{ width: 44, height: 44, borderRadius: 5, display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: SANS, fontWeight: 900, fontSize: 25, background: gold ? COLORS.gold : COLORS.ink, color: gold ? COLORS.goldInk : '#fff', boxShadow: 'inset 0 2px 5px rgba(0,0,0,0.5), 0 1px 0 rgba(255,255,255,0.65)' }}>{ch}</div>
+                );
+              })}
+            </div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 13, flexWrap: 'wrap', marginTop: 14, borderTop: '2px solid rgba(28,30,36,0.8)', borderBottom: '1px solid rgba(28,30,36,0.35)', padding: '7px 2px' }}>
+              <h1 style={{ margin: 0, fontFamily: MONO, fontSize: 12, letterSpacing: '0.08em', fontWeight: 500, color: COLORS.ink }}>No. {PUZZLE.num}</h1>
+              <span style={{ fontFamily: SANS, fontStyle: 'italic', fontSize: 14, color: COLORS.ink }}>{PUZZLE.dateLabel}</span>
+              <span style={{ fontFamily: MONO, fontSize: 10.5, letterSpacing: '0.12em', textTransform: 'uppercase', color: COLORS.faded }}>five words, one finale</span>
+              <span style={{ marginLeft: 'auto', display: 'flex', gap: 14 }}>
+                <button onClick={() => setShowHelp(true)} aria-label="How to play" style={{ background: 'none', border: 'none', cursor: 'pointer', color: COLORS.faded, display: 'flex', alignItems: 'center', gap: 5, fontFamily: SANS, fontWeight: 700, fontSize: 12.5, padding: 0 }}>
+                  <HelpCircle size={16} /> <span className="gb-htp-f">How to play</span><span className="gb-htp-s">Help</span>
+                </button>
+              </span>
+            </div>
+          </div>
 
           <div style={{ display: 'flex', alignItems: 'center', gap: 18, flexWrap: 'wrap', marginBottom: 16 }}>
             <div style={{ fontSize: 12.5, fontWeight: 800, textTransform: 'uppercase', letterSpacing: '.05em', color: COLORS.faded }}>
@@ -487,16 +523,16 @@ export default function GarbleClient({ puzzles = [], forceNum = null }) {
         )}
         {!identity && (
           <div style={{ maxWidth: 640, margin: '18px auto 0' }}>
-            <JoinLeaderboardForm identity={identity} onJoined={(id) => setIdentity(id)} />
+            <JoinLeaderboardForm identity={identity} onJoined={(id) => { setIdentity(id); if (id && id.username) setPlayer((p) => p || { name: id.username, rank: null }); }} />
           </div>
         )}
-        <div style={{ maxWidth: 760, margin: '26px auto 0', background: '#fff', border: '1.5px solid rgba(20,22,28,0.12)', borderRadius: 12, padding: '14px 16px' }}>
+        <div style={{ maxWidth: 640, margin: '26px auto 0', background: '#fff', border: '1.5px solid rgba(20,22,28,0.12)', borderRadius: 12, padding: '14px 16px' }}>
           <QuizLeaderboard board={board} identity={identity} total={10} wordsCol={{ total: 5 }} />
         </div>
       </div>
 
       {/* Mobile: keyboard pinned to the bottom of the viewport. The puzzle
-          content above scrolls independently (qzf-w gets extra bottom padding
+          content above scrolls independently (gb-wrap gets extra bottom padding
           while playing), so the word rows and finale clue are never hidden
           behind the keys — the fix for on-screen keys covering the top clues. */}
       {playing && mobileUi && (
@@ -553,7 +589,7 @@ export default function GarbleClient({ puzzles = [], forceNum = null }) {
       )}
 
       {/* About Garble — crawlable prose for search, server-rendered into the initial HTML */}
-      <section style={{ position: 'relative', zIndex: 2, maxWidth: 760, margin: '0 auto', padding: '10px 24px 42px', fontFamily: SANS }}>
+      <section style={{ position: 'relative', zIndex: 2, maxWidth: 640, margin: '0 auto', padding: '10px 24px 42px', fontFamily: SANS }}>
         <h2 style={{ margin: '0 0 8px', fontSize: 15, fontWeight: 800, letterSpacing: '-0.01em', color: COLORS.ink }}>About Garble</h2>
         <p style={{ margin: '0 0 8px', fontSize: 13, lineHeight: 1.65, color: COLORS.faded, fontWeight: 600 }}>
           Garble is a free daily word scramble game from Source of Truths. Five garbled words &mdash; one more than the classic format &mdash; each untangle into a real word using exactly the letters shown, and every solution donates its gold letters to the finale.
