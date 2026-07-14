@@ -1,9 +1,10 @@
 'use client';
 
 // Client for /daily. Renders the daily-games hub + per-game archive, and reads
-// each game's per-puzzle localStorage save to mark which dates you've already
-// played. Self-contained styling (its own <style>) so it matches the daily
-// pages' ink-and-paper look without depending on any one game's CSS.
+// each game's per-puzzle localStorage save to mark which dates you've played
+// (green check) and which you've aced (gold star) — mirroring the site's
+// Played/Completed legend. Self-contained styling (its own <style>) so it
+// matches the daily pages' ink-and-paper look without depending on any game CSS.
 
 import React, { useState, useEffect } from 'react';
 
@@ -12,12 +13,20 @@ const MONO = "'DM Mono', ui-monospace, 'SFMono-Regular', monospace";
 const INK = '#1c1e24';
 const FADED = '#6b7280';
 const BG = '#f7f8fa';
+const GREEN = '#10b981';
+const GOLD = '#e8b43a';
 
-// Same per-puzzle key scheme each game client writes. Crux keys a mid-day
-// revision with _r<rev>; the rest are bare sot_<game>_<num>.
-function storeKey(gameKey, num, rev) {
-  if (gameKey === 'crux') return `sot_crux_${num}${rev ? `_r${rev}` : ''}`;
-  return `sot_${gameKey}_${num}`;
+// Every localStorage key a game might have written for one puzzle. Crux keys a
+// mid-day revision as _r<rev>, and a player may have finished EITHER the bare
+// key (pre-revision) or the revised one — so we check both. The rest are just
+// sot_<game>_<num>.
+function keysFor(gameKey, num, rev) {
+  if (gameKey === 'crux') {
+    const ks = [`sot_crux_${num}`];
+    if (rev) ks.push(`sot_crux_${num}_r${rev}`);
+    return ks;
+  }
+  return [`sot_${gameKey}_${num}`];
 }
 
 function shortDate(dateLabel) {
@@ -25,29 +34,32 @@ function shortDate(dateLabel) {
 }
 
 export default function DailyArchiveClient({ games = [] }) {
-  // done/started sets keyed "gameKey:num", filled after mount (localStorage is
-  // client-only, so SSR renders the neutral state and hydration matches).
-  const [done, setDone] = useState(() => new Set());
-  const [started, setStarted] = useState(() => new Set());
+  // played = you've opened/attempted it (any save exists); completed = you aced
+  // it (status 'won'). Filled after mount — localStorage is client-only, so SSR
+  // renders the neutral state and hydration matches.
+  const [played, setPlayed] = useState(() => new Set());
+  const [completed, setCompleted] = useState(() => new Set());
   const [ready, setReady] = useState(false);
 
   useEffect(() => {
-    const d = new Set();
-    const s = new Set();
+    const pl = new Set();
+    const cp = new Set();
     for (const g of games) {
       for (const p of g.puzzles) {
-        try {
-          const raw = localStorage.getItem(storeKey(g.key, p.num, p.rev));
+        let hasSave = false, won = false;
+        for (const k of keysFor(g.key, p.num, p.rev)) {
+          let raw = null;
+          try { raw = localStorage.getItem(k); } catch (e) {}
           if (!raw) continue;
-          const obj = JSON.parse(raw);
-          const status = obj && obj.status;
-          if (status && status !== 'playing') d.add(`${g.key}:${p.num}`);
-          else s.add(`${g.key}:${p.num}`);
-        } catch (e) {}
+          hasSave = true;
+          try { if ((JSON.parse(raw) || {}).status === 'won') won = true; } catch (e) {}
+        }
+        if (hasSave) pl.add(`${g.key}:${p.num}`);
+        if (won) cp.add(`${g.key}:${p.num}`);
       }
     }
-    setDone(d);
-    setStarted(s);
+    setPlayed(pl);
+    setCompleted(cp);
     setReady(true);
   }, [games]);
 
@@ -63,7 +75,7 @@ export default function DailyArchiveClient({ games = [] }) {
         .dl-chips{display:flex;flex-wrap:wrap;gap:8px;margin-top:13px;}
         .dl-chip{display:inline-flex;align-items:center;gap:6px;font-family:${SANS};font-weight:700;font-size:12.5px;text-decoration:none;border-radius:9px;padding:7px 11px;border:1.5px solid rgba(28,30,36,0.2);color:${INK};background:#fff;}
         .dl-chip:hover{border-color:${INK};}
-        .dl-tick{font-size:11px;font-weight:900;}
+        .dl-tick{font-size:12px;font-weight:900;line-height:1;}
         .dl-today-tag{font-family:${MONO};font-size:9px;letter-spacing:.1em;text-transform:uppercase;font-weight:700;border-radius:4px;padding:1px 5px;}
       `}</style>
 
@@ -85,9 +97,13 @@ export default function DailyArchiveClient({ games = [] }) {
           Today&rsquo;s puzzle and the full archive for each game. Jump into today, or replay any past
           drop &mdash; archive runs never touch your streak.
         </p>
+        <div style={{ display: 'flex', gap: 18, flexWrap: 'wrap', marginTop: 11, fontFamily: SANS, fontSize: 12.5, fontWeight: 700, color: FADED }}>
+          <span><span style={{ color: GREEN, fontWeight: 900 }}>&#10003;</span> Played</span>
+          <span><span style={{ color: GOLD, fontWeight: 900 }}>&#9733;</span> Completed</span>
+        </div>
 
         {games.map((g) => {
-          const playedCount = g.puzzles.reduce((n, p) => n + (done.has(`${g.key}:${p.num}`) ? 1 : 0), 0);
+          const playedCount = g.puzzles.reduce((n, p) => n + (played.has(`${g.key}:${p.num}`) ? 1 : 0), 0);
           return (
             <section key={g.key} className="dl-card" style={{ borderColor: g.accent }}>
               <div style={{ display: 'flex', alignItems: 'flex-start', gap: 12 }}>
@@ -110,8 +126,8 @@ export default function DailyArchiveClient({ games = [] }) {
               <div className="dl-chips">
                 {g.puzzles.map((p, i) => {
                   const isToday = i === 0;
-                  const isDone = done.has(`${g.key}:${p.num}`);
-                  const inProgress = !isDone && started.has(`${g.key}:${p.num}`);
+                  const isPlayed = played.has(`${g.key}:${p.num}`);
+                  const isDone = completed.has(`${g.key}:${p.num}`);
                   const href = isToday ? g.path : `${g.path}?p=${p.num}`;
                   return (
                     <a
@@ -121,18 +137,18 @@ export default function DailyArchiveClient({ games = [] }) {
                       style={
                         isToday
                           ? { background: g.bg, borderColor: g.accent, color: g.accent, fontWeight: 800 }
-                          : isDone
+                          : isPlayed
                             ? { borderColor: g.accent }
                             : undefined
                       }
-                      aria-label={`${g.name} — ${shortDate(p.dateLabel)}${isToday ? ' (today)' : ''}${isDone ? ', played' : ''}`}
+                      aria-label={`${g.name} — ${shortDate(p.dateLabel)}${isToday ? ' (today)' : ''}${isDone ? ', completed' : isPlayed ? ', played' : ''}`}
                     >
                       {isToday && (
                         <span className="dl-today-tag" style={{ background: g.accent, color: '#fff' }}>Today</span>
                       )}
                       <span>{shortDate(p.dateLabel)}</span>
-                      {ready && isDone && <span className="dl-tick" style={{ color: g.accent }}>&#10003;</span>}
-                      {ready && inProgress && <span className="dl-tick" style={{ color: FADED }} aria-label="in progress">&bull;</span>}
+                      {ready && isDone && <span className="dl-tick" style={{ color: GOLD }} aria-hidden="true">&#9733;</span>}
+                      {ready && !isDone && isPlayed && <span className="dl-tick" style={{ color: GREEN }} aria-hidden="true">&#10003;</span>}
                     </a>
                   );
                 })}
@@ -142,7 +158,7 @@ export default function DailyArchiveClient({ games = [] }) {
         })}
 
         <p style={{ marginTop: 26, fontSize: 12.5, fontWeight: 600, color: FADED }}>
-          Played state lives on this device only. <a href="/quizzes" style={{ color: INK, fontWeight: 800, textDecoration: 'underline' }}>Back to all quizzes &rarr;</a>
+          Played &amp; completed marks are saved on this device only. <a href="/quizzes" style={{ color: INK, fontWeight: 800, textDecoration: 'underline' }}>Back to all quizzes &rarr;</a>
         </p>
       </div>
     </div>

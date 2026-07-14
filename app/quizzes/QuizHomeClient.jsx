@@ -1121,6 +1121,7 @@ export default function QuizHomeClient() {
     /* Search + category + submit moved into the top command bar on desktop, so
        the browse control row collapses to just its (conditional) heading there. */
     @media(min-width:821px){.qzh .qz-browserow .qz-catbtn,.qzh .qz-browserow .qz-searchwrap,.qzh .qz-browserow .qz-submit,.qzh .qz-browserow .qz-daily{display:none !important;}}
+    @media(max-width:820px){.qzh .qz-browserow{margin-bottom:14px !important;}}
     .qzh .dchev,.qzh .lchev{display:none;}
     @media(max-width:560px){
       .qzh .dtile-head,.qzh .lbtile-head{cursor:pointer;}
