@@ -84,7 +84,7 @@ const DEPT_HERO_ALT = {
 // Daily-game quizzes are date/topic-stamped (crux-*, garble-*, links-*, span-*,
 // closer-*) and every entry in a family shares ONE hero image, so the two hero
 // tiles (Newest + Trending) must never both draw from the same family.
-const DAILY_GAME_FAMILY_RE = /^(crux|garble|links|span|closer)-/;
+const DAILY_GAME_FAMILY_RE = /^(crux|garble|links|span|dating|closer)-/;
 function gameFamily(id) { const m = (id || '').match(DAILY_GAME_FAMILY_RE); return m ? m[1] : null; }
 
 // Per-quiz completion status for the CURRENT player, supplied once at the top of
@@ -280,6 +280,18 @@ export default function QuizHomeClient() {
   const [doneFilter, setDoneFilter] = useState('all'); // 'all' | 'unplayed' | 'played' | 'completed' (my-progress filter)
   const [boardsExpanded, setBoardsExpanded] = useState(false); // header click expands both boards 5 -> 10
   const [mobileBoard, setMobileBoard] = useState(null); // mobile-only: null | 'lb' | 'live' (which board panel is shown)
+  // Daily games row: Crux is pinned top-right on mobile; the top-LEFT slot
+  // cycles through the other dailies on each page load (localStorage counter,
+  // set post-mount so SSR/hydration stay deterministic).
+  const [gameRot, setGameRot] = useState('garble');
+  useEffect(() => {
+    try {
+      const others = ['garble', 'links', 'span', 'dating'];
+      const n = (parseInt(localStorage.getItem('sot_hub_game_rot') || '-1', 10) + 1) % others.length;
+      localStorage.setItem('sot_hub_game_rot', String(n));
+      setGameRot(others[n]);
+    } catch (e) {}
+  }, []);
   const lastTapRef = useRef({ k: null, t: 0 });
   const dblTapBoard = (k) => {
     const now = Date.now(); const last = lastTapRef.current;
@@ -970,7 +982,8 @@ export default function QuizHomeClient() {
     .qzh .dditem:hover{background:${C.bg};}
     .qzh .dot{width:9px;height:9px;border-radius:3px;flex:none;}
     /* Daily games row: four half-height buttons above the hero tiles */
-    .qzh .th-games{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px;margin-bottom:14px;}
+    .qzh .th-games{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:12px;margin-bottom:14px;}
+    @media(min-width:761px){.qzh .th-g-crux{order:1;}.qzh .th-g-garble{order:2;}.qzh .th-g-links{order:3;}.qzh .th-g-span{order:4;}.qzh .th-g-dating{order:5;}}
     .qzh .th-game{position:relative;display:flex;flex-direction:row;align-items:center;gap:10px;min-height:86px;border:1px solid ${C.line};border-radius:14px;background:#0e1d40;padding:11px 15px;text-decoration:none;overflow:hidden;}
     .qzh .th-game:hover{border-color:#5b8bff;}
     .qzh .th-game-txt{display:flex;flex-direction:column;gap:1px;min-width:0;flex:1 1 auto;}
@@ -978,8 +991,17 @@ export default function QuizHomeClient() {
     .qzh .th-game-tag{font-size:9px;font-weight:800;letter-spacing:.13em;text-transform:uppercase;color:#f8b84a;margin-bottom:3px;}
     .qzh .th-game-t{font-size:17px;font-weight:800;letter-spacing:-.3px;color:#fff;line-height:1.1;}
     .qzh .th-game-p{font-size:11.5px;font-weight:700;color:#9fb0d4;line-height:1.2;}
+    @media(max-width:1080px){.qzh .th-game-art{height:40px;}.qzh .th-game{padding:11px 12px;gap:8px;}}
     @media(max-width:900px){.qzh .th-game-p{display:none;}.qzh .th-game{min-height:64px;}}
-    @media(max-width:760px){.qzh .th-games{grid-template-columns:repeat(2,minmax(0,1fr));gap:9px;}.qzh .th-game{min-height:58px;background-position:right center;}}
+    @media(max-width:760px){
+      .qzh .th-games{grid-template-columns:repeat(6,minmax(0,1fr));gap:9px;}
+      .qzh .th-game{min-height:58px;background-position:right center;}
+      .qzh .th-game:nth-child(-n+2){grid-column:span 3;}
+      .qzh .th-game:nth-child(n+3){grid-column:span 2;min-height:44px;padding:8px 9px;gap:6px;}
+      .qzh .th-game:nth-child(n+3) .th-game-tag{display:none;}
+      .qzh .th-game:nth-child(n+3) .th-game-t{font-size:13.5px;}
+      .qzh .th-game:nth-child(n+3) .th-game-art{height:24px;}
+    }
     .qzh .qotd{display:flex;align-items:stretch;gap:0;background:#0e1d40;border:1px solid ${C.line};border-radius:14px;overflow:hidden;min-height:215px;text-decoration:none;color:#fff;}
     .qzh .qotd-photo{flex:0 0 48%;background-size:cover;background-position:center;min-height:180px;}
     .qzh .qotd-body{flex:1 1 auto;min-width:0;padding:18px 22px;display:flex;flex-direction:column;justify-content:center;}
@@ -1301,13 +1323,21 @@ export default function QuizHomeClient() {
         {/* Daily games row: one button per daily. Art lives in /public/games;
             each button is ~half the Newest tile's height. */}
         <div className="th-games">
-          {[
-            { href: '/crux', name: 'Crux', tag: 'A clueless crossword', img: '/games/btn-crux.png' },
-            { href: '/garble', name: 'Garble', tag: 'Untangle five words', img: '/games/btn-garble.png' },
-            { href: '/links', name: 'Links', tag: 'Four hidden threads', img: '/games/btn-links.png' },
-            { href: '/span', name: 'Span', tag: 'Cross the map', img: '/games/btn-span.png' },
-          ].map((gm) => (
-            <a key={gm.href} href={gm.href} className="th-game" aria-label={`${gm.name} — daily game`}>
+          {(() => {
+            const GAMES = [
+              { key: 'crux', href: '/crux', name: 'Crux', tag: 'A clueless crossword', img: '/games/btn-crux.png' },
+              { key: 'garble', href: '/garble', name: 'Garble', tag: 'Untangle five words', img: '/games/btn-garble.png' },
+              { key: 'links', href: '/links', name: 'Links', tag: 'Four hidden threads', img: '/games/btn-links.png' },
+              { key: 'span', href: '/span', name: 'Span', tag: 'Cross the map', img: '/games/btn-span.png' },
+              { key: 'dating', href: '/dating', name: 'Dating', tag: 'Put history in order', img: '/games/btn-dating.png' },
+            ];
+            // Mobile row 1 = [rotating pick, Crux]; row 2 = the other three,
+            // smaller. Desktop keeps the canonical order via CSS `order`.
+            const rot = GAMES.find((gm) => gm.key === gameRot) || GAMES[1];
+            const rest = GAMES.filter((gm) => gm.key !== 'crux' && gm.key !== rot.key);
+            return [rot, GAMES[0], ...rest];
+          })().map((gm) => (
+            <a key={gm.href} href={gm.href} className={`th-game th-g-${gm.key}`} aria-label={`${gm.name} — daily game`}>
               <span className="th-game-txt">
                 <span className="th-game-tag">Daily</span>
                 <span className="th-game-t">{gm.name}</span>

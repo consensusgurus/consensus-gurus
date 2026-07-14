@@ -13,13 +13,18 @@ const GAMES = [
   { key: 'garble', href: '/garble', name: 'Garble', tag: 'Untangle five words', img: '/games/btn-garble.png', label: 'Daily' },
   { key: 'links', href: '/links', name: 'Links', tag: 'Four hidden threads', img: '/games/btn-links.png', label: 'Daily' },
   { key: 'span', href: '/span', name: 'Span', tag: 'Cross the map', img: '/games/btn-span.png', label: 'Daily' },
+  { key: 'dating', href: '/dating', name: 'Dating', tag: 'Put history in order', img: '/games/btn-dating.png', label: 'Daily' },
 ];
 // The 4th tile: the site's most-played quiz (evergreen flagship), so the grid
 // is always a full 2x2 even though there are only three "other" dailies.
 const POPULAR = { key: 'popular', href: '/quiz/europe-no-outline', name: 'Map: Europe', tag: 'No outlines — our #1', img: '/games/btn-map.png', label: 'Popular' };
 
 export default function DailyGamesGrid({ self, maxWidth = 640 }) {
-  const tiles = [...GAMES.filter((g) => g.key !== self), POPULAR];
+  // Keep the grid an even 2-wide: with an even count of "other" dailies the
+  // dailies fill it alone; with an odd count the evergreen POPULAR tile evens
+  // it out (4 games -> 3 others + POPULAR; 5 games -> 4 others, no POPULAR).
+  const others = GAMES.filter((g) => g.key !== self);
+  const tiles = others.length % 2 === 0 ? others : [...others, POPULAR];
   return (
     <div style={{ maxWidth, margin: '18px auto 0' }}>
       <style>{`

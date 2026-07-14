@@ -1,0 +1,94 @@
+import { Suspense } from 'react';
+import DatingClient from './DatingClient';
+import { PUZZLES } from './puzzles';
+
+// Dating launched 2026-07-14 alongside Crux/Garble/Links/Span: linked from
+// the hub games row, the footer, and the sitemap (/dating is the canonical,
+// evergreen URL — the dated /quiz/dating-* stubs canonicalize here).
+
+export const metadata = {
+  title: 'Dating — Free Daily History Ordering Game | Source of Truths',
+  description:
+    'A free daily history game — put five moments from history in chronological order in three checks or fewer. Every correct placement locks in with its year. New puzzle every day.',
+  alternates: { canonical: '/dating' },
+  manifest: '/dating.webmanifest',
+  icons: {
+    icon: [{ url: '/dating-icons/favicon-32.png', sizes: '32x32', type: 'image/png' }],
+    apple: [{ url: '/dating-icons/apple-touch-icon.png', sizes: '180x180', type: 'image/png' }],
+  },
+  appleWebApp: { capable: true, statusBarStyle: 'black-translucent', title: 'Dating' },
+  openGraph: {
+    title: 'Dating — A Daily Put-History-In-Order Game',
+    description:
+      'Five moments a day, shuffled out of sequence. Arrange them oldest to newest in three checks or fewer. A new history game from Source of Truths.',
+    url: '/dating',
+    type: 'website',
+    siteName: 'Source of Truths',
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'Dating — A Daily Put-History-In-Order Game',
+    description:
+      'Five moments a day. Put them in chronological order in three checks or fewer.',
+  },
+};
+
+const gameJsonLd = {
+  '@context': 'https://schema.org',
+  '@type': 'Game',
+  name: 'Dating',
+  alternateName: 'Dating — Daily History Ordering Game',
+  url: 'https://sourceoftruths.com/dating',
+  description:
+    'A free daily history game: five events, shuffled. Arrange them in chronological order — each of your three checks locks the events you placed correctly and reveals their years.',
+  genre: ['History game', 'Puzzle'],
+  gamePlatform: 'Web browser',
+  isAccessibleForFree: true,
+  inLanguage: 'en',
+  numberOfPlayers: { '@type': 'QuantitativeValue', minValue: 1, maxValue: 1 },
+  image: 'https://sourceoftruths.com/quiz-heroes/dating.png',
+  publisher: {
+    '@type': 'Organization',
+    name: 'Source of Truths',
+    url: 'https://sourceoftruths.com',
+  },
+};
+
+const breadcrumbJsonLd = {
+  '@context': 'https://schema.org',
+  '@type': 'BreadcrumbList',
+  itemListElement: [
+    { '@type': 'ListItem', position: 1, name: 'Home', item: 'https://sourceoftruths.com' },
+    { '@type': 'ListItem', position: 2, name: 'Quizzes', item: 'https://sourceoftruths.com/quizzes' },
+    { '@type': 'ListItem', position: 3, name: 'Dating' },
+  ],
+};
+
+export const dynamic = 'force-dynamic';
+
+function etTodayServer() {
+  try { return new Date().toLocaleDateString('en-CA', { timeZone: 'America/New_York' }); }
+  catch (e) { return new Date().toISOString().slice(0, 10); }
+}
+
+export default function DatingPage({ searchParams }) {
+  const today = etTodayServer();
+  const visiblePuzzles = PUZZLES.filter((p) => p.live <= today);
+  const n = Number(searchParams && searchParams.p);
+  const forceNum = Number.isInteger(n) && n > 0 ? n : null;
+  return (
+    <>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(gameJsonLd) }}
+      />
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbJsonLd) }}
+      />
+      <Suspense fallback={null}>
+        <DatingClient key={forceNum || 'today'} puzzles={visiblePuzzles} forceNum={forceNum} />
+      </Suspense>
+    </>
+  );
+}

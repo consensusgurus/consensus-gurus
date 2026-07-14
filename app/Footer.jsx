@@ -31,6 +31,7 @@ const COLS = [
       { label: 'Garble — Daily Word Scramble', href: '/garble' },
       { label: 'Links — Daily Word Grouping', href: '/links' },
       { label: 'Span — Daily Geography Game', href: '/span' },
+      { label: 'Dating — Daily History Game', href: '/dating' },
       { label: 'Stat Hub', href: '/quizzes/hub' },
       { label: 'Request a Quiz', href: '/request' },
     ],

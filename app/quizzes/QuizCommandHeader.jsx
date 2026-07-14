@@ -152,7 +152,7 @@ export default function QuizCommandHeader({ search, onSearch, me, onSignup, tick
         <button type="button" className="qch-searchbtn" onClick={focusListSearch} aria-label="Search quizzes"><SearchIcon /></button>
         <div className="qch-me">
           {found ? (
-            <Link href="/quizzes/hub" className="qch-melink" title="Your stats">
+            <Link href="/quizzes/hub" className="qch-melink" title="Stat Hub - your stats">
               <span className="qch-ava">{(me.name || '?').slice(0, 1).toUpperCase()}</span>
               <span className="qch-mecol">
                 <span className="qch-nm">{me.name}{signed ? <span className="qch-chk">✓</span> : null}</span>
@@ -171,10 +171,15 @@ export default function QuizCommandHeader({ search, onSearch, me, onSignup, tick
           <Link href="/">Top 10 Lists</Link>
           <Link href="/quizzes" className="on">Quizzes</Link>
         </nav>
-        <Link href="/quizzes/hub" className="qch-hub">
-          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" aria-hidden="true"><path d="M4 20V10M12 20V4M20 20v-7" /></svg>
-          <span className="qch-hubtxt">{found && !signed ? 'Sign Up / Stat Hub' : 'Stat Hub'}</span>
-        </Link>
+        {/* Signed-in players reach the Stat Hub by clicking their name/avatar (qch-me
+            links to /quizzes/hub), so the standalone CTA only shows for new visitors
+            who have no player chip yet. */}
+        {!found ? (
+          <Link href="/quizzes/hub" className="qch-hub">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" aria-hidden="true"><path d="M4 20V10M12 20V4M20 20v-7" /></svg>
+            <span className="qch-hubtxt">Stat Hub</span>
+          </Link>
+        ) : null}
       </div>
       {items.length ? (
         <div className="qch-tickwrap">
