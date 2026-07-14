@@ -42,10 +42,13 @@ export default function DailyArchiveClient({ games = [] }) {
   const [ready, setReady] = useState(false);
 
   useEffect(() => {
+    let alive = true;
     const pl = new Set();
     const cp = new Set();
+    const byQuiz = {}; // quizId -> "gameKey:num", to fold server rows back in
     for (const g of games) {
       for (const p of g.puzzles) {
+        if (p.quizId) byQuiz[p.quizId] = `${g.key}:${p.num}`;
         let hasSave = false, won = false;
         for (const k of keysFor(g.key, p.num, p.rev)) {
           let raw = null;
@@ -58,9 +61,31 @@ export default function DailyArchiveClient({ games = [] }) {
         if (won) cp.add(`${g.key}:${p.num}`);
       }
     }
-    setPlayed(pl);
-    setCompleted(cp);
+    setPlayed(new Set(pl));
+    setCompleted(new Set(cp));
     setReady(true);
+
+    // localStorage only knows THIS browser. The server has every completed play
+    // by identity, so a signed-in player's marks follow them across devices —
+    // merge those in once fetched (union, never removing a local mark).
+    let anonId = null, email = null;
+    try { anonId = localStorage.getItem('sot_quiz_anon'); } catch (e) {}
+    try { const id = JSON.parse(localStorage.getItem('sot_quiz_identity') || 'null'); email = id && id.email; } catch (e) {}
+    const qs = new URLSearchParams();
+    if (anonId) qs.set('anonId', anonId);
+    if (email) qs.set('email', email);
+    fetch('/api/quiz/daily-status?' + qs.toString())
+      .then((r) => r.json())
+      .then((d) => {
+        if (!alive || !d) return;
+        const p2 = new Set(pl), c2 = new Set(cp);
+        for (const qid of (d.played || [])) { const k = byQuiz[qid]; if (k) p2.add(k); }
+        for (const qid of (d.completed || [])) { const k = byQuiz[qid]; if (k) c2.add(k); }
+        setPlayed(p2);
+        setCompleted(c2);
+      })
+      .catch(() => {});
+    return () => { alive = false; };
   }, [games]);
 
   return (

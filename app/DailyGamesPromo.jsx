@@ -25,17 +25,46 @@ function etToday() {
 
 export default function DailyGamesPromo({ self, refresh }) {
   const [open, setOpen] = useState([]);
+  // Games the signed-in player already finished TODAY on ANY device (from the
+  // server), so a game done on their phone drops off this list here too. Null
+  // until the fetch resolves; localStorage still gates the first paint.
+  const [serverDoneToday, setServerDoneToday] = useState(null);
+
+  useEffect(() => {
+    let anonId = null, email = null;
+    try { anonId = localStorage.getItem('sot_quiz_anon'); } catch (e) {}
+    try { const id = JSON.parse(localStorage.getItem('sot_quiz_identity') || 'null'); email = id && id.email; } catch (e) {}
+    const qs = new URLSearchParams();
+    if (anonId) qs.set('anonId', anonId);
+    if (email) qs.set('email', email);
+    let alive = true;
+    fetch('/api/quiz/daily-status?' + qs.toString())
+      .then((r) => r.json())
+      .then((d) => {
+        if (!alive || !d) return;
+        const [Y, M, D] = etToday().split('-').map(Number);
+        const yy = Y % 100; // today's quizId per game is `<key>-<M>-<D>-<YY>`
+        const playedSet = new Set(d.played || []);
+        const done = new Set();
+        for (const g of DAILY_GAMES) { if (playedSet.has(`${g.key}-${M}-${D}-${yy}`)) done.add(g.key); }
+        setServerDoneToday(done);
+      })
+      .catch(() => {});
+    return () => { alive = false; };
+  }, [refresh]);
+
   useEffect(() => {
     const today = etToday();
     const pending = DAILY_GAMES.filter((g) => {
       if (g.key === self) return false;
+      if (serverDoneToday && serverDoneToday.has(g.key)) return false;
       try {
         const c = JSON.parse(localStorage.getItem(g.store) || 'null');
         return !(c && c.d === today && c.done);
       } catch (e) { return true; }
     });
     setOpen(pending);
-  }, [self, refresh]);
+  }, [self, refresh, serverDoneToday]);
   if (!open.length) return null;
   return (
     <div style={{ marginTop: 12 }}>

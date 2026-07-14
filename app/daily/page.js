@@ -68,7 +68,7 @@ export default function DailyPage() {
     border: g.border,
     puzzles: g.src
       .filter((p) => p.live <= today)
-      .map((p) => ({ num: p.num, dateLabel: p.dateLabel, live: p.live, rev: p.rev || null }))
+      .map((p) => ({ num: p.num, dateLabel: p.dateLabel, live: p.live, rev: p.rev || null, quizId: p.quizId }))
       .sort((a, b) => b.num - a.num),
   }));
   return (

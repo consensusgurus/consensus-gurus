@@ -9,7 +9,6 @@ import { CHALLENGES, getChallenge, DEFAULT_CHALLENGE_ID, challengeQuizIds, chall
 import QuizNavHeader from '../QuizNavHeader';
 import Grain from '../../Grain';
 import Footer from '../../Footer';
-import QuizPlayerBar from '../../quiz/[id]/QuizPlayerBar';
 
 const C = {
   bg: '#f7f8fa', surface: '#fff', ink: '#1c1e24', muted: '#6b7280',
@@ -780,9 +779,9 @@ export default function StatHubClient() {
             return (
               <>
                 <button className={`tile${on('player') ? ' on' : ''}`} onClick={() => setTab('player')}>
-                  <span style={lblSt('player')}><User size={15} /> Player</span>
-                  <span style={bigSt('player')}>{meFound && me.rank ? <>#{me.rank} <span style={smSt('player')}>of {(me.totalPlayers || 0).toLocaleString()}</span></> : '—'}</span>
-                  <span style={subSt('player')}>{meFound ? `Level ${me.level || 1} · ${(me.xp || 0).toLocaleString()} XP` : 'Play to get ranked'}</span>
+                  <span style={lblSt('player')}><User size={15} /> {(profile && profile.found && profile.name) || 'Player'}</span>
+                  <span style={bigSt('player')}>{profile && profile.found && profile.rank ? <>#{profile.rank} <span style={smSt('player')}>of {((me && me.totalPlayers) || 0).toLocaleString()}</span></> : '—'}</span>
+                  <span style={subSt('player')}>{profile && profile.found ? `Level ${profile.level || 1} · ${(profile.xp || 0).toLocaleString()} XP` : 'Play to get ranked'}</span>
                 </button>
                 <button className={`tile${on('duels') ? ' on' : ''}`} onClick={() => setTab('duels')}>
                   {waiting > 0 ? <span className="tilebadge">{waiting}</span> : null}
@@ -805,11 +804,6 @@ export default function StatHubClient() {
           })()}
         </div>
 
-        {tab === 'player' && !viewKey && found && (
-          <div style={{ marginTop: 12 }}>
-            <QuizPlayerBar controlled me={me} rightAction="share" onShare={() => setShareOpen(true)} />
-          </div>
-        )}
         {tab === 'player' && <PlayerPanel me={profile} scope={scope} cats={cats} byKey={byKey} totalQuizzes={catalog.length} board={board} myName={myName} myAnonKey={myAnonKey} titleById={titleById} pview={pview} setPview={setPview} viewKey={viewKey} onSelectPlayer={(k) => { const mine = (me && me.userKey && k === me.userKey) || (myAnonKey && k === myAnonKey); setViewKey(mine ? null : k); setPview(mine ? 'ranking' : 'category'); }} />}
         {tab === 'quizzes' && <QuizzesPanel me={profile} myProfile={me} scope={scope} byKey={byKey} catalog={catalog} stats={statsById} totals={totals} totalPlays={totalPlays} onSelectPlayer={(k) => { setViewKey(k); setPview('category'); setTab('player'); }} />}
         {tab === 'challenges' && <ChallengesPanel me={profile} />}
