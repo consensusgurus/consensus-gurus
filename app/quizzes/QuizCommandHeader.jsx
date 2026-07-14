@@ -135,7 +135,9 @@ export default function QuizCommandHeader({ search, onSearch, me, onSignup, tick
         .qch-tico-lead{background:rgba(232,180,58,0.2);}
         .qch-tico-duel{background:rgba(201,79,79,0.22);}
         .qch-tico-new,.qch-tico-stat{background:rgba(59,116,232,0.28);}
+        .qch-hub-me{margin-left:2px;}
         @media(max-width:1180px){.qch-src{display:none;}}
+        @media(max-width:1024px){.qch-hub-me{display:none;}}
         @media(max-width:980px){.qch-sub{display:none;}.qch-hubtxt{display:none;}.qch-hub{padding:8px 10px;}}
         @media(max-width:820px){.qch-wl{display:none;}.qch-ws{display:inline;}.qch-search{display:none;}}
         @media(max-width:620px){.qch-brandlogo{display:none;}.qch-rankm{display:block;}.qch-nm{max-width:120px;}.qch-bar{gap:9px;padding-left:12px;padding-right:12px;}.qch-seg a{padding:6px 10px;font-size:11px;}.qch-tlabel{display:none;}.qch-word{font-size:17px;}}
@@ -167,13 +169,24 @@ export default function QuizCommandHeader({ search, onSearch, me, onSignup, tick
             </button>
           )}
         </div>
+        {/* Desktop-only Stat Hub button sitting right by the player chip. The
+            name/avatar itself still links to the hub; this is the explicit CTA
+            brought back for signed-in players. It collapses at <=1024px (see
+            .qch-hub-me), one step after the sources pill (1180px) — so the
+            "Experts and Aggregators" pill is always the first thing to drop. */}
+        {found ? (
+          <Link href="/quizzes/hub" className="qch-hub qch-hub-me" title="Stat Hub — your stats">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" aria-hidden="true"><path d="M4 20V10M12 20V4M20 20v-7" /></svg>
+            <span className="qch-hubtxt">Stat Hub</span>
+          </Link>
+        ) : null}
         <nav className="qch-seg">
           <Link href="/">Top 10 Lists</Link>
           <Link href="/quizzes" className="on">Quizzes</Link>
         </nav>
-        {/* Signed-in players reach the Stat Hub by clicking their name/avatar (qch-me
-            links to /quizzes/hub), so the standalone CTA only shows for new visitors
-            who have no player chip yet. */}
+        {/* New visitors (no player chip yet) get the end-of-bar Stat Hub CTA.
+            Signed-in players get the qch-hub-me button by their chip above
+            instead, and can also click their name/avatar to reach the hub. */}
         {!found ? (
           <Link href="/quizzes/hub" className="qch-hub">
             <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" aria-hidden="true"><path d="M4 20V10M12 20V4M20 20v-7" /></svg>

@@ -574,7 +574,7 @@ export default function SpanClient({ puzzles = [], forceNum = null }) {
         {!playing && (
           <div style={{ background: '#fff', border: `2px solid ${COLORS.ink}`, borderRadius: 12, padding: '16px 16px 14px', marginBottom: 14 }}>
             <div style={{ fontSize: 19, fontWeight: 800, color: won ? COLORS.trail : COLORS.rust, marginBottom: 4 }}>
-              {won ? (hops === PUZZLE.par ? 'You found the shortest path.' : `Spanned, ${hops - PUZZLE.par} over the shortest.`) : 'Revealed.'}
+              {Math.round(((won ? finalScore : 0) / 10) * 100)}% Complete
             </div>
             <div style={{ fontSize: 13.5, fontWeight: 700, color: COLORS.faded, marginBottom: 6 }}>
               {won
@@ -593,10 +593,9 @@ export default function SpanClient({ puzzles = [], forceNum = null }) {
             {PUZZLE.note && (
               <div style={{ fontSize: 12.5, fontWeight: 600, color: COLORS.faded, fontStyle: 'italic', margin: '6px 0 10px', lineHeight: 1.5 }}>{PUZZLE.note}</div>
             )}
-            {(beatPct != null || (isTodays && myStats.cur >= 2)) && (
+            {isTodays && myStats.cur >= 2 && (
               <div style={{ fontSize: 13, fontWeight: 800, marginBottom: 12, display: 'flex', gap: 12, flexWrap: 'wrap' }}>
-                {beatPct != null && <span style={{ color: COLORS.ember }}>You beat {beatPct}% of players on this puzzle</span>}
-                {isTodays && myStats.cur >= 2 && <span style={{ color: '#b45309' }}>{myStats.cur}-day streak</span>}
+                <span style={{ color: '#b45309' }}>{myStats.cur}-day streak</span>
               </div>
             )}
             <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
@@ -605,13 +604,24 @@ export default function SpanClient({ puzzles = [], forceNum = null }) {
             </div>
             <DailyGamesPromo self="span" refresh={g.status} />
             <p style={{ fontSize: 12, color: COLORS.faded, fontWeight: 600, margin: '12px 0 0' }}>
-              {countdown ? <>Next Span in <b style={{ color: COLORS.ink, fontVariantNumeric: 'tabular-nums' }}>{countdown}</b>.</> : 'A new route drops at midnight Eastern.'}
-              {prevPuzzle && (
+              {isTodays ? (
                 <>
-                  {' '}Meanwhile:{' '}
-                  <a href={`/span?p=${prevPuzzle.num}`} style={{ color: COLORS.ember, fontWeight: 800, textDecoration: 'underline' }}>
-                    play {isTodays ? "yesterday's Span" : `the ${prevPuzzle.dateLabel.replace(', 2026', '')} Span`} &rarr;
-                  </a>
+                  {countdown ? <>Next Span in <b style={{ color: COLORS.ink, fontVariantNumeric: 'tabular-nums' }}>{countdown}</b>.</> : 'A new route drops at midnight Eastern.'}
+                  {prevPuzzle && (
+                    <>
+                      {' '}Meanwhile:{' '}
+                      <a href={`/span?p=${prevPuzzle.num}`} style={{ color: COLORS.ember, fontWeight: 800, textDecoration: 'underline' }}>
+                        play yesterday&rsquo;s Span &rarr;
+                      </a>
+                    </>
+                  )}
+                </>
+              ) : (
+                <>
+                  You&rsquo;re playing the {PUZZLE.dateLabel.replace(', 2026', '')} archive.{' '}
+                  <a href="/span" style={{ color: COLORS.ember, fontWeight: 800, textDecoration: 'underline' }}>Back to today&rsquo;s Span &rarr;</a>
+                  {' · '}
+                  <a href="/daily" style={{ color: COLORS.faded, fontWeight: 700, textDecoration: 'underline' }}>All daily puzzles</a>
                 </>
               )}
             </p>

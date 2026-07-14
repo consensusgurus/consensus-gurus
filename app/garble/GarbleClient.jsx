@@ -303,6 +303,7 @@ export default function GarbleClient({ puzzles = [], forceNum = null }) {
 
   const ended = !playing;
   const won = g.status === 'won';
+  const isTodays = PUZZLE.num === pickPuzzle(puzzles, null).num;
   const score = solvedCount + (g.finalSolved ? 5 : 0);
 
   const cellBase = { display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: SANS, fontWeight: 800, borderRadius: 6, userSelect: 'none' };
@@ -476,7 +477,7 @@ export default function GarbleClient({ puzzles = [], forceNum = null }) {
           {ended && (
             <div style={{ background: '#fff', border: `2px solid ${COLORS.ink}`, borderRadius: 12, padding: '16px 16px 14px', marginBottom: 14, maxWidth: 470 }}>
               <div style={{ fontSize: 19, fontWeight: 800, color: won ? COLORS.ember : COLORS.rust, marginBottom: 4 }}>
-                {won ? 'You cut through the garble.' : 'Revealed.'}
+                {Math.round((score / 10) * 100)}% Complete
               </div>
               <div style={{ fontSize: 13.5, fontWeight: 700, color: COLORS.faded, marginBottom: 12 }}>
                 {score}/10 &middot; {g.misses} miss{g.misses === 1 ? '' : 'es'} &middot; {elapsed}
@@ -486,6 +487,14 @@ export default function GarbleClient({ puzzles = [], forceNum = null }) {
                 <button className="gb-btn" onClick={resetGame} style={{ borderColor: '#c3c8cf', color: COLORS.faded }}><RotateCcw size={15} /> Replay</button>
               </div>
               <DailyGamesPromo self="garble" refresh={g.status} />
+              {!isTodays && (
+                <p style={{ fontSize: 12, color: COLORS.faded, fontWeight: 600, margin: '12px 0 0' }}>
+                  You&rsquo;re playing the {PUZZLE.dateLabel.replace(', 2026', '')} archive.{' '}
+                  <a href="/garble" style={{ color: COLORS.ember, fontWeight: 800, textDecoration: 'underline' }}>Back to today&rsquo;s Garble &rarr;</a>
+                  {' · '}
+                  <a href="/daily" style={{ color: COLORS.faded, fontWeight: 700, textDecoration: 'underline' }}>All daily puzzles</a>
+                </p>
+              )}
             </div>
           )}
         </div>

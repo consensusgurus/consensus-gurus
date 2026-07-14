@@ -1036,19 +1036,18 @@ export default function CruxClient({ puzzles = [], forceNum = null }) {
             {!playing && (
               <div style={{ background: '#fff', border: `2px solid ${COLORS.ink}`, borderRadius: 12, padding: '16px 16px 14px', marginBottom: 14 }}>
                 <div style={{ fontSize: 19, fontWeight: 800, color: won ? COLORS.ember : COLORS.rust, marginBottom: 4 }}>
-                  {won ? 'You got to the crux of the matter.' : g.filedRight != null ? `Final: ${g.order.length + g.filedRight}/${PUZZLE.slots.length * 2}.` : 'Out of guesses.'}
+                  {Math.round(((won ? PUZZLE.slots.length * 2 : g.order.length + (g.filedRight || 0)) / (PUZZLE.slots.length * 2)) * 100)}% Complete
                 </div>
-                <div style={{ fontSize: 13.5, fontWeight: 700, color: COLORS.faded, marginBottom: (beatPct != null || (isTodays && myStats.cur >= 2)) ? 6 : 12 }}>
+                <div style={{ fontSize: 13.5, fontWeight: 700, color: COLORS.faded, marginBottom: (isTodays && myStats.cur >= 2) ? 6 : 12 }}>
                   {won
                     ? <>{guessesUsed} guesses &middot; {elapsed}{g.hintUsed ? <> &middot; 1 hint</> : null}</>
                     : g.filedRight != null
                       ? <>{g.order.length}/{PUZZLE.slots.length} words &middot; {g.filedRight}/{PUZZLE.slots.length} placements &middot; the reveal is on the board</>
                       : <>{g.order.length} of {PUZZLE.slots.length} words &middot; the reveal is on the board</>}
                 </div>
-                {(beatPct != null || (isTodays && myStats.cur >= 2)) && (
+                {isTodays && myStats.cur >= 2 && (
                   <div style={{ fontSize: 13, fontWeight: 800, marginBottom: 12, display: 'flex', gap: 12, flexWrap: 'wrap' }}>
-                    {beatPct != null && <span style={{ color: COLORS.ember }}>You beat {beatPct}% of players on this puzzle</span>}
-                    {isTodays && myStats.cur >= 2 && <span style={{ color: '#b45309' }}>{myStats.cur}-day streak</span>}
+                    <span style={{ color: '#b45309' }}>{myStats.cur}-day streak</span>
                   </div>
                 )}
                 <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
@@ -1057,13 +1056,24 @@ export default function CruxClient({ puzzles = [], forceNum = null }) {
                 </div>
                 <DailyGamesPromo self="crux" refresh={g.status} />
                 <p style={{ fontSize: 12, color: COLORS.faded, fontWeight: 600, margin: '12px 0 0' }}>
-                  {countdown ? <>Next Crux in <b style={{ color: COLORS.ink, fontVariantNumeric: 'tabular-nums' }}>{countdown}</b>.</> : 'A new puzzle drops at midnight Eastern.'}
-                  {prevPuzzle && (
+                  {isTodays ? (
                     <>
-                      {' '}Meanwhile:{' '}
-                      <a href={`/crux?p=${prevPuzzle.num}`} style={{ color: COLORS.ember, fontWeight: 800, textDecoration: 'underline' }}>
-                        play {isTodays ? "yesterday's Crux" : `the ${prevPuzzle.dateLabel.replace(', 2026', '')} Crux`} &rarr;
-                      </a>
+                      {countdown ? <>Next Crux in <b style={{ color: COLORS.ink, fontVariantNumeric: 'tabular-nums' }}>{countdown}</b>.</> : 'A new puzzle drops at midnight Eastern.'}
+                      {prevPuzzle && (
+                        <>
+                          {' '}Meanwhile:{' '}
+                          <a href={`/crux?p=${prevPuzzle.num}`} style={{ color: COLORS.ember, fontWeight: 800, textDecoration: 'underline' }}>
+                            play yesterday&rsquo;s Crux &rarr;
+                          </a>
+                        </>
+                      )}
+                    </>
+                  ) : (
+                    <>
+                      You&rsquo;re playing the {PUZZLE.dateLabel.replace(', 2026', '')} archive.{' '}
+                      <a href="/crux" style={{ color: COLORS.ember, fontWeight: 800, textDecoration: 'underline' }}>Back to today&rsquo;s Crux &rarr;</a>
+                      {' · '}
+                      <a href="/daily" style={{ color: COLORS.faded, fontWeight: 700, textDecoration: 'underline' }}>All daily puzzles</a>
                     </>
                   )}
                 </p>

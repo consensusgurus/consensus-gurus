@@ -9,6 +9,7 @@ import { CHALLENGES, getChallenge, DEFAULT_CHALLENGE_ID, challengeQuizIds, chall
 import QuizNavHeader from '../QuizNavHeader';
 import Grain from '../../Grain';
 import Footer from '../../Footer';
+import QuizPlayerBar from '../../quiz/[id]/QuizPlayerBar';
 
 const C = {
   bg: '#f7f8fa', surface: '#fff', ink: '#1c1e24', muted: '#6b7280',
@@ -804,6 +805,11 @@ export default function StatHubClient() {
           })()}
         </div>
 
+        {tab === 'player' && !viewKey && found && (
+          <div style={{ marginTop: 12 }}>
+            <QuizPlayerBar controlled me={me} rightAction="share" onShare={() => setShareOpen(true)} />
+          </div>
+        )}
         {tab === 'player' && <PlayerPanel me={profile} scope={scope} cats={cats} byKey={byKey} totalQuizzes={catalog.length} board={board} myName={myName} myAnonKey={myAnonKey} titleById={titleById} pview={pview} setPview={setPview} viewKey={viewKey} onSelectPlayer={(k) => { const mine = (me && me.userKey && k === me.userKey) || (myAnonKey && k === myAnonKey); setViewKey(mine ? null : k); setPview(mine ? 'ranking' : 'category'); }} />}
         {tab === 'quizzes' && <QuizzesPanel me={profile} myProfile={me} scope={scope} byKey={byKey} catalog={catalog} stats={statsById} totals={totals} totalPlays={totalPlays} onSelectPlayer={(k) => { setViewKey(k); setPview('category'); setTab('player'); }} />}
         {tab === 'challenges' && <ChallengesPanel me={profile} />}

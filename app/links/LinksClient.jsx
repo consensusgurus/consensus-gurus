@@ -556,15 +556,14 @@ export default function LinksClient({ puzzles = [], forceNum = null }) {
         {!playing && (
           <div style={{ background: '#fff', border: `2px solid ${COLORS.ink}`, borderRadius: 12, padding: '16px 16px 14px', marginBottom: 14 }}>
             <div style={{ fontSize: 19, fontWeight: 800, color: won ? COLORS.ember : COLORS.rust, marginBottom: 4 }}>
-              {won ? (g.mistakes === 0 ? 'A clean sweep.' : 'All four threads found.') : 'The threads got away.'}
+              {Math.round((g.solved.length / 4) * 100)}% Complete
             </div>
-            <div style={{ fontSize: 13.5, fontWeight: 700, color: COLORS.faded, marginBottom: (beatPct != null || (isTodays && myStats.cur >= 2)) ? 6 : 12 }}>
+            <div style={{ fontSize: 13.5, fontWeight: 700, color: COLORS.faded, marginBottom: (isTodays && myStats.cur >= 2) ? 6 : 12 }}>
               {g.solved.length}/4 groups &middot; {g.mistakes} mistake{g.mistakes === 1 ? '' : 's'} &middot; {elapsed}
             </div>
-            {(beatPct != null || (isTodays && myStats.cur >= 2)) && (
+            {isTodays && myStats.cur >= 2 && (
               <div style={{ fontSize: 13, fontWeight: 800, marginBottom: 12, display: 'flex', gap: 12, flexWrap: 'wrap' }}>
-                {beatPct != null && <span style={{ color: COLORS.ember }}>You beat {beatPct}% of players on this puzzle</span>}
-                {isTodays && myStats.cur >= 2 && <span style={{ color: '#b45309' }}>{myStats.cur}-day streak</span>}
+                <span style={{ color: '#b45309' }}>{myStats.cur}-day streak</span>
               </div>
             )}
             <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
@@ -573,13 +572,24 @@ export default function LinksClient({ puzzles = [], forceNum = null }) {
             </div>
             <DailyGamesPromo self="links" refresh={g.status} />
             <p style={{ fontSize: 12, color: COLORS.faded, fontWeight: 600, margin: '12px 0 0' }}>
-              {countdown ? <>Next Links in <b style={{ color: COLORS.ink, fontVariantNumeric: 'tabular-nums' }}>{countdown}</b>.</> : 'A new puzzle drops at midnight Eastern.'}
-              {prevPuzzle && (
+              {isTodays ? (
                 <>
-                  {' '}Meanwhile:{' '}
-                  <a href={`/links?p=${prevPuzzle.num}`} style={{ color: COLORS.ember, fontWeight: 800, textDecoration: 'underline' }}>
-                    play {isTodays ? "yesterday's Links" : `the ${prevPuzzle.dateLabel.replace(', 2026', '')} Links`} &rarr;
-                  </a>
+                  {countdown ? <>Next Links in <b style={{ color: COLORS.ink, fontVariantNumeric: 'tabular-nums' }}>{countdown}</b>.</> : 'A new puzzle drops at midnight Eastern.'}
+                  {prevPuzzle && (
+                    <>
+                      {' '}Meanwhile:{' '}
+                      <a href={`/links?p=${prevPuzzle.num}`} style={{ color: COLORS.ember, fontWeight: 800, textDecoration: 'underline' }}>
+                        play yesterday&rsquo;s Links &rarr;
+                      </a>
+                    </>
+                  )}
+                </>
+              ) : (
+                <>
+                  You&rsquo;re playing the {PUZZLE.dateLabel.replace(', 2026', '')} archive.{' '}
+                  <a href="/links" style={{ color: COLORS.ember, fontWeight: 800, textDecoration: 'underline' }}>Back to today&rsquo;s Links &rarr;</a>
+                  {' · '}
+                  <a href="/daily" style={{ color: COLORS.faded, fontWeight: 700, textDecoration: 'underline' }}>All daily puzzles</a>
                 </>
               )}
             </p>

@@ -581,7 +581,7 @@ export default function DatingClient({ puzzles = [], forceNum = null }) {
         {!playing && (
           <div style={{ background: '#fff', border: `2px solid ${COLORS.ink}`, borderRadius: 12, padding: '16px 16px 14px', marginBottom: 14 }}>
             <div style={{ fontSize: 19, fontWeight: 800, color: won ? COLORS.lock : COLORS.rust, marginBottom: 4 }}>
-              {won ? (checksUsed === 1 ? 'Dated on the first check.' : `Dated in ${checksUsed} checks.`) : g.status === 'lost' ? 'Out of checks.' : 'Revealed.'}
+              {Math.round((((won || g.status === 'lost') ? finalScore : 0) / 10) * 100)}% Complete
             </div>
             <div style={{ fontSize: 13.5, fontWeight: 700, color: COLORS.faded, marginBottom: 6 }}>
               {won
@@ -603,10 +603,9 @@ export default function DatingClient({ puzzles = [], forceNum = null }) {
             {PUZZLE.note && (
               <div style={{ fontSize: 12.5, fontWeight: 600, color: COLORS.faded, fontStyle: 'italic', margin: '6px 0 10px', lineHeight: 1.5 }}>{PUZZLE.note}</div>
             )}
-            {(beatPct != null || (isTodays && myStats.cur >= 2)) && (
+            {isTodays && myStats.cur >= 2 && (
               <div style={{ fontSize: 13, fontWeight: 800, marginBottom: 12, display: 'flex', gap: 12, flexWrap: 'wrap' }}>
-                {beatPct != null && <span style={{ color: COLORS.ember }}>You beat {beatPct}% of players on this puzzle</span>}
-                {isTodays && myStats.cur >= 2 && <span style={{ color: '#b45309' }}>{myStats.cur}-day streak</span>}
+                <span style={{ color: '#b45309' }}>{myStats.cur}-day streak</span>
               </div>
             )}
             <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
@@ -615,13 +614,24 @@ export default function DatingClient({ puzzles = [], forceNum = null }) {
             </div>
             <DailyGamesPromo self="dating" refresh={g.status} />
             <p style={{ fontSize: 12, color: COLORS.faded, fontWeight: 600, margin: '12px 0 0' }}>
-              {countdown ? <>Next Dating in <b style={{ color: COLORS.ink, fontVariantNumeric: 'tabular-nums' }}>{countdown}</b>.</> : 'Five new moments drop at midnight Eastern.'}
-              {prevPuzzle && (
+              {isTodays ? (
                 <>
-                  {' '}Meanwhile:{' '}
-                  <a href={`/dating?p=${prevPuzzle.num}`} style={{ color: COLORS.ember, fontWeight: 800, textDecoration: 'underline' }}>
-                    play {isTodays ? "yesterday's Dating" : `the ${prevPuzzle.dateLabel.replace(', 2026', '')} Dating`} &rarr;
-                  </a>
+                  {countdown ? <>Next Dating in <b style={{ color: COLORS.ink, fontVariantNumeric: 'tabular-nums' }}>{countdown}</b>.</> : 'Five new moments drop at midnight Eastern.'}
+                  {prevPuzzle && (
+                    <>
+                      {' '}Meanwhile:{' '}
+                      <a href={`/dating?p=${prevPuzzle.num}`} style={{ color: COLORS.ember, fontWeight: 800, textDecoration: 'underline' }}>
+                        play yesterday&rsquo;s Dating &rarr;
+                      </a>
+                    </>
+                  )}
+                </>
+              ) : (
+                <>
+                  You&rsquo;re playing the {PUZZLE.dateLabel.replace(', 2026', '')} archive.{' '}
+                  <a href="/dating" style={{ color: COLORS.ember, fontWeight: 800, textDecoration: 'underline' }}>Back to today&rsquo;s Dating &rarr;</a>
+                  {' · '}
+                  <a href="/daily" style={{ color: COLORS.faded, fontWeight: 700, textDecoration: 'underline' }}>All daily puzzles</a>
                 </>
               )}
             </p>

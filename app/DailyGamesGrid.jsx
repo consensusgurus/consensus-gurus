@@ -50,6 +50,11 @@ export default function DailyGamesGrid({ self, maxWidth = 640 }) {
           </a>
         ))}
       </div>
+      <div style={{ textAlign: 'center', marginTop: 11 }}>
+        <a href="/daily" style={{ fontFamily: "'DM Mono', ui-monospace, monospace", fontSize: 11.5, letterSpacing: '0.06em', textTransform: 'uppercase', fontWeight: 700, color: '#5b8bff', textDecoration: 'none', borderBottom: '1px solid rgba(91,139,255,0.5)', paddingBottom: 1 }}>
+          All daily games &amp; archive →
+        </a>
+      </div>
     </div>
   );
 }
