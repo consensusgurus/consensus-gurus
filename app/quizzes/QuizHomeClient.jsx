@@ -2,8 +2,8 @@
 import React, { useState, useEffect, useMemo, useRef, createContext, useContext } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import SiteHeader, { QUIZ_COUNT } from '../SiteHeader';
-import QuizPlayerBar from '../quiz/[id]/QuizPlayerBar';
+import { QUIZ_COUNT } from '../SiteHeader';
+import QuizCommandHeader from './QuizCommandHeader';
 import DuelTile from './DuelTile';
 import {
   Search, ChevronDown, ArrowRight, BarChart3, Crown, Sparkles, Flame,
@@ -291,6 +291,7 @@ export default function QuizHomeClient() {
   const [view, setView] = useState('compact'); // 'compact' | 'detailed' browse layout
   const [statsById, setStatsById] = useState({}); // /api/quiz/stats keyed by quizId
   const [signupOpen, setSignupOpen] = useState(false);
+  const [duels, setDuels] = useState([]); // last few completed duels, for the header ticker
   const [statsOpen, setStatsOpen] = useState(false);
   const [dailyLb, setDailyLb] = useState(null); // today's daily-challenge standings (registered players)
   const [chRun, setChRun] = useState(null); // local run-state for today's daily challenge (completion ticks)
@@ -451,6 +452,9 @@ export default function QuizHomeClient() {
     }).catch(() => {});
     fetch('/api/quiz/today').then((r) => r.json()).then((d) => {
       if (d) setTodayData({ byCorrect: Array.isArray(d.leaders) ? d.leaders : [], byQuizzes: Array.isArray(d.quizLeaders) ? d.quizLeaders : [] });
+    }).catch(() => {});
+    fetch('/api/duel/latest').then((r) => r.json()).then((d) => {
+      if (d) setDuels(Array.isArray(d.duels) ? d.duels : (d.duel ? [d.duel] : []));
     }).catch(() => {});
   }, []);
 
@@ -699,6 +703,65 @@ export default function QuizHomeClient() {
     .filter((q) => !isBusinessNewsHubQuiz(q.id))
     .sort((a, b) => (a.publishedAt < b.publishedAt ? 1 : a.publishedAt > b.publishedAt ? -1 : 0))
     .slice(0, 6), [catalog]);
+  // ── header ticker: recent plays + today's leaders + duels + new quizzes ──
+  // Round-robin interleaved so types alternate. Built from data the page
+  // already loads; the only extra fetch is /api/duel/latest (last few duels).
+  const tickerItems = useMemo(() => {
+    const ago = (iso) => {
+      if (!iso) return null;
+      const m = Math.round((Date.now() - new Date(iso).getTime()) / 60000);
+      if (!(m >= 1)) return 'now';
+      if (m < 60) return `${m}m`;
+      const h = Math.round(m / 60);
+      return h < 24 ? `${h}h` : `${Math.round(h / 24)}d`;
+    };
+    const playRows = (recent || [])
+      .filter((p) => p && p.quizId && titleById[p.quizId])
+      .slice(0, 8)
+      .map((p) => ({ type: 'play', href: `/quiz/${p.quizId}`, segs: [
+        { text: p.name || 'Player', strong: true },
+        { text: ` ${p.score}/${p.total} on ` },
+        { text: titleById[p.quizId], strong: true },
+        ...(ago(p.playedAt) ? [{ text: ` · ${ago(p.playedAt)}`, dim: true }] : []),
+      ] }));
+    const leads = (todayCorrectRows || []).filter((r) => !r.isAnon).slice(0, 3).map((r, i) => ({
+      type: 'lead', href: '/quizzes/hub', segs: [
+        { text: r.username || 'Player', strong: true },
+        { text: i === 0 ? ' leads Correct Today' : ` is #${i + 1} for Correct Today` },
+        { text: ` · ${(r.correct || 0).toLocaleString()}`, dim: true },
+      ] }));
+    if (DAILY_CHALLENGE_ON && dailyRows.length && dailyRows[0] && !dailyRows[0].isAnon) {
+      leads.push({ type: 'lead', href: '/quizzes/hub', segs: [
+        { text: dailyRows[0].username || 'Player', strong: true },
+        { text: ` leads Today's Challenge${dailyCat ? ` (${dailyCat})` : ''}` },
+      ] });
+    }
+    const duelRows = (duels || []).slice(0, 4).map((d) => {
+      const tie = d.winner === 'tie';
+      const chWon = d.winner === 'challenger';
+      const w = (tie || chWon) ? d.challenger_name : d.opponent_name;
+      const l = (tie || chWon) ? d.opponent_name : d.challenger_name;
+      const ws = (tie || chWon) ? d.challenger_score : d.opponent_score;
+      const ls = (tie || chWon) ? d.opponent_score : d.challenger_score;
+      return { type: 'duel', href: '/quizzes/hub?tab=duels', segs: tie
+        ? [{ text: w || 'Player', strong: true }, { text: ' and ' }, { text: l || 'Player', strong: true }, { text: ` tied a Duel ${ws} to ${ls}` }]
+        : [{ text: w || 'Player', strong: true }, { text: ' beat ' }, { text: l || 'Player', strong: true }, { text: ` in a Duel ${ws} to ${ls}` }] };
+    });
+    const fresh = (newest || []).slice(0, 2).map((q) => ({ type: 'new', href: `/quiz/${q.id}`, segs: [
+      { text: 'New quiz: ' }, { text: q.title, strong: true },
+    ] }));
+    const stat = playsToday > 0 ? [{ type: 'stat', href: '/quizzes/hub', segs: [
+      { text: `${playsToday.toLocaleString()} plays today`, strong: true },
+    ] }] : [];
+    const pools = [playRows, [...leads, ...stat], duelRows, fresh];
+    const out = [];
+    for (let i = 0; out.length < 24; i += 1) {
+      const before = out.length;
+      for (const pool of pools) { if (pool[i]) out.push(pool[i]); }
+      if (out.length === before) break;
+    }
+    return out;
+  }, [recent, titleById, todayCorrectRows, dailyRows, dailyCat, duels, newest, playsToday]);
   // Business News hub quizzes (market-moving recaps, earnings, sector updates),
   // newest first — shown inside the Business News promo tile.
   const businessNewsRows = useMemo(() => catalog.slice()
@@ -1160,8 +1223,8 @@ export default function QuizHomeClient() {
     <div style={{ background: C.bg, minHeight: '100vh', position: 'relative' }}>
       <Grain />
       <style>{css}</style>
-      <SiteHeader active="quizzes" flush inlay={<QuizPlayerBar leaderboard={lbBar} />} />
-      <div className="qzh qzf-w" style={{ maxWidth: 1180, margin: '0 auto', padding: '12px 38px 70px', position: 'relative' }}><style>{`@media(max-width:560px){.qzf-w{padding-left:14px !important;padding-right:14px !important;}}`}</style><div className="qzf-line" aria-hidden="true" />
+      <QuizCommandHeader search={search} onSearch={setSearch} me={me} onSignup={() => setSignupOpen(true)} ticker={tickerItems} />
+      <div className="qzh qzf-w" style={{ maxWidth: 1480, margin: '0 auto', padding: '14px clamp(16px, 2.5vw, 34px) 70px', position: 'relative' }}><style>{`@media(max-width:560px){.qzf-w{padding-left:14px !important;padding-right:14px !important;}}`}</style>
 
         {(() => {
           if (duelMuteAll) return null;
@@ -1371,6 +1434,7 @@ export default function QuizHomeClient() {
           <div className="qz-searchwrap" style={{ position: 'relative', flex: '1 1 200px' }}>
             <Search size={16} style={{ position: 'absolute', left: 12, top: '50%', transform: 'translateY(-50%)', color: C.soft }} />
             <input
+              id="qz-main-search"
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               placeholder={`Search ${QUIZ_COUNT.toLocaleString()} quizzes…`}
