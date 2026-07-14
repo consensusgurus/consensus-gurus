@@ -104,6 +104,7 @@ export default function QuizCommandHeader({ search, onSearch, me, onSignup, tick
         .qch-mecol{display:flex;flex-direction:column;gap:2px;min-width:0;}
         .qch-nm{display:flex;align-items:center;gap:5px;font-size:13.5px;font-weight:800;color:#fff;line-height:1;white-space:nowrap;max-width:150px;overflow:hidden;text-overflow:ellipsis;}
         .qch-sub{font-size:10.5px;font-weight:700;color:#bcd2fb;line-height:1;white-space:nowrap;}
+        .qch-rankm{display:none;font-size:11px;font-weight:800;color:#dbe7ff;line-height:1;white-space:nowrap;}
         .qch-chk{display:inline-flex;width:13px;height:13px;border-radius:50%;background:#fff;color:#2563eb;font-size:8.5px;font-weight:800;align-items:center;justify-content:center;flex:none;}
         .qch-signup{display:inline-flex;align-items:center;gap:6px;background:transparent;border:1px solid rgba(255,255,255,0.45);border-radius:9px;color:#fff;font-family:inherit;font-size:12.5px;font-weight:800;padding:8px 12px;cursor:pointer;white-space:nowrap;}
         .qch-signup:hover{background:rgba(255,255,255,0.14);border-color:#fff;}
@@ -136,12 +137,12 @@ export default function QuizCommandHeader({ search, onSearch, me, onSignup, tick
         .qch-tico-new,.qch-tico-stat{background:rgba(59,116,232,0.28);}
         @media(max-width:1180px){.qch-src{display:none;}}
         @media(max-width:980px){.qch-sub{display:none;}.qch-hubtxt{display:none;}.qch-hub{padding:8px 10px;}}
-        @media(max-width:820px){.qch-wl{display:none;}.qch-ws{display:inline;}.qch-search{display:none;}.qch-searchbtn{display:flex;}}
-        @media(max-width:620px){.qch-mecol{display:none;}.qch-bar{gap:9px;padding-left:12px;padding-right:12px;}.qch-seg a{padding:6px 10px;font-size:11px;}.qch-tlabel{display:none;}.qch-word{font-size:17px;}}
+        @media(max-width:820px){.qch-wl{display:none;}.qch-ws{display:inline;}.qch-search{display:none;}}
+        @media(max-width:620px){.qch-brandlogo{display:none;}.qch-rankm{display:block;}.qch-nm{max-width:120px;}.qch-bar{gap:9px;padding-left:12px;padding-right:12px;}.qch-seg a{padding:6px 10px;font-size:11px;}.qch-tlabel{display:none;}.qch-word{font-size:17px;}}
         @media(max-width:560px){.qch-bar{padding-top:calc(9px + env(safe-area-inset-top));}}
       `}</style>
       <div className="qch-bar">
-        <Link href="/" style={{ flex: 'none', display: 'flex' }} aria-label="Source of Truths home"><Logo size={30} /></Link>
+        <Link href="/" className="qch-brandlogo" style={{ flex: 'none', display: 'flex' }} aria-label="Source of Truths home"><Logo size={30} /></Link>
         <Link href="/" className="qch-word"><span className="qch-wl">Source <em>of</em> Truths</span><span className="qch-ws">S<em>o</em>T</span></Link>
         <span className="qch-src"><SourcesPopover align="left" onDark href="/experts-and-aggregators" label={`${SOURCE_COUNT.toLocaleString()} Experts and Aggregators`} /></span>
         <div className="qch-search">
@@ -156,6 +157,7 @@ export default function QuizCommandHeader({ search, onSearch, me, onSignup, tick
               <span className="qch-mecol">
                 <span className="qch-nm">{me.name}{signed ? <span className="qch-chk">✓</span> : null}</span>
                 <span className="qch-sub">{rank ? `Rank #${fmtK(rank)}` : ''}{rank && completed != null ? ' · ' : ''}{completed != null ? `${completed} completed` : ''}</span>
+                {rank ? <span className="qch-rankm">Rank #{fmtK(rank)}</span> : null}
               </span>
             </Link>
           ) : (

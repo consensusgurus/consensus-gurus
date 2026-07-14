@@ -81,6 +81,12 @@ const DEPT_HERO_ALT = {
   geography: 'https://upload.wikimedia.org/wikipedia/commons/thumb/9/97/The_Earth_seen_from_Apollo_17.jpg/960px-The_Earth_seen_from_Apollo_17.jpg',
 };
 
+// Daily-game quizzes are date/topic-stamped (crux-*, garble-*, links-*, span-*,
+// closer-*) and every entry in a family shares ONE hero image, so the two hero
+// tiles (Newest + Trending) must never both draw from the same family.
+const DAILY_GAME_FAMILY_RE = /^(crux|garble|links|span|closer)-/;
+function gameFamily(id) { const m = (id || '').match(DAILY_GAME_FAMILY_RE); return m ? m[1] : null; }
+
 // Per-quiz completion status for the CURRENT player, supplied once at the top of
 // the tree so any quiz row can show a check (played) or a circled check (aced at
 // 100%) without threading props. Visible only to that player (built from their
@@ -792,12 +798,16 @@ export default function QuizHomeClient() {
     const excl = new Set(rankedAll.slice(0, 3).map((q) => q.id));
     if (newest[0]) excl.add(newest[0].id);
     if (qotd) excl.add(qotd.id);
+    // Newest and Trending must never be the same daily-game family (they'd share
+    // one hero image), so also block whatever family the Newest / QOTD tiles use.
+    const blockedFams = new Set([newest[0] && gameFamily(newest[0].id), qotd && gameFamily(qotd.id)].filter(Boolean));
+    const blocked = (cand) => excl.has(cand.id) || blockedFams.has(gameFamily(cand.id));
     // Pick the single most-played quiz OVER THE LAST 7 DAYS among the rest. Fall
     // back to the all-time pick only if nothing was played this week (edge case),
     // so the tile never goes empty.
     const rankedWeek = catalog.map((q) => ({ ...q, p: week(q.id) })).filter((q) => q.p > 0)
       .sort((a, b) => b.p - a.p || (a.title || '').localeCompare(b.title || ''));
-    return rankedWeek.find((q) => !excl.has(q.id)) || rankedAll.find((q) => !excl.has(q.id)) || null;
+    return rankedWeek.find((cand) => !blocked(cand)) || rankedAll.find((cand) => !blocked(cand)) || null;
   }, [catalog, newest, qotd, totals]);
   // Ids already surfaced in the Newest + Most Played columns (all-scope only).
   const shownIds = useMemo(() => {
@@ -821,7 +831,7 @@ export default function QuizHomeClient() {
   const tQH = trending ? QUIZ_HEROES[trending.id] : null;
   let tHero = trending ? ((tQH && tQH.src) || DEPT_HERO[trending.dept] || null) : null;
   let tHeroPos = tQH ? tQH.pos : undefined;
-  if (tHero && tHero === nHero) { tHero = DEPT_HERO_ALT[trending.dept] || null; tHeroPos = undefined; }
+  if (tHero && tHero === nHero) { tHero = DEPT_HERO_ALT[trending.dept] || FALLBACK_HERO; tHeroPos = undefined; }
   const [ttileProbeRef, ttilePill] = usePillProbe(tHero, PILL_REGION_FOOTER, 0.72, true);
 
   const newestAll = useMemo(() => catalog.slice()
@@ -992,7 +1002,7 @@ export default function QuizHomeClient() {
     @media(max-width:760px){.qzh .qotd{flex-direction:column;min-height:0;}.qzh .qotd-photo{flex:none;height:128px;}.qzh .qotd-title{font-size:21px;}}
     .qzh .thub{display:flex;gap:12px;margin-bottom:26px;align-items:stretch;}
     .qzh .thub-left{flex:1 1 auto;min-width:0;display:flex;flex-direction:column;gap:12px;}
-    .qzh .th-rail{flex:0 0 208px;}
+    .qzh .th-rail{flex:0 0 188px;}
     .qzh .th-r2{display:grid;grid-template-columns:minmax(0,1.15fr) minmax(0,0.82fr) minmax(0,1fr);gap:12px;align-items:stretch;}
     .qzh .th-r2 .th-slot-hold{min-height:215px;}
     @media(max-width:820px){.qzh .thub{flex-direction:column;}.qzh .th-r2{grid-template-columns:1fr 1fr;}.qzh .th-r2 .dtile{grid-column:1 / -1;}}
@@ -1017,16 +1027,19 @@ export default function QuizHomeClient() {
     .qzh .dueltile-chev{display:none;}
     .qzh .duel-mob-last{display:none;flex-direction:column;flex:1;}
     @media(max-width:560px){.qzh .dueltile{min-height:0 !important;}.qzh .dueltile-head{cursor:pointer;}.qzh .dueltile-chev{display:inline-flex !important;transition:transform .15s;}.qzh .dueltile.mc-closed .dueltile-body{display:none !important;}.qzh .dueltile.has-mob-last .duel-flip{display:none !important;}.qzh .dueltile.has-mob-last .duel-mob-last{display:flex !important;}}
-    .qzh .rail{background:#0e1d40;border:1px solid #1e3a6b;border-radius:14px;padding:11px 11px 9px;display:flex;flex-direction:column;}
-    .qzh .rail-head{display:flex;align-items:center;gap:5px;margin-bottom:8px;}
-    .qzh .rail-bars{flex:1;display:flex;flex-direction:column;}
-    .qzh .rseg{flex:1;min-height:0;display:flex;flex-direction:column;justify-content:center;gap:3px;background:transparent;border:none;border-radius:6px;margin:0;padding:2px 6px;cursor:pointer;width:100%;text-align:left;}
+    .qzh .rail{background:#0e1d40;border:1px solid #1e3a6b;border-radius:14px;padding:10px 9px 9px;display:flex;flex-direction:column;}
+    .qzh .rail-head{display:flex;align-items:center;gap:5px;margin-bottom:7px;}
+    .qzh .rail-bars{flex:1;display:flex;flex-direction:column;gap:3px;min-height:0;}
+    .qzh .rseg{position:relative;isolation:isolate;overflow:hidden;flex:1 1 0;min-height:24px;display:flex;align-items:center;background:#122446;border:none;border-radius:7px;margin:0;padding:0 9px;cursor:pointer;width:100%;text-align:left;}
     .qzh .rseg:hover{background:#16294f;}
-    .qzh .rseg-top{display:flex;align-items:center;justify-content:space-between;}
-    .qzh .rseg .rnm{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:12px;font-weight:600;color:#e6edfb;}
-    .qzh .rseg .rpct{font-size:11px;font-weight:700;flex:none;margin-left:8px;color:#5b8bff;}
-    .qzh .rtrack{height:4px;border-radius:2px;background:#1b305a;overflow:hidden;}
-    .qzh .rfill{height:100%;border-radius:2px;background:#5b8bff;}
+    .qzh .rseg:hover .rmeter{filter:brightness(1.18);}
+    .qzh .rmeter{position:absolute;left:0;top:0;bottom:0;z-index:0;min-width:3px;background:linear-gradient(90deg,rgba(91,139,255,.45),rgba(91,139,255,.18));border-right:2px solid #6f9bff;border-radius:7px 0 0 7px;}
+    .qzh .rseg-top{position:relative;z-index:1;display:flex;align-items:center;justify-content:space-between;gap:8px;width:100%;}
+    .qzh .rseg .rnm{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:11px;font-weight:600;color:#eaf0fc;}
+    .qzh .rseg .rpct{font-size:10.5px;font-weight:800;flex:none;color:#c2d4ff;font-variant-numeric:tabular-nums;}
+    /* Search + category + submit moved into the top command bar on desktop, so
+       the browse control row collapses to just its (conditional) heading there. */
+    @media(min-width:821px){.qzh .qz-browserow .qz-catbtn,.qzh .qz-browserow .qz-searchwrap,.qzh .qz-browserow .qz-submit,.qzh .qz-browserow .qz-daily{display:none !important;}}
     .qzh .dchev,.qzh .lchev{display:none;}
     @media(max-width:560px){
       .qzh .dtile-head,.qzh .lbtile-head{cursor:pointer;}
@@ -1474,10 +1487,10 @@ export default function QuizHomeClient() {
             <div className="rail-head"><BarChart3 size={14} style={{ color: '#5b8bff', flex: 'none' }} /><span className="x8" style={{ fontSize: 11.5, fontWeight: 800, letterSpacing: '.03em', color: '#f8b84a' }}>CATEGORY MASTERY</span></div>
             {catMastery.length > 0 ? (
               <div className="rail-bars">
-                {catMastery.map((m) => (
-                  <button type="button" key={m.key} onClick={() => goCat(m.key)} className="rseg">
-                    <div className="rseg-top"><span className="rnm">{m.label}</span><span className="rpct">{m.acc}%</span></div>
-                    <div className="rtrack"><div className="rfill" style={{ width: `${m.acc}%` }} /></div>
+                {catMastery.slice(0, 14).map((m) => (
+                  <button type="button" key={m.key} onClick={() => goCat(m.key)} className="rseg" title={`${m.label} · ${m.acc}%`}>
+                    <span className="rmeter" style={{ width: `${m.acc}%` }} aria-hidden="true" />
+                    <span className="rseg-top"><span className="rnm">{m.label}</span><span className="rpct">{m.acc}%</span></span>
                   </button>
                 ))}
               </div>
