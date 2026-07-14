@@ -640,32 +640,13 @@ export default function DatingClient({ puzzles = [], forceNum = null }) {
 
         {/* standard quiz-page bottom: challenge + stats + join + leaderboard */}
         <div style={{ margin: '30px auto 0' }}>
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: 10 }}>
-            <a href={`/duel/new?quiz=${encodeURIComponent(PUZZLE.quizId)}`} style={{ fontFamily: SANS, fontSize: 12.5, letterSpacing: '0.05em', textTransform: 'uppercase', fontWeight: 700, height: 52, padding: '0 10px', borderRadius: 10, border: 'none', background: COLORS.ink, color: '#fff', cursor: 'pointer', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 8, whiteSpace: 'nowrap', textDecoration: 'none' }}>
-              <Swords size={14} strokeWidth={2.5} /> Challenge a Friend
-            </a>
-            {playing && (
-              <button onClick={copyShare} style={{ fontFamily: SANS, fontSize: 12.5, letterSpacing: '0.05em', textTransform: 'uppercase', fontWeight: 700, height: 52, padding: '0 10px', borderRadius: 10, border: `1.5px solid ${COLORS.ink}`, background: COLORS.cream, color: COLORS.ink, cursor: 'pointer', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 8, whiteSpace: 'nowrap' }}>
-                <Share2 size={14} strokeWidth={2.5} /> {copied ? 'Copied' : 'Share This Puzzle'}
-              </button>
-            )}
-          </div>
-          <div style={{ marginTop: 18, paddingTop: 14, borderTop: '1px solid rgba(28,30,36,0.14)' }}>
-            <div style={{ fontFamily: MONO, fontSize: 10.5, fontWeight: 500, textTransform: 'uppercase', letterSpacing: '0.1em', color: COLORS.faded, marginBottom: 9 }}>Your stats</div>
-            <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
-              {[
-                { n: myStats.cur, l: 'Streak' },
-                { n: myStats.played, l: 'Played' },
-                { n: myStats.played ? `${Math.round((myStats.perfect / myStats.played) * 100)}%` : '—', l: 'First check' },
-                { n: myStats.max, l: 'Best' },
-              ].map((st, i) => (
-                <div key={i} style={{ flex: '1 1 0', minWidth: 54, background: '#fff', border: '1px solid rgba(28,30,36,0.12)', borderRadius: 7, padding: '6px 5px', textAlign: 'center' }}>
-                  <div style={{ fontSize: 15, fontWeight: 800, color: COLORS.ink, lineHeight: 1.1, fontVariantNumeric: 'tabular-nums' }}>{st.n}</div>
-                  <div style={{ fontSize: 9, fontWeight: 700, color: COLORS.faded, textTransform: 'uppercase', letterSpacing: '0.04em', marginTop: 2 }}>{st.l}</div>
-                </div>
-              ))}
-            </div>
-          </div>
+          <DailyGamesGrid
+            self="dating"
+            maxWidth={620}
+            challengeHref={`/duel/new?quiz=${encodeURIComponent(PUZZLE.quizId)}`}
+            share={{ label: copied ? 'Copied' : 'Share This Puzzle', onClick: copyShare }}
+            divider
+          />
           {mobileUi && !standalone && (
             <button onClick={a2hsClick} style={{ marginTop: 10, width: '100%', fontFamily: SANS, fontSize: 13.5, letterSpacing: '0.05em', textTransform: 'uppercase', fontWeight: 800, height: 54, borderRadius: 10, border: 'none', background: '#21b45e', color: '#fff', cursor: 'pointer', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 9, whiteSpace: 'nowrap' }}>
               <Smartphone size={15} strokeWidth={2.5} /> Add to Home Screen
@@ -698,7 +679,23 @@ export default function DatingClient({ puzzles = [], forceNum = null }) {
         )}
         </div>
 
-        <DailyGamesGrid self="dating" maxWidth={620} />
+        {/* your stats — sits directly above the leaderboard */}
+        <div style={{ maxWidth: 620, margin: '20px auto 0' }}>
+          <div style={{ fontFamily: MONO, fontSize: 10.5, fontWeight: 500, textTransform: 'uppercase', letterSpacing: '0.1em', color: COLORS.faded, marginBottom: 9 }}>Your stats</div>
+          <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
+            {[
+              { n: myStats.cur, l: 'Streak' },
+              { n: myStats.played, l: 'Played' },
+              { n: myStats.played ? `${Math.round((myStats.perfect / myStats.played) * 100)}%` : '—', l: 'First check' },
+              { n: myStats.max, l: 'Best Streak' },
+            ].map((st, i) => (
+              <div key={i} style={{ flex: '1 1 0', minWidth: 54, background: '#fff', border: '1px solid rgba(28,30,36,0.12)', borderRadius: 7, padding: '6px 5px', textAlign: 'center' }}>
+                <div style={{ fontSize: 15, fontWeight: 800, color: COLORS.ink, lineHeight: 1.1, fontVariantNumeric: 'tabular-nums' }}>{st.n}</div>
+                <div style={{ fontSize: 9, fontWeight: 700, color: COLORS.faded, textTransform: 'uppercase', letterSpacing: '0.04em', marginTop: 2 }}>{st.l}</div>
+              </div>
+            ))}
+          </div>
+        </div>
         <div style={{ maxWidth: 620, margin: '26px auto 0', background: '#fff', border: '1.5px solid rgba(20,22,28,0.12)', borderRadius: 12, padding: '14px 16px' }}>
           <QuizLeaderboard board={board} identity={identity} total={10} guessLabel="Checks" />
         </div>

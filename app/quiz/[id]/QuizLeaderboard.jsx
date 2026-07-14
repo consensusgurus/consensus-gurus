@@ -5,7 +5,7 @@ import { LB_POPS, LB_FILTERS, pickLb, lbEmptyNote } from '@/lib/quiz-lb';
 // Shared full leaderboard element (owner rule, 2026-07-02).
 //
 // The complete leaderboard the quiz results and the Leaderboard tab both show:
-// the "best score · N plays" header, the Registered/All-players and
+// the "N plays" header, the Registered/All-players and
 // All/Mobile/First-try toggles, and the ranked table with the player's row
 // highlighted. Self-contained (own toggle state); pass the board payload,
 // identity, and the quiz total. No "Quiz stats" boxes (that info lives in the
@@ -20,7 +20,6 @@ function fmtWhen(ts) { try { const d = new Date(ts); return d.toLocaleDateString
 export default function QuizLeaderboard({ board, identity, total, wordsCol = null, guessLabel = 'Guesses' }) {
   const [lbPop, setLbPop] = useState('registered');
   const [lbFilter, setLbFilter] = useState('all');
-  const bestLabel = board.best != null ? board.best : '—';
   let lb = pickLb(board, lbPop, lbFilter);
   // Words mode (Garble): Score / Words / Misses / Time. "Guesses" was the
   // wrong label for misses (a 0 next to a finished game read as broken), so
@@ -43,7 +42,7 @@ export default function QuizLeaderboard({ board, identity, total, wordsCol = nul
 @media(max-width:560px){.qlb-grid{grid-template-columns:34px 1fr 64px 56px;}.qlb-grid6{grid-template-columns:34px 1fr 56px 48px 50px;}.qlb-time{display:none;}}`}</style>
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 14 }}>
         <div style={{ fontFamily: FONT, fontSize: 11, letterSpacing: '0.16em', textTransform: 'uppercase', color: C.faded }}>Leaderboard</div>
-        <div style={{ fontFamily: FONT, fontSize: 11, letterSpacing: '0.08em', color: C.faded }}>{bestLabel} best score · {board.plays} {board.plays === 1 ? 'play' : 'plays'}</div>
+        <div style={{ fontFamily: FONT, fontSize: 11, letterSpacing: '0.08em', color: C.faded }}>{board.plays} {board.plays === 1 ? 'play' : 'plays'}</div>
       </div>
       {board.plays > 0 && (
         <div style={{ display: 'flex', flexDirection: 'column', gap: 6, marginBottom: 14, width: 'fit-content' }}>

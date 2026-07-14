@@ -828,6 +828,8 @@ export default function CruxClient({ puzzles = [], forceNum = null }) {
           @media (max-width:860px), (max-height:520px) and (max-width:1000px){.cl-cols{grid-template-columns:1fr;gap:16px;}.cl-side{order:-1;}.cl-cat{min-height:0 !important;padding:8px 11px !important;}.cl-grid{--cs:min(42px, calc((100vw - ${110 + (COLS - 1) * 3}px)/${COLS}));}}
           .cl-grid{--cs:42px;}
           @media (min-width:861px) and (min-height:521px){.cl-cats{grid-template-columns:1fr !important;}.cl-cat{display:flex;align-items:center;justify-content:space-between;gap:12px;min-height:0 !important;padding:13px 16px !important;}.cl-cat-nm{margin-bottom:0 !important;}}
+          @media (min-width:861px) and (min-height:521px){.cl-side-fill{align-self:stretch;display:flex;flex-direction:column;}.cl-side-fill .cx-legend{margin-top:auto;}}
+          @media (max-width:860px), (max-height:520px) and (max-width:1000px){.cx-legend{display:none;}}
           .cx-htp-s{display:none;}
           @media(max-width:520px){.cx-htp-f{display:none;}.cx-htp-s{display:inline;}.cx-dl{gap:9px !important;}}
           @media(max-width:560px){.cx-wrap{padding-left:14px !important;padding-right:14px !important;}.cl-grid{--cs:calc((100vw - ${59 + (COLS - 1) * 3}px)/${COLS});}.cl-panel{padding:10px 10px 12px !important;}}
@@ -976,7 +978,7 @@ export default function CruxClient({ puzzles = [], forceNum = null }) {
           </div>
 
           {/* right: categories + filing + result (ordered above the grid on mobile — they are the clues) */}
-          <div className="cl-side">
+          <div className={`cl-side${playing ? ' cl-side-fill' : ''}`}>
             <div style={{ fontSize: 12.5, fontWeight: 800, textTransform: 'uppercase', letterSpacing: '.05em', color: COLORS.faded, marginBottom: 8 }}>
               The categories &mdash; each hides {PUZZLE.categories[0].words.length === 3 ? 'three' : 'two'} of the {PUZZLE.slots.length === 12 ? 'twelve' : 'eight'} words
             </div>
@@ -1077,6 +1079,29 @@ export default function CruxClient({ puzzles = [], forceNum = null }) {
                     </>
                   )}
                 </p>
+              </div>
+            )}
+
+            {/* how-it-works legend — quiet footer pinned to the bottom of the
+                rail on desktop (via .cl-side-fill margin-top:auto) so the right
+                column reaches the board's edge and the old empty gap is filled;
+                the filing tray/word bank grows into the space above it. Colors
+                mirror markColor. Hidden on mobile where the rail stacks. */}
+            {playing && (
+              <div className="cx-legend" style={{ background: '#fff', border: '1.5px solid rgba(20,22,28,0.12)', borderRadius: 10, padding: '12px 14px' }}>
+                <div style={{ fontFamily: MONO, fontSize: 10.5, fontWeight: 500, textTransform: 'uppercase', letterSpacing: '0.1em', color: COLORS.faded, marginBottom: 10 }}>How it works</div>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 9 }}>
+                  {[
+                    { bg: COLORS.ink, fg: '#fff', t: 'Right letter, right spot' },
+                    { bg: '#e6b93f', fg: '#5c4a06', t: 'In the word, wrong spot' },
+                    { bg: '#c9cdd4', fg: '#40434b', t: 'Not in the word' },
+                  ].map((r, i) => (
+                    <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 10, fontSize: 12.5, fontWeight: 600, color: '#33373f' }}>
+                      <span style={{ width: 24, height: 24, borderRadius: 5, flex: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 800, fontSize: 12, background: r.bg, color: r.fg }}>A</span>
+                      {r.t}
+                    </div>
+                  ))}
+                </div>
               </div>
             )}
 

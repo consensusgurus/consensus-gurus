@@ -1433,7 +1433,7 @@ export default function QuizHomeClient() {
             ); })() : <div />}
           {geoPick ? (
             <Link href={`/quiz/${geoPick.id}`} className="hstile gtile" style={geoHero ? { backgroundImage: `url("${geoHero}")`, backgroundPosition: geoPos || 'center' } : { background: C.accent }}>
-              <span className="ttile-tag" style={{ color: '#0f766e', whiteSpace: 'nowrap' }}><Globe size={11} style={{ verticalAlign: -1 }} /> TOP GEO GUESSER</span>
+              <span className="ttile-tag" style={{ color: '#0f766e', whiteSpace: 'nowrap' }}><Globe size={11} style={{ verticalAlign: -1 }} /> FEATURED GEO GUESSER</span>
               <div className="ttile-ov">
                 <div className="ttile-t">{stripVerb(geoPick.title)}</div>
                 <div className="ttile-foot" style={{ flexWrap: 'nowrap' }}><span className="ttile-p" style={{ flex: 'none' }}>Play <ArrowRight size={13} style={{ verticalAlign: -1 }} /></span>{leader(geoPick.id) ? <span className="ttile-plays hpill" style={{ display: 'inline-flex', alignItems: 'center', gap: 4, minWidth: 0 }}><Crown size={12} style={{ color: '#e8b43a', flex: 'none' }} /><span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{leader(geoPick.id)}</span></span> : null}</div>
@@ -1479,7 +1479,7 @@ export default function QuizHomeClient() {
 
             {sportsPick ? (
             <Link href={`/quiz/${sportsPick.id}`} className="hstile stile" style={sptHero ? { backgroundImage: `url("${sptHero}")`, backgroundPosition: sptPos || 'center' } : { background: C.accent }}>
-              <span className="ttile-tag" style={{ color: '#b45309', whiteSpace: 'nowrap' }}><Trophy size={11} style={{ verticalAlign: -1 }} /> TOP SPORTS</span>
+              <span className="ttile-tag" style={{ color: '#b45309', whiteSpace: 'nowrap' }}><Trophy size={11} style={{ verticalAlign: -1 }} /> FEATURED SPORTS</span>
               <div className="ttile-ov">
                 <div className="ttile-t">{stripVerb(sportsPick.title)}</div>
                 <div className="ttile-foot" style={{ flexWrap: 'nowrap' }}><span className="ttile-p" style={{ flex: 'none' }}>Play <ArrowRight size={13} style={{ verticalAlign: -1 }} /></span>{leader(sportsPick.id) ? <span className="ttile-plays hpill" style={{ display: 'inline-flex', alignItems: 'center', gap: 4, minWidth: 0 }}><Crown size={12} style={{ color: '#e8b43a', flex: 'none' }} /><span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{leader(sportsPick.id)}</span></span> : null}</div>

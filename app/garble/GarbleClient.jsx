@@ -499,19 +499,21 @@ export default function GarbleClient({ puzzles = [], forceNum = null }) {
           )}
         </div>
 
-        {/* bottom: share invite + join + leaderboard */}
-        <div style={{ maxWidth: 640, margin: '30px auto 0' }}>
-          {playing && (
-            <button className="gb-btn" onClick={copyShare} style={{ width: '100%', justifyContent: 'center', textTransform: 'uppercase', fontSize: 12.5, letterSpacing: '0.05em', height: 52 }}>
-              <Share2 size={14} strokeWidth={2.5} /> {copied ? 'Copied' : 'Share This Puzzle'}
-            </button>
-          )}
-          {mobileUi && !standalone && (
-            <button onClick={a2hsClick} style={{ marginTop: playing ? 10 : 0, width: '100%', fontFamily: SANS, fontSize: 13.5, letterSpacing: '0.05em', textTransform: 'uppercase', fontWeight: 800, height: 54, borderRadius: 10, border: 'none', background: '#21b45e', color: '#fff', cursor: 'pointer', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 9, whiteSpace: 'nowrap' }}>
+        {/* daily-page bottom group: challenge + share + other games + archive, divider below */}
+        <DailyGamesGrid
+          self="garble"
+          maxWidth={640}
+          challengeHref={`/duel/new?quiz=${encodeURIComponent(PUZZLE.quizId)}`}
+          share={{ label: copied ? 'Copied' : 'Share This Puzzle', onClick: copyShare }}
+          divider
+        />
+        {mobileUi && !standalone && (
+          <div style={{ maxWidth: 640, margin: '16px auto 0' }}>
+            <button onClick={a2hsClick} style={{ width: '100%', fontFamily: SANS, fontSize: 13.5, letterSpacing: '0.05em', textTransform: 'uppercase', fontWeight: 800, height: 54, borderRadius: 10, border: 'none', background: '#21b45e', color: '#fff', cursor: 'pointer', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 9, whiteSpace: 'nowrap' }}>
               <Smartphone size={15} strokeWidth={2.5} /> Add to Home Screen
             </button>
-          )}
-        </div>
+          </div>
+        )}
         {showA2hsHelp && (
           <div onClick={() => setShowA2hsHelp(false)} style={{ position: 'fixed', inset: 0, background: 'rgba(20,22,28,0.55)', zIndex: 90, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 18 }}>
             <div onClick={(e) => e.stopPropagation()} style={{ background: '#fff', borderRadius: 14, maxWidth: 430, width: '100%', padding: '22px 22px 16px', fontFamily: SANS, border: '1.5px solid rgba(20,22,28,0.12)' }}>
@@ -536,7 +538,6 @@ export default function GarbleClient({ puzzles = [], forceNum = null }) {
             <JoinLeaderboardForm identity={identity} onJoined={(id) => { setIdentity(id); if (id && id.username) setPlayer((p) => p || { name: id.username, rank: null }); }} />
           </div>
         )}
-        <DailyGamesGrid self="garble" maxWidth={640} />
         <div style={{ maxWidth: 640, margin: '26px auto 0', background: '#fff', border: '1.5px solid rgba(20,22,28,0.12)', borderRadius: 12, padding: '14px 16px' }}>
           <QuizLeaderboard board={board} identity={identity} total={10} wordsCol={{ total: 5 }} />
         </div>
