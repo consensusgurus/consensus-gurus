@@ -9,7 +9,7 @@ import { PUZZLES } from './puzzles';
 export const metadata = {
   title: 'Crux — Free Daily Word Game | Source of Truths',
   description:
-    'A free daily word game — eight hidden words interlock in a clueless mini crossword, and four categories are the only hints. New puzzle every day.',
+    'A clueless crossword and a free daily word game. Eight hidden words interlock, and four categories are the only hints. New puzzle every day.',
   alternates: { canonical: '/crux' },
   manifest: '/crux.webmanifest',
   icons: {
@@ -20,7 +20,7 @@ export const metadata = {
   openGraph: {
     title: 'Crux — A Daily Word Game',
     description:
-      'Eight interlocking words, zero clues, four categories to untangle, eighteen shared guesses. A new word game from Source of Truths.',
+      'A clueless crossword. Eight interlocking words, four categories to untangle, eighteen shared guesses. A new daily word game from Source of Truths.',
     url: '/crux',
     type: 'website',
     siteName: 'Source of Truths',
@@ -29,7 +29,7 @@ export const metadata = {
     card: 'summary_large_image',
     title: 'Crux — A Daily Word Game',
     description:
-      'Eight interlocking words, zero clues, four categories to untangle, eighteen shared guesses.',
+      'A clueless crossword. Eight interlocking words, four categories to untangle, eighteen shared guesses.',
   },
 };
 
@@ -40,7 +40,7 @@ const gameJsonLd = {
   alternateName: 'Crux — Daily Word Game',
   url: 'https://sourceoftruths.com/crux',
   description:
-    'A free daily word game: eight hidden words interlock in a clueless mini crossword. Four categories are the only hints — guess real words on a shared budget, lock letters into the grid, then file each solved word under its category.',
+    'A clueless crossword and a free daily word game. Four categories are the only hints: guess real words on a shared budget, lock letters into the grid, then file each solved word under its category.',
   genre: ['Word game', 'Puzzle'],
   gamePlatform: 'Web browser',
   isAccessibleForFree: true,
