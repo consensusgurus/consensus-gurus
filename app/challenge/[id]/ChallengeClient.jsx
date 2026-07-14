@@ -7,8 +7,7 @@ import { getChallenge, challengeColumns } from '@/lib/challenges';
 import { getQuiz } from '@/lib/quizzes';
 import Grain from '../../Grain';
 import Footer from '../../Footer';
-import SiteHeader from '../../SiteHeader';
-import QuizPlayerBar from '../../quiz/[id]/QuizPlayerBar';
+import QuizNavHeader from '../../quizzes/QuizNavHeader';
 
 const COLORS = {
   cream: '#f7f8fa',
@@ -60,7 +59,7 @@ export default function ChallengeClient({ id }) {
     return (
       <div style={{ minHeight: '100vh', background: COLORS.cream, color: COLORS.ink, position: 'relative' }}>
         <Grain />
-        <SiteHeader active="quizzes" flush inlay={<QuizPlayerBar />} />
+        <QuizNavHeader />
         <div style={{ position: 'relative', zIndex: 2, padding: 48, textAlign: 'center' }}>
           <p style={{ fontFamily: FONT, fontStyle: 'italic', color: COLORS.faded, margin: 0 }}>That challenge could not be found.</p>
           <Link href="/quizzes" style={{ display: 'inline-block', marginTop: 16, fontFamily: FONT, fontSize: 12, letterSpacing: '0.14em', textTransform: 'uppercase', fontWeight: 700, color: '#fff', background: COLORS.ink, padding: '10px 20px', borderRadius: 10, textDecoration: 'none' }}>Back to all quizzes</Link>
@@ -98,7 +97,7 @@ export default function ChallengeClient({ id }) {
     <div style={{ minHeight: '100vh', background: COLORS.cream, color: COLORS.ink, position: 'relative', overflowX: 'clip' }}>
       <style>{`@import url('https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap');`}</style>
       <Grain />
-      <SiteHeader active="quizzes" flush inlay={<QuizPlayerBar />} />
+      <QuizNavHeader />
 
       <div className="qzf-w" style={{ position: 'relative', zIndex: 2, maxWidth: 1180, margin: '0 auto', padding: '8px 38px 80px' }}>
         <div className="qzf-line" aria-hidden="true" />

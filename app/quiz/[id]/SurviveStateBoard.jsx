@@ -31,8 +31,7 @@ import useAbandonFlush from './useAbandonFlush';
 import { quizDept as deptOf, DEPT_LABEL } from '@/lib/quiz-departments';
 import Grain from '../../Grain';
 import Footer from '../../Footer';
-import SiteHeader from '../../SiteHeader';
-import QuizPlayerBar from './QuizPlayerBar';
+import QuizNavHeader from '../../quizzes/QuizNavHeader';
 import QuizIdleActions from './QuizIdleActions';
 import Count from '../../Count';
 
@@ -386,7 +385,7 @@ export default function SurviveStateBoard({ quizId, mobile = false }) {
   return (
     <div style={{ minHeight: '100vh', background: COLORS.cream, color: COLORS.ink, position: 'relative', overflow: 'clip' }}>
       <ChallengeRunOverlay run={chRun} />
-      <div style={{ position: 'relative', zIndex: 3 }}><style>{`input:focus::placeholder{color:transparent}`}</style><SiteHeader active="quizzes" flush inlay={<QuizPlayerBar />} /></div>
+      <div style={{ position: 'relative', zIndex: 3 }}><style>{`input:focus::placeholder{color:transparent}`}</style><QuizNavHeader /></div>
       <div className="qzf-w" style={{ position: 'relative', zIndex: 2, maxWidth: 1180, margin: '0 auto', padding: '4px 38px 80px' }}><div className="qzf-line" aria-hidden="true" />
 
         <style>{`@import url('https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap');`}</style>

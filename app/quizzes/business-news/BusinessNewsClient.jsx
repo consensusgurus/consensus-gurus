@@ -1,8 +1,7 @@
 'use client';
 import React, { useState, useMemo } from 'react';
 import Link from 'next/link';
-import SiteHeader from '../../SiteHeader';
-import QuizPlayerBar from '../../quiz/[id]/QuizPlayerBar';
+import QuizNavHeader from '../QuizNavHeader';
 import Grain from '../../Grain';
 import Footer from '../../Footer';
 import { QUIZZES } from '@/lib/quizzes';
@@ -160,7 +159,7 @@ export default function BusinessNewsClient() {
     <div style={{ background: C.bg, minHeight: '100vh', position: 'relative' }}>
       <Grain />
       <style>{css}</style>
-      <SiteHeader active="quizzes" flush inlay={<QuizPlayerBar />} />
+      <QuizNavHeader />
       <div className="bnh qzf-w" style={{ maxWidth: 1180, margin: '0 auto', padding: '20px 38px 80px', position: 'relative', fontFamily: FONT }}><div className="qzf-line" aria-hidden="true" />
         <div className="eyebrow">Business · Quiz Hub</div>
         <h1>Business News</h1>

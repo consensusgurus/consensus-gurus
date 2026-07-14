@@ -13,8 +13,7 @@ import { quizDept as deptOf, DEPT_LABEL } from '@/lib/quiz-departments';
 import Grain from '../../Grain';
 import Footer from '../../Footer';
 import Count from '../../Count';
-import SiteHeader from '../../SiteHeader';
-import QuizPlayerBar from './QuizPlayerBar';
+import QuizNavHeader from '../../quizzes/QuizNavHeader';
 import { isMobileDevice } from '@/lib/is-mobile';
 import useAbandonFlush from './useAbandonFlush';
 import useDuelContext, { DuelBanner } from './useDuelContext';
@@ -1543,7 +1542,7 @@ export default function QuizClient({ quizId }) {
       <QuizCelebration kind={celebration} onDone={() => setCelebration(null)} />
       {duelBanner}
       <style>{`input:focus::placeholder{color:transparent}`}</style>
-      <SiteHeader active="quizzes" flush inlay={<QuizPlayerBar />} />
+      <QuizNavHeader />
       <div className="qz-pagewrap" style={{ position: 'relative', zIndex: 2, maxWidth: 1180, margin: '0 auto', padding: '8px 38px 80px' }}><style>{`@media(max-width:560px){.qz-pagewrap{padding-left:14px !important;padding-right:14px !important;}}`}</style><div className="qzf-line" aria-hidden="true" />
 
         <style>{`@import url('https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap');

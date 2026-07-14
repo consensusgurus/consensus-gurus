@@ -9,8 +9,13 @@ import QuizCommandHeader from './QuizCommandHeader';
 // hosts its own sign-up modal, so it drops straight in wherever the old
 // SiteHeader + QuizPlayerBar casing used to live. Page content widths below it
 // are unchanged; this only swaps the header chrome.
+//
+// The search box is hidden here with a scoped rule (`.qnh-wrap .qch-search`)
+// rather than a QuizCommandHeader prop, so the shared header component stays
+// untouched. No ticker is passed, so the ticker tape never renders.
 const ACCENT = '#2563eb', INK = '#1c1e24', MUTED = '#6b7280', SOFT = '#aeb4bd', LINE = 'rgba(20,22,28,0.09)';
 const MODAL_FONT = "'Manrope', system-ui, -apple-system, sans-serif";
+const NOOP = () => {};
 
 function getAnonId() { try { return localStorage.getItem('sot_quiz_anon'); } catch { return null; } }
 function ensureAnonId() {
@@ -74,7 +79,10 @@ export default function QuizNavHeader() {
   }, []);
   return (
     <>
-      <QuizCommandHeader me={me} hideSearch onSignup={() => setSignupOpen(true)} />
+      <div className="qnh-wrap">
+        <style>{`.qnh-wrap .qch-search,.qnh-wrap .qch-searchbtn{display:none !important;}`}</style>
+        <QuizCommandHeader me={me} search="" onSearch={NOOP} onSignup={() => setSignupOpen(true)} />
+      </div>
       {signupOpen && <SignupModal onClose={() => setSignupOpen(false)} />}
     </>
   );

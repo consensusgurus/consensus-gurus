@@ -2,8 +2,7 @@
 import React, { useState, useMemo, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import SiteHeader from '../../SiteHeader';
-import QuizPlayerBar from '../../quiz/[id]/QuizPlayerBar';
+import QuizNavHeader from '../../quizzes/QuizNavHeader';
 import Grain from '../../Grain';
 import Footer from '../../Footer';
 import DuelSignup from '../DuelSignup';
@@ -79,7 +78,7 @@ export default function NewDuelPage() {
     <div style={{ minHeight: '100vh', background: C.bg, fontFamily: FONT, color: C.ink, position: 'relative' }}>
       <Grain />
       {signupOpen && <DuelSignup anonId={myAnon} onClose={() => { setSignupOpen(false); setPendingQuiz(null); }} onDone={(un) => { setName(un); setSignupOpen(false); const pq = pendingQuiz; setPendingQuiz(null); if (pq) start(pq); }} />}
-      <SiteHeader active="quizzes" flush inlay={<QuizPlayerBar />} />
+      <QuizNavHeader />
       <div className="qzf-w" style={{ maxWidth: 1180, margin: '0 auto', padding: '12px 38px 70px', position: 'relative' }}>
         <div className="qzf-line" aria-hidden="true" />
         <div style={{ maxWidth: 720, margin: '0 auto' }}>

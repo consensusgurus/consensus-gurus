@@ -24,8 +24,7 @@ import { useChallengeRun, ChallengeRunOverlay } from './useChallengeRun';
 import useAbandonFlush from './useAbandonFlush';
 import Grain from '../../Grain';
 import Footer from '../../Footer';
-import SiteHeader from '../../SiteHeader';
-import QuizPlayerBar from './QuizPlayerBar';
+import QuizNavHeader from '../../quizzes/QuizNavHeader';
 import QuizPlayOverlay from './QuizPlayOverlay';
 import QuizIdleActions from './QuizIdleActions';
 import { isMobileDevice } from '@/lib/is-mobile';
@@ -445,7 +444,7 @@ export default function GridFillBoard({ quizId, mobile = false }) {
     <div style={{ minHeight: '100vh', background: COLORS.cream, color: COLORS.ink, position: 'relative', overflow: 'clip' }}>
       <Grain />
       <ChallengeRunOverlay run={chRun} />
-      <div style={{ position: 'relative', zIndex: 3 }}><style>{`input:focus::placeholder{color:transparent}`}</style><SiteHeader active="quizzes" flush inlay={<QuizPlayerBar />} /></div>
+      <div style={{ position: 'relative', zIndex: 3 }}><style>{`input:focus::placeholder{color:transparent}`}</style><QuizNavHeader /></div>
       <div className="qzf-w" style={{ position: 'relative', zIndex: 2, maxWidth: 1180, margin: '0 auto', padding: '4px 38px 80px' }}><style>{`@media(max-width:560px){.qzf-w{padding-left:14px !important;padding-right:14px !important;}}`}</style><div className="qzf-line" aria-hidden="true" />
 
         <style>{`@import url('https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap');`}</style>
