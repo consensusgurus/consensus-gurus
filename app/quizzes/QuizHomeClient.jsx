@@ -1058,11 +1058,14 @@ export default function QuizHomeClient() {
     @media(max-width:760px){.qzh .qotd{flex-direction:column;min-height:0;}.qzh .qotd-photo{flex:none;height:128px;}.qzh .qotd-title{font-size:21px;}}
     .qzh .thub{display:flex;gap:12px;margin-bottom:26px;align-items:stretch;}
     .qzh .thub-left{flex:1 1 auto;min-width:0;display:flex;flex-direction:column;gap:12px;}
-    .qzh .th-rail{flex:0 0 188px;align-self:flex-start;}
+    .qzh .th-rail{flex:0 0 188px;align-self:flex-start;min-height:442px;}
     .qzh .th-r2{display:grid;grid-template-columns:minmax(0,1.05fr) minmax(0,0.85fr) minmax(0,0.85fr) minmax(0,0.98fr);gap:12px;align-items:stretch;}
     .qzh .th-r2 .th-slot-hold{min-height:215px;}
     @media(max-width:820px){.qzh .thub{flex-direction:column;}.qzh .th-rail{align-self:stretch;}.qzh .th-r2{grid-template-columns:1fr 1fr;}.qzh .th-r2 .dtile{grid-column:1 / -1;}.qzh .th-r2 .dueltile{grid-column:1 / -1;}}
     @media(max-width:560px){.qzh .th-r2{grid-template-columns:minmax(0,1fr);}.qzh .th-rail{display:none !important;}.qzh .th-heroes .ntile{min-height:220px;background-position:center 12%;}.qzh .th-r2 .ttile{order:1;min-height:220px;}.qzh .th-r2 .stile{order:2;min-height:220px;}.qzh .th-r2 .dtile{order:3;}.qzh .th-r2 .dueltile{order:4;}.qzh .th-r2 .th-slot-hold{display:none;}.qzh .duelbtn{display:none !important;}/* Stacked full-width hero tiles: Newest matches Trending typography on mobile (needs .th-heroes for specificity over the base rules below) */.qzh .th-heroes .ntile-t{font-size:20px;}.qzh .th-heroes .ntile-tag{font-size:10px;padding:4px 10px;top:12px;left:12px;}.qzh .th-heroes .ntile-ov{padding:18px 16px 15px;}}
+    /* Short landscape phones (iPhone landscape ~<=480px tall): the header tiles get too narrow to wrap cleanly, so hide the two daily-rotating promo tiles there and reflow. Portrait phones keep them (full-width, wrap fine). */
+    @media (max-height:480px){.qzh .gtile{display:none !important;}.qzh .stile{display:none !important;}}
+    @media (max-height:480px) and (min-width:561px){.qzh .th-heroes{grid-template-columns:minmax(0,2fr) minmax(0,1fr);}.qzh .th-r2{grid-template-columns:minmax(0,1.1fr) minmax(0,0.9fr) minmax(0,1fr);}.qzh .th-r2 .dtile{grid-column:auto;}.qzh .th-r2 .dueltile{grid-column:auto;}.qzh .th-r2 .th-slot-hold{display:none;}}
     .qzh .dtile{background:#0e1d40;border-radius:14px;padding:14px 15px;color:#fff;display:flex;flex-direction:column;min-height:190px;}
     .qzh .dtile-head{display:flex;align-items:center;gap:8px;margin-bottom:9px;}
     .qzh .dtile-chip{font-size:10px;font-weight:800;background:rgba(255,255,255,0.2);border-radius:12px;padding:2px 9px;text-transform:uppercase;letter-spacing:.04em;}
@@ -1365,11 +1368,11 @@ export default function QuizHomeClient() {
               { key: 'span', href: '/span', name: 'Span', tag: 'Cross the map', img: '/games/btn-span.png' },
               { key: 'dating', href: '/dating', name: 'Dating', tag: 'Put history in order', img: '/games/btn-dating.png' },
             ];
-            // Mobile row 1 = [rotating pick, Crux]; row 2 = the other three,
+            // Mobile row 1 = [Crux, rotating pick]; row 2 = the other three,
             // smaller. Desktop keeps the canonical order via CSS `order`.
             const rot = GAMES.find((gm) => gm.key === gameRot) || GAMES[1];
             const rest = GAMES.filter((gm) => gm.key !== 'crux' && gm.key !== rot.key);
-            return [rot, GAMES[0], ...rest];
+            return [GAMES[0], rot, ...rest];
           })().map((gm) => (
             <a key={gm.href} href={gm.href} className={`th-game th-g-${gm.key}`} aria-label={`${gm.name} — daily game`}>
               <span className="th-game-txt">
