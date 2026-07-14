@@ -81,6 +81,28 @@ const DEPT_HERO_ALT = {
   geography: 'https://upload.wikimedia.org/wikipedia/commons/thumb/9/97/The_Earth_seen_from_Apollo_17.jpg/960px-The_Earth_seen_from_Apollo_17.jpg',
 };
 
+// Per-sport hero photos for the "Top Sports" tile, matched by keyword against the
+// quiz title/id so e.g. a golf quiz shows a golf course, not a football stadium.
+// First match wins; a quiz with its own QUIZ_HEROES entry still overrides this.
+const SPORT_HERO = [
+  [/\b(golf|pga|masters|ryder\s*cup|open\s*championship|augusta|st\.?\s*andrews)\b/i, 'https://upload.wikimedia.org/wikipedia/commons/thumb/6/6c/Pebble_Beach_Golf_Links_02.jpg/960px-Pebble_Beach_Golf_Links_02.jpg'],
+  [/\b(tennis|wimbledon|roland\s*garros|australian\s*open|atp|wta)\b/i, 'https://upload.wikimedia.org/wikipedia/commons/thumb/3/3f/National_Tennis_Center_outside_courts_and_stadium.jpg/960px-National_Tennis_Center_outside_courts_and_stadium.jpg'],
+  [/\b(nba|basketball|march\s*madness|wnba)\b/i, 'https://upload.wikimedia.org/wikipedia/commons/thumb/7/77/Rose_Garden_Arena_Interior.jpg/960px-Rose_Garden_Arena_Interior.jpg'],
+  [/\b(nfl|super\s*bowl|american\s*football|quarterback|heisman|college\s*football)\b/i, 'https://upload.wikimedia.org/wikipedia/commons/thumb/f/f9/Michigan_Stadium_Aerial.jpg/960px-Michigan_Stadium_Aerial.jpg'],
+  [/\b(soccer|premier\s*league|fifa|world\s*cup|la\s*liga|uefa|champions\s*league|bundesliga|serie\s*a|mls)\b/i, 'https://upload.wikimedia.org/wikipedia/commons/thumb/c/c3/Kashima_Soccer_Stadium_1.jpg/960px-Kashima_Soccer_Stadium_1.jpg'],
+  [/\b(baseball|mlb|world\s*series|home\s*run)\b/i, 'https://upload.wikimedia.org/wikipedia/commons/thumb/d/d0/Tianmu_Baseball_Stadium_aerial_photograph.jpg/960px-Tianmu_Baseball_Stadium_aerial_photograph.jpg'],
+  [/\b(hockey|nhl|stanley\s*cup)\b/i, 'https://upload.wikimedia.org/wikipedia/commons/thumb/5/56/Ice_Hockey_Game_-_Madison_Square_Garden_-_Boston_vs_New_York.jpg/960px-Ice_Hockey_Game_-_Madison_Square_Garden_-_Boston_vs_New_York.jpg'],
+  [/\b(olympic|olympics|olympian)\b/i, 'https://upload.wikimedia.org/wikipedia/commons/thumb/3/34/London_Olympic_Stadium_West_Ham.jpg/960px-London_Olympic_Stadium_West_Ham.jpg'],
+  [/\b(formula\s*1|formula\s*one|f1|grand\s*prix|nascar|indycar|motogp|le\s*mans|racing)\b/i, 'https://upload.wikimedia.org/wikipedia/commons/thumb/9/95/Formula_1_race_cars_on_display.jpg/960px-Formula_1_race_cars_on_display.jpg'],
+  [/\b(boxing|heavyweight|ufc|mma|knockout)\b/i, 'https://upload.wikimedia.org/wikipedia/commons/thumb/3/3a/Mall_of_Asia_Arena_during_Pacquiao-Bradley_PPV.jpg/960px-Mall_of_Asia_Arena_during_Pacquiao-Bradley_PPV.jpg'],
+];
+function sportHeroFor(q) {
+  if (!q) return null;
+  const hay = ((q.title || '') + ' ' + (q.id || ''));
+  for (let i = 0; i < SPORT_HERO.length; i++) { if (SPORT_HERO[i][0].test(hay)) return SPORT_HERO[i][1]; }
+  return null;
+}
+
 // Daily-game quizzes are date/topic-stamped (crux-*, garble-*, links-*, span-*,
 // closer-*) and every entry in a family shares ONE hero image, so the two hero
 // tiles (Newest + Trending) must never both draw from the same family.
@@ -875,7 +897,7 @@ export default function QuizHomeClient() {
   const geoHero = geoPick ? ((geoQH && geoQH.src) || DEPT_HERO[geoPick.dept] || DEPT_HERO.geography || FALLBACK_HERO) : null;
   const geoPos = geoQH ? geoQH.pos : undefined;
   const sptQH = sportsPick ? QUIZ_HEROES[sportsPick.id] : null;
-  const sptHero = sportsPick ? ((sptQH && sptQH.src) || DEPT_HERO[sportsPick.dept] || DEPT_HERO.sports || FALLBACK_HERO) : null;
+  const sptHero = sportsPick ? ((sptQH && sptQH.src) || sportHeroFor(sportsPick) || DEPT_HERO[sportsPick.dept] || DEPT_HERO.sports || FALLBACK_HERO) : null;
   const sptPos = sptQH ? sptQH.pos : undefined;
 
   const newestAll = useMemo(() => catalog.slice()
@@ -1056,9 +1078,9 @@ export default function QuizHomeClient() {
     .qzh .hstile{position:relative;border:1px solid ${C.line};border-radius:14px;overflow:hidden;text-decoration:none;display:flex;flex-direction:column;justify-content:flex-end;min-height:215px;background-size:cover;background-position:center;background-color:#0e1d40;}
     .qzh .qotd-stats{font-size:12px;color:#fff;font-weight:800;display:inline-flex;align-items:center;gap:6px;min-width:0;}
     @media(max-width:760px){.qzh .qotd{flex-direction:column;min-height:0;}.qzh .qotd-photo{flex:none;height:128px;}.qzh .qotd-title{font-size:21px;}}
-    .qzh .thub{display:flex;gap:12px;margin-bottom:26px;align-items:stretch;}
+    .qzh .thub{display:flex;gap:12px;margin-bottom:14px;align-items:stretch;}
     .qzh .thub-left{flex:1 1 auto;min-width:0;display:flex;flex-direction:column;gap:12px;}
-    .qzh .th-rail{flex:0 0 188px;align-self:flex-start;min-height:442px;}
+    .qzh .th-rail{flex:0 0 188px;}
     .qzh .th-r2{display:grid;grid-template-columns:minmax(0,1.05fr) minmax(0,0.85fr) minmax(0,0.85fr) minmax(0,0.98fr);gap:12px;align-items:stretch;}
     .qzh .th-r2 .th-slot-hold{min-height:215px;}
     @media(max-width:820px){.qzh .thub{flex-direction:column;}.qzh .th-rail{align-self:stretch;}.qzh .th-r2{grid-template-columns:1fr 1fr;}.qzh .th-r2 .dtile{grid-column:1 / -1;}.qzh .th-r2 .dueltile{grid-column:1 / -1;}}
@@ -1467,6 +1489,24 @@ export default function QuizHomeClient() {
             <DuelTile />
           </div>
 
+          </div>
+          <div className="rail th-rail">
+            <div className="rail-head"><BarChart3 size={14} style={{ color: '#5b8bff', flex: 'none' }} /><span className="x8" style={{ fontSize: 11.5, fontWeight: 800, letterSpacing: '.03em', color: '#f8b84a' }}>CATEGORY MASTERY</span></div>
+            {catMastery.length > 0 ? (
+              <div className="rail-bars">
+                {catMastery.slice(0, 14).map((m) => (
+                  <button type="button" key={m.key} onClick={() => goCat(m.key)} className="rseg" title={`${m.label} · ${m.acc}%`}>
+                    <span className="rmeter" style={{ width: `${m.acc}%` }} aria-hidden="true" />
+                    <span className="rseg-top"><span className="rnm">{m.label}</span><span className="rpct">{m.acc}%</span></span>
+                  </button>
+                ))}
+              </div>
+            ) : (
+              <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', textAlign: 'center', fontSize: 11, color: '#7d92bd', fontWeight: 600, padding: '0 6px' }}>Play a few quizzes to build your category mastery.</div>
+            )}
+          </div>
+        </div>
+
         {/* browse header + search (in the left column, beside the mastery rail) */}
         <div ref={quizzesRef} className="qz-browserow" style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 0, flexWrap: 'wrap' }}>
           {(searchResults || listMode || doneFilter !== 'all' || scope !== 'all') && (
@@ -1567,23 +1607,6 @@ export default function QuizHomeClient() {
               <ArrowRight size={15} style={{ flex: 'none' }} />
             </Link>
           )}
-        </div>
-          </div>
-          <div className="rail th-rail">
-            <div className="rail-head"><BarChart3 size={14} style={{ color: '#5b8bff', flex: 'none' }} /><span className="x8" style={{ fontSize: 11.5, fontWeight: 800, letterSpacing: '.03em', color: '#f8b84a' }}>CATEGORY MASTERY</span></div>
-            {catMastery.length > 0 ? (
-              <div className="rail-bars">
-                {catMastery.slice(0, 14).map((m) => (
-                  <button type="button" key={m.key} onClick={() => goCat(m.key)} className="rseg" title={`${m.label} · ${m.acc}%`}>
-                    <span className="rmeter" style={{ width: `${m.acc}%` }} aria-hidden="true" />
-                    <span className="rseg-top"><span className="rnm">{m.label}</span><span className="rpct">{m.acc}%</span></span>
-                  </button>
-                ))}
-              </div>
-            ) : (
-              <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', textAlign: 'center', fontSize: 11, color: '#7d92bd', fontWeight: 600, padding: '0 6px' }}>Play a few quizzes to build your category mastery.</div>
-            )}
-          </div>
         </div>
 
         {/* lists */}
