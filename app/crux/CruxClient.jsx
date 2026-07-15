@@ -785,7 +785,7 @@ export default function CruxClient({ puzzles = [], forceNum = null }) {
 
   // Option A metrics: the game is one centered column sized to the board.
   const allWordsSolved = PUZZLE.slots.every((s) => g.solved[s.id]);
-  const CS_FILL = Math.max(48, Math.min(68, Math.round((600 - (COLS - 1) * 3) / COLS))); // cells grow to fill ~600px
+  const CS_FILL = Math.max(48, Math.min(58, Math.round((540 - (COLS - 1) * 3) / COLS))); // fill toward ~540px, leaving room for the keyboard
   const GRID_W = COLS * CS_FILL + (COLS - 1) * 3;
   const COLW = Math.max(560, GRID_W + 40);      // + card padding, floor for narrow puzzles
 
@@ -879,7 +879,7 @@ export default function CruxClient({ puzzles = [], forceNum = null }) {
           .cl-cat-nm{margin-bottom:0 !important;}
           .cl-grid{--cs:${CS_FILL}px;}
           @media (max-width:900px){.cl-grid{--cs:min(${CS_FILL}px, calc((100vw - ${88 + (COLS - 1) * 3}px)/${COLS}));}}
-          @media (max-width:560px){.cx-wrap{padding-left:14px !important;padding-right:14px !important;}.cl-grid{--cs:calc((100vw - ${52 + (COLS - 1) * 3}px)/${COLS});}.cl-panel{padding:11px 11px 13px !important;}.cl-cat{padding:9px 11px !important;}}
+          @media (max-width:560px){.cx-wrap{padding-left:14px !important;padding-right:14px !important;}.cl-grid{--cs:min(46px, calc((100vw - ${52 + (COLS - 1) * 3}px)/${COLS}));}.cl-panel{padding:11px 11px 13px !important;}.cl-cat{flex-direction:column;align-items:flex-start;gap:5px;padding:9px 11px !important;}}
           @media (max-width:430px){.cl-cats{grid-template-columns:1fr;}}
           .cx-htp-s{display:none;}
           @media(max-width:520px){.cx-htp-f{display:none;}.cx-htp-s{display:inline;}}

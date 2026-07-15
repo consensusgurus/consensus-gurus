@@ -313,7 +313,7 @@ export default function GarbleClient({ puzzles = [], forceNum = null }) {
     const isSel = playing && sel === i && !g.solved[i];
     const solvedRow = !!g.solved[i];
     return (
-      <div key={i} onClick={() => { if (playing && !g.solved[i]) { setSel(i); setTyped(''); } }} style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 14, marginBottom: 12, cursor: playing && !g.solved[i] ? 'pointer' : 'default', flexWrap: 'wrap' }}>
+      <div key={i} onClick={() => { if (playing && !g.solved[i]) { setSel(i); setTyped(''); } }} style={{ display: 'flex', alignItems: 'center', gap: 14, marginBottom: 12, cursor: playing && !g.solved[i] ? 'pointer' : 'default', flexWrap: 'wrap' }}>
         <div style={{ display: 'flex', gap: 4 }}>
           {w.scramble.split('').map((ch, j) => (
             <span key={j} style={{ ...cellBase, width: 32, height: 32, fontSize: 16, background: COLORS.paper, color: COLORS.faded }}>{ch}</span>
@@ -455,9 +455,9 @@ export default function GarbleClient({ puzzles = [], forceNum = null }) {
               are pinned to the bottom of the screen (fixed bar below) and only
               the hint + reveal stay in the scroll flow */}
           {playing && (
-            <div style={{ maxWidth: 470, margin: '0 auto' }}>
+            <div style={{ maxWidth: 470 }}>
               {!mobileUi && (
-                <div style={{ textAlign: 'center', marginBottom: kbdOpen ? 8 : 0 }}>
+                <div style={{ textAlign: 'left', marginBottom: kbdOpen ? 8 : 0 }}>
                   <button onClick={() => setKbdOpen((o) => !o)} style={{ background: 'none', border: '1.5px solid rgba(28,30,36,0.22)', borderRadius: 8, padding: '6px 13px', cursor: 'pointer', fontFamily: SANS, fontWeight: 700, fontSize: 12, color: COLORS.faded }}>
                     {kbdOpen ? 'Hide keyboard' : 'Show keyboard'}
                   </button>
