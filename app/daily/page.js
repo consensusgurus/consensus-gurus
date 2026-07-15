@@ -37,6 +37,16 @@ function etTodayServer() {
   }
 }
 
+// Which drops are the bigger/harder Sunday edition. Span, Tally, and Suds flag
+// it right on the puzzle (`sunday: true`); Crux has no flag but its Sunday
+// Editions are the only 27-guess (12-word) boards. Games without a distinct
+// Sunday (Garble, Links, Dating) never match, so they stay unmarked.
+function isSundayEdition(key, p) {
+  if (p.sunday === true) return true;
+  if (key === 'crux' && p.guesses === 27) return true;
+  return false;
+}
+
 // Accents mirror DailyGamesPromo so each game reads the same across surfaces.
 const GAMES = [
   { key: 'crux', name: 'Crux', path: '/crux', tag: 'A clueless crossword', accent: '#2563eb', bg: '#eef4ff', border: 'rgba(37,99,235,0.35)', src: CRUX },
@@ -72,7 +82,7 @@ export default function DailyPage() {
     border: g.border,
     puzzles: g.src
       .filter((p) => p.live <= today)
-      .map((p) => ({ num: p.num, dateLabel: p.dateLabel, live: p.live, rev: p.rev || null, quizId: p.quizId }))
+      .map((p) => ({ num: p.num, dateLabel: p.dateLabel, live: p.live, rev: p.rev || null, quizId: p.quizId, sunday: isSundayEdition(g.key, p) }))
       .sort((a, b) => b.num - a.num),
   }));
   return (

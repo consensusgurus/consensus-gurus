@@ -15,6 +15,10 @@ const FADED = '#6b7280';
 const BG = '#f7f8fa';
 const GREEN = '#10b981';
 const GOLD = '#e8b43a';
+// Sunday-edition marker: a warm amber that reads as "special day" and stays
+// distinct from the gold completed-star and each card's own accent.
+const SUN = '#b45309';
+const SUN_BG = '#fff7ed';
 
 // Every localStorage key a game might have written for one puzzle. Crux keys a
 // mid-day revision as _r<rev>, and a player may have finished EITHER the bare
@@ -102,6 +106,7 @@ export default function DailyArchiveClient({ games = [] }) {
         .dl-chip:hover{border-color:${INK};}
         .dl-tick{font-size:12px;font-weight:900;line-height:1;}
         .dl-today-tag{font-family:${MONO};font-size:9px;letter-spacing:.1em;text-transform:uppercase;font-weight:700;border-radius:4px;padding:1px 5px;}
+        .dl-sun-tag{font-family:${MONO};font-size:9px;letter-spacing:.1em;text-transform:uppercase;font-weight:700;border-radius:4px;padding:1px 5px;color:${SUN};background:${SUN_BG};border:1px solid rgba(180,83,9,0.4);}
       `}</style>
 
       <div className="dl-wrap">
@@ -125,6 +130,7 @@ export default function DailyArchiveClient({ games = [] }) {
         <div style={{ display: 'flex', gap: 18, flexWrap: 'wrap', marginTop: 11, fontFamily: SANS, fontSize: 12.5, fontWeight: 700, color: FADED }}>
           <span><span style={{ color: GREEN, fontWeight: 900 }}>&#10003;</span> Played</span>
           <span><span style={{ color: GOLD, fontWeight: 900 }}>&#9733;</span> Completed</span>
+          <span><span className="dl-sun-tag" style={{ marginRight: 5 }}>Sun</span> Sunday edition &mdash; bigger &amp; tougher</span>
         </div>
 
         {games.map((g) => {
@@ -166,10 +172,13 @@ export default function DailyArchiveClient({ games = [] }) {
                             ? { borderColor: g.accent }
                             : undefined
                       }
-                      aria-label={`${g.name} — ${shortDate(p.dateLabel)}${isToday ? ' (today)' : ''}${isDone ? ', completed' : isPlayed ? ', played' : ''}`}
+                      aria-label={`${g.name} — ${shortDate(p.dateLabel)}${isToday ? ' (today)' : ''}${p.sunday ? ', Sunday edition' : ''}${isDone ? ', completed' : isPlayed ? ', played' : ''}`}
                     >
                       {isToday && (
                         <span className="dl-today-tag" style={{ background: g.accent, color: '#fff' }}>Today</span>
+                      )}
+                      {p.sunday && (
+                        <span className="dl-sun-tag" title="Sunday edition — bigger &amp; tougher">Sun</span>
                       )}
                       <span>{shortDate(p.dateLabel)}</span>
                       {ready && isDone && <span className="dl-tick" style={{ color: GOLD }} aria-hidden="true">&#9733;</span>}
