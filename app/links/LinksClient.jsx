@@ -460,6 +460,7 @@ export default function LinksClient({ puzzles = [], forceNum = null }) {
           @keyframes lkfade{from{opacity:0;}}
           @keyframes lkstamp{from{opacity:0;transform:scale(.94);}}
           @media(max-width:520px){.lk-htp-f{display:none;}.lk-htp-s{display:inline;}}
+          @media(max-width:560px){.lk-ttl{flex-direction:column;align-items:flex-start;gap:1px;}.lk-ttl h1{font-size:21px;letter-spacing:0.02em;}.lk-ttl .lk-ttl-dt{font-size:15px;}.lk-ttl-dot{display:none;}}
           .lk-htp-s{display:none;}
         `}</style>
 
@@ -478,23 +479,21 @@ export default function LinksClient({ puzzles = [], forceNum = null }) {
           )}
         </div>
 
-        {/* masthead: pressed LINKS tiles in the four thread colors */}
-        <div style={{ marginBottom: 16 }}>
+        {/* masthead: pressed LINKS tiles with No./date inline, one rule beneath */}
+        <div className="lk-mh" style={{ display: 'flex', alignItems: 'center', gap: 14, flexWrap: 'wrap', position: 'relative', paddingRight: 28, marginBottom: 16, borderBottom: '2px solid rgba(28,30,36,0.8)', paddingBottom: 11 }}>
           <div style={{ display: 'flex', gap: 5, alignItems: 'flex-end' }}>
             {'LINKS'.split('').map((ch, i) => (
               <div key={i} style={{ width: 46, height: 46, borderRadius: 5, display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: SANS, fontWeight: 900, fontSize: 28, background: i === 0 ? COLORS.ink : CAT_COLORS[i - 1].bg, color: '#fff', boxShadow: 'inset 0 2px 5px rgba(0,0,0,0.5), 0 1px 0 rgba(255,255,255,0.65)' }}>{ch}</div>
             ))}
           </div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 13, flexWrap: 'wrap', marginTop: 14, borderTop: '2px solid rgba(28,30,36,0.8)', borderBottom: '1px solid rgba(28,30,36,0.35)', padding: '7px 2px' }}>
-            <h1 style={{ margin: 0, fontFamily: MONO, fontSize: 12, letterSpacing: '0.08em', fontWeight: 500, color: COLORS.ink }}>No. {PUZZLE.num}</h1>
-            <span style={{ fontFamily: SANS, fontStyle: 'italic', fontSize: 14, color: COLORS.ink }}>{PUZZLE.dateLabel}</span>
-            <span style={{ fontFamily: MONO, fontSize: 10.5, letterSpacing: '0.12em', textTransform: 'uppercase', color: COLORS.faded }}>four hidden threads</span>
-            <span style={{ marginLeft: 'auto', display: 'flex', gap: 14 }}>
-              <button onClick={() => setShowHelp(true)} aria-label="How to play" style={{ background: 'none', border: 'none', cursor: 'pointer', color: COLORS.faded, display: 'flex', alignItems: 'center', gap: 5, fontFamily: SANS, fontWeight: 700, fontSize: 12.5, padding: 0 }}>
-                <HelpCircle size={16} /> <span className="lk-htp-f">How to play</span><span className="lk-htp-s">Help</span>
-              </button>
-            </span>
+          <div className="lk-ttl" style={{ display: 'flex', alignItems: 'baseline', gap: 9 }}>
+            <h1 style={{ margin: 0, fontFamily: MONO, fontSize: 14, letterSpacing: '0.06em', fontWeight: 500, color: COLORS.ink }}>No. {PUZZLE.num}</h1>
+            <span className="lk-ttl-dot" style={{ color: COLORS.faded }}>&middot;</span>
+            <span className="lk-ttl-dt" style={{ fontFamily: SANS, fontStyle: 'italic', fontSize: 15, color: COLORS.faded }}>{PUZZLE.dateLabel}</span>
           </div>
+          <button onClick={() => setShowHelp(true)} aria-label="How to play" title="How to play" style={{ position: 'absolute', top: 13, right: 2, background: 'none', border: 'none', cursor: 'pointer', color: COLORS.faded, padding: 0, display: 'flex' }}>
+            <HelpCircle size={20} />
+          </button>
         </div>
 
         {/* banked groups */}

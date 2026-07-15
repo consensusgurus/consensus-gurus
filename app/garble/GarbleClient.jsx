@@ -99,6 +99,7 @@ export default function GarbleClient({ puzzles = [], forceNum = null }) {
   const [showA2hsHelp, setShowA2hsHelp] = useState(false);
   const [standalone, setStandalone] = useState(false);
   const [mobileUi, setMobileUi] = useState(false); // effect-set so SSR/hydration match
+  const [kbdOpen, setKbdOpen] = useState(false); // desktop: on-screen keyboard collapsed by default
   useEffect(() => {
     try {
       setStandalone(window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true);
@@ -312,10 +313,10 @@ export default function GarbleClient({ puzzles = [], forceNum = null }) {
     const isSel = playing && sel === i && !g.solved[i];
     const solvedRow = !!g.solved[i];
     return (
-      <div key={i} onClick={() => { if (playing && !g.solved[i]) { setSel(i); setTyped(''); } }} style={{ display: 'flex', alignItems: 'center', gap: 14, marginBottom: 12, cursor: playing && !g.solved[i] ? 'pointer' : 'default', flexWrap: 'wrap' }}>
+      <div key={i} onClick={() => { if (playing && !g.solved[i]) { setSel(i); setTyped(''); } }} style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 14, marginBottom: 12, cursor: playing && !g.solved[i] ? 'pointer' : 'default', flexWrap: 'wrap' }}>
         <div style={{ display: 'flex', gap: 4 }}>
           {w.scramble.split('').map((ch, j) => (
-            <span key={j} style={{ ...cellBase, width: 30, height: 30, fontSize: 15, background: COLORS.paper, color: COLORS.faded }}>{ch}</span>
+            <span key={j} style={{ ...cellBase, width: 32, height: 32, fontSize: 16, background: COLORS.paper, color: COLORS.faded }}>{ch}</span>
           ))}
         </div>
         <span style={{ color: '#c3c8cf', fontWeight: 800 }}>&rarr;</span>
@@ -338,7 +339,7 @@ export default function GarbleClient({ puzzles = [], forceNum = null }) {
             } else if (marked) {
               border = `2px solid ${COLORS.gold}`;
             }
-            return <span key={j} style={{ ...cellBase, width: 38, height: 38, fontSize: 18, background: bg, color: fg, border }}>{letter}</span>;
+            return <span key={j} style={{ ...cellBase, width: 44, height: 44, fontSize: 21, background: bg, color: fg, border }}>{letter}</span>;
           })}
         </div>
       </div>
@@ -374,6 +375,7 @@ export default function GarbleClient({ puzzles = [], forceNum = null }) {
             @media(max-width:560px){.gb-wrap{padding-left:14px !important;padding-right:14px !important;}}
             .gb-htp-s{display:none;}
             @media(max-width:520px){.gb-htp-f{display:none;}.gb-htp-s{display:inline;}}
+            @media(max-width:560px){.gb-ttl{flex-direction:column;align-items:flex-start;gap:1px;}.gb-ttl h1{font-size:21px;letter-spacing:0.02em;}.gb-ttl .gb-ttl-dt{font-size:15px;}.gb-ttl-dot{display:none;}}
           `}</style>
 
           {/* game-native top strip: quiet nav out to the rest of the site,
@@ -390,8 +392,8 @@ export default function GarbleClient({ puzzles = [], forceNum = null }) {
             )}
           </div>
 
-          {/* masthead: pressed GARBLE tiles (gold ends echo the finale-feed) over a dateline */}
-          <div style={{ marginBottom: 16 }}>
+          {/* masthead: pressed GARBLE tiles with No./date inline, one rule beneath */}
+          <div className="gb-mh" style={{ display: 'flex', alignItems: 'center', gap: 14, flexWrap: 'wrap', position: 'relative', paddingRight: 28, marginBottom: 16, borderBottom: '2px solid rgba(28,30,36,0.8)', paddingBottom: 11 }}>
             <div style={{ display: 'flex', gap: 5, alignItems: 'flex-end' }}>
               {'GARBLE'.split('').map((ch, i) => {
                 const gold = i === 0 || i === 5;
@@ -400,16 +402,14 @@ export default function GarbleClient({ puzzles = [], forceNum = null }) {
                 );
               })}
             </div>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 13, flexWrap: 'wrap', marginTop: 14, borderTop: '2px solid rgba(28,30,36,0.8)', borderBottom: '1px solid rgba(28,30,36,0.35)', padding: '7px 2px' }}>
-              <h1 style={{ margin: 0, fontFamily: MONO, fontSize: 12, letterSpacing: '0.08em', fontWeight: 500, color: COLORS.ink }}>No. {PUZZLE.num}</h1>
-              <span style={{ fontFamily: SANS, fontStyle: 'italic', fontSize: 14, color: COLORS.ink }}>{PUZZLE.dateLabel}</span>
-              <span style={{ fontFamily: MONO, fontSize: 10.5, letterSpacing: '0.12em', textTransform: 'uppercase', color: COLORS.faded }}>five words, one finale</span>
-              <span style={{ marginLeft: 'auto', display: 'flex', gap: 14 }}>
-                <button onClick={() => setShowHelp(true)} aria-label="How to play" style={{ background: 'none', border: 'none', cursor: 'pointer', color: COLORS.faded, display: 'flex', alignItems: 'center', gap: 5, fontFamily: SANS, fontWeight: 700, fontSize: 12.5, padding: 0 }}>
-                  <HelpCircle size={16} /> <span className="gb-htp-f">How to play</span><span className="gb-htp-s">Help</span>
-                </button>
-              </span>
+            <div className="gb-ttl" style={{ display: 'flex', alignItems: 'baseline', gap: 9 }}>
+              <h1 style={{ margin: 0, fontFamily: MONO, fontSize: 14, letterSpacing: '0.06em', fontWeight: 500, color: COLORS.ink }}>No. {PUZZLE.num}</h1>
+              <span className="gb-ttl-dot" style={{ color: COLORS.faded }}>&middot;</span>
+              <span className="gb-ttl-dt" style={{ fontFamily: SANS, fontStyle: 'italic', fontSize: 15, color: COLORS.faded }}>{PUZZLE.dateLabel}</span>
             </div>
+            <button onClick={() => setShowHelp(true)} aria-label="How to play" title="How to play" style={{ position: 'absolute', top: 13, right: 2, background: 'none', border: 'none', cursor: 'pointer', color: COLORS.faded, padding: 0, display: 'flex' }}>
+              <HelpCircle size={20} />
+            </button>
           </div>
 
           <div style={{ display: 'flex', alignItems: 'center', gap: 18, flexWrap: 'wrap', marginBottom: 16 }}>
@@ -446,7 +446,7 @@ export default function GarbleClient({ puzzles = [], forceNum = null }) {
                   fg = COLORS.ember;
                   border = `2px solid ${typed.length === j ? COLORS.ember : 'rgba(37,99,235,0.55)'}`;
                 }
-                return <span key={j} style={{ ...cellBase, width: 38, height: 38, fontSize: 18, background: bg, color: fg, border }}>{letter}</span>;
+                return <span key={j} style={{ ...cellBase, width: 44, height: 44, fontSize: 21, background: bg, color: fg, border }}>{letter}</span>;
               })}
             </div>
           </div>
@@ -455,8 +455,15 @@ export default function GarbleClient({ puzzles = [], forceNum = null }) {
               are pinned to the bottom of the screen (fixed bar below) and only
               the hint + reveal stay in the scroll flow */}
           {playing && (
-            <div style={{ maxWidth: 470 }}>
-              {!mobileUi && keyboardRows}
+            <div style={{ maxWidth: 470, margin: '0 auto' }}>
+              {!mobileUi && (
+                <div style={{ textAlign: 'center', marginBottom: kbdOpen ? 8 : 0 }}>
+                  <button onClick={() => setKbdOpen((o) => !o)} style={{ background: 'none', border: '1.5px solid rgba(28,30,36,0.22)', borderRadius: 8, padding: '6px 13px', cursor: 'pointer', fontFamily: SANS, fontWeight: 700, fontSize: 12, color: COLORS.faded }}>
+                    {kbdOpen ? 'Hide keyboard' : 'Show keyboard'}
+                  </button>
+                </div>
+              )}
+              {!mobileUi && kbdOpen && keyboardRows}
               <p style={{ fontSize: 11.5, color: COLORS.faded, fontWeight: 600, margin: mobileUi ? '0 0 2px' : '6px 0 0', textAlign: 'center' }}>
                 Use exactly the letters shown. The finale is fair game at any time.
               </p>

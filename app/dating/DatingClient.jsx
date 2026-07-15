@@ -483,6 +483,7 @@ export default function DatingClient({ puzzles = [], forceNum = null }) {
           .dt-arrow:hover{background:${COLORS.plumSoft};border-color:${COLORS.plum};color:${COLORS.plum};}
           .dt-arrow:disabled{opacity:.25;cursor:default;background:#fff;border-color:rgba(28,30,36,0.3);color:${COLORS.ink};}
           @media(max-width:520px){.dt-htp-f{display:none;}.dt-htp-s{display:inline;}}
+          @media(max-width:560px){.dt-ttl{flex-direction:column;align-items:flex-start;gap:1px;}.dt-ttl h1{font-size:21px;letter-spacing:0.02em;}.dt-ttl .dt-ttl-dt{font-size:15px;}.dt-ttl-dot{display:none;}}
           .dt-htp-s{display:none;}
         `}</style>
 
@@ -501,23 +502,21 @@ export default function DatingClient({ puzzles = [], forceNum = null }) {
           )}
         </div>
 
-        {/* masthead: pressed DATING tiles, plum accent */}
-        <div style={{ marginBottom: 16 }}>
+        {/* masthead: pressed DATING tiles with No./date inline, one rule beneath */}
+        <div className="dt-mh" style={{ display: 'flex', alignItems: 'center', gap: 14, flexWrap: 'wrap', position: 'relative', paddingRight: 28, marginBottom: 16, borderBottom: '2px solid rgba(28,30,36,0.8)', paddingBottom: 11 }}>
           <div style={{ display: 'flex', gap: 5, alignItems: 'flex-end' }}>
             {'DATING'.split('').map((ch, i) => (
               <div key={i} style={{ width: 42, height: 42, borderRadius: 5, display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: SANS, fontWeight: 900, fontSize: 25, background: i === 1 ? COLORS.plum : COLORS.ink, color: '#fff', boxShadow: 'inset 0 2px 5px rgba(0,0,0,0.5), 0 1px 0 rgba(255,255,255,0.65)' }}>{ch}</div>
             ))}
           </div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 13, flexWrap: 'wrap', marginTop: 14, borderTop: '2px solid rgba(28,30,36,0.8)', borderBottom: '1px solid rgba(28,30,36,0.35)', padding: '7px 2px' }}>
-            <h1 style={{ margin: 0, fontFamily: MONO, fontSize: 12, letterSpacing: '0.08em', fontWeight: 500, color: COLORS.ink }}>No. {PUZZLE.num}</h1>
-            <span style={{ fontFamily: SANS, fontStyle: 'italic', fontSize: 14, color: COLORS.ink }}>{PUZZLE.dateLabel}</span>
-            <span style={{ fontFamily: MONO, fontSize: 10.5, letterSpacing: '0.12em', textTransform: 'uppercase', color: COLORS.faded }}>put history in order</span>
-            <span style={{ marginLeft: 'auto', display: 'flex', gap: 14 }}>
-              <button onClick={() => setShowHelp(true)} aria-label="How to play" style={{ background: 'none', border: 'none', cursor: 'pointer', color: COLORS.faded, display: 'flex', alignItems: 'center', gap: 5, fontFamily: SANS, fontWeight: 700, fontSize: 12.5, padding: 0 }}>
-                <HelpCircle size={16} /> <span className="dt-htp-f">How to play</span><span className="dt-htp-s">Help</span>
-              </button>
-            </span>
+          <div className="dt-ttl" style={{ display: 'flex', alignItems: 'baseline', gap: 9 }}>
+            <h1 style={{ margin: 0, fontFamily: MONO, fontSize: 14, letterSpacing: '0.06em', fontWeight: 500, color: COLORS.ink }}>No. {PUZZLE.num}</h1>
+            <span className="dt-ttl-dot" style={{ color: COLORS.faded }}>&middot;</span>
+            <span className="dt-ttl-dt" style={{ fontFamily: SANS, fontStyle: 'italic', fontSize: 15, color: COLORS.faded }}>{PUZZLE.dateLabel}</span>
           </div>
+          <button onClick={() => setShowHelp(true)} aria-label="How to play" title="How to play" style={{ position: 'absolute', top: 13, right: 2, background: 'none', border: 'none', cursor: 'pointer', color: COLORS.faded, padding: 0, display: 'flex' }}>
+            <HelpCircle size={20} />
+          </button>
         </div>
 
         {/* the board */}

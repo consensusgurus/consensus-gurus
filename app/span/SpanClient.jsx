@@ -467,6 +467,7 @@ export default function SpanClient({ puzzles = [], forceNum = null }) {
           .sp-sug{display:block;width:100%;text-align:left;background:#fff;border:none;border-bottom:1px solid rgba(28,30,36,0.08);font-family:${SANS};font-weight:700;font-size:14px;color:${COLORS.ink};padding:9px 13px;cursor:pointer;}
           .sp-sug:hover{background:#eef4ff;}
           @media(max-width:520px){.sp-htp-f{display:none;}.sp-htp-s{display:inline;}}
+          @media(max-width:560px){.sp-ttl{flex-direction:column;align-items:flex-start;gap:1px;}.sp-ttl h1{font-size:21px;letter-spacing:0.02em;}.sp-ttl .sp-ttl-dt{font-size:15px;}.sp-ttl-dot{display:none;}}
           .sp-htp-s{display:none;}
         `}</style>
 
@@ -485,23 +486,21 @@ export default function SpanClient({ puzzles = [], forceNum = null }) {
           )}
         </div>
 
-        {/* masthead: pressed SPAN tiles, trail-green accent */}
-        <div style={{ marginBottom: 16 }}>
+        {/* masthead: pressed SPAN tiles with No./date inline, one rule beneath */}
+        <div className="sp-mh" style={{ display: 'flex', alignItems: 'center', gap: 14, flexWrap: 'wrap', position: 'relative', paddingRight: 28, marginBottom: 16, borderBottom: '2px solid rgba(28,30,36,0.8)', paddingBottom: 11 }}>
           <div style={{ display: 'flex', gap: 5, alignItems: 'flex-end' }}>
             {'SPAN'.split('').map((ch, i) => (
               <div key={i} style={{ width: 46, height: 46, borderRadius: 5, display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: SANS, fontWeight: 900, fontSize: 28, background: i === 2 ? COLORS.trail : COLORS.ink, color: '#fff', boxShadow: 'inset 0 2px 5px rgba(0,0,0,0.5), 0 1px 0 rgba(255,255,255,0.65)' }}>{ch}</div>
             ))}
           </div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 13, flexWrap: 'wrap', marginTop: 14, borderTop: '2px solid rgba(28,30,36,0.8)', borderBottom: '1px solid rgba(28,30,36,0.35)', padding: '7px 2px' }}>
-            <h1 style={{ margin: 0, fontFamily: MONO, fontSize: 12, letterSpacing: '0.08em', fontWeight: 500, color: COLORS.ink }}>No. {PUZZLE.num}</h1>
-            <span style={{ fontFamily: SANS, fontStyle: 'italic', fontSize: 14, color: COLORS.ink }}>{PUZZLE.dateLabel}</span>
-            <span style={{ fontFamily: MONO, fontSize: 10.5, letterSpacing: '0.12em', textTransform: 'uppercase', color: COLORS.faded }}>border by border</span>
-            <span style={{ marginLeft: 'auto', display: 'flex', gap: 14 }}>
-              <button onClick={() => setShowHelp(true)} aria-label="How to play" style={{ background: 'none', border: 'none', cursor: 'pointer', color: COLORS.faded, display: 'flex', alignItems: 'center', gap: 5, fontFamily: SANS, fontWeight: 700, fontSize: 12.5, padding: 0 }}>
-                <HelpCircle size={16} /> <span className="sp-htp-f">How to play</span><span className="sp-htp-s">Help</span>
-              </button>
-            </span>
+          <div className="sp-ttl" style={{ display: 'flex', alignItems: 'baseline', gap: 9 }}>
+            <h1 style={{ margin: 0, fontFamily: MONO, fontSize: 14, letterSpacing: '0.06em', fontWeight: 500, color: COLORS.ink }}>No. {PUZZLE.num}</h1>
+            <span className="sp-ttl-dot" style={{ color: COLORS.faded }}>&middot;</span>
+            <span className="sp-ttl-dt" style={{ fontFamily: SANS, fontStyle: 'italic', fontSize: 15, color: COLORS.faded }}>{PUZZLE.dateLabel}</span>
           </div>
+          <button onClick={() => setShowHelp(true)} aria-label="How to play" title="How to play" style={{ position: 'absolute', top: 13, right: 2, background: 'none', border: 'none', cursor: 'pointer', color: COLORS.faded, padding: 0, display: 'flex' }}>
+            <HelpCircle size={20} />
+          </button>
         </div>
 
         {/* the assignment */}
