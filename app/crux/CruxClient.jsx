@@ -783,11 +783,13 @@ export default function CruxClient({ puzzles = [], forceNum = null }) {
   const lost = g.status === 'lost';
   const won = g.status === 'won';
 
-  // Option A metrics: the game is one centered column sized to the board.
+  // Play space matches the daily-games grid width (640): the header + puzzle
+  // card fill the same column as the navy grid below. The board keeps its own
+  // cell size (CS_FILL) and stays centered inside that wider card, so its
+  // height is unchanged and it still fits on one screen.
   const allWordsSolved = PUZZLE.slots.every((s) => g.solved[s.id]);
   const CS_FILL = Math.max(48, Math.min(58, Math.round((540 - (COLS - 1) * 3) / COLS))); // fill toward ~540px, leaving room for the keyboard
-  const GRID_W = COLS * CS_FILL + (COLS - 1) * 3;
-  const COLW = Math.max(560, GRID_W + 40);      // + card padding, floor for narrow puzzles
+  const COLW = 640;      // matches DailyGamesGrid; board stays centered at its own size
 
   // Board-driven filing overlays: the word you've picked up glows (cx-armed),
   // solved-but-unfiled words are underlined (cx-unfiled), and each filed word
@@ -1206,7 +1208,7 @@ export default function CruxClient({ puzzles = [], forceNum = null }) {
           </div>
         </div>
         )}
-        <div style={{ maxWidth: 760, margin: '26px auto 0', background: '#fff', border: '1.5px solid rgba(20,22,28,0.12)', borderRadius: 12, padding: '14px 16px' }}>
+        <div style={{ maxWidth: 640, margin: '26px auto 0', background: '#fff', border: '1.5px solid rgba(20,22,28,0.12)', borderRadius: 12, padding: '14px 16px' }}>
           <QuizLeaderboard daily board={board} identity={identity} total={PUZZLE.slots.length * 2} />
         </div>
 
@@ -1269,7 +1271,7 @@ export default function CruxClient({ puzzles = [], forceNum = null }) {
       )}
 
       {/* About Crux — crawlable prose for search, server-rendered into the initial HTML */}
-      <section style={{ position: 'relative', zIndex: 2, maxWidth: 760, margin: '0 auto', padding: '10px 24px 42px', fontFamily: SANS }}>
+      <section style={{ position: 'relative', zIndex: 2, maxWidth: 640, margin: '0 auto', padding: '10px 24px 42px', fontFamily: SANS }}>
         <h2 style={{ margin: '0 0 8px', fontSize: 15, fontWeight: 800, letterSpacing: '-0.01em', color: COLORS.ink }}>About Crux</h2>
         <p style={{ margin: '0 0 8px', fontSize: 13, lineHeight: 1.65, color: COLORS.faded, fontWeight: 600 }}>
           Crux is a free daily word game from Source of Truths &mdash; a clueless crossword. Eight hidden words (twelve in the Sunday Edition) interlock in a compact grid, and the only hints are four visible categories; working out which words belong to them is the puzzle.
