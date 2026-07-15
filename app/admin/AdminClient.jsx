@@ -6,7 +6,7 @@ import { Check, X, Eye, EyeOff, LogOut, Pencil, Trash2, MapPin } from 'lucide-re
 import { LISTS } from '@/lib/data';
 import Grain from '@/app/Grain';
 import GeoMapPanel from './GeoMapPanel';
-import { exportUsersCsv, exportGamesCsv } from './csv-export';
+import { exportUsersCsv, exportGamesCsv, downloadCsvFile } from './csv-export';
 
 // Local theme palette: the live-site look (Manrope + soft blue) applied to the
 // admin desk. Shadows the magazine COLORS from lib/data so the public site is
@@ -373,7 +373,7 @@ function mapsPlaceUrl(name) {
   return `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(cleaned)}`;
 }
 
-export default function AdminClient({ initialLists, initialExtras = [], initialComplaints = [], initialVoteStandings = [], initialVoteEvents = [], initialComments = [], initialAlerts = [], initialViews24h = [], initialEditorNotes = [], initialQuizSignups = [], initialQuizStats = [], initialAnonPlayers = [], initialActiveUsers = { players: { dau: 0, wau: 0, mau: 0 }, visitors: null }, initialGeoMap = null, initialDailyRetention = { games: [], breadth: { total: 0, histogram: [] } } }) {
+export default function AdminClient({ initialLists, initialExtras = [], initialComplaints = [], initialVoteStandings = [], initialVoteEvents = [], initialComments = [], initialAlerts = [], initialViews24h = [], initialEditorNotes = [], initialQuizSignups = [], initialQuizStats = [], initialAnonPlayers = [], initialActiveUsers = { players: { dau: 0, wau: 0, mau: 0 }, visitors: null }, initialGeoMap = null, initialDailyRetention = { games: [], breadth: { total: 0, histogram: [] } }, initialTimeByDay = { series: [], totals: {} } }) {
   const router = useRouter();
   const [lists, setLists] = useState(initialLists);
   const [extras, setExtras] = useState(initialExtras);
@@ -759,7 +759,7 @@ export default function AdminClient({ initialLists, initialExtras = [], initialC
         </div>
 
         {tab === 'analytics' ? (
-          <AnalyticsPanel views={views24h} viewsTotal={views24hTotal} quizStats={quizStats} quizPlaysTotal={quizPlaysTotal} signups={quizSignups} anonPlayers={anonPlayers} activeUsers={initialActiveUsers} geoMap={initialGeoMap} dailyRetention={initialDailyRetention} />
+          <AnalyticsPanel views={views24h} viewsTotal={views24hTotal} quizStats={quizStats} quizPlaysTotal={quizPlaysTotal} signups={quizSignups} anonPlayers={anonPlayers} activeUsers={initialActiveUsers} geoMap={initialGeoMap} dailyRetention={initialDailyRetention} timeByDay={initialTimeByDay} />
         ) : tab === 'research' ? (
           <ResearchNotesPanel alerts={alerts} busy={busy} onResolve={resolveAlert} notes={editorNotes} lists={LISTS} onAddNote={addNote} onDeleteNote={deleteNote} />
         ) : tab === 'feedback' ? (
@@ -2044,7 +2044,7 @@ function ActiveUsersStrip({ data }) {
   );
 }
 
-function AnalyticsPanel({ views, viewsTotal, quizStats, quizPlaysTotal, signups, anonPlayers, activeUsers, geoMap, dailyRetention = { games: [], breadth: { total: 0, histogram: [] } } }) {
+function AnalyticsPanel({ views, viewsTotal, quizStats, quizPlaysTotal, signups, anonPlayers, activeUsers, geoMap, dailyRetention = { games: [], breadth: { total: 0, histogram: [] } }, timeByDay = { series: [], totals: {} } }) {
   const [view, setView] = useState('plays');
   const [playsView, setPlaysView] = useState('all');
   const [pvView, setPvView] = useState('all');
@@ -2053,10 +2053,12 @@ function AnalyticsPanel({ views, viewsTotal, quizStats, quizPlaysTotal, signups,
   const listCount = (views || []).length;
   const quizCount = (quizStats || []).length;
   const retentionTotal = (dailyRetention && dailyRetention.breadth && dailyRetention.breadth.total) || 0;
+  const timeDays = (timeByDay && timeByDay.totals && timeByDay.totals.activeDays) || 0;
   const tabs = [
     ['plays', 'Quiz Plays', regCount + anonCount],
     ['pageviews', 'Page Views', listCount + quizCount],
     ['retention', 'Return Play', retentionTotal],
+    ['time', 'Time Played', timeDays],
     ['map', 'Player Map', (geoMap && geoMap.totals && geoMap.totals.locatedPlayers) || 0],
   ];
   const playsSub = [
@@ -2157,6 +2159,8 @@ function AnalyticsPanel({ views, viewsTotal, quizStats, quizPlaysTotal, signups,
         <PageViewsPanel lists={views} quizzes={quizStats} mode={pvView} />
       ) : view === 'retention' ? (
         <RetentionPanel data={dailyRetention} />
+      ) : view === 'time' ? (
+        <TimeByDayPanel data={timeByDay} />
       ) : (
         <GeoMapPanel data={geoMap} />
       )}
@@ -2257,6 +2261,191 @@ function RetentionPanel({ data }) {
           />
         </div>
       ) : null}
+    </div>
+  );
+}
+
+// ---- Analytics -> Time Played -------------------------------------------------
+// Total wall-clock time players spent completing quizzes, per day, across the
+// full quiz_results history. The daily series arrives gap-filled from the server
+// (buildTimeByDay); this panel adds a Day / Week / Month granularity toggle
+// (aggregated client-side), a summary strip, a column chart, and a CSV export.
+const TBD_MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+// Parse a 'YYYY-MM-DD' day at UTC noon so calendar labels never slip across a
+// timezone boundary.
+function tbdParseDay(day) {
+  return new Date(`${day}T12:00:00Z`);
+}
+// Human duration. Hours+minutes once past an hour, else minutes+seconds, else
+// seconds — keeps tooltips and totals readable at every scale.
+function tbdDur(seconds) {
+  const s = Math.max(0, Math.round(Number(seconds) || 0));
+  const h = Math.floor(s / 3600);
+  const m = Math.floor((s % 3600) / 60);
+  const sec = s % 60;
+  if (h > 0) return `${h}h ${m}m`;
+  if (m > 0) return `${m}m ${sec}s`;
+  return `${sec}s`;
+}
+// Compact value + unit for the summary cards (e.g. 41.2 / "hours", 18 / "min").
+function tbdHoursValue(seconds) {
+  const secs = Number(seconds) || 0;
+  const h = secs / 3600;
+  if (h >= 100) return { value: Math.round(h).toLocaleString(), unit: 'hours' };
+  if (h >= 1) return { value: h.toFixed(1), unit: 'hours' };
+  return { value: String(Math.round(secs / 60)), unit: 'min' };
+}
+function tbdLongDate(day) {
+  const d = tbdParseDay(day);
+  return `${TBD_MONTHS[d.getUTCMonth()]} ${d.getUTCDate()}, ${d.getUTCFullYear()}`;
+}
+// Roll the daily series up into the chosen granularity. Day passes through;
+// Week groups by the Sunday that starts each row's week; Month groups by
+// calendar month. Each bucket keeps a display label, a full-range sub-label for
+// the tooltip, summed seconds, and summed plays.
+function tbdBucketize(series, gran) {
+  const rows = series || [];
+  if (gran === 'day') {
+    return rows.map((r) => ({
+      key: r.day,
+      label: `${TBD_MONTHS[tbdParseDay(r.day).getUTCMonth()]} ${tbdParseDay(r.day).getUTCDate()}`,
+      full: tbdLongDate(r.day),
+      seconds: r.seconds,
+      plays: r.plays,
+    }));
+  }
+  const map = new Map();
+  for (const r of rows) {
+    const d = tbdParseDay(r.day);
+    let key, label, full;
+    if (gran === 'week') {
+      const start = new Date(d.getTime());
+      start.setUTCDate(start.getUTCDate() - start.getUTCDay()); // back to Sunday
+      key = `${start.getUTCFullYear()}-${String(start.getUTCMonth() + 1).padStart(2, '0')}-${String(start.getUTCDate()).padStart(2, '0')}`;
+      label = `${TBD_MONTHS[start.getUTCMonth()]} ${start.getUTCDate()}`;
+      full = `Week of ${TBD_MONTHS[start.getUTCMonth()]} ${start.getUTCDate()}, ${start.getUTCFullYear()}`;
+    } else {
+      key = `${d.getUTCFullYear()}-${String(d.getUTCMonth() + 1).padStart(2, '0')}`;
+      label = `${TBD_MONTHS[d.getUTCMonth()]} '${String(d.getUTCFullYear()).slice(2)}`;
+      full = `${TBD_MONTHS[d.getUTCMonth()]} ${d.getUTCFullYear()}`;
+    }
+    const cur = map.get(key) || { key, label, full, seconds: 0, plays: 0 };
+    cur.seconds += r.seconds;
+    cur.plays += r.plays;
+    map.set(key, cur);
+  }
+  return Array.from(map.values()).sort((a, b) => a.key.localeCompare(b.key));
+}
+
+function TimeByDayStat({ value, unit, label, accent }) {
+  return (
+    <div style={{ flex: '1 1 150px', minWidth: 140, background: COLORS.paper, border: `1px solid ${COLORS.line}`, borderRadius: 8, padding: '14px 16px' }}>
+      <div style={{ display: 'flex', alignItems: 'baseline', gap: 5 }}>
+        <span style={{ fontFamily: 'DM Mono, monospace', fontSize: 24, fontWeight: 700, color: accent || COLORS.ink, lineHeight: 1 }}>{value}</span>
+        {unit ? <span style={{ fontFamily: 'DM Mono, monospace', fontSize: 11, color: COLORS.faded }}>{unit}</span> : null}
+      </div>
+      <div style={{ fontFamily: 'DM Mono, monospace', fontSize: 10, letterSpacing: '0.08em', textTransform: 'uppercase', color: COLORS.faded, marginTop: 8 }}>{label}</div>
+    </div>
+  );
+}
+
+function TimeByDayPanel({ data }) {
+  const series = (data && data.series) || [];
+  const totals = (data && data.totals) || {};
+  const [gran, setGran] = useState('day');
+  const buckets = useMemo(() => tbdBucketize(series, gran), [series, gran]);
+  const maxSeconds = useMemo(() => buckets.reduce((m, b) => Math.max(m, b.seconds), 0), [buckets]);
+
+  if (!series.length) {
+    return <p style={{ fontFamily: 'DM Mono, monospace', fontSize: 12, color: COLORS.faded, fontStyle: 'italic' }}>No completed quiz games recorded yet.</p>;
+  }
+
+  const totalHrs = tbdHoursValue(totals.totalSeconds || 0);
+  const avgActive = tbdHoursValue(totals.avgActiveDaySeconds || 0);
+  const busiest = totals.busiestDay || null;
+  // Evenly spread up to ~9 x-axis labels so a long daily history stays legible.
+  const labelStep = Math.max(1, Math.ceil(buckets.length / 9));
+
+  const granStyle = (on) => ({
+    padding: '6px 12px',
+    background: on ? `${COLORS.ember}1a` : 'transparent',
+    border: `1px solid ${on ? COLORS.ember : COLORS.line}`,
+    color: on ? COLORS.ember : COLORS.faded,
+    fontFamily: 'DM Mono, monospace',
+    fontSize: 10,
+    letterSpacing: '0.08em',
+    textTransform: 'uppercase',
+    fontWeight: 600,
+    cursor: 'pointer',
+  });
+
+  const exportCsv = () => {
+    const unitLabel = gran === 'day' ? 'Day' : gran === 'week' ? 'Week of' : 'Month';
+    const head = [unitLabel, 'Seconds', 'Hours', 'Plays'];
+    const rows = buckets.map((b) => [b.full, b.seconds, (b.seconds / 3600).toFixed(3), b.plays]);
+    downloadCsvFile(`sot-time-played-by-${gran}`, head, rows);
+  };
+
+  return (
+    <div>
+      <SectionHeading>Time spent playing quizzes</SectionHeading>
+      <p style={{ fontFamily: 'DM Mono, monospace', fontSize: 11, color: COLORS.faded, margin: '0 0 18px', lineHeight: 1.6 }}>
+        Total wall-clock time players spent completing quizzes, from every recorded game (registered and anonymous), bucketed in US Eastern.
+        {totals.firstDay ? <span style={{ color: COLORS.ink }}> {tbdLongDate(totals.firstDay)}</span> : null}
+        {totals.lastDay ? <span> → <span style={{ color: COLORS.ink }}>{tbdLongDate(totals.lastDay)}</span></span> : null}.
+      </p>
+
+      <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap', marginBottom: 22 }}>
+        <TimeByDayStat value={totalHrs.value} unit={totalHrs.unit} label="Total time played" accent={COLORS.ember} />
+        <TimeByDayStat value={(totals.totalPlays || 0).toLocaleString()} unit="games" label="Completed games" accent={COLORS.ink} />
+        <TimeByDayStat value={(totals.activeDays || 0).toLocaleString()} unit="days" label="Days with plays" accent={COLORS.ink} />
+        <TimeByDayStat value={avgActive.value} unit={avgActive.unit} label="Avg / active day" accent={COLORS.forest} />
+        <TimeByDayStat
+          value={busiest ? tbdHoursValue(busiest.seconds).value : '—'}
+          unit={busiest ? tbdHoursValue(busiest.seconds).unit : ''}
+          label={busiest ? `Busiest day · ${tbdLongDate(busiest.day)}` : 'Busiest day'}
+          accent={COLORS.rust}
+        />
+      </div>
+
+      <div style={{ display: 'flex', alignItems: 'center', gap: 6, flexWrap: 'wrap', marginBottom: 16 }}>
+        {[['day', 'Day'], ['week', 'Week'], ['month', 'Month']].map(([key, label]) => (
+          <button key={key} onClick={() => setGran(key)} style={granStyle(gran === key)}>{label}</button>
+        ))}
+        <button
+          onClick={exportCsv}
+          title="Download the currently shown buckets (period, seconds, hours, plays) as CSV"
+          style={{ marginLeft: 'auto', padding: '7px 12px', background: COLORS.ink, border: `1px solid ${COLORS.ink}`, color: COLORS.cream, fontFamily: 'DM Mono, monospace', fontSize: 10, letterSpacing: '0.08em', textTransform: 'uppercase', fontWeight: 600, cursor: 'pointer' }}
+        >
+          ↓ Time CSV
+        </button>
+      </div>
+
+      <div style={{ background: COLORS.paper, border: `1px solid ${COLORS.line}`, borderRadius: 8, padding: '18px 16px 10px' }}>
+        <div style={{ display: 'flex', alignItems: 'flex-end', gap: buckets.length > 60 ? 1 : 2, height: 190 }}>
+          {buckets.map((b) => {
+            const h = maxSeconds ? Math.max(b.seconds > 0 ? 2 : 0, Math.round((b.seconds / maxSeconds) * 178)) : 0;
+            return (
+              <div
+                key={b.key}
+                title={`${b.full}\n${tbdDur(b.seconds)} · ${b.plays.toLocaleString()} game${b.plays === 1 ? '' : 's'}`}
+                style={{ flex: '1 1 0', minWidth: 2, height: '100%', display: 'flex', flexDirection: 'column', justifyContent: 'flex-end' }}
+              >
+                <div style={{ height: h, background: COLORS.ember, opacity: 0.85, borderRadius: '3px 3px 0 0' }} />
+              </div>
+            );
+          })}
+        </div>
+        <div style={{ display: 'flex', gap: buckets.length > 60 ? 1 : 2, marginTop: 8, borderTop: `1px solid ${COLORS.line}`, paddingTop: 8 }}>
+          {buckets.map((b, i) => (
+            <div key={b.key} style={{ flex: '1 1 0', minWidth: 2, textAlign: 'center', overflow: 'visible' }}>
+              {i % labelStep === 0 ? (
+                <span style={{ fontFamily: 'DM Mono, monospace', fontSize: 9, color: COLORS.faded, whiteSpace: 'nowrap' }}>{b.label}</span>
+              ) : null}
+            </div>
+          ))}
+        </div>
+      </div>
     </div>
   );
 }

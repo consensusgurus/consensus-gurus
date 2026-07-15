@@ -235,6 +235,63 @@ function buildDailyRetention(rows) {
   return { games, breadth: { total: bTotal, histogram: bhist } };
 }
 
+// Analytics -> Time Played. Total wall-clock time players spent COMPLETING
+// quizzes, bucketed by calendar day in US Eastern (matching the rest of the
+// admin's clock), across the FULL quiz_results history — this is the earliest
+// data available, so it goes back as far as the table does. time_elapsed is the
+// seconds from Play to finish on each completed game; we sum it per day and also
+// count the plays that contributed. Registered and anonymous plays both count.
+// The returned series is gap-filled: every calendar day from the first recorded
+// play to the last is present (zeros included) so quiet days still plot on the
+// chart. Rows with no/blank time (or unparseable timestamps) are skipped.
+function buildTimeByDay(rows) {
+  const byDay = new Map(); // 'YYYY-MM-DD' (ET) -> { seconds, plays }
+  for (const r of rows || []) {
+    const t = r.time_elapsed;
+    if (!r.created_at || typeof t !== 'number' || !(t >= 0)) continue;
+    const d = new Date(r.created_at);
+    if (Number.isNaN(d.getTime())) continue;
+    const day = etParts(d).day; // YYYY-MM-DD in America/New_York
+    const cur = byDay.get(day) || { seconds: 0, plays: 0 };
+    cur.seconds += t;
+    cur.plays += 1;
+    byDay.set(day, cur);
+  }
+  const keys = Array.from(byDay.keys()).sort();
+  const series = [];
+  let totalSeconds = 0, totalPlays = 0, busiest = null;
+  if (keys.length) {
+    // Walk every calendar day between the first and last recorded play. We hold
+    // the cursor at UTC midnight and step it with UTC date math so the YYYY-MM-DD
+    // labels are pure calendar arithmetic, immune to DST hour shifts.
+    const cur = new Date(`${keys[0]}T00:00:00Z`);
+    const stop = new Date(`${keys[keys.length - 1]}T00:00:00Z`);
+    while (cur.getTime() <= stop.getTime()) {
+      const day = `${cur.getUTCFullYear()}-${String(cur.getUTCMonth() + 1).padStart(2, '0')}-${String(cur.getUTCDate()).padStart(2, '0')}`;
+      const v = byDay.get(day) || { seconds: 0, plays: 0 };
+      series.push({ day, seconds: v.seconds, plays: v.plays });
+      totalSeconds += v.seconds;
+      totalPlays += v.plays;
+      if (v.seconds > 0 && (!busiest || v.seconds > busiest.seconds)) busiest = { day, seconds: v.seconds, plays: v.plays };
+      cur.setUTCDate(cur.getUTCDate() + 1);
+    }
+  }
+  const activeDays = keys.length;
+  return {
+    series,
+    totals: {
+      totalSeconds,
+      totalPlays,
+      activeDays,
+      daysTracked: series.length,
+      firstDay: keys[0] || null,
+      lastDay: keys.length ? keys[keys.length - 1] : null,
+      busiestDay: busiest,
+      avgActiveDaySeconds: activeDays ? Math.round(totalSeconds / activeDays) : 0,
+    },
+  };
+}
+
 export const metadata = {
   title: 'Editor\'s Desk | Source of Truths',
   robots: { index: false, follow: false },
@@ -608,6 +665,10 @@ export default async function AdminPage() {
   // Daily-games return-play distribution (Analytics -> Return Play).
   const dailyRetention = buildDailyRetention((quizResultsRes && quizResultsRes.data) || []);
 
+  // Total time spent playing quizzes per day (Analytics -> Time Played), full
+  // history, gap-filled.
+  const timeByDay = buildTimeByDay((quizResultsRes && quizResultsRes.data) || []);
+
   return (
     <AdminClient
       initialLists={lists}
@@ -625,6 +686,7 @@ export default async function AdminPage() {
       initialActiveUsers={activeUsers}
       initialGeoMap={geoMap}
       initialDailyRetention={dailyRetention}
+      initialTimeByDay={timeByDay}
     />
   );
 }
