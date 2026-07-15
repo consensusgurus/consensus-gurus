@@ -36,7 +36,7 @@ import JoinLeaderboardForm from '../quiz/[id]/JoinLeaderboardForm';
 import DailyGamesGrid from '../DailyGamesGrid';
 import QuizLeaderboard from '../quiz/[id]/QuizLeaderboard';
 import { isMobileDevice } from '@/lib/is-mobile';
-import { buildAdj, buildLookup, shortestRoute, viaRoute, normName, COUNTRIES } from './borders';
+import { buildAdj, buildLookup, shortestRoute, viaRoute, distancesFrom, normName, COUNTRIES } from './borders';
 import { MAP } from './map-geo';
 
 const COLORS = {
@@ -153,21 +153,21 @@ function mapAnchors(countries) {
   }
   return anchors;
 }
-function SpanMap({ chain, best }) {
+function SpanMap({ chain, best, alts }) {
   const view = useMemo(() => {
     const chainArr = (chain || []).filter((c) => MAP.c[c]);
     const bestArr = (best || []).filter((c) => MAP.c[c]);
+    const altArr = (alts || []).filter((c) => MAP.c[c]);
     if (!chainArr.length && !bestArr.length) return null;
     const cA = mapAnchors(chainArr);
-    const bA = mapAnchors(bestArr);
     let x0 = Infinity, y0 = Infinity, x1 = -Infinity, y1 = -Infinity;
-    for (const p of [...cA, ...bA]) {
+    for (const p of [...cA, ...mapAnchors(bestArr)]) {
       if (!p) continue;
       x0 = Math.min(x0, p[0]); y0 = Math.min(y0, p[1]);
       x1 = Math.max(x1, p[0]); y1 = Math.max(y1, p[1]);
     }
     // small countries stay fully in frame; big ones are represented by anchors
-    for (const c of new Set([...chainArr, ...bestArr])) {
+    for (const c of new Set([...chainArr, ...bestArr, ...altArr])) {
       const b = MAP.bb[c];
       if (b && mapDiag(b) < 45) { x0 = Math.min(x0, b[0]); y0 = Math.min(y0, b[1]); x1 = Math.max(x1, b[2]); y1 = Math.max(y1, b[3]); }
     }
@@ -177,15 +177,19 @@ function SpanMap({ chain, best }) {
     if (w < 90) { const a = (90 - w) / 2; x0 -= a; x1 += a; w = 90; }
     if (h < w * 0.52) { const a = (w * 0.52 - h) / 2; y0 -= a; y1 += a; h = w * 0.52; }
     if (h > w * 0.85) { const a = (h / 0.85 - w) / 2; x0 -= a; x1 += a; w = h / 0.85; }
-    return { x0, y0, w, h, cA, bA, chainArr, bestArr };
-  }, [chain, best]);
+    return { x0, y0, w, h, cA, chainArr, bestArr, altArr };
+  }, [chain, best, alts]);
   if (!view) return null;
-  const { x0, y0, w, h, cA, bA, chainArr, bestArr } = view;
+  const { x0, y0, w, h, cA, chainArr, bestArr, altArr } = view;
   const chainSet = new Set(chainArr);
   const bestSet = new Set(bestArr);
+  const altSet = new Set(altArr);
   const k = w / 560; // world units per on-screen px at the card's width
   const showBest = bestArr.length > 0 && bestArr.join('|') !== chainArr.join('|');
+  const showAlts = showBest && altArr.some((c) => !bestSet.has(c) && !chainSet.has(c));
+  const showRoad = chainArr.length > 1; // no lone marker before the road exists
   const r = 10 * k;
+  const swatch = (bg) => ({ width: 13, height: 13, borderRadius: 3, background: bg, border: '1px solid rgba(28,30,36,0.25)', display: 'inline-block' });
   return (
     <div style={{ margin: '10px 0 4px' }}>
       <svg viewBox={`${x0} ${y0} ${w} ${h}`} style={{ display: 'block', width: '100%', height: 'auto', borderRadius: 9, border: '1.5px solid rgba(28,30,36,0.22)' }} role="img" aria-label="Map of the route">
@@ -193,17 +197,15 @@ function SpanMap({ chain, best }) {
         {Object.entries(MAP.paths).map(([name, d]) => {
           const onChain = chainSet.has(name);
           const onBest = !onChain && showBest && bestSet.has(name);
+          const onAlt = !onChain && !onBest && showBest && altSet.has(name);
           const ends = onChain && (name === chainArr[0] || (chainArr.length > 1 && name === chainArr[chainArr.length - 1]));
-          const fill = onChain ? (ends ? '#15803d' : '#8fdcab') : onBest ? '#bcd6f7' : '#dfe3e8';
+          const fill = onChain ? (ends ? '#15803d' : '#8fdcab') : onBest ? '#a7cbf3' : onAlt ? '#d9e7fa' : '#dfe3e8';
           return <path key={name} d={d} fill={fill} stroke="#fff" strokeWidth={k} />;
         })}
-        {showBest && (
-          <polyline points={bA.map((p) => p.join(',')).join(' ')} fill="none" stroke="#2563eb" strokeWidth={2.4 * k} strokeDasharray={`${7 * k} ${5 * k}`} strokeLinejoin="round" opacity="0.9" />
-        )}
-        {chainArr.length > 1 && (
+        {showRoad && (
           <polyline points={cA.map((p) => p.join(',')).join(' ')} fill="none" stroke="#14532d" strokeWidth={2.6 * k} strokeLinejoin="round" />
         )}
-        {chainArr.map((c, i) => {
+        {showRoad && chainArr.map((c, i) => {
           const [x, y] = cA[i];
           const ends = i === 0 || i === chainArr.length - 1;
           return (
@@ -215,12 +217,19 @@ function SpanMap({ chain, best }) {
         })}
       </svg>
       <div style={{ display: 'flex', gap: 16, alignItems: 'center', flexWrap: 'wrap', fontFamily: MONO, fontSize: 10.5, letterSpacing: '0.06em', color: COLORS.faded, marginTop: 6 }}>
-        <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}>
-          <span style={{ width: 18, height: 0, borderTop: '2.5px solid #14532d', display: 'inline-block' }} /> your road
-        </span>
+        {showRoad && (
+          <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}>
+            <span style={swatch('#8fdcab')} /> your road
+          </span>
+        )}
         {showBest && (
           <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}>
-            <span style={{ width: 18, height: 0, borderTop: '2.5px dashed #2563eb', display: 'inline-block' }} /> a shortest road
+            <span style={swatch('#a7cbf3')} /> a shortest road
+          </span>
+        )}
+        {showAlts && (
+          <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}>
+            <span style={swatch('#d9e7fa')} /> alternate shortest roads
           </span>
         )}
       </div>
@@ -603,6 +612,30 @@ export default function SpanClient({ puzzles = [], forceNum = null }) {
     return shortestRoute(ADJ, PUZZLE.start, PUZZLE.end);
   }, [playing, ADJ, PUZZLE, AVOID, VIA]);
   const revealRoute = g.status === 'revealed' ? bestRoute : null;
+  // every country on ANY shortest road (there are often several): a country
+  // sits on one iff dist(start,c) + dist(c,end) === the shortest length.
+  // Countries beyond the primary road show in a lighter blue on the map.
+  const altRoads = useMemo(() => {
+    if (playing || !bestRoute) return null;
+    const on = new Set();
+    const addOnPath = (a, b, blocked) => {
+      const dA = distancesFrom(ADJ, a, blocked);
+      const dB = distancesFrom(ADJ, b, blocked);
+      const len = dA[b];
+      if (len == null) return;
+      for (const c of Object.keys(dA)) {
+        if (c === a || c === b) continue;
+        if (dB[c] != null && dA[c] + dB[c] === len) on.add(c);
+      }
+    };
+    if (VIA) {
+      addOnPath(PUZZLE.start, VIA);
+      addOnPath(VIA, PUZZLE.end);
+    } else {
+      addOnPath(PUZZLE.start, PUZZLE.end, AVOID || undefined);
+    }
+    return [...on];
+  }, [playing, bestRoute, ADJ, PUZZLE, VIA, AVOID]);
 
   function chip(name, kind, key) {
     const base = { display: 'inline-flex', alignItems: 'center', gap: 6, fontFamily: SANS, fontWeight: 800, fontSize: 13.5, borderRadius: 8, padding: '7px 11px', border: '1.5px solid rgba(28,30,36,0.35)' };
@@ -749,7 +782,7 @@ export default function SpanClient({ puzzles = [], forceNum = null }) {
                 ? <>{finalScore}/10 &middot; {hops} hops (shortest {PUZZLE.par}) &middot; {g.misses} miss{g.misses === 1 ? '' : 'es'} &middot; {elapsed}{g.hintUsed ? <> &middot; 1 hint</> : null}</>
                 : <>0/10 &middot; a shortest road is below</>}
             </div>
-            <SpanMap chain={chain} best={won && hops === PUZZLE.par ? null : bestRoute} />
+            <SpanMap chain={chain} best={won && hops === PUZZLE.par ? null : bestRoute} alts={altRoads} />
             {revealRoute && (
               <div style={{ display: 'flex', alignItems: 'center', gap: 6, flexWrap: 'wrap', margin: '8px 0 4px' }}>
                 {revealRoute.map((c, i) => {

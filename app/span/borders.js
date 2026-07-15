@@ -286,6 +286,29 @@ export function shortestRoute(adj, from, to, blocked) {
   return null;
 }
 
+// BFS distances from one country to every reachable country; used to find
+// ALL countries that sit on some shortest road (v is on one iff
+// dist(start,v) + dist(v,end) === par). `blocked` as in shortestHops.
+export function distancesFrom(adj, from, blocked) {
+  const block = blockSet(blocked);
+  const dist = { [from]: 0 };
+  let frontier = [from];
+  let d = 0;
+  while (frontier.length) {
+    d += 1;
+    const next = [];
+    for (const c of frontier) {
+      for (const n of adj[c] || []) {
+        if (n in dist || (block && block.has(n))) continue;
+        dist[n] = d;
+        next.push(n);
+      }
+    }
+    frontier = next;
+  }
+  return dist;
+}
+
 // A shortest SIMPLE route from `from` to `to` that passes through `via`
 // (the Sunday Edition "via" rule). Two BFS legs; the second leg is kept
 // disjoint from the first by blocking it (and vice versa if the first try
