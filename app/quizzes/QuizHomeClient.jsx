@@ -1048,7 +1048,7 @@ export default function QuizHomeClient() {
     .qzh .th-game-txt{display:flex;flex-direction:column;gap:1px;min-width:0;flex:1 1 auto;overflow:hidden;}
     .qzh .th-game-art{flex:0 0 auto;height:52px;width:auto;max-width:56px;object-fit:contain;}
     .qzh .th-game-tag{font-size:9px;font-weight:800;letter-spacing:.13em;text-transform:uppercase;color:#f8b84a;margin-bottom:3px;}
-    .qzh .th-game-t{font-size:17px;font-weight:800;letter-spacing:-.3px;color:#fff;line-height:1.1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+    .qzh .th-game-t{font-size:17px;font-weight:800;letter-spacing:-.3px;color:#fff;line-height:1.35;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
     .qzh .th-game-p{font-size:11.5px;font-weight:700;color:#9fb0d4;line-height:1.2;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
     @media(max-width:1180px){.qzh .th-game-art{height:44px;max-width:48px;}.qzh .th-game-p{display:none;}}
     @media(max-width:1080px){.qzh .th-game-art{height:40px;}.qzh .th-game{padding:11px 12px;gap:8px;}}

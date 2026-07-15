@@ -169,30 +169,22 @@ export default function QuizCommandHeader({ search, onSearch, me, onSignup, tick
             </button>
           )}
         </div>
-        {/* Desktop-only Stat Hub button sitting right by the player chip. The
-            name/avatar itself still links to the hub; this is the explicit CTA
-            brought back for signed-in players. It collapses at <=1024px (see
-            .qch-hub-me), one step after the sources pill (1180px) — so the
-            "Experts and Aggregators" pill is always the first thing to drop. */}
-        {found ? (
-          <Link href="/quizzes/hub" className="qch-hub qch-hub-me" title="Stat Hub — your stats">
-            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" aria-hidden="true"><path d="M4 20V10M12 20V4M20 20v-7" /></svg>
-            <span className="qch-hubtxt">Stat Hub</span>
-          </Link>
-        ) : null}
+        {/* Stat Hub button. ALWAYS sits immediately to the LEFT of the
+            Lists/Quizzes toggle, whether or not the visitor is signed in.
+            Signed-in players get qch-hub-me, which collapses at <=1024px (one
+            step after the sources pill at 1180px, since the name/avatar also
+            links to the hub). New visitors get the plain qch-hub, which shrinks
+            to an icon on mobile but never fully hides. Same responsive hide /
+            shift-to-icon rules as before; only the signed-out button moved (it
+            used to sit to the RIGHT of the toggle). */}
+        <Link href="/quizzes/hub" className={found ? 'qch-hub qch-hub-me' : 'qch-hub'} title="Stat Hub — your stats">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" aria-hidden="true"><path d="M4 20V10M12 20V4M20 20v-7" /></svg>
+          <span className="qch-hubtxt">Stat Hub</span>
+        </Link>
         <nav className="qch-seg">
           <Link href="/">Top 10 Lists</Link>
           <Link href="/quizzes" className="on">Quizzes</Link>
         </nav>
-        {/* New visitors (no player chip yet) get the end-of-bar Stat Hub CTA.
-            Signed-in players get the qch-hub-me button by their chip above
-            instead, and can also click their name/avatar to reach the hub. */}
-        {!found ? (
-          <Link href="/quizzes/hub" className="qch-hub">
-            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" aria-hidden="true"><path d="M4 20V10M12 20V4M20 20v-7" /></svg>
-            <span className="qch-hubtxt">Stat Hub</span>
-          </Link>
-        ) : null}
       </div>
       {items.length ? (
         <div className="qch-tickwrap">
