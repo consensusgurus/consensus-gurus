@@ -1,0 +1,16 @@
+{
+  "id": "/suds",
+  "name": "Suds — Daily Sudoku",
+  "short_name": "Suds",
+  "description": "Fill the 9x9 grid so every row, column, and 3x3 box holds 1-9 with no repeats. A new sudoku every day from Source of Truths.",
+  "start_url": "/suds?src=pwa",
+  "scope": "/",
+  "display": "standalone",
+  "background_color": "#f7f8fa",
+  "theme_color": "#f7f8fa",
+  "icons": [
+    { "src": "/suds-icons/icon-192.png", "sizes": "192x192", "type": "image/png" },
+    { "src": "/suds-icons/icon-512.png", "sizes": "512x512", "type": "image/png" },
+    { "src": "/suds-icons/icon-512-maskable.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ]
+}

@@ -34,6 +34,7 @@ const COLS = [
       { label: 'Span — Daily Geography Game', href: '/span' },
       { label: 'Dating — Daily History Game', href: '/dating' },
       { label: 'Tally — Daily Number Game', href: '/tally' },
+      { label: 'Suds — Daily Sudoku', href: '/suds' },
       { label: 'Stat Hub', href: '/quizzes/hub' },
       { label: 'Request a Quiz', href: '/request' },
     ],

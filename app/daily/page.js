@@ -5,6 +5,7 @@ import { PUZZLES as LINKS } from '../links/puzzles';
 import { PUZZLES as SPAN } from '../span/puzzles';
 import { PUZZLES as DATING } from '../dating/puzzles';
 import { PUZZLES as TALLY } from '../tally/puzzles';
+import { PUZZLES as SUDS } from '../suds/puzzles';
 
 // The daily-games hub + archive. One page listing every daily game, each with
 // today's puzzle and its full back-catalog of past drops (live<=today only, so
@@ -44,6 +45,7 @@ const GAMES = [
   { key: 'span', name: 'Span', path: '/span', tag: 'Cross the map, border by border', accent: '#9d174d', bg: '#fdf0f6', border: 'rgba(217,99,153,0.45)', src: SPAN },
   { key: 'dating', name: 'Dating', path: '/dating', tag: 'Put five moments in order', accent: '#6d28d9', bg: '#f5f0ff', border: 'rgba(124,58,237,0.4)', src: DATING },
   { key: 'tally', name: 'Tally', path: '/tally', tag: 'Balance every row and column', accent: '#15803d', bg: '#eefaf1', border: 'rgba(21,128,61,0.45)', src: TALLY },
+  { key: 'suds', name: 'Suds', path: '/suds', tag: 'Fill the 9×9 grid, 1–9', accent: '#ea580c', bg: '#fff5ed', border: 'rgba(234,88,12,0.4)', src: SUDS },
 ];
 
 const breadcrumbJsonLd = {
