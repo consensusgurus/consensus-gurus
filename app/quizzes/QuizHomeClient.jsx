@@ -1073,7 +1073,9 @@ export default function QuizHomeClient() {
     .qzh .qotd-foot{display:flex;align-items:center;gap:14px;margin-top:15px;flex-wrap:wrap;}
     .qzh .qotd-play{display:inline-flex;align-items:center;gap:7px;background:${C.accent};color:#fff;border-radius:9px;padding:10px 20px;font-weight:800;font-size:14px;}
     .qzh .qotd:hover .qotd-play{background:#1d4ed8;}
-    .qzh .th-heroes{display:grid;grid-template-columns:minmax(0,1.9fr) minmax(0,1fr) minmax(0,1fr);gap:12px;}
+    .qzh .th-heroes{display:grid;grid-template-columns:minmax(0,0.95fr) minmax(0,0.95fr) minmax(0,1fr) minmax(0,1fr);gap:12px;}
+    /* Desktop: top row shares the second row's 4-col template so QOTD lines up exactly over Geo+Sports, Newest over Trending, Daily Challenge over Duel. */
+    @media(min-width:1025px){.qzh .th-heroes .th-qotd{grid-column:1 / 3;}}
     @media(max-width:760px){.qzh .th-heroes{grid-template-columns:minmax(0,1fr);}}
     .qzh .ttile{position:relative;border:1px solid ${C.line};border-radius:14px;overflow:hidden;text-decoration:none;display:flex;flex-direction:column;justify-content:flex-end;min-height:215px;background-size:cover;background-position:center;background-color:#0e1d40;}
     .qzh .ttile-tag{position:absolute;top:12px;left:12px;font-size:10px;font-weight:800;letter-spacing:.08em;background:#fff;border-radius:10px;padding:4px 10px;z-index:2;color:#c2410c;display:inline-flex;align-items:center;gap:4px;}
