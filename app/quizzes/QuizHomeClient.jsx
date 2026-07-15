@@ -1089,7 +1089,7 @@ export default function QuizHomeClient() {
     .qzh .thub{display:flex;gap:12px;margin-bottom:14px;align-items:stretch;}
     .qzh .thub-left{flex:1 1 auto;min-width:0;display:flex;flex-direction:column;gap:12px;}
     .qzh .th-rail{flex:0 0 188px;}
-    .qzh .th-r2{display:grid;grid-template-columns:minmax(0,1.05fr) minmax(0,0.85fr) minmax(0,0.85fr) minmax(0,0.98fr);gap:12px;align-items:stretch;}
+    .qzh .th-r2{display:grid;grid-template-columns:minmax(0,0.95fr) minmax(0,0.95fr) minmax(0,1fr) minmax(0,1fr);gap:12px;align-items:stretch;}
     .qzh .th-r2 .th-slot-hold{min-height:215px;}
     @media(max-width:820px){.qzh .thub{flex-direction:column;}.qzh .th-rail{align-self:stretch;}.qzh .th-r2{grid-template-columns:1fr 1fr;}.qzh .th-r2 .dtile{grid-column:1 / -1;}.qzh .th-r2 .dueltile{grid-column:1 / -1;}}
     @media(max-width:560px){.qzh .th-r2{grid-template-columns:minmax(0,1fr);}.qzh .th-rail{display:none !important;}.qzh .th-heroes .ntile{min-height:220px;background-position:center 12%;}.qzh .th-r2 .ttile{order:1;min-height:220px;}.qzh .th-r2 .stile{order:2;min-height:220px;}.qzh .th-r2 .dtile{order:3;}.qzh .th-r2 .dueltile{order:4;}.qzh .th-r2 .th-slot-hold{display:none;}.qzh .duelbtn{display:none !important;}/* Stacked full-width hero tiles: Newest matches Trending typography on mobile (needs .th-heroes for specificity over the base rules below) */.qzh .th-heroes .ntile-t{font-size:20px;}.qzh .th-heroes .ntile-tag{font-size:10px;padding:4px 10px;top:12px;left:12px;}.qzh .th-heroes .ntile-ov{padding:18px 16px 15px;}}
@@ -1488,16 +1488,6 @@ export default function QuizHomeClient() {
               </div>
             ) : <div className="th-only-mob" />}
 
-            {trending ? (() => { const tc = byKey[trending.dept] || {}; const tPos = tHeroPos; return (
-            <Link href={`/quiz/${trending.id}`} className="ttile" style={tHero ? { backgroundImage: `url("${tHero}")`, backgroundPosition: tPos || 'center' } : { background: tc.c || C.accent }}>
-              <span className="ttile-tag"><Flame size={11} style={{ verticalAlign: -1 }} /> TRENDING</span>
-              <div className="ttile-ov" ref={ttileProbeRef}>
-                <div className="ttile-t">{stripVerb(trending.title)}</div>
-                <div className="ttile-foot" style={{ flexWrap: 'nowrap' }}><span className="ttile-p" style={{ flex: 'none' }}>Play <ArrowRight size={13} style={{ verticalAlign: -1 }} /></span>{leader(trending.id) ? <span className={`ttile-plays${ttilePill ? ' hpill' : ''}`} style={{ display: 'inline-flex', alignItems: 'center', gap: 4, minWidth: 0 }}><Crown size={12} style={{ color: '#e8b43a', flex: 'none' }} /><span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{leader(trending.id)}</span></span> : null}</div>
-              </div>
-            </Link>
-          ); })() : <div className="th-slot-hold" />}
-
             {sportsPick ? (
             <Link href={`/quiz/${sportsPick.id}`} className="hstile stile" style={sptHero ? { backgroundImage: `url("${sptHero}")`, backgroundPosition: sptPos || 'center' } : { background: C.accent }}>
               <span className="ttile-tag" style={{ color: '#b45309', whiteSpace: 'nowrap' }}><Trophy size={11} style={{ verticalAlign: -1 }} /> FEATURED SPORTS</span>
@@ -1507,6 +1497,16 @@ export default function QuizHomeClient() {
               </div>
             </Link>
           ) : <div className="th-slot-hold" />}
+
+            {trending ? (() => { const tc = byKey[trending.dept] || {}; const tPos = tHeroPos; return (
+            <Link href={`/quiz/${trending.id}`} className="ttile" style={tHero ? { backgroundImage: `url("${tHero}")`, backgroundPosition: tPos || 'center' } : { background: tc.c || C.accent }}>
+              <span className="ttile-tag"><Flame size={11} style={{ verticalAlign: -1 }} /> TRENDING</span>
+              <div className="ttile-ov" ref={ttileProbeRef}>
+                <div className="ttile-t">{stripVerb(trending.title)}</div>
+                <div className="ttile-foot" style={{ flexWrap: 'nowrap' }}><span className="ttile-p" style={{ flex: 'none' }}>Play <ArrowRight size={13} style={{ verticalAlign: -1 }} /></span>{leader(trending.id) ? <span className={`ttile-plays${ttilePill ? ' hpill' : ''}`} style={{ display: 'inline-flex', alignItems: 'center', gap: 4, minWidth: 0 }}><Crown size={12} style={{ color: '#e8b43a', flex: 'none' }} /><span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{leader(trending.id)}</span></span> : null}</div>
+              </div>
+            </Link>
+          ); })() : <div className="th-slot-hold" />}
 
             <DuelTile />
           </div>
