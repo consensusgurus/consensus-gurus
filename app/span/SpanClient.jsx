@@ -14,6 +14,16 @@
 // archive pinning, streaks + stats, and the shared /api/quiz/* board flow.
 // The border graph (app/span/borders.js) ships to the client — it holds no
 // answers, just the world.
+//
+// SUNDAY EDITIONS: a Sunday puzzle carries `via` (the chain must pass through
+// that country before the destination) or `avoid` (that country is closed and
+// can't be entered). par is the CONSTRAINED shortest, so scoring needs no
+// special-casing; the rules are enforced in addCountry, and hint/reveal route
+// around them. See the authoring notes in app/span/puzzles.js.
+//
+// END-OF-GAME MAP: the result card draws the player's road on a real world
+// map (app/span/map-geo.js, simplified from lib/world-geo.js), with a
+// shortest road dashed alongside when the player didn't find one.
 
 import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { useSearchParams } from 'next/navigation';
@@ -26,7 +36,8 @@ import JoinLeaderboardForm from '../quiz/[id]/JoinLeaderboardForm';
 import DailyGamesGrid from '../DailyGamesGrid';
 import QuizLeaderboard from '../quiz/[id]/QuizLeaderboard';
 import { isMobileDevice } from '@/lib/is-mobile';
-import { buildAdj, buildLookup, shortestRoute, normName, COUNTRIES } from './borders';
+import { buildAdj, buildLookup, shortestRoute, viaRoute, normName, COUNTRIES } from './borders';
+import { MAP } from './map-geo';
 
 const COLORS = {
   cream: '#f7f8fa',
@@ -93,6 +104,129 @@ function getAnonId() {
   } catch (e) { return null; }
 }
 const EMPTY_BOARD = { plays: 0, best: null, topTime: null, leaderboard: [], leaderboardAll: [], leaderboardMobile: [], leaderboardFirst: [], leaderboards: {} };
+
+// ─── The end-of-game route map ──────────────────────────────────────────────
+// Draws the player's chain (and, when they didn't find one, a shortest road)
+// on the simplified world map. Anchors start at country centroids; countries
+// with a big footprint (Russia, China, Brazil…) get their anchor pulled to
+// the polygon vertex nearest the route corridor so the line reads like a
+// border-to-border road instead of shooting off to Siberia, and so the crop
+// can stay tight around the route.
+const mapPtsCache = new Map();
+function mapPathPts(name) {
+  let pts = mapPtsCache.get(name);
+  if (pts) return pts;
+  pts = [];
+  const d = MAP.paths[name] || '';
+  for (const seg of d.split('M')) {
+    if (!seg) continue;
+    for (const pair of seg.replace(/Z/g, '').split('L')) {
+      const [x, y] = pair.split(',').map(Number);
+      if (Number.isFinite(x) && Number.isFinite(y)) pts.push([x, y]);
+    }
+  }
+  mapPtsCache.set(name, pts);
+  return pts;
+}
+const mapDiag = (b) => Math.hypot(b[2] - b[0], b[3] - b[1]);
+function mapAnchors(countries) {
+  const anchors = countries.map((c) => (MAP.c[c] ? [...MAP.c[c]] : null));
+  for (let pass = 0; pass < 2; pass++) {
+    for (let i = 0; i < countries.length; i++) {
+      const c = countries[i];
+      if (!anchors[i] || !MAP.bb[c] || mapDiag(MAP.bb[c]) < 60) continue;
+      const nb = [];
+      if (i > 0 && anchors[i - 1]) nb.push(anchors[i - 1]);
+      if (i < countries.length - 1 && anchors[i + 1]) nb.push(anchors[i + 1]);
+      if (!nb.length) continue;
+      const tx = nb.reduce((s, p) => s + p[0], 0) / nb.length;
+      const ty = nb.reduce((s, p) => s + p[1], 0) / nb.length;
+      let best = null, bd = Infinity;
+      for (const p of mapPathPts(c)) {
+        const d2 = (p[0] - tx) * (p[0] - tx) + (p[1] - ty) * (p[1] - ty);
+        if (d2 < bd) { bd = d2; best = p; }
+      }
+      if (!best) continue;
+      const [cx, cy] = MAP.c[c];
+      anchors[i] = [best[0] + (cx - best[0]) * 0.12, best[1] + (cy - best[1]) * 0.12];
+    }
+  }
+  return anchors;
+}
+function SpanMap({ chain, best }) {
+  const view = useMemo(() => {
+    const chainArr = (chain || []).filter((c) => MAP.c[c]);
+    const bestArr = (best || []).filter((c) => MAP.c[c]);
+    if (!chainArr.length && !bestArr.length) return null;
+    const cA = mapAnchors(chainArr);
+    const bA = mapAnchors(bestArr);
+    let x0 = Infinity, y0 = Infinity, x1 = -Infinity, y1 = -Infinity;
+    for (const p of [...cA, ...bA]) {
+      if (!p) continue;
+      x0 = Math.min(x0, p[0]); y0 = Math.min(y0, p[1]);
+      x1 = Math.max(x1, p[0]); y1 = Math.max(y1, p[1]);
+    }
+    // small countries stay fully in frame; big ones are represented by anchors
+    for (const c of new Set([...chainArr, ...bestArr])) {
+      const b = MAP.bb[c];
+      if (b && mapDiag(b) < 45) { x0 = Math.min(x0, b[0]); y0 = Math.min(y0, b[1]); x1 = Math.max(x1, b[2]); y1 = Math.max(y1, b[3]); }
+    }
+    let w = Math.max(1, x1 - x0), h = Math.max(1, y1 - y0);
+    const padX = w * 0.16 + 8, padY = h * 0.16 + 8;
+    x0 -= padX; y0 -= padY; x1 += padX; y1 += padY; w = x1 - x0; h = y1 - y0;
+    if (w < 90) { const a = (90 - w) / 2; x0 -= a; x1 += a; w = 90; }
+    if (h < w * 0.52) { const a = (w * 0.52 - h) / 2; y0 -= a; y1 += a; h = w * 0.52; }
+    if (h > w * 0.85) { const a = (h / 0.85 - w) / 2; x0 -= a; x1 += a; w = h / 0.85; }
+    return { x0, y0, w, h, cA, bA, chainArr, bestArr };
+  }, [chain, best]);
+  if (!view) return null;
+  const { x0, y0, w, h, cA, bA, chainArr, bestArr } = view;
+  const chainSet = new Set(chainArr);
+  const bestSet = new Set(bestArr);
+  const k = w / 560; // world units per on-screen px at the card's width
+  const showBest = bestArr.length > 0 && bestArr.join('|') !== chainArr.join('|');
+  const r = 10 * k;
+  return (
+    <div style={{ margin: '10px 0 4px' }}>
+      <svg viewBox={`${x0} ${y0} ${w} ${h}`} style={{ display: 'block', width: '100%', height: 'auto', borderRadius: 9, border: '1.5px solid rgba(28,30,36,0.22)' }} role="img" aria-label="Map of the route">
+        <rect x={x0} y={y0} width={w} height={h} fill="#e7edf3" />
+        {Object.entries(MAP.paths).map(([name, d]) => {
+          const onChain = chainSet.has(name);
+          const onBest = !onChain && showBest && bestSet.has(name);
+          const ends = onChain && (name === chainArr[0] || (chainArr.length > 1 && name === chainArr[chainArr.length - 1]));
+          const fill = onChain ? (ends ? '#15803d' : '#8fdcab') : onBest ? '#bcd6f7' : '#dfe3e8';
+          return <path key={name} d={d} fill={fill} stroke="#fff" strokeWidth={k} />;
+        })}
+        {showBest && (
+          <polyline points={bA.map((p) => p.join(',')).join(' ')} fill="none" stroke="#2563eb" strokeWidth={2.4 * k} strokeDasharray={`${7 * k} ${5 * k}`} strokeLinejoin="round" opacity="0.9" />
+        )}
+        {chainArr.length > 1 && (
+          <polyline points={cA.map((p) => p.join(',')).join(' ')} fill="none" stroke="#14532d" strokeWidth={2.6 * k} strokeLinejoin="round" />
+        )}
+        {chainArr.map((c, i) => {
+          const [x, y] = cA[i];
+          const ends = i === 0 || i === chainArr.length - 1;
+          return (
+            <g key={`d${i}`}>
+              <circle cx={x} cy={y} r={r} fill={ends ? '#14532d' : '#fff'} stroke="#14532d" strokeWidth={1.6 * k} />
+              <text x={x} y={y + r * 0.06} fontSize={r * 1.15} textAnchor="middle" dominantBaseline="central" fill={ends ? '#fff' : '#14532d'} fontFamily={SANS} fontWeight="700">{i + 1}</text>
+            </g>
+          );
+        })}
+      </svg>
+      <div style={{ display: 'flex', gap: 16, alignItems: 'center', flexWrap: 'wrap', fontFamily: MONO, fontSize: 10.5, letterSpacing: '0.06em', color: COLORS.faded, marginTop: 6 }}>
+        <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}>
+          <span style={{ width: 18, height: 0, borderTop: '2.5px solid #14532d', display: 'inline-block' }} /> your road
+        </span>
+        {showBest && (
+          <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}>
+            <span style={{ width: 18, height: 0, borderTop: '2.5px dashed #2563eb', display: 'inline-block' }} /> a shortest road
+          </span>
+        )}
+      </div>
+    </div>
+  );
+}
 
 // ─── Personal stats + streak (localStorage), Crux pattern ──────────────────
 function getStats() {
@@ -189,6 +323,13 @@ export default function SpanClient({ puzzles = [], forceNum = null }) {
   const hops = chain.length - 1; // score meter: final path length vs par
   const playing = g.status === 'playing';
   const won = g.status === 'won';
+
+  // Sunday Edition twist (one per Sunday puzzle, never both): par already
+  // accounts for the constraint, so scoring below stays untouched.
+  const VIA = PUZZLE.via || null;
+  const AVOID = PUZZLE.avoid || null;
+  const isSundayEd = !!(PUZZLE.sunday || VIA || AVOID);
+  const viaDone = !VIA || chain.includes(VIA);
 
   useEffect(() => {
     if (!armReveal) return undefined;
@@ -322,6 +463,8 @@ export default function SpanClient({ puzzles = [], forceNum = null }) {
     if (!canonical) { miss(g2, 'Not a country on the Span map'); return; }
     if (chain.includes(canonical)) { miss(g2, `${canonical} is already on your road`); return; }
     if (!ADJ[head] || !ADJ[head].has(canonical)) { miss(g2, `${canonical} doesn't border ${head}`); return; }
+    if (AVOID && canonical === AVOID) { miss(g2, `Sunday rule: ${AVOID} is closed today`); return; }
+    if (VIA && canonical === PUZZLE.end && !viaDone) { miss(g2, `Sunday rule: pass through ${VIA} before ${PUZZLE.end}`); return; }
     g2.chain.push(canonical);
     setTyped('');
     if (canonical === PUZZLE.end) {
@@ -345,11 +488,20 @@ export default function SpanClient({ puzzles = [], forceNum = null }) {
 
   // One free hint: take one step down a shortest road from where you stand.
   // It costs its move like any step — the share string carries the 💡.
+  // Constraint-aware: routes around the avoided country, heads for the via
+  // country first when it's still owed, and never doubles back through the
+  // chain (blocked set) unless the chain has boxed the player in.
   function useHint() {
     if (!playing || g.hintUsed) return;
-    const route = shortestRoute(ADJ, head, PUZZLE.end);
+    const target = VIA && !viaDone ? VIA : PUZZLE.end;
+    const blocked = new Set(chain.filter((c) => c !== head));
+    if (AVOID) blocked.add(AVOID);
+    if (VIA && !viaDone) blocked.add(PUZZLE.end);
+    let route = shortestRoute(ADJ, head, target, blocked);
+    if (!route || route.length < 2) route = shortestRoute(ADJ, head, target, AVOID || undefined);
     if (!route || route.length < 2) return;
     const next = route[1];
+    if (chain.includes(next)) return;
     const g2 = { ...g, chain: [...chain, next], hintUsed: true };
     if (!g2.t0) g2.t0 = Date.now();
     if (next === PUZZLE.end) {
@@ -415,9 +567,10 @@ export default function SpanClient({ puzzles = [], forceNum = null }) {
       : '\u{1F7E9}' + '\u{1F7E6}'.repeat(Math.max(0, hops)) + '⬛';
     const hintBit = g.hintUsed ? ' · 💡' : '';
     const streakBit = isTodays && myStats.cur >= 2 ? ` · streak ${myStats.cur}` : '';
+    const ruleBit = VIA ? ` via ${VIA}` : AVOID ? ` (${AVOID} closed)` : '';
     const head2 = won
-      ? `Span #${PUZZLE.num} · ${PUZZLE.start} → ${PUZZLE.end} · ${hops} hops (shortest ${PUZZLE.par}) · ${elapsed}${hintBit}${streakBit}`
-      : `Span #${PUZZLE.num} · ${PUZZLE.start} → ${PUZZLE.end} · gave up at ${hops} hop${hops === 1 ? '' : 's'}${hintBit}`;
+      ? `Span #${PUZZLE.num} · ${PUZZLE.start} → ${PUZZLE.end}${ruleBit} · ${hops} hops (shortest ${PUZZLE.par}) · ${elapsed}${hintBit}${streakBit}`
+      : `Span #${PUZZLE.num} · ${PUZZLE.start} → ${PUZZLE.end}${ruleBit} · gave up at ${hops} hop${hops === 1 ? '' : 's'}${hintBit}`;
     return `${head2}\n${squares}\n${shareUrl()}`;
   }
   function shareUrl() {
@@ -425,7 +578,7 @@ export default function SpanClient({ puzzles = [], forceNum = null }) {
   }
   function copyShare() {
     const text = playing
-      ? `Span #${PUZZLE.num} — get from ${PUZZLE.start} to ${PUZZLE.end}, border by border. Shortest path is ${PUZZLE.par}.\n${shareUrl()}`
+      ? `Span #${PUZZLE.num} — get from ${PUZZLE.start} to ${PUZZLE.end}, border by border.${VIA ? ` Sunday Edition: the road must pass through ${VIA}.` : AVOID ? ` Sunday Edition: ${AVOID} is closed.` : ''} Shortest path is ${PUZZLE.par}.\n${shareUrl()}`
       : shareText();
     try {
       if (typeof navigator !== 'undefined' && navigator.share && isMobileDevice()) {
@@ -441,7 +594,15 @@ export default function SpanClient({ puzzles = [], forceNum = null }) {
     } catch (e) {}
   }
 
-  const revealRoute = g.status === 'revealed' ? shortestRoute(ADJ, PUZZLE.start, PUZZLE.end) : null;
+  // one CONSTRAINED shortest road (Sunday rules respected) — the reveal list,
+  // and the dashed comparison line on the end-of-game map
+  const bestRoute = useMemo(() => {
+    if (playing) return null;
+    if (AVOID) return shortestRoute(ADJ, PUZZLE.start, PUZZLE.end, AVOID);
+    if (VIA) return viaRoute(ADJ, PUZZLE.start, VIA, PUZZLE.end);
+    return shortestRoute(ADJ, PUZZLE.start, PUZZLE.end);
+  }, [playing, ADJ, PUZZLE, AVOID, VIA]);
+  const revealRoute = g.status === 'revealed' ? bestRoute : null;
 
   function chip(name, kind, key) {
     const base = { display: 'inline-flex', alignItems: 'center', gap: 6, fontFamily: SANS, fontWeight: 800, fontSize: 13.5, borderRadius: 8, padding: '7px 11px', border: '1.5px solid rgba(28,30,36,0.35)' };
@@ -505,6 +666,14 @@ export default function SpanClient({ puzzles = [], forceNum = null }) {
 
         {/* the assignment */}
         <div style={{ background: '#fff', border: `2px solid ${COLORS.ink}`, borderRadius: 10, padding: '13px 15px', boxShadow: '5px 5px 0 rgba(28,30,36,0.16)', marginBottom: 12 }}>
+          {isSundayEd && (
+            <div style={{ display: 'flex', alignItems: 'center', gap: 9, fontFamily: MONO, fontSize: 11, letterSpacing: '0.09em', textTransform: 'uppercase', color: '#8a6d1a', background: '#fdf6e3', border: '1px solid rgba(230,185,63,0.6)', borderRadius: 7, padding: '6px 10px', marginBottom: 11, flexWrap: 'wrap' }}>
+              <b style={{ fontWeight: 800, color: '#92400e', whiteSpace: 'nowrap' }}>Sunday Edition</b>
+              <span style={{ whiteSpace: 'nowrap' }}>
+                {VIA ? <>route through <b style={{ fontWeight: 800 }}>{VIA}</b>{viaDone ? <b style={{ color: COLORS.trail, fontWeight: 800 }}> &#10003;</b> : null}</> : <><b style={{ fontWeight: 800 }}>{AVOID}</b> is closed today</>}
+              </span>
+            </div>
+          )}
           <div style={{ display: 'flex', alignItems: 'center', gap: 12, fontFamily: MONO, fontSize: 11.5, letterSpacing: '0.1em', textTransform: 'uppercase', color: COLORS.faded, borderBottom: '1px solid rgba(28,30,36,0.18)', paddingBottom: 8, marginBottom: 12, flexWrap: 'wrap' }}>
             <span style={{ whiteSpace: 'nowrap' }}><b style={{ color: COLORS.ink, fontWeight: 500 }}>{PUZZLE.start}</b> &rarr; <b style={{ color: COLORS.ink, fontWeight: 500 }}>{PUZZLE.end}</b></span>
             <span style={{ marginLeft: 'auto', whiteSpace: 'nowrap' }}>shortest <b style={{ color: COLORS.ink, fontWeight: 500 }}>{PUZZLE.par}</b> &middot; hops <b style={{ color: hops > PUZZLE.par ? COLORS.rust : COLORS.ink, fontWeight: 500 }}>{hops}</b> &middot; misses <b style={{ color: g.misses > 0 ? COLORS.rust : COLORS.ink, fontWeight: 500 }}>{g.misses}</b></span>
@@ -580,6 +749,7 @@ export default function SpanClient({ puzzles = [], forceNum = null }) {
                 ? <>{finalScore}/10 &middot; {hops} hops (shortest {PUZZLE.par}) &middot; {g.misses} miss{g.misses === 1 ? '' : 'es'} &middot; {elapsed}{g.hintUsed ? <> &middot; 1 hint</> : null}</>
                 : <>0/10 &middot; a shortest road is below</>}
             </div>
+            <SpanMap chain={chain} best={won && hops === PUZZLE.par ? null : bestRoute} />
             {revealRoute && (
               <div style={{ display: 'flex', alignItems: 'center', gap: 6, flexWrap: 'wrap', margin: '8px 0 4px' }}>
                 {revealRoute.map((c, i) => {
@@ -702,7 +872,7 @@ export default function SpanClient({ puzzles = [], forceNum = null }) {
               ))}
             </div>
             <div style={{ fontFamily: SANS, fontWeight: 900, fontSize: 34, color: COLORS.ink, letterSpacing: '-0.01em', margin: '2px 0 6px', lineHeight: 1.15 }}>{hops === PUZZLE.par ? 'Shortest path!' : 'Spanned.'}</div>
-            <div style={{ fontFamily: MONO, fontSize: 12.5, color: COLORS.faded, marginBottom: 14 }}>No. {PUZZLE.num} &middot; {PUZZLE.start} &rarr; {PUZZLE.end} &middot; {hops} hops (shortest {PUZZLE.par}) &middot; {elapsed}</div>
+            <div style={{ fontFamily: MONO, fontSize: 12.5, color: COLORS.faded, marginBottom: 14 }}>No. {PUZZLE.num} &middot; {PUZZLE.start} &rarr; {PUZZLE.end}{VIA ? <> via {VIA}</> : AVOID ? <> ({AVOID} closed)</> : null} &middot; {hops} hops (shortest {PUZZLE.par}) &middot; {elapsed}</div>
             <div style={{ display: 'flex', gap: 3, justifyContent: 'center', marginBottom: 16, flexWrap: 'wrap' }}>
               {chain.map((_, i) => (
                 <span key={i} style={{ width: 15, height: 15, borderRadius: 3, background: i === 0 || i === chain.length - 1 ? COLORS.trail : '#5a97dd', border: '1px solid rgba(28,30,36,0.25)' }} />
@@ -737,6 +907,9 @@ export default function SpanClient({ puzzles = [], forceNum = null }) {
             <div style={{ fontSize: 14, lineHeight: 1.55, color: COLORS.ink, fontWeight: 600 }}>
               <p style={{ margin: '0 0 9px' }}><b>Get from {PUZZLE.start} to {PUZZLE.end}</b> by typing a chain of countries &mdash; each one must share a <b>land border</b> with the last.</p>
               <p style={{ margin: '0 0 9px' }}><b>The shortest path is {PUZZLE.par} hops.</b> Your score is 10 if your final chain matches it, minus one for each country over. Undo any step for free. A country that doesn&apos;t border your position is a miss &mdash; misses break leaderboard ties.</p>
+              {isSundayEd && (
+                <p style={{ margin: '0 0 9px' }}><b>Sunday Edition:</b> {VIA ? <>your road must pass through <b>{VIA}</b> before it reaches {PUZZLE.end}. The {PUZZLE.par}-hop shortest path already takes the detour.</> : <><b>{AVOID}</b> is closed today &mdash; the road has to go around it, and the {PUZZLE.par}-hop shortest path already does.</>}</p>
+              )}
               <p style={{ margin: 0 }}>Mainland borders only: overseas territories don&apos;t count (sorry, France&ndash;Brazil), and neither do bridges or tunnels. One free <b>hint</b> walks you one step down a shortest road.</p>
             </div>
             <button className="sp-btn" onClick={() => { setShowHelp(false); try { localStorage.setItem(HELP_KEY, '1'); } catch (e) {} }} style={{ marginTop: 14, background: COLORS.ink, color: '#fff' }}>Play</button>
@@ -754,7 +927,7 @@ export default function SpanClient({ puzzles = [], forceNum = null }) {
           The map plays by strict rules: mainland land borders only, so overseas territories, bridges, and tunnels don&apos;t count &mdash; which is why Scandinavia&apos;s only way out is through Russia, and why the Sinai is the single land door between Africa and Asia. Contiguous exclaves do count: Kaliningrad, Nakhchivan, and Cabinda are all in play.
         </p>
         <p style={{ margin: 0, fontSize: 13, lineHeight: 1.65, color: COLORS.faded, fontWeight: 600 }}>
-          A new route drops every day at midnight Eastern. No app, no signup &mdash; play free in your browser, keep a streak, and race the daily leaderboard. More dailies: <a href="/crux" style={{ color: COLORS.ink, fontWeight: 800 }}>Crux</a>, our clueless crossword, <a href="/garble" style={{ color: COLORS.ink, fontWeight: 800 }}>Garble</a>, our word scramble, and <a href="/links" style={{ color: COLORS.ink, fontWeight: 800 }}>Links</a>, our word grouping game.
+          A new route drops every day at midnight Eastern, and every game ends with your road drawn on the world map. On Sundays the Sunday Edition adds a twist: a country your road must pass through, or one whose borders are closed for the day. No app, no signup &mdash; play free in your browser, keep a streak, and race the daily leaderboard. More dailies: <a href="/crux" style={{ color: COLORS.ink, fontWeight: 800 }}>Crux</a>, our clueless crossword, <a href="/garble" style={{ color: COLORS.ink, fontWeight: 800 }}>Garble</a>, our word scramble, and <a href="/links" style={{ color: COLORS.ink, fontWeight: 800 }}>Links</a>, our word grouping game.
         </p>
       </section>
 

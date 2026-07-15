@@ -6,6 +6,17 @@
 // par = BFS-minimum border hops on app/span/borders.js — recompute with the
 // validator after ANY borders change; a stale par breaks scoring. `note` is
 // revealed at game end (a fun fact about the route, never a spoiler before).
+//
+// SUNDAY EDITIONS (every Sunday, starting 2026-07-19): one twist per Sunday,
+// either `via: '<Country>'` (the chain must pass through it before reaching
+// the destination) or `avoid: '<Country>'` (that country is closed and can't
+// be entered). Set `sunday: true` alongside. RULES FOR AUTHORING:
+// - par MUST be the CONSTRAINED shortest: for avoid, BFS with the country
+//   blocked (the destination must stay reachable!); for via, hops(start,via)
+//   + hops(via,end), which the validator also proves is achievable as a
+//   simple path (the two legs must compose without reusing a country).
+// - Never both via and avoid on one puzzle. Weekday puzzles get neither.
+// - Pick twists that genuinely reroute the road (base par should change).
 export const PUZZLES = [
   {
     num: 1,
@@ -84,8 +95,10 @@ export const PUZZLES = [
     dateLabel: 'July 19, 2026',
     start: 'Sweden',
     end: 'Switzerland',
-    par: 5,
-    note: 'The Øresund Bridge to Denmark is a bridge, and bridges do not count — every shortest road out of Scandinavia runs through Russia.',
+    sunday: true,
+    via: 'Italy',
+    par: 7, // hops(Sweden,Italy)=6 + hops(Italy,Switzerland)=1, legs disjoint
+    note: 'Without the detour this is a 5-hop road. Italy drags you the long way around: out through Russia, across Poland and Germany, down through France, and into Switzerland from the south.',
   },
   {
     num: 9,
@@ -146,5 +159,17 @@ export const PUZZLES = [
     end: 'India',
     par: 6,
     note: 'The one shortest road runs through Russia and China — the southern route through Iran costs an extra hop.',
+  },
+  {
+    num: 15,
+    quizId: 'span-7-26-26',
+    live: '2026-07-26',
+    dateLabel: 'July 26, 2026',
+    start: 'Germany',
+    end: 'China',
+    sunday: true,
+    avoid: 'Russia',
+    par: 8, // base par is 3 (Poland–Russia–China); with Russia closed the road is the old Silk Road
+    note: 'With Russia open this is three hops. Closed, the only way east is the old Silk Road: down the Balkans, through Turkey and Iran, and over the mountains into China.',
   },
 ];

@@ -114,6 +114,11 @@ function gameFamily(id) { const m = (id || '').match(DAILY_GAME_FAMILY_RE); retu
 // would monopolize the Newest tile. They have their own hub tiles, so the Newest
 // tile/list must never surface one. Keep this in sync with DAILY_GAME_FAMILY_RE.
 const isDailyGame = (id) => DAILY_GAME_FAMILY_RE.test(id || '');
+// Business News hub quizzes are normally kept out of the Newest tile/panel, but
+// individual ids can be allowlisted to headline there (owner decision). The Netflix
+// earnings quiz is allowlisted so its print-day quiz can be the Newest tile.
+const NEWEST_BN_ALLOW = new Set(['netflix-2q26-earnings-quiz']);
+const bnHiddenFromNewest = (id) => isBusinessNewsHubQuiz(id) && !NEWEST_BN_ALLOW.has(id);
 
 // Per-quiz completion status for the CURRENT player, supplied once at the top of
 // the tree so any quiz row can show a check (played) or a circled check (aced at
@@ -746,7 +751,7 @@ export default function QuizHomeClient() {
   // excluding anything already in Newest, then each category column excluding
   // everything shown in Newest + Most Played. No quiz appears twice on the page.
   const newest = useMemo(() => catalog.slice()
-    .filter((q) => !isBusinessNewsHubQuiz(q.id) && !isDailyGame(q.id))
+    .filter((q) => !bnHiddenFromNewest(q.id) && !isDailyGame(q.id))
     .sort((a, b) => (a.publishedAt < b.publishedAt ? 1 : a.publishedAt > b.publishedAt ? -1 : 0))
     .slice(0, 6), [catalog]);
   // ── header ticker: recent plays + today's leaders + duels + new quizzes ──
@@ -907,7 +912,7 @@ export default function QuizHomeClient() {
   const sptPos = sptQH ? sptQH.pos : undefined;
 
   const newestAll = useMemo(() => catalog.slice()
-    .filter((q) => !isBusinessNewsHubQuiz(q.id) && !isDailyGame(q.id))
+    .filter((q) => !bnHiddenFromNewest(q.id) && !isDailyGame(q.id))
     .sort((a, b) => (a.publishedAt < b.publishedAt ? 1 : a.publishedAt > b.publishedAt ? -1 : 0)), [catalog]);
   const mostPlayedAll = useMemo(() => catalog.slice()
     .sort((a, b) => plays(b.id) - plays(a.id) || a.title.localeCompare(b.title)), [catalog, totals]);

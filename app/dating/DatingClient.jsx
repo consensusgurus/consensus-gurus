@@ -13,6 +13,14 @@
 // /dating?p=N archive pinning, streaks + stats, and the shared /api/quiz/*
 // board flow. The display shuffle is SEEDED (mulberry32) — Math.random would
 // mismatch SSR/hydration AND leak the answer (authored order is the answer).
+//
+// DESKTOP DRAG: on non-mobile, unlocked cards can be pointer-dragged into any
+// unlocked slot (locked slots never move; the dragged card is INSERTED among
+// the unlocked cards, not swapped). The arrows stay everywhere and remain the
+// only control on mobile, where dragging would fight page scroll.
+//
+// END-OF-GAME TIMELINE: every finish (won, lost, or revealed) shows the full
+// dated timeline with each event's one-line story (`d` in puzzles.js).
 
 import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { useSearchParams } from 'next/navigation';
@@ -209,6 +217,9 @@ export default function DatingClient({ puzzles = [], forceNum = null }) {
   const { duelToken, duelInfo, duelSubmitted } = useDuelContext(PUZZLE.quizId, searchParams);
   const toastTimer = useRef(null);
   const viewedRef = useRef(false);
+  const rowRefs = useRef([]);
+  const dragRef = useRef(null);
+  const [drag, setDrag] = useState(null); // {from, dy, target} while a desktop drag is live
 
   const playing = g.status === 'playing';
   const won = g.status === 'won';
@@ -359,6 +370,73 @@ export default function DatingClient({ puzzles = [], forceNum = null }) {
     if (!g2.t0) g2.t0 = Date.now();
     [g2.order[slot], g2.order[to]] = [g2.order[to], g2.order[slot]];
     setG(g2);
+  }
+
+  // ─── desktop drag: insert the card from `from` at unlocked slot `to`,
+  // shifting only the other unlocked cards (locked slots never move) ─────────
+  function moveInsert(from, to) {
+    if (!playing || from === to || lockedSlots[from] || lockedSlots[to]) return;
+    const unlocked = [];
+    for (let i = 0; i < N; i++) if (!lockedSlots[i]) unlocked.push(i);
+    const seq = unlocked.map((s) => g.order[s]);
+    const fi = unlocked.indexOf(from), ti = unlocked.indexOf(to);
+    if (fi < 0 || ti < 0) return;
+    const [ev] = seq.splice(fi, 1);
+    seq.splice(ti, 0, ev);
+    const g2 = { ...g, order: [...g.order] };
+    if (!g2.t0) g2.t0 = Date.now();
+    unlocked.forEach((s, i) => { g2.order[s] = seq[i]; });
+    setG(g2);
+  }
+  // the unlocked slot whose row is vertically nearest the cursor. The dragged
+  // row itself is measured at its UNTRANSFORMED spot (rect minus dy) — its
+  // rendered rect follows the cursor, and would otherwise win every tie and
+  // swallow downward drops.
+  function dragTargetSlot(clientY, fromSlot, dy) {
+    let best = null, bd = Infinity;
+    for (let i = 0; i < N; i++) {
+      if (lockedSlots[i]) continue;
+      const el = rowRefs.current[i];
+      if (!el) continue;
+      const r = el.getBoundingClientRect();
+      let mid = r.top + r.height / 2;
+      if (i === fromSlot && dy != null) mid -= dy;
+      const d = Math.abs(clientY - mid);
+      if (d < bd) { bd = d; best = i; }
+    }
+    return best;
+  }
+  function startDrag(slot, e) {
+    if (mobileUi || !playing || lockedSlots[slot]) return;
+    if (e.button != null && e.button !== 0) return;
+    if (e.target && e.target.closest && e.target.closest('button')) return; // arrows keep working
+    e.preventDefault();
+    dragRef.current = { from: slot, y0: e.clientY, active: false };
+    const onMove = (ev) => {
+      const d = dragRef.current;
+      if (!d) return;
+      const dy = ev.clientY - d.y0;
+      if (!d.active && Math.abs(dy) < 4) return; // don't kill plain clicks
+      d.active = true;
+      setDrag({ from: d.from, dy, target: dragTargetSlot(ev.clientY, d.from, dy) });
+    };
+    const onUp = (ev) => {
+      window.removeEventListener('pointermove', onMove);
+      window.removeEventListener('pointerup', onUp);
+      window.removeEventListener('pointercancel', onUp);
+      const d = dragRef.current;
+      dragRef.current = null;
+      // resolve the drop BEFORE clearing the drag state — the transform is
+      // still applied, so the dragged row needs its dy correction
+      if (d && d.active && ev.type !== 'pointercancel') {
+        const t = dragTargetSlot(ev.clientY, d.from, ev.clientY - d.y0);
+        if (t != null && t !== d.from) moveInsert(d.from, t);
+      }
+      setDrag(null);
+    };
+    window.addEventListener('pointermove', onMove);
+    window.addEventListener('pointerup', onUp);
+    window.addEventListener('pointercancel', onUp);
   }
 
   function checkOrder() {
@@ -526,16 +604,20 @@ export default function DatingClient({ puzzles = [], forceNum = null }) {
             <span style={{ marginLeft: 'auto', whiteSpace: 'nowrap' }}>checks <b style={{ color: checksUsed > 0 ? COLORS.rust : COLORS.ink, fontWeight: 500 }}>{checksUsed}/{MAX_CHECKS}</b> &middot; placed <b style={{ color: lockedCount > 0 ? COLORS.lock : COLORS.ink, fontWeight: 500 }}>{lockedCount}/{N}</b></span>
           </div>
 
-          <div style={{ fontFamily: MONO, fontSize: 10, letterSpacing: '0.14em', textTransform: 'uppercase', color: COLORS.faded, marginBottom: 7 }}>&uarr; Earliest</div>
-          <div className={shake ? 'dt-shake' : undefined} style={{ display: 'flex', flexDirection: 'column', gap: 7 }}>
+          <div style={{ fontFamily: MONO, fontSize: 10, letterSpacing: '0.14em', textTransform: 'uppercase', color: COLORS.faded, marginBottom: 7 }}>&uarr; Earliest{!mobileUi && playing ? <span style={{ color: '#a8adb8' }}> &middot; drag cards or use the arrows</span> : null}</div>
+          <div className={shake ? 'dt-shake' : undefined} style={{ display: 'flex', flexDirection: 'column', gap: 7, userSelect: drag ? 'none' : undefined }}>
             {g.order.map((ev, slot) => {
               const locked = lockedSlots[slot];
               const showYear = locked || g.status !== 'playing' || (g.hintIdx === ev && g.hintUsed);
               const yearChip = showYear ? (
                 <span style={{ flex: '0 0 auto', fontFamily: MONO, fontSize: 11.5, fontWeight: 500, color: locked ? '#14532d' : COLORS.plumInk, background: locked ? COLORS.lockSoft : COLORS.plumSoft, border: `1px solid ${locked ? 'rgba(21,128,61,0.4)' : 'rgba(124,58,237,0.35)'}`, borderRadius: 6, padding: '3px 8px', whiteSpace: 'nowrap' }}>{PUZZLE.events[ev].y}</span>
               ) : null;
+              const draggable = !mobileUi && playing && !locked;
+              const dragging = drag && drag.from === slot;
+              const dropHere = drag && !dragging && drag.target === slot;
               return (
-                <div key={ev} style={{ display: 'flex', alignItems: 'center', gap: 9, background: locked ? COLORS.lockSoft : '#fff', border: locked ? '1.5px solid rgba(21,128,61,0.5)' : '1.5px solid rgba(28,30,36,0.32)', borderRadius: 9, padding: '9px 11px' }}>
+                <div key={ev} ref={(el) => { rowRefs.current[slot] = el; }} onPointerDown={draggable ? (e) => startDrag(slot, e) : undefined} title={draggable ? 'Drag to reorder' : undefined}
+                  style={{ display: 'flex', alignItems: 'center', gap: 9, background: locked ? COLORS.lockSoft : dropHere ? COLORS.plumSoft : '#fff', border: locked ? '1.5px solid rgba(21,128,61,0.5)' : dropHere ? `1.5px solid ${COLORS.plum}` : '1.5px solid rgba(28,30,36,0.32)', borderRadius: 9, padding: '9px 11px', cursor: draggable ? (dragging ? 'grabbing' : 'grab') : undefined, position: dragging ? 'relative' : undefined, zIndex: dragging ? 5 : undefined, transform: dragging ? `translateY(${drag.dy}px)` : undefined, boxShadow: dragging ? '0 8px 20px rgba(20,22,28,0.22)' : undefined, opacity: dragging ? 0.96 : undefined, touchAction: draggable ? 'none' : undefined }}>
                   <span style={{ flex: '0 0 auto', width: 20, fontFamily: MONO, fontSize: 11, color: COLORS.faded, textAlign: 'center' }}>{locked ? <Check size={14} color={COLORS.lock} strokeWidth={3} /> : slot + 1}</span>
                   <span style={{ flex: '1 1 auto', minWidth: 0, fontFamily: SANS, fontWeight: 700, fontSize: 13.5, lineHeight: 1.35, color: locked ? '#14532d' : COLORS.ink }}>{PUZZLE.events[ev].t}</span>
                   {yearChip}
@@ -589,16 +671,22 @@ export default function DatingClient({ puzzles = [], forceNum = null }) {
                   ? <>{finalScore}/10 &middot; {lockedCount}/{N} placed &middot; the timeline is below</>
                   : <>0/10 &middot; the timeline is below</>}
             </div>
-            {!won && (
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 5, margin: '8px 0 4px' }}>
+            {/* the dated timeline — the payoff for every finish. Each event
+                carries its one-line story (`d` in puzzles.js). */}
+            <div style={{ margin: '10px 0 4px' }}>
+              <div style={{ fontFamily: MONO, fontSize: 10, letterSpacing: '0.14em', textTransform: 'uppercase', color: COLORS.faded, marginBottom: 7 }}>The timeline</div>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
                 {PUZZLE.events.map((evt, i) => (
-                  <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 8, fontFamily: SANS, fontWeight: 700, fontSize: 12.5, color: COLORS.ink }}>
-                    <span style={{ flex: '0 0 auto', fontFamily: MONO, fontSize: 11, fontWeight: 500, color: COLORS.plumInk, background: COLORS.plumSoft, border: '1px solid rgba(124,58,237,0.35)', borderRadius: 6, padding: '2px 7px', minWidth: 64, textAlign: 'center', whiteSpace: 'nowrap' }}>{evt.y}</span>
-                    <span style={{ minWidth: 0 }}>{evt.t}</span>
+                  <div key={i} style={{ display: 'flex', alignItems: 'flex-start', gap: 9 }}>
+                    <span style={{ flex: '0 0 auto', fontFamily: MONO, fontSize: 11, fontWeight: 500, color: COLORS.plumInk, background: COLORS.plumSoft, border: '1px solid rgba(124,58,237,0.35)', borderRadius: 6, padding: '2px 7px', minWidth: 64, textAlign: 'center', whiteSpace: 'nowrap', marginTop: 1 }}>{evt.y}</span>
+                    <span style={{ minWidth: 0 }}>
+                      <span style={{ display: 'block', fontFamily: SANS, fontWeight: 700, fontSize: 12.5, lineHeight: 1.35, color: COLORS.ink }}>{evt.t}</span>
+                      {evt.d ? <span style={{ display: 'block', fontFamily: SANS, fontWeight: 600, fontSize: 11.5, lineHeight: 1.45, color: COLORS.faded, marginTop: 1 }}>{evt.d}</span> : null}
+                    </span>
                   </div>
                 ))}
               </div>
-            )}
+            </div>
             {PUZZLE.note && (
               <div style={{ fontSize: 12.5, fontWeight: 600, color: COLORS.faded, fontStyle: 'italic', margin: '6px 0 10px', lineHeight: 1.5 }}>{PUZZLE.note}</div>
             )}
@@ -749,7 +837,7 @@ export default function DatingClient({ puzzles = [], forceNum = null }) {
               <button onClick={() => { setShowHelp(false); try { localStorage.setItem(HELP_KEY, '1'); } catch (e) {} }} aria-label="Close" style={{ marginLeft: 'auto', background: 'none', border: 'none', cursor: 'pointer', color: COLORS.faded }}><X size={20} /></button>
             </div>
             <div style={{ fontSize: 14, lineHeight: 1.55, color: COLORS.ink, fontWeight: 600 }}>
-              <p style={{ margin: '0 0 9px' }}><b>Five moments from history, shuffled.</b> Use the arrows to arrange them from earliest (top) to latest (bottom).</p>
+              <p style={{ margin: '0 0 9px' }}><b>Five moments from history, shuffled.</b> Arrange them from earliest (top) to latest (bottom) &mdash; {mobileUi ? 'tap the arrows to move a card' : 'drag a card where it belongs, or use the arrows'}.</p>
               <p style={{ margin: '0 0 9px' }}><b>You get {MAX_CHECKS} checks.</b> Each check locks every event you&apos;ve placed correctly and reveals its year. Date the whole board on your first check for a perfect 10 &mdash; each extra check costs a point, and each event you never place costs two.</p>
               <p style={{ margin: 0 }}>One free <b>hint</b> reveals the year of your most misplaced event. New moments every day at midnight Eastern.</p>
             </div>
@@ -765,7 +853,7 @@ export default function DatingClient({ puzzles = [], forceNum = null }) {
           Dating is a free daily history game from Source of Truths. Each day deals five moments from history, shuffled out of sequence; your job is to arrange them in chronological order. You get three checks &mdash; every event you place correctly locks in with its year revealed, and a perfect first check scores a flawless 10.
         </p>
         <p style={{ margin: '0 0 8px', fontSize: 13, lineHeight: 1.65, color: COLORS.faded, fontWeight: 600 }}>
-          The fun is in the near-misses: history is full of events that happened far earlier, or far later, than they feel like they should have. Oxford was teaching students before the Aztecs had a capital; London had a subway before anyone had a car. Every puzzle ends with the full dated timeline and one fact worth keeping.
+          The fun is in the near-misses: history is full of events that happened far earlier, or far later, than they feel like they should have. Oxford was teaching students before the Aztecs had a capital; London had a subway before anyone had a car. Every puzzle ends with the full dated timeline, a one-line story for each moment, and one fact worth keeping.
         </p>
         <p style={{ margin: 0, fontSize: 13, lineHeight: 1.65, color: COLORS.faded, fontWeight: 600 }}>
           Five new moments drop every day at midnight Eastern. No app, no signup &mdash; play free in your browser, keep a streak, and race the daily leaderboard. More dailies: <a href="/crux" style={{ color: COLORS.ink, fontWeight: 800 }}>Crux</a>, our clueless crossword, <a href="/garble" style={{ color: COLORS.ink, fontWeight: 800 }}>Garble</a>, our word scramble, <a href="/links" style={{ color: COLORS.ink, fontWeight: 800 }}>Links</a>, our word grouping game, and <a href="/span" style={{ color: COLORS.ink, fontWeight: 800 }}>Span</a>, our border-hopping geography game.

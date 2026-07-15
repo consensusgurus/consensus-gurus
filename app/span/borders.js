@@ -226,9 +226,20 @@ export function buildLookup() {
   return m;
 }
 
+// Normalize the optional `blocked` argument (a country name, an array, a
+// Set, or nothing) into a Set. Used by the Sunday Edition "avoid" rule and
+// by hints that must route around the player's existing chain.
+function blockSet(blocked) {
+  if (!blocked) return null;
+  if (blocked instanceof Set) return blocked;
+  return new Set(Array.isArray(blocked) ? blocked : [blocked]);
+}
+
 // BFS shortest hop count between two countries; -1 if unreachable.
-export function shortestHops(adj, from, to) {
+// `blocked` (optional): country name / array / Set that the path may not enter.
+export function shortestHops(adj, from, to, blocked) {
   if (from === to) return 0;
+  const block = blockSet(blocked);
   const seen = new Set([from]);
   let frontier = [from];
   let d = 0;
@@ -237,7 +248,7 @@ export function shortestHops(adj, from, to) {
     const next = [];
     for (const c of frontier) {
       for (const n of adj[c] || []) {
-        if (seen.has(n)) continue;
+        if (seen.has(n) || (block && block.has(n))) continue;
         if (n === to) return d;
         seen.add(n);
         next.push(n);
@@ -249,15 +260,17 @@ export function shortestHops(adj, from, to) {
 }
 
 // One shortest route (for the reveal / hint), BFS parent-tracking.
-export function shortestRoute(adj, from, to) {
+// `blocked` (optional): country name / array / Set that the route may not enter.
+export function shortestRoute(adj, from, to, blocked) {
   if (from === to) return [from];
+  const block = blockSet(blocked);
   const parent = { [from]: null };
   let frontier = [from];
   while (frontier.length) {
     const next = [];
     for (const c of frontier) {
       for (const n of adj[c] || []) {
-        if (n in parent) continue;
+        if (n in parent || (block && block.has(n))) continue;
         parent[n] = c;
         if (n === to) {
           const path = [to];
@@ -271,4 +284,22 @@ export function shortestRoute(adj, from, to) {
     frontier = next;
   }
   return null;
+}
+
+// A shortest SIMPLE route from `from` to `to` that passes through `via`
+// (the Sunday Edition "via" rule). Two BFS legs; the second leg is kept
+// disjoint from the first by blocking it (and vice versa if the first try
+// comes up long). Puzzles are validated so a disjoint composition always
+// achieves hops(from,via) + hops(via,to); the naive concat is a display-only
+// fallback that never ships for a validated puzzle.
+export function viaRoute(adj, from, via, to) {
+  const leg1 = shortestRoute(adj, from, via);
+  if (!leg1) return null;
+  const leg2 = shortestRoute(adj, via, to, new Set(leg1.filter((c) => c !== via)));
+  if (leg2 && leg2.length - 1 === shortestHops(adj, via, to)) return [...leg1, ...leg2.slice(1)];
+  const leg2b = shortestRoute(adj, via, to);
+  if (!leg2b) return null;
+  const leg1b = shortestRoute(adj, from, via, new Set(leg2b.filter((c) => c !== via)));
+  if (leg1b && leg1b.length - 1 === shortestHops(adj, from, via)) return [...leg1b, ...leg2b.slice(1)];
+  return [...leg1, ...leg2b.slice(1)];
 }
