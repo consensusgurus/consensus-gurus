@@ -108,6 +108,11 @@ function sportHeroFor(q) {
 // tiles (Newest + Trending) must never both draw from the same family.
 const DAILY_GAME_FAMILY_RE = /^(crux|garble|links|span|dating|closer)-/;
 function gameFamily(id) { const m = (id || '').match(DAILY_GAME_FAMILY_RE); return m ? m[1] : null; }
+// Rule: daily games (Crux, Garble, Links, Span, Dating, Closer) publish a fresh
+// dated entry every day, so by publishedAt they are ALWAYS the "newest" quiz and
+// would monopolize the Newest tile. They have their own hub tiles, so the Newest
+// tile/list must never surface one. Keep this in sync with DAILY_GAME_FAMILY_RE.
+const isDailyGame = (id) => DAILY_GAME_FAMILY_RE.test(id || '');
 
 // Per-quiz completion status for the CURRENT player, supplied once at the top of
 // the tree so any quiz row can show a check (played) or a circled check (aced at
@@ -740,7 +745,7 @@ export default function QuizHomeClient() {
   // excluding anything already in Newest, then each category column excluding
   // everything shown in Newest + Most Played. No quiz appears twice on the page.
   const newest = useMemo(() => catalog.slice()
-    .filter((q) => !isBusinessNewsHubQuiz(q.id))
+    .filter((q) => !isBusinessNewsHubQuiz(q.id) && !isDailyGame(q.id))
     .sort((a, b) => (a.publishedAt < b.publishedAt ? 1 : a.publishedAt > b.publishedAt ? -1 : 0))
     .slice(0, 6), [catalog]);
   // ── header ticker: recent plays + today's leaders + duels + new quizzes ──
@@ -901,7 +906,7 @@ export default function QuizHomeClient() {
   const sptPos = sptQH ? sptQH.pos : undefined;
 
   const newestAll = useMemo(() => catalog.slice()
-    .filter((q) => !isBusinessNewsHubQuiz(q.id))
+    .filter((q) => !isBusinessNewsHubQuiz(q.id) && !isDailyGame(q.id))
     .sort((a, b) => (a.publishedAt < b.publishedAt ? 1 : a.publishedAt > b.publishedAt ? -1 : 0)), [catalog]);
   const mostPlayedAll = useMemo(() => catalog.slice()
     .sort((a, b) => plays(b.id) - plays(a.id) || a.title.localeCompare(b.title)), [catalog, totals]);
