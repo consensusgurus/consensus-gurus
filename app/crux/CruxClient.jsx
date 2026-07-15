@@ -1184,10 +1184,11 @@ export default function CruxClient({ puzzles = [], forceNum = null }) {
         )}
         {!identity && (
           <div style={{ maxWidth: 640, margin: '18px auto 0' }}>
-            <JoinLeaderboardForm identity={identity} onJoined={(id) => { setIdentity(id); if (id && id.username) setPlayer((p) => p || { name: id.username, rank: null }); }} />
+            <JoinLeaderboardForm hideIcon heading="See your stats and join the leaderboard" identity={identity} onJoined={(id) => { setIdentity(id); if (id && id.username) setPlayer((p) => p || { name: id.username, rank: null }); }} />
           </div>
         )}
         {/* your stats: sits directly above the leaderboard */}
+        {identity && (
         <div style={{ maxWidth: 640, margin: '20px auto 0' }}>
           <div style={{ fontFamily: MONO, fontSize: 10.5, fontWeight: 500, textTransform: 'uppercase', letterSpacing: '0.1em', color: COLORS.faded, marginBottom: 9 }}>Your stats</div>
           <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
@@ -1204,8 +1205,9 @@ export default function CruxClient({ puzzles = [], forceNum = null }) {
             ))}
           </div>
         </div>
+        )}
         <div style={{ maxWidth: 760, margin: '26px auto 0', background: '#fff', border: '1.5px solid rgba(20,22,28,0.12)', borderRadius: 12, padding: '14px 16px' }}>
-          <QuizLeaderboard board={board} identity={identity} total={PUZZLE.slots.length * 2} />
+          <QuizLeaderboard daily board={board} identity={identity} total={PUZZLE.slots.length * 2} />
         </div>
 
         <p style={{ textAlign: 'center', fontSize: 12, fontStyle: 'italic', fontWeight: 600, color: COLORS.faded, margin: '34px 0 0' }}>For WMM, in memoriam.</p>

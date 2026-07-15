@@ -44,6 +44,57 @@ const isIosDevice = () =>
 
 const HELP_KEY = 'sot_garble_help_seen';
 
+const STATS_KEY = 'sot_garble_stats';
+
+// Personal stats + streak (localStorage), same pattern as Links/Crux.
+function getStats() {
+  try {
+    const s = JSON.parse(localStorage.getItem(STATS_KEY));
+    if (s && s.v === 1 && s.rec) return s;
+  } catch (e) {}
+  return { v: 1, rec: {} };
+}
+function recordStat(num, entry) {
+  const s = getStats();
+  if (s.rec[num]) return s;
+  const s2 = { ...s, rec: { ...s.rec, [num]: entry } };
+  try { localStorage.setItem(STATS_KEY, JSON.stringify(s2)); } catch (e) {}
+  return s2;
+}
+function deriveStats(s, todayNum) {
+  const rec = s && s.rec ? s.rec : {};
+  const nums = Object.keys(rec).map(Number).sort((a, b) => a - b);
+  const played = nums.length;
+  const perfect = nums.filter((n) => rec[n].won).length;
+  let max = 0, run = 0, prev = null;
+  for (const n of nums) {
+    run = prev != null && n === prev + 1 ? run + 1 : 1;
+    if (run > max) max = run;
+    prev = n;
+  }
+  let cur = 0, at = rec[todayNum] ? todayNum : todayNum - 1;
+  while (rec[at]) { cur++; at--; }
+  return { played, perfect, cur, max };
+}
+function mergeServerStats(s, recent, puzzles) {
+  if (!s || !Array.isArray(recent) || !recent.length) return s;
+  const byQuiz = {};
+  for (const p of puzzles) byQuiz[p.quizId] = p;
+  let rec = s.rec, changed = false;
+  for (const m of recent) {
+    const pz = m && byQuiz[m.quizId];
+    if (!pz || m.attempt !== 1) continue;
+    if (rec[pz.num]) continue;
+    const sc = Math.max(0, Math.min(10, Math.round(((m.scorePct || 0) / 100) * 10)));
+    if (!changed) { rec = { ...rec }; changed = true; }
+    rec[pz.num] = { s: sc, t: 10, g: null, won: !!m.perfect };
+  }
+  if (!changed) return s;
+  const s2 = { ...s, rec };
+  try { localStorage.setItem(STATS_KEY, JSON.stringify(s2)); } catch (e) {}
+  return s2;
+}
+
 function etToday() {
   try { return new Date().toLocaleDateString('en-CA', { timeZone: 'America/New_York' }); }
   catch (e) { return new Date().toISOString().slice(0, 10); }
@@ -118,6 +169,7 @@ export default function GarbleClient({ puzzles = [], forceNum = null }) {
   const [board, setBoard] = useState(EMPTY_BOARD);
   const [identity, setIdentity] = useState(null);
   const [player, setPlayer] = useState(null);
+  const [stats, setStats] = useState(null);
   const toastTimer = useRef(null);
   const viewedRef = useRef(false);
 
@@ -130,6 +182,7 @@ export default function GarbleClient({ puzzles = [], forceNum = null }) {
       }
       if (!localStorage.getItem(HELP_KEY)) setShowHelp(true);
     } catch (e) {}
+    try { setStats(getStats()); } catch (e) {}
     setHydrated(true);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
@@ -157,7 +210,7 @@ export default function GarbleClient({ puzzles = [], forceNum = null }) {
       if (anon || em) {
         fetch(`/api/quiz/me?anonId=${encodeURIComponent(anon || '')}${em}`)
           .then((r) => r.json())
-          .then((d) => { if (d && d.found && d.name) setPlayer({ name: d.name, rank: (d.ranks && d.ranks.xp) || d.rank || null, key: d.userKey || null }); })
+          .then((d) => { if (d && Array.isArray(d.recent)) setStats((cur) => mergeServerStats(cur || getStats(), d.recent, puzzles)); if (d && d.found && d.name) setPlayer({ name: d.name, rank: (d.ranks && d.ranks.xp) || d.rank || null, key: d.userKey || null }); })
           .catch(() => {});
       }
     } catch (e) {}
@@ -180,6 +233,7 @@ export default function GarbleClient({ puzzles = [], forceNum = null }) {
 
   const playing = g.status === 'playing';
   const solvedCount = Object.keys(g.solved).length;
+  const myStats = deriveStats(stats, pickPuzzle(puzzles, null).num);
   const targetLen = sel === 'final' ? PUZZLE.final.length : PUZZLE.words[sel] ? PUZZLE.words[sel].answer.length : 0;
   const guessesUsed = g.misses;
   const elapsed = g.t0 ? fmtTime((g.tEnd || Date.now()) - g.t0) : '0:00';
@@ -203,6 +257,7 @@ export default function GarbleClient({ puzzles = [], forceNum = null }) {
     const score = Object.keys(g.solved).length + (won ? 5 : 0);
     const g2 = { ...g, finalSolved: won, status: won ? 'won' : 'done', tEnd: Date.now() };
     if (won) g2.solvedAtEnd = true;
+    try { setStats(recordStat(PUZZLE.num, { s: score, t: 10, g: g2.misses, won: g2.finalSolved && g2.misses === 0 })); } catch (e) {}
     postResult(g2, score);
     setG(g2);
     if (won) setJustWon(true);
@@ -218,6 +273,7 @@ export default function GarbleClient({ puzzles = [], forceNum = null }) {
         setTyped('');
         const score = Object.keys(g2.solved).length + 5;
         const g3 = { ...g2, finalSolved: true, status: 'won', tEnd: Date.now() };
+        try { setStats(recordStat(PUZZLE.num, { s: score, t: 10, g: g3.misses, won: g3.finalSolved && g3.misses === 0 })); } catch (e) {}
         postResult(g3, score);
         setG(g3);
         setJustWon(true);
@@ -542,11 +598,30 @@ export default function GarbleClient({ puzzles = [], forceNum = null }) {
         )}
         {!identity && (
           <div style={{ maxWidth: 640, margin: '18px auto 0' }}>
-            <JoinLeaderboardForm identity={identity} onJoined={(id) => { setIdentity(id); if (id && id.username) setPlayer((p) => p || { name: id.username, rank: null }); }} />
+            <JoinLeaderboardForm hideIcon heading="See your stats and join the leaderboard" identity={identity} onJoined={(id) => { setIdentity(id); if (id && id.username) setPlayer((p) => p || { name: id.username, rank: null }); }} />
           </div>
         )}
+        {/* your stats - registered players only (owner rule 2026-07-15) */}
+        {identity && (
+        <div style={{ maxWidth: 640, margin: '20px auto 0' }}>
+          <div style={{ fontFamily: MONO, fontSize: 10.5, fontWeight: 500, textTransform: 'uppercase', letterSpacing: '0.1em', color: COLORS.faded, marginBottom: 9 }}>Your stats</div>
+          <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
+            {[
+              { n: myStats.cur, l: 'Streak' },
+              { n: myStats.played, l: 'Played' },
+              { n: myStats.played ? `${Math.round((myStats.perfect / myStats.played) * 100)}%` : '—', l: 'Clean' },
+              { n: myStats.max, l: 'Best Streak' },
+            ].map((st, i) => (
+              <div key={i} style={{ flex: '1 1 0', minWidth: 54, background: '#fff', border: '1px solid rgba(28,30,36,0.12)', borderRadius: 7, padding: '6px 5px', textAlign: 'center' }}>
+                <div style={{ fontSize: 15, fontWeight: 800, color: COLORS.ink, lineHeight: 1.1, fontVariantNumeric: 'tabular-nums' }}>{st.n}</div>
+                <div style={{ fontSize: 9, fontWeight: 700, color: COLORS.faded, textTransform: 'uppercase', letterSpacing: '0.04em', marginTop: 2 }}>{st.l}</div>
+              </div>
+            ))}
+          </div>
+        </div>
+        )}
         <div style={{ maxWidth: 640, margin: '26px auto 0', background: '#fff', border: '1.5px solid rgba(20,22,28,0.12)', borderRadius: 12, padding: '14px 16px' }}>
-          <QuizLeaderboard board={board} identity={identity} total={10} wordsCol={{ total: 5 }} />
+          <QuizLeaderboard daily board={board} identity={identity} total={10} wordsCol={{ total: 5 }} />
         </div>
       </div>
 

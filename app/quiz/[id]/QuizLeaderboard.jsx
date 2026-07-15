@@ -17,10 +17,13 @@ const FONT = "'Manrope', system-ui, -apple-system, sans-serif";
 function fmtTime(sec) { if (sec == null) return '—'; const m = Math.floor(sec / 60), s = sec % 60; return `${m}:${String(s).padStart(2, '0')}`; }
 function fmtWhen(ts) { try { const d = new Date(ts); return d.toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' }) + ', ' + d.toLocaleTimeString(undefined, { hour: 'numeric', minute: '2-digit' }); } catch (e) { return ''; } }
 
-export default function QuizLeaderboard({ board, identity, total, wordsCol = null, guessLabel = 'Guesses' }) {
+export default function QuizLeaderboard({ board, identity, total, wordsCol = null, guessLabel = 'Guesses', daily = false }) {
   const [lbPop, setLbPop] = useState('registered');
   const [lbFilter, setLbFilter] = useState('all');
-  let lb = pickLb(board, lbPop, lbFilter);
+  // Daily games (Crux/Garble/Links/Span/Dating) show ONE fixed view: registered players, first attempt only, no toggles (owner rule 2026-07-15).
+  const effPop = daily ? 'registered' : lbPop;
+  const effFilter = daily ? 'first' : lbFilter;
+  let lb = pickLb(board, effPop, effFilter);
   // Words mode (Garble): Score / Words / Misses / Time. "Guesses" was the
   // wrong label for misses (a 0 next to a finished game read as broken), so
   // the same data comes back under an honest name. Rank score -> misses -> time.
@@ -44,7 +47,7 @@ export default function QuizLeaderboard({ board, identity, total, wordsCol = nul
         <div style={{ fontFamily: FONT, fontSize: 11, letterSpacing: '0.16em', textTransform: 'uppercase', color: C.faded }}>Leaderboard</div>
         <div style={{ fontFamily: FONT, fontSize: 11, letterSpacing: '0.08em', color: C.faded }}>{board.plays} {board.plays === 1 ? 'play' : 'plays'}</div>
       </div>
-      {board.plays > 0 && (
+      {!daily && board.plays > 0 && (
         <div style={{ display: 'flex', flexDirection: 'column', gap: 6, marginBottom: 14, width: 'fit-content' }}>
           <div style={{ display: 'inline-flex', gap: 4, borderRadius: 10, background: '#eef1f5', padding: 4, width: 'fit-content' }}>
             {LB_POPS.map(([k, label]) => <button key={k} onClick={() => setLbPop(k)} style={chip(lbPop === k)}>{label}</button>)}
@@ -55,7 +58,7 @@ export default function QuizLeaderboard({ board, identity, total, wordsCol = nul
         </div>
       )}
       {lb.length === 0 ? (
-        <p style={{ fontFamily: FONT, fontStyle: 'italic', fontSize: 16, color: C.faded }}>{lbEmptyNote(lbFilter) || 'No one has posted a score yet. Be the first.'}</p>
+        <p style={{ fontFamily: FONT, fontStyle: 'italic', fontSize: 16, color: C.faded }}>{(daily ? null : lbEmptyNote(lbFilter)) || 'No one has posted a score yet. Be the first.'}</p>
       ) : (
         <div>
           <div className={gridClass} style={{ display: 'grid', gridTemplateColumns: gridClass ? undefined : gridCols, gap: 8, padding: '0 14px 8px', fontFamily: FONT, fontSize: 10, letterSpacing: '0.12em', textTransform: 'uppercase', color: C.faded }}>
@@ -65,7 +68,7 @@ export default function QuizLeaderboard({ board, identity, total, wordsCol = nul
             <div key={i} className={gridClass} style={{ display: 'grid', gridTemplateColumns: gridClass ? undefined : gridCols, gap: 8, alignItems: 'center', padding: '11px 14px', marginBottom: 6, background: mine ? C.accSoft : '#fff', borderRadius: 10, border: `1px solid ${mine ? C.accBorder : C.line}` }}>
               <span style={{ fontFamily: FONT, fontWeight: 800, fontSize: 18, color: lbRanks[i] <= 3 ? C.ember : C.faded }}>{lbTied[i] ? `T${lbRanks[i]}` : lbRanks[i]}</span>
               <span style={{ minWidth: 0, display: 'flex', flexDirection: 'column', gap: 2 }}>
-                <span style={{ fontFamily: FONT, fontSize: 17, fontWeight: 500, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{row.userKey ? <a href={`/quizzes/hub?player=${encodeURIComponent(row.userKey)}`} style={{ color: 'inherit', textDecoration: 'none', borderBottom: `1px dotted ${C.faded}88` }}>{row.username}</a> : row.username}{mine ? ' (you)' : ''}{row.tryNum ? <span style={{ fontFamily: FONT, fontSize: 11, fontWeight: 400, color: C.faded, marginLeft: 6 }}>{row.tryNum > 1 ? '(retried)' : '(1st Try)'}</span> : ''}</span>
+                <span style={{ fontFamily: FONT, fontSize: 17, fontWeight: 500, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{row.userKey ? <a href={`/quizzes/hub?player=${encodeURIComponent(row.userKey)}`} style={{ color: 'inherit', textDecoration: 'none', borderBottom: `1px dotted ${C.faded}88` }}>{row.username}</a> : row.username}{mine ? ' (you)' : ''}{!daily && row.tryNum ? <span style={{ fontFamily: FONT, fontSize: 11, fontWeight: 400, color: C.faded, marginLeft: 6 }}>{row.tryNum > 1 ? '(retried)' : '(1st Try)'}</span> : ''}</span>
                 {row.playedAt ? <span style={{ fontFamily: FONT, fontSize: 10.5, color: C.faded }}>{fmtWhen(row.playedAt)}</span> : null}
               </span>
               <span style={{ fontFamily: FONT, fontSize: 14, textAlign: 'right' }}>{row.score}/{total}</span>

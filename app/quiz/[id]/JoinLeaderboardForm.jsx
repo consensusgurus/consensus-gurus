@@ -24,7 +24,7 @@ function getAnonId() {
   } catch (e) { return null; }
 }
 
-export default function JoinLeaderboardForm({ identity, onJoined, onViewLeaderboard }) {
+export default function JoinLeaderboardForm({ identity, onJoined, onViewLeaderboard, heading = 'Join the Leaderboard', hideIcon = false }) {
   const [jName, setJName] = useState(identity ? identity.username || '' : '');
   const [jEmail, setJEmail] = useState(identity ? identity.email || '' : '');
   const [msg, setMsg] = useState('');
@@ -55,8 +55,8 @@ export default function JoinLeaderboardForm({ identity, onJoined, onViewLeaderbo
   return (
     <div style={{ maxWidth: 440, margin: '0 auto' }}>
       <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 12 }}>
-        <Trophy size={22} strokeWidth={2.2} style={{ color: C.ember }} />
-        <h2 style={{ fontFamily: FONT, fontWeight: 800, fontSize: 26, margin: 0, color: C.ink }}>Join the Leaderboard</h2>
+        {!hideIcon && <Trophy size={22} strokeWidth={2.2} style={{ color: C.ember }} />}
+        <h2 style={{ fontFamily: FONT, fontWeight: 800, fontSize: 26, margin: 0, color: C.ink }}>{heading}</h2>
       </div>
       <p style={{ fontFamily: FONT, fontSize: 15, color: '#4a4339', margin: '0 0 6px' }}>
         Sign Up with a display name and it appears on the leaderboard after you finish a game. No password needed.

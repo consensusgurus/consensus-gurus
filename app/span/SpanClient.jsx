@@ -663,12 +663,13 @@ export default function SpanClient({ puzzles = [], forceNum = null }) {
         )}
         {!identity && (
           <div style={{ margin: '18px auto 0' }}>
-            <JoinLeaderboardForm identity={identity} onJoined={(id) => { setIdentity(id); if (id && id.username) setPlayer((p) => p || { name: id.username, rank: null }); }} />
+            <JoinLeaderboardForm hideIcon heading="See your stats and join the leaderboard" identity={identity} onJoined={(id) => { setIdentity(id); if (id && id.username) setPlayer((p) => p || { name: id.username, rank: null }); }} />
           </div>
         )}
         </div>
 
         {/* your stats — sits directly above the leaderboard */}
+        {identity && (
         <div style={{ maxWidth: 620, margin: '20px auto 0' }}>
           <div style={{ fontFamily: MONO, fontSize: 10.5, fontWeight: 500, textTransform: 'uppercase', letterSpacing: '0.1em', color: COLORS.faded, marginBottom: 9 }}>Your stats</div>
           <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
@@ -685,8 +686,9 @@ export default function SpanClient({ puzzles = [], forceNum = null }) {
             ))}
           </div>
         </div>
+        )}
         <div style={{ maxWidth: 620, margin: '26px auto 0', background: '#fff', border: '1.5px solid rgba(20,22,28,0.12)', borderRadius: 12, padding: '14px 16px' }}>
-          <QuizLeaderboard board={board} identity={identity} total={10} guessLabel="Misses" />
+          <QuizLeaderboard daily board={board} identity={identity} total={10} guessLabel="Misses" />
         </div>
       </div>
 
