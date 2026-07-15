@@ -13,7 +13,6 @@ import {
 } from 'lucide-react';
 import { QUIZZES } from '@/lib/quizzes';
 import { KIDS_GAMES } from '@/lib/kids';
-import DailyStrip from '../DailyStrip';
 import { QUIZ_HEROES, qotdIdFor } from '@/lib/quiz-heroes';
 import {
   quizDept as deptOf, DEPT_COLOR, DEPT_LABEL, DEPT_NAV,
@@ -107,7 +106,7 @@ function sportHeroFor(q) {
 // Daily-game quizzes are date/topic-stamped (crux-*, garble-*, links-*, span-*,
 // closer-*) and every entry in a family shares ONE hero image, so the two hero
 // tiles (Newest + Trending) must never both draw from the same family.
-const DAILY_GAME_FAMILY_RE = /^(crux|garble|links|span|dating|tally|suds|closer)-/;
+const DAILY_GAME_FAMILY_RE = /^(crux|garble|links|span|dating|tally|closer)-/;
 function gameFamily(id) { const m = (id || '').match(DAILY_GAME_FAMILY_RE); return m ? m[1] : null; }
 // Rule: daily games (Crux, Garble, Links, Span, Dating, Closer) publish a fresh
 // dated entry every day, so by publishedAt they are ALWAYS the "newest" quiz and
@@ -1092,15 +1091,13 @@ export default function QuizHomeClient() {
     .qzh .th-r2{display:grid;grid-template-columns:minmax(0,1.05fr) minmax(0,0.85fr) minmax(0,0.85fr) minmax(0,0.98fr);gap:12px;align-items:stretch;}
     .qzh .th-r2 .th-slot-hold{min-height:215px;}
     @media(max-width:820px){.qzh .thub{flex-direction:column;}.qzh .th-rail{align-self:stretch;}.qzh .th-r2{grid-template-columns:1fr 1fr;}.qzh .th-r2 .dtile{grid-column:1 / -1;}.qzh .th-r2 .dueltile{grid-column:1 / -1;}}
-    @media(max-width:560px){.qzh .th-r2{grid-template-columns:minmax(0,1fr);}.qzh .th-rail{display:none !important;}.qzh .th-heroes .ntile{min-height:220px;background-position:center 12%;}.qzh .th-r2 .ttile{order:1;min-height:220px;}.qzh .th-r2 .stile{order:2;min-height:220px;}.qzh .th-r2 .dtile{order:3;}.qzh .th-r2 .dueltile{order:4;}.qzh .th-r2 .th-slot-hold{display:none;}.qzh .duelbtn{display:none !important;}/* Stacked full-width hero tiles: Newest matches Trending typography on mobile (needs .th-heroes for specificity over the base rules below) */.qzh .th-heroes .ntile-t{font-size:20px;}.qzh .th-heroes .ntile-tag{font-size:10px;padding:4px 10px;top:12px;left:12px;}.qzh .th-heroes .ntile-ov{padding:18px 16px 15px;}}
+    @media(max-width:560px){.qzh .th-r2{grid-template-columns:minmax(0,1fr);}.qzh .th-rail{display:none !important;}.qzh .th-heroes .ntile{min-height:220px;background-position:center 12%;}.qzh .th-r2 .gtile{order:1;min-height:220px;}.qzh .th-r2 .stile{order:2;min-height:220px;}.qzh .th-r2 .dtile{order:3;}.qzh .th-r2 .dueltile{order:4;}.qzh .th-r2 .th-slot-hold{display:none;}.qzh .duelbtn{display:none !important;}/* Stacked full-width hero tiles: Newest matches Trending typography on mobile (needs .th-heroes for specificity over the base rules below) */.qzh .th-heroes .ntile-t{font-size:20px;}.qzh .th-heroes .ntile-tag{font-size:10px;padding:4px 10px;top:12px;left:12px;}.qzh .th-heroes .ntile-ov{padding:18px 16px 15px;}}
     /* Narrow desktop / tablet (561-1024px): mirror the mobile combine - pair the promo tiles two-up (QOTD full row, Newest+Geo, Daily+Trending, Sports+Duel) and drop the Category Mastery rail. minmax(0,1fr) keeps the Newest/Geo hero images clipped inside their tiles (bare 1fr let them bleed). Added 2026-07-15 per Marshall. */
     @media (min-width:561px) and (max-width:1024px){.qzh .thub{flex-direction:column;}.qzh .th-rail{display:none !important;}.qzh .th-heroes{grid-template-columns:minmax(0,1fr) minmax(0,1fr);}.qzh .th-heroes .th-qotd{grid-column:1 / -1;}.qzh .th-r2{grid-template-columns:minmax(0,1fr) minmax(0,1fr);}.qzh .th-r2 .dtile{grid-column:auto;}.qzh .th-r2 .dueltile{grid-column:auto;}}
     /* Short landscape phones (iPhone landscape ~<=480px tall): the header tiles get too narrow to wrap cleanly, so hide the two daily-rotating promo tiles there and reflow. Portrait phones keep them (full-width, wrap fine). */
     @media (max-height:480px){.qzh .gtile{display:none !important;}.qzh .stile{display:none !important;}}
     @media (max-height:480px) and (min-width:561px){.qzh .th-heroes{grid-template-columns:minmax(0,2fr) minmax(0,1fr);}.qzh .th-r2{grid-template-columns:minmax(0,1.1fr) minmax(0,0.9fr) minmax(0,1fr);}.qzh .th-r2 .dtile{grid-column:auto;}.qzh .th-r2 .dueltile{grid-column:auto;}.qzh .th-r2 .th-slot-hold{display:none;}}
     .qzh .dtile{background:#0e1d40;border-radius:14px;padding:14px 15px;color:#fff;display:flex;flex-direction:column;min-height:190px;}
-    .qzh .th-only-desk{display:none !important;}
-    @media(min-width:1025px){.qzh .th-only-mob{display:none !important;}.qzh .th-only-desk{display:flex !important;}}
     .qzh .dtile-head{display:flex;align-items:center;gap:8px;margin-bottom:9px;}
     .qzh .dtile-chip{font-size:10px;font-weight:800;background:rgba(255,255,255,0.2);border-radius:12px;padding:2px 9px;text-transform:uppercase;letter-spacing:.04em;}
     .qzh .dtile-prog{display:flex;gap:5px;margin-bottom:10px;}
@@ -1394,7 +1391,32 @@ export default function QuizHomeClient() {
 
         {/* Daily games row: one button per daily. Art lives in /public/games;
             each button is ~half the Newest tile's height. */}
-        <DailyStrip />
+        <div className="th-games">
+          {(() => {
+            const GAMES = [
+              { key: 'crux', href: '/crux', name: 'Crux', tag: 'A clueless crossword', img: '/games/btn-crux.png' },
+              { key: 'garble', href: '/garble', name: 'Garble', tag: 'Untangle five words', img: '/games/btn-garble.png' },
+              { key: 'links', href: '/links', name: 'Links', tag: 'Four hidden threads', img: '/games/btn-links.png' },
+              { key: 'span', href: '/span', name: 'Span', tag: 'Cross the map', img: '/games/btn-span.png' },
+              { key: 'dating', href: '/dating', name: 'Dating', tag: 'Put history in order', img: '/games/btn-dating.png' },
+              { key: 'tally', href: '/tally', name: 'Tally', tag: 'Balance the books', img: '/games/btn-tally.png' },
+            ];
+            // Mobile row 1 = [Crux, rotating pick]; row 2 = the other three,
+            // smaller. Desktop keeps the canonical order via CSS `order`.
+            const rot = GAMES.find((gm) => gm.key === gameRot) || GAMES[1];
+            const rest = GAMES.filter((gm) => gm.key !== 'crux' && gm.key !== rot.key);
+            return [GAMES[0], rot, ...rest];
+          })().map((gm) => (
+            <a key={gm.href} href={gm.href} className={`th-game th-g-${gm.key}`} aria-label={`${gm.name} — daily game`}>
+              <span className="th-game-txt">
+                <span className="th-game-tag">Daily</span>
+                <span className="th-game-t">{gm.name}</span>
+                <span className="th-game-p">{gm.tag} →</span>
+              </span>
+              <img className="th-game-art" src={gm.img} alt="" aria-hidden="true" />
+            </a>
+          ))}
+        </div>
 
         <div className="thub">
           <div className="thub-left">
@@ -1419,76 +1441,7 @@ export default function QuizHomeClient() {
                 </div>
               </Link>
             ); })() : <div />}
-          {geoPick ? (
-            <Link href={`/quiz/${geoPick.id}`} className="hstile gtile th-only-mob" style={geoHero ? { backgroundImage: `url("${geoHero}")`, backgroundPosition: geoPos || 'center' } : { background: C.accent }}>
-              <span className="ttile-tag" style={{ color: '#0f766e', whiteSpace: 'nowrap' }}><Globe size={11} style={{ verticalAlign: -1 }} /> FEATURED GEO GUESSER</span>
-              <div className="ttile-ov">
-                <div className="ttile-t">{stripVerb(geoPick.title)}</div>
-                <div className="ttile-foot" style={{ flexWrap: 'nowrap' }}><span className="ttile-p" style={{ flex: 'none' }}>Play <ArrowRight size={13} style={{ verticalAlign: -1 }} /></span>{leader(geoPick.id) ? <span className="ttile-plays hpill" style={{ display: 'inline-flex', alignItems: 'center', gap: 4, minWidth: 0 }}><Crown size={12} style={{ color: '#e8b43a', flex: 'none' }} /><span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{leader(geoPick.id)}</span></span> : null}</div>
-              </div>
-            </Link>
-          ) : <div className="th-only-mob" />}
-            {daily && DAILY_CHALLENGE_ON ? (
-              <div className={`dtile th-only-desk mc-${mDaily ? 'open' : 'closed'}`}>
-                <div className="dtile-head" onClick={() => { if (isMobile) setMDaily((v) => !v); }}>
-                  <Target size={16} style={{ flex: 'none', color: '#f8b84a' }} />
-                  <span className="x8" style={{ fontSize: 14, fontWeight: 800 }}>Daily Challenge</span>
-                  {dailyCat ? <span className="dtile-chip">{dailyCat}</span> : null}
-                  <span style={{ marginLeft: 'auto', fontSize: 12, fontWeight: 800 }}>{dailyDoneCount}/{dailyIds.length}</span>
-                  <ChevronDown className="dchev" size={16} strokeWidth={2.5} style={{ color: '#fff', transform: mDaily ? 'rotate(180deg)' : 'none' }} />
-                </div>
-                <div className="dtile-collapse" style={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
-                  <div className="dtile-prog">{dailyIds.map((qid) => (<span key={qid} style={{ flex: 1, height: 6, borderRadius: 3, background: dailyIsDone(qid) ? '#a5f3c9' : 'rgba(255,255,255,0.3)' }} />))}</div>
-                  <div className="dtile-rows">
-                    {dailyIds.map((qid, k) => { const done = dailyIsDone(qid); return (
-                      <Link key={qid} href={`/quiz/${qid}?ch=${encodeURIComponent(dailyId)}&i=${k}`} className="dtile-row">
-                        {done ? <Check size={13} strokeWidth={3} style={{ color: '#a5f3c9', flex: 'none' }} /> : <span className="dtile-num">{k + 1}</span>}
-                        <span className="dtile-name">{stripVerb(titleById[qid] || qid)}</span>
-                      </Link>
-                    ); })}
-                  </div>
-                  <Link href={dailyAllDone ? `/challenge/${dailyId}?done=1` : dailyEntryUrl} className="dtile-cta">{dailyAllDone ? 'See Your Results' : dailyDoneCount > 0 ? 'Continue Challenge' : 'Play Today’s Challenge'}{dailyRows && dailyRows.length ? <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4 }}><Crown size={12} style={{ color: '#e8b43a' }} /> {dailyRows[0].username || 'Player'}</span> : <ArrowRight size={15} style={{ flex: 'none' }} />}</Link>
-                </div>
-              </div>
-            ) : <div className="th-only-desk" />}
-          </div>
-
-          <div className="th-r2">
-          {geoPick ? (
-            <Link href={`/quiz/${geoPick.id}`} className="hstile gtile th-only-desk" style={geoHero ? { backgroundImage: `url("${geoHero}")`, backgroundPosition: geoPos || 'center' } : { background: C.accent }}>
-              <span className="ttile-tag" style={{ color: '#0f766e', whiteSpace: 'nowrap' }}><Globe size={11} style={{ verticalAlign: -1 }} /> FEATURED GEO GUESSER</span>
-              <div className="ttile-ov">
-                <div className="ttile-t">{stripVerb(geoPick.title)}</div>
-                <div className="ttile-foot" style={{ flexWrap: 'nowrap' }}><span className="ttile-p" style={{ flex: 'none' }}>Play <ArrowRight size={13} style={{ verticalAlign: -1 }} /></span>{leader(geoPick.id) ? <span className="ttile-plays hpill" style={{ display: 'inline-flex', alignItems: 'center', gap: 4, minWidth: 0 }}><Crown size={12} style={{ color: '#e8b43a', flex: 'none' }} /><span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{leader(geoPick.id)}</span></span> : null}</div>
-              </div>
-            </Link>
-          ) : <div className="th-only-desk" />}
-
-            {daily && DAILY_CHALLENGE_ON ? (
-              <div className={`dtile th-only-mob mc-${mDaily ? 'open' : 'closed'}`}>
-                <div className="dtile-head" onClick={() => { if (isMobile) setMDaily((v) => !v); }}>
-                  <Target size={16} style={{ flex: 'none', color: '#f8b84a' }} />
-                  <span className="x8" style={{ fontSize: 14, fontWeight: 800 }}>Daily Challenge</span>
-                  {dailyCat ? <span className="dtile-chip">{dailyCat}</span> : null}
-                  <span style={{ marginLeft: 'auto', fontSize: 12, fontWeight: 800 }}>{dailyDoneCount}/{dailyIds.length}</span>
-                  <ChevronDown className="dchev" size={16} strokeWidth={2.5} style={{ color: '#fff', transform: mDaily ? 'rotate(180deg)' : 'none' }} />
-                </div>
-                <div className="dtile-collapse" style={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
-                  <div className="dtile-prog">{dailyIds.map((qid) => (<span key={qid} style={{ flex: 1, height: 6, borderRadius: 3, background: dailyIsDone(qid) ? '#a5f3c9' : 'rgba(255,255,255,0.3)' }} />))}</div>
-                  <div className="dtile-rows">
-                    {dailyIds.map((qid, k) => { const done = dailyIsDone(qid); return (
-                      <Link key={qid} href={`/quiz/${qid}?ch=${encodeURIComponent(dailyId)}&i=${k}`} className="dtile-row">
-                        {done ? <Check size={13} strokeWidth={3} style={{ color: '#a5f3c9', flex: 'none' }} /> : <span className="dtile-num">{k + 1}</span>}
-                        <span className="dtile-name">{stripVerb(titleById[qid] || qid)}</span>
-                      </Link>
-                    ); })}
-                  </div>
-                  <Link href={dailyAllDone ? `/challenge/${dailyId}?done=1` : dailyEntryUrl} className="dtile-cta">{dailyAllDone ? 'See Your Results' : dailyDoneCount > 0 ? 'Continue Challenge' : 'Play Today’s Challenge'}{dailyRows && dailyRows.length ? <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4 }}><Crown size={12} style={{ color: '#e8b43a' }} /> {dailyRows[0].username || 'Player'}</span> : <ArrowRight size={15} style={{ flex: 'none' }} />}</Link>
-                </div>
-              </div>
-            ) : <div className="th-only-mob" />}
-
-            {trending ? (() => { const tc = byKey[trending.dept] || {}; const tPos = tHeroPos; return (
+          {trending ? (() => { const tc = byKey[trending.dept] || {}; const tPos = tHeroPos; return (
             <Link href={`/quiz/${trending.id}`} className="ttile" style={tHero ? { backgroundImage: `url("${tHero}")`, backgroundPosition: tPos || 'center' } : { background: tc.c || C.accent }}>
               <span className="ttile-tag"><Flame size={11} style={{ verticalAlign: -1 }} /> TRENDING</span>
               <div className="ttile-ov" ref={ttileProbeRef}>
@@ -1496,7 +1449,43 @@ export default function QuizHomeClient() {
                 <div className="ttile-foot" style={{ flexWrap: 'nowrap' }}><span className="ttile-p" style={{ flex: 'none' }}>Play <ArrowRight size={13} style={{ verticalAlign: -1 }} /></span>{leader(trending.id) ? <span className={`ttile-plays${ttilePill ? ' hpill' : ''}`} style={{ display: 'inline-flex', alignItems: 'center', gap: 4, minWidth: 0 }}><Crown size={12} style={{ color: '#e8b43a', flex: 'none' }} /><span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{leader(trending.id)}</span></span> : null}</div>
               </div>
             </Link>
-          ); })() : <div className="th-slot-hold" />}
+          ); })() : <div />}
+          </div>
+
+          <div className="th-r2">
+            {daily && DAILY_CHALLENGE_ON ? (
+              <div className={`dtile mc-${mDaily ? 'open' : 'closed'}`}>
+                <div className="dtile-head" onClick={() => { if (isMobile) setMDaily((v) => !v); }}>
+                  <Target size={16} style={{ flex: 'none', color: '#f8b84a' }} />
+                  <span className="x8" style={{ fontSize: 14, fontWeight: 800 }}>Daily Challenge</span>
+                  {dailyCat ? <span className="dtile-chip">{dailyCat}</span> : null}
+                  <span style={{ marginLeft: 'auto', fontSize: 12, fontWeight: 800 }}>{dailyDoneCount}/{dailyIds.length}</span>
+                  <ChevronDown className="dchev" size={16} strokeWidth={2.5} style={{ color: '#fff', transform: mDaily ? 'rotate(180deg)' : 'none' }} />
+                </div>
+                <div className="dtile-collapse" style={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
+                  <div className="dtile-prog">{dailyIds.map((qid) => (<span key={qid} style={{ flex: 1, height: 6, borderRadius: 3, background: dailyIsDone(qid) ? '#a5f3c9' : 'rgba(255,255,255,0.3)' }} />))}</div>
+                  <div className="dtile-rows">
+                    {dailyIds.map((qid, k) => { const done = dailyIsDone(qid); return (
+                      <Link key={qid} href={`/quiz/${qid}?ch=${encodeURIComponent(dailyId)}&i=${k}`} className="dtile-row">
+                        {done ? <Check size={13} strokeWidth={3} style={{ color: '#a5f3c9', flex: 'none' }} /> : <span className="dtile-num">{k + 1}</span>}
+                        <span className="dtile-name">{stripVerb(titleById[qid] || qid)}</span>
+                      </Link>
+                    ); })}
+                  </div>
+                  <Link href={dailyAllDone ? `/challenge/${dailyId}?done=1` : dailyEntryUrl} className="dtile-cta">{dailyAllDone ? 'See Your Results' : dailyDoneCount > 0 ? 'Continue Challenge' : 'Play Today’s Challenge'}{dailyRows && dailyRows.length ? <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4 }}><Crown size={12} style={{ color: '#e8b43a' }} /> {dailyRows[0].username || 'Player'}</span> : <ArrowRight size={15} style={{ flex: 'none' }} />}</Link>
+                </div>
+              </div>
+            ) : <div />}
+
+            {geoPick ? (
+            <Link href={`/quiz/${geoPick.id}`} className="hstile gtile" style={geoHero ? { backgroundImage: `url("${geoHero}")`, backgroundPosition: geoPos || 'center' } : { background: C.accent }}>
+              <span className="ttile-tag" style={{ color: '#0f766e', whiteSpace: 'nowrap' }}><Globe size={11} style={{ verticalAlign: -1 }} /> FEATURED GEO GUESSER</span>
+              <div className="ttile-ov">
+                <div className="ttile-t">{stripVerb(geoPick.title)}</div>
+                <div className="ttile-foot" style={{ flexWrap: 'nowrap' }}><span className="ttile-p" style={{ flex: 'none' }}>Play <ArrowRight size={13} style={{ verticalAlign: -1 }} /></span>{leader(geoPick.id) ? <span className="ttile-plays hpill" style={{ display: 'inline-flex', alignItems: 'center', gap: 4, minWidth: 0 }}><Crown size={12} style={{ color: '#e8b43a', flex: 'none' }} /><span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{leader(geoPick.id)}</span></span> : null}</div>
+              </div>
+            </Link>
+          ) : <div className="th-slot-hold" />}
 
             {sportsPick ? (
             <Link href={`/quiz/${sportsPick.id}`} className="hstile stile" style={sptHero ? { backgroundImage: `url("${sptHero}")`, backgroundPosition: sptPos || 'center' } : { background: C.accent }}>

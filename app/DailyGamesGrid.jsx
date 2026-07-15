@@ -23,7 +23,6 @@ const GAMES = [
   { key: 'span', href: '/span', name: 'Span', tag: 'Cross the map', img: '/games/btn-span.png', label: 'Daily' },
   { key: 'dating', href: '/dating', name: 'Dating', tag: 'Put history in order', img: '/games/btn-dating.png', label: 'Daily' },
   { key: 'tally', href: '/tally', name: 'Tally', tag: 'Balance the books', img: '/games/btn-tally.png', label: 'Daily' },
-  { key: 'suds', href: '/suds', name: 'Suds', tag: 'The daily sudoku', img: '/games/btn-suds.png', label: 'Daily' },
 ];
 // The evergreen fill tile: the site's most-played quiz, so the games block is
 // always a full 2-wide even though there are only three "other" dailies.
@@ -45,7 +44,7 @@ export default function DailyGamesGrid({ self, maxWidth = 640, challengeHref = n
         .dgg-txt{display:flex;flex-direction:column;gap:1px;min-width:0;flex:1 1 auto;}
         .dgg-art{flex:0 0 auto;height:44px;width:auto;}
         .dgg-tag{font-size:8.5px;font-weight:800;letter-spacing:.13em;text-transform:uppercase;color:#f8b84a;margin-bottom:2px;}
-        .dgg-nm{font-size:15px;font-weight:800;letter-spacing:-.3px;color:#fff;line-height:1.1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+        .dgg-nm{font-size:15px;font-weight:800;letter-spacing:-.3px;color:#fff;line-height:1.35;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
         .dgg-p{font-size:10.5px;font-weight:700;color:#9fb0d4;line-height:1.2;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
         .dgg-act{justify-content:center;gap:9px;cursor:pointer;font-family:inherit;width:100%;}
         .dgg-act .dgg-act-l{font-size:13px;font-weight:800;letter-spacing:.03em;text-transform:uppercase;color:#fff;line-height:1.15;text-align:center;}
