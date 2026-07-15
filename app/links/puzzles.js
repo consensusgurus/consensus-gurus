@@ -9,6 +9,9 @@
 // ambiguity is a bug — if a word could complete two groups, one of those
 // groups must already be full of its own members). Run the validator after
 // any edit.
+// OWNER RULE (2026-07-15): every puzzle also needs AT LEAST TWO cross-
+// category collisions — words that plausibly read as another group on the
+// same board — ideally more, while keeping exactly ONE valid grouping.
 export const PUZZLES = [
   {
     num: 1,
@@ -87,10 +90,14 @@ export const PUZZLES = [
     quizId: 'links-7-18-26',
     live: '2026-07-18',
     dateLabel: 'July 18, 2026',
+    // rev 2 (2026-07-15): CHICAGO and TITANIC were BOTH Broadway musicals AND
+    // Best Picture winners — two valid solutions. TITANIC -> HAMILTON;
+    // CHICAGO moves to Best Picture as the trap (musicals are full, and none
+    // of CATS/RENT/WICKED/HAMILTON won Best Picture). HAIR reads musical too.
     groups: [
       { name: 'Tennis shots', words: ['LOB', 'VOLLEY', 'ACE', 'SMASH'] },
-      { name: 'Broadway musicals', words: ['CATS', 'CHICAGO', 'RENT', 'WICKED'] },
-      { name: 'Best Picture winners', words: ['GLADIATOR', 'CRASH', 'ARGO', 'TITANIC'] },
+      { name: 'Broadway musicals', words: ['CATS', 'HAMILTON', 'RENT', 'WICKED'] },
+      { name: 'Best Picture winners', words: ['GLADIATOR', 'CRASH', 'ARGO', 'CHICAGO'] },
       { name: '___ metal', words: ['HAIR', 'HEAVY', 'DEATH', 'PRECIOUS'] },
     ],
   },
@@ -99,10 +106,15 @@ export const PUZZLES = [
     quizId: 'links-7-19-26',
     live: '2026-07-19',
     dateLabel: 'July 19, 2026',
+    // rev 2 (2026-07-15): CIVIC -> EYE, STOP -> DELIVER for the two-collision
+    // rule. EYE is a palindrome that reads body part (but the hiding group is
+    // full and none of its four are palindromes); DELIVER reverses to REVILED
+    // and hides LIVER (but ARMY/RIBBON/SHINE/HEARTH fill the hiding group and
+    // none of them reverse to a word).
     groups: [
-      { name: 'Palindromes', words: ['LEVEL', 'KAYAK', 'RADAR', 'CIVIC'] },
+      { name: 'Palindromes', words: ['LEVEL', 'KAYAK', 'RADAR', 'EYE'] },
       { name: 'Body part hiding inside', words: ['ARMY', 'RIBBON', 'SHINE', 'HEARTH'] },
-      { name: 'A new word backwards', words: ['STRESSED', 'DRAWER', 'STRAW', 'STOP'] },
+      { name: 'A new word backwards', words: ['STRESSED', 'DRAWER', 'STRAW', 'DELIVER'] },
       { name: 'Anagrams of countries', words: ['PAINS', 'CHAIN', 'RAIN', 'PURE'] },
     ],
   },
@@ -147,11 +159,15 @@ export const PUZZLES = [
     quizId: 'links-7-23-26',
     live: '2026-07-23',
     dateLabel: 'July 23, 2026',
+    // rev 2 (2026-07-15): Deserts -> Ancient Egypt for the two-collision rule.
+    // NILE (river) now reads Egypt (Egypt is full — none of its four are
+    // rivers) and AMAZON (tech) still reads river (rivers are full). ORACLE
+    // gets a free ancient-world tease it can't cash in.
     groups: [
-      { name: 'Rivers', words: ['NILE', 'DANUBE', 'RHINE', 'VOLGA'] },
-      { name: 'Tech giants', words: ['AMAZON', 'APPLE', 'META', 'ORACLE'] },
-      { name: 'Deserts', words: ['SAHARA', 'GOBI', 'MOJAVE', 'ATACAMA'] },
       { name: 'One-name singers', words: ['ADELE', 'DRAKE', 'SHAKIRA', 'BJORK'] },
+      { name: 'Ancient Egypt', words: ['SPHINX', 'PYRAMID', 'PHARAOH', 'MUMMY'] },
+      { name: 'Tech giants', words: ['AMAZON', 'APPLE', 'META', 'ORACLE'] },
+      { name: 'Rivers', words: ['NILE', 'DANUBE', 'RHINE', 'VOLGA'] },
     ],
   },
   {

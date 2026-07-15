@@ -2,6 +2,12 @@
 // component, which filters to live<=today before passing puzzles to
 // the client — so future puzzles (and their answers) never ship to the
 // browser bundle.
+// AUTHORING RULE (owner ruling 2026-07-15): every puzzle must carry AT LEAST
+// TWO cross-category collisions — words that plausibly read as another
+// category on the same board — ideally more, while keeping exactly ONE valid
+// filing. Pin every trap by elimination: a trap word's fake home must already
+// be full of its own true members (homophone teases are free extras — they
+// can never validate semantically).
 export const PUZZLES = [
   {
     num: 1,
@@ -419,21 +425,25 @@ export const PUZZLES = [
     guesses: 18,
     rows: 9,
     cols: 9,
+    // rev 2 (2026-07-15, two-collision rule): OMELET -> ROLL. SNARE reads
+    // hunting (snare trap; hunting is full — DECOY+CAMO) and ROLL reads drums
+    // (drum roll; the kit is full — SNARE+CYMBAL). Both pinned by elimination.
+    rev: 2,
     categories: [
-      { name: 'Breakfast items', words: ['OMELET', 'WAFFLE'] },
+      { name: 'Breakfast items', words: ['ROLL', 'WAFFLE'] },
       { name: 'Pans', words: ['SKILLET', 'WOK'] },
       { name: 'Hunting things', words: ['DECOY', 'CAMO'] },
       { name: 'Drum kit parts', words: ['SNARE', 'CYMBAL'] },
     ],
     slots: [
-      { id: '1D', word: 'WAFFLE', row: 0, col: 5, dir: 'D' },
-      { id: '2A', word: 'CYMBAL', row: 1, col: 1, dir: 'A' },
-      { id: '3D', word: 'DECOY', row: 3, col: 7, dir: 'D' },
-      { id: '4A', word: 'SKILLET', row: 4, col: 2, dir: 'A' },
-      { id: '4D', word: 'SNARE', row: 4, col: 2, dir: 'D' },
-      { id: '5A', word: 'CAMO', row: 6, col: 1, dir: 'A' },
-      { id: '6A', word: 'WOK', row: 6, col: 6, dir: 'A' },
-      { id: '7A', word: 'OMELET', row: 8, col: 0, dir: 'A' },
+      { id: '1A', word: 'SKILLET', row: 0, col: 1, dir: 'A' },
+      { id: '1D', word: 'SNARE', row: 0, col: 1, dir: 'D' },
+      { id: '2A', word: 'CAMO', row: 2, col: 0, dir: 'A' },
+      { id: '3D', word: 'CYMBAL', row: 3, col: 4, dir: 'D' },
+      { id: '4A', word: 'DECOY', row: 4, col: 0, dir: 'A' },
+      { id: '5D', word: 'ROLL', row: 4, col: 7, dir: 'D' },
+      { id: '6A', word: 'WOK', row: 5, col: 6, dir: 'A' },
+      { id: '7A', word: 'WAFFLE', row: 7, col: 3, dir: 'A' },
     ],
   },
   {
@@ -442,23 +452,28 @@ export const PUZZLES = [
     live: '2026-07-22',
     dateLabel: 'July 22, 2026',
     guesses: 18,
-    rows: 8,
+    rows: 9,
     cols: 8,
+    // rev 2 (2026-07-15, two-collision rule): PHASE -> SEA. The moon's seas
+    // give a real second trap: SEA reads beach (beach is full — TIDE+DUNE),
+    // and CLAUSE keeps teasing Santa (Claus — a homophone can't validate,
+    // and the sleigh kit is full anyway).
+    rev: 2,
     categories: [
       { name: 'Beach features', words: ['TIDE', 'DUNE'] },
       { name: "Santa's gear", words: ['SLEIGH', 'SACK'] },
-      { name: 'Moon features', words: ['CRATER', 'PHASE'] },
+      { name: 'Moon features', words: ['CRATER', 'SEA'] },
       { name: 'Grammar terms', words: ['TENSE', 'CLAUSE'] },
     ],
     slots: [
-      { id: '1A', word: 'SLEIGH', row: 0, col: 1, dir: 'A' },
-      { id: '1D', word: 'SACK', row: 0, col: 1, dir: 'D' },
-      { id: '2A', word: 'CRATER', row: 2, col: 1, dir: 'A' },
-      { id: '3D', word: 'TIDE', row: 2, col: 4, dir: 'D' },
-      { id: '4D', word: 'TENSE', row: 3, col: 7, dir: 'D' },
-      { id: '5A', word: 'DUNE', row: 4, col: 4, dir: 'A' },
-      { id: '6A', word: 'PHASE', row: 5, col: 0, dir: 'A' },
-      { id: '7A', word: 'CLAUSE', row: 7, col: 2, dir: 'A' },
+      { id: '1A', word: 'CRATER', row: 0, col: 2, dir: 'A' },
+      { id: '2D', word: 'TENSE', row: 0, col: 5, dir: 'D' },
+      { id: '3D', word: 'SACK', row: 2, col: 7, dir: 'D' },
+      { id: '4D', word: 'SLEIGH', row: 3, col: 1, dir: 'D' },
+      { id: '5D', word: 'DUNE', row: 3, col: 3, dir: 'D' },
+      { id: '6A', word: 'SEA', row: 3, col: 5, dir: 'A' },
+      { id: '7A', word: 'CLAUSE', row: 4, col: 0, dir: 'A' },
+      { id: '8A', word: 'TIDE', row: 6, col: 0, dir: 'A' },
     ],
   },
   {
@@ -494,21 +509,27 @@ export const PUZZLES = [
     guesses: 18,
     rows: 9,
     cols: 9,
+    // rev 2 (2026-07-15, two-collision rule): PROLOGUE -> HOOK. TWIST reads
+    // story beat (plot twist; story is full — HOOK+CLIMAX) and HOOK reads
+    // sewing kit (crochet hook, hook-and-eye; sewing is full — THIMBLE+
+    // BOBBIN). One-way pins: THIMBLE/BOBBIN can't be story beats and
+    // OLIVE can't be one, so neither trap can swap back.
+    rev: 2,
     categories: [
       { name: 'Sewing kit', words: ['THIMBLE', 'BOBBIN'] },
       { name: 'Bar orders', words: ['NEAT', 'DOUBLE'] },
-      { name: 'Story beats', words: ['CLIMAX', 'PROLOGUE'] },
+      { name: 'Story beats', words: ['HOOK', 'CLIMAX'] },
       { name: 'Cocktail garnishes', words: ['OLIVE', 'TWIST'] },
     ],
     slots: [
-      { id: '1A', word: 'PROLOGUE', row: 0, col: 0, dir: 'A' },
-      { id: '2D', word: 'OLIVE', row: 0, col: 2, dir: 'D' },
-      { id: '3D', word: 'DOUBLE', row: 1, col: 8, dir: 'D' },
-      { id: '4A', word: 'CLIMAX', row: 2, col: 0, dir: 'A' },
-      { id: '5D', word: 'BOBBIN', row: 3, col: 6, dir: 'D' },
-      { id: '6A', word: 'NEAT', row: 4, col: 1, dir: 'A' },
-      { id: '7D', word: 'TWIST', row: 4, col: 4, dir: 'D' },
-      { id: '8A', word: 'THIMBLE', row: 6, col: 2, dir: 'A' },
+      { id: '1D', word: 'HOOK', row: 0, col: 0, dir: 'D' },
+      { id: '2D', word: 'CLIMAX', row: 0, col: 2, dir: 'D' },
+      { id: '3D', word: 'NEAT', row: 1, col: 4, dir: 'D' },
+      { id: '4A', word: 'OLIVE', row: 2, col: 0, dir: 'A' },
+      { id: '5D', word: 'THIMBLE', row: 2, col: 6, dir: 'D' },
+      { id: '6A', word: 'TWIST', row: 4, col: 4, dir: 'A' },
+      { id: '7A', word: 'BOBBIN', row: 6, col: 3, dir: 'A' },
+      { id: '8A', word: 'DOUBLE', row: 8, col: 1, dir: 'A' },
     ],
   },
   {
@@ -574,24 +595,29 @@ export const PUZZLES = [
     live: '2026-07-27',
     dateLabel: 'July 27, 2026',
     guesses: 18,
-    rows: 8,
-    cols: 9,
-    // BISHOP reads church (it is the chess piece) — pinned: ALTAR+PULPIT fill the church. FAWN reads color (it is the deer); the red shades are named shades.
+    rows: 9,
+    cols: 11,
+    // rev 2 (2026-07-15, two-collision rule): SCARLET -> CARDINAL, and
+    // 'Parts of a church' loosened to 'Church things'. BISHOP (chess) and
+    // CARDINAL (shade of red) BOTH read church now — pinned because ALTAR+
+    // PULPIT fill the church and neither of those can be red or a chess
+    // piece. FAWN keeps its off-board deer/color tease.
+    rev: 2,
     categories: [
       { name: 'Chess pieces', words: ['BISHOP', 'PAWN'] },
-      { name: 'Parts of a church', words: ['ALTAR', 'PULPIT'] },
-      { name: 'Shades of red', words: ['CRIMSON', 'SCARLET'] },
+      { name: 'Church things', words: ['ALTAR', 'PULPIT'] },
+      { name: 'Shades of red', words: ['CRIMSON', 'CARDINAL'] },
       { name: 'Baby animals', words: ['CUB', 'FAWN'] },
     ],
     slots: [
-      { id: '1A', word: 'CUB', row: 0, col: 0, dir: 'A' },
-      { id: '1D', word: 'CRIMSON', row: 0, col: 0, dir: 'D' },
-      { id: '2D', word: 'BISHOP', row: 0, col: 2, dir: 'D' },
-      { id: '3D', word: 'PULPIT', row: 0, col: 6, dir: 'D' },
-      { id: '4A', word: 'SCARLET', row: 2, col: 2, dir: 'A' },
-      { id: '5D', word: 'FAWN', row: 4, col: 4, dir: 'D' },
-      { id: '6A', word: 'ALTAR', row: 5, col: 4, dir: 'A' },
-      { id: '7A', word: 'PAWN', row: 7, col: 1, dir: 'A' },
+      { id: '1D', word: 'FAWN', row: 0, col: 6, dir: 'D' },
+      { id: '2D', word: 'PULPIT', row: 1, col: 8, dir: 'D' },
+      { id: '3A', word: 'CARDINAL', row: 3, col: 1, dir: 'A' },
+      { id: '3D', word: 'CUB', row: 3, col: 1, dir: 'D' },
+      { id: '4A', word: 'BISHOP', row: 5, col: 1, dir: 'A' },
+      { id: '5D', word: 'PAWN', row: 5, col: 6, dir: 'D' },
+      { id: '6A', word: 'ALTAR', row: 6, col: 6, dir: 'A' },
+      { id: '7A', word: 'CRIMSON', row: 8, col: 0, dir: 'A' },
     ],
   },
   {
@@ -600,24 +626,28 @@ export const PUZZLES = [
     live: '2026-07-28',
     dateLabel: 'July 28, 2026',
     guesses: 18,
-    rows: 8,
-    cols: 8,
-    // SAW and COMB both read tools (they are the things with teeth) — pinned: HAMMER+CHISEL fill tools, teeth needs two.
+    rows: 10,
+    cols: 9,
+    // rev 2 (2026-07-15, two-collision rule): COMB -> RAKE. SAW and RAKE both
+    // read tools (a rake IS a garden tool) — but the pin is one-way: tools
+    // are full (HAMMER+CHISEL) and neither a hammer nor a chisel has teeth,
+    // so the reverse swap can never validate. Two collisions, one solution.
+    rev: 2,
     categories: [
-      { name: 'Things with teeth', words: ['COMB', 'SAW'] },
+      { name: 'Things with teeth', words: ['SAW', 'RAKE'] },
       { name: 'Tools', words: ['HAMMER', 'CHISEL'] },
       { name: 'Zodiac signs', words: ['LIBRA', 'GEMINI'] },
       { name: 'Breads', words: ['RYE', 'BRIOCHE'] },
     ],
     slots: [
-      { id: '1D', word: 'HAMMER', row: 0, col: 1, dir: 'D' },
-      { id: '2A', word: 'COMB', row: 0, col: 4, dir: 'A' },
-      { id: '3D', word: 'BRIOCHE', row: 0, col: 7, dir: 'D' },
-      { id: '4A', word: 'SAW', row: 1, col: 0, dir: 'A' },
-      { id: '5D', word: 'CHISEL', row: 2, col: 3, dir: 'D' },
-      { id: '6D', word: 'LIBRA', row: 3, col: 5, dir: 'D' },
-      { id: '7A', word: 'GEMINI', row: 4, col: 0, dir: 'A' },
-      { id: '8A', word: 'RYE', row: 6, col: 5, dir: 'A' },
+      { id: '1D', word: 'SAW', row: 0, col: 4, dir: 'D' },
+      { id: '2A', word: 'LIBRA', row: 1, col: 0, dir: 'A' },
+      { id: '3D', word: 'BRIOCHE', row: 1, col: 2, dir: 'D' },
+      { id: '4D', word: 'GEMINI', row: 4, col: 5, dir: 'D' },
+      { id: '5A', word: 'HAMMER', row: 6, col: 2, dir: 'A' },
+      { id: '6D', word: 'RAKE', row: 6, col: 7, dir: 'D' },
+      { id: '7A', word: 'RYE', row: 7, col: 0, dir: 'A' },
+      { id: '8A', word: 'CHISEL', row: 9, col: 3, dir: 'A' },
     ],
   },
   {
@@ -652,24 +682,29 @@ export const PUZZLES = [
     live: '2026-07-30',
     dateLabel: 'July 30, 2026',
     guesses: 18,
-    rows: 9,
-    cols: 9,
-    // THYME↔time homophone tease against ERA+EPOCH (homophones are safe traps — they cannot validate semantically).
+    rows: 8,
+    cols: 11,
+    // rev 2 (2026-07-15, two-collision rule): circus acts + ERA -> TV show
+    // parts + SEASON. SEASON is the pivot trap: it reads TV (PILOT+FINALE
+    // fill that group), seasoning next to the herbs, and winter next to the
+    // parkas — but PILOT/FINALE can't be stretches of time, so SEASON is
+    // pinned to time. THYME keeps the homophone tease against the time group.
+    rev: 2,
     categories: [
       { name: 'Winter wear', words: ['PARKA', 'MITTEN'] },
-      { name: 'Circus acts', words: ['TRAPEZE', 'CLOWN'] },
+      { name: 'TV show parts', words: ['PILOT', 'FINALE'] },
       { name: 'Herbs', words: ['BASIL', 'THYME'] },
-      { name: 'Stretches of time', words: ['ERA', 'EPOCH'] },
+      { name: 'Stretches of time', words: ['SEASON', 'EPOCH'] },
     ],
     slots: [
-      { id: '1D', word: 'CLOWN', row: 0, col: 8, dir: 'D' },
-      { id: '2D', word: 'EPOCH', row: 1, col: 0, dir: 'D' },
-      { id: '3D', word: 'BASIL', row: 1, col: 4, dir: 'D' },
-      { id: '4A', word: 'PARKA', row: 2, col: 0, dir: 'A' },
-      { id: '5A', word: 'MITTEN', row: 4, col: 3, dir: 'A' },
-      { id: '6D', word: 'THYME', row: 4, col: 6, dir: 'D' },
-      { id: '7D', word: 'ERA', row: 6, col: 2, dir: 'D' },
-      { id: '8A', word: 'TRAPEZE', row: 8, col: 0, dir: 'A' },
+      { id: '1D', word: 'PARKA', row: 0, col: 4, dir: 'D' },
+      { id: '2D', word: 'MITTEN', row: 0, col: 6, dir: 'D' },
+      { id: '3A', word: 'BASIL', row: 1, col: 3, dir: 'A' },
+      { id: '4D', word: 'SEASON', row: 2, col: 10, dir: 'D' },
+      { id: '5D', word: 'PILOT', row: 3, col: 2, dir: 'D' },
+      { id: '6A', word: 'THYME', row: 3, col: 6, dir: 'A' },
+      { id: '7A', word: 'FINALE', row: 4, col: 1, dir: 'A' },
+      { id: '8A', word: 'EPOCH', row: 6, col: 0, dir: 'A' },
     ],
   },
   {
@@ -680,22 +715,25 @@ export const PUZZLES = [
     guesses: 18,
     rows: 10,
     cols: 9,
-    // CORK reads wine (it is the thing that pops) — pinned: VINTAGE+CELLAR fill wine and BALLOON needs a partner.
+    // rev 2 (2026-07-15, two-collision rule): CELLAR -> PORT. CORK reads wine
+    // (wine is full — VINTAGE+PORT) and PORT reads nautical next to the
+    // boats (a port isn't a vessel, and the boats are full — KAYAK+FERRY).
+    rev: 2,
     categories: [
       { name: 'Things that pop', words: ['CORK', 'BALLOON'] },
-      { name: 'Wine words', words: ['VINTAGE', 'CELLAR'] },
+      { name: 'Wine words', words: ['VINTAGE', 'PORT'] },
       { name: 'Boats', words: ['KAYAK', 'FERRY'] },
       { name: 'Dairy case', words: ['YOGURT', 'CHEDDAR'] },
     ],
     slots: [
-      { id: '1D', word: 'VINTAGE', row: 0, col: 1, dir: 'D' },
-      { id: '2A', word: 'CORK', row: 0, col: 5, dir: 'A' },
-      { id: '2D', word: 'CHEDDAR', row: 0, col: 5, dir: 'D' },
-      { id: '3D', word: 'KAYAK', row: 0, col: 8, dir: 'D' },
-      { id: '4A', word: 'FERRY', row: 2, col: 4, dir: 'A' },
-      { id: '5D', word: 'BALLOON', row: 3, col: 3, dir: 'D' },
-      { id: '6A', word: 'CELLAR', row: 6, col: 0, dir: 'A' },
-      { id: '7A', word: 'YOGURT', row: 8, col: 2, dir: 'A' },
+      { id: '1A', word: 'CORK', row: 0, col: 0, dir: 'A' },
+      { id: '2D', word: 'KAYAK', row: 0, col: 3, dir: 'D' },
+      { id: '3D', word: 'VINTAGE', row: 1, col: 8, dir: 'D' },
+      { id: '4D', word: 'YOGURT', row: 2, col: 6, dir: 'D' },
+      { id: '5A', word: 'BALLOON', row: 3, col: 2, dir: 'A' },
+      { id: '6D', word: 'FERRY', row: 5, col: 2, dir: 'D' },
+      { id: '7A', word: 'CHEDDAR', row: 6, col: 0, dir: 'A' },
+      { id: '8A', word: 'PORT', row: 8, col: 0, dir: 'A' },
     ],
   },
   {
