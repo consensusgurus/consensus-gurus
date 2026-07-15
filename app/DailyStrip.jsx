@@ -84,8 +84,8 @@ export default function DailyStrip() {
         .dstrip-cap{flex:0 0 auto;display:flex;flex-direction:column;justify-content:center;gap:5px;padding:12px 16px;background:#0b1733;border-right:1px solid rgba(255,255,255,0.07);min-width:104px;}
         .dstrip-cap .lab{font-size:9px;font-weight:800;letter-spacing:.14em;text-transform:uppercase;color:#f8b84a;}
         .dstrip-cap .cty{font-size:15px;font-weight:800;color:#fff;letter-spacing:-.2px;line-height:1;}
-        .dstrip-bar{height:5px;width:60px;border-radius:99px;background:rgba(255,255,255,0.14);overflow:hidden;margin-top:3px;}
-        .dstrip-fill{height:100%;background:#34d399;border-radius:99px;transition:width .4s ease;}
+        .dstrip-bar{display:block;height:5px;width:60px;border-radius:99px;background:rgba(255,255,255,0.14);overflow:hidden;margin-top:3px;}
+        .dstrip-fill{display:block;height:100%;width:0;background:#34d399;border-radius:99px;transition:width .4s ease;}
         .dstrip-n{font-family:'DM Mono',ui-monospace,monospace;font-size:10px;color:#9fb0d4;letter-spacing:.04em;}
         .dstrip-cells{display:flex;flex:1 1 auto;}
         .dstrip-cell{position:relative;flex:1 1 0;min-width:66px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;padding:13px 6px 11px;text-decoration:none;border-left:1px solid rgba(255,255,255,0.055);transition:background .12s;}

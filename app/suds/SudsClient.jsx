@@ -534,7 +534,7 @@ export default function SudsClient({ puzzles = [], forceNum = null }) {
           @keyframes sdstamp{from{opacity:0;transform:scale(.94);}}
           @media(max-width:520px){.sd-htp-f{display:none;}.sd-htp-s{display:inline;}}
           @media(max-width:560px){.sd-ttl{flex-direction:column;align-items:flex-start;gap:1px;}.sd-ttl h1{font-size:21px;letter-spacing:0.02em;}.sd-ttl .sd-ttl-dt{font-size:15px;}.sd-ttl-dot{display:none;}}
-          .sd-cell{aspect-ratio:1;display:flex;align-items:center;justify-content:center;font-family:${MONO};box-sizing:border-box;cursor:pointer;position:relative;user-select:none;-webkit-tap-highlight-color:transparent;}
+          .sd-cell{display:flex;align-items:center;justify-content:center;font-family:${MONO};box-sizing:border-box;cursor:pointer;position:relative;user-select:none;-webkit-tap-highlight-color:transparent;min-width:0;min-height:0;overflow:hidden;}
           .sd-given{font-weight:700;color:${COLORS.ink};}
           .sd-user{font-weight:500;color:${COLORS.accent};}
           .sd-wrong{font-weight:600;color:${COLORS.rust};background:#fdecec !important;}
@@ -591,7 +591,7 @@ export default function SudsClient({ puzzles = [], forceNum = null }) {
 
           {/* 9×9 grid with heavy 3×3 rules */}
           <div style={{ maxWidth: 468, margin: '0 auto' }}>
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(9, minmax(0, 1fr))', border: `2.5px solid rgba(28,30,36,0.85)`, borderRadius: 4, overflow: 'hidden' }}>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(9, minmax(0, 1fr))', gridTemplateRows: 'repeat(9, minmax(0, 1fr))', aspectRatio: '1', border: `2.5px solid rgba(28,30,36,0.85)`, borderRadius: 4, overflow: 'hidden' }}>
               {Array.from({ length: 81 }).map((_, idx) => {
                 const given = givenFlat[idx];
                 const val = given || cells[idx];
