@@ -4,6 +4,7 @@ import { PUZZLES as GARBLE } from '../garble/puzzles';
 import { PUZZLES as LINKS } from '../links/puzzles';
 import { PUZZLES as SPAN } from '../span/puzzles';
 import { PUZZLES as DATING } from '../dating/puzzles';
+import { PUZZLES as TALLY } from '../tally/puzzles';
 
 // The daily-games hub + archive. One page listing every daily game, each with
 // today's puzzle and its full back-catalog of past drops (live<=today only, so
@@ -11,14 +12,14 @@ import { PUZZLES as DATING } from '../dating/puzzles';
 // client-side from each game's per-puzzle localStorage save.
 
 export const metadata = {
-  title: 'Daily Games — Crux, Garble, Links, Span & Dating | Source of Truths',
+  title: 'Daily Games — Crux, Garble, Links, Span, Dating & Tally | Source of Truths',
   description:
-    "Every Source of Truths daily game in one place: today's puzzle and the full archive for Crux, Garble, Links, Span, and Dating. A new puzzle in each, every day.",
+    "Every Source of Truths daily game in one place: today's puzzle and the full archive for Crux, Garble, Links, Span, Dating, and Tally. A new puzzle in each, every day.",
   alternates: { canonical: '/daily' },
   openGraph: {
     title: 'Daily Games — Source of Truths',
     description:
-      "Today's puzzle and the full archive for every daily game: Crux, Garble, Links, Span, and Dating.",
+      "Today's puzzle and the full archive for every daily game: Crux, Garble, Links, Span, Dating, and Tally.",
     url: '/daily',
     type: 'website',
     siteName: 'Source of Truths',
@@ -42,6 +43,7 @@ const GAMES = [
   { key: 'links', name: 'Links', path: '/links', tag: 'Sixteen words, four hidden threads', accent: '#166534', bg: '#eefaf1', border: 'rgba(90,169,106,0.5)', src: LINKS },
   { key: 'span', name: 'Span', path: '/span', tag: 'Cross the map, border by border', accent: '#9d174d', bg: '#fdf0f6', border: 'rgba(217,99,153,0.45)', src: SPAN },
   { key: 'dating', name: 'Dating', path: '/dating', tag: 'Put five moments in order', accent: '#6d28d9', bg: '#f5f0ff', border: 'rgba(124,58,237,0.4)', src: DATING },
+  { key: 'tally', name: 'Tally', path: '/tally', tag: 'Balance every row and column', accent: '#15803d', bg: '#eefaf1', border: 'rgba(21,128,61,0.45)', src: TALLY },
 ];
 
 const breadcrumbJsonLd = {

@@ -313,7 +313,7 @@ export default function QuizHomeClient() {
   const [gameRot, setGameRot] = useState('garble');
   useEffect(() => {
     try {
-      const others = ['garble', 'links', 'span', 'dating'];
+      const others = ['garble', 'links', 'span', 'dating', 'tally'];
       const n = (parseInt(localStorage.getItem('sot_hub_game_rot') || '-1', 10) + 1) % others.length;
       localStorage.setItem('sot_hub_game_rot', String(n));
       setGameRot(others[n]);
@@ -1041,8 +1041,8 @@ export default function QuizHomeClient() {
     .qzh .dditem:hover{background:${C.bg};}
     .qzh .dot{width:9px;height:9px;border-radius:3px;flex:none;}
     /* Daily games row: four half-height buttons above the hero tiles */
-    .qzh .th-games{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:12px;margin-bottom:14px;}
-    @media(min-width:761px){.qzh .th-g-crux{order:1;}.qzh .th-g-garble{order:2;}.qzh .th-g-links{order:3;}.qzh .th-g-span{order:4;}.qzh .th-g-dating{order:5;}}
+    .qzh .th-games{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:10px;margin-bottom:14px;}
+    @media(min-width:761px){.qzh .th-g-crux{order:1;}.qzh .th-g-garble{order:2;}.qzh .th-g-links{order:3;}.qzh .th-g-span{order:4;}.qzh .th-g-dating{order:5;}.qzh .th-g-tally{order:6;}}
     .qzh .th-game{position:relative;display:flex;flex-direction:row;align-items:center;gap:10px;min-height:86px;border:1px solid ${C.line};border-radius:14px;background:#0e1d40;padding:11px 15px;text-decoration:none;overflow:hidden;}
     .qzh .th-game:hover{border-color:#5b8bff;}
     .qzh .th-game-txt{display:flex;flex-direction:column;gap:1px;min-width:0;flex:1 1 auto;}
@@ -1056,7 +1056,7 @@ export default function QuizHomeClient() {
       .qzh .th-games{grid-template-columns:repeat(6,minmax(0,1fr));gap:9px;}
       .qzh .th-game{min-height:58px;background-position:right center;}
       .qzh .th-game:nth-child(-n+2){grid-column:span 3;}
-      .qzh .th-game:nth-child(n+3){grid-column:span 2;min-height:44px;padding:8px 9px;gap:6px;}
+      .qzh .th-game:nth-child(n+3){grid-column:span 3;min-height:44px;padding:8px 9px;gap:6px;}
       .qzh .th-game:nth-child(n+3) .th-game-tag{display:none;}
       .qzh .th-game:nth-child(n+3) .th-game-t{font-size:13.5px;}
       .qzh .th-game:nth-child(n+3) .th-game-art{height:24px;}
@@ -1397,6 +1397,7 @@ export default function QuizHomeClient() {
               { key: 'links', href: '/links', name: 'Links', tag: 'Four hidden threads', img: '/games/btn-links.png' },
               { key: 'span', href: '/span', name: 'Span', tag: 'Cross the map', img: '/games/btn-span.png' },
               { key: 'dating', href: '/dating', name: 'Dating', tag: 'Put history in order', img: '/games/btn-dating.png' },
+              { key: 'tally', href: '/tally', name: 'Tally', tag: 'Balance the books', img: '/games/btn-tally.png' },
             ];
             // Mobile row 1 = [Crux, rotating pick]; row 2 = the other three,
             // smaller. Desktop keeps the canonical order via CSS `order`.

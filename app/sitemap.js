@@ -26,7 +26,7 @@ export default function sitemap() {
   // catalog entries are thin client-side hops to those pages, so the game
   // URLs go in the sitemap (stamped with the newest live puzzle's date) and
   // the stubs stay out — they also canonicalize to the game pages.
-  const WORD_GAME_FORMATS = new Set(['crux', 'garble', 'links', 'span', 'dating']);
+  const WORD_GAME_FORMATS = new Set(['crux', 'garble', 'links', 'span', 'dating', 'tally']);
   const newestOfFormat = (format) => {
     const times = visibleQuizzes
       .filter((quiz) => quiz.format === format)
@@ -43,6 +43,7 @@ export default function sitemap() {
     { url: `${baseUrl}/links`, lastModified: newestOfFormat('links'), changeFrequency: 'daily', priority: 0.9 },
     { url: `${baseUrl}/span`, lastModified: newestOfFormat('span'), changeFrequency: 'daily', priority: 0.9 },
     { url: `${baseUrl}/dating`, lastModified: newestOfFormat('dating'), changeFrequency: 'daily', priority: 0.9 },
+    { url: `${baseUrl}/tally`, lastModified: newestOfFormat('tally'), changeFrequency: 'daily', priority: 0.9 },
     { url: `${baseUrl}/geo/nyc-restaurants`, lastModified: new Date('2026-06-25'), changeFrequency: 'monthly', priority: 0.6 },
     { url: `${baseUrl}/sporcle-alternative`, lastModified: newestQuiz, changeFrequency: 'monthly', priority: 0.6 },
     { url: `${baseUrl}/experts-and-aggregators`, lastModified: newestList, changeFrequency: 'weekly', priority: 0.5 },

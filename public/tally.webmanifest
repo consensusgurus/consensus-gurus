@@ -1,0 +1,16 @@
+{
+  "id": "/tally",
+  "name": "Tally — Daily Number Puzzle",
+  "short_name": "Tally",
+  "description": "Fill the grid from your rack so every row and column adds up to its target. A new number puzzle every day from Source of Truths.",
+  "start_url": "/tally?src=pwa",
+  "scope": "/",
+  "display": "standalone",
+  "background_color": "#f7f8fa",
+  "theme_color": "#f7f8fa",
+  "icons": [
+    { "src": "/tally-icons/icon-192.png", "sizes": "192x192", "type": "image/png" },
+    { "src": "/tally-icons/icon-512.png", "sizes": "512x512", "type": "image/png" },
+    { "src": "/tally-icons/icon-512-maskable.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ]
+}

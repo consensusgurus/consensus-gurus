@@ -31,7 +31,7 @@ export async function generateMetadata({ params }) {
   // Canonicalize them to the evergreen game URLs so the dated stubs don't
   // compete with /crux, /garble, /links, /span in search (they're also out
   // of the sitemap).
-  const GAME_URLS = { crux: '/crux', garble: '/garble', links: '/links', span: '/span', dating: '/dating' };
+  const GAME_URLS = { crux: '/crux', garble: '/garble', links: '/links', span: '/span', dating: '/dating', tally: '/tally' };
   const gameCanonical = GAME_URLS[quiz.format] || null;
 
   return {
@@ -68,6 +68,7 @@ export default function QuizPage({ params }) {
   if (quiz && quiz.format === 'links') return <CruxRedirect num={quiz.gameNum || null} base="/links" />;
   if (quiz && quiz.format === 'span') return <CruxRedirect num={quiz.gameNum || null} base="/span" />;
   if (quiz && quiz.format === 'dating') return <CruxRedirect num={quiz.gameNum || null} base="/dating" />;
+  if (quiz && quiz.format === 'tally') return <CruxRedirect num={quiz.gameNum || null} base="/tally" />;
 
   const jsonLd = quiz
     ? {
