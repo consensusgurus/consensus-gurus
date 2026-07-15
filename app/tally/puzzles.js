@@ -17,9 +17,9 @@
 export const PUZZLES = [
   {
     num: 1,
-    quizId: 'tally-7-15-26',
-    live: '2026-07-15',
-    dateLabel: 'July 15, 2026',
+    quizId: 'tally-7-14-26',
+    live: '2026-07-14',
+    dateLabel: 'July 14, 2026',
     size: 5,
     sunday: false,
     blocked: [[0,0,0,0,0],[0,1,0,0,1],[1,0,0,0,1],[1,0,0,1,0],[0,0,0,0,0]],
@@ -32,9 +32,9 @@ export const PUZZLES = [
   },
   {
     num: 2,
-    quizId: 'tally-7-16-26',
-    live: '2026-07-16',
-    dateLabel: 'July 16, 2026',
+    quizId: 'tally-7-15-26',
+    live: '2026-07-15',
+    dateLabel: 'July 15, 2026',
     size: 5,
     sunday: false,
     blocked: [[1,0,0,0,1],[0,0,0,0,0],[0,1,0,1,0],[0,0,0,0,0],[1,0,0,0,1]],
@@ -47,9 +47,9 @@ export const PUZZLES = [
   },
   {
     num: 3,
-    quizId: 'tally-7-17-26',
-    live: '2026-07-17',
-    dateLabel: 'July 17, 2026',
+    quizId: 'tally-7-16-26',
+    live: '2026-07-16',
+    dateLabel: 'July 16, 2026',
     size: 5,
     sunday: false,
     blocked: [[0,0,0,1,0],[0,0,0,1,1],[0,0,0,0,0],[1,1,0,0,0],[0,1,0,0,0]],
@@ -62,9 +62,9 @@ export const PUZZLES = [
   },
   {
     num: 4,
-    quizId: 'tally-7-18-26',
-    live: '2026-07-18',
-    dateLabel: 'July 18, 2026',
+    quizId: 'tally-7-17-26',
+    live: '2026-07-17',
+    dateLabel: 'July 17, 2026',
     size: 5,
     sunday: false,
     blocked: [[0,0,0,0,0],[0,1,1,0,0],[0,1,0,1,0],[0,0,1,1,0],[0,0,0,0,0]],
@@ -77,6 +77,21 @@ export const PUZZLES = [
   },
   {
     num: 5,
+    quizId: 'tally-7-18-26',
+    live: '2026-07-18',
+    dateLabel: 'July 18, 2026',
+    size: 5,
+    sunday: false,
+    blocked: [[0,0,0,0,0],[0,0,0,1,1],[1,0,0,0,1],[1,1,0,0,0],[0,0,0,0,0]],
+    given: [[0,0,0,0,0],[0,0,0,0,0],[0,0,4,0,0],[0,0,0,0,0],[0,0,0,2,8]],
+    sol: [[3,1,3,8,9],[3,3,3,0,0],[0,9,4,9,0],[0,0,7,7,3],[9,1,6,2,8]],
+    rowT: [24, 9, 22, 17, 26],
+    colT: [15, 14, 23, 26, 20],
+    bank: [1, 1, 3, 3, 3, 3, 3, 3, 6, 7, 7, 8, 9, 9, 9, 9],
+    fewest: 16,
+  },
+  {
+    num: 6,
     quizId: 'tally-7-19-26',
     live: '2026-07-19',
     dateLabel: 'July 19, 2026',
@@ -91,7 +106,7 @@ export const PUZZLES = [
     fewest: 20,
   },
   {
-    num: 6,
+    num: 7,
     quizId: 'tally-7-20-26',
     live: '2026-07-20',
     dateLabel: 'July 20, 2026',
@@ -106,7 +121,7 @@ export const PUZZLES = [
     fewest: 16,
   },
   {
-    num: 7,
+    num: 8,
     quizId: 'tally-7-21-26',
     live: '2026-07-21',
     dateLabel: 'July 21, 2026',
@@ -121,7 +136,7 @@ export const PUZZLES = [
     fewest: 16,
   },
   {
-    num: 8,
+    num: 9,
     quizId: 'tally-7-22-26',
     live: '2026-07-22',
     dateLabel: 'July 22, 2026',
@@ -136,7 +151,7 @@ export const PUZZLES = [
     fewest: 16,
   },
   {
-    num: 9,
+    num: 10,
     quizId: 'tally-7-23-26',
     live: '2026-07-23',
     dateLabel: 'July 23, 2026',
@@ -151,7 +166,7 @@ export const PUZZLES = [
     fewest: 16,
   },
   {
-    num: 10,
+    num: 11,
     quizId: 'tally-7-24-26',
     live: '2026-07-24',
     dateLabel: 'July 24, 2026',
@@ -166,7 +181,7 @@ export const PUZZLES = [
     fewest: 16,
   },
   {
-    num: 11,
+    num: 12,
     quizId: 'tally-7-25-26',
     live: '2026-07-25',
     dateLabel: 'July 25, 2026',
@@ -181,7 +196,7 @@ export const PUZZLES = [
     fewest: 16,
   },
   {
-    num: 12,
+    num: 13,
     quizId: 'tally-7-26-26',
     live: '2026-07-26',
     dateLabel: 'July 26, 2026',
@@ -196,7 +211,7 @@ export const PUZZLES = [
     fewest: 20,
   },
   {
-    num: 13,
+    num: 14,
     quizId: 'tally-7-27-26',
     live: '2026-07-27',
     dateLabel: 'July 27, 2026',
@@ -211,7 +226,7 @@ export const PUZZLES = [
     fewest: 16,
   },
   {
-    num: 14,
+    num: 15,
     quizId: 'tally-7-28-26',
     live: '2026-07-28',
     dateLabel: 'July 28, 2026',
@@ -226,7 +241,7 @@ export const PUZZLES = [
     fewest: 16,
   },
   {
-    num: 15,
+    num: 16,
     quizId: 'tally-7-29-26',
     live: '2026-07-29',
     dateLabel: 'July 29, 2026',
@@ -241,7 +256,7 @@ export const PUZZLES = [
     fewest: 16,
   },
   {
-    num: 16,
+    num: 17,
     quizId: 'tally-7-30-26',
     live: '2026-07-30',
     dateLabel: 'July 30, 2026',
@@ -256,7 +271,7 @@ export const PUZZLES = [
     fewest: 16,
   },
   {
-    num: 17,
+    num: 18,
     quizId: 'tally-7-31-26',
     live: '2026-07-31',
     dateLabel: 'July 31, 2026',
@@ -271,7 +286,7 @@ export const PUZZLES = [
     fewest: 16,
   },
   {
-    num: 18,
+    num: 19,
     quizId: 'tally-8-1-26',
     live: '2026-08-01',
     dateLabel: 'August 1, 2026',
@@ -286,7 +301,7 @@ export const PUZZLES = [
     fewest: 16,
   },
   {
-    num: 19,
+    num: 20,
     quizId: 'tally-8-2-26',
     live: '2026-08-02',
     dateLabel: 'August 2, 2026',
@@ -301,7 +316,7 @@ export const PUZZLES = [
     fewest: 20,
   },
   {
-    num: 20,
+    num: 21,
     quizId: 'tally-8-3-26',
     live: '2026-08-03',
     dateLabel: 'August 3, 2026',

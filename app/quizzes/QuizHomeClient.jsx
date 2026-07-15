@@ -1045,13 +1045,15 @@ export default function QuizHomeClient() {
     @media(min-width:761px){.qzh .th-g-crux{order:1;}.qzh .th-g-garble{order:2;}.qzh .th-g-links{order:3;}.qzh .th-g-span{order:4;}.qzh .th-g-dating{order:5;}.qzh .th-g-tally{order:6;}}
     .qzh .th-game{position:relative;display:flex;flex-direction:row;align-items:center;gap:10px;min-height:86px;border:1px solid ${C.line};border-radius:14px;background:#0e1d40;padding:11px 15px;text-decoration:none;overflow:hidden;}
     .qzh .th-game:hover{border-color:#5b8bff;}
-    .qzh .th-game-txt{display:flex;flex-direction:column;gap:1px;min-width:0;flex:1 1 auto;}
-    .qzh .th-game-art{flex:0 0 auto;height:52px;width:auto;}
+    .qzh .th-game-txt{display:flex;flex-direction:column;gap:1px;min-width:0;flex:1 1 auto;overflow:hidden;}
+    .qzh .th-game-art{flex:0 0 auto;height:52px;width:auto;max-width:56px;object-fit:contain;}
     .qzh .th-game-tag{font-size:9px;font-weight:800;letter-spacing:.13em;text-transform:uppercase;color:#f8b84a;margin-bottom:3px;}
-    .qzh .th-game-t{font-size:17px;font-weight:800;letter-spacing:-.3px;color:#fff;line-height:1.1;}
-    .qzh .th-game-p{font-size:11.5px;font-weight:700;color:#9fb0d4;line-height:1.2;}
+    .qzh .th-game-t{font-size:17px;font-weight:800;letter-spacing:-.3px;color:#fff;line-height:1.1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+    .qzh .th-game-p{font-size:11.5px;font-weight:700;color:#9fb0d4;line-height:1.2;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+    @media(max-width:1180px){.qzh .th-game-art{height:44px;max-width:48px;}.qzh .th-game-p{display:none;}}
     @media(max-width:1080px){.qzh .th-game-art{height:40px;}.qzh .th-game{padding:11px 12px;gap:8px;}}
-    @media(max-width:900px){.qzh .th-game-p{display:none;}.qzh .th-game{min-height:64px;}}
+    @media(max-width:980px){.qzh .th-game-art{height:34px;max-width:36px;}.qzh .th-game{padding:10px 10px;gap:7px;}.qzh .th-game-t{font-size:15.5px;}}
+    @media(max-width:900px){.qzh .th-game{min-height:64px;}}
     @media(max-width:760px){
       .qzh .th-games{grid-template-columns:repeat(6,minmax(0,1fr));gap:9px;}
       .qzh .th-game{min-height:58px;background-position:right center;}

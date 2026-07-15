@@ -189,8 +189,10 @@ const DAILY_GAMES = [
   { key: 'span', title: 'Span' },
   { key: 'crux', title: 'Crux' },
   { key: 'garble', title: 'Garble' },
+  { key: 'dating', title: 'Dating' },
+  { key: 'tally', title: 'Tally' },
 ];
-const DAILY_PREFIX_RE = /^(links|span|crux|garble)-/;
+const DAILY_PREFIX_RE = /^(links|span|crux|garble|dating|tally)-/;
 function buildDailyRetention(rows) {
   const perGame = new Map(DAILY_GAMES.map((g) => [g.key, new Map()])); // key -> (playerKey -> Set(quizId))
   const breadth = new Map(); // playerKey -> Set(gameKey)
