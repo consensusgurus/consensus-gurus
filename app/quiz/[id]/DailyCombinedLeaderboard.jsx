@@ -231,7 +231,7 @@ function GameBoard({ game, myKey, gameMax }) {
       <style>{`.dclb-g{grid-template-columns:40px 1fr 60px 58px 66px;}@media(max-width:520px){.dclb-g{grid-template-columns:${gridSm};}.dclb-time{display:none;}}`}</style>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: 10 }}>
         <div style={{ fontFamily: FONT, fontSize: 12, fontWeight: 700, color: (GAME_META[game.key] || {}).accent || C.ink }}>{(GAME_META[game.key] || {}).name || game.key}</div>
-        <div style={{ fontFamily: FONT, fontSize: 11, color: C.faded }}>{game.field} {game.field === 1 ? 'player' : 'players'} today</div>
+        <div style={{ fontFamily: FONT, fontSize: 11, color: C.faded }}>{(game.plays != null ? game.plays : game.field).toLocaleString()} {game.plays === 1 ? 'play' : 'plays'}</div>
       </div>
       <div className="dclb-g" style={{ display: 'grid', gap: 8, padding: '0 14px 8px', fontFamily: FONT, fontSize: 10, letterSpacing: '0.12em', textTransform: 'uppercase', color: C.faded }}>
         <span>#</span><span>Player</span><span style={{ textAlign: 'right' }}>Score</span><span className="dclb-time" style={{ textAlign: 'right' }}>Time</span><span style={{ textAlign: 'right' }}>Pts</span>

@@ -34,6 +34,7 @@ export default function DailyGamesPromo({ self, refresh }) {
   // server), so a game done on their phone drops off this list here too. Null
   // until the fetch resolves; localStorage still gates the first paint.
   const [serverDoneToday, setServerDoneToday] = useState(null);
+  const [dailyMe, setDailyMe] = useState(null);
 
   useEffect(() => {
     let anonId = null, email = null;
@@ -54,6 +55,10 @@ export default function DailyGamesPromo({ self, refresh }) {
         for (const g of DAILY_GAMES) { if (playedSet.has(`${g.key}-${M}-${D}-${yy}`)) done.add(g.key); }
         setServerDoneToday(done);
       })
+      .catch(() => {});
+    fetch('/api/quiz/daily-combined?' + qs.toString())
+      .then((r) => r.json())
+      .then((d) => { if (alive && d && d.me) setDailyMe({ ...d.me, maxTotal: d.maxTotal }); })
       .catch(() => {});
     return () => { alive = false; };
   }, [refresh]);
@@ -76,6 +81,11 @@ export default function DailyGamesPromo({ self, refresh }) {
       <div style={{ fontFamily: SANS, fontSize: 11.5, fontWeight: 800, textTransform: 'uppercase', letterSpacing: '.06em', color: '#6b7280', marginBottom: 7 }}>
         Still on the table today
       </div>
+      {dailyMe && dailyMe.total != null ? (
+        <div style={{ fontFamily: SANS, fontSize: 12.5, fontWeight: 600, color: '#37506e', marginBottom: 9, lineHeight: 1.4 }}>
+          You&rsquo;re <b style={{ color: '#1c1e24' }}>#{dailyMe.rank}</b> on today&rsquo;s daily board &middot; <b style={{ color: '#1c1e24' }}>{dailyMe.total}/{dailyMe.maxTotal}</b>. Finish {open.length} more to climb.
+        </div>
+      ) : null}
       <div style={{ display: 'flex', flexDirection: 'column', gap: 7 }}>
         {open.map((g) => (
           <a key={g.key} href={g.href}

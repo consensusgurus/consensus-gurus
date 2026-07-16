@@ -343,6 +343,7 @@ export default function QuizHomeClient() {
   const [statsById, setStatsById] = useState({}); // /api/quiz/stats keyed by quizId
   const [signupOpen, setSignupOpen] = useState(false);
   const [duels, setDuels] = useState([]); // last few completed duels, for the header ticker
+  const [dailyLead, setDailyLead] = useState(null); // daily-board leader for the header ticker
   const [statsOpen, setStatsOpen] = useState(false);
   const [dailyLb, setDailyLb] = useState(null); // today's daily-challenge standings (registered players)
   const [chRun, setChRun] = useState(null); // local run-state for today's daily challenge (completion ticks)
@@ -757,6 +758,15 @@ export default function QuizHomeClient() {
   // ── header ticker: recent plays + today's leaders + duels + new quizzes ──
   // Round-robin interleaved so types alternate. Built from data the page
   // already loads; the only extra fetch is /api/duel/latest (last few duels).
+  useEffect(() => {
+    let alive = true;
+    fetch('/api/quiz/daily-combined')
+      .then((r) => r.json())
+      .then((d) => { if (alive && d && Array.isArray(d.overall) && d.overall[0]) setDailyLead({ name: d.overall[0].username, total: d.overall[0].total, maxTotal: d.maxTotal }); })
+      .catch(() => {});
+    return () => { alive = false; };
+  }, []);
+
   const tickerItems = useMemo(() => {
     const ago = (iso) => {
       if (!iso) return null;
@@ -781,6 +791,13 @@ export default function QuizHomeClient() {
         { text: i === 0 ? ' leads Correct Today' : ` is #${i + 1} for Correct Today` },
         { text: ` · ${(r.correct || 0).toLocaleString()}`, dim: true },
       ] }));
+    if (dailyLead && dailyLead.name) {
+      leads.unshift({ type: 'lead', href: '/daily', segs: [
+        { text: dailyLead.name, strong: true },
+        { text: ' leads the Daily Board' },
+        { text: ` · ${dailyLead.total}/${dailyLead.maxTotal}`, dim: true },
+      ] });
+    }
     if (DAILY_CHALLENGE_ON && dailyRows.length && dailyRows[0] && !dailyRows[0].isAnon) {
       leads.push({ type: 'lead', href: '/quizzes/hub', segs: [
         { text: dailyRows[0].username || 'Player', strong: true },
@@ -812,7 +829,7 @@ export default function QuizHomeClient() {
       if (out.length === before) break;
     }
     return out;
-  }, [recent, titleById, todayCorrectRows, dailyRows, dailyCat, duels, newest, playsToday]);
+  }, [recent, titleById, todayCorrectRows, dailyRows, dailyCat, duels, newest, playsToday, dailyLead]);
   // Business News hub quizzes (market-moving recaps, earnings, sector updates),
   // newest first — shown inside the Business News promo tile.
   const businessNewsRows = useMemo(() => catalog.slice()

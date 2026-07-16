@@ -106,8 +106,12 @@ export async function GET(request) {
     }
 
     const gameResults = games.map((g) => {
-      const gr = scoreGame(rowsByQuiz.get(g.quizId) || []);
-      return { key: g.key, quizId: g.quizId, field: gr.field, players: gr.players };
+      const gameRows = rowsByQuiz.get(g.quizId) || [];
+      const gr = scoreGame(gameRows);
+      // field = registered first-attempt players on the board; plays = EVERY
+      // completion for that puzzle (guests + repeats included), so the header can
+      // show both "X registered players · X total plays".
+      return { key: g.key, quizId: g.quizId, field: gr.field, plays: gameRows.length, players: gr.players };
     });
 
     const overallFull = combineDaily(gameResults);
@@ -127,6 +131,7 @@ export async function GET(request) {
       key: g.key,
       quizId: g.quizId,
       field: g.field,
+      plays: g.plays,
       board: [...g.players.values()]
         .sort((a, b) => a.rank - b.rank || b.points - a.points || String(a.username || '').localeCompare(String(b.username || '')))
         .slice(0, BOARD)
