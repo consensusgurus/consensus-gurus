@@ -32,7 +32,7 @@ const GAME_META = {
 function fmtTime(sec) { if (sec == null) return '—'; const m = Math.floor(sec / 60), s = sec % 60; return `${m}:${String(s).padStart(2, '0')}`; }
 function fmtPts(n) { const v = Math.round(Number(n) * 10) / 10; return Number.isInteger(v) ? String(v) : v.toFixed(1); }
 
-export default function DailyCombinedLeaderboard({ todayKey = null, identity = null, compact = false }) {
+export default function DailyCombinedLeaderboard({ todayKey = null, identity = null, compact = false, quizId = null }) {
   const [data, setData] = useState(null);
   const [state, setState] = useState('loading'); // loading | ok | error
   const [tab, setTab] = useState('overall');
@@ -47,17 +47,23 @@ export default function DailyCombinedLeaderboard({ todayKey = null, identity = n
     const qs = new URLSearchParams();
     if (anonId) qs.set('anonId', anonId);
     if (email) qs.set('email', email);
+    // Scope the board to the puzzle being viewed. Absent (the /daily archive) the
+    // endpoint defaults to today. An archived puzzle shows THAT day's slate.
+    if (quizId) qs.set('quizId', quizId);
     let alive = true;
+    setState('loading'); setData(null);
     fetch('/api/quiz/daily-combined?' + qs.toString())
       .then((r) => r.json())
       .then((d) => { if (!alive) return; if (d && Array.isArray(d.overall)) { setData(d); setState('ok'); } else { setState('error'); } })
       .catch(() => { if (alive) setState('error'); });
     return () => { alive = false; };
-  }, []);
+  }, [quizId]);
 
   const myKey = data && data.me ? data.me.userKey : null;
   const maxTotal = (data && data.maxTotal) || 75;
   const gameMax = (data && data.gameMax) || 15;
+  const gameCount = data ? (data.gameCount != null ? data.gameCount : (data.games || []).length) : null;
+  const bestN = data && data.bestN != null ? data.bestN : null;
 
   // Tabs: Overall first, then every game that has a live puzzle today, current
   // game surfaced right after Overall so its tab is easy to find.
@@ -70,10 +76,16 @@ export default function DailyCombinedLeaderboard({ todayKey = null, identity = n
   }, [data, todayKey]);
 
   const wrap = { fontFamily: FONT };
+  // "Best N of M · P pts max" — scales to the day's game count (older days ran
+  // fewer games). When only one game ran that day there's nothing to pick, so we
+  // just show the ceiling.
+  const subtitle = (data && gameCount)
+    ? (gameCount > 1 ? `Best ${bestN} of ${gameCount} · ${maxTotal} pts max` : `${maxTotal} pts max`)
+    : 'Best 5 of 10';
   const header = (
     <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', marginBottom: 12, gap: 10 }}>
       <div style={{ fontSize: 11, letterSpacing: '0.16em', textTransform: 'uppercase', color: C.faded }}>Daily Leaderboard</div>
-      <div style={{ fontSize: 11, letterSpacing: '0.04em', color: C.soft }}>Best 5 of 10 &middot; {maxTotal} pts max</div>
+      <div style={{ fontSize: 11, letterSpacing: '0.04em', color: C.soft }}>{subtitle}</div>
     </div>
   );
 
@@ -115,13 +127,19 @@ export default function DailyCombinedLeaderboard({ todayKey = null, identity = n
     </button>
   );
 
+  const gc = gameCount || 0;
+  const gameWord = gc === 1 ? 'game' : 'games';
+  const totalLine = gc > 1
+    ? `Your daily total is your best ${bestN} of the day's ${gc} games.`
+    : 'One game ran this day, so your daily total is just that game.';
+
   // Collapsed (archive) view: overall top 3, expandable to the full tabbed board.
   if (compact && !expanded) {
     return (
       <div style={wrap}>
         {header}
-        <OverallBoard data={data} myKey={myKey} maxTotal={maxTotal} limit={3} showMe={false} />
-        {linkBtn('Show all ten games & full standings', () => setExpanded(true))}
+        <OverallBoard data={data} myKey={myKey} maxTotal={maxTotal} gameCount={gc} limit={3} showMe={false} />
+        {linkBtn(`Show all ${gc} ${gameWord} & full standings`, () => setExpanded(true))}
       </div>
     );
   }
@@ -131,10 +149,10 @@ export default function DailyCombinedLeaderboard({ todayKey = null, identity = n
       {header}
       {tabBar}
       {active === 'overall'
-        ? <OverallBoard data={data} myKey={myKey} maxTotal={maxTotal} />
+        ? <OverallBoard data={data} myKey={myKey} maxTotal={maxTotal} gameCount={gc} />
         : <GameBoard game={(data.games || []).find((g) => g.key === active)} myKey={myKey} gameMax={gameMax} />}
       <p style={{ fontSize: 11, color: C.soft, marginTop: 12, lineHeight: 1.5 }}>
-        Each game is worth 15: up to 5 for how much you got right, up to 10 for where you placed against today's field. Your daily total is your best five games.
+        Each game is worth 15: up to 5 for how much you got right, up to 10 for where you placed against that day's field. {totalLine}
       </p>
       {compact ? linkBtn('Show less', () => { setExpanded(false); setTab('overall'); }) : null}
     </div>
@@ -163,7 +181,7 @@ function PlayerName({ row, mine }) {
   );
 }
 
-function OverallBoard({ data, myKey, maxTotal, limit = 10, showMe = true }) {
+function OverallBoard({ data, myKey, maxTotal, gameCount = 10, limit = 10, showMe = true }) {
   const rows = (data.overall || []).slice(0, limit); // the viewer's own row is appended below if lower
   const grid = { display: 'grid', gridTemplateColumns: '40px 1fr 66px 72px', gap: 8 };
   const meShown = myKey && rows.some((r) => r.userKey === myKey);
@@ -181,7 +199,7 @@ function OverallBoard({ data, myKey, maxTotal, limit = 10, showMe = true }) {
           <div key={r.userKey} style={{ ...grid, alignItems: 'center', padding: '10px 14px', marginBottom: 6, background: mine ? C.accSoft : '#fff', borderRadius: 10, border: `1px solid ${mine ? C.accBorder : C.line}` }}>
             <RankNum n={r.rank} />
             <PlayerName row={r} mine={mine} />
-            <span style={{ fontFamily: FONT, fontSize: 13.5, textAlign: 'right', color: C.faded, fontVariantNumeric: 'tabular-nums' }}>{r.gamesPlayed}/10</span>
+            <span style={{ fontFamily: FONT, fontSize: 13.5, textAlign: 'right', color: C.faded, fontVariantNumeric: 'tabular-nums' }}>{r.gamesPlayed}/{gameCount}</span>
             <span style={{ fontFamily: FONT, fontSize: 15, fontWeight: 800, textAlign: 'right', color: C.ink, fontVariantNumeric: 'tabular-nums' }}>{fmtPts(r.total)}<span style={{ fontSize: 11, fontWeight: 600, color: C.soft }}>/{maxTotal}</span></span>
           </div>
         );
@@ -191,7 +209,7 @@ function OverallBoard({ data, myKey, maxTotal, limit = 10, showMe = true }) {
           <div style={{ ...grid, alignItems: 'center', padding: '10px 14px', background: C.accSoft, borderRadius: 10, border: `1px solid ${C.accBorder}` }}>
             <RankNum n={data.me.rank} />
             <PlayerName row={data.me} mine />
-            <span style={{ fontFamily: FONT, fontSize: 13.5, textAlign: 'right', color: C.faded, fontVariantNumeric: 'tabular-nums' }}>{data.me.gamesPlayed}/10</span>
+            <span style={{ fontFamily: FONT, fontSize: 13.5, textAlign: 'right', color: C.faded, fontVariantNumeric: 'tabular-nums' }}>{data.me.gamesPlayed}/{gameCount}</span>
             <span style={{ fontFamily: FONT, fontSize: 15, fontWeight: 800, textAlign: 'right', color: C.ink, fontVariantNumeric: 'tabular-nums' }}>{fmtPts(data.me.total)}<span style={{ fontSize: 11, fontWeight: 600, color: C.soft }}>/{maxTotal}</span></span>
           </div>
         </div>

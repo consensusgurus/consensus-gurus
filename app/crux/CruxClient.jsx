@@ -1204,7 +1204,7 @@ export default function CruxClient({ puzzles = [], forceNum = null }) {
         </div>
         )}
         <div id="daily-leaderboard" style={{ display: focusMode ? 'none' : 'block', maxWidth: 640, margin: '26px auto 0', background: '#fff', border: '1.5px solid rgba(20,22,28,0.12)', borderRadius: 12, padding: '14px 16px' }}>
-          <DailyCombinedLeaderboard todayKey="crux" identity={identity} />
+          <DailyCombinedLeaderboard todayKey="crux" identity={identity} quizId={PUZZLE.quizId} />
         </div>
 
         {!focusMode && (<p style={{ textAlign: 'center', fontSize: 12, fontStyle: 'italic', fontWeight: 600, color: COLORS.faded, margin: '34px 0 0' }}>For WMM, in memoriam.</p>)}

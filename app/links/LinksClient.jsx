@@ -646,7 +646,7 @@ export default function LinksClient({ puzzles = [], forceNum = null }) {
         </div>
         )}
         <div id="daily-leaderboard" style={{ display: focusMode ? 'none' : 'block', maxWidth: 560, margin: '26px auto 0', background: '#fff', border: '1.5px solid rgba(20,22,28,0.12)', borderRadius: 12, padding: '14px 16px' }}>
-          <DailyCombinedLeaderboard todayKey="links" identity={identity} />
+          <DailyCombinedLeaderboard todayKey="links" identity={identity} quizId={PUZZLE.quizId} />
         </div>
       </div>
 

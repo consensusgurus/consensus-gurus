@@ -36,34 +36,59 @@ function etTodayServer() {
   catch (e) { return new Date().toISOString().slice(0, 10); }
 }
 
-// The puzzle currently live for a game: the last entry with live <= today, the
-// same selection app/{game}/page.js pickPuzzle makes. Returns its quizId, or null.
-function currentQuizId(puzzles, today) {
-  const open = (puzzles || []).filter((p) => p && p.live <= today);
-  const p = open.length ? open[open.length - 1] : null;
-  return p && p.quizId ? p.quizId : null;
+// Daily quizIds end in a `-M-D-YY` date suffix (e.g. crux-7-6-26 -> "7-6-26").
+// The combined board is scoped to ONE day: every game that published a puzzle on
+// that date, and only those. Older days therefore have fewer games (down to one),
+// which is exactly what an archived-puzzle leaderboard should reflect.
+function suffixOfDate(dateStr) {
+  const [Y, M, D] = dateStr.split('-').map(Number); // dateStr = 'YYYY-MM-DD'
+  return `${M}-${D}-${Y % 100}`;
+}
+
+// The game's puzzle for a given date suffix, or null if it published none that
+// day (game didn't exist yet, or a gap). Never expose a future day's board.
+function quizIdForSuffix(puzzles, key, suffix, today) {
+  const cand = `${key}-${suffix}`;
+  const p = (puzzles || []).find((x) => x && x.quizId === cand);
+  if (!p) return null;
+  if (p.live && p.live > today) return null;
+  return cand;
 }
 
 const DISPLAY = 10; // overall rows returned (viewer's own row is always appended via `me`)
 const BOARD = 10;   // per-game rows returned per tab
 
-// GET /api/quiz/daily-combined?anonId=&email=
-//   -> { date, maxTotal, gameMax, bestN, games:[{key,quizId,field,board}], overall, me }
+// GET /api/quiz/daily-combined?anonId=&email=&quizId=&date=
+//   quizId (a daily quizId) or date ("M-D-YY") picks the day; default = today.
+//   -> { date, maxTotal, gameMax, bestN, gameCount, games:[{key,quizId,field,board}], overall, me }
 export async function GET(request) {
   const { searchParams } = new URL(request.url);
   const anonId = (searchParams.get('anonId') || '').trim() || null;
   const email = (searchParams.get('email') || '').trim() || null;
   const today = etTodayServer();
 
-  // Today's live quizId per game (skip a game with no live puzzle at all).
+  // Which day's board? Prefer an explicit date suffix, else parse it off a passed
+  // quizId, else today. This is the ONLY thing that decides the slate.
+  let suffix = (searchParams.get('date') || '').trim();
+  const qidParam = (searchParams.get('quizId') || '').trim();
+  if (!/^\d+-\d+-\d+$/.test(suffix)) {
+    const m = qidParam.match(/-(\d+-\d+-\d+)$/);
+    suffix = m ? m[1] : suffixOfDate(today);
+  }
+
+  // The games that ran on that date (skip any that didn't publish that day).
   const games = [];
   for (const key of DAILY_KEYS) {
-    const quizId = currentQuizId(GAME_PUZZLES[key], today);
+    const quizId = quizIdForSuffix(GAME_PUZZLES[key], key, suffix, today);
     if (quizId) games.push({ key, quizId });
   }
   const wanted = new Set(games.map((g) => g.quizId));
+  // Best-N and the ceiling scale to how many games existed that day (1..10).
+  const gameCount = games.length;
+  const effBestN = gameCount ? Math.min(BEST_N, gameCount) : BEST_N;
+  const maxTotal = effBestN * GAME_MAX;
 
-  const empty = { date: today, maxTotal: DAILY_MAX, gameMax: GAME_MAX, bestN: BEST_N, games: [], overall: [], me: null };
+  const empty = { date: suffix, maxTotal, gameMax: GAME_MAX, bestN: effBestN, gameCount, games: [], overall: [], me: null };
   try {
     const { data, error } = await loadQuizResultsCached(supabaseAdmin);
     if (error) {
@@ -120,10 +145,11 @@ export async function GET(request) {
     }));
 
     return NextResponse.json({
-      date: today,
-      maxTotal: DAILY_MAX,
+      date: suffix,
+      maxTotal,
       gameMax: GAME_MAX,
-      bestN: BEST_N,
+      bestN: effBestN,
+      gameCount,
       games: gameBoards,
       overall: overallFull.slice(0, DISPLAY),
       me,

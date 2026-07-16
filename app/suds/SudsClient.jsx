@@ -762,7 +762,7 @@ export default function SudsClient({ puzzles = [], forceNum = null }) {
         </div>
         )}
         <div id="daily-leaderboard" style={{ display: focusMode ? 'none' : 'block', maxWidth: 620, margin: '26px auto 0', background: '#fff', border: '1.5px solid rgba(20,22,28,0.12)', borderRadius: 12, padding: '14px 16px' }}>
-          <DailyCombinedLeaderboard todayKey="suds" identity={identity} />
+          <DailyCombinedLeaderboard todayKey="suds" identity={identity} quizId={PUZZLE.quizId} />
         </div>
       </div>
 
