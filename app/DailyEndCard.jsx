@@ -28,7 +28,7 @@
 
 import React from 'react';
 import {
-  Type, Clock, Globe, Hash, Share2, BarChart3, RotateCcw, Check,
+  Type, Clock, Globe, Hash, Share2, BarChart3, RotateCcw, Check, X,
   Trophy, Link2, Flag, CalendarCheck, Scale, Grid3x3, LayoutGrid, Newspaper, FlagTriangleRight,
 } from 'lucide-react';
 
@@ -152,6 +152,7 @@ function CategoryCol({ catKey, selfKey, isSelf }) {
 export default function DailyEndCard({
   self,
   won = true,
+  modal = false,
   headline = '100% Complete',
   subline = null,
   onShare, shareLabel = 'Share Result',
@@ -180,10 +181,18 @@ export default function DailyEndCard({
     }
   };
 
-  return (
-    <div className="dec-card">
+  const inner = (
+    <div className="dec-card" style={modal ? { position: 'relative', maxHeight: '92vh', overflowY: 'auto' } : undefined}>
+      {modal && (
+        <button type="button" className="dec-x" onClick={onClose} aria-label="Close">
+          <X size={18} strokeWidth={2.4} />
+        </button>
+      )}
       <style>{`
         .dec-card{background:#fff;border:2px solid ${INK};border-radius:14px;padding:22px 18px 16px;max-width:472px;width:100%;margin:0 auto;font-family:${SANS};}
+        .dec-backdrop{position:fixed;inset:0;z-index:85;background:rgba(20,22,28,0.55);display:flex;align-items:flex-start;justify-content:center;padding:24px 16px;overflow-y:auto;}
+        .dec-x{position:absolute;top:10px;right:10px;background:none;border:none;cursor:pointer;color:${FADED};padding:4px;display:flex;line-height:0;z-index:2;}
+        .dec-x:hover{color:${INK};}
         .dec-top{text-align:center;}
         .dec-finish{width:62px;height:62px;border-radius:50%;margin:0 auto 11px;display:flex;align-items:center;justify-content:center;box-shadow:0 3px 0 rgba(20,22,28,0.14),inset 0 1px 2px rgba(255,255,255,0.55);}
         .dec-headline{font-size:22px;font-weight:800;margin:0 0 3px;letter-spacing:-.01em;}
@@ -241,6 +250,15 @@ export default function DailyEndCard({
         ))}
       </div>
       <div className="dec-foot"><a href="/daily">All daily games &amp; archive →</a></div>
+    </div>
+  );
+
+  if (!modal) return inner;
+  return (
+    <div className="dec-backdrop" onClick={onClose}>
+      <div style={{ width: '100%', maxWidth: 472, margin: 'auto' }} onClick={(e) => e.stopPropagation()}>
+        {inner}
+      </div>
     </div>
   );
 }

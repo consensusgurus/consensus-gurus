@@ -183,6 +183,7 @@ export default function CircaClient({ puzzles = [], forceNum = null }) {
   const [copied, setCopied] = useState(false);
   const [armReveal, setArmReveal] = useState(false);
   const [justWon, setJustWon] = useState(false);
+  const [endClosed, setEndClosed] = useState(false);
   const [hydrated, setHydrated] = useState(false);
   const [board, setBoard] = useState(EMPTY_BOARD);
   const [identity, setIdentity] = useState(null);
@@ -386,7 +387,7 @@ export default function CircaClient({ puzzles = [], forceNum = null }) {
 
   function resetGame() {
     try { localStorage.removeItem(STORE_KEY); } catch (e) {}
-    setG(freshState()); setVal(''); setJustWon(false);
+    setG(freshState()); setVal(''); setJustWon(false); setEndClosed(false);
   }
 
   function rowFor(y, i) {
@@ -574,18 +575,6 @@ export default function CircaClient({ puzzles = [], forceNum = null }) {
                 <div style={{ fontSize: 12.5, fontWeight: 600, color: COLORS.faded, fontStyle: 'italic', margin: '8px 0 0' }}>The Sunday Edition — a trickier moment to place.</div>
               )}
             </div>
-            <DailyEndCard
-              self="circa"
-              won={won}
-              headline={<>{Math.round((finalScore / 10) * 100)}% Complete</>}
-              subline={won
-                ? <>{finalScore}/10 &middot; {exact ? 'dead on' : 'circa'} in {guesses.length} guess{guesses.length === 1 ? '' : 'es'} &middot; {elapsed}{g.hintUsed ? <> &middot; 1 hint</> : null}</>
-                : <>0/10 &middot; out of guesses</>}
-              onShare={copyShare}
-              shareLabel={copied ? 'Copied' : 'Share Result'}
-              onReplay={resetGame}
-              onClose={() => setJustWon(false)}
-            />
             <p style={{ fontSize: 12, color: COLORS.faded, fontWeight: 600, margin: '12px 0 0' }}>
               {isTodays ? (
                 <>
@@ -676,29 +665,21 @@ export default function CircaClient({ puzzles = [], forceNum = null }) {
         </div>
       </div>
 
-      {/* the win moment: keepsake card */}
-      {justWon && (
-        <div onClick={() => setJustWon(false)} style={{ position: 'fixed', inset: 0, zIndex: 85, background: 'rgba(28,30,36,0.45)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16, animation: 'ccfade .4s ease .3s backwards' }}>
-          <div onClick={(e) => e.stopPropagation()} style={{ background: PAPER, border: `3px double ${COLORS.ink}`, borderRadius: 6, padding: '26px 30px 20px', maxWidth: 380, width: '100%', textAlign: 'center', fontFamily: SANS, boxShadow: '6px 6px 0 rgba(28,30,36,0.18)', animation: 'ccstamp .45s ease .3s backwards' }}>
-            <div style={{ display: 'flex', gap: 3, justifyContent: 'center', marginBottom: 12 }}>
-              {'CIRCA'.split('').map((ch, i) => (
-                <span key={i} style={{ width: 24, height: 24, borderRadius: 3, background: i === 4 ? COLORS.accent : COLORS.ink, color: '#fff', fontFamily: SANS, fontWeight: 900, fontSize: 15, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', boxShadow: 'inset 0 1px 3px rgba(0,0,0,0.5)' }}>{ch}</span>
-              ))}
-            </div>
-            <div style={{ fontFamily: SANS, fontWeight: 900, fontSize: 34, color: COLORS.ink, letterSpacing: '-0.01em', margin: '2px 0 6px', lineHeight: 1.15 }}>{exact ? 'Dead on.' : 'Circa!'}</div>
-            <div style={{ fontFamily: MONO, fontSize: 12.5, color: COLORS.faded, marginBottom: 14 }}>No. {PUZZLE.num} &middot; {YEAR} &middot; {guesses.length} guess{guesses.length === 1 ? '' : 'es'} &middot; {elapsed}</div>
-            <div style={{ display: 'flex', gap: 3, justifyContent: 'center', marginBottom: 16, flexWrap: 'wrap' }}>
-              {Array.from({ length: 5 }).map((_, i) => (
-                <span key={i} style={{ width: 15, height: 15, borderRadius: 3, background: i < Math.max(1, Math.round(finalScore / 2)) ? COLORS.accent : '#d6dae0', border: '1px solid rgba(28,30,36,0.25)' }} />
-              ))}
-            </div>
-            <div style={{ display: 'flex', gap: 10, justifyContent: 'center', flexWrap: 'wrap' }}>
-              <button className="cc-btn" onClick={copyShare} style={{ background: COLORS.accent, color: '#fff', borderColor: COLORS.accent }}><Share2 size={15} /> {copied ? 'Copied' : 'Share result'}</button>
-              <button className="cc-btn" onClick={() => setJustWon(false)}>See the moment</button>
-            </div>
-            <div style={{ fontFamily: MONO, fontSize: 10, letterSpacing: '0.1em', color: COLORS.faded, marginTop: 12 }}>sourceoftruths.com/circa</div>
-          </div>
-        </div>
+      {/* the end-of-game popup: the shared DailyEndCard as a dismissible modal (win or loss) */}
+      {!playing && !endClosed && (
+        <DailyEndCard
+          modal
+          self="circa"
+          won={won}
+          headline={<>{Math.round((finalScore / 10) * 100)}% Complete</>}
+          subline={won
+            ? <>{finalScore}/10 &middot; {exact ? 'dead on' : 'circa'} in {guesses.length} guess{guesses.length === 1 ? '' : 'es'} &middot; {elapsed}{g.hintUsed ? <> &middot; 1 hint</> : null}</>
+            : <>0/10 &middot; out of guesses</>}
+          onShare={copyShare}
+          shareLabel={copied ? 'Copied' : 'Share Result'}
+          onReplay={resetGame}
+          onClose={() => setEndClosed(true)}
+        />
       )}
 
       <DuelBanner token={duelToken} info={duelInfo} submitted={duelSubmitted} />

@@ -178,6 +178,7 @@ export default function ExtraClient({ puzzles = [], forceNum = null }) {
   const [copied, setCopied] = useState(false);
   const [armReveal, setArmReveal] = useState(false);
   const [justWon, setJustWon] = useState(false);
+  const [endClosed, setEndClosed] = useState(false);
   const [hydrated, setHydrated] = useState(false);
   const [board, setBoard] = useState(EMPTY_BOARD);
   const [identity, setIdentity] = useState(null);
@@ -375,7 +376,7 @@ export default function ExtraClient({ puzzles = [], forceNum = null }) {
 
   function resetGame() {
     try { localStorage.removeItem(STORE_KEY); } catch (e) {}
-    setG(freshState()); setVal(''); setJustWon(false);
+    setG(freshState()); setVal(''); setJustWon(false); setEndClosed(false);
   }
 
   function shareText() {
@@ -564,18 +565,6 @@ export default function ExtraClient({ puzzles = [], forceNum = null }) {
         {/* result */}
         {!playing && (
           <>
-            <DailyEndCard
-              self="extra"
-              won={won}
-              headline={<>{Math.round((finalScore / 10) * 100)}% Complete</>}
-              subline={won
-                ? <>{finalScore}/10 &middot; {tears === 0 ? 'a perfect cold read' : `named it with ${tears} tear${tears === 1 ? '' : 's'}`} &middot; {elapsed}{g.hintUsed ? <> &middot; 1 hint</> : null}</>
-                : <>0/10 &middot; the story got away</>}
-              onShare={copyShare}
-              shareLabel={copied ? 'Copied' : 'Share Result'}
-              onReplay={resetGame}
-              onClose={() => setJustWon(false)}
-            />
             {/* the answer */}
             <div style={{ display: 'flex', alignItems: 'center', gap: 14, background: PAPER, border: '1.5px solid rgba(28,30,36,0.18)', borderRadius: 10, padding: '12px 14px', marginBottom: 10 }}>
               <Newspaper size={26} style={{ color: won ? COLORS.green : COLORS.ink, flex: '0 0 auto' }} />
@@ -681,29 +670,21 @@ export default function ExtraClient({ puzzles = [], forceNum = null }) {
         </div>
       </div>
 
-      {/* the win moment: keepsake card */}
-      {justWon && (
-        <div onClick={() => setJustWon(false)} style={{ position: 'fixed', inset: 0, zIndex: 85, background: 'rgba(28,30,36,0.45)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16, animation: 'exfade .4s ease .3s backwards' }}>
-          <div onClick={(e) => e.stopPropagation()} style={{ background: PAPER, border: `3px double ${COLORS.ink}`, borderRadius: 6, padding: '26px 30px 20px', maxWidth: 380, width: '100%', textAlign: 'center', fontFamily: SANS, boxShadow: '6px 6px 0 rgba(28,30,36,0.18)', animation: 'exstamp .45s ease .3s backwards' }}>
-            <div style={{ display: 'flex', gap: 3, justifyContent: 'center', marginBottom: 12 }}>
-              {'EXTRA'.split('').map((ch, i) => (
-                <span key={i} style={{ width: 24, height: 24, borderRadius: 3, background: i === 1 ? COLORS.accent : COLORS.ink, color: '#fff', fontFamily: SANS, fontWeight: 900, fontSize: 15, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', boxShadow: 'inset 0 1px 3px rgba(0,0,0,0.5)' }}>{ch}</span>
-              ))}
-            </div>
-            <div style={{ fontFamily: SANS, fontWeight: 900, fontSize: 34, color: COLORS.ink, letterSpacing: '-0.01em', margin: '2px 0 6px', lineHeight: 1.15 }}>{tears === 0 ? 'Cold read!' : 'Scoop!'}</div>
-            <div style={{ fontFamily: MONO, fontSize: 12.5, color: COLORS.faded, marginBottom: 14 }}>No. {PUZZLE.num} &middot; {tears === 0 ? 'zero tears' : `${tears} tear${tears === 1 ? '' : 's'}`} &middot; {elapsed}</div>
-            <div style={{ display: 'flex', gap: 3, justifyContent: 'center', marginBottom: 16, flexWrap: 'wrap' }}>
-              {Array.from({ length: 5 }).map((_, i) => (
-                <span key={i} style={{ width: 15, height: 15, borderRadius: 3, background: i < Math.max(1, Math.round(finalScore / 2)) ? COLORS.accent : '#d6dae0', border: '1px solid rgba(28,30,36,0.25)' }} />
-              ))}
-            </div>
-            <div style={{ display: 'flex', gap: 10, justifyContent: 'center', flexWrap: 'wrap' }}>
-              <button className="ex-btn" onClick={copyShare} style={{ background: COLORS.accent, color: '#fff', borderColor: COLORS.accent }}><Share2 size={15} /> {copied ? 'Copied' : 'Share result'}</button>
-              <button className="ex-btn" onClick={() => setJustWon(false)}>Read the page</button>
-            </div>
-            <div style={{ fontFamily: MONO, fontSize: 10, letterSpacing: '0.1em', color: COLORS.faded, marginTop: 12 }}>sourceoftruths.com/extra</div>
-          </div>
-        </div>
+      {/* the end-of-game popup: the shared DailyEndCard as a dismissible modal (win or loss) */}
+      {!playing && !endClosed && (
+        <DailyEndCard
+          modal
+          self="extra"
+          won={won}
+          headline={<>{Math.round((finalScore / 10) * 100)}% Complete</>}
+          subline={won
+            ? <>{finalScore}/10 &middot; {tears === 0 ? 'a perfect cold read' : `named it with ${tears} tear${tears === 1 ? '' : 's'}`} &middot; {elapsed}{g.hintUsed ? <> &middot; 1 hint</> : null}</>
+            : <>0/10 &middot; the story got away</>}
+          onShare={copyShare}
+          shareLabel={copied ? 'Copied' : 'Share Result'}
+          onReplay={resetGame}
+          onClose={() => setEndClosed(true)}
+        />
       )}
 
       <DuelBanner token={duelToken} info={duelInfo} submitted={duelSubmitted} />

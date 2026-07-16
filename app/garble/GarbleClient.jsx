@@ -166,6 +166,7 @@ export default function GarbleClient({ puzzles = [], forceNum = null }) {
   const a2hsClick = () => { const e = installEvt; if (e) { setInstallEvt(null); e.prompt(); } else { setShowA2hsHelp(true); } };
 
   const [justWon, setJustWon] = useState(false);
+  const [endClosed, setEndClosed] = useState(false);
   const [hydrated, setHydrated] = useState(false);
   const [board, setBoard] = useState(EMPTY_BOARD);
   const [identity, setIdentity] = useState(null);
@@ -332,7 +333,7 @@ export default function GarbleClient({ puzzles = [], forceNum = null }) {
 
   function resetGame() {
     try { localStorage.removeItem(STORE_KEY); } catch (e) {}
-    setG(freshState(PUZZLE)); setSel(0); setTyped(''); setJustWon(false);
+    setG(freshState(PUZZLE)); setSel(0); setTyped(''); setJustWon(false); setEndClosed(false);
   }
 
   function shareText() {
@@ -537,19 +538,10 @@ export default function GarbleClient({ puzzles = [], forceNum = null }) {
             </div>
           )}
 
-          {/* result */}
+          {/* result: the reveal is on the board above; the end popup is the
+              DailyEndCard modal (below). Only the archive note stays inline. */}
           {ended && (
             <>
-              <DailyEndCard
-                self="garble"
-                won={won}
-                headline={<>{Math.round((score / 10) * 100)}% Complete</>}
-                subline={<>{score}/10 &middot; {g.misses} miss{g.misses === 1 ? '' : 'es'} &middot; {elapsed}</>}
-                onShare={copyShare}
-                shareLabel={copied ? 'Copied' : 'Share Result'}
-                onReplay={resetGame}
-                onClose={() => setJustWon(false)}
-              />
               {!isTodays && (
                 <p style={{ fontSize: 12, color: COLORS.faded, fontWeight: 600, margin: '12px 0 0' }}>
                   You&rsquo;re playing the {PUZZLE.dateLabel.replace(', 2026', '')} archive.{' '}
@@ -637,6 +629,7 @@ export default function GarbleClient({ puzzles = [], forceNum = null }) {
         </div>
       )}
 
+      {/* win-only confetti burst; the end-of-game popup itself is the DailyEndCard modal below */}
       {justWon && (
         <>
           {Array.from({ length: 80 }).map((_, i) => {
@@ -644,18 +637,22 @@ export default function GarbleClient({ puzzles = [], forceNum = null }) {
             const w = 7 + ((i * 13) % 8);
             return <span key={i} className="gb-conf" style={{ left: `${(i * 137) % 100}%`, width: w, height: Math.round(w * 1.5), background: confColors[i % confColors.length], animationDuration: `${2.1 + ((i * 29) % 12) / 10}s`, animationDelay: `${((i * 53) % 70) / 100}s` }} />;
           })}
-          <div onClick={() => setJustWon(false)} style={{ position: 'fixed', inset: 0, zIndex: 85, background: 'rgba(20,22,28,0.45)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16 }}>
-            <div onClick={(e) => e.stopPropagation()} style={{ background: '#fff', border: `3px solid ${COLORS.gold}`, borderRadius: 16, padding: '30px 28px 24px', maxWidth: 440, width: '100%', textAlign: 'center', fontFamily: SANS }}>
-              <Trophy size={42} strokeWidth={2} style={{ color: COLORS.gold }} />
-              <div style={{ fontSize: 27, fontWeight: 800, color: COLORS.ink, letterSpacing: '-0.01em', margin: '10px 0 6px', lineHeight: 1.2 }}>You cut through the garble.</div>
-              <div style={{ fontSize: 15, fontWeight: 700, color: COLORS.faded, marginBottom: 18 }}>Garble #{PUZZLE.num} &middot; {score}/10 &middot; {g.misses} miss{g.misses === 1 ? '' : 'es'} &middot; {elapsed}</div>
-              <div style={{ display: 'flex', gap: 10, justifyContent: 'center', flexWrap: 'wrap' }}>
-                <button className="gb-btn" onClick={copyShare} style={{ background: COLORS.ember, color: '#fff', borderColor: COLORS.ember }}><Share2 size={15} /> {copied ? 'Copied' : 'Share result'}</button>
-                <button className="gb-btn" onClick={() => setJustWon(false)}>See the board</button>
-              </div>
-            </div>
-          </div>
         </>
+      )}
+
+      {/* the end-of-game popup: the shared DailyEndCard as a dismissible modal (win or loss) */}
+      {ended && !endClosed && (
+        <DailyEndCard
+          modal
+          self="garble"
+          won={won}
+          headline={<>{Math.round((score / 10) * 100)}% Complete</>}
+          subline={<>{score}/10 &middot; {g.misses} miss{g.misses === 1 ? '' : 'es'} &middot; {elapsed}</>}
+          onShare={copyShare}
+          shareLabel={copied ? 'Copied' : 'Share Result'}
+          onReplay={resetGame}
+          onClose={() => setEndClosed(true)}
+        />
       )}
 
       {toast && (

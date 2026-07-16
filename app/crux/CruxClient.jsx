@@ -315,6 +315,7 @@ export default function CruxClient({ puzzles = [], forceNum = null }) {
 
   const [armLock, setArmLock] = useState(false);
   const [justWon, setJustWon] = useState(false);
+  const [endClosed, setEndClosed] = useState(false);
   const [hydrated, setHydrated] = useState(false);
   const [board, setBoard] = useState(EMPTY_BOARD);
   const [identity, setIdentity] = useState(null);
@@ -683,7 +684,7 @@ export default function CruxClient({ puzzles = [], forceNum = null }) {
 
   function resetGame() {
     try { localStorage.removeItem(STORE_KEY); } catch (e) {}
-    setG(freshState(PUZZLE)); setSel(PUZZLE.slots[0].id); setTyped(''); setPick(null);
+    setG(freshState(PUZZLE)); setSel(PUZZLE.slots[0].id); setTyped(''); setPick(null); setEndClosed(false);
   }
 
   const guessesUsed = Object.values(g.slotGuesses).reduce((a, b) => a + b, 0);
@@ -1103,20 +1104,6 @@ export default function CruxClient({ puzzles = [], forceNum = null }) {
           {/* result */}
           {!playing && (
             <>
-            <DailyEndCard
-              self="crux"
-              won={won}
-              headline={<>{Math.round(((won ? PUZZLE.slots.length * 2 : g.order.length + (g.filedRight || 0)) / (PUZZLE.slots.length * 2)) * 100)}% Complete</>}
-              subline={<>{won
-                ? <>{guessesUsed} guesses &middot; {elapsed}{g.hintUsed ? <> &middot; 1 hint</> : null}</>
-                : g.filedRight != null
-                  ? <>{g.order.length}/{PUZZLE.slots.length} words &middot; {g.filedRight}/{PUZZLE.slots.length} placements &middot; the reveal is on the board</>
-                  : <>{g.order.length} of {PUZZLE.slots.length} words &middot; the reveal is on the board</>}</>}
-              onShare={copyShare}
-              shareLabel={copied ? 'Copied' : 'Share Result'}
-              onReplay={resetGame}
-              onClose={() => setJustWon(false)}
-            />
               {isTodays && myStats.cur >= 2 && (
                 <div style={{ fontSize: 13, fontWeight: 800, marginBottom: 12, display: 'flex', gap: 12, flexWrap: 'wrap' }}>
                   <span style={{ color: '#b45309' }}>{myStats.cur}-day streak</span>
@@ -1215,30 +1202,23 @@ export default function CruxClient({ puzzles = [], forceNum = null }) {
         {!playing && (<p style={{ textAlign: 'center', fontSize: 12, fontStyle: 'italic', fontWeight: 600, color: COLORS.faded, margin: '34px 0 0' }}>For WMM, in memoriam.</p>)}
       </div>
 
-      {/* the win moment: the category colors sweep the grid, then the keepsake
-          card stamps in over it — delayed so the sweep plays out first */}
-      {justWon && (
-        <div onClick={() => setJustWon(false)} style={{ position: 'fixed', inset: 0, zIndex: 85, background: 'rgba(28,30,36,0.45)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16, animation: `cxfade .4s ease ${(ROWS + COLS) * 55 + 500}ms backwards` }}>
-          <div onClick={(e) => e.stopPropagation()} style={{ background: PAPER, border: `3px double ${COLORS.ink}`, borderRadius: 6, padding: '26px 30px 20px', maxWidth: 360, width: '100%', textAlign: 'center', fontFamily: SANS, boxShadow: '6px 6px 0 rgba(28,30,36,0.18)', animation: `cxstamp .45s ease ${(ROWS + COLS) * 55 + 500}ms backwards` }}>
-            <div style={{ display: 'flex', gap: 3, justifyContent: 'center', marginBottom: 12 }}>
-              {'CRUX'.split('').map((ch, i) => (
-                <span key={i} style={{ width: 24, height: 24, borderRadius: 3, background: i === 2 ? COLORS.ember : COLORS.ink, color: '#fff', fontFamily: SERIF, fontWeight: 900, fontSize: 15, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', boxShadow: 'inset 0 1px 3px rgba(0,0,0,0.5)' }}>{ch}</span>
-              ))}
-            </div>
-            <div style={{ fontFamily: SERIF, fontWeight: 900, fontSize: 34, color: COLORS.ink, letterSpacing: '-0.01em', margin: '2px 0 6px', lineHeight: 1.15 }}>Solved.</div>
-            <div style={{ fontFamily: MONO, fontSize: 12.5, color: COLORS.faded, marginBottom: 14 }}>No. {PUZZLE.num} &middot; {PUZZLE.slots.length * 2}/{PUZZLE.slots.length * 2} &middot; {guessesUsed} guess{guessesUsed === 1 ? '' : 'es'} &middot; {elapsed}</div>
-            <div style={{ display: 'flex', gap: 3, justifyContent: 'center', marginBottom: 16 }}>
-              {PUZZLE.categories.map((cat, ci) => cat.words.map((w, wi) => (
-                <span key={`${ci}-${wi}`} style={{ width: 15, height: 15, borderRadius: 3, background: CAT_COLORS[ci].bg, border: '1px solid rgba(28,30,36,0.25)' }} />
-              )))}
-            </div>
-            <div style={{ display: 'flex', gap: 10, justifyContent: 'center', flexWrap: 'wrap' }}>
-              <button className="cl-btn" onClick={copyShare} style={{ background: COLORS.ember, color: '#fff', borderColor: COLORS.ember }}><Share2 size={15} /> {copied ? 'Copied' : 'Share result'}</button>
-              <button className="cl-btn" onClick={() => setJustWon(false)}>See the board</button>
-            </div>
-            <div style={{ fontFamily: MONO, fontSize: 10, letterSpacing: '0.1em', color: COLORS.faded, marginTop: 12 }}>sourceoftruths.com/crux</div>
-          </div>
-        </div>
+      {/* the end-of-game popup: the shared DailyEndCard as a dismissible modal (win or loss) */}
+      {!playing && !endClosed && (
+        <DailyEndCard
+          modal
+          self="crux"
+          won={won}
+          headline={<>{Math.round(((won ? PUZZLE.slots.length * 2 : g.order.length + (g.filedRight || 0)) / (PUZZLE.slots.length * 2)) * 100)}% Complete</>}
+          subline={<>{won
+            ? <>{guessesUsed} guesses &middot; {elapsed}{g.hintUsed ? <> &middot; 1 hint</> : null}</>
+            : g.filedRight != null
+              ? <>{g.order.length}/{PUZZLE.slots.length} words &middot; {g.filedRight}/{PUZZLE.slots.length} placements &middot; the reveal is on the board</>
+              : <>{g.order.length} of {PUZZLE.slots.length} words &middot; the reveal is on the board</>}</>}
+          onShare={copyShare}
+          shareLabel={copied ? 'Copied' : 'Share Result'}
+          onReplay={resetGame}
+          onClose={() => setEndClosed(true)}
+        />
       )}
 
       <DuelBanner token={duelToken} info={duelInfo} submitted={duelSubmitted} />
