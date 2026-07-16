@@ -104,12 +104,12 @@ function sportHeroFor(q) {
   return null;
 }
 
-// Daily-game quizzes are date/topic-stamped (crux-*, garble-*, links-*, span-*,
-// closer-*) and every entry in a family shares ONE hero image, so the two hero
+// Daily-game quizzes are date/topic-stamped (crux-*, garble-*, links-*, span-*, dating-*,
+// tally-*, suds-*, circa-*, extra-*, carve-*, closer-*) and every entry in a family shares ONE hero image, so the two hero
 // tiles (Newest + Trending) must never both draw from the same family.
-const DAILY_GAME_FAMILY_RE = /^(crux|garble|links|span|dating|tally|suds|closer)-/;
+const DAILY_GAME_FAMILY_RE = /^(crux|garble|links|span|dating|tally|suds|circa|extra|carve|closer)-/;
 function gameFamily(id) { const m = (id || '').match(DAILY_GAME_FAMILY_RE); return m ? m[1] : null; }
-// Rule: daily games (Crux, Garble, Links, Span, Dating, Closer) publish a fresh
+// Rule: daily games (Crux, Garble, Links, Span, Dating, Tally, Suds, Circa, Extra, Carve, Closer) publish a fresh
 // dated entry every day, so by publishedAt they are ALWAYS the "newest" quiz and
 // would monopolize the Newest tile. They have their own hub tiles, so the Newest
 // tile/list must never surface one. Keep this in sync with DAILY_GAME_FAMILY_RE.

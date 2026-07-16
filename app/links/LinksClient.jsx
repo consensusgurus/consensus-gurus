@@ -305,7 +305,9 @@ export default function LinksClient({ puzzles = [], forceNum = null }) {
     toastTimer.current = setTimeout(() => setToast(null), 2100);
   }
 
+  const [showChrome, setShowChrome] = useState(false);
   const playing = g.status === 'playing';
+  const focusMode = playing && !showChrome;
   const won = g.status === 'won';
   const lost = g.status === 'lost';
   const solvedWords = useMemo(() => new Set(g.solved.flatMap((ci) => PUZZLE.groups[ci].words)), [g.solved, PUZZLE]);
@@ -470,7 +472,7 @@ export default function LinksClient({ puzzles = [], forceNum = null }) {
         <div style={{ maxWidth: 560, margin: '0 auto' }}>
 
         {/* game-native top strip (Crux pattern): quiet nav + player chip */}
-        <DailyTopNav player={player} compact={playing} />
+        <div style={{ display: focusMode ? 'none' : 'block' }}><DailyTopNav player={player} compact={playing} /></div>
 
         {/* masthead: pressed LINKS tiles with No./date inline, one rule beneath */}
         <div className="lk-mh" style={{ display: 'flex', alignItems: 'center', gap: 14, flexWrap: 'wrap', position: 'relative', paddingRight: 28, marginBottom: 16, borderBottom: '2px solid rgba(28,30,36,0.8)', paddingBottom: 11 }}>
@@ -577,8 +579,14 @@ export default function LinksClient({ puzzles = [], forceNum = null }) {
           </>
         )}
 
+        {focusMode && (
+          <div style={{ maxWidth: 560, margin: '30px auto 0', textAlign: 'center' }}>
+            <button onClick={() => setShowChrome(true)} style={{ fontFamily: SANS, fontWeight: 800, fontSize: 13, letterSpacing: '0.03em', color: COLORS.ink, background: 'none', border: '1.5px solid rgba(28,30,36,0.28)', borderRadius: 9, padding: '10px 20px', cursor: 'pointer' }}>Show navigation &amp; more</button>
+            <div style={{ fontFamily: SANS, fontSize: 11, color: COLORS.faded, fontWeight: 600, marginTop: 8 }}>Other games, challenge, share &amp; leaderboard</div>
+          </div>
+        )}
         {/* standard quiz-page bottom: challenge + stats + join + leaderboard */}
-        <div style={{ display: playing ? 'none' : 'block', margin: '30px auto 0' }}>
+        <div style={{ display: focusMode ? 'none' : 'block', margin: '30px auto 0' }}>
           <DailyGamesGrid
             self="links"
             maxWidth={560}
@@ -611,7 +619,7 @@ export default function LinksClient({ puzzles = [], forceNum = null }) {
             </div>
           </div>
         )}
-        {!playing && !identity && (
+        {!focusMode && !identity && (
           <div style={{ margin: '18px auto 0' }}>
             <JoinLeaderboardForm hideIcon heading="See your stats and join the leaderboard" identity={identity} onJoined={(id) => { setIdentity(id); if (id && id.username) setPlayer((p) => p || { name: id.username, rank: null }); }} />
           </div>
@@ -619,7 +627,7 @@ export default function LinksClient({ puzzles = [], forceNum = null }) {
         </div>
 
         {/* your stats — sits directly above the leaderboard */}
-        {!playing && identity && (
+        {!focusMode && identity && (
         <div style={{ maxWidth: 560, margin: '20px auto 0' }}>
           <div style={{ fontFamily: MONO, fontSize: 10.5, fontWeight: 500, textTransform: 'uppercase', letterSpacing: '0.1em', color: COLORS.faded, marginBottom: 9 }}>Your stats</div>
           <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
@@ -637,7 +645,7 @@ export default function LinksClient({ puzzles = [], forceNum = null }) {
           </div>
         </div>
         )}
-        <div id="daily-leaderboard" style={{ display: playing ? 'none' : 'block', maxWidth: 560, margin: '26px auto 0', background: '#fff', border: '1.5px solid rgba(20,22,28,0.12)', borderRadius: 12, padding: '14px 16px' }}>
+        <div id="daily-leaderboard" style={{ display: focusMode ? 'none' : 'block', maxWidth: 560, margin: '26px auto 0', background: '#fff', border: '1.5px solid rgba(20,22,28,0.12)', borderRadius: 12, padding: '14px 16px' }}>
           <QuizLeaderboard daily board={board} identity={identity} total={8} guessLabel="Misses" />
         </div>
       </div>
@@ -685,7 +693,7 @@ export default function LinksClient({ puzzles = [], forceNum = null }) {
       )}
 
       {/* About Links — crawlable prose for search, server-rendered into the initial HTML */}
-      <section style={{ position: 'relative', display: playing ? 'none' : 'block', zIndex: 2, maxWidth: 560, margin: '0 auto', padding: '10px 24px 42px', fontFamily: SANS }}>
+      <section style={{ position: 'relative', display: focusMode ? 'none' : 'block', zIndex: 2, maxWidth: 560, margin: '0 auto', padding: '10px 24px 42px', fontFamily: SANS }}>
         <h2 style={{ margin: '0 0 8px', fontSize: 15, fontWeight: 800, letterSpacing: '-0.01em', color: COLORS.ink }}>About Links</h2>
         <p style={{ margin: '0 0 8px', fontSize: 13, lineHeight: 1.65, color: COLORS.faded, fontWeight: 600 }}>
           Links is a free daily word grouping game from Source of Truths. Sixteen words hide four threads of four &mdash; find each thread and bank it in its color, from the easy yellow group to the devious red one. Four mistakes and the board wins.
@@ -698,7 +706,7 @@ export default function LinksClient({ puzzles = [], forceNum = null }) {
         </p>
       </section>
 
-      <div style={{ position: 'relative', zIndex: 2, display: playing ? 'none' : 'block' }}><Footer /></div>
+      <div style={{ position: 'relative', zIndex: 2, display: focusMode ? 'none' : 'block' }}><Footer /></div>
     </div>
   );
 }
