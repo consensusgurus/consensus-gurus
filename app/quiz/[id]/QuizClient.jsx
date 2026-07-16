@@ -23,7 +23,7 @@ import useIsMobile from './useIsMobile';
 import dynamic from 'next/dynamic';
 import { flushSync } from 'react-dom';
 import QuizPlayOverlay from './QuizPlayOverlay';
-import { similarQuizId, nextQuizMeta, familyQuizzes } from '@/lib/quiz-similar';
+import { similarQuizId, nextQuizMeta, familyQuizzes, allowInSimilar } from '@/lib/quiz-similar';
 import SimilarQuizTiles from './SimilarQuizTiles';
 import ScrollToTopOnMount from './ScrollToTopOnMount';
 import { ArrowRight, Play } from 'lucide-react';
@@ -520,7 +520,11 @@ export default function QuizClient({ quizId }) {
     const seen = new Set();
     const out = [];
     for (const x of [...parts, ...family, ...sameCat, ...sameDept, ...rest]) {
-      if (!seen.has(x.id)) { seen.add(x.id); out.push(x); }
+      if (seen.has(x.id)) continue;
+      // Keep Business-News-hub recap quizzes (daily market-moving, etc.) out of
+      // the "Similar quizzes" rail unless this quiz is itself a business-news quiz.
+      if (!allowInSimilar(quiz, x)) continue;
+      seen.add(x.id); out.push(x);
     }
     return out.slice(0, 8);
   })();
