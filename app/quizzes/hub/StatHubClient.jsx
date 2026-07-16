@@ -807,7 +807,7 @@ export default function StatHubClient() {
 
         {tab === 'player' && !viewing ? (
           <div style={{ marginTop: 16, marginBottom: 30 }}>
-            <DailyCombinedLeaderboard compact />
+            <DailyCombinedLeaderboard compact light />
           </div>
         ) : null}
         {tab === 'player' && <PlayerPanel me={profile} scope={scope} cats={cats} byKey={byKey} totalQuizzes={catalog.length} board={board} myName={myName} myAnonKey={myAnonKey} titleById={titleById} pview={pview} setPview={setPview} viewKey={viewKey} onSelectPlayer={(k) => { const mine = (me && me.userKey && k === me.userKey) || (myAnonKey && k === myAnonKey); setViewKey(mine ? null : k); setPview(mine ? 'ranking' : 'category'); }} />}

@@ -85,6 +85,12 @@ export default function DailyStrip() {
       <style>{`
         .dstrip-wrap{margin-bottom:14px;}
         .dstrip{display:flex;background:#0e1d40;border:1px solid rgba(20,22,28,0.14);border-radius:16px;overflow:hidden;}
+        .dstrip{scrollbar-width:thin;scrollbar-color:rgba(159,176,212,0.45) #0b1733;}
+        .dstrip::-webkit-scrollbar{height:9px;}
+        .dstrip::-webkit-scrollbar-track{background:#0b1733;}
+        .dstrip::-webkit-scrollbar-thumb{background:rgba(159,176,212,0.4);border-radius:99px;border:2px solid #0b1733;}
+        .dstrip::-webkit-scrollbar-thumb:hover{background:rgba(159,176,212,0.65);}
+        .dstrip::-webkit-scrollbar-button{display:none;width:0;height:0;}
         .dstrip-cap{flex:0 0 auto;display:flex;flex-direction:column;justify-content:center;gap:5px;padding:12px 16px;background:#0b1733;border-right:1px solid rgba(255,255,255,0.07);min-width:104px;}
         .dstrip-cap .lab{font-size:9px;font-weight:800;letter-spacing:.14em;text-transform:uppercase;color:#f8b84a;}
         .dstrip-cap .cty{font-size:15px;font-weight:800;color:#fff;letter-spacing:-.2px;line-height:1;}
