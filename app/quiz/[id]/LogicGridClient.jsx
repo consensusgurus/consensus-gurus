@@ -401,7 +401,6 @@ export default function LogicGridClient({ quizId, mobile = false }) {
               <div style={{ borderBottom: `2px solid ${COLORS.ember}` }} />
             </div>
           </div>
-          {phase === 'idle' && <p style={{ fontFamily: SERIF, fontStyle: 'italic', fontSize: 16, lineHeight: 1.45, margin: '12px 0 0', color: COLORS.faded, maxWidth: 640 }}>{quiz.blurb}</p>}
           {tab !== 'stats' && phase !== 'playing' && <LeaderboardStrip board={board} identity={identity} onOpen={() => setTab('stats')} />}
         </div>
 
@@ -500,6 +499,7 @@ export default function LogicGridClient({ quizId, mobile = false }) {
                 <p style={{ fontFamily: MONO, fontSize: 12, letterSpacing: '0.06em', color: COLORS.faded, margin: '0 0 20px' }}>
                   {fmtTime(quiz.timeLimit)} on the clock.
                 </p>
+                <p style={{ fontFamily: SANS, fontSize: 15, lineHeight: 1.5, color: COLORS.faded, maxWidth: 460, margin: '0 auto 16px' }}>{quiz.blurb}</p>
                 <QuizIdleActions onStart={startGame} quizId={quizId} onLeaderboard={() => setTab('stats')} />
               </div>
             )}

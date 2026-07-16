@@ -380,7 +380,6 @@ export default function ConnectionsBoard({ quizId, mobile = false }) {
         {/* Header */}
         <div style={{ paddingBottom: 0, marginTop: 8, ...(phase === 'done' ? { maxWidth: 640, marginLeft: 'auto', marginRight: 'auto' } : null) }}>
           <h1 style={{ fontFamily: SANS, fontWeight: 800, fontSize: 'clamp(28px, 4.5vw, 44px)', lineHeight: 1.05, letterSpacing: '-0.025em', margin: 0, color: COLORS.ink }}>{quiz.title}</h1>
-          {phase === 'idle' && <p style={{ fontFamily: SANS, fontSize: 15, lineHeight: 1.55, margin: '10px 0 0', color: COLORS.faded, maxWidth: 680 }}>{quiz.blurb}</p>}
           {tab !== 'stats' && phase !== 'playing' && <LeaderboardStrip board={board} identity={identity} onOpen={() => setTab('stats')} />}
         </div>
 
@@ -426,6 +425,7 @@ export default function ConnectionsBoard({ quizId, mobile = false }) {
                 <p style={{ fontFamily: SANS, fontSize: 15, lineHeight: 1.5, color: '#4a4339', maxWidth: 470, margin: '0 auto 6px' }}>
                   Sixteen tiles hide four groups of four. Pick four you think connect, then submit. Every tile fits exactly one group, but some look like they belong in more than one. You get {maxMistakes} mistakes. Solve all four as fast as you can, time is the tiebreak.
                 </p>
+                <p style={{ fontFamily: SANS, fontSize: 15, lineHeight: 1.5, color: COLORS.faded, maxWidth: 460, margin: '0 auto 16px' }}>{quiz.blurb}</p>
                 <QuizIdleActions onStart={startGame} quizId={quizId} onLeaderboard={() => setTab('stats')} />
               </div>
             )}

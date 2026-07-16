@@ -3,6 +3,7 @@ import React, { useMemo } from 'react';
 import { RotateCcw, Swords } from 'lucide-react';
 import { QUIZZES } from '@/lib/quizzes';
 import SimilarQuizTiles from './SimilarQuizTiles';
+import ScrollToTopOnMount from './ScrollToTopOnMount';
 
 // Shared end-of-game results for every quiz board (owner rule, 2026-07-02).
 //
@@ -58,6 +59,7 @@ export default function QuizResultModal({
 
   return (
     <div style={{ maxWidth: 640, margin: '16px auto 0' }}>
+      <ScrollToTopOnMount />
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 16, marginBottom: 18 }}>
         <div>
           {eyebrow ? <div style={{ fontFamily: FONT, fontSize: 11, fontWeight: 800, letterSpacing: '0.16em', textTransform: 'uppercase', color: C.ember, marginBottom: 6 }}>{eyebrow}</div> : null}

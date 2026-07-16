@@ -25,6 +25,7 @@ import { flushSync } from 'react-dom';
 import QuizPlayOverlay from './QuizPlayOverlay';
 import { similarQuizId, nextQuizMeta, familyQuizzes } from '@/lib/quiz-similar';
 import SimilarQuizTiles from './SimilarQuizTiles';
+import ScrollToTopOnMount from './ScrollToTopOnMount';
 import { ArrowRight, Play } from 'lucide-react';
 
 const MapQuizBoard = dynamic(() => import('./MapQuizBoard'), { ssr: false, loading: () => null });
@@ -1558,7 +1559,6 @@ export default function QuizClient({ quizId }) {
           <div style={{ display: 'flex', alignItems: 'flex-end', gap: 'clamp(16px, 4vw, 28px)' }}>
             <h1 style={{ fontFamily: SERIF, fontWeight: 800, fontSize: mAppPlay ? 17 : 'clamp(24px, 4vw, 38px)', lineHeight: 1.02, letterSpacing: '-0.02em', margin: 0, color: COLORS.ink, fontVariationSettings: '"SOFT" 100' }}>{quiz.title}</h1>
           </div>
-          {!mAppPlay && !started && !ended && <p style={{ fontFamily: SANS, fontSize: 15, lineHeight: 1.55, margin: '8px 0 0', color: COLORS.faded, maxWidth: 680 }}>{quiz.blurb}</p>}
           {runActive && (
             <div style={{ marginTop: 12, display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12, flexWrap: 'wrap', padding: '8px 14px', borderRadius: 10, border: `1.5px solid ${COLORS.accBorder}`, background: COLORS.accSoft }}>
               <span style={{ fontFamily: MONO, fontSize: 11, letterSpacing: '0.14em', textTransform: 'uppercase', fontWeight: 700, color: COLORS.ember }}>Daily Challenge · {chAccent}</span>
@@ -1602,6 +1602,7 @@ export default function QuizClient({ quizId }) {
           const stackBtn = { fontFamily: MONO, fontSize: 12.5, letterSpacing: '0.04em', textTransform: 'uppercase', fontWeight: 700, borderRadius: 10, padding: '14px 12px', cursor: 'pointer', border: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, width: '100%', boxSizing: 'border-box', textDecoration: 'none' };
           return (
             <div style={{ maxWidth: 640, margin: '16px auto 0' }}>
+              <ScrollToTopOnMount />
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 16, marginBottom: 18 }}>
                 <div>
                   <div style={{ fontFamily: MONO, fontSize: 11, letterSpacing: '0.16em', textTransform: 'uppercase', fontWeight: 800, color: (isTopScore || win) ? COLORS.forest : COLORS.ember, marginBottom: 6 }}>{heading}</div>
@@ -1781,6 +1782,7 @@ export default function QuizClient({ quizId }) {
               <div style={{ textAlign: 'center', padding: '26px 24px 30px', borderRadius: 10, border: `1.5px solid ${COLORS.ink}`, background: COLORS.paper, marginTop: 4 }}>
                 <h2 style={{ fontFamily: SERIF, fontWeight: 800, fontSize: 26, margin: '2px 0 6px' }}>{introHeadline}</h2>
                 <p style={{ fontFamily: SANS, fontSize: 15, lineHeight: 1.5, color: '#4a4339', maxWidth: 470, margin: '0 auto 6px' }}>{introBody}</p>
+                <p style={{ fontFamily: SANS, fontSize: 15, lineHeight: 1.5, color: COLORS.faded, maxWidth: 460, margin: '0 auto 16px' }}>{quiz.blurb}</p>
                 <QuizIdleActions onStart={start} quizId={quiz.id} onLeaderboard={() => setTab('stats')} />
               </div>
             )}
