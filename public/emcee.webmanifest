@@ -1,0 +1,16 @@
+{
+  "id": "/emcee",
+  "name": "Emcee — Daily Mini Crossword",
+  "short_name": "Emcee",
+  "description": "A proper mini crossword, five by five: everyday words, fair clues, and a timer that stops when the grid is right. A new grid every day from Source of Truths.",
+  "start_url": "/emcee?src=pwa",
+  "scope": "/",
+  "display": "standalone",
+  "background_color": "#f7f8fa",
+  "theme_color": "#f7f8fa",
+  "icons": [
+    { "src": "/emcee-icons/icon-192.png", "sizes": "192x192", "type": "image/png" },
+    { "src": "/emcee-icons/icon-512.png", "sizes": "512x512", "type": "image/png" },
+    { "src": "/emcee-icons/icon-512-maskable.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ]
+}

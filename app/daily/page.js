@@ -1,5 +1,6 @@
 import DailyArchiveClient from './DailyArchiveClient';
 import { PUZZLES as CRUX } from '../crux/puzzles';
+import { PUZZLES as EMCEE } from '../emcee/puzzles';
 import { PUZZLES as GARBLE } from '../garble/puzzles';
 import { PUZZLES as LINKS } from '../links/puzzles';
 import { PUZZLES as SPAN } from '../span/puzzles';
@@ -16,14 +17,14 @@ import { PUZZLES as EXTRA } from '../extra/puzzles';
 // client-side from each game's per-puzzle localStorage save.
 
 export const metadata = {
-  title: 'Daily Games — Crux, Garble, Links, Span & More | Source of Truths',
+  title: 'Daily Games — Crux, Emcee, Garble, Links, Span & More | Source of Truths',
   description:
-    "Every Source of Truths daily game in one place: today's puzzle and the full archive for Crux, Garble, Links, Span, Dating, Tally, Suds, Circa, Extra, and Carve. A new puzzle in each, every day.",
+    "Every Source of Truths daily game in one place: today's puzzle and the full archive for Crux, Emcee, Garble, Links, Span, Dating, Tally, Suds, Circa, Extra, and Carve. A new puzzle in each, every day.",
   alternates: { canonical: '/daily' },
   openGraph: {
     title: 'Daily Games — Source of Truths',
     description:
-      "Today's puzzle and the full archive for every daily game: Crux, Garble, Links, Span, Dating, Tally, Suds, Circa, Extra, and Carve.",
+      "Today's puzzle and the full archive for every daily game: Crux, Emcee, Garble, Links, Span, Dating, Tally, Suds, Circa, Extra, and Carve.",
     url: '/daily',
     type: 'website',
     siteName: 'Source of Truths',
@@ -53,6 +54,7 @@ function isSundayEdition(key, p) {
 // Accents mirror DailyGamesPromo so each game reads the same across surfaces.
 const GAMES = [
   { key: 'crux', name: 'Crux', path: '/crux', tag: 'A clueless crossword', accent: '#2563eb', bg: '#eef4ff', border: 'rgba(37,99,235,0.35)', src: CRUX },
+  { key: 'emcee', name: 'Emcee', path: '/emcee', tag: 'The daily mini crossword', accent: '#c026d3', bg: '#fbeefc', border: 'rgba(192,38,211,0.4)', src: EMCEE },
   { key: 'garble', name: 'Garble', path: '/garble', tag: 'Five garbled words, one clued finale', accent: '#8a6d1a', bg: '#fdf6e3', border: 'rgba(230,185,63,0.6)', src: GARBLE },
   { key: 'links', name: 'Links', path: '/links', tag: 'Sixteen words, four hidden threads', accent: '#166534', bg: '#eefaf1', border: 'rgba(90,169,106,0.5)', src: LINKS },
   { key: 'span', name: 'Span', path: '/span', tag: 'Cross the map, border by border', accent: '#9d174d', bg: '#fdf0f6', border: 'rgba(217,99,153,0.45)', src: SPAN },

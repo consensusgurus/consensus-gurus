@@ -1,0 +1,882 @@
+'use client';
+
+// Emcee — the daily mini crossword (M.C., say it fast).
+//
+// A classic mini: a 5x5 grid on weekdays (10 words), a 7x7 pinwheel on
+// Sundays (22 words), numbered Across and Down clues, and a timer. Tap a
+// square to select its word, tap again to flip direction, and type. The grid
+// checks itself the moment every square is filled: a perfect fill wins, a
+// wrong one marks the misses in red and counts a CHECK against you. Score is
+// words correct out of the word count — finish the grid and it's a full
+// score — with ties on the daily board broken by fewest checks, then time.
+// One free hint reveals a letter.
+//
+// Same daily plumbing as Tally/Suds/Carve: banked puzzles gated by Eastern
+// date on the server (app/emcee/page.js), per-puzzle localStorage saves,
+// /emcee?p=N archive pinning, streaks + stats, and the shared /api/quiz/*
+// board flow.
+
+import React, { useState, useEffect, useMemo, useRef, useCallback } from 'react';
+import { useSearchParams } from 'next/navigation';
+import { HelpCircle, X, Lightbulb, Eye, Smartphone, ChevronLeft, ChevronRight, Delete } from 'lucide-react';
+import Grain from '../Grain';
+import Footer from '../Footer';
+import DailyGamesPromo from '../DailyGamesPromo';
+import useDuelContext, { DuelBanner } from '../quiz/[id]/useDuelContext';
+import JoinLeaderboardForm from '../quiz/[id]/JoinLeaderboardForm';
+import DailyGamesGrid from '../DailyGamesGrid';
+import DailyEndCard from '../DailyEndCard';
+import DailyTopNav from '../DailyTopNav';
+import DailyCombinedLeaderboard from '../quiz/[id]/DailyCombinedLeaderboard';
+import { isMobileDevice } from '@/lib/is-mobile';
+
+const COLORS = {
+  cream: '#f7f8fa',
+  paper: '#eceef1',
+  ink: '#1c1e24',
+  ember: '#2563eb',
+  rust: '#c0392b',
+  faded: '#6b7280',
+  accent: '#c026d3',       // Emcee identity — magenta
+  accentSoft: '#fbeefc',
+  green: '#15803d',
+  greenSoft: '#eefaf1',
+};
+const SANS = "'Manrope', system-ui, -apple-system, sans-serif";
+const MONO = "'DM Mono', ui-monospace, 'SFMono-Regular', monospace";
+const HELP_KEY = 'sot_emcee_help_seen';
+const STATS_KEY = 'sot_emcee_stats';
+
+const isIosDevice = () =>
+  typeof navigator !== 'undefined' &&
+  (/iPad|iPhone|iPod/.test(navigator.userAgent || '') ||
+    (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1));
+
+function etToday() {
+  try { return new Date().toLocaleDateString('en-CA', { timeZone: 'America/New_York' }); }
+  catch (e) { return new Date().toISOString().slice(0, 10); }
+}
+function pickPuzzle(puzzles, forceNum) {
+  if (forceNum) { const p = puzzles.find((x) => x.num === forceNum); if (p) return p; }
+  const today = etToday();
+  const open = puzzles.filter((p) => p.live <= today);
+  return open.length ? open[open.length - 1] : puzzles[0];
+}
+function fmtTime(ms) {
+  const s = Math.max(0, Math.round(ms / 1000));
+  return `${Math.floor(s / 60)}:${String(s % 60).padStart(2, '0')}`;
+}
+function msToMidnightET() {
+  try {
+    const now = new Date();
+    const et = new Date(now.toLocaleString('en-US', { timeZone: 'America/New_York' }));
+    const next = new Date(et);
+    next.setHours(24, 0, 0, 0);
+    return next - et;
+  } catch (e) {
+    const now = new Date();
+    const next = new Date(now);
+    next.setHours(24, 0, 0, 0);
+    return next - now;
+  }
+}
+function fmtCountdown(ms) {
+  const s = Math.max(0, Math.floor(ms / 1000));
+  return `${Math.floor(s / 3600)}:${String(Math.floor((s % 3600) / 60)).padStart(2, '0')}:${String(s % 60).padStart(2, '0')}`;
+}
+function getAnonId() {
+  if (typeof window === 'undefined') return null;
+  try {
+    let a = localStorage.getItem('sot_quiz_anon');
+    if (!a) {
+      a = (window.crypto && crypto.randomUUID) ? crypto.randomUUID() : `a_${Date.now()}_${Math.random().toString(36).slice(2)}`;
+      localStorage.setItem('sot_quiz_anon', a);
+    }
+    return a;
+  } catch (e) { return null; }
+}
+const EMPTY_BOARD = { plays: 0, best: null, topTime: null, leaderboard: [], leaderboardAll: [], leaderboardMobile: [], leaderboardFirst: [], leaderboards: {} };
+
+// ─── Personal stats + streak (localStorage), Tally/Suds/Carve pattern ────────
+function getStats() {
+  try {
+    const s = JSON.parse(localStorage.getItem(STATS_KEY));
+    if (s && s.v === 1 && s.rec) return s;
+  } catch (e) {}
+  return { v: 1, rec: {} };
+}
+function recordStat(num, entry) {
+  const s = getStats();
+  if (s.rec[num]) return s;
+  const s2 = { ...s, rec: { ...s.rec, [num]: entry } };
+  try { localStorage.setItem(STATS_KEY, JSON.stringify(s2)); } catch (e) {}
+  return s2;
+}
+function deriveStats(s, todayNum) {
+  const rec = s && s.rec ? s.rec : {};
+  const nums = Object.keys(rec).map(Number).sort((a, b) => a - b);
+  const played = nums.length;
+  const perfect = nums.filter((n) => rec[n].won).length;
+  let max = 0, run = 0, prev = null;
+  for (const n of nums) {
+    run = prev != null && n === prev + 1 ? run + 1 : 1;
+    if (run > max) max = run;
+    prev = n;
+  }
+  let cur = 0, at = rec[todayNum] ? todayNum : todayNum - 1;
+  while (rec[at]) { cur++; at--; }
+  return { played, perfect, cur, max };
+}
+function mergeServerStats(s, recent, puzzles) {
+  if (!s || !Array.isArray(recent) || !recent.length) return s;
+  const byQuiz = {};
+  for (const p of puzzles) byQuiz[p.quizId] = p;
+  let rec = s.rec, changed = false;
+  for (const m of recent) {
+    const p = m && byQuiz[m.quizId];
+    if (!p || m.attempt !== 1) continue;
+    if (rec[p.num]) continue;
+    const t = p.across.length + p.down.length;
+    const sc = Math.max(0, Math.min(t, Math.round(((m.scorePct || 0) / 100) * t)));
+    if (!changed) { rec = { ...rec }; changed = true; }
+    rec[p.num] = { s: sc, t, g: null, won: !!m.perfect };
+  }
+  if (!changed) return s;
+  const s2 = { ...s, rec };
+  try { localStorage.setItem(STATS_KEY, JSON.stringify(s2)); } catch (e) {}
+  return s2;
+}
+
+function freshState(T) {
+  return {
+    v: 1,
+    letters: Array(T).fill(''), // player letters, index r*N+c ('' on blocks too)
+    wrong: [],                  // cell indexes marked wrong by the last check
+    checks: 0,                  // failed full-grid checks (the tiebreak)
+    hintUsed: false,
+    status: 'playing',          // playing | won | revealed
+    t0: null,
+    tEnd: null,
+  };
+}
+
+export default function EmceeClient({ puzzles = [], forceNum = null }) {
+  const PUZZLE = useMemo(() => pickPuzzle(puzzles, forceNum), [puzzles, forceNum]);
+  const N = PUZZLE.size;
+  const T = N * N;
+  const STORE_KEY = `sot_emcee_${PUZZLE.num}`;
+  const solFlat = useMemo(() => PUZZLE.grid.join('').split(''), [PUZZLE]);
+  // Every word, Across first, each with its cell indexes in order.
+  const WORDS = useMemo(() => {
+    const mk = (w, dir) => ({
+      ...w, dir,
+      cells: Array.from({ length: w.len }, (_, i) => (dir === 'A' ? w.r * N + w.c + i : (w.r + i) * N + w.c)),
+    });
+    return [...PUZZLE.across.map((w) => mk(w, 'A')), ...PUZZLE.down.map((w) => mk(w, 'D'))];
+  }, [PUZZLE, N]);
+  const TOTAL = WORDS.length;
+  // cell -> word index per direction
+  const wordOf = useMemo(() => {
+    const m = { A: Array(T).fill(-1), D: Array(T).fill(-1) };
+    WORDS.forEach((w, i) => w.cells.forEach((c) => { m[w.dir][c] = i; }));
+    return m;
+  }, [WORDS, T]);
+  const numAt = useMemo(() => {
+    const m = {};
+    for (const w of WORDS) {
+      const start = w.cells[0];
+      if (m[start] == null || w.n < m[start]) m[start] = w.n;
+    }
+    return m;
+  }, [WORDS]);
+
+  const [g, setG] = useState(() => freshState(T));
+  const [cur, setCur] = useState(WORDS[0].cells[0]);
+  const [dir, setDir] = useState('A');
+  const [showHelp, setShowHelp] = useState(false);
+  const [toast, setToast] = useState(null);
+  const [copied, setCopied] = useState(false);
+  const [armReveal, setArmReveal] = useState(false);
+  const [justWon, setJustWon] = useState(false);
+  const [endClosed, setEndClosed] = useState(false);
+  const [hydrated, setHydrated] = useState(false);
+  const [board, setBoard] = useState(EMPTY_BOARD);
+  const [identity, setIdentity] = useState(null);
+  const [stats, setStats] = useState(null);
+  const [player, setPlayer] = useState(null);
+  const [countdown, setCountdown] = useState('');
+  const [installEvt, setInstallEvt] = useState(null);
+  const [showA2hsHelp, setShowA2hsHelp] = useState(false);
+  const [standalone, setStandalone] = useState(false);
+  const [mobileUi, setMobileUi] = useState(false);
+  const [, setTick] = useState(0); // 1s re-render while the clock runs
+  const searchParams = useSearchParams();
+  const { duelToken, duelInfo, duelSubmitted } = useDuelContext(PUZZLE.quizId, searchParams);
+  const toastTimer = useRef(null);
+  const viewedRef = useRef(false);
+
+  const letters = g.letters;
+  const [showChrome, setShowChrome] = useState(false);
+  const playing = g.status === 'playing';
+  const focusMode = playing && !showChrome;
+  const won = g.status === 'won';
+
+  useEffect(() => {
+    if (!armReveal) return undefined;
+    const t = setTimeout(() => setArmReveal(false), 3500);
+    return () => clearTimeout(t);
+  }, [armReveal]);
+  useEffect(() => {
+    try {
+      setStandalone(window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true);
+      setMobileUi(isMobileDevice());
+    } catch {}
+    const onBip = (e) => { e.preventDefault(); setInstallEvt(e); };
+    const onInstalled = () => { setStandalone(true); setInstallEvt(null); };
+    window.addEventListener('beforeinstallprompt', onBip);
+    window.addEventListener('appinstalled', onInstalled);
+    return () => { window.removeEventListener('beforeinstallprompt', onBip); window.removeEventListener('appinstalled', onInstalled); };
+  }, []);
+  const a2hsClick = () => { const e = installEvt; if (e) { setInstallEvt(null); e.prompt(); } else { setShowA2hsHelp(true); } };
+
+  // ---- persistence ----
+  useEffect(() => {
+    try {
+      const raw = localStorage.getItem(STORE_KEY);
+      if (raw) {
+        const saved = JSON.parse(raw);
+        if (saved && saved.v === 1 && Array.isArray(saved.letters) && saved.letters.length === T) {
+          setG({ ...freshState(T), ...saved, wrong: Array.isArray(saved.wrong) ? saved.wrong : [] });
+        }
+      }
+      if (!localStorage.getItem(HELP_KEY)) setShowHelp(true);
+    } catch (e) {}
+    try { setStats(getStats()); } catch (e) {}
+    setHydrated(true);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+  useEffect(() => {
+    if (!hydrated) return;
+    try { localStorage.setItem(STORE_KEY, JSON.stringify(g)); } catch (e) {}
+    // same-device day breadcrumb for cross-game recs — TODAY'S puzzle only
+    try {
+      if (PUZZLE.num === pickPuzzle(puzzles, null).num) {
+        localStorage.setItem('sot_emcee_day', JSON.stringify({ d: etToday(), done: g.status !== 'playing' }));
+      }
+    } catch (e) {}
+  }, [g, hydrated, STORE_KEY, PUZZLE, puzzles]);
+
+  useEffect(() => {
+    if (g.status === 'playing') return;
+    const tick = () => setCountdown(fmtCountdown(msToMidnightET()));
+    tick();
+    const iv = setInterval(tick, 1000);
+    return () => clearInterval(iv);
+  }, [g.status]);
+
+  // live clock while solving
+  useEffect(() => {
+    if (!playing || !g.t0) return undefined;
+    const iv = setInterval(() => setTick((t) => t + 1), 1000);
+    return () => clearInterval(iv);
+  }, [playing, g.t0]);
+
+  // ---- metrics + leaderboard (same /api/quiz/* flow as every other board) ----
+  useEffect(() => {
+    try {
+      const id = JSON.parse(localStorage.getItem('sot_quiz_identity'));
+      if (id && id.email) setIdentity(id);
+    } catch (e) {}
+    try {
+      const anon = getAnonId();
+      let em = '';
+      try {
+        const idj = JSON.parse(localStorage.getItem('sot_quiz_identity') || 'null');
+        if (idj && idj.email) em = `&email=${encodeURIComponent(idj.email)}`;
+      } catch (e) {}
+      if (anon || em) {
+        fetch(`/api/quiz/me?anonId=${encodeURIComponent(anon || '')}${em}`)
+          .then((r) => r.json())
+          .then((d) => {
+            if (d && Array.isArray(d.recent)) {
+              setStats((c) => mergeServerStats(c || getStats(), d.recent, puzzles));
+            }
+            if (d && d.found && d.name) setPlayer({ name: d.name, rank: (d.ranks && d.ranks.xp) || d.rank || null, key: d.userKey || null });
+          })
+          .catch(() => {});
+      }
+    } catch (e) {}
+    fetch(`/api/quiz/board?quizId=${encodeURIComponent(PUZZLE.quizId)}`)
+      .then((r) => r.json())
+      .then((d) => { if (d && !d.error) setBoard({ ...EMPTY_BOARD, ...d }); })
+      .catch(() => {});
+    if (!viewedRef.current) {
+      viewedRef.current = true;
+      fetch('/api/quiz/view', { method: 'POST', keepalive: true, headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ quizId: PUZZLE.quizId }) }).catch(() => {});
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  function say(msg) {
+    setToast(msg);
+    if (toastTimer.current) clearTimeout(toastTimer.current);
+    toastTimer.current = setTimeout(() => setToast(null), 2400);
+  }
+
+  const elapsed = g.t0 ? fmtTime((g.tEnd || Date.now()) - g.t0) : '0:00';
+  const isTodays = PUZZLE.num === pickPuzzle(puzzles, null).num;
+  const prevPuzzle = puzzles.find((x) => x.num === PUZZLE.num - 1) || null;
+  const myStats = deriveStats(stats, pickPuzzle(puzzles, null).num);
+
+  const isBlock = useCallback((i) => solFlat[i] === '#', [solFlat]);
+  const curWordIdx = wordOf[dir][cur];
+  const curWord = WORDS[curWordIdx] || WORDS[0];
+
+  const wordsCorrect = useCallback((ls) =>
+    WORDS.reduce((k, w) => k + (w.cells.every((c) => ls[c] === solFlat[c]) ? 1 : 0), 0),
+  [WORDS, solFlat]);
+  const finalScore = won ? TOTAL : (g.status === 'revealed' ? (g.revealScore || 0) : 0);
+
+  function postResult(g2, score) {
+    const el = g2.t0 ? Math.max(1, Math.round(((g2.tEnd || Date.now()) - g2.t0) / 1000)) : 1;
+    try { setStats(recordStat(PUZZLE.num, { s: score, t: TOTAL, g: g2.checks, won: g2.status === 'won' && g2.checks === 0 })); } catch (e) {}
+    try {
+      fetch('/api/quiz/result', {
+        method: 'POST',
+        keepalive: true,
+        headers: { 'Content-Type': 'application/json' },
+        // guessesUsed = failed grid checks, so the daily leaderboard (score,
+        // then guesses, then time) resolves ties by cleanest solve then speed.
+        body: JSON.stringify({ quizId: PUZZLE.quizId, score, total: TOTAL, correct: g2.status === 'won' ? 1 : 0, guessesUsed: g2.checks, timeElapsed: el, email: identity?.email || undefined, anonId: getAnonId(), isMobile: isMobileDevice(), referrer: (typeof document !== 'undefined' ? document.referrer : '') }),
+      })
+        .then((r) => r.json())
+        .then((d) => { if (d && !d.error) setBoard({ ...EMPTY_BOARD, ...d }); })
+        .catch(() => {});
+    } catch (e) {}
+  }
+
+  // the moment the last square fills, the grid checks itself
+  function maybeCheck(g2) {
+    const full = solFlat.every((ch, i) => ch === '#' || g2.letters[i] !== '');
+    if (!full) return g2;
+    const bad = [];
+    for (let i = 0; i < T; i++) if (solFlat[i] !== '#' && g2.letters[i] !== solFlat[i]) bad.push(i);
+    if (!bad.length) {
+      g2.status = 'won';
+      g2.tEnd = Date.now();
+      g2.wrong = [];
+      return g2;
+    }
+    g2.checks += 1;
+    g2.wrong = bad;
+    return g2;
+  }
+
+  const nextWord = useCallback((fromIdx, d0, needEmpty, ls) => {
+    // scan words after fromIdx (wrapping, switching direction) for the next
+    // one with an empty square; else just the next word.
+    const order = [];
+    const aws = WORDS.map((w, i) => i).filter((i) => WORDS[i].dir === 'A');
+    const dws = WORDS.map((w, i) => i).filter((i) => WORDS[i].dir === 'D');
+    const seq = d0 === 'A' ? [...aws, ...dws] : [...dws, ...aws];
+    const at = seq.indexOf(fromIdx);
+    for (let k = 1; k <= seq.length; k++) order.push(seq[(at + k) % seq.length]);
+    if (needEmpty) {
+      for (const i of order) if (WORDS[i].cells.some((c) => ls[c] === '')) return i;
+    }
+    return order[0];
+  }, [WORDS]);
+
+  function selectWord(i, ls) {
+    const w = WORDS[i];
+    setDir(w.dir);
+    const empty = w.cells.find((c) => (ls || letters)[c] === '');
+    setCur(empty != null ? empty : w.cells[0]);
+  }
+
+  // step through the clue list in fixed Across-then-Down order
+  function stepWord(delta) {
+    const at = curWordIdx < 0 ? 0 : curWordIdx;
+    selectWord((at + delta + WORDS.length) % WORDS.length);
+  }
+
+  function cellClick(idx) {
+    if (!playing || isBlock(idx)) return;
+    if (idx === cur) { setDir((d) => (d === 'A' ? 'D' : 'A')); return; }
+    setCur(idx);
+    if (wordOf[dir][idx] < 0) setDir(dir === 'A' ? 'D' : 'A');
+  }
+
+  function typeLetter(ch) {
+    if (!playing) return;
+    const g2 = { ...g, letters: g.letters.slice(), wrong: g.wrong.filter((i) => i !== cur) };
+    g2.letters[cur] = ch;
+    if (!g2.t0) g2.t0 = Date.now();
+    const checked = maybeCheck(g2);
+    setG(checked);
+    if (checked.status === 'won') {
+      postResult(checked, TOTAL);
+      setJustWon(true);
+      return;
+    }
+    if (checked.wrong.length && checked.checks !== g.checks) {
+      say('Not quite — the red squares are wrong. Keep going!');
+    }
+    // advance: next empty square in this word, else next unfinished word
+    const w = WORDS[wordOf[dir][cur]] || curWord;
+    const pos = w.cells.indexOf(cur);
+    for (let k = pos + 1; k < w.cells.length; k++) {
+      if (checked.letters[w.cells[k]] === '') { setCur(w.cells[k]); return; }
+    }
+    const anyEmpty = solFlat.some((c, i) => c !== '#' && checked.letters[i] === '');
+    if (!anyEmpty) return; // full grid: stay put (check already ran)
+    const ni = nextWord(wordOf[dir][cur], dir, true, checked.letters);
+    selectWord(ni, checked.letters);
+  }
+
+  function backspace() {
+    if (!playing) return;
+    if (letters[cur]) {
+      const g2 = { ...g, letters: g.letters.slice(), wrong: g.wrong.filter((i) => i !== cur) };
+      g2.letters[cur] = '';
+      setG(g2);
+      return;
+    }
+    const w = curWord;
+    const pos = w.cells.indexOf(cur);
+    if (pos > 0) {
+      const back = w.cells[pos - 1];
+      const g2 = { ...g, letters: g.letters.slice(), wrong: g.wrong.filter((i) => i !== back) };
+      g2.letters[back] = '';
+      setG(g2);
+      setCur(back);
+    }
+  }
+
+  function moveCur(dr, dc) {
+    let r = Math.floor(cur / N), c = cur % N;
+    for (let k = 0; k < N; k++) {
+      r += dr; c += dc;
+      if (r < 0 || r >= N || c < 0 || c >= N) return;
+      const i = r * N + c;
+      if (!isBlock(i)) { setCur(i); return; }
+    }
+  }
+
+  // one free hint: reveal the current square (or the word's first empty one)
+  function useHint() {
+    if (!playing || g.hintUsed) return;
+    let idx = letters[cur] === '' ? cur : -1;
+    if (idx < 0) idx = curWord.cells.find((c) => letters[c] === '') ?? -1;
+    if (idx < 0) { for (let i = 0; i < T; i++) if (!isBlock(i) && letters[i] === '') { idx = i; break; } }
+    if (idx < 0) return;
+    const g2 = { ...g, letters: g.letters.slice(), wrong: g.wrong.filter((i) => i !== idx), hintUsed: true };
+    g2.letters[idx] = solFlat[idx];
+    if (!g2.t0) g2.t0 = Date.now();
+    const checked = maybeCheck(g2);
+    setG(checked);
+    if (checked.status === 'won') { postResult(checked, TOTAL); setJustWon(true); return; }
+    say('Hint used — one letter filled in for you.');
+  }
+
+  function revealEnd() {
+    const score = wordsCorrect(g.letters);
+    const g2 = { ...g, letters: solFlat.map((ch) => (ch === '#' ? '' : ch)), wrong: [], status: 'revealed', tEnd: Date.now(), revealScore: score };
+    if (!g2.t0) g2.t0 = Date.now();
+    postResult(g2, score);
+    setG(g2);
+  }
+
+  function resetGame() {
+    try { localStorage.removeItem(STORE_KEY); } catch (e) {}
+    setG(freshState(T)); setCur(WORDS[0].cells[0]); setDir('A'); setJustWon(false); setEndClosed(false);
+  }
+
+  // physical keyboard
+  const onKey = useCallback((e) => {
+    if (!playing || showHelp || showA2hsHelp) return;
+    if (e.metaKey || e.ctrlKey || e.altKey) return;
+    const k = e.key;
+    if (/^[a-zA-Z]$/.test(k)) { e.preventDefault(); typeLetter(k.toUpperCase()); return; }
+    if (k === 'Backspace') { e.preventDefault(); backspace(); return; }
+    if (k === 'ArrowUp') { e.preventDefault(); moveCur(-1, 0); return; }
+    if (k === 'ArrowDown') { e.preventDefault(); moveCur(1, 0); return; }
+    if (k === 'ArrowLeft') { e.preventDefault(); moveCur(0, -1); return; }
+    if (k === 'ArrowRight') { e.preventDefault(); moveCur(0, 1); return; }
+    if (k === ' ') { e.preventDefault(); setDir((d) => (d === 'A' ? 'D' : 'A')); return; }
+    if (k === 'Tab' || k === 'Enter') { e.preventDefault(); selectWord(nextWord(curWordIdx, dir, true, letters)); return; }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [playing, showHelp, showA2hsHelp, g, cur, dir, curWordIdx, letters]);
+  useEffect(() => {
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, [onKey]);
+
+  function shareText() {
+    const g5 = won ? 5 : Math.max(0, Math.min(5, Math.round((finalScore / TOTAL) * 5)));
+    const squares = '⬛'.repeat(g5) + '⬜'.repeat(5 - g5); // ink squares
+    const hintBit = g.hintUsed ? ' · \u{1F4A1}' : '';
+    const streakBit = isTodays && myStats.cur >= 2 ? ` · streak ${myStats.cur}` : '';
+    const head2 = won
+      ? `Emcee #${PUZZLE.num}${PUZZLE.sunday ? ' · Sunday' : ''} · ${elapsed}${g.checks === 0 ? ' · clean' : ` · ${g.checks} check${g.checks === 1 ? '' : 's'}`}${hintBit}${streakBit}`
+      : `Emcee #${PUZZLE.num} · ${finalScore}/${TOTAL} words`;
+    return `${head2}\n${squares}\n${shareUrl()}`;
+  }
+  function shareUrl() {
+    return `sourceoftruths.com/emcee${isTodays ? '' : `?p=${PUZZLE.num}`}`;
+  }
+  function copyShare() {
+    const text = playing
+      ? `Emcee #${PUZZLE.num} — the daily mini crossword from Source of Truths.\n${shareUrl()}`
+      : shareText();
+    try {
+      if (typeof navigator !== 'undefined' && navigator.share && isMobileDevice()) {
+        navigator.share({ text }).catch(() => {});
+        return;
+      }
+    } catch (e) {}
+    try {
+      navigator.clipboard?.writeText(text).then(() => {
+        setCopied(true);
+        setTimeout(() => setCopied(false), 1800);
+      });
+    } catch (e) {}
+  }
+
+  const filledWord = (w) => w.cells.every((c) => letters[c] !== '');
+  const clueRow = (w, i) => {
+    const active = i === curWordIdx && playing;
+    return (
+      <button key={`${w.dir}${w.n}`} onClick={() => { if (playing) selectWord(i); }}
+        className="mc-cluerow"
+        style={{ background: active ? COLORS.accentSoft : 'none', borderLeft: active ? `3px solid ${COLORS.accent}` : '3px solid transparent', opacity: !playing || !filledWord(w) ? 1 : 0.45 }}>
+        <span style={{ fontFamily: MONO, fontSize: 11.5, fontWeight: 500, color: active ? COLORS.accent : COLORS.faded, minWidth: 18, textAlign: 'right' }}>{w.n}</span>
+        <span style={{ fontFamily: SANS, fontSize: 13, fontWeight: 600, color: COLORS.ink, lineHeight: 1.35, textAlign: 'left' }}>{w.clue}</span>
+      </button>
+    );
+  };
+
+  const kbRows = ['QWERTYUIOP', 'ASDFGHJKL', 'ZXCVBNM'];
+  const cellPx = N === 7 ? 'clamp(17px, 4.9vw, 25px)' : 'clamp(20px, 6vw, 30px)';
+  const numPx = N === 7 ? 8.5 : 9.5;
+  const checks = g.checks;
+  const filledCount = solFlat.reduce((k, ch, i) => k + (ch !== '#' && letters[i] !== '' ? 1 : 0), 0);
+  const whiteCount = solFlat.reduce((k, ch) => k + (ch !== '#' ? 1 : 0), 0);
+
+  return (
+    <div style={{ minHeight: '100vh', background: '#f7f8fa', position: 'relative' }}>
+      <Grain />
+      <div className="mc-wrap" style={{ position: 'relative', zIndex: 2, maxWidth: 1180, margin: '0 auto', padding: '18px 38px 80px', fontFamily: SANS }}>
+        <style>{`
+          @media(max-width:560px){.mc-wrap{padding-left:12px !important;padding-right:12px !important;}}
+          .mc-btn{font-family:${SANS};font-weight:800;font-size:14px;border:2px solid ${COLORS.ink};background:#fff;color:${COLORS.ink};border-radius:8px;padding:9px 16px;cursor:pointer;display:inline-flex;align-items:center;gap:7px;}
+          .mc-btn:hover{background:${COLORS.paper};}
+          @keyframes mcshake{0%,100%{transform:translateX(0);}25%{transform:translateX(-3px);}75%{transform:translateX(3px);}}
+          @media(max-width:560px){.mc-ttl{flex-direction:column;align-items:flex-start;gap:1px;}.mc-ttl h1{font-size:21px;letter-spacing:0.02em;}.mc-ttl .mc-ttl-dt{font-size:15px;}.mc-ttl-dot{display:none;}}
+          .mc-cell{display:flex;align-items:center;justify-content:center;font-family:${SANS};box-sizing:border-box;cursor:pointer;position:relative;user-select:none;-webkit-tap-highlight-color:transparent;min-width:0;min-height:0;overflow:hidden;background:#fff;}
+          .mc-cell.mc-blk{background:${COLORS.ink};cursor:default;}
+          .mc-cell.mc-inword{background:${COLORS.accentSoft};}
+          .mc-cell.mc-sel{background:#f6d9f9;box-shadow:inset 0 0 0 2px ${COLORS.accent};}
+          .mc-cell.mc-wrongmark span{color:${COLORS.rust};}
+          .mc-cell.mc-wrongmark{animation:mcshake .3s ease;}
+          .mc-num{position:absolute;top:1px;left:3px;font-family:${MONO};font-weight:500;color:rgba(28,30,36,0.55);pointer-events:none;}
+          .mc-cluerow{display:flex;gap:8px;align-items:flex-start;width:100%;padding:6px 8px 6px 6px;border:none;border-radius:0 7px 7px 0;cursor:pointer;background:none;}
+          .mc-cluerow:hover{background:${COLORS.paper};}
+          .mc-key{font-family:${SANS};font-weight:800;font-size:15px;border:none;border-radius:6px;background:#fff;color:${COLORS.ink};box-shadow:0 2px 0 rgba(28,30,36,0.35);border:1.5px solid rgba(28,30,36,0.4);height:44px;flex:1 1 0;min-width:0;display:flex;align-items:center;justify-content:center;cursor:pointer;-webkit-tap-highlight-color:transparent;}
+          .mc-key:active{transform:translateY(1px);box-shadow:0 1px 0 rgba(28,30,36,0.35);}
+          .mc-tool{font-family:${SANS};font-weight:800;font-size:12.5px;border:1.5px solid rgba(28,30,36,0.35);background:#fff;color:${COLORS.ink};border-radius:8px;padding:7px 11px;cursor:pointer;display:inline-flex;align-items:center;gap:6px;}
+          .mc-cols{display:grid;grid-template-columns:1fr 1fr;gap:6px 18px;}
+          @media(max-width:560px){.mc-cols{grid-template-columns:1fr;}}
+        `}</style>
+
+        <div style={{ maxWidth: 620, margin: '0 auto' }}>
+
+        {/* game-native top strip: quiet nav + player chip */}
+        <div style={{ display: focusMode ? 'none' : 'block' }}><DailyTopNav player={player} compact={playing} /></div>
+
+        {/* masthead: pressed EMCEE tiles with No./date inline — M and C lit (M.C.) */}
+        <div className="mc-mh" style={{ display: 'flex', alignItems: 'center', gap: 14, flexWrap: 'wrap', position: 'relative', paddingRight: 28, marginBottom: 16, borderBottom: '2px solid rgba(28,30,36,0.8)', paddingBottom: 11 }}>
+          <div style={{ display: 'flex', gap: 5, alignItems: 'flex-end' }}>
+            {'EMCEE'.split('').map((ch, i) => (
+              <div key={i} style={{ width: 40, height: 40, borderRadius: 5, display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: SANS, fontWeight: 900, fontSize: 23, background: i === 1 || i === 2 ? COLORS.accent : COLORS.ink, color: '#fff', boxShadow: 'inset 0 2px 5px rgba(0,0,0,0.5), 0 1px 0 rgba(255,255,255,0.65)' }}>{ch}</div>
+            ))}
+          </div>
+          <div className="mc-ttl" style={{ display: 'flex', alignItems: 'baseline', gap: 9 }}>
+            <h1 style={{ margin: 0, fontFamily: MONO, fontSize: 14, letterSpacing: '0.06em', fontWeight: 500, color: COLORS.ink }}>No. {PUZZLE.num}</h1>
+            <span className="mc-ttl-dot" style={{ color: COLORS.faded }}>&middot;</span>
+            <span className="mc-ttl-dt" style={{ fontFamily: SANS, fontStyle: 'italic', fontSize: 15, color: COLORS.faded }}>{PUZZLE.dateLabel}</span>
+            {PUZZLE.sunday && <span style={{ fontFamily: MONO, fontSize: 9.5, letterSpacing: '0.1em', textTransform: 'uppercase', fontWeight: 500, color: '#fff', background: COLORS.accent, borderRadius: 4, padding: '2px 6px' }}>Sunday &middot; Big Grid</span>}
+          </div>
+          <button onClick={() => setShowHelp(true)} aria-label="How to play" title="How to play" style={{ position: 'absolute', top: 13, right: 2, background: 'none', border: 'none', cursor: 'pointer', color: COLORS.faded, padding: 0, display: 'flex' }}>
+            <HelpCircle size={20} />
+          </button>
+        </div>
+
+        {/* the board */}
+        <div style={{ background: '#fff', border: `2px solid ${COLORS.ink}`, borderRadius: 10, padding: '13px 15px 15px', boxShadow: '5px 5px 0 rgba(28,30,36,0.16)', marginBottom: 12 }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 12, fontFamily: MONO, fontSize: 11.5, letterSpacing: '0.1em', textTransform: 'uppercase', color: COLORS.faded, borderBottom: '1px solid rgba(28,30,36,0.18)', paddingBottom: 8, marginBottom: 12, flexWrap: 'wrap' }}>
+            <span style={{ whiteSpace: 'nowrap' }}>time <b style={{ color: COLORS.ink, fontWeight: 500, fontVariantNumeric: 'tabular-nums' }}>{elapsed}</b></span>
+            <span style={{ whiteSpace: 'nowrap' }}>checks <b style={{ color: checks > 0 ? COLORS.rust : COLORS.ink, fontWeight: 500 }}>{checks}</b></span>
+            <span style={{ marginLeft: 'auto', whiteSpace: 'nowrap' }}>squares <b style={{ color: filledCount === whiteCount ? COLORS.green : COLORS.ink, fontWeight: 500 }}>{filledCount}</b>/{whiteCount}</span>
+          </div>
+
+          {/* the grid */}
+          <div style={{ maxWidth: N === 7 ? 476 : 420, margin: '0 auto' }}>
+            <div style={{ display: 'grid', gridTemplateColumns: `repeat(${N}, minmax(0, 1fr))`, gridTemplateRows: `repeat(${N}, minmax(0, 1fr))`, aspectRatio: '1', border: `2.5px solid rgba(28,30,36,0.85)`, borderRadius: 4, overflow: 'hidden', gap: 1, background: 'rgba(28,30,36,0.28)' }}>
+              {Array.from({ length: T }).map((_, idx) => {
+                if (isBlock(idx)) return <div key={idx} className="mc-cell mc-blk" />;
+                const inWord = playing && curWord.cells.includes(idx);
+                const sel = playing && idx === cur;
+                const wrongMark = g.wrong.includes(idx);
+                const revealMiss = g.status === 'revealed';
+                return (
+                  <div key={idx}
+                    className={`mc-cell${inWord && !sel ? ' mc-inword' : ''}${sel ? ' mc-sel' : ''}${wrongMark ? ' mc-wrongmark' : ''}`}
+                    onClick={() => cellClick(idx)}>
+                    {numAt[idx] != null && <span className="mc-num" style={{ fontSize: numPx }}>{numAt[idx]}</span>}
+                    <span style={{ fontSize: cellPx, fontWeight: 800, color: revealMiss ? COLORS.faded : COLORS.ink }}>{letters[idx]}</span>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+
+          {/* current clue bar */}
+          {playing && (
+            <div style={{ display: 'flex', alignItems: 'stretch', gap: 6, maxWidth: N === 7 ? 476 : 420, margin: '12px auto 0' }}>
+              <button aria-label="Previous clue" onClick={() => stepWord(-1)} className="mc-tool" style={{ padding: '7px 8px' }}>
+                <ChevronLeft size={15} />
+              </button>
+              <div onClick={() => setDir((d) => (d === 'A' ? 'D' : 'A'))} style={{ flex: '1 1 auto', background: COLORS.accentSoft, border: `1.5px solid rgba(192,38,211,0.4)`, borderRadius: 8, padding: '7px 10px', display: 'flex', alignItems: 'center', gap: 8, cursor: 'pointer' }}>
+                <span style={{ fontFamily: MONO, fontSize: 11, fontWeight: 500, color: COLORS.accent, whiteSpace: 'nowrap' }}>{curWord.n}{curWord.dir === 'A' ? 'A' : 'D'}</span>
+                <span style={{ fontFamily: SANS, fontSize: 13.5, fontWeight: 700, color: COLORS.ink, lineHeight: 1.3 }}>{curWord.clue}</span>
+              </div>
+              <button aria-label="Next clue" onClick={() => stepWord(1)} className="mc-tool" style={{ padding: '7px 8px' }}>
+                <ChevronRight size={15} />
+              </button>
+            </div>
+          )}
+
+          {/* on-screen keyboard (mobile) */}
+          {playing && mobileUi && (
+            <div style={{ maxWidth: 476, margin: '12px auto 0' }}>
+              {kbRows.map((row, ri) => (
+                <div key={ri} style={{ display: 'flex', gap: 4, marginTop: ri ? 5 : 0, padding: ri === 1 ? '0 12px' : 0 }}>
+                  {row.split('').map((ch) => (
+                    <button key={ch} className="mc-key" onClick={() => typeLetter(ch)}>{ch}</button>
+                  ))}
+                  {ri === 2 && (
+                    <button aria-label="Delete" className="mc-key" style={{ flex: '1.6 1 0' }} onClick={backspace}><Delete size={17} /></button>
+                  )}
+                </div>
+              ))}
+            </div>
+          )}
+
+          {playing && (
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8, justifyContent: 'center', marginTop: 12, flexWrap: 'wrap' }}>
+              {!g.hintUsed && (
+                <button className="mc-tool" onClick={useHint} title="Reveal one letter (one hint per puzzle)" style={{ background: COLORS.accentSoft, borderColor: 'rgba(192,38,211,0.5)', color: '#86198f' }}>
+                  <Lightbulb size={14} /> Hint
+                </button>
+              )}
+              {!mobileUi && (
+                <span className="mc-tool" style={{ cursor: 'default', borderStyle: 'dashed', color: COLORS.faded }}>
+                  Type to fill &middot; space flips Across/Down &middot; tab jumps
+                </span>
+              )}
+            </div>
+          )}
+        </div>
+
+        {/* clue lists */}
+        <div style={{ background: '#fff', border: '1.5px solid rgba(20,22,28,0.12)', borderRadius: 10, padding: '12px 14px', marginBottom: 12 }}>
+          <div className="mc-cols">
+            <div>
+              <div style={{ fontFamily: MONO, fontSize: 10.5, fontWeight: 500, textTransform: 'uppercase', letterSpacing: '0.1em', color: COLORS.faded, margin: '0 0 6px 6px' }}>Across</div>
+              {WORDS.map((w, i) => (w.dir === 'A' ? clueRow(w, i) : null))}
+            </div>
+            <div>
+              <div style={{ fontFamily: MONO, fontSize: 10.5, fontWeight: 500, textTransform: 'uppercase', letterSpacing: '0.1em', color: COLORS.faded, margin: '0 0 6px 6px' }}>Down</div>
+              {WORDS.map((w, i) => (w.dir === 'D' ? clueRow(w, i) : null))}
+            </div>
+          </div>
+        </div>
+
+        {/* controls */}
+        {playing && (
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 12, flexWrap: 'wrap' }}>
+            <span style={{ fontFamily: SANS, fontSize: 12, fontWeight: 700, color: COLORS.faded }}>
+              Fill the grid from the clues. It checks itself when the last square lands — wrong squares flash red, and every failed check counts on the board.
+            </span>
+            {identity && (g.t0 || checks > 0) && (
+              <button onClick={() => { if (armReveal) { setArmReveal(false); revealEnd(); } else { setArmReveal(true); } }}
+                style={{ marginLeft: 'auto', background: 'none', border: 'none', cursor: 'pointer', fontFamily: SANS, fontWeight: 700, fontSize: 12, color: armReveal ? COLORS.rust : COLORS.faded, textDecoration: 'underline', textUnderlineOffset: 3, display: 'inline-flex', alignItems: 'center', gap: 5 }}>
+                <Eye size={13} /> {armReveal ? 'Tap again — ends the game and shows the answers' : 'Reveal & end'}
+              </button>
+            )}
+          </div>
+        )}
+
+        {/* result */}
+        {!playing && (
+          <>
+          <p style={{ fontSize: 12, color: COLORS.faded, fontWeight: 600, margin: '12px 0 0' }}>
+            {isTodays ? (
+              <>
+                {countdown ? <>Next Emcee in <b style={{ color: COLORS.ink, fontVariantNumeric: 'tabular-nums' }}>{countdown}</b>.</> : 'A new grid drops at midnight Eastern.'}
+                {prevPuzzle && (
+                  <>
+                    {' '}Meanwhile:{' '}
+                    <a href={`/emcee?p=${prevPuzzle.num}`} style={{ color: COLORS.ember, fontWeight: 800, textDecoration: 'underline' }}>
+                      play yesterday&rsquo;s Emcee &rarr;
+                    </a>
+                  </>
+                )}
+              </>
+            ) : (
+              <>
+                You&rsquo;re playing the {PUZZLE.dateLabel.replace(', 2026', '')} archive.{' '}
+                <a href="/emcee" style={{ color: COLORS.ember, fontWeight: 800, textDecoration: 'underline' }}>Back to today&rsquo;s Emcee &rarr;</a>
+                {' · '}
+                <a href="/daily" style={{ color: COLORS.faded, fontWeight: 700, textDecoration: 'underline' }}>All daily puzzles</a>
+              </>
+            )}
+          </p>
+          </>
+        )}
+
+        {focusMode && (
+          <div style={{ maxWidth: 620, margin: '30px auto 0', textAlign: 'center' }}>
+            <button onClick={() => setShowChrome(true)} style={{ fontFamily: SANS, fontWeight: 800, fontSize: 13, letterSpacing: '0.03em', color: COLORS.ink, background: 'none', border: '1.5px solid rgba(28,30,36,0.28)', borderRadius: 9, padding: '10px 20px', cursor: 'pointer' }}>Show navigation &amp; more</button>
+            <div style={{ fontFamily: SANS, fontSize: 11, color: COLORS.faded, fontWeight: 600, marginTop: 8 }}>Other games, challenge, share &amp; leaderboard</div>
+          </div>
+        )}
+        {/* standard quiz-page bottom: challenge + stats + join + leaderboard */}
+        <div style={{ display: focusMode ? 'none' : 'block', margin: '30px auto 0' }}>
+          <DailyGamesGrid
+            self="emcee"
+            maxWidth={620}
+            challengeHref={`/duel/new?quiz=${encodeURIComponent(PUZZLE.quizId)}`}
+            share={{ label: copied ? 'Copied' : 'Share This Puzzle', onClick: copyShare }}
+            divider
+          />
+          {mobileUi && !standalone && (
+            <button onClick={a2hsClick} style={{ marginTop: 10, width: '100%', fontFamily: SANS, fontSize: 13.5, letterSpacing: '0.05em', textTransform: 'uppercase', fontWeight: 800, height: 54, borderRadius: 10, border: 'none', background: COLORS.accent, color: '#fff', cursor: 'pointer', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 9, whiteSpace: 'nowrap' }}>
+              <Smartphone size={15} strokeWidth={2.5} /> Add to Home Screen
+            </button>
+          )}
+        </div>
+        {showA2hsHelp && (
+          <div onClick={() => setShowA2hsHelp(false)} style={{ position: 'fixed', inset: 0, background: 'rgba(20,22,28,0.55)', zIndex: 90, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 18 }}>
+            <div onClick={(e) => e.stopPropagation()} style={{ background: '#fff', borderRadius: 14, maxWidth: 430, width: '100%', padding: '22px 22px 16px', fontFamily: SANS, border: '1.5px solid rgba(20,22,28,0.12)' }}>
+              <div style={{ fontSize: 17, fontWeight: 800, color: COLORS.ink, marginBottom: 8 }}>Add Emcee to your Home Screen</div>
+              {isIosDevice() ? (
+                <ol style={{ margin: '0 0 4px', paddingLeft: 20, color: COLORS.ink, fontSize: 14, lineHeight: 1.7 }}>
+                  <li>Tap the <b>Share</b> button in Safari&apos;s toolbar.</li>
+                  <li>Scroll down and tap <b>Add to Home Screen</b>.</li>
+                  <li>Tap <b>Add</b> &mdash; the tile opens today&apos;s grid, every day.</li>
+                </ol>
+              ) : (
+                <p style={{ margin: '0 0 4px', color: COLORS.ink, fontSize: 14, lineHeight: 1.7 }}>
+                  Open your browser&apos;s menu and choose <b>Add to Home Screen</b> (or <b>Install app</b>). The tile opens today&apos;s grid, every day.
+                </p>
+              )}
+              <button onClick={() => setShowA2hsHelp(false)} style={{ marginTop: 10, fontFamily: SANS, fontSize: 12.5, letterSpacing: '0.05em', textTransform: 'uppercase', fontWeight: 700, height: 44, width: '100%', borderRadius: 10, border: 'none', background: COLORS.ink, color: '#fff', cursor: 'pointer' }}>Got it</button>
+            </div>
+          </div>
+        )}
+        {!focusMode && !identity && (
+          <div style={{ margin: '18px auto 0' }}>
+            <JoinLeaderboardForm hideIcon heading="See your stats and join the leaderboard" identity={identity} onJoined={(id) => { setIdentity(id); if (id && id.username) setPlayer((p) => p || { name: id.username, rank: null }); }} />
+          </div>
+        )}
+        </div>
+
+        {/* your stats — sits directly above the leaderboard */}
+        {!focusMode && identity && (
+        <div style={{ maxWidth: 620, margin: '20px auto 0' }}>
+          <div style={{ fontFamily: MONO, fontSize: 10.5, fontWeight: 500, textTransform: 'uppercase', letterSpacing: '0.1em', color: COLORS.faded, marginBottom: 9 }}>Your stats</div>
+          <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
+            {[
+              { n: myStats.cur, l: 'Streak' },
+              { n: myStats.played, l: 'Played' },
+              { n: myStats.played ? `${Math.round((myStats.perfect / myStats.played) * 100)}%` : '—', l: 'Clean' },
+              { n: myStats.max, l: 'Best Streak' },
+            ].map((st, i) => (
+              <div key={i} style={{ flex: '1 1 0', minWidth: 54, background: '#fff', border: '1px solid rgba(28,30,36,0.12)', borderRadius: 7, padding: '6px 5px', textAlign: 'center' }}>
+                <div style={{ fontSize: 15, fontWeight: 800, color: COLORS.ink, lineHeight: 1.1, fontVariantNumeric: 'tabular-nums' }}>{st.n}</div>
+                <div style={{ fontSize: 9, fontWeight: 700, color: COLORS.faded, textTransform: 'uppercase', letterSpacing: '0.04em', marginTop: 2 }}>{st.l}</div>
+              </div>
+            ))}
+          </div>
+        </div>
+        )}
+        <div id="daily-leaderboard" style={{ display: focusMode ? 'none' : 'block', maxWidth: 620, margin: '26px auto 0', background: '#fff', border: '1.5px solid rgba(20,22,28,0.12)', borderRadius: 12, padding: '14px 16px' }}>
+          <DailyCombinedLeaderboard todayKey="emcee" identity={identity} quizId={PUZZLE.quizId} />
+        </div>
+      </div>
+
+      {/* the end-of-game popup: the shared DailyEndCard as a dismissible modal (win or loss) */}
+      {!playing && !endClosed && (
+        <DailyEndCard
+          modal
+          self="emcee"
+          won={won}
+          headline={<>{Math.round((finalScore / TOTAL) * 100)}% Complete</>}
+          subline={<>{won
+            ? <>{TOTAL}/{TOTAL} words &middot; {checks === 0 ? 'clean solve' : `${checks} check${checks === 1 ? '' : 's'}`} &middot; {elapsed}{g.hintUsed ? <> &middot; 1 hint</> : null}</>
+            : <>{finalScore}/{TOTAL} words &middot; the finished grid is shown above</>}</>}
+          onShare={copyShare}
+          shareLabel={copied ? 'Copied' : 'Share Result'}
+          onReplay={resetGame}
+          onClose={() => setEndClosed(true)}
+        />
+      )}
+
+      <DuelBanner token={duelToken} info={duelInfo} submitted={duelSubmitted} />
+
+      {toast && (
+        <div style={{ position: 'fixed', left: '50%', bottom: 26, transform: 'translateX(-50%)', background: COLORS.ink, color: '#fff', fontFamily: SANS, fontWeight: 800, fontSize: 13.5, padding: '10px 18px', borderRadius: 9, zIndex: 60, boxShadow: '0 6px 18px rgba(20,22,28,0.25)', maxWidth: '86vw', textAlign: 'center' }}>
+          {toast}
+        </div>
+      )}
+
+      {/* help modal */}
+      {showHelp && (
+        <div onClick={() => { setShowHelp(false); try { localStorage.setItem(HELP_KEY, '1'); } catch (e) {} }}
+          style={{ position: 'fixed', inset: 0, background: 'rgba(20,22,28,0.55)', zIndex: 70, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16 }}>
+          <div onClick={(e) => e.stopPropagation()} style={{ width: '100%', maxWidth: 460, background: COLORS.cream, borderRadius: 12, border: `2px solid ${COLORS.ink}`, padding: '20px 22px', fontFamily: SANS, maxHeight: '86vh', overflowY: 'auto' }}>
+            <div style={{ display: 'flex', alignItems: 'center', marginBottom: 10 }}>
+              <div style={{ fontSize: 21, fontWeight: 800, color: COLORS.ink }}>How to play</div>
+              <button onClick={() => { setShowHelp(false); try { localStorage.setItem(HELP_KEY, '1'); } catch (e) {} }} aria-label="Close" style={{ marginLeft: 'auto', background: 'none', border: 'none', cursor: 'pointer', color: COLORS.faded }}><X size={20} /></button>
+            </div>
+            <div style={{ fontSize: 14, lineHeight: 1.55, color: COLORS.ink, fontWeight: 600 }}>
+              <p style={{ margin: '0 0 9px' }}>Emcee is a <b>mini crossword</b>: fill every square using the numbered <b>Across</b> and <b>Down</b> clues. Tap a square to select its word, tap it again to flip direction, and type. On a keyboard, <b>space</b> flips direction and <b>tab</b> jumps to the next clue.</p>
+              <p style={{ margin: '0 0 9px' }}>The grid <b>checks itself</b> the moment the last square is filled. A perfect fill wins on the spot; a wrong one marks the misses <b style={{ color: COLORS.rust }}>red</b> and counts a <b>check</b> against you.</p>
+              <p style={{ margin: '0 0 9px' }}>One free <b>hint</b> reveals a letter. The clock starts on your first letter and stops when the grid is right.</p>
+              <p style={{ margin: 0 }}>Finish the grid for a full score. On the daily board, ties break on <b>fewest checks</b>, then <b>fastest time</b> &mdash; so a clean, quick solve is the crown. Sundays go bigger: a 7&times;7 grid.</p>
+            </div>
+            <button className="mc-btn" onClick={() => { setShowHelp(false); try { localStorage.setItem(HELP_KEY, '1'); } catch (e) {} }} style={{ marginTop: 14, background: COLORS.ink, color: '#fff' }}>Play</button>
+          </div>
+        </div>
+      )}
+
+      {/* About Emcee — crawlable prose for search, server-rendered into the HTML */}
+      <section style={{ display: focusMode ? 'none' : 'block', position: 'relative', zIndex: 2, maxWidth: 620, margin: '0 auto', padding: '10px 24px 42px', fontFamily: SANS }}>
+        <h2 style={{ margin: '0 0 8px', fontSize: 15, fontWeight: 800, letterSpacing: '-0.01em', color: COLORS.ink }}>About Emcee</h2>
+        <p style={{ margin: '0 0 8px', fontSize: 13, lineHeight: 1.65, color: COLORS.faded, fontWeight: 600 }}>
+          Emcee is a free daily mini crossword from Source of Truths. Say the name fast and you&rsquo;ll hear the initials &mdash; M.C. &mdash; because that&rsquo;s all it is: a proper mini crossword, five squares by five, with numbered Across and Down clues and a timer that only stops when the grid is right.
+        </p>
+        <p style={{ margin: '0 0 8px', fontSize: 13, lineHeight: 1.65, color: COLORS.faded, fontWeight: 600 }}>
+          The words are everyday words and the clues play fair, so most grids fall in a minute or two &mdash; the game is speed and cleanliness. The grid checks itself when the last square lands: wrong squares flash red and each failed check counts against you on the leaderboard, where ties break on fewest checks and then fastest time.
+        </p>
+        <p style={{ margin: 0, fontSize: 13, lineHeight: 1.65, color: COLORS.faded, fontWeight: 600 }}>
+          A new grid drops every day at midnight Eastern, and Sundays go bigger with a 7&times;7 pinwheel. No app, no signup &mdash; play free in your browser, keep a streak, and race the daily leaderboard. More word games: <a href="/crux" style={{ color: COLORS.ink, fontWeight: 800 }}>Crux</a>, our clueless crossword, <a href="/links" style={{ color: COLORS.ink, fontWeight: 800 }}>Links</a>, our word-grouping game, and <a href="/garble" style={{ color: COLORS.ink, fontWeight: 800 }}>Garble</a>, our daily unscramble.
+        </p>
+      </section>
+
+      <div style={{ display: focusMode ? 'none' : 'block', position: 'relative', zIndex: 2 }}><Footer /></div>
+    </div>
+  );
+}

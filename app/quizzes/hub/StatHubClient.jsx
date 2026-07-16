@@ -806,7 +806,7 @@ export default function StatHubClient() {
         </div>
 
         {tab === 'player' && !viewing ? (
-          <div style={{ marginTop: 16, background: '#fff', border: `1px solid ${C.line}`, borderRadius: 14, padding: '16px 18px' }}>
+          <div style={{ marginTop: 16, marginBottom: 30 }}>
             <DailyCombinedLeaderboard compact />
           </div>
         ) : null}

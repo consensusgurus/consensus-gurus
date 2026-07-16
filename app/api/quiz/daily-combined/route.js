@@ -9,6 +9,7 @@ import { scoreGame, combineDaily, DAILY_KEYS, DAILY_MAX, GAME_MAX, BEST_N } from
 // so the combined board always scores whatever puzzle is CURRENTLY live in each
 // game (gap days included), never a naively date-reconstructed id.
 import { PUZZLES as P_crux } from '@/app/crux/puzzles';
+import { PUZZLES as P_emcee } from '@/app/emcee/puzzles';
 import { PUZZLES as P_garble } from '@/app/garble/puzzles';
 import { PUZZLES as P_links } from '@/app/links/puzzles';
 import { PUZZLES as P_span } from '@/app/span/puzzles';
@@ -27,7 +28,7 @@ export const fetchCache = 'force-no-store';
 const CACHE_HEADERS = { 'Cache-Control': 'public, s-maxage=30, stale-while-revalidate=90' };
 
 const GAME_PUZZLES = {
-  crux: P_crux, garble: P_garble, links: P_links, span: P_span, dating: P_dating,
+  crux: P_crux, emcee: P_emcee, garble: P_garble, links: P_links, span: P_span, dating: P_dating,
   tally: P_tally, suds: P_suds, circa: P_circa, extra: P_extra, carve: P_carve,
 };
 

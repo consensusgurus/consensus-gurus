@@ -29,6 +29,7 @@ const COLS = [
       { label: 'Browse Quizzes', href: '/quizzes' },
       { label: 'Daily Games & Archive', href: '/daily' },
       { label: 'Crux — Daily Word Game', href: '/crux' },
+      { label: 'Emcee — Daily Mini Crossword', href: '/emcee' },
       { label: 'Garble — Daily Word Scramble', href: '/garble' },
       { label: 'Links — Daily Word Grouping', href: '/links' },
       { label: 'Span — Daily Geography Game', href: '/span' },

@@ -26,7 +26,7 @@
 // from `self` via GAME_META + CATEGORIES below. Add a game in three places:
 // GAME_META (graphic+accent), GAME_CATEGORY (family), and the family's leaves.
 
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   Type, Clock, Globe, Hash, Share2, BarChart3, RotateCcw, Check, X,
   Trophy, Link2, Flag, CalendarCheck, Scale, Grid3x3, LayoutGrid, Newspaper, FlagTriangleRight,
@@ -45,6 +45,7 @@ const FADED = '#6b7280';
 const GOLD_BADGE = 'radial-gradient(circle at 50% 38%,#f5d878,#e6b93f 62%,#cfa22e)';
 export const GAME_META = {
   crux:   { accent: '#2563eb', badgeBg: '#2563eb', badgeInk: '#fff', Fin: LayoutGrid },
+  emcee:  { accent: '#c026d3', badgeBg: '#c026d3', badgeInk: '#fff', Fin: Type },
   garble: { accent: '#2563eb', badgeBg: GOLD_BADGE, badgeInk: '#5c4a06', Fin: Trophy },
   links:  { accent: '#166534', badgeBg: '#166534', badgeInk: '#fff', Fin: Link2 },
   span:   { accent: '#9d174d', badgeBg: '#9d174d', badgeInk: '#fff', Fin: Flag },
@@ -62,6 +63,7 @@ export const CATEGORIES = {
     name: 'Word games', accent: '#2563eb', border: 'rgba(37,99,235,0.32)', Icon: Type,
     leaves: [
       { key: 'crux', name: 'Crux', tag: 'A clueless crossword', href: '/crux' },
+      { key: 'emcee', name: 'Emcee', tag: 'The daily mini crossword', href: '/emcee' },
       { key: 'links', name: 'Links', tag: 'Four hidden threads', href: '/links' },
       { key: 'garble', name: 'Garble', tag: 'Untangle five words', href: '/garble' },
     ],
@@ -94,7 +96,7 @@ export const CATEGORIES = {
 
 // which family each daily game belongs to
 export const GAME_CATEGORY = {
-  crux: 'word', garble: 'word', links: 'word',
+  crux: 'word', emcee: 'word', garble: 'word', links: 'word',
   span: 'geography',
   dating: 'history', circa: 'history', extra: 'history',
   tally: 'numbers', suds: 'numbers', carve: 'numbers',
@@ -161,6 +163,22 @@ export default function DailyEndCard({
   boardId = 'daily-leaderboard',
   onLeaderboard,
 }) {
+  const [dailyMe, setDailyMe] = useState(null);
+  useEffect(() => {
+    let anonId = null, email = null;
+    try { anonId = localStorage.getItem('sot_quiz_anon'); } catch (e) {}
+    try { const id = JSON.parse(localStorage.getItem('sot_quiz_identity') || 'null'); email = id && id.email; } catch (e) {}
+    const qs = new URLSearchParams();
+    if (anonId) qs.set('anonId', anonId);
+    if (email) qs.set('email', email);
+    let alive = true;
+    fetch('/api/quiz/daily-combined?' + qs.toString())
+      .then((r) => r.json())
+      .then((d) => { if (alive && d && d.me) setDailyMe({ ...d.me, maxTotal: d.maxTotal, gameCount: d.gameCount }); })
+      .catch(() => {});
+    return () => { alive = false; };
+  }, []);
+  const leftToPlay = dailyMe ? Math.max(0, (dailyMe.gameCount || 0) - (dailyMe.gamesPlayed || 0)) : 0;
   const meta = GAME_META[self] || GAME_META.crux;
   // On a win, the game's own celebratory badge + accent. On a loss, a neutral
   // badge and rust headline so the card never congratulates a miss.
@@ -198,6 +216,8 @@ export default function DailyEndCard({
         .dec-headline{font-size:22px;font-weight:800;margin:0 0 3px;letter-spacing:-.01em;}
         .dec-subline{font-size:13.5px;font-weight:700;color:${FADED};margin:0 0 14px;}
         .dec-btnrow{display:flex;gap:8px;justify-content:center;flex-wrap:wrap;}
+        .dec-chase{display:inline-flex;align-items:center;gap:6px;margin:2px 0 14px;padding:6px 12px;border-radius:999px;background:#eef3ff;border:1px solid #cddffb;color:#37506e;font-size:12.5px;font-weight:700;text-decoration:none;}
+        .dec-chase b{color:#1c1e24;}
         .dec-btn{font-family:${SANS};font-weight:800;font-size:13.5px;border:2px solid ${INK};background:#fff;color:${INK};border-radius:8px;padding:9px 14px;cursor:pointer;display:inline-flex;align-items:center;gap:6px;text-decoration:none;}
         .dec-btn.primary{color:#fff;}
         .dec-btn.ghost{border-color:#c3c8cf;color:${FADED};}
@@ -208,7 +228,7 @@ export default function DailyEndCard({
         .dec-head{display:flex;align-items:center;gap:7px;padding:8px 11px;color:#fff;}
         .dec-cname{font-size:12.5px;font-weight:800;letter-spacing:.01em;}
         .dec-here{margin-left:auto;font-size:8px;font-weight:800;text-transform:uppercase;letter-spacing:.06em;background:rgba(255,255,255,0.25);color:#fff;border-radius:4px;padding:1px 5px;white-space:nowrap;}
-        .dec-leaves{padding:5px 8px 8px;display:flex;flex-direction:column;gap:1px;flex:1 1 auto;}
+        .dec-leaves{padding:5px 8px 8px;display:flex;flex-direction:column;gap:3px;flex:1 1 auto;justify-content:space-between;}
         .dec-leaf{position:relative;display:flex;flex-direction:column;padding:5px 4px 5px 15px;border-radius:7px;text-decoration:none;}
         .dec-leaf:hover{background:rgba(28,30,36,0.05);}
         .dec-leaf:before{content:"";position:absolute;left:4px;top:-2px;height:13px;width:8px;border-left:1.5px solid rgba(28,30,36,0.22);border-bottom:1.5px solid rgba(28,30,36,0.22);border-bottom-left-radius:5px;}
@@ -229,6 +249,11 @@ export default function DailyEndCard({
         </div>
         <div className="dec-headline" style={{ color: headColor }}>{headline}</div>
         {subline ? <div className="dec-subline">{subline}</div> : null}
+        {dailyMe && dailyMe.total != null ? (
+          <a href="/daily" className="dec-chase">
+            <Trophy size={13} strokeWidth={2.2} /> You&rsquo;re <b>#{dailyMe.rank}</b> on today&rsquo;s daily board &middot; <b>{dailyMe.total}/{dailyMe.maxTotal}</b>{leftToPlay > 0 ? <> &middot; {leftToPlay} game{leftToPlay === 1 ? '' : 's'} left</> : null}
+          </a>
+        ) : null}
         <div className="dec-btnrow">
           <button type="button" className="dec-btn primary" style={{ background: meta.accent, borderColor: meta.accent }} onClick={onShare}>
             <Share2 size={15} strokeWidth={2} /> {shareLabel}

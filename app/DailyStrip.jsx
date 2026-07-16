@@ -13,6 +13,7 @@ import React, { useState, useEffect } from 'react';
 
 const GAMES = [
   { key: 'crux', href: '/crux', name: 'Crux', img: '/games/btn-crux.png', store: 'sot_crux_day' },
+  { key: 'emcee', href: '/emcee', name: 'Emcee', img: '/games/btn-emcee.png', store: 'sot_emcee_day' },
   { key: 'garble', href: '/garble', name: 'Garble', img: '/games/btn-garble.png', store: 'sot_garble_day' },
   { key: 'links', href: '/links', name: 'Links', img: '/games/btn-links.png', store: 'sot_links_day' },
   { key: 'span', href: '/span', name: 'Span', img: '/games/btn-span.png', store: 'sot_span_day' },

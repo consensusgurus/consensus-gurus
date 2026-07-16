@@ -31,7 +31,7 @@ export async function generateMetadata({ params }) {
   // Canonicalize them to the evergreen game URLs so the dated stubs don't
   // compete with /crux, /garble, /links, /span in search (they're also out
   // of the sitemap).
-  const GAME_URLS = { crux: '/crux', garble: '/garble', links: '/links', span: '/span', dating: '/dating', tally: '/tally', suds: '/suds', circa: '/circa', extra: '/extra', carve: '/carve' };
+  const GAME_URLS = { crux: '/crux', emcee: '/emcee', garble: '/garble', links: '/links', span: '/span', dating: '/dating', tally: '/tally', suds: '/suds', circa: '/circa', extra: '/extra', carve: '/carve' };
   const gameCanonical = GAME_URLS[quiz.format] || null;
 
   return {
@@ -64,6 +64,7 @@ export default function QuizPage({ params }) {
   // (Legacy id from the few hours it launched as Crosslock, 2026-07-06.)
   if (id === 'crosslock-7-6-26') redirect('/crux?p=1');
   if (quiz && quiz.format === 'crux') return <CruxRedirect num={quiz.cruxNum || null} />;
+  if (quiz && quiz.format === 'emcee') return <CruxRedirect num={quiz.gameNum || null} base="/emcee" />;
   if (quiz && quiz.format === 'garble') return <CruxRedirect num={quiz.gameNum || null} base="/garble" />;
   if (quiz && quiz.format === 'links') return <CruxRedirect num={quiz.gameNum || null} base="/links" />;
   if (quiz && quiz.format === 'span') return <CruxRedirect num={quiz.gameNum || null} base="/span" />;
