@@ -9,7 +9,6 @@ import { scoreGame, combineDaily, DAILY_KEYS, DAILY_MAX, GAME_MAX, BEST_N } from
 // so the combined board always scores whatever puzzle is CURRENTLY live in each
 // game (gap days included), never a naively date-reconstructed id.
 import { PUZZLES as P_crux } from '@/app/crux/puzzles';
-import { PUZZLES as P_emcee } from '@/app/emcee/puzzles';
 import { PUZZLES as P_garble } from '@/app/garble/puzzles';
 import { PUZZLES as P_links } from '@/app/links/puzzles';
 import { PUZZLES as P_span } from '@/app/span/puzzles';
@@ -28,7 +27,7 @@ export const fetchCache = 'force-no-store';
 const CACHE_HEADERS = { 'Cache-Control': 'public, s-maxage=30, stale-while-revalidate=90' };
 
 const GAME_PUZZLES = {
-  crux: P_crux, emcee: P_emcee, garble: P_garble, links: P_links, span: P_span, dating: P_dating,
+  crux: P_crux, garble: P_garble, links: P_links, span: P_span, dating: P_dating,
   tally: P_tally, suds: P_suds, circa: P_circa, extra: P_extra, carve: P_carve,
 };
 
@@ -46,14 +45,14 @@ function suffixOfDate(dateStr) {
   return `${M}-${D}-${Y % 100}`;
 }
 
-// The game's puzzle for a given date suffix, or null if it published none that
-// day (game didn't exist yet, or a gap). Never expose a future day's board.
-function quizIdForSuffix(puzzles, key, suffix, today) {
+// The game's puzzle object for a given date suffix, or null if it published none
+// that day (game didn't exist yet, or a gap). Never expose a future day's board.
+function puzzleForSuffix(puzzles, key, suffix, today) {
   const cand = `${key}-${suffix}`;
   const p = (puzzles || []).find((x) => x && x.quizId === cand);
   if (!p) return null;
   if (p.live && p.live > today) return null;
-  return cand;
+  return p;
 }
 
 const DISPLAY = 10; // overall rows returned (viewer's own row is always appended via `me`)
@@ -77,11 +76,16 @@ export async function GET(request) {
     suffix = m ? m[1] : suffixOfDate(today);
   }
 
-  // The games that ran on that date (skip any that didn't publish that day).
+  // The games that ran on that date (skip any that didn't publish that day). Each
+  // game gets a play href for THAT date: today's slate links to the live game
+  // (streak-counting), an archived day links to that exact puzzle via ?p=<num>.
+  const isToday = suffix === suffixOfDate(today);
   const games = [];
   for (const key of DAILY_KEYS) {
-    const quizId = quizIdForSuffix(GAME_PUZZLES[key], key, suffix, today);
-    if (quizId) games.push({ key, quizId });
+    const p = puzzleForSuffix(GAME_PUZZLES[key], key, suffix, today);
+    if (!p) continue;
+    const href = isToday ? `/${key}` : `/${key}?p=${p.num}`;
+    games.push({ key, quizId: p.quizId, num: p.num, href });
   }
   const wanted = new Set(games.map((g) => g.quizId));
   // Best-N and the ceiling scale to how many games existed that day (1..10).
@@ -112,7 +116,7 @@ export async function GET(request) {
       // field = registered first-attempt players on the board; plays = EVERY
       // completion for that puzzle (guests + repeats included), so the header can
       // show both "X registered players · X total plays".
-      return { key: g.key, quizId: g.quizId, field: gr.field, plays: gameRows.length, players: gr.players };
+      return { key: g.key, quizId: g.quizId, href: g.href, field: gr.field, plays: gameRows.length, players: gr.players };
     });
 
     const overallFull = combineDaily(gameResults);
@@ -131,6 +135,7 @@ export async function GET(request) {
     const gameBoards = gameResults.map((g) => ({
       key: g.key,
       quizId: g.quizId,
+      href: g.href,
       field: g.field,
       plays: g.plays,
       board: [...g.players.values()]

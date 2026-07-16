@@ -255,7 +255,7 @@ function GameBoard({ game, myKey, gameMax }) {
     <div>
       <style>{`.dclb-g{grid-template-columns:40px 1fr 60px 58px 66px;}@media(max-width:520px){.dclb-g{grid-template-columns:${gridSm};}.dclb-time{display:none;}}`}</style>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: 10 }}>
-        <div style={{ fontFamily: FONT, fontSize: 12, fontWeight: 800, color: (GAME_META[game.key] || {}).accent || T.goldL }}>{(GAME_META[game.key] || {}).name || game.key}</div>
+        <a href={game.href || `/${game.key}`} style={{ fontFamily: FONT, fontSize: 12, fontWeight: 800, color: (GAME_META[game.key] || {}).accent || T.goldL, textDecoration: 'none' }}>{(GAME_META[game.key] || {}).name || game.key} <span style={{ fontWeight: 700, opacity: 0.85 }}>&rarr;</span></a>
         <div style={{ fontFamily: FONT, fontSize: 11, color: T.slate }}>{(game.plays != null ? game.plays : game.field).toLocaleString()} {game.plays === 1 ? 'play' : 'plays'}</div>
       </div>
       <div className="dclb-g" style={{ display: 'grid', gap: 8, padding: '0 14px 8px', fontFamily: FONT, fontSize: 10, letterSpacing: '0.12em', textTransform: 'uppercase', color: T.dim }}>
