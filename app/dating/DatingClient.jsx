@@ -33,7 +33,7 @@ import JoinLeaderboardForm from '../quiz/[id]/JoinLeaderboardForm';
 import DailyGamesGrid from '../DailyGamesGrid';
 import DailyEndCard from '../DailyEndCard';
 import DailyTopNav from '../DailyTopNav';
-import QuizLeaderboard from '../quiz/[id]/QuizLeaderboard';
+import DailyCombinedLeaderboard from '../quiz/[id]/DailyCombinedLeaderboard';
 import { isMobileDevice } from '@/lib/is-mobile';
 
 const COLORS = {
@@ -748,7 +748,7 @@ export default function DatingClient({ puzzles = [], forceNum = null }) {
         </div>
         )}
         <div id="daily-leaderboard" style={{ display: focusMode ? 'none' : 'block', maxWidth: 620, margin: '26px auto 0', background: '#fff', border: '1.5px solid rgba(20,22,28,0.12)', borderRadius: 12, padding: '14px 16px' }}>
-          <QuizLeaderboard daily board={board} identity={identity} total={10} guessLabel="Checks" />
+          <DailyCombinedLeaderboard todayKey="dating" identity={identity} />
         </div>
       </div>
 

@@ -7,6 +7,7 @@
 // matches the daily pages' ink-and-paper look without depending on any game CSS.
 
 import React, { useState, useEffect } from 'react';
+import DailyCombinedLeaderboard from '../quiz/[id]/DailyCombinedLeaderboard';
 
 const SANS = "'Manrope', system-ui, -apple-system, sans-serif";
 const MONO = "'DM Mono', ui-monospace, 'SFMono-Regular', monospace";
@@ -131,6 +132,10 @@ export default function DailyArchiveClient({ games = [] }) {
           <span><span style={{ color: GREEN, fontWeight: 900 }}>&#10003;</span> Played</span>
           <span><span style={{ color: GOLD, fontWeight: 900 }}>&#9733;</span> Completed</span>
           <span><span className="dl-sun-tag" style={{ marginRight: 5 }}>Sun</span> Sunday edition &mdash; bigger &amp; tougher</span>
+        </div>
+
+        <div style={{ marginTop: 20 }}>
+          <DailyCombinedLeaderboard compact todayKey={null} />
         </div>
 
         {games.map((g) => {
