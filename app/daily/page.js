@@ -6,6 +6,9 @@ import { PUZZLES as SPAN } from '../span/puzzles';
 import { PUZZLES as DATING } from '../dating/puzzles';
 import { PUZZLES as TALLY } from '../tally/puzzles';
 import { PUZZLES as SUDS } from '../suds/puzzles';
+import { PUZZLES as CARVE } from '../carve/puzzles';
+import { PUZZLES as CIRCA } from '../circa/puzzles';
+import { PUZZLES as EXTRA } from '../extra/puzzles';
 
 // The daily-games hub + archive. One page listing every daily game, each with
 // today's puzzle and its full back-catalog of past drops (live<=today only, so
@@ -13,14 +16,14 @@ import { PUZZLES as SUDS } from '../suds/puzzles';
 // client-side from each game's per-puzzle localStorage save.
 
 export const metadata = {
-  title: 'Daily Games — Crux, Garble, Links, Span, Dating & Tally | Source of Truths',
+  title: 'Daily Games — Crux, Garble, Links, Span & More | Source of Truths',
   description:
-    "Every Source of Truths daily game in one place: today's puzzle and the full archive for Crux, Garble, Links, Span, Dating, and Tally. A new puzzle in each, every day.",
+    "Every Source of Truths daily game in one place: today's puzzle and the full archive for Crux, Garble, Links, Span, Dating, Tally, Suds, Circa, Extra, and Carve. A new puzzle in each, every day.",
   alternates: { canonical: '/daily' },
   openGraph: {
     title: 'Daily Games — Source of Truths',
     description:
-      "Today's puzzle and the full archive for every daily game: Crux, Garble, Links, Span, Dating, and Tally.",
+      "Today's puzzle and the full archive for every daily game: Crux, Garble, Links, Span, Dating, Tally, Suds, Circa, Extra, and Carve.",
     url: '/daily',
     type: 'website',
     siteName: 'Source of Truths',
@@ -56,6 +59,9 @@ const GAMES = [
   { key: 'dating', name: 'Dating', path: '/dating', tag: 'Put five moments in order', accent: '#6d28d9', bg: '#f5f0ff', border: 'rgba(124,58,237,0.4)', src: DATING },
   { key: 'tally', name: 'Tally', path: '/tally', tag: 'Balance every row and column', accent: '#15803d', bg: '#eefaf1', border: 'rgba(21,128,61,0.45)', src: TALLY },
   { key: 'suds', name: 'Suds', path: '/suds', tag: 'Fill the 9×9 grid, 1–9', accent: '#ea580c', bg: '#fff5ed', border: 'rgba(234,88,12,0.4)', src: SUDS },
+  { key: 'carve', name: 'Carve', path: '/carve', tag: 'Carve the grid into equal sums', accent: '#7c3aed', bg: '#f5f0ff', border: 'rgba(124,58,237,0.4)', src: CARVE },
+  { key: 'circa', name: 'Circa', path: '/circa', tag: 'Pin the year of the moment', accent: '#0e7490', bg: '#e8f7fa', border: 'rgba(14,116,144,0.4)', src: CIRCA },
+  { key: 'extra', name: 'Extra', path: '/extra', tag: 'Unredact the front page', accent: '#b91c1c', bg: '#fdeeee', border: 'rgba(185,28,28,0.4)', src: EXTRA },
 ];
 
 const breadcrumbJsonLd = {

@@ -1,0 +1,118 @@
+import { Suspense } from 'react';
+import CircaClient from './CircaClient';
+import { PUZZLES } from './puzzles';
+
+// Circa launched 2026-07-15 as the eighth daily: linked from the daily strip,
+// the footer, the /daily archive, and the sitemap (/circa is the canonical,
+// evergreen URL — the dated /quiz/circa-* stubs canonicalize here). One
+// historical moment a day, six guesses to pin its exact year; Sundays are the
+// same hunt with a trickier moment.
+
+export const metadata = {
+  title: 'Circa — Daily History Game: Guess the Year | Source of Truths',
+  description:
+    'A free daily history game — one famous moment, six guesses to pin the exact year. Every miss plays hot and cold: earlier or later, and how close you are. Land within three years to solve it; a dead-on first guess is a perfect score.',
+  alternates: { canonical: '/circa' },
+  manifest: '/circa.webmanifest',
+  icons: {
+    icon: [{ url: '/circa-icons/favicon-32.png', sizes: '32x32', type: 'image/png' }],
+    apple: [{ url: '/circa-icons/apple-touch-icon.png', sizes: '180x180', type: 'image/png' }],
+  },
+  appleWebApp: { capable: true, statusBarStyle: 'black-translucent', title: 'Circa' },
+  openGraph: {
+    title: 'Circa — The Daily Year Hunt',
+    description:
+      'One historical moment a day. Six guesses to pin the exact year — every miss tells you earlier or later, hotter or colder. From Source of Truths.',
+    url: '/circa',
+    type: 'website',
+    siteName: 'Source of Truths',
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'Circa — The Daily Year Hunt',
+    description:
+      'One historical moment a day. Six guesses to pin the exact year — hot-and-cold feedback on every miss.',
+  },
+};
+
+const gameJsonLd = {
+  '@context': 'https://schema.org',
+  '@type': 'Game',
+  name: 'Circa',
+  alternateName: 'Circa — Daily History Game',
+  url: 'https://sourceoftruths.com/circa',
+  description:
+    'A free daily history game: one famous moment, six guesses to pin the exact year it happened. Hot-and-cold feedback after every guess — land within three years to solve it, and hit the exact year for a perfect score.',
+  genre: ['History game', 'Trivia game', 'Guessing game', 'Puzzle'],
+  gamePlatform: 'Web browser',
+  isAccessibleForFree: true,
+  inLanguage: 'en',
+  numberOfPlayers: { '@type': 'QuantitativeValue', minValue: 1, maxValue: 1 },
+  image: 'https://sourceoftruths.com/quiz-heroes/circa.png',
+  publisher: {
+    '@type': 'Organization',
+    name: 'Source of Truths',
+    url: 'https://sourceoftruths.com',
+  },
+};
+
+const breadcrumbJsonLd = {
+  '@context': 'https://schema.org',
+  '@type': 'BreadcrumbList',
+  itemListElement: [
+    { '@type': 'ListItem', position: 1, name: 'Home', item: 'https://sourceoftruths.com' },
+    { '@type': 'ListItem', position: 2, name: 'Quizzes', item: 'https://sourceoftruths.com/quizzes' },
+    { '@type': 'ListItem', position: 3, name: 'Circa' },
+  ],
+};
+
+export const dynamic = 'force-dynamic';
+
+function etTodayServer() {
+  try { return new Date().toLocaleDateString('en-CA', { timeZone: 'America/New_York' }); }
+  catch (e) { return new Date().toISOString().slice(0, 10); }
+}
+
+function ComingSoon({ first }) {
+  // Rendered only if no puzzle is live yet (before the first drop). Never crash
+  // the route on an empty visible set — show a friendly placeholder instead.
+  return (
+    <div style={{ minHeight: '100vh', background: '#f7f8fa', fontFamily: "'Manrope', system-ui, sans-serif", display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 24 }}>
+      <div style={{ textAlign: 'center', maxWidth: 420 }}>
+        <div style={{ display: 'flex', gap: 5, justifyContent: 'center', marginBottom: 18 }}>
+          {'CIRCA'.split('').map((ch, i) => (
+            <div key={i} style={{ width: 44, height: 44, borderRadius: 5, display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 900, fontSize: 26, background: i === 4 ? '#0e7490' : '#1c1e24', color: '#fff', boxShadow: 'inset 0 2px 5px rgba(0,0,0,0.5), 0 1px 0 rgba(255,255,255,0.65)' }}>{ch}</div>
+          ))}
+        </div>
+        <h1 style={{ fontSize: 24, fontWeight: 800, color: '#1c1e24', margin: '0 0 8px' }}>Circa launches {first ? first.dateLabel : 'soon'}.</h1>
+        <p style={{ fontSize: 15, color: '#6b7280', fontWeight: 600, lineHeight: 1.5, margin: '0 0 18px' }}>
+          The daily year hunt — one historical moment, six guesses to pin the exact year. Come back when the first moment drops.
+        </p>
+        <a href="/daily" style={{ color: '#0e7490', fontWeight: 800, textDecoration: 'underline' }}>See the other daily games &rarr;</a>
+      </div>
+    </div>
+  );
+}
+
+export default function CircaPage({ searchParams }) {
+  const today = etTodayServer();
+  const visiblePuzzles = PUZZLES.filter((p) => p.live <= today);
+  if (!visiblePuzzles.length) return <ComingSoon first={PUZZLES[0]} />;
+  const n = Number(searchParams && searchParams.p);
+  const forceNum = Number.isInteger(n) && n > 0 ? n : null;
+  return (
+    <>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(gameJsonLd) }}
+      />
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbJsonLd) }}
+      />
+      <Suspense fallback={null}>
+        <CircaClient key={forceNum || 'today'} puzzles={visiblePuzzles} forceNum={forceNum} />
+      </Suspense>
+    </>
+  );
+}

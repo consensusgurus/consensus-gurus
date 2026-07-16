@@ -1,0 +1,16 @@
+{
+  "id": "/carve",
+  "name": "Carve — Daily Equal-Sum Puzzle",
+  "short_name": "Carve",
+  "description": "Slice the grid into connected blocks that all add to the same target. Exactly one valid carving. A new board every day from Source of Truths.",
+  "start_url": "/carve?src=pwa",
+  "scope": "/",
+  "display": "standalone",
+  "background_color": "#f7f8fa",
+  "theme_color": "#f7f8fa",
+  "icons": [
+    { "src": "/carve-icons/icon-192.png", "sizes": "192x192", "type": "image/png" },
+    { "src": "/carve-icons/icon-512.png", "sizes": "512x512", "type": "image/png" },
+    { "src": "/carve-icons/icon-512-maskable.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ]
+}

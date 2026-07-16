@@ -668,7 +668,7 @@ export default function SpanClient({ puzzles = [], forceNum = null }) {
         <div style={{ maxWidth: 620, margin: '0 auto' }}>
 
         {/* game-native top strip (Crux pattern): quiet nav + player chip */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: 18, marginBottom: 20, flexWrap: 'wrap' }}>
+        <div style={{ display: playing ? 'none' : 'flex', alignItems: 'center', gap: 18, marginBottom: 20, flexWrap: 'wrap' }}>
           <a href="/quizzes" style={{ fontFamily: MONO, fontSize: 11, letterSpacing: '0.12em', textTransform: 'uppercase', color: COLORS.faded, textDecoration: 'none', borderBottom: '1px solid rgba(28,30,36,0.25)', paddingBottom: 1 }}>Quizzes</a>
           <a href="/" style={{ fontFamily: MONO, fontSize: 11, letterSpacing: '0.12em', textTransform: 'uppercase', color: COLORS.faded, textDecoration: 'none', borderBottom: '1px solid rgba(28,30,36,0.25)', paddingBottom: 1 }}>Top 10 Lists</a>
           {player && (
@@ -831,7 +831,7 @@ export default function SpanClient({ puzzles = [], forceNum = null }) {
         )}
 
         {/* standard quiz-page bottom: challenge + stats + join + leaderboard */}
-        <div style={{ margin: '30px auto 0' }}>
+        <div style={{ display: playing ? 'none' : 'block', margin: '30px auto 0' }}>
           <DailyGamesGrid
             self="span"
             maxWidth={620}
@@ -864,7 +864,7 @@ export default function SpanClient({ puzzles = [], forceNum = null }) {
             </div>
           </div>
         )}
-        {!identity && (
+        {!playing && !identity && (
           <div style={{ margin: '18px auto 0' }}>
             <JoinLeaderboardForm hideIcon heading="See your stats and join the leaderboard" identity={identity} onJoined={(id) => { setIdentity(id); if (id && id.username) setPlayer((p) => p || { name: id.username, rank: null }); }} />
           </div>
@@ -872,7 +872,7 @@ export default function SpanClient({ puzzles = [], forceNum = null }) {
         </div>
 
         {/* your stats — sits directly above the leaderboard */}
-        {identity && (
+        {!playing && identity && (
         <div style={{ maxWidth: 620, margin: '20px auto 0' }}>
           <div style={{ fontFamily: MONO, fontSize: 10.5, fontWeight: 500, textTransform: 'uppercase', letterSpacing: '0.1em', color: COLORS.faded, marginBottom: 9 }}>Your stats</div>
           <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
@@ -890,7 +890,7 @@ export default function SpanClient({ puzzles = [], forceNum = null }) {
           </div>
         </div>
         )}
-        <div style={{ maxWidth: 620, margin: '26px auto 0', background: '#fff', border: '1.5px solid rgba(20,22,28,0.12)', borderRadius: 12, padding: '14px 16px' }}>
+        <div style={{ display: playing ? 'none' : 'block', maxWidth: 620, margin: '26px auto 0', background: '#fff', border: '1.5px solid rgba(20,22,28,0.12)', borderRadius: 12, padding: '14px 16px' }}>
           <QuizLeaderboard daily board={board} identity={identity} total={10} guessLabel="Misses" />
         </div>
       </div>
@@ -951,7 +951,7 @@ export default function SpanClient({ puzzles = [], forceNum = null }) {
       )}
 
       {/* About Span — crawlable prose for search, server-rendered into the initial HTML */}
-      <section style={{ position: 'relative', zIndex: 2, maxWidth: 620, margin: '0 auto', padding: '10px 24px 42px', fontFamily: SANS }}>
+      <section style={{ position: 'relative', display: playing ? 'none' : 'block', zIndex: 2, maxWidth: 620, margin: '0 auto', padding: '10px 24px 42px', fontFamily: SANS }}>
         <h2 style={{ margin: '0 0 8px', fontSize: 15, fontWeight: 800, letterSpacing: '-0.01em', color: COLORS.ink }}>About Span</h2>
         <p style={{ margin: '0 0 8px', fontSize: 13, lineHeight: 1.65, color: COLORS.faded, fontWeight: 600 }}>
           Span is a free daily geography game from Source of Truths. Each day hands you two countries; your job is to connect them with the shortest chain of land borders you can find. Match the shortest path on the map and you&apos;ve spanned the day.
@@ -964,7 +964,7 @@ export default function SpanClient({ puzzles = [], forceNum = null }) {
         </p>
       </section>
 
-      <div style={{ position: 'relative', zIndex: 2 }}><Footer /></div>
+      <div style={{ position: 'relative', zIndex: 2, display: playing ? 'none' : 'block' }}><Footer /></div>
     </div>
   );
 }

@@ -1,0 +1,16 @@
+{
+  "id": "/circa",
+  "name": "Circa — Daily History Game",
+  "short_name": "Circa",
+  "description": "One historical moment a day. Six guesses to pin the exact year - every miss tells you earlier or later, hotter or colder. From Source of Truths.",
+  "start_url": "/circa?src=pwa",
+  "scope": "/",
+  "display": "standalone",
+  "background_color": "#f7f8fa",
+  "theme_color": "#f7f8fa",
+  "icons": [
+    { "src": "/circa-icons/icon-192.png", "sizes": "192x192", "type": "image/png" },
+    { "src": "/circa-icons/icon-512.png", "sizes": "512x512", "type": "image/png" },
+    { "src": "/circa-icons/icon-512-maskable.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ]
+}

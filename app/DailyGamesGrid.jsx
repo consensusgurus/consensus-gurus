@@ -24,6 +24,9 @@ const GAMES = [
   { key: 'dating', href: '/dating', name: 'Dating', tag: 'Put history in order', img: '/games/btn-dating.png', label: 'Daily' },
   { key: 'tally', href: '/tally', name: 'Tally', tag: 'Balance the books', img: '/games/btn-tally.png', label: 'Daily' },
   { key: 'suds', href: '/suds', name: 'Suds', tag: 'The daily sudoku', img: '/games/btn-suds.png', label: 'Daily' },
+  { key: 'carve', href: '/carve', name: 'Carve', tag: 'Equal-sum blocks', img: '/games/btn-carve.png', label: 'Daily' },
+  { key: 'circa', href: '/circa', name: 'Circa', tag: 'Guess the year', img: '/games/btn-circa.png', label: 'Daily' },
+  { key: 'extra', href: '/extra', name: 'Extra', tag: 'Name the story', img: '/games/btn-extra.png', label: 'Daily' },
 ];
 // The evergreen fill tile: the site's most-played quiz, so the games block is
 // always a full 2-wide even though there are only three "other" dailies.

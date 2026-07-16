@@ -922,13 +922,14 @@ export default function QuizHomeClient() {
   const lastPlayed = useMemo(() => {
     // Multiplier: how many of the recent raw plays (across the whole fetched
     // feed, which now reaches back ~1000 games) were this quiz, so repeat plays
-    // hidden by the distinct-quiz dedupe still surface as "xN". Capped x99. The
+    // hidden by the distinct-quiz dedupe still surface as "xN". Capped x99.9k
+    // (rendered as e.g. x1.2k / x99.9k by fmtMult in the badge below). The
     // deep window lets the distinct-quiz list fill its 5 rows even when the
     // newest plays are dominated by a single quiz.
     const windowCounts = {};
     for (const f of liveAll) { if (f && f.quizId) windowCounts[f.quizId] = (windowCounts[f.quizId] || 0) + 1; }
     const seen = new Set(); const out = [];
-    for (const f of liveAll) { if (!f || !f.quizId || seen.has(f.quizId)) continue; seen.add(f.quizId); out.push({ ...f, mult: Math.min(99, windowCounts[f.quizId] || 1) }); if (out.length >= 15) break; }
+    for (const f of liveAll) { if (!f || !f.quizId || seen.has(f.quizId)) continue; seen.add(f.quizId); out.push({ ...f, mult: Math.min(99900, windowCounts[f.quizId] || 1) }); if (out.length >= 15) break; }
     return out;
   }, [liveAll]);
   // Newest-tile hero resolves deterministically from QUIZ_HEROES / DEPT_HERO (no async lookup, so it never flashes a fallback photo first).
@@ -1705,7 +1706,7 @@ export default function QuizHomeClient() {
         ) : (
           <div className="qcols">
             <BrowseColumn label={<>Last Played{playsToday ? <span style={{ fontSize: 10.5, fontWeight: 700, color: 'rgba(255,255,255,0.82)' }}> · {playsToday.toLocaleString()} plays today</span> : null}</>} Icon={Play} color="#10b981" tint="#d8f3e6" filled fill baseCount={5}
-              rows={lastPlayed.map((f) => ({ q: { id: f.quizId, title: f.title, rawTitle: f.title }, right: (<>{f.mult > 1 ? <span style={{ fontSize: 10, fontWeight: 800, color: '#10b981', background: '#d8f3e6', borderRadius: 6, padding: '1px 6px' }}>×{f.mult}</span> : null}<span className="score" style={{ fontSize: 11, color: f.total && f.score / f.total >= 0.8 ? '#16a34a' : C.soft }}>{f.score}/{f.total}</span><span style={{ color: C.soft }}>{relTime(f.playedAt)}</span></>) }))} cta="View all ›" onCta={() => setListMode('live')} />
+              rows={lastPlayed.map((f) => ({ q: { id: f.quizId, title: f.title, rawTitle: f.title }, right: (<>{f.mult > 1 ? <span style={{ fontSize: 10, fontWeight: 800, color: '#10b981', background: '#d8f3e6', borderRadius: 6, padding: '1px 6px' }}>×{fmtMult(f.mult)}</span> : null}<span className="score" style={{ fontSize: 11, color: f.total && f.score / f.total >= 0.8 ? '#16a34a' : C.soft }}>{f.score}/{f.total}</span><span style={{ color: C.soft }}>{relTime(f.playedAt)}</span></>) }))} cta="View all ›" onCta={() => setListMode('live')} />
             <BrowseColumn label="Most Played" Icon={Flame} color="#c2691c" tint="#f4e2cd" filled fill baseCount={5}
               rows={mostPlayed.map((q) => ({ q, right: <PlaysRight id={q.id} plays={plays} leader={leader} leaderKey={leaderKey} color="#c2691c" hidePlays /> }))} cta="View all ›" onCta={() => setListMode('mostplayed')} />
             <BrowseColumn label="Newest" Icon={Sparkles} color={C.accent} tint={C.accsoft} filled fill baseCount={5}
@@ -1760,6 +1761,12 @@ export default function QuizHomeClient() {
   );
 }
 
+// Compact play-count badge label: 1..999 shown as-is, 1000..99900 as "1k".."99.9k".
+function fmtMult(n) {
+  if (!Number.isFinite(n)) return n;
+  if (n < 1000) return String(n);
+  return `${(n / 1000).toFixed(1).replace(/\.0$/, '')}k`;
+}
 function fmtAvgTime(s, plays) {
   if (!plays || !Number.isFinite(s) || s <= 0) return '—';
   const avg = Math.round(s / plays);

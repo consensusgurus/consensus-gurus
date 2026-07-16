@@ -913,7 +913,7 @@ export default function CruxClient({ puzzles = [], forceNum = null }) {
         {/* Crux-native top strip: quiet nav out to the rest of the site,
             player name + rank on the right. The shared site header is gone —
             Crux stands as its own identity (owner ruling 2026-07-12). */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: 18, marginBottom: 20, flexWrap: 'wrap' }}>
+        <div style={{ display: playing ? 'none' : 'flex', alignItems: 'center', gap: 18, marginBottom: 20, flexWrap: 'wrap' }}>
           <a href="/quizzes" style={{ fontFamily: MONO, fontSize: 11, letterSpacing: '0.12em', textTransform: 'uppercase', color: COLORS.faded, textDecoration: 'none', borderBottom: '1px solid rgba(28,30,36,0.25)', paddingBottom: 1 }}>Quizzes</a>
           <a href="/" style={{ fontFamily: MONO, fontSize: 11, letterSpacing: '0.12em', textTransform: 'uppercase', color: COLORS.faded, textDecoration: 'none', borderBottom: '1px solid rgba(28,30,36,0.25)', paddingBottom: 1 }}>Top 10 Lists</a>
           {player && (
@@ -1150,7 +1150,7 @@ export default function CruxClient({ puzzles = [], forceNum = null }) {
         </div>
 
         {/* standard quiz-page bottom: challenge + join + leaderboard (always) */}
-        <div style={{ maxWidth: 640, margin: '36px auto 0' }}>
+        <div style={{ display: playing ? 'none' : 'block', maxWidth: 640, margin: '36px auto 0' }}>
           <DailyGamesGrid
           self="crux"
           maxWidth={640}
@@ -1184,13 +1184,13 @@ export default function CruxClient({ puzzles = [], forceNum = null }) {
             </div>
           </div>
         )}
-        {!identity && (
+        {!playing && !identity && (
           <div style={{ maxWidth: 640, margin: '18px auto 0' }}>
             <JoinLeaderboardForm hideIcon heading="See your stats and join the leaderboard" identity={identity} onJoined={(id) => { setIdentity(id); if (id && id.username) setPlayer((p) => p || { name: id.username, rank: null }); }} />
           </div>
         )}
         {/* your stats: sits directly above the leaderboard */}
-        {identity && (
+        {!playing && identity && (
         <div style={{ maxWidth: 640, margin: '20px auto 0' }}>
           <div style={{ fontFamily: MONO, fontSize: 10.5, fontWeight: 500, textTransform: 'uppercase', letterSpacing: '0.1em', color: COLORS.faded, marginBottom: 9 }}>Your stats</div>
           <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
@@ -1208,11 +1208,11 @@ export default function CruxClient({ puzzles = [], forceNum = null }) {
           </div>
         </div>
         )}
-        <div style={{ maxWidth: 640, margin: '26px auto 0', background: '#fff', border: '1.5px solid rgba(20,22,28,0.12)', borderRadius: 12, padding: '14px 16px' }}>
+        <div style={{ display: playing ? 'none' : 'block', maxWidth: 640, margin: '26px auto 0', background: '#fff', border: '1.5px solid rgba(20,22,28,0.12)', borderRadius: 12, padding: '14px 16px' }}>
           <QuizLeaderboard daily board={board} identity={identity} total={PUZZLE.slots.length * 2} />
         </div>
 
-        <p style={{ textAlign: 'center', fontSize: 12, fontStyle: 'italic', fontWeight: 600, color: COLORS.faded, margin: '34px 0 0' }}>For WMM, in memoriam.</p>
+        {!playing && (<p style={{ textAlign: 'center', fontSize: 12, fontStyle: 'italic', fontWeight: 600, color: COLORS.faded, margin: '34px 0 0' }}>For WMM, in memoriam.</p>)}
       </div>
 
       {/* the win moment: the category colors sweep the grid, then the keepsake
@@ -1271,7 +1271,7 @@ export default function CruxClient({ puzzles = [], forceNum = null }) {
       )}
 
       {/* About Crux — crawlable prose for search, server-rendered into the initial HTML */}
-      <section style={{ position: 'relative', zIndex: 2, maxWidth: 640, margin: '0 auto', padding: '10px 24px 42px', fontFamily: SANS }}>
+      <section style={{ position: 'relative', display: playing ? 'none' : 'block', zIndex: 2, maxWidth: 640, margin: '0 auto', padding: '10px 24px 42px', fontFamily: SANS }}>
         <h2 style={{ margin: '0 0 8px', fontSize: 15, fontWeight: 800, letterSpacing: '-0.01em', color: COLORS.ink }}>About Crux</h2>
         <p style={{ margin: '0 0 8px', fontSize: 13, lineHeight: 1.65, color: COLORS.faded, fontWeight: 600 }}>
           Crux is a free daily word game from Source of Truths &mdash; a clueless crossword. Eight hidden words (twelve in the Sunday Edition) interlock in a compact grid, and the only hints are four visible categories; working out which words belong to them is the puzzle.
@@ -1284,7 +1284,7 @@ export default function CruxClient({ puzzles = [], forceNum = null }) {
         </p>
       </section>
 
-      <div style={{ position: 'relative', zIndex: 2 }}><Footer /></div>
+      <div style={{ position: 'relative', zIndex: 2, display: playing ? 'none' : 'block' }}><Footer /></div>
     </div>
   );
 }

@@ -18,6 +18,9 @@ export const DAILY_GAMES = [
   { key: 'dating', href: '/dating', name: 'Dating', tag: 'put five moments in order', store: 'sot_dating_day', accent: '#6d28d9', bg: '#f5f0ff', border: 'rgba(124,58,237,0.4)' },
   { key: 'tally', href: '/tally', name: 'Tally', tag: 'balance every row and column', store: 'sot_tally_day', accent: '#15803d', bg: '#eefaf1', border: 'rgba(21,128,61,0.45)' },
   { key: 'suds', href: '/suds', name: 'Suds', tag: 'the daily 9×9 sudoku', store: 'sot_suds_day', accent: '#ea580c', bg: '#fff5ed', border: 'rgba(234,88,12,0.4)' },
+  { key: 'carve', href: '/carve', name: 'Carve', tag: 'carve the grid into equal sums', store: 'sot_carve_day', accent: '#7c3aed', bg: '#f5f0ff', border: 'rgba(124,58,237,0.4)' },
+  { key: 'circa', href: '/circa', name: 'Circa', tag: 'pin the year of the moment', store: 'sot_circa_day', accent: '#0e7490', bg: '#e8f7fa', border: 'rgba(14,116,144,0.4)' },
+  { key: 'extra', href: '/extra', name: 'Extra', tag: 'unredact the front page', store: 'sot_extra_day', accent: '#b91c1c', bg: '#fdeeee', border: 'rgba(185,28,28,0.4)' },
 ];
 
 function etToday() {
