@@ -24,6 +24,7 @@ import DailyGamesPromo from '../DailyGamesPromo';
 import useDuelContext, { DuelBanner } from '../quiz/[id]/useDuelContext';
 import JoinLeaderboardForm from '../quiz/[id]/JoinLeaderboardForm';
 import DailyGamesGrid from '../DailyGamesGrid';
+import DailyEndCard from '../DailyEndCard';
 import QuizLeaderboard from '../quiz/[id]/QuizLeaderboard';
 import { isMobileDevice } from '@/lib/is-mobile';
 
@@ -1101,27 +1102,26 @@ export default function CruxClient({ puzzles = [], forceNum = null }) {
 
           {/* result */}
           {!playing && (
-            <div style={{ background: '#fff', border: `2px solid ${COLORS.ink}`, borderRadius: 12, padding: '16px 16px 14px', marginBottom: 14 }}>
-              <div style={{ fontSize: 19, fontWeight: 800, color: won ? COLORS.ember : COLORS.rust, marginBottom: 4 }}>
-                {Math.round(((won ? PUZZLE.slots.length * 2 : g.order.length + (g.filedRight || 0)) / (PUZZLE.slots.length * 2)) * 100)}% Complete
-              </div>
-              <div style={{ fontSize: 13.5, fontWeight: 700, color: COLORS.faded, marginBottom: (isTodays && myStats.cur >= 2) ? 6 : 12 }}>
-                {won
-                  ? <>{guessesUsed} guesses &middot; {elapsed}{g.hintUsed ? <> &middot; 1 hint</> : null}</>
-                  : g.filedRight != null
-                    ? <>{g.order.length}/{PUZZLE.slots.length} words &middot; {g.filedRight}/{PUZZLE.slots.length} placements &middot; the reveal is on the board</>
-                    : <>{g.order.length} of {PUZZLE.slots.length} words &middot; the reveal is on the board</>}
-              </div>
+            <>
+            <DailyEndCard
+              self="crux"
+              won={won}
+              headline={<>{Math.round(((won ? PUZZLE.slots.length * 2 : g.order.length + (g.filedRight || 0)) / (PUZZLE.slots.length * 2)) * 100)}% Complete</>}
+              subline={<>{won
+                ? <>{guessesUsed} guesses &middot; {elapsed}{g.hintUsed ? <> &middot; 1 hint</> : null}</>
+                : g.filedRight != null
+                  ? <>{g.order.length}/{PUZZLE.slots.length} words &middot; {g.filedRight}/{PUZZLE.slots.length} placements &middot; the reveal is on the board</>
+                  : <>{g.order.length} of {PUZZLE.slots.length} words &middot; the reveal is on the board</>}</>}
+              onShare={copyShare}
+              shareLabel={copied ? 'Copied' : 'Share Result'}
+              onReplay={resetGame}
+              onClose={() => setJustWon(false)}
+            />
               {isTodays && myStats.cur >= 2 && (
                 <div style={{ fontSize: 13, fontWeight: 800, marginBottom: 12, display: 'flex', gap: 12, flexWrap: 'wrap' }}>
                   <span style={{ color: '#b45309' }}>{myStats.cur}-day streak</span>
                 </div>
               )}
-              <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
-                <button className="cl-btn" onClick={copyShare}><Share2 size={15} /> {copied ? 'Copied' : 'Share result'}</button>
-                <button className="cl-btn" onClick={resetGame} style={{ borderColor: '#c3c8cf', color: COLORS.faded }}><RotateCcw size={15} /> Replay</button>
-              </div>
-              <DailyGamesPromo self="crux" refresh={g.status} />
               <p style={{ fontSize: 12, color: COLORS.faded, fontWeight: 600, margin: '12px 0 0' }}>
                 {isTodays ? (
                   <>
@@ -1144,7 +1144,7 @@ export default function CruxClient({ puzzles = [], forceNum = null }) {
                   </>
                 )}
               </p>
-            </div>
+            </>
           )}
         </div>
         </div>
@@ -1208,7 +1208,7 @@ export default function CruxClient({ puzzles = [], forceNum = null }) {
           </div>
         </div>
         )}
-        <div style={{ display: playing ? 'none' : 'block', maxWidth: 640, margin: '26px auto 0', background: '#fff', border: '1.5px solid rgba(20,22,28,0.12)', borderRadius: 12, padding: '14px 16px' }}>
+        <div id="daily-leaderboard" style={{ display: playing ? 'none' : 'block', maxWidth: 640, margin: '26px auto 0', background: '#fff', border: '1.5px solid rgba(20,22,28,0.12)', borderRadius: 12, padding: '14px 16px' }}>
           <QuizLeaderboard daily board={board} identity={identity} total={PUZZLE.slots.length * 2} />
         </div>
 

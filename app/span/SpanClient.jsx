@@ -34,6 +34,8 @@ import DailyGamesPromo from '../DailyGamesPromo';
 import useDuelContext, { DuelBanner } from '../quiz/[id]/useDuelContext';
 import JoinLeaderboardForm from '../quiz/[id]/JoinLeaderboardForm';
 import DailyGamesGrid from '../DailyGamesGrid';
+import DailyEndCard from '../DailyEndCard';
+import DailyTopNav from '../DailyTopNav';
 import QuizLeaderboard from '../quiz/[id]/QuizLeaderboard';
 import { isMobileDevice } from '@/lib/is-mobile';
 import { buildAdj, buildLookup, shortestRoute, viaRoute, distancesFrom, normName, COUNTRIES } from './borders';
@@ -668,17 +670,7 @@ export default function SpanClient({ puzzles = [], forceNum = null }) {
         <div style={{ maxWidth: 620, margin: '0 auto' }}>
 
         {/* game-native top strip (Crux pattern): quiet nav + player chip */}
-        <div style={{ display: playing ? 'none' : 'flex', alignItems: 'center', gap: 18, marginBottom: 20, flexWrap: 'wrap' }}>
-          <a href="/quizzes" style={{ fontFamily: MONO, fontSize: 11, letterSpacing: '0.12em', textTransform: 'uppercase', color: COLORS.faded, textDecoration: 'none', borderBottom: '1px solid rgba(28,30,36,0.25)', paddingBottom: 1 }}>Quizzes</a>
-          <a href="/" style={{ fontFamily: MONO, fontSize: 11, letterSpacing: '0.12em', textTransform: 'uppercase', color: COLORS.faded, textDecoration: 'none', borderBottom: '1px solid rgba(28,30,36,0.25)', paddingBottom: 1 }}>Top 10 Lists</a>
-          {player && (
-            <a href={player.key ? `/quizzes/hub?player=${encodeURIComponent(player.key)}` : '/quizzes/hub'} title="Your Stat Hub"
-              style={{ marginLeft: 'auto', display: 'inline-flex', alignItems: 'center', gap: 7, fontFamily: MONO, fontSize: 11, letterSpacing: '0.06em', color: COLORS.ink, background: PAPER, border: '1.5px solid rgba(28,30,36,0.35)', borderRadius: 5, padding: '4px 10px', textDecoration: 'none' }}>
-              <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', maxWidth: 150, fontWeight: 500 }}>{player.name}</span>
-              {player.rank ? <span style={{ color: COLORS.ember, fontWeight: 500 }}>Rank #{player.rank}</span> : null}
-            </a>
-          )}
-        </div>
+        <DailyTopNav player={player} compact={playing} />
 
         {/* masthead: pressed SPAN tiles with No./date inline, one rule beneath */}
         <div className="sp-mh" style={{ display: 'flex', alignItems: 'center', gap: 14, flexWrap: 'wrap', position: 'relative', paddingRight: 28, marginBottom: 16, borderBottom: '2px solid rgba(28,30,36,0.8)', paddingBottom: 11 }}>
@@ -773,38 +765,34 @@ export default function SpanClient({ puzzles = [], forceNum = null }) {
 
         {/* result */}
         {!playing && (
-          <div style={{ background: '#fff', border: `2px solid ${COLORS.ink}`, borderRadius: 12, padding: '16px 16px 14px', marginBottom: 14 }}>
-            <div style={{ fontSize: 19, fontWeight: 800, color: won ? COLORS.trail : COLORS.rust, marginBottom: 4 }}>
-              {Math.round(((won ? finalScore : 0) / 10) * 100)}% Complete
+          <>
+            <div style={{ maxWidth: 472, margin: '0 auto 12px' }}>
+              <SpanMap chain={chain} best={won && hops === PUZZLE.par ? null : bestRoute} alts={altRoads} />
+              {revealRoute && (
+                <div style={{ display: 'flex', alignItems: 'center', gap: 6, flexWrap: 'wrap', margin: '8px 0 4px' }}>
+                  {revealRoute.map((c, i) => {
+                    const parts = [chip(c, i === 0 ? 'start' : i === revealRoute.length - 1 ? 'goal' : 'step', `r${i}`)];
+                    if (i < revealRoute.length - 1) parts.push(arrow(`ra${i}`));
+                    return parts;
+                  })}
+                </div>
+              )}
+              {PUZZLE.note && (
+                <div style={{ fontSize: 12.5, fontWeight: 600, color: COLORS.faded, fontStyle: 'italic', margin: '6px 0 10px', lineHeight: 1.5 }}>{PUZZLE.note}</div>
+              )}
             </div>
-            <div style={{ fontSize: 13.5, fontWeight: 700, color: COLORS.faded, marginBottom: 6 }}>
-              {won
+            <DailyEndCard
+              self="span"
+              won={won}
+              headline={<>{Math.round(((won ? finalScore : 0) / 10) * 100)}% Complete</>}
+              subline={won
                 ? <>{finalScore}/10 &middot; {hops} hops (shortest {PUZZLE.par}) &middot; {g.misses} miss{g.misses === 1 ? '' : 'es'} &middot; {elapsed}{g.hintUsed ? <> &middot; 1 hint</> : null}</>
                 : <>0/10 &middot; a shortest road is below</>}
-            </div>
-            <SpanMap chain={chain} best={won && hops === PUZZLE.par ? null : bestRoute} alts={altRoads} />
-            {revealRoute && (
-              <div style={{ display: 'flex', alignItems: 'center', gap: 6, flexWrap: 'wrap', margin: '8px 0 4px' }}>
-                {revealRoute.map((c, i) => {
-                  const parts = [chip(c, i === 0 ? 'start' : i === revealRoute.length - 1 ? 'goal' : 'step', `r${i}`)];
-                  if (i < revealRoute.length - 1) parts.push(arrow(`ra${i}`));
-                  return parts;
-                })}
-              </div>
-            )}
-            {PUZZLE.note && (
-              <div style={{ fontSize: 12.5, fontWeight: 600, color: COLORS.faded, fontStyle: 'italic', margin: '6px 0 10px', lineHeight: 1.5 }}>{PUZZLE.note}</div>
-            )}
-            {isTodays && myStats.cur >= 2 && (
-              <div style={{ fontSize: 13, fontWeight: 800, marginBottom: 12, display: 'flex', gap: 12, flexWrap: 'wrap' }}>
-                <span style={{ color: '#b45309' }}>{myStats.cur}-day streak</span>
-              </div>
-            )}
-            <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
-              <button className="sp-btn" onClick={copyShare}><Share2 size={15} /> {copied ? 'Copied' : 'Share result'}</button>
-              <button className="sp-btn" onClick={resetGame} style={{ borderColor: '#c3c8cf', color: COLORS.faded }}><RotateCcw size={15} /> Replay</button>
-            </div>
-            <DailyGamesPromo self="span" refresh={g.status} />
+              onShare={copyShare}
+              shareLabel={copied ? 'Copied' : 'Share Result'}
+              onReplay={resetGame}
+              onClose={() => setJustWon(false)}
+            />
             <p style={{ fontSize: 12, color: COLORS.faded, fontWeight: 600, margin: '12px 0 0' }}>
               {isTodays ? (
                 <>
@@ -827,7 +815,7 @@ export default function SpanClient({ puzzles = [], forceNum = null }) {
                 </>
               )}
             </p>
-          </div>
+          </>
         )}
 
         {/* standard quiz-page bottom: challenge + stats + join + leaderboard */}
@@ -890,7 +878,7 @@ export default function SpanClient({ puzzles = [], forceNum = null }) {
           </div>
         </div>
         )}
-        <div style={{ display: playing ? 'none' : 'block', maxWidth: 620, margin: '26px auto 0', background: '#fff', border: '1.5px solid rgba(20,22,28,0.12)', borderRadius: 12, padding: '14px 16px' }}>
+        <div id="daily-leaderboard" style={{ display: playing ? 'none' : 'block', maxWidth: 620, margin: '26px auto 0', background: '#fff', border: '1.5px solid rgba(20,22,28,0.12)', borderRadius: 12, padding: '14px 16px' }}>
           <QuizLeaderboard daily board={board} identity={identity} total={10} guessLabel="Misses" />
         </div>
       </div>

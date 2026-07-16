@@ -21,6 +21,8 @@ import DailyGamesPromo from '../DailyGamesPromo';
 import useDuelContext, { DuelBanner } from '../quiz/[id]/useDuelContext';
 import JoinLeaderboardForm from '../quiz/[id]/JoinLeaderboardForm';
 import DailyGamesGrid from '../DailyGamesGrid';
+import DailyEndCard from '../DailyEndCard';
+import DailyTopNav from '../DailyTopNav';
 import QuizLeaderboard from '../quiz/[id]/QuizLeaderboard';
 import { isMobileDevice } from '@/lib/is-mobile';
 
@@ -467,17 +469,7 @@ export default function LinksClient({ puzzles = [], forceNum = null }) {
         <div style={{ maxWidth: 560, margin: '0 auto' }}>
 
         {/* game-native top strip (Crux pattern): quiet nav + player chip */}
-        <div style={{ display: playing ? 'none' : 'flex', alignItems: 'center', gap: 18, marginBottom: 20, flexWrap: 'wrap' }}>
-          <a href="/quizzes" style={{ fontFamily: MONO, fontSize: 11, letterSpacing: '0.12em', textTransform: 'uppercase', color: COLORS.faded, textDecoration: 'none', borderBottom: '1px solid rgba(28,30,36,0.25)', paddingBottom: 1 }}>Quizzes</a>
-          <a href="/" style={{ fontFamily: MONO, fontSize: 11, letterSpacing: '0.12em', textTransform: 'uppercase', color: COLORS.faded, textDecoration: 'none', borderBottom: '1px solid rgba(28,30,36,0.25)', paddingBottom: 1 }}>Top 10 Lists</a>
-          {player && (
-            <a href={player.key ? `/quizzes/hub?player=${encodeURIComponent(player.key)}` : '/quizzes/hub'} title="Your Stat Hub"
-              style={{ marginLeft: 'auto', display: 'inline-flex', alignItems: 'center', gap: 7, fontFamily: MONO, fontSize: 11, letterSpacing: '0.06em', color: COLORS.ink, background: PAPER, border: '1.5px solid rgba(28,30,36,0.35)', borderRadius: 5, padding: '4px 10px', textDecoration: 'none' }}>
-              <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', maxWidth: 150, fontWeight: 500 }}>{player.name}</span>
-              {player.rank ? <span style={{ color: COLORS.ember, fontWeight: 500 }}>Rank #{player.rank}</span> : null}
-            </a>
-          )}
-        </div>
+        <DailyTopNav player={player} compact={playing} />
 
         {/* masthead: pressed LINKS tiles with No./date inline, one rule beneath */}
         <div className="lk-mh" style={{ display: 'flex', alignItems: 'center', gap: 14, flexWrap: 'wrap', position: 'relative', paddingRight: 28, marginBottom: 16, borderBottom: '2px solid rgba(28,30,36,0.8)', paddingBottom: 11 }}>
@@ -553,23 +545,22 @@ export default function LinksClient({ puzzles = [], forceNum = null }) {
 
         {/* result */}
         {!playing && (
-          <div style={{ background: '#fff', border: `2px solid ${COLORS.ink}`, borderRadius: 12, padding: '16px 16px 14px', marginBottom: 14 }}>
-            <div style={{ fontSize: 19, fontWeight: 800, color: won ? COLORS.ember : COLORS.rust, marginBottom: 4 }}>
-              {Math.round((g.solved.length / 4) * 100)}% Complete
-            </div>
-            <div style={{ fontSize: 13.5, fontWeight: 700, color: COLORS.faded, marginBottom: (isTodays && myStats.cur >= 2) ? 6 : 12 }}>
-              {g.solved.length}/4 groups &middot; {g.mistakes} mistake{g.mistakes === 1 ? '' : 's'} &middot; {elapsed}
-            </div>
+          <>
+            <DailyEndCard
+              self="links"
+              won={won}
+              headline={<>{Math.round((g.solved.length / 4) * 100)}% Complete</>}
+              subline={<>{g.solved.length}/4 groups &middot; {g.mistakes} mistake{g.mistakes === 1 ? '' : 's'} &middot; {elapsed}</>}
+              onShare={copyShare}
+              shareLabel={copied ? 'Copied' : 'Share Result'}
+              onReplay={resetGame}
+              onClose={() => setJustWon(false)}
+            />
             {isTodays && myStats.cur >= 2 && (
-              <div style={{ fontSize: 13, fontWeight: 800, marginBottom: 12, display: 'flex', gap: 12, flexWrap: 'wrap' }}>
+              <div style={{ fontSize: 13, fontWeight: 800, margin: '12px 0', display: 'flex', gap: 12, flexWrap: 'wrap' }}>
                 <span style={{ color: '#b45309' }}>{myStats.cur}-day streak</span>
               </div>
             )}
-            <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
-              <button className="lk-btn" onClick={copyShare}><Share2 size={15} /> {copied ? 'Copied' : 'Share result'}</button>
-              <button className="lk-btn" onClick={resetGame} style={{ borderColor: '#c3c8cf', color: COLORS.faded }}><RotateCcw size={15} /> Replay</button>
-            </div>
-            <DailyGamesPromo self="links" refresh={g.status} />
             <p style={{ fontSize: 12, color: COLORS.faded, fontWeight: 600, margin: '12px 0 0' }}>
               {isTodays ? (
                 <>
@@ -592,7 +583,7 @@ export default function LinksClient({ puzzles = [], forceNum = null }) {
                 </>
               )}
             </p>
-          </div>
+          </>
         )}
 
         {/* standard quiz-page bottom: challenge + stats + join + leaderboard */}
@@ -655,7 +646,7 @@ export default function LinksClient({ puzzles = [], forceNum = null }) {
           </div>
         </div>
         )}
-        <div style={{ display: playing ? 'none' : 'block', maxWidth: 560, margin: '26px auto 0', background: '#fff', border: '1.5px solid rgba(20,22,28,0.12)', borderRadius: 12, padding: '14px 16px' }}>
+        <div id="daily-leaderboard" style={{ display: playing ? 'none' : 'block', maxWidth: 560, margin: '26px auto 0', background: '#fff', border: '1.5px solid rgba(20,22,28,0.12)', borderRadius: 12, padding: '14px 16px' }}>
           <QuizLeaderboard daily board={board} identity={identity} total={8} guessLabel="Misses" />
         </div>
       </div>

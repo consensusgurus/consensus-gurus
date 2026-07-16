@@ -18,6 +18,7 @@ import Footer from '../Footer';
 import QuizLeaderboard from '../quiz/[id]/QuizLeaderboard';
 import JoinLeaderboardForm from '../quiz/[id]/JoinLeaderboardForm';
 import DailyGamesGrid from '../DailyGamesGrid';
+import DailyEndCard from '../DailyEndCard';
 import { isMobileDevice } from '@/lib/is-mobile';
 
 const COLORS = {
@@ -436,7 +437,7 @@ export default function GarbleClient({ puzzles = [], forceNum = null }) {
 
           {/* game-native top strip: quiet nav out to the rest of the site,
               player name + rank on the right — Garble stands as its own identity. */}
-          <div style={{ display: playing ? 'none' : 'flex', alignItems: 'center', gap: 18, marginBottom: 20, flexWrap: 'wrap' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 18, marginBottom: 20, flexWrap: 'wrap' }}>
             <a href="/quizzes" style={{ fontFamily: MONO, fontSize: 11, letterSpacing: '0.12em', textTransform: 'uppercase', color: COLORS.faded, textDecoration: 'none', borderBottom: '1px solid rgba(28,30,36,0.25)', paddingBottom: 1 }}>Quizzes</a>
             <a href="/" style={{ fontFamily: MONO, fontSize: 11, letterSpacing: '0.12em', textTransform: 'uppercase', color: COLORS.faded, textDecoration: 'none', borderBottom: '1px solid rgba(28,30,36,0.25)', paddingBottom: 1 }}>Top 10 Lists</a>
             {player && (
@@ -538,18 +539,17 @@ export default function GarbleClient({ puzzles = [], forceNum = null }) {
 
           {/* result */}
           {ended && (
-            <div style={{ background: '#fff', border: `2px solid ${COLORS.ink}`, borderRadius: 12, padding: '16px 16px 14px', marginBottom: 14, maxWidth: 470 }}>
-              <div style={{ fontSize: 19, fontWeight: 800, color: won ? COLORS.ember : COLORS.rust, marginBottom: 4 }}>
-                {Math.round((score / 10) * 100)}% Complete
-              </div>
-              <div style={{ fontSize: 13.5, fontWeight: 700, color: COLORS.faded, marginBottom: 12 }}>
-                {score}/10 &middot; {g.misses} miss{g.misses === 1 ? '' : 'es'} &middot; {elapsed}
-              </div>
-              <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
-                <button className="gb-btn" onClick={copyShare}><Share2 size={15} /> {copied ? 'Copied' : 'Share result'}</button>
-                <button className="gb-btn" onClick={resetGame} style={{ borderColor: '#c3c8cf', color: COLORS.faded }}><RotateCcw size={15} /> Replay</button>
-              </div>
-              <DailyGamesPromo self="garble" refresh={g.status} />
+            <>
+              <DailyEndCard
+                self="garble"
+                won={won}
+                headline={<>{Math.round((score / 10) * 100)}% Complete</>}
+                subline={<>{score}/10 &middot; {g.misses} miss{g.misses === 1 ? '' : 'es'} &middot; {elapsed}</>}
+                onShare={copyShare}
+                shareLabel={copied ? 'Copied' : 'Share Result'}
+                onReplay={resetGame}
+                onClose={() => setJustWon(false)}
+              />
               {!isTodays && (
                 <p style={{ fontSize: 12, color: COLORS.faded, fontWeight: 600, margin: '12px 0 0' }}>
                   You&rsquo;re playing the {PUZZLE.dateLabel.replace(', 2026', '')} archive.{' '}
@@ -558,19 +558,19 @@ export default function GarbleClient({ puzzles = [], forceNum = null }) {
                   <a href="/daily" style={{ color: COLORS.faded, fontWeight: 700, textDecoration: 'underline' }}>All daily puzzles</a>
                 </p>
               )}
-            </div>
+            </>
           )}
         </div>
 
         {/* daily-page bottom group: challenge + share + other games + archive, divider below */}
-        {!playing && (<DailyGamesGrid
+        <DailyGamesGrid
           self="garble"
           maxWidth={640}
           challengeHref={`/duel/new?quiz=${encodeURIComponent(PUZZLE.quizId)}`}
           share={{ label: copied ? 'Copied' : 'Share This Puzzle', onClick: copyShare }}
           divider
-        />)}
-        {!playing && mobileUi && !standalone && (
+        />
+        {mobileUi && !standalone && (
           <div style={{ maxWidth: 640, margin: '16px auto 0' }}>
             <button onClick={a2hsClick} style={{ width: '100%', fontFamily: SANS, fontSize: 13.5, letterSpacing: '0.05em', textTransform: 'uppercase', fontWeight: 800, height: 54, borderRadius: 10, border: 'none', background: '#21b45e', color: '#fff', cursor: 'pointer', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 9, whiteSpace: 'nowrap' }}>
               <Smartphone size={15} strokeWidth={2.5} /> Add to Home Screen
@@ -596,13 +596,13 @@ export default function GarbleClient({ puzzles = [], forceNum = null }) {
             </div>
           </div>
         )}
-        {!playing && !identity && (
+        {!identity && (
           <div style={{ maxWidth: 640, margin: '18px auto 0' }}>
             <JoinLeaderboardForm hideIcon heading="See your stats and join the leaderboard" identity={identity} onJoined={(id) => { setIdentity(id); if (id && id.username) setPlayer((p) => p || { name: id.username, rank: null }); }} />
           </div>
         )}
         {/* your stats - registered players only (owner rule 2026-07-15) */}
-        {!playing && identity && (
+        {identity && (
         <div style={{ maxWidth: 640, margin: '20px auto 0' }}>
           <div style={{ fontFamily: MONO, fontSize: 10.5, fontWeight: 500, textTransform: 'uppercase', letterSpacing: '0.1em', color: COLORS.faded, marginBottom: 9 }}>Your stats</div>
           <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
@@ -620,7 +620,7 @@ export default function GarbleClient({ puzzles = [], forceNum = null }) {
           </div>
         </div>
         )}
-        <div style={{ display: playing ? 'none' : 'block', maxWidth: 640, margin: '26px auto 0', background: '#fff', border: '1.5px solid rgba(20,22,28,0.12)', borderRadius: 12, padding: '14px 16px' }}>
+        <div id="daily-leaderboard" style={{ maxWidth: 640, margin: '26px auto 0', background: '#fff', border: '1.5px solid rgba(20,22,28,0.12)', borderRadius: 12, padding: '14px 16px' }}>
           <QuizLeaderboard daily board={board} identity={identity} total={10} wordsCol={{ total: 5 }} />
         </div>
       </div>
@@ -683,7 +683,7 @@ export default function GarbleClient({ puzzles = [], forceNum = null }) {
       )}
 
       {/* About Garble — crawlable prose for search, server-rendered into the initial HTML */}
-      <section style={{ position: 'relative', display: playing ? 'none' : 'block', zIndex: 2, maxWidth: 640, margin: '0 auto', padding: '10px 24px 42px', fontFamily: SANS }}>
+      <section style={{ position: 'relative', zIndex: 2, maxWidth: 640, margin: '0 auto', padding: '10px 24px 42px', fontFamily: SANS }}>
         <h2 style={{ margin: '0 0 8px', fontSize: 15, fontWeight: 800, letterSpacing: '-0.01em', color: COLORS.ink }}>About Garble</h2>
         <p style={{ margin: '0 0 8px', fontSize: 13, lineHeight: 1.65, color: COLORS.faded, fontWeight: 600 }}>
           Garble is a free daily word scramble game from Source of Truths. Five garbled words &mdash; one more than the classic format &mdash; each untangle into a real word using exactly the letters shown, and every solution donates its gold letters to the finale.
@@ -696,7 +696,7 @@ export default function GarbleClient({ puzzles = [], forceNum = null }) {
         </p>
       </section>
 
-      <div style={{ position: 'relative', zIndex: 2, display: playing ? 'none' : 'block' }}><Footer /></div>
+      <div style={{ position: 'relative', zIndex: 2 }}><Footer /></div>
     </div>
   );
 }

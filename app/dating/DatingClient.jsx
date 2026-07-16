@@ -31,6 +31,8 @@ import DailyGamesPromo from '../DailyGamesPromo';
 import useDuelContext, { DuelBanner } from '../quiz/[id]/useDuelContext';
 import JoinLeaderboardForm from '../quiz/[id]/JoinLeaderboardForm';
 import DailyGamesGrid from '../DailyGamesGrid';
+import DailyEndCard from '../DailyEndCard';
+import DailyTopNav from '../DailyTopNav';
 import QuizLeaderboard from '../quiz/[id]/QuizLeaderboard';
 import { isMobileDevice } from '@/lib/is-mobile';
 
@@ -568,17 +570,7 @@ export default function DatingClient({ puzzles = [], forceNum = null }) {
         <div style={{ maxWidth: 620, margin: '0 auto' }}>
 
         {/* game-native top strip (Crux pattern): quiet nav + player chip */}
-        <div style={{ display: playing ? 'none' : 'flex', alignItems: 'center', gap: 18, marginBottom: 20, flexWrap: 'wrap' }}>
-          <a href="/quizzes" style={{ fontFamily: MONO, fontSize: 11, letterSpacing: '0.12em', textTransform: 'uppercase', color: COLORS.faded, textDecoration: 'none', borderBottom: '1px solid rgba(28,30,36,0.25)', paddingBottom: 1 }}>Quizzes</a>
-          <a href="/" style={{ fontFamily: MONO, fontSize: 11, letterSpacing: '0.12em', textTransform: 'uppercase', color: COLORS.faded, textDecoration: 'none', borderBottom: '1px solid rgba(28,30,36,0.25)', paddingBottom: 1 }}>Top 10 Lists</a>
-          {player && (
-            <a href={player.key ? `/quizzes/hub?player=${encodeURIComponent(player.key)}` : '/quizzes/hub'} title="Your Stat Hub"
-              style={{ marginLeft: 'auto', display: 'inline-flex', alignItems: 'center', gap: 7, fontFamily: MONO, fontSize: 11, letterSpacing: '0.06em', color: COLORS.ink, background: PAPER, border: '1.5px solid rgba(28,30,36,0.35)', borderRadius: 5, padding: '4px 10px', textDecoration: 'none' }}>
-              <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', maxWidth: 150, fontWeight: 500 }}>{player.name}</span>
-              {player.rank ? <span style={{ color: COLORS.ember, fontWeight: 500 }}>Rank #{player.rank}</span> : null}
-            </a>
-          )}
-        </div>
+        <DailyTopNav player={player} compact={playing} />
 
         {/* masthead: pressed DATING tiles with No./date inline, one rule beneath */}
         <div className="dt-mh" style={{ display: 'flex', alignItems: 'center', gap: 14, flexWrap: 'wrap', position: 'relative', paddingRight: 28, marginBottom: 16, borderBottom: '2px solid rgba(28,30,36,0.8)', paddingBottom: 11 }}>
@@ -660,20 +652,8 @@ export default function DatingClient({ puzzles = [], forceNum = null }) {
 
         {/* result */}
         {!playing && (
-          <div style={{ background: '#fff', border: `2px solid ${COLORS.ink}`, borderRadius: 12, padding: '16px 16px 14px', marginBottom: 14 }}>
-            <div style={{ fontSize: 19, fontWeight: 800, color: won ? COLORS.lock : COLORS.rust, marginBottom: 4 }}>
-              {Math.round((((won || g.status === 'lost') ? finalScore : 0) / 10) * 100)}% Complete
-            </div>
-            <div style={{ fontSize: 13.5, fontWeight: 700, color: COLORS.faded, marginBottom: 6 }}>
-              {won
-                ? <>{finalScore}/10 &middot; {checksUsed} check{checksUsed === 1 ? '' : 's'} &middot; {elapsed}{g.hintUsed ? <> &middot; 1 hint</> : null}</>
-                : g.status === 'lost'
-                  ? <>{finalScore}/10 &middot; {lockedCount}/{N} placed &middot; the timeline is below</>
-                  : <>0/10 &middot; the timeline is below</>}
-            </div>
-            {/* the dated timeline — the payoff for every finish. Each event
-                carries its one-line story (`d` in puzzles.js). */}
-            <div style={{ margin: '10px 0 4px' }}>
+          <>
+            <div style={{ maxWidth: 472, margin: '0 auto 12px' }}>
               <div style={{ fontFamily: MONO, fontSize: 10, letterSpacing: '0.14em', textTransform: 'uppercase', color: COLORS.faded, marginBottom: 7 }}>The timeline</div>
               <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
                 {PUZZLE.events.map((evt, i) => (
@@ -687,42 +667,29 @@ export default function DatingClient({ puzzles = [], forceNum = null }) {
                 ))}
               </div>
             </div>
-            {PUZZLE.note && (
-              <div style={{ fontSize: 12.5, fontWeight: 600, color: COLORS.faded, fontStyle: 'italic', margin: '6px 0 10px', lineHeight: 1.5 }}>{PUZZLE.note}</div>
+            <DailyEndCard
+              self="dating"
+              won={won}
+              headline={<>{Math.round((((won || g.status === 'lost') ? finalScore : 0) / 10) * 100)}% Complete</>}
+              subline={<>{won
+                ? <>{finalScore}/10 &middot; {checksUsed} check{checksUsed === 1 ? '' : 's'} &middot; {elapsed}{g.hintUsed ? <> &middot; 1 hint</> : null}</>
+                : g.status === 'lost'
+                  ? <>{finalScore}/10 &middot; {lockedCount}/{N} placed &middot; the timeline is below</>
+                  : <>0/10 &middot; the timeline is below</>}</>}
+              onShare={copyShare}
+              shareLabel={copied ? 'Copied' : 'Share Result'}
+              onReplay={resetGame}
+              onClose={() => setJustWon(false)}
+            />
+            {!isTodays && (
+              <p style={{ fontSize: 12, color: COLORS.faded, fontWeight: 600, margin: '12px 0 0' }}>
+                You&rsquo;re playing the {PUZZLE.dateLabel.replace(', 2026', '')} archive.{' '}
+                <a href="/dating" style={{ color: COLORS.ember, fontWeight: 800, textDecoration: 'underline' }}>Back to today&rsquo;s Dating &rarr;</a>
+                {' · '}
+                <a href="/daily" style={{ color: COLORS.faded, fontWeight: 700, textDecoration: 'underline' }}>All daily puzzles</a>
+              </p>
             )}
-            {isTodays && myStats.cur >= 2 && (
-              <div style={{ fontSize: 13, fontWeight: 800, marginBottom: 12, display: 'flex', gap: 12, flexWrap: 'wrap' }}>
-                <span style={{ color: '#b45309' }}>{myStats.cur}-day streak</span>
-              </div>
-            )}
-            <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
-              <button className="dt-btn" onClick={copyShare}><Share2 size={15} /> {copied ? 'Copied' : 'Share result'}</button>
-              <button className="dt-btn" onClick={resetGame} style={{ borderColor: '#c3c8cf', color: COLORS.faded }}><RotateCcw size={15} /> Replay</button>
-            </div>
-            <DailyGamesPromo self="dating" refresh={g.status} />
-            <p style={{ fontSize: 12, color: COLORS.faded, fontWeight: 600, margin: '12px 0 0' }}>
-              {isTodays ? (
-                <>
-                  {countdown ? <>Next Dating in <b style={{ color: COLORS.ink, fontVariantNumeric: 'tabular-nums' }}>{countdown}</b>.</> : 'Five new moments drop at midnight Eastern.'}
-                  {prevPuzzle && (
-                    <>
-                      {' '}Meanwhile:{' '}
-                      <a href={`/dating?p=${prevPuzzle.num}`} style={{ color: COLORS.ember, fontWeight: 800, textDecoration: 'underline' }}>
-                        play yesterday&rsquo;s Dating &rarr;
-                      </a>
-                    </>
-                  )}
-                </>
-              ) : (
-                <>
-                  You&rsquo;re playing the {PUZZLE.dateLabel.replace(', 2026', '')} archive.{' '}
-                  <a href="/dating" style={{ color: COLORS.ember, fontWeight: 800, textDecoration: 'underline' }}>Back to today&rsquo;s Dating &rarr;</a>
-                  {' · '}
-                  <a href="/daily" style={{ color: COLORS.faded, fontWeight: 700, textDecoration: 'underline' }}>All daily puzzles</a>
-                </>
-              )}
-            </p>
-          </div>
+          </>
         )}
 
         {/* standard quiz-page bottom: challenge + stats + join + leaderboard */}
@@ -785,7 +752,7 @@ export default function DatingClient({ puzzles = [], forceNum = null }) {
           </div>
         </div>
         )}
-        <div style={{ display: playing ? 'none' : 'block', maxWidth: 620, margin: '26px auto 0', background: '#fff', border: '1.5px solid rgba(20,22,28,0.12)', borderRadius: 12, padding: '14px 16px' }}>
+        <div id="daily-leaderboard" style={{ display: playing ? 'none' : 'block', maxWidth: 620, margin: '26px auto 0', background: '#fff', border: '1.5px solid rgba(20,22,28,0.12)', borderRadius: 12, padding: '14px 16px' }}>
           <QuizLeaderboard daily board={board} identity={identity} total={10} guessLabel="Checks" />
         </div>
       </div>
