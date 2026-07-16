@@ -24,6 +24,7 @@ import dynamic from 'next/dynamic';
 import { flushSync } from 'react-dom';
 import QuizPlayOverlay from './QuizPlayOverlay';
 import { similarQuizId, nextQuizMeta, familyQuizzes } from '@/lib/quiz-similar';
+import SimilarQuizTiles from './SimilarQuizTiles';
 import { ArrowRight, Play } from 'lucide-react';
 
 const MapQuizBoard = dynamic(() => import('./MapQuizBoard'), { ssr: false, loading: () => null });
@@ -1378,14 +1379,7 @@ export default function QuizClient({ quizId }) {
   const similarQuizzes = similarList.length > 0 ? (
     <div style={{ marginTop: 24, paddingTop: 20, borderTop: `1px solid ${COLORS.line}` }}>
       <div style={{ fontFamily: MONO, fontSize: 11, letterSpacing: '0.16em', textTransform: 'uppercase', color: COLORS.ember, marginBottom: 16 }}>Similar quizzes</div>
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))', gap: 10 }}>
-        {similarList.map((rq) => (
-          <a key={rq.id} href={`/quiz/${rq.id}`} style={{ textDecoration: 'none', color: '#fff', background: '#2563eb', borderRadius: 10, border: '1px solid #2563eb', padding: '12px 14px', display: 'block' }}>
-            <div style={{ fontFamily: MONO, fontSize: 9, letterSpacing: '0.16em', textTransform: 'uppercase', color: 'rgba(255,255,255,0.82)', fontWeight: 700, marginBottom: 6 }}>{rq.category || 'Quiz'}</div>
-            <div style={{ fontFamily: SERIF, fontSize: 16, fontWeight: 600, lineHeight: 1.15, color: '#fff' }}>{rq.title}</div>
-          </a>
-        ))}
-      </div>
+      <SimilarQuizTiles items={similarList} />
     </div>
   ) : null;
 
@@ -1560,11 +1554,11 @@ export default function QuizClient({ quizId }) {
 }`}</style>
 
         {/* Header */}
-        <div style={{ paddingBottom: 0, marginTop: mAppPlay ? 4 : 12 }}>
+        <div style={{ paddingBottom: 0, marginTop: mAppPlay ? 4 : 12, ...(ended ? { maxWidth: 640, marginLeft: 'auto', marginRight: 'auto' } : null) }}>
           <div style={{ display: 'flex', alignItems: 'flex-end', gap: 'clamp(16px, 4vw, 28px)' }}>
             <h1 style={{ fontFamily: SERIF, fontWeight: 800, fontSize: mAppPlay ? 17 : 'clamp(24px, 4vw, 38px)', lineHeight: 1.02, letterSpacing: '-0.02em', margin: 0, color: COLORS.ink, fontVariationSettings: '"SOFT" 100' }}>{quiz.title}</h1>
           </div>
-          {!mAppPlay && <p style={{ fontFamily: SANS, fontSize: 15, lineHeight: 1.55, margin: '8px 0 0', color: COLORS.faded, maxWidth: 680 }}>{quiz.blurb}</p>}
+          {!mAppPlay && !started && !ended && <p style={{ fontFamily: SANS, fontSize: 15, lineHeight: 1.55, margin: '8px 0 0', color: COLORS.faded, maxWidth: 680 }}>{quiz.blurb}</p>}
           {runActive && (
             <div style={{ marginTop: 12, display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12, flexWrap: 'wrap', padding: '8px 14px', borderRadius: 10, border: `1.5px solid ${COLORS.accBorder}`, background: COLORS.accSoft }}>
               <span style={{ fontFamily: MONO, fontSize: 11, letterSpacing: '0.14em', textTransform: 'uppercase', fontWeight: 700, color: COLORS.ember }}>Daily Challenge · {chAccent}</span>
@@ -1607,7 +1601,7 @@ export default function QuizClient({ quizId }) {
           const jumpToBoard = () => { if (typeof document !== 'undefined') { const el = document.getElementById('quiz-board'); if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' }); } };
           const stackBtn = { fontFamily: MONO, fontSize: 12.5, letterSpacing: '0.04em', textTransform: 'uppercase', fontWeight: 700, borderRadius: 10, padding: '14px 12px', cursor: 'pointer', border: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, width: '100%', boxSizing: 'border-box', textDecoration: 'none' };
           return (
-            <div style={{ maxWidth: 600, margin: '16px auto 0' }}>
+            <div style={{ maxWidth: 640, margin: '16px auto 0' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 16, marginBottom: 18 }}>
                 <div>
                   <div style={{ fontFamily: MONO, fontSize: 11, letterSpacing: '0.16em', textTransform: 'uppercase', fontWeight: 800, color: (isTopScore || win) ? COLORS.forest : COLORS.ember, marginBottom: 6 }}>{heading}</div>

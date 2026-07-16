@@ -2,6 +2,7 @@
 import React, { useMemo } from 'react';
 import { RotateCcw, Swords } from 'lucide-react';
 import { QUIZZES } from '@/lib/quizzes';
+import SimilarQuizTiles from './SimilarQuizTiles';
 
 // Shared end-of-game results for every quiz board (owner rule, 2026-07-02).
 //
@@ -56,7 +57,7 @@ export default function QuizResultModal({
   if (!open) return null;
 
   return (
-    <div style={{ maxWidth: 600, margin: '16px auto 0' }}>
+    <div style={{ maxWidth: 640, margin: '16px auto 0' }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 16, marginBottom: 18 }}>
         <div>
           {eyebrow ? <div style={{ fontFamily: FONT, fontSize: 11, fontWeight: 800, letterSpacing: '0.16em', textTransform: 'uppercase', color: C.ember, marginBottom: 6 }}>{eyebrow}</div> : null}
@@ -81,14 +82,7 @@ export default function QuizResultModal({
       {similar.length > 0 ? (
         <div style={{ marginTop: 24, paddingTop: 20, borderTop: `1px solid ${C.line}` }}>
           <div style={{ fontFamily: FONT, fontSize: 11, letterSpacing: '0.16em', textTransform: 'uppercase', color: C.ember, marginBottom: 16 }}>Similar quizzes</div>
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))', gap: 10 }}>
-            {similar.map((rq) => (
-              <a key={rq.id} href={`/quiz/${rq.id}`} style={{ textDecoration: 'none', color: '#fff', background: '#2563eb', borderRadius: 10, border: '1px solid #2563eb', padding: '12px 14px', display: 'block' }}>
-                <div style={{ fontFamily: FONT, fontSize: 9, letterSpacing: '0.16em', textTransform: 'uppercase', color: 'rgba(255,255,255,0.82)', fontWeight: 700, marginBottom: 6 }}>{rq.category || 'Quiz'}</div>
-                <div style={{ fontFamily: FONT, fontSize: 16, fontWeight: 600, lineHeight: 1.15, color: '#fff' }}>{rq.title}</div>
-              </a>
-            ))}
-          </div>
+          <SimilarQuizTiles items={similar} />
         </div>
       ) : null}
 
