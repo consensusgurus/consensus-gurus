@@ -17,6 +17,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { Crown, ChevronDown } from 'lucide-react';
+import useDailyOrder, { sortByDailyOrder } from './useDailyOrder';
 
 const GAMES = [
   { key: 'crux', href: '/crux', name: 'Crux', img: '/games/btn-crux.png', store: 'sot_crux_day' },
@@ -30,11 +31,13 @@ const GAMES = [
   { key: 'carve', href: '/carve', name: 'Carve', img: '/games/btn-carve.png', store: 'sot_carve_day' },
   { key: 'circa', href: '/circa', name: 'Circa', img: '/games/btn-circa.png', store: 'sot_circa_day' },
   { key: 'extra', href: '/extra', name: 'Extra', img: '/games/btn-extra.png', store: 'sot_extra_day' },
+  { key: 'stet', href: '/stet', name: 'Stet', img: '/games/btn-stet.png', store: 'sot_stet_day' },
+  { key: 'outwit', href: '/outwit', name: 'Outwit', img: '/games/btn-outwit.png', store: 'sot_outwit_day' },
 ];
 
 const NAME_BY_KEY = GAMES.reduce((m, g) => { m[g.key] = g.name; return m; }, {});
 // Navy-legible per-game accents for the mini-board titles (match DailyCombinedLeaderboard).
-const ACCENTS = { crux: '#5b9bff', emcee: '#e879f9', garble: '#f0c95a', links: '#4ca878', span: '#e06aa0', dating: '#a483f0', tally: '#4cb377', suds: '#f0894c', circa: '#38b6cf', extra: '#e06a6a', carve: '#a483f0' };
+const ACCENTS = { crux: '#5b9bff', emcee: '#e879f9', garble: '#f0c95a', links: '#4ca878', span: '#e06aa0', dating: '#a483f0', tally: '#4cb377', suds: '#f0894c', circa: '#38b6cf', extra: '#e06a6a', carve: '#a483f0', stet: '#41b1e8', outwit: '#c3cfe3' };
 
 function etToday() {
   try { return new Date().toLocaleDateString('en-CA', { timeZone: 'America/New_York' }); }
@@ -46,6 +49,9 @@ function fmtPts(x) { const v = Math.round(Number(x) * 10) / 10; return Number.is
 export default function DailyStrip({ board = null }) {
   const [done, setDone] = useState(() => new Set());
   const [open, setOpen] = useState(false);
+  // Display order = yesterday's popularity (canonical order until it loads).
+  const dailyOrder = useDailyOrder();
+  const games = sortByDailyOrder(GAMES, dailyOrder);
 
   // first paint: same-device breadcrumbs
   useEffect(() => {
@@ -197,7 +203,7 @@ export default function DailyStrip({ board = null }) {
             ) : null}
           </div>
           <div className="dstrip-cells">
-            {GAMES.map((g) => {
+            {games.map((g) => {
               const lead = hasBoard && byKey[g.key] && byKey[g.key].board && byKey[g.key].board[0] ? byKey[g.key].board[0].username : null;
               return (
                 <a key={g.key} href={g.href} className={`dstrip-cell${done.has(g.key) ? ' done' : ''}`} aria-label={`${g.name}${done.has(g.key) ? ' — done today' : ''} — daily game`}>
@@ -250,7 +256,7 @@ export default function DailyStrip({ board = null }) {
               <div>
                 <div className="dsd-sub">Each Game · Top 3</div>
                 <div className="dsd-minis">
-                  {bgames.map((g) => {
+                  {sortByDailyOrder(bgames, dailyOrder).map((g) => {
                     const t3 = (g.board || []).slice(0, 3);
                     const acc = ACCENTS[g.key] || '#f5d878';
                     return (

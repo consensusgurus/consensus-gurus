@@ -39,6 +39,8 @@ const COLS = [
       { label: 'Carve — Daily Number Puzzle', href: '/carve' },
       { label: 'Circa — Daily Year Hunt', href: '/circa' },
       { label: 'Extra — Daily Headline Game', href: '/extra' },
+      { label: 'Stet — Daily Copy-Desk Game', href: '/stet' },
+      { label: 'Outwit — Daily Crowd Game', href: '/outwit' },
       { label: 'Stat Hub', href: '/quizzes/hub' },
       { label: 'Request a Quiz', href: '/request' },
     ],

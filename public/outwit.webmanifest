@@ -1,0 +1,16 @@
+{
+  "id": "/outwit",
+  "name": "Outwit — Daily Crowd Game",
+  "short_name": "Outwit",
+  "description": "Your opponent is everyone playing today. Five quick duels, no right answers - only what the crowd does. From Source of Truths.",
+  "start_url": "/outwit?src=pwa",
+  "scope": "/",
+  "display": "standalone",
+  "background_color": "#f7f8fa",
+  "theme_color": "#f7f8fa",
+  "icons": [
+    { "src": "/outwit-icons/icon-192.png", "sizes": "192x192", "type": "image/png" },
+    { "src": "/outwit-icons/icon-512.png", "sizes": "512x512", "type": "image/png" },
+    { "src": "/outwit-icons/icon-512-maskable.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ]
+}

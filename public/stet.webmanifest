@@ -1,0 +1,16 @@
+{
+  "id": "/stet",
+  "name": "Stet — Daily Copy-Desk Word Game",
+  "short_name": "Stet",
+  "description": "One news brief a day, one wrong word per sentence - and every error is a real word, so spellcheck is no help. Tap it, fix it. From Source of Truths.",
+  "start_url": "/stet?src=pwa",
+  "scope": "/",
+  "display": "standalone",
+  "background_color": "#f7f8fa",
+  "theme_color": "#f7f8fa",
+  "icons": [
+    { "src": "/stet-icons/icon-192.png", "sizes": "192x192", "type": "image/png" },
+    { "src": "/stet-icons/icon-512.png", "sizes": "512x512", "type": "image/png" },
+    { "src": "/stet-icons/icon-512-maskable.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ]
+}

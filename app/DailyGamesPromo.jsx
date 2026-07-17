@@ -22,6 +22,8 @@ export const DAILY_GAMES = [
   { key: 'carve', href: '/carve', name: 'Carve', tag: 'carve the grid into equal sums', store: 'sot_carve_day', accent: '#7c3aed', bg: '#f5f0ff', border: 'rgba(124,58,237,0.4)' },
   { key: 'circa', href: '/circa', name: 'Circa', tag: 'pin the year of the moment', store: 'sot_circa_day', accent: '#0e7490', bg: '#e8f7fa', border: 'rgba(14,116,144,0.4)' },
   { key: 'extra', href: '/extra', name: 'Extra', tag: 'unredact the front page', store: 'sot_extra_day', accent: '#b91c1c', bg: '#fdeeee', border: 'rgba(185,28,28,0.4)' },
+  { key: 'stet', href: '/stet', name: 'Stet', tag: 'find and fix the wrong word', store: 'sot_stet_day', accent: '#0369a1', bg: '#e8f3fa', border: 'rgba(3,105,161,0.4)' },
+  { key: 'outwit', href: '/outwit', name: 'Outwit', tag: 'five duels against the crowd', store: 'sot_outwit_day', accent: '#1f2937', bg: '#eef1f5', border: 'rgba(31,41,55,0.35)' },
 ];
 
 function etToday() {

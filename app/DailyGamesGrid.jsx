@@ -15,6 +15,7 @@
 
 import React from 'react';
 import { Swords, Share2 } from 'lucide-react';
+import useDailyOrder, { sortByDailyOrder } from './useDailyOrder';
 
 const GAMES = [
   { key: 'crux', href: '/crux', name: 'Crux', tag: 'A clueless crossword', img: '/games/btn-crux.png', label: 'Daily' },
@@ -28,16 +29,20 @@ const GAMES = [
   { key: 'carve', href: '/carve', name: 'Carve', tag: 'Equal-sum blocks', img: '/games/btn-carve.png', label: 'Daily' },
   { key: 'circa', href: '/circa', name: 'Circa', tag: 'Guess the year', img: '/games/btn-circa.png', label: 'Daily' },
   { key: 'extra', href: '/extra', name: 'Extra', tag: 'Name the story', img: '/games/btn-extra.png', label: 'Daily' },
+  { key: 'stet', href: '/stet', name: 'Stet', tag: 'Fix the wrong word', img: '/games/btn-stet.png', label: 'Daily' },
+  { key: 'outwit', href: '/outwit', name: 'Outwit', tag: 'Beat the crowd', img: '/games/btn-outwit.png', label: 'Daily' },
 ];
 // The evergreen fill tile: the site's most-played quiz, so the games block is
 // always a full 2-wide even though there are only three "other" dailies.
 const POPULAR = { key: 'popular', href: '/quiz/europe-no-outline', name: 'Map: Europe', tag: 'No outlines — our #1', img: '/games/btn-map.png', label: 'Popular' };
 
 export default function DailyGamesGrid({ self, maxWidth = 640, challengeHref = null, share = null, divider = false }) {
+  // Display order = yesterday's popularity (canonical until the order loads).
+  const dailyOrder = useDailyOrder();
   // Keep the games row an even 2-wide: with an even count of "other" dailies the
   // dailies fill it alone; with an odd count the evergreen POPULAR tile evens
   // it out (4 games -> 3 others + POPULAR; 5 games -> 4 others, no POPULAR).
-  const others = GAMES.filter((g) => g.key !== self);
+  const others = sortByDailyOrder(GAMES, dailyOrder).filter((g) => g.key !== self);
   const tiles = others.length % 2 === 0 ? others : [...others, POPULAR];
   return (
     <div style={{ maxWidth, margin: '18px auto 0' }}>

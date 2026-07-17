@@ -8,6 +8,7 @@
 
 import React, { useState, useEffect } from 'react';
 import DailyCombinedLeaderboard from '../quiz/[id]/DailyCombinedLeaderboard';
+import useDailyOrder, { sortByDailyOrder } from '../useDailyOrder';
 
 const SANS = "'Manrope', system-ui, -apple-system, sans-serif";
 const MONO = "'DM Mono', ui-monospace, 'SFMono-Regular', monospace";
@@ -45,6 +46,9 @@ export default function DailyArchiveClient({ games = [] }) {
   const [played, setPlayed] = useState(() => new Set());
   const [completed, setCompleted] = useState(() => new Set());
   const [ready, setReady] = useState(false);
+  // Card order = yesterday's popularity (canonical order until it loads).
+  const dailyOrder = useDailyOrder();
+  const orderedGames = sortByDailyOrder(games, dailyOrder);
 
   useEffect(() => {
     let alive = true;
@@ -138,7 +142,7 @@ export default function DailyArchiveClient({ games = [] }) {
           <DailyCombinedLeaderboard compact todayKey={null} />
         </div>
 
-        {games.map((g) => {
+        {orderedGames.map((g) => {
           const playedCount = g.puzzles.reduce((n, p) => n + (played.has(`${g.key}:${p.num}`) ? 1 : 0), 0);
           return (
             <section key={g.key} className="dl-card" style={{ borderColor: g.accent }}>

@@ -10,6 +10,13 @@ import { PUZZLES as SUDS } from '../suds/puzzles';
 import { PUZZLES as CARVE } from '../carve/puzzles';
 import { PUZZLES as CIRCA } from '../circa/puzzles';
 import { PUZZLES as EXTRA } from '../extra/puzzles';
+import { PUZZLES as STET } from '../stet/puzzles';
+import { PUZZLES as OUTWIT_FULL } from '../outwit/puzzles';
+
+// Outwit's bank is server-only in a stronger sense than the others: its
+// `house` arrays and herd truths must never reach the client. This page only
+// forwards answer-free fields, but strip the sensitive ones defensively.
+const OUTWIT = OUTWIT_FULL.map(({ num, quizId, live, dateLabel, sunday }) => ({ num, quizId, live, dateLabel, sunday }));
 
 // The daily-games hub + archive. One page listing every daily game, each with
 // today's puzzle and its full back-catalog of past drops (live<=today only, so
@@ -19,12 +26,12 @@ import { PUZZLES as EXTRA } from '../extra/puzzles';
 export const metadata = {
   title: 'Daily Games — Crux, Emcee, Garble, Links, Span & More | Source of Truths',
   description:
-    "Every Source of Truths daily game in one place: today's puzzle and the full archive for Crux, Emcee, Garble, Links, Span, Dating, Tally, Suds, Circa, Extra, and Carve. A new puzzle in each, every day.",
+    "Every Source of Truths daily game in one place: today's puzzle and the full archive for Crux, Emcee, Garble, Links, Span, Dating, Tally, Suds, Circa, Extra, Carve, Stet, and Outwit. A new puzzle in each, every day.",
   alternates: { canonical: '/daily' },
   openGraph: {
     title: 'Daily Games — Source of Truths',
     description:
-      "Today's puzzle and the full archive for every daily game: Crux, Emcee, Garble, Links, Span, Dating, Tally, Suds, Circa, Extra, and Carve.",
+      "Today's puzzle and the full archive for every daily game: Crux, Emcee, Garble, Links, Span, Dating, Tally, Suds, Circa, Extra, Carve, Stet, and Outwit.",
     url: '/daily',
     type: 'website',
     siteName: 'Source of Truths',
@@ -41,10 +48,11 @@ function etTodayServer() {
   }
 }
 
-// Which drops are the bigger/harder Sunday edition. Span, Tally, and Suds flag
-// it right on the puzzle (`sunday: true`); Crux has no flag but its Sunday
-// Editions are the only 27-guess (12-word) boards. Games without a distinct
-// Sunday (Garble, Links, Dating) never match, so they stay unmarked.
+// Which drops are the bigger/harder Sunday edition. Span, Tally, Suds, and
+// Stet flag it right on the puzzle (`sunday: true`); Crux has no flag but its
+// Sunday Editions are the only 27-guess (12-word) boards. Games without a
+// distinct Sunday (Garble, Links, Dating, Outwit) never match, so they stay
+// unmarked.
 function isSundayEdition(key, p) {
   if (p.sunday === true) return true;
   if (key === 'crux' && p.guesses === 27) return true;
@@ -64,6 +72,8 @@ const GAMES = [
   { key: 'carve', name: 'Carve', path: '/carve', tag: 'Carve the grid into equal sums', accent: '#7c3aed', bg: '#f5f0ff', border: 'rgba(124,58,237,0.4)', src: CARVE },
   { key: 'circa', name: 'Circa', path: '/circa', tag: 'Pin the year of the moment', accent: '#0e7490', bg: '#e8f7fa', border: 'rgba(14,116,144,0.4)', src: CIRCA },
   { key: 'extra', name: 'Extra', path: '/extra', tag: 'Unredact the front page', accent: '#b91c1c', bg: '#fdeeee', border: 'rgba(185,28,28,0.4)', src: EXTRA },
+  { key: 'stet', name: 'Stet', path: '/stet', tag: 'Find and fix the wrong word', accent: '#0369a1', bg: '#e8f3fa', border: 'rgba(3,105,161,0.4)', src: STET },
+  { key: 'outwit', name: 'Outwit', path: '/outwit', tag: 'Five duels against the crowd', accent: '#1f2937', bg: '#eef1f5', border: 'rgba(31,41,55,0.35)', src: OUTWIT },
 ];
 
 const breadcrumbJsonLd = {

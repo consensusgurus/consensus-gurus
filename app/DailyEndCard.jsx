@@ -1,7 +1,8 @@
 'use client';
 
 // DailyEndCard — the shared end-of-game result popup for every daily game
-// (Crux, Garble, Links, Span, Dating, Tally, Suds, Circa, Extra, Carve).
+// (Crux, Emcee, Garble, Links, Span, Dating, Tally, Suds, Circa, Extra,
+// Carve, Stet, Outwit).
 //
 // One component, used by all daily clients. It renders:
 //   1. a centered results block — the game's own finish graphic, the
@@ -30,6 +31,7 @@ import React, { useState, useEffect } from 'react';
 import {
   Type, Clock, Globe, Hash, Share2, BarChart3, RotateCcw, Check, X,
   Trophy, Link2, Flag, CalendarCheck, Scale, Grid3x3, LayoutGrid, Newspaper, FlagTriangleRight,
+  Pencil, Users,
 } from 'lucide-react';
 
 const RUST = '#c0392b';
@@ -55,6 +57,8 @@ export const GAME_META = {
   tally:  { accent: '#15803d', badgeBg: '#15803d', badgeInk: '#fff', Fin: Scale },
   suds:   { accent: '#ea580c', badgeBg: '#ea580c', badgeInk: '#fff', Fin: Grid3x3 },
   carve:  { accent: '#7c3aed', badgeBg: '#7c3aed', badgeInk: '#fff', Fin: LayoutGrid },
+  stet:   { accent: '#0369a1', badgeBg: '#0369a1', badgeInk: '#fff', Fin: Pencil },
+  outwit: { accent: '#1f2937', badgeBg: '#1f2937', badgeInk: '#e8b43a', Fin: Users },
 };
 
 // ---- the four families ------------------------------------------------------
@@ -66,6 +70,7 @@ export const CATEGORIES = {
       { key: 'emcee', name: 'Emcee', tag: 'The daily mini crossword', href: '/emcee' },
       { key: 'links', name: 'Links', tag: 'Four hidden threads', href: '/links' },
       { key: 'garble', name: 'Garble', tag: 'Untangle five words', href: '/garble' },
+      { key: 'stet', name: 'Stet', tag: 'Fix the wrong word', href: '/stet' },
     ],
   },
   history: {
@@ -90,16 +95,17 @@ export const CATEGORIES = {
       { key: 'tally', name: 'Tally', tag: 'Balance every row and column', href: '/tally' },
       { key: 'suds', name: 'Suds', tag: 'The daily 9×9 sudoku', href: '/suds' },
       { key: 'carve', name: 'Carve', tag: 'Carve equal-sum regions', href: '/carve' },
+      { key: 'outwit', name: 'Outwit', tag: 'Beat the crowd', href: '/outwit' },
     ],
   },
 };
 
 // which family each daily game belongs to
 export const GAME_CATEGORY = {
-  crux: 'word', emcee: 'word', garble: 'word', links: 'word',
+  crux: 'word', emcee: 'word', garble: 'word', links: 'word', stet: 'word',
   span: 'geography',
   dating: 'history', circa: 'history', extra: 'history',
-  tally: 'numbers', suds: 'numbers', carve: 'numbers',
+  tally: 'numbers', suds: 'numbers', carve: 'numbers', outwit: 'numbers',
 };
 
 const ORDER = ['word', 'history', 'geography', 'numbers'];
