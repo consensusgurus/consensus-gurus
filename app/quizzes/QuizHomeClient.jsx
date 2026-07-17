@@ -14,6 +14,7 @@ import {
 import { QUIZZES } from '@/lib/quizzes';
 import { KIDS_GAMES } from '@/lib/kids';
 import DailyStrip from '../DailyStrip';
+import DailyCombinedLeaderboard from '../quiz/[id]/DailyCombinedLeaderboard';
 import { QUIZ_HEROES, qotdIdFor } from '@/lib/quiz-heroes';
 import {
   quizDept as deptOf, DEPT_COLOR, DEPT_LABEL, DEPT_NAV,
@@ -200,6 +201,8 @@ function relTime(iso) {
   if (h < 24) return `${h}h`;
   return `${Math.round(h / 24)}d`;
 }
+// Daily-board points: one decimal, drop a trailing .0 (mirrors DailyCombinedLeaderboard's fmtPts).
+function fmtDcPts(n) { const v = Math.round(Number(n) * 10) / 10; return Number.isInteger(v) ? String(v) : v.toFixed(1); }
 function getAnonId() {
   if (typeof window === 'undefined') return null;
   try { return localStorage.getItem('sot_quiz_anon'); } catch { return null; }
@@ -344,6 +347,8 @@ export default function QuizHomeClient() {
   const [signupOpen, setSignupOpen] = useState(false);
   const [duels, setDuels] = useState([]); // last few completed duels, for the header ticker
   const [dailyLead, setDailyLead] = useState(null); // daily-board leader for the header ticker
+  const [dailyBoard, setDailyBoard] = useState(null); // full daily-combined payload (drives the Champions tile)
+  const [boardOpen, setBoardOpen] = useState(false); // the daily-leaderboard slip under the strip
   const [statsOpen, setStatsOpen] = useState(false);
   const [dailyLb, setDailyLb] = useState(null); // today's daily-challenge standings (registered players)
   const [chRun, setChRun] = useState(null); // local run-state for today's daily challenge (completion ticks)
@@ -762,7 +767,7 @@ export default function QuizHomeClient() {
     let alive = true;
     fetch('/api/quiz/daily-combined')
       .then((r) => r.json())
-      .then((d) => { if (alive && d && Array.isArray(d.overall) && d.overall[0]) setDailyLead({ name: d.overall[0].username, total: d.overall[0].total, maxTotal: d.maxTotal }); })
+      .then((d) => { if (!alive || !d || !Array.isArray(d.overall)) return; setDailyBoard(d); if (d.overall[0]) setDailyLead({ name: d.overall[0].username, total: d.overall[0].total, maxTotal: d.maxTotal }); })
       .catch(() => {});
     return () => { alive = false; };
   }, []);
@@ -1116,6 +1121,30 @@ export default function QuizHomeClient() {
     .qzh .th-rail{flex:0 0 188px;}
     .qzh .th-r2{display:grid;grid-template-columns:minmax(0,0.95fr) minmax(0,0.95fr) minmax(0,1fr) minmax(0,1fr);gap:12px;align-items:stretch;}
     .qzh .th-r2 .th-slot-hold{min-height:215px;}
+    /* Daily leaderboard slip: a small gold tab tucked under the daily strip that
+       expands the full daily-combined board (Option A). */
+    .qzh .dboard-slipwrap{display:flex;justify-content:center;margin-top:-14px;margin-bottom:14px;}
+    .qzh .dboard-slip{display:inline-flex;align-items:center;gap:7px;padding:5px 15px 6px;background:linear-gradient(180deg,rgba(232,180,58,0.16),rgba(232,180,58,0.06));border:1px solid rgba(232,180,58,0.32);border-top:none;border-radius:0 0 11px 11px;color:#f5d878;font-family:inherit;font-size:11px;font-weight:800;letter-spacing:.04em;cursor:pointer;transition:background .15s;}
+    .qzh .dboard-slip:hover{background:linear-gradient(180deg,rgba(232,180,58,0.24),rgba(232,180,58,0.1));}
+    .qzh .dboard-slip-lead{color:#93a7cc;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:180px;}
+    .qzh .dboard-panel{margin-bottom:14px;}
+    /* Today's Daily Champions tile: sits in the former Featured Sports slot (Option B). */
+    .qzh .champtile{position:relative;border:1px solid rgba(232,180,58,0.28);border-radius:14px;min-height:215px;background:linear-gradient(165deg,#16294f,#0c1a34);box-shadow:0 10px 30px rgba(10,18,38,.25);padding:14px 15px 13px;display:flex;flex-direction:column;}
+    .qzh .champtile-head{display:flex;align-items:baseline;justify-content:space-between;gap:8px;margin-bottom:10px;}
+    .qzh .champtile-title{font-size:12.5px;font-weight:800;color:#f5d878;letter-spacing:.01em;}
+    .qzh .champtile-sub{font-size:10px;font-weight:600;color:#93a7cc;flex:none;}
+    .qzh .champtile-rows{display:flex;flex-direction:column;gap:5px;}
+    .qzh .champtile-row{display:grid;grid-template-columns:20px 1fr auto;gap:8px;align-items:center;padding:7px 10px;border-radius:10px;background:rgba(232,180,58,0.08);border:1px solid rgba(232,180,58,0.22);text-decoration:none;}
+    .qzh .champtile-row.me{background:rgba(232,180,58,0.16);border-color:rgba(232,180,58,0.55);}
+    .qzh .champtile-rk{font-size:14px;font-weight:800;color:#f5d878;font-variant-numeric:tabular-nums;}
+    .qzh .champtile-nm{font-size:13.5px;font-weight:500;color:#eaf0fb;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+    .qzh .champtile-nm b{color:#e8b43a;font-weight:700;}
+    .qzh .champtile-tt{font-size:13.5px;font-weight:800;color:#f5d878;text-align:right;font-variant-numeric:tabular-nums;}
+    .qzh .champtile-tt s{font-size:10px;font-weight:600;color:#6a80a8;text-decoration:none;}
+    .qzh .champtile-empty{font-size:12px;color:#93a7cc;font-weight:600;padding:14px 4px;text-align:center;}
+    .qzh .champtile-skel{height:34px;border-radius:10px;background:linear-gradient(90deg,rgba(255,255,255,0.03),rgba(255,255,255,0.08),rgba(255,255,255,0.03));border:1px solid rgba(255,255,255,0.09);}
+    .qzh .champtile-nudge{margin-top:auto;display:block;background:rgba(232,180,58,0.12);border:1px solid rgba(232,180,58,0.4);border-radius:10px;padding:8px 10px;font-size:11.5px;font-weight:700;color:#f5d878;line-height:1.4;text-decoration:none;}
+    .qzh .champtile-nudge span{color:#93a7cc;font-weight:600;}
     @media(max-width:820px){.qzh .thub{flex-direction:column;}.qzh .th-rail{align-self:stretch;}.qzh .th-r2{grid-template-columns:1fr 1fr;}.qzh .th-r2 .dtile{grid-column:1 / -1;}.qzh .th-r2 .dueltile{grid-column:1 / -1;}}
     @media(max-width:560px){.qzh .th-r2{grid-template-columns:minmax(0,1fr);}.qzh .th-rail{display:none !important;}.qzh .th-heroes .ntile{min-height:220px;background-position:center 12%;}.qzh .th-r2 .ttile{order:1;min-height:220px;}.qzh .th-r2 .stile{order:2;min-height:220px;}.qzh .th-r2 .dtile{order:3;}.qzh .th-r2 .dueltile{order:4;}.qzh .th-r2 .th-slot-hold{display:none;}.qzh .duelbtn{display:none !important;}/* Stacked full-width hero tiles: Newest matches Trending typography on mobile (needs .th-heroes for specificity over the base rules below) */.qzh .th-heroes .ntile-t{font-size:20px;}.qzh .th-heroes .ntile-tag{font-size:10px;padding:4px 10px;top:12px;left:12px;}.qzh .th-heroes .ntile-ov{padding:18px 16px 15px;}}
     /* Narrow desktop / tablet (561-1024px): mirror the mobile combine - pair the promo tiles two-up (QOTD full row, Newest+Geo, Daily+Trending, Sports+Duel) and drop the Category Mastery rail. minmax(0,1fr) keeps the Newest/Geo hero images clipped inside their tiles (bare 1fr let them bleed). Added 2026-07-15 per Marshall. */
@@ -1421,6 +1450,22 @@ export default function QuizHomeClient() {
             each button is ~half the Newest tile's height. */}
         <DailyStrip />
 
+        {/* Option A: a slim gold slip tucked under the daily strip expands the
+            full daily-combined leaderboard (overall + per-game boards). */}
+        <div className="dboard-slipwrap">
+          <button type="button" className="dboard-slip" aria-expanded={boardOpen} onClick={() => setBoardOpen((v) => !v)}>
+            <Trophy size={12} style={{ color: '#e8b43a', flex: 'none' }} />
+            <span>Daily Leaderboard</span>
+            {dailyLead && dailyLead.name ? <span className="dboard-slip-lead">· {dailyLead.name} leads</span> : null}
+            <ChevronDown size={13} strokeWidth={2.6} style={{ transition: 'transform .2s', transform: boardOpen ? 'rotate(180deg)' : 'none', color: '#e8b43a', flex: 'none' }} />
+          </button>
+        </div>
+        {boardOpen ? (
+          <div className="dboard-panel">
+            <DailyCombinedLeaderboard todayKey={null} identity={me} />
+          </div>
+        ) : null}
+
         <div className="thub">
           <div className="thub-left">
           <div className="th-heroes">
@@ -1513,15 +1558,52 @@ export default function QuizHomeClient() {
               </div>
             ) : <div className="th-only-mob" />}
 
-            {sportsPick ? (
-            <Link href={`/quiz/${sportsPick.id}`} className="hstile stile" style={sptHero ? { backgroundImage: `url("${sptHero}")`, backgroundPosition: sptPos || 'center' } : { background: C.accent }}>
-              <span className="ttile-tag" style={{ color: '#b45309', whiteSpace: 'nowrap' }}><Trophy size={11} style={{ verticalAlign: -1 }} /> FEATURED SPORTS</span>
-              <div className="ttile-ov">
-                <div className="ttile-t">{stripVerb(sportsPick.title)}</div>
-                <div className="ttile-foot" style={{ flexWrap: 'nowrap' }}><span className="ttile-p" style={{ flex: 'none' }}>Play <ArrowRight size={13} style={{ verticalAlign: -1 }} /></span>{leader(sportsPick.id) ? <span className="ttile-plays hpill" style={{ display: 'inline-flex', alignItems: 'center', gap: 4, minWidth: 0 }}><Crown size={12} style={{ color: '#e8b43a', flex: 'none' }} /><span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{leader(sportsPick.id)}</span></span> : null}</div>
+            {/* Option B: Today's Daily Champions (replaces the former Featured Sports tile) */}
+            {!dailyBoard ? (
+              <div className="champtile stile">
+                <div className="champtile-head">
+                  <span className="champtile-title"><Trophy size={13} style={{ color: '#e8b43a', flex: 'none', verticalAlign: -2 }} /> Today’s Daily Champions</span>
+                  <span className="champtile-sub">Best 5 of 10</span>
+                </div>
+                <div className="champtile-rows"><div className="champtile-skel" /><div className="champtile-skel" /><div className="champtile-skel" /></div>
               </div>
-            </Link>
-          ) : <div className="th-slot-hold" />}
+            ) : (() => {
+              const ov = Array.isArray(dailyBoard.overall) ? dailyBoard.overall : [];
+              const mx = dailyBoard.maxTotal || 75;
+              const gc = dailyBoard.gameCount || 10;
+              const meRow = dailyBoard.me || null;
+              const top = ov.slice(0, 3);
+              const gap = (meRow && ov[0]) ? Math.round((ov[0].total - meRow.total) * 10) / 10 : null;
+              const left = meRow ? Math.max(0, gc - (meRow.gamesPlayed || 0)) : null;
+              return (
+                <div className="champtile stile">
+                  <div className="champtile-head">
+                    <span className="champtile-title"><Trophy size={13} style={{ color: '#e8b43a', flex: 'none', verticalAlign: -2 }} /> Today’s Daily Champions</span>
+                    <span className="champtile-sub">Best {gc > 1 ? Math.min(5, gc) : 5} of {gc}</span>
+                  </div>
+                  {top.length ? (
+                    <div className="champtile-rows">
+                      {top.map((r) => { const mine = meRow && r.userKey === meRow.userKey; return (
+                        <a key={r.userKey} href="/daily" className={`champtile-row${mine ? ' me' : ''}`}>
+                          <span className="champtile-rk">{r.rank}</span>
+                          <span className="champtile-nm">{r.username || 'Player'}{mine ? <b> (you)</b> : ''}</span>
+                          <span className="champtile-tt">{fmtDcPts(r.total)}<s>/{mx}</s></span>
+                        </a>
+                      ); })}
+                    </div>
+                  ) : (
+                    <div className="champtile-empty">No daily scores yet today. Be the first.</div>
+                  )}
+                  {meRow && gap != null && gap > 0 ? (
+                    <Link href="/daily" className="champtile-nudge">You’re {fmtDcPts(gap)} pt{gap === 1 ? '' : 's'} off the lead <span>· {left} game{left === 1 ? '' : 's'} left · play one to climb →</span></Link>
+                  ) : meRow && gap === 0 ? (
+                    <Link href="/daily" className="champtile-nudge">You’re leading today’s daily board <span>· keep it up →</span></Link>
+                  ) : (
+                    <Link href="/daily" className="champtile-nudge">See the full daily leaderboard <span>→</span></Link>
+                  )}
+                </div>
+              );
+            })()}
 
             {trending ? (() => { const tc = byKey[trending.dept] || {}; const tPos = tHeroPos; return (
             <Link href={`/quiz/${trending.id}`} className="ttile" style={tHero ? { backgroundImage: `url("${tHero}")`, backgroundPosition: tPos || 'center' } : { background: tc.c || C.accent }}>
