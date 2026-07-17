@@ -48,6 +48,7 @@ export default function DailyGamesGrid({ self, maxWidth = 640, challengeHref = n
     <div style={{ maxWidth, margin: '18px auto 0' }}>
       <style>{`
         .dgg{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;}
+        @media(min-width:768px){.dgg{grid-template-columns:repeat(3,minmax(0,1fr));}}
         @media(max-width:359px){.dgg{grid-template-columns:1fr;}}
         .dgg-t{display:flex;flex-direction:row;align-items:center;gap:10px;min-height:66px;border:1px solid rgba(28,30,36,0.14);border-radius:14px;background:#0e1d40;padding:10px 13px;text-decoration:none;overflow:hidden;box-sizing:border-box;}
         .dgg-t:hover{border-color:#5b8bff;}
