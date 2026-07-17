@@ -86,7 +86,7 @@ export const PUZZLES = [
     start: 'Mexico',
     end: 'Chile',
     par: 8,
-    note: 'Eight hops, one road: Central America is a single-file line, and only Peru and Bolivia touch Chile at the far end.',
+    note: 'Eight hops, one road: Central America is a single-file line, and the shortest way into Chile comes through Peru at the far end.',
   },
   {
     num: 8,
@@ -138,7 +138,7 @@ export const PUZZLES = [
     start: 'Estonia',
     end: 'Portugal',
     par: 6,
-    note: 'The Baltic chain through Latvia and Lithuania is one hop longer — the single shortest road leaves through Russia and Kaliningrad is not needed at all.',
+    note: 'The Baltic chain through Latvia and Lithuania is one hop longer — the single shortest road slips out through Russia and crosses into Poland at Kaliningrad.',
   },
   {
     num: 13,
@@ -158,7 +158,7 @@ export const PUZZLES = [
     start: 'Spain',
     end: 'India',
     par: 6,
-    note: 'The one shortest road runs through Russia and China — the southern route through Iran costs an extra hop.',
+    note: 'The one shortest road runs through Russia and China — the southern route through Iran and Pakistan costs two extra hops.',
   },
   {
     num: 15,

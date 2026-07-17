@@ -120,3 +120,67 @@ automatically. No migration code is needed when you extend a quiz's answer set.
 - [ ] Key-collision scan clean.
 - [ ] `node --check` + load passes with no holes; any edited board passes esbuild.
 - [ ] Files staged to `C:\dev\sot-live`; user told which files to commit and what to spot-check on preview.
+
+---
+
+## 7. Daily game puzzle banks (`app/<game>/puzzles.js`)
+
+The 13 daily games (crux, emcee, garble, links, span, dating, tally, suds, circa,
+extra, carve, stet, outwit) each keep a dated `PUZZLES` array. These have failure modes a
+`node --check` / "it parses" pass does **not** catch. **A puzzle that parses is not a puzzle
+that is correct.** Before staging ANY daily puzzle — new or edited — run the checks below for
+its game. Do not author a batch and ship on structural validation alone: that is exactly how
+multi-solution and factual bugs reach players (learned the hard way — a Links board shipped
+with four valid groupings, a Crux board with two, and three Span notes with false geography,
+all of which "passed" structural checks).
+
+### 7a. Solution uniqueness — the #1 rule for logic games
+
+Every board of a logic game MUST have **exactly one** valid solution. "All the words are
+unique" or "the grid geometry is valid" does NOT prove this — you must solve it.
+
+- **Links & Crux (category filing):** the deadly bug is two words that each plausibly belong
+  to the SAME two categories — they swap, yielding ≥2 valid groupings (a Connections-style
+  double solution). A 3-cycle of collisions (A reads cat1/cat2, B reads cat2/cat3, C reads
+  cat3/cat1) is almost always ambiguous. RULE: pin every trap word by elimination — its
+  decoy category must ALREADY be full of that category's own true members, so the trap
+  cannot actually be filed there. VERIFY with a solver, never by eye: build a *generous*
+  membership matrix (for each word, EVERY category on the board it could plausibly read as),
+  then count the partitions into the declared group shapes. The count MUST be 1. Classic
+  traps that have bitten us: planet-names that are also Roman gods (Neptune/Saturn/Jupiter/
+  Mercury), a gem that is also a shade (ruby/garnet), a word that is both a tree and a shade
+  of green (olive/pine), boxing/dance/fishing overlaps (swing/hook/reel).
+- **Suds / Tally / Carve (number games):** each board must have exactly one solution given
+  its clues / rack / anchors. Re-derive with an exhaustive solver, assert a single solution,
+  and confirm the stored `sol` matches. NOTE: the header comments reference `scripts/verify`,
+  but that solver is not currently in the repo — re-verify independently every time until it
+  is restored (Suds = standard sudoku; Tally = place the `bank` multiset to hit `rowT`/`colT`;
+  Carve = connected equal-sum regions from the `seeds`).
+
+### 7b. Factual accuracy — verify, never recall (extends §0)
+
+- **Span notes:** every geographic claim in a `note` must be checked against
+  `app/span/borders.js`. NEVER write "X is the only country that borders Y" without listing
+  Y's full neighbour set from `PAIRS` (Panama borders Costa Rica AND Colombia; Chile borders
+  Argentina, Bolivia AND Peru). Every `par` must equal `shortestHops` BFS — and the
+  *constrained* BFS for Sunday via/avoid. Recompute every route claim ("one road", "+1 hop")
+  with the BFS helpers (`shortestHops`, `distancesFrom`) before writing it.
+- **Dating / Circa / Extra:** every year/date must be web-verified, not recalled. Dating
+  events MUST be in strictly ascending true chronological order — array index is the answer key.
+
+### 7c. Word / content validity
+
+- **Emcee / Crux:** every across/down (or grid) answer must be a real dictionary word; clues
+  accurate and breakfast-table fair.
+- **Garble:** each `scramble` must be a true anagram of its `answer` (and not equal to it),
+  and the letters at each word's `marks` must together anagram to `final`.
+
+### 7d. Definition of done for a daily puzzle change
+
+- [ ] Ran the game's uniqueness/validity solver; every affected board returns exactly ONE
+      solution (logic games) or passes its content checks (word/anagram validity).
+- [ ] All facts (Span borders/pars/notes; Dating/Circa/Extra dates) verified against a real
+      source or `borders.js`, never memory.
+- [ ] `quizId` matches `live`; `dateLabel` matches; the `sunday` flag matches the real weekday.
+- [ ] Applied on-device durably and re-verified ON the device — a container re-stage can serve
+      a stale cached copy of a file you just overwrote.

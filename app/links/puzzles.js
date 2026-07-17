@@ -190,7 +190,7 @@ export const PUZZLES = [
     groups: [
       { name: 'Planets', words: ['NEPTUNE', 'SATURN', 'URANUS', 'JUPITER'] },
       { name: 'Candy bars', words: ['MARS', 'TWIX', 'SNICKERS', 'BOUNTY'] },
-      { name: 'Roman gods', words: ['MERCURY', 'VULCAN', 'JANUS', 'CUPID'] },
+      { name: 'Roman gods', words: ['VULCAN', 'JANUS', 'CUPID', 'MINERVA'] }, // was MERCURY (also a planet) -> MINERVA: kills the 4-way ambiguity
       { name: 'Famous sculptures', words: ['DAVID', 'PIETA', 'THINKER', 'VENUS'] },
     ],
   },
