@@ -125,8 +125,7 @@ export default function DailyStrip({ board = null }) {
         .dstrip-cap .cty{font-size:15px;font-weight:800;color:#fff;letter-spacing:-.2px;line-height:1;}
         .dstrip-bar{display:block;height:5px;width:60px;border-radius:99px;background:rgba(255,255,255,0.14);overflow:hidden;margin-top:3px;}
         .dstrip-fill{display:block;height:100%;width:0;background:#34d399;border-radius:99px;transition:width .4s ease;}
-        .dstrip-n{font-family:'DM Mono',ui-monospace,monospace;font-size:10px;color:#9fb0d4;letter-spacing:.04em;}
-        .dstrip-exp{margin-top:4px;align-self:flex-start;display:inline-flex;align-items:center;gap:4px;background:rgba(232,180,58,0.14);border:1px solid rgba(232,180,58,0.42);color:#f5d878;font-family:inherit;font-size:9.5px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;border-radius:7px;padding:3px 8px;cursor:pointer;transition:background .15s;}
+        .dstrip-exp{margin-top:1px;align-self:flex-start;display:inline-flex;align-items:center;gap:4px;background:rgba(232,180,58,0.14);border:1px solid rgba(232,180,58,0.42);color:#f5d878;font-family:inherit;font-size:9.5px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;border-radius:7px;padding:3px 8px;cursor:pointer;transition:background .15s;}
         .dstrip-exp:hover{background:rgba(232,180,58,0.24);}
         .dstrip-cells{display:flex;flex:1 1 auto;}
         .dstrip-cell{position:relative;flex:1 1 0;min-width:66px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;padding:13px 6px 11px;text-decoration:none;border-left:1px solid rgba(255,255,255,0.055);transition:background .12s;}
@@ -137,7 +136,7 @@ export default function DailyStrip({ board = null }) {
         .dstrip-cell.done img{opacity:.4;}
         .dstrip-cell.done .nm{color:#9fb0d4;}
         .dstrip-check{position:absolute;top:6px;right:6px;width:16px;height:16px;border-radius:99px;background:#34d399;display:flex;align-items:center;justify-content:center;box-shadow:0 0 0 2px #0e1d40;pointer-events:none;}
-        .dstrip-lead{display:flex;align-items:center;gap:3px;max-width:100%;min-width:0;font-size:10.5px;font-weight:700;color:#eaf0fb;}
+        .dstrip-lead{margin-top:3px;display:flex;align-items:center;gap:3px;max-width:100%;min-width:0;font-size:10.5px;font-weight:700;color:#eaf0fb;}
         .dstrip-lead svg{color:#e8b43a;flex:none;}
         .dstrip-lead > span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
         .dstrip-lead.none{color:#6a80a8;font-weight:600;}
@@ -190,7 +189,6 @@ export default function DailyStrip({ board = null }) {
             <span className="lab">Daily</span>
             <span className="cty">Games</span>
             <span className="dstrip-bar"><span className="dstrip-fill" style={{ width: `${pct}%` }} /></span>
-            <span className="dstrip-n">{n} / {GAMES.length} today</span>
             {hasBoard ? (
               <button type="button" className="dstrip-exp" aria-expanded={open} onClick={() => setOpen((v) => !v)}>
                 <ChevronDown size={11} strokeWidth={2.6} style={{ transition: 'transform .2s', transform: open ? 'rotate(180deg)' : 'none' }} />

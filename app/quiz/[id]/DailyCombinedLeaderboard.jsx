@@ -262,17 +262,28 @@ function GameBoard({ game, myKey, gameMax, th }) {
   if (!game) return <p style={{ fontFamily: FONT, fontStyle: 'italic', fontSize: 15, color: th.empty }}>No board for this game today.</p>;
   const rows = game.board || [];
   const gridSm = '34px 1fr 54px 60px';
-  if (!rows.length) {
-    return <p style={{ fontFamily: FONT, fontStyle: 'italic', fontSize: 15, color: th.empty }}>No one has posted a score here yet. Be the first.</p>;
-  }
   const acc = th.accents[game.key] || th.total;
+  const plays = (game.plays != null ? game.plays : game.field) || 0;
+  // Header (game link + play count) shows in EVERY state, so a game whose only
+  // plays today are guests still reports its play count instead of looking dead.
+  const gameHeader = (
+    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: 10 }}>
+      <a href={game.href || `/${game.key}`} style={{ fontFamily: FONT, fontSize: 12, fontWeight: 800, color: acc, textDecoration: 'none' }}>{GAME_NAMES[game.key] || game.key} <span style={{ fontWeight: 700, opacity: 0.85 }}>&rarr;</span></a>
+      <div style={{ fontFamily: FONT, fontSize: 11, color: th.dim }}>{plays.toLocaleString()} {plays === 1 ? 'play' : 'plays'}</div>
+    </div>
+  );
+  if (!rows.length) {
+    return (
+      <div>
+        {gameHeader}
+        <p style={{ fontFamily: FONT, fontStyle: 'italic', fontSize: 15, color: th.empty }}>{plays > 0 ? 'No ranked scores here yet — sign in and play to claim the top spot.' : 'No one has posted a score here yet. Be the first.'}</p>
+      </div>
+    );
+  }
   return (
     <div>
       <style>{`.dclb-g{grid-template-columns:40px 1fr 60px 58px 66px;}@media(max-width:520px){.dclb-g{grid-template-columns:${gridSm};}.dclb-time{display:none;}}`}</style>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: 10 }}>
-        <a href={game.href || `/${game.key}`} style={{ fontFamily: FONT, fontSize: 12, fontWeight: 800, color: acc, textDecoration: 'none' }}>{GAME_NAMES[game.key] || game.key} <span style={{ fontWeight: 700, opacity: 0.85 }}>&rarr;</span></a>
-        <div style={{ fontFamily: FONT, fontSize: 11, color: th.dim }}>{(game.plays != null ? game.plays : game.field).toLocaleString()} {game.plays === 1 ? 'play' : 'plays'}</div>
-      </div>
+      {gameHeader}
       <div className="dclb-g" style={{ display: 'grid', gap: 8, padding: '0 14px 8px', fontFamily: FONT, fontSize: 10, letterSpacing: '0.12em', textTransform: 'uppercase', color: th.dim }}>
         <span>#</span><span>Player</span><span style={{ textAlign: 'right' }}>Score</span><span className="dclb-time" style={{ textAlign: 'right' }}>Time</span><span style={{ textAlign: 'right' }}>Pts</span>
       </div>
