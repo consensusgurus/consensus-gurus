@@ -5,8 +5,9 @@
 // Five quick duels against the whole field: undercut the average, dodge the
 // popular pick, read the herd, find the meeting point, be the rare bird. There
 // are no right answers — only what the crowd does. Answer all five, then face
-// the field: the server scores you against the pre-written "house crowd" plus
-// every real player who has picked so far (instant and final, owner ruling),
+// the field: the server scores you against the pool (instant and final, owner
+// ruling) — the pre-written "house crowd" seeds it until ten real players
+// have picked; after that it is real picks only —
 // and shows you the actual distributions — the payoff is seeing where the
 // crowd really landed.
 //
@@ -693,7 +694,7 @@ export default function OutwitClient({ puzzles = [], forceNum = null }) {
           modal
           self="outwit"
           won={sharp}
-          headline={<>{Math.round((score / TOTAL) * 100)}% Complete</>}
+          headline={<>You scored {Math.round((score / TOTAL) * 100)}%</>}
           subline={<>Outwit #{PUZZLE.num} &middot; {score}/{TOTAL} &middot; crowd of {fmtBig(result.poolSize)} &middot; {elapsed}</>}
           onShare={copyShare}
           shareLabel={copied ? 'Copied' : 'Share Result'}
@@ -722,7 +723,7 @@ export default function OutwitClient({ puzzles = [], forceNum = null }) {
             <div style={{ fontSize: 14, lineHeight: 1.55, color: COLORS.ink, fontWeight: 600 }}>
               <p style={{ margin: '0 0 9px' }}>Your opponent is <b>everyone playing today</b>. Five quick duels, no right answers — you score by predicting what the crowd does.</p>
               <p style={{ margin: '0 0 9px' }}><b>Undercut</b>: closest to two-thirds of the average pick. <b>Road Less Traveled</b>: pick what the fewest pick. <b>Herd</b>: closest to the crowd&rsquo;s median guess — right or wrong. <b>Meeting Point</b>: match the most-picked answer. <b>Rare Bird</b>: the rarest number wins.</p>
-              <p style={{ margin: '0 0 9px' }}>Each duel pays <b>0, 1, or 2 points</b> by where you land in the field. Your score is final the moment you play, measured against everyone before you — plus the <b>house crowd</b>, four dozen pre-written picks that seed the pool at midnight so the first player faces a real field.</p>
+              <p style={{ margin: '0 0 9px' }}>Each duel pays <b>0, 1, or 2 points</b> by where you land in the field. Your score is final the moment you play, measured against everyone before you. Overnight, the <b>house crowd</b> — four dozen pre-written picks — seeds the pool so the first player still faces a real field; once <b>ten real players</b> have locked in, the house steps aside and the crowd is entirely human.</p>
               <p style={{ margin: 0 }}>After you lock in, the real distributions are revealed — where the crowd actually went. Ties on the daily board break by fastest time. 7+ of 10 counts as outwitting the crowd.</p>
             </div>
             <button className="ow-btn" onClick={() => { setShowHelp(false); try { localStorage.setItem(HELP_KEY, '1'); } catch (e) {} }} style={{ marginTop: 14, background: COLORS.ink, color: '#fff' }}>Play</button>
@@ -737,7 +738,7 @@ export default function OutwitClient({ puzzles = [], forceNum = null }) {
           Outwit is a free daily game from Source of Truths where the puzzle is other people. Every day, five quick duels pit you against the entire field of players: undercut two-thirds of the crowd&rsquo;s average, pick the option the fewest will touch, guess where the herd&rsquo;s median lands, meet the crowd at its favorite answer, and find the number nobody else takes.
         </p>
         <p style={{ margin: '0 0 8px', fontSize: 13, lineHeight: 1.65, color: COLORS.faded, fontWeight: 600 }}>
-          There are no trivia answers to know — the classic game-theory twist is that everyone is reasoning about everyone else. When you lock in, your picks are scored against every player before you, and the real distributions are revealed: where the crowd actually went, versus where you thought it would.
+          There are no trivia answers to know — the classic game-theory twist is that everyone is reasoning about everyone else. When you lock in, your picks are scored against every player before you, and the real distributions are revealed: where the crowd actually went, versus where you thought it would. The crowd changes over the day — a pre-written house field seeds the small hours, then retires once ten real players are in, so by breakfast you're playing purely against people.
         </p>
         <p style={{ margin: 0, fontSize: 13, lineHeight: 1.65, color: COLORS.faded, fontWeight: 600 }}>
           A new crowd forms every day at midnight Eastern. No app, no signup &mdash; play free in your browser, keep a streak, and race the daily leaderboard. More dailies: <a href="/tally" style={{ color: COLORS.ink, fontWeight: 800 }}>Tally</a>, our row-and-column logic game, <a href="/suds" style={{ color: COLORS.ink, fontWeight: 800 }}>Suds</a>, our daily sudoku, and <a href="/circa" style={{ color: COLORS.ink, fontWeight: 800 }}>Circa</a>, our year-guessing game.

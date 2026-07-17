@@ -656,7 +656,7 @@ export default function LinksClient({ puzzles = [], forceNum = null }) {
           modal
           self="links"
           won={won}
-          headline={<>{Math.round((g.solved.length / 4) * 100)}% Complete</>}
+          headline={<>You scored {Math.round((g.solved.length / 4) * 100)}%</>}
           subline={<>{g.solved.length}/4 groups &middot; {g.mistakes} mistake{g.mistakes === 1 ? '' : 's'} &middot; {elapsed}</>}
           onShare={copyShare}
           shareLabel={copied ? 'Copied' : 'Share Result'}

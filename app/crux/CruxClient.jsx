@@ -1216,7 +1216,7 @@ export default function CruxClient({ puzzles = [], forceNum = null }) {
           modal
           self="crux"
           won={won}
-          headline={<>{Math.round(((won ? PUZZLE.slots.length * 2 : g.order.length + (g.filedRight || 0)) / (PUZZLE.slots.length * 2)) * 100)}% Complete</>}
+          headline={<>You scored {Math.round(((won ? PUZZLE.slots.length * 2 : g.order.length + (g.filedRight || 0)) / (PUZZLE.slots.length * 2)) * 100)}%</>}
           subline={<>{won
             ? <>{guessesUsed} guesses &middot; {elapsed}{g.hintUsed ? <> &middot; 1 hint</> : null}</>
             : g.filedRight != null

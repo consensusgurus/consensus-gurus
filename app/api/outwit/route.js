@@ -5,11 +5,17 @@ import { PUZZLES } from '@/app/outwit/puzzles';
 
 // POST /api/outwit  { quizId, answers:[5], anonId, email? }
 //
-// Scores one Outwit run against the day's pool: the pre-written ~48-answer
-// "house crowd" (server-only, in app/outwit/puzzles.js) + every real pick
-// recorded so far + this submission. Scoring is INSTANT AND FINAL at play time
-// (owner ruling 2026-07-17): the pool only grows, so later players face a
-// bigger crowd, and the house seed keeps 12:01am fair.
+// Scores one Outwit run against the day's pool. Scoring is INSTANT AND FINAL
+// at play time (owner ruling 2026-07-17): the pool only grows, so later
+// players face a bigger crowd.
+//
+// POOL RULE (owner ruling 2026-07-17, evening): the pre-written ~48-answer
+// "house crowd" (server-only, in app/outwit/puzzles.js) seeds the pool ONLY
+// while fewer than HOUSE_CUTOFF real players have locked in. From the 11th
+// real player on, the pool is real picks only — the game "changes over the
+// day" into a purely human crowd. Fair because every player is scored against
+// the field as it stood when they played, and the tercile scoring is
+// percentile-based, so pool size doesn't skew it.
 //
 // Picks are stored in `outwit_picks` (migration 35), one row per (quiz_id,
 // anon_id) — replays are re-scored against the live pool but never re-inserted,
@@ -18,6 +24,8 @@ import { PUZZLES } from '@/app/outwit/puzzles';
 
 export const dynamic = 'force-dynamic';
 export const fetchCache = 'force-no-store';
+
+const HOUSE_CUTOFF = 10; // real players needed before the house crowd retires
 
 const median = (arr) => {
   const s = [...arr].sort((a, b) => a - b);
@@ -67,10 +75,11 @@ function histogram(pool, you, target) {
   return buckets;
 }
 
-function scorePrompt(pr, priorAnswers, you) {
-  const poolSize = pr.house.length + priorAnswers.length + 1;
+function scorePrompt(pr, priorAnswers, you, useHouse) {
+  const seed = useHouse ? pr.house : [];
+  const poolSize = seed.length + priorAnswers.length + 1;
   if (pr.type === 'twothirds' || pr.type === 'herd') {
-    const pool = [...pr.house, ...priorAnswers, you];
+    const pool = [...seed, ...priorAnswers, you];
     const target = pr.type === 'twothirds' ? (2 / 3) * mean(pool) : median(pool);
     const { pts, beatPct } = closenessPts(pool, you, target);
     const out = {
@@ -86,7 +95,7 @@ function scorePrompt(pr, priorAnswers, you) {
   // choice + unique prompts: rank by pool counts
   if (pr.type === 'least' || pr.type === 'match') {
     const counts = new Array(pr.options.length).fill(0);
-    for (const v of [...pr.house, ...priorAnswers, you]) { if (Number.isInteger(v) && v >= 0 && v < counts.length) counts[v]++; }
+    for (const v of [...seed, ...priorAnswers, you]) { if (Number.isInteger(v) && v >= 0 && v < counts.length) counts[v]++; }
     const order = counts.map((c, i) => ({ c, i })).sort((a, b) => (pr.type === 'least' ? a.c - b.c : b.c - a.c) || a.i - b.i);
     const rank = order.findIndex((o) => o.i === you);
     const pts = rank === 0 ? 2 : rank === 1 ? 1 : 0;
@@ -95,7 +104,7 @@ function scorePrompt(pr, priorAnswers, you) {
   // unique: rarest number in [min..max] wins, ties to the lower number
   const size = pr.max - pr.min + 1;
   const counts = new Array(size).fill(0);
-  for (const v of [...pr.house, ...priorAnswers, you]) { const k = v - pr.min; if (Number.isInteger(v) && k >= 0 && k < size) counts[k]++; }
+  for (const v of [...seed, ...priorAnswers, you]) { const k = v - pr.min; if (Number.isInteger(v) && k >= 0 && k < size) counts[k]++; }
   const order = counts.map((c, i) => ({ c, i })).sort((a, b) => a.c - b.c || a.i - b.i);
   const rank = order.findIndex((o) => o.i === you - pr.min);
   const pts = rank < 4 ? 2 : rank < 10 ? 1 : 0;
@@ -151,9 +160,11 @@ export async function POST(request) {
     const priorLists = rows.filter((r) => !anonId || r.anon_id !== anonId).map((r) => r.answers).filter((a) => Array.isArray(a));
     const alreadyPlayed = anonId ? rows.some((r) => r.anon_id === anonId) : false;
 
+    // House retires once enough real players are in the pool (see POOL RULE).
+    const useHouse = priorLists.length < HOUSE_CUTOFF;
     const prompts = puzzle.prompts.map((pr, i) => {
       const prior = priorLists.map((a) => Number(a[i])).filter((x) => Number.isInteger(x));
-      return scorePrompt(pr, prior, clean[i]);
+      return scorePrompt(pr, prior, clean[i], useHouse);
     });
     const points = prompts.reduce((s, p) => s + p.pts, 0);
 
@@ -177,6 +188,7 @@ export async function POST(request) {
       points,
       total: puzzle.prompts.length * 2,
       poolSize: prompts[0] ? prompts[0].poolSize : 0,
+      houseActive: useHouse,
       replay: alreadyPlayed,
       prompts,
     });

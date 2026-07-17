@@ -654,7 +654,7 @@ export default function GarbleClient({ puzzles = [], forceNum = null }) {
           modal
           self="garble"
           won={won}
-          headline={<>{Math.round((score / 10) * 100)}% Complete</>}
+          headline={<>You scored {Math.round((score / 10) * 100)}%</>}
           subline={<>{score}/10 &middot; {g.misses} miss{g.misses === 1 ? '' : 'es'} &middot; {elapsed}</>}
           onShare={copyShare}
           shareLabel={copied ? 'Copied' : 'Share Result'}

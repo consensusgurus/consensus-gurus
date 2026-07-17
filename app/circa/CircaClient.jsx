@@ -679,7 +679,7 @@ export default function CircaClient({ puzzles = [], forceNum = null }) {
           modal
           self="circa"
           won={won}
-          headline={<>{Math.round((finalScore / 10) * 100)}% Complete</>}
+          headline={<>You scored {Math.round((finalScore / 10) * 100)}%</>}
           subline={won
             ? <>{finalScore}/10 &middot; {exact ? 'dead on' : 'circa'} in {guesses.length} guess{guesses.length === 1 ? '' : 'es'} &middot; {elapsed}{g.hintUsed ? <> &middot; 1 hint</> : null}</>
             : <>0/10 &middot; out of guesses</>}

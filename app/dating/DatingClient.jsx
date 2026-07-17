@@ -758,7 +758,7 @@ export default function DatingClient({ puzzles = [], forceNum = null }) {
           modal
           self="dating"
           won={won}
-          headline={<>{Math.round((((won || g.status === 'lost') ? finalScore : 0) / 10) * 100)}% Complete</>}
+          headline={<>You scored {Math.round((((won || g.status === 'lost') ? finalScore : 0) / 10) * 100)}%</>}
           subline={<>{won
             ? <>{finalScore}/10 &middot; {checksUsed} check{checksUsed === 1 ? '' : 's'} &middot; {elapsed}{g.hintUsed ? <> &middot; 1 hint</> : null}</>
             : g.status === 'lost'

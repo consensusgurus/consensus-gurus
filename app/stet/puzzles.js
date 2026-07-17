@@ -2,22 +2,27 @@
 // page (app/stet/page.js), which filters live<=today before passing puzzles to
 // the client — so future briefs, and their answers, never ship to the browser.
 //
-// One news brief per day: five sentences (seven on Sundays), each hiding
-// EXACTLY ONE wrong word. The wrong word is always a real word — an eggcorn, a
-// swapped homophone, a malaprop, a near-miss — never a spelling typo, so a
-// spellchecker would sail right past it. The player taps the offending word,
-// then types the one-word fix.
+// One news brief per day: five sentences (seven on Sundays). Each sentence
+// carries an `errors` array with 0, 1, or (Sundays only) 2 errors — always a
+// real word, so a spellchecker sails past it: eggcorns, swapped homophones,
+// malaprops, AND grammar slips (should of, had ran, higher then). A sentence
+// with an EMPTY errors array is clean copy — the player earns its points by
+// stamping it "stet" (let it stand). Not every day carries a clean sentence.
 //
 // AUTHORING RULES (validate with scripts/verify-stet.mjs after ANY edit):
-//  - `wrong` is the offending token exactly as it appears (punctuation aside);
-//    it must appear EXACTLY ONCE in the sentence (case-insensitive token match).
+//  - errors: 0–1 per sentence on weekdays, 0–2 on Sundays (owner ruling
+//    2026-07-17: Sundays are tougher, and only Sundays may double up).
+//  - each error's `wrong` is the offending token exactly as it appears
+//    (punctuation aside) and must appear EXACTLY ONCE in the sentence.
 //  - `fix` is a single replacement token (hyphens allowed); `alts` lists other
-//    accepted spellings. fix !== wrong.
-//  - Every error must be clean-cut for a mainstream copy desk — no contested
+//    accepted spellings. fix !== wrong, and the fix must not already appear in
+//    the sentence.
+//  - clean sentences (errors: []) carry a `cleanNote` — ideally BAIT: correct
+//    usage of a word that looks wrong (bated, counsel, taut, morale, flair…).
+//  - every error must be clean-cut for a mainstream copy desk — no contested
 //    usage calls unless it's a Sunday item WITH a note that owns the ruling.
-//  - `note` is the one-line payoff shown after the sentence is scored
-//    (15–120 chars, no giveaway of other items).
-//  - Never reuse a wrong/fix pair already banked here.
+//  - `note` per error is the one-line payoff (15–140 chars).
+//  - never reuse a wrong→fix pair already banked here.
 export const PUZZLES = [
   {
     num: 1,
@@ -28,33 +33,23 @@ export const PUZZLES = [
     items: [
       {
         text: "The mayor's veto exasperated tensions with the city council, aides conceded late Thursday.",
-        wrong: 'exasperated',
-        fix: 'exacerbated',
-        note: 'To exacerbate is to make worse; to exasperate is to annoy someone.',
+        errors: [{ wrong: 'exasperated', fix: 'exacerbated', note: 'To exacerbate is to make worse; to exasperate is to annoy someone.' }],
       },
       {
         text: 'Under the new deal, the young striker will have free reign over where he plays his final season.',
-        wrong: 'reign',
-        fix: 'rein',
-        note: 'Free rein comes from horseback riding — slack reins — not royalty.',
+        errors: [{ wrong: 'reign', fix: 'rein', note: 'Free rein comes from horseback riding — slack reins — not royalty.' }],
       },
       {
         text: "The museum's new wing has peaked the interest of donors on both coasts.",
-        wrong: 'peaked',
-        fix: 'piqued',
-        note: 'Piqued means stimulated. A peak is a summit.',
+        errors: [{ wrong: 'peaked', fix: 'piqued', note: 'Piqued means stimulated. A peak is a summit.' }],
       },
       {
         text: "Critics called the committee's report a mute point, since the law it studies expired in June.",
-        wrong: 'mute',
-        fix: 'moot',
-        note: 'Moot means debatable or academic; mute means silent.',
+        errors: [{ wrong: 'mute', fix: 'moot', note: 'Moot means debatable or academic; mute means silent.' }],
       },
       {
         text: 'Campaign volunteers waited with baited breath as the final precincts reported.',
-        wrong: 'baited',
-        fix: 'bated',
-        note: '"Bated" is a clipped "abated" — breath held. Bait is for hooks.',
+        errors: [{ wrong: 'baited', fix: 'bated', note: '"Bated" is a clipped "abated" — breath held. Bait is for hooks.' }],
       },
     ],
   },
@@ -67,33 +62,24 @@ export const PUZZLES = [
     items: [
       {
         text: 'Prosecutors say the firm openly flaunted safety rules for the better part of a decade.',
-        wrong: 'flaunted',
-        fix: 'flouted',
-        note: 'To flout is to defy a rule; to flaunt is to show something off.',
+        errors: [{ wrong: 'flaunted', fix: 'flouted', note: 'To flout is to defy a rule; to flaunt is to show something off.' }],
       },
       {
         text: "The senator's ten minutes of questioning failed to illicit a single straight answer.",
-        wrong: 'illicit',
-        fix: 'elicit',
-        note: 'Elicit means draw out. Illicit means illegal.',
+        errors: [{ wrong: 'illicit', fix: 'elicit', note: 'Elicit means draw out. Illicit means illegal.' }],
       },
       {
         text: 'The shop survives on wedding invitations and high-end stationary.',
-        wrong: 'stationary',
-        fix: 'stationery',
-        note: 'Stationery with an e is paper — remember e for envelope. Stationary means not moving.',
+        errors: [{ wrong: 'stationary', fix: 'stationery', note: 'Stationery with an e is paper — remember e for envelope. Stationary means not moving.' }],
       },
       {
         text: 'Both coaches met at midfield to diffuse the situation before the restart.',
-        wrong: 'diffuse',
-        fix: 'defuse',
-        note: 'Defuse: take the fuse out of. Diffuse: spread thin.',
+        errors: [{ wrong: 'diffuse', fix: 'defuse', note: 'Defuse: take the fuse out of. Diffuse: spread thin.' }],
       },
       {
-        text: 'A hoard of tourists descended on the old quarter at sunrise.',
-        wrong: 'hoard',
-        fix: 'horde',
-        note: 'A horde is a crowd; a hoard is a hidden stash.',
+        text: "The gallery waited with bated breath as the auction's final lot crossed the block.",
+        errors: [],
+        cleanNote: 'Clean copy — and yes, "bated" is right. Yesterday’s lesson pays off.',
       },
     ],
   },
@@ -106,45 +92,34 @@ export const PUZZLES = [
     items: [
       {
         text: 'The chief executive kept the board appraised of the merger talks throughout the weekend.',
-        wrong: 'appraised',
-        fix: 'apprised',
-        note: 'Apprise: inform. Appraise: put a value on.',
+        errors: [{ wrong: 'appraised', fix: 'apprised', note: 'Apprise: inform. Appraise: put a value on.' }],
       },
       {
         text: 'Her new book challenges the central tenants of modern portfolio theory.',
-        wrong: 'tenants',
-        fix: 'tenets',
-        note: 'Tenets are principles; tenants pay rent.',
+        errors: [{ wrong: 'tenants', fix: 'tenets', note: 'Tenets are principles; tenants pay rent.' }],
       },
       {
         text: "Analysts describe the fund's incoming manager as deeply adverse to leverage.",
-        wrong: 'adverse',
-        fix: 'averse',
-        note: 'People are averse (opposed); conditions are adverse (unfavorable).',
+        errors: [{ wrong: 'adverse', fix: 'averse', note: 'People are averse (opposed); conditions are adverse (unfavorable).' }],
       },
       {
         text: 'For decades the label traded on the cache of its Paris address.',
-        wrong: 'cache',
-        fix: 'cachet',
-        note: 'Cachet: prestige. A cache is a hidden store.',
+        errors: [{ wrong: 'cache', fix: 'cachet', note: 'Cachet: prestige. A cache is a hidden store.' }],
       },
       {
         text: 'Forecasters warned that landfall was immanent by Sunday evening.',
-        wrong: 'immanent',
-        fix: 'imminent',
-        note: 'Imminent: about to happen. Immanent: inherent — a theology word.',
+        errors: [{ wrong: 'immanent', fix: 'imminent', note: 'Imminent: about to happen. Immanent: inherent — a theology word.' }],
       },
       {
         text: 'The study sorts undecided voters into five discreet categories by age and income.',
-        wrong: 'discreet',
-        fix: 'discrete',
-        note: 'Discrete: separate and distinct. Discreet: tactful.',
+        errors: [{ wrong: 'discreet', fix: 'discrete', note: 'Discrete: separate and distinct. Discreet: tactful.' }],
       },
       {
-        text: 'Without new capital, analysts expect the venture to flounder outright and be wound down by spring.',
-        wrong: 'flounder',
-        fix: 'founder',
-        note: 'To founder is to sink for good; to flounder is to thrash and struggle on.',
+        text: 'The chairman excepted the resignation with regret, adding that the timing could hardly have been worst.',
+        errors: [
+          { wrong: 'excepted', fix: 'accepted', note: 'Accept: receive. Except: leave out.' },
+          { wrong: 'worst', fix: 'worse', note: 'Worse is the comparative — nothing is being ranked dead last here.' },
+        ],
       },
     ],
   },
@@ -157,33 +132,23 @@ export const PUZZLES = [
     items: [
       {
         text: 'The sommelier insisted the dry riesling compliments the pork course.',
-        wrong: 'compliments',
-        fix: 'complements',
-        note: 'Complement: complete or pair well with. Compliment: praise.',
+        errors: [{ wrong: 'compliments', fix: 'complements', note: 'Complement: complete or pair well with. Compliment: praise.' }],
       },
       {
         text: 'Patients in the trial reported only mild side affects within the first week.',
-        wrong: 'affects',
-        fix: 'effects',
-        note: 'Effect is the noun — side effects. Affect is (almost always) the verb.',
+        errors: [{ wrong: 'affects', fix: 'effects', note: 'Effect is the noun — side effects. Affect is (almost always) the verb.' }],
       },
       {
         text: 'He refused on principal to accept the settlement, however generous.',
-        wrong: 'principal',
-        fix: 'principle',
-        note: 'A principle is a rule you live by; principal means main — or runs a school.',
+        errors: [{ wrong: 'principal', fix: 'principle', note: 'A principle is a rule you live by; principal means main — or runs a school.' }],
       },
       {
         text: 'Auditors poured over the ledgers through the night before the filing.',
-        wrong: 'poured',
-        fix: 'pored',
-        note: 'To pore over is to study closely; pouring is for liquids.',
+        errors: [{ wrong: 'poured', fix: 'pored', note: 'To pore over is to study closely; pouring is for liquids.' }],
       },
       {
-        text: 'The old fire tower is struck by lightening a dozen times a year.',
-        wrong: 'lightening',
-        fix: 'lightning',
-        note: 'Lightning — no e — is the bolt. Lightening is making something lighter.',
+        text: 'The number of asylum applications have doubled since June, the ministry said.',
+        errors: [{ wrong: 'have', fix: 'has', note: 'The subject is "the number" — singular. The number has doubled.' }],
       },
     ],
   },
@@ -196,33 +161,24 @@ export const PUZZLES = [
     items: [
       {
         text: 'The designer chose a muted palate of grays and sage for the lobby.',
-        wrong: 'palate',
-        fix: 'palette',
-        note: 'A palette holds colors; the palate tastes; a pallet carries freight.',
+        errors: [{ wrong: 'palate', fix: 'palette', note: 'A palette holds colors; the palate tastes; a pallet carries freight.' }],
       },
       {
         text: 'The ruling sited three landmark cases from the 1970s.',
-        wrong: 'sited',
-        fix: 'cited',
-        note: 'Cite: refer to. Site: a place (a building is sited).',
+        errors: [{ wrong: 'sited', fix: 'cited', note: 'Cite: refer to. Site: a place (a building is sited).' }],
       },
       {
         text: 'Nervous investors moved their capitol offshore ahead of the vote.',
-        wrong: 'capitol',
-        fix: 'capital',
-        note: 'Capital is the money (and the city); a capitol is the statehouse building.',
-      },
-      {
-        text: 'She sought the council of her attorney before agreeing to testify.',
-        wrong: 'council',
-        fix: 'counsel',
-        note: 'Counsel: advice, or the lawyer giving it. A council is a committee.',
+        errors: [{ wrong: 'capitol', fix: 'capital', note: 'Capital is the money (and the city); a capitol is the statehouse building.' }],
       },
       {
         text: 'The two-minute trailer is built to wet your appetite for the sequel.',
-        wrong: 'wet',
-        fix: 'whet',
-        note: 'Whet: sharpen — as on a whetstone.',
+        errors: [{ wrong: 'wet', fix: 'whet', note: 'Whet: sharpen — as on a whetstone.' }],
+      },
+      {
+        text: 'Counsel for the estate declined to comment as the hearing adjourned.',
+        errors: [],
+        cleanNote: 'Clean copy — "counsel," the lawyer, is exactly right. A council is a committee.',
       },
     ],
   },
@@ -235,34 +191,23 @@ export const PUZZLES = [
     items: [
       {
         text: "The keeper insists the missed penalty didn't phase him one bit.",
-        wrong: 'phase',
-        fix: 'faze',
-        note: 'Faze: rattle. A phase is a stage.',
+        errors: [{ wrong: 'phase', fix: 'faze', note: 'Faze: rattle. A phase is a stage.' }],
       },
       {
         text: 'The regional carrier has been in dire straights since the fuel spike.',
-        wrong: 'straights',
-        fix: 'straits',
-        note: 'Straits are narrow, dangerous waters — hence tight spots.',
+        errors: [{ wrong: 'straights', fix: 'straits', note: 'Straits are narrow, dangerous waters — hence tight spots.' }],
       },
       {
         text: "The witness's totals simply don't jive with the bank records.",
-        wrong: 'jive',
-        fix: 'jibe',
-        note: 'Jibe: agree. Jive: swing-era slang (or the dance).',
+        errors: [{ wrong: 'jive', fix: 'jibe', note: 'Jibe: agree. Jive: swing-era slang (or the dance).' }],
       },
       {
         text: 'In the end every backbencher towed the party line on the final vote.',
-        wrong: 'towed',
-        fix: 'toed',
-        note: 'Toe the line: stand with your toes at the mark.',
+        errors: [{ wrong: 'towed', fix: 'toed', note: 'Toe the line: stand with your toes at the mark.' }],
       },
       {
         text: 'Bookmakers rate the incumbent a shoe-in for a third term.',
-        wrong: 'shoe-in',
-        fix: 'shoo-in',
-        alts: ['shooin'],
-        note: 'A shoo-in was a horse shooed toward the finish.',
+        errors: [{ wrong: 'shoe-in', fix: 'shoo-in', alts: ['shooin'], note: 'A shoo-in was a horse shooed toward the finish.' }],
       },
     ],
   },
@@ -275,33 +220,24 @@ export const PUZZLES = [
     items: [
       {
         text: 'The veteran guard lead the league in assists for a third straight season.',
-        wrong: 'lead',
-        fix: 'led',
-        note: 'Led is the past tense. Lead that rhymes with led is the metal.',
+        errors: [{ wrong: 'lead', fix: 'led', note: 'Led is the past tense. Lead that rhymes with led is the metal.' }],
       },
       {
         text: 'The retiring chairman was loathe to name a successor.',
-        wrong: 'loathe',
-        fix: 'loath',
-        note: 'Loath: reluctant (adjective). Loathe: to despise (verb).',
+        errors: [{ wrong: 'loathe', fix: 'loath', note: 'Loath: reluctant (adjective). Loathe: to despise (verb).' }],
       },
       {
         text: "The film's premier drew half of Hollywood to the Bowl.",
-        wrong: 'premier',
-        fix: 'premiere',
-        note: 'A premiere is a debut; a premier runs a government.',
-      },
-      {
-        text: "Reviewers praised the thriller's taught 90-minute cut.",
-        wrong: 'taught',
-        fix: 'taut',
-        note: 'Taut: stretched tight. Taught: past tense of teach.',
+        errors: [{ wrong: 'premier', fix: 'premiere', note: 'A premiere is a debut; a premier runs a government.' }],
       },
       {
         text: 'Reactions to the verdict ran the gambit from delight to fury.',
-        wrong: 'gambit',
-        fix: 'gamut',
-        note: 'A gamut is the full range; a gambit is an opening move.',
+        errors: [{ wrong: 'gambit', fix: 'gamut', note: 'A gamut is the full range; a gambit is an opening move.' }],
+      },
+      {
+        text: "Reviewers praised the thriller's taut, ninety-minute final cut.",
+        errors: [],
+        cleanNote: 'Clean copy — taut, stretched tight, is the right word. Taught is for teachers.',
       },
     ],
   },
@@ -314,33 +250,23 @@ export const PUZZLES = [
     items: [
       {
         text: 'Her resolve never waivered during the eleven-day strike.',
-        wrong: 'waivered',
-        fix: 'wavered',
-        note: 'To waver is to hesitate; a waiver signs away a right.',
+        errors: [{ wrong: 'waivered', fix: 'wavered', note: 'To waver is to hesitate; a waiver signs away a right.' }],
       },
       {
         text: "Lenders remain weary of the sector after last year's defaults.",
-        wrong: 'weary',
-        fix: 'wary',
-        note: 'Wary: cautious. Weary: tired.',
+        errors: [{ wrong: 'weary', fix: 'wary', note: 'Wary: cautious. Weary: tired.' }],
       },
       {
         text: 'The clerk read a two-page summery of the findings into the record.',
-        wrong: 'summery',
-        fix: 'summary',
-        note: 'Summery describes the weather.',
-      },
-      {
-        text: 'The resort sits on a private aisle off the coast of Belize.',
-        wrong: 'aisle',
-        fix: 'isle',
-        note: 'An isle is an island; an aisle runs through a supermarket.',
+        errors: [{ wrong: 'summery', fix: 'summary', note: 'Summery describes the weather.' }],
       },
       {
         text: 'The ace reliever holds duel citizenship and may pitch for either country.',
-        wrong: 'duel',
-        fix: 'dual',
-        note: 'Dual: double. A duel needs pistols at dawn.',
+        errors: [{ wrong: 'duel', fix: 'dual', note: 'Dual: double. A duel needs pistols at dawn.' }],
+      },
+      {
+        text: 'Pundits agree the referee should of waved play on before the collision.',
+        errors: [{ wrong: 'of', fix: 'have', note: '"Should have" — the spoken "should’ve" is where "of" sneaks in.' }],
       },
     ],
   },
@@ -353,33 +279,24 @@ export const PUZZLES = [
     items: [
       {
         text: 'The family grove ships naval oranges across the Midwest all winter.',
-        wrong: 'naval',
-        fix: 'navel',
-        note: 'Navel oranges have the little belly button; naval means navy.',
+        errors: [{ wrong: 'naval', fix: 'navel', note: 'Navel oranges have the little belly button; naval means navy.' }],
       },
       {
         text: 'Regulators accused the site of pedaling miracle cures to seniors.',
-        wrong: 'pedaling',
-        fix: 'peddling',
-        note: 'Peddle: hawk goods. Pedal: what you do on a bike.',
+        errors: [{ wrong: 'pedaling', fix: 'peddling', note: 'Peddle: hawk goods. Pedal: what you do on a bike.' }],
       },
       {
         text: 'The report accuses a foreign service of medaling in the election.',
-        wrong: 'medaling',
-        fix: 'meddling',
-        note: 'Meddle: interfere. Medal: what you win for it, presumably.',
-      },
-      {
-        text: "Critics spent the summer debating the morale of the fable's ending.",
-        wrong: 'morale',
-        fix: 'moral',
-        note: 'A story has a moral; a locker room has morale.',
+        errors: [{ wrong: 'medaling', fix: 'meddling', note: 'Meddle: interfere. Medal: what you win for it, presumably.' }],
       },
       {
         text: "The intern spent a whole summer at the director's beckon call.",
-        wrong: 'beckon',
-        fix: 'beck',
-        note: '"Beck and call" — a beck is an old word for a summoning nod.',
+        errors: [{ wrong: 'beckon', fix: 'beck', note: '"Beck and call" — a beck is an old word for a summoning nod.' }],
+      },
+      {
+        text: 'Morale in the clubhouse has soared since the deadline trade.',
+        errors: [],
+        cleanNote: 'Clean copy — morale, the team’s spirit, is spot on. A story has a moral.',
       },
     ],
   },
@@ -392,45 +309,35 @@ export const PUZZLES = [
     items: [
       {
         text: 'The appeal hinges on whether the seated jurors were truly uninterested parties.',
-        wrong: 'uninterested',
-        fix: 'disinterested',
-        note: 'Disinterested: impartial, no stake. Uninterested: bored.',
+        errors: [{ wrong: 'uninterested', fix: 'disinterested', note: 'Disinterested: impartial, no stake. Uninterested: bored.' }],
       },
       {
         text: 'The archipelago is comprised of eleven inhabited islands.',
-        wrong: 'comprised',
-        fix: 'composed',
-        note: 'The whole comprises its parts — "comprised of" flips it. Composed of is the fix.',
-      },
-      {
-        text: 'Several witnesses proved reticent to sign sworn statements.',
-        wrong: 'reticent',
-        fix: 'reluctant',
-        note: 'Reticent: reserved in speech. Reluctant: unwilling to act. The copy desk still splits them.',
+        errors: [{ wrong: 'comprised', fix: 'composed', note: 'The whole comprises its parts — "comprised of" flips it. Composed of is the fix.' }],
       },
       {
         text: "The symphony's climatic third movement lost the audience entirely.",
-        wrong: 'climatic',
-        fix: 'climactic',
-        note: 'Climactic: of a climax. Climatic: of climate.',
+        errors: [{ wrong: 'climatic', fix: 'climactic', note: 'Climactic: of a climax. Climatic: of climate.' }],
       },
       {
         text: 'By nine, a line of perspective buyers wrapped around the showroom.',
-        wrong: 'perspective',
-        fix: 'prospective',
-        note: 'Prospective: would-be. Perspective: point of view.',
-      },
-      {
-        text: 'Judges called the bridge design ingenuous in its simplicity.',
-        wrong: 'ingenuous',
-        fix: 'ingenious',
-        note: 'Ingenious: clever. Ingenuous: innocent, artless.',
+        errors: [{ wrong: 'perspective', fix: 'prospective', note: 'Prospective: would-be. Perspective: point of view.' }],
       },
       {
         text: 'The derecho wrecked havoc across three counties overnight.',
-        wrong: 'wrecked',
-        fix: 'wreaked',
-        note: 'One wreaks havoc. Wrecked means destroyed — which, fair.',
+        errors: [{ wrong: 'wrecked', fix: 'wreaked', note: 'One wreaks havoc. Wrecked means destroyed — which, fair.' }],
+      },
+      {
+        text: 'Judges called the bridge design ingenious in its simplicity.',
+        errors: [],
+        cleanNote: 'Clean copy — ingenious (clever) is correct. Ingenuous — artless — would be the error.',
+      },
+      {
+        text: 'Her advise — settle quietly before the appeal — fell on death ears.',
+        errors: [
+          { wrong: 'advise', fix: 'advice', note: 'Advice is the noun you give; advise is the verb you do.' },
+          { wrong: 'death', fix: 'deaf', note: 'Deaf ears — ears that cannot hear. Grimmer than intended otherwise.' },
+        ],
       },
     ],
   },
@@ -443,33 +350,23 @@ export const PUZZLES = [
     items: [
       {
         text: 'The suit alleges a clear breech of fiduciary duty by the trustees.',
-        wrong: 'breech',
-        fix: 'breach',
-        note: 'Breach: a break or violation. Breech: the rear of a gun barrel.',
+        errors: [{ wrong: 'breech', fix: 'breach', note: 'Breach: a break or violation. Breech: the rear of a gun barrel.' }],
       },
       {
         text: 'The grounded jet sat in a leased hanger through the audit.',
-        wrong: 'hanger',
-        fix: 'hangar',
-        note: 'Aircraft live in hangars; shirts live on hangers.',
+        errors: [{ wrong: 'hanger', fix: 'hangar', note: 'Aircraft live in hangars; shirts live on hangers.' }],
       },
       {
         text: "The filing claims undo influence by the founder's family.",
-        wrong: 'undo',
-        fix: 'undue',
-        note: 'Undue: excessive. Undo: reverse.',
+        errors: [{ wrong: 'undo', fix: 'undue', note: 'Undue: excessive. Undo: reverse.' }],
       },
       {
-        text: "The headliner's act is pure slight of hand, no props at all.",
-        wrong: 'slight',
-        fix: 'sleight',
-        note: 'Sleight: dexterity or cunning. A slight is an insult.',
+        text: 'Debris was laying across both lanes of the parkway at dawn.',
+        errors: [{ wrong: 'laying', fix: 'lying', note: 'Things lie where they are; you lay something down. The debris was lying there.' }],
       },
       {
         text: 'The documentary follows the air to a Greek shipping fortune.',
-        wrong: 'air',
-        fix: 'heir',
-        note: 'An heir inherits. The h is silent, the money is not.',
+        errors: [{ wrong: 'air', fix: 'heir', note: 'An heir inherits. The h is silent, the money is not.' }],
       },
     ],
   },
@@ -482,33 +379,24 @@ export const PUZZLES = [
     items: [
       {
         text: 'The amendment protects the right to bare arms, the militia clause notwithstanding.',
-        wrong: 'bare',
-        fix: 'bear',
-        note: 'To bear arms is to carry them; bare arms are just sleeveless.',
+        errors: [{ wrong: 'bare', fix: 'bear', note: 'To bear arms is to carry them; bare arms are just sleeveless.' }],
       },
       {
         text: 'Detectives described a grizzly scene inside the warehouse.',
-        wrong: 'grizzly',
-        fix: 'grisly',
-        note: 'Grisly: gruesome. Grizzly: the bear.',
-      },
-      {
-        text: 'The rookie shows real flare for the dramatic finish.',
-        wrong: 'flare',
-        fix: 'flair',
-        note: 'Flair: a knack. A flare burns.',
+        errors: [{ wrong: 'grizzly', fix: 'grisly', note: 'Grisly: gruesome. Grizzly: the bear.' }],
       },
       {
         text: 'The surgery repaired both of the tenor’s vocal chords.',
-        wrong: 'chords',
-        fix: 'cords',
-        note: 'Vocal cords are folds of tissue; chords are for guitars.',
+        errors: [{ wrong: 'chords', fix: 'cords', note: 'Vocal cords are folds of tissue; chords are for guitars.' }],
       },
       {
         text: 'Doctors urged fans to curve their enthusiasm about the experimental drug.',
-        wrong: 'curve',
-        fix: 'curb',
-        note: 'Curb: restrain — as a curb bit restrains a horse.',
+        errors: [{ wrong: 'curve', fix: 'curb', note: 'Curb: restrain — as a curb bit restrains a horse.' }],
+      },
+      {
+        text: "Scouts rave about the rookie's flair for the dramatic finish.",
+        errors: [],
+        cleanNote: 'Clean copy — flair, the knack, is right. A flare burns.',
       },
     ],
   },
@@ -521,33 +409,23 @@ export const PUZZLES = [
     items: [
       {
         text: 'The battery lab keeps pushing the envelop on energy density.',
-        wrong: 'envelop',
-        fix: 'envelope',
-        note: '"Push the envelope" is test-pilot jargon — the flight limits. Envelop is a verb.',
+        errors: [{ wrong: 'envelop', fix: 'envelope', note: '"Push the envelope" is test-pilot jargon — the flight limits. Envelop is a verb.' }],
       },
       {
         text: 'Jurors heard an incredulous tale of offshore accounts and burner phones.',
-        wrong: 'incredulous',
-        fix: 'incredible',
-        note: 'Stories are incredible; the people hearing them are incredulous.',
+        errors: [{ wrong: 'incredulous', fix: 'incredible', note: 'Stories are incredible; the people hearing them are incredulous.' }],
       },
       {
         text: 'A traveling troop of acrobats opens the county fair on Friday.',
-        wrong: 'troop',
-        fix: 'troupe',
-        note: 'A troupe performs; a troop marches.',
-      },
-      {
-        text: 'At 94, the founder appeared hail and hearty at the ribbon cutting.',
-        wrong: 'hail',
-        fix: 'hale',
-        note: 'Hale: healthy — kin to "whole". Hail: ice, or a greeting.',
+        errors: [{ wrong: 'troop', fix: 'troupe', note: 'A troupe performs; a troop marches.' }],
       },
       {
         text: 'The bill cleared the chamber with less than a dozen votes to spare.',
-        wrong: 'less',
-        fix: 'fewer',
-        note: 'Fewer for things you count, less for things you measure.',
+        errors: [{ wrong: 'less', fix: 'fewer', note: 'Fewer for things you count, less for things you measure.' }],
+      },
+      {
+        text: 'The village well had ran dry by the middle of August.',
+        errors: [{ wrong: 'ran', fix: 'run', note: 'Had run — "ran" never follows "had."' }],
       },
     ],
   },
@@ -560,33 +438,23 @@ export const PUZZLES = [
     items: [
       {
         text: 'Officials said the ceremony would precede as planned despite the forecast.',
-        wrong: 'precede',
-        fix: 'proceed',
-        note: 'Proceed: go ahead. Precede: come before.',
+        errors: [{ wrong: 'precede', fix: 'proceed', note: 'Proceed: go ahead. Precede: come before.' }],
       },
       {
         text: 'A record amount of complaints reached the ombudsman in June.',
-        wrong: 'amount',
-        fix: 'number',
-        note: 'Complaints are countable — a number of them. Amount is for bulk.',
+        errors: [{ wrong: 'amount', fix: 'number', note: 'Complaints are countable — a number of them. Amount is for bulk.' }],
       },
       {
         text: 'The two rivals signed a historical ceasefire at dawn on Thursday.',
-        wrong: 'historical',
-        fix: 'historic',
-        note: 'Historic: momentous. Historical: merely from the past.',
-      },
-      {
-        text: 'In his memoir, the coach eluded to a falling-out with the owner.',
-        wrong: 'eluded',
-        fix: 'alluded',
-        note: 'Allude: refer indirectly. Elude: escape.',
+        errors: [{ wrong: 'historical', fix: 'historic', note: 'Historic: momentous. Historical: merely from the past.' }],
       },
       {
         text: 'Campaign volunteers will canvas the district on Saturday morning.',
-        wrong: 'canvas',
-        fix: 'canvass',
-        note: 'Canvass, two s’s: solicit votes. Canvas: the cloth.',
+        errors: [{ wrong: 'canvas', fix: 'canvass', note: 'Canvass, two s’s: solicit votes. Canvas: the cloth.' }],
+      },
+      {
+        text: 'Turnout ran far higher then expected in the northern districts.',
+        errors: [{ wrong: 'then', fix: 'than', note: 'Than compares; then sequences.' }],
       },
     ],
   },

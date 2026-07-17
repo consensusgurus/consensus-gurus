@@ -11,7 +11,7 @@ import { PUZZLES } from './puzzles';
 export const metadata = {
   title: 'Stet — Daily Copy-Desk Word Game: Find the Wrong Word | Source of Truths',
   description:
-    "A free daily word game — you're the copy editor. Every sentence in today's brief hides exactly one wrong word (a real word, so spellcheck can't save you): free reign, baited breath, a mute point. Tap it, type the fix, keep a clean desk.",
+    "A free daily word game — you're the copy editor. Almost every sentence in today's brief hides one wrong word or grammar slip (real words only, so spellcheck can't save you): free reign, should of, a mute point. But some sentences are clean — stamp those 'stet.' Tap it, fix it, keep a clean desk.",
   alternates: { canonical: '/stet' },
   manifest: '/stet.webmanifest',
   icons: {
@@ -22,7 +22,7 @@ export const metadata = {
   openGraph: {
     title: 'Stet — The Daily Copy-Desk Game',
     description:
-      'One news brief a day, one wrong word per sentence — and every error is a real word, so spellcheck is no help. Tap it, fix it. From Source of Truths.',
+      'One news brief a day, one wrong word per sentence — maybe. Every error is a real word, so spellcheck is no help. Tap it, fix it — or stamp clean copy stet. From Source of Truths.',
     url: '/stet',
     type: 'website',
     siteName: 'Source of Truths',
@@ -31,7 +31,7 @@ export const metadata = {
     card: 'summary_large_image',
     title: 'Stet — The Daily Copy-Desk Game',
     description:
-      'Every sentence hides one wrong word. Spellcheck can’t see it. Can you?',
+      'Almost every sentence hides one wrong word. Spellcheck can’t see it. Can you? Careful — some are clean.',
   },
 };
 
@@ -42,7 +42,7 @@ const gameJsonLd = {
   alternateName: 'Stet — Daily Copy-Desk Word Game',
   url: 'https://sourceoftruths.com/stet',
   description:
-    'A free daily word game: a short news brief where every sentence hides exactly one wrong word — an eggcorn, a swapped homophone, a malaprop. Every error is a real word, so a spellchecker sails past it. Tap the word, type the fix.',
+    'A free daily word game: a short news brief where almost every sentence hides one wrong word — an eggcorn, a swapped homophone, a malaprop, a grammar slip. Every error is a real word, so a spellchecker sails past it. Tap the word, type the fix — or stamp clean copy stet.',
   genre: ['Word game', 'Language game', 'Puzzle'],
   gamePlatform: 'Web browser',
   isAccessibleForFree: true,
@@ -86,7 +86,7 @@ function ComingSoon({ first }) {
         </div>
         <h1 style={{ fontSize: 24, fontWeight: 800, color: '#1c1e24', margin: '0 0 8px' }}>Stet launches {first ? first.dateLabel : 'soon'}.</h1>
         <p style={{ fontSize: 15, color: '#6b7280', fontWeight: 600, lineHeight: 1.5, margin: '0 0 18px' }}>
-          The daily copy-desk game — every sentence hides one wrong word. Come back when the first brief lands.
+          The daily copy-desk game — one wrong word per sentence, maybe. Come back when the first brief lands.
         </p>
         <a href="/daily" style={{ color: '#0369a1', fontWeight: 800, textDecoration: 'underline' }}>See the other daily games &rarr;</a>
       </div>

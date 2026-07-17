@@ -823,7 +823,7 @@ export default function EmceeClient({ puzzles = [], forceNum = null }) {
           modal
           self="emcee"
           won={won}
-          headline={<>{Math.round((finalScore / TOTAL) * 100)}% Complete</>}
+          headline={<>You scored {Math.round((finalScore / TOTAL) * 100)}%</>}
           subline={<>{won
             ? <>{TOTAL}/{TOTAL} words &middot; {checks === 0 ? 'clean solve' : `${checks} check${checks === 1 ? '' : 's'}`} &middot; {elapsed}{g.hintUsed ? <> &middot; 1 hint</> : null}</>
             : <>{finalScore}/{TOTAL} words &middot; the finished grid is shown above</>}</>}

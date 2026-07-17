@@ -772,7 +772,7 @@ export default function SudsClient({ puzzles = [], forceNum = null }) {
           modal
           self="suds"
           won={won}
-          headline={<>{Math.round(((won ? finalScore : 0) / 10) * 100)}% Complete</>}
+          headline={<>You scored {Math.round(((won ? finalScore : 0) / 10) * 100)}%</>}
           subline={won
             ? <>{finalScore}/10 &middot; {errors === 0 ? 'clean, no errors' : `${errors} error${errors === 1 ? '' : 's'}`} &middot; {elapsed}{g.hintUsed ? <> &middot; 1 hint</> : null}</>
             : <>0/10 &middot; the solved grid is shown above</>}
