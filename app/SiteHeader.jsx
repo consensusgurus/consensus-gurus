@@ -41,7 +41,97 @@ function Logo({ size = 40 }) {
   );
 }
 
-export default function SiteHeader({ active = 'lists', maxWidth = 1180, visitors, bare = false, inlay = null, flush = false }) {
+// Logo variant for the full-bleed command bar: translucent-white tile so the
+// mark reads on the blue gradient (matches app/quizzes/QuizCommandHeader).
+let __shcLogoSeq = 0;
+function CommandLogo({ size = 30 }) {
+  const uid = `shc${(__shcLogoSeq += 1)}`;
+  return (
+    <svg width={size} height={size} viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Source of Truths" style={{ flex: 'none', display: 'block' }}>
+      <defs>
+        <radialGradient id={`g-${uid}`} cx="0.5" cy="0.42" r="0.7">
+          <stop offset="0" stopColor="#ffe24d" /><stop offset="0.55" stopColor="#fbb615" /><stop offset="1" stopColor="#f59008" />
+        </radialGradient>
+      </defs>
+      <rect x="3" y="3" width="58" height="58" rx="17.5" fill="rgba(255,255,255,0.14)" />
+      <circle cx="32" cy="32.5" r="16.4" stroke="#ffffff" strokeWidth="4.2" fill="none" />
+      <circle cx="32" cy="32.5" r="9.6" stroke="#ffffff" strokeWidth="4.2" fill="none" strokeOpacity="0.9" />
+      <path d="M 32 24.9 C 32.775 31.725 32.775 31.725 39.6 32.5 C 32.775 33.275 32.775 33.275 32 40.1 C 31.225 33.275 31.225 33.275 24.4 32.5 C 31.225 31.725 31.225 31.725 32 24.9 Z" fill={`url(#g-${uid})`} />
+    </svg>
+  );
+}
+
+// The two daily games surfaced in the command bar. Navy-legible accent dots
+// match DailyStrip's per-game accents.
+const SHC_GAMES = [
+  { href: '/crux', name: 'Crux', tag: 'Daily word game', dot: '#5b9bff' },
+  { href: '/tally', name: 'Tally', tag: 'Daily numbers game', dot: '#4cb377' },
+];
+
+// Full-bleed command-bar header used on the LISTS home page, mirroring the
+// quizzes home (QuizCommandHeader) so both landing pages share one look: one
+// blue gradient bar spanning the viewport with brand + sources on the left,
+// the two daily-game buttons filling the middle, and the segmented
+// Lists/Quizzes pill on the right. The list search box stays in the toolbar
+// below (not moved into the header), so no search field lives here.
+function CommandHeader({ active }) {
+  return (
+    <div className="shc" style={{ fontFamily: FONT }}>
+      <style>{`
+        @import url('https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap');
+        .shc{width:100vw;margin-left:calc(50% - 50vw);}
+        .shc-bar{display:flex;align-items:center;gap:12px;min-height:56px;padding:9px clamp(14px,2vw,24px);background:linear-gradient(100deg,#14294d,#0a1730);}
+        .shc-word{font-size:18px;font-weight:800;letter-spacing:-0.025em;line-height:1;color:#fff;text-decoration:underline;text-decoration-color:rgba(255,255,255,0.35);text-underline-offset:3px;text-decoration-thickness:1px;white-space:nowrap;flex:none;}
+        .shc-word em{font-style:normal;color:#c9ced8;font-weight:600;}
+        .shc-ws{display:none;}
+        .shc-src{font-size:9.5px;font-weight:800;letter-spacing:normal;text-transform:uppercase;color:#fff;flex:none;}
+        .shc-games{display:flex;align-items:center;gap:9px;margin-left:8px;min-width:0;}
+        .shc-game{display:inline-flex;align-items:center;gap:9px;background:rgba(255,255,255,0.09);border:1px solid rgba(255,255,255,0.2);border-radius:11px;padding:6px 13px 6px 11px;text-decoration:none;transition:background .15s,border-color .15s;flex:none;}
+        .shc-game:hover{background:rgba(255,255,255,0.16);border-color:rgba(255,255,255,0.42);}
+        .shc-dot{width:8px;height:8px;border-radius:50%;flex:none;}
+        .shc-gtxt{display:flex;flex-direction:column;gap:2px;line-height:1;}
+        .shc-gnm{font-size:13px;font-weight:800;color:#fff;letter-spacing:-.2px;}
+        .shc-gtag{font-size:9px;font-weight:800;letter-spacing:.07em;text-transform:uppercase;color:#9fb0d4;white-space:nowrap;}
+        .shc-seg{display:flex;gap:2px;background:rgba(255,255,255,0.16);border-radius:999px;padding:3px;flex:none;margin-left:auto;}
+        .shc-seg a{font-size:12px;font-weight:700;color:#fff;text-decoration:none;padding:6px 12px;border-radius:999px;white-space:nowrap;}
+        .shc-seg a.on{background:#fff;color:#0e1d40;}
+        @media(max-width:1180px){.shc-src{display:none;}}
+        @media(max-width:900px){.shc-gtag{display:none;}.shc-game{padding:7px 12px;}}
+        @media(max-width:820px){.shc-wl{display:none;}.shc-ws{display:inline;}}
+        @media(max-width:640px){.shc-games{display:none;}}
+        @media(max-width:560px){
+          .shc{width:100vw;margin-left:calc(50% - 50vw);}
+          .shc-bar{padding-top:calc(9px + env(safe-area-inset-top));padding-left:14px;padding-right:14px;gap:9px;}
+          .shc-word{font-size:17px;}
+          .shc-seg a{padding:6px 11px;font-size:11.5px;}
+        }
+      `}</style>
+      <div className="shc-bar">
+        <Link href="/" className="shc-brandlogo" style={{ flex: 'none', display: 'flex' }} aria-label="Source of Truths home"><CommandLogo size={30} /></Link>
+        <Link href="/" className="shc-word"><span className="shc-wl">Source <em>of</em> Truths</span><span className="shc-ws">S<em>o</em>T</span></Link>
+        <span className="shc-src"><SourcesPopover align="left" onDark href="/experts-and-aggregators" label={`${SOURCE_COUNT.toLocaleString()} Experts and Aggregators`} /></span>
+        <div className="shc-games">
+          {SHC_GAMES.map((g) => (
+            <Link key={g.href} href={g.href} className="shc-game" aria-label={`${g.name} — ${g.tag}`}>
+              <span className="shc-dot" style={{ background: g.dot }} />
+              <span className="shc-gtxt">
+                <span className="shc-gnm">{g.name}</span>
+                <span className="shc-gtag">{g.tag}</span>
+              </span>
+            </Link>
+          ))}
+        </div>
+        <nav className="shc-seg">
+          <Link href="/" className={active === 'lists' ? 'on' : undefined}>Top 10 Lists</Link>
+          <Link href="/quizzes" className={active === 'quizzes' ? 'on' : undefined}>Quizzes</Link>
+        </nav>
+      </div>
+    </div>
+  );
+}
+
+export default function SiteHeader({ active = 'lists', maxWidth = 1180, visitors, bare = false, inlay = null, flush = false, command = false }) {
+  if (command) return <CommandHeader active={active} />;
   return (
     <div className="sh-root" style={{ fontFamily: FONT }}>
       <style>{`

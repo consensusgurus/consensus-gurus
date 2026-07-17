@@ -985,7 +985,7 @@ function Home({ lists, viewCounts, voteData, extras, trending = {}, openList, on
         @media(max-width:560px){.nt-wrap{padding:16px 14px 60px;}.nt-tagline{display:none;}.nt-pillsbar{display:none !important;}.nt-mfilter{display:inline-flex !important;flex:none;}.nt-field{flex:1 1 auto;}.nt-sortwrap{display:none !important;}.nt-tbtn.primary{display:none !important;}.nt-msheet{display:block;flex:1 1 100%;width:100%;}.nt-toolbar{margin-bottom:10px;}.nt-toolwrap{padding:10px 14px 0 !important;}.nt-bodywrap{padding-top:0 !important;}}
       `}</style>
 
-      <SiteHeader active="lists" visitors={totalViews} />
+      <SiteHeader active="lists" visitors={totalViews} command />
       <div className="nt-stickytop">
       <div className="nt-pillsbar">
         {/* category pills + By City / By Topic */}
@@ -1856,7 +1856,7 @@ export default function HomeClient() {
         <div style={{ position: 'relative', zIndex: 2, minHeight: '100vh', background: NT.bg, color: NT.ink, fontFamily: NFONT }}>
           {/* Server-rendered preload + crawlable list index (what Google reads
               before the client app boots). Themed to match the live site. */}
-          <SiteHeader active="lists" />
+          <SiteHeader active="lists" command />
           <div style={{ maxWidth: 1180, margin: '0 auto', padding: '36px 24px 80px' }}>
             <div style={{ textAlign: 'center', padding: '34px 0 26px' }}>
               <h1 style={{ fontSize: 'clamp(30px, 6vw, 52px)', fontWeight: 800, letterSpacing: '-0.03em', margin: '0 0 10px' }}>Source <span style={{ color: '#000' }}>of</span> Truths</h1>
