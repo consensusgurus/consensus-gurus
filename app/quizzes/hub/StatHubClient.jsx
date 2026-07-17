@@ -77,6 +77,7 @@ function Logo({ size = 22 }) {
 
 const TABS = [
   { t: 'player', label: 'Player', Icon: User },
+  { t: 'daily', label: 'Daily Games', Icon: CalendarDays },
   { t: 'quizzes', label: 'Quizzes', Icon: ListChecks },
   { t: 'challenges', label: 'Challenges', Icon: Flame },
   { t: 'duels', label: 'Duels', Icon: Swords },];
@@ -554,6 +555,16 @@ export default function StatHubClient() {
   const myDuel = useMemo(() => { const a = getAnonId(); return duelLadder.find((p) => p.anon === a) || null; }, [duelLadder]);
   const myDuelStreak = useMemo(() => duelStreakOf(myDuel && myDuel.matches), [myDuel]);
 
+  // Today's combined daily board lives at page level so the Daily Games nav tile
+  // can show a live number (my standing, or the field size) before the tab opens.
+  const [dailyToday, setDailyToday] = useState(null);
+  useEffect(() => {
+    const qs = new URLSearchParams();
+    const a = getAnonId(); if (a) qs.set('anonId', a);
+    const em = getEmail(); if (em) qs.set('email', em);
+    fetch('/api/quiz/daily-combined?' + qs.toString()).then((r) => r.json()).then((d) => { if (d && Array.isArray(d.overall)) setDailyToday(d); }).catch(() => {});
+  }, []);
+
   const catalog = useMemo(() => (QUIZZES || []).filter((q) => q && q.id).map((q) => ({
     id: q.id, title: q.navTitle || cleanTitle(q.title) || q.id, dept: deptOf(q),
   })), []);
@@ -729,7 +740,8 @@ export default function StatHubClient() {
     @keyframes qzflame{0%,100%{transform:scale(1);}50%{transform:scale(1.16);}}
     @media (prefers-reduced-motion: reduce){.qzhub .duelpulse,.qzhub .flameon{animation:none;}}
     @media(max-width:640px){.qzhub .lbar{display:none;}.qzhub .lform{display:none;}.qzhub .duelqt{display:none;}}
-    .qzhub .tiles{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin:18px 0 14px;}
+    .qzhub .tiles{display:grid;grid-template-columns:repeat(5,1fr);gap:10px;margin:18px 0 14px;}
+    @media(max-width:900px){.qzhub .tiles{grid-template-columns:repeat(3,1fr);}}
     @media(max-width:680px){.qzhub .tiles{grid-template-columns:1fr 1fr;gap:8px;}}
     .qzhub .tile{position:relative;text-align:left;background:#fff;border:1px solid rgba(20,22,28,0.09);border-radius:12px;padding:12px 14px;font-family:${FONT};cursor:pointer;min-width:0;transition:border-color .12s;}
     .qzhub .tile:hover{border-color:#cddffb;}
@@ -784,6 +796,11 @@ export default function StatHubClient() {
                   <span style={bigSt('player')}>{profile && profile.found && profile.rank ? <>#{profile.rank} <span style={smSt('player')}>of {((me && me.totalPlayers) || 0).toLocaleString()}</span></> : '—'}</span>
                   <span style={subSt('player')}>{profile && profile.found ? `Level ${profile.level || 1} · ${(profile.xp || 0).toLocaleString()} XP` : 'Play to get ranked'}</span>
                 </button>
+                <button className={`tile${on('daily') ? ' on' : ''}`} onClick={() => setTab('daily')}>
+                  <span style={lblSt('daily')}><CalendarDays size={15} /> Daily Games</span>
+                  <span style={bigSt('daily')}>{dailyToday && dailyToday.me ? <>#{dailyToday.me.rank} <span style={smSt('daily')}>today</span></> : (dailyToday ? <>{dailyToday.gameCount} <span style={smSt('daily')}>live</span></> : '—')}</span>
+                  <span style={subSt('daily')}>{dailyToday && dailyToday.me ? `${fmtPts1(dailyToday.me.total)}/${dailyToday.maxTotal} pts today` : (dailyToday ? `${dailyToday.gameCount === 1 ? 'game' : 'games'} live today` : "today's board is live")}</span>
+                </button>
                 <button className={`tile${on('duels') ? ' on' : ''}`} onClick={() => setTab('duels')}>
                   {waiting > 0 ? <span className="tilebadge">{waiting}</span> : null}
                   <span style={lblSt('duels')}><Swords size={15} /> Duels</span>
@@ -805,6 +822,7 @@ export default function StatHubClient() {
           })()}
         </div>
 
+        {tab === 'daily' && <DailyGamesView onSelectPlayer={(k) => { const mine = (me && me.userKey && k === me.userKey) || (myAnonKey && k === myAnonKey); setViewKey(mine ? null : k); setPview(mine ? 'ranking' : 'category'); setTab('player'); }} />}
         {tab === 'player' && <PlayerPanel me={profile} scope={scope} cats={cats} byKey={byKey} totalQuizzes={catalog.length} board={board} myName={myName} myAnonKey={myAnonKey} titleById={titleById} pview={pview} setPview={setPview} viewKey={viewKey} onSelectPlayer={(k) => { const mine = (me && me.userKey && k === me.userKey) || (myAnonKey && k === myAnonKey); setViewKey(mine ? null : k); setPview(mine ? 'ranking' : 'category'); }} />}
         {tab === 'quizzes' && <QuizzesPanel me={profile} myProfile={me} scope={scope} byKey={byKey} catalog={catalog} stats={statsById} totals={totals} totalPlays={totalPlays} onSelectPlayer={(k) => { setViewKey(k); setPview('category'); setTab('player'); }} />}
         {tab === 'challenges' && <ChallengesPanel me={profile} />}
@@ -874,7 +892,7 @@ function PlayerPanel({ me, scope, cats, byKey, totalQuizzes, board, myName, myAn
 
   const toggle = (
     <div style={{ display: 'flex', gap: 8, width: '100%', flexWrap: 'wrap' }}>
-      {[['ranking', 'Ranking', Trophy], ['daily', 'Daily Games', CalendarDays], ['category', 'Category', ListChecks], ['rating', 'XP & Level', FunctionSquare], ['activity', 'Activity', Clock]].map(([v, lbl, Ic]) => (
+      {[['ranking', 'Ranking', Trophy], ['category', 'Category', ListChecks], ['rating', 'XP & Level', FunctionSquare], ['activity', 'Activity', Clock]].map(([v, lbl, Ic]) => (
         <button key={v} className={`pill${pview === v ? ' on' : ''}`} onClick={() => setPview(v)}><Ic size={14} /> {lbl}</button>
       ))}
     </div>
@@ -887,8 +905,6 @@ function PlayerPanel({ me, scope, cats, byKey, totalQuizzes, board, myName, myAn
       </div>
       {pview === 'rating' ? (
         <XpPanel me={me} titleById={titleById} viewing={viewing} />
-      ) : pview === 'daily' ? (
-        <DailyGamesView onSelectPlayer={onSelectPlayer} />
       ) : pview === 'activity' ? (
         <ActivityFeed recent={found ? me.recent : []} titleById={titleById} viewing={viewing} />
       ) : pview === 'category' ? (
