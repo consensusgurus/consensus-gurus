@@ -44,7 +44,7 @@ const FADED = '#6b7280';
 // medallion. Fin = the lucide glyph shown in it.
 const GOLD_BADGE = 'radial-gradient(circle at 50% 38%,#f5d878,#e6b93f 62%,#cfa22e)';
 export const GAME_META = {
-  crux:   { accent: '#0e1d40', badgeBg: '#0e1d40', badgeInk: '#fff', Fin: LayoutGrid },
+  crux:   { accent: '#2563eb', badgeBg: '#2563eb', badgeInk: '#fff', Fin: LayoutGrid },
   emcee:  { accent: '#c026d3', badgeBg: '#c026d3', badgeInk: '#fff', Fin: Type },
   garble: { accent: '#0e1d40', badgeBg: GOLD_BADGE, badgeInk: '#5c4a06', Fin: Trophy },
   links:  { accent: '#166534', badgeBg: '#166534', badgeInk: '#fff', Fin: Link2 },

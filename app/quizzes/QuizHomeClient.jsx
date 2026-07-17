@@ -31,8 +31,8 @@ function Logo({ size = 22 }) {
     <svg width={size} height={size} viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg" style={{ display: 'block', flex: 'none' }} aria-hidden="true">
       <defs>
         <linearGradient id={`bh-${uid}`} x1="8" y1="6" x2="56" y2="58" gradientUnits="userSpaceOnUse">
-          <stop offset="0" stopColor="#3b74f0" />
-          <stop offset="1" stopColor="#1d4ed8" />
+          <stop offset="0" stopColor="#1e3a6b" />
+          <stop offset="1" stopColor="#0a1730" />
         </linearGradient>
         <radialGradient id={`gh-${uid}`} cx="0.5" cy="0.42" r="0.7">
           <stop offset="0" stopColor="#ffe24d" />
@@ -51,8 +51,9 @@ function Logo({ size = 22 }) {
 // ─── palette / type ─────────────────────────────────────────────────────────
 const C = {
   bg: '#f7f8fa', surface: '#fff', ink: '#1c1e24', muted: '#6b7280',
-  soft: '#9aa0ab', line: 'rgba(20,22,28,0.09)', accent: '#2563eb',
+  soft: '#9aa0ab', line: 'rgba(20,22,28,0.09)', accent: '#0e1d40',
   accsoft: '#e8effb', live: '#10b981',
+  cta: '#e8b43a', ctaInk: '#1c1e24', ctaHover: '#d49a2a',
 };
 const MEDAL = ['#e8b43a', '#b8bcc4', '#c8814b'];
 const FONT = "'Manrope', system-ui, -apple-system, sans-serif";
@@ -300,7 +301,7 @@ function SignupModal({ onClose }) {
         {err && <div style={{ marginBottom: 12, padding: 10, borderRadius: 8, background: 'rgba(192,57,43,0.08)', border: '1px solid rgba(192,57,43,0.4)', color: '#c0392b', fontSize: 13 }}>{err}</div>}
         <input value={u} onChange={(e) => setU(e.target.value)} placeholder="Display name" maxLength={15} style={inp} />
         <input value={em} onChange={(e) => setEm(e.target.value)} placeholder="Email (optional)" maxLength={120} style={{ ...inp, marginTop: 10 }} />
-        <button onClick={submit} disabled={busy} style={{ marginTop: 16, width: '100%', background: C.accent, color: '#fff', border: 'none', borderRadius: 10, padding: '12px', fontFamily: 'Manrope, system-ui, -apple-system, sans-serif', fontWeight: 700, fontSize: 14, cursor: busy ? 'wait' : 'pointer', opacity: busy ? 0.6 : 1 }}>{busy ? 'Joining…' : 'Join the leaderboard'}</button>
+        <button onClick={submit} disabled={busy} style={{ marginTop: 16, width: '100%', background: C.cta, color: C.ctaInk, border: 'none', borderRadius: 10, padding: '12px', fontFamily: 'Manrope, system-ui, -apple-system, sans-serif', fontWeight: 700, fontSize: 14, cursor: busy ? 'wait' : 'pointer', opacity: busy ? 0.6 : 1 }}>{busy ? 'Joining…' : 'Join the leaderboard'}</button>
       </div>
     </div>
   );
@@ -1101,8 +1102,8 @@ export default function QuizHomeClient() {
     .qzh .qotd-title{font-size:28px;font-weight:800;letter-spacing:-.02em;line-height:1.04;color:#fff;}
     .qzh .qotd-meta{font-size:13px;color:#9fb0d4;margin-top:7px;max-width:560px;line-height:1.45;}
     .qzh .qotd-foot{display:flex;align-items:center;gap:14px;margin-top:15px;flex-wrap:wrap;}
-    .qzh .qotd-play{display:inline-flex;align-items:center;gap:7px;background:${C.accent};color:#fff;border-radius:9px;padding:10px 20px;font-weight:800;font-size:14px;}
-    .qzh .qotd:hover .qotd-play{background:#1d4ed8;}
+    .qzh .qotd-play{display:inline-flex;align-items:center;gap:7px;background:${C.cta};color:${C.ctaInk};border-radius:9px;padding:10px 20px;font-weight:800;font-size:14px;}
+    .qzh .qotd:hover .qotd-play{background:${C.ctaHover};}
     .qzh .th-heroes{display:grid;grid-template-columns:minmax(0,0.95fr) minmax(0,0.95fr) minmax(0,1fr) minmax(0,1fr);gap:12px;}
     /* Desktop: top row shares the second row's 4-col template so QOTD lines up exactly over Geo+Sports, Newest over Trending, Daily Challenge over Duel. */
     @media(min-width:1025px){.qzh .th-heroes .th-qotd{grid-column:1 / 3;}}
@@ -1192,7 +1193,7 @@ export default function QuizHomeClient() {
     .qzh .dtile-row{display:flex;align-items:center;gap:8px;font-size:12px;font-weight:700;color:#fff;text-decoration:none;padding:2px 0;}
     .qzh .dtile-num{width:16px;height:16px;border-radius:50%;border:2px solid rgba(255,255,255,0.6);flex:none;font-size:9px;display:flex;align-items:center;justify-content:center;}
     .qzh .dtile-name{flex:1 1 auto;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
-    .qzh .dtile-cta{margin-top:auto;display:flex;align-items:center;justify-content:center;gap:7px;background:${C.accent};color:#fff;border-radius:10px;padding:10px;font-weight:800;font-size:12.5px;text-decoration:none;}
+    .qzh .dtile-cta{margin-top:auto;display:flex;align-items:center;justify-content:center;gap:7px;background:${C.cta};color:${C.ctaInk};border-radius:10px;padding:10px;font-weight:800;font-size:12.5px;text-decoration:none;}
     .qzh .ntile{position:relative;border:1px solid ${C.line};border-radius:14px;overflow:hidden;text-decoration:none;display:flex;flex-direction:column;justify-content:flex-end;min-height:172px;background-size:cover;background-position:center 22%;background-color:${C.accsoft};}
     .qzh .ntile-tag{position:absolute;top:10px;left:11px;font-size:9px;font-weight:800;letter-spacing:.08em;background:#fff;border-radius:10px;padding:3px 9px;z-index:2;}
     .qzh .ntile-ov{position:relative;z-index:1;padding:16px 14px 13px;background:linear-gradient(to top, rgba(8,15,35,0.88), rgba(8,15,35,0.45) 55%, rgba(8,15,35,0));}
@@ -1200,7 +1201,7 @@ export default function QuizHomeClient() {
     .qzh .ntile-p{margin-top:8px;font-size:13px;font-weight:800;color:#fff;}
     .qzh .lbtile{background:#fff;border:1px solid ${C.line};border-radius:14px;padding:12px 15px;flex:1;display:flex;flex-direction:column;min-height:132px;overflow:hidden;}
     .qzh .lbtile-head{display:flex;align-items:center;gap:7px;margin-bottom:6px;}
-    .qzh .duelbtn{background:${C.accent};color:#fff;border:none;border-radius:12px;padding:12px;font-weight:800;font-size:12px;font-family:inherit;display:flex;align-items:center;justify-content:center;gap:8px;cursor:pointer;flex:none;}
+    .qzh .duelbtn{background:${C.cta};color:${C.ctaInk};border:none;border-radius:12px;padding:12px;font-weight:800;font-size:12px;font-family:inherit;display:flex;align-items:center;justify-content:center;gap:8px;cursor:pointer;flex:none;}
     .qzh .dueltile-chev{display:none;}
     .qzh .duel-mob-last{display:none;flex-direction:column;flex:1;}
     @media(max-width:560px){.qzh .dueltile{min-height:0 !important;}.qzh .dueltile-head{cursor:pointer;}.qzh .dueltile-chev{display:inline-flex !important;transition:transform .15s;}.qzh .dueltile.mc-closed .dueltile-body{display:none !important;}.qzh .dueltile.has-mob-last .duel-flip{display:none !important;}.qzh .dueltile.has-mob-last .duel-mob-last{display:flex !important;}}
@@ -1228,11 +1229,11 @@ export default function QuizHomeClient() {
       .qzh .lbtile.mc-closed .lbtile-collapse{display:none !important;}
       /* Collapsed leaderboard on mobile mirrors the blue Daily Challenge tile;
          stays white on desktop and when expanded. */
-      .qzh .lbtile.mc-closed{background:${C.accent};border-color:${C.accent};}
-      .qzh .lbtile.mc-closed .lbtile-head{color:#fff;}
-      .qzh .lbtile.mc-closed .lbtile-head .x8{color:#fff !important;}
-      .qzh .lbtile.mc-closed .lbtile-head a{color:#fff !important;}
-      .qzh .lbtile.mc-closed .lbtile-head .lchev{color:#fff !important;}
+      .qzh .lbtile.mc-closed{background:${C.cta};border-color:${C.cta};}
+      .qzh .lbtile.mc-closed .lbtile-head{color:${C.ctaInk};}
+      .qzh .lbtile.mc-closed .lbtile-head .x8{color:${C.ctaInk} !important;}
+      .qzh .lbtile.mc-closed .lbtile-head a{color:${C.ctaInk} !important;}
+      .qzh .lbtile.mc-closed .lbtile-head .lchev{color:${C.ctaInk} !important;}
     }
     .qzh .boards{display:grid;grid-template-columns:minmax(0,1.6fr) minmax(0,1fr);gap:12px;align-items:stretch;margin-bottom:12px;}
     .qzh .qz-mobtoggle{display:none;}
@@ -1340,7 +1341,7 @@ export default function QuizHomeClient() {
       .qzh .lb-card.mc-open .lbbody{max-height:50vh;overflow-y:auto;justify-content:flex-start;}
       .qzh .qz-searchwrap input{font-size:16px !important;}
       .qzh .qz-mobhub{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-top:14px;background:${C.accsoft};color:${C.accent};border:1px solid #cddffb;border-radius:12px;padding:14px 16px;text-decoration:none;font-family:${FONT};}
-      .qzh .duelbtn-mob{display:flex;align-items:center;justify-content:center;gap:8px;margin-top:12px;background:${C.accent};color:#fff;border:none;border-radius:12px;padding:14px;font-weight:800;font-size:14px;text-decoration:none;font-family:${FONT};}      .qzh .lblive-card{display:flex;flex-direction:column;}
+      .qzh .duelbtn-mob{display:flex;align-items:center;justify-content:center;gap:8px;margin-top:12px;background:${C.cta};color:${C.ctaInk};border:none;border-radius:12px;padding:14px;font-weight:800;font-size:14px;text-decoration:none;font-family:${FONT};}      .qzh .lblive-card{display:flex;flex-direction:column;}
       .qzh .lblive-head{background:#fff !important;}
       .qzh .lblive-tabs{display:flex;gap:4px;flex:1 1 auto;min-width:0;background:#eef1f5;border-radius:10px;padding:4px;}
       .qzh .lblive-tab{flex:1 1 0;min-width:0;display:flex;align-items:center;justify-content:center;gap:6px;background:transparent;border:none;border-radius:8px;padding:8px 6px;font:inherit;font-weight:700;font-size:11px;letter-spacing:.04em;text-transform:uppercase;color:#5f5e5a;cursor:pointer;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
@@ -1567,7 +1568,7 @@ export default function QuizHomeClient() {
               <div className="qotd-eyebrow" style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}><span>Quiz of the Day</span>{plays(qotd.id) > 0 ? <span style={{ textTransform: 'none', letterSpacing: 0, color: '#9fb0d4', fontWeight: 700 }}>{plays(qotd.id).toLocaleString()} plays</span> : null}</div>
               <div className="qotd-title">{qotd.title}</div>
               <div className="qotd-foot">
-                <span className="qotd-play"><Play size={15} fill="#fff" strokeWidth={0} />Play now</span>
+                <span className="qotd-play"><Play size={15} fill="#1c1e24" strokeWidth={0} />Play now</span>
                 <span className="qotd-stats">{leader(qotd.id) ? <><Crown size={12} style={{ color: '#e8b43a', flex: 'none' }} />{leader(qotd.id)}</> : (plays(qotd.id) > 0 ? null : <span>New quiz</span>)}</span>
               </div>
             </div>

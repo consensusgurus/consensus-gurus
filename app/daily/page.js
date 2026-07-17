@@ -53,7 +53,7 @@ function isSundayEdition(key, p) {
 
 // Accents mirror DailyGamesPromo so each game reads the same across surfaces.
 const GAMES = [
-  { key: 'crux', name: 'Crux', path: '/crux', tag: 'A clueless crossword', accent: '#0e1d40', bg: '#eef4ff', border: 'rgba(14,29,64,0.35)', src: CRUX },
+  { key: 'crux', name: 'Crux', path: '/crux', tag: 'A clueless crossword', accent: '#2563eb', bg: '#eef4ff', border: 'rgba(37,99,235,0.35)', src: CRUX },
   { key: 'emcee', name: 'Emcee', path: '/emcee', tag: 'The daily mini crossword', accent: '#c026d3', bg: '#fbeefc', border: 'rgba(192,38,211,0.4)', src: EMCEE },
   { key: 'garble', name: 'Garble', path: '/garble', tag: 'Five garbled words, one clued finale', accent: '#8a6d1a', bg: '#fdf6e3', border: 'rgba(230,185,63,0.6)', src: GARBLE },
   { key: 'links', name: 'Links', path: '/links', tag: 'Sixteen words, four hidden threads', accent: '#166534', bg: '#eefaf1', border: 'rgba(90,169,106,0.5)', src: LINKS },

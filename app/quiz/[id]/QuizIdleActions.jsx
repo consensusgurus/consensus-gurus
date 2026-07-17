@@ -13,7 +13,7 @@ import React from 'react';
 // board still passes them) but are no longer rendered here.
 
 const FONT = "'Manrope', system-ui, -apple-system, sans-serif";
-const C = { cream: '#f7f8fa', ink: '#1c1e24', ember: '#2563eb' };
+const C = { cream: '#f7f8fa', ink: '#1c1e24', ember: '#0e1d40' };
 
 export default function QuizIdleActions({ onStart, startLabel = 'Start', startDisabled = false, quizId, onLeaderboard, style }) {
   const base = {
