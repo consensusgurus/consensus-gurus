@@ -13,8 +13,8 @@ const Eye = () => (
 
 // Kids Corner hub. Lists the playable matching games as tiles; each runs on the
 // shared MatchGame engine. New games drop in as ACTIVITIES entries. Styled to
-// match the live site (Manrope, #f7f8fa surface, white cards, blue #2563eb).
-const C = { ink: '#1c1e24', accent: '#2563eb', muted: '#6b7280', soft: '#9aa0ab', line: 'rgba(20,22,28,0.09)' };
+// match the live site (Manrope, #f7f8fa surface, white cards, blue #0e1d40).
+const C = { ink: '#1c1e24', accent: '#0e1d40', muted: '#6b7280', soft: '#9aa0ab', line: 'rgba(20,22,28,0.09)' };
 const FONT = "'Manrope', system-ui, -apple-system, sans-serif";
 
 const PREVIEW = [
@@ -37,20 +37,20 @@ const DOG_PREVIEW = [
 
 const ADD_PREVIEW = [
   '<svg viewBox="0 0 100 100"><text x="50" y="55" font-size="30" font-family="Manrope, system-ui, sans-serif" font-weight="700" text-anchor="middle" dominant-baseline="central" fill="#1c1e24">1+1</text></svg>',
-  '<svg viewBox="0 0 100 100"><text x="50" y="55" font-size="56" font-family="Manrope, system-ui, sans-serif" font-weight="800" text-anchor="middle" dominant-baseline="central" fill="#2563eb">2</text></svg>',
+  '<svg viewBox="0 0 100 100"><text x="50" y="55" font-size="56" font-family="Manrope, system-ui, sans-serif" font-weight="800" text-anchor="middle" dominant-baseline="central" fill="#0e1d40">2</text></svg>',
   '<svg viewBox="0 0 100 100"><text x="50" y="55" font-size="30" font-family="Manrope, system-ui, sans-serif" font-weight="700" text-anchor="middle" dominant-baseline="central" fill="#1c1e24">3+4</text></svg>',
 ];
 
 const LETTER_PREVIEW = [
   '<svg viewBox="0 0 100 100"><text x="50" y="56" font-size="62" font-family="Manrope, system-ui, sans-serif" font-weight="800" text-anchor="middle" dominant-baseline="central" fill="#1c1e24">A</text></svg>',
-  '<svg viewBox="0 0 100 100"><text x="50" y="56" font-size="62" font-family="Manrope, system-ui, sans-serif" font-weight="800" text-anchor="middle" dominant-baseline="central" fill="#2563eb">a</text></svg>',
+  '<svg viewBox="0 0 100 100"><text x="50" y="56" font-size="62" font-family="Manrope, system-ui, sans-serif" font-weight="800" text-anchor="middle" dominant-baseline="central" fill="#0e1d40">a</text></svg>',
   '<svg viewBox="0 0 100 100"><text x="50" y="56" font-size="62" font-family="Manrope, system-ui, sans-serif" font-weight="800" text-anchor="middle" dominant-baseline="central" fill="#1c1e24">B</text></svg>',
 ];
 
 const COLOR_PREVIEW = [
   '<svg viewBox="0 0 100 100"><text x="50" y="55" font-size="26" font-family="Manrope, system-ui, sans-serif" font-weight="800" text-anchor="middle" dominant-baseline="central" fill="#1c1e24">Red</text></svg>',
   '<svg viewBox="0 0 100 100"><circle cx="50" cy="50" r="33" fill="#e23b3b"/></svg>',
-  '<svg viewBox="0 0 100 100"><circle cx="50" cy="50" r="33" fill="#2f7be0"/></svg>',
+  '<svg viewBox="0 0 100 100"><circle cx="50" cy="50" r="33" fill="#14294d"/></svg>',
 ];
 
 const FANTASY_PREVIEW = [
@@ -66,9 +66,9 @@ const WORD_PREVIEW = [
 ];
 
 const NUMBER_PREVIEW = [
-  '<svg viewBox="0 0 100 100"><text x="50" y="55" font-size="54" font-family="Manrope, system-ui, sans-serif" font-weight="800" text-anchor="middle" dominant-baseline="central" fill="#2563eb">7</text></svg>',
+  '<svg viewBox="0 0 100 100"><text x="50" y="55" font-size="54" font-family="Manrope, system-ui, sans-serif" font-weight="800" text-anchor="middle" dominant-baseline="central" fill="#0e1d40">7</text></svg>',
   '<svg viewBox="0 0 100 100"><text x="50" y="55" font-size="22" font-family="Manrope, system-ui, sans-serif" font-weight="700" text-anchor="middle" dominant-baseline="central" fill="#1c1e24">Seven</text></svg>',
-  '<svg viewBox="0 0 100 100"><text x="50" y="55" font-size="54" font-family="Manrope, system-ui, sans-serif" font-weight="800" text-anchor="middle" dominant-baseline="central" fill="#2563eb">3</text></svg>',
+  '<svg viewBox="0 0 100 100"><text x="50" y="55" font-size="54" font-family="Manrope, system-ui, sans-serif" font-weight="800" text-anchor="middle" dominant-baseline="central" fill="#0e1d40">3</text></svg>',
 ];
 
 const ACTIVITIES = [

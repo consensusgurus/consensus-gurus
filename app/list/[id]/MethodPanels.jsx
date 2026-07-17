@@ -2,7 +2,7 @@
 import React from 'react';
 import { getSources } from '@/lib/helpers';
 
-const C = { ink: '#1c1e24', muted: '#6b7280', soft: '#9aa0ab', line: 'rgba(20,22,28,0.09)', accent: '#2563eb', bg: '#f7f8fa', live: '#10b981' };
+const C = { ink: '#1c1e24', muted: '#6b7280', soft: '#9aa0ab', line: 'rgba(20,22,28,0.09)', accent: '#0e1d40', bg: '#f7f8fa', live: '#10b981' };
 const FONT = "'Manrope', system-ui, -apple-system, sans-serif";
 
 const CROWD = /yelp|google|tripadvisor|amazon|beeradvocate|untappd|tabelog|openrice|naver|wongnai|zomato|foody|yandex|thefork|goodreads|imdb|rotten/i;

@@ -24,7 +24,7 @@ const GAME_NAMES = {
 };
 // Per-game accent for the game-board title. Light = the games' own (darker)
 // colors; navy = lightened for legibility on the dark card.
-const ACCENTS_LIGHT = { crux: '#2563eb', emcee: '#c026d3', garble: '#8a6d1a', links: '#166534', span: '#9d174d', dating: '#6d28d9', tally: '#15803d', suds: '#ea580c', circa: '#0e7490', extra: '#b91c1c', carve: '#7c3aed' };
+const ACCENTS_LIGHT = { crux: '#0e1d40', emcee: '#c026d3', garble: '#8a6d1a', links: '#166534', span: '#9d174d', dating: '#6d28d9', tally: '#15803d', suds: '#ea580c', circa: '#0e7490', extra: '#b91c1c', carve: '#7c3aed' };
 const ACCENTS_NAVY = { crux: '#5b9bff', emcee: '#e879f9', garble: '#f0c95a', links: '#4ca878', span: '#e06aa0', dating: '#a483f0', tally: '#4cb377', suds: '#f0894c', circa: '#38b6cf', extra: '#e06a6a', carve: '#a483f0' };
 
 function theme(light) {
@@ -35,15 +35,15 @@ function theme(light) {
     line: 'rgba(20,22,28,0.09)',
     row: '#fff', topRow: '#fff', topBorder: 'rgba(20,22,28,0.09)',
     meRow: '#eef3ff', meBorder: '#cddffb',
-    rankTop: '#2563eb', rankOther: '#6b7280',
+    rankTop: '#0e1d40', rankOther: '#6b7280',
     name: '#1c1e24', nameDot: '#6b728088', you: '#6b7280',
     dim: '#6b7280', total: '#1c1e24', unit: '#9aa0ab',
     tabOnText: '#fff', tabOffBg: '#fff', tabOffText: '#6b7280',
-    expandColor: '#2563eb', expandBorder: '#cddffb',
+    expandColor: '#0e1d40', expandBorder: '#cddffb',
     note: '#9aa0ab', empty: '#6b7280',
     skeleton: 'linear-gradient(90deg,#f2f4f7,#f8fafc,#f2f4f7)',
     scrollThumb: 'rgba(20,22,28,0.18)',
-    accents: ACCENTS_LIGHT, overallAccent: '#2563eb',
+    accents: ACCENTS_LIGHT, overallAccent: '#0e1d40',
   };
   return {
     light: false,
@@ -64,7 +64,7 @@ function theme(light) {
   };
 }
 // Active-tab fill: navy = uniform gold; light = the game's own accent (blue for Overall).
-function tabAccent(th, key) { return th.light ? (key === 'overall' ? th.overallAccent : th.accents[key] || '#2563eb') : th.overallAccent; }
+function tabAccent(th, key) { return th.light ? (key === 'overall' ? th.overallAccent : th.accents[key] || '#0e1d40') : th.overallAccent; }
 
 function fmtTime(sec) { if (sec == null) return '—'; const m = Math.floor(sec / 60), s = sec % 60; return `${m}:${String(s).padStart(2, '0')}`; }
 function fmtPts(n) { const v = Math.round(Number(n) * 10) / 10; return Number.isInteger(v) ? String(v) : v.toFixed(1); }

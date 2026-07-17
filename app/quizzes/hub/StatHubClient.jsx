@@ -13,7 +13,7 @@ import Footer from '../../Footer';
 
 const C = {
   bg: '#f7f8fa', surface: '#fff', ink: '#1c1e24', muted: '#6b7280',
-  soft: '#9aa0ab', line: 'rgba(20,22,28,0.09)', accent: '#2563eb',
+  soft: '#9aa0ab', line: 'rgba(20,22,28,0.09)', accent: '#0e1d40',
   accsoft: '#e8effb', live: '#10b981', danger: '#c0392b',
 };
 const MEDAL = ['#e8b43a', '#b8bcc4', '#c8814b'];
@@ -58,8 +58,8 @@ function Logo({ size = 22 }) {
     <svg width={size} height={size} viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg" style={{ display: 'block', flex: 'none' }} aria-hidden="true">
       <defs>
         <linearGradient id={`bh-${uid}`} x1="8" y1="6" x2="56" y2="58" gradientUnits="userSpaceOnUse">
-          <stop offset="0" stopColor="#3b74f0" />
-          <stop offset="1" stopColor="#1d4ed8" />
+          <stop offset="0" stopColor="#1e3a6b" />
+          <stop offset="1" stopColor="#0a1730" />
         </linearGradient>
         <radialGradient id={`gh-${uid}`} cx="0.5" cy="0.42" r="0.7">
           <stop offset="0" stopColor="#ffe24d" />
@@ -725,7 +725,7 @@ export default function StatHubClient() {
     .qzhub .fdot{width:9px;height:9px;border-radius:50%;display:inline-block;}
     .qzhub .duelpulse{animation:qzpulse 2s ease-in-out infinite;}
     .qzhub .flameon{animation:qzflame 1.4s ease-in-out infinite;}
-    @keyframes qzpulse{0%,100%{box-shadow:0 0 0 0 rgba(37,99,235,.25);}50%{box-shadow:0 0 0 7px rgba(37,99,235,0);}}
+    @keyframes qzpulse{0%,100%{box-shadow:0 0 0 0 rgba(14,29,64,.25);}50%{box-shadow:0 0 0 7px rgba(14,29,64,0);}}
     @keyframes qzflame{0%,100%{transform:scale(1);}50%{transform:scale(1.16);}}
     @media (prefers-reduced-motion: reduce){.qzhub .duelpulse,.qzhub .flameon{animation:none;}}
     @media(max-width:640px){.qzhub .lbar{display:none;}.qzhub .lform{display:none;}.qzhub .duelqt{display:none;}}
@@ -1075,7 +1075,7 @@ function ActivityFeed({ recent, titleById, viewing }) {
   const daysPlayed = counts.size;
   // Heatmap cells: the last 84 days, oldest first, filled column-major so each
   // column is a week and the newest week sits on the right.
-  const HM = ['#eef0f2', '#b5d4f4', '#85b7eb', '#2563eb'];
+  const HM = ['#eef0f2', '#b5d4f4', '#85b7eb', '#0e1d40'];
   const cells = [];
   { const start = Date.now() - 83 * DAY;
     for (let i = 0; i < 84; i++) { const n = counts.get(keyOf(start + i * DAY)) || 0; cells.push(n === 0 ? 0 : n === 1 ? 1 : n <= 3 ? 2 : 3); } }

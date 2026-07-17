@@ -65,7 +65,7 @@ export default function SourcesPopover({ label, emphasis, align, href, onDark })
           textDecorationStyle: (onDark || emphasis) ? 'solid' : 'dotted',
           textDecorationThickness: emphasis ? '2px' : (onDark ? '1px' : 'auto'),
           textUnderlineOffset: '3px',
-          textDecorationColor: onDark ? 'rgba(255,255,255,0.5)' : '#2563eb',
+          textDecorationColor: onDark ? 'rgba(255,255,255,0.5)' : '#0e1d40',
         }}
       >
         {triggerLabel}
@@ -123,7 +123,7 @@ export default function SourcesPopover({ label, emphasis, align, href, onDark })
                   letterSpacing: '0.2em',
                   textTransform: 'uppercase',
                   fontWeight: 700,
-                  color: '#2563eb',
+                  color: '#0e1d40',
                   marginBottom: 4,
                 }}
               >
@@ -144,7 +144,7 @@ export default function SourcesPopover({ label, emphasis, align, href, onDark })
                 fontWeight: 700,
                 color: '#1c1e24',
                 textDecoration: 'none',
-                borderBottom: `2px solid #2563eb`,
+                borderBottom: `2px solid #0e1d40`,
                 paddingBottom: 2,
               }}
             >

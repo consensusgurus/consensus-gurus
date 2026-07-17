@@ -101,7 +101,7 @@ export default function useDuelContext(quizId, searchParams) {
   return { duelToken: token, duelInfo: info, duelSubmitted: submitted };
 }
 
-const ACCENT = '#2563eb';
+const ACCENT = '#0e1d40';
 const FONT = "'Manrope', system-ui, -apple-system, sans-serif";
 
 // A slim fixed bar shown on any quiz opened as part of a duel. Before the player

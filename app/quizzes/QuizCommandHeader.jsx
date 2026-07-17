@@ -88,7 +88,7 @@ export default function QuizCommandHeader({ search, onSearch, me, onSignup, tick
     <div className="qch" style={{ fontFamily: FONT }}>
       <style>{`
         @import url('https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap');
-        .qch-bar{display:flex;align-items:center;gap:12px;min-height:56px;padding:9px clamp(14px,2vw,24px);background:linear-gradient(100deg,#2f6bee,#1d4ed8);}
+        .qch-bar{display:flex;align-items:center;gap:12px;min-height:56px;padding:9px clamp(14px,2vw,24px);background:linear-gradient(100deg,#14294d,#0a1730);}
         .qch-word{font-size:18px;font-weight:800;letter-spacing:-0.025em;line-height:1;color:#fff;text-decoration:underline;text-decoration-color:rgba(255,255,255,0.35);text-underline-offset:3px;text-decoration-thickness:1px;white-space:nowrap;flex:none;}
         .qch-word em{font-style:normal;color:#c9ced8;font-weight:600;}
         .qch-ws{display:none;}
@@ -105,13 +105,14 @@ export default function QuizCommandHeader({ search, onSearch, me, onSignup, tick
         .qch-nm{display:flex;align-items:center;gap:5px;font-size:13.5px;font-weight:800;color:#fff;line-height:1;white-space:nowrap;max-width:150px;overflow:hidden;text-overflow:ellipsis;}
         .qch-sub{font-size:10.5px;font-weight:700;color:#bcd2fb;line-height:1;white-space:nowrap;}
         .qch-rankm{display:none;font-size:11px;font-weight:800;color:#dbe7ff;line-height:1;white-space:nowrap;}
-        .qch-chk{display:inline-flex;width:13px;height:13px;border-radius:50%;background:#fff;color:#2563eb;font-size:8.5px;font-weight:800;align-items:center;justify-content:center;flex:none;}
+        .qch-chk{display:inline-flex;width:13px;height:13px;border-radius:50%;background:#fff;color:#0e1d40;font-size:8.5px;font-weight:800;align-items:center;justify-content:center;flex:none;}
         .qch-signup{display:inline-flex;align-items:center;gap:6px;background:transparent;border:1px solid rgba(255,255,255,0.45);border-radius:9px;color:#fff;font-family:inherit;font-size:12.5px;font-weight:800;padding:8px 12px;cursor:pointer;white-space:nowrap;}
         .qch-signup:hover{background:rgba(255,255,255,0.14);border-color:#fff;}
         .qch-seg{display:flex;gap:2px;background:rgba(255,255,255,0.16);border-radius:999px;padding:3px;flex:none;}
         .qch-seg a{font-size:12px;font-weight:700;color:#fff;text-decoration:none;padding:6px 12px;border-radius:999px;white-space:nowrap;}
-        .qch-seg a.on{background:#fff;color:#2563eb;}
-        .qch-hub{display:inline-flex;align-items:center;gap:6px;background:#fff;color:#2563eb;font-size:12.5px;font-weight:800;border-radius:10px;padding:8px 13px;text-decoration:none;white-space:nowrap;flex:none;}
+        .qch-seg a.on{background:#fff;color:#0e1d40;}
+        .qch-hub{display:inline-flex;align-items:center;gap:6px;background:#e8b43a;color:#1c1e24;font-size:12.5px;font-weight:800;border-radius:10px;padding:8px 13px;text-decoration:none;white-space:nowrap;flex:none;}
+        .qch-hub:hover{background:#d49a2a;color:#1c1e24;}
         .qch-tickwrap{display:flex;align-items:stretch;background:#0e1b33;}
         .qch-tlabel{display:flex;align-items:center;gap:6px;flex:none;padding:0 14px 0 clamp(14px,2vw,24px);background:#132443;font-size:10px;font-weight:800;letter-spacing:.09em;text-transform:uppercase;color:#8ea6d8;position:relative;z-index:2;}
         .qch-pulse{width:6px;height:6px;border-radius:50%;background:#5ad48f;box-shadow:0 0 0 0 rgba(90,212,143,0.5);animation:qchpul 2s infinite;}

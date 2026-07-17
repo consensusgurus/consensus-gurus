@@ -8,7 +8,7 @@ import Footer from '../../Footer';
 import DuelSignup from '../DuelSignup';
 import { QUIZZES } from '@/lib/quizzes';
 
-const C = { bg: '#f7f8fa', surface: '#fff', ink: '#1c1e24', muted: '#6b7280', soft: '#9aa0ab', line: 'rgba(20,22,28,0.10)', accent: '#2563eb', accsoft: '#e8effb', gold: '#e8b43a', win: '#16a34a', lose: '#c0392b' };
+const C = { bg: '#f7f8fa', surface: '#fff', ink: '#1c1e24', muted: '#6b7280', soft: '#9aa0ab', line: 'rgba(20,22,28,0.10)', accent: '#0e1d40', accsoft: '#e8effb', gold: '#e8b43a', win: '#16a34a', lose: '#c0392b' };
 const FONT = "'Manrope', system-ui, -apple-system, sans-serif";
 
 function anonId() { if (typeof window === 'undefined') return null; try { return localStorage.getItem('sot_quiz_anon'); } catch { return null; } }
@@ -228,7 +228,7 @@ export default function DuelClient({ token }) {
               )}
 
               <div style={{ marginTop: 22, display: 'flex', justifyContent: 'center' }}>
-                <Link href="/duel/new" style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 9, background: `linear-gradient(135deg, ${C.accent} 0%, #1d4ed8 100%)`, color: '#fff', padding: '14px 30px', borderRadius: 12, fontWeight: 800, fontSize: 15, letterSpacing: '0.01em', textDecoration: 'none', boxShadow: '0 10px 26px rgba(37,99,235,0.38)' }}><Swords size={18} /> Start Another Duel</Link>
+                <Link href="/duel/new" style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 9, background: '#e8b43a', color: '#1c1e24', padding: '14px 30px', borderRadius: 12, fontWeight: 800, fontSize: 15, letterSpacing: '0.01em', textDecoration: 'none', boxShadow: '0 10px 26px rgba(14,29,64,0.38)' }}><Swords size={18} /> Start Another Duel</Link>
               </div>
             </>
           )}

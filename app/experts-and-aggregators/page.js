@@ -14,7 +14,7 @@ const C = {
   ink: '#1c1e24',
   muted: '#6b7280',
   soft: '#9aa0ab',
-  accent: '#2563eb',
+  accent: '#0e1d40',
   line: 'rgba(20,22,28,0.09)',
 };
 const FONT = "'Manrope', system-ui, -apple-system, sans-serif";

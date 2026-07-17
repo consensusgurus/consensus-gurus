@@ -13,7 +13,7 @@ import QuizCommandHeader from './QuizCommandHeader';
 // The search box is hidden here with a scoped rule (`.qnh-wrap .qch-search`)
 // rather than a QuizCommandHeader prop, so the shared header component stays
 // untouched. No ticker is passed, so the ticker tape never renders.
-const ACCENT = '#2563eb', INK = '#1c1e24', MUTED = '#6b7280', SOFT = '#aeb4bd', LINE = 'rgba(20,22,28,0.09)';
+const ACCENT = '#0e1d40', INK = '#1c1e24', MUTED = '#6b7280', SOFT = '#aeb4bd', LINE = 'rgba(20,22,28,0.09)';
 const MODAL_FONT = "'Manrope', system-ui, -apple-system, sans-serif";
 const NOOP = () => {};
 

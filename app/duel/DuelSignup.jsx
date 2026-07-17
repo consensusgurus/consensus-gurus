@@ -5,7 +5,7 @@ import React, { useState } from 'react';
 // text: signed-in players use their registered display name, and guests must
 // claim a name here first. /api/quiz/join rejects a name already taken by a
 // registered player, so this closes the impersonation gap.
-const C = { ink: '#1c1e24', accent: '#2563eb', muted: '#6b7280', soft: '#9aa0ab', line: 'rgba(20,22,28,0.12)' };
+const C = { ink: '#1c1e24', accent: '#0e1d40', muted: '#6b7280', soft: '#9aa0ab', line: 'rgba(20,22,28,0.12)' };
 const FONT = "'Manrope', system-ui, -apple-system, sans-serif";
 
 export default function DuelSignup({ anonId, onDone, onClose }) {

@@ -11,7 +11,7 @@ import Footer from '../Footer';
 // Manrope, light-gray canvas, white cards, blue accent.
 const C = {
   bg: '#f7f8fa', surface: '#fff', ink: '#1c1e24', muted: '#6b7280',
-  soft: '#9aa0ab', line: 'rgba(20,22,28,0.09)', accent: '#2563eb',
+  soft: '#9aa0ab', line: 'rgba(20,22,28,0.09)', accent: '#0e1d40',
   accsoft: '#e8effb', danger: '#c0392b',
 };
 const FONT = "'Manrope', system-ui, -apple-system, sans-serif";

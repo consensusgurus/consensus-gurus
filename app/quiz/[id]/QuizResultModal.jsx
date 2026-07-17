@@ -23,7 +23,7 @@ import ScrollToTopOnMount from './ScrollToTopOnMount';
 // for the top-right rank), leaderboard (node = the full leaderboard element),
 // standings (node), quiz (Challenge + Similar quizzes), onPlayAgain, onReport.
 
-const C = { cream: '#f7f8fa', ink: '#1c1e24', ember: '#2563eb', forest: '#10b981', faded: '#6b7280', line: 'rgba(20,22,28,0.09)' };
+const C = { cream: '#f7f8fa', ink: '#1c1e24', ember: '#0e1d40', forest: '#10b981', faded: '#6b7280', line: 'rgba(20,22,28,0.09)' };
 const FONT = "'Manrope', system-ui, -apple-system, sans-serif";
 const stackBtn = { fontFamily: FONT, fontSize: 12.5, letterSpacing: '0.04em', textTransform: 'uppercase', fontWeight: 700, borderRadius: 10, padding: '14px 12px', cursor: 'pointer', border: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, width: '100%', boxSizing: 'border-box', textDecoration: 'none' };
 
@@ -77,7 +77,7 @@ export default function QuizResultModal({
       {standings ? <div style={{ marginBottom: 12 }}>{standings}</div> : null}
 
       <div style={{ display: 'flex', flexDirection: 'column', gap: 9 }}>
-        {onPlayAgain ? <button onClick={onPlayAgain} style={{ ...stackBtn, background: C.ember, color: '#fff' }}><RotateCcw size={15} strokeWidth={2.5} /> Play again</button> : null}
+        {onPlayAgain ? <button onClick={onPlayAgain} style={{ ...stackBtn, background: '#e8b43a', color: '#1c1e24' }}><RotateCcw size={15} strokeWidth={2.5} /> Play again</button> : null}
         {duelHref ? <a href={duelHref} style={{ ...stackBtn, background: C.ink, color: '#fff' }}><Swords size={15} strokeWidth={2.5} /> Challenge a friend</a> : null}
       </div>
 

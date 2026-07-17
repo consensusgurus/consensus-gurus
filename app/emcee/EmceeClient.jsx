@@ -34,7 +34,7 @@ const COLORS = {
   cream: '#f7f8fa',
   paper: '#eceef1',
   ink: '#1c1e24',
-  ember: '#2563eb',
+  ember: '#0e1d40',
   rust: '#c0392b',
   faded: '#6b7280',
   accent: '#c026d3',       // Emcee identity — magenta

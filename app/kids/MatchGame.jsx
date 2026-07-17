@@ -23,7 +23,7 @@ import { formatCount } from '../Count';
 // the default card size (so dense boards do not balloon on big screens). Players
 // (1-4) are chosen on a pre-game screen. Page views are recorded via the
 // quiz-view system (the given `quizId`).
-const C = { ink: '#1c1e24', accent: '#2563eb', muted: '#6b7280', soft: '#9aa0ab', line: 'rgba(20,22,28,0.09)' };
+const C = { ink: '#1c1e24', accent: '#0e1d40', muted: '#6b7280', soft: '#9aa0ab', line: 'rgba(20,22,28,0.09)' };
 const FONT = "'Manrope', system-ui, -apple-system, sans-serif";
 
 const Star = () => (
@@ -190,7 +190,7 @@ export default function MatchGame({ items, pairs, title, intro, quizId, cols = 5
           .mm-pnums button{width:54px;height:54px;border:1.5px solid ${C.line};background:#fff;border-radius:12px;font-family:${FONT};font-size:20px;font-weight:800;color:${C.ink};cursor:pointer;}
           .mm-pnums button.on{background:${C.accent};border-color:${C.accent};color:#fff;}
           .mm-start{border:none;background:${C.accent};color:#fff;font-family:${FONT};font-weight:800;font-size:16px;padding:12px 34px;border-radius:12px;cursor:pointer;}
-          .mm-start:hover{background:#1d4ed8;}
+          .mm-start:hover{background:#0a1730;}
           .mm-scores{display:flex;gap:10px;margin:0 0 16px;flex-wrap:wrap;}
           .mm-pl{flex:1 1 120px;background:#fff;border:2px solid transparent;border-radius:12px;padding:9px 13px;}
           .mm-pl.on{border-color:${C.accent};background:#eef3fe;}

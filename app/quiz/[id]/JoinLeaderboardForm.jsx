@@ -6,7 +6,7 @@ import { Trophy } from 'lucide-react';
 // its name/email fields (email optional, display name capped at 15). onJoined(id)
 // fires after a successful join so the board can update its own identity and
 // navigate; onViewLeaderboard switches to the leaderboard tab.
-const C = { ember: '#2563eb', ink: '#1c1e24', faded: '#6b7280', forest: '#10b981' };
+const C = { ember: '#0e1d40', ink: '#1c1e24', faded: '#6b7280', forest: '#10b981' };
 const FONT = "'Manrope', system-ui, -apple-system, sans-serif";
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const labelStyle = { display: 'block', fontFamily: FONT, fontSize: 10, letterSpacing: '0.14em', textTransform: 'uppercase', color: C.faded, marginBottom: 6 };
@@ -68,7 +68,7 @@ export default function JoinLeaderboardForm({ identity, onJoined, onViewLeaderbo
       <input value={jName} onChange={(e) => setJName(e.target.value)} maxLength={15} placeholder="e.g. dealwatcher" autoCapitalize="none" autoCorrect="off" spellCheck={false} style={fieldStyle} />
       <label style={{ ...labelStyle, marginTop: 16 }}>Email (optional, required for prizes)</label>
       <input value={jEmail} onChange={(e) => setJEmail(e.target.value)} type="email" placeholder="you@email.com (optional)" autoCapitalize="none" autoCorrect="off" spellCheck={false} style={fieldStyle} />
-      <button onClick={submit} disabled={busy} style={{ marginTop: 22, width: '100%', fontFamily: FONT, fontSize: 13, letterSpacing: '0.1em', textTransform: 'uppercase', fontWeight: 700, lineHeight: '48px', border: 'none', background: C.ember, color: '#fff', cursor: busy ? 'default' : 'pointer', opacity: busy ? 0.6 : 1 }}>
+      <button onClick={submit} disabled={busy} style={{ marginTop: 22, width: '100%', fontFamily: FONT, fontSize: 13, letterSpacing: '0.1em', textTransform: 'uppercase', fontWeight: 700, lineHeight: '48px', border: 'none', background: '#e8b43a', color: '#1c1e24', cursor: busy ? 'default' : 'pointer', opacity: busy ? 0.6 : 1 }}>
         {busy ? 'Joining…' : identity ? 'Update my name' : 'Join the leaderboard'}
       </button>
       {msg && (<p style={{ fontFamily: FONT, fontSize: 12, marginTop: 14, color: err ? C.ember : C.forest }}>{msg}</p>)}

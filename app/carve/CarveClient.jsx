@@ -33,7 +33,7 @@ const COLORS = {
   cream: '#f7f8fa',
   paper: '#eceef1',
   ink: '#1c1e24',
-  ember: '#2563eb',
+  ember: '#0e1d40',
   rust: '#c0392b',
   faded: '#6b7280',
   accent: '#7c3aed',       // Carve identity — plum
@@ -52,7 +52,7 @@ const STATS_KEY = 'sot_carve_stats';
 // borders. Digits stay ink on every fill.
 const REGION_HUES = [
   { soft: '#ede4ff', mid: '#d9c8fb', line: '#7c3aed' }, // plum
-  { soft: '#dcefff', mid: '#bcdcfa', line: '#1d6fd8' }, // sky
+  { soft: '#dcefff', mid: '#bcdcfa', line: '#0a1730' }, // sky
   { soft: '#ffefd6', mid: '#fcd9a4', line: '#c2700a' }, // amber
   { soft: '#ddf5e5', mid: '#b6e6c6', line: '#15803d' }, // green
   { soft: '#ffe3e0', mid: '#fac1bb', line: '#cc3527' }, // coral

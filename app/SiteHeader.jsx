@@ -12,7 +12,7 @@ import { EXAM_ORDER } from './exams/examData';
 // category nav on lists home, the section tabs on a list, the player stat bar on
 // quizzes. Desktop keeps the card inset and rounded; mobile goes full-bleed and
 // the nav condenses to a compact segmented toggle next to the "SoT" mark.
-const C = { ink: '#1c1e24', accent: '#2563eb', muted: '#6b7280', line: 'rgba(20,22,28,0.09)' };
+const C = { ink: '#1c1e24', accent: '#0e1d40', muted: '#6b7280', line: 'rgba(20,22,28,0.09)' };
 const FONT = "'Manrope', system-ui, -apple-system, sans-serif";
 const SOURCE_COUNT = getAllSources().length;
 export const LIST_COUNT = LISTS.length;
@@ -27,7 +27,7 @@ function Logo({ size = 40 }) {
     <svg width={size} height={size} viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Source of Truths" style={{ flex: 'none' }}>
       <defs>
         <linearGradient id="shLogoBlue" x1="8" y1="6" x2="56" y2="58" gradientUnits="userSpaceOnUse">
-          <stop offset="0" stopColor="#3b74f0" /><stop offset="1" stopColor="#1d4ed8" />
+          <stop offset="0" stopColor="#1e3a6b" /><stop offset="1" stopColor="#0a1730" />
         </linearGradient>
         <radialGradient id="shLogoGold" cx="0.5" cy="0.42" r="0.7">
           <stop offset="0" stopColor="#ffe24d" /><stop offset="0.55" stopColor="#fbb615" /><stop offset="1" stopColor="#f59008" />
@@ -46,7 +46,7 @@ export default function SiteHeader({ active = 'lists', maxWidth = 1180, visitors
     <div className="sh-root" style={{ fontFamily: FONT }}>
       <style>{`
         @import url('https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap');
-        .sh-bar{display:flex;flex-direction:column;padding:12px 16px;background:#2563eb;border-radius:16px;}
+        .sh-bar{display:flex;flex-direction:column;padding:12px 16px;background:#0e1d40;border-radius:16px;}
         .sh-bar.flush{border-radius:16px 16px 0 0;}
         .qzf-line{position:absolute;top:0;bottom:0;left:24px;right:24px;border-left:1px solid rgba(20,22,28,0.16);border-right:1px solid rgba(20,22,28,0.16);border-bottom:1px solid rgba(20,22,28,0.16);border-bottom-left-radius:16px;border-bottom-right-radius:16px;pointer-events:none;z-index:0;}
         @media(max-width:560px){.qzf-line{display:none;}.qzf-w{padding-left:14px !important;padding-right:14px !important;}}
@@ -60,7 +60,7 @@ export default function SiteHeader({ active = 'lists', maxWidth = 1180, visitors
         .sh-nav{display:flex;align-items:center;gap:12px;justify-content:flex-end;flex-wrap:wrap;}
         .sh-navbtn{display:inline-flex;align-items:center;gap:5px;text-decoration:none;font-size:13.5px;font-weight:700;color:#fff;border:1px solid rgba(255,255,255,0.45);border-radius:8px;padding:7px 13px;background:transparent;transition:background .15s,border-color .15s,color .15s;}
         .sh-navbtn:hover{background:rgba(255,255,255,0.14);border-color:#fff;color:#fff;}
-        .sh-navbtn.on{background:#fff;border-color:#fff;color:#2563eb;}
+        .sh-navbtn.on{background:#fff;border-color:#fff;border-bottom:2px solid #e8b43a;color:#0e1d40;}
         @media(max-width:860px){.sh-tag{display:none;}}
         @media(max-width:560px){
           .sh-outer{padding:0;}
@@ -73,7 +73,7 @@ export default function SiteHeader({ active = 'lists', maxWidth = 1180, visitors
           .sh-nav{gap:2px;flex-wrap:nowrap;background:rgba(255,255,255,0.16);border-radius:999px;padding:2px;}
           .sh-navbtn{flex:none;border:none;padding:6px 13px;border-radius:999px;font-size:11.5px;}
           .sh-navbtn:hover{background:transparent;color:#fff;}
-          .sh-navbtn.on{background:#fff;color:#2563eb;}
+          .sh-navbtn.on{background:#fff;color:#0e1d40;}
           .sh-inlay{margin-top:10px;}
         }
       `}</style>

@@ -30,7 +30,7 @@ const C = {
   land: '#e9edf3',
   landLine: '#ffffff',
   leader: '#9aa1ad',
-  users: '#2563eb',
+  users: '#0e1d40',
   plays: '#b45309',
 };
 const MONO = 'DM Mono, monospace';

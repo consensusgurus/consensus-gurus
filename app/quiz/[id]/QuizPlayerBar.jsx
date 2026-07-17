@@ -4,11 +4,11 @@ import Link from 'next/link';
 import { BadgeCheck, UserPlus, ChevronDown, ArrowRight, X, Crown, Medal } from 'lucide-react';
 import { DEPT_LABEL } from '@/lib/quiz-departments';
 
-const ACCENT='#2563eb', INK='#1c1e24', MUTED='#6b7280', SOFT='#aeb4bd', LINE='rgba(20,22,28,0.09)';
-const BARBG='#1e54cf', ONBLUE='#ffffff', ONBLUE_SOFT='#bcd2fb', ONBLUE_LINE='rgba(255,255,255,0.22)';
+const ACCENT='#0e1d40', INK='#1c1e24', MUTED='#6b7280', SOFT='#aeb4bd', LINE='rgba(20,22,28,0.09)';
+const BARBG='#0a1730', ONBLUE='#ffffff', ONBLUE_SOFT='#bcd2fb', ONBLUE_LINE='rgba(255,255,255,0.22)';
 const MEDAL=['#e8b43a','#c3c7cf','#cf8b4e'];
 const lbl={fontSize:10,fontWeight:600,letterSpacing:'.04em',textTransform:'uppercase',color:ONBLUE_SOFT,marginBottom:2};
-const chip={display:'inline-flex',alignItems:'center',gap:6,background:'#3b74e8',color:'#fff',border:'1px solid rgba(255,255,255,0.35)',borderRadius:9,padding:'8px 14px',fontWeight:700,fontSize:13,textDecoration:'none',whiteSpace:'nowrap',cursor:'pointer',fontFamily:'inherit'};
+const chip={display:'inline-flex',alignItems:'center',gap:6,background:'#1e3a6b',color:'#fff',border:'1px solid rgba(255,255,255,0.35)',borderRadius:9,padding:'8px 14px',fontWeight:700,fontSize:13,textDecoration:'none',whiteSpace:'nowrap',cursor:'pointer',fontFamily:'inherit'};
 
 function getAnonId(){try{return localStorage.getItem('sot_quiz_anon');}catch{return null;}}
 function ensureAnonId(){
@@ -53,7 +53,7 @@ function SignupModal({ onClose }){
         {err&&<div style={{marginBottom:12,padding:10,borderRadius:8,background:'rgba(192,57,43,0.08)',border:'1px solid rgba(192,57,43,0.4)',color:'#c0392b',fontSize:13}}>{err}</div>}
         <input value={u} onChange={e=>setU(e.target.value)} placeholder="Display name" maxLength={15} autoCapitalize="none" autoCorrect="off" spellCheck={false} style={inp}/>
         <input value={em} onChange={e=>setEm(e.target.value)} placeholder="Email (optional)" maxLength={120} type="email" autoCapitalize="none" autoCorrect="off" spellCheck={false} style={{...inp,marginTop:10}}/>
-        <button onClick={submit} disabled={busy} style={{marginTop:16,width:'100%',background:ACCENT,color:'#fff',border:'none',borderRadius:10,padding:'12px',fontFamily:'inherit',fontWeight:700,fontSize:14,cursor:busy?'wait':'pointer',opacity:busy?0.6:1}}>{busy?'Joining…':'Join the leaderboard'}</button>
+        <button onClick={submit} disabled={busy} style={{marginTop:16,width:'100%',background:'#e8b43a',color:'#1c1e24',border:'none',borderRadius:10,padding:'12px',fontFamily:'inherit',fontWeight:700,fontSize:14,cursor:busy?'wait':'pointer',opacity:busy?0.6:1}}>{busy?'Joining…':'Join the leaderboard'}</button>
       </div>
     </div>
   );

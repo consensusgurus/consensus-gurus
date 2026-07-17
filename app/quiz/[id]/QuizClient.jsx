@@ -61,7 +61,7 @@ const COLORS = {
   cream: '#f7f8fa',
   paper: '#eceef1',
   ink: '#1c1e24',
-  ember: '#2563eb',
+  ember: '#0e1d40',
   soft: '#9aa0ab',
   line: 'rgba(20,22,28,0.09)',
   accSoft: '#eef3ff',
@@ -85,8 +85,8 @@ function Logo({ size = 22 }) {
     <svg width={size} height={size} viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg" style={{ display: 'block', flex: 'none' }} aria-hidden="true">
       <defs>
         <linearGradient id={`bh-${uid}`} x1="8" y1="6" x2="56" y2="58" gradientUnits="userSpaceOnUse">
-          <stop offset="0" stopColor="#3b74f0" />
-          <stop offset="1" stopColor="#1d4ed8" />
+          <stop offset="0" stopColor="#1e3a6b" />
+          <stop offset="1" stopColor="#0a1730" />
         </linearGradient>
         <radialGradient id={`gh-${uid}`} cx="0.5" cy="0.42" r="0.7">
           <stop offset="0" stopColor="#ffe24d" />
@@ -295,7 +295,7 @@ function QuizCelebration({ kind, onDone }) {
     window.addEventListener('resize', size);
     const big = kind === 'big';
     const GOLD = ['#fbb615', '#ffe24d', '#f59008', '#ffcb45'];
-    const MIX = ['#2563eb', '#3b74f0', '#10b981', '#fbb615', '#ffffff', '#ef476f'];
+    const MIX = ['#0e1d40', '#1e3a6b', '#10b981', '#fbb615', '#ffffff', '#ef476f'];
     const pal = big ? GOLD : MIX;
     const rnd = (a, b) => a + Math.random() * (b - a);
     let parts = [];
@@ -1628,7 +1628,7 @@ export default function QuizClient({ quizId }) {
                 </button>
               )}
               <div style={{ display: 'flex', flexDirection: 'column', gap: 9 }}>
-                <button onClick={restartRound} style={{ ...stackBtn, background: COLORS.ember, color: '#fff' }}><RotateCcw size={15} strokeWidth={2.5} /> Play again</button>
+                <button onClick={restartRound} style={{ ...stackBtn, background: '#e8b43a', color: '#1c1e24' }}><RotateCcw size={15} strokeWidth={2.5} /> Play again</button>
                 <a href={`/duel/new?quiz=${encodeURIComponent(quiz.id)}`} style={{ ...stackBtn, background: COLORS.ink, color: '#fff', borderRadius: 10 }}><Swords size={15} strokeWidth={2.5} /> Challenge Someone</a>
               </div>
               <div style={{ marginTop: 9 }}>
@@ -1653,7 +1653,7 @@ export default function QuizClient({ quizId }) {
                     </p>
                     <input value={jName} onChange={(e) => setJName(e.target.value)} maxLength={15} placeholder="Display Name" autoCapitalize="none" autoCorrect="off" spellCheck={false} style={fieldStyle} />
                     <input value={jEmail} onChange={(e) => setJEmail(e.target.value)} type="email" placeholder="Email (optional, required for prizes)" autoCapitalize="none" autoCorrect="off" spellCheck={false} style={{ ...fieldStyle, marginTop: 10 }} />
-                    <button onClick={submitClaim} disabled={claimBusy} style={{ ...stackBtn, marginTop: 12, background: COLORS.ember, color: '#fff', opacity: claimBusy ? 0.6 : 1 }}>{claimBusy ? (canReveal ? 'Revealing…' : 'Posting…') : (canReveal ? 'Reveal the answers' : 'Post this to the leaderboard')}</button>
+                    <button onClick={submitClaim} disabled={claimBusy} style={{ ...stackBtn, marginTop: 12, background: '#e8b43a', color: '#1c1e24', opacity: claimBusy ? 0.6 : 1 }}>{claimBusy ? (canReveal ? 'Revealing…' : 'Posting…') : (canReveal ? 'Reveal the answers' : 'Post this to the leaderboard')}</button>
                   </div>
                 )}
                 {claimMsg && (
@@ -1722,7 +1722,7 @@ export default function QuizClient({ quizId }) {
                 />
               )}
               {(started || ended) && !bottomDock && (<div style={{ position: 'relative', display: 'flex', flex: (matched && !ordered) || mapMode || tileMode ? 1 : 'none' }}>
-              <button onClick={start} disabled={started || ended} style={{ flex: 1, fontFamily: MONO, fontSize: 13, letterSpacing: '0.08em', textTransform: 'uppercase', fontWeight: 700, padding: '0 22px', height: 50, border: 'none', background: COLORS.ember, color: '#fff', cursor: started || ended ? 'default' : 'pointer', opacity: started || ended ? 0.5 : 1 }}>
+              <button onClick={start} disabled={started || ended} style={{ flex: 1, fontFamily: MONO, fontSize: 13, letterSpacing: '0.08em', textTransform: 'uppercase', fontWeight: 700, padding: '0 22px', height: 50, border: 'none', background: '#e8b43a', color: '#1c1e24', cursor: started || ended ? 'default' : 'pointer', opacity: started || ended ? 0.5 : 1 }}>
                 {ended ? 'Done' : started ? 'Playing' : (matched && !ordered) ? (quiz.noun ? 'Play' : 'Play — name each year') : 'Play'}
               </button>
               {/* Correct/wrong verdict pops over the Play button (replaces the old
@@ -1767,7 +1767,7 @@ export default function QuizClient({ quizId }) {
                   style={{ flex: 1, minWidth: 0, fontFamily: SANS, fontSize: 17, height: 50, boxSizing: 'border-box', padding: '0 16px', border: `1.5px solid ${COLORS.ink}`, borderRadius: 8, background: !started || ended ? COLORS.paper : '#eceef1', color: COLORS.ink, opacity: !started || ended ? 0.5 : 1 }}
                 />
               <div style={{ position: 'relative', display: 'flex', flex: (matched && !ordered) || mapMode || tileMode ? 1 : 'none' }}>
-              <button onClick={start} disabled={started || ended} style={{ flex: 1, fontFamily: MONO, fontSize: 13, letterSpacing: '0.08em', textTransform: 'uppercase', fontWeight: 700, padding: '0 22px', height: 50, border: 'none', background: COLORS.ember, color: '#fff', cursor: started || ended ? 'default' : 'pointer', opacity: started || ended ? 0.5 : 1 }}>
+              <button onClick={start} disabled={started || ended} style={{ flex: 1, fontFamily: MONO, fontSize: 13, letterSpacing: '0.08em', textTransform: 'uppercase', fontWeight: 700, padding: '0 22px', height: 50, border: 'none', background: '#e8b43a', color: '#1c1e24', cursor: started || ended ? 'default' : 'pointer', opacity: started || ended ? 0.5 : 1 }}>
                 {ended ? 'Done' : started ? 'Playing' : (matched && !ordered) ? (quiz.noun ? 'Play' : 'Play — name each year') : 'Play'}
               </button>
               {/* Correct/wrong verdict pops over the Play button (replaces the old
@@ -2023,8 +2023,8 @@ export default function QuizClient({ quizId }) {
 
             {started && !ended && (
               <div style={{ marginTop: 22, display: 'flex', justifyContent: 'center' }}>
-                <button onClick={() => endGame(false)} style={{ fontFamily: MONO, fontSize: 12, letterSpacing: '0.12em', textTransform: 'uppercase', fontWeight: 700, padding: '12px 40px', border: 'none', background: COLORS.ember, color: '#fff', cursor: 'pointer', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 8 }}>
-                  <Flag size={14} strokeWidth={2.5} color="#fff" /> Give up
+                <button onClick={() => endGame(false)} style={{ fontFamily: MONO, fontSize: 12, letterSpacing: '0.12em', textTransform: 'uppercase', fontWeight: 700, padding: '12px 40px', border: 'none', background: '#e8b43a', color: '#1c1e24', cursor: 'pointer', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 8 }}>
+                  <Flag size={14} strokeWidth={2.5} color="#1c1e24" /> Give up
                 </button>
               </div>
             )}
@@ -2091,7 +2091,7 @@ export default function QuizClient({ quizId }) {
                 const m = sp.id.match(/-(\d+)$/);
                 const partLabel = `Part ${m ? m[1] : '1'}`;
                 return (
-                  <a key={sp.id} href={`/quiz/${sp.id}`} style={{ textDecoration: 'none', color: '#fff', background: '#2563eb', borderRadius: 10, border: '1px solid #2563eb', padding: '12px 14px', display: 'block', transition: 'all 0.15s ease' }}>
+                  <a key={sp.id} href={`/quiz/${sp.id}`} style={{ textDecoration: 'none', color: '#fff', background: '#0e1d40', borderRadius: 10, border: '1px solid #0e1d40', padding: '12px 14px', display: 'block', transition: 'all 0.15s ease' }}>
                     <div style={{ fontFamily: MONO, fontSize: 9, letterSpacing: '0.16em', textTransform: 'uppercase', color: 'rgba(255,255,255,0.82)', fontWeight: 700, marginBottom: 6 }}>{partLabel}</div>
                     <div style={{ fontFamily: SERIF, fontSize: 16, fontWeight: 600, lineHeight: 1.15 }}>{sp.title}</div>
                   </a>

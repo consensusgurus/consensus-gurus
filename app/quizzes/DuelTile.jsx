@@ -4,7 +4,7 @@ import { useRouter } from 'next/navigation';
 import { Swords, UserPlus, ListChecks, ArrowRight, X, ChevronDown, Trophy } from 'lucide-react';
 import { QUIZZES } from '@/lib/quizzes';
 
-const NAVY = '#0e1d40', ACCENT = '#2563eb', AMBER = '#f8b84a';
+const NAVY = '#0e1d40', ACCENT = '#0e1d40', AMBER = '#f8b84a';
 const FONT = "'Manrope', system-ui, -apple-system, sans-serif";
 
 function getAnon() { try { return localStorage.getItem('sot_quiz_anon') || ''; } catch { return ''; } }
@@ -120,7 +120,7 @@ export default function DuelTile() {
   const item = { display: 'block', width: '100%', textAlign: 'left', border: 'none', background: 'transparent', padding: '8px 10px', borderRadius: 7, cursor: 'pointer', fontFamily: FONT, fontSize: 13, color: '#1c1e24' };
   const clearBtn = { border: 'none', background: 'transparent', color: '#9fb0d4', cursor: 'pointer', display: 'flex', flex: 'none' };
   const picked = { flex: 1, minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', fontSize: 12.5, color: '#eaf0fb', fontWeight: 700 };
-  const ctaBtn = { marginTop: 'auto', width: '100%', background: ACCENT, color: '#fff', border: 'none', borderRadius: 10, padding: '10px', fontFamily: FONT, fontWeight: 800, fontSize: 13, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 7 };
+  const ctaBtn = { marginTop: 'auto', width: '100%', background: '#e8b43a', color: '#1c1e24', border: 'none', borderRadius: 10, padding: '10px', fontFamily: FONT, fontWeight: 800, fontSize: 13, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 7 };
   const faceBase = { backfaceVisibility: 'hidden', WebkitBackfaceVisibility: 'hidden', display: 'flex', flexDirection: 'column' };
 
   return (
@@ -243,7 +243,7 @@ export default function DuelTile() {
           <div className="dueltile-body" style={{ display: 'flex', flexDirection: 'column', flex: 1 }}>
             <div style={{ fontSize: 12.5, color: '#c7d3ee', fontWeight: 600, marginTop: 9, lineHeight: 1.35 }}>{last.scores ? `${last.scores} on ` : 'On '}{last.quizTitle}</div>
             <a href="/quizzes/hub?tab=duels" style={{ ...ctaBtn, textDecoration: 'none', marginTop: 12 }}>See the Duel Leaderboard <ArrowRight size={15} /></a>
-            <button onClick={start} style={{ ...ctaBtn, background: 'transparent', border: '1px solid rgba(255,255,255,0.28)', marginTop: 8 }}>Start a Duel <ArrowRight size={15} /></button>
+            <button onClick={start} style={{ ...ctaBtn, background: 'transparent', color: '#fff', border: '1px solid rgba(255,255,255,0.28)', marginTop: 8 }}>Start a Duel <ArrowRight size={15} /></button>
           </div>
         </div>
       )}

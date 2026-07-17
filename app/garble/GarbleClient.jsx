@@ -25,7 +25,7 @@ const COLORS = {
   cream: '#f7f8fa',
   paper: '#eceef1',
   ink: '#1c1e24',
-  ember: '#2563eb',
+  ember: '#0e1d40',
   rust: '#c0392b',
   faded: '#6b7280',
   gold: '#e6b93f',
@@ -395,7 +395,7 @@ export default function GarbleClient({ puzzles = [], forceNum = null }) {
               fg = COLORS.ember;
               // marked cells keep their gold border even while the row is
               // selected — the blue fill carries selection, gold = finale feed
-              border = marked ? `2.5px solid ${COLORS.gold}` : `2px solid ${typed.length === j ? COLORS.ember : 'rgba(37,99,235,0.55)'}`;
+              border = marked ? `2.5px solid ${COLORS.gold}` : `2px solid ${typed.length === j ? COLORS.ember : 'rgba(14,29,64,0.55)'}`;
             } else if (marked) {
               border = `2px solid ${COLORS.gold}`;
             }
@@ -504,7 +504,7 @@ export default function GarbleClient({ puzzles = [], forceNum = null }) {
                   letter = typed[j] || '';
                   bg = typed.length === j ? '#dbe7ff' : '#eef4ff';
                   fg = COLORS.ember;
-                  border = `2px solid ${typed.length === j ? COLORS.ember : 'rgba(37,99,235,0.55)'}`;
+                  border = `2px solid ${typed.length === j ? COLORS.ember : 'rgba(14,29,64,0.55)'}`;
                 }
                 return <span key={j} style={{ ...cellBase, width: 44, height: 44, fontSize: 21, background: bg, color: fg, border }}>{letter}</span>;
               })}

@@ -33,7 +33,7 @@ const COLORS = {
   cream: '#f7f8fa',
   paper: '#eceef1',
   ink: '#1c1e24',
-  ember: '#2563eb',
+  ember: '#0e1d40',
   rust: '#c0392b',
   faded: '#6b7280',
   accent: '#0e7490',       // Circa identity — aged-ink teal
@@ -55,7 +55,7 @@ const SNAP = 3; // within this many years = "circa" — it counts as solved
 const BANDS = [
   { max: 10, key: 'hot', label: 'within 10 years', color: '#9a3d0c', bg: '#ffedd5', border: 'rgba(234,88,12,0.55)', sq: '\u{1F7E7}' },
   { max: 50, key: 'warm', label: 'within 50 years', color: '#92610b', bg: '#fef3c7', border: 'rgba(217,119,6,0.5)', sq: '\u{1F7E8}' },
-  { max: 200, key: 'cool', label: 'within 200 years', color: '#1d4ed8', bg: '#dbeafe', border: 'rgba(37,99,235,0.45)', sq: '\u{1F7E6}' },
+  { max: 200, key: 'cool', label: 'within 200 years', color: '#0a1730', bg: '#dbeafe', border: 'rgba(14,29,64,0.45)', sq: '\u{1F7E6}' },
   { max: Infinity, key: 'cold', label: 'over 200 years off', color: '#475569', bg: '#e2e8f0', border: 'rgba(71,85,105,0.4)', sq: '⬜' },
 ];
 const bandOf = (diff) => BANDS.find((b) => diff <= b.max);
@@ -709,7 +709,7 @@ export default function CircaClient({ puzzles = [], forceNum = null }) {
             </div>
             <div style={{ fontSize: 14, lineHeight: 1.55, color: COLORS.ink, fontWeight: 600 }}>
               <p style={{ margin: '0 0 9px' }}>One historical moment a day. <b>Guess the year</b> it happened &mdash; any year from {YR_MIN} to today &mdash; in six tries.</p>
-              <p style={{ margin: '0 0 9px' }}>Every miss tells you two things: whether the real year is <b>earlier or later</b> than your guess, and how close you are &mdash; from <b style={{ color: '#475569' }}>cold</b> (200+ years off) through <b style={{ color: '#1d4ed8' }}>cool</b> and <b style={{ color: '#92610b' }}>warm</b> to <b style={{ color: '#9a3d0c' }}>hot</b> (within 10).</p>
+              <p style={{ margin: '0 0 9px' }}>Every miss tells you two things: whether the real year is <b>earlier or later</b> than your guess, and how close you are &mdash; from <b style={{ color: '#475569' }}>cold</b> (200+ years off) through <b style={{ color: '#0a1730' }}>cool</b> and <b style={{ color: '#92610b' }}>warm</b> to <b style={{ color: '#9a3d0c' }}>hot</b> (within 10).</p>
               <p style={{ margin: '0 0 9px' }}>Land <b>within {SNAP} years</b> and you&rsquo;ve placed it &mdash; that&rsquo;s circa, and it counts. Hitting the <b>exact year</b> is a dead-on finish. One free <b>hint</b> reveals the century.</p>
               <p style={{ margin: 0 }}>A dead-on first guess scores a perfect 10; every extra guess costs a point (a circa finish costs one more). Ties break on fewest guesses, then fastest time. Sundays bring a trickier moment.</p>
             </div>

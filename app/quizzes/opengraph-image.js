@@ -18,10 +18,10 @@ const h = React.createElement
 function iconRingsDataURI() {
   let rings = ''
   for (let i = 1; i <= 5; i++) {
-    rings += `<circle cx="160" cy="160" r="${52 + i * 22}" fill="none" stroke="#1d4ed8" stroke-width="2" stroke-opacity="${(0.075 - i * 0.011).toFixed(3)}"/>`
+    rings += `<circle cx="160" cy="160" r="${52 + i * 22}" fill="none" stroke="#0a1730" stroke-width="2" stroke-opacity="${(0.075 - i * 0.011).toFixed(3)}"/>`
   }
   const icon = `<g transform="translate(85,85) scale(${150 / 64})"><rect x="3" y="3" width="58" height="58" rx="17.5" fill="url(#b)"/><circle cx="32" cy="32.5" r="16.4" stroke="#fff" stroke-width="4.2" fill="none"/><circle cx="32" cy="32.5" r="9.6" stroke="#fff" stroke-width="4.2" fill="none" stroke-opacity="0.9"/><path d="M 32 24.9 C 32.775 31.725 32.775 31.725 39.6 32.5 C 32.775 33.275 32.775 33.275 32 40.1 C 31.225 33.275 31.225 33.275 24.4 32.5 C 31.225 31.725 31.225 31.725 32 24.9 Z" fill="url(#g)"/></g>`
-  const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="320" height="320" viewBox="0 0 320 320"><defs><linearGradient id="b" x1="8" y1="6" x2="56" y2="58" gradientUnits="userSpaceOnUse"><stop offset="0" stop-color="#3b74f0"/><stop offset="1" stop-color="#1d4ed8"/></linearGradient><radialGradient id="g" cx="0.5" cy="0.42" r="0.7"><stop offset="0" stop-color="#ffe24d"/><stop offset="0.55" stop-color="#fbb615"/><stop offset="1" stop-color="#f59008"/></radialGradient></defs>${rings}${icon}</svg>`
+  const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="320" height="320" viewBox="0 0 320 320"><defs><linearGradient id="b" x1="8" y1="6" x2="56" y2="58" gradientUnits="userSpaceOnUse"><stop offset="0" stop-color="#1e3a6b"/><stop offset="1" stop-color="#0a1730"/></linearGradient><radialGradient id="g" cx="0.5" cy="0.42" r="0.7"><stop offset="0" stop-color="#ffe24d"/><stop offset="0.55" stop-color="#fbb615"/><stop offset="1" stop-color="#f59008"/></radialGradient></defs>${rings}${icon}</svg>`
   return 'data:image/svg+xml;base64,' + Buffer.from(svg).toString('base64')
 }
 
@@ -54,7 +54,7 @@ export default async function Image() {
   const T = (txt, style) => h('div', { style: { display: 'flex', ...style } }, txt)
 
   const card = h('div', { style: { width: '100%', height: '100%', display: 'flex', flexDirection: 'column', justifyContent: 'space-between', background: '#f7f8fa', fontFamily: 'Manrope', padding: '48px 72px', position: 'relative' } }, [
-    h('div', { key: 'bar', style: { position: 'absolute', top: 0, left: 0, width: '1200px', height: '9px', display: 'flex', background: 'linear-gradient(90deg,#1d4ed8,#3b74f0 55%,#fbb615)' } }),
+    h('div', { key: 'bar', style: { position: 'absolute', top: 0, left: 0, width: '1200px', height: '9px', display: 'flex', background: 'linear-gradient(90deg,#0a1730,#1e3a6b 55%,#fbb615)' } }),
     h('div', { key: 'top', style: { display: 'flex', flexDirection: 'column' } }, [
       h('div', { key: 'hd', style: { display: 'flex', flexDirection: 'column', marginBottom: 20 } }, [
         h('div', { key: 'row', style: { display: 'flex', alignItems: 'center', justifyContent: 'space-between' } }, [
@@ -62,7 +62,7 @@ export default async function Image() {
             h('img', { key: 'i', src: iconRingsDataURI(), width: 116, height: 116, style: { marginLeft: '-16px', marginRight: '-2px' } }),
             T('Source of Truths', { fontSize: 42, fontWeight: 800, letterSpacing: '-1.2px', color: '#1c1e24' }),
           ]),
-          T('The Quizzes', { fontSize: 22, fontWeight: 700, letterSpacing: 3, color: '#2563eb', textTransform: 'uppercase' }),
+          T('The Quizzes', { fontSize: 22, fontWeight: 700, letterSpacing: 3, color: '#0e1d40', textTransform: 'uppercase' }),
         ]),
         h('div', { key: 'l1', style: { display: 'flex', width: '100%', height: '2px', background: '#e2e5ea', marginTop: '10px' } }),
         h('div', { key: 'l2', style: { display: 'flex', width: '210px', height: '4px', background: '#fbb615', marginTop: '3px' } }),
@@ -73,14 +73,14 @@ export default async function Image() {
     h('div', { key: 'feat', style: { display: 'flex', flexDirection: 'column' } },
       SAMPLES.map((s, i) => h('div', { key: i, style: { display: 'flex', alignItems: 'center', marginBottom: '8px' } }, [
         h('div', { key: 't', style: { display: 'flex', width: 36, alignItems: 'center' } }, [
-          h('div', { key: 'tri', style: { width: 0, height: 0, borderTop: '9px solid transparent', borderBottom: '9px solid transparent', borderLeft: '15px solid #2563eb' } }),
+          h('div', { key: 'tri', style: { width: 0, height: 0, borderTop: '9px solid transparent', borderBottom: '9px solid transparent', borderLeft: '15px solid #0e1d40' } }),
         ]),
         h('div', { key: 'n', style: { display: 'flex', fontSize: 30, fontWeight: 600, color: '#1c1e24', lineHeight: 1.15 } }, s),
       ]))
     ),
     h('div', { key: 'ft', style: { display: 'flex', alignItems: 'center', justifyContent: 'space-between', borderTop: '1px solid #e2e5ea', paddingTop: '16px', fontSize: 19 } }, [
       T('Beat the clock, then the leaderboard.', { color: '#9aa0ab', fontWeight: 600 }),
-      T('PLAY AT SOURCEOFTRUTHS.COM/QUIZZES', { color: '#2563eb', fontWeight: 700 }),
+      T('PLAY AT SOURCEOFTRUTHS.COM/QUIZZES', { color: '#0e1d40', fontWeight: 700 }),
     ]),
   ])
 

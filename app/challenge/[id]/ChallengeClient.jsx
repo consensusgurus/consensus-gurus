@@ -13,7 +13,7 @@ const COLORS = {
   cream: '#f7f8fa',
   paper: '#eceef1',
   ink: '#1c1e24',
-  ember: '#2563eb',
+  ember: '#0e1d40',
   soft: '#9aa0ab',
   line: 'rgba(20,22,28,0.09)',
   accSoft: '#eef3ff',
@@ -152,11 +152,11 @@ export default function ChallengeClient({ id }) {
         {/* CTAs */}
         <div style={{ marginTop: 22, display: 'flex', flexDirection: 'column', gap: 12, maxWidth: 360 }}>
           {!allDone ? (
-            <Link href={entryUrl(continueIdx)} style={{ boxSizing: 'border-box', fontFamily: FONT, fontSize: 13, letterSpacing: '0.08em', textTransform: 'uppercase', fontWeight: 800, padding: '15px 18px', borderRadius: 10, background: COLORS.ember, color: '#fff', textDecoration: 'none', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 8, boxShadow: '0 6px 18px rgba(37,99,235,0.32)' }}>
+            <Link href={entryUrl(continueIdx)} style={{ boxSizing: 'border-box', fontFamily: FONT, fontSize: 13, letterSpacing: '0.08em', textTransform: 'uppercase', fontWeight: 800, padding: '15px 18px', borderRadius: 10, background: COLORS.ember, color: '#fff', textDecoration: 'none', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 8, boxShadow: '0 6px 18px rgba(14,29,64,0.32)' }}>
               {anyStarted ? 'Continue' : 'Start'} <ArrowRight size={16} strokeWidth={2.5} />
             </Link>
           ) : (
-            <Link href={`/quizzes/hub?tab=challenges&ch=${encodeURIComponent(id)}`} style={{ boxSizing: 'border-box', fontFamily: FONT, fontSize: 13, letterSpacing: '0.08em', textTransform: 'uppercase', fontWeight: 800, padding: '15px 18px', borderRadius: 10, background: COLORS.ember, color: '#fff', textDecoration: 'none', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 8, boxShadow: '0 6px 18px rgba(37,99,235,0.32)' }}>
+            <Link href={`/quizzes/hub?tab=challenges&ch=${encodeURIComponent(id)}`} style={{ boxSizing: 'border-box', fontFamily: FONT, fontSize: 13, letterSpacing: '0.08em', textTransform: 'uppercase', fontWeight: 800, padding: '15px 18px', borderRadius: 10, background: COLORS.ember, color: '#fff', textDecoration: 'none', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 8, boxShadow: '0 6px 18px rgba(14,29,64,0.32)' }}>
               <Trophy size={15} strokeWidth={2.5} /> View standings
             </Link>
           )}

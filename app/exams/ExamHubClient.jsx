@@ -13,7 +13,7 @@ const COLORS = {
   cream: '#f7f8fa',
   paper: '#eceef1',
   ink: '#1c1e24',
-  ember: '#2563eb',
+  ember: '#0e1d40',
   faded: '#6b7280',
 };
 const FONT = "'Manrope', system-ui, -apple-system, sans-serif";
@@ -90,7 +90,7 @@ export default function ExamHubClient() {
 
         {/* ── LSAT Logic Games (analytical reasoning) — School Tests ── */}
         <div style={{ marginTop: 44 }}>
-          <div style={{ position: 'relative', borderRadius: 14, overflow: 'hidden', minHeight: 156, backgroundImage: "url('/qhero-logic.svg')", backgroundSize: 'cover', backgroundPosition: 'right center', backgroundColor: '#2f6fe0' }}>
+          <div style={{ position: 'relative', borderRadius: 14, overflow: 'hidden', minHeight: 156, backgroundImage: "url('/qhero-logic.svg')", backgroundSize: 'cover', backgroundPosition: 'right center', backgroundColor: '#14294d' }}>
             <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(90deg, rgba(12,26,55,0.88) 0%, rgba(12,26,55,0.55) 44%, rgba(12,26,55,0.05) 100%)' }} />
             <div style={{ position: 'relative', padding: '22px 24px' }}>
               <span style={{ fontSize: 11, fontWeight: 800, letterSpacing: '0.12em', textTransform: 'uppercase', color: '#bcd2ff' }}>School Tests</span>

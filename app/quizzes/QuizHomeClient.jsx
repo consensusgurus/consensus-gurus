@@ -1123,15 +1123,26 @@ export default function QuizHomeClient() {
     .qzh .th-rail{flex:0 0 188px;}
     .qzh .th-r2{display:grid;grid-template-columns:minmax(0,0.95fr) minmax(0,0.95fr) minmax(0,1fr) minmax(0,1fr);gap:12px;align-items:stretch;}
     .qzh .th-r2 .th-slot-hold{min-height:215px;}
-    /* Daily leaderboard slip: a solid navy tab hanging off the bottom of the daily
-       strip (matches the strip's own #0e1d40 so it reads as one piece) that expands
-       the full daily board (Option A). */
-    .qzh .dboard-slipwrap{display:flex;justify-content:center;margin-top:-14px;margin-bottom:14px;}
-    .qzh .dboard-slip{display:inline-flex;align-items:center;gap:8px;padding:6px 18px 7px;background:#0e1d40;border:1px solid rgba(232,180,58,0.55);border-top:none;border-radius:0 0 12px 12px;color:#f5d878;font-family:inherit;font-size:11.5px;font-weight:800;letter-spacing:.05em;text-transform:uppercase;cursor:pointer;transition:background .15s,box-shadow .15s;box-shadow:0 4px 12px rgba(10,18,38,0.22);}
-    .qzh .dboard-slip:hover{background:#132a5c;}
-    .qzh .dboard-slip-lead{color:#9fb0d4;font-weight:600;text-transform:none;letter-spacing:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:180px;}
-    /* Option A panel: navy/gold card with overall top-5 (left) + per-game top-3 minis (right). */
-    .qzh .dboard-panel{margin-bottom:14px;background:linear-gradient(165deg,#16294f,#0c1a34);border:1px solid rgba(232,180,58,0.28);border-radius:16px;padding:18px;box-shadow:0 10px 30px rgba(10,18,38,.25);}
+    /* Daily leaderboard bar: a full-width navy row under the strip (matches its
+       #0e1d40) showing each daily game's leader; click to expand the board (Option A). */
+    .qzh .dboard-bar{display:flex;align-items:stretch;background:#0e1d40;border:1px solid rgba(232,180,58,0.42);border-radius:14px;overflow:hidden;cursor:pointer;margin-bottom:14px;transition:border-color .15s;}
+    .qzh .dboard-bar:hover{border-color:rgba(232,180,58,0.75);}
+    /* When open, the bar + panel merge into ONE large pill (square the seam, drop the divider). */
+    .qzh .dboard-bar.open{border-radius:14px 14px 0 0;border-bottom:none;margin-bottom:0;}
+    .qzh .dboard-cap{flex:0 0 auto;display:flex;flex-direction:column;justify-content:center;gap:3px;padding:10px 15px;background:#0b1733;border-right:1px solid rgba(255,255,255,0.07);min-width:126px;}
+    .qzh .dboard-cap .lab{font-size:9px;font-weight:800;letter-spacing:.14em;text-transform:uppercase;color:#f8b84a;}
+    .qzh .dboard-cap .cty{font-size:14px;font-weight:800;color:#fff;line-height:1;display:flex;align-items:center;gap:6px;}
+    .qzh .dboard-cells{display:flex;flex:1 1 auto;min-width:0;}
+    .qzh .dboard-lc{flex:1 1 0;min-width:0;display:flex;flex-direction:column;gap:5px;justify-content:center;padding:9px 11px;border-left:1px solid rgba(255,255,255,0.055);}
+    .qzh .dboard-lc:first-child{border-left:none;}
+    .qzh .dlc-game{font-size:9.5px;font-weight:800;letter-spacing:.04em;text-transform:uppercase;color:#8fa3cf;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+    .qzh .dlc-lead{font-size:12px;font-weight:700;color:#eaf0fb;display:flex;align-items:center;gap:4px;min-width:0;}
+    .qzh .dlc-lead svg{color:#e8b43a;flex:none;}
+    .qzh .dlc-lead span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+    .qzh .dlc-none{color:#6a80a8;font-weight:600;}
+    @media(max-width:820px){.qzh .dboard-bar{overflow-x:auto;scrollbar-width:thin;scrollbar-color:rgba(159,176,212,0.45) #0b1733;}.qzh .dboard-cap{position:sticky;left:0;z-index:1;min-width:108px;}.qzh .dboard-lc{min-width:98px;}}
+    /* Option A panel: attaches flush under the bar as one pill; overall top-5 (left) + per-game top-3 minis (right). */
+    .qzh .dboard-panel{margin-bottom:14px;background:linear-gradient(165deg,#16294f,#0c1a34);border:1px solid rgba(232,180,58,0.42);border-top:none;border-radius:0 0 14px 14px;padding:18px;box-shadow:0 14px 30px rgba(10,18,38,.28);}
     .qzh .dboard-loading{font-size:13px;color:#93a7cc;font-weight:600;padding:6px 2px;}
     .qzh .bp-head{display:flex;align-items:baseline;justify-content:space-between;margin-bottom:14px;gap:10px;flex-wrap:wrap;}
     .qzh .bp-l{font-size:11px;letter-spacing:.16em;text-transform:uppercase;color:#e8b43a;font-weight:800;}
@@ -1469,15 +1480,26 @@ export default function QuizHomeClient() {
             each button is ~half the Newest tile's height. */}
         <DailyStrip />
 
-        {/* Option A: a slim gold slip tucked under the daily strip expands the
-            full daily-combined leaderboard (overall + per-game boards). */}
-        <div className="dboard-slipwrap">
-          <button type="button" className="dboard-slip" aria-expanded={boardOpen} onClick={() => setBoardOpen((v) => !v)}>
-            <Trophy size={12} style={{ color: '#e8b43a', flex: 'none' }} />
-            <span>Daily Leaderboard</span>
-            {dailyLead && dailyLead.name ? <span className="dboard-slip-lead">· {dailyLead.name} leads</span> : null}
-            <ChevronDown size={13} strokeWidth={2.6} style={{ transition: 'transform .2s', transform: boardOpen ? 'rotate(180deg)' : 'none', color: '#e8b43a', flex: 'none' }} />
-          </button>
+        {/* Option A: a full-width navy bar under the daily strip showing each daily
+            game's current leader (crown + name) in a uniform row. Click to expand
+            the full daily board (overall top-5 + per-game top-3s). */}
+        <div className={`dboard-bar${boardOpen ? ' open' : ''}`} role="button" tabIndex={0} aria-expanded={boardOpen} onClick={() => setBoardOpen((v) => !v)} onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); setBoardOpen((v) => !v); } }}>
+          <div className="dboard-cap">
+            <span className="lab">Daily</span>
+            <span className="cty"><Trophy size={13} style={{ color: '#e8b43a', flex: 'none' }} /> Leaders <ChevronDown size={14} strokeWidth={2.6} style={{ transition: 'transform .2s', transform: boardOpen ? 'rotate(180deg)' : 'none', color: '#e8b43a', flex: 'none' }} /></span>
+          </div>
+          <div className="dboard-cells">
+            {dailyBoard && Array.isArray(dailyBoard.games) && dailyBoard.games.length ? (
+              dailyBoard.games.map((g) => { const lead = (g.board && g.board[0]) ? g.board[0].username : null; return (
+                <div key={g.key} className="dboard-lc">
+                  <span className="dlc-game">{DC_NAMES[g.key] || g.key}</span>
+                  <span className="dlc-lead">{lead ? <><Crown size={11} /><span>{lead}</span></> : <span className="dlc-none">—</span>}</span>
+                </div>
+              ); })
+            ) : (
+              <div className="dboard-lc" style={{ flex: 1 }}><span className="dlc-game">Today’s standings</span><span className="dlc-lead dlc-none">Tap to open the daily leaderboard</span></div>
+            )}
+          </div>
         </div>
         {boardOpen ? (
           <div className="dboard-panel">

@@ -1581,7 +1581,7 @@ export function Tile({ list, rank, views, voteData, extras, onClick, href, showC
 // icons. Mirrors app/quizzes/QuizHomeClient.jsx so Lists and Quizzes match.
 const NT = {
   bg: '#f7f8fa', surface: '#fff', ink: '#1c1e24', muted: '#6b7280',
-  soft: '#9aa0ab', line: 'rgba(20,22,28,0.09)', accent: '#2563eb',
+  soft: '#9aa0ab', line: 'rgba(20,22,28,0.09)', accent: '#0e1d40',
   accsoft: '#e8effb', live: '#10b981',
 };
 const NFONT = "'Manrope', system-ui, -apple-system, sans-serif";
@@ -1633,7 +1633,7 @@ function NTLogo({ size = 38 }) {
     <svg width={size} height={size} viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Source of Truths" style={{ flex: 'none' }}>
       <defs>
         <linearGradient id="sotLogoBlue" x1="8" y1="6" x2="56" y2="58" gradientUnits="userSpaceOnUse">
-          <stop offset="0" stopColor="#3b74f0" /><stop offset="1" stopColor="#1d4ed8" />
+          <stop offset="0" stopColor="#1e3a6b" /><stop offset="1" stopColor="#0a1730" />
         </linearGradient>
         <radialGradient id="sotLogoGold" cx="0.5" cy="0.42" r="0.7">
           <stop offset="0" stopColor="#ffe24d" /><stop offset="0.55" stopColor="#fbb615" /><stop offset="1" stopColor="#f59008" />

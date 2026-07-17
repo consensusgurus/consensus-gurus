@@ -11,7 +11,7 @@ import React, { useMemo, useState, useRef, useEffect } from 'react';
 // (cosmetic only — never changes the answer).
 
 const COLORS = {
-  cream: '#f7f8fa', paper: '#eceef1', ink: '#1c1e24', ember: '#2563eb',
+  cream: '#f7f8fa', paper: '#eceef1', ink: '#1c1e24', ember: '#0e1d40',
   rust: '#c0392b', forest: '#10b981', faded: '#6b7280',
 };
 const SANS = "'Manrope', system-ui, -apple-system, sans-serif";

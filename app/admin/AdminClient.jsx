@@ -16,7 +16,7 @@ const COLORS = {
   paper: '#ffffff',
   ink: '#1c1e24',
   faded: '#6b7280',
-  ember: '#2563eb',
+  ember: '#0e1d40',
   forest: '#10b981',
   rust: '#b45309',
   line: 'rgba(20,22,28,0.09)',

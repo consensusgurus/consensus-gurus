@@ -17,7 +17,7 @@ export const metadata = {
   twitter: { card: 'summary_large_image', title: 'A Sporcle Alternative With No Ads', description: 'Fast, ad-free trivia quizzes with leaderboards and a modern interface.' },
 };
 
-const C = { bg: '#f7f8fa', card: '#ffffff', ink: '#1c1e24', blue: '#2563eb', gold: '#fbb615', muted: '#6b7280', border: '#e2e5ea', green: '#10b981' };
+const C = { bg: '#f7f8fa', card: '#ffffff', ink: '#1c1e24', blue: '#0e1d40', gold: '#fbb615', muted: '#6b7280', border: '#e2e5ea', green: '#10b981' };
 const F = "'Manrope', system-ui, -apple-system, sans-serif";
 
 function Prop({ title, body }) {
@@ -48,7 +48,7 @@ export default function SporcleAlternativePage() {
   ];
   return (
     <div style={{ minHeight: '100vh', background: C.bg, color: C.ink, position: 'relative' }}>
-      <div style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: 6, background: 'linear-gradient(90deg,#1d4ed8,#3b74f0 55%,#fbb615)' }} />
+      <div style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: 6, background: 'linear-gradient(90deg,#0a1730,#1e3a6b 55%,#fbb615)' }} />
       <div style={{ position: 'relative', zIndex: 2, maxWidth: 820, margin: '0 auto', padding: '28px 20px 64px' }}>
         <Link href="/" style={{ fontFamily: F, fontSize: 12, letterSpacing: '0.12em', textTransform: 'uppercase', fontWeight: 700, color: C.ink, textDecoration: 'none', display: 'inline-flex', alignItems: 'center', gap: 6, padding: '8px 0' }}>
           <ArrowLeft size={14} strokeWidth={2.5} /> Back to Source of Truths

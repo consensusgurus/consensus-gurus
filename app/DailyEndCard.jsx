@@ -44,9 +44,9 @@ const FADED = '#6b7280';
 // medallion. Fin = the lucide glyph shown in it.
 const GOLD_BADGE = 'radial-gradient(circle at 50% 38%,#f5d878,#e6b93f 62%,#cfa22e)';
 export const GAME_META = {
-  crux:   { accent: '#2563eb', badgeBg: '#2563eb', badgeInk: '#fff', Fin: LayoutGrid },
+  crux:   { accent: '#0e1d40', badgeBg: '#0e1d40', badgeInk: '#fff', Fin: LayoutGrid },
   emcee:  { accent: '#c026d3', badgeBg: '#c026d3', badgeInk: '#fff', Fin: Type },
-  garble: { accent: '#2563eb', badgeBg: GOLD_BADGE, badgeInk: '#5c4a06', Fin: Trophy },
+  garble: { accent: '#0e1d40', badgeBg: GOLD_BADGE, badgeInk: '#5c4a06', Fin: Trophy },
   links:  { accent: '#166534', badgeBg: '#166534', badgeInk: '#fff', Fin: Link2 },
   span:   { accent: '#9d174d', badgeBg: '#9d174d', badgeInk: '#fff', Fin: Flag },
   dating: { accent: '#6d28d9', badgeBg: '#6d28d9', badgeInk: '#fff', Fin: CalendarCheck },
@@ -60,7 +60,7 @@ export const GAME_META = {
 // ---- the four families ------------------------------------------------------
 export const CATEGORIES = {
   word: {
-    name: 'Word games', accent: '#2563eb', border: 'rgba(37,99,235,0.32)', Icon: Type,
+    name: 'Word games', accent: '#0e1d40', border: 'rgba(14,29,64,0.32)', Icon: Type,
     leaves: [
       { key: 'crux', name: 'Crux', tag: 'A clueless crossword', href: '/crux' },
       { key: 'emcee', name: 'Emcee', tag: 'The daily mini crossword', href: '/emcee' },
@@ -239,7 +239,7 @@ export default function DailyEndCard({
         .dec-soon .dec-ln{color:${FADED};}
         .dec-badge{font-size:8px;font-weight:800;text-transform:uppercase;letter-spacing:.06em;border:1px dashed;border-radius:4px;padding:0 4px;}
         .dec-foot{text-align:center;margin-top:13px;}
-        .dec-foot a{font-family:${MONO};font-size:11px;letter-spacing:.06em;text-transform:uppercase;font-weight:500;color:#2563eb;text-decoration:none;border-bottom:1px solid rgba(37,99,235,0.5);padding-bottom:1px;}
+        .dec-foot a{font-family:${MONO};font-size:11px;letter-spacing:.06em;text-transform:uppercase;font-weight:500;color:#0e1d40;text-decoration:none;border-bottom:1px solid rgba(14,29,64,0.5);padding-bottom:1px;}
         @media(max-width:440px){.dec-grid{grid-template-columns:1fr;}}
       `}</style>
 

@@ -74,7 +74,7 @@ export function useChallengeRun(quizId) {
 }
 
 const FONT = "'Manrope', system-ui, -apple-system, sans-serif";
-const EMBER = '#2563eb';
+const EMBER = '#0e1d40';
 const ACC_BORDER = '#cddffb';
 
 // A layout-agnostic fixed bar (bottom-center) shown once the run's quiz has

@@ -28,7 +28,7 @@ const GREEN = '#10b981';
 const RED = '#c0392b';
 const HOVER = '#e8effb';
 const CTRL_INK = '#1c1e24';
-const CTRL_ACCENT = '#2563eb';
+const CTRL_ACCENT = '#0e1d40';
 
 // In-window size control. The map was capped at 680px wide and centered, which
 // renders small on a wide-but-short region (e.g. the no-outline lower-48). These

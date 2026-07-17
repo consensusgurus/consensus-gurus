@@ -15,7 +15,7 @@ import { createPortal } from 'react-dom';
 // stays put and keeps focus.
 
 const COLORS = {
-  cream: '#f7f8fa', paper: '#eceef1', ink: '#1c1e24', ember: '#2563eb',
+  cream: '#f7f8fa', paper: '#eceef1', ink: '#1c1e24', ember: '#0e1d40',
   rust: '#c0392b', forest: '#10b981', faded: '#6b7280',
 };
 const MONO = "'Manrope', system-ui, -apple-system, sans-serif";

@@ -11,7 +11,7 @@ import { SECTOR_META, BN_NEWS_RE as NEWS_RE, BN_EARN_RE as EARN_RE } from '@/lib
 // ─── palette / type (matches the Quizzes home) ──────────────────────────────
 const C = {
   bg: '#f7f8fa', surface: '#fff', ink: '#1c1e24', muted: '#6b7280', soft: '#9aa0ab',
-  line: 'rgba(20,22,28,0.09)', accent: '#2563eb', accsoft: '#e8effb', live: '#10b981',
+  line: 'rgba(20,22,28,0.09)', accent: '#0e1d40', accsoft: '#e8effb', live: '#10b981',
 };
 const FONT = "'Manrope', system-ui, -apple-system, sans-serif";
 
