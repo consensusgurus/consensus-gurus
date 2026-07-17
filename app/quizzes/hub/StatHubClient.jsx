@@ -2,7 +2,7 @@
 import React, { useState, useEffect, useMemo, useRef } from 'react';
 import Link from 'next/link';
 import {
-  ArrowLeft, BadgeCheck, User, ListChecks, Flame, FunctionSquare, Clock, Trophy, RefreshCw, Share2, Download, UserPlus, Play, X, Check, Star, Swords, ChevronDown, Crown, Target, ArrowUpRight,} from 'lucide-react';
+  ArrowLeft, BadgeCheck, User, ListChecks, Flame, FunctionSquare, Clock, Trophy, RefreshCw, Share2, Download, UserPlus, Play, X, Check, Star, Swords, ChevronDown, Crown, Target, ArrowUpRight, CalendarDays,} from 'lucide-react';
 import { QUIZZES, getQuiz } from '@/lib/quizzes';
 import { quizDept as deptOf, DEPT_COLOR, DEPT_LABEL, DEPT_NAV } from '@/lib/quiz-departments';
 import { CHALLENGES, getChallenge, DEFAULT_CHALLENGE_ID, challengeQuizIds, challengeColumns, dailyChallengeId, challengeMenu } from '@/lib/challenges';
@@ -805,11 +805,6 @@ export default function StatHubClient() {
           })()}
         </div>
 
-        {tab === 'player' && !viewing ? (
-          <div style={{ marginTop: 16, marginBottom: 30 }}>
-            <DailyCombinedLeaderboard compact light />
-          </div>
-        ) : null}
         {tab === 'player' && <PlayerPanel me={profile} scope={scope} cats={cats} byKey={byKey} totalQuizzes={catalog.length} board={board} myName={myName} myAnonKey={myAnonKey} titleById={titleById} pview={pview} setPview={setPview} viewKey={viewKey} onSelectPlayer={(k) => { const mine = (me && me.userKey && k === me.userKey) || (myAnonKey && k === myAnonKey); setViewKey(mine ? null : k); setPview(mine ? 'ranking' : 'category'); }} />}
         {tab === 'quizzes' && <QuizzesPanel me={profile} myProfile={me} scope={scope} byKey={byKey} catalog={catalog} stats={statsById} totals={totals} totalPlays={totalPlays} onSelectPlayer={(k) => { setViewKey(k); setPview('category'); setTab('player'); }} />}
         {tab === 'challenges' && <ChallengesPanel me={profile} />}
@@ -879,7 +874,7 @@ function PlayerPanel({ me, scope, cats, byKey, totalQuizzes, board, myName, myAn
 
   const toggle = (
     <div style={{ display: 'flex', gap: 8, width: '100%', flexWrap: 'wrap' }}>
-      {[['ranking', 'Ranking', Trophy], ['category', 'Category', ListChecks], ['rating', 'XP & Level', FunctionSquare], ['activity', 'Activity', Clock]].map(([v, lbl, Ic]) => (
+      {[['ranking', 'Ranking', Trophy], ['daily', 'Daily Games', CalendarDays], ['category', 'Category', ListChecks], ['rating', 'XP & Level', FunctionSquare], ['activity', 'Activity', Clock]].map(([v, lbl, Ic]) => (
         <button key={v} className={`pill${pview === v ? ' on' : ''}`} onClick={() => setPview(v)}><Ic size={14} /> {lbl}</button>
       ))}
     </div>
@@ -892,6 +887,8 @@ function PlayerPanel({ me, scope, cats, byKey, totalQuizzes, board, myName, myAn
       </div>
       {pview === 'rating' ? (
         <XpPanel me={me} titleById={titleById} viewing={viewing} />
+      ) : pview === 'daily' ? (
+        <DailyGamesView onSelectPlayer={onSelectPlayer} />
       ) : pview === 'activity' ? (
         <ActivityFeed recent={found ? me.recent : []} titleById={titleById} viewing={viewing} />
       ) : pview === 'category' ? (
@@ -901,6 +898,174 @@ function PlayerPanel({ me, scope, cats, byKey, totalQuizzes, board, myName, myAn
         <UserBaseBody board={board} myName={myName} myAnonKey={myAnonKey} onSelectPlayer={onSelectPlayer} viewKey={viewKey} />
       </div>
       )}
+    </div>
+  );
+}
+
+// ─── Daily Games view ───────────────────────────────────────────────────────
+// Global (not player-scoped): the combined daily leaderboard, the day-by-day
+// champion history, and an all-time stat line for each daily game. Winner history
+// and per-game aggregates come from /api/quiz/daily-history; today's per-game
+// leaders come from /api/quiz/daily-combined (the same source the board uses).
+const DAILY_GAME_META = {
+  crux:   { name: 'Crux',   c: '#0e1d40', href: '/crux',   tag: 'Clueless crossword' },
+  emcee:  { name: 'Emcee',  c: '#c026d3', href: '/emcee',  tag: 'Mini crossword' },
+  garble: { name: 'Garble', c: '#8a6d1a', href: '/garble', tag: 'Untangle five words' },
+  links:  { name: 'Links',  c: '#166534', href: '/links',  tag: 'Four hidden threads' },
+  span:   { name: 'Span',   c: '#9d174d', href: '/span',   tag: 'Cross the map' },
+  dating: { name: 'Dating', c: '#6d28d9', href: '/dating', tag: 'History in order' },
+  tally:  { name: 'Tally',  c: '#15803d', href: '/tally',  tag: 'Balance the books' },
+  suds:   { name: 'Suds',   c: '#ea580c', href: '/suds',   tag: 'Daily sudoku' },
+  circa:  { name: 'Circa',  c: '#0e7490', href: '/circa',  tag: 'Guess the year' },
+  extra:  { name: 'Extra',  c: '#b91c1c', href: '/extra',  tag: 'Name the story' },
+  carve:  { name: 'Carve',  c: '#7c3aed', href: '/carve',  tag: 'Equal-sum blocks' },
+  stet:   { name: 'Stet',   c: '#0369a1', href: '/stet',   tag: 'Fix the wrong word' },
+  outwit: { name: 'Outwit', c: '#1f2937', href: '/outwit', tag: 'Beat the crowd' },
+};
+
+function fmtPts1(n) {
+  const v = Math.round(Number(n) * 10) / 10;
+  return Number.isInteger(v) ? String(v) : v.toFixed(1);
+}
+
+function DailyGamesView({ onSelectPlayer }) {
+  const [hist, setHist] = useState(null);   // /api/quiz/daily-history
+  const [today, setToday] = useState(null); // /api/quiz/daily-combined (today's per-game boards)
+  useEffect(() => {
+    let alive = true;
+    fetch('/api/quiz/daily-history')
+      .then((r) => r.json()).then((d) => { if (alive) setHist(d || {}); })
+      .catch(() => { if (alive) setHist({}); });
+    let anonId = null, email = null;
+    try { anonId = localStorage.getItem('sot_quiz_anon'); } catch (e) {}
+    try { const id = JSON.parse(localStorage.getItem('sot_quiz_identity') || 'null'); email = id && id.email; } catch (e) {}
+    const qs = new URLSearchParams();
+    if (anonId) qs.set('anonId', anonId);
+    if (email) qs.set('email', email);
+    fetch('/api/quiz/daily-combined?' + qs.toString())
+      .then((r) => r.json()).then((d) => { if (alive) setToday(d || {}); })
+      .catch(() => {});
+    return () => { alive = false; };
+  }, []);
+
+  const history = (hist && hist.history) || [];
+  const champions = (hist && hist.champions) || [];
+  const games = (hist && hist.games) || [];
+  const topChamp = champions[0] || null;
+  const todayGames = useMemo(() => {
+    const map = {};
+    for (const g of ((today && today.games) || [])) map[g.key] = g;
+    return map;
+  }, [today]);
+
+  const openPlayer = (key) => { if (key && onSelectPlayer) onSelectPlayer(key); };
+  const col = '68px 1fr 76px 60px 52px';
+  const sub = { fontSize: 10, fontWeight: 700, letterSpacing: '.06em', textTransform: 'uppercase', color: C.muted };
+  const nameBtn = (key, name, size) => (key
+    ? <button onClick={() => openPlayer(key)} style={{ border: 'none', background: 'transparent', padding: 0, font: 'inherit', fontFamily: FONT, fontWeight: 700, fontSize: size, color: C.accent, cursor: 'pointer', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', maxWidth: '100%' }}>{name}</button>
+    : <span style={{ fontWeight: 700, fontSize: size, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{name}</span>);
+
+  return (
+    <div>
+      {/* 1. The combined daily leaderboard (full board + per-game tabs). */}
+      <DailyCombinedLeaderboard light />
+
+      {/* 2. Day-by-day champion history. */}
+      <div className="card" style={{ padding: '16px 18px', marginTop: 16 }}>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 10, flexWrap: 'wrap', marginBottom: 12 }}>
+          <span style={{ display: 'inline-flex', alignItems: 'center', gap: 8, fontSize: 15, fontWeight: 800 }}><Crown size={17} style={{ color: '#e8b43a' }} /> Daily Champions</span>
+          {hist == null ? null : <span style={{ fontSize: 12, color: C.muted, fontWeight: 600 }}>{history.length} {history.length === 1 ? 'day' : 'days'} crowned</span>}
+        </div>
+        {topChamp && topChamp.wins > 1 ? (
+          <div style={{ display: 'flex', alignItems: 'center', gap: 11, background: '#fffdf5', border: '1.5px solid #f0d9a8', borderRadius: 12, padding: '11px 14px', marginBottom: 12 }}>
+            <span style={{ width: 34, height: 34, borderRadius: '50%', background: '#fbf2dc', color: '#a97b12', display: 'flex', alignItems: 'center', justifyContent: 'center', flex: 'none' }}><Crown size={17} /></span>
+            <span style={{ minWidth: 0 }}>
+              <span style={{ display: 'block', fontSize: 13, fontWeight: 800 }}><span style={{ color: '#a97b12' }}>Most crowns:</span> {nameBtn(topChamp.userKey, topChamp.username, 13)}</span>
+              <span style={{ display: 'block', fontSize: 12, color: C.muted, fontWeight: 600, marginTop: 1 }}>{topChamp.wins} daily wins across the last {history.length} days</span>
+            </span>
+          </div>
+        ) : null}
+        {hist == null ? (
+          <div style={{ color: C.soft, fontSize: 13 }}>Loading champion history…</div>
+        ) : history.length === 0 ? (
+          <div style={{ color: C.muted, fontSize: 13 }}>No completed days yet. The first champion is crowned once today wraps up.</div>
+        ) : (
+          <div>
+            <div style={{ display: 'grid', gridTemplateColumns: col, gap: 8, padding: '0 4px 8px', ...sub }}>
+              <span>Day</span><span>Champion</span><span style={{ textAlign: 'right' }}>Total</span><span style={{ textAlign: 'right' }}>Games</span><span style={{ textAlign: 'right' }}>Field</span>
+            </div>
+            {history.map((h, i) => (
+              <div key={h.date} style={{ display: 'grid', gridTemplateColumns: col, gap: 8, alignItems: 'center', padding: '9px 4px', borderTop: `1px solid ${C.line}` }}>
+                <span style={{ fontSize: 12.5, fontWeight: 700, color: C.ink }}>{h.label}</span>
+                <span style={{ minWidth: 0, display: 'flex', alignItems: 'center', gap: 7 }}>
+                  {i === 0 ? <Crown size={13} style={{ color: '#e8b43a', flex: 'none' }} /> : null}
+                  {nameBtn(h.winner.userKey, h.winner.username, 13.5)}
+                </span>
+                <span style={{ textAlign: 'right', fontSize: 13, fontWeight: 800, color: C.accent, fontVariantNumeric: 'tabular-nums' }}>{fmtPts1(h.winner.total)}<span style={{ fontSize: 10.5, fontWeight: 600, color: C.soft }}>/{h.maxTotal}</span></span>
+                <span style={{ textAlign: 'right', fontSize: 12.5, fontWeight: 600, color: C.muted, fontVariantNumeric: 'tabular-nums' }}>{h.winner.gamesPlayed}/{h.gameCount}</span>
+                <span style={{ textAlign: 'right', fontSize: 12.5, fontWeight: 600, color: C.muted, fontVariantNumeric: 'tabular-nums' }}>{h.field}</span>
+              </div>
+            ))}
+            <p style={{ fontSize: 11, color: C.soft, marginTop: 11, lineHeight: 1.5 }}>Each day{"'"}s champion is the #1 on that day{"'"}s combined board (best 5 of the day{"'"}s games). Today is still live, so it{"'"}s not crowned yet. Field is the registered players who played any daily game that day.</p>
+          </div>
+        )}
+      </div>
+
+      {/* 3. Individual game stats. */}
+      <div className="card" style={{ padding: '16px 18px', marginTop: 16 }}>
+        <div style={{ display: 'flex', alignItems: 'baseline', gap: 8, marginBottom: 12, flexWrap: 'wrap' }}>
+          <span style={{ fontSize: 15, fontWeight: 800 }}>Game Stats</span>
+          {games.length ? <span style={{ fontSize: 12, color: C.muted, fontWeight: 600 }}>all-time, across {games.length} daily games</span> : null}
+        </div>
+        {hist == null ? (
+          <div style={{ color: C.soft, fontSize: 13 }}>Loading game stats…</div>
+        ) : games.length === 0 ? (
+          <div style={{ color: C.muted, fontSize: 13 }}>No daily-game plays recorded yet.</div>
+        ) : (
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(215px,1fr))', gap: 10 }}>
+            {games.map((g) => {
+              const meta = DAILY_GAME_META[g.key] || { name: g.key, c: C.accent, href: `/${g.key}`, tag: '' };
+              const tg = todayGames[g.key];
+              const leader = tg && tg.board && tg.board[0];
+              const stat = (v, l, clr) => (
+                <span style={{ minWidth: 0 }}>
+                  <span style={{ display: 'block', fontSize: 18, fontWeight: 800, color: clr || C.ink, fontVariantNumeric: 'tabular-nums' }}>{v}</span>
+                  <span style={{ display: 'block', fontSize: 10, fontWeight: 700, letterSpacing: '.04em', textTransform: 'uppercase', color: C.muted }}>{l}</span>
+                </span>
+              );
+              return (
+                <div key={g.key} style={{ border: `1px solid ${C.line}`, borderRadius: 12, padding: '13px 14px', minWidth: 0 }}>
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8 }}>
+                    <a href={meta.href} style={{ display: 'flex', alignItems: 'center', gap: 8, textDecoration: 'none', minWidth: 0 }}>
+                      <span style={{ width: 9, height: 9, borderRadius: '50%', background: meta.c, flex: 'none' }} />
+                      <span style={{ fontSize: 14, fontWeight: 800, color: C.ink, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{meta.name}</span>
+                    </a>
+                    <span style={{ fontSize: 10.5, fontWeight: 700, color: C.soft, flex: 'none' }}>{g.days} {g.days === 1 ? 'day' : 'days'}</span>
+                  </div>
+                  <div style={{ display: 'flex', gap: 16, marginTop: 10 }}>
+                    {stat(g.plays.toLocaleString(), 'plays', C.accent)}
+                    {stat(g.players.toLocaleString(), 'players')}
+                    {stat(`${g.avgCompletionPct}%`, 'avg score')}
+                  </div>
+                  <div style={{ marginTop: 10, paddingTop: 9, borderTop: `1px solid ${C.line}`, fontSize: 11.5, color: C.muted, fontWeight: 600 }}>
+                    {leader ? (
+                      <span style={{ display: 'flex', alignItems: 'center', gap: 5, overflow: 'hidden' }}>
+                        <span style={{ color: '#e8b43a', flex: 'none', display: 'inline-flex' }}><Crown size={12} /></span>
+                        <span style={{ color: C.soft, flex: 'none' }}>Today:</span>
+                        {nameBtn(leader.userKey, leader.username, 11.5)}
+                      </span>
+                    ) : tg ? (
+                      <span>Today: {(tg.field || 0).toLocaleString()} on the board</span>
+                    ) : (
+                      <span>Not live today</span>
+                    )}
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        )}
+      </div>
     </div>
   );
 }
