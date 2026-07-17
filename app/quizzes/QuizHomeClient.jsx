@@ -14,7 +14,6 @@ import {
 import { QUIZZES } from '@/lib/quizzes';
 import { KIDS_GAMES } from '@/lib/kids';
 import DailyStrip from '../DailyStrip';
-import DailyCombinedLeaderboard from '../quiz/[id]/DailyCombinedLeaderboard';
 import { QUIZ_HEROES, qotdIdFor } from '@/lib/quiz-heroes';
 import {
   quizDept as deptOf, DEPT_COLOR, DEPT_LABEL, DEPT_NAV,
@@ -203,6 +202,9 @@ function relTime(iso) {
 }
 // Daily-board points: one decimal, drop a trailing .0 (mirrors DailyCombinedLeaderboard's fmtPts).
 function fmtDcPts(n) { const v = Math.round(Number(n) * 10) / 10; return Number.isInteger(v) ? String(v) : v.toFixed(1); }
+// Per-game display names + navy-legible accents for the daily-board mini cards (match DailyCombinedLeaderboard).
+const DC_NAMES = { crux: 'Crux', emcee: 'Emcee', garble: 'Garble', links: 'Links', span: 'Span', dating: 'Dating', tally: 'Tally', suds: 'Suds', circa: 'Circa', extra: 'Extra', carve: 'Carve' };
+const DC_ACCENTS = { crux: '#5b9bff', emcee: '#e879f9', garble: '#f0c95a', links: '#4ca878', span: '#e06aa0', dating: '#a483f0', tally: '#4cb377', suds: '#f0894c', circa: '#38b6cf', extra: '#e06a6a', carve: '#a483f0' };
 function getAnonId() {
   if (typeof window === 'undefined') return null;
   try { return localStorage.getItem('sot_quiz_anon'); } catch { return null; }
@@ -1121,30 +1123,47 @@ export default function QuizHomeClient() {
     .qzh .th-rail{flex:0 0 188px;}
     .qzh .th-r2{display:grid;grid-template-columns:minmax(0,0.95fr) minmax(0,0.95fr) minmax(0,1fr) minmax(0,1fr);gap:12px;align-items:stretch;}
     .qzh .th-r2 .th-slot-hold{min-height:215px;}
-    /* Daily leaderboard slip: a small gold tab tucked under the daily strip that
-       expands the full daily-combined board (Option A). */
+    /* Daily leaderboard slip: a solid navy tab hanging off the bottom of the daily
+       strip (matches the strip's own #0e1d40 so it reads as one piece) that expands
+       the full daily board (Option A). */
     .qzh .dboard-slipwrap{display:flex;justify-content:center;margin-top:-14px;margin-bottom:14px;}
-    .qzh .dboard-slip{display:inline-flex;align-items:center;gap:7px;padding:5px 15px 6px;background:linear-gradient(180deg,rgba(232,180,58,0.16),rgba(232,180,58,0.06));border:1px solid rgba(232,180,58,0.32);border-top:none;border-radius:0 0 11px 11px;color:#f5d878;font-family:inherit;font-size:11px;font-weight:800;letter-spacing:.04em;cursor:pointer;transition:background .15s;}
-    .qzh .dboard-slip:hover{background:linear-gradient(180deg,rgba(232,180,58,0.24),rgba(232,180,58,0.1));}
-    .qzh .dboard-slip-lead{color:#93a7cc;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:180px;}
-    .qzh .dboard-panel{margin-bottom:14px;}
-    /* Today's Daily Champions tile: sits in the former Featured Sports slot (Option B). */
-    .qzh .champtile{position:relative;border:1px solid rgba(232,180,58,0.28);border-radius:14px;min-height:215px;background:linear-gradient(165deg,#16294f,#0c1a34);box-shadow:0 10px 30px rgba(10,18,38,.25);padding:14px 15px 13px;display:flex;flex-direction:column;}
-    .qzh .champtile-head{display:flex;align-items:baseline;justify-content:space-between;gap:8px;margin-bottom:10px;}
-    .qzh .champtile-title{font-size:12.5px;font-weight:800;color:#f5d878;letter-spacing:.01em;}
-    .qzh .champtile-sub{font-size:10px;font-weight:600;color:#93a7cc;flex:none;}
-    .qzh .champtile-rows{display:flex;flex-direction:column;gap:5px;}
-    .qzh .champtile-row{display:grid;grid-template-columns:20px 1fr auto;gap:8px;align-items:center;padding:7px 10px;border-radius:10px;background:rgba(232,180,58,0.08);border:1px solid rgba(232,180,58,0.22);text-decoration:none;}
-    .qzh .champtile-row.me{background:rgba(232,180,58,0.16);border-color:rgba(232,180,58,0.55);}
-    .qzh .champtile-rk{font-size:14px;font-weight:800;color:#f5d878;font-variant-numeric:tabular-nums;}
-    .qzh .champtile-nm{font-size:13.5px;font-weight:500;color:#eaf0fb;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
-    .qzh .champtile-nm b{color:#e8b43a;font-weight:700;}
-    .qzh .champtile-tt{font-size:13.5px;font-weight:800;color:#f5d878;text-align:right;font-variant-numeric:tabular-nums;}
-    .qzh .champtile-tt s{font-size:10px;font-weight:600;color:#6a80a8;text-decoration:none;}
-    .qzh .champtile-empty{font-size:12px;color:#93a7cc;font-weight:600;padding:14px 4px;text-align:center;}
-    .qzh .champtile-skel{height:34px;border-radius:10px;background:linear-gradient(90deg,rgba(255,255,255,0.03),rgba(255,255,255,0.08),rgba(255,255,255,0.03));border:1px solid rgba(255,255,255,0.09);}
-    .qzh .champtile-nudge{margin-top:auto;display:block;background:rgba(232,180,58,0.12);border:1px solid rgba(232,180,58,0.4);border-radius:10px;padding:8px 10px;font-size:11.5px;font-weight:700;color:#f5d878;line-height:1.4;text-decoration:none;}
-    .qzh .champtile-nudge span{color:#93a7cc;font-weight:600;}
+    .qzh .dboard-slip{display:inline-flex;align-items:center;gap:8px;padding:6px 18px 7px;background:#0e1d40;border:1px solid rgba(232,180,58,0.55);border-top:none;border-radius:0 0 12px 12px;color:#f5d878;font-family:inherit;font-size:11.5px;font-weight:800;letter-spacing:.05em;text-transform:uppercase;cursor:pointer;transition:background .15s,box-shadow .15s;box-shadow:0 4px 12px rgba(10,18,38,0.22);}
+    .qzh .dboard-slip:hover{background:#132a5c;}
+    .qzh .dboard-slip-lead{color:#9fb0d4;font-weight:600;text-transform:none;letter-spacing:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:180px;}
+    /* Option A panel: navy/gold card with overall top-5 (left) + per-game top-3 minis (right). */
+    .qzh .dboard-panel{margin-bottom:14px;background:linear-gradient(165deg,#16294f,#0c1a34);border:1px solid rgba(232,180,58,0.28);border-radius:16px;padding:18px;box-shadow:0 10px 30px rgba(10,18,38,.25);}
+    .qzh .dboard-loading{font-size:13px;color:#93a7cc;font-weight:600;padding:6px 2px;}
+    .qzh .bp-head{display:flex;align-items:baseline;justify-content:space-between;margin-bottom:14px;gap:10px;flex-wrap:wrap;}
+    .qzh .bp-l{font-size:11px;letter-spacing:.16em;text-transform:uppercase;color:#e8b43a;font-weight:800;}
+    .qzh .bp-r{font-size:11px;color:#93a7cc;font-weight:600;}
+    .qzh .bp-grid{display:grid;grid-template-columns:340px 1fr;gap:20px;align-items:start;}
+    @media(max-width:900px){.qzh .bp-grid{grid-template-columns:1fr;}}
+    .qzh .bp-cols{display:grid;grid-template-columns:26px 1fr 52px 62px;gap:8px;padding:0 12px 7px;font-size:9.5px;letter-spacing:.12em;text-transform:uppercase;color:#93a7cc;}
+    .qzh .bp-row{display:grid;grid-template-columns:26px 1fr 52px 62px;gap:8px;align-items:center;padding:9px 12px;margin-bottom:6px;border-radius:11px;background:rgba(232,180,58,.08);border:1px solid rgba(232,180,58,.22);}
+    .qzh .bp-row.plain{background:rgba(255,255,255,.045);border-color:rgba(255,255,255,.09);}
+    .qzh .bp-row.me{background:rgba(232,180,58,.16);border-color:rgba(232,180,58,.55);}
+    .qzh .bp-rk{font-weight:800;font-size:16px;color:#f5d878;font-variant-numeric:tabular-nums;}
+    .qzh .bp-row.plain .bp-rk{color:#93a7cc;}
+    .qzh .bp-pn{font-size:14.5px;font-weight:500;color:#eaf0fb;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+    .qzh .bp-pn b{color:#e8b43a;font-weight:700;}
+    .qzh .bp-g{font-size:12.5px;color:#93a7cc;text-align:right;font-variant-numeric:tabular-nums;font-weight:600;}
+    .qzh .bp-tt{font-size:14px;font-weight:800;color:#f5d878;text-align:right;font-variant-numeric:tabular-nums;}
+    .qzh .bp-tt s{font-size:10.5px;font-weight:600;color:#6a80a8;text-decoration:none;}
+    .qzh .bp-empty{font-size:13px;color:#93a7cc;font-weight:600;padding:12px;}
+    .qzh .bp-link{display:inline-block;margin-top:8px;font-size:12px;font-weight:800;color:#f5d878;text-decoration:none;}
+    .qzh .bp-link:hover{color:#ffe08a;}
+    .qzh .bp-minis{display:grid;grid-template-columns:repeat(5,1fr);gap:10px;}
+    @media(max-width:1200px){.qzh .bp-minis{grid-template-columns:repeat(4,1fr);}}
+    @media(max-width:900px){.qzh .bp-minis{grid-template-columns:repeat(2,1fr);}}
+    .qzh .bp-mini{background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.09);border-radius:12px;padding:11px 12px;}
+    .qzh .bp-gt{font-size:11.5px;font-weight:800;margin-bottom:8px;display:flex;justify-content:space-between;align-items:baseline;text-decoration:none;}
+    .qzh .bp-gt span{font-size:9.5px;color:#6a80a8;font-weight:600;}
+    .qzh .bp-mr{display:flex;gap:7px;align-items:baseline;font-size:12px;padding:3px 0;}
+    .qzh .bp-k{width:12px;font-weight:800;color:#f5d878;font-variant-numeric:tabular-nums;flex:0 0 auto;}
+    .qzh .bp-nm2{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:#eaf0fb;font-weight:500;}
+    .qzh .bp-nm2 b{color:#e8b43a;font-weight:700;}
+    .qzh .bp-p{color:#93a7cc;font-variant-numeric:tabular-nums;font-weight:600;font-size:11px;}
+    .qzh .bp-none{color:#6a80a8;font-size:11px;padding:3px 0;}
     @media(max-width:820px){.qzh .thub{flex-direction:column;}.qzh .th-rail{align-self:stretch;}.qzh .th-r2{grid-template-columns:1fr 1fr;}.qzh .th-r2 .dtile{grid-column:1 / -1;}.qzh .th-r2 .dueltile{grid-column:1 / -1;}}
     @media(max-width:560px){.qzh .th-r2{grid-template-columns:minmax(0,1fr);}.qzh .th-rail{display:none !important;}.qzh .th-heroes .ntile{min-height:220px;background-position:center 12%;}.qzh .th-r2 .ttile{order:1;min-height:220px;}.qzh .th-r2 .stile{order:2;min-height:220px;}.qzh .th-r2 .dtile{order:3;}.qzh .th-r2 .dueltile{order:4;}.qzh .th-r2 .th-slot-hold{display:none;}.qzh .duelbtn{display:none !important;}/* Stacked full-width hero tiles: Newest matches Trending typography on mobile (needs .th-heroes for specificity over the base rules below) */.qzh .th-heroes .ntile-t{font-size:20px;}.qzh .th-heroes .ntile-tag{font-size:10px;padding:4px 10px;top:12px;left:12px;}.qzh .th-heroes .ntile-ov{padding:18px 16px 15px;}}
     /* Narrow desktop / tablet (561-1024px): mirror the mobile combine - pair the promo tiles two-up (QOTD full row, Newest+Geo, Daily+Trending, Sports+Duel) and drop the Category Mastery rail. minmax(0,1fr) keeps the Newest/Geo hero images clipped inside their tiles (bare 1fr let them bleed). Added 2026-07-15 per Marshall. */
@@ -1462,7 +1481,58 @@ export default function QuizHomeClient() {
         </div>
         {boardOpen ? (
           <div className="dboard-panel">
-            <DailyCombinedLeaderboard todayKey={null} identity={me} />
+            {!dailyBoard ? (
+              <div className="dboard-loading">Loading today’s board…</div>
+            ) : (() => {
+              const ov = Array.isArray(dailyBoard.overall) ? dailyBoard.overall : [];
+              const games = Array.isArray(dailyBoard.games) ? dailyBoard.games : [];
+              const mx = dailyBoard.maxTotal || 75;
+              const gc = dailyBoard.gameCount || 10;
+              const bestN = dailyBoard.bestN != null ? dailyBoard.bestN : Math.min(5, gc);
+              const meKey = dailyBoard.me ? dailyBoard.me.userKey : null;
+              const rows = ov.slice(0, 5);
+              const meShown = meKey && rows.some((r) => r.userKey === meKey);
+              return (
+                <>
+                  <div className="bp-head">
+                    <span className="bp-l">Daily Leaderboard</span>
+                    <span className="bp-r">Best {bestN} of {gc} · {mx} pts max · resets at midnight</span>
+                  </div>
+                  <div className="bp-grid">
+                    <div>
+                      <div className="bp-cols"><span>#</span><span>Player</span><span style={{ textAlign: 'right' }}>Games</span><span style={{ textAlign: 'right' }}>Total</span></div>
+                      {rows.length ? rows.map((r) => { const mine = meKey && r.userKey === meKey; return (
+                        <div key={r.userKey} className={`bp-row${r.rank <= 3 ? '' : ' plain'}${mine ? ' me' : ''}`}>
+                          <span className="bp-rk">{r.rank}</span>
+                          <span className="bp-pn">{r.username || 'Player'}{mine ? <b> (you)</b> : ''}</span>
+                          <span className="bp-g">{r.gamesPlayed}/{gc}</span>
+                          <span className="bp-tt">{fmtDcPts(r.total)}<s>/{mx}</s></span>
+                        </div>
+                      ); }) : <div className="bp-empty">No daily scores yet today. Be the first.</div>}
+                      {meKey && dailyBoard.me && !meShown ? (
+                        <div className="bp-row me" style={{ marginTop: 8 }}>
+                          <span className="bp-rk">{dailyBoard.me.rank}</span>
+                          <span className="bp-pn">{dailyBoard.me.username || 'You'} <b>(you)</b></span>
+                          <span className="bp-g">{dailyBoard.me.gamesPlayed}/{gc}</span>
+                          <span className="bp-tt">{fmtDcPts(dailyBoard.me.total)}<s>/{mx}</s></span>
+                        </div>
+                      ) : null}
+                      <Link href="/daily" className="bp-link">Full standings &amp; all {gc} game boards →</Link>
+                    </div>
+                    <div className="bp-minis">
+                      {games.map((g) => { const t3 = (g.board || []).slice(0, 3); const acc = DC_ACCENTS[g.key] || '#f5d878'; return (
+                        <div key={g.key} className="bp-mini">
+                          <a href={g.href || `/${g.key}`} className="bp-gt" style={{ color: acc }}>{DC_NAMES[g.key] || g.key} →<span>top 3</span></a>
+                          {t3.length ? t3.map((r, i) => { const mine = meKey && r.userKey === meKey; return (
+                            <div key={r.userKey} className="bp-mr"><span className="bp-k">{i + 1}</span><span className="bp-nm2">{r.username || 'Player'}{mine ? <b> (you)</b> : ''}</span><span className="bp-p">{fmtDcPts(r.points)}</span></div>
+                          ); }) : <div className="bp-none">No scores yet</div>}
+                        </div>
+                      ); })}
+                    </div>
+                  </div>
+                </>
+              );
+            })()}
           </div>
         ) : null}
 
@@ -1558,52 +1628,15 @@ export default function QuizHomeClient() {
               </div>
             ) : <div className="th-only-mob" />}
 
-            {/* Option B: Today's Daily Champions (replaces the former Featured Sports tile) */}
-            {!dailyBoard ? (
-              <div className="champtile stile">
-                <div className="champtile-head">
-                  <span className="champtile-title"><Trophy size={13} style={{ color: '#e8b43a', flex: 'none', verticalAlign: -2 }} /> Today’s Daily Champions</span>
-                  <span className="champtile-sub">Best 5 of 10</span>
-                </div>
-                <div className="champtile-rows"><div className="champtile-skel" /><div className="champtile-skel" /><div className="champtile-skel" /></div>
+            {sportsPick ? (
+            <Link href={`/quiz/${sportsPick.id}`} className="hstile stile" style={sptHero ? { backgroundImage: `url("${sptHero}")`, backgroundPosition: sptPos || 'center' } : { background: C.accent }}>
+              <span className="ttile-tag" style={{ color: '#b45309', whiteSpace: 'nowrap' }}><Trophy size={11} style={{ verticalAlign: -1 }} /> FEATURED SPORTS</span>
+              <div className="ttile-ov">
+                <div className="ttile-t">{stripVerb(sportsPick.title)}</div>
+                <div className="ttile-foot" style={{ flexWrap: 'nowrap' }}><span className="ttile-p" style={{ flex: 'none' }}>Play <ArrowRight size={13} style={{ verticalAlign: -1 }} /></span>{leader(sportsPick.id) ? <span className="ttile-plays hpill" style={{ display: 'inline-flex', alignItems: 'center', gap: 4, minWidth: 0 }}><Crown size={12} style={{ color: '#e8b43a', flex: 'none' }} /><span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{leader(sportsPick.id)}</span></span> : null}</div>
               </div>
-            ) : (() => {
-              const ov = Array.isArray(dailyBoard.overall) ? dailyBoard.overall : [];
-              const mx = dailyBoard.maxTotal || 75;
-              const gc = dailyBoard.gameCount || 10;
-              const meRow = dailyBoard.me || null;
-              const top = ov.slice(0, 3);
-              const gap = (meRow && ov[0]) ? Math.round((ov[0].total - meRow.total) * 10) / 10 : null;
-              const left = meRow ? Math.max(0, gc - (meRow.gamesPlayed || 0)) : null;
-              return (
-                <div className="champtile stile">
-                  <div className="champtile-head">
-                    <span className="champtile-title"><Trophy size={13} style={{ color: '#e8b43a', flex: 'none', verticalAlign: -2 }} /> Today’s Daily Champions</span>
-                    <span className="champtile-sub">Best {gc > 1 ? Math.min(5, gc) : 5} of {gc}</span>
-                  </div>
-                  {top.length ? (
-                    <div className="champtile-rows">
-                      {top.map((r) => { const mine = meRow && r.userKey === meRow.userKey; return (
-                        <a key={r.userKey} href="/daily" className={`champtile-row${mine ? ' me' : ''}`}>
-                          <span className="champtile-rk">{r.rank}</span>
-                          <span className="champtile-nm">{r.username || 'Player'}{mine ? <b> (you)</b> : ''}</span>
-                          <span className="champtile-tt">{fmtDcPts(r.total)}<s>/{mx}</s></span>
-                        </a>
-                      ); })}
-                    </div>
-                  ) : (
-                    <div className="champtile-empty">No daily scores yet today. Be the first.</div>
-                  )}
-                  {meRow && gap != null && gap > 0 ? (
-                    <Link href="/daily" className="champtile-nudge">You’re {fmtDcPts(gap)} pt{gap === 1 ? '' : 's'} off the lead <span>· {left} game{left === 1 ? '' : 's'} left · play one to climb →</span></Link>
-                  ) : meRow && gap === 0 ? (
-                    <Link href="/daily" className="champtile-nudge">You’re leading today’s daily board <span>· keep it up →</span></Link>
-                  ) : (
-                    <Link href="/daily" className="champtile-nudge">See the full daily leaderboard <span>→</span></Link>
-                  )}
-                </div>
-              );
-            })()}
+            </Link>
+          ) : <div className="th-slot-hold" />}
 
             {trending ? (() => { const tc = byKey[trending.dept] || {}; const tPos = tHeroPos; return (
             <Link href={`/quiz/${trending.id}`} className="ttile" style={tHero ? { backgroundImage: `url("${tHero}")`, backgroundPosition: tPos || 'center' } : { background: tc.c || C.accent }}>
