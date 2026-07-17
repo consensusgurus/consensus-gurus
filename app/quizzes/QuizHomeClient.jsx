@@ -201,11 +201,6 @@ function relTime(iso) {
   if (h < 24) return `${h}h`;
   return `${Math.round(h / 24)}d`;
 }
-// Daily-board points: one decimal, drop a trailing .0 (mirrors DailyCombinedLeaderboard's fmtPts).
-function fmtDcPts(n) { const v = Math.round(Number(n) * 10) / 10; return Number.isInteger(v) ? String(v) : v.toFixed(1); }
-// Per-game display names + navy-legible accents for the daily-board mini cards (match DailyCombinedLeaderboard).
-const DC_NAMES = { crux: 'Crux', emcee: 'Emcee', garble: 'Garble', links: 'Links', span: 'Span', dating: 'Dating', tally: 'Tally', suds: 'Suds', circa: 'Circa', extra: 'Extra', carve: 'Carve' };
-const DC_ACCENTS = { crux: '#5b9bff', emcee: '#e879f9', garble: '#f0c95a', links: '#4ca878', span: '#e06aa0', dating: '#a483f0', tally: '#4cb377', suds: '#f0894c', circa: '#38b6cf', extra: '#e06a6a', carve: '#a483f0' };
 function getAnonId() {
   if (typeof window === 'undefined') return null;
   try { return localStorage.getItem('sot_quiz_anon'); } catch { return null; }
@@ -350,8 +345,7 @@ export default function QuizHomeClient() {
   const [signupOpen, setSignupOpen] = useState(false);
   const [duels, setDuels] = useState([]); // last few completed duels, for the header ticker
   const [dailyLead, setDailyLead] = useState(null); // daily-board leader for the header ticker
-  const [dailyBoard, setDailyBoard] = useState(null); // full daily-combined payload (drives the Champions tile)
-  const [boardOpen, setBoardOpen] = useState(false); // the daily-leaderboard slip under the strip
+  const [dailyBoard, setDailyBoard] = useState(null); // full daily-combined payload (passed to DailyStrip's leaderboard)
   const [statsOpen, setStatsOpen] = useState(false);
   const [dailyLb, setDailyLb] = useState(null); // today's daily-challenge standings (registered players)
   const [chRun, setChRun] = useState(null); // local run-state for today's daily challenge (completion ticks)
@@ -1124,58 +1118,6 @@ export default function QuizHomeClient() {
     .qzh .th-rail{flex:0 0 188px;}
     .qzh .th-r2{display:grid;grid-template-columns:minmax(0,0.95fr) minmax(0,0.95fr) minmax(0,1fr) minmax(0,1fr);gap:12px;align-items:stretch;}
     .qzh .th-r2 .th-slot-hold{min-height:215px;}
-    /* Daily leaderboard bar: a full-width navy row under the strip (matches its
-       #0e1d40) showing each daily game's leader; click to expand the board (Option A). */
-    .qzh .dboard-bar{display:flex;align-items:stretch;background:#0e1d40;border:1px solid rgba(232,180,58,0.42);border-radius:14px;overflow:hidden;cursor:pointer;margin-bottom:14px;transition:border-color .15s;}
-    .qzh .dboard-bar:hover{border-color:rgba(232,180,58,0.75);}
-    /* When open, the bar + panel merge into ONE large pill (square the seam, drop the divider). */
-    .qzh .dboard-bar.open{border-radius:14px 14px 0 0;border-bottom:none;margin-bottom:0;}
-    .qzh .dboard-cap{flex:0 0 auto;display:flex;flex-direction:column;justify-content:center;gap:3px;padding:10px 15px;background:#0b1733;border-right:1px solid rgba(255,255,255,0.07);min-width:126px;}
-    .qzh .dboard-cap .lab{font-size:9px;font-weight:800;letter-spacing:.14em;text-transform:uppercase;color:#f8b84a;}
-    .qzh .dboard-cap .cty{font-size:14px;font-weight:800;color:#fff;line-height:1;display:flex;align-items:center;gap:6px;}
-    .qzh .dboard-cells{display:flex;flex:1 1 auto;min-width:0;}
-    .qzh .dboard-lc{flex:1 1 0;min-width:0;display:flex;flex-direction:column;gap:5px;justify-content:center;padding:9px 11px;border-left:1px solid rgba(255,255,255,0.055);}
-    .qzh .dboard-lc:first-child{border-left:none;}
-    .qzh .dlc-game{font-size:9.5px;font-weight:800;letter-spacing:.04em;text-transform:uppercase;color:#8fa3cf;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
-    .qzh .dlc-lead{font-size:12px;font-weight:700;color:#eaf0fb;display:flex;align-items:center;gap:4px;min-width:0;}
-    .qzh .dlc-lead svg{color:#e8b43a;flex:none;}
-    .qzh .dlc-lead span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
-    .qzh .dlc-none{color:#6a80a8;font-weight:600;}
-    @media(max-width:820px){.qzh .dboard-bar{overflow-x:auto;scrollbar-width:thin;scrollbar-color:rgba(159,176,212,0.45) #0b1733;}.qzh .dboard-cap{position:sticky;left:0;z-index:1;min-width:108px;}.qzh .dboard-lc{min-width:98px;}}
-    /* Option A panel: attaches flush under the bar as one pill; overall top-5 (left) + per-game top-3 minis (right). */
-    .qzh .dboard-panel{margin-bottom:14px;background:linear-gradient(165deg,#16294f,#0c1a34);border:1px solid rgba(232,180,58,0.42);border-top:none;border-radius:0 0 14px 14px;padding:18px;box-shadow:0 14px 30px rgba(10,18,38,.28);}
-    .qzh .dboard-loading{font-size:13px;color:#93a7cc;font-weight:600;padding:6px 2px;}
-    .qzh .bp-head{display:flex;align-items:baseline;justify-content:space-between;margin-bottom:14px;gap:10px;flex-wrap:wrap;}
-    .qzh .bp-l{font-size:11px;letter-spacing:.16em;text-transform:uppercase;color:#e8b43a;font-weight:800;}
-    .qzh .bp-r{font-size:11px;color:#93a7cc;font-weight:600;}
-    .qzh .bp-grid{display:grid;grid-template-columns:340px 1fr;gap:20px;align-items:start;}
-    @media(max-width:900px){.qzh .bp-grid{grid-template-columns:1fr;}}
-    .qzh .bp-cols{display:grid;grid-template-columns:26px 1fr 52px 62px;gap:8px;padding:0 12px 7px;font-size:9.5px;letter-spacing:.12em;text-transform:uppercase;color:#93a7cc;}
-    .qzh .bp-row{display:grid;grid-template-columns:26px 1fr 52px 62px;gap:8px;align-items:center;padding:9px 12px;margin-bottom:6px;border-radius:11px;background:rgba(232,180,58,.08);border:1px solid rgba(232,180,58,.22);}
-    .qzh .bp-row.plain{background:rgba(255,255,255,.045);border-color:rgba(255,255,255,.09);}
-    .qzh .bp-row.me{background:rgba(232,180,58,.16);border-color:rgba(232,180,58,.55);}
-    .qzh .bp-rk{font-weight:800;font-size:16px;color:#f5d878;font-variant-numeric:tabular-nums;}
-    .qzh .bp-row.plain .bp-rk{color:#93a7cc;}
-    .qzh .bp-pn{font-size:14.5px;font-weight:500;color:#eaf0fb;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
-    .qzh .bp-pn b{color:#e8b43a;font-weight:700;}
-    .qzh .bp-g{font-size:12.5px;color:#93a7cc;text-align:right;font-variant-numeric:tabular-nums;font-weight:600;}
-    .qzh .bp-tt{font-size:14px;font-weight:800;color:#f5d878;text-align:right;font-variant-numeric:tabular-nums;}
-    .qzh .bp-tt s{font-size:10.5px;font-weight:600;color:#6a80a8;text-decoration:none;}
-    .qzh .bp-empty{font-size:13px;color:#93a7cc;font-weight:600;padding:12px;}
-    .qzh .bp-link{display:inline-block;margin-top:8px;font-size:12px;font-weight:800;color:#f5d878;text-decoration:none;}
-    .qzh .bp-link:hover{color:#ffe08a;}
-    .qzh .bp-minis{display:grid;grid-template-columns:repeat(5,1fr);gap:10px;}
-    @media(max-width:1200px){.qzh .bp-minis{grid-template-columns:repeat(4,1fr);}}
-    @media(max-width:900px){.qzh .bp-minis{grid-template-columns:repeat(2,1fr);}}
-    .qzh .bp-mini{background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.09);border-radius:12px;padding:11px 12px;}
-    .qzh .bp-gt{font-size:11.5px;font-weight:800;margin-bottom:8px;display:flex;justify-content:space-between;align-items:baseline;text-decoration:none;}
-    .qzh .bp-gt span{font-size:9.5px;color:#6a80a8;font-weight:600;}
-    .qzh .bp-mr{display:flex;gap:7px;align-items:baseline;font-size:12px;padding:3px 0;}
-    .qzh .bp-k{width:12px;font-weight:800;color:#f5d878;font-variant-numeric:tabular-nums;flex:0 0 auto;}
-    .qzh .bp-nm2{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:#eaf0fb;font-weight:500;}
-    .qzh .bp-nm2 b{color:#e8b43a;font-weight:700;}
-    .qzh .bp-p{color:#93a7cc;font-variant-numeric:tabular-nums;font-weight:600;font-size:11px;}
-    .qzh .bp-none{color:#6a80a8;font-size:11px;padding:3px 0;}
     @media(max-width:820px){.qzh .thub{flex-direction:column;}.qzh .th-rail{align-self:stretch;}.qzh .th-r2{grid-template-columns:1fr 1fr;}.qzh .th-r2 .dtile{grid-column:1 / -1;}.qzh .th-r2 .dueltile{grid-column:1 / -1;}}
     @media(max-width:560px){.qzh .th-r2{grid-template-columns:minmax(0,1fr);}.qzh .th-rail{display:none !important;}.qzh .th-heroes .ntile{min-height:220px;background-position:center 12%;}.qzh .th-r2 .ttile{order:1;min-height:220px;}.qzh .th-r2 .stile{order:2;min-height:220px;}.qzh .th-r2 .dtile{order:3;}.qzh .th-r2 .dueltile{order:4;}.qzh .th-r2 .th-slot-hold{display:none;}.qzh .duelbtn{display:none !important;}/* Stacked full-width hero tiles: Newest matches Trending typography on mobile (needs .th-heroes for specificity over the base rules below) */.qzh .th-heroes .ntile-t{font-size:20px;}.qzh .th-heroes .ntile-tag{font-size:10px;padding:4px 10px;top:12px;left:12px;}.qzh .th-heroes .ntile-ov{padding:18px 16px 15px;}}
     /* Narrow desktop / tablet (561-1024px): mirror the mobile combine - pair the promo tiles two-up (QOTD full row, Newest+Geo, Daily+Trending, Sports+Duel) and drop the Category Mastery rail. minmax(0,1fr) keeps the Newest/Geo hero images clipped inside their tiles (bare 1fr let them bleed). Added 2026-07-15 per Marshall. */
@@ -1479,85 +1421,7 @@ export default function QuizHomeClient() {
 
         {/* Daily games row: one button per daily. Art lives in /public/games;
             each button is ~half the Newest tile's height. */}
-        <DailyStrip />
-
-        {/* Option A: a full-width navy bar under the daily strip showing each daily
-            game's current leader (crown + name) in a uniform row. Click to expand
-            the full daily board (overall top-5 + per-game top-3s). */}
-        <div className={`dboard-bar${boardOpen ? ' open' : ''}`} role="button" tabIndex={0} aria-expanded={boardOpen} onClick={() => setBoardOpen((v) => !v)} onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); setBoardOpen((v) => !v); } }}>
-          <div className="dboard-cap">
-            <span className="lab">Daily</span>
-            <span className="cty"><Trophy size={13} style={{ color: '#e8b43a', flex: 'none' }} /> Leaders <ChevronDown size={14} strokeWidth={2.6} style={{ transition: 'transform .2s', transform: boardOpen ? 'rotate(180deg)' : 'none', color: '#e8b43a', flex: 'none' }} /></span>
-          </div>
-          <div className="dboard-cells">
-            {dailyBoard && Array.isArray(dailyBoard.games) && dailyBoard.games.length ? (
-              dailyBoard.games.map((g) => { const lead = (g.board && g.board[0]) ? g.board[0].username : null; return (
-                <div key={g.key} className="dboard-lc">
-                  <span className="dlc-game">{DC_NAMES[g.key] || g.key}</span>
-                  <span className="dlc-lead">{lead ? <><Crown size={11} /><span>{lead}</span></> : <span className="dlc-none">—</span>}</span>
-                </div>
-              ); })
-            ) : (
-              <div className="dboard-lc" style={{ flex: 1 }}><span className="dlc-game">Today’s standings</span><span className="dlc-lead dlc-none">Tap to open the daily leaderboard</span></div>
-            )}
-          </div>
-        </div>
-        {boardOpen ? (
-          <div className="dboard-panel">
-            {!dailyBoard ? (
-              <div className="dboard-loading">Loading today’s board…</div>
-            ) : (() => {
-              const ov = Array.isArray(dailyBoard.overall) ? dailyBoard.overall : [];
-              const games = Array.isArray(dailyBoard.games) ? dailyBoard.games : [];
-              const mx = dailyBoard.maxTotal || 75;
-              const gc = dailyBoard.gameCount || 10;
-              const bestN = dailyBoard.bestN != null ? dailyBoard.bestN : Math.min(5, gc);
-              const meKey = dailyBoard.me ? dailyBoard.me.userKey : null;
-              const rows = ov.slice(0, 5);
-              const meShown = meKey && rows.some((r) => r.userKey === meKey);
-              return (
-                <>
-                  <div className="bp-head">
-                    <span className="bp-l">Daily Leaderboard</span>
-                    <span className="bp-r">Best {bestN} of {gc} · {mx} pts max · resets at midnight</span>
-                  </div>
-                  <div className="bp-grid">
-                    <div>
-                      <div className="bp-cols"><span>#</span><span>Player</span><span style={{ textAlign: 'right' }}>Games</span><span style={{ textAlign: 'right' }}>Total</span></div>
-                      {rows.length ? rows.map((r) => { const mine = meKey && r.userKey === meKey; return (
-                        <div key={r.userKey} className={`bp-row${r.rank <= 3 ? '' : ' plain'}${mine ? ' me' : ''}`}>
-                          <span className="bp-rk">{r.rank}</span>
-                          <span className="bp-pn">{r.username || 'Player'}{mine ? <b> (you)</b> : ''}</span>
-                          <span className="bp-g">{r.gamesPlayed}/{gc}</span>
-                          <span className="bp-tt">{fmtDcPts(r.total)}<s>/{mx}</s></span>
-                        </div>
-                      ); }) : <div className="bp-empty">No daily scores yet today. Be the first.</div>}
-                      {meKey && dailyBoard.me && !meShown ? (
-                        <div className="bp-row me" style={{ marginTop: 8 }}>
-                          <span className="bp-rk">{dailyBoard.me.rank}</span>
-                          <span className="bp-pn">{dailyBoard.me.username || 'You'} <b>(you)</b></span>
-                          <span className="bp-g">{dailyBoard.me.gamesPlayed}/{gc}</span>
-                          <span className="bp-tt">{fmtDcPts(dailyBoard.me.total)}<s>/{mx}</s></span>
-                        </div>
-                      ) : null}
-                      <Link href="/daily" className="bp-link">Full standings &amp; all {gc} game boards →</Link>
-                    </div>
-                    <div className="bp-minis">
-                      {games.map((g) => { const t3 = (g.board || []).slice(0, 3); const acc = DC_ACCENTS[g.key] || '#f5d878'; return (
-                        <div key={g.key} className="bp-mini">
-                          <a href={g.href || `/${g.key}`} className="bp-gt" style={{ color: acc }}>{DC_NAMES[g.key] || g.key} →<span>top 3</span></a>
-                          {t3.length ? t3.map((r, i) => { const mine = meKey && r.userKey === meKey; return (
-                            <div key={r.userKey} className="bp-mr"><span className="bp-k">{i + 1}</span><span className="bp-nm2">{r.username || 'Player'}{mine ? <b> (you)</b> : ''}</span><span className="bp-p">{fmtDcPts(r.points)}</span></div>
-                          ); }) : <div className="bp-none">No scores yet</div>}
-                        </div>
-                      ); })}
-                    </div>
-                  </div>
-                </>
-              );
-            })()}
-          </div>
-        ) : null}
+        <DailyStrip board={dailyBoard} />
 
         <div className="thub">
           <div className="thub-left">
