@@ -357,4 +357,27 @@ export const PUZZLES = [
       { n: 5, r: 1, c: 1, len: 4, clue: 'Group of three' },
     ],
   },
+  {
+    num: 15,
+    quizId: 'emcee-7-30-26',
+    live: '2026-07-30',
+    dateLabel: 'July 30, 2026',
+    sunday: false,
+    size: 5,
+    grid: ['##RAT', 'AWARE', 'CIVIL', 'IDEAL', 'DEN##'],
+    across: [
+      { n: 1, r: 0, c: 2, len: 3, clue: 'Rodent that deserts a sinking ship' },
+      { n: 4, r: 1, c: 0, len: 5, clue: 'Not oblivious' },
+      { n: 6, r: 2, c: 0, len: 5, clue: 'Polite, if a bit cool' },
+      { n: 7, r: 3, c: 0, len: 5, clue: 'Just perfect' },
+      { n: 8, r: 4, c: 0, len: 3, clue: 'Home office, often' },
+    ],
+    down: [
+      { n: 1, r: 0, c: 2, len: 5, clue: 'Glossy jet-black bird' },
+      { n: 2, r: 0, c: 3, len: 4, clue: 'Opera showstopper' },
+      { n: 3, r: 0, c: 4, len: 4, clue: 'Poker player\'s giveaway' },
+      { n: 4, r: 1, c: 0, len: 4, clue: 'Opposite of base, in chemistry' },
+      { n: 5, r: 1, c: 1, len: 4, clue: 'Not narrow' },
+    ],
+  },
 ];

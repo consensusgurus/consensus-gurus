@@ -194,4 +194,74 @@ export const PUZZLES = [
       { name: 'Famous sculptures', words: ['DAVID', 'PIETA', 'THINKER', 'VENUS'] },
     ],
   },
+  {
+    num: 15,
+    quizId: 'links-7-26-26',
+    live: '2026-07-26',
+    dateLabel: 'July 26, 2026',
+    // collisions: ROOK reads corvid (corvids full) and QUEEN reads rock band
+    // (bands full) — chess is the anchor, so both resolve back to chess.
+    groups: [
+      { name: 'Big cats', words: ['LION', 'TIGER', 'PANTHER', 'COUGAR'] },
+      { name: 'Corvids', words: ['RAVEN', 'CROW', 'MAGPIE', 'JACKDAW'] },
+      { name: 'Rock bands', words: ['KISS', 'RUSH', 'CREAM', 'JOURNEY'] },
+      { name: 'Chess pieces', words: ['KING', 'QUEEN', 'BISHOP', 'ROOK'] },
+    ],
+  },
+  {
+    num: 16,
+    quizId: 'links-7-27-26',
+    live: '2026-07-27',
+    dateLabel: 'July 27, 2026',
+    // collisions: RUBY reads gem (gems full) and CHERRY reads fruit (fruit full),
+    // so both stay red. Exactly one valid grouping.
+    groups: [
+      { name: 'Fruits', words: ['LEMON', 'ORANGE', 'GRAPE', 'KIWI'] },
+      { name: 'Shades of red', words: ['SCARLET', 'CRIMSON', 'RUBY', 'CHERRY'] },
+      { name: 'Gemstones', words: ['PEARL', 'OPAL', 'SAPPHIRE', 'TOPAZ'] },
+      { name: 'Metals', words: ['GOLD', 'SILVER', 'PLATINUM', 'BRONZE'] },
+    ],
+  },
+  {
+    num: 17,
+    quizId: 'links-7-28-26',
+    live: '2026-07-28',
+    dateLabel: 'July 28, 2026',
+    // collisions: SALSA reads dip (dips full), SLIDE & SWING read baseball (full);
+    // SEESAW & SANDBOX are playground-only, so they pull SLIDE & SWING in.
+    groups: [
+      { name: 'Dances', words: ['TANGO', 'SALSA', 'WALTZ', 'FOXTROT'] },
+      { name: 'Party dips', words: ['GUACAMOLE', 'HUMMUS', 'QUESO', 'RANCH'] },
+      { name: 'Playground fixtures', words: ['SLIDE', 'SEESAW', 'SANDBOX', 'SWING'] },
+      { name: 'Baseball moves', words: ['BUNT', 'STEAL', 'PITCH', 'STRIKE'] },
+    ],
+  },
+  {
+    num: 18,
+    quizId: 'links-7-29-26',
+    live: '2026-07-29',
+    dateLabel: 'July 29, 2026',
+    // collisions resolve to one grouping: LIME & OLIVE read fruit (fruit full),
+    // MINT & SAGE read green (herbs need them), PINE reads green (yearn needs it).
+    groups: [
+      { name: 'Fruits', words: ['MANGO', 'PAPAYA', 'PEACH', 'APRICOT'] },
+      { name: 'Shades of green', words: ['OLIVE', 'LIME', 'FOREST', 'JADE'] },
+      { name: 'Herbs', words: ['BASIL', 'MINT', 'SAGE', 'DILL'] },
+      { name: 'Yearn for', words: ['PINE', 'ACHE', 'LONG', 'CRAVE'] },
+    ],
+  },
+  {
+    num: 19,
+    quizId: 'links-7-30-26',
+    live: '2026-07-30',
+    dateLabel: 'July 30, 2026',
+    // collisions: POUND reads weight (weights full), CROWN reads tooth (teeth full),
+    // STONE reads "___ Age" (ages full). PESO & RAND anchor currency.
+    groups: [
+      { name: 'Currencies', words: ['PESO', 'POUND', 'CROWN', 'RAND'] },
+      { name: 'Units of weight', words: ['OUNCE', 'GRAM', 'TON', 'STONE'] },
+      { name: 'Tooth parts', words: ['ROOT', 'ENAMEL', 'GUM', 'PLAQUE'] },
+      { name: '___ Age', words: ['BRONZE', 'IRON', 'ICE', 'GOLDEN'] },
+    ],
+  },
 ];
