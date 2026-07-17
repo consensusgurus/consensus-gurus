@@ -60,7 +60,7 @@ export const GAME_META = {
 // ---- the four families ------------------------------------------------------
 export const CATEGORIES = {
   word: {
-    name: 'Word games', accent: '#0e1d40', border: 'rgba(14,29,64,0.32)', Icon: Type,
+    name: 'Word games', accent: '#2563eb', border: 'rgba(37,99,235,0.32)', Icon: Type,
     leaves: [
       { key: 'crux', name: 'Crux', tag: 'A clueless crossword', href: '/crux' },
       { key: 'emcee', name: 'Emcee', tag: 'The daily mini crossword', href: '/emcee' },
@@ -112,7 +112,7 @@ export function gridOrder(selfCat) {
   return [selfCat, mids[0], mids[1], 'numbers'];
 }
 
-function CategoryCol({ catKey, selfKey, isSelf }) {
+function CategoryCol({ catKey, selfKey, isSelf, completed }) {
   const c = CATEGORIES[catKey];
   const Icon = c.Icon;
   return (
@@ -131,7 +131,7 @@ function CategoryCol({ catKey, selfKey, isSelf }) {
             </span>
           ) : (
             <a key={i} className="dec-leaf" href={l.href}>
-              <span className="dec-ln">{l.name}{l.key === selfKey && <Check size={12} strokeWidth={3} style={{ color: '#16a34a' }} />}</span>
+              <span className="dec-ln">{l.name}{((l.key && completed && completed.has(l.key)) || l.key === selfKey) && <Check size={12} strokeWidth={3} style={{ color: '#16a34a' }} />}</span>
               <span className="dec-lt">{l.tag}</span>
             </a>
           )
@@ -188,6 +188,17 @@ export default function DailyEndCard({
   const headColor = won ? meta.accent : RUST;
   const selfCat = GAME_CATEGORY[self] || 'word';
   const order = gridOrder(selfCat);
+
+  // Which daily games the viewer has completed today. The just-finished game is
+  // always checked (works for guests too, before the API resolves); dailyMe.perGame
+  // — the registered viewer's per-game results for today's slate — fills in every
+  // OTHER game they've already played so their whole day shows as done, not just
+  // the leaf they just came from.
+  const completed = new Set();
+  if (self) completed.add(self);
+  if (dailyMe && dailyMe.perGame) {
+    for (const k of Object.keys(dailyMe.perGame)) completed.add(k);
+  }
 
   // Leaderboard: close the popup, then smooth-scroll to the board below the card.
   const goBoard = () => {
@@ -271,7 +282,7 @@ export default function DailyEndCard({
       <p className="dec-eyebrow">Keep playing — by category</p>
       <div className="dec-grid">
         {order.map((catKey) => (
-          <CategoryCol key={catKey} catKey={catKey} selfKey={self} isSelf={catKey === selfCat} />
+          <CategoryCol key={catKey} catKey={catKey} selfKey={self} isSelf={catKey === selfCat} completed={completed} />
         ))}
       </div>
       <div className="dec-foot"><a href="/daily">All daily games &amp; archive →</a></div>
