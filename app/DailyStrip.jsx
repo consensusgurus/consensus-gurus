@@ -178,7 +178,11 @@ export default function DailyStrip({ board = null }) {
         .dsd-n2 b{color:#e8b43a;font-weight:700;}
         .dsd-p{color:#93a7cc;font-variant-numeric:tabular-nums;font-weight:600;font-size:10.5px;}
         .dsd-none{color:#6a80a8;font-size:10.5px;padding:2px 0;}
-        @media(max-width:820px){
+        /* Enable horizontal scroll whenever the 13 cells can't all fit: narrow widths
+           AND short landscape phones (which can be wider than 820 but still overflow).
+           Without this the strip's overflow:hidden clips the right-hand games and they
+           become unreachable (the "frozen strip" bug on landscape). */
+        @media (max-width:1024px), (max-height:600px){
           .dstrip-main{overflow-x:auto;-webkit-overflow-scrolling:touch;}
           .dstrip-cap{position:sticky;left:0;z-index:1;}
         }

@@ -1141,6 +1141,11 @@ export default function QuizHomeClient() {
       .qzh .qotd-title{font-size:19px;}
       .qzh .qotd-foot{margin-top:11px;}
       .qzh .qotd-play{padding:8px 16px;font-size:13px;}
+      /* Daily Challenge tile head: drop the N/N counter (the progress bars already show it) and let the title/chip wrap+ellipsis instead of running off the narrow tile. */
+      .qzh .dtile-count{display:none !important;}
+      .qzh .dtile-head{flex-wrap:wrap;gap:6px 7px;}
+      .qzh .dtile-head .x8{font-size:12px !important;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+      .qzh .dtile-chip{font-size:9px;padding:2px 7px;}
     }
     .qzh .dtile{background:#0e1d40;border-radius:14px;padding:14px 15px;color:#fff;display:flex;flex-direction:column;min-height:190px;}
     .qzh .th-only-desk{display:none !important;}
@@ -1478,7 +1483,7 @@ export default function QuizHomeClient() {
                   <Target size={16} style={{ flex: 'none', color: '#f8b84a' }} />
                   <span className="x8" style={{ fontSize: 14, fontWeight: 800 }}>Daily Challenge</span>
                   {dailyCat ? <span className="dtile-chip">{dailyCat}</span> : null}
-                  <span style={{ marginLeft: 'auto', fontSize: 12, fontWeight: 800 }}>{dailyDoneCount}/{dailyIds.length}</span>
+                  <span className="dtile-count" style={{ marginLeft: 'auto', fontSize: 12, fontWeight: 800 }}>{dailyDoneCount}/{dailyIds.length}</span>
                   <ChevronDown className="dchev" size={16} strokeWidth={2.5} style={{ color: '#fff', transform: mDaily ? 'rotate(180deg)' : 'none' }} />
                 </div>
                 <div className="dtile-collapse" style={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
@@ -1514,7 +1519,7 @@ export default function QuizHomeClient() {
                   <Target size={16} style={{ flex: 'none', color: '#f8b84a' }} />
                   <span className="x8" style={{ fontSize: 14, fontWeight: 800 }}>Daily Challenge</span>
                   {dailyCat ? <span className="dtile-chip">{dailyCat}</span> : null}
-                  <span style={{ marginLeft: 'auto', fontSize: 12, fontWeight: 800 }}>{dailyDoneCount}/{dailyIds.length}</span>
+                  <span className="dtile-count" style={{ marginLeft: 'auto', fontSize: 12, fontWeight: 800 }}>{dailyDoneCount}/{dailyIds.length}</span>
                   <ChevronDown className="dchev" size={16} strokeWidth={2.5} style={{ color: '#fff', transform: mDaily ? 'rotate(180deg)' : 'none' }} />
                 </div>
                 <div className="dtile-collapse" style={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
