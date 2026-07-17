@@ -1122,9 +1122,26 @@ export default function QuizHomeClient() {
     @media(max-width:560px){.qzh .th-r2{grid-template-columns:minmax(0,1fr);}.qzh .th-rail{display:none !important;}.qzh .th-heroes .ntile{min-height:220px;background-position:center 12%;}.qzh .th-r2 .ttile{order:1;min-height:220px;}.qzh .th-r2 .stile{order:2;min-height:220px;}.qzh .th-r2 .dtile{order:3;}.qzh .th-r2 .dueltile{order:4;}.qzh .th-r2 .th-slot-hold{display:none;}.qzh .duelbtn{display:none !important;}/* Stacked full-width hero tiles: Newest matches Trending typography on mobile (needs .th-heroes for specificity over the base rules below) */.qzh .th-heroes .ntile-t{font-size:20px;}.qzh .th-heroes .ntile-tag{font-size:10px;padding:4px 10px;top:12px;left:12px;}.qzh .th-heroes .ntile-ov{padding:18px 16px 15px;}}
     /* Narrow desktop / tablet (561-1024px): mirror the mobile combine - pair the promo tiles two-up (QOTD full row, Newest+Geo, Daily+Trending, Sports+Duel) and drop the Category Mastery rail. minmax(0,1fr) keeps the Newest/Geo hero images clipped inside their tiles (bare 1fr let them bleed). Added 2026-07-15 per Marshall. */
     @media (min-width:561px) and (max-width:1024px){.qzh .thub{flex-direction:column;}.qzh .th-rail{display:none !important;}.qzh .th-heroes{grid-template-columns:minmax(0,1fr) minmax(0,1fr);}.qzh .th-heroes .th-qotd{grid-column:1 / -1;}.qzh .th-r2{grid-template-columns:minmax(0,1fr) minmax(0,1fr);}.qzh .th-r2 .dtile{grid-column:auto;}.qzh .th-r2 .dueltile{grid-column:auto;}}
-    /* Short landscape phones (iPhone landscape ~<=480px tall): the header tiles get too narrow to wrap cleanly, so hide the two daily-rotating promo tiles there and reflow. Portrait phones keep them (full-width, wrap fine). */
+    /* Short landscape phones (<=480px tall): compact TWO-ROW header. Reworked 2026-07-17 per Marshall - QOTD no longer takes a full row (it shares row 1 with Newest + Geo), and Featured Geo + Featured Sports are shown here (they stay hidden only on the rare <561px landscape). Row 2 = Daily + Sports + Trending + Duel. The base rule below still hides gtile/stile; the min-width:561 block re-shows them. Portrait phones (<=560px) keep the stacked full-width layout. */
     @media (max-height:480px){.qzh .gtile{display:none !important;}.qzh .stile{display:none !important;}}
-    @media (max-height:480px) and (min-width:561px){.qzh .th-heroes{grid-template-columns:minmax(0,2fr) minmax(0,1fr);}.qzh .th-r2{grid-template-columns:minmax(0,1.1fr) minmax(0,0.9fr) minmax(0,1fr);}.qzh .th-r2 .dtile{grid-column:auto;}.qzh .th-r2 .dueltile{grid-column:auto;}.qzh .th-r2 .th-slot-hold{display:none;}}
+    @media (max-height:480px) and (min-width:561px){
+      .qzh .th-heroes{grid-template-columns:minmax(0,1.5fr) minmax(0,1fr) minmax(0,1fr);}
+      .qzh .th-heroes .th-qotd{grid-column:auto;}
+      .qzh .th-heroes .gtile{display:flex !important;}
+      .qzh .th-r2{grid-template-columns:repeat(4,minmax(0,1fr));}
+      .qzh .th-r2 .stile{display:flex !important;}
+      .qzh .th-r2 .dtile{grid-column:auto;}
+      .qzh .th-r2 .dueltile{grid-column:auto;}
+      .qzh .th-r2 .th-slot-hold{display:none;}
+      .qzh .th-heroes .ntile,.qzh .th-heroes .hstile,.qzh .th-r2 .hstile,.qzh .th-r2 .ttile,.qzh .th-r2 .dueltile{min-height:158px;}
+      .qzh .qotd{min-height:158px;}
+      .qzh .dtile{min-height:158px;}
+      .qzh .qotd-photo{flex-basis:38%;}
+      .qzh .qotd-body{padding:13px 15px;}
+      .qzh .qotd-title{font-size:19px;}
+      .qzh .qotd-foot{margin-top:11px;}
+      .qzh .qotd-play{padding:8px 16px;font-size:13px;}
+    }
     .qzh .dtile{background:#0e1d40;border-radius:14px;padding:14px 15px;color:#fff;display:flex;flex-direction:column;min-height:190px;}
     .qzh .th-only-desk{display:none !important;}
     @media(min-width:1025px){.qzh .th-only-mob{display:none !important;}.qzh .th-only-desk{display:flex !important;}}
