@@ -1,0 +1,16 @@
+{
+  "id": "/ping",
+  "name": "Ping — Daily City Hunt",
+  "short_name": "Ping",
+  "description": "One secret world city a day, no clues. Guess any city and home in by distance and compass. Find it in as few guesses as you can. From Source of Truths.",
+  "start_url": "/ping?src=pwa",
+  "scope": "/",
+  "display": "standalone",
+  "background_color": "#f7f8fa",
+  "theme_color": "#f7f8fa",
+  "icons": [
+    { "src": "/ping-icons/icon-192.png", "sizes": "192x192", "type": "image/png" },
+    { "src": "/ping-icons/icon-512.png", "sizes": "512x512", "type": "image/png" },
+    { "src": "/ping-icons/icon-512-maskable.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ]
+}

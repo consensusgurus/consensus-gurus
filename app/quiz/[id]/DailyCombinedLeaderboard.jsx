@@ -21,12 +21,12 @@ const FONT = "'Manrope', system-ui, -apple-system, sans-serif";
 const GAME_NAMES = {
   crux: 'Crux', emcee: 'Emcee', garble: 'Garble', links: 'Links', span: 'Span', dating: 'Dating',
   tally: 'Tally', suds: 'Suds', circa: 'Circa', extra: 'Extra', carve: 'Carve', stet: 'Stet', outwit: 'Outwit',
-  tuck: 'Tuck', alibi: 'Alibi', cipher: 'Cipher',
+  tuck: 'Tuck', alibi: 'Alibi', cipher: 'Cipher', ping: 'Ping', warmer: 'Warmer',
 };
 // Per-game accent for the game-board title. Light = the games' own (darker)
 // colors; navy = lightened for legibility on the dark card.
-const ACCENTS_LIGHT = { crux: '#0e1d40', emcee: '#c026d3', garble: '#8a6d1a', links: '#166534', span: '#9d174d', dating: '#6d28d9', tally: '#15803d', suds: '#ea580c', circa: '#0e7490', extra: '#b91c1c', carve: '#7c3aed', stet: '#0369a1', outwit: '#1f2937', tuck: '#92400e', alibi: '#8b1e2d', cipher: '#0f766e' };
-const ACCENTS_NAVY = { crux: '#5b9bff', emcee: '#e879f9', garble: '#f0c95a', links: '#4ca878', span: '#e06aa0', dating: '#a483f0', tally: '#4cb377', suds: '#f0894c', circa: '#38b6cf', extra: '#e06a6a', carve: '#a483f0', stet: '#41b1e8', outwit: '#c3cfe3', tuck: '#e0a568', alibi: '#ef8896', cipher: '#3fc9b8' };
+const ACCENTS_LIGHT = { crux: '#0e1d40', emcee: '#c026d3', garble: '#8a6d1a', links: '#166534', span: '#9d174d', dating: '#6d28d9', tally: '#15803d', suds: '#ea580c', circa: '#0e7490', extra: '#b91c1c', carve: '#7c3aed', stet: '#0369a1', outwit: '#1f2937', tuck: '#92400e', alibi: '#8b1e2d', cipher: '#0f766e', ping: '#0284c7', warmer: '#dc2626' };
+const ACCENTS_NAVY = { crux: '#5b9bff', emcee: '#e879f9', garble: '#f0c95a', links: '#4ca878', span: '#e06aa0', dating: '#a483f0', tally: '#4cb377', suds: '#f0894c', circa: '#38b6cf', extra: '#e06a6a', carve: '#a483f0', stet: '#41b1e8', outwit: '#c3cfe3', tuck: '#e0a568', alibi: '#ef8896', cipher: '#3fc9b8', ping: '#4cb3f0', warmer: '#f3705c' };
 
 function theme(light) {
   if (light) return {
@@ -86,12 +86,22 @@ export default function DailyCombinedLeaderboard({ todayKey = null, identity = n
     if (email) qs.set('email', email);
     if (quizId) qs.set('quizId', quizId);
     let alive = true;
-    setState('loading'); setData(null);
-    fetch('/api/quiz/daily-combined?' + qs.toString())
-      .then((r) => r.json())
-      .then((d) => { if (!alive) return; if (d && Array.isArray(d.overall)) { setData(d); setState('ok'); } else { setState('error'); } })
-      .catch(() => { if (alive) setState('error'); });
-    return () => { alive = false; };
+    // Live board: standings and point awards shift through the day as new
+    // players post, so after the first load we silently re-poll (and refresh on
+    // tab focus) instead of freezing on the mount snapshot.
+    const load = (silent) => {
+      if (!silent) { setState('loading'); setData(null); }
+      fetch('/api/quiz/daily-combined?' + qs.toString(), { cache: 'no-store' })
+        .then((r) => r.json())
+        .then((d) => { if (!alive) return; if (d && Array.isArray(d.overall)) { setData(d); setState('ok'); } else { setState((s) => (s === 'ok' ? 'ok' : 'error')); } })
+        .catch(() => { if (alive) setState((s) => (s === 'ok' ? 'ok' : 'error')); });
+    };
+    load(false);
+    const iv = setInterval(() => { if (typeof document === 'undefined' || document.visibilityState === 'visible') load(true); }, 45000);
+    const onVis = () => { if (typeof document !== 'undefined' && document.visibilityState === 'visible') load(true); };
+    if (typeof document !== 'undefined') document.addEventListener('visibilitychange', onVis);
+    if (typeof window !== 'undefined') window.addEventListener('focus', onVis);
+    return () => { alive = false; clearInterval(iv); if (typeof document !== 'undefined') document.removeEventListener('visibilitychange', onVis); if (typeof window !== 'undefined') window.removeEventListener('focus', onVis); };
   }, [quizId]);
 
   const myKey = data && data.me ? data.me.userKey : null;

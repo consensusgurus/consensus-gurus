@@ -940,6 +940,8 @@ const DAILY_GAME_META = {
   tuck:   { name: 'Tuck',   c: '#92400e', href: '/tuck',   tag: 'Build your own crossword' },
   alibi:  { name: 'Alibi',  c: '#8b1e2d', href: '/alibi',  tag: 'Solve the nightly whodunit' },
   cipher: { name: 'Cipher', c: '#0f766e', href: '/cipher', tag: 'Crack the letter math' },
+  ping: { name: 'Ping', c: '#0284c7', href: '/ping', tag: 'Guess the secret city' },
+  warmer: { name: 'Warmer', c: '#dc2626', href: '/warmer', tag: 'Hotter or colder' },
 };
 
 function fmtPts1(n) {

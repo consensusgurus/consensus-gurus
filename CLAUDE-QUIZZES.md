@@ -125,8 +125,8 @@ automatically. No migration code is needed when you extend a quiz's answer set.
 
 ## 7. Daily game puzzle banks (`app/<game>/puzzles.js`)
 
-The 16 daily games (crux, emcee, garble, links, span, dating, tally, suds, circa,
-extra, carve, stet, outwit, tuck, alibi, cipher) each keep a dated `PUZZLES` array. These have failure modes a
+The 18 daily games (crux, emcee, garble, links, span, dating, tally, suds, circa,
+extra, carve, stet, outwit, tuck, alibi, cipher, ping, warmer) each keep a dated `PUZZLES` array. These have failure modes a
 `node --check` / "it parses" pass does **not** catch. **A puzzle that parses is not a puzzle
 that is correct.** Before staging ANY daily puzzle — new or edited — run the checks below for
 its game. Do not author a batch and ship on structural validation alone: that is exactly how
@@ -142,7 +142,7 @@ all of which "passed" structural checks).
   (par = BFS incl. Sunday via/avoid), dating (strict ascending), circa/extra/outwit
   (structural; extra uses the client's own resolveHidden). ~6s for everything.
 - `node scripts/verify-alibi.mjs` / `verify-cipher.mjs` / `verify-tuck.mjs` /
-  `verify-stet.mjs` — the per-game verifiers for the newer dailies.
+  `verify-stet.mjs` / `verify-ping.mjs` / `verify-warmer.mjs` — the per-game verifiers for the newer dailies.
 
 ### 7a. Solution uniqueness — the #1 rule for logic games
 

@@ -2,7 +2,7 @@
 
 // DailyEndCard — the shared end-of-game result popup for every daily game
 // (Crux, Emcee, Garble, Links, Span, Dating, Tally, Suds, Circa, Extra,
-// Carve, Stet, Outwit, Tuck, Alibi, Cipher).
+// Carve, Stet, Outwit, Tuck, Alibi, Cipher, Ping).
 //
 // One component, used by all daily clients. It renders:
 //   1. a centered results block — the game's own finish graphic, the
@@ -28,7 +28,7 @@ import React, { useState, useEffect } from 'react';
 import {
   Type, Clock, Globe, Hash, Share2, BarChart3, RotateCcw, Check, X,
   Trophy, Link2, Flag, CalendarCheck, Scale, Grid3x3, LayoutGrid, Newspaper, FlagTriangleRight,
-  Pencil, Users, ArrowRight, Puzzle, Fingerprint, KeyRound,
+  Pencil, Users, ArrowRight, Puzzle, Fingerprint, KeyRound, Thermometer,
 } from 'lucide-react';
 
 const RUST = '#c0392b';
@@ -37,7 +37,7 @@ const RUST = '#c0392b';
 // "still to play" list for their first FOUR days so players actually meet
 // them; after `until` (ET, inclusive) the canonical order resumes. Keep in
 // sync with the same pin in app/api/quiz/daily-order/route.js.
-const LAUNCH_PIN = { keys: ['tuck', 'alibi', 'cipher'], until: '2026-07-21' };
+const LAUNCH_PIN = { keys: ['warmer', 'ping', 'tuck', 'alibi', 'cipher'], until: '2026-07-21' };
 function etTodayEC() {
   try { return new Date().toLocaleDateString('en-CA', { timeZone: 'America/New_York' }); }
   catch (e) { return new Date().toISOString().slice(0, 10); }
@@ -69,6 +69,8 @@ export const GAME_META = {
   tuck:   { accent: '#92400e', badgeBg: '#92400e', badgeInk: '#fff', Fin: Puzzle },
   alibi:  { accent: '#8b1e2d', badgeBg: '#8b1e2d', badgeInk: '#fff', Fin: Fingerprint },
   cipher: { accent: '#0f766e', badgeBg: '#0f766e', badgeInk: '#fff', Fin: KeyRound },
+  ping:   { accent: '#0284c7', badgeBg: '#0284c7', badgeInk: '#fff', Fin: Globe },
+  warmer: { accent: '#dc2626', badgeBg: '#dc2626', badgeInk: '#fff', Fin: Thermometer },
 };
 
 // ---- the five families (type label shown on each tile) ---------------------
@@ -94,12 +96,14 @@ export const DAILY_GAMES = [
   { key: 'circa',  cat: 'history',   name: 'Circa',  tag: 'Pin the year it happened',  href: '/circa' },
   { key: 'extra',  cat: 'history',   name: 'Extra',  tag: 'Name the redacted front page', href: '/extra' },
   { key: 'span',   cat: 'geography', name: 'Span',   tag: 'Cross the map, border by border', href: '/span' },
+  { key: 'ping',   cat: 'geography', name: 'Ping',   tag: 'Find the secret city',        href: '/ping' },
   { key: 'tally',  cat: 'numbers',   name: 'Tally',  tag: 'Balance every row and column', href: '/tally' },
   { key: 'suds',   cat: 'numbers',   name: 'Suds',   tag: 'The daily 9×9 sudoku',      href: '/suds' },
   { key: 'carve',  cat: 'numbers',   name: 'Carve',  tag: 'Carve equal-sum regions',   href: '/carve' },
   { key: 'outwit', cat: 'numbers',   name: 'Outwit', tag: 'Beat the crowd',            href: '/outwit' },
   { key: 'cipher', cat: 'numbers',   name: 'Cipher', tag: 'Crack the letter math',     href: '/cipher' },
   { key: 'alibi',  cat: 'logic',     name: 'Alibi',  tag: 'Solve the nightly whodunit', href: '/alibi' },
+  { key: 'warmer', cat: 'word',      name: 'Warmer', tag: 'Hotter or colder',           href: '/warmer' },
 ];
 
 /**

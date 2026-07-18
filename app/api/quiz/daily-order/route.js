@@ -22,7 +22,7 @@ import { DAILY_KEYS } from '@/lib/daily-combined';
 
 // Pin these keys to the front of the order through the end date (ET,
 // inclusive). Tuck/Alibi/Cipher launched 2026-07-18 -> pinned through 07-21.
-const LAUNCH_PIN = { keys: ['tuck', 'alibi', 'cipher'], until: '2026-07-21' };
+const LAUNCH_PIN = { keys: ['warmer', 'ping', 'tuck', 'alibi', 'cipher'], until: '2026-07-21' };
 
 export const dynamic = 'force-dynamic';
 export const fetchCache = 'force-no-store';

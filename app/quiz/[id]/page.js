@@ -31,7 +31,7 @@ export async function generateMetadata({ params }) {
   // Canonicalize them to the evergreen game URLs so the dated stubs don't
   // compete with /crux, /garble, /links, /span in search (they're also out
   // of the sitemap).
-  const GAME_URLS = { crux: '/crux', emcee: '/emcee', garble: '/garble', links: '/links', span: '/span', dating: '/dating', tally: '/tally', suds: '/suds', circa: '/circa', extra: '/extra', carve: '/carve', stet: '/stet', outwit: '/outwit', tuck: '/tuck', alibi: '/alibi', cipher: '/cipher' };
+  const GAME_URLS = { crux: '/crux', emcee: '/emcee', garble: '/garble', links: '/links', span: '/span', dating: '/dating', tally: '/tally', suds: '/suds', circa: '/circa', extra: '/extra', carve: '/carve', stet: '/stet', outwit: '/outwit', tuck: '/tuck', alibi: '/alibi', cipher: '/cipher', ping: '/ping', warmer: '/warmer' };
   const gameCanonical = GAME_URLS[quiz.format] || null;
 
   return {
@@ -79,6 +79,8 @@ export default function QuizPage({ params }) {
   if (quiz && quiz.format === 'tuck') return <CruxRedirect num={quiz.gameNum || null} base="/tuck" />;
   if (quiz && quiz.format === 'alibi') return <CruxRedirect num={quiz.gameNum || null} base="/alibi" />;
   if (quiz && quiz.format === 'cipher') return <CruxRedirect num={quiz.gameNum || null} base="/cipher" />;
+  if (quiz && quiz.format === 'ping') return <CruxRedirect num={quiz.gameNum || null} base="/ping" />;
+  if (quiz && quiz.format === 'warmer') return <CruxRedirect num={quiz.gameNum || null} base="/warmer" />;
 
   const jsonLd = quiz
     ? {

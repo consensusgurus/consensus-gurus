@@ -34,7 +34,7 @@ const SUN = '#b45309';
 const SUN_BG = '#fff7ed';
 
 const CATEGORIES = [
-  { key: 'word', label: 'Word & Letters', keys: ['crux', 'emcee', 'garble', 'links', 'stet', 'tuck'] },
+  { key: 'word', label: 'Word & Letters', keys: ['crux', 'emcee', 'garble', 'links', 'stet', 'tuck', 'warmer'] },
   { key: 'logic', label: 'Logic & Deduction', keys: ['span', 'dating', 'outwit', 'alibi'] },
   { key: 'number', label: 'Numbers & Grids', keys: ['tally', 'suds', 'carve', 'cipher'] },
   { key: 'trivia', label: 'Time & Trivia', keys: ['circa', 'extra'] },
@@ -44,7 +44,7 @@ const CATEGORIES = [
 const NAVY_ACCENT = {
   crux: '#5b9bff', emcee: '#e879f9', garble: '#f0c95a', links: '#4ca878', span: '#e06aa0', dating: '#a483f0',
   tally: '#4cb377', suds: '#f0894c', circa: '#38b6cf', extra: '#e06a6a', carve: '#a483f0', stet: '#41b1e8',
-  outwit: '#c3cfe3', tuck: '#e0a568', alibi: '#ef8896', cipher: '#3fc9b8',
+  outwit: '#c3cfe3', tuck: '#e0a568', alibi: '#ef8896', cipher: '#3fc9b8', warmer: '#f3705c',
 };
 
 const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
