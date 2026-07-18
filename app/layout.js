@@ -10,18 +10,18 @@ const SOURCE_COUNT = getAllSources().length;
 export const metadata = {
   metadataBase: new URL('https://sourceoftruths.com'),
   appleWebApp: { capable: true, statusBarStyle: 'black-translucent', title: 'Source of Truths' },
-  title: `Source of Truths | Where ${SOURCE_COUNT} Experts and Aggregators Agree`,
-  description: `Where ${SOURCE_COUNT} experts and aggregators agree. Consensus best-of lists for restaurants, hotels, products, films, and books, plus 1,000+ trivia quizzes.`,
+  title: `Source of Truths | Trivia Quizzes, Daily Games & Top 10 Lists`,
+  description: `Test your knowledge with 1,000+ timed trivia quizzes and daily word and number games. Plus consensus Top 10 Lists where ${SOURCE_COUNT} experts and aggregators agree, covering the best restaurants, hotels, products, films, and books.`,
   openGraph: {
-    title: `Source of Truths | Where ${SOURCE_COUNT} Experts and Aggregators Agree`,
-    description: `Where ${SOURCE_COUNT} experts and aggregators agree. Consensus best-of lists for restaurants, hotels, products, films, and books, plus 1,000+ trivia quizzes.`,
+    title: `Source of Truths | Trivia Quizzes, Daily Games & Top 10 Lists`,
+    description: `Test your knowledge with 1,000+ timed trivia quizzes and daily word and number games. Plus consensus Top 10 Lists where ${SOURCE_COUNT} experts and aggregators agree, covering the best restaurants, hotels, products, films, and books.`,
     url: 'https://sourceoftruths.com',
     type: 'website',
   },
   twitter: {
     card: 'summary_large_image',
-    title: `Source of Truths | Where ${SOURCE_COUNT} Experts and Aggregators Agree`,
-    description: `Where ${SOURCE_COUNT} experts and aggregators agree. Consensus best-of lists for restaurants, hotels, products, films, and books, plus 1,000+ trivia quizzes.`,
+    title: `Source of Truths | Trivia Quizzes, Daily Games & Top 10 Lists`,
+    description: `Test your knowledge with 1,000+ timed trivia quizzes and daily word and number games. Plus consensus Top 10 Lists where ${SOURCE_COUNT} experts and aggregators agree, covering the best restaurants, hotels, products, films, and books.`,
   },
 formatDetection: {
     telephone: false,
@@ -59,20 +59,6 @@ const organizationJsonLd = {
   description: `Where ${SOURCE_COUNT} experts and aggregators agree, scored by expert and reader consensus using Borda methodology.`,
 };
 
-const collectionJsonLd = {
-  '@context': 'https://schema.org',
-  '@type': 'CollectionPage',
-  name: 'Source of Truths',
-  url: 'https://sourceoftruths.com',
-  description: 'Curated ranked lists built from expert sources and reader consensus. Browse the best in dining, travel, entertainment, and products across categories including restaurants, bars, hotels, books, films, and curated products, plus over 1,000 trivia quizzes.',
-  publisher: {
-    '@type': 'Organization',
-    name: 'Source of Truths',
-    url: 'https://sourceoftruths.com',
-    description: 'Ranked lists determined by expert consensus and reader votes using Borda scoring methodology.',
-  },
-};
-
 export default function RootLayout({ children }) {
   return (
     <html lang="en">
@@ -89,10 +75,6 @@ export default function RootLayout({ children }) {
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{ __html: JSON.stringify(websiteJsonLd) }}
-        />
-        <script
-          type="application/ld+json"
-          dangerouslySetInnerHTML={{ __html: JSON.stringify(collectionJsonLd) }}
         />
         <link
           href="https://fonts.googleapis.com/css2?family=Fraunces:ital,wght@0,400;0,700;0,900;1,400;1,700&display=swap"

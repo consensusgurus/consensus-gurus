@@ -23,8 +23,8 @@ export default function DailyTopNav({ player, compact = false }) {
   };
   return (
     <div style={{ display: 'flex', alignItems: 'center', gap: compact ? 12 : 18, marginBottom: compact ? 11 : 20, flexWrap: 'wrap' }}>
-      <a href="/quizzes" style={navStyle}>Quizzes</a>
-      <a href="/" style={navStyle}>Top 10 Lists</a>
+      <a href="/" style={navStyle}>Quizzes</a>
+      <a href="/lists" style={navStyle}>Top 10 Lists</a>
       {player && (
         <a href={player.key ? `/quizzes/hub?player=${encodeURIComponent(player.key)}` : '/quizzes/hub'} title="Your Stat Hub"
           style={{ marginLeft: 'auto', display: 'inline-flex', alignItems: 'center', gap: compact ? 5 : 7, fontFamily: MONO, fontSize: fz, letterSpacing: '0.06em', color: COLORS.ink, background: COLORS.paper, border: '1.5px solid rgba(28,30,36,0.35)', borderRadius: 5, padding: compact ? '3px 8px' : '4px 10px', textDecoration: 'none' }}>

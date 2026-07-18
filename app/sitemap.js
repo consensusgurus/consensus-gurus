@@ -36,8 +36,8 @@ export default function sitemap() {
   const catalogQuizzes = visibleQuizzes.filter((quiz) => !WORD_GAME_FORMATS.has(quiz.format));
 
   const staticPages = [
-    { url: baseUrl, lastModified: newestList, changeFrequency: 'daily', priority: 1.0 },
-    { url: `${baseUrl}/quizzes`, lastModified: newestQuiz, changeFrequency: 'daily', priority: 0.8 },
+    { url: baseUrl, lastModified: newestQuiz, changeFrequency: 'daily', priority: 1.0 },
+    { url: `${baseUrl}/lists`, lastModified: newestList, changeFrequency: 'daily', priority: 0.9 },
     { url: `${baseUrl}/crux`, lastModified: newestOfFormat('crux'), changeFrequency: 'daily', priority: 0.9 },
     { url: `${baseUrl}/emcee`, lastModified: newestOfFormat('emcee'), changeFrequency: 'daily', priority: 0.9 },
     { url: `${baseUrl}/garble`, lastModified: newestOfFormat('garble'), changeFrequency: 'daily', priority: 0.9 },

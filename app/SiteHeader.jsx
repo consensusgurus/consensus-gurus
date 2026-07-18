@@ -114,7 +114,12 @@ function CommandHeader({ active, search, onSearch, sortBy, onSort, sortButtons, 
         .shc-search:focus-within{border-color:rgba(255,255,255,0.55);background:rgba(255,255,255,0.2);}
         .shc-clear{display:flex;align-items:center;justify-content:center;background:none;border:none;color:#c7d7fb;cursor:pointer;padding:2px;flex:none;}
         .shc-clear:hover{color:#fff;}
-        .shc-sortwrap{position:relative;flex:none;}
+        /* margin-left:auto pins the Sort + Lists/Quizzes toggle group to the
+           far-right edge. When the search box caps at its max width on wide
+           screens, the leftover space now flows into this margin instead of
+           pooling to the RIGHT of the toggle, so the toggle is anchored right
+           (matching the quizzes header) rather than tied to the search box. */
+        .shc-sortwrap{position:relative;flex:none;margin-left:auto;}
         .shc-sort{display:inline-flex;align-items:center;gap:7px;height:36px;padding:0 12px;background:rgba(255,255,255,0.09);border:1px solid rgba(255,255,255,0.2);border-radius:11px;color:#fff;font-family:inherit;font-size:12.5px;font-weight:700;cursor:pointer;white-space:nowrap;}
         .shc-sort:hover{background:rgba(255,255,255,0.16);border-color:rgba(255,255,255,0.42);}
         .shc-sort svg{flex:none;}
@@ -184,8 +189,8 @@ function CommandHeader({ active, search, onSearch, sortBy, onSort, sortButtons, 
           </div>
         )}
         <nav className="shc-seg">
-          <Link href="/" className={active === 'lists' ? 'on' : undefined}>Top 10 Lists</Link>
-          <Link href="/quizzes" className={active === 'quizzes' ? 'on' : undefined}>Quizzes</Link>
+          <Link href="/" className={active === 'quizzes' ? 'on' : undefined}>Quizzes</Link>
+          <Link href="/lists" className={active === 'lists' ? 'on' : undefined}>Top 10 Lists</Link>
         </nav>
       </div>
     </div>
@@ -240,15 +245,4 @@ export default function SiteHeader({ active = 'lists', maxWidth = 1180, visitors
               </span>
             </div>
             <div className="sh-right">
-              <nav className="sh-nav">
-                <Link href="/" className={`sh-navbtn${active === 'lists' ? ' on' : ''}`}>Top 10 Lists</Link>
-                <Link href="/quizzes" className={`sh-navbtn${active === 'quizzes' ? ' on' : ''}`}>Quizzes</Link>
-              </nav>
-            </div>
-          </div>
-          {inlay ? <div className="sh-inlay">{inlay}</div> : null}
-        </div>
-      </div>
-    </div>
-  );
-}
+              <nav className="

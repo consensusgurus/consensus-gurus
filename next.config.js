@@ -9,6 +9,14 @@ const nextConfig = {
   },
   async redirects() {
     return [
+      // 2026-07-18: the Quizzes hub is now the site root (sourceoftruths.com).
+      // The legacy /quizzes index 308s to it. Sub-pages (/quizzes/hub, etc.)
+      // are matched exactly here, so they are unaffected.
+      {
+        source: '/quizzes',
+        destination: '/',
+        permanent: true,
+      },
       // Renamed 2026-07-06: the Crosslock word game relaunched as Crux (same
       // game, same puzzle #1). Old links 308 to the new home.
       {

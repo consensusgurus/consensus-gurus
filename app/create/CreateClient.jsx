@@ -169,7 +169,7 @@ export default function CreateClient({ lists }) {
   return (
     <div style={{ position: 'relative', zIndex: 2, maxWidth: 720, margin: '0 auto', padding: '28px 16px 80px' }}>
       <Link
-        href="/"
+        href="/lists"
         style={{
           display: 'inline-flex',
           alignItems: 'center',

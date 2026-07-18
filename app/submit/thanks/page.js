@@ -68,11 +68,11 @@ export default function ThanksPage() {
             maxWidth: 520,
           }}
         >
-          Your list is in the queue for review. An editor will take a look and publish it shortly. Once it goes live, it shows up on the home page like any other list.
+          Your list is in the queue for review. An editor will take a look and publish it shortly. Once it goes live, it shows up on the Lists page like any other list.
         </p>
         <div style={{ marginTop: 40, display: 'flex', gap: 12, justifyContent: 'center', flexWrap: 'wrap' }}>
           <Link
-            href="/"
+            href="/lists"
             style={{
               background: COLORS.ink,
               color: COLORS.cream,

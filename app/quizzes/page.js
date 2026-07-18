@@ -1,31 +1,9 @@
-import QuizHomeClient from './QuizHomeClient';
-import { QUIZZES } from '@/lib/quizzes';
+import { redirect } from 'next/navigation';
 
-export function generateMetadata() {
-  const count = Array.isArray(QUIZZES) ? QUIZZES.filter((q) => !q.unlisted).length : 0;
-  const title = 'Quizzes | Source of Truths';
-  const description = `Test your knowledge. ${count} timed quizzes across films, music, geography, sports, brands, and beyond: name-them-all, matching, map, and multiple-choice. Beat the clock, then the leaderboard.`;
-  const url = '/quizzes';
-
-  return {
-    title,
-    description,
-    alternates: { canonical: url },
-    openGraph: {
-      title: 'Source of Truths Quizzes: Test Your Knowledge',
-      description,
-      url,
-      type: 'website',
-      siteName: 'Source of Truths',
-    },
-    twitter: {
-      card: 'summary_large_image',
-      title: 'Source of Truths Quizzes: Test Your Knowledge',
-      description,
-    },
-  };
-}
-
-export default function QuizzesPage() {
-  return <QuizHomeClient />;
+// The quizzes hub is now the site root (sourceoftruths.com). This legacy path
+// permanently redirects to it — see also the 308 in next.config.js. The quiz
+// sub-pages (/quizzes/hub, /quizzes/leaderboard, /quizzes/stats,
+// /quizzes/business-news) are unaffected.
+export default function QuizzesIndexRedirect() {
+  redirect('/');
 }

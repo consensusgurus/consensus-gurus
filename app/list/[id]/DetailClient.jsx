@@ -1583,7 +1583,7 @@ export default function DetailClient({ listId }) {
   }
 
   function backHome() {
-    router.push('/');
+    router.push('/lists');
   }
 
   function openRelated(id) {

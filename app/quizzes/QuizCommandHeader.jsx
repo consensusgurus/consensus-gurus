@@ -93,7 +93,12 @@ export default function QuizCommandHeader({ search, onSearch, me, onSignup, tick
         .qch-word em{font-style:normal;color:#c9ced8;font-weight:600;}
         .qch-ws{display:none;}
         .qch-src{font-size:9.5px;font-weight:800;letter-spacing:normal;text-transform:uppercase;color:#fff;flex:none;}
-        .qch-search{flex:1 1 0;min-width:120px;max-width:640px;display:flex;align-items:center;gap:7px;height:36px;padding:0 12px;background:rgba(255,255,255,0.14);border:1px solid rgba(255,255,255,0.22);border-radius:11px;}
+        /* Search no longer stretches to fill the bar. It takes a modest clamped
+           width and, together with .qch-me's margin-left:auto, the two auto
+           margins split the free space evenly so the box sits CENTERED in the
+           gap between the brand group (left) and the Stat Hub + toggle group
+           (right), which stays flush to the right edge. */
+        .qch-search{flex:0 1 auto;width:clamp(200px,28vw,400px);min-width:150px;margin-left:auto;display:flex;align-items:center;gap:7px;height:36px;padding:0 12px;background:rgba(255,255,255,0.14);border:1px solid rgba(255,255,255,0.22);border-radius:11px;}
         .qch-search input{flex:1;min-width:0;background:transparent;border:none;outline:none;color:#fff;font-family:inherit;font-size:13px;font-weight:600;}
         .qch-search input::placeholder{color:#c7d7fb;opacity:1;}
         .qch-search:focus-within{border-color:rgba(255,255,255,0.55);background:rgba(255,255,255,0.2);}
@@ -183,21 +188,9 @@ export default function QuizCommandHeader({ search, onSearch, me, onSignup, tick
           <span className="qch-hubtxt">Stat Hub</span>
         </Link>
         <nav className="qch-seg">
-          <Link href="/">Top 10 Lists</Link>
-          <Link href="/quizzes" className="on">Quizzes</Link>
+          <Link href="/" className="on">Quizzes</Link>
+          <Link href="/lists">Top 10 Lists</Link>
         </nav>
       </div>
       {items.length ? (
-        <div className="qch-tickwrap">
-          <div className="qch-tlabel"><span className="qch-pulse" /> Live</div>
-          <div className="qch-ticker">
-            <div className="qch-track" style={{ animationDuration: dur }}>
-              <TickSet items={items} />
-              <TickSet items={items} hidden />
-            </div>
-          </div>
-        </div>
-      ) : null}
-    </div>
-  );
-}
+    

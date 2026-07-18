@@ -15,21 +15,21 @@ const NEUTRAL = {
 
 const COLS = [
   {
-    head: 'Lists',
-    links: [
-      { label: 'Browse Lists', href: '/' },
-      { label: 'Activity Log', href: '/feed' },
-      { label: 'Experts and Aggregators', href: '/experts-and-aggregators' },
-      { label: 'Request a List', href: '/request' },
-    ],
-  },
-  {
     head: 'Quizzes',
     links: [
-      { label: 'Browse Quizzes', href: '/quizzes' },
+      { label: 'Browse Quizzes', href: '/' },
       { label: 'Daily Games & Archive', href: '/daily' },
       { label: 'Stat Hub', href: '/quizzes/hub' },
       { label: 'Request a Quiz', href: '/request' },
+    ],
+  },
+  {
+    head: 'Lists',
+    links: [
+      { label: 'Browse Lists', href: '/lists' },
+      { label: 'Activity Log', href: '/feed' },
+      { label: 'Experts and Aggregators', href: '/experts-and-aggregators' },
+      { label: 'Request a List', href: '/request' },
     ],
   },
   {
