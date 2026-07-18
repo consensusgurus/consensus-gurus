@@ -24,6 +24,9 @@ export const DAILY_GAMES = [
   { key: 'extra', href: '/extra', name: 'Extra', tag: 'unredact the front page', store: 'sot_extra_day', accent: '#b91c1c', bg: '#fdeeee', border: 'rgba(185,28,28,0.4)' },
   { key: 'stet', href: '/stet', name: 'Stet', tag: 'find and fix the wrong word', store: 'sot_stet_day', accent: '#0369a1', bg: '#e8f3fa', border: 'rgba(3,105,161,0.4)' },
   { key: 'outwit', href: '/outwit', name: 'Outwit', tag: 'five duels against the crowd', store: 'sot_outwit_day', accent: '#1f2937', bg: '#eef1f5', border: 'rgba(31,41,55,0.35)' },
+  { key: 'tuck', href: '/tuck', name: 'Tuck', tag: 'build your own crossword', store: 'sot_tuck_day', accent: '#92400e', bg: '#f5e9dc', border: 'rgba(146,64,14,0.35)' },
+  { key: 'alibi', href: '/alibi', name: 'Alibi', tag: 'the nightly whodunit', store: 'sot_alibi_day', accent: '#8b1e2d', bg: '#f6e3e5', border: 'rgba(139,30,45,0.35)' },
+  { key: 'cipher', href: '/cipher', name: 'Cipher', tag: 'crack the letter math', store: 'sot_cipher_day', accent: '#0f766e', bg: '#d9f0ee', border: 'rgba(15,118,110,0.35)' },
 ];
 
 function etToday() {

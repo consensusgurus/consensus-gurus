@@ -2,13 +2,13 @@
 
 // DailyEndCard — the shared end-of-game result popup for every daily game
 // (Crux, Emcee, Garble, Links, Span, Dating, Tally, Suds, Circa, Extra,
-// Carve, Stet, Outwit).
+// Carve, Stet, Outwit, Tuck, Alibi, Cipher).
 //
 // One component, used by all daily clients. It renders:
 //   1. a centered results block — the game's own finish graphic, the
 //      headline (each client passes its "N% Complete"), the score subline,
 //      and three actions (Share Result · Leaderboard · Replay); and
-//   2. a "Your day so far" completion journey — the 13 daily games in one
+//   2. a "Your day so far" completion journey — the 16 daily games in one
 //      flat two-column list. The games you have already finished float to the
 //      top-left and fill straight down column 1, each shaded in its family
 //      color with a filled check; the games still to play sit below and in
@@ -28,10 +28,20 @@ import React, { useState, useEffect } from 'react';
 import {
   Type, Clock, Globe, Hash, Share2, BarChart3, RotateCcw, Check, X,
   Trophy, Link2, Flag, CalendarCheck, Scale, Grid3x3, LayoutGrid, Newspaper, FlagTriangleRight,
-  Pencil, Users, ArrowRight,
+  Pencil, Users, ArrowRight, Puzzle, Fingerprint, KeyRound,
 } from 'lucide-react';
 
 const RUST = '#c0392b';
+
+// LAUNCH WINDOW (owner ruling 2026-07-18): brand-new daily games lead the
+// "still to play" list for their first FOUR days so players actually meet
+// them; after `until` (ET, inclusive) the canonical order resumes. Keep in
+// sync with the same pin in app/api/quiz/daily-order/route.js.
+const LAUNCH_PIN = { keys: ['tuck', 'alibi', 'cipher'], until: '2026-07-21' };
+function etTodayEC() {
+  try { return new Date().toLocaleDateString('en-CA', { timeZone: 'America/New_York' }); }
+  catch (e) { return new Date().toISOString().slice(0, 10); }
+}
 
 const SANS = "'Manrope', system-ui, -apple-system, sans-serif";
 const MONO = "'DM Mono', ui-monospace, 'SFMono-Regular', monospace";
@@ -56,17 +66,21 @@ export const GAME_META = {
   carve:  { accent: '#7c3aed', badgeBg: '#7c3aed', badgeInk: '#fff', Fin: LayoutGrid },
   stet:   { accent: '#0369a1', badgeBg: '#0369a1', badgeInk: '#fff', Fin: Pencil },
   outwit: { accent: '#1f2937', badgeBg: '#1f2937', badgeInk: '#e8b43a', Fin: Users },
+  tuck:   { accent: '#92400e', badgeBg: '#92400e', badgeInk: '#fff', Fin: Puzzle },
+  alibi:  { accent: '#8b1e2d', badgeBg: '#8b1e2d', badgeInk: '#fff', Fin: Fingerprint },
+  cipher: { accent: '#0f766e', badgeBg: '#0f766e', badgeInk: '#fff', Fin: KeyRound },
 };
 
-// ---- the four families (type label shown on each tile) ---------------------
+// ---- the five families (type label shown on each tile) ---------------------
 export const CAT_META = {
   word:      { name: 'Word',      color: '#2563eb', Icon: Type },
   history:   { name: 'History',   color: '#6d28d9', Icon: Clock },
   geography: { name: 'Geography', color: '#0e7c5a', Icon: Globe },
   numbers:   { name: 'Numbers',   color: '#ea580c', Icon: Hash },
+  logic:     { name: 'Logic',     color: '#9f1239', Icon: Fingerprint },
 };
 
-// ---- the daily slate (13 games) --------------------------------------------
+// ---- the daily slate (16 games) --------------------------------------------
 // Canonical order = the order the "still to play" tiles appear in. Completed
 // games are lifted out of this order to the top of the list at render time.
 export const DAILY_GAMES = [
@@ -75,6 +89,7 @@ export const DAILY_GAMES = [
   { key: 'links',  cat: 'word',      name: 'Links',  tag: 'Four hidden threads',       href: '/links' },
   { key: 'garble', cat: 'word',      name: 'Garble', tag: 'Untangle five words',       href: '/garble' },
   { key: 'stet',   cat: 'word',      name: 'Stet',   tag: 'Fix the wrong word',        href: '/stet' },
+  { key: 'tuck',   cat: 'word',      name: 'Tuck',   tag: 'Build your own crossword',  href: '/tuck' },
   { key: 'dating', cat: 'history',   name: 'Dating', tag: 'Put five moments in order', href: '/dating' },
   { key: 'circa',  cat: 'history',   name: 'Circa',  tag: 'Pin the year it happened',  href: '/circa' },
   { key: 'extra',  cat: 'history',   name: 'Extra',  tag: 'Name the redacted front page', href: '/extra' },
@@ -83,6 +98,8 @@ export const DAILY_GAMES = [
   { key: 'suds',   cat: 'numbers',   name: 'Suds',   tag: 'The daily 9×9 sudoku',      href: '/suds' },
   { key: 'carve',  cat: 'numbers',   name: 'Carve',  tag: 'Carve equal-sum regions',   href: '/carve' },
   { key: 'outwit', cat: 'numbers',   name: 'Outwit', tag: 'Beat the crowd',            href: '/outwit' },
+  { key: 'cipher', cat: 'numbers',   name: 'Cipher', tag: 'Crack the letter math',     href: '/cipher' },
+  { key: 'alibi',  cat: 'logic',     name: 'Alibi',  tag: 'Solve the nightly whodunit', href: '/alibi' },
 ];
 
 /**
@@ -143,11 +160,20 @@ export default function DailyEndCard({
   }
 
   // The journey order: the just-finished game first, then every other game the
-  // viewer has completed (canonical order), then everything still to play.
+  // viewer has completed (canonical order), then everything still to play —
+  // with just-launched games pinned to the front of that segment during
+  // their launch window.
+  let todo = DAILY_GAMES.filter((g) => !completed.has(g.key));
+  if (etTodayEC() <= LAUNCH_PIN.until) {
+    todo = [
+      ...todo.filter((g) => LAUNCH_PIN.keys.includes(g.key)),
+      ...todo.filter((g) => !LAUNCH_PIN.keys.includes(g.key)),
+    ];
+  }
   const ordered = [
     ...DAILY_GAMES.filter((g) => g.key === self),
     ...DAILY_GAMES.filter((g) => g.key !== self && completed.has(g.key)),
-    ...DAILY_GAMES.filter((g) => !completed.has(g.key)),
+    ...todo,
   ];
   const total = DAILY_GAMES.length;
   const doneCount = DAILY_GAMES.filter((g) => completed.has(g.key)).length;

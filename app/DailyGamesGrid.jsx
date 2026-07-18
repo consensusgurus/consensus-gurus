@@ -31,6 +31,9 @@ const GAMES = [
   { key: 'extra', href: '/extra', name: 'Extra', tag: 'Name the story', img: '/games/btn-extra.png', label: 'Daily' },
   { key: 'stet', href: '/stet', name: 'Stet', tag: 'Fix the wrong word', img: '/games/btn-stet.png', label: 'Daily' },
   { key: 'outwit', href: '/outwit', name: 'Outwit', tag: 'Beat the crowd', img: '/games/btn-outwit.png', label: 'Daily' },
+  { key: 'tuck', href: '/tuck', name: 'Tuck', tag: 'Build your own crossword', img: '/games/btn-tuck.png', label: 'Daily' },
+  { key: 'alibi', href: '/alibi', name: 'Alibi', tag: 'Solve the nightly whodunit', img: '/games/btn-alibi.png', label: 'Daily' },
+  { key: 'cipher', href: '/cipher', name: 'Cipher', tag: 'Crack the letter math', img: '/games/btn-cipher.png', label: 'Daily' },
 ];
 // The evergreen fill tile: the site's most-played quiz, so the games block stays
 // an even count on the 2-wide phone layout.

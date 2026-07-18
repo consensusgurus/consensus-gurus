@@ -21,6 +21,9 @@ import { PUZZLES as P_extra } from '@/app/extra/puzzles';
 import { PUZZLES as P_carve } from '@/app/carve/puzzles';
 import { PUZZLES as P_stet } from '@/app/stet/puzzles';
 import { PUZZLES as P_outwit } from '@/app/outwit/puzzles';
+import { PUZZLES as P_tuck } from '@/app/tuck/puzzles';
+import { PUZZLES as P_alibi } from '@/app/alibi/puzzles';
+import { PUZZLES as P_cipher } from '@/app/cipher/puzzles';
 
 export const dynamic = 'force-dynamic';
 export const fetchCache = 'force-no-store';
@@ -32,6 +35,7 @@ const CACHE_HEADERS = { 'Cache-Control': 'public, s-maxage=30, stale-while-reval
 const GAME_PUZZLES = {
   crux: P_crux, emcee: P_emcee, garble: P_garble, links: P_links, span: P_span, dating: P_dating,
   tally: P_tally, suds: P_suds, circa: P_circa, extra: P_extra, carve: P_carve, stet: P_stet, outwit: P_outwit,
+  tuck: P_tuck, alibi: P_alibi, cipher: P_cipher,
 };
 
 function etTodayServer() {

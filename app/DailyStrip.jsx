@@ -9,11 +9,14 @@
 // the same-device localStorage breadcrumb (sot_<key>_day) driving the first
 // paint. Adding a game to GAMES adds it to the strip everywhere it's used.
 //
-// LEADERBOARD (optional): pass `board` (the /api/quiz/daily-combined payload) and
-// each cell gains the game's current leader (crown + name) inline, and the cap
-// gains an expand arrow. Expanding grows this SAME pill into a detail region with
-// the overall top-5 and every game's top-3 (the inline single leaders hide while
-// open, so no name is shown twice). Consolidated: one pill, no separate card.
+// TWO ROWS (owner ruling 2026-07-18, at 16 games): the cells lay out as a
+// 2-row × 8-column grid, and the fixed left cap spans both rows.
+//
+// LEADERBOARD (optional): pass `board` (the /api/quiz/daily-combined payload)
+// and the left cap becomes today's board in miniature — the overall TOP 3
+// (rank, name, points) — plus the expand arrow. Expanding grows this SAME
+// pill into the detail region with the overall top-5 and every game's top-3.
+// Consolidated: one pill, no separate card, no per-cell leader chips.
 
 import React, { useState, useEffect } from 'react';
 import { Crown, ChevronDown } from 'lucide-react';
@@ -33,11 +36,14 @@ const GAMES = [
   { key: 'extra', href: '/extra', name: 'Extra', img: '/games/btn-extra.png', store: 'sot_extra_day' },
   { key: 'stet', href: '/stet', name: 'Stet', img: '/games/btn-stet.png', store: 'sot_stet_day' },
   { key: 'outwit', href: '/outwit', name: 'Outwit', img: '/games/btn-outwit.png', store: 'sot_outwit_day' },
+  { key: 'tuck', href: '/tuck', name: 'Tuck', img: '/games/btn-tuck.png', store: 'sot_tuck_day' },
+  { key: 'alibi', href: '/alibi', name: 'Alibi', img: '/games/btn-alibi.png', store: 'sot_alibi_day' },
+  { key: 'cipher', href: '/cipher', name: 'Cipher', img: '/games/btn-cipher.png', store: 'sot_cipher_day' },
 ];
 
 const NAME_BY_KEY = GAMES.reduce((m, g) => { m[g.key] = g.name; return m; }, {});
 // Navy-legible per-game accents for the mini-board titles (match DailyCombinedLeaderboard).
-const ACCENTS = { crux: '#5b9bff', emcee: '#e879f9', garble: '#f0c95a', links: '#4ca878', span: '#e06aa0', dating: '#a483f0', tally: '#4cb377', suds: '#f0894c', circa: '#38b6cf', extra: '#e06a6a', carve: '#a483f0', stet: '#41b1e8', outwit: '#c3cfe3' };
+const ACCENTS = { crux: '#5b9bff', emcee: '#e879f9', garble: '#f0c95a', links: '#4ca878', span: '#e06aa0', dating: '#a483f0', tally: '#4cb377', suds: '#f0894c', circa: '#38b6cf', extra: '#e06a6a', carve: '#a483f0', stet: '#41b1e8', outwit: '#c3cfe3', tuck: '#e0a568', alibi: '#ef8896', cipher: '#3fc9b8' };
 
 function etToday() {
   try { return new Date().toLocaleDateString('en-CA', { timeZone: 'America/New_York' }); }
@@ -127,25 +133,33 @@ export default function DailyStrip({ board = null }) {
         .dstrip-main::-webkit-scrollbar-thumb:hover{background:rgba(159,176,212,0.65);}
         .dstrip-main::-webkit-scrollbar-button{display:none;width:0;height:0;}
         .dstrip-cap{flex:0 0 auto;display:flex;flex-direction:column;justify-content:center;gap:5px;padding:12px 16px;background:#0b1733;border-right:1px solid rgba(255,255,255,0.07);min-width:104px;}
+        .dstrip-cap.has-top3{min-width:168px;max-width:196px;}
         .dstrip-cap .lab{font-size:9px;font-weight:800;letter-spacing:.14em;text-transform:uppercase;color:#f8b84a;}
         .dstrip-cap .cty{font-size:15px;font-weight:800;color:#fff;letter-spacing:-.2px;line-height:1;}
         .dstrip-bar{display:block;height:5px;width:60px;border-radius:99px;background:rgba(255,255,255,0.14);overflow:hidden;margin-top:3px;}
         .dstrip-fill{display:block;height:100%;width:0;background:#34d399;border-radius:99px;transition:width .4s ease;}
-        .dstrip-exp{margin-top:1px;align-self:flex-start;display:inline-flex;align-items:center;gap:4px;background:rgba(232,180,58,0.14);border:1px solid rgba(232,180,58,0.42);color:#f5d878;font-family:inherit;font-size:9.5px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;border-radius:7px;padding:3px 8px;cursor:pointer;transition:background .15s;}
+        .dstrip-exp{margin-top:2px;align-self:flex-start;display:inline-flex;align-items:center;gap:4px;background:rgba(232,180,58,0.14);border:1px solid rgba(232,180,58,0.42);color:#f5d878;font-family:inherit;font-size:9.5px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;border-radius:7px;padding:3px 8px;cursor:pointer;transition:background .15s;}
         .dstrip-exp:hover{background:rgba(232,180,58,0.24);}
-        .dstrip-cells{display:flex;flex:1 1 auto;}
-        .dstrip-cell{position:relative;flex:1 1 0;min-width:66px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;padding:13px 6px 11px;text-decoration:none;border-left:1px solid rgba(255,255,255,0.055);transition:background .12s;}
-        .dstrip-cell:first-child{border-left:none;}
+        /* the cap's miniature daily board: today's overall top 3 */
+        .dstrip-t3{display:flex;flex-direction:column;gap:2px;margin-top:2px;min-width:0;}
+        .dstrip-t3 .t3h{font-size:8.5px;font-weight:800;letter-spacing:.12em;text-transform:uppercase;color:#8fa3cf;margin-bottom:1px;}
+        .dstrip-t3r{display:flex;align-items:baseline;gap:5px;min-width:0;font-size:11px;font-weight:700;color:#eaf0fb;line-height:1.35;}
+        .dstrip-t3r .rk{flex:0 0 auto;width:10px;font-weight:800;color:#f5d878;font-variant-numeric:tabular-nums;}
+        .dstrip-t3r .nm3{flex:1 1 auto;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+        .dstrip-t3r .pt{flex:0 0 auto;font-size:10px;color:#93a7cc;font-variant-numeric:tabular-nums;font-weight:600;}
+        .dstrip-t3r.me .nm3{color:#f5d878;}
+        .dstrip-t3 .t3none{font-size:10.5px;font-weight:600;color:#6a80a8;line-height:1.35;}
+        /* 16 games in a 2-row × 8-column grid; the cap spans both rows */
+        .dstrip-cells{display:grid;grid-template-columns:repeat(8,minmax(72px,1fr));grid-auto-rows:1fr;flex:1 1 auto;min-width:0;}
+        .dstrip-cell{position:relative;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:5px;padding:11px 6px 9px;text-decoration:none;border-left:1px solid rgba(255,255,255,0.055);transition:background .12s;}
+        .dstrip-cell:nth-child(8n+1){border-left:none;}
+        .dstrip-cell:nth-child(n+9){border-top:1px solid rgba(255,255,255,0.055);}
         .dstrip-cell:hover{background:rgba(91,139,255,0.14);}
-        .dstrip-cell img{height:34px;width:auto;max-width:40px;object-fit:contain;}
-        .dstrip-cell .nm{font-size:11.5px;font-weight:800;color:#fff;letter-spacing:-.2px;white-space:nowrap;}
+        .dstrip-cell img{height:30px;width:auto;max-width:38px;object-fit:contain;}
+        .dstrip-cell .nm{font-size:11px;font-weight:800;color:#fff;letter-spacing:-.2px;white-space:nowrap;}
         .dstrip-cell.done img{opacity:.4;}
         .dstrip-cell.done .nm{color:#9fb0d4;}
-        .dstrip-check{position:absolute;top:6px;right:6px;width:16px;height:16px;border-radius:99px;background:#34d399;display:flex;align-items:center;justify-content:center;box-shadow:0 0 0 2px #0e1d40;pointer-events:none;}
-        .dstrip-lead{margin-top:3px;display:flex;align-items:center;gap:3px;max-width:100%;min-width:0;font-size:10.5px;font-weight:700;color:#eaf0fb;}
-        .dstrip-lead svg{color:#e8b43a;flex:none;}
-        .dstrip-lead > span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
-        .dstrip-lead.none{color:#6a80a8;font-weight:600;}
+        .dstrip-check{position:absolute;top:5px;right:5px;width:16px;height:16px;border-radius:99px;background:#34d399;display:flex;align-items:center;justify-content:center;box-shadow:0 0 0 2px #0e1d40;pointer-events:none;}
         /* expanded detail: attached inside the same pill */
         .dsd{border-top:1px solid rgba(232,180,58,0.28);background:#0b1733;padding:16px 16px 14px;}
         .dsd-head{display:flex;align-items:baseline;justify-content:space-between;gap:10px;flex-wrap:wrap;margin-bottom:12px;}
@@ -178,52 +192,65 @@ export default function DailyStrip({ board = null }) {
         .dsd-n2 b{color:#e8b43a;font-weight:700;}
         .dsd-p{color:#93a7cc;font-variant-numeric:tabular-nums;font-weight:600;font-size:10.5px;}
         .dsd-none{color:#6a80a8;font-size:10.5px;padding:2px 0;}
-        /* Enable horizontal scroll whenever the 13 cells can't all fit: narrow widths
+        /* Enable horizontal scroll whenever the 8 columns can't all fit: narrow widths
            AND short landscape phones (which can be wider than 820 but still overflow).
            Without this the strip's overflow:hidden clips the right-hand games and they
-           become unreachable (the "frozen strip" bug on landscape). */
+           become unreachable (the "frozen strip" bug on landscape). Both rows scroll
+           together — the grid keeps a floor width and the cap stays sticky. */
         @media (max-width:1024px), (max-height:600px){
           .dstrip-main{overflow-x:auto;-webkit-overflow-scrolling:touch;}
           .dstrip-cap{position:sticky;left:0;z-index:1;}
+          .dstrip-cells{min-width:560px;}
         }
         @media(max-width:560px){
           .dstrip-cap{min-width:78px;padding:10px 11px;}
-          .dstrip-cell{min-width:60px;padding:11px 5px 9px;}
-          .dstrip-cell img{height:28px;}
-          .dstrip-cell .nm{font-size:10.5px;}
+          .dstrip-cap.has-top3{min-width:148px;max-width:164px;}
+          .dstrip-cells{grid-template-columns:repeat(8,minmax(62px,1fr));min-width:496px;}
+          .dstrip-cell{padding:9px 5px 8px;}
+          .dstrip-cell img{height:26px;}
+          .dstrip-cell .nm{font-size:10px;}
         }
       `}</style>
       <div className={`dstrip${hasBoard ? ' has-board' : ''}`} role="navigation" aria-label="Daily games">
         <div className="dstrip-main">
-          <div className="dstrip-cap">
+          <div className={`dstrip-cap${hasBoard ? ' has-top3' : ''}`}>
             <span className="lab">Daily</span>
             <span className="cty">Games</span>
             <span className="dstrip-bar"><span className="dstrip-fill" style={{ width: `${pct}%` }} /></span>
             {hasBoard ? (
+              <span className="dstrip-t3">
+                <span className="t3h"><Crown size={8} style={{ display: 'inline', verticalAlign: '-1px', color: '#e8b43a' }} /> Today&rsquo;s Top 3</span>
+                {top5.length ? top5.slice(0, 3).map((r) => {
+                  const mine = meKey && r.userKey === meKey;
+                  return (
+                    <span key={r.userKey} className={`dstrip-t3r${mine ? ' me' : ''}`}>
+                      <span className="rk">{r.rank}</span>
+                      <span className="nm3">{r.username || 'Player'}</span>
+                      <span className="pt">{fmtPts(r.total)}</span>
+                    </span>
+                  );
+                }) : <span className="t3none">No scores yet — be the first.</span>}
+              </span>
+            ) : null}
+            {hasBoard ? (
               <button type="button" className="dstrip-exp" aria-expanded={open} onClick={() => setOpen((v) => !v)}>
                 <ChevronDown size={11} strokeWidth={2.6} style={{ transition: 'transform .2s', transform: open ? 'rotate(180deg)' : 'none' }} />
-                {open ? 'Hide' : 'Leaders'}
+                {open ? 'Hide' : 'Full board'}
               </button>
             ) : null}
           </div>
           <div className="dstrip-cells">
-            {games.map((g) => {
-              const lead = hasBoard && byKey[g.key] && byKey[g.key].board && byKey[g.key].board[0] ? byKey[g.key].board[0].username : null;
-              return (
-                <a key={g.key} href={g.href} className={`dstrip-cell${done.has(g.key) ? ' done' : ''}`} aria-label={`${g.name}${done.has(g.key) ? ' — done today' : ''} — daily game`}>
-                  {done.has(g.key) && (
-                    <span className="dstrip-check" aria-hidden="true">
-                      <svg viewBox="0 0 12 12" width="9" height="9" fill="none"><path d="M2.5 6.2 L5 8.6 L9.5 3.6" stroke="#04121f" strokeWidth="2.1" strokeLinecap="round" strokeLinejoin="round" /></svg>
-                    </span>
-                  )}
-                  <img src={g.img} alt="" aria-hidden="true" />
-                  <span className="nm">{g.name}</span>
-                  {hasBoard && !open ? (
-                    lead ? <span className="dstrip-lead"><Crown size={10} /><span>{lead}</span></span> : <span className="dstrip-lead none">—</span>
-                  ) : null}
-                </a>
-              );
-            })}
+            {games.map((g) => (
+              <a key={g.key} href={g.href} className={`dstrip-cell${done.has(g.key) ? ' done' : ''}`} aria-label={`${g.name}${done.has(g.key) ? ' — done today' : ''} — daily game`}>
+                {done.has(g.key) && (
+                  <span className="dstrip-check" aria-hidden="true">
+                    <svg viewBox="0 0 12 12" width="9" height="9" fill="none"><path d="M2.5 6.2 L5 8.6 L9.5 3.6" stroke="#04121f" strokeWidth="2.1" strokeLinecap="round" strokeLinejoin="round" /></svg>
+                  </span>
+                )}
+                <img src={g.img} alt="" aria-hidden="true" />
+                <span className="nm">{g.name}</span>
+              </a>
+            ))}
           </div>
         </div>
         {hasBoard && open ? (

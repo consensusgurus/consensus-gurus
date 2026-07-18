@@ -1,0 +1,857 @@
+'use client';
+
+// Tuck — the daily tile-tucking word game.
+//
+// Everyone gets the same 14 letters (a Scrabble-weighted rack, banked in
+// app/tuck/puzzles.js). Build your own interlocking crossword on a 9×9 board:
+// every run of 2+ letters must be a dictionary word, and everything must
+// connect into one grid. Score = the Scrabble points of every word you form
+// (letters at intersections count in BOTH words), +10 for tucking in all 14
+// letters. Each rack ships with a PAR our solver actually achieved — beat it.
+//
+// ONE SHOT COUNTS (owner ruling 2026-07-18): you can rebuild all you like
+// before submitting, but only your first submitted grid ranks on the daily
+// board. After submitting you can keep tinkering — sandbox only.
+//
+// The dictionary (public/tuck-dict.txt, ~115k words of 2-8 letters) is
+// fetched once as a static asset, never bundled.
+//
+// Same daily plumbing as Circa/Suds/Stet: banked racks gated by Eastern date
+// on the server (app/tuck/page.js), per-puzzle localStorage saves, /tuck?p=N
+// archive pinning, streaks + stats, and the shared /api/quiz/* board flow.
+
+import React, { useState, useEffect, useMemo, useRef } from 'react';
+import { useSearchParams } from 'next/navigation';
+import { HelpCircle, X, Smartphone, Shuffle, Eraser, CheckCircle2 } from 'lucide-react';
+import Grain from '../Grain';
+import Footer from '../Footer';
+import useDuelContext, { DuelBanner } from '../quiz/[id]/useDuelContext';
+import JoinLeaderboardForm from '../quiz/[id]/JoinLeaderboardForm';
+import DailyGamesGrid from '../DailyGamesGrid';
+import DailyEndCard from '../DailyEndCard';
+import DailyTopNav from '../DailyTopNav';
+import DailyCombinedLeaderboard from '../quiz/[id]/DailyCombinedLeaderboard';
+import { isMobileDevice } from '@/lib/is-mobile';
+
+const COLORS = {
+  cream: '#f7f8fa',
+  paper: '#eceef1',
+  ink: '#1c1e24',
+  ember: '#0e1d40',
+  rust: '#c0392b',
+  faded: '#6b7280',
+  accent: '#92400e',        // Tuck identity — tile-rack umber
+  accentSoft: '#f5e9dc',
+  green: '#15803d',
+  tile: '#f7edda',
+};
+const SANS = "'Manrope', system-ui, -apple-system, sans-serif";
+const MONO = "'DM Mono', ui-monospace, 'SFMono-Regular', monospace";
+const HELP_KEY = 'sot_tuck_help_seen';
+const STATS_KEY = 'sot_tuck_stats';
+const SIZE = 9;
+const PTS = { A: 1, B: 3, C: 3, D: 2, E: 1, F: 4, G: 2, H: 4, I: 1, J: 8, K: 5, L: 1, M: 3, N: 1, O: 1, P: 3, Q: 10, R: 1, S: 1, T: 1, U: 1, V: 4, W: 4, X: 8, Y: 4, Z: 10 };
+
+const isIosDevice = () =>
+  typeof navigator !== 'undefined' &&
+  (/iPad|iPhone|iPod/.test(navigator.userAgent || '') ||
+    (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1));
+
+function etToday() {
+  try { return new Date().toLocaleDateString('en-CA', { timeZone: 'America/New_York' }); }
+  catch (e) { return new Date().toISOString().slice(0, 10); }
+}
+function pickPuzzle(puzzles, forceNum) {
+  if (forceNum) { const p = puzzles.find((x) => x.num === forceNum); if (p) return p; }
+  const today = etToday();
+  const open = puzzles.filter((p) => p.live <= today);
+  return open.length ? open[open.length - 1] : puzzles[0];
+}
+function fmtTime(ms) {
+  const s = Math.max(0, Math.round(ms / 1000));
+  return `${Math.floor(s / 60)}:${String(s % 60).padStart(2, '0')}`;
+}
+function msToMidnightET() {
+  try {
+    const now = new Date();
+    const et = new Date(now.toLocaleString('en-US', { timeZone: 'America/New_York' }));
+    const next = new Date(et);
+    next.setHours(24, 0, 0, 0);
+    return next - et;
+  } catch (e) {
+    const now = new Date();
+    const next = new Date(now);
+    next.setHours(24, 0, 0, 0);
+    return next - now;
+  }
+}
+function fmtCountdown(ms) {
+  const s = Math.max(0, Math.floor(ms / 1000));
+  return `${Math.floor(s / 3600)}:${String(Math.floor((s % 3600) / 60)).padStart(2, '0')}:${String(s % 60).padStart(2, '0')}`;
+}
+function getAnonId() {
+  if (typeof window === 'undefined') return null;
+  try {
+    let a = localStorage.getItem('sot_quiz_anon');
+    if (!a) {
+      a = (window.crypto && crypto.randomUUID) ? crypto.randomUUID() : `a_${Date.now()}_${Math.random().toString(36).slice(2)}`;
+      localStorage.setItem('sot_quiz_anon', a);
+    }
+    return a;
+  } catch (e) { return null; }
+}
+const EMPTY_BOARD = { plays: 0, best: null, topTime: null, leaderboard: [], leaderboardAll: [], leaderboardMobile: [], leaderboardFirst: [], leaderboards: {} };
+
+// ─── Personal stats + streak (localStorage), Circa/Suds pattern ─────────────
+function getStats() {
+  try {
+    const s = JSON.parse(localStorage.getItem(STATS_KEY));
+    if (s && s.v === 1 && s.rec) return s;
+  } catch (e) {}
+  return { v: 1, rec: {} };
+}
+function recordStat(num, entry) {
+  const s = getStats();
+  if (s.rec[num]) return s;
+  const s2 = { ...s, rec: { ...s.rec, [num]: entry } };
+  try { localStorage.setItem(STATS_KEY, JSON.stringify(s2)); } catch (e) {}
+  return s2;
+}
+function deriveStats(s, todayNum) {
+  const rec = s && s.rec ? s.rec : {};
+  const nums = Object.keys(rec).map(Number).sort((a, b) => a - b);
+  const played = nums.length;
+  const perfect = nums.filter((n) => rec[n].won).length;
+  let max = 0, run = 0, prev = null;
+  for (const n of nums) {
+    run = prev != null && n === prev + 1 ? run + 1 : 1;
+    if (run > max) max = run;
+    prev = n;
+  }
+  let cur = 0, at = rec[todayNum] ? todayNum : todayNum - 1;
+  while (rec[at]) { cur++; at--; }
+  return { played, perfect, cur, max };
+}
+function mergeServerStats(s, recent, puzzles) {
+  if (!s || !Array.isArray(recent) || !recent.length) return s;
+  const byQuiz = {};
+  for (const p of puzzles) byQuiz[p.quizId] = p;
+  let rec = s.rec, changed = false;
+  for (const m of recent) {
+    const p = m && byQuiz[m.quizId];
+    if (!p || m.attempt !== 1) continue;
+    if (rec[p.num]) continue;
+    const sc = Math.max(0, Math.round(((m.scorePct || 0) / 100) * (p.par || 50)));
+    if (!changed) { rec = { ...rec }; changed = true; }
+    rec[p.num] = { s: sc, t: p.par || 50, g: null, won: !!m.perfect };
+  }
+  if (!changed) return s;
+  const s2 = { ...s, rec };
+  try { localStorage.setItem(STATS_KEY, JSON.stringify(s2)); } catch (e) {}
+  return s2;
+}
+
+function emptyGrid() { return Array.from({ length: SIZE }, () => Array(SIZE).fill(null)); }
+function freshState() {
+  return {
+    v: 1,
+    grid: emptyGrid(),
+    status: 'playing',          // playing | done (done = score submitted)
+    submitted: null,            // { score, placed } once submitted
+    t0: null,
+    tEnd: null,
+  };
+}
+
+export default function TuckClient({ puzzles = [], forceNum = null }) {
+  const PUZZLE = useMemo(() => pickPuzzle(puzzles, forceNum), [puzzles, forceNum]);
+  const STORE_KEY = `sot_tuck_${PUZZLE.num}`;
+  const TRAY = PUZZLE.letters;
+  const PAR = PUZZLE.par;
+
+  const [g, setG] = useState(freshState);
+  const [dict, setDict] = useState(null);          // Set of lowercase words
+  const [dictErr, setDictErr] = useState(false);
+  const [sel, setSel] = useState(null);            // { r, c }
+  const [dir, setDir] = useState('h');
+  const [armed, setArmed] = useState(null);        // armed tray letter
+  const [confirming, setConfirming] = useState(false);
+  const [showHelp, setShowHelp] = useState(false);
+  const [toast, setToast] = useState(null);
+  const [copied, setCopied] = useState(false);
+  const [endClosed, setEndClosed] = useState(false);
+  const [hydrated, setHydrated] = useState(false);
+  const [board, setBoard] = useState(EMPTY_BOARD);
+  const [identity, setIdentity] = useState(null);
+  const [stats, setStats] = useState(null);
+  const [player, setPlayer] = useState(null);
+  const [countdown, setCountdown] = useState('');
+  const [installEvt, setInstallEvt] = useState(null);
+  const [showA2hsHelp, setShowA2hsHelp] = useState(false);
+  const [standalone, setStandalone] = useState(false);
+  const [mobileUi, setMobileUi] = useState(false);
+  const searchParams = useSearchParams();
+  const { duelToken, duelInfo, duelSubmitted } = useDuelContext(PUZZLE.quizId, searchParams);
+  const toastTimer = useRef(null);
+  const viewedRef = useRef(false);
+  const gridRef = useRef(null);
+
+  const [showChrome, setShowChrome] = useState(false);
+  const playing = g.status === 'playing';
+  const focusMode = playing && !showChrome;
+
+  // ---- dictionary (static asset, fetched once) ----
+  useEffect(() => {
+    let alive = true;
+    fetch('/tuck-dict.txt')
+      .then((r) => { if (!r.ok) throw new Error('dict'); return r.text(); })
+      .then((t) => { if (alive) setDict(new Set(t.split('\n').map((w) => w.trim()).filter(Boolean))); })
+      .catch(() => { if (alive) setDictErr(true); });
+    return () => { alive = false; };
+  }, []);
+
+  useEffect(() => {
+    try {
+      setStandalone(window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true);
+      setMobileUi(isMobileDevice());
+    } catch {}
+    const onBip = (e) => { e.preventDefault(); setInstallEvt(e); };
+    const onInstalled = () => { setStandalone(true); setInstallEvt(null); };
+    window.addEventListener('beforeinstallprompt', onBip);
+    window.addEventListener('appinstalled', onInstalled);
+    return () => { window.removeEventListener('beforeinstallprompt', onBip); window.removeEventListener('appinstalled', onInstalled); };
+  }, []);
+  const a2hsClick = () => { const e = installEvt; if (e) { setInstallEvt(null); e.prompt(); } else { setShowA2hsHelp(true); } };
+
+  // ---- persistence ----
+  useEffect(() => {
+    try {
+      const raw = localStorage.getItem(STORE_KEY);
+      if (raw) {
+        const saved = JSON.parse(raw);
+        if (saved && saved.v === 1 && Array.isArray(saved.grid)) setG({ ...freshState(), ...saved });
+      }
+      if (!localStorage.getItem(HELP_KEY)) setShowHelp(true);
+    } catch (e) {}
+    try { setStats(getStats()); } catch (e) {}
+    setHydrated(true);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+  useEffect(() => {
+    if (!hydrated) return;
+    try { localStorage.setItem(STORE_KEY, JSON.stringify(g)); } catch (e) {}
+    try {
+      if (PUZZLE.num === pickPuzzle(puzzles, null).num) {
+        localStorage.setItem('sot_tuck_day', JSON.stringify({ d: etToday(), done: g.status !== 'playing' }));
+      }
+    } catch (e) {}
+  }, [g, hydrated, STORE_KEY, PUZZLE, puzzles]);
+
+  useEffect(() => {
+    if (g.status === 'playing') return;
+    const tick = () => setCountdown(fmtCountdown(msToMidnightET()));
+    tick();
+    const iv = setInterval(tick, 1000);
+    return () => clearInterval(iv);
+  }, [g.status]);
+
+  // ---- metrics + leaderboard (same /api/quiz/* flow as every other board) ----
+  useEffect(() => {
+    try {
+      const id = JSON.parse(localStorage.getItem('sot_quiz_identity'));
+      if (id && id.email) setIdentity(id);
+    } catch (e) {}
+    try {
+      const anon = getAnonId();
+      let em = '';
+      try {
+        const idj = JSON.parse(localStorage.getItem('sot_quiz_identity') || 'null');
+        if (idj && idj.email) em = `&email=${encodeURIComponent(idj.email)}`;
+      } catch (e) {}
+      if (anon || em) {
+        fetch(`/api/quiz/me?anonId=${encodeURIComponent(anon || '')}${em}`)
+          .then((r) => r.json())
+          .then((d) => {
+            if (d && Array.isArray(d.recent)) {
+              setStats((cur) => mergeServerStats(cur || getStats(), d.recent, puzzles));
+            }
+            if (d && d.found && d.name) setPlayer({ name: d.name, rank: (d.ranks && d.ranks.xp) || d.rank || null, key: d.userKey || null });
+          })
+          .catch(() => {});
+      }
+    } catch (e) {}
+    fetch(`/api/quiz/board?quizId=${encodeURIComponent(PUZZLE.quizId)}`)
+      .then((r) => r.json())
+      .then((d) => { if (d && !d.error) setBoard({ ...EMPTY_BOARD, ...d }); })
+      .catch(() => {});
+    if (!viewedRef.current) {
+      viewedRef.current = true;
+      fetch('/api/quiz/view', { method: 'POST', keepalive: true, headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ quizId: PUZZLE.quizId }) }).catch(() => {});
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  function say(msg) {
+    setToast(msg);
+    if (toastTimer.current) clearTimeout(toastTimer.current);
+    toastTimer.current = setTimeout(() => setToast(null), 2400);
+  }
+
+  const elapsed = g.t0 ? fmtTime((g.tEnd || Date.now()) - g.t0) : '0:00';
+  const isTodays = PUZZLE.num === pickPuzzle(puzzles, null).num;
+  const prevPuzzle = puzzles.find((x) => x.num === PUZZLE.num - 1) || null;
+  const myStats = deriveStats(stats, pickPuzzle(puzzles, null).num);
+
+  // ─── grid derivations (pure, recomputed each render) ──────────────────────
+  const grid = g.grid;
+  const runs = useMemo(() => {
+    const out = [];
+    for (let r = 0; r < SIZE; r++) {
+      let c = 0;
+      while (c < SIZE) {
+        if (grid[r][c]) {
+          const s = c;
+          while (c < SIZE && grid[r][c]) c++;
+          if (c - s > 1) out.push({ word: grid[r].slice(s, c).join(''), cells: Array.from({ length: c - s }, (_, i) => [r, s + i]) });
+        } else c++;
+      }
+    }
+    for (let c = 0; c < SIZE; c++) {
+      let r = 0;
+      while (r < SIZE) {
+        if (grid[r][c]) {
+          const s = r;
+          while (r < SIZE && grid[r][c]) r++;
+          if (r - s > 1) { let w = ''; for (let i = s; i < r; i++) w += grid[i][c]; out.push({ word: w, cells: Array.from({ length: r - s }, (_, i) => [s + i, c]) }); }
+        } else r++;
+      }
+    }
+    return out;
+  }, [grid]);
+
+  const placedCount = useMemo(() => grid.flat().filter(Boolean).length, [grid]);
+  const connected = useMemo(() => {
+    const placed = [];
+    for (let r = 0; r < SIZE; r++) for (let c = 0; c < SIZE; c++) if (grid[r][c]) placed.push([r, c]);
+    if (placed.length === 0) return true;
+    const seen = new Set([placed[0].join(',')]);
+    const q = [placed[0]];
+    while (q.length) {
+      const [r, c] = q.pop();
+      for (const [dr, dc] of [[0, 1], [0, -1], [1, 0], [-1, 0]]) {
+        const nr = r + dr, nc = c + dc;
+        if (nr >= 0 && nr < SIZE && nc >= 0 && nc < SIZE && grid[nr][nc] && !seen.has(`${nr},${nc}`)) { seen.add(`${nr},${nc}`); q.push([nr, nc]); }
+      }
+    }
+    return seen.size === placed.length;
+  }, [grid]);
+
+  const badCells = useMemo(() => {
+    const bad = new Set();
+    if (!dict) return bad;
+    for (const x of runs) { if (!dict.has(x.word.toLowerCase())) x.cells.forEach(([r, c]) => bad.add(`${r},${c}`)); }
+    return bad;
+  }, [runs, dict]);
+  const allValid = dict ? runs.every((x) => dict.has(x.word.toLowerCase())) : false;
+  const stray = placedCount > 0 && runs.length === 0;
+  // every placed tile must be part of at least one run (no floating singles)
+  const inRun = useMemo(() => {
+    const s = new Set();
+    for (const x of runs) x.cells.forEach(([r, c]) => s.add(`${r},${c}`));
+    return s;
+  }, [runs]);
+  const loneTiles = useMemo(() => {
+    let n = 0;
+    for (let r = 0; r < SIZE; r++) for (let c = 0; c < SIZE; c++) if (grid[r][c] && !inRun.has(`${r},${c}`)) n++;
+    return n;
+  }, [grid, inRun]);
+  const isValid = allValid && connected && runs.length > 0 && loneTiles === 0;
+  const liveScore = useMemo(() => {
+    if (!isValid) return 0;
+    let s = 0;
+    for (const x of runs) for (const ch of x.word) s += PTS[ch];
+    if (placedCount === 14) s += 10;
+    return s;
+  }, [isValid, runs, placedCount]);
+
+  const availCounts = useMemo(() => {
+    const m = {};
+    for (const l of TRAY) m[l] = (m[l] || 0) + 1;
+    for (const row of grid) for (const x of row) if (x) m[x] = (m[x] || 0) - 1;
+    return m;
+  }, [TRAY, grid]);
+
+  function startClock() { setG((cur) => (cur.t0 ? cur : { ...cur, t0: Date.now() })); }
+
+  function setCell(r, c, val) {
+    setG((cur) => {
+      const grid2 = cur.grid.map((row) => row.slice());
+      grid2[r][c] = val;
+      return { ...cur, grid: grid2, t0: cur.t0 || Date.now() };
+    });
+  }
+
+  function onCell(r, c) {
+    if (armed !== null) {
+      if ((availCounts[armed] || 0) > 0) {
+        setCell(r, c, armed);
+        setArmed(null);
+        setSel({ r, c });
+        advanceFrom(r, c);
+        return;
+      }
+      setArmed(null);
+    }
+    if (sel && sel.r === r && sel.c === c) setDir((d) => (d === 'h' ? 'v' : 'h'));
+    else setSel({ r, c });
+  }
+  function advanceFrom(r, c) {
+    setSel((cur) => {
+      if (!cur) return cur;
+      if (dir === 'h' && c < SIZE - 1) return { r, c: c + 1 };
+      if (dir === 'v' && r < SIZE - 1) return { r: r + 1, c };
+      return { r, c };
+    });
+  }
+
+  useEffect(() => {
+    const onKey = (e) => {
+      if (e.metaKey || e.ctrlKey || e.altKey) return;
+      if (!sel) return;
+      const tag = (document.activeElement && document.activeElement.tagName) || '';
+      if (tag === 'INPUT' || tag === 'TEXTAREA') return;
+      const { r, c } = sel;
+      if (e.key === ' ') { setDir((d) => (d === 'h' ? 'v' : 'h')); e.preventDefault(); return; }
+      if (e.key === 'ArrowRight' && c < SIZE - 1) { setSel({ r, c: c + 1 }); e.preventDefault(); return; }
+      if (e.key === 'ArrowLeft' && c > 0) { setSel({ r, c: c - 1 }); e.preventDefault(); return; }
+      if (e.key === 'ArrowDown' && r < SIZE - 1) { setSel({ r: r + 1, c }); e.preventDefault(); return; }
+      if (e.key === 'ArrowUp' && r > 0) { setSel({ r: r - 1, c }); e.preventDefault(); return; }
+      if (e.key === 'Backspace' || e.key === 'Delete') {
+        if (grid[r][c]) setCell(r, c, null);
+        else {
+          let nr = r, nc = c;
+          if (dir === 'h' && c > 0) nc = c - 1;
+          else if (dir === 'v' && r > 0) nr = r - 1;
+          setCell(nr, nc, null);
+          setSel({ r: nr, c: nc });
+        }
+        e.preventDefault();
+        return;
+      }
+      if (/^[a-zA-Z]$/.test(e.key)) {
+        const L = e.key.toUpperCase();
+        const cur = grid[r][c];
+        const extra = cur === L ? 1 : 0;
+        if ((availCounts[L] || 0) + extra > 0) {
+          setCell(r, c, L);
+          advanceFrom(r, c);
+        } else {
+          say(`No ${L} left in your rack`);
+        }
+        e.preventDefault();
+      }
+    };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [sel, dir, grid, availCounts]);
+
+  function clearGrid() {
+    setG((cur) => ({ ...cur, grid: emptyGrid() }));
+    setConfirming(false);
+  }
+
+  function postResult(g2, sc, placed) {
+    const el = g2.t0 ? Math.max(1, Math.round(((g2.tEnd || Date.now()) - g2.t0) / 1000)) : 1;
+    try { setStats(recordStat(PUZZLE.num, { s: sc, t: PAR, g: 14 - placed, won: sc >= PAR })); } catch (e) {}
+    try {
+      fetch('/api/quiz/result', {
+        method: 'POST',
+        keepalive: true,
+        headers: { 'Content-Type': 'application/json' },
+        // total = the day's PAR (uniform for everyone, so the combined board's
+        // completion normalization is stable); guessesUsed = unused letters, so
+        // ties break toward the fuller rack.
+        body: JSON.stringify({ quizId: PUZZLE.quizId, score: sc, total: PAR, correct: sc >= PAR ? 1 : 0, guessesUsed: 14 - placed, timeElapsed: el, email: identity?.email || undefined, anonId: getAnonId(), isMobile: isMobileDevice(), referrer: (typeof document !== 'undefined' ? document.referrer : '') }),
+      })
+        .then((r) => r.json())
+        .then((d) => { if (d && !d.error) setBoard({ ...EMPTY_BOARD, ...d }); })
+        .catch(() => {});
+    } catch (e) {}
+  }
+
+  function submitScore() {
+    if (!playing || !isValid || liveScore <= 0) return;
+    if (!confirming) { setConfirming(true); return; }
+    const g2 = { ...g, status: 'done', submitted: { score: liveScore, placed: placedCount }, tEnd: Date.now(), t0: g.t0 || Date.now() };
+    setG(g2);
+    setConfirming(false);
+    setEndClosed(false);
+    postResult(g2, liveScore, placedCount);
+  }
+
+  function resetGame() {
+    try { localStorage.removeItem(STORE_KEY); } catch (e) {}
+    setG(freshState()); setSel(null); setArmed(null); setConfirming(false); setEndClosed(false);
+  }
+
+  const finalScore = g.submitted ? g.submitted.score : 0;
+  const won = g.status === 'done' && finalScore >= PAR;
+
+  function shareArt() {
+    let minR = SIZE, maxR = -1, minC = SIZE, maxC = -1;
+    for (let r = 0; r < SIZE; r++) for (let c = 0; c < SIZE; c++) if (grid[r][c]) { minR = Math.min(minR, r); maxR = Math.max(maxR, r); minC = Math.min(minC, c); maxC = Math.max(maxC, c); }
+    if (maxR < 0) return '';
+    let art = '';
+    for (let r = minR; r <= maxR; r++) { for (let c = minC; c <= maxC; c++) art += grid[r][c] ? '🟨' : '⬜'; art += '\n'; }
+    return art;
+  }
+  function copyShare() {
+    const streakBit = isTodays && myStats.cur >= 2 && g.status !== 'playing' ? ` · streak ${myStats.cur}` : '';
+    const text = playing
+      ? `Tuck #${PUZZLE.num} — tuck 14 letters into one grid. Par is ${PAR}.\nsourceoftruths.com/tuck${isTodays ? '' : `?p=${PUZZLE.num}`}`
+      : `Tuck #${PUZZLE.num} · ${finalScore} pts (par ${PAR})${finalScore >= PAR ? ' · beat par' : ''}${streakBit}\n${shareArt()}sourceoftruths.com/tuck${isTodays ? '' : `?p=${PUZZLE.num}`}`;
+    try {
+      if (typeof navigator !== 'undefined' && navigator.share && isMobileDevice()) {
+        navigator.share({ text }).catch(() => {});
+        return;
+      }
+    } catch (e) {}
+    try {
+      navigator.clipboard?.writeText(text).then(() => {
+        setCopied(true);
+        setTimeout(() => setCopied(false), 1800);
+      });
+    } catch (e) {}
+  }
+
+  // tray render bookkeeping: mark used tiles
+  const trayFlags = useMemo(() => {
+    const placedOf = {};
+    for (const row of grid) for (const x of row) if (x) placedOf[x] = (placedOf[x] || 0) + 1;
+    const seenOf = {};
+    return TRAY.map((l) => {
+      seenOf[l] = (seenOf[l] || 0) + 1;
+      const total = TRAY.filter((x) => x === l).length;
+      const used = seenOf[l] > total - (placedOf[l] || 0);
+      return { l, used };
+    });
+  }, [TRAY, grid]);
+
+  const statusLine = (() => {
+    if (!dict && !dictErr) return { msg: 'Loading the dictionary…', cls: 'muted' };
+    if (dictErr) return { msg: 'Could not load the dictionary — refresh to try again.', cls: 'bad' };
+    if (placedCount === 0) return { msg: 'Tap a square (or a rack tile), then type. Space flips direction ➜ / ⬇', cls: 'muted' };
+    if (!allValid) return { msg: 'Red runs aren’t words yet', cls: 'bad' };
+    if (stray || loneTiles > 0) return { msg: 'Single letters need to join a word', cls: 'bad' };
+    if (!connected) return { msg: 'Valid words, but everything must connect into one grid', cls: 'bad' };
+    if (placedCount === 14) return { msg: 'Perfect tuck! All 14 letters placed — rebuild for more, or submit.', cls: 'good' };
+    return { msg: 'Valid grid! Keep tucking letters in…', cls: 'good' };
+  })();
+
+  return (
+    <div style={{ minHeight: '100vh', background: '#f7f8fa', position: 'relative' }}>
+      <Grain />
+      <div className="tk-wrap" style={{ position: 'relative', zIndex: 2, maxWidth: 1180, margin: '0 auto', padding: '18px 38px 80px', fontFamily: SANS }}>
+        <style>{`
+          @media(max-width:560px){.tk-wrap{padding-left:10px !important;padding-right:10px !important;}}
+          .tk-btn{font-family:${SANS};font-weight:800;font-size:14px;border:2px solid ${COLORS.ink};background:#fff;color:${COLORS.ink};border-radius:8px;padding:9px 16px;cursor:pointer;display:inline-flex;align-items:center;gap:7px;}
+          .tk-btn:hover{background:${COLORS.paper};}
+          .tk-btn.primary{background:${COLORS.accent};border-color:${COLORS.accent};color:#fff;}
+          .tk-btn.primary:hover{background:#7c3609;}
+          .tk-btn:disabled{opacity:0.45;cursor:default;}
+          .tk-grid{display:grid;grid-template-columns:repeat(${SIZE},1fr);gap:3px;background:#dfd8cb;border:2px solid ${COLORS.ink};border-radius:10px;padding:6px;max-width:432px;width:100%;box-shadow:5px 5px 0 rgba(28,30,36,0.16);}
+          .tk-cell{position:relative;aspect-ratio:1;background:#fbf9f4;border-radius:4px;display:flex;align-items:center;justify-content:center;font-weight:900;font-size:clamp(14px,3.4vw,21px);color:${COLORS.ink};cursor:pointer;user-select:none;border:1px solid rgba(28,30,36,0.08);}
+          .tk-cell.filled{background:${COLORS.tile};border-color:rgba(146,64,14,0.35);box-shadow:inset 0 -2px 0 rgba(146,64,14,0.18);}
+          .tk-cell.badword{background:#fbe3e0;border-color:rgba(192,57,43,0.5);color:${COLORS.rust};}
+          .tk-cell.sel{outline:2.5px solid ${COLORS.accent};outline-offset:-1px;z-index:1;}
+          .tk-dir{position:absolute;right:2px;bottom:1px;font-size:9px;color:${COLORS.accent};}
+          .tk-tray{display:flex;flex-wrap:wrap;gap:6px;justify-content:center;margin:14px 0 4px;}
+          .tk-tile{position:relative;width:40px;height:44px;background:${COLORS.tile};border:1.5px solid rgba(146,64,14,0.45);border-radius:7px;display:flex;align-items:center;justify-content:center;font-weight:900;font-size:19px;color:${COLORS.ink};cursor:pointer;user-select:none;box-shadow:0 2px 0 rgba(146,64,14,0.25);}
+          .tk-tile .pts{position:absolute;right:3px;bottom:1px;font-size:9px;font-weight:800;color:${COLORS.accent};}
+          .tk-tile.used{opacity:0.28;box-shadow:none;}
+          .tk-tile.armed{outline:2.5px solid ${COLORS.accent};outline-offset:1px;}
+          .tk-wtag{display:inline-flex;align-items:center;font-family:${MONO};font-size:11.5px;font-weight:500;background:#fff;border:1px solid rgba(28,30,36,0.16);border-radius:6px;padding:2px 7px;margin:0 5px 5px 0;color:${COLORS.ink};}
+          .tk-wtag.invalid{color:${COLORS.rust};border-color:rgba(192,57,43,0.4);}
+          .tk-status{font-size:12.5px;font-weight:700;min-height:18px;}
+          .tk-status.bad{color:${COLORS.rust};}
+          .tk-status.good{color:${COLORS.green};}
+          .tk-status.muted{color:${COLORS.faded};}
+        `}</style>
+
+        <div style={{ maxWidth: 700, margin: '0 auto' }}>
+
+        <div style={{ display: focusMode ? 'none' : 'block' }}><DailyTopNav player={player} compact={playing} /></div>
+
+        {/* masthead */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: 14, flexWrap: 'wrap', position: 'relative', paddingRight: 28, marginBottom: 14, borderBottom: '2px solid rgba(28,30,36,0.8)', paddingBottom: 11 }}>
+          <div style={{ display: 'flex', gap: 5, alignItems: 'flex-end' }}>
+            {'TUCK'.split('').map((ch, i) => (
+              <div key={i} style={{ width: 44, height: 44, borderRadius: 5, display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: SANS, fontWeight: 900, fontSize: 26, background: i === 0 ? COLORS.accent : COLORS.ink, color: '#fff', boxShadow: 'inset 0 2px 5px rgba(0,0,0,0.5), 0 1px 0 rgba(255,255,255,0.65)' }}>{ch}</div>
+            ))}
+          </div>
+          <div style={{ display: 'flex', alignItems: 'baseline', gap: 9, flexWrap: 'wrap' }}>
+            <h1 style={{ margin: 0, fontFamily: MONO, fontSize: 14, letterSpacing: '0.06em', fontWeight: 500, color: COLORS.ink }}>No. {PUZZLE.num}</h1>
+            <span style={{ color: COLORS.faded }}>&middot;</span>
+            <span style={{ fontFamily: SANS, fontStyle: 'italic', fontSize: 15, color: COLORS.faded }}>{PUZZLE.dateLabel}</span>
+          </div>
+          <button onClick={() => setShowHelp(true)} aria-label="How to play" title="How to play" style={{ position: 'absolute', top: 10, right: 2, background: 'none', border: 'none', cursor: 'pointer', color: COLORS.faded, padding: 0, display: 'flex' }}>
+            <HelpCircle size={20} />
+          </button>
+        </div>
+
+        {/* score bar */}
+        <div style={{ display: 'flex', gap: 18, alignItems: 'baseline', flexWrap: 'wrap', marginBottom: 10, fontFamily: MONO, fontSize: 11.5, letterSpacing: '0.08em', textTransform: 'uppercase', color: COLORS.faded }}>
+          <span style={{ fontSize: 12 }}>score <b style={{ color: liveScore >= PAR && liveScore > 0 ? COLORS.green : COLORS.ink, fontWeight: 500, fontSize: 20 }}>{playing ? liveScore : finalScore}</b></span>
+          <span>par <b style={{ color: COLORS.accent, fontWeight: 500 }}>{PAR}</b></span>
+          <span>tiles <b style={{ color: COLORS.ink, fontWeight: 500 }}>{placedCount}</b>/14</span>
+          {!playing && <span style={{ marginLeft: 'auto', color: COLORS.green }}>score submitted — sandbox mode</span>}
+        </div>
+
+        <div style={{ display: 'flex', gap: 22, flexWrap: 'wrap', alignItems: 'flex-start' }}>
+          <div style={{ flex: '1 1 300px', minWidth: 280, maxWidth: 432 }}>
+            <div className="tk-grid" ref={gridRef} role="grid" aria-label="Tuck board">
+              {Array.from({ length: SIZE * SIZE }, (_, i) => {
+                const r = Math.floor(i / SIZE), c = i % SIZE;
+                const v = grid[r][c];
+                const isSel = sel && sel.r === r && sel.c === c;
+                return (
+                  <div
+                    key={i}
+                    className={`tk-cell${v ? ' filled' : ''}${badCells.has(`${r},${c}`) ? ' badword' : ''}${isSel ? ' sel' : ''}`}
+                    onClick={() => onCell(r, c)}
+                    role="gridcell"
+                    aria-label={`Row ${r + 1} column ${c + 1}${v ? `: ${v}` : ''}`}
+                  >
+                    {v || ''}
+                    {isSel && <span className="tk-dir">{dir === 'h' ? '➜' : '⬇'}</span>}
+                  </div>
+                );
+              })}
+            </div>
+
+            {/* rack */}
+            <div className="tk-tray">
+              {trayFlags.map((t, i) => (
+                <div
+                  key={i}
+                  className={`tk-tile${t.used ? ' used' : ''}${armed === t.l && !t.used ? ' armed' : ''}`}
+                  onClick={() => { if ((availCounts[t.l] || 0) > 0) { startClock(); setArmed((a) => (a === t.l ? null : t.l)); } }}
+                  role="button"
+                  aria-label={`Tile ${t.l}, ${PTS[t.l]} points${t.used ? ', used' : ''}`}
+                >
+                  {t.l}<span className="pts">{PTS[t.l]}</span>
+                </div>
+              ))}
+            </div>
+            <div className="tk-status" style={{ textAlign: 'center' }}>
+              <span className={`tk-status ${statusLine.cls}`}>{statusLine.msg}</span>
+            </div>
+
+            <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', justifyContent: 'center', marginTop: 12 }}>
+              {playing && (
+                <button
+                  type="button"
+                  className="tk-btn primary"
+                  disabled={!isValid || liveScore <= 0 || !dict}
+                  onClick={submitScore}
+                >
+                  <CheckCircle2 size={15} strokeWidth={2.4} /> {confirming ? `Submit ${liveScore} pts — sure?` : 'Submit score'}
+                </button>
+              )}
+              <button type="button" className="tk-btn" onClick={clearGrid}><Eraser size={14} /> Clear</button>
+              {confirming && <button type="button" className="tk-btn" onClick={() => setConfirming(false)}>Keep building</button>}
+            </div>
+            {playing && (
+              <div style={{ fontSize: 11.5, fontWeight: 600, color: COLORS.faded, textAlign: 'center', marginTop: 8, lineHeight: 1.5 }}>
+                One shot counts: only your first submitted grid ranks on the daily board.
+              </div>
+            )}
+          </div>
+
+          {/* words formed */}
+          <div style={{ flex: '1 1 180px', minWidth: 170 }}>
+            <div style={{ fontFamily: MONO, fontSize: 10.5, fontWeight: 500, textTransform: 'uppercase', letterSpacing: '0.1em', color: COLORS.faded, marginBottom: 8 }}>Words formed</div>
+            <div>
+              {runs.length ? runs.map((x, i) => (
+                <span key={i} className={`tk-wtag${dict && !dict.has(x.word.toLowerCase()) ? ' invalid' : ''}`}>
+                  {x.word.toLowerCase()}{dict && !dict.has(x.word.toLowerCase()) ? ' ?' : ''}
+                  <span style={{ marginLeft: 5, color: COLORS.accent, fontWeight: 800, fontSize: 10 }}>{[...x.word].reduce((s, ch) => s + PTS[ch], 0)}</span>
+                </span>
+              )) : <span style={{ fontSize: 12, fontWeight: 600, color: COLORS.faded }}>No words yet.</span>}
+            </div>
+            <div style={{ fontSize: 11.5, fontWeight: 600, color: COLORS.faded, lineHeight: 1.55, marginTop: 10 }}>
+              Every run of 2+ letters must be a word, across and down. Intersections score in both words. All 14 tiles placed is +10.
+            </div>
+          </div>
+        </div>
+
+        {/* result */}
+        {!playing && (
+          <>
+            <div style={{ maxWidth: 472, margin: '16px 0 12px' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 14, background: '#fff', border: '1.5px solid rgba(28,30,36,0.18)', borderRadius: 10, padding: '12px 14px' }}>
+                <span style={{ fontFamily: MONO, fontSize: 32, fontWeight: 500, color: won ? COLORS.green : COLORS.ink, fontVariantNumeric: 'tabular-nums', letterSpacing: '0.04em', flex: '0 0 auto' }}>{finalScore}</span>
+                <span style={{ fontFamily: SANS, fontSize: 13, fontWeight: 700, color: COLORS.ink, lineHeight: 1.45 }}>
+                  {won ? `Beat the par of ${PAR} — the desk tips its cap.` : `Submitted against a par of ${PAR}.`}
+                  {' '}{g.submitted ? `${g.submitted.placed}/14 tiles.` : ''}
+                  {' '}<span style={{ color: COLORS.faded, fontWeight: 600 }}>{elapsed}</span>
+                </span>
+              </div>
+            </div>
+            <p style={{ fontSize: 12, color: COLORS.faded, fontWeight: 600, margin: '12px 0 0' }}>
+              {isTodays ? (
+                <>
+                  {countdown ? <>A fresh rack in <b style={{ color: COLORS.ink, fontVariantNumeric: 'tabular-nums' }}>{countdown}</b>.</> : 'A fresh rack lands at midnight Eastern.'}
+                  {prevPuzzle && (
+                    <>
+                      {' '}Meanwhile:{' '}
+                      <a href={`/tuck?p=${prevPuzzle.num}`} style={{ color: COLORS.ember, fontWeight: 800, textDecoration: 'underline' }}>
+                        play yesterday&rsquo;s rack &rarr;
+                      </a>
+                    </>
+                  )}
+                </>
+              ) : (
+                <>
+                  You&rsquo;re playing the {PUZZLE.dateLabel.replace(', 2026', '')} archive.{' '}
+                  <a href="/tuck" style={{ color: COLORS.ember, fontWeight: 800, textDecoration: 'underline' }}>Back to today&rsquo;s Tuck &rarr;</a>
+                  {' · '}
+                  <a href="/daily" style={{ color: COLORS.faded, fontWeight: 700, textDecoration: 'underline' }}>All daily puzzles</a>
+                </>
+              )}
+            </p>
+          </>
+        )}
+
+        {focusMode && (
+          <div style={{ maxWidth: 640, margin: '30px auto 0', textAlign: 'center' }}>
+            <button onClick={() => setShowChrome(true)} style={{ fontFamily: SANS, fontWeight: 800, fontSize: 13, letterSpacing: '0.03em', color: COLORS.ink, background: 'none', border: '1.5px solid rgba(28,30,36,0.28)', borderRadius: 9, padding: '10px 20px', cursor: 'pointer' }}>Show navigation &amp; more</button>
+            <div style={{ fontFamily: SANS, fontSize: 11, color: COLORS.faded, fontWeight: 600, marginTop: 8 }}>Other games, challenge, share &amp; leaderboard</div>
+          </div>
+        )}
+        <div style={{ display: focusMode ? 'none' : 'block', margin: '30px auto 0', maxWidth: 640 }}>
+          <DailyGamesGrid
+            self="tuck"
+            maxWidth={640}
+            challengeHref={`/duel/new?quiz=${encodeURIComponent(PUZZLE.quizId)}`}
+            share={{ label: copied ? 'Copied' : 'Share This Puzzle', onClick: copyShare }}
+            divider
+          />
+          {mobileUi && !standalone && (
+            <button onClick={a2hsClick} style={{ marginTop: 10, width: '100%', fontFamily: SANS, fontSize: 13.5, letterSpacing: '0.05em', textTransform: 'uppercase', fontWeight: 800, height: 54, borderRadius: 10, border: 'none', background: COLORS.accent, color: '#fff', cursor: 'pointer', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 9, whiteSpace: 'nowrap' }}>
+              <Smartphone size={15} strokeWidth={2.5} /> Add to Home Screen
+            </button>
+          )}
+        </div>
+        {showA2hsHelp && (
+          <div onClick={() => setShowA2hsHelp(false)} style={{ position: 'fixed', inset: 0, background: 'rgba(20,22,28,0.55)', zIndex: 90, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 18 }}>
+            <div onClick={(e) => e.stopPropagation()} style={{ background: '#fff', borderRadius: 14, maxWidth: 430, width: '100%', padding: '22px 22px 16px', fontFamily: SANS, border: '1.5px solid rgba(20,22,28,0.12)' }}>
+              <div style={{ fontSize: 17, fontWeight: 800, color: COLORS.ink, marginBottom: 8 }}>Add Tuck to your Home Screen</div>
+              {isIosDevice() ? (
+                <ol style={{ margin: '0 0 4px', paddingLeft: 20, color: COLORS.ink, fontSize: 14, lineHeight: 1.7 }}>
+                  <li>Tap the <b>Share</b> button in Safari&apos;s toolbar.</li>
+                  <li>Scroll down and tap <b>Add to Home Screen</b>.</li>
+                  <li>Tap <b>Add</b> &mdash; the tile opens today&apos;s rack, every day.</li>
+                </ol>
+              ) : (
+                <p style={{ margin: '0 0 4px', color: COLORS.ink, fontSize: 14, lineHeight: 1.7 }}>
+                  Open your browser&apos;s menu and choose <b>Add to Home Screen</b> (or <b>Install app</b>). The tile opens today&apos;s rack, every day.
+                </p>
+              )}
+              <button onClick={() => setShowA2hsHelp(false)} style={{ marginTop: 10, fontFamily: SANS, fontSize: 12.5, letterSpacing: '0.05em', textTransform: 'uppercase', fontWeight: 700, height: 44, width: '100%', borderRadius: 10, border: 'none', background: COLORS.ink, color: '#fff', cursor: 'pointer' }}>Got it</button>
+            </div>
+          </div>
+        )}
+        {!focusMode && !identity && (
+          <div style={{ margin: '18px auto 0', maxWidth: 640 }}>
+            <JoinLeaderboardForm hideIcon heading="See your stats and join the leaderboard" identity={identity} onJoined={(id) => { setIdentity(id); if (id && id.username) setPlayer((p) => p || { name: id.username, rank: null }); }} />
+          </div>
+        )}
+
+        {/* your stats — sits directly above the leaderboard */}
+        {!focusMode && identity && (
+        <div style={{ maxWidth: 640, margin: '20px auto 0' }}>
+          <div style={{ fontFamily: MONO, fontSize: 10.5, fontWeight: 500, textTransform: 'uppercase', letterSpacing: '0.1em', color: COLORS.faded, marginBottom: 9 }}>Your stats</div>
+          <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
+            {[
+              { n: myStats.cur, l: 'Streak' },
+              { n: myStats.played, l: 'Played' },
+              { n: myStats.played ? `${Math.round((myStats.perfect / myStats.played) * 100)}%` : '—', l: 'Beat Par' },
+              { n: myStats.max, l: 'Best Streak' },
+            ].map((st, i) => (
+              <div key={i} style={{ flex: '1 1 0', minWidth: 54, background: '#fff', border: '1px solid rgba(28,30,36,0.12)', borderRadius: 7, padding: '6px 5px', textAlign: 'center' }}>
+                <div style={{ fontSize: 15, fontWeight: 800, color: COLORS.ink, lineHeight: 1.1, fontVariantNumeric: 'tabular-nums' }}>{st.n}</div>
+                <div style={{ fontSize: 9, fontWeight: 700, color: COLORS.faded, textTransform: 'uppercase', letterSpacing: '0.04em', marginTop: 2 }}>{st.l}</div>
+              </div>
+            ))}
+          </div>
+        </div>
+        )}
+        <div id="daily-leaderboard" style={{ display: focusMode ? 'none' : 'block', maxWidth: 640, margin: '26px auto 0', background: '#fff', border: '1.5px solid rgba(20,22,28,0.12)', borderRadius: 12, padding: '14px 16px' }}>
+          <DailyCombinedLeaderboard todayKey="tuck" identity={identity} quizId={PUZZLE.quizId} />
+        </div>
+        </div>
+      </div>
+
+      {/* the end-of-game popup: the shared DailyEndCard as a dismissible modal */}
+      {!playing && !endClosed && (
+        <DailyEndCard
+          modal
+          self="tuck"
+          won={won}
+          headline={won ? <>You beat the par</> : <>Grid submitted</>}
+          subline={<>Tuck #{PUZZLE.num} &middot; {finalScore} pts &middot; par {PAR} &middot; {g.submitted ? `${g.submitted.placed}/14 tiles` : ''} &middot; {elapsed}</>}
+          onShare={copyShare}
+          shareLabel={copied ? 'Copied' : 'Share Result'}
+          onReplay={resetGame}
+          onClose={() => setEndClosed(true)}
+        />
+      )}
+
+      <DuelBanner token={duelToken} info={duelInfo} submitted={duelSubmitted} />
+
+      {toast && (
+        <div style={{ position: 'fixed', left: '50%', bottom: 26, transform: 'translateX(-50%)', background: COLORS.ink, color: '#fff', fontFamily: SANS, fontWeight: 800, fontSize: 13.5, padding: '10px 18px', borderRadius: 9, zIndex: 60, boxShadow: '0 6px 18px rgba(20,22,28,0.25)', maxWidth: '86vw', textAlign: 'center' }}>
+          {toast}
+        </div>
+      )}
+
+      {/* help modal */}
+      {showHelp && (
+        <div onClick={() => { setShowHelp(false); try { localStorage.setItem(HELP_KEY, '1'); } catch (e) {} }}
+          style={{ position: 'fixed', inset: 0, background: 'rgba(20,22,28,0.55)', zIndex: 70, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16 }}>
+          <div onClick={(e) => e.stopPropagation()} style={{ width: '100%', maxWidth: 460, background: COLORS.cream, borderRadius: 12, border: `2px solid ${COLORS.ink}`, padding: '20px 22px', fontFamily: SANS, maxHeight: '86vh', overflowY: 'auto' }}>
+            <div style={{ display: 'flex', alignItems: 'center', marginBottom: 10 }}>
+              <div style={{ fontSize: 21, fontWeight: 800, color: COLORS.ink }}>How to play</div>
+              <button onClick={() => { setShowHelp(false); try { localStorage.setItem(HELP_KEY, '1'); } catch (e) {} }} aria-label="Close" style={{ marginLeft: 'auto', background: 'none', border: 'none', cursor: 'pointer', color: COLORS.faded }}><X size={20} /></button>
+            </div>
+            <div style={{ fontSize: 14, lineHeight: 1.55, color: COLORS.ink, fontWeight: 600 }}>
+              <p style={{ margin: '0 0 9px' }}>Everyone gets the same <b>14 letters</b>. Build your own little crossword on the board: every run of two or more letters must be a real word, across and down, and everything must connect into one grid.</p>
+              <p style={{ margin: '0 0 9px' }}>Score is Scrabble points across all your words &mdash; a letter at an intersection counts in <b>both</b> words &mdash; plus 10 for tucking in all 14 tiles. Today&rsquo;s <b>par of {PAR}</b> was actually scored by our solver, so it can be beaten.</p>
+              <p style={{ margin: '0 0 9px' }}>Rebuild as much as you like &mdash; but <b>one shot counts</b>: only your first submitted grid ranks on the daily board. Ties break by fewest unused tiles, then fastest clock.</p>
+              <p style={{ margin: 0 }}>Tap a square and type, or tap a rack tile then a square. Space flips typing direction.</p>
+            </div>
+            <button className="tk-btn" onClick={() => { setShowHelp(false); try { localStorage.setItem(HELP_KEY, '1'); } catch (e) {} }} style={{ marginTop: 14, background: COLORS.ink, color: '#fff' }}>Play</button>
+          </div>
+        </div>
+      )}
+
+      {/* About Tuck — crawlable prose for search, server-rendered into the HTML */}
+      <section style={{ display: focusMode ? 'none' : 'block', position: 'relative', zIndex: 2, maxWidth: 640, margin: '0 auto', padding: '10px 24px 42px', fontFamily: SANS }}>
+        <h2 style={{ margin: '0 0 8px', fontSize: 15, fontWeight: 800, letterSpacing: '-0.01em', color: COLORS.ink }}>About Tuck</h2>
+        <p style={{ margin: '0 0 8px', fontSize: 13, lineHeight: 1.65, color: COLORS.faded, fontWeight: 600 }}>
+          Tuck is a free daily word game from Source of Truths &mdash; the tile-tucking game. Every player in the world gets the same rack of 14 Scrabble-weighted letters and an empty 9&times;9 board. There is no answer to find: you design your own interlocking grid, and the score-chasing is the game. Long words, tight crossings, and premium letters at intersections all push the number up.
+        </p>
+        <p style={{ margin: '0 0 8px', fontSize: 13, lineHeight: 1.65, color: COLORS.faded, fontWeight: 600 }}>
+          Every run of two or more letters must be a dictionary word, across and down, and the whole build must connect into one grid. Letters at intersections score in both words, and placing all 14 tiles earns a 10-point bonus. Each day ships with a par our solver actually scored on that rack &mdash; beat it and the day counts as a win. Only your first submitted grid ranks on the daily leaderboard, so make it count.
+        </p>
+        <p style={{ margin: 0, fontSize: 13, lineHeight: 1.65, color: COLORS.faded, fontWeight: 600 }}>
+          A fresh rack lands every day at midnight Eastern. No app, no signup &mdash; play free in your browser, keep a streak, and race the daily leaderboard. More dailies: <a href="/crux" style={{ color: COLORS.ink, fontWeight: 800 }}>Crux</a>, our clueless crossword, <a href="/garble" style={{ color: COLORS.ink, fontWeight: 800 }}>Garble</a>, our unscrambling game, and <a href="/stet" style={{ color: COLORS.ink, fontWeight: 800 }}>Stet</a>, our copy-desk game.
+        </p>
+      </section>
+
+      <div style={{ display: focusMode ? 'none' : 'block', position: 'relative', zIndex: 2 }}><Footer /></div>
+    </div>
+  );
+}

@@ -14,16 +14,28 @@ import { DAILY_KEYS } from '@/lib/daily-combined';
 // Ties (including brand-new games with no yesterday) fall back to the
 // canonical DAILY_KEYS order, so launch day is never random. The payload is
 // identity-free and changes once a day, so it caches hard at the edge.
+//
+// LAUNCH WINDOW (owner ruling 2026-07-18): brand-new games get the first
+// three slots for their first FOUR days, popularity be damned, so players
+// actually meet them. After the window closes the pin evaporates and pure
+// popularity order resumes. Update LAUNCH_PIN when the next game ships.
+
+// Pin these keys to the front of the order through the end date (ET,
+// inclusive). Tuck/Alibi/Cipher launched 2026-07-18 -> pinned through 07-21.
+const LAUNCH_PIN = { keys: ['tuck', 'alibi', 'cipher'], until: '2026-07-21' };
 
 export const dynamic = 'force-dynamic';
 export const fetchCache = 'force-no-store';
 const CACHE_HEADERS = { 'Cache-Control': 'public, s-maxage=300, stale-while-revalidate=900' };
 
+function etToday() {
+  try { return new Date().toLocaleDateString('en-CA', { timeZone: 'America/New_York' }); }
+  catch (e) { return new Date().toISOString().slice(0, 10); }
+}
+
 function etYesterdaySuffix() {
   // ET "today", minus one calendar day, as the quizId date suffix "M-D-YY".
-  let today;
-  try { today = new Date().toLocaleDateString('en-CA', { timeZone: 'America/New_York' }); }
-  catch (e) { today = new Date().toISOString().slice(0, 10); }
+  const today = etToday();
   const [Y, M, D] = today.split('-').map(Number);
   const y = new Date(Date.UTC(Y, M - 1, D) - 86400000);
   return `${y.getUTCMonth() + 1}-${y.getUTCDate()}-${y.getUTCFullYear() % 100}`;
@@ -44,6 +56,11 @@ export async function GET() {
       }
     }
   } catch (e) { /* fall through to canonical */ }
-  const order = [...canonical].sort((a, b) => (plays[b] - plays[a]) || (canonical.indexOf(a) - canonical.indexOf(b)));
+  let order = [...canonical].sort((a, b) => (plays[b] - plays[a]) || (canonical.indexOf(a) - canonical.indexOf(b)));
+  // Launch-window pin: new games take the first slots through their fourth day.
+  if (etToday() <= LAUNCH_PIN.until) {
+    const pinned = LAUNCH_PIN.keys.filter((k) => canonical.includes(k));
+    order = [...pinned, ...order.filter((k) => !pinned.includes(k))];
+  }
   return NextResponse.json({ date: suffix, order, plays }, { headers: CACHE_HEADERS });
 }

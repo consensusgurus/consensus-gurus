@@ -12,11 +12,18 @@ import { PUZZLES as CIRCA } from '../circa/puzzles';
 import { PUZZLES as EXTRA } from '../extra/puzzles';
 import { PUZZLES as STET } from '../stet/puzzles';
 import { PUZZLES as OUTWIT_FULL } from '../outwit/puzzles';
+import { PUZZLES as TUCK } from '../tuck/puzzles';
+import { PUZZLES as ALIBI_FULL } from '../alibi/puzzles';
+import { PUZZLES as CIPHER } from '../cipher/puzzles';
 
 // Outwit's bank is server-only in a stronger sense than the others: its
 // `house` arrays and herd truths must never reach the client. This page only
 // forwards answer-free fields, but strip the sensitive ones defensively.
 const OUTWIT = OUTWIT_FULL.map(({ num, quizId, live, dateLabel, sunday }) => ({ num, quizId, live, dateLabel, sunday }));
+
+// Alibi's bank stores each case's solution — strip it (and everything else the
+// archive doesn't need) before it can reach a client bundle.
+const ALIBI = ALIBI_FULL.map(({ num, quizId, live, dateLabel, sunday }) => ({ num, quizId, live, dateLabel, sunday }));
 
 // The daily-games hub + archive. One page listing every daily game, each with
 // today's puzzle and its full back-catalog of past drops (live<=today only, so
@@ -26,12 +33,12 @@ const OUTWIT = OUTWIT_FULL.map(({ num, quizId, live, dateLabel, sunday }) => ({ 
 export const metadata = {
   title: 'Daily Games — Crux, Emcee, Garble, Links, Span & More | Source of Truths',
   description:
-    "Every Source of Truths daily game in one place: today's puzzle and the full archive for Crux, Emcee, Garble, Links, Span, Dating, Tally, Suds, Circa, Extra, Carve, Stet, and Outwit. A new puzzle in each, every day.",
+    "Every Source of Truths daily game in one place: today's puzzle and the full archive for Crux, Emcee, Garble, Links, Span, Dating, Tally, Suds, Circa, Extra, Carve, Stet, Outwit, Tuck, Alibi, and Cipher. A new puzzle in each, every day.",
   alternates: { canonical: '/daily' },
   openGraph: {
     title: 'Daily Games — Source of Truths',
     description:
-      "Today's puzzle and the full archive for every daily game: Crux, Emcee, Garble, Links, Span, Dating, Tally, Suds, Circa, Extra, Carve, Stet, and Outwit.",
+      "Today's puzzle and the full archive for every daily game: Crux, Emcee, Garble, Links, Span, Dating, Tally, Suds, Circa, Extra, Carve, Stet, Outwit, Tuck, Alibi, and Cipher.",
     url: '/daily',
     type: 'website',
     siteName: 'Source of Truths',
@@ -51,7 +58,8 @@ function etTodayServer() {
 // Which drops are the bigger/harder Sunday edition. Span, Tally, Suds, and
 // Stet flag it right on the puzzle (`sunday: true`); Crux has no flag but its
 // Sunday Editions are the only 27-guess (12-word) boards. Games without a
-// distinct Sunday (Garble, Links, Dating, Outwit) never match, so they stay
+// distinct Sunday (Garble, Links, Dating, Outwit, Tuck, Alibi, Cipher) never
+// match, so they stay
 // unmarked.
 function isSundayEdition(key, p) {
   if (p.sunday === true) return true;
@@ -74,6 +82,9 @@ const GAMES = [
   { key: 'extra', name: 'Extra', path: '/extra', tag: 'Unredact the front page', accent: '#b91c1c', bg: '#fdeeee', border: 'rgba(185,28,28,0.4)', src: EXTRA },
   { key: 'stet', name: 'Stet', path: '/stet', tag: 'Find and fix the wrong word', accent: '#0369a1', bg: '#e8f3fa', border: 'rgba(3,105,161,0.4)', src: STET },
   { key: 'outwit', name: 'Outwit', path: '/outwit', tag: 'Five duels against the crowd', accent: '#1f2937', bg: '#eef1f5', border: 'rgba(31,41,55,0.35)', src: OUTWIT },
+  { key: 'tuck', name: 'Tuck', path: '/tuck', tag: 'Build your own crossword', accent: '#92400e', bg: '#f5e9dc', border: 'rgba(146,64,14,0.35)', src: TUCK },
+  { key: 'alibi', name: 'Alibi', path: '/alibi', tag: 'Solve the nightly whodunit', accent: '#8b1e2d', bg: '#f6e3e5', border: 'rgba(139,30,45,0.35)', src: ALIBI },
+  { key: 'cipher', name: 'Cipher', path: '/cipher', tag: 'Crack the letter math', accent: '#0f766e', bg: '#d9f0ee', border: 'rgba(15,118,110,0.35)', src: CIPHER },
 ];
 
 const breadcrumbJsonLd = {

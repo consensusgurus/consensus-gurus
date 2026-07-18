@@ -1,0 +1,29 @@
+{
+  "id": "/tuck",
+  "name": "Tuck \u2014 Daily Tile-Tucking Word Game",
+  "short_name": "Tuck",
+  "description": "Everyone gets the same 14 letters. Tuck them into your own interlocking crossword \u2014 every run must be a word, intersections score double \u2014 and beat the day\u2019s par. From Source of Truths.",
+  "start_url": "/tuck?src=pwa",
+  "scope": "/",
+  "display": "standalone",
+  "background_color": "#f7f8fa",
+  "theme_color": "#f7f8fa",
+  "icons": [
+    {
+      "src": "/tuck-icons/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "/tuck-icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    },
+    {
+      "src": "/tuck-icons/icon-512-maskable.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ]
+}
