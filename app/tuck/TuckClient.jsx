@@ -31,6 +31,7 @@ import DailyGamesGrid from '../DailyGamesGrid';
 import DailyEndCard from '../DailyEndCard';
 import DailyTopNav from '../DailyTopNav';
 import DailyCombinedLeaderboard from '../quiz/[id]/DailyCombinedLeaderboard';
+import useAbandonFlush from '../quiz/[id]/useAbandonFlush';
 import { isMobileDevice } from '@/lib/is-mobile';
 
 const COLORS = {
@@ -374,6 +375,22 @@ export default function TuckClient({ puzzles = [], forceNum = null }) {
     return s;
   }, [isValid, runs, placedCount]);
 
+  // Record an in-progress game if the player interacts then leaves before
+  // submitting. Loading the page does NOT count; the first tile placed sets
+  // g.t0, which is the "started" signal here. On exit we post the current
+  // partial score as a normal result (the server clamps the time), so every
+  // started game lands in the stats even when abandoned. A localStorage marker
+  // stops a resume-then-leave-again cycle from posting the same abandon twice;
+  // markFlushed() in submitScore suppresses the post when the game is finished.
+  const REC_KEY = `sot_tuck_rec_${PUZZLE.num}`;
+  const abandon = useAbandonFlush(() => {
+    if (!g.t0 || g.status !== 'playing') return null;
+    try { if (localStorage.getItem(REC_KEY)) return null; } catch (e) {}
+    const el = Math.min(36000, Math.max(1, Math.round((Date.now() - g.t0) / 1000)));
+    try { localStorage.setItem(REC_KEY, '1'); } catch (e) {}
+    return { quizId: PUZZLE.quizId, score: liveScore, total: PAR, correct: liveScore >= PAR ? 1 : 0, guessesUsed: 14 - placedCount, timeElapsed: el, email: identity?.email || undefined, anonId: getAnonId(), isMobile: isMobileDevice(), referrer: (typeof document !== 'undefined' ? document.referrer : '') };
+  });
+
   const availCounts = useMemo(() => {
     const m = {};
     for (const l of TRAY) m[l] = (m[l] || 0) + 1;
@@ -483,6 +500,7 @@ export default function TuckClient({ puzzles = [], forceNum = null }) {
   function submitScore() {
     if (!playing || !isValid || liveScore <= 0) return;
     if (!confirming) { setConfirming(true); return; }
+    abandon.markFlushed();
     const g2 = { ...g, status: 'done', submitted: { score: liveScore, placed: placedCount }, tEnd: Date.now(), t0: g.t0 || Date.now() };
     setG(g2);
     setConfirming(false);
