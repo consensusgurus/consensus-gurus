@@ -669,7 +669,7 @@ export default function CarveClient({ puzzles = [], forceNum = null }) {
                 })}
               </div>
               <div style={{ display: 'flex', alignItems: 'center', gap: 8, justifyContent: 'center', marginTop: 10, flexWrap: 'wrap' }}>
-                {!g.hintUsed && (
+                {!identity && !g.hintUsed && (
                   <button className="cv-tool" onClick={useHint} title="Paint one correct square (one hint per puzzle)" style={{ background: COLORS.accentSoft, borderColor: 'rgba(124,58,237,0.5)', color: '#5b21b6' }}>
                     <Lightbulb size={14} /> Hint
                   </button>

@@ -538,7 +538,7 @@ export default function ExtraClient({ puzzles = [], forceNum = null }) {
                 <button className="ex-tool" onClick={tearOne} disabled={tears >= MAX_TEARS} title="Reveal one more word (costs a tear)" style={{ background: COLORS.accentSoft, borderColor: 'rgba(185,28,28,0.5)', color: '#8f1d1d' }}>
                   <Scissors size={14} /> Tear a word free
                 </button>
-                {!g.hintUsed && (
+                {!identity && !g.hintUsed && (
                   <button className="ex-tool" onClick={useHint} title="Reveal the dateline (one hint per day, free)">
                     <Lightbulb size={14} /> Hint: the dateline
                   </button>

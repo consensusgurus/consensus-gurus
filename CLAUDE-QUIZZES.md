@@ -125,14 +125,24 @@ automatically. No migration code is needed when you extend a quiz's answer set.
 
 ## 7. Daily game puzzle banks (`app/<game>/puzzles.js`)
 
-The 13 daily games (crux, emcee, garble, links, span, dating, tally, suds, circa,
-extra, carve, stet, outwit) each keep a dated `PUZZLES` array. These have failure modes a
+The 16 daily games (crux, emcee, garble, links, span, dating, tally, suds, circa,
+extra, carve, stet, outwit, tuck, alibi, cipher) each keep a dated `PUZZLES` array. These have failure modes a
 `node --check` / "it parses" pass does **not** catch. **A puzzle that parses is not a puzzle
 that is correct.** Before staging ANY daily puzzle — new or edited — run the checks below for
 its game. Do not author a batch and ship on structural validation alone: that is exactly how
 multi-solution and factual bugs reach players (learned the hard way — a Links board shipped
 with four valid groupings, a Crux board with two, and three Span notes with false geography,
 all of which "passed" structural checks).
+
+**The solvers ARE in the repo now** (restored 2026-07-18). Run them after ANY bank edit:
+- `node scripts/verify-daily-banks.mjs [game ...]` — suds/tally/carve (full uniqueness
+  re-derivation + stored-sol match), garble (anagram + alternate-anagram scan), emcee
+  (slot/grid consistency + dictionary review), links/crux (mechanical structure +
+  crossing consistency; the SEMANTIC double-solution audit below stays manual), span
+  (par = BFS incl. Sunday via/avoid), dating (strict ascending), circa/extra/outwit
+  (structural; extra uses the client's own resolveHidden). ~6s for everything.
+- `node scripts/verify-alibi.mjs` / `verify-cipher.mjs` / `verify-tuck.mjs` /
+  `verify-stet.mjs` — the per-game verifiers for the newer dailies.
 
 ### 7a. Solution uniqueness — the #1 rule for logic games
 
@@ -151,11 +161,17 @@ unique" or "the grid geometry is valid" does NOT prove this — you must solve i
   Mercury), a gem that is also a shade (ruby/garnet), a word that is both a tree and a shade
   of green (olive/pine), boxing/dance/fishing overlaps (swing/hook/reel).
 - **Suds / Tally / Carve (number games):** each board must have exactly one solution given
-  its clues / rack / anchors. Re-derive with an exhaustive solver, assert a single solution,
-  and confirm the stored `sol` matches. NOTE: the header comments reference `scripts/verify`,
-  but that solver is not currently in the repo — re-verify independently every time until it
-  is restored (Suds = standard sudoku; Tally = place the `bank` multiset to hit `rowT`/`colT`;
-  Carve = connected equal-sum regions from the `seeds`).
+  its clues / rack / anchors. `scripts/verify-daily-banks.mjs` re-derives all three
+  exhaustively and asserts the stored `sol` matches (Suds = standard sudoku; Tally =
+  place the `bank` multiset to hit `rowT`/`colT`; Carve = connected equal-sum regions
+  from the `seeds`).
+- **UNIQUE IS NOT ENOUGH — verify DEDUCIBILITY (learned 2026-07-18):** a puzzle can have
+  exactly one solution that is only reachable by guess-and-backtrack. Any game whose copy
+  promises pure logic (Alibi, Cipher) must be solvable by human-standard moves with NO
+  trial-and-error. `scripts/verify-alibi.mjs` enforces this with a propagation solver
+  (eliminations, room↔object/time links, before-chain bounds, permutation singles/pairs) —
+  9 of the first 14 Alibi cases were unique but guessy and 2 had to be regenerated. When
+  banking a new logic game, build the equivalent no-guessing check FIRST.
 
 ### 7b. Factual accuracy — verify, never recall (extends §0)
 
@@ -173,7 +189,20 @@ unique" or "the grid geometry is valid" does NOT prove this — you must solve i
 - **Emcee / Crux:** every across/down (or grid) answer must be a real dictionary word; clues
   accurate and breakfast-table fair.
 - **Garble:** each `scramble` must be a true anagram of its `answer` (and not equal to it),
-  and the letters at each word's `marks` must together anagram to `final`.
+  and the letters at each word's `marks` must together anagram to `final`. The client is
+  EXACT-MATCH, so no answer may have an alternate anagram that is a COMMON word (MELON vs
+  LEMON would wrongly reject a fair unscramble) — verify-daily-banks flags alternates;
+  obscure-dictionary alternates are fine, common ones are not.
+- **Tuck:** every rack 14 letters / 4-6 vowels, and the stored `par` must be ACHIEVABLE —
+  verify-tuck re-runs the ladder solver and fails otherwise. The dictionary asset
+  (public/tuck-dict.txt) is player-facing validation: re-apply the slur blocklist any time
+  it is regenerated from the npm word-list source (20 were scrubbed 2026-07-18).
+- **Cipher:** every equation machine-verified to EXACTLY ONE solution, ≤10 letters,
+  rhs length in [max(lhs), max(lhs)+1] — verify-cipher brute-forces all of it. Curate
+  themes; random word combos read ugly.
+- **Alibi:** unique solution AND pure-deduction solvable (see §7a); the stored solution
+  must match the derived one; clue counts 8-11; venues/stolen items distinct across the
+  bank. The client never receives the solution — page.js strips it (keep it that way).
 
 ### 7d. Definition of done for a daily puzzle change
 

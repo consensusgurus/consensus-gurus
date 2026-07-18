@@ -222,7 +222,6 @@ abmho
 abmhos
 abnegate
 abnormal
-abo
 aboard
 abode
 aboded
@@ -267,7 +266,6 @@ abortion
 abortive
 aborts
 abortus
-abos
 abought
 aboulia
 aboulias
@@ -17436,7 +17434,6 @@ chinkie
 chinkier
 chinkies
 chinking
-chinks
 chinky
 chinless
 chinned
@@ -23634,11 +23631,8 @@ daggling
 daggy
 daglock
 daglocks
-dago
 dagoba
 dagobas
-dagoes
-dagos
 dags
 dagwood
 dagwoods
@@ -23968,7 +23962,6 @@ darker
 darkest
 darkey
 darkeys
-darkies
 darking
 darkish
 darkle
@@ -23984,7 +23977,6 @@ darknets
 darkroom
 darks
 darksome
-darky
 darling
 darlings
 darn
@@ -41654,8 +41646,6 @@ gooier
 gooiest
 gooily
 gooiness
-gook
-gooks
 gooky
 gool
 goold
@@ -51548,8 +51538,6 @@ kaed
 kaeing
 kaes
 kaf
-kaffir
-kaffirs
 kaffiyah
 kaffiyeh
 kafila
@@ -85710,8 +85698,6 @@ sambhar
 sambhars
 sambhur
 sambhurs
-sambo
-sambos
 sambuca
 sambucas
 sambuke
@@ -94331,7 +94317,6 @@ spicker
 spickest
 spicknel
 spicks
-spics
 spicula
 spiculae
 spicular
@@ -95093,7 +95078,6 @@ squatted
 squatter
 squattle
 squatty
-squaw
 squawk
 squawked
 squawker
@@ -95101,7 +95085,6 @@ squawks
 squawky
 squawman
 squawmen
-squaws
 squeak
 squeaked
 squeaker
@@ -103561,7 +103544,6 @@ tranks
 trankum
 trankums
 trannie
-trannies
 tranq
 tranqs
 tranquil
@@ -113498,10 +113480,8 @@ woozier
 wooziest
 woozily
 woozy
-wop
 wopped
 wopping
-wops
 word
 wordage
 wordages

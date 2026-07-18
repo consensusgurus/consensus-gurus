@@ -17,6 +17,14 @@ import { PUZZLES } from '@/app/outwit/puzzles';
 // replaying — or simply re-opening the result — re-scores you against the live
 // field. The client re-asks this route on a timer while the result is on screen.
 //
+// LEAVE-ONE-OUT: every player is scored against the field MINUS their own pick,
+// so their own ballot never counts against them. This is what makes a perfect 10
+// reachable — before it, on the "fewest/rarest" prompts (least, unique) your own
+// vote bumped your pick out of the winning tier and the ceiling was 8-9. Only the
+// count-based prompts need the adjustment (see buildContext); the closest-to-crowd
+// prompts already never count a player as strictly closer to the target than
+// themselves, and the target is meant to reflect the whole crowd, you included.
+//
 // POOL RULE: the pre-written ~48-answer "house crowd" (server-only, in
 // app/outwit/puzzles.js) is in the pool ONLY while at most HOUSE_CUTOFF real
 // players have locked in. From the 11th real player on, the pool is real picks
@@ -105,9 +113,24 @@ function buildContext(pr, pool) {
     const counts = new Array(pr.options.length).fill(0);
     for (const v of pool) if (Number.isInteger(v) && v >= 0 && v < counts.length) counts[v]++;
     const order = counts.map((c, i) => ({ c, i })).sort((a, b) => (pr.type === 'least' ? a.c - b.c : b.c - a.c) || a.i - b.i);
-    const rankOf = new Array(counts.length).fill(Infinity);
-    order.forEach((o, idx) => { rankOf[o.i] = idx; });
-    const ptsFor = (v) => { const r = rankOf[v]; return r === 0 ? 2 : r === 1 ? 1 : 0; };
+    // LEAVE-ONE-OUT scoring: a player is ranked against the field MINUS their own
+    // vote, so their own ballot can never push their pick out of the winning tier.
+    // Without this, picking the fewest/most option and thereby adding a vote to it
+    // could tie or overtake it, making a 2 unreachable — a perfect 10 was literally
+    // impossible on most days. `myc` is the option's count with the scored player
+    // removed; an option beats them if it's fewer (least)/more (match), or tied at
+    // myc with a lower index (the same asc-index tiebreak the full ranking uses).
+    const ptsFor = (v) => {
+      if (!(Number.isInteger(v) && v >= 0 && v < counts.length)) return 0;
+      const myc = counts[v] - 1;
+      let ahead = 0;
+      for (let i = 0; i < counts.length; i++) {
+        if (i === v) continue;
+        const beats = pr.type === 'least' ? counts[i] < myc : counts[i] > myc;
+        if (beats || (counts[i] === myc && i < v)) ahead++;
+      }
+      return ahead === 0 ? 2 : ahead === 1 ? 1 : 0;
+    };
     return { kind: 'choice', type: pr.type, counts, winner: order[0].i, ptsFor };
   }
   // unique: rarest number in [min..max] wins, ties to the lower number
@@ -115,9 +138,22 @@ function buildContext(pr, pool) {
   const counts = new Array(size).fill(0);
   for (const v of pool) { const k = v - pr.min; if (Number.isInteger(v) && k >= 0 && k < size) counts[k]++; }
   const order = counts.map((c, i) => ({ c, i })).sort((a, b) => a.c - b.c || a.i - b.i);
-  const rankOf = new Array(size).fill(Infinity);
-  order.forEach((o, idx) => { rankOf[o.i] = idx; });
-  const ptsFor = (v) => { const r = rankOf[v - pr.min]; return r < 4 ? 2 : r < 10 ? 1 : 0; };
+  // LEAVE-ONE-OUT scoring (see the choice branch): rank the player among the OTHER
+  // numbers using their own count minus themselves. Otherwise, if the house crowd
+  // left 4+ numbers unpicked, the act of picking any number (count -> 1) shut the
+  // player out of the four-rarest tier and capped them at 1 — the main reason a 10
+  // couldn't be reached. rarer<4 -> 2, rarer<10 -> 1.
+  const ptsFor = (v) => {
+    const k = v - pr.min;
+    if (!(Number.isInteger(v) && k >= 0 && k < size)) return 0;
+    const myc = counts[k] - 1;
+    let rarer = 0;
+    for (let i = 0; i < size; i++) {
+      if (i === k) continue;
+      if (counts[i] < myc || (counts[i] === myc && i < k)) rarer++;
+    }
+    return rarer < 4 ? 2 : rarer < 10 ? 1 : 0;
+  };
   return { kind: 'unique', type: pr.type, counts, winner: order[0].i + pr.min, min: pr.min, max: pr.max, ptsFor };
 }
 

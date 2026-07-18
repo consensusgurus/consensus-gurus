@@ -637,7 +637,7 @@ export default function DatingClient({ puzzles = [], forceNum = null }) {
               <button className="dt-btn" onClick={checkOrder} style={{ background: COLORS.plum, color: '#fff', borderColor: COLORS.plum }}>
                 <Check size={15} strokeWidth={3} /> Check my order ({checksLeft} left)
               </button>
-              {!g.hintUsed && (
+              {!identity && !g.hintUsed && (
                 <button className="dt-btn" onClick={useHint} title="Reveal the year of your most misplaced event (one hint per puzzle)"
                   style={{ background: '#fdf6e3', border: '1.5px solid rgba(230,185,63,0.7)', color: '#8a6d1a', padding: '6px 12px', fontSize: 12.5 }}>
                   <Lightbulb size={14} /> Hint

@@ -675,7 +675,7 @@ export default function EmceeClient({ puzzles = [], forceNum = null }) {
 
           {playing && (
             <div style={{ display: 'flex', alignItems: 'center', gap: 8, justifyContent: 'center', marginTop: 12, flexWrap: 'wrap' }}>
-              {!g.hintUsed && (
+              {!identity && !g.hintUsed && (
                 <button className="mc-tool" onClick={useHint} title="Reveal one letter (one hint per puzzle)" style={{ background: COLORS.accentSoft, borderColor: 'rgba(192,38,211,0.5)', color: '#86198f' }}>
                   <Lightbulb size={14} /> Hint
                 </button>

@@ -632,7 +632,7 @@ export default function SudsClient({ puzzles = [], forceNum = null }) {
                 <button className="sd-tool" onClick={() => eraseCell(sel)} title="Erase selected cell (Backspace)">
                   <Eraser size={14} /> Erase
                 </button>
-                {!g.hintUsed && (
+                {!identity && !g.hintUsed && (
                   <button className="sd-tool" onClick={useHint} title="Fill one correct square (one hint per puzzle)" style={{ background: COLORS.accentSoft, borderColor: 'rgba(234,88,12,0.5)', color: '#9a3d0c' }}>
                     <Lightbulb size={14} /> Hint
                   </button>

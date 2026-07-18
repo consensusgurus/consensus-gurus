@@ -591,7 +591,7 @@ export default function TallyClient({ puzzles = [], forceNum = null }) {
         {/* controls */}
         {playing && (
           <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 12, flexWrap: 'wrap' }}>
-            {!g.hintUsed && (
+            {!identity && !g.hintUsed && (
               <button className="tl-btn" onClick={useHint} title="Fill one correct square (one hint per puzzle)"
                 style={{ background: '#fdf6e3', border: '1.5px solid rgba(230,185,63,0.7)', color: '#8a6d1a', padding: '6px 12px', fontSize: 12.5 }}>
                 <Lightbulb size={14} /> Hint

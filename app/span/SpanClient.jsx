@@ -750,7 +750,7 @@ export default function SpanClient({ puzzles = [], forceNum = null }) {
                   <Undo2 size={14} /> Undo last step
                 </button>
               )}
-              {!g.hintUsed && (
+              {!identity && !g.hintUsed && (
                 <button className="sp-btn" onClick={useHint} title="Take one step down a shortest road (one hint per puzzle)"
                   style={{ background: '#fdf6e3', border: '1.5px solid rgba(230,185,63,0.7)', color: '#8a6d1a', padding: '6px 12px', fontSize: 12.5 }}>
                   <Lightbulb size={14} /> Hint

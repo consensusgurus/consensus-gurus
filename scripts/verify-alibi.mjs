@@ -38,6 +38,103 @@ function solutions(clues, cap = 3) {
   return sols;
 }
 
+// ─── NO-GUESSING CHECK: every case must fall to pure propagation ─────────
+// (human-standard moves only: eliminations, room↔object/time links, before-
+// chain bounds, permutation singles/pairs). Unique-but-guessy cases fail.
+const FULL = [0, 1, 2, 3];
+function clone(d) { return { room: d.room.map(s => new Set(s)), time: d.time.map(s => new Set(s)), obj: d.obj.map(s => new Set(s)) }; }
+function fresh() { return { room: FULL.map(() => new Set(FULL)), time: FULL.map(() => new Set(FULL)), obj: FULL.map(() => new Set(FULL)) }; }
+const solvedCat = (c) => c.every(s => s.size === 1);
+const solvedAll = (d) => solvedCat(d.room) && solvedCat(d.time) && solvedCat(d.obj);
+const broken = (d) => ['room', 'time', 'obj'].some(k => d[k].some(s => s.size === 0));
+
+function propagate(d, clues) {
+  let changed = true;
+  while (changed) {
+    changed = false;
+    const rm = (cat, s, v) => { if (d[cat][s].has(v)) { d[cat][s].delete(v); changed = true; } };
+    const fix = (cat, s, v) => { for (const x of [...d[cat][s]]) if (x !== v) rm(cat, s, x); };
+    // permutation: naked singles + hidden singles + naked pairs
+    for (const cat of ['room', 'time', 'obj']) {
+      for (let s = 0; s < 4; s++) {
+        if (d[cat][s].size === 1) {
+          const v = [...d[cat][s]][0];
+          for (let s2 = 0; s2 < 4; s2++) if (s2 !== s) rm(cat, s2, v);
+        }
+      }
+      for (const v of FULL) {
+        const cands = FULL.filter(s => d[cat][s].has(v));
+        if (cands.length === 1 && d[cat][cands[0]].size > 1) fix(cat, cands[0], v);
+      }
+      // naked pairs: two suspects sharing the same 2-value domain lock those values
+      for (let a = 0; a < 4; a++) for (let b = a + 1; b < 4; b++) {
+        if (d[cat][a].size === 2 && d[cat][b].size === 2) {
+          const av = [...d[cat][a]].sort().join(''), bv = [...d[cat][b]].sort().join('');
+          if (av === bv) {
+            for (let s2 = 0; s2 < 4; s2++) if (s2 !== a && s2 !== b) for (const v of [...d[cat][a]]) rm(cat, s2, v);
+          }
+        }
+      }
+    }
+    for (const c of clues) {
+      switch (c.type) {
+        case 'notRoom': rm('room', c.s, c.r); break;
+        case 'notObj': rm('obj', c.s, c.o); break;
+        case 'hasObj': fix('obj', c.s, c.o); break;
+        case 'roomObj':
+          for (let s = 0; s < 4; s++) {
+            if (!d.room[s].has(c.r)) continue;
+            if (d.room[s].size === 1) fix('obj', s, c.o);
+            else if (!d.obj[s].has(c.o)) rm('room', s, c.r);
+          }
+          for (let s = 0; s < 4; s++) {
+            if (d.obj[s].size === 1 && d.obj[s].has(c.o)) fix('room', s, c.r);
+            if (!d.obj[s].has(c.o) && d.room[s].size === 1 && d.room[s].has(c.r)) { /* contradiction caught by size-0 later */ rm('obj', s, ...[]); }
+          }
+          break;
+        case 'roomTime':
+          for (let s = 0; s < 4; s++) {
+            if (!d.room[s].has(c.r)) continue;
+            if (d.room[s].size === 1) fix('time', s, c.t);
+            else if (!d.time[s].has(c.t)) rm('room', s, c.r);
+          }
+          for (let s = 0; s < 4; s++) {
+            if (d.time[s].size === 1 && d.time[s].has(c.t)) fix('room', s, c.r);
+          }
+          break;
+        case 'before': {
+          const max2 = Math.max(...d.time[c.s2]);
+          for (const v of [...d.time[c.s1]]) if (v >= max2) rm('time', c.s1, v);
+          const min1 = Math.min(...d.time[c.s1]);
+          for (const v of [...d.time[c.s2]]) if (v <= min1) rm('time', c.s2, v);
+          break;
+        }
+        case 'beforeRoom': {
+          rm('room', c.s, c.r);
+          const cands = FULL.filter(s2 => s2 !== c.s && d.room[s2].has(c.r));
+          if (cands.length === 1) {
+            const s2 = cands[0];
+            const max2 = Math.max(...d.time[s2]);
+            for (const v of [...d.time[c.s]]) if (v >= max2) rm('time', c.s, v);
+            const min1 = Math.min(...d.time[c.s]);
+            for (const v of [...d.time[s2]]) if (v <= min1) rm('time', s2, v);
+          } else if (cands.length > 1) {
+            const maxAny = Math.max(...cands.map(s2 => Math.max(...d.time[s2])));
+            for (const v of [...d.time[c.s]]) if (v >= maxAny) rm('time', c.s, v);
+          }
+          // any candidate occupant who could not have left AFTER s cannot be in room r
+          for (const s2 of cands) {
+            if (Math.max(...d.time[s2]) <= Math.min(...d.time[c.s])) rm('room', s2, c.r);
+          }
+          break;
+        }
+      }
+    }
+  }
+  return d;
+}
+
+
 let bad = 0;
 PUZZLES.forEach((p, i) => {
   const errs = [];
@@ -61,6 +158,8 @@ PUZZLES.forEach((p, i) => {
     }
   }
   const sols = solutions(p.clues);
+  const dom = propagate(fresh(), p.clues);
+  if (!solvedAll(dom)) errs.push('NOT pure-deduction solvable (needs guessing)');
   if (sols.length !== 1) errs.push(`solutions=${sols.length}, need exactly 1`);
   else {
     const s = sols[0];

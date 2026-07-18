@@ -547,7 +547,7 @@ export default function CircaClient({ puzzles = [], forceNum = null }) {
           {/* tools */}
           {playing && (
             <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 13, flexWrap: 'wrap' }}>
-              {!g.hintUsed && (
+              {!identity && !g.hintUsed && (
                 <button className="cc-tool" onClick={useHint} title="Reveal the century (one hint per day)" style={{ background: COLORS.accentSoft, borderColor: 'rgba(14,116,144,0.5)', color: '#155e70' }}>
                   <Lightbulb size={14} /> Hint: the century
                 </button>

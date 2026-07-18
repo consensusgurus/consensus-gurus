@@ -1030,7 +1030,7 @@ export default function CruxClient({ puzzles = [], forceNum = null }) {
                 {slotLabel(sel)} <span style={{ color: COLORS.faded, fontWeight: 700 }}>&middot; {slot.word.length} letters &middot; {(g.slotGuesses[sel] || 0)} guess{(g.slotGuesses[sel] || 0) === 1 ? '' : 'es'} spent</span>
               </div>
               <button className="cl-key" onClick={() => cycleSlot(1)} aria-label="Next word" style={{ background: COLORS.paper, width: 30, height: 30, display: 'flex', alignItems: 'center', justifyContent: 'center' }}><ChevronRight size={17} /></button>
-              {!g.hintUsed && (
+              {!identity && !g.hintUsed && (
                 <button className="cl-key" onClick={revealHint} title="Reveal one letter in this word (one hint per puzzle)"
                   style={{ marginLeft: 'auto', background: '#fdf6e3', border: '1.5px solid rgba(230,185,63,0.7)', height: 30, padding: '0 10px', display: 'flex', alignItems: 'center', gap: 5, fontSize: 12, fontWeight: 800, color: '#8a6d1a' }}>
                   <Lightbulb size={14} /> Hint
