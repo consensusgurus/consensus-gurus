@@ -70,4 +70,8 @@ button, input, textarea, select { border-radius: 8px; }
    so desktop input sizing is unchanged. */
 @media (max-width: 560px) {
   input, textarea, select { font-size: 16px !important; }
+  /* Keep placeholder / preview text from looking oversized in narrow mobile
+     fields: shrink only the placeholder, not the 16px typed text (so iOS still
+     doesn't zoom on focus). */
+  input::placeholder, textarea::placeholder { font-size: 13px !important; }
 }

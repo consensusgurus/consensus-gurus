@@ -31,6 +31,7 @@ import {
   ShoppingBag,
   Tv,
   ArrowRight,
+  ArrowDownUp,
 } from 'lucide-react';
 import { LISTS, TYPES, COLORS } from '@/lib/data';
 import { voteKey, dedupeByName, getSources, stripItemScore } from '@/lib/helpers';
@@ -926,7 +927,7 @@ function Home({ lists, viewCounts, voteData, extras, trending = {}, openList, on
         @import url('https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap');
         .nt-wrap{max-width:1300px;margin:0 auto;padding:8px 24px 70px;}
         .nt-stickytop{position:sticky;top:0;z-index:50;background:#f7f8fa;}
-        .nt-pillsbar{max-width:1300px;margin:0 auto;padding:10px 24px 14px;}
+        .nt-pillsbar{max-width:1300px;margin:0 auto;padding:10px 24px 10px;}
         .nt-toolwrap{max-width:1300px;margin:0 auto;padding:0 24px;display:none;}
         .nt-bodywrap{padding-top:0;}
         @media(max-width:560px){.nt-pillsbar{padding:8px 14px 0;}.nt-toolwrap{display:block;padding:0 14px;}}
@@ -939,7 +940,7 @@ function Home({ lists, viewCounts, voteData, extras, trending = {}, openList, on
         .nt-stat b{color:${NT.ink};}
         .nt-tagline{font-size:12px;color:${NT.muted};line-height:1.5;max-width:430px;}
         .nt-tagline b{color:${NT.ink};}
-        .nt-pills{display:flex;gap:7px;flex-wrap:wrap;margin:4px 0 12px;position:relative;}
+        .nt-pills{display:flex;gap:7px;flex-wrap:wrap;margin:4px 0;position:relative;}
         .nt-pill{font-size:12px;font-weight:700;letter-spacing:.03em;text-transform:uppercase;padding:7px 10px;border-radius:9px;border:1px solid ${NT.line};background:#fff;color:${NT.muted};cursor:pointer;display:flex;flex:1 1 auto;align-items:center;justify-content:center;gap:5px;font-family:inherit;white-space:nowrap;}
         .nt-pill.on{color:#fff;}
         .nt-pill.ghost.on{background:${NT.ink};border-color:${NT.ink};color:#fff;}
@@ -957,6 +958,7 @@ function Home({ lists, viewCounts, voteData, extras, trending = {}, openList, on
         .nt-tbtn.primary{background:${NT.accent};border-color:${NT.accent};color:#fff;font-weight:700;text-decoration:none;}
         .nt-mfilter{display:none;}
         .nt-msheet{display:none;box-sizing:border-box;background:#fff;border:1px solid ${NT.line};border-radius:12px;padding:4px 14px calc(14px + env(safe-area-inset-bottom) + 76px);max-height:calc(100dvh - 120px);overflow-y:auto;-webkit-overflow-scrolling:touch;overscroll-behavior:contain;}
+        .nt-sortpill{position:relative;flex:none;display:flex;}
         .nt-sortmenu{position:absolute;top:calc(100% + 6px);z-index:30;min-width:190px;background:#fff;border:1px solid ${NT.line};border-radius:10px;box-shadow:0 12px 30px rgba(20,22,28,0.12);overflow:hidden;}
         .nt-sortitem{width:100%;display:block;text-align:left;border:none;background:#fff;padding:10px 14px;font-family:inherit;font-size:13px;font-weight:600;color:${NT.ink};cursor:pointer;}
         .nt-sortitem.on,.nt-sortitem:hover{background:${NT.accsoft};color:${NT.accent};}
@@ -992,9 +994,6 @@ function Home({ lists, viewCounts, voteData, extras, trending = {}, openList, on
         command
         search={query}
         onSearch={setQuery}
-        sortBy={sortBy}
-        onSort={setSortBy}
-        sortButtons={sortButtons}
         listCount={LISTS.length}
       />
       <div className="nt-stickytop">
@@ -1012,6 +1011,19 @@ function Home({ lists, viewCounts, voteData, extras, trending = {}, openList, on
               By Topic <ChevronDown size={13} strokeWidth={2.5} style={{ transform: navMenu === 'topic' ? 'rotate(180deg)' : 'none' }} />
             </button>
           )}
+          {/* Sort control: moved out of the command header into the tiles row. */}
+          <div className="nt-sortpill" onClick={(e) => e.stopPropagation()}>
+            <button className={'nt-pill ghost' + (sortOpen ? ' on' : '')} onClick={() => { setSortOpen((o) => !o); setNavMenu(null); }}>
+              <ArrowDownUp size={13} strokeWidth={2.25} /> Sort: {(sortButtons.find((o) => o.id === sortBy) || sortButtons[0]).short} <ChevronDown size={13} strokeWidth={2.5} style={{ transform: sortOpen ? 'rotate(180deg)' : 'none' }} />
+            </button>
+            {sortOpen && (
+              <div className="nt-sortmenu" style={{ right: 0 }}>
+                {sortButtons.map((opt) => (
+                  <button key={opt.id} className={'nt-sortitem' + (sortBy === opt.id ? ' on' : '')} onClick={() => { setSortBy(opt.id); setSortOpen(false); }}>{opt.label}</button>
+                ))}
+              </div>
+            )}
+          </div>
           {navMenu === 'city' && (
             <div className="nt-panel">
               <div className="nt-phead">By City</div>
