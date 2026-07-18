@@ -245,4 +245,15 @@ export default function SiteHeader({ active = 'lists', maxWidth = 1180, visitors
               </span>
             </div>
             <div className="sh-right">
-              <nav className="
+              <nav className="sh-nav">
+                <Link href="/" className={`sh-navbtn${active === 'quizzes' ? ' on' : ''}`}>Quizzes</Link>
+                <Link href="/lists" className={`sh-navbtn${active === 'lists' ? ' on' : ''}`}>Top 10 Lists</Link>
+              </nav>
+            </div>
+          </div>
+          {inlay ? <div className="sh-inlay">{inlay}</div> : null}
+        </div>
+      </div>
+    </div>
+  );
+}

@@ -193,4 +193,16 @@ export default function QuizCommandHeader({ search, onSearch, me, onSignup, tick
         </nav>
       </div>
       {items.length ? (
-    
+        <div className="qch-tickwrap">
+          <div className="qch-tlabel"><span className="qch-pulse" /> Live</div>
+          <div className="qch-ticker">
+            <div className="qch-track" style={{ animationDuration: dur }}>
+              <TickSet items={items} />
+              <TickSet items={items} hidden />
+            </div>
+          </div>
+        </div>
+      ) : null}
+    </div>
+  );
+}
