@@ -59,15 +59,22 @@ function startOfEasternTodayUTC() {
   return Date.parse(`${ymd}T04:00:00.000Z`);
 }
 
-// Distinct players + play count for quiz_results rows in [start, end).
+// Distinct players + play count + total seconds played for quiz_results rows
+// in [start, end).
 function aggPlays(rows, start, end) {
   const s = new Set();
   let plays = 0;
+  let time = 0;
   for (const r of rows) {
     const t = r.created_at ? new Date(r.created_at).getTime() : 0;
-    if (t >= start && t < end) { plays += 1; s.add(playerKey(r)); }
+    if (t >= start && t < end) {
+      plays += 1;
+      s.add(playerKey(r));
+      const te = Number(r.time_elapsed);
+      if (Number.isFinite(te) && te > 0) time += te;
+    }
   }
-  return { people: s.size, plays };
+  return { people: s.size, plays, time };
 }
 
 // Percent change vs a prior period. null == no baseline to compare against
@@ -159,6 +166,7 @@ export async function GET() {
     players = {
       unique: { d: cell(pD.people, pDp.people), w: cell(pW.people, pWp.people), m: cell(pM.people, pMp.people) },
       plays: { d: cell(pD.plays, pDp.plays), w: cell(pW.plays, pWp.plays), m: cell(pM.plays, pMp.plays) },
+      time: { d: cell(pD.time, pDp.time), w: cell(pW.time, pWp.time), m: cell(pM.time, pMp.time) },
     };
 
     // Today's plays only, for the top-5 board and the hourly-players buckets.

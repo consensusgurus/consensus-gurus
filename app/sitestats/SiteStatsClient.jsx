@@ -25,6 +25,18 @@ function fmt(n) {
   return n.toLocaleString('en-US');
 }
 
+// Duration in seconds -> compact human string (44s / 12m / 3.2h / 27h).
+function fmtDur(s) {
+  if (s == null || !Number.isFinite(Number(s))) return '—';
+  s = Number(s);
+  if (s < 60) return `${Math.round(s)}s`;
+  const m = s / 60;
+  if (m < 60) return `${Math.round(m)}m`;
+  const h = m / 60;
+  if (h < 10) return `${h.toFixed(1)}h`;
+  return `${Math.round(h)}h`;
+}
+
 function timeAgo(iso) {
   if (!iso) return '';
   const s = Math.max(0, Math.floor((Date.now() - new Date(iso).getTime()) / 1000));
@@ -62,23 +74,40 @@ function Delta({ label, cell }) {
   );
 }
 
-// A headline metric tile: big unique number, raw count underneath, three deltas.
-function StatTile({ label, unique, raw, rawLabel, accent }) {
-  const u = unique || {};
+function MetricRow({ label, accent, value, cells }) {
   return (
-    <div className="ss-card ss-tile">
-      <div className="ss-tile-head">
+    <div className="ss-mrow">
+      <div className="ss-mtop">
         <span className="ss-dot" style={{ background: accent }} />
-        <span className="ss-tile-label">{label}</span>
-        <span className="ss-tile-period">last 24h</span>
+        <span className="ss-mlabel">{label}</span>
+        <span className="ss-mval">{value}</span>
       </div>
-      <div className="ss-tile-figure">{fmt(u.d ? u.d.now : null)}</div>
-      <div className="ss-tile-raw">{raw && raw.d ? `${fmt(raw.d.now)} ${rawLabel}` : ` `}</div>
-      <div className="ss-chips">
-        <Delta label="D / D" cell={u.d} />
-        <Delta label="W / W" cell={u.w} />
-        <Delta label="M / M" cell={u.m} />
+      <div className="ss-mdeltas">
+        <Delta label="D / D" cell={cells && cells.d} />
+        <Delta label="W / W" cell={cells && cells.w} />
+        <Delta label="M / M" cell={cells && cells.m} />
       </div>
+    </div>
+  );
+}
+
+// The metric list: players, plays, time played, viewers, views — each row
+// with its own trailing-period comparisons.
+function MetricList({ data, hasViewers }) {
+  const p = data.players || {};
+  const v = data.viewers || {};
+  const val = (m) => fmt(m && m.d ? m.d.now : null);
+  const rows = [
+    { label: 'Quiz players', accent: GOLD, value: val(p.unique), cells: p.unique },
+    { label: 'Quiz plays', accent: GOLD, value: val(p.plays), cells: p.plays },
+    { label: 'Time played', accent: GOLD, value: fmtDur(p.time && p.time.d ? p.time.d.now : null), cells: p.time },
+    { label: 'Site viewers', accent: NAVY, value: hasViewers ? val(v.unique) : '—', cells: hasViewers ? v.unique : null },
+    { label: 'Site views', accent: NAVY, value: hasViewers ? val(v.views) : '—', cells: hasViewers ? v.views : null },
+  ];
+  return (
+    <div className="ss-card">
+      <div className="ss-h">Traffic <span className="ss-h-sub">last 24h · vs trailing periods</span></div>
+      {rows.map((r, i) => <MetricRow key={i} {...r} />)}
     </div>
   );
 }
@@ -271,8 +300,7 @@ export default function SiteStatsClient() {
 
       {data && (
         <>
-          <StatTile label="Quiz players" unique={data.players && data.players.unique} raw={data.players && data.players.plays} rawLabel="plays" accent={GOLD} />
-          <StatTile label="Site viewers" unique={data.viewers && data.viewers.unique} raw={data.viewers && data.viewers.views} rawLabel="views" accent={NAVY} />
+          <MetricList data={data} hasViewers={hasViewers} />
           {!hasViewers && (
             <div className="ss-note ss-note-solo">Site-viewer numbers turn on once migration 36 is applied in Supabase.</div>
           )}
@@ -301,16 +329,17 @@ const CSS = `
 .ss-h{font-size:13px;font-weight:800;letter-spacing:.01em;color:${NAVY};margin-bottom:10px;text-transform:uppercase;}
 .ss-h-sub{font-size:10.5px;font-weight:700;color:${FAINT};text-transform:none;letter-spacing:0;margin-left:4px;}
 
-.ss-tile-head{display:flex;align-items:center;gap:7px;margin-bottom:8px;}
 .ss-dot{width:9px;height:9px;border-radius:50%;flex:none;}
-.ss-tile-label{font-size:13px;font-weight:800;color:${INK};text-transform:uppercase;letter-spacing:.02em;}
-.ss-tile-period{margin-left:auto;font-size:10.5px;font-weight:700;color:${FAINT};text-transform:uppercase;letter-spacing:.04em;}
-.ss-tile-figure{font-size:44px;font-weight:800;line-height:1;letter-spacing:-0.03em;color:${NAVY};}
-.ss-tile-raw{font-size:12.5px;font-weight:600;color:${MUTED};margin-top:5px;}
-.ss-chips{display:flex;gap:8px;margin-top:13px;}
-.ss-chip{flex:1 1 0;background:${SURFACE};border:1px solid ${LINE};border-radius:9px;padding:7px 6px;text-align:center;}
+.ss-mrow{padding:11px 0;border-bottom:1px dashed ${LINE};}
+.ss-mrow:last-child{border-bottom:none;}
+.ss-mrow:first-of-type{padding-top:2px;}
+.ss-mtop{display:flex;align-items:center;gap:8px;}
+.ss-mlabel{font-size:14px;font-weight:800;color:${INK};letter-spacing:-0.01em;}
+.ss-mval{margin-left:auto;font-size:22px;font-weight:800;color:${NAVY};letter-spacing:-0.02em;line-height:1;}
+.ss-mdeltas{display:flex;gap:8px;margin-top:9px;padding-left:17px;}
+.ss-chip{flex:1 1 0;background:${SURFACE};border:1px solid ${LINE};border-radius:9px;padding:6px 6px;text-align:center;}
 .ss-chip-k{display:block;font-size:9.5px;font-weight:800;color:${FAINT};letter-spacing:.06em;}
-.ss-chip-v{display:block;font-size:14px;font-weight:800;margin-top:3px;font-variant-numeric:tabular-nums;}
+.ss-chip-v{display:block;font-size:13.5px;font-weight:800;margin-top:3px;font-variant-numeric:tabular-nums;}
 
 .ss-toprow{display:flex;align-items:center;gap:10px;padding:7px 0;border-bottom:1px dashed ${LINE};}
 .ss-toprow:last-child{border-bottom:none;}
