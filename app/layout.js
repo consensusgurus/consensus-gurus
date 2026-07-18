@@ -10,18 +10,18 @@ const SOURCE_COUNT = getAllSources().length;
 export const metadata = {
   metadataBase: new URL('https://sourceoftruths.com'),
   appleWebApp: { capable: true, statusBarStyle: 'black-translucent', title: 'Source of Truths' },
-  title: `Source of Truths | Trivia Quizzes, Daily Games & Top 10 Lists`,
-  description: `Test your knowledge with 1,000+ timed trivia quizzes and daily word and number games. Plus consensus Top 10 Lists where ${SOURCE_COUNT} experts and aggregators agree, covering the best restaurants, hotels, products, films, and books.`,
+  title: `Source of Truths | Daily Brain Exercises, Quizzes, and Top 10 Lists`,
+  description: `New daily brain exercises every day: word, number, and logic games, plus 1,000+ timed quizzes across films, music, geography, sports, and brands. Then browse consensus Top 10 Lists where ${SOURCE_COUNT} experts and aggregators agree on the best restaurants, hotels, products, films, and books.`,
   openGraph: {
-    title: `Source of Truths | Trivia Quizzes, Daily Games & Top 10 Lists`,
-    description: `Test your knowledge with 1,000+ timed trivia quizzes and daily word and number games. Plus consensus Top 10 Lists where ${SOURCE_COUNT} experts and aggregators agree, covering the best restaurants, hotels, products, films, and books.`,
+    title: `Source of Truths | Daily Brain Exercises, Quizzes, and Top 10 Lists`,
+    description: `New daily brain exercises every day: word, number, and logic games, plus 1,000+ timed quizzes across films, music, geography, sports, and brands. Then browse consensus Top 10 Lists where ${SOURCE_COUNT} experts and aggregators agree on the best restaurants, hotels, products, films, and books.`,
     url: 'https://sourceoftruths.com',
     type: 'website',
   },
   twitter: {
     card: 'summary_large_image',
-    title: `Source of Truths | Trivia Quizzes, Daily Games & Top 10 Lists`,
-    description: `Test your knowledge with 1,000+ timed trivia quizzes and daily word and number games. Plus consensus Top 10 Lists where ${SOURCE_COUNT} experts and aggregators agree, covering the best restaurants, hotels, products, films, and books.`,
+    title: `Source of Truths | Daily Brain Exercises, Quizzes, and Top 10 Lists`,
+    description: `New daily brain exercises every day: word, number, and logic games, plus 1,000+ timed quizzes across films, music, geography, sports, and brands. Then browse consensus Top 10 Lists where ${SOURCE_COUNT} experts and aggregators agree on the best restaurants, hotels, products, films, and books.`,
   },
 formatDetection: {
     telephone: false,

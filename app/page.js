@@ -6,8 +6,8 @@ const SOURCE_COUNT = getAllSources().length;
 
 export function generateMetadata() {
   const count = Array.isArray(QUIZZES) ? QUIZZES.filter((q) => !q.unlisted).length : 0;
-  const title = 'Source of Truths | Timed Trivia Quizzes + Daily Games';
-  const description = `Test your knowledge with ${count}+ timed quizzes across films, music, geography, sports, and brands: name-them-all, matching, map, and multiple-choice, plus daily word and number games. Then browse consensus Top 10 Lists where ${SOURCE_COUNT} experts and aggregators agree.`;
+  const title = 'Source of Truths | Daily Brain Exercises, Quizzes, and Top 10 Lists';
+  const description = `Fresh daily brain exercises: word, number, and logic games, plus ${count}+ timed quizzes across films, music, geography, sports, and brands, from name-them-all and matching to map and multiple-choice. Then browse consensus Top 10 Lists where ${SOURCE_COUNT} experts and aggregators agree.`;
   const ogTitle = 'Source of Truths: Test Your Knowledge';
 
   return {

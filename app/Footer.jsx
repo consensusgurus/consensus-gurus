@@ -82,7 +82,7 @@ export default function Footer() {
         <div style={{ maxWidth: 250 }}>
           <div style={{ fontSize: 15, fontWeight: 800 }}>Source of Truths</div>
           <div style={{ fontSize: 12, color: NEUTRAL.muted, marginTop: 5, lineHeight: 1.5 }}>
-            Consensus lists and timed quizzes for everything worth knowing.
+            Daily brain exercises, quizzes, and consensus Top 10 Lists for everything worth knowing.
           </div>
           {vis != null && (<div style={{ fontSize: 11.5, color: NEUTRAL.soft, marginTop: 10 }}>{vis.toLocaleString()} visitors</div>)}
         </div>

@@ -214,7 +214,7 @@ export default function DailyArchiveClient({ games = [], today = '' }) {
         .dl-card.open{border-color:#c9d3e5;box-shadow:0 10px 30px rgba(14,29,64,0.10);}
         .dl-chead{display:flex;align-items:center;gap:14px;padding:16px 18px 0;}
         .dl-art{box-sizing:border-box;border-radius:13px;display:flex;align-items:center;justify-content:center;flex:0 0 auto;overflow:hidden;}
-        .dl-art img{width:66%;height:66%;object-fit:contain;}
+        .dl-art img{width:78%;height:78%;object-fit:contain;}
         .dl-cname{font-size:17.5px;font-weight:800;letter-spacing:-.4px;line-height:1.05;color:${INK};text-decoration:none;}
         .dl-cname:hover{text-decoration:underline;text-decoration-color:rgba(28,30,36,.3);text-underline-offset:2px;}
         .dl-ctag{font-size:12.5px;font-weight:500;color:${FADED};margin-top:3px;line-height:1.3;}
@@ -382,7 +382,7 @@ function GameArt({ g, size = 52 }) {
     <div className="dl-art" style={{ width: size, height: size, background: tint(g.accent, 0.10) }}>
       {err
         ? <span style={{ fontWeight: 800, color: g.accent, fontSize: Math.round(size * 0.42) }}>{g.name[0]}</span>
-        : <img src={`/games/btn-${g.key}.png`} alt="" aria-hidden="true" onError={() => setErr(true)} />}
+        : <img src={`/games/tile/${g.key}.png`} alt="" aria-hidden="true" onError={() => setErr(true)} />}
     </div>
   );
 }
