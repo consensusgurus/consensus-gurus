@@ -30,6 +30,7 @@ import {
   Trophy, Link2, Flag, CalendarCheck, Scale, Grid3x3, LayoutGrid, Newspaper, FlagTriangleRight,
   Pencil, Users, ArrowRight, Puzzle, Fingerprint, KeyRound, Thermometer,
 } from 'lucide-react';
+import ReportIssue from './ReportIssue';
 
 const RUST = '#c0392b';
 
@@ -301,6 +302,13 @@ export default function DailyEndCard({
         })}
       </div>
       <div className="dec-foot"><a href="/daily">All daily games &amp; archive →</a></div>
+      {self ? (
+        <ReportIssue
+          self={self}
+          name={(DAILY_GAMES.find((g) => g.key === self) || {}).name}
+          accent={meta.accent}
+        />
+      ) : null}
     </div>
   );
 

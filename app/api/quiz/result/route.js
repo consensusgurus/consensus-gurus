@@ -84,11 +84,11 @@ export async function POST(request) {
     }
     // Slow / resumed finishers still score. These daily games can be left and
     // picked up later, so elapsed is wall-clock and can run long. Accept any
-    // non-negative time but cap the STORED value at 6h (21600s) so a game left
+    // non-negative time but cap the STORED value at 10h (36000s) so a game left
     // open and finished much later cannot inflate the board or its time
-    // tiebreaker. (Previously a hard reject over 10h silently dropped genuinely
-    // slow finishes entirely.)
-    const timeStored = Math.min(timeElapsed, 21600);
+    // tiebreaker. (Previously this same ceiling was a hard reject, which silently
+    // dropped genuinely slow finishes entirely.)
+    const timeStored = Math.min(timeElapsed, 36000);
 
     // Attribute to a joined identity by email, or by the browser's anon_id when
     // the player signed up with a display name only (no email).

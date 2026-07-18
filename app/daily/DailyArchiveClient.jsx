@@ -37,8 +37,7 @@ const CATEGORIES = [
   { key: 'word', label: 'Word', keys: ['crux', 'emcee', 'garble', 'links', 'stet', 'tuck', 'warmer'] },
   { key: 'history', label: 'History', keys: ['dating', 'circa', 'extra'] },
   { key: 'geography', label: 'Geography', keys: ['span', 'ping'] },
-  { key: 'numbers', label: 'Numbers', keys: ['tally', 'suds', 'carve', 'outwit', 'cipher'] },
-  { key: 'logic', label: 'Logic', keys: ['alibi'] },
+  { key: 'numbers', label: 'Numbers & Logic', keys: ['tally', 'suds', 'carve', 'outwit', 'cipher', 'alibi'] },
 ];
 // Each game's accent, lightened for legibility on the dark leaderboard card
 // (mirrors ACCENTS_NAVY in DailyCombinedLeaderboard).

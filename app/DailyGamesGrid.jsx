@@ -16,38 +16,57 @@
 import React, { useState, useEffect } from 'react';
 import { Swords, Share2, Check } from 'lucide-react';
 import useDailyOrder, { sortByDailyOrder } from './useDailyOrder';
+import ReportIssue from './ReportIssue';
 
 const GAMES = [
-  { key: 'crux', href: '/crux', name: 'Crux', tag: 'A clueless crossword', img: '/games/btn-crux.png', label: 'Daily' },
-  { key: 'emcee', href: '/emcee', name: 'Emcee', tag: 'The daily mini crossword', img: '/games/btn-emcee.png', label: 'Daily' },
-  { key: 'garble', href: '/garble', name: 'Garble', tag: 'Untangle five words', img: '/games/btn-garble.png', label: 'Daily' },
-  { key: 'links', href: '/links', name: 'Links', tag: 'Four hidden threads', img: '/games/btn-links.png', label: 'Daily' },
-  { key: 'span', href: '/span', name: 'Span', tag: 'Cross the map', img: '/games/btn-span.png', label: 'Daily' },
-  { key: 'dating', href: '/dating', name: 'Dating', tag: 'Put history in order', img: '/games/btn-dating.png', label: 'Daily' },
-  { key: 'tally', href: '/tally', name: 'Tally', tag: 'Balance the books', img: '/games/btn-tally.png', label: 'Daily' },
-  { key: 'suds', href: '/suds', name: 'Suds', tag: 'The daily sudoku', img: '/games/btn-suds.png', label: 'Daily' },
-  { key: 'carve', href: '/carve', name: 'Carve', tag: 'Equal-sum blocks', img: '/games/btn-carve.png', label: 'Daily' },
-  { key: 'circa', href: '/circa', name: 'Circa', tag: 'Guess the year', img: '/games/btn-circa.png', label: 'Daily' },
-  { key: 'extra', href: '/extra', name: 'Extra', tag: 'Name the story', img: '/games/btn-extra.png', label: 'Daily' },
-  { key: 'stet', href: '/stet', name: 'Stet', tag: 'Fix the wrong word', img: '/games/btn-stet.png', label: 'Daily' },
-  { key: 'outwit', href: '/outwit', name: 'Outwit', tag: 'Beat the crowd', img: '/games/btn-outwit.png', label: 'Daily' },
-  { key: 'tuck', href: '/tuck', name: 'Tuck', tag: 'Build your own crossword', img: '/games/btn-tuck.png', label: 'Daily' },
-  { key: 'alibi', href: '/alibi', name: 'Alibi', tag: 'Solve the nightly whodunit', img: '/games/btn-alibi.png', label: 'Daily' },
-  { key: 'cipher', href: '/cipher', name: 'Cipher', tag: 'Crack the letter math', img: '/games/btn-cipher.png', label: 'Daily' },
-  { key: 'ping', href: '/ping', name: 'Ping', tag: 'Find the secret city', img: '/games/btn-ping.png', label: 'Daily' },
-  { key: 'warmer', href: '/warmer', name: 'Warmer', tag: 'Hotter or colder', img: '/games/btn-warmer.png', label: 'Daily' },
+  { key: 'crux', href: '/crux', name: 'Crux', tag: 'A clueless crossword', img: '/games/btn-crux.png' },
+  { key: 'emcee', href: '/emcee', name: 'Emcee', tag: 'The daily mini crossword', img: '/games/btn-emcee.png' },
+  { key: 'garble', href: '/garble', name: 'Garble', tag: 'Untangle five words', img: '/games/btn-garble.png' },
+  { key: 'links', href: '/links', name: 'Links', tag: 'Four hidden threads', img: '/games/btn-links.png' },
+  { key: 'span', href: '/span', name: 'Span', tag: 'Cross the map', img: '/games/btn-span.png' },
+  { key: 'dating', href: '/dating', name: 'Dating', tag: 'Put history in order', img: '/games/btn-dating.png' },
+  { key: 'tally', href: '/tally', name: 'Tally', tag: 'Balance the books', img: '/games/btn-tally.png' },
+  { key: 'suds', href: '/suds', name: 'Suds', tag: 'The daily sudoku', img: '/games/btn-suds.png' },
+  { key: 'carve', href: '/carve', name: 'Carve', tag: 'Equal-sum blocks', img: '/games/btn-carve.png' },
+  { key: 'circa', href: '/circa', name: 'Circa', tag: 'Guess the year', img: '/games/btn-circa.png' },
+  { key: 'extra', href: '/extra', name: 'Extra', tag: 'Name the story', img: '/games/btn-extra.png' },
+  { key: 'stet', href: '/stet', name: 'Stet', tag: 'Fix the wrong word', img: '/games/btn-stet.png' },
+  { key: 'outwit', href: '/outwit', name: 'Outwit', tag: 'Beat the crowd', img: '/games/btn-outwit.png' },
+  { key: 'tuck', href: '/tuck', name: 'Tuck', tag: 'Build your own crossword', img: '/games/btn-tuck.png' },
+  { key: 'alibi', href: '/alibi', name: 'Alibi', tag: 'Solve the nightly whodunit', img: '/games/btn-alibi.png' },
+  { key: 'cipher', href: '/cipher', name: 'Cipher', tag: 'Crack the letter math', img: '/games/btn-cipher.png' },
+  { key: 'ping', href: '/ping', name: 'Ping', tag: 'Find the secret city', img: '/games/btn-ping.png' },
+  { key: 'warmer', href: '/warmer', name: 'Warmer', tag: 'Hotter or colder', img: '/games/btn-warmer.png' },
 ];
-// The evergreen fill tile: the site's most-played quiz, so the games block stays
-// an even count on the 2-wide phone layout.
-const POPULAR = { key: 'popular', href: '/quiz/europe-no-outline', name: 'Map: Europe', tag: 'No outlines, our #1', img: '/games/btn-map.png', label: 'Popular' };
+const GAMES_BY_KEY = Object.fromEntries(GAMES.map((g) => [g.key, g]));
+
+// Games grouped by category, mirroring the /daily hub (DailyArchiveClient) so
+// the two surfaces read the same. Within each group the order is popularity
+// (yesterday's plays), same as everywhere else. `ping` is included here even
+// though the /daily map currently omits it.
+const CATEGORIES = [
+  { key: 'word', label: 'Word & Letters', keys: ['crux', 'emcee', 'garble', 'links', 'stet', 'tuck', 'warmer'] },
+  { key: 'logic', label: 'Logic & Deduction', keys: ['span', 'ping', 'dating', 'outwit', 'alibi'] },
+  { key: 'number', label: 'Numbers & Grids', keys: ['tally', 'suds', 'carve', 'cipher'] },
+  { key: 'trivia', label: 'Time & Trivia', keys: ['circa', 'extra'] },
+];
 
 export default function DailyGamesGrid({ self, maxWidth = 640, challengeHref = null, share = null, divider = false }) {
-  // Display order = yesterday's popularity (canonical until the order loads).
+  // Display order within each category = yesterday's popularity (canonical
+  // until the order loads).
   const dailyOrder = useDailyOrder();
-  // Keep the games grid an even count for the 2-wide phone layout: even count of
-  // "other" dailies fills alone; odd count gets the evergreen POPULAR tile.
-  const others = sortByDailyOrder(GAMES, dailyOrder).filter((g) => g.key !== self);
-  const tiles = others.length % 2 === 0 ? others : [...others, POPULAR];
+  // The other dailies (everything but the game you're on), grouped by category
+  // to match the /daily hub, with each group popularity-sorted.
+  const groups = CATEGORIES
+    .map((c) => ({
+      key: c.key,
+      label: c.label,
+      games: sortByDailyOrder(
+        c.keys.filter((k) => k !== self).map((k) => GAMES_BY_KEY[k]).filter(Boolean),
+        dailyOrder
+      ),
+    }))
+    .filter((c) => c.games.length > 0);
 
   // Which dailies the viewer has already finished today (registered viewers) —
   // those tiles show a faint wash + check. Guests get no marks (empty set).
@@ -73,15 +92,18 @@ export default function DailyGamesGrid({ self, maxWidth = 640, challengeHref = n
   return (
     <div style={{ maxWidth, margin: '18px auto 0' }}>
       <style>{`
-        .dgg-actions{display:grid;gap:10px;margin-bottom:10px;}
+        .dgg-actions{display:grid;gap:10px;margin-bottom:14px;}
+        .dgg-grp{margin-bottom:14px;}
+        .dgg-glabel{display:flex;align-items:center;gap:10px;margin:0 2px 8px;}
+        .dgg-glabel .k{font-size:11px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:#0e1d40;white-space:nowrap;}
+        .dgg-glabel .line{flex:1;height:1px;background:rgba(28,30,36,0.12);}
         .dgg{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;}
         @media(min-width:768px){.dgg{grid-template-columns:repeat(3,minmax(0,1fr));}}
         @media(max-width:359px){.dgg{grid-template-columns:1fr;}}
-        .dgg-t{position:relative;display:flex;flex-direction:row;align-items:center;gap:10px;min-height:66px;border:1px solid rgba(28,30,36,0.14);border-radius:14px;background:#0e1d40;padding:10px 13px;text-decoration:none;overflow:hidden;box-sizing:border-box;}
+        .dgg-t{position:relative;display:flex;flex-direction:row;align-items:center;gap:10px;min-height:58px;border:1px solid rgba(28,30,36,0.14);border-radius:14px;background:#0e1d40;padding:10px 13px;text-decoration:none;overflow:hidden;box-sizing:border-box;}
         .dgg-t:hover{border-color:#5b8bff;}
         .dgg-txt{display:flex;flex-direction:column;gap:1px;min-width:0;flex:1 1 auto;}
-        .dgg-art{flex:0 0 auto;height:44px;width:auto;}
-        .dgg-tag{font-size:8.5px;font-weight:800;letter-spacing:.13em;text-transform:uppercase;color:#f8b84a;margin-bottom:2px;}
+        .dgg-art{flex:0 0 auto;height:42px;width:auto;}
         .dgg-nm{font-size:15px;font-weight:800;letter-spacing:-.3px;color:#fff;line-height:1.1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
         .dgg-p{font-size:10.5px;font-weight:700;color:#9fb0d4;line-height:1.2;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
         .dgg-done{background:linear-gradient(0deg,rgba(22,163,74,0.14),rgba(22,163,74,0.14)),#0e1d40;border-color:rgba(34,197,94,0.5);}
@@ -110,32 +132,42 @@ export default function DailyGamesGrid({ self, maxWidth = 640, challengeHref = n
           ) : null}
         </div>
       ) : null}
-      <div className="dgg">
-        {tiles.map((g) => {
-          const done = completed.has(g.key);
-          return (
-            <a
-              key={g.href}
-              href={g.href}
-              className={`dgg-t${done ? ' dgg-done' : ''}`}
-              aria-label={`${g.name} — ${g.label === 'Daily' ? 'daily game' : 'popular quiz'}${done ? ', completed today' : ''}`}
-            >
-              <span className="dgg-txt">
-                <span className="dgg-tag">{g.label}</span>
-                <span className="dgg-nm">{g.name}</span>
-                <span className="dgg-p">{g.tag} →</span>
-              </span>
-              <img className="dgg-art" src={g.img} alt="" aria-hidden="true" />
-              {done ? <span className="dgg-check"><Check size={11} strokeWidth={3.4} /></span> : null}
-            </a>
-          );
-        })}
-      </div>
-      <div style={{ textAlign: 'center', marginTop: 11 }}>
+      {groups.map((grp) => (
+        <div className="dgg-grp" key={grp.key}>
+          <div className="dgg-glabel">
+            <span className="k">{grp.label}</span>
+            <span className="line" />
+          </div>
+          <div className="dgg">
+            {grp.games.map((g) => {
+              const done = completed.has(g.key);
+              return (
+                <a
+                  key={g.href}
+                  href={g.href}
+                  className={`dgg-t${done ? ' dgg-done' : ''}`}
+                  aria-label={`${g.name} — daily game${done ? ', completed today' : ''}`}
+                >
+                  <span className="dgg-txt">
+                    <span className="dgg-nm">{g.name}</span>
+                    <span className="dgg-p">{g.tag} →</span>
+                  </span>
+                  <img className="dgg-art" src={g.img} alt="" aria-hidden="true" />
+                  {done ? <span className="dgg-check"><Check size={11} strokeWidth={3.4} /></span> : null}
+                </a>
+              );
+            })}
+          </div>
+        </div>
+      ))}
+      <div style={{ textAlign: 'center', marginTop: 4 }}>
         <a href="/daily" style={{ fontFamily: "'DM Mono', ui-monospace, monospace", fontSize: 11.5, letterSpacing: '0.06em', textTransform: 'uppercase', fontWeight: 700, color: '#5b8bff', textDecoration: 'none', borderBottom: '1px solid rgba(91,139,255,0.5)', paddingBottom: 1 }}>
           All daily games &amp; archive →
         </a>
       </div>
+      {self ? (
+        <ReportIssue self={self} name={GAMES_BY_KEY[self] ? GAMES_BY_KEY[self].name : undefined} accent="#0e1d40" />
+      ) : null}
       {divider ? <div style={{ borderTop: '1px solid rgba(28,30,36,0.14)', marginTop: 22 }} /> : null}
     </div>
   );
