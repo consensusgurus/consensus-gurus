@@ -5,14 +5,15 @@ import { PUZZLES } from './puzzles';
 // Ping launched 2026-07-18 as the seventeenth daily: linked from the daily
 // strip, the /daily archive, and the sitemap (/ping is the canonical, evergreen
 // URL — the dated /quiz/ping-* stubs canonicalize here). One secret city a day;
-// guess any world city and each guess pings back the distance in miles and a
-// compass arrow pointing at the target. Keep guessing until you land on it —
-// your score is how few guesses it took. Sundays hide a trickier city.
+// guess any world city and each guess pings back the distance in miles to the
+// target (no direction). Keep guessing until you land on it; score is how few
+// guesses it took, and giving up scores you on your closest guess. Sundays
+// hide a trickier city.
 
 export const metadata = {
   title: 'Ping — Daily City Game: Guess the City by Distance | Source of Truths',
   description:
-    'A free daily geography game — one secret world city, no clues. Guess any city and Ping tells you how many miles away it is and which way to head. Home in with a compass and keep guessing until you find it; the fewer guesses, the better your score.',
+    'A free daily geography game — one secret world city, no clues. Guess any city and Ping tells you exactly how many miles away it is. Home in and keep guessing until you find it; the fewer guesses, the better your score.',
   alternates: { canonical: '/ping' },
   manifest: '/ping.webmanifest',
   icons: {
@@ -23,7 +24,7 @@ export const metadata = {
   openGraph: {
     title: 'Ping — The Daily City Hunt',
     description:
-      'One secret city a day, no clues. Guess a city and get the miles and a compass arrow to the target. Home in and find it. From Source of Truths.',
+      'One secret city a day, no clues. Guess a city and get the exact miles to the target. Home in and find it. From Source of Truths.',
     url: '/ping',
     type: 'website',
     siteName: 'Source of Truths',
@@ -32,7 +33,7 @@ export const metadata = {
     card: 'summary_large_image',
     title: 'Ping — The Daily City Hunt',
     description:
-      'One secret city a day, no clues. Every guess pings back the distance and a compass arrow to the target.',
+      'One secret city a day, no clues. Every guess pings back the exact distance in miles to the target.',
   },
 };
 
@@ -43,7 +44,7 @@ const gameJsonLd = {
   alternateName: 'Ping — Daily City Game',
   url: 'https://sourceoftruths.com/ping',
   description:
-    'A free daily geography game: one secret world city, no clues. Guess any city and each guess returns the great-circle distance in miles and a compass arrow toward the target. Keep guessing until you find it — the fewer guesses, the better.',
+    'A free daily geography game: one secret world city, no clues. Guess any city and each guess returns the great-circle distance in miles to the target. Keep guessing until you find it — the fewer guesses, the better.',
   genre: ['Geography game', 'Trivia game', 'Guessing game', 'Puzzle'],
   gamePlatform: 'Web browser',
   isAccessibleForFree: true,
@@ -87,7 +88,7 @@ function ComingSoon({ first }) {
         </div>
         <h1 style={{ fontSize: 24, fontWeight: 800, color: '#1c1e24', margin: '0 0 8px' }}>Ping launches {first ? first.dateLabel : 'soon'}.</h1>
         <p style={{ fontSize: 15, color: '#6b7280', fontWeight: 600, lineHeight: 1.5, margin: '0 0 18px' }}>
-          The daily city hunt — one secret city, no clues, homing in by distance and compass. Come back when the first city drops.
+          The daily city hunt: one secret city, no clues, homing in by distance alone. Come back when the first city drops.
         </p>
         <a href="/daily" style={{ color: '#0284c7', fontWeight: 800, textDecoration: 'underline' }}>See the other daily games &rarr;</a>
       </div>

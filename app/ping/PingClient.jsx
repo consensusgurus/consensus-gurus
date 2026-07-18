@@ -3,12 +3,13 @@
 // Ping — the daily city hunt.
 //
 // One secret world city a day, no clues. Type any well-known city and each
-// guess pings back two things: the great-circle distance in miles to the secret
-// city, and a compass arrow pointing the way there. Keep guessing — there's no
-// limit — and home in until you land on the exact city. Your score is how few
-// guesses it took (a first-guess hit is a perfect 10; every extra guess trims a
-// point, floor of 1 once you finally find it). Ties on the daily board break by
-// fewest guesses, then fastest time. One free hint reveals the continent.
+// guess pings back one number: the great-circle distance in miles to the secret
+// city. Keep guessing (there's no limit) and home in until you land on it. Two
+// outcomes only: you GET THE CITY or you GIVE UP. Score is out of 10 - getting
+// the city scores 6-10 (fewer guesses = higher), giving up scores 1-5 by how
+// close your best guess got. Getting it always outranks giving up; the daily
+// board ranks by score, then guesses, then time. One free hint reveals the
+// continent (unregistered players).
 //
 // Same daily plumbing as Circa/Span: banked cities gated by Eastern date on the
 // server (app/ping/page.js), per-puzzle localStorage saves, /ping?p=N archive
@@ -18,7 +19,7 @@
 
 import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { useSearchParams } from 'next/navigation';
-import { HelpCircle, X, Lightbulb, Eye, Smartphone, ArrowUp, MapPin, Search } from 'lucide-react';
+import { HelpCircle, X, Lightbulb, Eye, Smartphone, MapPin, Search } from 'lucide-react';
 import Grain from '../Grain';
 import Footer from '../Footer';
 import useDuelContext, { DuelBanner } from '../quiz/[id]/useDuelContext';
@@ -28,7 +29,7 @@ import DailyEndCard from '../DailyEndCard';
 import DailyTopNav from '../DailyTopNav';
 import DailyCombinedLeaderboard from '../quiz/[id]/DailyCombinedLeaderboard';
 import { isMobileDevice } from '@/lib/is-mobile';
-import { CITIES, findCity, suggestCities, haversineMiles, bearingDeg, compass8, continentOf, normCity } from '@/lib/ping-cities';
+import { CITIES, findCity, suggestCities, haversineMiles, continentOf, normCity } from '@/lib/ping-cities';
 
 const COLORS = {
   cream: '#f7f8fa',
@@ -58,6 +59,19 @@ const BANDS = [
 ];
 const bandOf = (mi) => BANDS.find((b) => mi <= b.max);
 const fmtMi = (mi) => mi.toLocaleString('en-US');
+
+// Score is out of 10. Two outcomes: you GET THE CITY (6-10, fewer guesses is
+// higher, a first-guess find is a perfect 10) or you GIVE UP (1-5 by how close
+// your best guess got, within 100 mi = 5). The worst solve (6) still beats the
+// best give-up (5), so getting the city always ranks above quitting.
+const TOTAL = 10;
+const PROX_MILES = [100, 500, 1500, 4000]; // give-up bands -> 5,4,3,2 (else 1)
+function proximityScore(mi) {
+  if (mi == null) return 0;
+  for (let i = 0; i < PROX_MILES.length; i++) if (mi <= PROX_MILES[i]) return 5 - i;
+  return 1;
+}
+const getScore = (n) => Math.max(6, 11 - n);
 
 const isIosDevice = () =>
   typeof navigator !== 'undefined' &&
@@ -328,14 +342,15 @@ export default function PingClient({ puzzles = [], forceNum = null }) {
   const isTodays = PUZZLE.num === pickPuzzle(puzzles, null).num;
   const prevPuzzle = puzzles.find((x) => x.num === PUZZLE.num - 1) || null;
   const myStats = deriveStats(stats, pickPuzzle(puzzles, null).num);
-  // score: first-guess hit = 10, each extra guess -1, floor 1 once found
-  const scoreFor = (nGuesses) => Math.max(1, 11 - nGuesses);
-  const finalScore = won ? scoreFor(guesses.length) : 0;
+  // finished: 11-20 by guess count; gave up (revealed): 1-10 by closest miss.
+  const finalScore = won
+    ? getScore(guesses.length)
+    : (g.status === 'revealed' ? proximityScore(closest ? closest.mi : null) : 0);
 
   function postResult(g2, score) {
     const el = g2.t0 ? Math.max(1, Math.round(((g2.tEnd || Date.now()) - g2.t0) / 1000)) : 1;
     const solved = g2.status === 'won';
-    try { setStats(recordStat(PUZZLE.num, { s: score, t: 10, g: solved ? g2.guesses.length : null, won: solved })); } catch (e) {}
+    try { setStats(recordStat(PUZZLE.num, { s: score, t: TOTAL, g: solved ? g2.guesses.length : null, won: solved })); } catch (e) {}
     try {
       fetch('/api/quiz/result', {
         method: 'POST',
@@ -343,7 +358,7 @@ export default function PingClient({ puzzles = [], forceNum = null }) {
         headers: { 'Content-Type': 'application/json' },
         // guessesUsed = guesses so the daily board (score, then guesses, then
         // time) resolves ties by fewest guesses and then fastest finish.
-        body: JSON.stringify({ quizId: PUZZLE.quizId, score, total: 10, correct: solved ? 1 : 0, guessesUsed: g2.guesses.length, timeElapsed: el, email: identity?.email || undefined, anonId: getAnonId(), isMobile: isMobileDevice(), referrer: (typeof document !== 'undefined' ? document.referrer : '') }),
+        body: JSON.stringify({ quizId: PUZZLE.quizId, score, total: TOTAL, correct: solved ? 1 : 0, guessesUsed: g2.guesses.length, timeElapsed: el, email: identity?.email || undefined, anonId: getAnonId(), isMobile: isMobileDevice(), referrer: (typeof document !== 'undefined' ? document.referrer : '') }),
       })
         .then((r) => r.json())
         .then((d) => { if (d && !d.error) setBoard({ ...EMPTY_BOARD, ...d }); })
@@ -356,8 +371,7 @@ export default function PingClient({ puzzles = [], forceNum = null }) {
     const key = `${normCity(city.name)}|${normCity(city.country)}`;
     if (guessedKeys.has(key)) { say(`You already guessed ${city.name}.`); return; }
     const mi = haversineMiles(city, TARGET);
-    const brng = mi === 0 ? null : Math.round(bearingDeg(city, TARGET));
-    const entry = { name: city.name, country: city.country, mi, bearing: brng };
+    const entry = { name: city.name, country: city.country, mi };
     const g2 = { ...g, guesses: [...guesses, entry] };
     if (!g2.t0) g2.t0 = Date.now();
     setVal('');
@@ -365,7 +379,7 @@ export default function PingClient({ puzzles = [], forceNum = null }) {
     if (key === targetKey || mi === 0) {
       g2.status = 'won';
       g2.tEnd = Date.now();
-      postResult(g2, scoreFor(g2.guesses.length));
+      postResult(g2, getScore(g2.guesses.length));
       setG(g2);
       setJustWon(true);
       return;
@@ -376,13 +390,19 @@ export default function PingClient({ puzzles = [], forceNum = null }) {
 
   function submitTyped() {
     if (!playing) return;
-    // a highlighted suggestion wins; otherwise resolve the typed text, else the
-    // top suggestion, else complain.
+    // a highlighted suggestion wins; else an exact name/alias; else the top
+    // suggestion ONLY if the typed text is a prefix of it (so "nice" -> Nice,
+    // never the substring match Venice); else ask them to pick from the list.
     if (sugIdx >= 0 && suggestions[sugIdx]) { commitGuess(suggestions[sugIdx]); return; }
     const exact = findCity(val);
     if (exact) { commitGuess(exact); return; }
-    if (suggestions.length) { commitGuess(suggestions[0]); return; }
-    if (normCity(val).length) say('Not a city we know — try a major world city.');
+    const q = normCity(val);
+    const top = suggestions[0];
+    if (top) {
+      const hay = [normCity(top.name), ...((top.aliases || []).map(normCity))];
+      if (hay.some((h) => h.startsWith(q))) { commitGuess(top); return; }
+    }
+    if (q.length) say('No match. Pick a city from the list.');
   }
 
   // one free hint: reveal the continent (unregistered players only)
@@ -398,7 +418,7 @@ export default function PingClient({ puzzles = [], forceNum = null }) {
   function revealEnd() {
     const g2 = { ...g, status: 'revealed', tEnd: Date.now() };
     if (!g2.t0) g2.t0 = Date.now();
-    postResult(g2, 0);
+    postResult(g2, proximityScore(closest ? closest.mi : null));
     setG(g2);
   }
 
@@ -423,7 +443,7 @@ export default function PingClient({ puzzles = [], forceNum = null }) {
     const streakBit = isTodays && myStats.cur >= 2 ? ` · streak ${myStats.cur}` : '';
     const head2 = won
       ? `Ping #${PUZZLE.num} · found in ${guesses.length} guess${guesses.length === 1 ? '' : 'es'}${hintBit}${streakBit}`
-      : `Ping #${PUZZLE.num} · stumped${hintBit}`;
+      : `Ping #${PUZZLE.num} · gave up${closest ? ` · closest ${fmtMi(closest.mi)} mi` : ''}${hintBit}`;
     return `${head2}\n${squares}\n${shareUrl()}`;
   }
   function shareUrl() {
@@ -465,12 +485,7 @@ export default function PingClient({ puzzles = [], forceNum = null }) {
             <MapPin size={15} strokeWidth={2.5} /> found it!
           </span>
         ) : (
-          <span style={{ display: 'inline-flex', alignItems: 'center', gap: 9, flex: '0 0 auto' }}>
-            <span style={{ fontFamily: MONO, fontSize: 15, fontWeight: 500, color: COLORS.ink, fontVariantNumeric: 'tabular-nums' }}>{fmtMi(x.mi)} mi</span>
-            <span title={compass8(x.bearing)} style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', width: 26, height: 26, borderRadius: 999, background: '#fff', border: `1.5px solid ${border}`, color, transform: `rotate(${x.bearing || 0}deg)` }}>
-              <ArrowUp size={15} strokeWidth={2.8} />
-            </span>
-          </span>
+          <span style={{ fontFamily: MONO, fontSize: 16, fontWeight: 500, color: COLORS.ink, fontVariantNumeric: 'tabular-nums', flex: '0 0 auto' }}>{fmtMi(x.mi)} mi</span>
         )}
       </div>
     );
@@ -529,7 +544,7 @@ export default function PingClient({ puzzles = [], forceNum = null }) {
           </div>
 
           <div style={{ fontFamily: SANS, fontSize: 17, fontWeight: 700, letterSpacing: '-0.01em', color: COLORS.ink, lineHeight: 1.4, margin: '2px 0 4px' }}>
-            One city, no clues. Guess any world city and I&rsquo;ll tell you how far it is and which way to head.
+            One city, no clues. Guess any world city and I&rsquo;ll tell you exactly how far away it is. Close in from there.
           </div>
           {g.hintUsed && playing && (
             <div style={{ display: 'inline-flex', alignItems: 'center', gap: 6, fontFamily: SANS, fontSize: 12.5, fontWeight: 800, color: COLORS.accentDeep, background: COLORS.accentSoft, border: '1.5px solid rgba(2,132,199,0.4)', borderRadius: 7, padding: '4px 10px', marginTop: 8 }}>
@@ -579,7 +594,7 @@ export default function PingClient({ puzzles = [], forceNum = null }) {
                 {closest ? (
                   <>Closest so far: <b style={{ color: COLORS.ink }}>{closest.name}</b>, {fmtMi(closest.mi)} mi away &middot; no guess limit</>
                 ) : (
-                  <>Any major world city &middot; each guess shows miles + a compass arrow &middot; no guess limit</>
+                  <>Any major world city &middot; each guess shows the miles to the target &middot; no guess limit</>
                 )}
               </div>
             </div>
@@ -603,10 +618,11 @@ export default function PingClient({ puzzles = [], forceNum = null }) {
                   <Lightbulb size={14} /> Hint: the continent
                 </button>
               )}
-              {identity && guesses.length > 0 && (
+              {guesses.length > 0 && (
                 <button onClick={() => { if (armReveal) { setArmReveal(false); revealEnd(); } else { setArmReveal(true); } }}
+                  title="Give up: reveals the city and scores you on your closest guess"
                   style={{ marginLeft: 'auto', background: 'none', border: 'none', cursor: 'pointer', fontFamily: SANS, fontWeight: 700, fontSize: 12, color: armReveal ? COLORS.rust : COLORS.faded, textDecoration: 'underline', textUnderlineOffset: 3, display: 'inline-flex', alignItems: 'center', gap: 5 }}>
-                  <Eye size={13} /> {armReveal ? 'Tap again — ends the game and shows the city' : 'Give up & reveal'}
+                  <Eye size={13} /> {armReveal ? 'Tap again to give up (you keep your closeness score)' : 'Give up & reveal'}
                 </button>
               )}
             </div>
@@ -624,7 +640,12 @@ export default function PingClient({ puzzles = [], forceNum = null }) {
                 </span>
               </div>
               {PUZZLE.sunday && (
-                <div style={{ fontSize: 12.5, fontWeight: 600, color: COLORS.faded, fontStyle: 'italic', margin: '8px 0 0' }}>The Sunday Edition — a trickier city to find.</div>
+                <div style={{ fontSize: 12.5, fontWeight: 600, color: COLORS.faded, fontStyle: 'italic', margin: '8px 0 0' }}>The Sunday Edition: a trickier city to find.</div>
+              )}
+              {!won && closest && (
+                <div style={{ fontSize: 12.5, fontWeight: 700, color: COLORS.accentDeep, margin: '8px 0 0' }}>
+                  Your closest: {closest.name}, {fmtMi(closest.mi)} mi away &middot; scored {finalScore}/{TOTAL}.
+                </div>
               )}
             </div>
             <p style={{ fontSize: 12, color: COLORS.faded, fontWeight: 600, margin: '12px 0 0' }}>
@@ -729,10 +750,12 @@ export default function PingClient({ puzzles = [], forceNum = null }) {
           modal
           self="ping"
           won={won}
-          headline={won ? <>You found it!</> : <>Out of the running</>}
+          headline={won ? <>You found it!</> : (closest && closest.mi <= 400 ? <>So close!</> : <>Gave up</>)}
           subline={won
             ? <>{TARGET.name} &middot; found in {guesses.length} guess{guesses.length === 1 ? '' : 'es'} &middot; {elapsed}{g.hintUsed ? <> &middot; 1 hint</> : null}</>
-            : <>You revealed {TARGET.name} without finding it</>}
+            : (closest
+              ? <>Closest: {closest.name}, {fmtMi(closest.mi)} mi &middot; scored {finalScore}/{TOTAL}</>
+              : <>You revealed {TARGET.name} without guessing</>)}
           onShare={copyShare}
           shareLabel={copied ? 'Copied' : 'Share Result'}
           onReplay={resetGame}
@@ -759,8 +782,8 @@ export default function PingClient({ puzzles = [], forceNum = null }) {
             </div>
             <div style={{ fontSize: 14, lineHeight: 1.55, color: COLORS.ink, fontWeight: 600 }}>
               <p style={{ margin: '0 0 9px' }}>There&rsquo;s one secret city a day and <b>no clues</b>. <b>Guess any world city</b> to begin.</p>
-              <p style={{ margin: '0 0 9px' }}>Every guess pings back two things: the <b>distance in miles</b> to the secret city, and a <b>compass arrow</b> pointing the way there. Follow the arrows and the shrinking distances to close in &mdash; from <b style={{ color: '#475569' }}>cold</b> (2,500+ mi) through <b style={{ color: '#0a1730' }}>cool</b> and <b style={{ color: '#92610b' }}>warm</b> to <b style={{ color: '#9a3d0c' }}>hot</b> (within 200).</p>
-              <p style={{ margin: '0 0 9px' }}>There&rsquo;s <b>no guess limit</b> &mdash; keep going until you land on the city. Your <b>score is how few guesses it took</b>: a first-guess hit is a perfect 10, and each extra guess trims a point. One free <b>hint</b> reveals the continent.</p>
+              <p style={{ margin: '0 0 9px' }}>Every guess pings back one number: the <b>distance in miles</b> to the secret city. No direction, just the distance. Watch it shrink to close in, from <b style={{ color: '#475569' }}>cold</b> (2,500+ mi) through <b style={{ color: '#0a1730' }}>cool</b> and <b style={{ color: '#92610b' }}>warm</b> to <b style={{ color: '#9a3d0c' }}>hot</b> (within 200).</p>
+              <p style={{ margin: '0 0 9px' }}>There&rsquo;s <b>no guess limit</b>. Keep going until you land on the city, and your <b>score is how few guesses it took</b>. Stuck? <b>Give up</b> any time and you&rsquo;re still scored on how close your best guess got, ranked against everyone who played. One free <b>hint</b> reveals the continent.</p>
               <p style={{ margin: 0 }}>Ties on the daily board break on fewest guesses, then fastest time. Sundays hide a trickier city.</p>
             </div>
             <button className="pg-btn" onClick={() => { setShowHelp(false); try { localStorage.setItem(HELP_KEY, '1'); } catch (e) {} }} style={{ marginTop: 14, background: COLORS.ink, color: '#fff' }}>Play</button>
@@ -772,10 +795,10 @@ export default function PingClient({ puzzles = [], forceNum = null }) {
       <section style={{ display: focusMode ? 'none' : 'block', position: 'relative', zIndex: 2, maxWidth: 620, margin: '0 auto', padding: '10px 24px 42px', fontFamily: SANS }}>
         <h2 style={{ margin: '0 0 8px', fontSize: 15, fontWeight: 800, letterSpacing: '-0.01em', color: COLORS.ink }}>About Ping</h2>
         <p style={{ margin: '0 0 8px', fontSize: 13, lineHeight: 1.65, color: COLORS.faded, fontWeight: 600 }}>
-          Ping is a free daily geography game from Source of Truths &mdash; the daily city hunt. Each day there&rsquo;s one secret city somewhere in the world and not a single clue to start. Name any well-known city and Ping answers with the great-circle distance in miles and a compass arrow pointing toward the target.
+          Ping is a free daily geography game from Source of Truths &mdash; the daily city hunt. Each day there&rsquo;s one secret city somewhere in the world and not a single clue to start. Name any well-known city and Ping answers with one number: the great-circle distance in miles to the target.
         </p>
         <p style={{ margin: '0 0 8px', fontSize: 13, lineHeight: 1.65, color: COLORS.faded, fontWeight: 600 }}>
-          From there it&rsquo;s pure triangulation: chase the arrow, watch the miles fall, and close in on the answer. There&rsquo;s no limit on guesses, so everyone gets there in the end &mdash; the goal is to do it in as few guesses as you can. A first-guess hit is a perfect ten, and one free hint reveals the continent.
+          From there it&rsquo;s pure triangulation: watch the miles fall and close in on the answer. There&rsquo;s no limit on guesses, so everyone gets there in the end &mdash; the goal is to do it in as few guesses as you can. Give up any time and you&rsquo;re still scored on how close you got. One free hint reveals the continent.
         </p>
         <p style={{ margin: 0, fontSize: 13, lineHeight: 1.65, color: COLORS.faded, fontWeight: 600 }}>
           A new city drops every day at midnight Eastern, with a trickier one on Sundays. No app, no signup &mdash; play free in your browser, keep a streak, and race the daily leaderboard. More dailies: <a href="/span" style={{ color: COLORS.ink, fontWeight: 800 }}>Span</a>, our geography game, <a href="/circa" style={{ color: COLORS.ink, fontWeight: 800 }}>Circa</a>, the daily year hunt, and <a href="/crux" style={{ color: COLORS.ink, fontWeight: 800 }}>Crux</a>, our clueless crossword.
