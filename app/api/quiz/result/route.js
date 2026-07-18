@@ -79,9 +79,16 @@ export async function POST(request) {
     if (!Number.isInteger(score) || !Number.isInteger(total) || total <= 0 || total > 100000 || score < 0 || score > total) {
       return NextResponse.json({ error: 'bad score' }, { status: 400 });
     }
-    if (!Number.isInteger(timeElapsed) || timeElapsed < 0 || timeElapsed > 36000) {
+    if (!Number.isInteger(timeElapsed) || timeElapsed < 0) {
       return NextResponse.json({ error: 'bad time' }, { status: 400 });
     }
+    // Slow / resumed finishers still score. These daily games can be left and
+    // picked up later, so elapsed is wall-clock and can run long. Accept any
+    // non-negative time but cap the STORED value at 6h (21600s) so a game left
+    // open and finished much later cannot inflate the board or its time
+    // tiebreaker. (Previously a hard reject over 10h silently dropped genuinely
+    // slow finishes entirely.)
+    const timeStored = Math.min(timeElapsed, 21600);
 
     // Attribute to a joined identity by email, or by the browser's anon_id when
     // the player signed up with a display name only (no email).
@@ -95,7 +102,7 @@ export async function POST(request) {
       username,
       score,
       total,
-      time_elapsed: timeElapsed,
+      time_elapsed: timeStored,
     };
     // Try the richest row first, then drop optional columns that a not-yet-applied
     // migration may be missing (country/region/ua_* -> migration 26,
