@@ -16,29 +16,30 @@
 // and the left cap becomes today's board in miniature — the overall TOP 3
 // (rank, name, points) — plus the expand arrow. Expanding grows this SAME
 // pill into the detail region with the overall top-5 and every game's top-3.
-// Consolidated: one pill, no separate card, no per-cell leader chips.
+// Each cell ALSO keeps its own game leader chip (crown + name) while collapsed
+// (owner: keep the game-specific leaders alongside the top-3 cap).
 
 import React, { useState, useEffect } from 'react';
 import { Crown, ChevronDown } from 'lucide-react';
 import useDailyOrder, { sortByDailyOrder } from './useDailyOrder';
 
 const GAMES = [
-  { key: 'crux', href: '/crux', name: 'Crux', img: '/games/btn-crux.png', store: 'sot_crux_day' },
-  { key: 'emcee', href: '/emcee', name: 'Emcee', img: '/games/btn-emcee.png', store: 'sot_emcee_day' },
-  { key: 'garble', href: '/garble', name: 'Garble', img: '/games/btn-garble.png', store: 'sot_garble_day' },
-  { key: 'links', href: '/links', name: 'Links', img: '/games/btn-links.png', store: 'sot_links_day' },
-  { key: 'span', href: '/span', name: 'Span', img: '/games/btn-span.png', store: 'sot_span_day' },
-  { key: 'dating', href: '/dating', name: 'Dating', img: '/games/btn-dating.png', store: 'sot_dating_day' },
-  { key: 'tally', href: '/tally', name: 'Tally', img: '/games/btn-tally.png', store: 'sot_tally_day' },
-  { key: 'suds', href: '/suds', name: 'Suds', img: '/games/btn-suds.png', store: 'sot_suds_day' },
-  { key: 'carve', href: '/carve', name: 'Carve', img: '/games/btn-carve.png', store: 'sot_carve_day' },
-  { key: 'circa', href: '/circa', name: 'Circa', img: '/games/btn-circa.png', store: 'sot_circa_day' },
-  { key: 'extra', href: '/extra', name: 'Extra', img: '/games/btn-extra.png', store: 'sot_extra_day' },
-  { key: 'stet', href: '/stet', name: 'Stet', img: '/games/btn-stet.png', store: 'sot_stet_day' },
-  { key: 'outwit', href: '/outwit', name: 'Outwit', img: '/games/btn-outwit.png', store: 'sot_outwit_day' },
-  { key: 'tuck', href: '/tuck', name: 'Tuck', img: '/games/btn-tuck.png', store: 'sot_tuck_day' },
-  { key: 'alibi', href: '/alibi', name: 'Alibi', img: '/games/btn-alibi.png', store: 'sot_alibi_day' },
-  { key: 'cipher', href: '/cipher', name: 'Cipher', img: '/games/btn-cipher.png', store: 'sot_cipher_day' },
+  { key: 'crux', href: '/crux', name: 'Crux', img: '/games/btn-crux.png', store: 'sot_crux_day', tag: "A clueless crossword" },
+  { key: 'emcee', href: '/emcee', name: 'Emcee', img: '/games/btn-emcee.png', store: 'sot_emcee_day', tag: "The daily mini crossword" },
+  { key: 'garble', href: '/garble', name: 'Garble', img: '/games/btn-garble.png', store: 'sot_garble_day', tag: "Untangle five words" },
+  { key: 'links', href: '/links', name: 'Links', img: '/games/btn-links.png', store: 'sot_links_day', tag: "Four hidden threads" },
+  { key: 'span', href: '/span', name: 'Span', img: '/games/btn-span.png', store: 'sot_span_day', tag: "Cross the map" },
+  { key: 'dating', href: '/dating', name: 'Dating', img: '/games/btn-dating.png', store: 'sot_dating_day', tag: "Put history in order" },
+  { key: 'tally', href: '/tally', name: 'Tally', img: '/games/btn-tally.png', store: 'sot_tally_day', tag: "Balance the books" },
+  { key: 'suds', href: '/suds', name: 'Suds', img: '/games/btn-suds.png', store: 'sot_suds_day', tag: "The daily sudoku" },
+  { key: 'carve', href: '/carve', name: 'Carve', img: '/games/btn-carve.png', store: 'sot_carve_day', tag: "Equal-sum blocks" },
+  { key: 'circa', href: '/circa', name: 'Circa', img: '/games/btn-circa.png', store: 'sot_circa_day', tag: "Guess the year" },
+  { key: 'extra', href: '/extra', name: 'Extra', img: '/games/btn-extra.png', store: 'sot_extra_day', tag: "Name the story" },
+  { key: 'stet', href: '/stet', name: 'Stet', img: '/games/btn-stet.png', store: 'sot_stet_day', tag: "Fix the wrong word" },
+  { key: 'outwit', href: '/outwit', name: 'Outwit', img: '/games/btn-outwit.png', store: 'sot_outwit_day', tag: "Beat the crowd" },
+  { key: 'tuck', href: '/tuck', name: 'Tuck', img: '/games/btn-tuck.png', store: 'sot_tuck_day', tag: "Build your own crossword" },
+  { key: 'alibi', href: '/alibi', name: 'Alibi', img: '/games/btn-alibi.png', store: 'sot_alibi_day', tag: "Solve the nightly whodunit" },
+  { key: 'cipher', href: '/cipher', name: 'Cipher', img: '/games/btn-cipher.png', store: 'sot_cipher_day', tag: "Crack the letter math" },
 ];
 
 const NAME_BY_KEY = GAMES.reduce((m, g) => { m[g.key] = g.name; return m; }, {});
@@ -160,6 +161,14 @@ export default function DailyStrip({ board = null }) {
         .dstrip-cell.done img{opacity:.4;}
         .dstrip-cell.done .nm{color:#9fb0d4;}
         .dstrip-check{position:absolute;top:5px;right:5px;width:16px;height:16px;border-radius:99px;background:#34d399;display:flex;align-items:center;justify-content:center;box-shadow:0 0 0 2px #0e1d40;pointer-events:none;}
+        .dstrip-lead{margin-top:2px;display:flex;align-items:center;gap:3px;max-width:100%;min-width:0;font-size:10px;font-weight:700;color:#eaf0fb;}
+        .dstrip-lead svg{color:#e8b43a;flex:none;}
+        .dstrip-lead > span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+        .dstrip-lead.none{color:#6a80a8;font-weight:600;}
+        /* hover blurb: the one-line description fades in over the cell */
+        .dstrip-tip{position:absolute;inset:0;z-index:2;display:flex;align-items:center;justify-content:center;text-align:center;padding:6px 8px;background:rgba(11,23,51,0.96);color:#eaf0fb;font-size:10.5px;font-weight:700;line-height:1.4;opacity:0;transition:opacity .14s ease;pointer-events:none;}
+        .dstrip-cell:hover .dstrip-tip,.dstrip-cell:focus-visible .dstrip-tip{opacity:1;}
+        @media (hover:none){.dstrip-tip{display:none;}}
         /* expanded detail: attached inside the same pill */
         .dsd{border-top:1px solid rgba(232,180,58,0.28);background:#0b1733;padding:16px 16px 14px;}
         .dsd-head{display:flex;align-items:baseline;justify-content:space-between;gap:10px;flex-wrap:wrap;margin-bottom:12px;}
@@ -240,17 +249,24 @@ export default function DailyStrip({ board = null }) {
             ) : null}
           </div>
           <div className="dstrip-cells">
-            {games.map((g) => (
-              <a key={g.key} href={g.href} className={`dstrip-cell${done.has(g.key) ? ' done' : ''}`} aria-label={`${g.name}${done.has(g.key) ? ' — done today' : ''} — daily game`}>
-                {done.has(g.key) && (
-                  <span className="dstrip-check" aria-hidden="true">
-                    <svg viewBox="0 0 12 12" width="9" height="9" fill="none"><path d="M2.5 6.2 L5 8.6 L9.5 3.6" stroke="#04121f" strokeWidth="2.1" strokeLinecap="round" strokeLinejoin="round" /></svg>
-                  </span>
-                )}
-                <img src={g.img} alt="" aria-hidden="true" />
-                <span className="nm">{g.name}</span>
-              </a>
-            ))}
+            {games.map((g) => {
+              const lead = hasBoard && byKey[g.key] && byKey[g.key].board && byKey[g.key].board[0] ? byKey[g.key].board[0].username : null;
+              return (
+                <a key={g.key} href={g.href} className={`dstrip-cell${done.has(g.key) ? ' done' : ''}`} title={`${g.name} — ${g.tag}`} aria-label={`${g.name} — ${g.tag}${done.has(g.key) ? ' — done today' : ''} — daily game`}>
+                  {done.has(g.key) && (
+                    <span className="dstrip-check" aria-hidden="true">
+                      <svg viewBox="0 0 12 12" width="9" height="9" fill="none"><path d="M2.5 6.2 L5 8.6 L9.5 3.6" stroke="#04121f" strokeWidth="2.1" strokeLinecap="round" strokeLinejoin="round" /></svg>
+                    </span>
+                  )}
+                  <img src={g.img} alt="" aria-hidden="true" />
+                  <span className="nm">{g.name}</span>
+                  <span className="dstrip-tip" aria-hidden="true">{g.tag}</span>
+                  {hasBoard && !open ? (
+                    lead ? <span className="dstrip-lead"><Crown size={10} /><span>{lead}</span></span> : <span className="dstrip-lead none">—</span>
+                  ) : null}
+                </a>
+              );
+            })}
           </div>
         </div>
         {hasBoard && open ? (
