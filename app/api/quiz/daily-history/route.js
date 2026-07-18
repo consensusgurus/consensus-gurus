@@ -10,8 +10,9 @@ export const fetchCache = 'force-no-store';
 const CACHE_HEADERS = { 'Cache-Control': 'public, s-maxage=120, stale-while-revalidate=300' };
 
 // Only true daily-game quizIds (`<game>-M-D-YY`); a normal quiz sharing a prefix
-// can't leak in. Mirrors DAILY_RE in /api/quiz/daily-status.
-const DAILY_RE = /^(crux|emcee|garble|links|span|dating|tally|suds|circa|extra|carve|stet|outwit)-(\d+)-(\d+)-(\d+)$/;
+// can't leak in. Built from DAILY_KEYS so new dailies are picked up automatically
+// (no more drift). Mirrors DAILY_RE in /api/quiz/daily-status.
+const DAILY_RE = new RegExp(`^(${DAILY_KEYS.join('|')})-(\\d+)-(\\d+)-(\\d+)$`);
 const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
 const HISTORY_DAYS = 30;
 
