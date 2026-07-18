@@ -100,14 +100,14 @@ function CommandHeader({ active, search, onSearch, sortBy, onSort, sortButtons, 
         .shc-word em{font-style:normal;color:#c9ced8;font-weight:600;}
         .shc-ws{display:none;}
         .shc-src{font-size:9.5px;font-weight:800;letter-spacing:normal;text-transform:uppercase;color:#fff;flex:none;}
-        .shc-games{display:flex;align-items:center;gap:9px;margin-left:8px;min-width:0;flex:none;}
+        .shc-games{display:flex;align-items:center;gap:9px;min-width:0;flex:none;}
         .shc-game{display:inline-flex;align-items:center;gap:9px;background:rgba(255,255,255,0.09);border:1px solid rgba(255,255,255,0.2);border-radius:11px;padding:6px 13px 6px 11px;text-decoration:none;transition:background .15s,border-color .15s;flex:none;}
         .shc-game:hover{background:rgba(255,255,255,0.16);border-color:rgba(255,255,255,0.42);}
         .shc-dot{width:8px;height:8px;border-radius:50%;flex:none;}
         .shc-gtxt{display:flex;flex-direction:column;gap:2px;line-height:1;}
         .shc-gnm{font-size:13px;font-weight:800;color:#fff;letter-spacing:-.2px;}
         .shc-gtag{font-size:9px;font-weight:800;letter-spacing:.07em;text-transform:uppercase;color:#9fb0d4;white-space:nowrap;}
-        .shc-search{flex:1 1 0;min-width:130px;max-width:560px;display:flex;align-items:center;gap:7px;height:36px;padding:0 10px 0 12px;background:rgba(255,255,255,0.14);border:1px solid rgba(255,255,255,0.22);border-radius:11px;}
+        .shc-search{flex:0 1 auto;width:clamp(200px,26vw,460px);min-width:130px;margin-left:auto;display:flex;align-items:center;gap:7px;height:36px;padding:0 10px 0 12px;background:rgba(255,255,255,0.14);border:1px solid rgba(255,255,255,0.22);border-radius:11px;}
         .shc-search svg{flex:none;color:#c7d7fb;}
         .shc-search input{flex:1;min-width:0;background:transparent;border:none;outline:none;color:#fff;font-family:inherit;font-size:13px;font-weight:600;}
         .shc-search input::placeholder{color:#c7d7fb;opacity:1;}
@@ -119,7 +119,8 @@ function CommandHeader({ active, search, onSearch, sortBy, onSort, sortButtons, 
            screens, the leftover space now flows into this margin instead of
            pooling to the RIGHT of the toggle, so the toggle is anchored right
            (matching the quizzes header) rather than tied to the search box. */
-        .shc-sortwrap{position:relative;flex:none;margin-left:auto;}
+        .shc-sortwrap{position:relative;flex:none;}
+        .shc-right{display:flex;align-items:center;gap:9px;margin-left:auto;flex:none;}
         .shc-sort{display:inline-flex;align-items:center;gap:7px;height:36px;padding:0 12px;background:rgba(255,255,255,0.09);border:1px solid rgba(255,255,255,0.2);border-radius:11px;color:#fff;font-family:inherit;font-size:12.5px;font-weight:700;cursor:pointer;white-space:nowrap;}
         .shc-sort:hover{background:rgba(255,255,255,0.16);border-color:rgba(255,255,255,0.42);}
         .shc-sort svg{flex:none;}
@@ -145,18 +146,7 @@ function CommandHeader({ active, search, onSearch, sortBy, onSort, sortButtons, 
       <div className="shc-bar">
         <Link href="/" className="shc-brandlogo" style={{ flex: 'none', display: 'flex' }} aria-label="Source of Truths home"><CommandLogo size={30} /></Link>
         <Link href="/" className="shc-word"><span className="shc-wl">Source <em>of</em> Truths</span><span className="shc-ws">S<em>o</em>T</span></Link>
-        <span className="shc-src"><SourcesPopover align="left" onDark href="/experts-and-aggregators" label={`${SOURCE_COUNT.toLocaleString()} Experts and Aggregators`} /></span>
-        <div className="shc-games">
-          {SHC_GAMES.map((g) => (
-            <Link key={g.href} href={g.href} className="shc-game" aria-label={`${g.name} — ${g.tag}`}>
-              <span className="shc-dot" style={{ background: g.dot }} />
-              <span className="shc-gtxt">
-                <span className="shc-gnm">{g.name}</span>
-                <span className="shc-gtag">{g.tag}</span>
-              </span>
-            </Link>
-          ))}
-        </div>
+        <span className="shc-src">Where <SourcesPopover align="left" onDark href="/experts-and-aggregators" label={`${SOURCE_COUNT.toLocaleString()} Experts and Aggregators`} /> Agree</span>
         {showSearch && (
           <div className="shc-search" onClick={(e) => e.stopPropagation()}>
             <Search size={15} strokeWidth={2.4} />
@@ -188,10 +178,23 @@ function CommandHeader({ active, search, onSearch, sortBy, onSort, sortButtons, 
             )}
           </div>
         )}
-        <nav className="shc-seg">
-          <Link href="/" className={active === 'quizzes' ? 'on' : undefined}>Quizzes</Link>
-          <Link href="/lists" className={active === 'lists' ? 'on' : undefined}>Top 10 Lists</Link>
-        </nav>
+        <div className="shc-right">
+          <div className="shc-games">
+            {SHC_GAMES.map((g) => (
+              <Link key={g.href} href={g.href} className="shc-game" aria-label={`${g.name} — ${g.tag}`}>
+                <span className="shc-dot" style={{ background: g.dot }} />
+                <span className="shc-gtxt">
+                  <span className="shc-gnm">{g.name}</span>
+                  <span className="shc-gtag">{g.tag}</span>
+                </span>
+              </Link>
+            ))}
+          </div>
+          <nav className="shc-seg">
+            <Link href="/" className={active === 'quizzes' ? 'on' : undefined}>Quizzes</Link>
+            <Link href="/lists" className={active === 'lists' ? 'on' : undefined}>Top 10 Lists</Link>
+          </nav>
+        </div>
       </div>
     </div>
   );
