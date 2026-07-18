@@ -924,12 +924,12 @@ function Home({ lists, viewCounts, voteData, extras, trending = {}, openList, on
     <div style={{ position: 'relative', zIndex: 2, fontFamily: NFONT, color: NT.ink }}>
       <style>{`
         @import url('https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap');
-        .nt-wrap{max-width:1180px;margin:0 auto;padding:8px 24px 70px;}
+        .nt-wrap{max-width:1300px;margin:0 auto;padding:8px 24px 70px;}
         .nt-stickytop{position:sticky;top:0;z-index:50;background:#f7f8fa;}
-        .nt-pillsbar{max-width:1180px;margin:0 auto;padding:8px 24px 0;}
-        .nt-toolwrap{max-width:1180px;margin:0 auto;padding:0 24px;}
+        .nt-pillsbar{max-width:1300px;margin:0 auto;padding:10px 24px 14px;}
+        .nt-toolwrap{max-width:1300px;margin:0 auto;padding:0 24px;display:none;}
         .nt-bodywrap{padding-top:0;}
-        @media(max-width:560px){.nt-pillsbar{padding:8px 14px 0;}.nt-toolwrap{padding:0 14px;}}
+        @media(max-width:560px){.nt-pillsbar{padding:8px 14px 0;}.nt-toolwrap{display:block;padding:0 14px;}}
         .nt-lbl{font-size:9.5px;font-weight:700;letter-spacing:.07em;text-transform:uppercase;color:${NT.soft};}
         .nt-crumb1{font-size:18px;font-weight:800;letter-spacing:-0.02em;color:${NT.ink};text-decoration:none;}
         .nt-crumb2{font-size:18px;font-weight:600;color:${NT.accent};}
@@ -960,7 +960,8 @@ function Home({ lists, viewCounts, voteData, extras, trending = {}, openList, on
         .nt-sortmenu{position:absolute;top:calc(100% + 6px);z-index:30;min-width:190px;background:#fff;border:1px solid ${NT.line};border-radius:10px;box-shadow:0 12px 30px rgba(20,22,28,0.12);overflow:hidden;}
         .nt-sortitem{width:100%;display:block;text-align:left;border:none;background:#fff;padding:10px 14px;font-family:inherit;font-size:13px;font-weight:600;color:${NT.ink};cursor:pointer;}
         .nt-sortitem.on,.nt-sortitem:hover{background:${NT.accsoft};color:${NT.accent};}
-        .nt-grid{display:grid;grid-template-columns:repeat(4,1fr);grid-auto-flow:dense;gap:16px;}
+        .nt-grid{display:grid;grid-template-columns:repeat(5,1fr);grid-auto-flow:dense;gap:16px;}
+        @media(max-width:1240px){.nt-grid{grid-template-columns:repeat(4,1fr);}}
         @media(max-width:1040px){.nt-grid{grid-template-columns:repeat(3,1fr);}}
         @media(max-width:720px){.nt-grid{grid-template-columns:repeat(2,1fr);}}
         @media(max-width:480px){.nt-grid{grid-template-columns:1fr;}}
@@ -982,10 +983,20 @@ function Home({ lists, viewCounts, voteData, extras, trending = {}, openList, on
         .nt-rel:hover{background:#fff;border-color:${NT.accent};}
         .nt-rel-t{flex:1 1 auto;min-width:0;font-size:12.5px;font-weight:700;line-height:1.2;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
         .nt-rel-a{flex:none;color:${NT.accent};font-weight:800;}
-        @media(max-width:560px){.nt-wrap{padding:16px 14px 60px;}.nt-tagline{display:none;}.nt-pillsbar{display:none !important;}.nt-mfilter{display:inline-flex !important;flex:none;}.nt-field{flex:1 1 auto;}.nt-sortwrap{display:none !important;}.nt-tbtn.primary{display:none !important;}.nt-msheet{display:block;flex:1 1 100%;width:100%;}.nt-toolbar{margin-bottom:10px;}.nt-toolwrap{padding:10px 14px 0 !important;}.nt-bodywrap{padding-top:0 !important;}}
+        @media(max-width:560px){.nt-wrap{padding:16px 14px 60px;}.nt-tagline{display:none;}.nt-pillsbar{display:none !important;}.nt-mfilter{display:inline-flex !important;flex:1 1 auto;justify-content:space-between;}.nt-msheet{display:block;flex:1 1 100%;width:100%;}.nt-toolbar{margin-bottom:10px;}.nt-toolwrap{display:block !important;padding:10px 14px 0 !important;}.nt-bodywrap{padding-top:0 !important;}}
       `}</style>
 
-      <SiteHeader active="lists" visitors={totalViews} command />
+      <SiteHeader
+        active="lists"
+        visitors={totalViews}
+        command
+        search={query}
+        onSearch={setQuery}
+        sortBy={sortBy}
+        onSort={setSortBy}
+        sortButtons={sortButtons}
+        listCount={LISTS.length}
+      />
       <div className="nt-stickytop">
       <div className="nt-pillsbar">
         {/* category pills + By City / By Topic */}
@@ -1017,27 +1028,10 @@ function Home({ lists, viewCounts, voteData, extras, trending = {}, openList, on
         </div>
       </div>
       <div className="nt-wrap nt-toolwrap">
-        {/* toolbar */}
+        {/* mobile-only toolbar: Filters button opens the category + sort sheet.
+            Search and Sort now live in the command header; Request a list removed. */}
         <div className="nt-toolbar" onClick={(e) => e.stopPropagation()}>
           <button className="nt-mfilter nt-tbtn" onClick={() => { setFiltersOpen((o) => !o); setNavMenu(null); setSortOpen(false); }}>Filters <ChevronDown size={14} strokeWidth={2.5} style={{ color: NT.soft, transform: filtersOpen ? 'rotate(180deg)' : 'none' }} /></button>
-          <div className="nt-field">
-            <Search size={16} strokeWidth={2.25} />
-            <input value={query} onChange={(e) => setQuery(e.target.value)} placeholder={`Search ${LISTS.length.toLocaleString()} lists…`} autoComplete="off" />
-            {query && <button className="nt-clear" aria-label="Clear search" onClick={() => setQuery('')}><X size={15} strokeWidth={2.5} /></button>}
-          </div>
-          <div className="nt-sortwrap" style={{ position: 'relative' }}>
-            <button className="nt-tbtn" onClick={() => { setSortOpen((o) => !o); setNavMenu(null); }}>
-              <ArrowRight size={15} strokeWidth={2.25} style={{ color: NT.muted, transform: 'rotate(90deg)' }} /> Sort: {(sortButtons.find((o) => o.id === sortBy) || {}).short || 'Discover'} <ChevronDown size={14} strokeWidth={2.5} style={{ color: NT.soft }} />
-            </button>
-            {sortOpen && (
-              <div className="nt-sortmenu">
-                {sortButtons.map((opt) => (
-                  <button key={opt.id} className={'nt-sortitem' + (sortBy === opt.id ? ' on' : '')} onClick={() => { setSortBy(opt.id); setSortOpen(false); }}>{opt.label}</button>
-                ))}
-              </div>
-            )}
-          </div>
-          <Link className="nt-tbtn primary" href="/request"><Plus size={15} strokeWidth={2.5} /> Request a list</Link>
           {filtersOpen && (
             <div className="nt-msheet">
               <div className="nt-phead" style={{ marginTop: 2 }}>Categories</div>

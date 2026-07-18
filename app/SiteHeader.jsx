@@ -1,5 +1,7 @@
 'use client';
+import { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
+import { Search, ArrowDownUp, ChevronDown, X } from 'lucide-react';
 import SourcesPopover from './SourcesPopover';
 import { getAllSources } from '@/lib/sources';
 import { LISTS } from '@/lib/data';
@@ -71,10 +73,23 @@ const SHC_GAMES = [
 // Full-bleed command-bar header used on the LISTS home page, mirroring the
 // quizzes home (QuizCommandHeader) so both landing pages share one look: one
 // blue gradient bar spanning the viewport with brand + sources on the left,
-// the two daily-game buttons filling the middle, and the segmented
-// Lists/Quizzes pill on the right. The list search box stays in the toolbar
-// below (not moved into the header), so no search field lives here.
-function CommandHeader({ active }) {
+// the two daily-game buttons in the middle, then the list SEARCH box and the
+// SORT dropdown (both moved up out of the old body toolbar), and the segmented
+// Lists/Quizzes pill on the right. Search + sort are wired to the page's own
+// state via the search/onSearch/sortBy/onSort/sortButtons props.
+function CommandHeader({ active, search, onSearch, sortBy, onSort, sortButtons, listCount }) {
+  const [sortOpen, setSortOpen] = useState(false);
+  const sortRef = useRef(null);
+  useEffect(() => {
+    if (!sortOpen) return undefined;
+    const close = (e) => { if (!sortRef.current || !sortRef.current.contains(e.target)) setSortOpen(false); };
+    document.addEventListener('click', close);
+    return () => document.removeEventListener('click', close);
+  }, [sortOpen]);
+  const showSearch = typeof onSearch === 'function';
+  const sortOpts = Array.isArray(sortButtons) ? sortButtons : [];
+  const showSort = typeof onSort === 'function' && sortOpts.length > 0;
+  const curSort = showSort ? (sortOpts.find((o) => o.id === sortBy) || sortOpts[0]) : null;
   return (
     <div className="shc" style={{ fontFamily: FONT }}>
       <style>{`
@@ -85,24 +100,40 @@ function CommandHeader({ active }) {
         .shc-word em{font-style:normal;color:#c9ced8;font-weight:600;}
         .shc-ws{display:none;}
         .shc-src{font-size:9.5px;font-weight:800;letter-spacing:normal;text-transform:uppercase;color:#fff;flex:none;}
-        .shc-games{display:flex;align-items:center;gap:9px;margin-left:8px;min-width:0;}
+        .shc-games{display:flex;align-items:center;gap:9px;margin-left:8px;min-width:0;flex:none;}
         .shc-game{display:inline-flex;align-items:center;gap:9px;background:rgba(255,255,255,0.09);border:1px solid rgba(255,255,255,0.2);border-radius:11px;padding:6px 13px 6px 11px;text-decoration:none;transition:background .15s,border-color .15s;flex:none;}
         .shc-game:hover{background:rgba(255,255,255,0.16);border-color:rgba(255,255,255,0.42);}
         .shc-dot{width:8px;height:8px;border-radius:50%;flex:none;}
         .shc-gtxt{display:flex;flex-direction:column;gap:2px;line-height:1;}
         .shc-gnm{font-size:13px;font-weight:800;color:#fff;letter-spacing:-.2px;}
         .shc-gtag{font-size:9px;font-weight:800;letter-spacing:.07em;text-transform:uppercase;color:#9fb0d4;white-space:nowrap;}
-        .shc-seg{display:flex;gap:2px;background:rgba(255,255,255,0.16);border-radius:999px;padding:3px;flex:none;margin-left:auto;}
+        .shc-search{flex:1 1 0;min-width:130px;max-width:560px;display:flex;align-items:center;gap:7px;height:36px;padding:0 10px 0 12px;background:rgba(255,255,255,0.14);border:1px solid rgba(255,255,255,0.22);border-radius:11px;}
+        .shc-search svg{flex:none;color:#c7d7fb;}
+        .shc-search input{flex:1;min-width:0;background:transparent;border:none;outline:none;color:#fff;font-family:inherit;font-size:13px;font-weight:600;}
+        .shc-search input::placeholder{color:#c7d7fb;opacity:1;}
+        .shc-search:focus-within{border-color:rgba(255,255,255,0.55);background:rgba(255,255,255,0.2);}
+        .shc-clear{display:flex;align-items:center;justify-content:center;background:none;border:none;color:#c7d7fb;cursor:pointer;padding:2px;flex:none;}
+        .shc-clear:hover{color:#fff;}
+        .shc-sortwrap{position:relative;flex:none;}
+        .shc-sort{display:inline-flex;align-items:center;gap:7px;height:36px;padding:0 12px;background:rgba(255,255,255,0.09);border:1px solid rgba(255,255,255,0.2);border-radius:11px;color:#fff;font-family:inherit;font-size:12.5px;font-weight:700;cursor:pointer;white-space:nowrap;}
+        .shc-sort:hover{background:rgba(255,255,255,0.16);border-color:rgba(255,255,255,0.42);}
+        .shc-sort svg{flex:none;}
+        .shc-sortmenu{position:absolute;top:calc(100% + 6px);right:0;z-index:60;min-width:200px;background:#fff;border:1px solid rgba(20,22,28,0.12);border-radius:10px;box-shadow:0 12px 30px rgba(10,16,32,0.28);overflow:hidden;}
+        .shc-sortitem{width:100%;display:block;text-align:left;border:none;background:#fff;padding:10px 14px;font-family:inherit;font-size:13px;font-weight:600;color:#1c1e24;cursor:pointer;}
+        .shc-sortitem.on,.shc-sortitem:hover{background:#eef2fb;color:#0e1d40;}
+        .shc-seg{display:flex;gap:2px;background:rgba(255,255,255,0.16);border-radius:999px;padding:3px;flex:none;}
         .shc-seg a{font-size:12px;font-weight:700;color:#fff;text-decoration:none;padding:6px 12px;border-radius:999px;white-space:nowrap;}
         .shc-seg a.on{background:#fff;color:#0e1d40;}
         @media(max-width:1180px){.shc-src{display:none;}}
-        @media(max-width:900px){.shc-gtag{display:none;}.shc-game{padding:7px 12px;}}
+        @media(max-width:1080px){.shc-gtag{display:none;}.shc-game{padding:7px 12px;}}
+        @media(max-width:900px){.shc-games{display:none;}}
         @media(max-width:820px){.shc-wl{display:none;}.shc-ws{display:inline;}}
-        @media(max-width:640px){.shc-games{display:none;}}
+        @media(max-width:640px){.shc-sortwrap{display:none;}.shc-sorttxt{display:none;}}
         @media(max-width:560px){
           .shc{width:100vw;margin-left:calc(50% - 50vw);}
           .shc-bar{padding-top:calc(9px + env(safe-area-inset-top));padding-left:14px;padding-right:14px;gap:9px;}
           .shc-word{font-size:17px;}
+          .shc-search{min-width:0;}
           .shc-seg a{padding:6px 11px;font-size:11.5px;}
         }
       `}</style>
@@ -121,6 +152,37 @@ function CommandHeader({ active }) {
             </Link>
           ))}
         </div>
+        {showSearch && (
+          <div className="shc-search" onClick={(e) => e.stopPropagation()}>
+            <Search size={15} strokeWidth={2.4} />
+            <input
+              value={search || ''}
+              onChange={(e) => onSearch(e.target.value)}
+              placeholder={`Search ${(listCount || LIST_COUNT).toLocaleString()} lists…`}
+              aria-label="Search lists"
+              autoComplete="off"
+            />
+            {search ? (
+              <button type="button" className="shc-clear" aria-label="Clear search" onClick={() => onSearch('')}><X size={15} strokeWidth={2.5} /></button>
+            ) : null}
+          </div>
+        )}
+        {showSort && (
+          <div className="shc-sortwrap" ref={sortRef} onClick={(e) => e.stopPropagation()}>
+            <button type="button" className="shc-sort" onClick={() => setSortOpen((o) => !o)}>
+              <ArrowDownUp size={14} strokeWidth={2.25} />
+              <span className="shc-sorttxt">Sort: {(curSort && (curSort.short || curSort.label)) || 'Discover'}</span>
+              <ChevronDown size={14} strokeWidth={2.5} style={{ opacity: 0.85 }} />
+            </button>
+            {sortOpen && (
+              <div className="shc-sortmenu">
+                {sortOpts.map((opt) => (
+                  <button key={opt.id} type="button" className={'shc-sortitem' + (sortBy === opt.id ? ' on' : '')} onClick={() => { onSort(opt.id); setSortOpen(false); }}>{opt.label}</button>
+                ))}
+              </div>
+            )}
+          </div>
+        )}
         <nav className="shc-seg">
           <Link href="/" className={active === 'lists' ? 'on' : undefined}>Top 10 Lists</Link>
           <Link href="/quizzes" className={active === 'quizzes' ? 'on' : undefined}>Quizzes</Link>
@@ -130,8 +192,8 @@ function CommandHeader({ active }) {
   );
 }
 
-export default function SiteHeader({ active = 'lists', maxWidth = 1180, visitors, bare = false, inlay = null, flush = false, command = false }) {
-  if (command) return <CommandHeader active={active} />;
+export default function SiteHeader({ active = 'lists', maxWidth = 1180, visitors, bare = false, inlay = null, flush = false, command = false, search, onSearch, sortBy, onSort, sortButtons, listCount }) {
+  if (command) return <CommandHeader active={active} search={search} onSearch={onSearch} sortBy={sortBy} onSort={onSort} sortButtons={sortButtons} listCount={listCount} />;
   return (
     <div className="sh-root" style={{ fontFamily: FONT }}>
       <style>{`

@@ -2,14 +2,17 @@
 
 // Outwit — the daily crowd game. Your opponent is everyone else playing today.
 //
-// Five quick duels against the whole field: undercut the average, dodge the
+// Five quick prompts against the whole field: undercut the average, dodge the
 // popular pick, read the herd, find the meeting point, be the rare bird. There
 // are no right answers — only what the crowd does. Answer all five, then face
-// the field: the server scores you against the pool (instant and final, owner
-// ruling) — the pre-written "house crowd" seeds it until ten real players
-// have picked; after that it is real picks only —
-// and shows you the actual distributions — the payoff is seeing where the
-// crowd really landed.
+// the field: the server scores you against the whole pool as it stands right
+// now, and keeps re-scoring. Nothing is final — every time a new player locks
+// in, the field changes and your score and rank move with it, so a run that
+// looks last against a tiny early crowd can climb to first once the field fills
+// in. The pre-written "house crowd" seeds the pool until ten real players have
+// picked, then retires for everyone. The reveal shows the actual distributions
+// — where the crowd really landed — and the client re-asks the server on a
+// timer so the result stays live while you watch.
 //
 // Same daily plumbing as Circa/Stet: banked days gated by Eastern date on the
 // server (app/outwit/page.js — which also strips the house answers before
@@ -97,6 +100,50 @@ function getAnonId() {
 }
 const EMPTY_BOARD = { plays: 0, best: null, topTime: null, leaderboard: [], leaderboardAll: [], leaderboardMobile: [], leaderboardFirst: [], leaderboards: {} };
 
+// Live standings — the board that re-shuffles as picks arrive. Fed straight
+// from the /api/outwit response (result.board), which recomputes every
+// registered player's total against the current field on every request.
+function OutwitLiveBoard({ board }) {
+  if (!board) return null;
+  const top = Array.isArray(board.top) ? board.top : [];
+  const youShown = top.some((r) => r.you);
+  return (
+    <div style={{ maxWidth: 472, margin: '0 auto 12px', background: '#fff', border: '1.5px solid rgba(28,30,36,0.18)', borderRadius: 10, padding: '13px 15px' }}>
+      <div style={{ display: 'flex', alignItems: 'baseline', gap: 8, marginBottom: 3 }}>
+        <span style={{ fontFamily: MONO, fontSize: 10.5, fontWeight: 500, textTransform: 'uppercase', letterSpacing: '0.1em', color: COLORS.accent }}>Live standings</span>
+        <span style={{ fontFamily: SANS, fontSize: 11, fontWeight: 700, color: COLORS.faded, marginLeft: 'auto' }}>{fmtBig(board.field || 0)} in the field</span>
+      </div>
+      <div style={{ fontFamily: SANS, fontSize: 11.5, fontWeight: 600, color: COLORS.faded, lineHeight: 1.45, marginBottom: 10 }}>
+        Nothing here is final. Every new player re-scores the whole board &mdash; your place climbs or slips as the crowd fills in.
+        {board.houseActive ? ' The house crowd is still seeding until ten players lock in.' : ''}
+      </div>
+      {top.length === 0 ? (
+        <div style={{ fontFamily: SANS, fontSize: 12.5, fontWeight: 700, color: COLORS.faded, padding: '6px 0' }}>No one has joined the board yet &mdash; be the first name on it.</div>
+      ) : (
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
+          {top.map((r, i) => (
+            <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '5px 8px', borderRadius: 6, background: r.you ? 'rgba(232,180,58,0.16)' : (i % 2 ? COLORS.cream : 'transparent'), border: r.you ? `1px solid ${COLORS.gold}` : '1px solid transparent' }}>
+              <span style={{ flex: '0 0 26px', fontFamily: MONO, fontSize: 12, fontWeight: 500, color: r.rank <= 3 ? COLORS.ink : COLORS.faded, textAlign: 'right' }}>{r.rank}</span>
+              <span style={{ flex: '1 1 auto', fontFamily: SANS, fontSize: 13, fontWeight: r.you ? 800 : 600, color: r.you ? '#8a6d1a' : COLORS.ink, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{r.name}{r.you ? ' \u00b7 you' : ''}</span>
+              <span style={{ flex: '0 0 auto', fontFamily: MONO, fontSize: 12.5, fontWeight: 500, color: COLORS.ink, fontVariantNumeric: 'tabular-nums' }}>{r.total}<span style={{ color: COLORS.faded, fontSize: 10.5 }}>/10</span></span>
+            </div>
+          ))}
+        </div>
+      )}
+      {board.youRegistered && !youShown && board.you ? (
+        <div style={{ marginTop: 8, paddingTop: 8, borderTop: '1px solid rgba(28,30,36,0.1)', display: 'flex', alignItems: 'center', gap: 10 }}>
+          <span style={{ flex: '0 0 26px', fontFamily: MONO, fontSize: 12, fontWeight: 700, color: '#8a6d1a', textAlign: 'right' }}>{board.you.rank}</span>
+          <span style={{ flex: '1 1 auto', fontFamily: SANS, fontSize: 13, fontWeight: 800, color: '#8a6d1a' }}>You</span>
+          <span style={{ flex: '0 0 auto', fontFamily: MONO, fontSize: 12.5, fontWeight: 500, color: COLORS.ink }}>{board.you.total}<span style={{ color: COLORS.faded, fontSize: 10.5 }}>/10</span></span>
+        </div>
+      ) : null}
+      {!board.youRegistered ? (
+        <div style={{ marginTop: 8, fontFamily: SANS, fontSize: 11, fontWeight: 700, color: COLORS.faded }}>Join the leaderboard below to take your place as the field grows.</div>
+      ) : null}
+    </div>
+  );
+}
+
 function fmtBig(n) {
   const v = Number(n) || 0;
   return v.toLocaleString('en-US');
@@ -114,6 +161,14 @@ function recordStat(num, entry) {
   const s = getStats();
   if (s.rec[num]) return s;
   const s2 = { ...s, rec: { ...s.rec, [num]: entry } };
+  try { localStorage.setItem(STATS_KEY, JSON.stringify(s2)); } catch (e) {}
+  return s2;
+}
+function recordLiveStat(num, sc) {
+  const s = getStats();
+  const prev = s.rec[num] || {};
+  const rec = { ...s.rec, [num]: { s: sc, t: 10, g: prev.g != null ? prev.g : 0, won: sc >= 7 } };
+  const s2 = { ...s, rec };
   try { localStorage.setItem(STATS_KEY, JSON.stringify(s2)); } catch (e) {}
   return s2;
 }
@@ -286,6 +341,39 @@ export default function OutwitClient({ puzzles = [], forceNum = null }) {
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  // ADAPTIVE: a finished run is never frozen. While the result is on screen we
+  // re-ask the server for the current score + live standings, so as new players
+  // lock in the number and the board move under you. This path never inserts
+  // (the browser already has its row) — it only re-scores against the live field.
+  async function refreshLive() {
+    if (g.status !== 'done') return;
+    try {
+      const answers = PROMPTS.map((_, i) => (g.ans ? g.ans[i] : undefined));
+      if (answers.some((v) => v == null)) return;
+      const r = await fetch('/api/outwit', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ quizId: PUZZLE.quizId, answers, anonId: getAnonId(), email: identity?.email || undefined }),
+      });
+      const d = await r.json();
+      if (d && !d.error && Array.isArray(d.prompts)) {
+        setG((cur) => (cur.status === 'done' ? { ...cur, result: d } : cur));
+        try { setStats(recordLiveStat(PUZZLE.num, d.points)); } catch (e) {}
+      }
+    } catch (e) {}
+  }
+  useEffect(() => {
+    if (!hydrated || g.status !== 'done') return;
+    let alive = true;
+    const run = () => { if (alive && (typeof document === 'undefined' || document.visibilityState !== 'hidden')) refreshLive(); };
+    run();
+    const iv = setInterval(run, 25000);
+    const onVis = () => { if (document.visibilityState === 'visible') run(); };
+    if (typeof document !== 'undefined') document.addEventListener('visibilitychange', onVis);
+    return () => { alive = false; clearInterval(iv); if (typeof document !== 'undefined') document.removeEventListener('visibilitychange', onVis); };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [hydrated, g.status, PUZZLE.quizId, identity?.email]);
 
   function say(msg) {
     setToast(msg);
@@ -562,10 +650,10 @@ export default function OutwitClient({ puzzles = [], forceNum = null }) {
           </button>
         </div>
 
-        {/* the five duels */}
+        {/* the five prompts */}
         <div style={{ background: COLORS.accentSoft, border: `2px solid ${COLORS.ink}`, borderRadius: 10, padding: '15px 17px 12px', boxShadow: '5px 5px 0 rgba(28,30,36,0.16)', marginBottom: 12 }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 12, fontFamily: MONO, fontSize: 11.5, letterSpacing: '0.1em', textTransform: 'uppercase', color: COLORS.faded, borderBottom: '1px solid rgba(28,30,36,0.18)', paddingBottom: 8, marginBottom: 12, flexWrap: 'wrap' }}>
-            <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6, whiteSpace: 'nowrap' }}><Users size={12} /> five duels vs. today&rsquo;s crowd</span>
+            <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6, whiteSpace: 'nowrap' }}><Users size={12} /> five prompts vs. today&rsquo;s crowd</span>
             <span style={{ marginLeft: 'auto', whiteSpace: 'nowrap' }}>answered <b style={{ color: COLORS.ink, fontWeight: 500 }}>{answered}</b>/{PROMPTS.length}</span>
           </div>
           {PROMPTS.map((_, i) => renderPrompt(i))}
@@ -589,10 +677,11 @@ export default function OutwitClient({ puzzles = [], forceNum = null }) {
                 <span style={{ fontFamily: MONO, fontSize: 32, fontWeight: 500, color: sharp ? COLORS.green : COLORS.ink, fontVariantNumeric: 'tabular-nums', letterSpacing: '0.04em', flex: '0 0 auto' }}>{score}/{TOTAL}</span>
                 <span style={{ fontFamily: SANS, fontSize: 13, fontWeight: 700, color: COLORS.ink, lineHeight: 1.45 }}>
                   {sharp ? 'You outwitted the crowd.' : score >= 4 ? 'You held your own against the crowd.' : 'The crowd got you today.'}
-                  {' '}<span style={{ color: COLORS.faded, fontWeight: 600 }}>A field of {fmtBig(result.poolSize)} &middot; {elapsed}</span>
+                  {' '}<span style={{ color: COLORS.faded, fontWeight: 600 }}>{result.board && result.board.youRegistered && result.board.you ? <>Live rank #{result.board.you.rank} of {fmtBig(result.board.registered)} &middot; </> : null}A field of {fmtBig(result.realCount != null ? result.realCount : result.poolSize)} &middot; {elapsed}</span>
                 </span>
               </div>
             </div>
+            <OutwitLiveBoard board={result.board} />
             <p style={{ fontSize: 12, color: COLORS.faded, fontWeight: 600, margin: '12px 0 0' }}>
               {isTodays ? (
                 <>
@@ -721,10 +810,10 @@ export default function OutwitClient({ puzzles = [], forceNum = null }) {
               <button onClick={() => { setShowHelp(false); try { localStorage.setItem(HELP_KEY, '1'); } catch (e) {} }} aria-label="Close" style={{ marginLeft: 'auto', background: 'none', border: 'none', cursor: 'pointer', color: COLORS.faded }}><X size={20} /></button>
             </div>
             <div style={{ fontSize: 14, lineHeight: 1.55, color: COLORS.ink, fontWeight: 600 }}>
-              <p style={{ margin: '0 0 9px' }}>Your opponent is <b>everyone playing today</b>. Five quick duels, no right answers — you score by predicting what the crowd does.</p>
+              <p style={{ margin: '0 0 9px' }}>Your opponent is <b>everyone playing today</b>. Five quick prompts, no right answers — you score by predicting what the crowd does.</p>
               <p style={{ margin: '0 0 9px' }}><b>Undercut</b>: closest to two-thirds of the average pick. <b>Road Less Traveled</b>: pick what the fewest pick. <b>Herd</b>: closest to the crowd&rsquo;s median guess — right or wrong. <b>Meeting Point</b>: match the most-picked answer. <b>Rare Bird</b>: the rarest number wins.</p>
-              <p style={{ margin: '0 0 9px' }}>Each duel pays <b>0, 1, or 2 points</b> by where you land in the field. Your score is final the moment you play, measured against everyone before you. Overnight, the <b>house crowd</b> — four dozen pre-written picks — seeds the pool so the first player still faces a real field; once <b>ten real players</b> have locked in, the house steps aside and the crowd is entirely human.</p>
-              <p style={{ margin: 0 }}>After you lock in, the real distributions are revealed — where the crowd actually went. Ties on the daily board break by fastest time. 7+ of 10 counts as outwitting the crowd.</p>
+              <p style={{ margin: '0 0 9px' }}>Each prompt pays <b>0, 1, or 2 points</b> by where you land in the field. <b>Here is the twist: nothing is ever final.</b> Every time a new player locks in, the whole field is re-scored &mdash; including you. You are always measured against the entire crowd as it stands <b>right now</b>, never the crowd that happened to be there when you played. Sweep every pick at dawn and a thousand later players can pull you down; look dead last this morning and you can end the day <b>first</b>.</p>
+              <p style={{ margin: 0 }}>After you lock in, the real distributions are revealed &mdash; where the crowd actually went. The pre-written <b>house crowd</b> seeds the pool overnight so the first player still faces a real field, then retires once <b>ten real players</b> have joined. 7 of 10 or better means you outwitted the crowd &mdash; for now. Come back through the day and watch the standings keep moving.</p>
             </div>
             <button className="ow-btn" onClick={() => { setShowHelp(false); try { localStorage.setItem(HELP_KEY, '1'); } catch (e) {} }} style={{ marginTop: 14, background: COLORS.ink, color: '#fff' }}>Play</button>
           </div>
@@ -735,10 +824,10 @@ export default function OutwitClient({ puzzles = [], forceNum = null }) {
       <section style={{ display: focusMode ? 'none' : 'block', position: 'relative', zIndex: 2, maxWidth: 640, margin: '0 auto', padding: '10px 24px 42px', fontFamily: SANS }}>
         <h2 style={{ margin: '0 0 8px', fontSize: 15, fontWeight: 800, letterSpacing: '-0.01em', color: COLORS.ink }}>About Outwit</h2>
         <p style={{ margin: '0 0 8px', fontSize: 13, lineHeight: 1.65, color: COLORS.faded, fontWeight: 600 }}>
-          Outwit is a free daily game from Source of Truths where the puzzle is other people. Every day, five quick duels pit you against the entire field of players: undercut two-thirds of the crowd&rsquo;s average, pick the option the fewest will touch, guess where the herd&rsquo;s median lands, meet the crowd at its favorite answer, and find the number nobody else takes.
+          Outwit is a free daily game from Source of Truths where the puzzle is other people. Every day, five quick prompts pit you against the entire field of players: undercut two-thirds of the crowd&rsquo;s average, pick the option the fewest will touch, guess where the herd&rsquo;s median lands, meet the crowd at its favorite answer, and find the number nobody else takes.
         </p>
         <p style={{ margin: '0 0 8px', fontSize: 13, lineHeight: 1.65, color: COLORS.faded, fontWeight: 600 }}>
-          There are no trivia answers to know — the classic game-theory twist is that everyone is reasoning about everyone else. When you lock in, your picks are scored against every player before you, and the real distributions are revealed: where the crowd actually went, versus where you thought it would. The crowd changes over the day — a pre-written house field seeds the small hours, then retires once ten real players are in, so by breakfast you're playing purely against people.
+          There are no trivia answers to know — the classic game-theory twist is that everyone is reasoning about everyone else. And the score is alive: every time a new player locks in, the entire field is re-scored, so your points and your place on the board keep moving through the day. You are always measured against the whole crowd as it stands right now — a run that trails a small early field can lead once thousands more have played, and a morning sweep can slip as the day goes on. A pre-written house field seeds the small hours, then retires once ten real players are in, so by breakfast you're playing purely against people, and the standings never stop shifting.
         </p>
         <p style={{ margin: 0, fontSize: 13, lineHeight: 1.65, color: COLORS.faded, fontWeight: 600 }}>
           A new crowd forms every day at midnight Eastern. No app, no signup &mdash; play free in your browser, keep a streak, and race the daily leaderboard. More dailies: <a href="/tally" style={{ color: COLORS.ink, fontWeight: 800 }}>Tally</a>, our row-and-column logic game, <a href="/suds" style={{ color: COLORS.ink, fontWeight: 800 }}>Suds</a>, our daily sudoku, and <a href="/circa" style={{ color: COLORS.ink, fontWeight: 800 }}>Circa</a>, our year-guessing game.

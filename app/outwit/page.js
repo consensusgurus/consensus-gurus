@@ -5,7 +5,7 @@ import { PUZZLES } from './puzzles';
 // Outwit launched 2026-07-17 as the thirteenth daily: linked from the daily
 // strip, the footer, the /daily archive, and the sitemap (/outwit is the
 // canonical, evergreen URL — the dated /quiz/outwit-* stubs canonicalize
-// here). Five game-theory duels a day against the whole player field; scoring
+// here). Five game-theory prompts a day against the whole player field; scoring
 // happens server-side in /api/outwit against the house crowd + real picks.
 //
 // IMPORTANT: the client gets a STRIPPED view of each puzzle — the `house`
@@ -15,7 +15,7 @@ import { PUZZLES } from './puzzles';
 export const metadata = {
   title: 'Outwit — Daily Crowd Game: Beat Everyone Playing Today | Source of Truths',
   description:
-    'A free daily game where the puzzle is other people. Five game-theory duels against the whole field: undercut the average, dodge the popular pick, read the herd, meet the crowd, be the rare bird. Then see where everyone actually went.',
+    'A free daily game where the puzzle is other people. Five game-theory prompts against the whole field: undercut the average, dodge the popular pick, read the herd, meet the crowd, be the rare bird. Then see where everyone actually went.',
   alternates: { canonical: '/outwit' },
   manifest: '/outwit.webmanifest',
   icons: {
@@ -26,7 +26,7 @@ export const metadata = {
   openGraph: {
     title: 'Outwit — The Daily Crowd Game',
     description:
-      'Your opponent is everyone playing today. Five quick duels, no right answers — only what the crowd does. From Source of Truths.',
+      'Your opponent is everyone playing today. Five quick prompts, no right answers — only what the crowd does. From Source of Truths.',
     url: '/outwit',
     type: 'website',
     siteName: 'Source of Truths',
@@ -35,7 +35,7 @@ export const metadata = {
     card: 'summary_large_image',
     title: 'Outwit — The Daily Crowd Game',
     description:
-      'Five duels against everyone playing today. Predict the crowd, then watch the real numbers roll in.',
+      'Five prompts against everyone playing today. Predict the crowd, then watch the real numbers roll in.',
   },
 };
 
@@ -46,7 +46,7 @@ const gameJsonLd = {
   alternateName: 'Outwit — Daily Crowd Game',
   url: 'https://sourceoftruths.com/outwit',
   description:
-    'A free daily game-theory game: five duels against every other player. Undercut two-thirds of the average, pick what the fewest pick, guess the crowd median, match the crowd favorite, and find the rarest number. Scored against the real player pool.',
+    'A free daily game-theory game: five prompts against every other player. Undercut two-thirds of the average, pick what the fewest pick, guess the crowd median, match the crowd favorite, and find the rarest number. Scored against the real player pool.',
   genre: ['Game theory', 'Trivia game', 'Party game', 'Puzzle'],
   gamePlatform: 'Web browser',
   isAccessibleForFree: true,
@@ -105,7 +105,7 @@ function ComingSoon({ first }) {
         </div>
         <h1 style={{ fontSize: 24, fontWeight: 800, color: '#1c1e24', margin: '0 0 8px' }}>Outwit launches {first ? first.dateLabel : 'soon'}.</h1>
         <p style={{ fontSize: 15, color: '#6b7280', fontWeight: 600, lineHeight: 1.5, margin: '0 0 18px' }}>
-          The daily crowd game — five duels against everyone playing. Come back when the first crowd forms.
+          The daily crowd game — five prompts against everyone playing. Come back when the first crowd forms.
         </p>
         <a href="/daily" style={{ color: '#1f2937', fontWeight: 800, textDecoration: 'underline' }}>See the other daily games &rarr;</a>
       </div>
