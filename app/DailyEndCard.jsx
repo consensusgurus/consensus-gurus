@@ -9,7 +9,7 @@
 //      score/time detail, and the player's standing (this game's rank today,
 //      the combined daily-board rank, and how many games are still left);
 //   2. three result actions — Share Result, Leaderboard, and Play a past <Game>;
-//   3. an "Up next" auto-advance — a 10s countdown ring that opens the closest
+//   3. an "Up next" auto-advance — a 25s countdown ring that opens the closest
 //      unplayed game of the SAME family (Crux -> Garble ...), cancelable;
 //   4. a "Leaderboard most up for grabs" callout — the daily game with the
 //      thinnest field so far, where a podium is easiest today;
@@ -126,7 +126,7 @@ const OTHER_QUIZZES = [
 ];
 const OTHER_COLOR = '#5b6472';
 
-const AUTO_SECONDS = 10;
+const AUTO_SECONDS = 25;
 
 /**
  * @param self          game key, e.g. "garble"
@@ -221,7 +221,7 @@ export default function DailyEndCard({
     if (g0 && gm) grab = { ...gm, field: g0.field || 0, plays: g0.plays || 0, href: g0.href || gm.href };
   }
 
-  // 10s auto-advance to the next game (win only; a loss shows the block without
+  // 25s auto-advance to the next game (win only; a loss shows the block without
   // the ticking clock so the player can retry or read the board first).
   const autoRun = won && !!nextTarget && !autoCancel;
   useEffect(() => {
