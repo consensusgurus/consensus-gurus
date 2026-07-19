@@ -28,7 +28,7 @@ import React, { useState, useEffect } from 'react';
 import {
   Type, Clock, Globe, Hash, Share2, BarChart3, RotateCcw, Check, X,
   Trophy, Link2, Flag, CalendarCheck, Scale, Grid3x3, LayoutGrid, Newspaper, FlagTriangleRight,
-  Pencil, Users, ArrowRight, Puzzle, Fingerprint, KeyRound, Thermometer,
+  Pencil, Users, ArrowRight, Puzzle, Fingerprint, KeyRound, Thermometer, Crown,
 } from 'lucide-react';
 import ReportIssue from './ReportIssue';
 
@@ -38,7 +38,7 @@ const RUST = '#c0392b';
 // "still to play" list for their first FOUR days so players actually meet
 // them; after `until` (ET, inclusive) the canonical order resumes. Keep in
 // sync with the same pin in app/api/quiz/daily-order/route.js.
-const LAUNCH_PIN = { keys: ['warmer', 'ping', 'tuck', 'alibi', 'cipher'], until: '2026-07-21' };
+const LAUNCH_PIN = { keys: ['jester', 'sworn', 'warmer', 'ping', 'tuck', 'alibi', 'cipher'], until: '2026-07-21' };
 function etTodayEC() {
   try { return new Date().toLocaleDateString('en-CA', { timeZone: 'America/New_York' }); }
   catch (e) { return new Date().toISOString().slice(0, 10); }
@@ -72,6 +72,8 @@ export const GAME_META = {
   cipher: { accent: '#0f766e', badgeBg: '#0f766e', badgeInk: '#fff', Fin: KeyRound },
   ping:   { accent: '#0284c7', badgeBg: '#0284c7', badgeInk: '#fff', Fin: Globe },
   warmer: { accent: '#dc2626', badgeBg: '#dc2626', badgeInk: '#fff', Fin: Thermometer },
+  jester: { accent: '#7c3aed', badgeBg: '#7c3aed', badgeInk: '#fff', Fin: Crown },
+  sworn:  { accent: '#be185d', badgeBg: '#be185d', badgeInk: '#fff', Fin: Scale },
 };
 
 // ---- the five families (type label shown on each tile) ---------------------
@@ -104,6 +106,8 @@ export const DAILY_GAMES = [
   { key: 'outwit', cat: 'numbers',   name: 'Outwit', tag: 'Beat the crowd',            href: '/outwit' },
   { key: 'cipher', cat: 'numbers',   name: 'Cipher', tag: 'Crack the letter math',     href: '/cipher' },
   { key: 'alibi',  cat: 'logic',     name: 'Alibi',  tag: 'Solve the nightly whodunit', href: '/alibi' },
+  { key: 'jester', cat: 'logic',     name: 'Jester', tag: 'Seat the court',             href: '/jester' },
+  { key: 'sworn',  cat: 'logic',     name: 'Sworn',  tag: 'Spot the liars',             href: '/sworn' },
   { key: 'warmer', cat: 'word',      name: 'Warmer', tag: 'Hotter or colder',           href: '/warmer' },
 ];
 

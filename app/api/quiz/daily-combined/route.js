@@ -26,6 +26,8 @@ import { PUZZLES as P_alibi } from '@/app/alibi/puzzles';
 import { PUZZLES as P_cipher } from '@/app/cipher/puzzles';
 import { PUZZLES as P_ping } from '@/app/ping/puzzles';
 import { PUZZLES as P_warmer } from '@/app/warmer/puzzles';
+import { PUZZLES as P_jester } from '@/app/jester/puzzles';
+import { PUZZLES as P_sworn } from '@/app/sworn/puzzles';
 
 export const dynamic = 'force-dynamic';
 export const fetchCache = 'force-no-store';
@@ -38,6 +40,7 @@ const GAME_PUZZLES = {
   crux: P_crux, emcee: P_emcee, garble: P_garble, links: P_links, span: P_span, dating: P_dating,
   tally: P_tally, suds: P_suds, circa: P_circa, extra: P_extra, carve: P_carve, stet: P_stet, outwit: P_outwit,
   tuck: P_tuck, alibi: P_alibi, cipher: P_cipher, ping: P_ping, warmer: P_warmer,
+  jester: P_jester, sworn: P_sworn,
 };
 
 function etTodayServer() {

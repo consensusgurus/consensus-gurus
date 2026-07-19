@@ -1,0 +1,229 @@
+// Puzzle data for Jester, the daily one-per-row-column-region placement
+// game (Star Battle, one star). Imported ONLY by the server page
+// (app/jester/page.js), which filters live<=today AND strips the solution
+// before passing puzzles to the client — the client re-derives the unique
+// placement from the regions with its own backtracking solver, so the answer
+// never ships over the wire.
+//
+// Every board was generated (seeded placement -> region growth -> boundary
+// repair to a UNIQUE solution) and then filtered through a human-move
+// propagation solver (singles, region/row/col confinement, single-placement
+// lookahead — NO trial-and-error), so every board falls to pure deduction.
+// Weekdays are 8x8; Sundays are a bigger 9x9 Jubilee board. Validate with
+// scripts/verify-jester.mjs after ANY edit.
+//
+// regions[r][c] = region id (0..size-1); solution[r] = jester column in row r.
+export const PUZZLES = [
+  {
+    num: 1, quizId: "jester-7-18-26", live: "2026-07-18", dateLabel: "July 18, 2026", sunday: false,
+    size: 8,
+    regions: [
+      [1,1,0,0,1,2,2,2],
+      [1,1,1,1,1,2,2,2],
+      [1,3,3,4,2,2,2,2],
+      [3,3,4,4,2,6,2,5],
+      [4,4,4,2,2,6,2,5],
+      [6,6,6,6,6,6,2,5],
+      [6,6,6,6,6,6,6,7],
+      [6,6,6,6,6,6,7,7],
+    ],
+    solution: [3,1,5,0,2,7,4,6],
+  },
+  {
+    num: 2, quizId: "jester-7-19-26", live: "2026-07-19", dateLabel: "July 19, 2026", sunday: true,
+    size: 9,
+    regions: [
+      [1,1,1,1,3,3,0,0,0],
+      [1,1,3,3,3,3,3,2,0],
+      [3,3,3,3,3,3,4,2,0],
+      [5,3,3,3,3,3,4,4,4],
+      [5,3,3,3,7,7,4,4,7],
+      [5,3,3,3,7,7,7,7,7],
+      [8,8,8,6,6,7,7,7,7],
+      [8,8,6,6,7,7,7,7,7],
+      [8,8,8,8,7,7,7,7,7],
+    ],
+    solution: [8,1,7,4,6,0,3,5,2],
+  },
+  {
+    num: 3, quizId: "jester-7-20-26", live: "2026-07-20", dateLabel: "July 20, 2026", sunday: false,
+    size: 8,
+    regions: [
+      [4,4,4,4,1,0,0,3],
+      [4,4,2,1,1,3,3,3],
+      [4,4,2,2,2,3,3,3],
+      [4,4,4,4,3,3,5,5],
+      [4,4,4,4,4,5,5,5],
+      [4,6,6,6,5,5,5,5],
+      [4,6,6,5,5,5,5,5],
+      [4,6,6,7,7,7,7,7],
+    ],
+    solution: [6,4,2,5,0,7,1,3],
+  },
+  {
+    num: 4, quizId: "jester-7-21-26", live: "2026-07-21", dateLabel: "July 21, 2026", sunday: false,
+    size: 8,
+    regions: [
+      [2,2,2,2,0,0,1,1],
+      [2,3,3,3,1,1,1,1],
+      [2,3,3,1,1,1,5,5],
+      [7,7,3,3,3,5,5,5],
+      [7,7,3,4,4,5,5,5],
+      [7,7,3,6,4,5,5,5],
+      [7,7,7,6,7,7,5,5],
+      [7,7,7,7,7,7,7,5],
+    ],
+    solution: [5,7,0,2,4,6,3,1],
+  },
+  {
+    num: 5, quizId: "jester-7-22-26", live: "2026-07-22", dateLabel: "July 22, 2026", sunday: false,
+    size: 8,
+    regions: [
+      [1,3,3,3,0,0,0,4],
+      [1,3,2,2,0,0,4,4],
+      [1,3,2,2,2,2,4,4],
+      [6,3,2,2,2,2,4,4],
+      [6,6,6,6,2,2,4,4],
+      [6,6,6,5,5,2,4,4],
+      [6,6,6,5,5,5,4,4],
+      [6,6,6,6,7,7,4,4],
+    ],
+    solution: [6,0,3,1,7,4,2,5],
+  },
+  {
+    num: 6, quizId: "jester-7-23-26", live: "2026-07-23", dateLabel: "July 23, 2026", sunday: false,
+    size: 8,
+    regions: [
+      [2,2,2,2,2,2,1,0],
+      [2,2,2,2,2,1,1,0],
+      [2,2,2,2,2,3,3,3],
+      [2,2,7,5,5,5,3,3],
+      [4,4,7,7,7,5,5,3],
+      [4,6,7,5,5,5,5,3],
+      [4,6,7,7,7,5,5,3],
+      [4,4,7,7,5,5,5,5],
+    ],
+    solution: [7,5,2,6,0,4,1,3],
+  },
+  {
+    num: 7, quizId: "jester-7-24-26", live: "2026-07-24", dateLabel: "July 24, 2026", sunday: false,
+    size: 8,
+    regions: [
+      [1,1,1,0,0,0,0,3],
+      [1,1,0,0,2,2,2,3],
+      [1,1,1,0,2,2,2,3],
+      [1,1,2,2,2,3,3,3],
+      [4,4,2,2,2,2,3,3],
+      [4,4,5,2,5,3,3,3],
+      [4,5,5,5,5,6,6,6],
+      [5,5,5,6,6,6,7,7],
+    ],
+    solution: [3,1,4,6,0,2,5,7],
+  },
+  {
+    num: 8, quizId: "jester-7-25-26", live: "2026-07-25", dateLabel: "July 25, 2026", sunday: false,
+    size: 8,
+    regions: [
+      [0,0,0,0,1,3,3,2],
+      [0,0,0,1,1,3,3,2],
+      [1,1,0,1,3,3,2,2],
+      [1,1,1,1,3,3,2,4],
+      [5,5,3,3,3,3,3,4],
+      [5,3,3,3,3,3,6,6],
+      [5,5,5,5,5,6,6,6],
+      [5,7,7,7,6,6,6,6],
+    ],
+    solution: [1,3,6,4,7,0,5,2],
+  },
+  {
+    num: 9, quizId: "jester-7-26-26", live: "2026-07-26", dateLabel: "July 26, 2026", sunday: true,
+    size: 9,
+    regions: [
+      [2,2,2,2,0,0,0,1,1],
+      [2,2,2,2,0,2,1,1,3],
+      [2,2,2,2,2,2,3,3,3],
+      [2,2,2,2,4,4,4,3,3],
+      [4,4,4,4,4,4,4,4,4],
+      [6,5,5,5,4,4,4,4,4],
+      [6,5,8,5,5,5,4,4,4],
+      [6,6,8,7,7,5,4,4,4],
+      [6,6,8,8,4,4,4,4,4],
+    ],
+    solution: [5,7,1,8,6,3,0,4,2],
+  },
+  {
+    num: 10, quizId: "jester-7-27-26", live: "2026-07-27", dateLabel: "July 27, 2026", sunday: false,
+    size: 8,
+    regions: [
+      [2,1,1,0,0,0,0,0],
+      [2,2,1,0,4,0,4,3],
+      [2,5,5,5,4,4,4,3],
+      [5,5,5,5,4,4,4,3],
+      [5,5,5,4,4,4,4,4],
+      [6,6,5,5,5,7,4,4],
+      [6,6,7,7,7,7,7,4],
+      [6,7,7,7,7,7,4,4],
+    ],
+    solution: [6,2,0,7,5,3,1,4],
+  },
+  {
+    num: 11, quizId: "jester-7-28-26", live: "2026-07-28", dateLabel: "July 28, 2026", sunday: false,
+    size: 8,
+    regions: [
+      [1,1,1,1,0,0,0,0],
+      [1,1,1,1,0,1,0,0],
+      [2,1,1,1,1,1,5,0],
+      [2,1,1,1,5,5,5,3],
+      [2,4,4,4,4,5,5,3],
+      [7,4,4,4,4,5,5,5],
+      [7,4,6,6,5,5,5,5],
+      [7,7,7,6,6,5,5,5],
+    ],
+    solution: [5,2,0,7,4,6,3,1],
+  },
+  {
+    num: 12, quizId: "jester-7-29-26", live: "2026-07-29", dateLabel: "July 29, 2026", sunday: false,
+    size: 8,
+    regions: [
+      [1,1,0,0,0,2,2,2],
+      [1,1,4,4,4,2,2,2],
+      [1,1,1,4,2,2,2,2],
+      [1,1,1,4,2,4,3,3],
+      [6,1,1,4,4,4,5,5],
+      [6,6,6,4,4,4,5,7],
+      [6,6,6,6,4,4,7,7],
+      [6,6,6,6,4,7,7,7],
+    ],
+    solution: [2,0,4,7,3,6,1,5],
+  },
+  {
+    num: 13, quizId: "jester-7-30-26", live: "2026-07-30", dateLabel: "July 30, 2026", sunday: false,
+    size: 8,
+    regions: [
+      [0,0,0,0,0,0,0,0],
+      [1,0,1,0,0,0,3,0],
+      [1,1,1,0,3,0,3,2],
+      [1,1,1,1,3,3,3,2],
+      [4,4,6,6,5,5,3,2],
+      [6,6,6,6,5,3,3,2],
+      [6,6,6,6,5,5,3,2],
+      [6,6,6,6,5,5,7,7],
+    ],
+    solution: [3,0,7,5,1,4,2,6],
+  },
+  {
+    num: 14, quizId: "jester-7-31-26", live: "2026-07-31", dateLabel: "July 31, 2026", sunday: false,
+    size: 8,
+    regions: [
+      [2,1,1,1,1,1,0,0],
+      [2,1,1,1,4,1,1,1],
+      [2,2,4,1,4,1,3,1],
+      [5,4,4,4,4,4,3,1],
+      [5,5,7,4,6,4,6,6],
+      [7,5,7,6,6,6,6,6],
+      [7,7,7,6,6,6,6,6],
+      [7,7,7,7,6,6,6,6],
+    ],
+    solution: [7,5,0,6,3,1,4,2],
+  },
+];

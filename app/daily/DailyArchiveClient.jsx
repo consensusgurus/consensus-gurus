@@ -37,7 +37,8 @@ const CATEGORIES = [
   { key: 'word', label: 'Word', keys: ['crux', 'emcee', 'garble', 'links', 'stet', 'tuck', 'warmer'] },
   { key: 'history', label: 'History', keys: ['dating', 'circa', 'extra'] },
   { key: 'geography', label: 'Geography', keys: ['span', 'ping'] },
-  { key: 'numbers', label: 'Numbers & Logic', keys: ['tally', 'suds', 'carve', 'outwit', 'cipher', 'alibi'] },
+  { key: 'numbers', label: 'Numbers', keys: ['tally', 'suds', 'carve', 'outwit', 'cipher'] },
+  { key: 'logic', label: 'Logic', keys: ['alibi', 'jester', 'sworn'] },
 ];
 // Each game's accent, lightened for legibility on the dark leaderboard card
 // (mirrors ACCENTS_NAVY in DailyCombinedLeaderboard).
@@ -45,6 +46,7 @@ const NAVY_ACCENT = {
   crux: '#5b9bff', emcee: '#e879f9', garble: '#f0c95a', links: '#4ca878', span: '#e06aa0', dating: '#a483f0',
   tally: '#4cb377', suds: '#f0894c', circa: '#38b6cf', extra: '#e06a6a', carve: '#a483f0', stet: '#41b1e8',
   outwit: '#c3cfe3', tuck: '#e0a568', alibi: '#ef8896', cipher: '#3fc9b8', ping: '#4cb3f0', warmer: '#f3705c',
+  jester: '#a78bfa', sworn: '#f472b6',
 };
 
 const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];

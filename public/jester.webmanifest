@@ -1,0 +1,29 @@
+{
+  "id": "/jester",
+  "name": "Jester — Daily Court-Placement Puzzle",
+  "short_name": "Jester",
+  "description": "Seat one jester in every row, column and colored court - no two may touch. Exactly one solution, pure deduction, a bigger board on Sundays. From Source of Truths.",
+  "start_url": "/jester?src=pwa",
+  "scope": "/",
+  "display": "standalone",
+  "background_color": "#f7f8fa",
+  "theme_color": "#f7f8fa",
+  "icons": [
+    {
+      "src": "/jester-icons/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "/jester-icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    },
+    {
+      "src": "/jester-icons/icon-512-maskable.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ]
+}

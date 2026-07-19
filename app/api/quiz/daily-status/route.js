@@ -12,7 +12,7 @@ const CACHE_HEADERS = { 'Cache-Control': 'public, s-maxage=30, stale-while-reval
 // Daily-game quizIds look like `<game>-<M>-<D>-<YY>` (e.g. crux-7-14-26). This
 // matches only those, so a normal quiz that happens to share a prefix can't leak
 // in.
-const DAILY_RE = /^(crux|emcee|garble|links|span|dating|tally|suds|circa|extra|carve|stet|outwit|tuck|alibi|cipher|ping|warmer)-\d+-\d+-\d+$/;
+const DAILY_RE = /^(crux|emcee|garble|links|span|dating|tally|suds|circa|extra|carve|stet|outwit|tuck|alibi|cipher|ping|warmer|jester|sworn)-\d+-\d+-\d+$/;
 
 // GET /api/quiz/daily-status?anonId=&email=
 // The player's daily-game history, resolved by the identity the quiz client

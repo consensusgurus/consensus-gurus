@@ -125,8 +125,8 @@ automatically. No migration code is needed when you extend a quiz's answer set.
 
 ## 7. Daily game puzzle banks (`app/<game>/puzzles.js`)
 
-The 18 daily games (crux, emcee, garble, links, span, dating, tally, suds, circa,
-extra, carve, stet, outwit, tuck, alibi, cipher, ping, warmer) each keep a dated `PUZZLES` array. These have failure modes a
+The 20 daily games (crux, emcee, garble, links, span, dating, tally, suds, circa,
+extra, carve, stet, outwit, tuck, alibi, cipher, ping, warmer, jester, sworn) each keep a dated `PUZZLES` array. These have failure modes a
 `node --check` / "it parses" pass does **not** catch. **A puzzle that parses is not a puzzle
 that is correct.** Before staging ANY daily puzzle — new or edited — run the checks below for
 its game. Do not author a batch and ship on structural validation alone: that is exactly how
@@ -142,7 +142,8 @@ all of which "passed" structural checks).
   (par = BFS incl. Sunday via/avoid), dating (strict ascending), circa/extra/outwit
   (structural; extra uses the client's own resolveHidden). ~6s for everything.
 - `node scripts/verify-alibi.mjs` / `verify-cipher.mjs` / `verify-tuck.mjs` /
-  `verify-stet.mjs` / `verify-ping.mjs` / `verify-warmer.mjs` — the per-game verifiers for the newer dailies.
+  `verify-stet.mjs` / `verify-ping.mjs` / `verify-warmer.mjs` / `verify-jester.mjs` /
+  `verify-sworn.mjs` — the per-game verifiers for the newer dailies.
 
 ### 7a. Solution uniqueness — the #1 rule for logic games
 
@@ -203,6 +204,16 @@ unique" or "the grid geometry is valid" does NOT prove this — you must solve i
 - **Alibi:** unique solution AND pure-deduction solvable (see §7a); the stored solution
   must match the derived one; clue counts 8-11; venues/stolen items distinct across the
   bank. The client never receives the solution — page.js strips it (keep it that way).
+- **Jester:** every board an n×n partition into n contiguous regions (min size 2),
+  EXACTLY ONE seating by exhaustive count, matching the stored solution, AND solvable
+  by the human-move propagation solver (singles, confinement, single-placement
+  lookahead — no trial-and-error). 8×8 weekdays, 9×9 Sundays. verify-jester runs all
+  of it. Solutions are stripped by page.js — keep it that way.
+- **Sworn:** every case EXACTLY ONE consistent (thief, liar-set) world by brute force,
+  matching the stored solution, AND §7a-deducible: per candidate thief, parity
+  propagation + the liar-count bound must settle the branch with a human-small case
+  fan-out (≤4) and no search. 5 suspects weekdays, 6 Sundays; venues/stolen distinct
+  across the bank. verify-sworn runs all of it. Solutions stripped by page.js.
 
 ### 7d. Definition of done for a daily puzzle change
 

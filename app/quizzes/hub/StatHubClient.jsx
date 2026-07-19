@@ -942,6 +942,8 @@ const DAILY_GAME_META = {
   cipher: { name: 'Cipher', c: '#0f766e', href: '/cipher', tag: 'Crack the letter math' },
   ping: { name: 'Ping', c: '#0284c7', href: '/ping', tag: 'Guess the secret city' },
   warmer: { name: 'Warmer', c: '#dc2626', href: '/warmer', tag: 'Hotter or colder' },
+  jester: { name: 'Jester', c: '#7c3aed', href: '/jester', tag: 'Seat the court' },
+  sworn: { name: 'Sworn', c: '#be185d', href: '/sworn', tag: 'Spot the liars' },
 };
 
 function fmtPts1(n) {

@@ -1,0 +1,29 @@
+{
+  "id": "/sworn",
+  "name": "Sworn — Daily Liars Puzzle",
+  "short_name": "Sworn",
+  "description": "A fresh pack of liars every day: sworn statements, an exact number of lies, one thief. Follow the contradictions and name the culprit. From Source of Truths.",
+  "start_url": "/sworn?src=pwa",
+  "scope": "/",
+  "display": "standalone",
+  "background_color": "#f7f8fa",
+  "theme_color": "#f7f8fa",
+  "icons": [
+    {
+      "src": "/sworn-icons/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "/sworn-icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    },
+    {
+      "src": "/sworn-icons/icon-512-maskable.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ]
+}

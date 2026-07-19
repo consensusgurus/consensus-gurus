@@ -21,8 +21,9 @@ import { DAILY_KEYS } from '@/lib/daily-combined';
 // popularity order resumes. Update LAUNCH_PIN when the next game ships.
 
 // Pin these keys to the front of the order through the end date (ET,
-// inclusive). Tuck/Alibi/Cipher launched 2026-07-18 -> pinned through 07-21.
-const LAUNCH_PIN = { keys: ['warmer', 'ping', 'tuck', 'alibi', 'cipher'], until: '2026-07-21' };
+// inclusive). The 2026-07-18 launch wave (Jester/Sworn/Warmer/Ping/Tuck/
+// Alibi/Cipher) is pinned through 07-21.
+const LAUNCH_PIN = { keys: ['jester', 'sworn', 'warmer', 'ping', 'tuck', 'alibi', 'cipher'], until: '2026-07-21' };
 
 export const dynamic = 'force-dynamic';
 export const fetchCache = 'force-no-store';

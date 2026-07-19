@@ -42,11 +42,13 @@ const GAMES = [
   { key: 'cipher', href: '/cipher', name: 'Cipher', img: '/games/btn-cipher.png', store: 'sot_cipher_day', tag: "Crack the letter math" },
   { key: 'ping', href: '/ping', name: 'Ping', img: '/games/btn-ping.png', store: 'sot_ping_day', tag: "Guess the secret city" },
   { key: 'warmer', href: '/warmer', name: 'Warmer', img: '/games/btn-warmer.png', store: 'sot_warmer_day', tag: "Hotter or colder" },
+  { key: 'jester', href: '/jester', name: 'Jester', img: '/games/btn-jester.png', store: 'sot_jester_day', tag: "Seat the court" },
+  { key: 'sworn', href: '/sworn', name: 'Sworn', img: '/games/btn-sworn.png', store: 'sot_sworn_day', tag: "Spot the liars" },
 ];
 
 const NAME_BY_KEY = GAMES.reduce((m, g) => { m[g.key] = g.name; return m; }, {});
 // Navy-legible per-game accents for the mini-board titles (match DailyCombinedLeaderboard).
-const ACCENTS = { crux: '#5b9bff', emcee: '#e879f9', garble: '#f0c95a', links: '#4ca878', span: '#e06aa0', dating: '#a483f0', tally: '#4cb377', suds: '#f0894c', circa: '#38b6cf', extra: '#e06a6a', carve: '#a483f0', stet: '#41b1e8', outwit: '#c3cfe3', tuck: '#e0a568', alibi: '#ef8896', cipher: '#3fc9b8', ping: '#4cb3f0', warmer: '#f3705c' };
+const ACCENTS = { crux: '#5b9bff', emcee: '#e879f9', garble: '#f0c95a', links: '#4ca878', span: '#e06aa0', dating: '#a483f0', tally: '#4cb377', suds: '#f0894c', circa: '#38b6cf', extra: '#e06a6a', carve: '#a483f0', stet: '#41b1e8', outwit: '#c3cfe3', tuck: '#e0a568', alibi: '#ef8896', cipher: '#3fc9b8', ping: '#4cb3f0', warmer: '#f3705c', jester: '#a78bfa', sworn: '#f472b6' };
 
 function etToday() {
   try { return new Date().toLocaleDateString('en-CA', { timeZone: 'America/New_York' }); }
@@ -153,10 +155,10 @@ export default function DailyStrip({ board = null }) {
         .dstrip-t3r.me .nm3{color:#f5d878;}
         .dstrip-t3 .t3none{font-size:10.5px;font-weight:600;color:#6a80a8;line-height:1.35;}
         /* 16 games in a 2-row × 8-column grid; the cap spans both rows */
-        .dstrip-cells{display:grid;grid-template-columns:repeat(9,minmax(72px,1fr));grid-auto-rows:1fr;flex:1 1 auto;min-width:0;}
+        .dstrip-cells{display:grid;grid-template-columns:repeat(10,minmax(72px,1fr));grid-auto-rows:1fr;flex:1 1 auto;min-width:0;}
         .dstrip-cell{position:relative;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:5px;padding:11px 6px 9px;text-decoration:none;border-left:1px solid rgba(255,255,255,0.055);transition:background .12s;}
-        .dstrip-cell:nth-child(9n+1){border-left:none;}
-        .dstrip-cell:nth-child(n+10){border-top:1px solid rgba(255,255,255,0.055);}
+        .dstrip-cell:nth-child(10n+1){border-left:none;}
+        .dstrip-cell:nth-child(n+11){border-top:1px solid rgba(255,255,255,0.055);}
         .dstrip-cell:hover{background:rgba(91,139,255,0.14);}
         .dstrip-cell img{height:30px;width:auto;max-width:38px;object-fit:contain;}
         .dstrip-cell .nm{font-size:11px;font-weight:800;color:#fff;letter-spacing:-.2px;white-space:nowrap;}
@@ -216,7 +218,7 @@ export default function DailyStrip({ board = null }) {
         @media(max-width:560px){
           .dstrip-cap{min-width:78px;padding:10px 11px;}
           .dstrip-cap.has-top3{min-width:148px;max-width:164px;}
-          .dstrip-cells{grid-template-columns:repeat(9,minmax(62px,1fr));min-width:558px;}
+          .dstrip-cells{grid-template-columns:repeat(10,minmax(62px,1fr));min-width:620px;}
           .dstrip-cell{padding:9px 5px 8px;}
           .dstrip-cell img{height:26px;}
           .dstrip-cell .nm{font-size:10px;}
