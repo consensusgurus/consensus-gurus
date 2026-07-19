@@ -41,12 +41,12 @@ const SWORN = SWORN_FULL.map(({ num, quizId, live, dateLabel, sunday }) => ({ nu
 export const metadata = {
   title: 'Daily Games — Crux, Emcee, Garble, Links, Span & More | Source of Truths',
   description:
-    "Every Source of Truths daily game in one place: today's puzzle and the full archive for Crux, Emcee, Garble, Links, Span, Dating, Tally, Suds, Circa, Extra, Carve, Stet, Outwit, Tuck, Alibi, Cipher, Ping, Warmer, Jester, and Sworn. A new puzzle in each, every day.",
+    "Every Source of Truths daily game in one place: today's puzzle and the full archive for Crux, Emcee, Garble, Links, Span, Dating, Tally, Suds, Circa, Extra, Carve, Stet, Outwit, Tuck, Alibi, Cipher, Ping, Warmer, Jesters, and Sworn. A new puzzle in each, every day.",
   alternates: { canonical: '/daily' },
   openGraph: {
     title: 'Daily Games — Source of Truths',
     description:
-      "Today's puzzle and the full archive for every daily game: Crux, Emcee, Garble, Links, Span, Dating, Tally, Suds, Circa, Extra, Carve, Stet, Outwit, Tuck, Alibi, Cipher, Ping, Warmer, Jester, and Sworn.",
+      "Today's puzzle and the full archive for every daily game: Crux, Emcee, Garble, Links, Span, Dating, Tally, Suds, Circa, Extra, Carve, Stet, Outwit, Tuck, Alibi, Cipher, Ping, Warmer, Jesters, and Sworn.",
     url: '/daily',
     type: 'website',
     siteName: 'Source of Truths',
@@ -95,7 +95,7 @@ const GAMES = [
   { key: 'cipher', name: 'Cipher', path: '/cipher', tag: 'Crack the letter math', accent: '#0f766e', bg: '#d9f0ee', border: 'rgba(15,118,110,0.35)', src: CIPHER },
   { key: 'ping', name: 'Ping', path: '/ping', tag: 'Find the secret city', accent: '#0284c7', bg: '#e0f2fe', border: 'rgba(2,132,199,0.35)', src: PING },
   { key: 'warmer', name: 'Warmer', path: '/warmer', tag: 'Hotter or colder', accent: '#dc2626', bg: '#fef2f2', border: 'rgba(220,38,38,0.35)', src: WARMER },
-  { key: 'jester', name: 'Jester', path: '/jester', tag: 'Seat the court', accent: '#7c3aed', bg: '#f3e8ff', border: 'rgba(124,58,237,0.35)', src: JESTER },
+  { key: 'jester', name: 'Jesters', path: '/jester', tag: 'Seat the court', accent: '#7c3aed', bg: '#f3e8ff', border: 'rgba(124,58,237,0.35)', src: JESTER },
   { key: 'sworn', name: 'Sworn', path: '/sworn', tag: 'Spot the liars', accent: '#be185d', bg: '#fce7f3', border: 'rgba(190,24,93,0.35)', src: SWORN },
 ];
 

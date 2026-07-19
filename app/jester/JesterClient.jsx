@@ -360,7 +360,7 @@ export default function JesterClient({ puzzles = [], forceNum = null }) {
     try { if (localStorage.getItem(REC_KEY)) return null; } catch (e) {}
     const el = Math.min(36000, Math.max(1, Math.round((Date.now() - g.t0) / 1000)));
     try { localStorage.setItem(REC_KEY, '1'); } catch (e) {}
-    return { quizId: PUZZLE.quizId, score: 0, total: TOTAL, correct: 0, guessesUsed: g.placements, timeElapsed: el, email: identity?.email || undefined, anonId: getAnonId(), isMobile: isMobileDevice(), referrer: (typeof document !== 'undefined' ? document.referrer : '') };
+    return { quizId: PUZZLE.quizId, score: 0, total: TOTAL, correct: 0, guessesUsed: g.placements, timeElapsed: el, abandoned: true, email: identity?.email || undefined, anonId: getAnonId(), isMobile: isMobileDevice(), referrer: (typeof document !== 'undefined' ? document.referrer : '') };
   });
 
   function postResult(g2, sc) {
@@ -503,7 +503,7 @@ export default function JesterClient({ puzzles = [], forceNum = null }) {
         {/* masthead */}
         <div style={{ display: 'flex', alignItems: 'center', gap: 14, flexWrap: 'wrap', position: 'relative', paddingRight: 28, marginBottom: 14, borderBottom: '2px solid rgba(28,30,36,0.8)', paddingBottom: 11 }}>
           <div style={{ display: 'flex', gap: 4, alignItems: 'flex-end' }}>
-            {'JESTER'.split('').map((ch, i) => (
+            {'JESTERS'.split('').map((ch, i) => (
               <div key={i} style={{ width: 40, height: 40, borderRadius: 5, display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: SANS, fontWeight: 900, fontSize: 23, background: i === 0 ? COLORS.accent : COLORS.ink, color: '#fff', boxShadow: 'inset 0 2px 5px rgba(0,0,0,0.5), 0 1px 0 rgba(255,255,255,0.65)' }}>{ch}</div>
             ))}
           </div>
@@ -516,11 +516,6 @@ export default function JesterClient({ puzzles = [], forceNum = null }) {
           <button onClick={() => setShowHelp(true)} aria-label="How to play" title="How to play" style={{ position: 'absolute', top: 8, right: 2, background: 'none', border: 'none', cursor: 'pointer', color: COLORS.faded, padding: 0, display: 'flex' }}>
             <HelpCircle size={20} />
           </button>
-        </div>
-
-        {/* the brief */}
-        <div style={{ fontFamily: 'Georgia, serif', fontStyle: 'italic', fontSize: 14.5, lineHeight: 1.6, background: '#fff', border: '1px solid rgba(28,30,36,0.14)', borderLeft: `4px solid ${COLORS.accent}`, borderRadius: 8, padding: '12px 16px', margin: '0 0 12px', color: COLORS.ink }}>
-          Seat exactly one jester in every row, every column, and every colored court. Jesters are jealous performers &mdash; no two may touch, not even at the corners. There is exactly one seating that works.
         </div>
 
         {/* status bar */}
@@ -641,7 +636,7 @@ export default function JesterClient({ puzzles = [], forceNum = null }) {
         {showA2hsHelp && (
           <div onClick={() => setShowA2hsHelp(false)} style={{ position: 'fixed', inset: 0, background: 'rgba(20,22,28,0.55)', zIndex: 90, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 18 }}>
             <div onClick={(e) => e.stopPropagation()} style={{ background: '#fff', borderRadius: 14, maxWidth: 430, width: '100%', padding: '22px 22px 16px', fontFamily: SANS, border: '1.5px solid rgba(20,22,28,0.12)' }}>
-              <div style={{ fontSize: 17, fontWeight: 800, color: COLORS.ink, marginBottom: 8 }}>Add Jester to your Home Screen</div>
+              <div style={{ fontSize: 17, fontWeight: 800, color: COLORS.ink, marginBottom: 8 }}>Add Jesters to your Home Screen</div>
               {isIosDevice() ? (
                 <ol style={{ margin: '0 0 4px', paddingLeft: 20, color: COLORS.ink, fontSize: 14, lineHeight: 1.7 }}>
                   <li>Tap the <b>Share</b> button in Safari&apos;s toolbar.</li>
@@ -695,7 +690,7 @@ export default function JesterClient({ puzzles = [], forceNum = null }) {
           self="jester"
           won={won}
           headline={won ? <>The court is seated</> : <>The court dissolved</>}
-          subline={<>Jester #{PUZZLE.num} &middot; {score}/{TOTAL} &middot; {g.placements} placement{g.placements === 1 ? '' : 's'} &middot; {elapsed}</>}
+          subline={<>Jesters #{PUZZLE.num} &middot; {score}/{TOTAL} &middot; {g.placements} placement{g.placements === 1 ? '' : 's'} &middot; {elapsed}</>}
           onShare={copyShare}
           shareLabel={copied ? 'Copied' : 'Share Result'}
           onReplay={resetGame}
@@ -733,9 +728,9 @@ export default function JesterClient({ puzzles = [], forceNum = null }) {
 
       {/* About Jester — crawlable prose for search, server-rendered */}
       <section style={{ display: focusMode ? 'none' : 'block', position: 'relative', zIndex: 2, maxWidth: 640, margin: '0 auto', padding: '10px 24px 42px', fontFamily: SANS }}>
-        <h2 style={{ margin: '0 0 8px', fontSize: 15, fontWeight: 800, letterSpacing: '-0.01em', color: COLORS.ink }}>About Jester</h2>
+        <h2 style={{ margin: '0 0 8px', fontSize: 15, fontWeight: 800, letterSpacing: '-0.01em', color: COLORS.ink }}>About Jesters</h2>
         <p style={{ margin: '0 0 8px', fontSize: 13, lineHeight: 1.65, color: COLORS.faded, fontWeight: 600 }}>
-          Jester is a free daily logic puzzle from Source of Truths &mdash; a one-per-row, one-per-column, one-per-region placement game in the classic Star Battle family. The royal court is divided into colored regions, and your job is to seat one jester in each: every row, every column and every court gets exactly one, and no two jesters may ever touch, not even at the corners.
+          Jesters is a free daily logic puzzle from Source of Truths &mdash; a one-per-row, one-per-column, one-per-region placement game in the classic Star Battle family. The royal court is divided into colored regions, and your job is to seat one jester in each: every row, every column and every court gets exactly one, and no two jesters may ever touch, not even at the corners.
         </p>
         <p style={{ margin: '0 0 8px', fontSize: 13, lineHeight: 1.65, color: COLORS.faded, fontWeight: 600 }}>
           Every board is generated with a constraint solver and machine-verified twice over: once to guarantee exactly one legal seating, and once to confirm the whole board falls to pure step-by-step deduction &mdash; rule out cells, corner the possibilities, and the jesters seat themselves. No guessing, no trial and error, no app required.
@@ -756,8 +751,8 @@ export default function JesterClient({ puzzles = [], forceNum = null }) {
       ? `\u{1F0CF} Seated the court in ${elapsed} · ${g.placements} placements${hintBit}`
       : g.status === 'lost' ? '\u{1F0CF} The court dissolved' : '\u{1F0CF} Still seating the court…';
     const text = playing
-      ? `Jester #${PUZZLE.num} — the daily court-placement puzzle from Source of Truths.\nsourceoftruths.com/jester${isTodays ? '' : `?p=${PUZZLE.num}`}`
-      : `Jester — Court #${PUZZLE.num}\n${solvedBit}${streakBit}\nsourceoftruths.com/jester${isTodays ? '' : `?p=${PUZZLE.num}`}`;
+      ? `Jesters #${PUZZLE.num} — the daily court-placement puzzle from Source of Truths.\nsourceoftruths.com/jester${isTodays ? '' : `?p=${PUZZLE.num}`}`
+      : `Jesters — Court #${PUZZLE.num}\n${solvedBit}${streakBit}\nsourceoftruths.com/jester${isTodays ? '' : `?p=${PUZZLE.num}`}`;
     try {
       if (typeof navigator !== 'undefined' && navigator.share && isMobileDevice()) {
         navigator.share({ text }).catch(() => {});

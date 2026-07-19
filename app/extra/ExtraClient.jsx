@@ -28,6 +28,7 @@ import DailyEndCard from '../DailyEndCard';
 import DailyTopNav from '../DailyTopNav';
 import DailyCombinedLeaderboard from '../quiz/[id]/DailyCombinedLeaderboard';
 import { isMobileDevice } from '@/lib/is-mobile';
+import useAbandonFlush from '../quiz/[id]/useAbandonFlush';
 import { resolveHidden } from './resolve-hidden';
 
 const COLORS = {
@@ -301,7 +302,17 @@ export default function ExtraClient({ puzzles = [], forceNum = null }) {
   const myStats = deriveStats(stats, pickPuzzle(puzzles, null).num);
   const finalScore = won ? Math.max(1, 10 - tears) : 0;
 
+  const REC_KEY = `sot_extra_rec_${PUZZLE.num}`;
+  const abandon = useAbandonFlush(() => {
+    if (!g.t0 || g.status !== 'playing') return null;
+    try { if (localStorage.getItem(REC_KEY)) return null; } catch (e) {}
+    const el = Math.min(36000, Math.max(1, Math.round((Date.now() - g.t0) / 1000)));
+    try { localStorage.setItem(REC_KEY, '1'); } catch (e) {}
+    return { quizId: PUZZLE.quizId, score: 0, total: 10, correct: 0, guessesUsed: 0, timeElapsed: el, abandoned: true, email: identity?.email || undefined, anonId: getAnonId(), isMobile: isMobileDevice(), referrer: (typeof document !== 'undefined' ? document.referrer : '') };
+  });
+
   function postResult(g2, score) {
+    abandon.markFlushed();
     const el = g2.t0 ? Math.max(1, Math.round(((g2.tEnd || Date.now()) - g2.t0) / 1000)) : 1;
     try { setStats(recordStat(PUZZLE.num, { s: score, t: 10, g: g2.tears, won: score === 10 })); } catch (e) {}
     try {

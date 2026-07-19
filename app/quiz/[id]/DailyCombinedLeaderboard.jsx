@@ -22,7 +22,7 @@ const GAME_NAMES = {
   crux: 'Crux', emcee: 'Emcee', garble: 'Garble', links: 'Links', span: 'Span', dating: 'Dating',
   tally: 'Tally', suds: 'Suds', circa: 'Circa', extra: 'Extra', carve: 'Carve', stet: 'Stet', outwit: 'Outwit',
   tuck: 'Tuck', alibi: 'Alibi', cipher: 'Cipher', ping: 'Ping', warmer: 'Warmer',
-  jester: 'Jester', sworn: 'Sworn',
+  jester: 'Jesters', sworn: 'Sworn',
 };
 // Per-game accent for the game-board title. Light = the games' own (darker)
 // colors; navy = lightened for legibility on the dark card.

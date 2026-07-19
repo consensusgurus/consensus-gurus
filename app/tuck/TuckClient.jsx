@@ -388,7 +388,7 @@ export default function TuckClient({ puzzles = [], forceNum = null }) {
     try { if (localStorage.getItem(REC_KEY)) return null; } catch (e) {}
     const el = Math.min(36000, Math.max(1, Math.round((Date.now() - g.t0) / 1000)));
     try { localStorage.setItem(REC_KEY, '1'); } catch (e) {}
-    return { quizId: PUZZLE.quizId, score: liveScore, total: PAR, correct: liveScore >= PAR ? 1 : 0, guessesUsed: 14 - placedCount, timeElapsed: el, email: identity?.email || undefined, anonId: getAnonId(), isMobile: isMobileDevice(), referrer: (typeof document !== 'undefined' ? document.referrer : '') };
+    return { quizId: PUZZLE.quizId, score: liveScore, total: PAR, correct: liveScore >= PAR ? 1 : 0, guessesUsed: 14 - placedCount, timeElapsed: el, abandoned: true, email: identity?.email || undefined, anonId: getAnonId(), isMobile: isMobileDevice(), referrer: (typeof document !== 'undefined' ? document.referrer : '') };
   });
 
   const availCounts = useMemo(() => {

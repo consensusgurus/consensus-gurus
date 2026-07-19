@@ -29,6 +29,7 @@ import DailyEndCard from '../DailyEndCard';
 import DailyTopNav from '../DailyTopNav';
 import DailyCombinedLeaderboard from '../quiz/[id]/DailyCombinedLeaderboard';
 import { isMobileDevice } from '@/lib/is-mobile';
+import useAbandonFlush from '../quiz/[id]/useAbandonFlush';
 import { CITIES, findCity, suggestCities, haversineMiles, continentOf, normCity } from '@/lib/ping-cities';
 
 const COLORS = {
@@ -347,7 +348,17 @@ export default function PingClient({ puzzles = [], forceNum = null }) {
     ? getScore(guesses.length)
     : (g.status === 'revealed' ? proximityScore(closest ? closest.mi : null) : 0);
 
+  const REC_KEY = `sot_ping_rec_${PUZZLE.num}`;
+  const abandon = useAbandonFlush(() => {
+    if (!g.t0 || g.status !== 'playing') return null;
+    try { if (localStorage.getItem(REC_KEY)) return null; } catch (e) {}
+    const el = Math.min(36000, Math.max(1, Math.round((Date.now() - g.t0) / 1000)));
+    try { localStorage.setItem(REC_KEY, '1'); } catch (e) {}
+    return { quizId: PUZZLE.quizId, score: 0, total: TOTAL, correct: 0, guessesUsed: 0, timeElapsed: el, abandoned: true, email: identity?.email || undefined, anonId: getAnonId(), isMobile: isMobileDevice(), referrer: (typeof document !== 'undefined' ? document.referrer : '') };
+  });
+
   function postResult(g2, score) {
+    abandon.markFlushed();
     const el = g2.t0 ? Math.max(1, Math.round(((g2.tEnd || Date.now()) - g2.t0) / 1000)) : 1;
     const solved = g2.status === 'won';
     try { setStats(recordStat(PUZZLE.num, { s: score, t: TOTAL, g: solved ? g2.guesses.length : null, won: solved })); } catch (e) {}

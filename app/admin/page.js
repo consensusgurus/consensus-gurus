@@ -203,7 +203,7 @@ const DAILY_GAMES = [
   { key: 'cipher', title: 'Cipher' },
   { key: 'ping', title: 'Ping' },
   { key: 'warmer', title: 'Warmer' },
-  { key: 'jester', title: 'Jester' },
+  { key: 'jester', title: 'Jesters' },
   { key: 'sworn', title: 'Sworn' },
 ];
 const DAILY_PREFIX_RE = /^(links|span|crux|garble|dating|tally|suds|circa|extra|carve|emcee|stet|outwit|tuck|alibi|cipher|ping|warmer|jester|sworn)-/;

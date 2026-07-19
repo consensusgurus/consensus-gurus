@@ -30,6 +30,7 @@ import JoinLeaderboardForm from '../quiz/[id]/JoinLeaderboardForm';
 import useDuelContext, { DuelBanner } from '../quiz/[id]/useDuelContext';
 import DailyCombinedLeaderboard from '../quiz/[id]/DailyCombinedLeaderboard';
 import { isMobileDevice } from '@/lib/is-mobile';
+import useAbandonFlush from '../quiz/[id]/useAbandonFlush';
 
 const COLORS = {
   cream: '#f7f8fa',
@@ -224,7 +225,17 @@ export default function WarmerClient({ active, puzzles = [], forceNum = null }) 
   const sortedGuesses = useMemo(() => [...guesses].sort((a, b) => a.rank - b.rank), [guesses]);
   const bestRank = sortedGuesses.length ? sortedGuesses[0].rank : null;
 
+  const REC_KEY = `sot_warmer_rec_${PUZZLE.num}`;
+  const abandon = useAbandonFlush(() => {
+    if (!g.t0 || g.status !== 'playing') return null;
+    try { if (localStorage.getItem(REC_KEY)) return null; } catch (e) {}
+    const el = Math.min(36000, Math.max(1, Math.round((Date.now() - g.t0) / 1000)));
+    try { localStorage.setItem(REC_KEY, '1'); } catch (e) {}
+    return { quizId: PUZZLE.quizId, score: 0, total: 100, correct: 0, guessesUsed: 0, timeElapsed: el, abandoned: true, email: identity?.email || undefined, anonId: getAnonId(), isMobile: isMobileDevice(), referrer: (typeof document !== 'undefined' ? document.referrer : '') };
+  });
+
   function postResult(g2) {
+    abandon.markFlushed();
     const el = g2.t0 ? Math.max(1, Math.round(((g2.tEnd || Date.now()) - g2.t0) / 1000)) : 1;
     const gc = g2.guesses.length;
     const solved = g2.status === 'won';

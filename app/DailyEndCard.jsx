@@ -106,7 +106,7 @@ export const DAILY_GAMES = [
   { key: 'outwit', cat: 'numbers',   name: 'Outwit', tag: 'Beat the crowd',            href: '/outwit' },
   { key: 'cipher', cat: 'numbers',   name: 'Cipher', tag: 'Crack the letter math',     href: '/cipher' },
   { key: 'alibi',  cat: 'logic',     name: 'Alibi',  tag: 'Solve the nightly whodunit', href: '/alibi' },
-  { key: 'jester', cat: 'logic',     name: 'Jester', tag: 'Seat the court',             href: '/jester' },
+  { key: 'jester', cat: 'logic',     name: 'Jesters', tag: 'Seat the court',             href: '/jester' },
   { key: 'sworn',  cat: 'logic',     name: 'Sworn',  tag: 'Spot the liars',             href: '/sworn' },
   { key: 'warmer', cat: 'word',      name: 'Warmer', tag: 'Hotter or colder',           href: '/warmer' },
 ];
