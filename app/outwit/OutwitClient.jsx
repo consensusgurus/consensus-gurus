@@ -553,6 +553,34 @@ export default function OutwitClient({ puzzles = [], forceNum = null }) {
     );
   }
   function revealUnique(rp) {
+    // Themed "rarest wins" reveal — same horizontal-bar layout as revealChoice,
+    // labelled for rarity. (Legacy numeric bars fall through below.)
+    if (rp.options) {
+      const maxC = Math.max(1, ...rp.counts);
+      const totC = rp.counts.reduce((a, b) => a + b, 0) || 1;
+      return (
+        <div style={{ marginTop: 10, display: 'flex', flexDirection: 'column', gap: 5 }}>
+          {rp.options.map((opt, oi) => {
+            const you = rp.yourAnswer === oi;
+            const win = rp.winner === oi;
+            return (
+              <div key={oi} style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                <span style={{ flex: '0 0 108px', fontFamily: SANS, fontSize: 12, fontWeight: you ? 800 : 600, color: you ? COLORS.ink : COLORS.faded, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', textAlign: 'right' }}>{opt}</span>
+                <div style={{ flex: '1 1 auto', height: 16, background: COLORS.paper, borderRadius: 5, overflow: 'hidden', position: 'relative' }}>
+                  <div style={{ width: `${Math.round((rp.counts[oi] / maxC) * 100)}%`, height: '100%', background: you ? COLORS.gold : win ? COLORS.green : '#c8cfd9', borderRadius: 5, minWidth: rp.counts[oi] ? 4 : 0 }} />
+                </div>
+                <span style={{ flex: '0 0 74px', fontFamily: MONO, fontSize: 10.5, color: COLORS.faded, whiteSpace: 'nowrap' }}>
+                  {Math.round((rp.counts[oi] / totC) * 100)}%{you ? ' · you' : win ? ' · rarest' : ''}
+                </span>
+              </div>
+            );
+          })}
+          <div style={{ fontFamily: SANS, fontSize: 12, fontWeight: 700, color: COLORS.faded, marginTop: 6 }}>
+            Rarest pick: <b style={{ color: COLORS.green }}>{rp.options[rp.winner]}</b> · you took <b style={{ color: COLORS.ink }}>{rp.options[rp.yourAnswer]}</b>.
+          </div>
+        </div>
+      );
+    }
     const maxC = Math.max(1, ...rp.counts);
     return (
       <div style={{ marginTop: 10 }}>
@@ -615,7 +643,7 @@ export default function OutwitClient({ puzzles = [], forceNum = null }) {
             aria-label={pr.q}
           />
         )}
-        {rp && (rp.options ? revealChoice(rp) : rp.buckets ? revealNumeric(rp) : revealUnique(rp))}
+        {rp && (rp.type === 'unique' ? revealUnique(rp) : rp.options ? revealChoice(rp) : rp.buckets ? revealNumeric(rp) : revealUnique(rp))}
       </div>
     );
   }
@@ -822,7 +850,7 @@ export default function OutwitClient({ puzzles = [], forceNum = null }) {
             </div>
             <div style={{ fontSize: 14, lineHeight: 1.55, color: COLORS.ink, fontWeight: 600 }}>
               <p style={{ margin: '0 0 9px' }}>Your opponent is <b>everyone playing today</b>. Five prompts, no right answers &mdash; you score by reading the crowd.</p>
-              <p style={{ margin: '0 0 9px' }}><b>Undercut</b>: closest to &frac23; of the average. <b>Road Less Traveled</b>: pick what fewest pick. <b>Herd</b>: closest to the crowd&rsquo;s median. <b>Meeting Point</b>: match the most-picked answer. <b>Rare Bird</b>: the rarest number wins.</p>
+              <p style={{ margin: '0 0 9px' }}><b>Undercut</b>: closest to &#8532; of the average. <b>Road Less Traveled</b>: pick what fewest pick. <b>Herd</b>: closest to the crowd&rsquo;s median. <b>Meeting Point</b>: match the most-picked answer. <b>Rare Bird</b>: the rarest pick wins.</p>
               <p style={{ margin: 0 }}>Each prompt pays <b>0, 1, or 2 points</b>. The twist: <b>nothing is final</b> &mdash; every new player re-scores the whole field, including you, so your rank moves all day. Lock in to reveal where the crowd actually went. <b>7 of 10</b> means you outwitted them &mdash; for now.</p>
             </div>
             <button className="ow-btn" onClick={() => { setShowHelp(false); try { localStorage.setItem(HELP_KEY, '1'); } catch (e) {} }} style={{ marginTop: 14, background: COLORS.ink, color: '#fff' }}>Play</button>

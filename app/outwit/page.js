@@ -46,7 +46,7 @@ const gameJsonLd = {
   alternateName: 'Outwit — Daily Crowd Game',
   url: 'https://sourceoftruths.com/outwit',
   description:
-    'A free daily game-theory game: five prompts against every other player. Undercut two-thirds of the average, pick what the fewest pick, guess the crowd median, match the crowd favorite, and find the rarest number. Scored against the real player pool.',
+    'A free daily game-theory game: five prompts against every other player. Undercut two-thirds of the average, pick what the fewest pick, guess the crowd median, match the crowd favorite, and make the rarest pick. Scored against the real player pool.',
   genre: ['Game theory', 'Trivia game', 'Party game', 'Puzzle'],
   gamePlatform: 'Web browser',
   isAccessibleForFree: true,

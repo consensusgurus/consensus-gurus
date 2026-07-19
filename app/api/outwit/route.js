@@ -87,6 +87,8 @@ function reveal(pr, ctx, you, poolSize) {
     return out;
   }
   if (ctx.kind === 'choice') return { ...base, options: pr.options, counts: ctx.counts, winner: ctx.winner };
+  // unique: themed (winner is an option index) or legacy numeric (winner is a number)
+  if (ctx.options) return { ...base, options: ctx.options, counts: ctx.counts, winner: ctx.winner };
   return { ...base, min: pr.min, max: pr.max, counts: ctx.counts, winner: ctx.winner };
 }
 
