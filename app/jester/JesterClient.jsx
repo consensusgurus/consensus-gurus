@@ -496,7 +496,7 @@ export default function JesterClient({ puzzles = [], forceNum = null }) {
           @media(max-width:560px){.je-board-scroll{overflow-x:auto;padding-bottom:6px;}}
         `}</style>
 
-        <div style={{ maxWidth: 940, margin: '0 auto' }}>
+        <div style={{ maxWidth: 640, margin: '0 auto' }}>
 
         <div style={{ display: 'block' }}><DailyTopNav player={player} compact={playing} /></div>
 
@@ -562,7 +562,7 @@ export default function JesterClient({ puzzles = [], forceNum = null }) {
         </div>
 
         {playing && (
-          <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', margin: '12px 0 6px' }}>
+          <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', justifyContent: 'center', margin: '12px 0 6px' }}>
             <button type="button" className="je-btn" onClick={clearBoard}><Eraser size={14} /> Clear board</button>
             {!identity && !g.hintUsed && (
               <button type="button" className="je-btn" onClick={useHint} title="Seat one correct jester (one hint per day)" style={{ background: COLORS.accentSoft, borderColor: 'rgba(124,58,237,0.5)', color: COLORS.accentDeep }}>
