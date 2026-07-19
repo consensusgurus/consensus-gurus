@@ -93,6 +93,22 @@ export default function DailyArchiveClient({ games = [], today = '' }) {
   const [combined, setCombined] = useState(null);
 
   const dailyOrder = useDailyOrder();
+
+  // Deep-link support: /daily?archive=<gameKey> opens that game's Archive panel
+  // and scrolls to it (used by the end-of-game "Play a past <Game>" action).
+  useEffect(() => {
+    let key = null;
+    try { key = new URLSearchParams(window.location.search).get('archive'); } catch (e) {}
+    if (!key) return undefined;
+    const t = setTimeout(() => {
+      const btn = document.querySelector('[data-arch="' + key + '"]');
+      if (!btn) return;
+      if (btn.getAttribute('aria-expanded') !== 'true') btn.click();
+      const card = btn.closest('.dl-card');
+      if (card) card.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }, 200);
+    return () => clearTimeout(t);
+  }, [ready]);
   const gamesByKey = useMemo(() => {
     const m = {};
     for (const g of games) m[g.key] = g;
@@ -419,7 +435,7 @@ function GameCard({ g, ready, played, completed, board, overall, me, myKey, maxT
         <div className="dl-actions">
           <a className="dl-btn dl-play" href={g.path} style={{ background: g.accent }}>Play today →</a>
           <button type="button" className={`dl-btn dl-ghost${panel === 'standings' ? ' on' : ''}`} aria-expanded={panel === 'standings'} onClick={() => toggle('standings')}>Standings</button>
-          <button type="button" className={`dl-btn dl-ghost${panel === 'archive' ? ' on' : ''}`} aria-expanded={panel === 'archive'} onClick={() => toggle('archive')}>Archive <span className="cnt">{g.puzzles.length}</span></button>
+          <button type="button" className={`dl-btn dl-ghost${panel === 'archive' ? ' on' : ''}`} data-arch={g.key} aria-expanded={panel === 'archive'} onClick={() => toggle('archive')}>Archive <span className="cnt">{g.puzzles.length}</span></button>
         </div>
 
         {panel === 'standings' && (

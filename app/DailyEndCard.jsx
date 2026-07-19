@@ -355,7 +355,7 @@ export default function DailyEndCard({
         <button type="button" className="dec-btn" onClick={goBoard}>
           <BarChart3 size={15} strokeWidth={2} /> Leaderboard
         </button>
-        <a className="dec-btn" href={`/${self}`}>
+        <a className="dec-btn" href={`/daily?archive=${self}`}>
           <RotateCcw size={15} strokeWidth={2} /> Play a past {selfName}
         </a>
       </div>
