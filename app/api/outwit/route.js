@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { supabaseAdmin } from '@/lib/supabase-server';
 import { findQuizIdentity } from '@/lib/quiz-identity';
 import { PUZZLES } from '@/app/outwit/puzzles';
+import { scoreOutwitField, HOUSE_CUTOFF } from '@/lib/outwit-score';
 
 // POST /api/outwit  { quizId, answers:[5], anonId, email? }
 //
@@ -42,15 +43,6 @@ import { PUZZLES } from '@/app/outwit/puzzles';
 export const dynamic = 'force-dynamic';
 export const fetchCache = 'force-no-store';
 
-const HOUSE_CUTOFF = 10; // house retires once MORE than this many real players are in
-
-const median = (arr) => {
-  const s = [...arr].sort((a, b) => a - b);
-  const n = s.length;
-  if (!n) return 0;
-  return n % 2 ? s[(n - 1) / 2] : (s[n / 2 - 1] + s[n / 2]) / 2;
-};
-const mean = (arr) => arr.reduce((a, b) => a + b, 0) / (arr.length || 1);
 const round1 = (x) => Math.round(x * 10) / 10;
 
 function fmtNum(x) {
@@ -78,83 +70,6 @@ function histogram(pool, you, target) {
   buckets[idxOf(you)].you = true;
   buckets[idxOf(target)].target = true;
   return buckets;
-}
-
-// A per-prompt "context" is built ONCE from the current pool. It turns any
-// single answer into its point value cheaply (binary search / precomputed
-// ranks), so we can score the requester (with full reveal detail) AND every
-// other player for the live board without re-walking the pool each time. This
-// is what makes recomputing the entire field on every request cheap.
-function buildContext(pr, pool) {
-  if (pr.type === 'twothirds' || pr.type === 'herd') {
-    const N = pool.length || 1;
-    const target = pr.type === 'twothirds' ? (2 / 3) * mean(pool) : median(pool);
-    const dists = pool.map((x) => Math.abs(x - target)).sort((a, b) => a - b);
-    // # of pool entries strictly closer than distance dv (lower-bound search)
-    const closerThan = (dv) => {
-      let lo = 0, hi = dists.length;
-      while (lo < hi) { const m = (lo + hi) >> 1; if (dists[m] < dv) lo = m + 1; else hi = m; }
-      return lo;
-    };
-    // # strictly farther than dv (upper-bound search)
-    const fartherThan = (dv) => {
-      let lo = 0, hi = dists.length;
-      while (lo < hi) { const m = (lo + hi) >> 1; if (dists[m] <= dv) lo = m + 1; else hi = m; }
-      return dists.length - lo;
-    };
-    const ptsFor = (v) => {
-      const frac = closerThan(Math.abs(v - target)) / N;
-      return frac < 1 / 3 ? 2 : frac < 2 / 3 ? 1 : 0;
-    };
-    const beatPctFor = (v) => Math.round((fartherThan(Math.abs(v - target)) / N) * 100);
-    return { kind: 'num', type: pr.type, target, med: median(pool), pool, ptsFor, beatPctFor };
-  }
-  if (pr.type === 'least' || pr.type === 'match') {
-    const counts = new Array(pr.options.length).fill(0);
-    for (const v of pool) if (Number.isInteger(v) && v >= 0 && v < counts.length) counts[v]++;
-    const order = counts.map((c, i) => ({ c, i })).sort((a, b) => (pr.type === 'least' ? a.c - b.c : b.c - a.c) || a.i - b.i);
-    // LEAVE-ONE-OUT scoring: a player is ranked against the field MINUS their own
-    // vote, so their own ballot can never push their pick out of the winning tier.
-    // Without this, picking the fewest/most option and thereby adding a vote to it
-    // could tie or overtake it, making a 2 unreachable — a perfect 10 was literally
-    // impossible on most days. `myc` is the option's count with the scored player
-    // removed; an option beats them if it's fewer (least)/more (match), or tied at
-    // myc with a lower index (the same asc-index tiebreak the full ranking uses).
-    const ptsFor = (v) => {
-      if (!(Number.isInteger(v) && v >= 0 && v < counts.length)) return 0;
-      const myc = counts[v] - 1;
-      let ahead = 0;
-      for (let i = 0; i < counts.length; i++) {
-        if (i === v) continue;
-        const beats = pr.type === 'least' ? counts[i] < myc : counts[i] > myc;
-        if (beats || (counts[i] === myc && i < v)) ahead++;
-      }
-      return ahead === 0 ? 2 : ahead === 1 ? 1 : 0;
-    };
-    return { kind: 'choice', type: pr.type, counts, winner: order[0].i, ptsFor };
-  }
-  // unique: rarest number in [min..max] wins, ties to the lower number
-  const size = pr.max - pr.min + 1;
-  const counts = new Array(size).fill(0);
-  for (const v of pool) { const k = v - pr.min; if (Number.isInteger(v) && k >= 0 && k < size) counts[k]++; }
-  const order = counts.map((c, i) => ({ c, i })).sort((a, b) => a.c - b.c || a.i - b.i);
-  // LEAVE-ONE-OUT scoring (see the choice branch): rank the player among the OTHER
-  // numbers using their own count minus themselves. Otherwise, if the house crowd
-  // left 4+ numbers unpicked, the act of picking any number (count -> 1) shut the
-  // player out of the four-rarest tier and capped them at 1 — the main reason a 10
-  // couldn't be reached. rarer<4 -> 2, rarer<10 -> 1.
-  const ptsFor = (v) => {
-    const k = v - pr.min;
-    if (!(Number.isInteger(v) && k >= 0 && k < size)) return 0;
-    const myc = counts[k] - 1;
-    let rarer = 0;
-    for (let i = 0; i < size; i++) {
-      if (i === k) continue;
-      if (counts[i] < myc || (counts[i] === myc && i < k)) rarer++;
-    }
-    return rarer < 4 ? 2 : rarer < 10 ? 1 : 0;
-  };
-  return { kind: 'unique', type: pr.type, counts, winner: order[0].i + pr.min, min: pr.min, max: pr.max, ptsFor };
 }
 
 // Build the requester's reveal object for one prompt from its context.
@@ -239,18 +154,9 @@ export async function POST(request) {
       players.push({ anonId: anonId || null, userId: myUserId, answers: clean, created: '9999', isYou: true });
     }
 
-    const realCount = players.length;
-    const useHouse = realCount <= HOUSE_CUTOFF;
-
-    // Build one scoring context per prompt from the current, identical-for-all
-    // pool (house while seeding + every real pick).
-    const contexts = puzzle.prompts.map((pr, i) => {
-      const pool = [
-        ...(useHouse ? pr.house : []),
-        ...players.map((p) => Number(p.answers[i])).filter((x) => Number.isInteger(x)),
-      ];
-      return { ctx: buildContext(pr, pool), poolSize: pool.length };
-    });
+    // Score the whole field with the shared adaptive scorer (the same code the
+    // daily/combined board uses, so the two boards can never disagree).
+    const { contexts, totalFor, useHouse, realCount } = scoreOutwitField(puzzle, players, { houseCutoff: HOUSE_CUTOFF });
 
     // The requester's detailed, revealed result.
     const prompts = puzzle.prompts.map((pr, i) => reveal(pr, contexts[i].ctx, clean[i], contexts[i].poolSize));
@@ -275,7 +181,6 @@ export async function POST(request) {
       }
     } catch (e) { /* no names — board just comes back empty */ }
 
-    const totalFor = (p) => contexts.reduce((s, c, i) => s + c.ctx.ptsFor(Number(p.answers[i])), 0);
     const named = [];
     for (const p of players) {
       const name = (p.isYou && myName) || (p.userId && nameByUser.get(p.userId)) || (p.anonId && nameByAnon.get(p.anonId)) || null;

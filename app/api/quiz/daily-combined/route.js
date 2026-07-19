@@ -3,6 +3,7 @@ import { supabaseAdmin } from '@/lib/supabase-server';
 import { loadQuizResultsCached } from '@/lib/quiz-results-cache';
 import { findQuizIdentity } from '@/lib/quiz-identity';
 import { scoreGame, combineDaily, DAILY_KEYS, DAILY_MAX, GAME_MAX, BEST_N } from '@/lib/daily-combined';
+import { scoreOutwitGame } from '@/lib/outwit-score';
 
 // Each game's puzzle list is server-only (answers never ship to the client). We
 // read nothing but `live` and `quizId` off it, exactly like app/daily/page.js,
@@ -73,6 +74,54 @@ const BOARD = 10;   // per-game rows returned per tab
 // GET /api/quiz/daily-combined?anonId=&email=&quizId=&date=
 //   quizId (a daily quizId) or date ("M-D-YY") picks the day; default = today.
 //   -> { date, maxTotal, gameMax, bestN, gameCount, games:[{key,quizId,field,board}], overall, me }
+// Recompute Outwit's per-game board from outwit_picks (adaptive, live) instead of
+// the frozen quiz_results snapshot, resolving registered names the same way
+// /api/outwit does. Returns a scoreGame-shaped { field, plays, players:Map } or
+// null if the picks table is unavailable (caller then falls back to quiz_results).
+async function scoreOutwitLive(puzzle) {
+  let rows = [];
+  try {
+    const { data, error } = await supabaseAdmin
+      .from('outwit_picks')
+      .select('anon_id, user_id, answers, created_at')
+      .eq('quiz_id', puzzle.quizId)
+      .limit(20000);
+    if (error || !Array.isArray(data)) return null;
+    rows = data;
+  } catch (e) { return null; }
+
+  const picks = rows
+    .filter((r) => Array.isArray(r.answers))
+    .map((r) => ({ answers: r.answers, created: r.created_at || '', userId: r.user_id || null, anonId: r.anon_id || null }));
+
+  // Resolve registered names (guests stay unnamed and rank out, but their picks
+  // still count toward the pool — exactly like the live board).
+  const userIds = [...new Set(picks.map((p) => p.userId).filter(Boolean))];
+  const anonIds = [...new Set(picks.map((p) => p.anonId).filter(Boolean))];
+  const nameByUser = new Map();
+  const infoByAnon = new Map();
+  try {
+    if (userIds.length) {
+      const { data } = await supabaseAdmin.from('quiz_users').select('id, username, anon_id').in('id', userIds);
+      for (const u of data || []) if (u.username) { nameByUser.set(u.id, u.username); if (u.anon_id) infoByAnon.set(u.anon_id, { username: u.username, id: u.id }); }
+    }
+    if (anonIds.length) {
+      const { data } = await supabaseAdmin.from('quiz_users').select('id, username, anon_id').in('anon_id', anonIds);
+      for (const u of data || []) if (u.username && u.anon_id) infoByAnon.set(u.anon_id, { username: u.username, id: u.id });
+    }
+  } catch (e) { /* no names — board empty, pool still scores */ }
+
+  const named = picks.map((p) => {
+    let name = null, userId = p.userId;
+    if (p.userId && nameByUser.has(p.userId)) name = nameByUser.get(p.userId);
+    else if (p.anonId && infoByAnon.has(p.anonId)) { const info = infoByAnon.get(p.anonId); name = info.username; userId = info.id; }
+    return { answers: p.answers, created: p.created, anonId: p.anonId, userId, name };
+  });
+
+  const gr = scoreOutwitGame(puzzle, named);
+  return { field: gr.field, plays: picks.length, players: gr.players };
+}
+
 export async function GET(request) {
   const { searchParams } = new URL(request.url);
   const anonId = (searchParams.get('anonId') || '').trim() || null;
@@ -122,7 +171,21 @@ export async function GET(request) {
       arr.push(r);
     }
 
+    // OUTWIT OVERRIDE: Outwit is adaptively re-scored on every view (see
+    // lib/outwit-score); its quiz_results snapshot is frozen at submission and
+    // would disagree with the live result-page board. Recompute it from
+    // outwit_picks so the per-game tab and the overall total track the live board.
+    let outwitLive = null;
+    const outwitGame = games.find((g) => g.key === 'outwit');
+    if (outwitGame) {
+      const op = (P_outwit || []).find((x) => x && x.quizId === outwitGame.quizId);
+      if (op) outwitLive = await scoreOutwitLive(op);
+    }
+
     const gameResults = games.map((g) => {
+      if (g.key === 'outwit' && outwitLive) {
+        return { key: g.key, quizId: g.quizId, href: g.href, field: outwitLive.field, plays: outwitLive.plays, players: outwitLive.players };
+      }
       const gameRows = rowsByQuiz.get(g.quizId) || [];
       const gr = scoreGame(gameRows);
       // field = registered first-attempt players on the board; plays = EVERY
