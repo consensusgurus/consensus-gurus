@@ -270,11 +270,12 @@ export default function DailyEndCard({
         .dec-cat{font-family:${MONO};font-size:10.5px;font-weight:500;letter-spacing:.14em;text-transform:uppercase;}
         .dec-eb-sub{font-size:13px;color:${SLATE};}
         .dec-tagline{font-size:12px;color:#8a92a6;margin-left:auto;}
-        .dec-title{font-size:25px;font-weight:800;letter-spacing:-.02em;margin:8px 0 4px;}
-        .dec-detail{font-size:13px;color:${SLATE};margin-bottom:2px;}
-        .dec-rank{font-size:12.5px;color:${SLATE};margin-bottom:14px;}
-        .dec-rank b{font-weight:800;color:${INK};}
-        .dec-rank .muted{color:#8a92a6;}
+        .dec-titlerow{display:flex;align-items:baseline;flex-wrap:wrap;gap:3px 10px;margin:8px 0 6px;}
+        .dec-title{font-size:25px;font-weight:800;letter-spacing:-.02em;}
+        .dec-detail{font-size:13px;color:${SLATE};}
+        .dec-rank{font-size:14.5px;font-weight:700;color:${SLATE};margin-bottom:14px;}
+        .dec-rank b{font-weight:800;color:${INK};text-decoration:underline;text-underline-offset:2px;}
+        .dec-rank .muted{color:#8a92a6;font-weight:600;}
 
         .dec-actions{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:14px;}
         .dec-btn{font-family:${SANS};font-weight:700;font-size:12.5px;border:1px solid ${BORD};background:#fff;color:${SLATE};border-radius:10px;padding:9px 13px;cursor:pointer;display:inline-flex;align-items:center;gap:6px;text-decoration:none;}
@@ -336,8 +337,10 @@ export default function DailyEndCard({
         {headline ? <span className="dec-eb-sub">&middot; {headline}</span> : null}
         {selfGame ? <span className="dec-tagline">{selfGame.tag}</span> : null}
       </div>
-      <div className="dec-title">{won ? 'You finished' : 'You played'} {selfName}</div>
-      {subline ? <div className="dec-detail">{subline}</div> : null}
+      <div className="dec-titlerow">
+        <span className="dec-title">{won ? 'You finished' : 'You played'} {selfName}</span>
+        {subline ? <span className="dec-detail">{subline}</span> : null}
+      </div>
       {dailyMe ? (
         <div className="dec-rank">
           {gameRank ? <>Rank <b>#{gameRank}</b> today in {selfName}</> : null}
