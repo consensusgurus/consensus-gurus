@@ -88,7 +88,7 @@ const GAMES = [
   { key: 'carve', name: 'Carve', path: '/carve', tag: 'Carve the grid into equal sums', accent: '#7c3aed', bg: '#f5f0ff', border: 'rgba(124,58,237,0.4)', src: CARVE },
   { key: 'circa', name: 'Circa', path: '/circa', tag: 'Pin the year of the moment', accent: '#0e7490', bg: '#e8f7fa', border: 'rgba(14,116,144,0.4)', src: CIRCA },
   { key: 'extra', name: 'Extra', path: '/extra', tag: 'Unredact the front page', accent: '#b91c1c', bg: '#fdeeee', border: 'rgba(185,28,28,0.4)', src: EXTRA },
-  { key: 'stet', name: 'Stet', path: '/stet', tag: 'Find and fix the wrong word', accent: '#0369a1', bg: '#e8f3fa', border: 'rgba(3,105,161,0.4)', src: STET },
+  { key: 'stet', name: 'Stet', path: '/stet', tag: 'Spot the error, fix the copy', accent: '#0369a1', bg: '#e8f3fa', border: 'rgba(3,105,161,0.4)', src: STET },
   { key: 'outwit', name: 'Outwit', path: '/outwit', tag: 'Five duels against the crowd', accent: '#1f2937', bg: '#eef1f5', border: 'rgba(31,41,55,0.35)', src: OUTWIT },
   { key: 'tuck', name: 'Tuck', path: '/tuck', tag: 'Build your own crossword', accent: '#92400e', bg: '#f5e9dc', border: 'rgba(146,64,14,0.35)', src: TUCK },
   { key: 'alibi', name: 'Alibi', path: '/alibi', tag: 'Solve the nightly whodunit', accent: '#8b1e2d', bg: '#f6e3e5', border: 'rgba(139,30,45,0.35)', src: ALIBI },

@@ -30,7 +30,7 @@ const GAMES = [
   { key: 'carve', href: '/carve', name: 'Carve', tag: 'Equal-sum blocks', img: '/games/btn-carve.png' },
   { key: 'circa', href: '/circa', name: 'Circa', tag: 'Guess the year', img: '/games/btn-circa.png' },
   { key: 'extra', href: '/extra', name: 'Extra', tag: 'Name the story', img: '/games/btn-extra.png' },
-  { key: 'stet', href: '/stet', name: 'Stet', tag: 'Fix the wrong word', img: '/games/btn-stet.png' },
+  { key: 'stet', href: '/stet', name: 'Stet', tag: 'Spot the error, fix the copy', img: '/games/btn-stet.png' },
   { key: 'outwit', href: '/outwit', name: 'Outwit', tag: 'Beat the crowd', img: '/games/btn-outwit.png' },
   { key: 'tuck', href: '/tuck', name: 'Tuck', tag: 'Build your own crossword', img: '/games/btn-tuck.png' },
   { key: 'alibi', href: '/alibi', name: 'Alibi', tag: 'Solve the nightly whodunit', img: '/games/btn-alibi.png' },
