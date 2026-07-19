@@ -362,7 +362,7 @@ export default function DailyEndCard({
         .dec-gh{display:flex;align-items:center;gap:8px;padding:9px 12px;border-radius:10px;margin-bottom:8px;text-decoration:none;}
         .dec-gh .lbl{font-family:${MONO};font-size:10.5px;font-weight:500;letter-spacing:.14em;text-transform:uppercase;color:#fff;}
         .dec-gh .cnt{margin-left:auto;font-size:11px;color:rgba(255,255,255,.78);display:flex;align-items:center;}
-        .dec-row{display:flex;align-items:center;gap:9px;padding:9px 11px;border:1px solid ${BORD};border-radius:11px;background:#fff;margin-bottom:7px;text-decoration:none;}
+        .dec-row{display:flex;align-items:center;gap:9px;padding:9px 11px;border:1px solid ${BORD};border-radius:11px;background:#fff;margin-bottom:7px;text-decoration:none;min-width:0;}
         .dec-row:hover{background:#f7f8fa;}
         .dec-row .nm{font-size:14px;font-weight:800;letter-spacing:-.01em;color:${INK};display:flex;align-items:center;gap:6px;min-width:0;}
         .dec-row .nm span.t{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
@@ -381,7 +381,7 @@ export default function DailyEndCard({
           .dec-up-btns .dec-btn{flex:1;}
           .dec-grab{flex-direction:column;align-items:stretch;}
           .dec-grab-btn{text-align:center;}
-          .dec-rows{display:grid;grid-template-columns:1fr 1fr;gap:6px;}
+          .dec-rows{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:6px;}
           .dec-rows.one{grid-template-columns:1fr;}
           .dec-row{margin-bottom:0;padding:8px 9px;}
           .dec-row .pl{display:none;}
