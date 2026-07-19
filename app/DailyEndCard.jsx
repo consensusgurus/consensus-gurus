@@ -283,26 +283,30 @@ export default function DailyEndCard({
     .filter((b) => b.items.length > 0)
     .map((b) => ({ ...b, h: 1 + b.items.length }));
 
-  const pack3 = (blocks) => {
-    const cols = [[], [], []], hs = [0, 0, 0];
-    for (const b of blocks.slice().sort((a, z) => z.h - a.h)) {
-      let i = 0; for (let j = 1; j < 3; j++) if (hs[j] < hs[i]) i = j;
-      cols[i].push(b); hs[i] += b.h;
-    }
-    return { cols, dead: 3 * Math.max(hs[0], hs[1], hs[2]) - (hs[0] + hs[1] + hs[2]) };
-  };
-
+  // Balance the family blocks across 3 columns (greedy, largest first), then
+  // order the columns tallest-first so the SHORTEST is last. "Other quizzes" is
+  // appended to the bottom of that last column, so it can never appear before a
+  // daily-games section (the columns stack in order on mobile, Other last).
   const showMore = famBlocks.length > 0;
   let packedCols = [[], [], []];
   if (showMore) {
-    let best = null;
+    const cols = [[], [], []], hs = [0, 0, 0];
+    for (const b of famBlocks.slice().sort((a, z) => z.h - a.h)) {
+      let i = 0; for (let j = 1; j < 3; j++) if (hs[j] < hs[i]) i = j;
+      cols[i].push(b); hs[i] += b.h;
+    }
+    const order = [0, 1, 2].sort((a, z) => hs[z] - hs[a]); // tallest first, shortest last
+    const oc = [cols[order[0]], cols[order[1]], cols[order[2]]];
+    const oh = [hs[order[0]], hs[order[1]], hs[order[2]]];
+    let bestQ = Math.min(4, OTHER_POOL.length), bestDead = Infinity;
     const maxQ = OTHER_POOL.length, minQ = Math.min(4, maxQ);
     for (let Q = minQ; Q <= maxQ; Q++) {
-      const other = { type: 'other', items: OTHER_POOL.slice(0, Q), h: 1 + Q };
-      const r = pack3([...famBlocks, other]);
-      if (!best || r.dead < best.dead || (r.dead === best.dead && Q > best.Q)) best = { cols: r.cols, Q };
+      const h2 = oh[2] + 1 + Q;
+      const dead = 3 * Math.max(oh[0], oh[1], h2) - (oh[0] + oh[1] + h2);
+      if (dead < bestDead || (dead === bestDead && Q > bestQ)) { bestDead = dead; bestQ = Q; }
     }
-    packedCols = best.cols;
+    oc[2] = [...oc[2], { type: 'other', items: OTHER_POOL.slice(0, bestQ), h: 1 + bestQ }];
+    packedCols = oc;
   }
 
   const inner = (
