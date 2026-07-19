@@ -356,8 +356,8 @@ export default function DailyEndCard({
         .dec-morehd{display:flex;align-items:baseline;justify-content:space-between;margin:18px 2px 12px;}
         .dec-more-eye{font-family:${MONO};font-size:10.5px;font-weight:500;letter-spacing:.14em;text-transform:uppercase;color:${SLATE};}
         .dec-more-count{font-size:12px;color:#8a92a6;}
-        .dec-grid{display:flex;gap:12px;align-items:flex-start;}
-        .dec-col{flex:1;min-width:0;display:flex;flex-direction:column;}
+        .dec-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;align-items:start;}
+        .dec-col{min-width:0;display:flex;flex-direction:column;}
         .dec-group{margin-bottom:12px;}
         .dec-gh{display:flex;align-items:center;gap:8px;padding:9px 12px;border-radius:10px;margin-bottom:8px;text-decoration:none;}
         .dec-gh .lbl{font-family:${MONO};font-size:10.5px;font-weight:500;letter-spacing:.14em;text-transform:uppercase;color:#fff;}
@@ -375,7 +375,7 @@ export default function DailyEndCard({
         @media(max-width:640px){
           .dec-card{padding:18px 16px 14px;}
           .dec-tagline{display:none;}
-          .dec-grid{flex-direction:column;}
+          .dec-grid{grid-template-columns:1fr;}
           .dec-upnext{flex-direction:column;align-items:stretch;}
           .dec-up-btns{flex-direction:row;width:100%;}
           .dec-up-btns .dec-btn{flex:1;}
