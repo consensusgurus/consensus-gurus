@@ -40,15 +40,16 @@ const GAMES = [
 ];
 const GAMES_BY_KEY = Object.fromEntries(GAMES.map((g) => [g.key, g]));
 
-// Games grouped by category, mirroring the /daily hub (DailyArchiveClient) so
-// the two surfaces read the same. Within each group the order is popularity
-// (yesterday's plays), same as everywhere else. `ping` is included here even
-// though the /daily map currently omits it.
+// Games grouped by category, matching the five families in the end-of-game
+// card (DailyEndCard CAT_META / DAILY_GAMES.cat) so the two surfaces agree.
+// Within each group the order is popularity (yesterday's plays), same as
+// everywhere else.
 const CATEGORIES = [
-  { key: 'word', label: 'Word & Letters', keys: ['crux', 'emcee', 'garble', 'links', 'stet', 'tuck', 'warmer'] },
-  { key: 'logic', label: 'Logic & Deduction', keys: ['span', 'ping', 'dating', 'outwit', 'alibi'] },
-  { key: 'number', label: 'Numbers & Grids', keys: ['tally', 'suds', 'carve', 'cipher'] },
-  { key: 'trivia', label: 'Time & Trivia', keys: ['circa', 'extra'] },
+  { key: 'word', label: 'Word', keys: ['crux', 'emcee', 'garble', 'links', 'stet', 'tuck', 'warmer'] },
+  { key: 'history', label: 'History', keys: ['dating', 'circa', 'extra'] },
+  { key: 'geography', label: 'Geography', keys: ['span', 'ping'] },
+  { key: 'numbers', label: 'Numbers', keys: ['tally', 'suds', 'carve', 'outwit', 'cipher'] },
+  { key: 'logic', label: 'Logic', keys: ['alibi'] },
 ];
 
 export default function DailyGamesGrid({ self, maxWidth = 640, challengeHref = null, share = null, divider = false }) {
@@ -116,6 +117,11 @@ export default function DailyGamesGrid({ self, maxWidth = 640, challengeHref = n
         .dgg-act.dgg-challenge svg{color:#5b8bff;}
         .dgg-act.dgg-share svg{color:#f8b84a;}
       `}</style>
+      {self ? (
+        <div style={{ marginBottom: 12 }}>
+          <ReportIssue self={self} name={GAMES_BY_KEY[self] ? GAMES_BY_KEY[self].name : undefined} accent="#0e1d40" />
+        </div>
+      ) : null}
       {actionCount > 0 ? (
         <div className="dgg-actions" style={{ gridTemplateColumns: actionCount === 1 ? '1fr' : 'repeat(2,minmax(0,1fr))' }}>
           {challengeHref ? (
@@ -165,9 +171,6 @@ export default function DailyGamesGrid({ self, maxWidth = 640, challengeHref = n
           All daily games &amp; archive →
         </a>
       </div>
-      {self ? (
-        <ReportIssue self={self} name={GAMES_BY_KEY[self] ? GAMES_BY_KEY[self].name : undefined} accent="#0e1d40" />
-      ) : null}
       {divider ? <div style={{ borderTop: '1px solid rgba(28,30,36,0.14)', marginTop: 22 }} /> : null}
     </div>
   );
