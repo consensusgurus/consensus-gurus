@@ -823,7 +823,7 @@ export default function OutwitClient({ puzzles = [], forceNum = null }) {
           self="outwit"
           won={sharp}
           headline={<>You scored {Math.round((score / TOTAL) * 100)}%</>}
-          subline={<>Outwit #{PUZZLE.num} &middot; {score}/{TOTAL} &middot; crowd of {fmtBig(result.poolSize)} &middot; {elapsed}</>}
+          subline={<>{score}/{TOTAL} &middot; crowd of {fmtBig(result.realCount != null ? result.realCount : result.poolSize)} &middot; {elapsed}</>}
           onShare={copyShare}
           shareLabel={copied ? 'Copied' : 'Share Result'}
           onReplay={resetGame}

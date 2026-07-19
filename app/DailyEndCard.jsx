@@ -381,6 +381,10 @@ export default function DailyEndCard({
           .dec-up-btns .dec-btn{flex:1;}
           .dec-grab{flex-direction:column;align-items:stretch;}
           .dec-grab-btn{text-align:center;}
+          .dec-rows{display:grid;grid-template-columns:1fr 1fr;gap:6px;}
+          .dec-rows.one{grid-template-columns:1fr;}
+          .dec-row{margin-bottom:0;padding:8px 9px;}
+          .dec-row .pl{display:none;}
         }
       `}</style>
 
@@ -482,15 +486,17 @@ export default function DailyEndCard({
                       <span className="lbl">Other quizzes</span>
                       <span className="cnt"><ArrowRight size={14} strokeWidth={2.4} color="#fff" /></span>
                     </a>
+                    <div className="dec-rows one">
                     {block.items.map((q) => (
                       <a className="dec-row" href={`/quiz/${q.id}`} key={q.id}>
                         <div style={{ minWidth: 0, flex: 1 }}>
                           <div className="nm"><span className="t">{q.name}</span></div>
                           <div className="tg">{q.tag}</div>
                         </div>
-                        <span className="play">Play<ArrowRight size={11} strokeWidth={2.6} /></span>
+                        <span className="play"><span className="pl">Play</span><ArrowRight size={11} strokeWidth={2.6} /></span>
                       </a>
                     ))}
+                    </div>
                   </div>
                 ) : (
                   <div className="dec-group" key={block.cat}>
@@ -498,15 +504,17 @@ export default function DailyEndCard({
                       <span className="lbl">{block.cm.name}</span>
                       <span className="cnt">{block.items.length}</span>
                     </div>
+                    <div className="dec-rows">
                     {block.items.map((g) => (
                       <a className="dec-row" href={g.href} key={g.key}>
                         <div style={{ minWidth: 0, flex: 1 }}>
                           <div className="nm"><span className="t">{g.name}</span></div>
                           <div className="tg">{g.tag}</div>
                         </div>
-                        <span className="play">Play<ArrowRight size={11} strokeWidth={2.6} /></span>
+                        <span className="play"><span className="pl">Play</span><ArrowRight size={11} strokeWidth={2.6} /></span>
                       </a>
                     ))}
+                    </div>
                   </div>
                 ))}
               </div>
