@@ -9,7 +9,7 @@ import { PUZZLES } from './puzzles';
 // sentences with finer copy-desk calls.
 
 export const metadata = {
-  title: 'Stet — Daily Copy-Desk Word Game: Find the Wrong Word | Source of Truths',
+  title: 'Stet — Daily Copy-Desk Word Game: Find the Wrong Word or Grammar Slip | Source of Truths',
   description:
     "A free daily word game — you're the copy editor. Almost every sentence in today's brief hides one wrong word or grammar slip (real words only, so spellcheck can't save you): free reign, should of, a mute point. But some sentences are clean — stamp those 'stet.' Tap it, fix it, keep a clean desk.",
   alternates: { canonical: '/stet' },
