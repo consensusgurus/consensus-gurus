@@ -1,0 +1,87 @@
+import { NextResponse } from 'next/server';
+import { supabaseAdmin } from '@/lib/supabase-server';
+import { loadQuizResultsCached } from '@/lib/quiz-results-cache';
+import { findQuizIdentity } from '@/lib/quiz-identity';
+import { DAILY_KEYS } from '@/lib/daily-combined';
+
+import { PUZZLES as P_crux } from '@/app/crux/puzzles';
+import { PUZZLES as P_emcee } from '@/app/emcee/puzzles';
+import { PUZZLES as P_garble } from '@/app/garble/puzzles';
+import { PUZZLES as P_links } from '@/app/links/puzzles';
+import { PUZZLES as P_span } from '@/app/span/puzzles';
+import { PUZZLES as P_dating } from '@/app/dating/puzzles';
+import { PUZZLES as P_tally } from '@/app/tally/puzzles';
+import { PUZZLES as P_suds } from '@/app/suds/puzzles';
+import { PUZZLES as P_circa } from '@/app/circa/puzzles';
+import { PUZZLES as P_extra } from '@/app/extra/puzzles';
+import { PUZZLES as P_carve } from '@/app/carve/puzzles';
+import { PUZZLES as P_stet } from '@/app/stet/puzzles';
+import { PUZZLES as P_outwit } from '@/app/outwit/puzzles';
+import { PUZZLES as P_tuck } from '@/app/tuck/puzzles';
+import { PUZZLES as P_alibi } from '@/app/alibi/puzzles';
+import { PUZZLES as P_cipher } from '@/app/cipher/puzzles';
+import { PUZZLES as P_ping } from '@/app/ping/puzzles';
+import { PUZZLES as P_warmer } from '@/app/warmer/puzzles';
+import { PUZZLES as P_jester } from '@/app/jester/puzzles';
+import { PUZZLES as P_sworn } from '@/app/sworn/puzzles';
+
+export const dynamic = 'force-dynamic';
+export const fetchCache = 'force-no-store';
+// Per-player answer, keep it fresh (a play should immediately drop that puzzle).
+const CACHE_HEADERS = { 'Cache-Control': 'private, no-store' };
+
+const GAME_PUZZLES = { crux: P_crux, emcee: P_emcee, garble: P_garble, links: P_links, span: P_span, dating: P_dating, tally: P_tally, suds: P_suds, circa: P_circa, extra: P_extra, carve: P_carve, stet: P_stet, outwit: P_outwit, tuck: P_tuck, alibi: P_alibi, cipher: P_cipher, ping: P_ping, warmer: P_warmer, jester: P_jester, sworn: P_sworn };
+
+function etTodayServer() {
+  try { return new Date().toLocaleDateString('en-CA', { timeZone: 'America/New_York' }); }
+  catch (e) { return new Date().toISOString().slice(0, 10); }
+}
+function suffixOfDate(dateStr) { const [Y, M, D] = dateStr.split('-').map(Number); return `${M}-${D}-${Y % 100}`; }
+
+// GET /api/quiz/daily-unplayed?game=<key>&anonId=&email=
+//   -> { game, num, href } for the MOST-RECENT past drop of <game> the viewer has
+//      not submitted a result for, or { game, num:null, href:null } when none remain
+//      (the end-card's "Play a past <Game>" button hides on null). Today's puzzle and
+//      any not-yet-live drop are excluded. "Played" = a quiz_results row for that
+//      exact archived quizId under the viewer's identity (account, else this anon).
+export async function GET(request) {
+  const { searchParams } = new URL(request.url);
+  const game = (searchParams.get('game') || '').trim();
+  const anonId = (searchParams.get('anonId') || '').trim() || null;
+  const email = (searchParams.get('email') || '').trim() || null;
+  const none = { game, num: null, href: null };
+  if (!DAILY_KEYS.includes(game)) return NextResponse.json(none);
+
+  const today = etTodayServer();
+  const todayQuizId = `${game}-${suffixOfDate(today)}`;
+  const puzzles = GAME_PUZZLES[game] || [];
+  const archive = puzzles
+    .filter((p) => p && p.quizId && p.quizId !== todayQuizId && (!p.live || p.live <= today))
+    .sort((a, b) => (b.num || 0) - (a.num || 0));
+  if (!archive.length) return NextResponse.json(none);
+
+  let myKey = null;
+  try {
+    const ident = await findQuizIdentity(supabaseAdmin, { email, anonId });
+    if (ident && ident.id) myKey = `u:${ident.id}`;
+    else if (anonId) myKey = `a:${anonId}`;
+  } catch (e) { /* identity best-effort */ }
+
+  const played = new Set();
+  if (myKey) {
+    try {
+      const { data } = await loadQuizResultsCached(supabaseAdmin);
+      const prefix = game + '-';
+      for (const r of (data || [])) {
+        const qid = r && r.quiz_id;
+        if (!qid || qid.indexOf(prefix) !== 0) continue;
+        const pk = r.user_id ? `u:${r.user_id}` : (r.anon_id ? `a:${r.anon_id}` : null);
+        if (pk === myKey) played.add(qid);
+      }
+    } catch (e) { /* no history -> treat all as unplayed */ }
+  }
+
+  const pick = archive.find((p) => !played.has(p.quizId));
+  if (!pick) return NextResponse.json(none);
+  return NextResponse.json({ game, num: pick.num, href: `/${game}?p=${pick.num}` }, { headers: CACHE_HEADERS });
+}

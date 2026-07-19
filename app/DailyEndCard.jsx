@@ -8,7 +8,7 @@
 //   1. a result header — the family type chip, "You finished <Game>", the
 //      score/time detail, and the player's standing (this game's rank today,
 //      the combined daily-board rank, and how many games are still left);
-//   2. three result actions — Share Result, Leaderboard, and Play a past <Game>;
+//   2. three result actions — Play a past <Game>, Leaderboard, and Share Result;
 //   3. an "Up next" auto-advance — a 25s countdown ring that opens the closest
 //      unplayed game of the SAME family (Crux -> Garble ...), cancelable;
 //   4. a "Leaderboard most up for grabs" callout — the daily game with the
@@ -117,12 +117,19 @@ export const DAILY_GAMES = [
 
 // A small hand-picked set of popular quizzes to keep players on the site once
 // they finish the daily slate. Ids are real quiz slugs (/quiz/<id>).
-const OTHER_QUIZZES = [
-  { id: 'europe-no-outline',        name: 'Countries of Europe',    tag: 'No outline' },
-  { id: 'erase-europe-no-outline',  name: 'Erase Europe',           tag: 'No outline, no skips' },
-  { id: 'find-the-lower-48-states', name: 'US States',              tag: 'No outline' },
-  { id: 'countries-by-population',  name: 'Most Populous Countries', tag: 'Rank by population' },
-  { id: 'nyc-landmarks-geo-guesser', name: 'NYC Landmarks',         tag: 'Geo Guesser' },
+const OTHER_POOL = [
+  { id: 'europe-no-outline',               name: 'Countries of Europe',        tag: 'No outline' },
+  { id: 'erase-europe-no-outline',         name: 'Erase Europe',               tag: 'No outline, no skips' },
+  { id: 'find-the-lower-48-states',        name: 'US States',                  tag: 'No outline' },
+  { id: 'countries-by-population',         name: 'Most Populous Countries',    tag: 'Rank by population' },
+  { id: 'nyc-landmarks-geo-guesser',       name: 'NYC Landmarks',              tag: 'Geo Guesser' },
+  { id: 'largest-cities-world-population',  name: 'Largest Cities in the World', tag: 'By population' },
+  { id: 'africa-no-outline',               name: 'Countries of Africa',        tag: 'No outline' },
+  { id: 'asia-no-outline',                 name: 'Countries of Asia',          tag: 'No outline' },
+  { id: 'south-america-no-outline',        name: 'Countries of South America', tag: 'No outline' },
+  { id: 'north-america-no-outline',        name: 'Countries of North America', tag: 'No outline' },
+  { id: 'us-states-by-population',         name: 'Most Populous US States',    tag: 'Rank by population' },
+  { id: 'countries-of-the-world-no-outline', name: 'Countries of the World',   tag: 'No outline' },
 ];
 const OTHER_COLOR = '#5b6472';
 
@@ -154,6 +161,7 @@ export default function DailyEndCard({
   const [boardGames, setBoardGames] = useState(null); // per-game field/plays for "most up for grabs"
   const [secs, setSecs] = useState(AUTO_SECONDS);
   const [autoCancel, setAutoCancel] = useState(false);
+  const [pastHref, setPastHref] = useState(null); // most-recent unplayed PAST drop of this game
 
   useEffect(() => {
     let anonId = null, email = null;
@@ -173,6 +181,24 @@ export default function DailyEndCard({
       .catch(() => {});
     return () => { alive = false; };
   }, []);
+
+  // Resolve the most-recent unplayed PAST drop of this game so "Play a past" can
+  // one-tap straight into it; the button hides when the player has done them all.
+  useEffect(() => {
+    if (!self) return undefined;
+    let anonId = null, email = null;
+    try { anonId = localStorage.getItem('sot_quiz_anon'); } catch (e) {}
+    try { const id = JSON.parse(localStorage.getItem('sot_quiz_identity') || 'null'); email = id && id.email; } catch (e) {}
+    const qs = new URLSearchParams({ game: self });
+    if (anonId) qs.set('anonId', anonId);
+    if (email) qs.set('email', email);
+    let alive = true;
+    fetch('/api/quiz/daily-unplayed?' + qs.toString())
+      .then((r) => r.json())
+      .then((d) => { if (alive && d && d.href) setPastHref(d.href); })
+      .catch(() => {});
+    return () => { alive = false; };
+  }, [self]);
 
   const meta = GAME_META[self] || GAME_META.crux;
   const selfGame = DAILY_GAMES.find((g) => g.key === self) || null;
@@ -247,10 +273,37 @@ export default function DailyEndCard({
   const RING_C = 150.8; // 2*pi*24
   const ringOffset = autoRun ? (RING_C * (AUTO_SECONDS - secs)) / AUTO_SECONDS : 0;
 
-  // Build the "more games" families out of the still-to-play list.
-  const catGroups = CAT_ORDER
-    .map((cat) => ({ cat, cm: CAT_META[cat], items: todo.filter((g) => g.cat === cat) }))
-    .filter((grp) => grp.items.length > 0);
+  // Build the "more games" family blocks (still-to-play), then bin-pack them into
+  // 3 columns with an adaptively-sized "Other quizzes" block so the grid fills
+  // evenly instead of leaving dead space under short families. Height is measured
+  // in tile-units (header = 1, each row = 1); greedy largest-first packing plus a
+  // sweep over the Other-quiz count picks the arrangement with the least dead space.
+  const famBlocks = CAT_ORDER
+    .map((cat) => ({ type: 'fam', cat, cm: CAT_META[cat], items: todo.filter((g) => g.cat === cat) }))
+    .filter((b) => b.items.length > 0)
+    .map((b) => ({ ...b, h: 1 + b.items.length }));
+
+  const pack3 = (blocks) => {
+    const cols = [[], [], []], hs = [0, 0, 0];
+    for (const b of blocks.slice().sort((a, z) => z.h - a.h)) {
+      let i = 0; for (let j = 1; j < 3; j++) if (hs[j] < hs[i]) i = j;
+      cols[i].push(b); hs[i] += b.h;
+    }
+    return { cols, dead: 3 * Math.max(hs[0], hs[1], hs[2]) - (hs[0] + hs[1] + hs[2]) };
+  };
+
+  const showMore = famBlocks.length > 0;
+  let packedCols = [[], [], []];
+  if (showMore) {
+    let best = null;
+    const maxQ = OTHER_POOL.length, minQ = Math.min(4, maxQ);
+    for (let Q = minQ; Q <= maxQ; Q++) {
+      const other = { type: 'other', items: OTHER_POOL.slice(0, Q), h: 1 + Q };
+      const r = pack3([...famBlocks, other]);
+      if (!best || r.dead < best.dead || (r.dead === best.dead && Q > best.Q)) best = { cols: r.cols, Q };
+    }
+    packedCols = best.cols;
+  }
 
   const inner = (
     <div className="dec-card" style={modal ? { position: 'relative', maxHeight: '92vh', overflowY: 'auto' } : undefined}>
@@ -303,8 +356,9 @@ export default function DailyEndCard({
         .dec-morehd{display:flex;align-items:baseline;justify-content:space-between;margin:18px 2px 12px;}
         .dec-more-eye{font-family:${MONO};font-size:10.5px;font-weight:500;letter-spacing:.14em;text-transform:uppercase;color:${SLATE};}
         .dec-more-count{font-size:12px;color:#8a92a6;}
-        .dec-grid{column-count:3;column-gap:12px;}
-        .dec-group{display:inline-block;width:100%;margin-bottom:12px;break-inside:avoid;-webkit-column-break-inside:avoid;}
+        .dec-grid{display:flex;gap:12px;align-items:flex-start;}
+        .dec-col{flex:1;min-width:0;display:flex;flex-direction:column;}
+        .dec-group{margin-bottom:12px;}
         .dec-gh{display:flex;align-items:center;gap:8px;padding:9px 12px;border-radius:10px;margin-bottom:8px;text-decoration:none;}
         .dec-gh .lbl{font-family:${MONO};font-size:10.5px;font-weight:500;letter-spacing:.14em;text-transform:uppercase;color:#fff;}
         .dec-gh .cnt{margin-left:auto;font-size:11px;color:rgba(255,255,255,.78);display:flex;align-items:center;}
@@ -321,7 +375,7 @@ export default function DailyEndCard({
         @media(max-width:640px){
           .dec-card{padding:18px 16px 14px;}
           .dec-tagline{display:none;}
-          .dec-grid{column-count:1;}
+          .dec-grid{flex-direction:column;}
           .dec-upnext{flex-direction:column;align-items:stretch;}
           .dec-up-btns{flex-direction:row;width:100%;}
           .dec-up-btns .dec-btn{flex:1;}
@@ -352,15 +406,17 @@ export default function DailyEndCard({
 
       {/* ---- result actions ---- */}
       <div className="dec-actions">
-        <button type="button" className="dec-btn primary" style={{ background: meta.accent }} onClick={onShare}>
-          <Share2 size={15} strokeWidth={2} /> {shareLabel}
-        </button>
+        {pastHref ? (
+          <a className="dec-btn primary" style={{ background: INK, borderColor: INK }} href={pastHref}>
+            <RotateCcw size={15} strokeWidth={2} /> Play a past {selfName}
+          </a>
+        ) : null}
         <button type="button" className="dec-btn" onClick={goBoard}>
           <BarChart3 size={15} strokeWidth={2} /> Leaderboard
         </button>
-        <a className="dec-btn" href={`/daily?archive=${self}`}>
-          <RotateCcw size={15} strokeWidth={2} /> Play a past {selfName}
-        </a>
+        <button type="button" className="dec-btn" onClick={onShare}>
+          <Share2 size={15} strokeWidth={2} /> {shareLabel}
+        </button>
       </div>
 
       {/* ---- up next auto-advance ---- */}
@@ -411,49 +467,50 @@ export default function DailyEndCard({
       ) : null}
 
       {/* ---- more of today's games ---- */}
-      {(catGroups.length > 0) ? (
+      {showMore ? (
         <>
           <div className="dec-morehd">
             <span className="dec-more-eye">More of today&rsquo;s games</span>
             <span className="dec-more-count">{doneCount} of {total} played</span>
           </div>
           <div className="dec-grid">
-            {catGroups.map((grp) => {
-              const c = grp.cm.color;
-              return (
-                <div className="dec-group" key={grp.cat}>
-                  <div className="dec-gh" style={{ background: c }}>
-                    <span className="lbl">{grp.cm.name}</span>
-                    <span className="cnt">{grp.items.length}</span>
-                  </div>
-                  {grp.items.map((g) => (
-                    <a className="dec-row" href={g.href} key={g.key}>
-                      <div style={{ minWidth: 0, flex: 1 }}>
-                        <div className="nm"><span className="t">{g.name}</span></div>
-                        <div className="tg">{g.tag}</div>
-                      </div>
-                      <span className="play">Play<ArrowRight size={11} strokeWidth={2.6} /></span>
+            {packedCols.map((col, ci) => (
+              <div className="dec-col" key={ci}>
+                {col.map((block) => block.type === 'other' ? (
+                  <div className="dec-group" key="other">
+                    <a className="dec-gh" style={{ background: OTHER_COLOR }} href="/quizzes">
+                      <span className="lbl">Other quizzes</span>
+                      <span className="cnt"><ArrowRight size={14} strokeWidth={2.4} color="#fff" /></span>
                     </a>
-                  ))}
-                </div>
-              );
-            })}
-            {/* Other quizzes */}
-            <div className="dec-group">
-              <a className="dec-gh" style={{ background: OTHER_COLOR }} href="/quizzes">
-                <span className="lbl">Other quizzes</span>
-                <span className="cnt"><ArrowRight size={14} strokeWidth={2.4} color="#fff" /></span>
-              </a>
-              {OTHER_QUIZZES.map((q) => (
-                <a className="dec-row" href={`/quiz/${q.id}`} key={q.id}>
-                  <div style={{ minWidth: 0, flex: 1 }}>
-                    <div className="nm"><span className="t">{q.name}</span></div>
-                    <div className="tg">{q.tag}</div>
+                    {block.items.map((q) => (
+                      <a className="dec-row" href={`/quiz/${q.id}`} key={q.id}>
+                        <div style={{ minWidth: 0, flex: 1 }}>
+                          <div className="nm"><span className="t">{q.name}</span></div>
+                          <div className="tg">{q.tag}</div>
+                        </div>
+                        <span className="play">Play<ArrowRight size={11} strokeWidth={2.6} /></span>
+                      </a>
+                    ))}
                   </div>
-                  <span className="play">Play<ArrowRight size={11} strokeWidth={2.6} /></span>
-                </a>
-              ))}
-            </div>
+                ) : (
+                  <div className="dec-group" key={block.cat}>
+                    <div className="dec-gh" style={{ background: block.cm.color }}>
+                      <span className="lbl">{block.cm.name}</span>
+                      <span className="cnt">{block.items.length}</span>
+                    </div>
+                    {block.items.map((g) => (
+                      <a className="dec-row" href={g.href} key={g.key}>
+                        <div style={{ minWidth: 0, flex: 1 }}>
+                          <div className="nm"><span className="t">{g.name}</span></div>
+                          <div className="tg">{g.tag}</div>
+                        </div>
+                        <span className="play">Play<ArrowRight size={11} strokeWidth={2.6} /></span>
+                      </a>
+                    ))}
+                  </div>
+                ))}
+              </div>
+            ))}
           </div>
         </>
       ) : null}
