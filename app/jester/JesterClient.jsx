@@ -501,10 +501,10 @@ export default function JesterClient({ puzzles = [], forceNum = null }) {
         <div style={{ display: 'block' }}><DailyTopNav player={player} compact={playing} /></div>
 
         {/* masthead */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: 14, flexWrap: 'wrap', position: 'relative', paddingRight: 28, marginBottom: 14, borderBottom: '2px solid rgba(28,30,36,0.8)', paddingBottom: 11 }}>
-          <div style={{ display: 'flex', gap: 4, alignItems: 'flex-end' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 11, flexWrap: 'wrap', position: 'relative', paddingRight: 28, marginBottom: 10, borderBottom: '2px solid rgba(28,30,36,0.8)', paddingBottom: 8 }}>
+          <div style={{ display: 'flex', gap: 3, alignItems: 'flex-end' }}>
             {'JESTERS'.split('').map((ch, i) => (
-              <div key={i} style={{ width: 40, height: 40, borderRadius: 5, display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: SANS, fontWeight: 900, fontSize: 23, background: i === 0 ? COLORS.accent : COLORS.ink, color: '#fff', boxShadow: 'inset 0 2px 5px rgba(0,0,0,0.5), 0 1px 0 rgba(255,255,255,0.65)' }}>{ch}</div>
+              <div key={i} style={{ width: 32, height: 32, borderRadius: 4, display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: SANS, fontWeight: 900, fontSize: 18, background: i === 0 ? COLORS.accent : COLORS.ink, color: '#fff', boxShadow: 'inset 0 2px 5px rgba(0,0,0,0.5), 0 1px 0 rgba(255,255,255,0.65)' }}>{ch}</div>
             ))}
           </div>
           <div style={{ display: 'flex', alignItems: 'baseline', gap: 9, flexWrap: 'wrap' }}>
@@ -532,7 +532,7 @@ export default function JesterClient({ puzzles = [], forceNum = null }) {
         </div>
 
         {/* the board */}
-        <div className="je-board-scroll">
+        <div className="je-board-scroll" style={{ textAlign: 'center' }}>
           <div style={{ display: 'inline-block', border: '3px solid #1c1e24', borderRadius: 10, overflow: 'hidden', background: '#1c1e24', boxShadow: '0 2px 10px rgba(20,22,28,0.12)' }}>
             {PUZZLE.regions.map((row, r) => (
               <div key={r} style={{ display: 'flex' }}>
