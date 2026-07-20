@@ -32,7 +32,7 @@ const GAMES = [
   { key: 'extra', href: '/extra', name: 'Extra', tag: 'Name the story', img: '/games/btn-extra.png' },
   { key: 'stet', href: '/stet', name: 'Stet', tag: 'Spot the error, fix the copy', img: '/games/btn-stet.png' },
   { key: 'outwit', href: '/outwit', name: 'Outwit', tag: 'Beat the crowd', img: '/games/btn-outwit.png' },
-  { key: 'tuck', href: '/tuck', name: 'Tuck', tag: 'Build your own crossword', img: '/games/btn-tuck.png' },
+  { key: 'tuck', href: '/tuck', name: 'Tuck', tag: 'Same letters, highest score wins', img: '/games/btn-tuck.png' },
   { key: 'alibi', href: '/alibi', name: 'Alibi', tag: 'Solve the nightly whodunit', img: '/games/btn-alibi.png' },
   { key: 'cipher', href: '/cipher', name: 'Cipher', tag: 'Crack the letter math', img: '/games/btn-cipher.png' },
   { key: 'ping', href: '/ping', name: 'Ping', tag: 'Find the secret city', img: '/games/btn-ping.png' },

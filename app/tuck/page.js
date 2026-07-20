@@ -9,7 +9,7 @@ import { PUZZLES } from './puzzles';
 // chase the solver-verified par.
 
 export const metadata = {
-  title: 'Tuck — Daily Word Game: Build Your Own Crossword | Source of Truths',
+  title: 'Tuck — Daily Word Game: Same Letters, Highest Score Wins | Source of Truths',
   description:
     'A free daily word game — everyone gets the same 14 letters. Tuck them into your own interlocking crossword grid: every run must be a word, intersections score double, and each day has a solver-verified par to beat.',
   alternates: { canonical: '/tuck' },
@@ -22,7 +22,7 @@ export const metadata = {
   openGraph: {
     title: 'Tuck — The Daily Tile-Tucking Word Game',
     description:
-      'Fourteen letters, one empty board, no single answer. Build your own interlocking grid and beat the day’s par. From Source of Truths.',
+      'Fourteen letters, one empty board, no single answer. Everyone plays the same rack, and the highest score wins the day. From Source of Truths.',
     url: '/tuck',
     type: 'website',
     siteName: 'Source of Truths',

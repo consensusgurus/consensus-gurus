@@ -937,7 +937,7 @@ const DAILY_GAME_META = {
   carve:  { name: 'Carve',  c: '#7c3aed', href: '/carve',  tag: 'Equal-sum blocks' },
   stet:   { name: 'Stet',   c: '#0369a1', href: '/stet',   tag: 'Spot the error, fix the copy' },
   outwit: { name: 'Outwit', c: '#1f2937', href: '/outwit', tag: 'Beat the crowd' },
-  tuck:   { name: 'Tuck',   c: '#92400e', href: '/tuck',   tag: 'Build your own crossword' },
+  tuck:   { name: 'Tuck',   c: '#92400e', href: '/tuck',   tag: 'Same letters, highest score wins' },
   alibi:  { name: 'Alibi',  c: '#8b1e2d', href: '/alibi',  tag: 'Solve the nightly whodunit' },
   cipher: { name: 'Cipher', c: '#0f766e', href: '/cipher', tag: 'Crack the letter math' },
   ping: { name: 'Ping', c: '#0284c7', href: '/ping', tag: 'Guess the secret city' },

@@ -98,7 +98,7 @@ export const DAILY_GAMES = [
   { key: 'links',  cat: 'word',      name: 'Links',  tag: 'Four hidden threads',       href: '/links' },
   { key: 'garble', cat: 'word',      name: 'Garble', tag: 'Untangle five words',       href: '/garble' },
   { key: 'stet',   cat: 'word',      name: 'Stet',   tag: 'Spot the error, fix the copy',        href: '/stet' },
-  { key: 'tuck',   cat: 'word',      name: 'Tuck',   tag: 'Build your own crossword',  href: '/tuck' },
+  { key: 'tuck',   cat: 'word',      name: 'Tuck',   tag: 'Same letters, highest score wins',  href: '/tuck' },
   { key: 'dating', cat: 'history',   name: 'Dating', tag: 'Put five moments in order', href: '/dating' },
   { key: 'circa',  cat: 'history',   name: 'Circa',  tag: 'Pin the year it happened',  href: '/circa' },
   { key: 'extra',  cat: 'history',   name: 'Extra',  tag: 'Name the redacted front page', href: '/extra' },
