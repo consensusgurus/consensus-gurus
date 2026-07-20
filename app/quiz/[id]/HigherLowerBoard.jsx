@@ -28,6 +28,7 @@ import Footer from '../../Footer';
 import QuizNavHeader from '../../quizzes/QuizNavHeader';
 import QuizIdleActions from './QuizIdleActions';
 import Count from '../../Count';
+import { withRef } from '@/lib/referrals';
 
 const COLORS = {
   cream: '#f7f8fa',
@@ -284,7 +285,7 @@ export default function HigherLowerBoard({ quizId, mobile = false }) {
     setQBusy(false);
   }
 
-  const shareUrl = typeof window !== 'undefined' ? window.location.href : `https://sourceoftruths.com/quiz/${quiz.id}`;
+  const shareUrl = withRef(typeof window !== 'undefined' ? window.location.href : `https://sourceoftruths.com/quiz/${quiz.id}`);
   const resultMsg = phase === 'done' ? `I hit a streak of ${score} on "${quiz.title}". Can you beat me?` : `Can you beat my run on "${quiz.title}"?`;
   const promoImgUrl = `https://sourceoftruths.com/quiz/${quiz.id}/share-image`;
   const resultImgUrl = `https://sourceoftruths.com/quiz/${quiz.id}/result-image?s=${score}&t=${maxScore}&p=0`;

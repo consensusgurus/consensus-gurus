@@ -16,6 +16,7 @@ import { MapPin, Share2, Flag, RotateCcw, ArrowRight, Trophy, Clock } from 'luci
 import Grain from '../../Grain';
 import Footer from '../../Footer';
 import SiteHeader from '../../SiteHeader';
+import { withRef } from '@/lib/referrals';
 
 const COLORS = {
   cream: '#f7f8fa',
@@ -248,7 +249,7 @@ export default function GeoClient() {
   const promptSpot = phase === 'playing' && order.length ? SPOTS[order[idx]] : null;
   const lastIsHit = last && last.pts >= 700;
 
-  const shareUrl = typeof window !== 'undefined' ? window.location.href : 'https://sourceoftruths.com/geo/nyc-restaurants';
+  const shareUrl = withRef(typeof window !== 'undefined' ? window.location.href : 'https://sourceoftruths.com/geo/nyc-restaurants');
   function share() {
     const text = phase === 'done' ? `I scored ${points}/${MAX_POINTS} on Locate the Restaurant (NYC). Can you beat me?` : 'Locate the Restaurant — a NYC aerial geo game.';
     if (typeof navigator !== 'undefined' && navigator.share) { navigator.share({ title: 'Locate the Restaurant', text, url: shareUrl }).catch(() => {}); }

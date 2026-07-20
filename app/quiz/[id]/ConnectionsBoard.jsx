@@ -33,6 +33,7 @@ import QuizIdleActions from './QuizIdleActions';
 import { isMobileDevice } from '@/lib/is-mobile';
 import { LB_POPS, LB_FILTERS, pickLb, lbEmptyNote } from '@/lib/quiz-lb';
 import Count from '../../Count';
+import { withRef } from '@/lib/referrals';
 
 const COLORS = {
   cream: '#f7f8fa',
@@ -331,7 +332,7 @@ export default function ConnectionsBoard({ quizId, mobile = false }) {
     setQBusy(false);
   }
 
-  const shareUrl = typeof window !== 'undefined' ? window.location.href : `https://sourceoftruths.com/quiz/${quiz.id}`;
+  const shareUrl = withRef(typeof window !== 'undefined' ? window.location.href : `https://sourceoftruths.com/quiz/${quiz.id}`);
   const resultMsg = phase === 'done' ? `I solved ${points}/${maxPoints} groups on "${quiz.title}". Can you beat me?` : `Can you untangle "${quiz.title}"?`;
   const promoImgUrl = `https://sourceoftruths.com/quiz/${quiz.id}/share-image`;
   const resultImgUrl = `https://sourceoftruths.com/quiz/${quiz.id}/result-image?s=${points}&t=${maxPoints}&p=0`;

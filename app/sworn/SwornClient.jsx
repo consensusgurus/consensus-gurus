@@ -35,6 +35,7 @@ import DailyTopNav from '../DailyTopNav';
 import DailyCombinedLeaderboard from '../quiz/[id]/DailyCombinedLeaderboard';
 import useAbandonFlush from '../quiz/[id]/useAbandonFlush';
 import { isMobileDevice } from '@/lib/is-mobile';
+import { withRef } from '@/lib/referrals';
 
 const COLORS = {
   cream: '#f7f8fa',
@@ -727,8 +728,8 @@ export default function SwornClient({ puzzles = [], forceNum = null }) {
       ? `⚖️ Named the thief in ${elapsed} · ${g.wrong} wrong accusation${g.wrong === 1 ? '' : 's'}${hintBit}`
       : g.status === 'lost' ? '⚖️ The inquest collapsed' : '⚖️ Still weighing the testimony…';
     const text = playing
-      ? `Sworn #${PUZZLE.num} — the daily liars puzzle from Source of Truths.\nsourceoftruths.com/sworn${isTodays ? '' : `?p=${PUZZLE.num}`}`
-      : `Sworn — Inquest #${PUZZLE.num}\n${solvedBit}${streakBit}\nsourceoftruths.com/sworn${isTodays ? '' : `?p=${PUZZLE.num}`}`;
+      ? `Sworn #${PUZZLE.num} — the daily liars puzzle from Source of Truths.\n${withRef(`sourceoftruths.com/sworn${isTodays ? '' : `?p=${PUZZLE.num}`}`)}`
+      : `Sworn — Inquest #${PUZZLE.num}\n${solvedBit}${streakBit}\n${withRef(`sourceoftruths.com/sworn${isTodays ? '' : `?p=${PUZZLE.num}`}`)}`;
     try {
       if (typeof navigator !== 'undefined' && navigator.share && isMobileDevice()) {
         navigator.share({ text }).catch(() => {});

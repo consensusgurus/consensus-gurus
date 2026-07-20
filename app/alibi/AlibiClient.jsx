@@ -35,6 +35,7 @@ import DailyTopNav from '../DailyTopNav';
 import DailyCombinedLeaderboard from '../quiz/[id]/DailyCombinedLeaderboard';
 import { isMobileDevice } from '@/lib/is-mobile';
 import useAbandonFlush from '../quiz/[id]/useAbandonFlush';
+import { withRef } from '@/lib/referrals';
 
 const COLORS = {
   cream: '#f7f8fa',
@@ -757,8 +758,8 @@ export default function AlibiClient({ puzzles = [], forceNum = null }) {
       : g.status === 'lost' ? '🕯️ The case went cold' : '🕵️ Still on the case…';
     const streakBit = isTodays && myStats.cur >= 2 && g.status !== 'playing' ? ` · streak ${myStats.cur}` : '';
     const text = playing
-      ? `Alibi #${PUZZLE.num} — the nightly whodunit from Source of Truths.\nsourceoftruths.com/alibi${isTodays ? '' : `?p=${PUZZLE.num}`}`
-      : `Alibi — Case #${PUZZLE.num}\n${solvedBit}${streakBit}\nsourceoftruths.com/alibi${isTodays ? '' : `?p=${PUZZLE.num}`}`;
+      ? `Alibi #${PUZZLE.num} — the nightly whodunit from Source of Truths.\n${withRef(`sourceoftruths.com/alibi${isTodays ? '' : `?p=${PUZZLE.num}`}`)}`
+      : `Alibi — Case #${PUZZLE.num}\n${solvedBit}${streakBit}\n${withRef(`sourceoftruths.com/alibi${isTodays ? '' : `?p=${PUZZLE.num}`}`)}`;
     try {
       if (typeof navigator !== 'undefined' && navigator.share && isMobileDevice()) {
         navigator.share({ text }).catch(() => {});

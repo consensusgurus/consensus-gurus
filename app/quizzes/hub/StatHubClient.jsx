@@ -10,6 +10,7 @@ import QuizNavHeader from '../QuizNavHeader';
 import DailyCombinedLeaderboard from '../../quiz/[id]/DailyCombinedLeaderboard';
 import Grain from '../../Grain';
 import Footer from '../../Footer';
+import { withRef } from '@/lib/referrals';
 
 const C = {
   bg: '#f7f8fa', surface: '#fff', ink: '#1c1e24', muted: '#6b7280',
@@ -135,7 +136,7 @@ function ShareStatsModal({ profile, byKey, onClose }) {
   const label = (k) => (byKey && byKey[k] && byKey[k].label) || k;
   function copy() {
     const origin = typeof window !== 'undefined' ? window.location.origin : 'https://sourceoftruths.com';
-    const url = `${origin}/quizzes/hub?player=${encodeURIComponent(profile.userKey || '')}`;
+    const url = withRef(`${origin}/quizzes/hub?player=${encodeURIComponent(profile.userKey || '')}`);
     if (typeof navigator !== 'undefined' && navigator.clipboard) navigator.clipboard.writeText(url).then(() => { setCopied(true); setTimeout(() => setCopied(false), 1600); }).catch(() => {});
   }
   const cell = { background: C.bg, borderRadius: 12, padding: '12px 13px' };
@@ -1672,7 +1673,7 @@ function ChallengesPanel({ me }) {
 
   const doShare = () => {
     const base = typeof window !== 'undefined' ? window.location.origin : 'https://sourceoftruths.com';
-    const url = `${base}/quizzes/hub?tab=challenges&ch=${encodeURIComponent(ch.id)}`;
+    const url = withRef(`${base}/quizzes/hub?tab=challenges&ch=${encodeURIComponent(ch.id)}`);
     const text = 'Can you beat my score?';
     if (typeof navigator !== 'undefined' && navigator.share) navigator.share({ title: ch.title, text, url }).catch(() => {});
     else if (typeof navigator !== 'undefined' && navigator.clipboard) navigator.clipboard.writeText(`${text} ${url}`).then(() => { setShared(true); setTimeout(() => setShared(false), 1800); }).catch(() => {});

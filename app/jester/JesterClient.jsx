@@ -36,6 +36,7 @@ import DailyTopNav from '../DailyTopNav';
 import DailyCombinedLeaderboard from '../quiz/[id]/DailyCombinedLeaderboard';
 import useAbandonFlush from '../quiz/[id]/useAbandonFlush';
 import { isMobileDevice } from '@/lib/is-mobile';
+import { withRef } from '@/lib/referrals';
 
 const COLORS = {
   cream: '#f7f8fa',
@@ -751,8 +752,8 @@ export default function JesterClient({ puzzles = [], forceNum = null }) {
       ? `\u{1F0CF} Seated the court in ${elapsed} · ${g.placements} placements${hintBit}`
       : g.status === 'lost' ? '\u{1F0CF} The court dissolved' : '\u{1F0CF} Still seating the court…';
     const text = playing
-      ? `Jesters #${PUZZLE.num} — the daily court-placement puzzle from Source of Truths.\nsourceoftruths.com/jester${isTodays ? '' : `?p=${PUZZLE.num}`}`
-      : `Jesters — Court #${PUZZLE.num}\n${solvedBit}${streakBit}\nsourceoftruths.com/jester${isTodays ? '' : `?p=${PUZZLE.num}`}`;
+      ? `Jesters #${PUZZLE.num} — the daily court-placement puzzle from Source of Truths.\n${withRef(`sourceoftruths.com/jester${isTodays ? '' : `?p=${PUZZLE.num}`}`)}`
+      : `Jesters — Court #${PUZZLE.num}\n${solvedBit}${streakBit}\n${withRef(`sourceoftruths.com/jester${isTodays ? '' : `?p=${PUZZLE.num}`}`)}`;
     try {
       if (typeof navigator !== 'undefined' && navigator.share && isMobileDevice()) {
         navigator.share({ text }).catch(() => {});

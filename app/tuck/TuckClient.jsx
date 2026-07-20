@@ -33,6 +33,7 @@ import DailyTopNav from '../DailyTopNav';
 import DailyCombinedLeaderboard from '../quiz/[id]/DailyCombinedLeaderboard';
 import useAbandonFlush from '../quiz/[id]/useAbandonFlush';
 import { isMobileDevice } from '@/lib/is-mobile';
+import { withRef } from '@/lib/referrals';
 
 const COLORS = {
   cream: '#f7f8fa',
@@ -530,8 +531,8 @@ export default function TuckClient({ puzzles = [], forceNum = null }) {
   function copyShare() {
     const streakBit = isTodays && myStats.cur >= 2 && g.status !== 'playing' ? ` · streak ${myStats.cur}` : '';
     const text = playing
-      ? `Tuck #${PUZZLE.num} — tuck ${RACK} letters into one grid. Par is ${PAR}.\nsourceoftruths.com/tuck${isTodays ? '' : `?p=${PUZZLE.num}`}`
-      : `Tuck #${PUZZLE.num} · ${finalScore} pts (par ${PAR})${finalScore >= PAR ? ' · beat par' : ''}${streakBit}\n${shareArt()}sourceoftruths.com/tuck${isTodays ? '' : `?p=${PUZZLE.num}`}`;
+      ? `Tuck #${PUZZLE.num} — tuck ${RACK} letters into one grid. Par is ${PAR}.\n${withRef(`sourceoftruths.com/tuck${isTodays ? '' : `?p=${PUZZLE.num}`}`)}`
+      : `Tuck #${PUZZLE.num} · ${finalScore} pts (par ${PAR})${finalScore >= PAR ? ' · beat par' : ''}${streakBit}\n${shareArt()}${withRef(`sourceoftruths.com/tuck${isTodays ? '' : `?p=${PUZZLE.num}`}`)}`;
     try {
       if (typeof navigator !== 'undefined' && navigator.share && isMobileDevice()) {
         navigator.share({ text }).catch(() => {});

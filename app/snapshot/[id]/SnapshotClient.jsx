@@ -7,6 +7,7 @@ import { getSources, voteKey, dedupeByName } from '@/lib/helpers';
 import { HERO_IMAGES } from '@/lib/hero-images';
 import { fetchBootstrap } from '@/lib/api';
 import { ListOverviewPoster } from '../../list/[id]/ListOverview';
+import { withRef } from '@/lib/referrals';
 
 const POSTER_W = 1080;
 const POSTER_H = 1350;
@@ -262,7 +263,7 @@ export default function SnapshotClient({ listId, embedded, list: listProp, voteD
   }
 
   function copyLink() {
-    const url = `${window.location.origin}/list/${encodeURIComponent(listId)}`;
+    const url = withRef(`${window.location.origin}/list/${encodeURIComponent(listId)}`);
     navigator.clipboard.writeText(url).then(() => { setCopied('link'); setTimeout(() => setCopied(''), 1800); });
   }
 
@@ -270,7 +271,7 @@ export default function SnapshotClient({ listId, embedded, list: listProp, voteD
     if (!list) return;
     const lines = [list.title, `— ${modeLabel} —`, ''];
     items.forEach((item, i) => { lines.push(`${String(i + 1)}. ${item}`); });
-    lines.push('', `sourceoftruths.com/list/${list.id}`);
+    lines.push('', withRef(`sourceoftruths.com/list/${list.id}`));
     navigator.clipboard.writeText(lines.join('\n')).then(() => { setCopied('text'); setTimeout(() => setCopied(''), 1800); });
   }
 
