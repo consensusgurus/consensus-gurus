@@ -625,14 +625,19 @@ export default function StatHubClient() {
     if (tb && TABS.some((x) => x.t === tb)) setTab(tb);
     // Deep link to a section within a tab (e.g. the daily-games Hall of Fame):
     // /quizzes/hub?tab=daily&section=champions scrolls the champion history in.
+    // The daily leaderboard above it loads and grows after mount, so re-align a
+    // few times until the section settles near the top instead of scrolling once.
     if (tb === 'daily' && sp.get('section') === 'champions') {
-      let tries = 0;
-      const go = () => {
+      let n = 0, stable = 0;
+      const tick = () => {
         const el = document.getElementById('daily-champions');
-        if (el) { el.scrollIntoView({ behavior: 'smooth', block: 'start' }); return; }
-        if (tries++ < 20) setTimeout(go, 150);
+        if (el) {
+          el.scrollIntoView({ block: 'start' });
+          if (Math.abs(el.getBoundingClientRect().top) < 44) { if (++stable >= 3) return; } else stable = 0;
+        }
+        if (n++ < 22) setTimeout(tick, 180);
       };
-      setTimeout(go, 250);
+      setTimeout(tick, 220);
     }
   }, []);
   const viewing = !!viewKey;
