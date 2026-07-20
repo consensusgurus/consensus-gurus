@@ -648,16 +648,7 @@ export default function GarbleClient({ puzzles = [], forceNum = null }) {
         </div>
       )}
 
-      {/* win-only confetti burst; the end-of-game popup itself is the DailyEndCard modal below */}
-      {justWon && (
-        <>
-          {Array.from({ length: 80 }).map((_, i) => {
-            const confColors = [COLORS.gold, '#5aa96a', '#5a97dd', '#d96363', COLORS.ember];
-            const w = 7 + ((i * 13) % 8);
-            return <span key={i} className="gb-conf" style={{ left: `${(i * 137) % 100}%`, width: w, height: Math.round(w * 1.5), background: confColors[i % confColors.length], animationDuration: `${2.1 + ((i * 29) % 12) / 10}s`, animationDelay: `${((i * 53) % 70) / 100}s` }} />;
-          })}
-        </>
-      )}
+      {/* confetti now lives in the shared DailyEndCard (win-only), so every daily game gets it */}
 
       {/* the end-of-game popup: the shared DailyEndCard as a dismissible modal (win or loss) */}
       {ended && !endClosed && (

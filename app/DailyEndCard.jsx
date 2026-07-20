@@ -339,6 +339,24 @@ export default function DailyEndCard({
     packedCols = oc;
   }
 
+  // Win-only celebratory confetti (fires when the player fully completes the
+  // game). Deterministic + reduced-motion aware; the shared card means every
+  // daily game gets the same burst on a finish, with no per-client wiring.
+  const confetti = React.useMemo(() => {
+    if (!won) return [];
+    const cols = [meta.accent, GOLD, '#2563eb', '#15803d', '#c0392b', '#c026d3', '#0e7490'];
+    return Array.from({ length: 96 }, (_, i) => {
+      const w = 7 + ((i * 13) % 8);
+      return {
+        left: `${(i * 137) % 100}%`,
+        w, h: Math.round(w * 1.6),
+        color: cols[i % cols.length],
+        dur: `${2.2 + ((i * 29) % 15) / 10}s`,
+        delay: `${((i * 53) % 80) / 100}s`,
+      };
+    });
+  }, [won, meta.accent]);
+
   const inner = (
     <div className="dec-card" style={modal ? { position: 'relative', maxHeight: '92vh', overflowY: 'auto' } : undefined}>
       {modal && (
@@ -409,6 +427,11 @@ export default function DailyEndCard({
         .dec-foot{text-align:center;margin-top:14px;}
         .dec-foot a{font-family:${MONO};font-size:11px;letter-spacing:.06em;text-transform:uppercase;font-weight:500;color:${NAVY};text-decoration:none;border-bottom:1px solid rgba(14,29,64,0.5);padding-bottom:1px;}
 
+        /* celebratory confetti — a win-only falling burst, hidden under reduced motion */
+        .dec-conf{position:fixed;top:-6vh;z-index:120;pointer-events:none;border-radius:2px;will-change:transform,opacity;animation:dec-fall linear forwards;}
+        @keyframes dec-fall{0%{transform:translateY(-6vh) rotate(0deg);opacity:1;}85%{opacity:1;}100%{transform:translateY(112vh) rotate(710deg);opacity:0;}}
+        @media(prefers-reduced-motion:reduce){.dec-conf{display:none;}}
+
         @media(max-width:640px){
           .dec-card{padding:18px 16px 14px;}
           .dec-tagline{display:none;}
@@ -424,6 +447,19 @@ export default function DailyEndCard({
           .dec-row .pl{display:none;}
         }
       `}</style>
+
+      {/* ---- win confetti burst ---- */}
+      {confetti.length ? (
+        <div aria-hidden="true">
+          {confetti.map((c, i) => (
+            <span
+              key={i}
+              className="dec-conf"
+              style={{ left: c.left, width: c.w, height: c.h, background: c.color, animationDuration: c.dur, animationDelay: c.delay }}
+            />
+          ))}
+        </div>
+      ) : null}
 
       {/* ---- result header ---- */}
       <div className="dec-eyebrow">
