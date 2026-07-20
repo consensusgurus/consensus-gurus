@@ -168,19 +168,48 @@ export default function DailyEndCard({
     let anonId = null, email = null;
     try { anonId = localStorage.getItem('sot_quiz_anon'); } catch (e) {}
     try { const id = JSON.parse(localStorage.getItem('sot_quiz_identity') || 'null'); email = id && id.email; } catch (e) {}
-    const qs = new URLSearchParams();
-    if (anonId) qs.set('anonId', anonId);
-    if (email) qs.set('email', email);
+    // A registered player has a combined-board standing; a guest does not (the
+    // `me` block is null for them), so only registered players need the retry.
+    const registered = !!email;
     let alive = true;
-    fetch('/api/quiz/daily-combined?' + qs.toString())
-      .then((r) => r.json())
-      .then((d) => {
-        if (!alive || !d) return;
-        if (d.me) setDailyMe({ ...d.me, maxTotal: d.maxTotal, gameCount: d.gameCount });
-        if (Array.isArray(d.games)) setBoardGames(d.games);
-      })
-      .catch(() => {});
-    return () => { alive = false; };
+    let timer = null;
+    // The result of the game just finished is POSTed to /api/quiz/result at the
+    // same moment this card mounts, and the combined board reads a cached
+    // snapshot (a ~5s in-process burst TTL plus an edge cache). So the FIRST read
+    // here routinely predates our own row landing, which renders the player at the
+    // bottom (as if they scored zero) until the write propagates. Re-fetch, cache-
+    // busted, until our standing reflects the game we just finished (or we run out
+    // of tries), so the end-card placement is never stale. delays are ms after
+    // mount and cover the write commit + the 5s snapshot TTL.
+    const delays = [0, 1500, 3500, 6000, 10000];
+    let i = 0;
+    const run = () => {
+      const qs = new URLSearchParams();
+      if (anonId) qs.set('anonId', anonId);
+      if (email) qs.set('email', email);
+      if (i > 0) qs.set('_', String(Date.now())); // distinct key -> bypass the edge cache on retries
+      fetch('/api/quiz/daily-combined?' + qs.toString())
+        .then((r) => r.json())
+        .then((d) => {
+          if (!alive || !d) return;
+          if (d.me) setDailyMe({ ...d.me, maxTotal: d.maxTotal, gameCount: d.gameCount });
+          if (Array.isArray(d.games)) setBoardGames(d.games);
+          // Does our standing already include the game we just finished? If so
+          // (or we're a guest, or retries are exhausted), stop. Otherwise the
+          // write hasn't propagated yet, so try again.
+          const reflectsSelf = !self || (d.me && d.me.perGame && d.me.perGame[self]);
+          if (!registered || reflectsSelf || i >= delays.length - 1) return;
+          i += 1;
+          timer = setTimeout(run, delays[i]);
+        })
+        .catch(() => {
+          if (!alive || i >= delays.length - 1) return;
+          i += 1;
+          timer = setTimeout(run, delays[i]);
+        });
+    };
+    timer = setTimeout(run, delays[0]);
+    return () => { alive = false; if (timer) clearTimeout(timer); };
   }, []);
 
   // Resolve the most-recent unplayed PAST drop of this game so "Play a past" can
