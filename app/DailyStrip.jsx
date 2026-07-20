@@ -48,6 +48,9 @@ const GAMES = [
 
 const NAME_BY_KEY = GAMES.reduce((m, g) => { m[g.key] = g.name; return m; }, {});
 // Navy-legible per-game accents for the mini-board titles (match DailyCombinedLeaderboard).
+// Recent Champions list length (yesterday plus the prior days). Kept short so
+// the left column never runs past the per-game minis beside it.
+const CHAMPION_DAYS = 3;
 const ACCENTS = { crux: '#5b9bff', emcee: '#e879f9', garble: '#f0c95a', links: '#4ca878', span: '#e06aa0', dating: '#a483f0', tally: '#4cb377', suds: '#f0894c', circa: '#38b6cf', extra: '#e06a6a', carve: '#a483f0', stet: '#41b1e8', outwit: '#c3cfe3', tuck: '#e0a568', alibi: '#ef8896', cipher: '#3fc9b8', ping: '#4cb3f0', warmer: '#f3705c', jester: '#a78bfa', sworn: '#f472b6' };
 
 function etToday() {
@@ -128,15 +131,15 @@ export default function DailyStrip({ board = null }) {
   const uniquePlayers = board && typeof board.uniquePlayers === 'number' ? board.uniquePlayers : null;
 
   // Recent champions are only needed once the board is expanded; fetch them
-  // lazily on first open so a collapsed homepage visit never pays for it. We
-  // keep several days (not just yesterday) so the left column fills the height
-  // of the per-game minis on the right.
+  // lazily on first open so a collapsed homepage visit never pays for it. Capped
+  // at CHAMPION_DAYS entries (yesterday plus the two days before it) so the left
+  // column never grows taller than the per-game minis on the right.
   useEffect(() => {
     if (!open || !hasBoard || hist !== null) return;
     let alive = true;
     fetch('/api/quiz/daily-history')
       .then((r) => r.json())
-      .then((d) => { if (alive && d && Array.isArray(d.history)) setHist(d.history.slice(0, 10)); })
+      .then((d) => { if (alive && d && Array.isArray(d.history)) setHist(d.history.slice(0, CHAMPION_DAYS)); })
       .catch(() => {});
     return () => { alive = false; };
   }, [open, hasBoard, hist]);
@@ -352,7 +355,8 @@ export default function DailyStrip({ board = null }) {
                   <div className="dsd-players" style={{ marginTop: 2 }}><b>{uniquePlayers.toLocaleString()}</b> {uniquePlayers === 1 ? 'player' : 'players'} today <s>· guests included</s></div>
                 ) : null}
                 {/* Past champions: Hall of Fame link on top, then yesterday and
-                    the prior days, deep enough to fill the column. */}
+                    the two days before it (CHAMPION_DAYS), so the column stays
+                    inside the height of the per-game minis. */}
                 <div className="dsd-past">
                   <a href="/quizzes/hub?tab=daily&section=champions" className="dsd-hof"><Trophy size={12} /> Hall of Fame →</a>
                   <div className="dsd-sub" style={{ marginTop: 13 }}>Recent Champions</div>
