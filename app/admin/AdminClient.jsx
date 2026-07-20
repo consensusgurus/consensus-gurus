@@ -373,7 +373,7 @@ function mapsPlaceUrl(name) {
   return `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(cleaned)}`;
 }
 
-export default function AdminClient({ initialLists, initialExtras = [], initialComplaints = [], initialVoteStandings = [], initialVoteEvents = [], initialComments = [], initialAlerts = [], initialViews24h = [], initialEditorNotes = [], initialQuizSignups = [], initialQuizStats = [], initialAnonPlayers = [], initialActiveUsers = { players: { dau: 0, wau: 0, mau: 0 }, visitors: null }, initialGeoMap = null, initialDailyRetention = { games: [], breadth: { total: 0, histogram: [] } }, initialTimeByDay = { series: [], totals: {} } }) {
+export default function AdminClient({ initialLists, initialExtras = [], initialComplaints = [], initialVoteStandings = [], initialVoteEvents = [], initialComments = [], initialAlerts = [], initialViews24h = [], initialEditorNotes = [], initialQuizSignups = [], initialQuizStats = [], initialAnonPlayers = [], initialActiveUsers = { players: { dau: 0, wau: 0, mau: 0 }, visitors: null }, initialGeoMap = null, initialDailyRetention = { games: [], breadth: { total: 0, histogram: [] } }, initialTimeByDay = { series: [], totals: {} }, initialDailyByDay = { days: [], totals: {} } }) {
   const router = useRouter();
   const [lists, setLists] = useState(initialLists);
   const [extras, setExtras] = useState(initialExtras);
@@ -411,6 +411,7 @@ export default function AdminClient({ initialLists, initialExtras = [], initialC
     () => quizStats.reduce((n, q) => n + (q.plays || 0), 0),
     [quizStats]
   );
+  const dailyPlaysTotal = (initialDailyByDay && initialDailyByDay.totals && initialDailyByDay.totals.totalPlays) || 0;
 
   async function deleteComment(id) {
     const key = `cm-${id}`;
@@ -756,10 +757,15 @@ export default function AdminClient({ initialLists, initialExtras = [], initialC
           <TabButton active={tab === 'analytics'} onClick={() => setTab('analytics')}>
             Analytics <span style={{ opacity: 0.6 }}>{views24hTotal}</span>
           </TabButton>
+          <TabButton active={tab === 'daily'} onClick={() => setTab('daily')}>
+            Daily Games <span style={{ opacity: 0.6 }}>{dailyPlaysTotal}</span>
+          </TabButton>
         </div>
 
         {tab === 'analytics' ? (
           <AnalyticsPanel views={views24h} viewsTotal={views24hTotal} quizStats={quizStats} quizPlaysTotal={quizPlaysTotal} signups={quizSignups} anonPlayers={anonPlayers} activeUsers={initialActiveUsers} geoMap={initialGeoMap} dailyRetention={initialDailyRetention} timeByDay={initialTimeByDay} />
+        ) : tab === 'daily' ? (
+          <DailyGamesPanel data={initialDailyByDay} />
         ) : tab === 'research' ? (
           <ResearchNotesPanel alerts={alerts} busy={busy} onResolve={resolveAlert} notes={editorNotes} lists={LISTS} onAddNote={addNote} onDeleteNote={deleteNote} />
         ) : tab === 'feedback' ? (
@@ -2446,6 +2452,141 @@ function TimeByDayPanel({ data }) {
           ))}
         </div>
       </div>
+    </div>
+  );
+}
+
+// ---- Daily Games tab ----------------------------------------------------------
+// Stats for the 20 daily games, bucketed by PUZZLE date (the -M-D-YY baked into
+// each play's quiz_id), newest day first. Each day shows unique players, total
+// plays, and the average time per play; clicking a day expands its per-game
+// breakdown. Server (buildDailyByDay) does the aggregation; this only renders.
+// Note: a player who plays several games on one day counts once in that day's
+// unique-players figure but once in each game's, so per-game uniques can sum to
+// more than the day total.
+function dgDur(seconds) {
+  return seconds == null ? '—' : tbdDur(seconds);
+}
+function dgDayLabel(day) {
+  // 'YYYY-MM-DD' -> e.g. "Mon, Jul 6, 2026" (UTC noon parse, DST-safe).
+  const d = tbdParseDay(day);
+  const wd = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'][d.getUTCDay()];
+  return `${wd}, ${TBD_MONTHS[d.getUTCMonth()]} ${d.getUTCDate()}, ${d.getUTCFullYear()}`;
+}
+function DailyGamesPanel({ data }) {
+  const days = (data && data.days) || [];
+  const totals = (data && data.totals) || {};
+  const [expanded, setExpanded] = useState(null);
+  const [query, setQuery] = useState('');
+
+  const visible = useMemo(() => {
+    const q = query.trim().toLowerCase();
+    if (!q) return days;
+    return days.filter(
+      (d) => d.day.includes(q) || dgDayLabel(d.day).toLowerCase().includes(q) || (d.games || []).some((g) => g.title.toLowerCase().includes(q))
+    );
+  }, [days, query]);
+
+  const exportDaysCsv = () => {
+    const head = ['Puzzle date', 'Unique players', 'Total plays', 'Games active', 'Avg seconds/play', 'Avg time/play'];
+    const rows = days.map((d) => [d.day, d.players, d.plays, d.gameCount, d.avgTime == null ? '' : d.avgTime, dgDur(d.avgTime)]);
+    downloadCsvFile('sot-daily-games-by-day', head, rows);
+  };
+  const exportGamesCsv = () => {
+    const head = ['Puzzle date', 'Game', 'Unique players', 'Plays', 'Avg seconds/play', 'Avg time/play'];
+    const rows = [];
+    for (const d of days) for (const g of d.games || []) rows.push([d.day, g.title, g.players, g.plays, g.avgTime == null ? '' : g.avgTime, dgDur(g.avgTime)]);
+    downloadCsvFile('sot-daily-games-by-game', head, rows);
+  };
+
+  const th = { fontFamily: 'DM Mono, monospace', fontSize: 10, letterSpacing: '0.08em', textTransform: 'uppercase', color: COLORS.faded, fontWeight: 600, padding: '10px 12px', borderBottom: `1px solid ${COLORS.line}`, position: 'sticky', top: 0, background: COLORS.cream, zIndex: 1 };
+  const thNum = { ...th, textAlign: 'right' };
+  const td = { fontFamily: 'DM Mono, monospace', fontSize: 12, color: COLORS.ink, padding: '10px 12px', borderBottom: `1px solid ${COLORS.line}` };
+  const tdNum = { ...td, textAlign: 'right', fontVariantNumeric: 'tabular-nums' };
+
+  return (
+    <div>
+      <SectionHeading>Daily games by day</SectionHeading>
+      <p style={{ fontFamily: 'DM Mono, monospace', fontSize: 11, color: COLORS.faded, margin: '0 0 18px', lineHeight: 1.6 }}>
+        Every completed play of the 20 daily games (registered and anonymous), grouped by each puzzle's own date. Click a day to see the per-game breakdown.
+        {totals.firstDay ? <span style={{ color: COLORS.ink }}> {dgDayLabel(totals.firstDay)}</span> : null}
+        {totals.lastDay && totals.lastDay !== totals.firstDay ? <span> → <span style={{ color: COLORS.ink }}>{dgDayLabel(totals.lastDay)}</span></span> : null}.
+      </p>
+
+      {days.length ? (
+        <>
+          <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap', marginBottom: 20 }}>
+            <TimeByDayStat value={(totals.totalPlays || 0).toLocaleString()} unit="plays" label="Total plays" accent={COLORS.ink} />
+            <TimeByDayStat value={(totals.totalPlayers || 0).toLocaleString()} unit="players" label="Unique players (all-time)" accent={COLORS.ember} />
+            <TimeByDayStat value={(totals.daysTracked || 0).toLocaleString()} unit="days" label="Days with plays" accent={COLORS.ink} />
+            <TimeByDayStat value={dgDur(totals.avgTime)} unit="per play" label="Avg time / play" accent={COLORS.rust} />
+          </div>
+
+          <div style={{ display: 'flex', gap: 8, alignItems: 'center', marginBottom: 14, flexWrap: 'wrap' }}>
+            <input
+              value={query}
+              onChange={(e) => setQuery(e.target.value)}
+              placeholder="Filter by date or game…"
+              style={{ flex: '1 1 220px', minWidth: 180, padding: '8px 12px', border: `1px solid ${COLORS.line}`, background: COLORS.paper, fontFamily: 'DM Mono, monospace', fontSize: 12, color: COLORS.ink }}
+            />
+            <div style={{ marginLeft: 'auto', display: 'flex', gap: 6 }}>
+              <button onClick={exportDaysCsv} style={{ padding: '7px 12px', background: COLORS.ink, border: `1px solid ${COLORS.ink}`, color: COLORS.cream, fontFamily: 'DM Mono, monospace', fontSize: 10, letterSpacing: '0.08em', textTransform: 'uppercase', fontWeight: 600, cursor: 'pointer' }}>↓ Days CSV</button>
+              <button onClick={exportGamesCsv} style={{ padding: '7px 12px', background: COLORS.ink, border: `1px solid ${COLORS.ink}`, color: COLORS.cream, fontFamily: 'DM Mono, monospace', fontSize: 10, letterSpacing: '0.08em', textTransform: 'uppercase', fontWeight: 600, cursor: 'pointer' }}>↓ By-game CSV</button>
+            </div>
+          </div>
+
+          <div style={{ maxHeight: TABLE_MAX_H, overflowY: 'auto', border: `1px solid ${COLORS.line}` }}>
+            <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+              <thead>
+                <tr>
+                  <th style={{ ...th, textAlign: 'left' }}>Puzzle date</th>
+                  <th style={thNum}>Unique players</th>
+                  <th style={thNum}>Total plays</th>
+                  <th style={thNum}>Avg time / play</th>
+                  <th style={thNum}>Games</th>
+                </tr>
+              </thead>
+              <tbody>
+                {visible.map((d) => {
+                  const open = expanded === d.day;
+                  return (
+                    <React.Fragment key={d.day}>
+                      <tr onClick={() => setExpanded(open ? null : d.day)} style={{ cursor: 'pointer', background: open ? `${COLORS.ember}0d` : 'transparent' }}>
+                        <td style={{ ...td, fontWeight: 600 }}>
+                          <span style={{ display: 'inline-block', width: 12, color: COLORS.faded }}>{open ? '▾' : '▸'}</span>
+                          {dgDayLabel(d.day)}
+                        </td>
+                        <td style={tdNum}>{d.players.toLocaleString()}</td>
+                        <td style={tdNum}>{d.plays.toLocaleString()}</td>
+                        <td style={tdNum}>{dgDur(d.avgTime)}</td>
+                        <td style={tdNum}>{d.gameCount}</td>
+                      </tr>
+                      {open
+                        ? (d.games || []).map((g) => (
+                            <tr key={`${d.day}:${g.key}`} style={{ background: COLORS.cream }}>
+                              <td style={{ ...td, paddingLeft: 34, color: COLORS.faded }}>{g.title}</td>
+                              <td style={{ ...tdNum, color: COLORS.faded }}>{g.players.toLocaleString()}</td>
+                              <td style={{ ...tdNum, color: COLORS.faded }}>{g.plays.toLocaleString()}</td>
+                              <td style={{ ...tdNum, color: COLORS.faded }}>{dgDur(g.avgTime)}</td>
+                              <td style={{ ...tdNum, color: COLORS.faded }}>—</td>
+                            </tr>
+                          ))
+                        : null}
+                    </React.Fragment>
+                  );
+                })}
+                {!visible.length ? (
+                  <tr>
+                    <td colSpan={5} style={{ ...td, textAlign: 'center', color: COLORS.faded, fontStyle: 'italic' }}>No days match “{query}”.</td>
+                  </tr>
+                ) : null}
+              </tbody>
+            </table>
+          </div>
+        </>
+      ) : (
+        <p style={{ fontFamily: 'DM Mono, monospace', fontSize: 12, color: COLORS.faded, fontStyle: 'italic' }}>No daily-game plays recorded yet.</p>
+      )}
     </div>
   );
 }

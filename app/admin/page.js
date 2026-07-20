@@ -305,6 +305,89 @@ function buildTimeByDay(rows) {
   };
 }
 
+// Daily Games tab (top-level "Daily Games"). Every daily-game play lands in
+// quiz_results under a per-puzzle quiz_id shaped "<game>-<M>-<D>-<YY>"
+// (e.g. crux-7-6-26), so the trailing date is the PUZZLE's own date. This
+// buckets the 20 daily games' completed plays by that puzzle date and reports,
+// per day: unique players, total plays, and the average time per play — with a
+// per-game breakdown inside each day. "By puzzle date" means an archive play of
+// an old puzzle lands on the day that puzzle ran, not the day it was played.
+//
+// A player's identity is the same rule the rest of the admin uses: registered
+// user_id, else the browser anon_id, else the lone row id — so anonymous
+// browsers (the bulk of daily-game players) are counted. A player who plays
+// several of the games on one day counts ONCE in that day's unique-players
+// figure but once in EACH game's own unique-players figure, so per-game
+// uniques can sum to more than the day total. time_elapsed is the seconds from
+// Play to finish; the average skips rows with no/blank time. Rows whose id does
+// not parse as a dated daily puzzle are ignored.
+const DAILY_DATED_RE = /^(links|span|crux|garble|dating|tally|suds|circa|extra|carve|emcee|stet|outwit|tuck|alibi|cipher|ping|warmer|jester|sworn)-(\d{1,2})-(\d{1,2})-(\d{2})$/;
+function buildDailyByDay(rows) {
+  const titleOf = new Map(DAILY_GAMES.map((g) => [g.key, g.title]));
+  const playerKeyOf = (r) => (r.user_id ? `u:${r.user_id}` : r.anon_id ? `a:${r.anon_id}` : `r:${r.id}`);
+  // day 'YYYY-MM-DD' -> { plays, timeSum, timeN, players:Set, games: Map(key -> {plays,timeSum,timeN,players:Set}) }
+  const byDay = new Map();
+  const allPlayers = new Set(); // distinct daily-game players across the whole history
+  let grandPlays = 0, grandTimeSum = 0, grandTimeN = 0;
+  for (const r of rows || []) {
+    const m = DAILY_DATED_RE.exec(r.quiz_id || '');
+    if (!m) continue;
+    const [, gk, mm, dd, yy] = m;
+    const day = `20${yy}-${String(Number(mm)).padStart(2, '0')}-${String(Number(dd)).padStart(2, '0')}`;
+    const pkey = playerKeyOf(r);
+    const t = r.time_elapsed;
+    const hasTime = typeof t === 'number' && t >= 0;
+
+    let d = byDay.get(day);
+    if (!d) { d = { plays: 0, timeSum: 0, timeN: 0, players: new Set(), games: new Map() }; byDay.set(day, d); }
+    d.plays += 1;
+    d.players.add(pkey);
+    if (hasTime) { d.timeSum += t; d.timeN += 1; }
+
+    let g = d.games.get(gk);
+    if (!g) { g = { plays: 0, timeSum: 0, timeN: 0, players: new Set() }; d.games.set(gk, g); }
+    g.plays += 1;
+    g.players.add(pkey);
+    if (hasTime) { g.timeSum += t; g.timeN += 1; }
+
+    allPlayers.add(pkey);
+    grandPlays += 1;
+    if (hasTime) { grandTimeSum += t; grandTimeN += 1; }
+  }
+  // Newest puzzle date first. Each day expands to its per-game rows (most-played
+  // game first, then name) so the client just renders what the server ordered.
+  const days = Array.from(byDay.entries())
+    .sort((a, b) => b[0].localeCompare(a[0]))
+    .map(([day, d]) => ({
+      day,
+      plays: d.plays,
+      players: d.players.size,
+      avgTime: d.timeN ? Math.round(d.timeSum / d.timeN) : null,
+      gameCount: d.games.size,
+      games: Array.from(d.games.entries())
+        .map(([key, g]) => ({
+          key,
+          title: titleOf.get(key) || key,
+          plays: g.plays,
+          players: g.players.size,
+          avgTime: g.timeN ? Math.round(g.timeSum / g.timeN) : null,
+        }))
+        .sort((x, y) => y.plays - x.plays || x.title.localeCompare(y.title)),
+    }));
+  const dayKeys = days.map((d) => d.day); // already newest-first
+  return {
+    days,
+    totals: {
+      totalPlays: grandPlays,
+      totalPlayers: allPlayers.size,
+      daysTracked: days.length,
+      avgTime: grandTimeN ? Math.round(grandTimeSum / grandTimeN) : null,
+      firstDay: dayKeys.length ? dayKeys[dayKeys.length - 1] : null,
+      lastDay: dayKeys.length ? dayKeys[0] : null,
+    },
+  };
+}
+
 export const metadata = {
   title: 'Editor\'s Desk | Source of Truths',
   robots: { index: false, follow: false },
@@ -682,6 +765,10 @@ export default async function AdminPage() {
   // history, gap-filled.
   const timeByDay = buildTimeByDay((quizResultsRes && quizResultsRes.data) || []);
 
+  // Daily Games tab: the 20 daily games' plays bucketed by puzzle date, with
+  // unique players / total plays / avg time per play, per day and per game.
+  const dailyByDay = buildDailyByDay((quizResultsRes && quizResultsRes.data) || []);
+
   return (
     <AdminClient
       initialLists={lists}
@@ -700,6 +787,7 @@ export default async function AdminPage() {
       initialGeoMap={geoMap}
       initialDailyRetention={dailyRetention}
       initialTimeByDay={timeByDay}
+      initialDailyByDay={dailyByDay}
     />
   );
 }
