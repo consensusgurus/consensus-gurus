@@ -160,6 +160,7 @@ export default function DailyEndCard({
   onLeaderboard,
 }) {
   const [dailyMe, setDailyMe] = useState(null);
+  const [dailyGuest, setDailyGuest] = useState(null); // provisional standing for an unregistered player
   const [boardGames, setBoardGames] = useState(null); // per-game field/plays for "most up for grabs"
   const [secs, setSecs] = useState(AUTO_SECONDS);
   const [autoCancel, setAutoCancel] = useState(false);
@@ -211,12 +212,15 @@ export default function DailyEndCard({
         .then((d) => {
           if (!alive || !d) return;
           if (d.me) setDailyMe({ ...d.me, maxTotal: d.maxTotal, gameCount: d.gameCount });
+          if (d.meProvisional) setDailyGuest(d.meProvisional);
           if (Array.isArray(d.games)) setBoardGames(d.games);
           // Does our standing already include the game we just finished? If so
           // (or we're a guest, or retries are exhausted), stop. Otherwise the
           // write hasn't propagated yet, so try again.
-          const reflectsSelf = !self || (d.me && d.me.perGame && d.me.perGame[self]);
-          if (!registered || reflectsSelf || i >= delays.length - 1) return;
+          const reflectsSelf = registered
+            ? (!self || (d.me && d.me.perGame && d.me.perGame[self]))
+            : !!d.meProvisional;
+          if (reflectsSelf || i >= delays.length - 1) return;
           i += 1;
           timer = setTimeout(run, delays[i]);
         })
@@ -318,6 +322,16 @@ export default function DailyEndCard({
     }
   };
 
+  // Register CTA (guests): close the popup, then bring the on-page sign-up
+  // form into view (falls back to the leaderboard, which sits just below it).
+  const goRegister = () => {
+    if (onClose) onClose();
+    if (typeof document !== 'undefined') {
+      const el = document.getElementById('daily-join') || document.getElementById(boardId);
+      if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+  };
+
   const RING_C = 150.8; // 2*pi*24
   const ringOffset = autoRun ? (RING_C * (AUTO_SECONDS - secs)) / AUTO_SECONDS : 0;
 
@@ -402,6 +416,9 @@ export default function DailyEndCard({
         .dec-rank{font-size:14.5px;font-weight:700;color:${SLATE};margin-bottom:14px;}
         .dec-rank b{font-weight:800;color:${INK};text-decoration:underline;text-underline-offset:2px;}
         .dec-rank .muted{color:#8a92a6;font-weight:600;}
+        .dec-reg{font-size:14px;font-weight:600;color:${SLATE};background:#eff4fd;border:1px solid #d7e3f8;border-radius:12px;padding:11px 14px;margin-bottom:14px;}
+        .dec-reg b{font-weight:800;color:${NAVY};}
+        .dec-reg-link{font:inherit;font-weight:800;color:#2563eb;background:none;border:none;padding:0;text-decoration:underline;text-underline-offset:2px;cursor:pointer;}
 
         .dec-actions{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:14px;}
         .dec-btn{font-family:${SANS};font-weight:700;font-size:12.5px;border:1px solid ${BORD};background:#fff;color:${SLATE};border-radius:10px;padding:9px 13px;cursor:pointer;display:inline-flex;align-items:center;gap:6px;text-decoration:none;}
@@ -491,6 +508,19 @@ export default function DailyEndCard({
           {leftToPlay > 0 ? <span className="muted"> &middot; {leftToPlay} game{leftToPlay === 1 ? '' : 's'} left</span> : null}
         </div>
       ) : null}
+
+      {!dailyMe && dailyGuest ? (() => {
+        const g = self && dailyGuest.perGame ? dailyGuest.perGame[self] : null;
+        const rk = g && g.rank ? g.rank : dailyGuest.rank;
+        if (!rk) return null;
+        const where = g ? <>{selfName} leaderboard</> : 'daily leaderboard';
+        return (
+          <div className="dec-reg">
+            You would be <b>#{rk}</b> on the {where} if you{' '}
+            <button type="button" className="dec-reg-link" onClick={goRegister}>register</button>.
+          </div>
+        );
+      })() : null}
 
       {/* ---- result actions ---- */}
       <div className="dec-actions">

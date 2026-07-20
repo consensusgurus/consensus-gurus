@@ -46,6 +46,15 @@ export default function JoinLeaderboardForm({ identity, onJoined, onViewLeaderbo
       setErr(false);
       setMsg(`You're in. "${d.username}" is on the leaderboard, including any games you already finished.`);
       if (onJoined) onJoined(id);
+      // On a daily-game page, loop the newly-registered player back to that
+      // game's leaderboard so they see their score land. No-op elsewhere (the
+      // /quiz join tab has no #daily-leaderboard; onJoined handles navigation).
+      try {
+        if (typeof document !== 'undefined') {
+          const lb = document.getElementById('daily-leaderboard');
+          if (lb) setTimeout(() => { lb.scrollIntoView({ behavior: 'smooth', block: 'start' }); }, 60);
+        }
+      } catch (e) {}
     } catch (e) {
       setErr(true); setMsg('Could not join right now. Try again.');
     }
@@ -53,7 +62,7 @@ export default function JoinLeaderboardForm({ identity, onJoined, onViewLeaderbo
   }
 
   return (
-    <div style={{ maxWidth: 440, margin: '0 auto' }}>
+    <div id="daily-join" style={{ maxWidth: 440, margin: '0 auto' }}>
       <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 12 }}>
         {!hideIcon && <Trophy size={22} strokeWidth={2.2} style={{ color: C.ember }} />}
         <h2 style={{ fontFamily: FONT, fontWeight: 800, fontSize: 26, margin: 0, color: C.ink }}>{heading}</h2>

@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server';
 import { supabaseAdmin } from '@/lib/supabase-server';
 import { loadQuizResultsCached } from '@/lib/quiz-results-cache';
 import { findQuizIdentity } from '@/lib/quiz-identity';
-import { scoreGame, combineDaily, DAILY_KEYS, DAILY_MAX, GAME_MAX, BEST_N } from '@/lib/daily-combined';
+import { scoreGame, combineDaily, guestProvisional, DAILY_KEYS, DAILY_MAX, GAME_MAX, BEST_N } from '@/lib/daily-combined';
 import { scoreOutwitGame } from '@/lib/outwit-score';
 
 // Each game's puzzle list is server-only (answers never ship to the client). We
@@ -122,6 +122,21 @@ async function scoreOutwitLive(puzzle) {
   return { field: gr.field, plays: picks.length, players: gr.players };
 }
 
+// The guest's single chosen row for a game (their anon rows only), mirroring
+// scoreGame's selection: a completed attempt beats an abandoned one, then the
+// first attempt (lowest id) wins. Returns null when the guest has no row.
+function chooseGuestRow(rows, anonId) {
+  let chosen = null;
+  for (const r of (rows || [])) {
+    if (!r || r.user_id || r.anon_id !== anonId) continue;
+    if (!chosen) { chosen = r; continue; }
+    const rDone = !r.abandoned, cDone = !chosen.abandoned;
+    if (rDone !== cDone) { if (rDone) chosen = r; continue; }
+    if ((r.id || 0) < (chosen.id || 0)) chosen = r;
+  }
+  return chosen;
+}
+
 export async function GET(request) {
   const { searchParams } = new URL(request.url);
   const anonId = (searchParams.get('anonId') || '').trim() || null;
@@ -154,7 +169,7 @@ export async function GET(request) {
   const effBestN = gameCount ? Math.min(BEST_N, gameCount) : BEST_N;
   const maxTotal = effBestN * GAME_MAX;
 
-  const empty = { date: suffix, maxTotal, gameMax: GAME_MAX, bestN: effBestN, gameCount, games: [], overall: [], me: null };
+  const empty = { date: suffix, maxTotal, gameMax: GAME_MAX, bestN: effBestN, gameCount, games: [], overall: [], me: null, meProvisional: null };
   try {
     const { data, error } = await loadQuizResultsCached(supabaseAdmin);
     if (error) {
@@ -206,6 +221,20 @@ export async function GET(request) {
     } catch (e) { /* identity is best-effort */ }
     const me = myKey ? (overallFull.find((row) => row.userKey === myKey) || null) : null;
 
+    // Provisional standing for a GUEST (anon browser, not on the registered
+    // board): score their own anon rows into each game's field and rank the
+    // combined best-5 total against the registered board, so the end card can
+    // tell them where they'd land if they registered. Null once registered.
+    let meProvisional = null;
+    if (!me && anonId) {
+      const guestByGame = new Map();
+      for (const g of games) {
+        const gr = chooseGuestRow(rowsByQuiz.get(g.quizId) || [], anonId);
+        if (gr) guestByGame.set(g.key, gr);
+      }
+      if (guestByGame.size) meProvisional = guestProvisional(guestByGame, gameResults, overallFull);
+    }
+
     // Per-game display boards (top BOARD by that game's own rank).
     const gameBoards = gameResults.map((g) => ({
       key: g.key,
@@ -239,6 +268,7 @@ export async function GET(request) {
       games: gameBoards,
       overall: overallFull.slice(0, DISPLAY),
       me,
+      meProvisional,
     }, { headers: CACHE_HEADERS });
   } catch (e) {
     console.error('daily-combined exception', e);
