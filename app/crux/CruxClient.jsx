@@ -952,7 +952,7 @@ export default function CruxClient({ puzzles = [], forceNum = null }) {
             <h1 style={{ margin: 0, fontFamily: MONO, fontSize: 14, letterSpacing: '0.06em', fontWeight: 500, color: COLORS.ink }}>No. {PUZZLE.num}</h1>
             <span className="cx-ttl-dot" style={{ color: COLORS.faded }}>&middot;</span>
             <span className="cx-ttl-dt" style={{ fontFamily: SERIF, fontStyle: 'italic', fontSize: 15, color: COLORS.faded }}>{PUZZLE.dateLabel}</span>
-            {PUZZLE.categories[0].words.length === 3 && (
+            {PUZZLE.sunday && (
               <span style={{ fontFamily: MONO, fontSize: 10.5, letterSpacing: '0.12em', textTransform: 'uppercase', color: '#fff', background: COLORS.ink, borderRadius: 3, padding: '2px 7px' }}>Sunday Edition</span>
             )}
           </div>

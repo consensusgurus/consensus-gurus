@@ -171,6 +171,7 @@ export const PUZZLES = [
     quizId: 'crux-7-12-26',
     live: '2026-07-12',
     dateLabel: 'July 12, 2026',
+    sunday: true,
     // rev 2: slot 7 became the first Sunday Edition mid-day — the rev keys a
     // fresh localStorage save so anyone who started the displaced 8-worder
     // (now No. 29) doesn't load its state into this grid.
@@ -364,6 +365,7 @@ export const PUZZLES = [
     quizId: 'crux-7-19-26',
     live: '2026-07-19',
     dateLabel: 'July 19, 2026',
+    sunday: true,
     guesses: 27,
     rows: 12,
     cols: 10,
@@ -562,6 +564,7 @@ export const PUZZLES = [
     quizId: 'crux-7-26-26',
     live: '2026-07-26',
     dateLabel: 'July 26, 2026',
+    sunday: true,
     guesses: 27,
     rows: 10,
     cols: 11,
@@ -767,6 +770,7 @@ export const PUZZLES = [
     quizId: 'crux-8-2-26',
     live: '2026-08-02',
     dateLabel: 'August 2, 2026',
+    sunday: true,
     guesses: 27,
     rows: 12,
     cols: 11,

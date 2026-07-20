@@ -63,16 +63,14 @@ function etTodayServer() {
   }
 }
 
-// Which drops are the bigger/harder Sunday edition. Span, Tally, Suds, and
-// Stet flag it right on the puzzle (`sunday: true`); Crux has no flag but its
-// Sunday Editions are the only 27-guess (12-word) boards. Games without a
-// distinct Sunday (Garble, Links, Dating, Outwit, Tuck, Alibi, Cipher) never
-// match, so they stay
-// unmarked.
+// Which drops are the bigger/harder Sunday Edition. EVERY game that runs one
+// flags it right on the puzzle (`sunday: true`) — that flag is the single
+// source of truth site-wide, and Crux was converted to it (2026-07-20), so the
+// old `guesses === 27` heuristic is gone. Games with no distinct Sunday
+// (Garble, Links, Dating, Outwit, Tuck, Alibi, Cipher, Warmer) never set it,
+// so they stay unmarked. See the Sunday Editions section of CLAUDE.md.
 function isSundayEdition(key, p) {
-  if (p.sunday === true) return true;
-  if (key === 'crux' && p.guesses === 27) return true;
-  return false;
+  return p.sunday === true;
 }
 
 // Accents mirror DailyGamesPromo so each game reads the same across surfaces.

@@ -22,6 +22,7 @@
 import React, { useState, useEffect } from 'react';
 import { Crown, ChevronDown, Trophy } from 'lucide-react';
 import useDailyOrder, { sortByDailyOrder } from './useDailyOrder';
+import { hasSundayEdition, isSundayET, SUNDAY_SHORT } from '../lib/sunday-editions';
 
 const GAMES = [
   { key: 'crux', href: '/crux', name: 'Crux', img: '/games/btn-crux.png', store: 'sot_crux_day', tag: "A clueless crossword" },
@@ -64,6 +65,10 @@ export default function DailyStrip({ board = null }) {
   const [done, setDone] = useState(() => new Set());
   const [open, setOpen] = useState(false);
   const [hist, setHist] = useState(null); // recent daily champions, from /api/quiz/daily-history
+  // Sunday chip: Sundays (ET) only, and only on games that run a real Sunday
+  // Edition. Set after mount so SSR and the first client render agree.
+  const [isSunday, setIsSunday] = useState(false);
+  useEffect(() => { setIsSunday(isSundayET()); }, []);
   // Display order = yesterday's popularity (canonical order until it loads).
   const dailyOrder = useDailyOrder();
   const games = sortByDailyOrder(GAMES, dailyOrder);
@@ -184,6 +189,7 @@ export default function DailyStrip({ board = null }) {
         .dstrip-cell .nm{font-size:11px;font-weight:800;color:#fff;letter-spacing:-.2px;white-space:nowrap;}
         .dstrip-cell.done img{opacity:.4;}
         .dstrip-cell.done .nm{color:#9fb0d4;}
+        .dstrip-sun{position:absolute;top:5px;left:5px;font-family:'DM Mono',ui-monospace,monospace;font-size:8.5px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:#04121f;background:#f8b84a;border-radius:3px;padding:0 3px;line-height:1.5;pointer-events:none;}
         .dstrip-check{position:absolute;top:5px;right:5px;width:16px;height:16px;border-radius:99px;background:#34d399;display:flex;align-items:center;justify-content:center;box-shadow:0 0 0 2px #0e1d40;pointer-events:none;}
         .dstrip-lead{margin-top:2px;display:flex;align-items:center;gap:3px;max-width:100%;min-width:0;font-size:10px;font-weight:700;color:#eaf0fb;}
         .dstrip-lead svg{color:#e8b43a;flex:none;}
@@ -302,12 +308,15 @@ export default function DailyStrip({ board = null }) {
             {games.map((g) => {
               const lead = hasBoard && byKey[g.key] && byKey[g.key].board && byKey[g.key].board[0] ? byKey[g.key].board[0].username : null;
               return (
-                <a key={g.key} href={g.href} className={`dstrip-cell${done.has(g.key) ? ' done' : ''}`} title={`${g.name} — ${g.tag}`} aria-label={`${g.name} — ${g.tag}${done.has(g.key) ? ' — done today' : ''} — daily game`}>
+                <a key={g.key} href={g.href} className={`dstrip-cell${done.has(g.key) ? ' done' : ''}`} title={`${g.name} — ${g.tag}`} aria-label={`${g.name} — ${g.tag}${isSunday && hasSundayEdition(g.key) ? ' — Sunday edition' : ''}${done.has(g.key) ? ' — done today' : ''} — daily game`}>
                   {done.has(g.key) && (
                     <span className="dstrip-check" aria-hidden="true">
                       <svg viewBox="0 0 12 12" width="9" height="9" fill="none"><path d="M2.5 6.2 L5 8.6 L9.5 3.6" stroke="#04121f" strokeWidth="2.1" strokeLinecap="round" strokeLinejoin="round" /></svg>
                     </span>
                   )}
+                  {isSunday && hasSundayEdition(g.key) ? (
+                    <span className="dstrip-sun" aria-hidden="true">{SUNDAY_SHORT}</span>
+                  ) : null}
                   <img src={g.img} alt="" aria-hidden="true" />
                   <span className="nm">{g.name}</span>
                   <span className="dstrip-tip" aria-hidden="true">{g.tag}</span>

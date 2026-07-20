@@ -17,6 +17,7 @@ import React, { useState, useEffect } from 'react';
 import { Swords, Share2, Check } from 'lucide-react';
 import useDailyOrder, { sortByDailyOrder } from './useDailyOrder';
 import ReportIssue from './ReportIssue';
+import { hasSundayEdition, isSundayET, SUNDAY_SHORT } from '../lib/sunday-editions';
 
 const GAMES = [
   { key: 'crux', href: '/crux', name: 'Crux', tag: 'A clueless crossword', img: '/games/btn-crux.png' },
@@ -90,6 +91,12 @@ export default function DailyGamesGrid({ self, maxWidth = 640, challengeHref = n
   }, []);
   const completed = donePerGame ? new Set(Object.keys(donePerGame)) : new Set();
 
+  // Sunday chip: only on Sundays (ET), and only on the games that actually run
+  // a bigger Sunday Edition. Set after mount so the server render and the first
+  // client render always match (this component ships no puzzle data).
+  const [isSunday, setIsSunday] = useState(false);
+  useEffect(() => { setIsSunday(isSundayET()); }, []);
+
   const actionCount = (challengeHref ? 1 : 0) + (share ? 1 : 0);
 
   return (
@@ -113,6 +120,7 @@ export default function DailyGamesGrid({ self, maxWidth = 640, challengeHref = n
         .dgg-done .dgg-art{opacity:.5;}
         .dgg-done .dgg-nm{color:#dfeee4;}
         .dgg-check{position:absolute;top:7px;right:7px;width:19px;height:19px;border-radius:50%;background:#16a34a;color:#fff;display:flex;align-items:center;justify-content:center;border:2px solid #0e1d40;box-shadow:0 1px 2px rgba(0,0,0,0.35);}
+        .dgg-sun{position:absolute;top:7px;left:7px;font-family:'DM Mono',ui-monospace,monospace;font-size:9px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:#04121f;background:#f8b84a;border-radius:3px;padding:1px 4px;line-height:1.35;box-shadow:0 1px 2px rgba(0,0,0,0.3);}
         .dgg-act{min-height:76px;justify-content:center;gap:10px;cursor:pointer;font-family:inherit;width:100%;}
         .dgg-act .dgg-act-l{font-size:15px;font-weight:800;letter-spacing:.03em;text-transform:uppercase;color:#fff;line-height:1.15;text-align:center;}
         .dgg-act svg{flex:0 0 auto;}
@@ -154,13 +162,16 @@ export default function DailyGamesGrid({ self, maxWidth = 640, challengeHref = n
                   key={g.href}
                   href={g.href}
                   className={`dgg-t${done ? ' dgg-done' : ''}`}
-                  aria-label={`${g.name} — daily game${done ? ', completed today' : ''}`}
+                  aria-label={`${g.name} — daily game${isSunday && hasSundayEdition(g.key) ? ', Sunday edition' : ''}${done ? ', completed today' : ''}`}
                 >
                   <span className="dgg-txt">
                     <span className="dgg-nm">{g.name}</span>
                     <span className="dgg-p">{g.tag} →</span>
                   </span>
                   <img className="dgg-art" src={g.img} alt="" aria-hidden="true" />
+                  {isSunday && hasSundayEdition(g.key) ? (
+                    <span className="dgg-sun" title="Sunday Edition - bigger &amp; tougher">{SUNDAY_SHORT}</span>
+                  ) : null}
                   {done ? <span className="dgg-check"><Check size={11} strokeWidth={3.4} /></span> : null}
                 </a>
               );

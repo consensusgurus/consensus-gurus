@@ -2769,9 +2769,11 @@ every new puzzle and every new game in this family.
 
 **Cadence and shape**
 - Crux weekdays: 4 categories × 2 words, score /16 (8 solves + 8 placements),
-  18 guesses. Crux Sundays: 4 × 3, score /24, 27 guesses, title suffixed
-  "(Sunday Edition)". The engine derives everything from puzzle data — never
-  hardcode counts in copy or UI.
+  18 guesses. Crux Sundays: 4 × 3, score /24, 27 guesses, flagged `sunday: true`
+  on the puzzle and badged "Sunday Edition" in the title row (see the Sunday
+  Editions section below — the flag is the source of truth, never the word or
+  guess count). The engine derives everything from puzzle data — never hardcode
+  counts in copy or UI.
 - Garble: 5 scrambled words (5s and 6s), marked letters must exactly spell the
   finale; finale has a punny clue and ends the game when solved.
 - Bank puzzles ahead: catalog entries carry publishedAt at ET midnight
@@ -2817,3 +2819,100 @@ Machine-search layouts (random-restart assembly): crossings letter-matched,
 word ends open, no orthogonally adjacent cells without a shared slot, all
 slots connected, minimize max(rows, cols); keep ≤12 columns for mobile cells.
 Validate every bank with the full structural sweep before pushing.
+
+---
+
+## Sunday Editions — the flag, the label, and which games have one (owner rule, 2026-07-20)
+
+Twelve of the twenty daily games run a bigger/harder **Sunday Edition**. Eight do not.
+This section is the whole rule set; it was written after an audit found the labeling
+inconsistent across surfaces and one badge that could never render.
+
+### `sunday: true` on the puzzle is the ONLY source of truth
+
+Every game that runs a Sunday Edition sets `sunday: true` on that day's puzzle object in
+its `app/<game>/puzzles.js`. Every badge, tag, and archive chip reads that flag and
+nothing else.
+
+- **NEVER infer a Sunday Edition from a proxy.** Crux used to badge off
+  `PUZZLE.categories[0].words.length === 3` and the `/daily` archive off `guesses === 27`.
+  Both were retired 2026-07-20 and Crux's four Sunday puzzles were given real flags. A
+  proxy silently breaks the first time a weekday puzzle happens to match it.
+- **The flag must reach the client.** Several games strip fields in `app/<game>/page.js`
+  before passing puzzles to the client (Outwit, Alibi, Jester and Sworn hide their
+  solutions); `sunday` must survive that strip or the badge dies silently.
+- **A game listed in `lib/sunday-editions.js` MUST flag its Sunday puzzles, and a game
+  that flags them MUST be listed there.** The two drifting apart is the bug this section
+  exists to prevent.
+
+### The label is always "Sunday Edition"
+
+One wording, everywhere a player can see it. A game may append ONE short detail after a
+middot; it may not replace the label with flavor.
+
+- Correct: `Sunday Edition`, `Sunday Edition · 6×6`, `Sunday Edition · Hard`,
+  `Sunday Edition · Grand Inquest`.
+- Wrong (all of these shipped and were fixed 2026-07-20): `Sunday 6×6`, `Sunday · Hard`,
+  `The Sunday Jubilee · 9×9`, and worst of all `The Grand Inquest · 6 sworn`, which never
+  contained the word "Sunday" at all.
+
+The badge sits in the game's **title row**, next to `No. N · <date>`, styled with that
+game's own accent (the palette is per-game; only the wording is standardized). The
+archive and hub chips use the short form `Sun`.
+
+### Which games have one, and what changes
+
+| Game | Sunday Edition |
+|---|---|
+| Crux | 12 hidden words instead of 8 (27 guesses) |
+| Emcee | 7×7 grid instead of the weekday mini |
+| Span | a via/avoid rule constrains the route |
+| Tally | 6×6 board instead of 5×5 |
+| Suds | harder grid, fewer givens |
+| Circa | a trickier moment to place |
+| Extra | a trickier story to name |
+| Carve | 7×7 board in nine blocks |
+| Stet | seven sentences, up to two errors each |
+| Ping | a trickier, more out-of-the-way city |
+| Jester | 9×9 Jubilee board instead of 8×8 |
+| Sworn | six suspects sworn instead of five |
+
+**No Sunday Edition (verified against the puzzle banks, 2026-07-20):** Garble (always
+5 words × 5 letters, every day), Links (always 4 groups × 16 words), Dating (always 5
+events), Outwit (always 5 prompts), Tuck (always a 14-letter rack), Cipher (always 2
+addends), Alibi (always 4 suspects), Warmer (one word every day).
+
+Five of those eight (Outwit, Tuck, Alibi, Cipher, Warmer) carry a vestigial
+`sunday: false` on every puzzle, and `AlibiClient.jsx` has a finished
+`Sunday Edition · The Sunday Case` badge that has never rendered because no Alibi puzzle
+is flagged. Those are **placeholders for variants that were never authored**, left in
+place deliberately so the wiring is ready. Do not treat the presence of a `sunday` field
+as evidence a game has an edition — check for `sunday: true`.
+
+### `lib/sunday-editions.js` — the game-level registry
+
+The hub surfaces (`DailyStrip`, `DailyGamesGrid`) render from a static game registry and
+never load puzzle data, so they cannot read `PUZZLE.sunday`. They use this module instead:
+`hasSundayEdition(key)` plus `isSundayET()` (Eastern, because puzzles roll at ET midnight)
+gate a `Sun` chip on the tile. Compute the Sunday check in a `useEffect`, never during
+render, or the server and client renders disagree and React throws a hydration error.
+
+### Adding a Sunday Edition to a game that lacks one
+
+1. Author the harder variant in that game's `puzzles.js` for the Sunday dates and set
+   `sunday: true`. Run that game's validator (`scripts/verify-<game>.mjs`) — a Sunday
+   variant usually changes a size or count the validator asserts, so update it too.
+2. Confirm the flag survives any field strip in `app/<game>/page.js`.
+3. Add the badge to the title row of the game client, gated on `PUZZLE.sunday`, wording
+   per the label rule above.
+4. Add the game key to `SUNDAY_EDITION_GAMES` in `lib/sunday-editions.js` and to the
+   table in this section.
+5. Update the game's own how-to-play copy and its `page.js` metadata description, which
+   both describe the weekly cadence to players and to search engines.
+
+### Adding a BRAND NEW daily game
+
+Decide up front whether it runs a Sunday Edition. If yes, do all five steps above in the
+launch push. If no, do not add a `sunday` field at all — an always-false flag reads as an
+unfinished feature to the next session, which is exactly how the five vestigial ones
+above came to be.
