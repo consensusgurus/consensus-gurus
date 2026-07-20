@@ -16,13 +16,16 @@ export const fetchCache = 'force-no-store';
 export async function GET(request) {
   try {
     const { searchParams } = new URL(request.url);
-    const days = Math.min(365, Math.max(1, parseInt(searchParams.get('days'), 10) || 30));
+    // days: 30 by default; a very large value (36500) is how the public board asks
+    // for the all-time view. limit: 10 for the tile, up to 100 for that board.
+    const days = Math.min(36500, Math.max(1, parseInt(searchParams.get('days'), 10) || 30));
+    const limit = Math.min(100, Math.max(1, parseInt(searchParams.get('limit'), 10) || 10));
     const anonId =
       (searchParams.get('anonId') || '').trim().slice(0, 64) ||
       request.cookies.get('sot_vid')?.value ||
       '';
 
-    const top = await topReferrers(supabaseAdmin, { days, limit: 10 });
+    const top = await topReferrers(supabaseAdmin, { days, limit });
 
     let me = null;
     if (anonId) {

@@ -20,6 +20,7 @@ const COLS = [
       { label: 'Browse Quizzes', href: '/' },
       { label: 'Daily Games & Archive', href: '/daily' },
       { label: 'Stat Hub', href: '/quizzes/hub' },
+      { label: 'Community Leaderboard', href: '/quizzes/community' },
       { label: 'Request a Quiz', href: '/request' },
     ],
   },
