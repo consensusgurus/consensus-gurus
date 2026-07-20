@@ -168,10 +168,18 @@ export default function DailyCombinedLeaderboard({ todayKey = null, identity = n
       {tabs.map((t) => {
         const on = t.key === active;
         const acc = tabAccent(th, t.key);
+        // Overall (the combined board) is the anchor tab, so it always stands
+        // out from the per-game tabs: when it isn't the active tab it keeps a
+        // fatter accent-colored outline and accent text instead of the muted
+        // off-tab look every other tab uses.
+        const anchor = t.key === 'overall';
+        const offBorder = anchor ? th.overallAccent : th.line;
+        const offText = anchor ? th.overallAccent : th.tabOffText;
+        const bw = on ? 1.5 : (anchor ? 2.5 : 1.5);
         return (
           <button key={t.key} onClick={() => setTab(t.key)}
-            style={{ flex: '0 0 auto', padding: '7px 14px', borderRadius: 999, cursor: 'pointer', fontFamily: FONT, fontSize: 12.5, fontWeight: 800, letterSpacing: '0.01em', whiteSpace: 'nowrap',
-              background: on ? acc : th.tabOffBg, color: on ? th.tabOnText : th.tabOffText, border: `1.5px solid ${on ? acc : th.line}` }}>
+            style={{ flex: '0 0 auto', padding: '7px 14px', borderRadius: 999, cursor: 'pointer', fontFamily: FONT, fontSize: 12.5, fontWeight: anchor ? 900 : 800, letterSpacing: '0.01em', whiteSpace: 'nowrap',
+              background: on ? acc : th.tabOffBg, color: on ? th.tabOnText : offText, border: `${bw}px solid ${on ? acc : offBorder}` }}>
             {t.name}{t.key === todayKey ? ' •' : ''}
           </button>
         );
