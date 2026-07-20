@@ -86,6 +86,28 @@ function dateHeadline(today) {
   return `${wd}, ${MONTHS[mo - 1]} ${d}`;
 }
 
+// Cross-game daily streak: consecutive calendar days (newest first) where at
+// least one game's drop for that day has a save. An unplayed today does not
+// break the streak; it just doesn't count yet.
+function computeStreak(games, played) {
+  const byDate = new Map();
+  for (const g of games) for (const p of g.puzzles) {
+    const t = Date.parse(p.dateLabel || '');
+    if (!isFinite(t)) continue;
+    if (!byDate.has(t)) byDate.set(t, []);
+    byDate.get(t).push(`${g.key}:${p.num}`);
+  }
+  const dates = [...byDate.keys()].sort((a, b) => b - a);
+  let s = 0;
+  for (let i = 0; i < dates.length; i++) {
+    const any = byDate.get(dates[i]).some((k) => played.has(k));
+    if (any) s++;
+    else if (i === 0) continue;
+    else break;
+  }
+  return s;
+}
+
 export default function DailyArchiveClient({ games = [], today = '' }) {
   const [played, setPlayed] = useState(() => new Set());
   const [completed, setCompleted] = useState(() => new Set());
@@ -174,6 +196,8 @@ export default function DailyArchiveClient({ games = [], today = '' }) {
     return m;
   }, [combined]);
 
+  const streak = useMemo(() => (ready ? computeStreak(games, played) : 0), [ready, games, played]);
+
   const todayNum = (g) => (g.puzzles[0] ? g.puzzles[0].num : null);
   const isPlayedToday = (g) => { const n = todayNum(g); return n != null && played.has(`${g.key}:${n}`); };
   const isDoneToday = (g) => { const n = todayNum(g); return n != null && completed.has(`${g.key}:${n}`); };
@@ -189,6 +213,45 @@ export default function DailyArchiveClient({ games = [], today = '' }) {
 
   const me = combined && combined.me;
 
+  // Rival hook for the scoreboard card: the player directly ahead of you today.
+  let rivalAv = '★';
+  let rivalText = <>Post a score in any game to join today&rsquo;s board</>;
+  if (me && combined) {
+    const rows = combined.overall || [];
+    if (me.rank === 1) {
+      rivalAv = '♛';
+      rivalText = <>You lead today&rsquo;s board. Keep it.</>;
+    } else {
+      const ahead = rows.find((r) => r.rank === me.rank - 1);
+      if (ahead) {
+        rivalAv = String(ahead.username || '?').trim().slice(0, 2).toUpperCase();
+        rivalText = <><b>{ahead.username}</b> is {fmtPts(ahead.total - me.total)} pts ahead of you today</>;
+      } else if (rows[9]) {
+        rivalAv = '10';
+        rivalText = <>{fmtPts(rows[9].total - me.total)} pts from today&rsquo;s top 10</>;
+      }
+    }
+  }
+
+  // Live ticker items from today's boards.
+  const tickerItems = [];
+  if (combined) {
+    const o = (combined.overall || [])[0];
+    if (o && o.username) tickerItems.push({ name: o.username, post: ` leads the day · ${fmtPts(o.total)}/${combined.maxTotal} pts`, accent: GOLD });
+    for (const gb of combined.games || []) {
+      const lead = gb.board && gb.board[0];
+      const game = gamesByKey[gb.key];
+      if (!lead || !lead.username || !game) continue;
+      tickerItems.push({ name: lead.username, post: ` leads ${game.name} · ${fmtPts(lead.points)}/${combined.gameMax}`, accent: game.accent });
+    }
+  }
+
+  const pt = playedToday.length;
+  const gauntTease = pt >= games.length && games.length > 0 ? 'Perfect day · every game played'
+    : pt < 5 ? `${5 - pt} more to warm-up`
+    : pt < 10 ? `${10 - pt} more to grinder`
+    : `${games.length - pt} more to a perfect day`;
+
   return (
     <div style={{ minHeight: '100vh', background: BG }}>
       <style>{`
@@ -200,7 +263,8 @@ export default function DailyArchiveClient({ games = [], today = '' }) {
         .dl-kick{font-family:${MONO};font-size:11.5px;letter-spacing:.14em;text-transform:uppercase;color:${FADED};font-weight:500;}
         .dl-h1{margin:8px 0 7px;font-size:34px;font-weight:800;letter-spacing:-0.9px;color:${INK};line-height:1.0;}
         .dl-sub{margin:0;font-size:14.5px;font-weight:500;color:${FADED};line-height:1.55;max-width:540px;}
-        .dl-day{display:flex;gap:18px;align-items:center;background:linear-gradient(160deg,#16294f,#0c1a34);color:#fff;border-radius:16px;padding:15px 24px;box-shadow:0 6px 22px rgba(14,29,64,0.14);}
+        .dl-day{display:flex;flex-direction:column;gap:12px;background:linear-gradient(160deg,#16294f,#0c1a34);color:#fff;border-radius:16px;padding:16px 20px;box-shadow:0 6px 22px rgba(14,29,64,0.14);min-width:300px;}
+        .dl-day .row{display:flex;gap:15px;align-items:center;}
         .dl-day .rn{font-size:25px;font-weight:800;letter-spacing:-.5px;line-height:1;}
         .dl-day .rn b{color:${GOLD};}
         .dl-day .rn .of{color:#8ea0c6;font-weight:700;font-size:15px;}
@@ -242,7 +306,7 @@ export default function DailyArchiveClient({ games = [], today = '' }) {
         .dl-cstat .dot{color:#c8cede;}
         .dl-crown{color:${GOLD};}
 
-        .dl-actions{display:flex;gap:8px;margin-top:15px;}
+        .dl-actions{display:flex;gap:8px;margin-top:15px;flex-wrap:wrap;}
         .dl-btn{flex:1 1 auto;text-align:center;font-family:${SANS};font-weight:700;font-size:12.5px;border-radius:10px;padding:10px 12px;cursor:pointer;text-decoration:none;transition:all .13s;white-space:nowrap;}
         .dl-play{flex:1.35 1 auto;color:#fff;font-weight:800;border:1px solid transparent;}
         .dl-play:hover{filter:brightness(1.06);}
@@ -290,6 +354,39 @@ export default function DailyArchiveClient({ games = [], today = '' }) {
         .lb-g5{grid-template-columns:34px 1fr 48px 52px 54px;}
         .lb-g3{grid-template-columns:34px 1fr 62px;}
         @media(max-width:440px){.lb-g5{grid-template-columns:30px 1fr 44px 50px;}.lb-time{display:none;}}
+
+        /* your-day extras: rival line + next-game CTA */
+        .dl-rival{display:flex;align-items:center;gap:8px;background:rgba(255,255,255,0.07);border-left:3px solid ${GOLD};border-radius:0 9px 9px 0;padding:7px 10px;font-size:12.5px;font-weight:500;color:#c9d3e5;}
+        .dl-rival b{color:#fff;font-weight:700;}
+        .dl-rival .av{width:22px;height:22px;border-radius:50%;background:${GOLD};color:#0e1d40;display:inline-flex;align-items:center;justify-content:center;font-size:9.5px;font-weight:800;flex:0 0 auto;}
+        .dl-cta{display:block;text-align:center;background:${GOLD};color:#10203f;font-weight:800;font-size:13px;border-radius:10px;padding:10px 14px;text-decoration:none;}
+        .dl-cta:hover{filter:brightness(1.05);}
+        .dl-cta.done{background:rgba(232,180,58,0.16);color:${GOLD_B};cursor:default;}
+
+        /* live activity ticker */
+        .dl-ticker{overflow:hidden;background:#fff;border:1px solid ${LINE};border-left:4px solid ${GOLD};border-radius:10px;padding:7px 0;margin-top:16px;}
+        .dl-tickrow{display:flex;gap:34px;white-space:nowrap;width:max-content;animation:dlTick 30s linear infinite;font-size:12.5px;font-weight:500;color:${MUTED};padding-left:18px;align-items:center;}
+        .dl-tickrow b{color:${INK};font-weight:700;}
+        .dl-tickrow .sw{display:inline-block;width:8px;height:8px;border-radius:2px;margin-right:7px;}
+        @keyframes dlTick{0%{transform:translateX(0)}100%{transform:translateX(-50%)}}
+        @media (prefers-reduced-motion: reduce){.dl-tickrow{animation:none;}}
+
+        /* gauntlet meter */
+        .dl-gaunt{background:#fff;border:1px solid ${LINE};border-radius:16px;padding:15px 18px;margin-top:14px;}
+        .dl-gaunt-h{display:flex;justify-content:space-between;align-items:baseline;gap:8px;flex-wrap:wrap;margin-bottom:10px;}
+        .dl-gaunt-h h2{margin:0;font-size:16px;font-weight:800;letter-spacing:-.3px;color:${INK};}
+        .dl-gaunt-h .tease{font-size:11.5px;font-weight:800;color:#fff;background:${NAVY};border-radius:999px;padding:4px 12px;}
+        .dl-segs{display:flex;gap:3px;margin-bottom:9px;}
+        .dl-seg{flex:1 1 auto;height:13px;border-radius:3px;background:#eef1f7;}
+        .dl-seg.on{background:${GOLD};}
+        .dl-gaunt-l{display:flex;justify-content:space-between;gap:8px;flex-wrap:wrap;font-family:${MONO};font-size:9.5px;letter-spacing:.06em;text-transform:uppercase;font-weight:500;color:${FADED};}
+
+        /* card chase line */
+        .dl-chase{margin-top:10px;}
+        .dl-chase-t{font-size:12px;font-weight:600;color:${MUTED};}
+        .dl-chase-t b{color:${INK};}
+        .dl-bar{height:7px;border-radius:4px;background:#eef1f7;margin-top:5px;overflow:hidden;}
+        .dl-bar div{height:100%;border-radius:4px;transition:width .3s;}
       `}</style>
 
       <div className="dl-wrap">
@@ -308,20 +405,36 @@ export default function DailyArchiveClient({ games = [], today = '' }) {
             </p>
           </div>
           <div className="dl-day" role="group" aria-label="Your day">
-            <div>
-              <div className="rn">{ready ? playedToday.length : '—'}</div>
-              <div className="rt">Played today</div>
+            <div className="row">
+              <div>
+                <div className="rn"><b>{ready ? streak : '—'}</b></div>
+                <div className="rt">Day streak</div>
+              </div>
+              <div className="dv" />
+              <div>
+                <div className="rn">{ready ? playedToday.length : '—'}<span className="of"> / {games.length}</span></div>
+                <div className="rt">Played today</div>
+              </div>
+              <div className="dv" />
+              <div>
+                <div className="rn">{ready ? doneToday.length : '—'}</div>
+                <div className="rt">Aced today</div>
+              </div>
+              <div className="dv" />
+              <div>
+                <div className="rn">{me ? <><b>#{me.rank}</b></> : '—'}</div>
+                <div className="rt">{me ? `${fmtPts(me.total)}/${combined.maxTotal} today` : 'Your rank'}</div>
+              </div>
             </div>
-            <div className="dv" />
-            <div>
-              <div className="rn">{ready ? doneToday.length : '—'}<span className="of"> / {games.length}</span></div>
-              <div className="rt">Aced today</div>
+            <div className="dl-rival">
+              <span className="av" aria-hidden="true">{rivalAv}</span>
+              <span>{rivalText}</span>
             </div>
-            <div className="dv" />
-            <div>
-              <div className="rn">{me ? <><b>#{me.rank}</b></> : '—'}</div>
-              <div className="rt">{me ? `${fmtPts(me.total)}/${combined.maxTotal} today` : 'Your rank'}</div>
-            </div>
+            {ready && stillToPlay[0] ? (
+              <a className="dl-cta" href={stillToPlay[0].path}>Play your next game · {stillToPlay[0].name} →</a>
+            ) : ready && games.length ? (
+              <span className="dl-cta done">★ Perfect day. Every game played.</span>
+            ) : null}
           </div>
         </div>
 
@@ -329,6 +442,37 @@ export default function DailyArchiveClient({ games = [], today = '' }) {
           <span><span style={{ color: GREEN, fontWeight: 900 }}>&#10003;</span> Played</span>
           <span><span style={{ color: GOLD, fontWeight: 900 }}>&#9733;</span> Aced</span>
           <span><span className="dl-sun-tag" style={{ marginRight: 5 }}>Sun</span> Sunday edition — bigger &amp; tougher</span>
+        </div>
+
+        {tickerItems.length >= 3 && (
+          <div className="dl-ticker" aria-label="Today's leaderboard activity">
+            <div className="dl-tickrow">
+              {[0, 1].map((rep2) => tickerItems.map((it, i) => (
+                <span key={`${rep2}-${i}`} aria-hidden={rep2 === 1 ? 'true' : undefined}>
+                  <span className="sw" style={{ background: it.accent }} aria-hidden="true" />
+                  <b>{it.name}</b>{it.post}
+                </span>
+              )))}
+            </div>
+          </div>
+        )}
+
+        <div className="dl-gaunt" role="group" aria-label="Today's gauntlet">
+          <div className="dl-gaunt-h">
+            <h2>Today&rsquo;s gauntlet</h2>
+            {ready && <span className="tease">{gauntTease}</span>}
+          </div>
+          <div className="dl-segs" aria-hidden="true">
+            {games.map((g, i) => (
+              <span key={g.key} className={`dl-seg${i < playedToday.length ? ' on' : ''}`} />
+            ))}
+          </div>
+          <div className="dl-gaunt-l">
+            <span style={{ color: INK }}>{ready ? `${playedToday.length}/${games.length} played` : '…'}</span>
+            {games.length >= 12 && <span><span style={{ color: '#9aa3b5' }}>●</span> 5 · warm-up</span>}
+            {games.length >= 12 && <span><span style={{ color: '#c8814b' }}>●</span> 10 · grinder</span>}
+            <span style={{ color: '#8a6d1f' }}><span style={{ color: GOLD }}>★</span> {games.length} · perfect day</span>
+          </div>
         </div>
 
         <div className="dl-sec-h">
@@ -414,6 +558,9 @@ function GameCard({ g, ready, played, completed, board, overall, me, myKey, maxT
   const navy = NAVY_ACCENT[g.key] || '#93a7cc';
   const playedCount = g.puzzles.reduce((n, p) => n + (played.has(`${g.key}:${p.num}`) ? 1 : 0), 0);
   const leader = board && board.board && board.board[0];
+  const myRow = myKey && board && board.board ? board.board.find((r) => r.userKey === myKey) : null;
+  const todayQuiz = g.puzzles[0] && g.puzzles[0].quizId;
+  const chasePct = myRow && leader && leader.points > 0 ? Math.min(100, Math.round((myRow.points / leader.points) * 100)) : 0;
 
   return (
     <section className={`dl-card${panel ? ' open' : ''}`}>
@@ -432,8 +579,22 @@ function GameCard({ g, ready, played, completed, board, overall, me, myKey, maxT
           {leader && <><span className="dot">·</span><span><span className="dl-crown" aria-hidden="true">♛</span> led by <b>{leader.username}</b></span></>}
         </div>
 
+        {leader && (
+          <div className="dl-chase">
+            <div className="dl-chase-t">
+              {myRow
+                ? (myRow.userKey === leader.userKey
+                  ? <>You lead with <b>{fmtPts(myRow.points)}</b> pts <span style={{ color: GOLD }} aria-hidden="true">♛</span> · defend it</>
+                  : <>You <b>{fmtPts(myRow.points)}</b> · leader <b>{fmtPts(leader.points)}</b> · {fmtPts(leader.points - myRow.points)} back</>)
+                : <>Top score to beat: <b>{fmtPts(leader.points)}</b>/{gameMax} pts</>}
+            </div>
+            <div className="dl-bar"><div style={{ width: `${chasePct}%`, background: g.accent }} /></div>
+          </div>
+        )}
+
         <div className="dl-actions">
           <a className="dl-btn dl-play" href={g.path} style={{ background: g.accent }}>Play today →</a>
+          {todayQuiz && <a className="dl-btn dl-ghost" href={`/duel/new?quiz=${encodeURIComponent(todayQuiz)}`} aria-label={`Challenge a friend to today's ${g.name}`}>⚔ Challenge</a>}
           <button type="button" className={`dl-btn dl-ghost${panel === 'standings' ? ' on' : ''}`} aria-expanded={panel === 'standings'} onClick={() => toggle('standings')}>Standings</button>
           <button type="button" className={`dl-btn dl-ghost${panel === 'archive' ? ' on' : ''}`} data-arch={g.key} aria-expanded={panel === 'archive'} onClick={() => toggle('archive')}>Archive <span className="cnt">{g.puzzles.length}</span></button>
         </div>
