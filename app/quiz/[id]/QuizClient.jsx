@@ -19,7 +19,7 @@ import { isMobileDevice } from '@/lib/is-mobile';
 import useAbandonFlush from './useAbandonFlush';
 import useDuelContext, { DuelBanner } from './useDuelContext';
 import QuizIdleActions from './QuizIdleActions';
-import { LB_POPS, LB_FILTERS, pickLb, lbEmptyNote, wouldBeRank } from '@/lib/quiz-lb';
+import { LB_POPS, LB_FILTERS, pickLb, lbEmptyNote, registerRank } from '@/lib/quiz-lb';
 import useIsMobile from './useIsMobile';
 import dynamic from 'next/dynamic';
 import { flushSync } from 'react-dom';
@@ -1604,7 +1604,7 @@ export default function QuizClient({ quizId }) {
             for (const r of rows) { if (r.score > dispScore || (r.score === dispScore && r.timeElapsed < lastElapsed)) better++; }
             return better + 1;
           })();
-          const regRank = !identity ? wouldBeRank(board.leaderboard, dispScore, lastElapsed) : null;
+          const regRank = !identity ? registerRank(board.leaderboard, dispScore, lastElapsed) : null;
           const openRegister = () => { setClaimMsg(''); setClaimErr(false); setClaimOpen(true); };
           const jumpToBoard = () => { if (typeof document !== 'undefined') { const el = document.getElementById('quiz-board'); if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' }); } };
           const stackBtn = { fontFamily: MONO, fontSize: 12.5, letterSpacing: '0.04em', textTransform: 'uppercase', fontWeight: 700, borderRadius: 10, padding: '14px 12px', cursor: 'pointer', border: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, width: '100%', boxSizing: 'border-box', textDecoration: 'none' };

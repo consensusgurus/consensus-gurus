@@ -6,7 +6,7 @@ import SimilarQuizTiles from './SimilarQuizTiles';
 import UpNextCard from './UpNextCard';
 import ScrollToTopOnMount from './ScrollToTopOnMount';
 import RegisterRankLine from './RegisterRankLine';
-import { wouldBeRank } from '@/lib/quiz-lb';
+import { registerRank } from '@/lib/quiz-lb';
 
 // Shared end-of-game results for every quiz board (owner rule, 2026-07-02).
 //
@@ -50,7 +50,7 @@ export default function QuizResultModal({
   onClose, onPlaySimilar, onLeaderboard,
 }) {
   const duelHref = quiz && quiz.id ? `/duel/new?quiz=${encodeURIComponent(quiz.id)}` : null;
-  const regRank = (!identity && onRegister && board) ? wouldBeRank(board.leaderboard, score, lastElapsed) : null;
+  const regRank = (!identity && onRegister && board) ? registerRank(board.leaderboard, score, lastElapsed) : null;
   const similar = useMemo(() => {
     if (!quiz) return [];
     const stripped = quiz.id.replace(/-\d+$/, '');
