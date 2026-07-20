@@ -462,11 +462,6 @@ export default function DailyEndCard({
         .dec-foot{text-align:center;margin-top:14px;}
         .dec-foot a{font-family:${MONO};font-size:11px;letter-spacing:.06em;text-transform:uppercase;font-weight:500;color:${NAVY};text-decoration:none;border-bottom:1px solid rgba(14,29,64,0.5);padding-bottom:1px;}
 
-        /* celebratory confetti — a win-only falling burst, hidden under reduced motion */
-        .dec-conf{position:fixed;top:-6vh;z-index:120;pointer-events:none;border-radius:2px;will-change:transform,opacity;animation:dec-fall linear forwards;}
-        @keyframes dec-fall{0%{transform:translateY(-6vh) rotate(0deg);opacity:1;}85%{opacity:1;}100%{transform:translateY(112vh) rotate(710deg);opacity:0;}}
-        @media(prefers-reduced-motion:reduce){.dec-conf{display:none;}}
-
         @media(max-width:640px){
           .dec-card{padding:18px 16px 14px;}
           .dec-tagline{display:none;}
@@ -652,6 +647,11 @@ export default function DailyEndCard({
   // plays over the completed board during the reveal delay AND behind the popup.
   const confettiEl = confetti.length ? (
     <div aria-hidden="true">
+      <style>{`
+        .dec-conf{position:fixed;top:-6vh;z-index:120;pointer-events:none;border-radius:2px;will-change:transform,opacity;animation:dec-fall linear forwards;}
+        @keyframes dec-fall{0%{transform:translateY(-6vh) rotate(0deg);opacity:1;}85%{opacity:1;}100%{transform:translateY(112vh) rotate(710deg);opacity:0;}}
+        @media(prefers-reduced-motion:reduce){.dec-conf{display:none;}}
+      `}</style>
       {confetti.map((c, i) => (
         <span
           key={i}
