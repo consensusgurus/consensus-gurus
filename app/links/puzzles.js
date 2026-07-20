@@ -141,6 +141,10 @@ export const PUZZLES = [
       { name: 'Avoid', words: ['DUCK', 'SKIRT', 'EVADE', 'PARRY'] },
       { name: 'NATO alphabet', words: ['TANGO', 'VICTOR', 'ROMEO', 'CHARLIE'] },
     ],
+    collisions: [
+      { word: 'FORD', reads: 'Car brands' },
+      { word: 'DODGE', reads: 'Avoid' },
+    ],
   },
   {
     num: 11,
@@ -152,6 +156,11 @@ export const PUZZLES = [
       { name: 'Tiny', words: ['TEENY', 'WEE', 'MICRO', 'DINKY'] },
       { name: 'Bond films', words: ['GOLDENEYE', 'SKYFALL', 'SPECTRE', 'THUNDERBALL'] },
       { name: '___glass', words: ['SPY', 'WINE', 'STAINED', 'HOUR'] },
+    ],
+    collisions: [
+      { word: 'MINUTE', reads: 'Tiny' },
+      { word: 'HOUR', reads: 'Units of time' },
+      { word: 'SPY', reads: 'Bond films' },
     ],
   },
   {
@@ -169,6 +178,10 @@ export const PUZZLES = [
       { name: 'Tech giants', words: ['AMAZON', 'APPLE', 'META', 'ORACLE'] },
       { name: 'Rivers', words: ['NILE', 'DANUBE', 'RHINE', 'VOLGA'] },
     ],
+    collisions: [
+      { word: 'AMAZON', reads: 'Rivers' },
+      { word: 'NILE', reads: 'Ancient Egypt' },
+    ],
   },
   {
     num: 13,
@@ -181,6 +194,11 @@ export const PUZZLES = [
       { name: 'Underwear', words: ['THONG', 'BIKINI', 'BOXER', 'TRUNKS'] },
       { name: 'Legal filings', words: ['BRIEF', 'TORT', 'APPEAL', 'MOTION'] },
     ],
+    collisions: [
+      { word: 'HUSKY', reads: 'Dog breeds' },
+      { word: 'BOXER', reads: 'Dog breeds' },
+      { word: 'BRIEF', reads: 'Underwear' },
+    ],
   },
   {
     num: 14,
@@ -192,6 +210,15 @@ export const PUZZLES = [
       { name: 'Candy bars', words: ['MARS', 'TWIX', 'SNICKERS', 'BOUNTY'] },
       { name: 'Roman gods', words: ['VULCAN', 'JANUS', 'CUPID', 'MINERVA'] }, // was MERCURY (also a planet) -> MINERVA: kills the 4-way ambiguity
       { name: 'Famous sculptures', words: ['DAVID', 'PIETA', 'THINKER', 'VENUS'] },
+    ],
+    collisions: [
+      { word: 'NEPTUNE', reads: 'Roman gods' },
+      { word: 'SATURN', reads: 'Roman gods' },
+      { word: 'JUPITER', reads: 'Roman gods' },
+      { word: 'MARS', reads: 'Planets' },
+      { word: 'MARS', reads: 'Roman gods' },
+      { word: 'VENUS', reads: 'Planets' },
+      { word: 'VENUS', reads: 'Roman gods' },
     ],
   },
   {
@@ -233,6 +260,10 @@ export const PUZZLES = [
       { name: 'Gemstones', words: ['PEARL', 'OPAL', 'SAPPHIRE', 'TOPAZ'] },
       { name: 'Metals', words: ['GOLD', 'SILVER', 'PLATINUM', 'BRONZE'] },
     ],
+    collisions: [
+      { word: 'CHERRY', reads: 'Fruits' },
+      { word: 'RUBY', reads: 'Gemstones' },
+    ],
   },
   {
     num: 17,
@@ -246,6 +277,11 @@ export const PUZZLES = [
       { name: 'Party dips', words: ['GUACAMOLE', 'HUMMUS', 'QUESO', 'RANCH'] },
       { name: 'Playground fixtures', words: ['SLIDE', 'SEESAW', 'SANDBOX', 'SWING'] },
       { name: 'Baseball moves', words: ['BUNT', 'STEAL', 'PITCH', 'STRIKE'] },
+    ],
+    collisions: [
+      { word: 'SALSA', reads: 'Party dips' },
+      { word: 'SLIDE', reads: 'Baseball moves' },
+      { word: 'SWING', reads: 'Baseball moves' },
     ],
   },
   {
@@ -261,6 +297,13 @@ export const PUZZLES = [
       { name: 'Herbs', words: ['BASIL', 'MINT', 'SAGE', 'DILL'] },
       { name: 'Yearn for', words: ['PINE', 'ACHE', 'LONG', 'CRAVE'] },
     ],
+    collisions: [
+      { word: 'LIME', reads: 'Fruits' },
+      { word: 'OLIVE', reads: 'Fruits' },
+      { word: 'MINT', reads: 'Shades of green' },
+      { word: 'SAGE', reads: 'Shades of green' },
+      { word: 'PINE', reads: 'Shades of green' },
+    ],
   },
   {
     num: 19,
@@ -274,6 +317,10 @@ export const PUZZLES = [
       { name: 'Units of weight', words: ['OUNCE', 'GRAM', 'TON', 'STONE'] },
       { name: 'Tooth parts', words: ['ROOT', 'ENAMEL', 'GUM', 'PLAQUE'] },
       { name: '___ Age', words: ['BRONZE', 'IRON', 'ICE', 'GOLDEN'] },
+    ],
+    collisions: [
+      { word: 'POUND', reads: 'Units of weight' },
+      { word: 'CROWN', reads: 'Tooth parts' },
     ],
   },
 ];

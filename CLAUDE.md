@@ -2918,30 +2918,44 @@ same board (ROOK reads as chess while living in Corvids). Ordinary days need at 
 two; **Sunday Editions need at least four**.
 
 Collisions are also exactly how a board ends up with TWO defensible solutions, so the
-count alone is not enough. The uniqueness invariant — the Crux "pinned trap" rule applied
-to Links — is that **a tempted group must already be full of words that fit nowhere
-else**. If every word in the group a collision points at is itself untemptable, the
-colliding word cannot actually complete that group, so it must resolve back home, and the
-board has exactly one solution.
+count alone is not enough. **Uniqueness is proved by counting.** Treat each word's
+plausible memberships as its home group plus every annotated collision, then count the
+assignments of the 16 words to the 4 groups where every group gets exactly four. Exactly
+one is required.
 
-That is now machine-checked. Puzzles carry authoring metadata:
+This replaced a "pinning" heuristic on 2026-07-20 (a tempted group had to contain no
+colliding word). Pinning is *sufficient* for uniqueness but not *necessary*, and it
+wrongly rejects the best boards — the ones built on MUTUAL temptation. On 2026-07-21 FORD
+reads as a car brand and DODGE reads as avoid, but if FORD leaves, US presidents has only
+three members, so FORD must stay and DODGE follows it home. One solution; pinning called
+it ambiguous. Six of the ten annotated boards fail pinning and are provably fine.
+
+Puzzles carry authoring metadata:
 
 ```javascript
 collisions: [ { word: 'ROOK', reads: 'Chess pieces' }, ... ]   // `reads` = group NAME
 ```
 
 `scripts/verify-daily-banks.mjs links` verifies, for every collision, that the word is on
-the board, that `reads` names a real group, that the word does not already live in it,
-and that **no member of the tempted group is itself a collision word** — the pinning
-proof. It also enforces the count floor (4 on Sunday, 2 otherwise) and fails a Sunday
-that declares no collisions at all. Verified against three deliberately broken boards:
-an unpinned tempted group, too few collisions, and a self-referential collision.
+the board, that `reads` names a real group, and that the word does not already live in
+it; then it counts groupings and fails anything other than exactly one. It also enforces
+the count floor (4 on Sunday, 2 otherwise) and fails a Sunday that declares no collisions.
+Verified against deliberately broken boards, including a clean swap-pair (annotating
+SCARLET as a gemstone and PEARL as a shade of red makes 7/27 genuinely two-solution, and
+the check catches it).
+
+**Annotation is the authoring step that finds bugs.** Doing it for 2026-07-21..07-30
+surfaced that `links-7-23-26` looked like it had only ONE collision (AMAZON reads as a
+river) until NILE was recognised as reading straight to Ancient Egypt, which is what puts
+it over the two-collision floor. Write the annotations while authoring, not after.
 
 `collisions` is stripped in `app/links/page.js` before puzzles reach the client. The
 groups themselves must ship (the client checks guesses), but the trap map need not.
 
-**Legacy boards predate the field** and are skipped with an explicit "semantic audit
-manual" note. Annotating them is owed; until then their two-collision rule stays manual.
+**Every board from 2026-07-21 on is annotated and proved unique.** Boards up to and
+including 2026-07-20 are live or historical and are deliberately left alone — they are
+skipped with an explicit "semantic audit manual" note. Annotate each new board as you
+bank it.
 
 **Regenerating a Warmer order (the only pipeline-backed edition).** Warmer stores
 `order`: every VOCAB index sorted by cosine similarity to that day's secret word,

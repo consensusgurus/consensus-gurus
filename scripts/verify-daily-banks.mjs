@@ -303,44 +303,64 @@ if (RUN('links')) {
     if (new Set(all).size !== all.length) errs.push('duplicate word across groups');
     for (const g of p.groups) if (g.words.length !== 4) errs.push(`group "${g.name}" has ${g.words.length}`);
 
-    // ── COLLISIONS + THE PINNING PROOF ───────────────────────────────────
+    // ── COLLISIONS + EXACT UNIQUENESS ────────────────────────────────────
     // A collision is a word that plausibly reads as a DIFFERENT group on the
-    // same board. They are the whole game, but they are also how a board ends
-    // up with two defensible solutions. The uniqueness invariant (owner rule,
-    // and the Crux "pinned trap" rule applied here): a tempted group must
-    // ALREADY BE FULL of words that fit nowhere else. If the group a word is
-    // tempted toward is itself full of pinned words, the word cannot actually
-    // complete it, so it has to resolve back home — and the board has exactly
-    // one solution. That is checkable, and this checks it.
+    // same board. They are the whole game, and also how a board ends up with
+    // two defensible solutions — so the count is checked AND the board is
+    // proved unique.
     //
-    // `collisions` is authoring metadata: [{ word, reads }] where `reads` is
-    // the NAME of the group the word tempts toward. Sunday Editions require at
-    // least four; ordinary days require at least two once annotated. Legacy
-    // boards predate the field and are skipped (audit still manual there).
+    // THE PROOF (replaces the old pinning heuristic, 2026-07-20): treat each
+    // word's plausible memberships as its home group plus every annotated
+    // collision, then COUNT the assignments of 16 words to the 4 groups where
+    // every group gets exactly 4. Exactly one is required.
+    //
+    // This is exact where pinning was merely sufficient. Pinning demanded that
+    // a tempted group contain no colliding word, which wrongly rejects a
+    // MUTUAL temptation that the arithmetic still resolves: on 2026-07-21 FORD
+    // reads as a car and DODGE reads as avoid, but presidents then has only
+    // three members, so FORD must stay put and DODGE follows. One solution,
+    // and the old rule called it ambiguous.
+    //
+    // `collisions` is [{ word, reads }] where `reads` is the group NAME.
+    // Sundays need >= 4, ordinary days >= 2 once annotated. Legacy boards
+    // predate the field and are skipped (audit still manual there).
     const byName = new Map(p.groups.map((g) => [g.name, g]));
     const homeOf = new Map();
     for (const g of p.groups) for (const w of g.words) homeOf.set(w, g.name);
     if (p.collisions) {
       const minC = p.sunday ? 4 : 2;
       if (p.collisions.length < minC) errs.push(`${p.collisions.length} collisions, want >= ${minC}`);
-      const colliders = new Set(p.collisions.map((c) => c.word));
       for (const c of p.collisions) {
         if (!homeOf.has(c.word)) { errs.push(`collision word "${c.word}" not on the board`); continue; }
-        const tempted = byName.get(c.reads);
-        if (!tempted) { errs.push(`collision "${c.word}" reads unknown group "${c.reads}"`); continue; }
-        if (homeOf.get(c.word) === c.reads) { errs.push(`collision "${c.word}" already lives in "${c.reads}"`); continue; }
-        // THE PROOF: every member of the tempted group must be unpinnable
-        // elsewhere, i.e. must not itself be a collision word.
-        const loose = tempted.words.filter((w) => colliders.has(w));
-        if (loose.length) {
-          errs.push(`"${c.word}" tempts "${c.reads}", but that group is not pinned (${loose.join(',')} also collide) — board may have two solutions`);
+        if (!byName.has(c.reads)) { errs.push(`collision "${c.word}" reads unknown group "${c.reads}"`); continue; }
+        if (homeOf.get(c.word) === c.reads) errs.push(`collision "${c.word}" already lives in "${c.reads}"`);
+      }
+      // membership = home group + every annotated collision
+      const member = new Map([...homeOf].map(([w, h]) => [w, new Set([h])]));
+      for (const c of p.collisions) if (member.has(c.word) && byName.has(c.reads)) member.get(c.word).add(c.reads);
+      const words = [...homeOf.keys()];
+      const room = Object.fromEntries(p.groups.map((g) => [g.name, 4]));
+      let solutions = 0;
+      const walk = (k) => {
+        if (solutions >= 2) return;
+        if (k === words.length) { solutions++; return; }
+        for (const n of member.get(words[k])) {
+          if (room[n] === 0) continue;
+          room[n]--; walk(k + 1); room[n]++;
+          if (solutions >= 2) return;
         }
+      };
+      walk(0);
+      if (solutions !== 1) {
+        errs.push(solutions === 0
+          ? 'no valid grouping — a collision annotation contradicts the board'
+          : 'TWO OR MORE valid groupings — the board is ambiguous');
       }
     } else if (p.sunday) {
       errs.push('Sunday Edition must declare its collisions');
     }
     const note = p.collisions
-      ? `structure OK, ${p.collisions.length} collisions, every tempted group pinned`
+      ? `structure OK, ${p.collisions.length} collisions, exactly one valid grouping`
       : 'structure OK (no collisions declared; semantic audit manual, §7a)';
     errs.length ? fail(p.quizId, errs.join('; ')) : ok(p.quizId, note);
   }
