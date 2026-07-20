@@ -984,7 +984,11 @@ export default function QuizHomeClient() {
   function colRows(cat, lim, exclude) {
     // Business tile preview hides the whole Business News quiz hub (daily/weekly
     // recaps, company earnings, sector updates); they still show under View all.
-    const base = cat.key === 'business' ? cat.quizzes.filter((q) => !isBusinessNewsHubQuiz(q.id)) : cat.quizzes;
+    // Daily games are hidden from tile previews for all categories EXCEPT Word
+    // Games; they still appear in the expanded CategoryFull (View All) view.
+    const hideDG = cat.key !== 'word';
+    let base = cat.key === 'business' ? cat.quizzes.filter((q) => !isBusinessNewsHubQuiz(q.id)) : cat.quizzes;
+    if (hideDG) base = base.filter((q) => !isDailyGame(q.id));
     const sorted = base.slice()
       .sort((a, b) => plays(b.id) - plays(a.id) || a.title.localeCompare(b.title));
     if (!exclude) return sorted.slice(0, lim);
@@ -1753,8 +1757,9 @@ export default function QuizHomeClient() {
             <BrowseColumn label="Newest" Icon={Sparkles} color={C.accent} tint={C.accsoft} filled fill baseCount={5}
               rows={newestAll.slice(0, 15).map((q) => ({ q, right: <NewRight q={q} /> }))} cta="View all ›" onCta={() => setListMode('newest')} />
             {cats.filter((c) => c.key !== 'school').map((c) => {
-              const topQ = c.quizzes.slice().sort((a, b) => plays(b.id) - plays(a.id) || a.title.localeCompare(b.title))[0];
-              const heroCand = c.quizzes.slice().filter((q) => QUIZ_HEROES[q.id]).sort((a, b) => plays(b.id) - plays(a.id) || a.title.localeCompare(b.title))[0];
+              const tilePool = c.key === 'word' ? c.quizzes : c.quizzes.filter((q) => !isDailyGame(q.id));
+              const topQ = tilePool.slice().sort((a, b) => plays(b.id) - plays(a.id) || a.title.localeCompare(b.title))[0];
+              const heroCand = tilePool.slice().filter((q) => QUIZ_HEROES[q.id]).sort((a, b) => plays(b.id) - plays(a.id) || a.title.localeCompare(b.title))[0];
               const heroQ = heroCand || topQ;
               const heroId = heroQ && heroQ.id;
               const hh = heroId ? QUIZ_HEROES[heroId] : null;
