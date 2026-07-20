@@ -2843,6 +2843,21 @@ nothing else.
   solutions); `sunday` must survive that strip or the badge dies silently. This is not
   hypothetical: Outwit's `clientSafe()` dropped `sunday` and had to be fixed when its
   edition shipped (2026-07-20). Check the strip FIRST when a badge won't render.
+- **Generalizing a fixed-size game (the Alibi pattern).** When the Sunday changes the
+  SIZE of a puzzle, the whole engine must take the size as a parameter. Alibi went from
+  4 suspects to 5 by replacing `PERMS4` with a memoized `permsOf(n)`, `freshMarks()` /
+  `freshState()` with `(n)` versions, every `< 4` loop with `< N` where
+  `N = PUZZLE.suspects.length`, and the module-level `const TOTAL = 12` with
+  `const TOTAL = 3 * N` inside the component (`mergeServerStats` sits OUTSIDE the
+  component and had to derive its own total from `p.suspects.length`). The verifier's
+  brute force AND its no-guessing propagation solver both had to take `n` too. Budget
+  for the solver, the state model, the render and the validator together — a partial
+  generalization mis-scores silently.
+- **A size-changing Sunday changes `total`, and that is fine.** Alibi Sundays score out
+  of 15 rather than 12. `scoreGame` in `lib/daily-combined.js` normalizes completion as
+  `score / total` using the day's field-max total, so a different total on one day is
+  handled — as long as EVERY player that day sees the same one. What is NOT fine is a
+  stale literal that leaves half the code scoring against the old total.
 - **Derive counts from data, never a literal.** A game whose Sunday changes a size must
   read that size off the puzzle: Tuck now uses `const RACK = PUZZLE.letters.length` in
   place of eleven hardcoded `14`s (scoring bonus, tiles-placed copy, share text), and
@@ -2888,11 +2903,12 @@ archive and hub chips use the short form `Sun`.
 | Cipher | three addends stacked instead of two (from 2026-07-26) |
 | Outwit | six prompts instead of five, the extra a second Rare Bird (from 2026-07-26) |
 | Tuck | a 15-letter rack instead of 14 (from 2026-07-26) |
+| Alibi | five suspects instead of four, 15 facts to confirm (from 2026-07-26) |
 
-**No Sunday Edition:** Links (always 4 groups × 16 words), Alibi (always 4 suspects),
-Warmer (one word every day). Alibi is blocked on its client solver, which is hardcoded
-to four suspects (`PERMS4`, 4×4 mark grids, `< 4` loops) and needs generalizing before a
-five-suspect Sunday is possible.
+**No Sunday Edition:** Links (always 4 groups × 16 words) and Warmer (one word every
+day). Links has no mechanical lever — "harder" there is a design call (a fifth decoy
+group? a higher forced collision count?) and needs an owner ruling before it is built.
+Warmer needs its GloVe pipeline re-run to pick a rarer secret word.
 
 **GRANDFATHERING — never retrofit a live puzzle.** Garble, Dating and Cipher gained
 their editions on 2026-07-26, so their EARLIER Sunday drops (Garble 7/12 and 7/19,
@@ -2902,12 +2918,10 @@ Where a validator enforces the edition, it carries a `SUNDAY_FROM` launch-date c
 and skips anything earlier (see `scripts/verify-cipher.mjs`). Apply a new edition to
 FUTURE Sundays only.
 
-Two of those three (Alibi, Warmer) carry a vestigial
-`sunday: false` on every puzzle, and `AlibiClient.jsx` has a finished
-`Sunday Edition · The Sunday Case` badge that has never rendered because no Alibi puzzle
-is flagged. Those are **placeholders for variants that were never authored**, left in
-place deliberately so the wiring is ready. Do not treat the presence of a `sunday` field
-as evidence a game has an edition — check for `sunday: true`.
+Warmer still carries a vestigial `sunday: false` on every puzzle. That is a
+**placeholder for a variant that was never authored**, left in place deliberately so the
+wiring is ready. Do not treat the presence of a `sunday` field as evidence a game has an
+edition — check for `sunday: true`.
 
 ### `lib/sunday-editions.js` — the game-level registry
 

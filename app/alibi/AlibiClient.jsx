@@ -2,7 +2,7 @@
 
 // Alibi — the daily whodunit logic puzzle.
 //
-// One case a day: four guests, each alone in a different room, each leaving at
+// One case a day: four guests (five in the Sunday Edition), each alone in a different room, each leaving at
 // a different hour, each carrying one curious item. Every witness statement is
 // true; together they pin down exactly one arrangement (every banked case is
 // machine-verified unique, see scripts/verify-alibi.mjs). Work the three
@@ -13,7 +13,8 @@
 // it, and this component re-derives the unique arrangement from the clues with
 // a 4!³ brute-force (13,824 candidates, instant).
 //
-// Scoring: crack the case for max(1, 12 - 2×wrong accusations) out of 12 — a
+// Scoring: crack the case for max(1, TOTAL - 2×wrong accusations) out of TOTAL,
+// where TOTAL is 3 facts per suspect (12 on a weekday, 15 on a Sunday) — a
 // first-try accusation is a perfect 12. Ties on the daily board break by
 // fewest wrong accusations, then fastest time. Revealing ends the day at 0.
 //
@@ -50,7 +51,6 @@ const SANS = "'Manrope', system-ui, -apple-system, sans-serif";
 const MONO = "'DM Mono', ui-monospace, 'SFMono-Regular', monospace";
 const HELP_KEY = 'sot_alibi_help_seen';
 const STATS_KEY = 'sot_alibi_stats';
-const TOTAL = 12;
 const CATS = ['room', 'time', 'obj'];
 
 const isIosDevice = () =>
@@ -104,15 +104,20 @@ function getAnonId() {
 const EMPTY_BOARD = { plays: 0, best: null, topTime: null, leaderboard: [], leaderboardAll: [], leaderboardMobile: [], leaderboardFirst: [], leaderboards: {} };
 
 // ─── Solver: derive THE unique arrangement from the clues (no answer wire) ──
-const PERMS4 = (() => {
+// Permutations for a case of N suspects, memoized. Weekdays seat 4; the
+// Sunday Edition seats 5 (5!^3 = 1.7M arrangements, still instant).
+const PERMS_CACHE = {};
+const permsOf = (n) => {
+  if (PERMS_CACHE[n]) return PERMS_CACHE[n];
   const out = [];
   const permute = (a, l) => {
     if (l === a.length) { out.push(a.slice()); return; }
     for (let i = l; i < a.length; i++) { [a[l], a[i]] = [a[i], a[l]]; permute(a, l + 1); [a[l], a[i]] = [a[i], a[l]]; }
   };
-  permute([0, 1, 2, 3], 0);
+  permute([...Array(n).keys()], 0);
+  PERMS_CACHE[n] = out;
   return out;
-})();
+};
 function evalClue(c, room, time, obj) {
   switch (c.type) {
     case 'notRoom': return room[c.s] !== c.r;
@@ -125,8 +130,9 @@ function evalClue(c, room, time, obj) {
   }
   return false;
 }
-function solveCase(clues) {
-  for (const room of PERMS4) for (const time of PERMS4) for (const obj of PERMS4) {
+function solveCase(clues, n) {
+  const PERMS = permsOf(n);
+  for (const room of PERMS) for (const time of PERMS) for (const obj of PERMS) {
     let ok = true;
     for (const c of clues) { if (!evalClue(c, room, time, obj)) { ok = false; break; } }
     if (ok) return { room, time, obj }; // banked cases are verified unique
@@ -173,9 +179,10 @@ function mergeServerStats(s, recent, puzzles) {
     const p = m && byQuiz[m.quizId];
     if (!p || m.attempt !== 1) continue;
     if (rec[p.num]) continue;
-    const sc = Math.max(0, Math.min(TOTAL, Math.round(((m.scorePct || 0) / 100) * TOTAL)));
+    const pTotal = 3 * p.suspects.length; // 12 on a weekday, 15 on a Sunday
+    const sc = Math.max(0, Math.min(pTotal, Math.round(((m.scorePct || 0) / 100) * pTotal)));
     if (!changed) { rec = { ...rec }; changed = true; }
-    rec[p.num] = { s: sc, t: TOTAL, g: null, won: !!m.perfect };
+    rec[p.num] = { s: sc, t: pTotal, g: null, won: !!m.perfect };
   }
   if (!changed) return s;
   const s2 = { ...s, rec };
@@ -183,15 +190,15 @@ function mergeServerStats(s, recent, puzzles) {
   return s2;
 }
 
-function freshMarks() {
+function freshMarks(n) {
   const m = {};
-  for (const c of CATS) m[c] = Array.from({ length: 4 }, () => Array(4).fill(0));
+  for (const c of CATS) m[c] = Array.from({ length: n }, () => Array(n).fill(0));
   return m;
 }
-function freshState() {
+function freshState(n) {
   return {
     v: 1,
-    marks: freshMarks(),        // marks[cat][suspect][value]: 0 blank | 1 x | 2 dot
+    marks: freshMarks(n),       // marks[cat][suspect][value]: 0 blank | 1 x | 2 dot
     struck: [],                 // crossed-off clue indexes
     status: 'playing',          // playing | done | lost
     wrong: 0,                   // wrong accusations
@@ -203,14 +210,18 @@ function freshState() {
 export default function AlibiClient({ puzzles = [], forceNum = null }) {
   const PUZZLE = useMemo(() => pickPuzzle(puzzles, forceNum), [puzzles, forceNum]);
   const STORE_KEY = `sot_alibi_${PUZZLE.num}`;
-  const SOLUTION = useMemo(() => solveCase(PUZZLE.clues), [PUZZLE]);
+  // Suspect count is DATA: 4 on a weekday, 5 in the Sunday Edition. Every loop,
+  // the marks grid and the score total derive from it — never a literal.
+  const N = PUZZLE.suspects.length;
+  const TOTAL = 3 * N;
+  const SOLUTION = useMemo(() => solveCase(PUZZLE.clues, N), [PUZZLE, N]);
   const CAT_META = useMemo(() => ([
     { key: 'room', label: 'Rooms', vals: PUZZLE.rooms },
     { key: 'time', label: 'Departure times', vals: PUZZLE.times },
     { key: 'obj', label: 'Items carried', vals: PUZZLE.objects },
   ]), [PUZZLE]);
 
-  const [g, setG] = useState(freshState);
+  const [g, setG] = useState(() => freshState(N));
   const [autoX, setAutoX] = useState(true);
   const [verdict, setVerdict] = useState(null);
   const [showHelp, setShowHelp] = useState(false);
@@ -258,7 +269,7 @@ export default function AlibiClient({ puzzles = [], forceNum = null }) {
       const raw = localStorage.getItem(STORE_KEY);
       if (raw) {
         const saved = JSON.parse(raw);
-        if (saved && saved.v === 1 && saved.marks) setG({ ...freshState(), ...saved });
+        if (saved && saved.v === 1 && saved.marks) setG({ ...freshState(N), ...saved });
       }
       if (!localStorage.getItem(HELP_KEY)) setShowHelp(true);
     } catch (e) {}
@@ -366,8 +377,8 @@ export default function AlibiClient({ puzzles = [], forceNum = null }) {
       const next = (marks[cat][s][v] + 1) % 3;
       marks[cat][s][v] = next;
       if (next === 2 && autoX) {
-        for (let v2 = 0; v2 < 4; v2++) if (v2 !== v && marks[cat][s][v2] !== 2) marks[cat][s][v2] = 1;
-        for (let s2 = 0; s2 < 4; s2++) if (s2 !== s && marks[cat][s2][v] !== 2) marks[cat][s2][v] = 1;
+        for (let v2 = 0; v2 < N; v2++) if (v2 !== v && marks[cat][s][v2] !== 2) marks[cat][s][v2] = 1;
+        for (let s2 = 0; s2 < N; s2++) if (s2 !== s && marks[cat][s2][v] !== 2) marks[cat][s2][v] = 1;
       }
       return { ...cur, marks, t0: cur.t0 || Date.now() };
     });
@@ -381,7 +392,7 @@ export default function AlibiClient({ puzzles = [], forceNum = null }) {
   }
   function resetBoards() {
     if (!playing) return;
-    setG((cur) => ({ ...cur, marks: freshMarks() }));
+    setG((cur) => ({ ...cur, marks: freshMarks(N) }));
     setVerdict(null);
   }
 
@@ -389,11 +400,11 @@ export default function AlibiClient({ puzzles = [], forceNum = null }) {
     if (!playing || !SOLUTION) return;
     let placed = 0, wrong = 0;
     for (const cat of CATS) {
-      for (let s = 0; s < 4; s++) for (let v = 0; v < 4; v++) {
+      for (let s = 0; s < N; s++) for (let v = 0; v < N; v++) {
         if (g.marks[cat][s][v] === 2) { placed++; if (SOLUTION[cat][s] !== v) wrong++; }
       }
     }
-    if (placed < 12) { setVerdict({ soft: true, msg: `You've confirmed ${placed} of 12 facts — keep deducing before you accuse.` }); return; }
+    if (placed < TOTAL) { setVerdict({ soft: true, msg: `You've confirmed ${placed} of ${TOTAL} facts — keep deducing before you accuse.` }); return; }
     if (wrong > 0) {
       setG((cur) => ({ ...cur, wrong: cur.wrong + 1, t0: cur.t0 || Date.now() }));
       setVerdict({ msg: `Not quite — ${wrong} of your ● marks ${wrong === 1 ? 'is' : 'are'} wrong.` });
@@ -409,9 +420,9 @@ export default function AlibiClient({ puzzles = [], forceNum = null }) {
   function reveal() {
     if (!playing || !SOLUTION) return;
     setG((cur) => {
-      const marks = freshMarks();
+      const marks = freshMarks(N);
       for (const cat of CATS) {
-        for (let s = 0; s < 4; s++) for (let v = 0; v < 4; v++) marks[cat][s][v] = SOLUTION[cat][s] === v ? 2 : 1;
+        for (let s = 0; s < N; s++) for (let v = 0; v < N; v++) marks[cat][s][v] = SOLUTION[cat][s] === v ? 2 : 1;
       }
       const g2 = { ...cur, marks, status: 'lost', tEnd: Date.now(), t0: cur.t0 || Date.now() };
       postResult(g2, 0);
@@ -423,7 +434,7 @@ export default function AlibiClient({ puzzles = [], forceNum = null }) {
 
   function resetGame() {
     try { localStorage.removeItem(STORE_KEY); } catch (e) {}
-    setG(freshState()); setVerdict(null); setEndClosed(false);
+    setG(freshState(N)); setVerdict(null); setEndClosed(false);
   }
 
   function clueText(c) {
@@ -480,7 +491,7 @@ export default function AlibiClient({ puzzles = [], forceNum = null }) {
             <h1 style={{ margin: 0, fontFamily: MONO, fontSize: 14, letterSpacing: '0.06em', fontWeight: 500, color: COLORS.ink }}>Case No. {PUZZLE.num}</h1>
             <span style={{ color: COLORS.faded }}>&middot;</span>
             <span style={{ fontFamily: SANS, fontStyle: 'italic', fontSize: 15, color: COLORS.faded }}>{PUZZLE.dateLabel}</span>
-            {PUZZLE.sunday && <span style={{ fontFamily: MONO, fontSize: 9.5, letterSpacing: '0.1em', textTransform: 'uppercase', fontWeight: 500, color: '#fff', background: COLORS.accent, borderRadius: 4, padding: '2px 6px' }}>Sunday Edition &middot; The Sunday Case</span>}
+            {PUZZLE.sunday && <span style={{ fontFamily: MONO, fontSize: 9.5, letterSpacing: '0.1em', textTransform: 'uppercase', fontWeight: 500, color: '#fff', background: COLORS.accent, borderRadius: 4, padding: '2px 6px' }}>Sunday Edition &middot; Five suspects</span>}
           </div>
           <button onClick={() => setShowHelp(true)} aria-label="How to play" title="How to play" style={{ position: 'absolute', top: 8, right: 2, background: 'none', border: 'none', cursor: 'pointer', color: COLORS.faded, padding: 0, display: 'flex' }}>
             <HelpCircle size={20} />
@@ -489,7 +500,7 @@ export default function AlibiClient({ puzzles = [], forceNum = null }) {
 
         {/* the story */}
         <div style={{ fontFamily: 'Georgia, serif', fontStyle: 'italic', fontSize: 14.5, lineHeight: 1.6, background: '#fff', border: '1px solid rgba(28,30,36,0.14)', borderLeft: `4px solid ${COLORS.accent}`, borderRadius: 8, padding: '12px 16px', margin: '0 0 12px', color: COLORS.ink }}>
-          Last night at {PUZZLE.venue}, {PUZZLE.stolen} vanished. Four guests &mdash; {PUZZLE.suspects[0]}, {PUZZLE.suspects[1]}, {PUZZLE.suspects[2]} and {PUZZLE.suspects[3]} &mdash; were each alone in a different room, each left at a different hour, and each was carrying one curious item. Work out who was where, when they left, and what they carried. Every statement below is true.
+          Last night at {PUZZLE.venue}, {PUZZLE.stolen} vanished. {N === 5 ? 'Five' : 'Four'} guests &mdash; {PUZZLE.suspects.slice(0, -1).join(', ')} and {PUZZLE.suspects[N - 1]} &mdash; were each alone in a different room, each left at a different hour, and each was carrying one curious item. Work out who was where, when they left, and what they carried. Every statement below is true.
         </div>
 
         {/* status bar */}
@@ -726,7 +737,7 @@ export default function AlibiClient({ puzzles = [], forceNum = null }) {
       <section style={{ display: focusMode ? 'none' : 'block', position: 'relative', zIndex: 2, maxWidth: 640, margin: '0 auto', padding: '10px 24px 42px', fontFamily: SANS }}>
         <h2 style={{ margin: '0 0 8px', fontSize: 15, fontWeight: 800, letterSpacing: '-0.01em', color: COLORS.ink }}>About Alibi</h2>
         <p style={{ margin: '0 0 8px', fontSize: 13, lineHeight: 1.65, color: COLORS.faded, fontWeight: 600 }}>
-          Alibi is a free daily logic puzzle from Source of Truths &mdash; an Einstein-style deduction game dressed as a nightly whodunit. Something has vanished from the manor, and four guests were each alone in a different room, each left at a different hour, and each carried one curious item. The witness statements are all true; the detective work is yours.
+          Alibi is a free daily logic puzzle from Source of Truths &mdash; an Einstein-style deduction game dressed as a nightly whodunit. Something has vanished from the manor, and four guests (five in the Sunday Edition) were each alone in a different room, each left at a different hour, and each carried one curious item. The witness statements are all true; the detective work is yours.
         </p>
         <p style={{ margin: '0 0 8px', fontSize: 13, lineHeight: 1.65, color: COLORS.faded, fontWeight: 600 }}>
           Fill the three deduction boards the way a pencil-and-paper logician would: cross off what a statement rules out, confirm what elimination forces, and let the ✗s corner the ●s. Every case is generated with a constraint solver and machine-verified to have exactly one solution, so a careful chain of inference always closes the case &mdash; no guessing, no leaps.
