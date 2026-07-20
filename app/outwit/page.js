@@ -15,7 +15,7 @@ import { PUZZLES } from './puzzles';
 export const metadata = {
   title: 'Outwit — Daily Crowd Game: Beat Everyone Playing Today | Source of Truths',
   description:
-    'A free daily game where the puzzle is other people. Five game-theory prompts against the whole field: undercut the average, dodge the popular pick, read the herd, meet the crowd, be the rare bird. Then see where everyone actually went.',
+    'A free daily game where the puzzle is other people. Five game-theory prompts against the whole field: dodge the popular pick, read the herd, meet the crowd, be the rare bird, then undercut the average by a fraction that changes daily. Then see where everyone actually went.',
   alternates: { canonical: '/outwit' },
   manifest: '/outwit.webmanifest',
   icons: {
@@ -46,7 +46,7 @@ const gameJsonLd = {
   alternateName: 'Outwit — Daily Crowd Game',
   url: 'https://sourceoftruths.com/outwit',
   description:
-    'A free daily game-theory game: five prompts against every other player. Undercut two-thirds of the average, pick what the fewest pick, guess the crowd median, match the crowd favorite, and make the rarest pick. Scored against the real player pool.',
+    'A free daily game-theory game: five prompts against every other player. Pick what the fewest pick, guess the crowd median, match the crowd favorite, make the rarest pick, then undercut the average by the day\u2019s fraction, which changes daily. Scored against the real player pool.',
   genre: ['Game theory', 'Trivia game', 'Party game', 'Puzzle'],
   gamePlatform: 'Web browser',
   isAccessibleForFree: true,
