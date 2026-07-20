@@ -517,7 +517,7 @@ export default function CircaClient({ puzzles = [], forceNum = null }) {
                   inputMode="numeric"
                   pattern="[0-9]*"
                   maxLength={4}
-                  placeholder="19__"
+                  placeholder="Year"
                   value={val}
                   autoFocus={!mobileUi}
                   onChange={(e) => setVal(e.target.value.replace(/[^0-9]/g, '').slice(0, 4))}
