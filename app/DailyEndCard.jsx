@@ -134,6 +134,7 @@ const OTHER_POOL = [
 const OTHER_COLOR = '#5b6472';
 
 const AUTO_SECONDS = 25;
+const REVEAL_MS = 2000; // win only: show the finished board + confetti this long before the popup
 
 /**
  * @param self          game key, e.g. "garble"
@@ -163,6 +164,23 @@ export default function DailyEndCard({
   const [secs, setSecs] = useState(AUTO_SECONDS);
   const [autoCancel, setAutoCancel] = useState(false);
   const [pastHref, setPastHref] = useState(null); // most-recent unplayed PAST drop of this game
+
+  // Win reveal delay: on a win, hold the popup back ~2s so the player sees the
+  // completed board with the confetti first (and the placement fetch has time to
+  // land). Losses and reduced-motion viewers get the card immediately.
+  const [revealed, setRevealed] = useState(() => {
+    if (!(won && modal)) return true;
+    try {
+      if (typeof window !== 'undefined' && window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches) return true;
+    } catch (e) {}
+    return false;
+  });
+  useEffect(() => {
+    if (revealed) return undefined;
+    const t = setTimeout(() => setRevealed(true), REVEAL_MS);
+    return () => clearTimeout(t);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   useEffect(() => {
     let anonId = null, email = null;
@@ -279,7 +297,7 @@ export default function DailyEndCard({
 
   // 25s auto-advance to the next game (win only; a loss shows the block without
   // the ticking clock so the player can retry or read the board first).
-  const autoRun = won && !!nextTarget && !autoCancel;
+  const autoRun = revealed && won && !!nextTarget && !autoCancel;
   useEffect(() => {
     if (!autoRun) return undefined;
     if (secs <= 0) {
@@ -448,19 +466,6 @@ export default function DailyEndCard({
         }
       `}</style>
 
-      {/* ---- win confetti burst ---- */}
-      {confetti.length ? (
-        <div aria-hidden="true">
-          {confetti.map((c, i) => (
-            <span
-              key={i}
-              className="dec-conf"
-              style={{ left: c.left, width: c.w, height: c.h, background: c.color, animationDuration: c.dur, animationDelay: c.delay }}
-            />
-          ))}
-        </div>
-      ) : null}
-
       {/* ---- result header ---- */}
       <div className="dec-eyebrow">
         <span className="dec-dot" style={{ background: selfCatMeta.color }} />
@@ -613,12 +618,33 @@ export default function DailyEndCard({
     </div>
   );
 
-  if (!modal) return inner;
-  return (
-    <div className="dec-backdrop" onClick={onClose}>
-      <div style={{ width: '100%', maxWidth: 760, margin: 'auto' }} onClick={(e) => e.stopPropagation()}>
-        {inner}
-      </div>
+  // Confetti is a fixed, pointer-events-off overlay rendered continuously so it
+  // plays over the completed board during the reveal delay AND behind the popup.
+  const confettiEl = confetti.length ? (
+    <div aria-hidden="true">
+      {confetti.map((c, i) => (
+        <span
+          key={i}
+          className="dec-conf"
+          style={{ left: c.left, width: c.w, height: c.h, background: c.color, animationDuration: c.dur, animationDelay: c.delay }}
+        />
+      ))}
     </div>
+  ) : null;
+
+  if (!modal) {
+    return (<>{confettiEl}{revealed ? inner : null}</>);
+  }
+  return (
+    <>
+      {confettiEl}
+      {revealed ? (
+        <div className="dec-backdrop" onClick={onClose}>
+          <div style={{ width: '100%', maxWidth: 760, margin: 'auto' }} onClick={(e) => e.stopPropagation()}>
+            {inner}
+          </div>
+        </div>
+      ) : null}
+    </>
   );
 }
