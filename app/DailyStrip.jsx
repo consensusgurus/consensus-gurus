@@ -60,7 +60,7 @@ function fmtPts(x) { const v = Math.round(Number(x) * 10) / 10; return Number.is
 export default function DailyStrip({ board = null }) {
   const [done, setDone] = useState(() => new Set());
   const [open, setOpen] = useState(false);
-  const [yest, setYest] = useState(null); // yesterday's champion, from /api/quiz/daily-history
+  const [hist, setHist] = useState(null); // recent daily champions, from /api/quiz/daily-history
   // Display order = yesterday's popularity (canonical order until it loads).
   const dailyOrder = useDailyOrder();
   const games = sortByDailyOrder(GAMES, dailyOrder);
@@ -127,17 +127,19 @@ export default function DailyStrip({ board = null }) {
   const meShown = meKey && top3.some((r) => r.userKey === meKey);
   const uniquePlayers = board && typeof board.uniquePlayers === 'number' ? board.uniquePlayers : null;
 
-  // Yesterday's champion is only needed once the board is expanded; fetch it
-  // lazily on first open so a collapsed homepage visit never pays for it.
+  // Recent champions are only needed once the board is expanded; fetch them
+  // lazily on first open so a collapsed homepage visit never pays for it. We
+  // keep several days (not just yesterday) so the left column fills the height
+  // of the per-game minis on the right.
   useEffect(() => {
-    if (!open || !hasBoard || yest !== null) return;
+    if (!open || !hasBoard || hist !== null) return;
     let alive = true;
     fetch('/api/quiz/daily-history')
       .then((r) => r.json())
-      .then((d) => { if (alive && d && Array.isArray(d.history)) setYest(d.history[0] || { none: true }); })
+      .then((d) => { if (alive && d && Array.isArray(d.history)) setHist(d.history.slice(0, 10)); })
       .catch(() => {});
     return () => { alive = false; };
-  }, [open, hasBoard, yest]);
+  }, [open, hasBoard, hist]);
 
   return (
     <div className="dstrip-wrap">
@@ -214,15 +216,20 @@ export default function DailyStrip({ board = null }) {
         .dsd-row.first .dsd-pn{font-weight:800;font-size:14.5px;color:#f5d878;display:flex;align-items:center;gap:5px;}
         .dsd-row.first .dsd-cr{color:#e8b43a;flex:none;}
         .dsd-row.first .dsd-tt{font-size:15px;}
-        /* yesterday's champion */
-        .dsd-yest{display:flex;align-items:center;gap:7px;margin-top:11px;padding:9px 11px;border-radius:10px;background:rgba(255,255,255,.045);border:1px solid rgba(255,255,255,.09);}
-        .dsd-yest .yl{font-size:9px;letter-spacing:.1em;text-transform:uppercase;color:#8fa3cf;font-weight:800;flex:none;}
-        .dsd-yest b{min-width:0;font-size:13px;color:#eaf0fb;font-weight:700;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
-        .dsd-yest .yt{margin-left:auto;flex:none;font-size:12.5px;font-weight:800;color:#f5d878;font-variant-numeric:tabular-nums;}
+        /* past champions block: sits below today's board, separated by a clear
+           gap + rule so yesterday never reads as part of today's standings. */
+        .dsd-past{margin-top:20px;padding-top:16px;border-top:1px solid rgba(255,255,255,.10);}
+        .dsd-yest{display:flex;align-items:center;gap:7px;margin-top:6px;padding:7px 11px;border-radius:10px;background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.07);}
+        .dsd-yest.top{padding:9px 11px;background:rgba(255,255,255,.045);border-color:rgba(255,255,255,.09);}
+        .dsd-yest .yl{font-size:9px;letter-spacing:.1em;text-transform:uppercase;color:#8fa3cf;font-weight:800;flex:none;min-width:56px;}
+        .dsd-yest b{min-width:0;font-size:12px;color:#c9d6ee;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+        .dsd-yest.top b{font-size:13px;color:#eaf0fb;font-weight:700;}
+        .dsd-yest .yt{margin-left:auto;flex:none;font-size:11.5px;font-weight:700;color:#d8c489;font-variant-numeric:tabular-nums;}
+        .dsd-yest.top .yt{font-size:12.5px;font-weight:800;color:#f5d878;}
         .dsd-yest .yt s{font-size:9.5px;font-weight:600;color:#6a80a8;text-decoration:none;}
         .dsd-yest .ynone{font-size:12px;color:#6a80a8;font-weight:600;}
         /* Hall of Fame link (Daily Champions on the Stat Hub) */
-        .dsd-hof{display:flex;align-items:center;gap:6px;margin-top:8px;padding:9px 11px;border-radius:10px;background:rgba(232,180,58,.1);border:1px solid rgba(232,180,58,.32);color:#f5d878;font-size:12px;font-weight:800;text-decoration:none;transition:background .12s;}
+        .dsd-hof{display:flex;align-items:center;gap:6px;padding:9px 11px;border-radius:10px;background:rgba(232,180,58,.1);border:1px solid rgba(232,180,58,.32);color:#f5d878;font-size:12px;font-weight:800;text-decoration:none;transition:background .12s;}
         .dsd-hof:hover{background:rgba(232,180,58,.2);}
         .dsd-hof svg{color:#e8b43a;flex:none;}
         /* today's unique players (guests included) */
@@ -338,26 +345,34 @@ export default function DailyStrip({ board = null }) {
                     <span className="dsd-tt">{fmtPts(board.me.total)}<s>/{maxTotal}</s></span>
                   </div>
                 ) : null}
-                {/* Yesterday's champion */}
-                <div className="dsd-yest">
-                  <Crown size={13} style={{ color: '#e8b43a', flex: 'none' }} />
-                  <span className="yl">Yesterday</span>
-                  {yest && yest.winner ? (
-                    <>
-                      <b>{yest.winner.username || 'Champion'}</b>
-                      <span className="yt">{fmtPts(yest.winner.total)}<s>/{yest.maxTotal}</s></span>
-                    </>
-                  ) : (
-                    <span className="ynone">{yest && yest.none ? 'No champion yet' : 'Loading…'}</span>
-                  )}
-                </div>
-                {/* Hall of Fame → the Daily Champions history on the Stat Hub */}
-                <a href="/quizzes/hub?tab=daily&section=champions" className="dsd-hof"><Trophy size={12} /> Hall of Fame →</a>
-                {/* Today's unique players, guests included */}
+                {/* Full standings sits directly under today's top 3, with the
+                    day's player count right beneath it. */}
+                <a href="/daily" className="dsd-gt" style={{ marginTop: 11, color: '#f5d878' }}>Full standings &amp; game boards →</a>
                 {uniquePlayers != null ? (
-                  <div className="dsd-players"><b>{uniquePlayers.toLocaleString()}</b> {uniquePlayers === 1 ? 'player' : 'players'} today <s>· guests included</s></div>
+                  <div className="dsd-players" style={{ marginTop: 2 }}><b>{uniquePlayers.toLocaleString()}</b> {uniquePlayers === 1 ? 'player' : 'players'} today <s>· guests included</s></div>
                 ) : null}
-                <a href="/daily" className="dsd-gt" style={{ marginTop: 9, color: '#f5d878' }}>Full standings &amp; game boards →</a>
+                {/* Past champions: Hall of Fame link on top, then yesterday and
+                    the prior days, deep enough to fill the column. */}
+                <div className="dsd-past">
+                  <a href="/quizzes/hub?tab=daily&section=champions" className="dsd-hof"><Trophy size={12} /> Hall of Fame →</a>
+                  <div className="dsd-sub" style={{ marginTop: 13 }}>Recent Champions</div>
+                  {hist === null ? (
+                    <div className="dsd-empty">Loading…</div>
+                  ) : hist.length ? hist.map((d, i) => (
+                    <div key={d.date || i} className={`dsd-yest${i === 0 ? ' top' : ''}`}>
+                      <Crown size={i === 0 ? 13 : 11} style={{ color: i === 0 ? '#e8b43a' : '#8d7c52', flex: 'none' }} />
+                      <span className="yl">{i === 0 ? 'Yesterday' : d.label}</span>
+                      {d.winner ? (
+                        <>
+                          <b>{d.winner.username || 'Champion'}</b>
+                          <span className="yt">{fmtPts(d.winner.total)}<s>/{d.maxTotal}</s></span>
+                        </>
+                      ) : (
+                        <span className="ynone">No champion</span>
+                      )}
+                    </div>
+                  )) : <div className="dsd-empty">No champions yet.</div>}
+                </div>
               </div>
               <div>
                 <div className="dsd-sub">Each Game · Top 3</div>
