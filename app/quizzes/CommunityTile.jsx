@@ -17,13 +17,15 @@ import JoinLeaderboardForm from '../quiz/[id]/JoinLeaderboardForm';
 // inside each board), and /quizzes/leaderboard is a redirect to the Stat Hub,
 // so linking anywhere here would dead-end the one action the tile is asking for.
 
-const C = { accent: '#0e1d40', cta: '#e8b43a' };
+const C = { accent: '#0e1d40', cta: '#e8b43a', gold: '#ffd166' };
+// Gold / silver / bronze, matching the medal palette used on the ranking pages.
+const MEDAL = ['#e8b43a', '#b8bcc4', '#c8814b'];
 
 // The winner's name is the single most emphasised username on the page, so it is
 // set as large as will fit rather than at a fixed size: binary-search the largest
 // whole pixel size that keeps it on one line inside the tile, re-run on resize.
 const NAME_MIN = 17;
-const NAME_MAX = 46;
+const NAME_MAX = 42;
 const useIsoLayoutEffect = typeof window !== 'undefined' ? useLayoutEffect : useEffect;
 
 function useFittedName(text) {
@@ -119,15 +121,23 @@ export default function CommunityTile() {
       onMouseLeave={() => setOpen(false)}
     >
       <style>{`
-        .cmtile{background:linear-gradient(155deg,#16305e 0%,#0e1d40 62%,#0a1530 100%);cursor:pointer;}
+        /* Trophy tile: warm bronze ground with a gold spotlight behind the name, so it
+           reads as the celebration slot and stands apart from the navy tiles beside it. */
+        .cmtile{background:radial-gradient(135% 105% at 24% 36%, rgba(255,196,74,.30) 0%, rgba(255,196,74,.07) 44%, rgba(0,0,0,0) 72%), linear-gradient(155deg,#33280f 0%,#1f1809 58%,#130f08 100%);cursor:pointer;}
         .cmtile .cm-tag{position:absolute;top:12px;left:12px;font-size:10px;font-weight:800;letter-spacing:.08em;background:#fff;border-radius:10px;padding:4px 10px;z-index:3;color:#0e1d40;display:inline-flex;align-items:center;gap:4px;}
         .cmtile .cm-body{position:relative;z-index:1;padding:18px 16px 15px;}
         .cmtile .cm-namewrap{width:100%;}
         /* Auto-fitted: font-size is set inline by useFittedName. */
-        .cmtile .cm-who{display:block;white-space:nowrap;font-size:${NAME_MAX}px;font-weight:800;letter-spacing:-1.1px;line-height:1.02;color:${C.cta};text-shadow:0 2px 14px rgba(0,0,0,.45);}
-        .cmtile .cm-sub{font-size:12.5px;font-weight:600;color:rgba(255,255,255,.72);margin-top:7px;}
-        .cmtile .cm-foot{display:flex;align-items:center;gap:6px;margin-top:10px;font-size:13px;font-weight:800;color:#fff;}
-        .cmtile .cm-panel{position:absolute;inset:0;z-index:4;background:rgba(8,15,35,.97);padding:16px 15px;display:flex;flex-direction:column;gap:7px;opacity:0;pointer-events:none;transition:opacity .16s ease;overflow:auto;}
+        .cmtile .cm-who{display:block;white-space:nowrap;font-size:${NAME_MAX}px;font-weight:800;letter-spacing:-1.1px;line-height:1.02;color:${C.gold};text-shadow:0 2px 18px rgba(0,0,0,.55);}
+        .cmtile .cm-sub{font-size:12px;font-weight:600;color:rgba(255,236,200,.72);margin-top:5px;}
+        .cmtile .cm-podium{margin-top:9px;display:flex;flex-direction:column;gap:3px;border-top:1px solid rgba(255,209,102,.16);padding-top:7px;}
+        .cmtile .cm-prow{display:flex;align-items:center;gap:7px;font-size:11.5px;line-height:1.25;min-width:0;}
+        .cmtile .cm-medal{flex:none;width:14px;height:14px;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;font-size:9px;font-weight:800;color:#1a1408;}
+        .cmtile .cm-pname{flex:1 1 auto;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-weight:700;color:rgba(255,255,255,.82);}
+        .cmtile .cm-pname.cm-vacant{color:rgba(255,255,255,.34);font-weight:600;font-style:italic;}
+        .cmtile .cm-pn{flex:none;font-weight:800;color:rgba(255,236,200,.62);font-variant-numeric:tabular-nums;}
+        .cmtile .cm-foot{display:flex;align-items:center;gap:6px;margin-top:9px;font-size:12px;font-weight:800;color:rgba(255,255,255,.9);}
+        .cmtile .cm-panel{position:absolute;inset:0;z-index:4;background:rgba(24,18,8,.975);padding:16px 15px;display:flex;flex-direction:column;gap:7px;opacity:0;pointer-events:none;transition:opacity .16s ease;overflow:auto;}
         .cmtile:hover .cm-panel,.cmtile:focus-within .cm-panel,.cmtile.cm-open .cm-panel{opacity:1;pointer-events:auto;}
         .cmtile .cm-h{font-size:12px;font-weight:800;letter-spacing:.07em;color:${C.cta};text-transform:uppercase;}
         .cmtile .cm-p{font-size:12.5px;line-height:1.42;color:rgba(255,255,255,.86);}
@@ -135,7 +145,7 @@ export default function CommunityTile() {
         .cmtile .cm-url{flex:1 1 auto;min-width:0;font-size:11px;font-family:ui-monospace,SFMono-Regular,Menlo,monospace;color:#fff;background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.16);border-radius:8px;padding:7px 9px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
         .cmtile .cm-copy,.cmtile .cm-join{flex:none;display:inline-flex;align-items:center;gap:5px;font-size:12px;font-weight:800;color:#0e1d40;background:${C.cta};border:0;border-radius:8px;padding:8px 11px;cursor:pointer;font-family:inherit;}
         .cmtile .cm-join{margin-top:auto;align-self:flex-start;font-size:12.5px;}
-        .cm-modal{position:fixed;inset:0;z-index:9999;background:rgba(8,15,35,.62);display:flex;align-items:center;justify-content:center;padding:20px;cursor:default;}
+        .cm-modal{position:fixed;inset:0;z-index:9999;background:rgba(24,18,8,.66);display:flex;align-items:center;justify-content:center;padding:20px;cursor:default;}
         .cm-modal-card{position:relative;width:100%;max-width:390px;background:#fff;border-radius:16px;padding:22px 20px 20px;max-height:88vh;overflow:auto;}
         .cm-modal-x{position:absolute;top:11px;right:11px;background:none;border:0;padding:5px;cursor:pointer;color:#6b7280;line-height:0;}
       `}</style>
@@ -152,6 +162,27 @@ export default function CommunityTile() {
             </div>
             <div className="cm-sub">
               {leader.credits} {leader.credits === 1 ? 'player' : 'players'} brought in over the last 30 days
+            </div>
+            {/* Runners-up, so the tile reads as a podium rather than a single name.
+                Empty places render as "Open" on purpose: it shows the spot is
+                contested and reachable instead of hiding that nobody holds it. */}
+            <div className="cm-podium">
+              {[1, 2].map((i) => {
+                const r = data?.top?.[i] || null;
+                return (
+                  <div className="cm-prow" key={i}>
+                    <span className="cm-medal" style={{ background: MEDAL[i] }}>{i + 1}</span>
+                    {r ? (
+                      <>
+                        <span className="cm-pname">{r.username}</span>
+                        <span className="cm-pn">{r.credits}</span>
+                      </>
+                    ) : (
+                      <span className="cm-pname cm-vacant">Open</span>
+                    )}
+                  </div>
+                );
+              })}
             </div>
           </>
         ) : (
