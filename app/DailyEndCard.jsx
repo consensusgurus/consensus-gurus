@@ -31,6 +31,7 @@ import {
   Trophy, Link2, Flag, CalendarCheck, Scale, Grid3x3, LayoutGrid, Newspaper, FlagTriangleRight,
   Pencil, Users, ArrowRight, Puzzle, Fingerprint, KeyRound, Thermometer, Crown,
 } from 'lucide-react';
+import { myRefCode } from '@/lib/referrals';
 import ReportIssue from './ReportIssue';
 import { hasSundayEdition, isSundayET, SUNDAY_SHORT } from '@/lib/sunday-editions';
 
@@ -160,6 +161,11 @@ export default function DailyEndCard({
   boardId = 'daily-leaderboard',
   onLeaderboard,
 }) {
+  // "(for credit)" only for a registered viewer: every caller's share handler
+  // builds its URL through withRef, so a registered sharer genuinely earns the
+  // credit, while a signed-out one would be promised something they can't get.
+  const [forCredit, setForCredit] = useState(false);
+  useEffect(() => { setForCredit(!!myRefCode()); }, []);
   const [dailyMe, setDailyMe] = useState(null);
   const [dailyGuest, setDailyGuest] = useState(null); // provisional standing for an unregistered player
   const [boardGames, setBoardGames] = useState(null); // per-game field/plays for "most up for grabs"
@@ -533,7 +539,7 @@ export default function DailyEndCard({
           <BarChart3 size={15} strokeWidth={2} /> Leaderboard
         </button>
         <button type="button" className="dec-btn" onClick={onShare}>
-          <Share2 size={15} strokeWidth={2} /> {shareLabel}
+          <Share2 size={15} strokeWidth={2} /> {shareLabel}{forCredit && !/copied/i.test(shareLabel || '') ? ' (for credit)' : ''}
         </button>
       </div>
 
