@@ -166,6 +166,7 @@ function freshState() {
     guesses: [],                // years guessed, in order
     hintUsed: false,
     status: 'playing',          // playing | won | revealed
+    started: false,             // false until Start is pressed — keeps the moment covered
     t0: null,
     tEnd: null,
   };
@@ -203,6 +204,10 @@ export default function CircaClient({ puzzles = [], forceNum = null }) {
 
   const [showChrome, setShowChrome] = useState(false);
   const playing = g.status === 'playing';
+  // idle = fresh game, Start not yet pressed: the moment stays covered and the
+  // clock is not running. Note an idle game still has status 'playing', so the
+  // end-of-game branches below (which all key off !playing) are unaffected.
+  const idle = playing && !g.started;
   const focusMode = playing && !showChrome;
   const won = g.status === 'won';
   const guesses = g.guesses;
@@ -234,7 +239,12 @@ export default function CircaClient({ puzzles = [], forceNum = null }) {
       if (raw) {
         const saved = JSON.parse(raw);
         if (saved && saved.v === 1 && Array.isArray(saved.guesses)) {
-          setG({ ...freshState(), ...saved });
+          const merged = { ...freshState(), ...saved };
+          // A game already underway — or any save written before the Start gate
+          // shipped — resumes straight to the board. The gate is only ever shown
+          // for a genuinely fresh start.
+          if (!merged.started && (merged.guesses.length || merged.hintUsed || merged.t0 || merged.status !== 'playing')) merged.started = true;
+          setG(merged);
         }
       }
       if (!localStorage.getItem(HELP_KEY)) setShowHelp(true);
@@ -346,6 +356,15 @@ export default function CircaClient({ puzzles = [], forceNum = null }) {
         .then((d) => { if (d && !d.error) setBoard({ ...EMPTY_BOARD, ...d }); })
         .catch(() => {});
     } catch (e) {}
+  }
+
+  // The Start gate. The moment is covered until this fires, and the clock starts
+  // HERE rather than on the first guess — so time spent looking the answer up is
+  // time on the board, which is what makes the gate worth having.
+  function startGame() {
+    if (!idle) return;
+    setG({ ...g, started: true, t0: Date.now() });
+    if (!mobileUi) setTimeout(() => { try { inputRef.current && inputRef.current.focus(); } catch (e) {} }, 0);
   }
 
   function submitGuess() {
@@ -497,9 +516,22 @@ export default function CircaClient({ puzzles = [], forceNum = null }) {
             <span style={{ marginLeft: 'auto', whiteSpace: 'nowrap' }}>guess <b style={{ color: COLORS.ink, fontWeight: 500 }}>{Math.min(guesses.length + (playing ? 1 : 0), MAX_GUESSES)}</b>/{MAX_GUESSES}</span>
           </div>
 
-          <div style={{ fontFamily: SANS, fontSize: 24, fontWeight: 800, letterSpacing: '-0.01em', color: COLORS.ink, lineHeight: 1.25, margin: '2px 0 4px' }}>
-            {PUZZLE.title}
-          </div>
+          {idle ? (
+            <div style={{ margin: '2px 0 4px' }}>
+              <div aria-hidden="true" style={{ display: 'flex', flexDirection: 'column', gap: 10, padding: '5px 0 3px', userSelect: 'none' }}>
+                <div style={{ height: 18, borderRadius: 5, background: 'rgba(28,30,36,0.12)', width: '94%' }} />
+                <div style={{ height: 18, borderRadius: 5, background: 'rgba(28,30,36,0.12)', width: '56%' }} />
+              </div>
+              <button className="cc-go" onClick={startGame} style={{ width: '100%', marginTop: 16 }}>Start</button>
+              <div style={{ fontFamily: SANS, fontSize: 12, fontWeight: 700, color: COLORS.faded, marginTop: 9, textAlign: 'center' }}>
+                Today&rsquo;s moment appears when you start, and the clock starts with it.
+              </div>
+            </div>
+          ) : (
+            <div style={{ fontFamily: SANS, fontSize: 24, fontWeight: 800, letterSpacing: '-0.01em', color: COLORS.ink, lineHeight: 1.25, margin: '2px 0 4px' }}>
+              {PUZZLE.title}
+            </div>
+          )}
           {g.hintUsed && playing && (
             <div style={{ display: 'inline-flex', alignItems: 'center', gap: 6, fontFamily: SANS, fontSize: 12.5, fontWeight: 800, color: '#9a3d0c', background: '#fff7ed', border: '1.5px solid rgba(234,88,12,0.4)', borderRadius: 7, padding: '4px 10px', marginTop: 6 }}>
               <Lightbulb size={13} /> It happened in {centuryLabel}.
@@ -507,7 +539,7 @@ export default function CircaClient({ puzzles = [], forceNum = null }) {
           )}
 
           {/* input row */}
-          {playing && (
+          {playing && !idle && (
             <div style={{ marginTop: 14 }}>
               <div style={{ display: 'flex', gap: 9, alignItems: 'stretch' }}>
                 <input
@@ -556,7 +588,7 @@ export default function CircaClient({ puzzles = [], forceNum = null }) {
           )}
 
           {/* tools */}
-          {playing && (
+          {playing && !idle && (
             <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 13, flexWrap: 'wrap' }}>
               {!identity && !g.hintUsed && (
                 <button className="cc-tool" onClick={useHint} title="Reveal the century (one hint per day)" style={{ background: COLORS.accentSoft, borderColor: 'rgba(14,116,144,0.5)', color: '#155e70' }}>
@@ -719,7 +751,7 @@ export default function CircaClient({ puzzles = [], forceNum = null }) {
               <button onClick={() => { setShowHelp(false); try { localStorage.setItem(HELP_KEY, '1'); } catch (e) {} }} aria-label="Close" style={{ marginLeft: 'auto', background: 'none', border: 'none', cursor: 'pointer', color: COLORS.faded }}><X size={20} /></button>
             </div>
             <div style={{ fontSize: 14, lineHeight: 1.55, color: COLORS.ink, fontWeight: 600 }}>
-              <p style={{ margin: '0 0 9px' }}>One historical moment a day. <b>Guess the year</b> it happened &mdash; any year from {YR_MIN} to today &mdash; in six tries.</p>
+              <p style={{ margin: '0 0 9px' }}>One historical moment a day. <b>Guess the year</b> it happened &mdash; any year from {YR_MIN} to today &mdash; in six tries. The moment stays covered until you press <b>Start</b>, and your clock runs from there.</p>
               <p style={{ margin: '0 0 9px' }}>Every miss tells you two things: whether the real year is <b>earlier or later</b> than your guess, and how close you are &mdash; from <b style={{ color: '#475569' }}>cold</b> (200+ years off) through <b style={{ color: '#0a1730' }}>cool</b> and <b style={{ color: '#92610b' }}>warm</b> to <b style={{ color: '#9a3d0c' }}>hot</b> (within 10).</p>
               <p style={{ margin: '0 0 9px' }}>Land <b>within {SNAP} years</b> and you&rsquo;ve placed it &mdash; that&rsquo;s circa, and it counts. Hitting the <b>exact year</b> is a dead-on finish. One free <b>hint</b> reveals the century.</p>
               <p style={{ margin: 0 }}>A dead-on first guess scores a perfect 10; every extra guess costs a point (a circa finish costs one more). Ties break on fewest guesses, then fastest time. Sundays bring a trickier moment.</p>
