@@ -1,8 +1,8 @@
 'use client';
 
 import { useEffect, useState, useCallback } from 'react';
-import Link from 'next/link';
-import { Crown, Copy, Check, UserPlus, ArrowRight } from 'lucide-react';
+import { Crown, Copy, Check, UserPlus, ArrowRight, X } from 'lucide-react';
+import JoinLeaderboardForm from '../quiz/[id]/JoinLeaderboardForm';
 
 // Top Community Member tile on /quizzes. Occupies the slot the Trending tile
 // used to hold, so it keeps the .ttile class for the row's grid + media rules.
@@ -10,24 +10,44 @@ import { Crown, Copy, Check, UserPlus, ArrowRight } from 'lucide-react';
 // Shows whoever has brought in the most new players over the rolling window,
 // and on hover (or tap, on touch) explains how credit is earned and hands the
 // viewer their own share link. See lib/referrals.js for the capture flow.
+//
+// A visitor with no identity joins IN PLACE via the shared JoinLeaderboardForm
+// modal: there is no standalone join page on the site (the form lives as a tab
+// inside each board), and /quizzes/leaderboard is a redirect to the Stat Hub,
+// so linking anywhere here would dead-end the one action the tile is asking for.
 
-const C = { accent: '#0e1d40', cta: '#e8b43a', line: 'rgba(20,22,28,0.09)' };
+const C = { accent: '#0e1d40', cta: '#e8b43a' };
 
 export default function CommunityTile() {
   const [data, setData] = useState(null);
   const [open, setOpen] = useState(false);
   const [copied, setCopied] = useState(false);
+  const [joinOpen, setJoinOpen] = useState(false);
+  const [identity, setIdentity] = useState(null);
 
-  useEffect(() => {
-    let alive = true;
+  const load = useCallback(() => {
     let anon = '';
     try { anon = localStorage.getItem('sot_quiz_anon') || ''; } catch { /* private mode */ }
-    fetch(`/api/quiz/referrals${anon ? `?anonId=${encodeURIComponent(anon)}` : ''}`)
+    return fetch(`/api/quiz/referrals${anon ? `?anonId=${encodeURIComponent(anon)}` : ''}`)
       .then((r) => (r.ok ? r.json() : null))
-      .then((d) => { if (alive && d) setData(d); })
+      .then((d) => { if (d) setData(d); })
       .catch(() => { /* tile falls back to its empty state */ });
-    return () => { alive = false; };
   }, []);
+
+  useEffect(() => {
+    load();
+    try {
+      const id = JSON.parse(localStorage.getItem('sot_quiz_identity') || 'null');
+      if (id && id.username) setIdentity(id);
+    } catch { /* ignore */ }
+  }, [load]);
+
+  useEffect(() => {
+    if (!joinOpen) return undefined;
+    const esc = (e) => { if (e.key === 'Escape') setJoinOpen(false); };
+    window.addEventListener('keydown', esc);
+    return () => window.removeEventListener('keydown', esc);
+  }, [joinOpen]);
 
   const me = data?.me || null;
   const leader = data?.top?.[0] || null;
@@ -47,7 +67,7 @@ export default function CommunityTile() {
   return (
     <div
       className={`ttile cmtile${open ? ' cm-open' : ''}`}
-      onClick={() => setOpen((v) => !v)}
+      onClick={() => { if (!joinOpen) setOpen((v) => !v); }}
       onMouseLeave={() => setOpen(false)}
     >
       <style>{`
@@ -63,8 +83,11 @@ export default function CommunityTile() {
         .cmtile .cm-p{font-size:12.5px;line-height:1.42;color:rgba(255,255,255,.86);}
         .cmtile .cm-link{display:flex;align-items:center;gap:6px;margin-top:auto;}
         .cmtile .cm-url{flex:1 1 auto;min-width:0;font-size:11px;font-family:ui-monospace,SFMono-Regular,Menlo,monospace;color:#fff;background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.16);border-radius:8px;padding:7px 9px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
-        .cmtile .cm-copy{flex:none;display:inline-flex;align-items:center;gap:5px;font-size:12px;font-weight:800;color:#0e1d40;background:${C.cta};border:0;border-radius:8px;padding:8px 11px;cursor:pointer;}
-        .cmtile .cm-join{display:inline-flex;align-items:center;gap:6px;margin-top:auto;font-size:12.5px;font-weight:800;color:#0e1d40;background:${C.cta};border-radius:8px;padding:8px 11px;text-decoration:none;align-self:flex-start;}
+        .cmtile .cm-copy,.cmtile .cm-join{flex:none;display:inline-flex;align-items:center;gap:5px;font-size:12px;font-weight:800;color:#0e1d40;background:${C.cta};border:0;border-radius:8px;padding:8px 11px;cursor:pointer;font-family:inherit;}
+        .cmtile .cm-join{margin-top:auto;align-self:flex-start;font-size:12.5px;}
+        .cm-modal{position:fixed;inset:0;z-index:9999;background:rgba(8,15,35,.62);display:flex;align-items:center;justify-content:center;padding:20px;cursor:default;}
+        .cm-modal-card{position:relative;width:100%;max-width:390px;background:#fff;border-radius:16px;padding:22px 20px 20px;max-height:88vh;overflow:auto;}
+        .cm-modal-x{position:absolute;top:11px;right:11px;background:none;border:0;padding:5px;cursor:pointer;color:#6b7280;line-height:0;}
       `}</style>
 
       <span className="cm-tag"><Crown size={11} style={{ verticalAlign: -1, color: '#e8b43a' }} /> TOP COMMUNITY MEMBER</span>
@@ -92,24 +115,49 @@ export default function CommunityTile() {
           Registered users get a unique share link that credits them. Anyone who opens
           your link and finishes a quiz or a daily game counts toward your total, once.
         </div>
-        {me?.shareUrl ? (
+        {shareUrl ? (
           <>
             <div className="cm-p" style={{ color: 'rgba(255,255,255,.6)' }}>
               Your link{typeof me.credits === 'number' ? `, ${me.credits} credited so far` : ''}:
             </div>
             <div className="cm-link">
-              <span className="cm-url" title={me.shareUrl}>{me.shareUrl.replace(/^https:\/\//, '')}</span>
+              <span className="cm-url" title={shareUrl}>{shareUrl.replace(/^https:\/\//, '')}</span>
               <button type="button" className="cm-copy" onClick={copy}>
                 {copied ? <Check size={13} /> : <Copy size={13} />}{copied ? 'Copied' : 'Copy'}
               </button>
             </div>
           </>
         ) : (
-          <Link href="/quizzes/leaderboard" className="cm-join" onClick={(e) => e.stopPropagation()}>
-            <UserPlus size={13} /> Join the leaderboard to get your link
-          </Link>
+          <button
+            type="button"
+            className="cm-join"
+            onClick={(e) => { e.stopPropagation(); setJoinOpen(true); }}
+          >
+            <UserPlus size={13} /> Register to get your link
+          </button>
         )}
       </div>
+
+      {joinOpen && (
+        <div className="cm-modal" onClick={(e) => { e.stopPropagation(); setJoinOpen(false); }}>
+          <div className="cm-modal-card" onClick={(e) => e.stopPropagation()}>
+            <button type="button" className="cm-modal-x" aria-label="Close" onClick={() => setJoinOpen(false)}>
+              <X size={17} />
+            </button>
+            <JoinLeaderboardForm
+              hideIcon
+              heading="Register to get your share link"
+              identity={identity}
+              onJoined={(id) => {
+                setIdentity(id);
+                setJoinOpen(false);
+                // Re-read so the freshly minted ref_code and link render at once.
+                load();
+              }}
+            />
+          </div>
+        </div>
+      )}
     </div>
   );
 }
