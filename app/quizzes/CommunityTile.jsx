@@ -201,21 +201,18 @@ export default function CommunityTile() {
       <div className="cm-panel">
         <div className="cm-h">How to get credit</div>
         <div className="cm-p">
-          Registered users get a unique share link that credits them. Anyone who opens
-          it and finishes a quiz or a daily game counts toward your total, once.
+          Registered users get a unique share link. Anyone who opens it and finishes
+          a quiz or a daily game credits you, once.
         </div>
         {/* Referral capture is mounted in the ROOT layout, so ?ref= is picked up on
             every route on the site, not just /quizzes. That makes a per-quiz and
             per-daily-game share link free: it is the same code on a different path. */}
         <div className="cm-tip">
-          It works on every page. Add <span className="cm-code">?ref={me?.code || 'yourname'}</span> to
-          any quiz or daily game URL to share that one directly and still get the credit.
+          Works on every page: add <span className="cm-code">?ref={me?.code || 'yourname'}</span> to
+          any quiz or daily game URL to share that one directly.
         </div>
         {shareUrl ? (
           <>
-            <div className="cm-p" style={{ color: 'rgba(255,255,255,.6)' }}>
-              Your link{typeof me.credits === 'number' ? `, ${me.credits} credited so far` : ''}:
-            </div>
             <div className="cm-link">
               <span className="cm-url" title={shareUrl}>{shareUrl.replace(/^https:\/\//, '')}</span>
               <button type="button" className="cm-copy" onClick={copy}>
