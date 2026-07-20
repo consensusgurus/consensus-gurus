@@ -9,7 +9,7 @@ import { PUZZLES } from './puzzles';
 export const metadata = {
   title: 'Dating — Free Daily History Ordering Game | Source of Truths',
   description:
-    'A free daily history game — put five moments from history in chronological order in three checks or fewer. Every correct placement locks in with its year. New puzzle every day.',
+    'A free daily history game — put five moments from history in chronological order in three checks or fewer. Every correct placement locks in with its year. New puzzle every day, and six moments in the Sunday Edition.',
   alternates: { canonical: '/dating' },
   manifest: '/dating.webmanifest',
   icons: {

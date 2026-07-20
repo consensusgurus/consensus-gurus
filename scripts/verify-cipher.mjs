@@ -46,6 +46,10 @@ function solveCount(lhs, rhs, cap = 2) {
   return count;
 }
 
+// Cipher's Sunday Edition (three addends) launched on this date. Earlier drops
+// are grandfathered: they are live, played, and on the leaderboard.
+const SUNDAY_FROM = '2026-07-26';
+
 let bad = 0;
 const seen = new Set();
 PUZZLES.forEach((p, i) => {
@@ -56,9 +60,15 @@ PUZZLES.forEach((p, i) => {
   else {
     const iso = `20${m[3]}-${String(m[1]).padStart(2, '0')}-${String(m[2]).padStart(2, '0')}`;
     if (iso !== p.live) errs.push(`live ${p.live} != quizId date ${iso}`);
-    // no Sunday editions yet: the flag must be false so /daily never
-    // shows a phantom "Sunday Edition" chip (isSundayEdition reads it).
-    if (p.sunday !== false) errs.push('sunday must be false (no Sunday editions)');
+    // The Sunday flag must match the real weekday: a Sunday drop is the
+    // three-addend Sunday Edition, every other day is two addends. A wrong
+    // flag either hides the edition or shows a phantom chip on /daily.
+    // GRANDFATHERED: drops before SUNDAY_FROM shipped without the edition and
+    // are already played and on the leaderboard, so they are never rewritten.
+    const isSun = new Date(`${p.live}T12:00:00Z`).getUTCDay() === 0 && p.live >= SUNDAY_FROM;
+    if (p.sunday !== isSun) errs.push(`sunday must be ${isSun} for ${p.live}`);
+    if (isSun && p.lhs.length !== 3) errs.push('Sunday Edition needs 3 addends');
+    if (!isSun && p.lhs.length !== 2) errs.push('weekday needs exactly 2 addends');
   }
   const key = [...p.lhs].sort().join('+') + '=' + p.rhs;
   if (seen.has(key)) errs.push('duplicate equation');

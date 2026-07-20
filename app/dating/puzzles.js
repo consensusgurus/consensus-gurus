@@ -198,10 +198,14 @@ export const PUZZLES = [
     quizId: 'dating-7-26-26',
     live: '2026-07-26',
     dateLabel: 'July 26, 2026',
+    sunday: true,
     theme: 'Trailblazers',
+    // SUNDAY EDITION: six events instead of five. Nellie Bly (1890) sits just
+    // 13 years before Curie, so the extra slot is also the tightest call.
     events: [
       { t: 'Joan of Arc lifts the siege of Orleans', y: '1429', when: 1429, d: 'She was about seventeen at Orleans, and dead before she turned twenty.' },
       { t: 'Elizabeth I is crowned Queen of England', y: '1559', when: 1559, d: 'Her 44-year reign gave the whole era its name.' },
+      { t: 'Nellie Bly circles the globe in 72 days', y: '1890', when: 1890, d: 'She set out to beat a fictional record and came home in 72 days, 6 hours, 11 minutes.' },
       { t: 'Marie Curie wins her first Nobel Prize', y: '1903', when: 1903, d: 'Still the only person with Nobel Prizes in two different sciences.' },
       { t: 'Amelia Earhart flies solo across the Atlantic', y: '1932', when: 1932, d: 'Only the second person to do it solo, five years after Lindbergh.' },
       { t: 'Valentina Tereshkova becomes the first woman in space', y: '1963', when: 1963, d: 'Her 48 orbits beat the flight time of every American astronaut to date, combined.' },

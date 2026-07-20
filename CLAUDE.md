@@ -2876,13 +2876,22 @@ archive and hub chips use the short form `Sun`.
 | Ping | a trickier, more out-of-the-way city |
 | Jester | 9×9 Jubilee board instead of 8×8 |
 | Sworn | six suspects sworn instead of five |
+| Garble | every answer is six letters instead of five (from 2026-07-26) |
+| Dating | six events to order instead of five (from 2026-07-26) |
+| Cipher | three addends stacked instead of two (from 2026-07-26) |
 
-**No Sunday Edition (verified against the puzzle banks, 2026-07-20):** Garble (always
-5 words × 5 letters, every day), Links (always 4 groups × 16 words), Dating (always 5
-events), Outwit (always 5 prompts), Tuck (always a 14-letter rack), Cipher (always 2
-addends), Alibi (always 4 suspects), Warmer (one word every day).
+**No Sunday Edition:** Links (always 4 groups × 16 words), Outwit (always 5 prompts),
+Tuck (always a 14-letter rack), Alibi (always 4 suspects), Warmer (one word every day).
 
-Five of those eight (Outwit, Tuck, Alibi, Cipher, Warmer) carry a vestigial
+**GRANDFATHERING — never retrofit a live puzzle.** Garble, Dating and Cipher gained
+their editions on 2026-07-26, so their EARLIER Sunday drops (Garble 7/12 and 7/19,
+Dating 7/19, Cipher 7/19) stayed exactly as shipped: they are already played, scored,
+and frozen on the daily leaderboard, and rewriting one would invalidate real results.
+Where a validator enforces the edition, it carries a `SUNDAY_FROM` launch-date constant
+and skips anything earlier (see `scripts/verify-cipher.mjs`). Apply a new edition to
+FUTURE Sundays only.
+
+Four of those five (Outwit, Tuck, Alibi, Warmer) carry a vestigial
 `sunday: false` on every puzzle, and `AlibiClient.jsx` has a finished
 `Sunday Edition · The Sunday Case` badge that has never rendered because no Alibi puzzle
 is flagged. Those are **placeholders for variants that were never authored**, left in
@@ -2899,9 +2908,12 @@ render, or the server and client renders disagree and React throws a hydration e
 
 ### Adding a Sunday Edition to a game that lacks one
 
-1. Author the harder variant in that game's `puzzles.js` for the Sunday dates and set
-   `sunday: true`. Run that game's validator (`scripts/verify-<game>.mjs`) — a Sunday
-   variant usually changes a size or count the validator asserts, so update it too.
+1. Author the harder variant in that game's `puzzles.js` for FUTURE Sunday dates and set
+   `sunday: true`. Never rewrite a Sunday that already went live (see grandfathering
+   above). Run that game's validator (`scripts/verify-<game>.mjs`, or
+   `scripts/verify-daily-banks.mjs <game>`) — a Sunday variant usually changes a size or
+   count the validator asserts, so update the assertion to branch on `p.sunday` rather
+   than deleting it (Dating's event count and Garble's answer length both do this).
 2. Confirm the flag survives any field strip in `app/<game>/page.js`.
 3. Add the badge to the title row of the game client, gated on `PUZZLE.sunday`, wording
    per the label rule above.

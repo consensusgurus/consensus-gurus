@@ -8,7 +8,7 @@ import { PUZZLES } from './puzzles';
 export const metadata = {
   title: 'Garble — Free Daily Word Scramble Game | Source of Truths',
   description:
-    'A free daily word scramble game — untangle five garbled words, feed their gold letters into a clued finale, and finish in the fewest misses. New puzzle every day.',
+    'A free daily word scramble game — untangle five garbled words, feed their gold letters into a clued finale, and finish in the fewest misses. New puzzle every day, and a six-letter Sunday Edition each week.',
   alternates: { canonical: '/garble' },
   manifest: '/garble.webmanifest',
   icons: {

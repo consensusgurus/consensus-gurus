@@ -16,7 +16,7 @@ export const PUZZLES = [
   { num: 6, quizId: "cipher-7-23-26", live: "2026-07-23", dateLabel: "July 23, 2026", sunday: false, lhs: ["COCA","COLA"], rhs: "OASIS" },
   { num: 7, quizId: "cipher-7-24-26", live: "2026-07-24", dateLabel: "July 24, 2026", sunday: false, lhs: ["BEAR","DEER"], rhs: "ZEBRA" },
   { num: 8, quizId: "cipher-7-25-26", live: "2026-07-25", dateLabel: "July 25, 2026", sunday: false, lhs: ["CROSS","ROADS"], rhs: "DANGER" },
-  { num: 9, quizId: "cipher-7-26-26", live: "2026-07-26", dateLabel: "July 26, 2026", sunday: false, lhs: ["DONALD","GERALD"], rhs: "ROBERT" },
+  { num: 9, quizId: "cipher-7-26-26", live: "2026-07-26", dateLabel: "July 26, 2026", sunday: true, lhs: ["SNOW","MOON","NOON"], rhs: "STORM" },
   { num: 10, quizId: "cipher-7-27-26", live: "2026-07-27", dateLabel: "July 27, 2026", sunday: false, lhs: ["MIST","FROST"], rhs: "WINTER" },
   { num: 11, quizId: "cipher-7-28-26", live: "2026-07-28", dateLabel: "July 28, 2026", sunday: false, lhs: ["GREEN","ORANGE"], rhs: "COLORS" },
   { num: 12, quizId: "cipher-7-29-26", live: "2026-07-29", dateLabel: "July 29, 2026", sunday: false, lhs: ["PARK","PLAZA"], rhs: "STREET" },

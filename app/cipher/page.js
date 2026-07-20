@@ -10,7 +10,7 @@ import { PUZZLES } from './puzzles';
 export const metadata = {
   title: 'Cipher — Daily Cryptarithm: Crack the Letter Math | Source of Truths',
   description:
-    'A free daily cryptarithm — one WORD + WORD = WORD equation where every letter hides a different digit. Exactly one solution, no guessing required. Crack it clean for a perfect 10.',
+    'A free daily cryptarithm — one WORD + WORD = WORD equation where every letter hides a different digit. Exactly one solution, no guessing required. Crack it clean for a perfect 10, and take on three addends in the Sunday Edition.',
   alternates: { canonical: '/cipher' },
   manifest: '/cipher.webmanifest',
   icons: {

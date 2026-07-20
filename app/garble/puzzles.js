@@ -263,14 +263,17 @@ export const PUZZLES = [
     quizId: 'garble-7-26-26',
     live: '2026-07-26',
     dateLabel: 'July 26, 2026',
+    sunday: true,
     clue: "Every skyscraper's baby photo.",
     final: 'BLUEPRINT',
+    // SUNDAY EDITION: every answer is SIX letters instead of five. Same five
+    // words, same 9 marked letters feeding BLUEPRINT, just a longer unscramble.
     words: [
-      { answer: 'BLIMP', scramble: 'PBLMI', marks: [0, 1] },
-      { answer: 'UNZIP', scramble: 'PINUZ', marks: [0, 4] },
-      { answer: 'TIGER', scramble: 'TGIER', marks: [0, 4] },
-      { answer: 'NIECE', scramble: 'CNIEE', marks: [0, 2] },
-      { answer: 'IDIOM', scramble: 'OIMID', marks: [0] },
+      { answer: 'BRIDGE', scramble: 'IEDGBR', marks: [0, 2] },
+      { answer: 'PLANET', scramble: 'TNLEAP', marks: [0, 1] },
+      { answer: 'ROCKET', scramble: 'KCRTOE', marks: [0, 4] },
+      { answer: 'TURTLE', scramble: 'ETTLRU', marks: [0, 1] },
+      { answer: 'SALMON', scramble: 'NLOSMA', marks: [5] },
     ],
   },
   {

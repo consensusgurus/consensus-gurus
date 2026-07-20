@@ -477,6 +477,7 @@ export default function GarbleClient({ puzzles = [], forceNum = null }) {
               <h1 style={{ margin: 0, fontFamily: MONO, fontSize: 14, letterSpacing: '0.06em', fontWeight: 500, color: COLORS.ink }}>No. {PUZZLE.num}</h1>
               <span className="gb-ttl-dot" style={{ color: COLORS.faded }}>&middot;</span>
               <span className="gb-ttl-dt" style={{ fontFamily: SANS, fontStyle: 'italic', fontSize: 15, color: COLORS.faded }}>{PUZZLE.dateLabel}</span>
+              {PUZZLE.sunday && <span style={{ fontFamily: MONO, fontSize: 9.5, letterSpacing: '0.1em', textTransform: 'uppercase', fontWeight: 500, color: '#fff', background: COLORS.ember, borderRadius: 4, padding: '2px 6px' }}>Sunday Edition &middot; 6 letters</span>}
             </div>
             <button onClick={() => setShowHelp(true)} aria-label="How to play" title="How to play" style={{ position: 'absolute', top: 13, right: 2, background: 'none', border: 'none', cursor: 'pointer', color: COLORS.faded, padding: 0, display: 'flex' }}>
               <HelpCircle size={20} />
@@ -699,7 +700,7 @@ export default function GarbleClient({ puzzles = [], forceNum = null }) {
           The finale is the sixth answer: a final word with its clue printed from the start. Solve it whenever you spot it &mdash; it ends the game on the spot, so an early finale sprint is a real strategy. Wrong arrangements count as misses, and fewest misses breaks ties on the daily leaderboard.
         </p>
         <p style={{ margin: 0, fontSize: 13, lineHeight: 1.65, color: COLORS.faded, fontWeight: 600 }}>
-          A new Garble arrives every day. No app, no signup &mdash; play free in your browser. Like interlocking grids more than scrambles? Try <a href="/crux" style={{ color: COLORS.ink, fontWeight: 800 }}>Crux</a>, our daily crossword-style word game.
+          A new Garble arrives every day, and the Sunday Edition stretches every answer to six letters. No app, no signup &mdash; play free in your browser. Like interlocking grids more than scrambles? Try <a href="/crux" style={{ color: COLORS.ink, fontWeight: 800 }}>Crux</a>, our daily crossword-style word game.
         </p>
       </section>
 

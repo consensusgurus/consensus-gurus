@@ -258,6 +258,8 @@ if (RUN('garble')) {
     const errs = [], warns = [];
     let finalLetters = '';
     for (const w of p.words) {
+      // Sunday Editions are SIX-letter answers; weekdays are five or six.
+      if (p.sunday && w.answer.length !== 6) errs.push(`${w.answer}: Sunday Edition answers must be 6 letters`);
       if (sortKey(w.answer) !== sortKey(w.scramble)) errs.push(`${w.answer}: scramble not an anagram`);
       if (w.answer === w.scramble) errs.push(`${w.answer}: scramble equals answer`);
       for (const m of w.marks) { if (m < 0 || m >= w.answer.length) errs.push(`${w.answer}: mark ${m} out of range`); }
@@ -362,7 +364,9 @@ if (RUN('dating')) {
   const { PUZZLES } = await import('../app/dating/puzzles.js');
   for (const p of PUZZLES) {
     const errs = [];
-    if (p.events.length !== 5) errs.push(`${p.events.length} events`);
+    // Sunday Editions run SIX events; weekdays run five.
+    const wantEvents = p.sunday ? 6 : 5;
+    if (p.events.length !== wantEvents) errs.push(`${p.events.length} events (want ${wantEvents})`);
     for (let i = 1; i < p.events.length; i++) if (!(p.events[i].when > p.events[i - 1].when)) errs.push(`order not strictly ascending at #${i}`);
     if (new Set(p.events.map((e) => e.t)).size !== p.events.length) errs.push('duplicate event');
     errs.length ? fail(p.quizId, errs.join('; ')) : ok(p.quizId, 'strictly ascending, distinct');
