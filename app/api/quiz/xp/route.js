@@ -9,7 +9,7 @@ export const fetchCache = 'force-no-store';
 // repeat hits instead of hitting Supabase per request (egress fix 2026-07-12).
 const CACHE_HEADERS = { 'Cache-Control': 'public, s-maxage=300, stale-while-revalidate=600' };
 
-// GET /api/quiz/xp[?scope=<dept>][&full=1]
+// GET /api/quiz/xp[?scope=<dept>][&full=1][&sort=xp30d]
 // XP-RANKED leaderboard for the /quizzes page — every player gets a numbered
 // rank. Returns, per ranked player, the per-metric values FOR THE REQUESTED
 // SCOPE (xp, level, correct, completed, days played, accuracy) so the page can
@@ -17,12 +17,15 @@ const CACHE_HEADERS = { 'Cache-Control': 'public, s-maxage=300, stale-while-reva
 // `scope` filters to one department; omit/`all` for overall. ALL anonymous
 // players are included. full=1 returns up to 2000 rows plus trend7d = XP
 // earned in the last 7 days (null = the player's first game is newer than the
-// cutoff, shown as NEW).
+// cutoff, shown as NEW). sort=xp30d re-ranks by XP earned in the last 30
+// days instead of all-time (the Top SoT Player tile on /quizzes), and every
+// row carries xp30d either way.
 const TOP_N = 12;
 export async function GET(request) {
   const { searchParams } = new URL(request.url);
   const scope = (searchParams.get('scope') || 'all').trim() || 'all';
   const full = searchParams.get('full') === '1';
+  const sort = (searchParams.get('sort') || '').trim();
   try {
     const { data, error } = await loadQuizResults(supabaseAdmin);
     if (error) {
@@ -30,13 +33,21 @@ export async function GET(request) {
       return NextResponse.json({ scope, total: 0, players: [] });
     }
     const { players } = computeXp(data || []);
-    const ranked = rankPlayers(players, scope);
+    let ranked = rankPlayers(players, scope);
+    // Recent-window board. Ties fall back to all-time XP so the order is stable
+    // for the (many) players sitting at 0 for the window.
+    if (sort === 'xp30d') {
+      ranked = ranked
+        .slice()
+        .sort((a, b) => (b.xp30d || 0) - (a.xp30d || 0) || b.xp - a.xp || (a.name || '').localeCompare(b.name || ''));
+    }
     const out = ranked.slice(0, full ? 2000 : TOP_N).map((p, i) => ({
       rank: i + 1,
       name: p.name,
       isAnon: p.isAnon,
       userKey: p.key,
       xp: p.xp,
+      xp30d: p.xp30d == null ? 0 : p.xp30d,
       level: p.level,
       correct: p.correct,
       completed: p.completed,

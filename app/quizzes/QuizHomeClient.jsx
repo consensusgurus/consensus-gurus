@@ -15,6 +15,7 @@ import {
 import { QUIZZES } from '@/lib/quizzes';
 import { KIDS_GAMES } from '@/lib/kids';
 import DailyStrip from '../DailyStrip';
+import XpTile from './XpTile';
 import { QUIZ_HEROES, qotdIdFor } from '@/lib/quiz-heroes';
 import {
   quizDept as deptOf, DEPT_COLOR, DEPT_LABEL, DEPT_NAV,
@@ -117,6 +118,26 @@ function gameFamily(id) { const m = (id || '').match(DAILY_GAME_FAMILY_RE); retu
 // would monopolize the Newest tile. They have their own hub tiles, so the Newest
 // tile/list must never surface one. Keep this in sync with DAILY_GAME_FAMILY_RE.
 const isDailyGame = (id) => DAILY_GAME_FAMILY_RE.test(id || '');
+// Daily games have no photo hero and never will: they are abstract puzzles, so
+// any stock photo would be arbitrary. Instead each family has a purpose-built
+// banner in /public/games/hero/<family>.png: the game's own icon on a white
+// app-icon plate over the site navy, built from the /public/games/btn-*.png art
+// by scripts/generate-game-heroes.py. The plate exists because the hero tile
+// lays a dark scrim over the image, which would swallow a light banner. Only
+// families with a banner are listed; anything else falls through to DEPT_HERO.
+const DG_HERO_FAMS = new Set(['alibi', 'carve', 'cipher', 'circa', 'crux', 'dating', 'emcee', 'extra',
+  'garble', 'jester', 'links', 'outwit', 'ping', 'span', 'stet', 'suds', 'sworn', 'tally', 'tuck', 'warmer']);
+// One resolver for every hero image on the page: the quiz's own photo if it has
+// one, else its daily-game banner, else the department hero, else the fallback.
+// `pos` is the background-position that goes with the chosen image.
+function heroFor(id, dept) {
+  const qh = id ? QUIZ_HEROES[id] : null;
+  if (qh && qh.src) return { src: qh.src, pos: qh.pos };
+  const fam = gameFamily(id);
+  // The banner is drawn around a centred icon, so it must not be re-positioned.
+  if (fam && DG_HERO_FAMS.has(fam)) return { src: `/games/hero/${fam}.png`, pos: 'center' };
+  return { src: DEPT_HERO[dept] || FALLBACK_HERO, pos: undefined };
+}
 // Business News hub quizzes are normally kept out of the Newest tile/panel, but
 // individual ids can be allowlisted to headline there (owner decision). The Netflix
 // earnings quiz is allowlisted so its print-day quiz can be the Newest tile.
@@ -428,6 +449,8 @@ export default function QuizHomeClient() {
   })), []);
 
   const titleById = useMemo(() => Object.fromEntries(catalog.map((q) => [q.id, q.title])), [catalog]);
+  // Play-feed rows carry only a quizId, so heroFor() needs a dept lookup.
+  const deptById = useMemo(() => Object.fromEntries(catalog.map((q) => [q.id, q.dept])), [catalog]);
 
   // Today's daily challenge: ordered quiz ids + local completion (run-state).
   const dailyId = daily ? daily.id : null;
@@ -888,8 +911,6 @@ export default function QuizHomeClient() {
   // behind each footer overlay (scrim folded in) and pill only when too light.
   const nQH = newest[0] ? QUIZ_HEROES[newest[0].id] : null;
   const nHero = newest[0] ? ((nQH && nQH.src) || DEPT_HERO[newest[0].dept] || null) : null;
-  const nHeroPos = nQH ? nQH.pos : undefined;
-  const [ntileProbeRef, ntilePill] = usePillProbe(nHero, PILL_REGION_FOOTER, 0.72, true);
   // Rule: the Trending tile may never repeat the Newest tile's hero image.
   // When both resolve to the same src, Trending swaps to the department's
   // alternate hero (DEPT_HERO_ALT), or to its category-color block if the
@@ -1126,7 +1147,7 @@ export default function QuizHomeClient() {
     .qzh .th-r2{display:grid;grid-template-columns:minmax(0,0.95fr) minmax(0,0.95fr) minmax(0,1fr) minmax(0,1fr);gap:12px;align-items:stretch;}
     .qzh .th-r2 .th-slot-hold{min-height:215px;}
     @media(max-width:820px){.qzh .thub{flex-direction:column;}.qzh .th-rail{align-self:stretch;}.qzh .th-r2{grid-template-columns:1fr 1fr;}.qzh .th-r2 .dtile{grid-column:1 / -1;}.qzh .th-r2 .dueltile{grid-column:1 / -1;}}
-    @media(max-width:560px){.qzh .th-r2{grid-template-columns:minmax(0,1fr);}.qzh .th-rail{display:none !important;}.qzh .th-heroes .ntile,.qzh .th-r2 .ntile{min-height:220px;background-position:center 12%;}.qzh .th-r2 .ntile{order:1;min-height:220px;}.qzh .th-heroes .ttile{min-height:220px;}.qzh .th-r2 .stile{order:2;min-height:220px;}.qzh .th-r2 .dtile{order:3;}.qzh .th-r2 .dueltile{order:4;}.qzh .th-r2 .th-slot-hold{display:none;}.qzh .duelbtn{display:none !important;}/* Stacked full-width hero tiles: Newest matches Trending typography on mobile (needs .th-heroes for specificity over the base rules below) */.qzh .th-heroes .ntile-t,.qzh .th-r2 .ntile-t{font-size:20px;}.qzh .th-heroes .ntile-tag,.qzh .th-r2 .ntile-tag{font-size:10px;padding:4px 10px;top:12px;left:12px;}.qzh .th-heroes .ntile-ov,.qzh .th-r2 .ntile-ov{padding:18px 16px 15px;}}
+    @media(max-width:560px){.qzh .th-r2{grid-template-columns:minmax(0,1fr);}.qzh .th-rail{display:none !important;}.qzh .th-heroes .ttile{min-height:220px;}.qzh .th-r2 .stile{order:1;min-height:220px;}.qzh .th-r2 .xptile{order:2;min-height:220px;}.qzh .th-r2 .dtile{order:3;}.qzh .th-r2 .dueltile{order:4;}.qzh .th-r2 .th-slot-hold{display:none;}.qzh .duelbtn{display:none !important;}}
     /* Narrow desktop / tablet (561-1024px): mirror the mobile combine - pair the promo tiles two-up (QOTD full row, Newest+Geo, Daily+Trending, Sports+Duel) and drop the Category Mastery rail. minmax(0,1fr) keeps the Newest/Geo hero images clipped inside their tiles (bare 1fr let them bleed). Added 2026-07-15 per Marshall. */
     @media (min-width:561px) and (max-width:1024px){.qzh .thub{flex-direction:column;}.qzh .th-rail{display:none !important;}.qzh .th-heroes{grid-template-columns:minmax(0,1fr) minmax(0,1fr);}.qzh .th-heroes .th-qotd{grid-column:1 / -1;}.qzh .th-r2{grid-template-columns:minmax(0,1fr) minmax(0,1fr);}.qzh .th-r2 .dtile{grid-column:auto;}.qzh .th-r2 .dueltile{grid-column:auto;}}
     /* Short landscape phones (<=480px tall): compact TWO-ROW header. Reworked 2026-07-17 per Marshall - QOTD no longer takes a full row (it shares row 1 with Newest + Geo), and Featured Geo + Featured Sports are shown here (they stay hidden only on the rare <561px landscape). Row 2 = Daily + Sports + Trending + Duel. The base rule below still hides gtile/stile; the min-width:561 block re-shows them. Portrait phones (<=560px) keep the stacked full-width layout. */
@@ -1140,7 +1161,7 @@ export default function QuizHomeClient() {
       .qzh .th-r2 .dtile{grid-column:auto;}
       .qzh .th-r2 .dueltile{grid-column:auto;}
       .qzh .th-r2 .th-slot-hold{display:none;}
-      .qzh .th-heroes .ntile,.qzh .th-r2 .ntile,.qzh .th-heroes .hstile,.qzh .th-r2 .hstile,.qzh .th-heroes .ttile,.qzh .th-r2 .ttile,.qzh .th-r2 .dueltile{min-height:158px;}
+      .qzh .th-heroes .hstile,.qzh .th-r2 .hstile,.qzh .th-heroes .ttile,.qzh .th-r2 .ttile,.qzh .th-r2 .dueltile{min-height:158px;}
       .qzh .qotd{min-height:158px;}
       .qzh .dtile{min-height:158px;}
       .qzh .qotd-photo{flex-basis:38%;}
@@ -1165,11 +1186,6 @@ export default function QuizHomeClient() {
     .qzh .dtile-num{width:16px;height:16px;border-radius:50%;border:2px solid rgba(255,255,255,0.6);flex:none;font-size:9px;display:flex;align-items:center;justify-content:center;}
     .qzh .dtile-name{flex:1 1 auto;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
     .qzh .dtile-cta{margin-top:auto;display:flex;align-items:center;justify-content:center;gap:7px;background:${C.cta};color:${C.ctaInk};border-radius:10px;padding:10px;font-weight:800;font-size:12.5px;text-decoration:none;}
-    .qzh .ntile{position:relative;border:1px solid ${C.line};border-radius:14px;overflow:hidden;text-decoration:none;display:flex;flex-direction:column;justify-content:flex-end;min-height:172px;background-size:cover;background-position:center 22%;background-color:${C.accsoft};}
-    .qzh .ntile-tag{position:absolute;top:10px;left:11px;font-size:9px;font-weight:800;letter-spacing:.08em;background:#fff;border-radius:10px;padding:3px 9px;z-index:2;}
-    .qzh .ntile-ov{position:relative;z-index:1;padding:16px 14px 13px;background:linear-gradient(to top, rgba(8,15,35,0.88), rgba(8,15,35,0.45) 55%, rgba(8,15,35,0));}
-    .qzh .ntile-t{font-size:16px;font-weight:800;letter-spacing:-.3px;line-height:1.14;color:#fff;}
-    .qzh .ntile-p{margin-top:8px;font-size:13px;font-weight:800;color:#fff;}
     .qzh .lbtile{background:#fff;border:1px solid ${C.line};border-radius:14px;padding:12px 15px;flex:1;display:flex;flex-direction:column;min-height:132px;overflow:hidden;}
     .qzh .lbtile-head{display:flex;align-items:center;gap:7px;margin-bottom:6px;}
     .qzh .duelbtn{background:${C.cta};color:${C.ctaInk};border:none;border-radius:12px;padding:12px;font-weight:800;font-size:12px;font-family:inherit;display:flex;align-items:center;justify-content:center;gap:8px;cursor:pointer;flex:none;}
@@ -1504,18 +1520,12 @@ export default function QuizHomeClient() {
           </div>
 
           <div className="th-r2">
-          {/* Newest leads row 2 (was row 1) so the Community tile can take the
-              hero slot. The `trending` memo is still computed above: it feeds the
-              geo/sports rotation exclusions even though its tile is gone. */}
-          {newest[0] ? (() => { const nc = byKey[newest[0].dept] || {}; const NIcon = nc.Icon || Sparkles; const nPos = nHeroPos; return (
-              <Link href={`/quiz/${newest[0].id}`} className="ntile" style={nHero ? { backgroundImage: `url("${nHero}")`, backgroundPosition: nPos || 'center' } : { background: nc.c || C.accent }}>
-                <span className="ntile-tag" style={{ color: C.accent }}><Sparkles size={10} style={{ verticalAlign: -1 }} /> NEWEST</span>
-                <div className="ntile-ov" ref={ntileProbeRef}>
-                  <div className="ntile-t">{stripVerb(newest[0].title)}</div>
-                  <div className="ntile-p" style={{ display: 'flex', alignItems: 'center', gap: 12 }}><span>Play <ArrowRight size={13} style={{ verticalAlign: -1 }} /></span>{leader(newest[0].id) ? <span className={ntilePill ? 'hpill' : undefined} style={{ display: 'inline-flex', alignItems: 'center', gap: 4 }}><Crown size={12} style={{ color: '#e8b43a', flex: 'none' }} />{leader(newest[0].id)}</span> : null}</div>
-                </div>
-              </Link>
-            ); })() : <div />}
+          {/* Row 2, left to right: Featured Geo, Featured Sports, Top SoT Player,
+              Duel. The Newest tile was retired 2026-07-20 (its job is done by
+              the Newest browse column, which now carries its own hero), so Geo
+              and Sports each shifted one slot left and the XP tile took the slot
+              Sports vacated. The `trending` memo above is still computed: it
+              feeds the geo/sports rotation exclusions even though its tile is gone. */}
           {geoPick ? (
             <Link href={`/quiz/${geoPick.id}`} className="hstile gtile th-only-desk" style={geoHero ? { backgroundImage: `url("${geoHero}")`, backgroundPosition: geoPos || 'center' } : { background: C.accent }}>
               <span className="ttile-tag" style={{ color: '#0f766e', whiteSpace: 'nowrap' }}><Globe size={11} style={{ verticalAlign: -1 }} /> FEATURED GEO GUESSER</span>
@@ -1559,6 +1569,8 @@ export default function QuizHomeClient() {
               </div>
             </Link>
           ) : <div className="th-slot-hold" />}
+
+            <XpTile />
 
             <DuelTile />
           </div>
@@ -1749,12 +1761,45 @@ export default function QuizHomeClient() {
           </div>
         ) : (
           <div className="qcols">
-            <BrowseColumn label={<>Last Played{playsToday ? <span style={{ fontSize: 10.5, fontWeight: 700, color: 'rgba(255,255,255,0.82)' }}> · {playsToday.toLocaleString()} plays today</span> : null}</>} Icon={Play} color="#10b981" tint="#d8f3e6" filled fill baseCount={5}
-              rows={lastPlayed.map((f) => ({ q: { id: f.quizId, title: f.title, rawTitle: f.title }, right: (<>{todayPlays(f.quizId) > 0 ? <span style={{ fontSize: 10, fontWeight: 800, color: '#10b981', background: '#d8f3e6', borderRadius: 6, padding: '1px 6px' }}>+{todayPlays(f.quizId)}</span> : null}<span className="score" style={{ fontSize: 11, color: f.total && f.score / f.total >= 0.8 ? '#16a34a' : C.soft }}>{f.score}/{f.total}</span><span style={{ color: C.soft }}>{relTime(f.playedAt)}</span></>) }))} cta="View all ›" onCta={() => setListMode('live')} />
-            <BrowseColumn label="Most Played" Icon={Flame} color="#c2691c" tint="#f4e2cd" filled fill baseCount={5}
-              rows={mostPlayed.map((q) => ({ q, right: <PlaysRight id={q.id} plays={plays} leader={leader} leaderKey={leaderKey} color="#c2691c" hidePlays /> }))} cta="View all ›" onCta={() => setListMode('mostplayed')} />
-            <BrowseColumn label="Newest" Icon={Sparkles} color={C.accent} tint={C.accsoft} filled fill baseCount={5}
-              rows={newestAll.slice(0, 15).map((q) => ({ q, right: <NewRight q={q} /> }))} cta="View all ›" onCta={() => setListMode('newest')} />
+            {/* Last Played / Most Played / Newest each lead with a hero photo
+                (added 2026-07-20 per Marshall), so the three activity columns
+                match the category columns beside them instead of reading as a
+                wall of text. The hero IS the column's own #1 row, pulled out of
+                the list below it so nothing shows twice. Daily games resolve to
+                their icon banner via heroFor(). */}
+            {(() => {
+              const lpTop = lastPlayed[0] || null;
+              const lpHero = lpTop ? heroFor(lpTop.quizId, deptById[lpTop.quizId]) : null;
+              return (
+                <BrowseColumn label={<>Last Played{playsToday ? <span style={{ fontSize: 10.5, fontWeight: 700, color: 'rgba(255,255,255,0.82)' }}> · {playsToday.toLocaleString()} plays today</span> : null}</>} Icon={Play} color="#10b981" tint="#d8f3e6" filled fill baseCount={5}
+                  heroUrl={lpHero ? lpHero.src : undefined} heroPos={lpHero ? lpHero.pos : undefined}
+                  heroId={lpTop ? lpTop.quizId : undefined} heroTitle={lpTop ? lpTop.title : ''}
+                  heroPlays={lpTop ? plays(lpTop.quizId) : 0} heroLeader={lpTop ? leader(lpTop.quizId) : ''}
+                  rows={lastPlayed.filter((f) => !lpTop || f.quizId !== lpTop.quizId).map((f) => ({ q: { id: f.quizId, title: f.title, rawTitle: f.title }, right: (<>{todayPlays(f.quizId) > 0 ? <span style={{ fontSize: 10, fontWeight: 800, color: '#10b981', background: '#d8f3e6', borderRadius: 6, padding: '1px 6px' }}>+{todayPlays(f.quizId)}</span> : null}<span className="score" style={{ fontSize: 11, color: f.total && f.score / f.total >= 0.8 ? '#16a34a' : C.soft }}>{f.score}/{f.total}</span><span style={{ color: C.soft }}>{relTime(f.playedAt)}</span></>) }))} cta="View all ›" onCta={() => setListMode('live')} />
+              );
+            })()}
+            {(() => {
+              const mpTop = mostPlayed[0] || null;
+              const mpHero = mpTop ? heroFor(mpTop.id, mpTop.dept) : null;
+              return (
+                <BrowseColumn label="Most Played" Icon={Flame} color="#c2691c" tint="#f4e2cd" filled fill baseCount={5}
+                  heroUrl={mpHero ? mpHero.src : undefined} heroPos={mpHero ? mpHero.pos : undefined}
+                  heroId={mpTop ? mpTop.id : undefined} heroTitle={mpTop ? mpTop.title : ''}
+                  heroPlays={mpTop ? plays(mpTop.id) : 0} heroLeader={mpTop ? leader(mpTop.id) : ''}
+                  rows={mostPlayed.filter((q) => !mpTop || q.id !== mpTop.id).map((q) => ({ q, right: <PlaysRight id={q.id} plays={plays} leader={leader} leaderKey={leaderKey} color="#c2691c" hidePlays /> }))} cta="View all ›" onCta={() => setListMode('mostplayed')} />
+              );
+            })()}
+            {(() => {
+              const nwTop = newestAll[0] || null;
+              const nwHero = nwTop ? heroFor(nwTop.id, nwTop.dept) : null;
+              return (
+                <BrowseColumn label="Newest" Icon={Sparkles} color={C.accent} tint={C.accsoft} filled fill baseCount={5}
+                  heroUrl={nwHero ? nwHero.src : undefined} heroPos={nwHero ? nwHero.pos : undefined}
+                  heroId={nwTop ? nwTop.id : undefined} heroTitle={nwTop ? nwTop.title : ''}
+                  heroPlays={nwTop ? plays(nwTop.id) : 0} heroLeader={nwTop ? leader(nwTop.id) : ''}
+                  rows={newestAll.slice(0, 16).filter((q) => !nwTop || q.id !== nwTop.id).map((q) => ({ q, right: <NewRight q={q} /> }))} cta="View all ›" onCta={() => setListMode('newest')} />
+              );
+            })()}
             {cats.filter((c) => c.key !== 'school').map((c) => {
               const tilePool = c.key === 'word' ? c.quizzes : c.quizzes.filter((q) => !isDailyGame(q.id));
               const topQ = tilePool.slice().sort((a, b) => plays(b.id) - plays(a.id) || a.title.localeCompare(b.title))[0];
@@ -1972,6 +2017,10 @@ function BrowseColumn({ label, Icon, color, tint, rows, cta, onCta, ctaHref, her
   const headFg = blueHead ? '#fff' : color;
   const heroLink = heroHref || (heroId ? `/quiz/${heroId}` : '#');
   const base = baseCount || rows.length;
+  // A column with its own hero is already the full row height, so the gap-fill
+  // measurement below is both unnecessary and wrong for it (it would size to a
+  // sibling hero and over-fill). Only heroless `fill` columns need it.
+  const fillGap = fill && !hasHero;
   const secRef = useRef(null);
   const headRef = useRef(null);
   const [shown, setShown] = useState(base);
@@ -1986,7 +2035,7 @@ function BrowseColumn({ label, Icon, color, tint, rows, cta, onCta, ctaHref, her
   // no longer sits beside a hero (e.g. after resizing 2-col -> 3-col). Works on
   // every viewport, desktop included.
   useEffect(() => {
-    if (!fill || typeof window === 'undefined') return;
+    if (!fillGap || typeof window === 'undefined') return;
     const sec = secRef.current; if (!sec) return;
     const measure = () => {
       const grid = sec.parentElement; if (!grid) return;
@@ -2014,8 +2063,11 @@ function BrowseColumn({ label, Icon, color, tint, rows, cta, onCta, ctaHref, her
     if (grid) ro.observe(grid);
     window.addEventListener('resize', measure);
     return () => { ro.disconnect(); window.removeEventListener('resize', measure); };
-  }, [fill, base, rows.length]);
-  const shownRows = fill ? rows.slice(0, shown) : rows;
+  }, [fillGap, base, rows.length]);
+  // A hero column is a fixed card: hero + 6 rows, matching the category columns.
+  // (Without this the three activity columns, which pass 15+ rows for the
+  // gap-fill they no longer do, would render every one of them.)
+  const shownRows = fillGap ? rows.slice(0, shown) : (hasHero ? rows.slice(0, 6) : rows);
   return (
     <section ref={secRef} className={`mc-open${(hasHero || filled) ? ' catcard' : ''}`} style={{ minWidth: 0 }}>
       {hasHero ? (
