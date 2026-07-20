@@ -7,6 +7,7 @@ import Grain from '../../Grain';
 import Footer from '../../Footer';
 import DuelSignup from '../DuelSignup';
 import { QUIZZES } from '@/lib/quizzes';
+import { withRef } from '@/lib/referrals';
 
 const C = { bg: '#f7f8fa', surface: '#fff', ink: '#1c1e24', muted: '#6b7280', soft: '#9aa0ab', line: 'rgba(20,22,28,0.10)', accent: '#0e1d40', accsoft: '#e8effb', gold: '#e8b43a', win: '#16a34a', lose: '#c0392b' };
 const FONT = "'Manrope', system-ui, -apple-system, sans-serif";
@@ -119,7 +120,9 @@ export default function DuelClient({ token }) {
   }
 
   function copyLink() {
-    const url = (typeof window !== 'undefined' ? window.location.origin : '') + `/duel/${token}`;
+    // withRef stamps the challenger's referral code, so a NEW person who opens the
+    // invite and finishes a game credits them. No-op for a signed-out challenger.
+    const url = withRef((typeof window !== 'undefined' ? window.location.origin : '') + `/duel/${token}`);
     try { navigator.clipboard.writeText(url).then(() => { setCopied(true); setTimeout(() => setCopied(false), 1800); }); } catch {}
   }
 
@@ -219,7 +222,7 @@ export default function DuelClient({ token }) {
                 <div style={{ marginTop: 18, background: C.accsoft, border: `1px solid ${C.line}`, borderRadius: 14, padding: 16 }}>
                   <div style={{ fontSize: 12, fontWeight: 800, letterSpacing: '.04em', textTransform: 'uppercase', color: C.accent, marginBottom: 8 }}>Invite link</div>
                   <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
-                    <input readOnly value={(typeof window !== 'undefined' ? window.location.origin : '') + `/duel/${token}`} onFocus={(e) => e.target.select()}
+                    <input readOnly value={withRef((typeof window !== 'undefined' ? window.location.origin : '') + `/duel/${token}`)} onFocus={(e) => e.target.select()}
                       style={{ flex: '1 1 220px', minWidth: 0, boxSizing: 'border-box', padding: '10px 12px', border: `1px solid ${C.line}`, borderRadius: 10, fontFamily: FONT, fontSize: 13, background: '#fff', color: C.muted, outline: 'none' }} />
                     <button onClick={copyLink} style={{ background: C.accent, color: '#fff', border: 'none', padding: '10px 18px', borderRadius: 10, fontWeight: 800, cursor: 'pointer', fontFamily: FONT }}>{copied ? 'Copied!' : 'Copy'}</button>
                   </div>

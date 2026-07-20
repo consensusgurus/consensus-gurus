@@ -1636,7 +1636,14 @@ export default function QuizClient({ quizId }) {
               <div style={{ display: 'flex', flexDirection: 'column', gap: 9 }}>
                 <button onClick={restartRound} style={{ ...stackBtn, background: '#e8b43a', color: '#1c1e24' }}><RotateCcw size={15} strokeWidth={2.5} /> Play again</button>
                 <UpNextCard quiz={quiz} />
-                <a href={`/duel/new?quiz=${encodeURIComponent(quiz.id)}`} style={{ ...stackBtn, background: COLORS.ink, color: '#fff', borderRadius: 10 }}><Swords size={15} strokeWidth={2.5} /> Challenge Someone</a>
+                {/* Challenge + Share sit side by side on desktop and wrap to their own
+                    lines on a phone (flex-wrap with a 190px basis), per Marshall.
+                    share() uses the ref-stamped shareUrl, so a new player who opens
+                    this link and finishes a game credits whoever shared it. */}
+                <div style={{ display: 'flex', flexWrap: 'wrap', gap: 9 }}>
+                  <a href={`/duel/new?quiz=${encodeURIComponent(quiz.id)}`} style={{ ...stackBtn, flex: '1 1 190px', width: 'auto', background: COLORS.ink, color: '#fff', borderRadius: 10 }}><Swords size={15} strokeWidth={2.5} /> Challenge Someone</a>
+                  <button onClick={share} style={{ ...stackBtn, flex: '1 1 190px', width: 'auto', background: '#fff', color: COLORS.ink, border: `1.5px solid ${COLORS.ink}` }}><Share2 size={15} strokeWidth={2.5} /> {copied ? 'Link copied' : 'Share Quiz'}</button>
+                </div>
               </div>
               <div style={{ marginTop: 9 }}>
                 {quiz.listId && (
