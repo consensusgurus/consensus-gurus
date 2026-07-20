@@ -74,7 +74,7 @@ function fmtPts(n) { const v = Math.round(Number(n) * 10) / 10; return Number.is
 export default function DailyCombinedLeaderboard({ todayKey = null, identity = null, compact = false, quizId = null, light = false }) {
   const [data, setData] = useState(null);
   const [state, setState] = useState('loading'); // loading | ok | error
-  const [tab, setTab] = useState('overall');
+  const [tab, setTab] = useState(todayKey || 'overall');
   const [expanded, setExpanded] = useState(!compact);
   const th = useMemo(() => theme(light), [light]);
 
@@ -111,12 +111,19 @@ export default function DailyCombinedLeaderboard({ todayKey = null, identity = n
   const gameCount = data ? (data.gameCount != null ? data.gameCount : (data.games || []).length) : null;
   const bestN = data && data.bestN != null ? data.bestN : null;
 
+  // Tab order on a game page: the page's own game first (leftmost + default),
+  // then Overall (the combined board), then every other game. Off a game page
+  // (no todayKey, e.g. the Stat Hub) Overall stays first.
   const tabs = useMemo(() => {
-    const list = [{ key: 'overall', name: 'Overall' }];
     const games = (data && data.games) || [];
-    const ordered = games.slice().sort((a, b) => (a.key === todayKey ? -1 : 0) - (b.key === todayKey ? -1 : 0));
-    for (const g of ordered) list.push({ key: g.key, name: GAME_NAMES[g.key] || g.key });
-    return list;
+    const overallTab = { key: 'overall', name: 'Overall' };
+    const gameTab = (g) => ({ key: g.key, name: GAME_NAMES[g.key] || g.key });
+    if (!todayKey) return [overallTab, ...games.map(gameTab)];
+    const mine = games.filter((g) => g.key === todayKey).map(gameTab);
+    const rest = games.filter((g) => g.key !== todayKey).map(gameTab);
+    // Even if the page's game has no board rows yet today, still show it first.
+    if (!mine.length) mine.push({ key: todayKey, name: GAME_NAMES[todayKey] || todayKey });
+    return [...mine, overallTab, ...rest];
   }, [data, todayKey]);
 
   // Scoped chrome: navy scrollbar for the tab scroller + a reset of the daily
@@ -205,7 +212,7 @@ export default function DailyCombinedLeaderboard({ todayKey = null, identity = n
       <p style={{ fontSize: 11, color: th.note, marginTop: 12, lineHeight: 1.5 }}>
         Each game is worth 15: up to 5 for how much you got right, up to 10 for where you placed against that day's field. {totalLine}
       </p>
-      {compact ? linkBtn('Show less', () => { setExpanded(false); setTab('overall'); }) : null}
+      {compact ? linkBtn('Show less', () => { setExpanded(false); setTab(todayKey || 'overall'); }) : null}
     </div>
   );
 }
