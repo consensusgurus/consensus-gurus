@@ -222,17 +222,6 @@ export default function WarmerClient({ active, puzzles = [], forceNum = null }) 
   const myStats = deriveStats(stats, todayNum);
 
   const rankOf = useCallback((word) => { const vi = VOCAB_INDEX[word]; if (vi == null) return null; const pos = rankByVocab[vi]; return pos < 0 ? null : pos + 1; }, [rankByVocab]);
-  // The vocab stores lemmas only (July 2026 rebuild); map a typed plural to its
-  // singular so "smoothies" scores as "smoothie" (and dedups against it).
-  const resolveGuess = useCallback((word) => {
-    if (VOCAB_INDEX[word] != null) return word;
-    if (word.length >= 4 && word.endsWith('s') && !word.endsWith('ss')) {
-      if (word.endsWith('ies') && VOCAB_INDEX[word.slice(0, -3) + 'y'] != null) return word.slice(0, -3) + 'y';
-      if (word.endsWith('es') && VOCAB_INDEX[word.slice(0, -2)] != null) return word.slice(0, -2);
-      if (VOCAB_INDEX[word.slice(0, -1)] != null) return word.slice(0, -1);
-    }
-    return null;
-  }, []);
   const sortedGuesses = useMemo(() => [...guesses].sort((a, b) => a.rank - b.rank), [guesses]);
   const bestRank = sortedGuesses.length ? sortedGuesses[0].rank : null;
 
@@ -266,12 +255,11 @@ export default function WarmerClient({ active, puzzles = [], forceNum = null }) 
 
   function commitGuess(wordRaw) {
     if (!playing) return;
-    const typed = String(wordRaw || '').trim().toLowerCase();
-    if (!typed) return;
-    if (!/^[a-z]+$/.test(typed)) { say('Letters only — one word at a time.'); return; }
-    const word = resolveGuess(typed);
-    const rank = word == null ? null : rankOf(word);
-    if (rank == null) { say(`"${typed}" isn't in the word list.`); return; }
+    const word = String(wordRaw || '').trim().toLowerCase();
+    if (!word) return;
+    if (!/^[a-z]+$/.test(word)) { say('Letters only — one word at a time.'); return; }
+    const rank = rankOf(word);
+    if (rank == null) { say(`"${word}" isn't in the word list.`); return; }
     const existing = guesses.find((x) => x.w === word);
     if (existing) { say(`Already guessed — ${word} is #${existing.rank}.`); return; }
     const entry = { w: word, rank };
@@ -532,6 +520,7 @@ export default function WarmerClient({ active, puzzles = [], forceNum = null }) 
           self="warmer"
           won={won}
           headline={won ? <>Solved!</> : <>The word was {answerWord}</>}
+          answer={won ? null : answerWord}
           subline={won
             ? <>Warmer #{PUZZLE.num} &middot; {guesses.length} guess{guesses.length === 1 ? '' : 'es'} &middot; {elapsed}{g.hintUsed ? <> &middot; 1 hint</> : null}</>
             : <>Warmer #{PUZZLE.num} &middot; gave up &middot; closest #{bestRank || '—'}</>}

@@ -762,6 +762,7 @@ export default function PingClient({ puzzles = [], forceNum = null }) {
           self="ping"
           won={won}
           headline={won ? <>You found it!</> : (closest && closest.mi <= 400 ? <>So close!</> : <>Gave up</>)}
+          answer={won ? null : <>{TARGET.name}, {TARGET.country}</>}
           subline={won
             ? <>{TARGET.name} &middot; found in {guesses.length} guess{guesses.length === 1 ? '' : 'es'} &middot; {elapsed}{g.hintUsed ? <> &middot; 1 hint</> : null}</>
             : (closest
