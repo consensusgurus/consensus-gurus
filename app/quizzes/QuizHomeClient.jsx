@@ -1125,7 +1125,7 @@ export default function QuizHomeClient() {
     .qzh .th-r2{display:grid;grid-template-columns:minmax(0,0.95fr) minmax(0,0.95fr) minmax(0,1fr) minmax(0,1fr);gap:12px;align-items:stretch;}
     .qzh .th-r2 .th-slot-hold{min-height:215px;}
     @media(max-width:820px){.qzh .thub{flex-direction:column;}.qzh .th-rail{align-self:stretch;}.qzh .th-r2{grid-template-columns:1fr 1fr;}.qzh .th-r2 .dtile{grid-column:1 / -1;}.qzh .th-r2 .dueltile{grid-column:1 / -1;}}
-    @media(max-width:560px){.qzh .th-r2{grid-template-columns:minmax(0,1fr);}.qzh .th-rail{display:none !important;}.qzh .th-heroes .ntile{min-height:220px;background-position:center 12%;}.qzh .th-r2 .ttile{order:1;min-height:220px;}.qzh .th-r2 .stile{order:2;min-height:220px;}.qzh .th-r2 .dtile{order:3;}.qzh .th-r2 .dueltile{order:4;}.qzh .th-r2 .th-slot-hold{display:none;}.qzh .duelbtn{display:none !important;}/* Stacked full-width hero tiles: Newest matches Trending typography on mobile (needs .th-heroes for specificity over the base rules below) */.qzh .th-heroes .ntile-t{font-size:20px;}.qzh .th-heroes .ntile-tag{font-size:10px;padding:4px 10px;top:12px;left:12px;}.qzh .th-heroes .ntile-ov{padding:18px 16px 15px;}}
+    @media(max-width:560px){.qzh .th-r2{grid-template-columns:minmax(0,1fr);}.qzh .th-rail{display:none !important;}.qzh .th-heroes .ntile,.qzh .th-r2 .ntile{min-height:220px;background-position:center 12%;}.qzh .th-r2 .ntile{order:1;min-height:220px;}.qzh .th-heroes .ttile{min-height:220px;}.qzh .th-r2 .stile{order:2;min-height:220px;}.qzh .th-r2 .dtile{order:3;}.qzh .th-r2 .dueltile{order:4;}.qzh .th-r2 .th-slot-hold{display:none;}.qzh .duelbtn{display:none !important;}/* Stacked full-width hero tiles: Newest matches Trending typography on mobile (needs .th-heroes for specificity over the base rules below) */.qzh .th-heroes .ntile-t,.qzh .th-r2 .ntile-t{font-size:20px;}.qzh .th-heroes .ntile-tag,.qzh .th-r2 .ntile-tag{font-size:10px;padding:4px 10px;top:12px;left:12px;}.qzh .th-heroes .ntile-ov,.qzh .th-r2 .ntile-ov{padding:18px 16px 15px;}}
     /* Narrow desktop / tablet (561-1024px): mirror the mobile combine - pair the promo tiles two-up (QOTD full row, Newest+Geo, Daily+Trending, Sports+Duel) and drop the Category Mastery rail. minmax(0,1fr) keeps the Newest/Geo hero images clipped inside their tiles (bare 1fr let them bleed). Added 2026-07-15 per Marshall. */
     @media (min-width:561px) and (max-width:1024px){.qzh .thub{flex-direction:column;}.qzh .th-rail{display:none !important;}.qzh .th-heroes{grid-template-columns:minmax(0,1fr) minmax(0,1fr);}.qzh .th-heroes .th-qotd{grid-column:1 / -1;}.qzh .th-r2{grid-template-columns:minmax(0,1fr) minmax(0,1fr);}.qzh .th-r2 .dtile{grid-column:auto;}.qzh .th-r2 .dueltile{grid-column:auto;}}
     /* Short landscape phones (<=480px tall): compact TWO-ROW header. Reworked 2026-07-17 per Marshall - QOTD no longer takes a full row (it shares row 1 with Newest + Geo), and Featured Geo + Featured Sports are shown here (they stay hidden only on the rare <561px landscape). Row 2 = Daily + Sports + Trending + Duel. The base rule below still hides gtile/stile; the min-width:561 block re-shows them. Portrait phones (<=560px) keep the stacked full-width layout. */
@@ -1139,7 +1139,7 @@ export default function QuizHomeClient() {
       .qzh .th-r2 .dtile{grid-column:auto;}
       .qzh .th-r2 .dueltile{grid-column:auto;}
       .qzh .th-r2 .th-slot-hold{display:none;}
-      .qzh .th-heroes .ntile,.qzh .th-heroes .hstile,.qzh .th-r2 .hstile,.qzh .th-r2 .ttile,.qzh .th-r2 .dueltile{min-height:158px;}
+      .qzh .th-heroes .ntile,.qzh .th-r2 .ntile,.qzh .th-heroes .hstile,.qzh .th-r2 .hstile,.qzh .th-heroes .ttile,.qzh .th-r2 .ttile,.qzh .th-r2 .dueltile{min-height:158px;}
       .qzh .qotd{min-height:158px;}
       .qzh .dtile{min-height:158px;}
       .qzh .qotd-photo{flex-basis:38%;}
@@ -1465,15 +1465,9 @@ export default function QuizHomeClient() {
               </div>
             </div>
           </Link>)}
-          {newest[0] ? (() => { const nc = byKey[newest[0].dept] || {}; const NIcon = nc.Icon || Sparkles; const nPos = nHeroPos; return (
-              <Link href={`/quiz/${newest[0].id}`} className="ntile" style={nHero ? { backgroundImage: `url("${nHero}")`, backgroundPosition: nPos || 'center' } : { background: nc.c || C.accent }}>
-                <span className="ntile-tag" style={{ color: C.accent }}><Sparkles size={10} style={{ verticalAlign: -1 }} /> NEWEST</span>
-                <div className="ntile-ov" ref={ntileProbeRef}>
-                  <div className="ntile-t">{stripVerb(newest[0].title)}</div>
-                  <div className="ntile-p" style={{ display: 'flex', alignItems: 'center', gap: 12 }}><span>Play <ArrowRight size={13} style={{ verticalAlign: -1 }} /></span>{leader(newest[0].id) ? <span className={ntilePill ? 'hpill' : undefined} style={{ display: 'inline-flex', alignItems: 'center', gap: 4 }}><Crown size={12} style={{ color: '#e8b43a', flex: 'none' }} />{leader(newest[0].id)}</span> : null}</div>
-                </div>
-              </Link>
-            ); })() : <div />}
+          {/* Top Community Member. Swapped into the Newest tile's row-1 slot 2026-07-20
+              per Marshall; Newest moved to the front of th-r2 below. */}
+          <CommunityTile />
           {geoPick ? (
             <Link href={`/quiz/${geoPick.id}`} className="hstile gtile th-only-mob" style={geoHero ? { backgroundImage: `url("${geoHero}")`, backgroundPosition: geoPos || 'center' } : { background: C.accent }}>
               <span className="ttile-tag" style={{ color: '#0f766e', whiteSpace: 'nowrap' }}><Globe size={11} style={{ verticalAlign: -1 }} /> FEATURED GEO GUESSER</span>
@@ -1509,6 +1503,18 @@ export default function QuizHomeClient() {
           </div>
 
           <div className="th-r2">
+          {/* Newest leads row 2 (was row 1) so the Community tile can take the
+              hero slot. The `trending` memo is still computed above: it feeds the
+              geo/sports rotation exclusions even though its tile is gone. */}
+          {newest[0] ? (() => { const nc = byKey[newest[0].dept] || {}; const NIcon = nc.Icon || Sparkles; const nPos = nHeroPos; return (
+              <Link href={`/quiz/${newest[0].id}`} className="ntile" style={nHero ? { backgroundImage: `url("${nHero}")`, backgroundPosition: nPos || 'center' } : { background: nc.c || C.accent }}>
+                <span className="ntile-tag" style={{ color: C.accent }}><Sparkles size={10} style={{ verticalAlign: -1 }} /> NEWEST</span>
+                <div className="ntile-ov" ref={ntileProbeRef}>
+                  <div className="ntile-t">{stripVerb(newest[0].title)}</div>
+                  <div className="ntile-p" style={{ display: 'flex', alignItems: 'center', gap: 12 }}><span>Play <ArrowRight size={13} style={{ verticalAlign: -1 }} /></span>{leader(newest[0].id) ? <span className={ntilePill ? 'hpill' : undefined} style={{ display: 'inline-flex', alignItems: 'center', gap: 4 }}><Crown size={12} style={{ color: '#e8b43a', flex: 'none' }} />{leader(newest[0].id)}</span> : null}</div>
+                </div>
+              </Link>
+            ); })() : <div />}
           {geoPick ? (
             <Link href={`/quiz/${geoPick.id}`} className="hstile gtile th-only-desk" style={geoHero ? { backgroundImage: `url("${geoHero}")`, backgroundPosition: geoPos || 'center' } : { background: C.accent }}>
               <span className="ttile-tag" style={{ color: '#0f766e', whiteSpace: 'nowrap' }}><Globe size={11} style={{ verticalAlign: -1 }} /> FEATURED GEO GUESSER</span>
@@ -1552,12 +1558,6 @@ export default function QuizHomeClient() {
               </div>
             </Link>
           ) : <div className="th-slot-hold" />}
-
-            {/* Was the Trending tile; replaced by the Top Community Member tile 2026-07-20.
-                The `trending` memo above is intentionally still computed: it feeds the
-                exclusion sets for the geo/sports rotations, so removing it would change
-                which quizzes those tiles pick. */}
-            <CommunityTile />
 
             <DuelTile />
           </div>

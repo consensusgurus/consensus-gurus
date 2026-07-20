@@ -1,11 +1,12 @@
 'use client';
 
-import { useEffect, useState, useCallback } from 'react';
+import { useEffect, useLayoutEffect, useState, useCallback, useRef } from 'react';
 import { Crown, Copy, Check, UserPlus, ArrowRight, X } from 'lucide-react';
 import JoinLeaderboardForm from '../quiz/[id]/JoinLeaderboardForm';
 
-// Top Community Member tile on /quizzes. Occupies the slot the Trending tile
-// used to hold, so it keeps the .ttile class for the row's grid + media rules.
+// Top Community Member tile on /quizzes. Sits in the row-1 hero slot (it swapped
+// places with the Newest tile 2026-07-20), and keeps the .ttile class so the
+// shared tile grid + media rules apply.
 //
 // Shows whoever has brought in the most new players over the rolling window,
 // and on hover (or tap, on touch) explains how credit is earned and hands the
@@ -17,6 +18,52 @@ import JoinLeaderboardForm from '../quiz/[id]/JoinLeaderboardForm';
 // so linking anywhere here would dead-end the one action the tile is asking for.
 
 const C = { accent: '#0e1d40', cta: '#e8b43a' };
+
+// The winner's name is the single most emphasised username on the page, so it is
+// set as large as will fit rather than at a fixed size: binary-search the largest
+// whole pixel size that keeps it on one line inside the tile, re-run on resize.
+const NAME_MIN = 17;
+const NAME_MAX = 46;
+const useIsoLayoutEffect = typeof window !== 'undefined' ? useLayoutEffect : useEffect;
+
+function useFittedName(text) {
+  const wrapRef = useRef(null);
+  const textRef = useRef(null);
+
+  const fit = useCallback(() => {
+    const wrap = wrapRef.current;
+    const el = textRef.current;
+    if (!wrap || !el || !text) return;
+    const avail = wrap.clientWidth;
+    if (!avail) return;
+    let lo = NAME_MIN;
+    let hi = NAME_MAX;
+    let best = NAME_MIN;
+    while (lo <= hi) {
+      const mid = (lo + hi) >> 1;
+      el.style.fontSize = `${mid}px`;
+      // +1 absorbs sub-pixel rounding, which otherwise costs a whole step.
+      if (el.scrollWidth <= avail + 1) { best = mid; lo = mid + 1; } else { hi = mid - 1; }
+    }
+    el.style.fontSize = `${best}px`;
+  }, [text]);
+
+  useIsoLayoutEffect(() => {
+    fit();
+    if (typeof ResizeObserver === 'undefined') return undefined;
+    const ro = new ResizeObserver(fit);
+    if (wrapRef.current) ro.observe(wrapRef.current);
+    return () => ro.disconnect();
+  }, [fit]);
+
+  // Webfonts land after first paint and change the metrics, so refit once ready.
+  useEffect(() => {
+    if (typeof document === 'undefined' || !document.fonts?.ready) return;
+    document.fonts.ready.then(fit).catch(() => {});
+  }, [fit]);
+
+  return { wrapRef, textRef };
+}
 
 export default function CommunityTile() {
   const [data, setData] = useState(null);
@@ -52,6 +99,7 @@ export default function CommunityTile() {
   const me = data?.me || null;
   const leader = data?.top?.[0] || null;
   const shareUrl = me?.shareUrl || null;
+  const { wrapRef, textRef } = useFittedName(leader?.username || '');
 
   const copy = useCallback(async (e) => {
     e.preventDefault();
@@ -74,8 +122,10 @@ export default function CommunityTile() {
         .cmtile{background:linear-gradient(155deg,#16305e 0%,#0e1d40 62%,#0a1530 100%);cursor:pointer;}
         .cmtile .cm-tag{position:absolute;top:12px;left:12px;font-size:10px;font-weight:800;letter-spacing:.08em;background:#fff;border-radius:10px;padding:4px 10px;z-index:3;color:#0e1d40;display:inline-flex;align-items:center;gap:4px;}
         .cmtile .cm-body{position:relative;z-index:1;padding:18px 16px 15px;}
-        .cmtile .cm-who{font-size:20px;font-weight:800;letter-spacing:-.3px;line-height:1.1;color:#fff;display:flex;align-items:center;gap:7px;}
-        .cmtile .cm-sub{font-size:12.5px;font-weight:600;color:rgba(255,255,255,.72);margin-top:6px;}
+        .cmtile .cm-namewrap{width:100%;}
+        /* Auto-fitted: font-size is set inline by useFittedName. */
+        .cmtile .cm-who{display:block;white-space:nowrap;font-size:${NAME_MAX}px;font-weight:800;letter-spacing:-1.1px;line-height:1.02;color:${C.cta};text-shadow:0 2px 14px rgba(0,0,0,.45);}
+        .cmtile .cm-sub{font-size:12.5px;font-weight:600;color:rgba(255,255,255,.72);margin-top:7px;}
         .cmtile .cm-foot{display:flex;align-items:center;gap:6px;margin-top:10px;font-size:13px;font-weight:800;color:#fff;}
         .cmtile .cm-panel{position:absolute;inset:0;z-index:4;background:rgba(8,15,35,.97);padding:16px 15px;display:flex;flex-direction:column;gap:7px;opacity:0;pointer-events:none;transition:opacity .16s ease;overflow:auto;}
         .cmtile:hover .cm-panel,.cmtile:focus-within .cm-panel,.cmtile.cm-open .cm-panel{opacity:1;pointer-events:auto;}
@@ -95,14 +145,20 @@ export default function CommunityTile() {
       <div className="cm-body">
         {leader ? (
           <>
-            <div className="cm-who"><Crown size={17} style={{ color: C.cta, flex: 'none' }} />{leader.username}</div>
+            {/* No inline crown here: the tag above already carries one, and dropping
+                it gives the name the tile's full width to scale into. */}
+            <div className="cm-namewrap" ref={wrapRef}>
+              <span className="cm-who" ref={textRef}>{leader.username}</span>
+            </div>
             <div className="cm-sub">
               {leader.credits} {leader.credits === 1 ? 'player' : 'players'} brought in over the last 30 days
             </div>
           </>
         ) : (
           <>
-            <div className="cm-who">This spot is open</div>
+            <div className="cm-namewrap" ref={wrapRef}>
+              <span className="cm-who" ref={textRef} style={{ fontSize: 24, color: '#fff' }}>This spot is open</span>
+            </div>
             <div className="cm-sub">Nobody has brought in a player yet this month.</div>
           </>
         )}
