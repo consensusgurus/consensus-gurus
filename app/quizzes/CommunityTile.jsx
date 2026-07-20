@@ -137,11 +137,12 @@ export default function CommunityTile() {
         .cmtile .cm-pname.cm-vacant{color:rgba(255,255,255,.34);font-weight:600;font-style:italic;}
         .cmtile .cm-pn{flex:none;font-weight:800;color:rgba(255,236,200,.62);font-variant-numeric:tabular-nums;}
         .cmtile .cm-foot{display:flex;align-items:center;gap:6px;margin-top:9px;font-size:12px;font-weight:800;color:rgba(255,255,255,.9);}
-        .cmtile .cm-panel{position:absolute;inset:0;z-index:4;background:rgba(24,18,8,.975);padding:14px 15px;display:flex;flex-direction:column;gap:6px;opacity:0;pointer-events:none;transition:opacity .16s ease;overflow:auto;}
+        .cmtile .cm-panel{position:absolute;inset:0;z-index:4;background:rgba(24,18,8,.975);padding:13px 14px;display:flex;flex-direction:column;gap:5px;opacity:0;pointer-events:none;transition:opacity .16s ease;overflow:auto;}
         .cmtile:hover .cm-panel,.cmtile:focus-within .cm-panel,.cmtile.cm-open .cm-panel{opacity:1;pointer-events:auto;}
         .cmtile .cm-h{font-size:12px;font-weight:800;letter-spacing:.07em;color:${C.cta};text-transform:uppercase;}
         .cmtile .cm-p{font-size:12px;line-height:1.38;color:rgba(255,255,255,.86);}
         .cmtile .cm-tip{font-size:11.5px;line-height:1.35;color:rgba(255,236,200,.72);}
+        .cmtile .cm-why{font-size:12px;line-height:1.34;font-weight:700;color:${C.gold};}
         .cmtile .cm-code{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:11px;color:${C.gold};background:rgba(255,209,102,.12);border-radius:4px;padding:1px 4px;}
         .cmtile .cm-link{display:flex;align-items:center;gap:6px;margin-top:auto;}
         .cmtile .cm-url{flex:1 1 auto;min-width:0;font-size:11px;font-family:ui-monospace,SFMono-Regular,Menlo,monospace;color:#fff;background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.16);border-radius:8px;padding:7px 9px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
@@ -200,16 +201,15 @@ export default function CommunityTile() {
 
       <div className="cm-panel">
         <div className="cm-h">How to get credit</div>
-        <div className="cm-p">
-          Registered users get a unique share link. Anyone who opens it and finishes
-          a quiz or a daily game credits you, once.
-        </div>
+        {/* The "why". Owner-requested: this tile exists because the site is one
+            person, so word of mouth is the whole growth channel. */}
+        <div className="cm-why">I&apos;m a single person startup! Word of mouth is how this grows.</div>
         {/* Referral capture is mounted in the ROOT layout, so ?ref= is picked up on
-            every route on the site, not just /quizzes. That makes a per-quiz and
-            per-daily-game share link free: it is the same code on a different path. */}
-        <div className="cm-tip">
-          The Share button on every quiz and daily game already includes your code, so
-          sharing any one of them credits you. This link works too:
+            every route on the site, not just /quizzes. That is what makes the per-quiz
+            and per-daily-game Share links free: same code, different path. */}
+        <div className="cm-p">
+          Registered users get a share link, and the Share button on every quiz and daily
+          game already includes it. Anyone who opens one and finishes credits you, once.
         </div>
         {shareUrl ? (
           <>
