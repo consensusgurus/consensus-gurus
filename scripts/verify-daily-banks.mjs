@@ -397,11 +397,21 @@ if (RUN('extra')) {
 }
 if (RUN('outwit')) {
   const { PUZZLES } = await import('../app/outwit/puzzles.js');
-  const ORDER = ['twothirds', 'least', 'herd', 'match', 'unique'];
+  // The Undercut (twothirds) prompt moved from FIRST to LAST on 2026-07-21, so
+  // the expected order depends on the drop date. Earlier days are live and
+  // frozen; they keep the original order.
+  const UNDERCUT_LAST_FROM = '2026-07-21';
+  const ORDER_OLD = ['twothirds', 'least', 'herd', 'match', 'unique'];
+  const ORDER_NEW = ['least', 'herd', 'match', 'unique', 'twothirds'];
+  // Sunday Editions run SIX prompts: a second `unique` before the Undercut,
+  // which still runs last.
+  const ORDER_SUN = ['least', 'herd', 'match', 'unique', 'unique', 'twothirds'];
   for (const p of PUZZLES) {
     const errs = [];
-    if (p.prompts.length !== 5) errs.push(`${p.prompts.length} prompts`);
+    const wantPrompts = p.sunday ? 6 : 5;
+    if (p.prompts.length !== wantPrompts) errs.push(`${p.prompts.length} prompts (want ${wantPrompts})`);
     p.prompts.forEach((pr, i) => {
+      const ORDER = p.sunday ? ORDER_SUN : p.live >= UNDERCUT_LAST_FROM ? ORDER_NEW : ORDER_OLD;
       if (pr.type !== ORDER[i]) errs.push(`prompt ${i} type ${pr.type} != ${ORDER[i]}`);
       if ((pr.type === 'least' || pr.type === 'match') && (!Array.isArray(pr.options) || pr.options.length < 4)) errs.push(`prompt ${i} bad options`);
       if (pr.type === 'herd' && pr.truth === undefined) errs.push('herd missing truth');

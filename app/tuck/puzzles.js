@@ -16,7 +16,7 @@ export const PUZZLES = [
   { num: 6, quizId: "tuck-7-23-26", live: "2026-07-23", dateLabel: "July 23, 2026", sunday: false, letters: ["I","H","W","B","S","A","F","N","I","R","L","M","I","T"], par: 46 },
   { num: 7, quizId: "tuck-7-24-26", live: "2026-07-24", dateLabel: "July 24, 2026", sunday: false, letters: ["P","T","R","R","R","A","W","G","A","U","E","L","R","X"], par: 47 },
   { num: 8, quizId: "tuck-7-25-26", live: "2026-07-25", dateLabel: "July 25, 2026", sunday: false, letters: ["C","W","L","Y","A","Z","E","F","E","U","N","H","R","U"], par: 66 },
-  { num: 9, quizId: "tuck-7-26-26", live: "2026-07-26", dateLabel: "July 26, 2026", sunday: false, letters: ["T","I","V","R","O","J","Q","D","L","B","O","E","E","N"], par: 56 },
+  { num: 9, quizId: "tuck-7-26-26", live: "2026-07-26", dateLabel: "July 26, 2026", sunday: true, letters: ["A","I","C","C","E","Y","Z","O","V","B","D","R","T","E","U"], par: 62 },
   { num: 10, quizId: "tuck-7-27-26", live: "2026-07-27", dateLabel: "July 27, 2026", sunday: false, letters: ["P","W","B","A","Z","I","X","A","E","T","I","E","N","N"], par: 62 },
   { num: 11, quizId: "tuck-7-28-26", live: "2026-07-28", dateLabel: "July 28, 2026", sunday: false, letters: ["Y","D","I","E","N","E","F","T","M","A","V","I","R","T"], par: 45 },
   { num: 12, quizId: "tuck-7-29-26", live: "2026-07-29", dateLabel: "July 29, 2026", sunday: false, letters: ["I","J","A","E","E","R","S","F","L","M","F","H","O","A"], par: 55 },

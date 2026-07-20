@@ -15,7 +15,7 @@ import { PUZZLES } from './puzzles';
 export const metadata = {
   title: 'Outwit — Daily Crowd Game: Beat Everyone Playing Today | Source of Truths',
   description:
-    'A free daily game where the puzzle is other people. Five game-theory prompts against the whole field: dodge the popular pick, read the herd, meet the crowd, be the rare bird, then undercut the average by a fraction that changes daily. Then see where everyone actually went.',
+    'A free daily game where the puzzle is other people. Five game-theory prompts against the whole field: dodge the popular pick, read the herd, meet the crowd, be the rare bird, then undercut the average by a fraction that changes daily. Six prompts in the Sunday Edition. Then see where everyone actually went.',
   alternates: { canonical: '/outwit' },
   manifest: '/outwit.webmanifest',
   icons: {
@@ -84,6 +84,9 @@ function clientSafe(p) {
     quizId: p.quizId,
     live: p.live,
     dateLabel: p.dateLabel,
+    // `sunday` MUST survive this strip or the Sunday Edition badge never
+    // renders (see the Sunday Editions section of CLAUDE.md).
+    sunday: !!p.sunday,
     prompts: p.prompts.map((pr) => ({
       type: pr.type,
       tag: pr.tag,

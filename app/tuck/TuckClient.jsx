@@ -2,11 +2,11 @@
 
 // Tuck — the daily tile-tucking word game.
 //
-// Everyone gets the same 14 letters (a Scrabble-weighted rack, banked in
+// Everyone gets the same 14 letters (15 in the Sunday Edition; a Scrabble-weighted rack, banked in
 // app/tuck/puzzles.js). Build your own interlocking crossword on a 9×9 board:
 // every run of 2+ letters must be a dictionary word, and everything must
 // connect into one grid. Score = the Scrabble points of every word you form
-// (letters at intersections count in BOTH words), +10 for tucking in all 14
+// (letters at intersections count in BOTH words), +10 for tucking in the whole rack
 // letters. Each rack ships with a PAR our solver actually achieved — beat it.
 //
 // ONE SHOT COUNTS (owner ruling 2026-07-18): you can rebuild all you like
@@ -169,6 +169,9 @@ export default function TuckClient({ puzzles = [], forceNum = null }) {
   const STORE_KEY = `sot_tuck_${PUZZLE.num}`;
   const TRAY = PUZZLE.letters;
   const PAR = PUZZLE.par;
+  // Rack size is DATA, never a literal: weekdays deal 14 letters, the Sunday
+  // Edition deals 15. Every count below derives from this.
+  const RACK = PUZZLE.letters.length;
 
   const [g, setG] = useState(freshState);
   const [dict, setDict] = useState(null);          // Set of lowercase words
@@ -371,7 +374,7 @@ export default function TuckClient({ puzzles = [], forceNum = null }) {
     if (!isValid) return 0;
     let s = 0;
     for (const x of runs) for (const ch of x.word) s += PTS[ch];
-    if (placedCount === 14) s += 10;
+    if (placedCount === RACK) s += 10;
     return s;
   }, [isValid, runs, placedCount]);
 
@@ -388,7 +391,7 @@ export default function TuckClient({ puzzles = [], forceNum = null }) {
     try { if (localStorage.getItem(REC_KEY)) return null; } catch (e) {}
     const el = Math.min(36000, Math.max(1, Math.round((Date.now() - g.t0) / 1000)));
     try { localStorage.setItem(REC_KEY, '1'); } catch (e) {}
-    return { quizId: PUZZLE.quizId, score: liveScore, total: PAR, correct: liveScore >= PAR ? 1 : 0, guessesUsed: 14 - placedCount, timeElapsed: el, abandoned: true, email: identity?.email || undefined, anonId: getAnonId(), isMobile: isMobileDevice(), referrer: (typeof document !== 'undefined' ? document.referrer : '') };
+    return { quizId: PUZZLE.quizId, score: liveScore, total: PAR, correct: liveScore >= PAR ? 1 : 0, guessesUsed: RACK - placedCount, timeElapsed: el, abandoned: true, email: identity?.email || undefined, anonId: getAnonId(), isMobile: isMobileDevice(), referrer: (typeof document !== 'undefined' ? document.referrer : '') };
   });
 
   const availCounts = useMemo(() => {
@@ -480,7 +483,7 @@ export default function TuckClient({ puzzles = [], forceNum = null }) {
 
   function postResult(g2, sc, placed) {
     const el = g2.t0 ? Math.max(1, Math.round(((g2.tEnd || Date.now()) - g2.t0) / 1000)) : 1;
-    try { setStats(recordStat(PUZZLE.num, { s: sc, t: PAR, g: 14 - placed, won: sc >= PAR })); } catch (e) {}
+    try { setStats(recordStat(PUZZLE.num, { s: sc, t: PAR, g: RACK - placed, won: sc >= PAR })); } catch (e) {}
     try {
       fetch('/api/quiz/result', {
         method: 'POST',
@@ -489,7 +492,7 @@ export default function TuckClient({ puzzles = [], forceNum = null }) {
         // total = the day's PAR (uniform for everyone, so the combined board's
         // completion normalization is stable); guessesUsed = unused letters, so
         // ties break toward the fuller rack.
-        body: JSON.stringify({ quizId: PUZZLE.quizId, score: sc, total: PAR, correct: sc >= PAR ? 1 : 0, guessesUsed: 14 - placed, timeElapsed: el, email: identity?.email || undefined, anonId: getAnonId(), isMobile: isMobileDevice(), referrer: (typeof document !== 'undefined' ? document.referrer : '') }),
+        body: JSON.stringify({ quizId: PUZZLE.quizId, score: sc, total: PAR, correct: sc >= PAR ? 1 : 0, guessesUsed: RACK - placed, timeElapsed: el, email: identity?.email || undefined, anonId: getAnonId(), isMobile: isMobileDevice(), referrer: (typeof document !== 'undefined' ? document.referrer : '') }),
       })
         .then((r) => r.json())
         .then((d) => { if (d && !d.error) setBoard({ ...EMPTY_BOARD, ...d }); })
@@ -527,7 +530,7 @@ export default function TuckClient({ puzzles = [], forceNum = null }) {
   function copyShare() {
     const streakBit = isTodays && myStats.cur >= 2 && g.status !== 'playing' ? ` · streak ${myStats.cur}` : '';
     const text = playing
-      ? `Tuck #${PUZZLE.num} — tuck 14 letters into one grid. Par is ${PAR}.\nsourceoftruths.com/tuck${isTodays ? '' : `?p=${PUZZLE.num}`}`
+      ? `Tuck #${PUZZLE.num} — tuck ${RACK} letters into one grid. Par is ${PAR}.\nsourceoftruths.com/tuck${isTodays ? '' : `?p=${PUZZLE.num}`}`
       : `Tuck #${PUZZLE.num} · ${finalScore} pts (par ${PAR})${finalScore >= PAR ? ' · beat par' : ''}${streakBit}\n${shareArt()}sourceoftruths.com/tuck${isTodays ? '' : `?p=${PUZZLE.num}`}`;
     try {
       if (typeof navigator !== 'undefined' && navigator.share && isMobileDevice()) {
@@ -563,7 +566,7 @@ export default function TuckClient({ puzzles = [], forceNum = null }) {
     if (!allValid) return { msg: 'Red runs aren’t words yet', cls: 'bad' };
     if (stray || loneTiles > 0) return { msg: 'Single letters need to join a word', cls: 'bad' };
     if (!connected) return { msg: 'Valid words, but everything must connect into one grid', cls: 'bad' };
-    if (placedCount === 14) return { msg: 'Perfect tuck! All 14 letters placed — rebuild for more, or submit.', cls: 'good' };
+    if (placedCount === RACK) return { msg: `Perfect tuck! All ${RACK} letters placed — rebuild for more, or submit.`, cls: 'good' };
     return { msg: 'Valid grid! Keep tucking letters in…', cls: 'good' };
   })();
 
@@ -612,6 +615,7 @@ export default function TuckClient({ puzzles = [], forceNum = null }) {
             <h1 style={{ margin: 0, fontFamily: MONO, fontSize: 14, letterSpacing: '0.06em', fontWeight: 500, color: COLORS.ink }}>No. {PUZZLE.num}</h1>
             <span style={{ color: COLORS.faded }}>&middot;</span>
             <span style={{ fontFamily: SANS, fontStyle: 'italic', fontSize: 15, color: COLORS.faded }}>{PUZZLE.dateLabel}</span>
+            {PUZZLE.sunday && <span style={{ fontFamily: MONO, fontSize: 9.5, letterSpacing: '0.1em', textTransform: 'uppercase', fontWeight: 500, color: '#fff', background: COLORS.accent, borderRadius: 4, padding: '2px 6px' }}>Sunday Edition &middot; 15 letters</span>}
           </div>
           <button onClick={() => setShowHelp(true)} aria-label="How to play" title="How to play" style={{ position: 'absolute', top: 10, right: 2, background: 'none', border: 'none', cursor: 'pointer', color: COLORS.faded, padding: 0, display: 'flex' }}>
             <HelpCircle size={20} />
@@ -622,7 +626,7 @@ export default function TuckClient({ puzzles = [], forceNum = null }) {
         <div style={{ display: 'flex', gap: 18, alignItems: 'baseline', flexWrap: 'wrap', marginBottom: 10, fontFamily: MONO, fontSize: 11.5, letterSpacing: '0.08em', textTransform: 'uppercase', color: COLORS.faded }}>
           <span style={{ fontSize: 12 }}>score <b style={{ color: liveScore >= PAR && liveScore > 0 ? COLORS.green : COLORS.ink, fontWeight: 500, fontSize: 20 }}>{playing ? liveScore : finalScore}</b></span>
           <span>par <b style={{ color: COLORS.accent, fontWeight: 500 }}>{PAR}</b></span>
-          <span>tiles <b style={{ color: COLORS.ink, fontWeight: 500 }}>{placedCount}</b>/14</span>
+          <span>tiles <b style={{ color: COLORS.ink, fontWeight: 500 }}>{placedCount}</b>/{RACK}</span>
           {!playing && <span style={{ marginLeft: 'auto', color: COLORS.green }}>score submitted — sandbox mode</span>}
         </div>
 
@@ -699,7 +703,7 @@ export default function TuckClient({ puzzles = [], forceNum = null }) {
               )) : <span style={{ fontSize: 12, fontWeight: 600, color: COLORS.faded }}>No words yet.</span>}
             </div>
             <div style={{ fontSize: 11.5, fontWeight: 600, color: COLORS.faded, lineHeight: 1.55, marginTop: 10 }}>
-              Every run of 2+ letters must be a word, across and down. Intersections score in both words. All 14 tiles placed is +10.
+              Every run of 2+ letters must be a word, across and down. Intersections score in both words. All {RACK} tiles placed is +10.
             </div>
           </div>
         </div>
@@ -712,7 +716,7 @@ export default function TuckClient({ puzzles = [], forceNum = null }) {
                 <span style={{ fontFamily: MONO, fontSize: 32, fontWeight: 500, color: won ? COLORS.green : COLORS.ink, fontVariantNumeric: 'tabular-nums', letterSpacing: '0.04em', flex: '0 0 auto' }}>{finalScore}</span>
                 <span style={{ fontFamily: SANS, fontSize: 13, fontWeight: 700, color: COLORS.ink, lineHeight: 1.45 }}>
                   {won ? `Beat the par of ${PAR} — the desk tips its cap.` : `Submitted against a par of ${PAR}.`}
-                  {' '}{g.submitted ? `${g.submitted.placed}/14 tiles.` : ''}
+                  {' '}{g.submitted ? `${g.submitted.placed}/${RACK} tiles.` : ''}
                   {' '}<span style={{ color: COLORS.faded, fontWeight: 600 }}>{elapsed}</span>
                 </span>
               </div>
@@ -819,7 +823,7 @@ export default function TuckClient({ puzzles = [], forceNum = null }) {
           self="tuck"
           won={won}
           headline={won ? <>You beat the par</> : <>Grid submitted</>}
-          subline={<>Tuck #{PUZZLE.num} &middot; {finalScore} pts &middot; par {PAR} &middot; {g.submitted ? `${g.submitted.placed}/14 tiles` : ''} &middot; {elapsed}</>}
+          subline={<>Tuck #{PUZZLE.num} &middot; {finalScore} pts &middot; par {PAR} &middot; {g.submitted ? `${g.submitted.placed}/${RACK} tiles` : ''} &middot; {elapsed}</>}
           onShare={copyShare}
           shareLabel={copied ? 'Copied' : 'Share Result'}
           onReplay={resetGame}
@@ -846,7 +850,7 @@ export default function TuckClient({ puzzles = [], forceNum = null }) {
             </div>
             <div style={{ fontSize: 14, lineHeight: 1.55, color: COLORS.ink, fontWeight: 600 }}>
               <p style={{ margin: '0 0 9px' }}>Everyone gets the same <b>14 letters</b>. Build your own little crossword on the board: every run of two or more letters must be a real word, across and down, and everything must connect into one grid.</p>
-              <p style={{ margin: '0 0 9px' }}>Score is Scrabble points across all your words &mdash; a letter at an intersection counts in <b>both</b> words &mdash; plus 10 for tucking in all 14 tiles. Today&rsquo;s <b>par of {PAR}</b> was actually scored by our solver, so it can be beaten.</p>
+              <p style={{ margin: '0 0 9px' }}>Score is Scrabble points across all your words &mdash; a letter at an intersection counts in <b>both</b> words &mdash; plus 10 for tucking in all {RACK} tiles. Today&rsquo;s <b>par of {PAR}</b> was actually scored by our solver, so it can be beaten.</p>
               <p style={{ margin: '0 0 9px' }}>Rebuild as much as you like &mdash; but <b>one shot counts</b>: only your first submitted grid ranks on the daily board. Ties break by fewest unused tiles, then fastest clock.</p>
               <p style={{ margin: 0 }}>Tap a square and type, or tap a rack tile then a square. Space flips typing direction.</p>
             </div>
@@ -859,10 +863,10 @@ export default function TuckClient({ puzzles = [], forceNum = null }) {
       <section style={{ display: focusMode ? 'none' : 'block', position: 'relative', zIndex: 2, maxWidth: 640, margin: '0 auto', padding: '10px 24px 42px', fontFamily: SANS }}>
         <h2 style={{ margin: '0 0 8px', fontSize: 15, fontWeight: 800, letterSpacing: '-0.01em', color: COLORS.ink }}>About Tuck</h2>
         <p style={{ margin: '0 0 8px', fontSize: 13, lineHeight: 1.65, color: COLORS.faded, fontWeight: 600 }}>
-          Tuck is a free daily word game from Source of Truths &mdash; the tile-tucking game. Every player in the world gets the same rack of 14 Scrabble-weighted letters and an empty 9&times;9 board. There is no answer to find: you design your own interlocking grid, and the score-chasing is the game. Long words, tight crossings, and premium letters at intersections all push the number up.
+          Tuck is a free daily word game from Source of Truths &mdash; the tile-tucking game. Every player in the world gets the same rack of 14 Scrabble-weighted letters (15 in the Sunday Edition) and an empty 9&times;9 board. There is no answer to find: you design your own interlocking grid, and the score-chasing is the game. Long words, tight crossings, and premium letters at intersections all push the number up.
         </p>
         <p style={{ margin: '0 0 8px', fontSize: 13, lineHeight: 1.65, color: COLORS.faded, fontWeight: 600 }}>
-          Every run of two or more letters must be a dictionary word, across and down, and the whole build must connect into one grid. Letters at intersections score in both words, and placing all 14 tiles earns a 10-point bonus. Each day ships with a par our solver actually scored on that rack &mdash; beat it and the day counts as a win. Only your first submitted grid ranks on the daily leaderboard, so make it count.
+          Every run of two or more letters must be a dictionary word, across and down, and the whole build must connect into one grid. Letters at intersections score in both words, and placing every tile in the rack earns a 10-point bonus. Each day ships with a par our solver actually scored on that rack &mdash; beat it and the day counts as a win. Only your first submitted grid ranks on the daily leaderboard, so make it count.
         </p>
         <p style={{ margin: 0, fontSize: 13, lineHeight: 1.65, color: COLORS.faded, fontWeight: 600 }}>
           A fresh rack lands every day at midnight Eastern. No app, no signup &mdash; play free in your browser, keep a streak, and race the daily leaderboard. More dailies: <a href="/crux" style={{ color: COLORS.ink, fontWeight: 800 }}>Crux</a>, our clueless crossword, <a href="/garble" style={{ color: COLORS.ink, fontWeight: 800 }}>Garble</a>, our unscrambling game, and <a href="/stet" style={{ color: COLORS.ink, fontWeight: 800 }}>Stet</a>, our copy-desk game.

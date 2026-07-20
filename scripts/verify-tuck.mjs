@@ -1,5 +1,5 @@
 // Verify the Tuck bank: every rack must be 14 uppercase letters with 4-6
-// vowels, and every stored PAR must be ACHIEVABLE — this re-runs the ladder
+// vowels (the Sunday Edition deals 15 letters with 5-7 vowels), and every stored PAR must be ACHIEVABLE — this re-runs the ladder
 // solver (one horizontal spine + vertical words hung off non-adjacent columns,
 // all words from public/tuck-dict.txt) and fails if it cannot reach the stored
 // par on that rack. Ids/dates/sunday flags are also checked. Run after ANY edit:
@@ -54,12 +54,15 @@ function ladder(rack) {
           if (rem2) { rem = rem2; score += v.p; used += v.w.length - 1; usedCols.add(i); break; }
         }
       }
-      if (used === 14) score += 10;
+      if (used === rack.length) score += 10;
       if (score > best) best = score;
     }
   }
   return best;
 }
+
+// Tuck's Sunday Edition (a 15-letter rack) launched on this date.
+const SUNDAY_FROM = '2026-07-26';
 
 let bad = 0;
 PUZZLES.forEach((p, i) => {
@@ -70,14 +73,18 @@ PUZZLES.forEach((p, i) => {
   else {
     const iso = `20${m[3]}-${String(m[1]).padStart(2, '0')}-${String(m[2]).padStart(2, '0')}`;
     if (iso !== p.live) errs.push(`live ${p.live} != quizId date ${iso}`);
-    // no Sunday editions yet: the flag must be false so /daily never
-    // shows a phantom "Sunday Edition" chip (isSundayEdition reads it).
-    if (p.sunday !== false) errs.push('sunday must be false (no Sunday editions)');
+    // The Sunday flag must match the real weekday: a Sunday drop is the
+    // 15-letter Sunday Edition. GRANDFATHERED: drops before SUNDAY_FROM are
+    // live, played and frozen on the leaderboard, so they are never rewritten.
+    const isSun = new Date(`${p.live}T12:00:00Z`).getUTCDay() === 0 && p.live >= SUNDAY_FROM;
+    if (p.sunday !== isSun) errs.push(`sunday must be ${isSun} for ${p.live}`);
   }
-  if (!Array.isArray(p.letters) || p.letters.length !== 14 || p.letters.some((c) => !/^[A-Z]$/.test(c))) errs.push('bad rack');
+  const wantLen = p.sunday ? 15 : 14;
+  if (!Array.isArray(p.letters) || p.letters.length !== wantLen || p.letters.some((c) => !/^[A-Z]$/.test(c))) errs.push(`bad rack (want ${wantLen} letters)`);
   else {
     const v = p.letters.filter((c) => 'AEIOU'.includes(c)).length;
-    if (v < 4 || v > 6) errs.push(`vowel count ${v} outside 4-6`);
+    const [vMin, vMax] = p.sunday ? [5, 7] : [4, 6];
+    if (v < vMin || v > vMax) errs.push(`vowel count ${v} outside ${vMin}-${vMax}`);
     const best = ladder(p.letters);
     if (best < p.par) errs.push(`stored par ${p.par} NOT achieved by solver (best ${best})`);
     else console.log(`✓ ${p.quizId}  ${p.letters.join('')}  par ${p.par} achievable (solver ${best})`);

@@ -11,7 +11,7 @@ import { PUZZLES } from './puzzles';
 export const metadata = {
   title: 'Tuck — Daily Word Game: Same Letters, Highest Score Wins | Source of Truths',
   description:
-    'A free daily word game — everyone gets the same 14 letters. Tuck them into your own interlocking crossword grid: every run must be a word, intersections score double, and each day has a solver-verified par to beat.',
+    'A free daily word game — everyone gets the same 14 letters, and 15 in the Sunday Edition. Tuck them into your own interlocking crossword grid: every run must be a word, intersections score double, and each day has a solver-verified par to beat.',
   alternates: { canonical: '/tuck' },
   manifest: '/tuck.webmanifest',
   icons: {

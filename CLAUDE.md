@@ -2840,7 +2840,14 @@ nothing else.
   proxy silently breaks the first time a weekday puzzle happens to match it.
 - **The flag must reach the client.** Several games strip fields in `app/<game>/page.js`
   before passing puzzles to the client (Outwit, Alibi, Jester and Sworn hide their
-  solutions); `sunday` must survive that strip or the badge dies silently.
+  solutions); `sunday` must survive that strip or the badge dies silently. This is not
+  hypothetical: Outwit's `clientSafe()` dropped `sunday` and had to be fixed when its
+  edition shipped (2026-07-20). Check the strip FIRST when a badge won't render.
+- **Derive counts from data, never a literal.** A game whose Sunday changes a size must
+  read that size off the puzzle: Tuck now uses `const RACK = PUZZLE.letters.length` in
+  place of eleven hardcoded `14`s (scoring bonus, tiles-placed copy, share text), and
+  Outwit's `TOTAL = PROMPTS.length * 2` was already correct. A stray literal is what
+  makes a Sunday silently mis-score.
 - **A game listed in `lib/sunday-editions.js` MUST flag its Sunday puzzles, and a game
   that flags them MUST be listed there.** The two drifting apart is the bug this section
   exists to prevent.
@@ -2879,9 +2886,13 @@ archive and hub chips use the short form `Sun`.
 | Garble | every answer is six letters instead of five (from 2026-07-26) |
 | Dating | six events to order instead of five (from 2026-07-26) |
 | Cipher | three addends stacked instead of two (from 2026-07-26) |
+| Outwit | six prompts instead of five, the extra a second Rare Bird (from 2026-07-26) |
+| Tuck | a 15-letter rack instead of 14 (from 2026-07-26) |
 
-**No Sunday Edition:** Links (always 4 groups × 16 words), Outwit (always 5 prompts),
-Tuck (always a 14-letter rack), Alibi (always 4 suspects), Warmer (one word every day).
+**No Sunday Edition:** Links (always 4 groups × 16 words), Alibi (always 4 suspects),
+Warmer (one word every day). Alibi is blocked on its client solver, which is hardcoded
+to four suspects (`PERMS4`, 4×4 mark grids, `< 4` loops) and needs generalizing before a
+five-suspect Sunday is possible.
 
 **GRANDFATHERING — never retrofit a live puzzle.** Garble, Dating and Cipher gained
 their editions on 2026-07-26, so their EARLIER Sunday drops (Garble 7/12 and 7/19,
@@ -2891,7 +2902,7 @@ Where a validator enforces the edition, it carries a `SUNDAY_FROM` launch-date c
 and skips anything earlier (see `scripts/verify-cipher.mjs`). Apply a new edition to
 FUTURE Sundays only.
 
-Four of those five (Outwit, Tuck, Alibi, Warmer) carry a vestigial
+Two of those three (Alibi, Warmer) carry a vestigial
 `sunday: false` on every puzzle, and `AlibiClient.jsx` has a finished
 `Sunday Edition · The Sunday Case` badge that has never rendered because no Alibi puzzle
 is flagged. Those are **placeholders for variants that were never authored**, left in
