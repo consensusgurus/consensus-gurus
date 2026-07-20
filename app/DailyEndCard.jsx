@@ -32,6 +32,7 @@ import {
   Pencil, Users, ArrowRight, Puzzle, Fingerprint, KeyRound, Thermometer, Crown,
 } from 'lucide-react';
 import ReportIssue from './ReportIssue';
+import { hasSundayEdition, isSundayET, SUNDAY_SHORT } from '@/lib/sunday-editions';
 
 const RUST = '#c0392b';
 
@@ -254,6 +255,9 @@ export default function DailyEndCard({
 
   const meta = GAME_META[self] || GAME_META.crux;
   const selfGame = DAILY_GAMES.find((g) => g.key === self) || null;
+  // Sunday chip on the still-to-play rows; set after mount (SSR parity).
+  const [sundayNow, setSundayNow] = useState(false);
+  useEffect(() => { setSundayNow(isSundayET()); }, []);
   const selfCat = selfGame ? selfGame.cat : 'word';
   const selfName = selfGame ? selfGame.name : (self || 'today’s game');
   const selfCatMeta = CAT_META[selfCat] || CAT_META.word;
@@ -397,6 +401,7 @@ export default function DailyEndCard({
         </button>
       )}
       <style>{`
+        .dec-sun{margin-left:6px;font-family:${MONO};font-size:9px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:#04121f;background:#f8b84a;border-radius:3px;padding:1px 4px;vertical-align:middle;}
         .dec-card{background:#fff;border:1px solid ${BORD};border-radius:16px;padding:20px 22px 16px;max-width:760px;width:100%;margin:0 auto;font-family:${SANS};color:${INK};}
         .dec-backdrop{position:fixed;inset:0;z-index:85;background:rgba(20,22,28,0.55);display:flex;align-items:flex-start;justify-content:center;padding:24px 16px;overflow-y:auto;}
         .dec-x{position:absolute;top:12px;right:12px;width:30px;height:30px;padding:0;display:flex;align-items:center;justify-content:center;border-radius:9px;background:#fff;border:1px solid ${BORD};color:${SLATE};cursor:pointer;z-index:2;}
@@ -617,7 +622,7 @@ export default function DailyEndCard({
                     {block.items.map((g) => (
                       <a className="dec-row" href={g.href} key={g.key}>
                         <div style={{ minWidth: 0, flex: 1 }}>
-                          <div className="nm"><span className="t">{g.name}</span></div>
+                          <div className="nm"><span className="t">{g.name}</span>{sundayNow && hasSundayEdition(g.key) ? <span className="dec-sun">{SUNDAY_SHORT}</span> : null}</div>
                           <div className="tg">{g.tag}</div>
                         </div>
                         <span className="play"><span className="pl">Play</span><ArrowRight size={11} strokeWidth={2.6} /></span>

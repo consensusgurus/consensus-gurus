@@ -2974,13 +2974,34 @@ FUTURE Sundays only.
 Every game that carries a `sunday` field now backs it with a real edition. Do not treat
 the presence of a `sunday` field as evidence a game has one — check for `sunday: true`.
 
+### Never infer the edition from a side effect of it (owner rule, 2026-07-20)
+
+`PUZZLE.sunday` is the gate. Do NOT OR in whatever the Sunday happens to change. Span
+gated its badge on `PUZZLE.sunday || VIA || AVOID`, which broke both ways: a weekday that
+ever carried a route rule would have announced a Sunday Edition, and a Sunday authored
+WITHOUT a via/avoid rule fell through to the AVOID branch and rendered "**undefined** is
+closed today". Fixed 2026-07-20 to gate on the flag alone, with the rule text rendered
+only when a rule actually exists. Any game whose Sunday twist is optional needs the same
+two-part split: `isSundayEd` from the flag, the detail line from the detail's presence.
+
 ### `lib/sunday-editions.js` — the game-level registry
 
-The hub surfaces (`DailyStrip`, `DailyGamesGrid`) render from a static game registry and
-never load puzzle data, so they cannot read `PUZZLE.sunday`. They use this module instead:
+The four surfaces that render from a static game registry and never load puzzle data
+(`DailyStrip`, `DailyGamesGrid`, `DailyGamesPromo`, `DailyEndCard`) cannot read
+`PUZZLE.sunday`. They use this module instead:
 `hasSundayEdition(key)` plus `isSundayET()` (Eastern, because puzzles roll at ET midnight)
 gate a `Sun` chip on the tile. Compute the Sunday check in a `useEffect`, never during
 render, or the server and client renders disagree and React throws a hydration error.
+`DailyTopNav` is deliberately excluded: it is site nav plus the player chip, not a game
+surface.
+
+**Verifying a Sunday without waiting for Sunday.** The badges only appear one day in
+seven, so check them off-cycle rather than shipping blind: (a) assert every badge's
+`COLORS.*` and font constants are actually defined IN THAT FILE (an undefined token
+renders an invisible chip, and each game has its own palette); (b) run each game's 7/26
+puzzle through its own `page.js` strip and assert `sunday === true` survives; (c) call
+`isSundayET()` on fixed UTC instants either side of ET midnight. All three were run
+across all 20 games on 2026-07-20.
 
 ### Adding a Sunday Edition to a game that lacks one
 

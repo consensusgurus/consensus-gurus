@@ -344,7 +344,13 @@ export default function SpanClient({ puzzles = [], forceNum = null }) {
   // accounts for the constraint, so scoring below stays untouched.
   const VIA = PUZZLE.via || null;
   const AVOID = PUZZLE.avoid || null;
-  const isSundayEd = !!(PUZZLE.sunday || VIA || AVOID);
+  // `sunday: true` is the SINGLE source of truth (see the Sunday Editions
+  // section of CLAUDE.md). Do NOT infer the edition from VIA/AVOID: a weekday
+  // that ever carried a route rule would falsely announce a Sunday Edition,
+  // and a Sunday authored without one used to fall through to the AVOID branch
+  // and render "undefined is closed today".
+  const isSundayEd = !!PUZZLE.sunday;
+  const sundayRule = VIA || AVOID ? true : false;
   const viaDone = !VIA || chain.includes(VIA);
 
   useEffect(() => {
@@ -709,9 +715,11 @@ export default function SpanClient({ puzzles = [], forceNum = null }) {
           {isSundayEd && (
             <div style={{ display: 'flex', alignItems: 'center', gap: 9, fontFamily: MONO, fontSize: 11, letterSpacing: '0.09em', textTransform: 'uppercase', color: '#8a6d1a', background: '#fdf6e3', border: '1px solid rgba(230,185,63,0.6)', borderRadius: 7, padding: '6px 10px', marginBottom: 11, flexWrap: 'wrap' }}>
               <b style={{ fontWeight: 800, color: '#92400e', whiteSpace: 'nowrap' }}>Sunday Edition</b>
-              <span style={{ whiteSpace: 'nowrap' }}>
-                {VIA ? <>route through <b style={{ fontWeight: 800 }}>{VIA}</b>{viaDone ? <b style={{ color: COLORS.trail, fontWeight: 800 }}> &#10003;</b> : null}</> : <><b style={{ fontWeight: 800 }}>{AVOID}</b> is closed today</>}
-              </span>
+              {sundayRule && (
+                <span style={{ whiteSpace: 'nowrap' }}>
+                  {VIA ? <>route through <b style={{ fontWeight: 800 }}>{VIA}</b>{viaDone ? <b style={{ color: COLORS.trail, fontWeight: 800 }}> &#10003;</b> : null}</> : <><b style={{ fontWeight: 800 }}>{AVOID}</b> is closed today</>}
+                </span>
+              )}
             </div>
           )}
           <div style={{ display: 'flex', alignItems: 'center', gap: 12, fontFamily: MONO, fontSize: 11.5, letterSpacing: '0.1em', textTransform: 'uppercase', color: COLORS.faded, borderBottom: '1px solid rgba(28,30,36,0.18)', paddingBottom: 8, marginBottom: 12, flexWrap: 'wrap' }}>
@@ -929,7 +937,7 @@ export default function SpanClient({ puzzles = [], forceNum = null }) {
             <div style={{ fontSize: 14, lineHeight: 1.55, color: COLORS.ink, fontWeight: 600 }}>
               <p style={{ margin: '0 0 9px' }}><b>Get from {PUZZLE.start} to {PUZZLE.end}</b> by typing a chain of countries &mdash; each one must share a <b>land border</b> with the last.</p>
               <p style={{ margin: '0 0 9px' }}><b>The shortest path is {PUZZLE.par} hops.</b> Your score is 10 if your final chain matches it, minus one for each country over. Undo any step for free. A country that doesn&apos;t border your position is a miss &mdash; misses break leaderboard ties.</p>
-              {isSundayEd && (
+              {isSundayEd && sundayRule && (
                 <p style={{ margin: '0 0 9px' }}><b>Sunday Edition:</b> {VIA ? <>your road must pass through <b>{VIA}</b> before it reaches {PUZZLE.end}. The {PUZZLE.par}-hop shortest path already takes the detour.</> : <><b>{AVOID}</b> is closed today &mdash; the road has to go around it, and the {PUZZLE.par}-hop shortest path already does.</>}</p>
               )}
               <p style={{ margin: 0 }}>Mainland borders only: overseas territories don&apos;t count (sorry, France&ndash;Brazil), and neither do bridges or tunnels. One free <b>hint</b> walks you one step down a shortest road.</p>
