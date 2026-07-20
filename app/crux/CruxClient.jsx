@@ -28,6 +28,7 @@ import DailyEndCard from '../DailyEndCard';
 import DailyCombinedLeaderboard from '../quiz/[id]/DailyCombinedLeaderboard';
 import { isMobileDevice } from '@/lib/is-mobile';
 import useAbandonFlush from '../quiz/[id]/useAbandonFlush';
+import { withRef } from '@/lib/referrals';
 
 const COLORS = {
   cream: '#f7f8fa',
@@ -741,7 +742,7 @@ export default function CruxClient({ puzzles = [], forceNum = null }) {
   // Archive results must link the puzzle they describe — a bare /crux would
   // hand the recipient a different board than the score they just saw.
   function shareUrl() {
-    return `sourceoftruths.com/crux${isTodays ? '' : `?p=${PUZZLE.num}`}`;
+    return withRef(`sourceoftruths.com/crux${isTodays ? '' : `?p=${PUZZLE.num}`}`);
   }
   function copyShare() {
     const text = playing

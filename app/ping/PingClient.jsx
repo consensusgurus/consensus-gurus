@@ -31,6 +31,7 @@ import DailyCombinedLeaderboard from '../quiz/[id]/DailyCombinedLeaderboard';
 import { isMobileDevice } from '@/lib/is-mobile';
 import useAbandonFlush from '../quiz/[id]/useAbandonFlush';
 import { CITIES, findCity, suggestCities, haversineMiles, continentOf, normCity } from '@/lib/ping-cities';
+import { withRef } from '@/lib/referrals';
 
 const COLORS = {
   cream: '#f7f8fa',
@@ -458,7 +459,7 @@ export default function PingClient({ puzzles = [], forceNum = null }) {
     return `${head2}\n${squares}\n${shareUrl()}`;
   }
   function shareUrl() {
-    return `sourceoftruths.com/ping${isTodays ? '' : `?p=${PUZZLE.num}`}`;
+    return withRef(`sourceoftruths.com/ping${isTodays ? '' : `?p=${PUZZLE.num}`}`);
   }
   function copyShare() {
     const text = playing

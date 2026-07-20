@@ -1,6 +1,7 @@
 'use client';
 import React, { useState, useEffect } from 'react';
 import { Trophy } from 'lucide-react';
+import { ensureMyRefCode } from '@/lib/referrals';
 
 // Shared "Join the Leaderboard" sign-up form for every quiz board. Self-manages
 // its name/email fields (email optional, display name capped at 15). onJoined(id)
@@ -43,6 +44,9 @@ export default function JoinLeaderboardForm({ identity, onJoined, onViewLeaderbo
       if (d.error) { setErr(true); setMsg(d.error); setBusy(false); return; }
       const id = { username: d.username, email: d.email };
       try { localStorage.setItem('sot_quiz_identity', JSON.stringify(id)); } catch (e) {}
+      // Resolve this player's referral code now so their very next share link
+      // carries it, rather than waiting for the next page load.
+      ensureMyRefCode();
       setErr(false);
       setMsg(`You're in. "${d.username}" is on the leaderboard, including any games you already finished.`);
       if (onJoined) onJoined(id);

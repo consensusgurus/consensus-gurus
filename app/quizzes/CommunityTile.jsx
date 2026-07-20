@@ -208,8 +208,8 @@ export default function CommunityTile() {
             every route on the site, not just /quizzes. That makes a per-quiz and
             per-daily-game share link free: it is the same code on a different path. */}
         <div className="cm-tip">
-          Works on every page: add <span className="cm-code">?ref={me?.code || 'yourname'}</span> to
-          any quiz or daily game URL to share that one directly.
+          The Share button on every quiz and daily game already includes your code, so
+          sharing any one of them credits you. This link works too:
         </div>
         {shareUrl ? (
           <>

@@ -41,6 +41,7 @@ import { isMobileDevice } from '@/lib/is-mobile';
 import useAbandonFlush from '../quiz/[id]/useAbandonFlush';
 import { buildAdj, buildLookup, shortestRoute, viaRoute, distancesFrom, normName, COUNTRIES } from './borders';
 import { MAP } from './map-geo';
+import { withRef } from '@/lib/referrals';
 
 const COLORS = {
   cream: '#f7f8fa',
@@ -599,7 +600,7 @@ export default function SpanClient({ puzzles = [], forceNum = null }) {
     return `${head2}\n${squares}\n${shareUrl()}`;
   }
   function shareUrl() {
-    return `sourceoftruths.com/span${isTodays ? '' : `?p=${PUZZLE.num}`}`;
+    return withRef(`sourceoftruths.com/span${isTodays ? '' : `?p=${PUZZLE.num}`}`);
   }
   function copyShare() {
     const text = playing

@@ -41,6 +41,7 @@ import QuizIdleActions from './QuizIdleActions';
 import { isMobileDevice } from '@/lib/is-mobile';
 import { LB_POPS, LB_FILTERS, pickLb, lbEmptyNote } from '@/lib/quiz-lb';
 import Count from '../../Count';
+import { withRef } from '@/lib/referrals';
 
 const COLORS = {
   cream: '#f7f8fa',
@@ -382,7 +383,7 @@ export default function MapPlaceClient({ quizId, mobile = false }) {
     setQBusy(false);
   }
 
-  const shareUrl = typeof window !== 'undefined' ? window.location.href : (quiz ? `https://sourceoftruths.com/quiz/${quiz.id}` : '');
+  const shareUrl = withRef(typeof window !== 'undefined' ? window.location.href : (quiz ? `https://sourceoftruths.com/quiz/${quiz.id}` : ''));
   const resultMsg = phase === 'done' ? `I scored ${points}/${maxPoints} on "${quiz ? quiz.title : ''}". Can you beat me?` : `Can you beat my score on "${quiz ? quiz.title : ''}"?`;
   function openShare(kind) { const u = encodeURIComponent(shareUrl); const t = encodeURIComponent(resultMsg); const url = kind === 'x' ? `https://twitter.com/intent/tweet?text=${t}&url=${u}` : kind === 'reddit' ? `https://www.reddit.com/submit?url=${u}&title=${t}` : kind === 'facebook' ? `https://www.facebook.com/sharer/sharer.php?u=${u}` : kind === 'whatsapp' ? `https://api.whatsapp.com/send?text=${t}%20${u}` : shareUrl; try { window.open(url, '_blank', 'noopener,noreferrer'); } catch (e) {} }
   function copyResult() { try { navigator.clipboard?.writeText(`${resultMsg}\n${shareUrl}`).then(() => { setCopied(true); setTimeout(() => setCopied(false), 1800); }); } catch (e) {} }

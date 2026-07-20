@@ -2,7 +2,7 @@
 
 import { useEffect } from 'react';
 import { ensureVisitorCookie } from '@/lib/visitor';
-import { captureRef } from '@/lib/referrals';
+import { captureRef, ensureMyRefCode } from '@/lib/referrals';
 
 // Mounted once in the root layout. Two jobs, both fire-and-forget on first paint:
 //  1. Writes the stable visitor-id cookie (sot_vid) so subsequent same-origin
@@ -16,6 +16,10 @@ export default function VisitorBeacon() {
   useEffect(() => {
     ensureVisitorCookie();
     captureRef();
+    // Cache this player's own share code so every board's Share button can stamp
+    // it synchronously. No-ops for signed-out visitors and for anyone cached, so
+    // it costs at most one request per browser.
+    ensureMyRefCode();
   }, []);
   return null;
 }

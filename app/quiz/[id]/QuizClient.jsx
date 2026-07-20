@@ -29,6 +29,7 @@ import SimilarQuizTiles from './SimilarQuizTiles';
 import UpNextCard from './UpNextCard';
 import ScrollToTopOnMount from './ScrollToTopOnMount';
 import { ArrowRight, Play } from 'lucide-react';
+import { withRef } from '@/lib/referrals';
 
 const MapQuizBoard = dynamic(() => import('./MapQuizBoard'), { ssr: false, loading: () => null });
 const StreetMapBoard = dynamic(() => import('./StreetMapBoard'), { ssr: false, loading: () => null });
@@ -1270,7 +1271,7 @@ export default function QuizClient({ quizId }) {
     : typeMode ? `One clue at a time; type the ${quiz.noun || 'answer'}. Correct answers lock in the moment they match, no Enter needed.`
     : `Type ${/^[aeiou]/.test(quiz.noun || '') ? 'an' : 'a'} ${quiz.noun || 'answer'} and it locks in the moment it matches, no Enter needed.`;
   const introBody = `${total} ${total === 1 ? 'answer' : 'answers'}, ${clockMax} on the clock. ${introMech} Solve as many as you can; time is the tiebreak.`;
-  const shareUrl = typeof window !== 'undefined' ? window.location.href : `https://sourceoftruths.com/quiz/${quiz.id}`;
+  const shareUrl = withRef(typeof window !== 'undefined' ? window.location.href : `https://sourceoftruths.com/quiz/${quiz.id}`);
   const sharePct = total ? Math.round((dispScore / total) * 100) : 0;
   const resultMsg = ended ? `I scored ${dispScore}/${total} on "${quiz.title}". Can you beat me?` : `Can you beat my score on "${quiz.title}"?`;
   const resultImgUrl = `https://sourceoftruths.com/quiz/${quiz.id}/result-image?s=${dispScore}&t=${total}&p=${attemptsPct || 0}`;

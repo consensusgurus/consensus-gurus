@@ -26,6 +26,7 @@ import DailyTopNav from '../DailyTopNav';
 import DailyCombinedLeaderboard from '../quiz/[id]/DailyCombinedLeaderboard';
 import { isMobileDevice } from '@/lib/is-mobile';
 import useAbandonFlush from '../quiz/[id]/useAbandonFlush';
+import { withRef } from '@/lib/referrals';
 
 const COLORS = {
   cream: '#f7f8fa',
@@ -431,7 +432,7 @@ export default function LinksClient({ puzzles = [], forceNum = null }) {
     return `${head}\n${rows}\n${shareUrl()}`;
   }
   function shareUrl() {
-    return `sourceoftruths.com/links${isTodays ? '' : `?p=${PUZZLE.num}`}`;
+    return withRef(`sourceoftruths.com/links${isTodays ? '' : `?p=${PUZZLE.num}`}`);
   }
   function copyShare() {
     const text = playing

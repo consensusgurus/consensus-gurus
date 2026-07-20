@@ -31,6 +31,7 @@ import useDuelContext, { DuelBanner } from '../quiz/[id]/useDuelContext';
 import DailyCombinedLeaderboard from '../quiz/[id]/DailyCombinedLeaderboard';
 import { isMobileDevice } from '@/lib/is-mobile';
 import useAbandonFlush from '../quiz/[id]/useAbandonFlush';
+import { withRef } from '@/lib/referrals';
 
 const COLORS = {
   cream: '#f7f8fa',
@@ -323,7 +324,7 @@ export default function WarmerClient({ active, puzzles = [], forceNum = null }) 
       : `Warmer #${PUZZLE.num} — gave up · closest #${bestRank || '—'} in ${gc} guess${gc === 1 ? '' : 'es'}`;
     return `${head}\n${trail}\n${shareUrl()}`;
   }
-  function shareUrl() { return `sourceoftruths.com/warmer${isTodays ? '' : `?p=${PUZZLE.num}`}`; }
+  function shareUrl() { return withRef(`sourceoftruths.com/warmer${isTodays ? '' : `?p=${PUZZLE.num}`}`); }
   function copyShare() {
     const text = playing ? `Warmer #${PUZZLE.num} — the daily hot-and-cold word hunt from Source of Truths.\n${shareUrl()}` : shareText();
     try { if (typeof navigator !== 'undefined' && navigator.share && isMobileDevice()) { navigator.share({ text }).catch(() => {}); return; } } catch (e) {}
