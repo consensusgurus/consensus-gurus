@@ -1646,7 +1646,7 @@ export default function QuizClient({ quizId }) {
                     this link and finishes a game credits whoever shared it. */}
                 <div style={{ display: 'flex', flexWrap: 'wrap', gap: 9 }}>
                   <a href={`/duel/new?quiz=${encodeURIComponent(quiz.id)}`} style={{ ...stackBtn, flex: '1 1 190px', width: 'auto', background: COLORS.ink, color: '#fff', borderRadius: 10 }}><Swords size={15} strokeWidth={2.5} /> Challenge Someone</a>
-                  <button onClick={share} style={{ ...stackBtn, flex: '1 1 190px', width: 'auto', background: '#fff', color: COLORS.ink, border: `1.5px solid ${COLORS.ink}` }}><Share2 size={15} strokeWidth={2.5} /> {copied ? 'Link copied' : (refCredit ? 'Share Quiz (for credit)' : 'Share Quiz')}</button>
+                  <button onClick={share} style={{ ...stackBtn, flex: '1 1 190px', width: 'auto', background: COLORS.ink, color: '#fff', borderRadius: 10 }}><Share2 size={15} strokeWidth={2.5} /> {copied ? 'Link copied' : (refCredit ? 'Share Quiz (for credit)' : 'Share Quiz')}</button>
                 </div>
               </div>
               <div style={{ marginTop: 9 }}>
