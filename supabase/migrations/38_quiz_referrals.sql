@@ -72,16 +72,32 @@ grant execute on function quiz_top_referrers(int, int) to anon, authenticated;
 
 -- ---------------------------------------------------------------------------
 -- Launch seed: Gator85 at 17 credits (owner-requested, 2026-07-20).
+--
+-- Gator85 is a REAL existing account (the owner's own login, under its own
+-- email), so this attaches the seeded credits to that account rather than
+-- creating a shadow user. The backfill above has already given it
+-- ref_code = 'gator85' (the slug of its username), so its share link is live.
+-- The create-if-absent below only fires on a database where the account does
+-- not exist at all, e.g. a fresh local copy.
+--
 -- Every seeded row carries seeded = true, so removing the whole seed later is:
 --     delete from quiz_referrals where seeded;
--- Seeded credits sit inside the rolling 30-day window and age out on their own.
+-- Seeded credits are dated across the last 21 days and age out of the rolling
+-- 30-day window on their own.
 -- ---------------------------------------------------------------------------
 insert into quiz_users (username, email, ref_code)
-values ('Gator85', 'gator85@seed.sourceoftruths.com', 'gator85')
-on conflict (lower(email)) do update set ref_code = coalesce(quiz_users.ref_code, excluded.ref_code);
+select 'Gator85', 'gator85@seed.sourceoftruths.com', 'gator85'
+where not exists (select 1 from quiz_users where lower(username) = 'gator85');
+
+-- Make sure the account holds the 'gator85' code even if it predates the
+-- backfill or was renamed into place.
+update quiz_users set ref_code = 'gator85'
+where id = (select id from quiz_users where lower(username) = 'gator85' order by created_at limit 1)
+  and ref_code is null
+  and not exists (select 1 from quiz_users where lower(ref_code) = 'gator85');
 
 insert into quiz_referrals (referrer_user_id, referred_key, quiz_id, seeded, created_at)
 select u.id, 'seed:gator85:' || g, null, true, now() - make_interval(days => (g % 21))
-from quiz_users u, generate_series(1, 17) g
-where lower(u.ref_code) = 'gator85'
+from (select id from quiz_users where lower(username) = 'gator85' order by created_at limit 1) u,
+     generate_series(1, 17) g
 on conflict (referred_key) do nothing;
