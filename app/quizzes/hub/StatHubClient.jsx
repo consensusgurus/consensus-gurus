@@ -623,6 +623,17 @@ export default function StatHubClient() {
     if (pk) setViewKey(pk);
     const tb = sp.get('tab');
     if (tb && TABS.some((x) => x.t === tb)) setTab(tb);
+    // Deep link to a section within a tab (e.g. the daily-games Hall of Fame):
+    // /quizzes/hub?tab=daily&section=champions scrolls the champion history in.
+    if (tb === 'daily' && sp.get('section') === 'champions') {
+      let tries = 0;
+      const go = () => {
+        const el = document.getElementById('daily-champions');
+        if (el) { el.scrollIntoView({ behavior: 'smooth', block: 'start' }); return; }
+        if (tries++ < 20) setTimeout(go, 150);
+      };
+      setTimeout(go, 250);
+    }
   }, []);
   const viewing = !!viewKey;
   const profile = viewing ? viewProfile : me;
@@ -994,7 +1005,7 @@ function DailyGamesView({ onSelectPlayer }) {
       <DailyCombinedLeaderboard light />
 
       {/* 2. Day-by-day champion history. */}
-      <div className="card" style={{ padding: '16px 18px', marginTop: 16 }}>
+      <div id="daily-champions" className="card" style={{ padding: '16px 18px', marginTop: 16, scrollMarginTop: 16 }}>
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 10, flexWrap: 'wrap', marginBottom: 12 }}>
           <span style={{ display: 'inline-flex', alignItems: 'center', gap: 8, fontSize: 15, fontWeight: 800 }}><Crown size={17} style={{ color: '#e8b43a' }} /> Daily Champions</span>
           {hist == null ? null : <span style={{ fontSize: 12, color: C.muted, fontWeight: 600 }}>{history.length} {history.length === 1 ? 'day' : 'days'} crowned</span>}

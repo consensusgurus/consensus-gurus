@@ -20,7 +20,7 @@
 // (owner: keep the game-specific leaders alongside the top-3 cap).
 
 import React, { useState, useEffect } from 'react';
-import { Crown, ChevronDown } from 'lucide-react';
+import { Crown, ChevronDown, Trophy } from 'lucide-react';
 import useDailyOrder, { sortByDailyOrder } from './useDailyOrder';
 
 const GAMES = [
@@ -60,6 +60,7 @@ function fmtPts(x) { const v = Math.round(Number(x) * 10) / 10; return Number.is
 export default function DailyStrip({ board = null }) {
   const [done, setDone] = useState(() => new Set());
   const [open, setOpen] = useState(false);
+  const [yest, setYest] = useState(null); // yesterday's champion, from /api/quiz/daily-history
   // Display order = yesterday's popularity (canonical order until it loads).
   const dailyOrder = useDailyOrder();
   const games = sortByDailyOrder(GAMES, dailyOrder);
@@ -122,7 +123,21 @@ export default function DailyStrip({ board = null }) {
   const bestN = board && board.bestN != null ? board.bestN : Math.min(5, gameCount || 5);
   const meKey = board && board.me ? board.me.userKey : null;
   const top5 = overall.slice(0, 5);
-  const meShown = meKey && top5.some((r) => r.userKey === meKey);
+  const top3 = overall.slice(0, 3);
+  const meShown = meKey && top3.some((r) => r.userKey === meKey);
+  const uniquePlayers = board && typeof board.uniquePlayers === 'number' ? board.uniquePlayers : null;
+
+  // Yesterday's champion is only needed once the board is expanded; fetch it
+  // lazily on first open so a collapsed homepage visit never pays for it.
+  useEffect(() => {
+    if (!open || !hasBoard || yest !== null) return;
+    let alive = true;
+    fetch('/api/quiz/daily-history')
+      .then((r) => r.json())
+      .then((d) => { if (alive && d && Array.isArray(d.history)) setYest(d.history[0] || { none: true }); })
+      .catch(() => {});
+    return () => { alive = false; };
+  }, [open, hasBoard, yest]);
 
   return (
     <div className="dstrip-wrap">
@@ -193,6 +208,27 @@ export default function DailyStrip({ board = null }) {
         .dsd-tt{font-size:13.5px;font-weight:800;color:#f5d878;text-align:right;font-variant-numeric:tabular-nums;}
         .dsd-tt s{font-size:10px;font-weight:600;color:#6a80a8;text-decoration:none;}
         .dsd-empty{font-size:12.5px;color:#93a7cc;font-weight:600;padding:8px 2px;}
+        /* #1 gets a bolder, slightly larger treatment (same row size, more emphasis) */
+        .dsd-row.first{background:rgba(232,180,58,.2);border-color:rgba(232,180,58,.55);}
+        .dsd-row.first .dsd-rk{font-size:17px;color:#f5d878;}
+        .dsd-row.first .dsd-pn{font-weight:800;font-size:14.5px;color:#f5d878;display:flex;align-items:center;gap:5px;}
+        .dsd-row.first .dsd-cr{color:#e8b43a;flex:none;}
+        .dsd-row.first .dsd-tt{font-size:15px;}
+        /* yesterday's champion */
+        .dsd-yest{display:flex;align-items:center;gap:7px;margin-top:11px;padding:9px 11px;border-radius:10px;background:rgba(255,255,255,.045);border:1px solid rgba(255,255,255,.09);}
+        .dsd-yest .yl{font-size:9px;letter-spacing:.1em;text-transform:uppercase;color:#8fa3cf;font-weight:800;flex:none;}
+        .dsd-yest b{min-width:0;font-size:13px;color:#eaf0fb;font-weight:700;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+        .dsd-yest .yt{margin-left:auto;flex:none;font-size:12.5px;font-weight:800;color:#f5d878;font-variant-numeric:tabular-nums;}
+        .dsd-yest .yt s{font-size:9.5px;font-weight:600;color:#6a80a8;text-decoration:none;}
+        .dsd-yest .ynone{font-size:12px;color:#6a80a8;font-weight:600;}
+        /* Hall of Fame link (Daily Champions on the Stat Hub) */
+        .dsd-hof{display:flex;align-items:center;gap:6px;margin-top:8px;padding:9px 11px;border-radius:10px;background:rgba(232,180,58,.1);border:1px solid rgba(232,180,58,.32);color:#f5d878;font-size:12px;font-weight:800;text-decoration:none;transition:background .12s;}
+        .dsd-hof:hover{background:rgba(232,180,58,.2);}
+        .dsd-hof svg{color:#e8b43a;flex:none;}
+        /* today's unique players (guests included) */
+        .dsd-players{margin-top:9px;font-size:11.5px;color:#93a7cc;font-weight:600;}
+        .dsd-players b{color:#eaf0fb;font-size:14px;font-weight:800;font-variant-numeric:tabular-nums;}
+        .dsd-players s{color:#6a80a8;text-decoration:none;font-size:10.5px;}
         .dsd-minis{display:grid;grid-template-columns:repeat(5,1fr);gap:9px;}
         @media(max-width:1200px){.dsd-minis{grid-template-columns:repeat(4,1fr);}}
         @media(max-width:900px){.dsd-minis{grid-template-columns:repeat(2,1fr);}}
@@ -281,14 +317,14 @@ export default function DailyStrip({ board = null }) {
             </div>
             <div className="dsd-grid">
               <div>
-                <div className="dsd-sub">Overall · Top 5</div>
+                <div className="dsd-sub">Overall · Top 3</div>
                 <div className="dsd-cols"><span>#</span><span>Player</span><span style={{ textAlign: 'right' }}>Games</span><span style={{ textAlign: 'right' }}>Total</span></div>
-                {top5.length ? top5.map((r) => {
+                {top3.length ? top3.map((r) => {
                   const mine = meKey && r.userKey === meKey;
                   return (
-                    <div key={r.userKey} className={`dsd-row${r.rank <= 3 ? '' : ' plain'}${mine ? ' me' : ''}`}>
+                    <div key={r.userKey} className={`dsd-row${r.rank === 1 ? ' first' : ''}${mine ? ' me' : ''}`}>
                       <span className="dsd-rk">{r.rank}</span>
-                      <span className="dsd-pn">{r.username || 'Player'}{mine ? <b> (you)</b> : ''}</span>
+                      <span className="dsd-pn">{r.rank === 1 ? <Crown className="dsd-cr" size={13} /> : null}{r.username || 'Player'}{mine ? <b> (you)</b> : ''}</span>
                       <span className="dsd-g">{r.gamesPlayed}/{gameCount}</span>
                       <span className="dsd-tt">{fmtPts(r.total)}<s>/{maxTotal}</s></span>
                     </div>
@@ -301,6 +337,25 @@ export default function DailyStrip({ board = null }) {
                     <span className="dsd-g">{board.me.gamesPlayed}/{gameCount}</span>
                     <span className="dsd-tt">{fmtPts(board.me.total)}<s>/{maxTotal}</s></span>
                   </div>
+                ) : null}
+                {/* Yesterday's champion */}
+                <div className="dsd-yest">
+                  <Crown size={13} style={{ color: '#e8b43a', flex: 'none' }} />
+                  <span className="yl">Yesterday</span>
+                  {yest && yest.winner ? (
+                    <>
+                      <b>{yest.winner.username || 'Champion'}</b>
+                      <span className="yt">{fmtPts(yest.winner.total)}<s>/{yest.maxTotal}</s></span>
+                    </>
+                  ) : (
+                    <span className="ynone">{yest && yest.none ? 'No champion yet' : 'Loading…'}</span>
+                  )}
+                </div>
+                {/* Hall of Fame → the Daily Champions history on the Stat Hub */}
+                <a href="/quizzes/hub?tab=daily&section=champions" className="dsd-hof"><Trophy size={12} /> Hall of Fame →</a>
+                {/* Today's unique players, guests included */}
+                {uniquePlayers != null ? (
+                  <div className="dsd-players"><b>{uniquePlayers.toLocaleString()}</b> {uniquePlayers === 1 ? 'player' : 'players'} today <s>· guests included</s></div>
                 ) : null}
                 <a href="/daily" className="dsd-gt" style={{ marginTop: 9, color: '#f5d878' }}>Full standings &amp; game boards →</a>
               </div>

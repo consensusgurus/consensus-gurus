@@ -169,7 +169,7 @@ export async function GET(request) {
   const effBestN = gameCount ? Math.min(BEST_N, gameCount) : BEST_N;
   const maxTotal = effBestN * GAME_MAX;
 
-  const empty = { date: suffix, maxTotal, gameMax: GAME_MAX, bestN: effBestN, gameCount, games: [], overall: [], me: null, meProvisional: null };
+  const empty = { date: suffix, maxTotal, gameMax: GAME_MAX, bestN: effBestN, gameCount, uniquePlayers: 0, games: [], overall: [], me: null, meProvisional: null };
   try {
     const { data, error } = await loadQuizResultsCached(supabaseAdmin);
     if (error) {
@@ -185,6 +185,19 @@ export async function GET(request) {
       if (!arr) { arr = []; rowsByQuiz.set(r.quiz_id, arr); }
       arr.push(r);
     }
+
+    // Unique players who touched ANY of today's daily games, guests included:
+    // distinct by account (u:<user_id>) or, for a guest, by browser (a:<anon_id>).
+    // A player who cleared five games counts once. This is the headline "N players
+    // today" number and intentionally includes non-registered guests.
+    const uniqueSet = new Set();
+    for (const arr of rowsByQuiz.values()) {
+      for (const r of arr) {
+        const k = r.user_id ? `u:${r.user_id}` : (r.anon_id ? `a:${r.anon_id}` : null);
+        if (k) uniqueSet.add(k);
+      }
+    }
+    const uniquePlayers = uniqueSet.size;
 
     // OUTWIT OVERRIDE: Outwit is adaptively re-scored on every view (see
     // lib/outwit-score); its quiz_results snapshot is frozen at submission and
@@ -265,6 +278,7 @@ export async function GET(request) {
       gameMax: GAME_MAX,
       bestN: effBestN,
       gameCount,
+      uniquePlayers,
       games: gameBoards,
       overall: overallFull.slice(0, DISPLAY),
       me,
