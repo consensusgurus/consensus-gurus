@@ -3,6 +3,8 @@ import { supabaseAdmin } from '@/lib/supabase-server';
 import { findQuizIdentity } from '@/lib/quiz-identity';
 import { buildLeaderboardMatrix } from '@/lib/quiz-anon';
 import { parseUa, countryFromRequest, regionFromRequest, cityFromRequest, timezoneFromRequest, languageFromRequest, referrerHost } from '@/lib/ua';
+import { creditReferral } from '@/lib/referrals-server';
+import { normalizeRefCode } from '@/lib/referrals';
 
 export const dynamic = 'force-dynamic';
 export const fetchCache = 'force-no-store';
@@ -144,6 +146,25 @@ export async function POST(request) {
     if (insErr) {
       console.error('quiz_results insert error', insErr);
       return NextResponse.json({ error: 'db error' }, { status: 500 });
+    }
+
+    // Referral credit. The sot_ref cookie was set by lib/referrals.js when this
+    // visitor first landed on a ?ref= share link; this is the single chokepoint
+    // every board posts to, so one hook here covers every quiz AND every daily
+    // game. Abandoned runs never credit (otherwise a two-second bail would be
+    // the cheapest possible fake referral), and each referred person can only
+    // ever credit one referrer once, so repeat plays do not farm the board.
+    // Wrapped so a referral problem can never cost the player their result.
+    if (!abandoned) {
+      try {
+        const refCode = normalizeRefCode(request.cookies.get('sot_ref')?.value);
+        const visitorKey = anonId || request.cookies.get('sot_vid')?.value || null;
+        if (refCode && visitorKey) {
+          await creditReferral(supabaseAdmin, { refCode, visitorKey, userId: user_id, quizId });
+        }
+      } catch (e) {
+        console.error('referral credit skipped', e?.message || e);
+      }
     }
 
     const data = [];

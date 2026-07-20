@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import { QUIZ_COUNT } from '../SiteHeader';
 import QuizCommandHeader from './QuizCommandHeader';
 import DuelTile from './DuelTile';
+import CommunityTile from './CommunityTile';
 import {
   Search, ChevronDown, ArrowRight, BarChart3, Crown, Sparkles, Flame,
   BadgeCheck, Clapperboard, Music, Gamepad2, Plane, Globe, Utensils,
@@ -1552,15 +1553,11 @@ export default function QuizHomeClient() {
             </Link>
           ) : <div className="th-slot-hold" />}
 
-            {trending ? (() => { const tc = byKey[trending.dept] || {}; const tPos = tHeroPos; return (
-            <Link href={`/quiz/${trending.id}`} className="ttile" style={tHero ? { backgroundImage: `url("${tHero}")`, backgroundPosition: tPos || 'center' } : { background: tc.c || C.accent }}>
-              <span className="ttile-tag"><Flame size={11} style={{ verticalAlign: -1 }} /> TRENDING</span>
-              <div className="ttile-ov" ref={ttileProbeRef}>
-                <div className="ttile-t">{stripVerb(trending.title)}</div>
-                <div className="ttile-foot" style={{ flexWrap: 'nowrap' }}><span className="ttile-p" style={{ flex: 'none' }}>Play <ArrowRight size={13} style={{ verticalAlign: -1 }} /></span>{leader(trending.id) ? <span className={`ttile-plays${ttilePill ? ' hpill' : ''}`} style={{ display: 'inline-flex', alignItems: 'center', gap: 4, minWidth: 0 }}><Crown size={12} style={{ color: '#e8b43a', flex: 'none' }} /><span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{leader(trending.id)}</span></span> : null}</div>
-              </div>
-            </Link>
-          ); })() : <div className="th-slot-hold" />}
+            {/* Was the Trending tile; replaced by the Top Community Member tile 2026-07-20.
+                The `trending` memo above is intentionally still computed: it feeds the
+                exclusion sets for the geo/sports rotations, so removing it would change
+                which quizzes those tiles pick. */}
+            <CommunityTile />
 
             <DuelTile />
           </div>
