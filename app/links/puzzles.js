@@ -199,13 +199,25 @@ export const PUZZLES = [
     quizId: 'links-7-26-26',
     live: '2026-07-26',
     dateLabel: 'July 26, 2026',
-    // collisions: ROOK reads corvid (corvids full) and QUEEN reads rock band
-    // (bands full) — chess is the anchor, so both resolve back to chess.
+    sunday: true,
+    // SUNDAY EDITION: four cross-category collisions instead of the usual two.
+    // The uniqueness argument is PINNING, and it is machine-checked: every
+    // tempted group is full of words that fit nowhere else, so each collision
+    // has to resolve back to its own group.
+    //   ROOK  reads chess, but chess is already full (and CASTLE is its rook)
+    //   KING  reads chess, but chess is full        -> must be a card
+    //   QUEEN reads chess AND reads rock band, and BOTH are full -> card
     groups: [
-      { name: 'Big cats', words: ['LION', 'TIGER', 'PANTHER', 'COUGAR'] },
-      { name: 'Corvids', words: ['RAVEN', 'CROW', 'MAGPIE', 'JACKDAW'] },
       { name: 'Rock bands', words: ['KISS', 'RUSH', 'CREAM', 'JOURNEY'] },
-      { name: 'Chess pieces', words: ['KING', 'QUEEN', 'BISHOP', 'ROOK'] },
+      { name: 'Corvids', words: ['RAVEN', 'MAGPIE', 'JACKDAW', 'ROOK'] },
+      { name: 'Deck of cards', words: ['ACE', 'JOKER', 'KING', 'QUEEN'] },
+      { name: 'Chess pieces', words: ['BISHOP', 'KNIGHT', 'PAWN', 'CASTLE'] },
+    ],
+    collisions: [
+      { word: 'ROOK', reads: 'Chess pieces' },
+      { word: 'KING', reads: 'Chess pieces' },
+      { word: 'QUEEN', reads: 'Chess pieces' },
+      { word: 'QUEEN', reads: 'Rock bands' },
     ],
   },
   {

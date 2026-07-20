@@ -302,7 +302,47 @@ if (RUN('links')) {
     if (all.length !== 16) errs.push(`${all.length} words`);
     if (new Set(all).size !== all.length) errs.push('duplicate word across groups');
     for (const g of p.groups) if (g.words.length !== 4) errs.push(`group "${g.name}" has ${g.words.length}`);
-    errs.length ? fail(p.quizId, errs.join('; ')) : ok(p.quizId, 'structure OK (semantic double-solution audit is manual, §7a)');
+
+    // ── COLLISIONS + THE PINNING PROOF ───────────────────────────────────
+    // A collision is a word that plausibly reads as a DIFFERENT group on the
+    // same board. They are the whole game, but they are also how a board ends
+    // up with two defensible solutions. The uniqueness invariant (owner rule,
+    // and the Crux "pinned trap" rule applied here): a tempted group must
+    // ALREADY BE FULL of words that fit nowhere else. If the group a word is
+    // tempted toward is itself full of pinned words, the word cannot actually
+    // complete it, so it has to resolve back home — and the board has exactly
+    // one solution. That is checkable, and this checks it.
+    //
+    // `collisions` is authoring metadata: [{ word, reads }] where `reads` is
+    // the NAME of the group the word tempts toward. Sunday Editions require at
+    // least four; ordinary days require at least two once annotated. Legacy
+    // boards predate the field and are skipped (audit still manual there).
+    const byName = new Map(p.groups.map((g) => [g.name, g]));
+    const homeOf = new Map();
+    for (const g of p.groups) for (const w of g.words) homeOf.set(w, g.name);
+    if (p.collisions) {
+      const minC = p.sunday ? 4 : 2;
+      if (p.collisions.length < minC) errs.push(`${p.collisions.length} collisions, want >= ${minC}`);
+      const colliders = new Set(p.collisions.map((c) => c.word));
+      for (const c of p.collisions) {
+        if (!homeOf.has(c.word)) { errs.push(`collision word "${c.word}" not on the board`); continue; }
+        const tempted = byName.get(c.reads);
+        if (!tempted) { errs.push(`collision "${c.word}" reads unknown group "${c.reads}"`); continue; }
+        if (homeOf.get(c.word) === c.reads) { errs.push(`collision "${c.word}" already lives in "${c.reads}"`); continue; }
+        // THE PROOF: every member of the tempted group must be unpinnable
+        // elsewhere, i.e. must not itself be a collision word.
+        const loose = tempted.words.filter((w) => colliders.has(w));
+        if (loose.length) {
+          errs.push(`"${c.word}" tempts "${c.reads}", but that group is not pinned (${loose.join(',')} also collide) — board may have two solutions`);
+        }
+      }
+    } else if (p.sunday) {
+      errs.push('Sunday Edition must declare its collisions');
+    }
+    const note = p.collisions
+      ? `structure OK, ${p.collisions.length} collisions, every tempted group pinned`
+      : 'structure OK (no collisions declared; semantic audit manual, §7a)';
+    errs.length ? fail(p.quizId, errs.join('; ')) : ok(p.quizId, note);
   }
 }
 

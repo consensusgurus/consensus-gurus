@@ -2905,10 +2905,43 @@ archive and hub chips use the short form `Sun`.
 | Tuck | a 15-letter rack instead of 14 (from 2026-07-26) |
 | Alibi | five suspects instead of four, 15 facts to confirm (from 2026-07-26) |
 | Warmer | a rarer secret word, deeper in the frequency-ordered vocab (from 2026-07-26) |
+| Links | four cross-category collisions instead of two (from 2026-07-26) |
 
-**No Sunday Edition:** Links (always 4 groups × 16 words) is the last one without an
-edition. It has no mechanical lever — "harder" there is a design call (a fifth decoy
-group? a higher forced collision count?) and needs an owner ruling before it is built.
+**All twenty dailies now run a Sunday Edition.** A new daily game should decide at launch
+whether it has one (see "Adding a BRAND NEW daily game" below).
+
+### Links collisions and the pinning proof (owner rule, 2026-07-20)
+
+Links is format-locked at 4 groups × 16 words, so its Sunday cannot get bigger — it gets
+**trappier**. A *collision* is a word that plausibly reads as a DIFFERENT group on the
+same board (ROOK reads as chess while living in Corvids). Ordinary days need at least
+two; **Sunday Editions need at least four**.
+
+Collisions are also exactly how a board ends up with TWO defensible solutions, so the
+count alone is not enough. The uniqueness invariant — the Crux "pinned trap" rule applied
+to Links — is that **a tempted group must already be full of words that fit nowhere
+else**. If every word in the group a collision points at is itself untemptable, the
+colliding word cannot actually complete that group, so it must resolve back home, and the
+board has exactly one solution.
+
+That is now machine-checked. Puzzles carry authoring metadata:
+
+```javascript
+collisions: [ { word: 'ROOK', reads: 'Chess pieces' }, ... ]   // `reads` = group NAME
+```
+
+`scripts/verify-daily-banks.mjs links` verifies, for every collision, that the word is on
+the board, that `reads` names a real group, that the word does not already live in it,
+and that **no member of the tempted group is itself a collision word** — the pinning
+proof. It also enforces the count floor (4 on Sunday, 2 otherwise) and fails a Sunday
+that declares no collisions at all. Verified against three deliberately broken boards:
+an unpinned tempted group, too few collisions, and a self-referential collision.
+
+`collisions` is stripped in `app/links/page.js` before puzzles reach the client. The
+groups themselves must ship (the client checks guesses), but the trap map need not.
+
+**Legacy boards predate the field** and are skipped with an explicit "semantic audit
+manual" note. Annotating them is owed; until then their two-collision rule stays manual.
 
 **Regenerating a Warmer order (the only pipeline-backed edition).** Warmer stores
 `order`: every VOCAB index sorted by cosine similarity to that day's secret word,

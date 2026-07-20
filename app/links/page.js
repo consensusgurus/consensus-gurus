@@ -9,7 +9,7 @@ import { PUZZLES } from './puzzles';
 export const metadata = {
   title: 'Links — Free Daily Word Grouping Game | Source of Truths',
   description:
-    'A free daily word grouping game — sixteen words hide four threads of four. Find every thread before four mistakes find you. New puzzle every day.',
+    'A free daily word grouping game — sixteen words hide four threads of four. Find every thread before four mistakes find you. New puzzle every day, and the Sunday Edition lays twice as many traps.',
   alternates: { canonical: '/links' },
   manifest: '/links.webmanifest',
   icons: {
@@ -73,7 +73,10 @@ function etTodayServer() {
 
 export default function LinksPage({ searchParams }) {
   const today = etTodayServer();
-  const visiblePuzzles = PUZZLES.filter((p) => p.live <= today);
+  // `collisions` is authoring metadata (which words are deliberate traps), so
+  // it stays server-side — the groups themselves must ship for the client to
+  // check a guess, but the trap map does not.
+  const visiblePuzzles = PUZZLES.filter((p) => p.live <= today).map(({ collisions, ...safe }) => safe);
   const n = Number(searchParams && searchParams.p);
   const forceNum = Number.isInteger(n) && n > 0 ? n : null;
   return (
