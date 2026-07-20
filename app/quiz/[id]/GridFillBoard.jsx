@@ -566,7 +566,7 @@ export default function GridFillBoard({ quizId, mobile = false }) {
                 {/* DONE — results popup (the revealed grid stays behind it) */}
                 {phase === 'done' && (
                   <>
-                  <QuizResultModal quiz={quiz}
+                  <QuizResultModal quiz={quiz} board={board} identity={identity} lastElapsed={lastElapsed} onRegister={() => setTab('join')}
                 open={!reviewing}
                 onClose={() => setReviewing(true)}
                 eyebrow={score === totalCells ? 'Perfect score' : time <= 0 ? 'Time!' : 'Gave up'}

@@ -504,7 +504,7 @@ export default function GlobePlaceClient({ quizId, mobile = false }) {
             {/* DONE — results popup */}
             {phase === 'done' && (
               <>
-                <QuizResultModal quiz={quiz}
+                <QuizResultModal quiz={quiz} board={board} identity={identity} lastElapsed={lastElapsed} onRegister={() => setTab('join')}
                 open={!dismissed}
                 onClose={() => setDismissed(true)}
                 eyebrow={points === maxPoints ? 'Perfect globe' : placements.length < total ? 'Ended early' : 'Final score'}

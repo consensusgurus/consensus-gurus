@@ -479,7 +479,7 @@ export default function SurviveStateBoard({ quizId, mobile = false }) {
 
             {/* DONE — results card */}
             {phase === 'done' && (
-              <QuizResultModal quiz={quiz}
+              <QuizResultModal quiz={quiz} board={board} identity={identity} lastElapsed={lastElapsed} onRegister={() => setTab('join')}
                 open
                 eyebrow={perfect ? 'Cleared the board' : 'Struck out'}
                 score={score}

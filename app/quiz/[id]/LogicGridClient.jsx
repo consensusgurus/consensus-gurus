@@ -557,7 +557,7 @@ export default function LogicGridClient({ quizId, mobile = false }) {
                 {/* DONE — results popup (the solved grid stays behind it) */}
                 {phase === 'done' && (
                   <>
-                  <QuizResultModal quiz={quiz}
+                  <QuizResultModal quiz={quiz} board={board} identity={identity} lastElapsed={lastElapsed} onRegister={() => setTab('join')}
                 open={!reviewing}
                 onClose={() => setReviewing(true)}
                 eyebrow={score === total ? 'Grid solved' : time <= 0 ? "Time's up" : 'Gave up'}

@@ -549,7 +549,7 @@ export default function MapPlaceClient({ quizId, mobile = false }) {
             {/* DONE — results popup */}
             {phase === 'done' && (
               <>
-                <QuizResultModal quiz={quiz}
+                <QuizResultModal quiz={quiz} board={board} identity={identity} lastElapsed={lastElapsed} onRegister={() => setTab('join')}
                 open={!dismissed}
                 onClose={() => setDismissed(true)}
                 eyebrow={points === maxPoints ? 'Perfect map' : placements.length < total ? 'Ended early' : 'Final score'}

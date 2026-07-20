@@ -4,6 +4,8 @@ import { RotateCcw, Swords } from 'lucide-react';
 import { QUIZZES } from '@/lib/quizzes';
 import SimilarQuizTiles from './SimilarQuizTiles';
 import ScrollToTopOnMount from './ScrollToTopOnMount';
+import RegisterRankLine from './RegisterRankLine';
+import { wouldBeRank } from '@/lib/quiz-lb';
 
 // Shared end-of-game results for every quiz board (owner rule, 2026-07-02).
 //
@@ -38,11 +40,16 @@ export default function QuizResultModal({
   standings = null,
   quiz = null,
   placement = null,
+  board = null,
+  identity = null,
+  lastElapsed = null,
+  onRegister = null,
   onPlayAgain,
   onReport,
   onClose, onPlaySimilar, onLeaderboard,
 }) {
   const duelHref = quiz && quiz.id ? `/duel/new?quiz=${encodeURIComponent(quiz.id)}` : null;
+  const regRank = (!identity && onRegister && board) ? wouldBeRank(board.leaderboard, score, lastElapsed) : null;
   const similar = useMemo(() => {
     if (!quiz) return [];
     const stripped = quiz.id.replace(/-\d+$/, '');
@@ -73,6 +80,8 @@ export default function QuizResultModal({
           </div>
         ) : null}
       </div>
+
+      <RegisterRankLine rank={regRank} onRegister={onRegister} />
 
       {standings ? <div style={{ marginBottom: 12 }}>{standings}</div> : null}
 

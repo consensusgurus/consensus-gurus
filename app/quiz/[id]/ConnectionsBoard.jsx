@@ -471,7 +471,7 @@ export default function ConnectionsBoard({ quizId, mobile = false }) {
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 8, marginBottom: 18 }}>
                   {groups.map((_, gi) => <GroupRow key={gi} gi={gi} />)}
                 </div>
-                <QuizResultModal quiz={quiz}
+                <QuizResultModal quiz={quiz} board={board} identity={identity} lastElapsed={lastElapsed} onRegister={() => setTab('join')}
                   open={!dismissed}
                   onClose={() => setDismissed(true)}
                   eyebrow={points === maxPoints ? 'Solved' : 'Final result'}

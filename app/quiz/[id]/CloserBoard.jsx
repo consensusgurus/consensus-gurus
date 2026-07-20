@@ -444,7 +444,7 @@ export default function CloserBoard({ quizId, mobile = false }) {
 
             {/* DONE — results card */}
             {phase === 'done' && (
-              <QuizResultModal quiz={quiz}
+              <QuizResultModal quiz={quiz} board={board} identity={identity} lastElapsed={lastElapsed} onRegister={() => setTab('join')}
                 open
                 eyebrow={perfect ? 'Perfect map sense' : (isTopScore ? 'New record' : 'Run complete')}
                 score={score}

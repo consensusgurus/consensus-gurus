@@ -553,7 +553,7 @@ export default function TimedMcqClient({ quizId, mobile = false }) {
             {/* DONE — results popup */}
             {phase === 'done' && (
               <>
-                <QuizResultModal quiz={quiz}
+                <QuizResultModal quiz={quiz} board={board} identity={identity} lastElapsed={lastElapsed} onRegister={() => setTab('join')}
                 open={!dismissed}
                 onClose={() => setDismissed(true)}
                 eyebrow={points === maxPoints ? 'Theoretical maximum' : answeredCount < total ? 'Ended early' : 'Final score'}

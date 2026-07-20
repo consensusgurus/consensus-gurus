@@ -433,7 +433,7 @@ export default function LogicGameClient({ quizId, mobile = false }) {
 
             {/* DONE — results card */}
             {phase === 'done' && (
-              <QuizResultModal quiz={quiz}
+              <QuizResultModal quiz={quiz} board={board} identity={identity} lastElapsed={lastElapsed} onRegister={() => setTab('join')}
                 open
                 eyebrow={correctCount === total ? 'Perfect game' : 'Final score'}
                 score={correctCount}

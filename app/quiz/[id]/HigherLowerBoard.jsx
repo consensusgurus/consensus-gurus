@@ -411,7 +411,7 @@ export default function HigherLowerBoard({ quizId, mobile = false }) {
 
             {/* DONE — results card */}
             {phase === 'done' && (
-              <QuizResultModal quiz={quiz}
+              <QuizResultModal quiz={quiz} board={board} identity={identity} lastElapsed={lastElapsed} onRegister={() => setTab('join')}
                 open
                 eyebrow={perfect ? 'Ran the whole deck' : (isTopScore ? 'New record' : 'Streak broken')}
                 score={score}
