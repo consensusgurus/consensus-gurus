@@ -6,6 +6,7 @@ import { PUZZLES } from './puzzles';
 // strip, the /daily archive, the games grids, and the sitemap (/warmer is the
 // canonical, evergreen URL — the dated /quiz/warmer-* stubs canonicalize here).
 // One secret word a day; guess by meaning, hotter or colder, until you land it.
+// The Sunday Edition picks a rarer word (deeper in the frequency-ordered vocab).
 //
 // The server picks the ACTIVE puzzle (today, or ?p=N from the archive) and sends
 // only THAT day's similarity `order` to the client, plus a slim answer-free meta
@@ -14,7 +15,7 @@ import { PUZZLES } from './puzzles';
 export const metadata = {
   title: 'Warmer — Daily Word Game: Hotter or Colder | Source of Truths',
   description:
-    'A free daily word game — one secret word, and every guess tells you how close it is in meaning on a cold-to-hot spectrum. Ocean is scorching for "sea," pencil is freezing. Unlimited guesses; the leaderboard ranks fewest guesses, fastest time.',
+    'A free daily word game — one secret word, and every guess tells you how close it is in meaning on a cold-to-hot spectrum. Ocean is scorching for "sea," pencil is freezing. Unlimited guesses; the leaderboard ranks fewest guesses, fastest time. The Sunday Edition hides a rarer word.',
   alternates: { canonical: '/warmer' },
   manifest: '/warmer.webmanifest',
   icons: {

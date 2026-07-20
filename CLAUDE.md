@@ -2904,11 +2904,31 @@ archive and hub chips use the short form `Sun`.
 | Outwit | six prompts instead of five, the extra a second Rare Bird (from 2026-07-26) |
 | Tuck | a 15-letter rack instead of 14 (from 2026-07-26) |
 | Alibi | five suspects instead of four, 15 facts to confirm (from 2026-07-26) |
+| Warmer | a rarer secret word, deeper in the frequency-ordered vocab (from 2026-07-26) |
 
-**No Sunday Edition:** Links (always 4 groups × 16 words) and Warmer (one word every
-day). Links has no mechanical lever — "harder" there is a design call (a fifth decoy
+**No Sunday Edition:** Links (always 4 groups × 16 words) is the last one without an
+edition. It has no mechanical lever — "harder" there is a design call (a fifth decoy
 group? a higher forced collision count?) and needs an owner ruling before it is built.
-Warmer needs its GloVe pipeline re-run to pick a rarer secret word.
+
+**Regenerating a Warmer order (the only pipeline-backed edition).** Warmer stores
+`order`: every VOCAB index sorted by cosine similarity to that day's secret word,
+most-similar first, with `order[0]` the answer itself. Changing the answer means
+recomputing all 32,300 ranks, so it needs the real vectors:
+
+1. `npm pack wink-embeddings-sg-100d` in the sandbox (registry.npmjs.org is
+   allowlisted; Stanford/HF/github-release hosts are NOT). Despite the name the JSON
+   is GloVe 6B 100d, 341k words, `{ vectors: word -> [...100 dims, l2norm, index] }`.
+2. Cosine against every VOCAB word, sort descending, tie-break by vocab index so the
+   build is deterministic. Assert `VOCAB[order[0]] === answer`, `order.length ===
+   VOCAB.length`, and that it is a true permutation before writing.
+3. **Eyeball the top 15 neighbours before committing to an answer.** This is the
+   quality gate the 2026-07-19 rebuild exists for: a clean neighbourhood (lighthouse →
+   tower, breakwater, cove, observatory, pier, beacon) gives players a real gradient,
+   while proper-noun-heavy ones (telescope → hubble, keck; volcano → etna, vesuvius)
+   are worse. NEVER synthesize or bridge a vector for a missing word.
+4. Sunday answers must clear `RARE_FLOOR` (vocab rank 5000) in
+   `scripts/verify-warmer.mjs`. Weekday answers have run rank 453-3534; the first
+   Sunday answer, `lighthouse`, is rank 10489.
 
 **GRANDFATHERING — never retrofit a live puzzle.** Garble, Dating and Cipher gained
 their editions on 2026-07-26, so their EARLIER Sunday drops (Garble 7/12 and 7/19,
@@ -2918,10 +2938,8 @@ Where a validator enforces the edition, it carries a `SUNDAY_FROM` launch-date c
 and skips anything earlier (see `scripts/verify-cipher.mjs`). Apply a new edition to
 FUTURE Sundays only.
 
-Warmer still carries a vestigial `sunday: false` on every puzzle. That is a
-**placeholder for a variant that was never authored**, left in place deliberately so the
-wiring is ready. Do not treat the presence of a `sunday` field as evidence a game has an
-edition — check for `sunday: true`.
+Every game that carries a `sunday` field now backs it with a real edition. Do not treat
+the presence of a `sunday` field as evidence a game has one — check for `sunday: true`.
 
 ### `lib/sunday-editions.js` — the game-level registry
 
