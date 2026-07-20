@@ -3,6 +3,7 @@ import React, { useMemo } from 'react';
 import { RotateCcw, Swords } from 'lucide-react';
 import { QUIZZES } from '@/lib/quizzes';
 import SimilarQuizTiles from './SimilarQuizTiles';
+import UpNextCard from './UpNextCard';
 import ScrollToTopOnMount from './ScrollToTopOnMount';
 import RegisterRankLine from './RegisterRankLine';
 import { wouldBeRank } from '@/lib/quiz-lb';
@@ -87,6 +88,7 @@ export default function QuizResultModal({
 
       <div style={{ display: 'flex', flexDirection: 'column', gap: 9 }}>
         {onPlayAgain ? <button onClick={onPlayAgain} style={{ ...stackBtn, background: '#e8b43a', color: '#1c1e24' }}><RotateCcw size={15} strokeWidth={2.5} /> Play again</button> : null}
+        <UpNextCard quiz={quiz} />
         {duelHref ? <a href={duelHref} style={{ ...stackBtn, background: C.ink, color: '#fff' }}><Swords size={15} strokeWidth={2.5} /> Challenge a friend</a> : null}
       </div>
 

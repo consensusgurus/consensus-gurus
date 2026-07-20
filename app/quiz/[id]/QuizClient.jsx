@@ -26,6 +26,7 @@ import { flushSync } from 'react-dom';
 import QuizPlayOverlay from './QuizPlayOverlay';
 import { similarQuizId, nextQuizMeta, familyQuizzes, allowInSimilar } from '@/lib/quiz-similar';
 import SimilarQuizTiles from './SimilarQuizTiles';
+import UpNextCard from './UpNextCard';
 import ScrollToTopOnMount from './ScrollToTopOnMount';
 import { ArrowRight, Play } from 'lucide-react';
 
@@ -1633,6 +1634,7 @@ export default function QuizClient({ quizId }) {
               )}
               <div style={{ display: 'flex', flexDirection: 'column', gap: 9 }}>
                 <button onClick={restartRound} style={{ ...stackBtn, background: '#e8b43a', color: '#1c1e24' }}><RotateCcw size={15} strokeWidth={2.5} /> Play again</button>
+                <UpNextCard quiz={quiz} />
                 <a href={`/duel/new?quiz=${encodeURIComponent(quiz.id)}`} style={{ ...stackBtn, background: COLORS.ink, color: '#fff', borderRadius: 10 }}><Swords size={15} strokeWidth={2.5} /> Challenge Someone</a>
               </div>
               <div style={{ marginTop: 9 }}>
