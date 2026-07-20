@@ -333,7 +333,7 @@ export default function QuizHomeClient() {
     else { lastTapRef.current = { k, t: now }; }
   };
 
-  const [totals, setTotals] = useState({ byQuiz: {}, recent7: {}, leaders: {}, leaderKeys: {}, today: 0 });
+  const [totals, setTotals] = useState({ byQuiz: {}, recent7: {}, leaders: {}, leaderKeys: {}, today: 0, todayByQuiz: {} });
   const [xpBoard, setXpBoard] = useState([]); // [{rank,name,isAnon,userKey}]
   const [xpScope, setXpScope] = useState('all');
   const [catBoards, setCatBoards] = useState({}); // { dept: [{rank,name,isAnon,userKey,rating}] } for the "Top Rated <Category>" slides
@@ -493,7 +493,7 @@ export default function QuizHomeClient() {
   // ── data loads ──
   useEffect(() => {
     fetch('/api/quiz/totals').then((r) => r.json()).then((d) => {
-      if (d && !d.error) setTotals({ byQuiz: d.byQuiz || {}, recent7: d.recent7 || {}, leaders: d.leaders || {}, leaderKeys: d.leaderKeys || {}, today: d.today || 0 });
+      if (d && !d.error) setTotals({ byQuiz: d.byQuiz || {}, recent7: d.recent7 || {}, leaders: d.leaders || {}, leaderKeys: d.leaderKeys || {}, today: d.today || 0, todayByQuiz: d.todayByQuiz || {} });
     }).catch(() => {});
     fetch('/api/quiz/recent').then((r) => r.json()).then((d) => {
       if (d && Array.isArray(d.plays)) setRecent(d.plays);
@@ -609,6 +609,7 @@ export default function QuizHomeClient() {
   }, []);
 
   function plays(id) { return totals.byQuiz[id] || 0; }
+  function todayPlays(id) { return totals.todayByQuiz[id] || 0; }
   function leader(id) { return totals.leaders[id] || ''; }
   function leaderKey(id) { return (totals.leaderKeys && totals.leaderKeys[id]) || ''; }
 
@@ -1751,7 +1752,7 @@ export default function QuizHomeClient() {
         ) : (
           <div className="qcols">
             <BrowseColumn label={<>Last Played{playsToday ? <span style={{ fontSize: 10.5, fontWeight: 700, color: 'rgba(255,255,255,0.82)' }}> · {playsToday.toLocaleString()} plays today</span> : null}</>} Icon={Play} color="#10b981" tint="#d8f3e6" filled fill baseCount={5}
-              rows={lastPlayed.map((f) => ({ q: { id: f.quizId, title: f.title, rawTitle: f.title }, right: (<>{f.mult > 1 ? <span style={{ fontSize: 10, fontWeight: 800, color: '#10b981', background: '#d8f3e6', borderRadius: 6, padding: '1px 6px' }}>×{fmtMult(f.mult)}</span> : null}<span className="score" style={{ fontSize: 11, color: f.total && f.score / f.total >= 0.8 ? '#16a34a' : C.soft }}>{f.score}/{f.total}</span><span style={{ color: C.soft }}>{relTime(f.playedAt)}</span></>) }))} cta="View all ›" onCta={() => setListMode('live')} />
+              rows={lastPlayed.map((f) => ({ q: { id: f.quizId, title: f.title, rawTitle: f.title }, right: (<>{todayPlays(f.quizId) > 0 ? <span style={{ fontSize: 10, fontWeight: 800, color: '#10b981', background: '#d8f3e6', borderRadius: 6, padding: '1px 6px' }}>+{todayPlays(f.quizId)}</span> : null}<span className="score" style={{ fontSize: 11, color: f.total && f.score / f.total >= 0.8 ? '#16a34a' : C.soft }}>{f.score}/{f.total}</span><span style={{ color: C.soft }}>{relTime(f.playedAt)}</span></>) }))} cta="View all ›" onCta={() => setListMode('live')} />
             <BrowseColumn label="Most Played" Icon={Flame} color="#c2691c" tint="#f4e2cd" filled fill baseCount={5}
               rows={mostPlayed.map((q) => ({ q, right: <PlaysRight id={q.id} plays={plays} leader={leader} leaderKey={leaderKey} color="#c2691c" hidePlays /> }))} cta="View all ›" onCta={() => setListMode('mostplayed')} />
             <BrowseColumn label="Newest" Icon={Sparkles} color={C.accent} tint={C.accsoft} filled fill baseCount={5}

@@ -59,6 +59,7 @@ export async function GET() {
     const firstByPair = new Map();
     const recent7 = {};
     const recent12h = {};
+    const todayByQuiz = {};
     const now = Date.now();
     const cutoff7 = now - 7 * 24 * 60 * 60 * 1000;
     const cutoff12h = now - 12 * 60 * 60 * 1000;
@@ -88,7 +89,7 @@ export async function GET() {
         const t = new Date(r.created_at).getTime();
         if (t >= cutoff7) recent7[r.quiz_id] = (recent7[r.quiz_id] || 0) + 1;
         if (t >= cutoff12h) recent12h[r.quiz_id] = (recent12h[r.quiz_id] || 0) + 1;
-        if (t >= cutoffToday) { today += 1; if (Number.isFinite(te) && te > 0) todayTime += te; }
+        if (t >= cutoffToday) { today += 1; todayByQuiz[r.quiz_id] = (todayByQuiz[r.quiz_id] || 0) + 1; if (Number.isFinite(te) && te > 0) todayTime += te; }
         const idx = Math.floor((now - t) / bucketMs);
         if (idx >= 0 && idx < TREND_MAX_BUCKETS) {
           let arr = buckets.get(r.quiz_id);
@@ -146,7 +147,7 @@ export async function GET() {
         .slice(0, 3)
         .map(([name]) => name);
     }
-    return NextResponse.json({ total: rows.length, today, totalCorrect, totalPerfect, totalTime, todayTime, byQuiz, recent7, recent12h, trendingByQuiz, trendingWindowH, leaders, leaderKeys, topLeaders }, { headers: CACHE_HEADERS });
+    return NextResponse.json({ total: rows.length, today, totalCorrect, totalPerfect, totalTime, todayTime, byQuiz, recent7, recent12h, todayByQuiz, trendingByQuiz, trendingWindowH, leaders, leaderKeys, topLeaders }, { headers: CACHE_HEADERS });
   } catch (e) {
     return NextResponse.json({ total: 0, byQuiz: {}, recent7: {}, recent12h: {}, trendingByQuiz: {}, trendingWindowH: 0, leaders: {} });
   }
