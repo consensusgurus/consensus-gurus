@@ -539,12 +539,12 @@ export default function DailyArchiveClient({ games = [], today = '' }) {
 
 // game art tile with a monogram fallback if the PNG is missing
 function GameArt({ g, size = 52 }) {
-  const [err, setErr] = useState(false);
+  const [err, setErr] = useState(0);
   return (
     <div className="dl-art" style={{ width: size, height: size, background: tint(g.accent, 0.10) }}>
-      {err
+      {err > 1
         ? <span style={{ fontWeight: 800, color: g.accent, fontSize: Math.round(size * 0.42) }}>{g.name[0]}</span>
-        : <img src={`/games/tile/${g.key}.png`} alt="" aria-hidden="true" onError={() => setErr(true)} />}
+        : <img src={err ? `/games/btn-${g.key}.png` : `/games/tile/${g.key}.png`} alt="" aria-hidden="true" onError={() => setErr((e) => e + 1)} />}
     </div>
   );
 }
