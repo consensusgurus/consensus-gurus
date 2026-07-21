@@ -317,6 +317,9 @@ export default function CircaClient({ puzzles = [], forceNum = null }) {
 
   const elapsed = g.t0 ? fmtTime((g.tEnd || Date.now()) - g.t0) : '0:00';
   const isTodays = PUZZLE.num === pickPuzzle(puzzles, null).num;
+  // Retired (owner ruling 2026-07-20): once the final banked day (No. 7) is in
+  // the past, no new puzzle drops — surface that before play, not just after.
+  const gameRetired = pickPuzzle(puzzles, null).live < etToday();
   const prevPuzzle = puzzles.find((x) => x.num === PUZZLE.num - 1) || null;
   const myStats = deriveStats(stats, pickPuzzle(puzzles, null).num);
   const finalScore = won ? Math.max(1, (exact ? 11 : 10) - guesses.length) : 0;
@@ -509,6 +512,13 @@ export default function CircaClient({ puzzles = [], forceNum = null }) {
             <HelpCircle size={20} />
           </button>
         </div>
+
+        {gameRetired && (
+          <div style={{ background: '#fff7ed', border: '1.5px solid rgba(180,83,9,0.4)', borderRadius: 10, padding: '10px 14px', marginBottom: 12, fontFamily: SANS, fontSize: 12.5, fontWeight: 700, color: COLORS.ink, lineHeight: 1.5 }}>
+            Circa has retired &mdash; this archive stays playable, but no new moments drop.{' '}
+            Meet its successor: <a href="/outrank" style={{ color: COLORS.ember, fontWeight: 800, textDecoration: 'underline' }}>Outrank, the daily crowd-ranking game &rarr;</a>
+          </div>
+        )}
 
         {/* the moment */}
         <div style={{ background: '#fff', border: `2px solid ${COLORS.ink}`, borderRadius: 10, padding: '15px 17px 17px', boxShadow: '5px 5px 0 rgba(28,30,36,0.16)', marginBottom: 12 }}>
