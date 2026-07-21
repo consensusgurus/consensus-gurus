@@ -541,7 +541,7 @@ export default function SwornClient({ puzzles = [], forceNum = null }) {
               <button className="sw-btn" onClick={startInquest} style={{ background: COLORS.ink, color: '#fff', fontSize: 15, padding: '11px 22px' }}>Start the inquest</button>
               <div style={{ marginTop: 10 }}>
                 <button type="button" onClick={() => setGateRules((v) => !v)} style={{ background: 'none', border: 'none', padding: 0, cursor: 'pointer', fontFamily: SANS, fontSize: 13, fontWeight: 700, color: COLORS.faded, textDecoration: 'underline' }}>
-                  {gateRules ? 'Hide instructions' : 'Show instructions'}
+                  {gateRules ? 'Hide detailed instructions' : 'Show detailed instructions'}
                 </button>
               </div>
             </div>
