@@ -286,6 +286,17 @@ export async function GET(request) {
     // TEMP DIAGNOSTIC (remove after debugging the live-board identity issue):
     // ?debug=1 dumps how the server resolves the viewer + each pick, no writes.
     if (searchParams.get('debug') === '1') {
+      // Raw probe of outrank_picks to distinguish "table missing / errored" from
+      // "genuinely empty".
+      let probe, anyCount;
+      try {
+        const q = await supabaseAdmin.from('outrank_picks').select('id, anon_id, user_id, answers, created_at').eq('quiz_id', quizId).limit(5);
+        probe = { error: q.error ? { message: q.error.message, code: q.error.code, details: q.error.details, hint: q.error.hint } : null, count: (q.data || []).length };
+      } catch (e) { probe = { thrown: String(e) }; }
+      try {
+        const c = await supabaseAdmin.from('outrank_picks').select('quiz_id', { count: 'exact', head: true });
+        anyCount = c.error ? { error: c.error.message, code: c.error.code } : c.count;
+      } catch (e) { anyCount = { thrown: String(e) }; }
       const anonHit = new Set(anonSet || []);
       const diag = rows.filter((r) => Array.isArray(r.answers)).map((r) => {
         const info = r.anon_id ? infoByAnon.get(r.anon_id) : null;
@@ -303,7 +314,7 @@ export async function GET(request) {
         ok: true, debug: true, build: 'or2',
         myUserId: myUserId ? String(myUserId).slice(0, 8) : null, myName,
         anonSet: (anonSet || []).map((a) => String(a).slice(0, 8)),
-        rowCount: rows.length, diag,
+        rowCount: rows.length, probe, anyCount, diag,
       });
     }
 
