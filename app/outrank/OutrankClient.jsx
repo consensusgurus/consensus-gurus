@@ -336,6 +336,24 @@ export default function OutrankClient({ puzzles = [], forceNum = null }) {
       .then((r) => r.json())
       .then((d) => { if (d && !d.error) setBoard({ ...EMPTY_BOARD, ...d }); })
       .catch(() => {});
+    // Cross-device hydrate: if THIS ACCOUNT already locked in today (possibly on
+    // another device), pull the graded result so we show the finished board
+    // instead of the play screen. A local finish on this device always wins.
+    try {
+      const hyAnon = getAnonId();
+      let hyMail = '';
+      try { const idj = JSON.parse(localStorage.getItem('sot_quiz_identity') || 'null'); if (idj && idj.email) hyMail = idj.email; } catch (e) {}
+      const hyQs = `quizId=${encodeURIComponent(PUZZLE.quizId)}&anonId=${encodeURIComponent(hyAnon || '')}${hyMail ? `&email=${encodeURIComponent(hyMail)}` : ''}`;
+      fetch(`/api/outrank?${hyQs}`)
+        .then((r) => r.json())
+        .then((d) => {
+          if (!d || !d.played || !Array.isArray(d.answers) || d.answers.length < 2) return;
+          const ans = d.answers.map(Number);
+          setG((cur) => (cur.status === 'done' ? cur : { ...cur, status: 'done', fav: ans[0], order: ans.slice(1), result: d, tEnd: cur.tEnd || Date.now() }));
+          try { setStats(recordLiveStat(PUZZLE.num, d.points, TOTAL)); } catch (e) {}
+        })
+        .catch(() => {});
+    } catch (e) {}
     if (!viewedRef.current) {
       viewedRef.current = true;
       fetch('/api/quiz/view', { method: 'POST', keepalive: true, headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ quizId: PUZZLE.quizId }) }).catch(() => {});

@@ -1,10 +1,11 @@
 import { NextResponse } from 'next/server';
 import { supabaseAdmin } from '@/lib/supabase-server';
-import { findQuizIdentity } from '@/lib/quiz-identity';
+import { findQuizIdentity, resolveAnonSet } from '@/lib/quiz-identity';
 import { PUZZLES } from '@/app/outrank/puzzles';
 import { scoreOutrankField, validBallot, HOUSE_CUTOFF } from '@/lib/outrank-score';
 
-// POST /api/outrank  { quizId, answers:[fav, r1..rN], anonId, email? }
+// /api/outrank  { quizId, answers:[fav, r1..rN], anonId, email? }  (POST)
+//               ?quizId=..&anonId=..&email=..                       (GET)
 //
 // Scores one Outrank ballot — and the whole field — against the day's pool.
 // Same adaptive contract as /api/outwit (see that route's header): nothing is
@@ -22,11 +23,19 @@ import { scoreOutrankField, validBallot, HOUSE_CUTOFF } from '@/lib/outrank-scor
 // players have locked in; from the 11th real player on, the pool is real votes
 // only, for EVERYONE. Pool-wide flag, never per-viewer.
 //
+// IDENTITY (2026-07-21): "already played" is resolved by ACCOUNT, not by the
+// single browser's anon_id. A player who locked in on one device sees the same
+// finished result and live standings on any other device signed into the same
+// account. resolveAnonSet gives every browser anon attributed to the account
+// (see lib/quiz-identity.js — the same cross-device rule the duel routes use);
+// a returning player is graded on their CANONICAL stored ballot and is never
+// inserted a second time, so their favorite can never be double-counted in the
+// crowd pool. The live board is deduped to one row per account.
+//
 // Ballots are stored in `outrank_picks` (migration 36), one row per (quiz_id,
-// anon_id) — a browser's ballot is inserted once and never re-inserted, so
-// nobody can stuff the vote by replaying, but their score keeps updating as
-// others arrive. If the table doesn't exist yet, the game still works: pool =
-// house crowd only and the live board is empty.
+// anon_id) — inserted once on first play and never re-inserted. If the table
+// doesn't exist yet, the game still works: pool = house crowd only and the
+// live board is empty.
 
 export const dynamic = 'force-dynamic';
 export const fetchCache = 'force-no-store';
@@ -34,6 +43,155 @@ export const fetchCache = 'force-no-store';
 function etTodayServer() {
   try { return new Date().toLocaleDateString('en-CA', { timeZone: 'America/New_York' }); }
   catch (e) { return new Date().toISOString().slice(0, 10); }
+}
+
+async function loadRows(quizId) {
+  // Every real ballot so far. Table may not exist yet (migration 36 not run) —
+  // the game degrades gracefully to the house pool alone, empty board.
+  try {
+    const { data, error } = await supabaseAdmin
+      .from('outrank_picks')
+      .select('id, anon_id, user_id, answers, created_at')
+      .eq('quiz_id', quizId)
+      .limit(20000);
+    if (!error && Array.isArray(data)) return data;
+  } catch (e) { /* table missing — house pool only */ }
+  return [];
+}
+
+// Grade one requester (by account) against the current field and build the live
+// board. `submitted` is the ballot the client sent (POST) or null (GET). Returns
+// { played, alreadyPlayed, clean, payload }. When the account hasn't played and
+// nothing was submitted, returns { played: false }.
+function buildOutrank({ puzzle, quizId, rows, anonSet, myUserId, myName, submitted, currentAnon, nameByUser, nameByAnon }) {
+  const K = puzzle.items.length;
+  const anonHit = new Set(anonSet || []);
+  const players = rows
+    .filter((r) => Array.isArray(r.answers))
+    .map((r) => ({
+      anonId: r.anon_id,
+      userId: r.user_id,
+      answers: r.answers,
+      created: r.created_at || '',
+      isYou: (!!r.anon_id && anonHit.has(r.anon_id)) || (!!myUserId && r.user_id === myUserId),
+    }));
+
+  // The account's canonical stored ballot for today = the EARLIEST row that
+  // belongs to this account (grade this on every device so scores never differ).
+  const myRows = players.filter((p) => p.isYou).sort((a, b) => String(a.created).localeCompare(String(b.created)));
+  const storedRow = myRows[0] || null;
+  const alreadyPlayed = !!storedRow;
+
+  const clean = alreadyPlayed
+    ? storedRow.answers.map(Number)
+    : (submitted ? submitted.map(Number) : null);
+  if (!clean) return { played: false, alreadyPlayed: false, clean: null, payload: null };
+
+  // A brand-new ballot gets a synthetic "you" row so it joins the crowd + board.
+  // A returning ballot is already in `players` (the stored row), so don't add it.
+  if (!alreadyPlayed) {
+    players.push({ anonId: currentAnon || null, userId: myUserId, answers: clean, created: '9999', isYou: true });
+  }
+
+  const field = scoreOutrankField(puzzle, players, { houseCutoff: HOUSE_CUTOFF });
+  const { counts, poolSize, detailFor, totalFor, useHouse, realCount } = field;
+
+  const mine = detailFor(clean);
+  const points = mine.total;
+  const totalVotes = counts.reduce((a, b) => a + b, 0) || 1;
+  const yourFav = clean[0];
+  const predicted = clean.slice(1);
+  const predictedPos = new Array(K).fill(-1);
+  predicted.forEach((item, pos) => { predictedPos[item] = pos; });
+  // Reveal rows in the ACTUAL crowd order (leave-one-out view for this player,
+  // so the reveal always agrees with their per-slot points).
+  const reveal = mine.actual.map((item, pos) => ({
+    item: puzzle.items[item],
+    idx: item,
+    rank: pos + 1,
+    yourRank: predictedPos[item] + 1,
+    votes: counts[item],
+    pct: Math.round((counts[item] / totalVotes) * 100),
+    yourFav: item === yourFav,
+    pts: mine.pts[predictedPos[item]] ?? 0,
+  }));
+  const slotPts = mine.pts;
+
+  // LIVE STANDINGS — registered players only, exactly like /api/outwit, deduped
+  // to ONE row per account (an account with several attributed browsers, or a
+  // legacy duplicate ballot, must not appear twice).
+  const named = [];
+  const seen = new Set();
+  const ordered = [...players].sort((a, b) => String(a.created).localeCompare(String(b.created)));
+  for (const p of ordered) {
+    const dedupKey = p.isYou
+      ? (myUserId ? `u:${myUserId}` : 'you')
+      : (p.userId ? `u:${p.userId}` : (p.anonId ? `a:${p.anonId}` : null));
+    if (dedupKey && seen.has(dedupKey)) continue;
+    const name = (p.isYou && myName) || (p.userId && nameByUser.get(p.userId)) || (p.anonId && nameByAnon.get(p.anonId)) || null;
+    if (!name) continue;
+    if (dedupKey) seen.add(dedupKey);
+    named.push({ name, total: totalFor(p), created: p.created, isYou: p.isYou });
+  }
+  named.sort((a, b) => b.total - a.total || String(a.created).localeCompare(String(b.created)));
+  const ranked = named.map((e, i) => ({ ...e, rank: i + 1 }));
+  const youEntry = ranked.find((e) => e.isYou) || null;
+  const board = {
+    field: realCount,
+    registered: ranked.length,
+    houseActive: useHouse,
+    top: ranked.slice(0, 25).map((e) => ({ rank: e.rank, name: e.name, total: e.total, you: e.isYou })),
+    you: youEntry ? { rank: youEntry.rank, total: youEntry.total } : null,
+    youTotal: points,
+    youRegistered: !!youEntry,
+  };
+
+  const payload = {
+    quizId,
+    played: true,
+    replay: alreadyPlayed,
+    points,
+    total: K * 2,
+    poolSize,
+    realCount,
+    houseActive: useHouse,
+    answers: clean,
+    yourFav,
+    favPct: Math.round((counts[yourFav] / totalVotes) * 100),
+    reveal,
+    slotPts,
+    board,
+  };
+  return { played: true, alreadyPlayed, clean, payload };
+}
+
+// Resolve identity + the account's full anon set, and look up display names for
+// the live board. Shared by POST and GET.
+async function resolveContext({ quizId, anonId, email, rows }) {
+  let ident = null;
+  try { ident = await findQuizIdentity(supabaseAdmin, { email, anonId }); } catch (e) { /* best-effort */ }
+  const myUserId = ident && ident.id ? ident.id : null;
+  const myName = ident && ident.username ? ident.username : null;
+
+  let anonSet = anonId ? [anonId] : [];
+  try { anonSet = await resolveAnonSet(supabaseAdmin, { anonId, email }); } catch (e) { /* fall back to current anon */ }
+
+  const userIds = [...new Set(rows.map((r) => r.user_id).filter(Boolean))];
+  const anonIds = [...new Set(rows.map((r) => r.anon_id).filter(Boolean))];
+  const nameByUser = new Map();
+  const nameByAnon = new Map();
+  try {
+    if (userIds.length) {
+      const { data } = await supabaseAdmin.from('quiz_users').select('id, username, anon_id').in('id', userIds);
+      for (const u of data || []) { if (u.username) { nameByUser.set(u.id, u.username); if (u.anon_id) nameByAnon.set(u.anon_id, u.username); } }
+    }
+    if (anonIds.length) {
+      const { data } = await supabaseAdmin.from('quiz_users').select('username, anon_id').in('anon_id', anonIds);
+      for (const u of data || []) { if (u.username && u.anon_id) nameByAnon.set(u.anon_id, u.username); }
+    }
+  } catch (e) { /* no names — board just comes back empty */ }
+
+  return { myUserId, myName, anonSet, nameByUser, nameByAnon };
 }
 
 export async function POST(request) {
@@ -51,124 +209,52 @@ export async function POST(request) {
     if (!answers || !validBallot(answers, K)) {
       return NextResponse.json({ error: 'ballot invalid' }, { status: 400 });
     }
-    const clean = answers.map(Number);
+    const submitted = answers.map(Number);
 
-    // Resolve the requester's identity once — used for both live-board
-    // attribution and (if new) the stored row's user_id.
-    let ident = null;
-    try { ident = await findQuizIdentity(supabaseAdmin, { email, anonId }); } catch (e) { /* best-effort */ }
-    const myUserId = ident && ident.id ? ident.id : null;
-    const myName = ident && ident.username ? ident.username : null;
+    const rows = await loadRows(quizId);
+    const { myUserId, myName, anonSet, nameByUser, nameByAnon } = await resolveContext({ quizId, anonId, email, rows });
 
-    // Every real ballot so far. Table may not exist yet (migration 36 not run)
-    // — the game degrades gracefully to the house pool alone, empty board.
-    let rows = [];
-    try {
-      const { data, error } = await supabaseAdmin
-        .from('outrank_picks')
-        .select('id, anon_id, user_id, answers, created_at')
-        .eq('quiz_id', quizId)
-        .limit(20000);
-      if (!error && Array.isArray(data)) rows = data;
-    } catch (e) { /* table missing — house pool only */ }
+    const res = buildOutrank({ puzzle, quizId, rows, anonSet, myUserId, myName, submitted, currentAnon: anonId, nameByUser, nameByAnon });
 
-    const players = rows
-      .filter((r) => Array.isArray(r.answers))
-      .map((r) => ({ anonId: r.anon_id, userId: r.user_id, answers: r.answers, created: r.created_at || '', isYou: !!anonId && r.anon_id === anonId }));
-    const alreadyPlayed = !!anonId && players.some((p) => p.isYou);
-    if (!alreadyPlayed) {
-      players.push({ anonId: anonId || null, userId: myUserId, answers: clean, created: '9999', isYou: true });
-    }
-
-    // Score the whole field with the shared adaptive scorer (the same code the
-    // daily/combined board uses, so the two boards can never disagree).
-    const field = scoreOutrankField(puzzle, players, { houseCutoff: HOUSE_CUTOFF });
-    const { counts, poolSize, detailFor, totalFor, useHouse, realCount } = field;
-
-    // The requester's detailed, revealed result.
-    const mine = detailFor(clean);
-    const points = mine.total;
-    const totalVotes = counts.reduce((a, b) => a + b, 0) || 1;
-    const yourFav = clean[0];
-    const predicted = clean.slice(1);
-    const predictedPos = new Array(K).fill(-1);
-    predicted.forEach((item, pos) => { predictedPos[item] = pos; });
-    // Reveal rows in the ACTUAL crowd order (leave-one-out view for this
-    // player, so the reveal always agrees with their per-slot points).
-    const reveal = mine.actual.map((item, pos) => ({
-      item: puzzle.items[item],
-      idx: item,
-      rank: pos + 1,
-      yourRank: predictedPos[item] + 1,
-      votes: counts[item],
-      pct: Math.round((counts[item] / totalVotes) * 100),
-      yourFav: item === yourFav,
-      pts: mine.pts[predictedPos[item]] ?? 0,
-    }));
-    // Per predicted slot (for the share squares: slot 1..K in the player's order).
-    const slotPts = mine.pts;
-
-    // LIVE STANDINGS — registered players only, exactly like /api/outwit.
-    const userIds = [...new Set(players.map((p) => p.userId).filter(Boolean))];
-    const anonIds = [...new Set(players.map((p) => p.anonId).filter(Boolean))];
-    const nameByUser = new Map();
-    const nameByAnon = new Map();
-    try {
-      if (userIds.length) {
-        const { data } = await supabaseAdmin.from('quiz_users').select('id, username, anon_id').in('id', userIds);
-        for (const u of data || []) { if (u.username) { nameByUser.set(u.id, u.username); if (u.anon_id) nameByAnon.set(u.anon_id, u.username); } }
-      }
-      if (anonIds.length) {
-        const { data } = await supabaseAdmin.from('quiz_users').select('username, anon_id').in('anon_id', anonIds);
-        for (const u of data || []) { if (u.username && u.anon_id) nameByAnon.set(u.anon_id, u.username); }
-      }
-    } catch (e) { /* no names — board just comes back empty */ }
-
-    const named = [];
-    for (const p of players) {
-      const name = (p.isYou && myName) || (p.userId && nameByUser.get(p.userId)) || (p.anonId && nameByAnon.get(p.anonId)) || null;
-      if (!name) continue;
-      named.push({ name, total: totalFor(p), created: p.created, isYou: p.isYou });
-    }
-    named.sort((a, b) => b.total - a.total || String(a.created).localeCompare(String(b.created)));
-    const ranked = named.map((e, i) => ({ ...e, rank: i + 1 }));
-    const youEntry = ranked.find((e) => e.isYou) || null;
-    const board = {
-      field: realCount,
-      registered: ranked.length,
-      houseActive: useHouse,
-      top: ranked.slice(0, 25).map((e) => ({ rank: e.rank, name: e.name, total: e.total, you: e.isYou })),
-      you: youEntry ? { rank: youEntry.rank, total: youEntry.total } : null,
-      youTotal: points,
-      youRegistered: !!youEntry,
-    };
-
-    // Record the ballot (first submission per browser only; replays never insert).
-    if (anonId && !alreadyPlayed) {
+    // Record the ballot exactly once per ACCOUNT (first play only; replays from
+    // any device never insert). onConflict keeps the one-row-per-browser guard.
+    if (anonId && !res.alreadyPlayed) {
       try {
         await supabaseAdmin
           .from('outrank_picks')
-          .upsert({ quiz_id: quizId, anon_id: anonId, user_id: myUserId, answers: clean }, { onConflict: 'quiz_id,anon_id', ignoreDuplicates: true });
+          .upsert({ quiz_id: quizId, anon_id: anonId, user_id: myUserId, answers: res.clean }, { onConflict: 'quiz_id,anon_id', ignoreDuplicates: true });
       } catch (e) { /* table missing — scoring still returned */ }
     }
 
-    return NextResponse.json({
-      ok: true,
-      quizId,
-      points,
-      total: K * 2,
-      poolSize,
-      realCount,
-      houseActive: useHouse,
-      replay: alreadyPlayed,
-      yourFav,
-      favPct: Math.round((counts[yourFav] / totalVotes) * 100),
-      reveal,
-      slotPts,
-      board,
-    });
+    return NextResponse.json({ ok: true, ...res.payload });
   } catch (e) {
-    console.error('outrank error', e);
+    console.error('outrank POST error', e);
+    return NextResponse.json({ error: 'server error' }, { status: 500 });
+  }
+}
+
+// GET — has this account already played today? If so, return the same graded
+// payload as POST (so a fresh device can hydrate straight to the finished
+// result + live board). Never inserts anything.
+export async function GET(request) {
+  try {
+    const { searchParams } = new URL(request.url);
+    const quizId = (searchParams.get('quizId') || '').trim();
+    const anonId = (searchParams.get('anonId') || '').trim().slice(0, 64) || null;
+    const email = (searchParams.get('email') || '').trim() || null;
+
+    const puzzle = PUZZLES.find((p) => p.quizId === quizId);
+    if (!puzzle) return NextResponse.json({ error: 'unknown quizId' }, { status: 400 });
+
+    const rows = await loadRows(quizId);
+    const { myUserId, myName, anonSet, nameByUser, nameByAnon } = await resolveContext({ quizId, anonId, email, rows });
+
+    const res = buildOutrank({ puzzle, quizId, rows, anonSet, myUserId, myName, submitted: null, currentAnon: anonId, nameByUser, nameByAnon });
+    if (!res.played) return NextResponse.json({ ok: true, played: false });
+
+    return NextResponse.json({ ok: true, ...res.payload });
+  } catch (e) {
+    console.error('outrank GET error', e);
     return NextResponse.json({ error: 'server error' }, { status: 500 });
   }
 }
