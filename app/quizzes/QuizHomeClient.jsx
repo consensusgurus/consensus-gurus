@@ -1200,7 +1200,11 @@ export default function QuizHomeClient() {
     .qzh .dtile-row{display:flex;align-items:center;gap:8px;font-size:12px;font-weight:700;color:#fff;text-decoration:none;padding:2px 0;}
     .qzh .dtile-num{width:16px;height:16px;border-radius:50%;border:2px solid rgba(255,255,255,0.6);flex:none;font-size:9px;display:flex;align-items:center;justify-content:center;}
     .qzh .dtile-name{flex:1 1 auto;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
-    .qzh .dtile-cta{margin-top:auto;display:flex;align-items:center;justify-content:center;gap:7px;background:${C.cta};color:${C.ctaInk};border-radius:10px;padding:10px;font-weight:800;font-size:12.5px;text-decoration:none;}
+    .qzh .dtile-cta{margin-top:auto;display:flex;align-items:center;justify-content:center;gap:10px;background:${C.cta};color:${C.ctaInk};border-radius:10px;padding:9px 12px;font-weight:800;font-size:12.5px;text-decoration:none;}
+    .qzh .dtile-cta-go{display:inline-flex;align-items:center;gap:6px;flex:none;font-size:13.5px;font-weight:900;letter-spacing:0.01em;}
+    .qzh .dtile-cta-ldr{display:inline-flex;align-items:center;gap:5px;min-width:0;flex:1;justify-content:flex-end;padding-left:10px;border-left:1px solid rgba(28,30,36,0.25);}
+    .qzh .dtile-cta-lbl{flex:none;font-size:9.5px;font-weight:800;text-transform:uppercase;letter-spacing:0.06em;opacity:0.62;}
+    .qzh .dtile-cta-nm{min-width:0;font-size:12px;font-weight:800;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
     .qzh .lbtile{background:#fff;border:1px solid ${C.line};border-radius:14px;padding:12px 15px;flex:1;display:flex;flex-direction:column;min-height:132px;overflow:hidden;}
     .qzh .lbtile-head{display:flex;align-items:center;gap:7px;margin-bottom:6px;}
     .qzh .duelbtn{background:${C.cta};color:${C.ctaInk};border:none;border-radius:12px;padding:12px;font-weight:800;font-size:12px;font-family:inherit;display:flex;align-items:center;justify-content:center;gap:8px;cursor:pointer;flex:none;}
@@ -1528,7 +1532,7 @@ export default function QuizHomeClient() {
                       </Link>
                     ); })}
                   </div>
-                  <Link href={dailyAllDone ? `/challenge/${dailyId}?done=1` : dailyEntryUrl} className="dtile-cta">{dailyAllDone ? 'See Your Results' : dailyDoneCount > 0 ? 'Continue Challenge' : 'Play Today’s Challenge'}{dailyRows && dailyRows.length ? <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4 }}><Crown size={12} style={{ color: '#e8b43a' }} /> {dailyRows[0].username || 'Player'}</span> : <ArrowRight size={15} style={{ flex: 'none' }} />}</Link>
+                  <Link href={dailyAllDone ? `/challenge/${dailyId}?done=1` : dailyEntryUrl} className="dtile-cta"><span className="dtile-cta-go">{dailyAllDone ? 'Results' : dailyDoneCount > 0 ? 'Continue' : 'Play'}<ArrowRight size={14} strokeWidth={2.75} style={{ flex: 'none' }} /></span>{dailyRows && dailyRows.length ? (<span className="dtile-cta-ldr"><Crown size={11} style={{ flex: 'none', opacity: 0.7 }} /><span className="dtile-cta-lbl">Leader</span><span className="dtile-cta-nm">{dailyRows[0].username || 'Player'}</span></span>) : null}</Link>
                 </div>
               </div>
             ) : <div className="th-only-desk" />}
@@ -1570,7 +1574,7 @@ export default function QuizHomeClient() {
                       </Link>
                     ); })}
                   </div>
-                  <Link href={dailyAllDone ? `/challenge/${dailyId}?done=1` : dailyEntryUrl} className="dtile-cta">{dailyAllDone ? 'See Your Results' : dailyDoneCount > 0 ? 'Continue Challenge' : 'Play Today’s Challenge'}{dailyRows && dailyRows.length ? <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4 }}><Crown size={12} style={{ color: '#e8b43a' }} /> {dailyRows[0].username || 'Player'}</span> : <ArrowRight size={15} style={{ flex: 'none' }} />}</Link>
+                  <Link href={dailyAllDone ? `/challenge/${dailyId}?done=1` : dailyEntryUrl} className="dtile-cta"><span className="dtile-cta-go">{dailyAllDone ? 'Results' : dailyDoneCount > 0 ? 'Continue' : 'Play'}<ArrowRight size={14} strokeWidth={2.75} style={{ flex: 'none' }} /></span>{dailyRows && dailyRows.length ? (<span className="dtile-cta-ldr"><Crown size={11} style={{ flex: 'none', opacity: 0.7 }} /><span className="dtile-cta-lbl">Leader</span><span className="dtile-cta-nm">{dailyRows[0].username || 'Player'}</span></span>) : null}</Link>
                 </div>
               </div>
             ) : <div className="th-only-mob" />}
