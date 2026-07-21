@@ -745,7 +745,7 @@ export default function ExtraClient({ puzzles = [], forceNum = null }) {
           Guess wrong, or press the tear button, and one more word rips free &mdash; six tears and the page is bare. Name the story straight off the fully redacted page and that&rsquo;s a cold read, the perfect score. A free hint reveals the dateline if you need a foothold in time.
         </p>
         <p style={{ margin: 0, fontSize: 13, lineHeight: 1.65, color: COLORS.faded, fontWeight: 600 }}>
-          A new front page drops every day at midnight Eastern, with a trickier story on Sundays. No app, no signup &mdash; play free in your browser, keep a streak, and race the daily leaderboard. More dailies: <a href="/circa" style={{ color: COLORS.ink, fontWeight: 800 }}>Circa</a>, our guess-the-year game, <a href="/dating" style={{ color: COLORS.ink, fontWeight: 800 }}>Dating</a>, our history-ordering game, and <a href="/crux" style={{ color: COLORS.ink, fontWeight: 800 }}>Crux</a>, our clueless crossword.
+          A new front page drops every day at midnight Eastern, with a trickier story on Sundays. No app, no signup &mdash; play free in your browser, keep a streak, and race the daily leaderboard. More dailies: <a href="/outrank" style={{ color: COLORS.ink, fontWeight: 800 }}>Outrank</a>, our crowd-ranking game, <a href="/dating" style={{ color: COLORS.ink, fontWeight: 800 }}>Dating</a>, our history-ordering game, and <a href="/crux" style={{ color: COLORS.ink, fontWeight: 800 }}>Crux</a>, our clueless crossword.
         </p>
       </section>
 

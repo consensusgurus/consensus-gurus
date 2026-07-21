@@ -26,7 +26,7 @@ export default function sitemap() {
   // catalog entries are thin client-side hops to those pages, so the game
   // URLs go in the sitemap (stamped with the newest live puzzle's date) and
   // the stubs stay out — they also canonicalize to the game pages.
-  const WORD_GAME_FORMATS = new Set(['crux', 'emcee', 'garble', 'links', 'span', 'dating', 'tally', 'suds', 'circa', 'extra', 'carve', 'stet', 'outwit', 'tuck', 'alibi', 'cipher', 'ping', 'warmer', 'jester', 'sworn']);
+  const WORD_GAME_FORMATS = new Set(['crux', 'emcee', 'garble', 'links', 'span', 'dating', 'tally', 'suds', 'circa', 'extra', 'carve', 'stet', 'outwit', 'tuck', 'alibi', 'cipher', 'ping', 'warmer', 'jester', 'sworn', 'outrank']);
   const newestOfFormat = (format) => {
     const times = visibleQuizzes
       .filter((quiz) => quiz.format === format)
@@ -51,6 +51,7 @@ export default function sitemap() {
     { url: `${baseUrl}/extra`, lastModified: newestOfFormat('extra'), changeFrequency: 'daily', priority: 0.9 },
     { url: `${baseUrl}/stet`, lastModified: newestOfFormat('stet'), changeFrequency: 'daily', priority: 0.9 },
     { url: `${baseUrl}/outwit`, lastModified: newestOfFormat('outwit'), changeFrequency: 'daily', priority: 0.9 },
+    { url: `${baseUrl}/outrank`, lastModified: newestOfFormat('outrank'), changeFrequency: 'daily', priority: 0.9 },
     { url: `${baseUrl}/tuck`, lastModified: newestOfFormat('tuck'), changeFrequency: 'daily', priority: 0.9 },
     { url: `${baseUrl}/alibi`, lastModified: newestOfFormat('alibi'), changeFrequency: 'daily', priority: 0.9 },
     { url: `${baseUrl}/cipher`, lastModified: newestOfFormat('cipher'), changeFrequency: 'daily', priority: 0.9 },

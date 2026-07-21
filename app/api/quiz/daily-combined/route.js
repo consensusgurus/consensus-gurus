@@ -4,6 +4,7 @@ import { loadQuizResultsCached } from '@/lib/quiz-results-cache';
 import { findQuizIdentity } from '@/lib/quiz-identity';
 import { scoreGame, combineDaily, guestProvisional, DAILY_KEYS, DAILY_MAX, GAME_MAX, BEST_N } from '@/lib/daily-combined';
 import { scoreOutwitGame } from '@/lib/outwit-score';
+import { scoreOutrankGame } from '@/lib/outrank-score';
 
 // Each game's puzzle list is server-only (answers never ship to the client). We
 // read nothing but `live` and `quizId` off it, exactly like app/daily/page.js,
@@ -29,6 +30,7 @@ import { PUZZLES as P_ping } from '@/app/ping/puzzles';
 import { PUZZLES as P_warmer } from '@/app/warmer/puzzles';
 import { PUZZLES as P_jester } from '@/app/jester/puzzles';
 import { PUZZLES as P_sworn } from '@/app/sworn/puzzles';
+import { PUZZLES as P_outrank } from '@/app/outrank/puzzles';
 
 export const dynamic = 'force-dynamic';
 export const fetchCache = 'force-no-store';
@@ -41,7 +43,7 @@ const GAME_PUZZLES = {
   crux: P_crux, emcee: P_emcee, garble: P_garble, links: P_links, span: P_span, dating: P_dating,
   tally: P_tally, suds: P_suds, circa: P_circa, extra: P_extra, carve: P_carve, stet: P_stet, outwit: P_outwit,
   tuck: P_tuck, alibi: P_alibi, cipher: P_cipher, ping: P_ping, warmer: P_warmer,
-  jester: P_jester, sworn: P_sworn,
+  jester: P_jester, sworn: P_sworn, outrank: P_outrank,
 };
 
 function etTodayServer() {
@@ -119,6 +121,51 @@ async function scoreOutwitLive(puzzle) {
   });
 
   const gr = scoreOutwitGame(puzzle, named);
+  return { field: gr.field, plays: picks.length, players: gr.players };
+}
+
+// Outrank is adaptive exactly like Outwit: recompute its per-game board from
+// outrank_picks (the live crowd) instead of the frozen quiz_results snapshot.
+// Same name-resolution flow as scoreOutwitLive above.
+async function scoreOutrankLive(puzzle) {
+  let rows = [];
+  try {
+    const { data, error } = await supabaseAdmin
+      .from('outrank_picks')
+      .select('anon_id, user_id, answers, created_at')
+      .eq('quiz_id', puzzle.quizId)
+      .limit(20000);
+    if (error || !Array.isArray(data)) return null;
+    rows = data;
+  } catch (e) { return null; }
+
+  const picks = rows
+    .filter((r) => Array.isArray(r.answers))
+    .map((r) => ({ answers: r.answers, created: r.created_at || '', userId: r.user_id || null, anonId: r.anon_id || null }));
+
+  const userIds = [...new Set(picks.map((p) => p.userId).filter(Boolean))];
+  const anonIds = [...new Set(picks.map((p) => p.anonId).filter(Boolean))];
+  const nameByUser = new Map();
+  const infoByAnon = new Map();
+  try {
+    if (userIds.length) {
+      const { data } = await supabaseAdmin.from('quiz_users').select('id, username, anon_id').in('id', userIds);
+      for (const u of data || []) if (u.username) { nameByUser.set(u.id, u.username); if (u.anon_id) infoByAnon.set(u.anon_id, { username: u.username, id: u.id }); }
+    }
+    if (anonIds.length) {
+      const { data } = await supabaseAdmin.from('quiz_users').select('id, username, anon_id').in('anon_id', anonIds);
+      for (const u of data || []) if (u.username && u.anon_id) infoByAnon.set(u.anon_id, { username: u.username, id: u.id });
+    }
+  } catch (e) { /* no names — board empty, pool still scores */ }
+
+  const named = picks.map((p) => {
+    let name = null, userId = p.userId;
+    if (p.userId && nameByUser.has(p.userId)) name = nameByUser.get(p.userId);
+    else if (p.anonId && infoByAnon.has(p.anonId)) { const info = infoByAnon.get(p.anonId); name = info.username; userId = info.id; }
+    return { answers: p.answers, created: p.created, anonId: p.anonId, userId, name };
+  });
+
+  const gr = scoreOutrankGame(puzzle, named);
   return { field: gr.field, plays: picks.length, players: gr.players };
 }
 
@@ -209,10 +256,20 @@ export async function GET(request) {
       const op = (P_outwit || []).find((x) => x && x.quizId === outwitGame.quizId);
       if (op) outwitLive = await scoreOutwitLive(op);
     }
+    // Same override for Outrank (also adaptive; see lib/outrank-score).
+    let outrankLive = null;
+    const outrankGame = games.find((g) => g.key === 'outrank');
+    if (outrankGame) {
+      const op = (P_outrank || []).find((x) => x && x.quizId === outrankGame.quizId);
+      if (op) outrankLive = await scoreOutrankLive(op);
+    }
 
     const gameResults = games.map((g) => {
       if (g.key === 'outwit' && outwitLive) {
         return { key: g.key, quizId: g.quizId, href: g.href, field: outwitLive.field, plays: outwitLive.plays, players: outwitLive.players };
+      }
+      if (g.key === 'outrank' && outrankLive) {
+        return { key: g.key, quizId: g.quizId, href: g.href, field: outrankLive.field, plays: outrankLive.plays, players: outrankLive.players };
       }
       const gameRows = rowsByQuiz.get(g.quizId) || [];
       const gr = scoreGame(gameRows);

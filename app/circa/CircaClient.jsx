@@ -624,15 +624,10 @@ export default function CircaClient({ puzzles = [], forceNum = null }) {
             <p style={{ fontSize: 12, color: COLORS.faded, fontWeight: 600, margin: '12px 0 0' }}>
               {isTodays ? (
                 <>
-                  {countdown ? <>Next Circa in <b style={{ color: COLORS.ink, fontVariantNumeric: 'tabular-nums' }}>{countdown}</b>.</> : 'A new moment drops at midnight Eastern.'}
-                  {prevPuzzle && (
-                    <>
-                      {' '}Meanwhile:{' '}
-                      <a href={`/circa?p=${prevPuzzle.num}`} style={{ color: COLORS.ember, fontWeight: 800, textDecoration: 'underline' }}>
-                        play yesterday&rsquo;s Circa &rarr;
-                      </a>
-                    </>
-                  )}
+                  Circa has retired &mdash; this was its final moment. Every past puzzle stays playable in{' '}
+                  <a href="/daily" style={{ color: COLORS.ember, fontWeight: 800, textDecoration: 'underline' }}>the archive</a>.
+                  {' '}Meet its successor:{' '}
+                  <a href="/outrank" style={{ color: COLORS.ember, fontWeight: 800, textDecoration: 'underline' }}>Outrank, the daily crowd-ranking game &rarr;</a>
                 </>
               ) : (
                 <>

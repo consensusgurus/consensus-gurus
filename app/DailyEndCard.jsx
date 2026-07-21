@@ -29,7 +29,7 @@ import React, { useState, useEffect } from 'react';
 import {
   Type, Clock, Globe, Hash, Share2, BarChart3, RotateCcw, Check, X,
   Trophy, Link2, Flag, CalendarCheck, Scale, Grid3x3, LayoutGrid, Newspaper, FlagTriangleRight,
-  Pencil, Users, ArrowRight, Puzzle, Fingerprint, KeyRound, Thermometer, Crown,
+  Pencil, Users, ArrowRight, Puzzle, Fingerprint, KeyRound, Thermometer, Crown, ListOrdered,
 } from 'lucide-react';
 import { myRefCode } from '@/lib/referrals';
 import ReportIssue from './ReportIssue';
@@ -41,7 +41,7 @@ const RUST = '#c0392b';
 // "still to play" list for their first FOUR days so players actually meet
 // them; after `until` (ET, inclusive) the canonical order resumes. Keep in
 // sync with the same pin in app/api/quiz/daily-order/route.js.
-const LAUNCH_PIN = { keys: ['jester', 'sworn', 'warmer', 'ping', 'tuck', 'alibi', 'cipher'], until: '2026-07-21' };
+const LAUNCH_PIN = { keys: ['outrank'], until: '2026-07-24' };
 function etTodayEC() {
   try { return new Date().toLocaleDateString('en-CA', { timeZone: 'America/New_York' }); }
   catch (e) { return new Date().toISOString().slice(0, 10); }
@@ -79,6 +79,7 @@ export const GAME_META = {
   warmer: { accent: '#dc2626', badgeBg: '#dc2626', badgeInk: '#fff', Fin: Thermometer },
   jester: { accent: '#7c3aed', badgeBg: '#7c3aed', badgeInk: '#fff', Fin: Crown },
   sworn:  { accent: '#be185d', badgeBg: '#be185d', badgeInk: '#fff', Fin: Scale },
+  outrank: { accent: '#4338ca', badgeBg: '#4338ca', badgeInk: '#fff', Fin: ListOrdered },
 };
 
 // ---- the five families (type label + color shown on each tile/header) -------
@@ -88,9 +89,10 @@ export const CAT_META = {
   geography: { name: 'Geography', color: '#0e7c5a', Icon: Globe },
   numbers:   { name: 'Numbers',   color: '#ea580c', Icon: Hash },
   logic:     { name: 'Logic',     color: '#9f1239', Icon: Fingerprint },
+  crowd:     { name: 'Crowd Psychology', color: '#a16207', Icon: Users },
 };
 // Family render order for the "more games" grid.
-const CAT_ORDER = ['word', 'numbers', 'logic', 'history', 'geography'];
+const CAT_ORDER = ['word', 'numbers', 'crowd', 'logic', 'history', 'geography'];
 
 // ---- the daily slate (20 games) --------------------------------------------
 // Canonical order = the order the "still to play" tiles appear in.
@@ -102,14 +104,14 @@ export const DAILY_GAMES = [
   { key: 'stet',   cat: 'word',      name: 'Stet',   tag: 'Spot the error, fix the copy',        href: '/stet' },
   { key: 'tuck',   cat: 'word',      name: 'Tuck',   tag: 'Same letters, highest score wins',  href: '/tuck' },
   { key: 'dating', cat: 'history',   name: 'Dating', tag: 'Put five moments in order', href: '/dating' },
-  { key: 'circa',  cat: 'history',   name: 'Circa',  tag: 'Pin the year it happened',  href: '/circa' },
   { key: 'extra',  cat: 'history',   name: 'Extra',  tag: 'Name the redacted front page', href: '/extra' },
   { key: 'span',   cat: 'geography', name: 'Span',   tag: 'Cross the map, border by border', href: '/span' },
   { key: 'ping',   cat: 'geography', name: 'Ping',   tag: 'Find the secret city',        href: '/ping' },
   { key: 'tally',  cat: 'numbers',   name: 'Tally',  tag: 'Balance every row and column', href: '/tally' },
   { key: 'suds',   cat: 'numbers',   name: 'Suds',   tag: 'The daily 9x9 sudoku',      href: '/suds' },
   { key: 'carve',  cat: 'numbers',   name: 'Carve',  tag: 'Carve equal-sum regions',   href: '/carve' },
-  { key: 'outwit', cat: 'numbers',   name: 'Outwit', tag: 'Beat the crowd',            href: '/outwit' },
+  { key: 'outwit', cat: 'crowd',     name: 'Outwit', tag: 'Beat the crowd',            href: '/outwit' },
+  { key: 'outrank', cat: 'crowd',    name: 'Outrank', tag: "Call the crowd's order",   href: '/outrank' },
   { key: 'cipher', cat: 'numbers',   name: 'Cipher', tag: 'Crack the letter math',     href: '/cipher' },
   { key: 'alibi',  cat: 'logic',     name: 'Alibi',  tag: 'Solve the nightly whodunit', href: '/alibi' },
   { key: 'jester', cat: 'logic',     name: 'Jesters', tag: 'Seat the court',             href: '/jester' },

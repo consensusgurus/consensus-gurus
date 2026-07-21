@@ -1,27 +1,26 @@
 'use client';
 
-// Outwit — the daily crowd game. Your opponent is everyone else playing today.
+// Outrank — the daily crowd-ranking game. The answer key is everyone else.
 //
-// Five quick prompts against the whole field: undercut the average, dodge the
-// popular pick, read the herd, find the meeting point, be the rare bird. There
-// are no right answers — only what the crowd does. Answer all five, then face
-// the field: the server scores you against the whole pool as it stands right
-// now, and keeps re-scoring. Nothing is final — every time a new player locks
-// in, the field changes and your score and rank move with it, so a run that
-// looks last against a tiny early crowd can climb to first once the field fills
-// in. The pre-written "house crowd" seeds the pool until ten real players have
-// picked, then retires for everyone. The reveal shows the actual distributions
-// — where the crowd really landed — and the client re-asks the server on a
-// timer so the result stays live while you watch.
+// One themed slate a day (six items; seven in the Sunday Edition). Two moves:
+// first VOTE — tap your personal favorite, which becomes part of the crowd —
+// then CALL IT — put the whole slate in the order you think today's crowd
+// ranks it by favorite votes. Lock in and face the field: the server grades
+// your call against the crowd's real order as it stands right now, and keeps
+// re-grading. Nothing is final — every new vote can reshuffle the order, so
+// your score and rank move all day (same adaptive contract as Outwit). The
+// pre-written house crowd seeds the pool until ten real players are in, then
+// retires for everyone. Your prediction is always graded on the crowd MINUS
+// your own vote, so your ballot never tips the order you're scored against.
 //
-// Same daily plumbing as Circa/Stet: banked days gated by Eastern date on the
-// server (app/outwit/page.js — which also strips the house answers before
-// anything reaches the browser), per-puzzle localStorage saves, /outwit?p=N
+// Same daily plumbing as Outwit: banked days gated by Eastern date on the
+// server (app/outrank/page.js — which also strips the house votes before
+// anything reaches the browser), per-puzzle localStorage saves, /outrank?p=N
 // archive pinning, streaks + stats, and the shared /api/quiz/* board flow.
 
 import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { useSearchParams } from 'next/navigation';
-import { HelpCircle, X, Smartphone, Users, Crown } from 'lucide-react';
+import { HelpCircle, X, Smartphone, Users, Crown, RotateCcw } from 'lucide-react';
 import Grain from '../Grain';
 import Footer from '../Footer';
 import useDuelContext, { DuelBanner } from '../quiz/[id]/useDuelContext';
@@ -41,16 +40,20 @@ const COLORS = {
   ember: '#0e1d40',
   rust: '#c0392b',
   faded: '#6b7280',
-  accent: '#1f2937',       // Outwit identity — graphite, with the site gold
-  accentSoft: '#eef1f5',
+  accent: '#4338ca',       // Outrank identity — indigo podium
+  accentSoft: '#eef0fb',
   gold: '#e8b43a',
   green: '#15803d',
   greenSoft: '#eefaf1',
 };
 const SANS = "'Manrope', system-ui, -apple-system, sans-serif";
 const MONO = "'DM Mono', ui-monospace, 'SFMono-Regular', monospace";
-const HELP_KEY = 'sot_outwit_help_seen';
-const STATS_KEY = 'sot_outwit_stats';
+const HELP_KEY = 'sot_outrank_help_seen';
+const STATS_KEY = 'sot_outrank_stats';
+
+// "You outranked the crowd" threshold: ~70% of the day's max (8/12; 10/14 on
+// Sundays), matching Outwit's 7/10 bar.
+const winBar = (total) => Math.round(total * 0.7);
 
 const isIosDevice = () =>
   typeof navigator !== 'undefined' &&
@@ -102,10 +105,15 @@ function getAnonId() {
 }
 const EMPTY_BOARD = { plays: 0, best: null, topTime: null, leaderboard: [], leaderboardAll: [], leaderboardMobile: [], leaderboardFirst: [], leaderboards: {} };
 
-// Live standings — the board that re-shuffles as picks arrive. Fed straight
-// from the /api/outwit response (result.board), which recomputes every
+function fmtBig(n) {
+  const v = Number(n) || 0;
+  return v.toLocaleString('en-US');
+}
+
+// Live standings — the board that re-shuffles as votes arrive. Fed straight
+// from the /api/outrank response (result.board), which recomputes every
 // registered player's total against the current field on every request.
-function OutwitLiveBoard({ board }) {
+function OutrankLiveBoard({ board, total }) {
   if (!board) return null;
   const top = Array.isArray(board.top) ? board.top : [];
   const youShown = top.some((r) => r.you);
@@ -116,7 +124,7 @@ function OutwitLiveBoard({ board }) {
         <span style={{ fontFamily: SANS, fontSize: 11, fontWeight: 700, color: COLORS.faded, marginLeft: 'auto' }}>{fmtBig(board.field || 0)} in the field</span>
       </div>
       <div style={{ fontFamily: SANS, fontSize: 11.5, fontWeight: 600, color: COLORS.faded, lineHeight: 1.45, marginBottom: 10 }}>
-        Nothing here is final. Every new player re-scores the whole board &mdash; your place climbs or slips as the crowd fills in.
+        Nothing here is final. Every new vote can reshuffle the crowd&rsquo;s order &mdash; your place climbs or slips as the field fills in.
         {board.houseActive ? ' The house crowd is still seeding until ten players lock in.' : ''}
       </div>
       {top.length === 0 ? (
@@ -126,8 +134,8 @@ function OutwitLiveBoard({ board }) {
           {top.map((r, i) => (
             <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '5px 8px', borderRadius: 6, background: r.you ? 'rgba(232,180,58,0.16)' : (i % 2 ? COLORS.cream : 'transparent'), border: r.you ? `1px solid ${COLORS.gold}` : '1px solid transparent' }}>
               <span style={{ flex: '0 0 26px', fontFamily: MONO, fontSize: 12, fontWeight: 500, color: r.rank <= 3 ? COLORS.ink : COLORS.faded, textAlign: 'right' }}>{r.rank}</span>
-              <span style={{ flex: '1 1 auto', fontFamily: SANS, fontSize: 13, fontWeight: r.you ? 800 : 600, color: r.you ? '#8a6d1a' : COLORS.ink, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{r.name}{r.you ? ' \u00b7 you' : ''}</span>
-              <span style={{ flex: '0 0 auto', fontFamily: MONO, fontSize: 12.5, fontWeight: 500, color: COLORS.ink, fontVariantNumeric: 'tabular-nums' }}>{r.total}<span style={{ color: COLORS.faded, fontSize: 10.5 }}>/10</span></span>
+              <span style={{ flex: '1 1 auto', fontFamily: SANS, fontSize: 13, fontWeight: r.you ? 800 : 600, color: r.you ? '#8a6d1a' : COLORS.ink, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{r.name}{r.you ? ' · you' : ''}</span>
+              <span style={{ flex: '0 0 auto', fontFamily: MONO, fontSize: 12.5, fontWeight: 500, color: COLORS.ink, fontVariantNumeric: 'tabular-nums' }}>{r.total}<span style={{ color: COLORS.faded, fontSize: 10.5 }}>/{total}</span></span>
             </div>
           ))}
         </div>
@@ -136,7 +144,7 @@ function OutwitLiveBoard({ board }) {
         <div style={{ marginTop: 8, paddingTop: 8, borderTop: '1px solid rgba(28,30,36,0.1)', display: 'flex', alignItems: 'center', gap: 10 }}>
           <span style={{ flex: '0 0 26px', fontFamily: MONO, fontSize: 12, fontWeight: 700, color: '#8a6d1a', textAlign: 'right' }}>{board.you.rank}</span>
           <span style={{ flex: '1 1 auto', fontFamily: SANS, fontSize: 13, fontWeight: 800, color: '#8a6d1a' }}>You</span>
-          <span style={{ flex: '0 0 auto', fontFamily: MONO, fontSize: 12.5, fontWeight: 500, color: COLORS.ink }}>{board.you.total}<span style={{ color: COLORS.faded, fontSize: 10.5 }}>/10</span></span>
+          <span style={{ flex: '0 0 auto', fontFamily: MONO, fontSize: 12.5, fontWeight: 500, color: COLORS.ink }}>{board.you.total}<span style={{ color: COLORS.faded, fontSize: 10.5 }}>/{total}</span></span>
         </div>
       ) : null}
       {!board.youRegistered ? (
@@ -146,12 +154,7 @@ function OutwitLiveBoard({ board }) {
   );
 }
 
-function fmtBig(n) {
-  const v = Number(n) || 0;
-  return v.toLocaleString('en-US');
-}
-
-// ─── Personal stats + streak (localStorage), Circa/Stet pattern ─────────────
+// ─── Personal stats + streak (localStorage), Outwit pattern ─────────────────
 function getStats() {
   try {
     const s = JSON.parse(localStorage.getItem(STATS_KEY));
@@ -166,10 +169,10 @@ function recordStat(num, entry) {
   try { localStorage.setItem(STATS_KEY, JSON.stringify(s2)); } catch (e) {}
   return s2;
 }
-function recordLiveStat(num, sc) {
+function recordLiveStat(num, sc, total) {
   const s = getStats();
   const prev = s.rec[num] || {};
-  const rec = { ...s.rec, [num]: { s: sc, t: 10, g: prev.g != null ? prev.g : 0, won: sc >= 7 } };
+  const rec = { ...s.rec, [num]: { s: sc, t: total, g: prev.g != null ? prev.g : 0, won: sc >= winBar(total) } };
   const s2 = { ...s, rec };
   try { localStorage.setItem(STATS_KEY, JSON.stringify(s2)); } catch (e) {}
   return s2;
@@ -198,9 +201,10 @@ function mergeServerStats(s, recent, puzzles) {
     const p = m && byQuiz[m.quizId];
     if (!p || m.attempt !== 1) continue;
     if (rec[p.num]) continue;
-    const sc = Math.max(0, Math.min(10, Math.round(((m.scorePct || 0) / 100) * 10)));
+    const t = p.items.length * 2;
+    const sc = Math.max(0, Math.min(t, Math.round(((m.scorePct || 0) / 100) * t)));
     if (!changed) { rec = { ...rec }; changed = true; }
-    rec[p.num] = { s: sc, t: 10, g: null, won: sc >= 7 };
+    rec[p.num] = { s: sc, t, g: null, won: sc >= winBar(t) };
   }
   if (!changed) return s;
   const s2 = { ...s, rec };
@@ -211,22 +215,23 @@ function mergeServerStats(s, recent, puzzles) {
 function freshState() {
   return {
     v: 1,
-    ans: {},                    // promptIdx -> value (number; option index for choices)
+    fav: null,                  // your favorite (item index) — your VOTE
+    order: [],                  // your predicted crowd order (item indices, best first)
     status: 'playing',          // playing | done
-    result: null,               // /api/outwit response
+    result: null,               // /api/outrank response
     t0: null,
     tEnd: null,
   };
 }
 
-export default function OutwitClient({ puzzles = [], forceNum = null }) {
+export default function OutrankClient({ puzzles = [], forceNum = null }) {
   const PUZZLE = useMemo(() => pickPuzzle(puzzles, forceNum), [puzzles, forceNum]);
-  const PROMPTS = PUZZLE.prompts;
-  const TOTAL = PROMPTS.length * 2;
-  const STORE_KEY = `sot_outwit_${PUZZLE.num}`;
+  const ITEMS = PUZZLE.items;
+  const K = ITEMS.length;
+  const TOTAL = K * 2;
+  const STORE_KEY = `sot_outrank_${PUZZLE.num}`;
 
   const [g, setG] = useState(freshState);
-  const [numVals, setNumVals] = useState({}); // promptIdx -> raw input string
   const [sending, setSending] = useState(false);
   const [showHelp, setShowHelp] = useState(false);
   const [toast, setToast] = useState(null);
@@ -250,10 +255,10 @@ export default function OutwitClient({ puzzles = [], forceNum = null }) {
   const [showChrome, setShowChrome] = useState(false);
   const playing = g.status === 'playing';
   const focusMode = playing && !showChrome;
-  const answered = Object.keys(g.ans).length;
   const result = g.result;
   const score = result ? result.points : 0;
-  const sharp = g.status === 'done' && score >= 7; // "outwitted the crowd" day
+  const sharp = g.status === 'done' && score >= winBar(TOTAL); // "outranked the crowd" day
+  const placedAll = g.fav != null && g.order.length === K;
 
   useEffect(() => {
     try {
@@ -274,14 +279,8 @@ export default function OutwitClient({ puzzles = [], forceNum = null }) {
       const raw = localStorage.getItem(STORE_KEY);
       if (raw) {
         const saved = JSON.parse(raw);
-        if (saved && saved.v === 1 && saved.ans) {
+        if (saved && saved.v === 1 && Array.isArray(saved.order)) {
           setG({ ...freshState(), ...saved });
-          const nv = {};
-          for (const [k, v] of Object.entries(saved.ans)) {
-            if (!PROMPTS[k] || PROMPTS[k].options) continue;
-            nv[k] = String(v);
-          }
-          setNumVals(nv);
         }
       }
       if (!localStorage.getItem(HELP_KEY)) setShowHelp(true);
@@ -295,7 +294,7 @@ export default function OutwitClient({ puzzles = [], forceNum = null }) {
     try { localStorage.setItem(STORE_KEY, JSON.stringify(g)); } catch (e) {}
     try {
       if (PUZZLE.num === pickPuzzle(puzzles, null).num) {
-        localStorage.setItem('sot_outwit_day', JSON.stringify({ d: etToday(), done: g.status !== 'playing' }));
+        localStorage.setItem('sot_outrank_day', JSON.stringify({ d: etToday(), done: g.status !== 'playing' }));
       }
     } catch (e) {}
   }, [g, hydrated, STORE_KEY, PUZZLE, puzzles]);
@@ -345,23 +344,23 @@ export default function OutwitClient({ puzzles = [], forceNum = null }) {
   }, []);
 
   // ADAPTIVE: a finished run is never frozen. While the result is on screen we
-  // re-ask the server for the current score + live standings, so as new players
-  // lock in the number and the board move under you. This path never inserts
-  // (the browser already has its row) — it only re-scores against the live field.
+  // re-ask the server for the current score + live standings, so as new votes
+  // land the order and the board move under you. This path never inserts (the
+  // browser already has its row) — it only re-scores against the live field.
   async function refreshLive() {
     if (g.status !== 'done') return;
     try {
-      const answers = PROMPTS.map((_, i) => (g.ans ? g.ans[i] : undefined));
-      if (answers.some((v) => v == null)) return;
-      const r = await fetch('/api/outwit', {
+      if (g.fav == null || g.order.length !== K) return;
+      const answers = [g.fav, ...g.order];
+      const r = await fetch('/api/outrank', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ quizId: PUZZLE.quizId, answers, anonId: getAnonId(), email: identity?.email || undefined }),
       });
       const d = await r.json();
-      if (d && !d.error && Array.isArray(d.prompts)) {
+      if (d && !d.error && Array.isArray(d.reveal)) {
         setG((cur) => (cur.status === 'done' ? { ...cur, result: d } : cur));
-        try { setStats(recordLiveStat(PUZZLE.num, d.points)); } catch (e) {}
+        try { setStats(recordLiveStat(PUZZLE.num, d.points, TOTAL)); } catch (e) {}
       }
     } catch (e) {}
   }
@@ -388,7 +387,7 @@ export default function OutwitClient({ puzzles = [], forceNum = null }) {
   const prevPuzzle = puzzles.find((x) => x.num === PUZZLE.num - 1) || null;
   const myStats = deriveStats(stats, pickPuzzle(puzzles, null).num);
 
-  const REC_KEY = `sot_outwit_rec_${PUZZLE.num}`;
+  const REC_KEY = `sot_outrank_rec_${PUZZLE.num}`;
   const abandon = useAbandonFlush(() => {
     if (!g.t0 || g.status !== 'playing') return null;
     try { if (localStorage.getItem(REC_KEY)) return null; } catch (e) {}
@@ -397,10 +396,10 @@ export default function OutwitClient({ puzzles = [], forceNum = null }) {
     return { quizId: PUZZLE.quizId, score: 0, total: TOTAL, correct: 0, guessesUsed: 0, timeElapsed: el, abandoned: true, email: identity?.email || undefined, anonId: getAnonId(), isMobile: isMobileDevice(), referrer: (typeof document !== 'undefined' ? document.referrer : '') };
   });
 
-  function postResult(g2, sc) {
+  function postResult(g2, sc, exact) {
     abandon.markFlushed();
     const el = g2.t0 ? Math.max(1, Math.round(((g2.tEnd || Date.now()) - g2.t0) / 1000)) : 1;
-    try { setStats(recordStat(PUZZLE.num, { s: sc, t: TOTAL, g: 0, won: sc >= 7 })); } catch (e) {}
+    try { setStats(recordStat(PUZZLE.num, { s: sc, t: TOTAL, g: 0, won: sc >= winBar(TOTAL) })); } catch (e) {}
     try {
       fetch('/api/quiz/result', {
         method: 'POST',
@@ -408,7 +407,7 @@ export default function OutwitClient({ puzzles = [], forceNum = null }) {
         headers: { 'Content-Type': 'application/json' },
         // guessesUsed = 0 for everyone (there are no wrong answers to count), so
         // the daily board's tiebreak falls through to fastest time.
-        body: JSON.stringify({ quizId: PUZZLE.quizId, score: sc, total: TOTAL, correct: sc >= 7 ? 1 : 0, guessesUsed: 0, timeElapsed: el, email: identity?.email || undefined, anonId: getAnonId(), isMobile: isMobileDevice(), referrer: (typeof document !== 'undefined' ? document.referrer : '') }),
+        body: JSON.stringify({ quizId: PUZZLE.quizId, score: sc, total: TOTAL, correct: exact, guessesUsed: 0, timeElapsed: el, email: identity?.email || undefined, anonId: getAnonId(), isMobile: isMobileDevice(), referrer: (typeof document !== 'undefined' ? document.referrer : '') }),
       })
         .then((r) => r.json())
         .then((d) => { if (d && !d.error) setBoard({ ...EMPTY_BOARD, ...d }); })
@@ -416,47 +415,51 @@ export default function OutwitClient({ puzzles = [], forceNum = null }) {
     } catch (e) {}
   }
 
-  function setAnswer(i, v) {
+  function pickFav(i) {
     if (!playing) return;
     setG((cur) => {
-      const g2 = { ...cur, ans: { ...cur.ans, [i]: v } };
+      const g2 = { ...cur, fav: cur.fav === i ? null : i };
       if (!g2.t0) g2.t0 = Date.now();
       return g2;
     });
   }
-  function setNumRaw(i, raw) {
-    const cleaned = raw.replace(/[^0-9]/g, '').slice(0, 9);
-    setNumVals((cur) => ({ ...cur, [i]: cleaned }));
-    if (cleaned === '') {
-      setG((cur) => { const a = { ...cur.ans }; delete a[i]; return { ...cur, ans: a }; });
-      return;
-    }
-    const v = parseInt(cleaned, 10);
-    const pr = PROMPTS[i];
-    if (Number.isInteger(v) && v >= pr.min && v <= pr.max) setAnswer(i, v);
-    else setG((cur) => { const a = { ...cur.ans }; delete a[i]; return { ...cur, ans: a }; });
+  function tapOrder(i) {
+    if (!playing) return;
+    setG((cur) => {
+      const at = cur.order.indexOf(i);
+      const order = at >= 0 ? cur.order.filter((x) => x !== i) : (cur.order.length < K ? [...cur.order, i] : cur.order);
+      const g2 = { ...cur, order };
+      if (!g2.t0) g2.t0 = Date.now();
+      return g2;
+    });
+  }
+  function resetOrder() {
+    if (!playing) return;
+    setG((cur) => ({ ...cur, order: [] }));
   }
 
   async function faceTheCrowd() {
     if (!playing || sending) return;
-    if (answered < PROMPTS.length) { say(`Answer all ${PROMPTS.length} first — ${PROMPTS.length - answered} to go.`); return; }
+    if (g.fav == null) { say('Cast your vote first — tap your favorite.'); return; }
+    if (g.order.length < K) { say(`Place all ${K} in order — ${K - g.order.length} to go.`); return; }
     setSending(true);
     try {
-      const answers = PROMPTS.map((_, i) => g.ans[i]);
-      const r = await fetch('/api/outwit', {
+      const answers = [g.fav, ...g.order];
+      const r = await fetch('/api/outrank', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ quizId: PUZZLE.quizId, answers, anonId: getAnonId(), email: identity?.email || undefined }),
       });
       const d = await r.json();
-      if (!d || d.error || !Array.isArray(d.prompts)) {
+      if (!d || d.error || !Array.isArray(d.reveal)) {
         say('Couldn’t reach the crowd — try again in a moment.');
         setSending(false);
         return;
       }
       const g2 = { ...g, status: 'done', result: d, tEnd: Date.now() };
       if (!g2.t0) g2.t0 = Date.now();
-      postResult(g2, d.points);
+      const exact = (d.slotPts || []).filter((p) => p === 2).length;
+      postResult(g2, d.points, exact);
       setG(g2);
     } catch (e) {
       say('Couldn’t reach the crowd — try again in a moment.');
@@ -466,21 +469,21 @@ export default function OutwitClient({ puzzles = [], forceNum = null }) {
 
   function resetGame() {
     try { localStorage.removeItem(STORE_KEY); } catch (e) {}
-    setG(freshState()); setNumVals({}); setEndClosed(false);
+    setG(freshState()); setEndClosed(false);
   }
 
   function shareText() {
-    const squares = (result ? result.prompts : []).map((p) => (p.pts === 2 ? '\u{1F7E9}' : p.pts === 1 ? '\u{1F7E8}' : '⬜')).join('');
+    const squares = (result ? result.slotPts || [] : []).map((p) => (p === 2 ? '\u{1F7E9}' : p === 1 ? '\u{1F7E8}' : '⬜')).join('');
     const streakBit = isTodays && myStats.cur >= 2 ? ` · streak ${myStats.cur}` : '';
     const crowdBit = result ? ` · crowd of ${fmtBig(result.poolSize)}` : '';
-    return `Outwit #${PUZZLE.num} · ${score}/${TOTAL}${crowdBit}${streakBit}\n${squares}\n${shareUrl()}`;
+    return `Outrank #${PUZZLE.num} · ${score}/${TOTAL}${crowdBit}${streakBit}\n${squares}\n${shareUrl()}`;
   }
   function shareUrl() {
-    return withRef(`sourceoftruths.com/outwit${isTodays ? '' : `?p=${PUZZLE.num}`}`);
+    return withRef(`sourceoftruths.com/outrank${isTodays ? '' : `?p=${PUZZLE.num}`}`);
   }
   function copyShare() {
     const text = playing
-      ? `Outwit #${PUZZLE.num} — the daily crowd game from Source of Truths.\n${shareUrl()}`
+      ? `Outrank #${PUZZLE.num} — the daily crowd-ranking game from Source of Truths.\n${shareUrl()}`
       : shareText();
     try {
       if (typeof navigator !== 'undefined' && navigator.share && isMobileDevice()) {
@@ -497,154 +500,49 @@ export default function OutwitClient({ puzzles = [], forceNum = null }) {
   }
 
   const ptsChip = (pts) => (
-    <span style={{ marginLeft: 'auto', flex: '0 0 auto', fontFamily: SANS, fontSize: 12, fontWeight: 800, borderRadius: 6, padding: '3px 9px', color: pts === 2 ? '#fff' : pts === 1 ? '#7c5a08' : COLORS.faded, background: pts === 2 ? COLORS.green : pts === 1 ? '#fdf0cd' : COLORS.paper }}>
+    <span style={{ flex: '0 0 auto', fontFamily: SANS, fontSize: 12, fontWeight: 800, borderRadius: 6, padding: '3px 9px', color: pts === 2 ? '#fff' : pts === 1 ? '#7c5a08' : COLORS.faded, background: pts === 2 ? COLORS.green : pts === 1 ? '#fdf0cd' : COLORS.paper }}>
       +{pts}
     </span>
   );
 
-  // ---- reveal blocks ----
-  function revealChoice(rp) {
-    const maxC = Math.max(1, ...rp.counts);
-    const totC = rp.counts.reduce((a, b) => a + b, 0) || 1;
+  // ---- the reveal: crowd order vs. your call ----
+  function revealBoard() {
+    const rows = result.reveal || [];
+    const maxV = Math.max(1, ...rows.map((r) => r.votes));
     return (
-      <div style={{ marginTop: 10, display: 'flex', flexDirection: 'column', gap: 5 }}>
-        {rp.options.map((opt, oi) => {
-          const you = rp.yourAnswer === oi;
-          const win = rp.winner === oi;
-          return (
-            <div key={oi} style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-              <span style={{ flex: '0 0 108px', fontFamily: SANS, fontSize: 12, fontWeight: you ? 800 : 600, color: you ? COLORS.ink : COLORS.faded, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', textAlign: 'right' }}>{opt}</span>
-              <div style={{ flex: '1 1 auto', height: 16, background: COLORS.paper, borderRadius: 5, overflow: 'hidden', position: 'relative' }}>
-                <div style={{ width: `${Math.round((rp.counts[oi] / maxC) * 100)}%`, height: '100%', background: you ? COLORS.gold : win ? '#94a3b8' : '#c8cfd9', borderRadius: 5, minWidth: rp.counts[oi] ? 4 : 0 }} />
-              </div>
-              <span style={{ flex: '0 0 74px', fontFamily: MONO, fontSize: 10.5, color: COLORS.faded, whiteSpace: 'nowrap' }}>
-                {Math.round((rp.counts[oi] / totC) * 100)}%{you ? ' · you' : win ? (rp.type === 'least' ? ' · fewest' : ' · crowd') : ''}
-              </span>
-            </div>
-          );
-        })}
-      </div>
-    );
-  }
-  function revealNumeric(rp) {
-    const maxC = Math.max(1, ...rp.buckets.map((b) => b.count));
-    return (
-      <div style={{ marginTop: 10 }}>
-        <div style={{ display: 'flex', alignItems: 'flex-end', gap: 3, height: 58 }}>
-          {rp.buckets.map((b, bi) => (
-            <div key={bi} style={{ flex: '1 1 0', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 2, height: '100%', justifyContent: 'flex-end' }}>
-              <div style={{ width: '100%', height: `${Math.max(3, Math.round((b.count / maxC) * 100))}%`, background: b.you ? COLORS.gold : '#c8cfd9', borderRadius: '4px 4px 0 0', position: 'relative' }}>
-                {b.target && <div style={{ position: 'absolute', top: -7, left: '50%', transform: 'translateX(-50%)', width: 0, height: 0, borderLeft: '5px solid transparent', borderRight: '5px solid transparent', borderTop: `6px solid ${COLORS.rust}` }} />}
-              </div>
-            </div>
-          ))}
+      <div style={{ background: '#fff', border: '1.5px solid rgba(28,30,36,0.18)', borderRadius: 10, padding: '13px 15px', maxWidth: 472, margin: '0 auto 12px' }}>
+        <div style={{ display: 'flex', alignItems: 'baseline', gap: 8, marginBottom: 9 }}>
+          <span style={{ fontFamily: MONO, fontSize: 10.5, fontWeight: 500, textTransform: 'uppercase', letterSpacing: '0.1em', color: COLORS.accent }}>The crowd&rsquo;s order</span>
+          <span style={{ fontFamily: SANS, fontSize: 11, fontWeight: 700, color: COLORS.faded, marginLeft: 'auto' }}>{fmtBig(result.poolSize)} votes in</span>
         </div>
-        <div style={{ display: 'flex', justifyContent: 'space-between', fontFamily: MONO, fontSize: 9, color: COLORS.faded, marginTop: 3 }}>
-          <span>{rp.buckets[0].label.split('–')[0]}</span>
-          <span style={{ color: COLORS.rust }}>▾ target {fmtBig(rp.target)}</span>
-          <span>{rp.buckets[rp.buckets.length - 1].label.split('–')[1]}</span>
-        </div>
-        <div style={{ fontFamily: SANS, fontSize: 12, fontWeight: 700, color: COLORS.faded, marginTop: 7, lineHeight: 1.5 }}>
-          You said <b style={{ color: COLORS.ink }}>{fmtBig(rp.yourAnswer)}</b> — closer than <b style={{ color: COLORS.ink }}>{rp.beatPct}%</b> of the crowd.
-          {rp.truth != null && (
-            <> True answer: <b style={{ color: COLORS.ink }}>{fmtBig(rp.truth)}</b> (crowd median {fmtBig(rp.median)}).{rp.truthNote ? ` ${rp.truthNote}` : ''}</>
-          )}
-        </div>
-      </div>
-    );
-  }
-  function revealUnique(rp) {
-    // Themed "rarest wins" reveal — same horizontal-bar layout as revealChoice,
-    // labelled for rarity. (Legacy numeric bars fall through below.)
-    if (rp.options) {
-      const maxC = Math.max(1, ...rp.counts);
-      const totC = rp.counts.reduce((a, b) => a + b, 0) || 1;
-      return (
-        <div style={{ marginTop: 10, display: 'flex', flexDirection: 'column', gap: 5 }}>
-          {rp.options.map((opt, oi) => {
-            const you = rp.yourAnswer === oi;
-            const win = rp.winner === oi;
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+          {rows.map((r, i) => {
+            const off = Math.abs(r.yourRank - r.rank);
             return (
-              <div key={oi} style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                <span style={{ flex: '0 0 108px', fontFamily: SANS, fontSize: 12, fontWeight: you ? 800 : 600, color: you ? COLORS.ink : COLORS.faded, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', textAlign: 'right' }}>{opt}</span>
-                <div style={{ flex: '1 1 auto', height: 16, background: COLORS.paper, borderRadius: 5, overflow: 'hidden', position: 'relative' }}>
-                  <div style={{ width: `${Math.round((rp.counts[oi] / maxC) * 100)}%`, height: '100%', background: you ? COLORS.gold : win ? COLORS.green : '#c8cfd9', borderRadius: 5, minWidth: rp.counts[oi] ? 4 : 0 }} />
+              <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 9 }}>
+                <span style={{ flex: '0 0 20px', fontFamily: MONO, fontSize: 13, fontWeight: 700, color: r.rank <= 3 ? COLORS.ink : COLORS.faded, textAlign: 'right' }}>{r.rank}</span>
+                <div style={{ flex: '1 1 auto', minWidth: 0 }}>
+                  <div style={{ display: 'flex', alignItems: 'baseline', gap: 6 }}>
+                    <span style={{ fontFamily: SANS, fontSize: 13.5, fontWeight: r.yourFav ? 800 : 700, color: COLORS.ink, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                      {r.item}{r.yourFav ? ' ♥' : ''}
+                    </span>
+                    <span style={{ fontFamily: MONO, fontSize: 10.5, color: COLORS.faded, whiteSpace: 'nowrap' }}>{r.pct}%</span>
+                  </div>
+                  <div style={{ height: 7, background: COLORS.paper, borderRadius: 4, overflow: 'hidden', marginTop: 3 }}>
+                    <div style={{ width: `${Math.round((r.votes / maxV) * 100)}%`, height: '100%', background: r.yourFav ? COLORS.gold : '#b9c0f0', borderRadius: 4, minWidth: r.votes ? 4 : 0 }} />
+                  </div>
                 </div>
-                <span style={{ flex: '0 0 74px', fontFamily: MONO, fontSize: 10.5, color: COLORS.faded, whiteSpace: 'nowrap' }}>
-                  {Math.round((rp.counts[oi] / totC) * 100)}%{you ? ' · you' : win ? ' · rarest' : ''}
+                <span style={{ flex: '0 0 auto', fontFamily: SANS, fontSize: 11, fontWeight: 700, color: off === 0 ? COLORS.green : COLORS.faded, whiteSpace: 'nowrap' }}>
+                  you: #{r.yourRank}
                 </span>
-              </div>
-            );
-          })}
-          <div style={{ fontFamily: SANS, fontSize: 12, fontWeight: 700, color: COLORS.faded, marginTop: 6 }}>
-            Rarest pick: <b style={{ color: COLORS.green }}>{rp.options[rp.winner]}</b> · you took <b style={{ color: COLORS.ink }}>{rp.options[rp.yourAnswer]}</b>.
-          </div>
-        </div>
-      );
-    }
-    const maxC = Math.max(1, ...rp.counts);
-    return (
-      <div style={{ marginTop: 10 }}>
-        <div style={{ display: 'flex', alignItems: 'flex-end', gap: 2, height: 52 }}>
-          {rp.counts.map((c, ci) => {
-            const n = ci + rp.min;
-            const you = rp.yourAnswer === n;
-            const win = rp.winner === n;
-            return (
-              <div key={ci} style={{ flex: '1 1 0', height: '100%', display: 'flex', flexDirection: 'column', justifyContent: 'flex-end', alignItems: 'center' }}>
-                <div title={`${n}: ${c}`} style={{ width: '100%', height: `${Math.max(4, Math.round((c / maxC) * 100))}%`, background: you ? COLORS.gold : win ? COLORS.green : '#c8cfd9', borderRadius: '3px 3px 0 0' }} />
+                {ptsChip(r.pts)}
               </div>
             );
           })}
         </div>
-        <div style={{ display: 'flex', gap: 2, marginTop: 2 }}>
-          {rp.counts.map((c, ci) => {
-            const n = ci + rp.min;
-            const you = rp.yourAnswer === n;
-            const win = rp.winner === n;
-            return <span key={ci} style={{ flex: '1 1 0', textAlign: 'center', fontFamily: MONO, fontSize: 8.5, fontWeight: you || win ? 700 : 500, color: you ? '#8a6d1a' : win ? COLORS.green : COLORS.faded }}>{n}</span>;
-          })}
+        <div style={{ fontFamily: SANS, fontSize: 12, fontWeight: 700, color: COLORS.faded, marginTop: 10, lineHeight: 1.5 }}>
+          Your favorite: <b style={{ color: COLORS.ink }}>{ITEMS[result.yourFav]}</b> &mdash; you and <b style={{ color: COLORS.ink }}>{result.favPct}%</b> of the crowd.
         </div>
-        <div style={{ fontFamily: SANS, fontSize: 12, fontWeight: 700, color: COLORS.faded, marginTop: 6 }}>
-          Rarest pick: <b style={{ color: COLORS.green }}>{rp.winner}</b> · you took <b style={{ color: COLORS.ink }}>{rp.yourAnswer}</b>.
-        </div>
-      </div>
-    );
-  }
-
-  function renderPrompt(i) {
-    const pr = PROMPTS[i];
-    const rp = result ? result.prompts[i] : null;
-    const val = g.ans[i];
-    return (
-      <div key={i} style={{ background: '#fff', border: `1.5px solid ${rp ? (rp.pts === 2 ? 'rgba(21,128,61,0.5)' : rp.pts === 1 ? 'rgba(202,138,4,0.5)' : 'rgba(28,30,36,0.18)') : 'rgba(28,30,36,0.2)'}`, borderRadius: 10, padding: '12px 14px', marginBottom: 9 }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 7 }}>
-          <span style={{ fontFamily: MONO, fontSize: 10, letterSpacing: '0.1em', textTransform: 'uppercase', fontWeight: 500, color: '#fff', background: COLORS.accent, borderRadius: 4, padding: '2px 7px' }}>{i + 1} · {pr.tag}</span>
-          {rp ? ptsChip(rp.pts) : (val != null ? <span style={{ marginLeft: 'auto', color: COLORS.green, display: 'flex' }}><Crown size={14} style={{ display: 'none' }} /><svg viewBox="0 0 12 12" width="14" height="14" fill="none"><path d="M2.5 6.2 L5 8.6 L9.5 3.6" stroke="#15803d" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" /></svg></span> : null)}
-        </div>
-        <div style={{ fontFamily: SANS, fontSize: 15, fontWeight: 800, letterSpacing: '-0.01em', color: COLORS.ink, lineHeight: 1.4, marginBottom: 9 }}>
-          {pr.q}
-        </div>
-        {!rp && pr.options && (
-          <div style={{ display: 'flex', flexWrap: 'wrap', gap: 7 }}>
-            {pr.options.map((opt, oi) => (
-              <button key={oi} onClick={() => setAnswer(i, oi)} className={`ow-opt${val === oi ? ' ow-opt-on' : ''}`}>{opt}</button>
-            ))}
-          </div>
-        )}
-        {!rp && !pr.options && (
-          <input
-            className="ow-inp"
-            type="text"
-            inputMode="numeric"
-            pattern="[0-9]*"
-            placeholder={`${fmtBig(pr.min)}–${fmtBig(pr.max)}`}
-            value={numVals[i] ?? ''}
-            onChange={(e) => setNumRaw(i, e.target.value)}
-            aria-label={pr.q}
-          />
-        )}
-        {rp && (rp.type === 'unique' ? revealUnique(rp) : rp.options ? revealChoice(rp) : rp.buckets ? revealNumeric(rp) : revealUnique(rp))}
       </div>
     );
   }
@@ -652,60 +550,110 @@ export default function OutwitClient({ puzzles = [], forceNum = null }) {
   return (
     <div style={{ minHeight: '100vh', background: '#f7f8fa', position: 'relative' }}>
       <Grain />
-      <div className="ow-wrap" style={{ position: 'relative', zIndex: 2, maxWidth: 1180, margin: '0 auto', padding: '18px 38px 80px', fontFamily: SANS }}>
+      <div className="ork-wrap" style={{ position: 'relative', zIndex: 2, maxWidth: 1180, margin: '0 auto', padding: '18px 38px 80px', fontFamily: SANS }}>
         <style>{`
-          @media(max-width:560px){.ow-wrap{padding-left:12px !important;padding-right:12px !important;}}
-          .ow-btn{font-family:${SANS};font-weight:800;font-size:14px;border:2px solid ${COLORS.ink};background:#fff;color:${COLORS.ink};border-radius:8px;padding:9px 16px;cursor:pointer;display:inline-flex;align-items:center;gap:7px;}
-          .ow-btn:hover{background:${COLORS.paper};}
-          .ow-opt{font-family:${SANS};font-weight:800;font-size:13.5px;border:2px solid rgba(28,30,36,0.3);background:#fff;color:${COLORS.ink};border-radius:9px;padding:9px 14px;cursor:pointer;}
-          .ow-opt:hover{border-color:${COLORS.accent};}
-          .ow-opt-on{background:${COLORS.accent};border-color:${COLORS.accent};color:#fff;box-shadow:0 0 0 3px rgba(232,180,58,0.45);}
-          .ow-inp{font-family:${MONO};font-weight:500;font-size:22px;letter-spacing:0.06em;width:200px;max-width:100%;border:2px solid ${COLORS.ink};border-radius:9px;padding:8px 12px;background:#fff;color:${COLORS.ink};outline:none;}
-          .ow-inp:focus{border-color:${COLORS.accent};box-shadow:0 0 0 3px rgba(31,41,55,0.14);}
-          .ow-face{font-family:${SANS};font-weight:800;font-size:15px;letter-spacing:0.05em;text-transform:uppercase;border:none;background:${COLORS.accent};color:#fff;border-radius:10px;padding:0 26px;height:56px;cursor:pointer;display:inline-flex;align-items:center;gap:10px;box-shadow:0 3px 0 rgba(20,22,28,0.25);}
-          .ow-face:active{transform:translateY(1px);box-shadow:0 2px 0 rgba(20,22,28,0.25);}
-          .ow-face:disabled{opacity:.55;cursor:default;}
-          .ow-face .ow-gold{color:${COLORS.gold};}
-          @media(max-width:560px){.ow-ttl{flex-direction:column;align-items:flex-start;gap:1px;}.ow-ttl h1{font-size:21px;letter-spacing:0.02em;}.ow-ttl .ow-ttl-dt{font-size:15px;}.ow-ttl-dot{display:none;}}
+          @media(max-width:560px){.ork-wrap{padding-left:12px !important;padding-right:12px !important;}}
+          .ork-btn{font-family:${SANS};font-weight:800;font-size:14px;border:2px solid ${COLORS.ink};background:#fff;color:${COLORS.ink};border-radius:8px;padding:9px 16px;cursor:pointer;display:inline-flex;align-items:center;gap:7px;}
+          .ork-btn:hover{background:${COLORS.paper};}
+          .ork-item{font-family:${SANS};font-weight:800;font-size:13.5px;border:2px solid rgba(28,30,36,0.3);background:#fff;color:${COLORS.ink};border-radius:9px;padding:9px 13px;cursor:pointer;display:inline-flex;align-items:center;gap:8px;}
+          .ork-item:hover{border-color:${COLORS.accent};}
+          .ork-item-on{background:${COLORS.accent};border-color:${COLORS.accent};color:#fff;box-shadow:0 0 0 3px rgba(232,180,58,0.45);}
+          .ork-slot{background:${COLORS.accent};border-color:${COLORS.accent};color:#fff;}
+          .ork-face{font-family:${SANS};font-weight:800;font-size:15px;letter-spacing:0.05em;text-transform:uppercase;border:none;background:${COLORS.accent};color:#fff;border-radius:10px;padding:0 26px;height:56px;cursor:pointer;display:inline-flex;align-items:center;gap:10px;box-shadow:0 3px 0 rgba(20,22,28,0.25);}
+          .ork-face:active{transform:translateY(1px);box-shadow:0 2px 0 rgba(20,22,28,0.25);}
+          .ork-face:disabled{opacity:.55;cursor:default;}
+          .ork-face .ork-gold{color:${COLORS.gold};}
+          @media(max-width:560px){.ork-ttl{flex-direction:column;align-items:flex-start;gap:1px;}.ork-ttl h1{font-size:21px;letter-spacing:0.02em;}.ork-ttl .ork-ttl-dt{font-size:15px;}.ork-ttl-dot{display:none;}.ork-mh-tile{width:30px !important;height:30px !important;font-size:17px !important;}}
         `}</style>
 
         <div style={{ maxWidth: 640, margin: '0 auto' }}>
 
         <div style={{ display: 'block' }}><DailyTopNav player={player} compact={playing} /></div>
 
-        {/* masthead: pressed OUTWIT tiles with No./date inline */}
-        <div className="ow-mh" style={{ display: 'flex', alignItems: 'center', gap: 14, flexWrap: 'wrap', position: 'relative', paddingRight: 28, marginBottom: 16, borderBottom: '2px solid rgba(28,30,36,0.8)', paddingBottom: 11 }}>
+        {/* masthead: pressed OUTRANK tiles with No./date inline */}
+        <div className="ork-mh" style={{ display: 'flex', alignItems: 'center', gap: 14, flexWrap: 'wrap', position: 'relative', paddingRight: 28, marginBottom: 16, borderBottom: '2px solid rgba(28,30,36,0.8)', paddingBottom: 11 }}>
           <div style={{ display: 'flex', gap: 4, alignItems: 'flex-end' }}>
-            {'OUTWIT'.split('').map((ch, i) => (
-              <div key={i} style={{ width: 38, height: 38, borderRadius: 5, display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: SANS, fontWeight: 900, fontSize: 22, background: i >= 3 ? COLORS.accent : COLORS.ink, color: i >= 3 ? COLORS.gold : '#fff', boxShadow: 'inset 0 2px 5px rgba(0,0,0,0.5), 0 1px 0 rgba(255,255,255,0.65)' }}>{ch}</div>
+            {'OUTRANK'.split('').map((ch, i) => (
+              <div key={i} className="ork-mh-tile" style={{ width: 34, height: 34, borderRadius: 5, display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: SANS, fontWeight: 900, fontSize: 20, background: i >= 3 ? COLORS.accent : COLORS.ink, color: '#fff', boxShadow: 'inset 0 2px 5px rgba(0,0,0,0.5), 0 1px 0 rgba(255,255,255,0.65)' }}>{ch}</div>
             ))}
           </div>
-          <div className="ow-ttl" style={{ display: 'flex', alignItems: 'baseline', gap: 9 }}>
+          <div className="ork-ttl" style={{ display: 'flex', alignItems: 'baseline', gap: 9 }}>
             <h1 style={{ margin: 0, fontFamily: MONO, fontSize: 14, letterSpacing: '0.06em', fontWeight: 500, color: COLORS.ink }}>No. {PUZZLE.num}</h1>
-            <span className="ow-ttl-dot" style={{ color: COLORS.faded }}>&middot;</span>
-            <span className="ow-ttl-dt" style={{ fontFamily: SANS, fontStyle: 'italic', fontSize: 15, color: COLORS.faded }}>{PUZZLE.dateLabel}</span>
-            {PUZZLE.sunday && <span style={{ fontFamily: MONO, fontSize: 9.5, letterSpacing: '0.1em', textTransform: 'uppercase', fontWeight: 500, color: '#fff', background: COLORS.accent, borderRadius: 4, padding: '2px 6px' }}>Sunday Edition &middot; Six prompts</span>}
+            <span className="ork-ttl-dot" style={{ color: COLORS.faded }}>&middot;</span>
+            <span className="ork-ttl-dt" style={{ fontFamily: SANS, fontStyle: 'italic', fontSize: 15, color: COLORS.faded }}>{PUZZLE.dateLabel}</span>
+            {PUZZLE.sunday && <span style={{ fontFamily: MONO, fontSize: 9.5, letterSpacing: '0.1em', textTransform: 'uppercase', fontWeight: 500, color: '#fff', background: COLORS.accent, borderRadius: 4, padding: '2px 6px' }}>Sunday Edition &middot; Seven items</span>}
           </div>
           <button onClick={() => setShowHelp(true)} aria-label="How to play" title="How to play" style={{ position: 'absolute', top: 13, right: 2, background: 'none', border: 'none', cursor: 'pointer', color: COLORS.faded, padding: 0, display: 'flex' }}>
             <HelpCircle size={20} />
           </button>
         </div>
 
-        {/* the five prompts */}
+        {/* the day's slate */}
         <div style={{ background: COLORS.accentSoft, border: `2px solid ${COLORS.ink}`, borderRadius: 10, padding: '15px 17px 12px', boxShadow: '5px 5px 0 rgba(28,30,36,0.16)', marginBottom: 12 }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 12, fontFamily: MONO, fontSize: 11.5, letterSpacing: '0.1em', textTransform: 'uppercase', color: COLORS.faded, borderBottom: '1px solid rgba(28,30,36,0.18)', paddingBottom: 8, marginBottom: 12, flexWrap: 'wrap' }}>
-            <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6, whiteSpace: 'nowrap' }}><Users size={12} /> five prompts vs. today&rsquo;s crowd</span>
-            <span style={{ marginLeft: 'auto', whiteSpace: 'nowrap' }}>answered <b style={{ color: COLORS.ink, fontWeight: 500 }}>{answered}</b>/{PROMPTS.length}</span>
+            <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6, whiteSpace: 'nowrap' }}><Users size={12} /> today&rsquo;s slate</span>
+            <span style={{ marginLeft: 'auto', whiteSpace: 'nowrap', fontWeight: 500, color: COLORS.ink }}>{PUZZLE.theme}</span>
           </div>
-          {PROMPTS.map((_, i) => renderPrompt(i))}
-          {playing && (
-            <div style={{ textAlign: 'center', margin: '14px 0 8px' }}>
-              <button className="ow-face" onClick={faceTheCrowd} disabled={sending || answered < PROMPTS.length}>
-                <Users size={17} className="ow-gold" /> {sending ? 'Facing the crowd…' : 'Face the crowd'}
-              </button>
-              <div style={{ fontFamily: SANS, fontSize: 11.5, fontWeight: 700, color: COLORS.faded, marginTop: 8 }}>
-                No right answers — only what everyone else does. Lock all five, then see the real numbers.
+          <div style={{ fontFamily: SANS, fontSize: 13, fontWeight: 700, color: COLORS.faded, marginBottom: 12, lineHeight: 1.5 }}>{PUZZLE.flavor}</div>
+
+          {playing ? (
+            <>
+              {/* step 1 — your vote */}
+              <div style={{ background: '#fff', border: '1.5px solid rgba(28,30,36,0.2)', borderRadius: 10, padding: '12px 14px', marginBottom: 9 }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 8 }}>
+                  <span style={{ fontFamily: MONO, fontSize: 10, letterSpacing: '0.1em', textTransform: 'uppercase', fontWeight: 500, color: '#fff', background: COLORS.accent, borderRadius: 4, padding: '2px 7px' }}>1 &middot; Your vote</span>
+                  {g.fav != null && <span style={{ marginLeft: 'auto', color: COLORS.green, display: 'flex' }}><svg viewBox="0 0 12 12" width="14" height="14" fill="none"><path d="M2.5 6.2 L5 8.6 L9.5 3.6" stroke="#15803d" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" /></svg></span>}
+                </div>
+                <div style={{ fontFamily: SANS, fontSize: 15, fontWeight: 800, letterSpacing: '-0.01em', color: COLORS.ink, lineHeight: 1.4, marginBottom: 9 }}>
+                  Tap your honest favorite. Your vote helps build the crowd&rsquo;s real order.
+                </div>
+                <div style={{ display: 'flex', flexWrap: 'wrap', gap: 7 }}>
+                  {ITEMS.map((it, i) => (
+                    <button key={i} onClick={() => pickFav(i)} className={`ork-item${g.fav === i ? ' ork-item-on' : ''}`}>
+                      {g.fav === i ? <Crown size={13} style={{ color: COLORS.gold }} /> : null}{it}
+                    </button>
+                  ))}
+                </div>
               </div>
+
+              {/* step 2 — call the crowd */}
+              <div style={{ background: '#fff', border: '1.5px solid rgba(28,30,36,0.2)', borderRadius: 10, padding: '12px 14px', marginBottom: 9 }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 8 }}>
+                  <span style={{ fontFamily: MONO, fontSize: 10, letterSpacing: '0.1em', textTransform: 'uppercase', fontWeight: 500, color: '#fff', background: COLORS.accent, borderRadius: 4, padding: '2px 7px' }}>2 &middot; Call the crowd</span>
+                  <span style={{ marginLeft: 'auto', fontFamily: MONO, fontSize: 10.5, color: COLORS.faded }}>placed {g.order.length}/{K}</span>
+                </div>
+                <div style={{ fontFamily: SANS, fontSize: 15, fontWeight: 800, letterSpacing: '-0.01em', color: COLORS.ink, lineHeight: 1.4, marginBottom: 9 }}>
+                  Now forget your taste. Tap the items in the order TODAY&rsquo;S CROWD ranks them, favorite first.
+                </div>
+                <div style={{ display: 'flex', flexWrap: 'wrap', gap: 7 }}>
+                  {ITEMS.map((it, i) => {
+                    const pos = g.order.indexOf(i);
+                    return (
+                      <button key={i} onClick={() => tapOrder(i)} className={`ork-item${pos >= 0 ? ' ork-slot' : ''}`}>
+                        {pos >= 0 ? <span style={{ fontFamily: MONO, fontSize: 11, fontWeight: 700, background: 'rgba(255,255,255,0.25)', borderRadius: 4, padding: '1px 6px' }}>#{pos + 1}</span> : null}{it}
+                      </button>
+                    );
+                  })}
+                </div>
+                {g.order.length > 0 && (
+                  <button onClick={resetOrder} style={{ marginTop: 9, fontFamily: SANS, fontSize: 11.5, fontWeight: 800, color: COLORS.faded, background: 'none', border: 'none', cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: 5, padding: 0 }}>
+                    <RotateCcw size={12} /> Reset the order
+                  </button>
+                )}
+              </div>
+
+              <div style={{ textAlign: 'center', margin: '14px 0 8px' }}>
+                <button className="ork-face" onClick={faceTheCrowd} disabled={sending || !placedAll}>
+                  <Users size={17} className="ork-gold" /> {sending ? 'Facing the crowd…' : 'Face the crowd'}
+                </button>
+                <div style={{ fontFamily: SANS, fontSize: 11.5, fontWeight: 700, color: COLORS.faded, marginTop: 8 }}>
+                  Exact slot pays 2, one off pays 1. The order is whatever today&rsquo;s players vote it to be.
+                </div>
+              </div>
+            </>
+          ) : (
+            <div style={{ fontFamily: SANS, fontSize: 12.5, fontWeight: 700, color: COLORS.faded }}>
+              Locked in. The crowd&rsquo;s order below keeps updating as votes arrive.
             </div>
           )}
         </div>
@@ -717,21 +665,22 @@ export default function OutwitClient({ puzzles = [], forceNum = null }) {
               <div style={{ display: 'flex', alignItems: 'center', gap: 14, background: '#fff', border: '1.5px solid rgba(28,30,36,0.18)', borderRadius: 10, padding: '12px 14px' }}>
                 <span style={{ fontFamily: MONO, fontSize: 32, fontWeight: 500, color: sharp ? COLORS.green : COLORS.ink, fontVariantNumeric: 'tabular-nums', letterSpacing: '0.04em', flex: '0 0 auto' }}>{score}/{TOTAL}</span>
                 <span style={{ fontFamily: SANS, fontSize: 13, fontWeight: 700, color: COLORS.ink, lineHeight: 1.45 }}>
-                  {sharp ? 'You outwitted the crowd.' : score >= 4 ? 'You held your own against the crowd.' : 'The crowd got you today.'}
+                  {sharp ? 'You outranked the crowd.' : score >= TOTAL / 2 ? 'You read the room respectably.' : 'The crowd surprised you today.'}
                   {' '}<span style={{ color: COLORS.faded, fontWeight: 600 }}>{result.board && result.board.youRegistered && result.board.you ? <>Live rank #{result.board.you.rank} of {fmtBig(result.board.registered)} &middot; </> : null}A field of {fmtBig(result.realCount != null ? result.realCount : result.poolSize)} &middot; {elapsed}</span>
                 </span>
               </div>
             </div>
-            <OutwitLiveBoard board={result.board} />
+            {revealBoard()}
+            <OutrankLiveBoard board={result.board} total={TOTAL} />
             <p style={{ fontSize: 12, color: COLORS.faded, fontWeight: 600, margin: '12px 0 0' }}>
               {isTodays ? (
                 <>
-                  {countdown ? <>Next Outwit in <b style={{ color: COLORS.ink, fontVariantNumeric: 'tabular-nums' }}>{countdown}</b>.</> : 'A new crowd forms at midnight Eastern.'}
+                  {countdown ? <>Next Outrank in <b style={{ color: COLORS.ink, fontVariantNumeric: 'tabular-nums' }}>{countdown}</b>.</> : 'A new crowd forms at midnight Eastern.'}
                   {prevPuzzle && (
                     <>
                       {' '}Meanwhile:{' '}
-                      <a href={`/outwit?p=${prevPuzzle.num}`} style={{ color: COLORS.ember, fontWeight: 800, textDecoration: 'underline' }}>
-                        play yesterday&rsquo;s Outwit &rarr;
+                      <a href={`/outrank?p=${prevPuzzle.num}`} style={{ color: COLORS.ember, fontWeight: 800, textDecoration: 'underline' }}>
+                        play yesterday&rsquo;s Outrank &rarr;
                       </a>
                     </>
                   )}
@@ -739,7 +688,7 @@ export default function OutwitClient({ puzzles = [], forceNum = null }) {
               ) : (
                 <>
                   You&rsquo;re playing the {PUZZLE.dateLabel.replace(', 2026', '')} archive.{' '}
-                  <a href="/outwit" style={{ color: COLORS.ember, fontWeight: 800, textDecoration: 'underline' }}>Back to today&rsquo;s Outwit &rarr;</a>
+                  <a href="/outrank" style={{ color: COLORS.ember, fontWeight: 800, textDecoration: 'underline' }}>Back to today&rsquo;s Outrank &rarr;</a>
                   {' · '}
                   <a href="/daily" style={{ color: COLORS.faded, fontWeight: 700, textDecoration: 'underline' }}>All daily puzzles</a>
                 </>
@@ -756,7 +705,7 @@ export default function OutwitClient({ puzzles = [], forceNum = null }) {
         )}
         <div style={{ display: focusMode ? 'none' : 'block', margin: '30px auto 0' }}>
           <DailyGamesGrid
-            self="outwit"
+            self="outrank"
             maxWidth={640}
             challengeHref={`/duel/new?quiz=${encodeURIComponent(PUZZLE.quizId)}`}
             share={{ label: copied ? 'Copied' : 'Share This Puzzle', onClick: copyShare }}
@@ -771,7 +720,7 @@ export default function OutwitClient({ puzzles = [], forceNum = null }) {
         {showA2hsHelp && (
           <div onClick={() => setShowA2hsHelp(false)} style={{ position: 'fixed', inset: 0, background: 'rgba(20,22,28,0.55)', zIndex: 90, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 18 }}>
             <div onClick={(e) => e.stopPropagation()} style={{ background: '#fff', borderRadius: 14, maxWidth: 430, width: '100%', padding: '22px 22px 16px', fontFamily: SANS, border: '1.5px solid rgba(20,22,28,0.12)' }}>
-              <div style={{ fontSize: 17, fontWeight: 800, color: COLORS.ink, marginBottom: 8 }}>Add Outwit to your Home Screen</div>
+              <div style={{ fontSize: 17, fontWeight: 800, color: COLORS.ink, marginBottom: 8 }}>Add Outrank to your Home Screen</div>
               {isIosDevice() ? (
                 <ol style={{ margin: '0 0 4px', paddingLeft: 20, color: COLORS.ink, fontSize: 14, lineHeight: 1.7 }}>
                   <li>Tap the <b>Share</b> button in Safari&apos;s toolbar.</li>
@@ -802,7 +751,7 @@ export default function OutwitClient({ puzzles = [], forceNum = null }) {
             {[
               { n: myStats.cur, l: 'Streak' },
               { n: myStats.played, l: 'Played' },
-              { n: myStats.played ? `${Math.round((myStats.sharp / myStats.played) * 100)}%` : '—', l: 'Outwitted' },
+              { n: myStats.played ? `${Math.round((myStats.sharp / myStats.played) * 100)}%` : '—', l: 'Outranked' },
               { n: myStats.max, l: 'Best Streak' },
             ].map((st, i) => (
               <div key={i} style={{ flex: '1 1 0', minWidth: 54, background: '#fff', border: '1px solid rgba(28,30,36,0.12)', borderRadius: 7, padding: '6px 5px', textAlign: 'center' }}>
@@ -814,7 +763,7 @@ export default function OutwitClient({ puzzles = [], forceNum = null }) {
         </div>
         )}
         <div id="daily-leaderboard" style={{ display: focusMode ? 'none' : 'block', maxWidth: 640, margin: '26px auto 0', background: '#fff', border: '1.5px solid rgba(20,22,28,0.12)', borderRadius: 12, padding: '14px 16px' }}>
-          <DailyCombinedLeaderboard todayKey="outwit" identity={identity} quizId={PUZZLE.quizId} />
+          <DailyCombinedLeaderboard todayKey="outrank" identity={identity} quizId={PUZZLE.quizId} />
         </div>
       </div>
 
@@ -822,7 +771,7 @@ export default function OutwitClient({ puzzles = [], forceNum = null }) {
       {!playing && result && !endClosed && (
         <DailyEndCard
           modal
-          self="outwit"
+          self="outrank"
           won={sharp}
           headline={<>You scored {Math.round((score / TOTAL) * 100)}%</>}
           subline={<>{score}/{TOTAL} &middot; crowd of {fmtBig(result.realCount != null ? result.realCount : result.poolSize)} &middot; {elapsed}</>}
@@ -851,26 +800,26 @@ export default function OutwitClient({ puzzles = [], forceNum = null }) {
               <button onClick={() => { setShowHelp(false); try { localStorage.setItem(HELP_KEY, '1'); } catch (e) {} }} aria-label="Close" style={{ marginLeft: 'auto', background: 'none', border: 'none', cursor: 'pointer', color: COLORS.faded }}><X size={20} /></button>
             </div>
             <div style={{ fontSize: 14, lineHeight: 1.55, color: COLORS.ink, fontWeight: 600 }}>
-              <p style={{ margin: '0 0 9px' }}>Your opponent is <b>everyone playing today</b>. Five prompts, no right answers &mdash; you score by reading the crowd.</p>
-              <p style={{ margin: '0 0 9px' }}><b>Road Less Traveled</b>: pick what fewest pick. <b>Herd</b>: closest to the crowd&rsquo;s median. <b>Meeting Point</b>: match the most-picked answer. <b>Rare Bird</b>: the rarest pick wins. <b>Undercut</b> (last): closest to a fraction of the crowd&rsquo;s average &mdash; and the fraction changes every day, so read the prompt.</p>
-              <p style={{ margin: 0 }}>Each prompt pays <b>0, 1, or 2 points</b>. The twist: <b>nothing is final</b> &mdash; every new player re-scores the whole field, including you, so your rank moves all day. Lock in to reveal where the crowd actually went. <b>7 of 10</b> means you outwitted them &mdash; for now.</p>
+              <p style={{ margin: '0 0 9px' }}>The answer key is <b>everyone playing today</b>. One themed slate, two moves.</p>
+              <p style={{ margin: '0 0 9px' }}><b>Vote</b>: tap your honest favorite &mdash; your taste becomes part of the crowd. <b>Call it</b>: put the whole slate in the order you think today&rsquo;s crowd ranks it by favorite votes.</p>
+              <p style={{ margin: 0 }}>Each item pays <b>2</b> in its exact slot, <b>1</b> one slot off, <b>0</b> otherwise. The twist: <b>nothing is final</b> &mdash; every new vote can reshuffle the crowd&rsquo;s order, so your score and rank move all day. <b>{winBar(TOTAL)} of {TOTAL}</b> means you outranked the crowd &mdash; for now.</p>
             </div>
-            <button className="ow-btn" onClick={() => { setShowHelp(false); try { localStorage.setItem(HELP_KEY, '1'); } catch (e) {} }} style={{ marginTop: 14, background: COLORS.ink, color: '#fff' }}>Play</button>
+            <button className="ork-btn" onClick={() => { setShowHelp(false); try { localStorage.setItem(HELP_KEY, '1'); } catch (e) {} }} style={{ marginTop: 14, background: COLORS.ink, color: '#fff' }}>Play</button>
           </div>
         </div>
       )}
 
-      {/* About Outwit — crawlable prose for search, server-rendered into the HTML */}
+      {/* About Outrank — crawlable prose for search, server-rendered into the HTML */}
       <section style={{ display: focusMode ? 'none' : 'block', position: 'relative', zIndex: 2, maxWidth: 640, margin: '0 auto', padding: '10px 24px 42px', fontFamily: SANS }}>
-        <h2 style={{ margin: '0 0 8px', fontSize: 15, fontWeight: 800, letterSpacing: '-0.01em', color: COLORS.ink }}>About Outwit</h2>
+        <h2 style={{ margin: '0 0 8px', fontSize: 15, fontWeight: 800, letterSpacing: '-0.01em', color: COLORS.ink }}>About Outrank</h2>
         <p style={{ margin: '0 0 8px', fontSize: 13, lineHeight: 1.65, color: COLORS.faded, fontWeight: 600 }}>
-          Outwit is a free daily game from Source of Truths where the puzzle is other people. Every day, five quick prompts pit you against the entire field of players: pick the option the fewest will touch, guess where the herd&rsquo;s median lands, meet the crowd at its favorite answer, find the number nobody else takes, and finish by undercutting the crowd&rsquo;s average &mdash; by a fraction that shifts from day to day, so the equilibrium is never the same twice.
+          Outrank is a free daily game from Source of Truths where the crowd itself is the answer key. Every day brings a new themed slate &mdash; breakfast classics, candy bars, karaoke closers, the seven deadly sins &mdash; and every player makes two moves: vote for their honest favorite, then predict how the entire field of players ranks the whole list. Your vote helps build the real order; your prediction is scored against it.
         </p>
         <p style={{ margin: '0 0 8px', fontSize: 13, lineHeight: 1.65, color: COLORS.faded, fontWeight: 600 }}>
-          There are no trivia answers to know — the classic game-theory twist is that everyone is reasoning about everyone else. And the score is alive: every time a new player locks in, the entire field is re-scored, so your points and your place on the board keep moving through the day. You are always measured against the whole crowd as it stands right now — a run that trails a small early field can lead once thousands more have played, and a morning sweep can slip as the day goes on. A pre-written house field seeds the small hours, then retires once ten real players are in, so by breakfast you're playing purely against people, and the standings never stop shifting.
+          There is no trivia to know &mdash; the game is pure crowd-reading. Placing an item in its exact crowd slot pays two points, one slot off pays one, and the daily maximum is a perfect call of the whole board. And the score is alive: the crowd&rsquo;s order is recomputed from every vote as it arrives, so your points and your place on the live standings keep moving all day. A pre-written house crowd seeds the small hours, then retires once ten real players are in; your own prediction is always graded on the crowd minus your own vote, so you can never tip the order you&rsquo;re scored against. On Sundays the slate grows to seven items.
         </p>
         <p style={{ margin: 0, fontSize: 13, lineHeight: 1.65, color: COLORS.faded, fontWeight: 600 }}>
-          A new crowd forms every day at midnight Eastern. No app, no signup &mdash; play free in your browser, keep a streak, and race the daily leaderboard. More dailies: <a href="/tally" style={{ color: COLORS.ink, fontWeight: 800 }}>Tally</a>, our row-and-column logic game, <a href="/suds" style={{ color: COLORS.ink, fontWeight: 800 }}>Suds</a>, our daily sudoku, and <a href="/outrank" style={{ color: COLORS.ink, fontWeight: 800 }}>Outrank</a>, our crowd-ranking game.
+          A new crowd forms every day at midnight Eastern. No app, no signup &mdash; play free in your browser, keep a streak, and race the daily leaderboard. More dailies: <a href="/outwit" style={{ color: COLORS.ink, fontWeight: 800 }}>Outwit</a>, our five-prompt crowd game, <a href="/tally" style={{ color: COLORS.ink, fontWeight: 800 }}>Tally</a>, our row-and-column logic game, and <a href="/suds" style={{ color: COLORS.ink, fontWeight: 800 }}>Suds</a>, our daily sudoku.
         </p>
       </section>
 

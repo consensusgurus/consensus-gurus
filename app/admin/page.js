@@ -195,6 +195,7 @@ const DAILY_GAMES = [
   { key: 'suds', title: 'Suds' },
   { key: 'carve', title: 'Carve' },
   { key: 'circa', title: 'Circa' },
+  { key: 'outrank', title: 'Outrank' },
   { key: 'extra', title: 'Extra' },
   { key: 'stet', title: 'Stet' },
   { key: 'outwit', title: 'Outwit' },
@@ -206,7 +207,7 @@ const DAILY_GAMES = [
   { key: 'jester', title: 'Jesters' },
   { key: 'sworn', title: 'Sworn' },
 ];
-const DAILY_PREFIX_RE = /^(links|span|crux|garble|dating|tally|suds|circa|extra|carve|emcee|stet|outwit|tuck|alibi|cipher|ping|warmer|jester|sworn)-/;
+const DAILY_PREFIX_RE = /^(links|span|crux|garble|dating|tally|suds|circa|extra|carve|emcee|stet|outwit|tuck|alibi|cipher|ping|warmer|jester|sworn|outrank)-/;
 function buildDailyRetention(rows) {
   const perGame = new Map(DAILY_GAMES.map((g) => [g.key, new Map()])); // key -> (playerKey -> Set(quizId))
   const breadth = new Map(); // playerKey -> Set(gameKey)
@@ -314,7 +315,7 @@ function buildTimeByDay(rows) {
 // browsers (the bulk of daily-game players) are counted. time_elapsed is the
 // seconds from Play to finish; the average skips rows with no/blank time. Rows
 // whose id does not parse as a dated daily puzzle are ignored.
-const DAILY_DATED_RE = /^(links|span|crux|garble|dating|tally|suds|circa|extra|carve|emcee|stet|outwit|tuck|alibi|cipher|ping|warmer|jester|sworn)-(\d{1,2})-(\d{1,2})-(\d{2})$/;
+const DAILY_DATED_RE = /^(links|span|crux|garble|dating|tally|suds|circa|extra|carve|emcee|stet|outwit|tuck|alibi|cipher|ping|warmer|jester|sworn|outrank)-(\d{1,2})-(\d{1,2})-(\d{2})$/;
 // Per-game stats for the 20 daily games. Every completed play carries its own
 // puzzle date in the quiz_id ('links-7-6-26'), so day counts come from the
 // quiz_id, not the row timestamp. Each game reports its all-time averages

@@ -481,5 +481,32 @@ if (RUN('outwit')) {
   }
 }
 
+if (RUN('outrank')) {
+  const { PUZZLES } = await import('../app/outrank/puzzles.js');
+  const seenThemes = new Set();
+  const seenIds = new Set();
+  for (const p of PUZZLES) {
+    const errs = [];
+    const K = p.items.length;
+    const wantK = p.sunday ? 7 : 6;
+    if (K !== wantK) errs.push(`${K} items (want ${wantK})`);
+    if (new Set(p.items).size !== K) errs.push('duplicate items');
+    if (seenThemes.has(p.theme)) errs.push(`theme reused: ${p.theme}`);
+    seenThemes.add(p.theme);
+    if (seenIds.has(p.quizId)) errs.push('duplicate quizId');
+    seenIds.add(p.quizId);
+    if (!Array.isArray(p.house) || p.house.length !== 40) errs.push(`house has ${(p.house || []).length} votes (want 40)`);
+    else {
+      const counts = new Array(K).fill(0);
+      for (const v of p.house) {
+        if (!Number.isInteger(v) || v < 0 || v >= K) { errs.push(`house vote out of range: ${v}`); break; }
+        counts[v]++;
+      }
+      if (counts.some((c) => c === 0)) errs.push('house leaves an item at zero votes');
+    }
+    errs.length ? fail(p.quizId, errs.join('; ')) : ok(p.quizId, `${K} items, house OK (${p.theme})`);
+  }
+}
+
 console.log(BAD ? `\n${BAD} FAILURE(S)` : '\nAll requested banks verified.');
 process.exit(BAD ? 1 : 0);

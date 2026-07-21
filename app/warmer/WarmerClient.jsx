@@ -589,7 +589,7 @@ export default function WarmerClient({ active, puzzles = [], forceNum = null }) 
           Closeness is semantic, not alphabetical: for the answer &ldquo;sea,&rdquo; words like ocean, waves, and coast run hot, while unrelated words stay cold. Guesses are unlimited, so you can always reach the answer &mdash; the challenge is getting there in as few guesses as you can. Solvers are ranked by fewest guesses, and even if you give up you&rsquo;re ranked by the closest word you found.
         </p>
         <p style={{ margin: 0, fontSize: 13, lineHeight: 1.65, color: COLORS.faded, fontWeight: 600 }}>
-          A new word drops every day at midnight Eastern. No app, no signup &mdash; play free in your browser, keep a streak, and race the daily board. More dailies: <a href="/crux" style={{ color: COLORS.ink, fontWeight: 800 }}>Crux</a>, our clueless crossword, <a href="/circa" style={{ color: COLORS.ink, fontWeight: 800 }}>Circa</a>, the year hunt, and <a href="/links" style={{ color: COLORS.ink, fontWeight: 800 }}>Links</a>, four hidden threads.
+          A new word drops every day at midnight Eastern. No app, no signup &mdash; play free in your browser, keep a streak, and race the daily board. More dailies: <a href="/crux" style={{ color: COLORS.ink, fontWeight: 800 }}>Crux</a>, our clueless crossword, <a href="/outrank" style={{ color: COLORS.ink, fontWeight: 800 }}>Outrank</a>, the crowd-ranking game, and <a href="/links" style={{ color: COLORS.ink, fontWeight: 800 }}>Links</a>, four hidden threads.
         </p>
       </section>
 

@@ -814,7 +814,7 @@ export default function PingClient({ puzzles = [], forceNum = null }) {
           From there it&rsquo;s pure triangulation: watch the miles fall and close in on the answer. There&rsquo;s no limit on guesses, so everyone gets there in the end &mdash; the goal is to do it in as few guesses as you can. Give up any time and you&rsquo;re still scored on how close you got. One free hint reveals the continent.
         </p>
         <p style={{ margin: 0, fontSize: 13, lineHeight: 1.65, color: COLORS.faded, fontWeight: 600 }}>
-          A new city drops every day at midnight Eastern, with a trickier one on Sundays. No app, no signup &mdash; play free in your browser, keep a streak, and race the daily leaderboard. More dailies: <a href="/span" style={{ color: COLORS.ink, fontWeight: 800 }}>Span</a>, our geography game, <a href="/circa" style={{ color: COLORS.ink, fontWeight: 800 }}>Circa</a>, the daily year hunt, and <a href="/crux" style={{ color: COLORS.ink, fontWeight: 800 }}>Crux</a>, our clueless crossword.
+          A new city drops every day at midnight Eastern, with a trickier one on Sundays. No app, no signup &mdash; play free in your browser, keep a streak, and race the daily leaderboard. More dailies: <a href="/span" style={{ color: COLORS.ink, fontWeight: 800 }}>Span</a>, our geography game, <a href="/outrank" style={{ color: COLORS.ink, fontWeight: 800 }}>Outrank</a>, the daily crowd-ranking game, and <a href="/crux" style={{ color: COLORS.ink, fontWeight: 800 }}>Crux</a>, our clueless crossword.
         </p>
       </section>
 

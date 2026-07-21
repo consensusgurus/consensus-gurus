@@ -22,7 +22,7 @@ export const DAILY_GAMES = [
   { key: 'tally', href: '/tally', name: 'Tally', tag: 'balance every row and column', store: 'sot_tally_day', accent: '#15803d', bg: '#eefaf1', border: 'rgba(21,128,61,0.45)' },
   { key: 'suds', href: '/suds', name: 'Suds', tag: 'the daily 9×9 sudoku', store: 'sot_suds_day', accent: '#ea580c', bg: '#fff5ed', border: 'rgba(234,88,12,0.4)' },
   { key: 'carve', href: '/carve', name: 'Carve', tag: 'carve the grid into equal sums', store: 'sot_carve_day', accent: '#7c3aed', bg: '#f5f0ff', border: 'rgba(124,58,237,0.4)' },
-  { key: 'circa', href: '/circa', name: 'Circa', tag: 'pin the year of the moment', store: 'sot_circa_day', accent: '#0e7490', bg: '#e8f7fa', border: 'rgba(14,116,144,0.4)' },
+  { key: 'outrank', href: '/outrank', name: 'Outrank', tag: "call the crowd's order", store: 'sot_outrank_day', accent: '#4338ca', bg: '#eef0fb', border: 'rgba(67,56,202,0.4)' },
   { key: 'extra', href: '/extra', name: 'Extra', tag: 'unredact the front page', store: 'sot_extra_day', accent: '#b91c1c', bg: '#fdeeee', border: 'rgba(185,28,28,0.4)' },
   { key: 'stet', href: '/stet', name: 'Stet', tag: 'spot the error, fix the copy', store: 'sot_stet_day', accent: '#0369a1', bg: '#e8f3fa', border: 'rgba(3,105,161,0.4)' },
   { key: 'outwit', href: '/outwit', name: 'Outwit', tag: 'five duels against the crowd', store: 'sot_outwit_day', accent: '#1f2937', bg: '#eef1f5', border: 'rgba(31,41,55,0.35)' },

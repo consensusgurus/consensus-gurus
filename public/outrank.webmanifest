@@ -1,0 +1,16 @@
+{
+  "id": "/outrank",
+  "name": "Outrank — Daily Crowd-Ranking Game",
+  "short_name": "Outrank",
+  "description": "The answer key is everyone playing today. Vote your favorite, then call the crowd's order. From Source of Truths.",
+  "start_url": "/outrank?src=pwa",
+  "scope": "/",
+  "display": "standalone",
+  "background_color": "#f7f8fa",
+  "theme_color": "#f7f8fa",
+  "icons": [
+    { "src": "/outrank-icons/icon-192.png", "sizes": "192x192", "type": "image/png" },
+    { "src": "/outrank-icons/icon-512.png", "sizes": "512x512", "type": "image/png" },
+    { "src": "/outrank-icons/icon-512-maskable.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ]
+}
