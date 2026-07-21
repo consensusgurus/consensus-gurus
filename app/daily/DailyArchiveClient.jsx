@@ -509,7 +509,10 @@ export default function DailyArchiveClient({ games = [], today = '' }) {
           <div className="dl-alldone"><b>&#9733; All caught up.</b> You&rsquo;ve played every game today. The archives below are always open.</div>
         ) : (
           <div className="dl-rail">
-            {(ready ? stillToPlay : activeGames).slice(0, 12).map((g) => {
+            {/* Resume (started, not finished) games float to the FRONT so a
+                started game is never hidden past the 12-card cap, whatever its
+                popularity rank in the daily order. */}
+            {(ready ? [...stillToPlay].sort((a, b) => (isResumeToday(b) ? 1 : 0) - (isResumeToday(a) ? 1 : 0)) : activeGames).slice(0, 12).map((g) => {
               const resume = ready && isResumeToday(g);
               return (
               <a key={g.key} className="dl-railcard" href={g.path} aria-label={`${resume ? 'Resume' : 'Play'} ${g.name} today`}>
