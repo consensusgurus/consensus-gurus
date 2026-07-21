@@ -283,6 +283,30 @@ export async function GET(request) {
       resolveViewer({ anonId, email }),
     ]);
 
+    // TEMP DIAGNOSTIC (remove after debugging the live-board identity issue):
+    // ?debug=1 dumps how the server resolves the viewer + each pick, no writes.
+    if (searchParams.get('debug') === '1') {
+      const anonHit = new Set(anonSet || []);
+      const diag = rows.filter((r) => Array.isArray(r.answers)).map((r) => {
+        const info = r.anon_id ? infoByAnon.get(r.anon_id) : null;
+        const ownerId = r.user_id || (info && info.id) || null;
+        return {
+          anon: (r.anon_id || '').slice(0, 8),
+          user_id: r.user_id ? String(r.user_id).slice(0, 8) : null,
+          ownerId: ownerId ? String(ownerId).slice(0, 8) : null,
+          ownerName: (r.user_id && nameByUser.get(r.user_id)) || (info && info.username) || null,
+          byAnonSet: !!(r.anon_id && anonHit.has(r.anon_id)),
+          isYou: (!!myUserId && ownerId === myUserId) || (!!r.anon_id && anonHit.has(r.anon_id)),
+        };
+      });
+      return NextResponse.json({
+        ok: true, debug: true, build: 'or2',
+        myUserId: myUserId ? String(myUserId).slice(0, 8) : null, myName,
+        anonSet: (anonSet || []).map((a) => String(a).slice(0, 8)),
+        rowCount: rows.length, diag,
+      });
+    }
+
     const res = buildOutrank({ puzzle, quizId, rows, anonSet, myUserId, myName, submitted: null, currentAnon: anonId, nameByUser, infoByAnon });
     if (!res.played) return NextResponse.json({ ok: true, played: false });
 
