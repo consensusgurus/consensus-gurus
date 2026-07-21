@@ -170,7 +170,7 @@ export default function DailyStrip({ board = null }) {
         .dstrip-cap .ttl .lab{color:#f8b84a;}
         .dstrip-bar{display:block;height:9px;width:100%;border-radius:99px;background:rgba(255,255,255,0.14);overflow:hidden;margin-top:5px;box-shadow:inset 0 0 0 1px rgba(255,255,255,0.06);}
         .dstrip-fill{display:block;height:100%;width:0;background:#34d399;border-radius:99px;transition:width .4s ease;}
-        .dstrip-exp{margin-top:2px;align-self:flex-start;display:inline-flex;align-items:center;gap:4px;background:rgba(232,180,58,0.14);border:1px solid rgba(232,180,58,0.42);color:#f5d878;font-family:inherit;font-size:9.5px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;border-radius:7px;padding:3px 8px;cursor:pointer;transition:background .15s;}
+        .dstrip-exp{margin-top:2px;align-self:stretch;width:100%;box-sizing:border-box;display:flex;align-items:center;justify-content:center;gap:4px;background:rgba(232,180,58,0.14);border:1px solid rgba(232,180,58,0.42);color:#f5d878;font-family:inherit;font-size:9.5px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;border-radius:7px;padding:3px 8px;cursor:pointer;transition:background .15s;}
         .dstrip-exp:hover{background:rgba(232,180,58,0.24);}
         /* the cap's miniature daily board: today's overall top 3 */
         .dstrip-t3{display:flex;flex-direction:column;gap:2px;margin-top:2px;min-width:0;}
