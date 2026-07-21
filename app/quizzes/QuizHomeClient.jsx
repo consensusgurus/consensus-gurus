@@ -118,24 +118,28 @@ function gameFamily(id) { const m = (id || '').match(DAILY_GAME_FAMILY_RE); retu
 // would monopolize the Newest tile. They have their own hub tiles, so the Newest
 // tile/list must never surface one. Keep this in sync with DAILY_GAME_FAMILY_RE.
 const isDailyGame = (id) => DAILY_GAME_FAMILY_RE.test(id || '');
-// Daily games have no photo hero and never will: they are abstract puzzles, so
-// any stock photo would be arbitrary. Instead each family has a purpose-built
-// banner in /public/games/hero/<family>.png: the game's own icon on a white
-// app-icon plate over the site navy, built from the /public/games/btn-*.png art
-// by scripts/generate-game-heroes.py. The plate exists because the hero tile
-// lays a dark scrim over the image, which would swallow a light banner. Only
-// families with a banner are listed; anything else falls through to DEPT_HERO.
+// Daily-game hero banners: /public/games/hero/<family>.png, the game's own icon
+// on a white app-icon plate over the site navy, built from /public/games/btn-*.png
+// by scripts/generate-game-heroes.py. The plate is load-bearing, the hero tile
+// lays a dark scrim over the image and a light banner would vanish under it.
+//
+// These REPLACE the per-date /quiz-heroes/<family>.png entries that QUIZ_HEROES
+// carries for every daily game. Those are wide promo cards (big wordmark, tagline,
+// a sourceoftruths.com URL) built for sharing, and they read as an advert rather
+// than a hero when cropped into a column card, which is why the banner wins here.
+// Checked BEFORE QUIZ_HEROES for exactly that reason (owner, 2026-07-20).
+// `closer` is deliberately absent: it has no btn art, so it keeps its promo card.
 const DG_HERO_FAMS = new Set(['alibi', 'carve', 'cipher', 'circa', 'crux', 'dating', 'emcee', 'extra',
   'garble', 'jester', 'links', 'outwit', 'ping', 'span', 'stet', 'suds', 'sworn', 'tally', 'tuck', 'warmer']);
-// One resolver for every hero image on the page: the quiz's own photo if it has
-// one, else its daily-game banner, else the department hero, else the fallback.
+// One resolver for every hero image on the page: a daily game's icon banner if it
+// has one, else the quiz's own photo, else the department hero, else the fallback.
 // `pos` is the background-position that goes with the chosen image.
 function heroFor(id, dept) {
-  const qh = id ? QUIZ_HEROES[id] : null;
-  if (qh && qh.src) return { src: qh.src, pos: qh.pos };
   const fam = gameFamily(id);
   // The banner is drawn around a centred icon, so it must not be re-positioned.
   if (fam && DG_HERO_FAMS.has(fam)) return { src: `/games/hero/${fam}.png`, pos: 'center' };
+  const qh = id ? QUIZ_HEROES[id] : null;
+  if (qh && qh.src) return { src: qh.src, pos: qh.pos };
   return { src: DEPT_HERO[dept] || FALLBACK_HERO, pos: undefined };
 }
 // Business News hub quizzes are normally kept out of the Newest tile/panel, but
@@ -1820,7 +1824,7 @@ export default function QuizHomeClient() {
               const heroPool = tilePool.slice()
                 .sort((a, b) => plays(b.id) - plays(a.id) || a.title.localeCompare(b.title))
                 .filter((q) => !activityHeroIds.has(q.id));
-              const heroQ = heroPool.find((q) => QUIZ_HEROES[q.id]) || heroPool[0] || topQ;
+              const heroQ = heroPool.find((q) => QUIZ_HEROES[q.id] || DG_HERO_FAMS.has(gameFamily(q.id))) || heroPool[0] || topQ;
               const heroId = heroQ && heroQ.id;
               // Same resolver as the activity columns, so a Word Games hero that
               // lands on a daily game gets its icon banner rather than a dept photo.
