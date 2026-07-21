@@ -197,6 +197,7 @@ export default function LinksClient({ puzzles = [], forceNum = null }) {
   const [g, setG] = useState(() => freshState(PUZZLE));
   const [selWords, setSelWords] = useState([]);
   const [showHelp, setShowHelp] = useState(false);
+  const [gateRules, setGateRules] = useState(false); // start tile: full rules (first-timer) vs compact card
   const [toast, setToast] = useState(null);
   const [copied, setCopied] = useState(false);
   const [shakeIds, setShakeIds] = useState(null);
@@ -239,7 +240,7 @@ export default function LinksClient({ puzzles = [], forceNum = null }) {
         const saved = JSON.parse(raw);
         if (saved && saved.v === 1 && Array.isArray(saved.order) && saved.order.length === 16) setG({ ...freshState(PUZZLE), ...saved });
       }
-      if (!localStorage.getItem(HELP_KEY)) setShowHelp(true);
+      setGateRules(!localStorage.getItem(HELP_KEY));
     } catch (e) {}
     try { setStats(getStats()); } catch (e) {}
     setHydrated(true);
@@ -309,6 +310,8 @@ export default function LinksClient({ puzzles = [], forceNum = null }) {
 
   const [showChrome, setShowChrome] = useState(false);
   const playing = g.status === 'playing';
+  const preStart = playing && !g.t0;   // not begun: show the start tile in place of the board
+  const started = playing && !!g.t0;   // clock running: show the board
   const focusMode = playing && !showChrome;
   const won = g.status === 'won';
   const lost = g.status === 'lost';
@@ -321,9 +324,13 @@ export default function LinksClient({ puzzles = [], forceNum = null }) {
 
   const REC_KEY = `sot_links_rec_${PUZZLE.num}`;
   const abandon = useAbandonFlush(() => {
-    if (!g.t0 || g.status !== 'playing') return null;
+    // A play counts only once the player submits a guess (right or wrong).
+    // Opening the puzzle and dismissing the start tile does not log a 0-score
+    // attempt.
+    const acted = g.tries.length > 0;
+    if (!acted || g.status !== 'playing') return null;
     try { if (localStorage.getItem(REC_KEY)) return null; } catch (e) {}
-    const el = Math.min(36000, Math.max(1, Math.round((Date.now() - g.t0) / 1000)));
+    const el = Math.min(36000, Math.max(1, Math.round((Date.now() - (g.t0 || Date.now())) / 1000)));
     try { localStorage.setItem(REC_KEY, '1'); } catch (e) {}
     return { quizId: PUZZLE.quizId, score: 0, total: 8, correct: 0, guessesUsed: 0, timeElapsed: el, abandoned: true, email: identity?.email || undefined, anonId: getAnonId(), isMobile: isMobileDevice(), referrer: (typeof document !== 'undefined' ? document.referrer : '') };
   });
@@ -399,6 +406,13 @@ export default function LinksClient({ puzzles = [], forceNum = null }) {
     setG({ ...g, order: shuffled(g.order) });
   }
 
+  // Dismissing the start tile begins the clock (sets t0) and marks rules seen.
+  // No-op once started, so re-reading rules later never resets the timer.
+  function startGame() {
+    setG((cur) => (cur.t0 ? cur : { ...cur, t0: Date.now() }));
+    try { localStorage.setItem(HELP_KEY, '1'); } catch (e) {}
+  }
+
   function resetGame() {
     try { localStorage.removeItem(STORE_KEY); } catch (e) {}
     setG(freshState(PUZZLE)); setSelWords([]); setJustWon(false); setEndClosed(false);
@@ -459,6 +473,15 @@ export default function LinksClient({ puzzles = [], forceNum = null }) {
     return 15.5;
   }
 
+  // Shared rules body — rendered in both the how-to-play modal and the start tile.
+  const rulesBody = (
+    <div style={{ fontSize: 14, lineHeight: 1.55, color: COLORS.ink, fontWeight: 600 }}>
+      <p style={{ margin: '0 0 9px' }}><b>Sixteen words hide four threads</b> of four &mdash; a shared category each. Tap four words, then <b>Submit</b>.</p>
+      <p style={{ margin: '0 0 9px' }}>Right: the thread banks in its color, <span style={{ background: CAT_COLORS[0].bg, color: CAT_COLORS[0].tc, borderRadius: 4, padding: '1px 6px', fontWeight: 800 }}>yellow</span> easiest to <span style={{ background: CAT_COLORS[3].bg, color: '#fff', borderRadius: 4, padding: '1px 6px', fontWeight: 800 }}>red</span> trickiest. Wrong: one of your <b>four mistakes</b> is gone &mdash; &ldquo;one away&rdquo; is the only hint you get.</p>
+      <p style={{ margin: 0 }}>The words that look like they belong together usually don&apos;t. That&apos;s the game.</p>
+    </div>
+  );
+
   return (
     <div style={{ minHeight: '100vh', background: '#f7f8fa', position: 'relative' }}>
       <Grain />
@@ -504,6 +527,27 @@ export default function LinksClient({ puzzles = [], forceNum = null }) {
           </button>
         </div>
 
+        {/* start tile — the board stays sealed until Start begins the clock */}
+        {preStart && (
+          <div style={{ background: COLORS.cream, border: `2px solid ${COLORS.ink}`, borderRadius: 10, padding: '22px', display: 'flex', flexDirection: 'column', marginBottom: 14 }}>
+            <div style={{ fontSize: 20, fontWeight: 800, color: COLORS.ink, marginBottom: 10 }}>{gateRules ? 'How to play' : 'Links is ready'}</div>
+            {gateRules ? rulesBody : (
+              <div style={{ fontSize: 14, lineHeight: 1.55, color: COLORS.ink, fontWeight: 600 }}>
+                <p style={{ margin: '0 0 6px' }}>Sixteen words hide four groups of four. Find every thread before the mistakes run out.</p>
+                <p style={{ margin: 0, color: COLORS.faded }}>Your time starts the moment you press Start.</p>
+              </div>
+            )}
+            <div style={{ marginTop: 18 }}>
+              <button className="lk-btn" onClick={startGame} style={{ background: COLORS.ink, color: '#fff', fontSize: 15, padding: '11px 22px' }}>Start</button>
+              <div style={{ marginTop: 10 }}>
+                <button type="button" onClick={() => setGateRules((v) => !v)} style={{ background: 'none', border: 'none', padding: 0, cursor: 'pointer', fontFamily: SANS, fontSize: 13, fontWeight: 700, color: COLORS.faded, textDecoration: 'underline' }}>
+                  {gateRules ? 'Hide instructions' : 'Show instructions'}
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
         {/* banked groups */}
         {g.solved.map((ci) => {
           const cc = CAT_COLORS[ci];
@@ -516,7 +560,7 @@ export default function LinksClient({ puzzles = [], forceNum = null }) {
         })}
 
         {/* the grid */}
-        {gridWords.length > 0 && (
+        {!preStart && gridWords.length > 0 && (
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 7, marginBottom: 12 }}>
             {gridWords.map((w) => (
               <button key={w} onClick={() => toggle(w)}
@@ -540,7 +584,7 @@ export default function LinksClient({ puzzles = [], forceNum = null }) {
         })}
 
         {/* controls + mistake dots */}
-        {playing && (
+        {started && (
           <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap', marginBottom: 14 }}>
             <button className="lk-btn" onClick={submit} disabled={selWords.length !== 4}
               style={selWords.length === 4 ? { background: COLORS.ember, color: '#fff', borderColor: COLORS.ember } : { opacity: 0.45, cursor: 'default' }}>
@@ -695,11 +739,7 @@ export default function LinksClient({ puzzles = [], forceNum = null }) {
               <div style={{ fontSize: 21, fontWeight: 800, color: COLORS.ink }}>How to play</div>
               <button onClick={() => { setShowHelp(false); try { localStorage.setItem(HELP_KEY, '1'); } catch (e) {} }} aria-label="Close" style={{ marginLeft: 'auto', background: 'none', border: 'none', cursor: 'pointer', color: COLORS.faded }}><X size={20} /></button>
             </div>
-            <div style={{ fontSize: 14, lineHeight: 1.55, color: COLORS.ink, fontWeight: 600 }}>
-              <p style={{ margin: '0 0 9px' }}><b>Sixteen words hide four threads</b> of four &mdash; a shared category each. Tap four words, then <b>Submit</b>.</p>
-              <p style={{ margin: '0 0 9px' }}>Right: the thread banks in its color, <span style={{ background: CAT_COLORS[0].bg, color: CAT_COLORS[0].tc, borderRadius: 4, padding: '1px 6px', fontWeight: 800 }}>yellow</span> easiest to <span style={{ background: CAT_COLORS[3].bg, color: '#fff', borderRadius: 4, padding: '1px 6px', fontWeight: 800 }}>red</span> trickiest. Wrong: one of your <b>four mistakes</b> is gone &mdash; &ldquo;one away&rdquo; is the only hint you get.</p>
-              <p style={{ margin: 0 }}>The words that look like they belong together usually don&apos;t. That&apos;s the game.</p>
-            </div>
+            {rulesBody}
             <button className="lk-btn" onClick={() => { setShowHelp(false); try { localStorage.setItem(HELP_KEY, '1'); } catch (e) {} }} style={{ marginTop: 14, background: COLORS.ink, color: '#fff' }}>Play</button>
           </div>
         </div>

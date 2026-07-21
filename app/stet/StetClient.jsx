@@ -182,6 +182,7 @@ export default function StetClient({ puzzles = [], forceNum = null }) {
   const [fixVal, setFixVal] = useState('');
   const [pending, setPending] = useState({});  // itemIdx -> [{tok, fix}] staged (Sunday flow)
   const [showHelp, setShowHelp] = useState(false);
+  const [gateRules, setGateRules] = useState(false); // start tile: full rules (first-timer) vs compact card
   const [toast, setToast] = useState(null);
   const [copied, setCopied] = useState(false);
   const [endClosed, setEndClosed] = useState(false);
@@ -203,6 +204,8 @@ export default function StetClient({ puzzles = [], forceNum = null }) {
 
   const [showChrome, setShowChrome] = useState(false);
   const playing = g.status === 'playing';
+  const preStart = playing && !g.t0;
+  const started = playing && !!g.t0;
   const focusMode = playing && !showChrome;
   const solvedCount = Object.keys(g.sub).length;
 
@@ -260,7 +263,7 @@ export default function StetClient({ puzzles = [], forceNum = null }) {
           setG({ ...freshState(), ...saved });
         }
       }
-      if (!localStorage.getItem(HELP_KEY)) setShowHelp(true);
+      setGateRules(!localStorage.getItem(HELP_KEY));
     } catch (e) {}
     try { setStats(getStats()); } catch (e) {}
     setHydrated(true);
@@ -338,9 +341,10 @@ export default function StetClient({ puzzles = [], forceNum = null }) {
 
   const REC_KEY = `sot_stet_rec_${PUZZLE.num}`;
   const abandon = useAbandonFlush(() => {
-    if (!g.t0 || g.status !== 'playing') return null;
+    const acted = Object.keys(g.sub).length > 0 || Object.keys(pending).length > 0 || !!sel;
+    if (!acted || g.status !== 'playing') return null;
     try { if (localStorage.getItem(REC_KEY)) return null; } catch (e) {}
-    const el = Math.min(36000, Math.max(1, Math.round((Date.now() - g.t0) / 1000)));
+    const el = Math.min(36000, Math.max(1, Math.round((Date.now() - (g.t0 || Date.now())) / 1000)));
     try { localStorage.setItem(REC_KEY, '1'); } catch (e) {}
     return { quizId: PUZZLE.quizId, score: 0, total: TOTAL, correct: 0, guessesUsed: 0, timeElapsed: el, abandoned: true, email: identity?.email || undefined, anonId: getAnonId(), isMobile: isMobileDevice(), referrer: (typeof document !== 'undefined' ? document.referrer : '') };
   });
@@ -425,6 +429,11 @@ export default function StetClient({ puzzles = [], forceNum = null }) {
     if ((pending[i] || []).length) { say('You have a flag staged — remove it first to stet the sentence.'); return; }
     startClock();
     finalizeItem(i, [], true);
+  }
+
+  function startGame() {
+    setG((cur) => (cur.t0 ? cur : { ...cur, t0: Date.now() }));
+    try { localStorage.setItem(HELP_KEY, '1'); } catch (e) {}
   }
 
   function resetGame() {
@@ -612,6 +621,16 @@ export default function StetClient({ puzzles = [], forceNum = null }) {
     );
   }
 
+  // Shared rules body — rendered in both the how-to-play modal and the start gate.
+  const rulesBody = (
+    <div style={{ fontSize: 14, lineHeight: 1.55, color: COLORS.ink, fontWeight: 600 }}>
+      <p style={{ margin: '0 0 9px' }}>You&rsquo;re the copy desk. Most sentences in today&rsquo;s brief hide <b>one wrong word</b> &mdash; a real word, so spellcheck is no help. Think &ldquo;free reign&rdquo;, &ldquo;should of&rdquo;, &ldquo;a mute point&rdquo;. Word choice <i>and</i> grammar are both fair game.</p>
+      <p style={{ margin: '0 0 9px' }}>But some sentences are <b>clean</b>. If nothing&rsquo;s wrong, stamp it <b>Stet</b> &mdash; the proofreader&rsquo;s mark for &ldquo;let it stand&rdquo; &mdash; and take the points. Flag a word in clean copy and you get nothing.</p>
+      <p style={{ margin: '0 0 9px' }}>Every error is worth <b>2 points</b>: one for flagging the right word, one for typing the right fix. A correct stet is worth 2. {PUZZLE.sunday ? <>It&rsquo;s Sunday, so a sentence can hide <b>two</b> errors &mdash; flag up to two words, then lock it in.</> : <>On Sundays the brief runs seven sentences and can hide two errors in one sentence.</>}</p>
+      <p style={{ margin: 0 }}>Ties on the daily board break by fewest mis-flags, then fastest time.</p>
+    </div>
+  );
+
   return (
     <div style={{ minHeight: '100vh', background: '#f7f8fa', position: 'relative' }}>
       <Grain />
@@ -656,19 +675,43 @@ export default function StetClient({ puzzles = [], forceNum = null }) {
           </button>
         </div>
 
+        {/* start tile — sits where the brief goes; the sentences stay sealed
+            until the player presses Start, which begins the clock. */}
+        {preStart && (
+          <div style={{ background: COLORS.cream, border: `2px solid ${COLORS.ink}`, borderRadius: 12, padding: '22px', display: 'flex', flexDirection: 'column' }}>
+            <div style={{ fontSize: 20, fontWeight: 800, color: COLORS.ink, marginBottom: 10 }}>{gateRules ? 'How to play' : 'Stet is ready'}</div>
+            {gateRules ? rulesBody : (
+              <div style={{ fontSize: 14, lineHeight: 1.55, color: COLORS.ink, fontWeight: 600 }}>
+                <p style={{ margin: '0 0 6px' }}>Catch the wrong word in each sentence, or stamp a clean one stet.</p>
+                <p style={{ margin: 0, color: COLORS.faded }}>Your time starts the moment you press Start.</p>
+              </div>
+            )}
+            <div style={{ marginTop: 18 }}>
+              <button className="st-btn" onClick={startGame} style={{ background: COLORS.ink, color: '#fff', fontSize: 15, padding: '11px 22px' }}>Start</button>
+              <div style={{ marginTop: 10 }}>
+                <button type="button" onClick={() => setGateRules((v) => !v)} style={{ background: 'none', border: 'none', padding: 0, cursor: 'pointer', fontFamily: SANS, fontSize: 13, fontWeight: 700, color: COLORS.faded, textDecoration: 'underline' }}>
+                  {gateRules ? 'Hide instructions' : 'Show instructions'}
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
         {/* the brief */}
+        {!preStart && (
         <div style={{ background: PAPER, border: `2px solid ${COLORS.ink}`, borderRadius: 10, padding: '15px 17px 12px', boxShadow: '5px 5px 0 rgba(28,30,36,0.16)', marginBottom: 12 }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 12, fontFamily: MONO, fontSize: 11.5, letterSpacing: '0.1em', textTransform: 'uppercase', color: COLORS.faded, borderBottom: '1px solid rgba(28,30,36,0.18)', paddingBottom: 8, marginBottom: 12, flexWrap: 'wrap' }}>
             <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6, whiteSpace: 'nowrap' }}><Pencil size={12} /> one wrong word per sentence &mdash; maybe</span>
             <span style={{ marginLeft: 'auto', whiteSpace: 'nowrap' }}>filed <b style={{ color: COLORS.ink, fontWeight: 500 }}>{solvedCount}</b>/{ITEMS.length}</span>
           </div>
           {ITEMS.map((_, i) => renderSentence(i))}
-          {playing && (
+          {started && (
             <div style={{ fontFamily: SANS, fontSize: 12, fontWeight: 700, color: COLORS.faded, margin: '2px 2px 6px' }}>
               Tap the word that doesn&rsquo;t belong and fix it &mdash; or stamp a clean sentence <i>stet</i>. Wrong words and grammar slips, but never typos: spellcheck is no help.
             </div>
           )}
         </div>
+        )}
 
         {/* result */}
         {!playing && (
@@ -812,12 +855,7 @@ export default function StetClient({ puzzles = [], forceNum = null }) {
               <div style={{ fontSize: 21, fontWeight: 800, color: COLORS.ink }}>How to play</div>
               <button onClick={() => { setShowHelp(false); try { localStorage.setItem(HELP_KEY, '1'); } catch (e) {} }} aria-label="Close" style={{ marginLeft: 'auto', background: 'none', border: 'none', cursor: 'pointer', color: COLORS.faded }}><X size={20} /></button>
             </div>
-            <div style={{ fontSize: 14, lineHeight: 1.55, color: COLORS.ink, fontWeight: 600 }}>
-              <p style={{ margin: '0 0 9px' }}>You&rsquo;re the copy desk. Most sentences in today&rsquo;s brief hide <b>one wrong word</b> &mdash; a real word, so spellcheck is no help. Think &ldquo;free reign&rdquo;, &ldquo;should of&rdquo;, &ldquo;a mute point&rdquo;. Word choice <i>and</i> grammar are both fair game.</p>
-              <p style={{ margin: '0 0 9px' }}>But some sentences are <b>clean</b>. If nothing&rsquo;s wrong, stamp it <b>Stet</b> &mdash; the proofreader&rsquo;s mark for &ldquo;let it stand&rdquo; &mdash; and take the points. Flag a word in clean copy and you get nothing.</p>
-              <p style={{ margin: '0 0 9px' }}>Every error is worth <b>2 points</b>: one for flagging the right word, one for typing the right fix. A correct stet is worth 2. {PUZZLE.sunday ? <>It&rsquo;s Sunday, so a sentence can hide <b>two</b> errors &mdash; flag up to two words, then lock it in.</> : <>On Sundays the brief runs seven sentences and can hide two errors in one sentence.</>}</p>
-              <p style={{ margin: 0 }}>Ties on the daily board break by fewest mis-flags, then fastest time.</p>
-            </div>
+            {rulesBody}
             <button className="st-btn" onClick={() => { setShowHelp(false); try { localStorage.setItem(HELP_KEY, '1'); } catch (e) {} }} style={{ marginTop: 14, background: COLORS.ink, color: '#fff' }}>Play</button>
           </div>
         </div>

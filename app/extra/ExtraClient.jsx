@@ -176,6 +176,7 @@ export default function ExtraClient({ puzzles = [], forceNum = null }) {
   const [g, setG] = useState(freshState);
   const [val, setVal] = useState('');
   const [showHelp, setShowHelp] = useState(false);
+  const [gateRules, setGateRules] = useState(false); // start tile: full rules (first-timer) vs compact card
   const [toast, setToast] = useState(null);
   const [copied, setCopied] = useState(false);
   const [armReveal, setArmReveal] = useState(false);
@@ -199,6 +200,8 @@ export default function ExtraClient({ puzzles = [], forceNum = null }) {
 
   const [showChrome, setShowChrome] = useState(false);
   const playing = g.status === 'playing';
+  const preStart = playing && !g.t0;
+  const started = playing && !!g.t0;
   const focusMode = playing && !showChrome;
   const won = g.status === 'won';
   const tears = g.tears;
@@ -231,7 +234,7 @@ export default function ExtraClient({ puzzles = [], forceNum = null }) {
           setG({ ...freshState(), ...saved, wrong: Array.isArray(saved.wrong) ? saved.wrong : [] });
         }
       }
-      if (!localStorage.getItem(HELP_KEY)) setShowHelp(true);
+      setGateRules(!localStorage.getItem(HELP_KEY));
     } catch (e) {}
     try { setStats(getStats()); } catch (e) {}
     setHydrated(true);
@@ -305,9 +308,10 @@ export default function ExtraClient({ puzzles = [], forceNum = null }) {
 
   const REC_KEY = `sot_extra_rec_${PUZZLE.num}`;
   const abandon = useAbandonFlush(() => {
-    if (!g.t0 || g.status !== 'playing') return null;
+    const acted = g.tears > 0 || (g.wrong && g.wrong.length > 0) || g.hintUsed;
+    if (!acted || g.status !== 'playing') return null;
     try { if (localStorage.getItem(REC_KEY)) return null; } catch (e) {}
-    const el = Math.min(36000, Math.max(1, Math.round((Date.now() - g.t0) / 1000)));
+    const el = Math.min(36000, Math.max(1, Math.round((Date.now() - (g.t0 || Date.now())) / 1000)));
     try { localStorage.setItem(REC_KEY, '1'); } catch (e) {}
     return { quizId: PUZZLE.quizId, score: 0, total: 10, correct: 0, guessesUsed: 0, timeElapsed: el, abandoned: true, email: identity?.email || undefined, anonId: getAnonId(), isMobile: isMobileDevice(), referrer: (typeof document !== 'undefined' ? document.referrer : '') };
   });
@@ -388,6 +392,11 @@ export default function ExtraClient({ puzzles = [], forceNum = null }) {
     setG(g2);
   }
 
+  function startGame() {
+    setG((cur) => (cur.t0 ? cur : { ...cur, t0: Date.now() }));
+    try { localStorage.setItem(HELP_KEY, '1'); } catch (e) {}
+  }
+
   function resetGame() {
     try { localStorage.removeItem(STORE_KEY); } catch (e) {}
     setG(freshState()); setVal(''); setJustWon(false); setEndClosed(false);
@@ -459,6 +468,16 @@ export default function ExtraClient({ puzzles = [], forceNum = null }) {
     });
   }
 
+  // Shared rules body — rendered in both the how-to-play modal and the start gate.
+  const rulesBody = (
+    <div style={{ fontSize: 14, lineHeight: 1.55, color: COLORS.ink, fontWeight: 600 }}>
+      <p style={{ margin: '0 0 9px' }}>A historic front page, with the giveaway words <b>blacked out</b>. Type what story it is &mdash; the event, in your own words (&ldquo;the moon landing&rdquo;, &ldquo;Nixon resigns&rdquo;).</p>
+      <p style={{ margin: '0 0 9px' }}>A wrong guess, or a press of <b>Tear a word free</b>, rips the censor strip off one more word. You get <b>six tears</b> &mdash; a wrong guess with nothing left to tear ends the game.</p>
+      <p style={{ margin: '0 0 9px' }}>One free <b>hint</b> reveals the dateline: the paper&rsquo;s date and place.</p>
+      <p style={{ margin: 0 }}>Naming the story with <b>zero tears</b> is a cold read &mdash; a perfect 10. Every tear costs a point. Ties break on fewest tears, then fastest time. Sundays run a trickier story.</p>
+    </div>
+  );
+
   return (
     <div style={{ minHeight: '100vh', background: '#f7f8fa', position: 'relative' }}>
       <Grain />
@@ -502,7 +521,30 @@ export default function ExtraClient({ puzzles = [], forceNum = null }) {
           </button>
         </div>
 
+        {/* start tile — sits where the front page goes; the redacted headline
+            stays sealed until the player presses Start, which begins the clock. */}
+        {preStart && (
+          <div style={{ background: COLORS.cream, border: `2px solid ${COLORS.ink}`, borderRadius: 12, padding: '22px', display: 'flex', flexDirection: 'column' }}>
+            <div style={{ fontSize: 20, fontWeight: 800, color: COLORS.ink, marginBottom: 10 }}>{gateRules ? 'How to play' : 'Extra is ready'}</div>
+            {gateRules ? rulesBody : (
+              <div style={{ fontSize: 14, lineHeight: 1.55, color: COLORS.ink, fontWeight: 600 }}>
+                <p style={{ margin: '0 0 6px' }}>A historic front page with the giveaway words blacked out. Name the story.</p>
+                <p style={{ margin: 0, color: COLORS.faded }}>Your time starts the moment you press Start.</p>
+              </div>
+            )}
+            <div style={{ marginTop: 18 }}>
+              <button className="ex-btn" onClick={startGame} style={{ background: COLORS.ink, color: '#fff', fontSize: 15, padding: '11px 22px' }}>Start</button>
+              <div style={{ marginTop: 10 }}>
+                <button type="button" onClick={() => setGateRules((v) => !v)} style={{ background: 'none', border: 'none', padding: 0, cursor: 'pointer', fontFamily: SANS, fontSize: 13, fontWeight: 700, color: COLORS.faded, textDecoration: 'underline' }}>
+                  {gateRules ? 'Hide instructions' : 'Show instructions'}
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
         {/* the front page */}
+        {!preStart && (
         <div style={{ background: '#fff', border: `2px solid ${COLORS.ink}`, borderRadius: 10, padding: '15px 17px 17px', boxShadow: '5px 5px 0 rgba(28,30,36,0.16)', marginBottom: 12 }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 12, fontFamily: MONO, fontSize: 11.5, letterSpacing: '0.1em', textTransform: 'uppercase', color: COLORS.faded, borderBottom: '1px solid rgba(28,30,36,0.18)', paddingBottom: 8, marginBottom: 12, flexWrap: 'wrap' }}>
             <span style={{ whiteSpace: 'nowrap' }}>name the story</span>
@@ -530,7 +572,7 @@ export default function ExtraClient({ puzzles = [], forceNum = null }) {
           </div>
 
           {/* interaction */}
-          {playing && (
+          {started && (
             <div style={{ marginTop: 14 }}>
               <div style={{ display: 'flex', gap: 8, alignItems: 'stretch' }}>
                 <input
@@ -575,6 +617,7 @@ export default function ExtraClient({ puzzles = [], forceNum = null }) {
             </div>
           )}
         </div>
+        )}
 
         {/* result */}
         {!playing && (
@@ -724,12 +767,7 @@ export default function ExtraClient({ puzzles = [], forceNum = null }) {
               <div style={{ fontSize: 21, fontWeight: 800, color: COLORS.ink }}>How to play</div>
               <button onClick={() => { setShowHelp(false); try { localStorage.setItem(HELP_KEY, '1'); } catch (e) {} }} aria-label="Close" style={{ marginLeft: 'auto', background: 'none', border: 'none', cursor: 'pointer', color: COLORS.faded }}><X size={20} /></button>
             </div>
-            <div style={{ fontSize: 14, lineHeight: 1.55, color: COLORS.ink, fontWeight: 600 }}>
-              <p style={{ margin: '0 0 9px' }}>A historic front page, with the giveaway words <b>blacked out</b>. Type what story it is &mdash; the event, in your own words (&ldquo;the moon landing&rdquo;, &ldquo;Nixon resigns&rdquo;).</p>
-              <p style={{ margin: '0 0 9px' }}>A wrong guess, or a press of <b>Tear a word free</b>, rips the censor strip off one more word. You get <b>six tears</b> &mdash; a wrong guess with nothing left to tear ends the game.</p>
-              <p style={{ margin: '0 0 9px' }}>One free <b>hint</b> reveals the dateline: the paper&rsquo;s date and place.</p>
-              <p style={{ margin: 0 }}>Naming the story with <b>zero tears</b> is a cold read &mdash; a perfect 10. Every tear costs a point. Ties break on fewest tears, then fastest time. Sundays run a trickier story.</p>
-            </div>
+            {rulesBody}
             <button className="ex-btn" onClick={() => { setShowHelp(false); try { localStorage.setItem(HELP_KEY, '1'); } catch (e) {} }} style={{ marginTop: 14, background: COLORS.ink, color: '#fff' }}>Play</button>
           </div>
         </div>

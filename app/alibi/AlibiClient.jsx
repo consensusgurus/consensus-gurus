@@ -235,6 +235,7 @@ export default function AlibiClient({ puzzles = [], forceNum = null }) {
   const [autoX, setAutoX] = useState(true);
   const [verdict, setVerdict] = useState(null);
   const [showHelp, setShowHelp] = useState(false);
+  const [gateRules, setGateRules] = useState(false); // start tile: full rules (first-timer) vs compact start card
   const [toast, setToast] = useState(null);
   const [copied, setCopied] = useState(false);
   const [endClosed, setEndClosed] = useState(false);
@@ -260,6 +261,8 @@ export default function AlibiClient({ puzzles = [], forceNum = null }) {
 
   const [showChrome, setShowChrome] = useState(false);
   const playing = g.status === 'playing';
+  const preStart = playing && !g.t0;   // not begun: show the start tile where the board goes
+  const started = playing && !!g.t0;    // clock running: show the board
   const focusMode = playing && !showChrome;
   const won = g.status === 'done' && g.wrong === 0;
   const score = g.status === 'done' ? Math.max(1, TOTAL - 2 * g.wrong) : 0;
@@ -288,7 +291,10 @@ export default function AlibiClient({ puzzles = [], forceNum = null }) {
         const saved = JSON.parse(raw);
         if (saved && saved.v === 1 && saved.marks) setG({ ...freshState(N), ...saved });
       }
-      if (!localStorage.getItem(HELP_KEY)) setShowHelp(true);
+      // The start tile shows in place of the board until the player begins (t0 set
+      // on Start). First-timers see the full rules on the tile; a returning player
+      // gets the compact start card with a "Show instructions" toggle.
+      setGateRules(!localStorage.getItem(HELP_KEY));
     } catch (e) {}
     try { setStats(getStats()); } catch (e) {}
     setHydrated(true);
@@ -361,9 +367,14 @@ export default function AlibiClient({ puzzles = [], forceNum = null }) {
 
   const REC_KEY = `sot_alibi_rec_${PUZZLE.num}`;
   const abandon = useAbandonFlush(() => {
-    if (!g.t0 || g.status !== 'playing') return null;
+    // A play counts only once the player actually acts (a board mark, a struck
+    // clue, or a wrong accusation). Merely opening the puzzle and dismissing the
+    // start gate does not log a 0-score attempt.
+    const anyMark = CATS.some((c) => g.marks[c].some((row) => row.some((m) => m > 0)));
+    const acted = anyMark || g.wrong > 0 || g.struck.length > 0;
+    if (!acted || g.status !== 'playing') return null;
     try { if (localStorage.getItem(REC_KEY)) return null; } catch (e) {}
-    const el = Math.min(36000, Math.max(1, Math.round((Date.now() - g.t0) / 1000)));
+    const el = Math.min(36000, Math.max(1, Math.round((Date.now() - (g.t0 || Date.now())) / 1000)));
     try { localStorage.setItem(REC_KEY, '1'); } catch (e) {}
     return { quizId: PUZZLE.quizId, score: 0, total: TOTAL, correct: 0, guessesUsed: 0, timeElapsed: el, abandoned: true, email: identity?.email || undefined, anonId: getAnonId(), isMobile: isMobileDevice(), referrer: (typeof document !== 'undefined' ? document.referrer : '') };
   });
@@ -404,6 +415,13 @@ export default function AlibiClient({ puzzles = [], forceNum = null }) {
     setVerdict(null);
   }
   function clearHist() { histRef.current = []; setCanUndo(false); }
+
+  // Pressing Start begins the clock (sets t0) and marks the rules as seen.
+  // A no-op once started, so re-reading the rules later never resets the timer.
+  function startGame() {
+    setG((cur) => (cur.t0 ? cur : { ...cur, t0: Date.now() }));
+    try { localStorage.setItem(HELP_KEY, '1'); } catch (e) {}
+  }
 
   function tapCell(cat, s, v) {
     if (!playing) return;
@@ -488,6 +506,16 @@ export default function AlibiClient({ puzzles = [], forceNum = null }) {
     return null;
   }
 
+  // Shared rules body — rendered in both the how-to-play modal and the start gate.
+  const rulesBody = (
+    <div style={{ fontSize: 14, lineHeight: 1.55, color: COLORS.ink, fontWeight: 600 }}>
+      <p style={{ margin: '0 0 9px' }}>Four guests, four rooms, four departure times, four items. Every witness statement is <b>true</b>, and together they pin down exactly one arrangement.</p>
+      <p style={{ margin: '0 0 9px' }}>Work the three boards: tap a cell to cycle blank &rarr; <b>✗</b> (impossible) &rarr; <b>●</b> (confirmed). Each suspect gets exactly one ● per board. Leave auto-✗ on and marking a ● crosses off its row and column for you.</p>
+      <p style={{ margin: '0 0 9px' }}>When all <b>{TOTAL} facts</b> are confirmed, check your accusation. A first-try accusation is a perfect {TOTAL} &mdash; each wrong accusation costs 2.</p>
+      <p style={{ margin: 0 }}>Ties on the daily board break by fewest wrong accusations, then fastest time. A new case opens at midnight Eastern.</p>
+    </div>
+  );
+
   return (
     <div style={{ minHeight: '100vh', background: '#f7f8fa', position: 'relative' }}>
       <Grain />
@@ -536,12 +564,37 @@ export default function AlibiClient({ puzzles = [], forceNum = null }) {
           </button>
         </div>
 
+        {/* start tile — sits where the boards go; the case file stays sealed
+            (not rendered) until the player presses Start, which begins the clock. */}
+        {preStart && (
+          <div style={{ background: COLORS.cream, border: `2px solid ${COLORS.ink}`, borderRadius: 12, padding: '22px', maxWidth: 472, margin: '0 auto 12px', display: 'flex', flexDirection: 'column' }}>
+            <div style={{ fontSize: 20, fontWeight: 800, color: COLORS.ink, marginBottom: 10 }}>{gateRules ? 'How to play' : 'Alibi is ready'}</div>
+            {gateRules ? rulesBody : (
+              <div style={{ fontSize: 14, lineHeight: 1.55, color: COLORS.ink, fontWeight: 600 }}>
+                <p style={{ margin: '0 0 6px' }}>Something has vanished from the manor. Deduce who was where, when they left, and what they carried. The case file stays sealed until you begin.</p>
+                <p style={{ margin: 0, color: COLORS.faded }}>Your time starts the moment you press Start.</p>
+              </div>
+            )}
+            <div style={{ marginTop: 18 }}>
+              <button className="al-btn" onClick={startGame} style={{ background: COLORS.ink, color: '#fff', fontSize: 15, padding: '11px 22px' }}>Start</button>
+              <div style={{ marginTop: 10 }}>
+                <button type="button" onClick={() => setGateRules((v) => !v)} style={{ background: 'none', border: 'none', padding: 0, cursor: 'pointer', fontFamily: SANS, fontSize: 13, fontWeight: 700, color: COLORS.faded, textDecoration: 'underline' }}>
+                  {gateRules ? 'Hide instructions' : 'Show instructions'}
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
         {/* the story */}
+        {!preStart && (
         <div style={{ fontFamily: 'Georgia, serif', fontStyle: 'italic', fontSize: 14.5, lineHeight: 1.6, background: '#fff', border: '1px solid rgba(28,30,36,0.14)', borderLeft: `4px solid ${COLORS.accent}`, borderRadius: 8, padding: '12px 16px', margin: '0 0 12px', color: COLORS.ink }}>
           Last night at {PUZZLE.venue}, {PUZZLE.stolen} vanished. {N === 5 ? 'Five' : 'Four'} guests &mdash; {PUZZLE.suspects.slice(0, -1).join(', ')} and {PUZZLE.suspects[N - 1]} &mdash; were each alone in a different room, each left at a different hour, and each was carrying one curious item. Work out who was where, when they left, and what they carried. Every statement below is true.
         </div>
+        )}
 
         {/* status bar */}
+        {started && (
         <div style={{ display: 'flex', gap: 16, alignItems: 'center', flexWrap: 'wrap', marginBottom: 12, fontFamily: MONO, fontSize: 11.5, letterSpacing: '0.08em', textTransform: 'uppercase', color: COLORS.faded }}>
           <span>confirmed <b style={{ color: COLORS.ink, fontWeight: 500 }}>{placedCount}</b>/{TOTAL}</span>
           <span>wrong accusations <b style={{ color: g.wrong ? COLORS.rust : COLORS.ink, fontWeight: 500 }}>{g.wrong}</b></span>
@@ -552,7 +605,9 @@ export default function AlibiClient({ puzzles = [], forceNum = null }) {
             </label>
           )}
         </div>
+        )}
 
+        {!preStart && (
         <div className="al-cols">
           {/* witness statements */}
           <div style={{ marginBottom: 16 }}>
@@ -623,6 +678,7 @@ export default function AlibiClient({ puzzles = [], forceNum = null }) {
             )}
           </div>
         </div>
+        )}
 
         {/* result */}
         {!playing && (
@@ -765,12 +821,7 @@ export default function AlibiClient({ puzzles = [], forceNum = null }) {
               <div style={{ fontSize: 21, fontWeight: 800, color: COLORS.ink }}>How to play</div>
               <button onClick={() => { setShowHelp(false); try { localStorage.setItem(HELP_KEY, '1'); } catch (e) {} }} aria-label="Close" style={{ marginLeft: 'auto', background: 'none', border: 'none', cursor: 'pointer', color: COLORS.faded }}><X size={20} /></button>
             </div>
-            <div style={{ fontSize: 14, lineHeight: 1.55, color: COLORS.ink, fontWeight: 600 }}>
-              <p style={{ margin: '0 0 9px' }}>Four guests, four rooms, four departure times, four items. Every witness statement is <b>true</b>, and together they pin down exactly one arrangement.</p>
-              <p style={{ margin: '0 0 9px' }}>Work the three boards: tap a cell to cycle blank &rarr; <b>✗</b> (impossible) &rarr; <b>●</b> (confirmed). Each suspect gets exactly one ● per board. Leave auto-✗ on and marking a ● crosses off its row and column for you.</p>
-              <p style={{ margin: '0 0 9px' }}>When all <b>12 facts</b> are confirmed, check your accusation. A first-try accusation is a perfect 12 &mdash; each wrong accusation costs 2.</p>
-              <p style={{ margin: 0 }}>Ties on the daily board break by fewest wrong accusations, then fastest time. A new case opens at midnight Eastern.</p>
-            </div>
+            {rulesBody}
             <button className="al-btn" onClick={() => { setShowHelp(false); try { localStorage.setItem(HELP_KEY, '1'); } catch (e) {} }} style={{ marginTop: 14, background: COLORS.ink, color: '#fff' }}>Play</button>
           </div>
         </div>

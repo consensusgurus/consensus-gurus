@@ -141,6 +141,7 @@ export default function GarbleClient({ puzzles = [], forceNum = null }) {
   const [sel, setSel] = useState(0); // 0..4 word rows, 'final'
   const [typed, setTyped] = useState('');
   const [showHelp, setShowHelp] = useState(false);
+  const [gateRules, setGateRules] = useState(false); // start tile: full rules (first-timer) vs compact card
   const [toast, setToast] = useState(null);
   const [copied, setCopied] = useState(false);
   const [armReveal, setArmReveal] = useState(false);
@@ -184,7 +185,7 @@ export default function GarbleClient({ puzzles = [], forceNum = null }) {
         const saved = JSON.parse(raw);
         if (saved && saved.v === 1) setG({ ...freshState(PUZZLE), ...saved });
       }
-      if (!localStorage.getItem(HELP_KEY)) setShowHelp(true);
+      setGateRules(!localStorage.getItem(HELP_KEY));
     } catch (e) {}
     try { setStats(getStats()); } catch (e) {}
     setHydrated(true);
@@ -237,6 +238,8 @@ export default function GarbleClient({ puzzles = [], forceNum = null }) {
 
   const [showChrome, setShowChrome] = useState(false);
   const playing = g.status === 'playing';
+  const preStart = playing && !g.t0;   // not begun: show the start tile in place of the board
+  const started = playing && !!g.t0;   // clock running: show the board
   const focusMode = playing && !showChrome;
   const solvedCount = Object.keys(g.solved).length;
   const myStats = deriveStats(stats, pickPuzzle(puzzles, null).num);
@@ -246,9 +249,13 @@ export default function GarbleClient({ puzzles = [], forceNum = null }) {
 
   const REC_KEY = `sot_garble_rec_${PUZZLE.num}`;
   const abandon = useAbandonFlush(() => {
-    if (!g.t0 || g.status !== 'playing') return null;
+    // A play counts only once the player acts: a word untangled or a miss.
+    // Opening the puzzle and dismissing the start tile does not log a 0-score
+    // attempt.
+    const acted = Object.keys(g.solved).length > 0 || g.misses > 0;
+    if (!acted || g.status !== 'playing') return null;
     try { if (localStorage.getItem(REC_KEY)) return null; } catch (e) {}
-    const el = Math.min(36000, Math.max(1, Math.round((Date.now() - g.t0) / 1000)));
+    const el = Math.min(36000, Math.max(1, Math.round((Date.now() - (g.t0 || Date.now())) / 1000)));
     try { localStorage.setItem(REC_KEY, '1'); } catch (e) {}
     return { quizId: PUZZLE.quizId, score: 0, total: 10, correct: 0, guessesUsed: 0, timeElapsed: el, abandoned: true, email: identity?.email || undefined, anonId: getAnonId(), isMobile: isMobileDevice(), referrer: (typeof document !== 'undefined' ? document.referrer : '') };
   });
@@ -345,6 +352,13 @@ export default function GarbleClient({ puzzles = [], forceNum = null }) {
     return () => window.removeEventListener('keydown', onDown);
   }, [onKey, showHelp]);
 
+  // Dismissing the start tile begins the clock (sets t0) and marks rules seen.
+  // No-op once started, so re-reading rules later never resets the timer.
+  function startGame() {
+    setG((cur) => (cur.t0 ? cur : { ...cur, t0: Date.now() }));
+    try { localStorage.setItem(HELP_KEY, '1'); } catch (e) {}
+  }
+
   function resetGame() {
     try { localStorage.removeItem(STORE_KEY); } catch (e) {}
     setG(freshState(PUZZLE)); setSel(0); setTyped(''); setJustWon(false); setEndClosed(false);
@@ -432,10 +446,19 @@ export default function GarbleClient({ puzzles = [], forceNum = null }) {
     </div>
   ));
 
+  // Shared rules body — rendered in both the how-to-play modal and the start tile.
+  const rulesBody = (
+    <div style={{ fontSize: 14, lineHeight: 1.55, color: COLORS.ink, fontWeight: 600 }}>
+      <p style={{ margin: '0 0 9px' }}><b>Untangle five garbled words</b> &mdash; tap a row, type the word using exactly the letters shown, hit enter. Wrong words are <b>misses</b>.</p>
+      <p style={{ margin: '0 0 9px' }}>Each solution donates its <span style={{ background: COLORS.gold, color: COLORS.goldInk, borderRadius: 4, padding: '1px 6px', fontWeight: 800 }}>gold letters</span> to <b>the finale</b> &mdash; a last answer with its clue printed up top. Solve it whenever you see it; the finale ends the game.</p>
+      <p style={{ margin: 0 }}>Score is out of 10: one per word, five for the finale. Fewest misses breaks ties, then time.</p>
+    </div>
+  );
+
   return (
     <div style={{ minHeight: '100vh', background: COLORS.cream, position: 'relative' }}>
       <Grain />
-      <div className="gb-wrap" style={{ position: 'relative', zIndex: 2, maxWidth: 1180, margin: '0 auto', padding: mobileUi && playing ? '18px 38px calc(185px + env(safe-area-inset-bottom))' : '18px 38px 80px', fontFamily: SANS }}>
+      <div className="gb-wrap" style={{ position: 'relative', zIndex: 2, maxWidth: 1180, margin: '0 auto', padding: mobileUi && started ? '18px 38px calc(185px + env(safe-area-inset-bottom))' : '18px 38px 80px', fontFamily: SANS }}>
         <div style={{ maxWidth: 640, margin: '0 auto' }}>
           <style>{`
             .gb-btn{font-family:${SANS};font-weight:800;font-size:14px;border:2px solid ${COLORS.ink};background:#fff;color:${COLORS.ink};border-radius:8px;padding:9px 16px;cursor:pointer;display:inline-flex;align-items:center;gap:7px;}
@@ -485,6 +508,28 @@ export default function GarbleClient({ puzzles = [], forceNum = null }) {
             </button>
           </div>
 
+          {/* start tile — the words stay sealed until Start begins the clock */}
+          {preStart && (
+            <div style={{ background: COLORS.cream, border: `2px solid ${COLORS.ink}`, borderRadius: 12, padding: '22px', display: 'flex', flexDirection: 'column', marginBottom: 16 }}>
+              <div style={{ fontSize: 20, fontWeight: 800, color: COLORS.ink, marginBottom: 10 }}>{gateRules ? 'How to play' : 'Garble is ready'}</div>
+              {gateRules ? rulesBody : (
+                <div style={{ fontSize: 14, lineHeight: 1.55, color: COLORS.ink, fontWeight: 600 }}>
+                  <p style={{ margin: '0 0 6px' }}>Five scrambled words to untangle, each feeding a final clued answer.</p>
+                  <p style={{ margin: 0, color: COLORS.faded }}>Your time starts the moment you press Start.</p>
+                </div>
+              )}
+              <div style={{ marginTop: 18 }}>
+                <button className="gb-btn" onClick={startGame} style={{ background: COLORS.ink, color: '#fff', fontSize: 15, padding: '11px 22px' }}>Start</button>
+                <div style={{ marginTop: 10 }}>
+                  <button type="button" onClick={() => setGateRules((v) => !v)} style={{ background: 'none', border: 'none', padding: 0, cursor: 'pointer', fontFamily: SANS, fontSize: 13, fontWeight: 700, color: COLORS.faded, textDecoration: 'underline' }}>
+                    {gateRules ? 'Hide instructions' : 'Show instructions'}
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {!preStart && (<>
           <div style={{ display: 'flex', alignItems: 'center', gap: 18, flexWrap: 'wrap', marginBottom: 16 }}>
             <div style={{ fontSize: 12.5, fontWeight: 800, textTransform: 'uppercase', letterSpacing: '.05em', color: COLORS.faded }}>
               Misses <span style={{ fontSize: 17, color: g.misses > 5 ? COLORS.rust : COLORS.ink, marginLeft: 4 }}>{g.misses}</span>
@@ -523,11 +568,12 @@ export default function GarbleClient({ puzzles = [], forceNum = null }) {
               })}
             </div>
           </div>
+          </>)}
 
           {/* keyboard — desktop shows the keys inline here; on mobile the keys
               are pinned to the bottom of the screen (fixed bar below) and only
               the hint + reveal stay in the scroll flow */}
-          {playing && (
+          {started && (
             <div style={{ maxWidth: 470 }}>
               {!mobileUi && (
                 <div style={{ textAlign: 'left', marginBottom: kbdOpen ? 8 : 0 }}>
@@ -642,7 +688,7 @@ export default function GarbleClient({ puzzles = [], forceNum = null }) {
           content above scrolls independently (gb-wrap gets extra bottom padding
           while playing), so the word rows and finale clue are never hidden
           behind the keys — the fix for on-screen keys covering the top clues. */}
-      {playing && mobileUi && (
+      {started && mobileUi && (
         <div style={{ position: 'fixed', left: 0, right: 0, bottom: 0, zIndex: 40, background: COLORS.cream, borderTop: '1.5px solid rgba(20,22,28,0.12)', boxShadow: '0 -4px 16px rgba(20,22,28,0.10)', padding: '8px 8px calc(8px + env(safe-area-inset-bottom))' }}>
           <div style={{ maxWidth: 470, margin: '0 auto' }}>
             {keyboardRows}
@@ -681,11 +727,7 @@ export default function GarbleClient({ puzzles = [], forceNum = null }) {
               <div style={{ fontSize: 21, fontWeight: 800, color: COLORS.ink }}>How to play</div>
               <button onClick={() => { setShowHelp(false); try { localStorage.setItem(HELP_KEY, '1'); } catch (e) {} }} aria-label="Close" style={{ marginLeft: 'auto', background: 'none', border: 'none', cursor: 'pointer', color: COLORS.faded }}><X size={20} /></button>
             </div>
-            <div style={{ fontSize: 14, lineHeight: 1.55, color: COLORS.ink, fontWeight: 600 }}>
-              <p style={{ margin: '0 0 9px' }}><b>Untangle five garbled words</b> &mdash; tap a row, type the word using exactly the letters shown, hit enter. Wrong words are <b>misses</b>.</p>
-              <p style={{ margin: '0 0 9px' }}>Each solution donates its <span style={{ background: COLORS.gold, color: COLORS.goldInk, borderRadius: 4, padding: '1px 6px', fontWeight: 800 }}>gold letters</span> to <b>the finale</b> &mdash; a last answer with its clue printed up top. Solve it whenever you see it; the finale ends the game.</p>
-              <p style={{ margin: 0 }}>Score is out of 10: one per word, five for the finale. Fewest misses breaks ties, then time.</p>
-            </div>
+            {rulesBody}
             <button className="gb-btn" onClick={() => { setShowHelp(false); try { localStorage.setItem(HELP_KEY, '1'); } catch (e) {} }} style={{ marginTop: 14, background: COLORS.ink, color: '#fff' }}>Play</button>
           </div>
         </div>

@@ -216,6 +216,7 @@ export default function JesterClient({ puzzles = [], forceNum = null }) {
   const [g, setG] = useState(() => freshState(N));
   const [autoX, setAutoX] = useState(true);
   const [showHelp, setShowHelp] = useState(false);
+  const [gateRules, setGateRules] = useState(false);
   const [toast, setToast] = useState(null);
   const [copied, setCopied] = useState(false);
   const [endClosed, setEndClosed] = useState(false);
@@ -237,6 +238,8 @@ export default function JesterClient({ puzzles = [], forceNum = null }) {
 
   const [showChrome, setShowChrome] = useState(false);
   const playing = g.status === 'playing';
+  const preStart = playing && !g.t0;
+  const started = playing && !!g.t0;
   const focusMode = playing && !showChrome;
   const won = g.status === 'done';
   const score = g.status === 'done' ? TOTAL : 0;
@@ -277,7 +280,7 @@ export default function JesterClient({ puzzles = [], forceNum = null }) {
         const saved = JSON.parse(raw);
         if (saved && saved.v === 1 && saved.cells && saved.cells.length === N) setG({ ...freshState(N), ...saved });
       }
-      if (!localStorage.getItem(HELP_KEY)) setShowHelp(true);
+      setGateRules(!localStorage.getItem(HELP_KEY));
     } catch (e) {}
     try { setStats(getStats()); } catch (e) {}
     setHydrated(true);
@@ -357,9 +360,12 @@ export default function JesterClient({ puzzles = [], forceNum = null }) {
   // once the game concludes normally (solve or reveal).
   const REC_KEY = `sot_jester_rec_${PUZZLE.num}`;
   const abandon = useAbandonFlush(() => {
-    if (!g.t0 || g.status !== 'playing') return null;
+    // A play counts only once the player actually marks a cell (or takes a
+    // hint). Opening the board and dismissing the start gate does not log a 0.
+    const acted = g.cells.some((row) => row.some((v) => v > 0)) || g.hintUsed;
+    if (!acted || g.status !== 'playing') return null;
     try { if (localStorage.getItem(REC_KEY)) return null; } catch (e) {}
-    const el = Math.min(36000, Math.max(1, Math.round((Date.now() - g.t0) / 1000)));
+    const el = Math.min(36000, Math.max(1, Math.round((Date.now() - (g.t0 || Date.now())) / 1000)));
     try { localStorage.setItem(REC_KEY, '1'); } catch (e) {}
     return { quizId: PUZZLE.quizId, score: 0, total: TOTAL, correct: 0, guessesUsed: g.placements, timeElapsed: el, abandoned: true, email: identity?.email || undefined, anonId: getAnonId(), isMobile: isMobileDevice(), referrer: (typeof document !== 'undefined' ? document.referrer : '') };
   });
@@ -381,6 +387,13 @@ export default function JesterClient({ puzzles = [], forceNum = null }) {
         .then((d) => { if (d && !d.error) setBoard({ ...EMPTY_BOARD, ...d }); })
         .catch(() => {});
     } catch (e) {}
+  }
+
+  // Closing the start gate begins the clock (sets t0) and marks the rules as
+  // seen. A no-op once started, so re-reading the rules never resets the timer.
+  function startGame() {
+    setG((cur) => (cur.t0 ? cur : { ...cur, t0: Date.now() }));
+    try { localStorage.setItem(HELP_KEY, '1'); } catch (e) {}
   }
 
   // auto-solve the instant the seating is legal and complete
@@ -481,6 +494,16 @@ export default function JesterClient({ puzzles = [], forceNum = null }) {
 
   const cellPx = N === 9 ? 42 : 46;
 
+  // Shared rules body — rendered in both the how-to-play modal and the start gate.
+  const rulesBody = (
+    <div style={{ fontSize: 14, lineHeight: 1.55, color: COLORS.ink, fontWeight: 600 }}>
+      <p style={{ margin: '0 0 9px' }}>Seat exactly <b>one jester</b> in every row, every column, and every colored court.</p>
+      <p style={{ margin: '0 0 9px' }}>Jesters are jealous: <b>no two may touch</b>, not even diagonally. Quarrelling jesters glow red.</p>
+      <p style={{ margin: '0 0 9px' }}>Tap a cell to cycle: blank &rarr; <b>✗</b> (ruled out) &rarr; <b>jester</b>. Leave auto-✗ on and seating a jester pencils out its row, column, court and neighbours for you.</p>
+      <p style={{ margin: 0 }}>Every board has exactly one legal seating, reachable by pure deduction &mdash; no guessing needed. The board completes itself the moment the last jester is seated legally. Ties on the daily board break by fewest placements, then fastest time. A bigger 9&times;9 Jubilee board runs on Sundays.</p>
+    </div>
+  );
+
   return (
     <div style={{ minHeight: '100vh', background: '#f7f8fa', position: 'relative' }}>
       <Grain />
@@ -520,6 +543,7 @@ export default function JesterClient({ puzzles = [], forceNum = null }) {
         </div>
 
         {/* status bar */}
+        {!preStart && (
         <div style={{ display: 'flex', gap: 16, alignItems: 'center', flexWrap: 'wrap', marginBottom: 12, fontFamily: MONO, fontSize: 11.5, letterSpacing: '0.08em', textTransform: 'uppercase', color: COLORS.faded }}>
           <span>seated <b style={{ color: COLORS.ink, fontWeight: 500 }}>{seated}</b>/{N}</span>
           <span>quarrels <b style={{ color: conflictSet.size ? COLORS.rust : COLORS.ink, fontWeight: 500 }}>{conflictSet.size ? conflictSet.size : 0}</b></span>
@@ -531,8 +555,31 @@ export default function JesterClient({ puzzles = [], forceNum = null }) {
             </label>
           )}
         </div>
+        )}
+
+        {/* start gate — the court stays covered until Start begins the clock */}
+        {preStart && (
+          <div style={{ background: COLORS.cream, border: `2px solid ${COLORS.ink}`, borderRadius: 12, padding: '22px', maxWidth: 440, margin: '0 auto', display: 'flex', flexDirection: 'column' }}>
+            <div style={{ fontSize: 20, fontWeight: 800, color: COLORS.ink, marginBottom: 10 }}>{gateRules ? 'How to play' : 'The court is ready'}</div>
+            {gateRules ? rulesBody : (
+              <div style={{ fontSize: 14, lineHeight: 1.55, color: COLORS.ink, fontWeight: 600 }}>
+                <p style={{ margin: '0 0 6px' }}>Seat one jester in every row, column and colored court, with none touching. The board stays covered until you begin.</p>
+                <p style={{ margin: 0, color: COLORS.faded }}>Your time starts the moment you press Start.</p>
+              </div>
+            )}
+            <div style={{ marginTop: 18 }}>
+              <button className="je-btn" onClick={startGame} style={{ background: COLORS.ink, color: '#fff', fontSize: 15, padding: '11px 22px' }}>Start</button>
+              <div style={{ marginTop: 10 }}>
+                <button type="button" onClick={() => setGateRules((v) => !v)} style={{ background: 'none', border: 'none', padding: 0, cursor: 'pointer', fontFamily: SANS, fontSize: 13, fontWeight: 700, color: COLORS.faded, textDecoration: 'underline' }}>
+                  {gateRules ? 'Hide instructions' : 'Show instructions'}
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
 
         {/* the board */}
+        {!preStart && (
         <div className="je-board-scroll" style={{ textAlign: 'center' }}>
           <div style={{ display: 'inline-block', border: '3px solid #1c1e24', borderRadius: 10, overflow: 'hidden', background: '#1c1e24', boxShadow: '0 2px 10px rgba(20,22,28,0.12)' }}>
             {PUZZLE.regions.map((row, r) => (
@@ -561,8 +608,9 @@ export default function JesterClient({ puzzles = [], forceNum = null }) {
             ))}
           </div>
         </div>
+        )}
 
-        {playing && (
+        {started && (
           <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', justifyContent: 'center', margin: '12px 0 6px' }}>
             <button type="button" className="je-btn" onClick={clearBoard}><Eraser size={14} /> Clear board</button>
             {!identity && !g.hintUsed && (
@@ -716,12 +764,7 @@ export default function JesterClient({ puzzles = [], forceNum = null }) {
               <div style={{ fontSize: 21, fontWeight: 800, color: COLORS.ink }}>How to play</div>
               <button onClick={() => { setShowHelp(false); try { localStorage.setItem(HELP_KEY, '1'); } catch (e) {} }} aria-label="Close" style={{ marginLeft: 'auto', background: 'none', border: 'none', cursor: 'pointer', color: COLORS.faded }}><X size={20} /></button>
             </div>
-            <div style={{ fontSize: 14, lineHeight: 1.55, color: COLORS.ink, fontWeight: 600 }}>
-              <p style={{ margin: '0 0 9px' }}>Seat exactly <b>one jester</b> in every row, every column, and every colored court.</p>
-              <p style={{ margin: '0 0 9px' }}>Jesters are jealous: <b>no two may touch</b>, not even diagonally. Quarrelling jesters glow red.</p>
-              <p style={{ margin: '0 0 9px' }}>Tap a cell to cycle: blank &rarr; <b>✗</b> (ruled out) &rarr; <b>jester</b>. Leave auto-✗ on and seating a jester pencils out its row, column, court and neighbours for you.</p>
-              <p style={{ margin: 0 }}>Every board has exactly one legal seating, reachable by pure deduction &mdash; no guessing needed. The board completes itself the moment the last jester is seated legally. Ties on the daily board break by fewest placements, then fastest time. A bigger 9&times;9 Jubilee board runs on Sundays.</p>
-            </div>
+            {rulesBody}
             <button className="je-btn" onClick={() => { setShowHelp(false); try { localStorage.setItem(HELP_KEY, '1'); } catch (e) {} }} style={{ marginTop: 14, background: COLORS.ink, color: '#fff' }}>Play</button>
           </div>
         </div>

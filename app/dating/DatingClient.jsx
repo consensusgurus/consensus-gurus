@@ -202,6 +202,7 @@ export default function DatingClient({ puzzles = [], forceNum = null }) {
   const STORE_KEY = `sot_dating_${PUZZLE.num}`;
   const [g, setG] = useState(() => freshState(PUZZLE.num, N));
   const [showHelp, setShowHelp] = useState(false);
+  const [gateRules, setGateRules] = useState(false); // start tile: full rules (first-timer) vs compact card
   const [toast, setToast] = useState(null);
   const [copied, setCopied] = useState(false);
   const [shake, setShake] = useState(false);
@@ -228,6 +229,8 @@ export default function DatingClient({ puzzles = [], forceNum = null }) {
 
   const [showChrome, setShowChrome] = useState(false);
   const playing = g.status === 'playing';
+  const preStart = playing && !g.t0;   // not begun: show the start tile in place of the board
+  const started = playing && !!g.t0;   // clock running: show the board
   const focusMode = playing && !showChrome;
   const won = g.status === 'won';
   const checksUsed = g.rows.length;
@@ -266,7 +269,10 @@ export default function DatingClient({ puzzles = [], forceNum = null }) {
         const saved = JSON.parse(raw);
         if (saved && saved.v === 1 && Array.isArray(saved.order) && saved.order.length === N) setG({ ...freshState(PUZZLE.num, N), ...saved });
       }
-      if (!localStorage.getItem(HELP_KEY)) setShowHelp(true);
+      // The start tile shows in place of the board until the player begins (t0
+      // set on Start). First-timers see the full rules on the tile; a returning
+      // player gets the compact start card with a "Show instructions" toggle.
+      setGateRules(!localStorage.getItem(HELP_KEY));
     } catch (e) {}
     try { setStats(getStats()); } catch (e) {}
     setHydrated(true);
@@ -353,9 +359,14 @@ export default function DatingClient({ puzzles = [], forceNum = null }) {
 
   const REC_KEY = `sot_dating_rec_${PUZZLE.num}`;
   const abandon = useAbandonFlush(() => {
-    if (!g.t0 || g.status !== 'playing') return null;
+    // A play counts only once the player actually acts (reordered a card, ran a
+    // check, or took the hint). Opening the puzzle and dismissing the start gate
+    // does not log a 0-score attempt. Reorder is detected against the deal.
+    const initOrder = seededOrder(PUZZLE.num, N);
+    const acted = g.rows.length > 0 || g.hintUsed || (Array.isArray(g.order) && g.order.some((v, i) => v !== initOrder[i]));
+    if (!acted || g.status !== 'playing') return null;
     try { if (localStorage.getItem(REC_KEY)) return null; } catch (e) {}
-    const el = Math.min(36000, Math.max(1, Math.round((Date.now() - g.t0) / 1000)));
+    const el = Math.min(36000, Math.max(1, Math.round((Date.now() - (g.t0 || Date.now())) / 1000)));
     try { localStorage.setItem(REC_KEY, '1'); } catch (e) {}
     return { quizId: PUZZLE.quizId, score: 0, total: 10, correct: 0, guessesUsed: 0, timeElapsed: el, abandoned: true, email: identity?.email || undefined, anonId: getAnonId(), isMobile: isMobileDevice(), referrer: (typeof document !== 'undefined' ? document.referrer : '') };
   });
@@ -375,6 +386,13 @@ export default function DatingClient({ puzzles = [], forceNum = null }) {
         .then((d) => { if (d && !d.error) setBoard({ ...EMPTY_BOARD, ...d }); })
         .catch(() => {});
     } catch (e) {}
+  }
+
+  // Pressing Start begins the clock (sets t0) and marks the rules as seen. A
+  // no-op once started, so re-reading the rules later never resets the timer.
+  function startGame() {
+    setG((cur) => (cur.t0 ? cur : { ...cur, t0: Date.now() }));
+    try { localStorage.setItem(HELP_KEY, '1'); } catch (e) {}
   }
 
   // move the card in `slot` one step up/down, skipping locked slots
@@ -561,6 +579,15 @@ export default function DatingClient({ puzzles = [], forceNum = null }) {
     } catch (e) {}
   }
 
+  // Shared rules body — rendered in both the how-to-play modal and the start gate.
+  const rulesBody = (
+    <div style={{ fontSize: 14, lineHeight: 1.55, color: COLORS.ink, fontWeight: 600 }}>
+      <p style={{ margin: '0 0 9px' }}><b>Five moments from history, shuffled.</b> Arrange them from earliest (top) to latest (bottom) &mdash; {mobileUi ? 'tap the arrows to move a card' : 'drag a card where it belongs, or use the arrows'}.</p>
+      <p style={{ margin: '0 0 9px' }}><b>You get {MAX_CHECKS} checks.</b> Each check locks every event you&apos;ve placed correctly and reveals its year. Date the whole board on your first check for a perfect 10 &mdash; each extra check costs a point, and each event you never place costs two.</p>
+      <p style={{ margin: 0 }}>One free <b>hint</b> reveals the year of your most misplaced event. New moments every day at midnight Eastern.</p>
+    </div>
+  );
+
   return (
     <div style={{ minHeight: '100vh', background: '#f7f8fa', position: 'relative' }}>
       <Grain />
@@ -605,7 +632,30 @@ export default function DatingClient({ puzzles = [], forceNum = null }) {
           </button>
         </div>
 
+        {/* start tile — sits where the board goes until the player presses Start,
+            which begins the clock. The shuffled events stay sealed until then. */}
+        {preStart && (
+          <div style={{ background: COLORS.cream, border: `2px solid ${COLORS.ink}`, borderRadius: 12, padding: '22px', display: 'flex', flexDirection: 'column' }}>
+            <div style={{ fontSize: 20, fontWeight: 800, color: COLORS.ink, marginBottom: 10 }}>{gateRules ? 'How to play' : 'Dating is ready'}</div>
+            {gateRules ? rulesBody : (
+              <div style={{ fontSize: 14, lineHeight: 1.55, color: COLORS.ink, fontWeight: 600 }}>
+                <p style={{ margin: '0 0 6px' }}>Five moments from history, shuffled. Put them in order, earliest to latest.</p>
+                <p style={{ margin: 0, color: COLORS.faded }}>Your time starts the moment you press Start.</p>
+              </div>
+            )}
+            <div style={{ marginTop: 18 }}>
+              <button className="dt-btn" onClick={startGame} style={{ background: COLORS.ink, color: '#fff', fontSize: 15, padding: '11px 22px' }}>Start</button>
+              <div style={{ marginTop: 10 }}>
+                <button type="button" onClick={() => setGateRules((v) => !v)} style={{ background: 'none', border: 'none', padding: 0, cursor: 'pointer', fontFamily: SANS, fontSize: 13, fontWeight: 700, color: COLORS.faded, textDecoration: 'underline' }}>
+                  {gateRules ? 'Hide instructions' : 'Show instructions'}
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
         {/* the board */}
+        {!preStart && (
         <div style={{ background: '#fff', border: `2px solid ${COLORS.ink}`, borderRadius: 10, padding: '13px 15px', boxShadow: '5px 5px 0 rgba(28,30,36,0.16)', marginBottom: 12 }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 12, fontFamily: MONO, fontSize: 11.5, letterSpacing: '0.1em', textTransform: 'uppercase', color: COLORS.faded, borderBottom: '1px solid rgba(28,30,36,0.18)', paddingBottom: 8, marginBottom: 12, flexWrap: 'wrap' }}>
             <span style={{ whiteSpace: 'nowrap' }}>{PUZZLE.theme ? <>today: <b style={{ color: COLORS.ink, fontWeight: 500 }}>{PUZZLE.theme}</b></> : <b style={{ color: COLORS.ink, fontWeight: 500 }}>five moments</b>}</span>
@@ -642,9 +692,10 @@ export default function DatingClient({ puzzles = [], forceNum = null }) {
           <div style={{ fontFamily: MONO, fontSize: 10, letterSpacing: '0.14em', textTransform: 'uppercase', color: COLORS.faded, marginTop: 7 }}>&darr; Latest</div>
           {won && <div style={{ fontFamily: MONO, fontSize: 11, color: COLORS.lock, fontWeight: 500, marginTop: 8 }}>Dated in {checksUsed} check{checksUsed === 1 ? '' : 's'}.</div>}
         </div>
+        )}
 
         {/* controls */}
-        {playing && (
+        {started && (
           <div style={{ marginBottom: 12 }}>
             <div style={{ display: 'flex', gap: 8, alignItems: 'center', flexWrap: 'wrap' }}>
               <button className="dt-btn" onClick={checkOrder} style={{ background: COLORS.plum, color: '#fff', borderColor: COLORS.plum }}>
@@ -801,11 +852,7 @@ export default function DatingClient({ puzzles = [], forceNum = null }) {
               <div style={{ fontSize: 21, fontWeight: 800, color: COLORS.ink }}>How to play</div>
               <button onClick={() => { setShowHelp(false); try { localStorage.setItem(HELP_KEY, '1'); } catch (e) {} }} aria-label="Close" style={{ marginLeft: 'auto', background: 'none', border: 'none', cursor: 'pointer', color: COLORS.faded }}><X size={20} /></button>
             </div>
-            <div style={{ fontSize: 14, lineHeight: 1.55, color: COLORS.ink, fontWeight: 600 }}>
-              <p style={{ margin: '0 0 9px' }}><b>Five moments from history, shuffled.</b> Arrange them from earliest (top) to latest (bottom) &mdash; {mobileUi ? 'tap the arrows to move a card' : 'drag a card where it belongs, or use the arrows'}.</p>
-              <p style={{ margin: '0 0 9px' }}><b>You get {MAX_CHECKS} checks.</b> Each check locks every event you&apos;ve placed correctly and reveals its year. Date the whole board on your first check for a perfect 10 &mdash; each extra check costs a point, and each event you never place costs two.</p>
-              <p style={{ margin: 0 }}>One free <b>hint</b> reveals the year of your most misplaced event. New moments every day at midnight Eastern.</p>
-            </div>
+            {rulesBody}
             <button className="dt-btn" onClick={() => { setShowHelp(false); try { localStorage.setItem(HELP_KEY, '1'); } catch (e) {} }} style={{ marginTop: 14, background: COLORS.ink, color: '#fff' }}>Play</button>
           </div>
         </div>

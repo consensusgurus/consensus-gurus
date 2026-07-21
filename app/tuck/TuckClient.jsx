@@ -182,6 +182,7 @@ export default function TuckClient({ puzzles = [], forceNum = null }) {
   const [armed, setArmed] = useState(null);        // armed tray letter
   const [confirming, setConfirming] = useState(false);
   const [showHelp, setShowHelp] = useState(false);
+  const [gateRules, setGateRules] = useState(false); // start tile: full rules (first-timer) vs compact start card
   const [toast, setToast] = useState(null);
   const [copied, setCopied] = useState(false);
   const [endClosed, setEndClosed] = useState(false);
@@ -203,6 +204,8 @@ export default function TuckClient({ puzzles = [], forceNum = null }) {
 
   const [showChrome, setShowChrome] = useState(false);
   const playing = g.status === 'playing';
+  const preStart = playing && !g.t0;   // not begun: show the start tile where the board goes
+  const started = playing && !!g.t0;    // clock running: show the board
   const focusMode = playing && !showChrome;
 
   // ---- dictionary (static asset, fetched once) ----
@@ -236,7 +239,10 @@ export default function TuckClient({ puzzles = [], forceNum = null }) {
         const saved = JSON.parse(raw);
         if (saved && saved.v === 1 && Array.isArray(saved.grid)) setG({ ...freshState(), ...saved });
       }
-      if (!localStorage.getItem(HELP_KEY)) setShowHelp(true);
+      // The start tile shows in place of the board until the player begins (t0 set
+      // on Start). First-timers see the full rules on the tile; a returning player
+      // gets the compact start card with a "Show instructions" toggle.
+      setGateRules(!localStorage.getItem(HELP_KEY));
     } catch (e) {}
     try { setStats(getStats()); } catch (e) {}
     setHydrated(true);
@@ -388,9 +394,12 @@ export default function TuckClient({ puzzles = [], forceNum = null }) {
   // markFlushed() in submitScore suppresses the post when the game is finished.
   const REC_KEY = `sot_tuck_rec_${PUZZLE.num}`;
   const abandon = useAbandonFlush(() => {
-    if (!g.t0 || g.status !== 'playing') return null;
+    // A play counts only once the player actually places a tile. Merely opening the
+    // puzzle and dismissing the start gate does not log a partial-score attempt.
+    const acted = placedCount > 0;
+    if (!acted || g.status !== 'playing') return null;
     try { if (localStorage.getItem(REC_KEY)) return null; } catch (e) {}
-    const el = Math.min(36000, Math.max(1, Math.round((Date.now() - g.t0) / 1000)));
+    const el = Math.min(36000, Math.max(1, Math.round((Date.now() - (g.t0 || Date.now())) / 1000)));
     try { localStorage.setItem(REC_KEY, '1'); } catch (e) {}
     return { quizId: PUZZLE.quizId, score: liveScore, total: PAR, correct: liveScore >= PAR ? 1 : 0, guessesUsed: RACK - placedCount, timeElapsed: el, abandoned: true, email: identity?.email || undefined, anonId: getAnonId(), isMobile: isMobileDevice(), referrer: (typeof document !== 'undefined' ? document.referrer : '') };
   });
@@ -403,6 +412,12 @@ export default function TuckClient({ puzzles = [], forceNum = null }) {
   }, [TRAY, grid]);
 
   function startClock() { setG((cur) => (cur.t0 ? cur : { ...cur, t0: Date.now() })); }
+  // Pressing Start begins the clock (sets t0) and marks the rules as seen.
+  // A no-op once started, so re-reading the rules later never resets the timer.
+  function startGame() {
+    startClock();
+    try { localStorage.setItem(HELP_KEY, '1'); } catch (e) {}
+  }
 
   function setCell(r, c, val) {
     setG((cur) => {
@@ -571,6 +586,16 @@ export default function TuckClient({ puzzles = [], forceNum = null }) {
     return { msg: 'Valid grid! Keep tucking letters in…', cls: 'good' };
   })();
 
+  // Shared rules body — rendered in both the how-to-play modal and the start gate.
+  const rulesBody = (
+    <div style={{ fontSize: 14, lineHeight: 1.55, color: COLORS.ink, fontWeight: 600 }}>
+      <p style={{ margin: '0 0 9px' }}>Everyone gets the same <b>{RACK} letters</b>. Build your own little crossword on the board: every run of two or more letters must be a real word, across and down, and everything must connect into one grid.</p>
+      <p style={{ margin: '0 0 9px' }}>Score is Scrabble points across all your words &mdash; a letter at an intersection counts in <b>both</b> words &mdash; plus 10 for tucking in all {RACK} tiles. Today&rsquo;s <b>par of {PAR}</b> was actually scored by our solver, so it can be beaten.</p>
+      <p style={{ margin: '0 0 9px' }}>Rebuild as much as you like &mdash; but <b>one shot counts</b>: only your first submitted grid ranks on the daily board. Ties break by fewest unused tiles, then fastest clock.</p>
+      <p style={{ margin: 0 }}>Tap a square and type, or tap a rack tile then a square. Space flips typing direction.</p>
+    </div>
+  );
+
   return (
     <div style={{ minHeight: '100vh', background: '#f7f8fa', position: 'relative' }}>
       <Grain />
@@ -623,14 +648,39 @@ export default function TuckClient({ puzzles = [], forceNum = null }) {
           </button>
         </div>
 
+        {/* start tile — sits where the board goes; the rack stays sealed
+            until the player presses Start, which begins the clock. */}
+        {preStart && (
+          <div style={{ background: COLORS.cream, border: `2px solid ${COLORS.ink}`, borderRadius: 12, padding: '22px', maxWidth: 432, margin: '0 auto 4px', display: 'flex', flexDirection: 'column' }}>
+            <div style={{ fontSize: 20, fontWeight: 800, color: COLORS.ink, marginBottom: 10 }}>{gateRules ? 'How to play' : 'Tuck is ready'}</div>
+            {gateRules ? rulesBody : (
+              <div style={{ fontSize: 14, lineHeight: 1.55, color: COLORS.ink, fontWeight: 600 }}>
+                <p style={{ margin: '0 0 6px' }}>Everyone gets the same rack of {RACK} letters to tuck into one interlocking crossword. Your board waits until you begin.</p>
+                <p style={{ margin: 0, color: COLORS.faded }}>Your time starts the moment you press Start.</p>
+              </div>
+            )}
+            <div style={{ marginTop: 18 }}>
+              <button className="tk-btn" onClick={startGame} style={{ background: COLORS.ink, color: '#fff', fontSize: 15, padding: '11px 22px' }}>Start</button>
+              <div style={{ marginTop: 10 }}>
+                <button type="button" onClick={() => setGateRules((v) => !v)} style={{ background: 'none', border: 'none', padding: 0, cursor: 'pointer', fontFamily: SANS, fontSize: 13, fontWeight: 700, color: COLORS.faded, textDecoration: 'underline' }}>
+                  {gateRules ? 'Hide instructions' : 'Show instructions'}
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
         {/* score bar */}
+        {!preStart && (
         <div style={{ display: 'flex', gap: 18, alignItems: 'baseline', flexWrap: 'wrap', marginBottom: 10, fontFamily: MONO, fontSize: 11.5, letterSpacing: '0.08em', textTransform: 'uppercase', color: COLORS.faded }}>
           <span style={{ fontSize: 12 }}>score <b style={{ color: liveScore >= PAR && liveScore > 0 ? COLORS.green : COLORS.ink, fontWeight: 500, fontSize: 20 }}>{playing ? liveScore : finalScore}</b></span>
           <span>par <b style={{ color: COLORS.accent, fontWeight: 500 }}>{PAR}</b></span>
           <span>tiles <b style={{ color: COLORS.ink, fontWeight: 500 }}>{placedCount}</b>/{RACK}</span>
           {!playing && <span style={{ marginLeft: 'auto', color: COLORS.green }}>score submitted — sandbox mode</span>}
         </div>
+        )}
 
+        {!preStart && (
         <div style={{ display: 'flex', gap: 22, flexWrap: 'wrap', alignItems: 'flex-start' }}>
           <div style={{ flex: '1 1 300px', minWidth: 280, maxWidth: 432 }}>
             <div className="tk-grid" ref={gridRef} role="grid" aria-label="Tuck board">
@@ -708,6 +758,7 @@ export default function TuckClient({ puzzles = [], forceNum = null }) {
             </div>
           </div>
         </div>
+        )}
 
         {/* result */}
         {!playing && (
@@ -849,12 +900,7 @@ export default function TuckClient({ puzzles = [], forceNum = null }) {
               <div style={{ fontSize: 21, fontWeight: 800, color: COLORS.ink }}>How to play</div>
               <button onClick={() => { setShowHelp(false); try { localStorage.setItem(HELP_KEY, '1'); } catch (e) {} }} aria-label="Close" style={{ marginLeft: 'auto', background: 'none', border: 'none', cursor: 'pointer', color: COLORS.faded }}><X size={20} /></button>
             </div>
-            <div style={{ fontSize: 14, lineHeight: 1.55, color: COLORS.ink, fontWeight: 600 }}>
-              <p style={{ margin: '0 0 9px' }}>Everyone gets the same <b>14 letters</b>. Build your own little crossword on the board: every run of two or more letters must be a real word, across and down, and everything must connect into one grid.</p>
-              <p style={{ margin: '0 0 9px' }}>Score is Scrabble points across all your words &mdash; a letter at an intersection counts in <b>both</b> words &mdash; plus 10 for tucking in all {RACK} tiles. Today&rsquo;s <b>par of {PAR}</b> was actually scored by our solver, so it can be beaten.</p>
-              <p style={{ margin: '0 0 9px' }}>Rebuild as much as you like &mdash; but <b>one shot counts</b>: only your first submitted grid ranks on the daily board. Ties break by fewest unused tiles, then fastest clock.</p>
-              <p style={{ margin: 0 }}>Tap a square and type, or tap a rack tile then a square. Space flips typing direction.</p>
-            </div>
+            {rulesBody}
             <button className="tk-btn" onClick={() => { setShowHelp(false); try { localStorage.setItem(HELP_KEY, '1'); } catch (e) {} }} style={{ marginTop: 14, background: COLORS.ink, color: '#fff' }}>Play</button>
           </div>
         </div>

@@ -295,6 +295,7 @@ export default function CruxClient({ puzzles = [], forceNum = null }) {
   const [typed, setTyped] = useState('');
   const [pick, setPick] = useState(null); // solved word chosen for filing
   const [showHelp, setShowHelp] = useState(false);
+  const [gateRules, setGateRules] = useState(false); // start tile: full rules (first-timer) vs compact card
   const [toast, setToast] = useState(null);
   const [copied, setCopied] = useState(false);
   const [installEvt, setInstallEvt] = useState(null);
@@ -342,7 +343,7 @@ export default function CruxClient({ puzzles = [], forceNum = null }) {
         const saved = JSON.parse(raw);
         if (saved && saved.v === 1) setG({ ...freshState(PUZZLE), ...saved });
       }
-      if (!localStorage.getItem(HELP_KEY)) setShowHelp(true);
+      setGateRules(!localStorage.getItem(HELP_KEY));
     } catch (e) {}
     try { setStats(getStats(puzzles)); } catch (e) {}
     setHydrated(true);
@@ -424,6 +425,8 @@ export default function CruxClient({ puzzles = [], forceNum = null }) {
   const editable = cells.filter((cl) => !g.greens[`${cl.r},${cl.c}`]);
   const [showChrome, setShowChrome] = useState(false);
   const playing = g.status === 'playing';
+  const preStart = playing && !g.t0;   // not begun: show the start tile in place of the board
+  const started = playing && !!g.t0;   // clock running: show the board
   const focusMode = playing && !showChrome;
 
   // ---- input ----
@@ -559,9 +562,13 @@ export default function CruxClient({ puzzles = [], forceNum = null }) {
   // replays post again on their own completion, matching the site-wide metric.
   const REC_KEY = `sot_crux_rec_${PUZZLE.num}`;
   const abandon = useAbandonFlush(() => {
-    if (!g.t0 || g.status !== 'playing') return null;
+    // A play counts only once the player actually acts: a guess spent, a hint
+    // used, or a word solved. Opening the puzzle and dismissing the start tile
+    // does not log a 0-score attempt.
+    const acted = Object.values(g.slotGuesses).some((n) => n > 0) || g.hintUsed || g.order.length > 0;
+    if (!acted || g.status !== 'playing') return null;
     try { if (localStorage.getItem(REC_KEY)) return null; } catch (e) {}
-    const el = Math.min(36000, Math.max(1, Math.round((Date.now() - g.t0) / 1000)));
+    const el = Math.min(36000, Math.max(1, Math.round((Date.now() - (g.t0 || Date.now())) / 1000)));
     try { localStorage.setItem(REC_KEY, '1'); } catch (e) {}
     return { quizId: PUZZLE.quizId, score: 0, total: PUZZLE.slots.length * 2, correct: 0, guessesUsed: 0, timeElapsed: el, abandoned: true, email: identity?.email || undefined, anonId: getAnonId(), isMobile: isMobileDevice(), referrer: (typeof document !== 'undefined' ? document.referrer : '') };
   });
@@ -694,6 +701,13 @@ export default function CruxClient({ puzzles = [], forceNum = null }) {
     const i = Math.max(0, ids.indexOf(sel));
     setSel(ids[(i + (dirn === 1 ? 1 : ids.length - 1)) % ids.length]);
     setTyped('');
+  }
+
+  // Dismissing the start tile begins the clock (sets t0) and marks rules seen.
+  // No-op once started, so re-reading rules later never resets the timer.
+  function startGame() {
+    setG((cur) => (cur.t0 ? cur : { ...cur, t0: Date.now() }));
+    try { localStorage.setItem(HELP_KEY, '1'); } catch (e) {}
   }
 
   function resetGame() {
@@ -886,6 +900,16 @@ export default function CruxClient({ puzzles = [], forceNum = null }) {
   const lastG = g.lastGuess[sel];
   const markColor = { g: { bg: COLORS.ink, fg: '#fff' }, y: { bg: '#e6b93f', fg: '#5c4a06' }, x: { bg: '#c9cdd4', fg: '#40434b' } };
 
+  // Shared rules body — rendered in both the how-to-play modal and the start tile.
+  const rulesBody = (
+    <div style={{ fontSize: 14, lineHeight: 1.55, color: COLORS.ink, fontWeight: 600 }}>
+      <p style={{ margin: '0 0 9px' }}><b>{PUZZLE.slots.length === 12 ? 'Twelve' : 'Eight'} words</b> interlock in the grid &mdash; no clues. The <b>four categories</b> are the only hints; each hides exactly {PUZZLE.categories[0].words.length === 3 ? 'three' : 'two'} of the words.</p>
+      <p style={{ margin: '0 0 9px' }}><b>Guess to reveal:</b> tap a slot, type a real word, hit enter. <span style={{ background: COLORS.ink, color: '#fff', borderRadius: 4, padding: '1px 6px', fontWeight: 800 }}>Dark</span> = right letter, right square (locks in, crossings too). <span style={{ background: '#e6b93f', color: '#5c4a06', borderRadius: 4, padding: '1px 6px', fontWeight: 800 }}>Yellow</span> = in the word, different square. The whole board shares <b>{PUZZLE.guesses} guesses</b>.</p>
+      <p style={{ margin: '0 0 9px' }}><b>File your solves:</b> tap a word, then a category &mdash; placements stay secret and movable. One <b>submit</b> ends the game. Score is out of {PUZZLE.slots.length * 2}: a point per solved word, a point per correct placement. No lock-in, no score.</p>
+      <p style={{ margin: 0 }}>Stuck? One free <b>hint</b> per puzzle reveals a letter.</p>
+    </div>
+  );
+
   return (
     <div style={{ minHeight: '100vh', background: '#f7f8fa', position: 'relative' }}>
       <Grain />
@@ -963,7 +987,30 @@ export default function CruxClient({ puzzles = [], forceNum = null }) {
         </div>
 
         <div className="cx-a">
+          {/* start tile — sits where the board goes; the puzzle stays sealed
+              (not rendered) until the player presses Start, which begins the clock. */}
+          {preStart && (
+            <div style={{ background: COLORS.cream, border: `2px solid ${COLORS.ink}`, borderRadius: 10, padding: '22px', display: 'flex', flexDirection: 'column', marginBottom: 12 }}>
+              <div style={{ fontSize: 20, fontWeight: 800, color: COLORS.ink, marginBottom: 10 }}>{gateRules ? 'How to play' : 'Crux is ready'}</div>
+              {gateRules ? rulesBody : (
+                <div style={{ fontSize: 14, lineHeight: 1.55, color: COLORS.ink, fontWeight: 600 }}>
+                  <p style={{ margin: '0 0 6px' }}>Interlocking words, no clues: just four categories to guide you. Guess real words to reveal the letters.</p>
+                  <p style={{ margin: 0, color: COLORS.faded }}>Your time starts the moment you press Start.</p>
+                </div>
+              )}
+              <div style={{ marginTop: 18 }}>
+                <button className="cl-btn" onClick={startGame} style={{ background: COLORS.ink, color: '#fff', fontSize: 15, padding: '11px 22px' }}>Start</button>
+                <div style={{ marginTop: 10 }}>
+                  <button type="button" onClick={() => setGateRules((v) => !v)} style={{ background: 'none', border: 'none', padding: 0, cursor: 'pointer', fontFamily: SANS, fontSize: 13, fontWeight: 700, color: COLORS.faded, textDecoration: 'underline' }}>
+                    {gateRules ? 'Hide instructions' : 'Show instructions'}
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
+
           {/* the puzzle, one card: guesses + category clues + the grid */}
+          {!preStart && (
           <div className="cl-panel" style={{ background: '#fff', border: `2px solid ${COLORS.ink}`, borderRadius: 10, padding: '14px 16px 16px', boxShadow: '5px 5px 0 rgba(28,30,36,0.16)', marginBottom: 12 }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 12, fontFamily: MONO, fontSize: 11.5, letterSpacing: '0.1em', textTransform: 'uppercase', color: COLORS.faded, borderBottom: '1px solid rgba(28,30,36,0.18)', paddingBottom: 8, marginBottom: 12 }}>
               <span style={{ whiteSpace: 'nowrap' }}><b style={{ color: g.left <= 3 ? COLORS.rust : COLORS.ink, fontWeight: 500 }}>{g.left}</b> guesses</span>
@@ -1033,9 +1080,10 @@ export default function CruxClient({ puzzles = [], forceNum = null }) {
               </div>
             </div>
           </div>
+          )}
 
           {/* selected slot bar — only while there are still words to guess */}
-          {playing && slot && !allWordsSolved && (
+          {started && slot && !allWordsSolved && (
             <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 10 }}>
               <button className="cl-key" onClick={() => cycleSlot(-1)} aria-label="Previous word" style={{ background: COLORS.paper, width: 30, height: 30, display: 'flex', alignItems: 'center', justifyContent: 'center' }}><ChevronLeft size={17} /></button>
               <div style={{ fontSize: 14, fontWeight: 800, color: COLORS.ink }}>
@@ -1052,7 +1100,7 @@ export default function CruxClient({ puzzles = [], forceNum = null }) {
           )}
 
           {/* last guess feedback for this slot */}
-          {playing && lastG && !g.solved[sel] && (
+          {started && lastG && !g.solved[sel] && (
             <div style={{ display: 'flex', alignItems: 'center', gap: 4, marginBottom: 10, flexWrap: 'wrap' }}>
               <span style={{ fontSize: 11.5, fontWeight: 800, textTransform: 'uppercase', letterSpacing: '.05em', color: COLORS.faded, marginRight: 4 }}>Last try</span>
               {lastG.word.split('').map((ch, i) => {
@@ -1067,7 +1115,7 @@ export default function CruxClient({ puzzles = [], forceNum = null }) {
 
           {/* desktop-only keyboard toggle — physical typing always works, so the
               on-screen keys are collapsed by default and expand on demand */}
-          {playing && g.left > 0 && !allWordsSolved && !mobileUi && (
+          {started && g.left > 0 && !allWordsSolved && !mobileUi && (
             <div style={{ textAlign: 'center', marginBottom: kbdOpen ? 8 : 0 }}>
               <button onClick={() => setKbdOpen((o) => !o)} style={{ background: 'none', border: '1.5px solid rgba(28,30,36,0.22)', borderRadius: 8, padding: '6px 13px', cursor: 'pointer', fontFamily: SANS, fontWeight: 700, fontSize: 12, color: COLORS.faded }}>
                 {kbdOpen ? 'Hide keyboard' : 'Show keyboard'}
@@ -1075,7 +1123,7 @@ export default function CruxClient({ puzzles = [], forceNum = null }) {
             </div>
           )}
           {/* keyboard (hidden once solved/out of guesses; on desktop also waits for the toggle) */}
-          {playing && g.left > 0 && !allWordsSolved && (mobileUi || kbdOpen) && (
+          {started && g.left > 0 && !allWordsSolved && (mobileUi || kbdOpen) && (
             <div style={{ maxWidth: 470, margin: '0 auto' }}>
               {KB.map((row, ri) => (
                 <div key={ri} style={{ display: 'flex', gap: 4, marginBottom: 5, justifyContent: 'center' }}>
@@ -1099,7 +1147,7 @@ export default function CruxClient({ puzzles = [], forceNum = null }) {
 
           {/* filing helper — the board is the word bank now, so this is just a
               nudge; the "Placing X" state mirrors the armed word on the grid */}
-          {playing && solvedUnfiled.length > 0 && (
+          {started && solvedUnfiled.length > 0 && (
             <div style={{ margin: '2px 0 12px', fontSize: 13, fontWeight: 700, color: COLORS.faded, textAlign: 'center' }}>
               {pick
                 ? <>Placing <span style={{ color: COLORS.ember, fontWeight: 800 }}>{pick}</span> &mdash; tap a category above</>
@@ -1259,12 +1307,7 @@ export default function CruxClient({ puzzles = [], forceNum = null }) {
               <div style={{ fontSize: 21, fontWeight: 800, color: COLORS.ink }}>How to play</div>
               <button onClick={() => { setShowHelp(false); try { localStorage.setItem(HELP_KEY, '1'); } catch (e) {} }} aria-label="Close" style={{ marginLeft: 'auto', background: 'none', border: 'none', cursor: 'pointer', color: COLORS.faded }}><X size={20} /></button>
             </div>
-            <div style={{ fontSize: 14, lineHeight: 1.55, color: COLORS.ink, fontWeight: 600 }}>
-              <p style={{ margin: '0 0 9px' }}><b>{PUZZLE.slots.length === 12 ? 'Twelve' : 'Eight'} words</b> interlock in the grid &mdash; no clues. The <b>four categories</b> are the only hints; each hides exactly {PUZZLE.categories[0].words.length === 3 ? 'three' : 'two'} of the words.</p>
-              <p style={{ margin: '0 0 9px' }}><b>Guess to reveal:</b> tap a slot, type a real word, hit enter. <span style={{ background: COLORS.ink, color: '#fff', borderRadius: 4, padding: '1px 6px', fontWeight: 800 }}>Dark</span> = right letter, right square (locks in, crossings too). <span style={{ background: '#e6b93f', color: '#5c4a06', borderRadius: 4, padding: '1px 6px', fontWeight: 800 }}>Yellow</span> = in the word, different square. The whole board shares <b>{PUZZLE.guesses} guesses</b>.</p>
-              <p style={{ margin: '0 0 9px' }}><b>File your solves:</b> tap a word, then a category &mdash; placements stay secret and movable. One <b>submit</b> ends the game. Score is out of {PUZZLE.slots.length * 2}: a point per solved word, a point per correct placement. No lock-in, no score.</p>
-              <p style={{ margin: 0 }}>Stuck? One free <b>hint</b> per puzzle reveals a letter.</p>
-            </div>
+            {rulesBody}
             <button className="cl-btn" onClick={() => { setShowHelp(false); try { localStorage.setItem(HELP_KEY, '1'); } catch (e) {} }} style={{ marginTop: 14, background: COLORS.ink, color: '#fff' }}>Play</button>
           </div>
         </div>

@@ -229,6 +229,7 @@ export default function OutwitClient({ puzzles = [], forceNum = null }) {
   const [numVals, setNumVals] = useState({}); // promptIdx -> raw input string
   const [sending, setSending] = useState(false);
   const [showHelp, setShowHelp] = useState(false);
+  const [gateRules, setGateRules] = useState(false); // start tile: full rules (first-timer) vs compact card
   const [toast, setToast] = useState(null);
   const [copied, setCopied] = useState(false);
   const [endClosed, setEndClosed] = useState(false);
@@ -249,6 +250,8 @@ export default function OutwitClient({ puzzles = [], forceNum = null }) {
 
   const [showChrome, setShowChrome] = useState(false);
   const playing = g.status === 'playing';
+  const preStart = playing && !g.t0;
+  const started = playing && !!g.t0;
   const focusMode = playing && !showChrome;
   const answered = Object.keys(g.ans).length;
   const result = g.result;
@@ -284,7 +287,7 @@ export default function OutwitClient({ puzzles = [], forceNum = null }) {
           setNumVals(nv);
         }
       }
-      if (!localStorage.getItem(HELP_KEY)) setShowHelp(true);
+      setGateRules(!localStorage.getItem(HELP_KEY));
     } catch (e) {}
     try { setStats(getStats()); } catch (e) {}
     setHydrated(true);
@@ -390,9 +393,10 @@ export default function OutwitClient({ puzzles = [], forceNum = null }) {
 
   const REC_KEY = `sot_outwit_rec_${PUZZLE.num}`;
   const abandon = useAbandonFlush(() => {
-    if (!g.t0 || g.status !== 'playing') return null;
+    const acted = Object.keys(g.ans).length > 0;
+    if (!acted || g.status !== 'playing') return null;
     try { if (localStorage.getItem(REC_KEY)) return null; } catch (e) {}
-    const el = Math.min(36000, Math.max(1, Math.round((Date.now() - g.t0) / 1000)));
+    const el = Math.min(36000, Math.max(1, Math.round((Date.now() - (g.t0 || Date.now())) / 1000)));
     try { localStorage.setItem(REC_KEY, '1'); } catch (e) {}
     return { quizId: PUZZLE.quizId, score: 0, total: TOTAL, correct: 0, guessesUsed: 0, timeElapsed: el, abandoned: true, email: identity?.email || undefined, anonId: getAnonId(), isMobile: isMobileDevice(), referrer: (typeof document !== 'undefined' ? document.referrer : '') };
   });
@@ -462,6 +466,11 @@ export default function OutwitClient({ puzzles = [], forceNum = null }) {
       say('Couldn’t reach the crowd — try again in a moment.');
     }
     setSending(false);
+  }
+
+  function startGame() {
+    setG((cur) => (cur.t0 ? cur : { ...cur, t0: Date.now() }));
+    try { localStorage.setItem(HELP_KEY, '1'); } catch (e) {}
   }
 
   function resetGame() {
@@ -649,6 +658,15 @@ export default function OutwitClient({ puzzles = [], forceNum = null }) {
     );
   }
 
+  // Shared rules body — rendered in both the how-to-play modal and the start gate.
+  const rulesBody = (
+    <div style={{ fontSize: 14, lineHeight: 1.55, color: COLORS.ink, fontWeight: 600 }}>
+      <p style={{ margin: '0 0 9px' }}>Your opponent is <b>everyone playing today</b>. Five prompts, no right answers &mdash; you score by reading the crowd.</p>
+      <p style={{ margin: '0 0 9px' }}><b>Road Less Traveled</b>: pick what fewest pick. <b>Herd</b>: closest to the crowd&rsquo;s median. <b>Meeting Point</b>: match the most-picked answer. <b>Rare Bird</b>: the rarest pick wins. <b>Undercut</b> (last): closest to a fraction of the crowd&rsquo;s average &mdash; and the fraction changes every day, so read the prompt.</p>
+      <p style={{ margin: 0 }}>Each prompt pays <b>0, 1, or 2 points</b>. The twist: <b>nothing is final</b> &mdash; every new player re-scores the whole field, including you, so your rank moves all day. Lock in to reveal where the crowd actually went. <b>7 of 10</b> means you outwitted them &mdash; for now.</p>
+    </div>
+  );
+
   return (
     <div style={{ minHeight: '100vh', background: '#f7f8fa', position: 'relative' }}>
       <Grain />
@@ -691,14 +709,37 @@ export default function OutwitClient({ puzzles = [], forceNum = null }) {
           </button>
         </div>
 
+        {/* start tile — sits where the prompts go; the prompts stay sealed
+            until the player presses Start, which begins the clock. */}
+        {preStart && (
+          <div style={{ background: COLORS.accentSoft, border: `2px solid ${COLORS.ink}`, borderRadius: 12, padding: '22px', display: 'flex', flexDirection: 'column' }}>
+            <div style={{ fontSize: 20, fontWeight: 800, color: COLORS.ink, marginBottom: 10 }}>{gateRules ? 'How to play' : 'Outwit is ready'}</div>
+            {gateRules ? rulesBody : (
+              <div style={{ fontSize: 14, lineHeight: 1.55, color: COLORS.ink, fontWeight: 600 }}>
+                <p style={{ margin: '0 0 6px' }}>Five prompts, no right answers. You score by reading today&rsquo;s crowd.</p>
+                <p style={{ margin: 0, color: COLORS.faded }}>Your time starts the moment you press Start.</p>
+              </div>
+            )}
+            <div style={{ marginTop: 18 }}>
+              <button className="ow-btn" onClick={startGame} style={{ background: COLORS.ink, color: '#fff', fontSize: 15, padding: '11px 22px' }}>Start</button>
+              <div style={{ marginTop: 10 }}>
+                <button type="button" onClick={() => setGateRules((v) => !v)} style={{ background: 'none', border: 'none', padding: 0, cursor: 'pointer', fontFamily: SANS, fontSize: 13, fontWeight: 700, color: COLORS.faded, textDecoration: 'underline' }}>
+                  {gateRules ? 'Hide instructions' : 'Show instructions'}
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
         {/* the five prompts */}
+        {!preStart && (
         <div style={{ background: COLORS.accentSoft, border: `2px solid ${COLORS.ink}`, borderRadius: 10, padding: '15px 17px 12px', boxShadow: '5px 5px 0 rgba(28,30,36,0.16)', marginBottom: 12 }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 12, fontFamily: MONO, fontSize: 11.5, letterSpacing: '0.1em', textTransform: 'uppercase', color: COLORS.faded, borderBottom: '1px solid rgba(28,30,36,0.18)', paddingBottom: 8, marginBottom: 12, flexWrap: 'wrap' }}>
             <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6, whiteSpace: 'nowrap' }}><Users size={12} /> five prompts vs. today&rsquo;s crowd</span>
             <span style={{ marginLeft: 'auto', whiteSpace: 'nowrap' }}>answered <b style={{ color: COLORS.ink, fontWeight: 500 }}>{answered}</b>/{PROMPTS.length}</span>
           </div>
           {PROMPTS.map((_, i) => renderPrompt(i))}
-          {playing && (
+          {started && (
             <div style={{ textAlign: 'center', margin: '14px 0 8px' }}>
               <button className="ow-face" onClick={faceTheCrowd} disabled={sending || answered < PROMPTS.length}>
                 <Users size={17} className="ow-gold" /> {sending ? 'Facing the crowd…' : 'Face the crowd'}
@@ -709,6 +750,7 @@ export default function OutwitClient({ puzzles = [], forceNum = null }) {
             </div>
           )}
         </div>
+        )}
 
         {/* result */}
         {!playing && result && (
@@ -850,11 +892,7 @@ export default function OutwitClient({ puzzles = [], forceNum = null }) {
               <div style={{ fontSize: 21, fontWeight: 800, color: COLORS.ink }}>How to play</div>
               <button onClick={() => { setShowHelp(false); try { localStorage.setItem(HELP_KEY, '1'); } catch (e) {} }} aria-label="Close" style={{ marginLeft: 'auto', background: 'none', border: 'none', cursor: 'pointer', color: COLORS.faded }}><X size={20} /></button>
             </div>
-            <div style={{ fontSize: 14, lineHeight: 1.55, color: COLORS.ink, fontWeight: 600 }}>
-              <p style={{ margin: '0 0 9px' }}>Your opponent is <b>everyone playing today</b>. Five prompts, no right answers &mdash; you score by reading the crowd.</p>
-              <p style={{ margin: '0 0 9px' }}><b>Road Less Traveled</b>: pick what fewest pick. <b>Herd</b>: closest to the crowd&rsquo;s median. <b>Meeting Point</b>: match the most-picked answer. <b>Rare Bird</b>: the rarest pick wins. <b>Undercut</b> (last): closest to a fraction of the crowd&rsquo;s average &mdash; and the fraction changes every day, so read the prompt.</p>
-              <p style={{ margin: 0 }}>Each prompt pays <b>0, 1, or 2 points</b>. The twist: <b>nothing is final</b> &mdash; every new player re-scores the whole field, including you, so your rank moves all day. Lock in to reveal where the crowd actually went. <b>7 of 10</b> means you outwitted them &mdash; for now.</p>
-            </div>
+            {rulesBody}
             <button className="ow-btn" onClick={() => { setShowHelp(false); try { localStorage.setItem(HELP_KEY, '1'); } catch (e) {} }} style={{ marginTop: 14, background: COLORS.ink, color: '#fff' }}>Play</button>
           </div>
         </div>

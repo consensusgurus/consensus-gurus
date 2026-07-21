@@ -310,6 +310,7 @@ export default function SpanClient({ puzzles = [], forceNum = null }) {
   const [g, setG] = useState(() => freshState());
   const [typed, setTyped] = useState('');
   const [showHelp, setShowHelp] = useState(false);
+  const [gateRules, setGateRules] = useState(false); // start tile: full rules (first-timer) vs compact card
   const [toast, setToast] = useState(null);
   const [copied, setCopied] = useState(false);
   const [shake, setShake] = useState(false);
@@ -337,6 +338,8 @@ export default function SpanClient({ puzzles = [], forceNum = null }) {
   const hops = chain.length - 1; // score meter: final path length vs par
   const [showChrome, setShowChrome] = useState(false);
   const playing = g.status === 'playing';
+  const preStart = playing && !g.t0;   // not begun: show the start tile in place of the board
+  const started = playing && !!g.t0;   // clock running: show the board
   const focusMode = playing && !showChrome;
   const won = g.status === 'won';
 
@@ -379,7 +382,10 @@ export default function SpanClient({ puzzles = [], forceNum = null }) {
         const saved = JSON.parse(raw);
         if (saved && saved.v === 1 && Array.isArray(saved.chain) && saved.chain[0] === PUZZLE.start) setG({ ...freshState(), ...saved });
       }
-      if (!localStorage.getItem(HELP_KEY)) setShowHelp(true);
+      // The start tile shows in place of the board until the player begins (t0
+      // set on Start). First-timers see the full rules on the tile; a returning
+      // player gets the compact start card with a "Show instructions" toggle.
+      setGateRules(!localStorage.getItem(HELP_KEY));
     } catch (e) {}
     try { setStats(getStats()); } catch (e) {}
     setHydrated(true);
@@ -455,9 +461,12 @@ export default function SpanClient({ puzzles = [], forceNum = null }) {
 
   const REC_KEY = `sot_span_rec_${PUZZLE.num}`;
   const abandon = useAbandonFlush(() => {
-    if (!g.t0 || g.status !== 'playing') return null;
+    // A play counts only once the player actually acts (a step, a miss, or a
+    // hint). Opening the puzzle and dismissing the start gate does not log.
+    const acted = (Array.isArray(g.chain) && g.chain.length > 1) || g.misses > 0 || g.hintUsed;
+    if (!acted || g.status !== 'playing') return null;
     try { if (localStorage.getItem(REC_KEY)) return null; } catch (e) {}
-    const el = Math.min(36000, Math.max(1, Math.round((Date.now() - g.t0) / 1000)));
+    const el = Math.min(36000, Math.max(1, Math.round((Date.now() - (g.t0 || Date.now())) / 1000)));
     try { localStorage.setItem(REC_KEY, '1'); } catch (e) {}
     return { quizId: PUZZLE.quizId, score: 0, total: 10, correct: 0, guessesUsed: 0, timeElapsed: el, abandoned: true, email: identity?.email || undefined, anonId: getAnonId(), isMobile: isMobileDevice(), referrer: (typeof document !== 'undefined' ? document.referrer : '') };
   });
@@ -477,6 +486,13 @@ export default function SpanClient({ puzzles = [], forceNum = null }) {
         .then((d) => { if (d && !d.error) setBoard({ ...EMPTY_BOARD, ...d }); })
         .catch(() => {});
     } catch (e) {}
+  }
+
+  // Pressing Start begins the clock (sets t0) and marks the rules as seen. A
+  // no-op once started, so re-reading the rules later never resets the timer.
+  function startGame() {
+    setG((cur) => (cur.t0 ? cur : { ...cur, t0: Date.now() }));
+    try { localStorage.setItem(HELP_KEY, '1'); } catch (e) {}
   }
 
   function miss(g2, msg) {
@@ -669,6 +685,18 @@ export default function SpanClient({ puzzles = [], forceNum = null }) {
   }
   const arrow = (k) => <span key={k} style={{ color: '#9aa0ab', fontWeight: 800 }}>&rarr;</span>;
 
+  // Shared rules body — rendered in both the how-to-play modal and the start gate.
+  const rulesBody = (
+    <div style={{ fontSize: 14, lineHeight: 1.55, color: COLORS.ink, fontWeight: 600 }}>
+      <p style={{ margin: '0 0 9px' }}><b>Get from {PUZZLE.start} to {PUZZLE.end}</b> by typing a chain of countries &mdash; each one must share a <b>land border</b> with the last.</p>
+      <p style={{ margin: '0 0 9px' }}><b>The shortest path is {PUZZLE.par} hops.</b> Your score is 10 if your final chain matches it, minus one for each country over. Undo any step for free. A country that doesn&apos;t border your position is a miss &mdash; misses break leaderboard ties.</p>
+      {isSundayEd && sundayRule && (
+        <p style={{ margin: '0 0 9px' }}><b>Sunday Edition:</b> {VIA ? <>your road must pass through <b>{VIA}</b> before it reaches {PUZZLE.end}. The {PUZZLE.par}-hop shortest path already takes the detour.</> : <><b>{AVOID}</b> is closed today &mdash; the road has to go around it, and the {PUZZLE.par}-hop shortest path already does.</>}</p>
+      )}
+      <p style={{ margin: 0 }}>Mainland borders only: overseas territories don&apos;t count (sorry, France&ndash;Brazil), and neither do bridges or tunnels. One free <b>hint</b> walks you one step down a shortest road.</p>
+    </div>
+  );
+
   return (
     <div style={{ minHeight: '100vh', background: '#f7f8fa', position: 'relative' }}>
       <Grain />
@@ -710,7 +738,30 @@ export default function SpanClient({ puzzles = [], forceNum = null }) {
           </button>
         </div>
 
+        {/* start tile — sits where the board goes until the player presses Start,
+            which begins the clock. The assignment stays sealed until then. */}
+        {preStart && (
+          <div style={{ background: COLORS.cream, border: `2px solid ${COLORS.ink}`, borderRadius: 12, padding: '22px', display: 'flex', flexDirection: 'column' }}>
+            <div style={{ fontSize: 20, fontWeight: 800, color: COLORS.ink, marginBottom: 10 }}>{gateRules ? 'How to play' : 'Span is ready'}</div>
+            {gateRules ? rulesBody : (
+              <div style={{ fontSize: 14, lineHeight: 1.55, color: COLORS.ink, fontWeight: 600 }}>
+                <p style={{ margin: '0 0 6px' }}>Cross the map country by country, each step sharing a land border with the last.</p>
+                <p style={{ margin: 0, color: COLORS.faded }}>Your time starts the moment you press Start.</p>
+              </div>
+            )}
+            <div style={{ marginTop: 18 }}>
+              <button className="sp-btn" onClick={startGame} style={{ background: COLORS.ink, color: '#fff', fontSize: 15, padding: '11px 22px' }}>Start</button>
+              <div style={{ marginTop: 10 }}>
+                <button type="button" onClick={() => setGateRules((v) => !v)} style={{ background: 'none', border: 'none', padding: 0, cursor: 'pointer', fontFamily: SANS, fontSize: 13, fontWeight: 700, color: COLORS.faded, textDecoration: 'underline' }}>
+                  {gateRules ? 'Hide instructions' : 'Show instructions'}
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
         {/* the assignment */}
+        {!preStart && (
         <div style={{ background: '#fff', border: `2px solid ${COLORS.ink}`, borderRadius: 10, padding: '13px 15px', boxShadow: '5px 5px 0 rgba(28,30,36,0.16)', marginBottom: 12 }}>
           {isSundayEd && (
             <div style={{ display: 'flex', alignItems: 'center', gap: 9, fontFamily: MONO, fontSize: 11, letterSpacing: '0.09em', textTransform: 'uppercase', color: '#8a6d1a', background: '#fdf6e3', border: '1px solid rgba(230,185,63,0.6)', borderRadius: 7, padding: '6px 10px', marginBottom: 11, flexWrap: 'wrap' }}>
@@ -739,9 +790,10 @@ export default function SpanClient({ puzzles = [], forceNum = null }) {
           </div>
           {won && <div style={{ fontFamily: MONO, fontSize: 11, color: COLORS.trail, fontWeight: 500, marginTop: 6 }}>Spanned in {chain.length - 1} hop{chain.length - 1 === 1 ? '' : 's'}.</div>}
         </div>
+        )}
 
         {/* input */}
-        {playing && (
+        {started && (
           <div style={{ marginBottom: 12 }}>
             <div style={{ display: 'flex', gap: 8, alignItems: 'stretch' }}>
               <div style={{ position: 'relative', flex: 1 }}>
@@ -934,14 +986,7 @@ export default function SpanClient({ puzzles = [], forceNum = null }) {
               <div style={{ fontSize: 21, fontWeight: 800, color: COLORS.ink }}>How to play</div>
               <button onClick={() => { setShowHelp(false); try { localStorage.setItem(HELP_KEY, '1'); } catch (e) {} }} aria-label="Close" style={{ marginLeft: 'auto', background: 'none', border: 'none', cursor: 'pointer', color: COLORS.faded }}><X size={20} /></button>
             </div>
-            <div style={{ fontSize: 14, lineHeight: 1.55, color: COLORS.ink, fontWeight: 600 }}>
-              <p style={{ margin: '0 0 9px' }}><b>Get from {PUZZLE.start} to {PUZZLE.end}</b> by typing a chain of countries &mdash; each one must share a <b>land border</b> with the last.</p>
-              <p style={{ margin: '0 0 9px' }}><b>The shortest path is {PUZZLE.par} hops.</b> Your score is 10 if your final chain matches it, minus one for each country over. Undo any step for free. A country that doesn&apos;t border your position is a miss &mdash; misses break leaderboard ties.</p>
-              {isSundayEd && sundayRule && (
-                <p style={{ margin: '0 0 9px' }}><b>Sunday Edition:</b> {VIA ? <>your road must pass through <b>{VIA}</b> before it reaches {PUZZLE.end}. The {PUZZLE.par}-hop shortest path already takes the detour.</> : <><b>{AVOID}</b> is closed today &mdash; the road has to go around it, and the {PUZZLE.par}-hop shortest path already does.</>}</p>
-              )}
-              <p style={{ margin: 0 }}>Mainland borders only: overseas territories don&apos;t count (sorry, France&ndash;Brazil), and neither do bridges or tunnels. One free <b>hint</b> walks you one step down a shortest road.</p>
-            </div>
+            {rulesBody}
             <button className="sp-btn" onClick={() => { setShowHelp(false); try { localStorage.setItem(HELP_KEY, '1'); } catch (e) {} }} style={{ marginTop: 14, background: COLORS.ink, color: '#fff' }}>Play</button>
           </div>
         </div>

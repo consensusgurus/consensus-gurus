@@ -234,6 +234,7 @@ export default function OutrankClient({ puzzles = [], forceNum = null }) {
   const [g, setG] = useState(freshState);
   const [sending, setSending] = useState(false);
   const [showHelp, setShowHelp] = useState(false);
+  const [gateRules, setGateRules] = useState(false); // start tile: full rules (first-timer) vs compact start card
   const [toast, setToast] = useState(null);
   const [copied, setCopied] = useState(false);
   const [endClosed, setEndClosed] = useState(false);
@@ -254,6 +255,8 @@ export default function OutrankClient({ puzzles = [], forceNum = null }) {
 
   const [showChrome, setShowChrome] = useState(false);
   const playing = g.status === 'playing';
+  const preStart = playing && !g.t0;   // not begun: show the start tile where the board goes
+  const started = playing && !!g.t0;    // clock running: show the board
   const focusMode = playing && !showChrome;
   const result = g.result;
   const score = result ? result.points : 0;
@@ -283,7 +286,10 @@ export default function OutrankClient({ puzzles = [], forceNum = null }) {
           setG({ ...freshState(), ...saved });
         }
       }
-      if (!localStorage.getItem(HELP_KEY)) setShowHelp(true);
+      // The start tile shows in place of the board until the player begins (t0 set
+      // on Start). First-timers see the full rules on the tile; a returning player
+      // gets the compact start card with a "Show instructions" toggle.
+      setGateRules(!localStorage.getItem(HELP_KEY));
     } catch (e) {}
     try { setStats(getStats()); } catch (e) {}
     setHydrated(true);
@@ -407,9 +413,13 @@ export default function OutrankClient({ puzzles = [], forceNum = null }) {
 
   const REC_KEY = `sot_outrank_rec_${PUZZLE.num}`;
   const abandon = useAbandonFlush(() => {
-    if (!g.t0 || g.status !== 'playing') return null;
+    // A play counts only once the player actually acts (casts a vote or places any
+    // item in the order). Merely opening the puzzle and dismissing the start gate
+    // does not log a 0-score attempt.
+    const acted = g.fav != null || g.order.length > 0;
+    if (!acted || g.status !== 'playing') return null;
     try { if (localStorage.getItem(REC_KEY)) return null; } catch (e) {}
-    const el = Math.min(36000, Math.max(1, Math.round((Date.now() - g.t0) / 1000)));
+    const el = Math.min(36000, Math.max(1, Math.round((Date.now() - (g.t0 || Date.now())) / 1000)));
     try { localStorage.setItem(REC_KEY, '1'); } catch (e) {}
     return { quizId: PUZZLE.quizId, score: 0, total: TOTAL, correct: 0, guessesUsed: 0, timeElapsed: el, abandoned: true, email: identity?.email || undefined, anonId: getAnonId(), isMobile: isMobileDevice(), referrer: (typeof document !== 'undefined' ? document.referrer : '') };
   });
@@ -431,6 +441,13 @@ export default function OutrankClient({ puzzles = [], forceNum = null }) {
         .then((d) => { if (d && !d.error) setBoard({ ...EMPTY_BOARD, ...d }); })
         .catch(() => {});
     } catch (e) {}
+  }
+
+  // Pressing Start begins the clock (sets t0) and marks the rules as seen.
+  // A no-op once started, so re-reading the rules later never resets the timer.
+  function startGame() {
+    setG((cur) => (cur.t0 ? cur : { ...cur, t0: Date.now() }));
+    try { localStorage.setItem(HELP_KEY, '1'); } catch (e) {}
   }
 
   function pickFav(i) {
@@ -565,6 +582,15 @@ export default function OutrankClient({ puzzles = [], forceNum = null }) {
     );
   }
 
+  // Shared rules body — rendered in both the how-to-play modal and the start gate.
+  const rulesBody = (
+    <div style={{ fontSize: 14, lineHeight: 1.55, color: COLORS.ink, fontWeight: 600 }}>
+      <p style={{ margin: '0 0 9px' }}>The answer key is <b>everyone playing today</b>. One themed slate, two moves.</p>
+      <p style={{ margin: '0 0 9px' }}><b>Vote</b>: tap your honest favorite &mdash; your taste becomes part of the crowd. <b>Call it</b>: put the whole slate in the order you think today&rsquo;s crowd ranks it by favorite votes.</p>
+      <p style={{ margin: 0 }}>Each item pays <b>2</b> in its exact slot, <b>1</b> one slot off, <b>0</b> otherwise. The twist: <b>nothing is final</b> &mdash; every new vote can reshuffle the crowd&rsquo;s order, so your score and rank move all day. <b>{winBar(TOTAL)} of {TOTAL}</b> means you outranked the crowd &mdash; for now.</p>
+    </div>
+  );
+
   return (
     <div style={{ minHeight: '100vh', background: '#f7f8fa', position: 'relative' }}>
       <Grain />
@@ -606,7 +632,30 @@ export default function OutrankClient({ puzzles = [], forceNum = null }) {
           </button>
         </div>
 
+        {/* start tile — sits where the slate goes; the slate and its two moves
+            stay sealed (not rendered) until the player presses Start, which begins the clock. */}
+        {preStart && (
+          <div style={{ background: COLORS.cream, border: `2px solid ${COLORS.ink}`, borderRadius: 12, padding: '22px', margin: '0 auto 12px', display: 'flex', flexDirection: 'column' }}>
+            <div style={{ fontSize: 20, fontWeight: 800, color: COLORS.ink, marginBottom: 10 }}>{gateRules ? 'How to play' : 'Outrank is ready'}</div>
+            {gateRules ? rulesBody : (
+              <div style={{ fontSize: 14, lineHeight: 1.55, color: COLORS.ink, fontWeight: 600 }}>
+                <p style={{ margin: '0 0 6px' }}>Two moves: vote for your honest favorite, then predict how today&rsquo;s crowd ranks the whole slate. The slate stays sealed until you begin.</p>
+                <p style={{ margin: 0, color: COLORS.faded }}>Your time starts the moment you press Start.</p>
+              </div>
+            )}
+            <div style={{ marginTop: 18 }}>
+              <button className="ork-btn" onClick={startGame} style={{ background: COLORS.ink, color: '#fff', fontSize: 15, padding: '11px 22px' }}>Start</button>
+              <div style={{ marginTop: 10 }}>
+                <button type="button" onClick={() => setGateRules((v) => !v)} style={{ background: 'none', border: 'none', padding: 0, cursor: 'pointer', fontFamily: SANS, fontSize: 13, fontWeight: 700, color: COLORS.faded, textDecoration: 'underline' }}>
+                  {gateRules ? 'Hide instructions' : 'Show instructions'}
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
         {/* the day's slate */}
+        {!preStart && (
         <div style={{ background: COLORS.accentSoft, border: `2px solid ${COLORS.ink}`, borderRadius: 10, padding: '15px 17px 12px', boxShadow: '5px 5px 0 rgba(28,30,36,0.16)', marginBottom: 12 }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 12, fontFamily: MONO, fontSize: 11.5, letterSpacing: '0.1em', textTransform: 'uppercase', color: COLORS.faded, borderBottom: '1px solid rgba(28,30,36,0.18)', paddingBottom: 8, marginBottom: 12, flexWrap: 'wrap' }}>
             <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6, whiteSpace: 'nowrap' }}><Users size={12} /> today&rsquo;s slate</span>
@@ -675,6 +724,7 @@ export default function OutrankClient({ puzzles = [], forceNum = null }) {
             </div>
           )}
         </div>
+        )}
 
         {/* result */}
         {!playing && result && (
@@ -817,11 +867,7 @@ export default function OutrankClient({ puzzles = [], forceNum = null }) {
               <div style={{ fontSize: 21, fontWeight: 800, color: COLORS.ink }}>How to play</div>
               <button onClick={() => { setShowHelp(false); try { localStorage.setItem(HELP_KEY, '1'); } catch (e) {} }} aria-label="Close" style={{ marginLeft: 'auto', background: 'none', border: 'none', cursor: 'pointer', color: COLORS.faded }}><X size={20} /></button>
             </div>
-            <div style={{ fontSize: 14, lineHeight: 1.55, color: COLORS.ink, fontWeight: 600 }}>
-              <p style={{ margin: '0 0 9px' }}>The answer key is <b>everyone playing today</b>. One themed slate, two moves.</p>
-              <p style={{ margin: '0 0 9px' }}><b>Vote</b>: tap your honest favorite &mdash; your taste becomes part of the crowd. <b>Call it</b>: put the whole slate in the order you think today&rsquo;s crowd ranks it by favorite votes.</p>
-              <p style={{ margin: 0 }}>Each item pays <b>2</b> in its exact slot, <b>1</b> one slot off, <b>0</b> otherwise. The twist: <b>nothing is final</b> &mdash; every new vote can reshuffle the crowd&rsquo;s order, so your score and rank move all day. <b>{winBar(TOTAL)} of {TOTAL}</b> means you outranked the crowd &mdash; for now.</p>
-            </div>
+            {rulesBody}
             <button className="ork-btn" onClick={() => { setShowHelp(false); try { localStorage.setItem(HELP_KEY, '1'); } catch (e) {} }} style={{ marginTop: 14, background: COLORS.ink, color: '#fff' }}>Play</button>
           </div>
         </div>

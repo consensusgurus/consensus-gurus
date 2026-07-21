@@ -188,6 +188,7 @@ export default function SudsClient({ puzzles = [], forceNum = null }) {
   const [sel, setSel] = useState(-1);          // selected cell index, -1 = none
   const [noteMode, setNoteMode] = useState(false);
   const [showHelp, setShowHelp] = useState(false);
+  const [gateRules, setGateRules] = useState(false); // start tile: full rules (first-timer) vs compact card
   const [toast, setToast] = useState(null);
   const [copied, setCopied] = useState(false);
   const [armReveal, setArmReveal] = useState(false);
@@ -212,6 +213,8 @@ export default function SudsClient({ puzzles = [], forceNum = null }) {
   const notes = g.notes;
   const [showChrome, setShowChrome] = useState(false);
   const playing = g.status === 'playing';
+  const preStart = playing && !g.t0;   // not begun: show the start tile in place of the board
+  const started = playing && !!g.t0;   // clock running: show the board
   const focusMode = playing && !showChrome;
   const won = g.status === 'won';
 
@@ -243,7 +246,10 @@ export default function SudsClient({ puzzles = [], forceNum = null }) {
           setG({ ...freshState(), ...saved, notes: Array.isArray(saved.notes) && saved.notes.length === 81 ? saved.notes : Array(81).fill(0) });
         }
       }
-      if (!localStorage.getItem(HELP_KEY)) setShowHelp(true);
+      // The start tile shows in place of the board until the player begins (t0
+      // set on Start). First-timers see the full rules on the tile; a returning
+      // player gets the compact start card with a "Show instructions" toggle.
+      setGateRules(!localStorage.getItem(HELP_KEY));
     } catch (e) {}
     try { setStats(getStats()); } catch (e) {}
     setHydrated(true);
@@ -338,9 +344,13 @@ export default function SudsClient({ puzzles = [], forceNum = null }) {
 
   const REC_KEY = `sot_suds_rec_${PUZZLE.num}`;
   const abandon = useAbandonFlush(() => {
-    if (!g.t0 || g.status !== 'playing') return null;
+    // A play counts only once the player actually acts (placed a digit, penciled
+    // a note, made an error, or took the hint). Opening the puzzle and dismissing
+    // the start gate does not log a 0-score attempt.
+    const acted = g.cells.some((v) => v) || g.notes.some((v) => v) || g.errors > 0 || g.hintUsed;
+    if (!acted || g.status !== 'playing') return null;
     try { if (localStorage.getItem(REC_KEY)) return null; } catch (e) {}
-    const el = Math.min(36000, Math.max(1, Math.round((Date.now() - g.t0) / 1000)));
+    const el = Math.min(36000, Math.max(1, Math.round((Date.now() - (g.t0 || Date.now())) / 1000)));
     try { localStorage.setItem(REC_KEY, '1'); } catch (e) {}
     return { quizId: PUZZLE.quizId, score: 0, total: 10, correct: 0, guessesUsed: 0, timeElapsed: el, abandoned: true, email: identity?.email || undefined, anonId: getAnonId(), isMobile: isMobileDevice(), referrer: (typeof document !== 'undefined' ? document.referrer : '') };
   });
@@ -371,6 +381,13 @@ export default function SudsClient({ puzzles = [], forceNum = null }) {
       const rr = Math.floor(j / 9), cc = j % 9;
       if (rr === r || cc === c || boxOf(rr, cc) === b) { if (noteArr[j] & m) noteArr[j] = noteArr[j] & ~m; }
     }
+  }
+
+  // Pressing Start begins the clock (sets t0) and marks the rules as seen. A
+  // no-op once started, so re-reading the rules later never resets the timer.
+  function startGame() {
+    setG((cur) => (cur.t0 ? cur : { ...cur, t0: Date.now() }));
+    try { localStorage.setItem(HELP_KEY, '1'); } catch (e) {}
   }
 
   function enterDigit(idx, d) {
@@ -539,6 +556,16 @@ export default function SudsClient({ puzzles = [], forceNum = null }) {
     return cnt;
   }, [cells, givenFlat, solFlat]);
 
+  // Shared rules body — rendered in both the how-to-play modal and the start gate.
+  const rulesBody = (
+    <div style={{ fontSize: 14, lineHeight: 1.55, color: COLORS.ink, fontWeight: 600 }}>
+      <p style={{ margin: '0 0 9px' }}>Fill every empty square so that each <b>row</b>, each <b>column</b>, and each <b>3×3 box</b> contains the digits <b>1–9</b> with no repeats. Every board has exactly one solution.</p>
+      <p style={{ margin: '0 0 9px' }}>Tap a square, then tap a number to place it. A number that isn&rsquo;t part of the solution turns <b style={{ color: COLORS.rust }}>red</b> and counts as an error &mdash; fix it to keep going. On desktop you can also use the arrow keys and number keys.</p>
+      <p style={{ margin: '0 0 9px' }}>Turn on <b>Notes</b> (or press N) to pencil small candidates into a square. One free <b>hint</b> fills a correct number.</p>
+      <p style={{ margin: 0 }}>A clean solve with <b>no errors</b> scores a perfect 10 &mdash; every error costs a point. Ties break on fewest errors, then fastest time. Sundays are a harder Edition with fewer clues.</p>
+    </div>
+  );
+
   return (
     <div style={{ minHeight: '100vh', background: '#f7f8fa', position: 'relative' }}>
       <Grain />
@@ -588,7 +615,30 @@ export default function SudsClient({ puzzles = [], forceNum = null }) {
           </button>
         </div>
 
+        {/* start tile — sits where the board goes until the player presses Start,
+            which begins the clock. The grid stays sealed until then. */}
+        {preStart && (
+          <div style={{ background: COLORS.cream, border: `2px solid ${COLORS.ink}`, borderRadius: 12, padding: '22px', display: 'flex', flexDirection: 'column' }}>
+            <div style={{ fontSize: 20, fontWeight: 800, color: COLORS.ink, marginBottom: 10 }}>{gateRules ? 'How to play' : 'Suds is ready'}</div>
+            {gateRules ? rulesBody : (
+              <div style={{ fontSize: 14, lineHeight: 1.55, color: COLORS.ink, fontWeight: 600 }}>
+                <p style={{ margin: '0 0 6px' }}>Fill the grid so every row, column, and 3×3 box holds the digits 1 to 9.</p>
+                <p style={{ margin: 0, color: COLORS.faded }}>Your time starts the moment you press Start.</p>
+              </div>
+            )}
+            <div style={{ marginTop: 18 }}>
+              <button className="sd-btn" onClick={startGame} style={{ background: COLORS.ink, color: '#fff', fontSize: 15, padding: '11px 22px' }}>Start</button>
+              <div style={{ marginTop: 10 }}>
+                <button type="button" onClick={() => setGateRules((v) => !v)} style={{ background: 'none', border: 'none', padding: 0, cursor: 'pointer', fontFamily: SANS, fontSize: 13, fontWeight: 700, color: COLORS.faded, textDecoration: 'underline' }}>
+                  {gateRules ? 'Hide instructions' : 'Show instructions'}
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
         {/* the board */}
+        {!preStart && (
         <div style={{ background: '#fff', border: `2px solid ${COLORS.ink}`, borderRadius: 10, padding: '13px 15px 15px', boxShadow: '5px 5px 0 rgba(28,30,36,0.16)', marginBottom: 12 }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 12, fontFamily: MONO, fontSize: 11.5, letterSpacing: '0.1em', textTransform: 'uppercase', color: COLORS.faded, borderBottom: '1px solid rgba(28,30,36,0.18)', paddingBottom: 8, marginBottom: 12, flexWrap: 'wrap' }}>
             <span style={{ whiteSpace: 'nowrap' }}>errors <b style={{ color: errors > 0 ? COLORS.rust : COLORS.ink, fontWeight: 500 }}>{errors}</b></span>
@@ -653,9 +703,10 @@ export default function SudsClient({ puzzles = [], forceNum = null }) {
             </>
           )}
         </div>
+        )}
 
         {/* controls */}
-        {playing && (
+        {started && (
           <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 12, flexWrap: 'wrap' }}>
             <span style={{ fontFamily: SANS, fontSize: 12, fontWeight: 700, color: COLORS.faded }}>
               {sel >= 0 ? (noteMode ? 'Tap a number to pencil it in' : 'Tap a number to fill this square') : 'Tap a square, then a number. Toggle Notes to pencil.'}
@@ -812,12 +863,7 @@ export default function SudsClient({ puzzles = [], forceNum = null }) {
               <div style={{ fontSize: 21, fontWeight: 800, color: COLORS.ink }}>How to play</div>
               <button onClick={() => { setShowHelp(false); try { localStorage.setItem(HELP_KEY, '1'); } catch (e) {} }} aria-label="Close" style={{ marginLeft: 'auto', background: 'none', border: 'none', cursor: 'pointer', color: COLORS.faded }}><X size={20} /></button>
             </div>
-            <div style={{ fontSize: 14, lineHeight: 1.55, color: COLORS.ink, fontWeight: 600 }}>
-              <p style={{ margin: '0 0 9px' }}>Fill every empty square so that each <b>row</b>, each <b>column</b>, and each <b>3×3 box</b> contains the digits <b>1–9</b> with no repeats. Every board has exactly one solution.</p>
-              <p style={{ margin: '0 0 9px' }}>Tap a square, then tap a number to place it. A number that isn&rsquo;t part of the solution turns <b style={{ color: COLORS.rust }}>red</b> and counts as an error &mdash; fix it to keep going. On desktop you can also use the arrow keys and number keys.</p>
-              <p style={{ margin: '0 0 9px' }}>Turn on <b>Notes</b> (or press N) to pencil small candidates into a square. One free <b>hint</b> fills a correct number.</p>
-              <p style={{ margin: 0 }}>A clean solve with <b>no errors</b> scores a perfect 10 &mdash; every error costs a point. Ties break on fewest errors, then fastest time. Sundays are a harder Edition with fewer clues.</p>
-            </div>
+            {rulesBody}
             <button className="sd-btn" onClick={() => { setShowHelp(false); try { localStorage.setItem(HELP_KEY, '1'); } catch (e) {} }} style={{ marginTop: 14, background: COLORS.ink, color: '#fff' }}>Play</button>
           </div>
         </div>
