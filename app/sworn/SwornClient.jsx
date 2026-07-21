@@ -207,6 +207,7 @@ export default function SwornClient({ puzzles = [], forceNum = null }) {
   const [g, setG] = useState(() => freshState(N));
   const [verdict, setVerdict] = useState(null);
   const [showHelp, setShowHelp] = useState(false);
+  const [gateRules, setGateRules] = useState(false); // start tile: full rules (first-timer) vs compact start card
   const [toast, setToast] = useState(null);
   const [copied, setCopied] = useState(false);
   const [endClosed, setEndClosed] = useState(false);
@@ -227,6 +228,8 @@ export default function SwornClient({ puzzles = [], forceNum = null }) {
 
   const [showChrome, setShowChrome] = useState(false);
   const playing = g.status === 'playing';
+  const preStart = playing && !g.t0;   // not begun: show the start tile where the board goes
+  const started = playing && !!g.t0;    // clock running: show the board
   const focusMode = playing && !showChrome;
   const won = g.status === 'done' && g.wrong === 0;
   const score = g.status === 'done' ? Math.max(1, TOTAL - 2 * g.wrong) : 0;
@@ -249,11 +252,15 @@ export default function SwornClient({ puzzles = [], forceNum = null }) {
   useEffect(() => {
     try {
       const raw = localStorage.getItem(STORE_KEY);
+      let restored = null;
       if (raw) {
         const saved = JSON.parse(raw);
-        if (saved && saved.v === 1 && saved.marks && saved.marks.length === N) setG({ ...freshState(N), ...saved });
+        if (saved && saved.v === 1 && saved.marks && saved.marks.length === N) { restored = saved; setG({ ...freshState(N), ...saved }); }
       }
-      if (!localStorage.getItem(HELP_KEY)) setShowHelp(true);
+      // The start tile shows in place of the board until the player begins (t0 set
+      // on Start). First-timers see the full rules on the tile; a returning player
+      // gets the compact start card with a "Show instructions" toggle.
+      setGateRules(!localStorage.getItem(HELP_KEY));
     } catch (e) {}
     try { setStats(getStats()); } catch (e) {}
     setHydrated(true);
@@ -333,9 +340,13 @@ export default function SwornClient({ puzzles = [], forceNum = null }) {
   // the exit post once the game concludes normally (accusation or reveal).
   const REC_KEY = `sot_sworn_rec_${PUZZLE.num}`;
   const abandon = useAbandonFlush(() => {
-    if (!g.t0 || g.status !== 'playing') return null;
+    // A play counts only once the player actually acts (a mark, wrong accusation,
+    // hint, or clear). Merely opening the puzzle and dismissing the start gate does
+    // not log a 0-score attempt.
+    const acted = g.marks.some((m) => m > 0) || g.wrong > 0 || g.hintUsed || g.accusedWrong.length > 0;
+    if (!acted || g.status !== 'playing') return null;
     try { if (localStorage.getItem(REC_KEY)) return null; } catch (e) {}
-    const el = Math.min(36000, Math.max(1, Math.round((Date.now() - g.t0) / 1000)));
+    const el = Math.min(36000, Math.max(1, Math.round((Date.now() - (g.t0 || Date.now())) / 1000)));
     try { localStorage.setItem(REC_KEY, '1'); } catch (e) {}
     return { quizId: PUZZLE.quizId, score: 0, total: TOTAL, correct: 0, guessesUsed: g.wrong, timeElapsed: el, abandoned: true, email: identity?.email || undefined, anonId: getAnonId(), isMobile: isMobileDevice(), referrer: (typeof document !== 'undefined' ? document.referrer : '') };
   });
@@ -357,6 +368,13 @@ export default function SwornClient({ puzzles = [], forceNum = null }) {
         .then((d) => { if (d && !d.error) setBoard({ ...EMPTY_BOARD, ...d }); })
         .catch(() => {});
     } catch (e) {}
+  }
+
+  // Closing the start gate begins the clock (sets t0) and marks the rules as seen.
+  // A no-op once started, so re-reading the rules later never resets the timer.
+  function startInquest() {
+    setG((cur) => (cur.t0 ? cur : { ...cur, t0: Date.now() }));
+    try { localStorage.setItem(HELP_KEY, '1'); } catch (e) {}
   }
 
   function tapMark(i) {
@@ -440,6 +458,16 @@ export default function SwornClient({ puzzles = [], forceNum = null }) {
 
   const thiefName = SOLUTION ? PUZZLE.suspects[SOLUTION.thief] : '';
 
+  // Shared rules body — rendered in both the how-to-play modal and the start gate.
+  const rulesBody = (
+    <div style={{ fontSize: 14, lineHeight: 1.55, color: COLORS.ink, fontWeight: 600 }}>
+      <p style={{ margin: '0 0 9px' }}>One of the sworn is the <b>thief</b>. Each gives one statement, and you&rsquo;re told <b>exactly how many are lying</b>. Liars&rsquo; statements are false; truth-tellers&rsquo; are true.</p>
+      <p style={{ margin: '0 0 9px' }}>Test each theory: assume a suspect is the thief and see whether the lie count works out. Tap the <b>?</b> next to a name to keep scratch verdicts (truthful ✓ / lying ✗) as you go.</p>
+      <p style={{ margin: '0 0 9px' }}>When you&rsquo;re sure, hit <b>Accuse</b>. A first-try accusation is a perfect 12 &mdash; each wrong accusation costs 2.</p>
+      <p style={{ margin: 0 }}>Every case has exactly one consistent story, reachable by pure logic. Ties on the daily board break by fewest wrong accusations, then fastest time. Six are sworn for Sunday&rsquo;s Grand Inquest.</p>
+    </div>
+  );
+
   return (
     <div style={{ minHeight: '100vh', background: '#f7f8fa', position: 'relative' }}>
       <Grain />
@@ -488,16 +516,42 @@ export default function SwornClient({ puzzles = [], forceNum = null }) {
         </div>
 
         {/* status bar */}
+        {started && (
         <div style={{ display: 'flex', gap: 16, alignItems: 'center', flexWrap: 'wrap', marginBottom: 12, fontFamily: MONO, fontSize: 11.5, letterSpacing: '0.08em', textTransform: 'uppercase', color: COLORS.faded }}>
           <span>liars <b style={{ color: COLORS.ink, fontWeight: 500 }}>{PUZZLE.k}</b> of {N}</span>
           <span>marked lying <b style={{ color: liarsMarked > PUZZLE.k ? COLORS.rust : COLORS.ink, fontWeight: 500 }}>{liarsMarked}</b></span>
           <span>wrong accusations <b style={{ color: g.wrong ? COLORS.rust : COLORS.ink, fontWeight: 500 }}>{g.wrong}</b></span>
           {g.hintUsed && <span>&#128161; hint used</span>}
         </div>
+        )}
+
+        {/* start tile — sits where the board goes; the testimony stays sealed
+            (not rendered) until the player presses Start, which begins the clock. */}
+        {preStart && (
+          <div style={{ background: COLORS.cream, border: `2px solid ${COLORS.ink}`, borderRadius: 12, padding: '22px 22px', minHeight: 320, display: 'flex', flexDirection: 'column' }}>
+            <div style={{ fontSize: 20, fontWeight: 800, color: COLORS.ink, marginBottom: 10 }}>{gateRules ? 'How to play' : 'The court is ready'}</div>
+            {gateRules ? rulesBody : (
+              <div style={{ fontSize: 14, lineHeight: 1.55, color: COLORS.ink, fontWeight: 600 }}>
+                <p style={{ margin: '0 0 6px' }}>{N === 6 ? 'Six' : 'Five'} locals are under oath, and one of them is the thief. Their testimony stays sealed until you begin.</p>
+                <p style={{ margin: 0, color: COLORS.faded }}>Your time starts the moment you press Start.</p>
+              </div>
+            )}
+            <div style={{ marginTop: 'auto', paddingTop: 18 }}>
+              <button className="sw-btn" onClick={startInquest} style={{ background: COLORS.ink, color: '#fff', fontSize: 15, padding: '11px 22px' }}>Start the inquest</button>
+              <div style={{ marginTop: 10 }}>
+                <button type="button" onClick={() => setGateRules((v) => !v)} style={{ background: 'none', border: 'none', padding: 0, cursor: 'pointer', fontFamily: SANS, fontSize: 13, fontWeight: 700, color: COLORS.faded, textDecoration: 'underline' }}>
+                  {gateRules ? 'Hide instructions' : 'Show instructions'}
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
 
         {/* the testimony */}
+        {!preStart && (
         <div style={{ fontFamily: MONO, fontSize: 10.5, fontWeight: 500, textTransform: 'uppercase', letterSpacing: '0.1em', color: COLORS.faded, marginBottom: 8 }}>The testimony</div>
-        {PUZZLE.suspects.map((name, i) => {
+        )}
+        {!preStart && PUZZLE.suspects.map((name, i) => {
           const m = g.marks[i];
           const isVerified = g.verified && g.verified.x === i;
           return (
@@ -537,7 +591,7 @@ export default function SwornClient({ puzzles = [], forceNum = null }) {
             {verdict.msg}
           </div>
         )}
-        {playing && (
+        {started && (
           <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', margin: '10px 0 6px' }}>
             <button type="button" className="sw-btn" onClick={clearMarks}><Eraser size={14} /> Clear marks</button>
             {!identity && !g.hintUsed && (
@@ -692,12 +746,7 @@ export default function SwornClient({ puzzles = [], forceNum = null }) {
               <div style={{ fontSize: 21, fontWeight: 800, color: COLORS.ink }}>How to play</div>
               <button onClick={() => { setShowHelp(false); try { localStorage.setItem(HELP_KEY, '1'); } catch (e) {} }} aria-label="Close" style={{ marginLeft: 'auto', background: 'none', border: 'none', cursor: 'pointer', color: COLORS.faded }}><X size={20} /></button>
             </div>
-            <div style={{ fontSize: 14, lineHeight: 1.55, color: COLORS.ink, fontWeight: 600 }}>
-              <p style={{ margin: '0 0 9px' }}>One of the sworn is the <b>thief</b>. Each gives one statement, and you&rsquo;re told <b>exactly how many are lying</b>. Liars&rsquo; statements are false; truth-tellers&rsquo; are true.</p>
-              <p style={{ margin: '0 0 9px' }}>Test each theory: assume a suspect is the thief and see whether the lie count works out. Tap the <b>?</b> next to a name to keep scratch verdicts (truthful ✓ / lying ✗) as you go.</p>
-              <p style={{ margin: '0 0 9px' }}>When you&rsquo;re sure, hit <b>Accuse</b>. A first-try accusation is a perfect 12 &mdash; each wrong accusation costs 2.</p>
-              <p style={{ margin: 0 }}>Every case has exactly one consistent story, reachable by pure logic. Ties on the daily board break by fewest wrong accusations, then fastest time. Six are sworn for Sunday&rsquo;s Grand Inquest.</p>
-            </div>
+            {rulesBody}
             <button className="sw-btn" onClick={() => { setShowHelp(false); try { localStorage.setItem(HELP_KEY, '1'); } catch (e) {} }} style={{ marginTop: 14, background: COLORS.ink, color: '#fff' }}>Play</button>
           </div>
         </div>
