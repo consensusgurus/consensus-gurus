@@ -106,6 +106,11 @@ function FlipFace({ it, back, active }) {
   const turn = back ? 'rotateY(180deg)' : 'none';
   if (!it) return <div className="hsface" style={{ transform: turn }} />;
   const Icon = it.Icon;
+  // The photo lives on its OWN layer, inset -2px, rather than on the face's
+  // background. The face clips it (overflow:hidden), so the outermost ring of
+  // the image is cropped away and the tile's top edge can never show the raw
+  // image edge, the border seam, or the compositor's antialiased boundary --
+  // that was the discoloured strip across the top of every tile (2026-07-21).
   const bg = it.hero
     ? { backgroundImage: `url("${it.hero}")`, backgroundPosition: it.pos || 'center' }
     : { background: it.accent || '#0e1d40' };
@@ -115,8 +120,9 @@ function FlipFace({ it, back, active }) {
       className="hsface"
       tabIndex={active ? undefined : -1}
       aria-hidden={active ? undefined : 'true'}
-      style={{ transform: turn, pointerEvents: active ? 'auto' : 'none', ...bg }}
+      style={{ transform: turn, pointerEvents: active ? 'auto' : 'none' }}
     >
+      <span className="hsface-ph" style={bg} />
       <span className="ttile-tag" style={{ color: it.tagColor, whiteSpace: 'nowrap' }}>
         {Icon ? <Icon size={11} style={{ verticalAlign: -1 }} /> : null} {it.tag}
       </span>

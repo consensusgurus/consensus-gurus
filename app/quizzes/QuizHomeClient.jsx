@@ -1232,7 +1232,13 @@ export default function QuizHomeClient() {
        Rotation/duration/easing match DuelTile so the header reads as one system. */
     .qzh .hsflip-wrap{background:transparent !important;background-color:transparent !important;border:0 !important;overflow:visible;perspective:1100px;}
     .qzh .hsflip{position:relative;flex:1;width:100%;transform-style:preserve-3d;transition:transform .65s cubic-bezier(.3,.7,.25,1);}
-    .qzh .hsface{position:absolute;inset:0;backface-visibility:hidden;-webkit-backface-visibility:hidden;border:1px solid ${C.line};border-radius:14px;overflow:hidden;text-decoration:none;display:flex;flex-direction:column;justify-content:flex-end;background-size:cover;background-position:center;background-color:#0e1d40;}
+    .qzh .hsface{position:absolute;inset:0;backface-visibility:hidden;-webkit-backface-visibility:hidden;border:0;border-radius:14px;overflow:hidden;text-decoration:none;display:flex;flex-direction:column;justify-content:flex-end;background-color:#0e1d40;box-shadow:inset 0 0 0 1px ${C.line};}
+    /* The photo sits on its own layer, 2px PROUD of the face on every side, and
+       the face clips it. So the visible top edge is always interior image, never
+       the image's own first row, the border seam, or the composited layer's
+       antialiased boundary -- that combination was rendering as a discoloured
+       strip across the top of every tile. Costs a ~2% centre crop, invisible. */
+    .qzh .hsface-ph{position:absolute;inset:-2px;z-index:0;background-size:cover;background-position:center;background-repeat:no-repeat;}
     .qzh .hsflip-dots{position:absolute;right:11px;bottom:9px;z-index:3;display:flex;gap:4px;pointer-events:none;}
     .qzh .hsflip-dot{width:5px;height:5px;border-radius:50%;background:rgba(255,255,255,0.4);transition:background .3s;}
     .qzh .hsflip-dot.on{background:#fff;}
