@@ -11,7 +11,7 @@ import SourcesGrid from './SourcesGrid';
 // outside click for keyboard and touch users.
 // `emphasis` (V2 homepage): renders the trigger bold with a solid ember
 // underline instead of the default dotted underline. Default unchanged.
-export default function SourcesPopover({ label, emphasis, align, href, onDark }) {
+export default function SourcesPopover({ label, emphasis, align, href, onDark, plain }) {
   const [open, setOpen] = useState(false);
   const wrapRef = useRef(null);
   const closeTimer = useRef(null);
@@ -59,7 +59,7 @@ export default function SourcesPopover({ label, emphasis, align, href, onDark })
           fontWeight: emphasis ? 700 : 'inherit',
           // Underline via text-decoration (not a border-bottom) so wrapped lines
           // keep even spacing. Emphasis = solid blue; default = dotted blue.
-          textDecoration: 'underline',
+          textDecoration: plain ? 'none' : 'underline',
           // On the dark blue header band a blue underline is invisible, so render a
           // faint white underline there; default stays blue (dotted/solid) on light bg.
           textDecorationStyle: (onDark || emphasis) ? 'solid' : 'dotted',

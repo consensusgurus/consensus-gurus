@@ -17,6 +17,15 @@ import { EXAM_ORDER } from './exams/examData';
 const C = { ink: '#1c1e24', accent: '#0e1d40', muted: '#6b7280', line: 'rgba(20,22,28,0.09)' };
 const FONT = "'Manrope', system-ui, -apple-system, sans-serif";
 const SOURCE_COUNT = getAllSources().length;
+
+// Header tagline. The Top 10 Lists section keeps the consensus line; everywhere
+// else carries the site slogan (owner rule, July 2026). Neither is underlined.
+function HeaderTagline({ active }) {
+  if (active === 'lists') {
+    return <>Where <SourcesPopover align="left" onDark plain href="/experts-and-aggregators" label={`${SOURCE_COUNT.toLocaleString()} Experts and Aggregators`} /> Agree</>;
+  }
+  return <>Exercise Your Mind</>;
+}
 export const LIST_COUNT = LISTS.length;
 // Total "quizzes" shown in the header: trivia quizzes + live Kids Corner games
 // + exam practice tests.
@@ -96,7 +105,7 @@ function CommandHeader({ active, search, onSearch, sortBy, onSort, sortButtons, 
         @import url('https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap');
         .shc{width:100vw;margin-left:calc(50% - 50vw);}
         .shc-bar{display:flex;align-items:center;gap:12px;min-height:56px;padding:9px clamp(14px,2vw,24px);background:linear-gradient(100deg,#14294d,#0a1730);}
-        .shc-word{font-size:18px;font-weight:800;letter-spacing:-0.025em;line-height:1;color:#fff;text-decoration:underline;text-decoration-color:rgba(255,255,255,0.35);text-underline-offset:3px;text-decoration-thickness:1px;white-space:nowrap;flex:none;}
+        .shc-word{font-size:18px;font-weight:800;letter-spacing:-0.025em;line-height:1;color:#fff;text-decoration:none;white-space:nowrap;flex:none;}
         .shc-word em{font-style:normal;color:#c9ced8;font-weight:600;}
         .shc-ws{display:none;}
         .shc-src{font-size:9.5px;font-weight:800;letter-spacing:normal;text-transform:uppercase;color:#fff;flex:none;}
@@ -146,7 +155,7 @@ function CommandHeader({ active, search, onSearch, sortBy, onSort, sortButtons, 
       <div className="shc-bar">
         <Link href="/" className="shc-brandlogo" style={{ flex: 'none', display: 'flex' }} aria-label="Source of Truths home"><CommandLogo size={30} /></Link>
         <Link href="/" className="shc-word"><span className="shc-wl">Source <em>of</em> Truths</span><span className="shc-ws">S<em>o</em>T</span></Link>
-        <span className="shc-src">Where <SourcesPopover align="left" onDark href="/experts-and-aggregators" label={`${SOURCE_COUNT.toLocaleString()} Experts and Aggregators`} /> Agree</span>
+        <span className="shc-src"><HeaderTagline active={active} /></span>
         {showSearch && (
           <div className="shc-search" onClick={(e) => e.stopPropagation()}>
             <Search size={15} strokeWidth={2.4} />
@@ -243,8 +252,8 @@ export default function SiteHeader({ active = 'lists', maxWidth = 1180, visitors
             <div className="sh-brand">
               <Link href="/" style={{ flex: 'none', display: 'flex' }} aria-label="Source of Truths home"><Logo size={34} /></Link>
               <span style={{ display: 'flex', flexDirection: 'row', alignItems: 'baseline', gap: 8, flexWrap: 'nowrap' }}>
-                <Link href="/" className="sh-word" style={{ textDecoration: 'underline', textDecorationColor: 'rgba(255,255,255,0.35)', textUnderlineOffset: '3px', textDecorationThickness: '1px', color: '#fff' }}><span className="sh-word-full">Source <span style={{ color: '#c9ced8', fontWeight: 600 }}>of</span> Truths</span><span className="sh-word-sot">S<span style={{ color: '#c9ced8', fontWeight: 600 }}>o</span>T</span></Link>
-                <span className="sh-tag" style={{ fontSize: 9.5, fontWeight: 800, letterSpacing: 'normal', textTransform: 'uppercase', color: '#fff', marginTop: 0 }}>Where <SourcesPopover align="left" onDark href="/experts-and-aggregators" label={`${SOURCE_COUNT.toLocaleString()} Experts and Aggregators`} /> Agree</span>
+                <Link href="/" className="sh-word" style={{ textDecoration: 'none', color: '#fff' }}><span className="sh-word-full">Source <span style={{ color: '#c9ced8', fontWeight: 600 }}>of</span> Truths</span><span className="sh-word-sot">S<span style={{ color: '#c9ced8', fontWeight: 600 }}>o</span>T</span></Link>
+                <span className="sh-tag" style={{ fontSize: 9.5, fontWeight: 800, letterSpacing: 'normal', textTransform: 'uppercase', color: '#fff', marginTop: 0 }}><HeaderTagline active={active} /></span>
               </span>
             </div>
             <div className="sh-right">

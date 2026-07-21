@@ -89,7 +89,7 @@ export default function QuizCommandHeader({ search, onSearch, me, onSignup, tick
       <style>{`
         @import url('https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap');
         .qch-bar{display:flex;align-items:center;gap:12px;min-height:56px;padding:9px clamp(14px,2vw,24px);background:linear-gradient(100deg,#14294d,#0a1730);}
-        .qch-word{font-size:18px;font-weight:800;letter-spacing:-0.025em;line-height:1;color:#fff;text-decoration:underline;text-decoration-color:rgba(255,255,255,0.35);text-underline-offset:3px;text-decoration-thickness:1px;white-space:nowrap;flex:none;}
+        .qch-word{font-size:18px;font-weight:800;letter-spacing:-0.025em;line-height:1;color:#fff;text-decoration:none;white-space:nowrap;flex:none;}
         .qch-word em{font-style:normal;color:#c9ced8;font-weight:600;}
         .qch-ws{display:none;}
         .qch-src{font-size:9.5px;font-weight:800;letter-spacing:normal;text-transform:uppercase;color:#fff;flex:none;}
@@ -152,7 +152,7 @@ export default function QuizCommandHeader({ search, onSearch, me, onSignup, tick
       <div className="qch-bar">
         <Link href="/" className="qch-brandlogo" style={{ flex: 'none', display: 'flex' }} aria-label="Source of Truths home"><Logo size={30} /></Link>
         <Link href="/" className="qch-word"><span className="qch-wl">Source <em>of</em> Truths</span><span className="qch-ws">S<em>o</em>T</span></Link>
-        <span className="qch-src"><SourcesPopover align="left" onDark href="/experts-and-aggregators" label={`${SOURCE_COUNT.toLocaleString()} Experts and Aggregators`} /></span>
+        <span className="qch-src">Exercise Your Mind</span>
         <div className="qch-search">
           <SearchIcon />
           <input value={search} onChange={(e) => onSearch(e.target.value)} placeholder={`Search ${QUIZ_COUNT.toLocaleString()} quizzes…`} aria-label="Search quizzes" autoComplete="off" />
