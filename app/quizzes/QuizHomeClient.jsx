@@ -1202,7 +1202,7 @@ export default function QuizHomeClient() {
     .qzh .dtile-name{flex:1 1 auto;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
     .qzh .dtile-cta{margin-top:auto;display:flex;align-items:center;justify-content:center;gap:10px;background:${C.cta};color:${C.ctaInk};border-radius:10px;padding:9px 12px;font-weight:800;font-size:12.5px;text-decoration:none;}
     .qzh .dtile-cta-go{display:inline-flex;align-items:center;gap:6px;flex:none;font-size:13.5px;font-weight:900;letter-spacing:0.01em;}
-    .qzh .dtile-cta-ldr{display:inline-flex;align-items:center;gap:6px;min-width:0;flex:1;justify-content:flex-end;padding-left:10px;border-left:1px solid rgba(28,30,36,0.25);}
+    .qzh .dtile-cta-ldr{display:inline-flex;align-items:center;gap:6px;min-width:0;flex:1;justify-content:center;padding:0 6px 0 10px;border-left:1px solid rgba(28,30,36,0.25);}
     .qzh .dtile-cta-nm{min-width:0;font-size:13.5px;font-weight:900;letter-spacing:0.01em;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
     .qzh .lbtile{background:#fff;border:1px solid ${C.line};border-radius:14px;padding:12px 15px;flex:1;display:flex;flex-direction:column;min-height:132px;overflow:hidden;}
     .qzh .lbtile-head{display:flex;align-items:center;gap:7px;margin-bottom:6px;}
