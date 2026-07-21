@@ -595,7 +595,6 @@ export default function TallyClient({ puzzles = [], forceNum = null }) {
             {gateRules ? rulesBody : (
               <div style={{ fontSize: 14, lineHeight: 1.55, color: COLORS.ink, fontWeight: 600 }}>
                 <p style={{ margin: '0 0 6px' }}>Fill the grid from the rack so every row and column adds up to its target.</p>
-                <p style={{ margin: 0, color: COLORS.faded }}>Your time starts the moment you press Start.</p>
               </div>
             )}
             <div style={{ marginTop: 18 }}>

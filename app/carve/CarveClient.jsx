@@ -660,7 +660,6 @@ export default function CarveClient({ puzzles = [], forceNum = null }) {
             {gateRules ? rulesBody : (
               <div style={{ fontSize: 14, lineHeight: 1.55, color: COLORS.ink, fontWeight: 600 }}>
                 <p style={{ margin: '0 0 6px' }}>Carve the grid into connected blocks that each add up to the same target.</p>
-                <p style={{ margin: 0, color: COLORS.faded }}>Your time starts the moment you press Start.</p>
               </div>
             )}
             <div style={{ marginTop: 18 }}>

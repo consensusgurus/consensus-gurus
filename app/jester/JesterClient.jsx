@@ -564,7 +564,6 @@ export default function JesterClient({ puzzles = [], forceNum = null }) {
             {gateRules ? rulesBody : (
               <div style={{ fontSize: 14, lineHeight: 1.55, color: COLORS.ink, fontWeight: 600 }}>
                 <p style={{ margin: '0 0 6px' }}>Seat one jester in every row, column and colored court, with none touching. The board stays covered until you begin.</p>
-                <p style={{ margin: 0, color: COLORS.faded }}>Your time starts the moment you press Start.</p>
               </div>
             )}
             <div style={{ marginTop: 18 }}>

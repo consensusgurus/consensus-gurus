@@ -577,7 +577,6 @@ export default function CipherClient({ puzzles = [], forceNum = null }) {
             {gateRules ? rulesBody : (
               <div style={{ fontSize: 14, lineHeight: 1.55, color: COLORS.ink, fontWeight: 600 }}>
                 <p style={{ margin: '0 0 6px' }}>Assign a different digit to every letter so the addition works out. The equation stays sealed until you begin.</p>
-                <p style={{ margin: 0, color: COLORS.faded }}>Your time starts the moment you press Start.</p>
               </div>
             )}
             <div style={{ marginTop: 18 }}>

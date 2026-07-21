@@ -717,7 +717,6 @@ export default function OutwitClient({ puzzles = [], forceNum = null }) {
             {gateRules ? rulesBody : (
               <div style={{ fontSize: 14, lineHeight: 1.55, color: COLORS.ink, fontWeight: 600 }}>
                 <p style={{ margin: '0 0 6px' }}>Five prompts, no right answers. You score by reading today&rsquo;s crowd.</p>
-                <p style={{ margin: 0, color: COLORS.faded }}>Your time starts the moment you press Start.</p>
               </div>
             )}
             <div style={{ marginTop: 18 }}>

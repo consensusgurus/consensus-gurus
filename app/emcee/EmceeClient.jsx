@@ -594,7 +594,7 @@ export default function EmceeClient({ puzzles = [], forceNum = null }) {
     <div style={{ fontSize: 14, lineHeight: 1.55, color: COLORS.ink, fontWeight: 600 }}>
       <p style={{ margin: '0 0 9px' }}>Emcee is a <b>mini crossword</b>: fill every square using the numbered <b>Across</b> and <b>Down</b> clues. Tap a square to select its word, tap it again to flip direction, and type. On a keyboard, <b>space</b> flips direction and <b>tab</b> jumps to the next clue.</p>
       <p style={{ margin: '0 0 9px' }}>The grid <b>checks itself</b> the moment the last square is filled. A perfect fill wins on the spot; a wrong one marks the misses <b style={{ color: COLORS.rust }}>red</b> and counts a <b>check</b> against you.</p>
-      <p style={{ margin: '0 0 9px' }}>One free <b>hint</b> reveals a letter. The clock starts on your first letter and stops when the grid is right.</p>
+      <p style={{ margin: '0 0 9px' }}>One free <b>hint</b> reveals a letter.</p>
       <p style={{ margin: 0 }}>Finish the grid for a full score. On the daily board, ties break on <b>fewest checks</b>, then <b>fastest time</b> &mdash; so a clean, quick solve is the crown. Sundays go bigger: a 7&times;7 grid.</p>
     </div>
   );
@@ -654,8 +654,7 @@ export default function EmceeClient({ puzzles = [], forceNum = null }) {
             <div style={{ fontSize: 20, fontWeight: 800, color: COLORS.ink, marginBottom: 10 }}>{gateRules ? 'How to play' : 'Emcee is ready'}</div>
             {gateRules ? rulesBody : (
               <div style={{ fontSize: 14, lineHeight: 1.55, color: COLORS.ink, fontWeight: 600 }}>
-                <p style={{ margin: '0 0 6px' }}>A mini crossword: fill every square from the numbered Across and Down clues, against the clock.</p>
-                <p style={{ margin: 0, color: COLORS.faded }}>Your time starts the moment you press Start.</p>
+                <p style={{ margin: '0 0 6px' }}>A mini crossword: fill every square from the numbered Across and Down clues.</p>
               </div>
             )}
             <div style={{ marginTop: 18 }}>
