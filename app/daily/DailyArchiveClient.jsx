@@ -115,6 +115,7 @@ function computeStreak(games, played) {
 export default function DailyArchiveClient({ games = [], today = '' }) {
   const [played, setPlayed] = useState(() => new Set());
   const [completed, setCompleted] = useState(() => new Set());
+  const [progress, setProgress] = useState(() => new Set()); // started today, not finished
   const [ready, setReady] = useState(false);
   const [combined, setCombined] = useState(null);
 
@@ -145,15 +146,17 @@ export default function DailyArchiveClient({ games = [], today = '' }) {
     let alive = true;
     const pl = new Set();
     const cp = new Set();
+    const pg = new Set();
     const byQuiz = {};
     for (const g of games) {
       for (const p of g.puzzles) {
         if (p.quizId) byQuiz[p.quizId] = `${g.key}:${p.num}`;
-        let finished = false, won = false;
+        let finished = false, won = false, hasSave = false;
         for (const k of keysFor(g.key, p.num, p.rev)) {
           let raw = null;
           try { raw = localStorage.getItem(k); } catch (e) {}
           if (!raw) continue;
+          hasSave = true;
           let st = null;
           try { st = (JSON.parse(raw) || {}).status; } catch (e) {}
           // "Played" = a FINISHED attempt (won or lost), never a game merely
@@ -164,11 +167,13 @@ export default function DailyArchiveClient({ games = [], today = '' }) {
           if (st === 'won') won = true;
         }
         if (finished) pl.add(`${g.key}:${p.num}`);
+        else if (hasSave) pg.add(`${g.key}:${p.num}`); // a save exists but the game is not finished
         if (won) cp.add(`${g.key}:${p.num}`);
       }
     }
     setPlayed(new Set(pl));
     setCompleted(new Set(cp));
+    setProgress(new Set(pg));
     setReady(true);
 
     let anonId = null, email = null;
@@ -183,11 +188,14 @@ export default function DailyArchiveClient({ games = [], today = '' }) {
       .then((r) => r.json())
       .then((d) => {
         if (!alive || !d) return;
-        const p2 = new Set(pl), c2 = new Set(cp);
+        const p2 = new Set(pl), c2 = new Set(cp), g2 = new Set(pg);
         for (const qid of (d.played || [])) { const k = byQuiz[qid]; if (k) p2.add(k); }
         for (const qid of (d.completed || [])) { const k = byQuiz[qid]; if (k) c2.add(k); }
+        for (const qid of (d.abandoned || [])) { const k = byQuiz[qid]; if (k) g2.add(k); }
+        for (const k of p2) g2.delete(k); // a finished game is never "in progress"
         setPlayed(p2);
         setCompleted(c2);
+        setProgress(g2);
       })
       .catch(() => {});
 
@@ -211,6 +219,7 @@ export default function DailyArchiveClient({ games = [], today = '' }) {
   const todayNum = (g) => (g.puzzles[0] ? g.puzzles[0].num : null);
   const isPlayedToday = (g) => { const n = todayNum(g); return n != null && played.has(`${g.key}:${n}`); };
   const isDoneToday = (g) => { const n = todayNum(g); return n != null && completed.has(`${g.key}:${n}`); };
+  const isResumeToday = (g) => { const n = todayNum(g); return n != null && progress.has(`${g.key}:${n}`) && !played.has(`${g.key}:${n}`); };
 
   // Only games running a puzzle TODAY count toward the day's tallies. A retired
   // game (e.g. Circa, last drop 2026-07-20) keeps its archive, its category
@@ -500,15 +509,21 @@ export default function DailyArchiveClient({ games = [], today = '' }) {
           <div className="dl-alldone"><b>&#9733; All caught up.</b> You&rsquo;ve played every game today. The archives below are always open.</div>
         ) : (
           <div className="dl-rail">
-            {(ready ? stillToPlay : activeGames).slice(0, 12).map((g) => (
-              <a key={g.key} className="dl-railcard" href={g.path} aria-label={`Play ${g.name} today`}>
+            {(ready ? stillToPlay : activeGames).slice(0, 12).map((g) => {
+              const resume = ready && isResumeToday(g);
+              return (
+              <a key={g.key} className="dl-railcard" href={g.path} aria-label={`${resume ? 'Resume' : 'Play'} ${g.name} today`}>
                 <GameArt g={g} size={36} />
                 <span style={{ minWidth: 0 }}>
                   <span style={{ display: 'block', fontSize: 14, fontWeight: 800, letterSpacing: '-0.3px', color: INK, lineHeight: 1.1 }}>{g.name}</span>
-                  <span style={{ display: 'block', fontFamily: MONO, fontSize: 9, letterSpacing: '0.05em', textTransform: 'uppercase', color: FADED, marginTop: 2 }}>Play today →</span>
+                  <span style={{ display: 'flex', alignItems: 'center', gap: 4, fontFamily: MONO, fontSize: 9, letterSpacing: '0.05em', textTransform: 'uppercase', color: resume ? '#b9791a' : FADED, marginTop: 2 }}>
+                    {resume ? (
+                      <><svg viewBox="0 0 12 12" width="10" height="10" fill="none" style={{ flex: 'none' }} aria-hidden="true"><circle cx="6" cy="6" r="4" stroke="#e0b866" strokeWidth="1.8" /><path d="M6 2 A4 4 0 0 1 6 10" stroke="#d98a1f" strokeWidth="1.8" strokeLinecap="round" /></svg>Resume →</>
+                    ) : 'Play today →'}
+                  </span>
                 </span>
               </a>
-            ))}
+            );})}
           </div>
         )}
 
@@ -531,6 +546,7 @@ export default function DailyArchiveClient({ games = [], today = '' }) {
                   ready={ready}
                   played={played}
                   completed={completed}
+                  progress={progress}
                   board={boardsByKey[g.key]}
                   overall={combined ? combined.overall : null}
                   me={me}
@@ -567,13 +583,15 @@ function GameArt({ g, size = 52 }) {
 }
 
 // ---------------------------------------------------------------- one game card
-function GameCard({ g, ready, played, completed, board, overall, me, myKey, maxTotal, gameMax, gameCount, combinedReady }) {
+function GameCard({ g, ready, played, completed, progress, board, overall, me, myKey, maxTotal, gameMax, gameCount, combinedReady }) {
   const [panel, setPanel] = useState(null); // null | 'standings' | 'archive'
   const [tab, setTab] = useState('game');
   const toggle = (p) => setPanel((cur) => (cur === p ? null : p));
 
   const navy = NAVY_ACCENT[g.key] || '#93a7cc';
   const playedCount = g.puzzles.reduce((n, p) => n + (played.has(`${g.key}:${p.num}`) ? 1 : 0), 0);
+  const todayN = g.puzzles[0] ? g.puzzles[0].num : null;
+  const resumeToday = todayN != null && progress && progress.has(`${g.key}:${todayN}`) && !played.has(`${g.key}:${todayN}`);
   const leader = board && board.board && board.board[0];
   const myRow = myKey && board && board.board ? board.board.find((r) => r.userKey === myKey) : null;
   const todayQuiz = g.puzzles[0] && g.puzzles[0].quizId;
@@ -593,6 +611,7 @@ function GameCard({ g, ready, played, completed, board, overall, me, myKey, maxT
         <div className="dl-cstat">
           <span><b>{g.puzzles.length}</b> puzzles</span>
           {ready && playedCount > 0 && <><span className="dot">·</span><span><b>{playedCount}</b> played</span></>}
+          {ready && resumeToday && <><span className="dot">·</span><span style={{ color: '#b9791a', fontWeight: 700 }}>resume today</span></>}
           {leader && <><span className="dot">·</span><span><span className="dl-crown" aria-hidden="true">♛</span> led by <b>{leader.username}</b></span></>}
         </div>
 

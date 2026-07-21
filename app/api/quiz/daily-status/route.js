@@ -29,31 +29,34 @@ export async function GET(request) {
     const ident = await findQuizIdentity(supabaseAdmin, { email, anonId });
     if (ident && ident.id) myKey = `u:${ident.id}`;
     else if (anonId) myKey = `a:${anonId}`;
-    if (!myKey) return NextResponse.json({ played: [], completed: [] }, { headers: CACHE_HEADERS });
+    if (!myKey) return NextResponse.json({ played: [], completed: [], abandoned: [] }, { headers: CACHE_HEADERS });
 
     const { data, error } = await loadQuizResultsCached(supabaseAdmin);
     if (error) {
       console.error('daily-status error', error);
-      return NextResponse.json({ played: [], completed: [] });
+      return NextResponse.json({ played: [], completed: [], abandoned: [] });
     }
     const played = new Set();
     const completed = new Set();
+    const abandonedOnly = new Set();
     for (const r of (data || [])) {
       const qid = r && r.quiz_id;
       if (!qid || !DAILY_RE.test(qid)) continue;
-      // An abandoned in-progress row (the player opened the board, made a move,
-      // then left before finishing) is NOT a played game. It still counts as a
-      // play for the leaderboard fallback in daily-combined, but the daily
-      // "played/completed" marks should reflect finished attempts only.
-      if (r.abandoned) continue;
       const pk = r.user_id ? `u:${r.user_id}` : (r.anon_id ? `a:${r.anon_id}` : null);
       if (pk !== myKey) continue;
+      // An abandoned in-progress row (opened the board, made a move, then left
+      // before finishing) is NOT a played game. It still counts as a play for
+      // the leaderboard fallback in daily-combined, but here it is reported
+      // separately as `abandoned` (started, not finished), never played/completed.
+      if (r.abandoned) { abandonedOnly.add(qid); continue; }
       played.add(qid);
       if (r.total > 0 && r.score === r.total) completed.add(qid);
     }
-    return NextResponse.json({ played: [...played], completed: [...completed] }, { headers: CACHE_HEADERS });
+    // Report a game as abandoned only when the player never finished it.
+    const abandoned = [...abandonedOnly].filter((q) => !played.has(q));
+    return NextResponse.json({ played: [...played], completed: [...completed], abandoned }, { headers: CACHE_HEADERS });
   } catch (e) {
     console.error('daily-status exception', e);
-    return NextResponse.json({ played: [], completed: [] });
+    return NextResponse.json({ played: [], completed: [], abandoned: [] });
   }
 }

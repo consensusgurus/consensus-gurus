@@ -63,6 +63,7 @@ function fmtPts(x) { const v = Math.round(Number(x) * 10) / 10; return Number.is
 
 export default function DailyStrip({ board = null }) {
   const [done, setDone] = useState(() => new Set());
+  const [inprog, setInprog] = useState(() => new Set());
   const [open, setOpen] = useState(false);
   const [hist, setHist] = useState(null); // recent daily champions, from /api/quiz/daily-history
   // Sunday chip: Sundays (ET) only, and only on games that run a real Sunday
@@ -77,13 +78,15 @@ export default function DailyStrip({ board = null }) {
   useEffect(() => {
     const today = etToday();
     const d = new Set();
+    const ip = new Set();
     for (const g of GAMES) {
       try {
         const c = JSON.parse(localStorage.getItem(g.store) || 'null');
-        if (c && c.d === today && c.done) d.add(g.key);
+        if (c && c.d === today) { if (c.done) d.add(g.key); else ip.add(g.key); }
       } catch (e) {}
     }
     if (d.size) setDone(d);
+    if (ip.size) setInprog(ip);
   }, []);
 
   // cross-device: the signed-in player's finished-today set from the server
@@ -104,11 +107,20 @@ export default function DailyStrip({ board = null }) {
         const yy = Y % 100;
         const completed = new Set(data.completed || []);
         const played = new Set(data.played || []);
+        const abandoned = new Set(data.abandoned || []);
         setDone((cur) => {
           const next = new Set(cur);
           for (const g of GAMES) {
             const id = `${g.key}-${M}-${D}-${yy}`;
             if (completed.has(id) || played.has(id)) next.add(g.key);
+          }
+          return next;
+        });
+        setInprog((cur) => {
+          const next = new Set(cur);
+          for (const g of GAMES) {
+            const id = `${g.key}-${M}-${D}-${yy}`;
+            if (abandoned.has(id) && !completed.has(id) && !played.has(id)) next.add(g.key);
           }
           return next;
         });
@@ -203,6 +215,7 @@ export default function DailyStrip({ board = null }) {
         .dstrip-cell.done .nm{color:#9fb0d4;}
         .dstrip-sun{position:absolute;top:5px;left:5px;font-family:'DM Mono',ui-monospace,monospace;font-size:8.5px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:#04121f;background:#f8b84a;border-radius:3px;padding:0 3px;line-height:1.5;pointer-events:none;}
         .dstrip-check{position:absolute;top:5px;right:5px;width:16px;height:16px;border-radius:99px;background:#34d399;display:flex;align-items:center;justify-content:center;box-shadow:0 0 0 2px #0e1d40;pointer-events:none;}
+        .dstrip-prog{position:absolute;top:5px;right:5px;width:16px;height:16px;border-radius:99px;background:#12233f;display:flex;align-items:center;justify-content:center;box-shadow:0 0 0 2px #0e1d40;pointer-events:none;}
         .dstrip-lead{margin-top:2px;display:flex;align-items:center;gap:3px;max-width:100%;min-width:0;font-size:10px;font-weight:700;color:#eaf0fb;}
         .dstrip-lead svg{color:#e8b43a;flex:none;}
         .dstrip-lead > span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
@@ -328,10 +341,18 @@ export default function DailyStrip({ board = null }) {
             {games.map((g) => {
               const lead = hasBoard && byKey[g.key] && byKey[g.key].board && byKey[g.key].board[0] ? byKey[g.key].board[0].username : null;
               return (
-                <a key={g.key} href={g.href} className={`dstrip-cell${done.has(g.key) ? ' done' : ''}`} title={`${g.name} — ${g.tag}`} aria-label={`${g.name} — ${g.tag}${isSunday && hasSundayEdition(g.key) ? ' — Sunday edition' : ''}${done.has(g.key) ? ' — done today' : ''} — daily game`}>
+                <a key={g.key} href={g.href} className={`dstrip-cell${done.has(g.key) ? ' done' : ''}`} title={`${g.name} — ${g.tag}`} aria-label={`${g.name} — ${g.tag}${isSunday && hasSundayEdition(g.key) ? ' — Sunday edition' : ''}${done.has(g.key) ? ' — done today' : ''}${!done.has(g.key) && inprog.has(g.key) ? ' — started, not finished' : ''} — daily game`}>
                   {done.has(g.key) && (
                     <span className="dstrip-check" aria-hidden="true">
                       <svg viewBox="0 0 12 12" width="9" height="9" fill="none"><path d="M2.5 6.2 L5 8.6 L9.5 3.6" stroke="#04121f" strokeWidth="2.1" strokeLinecap="round" strokeLinejoin="round" /></svg>
+                    </span>
+                  )}
+                  {!done.has(g.key) && inprog.has(g.key) && (
+                    <span className="dstrip-prog" aria-hidden="true" title="Started, not finished — resume">
+                      <svg viewBox="0 0 12 12" width="11" height="11" fill="none">
+                        <circle cx="6" cy="6" r="4" stroke="#6b5a29" strokeWidth="1.8" />
+                        <path d="M6 2 A4 4 0 0 1 6 10" stroke="#f8b84a" strokeWidth="1.8" strokeLinecap="round" />
+                      </svg>
                     </span>
                   )}
                   {isSunday && hasSundayEdition(g.key) ? (
