@@ -6,6 +6,7 @@ import { QUIZ_COUNT } from '../SiteHeader';
 import QuizCommandHeader from './QuizCommandHeader';
 import DuelTile from './DuelTile';
 import CommunityTile from './CommunityTile';
+import FeaturedFlipTile from './FeaturedFlipTile';
 import {
   Search, ChevronDown, ArrowRight, BarChart3, Crown, Sparkles, Flame,
   BadgeCheck, Clapperboard, Music, Gamepad2, Plane, Globe, Utensils,
@@ -926,37 +927,18 @@ export default function QuizHomeClient() {
   if (tHero && tHero === nHero) { tHero = DEPT_HERO_ALT[trending.dept] || FALLBACK_HERO; tHeroPos = undefined; }
   const [ttileProbeRef, ttilePill] = usePillProbe(tHero, PILL_REGION_FOOTER, 0.72, true);
 
-  // ── Daily-rotating category hero tiles ────────────────────────────────────
-  // "Top Geo Guesser" cycles through the Geo Guesser games; "Top Sports" cycles
-  // through Sports quizzes. Both advance once per Eastern day (midnight ET) and
-  // are ordered by 7-day plays so the most-trending surfaces first in the cycle.
+  // ── Featured flip tiles: rotation day ─────────────────────────────────────
+  // The two featured tiles used to show ONE pick per Eastern day. They now flip
+  // through a POOL of picks (see geoFaces / featFaces below, built after the
+  // browse-column heroes so they can exclude them); rotDay only decides where in
+  // each pool the rotation STARTS, so the opening face still changes daily.
   // [[timezone: rotations key off easternYmd, never the sandbox UTC clock]]
   const rotDay = useMemo(() => {
     try { return Math.round((Date.parse(easternYmd() + 'T00:00:00.000Z') - Date.parse('2026-07-01T00:00:00.000Z')) / 86400000); }
     catch { return 0; }
   }, []);
   const wkPlays = (id) => (totals.recent7 && totals.recent7[id]) || 0;
-  const pickDaily = (pool) => (pool.length ? pool[((rotDay % pool.length) + pool.length) % pool.length] : null);
-  const geoPick = useMemo(() => {
-    const excl = new Set([qotd && qotd.id, newest[0] && newest[0].id, trending && trending.id].filter(Boolean));
-    const pool = catalog.filter((q) => /geo-guesser/.test(q.id) && !excl.has(q.id))
-      .sort((a, b) => wkPlays(b.id) - wkPlays(a.id) || plays(b.id) - plays(a.id) || (a.title || '').localeCompare(b.title || ''));
-    return pickDaily(pool);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [catalog, totals, rotDay, qotd, newest, trending]);
-  const sportsPick = useMemo(() => {
-    const excl = new Set([qotd && qotd.id, newest[0] && newest[0].id, trending && trending.id, geoPick && geoPick.id].filter(Boolean));
-    const pool = catalog.filter((q) => q.dept === 'sports' && !excl.has(q.id))
-      .sort((a, b) => wkPlays(b.id) - wkPlays(a.id) || plays(b.id) - plays(a.id) || (a.title || '').localeCompare(b.title || ''));
-    return pickDaily(pool);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [catalog, totals, rotDay, qotd, newest, trending, geoPick]);
-  const geoQH = geoPick ? QUIZ_HEROES[geoPick.id] : null;
-  const geoHero = geoPick ? ((geoQH && geoQH.src) || DEPT_HERO[geoPick.dept] || DEPT_HERO.geography || FALLBACK_HERO) : null;
-  const geoPos = geoQH ? geoQH.pos : undefined;
-  const sptQH = sportsPick ? QUIZ_HEROES[sportsPick.id] : null;
-  const sptHero = sportsPick ? ((sptQH && sptQH.src) || sportHeroFor(sportsPick) || DEPT_HERO[sportsPick.dept] || DEPT_HERO.sports || FALLBACK_HERO) : null;
-  const sptPos = sptQH ? sptQH.pos : undefined;
+  const rotateFrom = (arr, k) => (arr.length ? arr.slice(((k % arr.length) + arr.length) % arr.length).concat(arr.slice(0, ((k % arr.length) + arr.length) % arr.length)) : arr);
 
   const newestAll = useMemo(() => catalog.slice()
     .filter((q) => !bnHiddenFromNewest(q.id) && !isDailyGame(q.id))
@@ -991,6 +973,97 @@ export default function QuizHomeClient() {
     () => new Set([lpTop && lpTop.quizId, mpTop && mpTop.id, nwTop && nwTop.id].filter(Boolean)),
     [lpTop, mpTop, nwTop],
   );
+  // Hero quiz for each browse CATEGORY column below, hoisted out of the JSX
+  // (it used to be computed inline where the columns render). Two reasons: the
+  // featured flip tiles above must be able to exclude anything already heroed
+  // below (owner rule 2026-07-21, no photo/quiz shown twice on the page), and
+  // the logic now has exactly one home. Mirrors what the column render did:
+  // prefer the most-played quiz that owns a real photo and is not already an
+  // activity-column hero, else the most-played survivor, else the top quiz.
+  const catHeroQ = useMemo(() => {
+    const out = {};
+    for (const c of cats) {
+      if (c.key === 'school') continue;
+      const tilePool = c.key === 'word' ? c.quizzes : c.quizzes.filter((q) => !isDailyGame(q.id));
+      const ranked = tilePool.slice().sort((a, b) => plays(b.id) - plays(a.id) || a.title.localeCompare(b.title));
+      const heroPool = ranked.filter((q) => !activityHeroIds.has(q.id));
+      out[c.key] = heroPool.find((q) => QUIZ_HEROES[q.id] || DG_HERO_FAMS.has(gameFamily(q.id))) || heroPool[0] || ranked[0] || null;
+    }
+    return out;
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [cats, activityHeroIds, totals]);
+  // Every quiz that already carries a hero photo somewhere in the list section
+  // below (the three activity columns + every category column).
+  const columnHeroIds = useMemo(() => {
+    const set = new Set(activityHeroIds);
+    for (const q of Object.values(catHeroQ)) if (q) set.add(q.id);
+    return set;
+  }, [activityHeroIds, catHeroQ]);
+
+  // ── Featured flip tile pools ──────────────────────────────────────────────
+  // Shared exclusions: whatever the other header tiles already show, plus every
+  // hero in the list section below.
+  const featExcl = useMemo(() => {
+    const set = new Set(columnHeroIds);
+    for (const id of [qotd && qotd.id, newest[0] && newest[0].id, trending && trending.id]) if (id) set.add(id);
+    return set;
+  }, [columnHeroIds, qotd, newest, trending]);
+  const byWeek = (a, b) => wkPlays(b.id) - wkPlays(a.id) || plays(b.id) - plays(a.id) || (a.title || '').localeCompare(b.title || '');
+
+  // Tile 1: Geo Guesser is its OWN subset, so this tile only ever flips between
+  // Geo Guesser games (never a general geography quiz).
+  const geoFaces = useMemo(() => {
+    const pool = catalog.filter((q) => /geo-guesser/.test(q.id) && !featExcl.has(q.id)).sort(byWeek);
+    const seen = new Set();
+    const out = [];
+    for (const q of rotateFrom(pool, rotDay)) {
+      const h = heroFor(q.id, q.dept);
+      const src = h.src || DEPT_HERO.geography || FALLBACK_HERO;
+      if (seen.has(src)) continue; // two faces on the same photo would look frozen
+      seen.add(src);
+      out.push({ id: q.id, href: `/quiz/${q.id}`, hero: src, pos: h.pos, tag: 'FEATURED GEO GUESSER', tagColor: '#0f766e', Icon: Globe, title: stripVerb(q.title), leader: leader(q.id), accent: C.accent });
+      if (out.length >= 6) break;
+    }
+    return out;
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [catalog, featExcl, totals, rotDay]);
+
+  // Tile 2: the general Featured tile. One pick per CATEGORY, so the tile works
+  // through the departments as it flips, relabelling itself each turn (FEATURED
+  // SPORTS -> FEATURED MOVIES -> ...). Geo Guesser ids are excluded: they belong
+  // to tile 1's subset. Ordered by 7-day plays so the liveliest category leads,
+  // then rotated by the day so every visit does not open on the same one.
+  const featFaces = useMemo(() => {
+    const geoIds = new Set(geoFaces.map((f) => f.id));
+    const picks = [];
+    for (const c of cats) {
+      if (c.key === 'school') continue;
+      const pick = c.quizzes
+        .filter((q) => !featExcl.has(q.id) && !geoIds.has(q.id) && !/geo-guesser/.test(q.id) && !isDailyGame(q.id))
+        .sort(byWeek)[0];
+      if (pick) picks.push(pick);
+    }
+    picks.sort(byWeek);
+    const seen = new Set();
+    const out = [];
+    for (const q of rotateFrom(picks, rotDay)) {
+      const qh = QUIZ_HEROES[q.id];
+      // Sports keeps its per-sport photo resolver; every other dept uses the
+      // shared heroFor (daily-game banner -> quiz photo -> dept photo).
+      const h = q.dept === 'sports'
+        ? { src: (qh && qh.src) || sportHeroFor(q) || DEPT_HERO.sports || FALLBACK_HERO, pos: qh ? qh.pos : undefined }
+        : heroFor(q.id, q.dept);
+      const src = h.src || FALLBACK_HERO;
+      if (seen.has(src)) continue;
+      seen.add(src);
+      const col = DEPT_COLOR[q.dept] || DEPT_COLOR.misc;
+      out.push({ id: q.id, href: `/quiz/${q.id}`, hero: src, pos: h.pos, tag: `FEATURED ${(DEPT_LABEL[q.dept] || 'Quiz').toUpperCase()}`, tagColor: col.c, Icon: DEPT_ICON[q.dept] || Sparkles, title: stripVerb(q.title), leader: leader(q.id), accent: C.accent });
+      if (out.length >= 8) break;
+    }
+    return out;
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [cats, featExcl, geoFaces, totals, rotDay]);
+
   const [chCopied, setChCopied] = useState(false);
   const [mDaily, setMDaily] = useState(false);
   const [mLb, setMLb] = useState(false);
@@ -1154,6 +1227,16 @@ export default function QuizHomeClient() {
     .qzh .ttile-plays{font-size:12px;font-weight:800;color:#fff;}
     /* Daily-rotating category hero tiles (Top Geo Guesser / Top Sports): same look as .ttile, own class so th-r2 order rules do not collide. */
     .qzh .hstile{position:relative;border:1px solid ${C.line};border-radius:14px;overflow:hidden;text-decoration:none;display:flex;flex-direction:column;justify-content:flex-end;min-height:215px;background-size:cover;background-position:center;background-color:#0e1d40;}
+    /* Flip variant of .hstile (Featured Geo Guesser / Featured <category>): the
+       tile itself becomes a transparent 3D stage and the two faces carry the look.
+       Rotation/duration/easing match DuelTile so the header reads as one system. */
+    .qzh .hsflip-wrap{background:transparent !important;background-color:transparent !important;border:0 !important;overflow:visible;perspective:1100px;}
+    .qzh .hsflip{position:relative;flex:1;width:100%;transform-style:preserve-3d;transition:transform .65s cubic-bezier(.3,.7,.25,1);}
+    .qzh .hsface{position:absolute;inset:0;backface-visibility:hidden;-webkit-backface-visibility:hidden;border:1px solid ${C.line};border-radius:14px;overflow:hidden;text-decoration:none;display:flex;flex-direction:column;justify-content:flex-end;background-size:cover;background-position:center;background-color:#0e1d40;}
+    .qzh .hsflip-dots{position:absolute;right:11px;bottom:9px;z-index:3;display:flex;gap:4px;pointer-events:none;}
+    .qzh .hsflip-dot{width:5px;height:5px;border-radius:50%;background:rgba(255,255,255,0.4);transition:background .3s;}
+    .qzh .hsflip-dot.on{background:#fff;}
+    @media(max-width:560px){.qzh .hsflip-dots{display:none;}}
     .qzh .qotd-stats{font-size:12px;color:#fff;font-weight:800;display:inline-flex;align-items:center;gap:6px;min-width:0;}
     @media(max-width:760px){.qzh .qotd{flex-direction:column;min-height:0;}.qzh .qotd-photo{flex:none;height:128px;}.qzh .qotd-title{font-size:21px;}}
     .qzh .thub{display:flex;gap:12px;margin-bottom:14px;align-items:stretch;}
@@ -1503,14 +1586,8 @@ export default function QuizHomeClient() {
           {/* Top Community Member. Swapped into the Newest tile's row-1 slot 2026-07-20
               per Marshall; Newest moved to the front of th-r2 below. */}
           <CommunityTile />
-          {geoPick ? (
-            <Link href={`/quiz/${geoPick.id}`} className="hstile gtile th-only-mob" style={geoHero ? { backgroundImage: `url("${geoHero}")`, backgroundPosition: geoPos || 'center' } : { background: C.accent }}>
-              <span className="ttile-tag" style={{ color: '#0f766e', whiteSpace: 'nowrap' }}><Globe size={11} style={{ verticalAlign: -1 }} /> FEATURED GEO GUESSER</span>
-              <div className="ttile-ov">
-                <div className="ttile-t">{stripVerb(geoPick.title)}</div>
-                <div className="ttile-foot" style={{ flexWrap: 'nowrap' }}><span className="ttile-p" style={{ flex: 'none' }}>Play <ArrowRight size={13} style={{ verticalAlign: -1 }} /></span>{leader(geoPick.id) ? <span className="ttile-plays hpill" style={{ display: 'inline-flex', alignItems: 'center', gap: 4, minWidth: 0 }}><Crown size={12} style={{ color: '#e8b43a', flex: 'none' }} /><span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{leader(geoPick.id)}</span></span> : null}</div>
-              </div>
-            </Link>
+          {geoFaces.length ? (
+            <FeaturedFlipTile items={geoFaces} className="gtile th-only-mob" />
           ) : <div className="th-only-mob" />}
             {daily && DAILY_CHALLENGE_ON ? (
               <div className={`dtile th-only-desk mc-${mDaily ? 'open' : 'closed'}`}>
@@ -1544,14 +1621,8 @@ export default function QuizHomeClient() {
               and Sports each shifted one slot left and the XP tile took the slot
               Sports vacated. The `trending` memo above is still computed: it
               feeds the geo/sports rotation exclusions even though its tile is gone. */}
-          {geoPick ? (
-            <Link href={`/quiz/${geoPick.id}`} className="hstile gtile th-only-desk" style={geoHero ? { backgroundImage: `url("${geoHero}")`, backgroundPosition: geoPos || 'center' } : { background: C.accent }}>
-              <span className="ttile-tag" style={{ color: '#0f766e', whiteSpace: 'nowrap' }}><Globe size={11} style={{ verticalAlign: -1 }} /> FEATURED GEO GUESSER</span>
-              <div className="ttile-ov">
-                <div className="ttile-t">{stripVerb(geoPick.title)}</div>
-                <div className="ttile-foot" style={{ flexWrap: 'nowrap' }}><span className="ttile-p" style={{ flex: 'none' }}>Play <ArrowRight size={13} style={{ verticalAlign: -1 }} /></span>{leader(geoPick.id) ? <span className="ttile-plays hpill" style={{ display: 'inline-flex', alignItems: 'center', gap: 4, minWidth: 0 }}><Crown size={12} style={{ color: '#e8b43a', flex: 'none' }} /><span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{leader(geoPick.id)}</span></span> : null}</div>
-              </div>
-            </Link>
+          {geoFaces.length ? (
+            <FeaturedFlipTile items={geoFaces} className="gtile th-only-desk" />
           ) : <div className="th-only-desk" />}
 
             {daily && DAILY_CHALLENGE_ON ? (
@@ -1578,14 +1649,12 @@ export default function QuizHomeClient() {
               </div>
             ) : <div className="th-only-mob" />}
 
-            {sportsPick ? (
-            <Link href={`/quiz/${sportsPick.id}`} className="hstile stile" style={sptHero ? { backgroundImage: `url("${sptHero}")`, backgroundPosition: sptPos || 'center' } : { background: C.accent }}>
-              <span className="ttile-tag" style={{ color: '#b45309', whiteSpace: 'nowrap' }}><Trophy size={11} style={{ verticalAlign: -1 }} /> FEATURED SPORTS</span>
-              <div className="ttile-ov">
-                <div className="ttile-t">{stripVerb(sportsPick.title)}</div>
-                <div className="ttile-foot" style={{ flexWrap: 'nowrap' }}><span className="ttile-p" style={{ flex: 'none' }}>Play <ArrowRight size={13} style={{ verticalAlign: -1 }} /></span>{leader(sportsPick.id) ? <span className="ttile-plays hpill" style={{ display: 'inline-flex', alignItems: 'center', gap: 4, minWidth: 0 }}><Crown size={12} style={{ color: '#e8b43a', flex: 'none' }} /><span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{leader(sportsPick.id)}</span></span> : null}</div>
-              </div>
-            </Link>
+            {/* The old FEATURED SPORTS tile. It now flips across EVERY category
+                (one pick per department, relabelled per face); Geo Guesser stays
+                on its own tile. Keeps the .stile class so the existing grid /
+                order / breakpoint rules apply unchanged. */}
+            {featFaces.length ? (
+            <FeaturedFlipTile items={featFaces} className="stile" />
           ) : <div className="th-slot-hold" />}
 
             <XpTile />
@@ -1817,17 +1886,13 @@ export default function QuizHomeClient() {
             })()}
             {cats.filter((c) => c.key !== 'school').map((c) => {
               const tilePool = c.key === 'word' ? c.quizzes : c.quizzes.filter((q) => !isDailyGame(q.id));
-              const topQ = tilePool.slice().sort((a, b) => plays(b.id) - plays(a.id) || a.title.localeCompare(b.title))[0];
               // Skip anything an activity column already heroes, so no photo shows
               // twice on the page (Most Played and Geography both landed on the same
               // Europe satellite image before this). Prefer a quiz with a real photo,
               // else the most-played survivor; topQ is the last resort, for the (rare)
               // case where every candidate is already spoken for, since a hero card
               // with no quiz behind it would render titleless and link nowhere.
-              const heroPool = tilePool.slice()
-                .sort((a, b) => plays(b.id) - plays(a.id) || a.title.localeCompare(b.title))
-                .filter((q) => !activityHeroIds.has(q.id));
-              const heroQ = heroPool.find((q) => QUIZ_HEROES[q.id] || DG_HERO_FAMS.has(gameFamily(q.id))) || heroPool[0] || topQ;
+              const heroQ = catHeroQ[c.key];
               const heroId = heroQ && heroQ.id;
               // Same resolver as the activity columns, so a Word Games hero that
               // lands on a daily game gets its icon banner rather than a dept photo.
