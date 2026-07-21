@@ -25,9 +25,13 @@ OUT = 'public/games/hero'
 NAMES = ['alibi', 'carve', 'cipher', 'circa', 'crux', 'dating', 'emcee', 'extra',
          'garble', 'jester', 'links', 'outwit', 'ping', 'span', 'stet', 'suds',
          'sworn', 'tally', 'tuck', 'warmer']
-W, H = 640, 360
+# 1280x720, not 640x360, so a retina browser DOWNSCALES this PNG into the ~280px
+# tile instead of upscaling it. And the art box is small on purpose: the source
+# icons are only 88x76, so anything larger is a visible upscale (the first cut
+# filled half the frame and read as pixel mush at real tile size).
+W, H = 1280, 720
 NAVY = (14, 29, 64)         # #0e1d40, the exact .dstrip background
-ART_W, ART_H = 0.46, 0.50   # icon box, as a fraction of the canvas
+ART_W, ART_H = 0.28, 0.30   # icon box, as a fraction of the canvas
 ART_Y = 0.38                # icon centre, above the tile's title scrim
 
 
