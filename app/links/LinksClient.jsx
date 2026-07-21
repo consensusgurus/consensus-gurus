@@ -253,7 +253,7 @@ export default function LinksClient({ puzzles = [], forceNum = null }) {
     // TODAY'S puzzle (archive replays must not mark today as played)
     try {
       if (PUZZLE.num === pickPuzzle(puzzles, null).num) {
-        localStorage.setItem('sot_links_day', JSON.stringify({ d: etToday(), done: g.status !== 'playing' }));
+        (function(){ var _dn = g.status !== 'playing'; if (_dn || g.t0) localStorage.setItem('sot_links_day', JSON.stringify({ d: etToday(), done: _dn })); else localStorage.removeItem('sot_links_day'); })();
       }
     } catch (e) {}
   }, [g, hydrated, STORE_KEY, PUZZLE, puzzles]);

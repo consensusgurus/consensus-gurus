@@ -251,7 +251,7 @@ export default function TallyClient({ puzzles = [], forceNum = null }) {
     // only (archive replays must not mark today as played)
     try {
       if (PUZZLE.num === pickPuzzle(puzzles, null).num) {
-        localStorage.setItem('sot_tally_day', JSON.stringify({ d: etToday(), done: g.status !== 'playing' }));
+        (function(){ var _dn = g.status !== 'playing'; if (_dn || g.t0) localStorage.setItem('sot_tally_day', JSON.stringify({ d: etToday(), done: _dn })); else localStorage.removeItem('sot_tally_day'); })();
       }
     } catch (e) {}
   }, [g, hydrated, STORE_KEY, PUZZLE, puzzles, N]);

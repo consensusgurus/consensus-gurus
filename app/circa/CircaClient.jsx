@@ -260,7 +260,7 @@ export default function CircaClient({ puzzles = [], forceNum = null }) {
     // same-device day breadcrumb for cross-game recs — TODAY'S puzzle only
     try {
       if (PUZZLE.num === pickPuzzle(puzzles, null).num) {
-        localStorage.setItem('sot_circa_day', JSON.stringify({ d: etToday(), done: g.status !== 'playing' }));
+        (function(){ var _dn = g.status !== 'playing'; if (_dn || g.t0) localStorage.setItem('sot_circa_day', JSON.stringify({ d: etToday(), done: _dn })); else localStorage.removeItem('sot_circa_day'); })();
       }
     } catch (e) {}
   }, [g, hydrated, STORE_KEY, PUZZLE, puzzles]);

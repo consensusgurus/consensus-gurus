@@ -181,7 +181,7 @@ export default function WarmerClient({ active, puzzles = [], forceNum = null }) 
   useEffect(() => {
     if (!hydrated) return;
     try { localStorage.setItem(STORE_KEY, JSON.stringify(g)); } catch (e) {}
-    try { if (isTodays) localStorage.setItem('sot_warmer_day', JSON.stringify({ d: etToday(), done: g.status !== 'playing' })); } catch (e) {}
+    try { if (isTodays) (function(){ var _dn = g.status !== 'playing'; if (_dn || g.t0) localStorage.setItem('sot_warmer_day', JSON.stringify({ d: etToday(), done: _dn })); else localStorage.removeItem('sot_warmer_day'); })(); } catch (e) {}
   }, [g, hydrated, STORE_KEY, isTodays]);
 
   useEffect(() => {

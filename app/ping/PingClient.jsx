@@ -308,7 +308,7 @@ export default function PingClient({ puzzles = [], forceNum = null }) {
     try { localStorage.setItem(STORE_KEY, JSON.stringify(g)); } catch (e) {}
     try {
       if (PUZZLE.num === pickPuzzle(puzzles, null).num) {
-        localStorage.setItem('sot_ping_day', JSON.stringify({ d: etToday(), done: g.status !== 'playing' }));
+        (function(){ var _dn = g.status !== 'playing'; if (_dn || g.t0) localStorage.setItem('sot_ping_day', JSON.stringify({ d: etToday(), done: _dn })); else localStorage.removeItem('sot_ping_day'); })();
       }
     } catch (e) {}
   }, [g, hydrated, STORE_KEY, PUZZLE, puzzles]);
