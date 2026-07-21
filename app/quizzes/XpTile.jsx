@@ -164,17 +164,15 @@ export default function XpTile() {
       <div className="xp-panel">
         <div className="xp-h">How XP works</div>
         {/* The "why": XP rewards volume, not just talent, so the board is
-            winnable by anyone willing to keep playing. */}
+            winnable by anyone willing to keep playing. Keep the copy below it
+            SHORT: the panel is capped at the tile's height, and anything longer
+            than about three short lines starts scrolling (owner, 2026-07-20). */}
         <div className="xp-why">The more you play, the more you win.</div>
         <div className="xp-p">
-          Every correct answer banks XP, scaled by how hard the quiz is, and a
-          perfect run pays a 25% bonus. There is no cap and no losing points, so
-          XP only ever goes up: keep playing and you climb.
+          Every correct answer banks XP, and a perfect run pays a 25% bonus.
+          Points are never deducted.
         </div>
-        <div className="xp-p">
-          This board counts the last 30 days only, so it resets itself and the
-          top spot is always up for grabs.
-        </div>
+        <div className="xp-p">Last 30 days only, so the top spot is always up for grabs.</div>
         {/* The full XP ranking lives in the Stat Hub's Player tab (PlayerPanel
             renders the whole board); there is no standalone leaderboard route. */}
         <Link href="/quizzes/hub?tab=player" className="xp-cta" onClick={(e) => e.stopPropagation()}>
