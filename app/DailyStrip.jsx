@@ -178,14 +178,17 @@ export default function DailyStrip({ board = null }) {
         /* Today's leader gets the space freed by the one-line wordmark: own gold
            plate, crown, larger name and points. Ranks 2-3 stay compact below. */
         .dstrip-t1{display:flex;align-items:center;gap:5px;min-width:0;margin:1px 0 4px;padding:5px 7px;border-radius:9px;background:rgba(232,180,58,0.16);border:1px solid rgba(232,180,58,0.45);}
-        .dstrip-t1 svg{color:#e8b43a;flex:none;}
+        /* Crown occupies the same 11px gutter the "2"/"3" numerals sit in, so the
+           three rows share one left edge; the points share one right edge. */
+        .dstrip-t1 svg{color:#e8b43a;flex:0 0 11px;}
         .dstrip-t1 .nm1{flex:1 1 auto;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:13px;font-weight:800;color:#f5d878;letter-spacing:-.2px;line-height:1.2;}
         .dstrip-t1 .pt1{flex:0 0 auto;font-size:11.5px;font-weight:800;color:#f5d878;font-variant-numeric:tabular-nums;}
         .dstrip-t1.me{background:rgba(232,180,58,0.28);border-color:rgba(232,180,58,0.72);}
-        .dstrip-t3r{display:flex;align-items:baseline;gap:5px;min-width:0;font-size:11px;font-weight:700;color:#eaf0fb;line-height:1.35;}
-        .dstrip-t3r .rk{flex:0 0 auto;width:10px;font-weight:800;color:#f5d878;font-variant-numeric:tabular-nums;}
+        /* padding matches the #1 plate's 7px + 1px border so all three rows line up */
+        .dstrip-t3r{display:flex;align-items:baseline;gap:5px;min-width:0;padding:0 8px;font-size:10.5px;font-weight:700;color:#eaf0fb;line-height:1.4;}
+        .dstrip-t3r .rk{flex:0 0 11px;text-align:center;font-weight:800;color:#f5d878;font-variant-numeric:tabular-nums;}
         .dstrip-t3r .nm3{flex:1 1 auto;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
-        .dstrip-t3r .pt{flex:0 0 auto;font-size:10px;color:#93a7cc;font-variant-numeric:tabular-nums;font-weight:600;}
+        .dstrip-t3r .pt{flex:0 0 auto;font-size:9.5px;color:#93a7cc;font-variant-numeric:tabular-nums;font-weight:600;}
         .dstrip-t3r.me .nm3{color:#f5d878;}
         .dstrip-t3 .t3none{font-size:10.5px;font-weight:600;color:#6a80a8;line-height:1.35;}
         /* 16 games in a 2-row × 8-column grid; the cap spans both rows */
@@ -296,7 +299,7 @@ export default function DailyStrip({ board = null }) {
                 {top5.length ? (
                   <>
                     <span className={`dstrip-t1${meKey && top5[0].userKey === meKey ? ' me' : ''}`}>
-                      <Crown size={12} strokeWidth={2.4} />
+                      <Crown size={11} strokeWidth={2.4} />
                       <span className="nm1">{top5[0].username || 'Player'}</span>
                       <span className="pt1">{fmtPts(top5[0].total)}</span>
                     </span>
