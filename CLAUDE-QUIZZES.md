@@ -113,6 +113,37 @@ each leaderboard row stores its own `total`. Because of that, **adding a new ans
 does not break prior perfect scores** — they were graded against the old total and stay perfect
 automatically. No migration code is needed when you extend a quiz's answer set.
 
+### Points games vs answer games (read before touching a result payload)
+
+Player stats (Completed, Accuracy, Correct, XP) are computed in ANSWER terms, never in points.
+`correctAnswersOf(row)` and `answeredOf(row)` in `lib/quiz-scoring.js` are the single place that
+converts a stored row into that pair, and everything downstream (`lib/quiz-xp.js`, the champions
+route, the anon board) must go through them rather than reading `score / total` directly. Three
+kinds of row exist:
+
+- **Answer games** (the default): `score` is already a correct-answer count and `total` the
+  question count. Nothing to convert.
+- **Points quizzes** (`timed-mcq`, `place-map`, `globe`, `geo-aerial`, anything with
+  `maxPerQuestion > 1`): `score` is a time- or proximity-decayed points total. Correct is the
+  recorded `correct_count`, else estimated as `round(score / total * questions)`.
+- **Daily games** (every `<key>-M-D-YY` id, keys from `DAILY_KEYS`): `total` is the point maximum
+  and `correct` is a 0/1 SOLVED flag, or an item count for the multi-part ones. Answered is
+  therefore **1** for the binary games, **total / 2** for `links` / `garble` / `outrank` (2 points
+  an item), and **total** for `crux` (whose `correct` IS the point score).
+
+The daily branch was added 2026-07-21. Before it, `answeredOf` fell back to `total` for a daily, so
+a solved Warmer scored 1 correct out of 100 answered: it read as 1% accuracy, dragged down every
+daily player's average, and made a perfect daily impossible, which is why no daily had ever counted
+toward the Completed star. **When you add a new daily game, add its key to `DAILY_KEYS` and, if it
+is not a plain solved/not-solved game, to the `DAILY_HALF` set or the `crux` case in
+`dailyAnswered`.** A daily whose payload does not fit either shape needs its own case, not a
+`total` fallback.
+
+XP pays per correct answer, so a one-question daily would earn 1-2 XP against 50+ for a large
+name-them-all quiz. `XP_DAILY_ANSWERS` in `lib/quiz-xp.js` (currently 12) gives each daily a flat
+answer-equivalent instead, pro-rated by solve share and scaled by difficulty like any other game.
+Tune that constant to reprice the daily slate; it is the only knob.
+
 ## 6. Definition of done for a quiz change
 
 - [ ] Facts/coordinates/images verified against a real source (visually, for anything geographic).

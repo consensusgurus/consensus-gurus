@@ -1,7 +1,19 @@
 import { NextResponse } from 'next/server';
 import { supabaseAdmin } from '@/lib/supabase-server';
 import { buildAnonPlayers } from '@/lib/quiz-anon';
-import { correctAnswersOf } from '@/lib/quiz-scoring';
+import { correctAnswersOf, answeredOf } from '@/lib/quiz-scoring';
+
+// Correctness fraction of one row, 0..1. NOT score/total: for points-based
+// games (timed-mcq, the proximity maps, every daily puzzle) the stored score is
+// a points total against a points maximum, so score/total measures points, not
+// how much the player got right. The shared helpers convert both sides into
+// answer terms, which is what the profile accuracy in lib/quiz-xp.js uses, so
+// the two accuracy surfaces now agree.
+function accFraction(row) {
+  const a = answeredOf(row);
+  if (!(a > 0)) return 0;
+  return Math.max(0, Math.min(1, correctAnswersOf(row) / a));
+}
 
 export const dynamic = 'force-dynamic';
 export const fetchCache = 'force-no-store';
@@ -74,7 +86,7 @@ export function buildChampions(rows, { minQuizzes = MIN_QUIZZES } = {}) {
   for (const r of firstByPair.values()) {
     const a = agg.get(r.user_id) || { quizzes: 0, accSum: 0 };
     a.quizzes += 1;
-    a.accSum += r.score / r.total; // fraction 0..1
+    a.accSum += accFraction(r); // fraction 0..1
     agg.set(r.user_id, a);
   }
 
@@ -154,7 +166,7 @@ function buildAnon(rows) {
     if (!prev || (r.id || 0) < (prev.id || 0)) firstByPair.set(key, r);
   }
   let accSum = 0;
-  for (const r of firstByPair.values()) accSum += r.score / r.total;
+  for (const r of firstByPair.values()) accSum += accFraction(r);
   const anonCompleted = firstByPair.size;
   const anonWeighted = Math.round(accSum * 10) / 10;                                  // accuracy x quizzes
   const anonAccuracy = firstByPair.size ? Math.round((accSum / firstByPair.size) * 100) : 0; // percent, 1dp
