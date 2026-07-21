@@ -275,10 +275,15 @@ export default function DailyEndCard({
   // always checked; dailyMe.perGame fills in every other game already played so
   // the whole day resolves, not just the leaf they came from.
   const completed = new Set();
+  const unfinished = new Set(); // started today but abandoned (not finished)
   if (self) completed.add(self);
   if (dailyMe && dailyMe.perGame) {
-    for (const k of Object.keys(dailyMe.perGame)) completed.add(k);
+    for (const [k, v] of Object.entries(dailyMe.perGame)) {
+      if (v && v.abandoned) unfinished.add(k);
+      else completed.add(k);
+    }
   }
+  if (self) unfinished.delete(self); // the game just finished is never unfinished
   const total = DAILY_GAMES.length;
   const doneCount = DAILY_GAMES.filter((g) => completed.has(g.key)).length;
 
@@ -297,7 +302,7 @@ export default function DailyEndCard({
   // Standing figures (registered players only; guests see the subline instead).
   const gameRank = dailyMe && dailyMe.perGame && dailyMe.perGame[self] ? dailyMe.perGame[self].rank : null;
   const combinedRank = dailyMe ? dailyMe.rank : null;
-  const leftToPlay = dailyMe ? Math.max(0, (dailyMe.gameCount || 0) - (dailyMe.gamesPlayed || 0)) : Math.max(0, total - doneCount);
+  const leftToPlay = dailyMe ? Math.max(0, (dailyMe.gameCount || 0) - (dailyMe.gamesFinished != null ? dailyMe.gamesFinished : (dailyMe.gamesPlayed || 0))) : Math.max(0, total - doneCount);
 
   // Most up for grabs = the daily game with the thinnest field so far (prefer one
   // the viewer hasn't played). field = registered players; plays = total attempts.
@@ -477,6 +482,8 @@ export default function DailyEndCard({
         .dec-row .nm span.t{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
         .dec-row .tg{font-size:11px;color:#8a92a6;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
         .dec-row .play{margin-left:auto;font-size:11px;font-weight:800;color:${SLATE};display:inline-flex;align-items:center;gap:2px;flex-shrink:0;}
+        .dec-row .play.resume{color:#b9791a;}
+        .dec-rz{display:inline-flex;align-items:center;margin-left:5px;vertical-align:-1px;}
 
         .dec-foot{text-align:center;margin-top:14px;}
         .dec-foot a{font-family:${MONO};font-size:11px;letter-spacing:.06em;text-transform:uppercase;font-weight:500;color:${NAVY};text-decoration:none;border-bottom:1px solid rgba(14,29,64,0.5);padding-bottom:1px;}
@@ -634,12 +641,12 @@ export default function DailyEndCard({
                     </div>
                     <div className="dec-rows">
                     {block.items.map((g) => (
-                      <a className="dec-row" href={g.href} key={g.key}>
+                      <a className={`dec-row${unfinished.has(g.key) ? ' resume' : ''}`} href={g.href} key={g.key}>
                         <div style={{ minWidth: 0, flex: 1 }}>
-                          <div className="nm"><span className="t">{g.name}</span>{sundayNow && hasSundayEdition(g.key) ? <span className="dec-sun">{SUNDAY_SHORT}</span> : null}</div>
-                          <div className="tg">{g.tag}</div>
+                          <div className="nm"><span className="t">{g.name}</span>{unfinished.has(g.key) ? <span className="dec-rz" aria-hidden="true"><svg viewBox="0 0 12 12" width="10" height="10" fill="none"><circle cx="6" cy="6" r="4" stroke="#e0b866" strokeWidth="1.8" /><path d="M6 2 A4 4 0 0 1 6 10" stroke="#d98a1f" strokeWidth="1.8" strokeLinecap="round" /></svg></span> : null}{sundayNow && hasSundayEdition(g.key) ? <span className="dec-sun">{SUNDAY_SHORT}</span> : null}</div>
+                          <div className="tg">{unfinished.has(g.key) ? 'Started, not finished' : g.tag}</div>
                         </div>
-                        <span className="play"><span className="pl">Play</span><ArrowRight size={11} strokeWidth={2.6} /></span>
+                        <span className={`play${unfinished.has(g.key) ? ' resume' : ''}`}><span className="pl">{unfinished.has(g.key) ? 'Resume' : 'Play'}</span><ArrowRight size={11} strokeWidth={2.6} /></span>
                       </a>
                     ))}
                     </div>

@@ -97,7 +97,7 @@ export default function DailyGamesGrid({ self, maxWidth = 640, challengeHref = n
       .catch(() => {});
     return () => { alive = false; };
   }, []);
-  const completed = donePerGame ? new Set(Object.keys(donePerGame)) : new Set();
+  const completed = donePerGame ? new Set(Object.keys(donePerGame).filter((k) => !(donePerGame[k] && donePerGame[k].abandoned))) : new Set();
 
   // Sunday chip: only on Sundays (ET), and only on the games that actually run
   // a bigger Sunday Edition. Set after mount so the server render and the first
