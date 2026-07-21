@@ -28,9 +28,9 @@ BLUE = (59, 130, 246)
 GOLD = (248, 184, 74)
 OUT = 'public/quiz-heroes/closer.png'
 
-TARGET = (600, 248)
-PIN_A = (392, 430)          # the farther one
-PIN_B = (802, 396)          # the nearer one
+TARGET = (600, 176)
+PIN_A = (410, 332)          # the farther one
+PIN_B = (790, 300)          # the nearer one
 
 
 def field():
@@ -38,7 +38,7 @@ def field():
     corners, so the bottom stays dark under the tile's title scrim."""
     sm = Image.new('RGB', (120, 68))
     px = sm.load()
-    cx, cy = 0.50 * 120, 0.37 * 68
+    cx, cy = 0.50 * 120, 0.30 * 68
     for y in range(68):
         for x in range(120):
             d = math.hypot((x - cx) / 120, (y - cy) / 68 * 0.92) / 0.62
@@ -52,7 +52,7 @@ def graticule(img):
     texture rather than as lines competing with the pins."""
     lay = Image.new('RGBA', img.size, (0, 0, 0, 0))
     d = ImageDraw.Draw(lay)
-    gx, gy, R = 600 * SS, 300 * SS, 640 * SS
+    gx, gy, R = 600 * SS, 236 * SS, 640 * SS
     ink = (120, 170, 255)
     for i in range(-4, 5):                       # parallels
         yy = gy + i * R * 0.235
@@ -70,7 +70,7 @@ def rings(img):
     lay = Image.new('RGBA', img.size, (0, 0, 0, 0))
     d = ImageDraw.Draw(lay)
     tx, ty = TARGET[0] * SS, TARGET[1] * SS
-    for r, a in ((104, 46), (168, 32), (238, 20), (312, 12)):
+    for r, a in ((100, 46), (162, 32), (230, 20), (302, 12)):
         rr = r * SS
         d.ellipse([tx - rr, ty - rr * 0.94, tx + rr, ty + rr * 0.94],
                   outline=GOLD + (a,), width=int(1.8 * SS))
