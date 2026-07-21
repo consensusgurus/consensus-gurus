@@ -22,7 +22,7 @@ const SOURCE_COUNT = getAllSources().length;
 // else carries the site slogan (owner rule, July 2026). Neither is underlined.
 function HeaderTagline({ active }) {
   if (active === 'lists') {
-    return <>Where <SourcesPopover align="left" onDark plain href="/experts-and-aggregators" label={`${SOURCE_COUNT.toLocaleString()} Experts and Aggregators`} /> Agree</>;
+    return <>Where <SourcesPopover align="left" onDark href="/experts-and-aggregators" label={`${SOURCE_COUNT.toLocaleString()} Experts and Aggregators`} /> Agree</>;
   }
   return <>Exercise Your Mind</>;
 }
