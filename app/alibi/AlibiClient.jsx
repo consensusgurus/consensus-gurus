@@ -24,7 +24,7 @@
 
 import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { useSearchParams } from 'next/navigation';
-import { HelpCircle, X, Smartphone, Search, Eraser } from 'lucide-react';
+import { HelpCircle, X, Smartphone, Search, Eraser, Undo2 } from 'lucide-react';
 import Grain from '../Grain';
 import Footer from '../Footer';
 import useDuelContext, { DuelBanner } from '../quiz/[id]/useDuelContext';
@@ -196,6 +196,15 @@ function freshMarks(n) {
   for (const c of CATS) m[c] = Array.from({ length: n }, () => Array(n).fill(0));
   return m;
 }
+// Deep copy of a marks grid. Undo snapshots must not alias the live rows,
+// or a later tap would mutate the history behind it.
+function cloneMarks(m) {
+  const out = {};
+  for (const c of CATS) out[c] = m[c].map((row) => row.slice());
+  return out;
+}
+const UNDO_MAX = 50;
+
 function freshState(n) {
   return {
     v: 1,
@@ -243,6 +252,11 @@ export default function AlibiClient({ puzzles = [], forceNum = null }) {
   const { duelToken, duelInfo, duelSubmitted } = useDuelContext(PUZZLE.quizId, searchParams);
   const toastTimer = useRef(null);
   const viewedRef = useRef(false);
+  // Undo history: snapshots of the marks grid ONLY, kept in memory and never
+  // written to the per-puzzle save, so a reload restores the board but starts
+  // the history clean. canUndo mirrors the stack depth so the button re-renders.
+  const histRef = useRef([]);
+  const [canUndo, setCanUndo] = useState(false);
 
   const [showChrome, setShowChrome] = useState(false);
   const playing = g.status === 'playing';
@@ -265,6 +279,8 @@ export default function AlibiClient({ puzzles = [], forceNum = null }) {
   const a2hsClick = () => { const e = installEvt; if (e) { setInstallEvt(null); e.prompt(); } else { setShowA2hsHelp(true); } };
 
   // ---- persistence ----
+  useEffect(() => { histRef.current = []; setCanUndo(false); }, [PUZZLE.num]);
+
   useEffect(() => {
     try {
       const raw = localStorage.getItem(STORE_KEY);
@@ -371,8 +387,27 @@ export default function AlibiClient({ puzzles = [], forceNum = null }) {
     } catch (e) {}
   }
 
+  // Snapshot BEFORE a mutation, from the current render's state — never from
+  // inside a setG updater, which React can invoke twice in development.
+  function pushHist(marks) {
+    const h = histRef.current;
+    h.push(cloneMarks(marks));
+    if (h.length > UNDO_MAX) h.shift();
+    setCanUndo(true);
+  }
+  function undo() {
+    if (!playing) return;
+    const prev = histRef.current.pop();
+    if (!prev) { setCanUndo(false); return; }
+    setG((cur) => ({ ...cur, marks: prev }));
+    setCanUndo(histRef.current.length > 0);
+    setVerdict(null);
+  }
+  function clearHist() { histRef.current = []; setCanUndo(false); }
+
   function tapCell(cat, s, v) {
     if (!playing) return;
+    pushHist(g.marks);
     setG((cur) => {
       const marks = { ...cur.marks, [cat]: cur.marks[cat].map((row) => row.slice()) };
       const next = (marks[cat][s][v] + 1) % 3;
@@ -393,6 +428,7 @@ export default function AlibiClient({ puzzles = [], forceNum = null }) {
   }
   function resetBoards() {
     if (!playing) return;
+    pushHist(g.marks);
     setG((cur) => ({ ...cur, marks: freshMarks(N) }));
     setVerdict(null);
   }
@@ -435,7 +471,7 @@ export default function AlibiClient({ puzzles = [], forceNum = null }) {
 
   function resetGame() {
     try { localStorage.removeItem(STORE_KEY); } catch (e) {}
-    setG(freshState(N)); setVerdict(null); setEndClosed(false);
+    setG(freshState(N)); setVerdict(null); setEndClosed(false); clearHist();
   }
 
   function clueText(c) {
@@ -460,6 +496,7 @@ export default function AlibiClient({ puzzles = [], forceNum = null }) {
           @media(max-width:560px){.al-wrap{padding-left:12px !important;padding-right:12px !important;}}
           .al-btn{font-family:${SANS};font-weight:800;font-size:14px;border:2px solid ${COLORS.ink};background:#fff;color:${COLORS.ink};border-radius:8px;padding:9px 16px;cursor:pointer;display:inline-flex;align-items:center;gap:7px;}
           .al-btn:hover{background:${COLORS.paper};}
+          .al-btn:disabled:hover{background:#fff;}
           .al-btn.primary{background:${COLORS.accent};border-color:${COLORS.accent};color:#fff;}
           .al-btn.primary:hover{background:#761a26;}
           .al-clue{background:#fff;border:1px solid rgba(28,30,36,0.14);border-left:3px solid ${COLORS.accent};border-radius:8px;padding:8px 11px;margin-bottom:6px;font-size:13.5px;font-weight:600;line-height:1.45;cursor:pointer;user-select:none;color:${COLORS.ink};}
@@ -506,7 +543,7 @@ export default function AlibiClient({ puzzles = [], forceNum = null }) {
 
         {/* status bar */}
         <div style={{ display: 'flex', gap: 16, alignItems: 'center', flexWrap: 'wrap', marginBottom: 12, fontFamily: MONO, fontSize: 11.5, letterSpacing: '0.08em', textTransform: 'uppercase', color: COLORS.faded }}>
-          <span>confirmed <b style={{ color: COLORS.ink, fontWeight: 500 }}>{placedCount}</b>/12</span>
+          <span>confirmed <b style={{ color: COLORS.ink, fontWeight: 500 }}>{placedCount}</b>/{TOTAL}</span>
           <span>wrong accusations <b style={{ color: g.wrong ? COLORS.rust : COLORS.ink, fontWeight: 500 }}>{g.wrong}</b></span>
           {playing && (
             <label style={{ marginLeft: 'auto', display: 'inline-flex', alignItems: 'center', gap: 6, cursor: 'pointer', fontFamily: SANS, fontSize: 12, fontWeight: 700, textTransform: 'none', letterSpacing: 0 }}>
@@ -573,6 +610,11 @@ export default function AlibiClient({ puzzles = [], forceNum = null }) {
             {playing && (
               <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginBottom: 6 }}>
                 <button type="button" className="al-btn primary" onClick={accuse}><Search size={14} strokeWidth={2.6} /> Check my accusation</button>
+                <button type="button" className="al-btn" onClick={undo} disabled={!canUndo}
+                  aria-label="Undo last move"
+                  style={canUndo ? undefined : { borderColor: '#c3c8cf', color: '#c3c8cf', cursor: 'default' }}>
+                  <Undo2 size={14} /> Undo
+                </button>
                 <button type="button" className="al-btn" onClick={resetBoards}><Eraser size={14} /> Reset boards</button>
                 {g.wrong >= 3 && (
                   <button type="button" className="al-btn" style={{ borderColor: '#c3c8cf', color: COLORS.faded }} onClick={reveal}>Reveal (ends the day)</button>
