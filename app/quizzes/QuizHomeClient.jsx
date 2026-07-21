@@ -975,7 +975,18 @@ export default function QuizHomeClient() {
     for (const f of liveAll) { if (!f || !f.quizId || seen.has(f.quizId)) continue; seen.add(f.quizId); out.push({ ...f, mult: Math.min(99900, windowCounts[f.quizId] || 1) }); if (out.length >= 15) break; }
     return out;
   }, [liveAll]);
-  // Newest-tile hero resolves deterministically from QUIZ_HEROES / DEPT_HERO (no async lookup, so it never flashes a fallback photo first).
+  // The three activity columns (Last Played / Most Played / Newest) each hero
+  // their own #1 row. Hoisted here rather than derived inline in the JSX so the
+  // category columns below can see which images are already spoken for: without
+  // this, Most Played and Geography both landed on the same Europe satellite
+  // photo, since the most-played quiz IS the top geography quiz.
+  const lpTop = lastPlayed[0] || null;
+  const mpTop = mostPlayed[0] || null;
+  const nwTop = newestAll[0] || null;
+  const activityHeroIds = useMemo(
+    () => new Set([lpTop && lpTop.quizId, mpTop && mpTop.id, nwTop && nwTop.id].filter(Boolean)),
+    [lpTop, mpTop, nwTop],
+  );
   const [chCopied, setChCopied] = useState(false);
   const [mDaily, setMDaily] = useState(false);
   const [mLb, setMLb] = useState(false);
@@ -1768,7 +1779,6 @@ export default function QuizHomeClient() {
                 the list below it so nothing shows twice. Daily games resolve to
                 their icon banner via heroFor(). */}
             {(() => {
-              const lpTop = lastPlayed[0] || null;
               const lpHero = lpTop ? heroFor(lpTop.quizId, deptById[lpTop.quizId]) : null;
               return (
                 <BrowseColumn label={<>Last Played{playsToday ? <span style={{ fontSize: 10.5, fontWeight: 700, color: 'rgba(255,255,255,0.82)' }}> · {playsToday.toLocaleString()} plays today</span> : null}</>} Icon={Play} color="#10b981" tint="#d8f3e6" filled fill baseCount={5}
@@ -1779,7 +1789,6 @@ export default function QuizHomeClient() {
               );
             })()}
             {(() => {
-              const mpTop = mostPlayed[0] || null;
               const mpHero = mpTop ? heroFor(mpTop.id, mpTop.dept) : null;
               return (
                 <BrowseColumn label="Most Played" Icon={Flame} color="#c2691c" tint="#f4e2cd" filled fill baseCount={5}
@@ -1790,7 +1799,6 @@ export default function QuizHomeClient() {
               );
             })()}
             {(() => {
-              const nwTop = newestAll[0] || null;
               const nwHero = nwTop ? heroFor(nwTop.id, nwTop.dept) : null;
               return (
                 <BrowseColumn label="Newest" Icon={Sparkles} color={C.accent} tint={C.accsoft} filled fill baseCount={5}
@@ -1803,12 +1811,22 @@ export default function QuizHomeClient() {
             {cats.filter((c) => c.key !== 'school').map((c) => {
               const tilePool = c.key === 'word' ? c.quizzes : c.quizzes.filter((q) => !isDailyGame(q.id));
               const topQ = tilePool.slice().sort((a, b) => plays(b.id) - plays(a.id) || a.title.localeCompare(b.title))[0];
-              const heroCand = tilePool.slice().filter((q) => QUIZ_HEROES[q.id]).sort((a, b) => plays(b.id) - plays(a.id) || a.title.localeCompare(b.title))[0];
-              const heroQ = heroCand || topQ;
+              // Skip anything an activity column already heroes, so no photo shows
+              // twice on the page (Most Played and Geography both landed on the same
+              // Europe satellite image before this). Prefer a quiz with a real photo,
+              // else the most-played survivor; topQ is the last resort, for the (rare)
+              // case where every candidate is already spoken for, since a hero card
+              // with no quiz behind it would render titleless and link nowhere.
+              const heroPool = tilePool.slice()
+                .sort((a, b) => plays(b.id) - plays(a.id) || a.title.localeCompare(b.title))
+                .filter((q) => !activityHeroIds.has(q.id));
+              const heroQ = heroPool.find((q) => QUIZ_HEROES[q.id]) || heroPool[0] || topQ;
               const heroId = heroQ && heroQ.id;
-              const hh = heroId ? QUIZ_HEROES[heroId] : null;
-              const heroUrl = hh ? hh.src : (DEPT_HERO[c.key] || FALLBACK_HERO);
-              const heroPos = hh ? hh.pos : undefined;
+              // Same resolver as the activity columns, so a Word Games hero that
+              // lands on a daily game gets its icon banner rather than a dept photo.
+              const ch = heroFor(heroId, c.key);
+              const heroUrl = ch.src;
+              const heroPos = ch.pos;
               const heroTitle = heroId ? (titleById[heroId] || '') : '';
               const exSet = heroId ? new Set([...shownIds, heroId]) : shownIds;
               const rowq = colRows(c, 7, exSet).filter((q) => q.id !== heroId).slice(0, 6);
