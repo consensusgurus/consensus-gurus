@@ -348,39 +348,43 @@ export default function DailyEndCard({
   const ringOffset = autoRun ? (RING_C * (AUTO_SECONDS - secs)) / AUTO_SECONDS : 0;
 
   // Build the "more games" family blocks (still-to-play), then bin-pack them into
-  // 3 columns with an adaptively-sized "Other quizzes" block so the grid fills
-  // evenly instead of leaving dead space under short families. Height is measured
-  // in tile-units (header = 1, each row = 1); greedy largest-first packing plus a
-  // sweep over the Other-quiz count picks the arrangement with the least dead space.
+  // up to 3 columns with an adaptively-sized "Other quizzes" block so the grid
+  // fills evenly instead of leaving dead space under short families. Height is in
+  // tile-units (header = 1, each row = 1).
   const famBlocks = CAT_ORDER
     .map((cat) => ({ type: 'fam', cat, cm: CAT_META[cat], items: todo.filter((g) => g.cat === cat) }))
     .filter((b) => b.items.length > 0)
     .map((b) => ({ ...b, h: 1 + b.items.length }));
 
-  // Balance the family blocks across 3 columns (greedy, largest first), then
-  // order the columns tallest-first so the SHORTEST is last. "Other quizzes" is
-  // appended to the bottom of that last column, so it can never appear before a
-  // daily-games section (the columns stack in order on mobile, Other last).
+  // Reserve the "Other quizzes" block at the BOTTOM of the last column BEFORE
+  // packing the families, so the families spread across all three columns to fill
+  // them instead of piling onto whichever column Other happens to land in (which
+  // stranded a tall family alone in column one). For each candidate Other-quiz
+  // count we greedily drop each family (largest first) into the currently
+  // shortest column (ties -> the column holding fewer families, then leftmost),
+  // then keep the count that leaves the least dead space. Empty columns are
+  // dropped, so a nearly-finished slate collapses to one or two full columns, and
+  // Other always renders last (bottom-right on desktop, bottom on mobile).
   const showMore = famBlocks.length > 0;
-  let packedCols = [[], [], []];
+  let packedCols = [];
   if (showMore) {
-    const cols = [[], [], []], hs = [0, 0, 0];
-    for (const b of famBlocks.slice().sort((a, z) => z.h - a.h)) {
-      let i = 0; for (let j = 1; j < 3; j++) if (hs[j] < hs[i]) i = j;
-      cols[i].push(b); hs[i] += b.h;
-    }
-    const order = [0, 1, 2].sort((a, z) => hs[z] - hs[a]); // tallest first, shortest last
-    const oc = [cols[order[0]], cols[order[1]], cols[order[2]]];
-    const oh = [hs[order[0]], hs[order[1]], hs[order[2]]];
-    let bestQ = Math.min(4, OTHER_POOL.length), bestDead = Infinity;
+    const sorted = famBlocks.slice().sort((a, z) => z.h - a.h);
     const maxQ = OTHER_POOL.length, minQ = Math.min(4, maxQ);
+    let best = null;
     for (let Q = minQ; Q <= maxQ; Q++) {
-      const h2 = oh[2] + 1 + Q;
-      const dead = 3 * Math.max(oh[0], oh[1], h2) - (oh[0] + oh[1] + h2);
-      if (dead < bestDead || (dead === bestDead && Q > bestQ)) { bestDead = dead; bestQ = Q; }
+      const cols = [[], [], []], hs = [0, 0, 1 + Q], fc = [0, 0, 0];
+      for (const b of sorted) {
+        let i = 0;
+        for (let j = 1; j < 3; j++) {
+          if (hs[j] < hs[i] || (hs[j] === hs[i] && fc[j] < fc[i])) i = j;
+        }
+        cols[i].push(b); hs[i] += b.h; fc[i] += 1;
+      }
+      const dead = 3 * Math.max(hs[0], hs[1], hs[2]) - (hs[0] + hs[1] + hs[2]);
+      if (!best || dead < best.dead || (dead === best.dead && Q > best.Q)) best = { Q, dead, cols };
     }
-    oc[2] = [...oc[2], { type: 'other', items: OTHER_POOL.slice(0, bestQ), h: 1 + bestQ }];
-    packedCols = oc;
+    best.cols[2] = [...best.cols[2], { type: 'other', items: OTHER_POOL.slice(0, best.Q), h: 1 + best.Q }];
+    packedCols = best.cols.filter((c) => c.length > 0);
   }
 
   // Win-only celebratory confetti (fires when the player fully completes the
@@ -460,6 +464,8 @@ export default function DailyEndCard({
         .dec-more-eye{font-family:${MONO};font-size:10.5px;font-weight:500;letter-spacing:.14em;text-transform:uppercase;color:${SLATE};}
         .dec-more-count{font-size:12px;color:#8a92a6;}
         .dec-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;align-items:start;}
+        .dec-grid.cols-1{grid-template-columns:minmax(0,1fr);}
+        .dec-grid.cols-2{grid-template-columns:repeat(2,minmax(0,1fr));}
         .dec-col{min-width:0;display:flex;flex-direction:column;}
         .dec-group{margin-bottom:12px;}
         .dec-gh{display:flex;align-items:center;gap:8px;padding:9px 12px;border-radius:10px;margin-bottom:8px;text-decoration:none;}
@@ -478,7 +484,7 @@ export default function DailyEndCard({
         @media(max-width:640px){
           .dec-card{padding:18px 16px 14px;}
           .dec-tagline{display:none;}
-          .dec-grid{grid-template-columns:1fr;}
+          .dec-grid,.dec-grid.cols-1,.dec-grid.cols-2,.dec-grid.cols-3{grid-template-columns:1fr;}
           .dec-upnext{flex-direction:column;align-items:stretch;}
           .dec-up-btns{flex-direction:row;width:100%;}
           .dec-up-btns .dec-btn{flex:1;}
@@ -599,7 +605,7 @@ export default function DailyEndCard({
             <span className="dec-more-eye">More of today&rsquo;s games</span>
             <span className="dec-more-count">{doneCount} of {total} played</span>
           </div>
-          <div className="dec-grid">
+          <div className={`dec-grid cols-${packedCols.length}`}>
             {packedCols.map((col, ci) => (
               <div className="dec-col" key={ci}>
                 {col.map((block) => block.type === 'other' ? (
