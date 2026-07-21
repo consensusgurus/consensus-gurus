@@ -707,6 +707,29 @@ export default function AdminClient({ initialLists, initialExtras = [], initialC
               <span style={{ fontStyle: 'italic', color: COLORS.ember }}> desk</span>
             </h1>
           </div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+          {/* Offline / print campaign attribution (?c= codes: QR flyers, stickers). */}
+          <Link
+            href="/admin/campaigns"
+            style={{
+              background: 'transparent',
+              color: COLORS.ink,
+              border: `1px solid ${COLORS.line}`,
+              padding: '8px 14px',
+              fontFamily: 'DM Mono, monospace',
+              fontSize: 10,
+              letterSpacing: '0.18em',
+              textTransform: 'uppercase',
+              fontWeight: 600,
+              textDecoration: 'none',
+              display: 'flex',
+              alignItems: 'center',
+              gap: 6,
+            }}
+          >
+            <MapPin size={12} strokeWidth={2.5} />
+            Campaigns
+          </Link>
           <button
             onClick={logout}
             style={{
@@ -728,6 +751,7 @@ export default function AdminClient({ initialLists, initialExtras = [], initialC
             <LogOut size={12} strokeWidth={2.5} />
             Sign out
           </button>
+          </div>
         </div>
 
         {/* Tabs */}

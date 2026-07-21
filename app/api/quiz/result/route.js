@@ -5,6 +5,7 @@ import { buildLeaderboardMatrix } from '@/lib/quiz-anon';
 import { parseUa, countryFromRequest, regionFromRequest, cityFromRequest, timezoneFromRequest, languageFromRequest, referrerHost } from '@/lib/ua';
 import { creditReferral } from '@/lib/referrals-server';
 import { normalizeRefCode } from '@/lib/referrals';
+import { normalizeCampaign } from '@/lib/campaigns';
 
 export const dynamic = 'force-dynamic';
 export const fetchCache = 'force-no-store';
@@ -127,7 +128,15 @@ export async function POST(request) {
     if (referrer) withMeta27.referrer = referrer;
     if (language) withMeta27.language = language;
     const withAbandoned = { abandoned };
+    // Marketing-campaign attribution (migration 40). The sot_camp cookie was set
+    // by lib/campaigns.js when this visitor landed on a ?c= placement link (a
+    // printed QR code, a flyer), so stamping it here turns "the ad got scanned"
+    // into "the ad produced a player". Its own attempt tier below, so a database
+    // without the column simply drops it.
+    const campaign = normalizeCampaign(request.cookies.get('sot_camp')?.value);
+    const withCampaign = campaign ? { campaign } : {};
     const attempts = [
+      { ...baseRow, anon_id: anonId, ...withCorrect, ...withMobile, ...withMeta, ...withMeta27, ...withGuesses, ...withAbandoned, ...withCampaign },
       { ...baseRow, anon_id: anonId, ...withCorrect, ...withMobile, ...withMeta, ...withMeta27, ...withGuesses, ...withAbandoned },
       { ...baseRow, anon_id: anonId, ...withCorrect, ...withMobile, ...withMeta, ...withMeta27, ...withGuesses },
       { ...baseRow, anon_id: anonId, ...withCorrect, ...withMobile, ...withMeta, ...withMeta27 },
