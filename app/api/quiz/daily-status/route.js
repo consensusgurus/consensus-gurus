@@ -41,6 +41,11 @@ export async function GET(request) {
     for (const r of (data || [])) {
       const qid = r && r.quiz_id;
       if (!qid || !DAILY_RE.test(qid)) continue;
+      // An abandoned in-progress row (the player opened the board, made a move,
+      // then left before finishing) is NOT a played game. It still counts as a
+      // play for the leaderboard fallback in daily-combined, but the daily
+      // "played/completed" marks should reflect finished attempts only.
+      if (r.abandoned) continue;
       const pk = r.user_id ? `u:${r.user_id}` : (r.anon_id ? `a:${r.anon_id}` : null);
       if (pk !== myKey) continue;
       played.add(qid);

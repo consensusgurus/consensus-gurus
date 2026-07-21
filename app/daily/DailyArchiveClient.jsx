@@ -149,15 +149,21 @@ export default function DailyArchiveClient({ games = [], today = '' }) {
     for (const g of games) {
       for (const p of g.puzzles) {
         if (p.quizId) byQuiz[p.quizId] = `${g.key}:${p.num}`;
-        let hasSave = false, won = false;
+        let finished = false, won = false;
         for (const k of keysFor(g.key, p.num, p.rev)) {
           let raw = null;
           try { raw = localStorage.getItem(k); } catch (e) {}
           if (!raw) continue;
-          hasSave = true;
-          try { if ((JSON.parse(raw) || {}).status === 'won') won = true; } catch (e) {}
+          let st = null;
+          try { st = (JSON.parse(raw) || {}).status; } catch (e) {}
+          // "Played" = a FINISHED attempt (won or lost), never a game merely
+          // opened or still in progress ('playing'). Mirrors the sot_<key>_day
+          // breadcrumb's done = status !== 'playing', so a started-then-left
+          // game no longer shows a check.
+          if (st && st !== 'playing') finished = true;
+          if (st === 'won') won = true;
         }
-        if (hasSave) pl.add(`${g.key}:${p.num}`);
+        if (finished) pl.add(`${g.key}:${p.num}`);
         if (won) cp.add(`${g.key}:${p.num}`);
       }
     }
