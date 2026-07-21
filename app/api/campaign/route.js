@@ -54,9 +54,10 @@ export async function POST(request) {
     };
 
     const { error } = await supabaseAdmin.from('campaign_hits').insert(row);
-    // 23505 = the once-per-browser-per-day unique index did its job. Everything
-    // else (missing table before the migration, missing column) is logged and
-    // swallowed: a landing must never fail because analytics did.
+    // Every landing is stored raw; the once-per-browser-per-day de-duplication
+    // happens at read time in /admin/campaigns (migration 40 explains why it
+    // cannot be a unique index). Errors are logged and swallowed: a landing must
+    // never fail because analytics did.
     if (error && error.code !== '23505') {
       console.error('campaign_hits insert error', error);
     }

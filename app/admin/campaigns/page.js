@@ -29,6 +29,13 @@ function fmtDate(iso) {
     return new Date(iso).toLocaleString('en-US', { timeZone: 'America/New_York', month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' });
   } catch { return iso; }
 }
+// Calendar day in US Eastern, the clock the rest of the admin uses.
+const ET_DAY = new Intl.DateTimeFormat('en-CA', { timeZone: 'America/New_York', year: 'numeric', month: '2-digit', day: '2-digit' });
+function etDay(iso) {
+  if (!iso) return 'unknown';
+  const d = new Date(iso);
+  return Number.isNaN(d.getTime()) ? 'unknown' : ET_DAY.format(d);
+}
 function pct(n, d) {
   if (!d) return '—';
   return `${Math.round((n / d) * 100)}%`;
@@ -37,17 +44,20 @@ function pct(n, d) {
 // Roll every campaign_hits row and every campaign-stamped quiz_results row into
 // one funnel per campaign: scans -> distinct people -> players -> finishers.
 //
-// "Scans" counts landings (deduped to one per browser per day by the migration's
-// unique index), so it reads as "how many times the placement sent someone here".
-// "People" is distinct browsers, the honest reach number. "Players" is distinct
-// browsers that went on to finish a game while carrying the campaign cookie —
-// the number that says whether the ad found the right person.
+// "Scans" counts distinct (browser, Eastern day) pairs rather than raw rows, so a
+// curious scanner refreshing the page five times counts once that day but still
+// counts again if they come back tomorrow. (This de-duplication lives here rather
+// than in a unique index because Postgres index expressions must be IMMUTABLE and
+// timestamptz-to-calendar-day is only STABLE — see migration 40.) "Landings" is
+// the raw row count. "People" is distinct browsers, the honest reach number.
+// "Players" is distinct browsers that went on to finish a game while carrying the
+// campaign cookie — the number that says whether the ad found the right person.
 function rollup(hits, plays) {
   const byCampaign = new Map();
   const get = (c) => {
     if (!byCampaign.has(c)) {
       byCampaign.set(c, {
-        campaign: c, scans: 0, botScans: 0, people: new Set(), mobile: 0,
+        campaign: c, landings: 0, botScans: 0, scanKeys: new Set(), people: new Set(), mobile: 0,
         places: new Map(), first: null, last: null,
         plays: 0, players: new Set(), games: new Map(),
       });
@@ -58,7 +68,10 @@ function rollup(hits, plays) {
     if (!h.campaign) continue;
     const r = get(h.campaign);
     if (h.is_bot) { r.botScans += 1; continue; }
-    r.scans += 1;
+    r.landings += 1;
+    // One scan per browser per Eastern day. A landing with no visitor cookie
+    // can't be deduped, so it counts on its own row id.
+    r.scanKeys.add(`${h.visitor_id || `row:${h.id}`}|${etDay(h.created_at)}`);
     if (h.visitor_id) r.people.add(h.visitor_id);
     if (h.is_mobile === true) r.mobile += 1;
     const place = [h.city, h.region, h.country].filter(Boolean).join(', ');
@@ -79,6 +92,7 @@ function rollup(hits, plays) {
   return Array.from(byCampaign.values())
     .map((r) => ({
       ...r,
+      scans: r.scanKeys.size,
       people: r.people.size,
       players: r.players.size,
       topPlaces: Array.from(r.places.entries()).sort((a, b) => b[1] - a[1]).slice(0, 3),
@@ -93,7 +107,7 @@ export default async function CampaignsPage() {
   // Both reads are best-effort: before migration 40 is applied the table and the
   // column do not exist, and the page should say so rather than crash.
   const [hitsRes, playsRes] = await Promise.all([
-    fetchAllRows(supabaseAdmin, 'campaign_hits', 'campaign, path, visitor_id, referrer_host, country, region, city, ua_browser, ua_os, is_mobile, is_bot, created_at', [['created_at', false], 'id']),
+    fetchAllRows(supabaseAdmin, 'campaign_hits', 'id, campaign, path, visitor_id, referrer_host, country, region, city, ua_browser, ua_os, is_mobile, is_bot, created_at', [['created_at', false], 'id']),
     fetchAllRows(supabaseAdmin, 'quiz_results', 'id, quiz_id, anon_id, campaign, created_at', [['created_at', false], 'id']),
   ]);
   const pending = Boolean(hitsRes.error);
@@ -137,6 +151,7 @@ export default async function CampaignsPage() {
                   <tr>
                     <th style={th}>Campaign</th>
                     <th style={th}>Scans</th>
+                    <th style={th}>Landings</th>
                     <th style={th}>People</th>
                     <th style={th}>Players</th>
                     <th style={th}>Played on</th>
@@ -159,11 +174,12 @@ export default async function CampaignsPage() {
                         )}
                       </td>
                       <td style={{ ...td, fontWeight: 700 }}>{r.scans}</td>
+                      <td style={{ ...td, color: C.faded }}>{r.landings}</td>
                       <td style={td}>{r.people}</td>
                       <td style={{ ...td, color: r.players > 0 ? C.forest : C.faded, fontWeight: 700 }}>{r.players}</td>
                       <td style={td}>{pct(r.players, r.people)}</td>
                       <td style={td}>{r.plays}</td>
-                      <td style={td}>{pct(r.mobile, r.scans)}</td>
+                      <td style={td}>{pct(r.mobile, r.landings)}</td>
                       <td style={{ ...td, fontSize: 12, color: C.faded }}>
                         {r.topPlaces.length
                           ? r.topPlaces.map(([p, n]) => <div key={p}>{p} ({n})</div>)
@@ -181,8 +197,9 @@ export default async function CampaignsPage() {
 
         <div style={{ marginTop: 30, fontSize: 13, color: C.faded, lineHeight: 1.6, maxWidth: 680 }}>
           <p style={{ margin: '0 0 8px' }}>
-            <strong style={{ color: C.ink }}>Scans</strong> are landings, counted once per browser per
-            day, so someone refreshing the page does not inflate the number.{' '}
+            <strong style={{ color: C.ink }}>Scans</strong> count once per browser per day, so someone
+            refreshing the page does not inflate the number; <strong style={{ color: C.ink }}>Landings</strong>{' '}
+            is the raw hit count.{' '}
             <strong style={{ color: C.ink }}>People</strong> is distinct browsers.{' '}
             <strong style={{ color: C.ink }}>Players</strong> is how many of those people went on to
             finish a game within 30 days of arriving.

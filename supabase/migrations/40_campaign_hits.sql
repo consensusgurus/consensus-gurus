@@ -40,12 +40,16 @@ create table if not exists campaign_hits (
 
 create index if not exists campaign_hits_campaign on campaign_hits (campaign, created_at desc);
 create index if not exists campaign_hits_created  on campaign_hits (created_at desc);
--- One landing row per browser per campaign per day keeps a curious scanner who
--- reloads the page from inflating the scan count, while still showing repeat
--- interest on later days.
-create unique index if not exists campaign_hits_daily_unique
-  on campaign_hits (campaign, visitor_id, (created_at at time zone 'America/New_York')::date)
-  where visitor_id is not null;
+
+-- NOTE: there is deliberately NO unique index enforcing one landing per browser
+-- per day. Postgres requires index expressions to be IMMUTABLE, and every way of
+-- reducing a timestamptz to a calendar day (`at time zone 'America/New_York'`,
+-- `::date`) is only STABLE, since it depends on the timezone database and the
+-- session's TimeZone setting. So the row-per-landing table stays raw and the
+-- de-duplication happens at READ time in app/admin/campaigns/page.js, which
+-- counts distinct (visitor_id, Eastern day) pairs as "scans" and keeps the raw
+-- row count as "landings". Raw rows are the more honest storage anyway: they
+-- preserve repeat visits, which a unique index would have thrown away.
 
 alter table campaign_hits enable row level security;
 
