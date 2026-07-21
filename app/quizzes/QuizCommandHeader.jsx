@@ -12,7 +12,8 @@ import { QUIZ_COUNT } from '../SiteHeader';
 // a live ticker tape of recent plays, correct-today leaders, duel results,
 // and new quizzes, built from data the page already fetches. Collapse order
 // as the window narrows: sources pill -> player stat subline + Stat Hub text
-// -> wordmark shortens to SoT and search becomes an icon -> avatar only.
+// -> wordmark shortens to SoT and search becomes an icon button that
+// smooth-scrolls to the browse search field -> avatar circle drops.
 const FONT = "'Manrope', system-ui, -apple-system, sans-serif";
 const SOURCE_COUNT = getAllSources().length;
 
@@ -145,8 +146,8 @@ export default function QuizCommandHeader({ search, onSearch, me, onSignup, tick
         @media(max-width:1180px){.qch-src{display:none;}}
         @media(max-width:1024px){.qch-hub-me{display:none;}}
         @media(max-width:980px){.qch-sub{display:none;}.qch-hubtxt{display:none;}.qch-hub{padding:8px 10px;}}
-        @media(max-width:820px){.qch-wl{display:none;}.qch-ws{display:inline;}.qch-search{display:none;}}
-        @media(max-width:620px){.qch-brandlogo{display:none;}.qch-rankm{display:block;}.qch-nm{max-width:120px;}.qch-bar{gap:9px;padding-left:12px;padding-right:12px;}.qch-seg a{padding:6px 10px;font-size:11px;}.qch-tlabel{display:none;}.qch-word{font-size:17px;}}
+        @media(max-width:820px){.qch-wl{display:none;}.qch-ws{display:inline;}.qch-search{display:none;}.qch-searchbtn{display:inline-flex;}}
+        @media(max-width:620px){.qch-brandlogo{display:none;}.qch-rankm{display:block;}.qch-ava{display:none;}.qch-nm{max-width:120px;}.qch-bar{gap:9px;padding-left:12px;padding-right:12px;}.qch-seg a{padding:6px 10px;font-size:11px;}.qch-tlabel{display:none;}.qch-word{font-size:17px;}}
         @media(max-width:560px){.qch-bar{padding-top:calc(9px + env(safe-area-inset-top));}}
       `}</style>
       <div className="qch-bar">
