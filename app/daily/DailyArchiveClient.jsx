@@ -206,9 +206,16 @@ export default function DailyArchiveClient({ games = [], today = '' }) {
   const isPlayedToday = (g) => { const n = todayNum(g); return n != null && played.has(`${g.key}:${n}`); };
   const isDoneToday = (g) => { const n = todayNum(g); return n != null && completed.has(`${g.key}:${n}`); };
 
-  const playedToday = games.filter(isPlayedToday);
-  const doneToday = games.filter(isDoneToday);
-  const stillToPlay = sortByDailyOrder(games.filter((g) => !isPlayedToday(g)), dailyOrder);
+  // Only games running a puzzle TODAY count toward the day's tallies. A retired
+  // game (e.g. Circa, last drop 2026-07-20) keeps its archive, its category
+  // tile, and the Retired section at the bottom of the page, but publishes no
+  // puzzle today, so it drops out of "played today", the denominator, and the
+  // gauntlet — matching the server leaderboard, which scores only the games
+  // that are live on the date (see gameCount in /api/quiz/daily-combined).
+  const activeGames = games.filter((g) => g.puzzles[0] && g.puzzles[0].live === today);
+  const playedToday = activeGames.filter(isPlayedToday);
+  const doneToday = activeGames.filter(isDoneToday);
+  const stillToPlay = sortByDailyOrder(activeGames.filter((g) => !isPlayedToday(g)), dailyOrder);
 
   const groups = CATEGORIES.map((cat) => {
     const gs = sortByDailyOrder(cat.keys.map((k) => gamesByKey[k]).filter(Boolean), dailyOrder);
@@ -251,10 +258,10 @@ export default function DailyArchiveClient({ games = [], today = '' }) {
   }
 
   const pt = playedToday.length;
-  const gauntTease = pt >= games.length && games.length > 0 ? 'Perfect day · every game played'
+  const gauntTease = pt >= activeGames.length && activeGames.length > 0 ? 'Perfect day · every game played'
     : pt < 5 ? `${5 - pt} more to warm-up`
     : pt < 10 ? `${10 - pt} more to grinder`
-    : `${games.length - pt} more to a perfect day`;
+    : `${activeGames.length - pt} more to a perfect day`;
 
   return (
     <div style={{ minHeight: '100vh', background: BG }}>
@@ -404,7 +411,7 @@ export default function DailyArchiveClient({ games = [], today = '' }) {
             <div className="dl-kick">Source of Truths · Daily · {dateHeadline(today)}</div>
             <h1 className="dl-h1">Daily Games</h1>
             <p className="dl-sub">
-              {games.length} original puzzles, a fresh one in each every day. Play today, chase the leaderboard,
+              {activeGames.length} original puzzles, a fresh one in each every day. Play today, chase the leaderboard,
               or replay any past drop — archive runs never touch your streak.
             </p>
           </div>
@@ -416,7 +423,7 @@ export default function DailyArchiveClient({ games = [], today = '' }) {
               </div>
               <div className="dv" />
               <div>
-                <div className="rn">{ready ? playedToday.length : '—'}<span className="of"> / {games.length}</span></div>
+                <div className="rn">{ready ? playedToday.length : '—'}<span className="of"> / {activeGames.length}</span></div>
                 <div className="rt">Played today</div>
               </div>
               <div className="dv" />
@@ -436,7 +443,7 @@ export default function DailyArchiveClient({ games = [], today = '' }) {
             </div>
             {ready && stillToPlay[0] ? (
               <a className="dl-cta" href={stillToPlay[0].path}>Play your next game · {stillToPlay[0].name} →</a>
-            ) : ready && games.length ? (
+            ) : ready && activeGames.length ? (
               <span className="dl-cta done">★ Perfect day. Every game played.</span>
             ) : null}
           </div>
@@ -467,15 +474,15 @@ export default function DailyArchiveClient({ games = [], today = '' }) {
             {ready && <span className="tease">{gauntTease}</span>}
           </div>
           <div className="dl-segs" aria-hidden="true">
-            {games.map((g, i) => (
+            {activeGames.map((g, i) => (
               <span key={g.key} className={`dl-seg${i < playedToday.length ? ' on' : ''}`} />
             ))}
           </div>
           <div className="dl-gaunt-l">
-            <span style={{ color: INK }}>{ready ? `${playedToday.length}/${games.length} played` : '…'}</span>
-            {games.length >= 12 && <span><span style={{ color: '#9aa3b5' }}>●</span> 5 · warm-up</span>}
-            {games.length >= 12 && <span><span style={{ color: '#c8814b' }}>●</span> 10 · grinder</span>}
-            <span style={{ color: '#8a6d1f' }}><span style={{ color: GOLD }}>★</span> {games.length} · perfect day</span>
+            <span style={{ color: INK }}>{ready ? `${playedToday.length}/${activeGames.length} played` : '…'}</span>
+            {activeGames.length >= 12 && <span><span style={{ color: '#9aa3b5' }}>●</span> 5 · warm-up</span>}
+            {activeGames.length >= 12 && <span><span style={{ color: '#c8814b' }}>●</span> 10 · grinder</span>}
+            <span style={{ color: '#8a6d1f' }}><span style={{ color: GOLD }}>★</span> {activeGames.length} · perfect day</span>
           </div>
         </div>
 
@@ -487,7 +494,7 @@ export default function DailyArchiveClient({ games = [], today = '' }) {
           <div className="dl-alldone"><b>&#9733; All caught up.</b> You&rsquo;ve played every game today. The archives below are always open.</div>
         ) : (
           <div className="dl-rail">
-            {(ready ? stillToPlay : games).slice(0, 12).map((g) => (
+            {(ready ? stillToPlay : activeGames).slice(0, 12).map((g) => (
               <a key={g.key} className="dl-railcard" href={g.path} aria-label={`Play ${g.name} today`}>
                 <GameArt g={g} size={36} />
                 <span style={{ minWidth: 0 }}>
