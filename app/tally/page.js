@@ -97,8 +97,19 @@ export default function TallyPage({ searchParams }) {
   const today = etTodayServer();
   const visiblePuzzles = PUZZLES.filter((p) => p.live <= today);
   if (!visiblePuzzles.length) return <ComingSoon first={PUZZLES[0]} />;
-  const n = Number(searchParams && searchParams.p);
-  const forceNum = Number.isInteger(n) && n > 0 ? n : null;
+  const raw = searchParams && searchParams.p;
+  const n = Number(raw);
+  let forceNum = Number.isInteger(n) && n > 0 ? n : null;
+  // ?p=sunday resolves to the MOST RECENT Sunday Edition (the bigger 6x6 board)
+  // rather than a fixed puzzle number, so an evergreen off-site link — a printed
+  // QR code, a flyer, a sticker — always lands on a Sunday board whatever day it
+  // is scanned, and never goes stale or needs reprinting. On a Sunday this is
+  // simply today's puzzle.
+  if (!forceNum && typeof raw === 'string' && raw.trim().toLowerCase() === 'sunday') {
+    for (let i = visiblePuzzles.length - 1; i >= 0; i--) {
+      if (visiblePuzzles[i].sunday) { forceNum = visiblePuzzles[i].num; break; }
+    }
+  }
   return (
     <>
       <script
