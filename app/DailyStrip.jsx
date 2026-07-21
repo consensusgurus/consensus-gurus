@@ -164,15 +164,24 @@ export default function DailyStrip({ board = null }) {
         .dstrip-main::-webkit-scrollbar-button{display:none;width:0;height:0;}
         .dstrip-cap{flex:0 0 auto;display:flex;flex-direction:column;justify-content:center;gap:5px;padding:12px 16px;background:#0b1733;border-right:1px solid rgba(255,255,255,0.07);min-width:104px;}
         .dstrip-cap.has-top3{min-width:168px;max-width:196px;}
-        .dstrip-cap .lab{font-size:9px;font-weight:800;letter-spacing:.14em;text-transform:uppercase;color:#f8b84a;}
-        .dstrip-cap .cty{font-size:15px;font-weight:800;color:#fff;letter-spacing:-.2px;line-height:1;}
-        .dstrip-bar{display:block;height:5px;width:60px;border-radius:99px;background:rgba(255,255,255,0.14);overflow:hidden;margin-top:3px;}
+        /* One-line wordmark: DAILY and GAMES share a size/weight (owner, 2026-07-20);
+           the eyebrow is now just the gold half of the same line. */
+        .dstrip-cap .ttl{display:block;font-size:15px;font-weight:800;letter-spacing:-.1px;line-height:1;color:#fff;white-space:nowrap;}
+        .dstrip-cap .ttl .lab{color:#f8b84a;}
+        .dstrip-bar{display:block;height:9px;width:100%;border-radius:99px;background:rgba(255,255,255,0.14);overflow:hidden;margin-top:5px;box-shadow:inset 0 0 0 1px rgba(255,255,255,0.06);}
         .dstrip-fill{display:block;height:100%;width:0;background:#34d399;border-radius:99px;transition:width .4s ease;}
         .dstrip-exp{margin-top:2px;align-self:flex-start;display:inline-flex;align-items:center;gap:4px;background:rgba(232,180,58,0.14);border:1px solid rgba(232,180,58,0.42);color:#f5d878;font-family:inherit;font-size:9.5px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;border-radius:7px;padding:3px 8px;cursor:pointer;transition:background .15s;}
         .dstrip-exp:hover{background:rgba(232,180,58,0.24);}
         /* the cap's miniature daily board: today's overall top 3 */
         .dstrip-t3{display:flex;flex-direction:column;gap:2px;margin-top:2px;min-width:0;}
         .dstrip-t3 .t3h{font-size:8.5px;font-weight:800;letter-spacing:.12em;text-transform:uppercase;color:#8fa3cf;margin-bottom:1px;}
+        /* Today's leader gets the space freed by the one-line wordmark: own gold
+           plate, crown, larger name and points. Ranks 2-3 stay compact below. */
+        .dstrip-t1{display:flex;align-items:center;gap:5px;min-width:0;margin:1px 0 4px;padding:5px 7px;border-radius:9px;background:rgba(232,180,58,0.16);border:1px solid rgba(232,180,58,0.45);}
+        .dstrip-t1 svg{color:#e8b43a;flex:none;}
+        .dstrip-t1 .nm1{flex:1 1 auto;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:13px;font-weight:800;color:#f5d878;letter-spacing:-.2px;line-height:1.2;}
+        .dstrip-t1 .pt1{flex:0 0 auto;font-size:11.5px;font-weight:800;color:#f5d878;font-variant-numeric:tabular-nums;}
+        .dstrip-t1.me{background:rgba(232,180,58,0.28);border-color:rgba(232,180,58,0.72);}
         .dstrip-t3r{display:flex;align-items:baseline;gap:5px;min-width:0;font-size:11px;font-weight:700;color:#eaf0fb;line-height:1.35;}
         .dstrip-t3r .rk{flex:0 0 auto;width:10px;font-weight:800;color:#f5d878;font-variant-numeric:tabular-nums;}
         .dstrip-t3r .nm3{flex:1 1 auto;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
@@ -279,22 +288,30 @@ export default function DailyStrip({ board = null }) {
       <div className={`dstrip${hasBoard ? ' has-board' : ''}`} role="navigation" aria-label="Daily games">
         <div className="dstrip-main">
           <div className={`dstrip-cap${hasBoard ? ' has-top3' : ''}`}>
-            <span className="lab">Daily</span>
-            <span className="cty">Games</span>
+            <span className="ttl"><span className="lab">Daily</span> Games</span>
             <span className="dstrip-bar"><span className="dstrip-fill" style={{ width: `${pct}%` }} /></span>
             {hasBoard ? (
               <span className="dstrip-t3">
                 <span className="t3h"><Crown size={8} style={{ display: 'inline', verticalAlign: '-1px', color: '#e8b43a' }} /> Today&rsquo;s Top 3</span>
-                {top5.length ? top5.slice(0, 3).map((r) => {
-                  const mine = meKey && r.userKey === meKey;
-                  return (
-                    <span key={r.userKey} className={`dstrip-t3r${mine ? ' me' : ''}`}>
-                      <span className="rk">{r.rank}</span>
-                      <span className="nm3">{r.username || 'Player'}</span>
-                      <span className="pt">{fmtPts(r.total)}</span>
+                {top5.length ? (
+                  <>
+                    <span className={`dstrip-t1${meKey && top5[0].userKey === meKey ? ' me' : ''}`}>
+                      <Crown size={12} strokeWidth={2.4} />
+                      <span className="nm1">{top5[0].username || 'Player'}</span>
+                      <span className="pt1">{fmtPts(top5[0].total)}</span>
                     </span>
-                  );
-                }) : <span className="t3none">No scores yet — be the first.</span>}
+                    {top5.slice(1, 3).map((r) => {
+                      const mine = meKey && r.userKey === meKey;
+                      return (
+                        <span key={r.userKey} className={`dstrip-t3r${mine ? ' me' : ''}`}>
+                          <span className="rk">{r.rank}</span>
+                          <span className="nm3">{r.username || 'Player'}</span>
+                          <span className="pt">{fmtPts(r.total)}</span>
+                        </span>
+                      );
+                    })}
+                  </>
+                ) : <span className="t3none">No scores yet — be the first.</span>}
               </span>
             ) : null}
             {hasBoard ? (
