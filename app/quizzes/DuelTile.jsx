@@ -8,6 +8,7 @@ const NAVY = '#0e1d40', ACCENT = '#0e1d40', AMBER = '#f8b84a';
 const FONT = "'Manrope', system-ui, -apple-system, sans-serif";
 
 function getAnon() { try { return localStorage.getItem('sot_quiz_anon') || ''; } catch { return ''; } }
+function getEmail() { try { const j = JSON.parse(localStorage.getItem('sot_quiz_identity')); return (j && j.email) || ''; } catch { return ''; } }
 
 function timeAgo(iso) {
   try {
@@ -59,7 +60,10 @@ export default function DuelTile() {
     if (!s) { setOppResults([]); return; }
     let alive = true;
     const t = setTimeout(() => {
-      fetch(`/api/duel/players?q=${encodeURIComponent(s)}&exclude=${encodeURIComponent(myAnon)}`)
+      // Exclude every browser on the caller's account, not just this one, or a
+      // player on a second device sees their own other device as an opponent.
+      const em = getEmail();
+      fetch(`/api/duel/players?q=${encodeURIComponent(s)}&exclude=${encodeURIComponent(myAnon)}${em ? `&email=${encodeURIComponent(em)}` : ''}`)
         .then((r) => r.json()).then((d) => { if (alive && d && Array.isArray(d.players)) setOppResults(d.players); }).catch(() => {});
     }, 220);
     return () => { alive = false; clearTimeout(t); };

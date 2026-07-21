@@ -1,12 +1,50 @@
 import { NextResponse } from 'next/server';
 import { supabaseAdmin } from '@/lib/supabase-server';
+import { findQuizIdentity } from '@/lib/quiz-identity';
 import { ensureRefCode, topReferrers } from '@/lib/referrals-server';
 import { refShareUrl } from '@/lib/referrals';
 
 export const dynamic = 'force-dynamic';
 export const fetchCache = 'force-no-store';
 
-// GET /api/quiz/referrals?anonId=...&days=30
+// Resolve the viewer to a quiz_users row across DEVICES, not just this browser.
+//
+// quiz_users.anon_id holds the ONE browser that first created the account and is
+// never rewritten, so keying the viewer off it alone stranded every other device:
+// signing in on a phone with the same name and email still produced a fresh anon,
+// matched no row, and dropped this tile into its "register to get your link"
+// state with the share link gone. Resolution order mirrors resolveAnonSet:
+//   email -> the account that owns this browser's attributed games -> anon_id.
+async function findViewer(admin, { anonId, email }) {
+  // email first, then anon_id. This is the same helper /api/quiz/me uses, which
+  // is why stats survived a device switch while this tile did not.
+  const ident = await findQuizIdentity(admin, { email, anonId });
+  let userId = ident && ident.id ? ident.id : null;
+
+  // A browser with no stored email still resolves once any of its games have
+  // been attributed to the account (attributeAnonGames runs on join and claim).
+  if (!userId && anonId) {
+    try {
+      const { data } = await admin
+        .from('quiz_results')
+        .select('user_id')
+        .eq('anon_id', anonId)
+        .not('user_id', 'is', null)
+        .limit(1);
+      if (Array.isArray(data) && data[0] && data[0].user_id) userId = data[0].user_id;
+    } catch { /* pre-migration: user_id/anon_id may be absent */ }
+  }
+  if (!userId) return null;
+
+  const { data: user } = await admin
+    .from('quiz_users')
+    .select('id, username, ref_code')
+    .eq('id', userId)
+    .maybeSingle();
+  return user || null;
+}
+
+// GET /api/quiz/referrals?anonId=...&email=...&days=30
 //
 // Powers the Top Community Member tile on /quizzes:
 //   top : rolling-window referral board (username + credits)
@@ -24,16 +62,13 @@ export async function GET(request) {
       (searchParams.get('anonId') || '').trim().slice(0, 64) ||
       request.cookies.get('sot_vid')?.value ||
       '';
+    const email = (searchParams.get('email') || '').trim().slice(0, 120) || null;
 
     const top = await topReferrers(supabaseAdmin, { days, limit });
 
     let me = null;
-    if (anonId) {
-      const { data: user } = await supabaseAdmin
-        .from('quiz_users')
-        .select('id, username, ref_code')
-        .eq('anon_id', anonId)
-        .maybeSingle();
+    if (anonId || email) {
+      const user = await findViewer(supabaseAdmin, { anonId: anonId || null, email });
       if (user) {
         const code = await ensureRefCode(supabaseAdmin, user);
         let credits = 0;

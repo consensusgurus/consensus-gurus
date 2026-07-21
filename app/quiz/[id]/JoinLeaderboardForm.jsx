@@ -31,17 +31,28 @@ export default function JoinLeaderboardForm({ identity, onJoined, onViewLeaderbo
   const [msg, setMsg] = useState('');
   const [err, setErr] = useState(false);
   const [busy, setBusy] = useState(false);
+  // Set when the server reports the display name is taken and no email was sent:
+  // the name may well be the player's own, claimed on another device, and the
+  // email is the only thing that can reconnect it here.
+  const [recover, setRecover] = useState(false);
   useEffect(() => { if (identity) { setJName(identity.username || ''); setJEmail(identity.email || ''); } }, [identity]);
 
   async function submit() {
     setErr(false);
+    setRecover(false);
     if (!jName.trim() || jName.trim().length > 15) { setErr(true); setMsg('Pick a display name (max 15 characters).'); return; }
     if (jEmail.trim() && !EMAIL_RE.test(jEmail.trim())) { setErr(true); setMsg('Enter a valid email or leave it blank.'); return; }
     setBusy(true);
     try {
       const res = await fetch('/api/quiz/join', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ username: jName.trim(), email: jEmail.trim() || undefined, anonId: getAnonId() }) });
       const d = await res.json();
-      if (d.error) { setErr(true); setMsg(d.error); setBusy(false); return; }
+      if (d.error) {
+        setErr(true);
+        setMsg(d.error);
+        if (d.recoverable) setRecover(true);
+        setBusy(false);
+        return;
+      }
       const id = { username: d.username, email: d.email };
       try { localStorage.setItem('sot_quiz_identity', JSON.stringify(id)); } catch (e) {}
       // Resolve this player's referral code now so their very next share link
@@ -79,8 +90,20 @@ export default function JoinLeaderboardForm({ identity, onJoined, onViewLeaderbo
       </p>
       <label style={labelStyle}>Display name</label>
       <input value={jName} onChange={(e) => setJName(e.target.value)} maxLength={15} placeholder="e.g. dealwatcher" autoCapitalize="none" autoCorrect="off" spellCheck={false} style={fieldStyle} />
-      <label style={{ ...labelStyle, marginTop: 16 }}>Email (optional, required for prizes)</label>
-      <input value={jEmail} onChange={(e) => setJEmail(e.target.value)} type="email" placeholder="you@email.com (optional)" autoCapitalize="none" autoCorrect="off" spellCheck={false} style={fieldStyle} />
+      <label style={{ ...labelStyle, marginTop: 16 }}>
+        {recover ? 'Email (enter the one you signed up with)' : 'Email (optional, required for prizes)'}
+      </label>
+      <input
+        value={jEmail}
+        onChange={(e) => setJEmail(e.target.value)}
+        type="email"
+        placeholder={recover ? 'you@email.com' : 'you@email.com (optional)'}
+        autoCapitalize="none"
+        autoCorrect="off"
+        spellCheck={false}
+        autoFocus={recover}
+        style={recover ? { ...fieldStyle, borderColor: C.ember } : fieldStyle}
+      />
       <button onClick={submit} disabled={busy} style={{ marginTop: 22, width: '100%', fontFamily: FONT, fontSize: 13, letterSpacing: '0.1em', textTransform: 'uppercase', fontWeight: 700, lineHeight: '48px', border: 'none', background: '#e8b43a', color: '#1c1e24', cursor: busy ? 'default' : 'pointer', opacity: busy ? 0.6 : 1 }}>
         {busy ? 'Joining…' : identity ? 'Update my name' : 'Join the leaderboard'}
       </button>

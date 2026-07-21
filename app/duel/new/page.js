@@ -19,6 +19,7 @@ function ensureAnon() {
   } catch { return null; }
 }
 function storedName() { try { const j = JSON.parse(localStorage.getItem('sot_quiz_identity')); return (j && j.username) || ''; } catch { return ''; } }
+function storedEmail() { try { const j = JSON.parse(localStorage.getItem('sot_quiz_identity')); return (j && j.email) || ''; } catch { return ''; } }
 
 export default function NewDuelPage() {
   const router = useRouter();
@@ -40,7 +41,8 @@ export default function NewDuelPage() {
   useEffect(() => {
     let alive = true; const s = oppQ.trim(); if (opp) return;
     const t = setTimeout(() => {
-      fetch(`/api/duel/players?q=${encodeURIComponent(s)}&exclude=${encodeURIComponent(myAnon)}`)
+      const em = storedEmail();
+      fetch(`/api/duel/players?q=${encodeURIComponent(s)}&exclude=${encodeURIComponent(myAnon)}${em ? `&email=${encodeURIComponent(em)}` : ''}`)
         .then((r) => r.json()).then((d) => { if (alive && d && Array.isArray(d.players)) setOppResults(d.players); }).catch(() => {});
     }, 220);
     return () => { alive = false; clearTimeout(t); };

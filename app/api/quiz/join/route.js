@@ -30,7 +30,16 @@ export async function POST(request) {
 
     const user = await resolveQuizIdentity(supabaseAdmin, { username, email: email || undefined, anonId });
     if (user && user.error === 'username_taken') {
-      return NextResponse.json({ error: 'That display name is already taken. Pick another.' }, { status: 409 });
+      // A name-only account is keyed to the browser that made it, so on a second
+      // device its owner hits this same 409 and used to have no way forward.
+      // Point them at the one thing that DOES cross devices: their email.
+      return NextResponse.json({
+        error: email
+          ? 'That display name belongs to a different account. Pick another name.'
+          : 'That display name is already registered. If it is yours, add the email you signed up with to reconnect it on this device.',
+        code: 'username_taken',
+        recoverable: !email,
+      }, { status: 409 });
     }
     if (!user) {
       return NextResponse.json({ error: 'Could not join right now.' }, { status: 500 });

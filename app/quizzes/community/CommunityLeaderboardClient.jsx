@@ -34,9 +34,16 @@ export default function CommunityLeaderboardClient() {
 
   const load = useCallback((d) => {
     setLoading(true);
-    let anon = '';
-    try { anon = localStorage.getItem('sot_quiz_anon') || ''; } catch { /* private mode */ }
-    return fetch(`/api/quiz/referrals?days=${d}&limit=100${anon ? `&anonId=${encodeURIComponent(anon)}` : ''}`)
+    // The email travels with the anon so the board recognises the viewer on a
+    // second device; quiz_users.anon_id only ever holds their first browser.
+    const qs = new URLSearchParams({ days: String(d), limit: '100' });
+    try {
+      const anon = localStorage.getItem('sot_quiz_anon') || '';
+      if (anon) qs.set('anonId', anon);
+      const id = JSON.parse(localStorage.getItem('sot_quiz_identity') || 'null');
+      if (id && id.email) qs.set('email', id.email);
+    } catch { /* private mode */ }
+    return fetch(`/api/quiz/referrals?${qs}`)
       .then((r) => (r.ok ? r.json() : null))
       .then((j) => { if (j) setData(j); })
       .catch(() => {})

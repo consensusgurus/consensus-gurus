@@ -75,9 +75,18 @@ export default function CommunityTile() {
   const [identity, setIdentity] = useState(null);
 
   const load = useCallback(() => {
-    let anon = '';
-    try { anon = localStorage.getItem('sot_quiz_anon') || ''; } catch { /* private mode */ }
-    return fetch(`/api/quiz/referrals${anon ? `?anonId=${encodeURIComponent(anon)}` : ''}`)
+    // Send the stored email alongside the browser anon. quiz_users.anon_id only
+    // ever holds the FIRST browser that joined, so on any second device the anon
+    // matches nothing and the share link vanishes; the email is what identifies
+    // the account across devices.
+    const qs = new URLSearchParams();
+    try {
+      const anon = localStorage.getItem('sot_quiz_anon') || '';
+      if (anon) qs.set('anonId', anon);
+      const id = JSON.parse(localStorage.getItem('sot_quiz_identity') || 'null');
+      if (id && id.email) qs.set('email', id.email);
+    } catch { /* private mode */ }
+    return fetch(`/api/quiz/referrals${qs.toString() ? `?${qs}` : ''}`)
       .then((r) => (r.ok ? r.json() : null))
       .then((d) => { if (d) setData(d); })
       .catch(() => { /* tile falls back to its empty state */ });
