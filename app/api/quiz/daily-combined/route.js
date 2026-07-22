@@ -38,6 +38,9 @@ export const fetchCache = 'force-no-store';
 // safe to cache briefly at the edge — the query string is the player's own
 // identity and never crosses users. Same pattern as /api/quiz/daily-status.
 const CACHE_HEADERS = { 'Cache-Control': 'public, s-maxage=30, stale-while-revalidate=90' };
+// The finish flow passes ?fresh=1 to force an authoritative read; that response
+// must never be edge-cached or it could hand back a pre-insert snapshot.
+const NO_STORE_HEADERS = { 'Cache-Control': 'no-store' };
 
 const GAME_PUZZLES = {
   crux: P_crux, emcee: P_emcee, garble: P_garble, links: P_links, span: P_span, dating: P_dating,
@@ -188,6 +191,12 @@ export async function GET(request) {
   const { searchParams } = new URL(request.url);
   const anonId = (searchParams.get('anonId') || '').trim() || null;
   const email = (searchParams.get('email') || '').trim() || null;
+  // `fresh=1` (sent by the just-finished flow) bypasses BOTH caches so the
+  // player's own row is authoritative at once: force the in-process results
+  // cache to run its delta, and return no-store so the edge CDN can't serve a
+  // stale pre-insert snapshot. Routine background polls omit it and keep the
+  // 30s edge cache, preserving the egress fix.
+  const fresh = searchParams.get('fresh') === '1' || searchParams.get('fresh') === 'true';
   const today = etTodayServer();
 
   // Which day's board? Prefer an explicit date suffix, else parse it off a passed
@@ -218,7 +227,7 @@ export async function GET(request) {
 
   const empty = { date: suffix, maxTotal, gameMax: GAME_MAX, bestN: effBestN, gameCount, uniquePlayers: 0, games: [], overall: [], me: null, meProvisional: null };
   try {
-    const { data, error } = await loadQuizResultsCached(supabaseAdmin);
+    const { data, error } = await loadQuizResultsCached(supabaseAdmin, { force: fresh });
     if (error) {
       console.error('daily-combined error', error);
       return NextResponse.json(empty);
@@ -340,7 +349,7 @@ export async function GET(request) {
       overall: overallFull.slice(0, DISPLAY),
       me,
       meProvisional,
-    }, { headers: CACHE_HEADERS });
+    }, { headers: fresh ? NO_STORE_HEADERS : CACHE_HEADERS });
   } catch (e) {
     console.error('daily-combined exception', e);
     return NextResponse.json(empty);

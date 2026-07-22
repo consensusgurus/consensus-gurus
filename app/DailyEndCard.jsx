@@ -211,11 +211,19 @@ export default function DailyEndCard({
     // mount and cover the write commit + the 5s snapshot TTL.
     const delays = [0, 1500, 3500, 6000, 10000];
     let i = 0;
+    let notified = false;
+    // Once our own row is confirmed on the board, tell the on-page daily
+    // leaderboard to reload fresh so it shows us at once. Fire twice (now + a
+    // beat later) to cover the board mounting a tick after this fetch resolves.
+    const notifyBoard = () => {
+      try { if (typeof window !== 'undefined') window.dispatchEvent(new CustomEvent('sot:daily-updated', { detail: { game: self } })); } catch (e) {}
+    };
     const run = () => {
       const qs = new URLSearchParams();
       if (anonId) qs.set('anonId', anonId);
       if (email) qs.set('email', email);
-      if (i > 0) qs.set('_', String(Date.now())); // distinct key -> bypass the edge cache on retries
+      qs.set('fresh', '1'); // force an authoritative, cache-bypassed read (server no-stores it)
+      if (i > 0) qs.set('_', String(Date.now())); // distinct key -> also bust the edge cache on retries
       fetch('/api/quiz/daily-combined?' + qs.toString())
         .then((r) => r.json())
         .then((d) => {
@@ -229,6 +237,7 @@ export default function DailyEndCard({
           const reflectsSelf = registered
             ? (!self || (d.me && d.me.perGame && d.me.perGame[self]))
             : !!d.meProvisional;
+          if (reflectsSelf && !notified) { notified = true; notifyBoard(); setTimeout(notifyBoard, 600); }
           if (reflectsSelf || i >= delays.length - 1) return;
           i += 1;
           timer = setTimeout(run, delays[i]);

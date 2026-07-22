@@ -90,9 +90,11 @@ export default function DailyCombinedLeaderboard({ todayKey = null, identity = n
     // Live board: standings and point awards shift through the day as new
     // players post, so after the first load we silently re-poll (and refresh on
     // tab focus) instead of freezing on the mount snapshot.
-    const load = (silent) => {
+    const load = (silent, fresh) => {
       if (!silent) { setState('loading'); setData(null); }
-      fetch('/api/quiz/daily-combined?' + qs.toString(), { cache: 'no-store' })
+      const p = new URLSearchParams(qs);
+      if (fresh) { p.set('fresh', '1'); p.set('_', String(Date.now())); }
+      fetch('/api/quiz/daily-combined?' + p.toString(), { cache: 'no-store' })
         .then((r) => r.json())
         .then((d) => { if (!alive) return; if (d && Array.isArray(d.overall)) { setData(d); setState('ok'); } else { setState((s) => (s === 'ok' ? 'ok' : 'error')); } })
         .catch(() => { if (alive) setState((s) => (s === 'ok' ? 'ok' : 'error')); });
@@ -100,9 +102,14 @@ export default function DailyCombinedLeaderboard({ todayKey = null, identity = n
     load(false);
     const iv = setInterval(() => { if (typeof document === 'undefined' || document.visibilityState === 'visible') load(true); }, 45000);
     const onVis = () => { if (typeof document !== 'undefined' && document.visibilityState === 'visible') load(true); };
+    // A daily game just finished on this page: the end card confirms the moment
+    // the player's row has actually landed and dispatches this event. Reload the
+    // board fresh (cache-bypassed) so the new row shows at once, instead of
+    // waiting up to 45s for the next poll and risking the edge cache.
+    const onUpdated = () => { if (alive) load(true, true); };
     if (typeof document !== 'undefined') document.addEventListener('visibilitychange', onVis);
-    if (typeof window !== 'undefined') window.addEventListener('focus', onVis);
-    return () => { alive = false; clearInterval(iv); if (typeof document !== 'undefined') document.removeEventListener('visibilitychange', onVis); if (typeof window !== 'undefined') window.removeEventListener('focus', onVis); };
+    if (typeof window !== 'undefined') { window.addEventListener('focus', onVis); window.addEventListener('sot:daily-updated', onUpdated); }
+    return () => { alive = false; clearInterval(iv); if (typeof document !== 'undefined') document.removeEventListener('visibilitychange', onVis); if (typeof window !== 'undefined') { window.removeEventListener('focus', onVis); window.removeEventListener('sot:daily-updated', onUpdated); } };
   }, [quizId]);
 
   const myKey = data && data.me ? data.me.userKey : null;
