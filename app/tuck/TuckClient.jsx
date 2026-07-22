@@ -181,6 +181,7 @@ export default function TuckClient({ puzzles = [], forceNum = null }) {
   const [dir, setDir] = useState('h');
   const [armed, setArmed] = useState(null);        // armed tray letter
   const [erase, setErase] = useState(false);       // take-back mode: tap a placed tile to pull it back to the rack
+  const [tapSeq, setTapSeq] = useState(0);          // consecutive taps on the selected cell; 3rd tap on a filled cell takes it back
   const [confirming, setConfirming] = useState(false);
   const [showHelp, setShowHelp] = useState(false);
   const [gateRules, setGateRules] = useState(false); // start tile: full rules (first-timer) vs compact start card
@@ -432,6 +433,7 @@ export default function TuckClient({ puzzles = [], forceNum = null }) {
     if (erase) {
       if (grid[r][c]) { setCell(r, c, null); setSel({ r, c }); }
       else setSel({ r, c });
+      setTapSeq(0);
       return;
     }
     if (armed !== null) {
@@ -439,13 +441,20 @@ export default function TuckClient({ puzzles = [], forceNum = null }) {
         setCell(r, c, armed);
         setArmed(null);
         setSel({ r, c });
+        setTapSeq(0);
         advanceFrom(r, c);
         return;
       }
       setArmed(null);
     }
-    if (sel && sel.r === r && sel.c === c) setDir((d) => (d === 'h' ? 'v' : 'h'));
-    else setSel({ r, c });
+    if (sel && sel.r === r && sel.c === c) {
+      // Taps on the already-selected cell cycle: 1 select, 2 flip direction,
+      // 3 take a placed tile back to the rack (empty cells just keep flipping).
+      const nextSeq = tapSeq + 1;
+      if (grid[r][c] && nextSeq >= 3) { setCell(r, c, null); setTapSeq(0); return; }
+      setDir((d) => (d === 'h' ? 'v' : 'h'));
+      setTapSeq(nextSeq);
+    } else { setSel({ r, c }); setTapSeq(1); }
   }
   function advanceFrom(r, c) {
     setSel((cur) => {
@@ -463,6 +472,7 @@ export default function TuckClient({ puzzles = [], forceNum = null }) {
       const tag = (document.activeElement && document.activeElement.tagName) || '';
       if (tag === 'INPUT' || tag === 'TEXTAREA') return;
       const { r, c } = sel;
+      setTapSeq(0);
       if (e.key === ' ') { setDir((d) => (d === 'h' ? 'v' : 'h')); e.preventDefault(); return; }
       if (e.key === 'ArrowRight' && c < SIZE - 1) { setSel({ r, c: c + 1 }); e.preventDefault(); return; }
       if (e.key === 'ArrowLeft' && c > 0) { setSel({ r, c: c - 1 }); e.preventDefault(); return; }
@@ -599,7 +609,7 @@ export default function TuckClient({ puzzles = [], forceNum = null }) {
       <p style={{ margin: '0 0 9px' }}>Everyone gets the same <b>{RACK} letters</b>. Build your own little crossword on the board: every run of two or more letters must be a real word, across and down, and everything must connect into one grid.</p>
       <p style={{ margin: '0 0 9px' }}>Score is Scrabble points across all your words &mdash; a letter at an intersection counts in <b>both</b> words &mdash; plus 10 for tucking in all {RACK} tiles. Today&rsquo;s <b>par of {PAR}</b> was actually scored by our solver, so it can be beaten.</p>
       <p style={{ margin: '0 0 9px' }}>Rebuild as much as you like &mdash; but <b>one shot counts</b>: only your first submitted grid ranks on the daily board. Ties break by fewest unused tiles, then fastest clock.</p>
-      <p style={{ margin: 0 }}>Tap a square and type, or tap a rack tile then a square. Space flips typing direction. To pull tiles back, tap <b>Take back</b> then tap any placed tile (or press Backspace on a selected square).</p>
+      <p style={{ margin: 0 }}>Tap a square and type, or tap a rack tile then a square. Space flips typing direction. To pull tiles back, tap <b>Take back</b> then tap any placed tile, triple-tap a placed tile (select, flip, remove), or press Backspace on a selected square.</p>
     </div>
   );
 
