@@ -22,7 +22,7 @@
 
 import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { useSearchParams } from 'next/navigation';
-import { HelpCircle, X, Smartphone, Shuffle, Eraser, CheckCircle2 } from 'lucide-react';
+import { HelpCircle, X, Smartphone, Shuffle, Eraser, Trash2, CheckCircle2 } from 'lucide-react';
 import Grain from '../Grain';
 import Footer from '../Footer';
 import useDuelContext, { DuelBanner } from '../quiz/[id]/useDuelContext';
@@ -180,6 +180,7 @@ export default function TuckClient({ puzzles = [], forceNum = null }) {
   const [sel, setSel] = useState(null);            // { r, c }
   const [dir, setDir] = useState('h');
   const [armed, setArmed] = useState(null);        // armed tray letter
+  const [erase, setErase] = useState(false);       // take-back mode: tap a placed tile to pull it back to the rack
   const [confirming, setConfirming] = useState(false);
   const [showHelp, setShowHelp] = useState(false);
   const [gateRules, setGateRules] = useState(false); // start tile: full rules (first-timer) vs compact start card
@@ -428,6 +429,11 @@ export default function TuckClient({ puzzles = [], forceNum = null }) {
   }
 
   function onCell(r, c) {
+    if (erase) {
+      if (grid[r][c]) { setCell(r, c, null); setSel({ r, c }); }
+      else setSel({ r, c });
+      return;
+    }
     if (armed !== null) {
       if ((availCounts[armed] || 0) > 0) {
         setCell(r, c, armed);
@@ -576,6 +582,7 @@ export default function TuckClient({ puzzles = [], forceNum = null }) {
   }, [TRAY, grid]);
 
   const statusLine = (() => {
+    if (erase && placedCount > 0) return { msg: 'Take-back mode: tap any tile to send it back to your rack.', cls: 'muted' };
     if (!dict && !dictErr) return { msg: 'Loading the dictionary…', cls: 'muted' };
     if (dictErr) return { msg: 'Could not load the dictionary — refresh to try again.', cls: 'bad' };
     if (placedCount === 0) return { msg: 'Tap a square (or a rack tile), then type. Space flips direction ➜ / ⬇', cls: 'muted' };
@@ -592,7 +599,7 @@ export default function TuckClient({ puzzles = [], forceNum = null }) {
       <p style={{ margin: '0 0 9px' }}>Everyone gets the same <b>{RACK} letters</b>. Build your own little crossword on the board: every run of two or more letters must be a real word, across and down, and everything must connect into one grid.</p>
       <p style={{ margin: '0 0 9px' }}>Score is Scrabble points across all your words &mdash; a letter at an intersection counts in <b>both</b> words &mdash; plus 10 for tucking in all {RACK} tiles. Today&rsquo;s <b>par of {PAR}</b> was actually scored by our solver, so it can be beaten.</p>
       <p style={{ margin: '0 0 9px' }}>Rebuild as much as you like &mdash; but <b>one shot counts</b>: only your first submitted grid ranks on the daily board. Ties break by fewest unused tiles, then fastest clock.</p>
-      <p style={{ margin: 0 }}>Tap a square and type, or tap a rack tile then a square. Space flips typing direction.</p>
+      <p style={{ margin: 0 }}>Tap a square and type, or tap a rack tile then a square. Space flips typing direction. To pull tiles back, tap <b>Take back</b> then tap any placed tile (or press Backspace on a selected square).</p>
     </div>
   );
 
@@ -708,7 +715,7 @@ export default function TuckClient({ puzzles = [], forceNum = null }) {
                 <div
                   key={i}
                   className={`tk-tile${t.used ? ' used' : ''}${armed === t.l && !t.used ? ' armed' : ''}`}
-                  onClick={() => { if ((availCounts[t.l] || 0) > 0) { startClock(); setArmed((a) => (a === t.l ? null : t.l)); } }}
+                  onClick={() => { if ((availCounts[t.l] || 0) > 0) { startClock(); setErase(false); setArmed((a) => (a === t.l ? null : t.l)); } }}
                   role="button"
                   aria-label={`Tile ${t.l}, ${PTS[t.l]} points${t.used ? ', used' : ''}`}
                 >
@@ -731,7 +738,18 @@ export default function TuckClient({ puzzles = [], forceNum = null }) {
                   <CheckCircle2 size={15} strokeWidth={2.4} /> {confirming ? `Submit ${liveScore} pts — sure?` : 'Submit score'}
                 </button>
               )}
-              <button type="button" className="tk-btn" onClick={clearGrid}><Eraser size={14} /> Clear</button>
+              {playing && (
+                <button
+                  type="button"
+                  className={`tk-btn${erase ? ' primary' : ''}`}
+                  aria-pressed={erase}
+                  disabled={placedCount === 0 && !erase}
+                  onClick={() => { setErase((v) => !v); setArmed(null); }}
+                >
+                  <Eraser size={14} /> {erase ? 'Tap tiles to remove' : 'Take back'}
+                </button>
+              )}
+              <button type="button" className="tk-btn" onClick={clearGrid}><Trash2 size={14} /> Clear all</button>
               {confirming && <button type="button" className="tk-btn" onClick={() => setConfirming(false)}>Keep building</button>}
             </div>
             {playing && (
