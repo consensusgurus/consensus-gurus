@@ -334,7 +334,7 @@ export default function CarveClient({ puzzles = [], forceNum = null }) {
   const prevPuzzle = puzzles.find((x) => x.num === PUZZLE.num - 1) || null;
   const myStats = deriveStats(stats, pickPuzzle(puzzles, null).num);
   const errors = g.errors;
-  const finalScore = won ? Math.max(1, Math.min(10, 10 - errors)) : 0;
+  const finalScore = won ? Math.max(1, Math.min(10, 10 - Math.ceil(errors / 2))) : 0;
   const nbrsOf = useCallback((i) => {
     const r = Math.floor(i / N), c = i % N, out = [];
     if (r > 0) out.push(i - N);
@@ -467,7 +467,7 @@ export default function CarveClient({ puzzles = [], forceNum = null }) {
       }
       setG(g2);
       if (g2.status === 'won') {
-        postResult(g2, Math.max(1, Math.min(10, 10 - g2.errors)));
+        postResult(g2, Math.max(1, Math.min(10, 10 - Math.ceil(g2.errors / 2))));
         setJustWon(true);
       } else {
         // advance the brush to the next open region
@@ -498,7 +498,7 @@ export default function CarveClient({ puzzles = [], forceNum = null }) {
     if (regionSum(g2.assign, reg) === TARGET) {
       const res = commitCheck(g2, reg);
       if (res.ok && g2.status === 'won') {
-        postResult(g2, Math.max(1, Math.min(10, 10 - g2.errors)));
+        postResult(g2, Math.max(1, Math.min(10, 10 - Math.ceil(g2.errors / 2))));
         setG(g2); setJustWon(true); return;
       }
     }
