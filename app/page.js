@@ -2,6 +2,10 @@ import QuizHomeClient from './quizzes/QuizHomeClient';
 import { QUIZZES } from '@/lib/quizzes';
 import { getAllSources } from '@/lib/sources';
 
+// Force ISR so the homepage shell always reflects the latest deployment
+// (prevents the static page from being pinned to a stale CDN cache).
+export const revalidate = 60;
+
 const SOURCE_COUNT = getAllSources().length;
 
 export function generateMetadata() {
