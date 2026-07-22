@@ -321,7 +321,7 @@ export default function SudsClient({ puzzles = [], forceNum = null }) {
   const prevPuzzle = puzzles.find((x) => x.num === PUZZLE.num - 1) || null;
   const myStats = deriveStats(stats, pickPuzzle(puzzles, null).num);
   const errors = g.errors;
-  const finalScore = won ? Math.max(1, Math.min(10, 10 - errors)) : 0;
+  const finalScore = won ? Math.max(1, Math.min(10, 10 - Math.ceil(errors / 2))) : 0;
 
   // digits fully placed (all 9 correct) → grey out on the pad
   const digitDone = useMemo(() => {
@@ -411,7 +411,7 @@ export default function SudsClient({ puzzles = [], forceNum = null }) {
     if (!wrong && isSolved(nextCells)) {
       g2.status = 'won';
       g2.tEnd = Date.now();
-      postResult(g2, Math.max(1, Math.min(10, 10 - g2.errors)));
+      postResult(g2, Math.max(1, Math.min(10, 10 - Math.ceil(g2.errors / 2))));
       setG(g2);
       setJustWon(true);
       return;
@@ -451,7 +451,7 @@ export default function SudsClient({ puzzles = [], forceNum = null }) {
     setSel(idx);
     if (isSolved(nextCells)) {
       g2.status = 'won'; g2.tEnd = Date.now();
-      postResult(g2, Math.max(1, Math.min(10, 10 - g2.errors)));
+      postResult(g2, Math.max(1, Math.min(10, 10 - Math.ceil(g2.errors / 2))));
       setG(g2); setJustWon(true); return;
     }
     setG(g2);

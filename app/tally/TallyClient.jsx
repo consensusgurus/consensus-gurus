@@ -311,7 +311,7 @@ export default function TallyClient({ puzzles = [], forceNum = null }) {
   const prevPuzzle = puzzles.find((x) => x.num === PUZZLE.num - 1) || null;
   const myStats = deriveStats(stats, pickPuzzle(puzzles, null).num);
   const errors = g.moves > FEWEST ? g.moves - FEWEST : 0;
-  const finalScore = won ? Math.max(1, Math.min(10, 10 - errors)) : 0;
+  const finalScore = won ? Math.max(1, Math.min(10, 10 - Math.ceil(errors / 2))) : 0;
 
   // per-rack-tile "used" flags: first usedCount[d] tiles of each value read used
   const used = useMemo(() => {
@@ -395,7 +395,7 @@ export default function TallyClient({ puzzles = [], forceNum = null }) {
       g2.status = 'won';
       g2.tEnd = Date.now();
       const errs = g2.moves > FEWEST ? g2.moves - FEWEST : 0;
-      postResult(g2, Math.max(1, Math.min(10, 10 - errs)));
+      postResult(g2, Math.max(1, Math.min(10, 10 - Math.ceil(errs / 2))));
       setG(g2);
       setJustWon(true);
       return;
@@ -450,7 +450,7 @@ export default function TallyClient({ puzzles = [], forceNum = null }) {
         if (isSolved(next)) {
           g2.status = 'won'; g2.tEnd = Date.now();
           const errs = g2.moves > FEWEST ? g2.moves - FEWEST : 0;
-          postResult(g2, Math.max(1, Math.min(10, 10 - errs)));
+          postResult(g2, Math.max(1, Math.min(10, 10 - Math.ceil(errs / 2))));
           setG(g2); setJustWon(true); return;
         }
         setSel(-1);
