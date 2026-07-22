@@ -2,9 +2,9 @@ import QuizHomeClient from './quizzes/QuizHomeClient';
 import { QUIZZES } from '@/lib/quizzes';
 import { getAllSources } from '@/lib/sources';
 
-// Force ISR so the homepage shell always reflects the latest deployment
-// (prevents the static page from being pinned to a stale CDN cache).
-export const revalidate = 60;
+// Render the homepage dynamically so its header/emblem always reflects the
+// latest deployment (a stale prerender cache was pinning the old logo).
+export const dynamic = 'force-dynamic';
 
 const SOURCE_COUNT = getAllSources().length;
 
