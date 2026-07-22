@@ -399,7 +399,7 @@ export default function SudsClient({ puzzles = [], forceNum = null }) {
       setG({ ...g, notes: nextNotes });
       return;
     }
-    if (cells[idx] === d) return; // no-op re-entry of the same digit
+    if (cells[idx] === d) { eraseCell(idx); return; } // re-tap the same digit to clear the cell
     const nextCells = cells.slice();
     const nextNotes = notes.slice();
     nextCells[idx] = d;

@@ -25,7 +25,7 @@
 
 import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { useSearchParams } from 'next/navigation';
-import { HelpCircle, X, Smartphone, Lightbulb, Eraser, Eye } from 'lucide-react';
+import { HelpCircle, X, Smartphone, Lightbulb, Eraser, Eye, Undo2 } from 'lucide-react';
 import Grain from '../Grain';
 import Footer from '../Footer';
 import useDuelContext, { DuelBanner } from '../quiz/[id]/useDuelContext';
@@ -56,6 +56,7 @@ const MONO = "'DM Mono', ui-monospace, 'SFMono-Regular', monospace";
 const HELP_KEY = 'sot_jester_help_seen';
 const STATS_KEY = 'sot_jester_stats';
 const TOTAL = 10;
+const UNDO_MAX = 50;
 
 const isIosDevice = () =>
   typeof navigator !== 'undefined' &&
@@ -227,6 +228,8 @@ export default function JesterClient({ puzzles = [], forceNum = null }) {
   const [player, setPlayer] = useState(null);
   const [countdown, setCountdown] = useState('');
   const [revealArmed, setRevealArmed] = useState(false);
+  const histRef = useRef([]);
+  const [canUndo, setCanUndo] = useState(false);
   const [installEvt, setInstallEvt] = useState(null);
   const [showA2hsHelp, setShowA2hsHelp] = useState(false);
   const [standalone, setStandalone] = useState(false);
@@ -411,6 +414,26 @@ export default function JesterClient({ puzzles = [], forceNum = null }) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [seated, conflictSet, hydrated, playing]);
 
+  // Undo: snapshot cells + placement count before each mutation so one press
+  // rolls back a misplaced jester AND the auto-x cascade it stamped. In-memory
+  // only (never persisted), cleared on puzzle change and reset, Alibi's pattern.
+  useEffect(() => { histRef.current = []; setCanUndo(false); }, [PUZZLE.num]);
+  function pushHist(cells, placements) {
+    const h = histRef.current;
+    h.push({ cells: cells.map((row) => row.slice()), placements });
+    if (h.length > UNDO_MAX) h.shift();
+    setCanUndo(true);
+  }
+  function undo() {
+    if (!playing) return;
+    const prev = histRef.current.pop();
+    if (!prev) { setCanUndo(false); return; }
+    setG((cur) => ({ ...cur, cells: prev.cells, placements: prev.placements }));
+    setCanUndo(histRef.current.length > 0);
+    setRevealArmed(false);
+  }
+  function clearHist() { histRef.current = []; setCanUndo(false); }
+
   function isLocked(r, c) {
     return g.locked.some(([lr, lc]) => lr === r && lc === c);
   }
@@ -418,6 +441,7 @@ export default function JesterClient({ puzzles = [], forceNum = null }) {
   function tapCell(r, c) {
     if (!playing) return;
     if (isLocked(r, c)) { say('The hint seated that jester — it stays.'); return; }
+    pushHist(g.cells, g.placements);
     setG((cur) => {
       const cells = cur.cells.map((row) => row.slice());
       const v = cells[r][c];
@@ -444,6 +468,7 @@ export default function JesterClient({ puzzles = [], forceNum = null }) {
 
   function clearBoard() {
     if (!playing) return;
+    pushHist(g.cells, g.placements);
     setG((cur) => {
       const cells = freshCells(N);
       for (const [r, c] of cur.locked) cells[r][c] = 2;
@@ -489,7 +514,7 @@ export default function JesterClient({ puzzles = [], forceNum = null }) {
 
   function resetGame() {
     try { localStorage.removeItem(STORE_KEY); } catch (e) {}
-    setG(freshState(N)); setEndClosed(false);
+    setG(freshState(N)); setEndClosed(false); clearHist();
   }
 
   const cellPx = N === 9 ? 42 : 46;
@@ -499,7 +524,7 @@ export default function JesterClient({ puzzles = [], forceNum = null }) {
     <div style={{ fontSize: 14, lineHeight: 1.55, color: COLORS.ink, fontWeight: 600 }}>
       <p style={{ margin: '0 0 9px' }}>Seat exactly <b>one jester</b> in every row, every column, and every colored court.</p>
       <p style={{ margin: '0 0 9px' }}>Jesters are jealous: <b>no two may touch</b>, not even diagonally. Quarrelling jesters glow red.</p>
-      <p style={{ margin: '0 0 9px' }}>Tap a cell to cycle: blank &rarr; <b>✗</b> (ruled out) &rarr; <b>jester</b>. Leave auto-✗ on and seating a jester pencils out its row, column, court and neighbours for you.</p>
+      <p style={{ margin: '0 0 9px' }}>Tap a cell to cycle: blank &rarr; <b>✗</b> (ruled out) &rarr; <b>jester</b>. Leave auto-✗ on and seating a jester pencils out its row, column, court and neighbours for you. <b>Undo</b> rolls back a jester and the ✗ marks it penciled in.</p>
       <p style={{ margin: 0 }}>Every board has exactly one legal seating, reachable by pure deduction &mdash; no guessing needed. The board completes itself the moment the last jester is seated legally. Ties on the daily board break by fewest placements, then fastest time. A bigger 9&times;9 Jubilee board runs on Sundays.</p>
     </div>
   );
@@ -612,6 +637,7 @@ export default function JesterClient({ puzzles = [], forceNum = null }) {
         {started && (
           <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', justifyContent: 'center', margin: '12px 0 6px' }}>
             <button type="button" className="je-btn" onClick={clearBoard}><Eraser size={14} /> Clear board</button>
+            <button type="button" className="je-btn" onClick={undo} disabled={!canUndo} aria-label="Undo last move" style={canUndo ? undefined : { borderColor: '#c3c8cf', color: '#c3c8cf', cursor: 'default' }}><Undo2 size={14} /> Undo</button>
             {!identity && !g.hintUsed && (
               <button type="button" className="je-btn" onClick={useHint} title="Seat one correct jester (one hint per day)" style={{ background: COLORS.accentSoft, borderColor: 'rgba(124,58,237,0.5)', color: COLORS.accentDeep }}>
                 <Lightbulb size={14} /> Hint: seat one jester

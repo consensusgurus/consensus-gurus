@@ -205,6 +205,7 @@ export default function CipherClient({ puzzles = [], forceNum = null }) {
   const [g, setG] = useState(freshState);
   const [selected, setSelected] = useState(null);
   const [verdict, setVerdict] = useState(null);   // { good, msg }
+  const [clearArmed, setClearArmed] = useState(false);
   const [showHelp, setShowHelp] = useState(false);
   const [gateRules, setGateRules] = useState(false); // start tile: full rules (first-timer) vs compact start card
   const [toast, setToast] = useState(null);
@@ -440,6 +441,9 @@ export default function CipherClient({ puzzles = [], forceNum = null }) {
 
   function clearAll() {
     if (!playing) return;
+    if (Object.keys(g.assign).length === 0) { setClearArmed(false); return; }
+    if (!clearArmed) { setClearArmed(true); setTimeout(() => setClearArmed(false), 3000); return; }
+    setClearArmed(false);
     setG((cur) => ({ ...cur, assign: {} }));
     setSelected(null);
     setVerdict(null);
@@ -624,7 +628,7 @@ export default function CipherClient({ puzzles = [], forceNum = null }) {
           {playing && (
             <div style={{ display: 'flex', gap: 8, justifyContent: 'center', flexWrap: 'wrap', marginTop: 12 }}>
               <button type="button" className="cf-btn primary" onClick={check}><Lock size={14} strokeWidth={2.6} /> Check solution</button>
-              <button type="button" className="cf-btn" onClick={clearAll}>Clear</button>
+              <button type="button" className="cf-btn" onClick={clearAll} style={clearArmed ? { borderColor: COLORS.rust, color: COLORS.rust } : undefined}>{clearArmed ? 'Clear all — tap again' : 'Clear'}</button>
               {g.fails >= 3 && (
                 <button type="button" className="cf-btn" style={{ borderColor: '#c3c8cf', color: COLORS.faded }} onClick={reveal}>Reveal (ends the day)</button>
               )}
