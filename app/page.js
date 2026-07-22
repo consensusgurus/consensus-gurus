@@ -2,10 +2,6 @@ import QuizHomeClient from './quizzes/QuizHomeClient';
 import { QUIZZES } from '@/lib/quizzes';
 import { getAllSources } from '@/lib/sources';
 
-// Render the homepage dynamically so its header/emblem always reflects the
-// latest deployment (a stale prerender cache was pinning the old logo).
-export const dynamic = 'force-dynamic';
-
 const SOURCE_COUNT = getAllSources().length;
 
 export function generateMetadata() {
