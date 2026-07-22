@@ -738,7 +738,7 @@ export default function ExtraClient({ puzzles = [], forceNum = null }) {
           modal
           self="extra"
           won={won}
-          headline={<>You scored {Math.round((finalScore / 10) * 100)}%</>}
+          headline={won ? <>Nailed the read!</> : <>You scored {Math.round((finalScore / 10) * 100)}%</>}
           subline={won
             ? <>{finalScore}/10 &middot; {tears === 0 ? 'a perfect cold read' : `named it with ${tears} tear${tears === 1 ? '' : 's'}`} &middot; {elapsed}{g.hintUsed ? <> &middot; 1 hint</> : null}</>
             : <>0/10 &middot; the story got away</>}

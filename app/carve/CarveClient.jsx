@@ -856,7 +856,7 @@ export default function CarveClient({ puzzles = [], forceNum = null }) {
           modal
           self="carve"
           won={won}
-          headline={<>You scored {Math.round(((won ? finalScore : 0) / 10) * 100)}%</>}
+          headline={won ? <>Board carved!</> : <>You scored {Math.round(((won ? finalScore : 0) / 10) * 100)}%</>}
           subline={<>{won
             ? <>{finalScore}/10 &middot; {errors === 0 ? 'clean cuts, no errors' : `${errors} error${errors === 1 ? '' : 's'}`} &middot; {elapsed}{g.hintUsed ? <> &middot; 1 hint</> : null}</>
             : <>0/10 &middot; the finished carving is shown above</>}</>}

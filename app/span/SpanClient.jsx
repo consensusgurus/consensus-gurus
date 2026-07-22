@@ -957,7 +957,7 @@ export default function SpanClient({ puzzles = [], forceNum = null }) {
           modal
           self="span"
           won={won}
-          headline={<>You scored {Math.round(((won ? finalScore : 0) / 10) * 100)}%</>}
+          headline={won ? <>You made the span!</> : <>You scored {Math.round(((won ? finalScore : 0) / 10) * 100)}%</>}
           subline={won
             ? <>{finalScore}/10 &middot; {hops} hops (shortest {PUZZLE.par}) &middot; {g.misses} miss{g.misses === 1 ? '' : 'es'} &middot; {elapsed}{g.hintUsed ? <> &middot; 1 hint</> : null}</>
             : <>0/10 &middot; a shortest road is below</>}

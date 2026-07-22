@@ -828,7 +828,7 @@ export default function StetClient({ puzzles = [], forceNum = null }) {
           modal
           self="stet"
           won={misses === 0}
-          headline={<>You scored {Math.round((score / TOTAL) * 100)}%</>}
+          headline={perfect ? <>Clean desk!</> : <>You scored {Math.round((score / TOTAL) * 100)}%</>}
           subline={<>Stet #{PUZZLE.num} &middot; {score}/{TOTAL}{perfect ? <> &middot; clean desk</> : null} &middot; {elapsed}</>}
           onShare={copyShare}
           shareLabel={copied ? 'Copied' : 'Share Result'}
