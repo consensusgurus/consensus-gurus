@@ -190,7 +190,7 @@ export default function CommunityTile() {
                         <span className="cm-pn">{r.credits}</span>
                       </>
                     ) : (
-                      <span className="cm-pname cm-vacant">Open</span>
+                      <span className="cm-pname cm-vacant">Open - Please help us grow!</span>
                     )}
                   </div>
                 );
