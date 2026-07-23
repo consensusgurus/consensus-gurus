@@ -44,7 +44,7 @@ async function findViewer(admin, { anonId, email }) {
   return user || null;
 }
 
-// GET /api/quiz/referrals?anonId=...&email=...&days=30
+// GET /api/quiz/referrals?anonId=...&email=...&days=90
 //
 // Powers the Top Community Member tile on /quizzes:
 //   top : rolling-window referral board (username + credits)
@@ -54,9 +54,9 @@ async function findViewer(admin, { anonId, email }) {
 export async function GET(request) {
   try {
     const { searchParams } = new URL(request.url);
-    // days: 30 by default; a very large value (36500) is how the public board asks
+    // days: 90 by default; a very large value (36500) is how the public board asks
     // for the all-time view. limit: 10 for the tile, up to 100 for that board.
-    const days = Math.min(36500, Math.max(1, parseInt(searchParams.get('days'), 10) || 30));
+    const days = Math.min(36500, Math.max(1, parseInt(searchParams.get('days'), 10) || 90));
     const limit = Math.min(100, Math.max(1, parseInt(searchParams.get('limit'), 10) || 10));
     const anonId =
       (searchParams.get('anonId') || '').trim().slice(0, 64) ||
@@ -88,6 +88,6 @@ export async function GET(request) {
     return NextResponse.json({ top, me, days });
   } catch {
     // Never let the tile take the page down; it renders its empty state.
-    return NextResponse.json({ top: [], me: null, days: 30 });
+    return NextResponse.json({ top: [], me: null, days: 90 });
   }
 }

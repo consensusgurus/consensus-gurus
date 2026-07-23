@@ -173,7 +173,7 @@ export default function CommunityTile() {
               <span className="cm-who" ref={textRef}>{leader.username}</span>
             </div>
             <div className="cm-sub">
-              {leader.credits} {leader.credits === 1 ? 'player' : 'players'} brought in over the last 30 days
+              {leader.credits} {leader.credits === 1 ? 'player' : 'players'} brought in over the last 90 days
             </div>
             {/* Runners-up, so the tile reads as a podium rather than a single name.
                 Empty places render as "Open" on purpose: it shows the spot is
@@ -202,7 +202,7 @@ export default function CommunityTile() {
             <div className="cm-namewrap" ref={wrapRef}>
               <span className="cm-who" ref={textRef} style={{ fontSize: 24, color: '#fff' }}>This spot is open</span>
             </div>
-            <div className="cm-sub">Nobody has brought in a player yet this month.</div>
+            <div className="cm-sub">Nobody has brought in a player yet recently.</div>
           </>
         )}
         <div className="cm-foot">How to get credit <ArrowRight size={13} style={{ verticalAlign: -1 }} /></div>
