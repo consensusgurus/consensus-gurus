@@ -231,4 +231,19 @@ export const PUZZLES = [
     ],
     solution: {"thief":3,"liars":[0,1,3]},
   },
+  {
+    num: 15, quizId: "sworn-8-1-26", live: "2026-08-01", dateLabel: "August 1, 2026", sunday: false,
+    k: 3,
+    suspects: ["Mordecai","Prudence","Alastair","Cordelia","Thaddeus"],
+    venue: "the Marigold coffee-house",
+    stolen: "an ivory chess set",
+    statements: [
+      {"type":"selfInnocent"},
+      {"type":"accuse","x":3},
+      {"type":"honest","x":3},
+      {"type":"liar","x":1},
+      {"type":"innocent","x":3},
+    ],
+    solution: {"thief":3,"liars":[2,3,4]},
+  },
 ];

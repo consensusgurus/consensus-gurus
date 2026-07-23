@@ -22,4 +22,5 @@ export const PUZZLES = [
   { num: 12, quizId: "cipher-7-29-26", live: "2026-07-29", dateLabel: "July 29, 2026", sunday: false, lhs: ["PARK","PLAZA"], rhs: "STREET" },
   { num: 13, quizId: "cipher-7-30-26", live: "2026-07-30", dateLabel: "July 30, 2026", sunday: false, lhs: ["APPLE","GRAPE"], rhs: "CHERRY" },
   { num: 14, quizId: "cipher-7-31-26", live: "2026-07-31", dateLabel: "July 31, 2026", sunday: false, lhs: ["SATURN","URANUS"], rhs: "PLANETS" },
+  { num: 15, quizId: "cipher-8-1-26", live: "2026-08-01", dateLabel: "August 1, 2026", sunday: false, lhs: ["TUNE","SONG"], rhs: "NOTES" },
 ];

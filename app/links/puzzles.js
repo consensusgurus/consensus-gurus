@@ -323,4 +323,42 @@ export const PUZZLES = [
       { word: 'CROWN', reads: 'Tooth parts' },
     ],
   },
+  {
+    num: 20,
+    quizId: 'links-7-31-26',
+    live: '2026-07-31',
+    dateLabel: 'July 31, 2026',
+    // collisions: TIDE & BOLD read detergent (detergents full: GAIN/ERA/ALL/CHEER),
+    // STRIKE reads bowling (lanes full: SPARE/GUTTER/TURKEY/PIN). One grouping.
+    groups: [
+      { name: 'Text styles', words: ['ITALIC', 'UNDERLINE', 'STRIKE', 'BOLD'] },
+      { name: 'Bowling terms', words: ['SPARE', 'GUTTER', 'TURKEY', 'PIN'] },
+      { name: '___ pool', words: ['CAR', 'GENE', 'WHIRL', 'TIDE'] },
+      { name: 'Laundry detergents', words: ['GAIN', 'ERA', 'ALL', 'CHEER'] },
+    ],
+    collisions: [
+      { word: 'TIDE', reads: 'Laundry detergents' },
+      { word: 'BOLD', reads: 'Laundry detergents' },
+      { word: 'STRIKE', reads: 'Bowling terms' },
+    ],
+  },
+  {
+    num: 21,
+    quizId: 'links-8-1-26',
+    live: '2026-08-01',
+    dateLabel: 'August 1, 2026',
+    // collisions: IRIS reads flower (eyes full), JASMINE reads flower (princesses full),
+    // ROSE reads flower (past-tense full). TULIP/DAHLIA/PANSY/PEONY anchor flowers.
+    groups: [
+      { name: 'Eye parts', words: ['PUPIL', 'RETINA', 'CORNEA', 'IRIS'] },
+      { name: 'Disney princesses', words: ['BELLE', 'AURORA', 'MULAN', 'JASMINE'] },
+      { name: 'Past-tense verbs', words: ['SANG', 'DREW', 'FLEW', 'ROSE'] },
+      { name: 'Flowers', words: ['TULIP', 'DAHLIA', 'PANSY', 'PEONY'] },
+    ],
+    collisions: [
+      { word: 'IRIS', reads: 'Flowers' },
+      { word: 'JASMINE', reads: 'Flowers' },
+      { word: 'ROSE', reads: 'Flowers' },
+    ],
+  },
 ];

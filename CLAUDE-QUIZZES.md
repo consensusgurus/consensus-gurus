@@ -269,3 +269,124 @@ unique" or "the grid geometry is valid" does NOT prove this — you must solve i
 - [ ] `quizId` matches `live`; `dateLabel` matches; the `sunday` flag matches the real weekday.
 - [ ] Applied on-device durably and re-verified ON the device — a container re-stage can serve
       a stale cached copy of a file you just overwrote.
+
+### 7e. Banking a new daily puzzle - shared mechanics (EVERY game)
+
+Every daily lives in `app/<game>/puzzles.js` as an entry in the exported `PUZZLES` array. To add a
+day, APPEND the new object just before the array's closing `];`, matching the file's existing code
+style byte for byte. The server page (`app/<game>/page.js`) filters `live <= today` before sending
+puzzles to the client, and the logic games additionally STRIP the solution, so future answers never
+ship to the browser.
+
+Four identity fields must all agree (verifiers cross-check them):
+- `num`: previous entry's num + 1 (contiguous, 1-based; never skip or reuse).
+- `quizId`: `'<game>-M-D-YY'`, month/day with NO leading zero, two-digit year (e.g. `garble-8-1-26`).
+- `live`: ISO `'YYYY-MM-DD'`.
+- `dateLabel`: `'Month D, YYYY'` (e.g. `'August 1, 2026'`).
+
+`sunday` flag: TRUE only when the drop's real Eastern-time weekday is Sunday AND the game runs a
+Sunday Edition (registry: `lib/sunday-editions.js`). A Sunday board uses that game's bigger/harder
+variant (see §7f); a weekday board uses the standard size. A game NOT in the registry never sets
+`sunday: true`. The puzzle-level `sunday` flag plus `isSundayET` are the ONLY truth; never infer a
+Sunday from board size or guess count.
+
+Run the game's verifier after ANY edit (a parse is NOT a pass, per §0/§7a):
+- `node scripts/verify-daily-banks.mjs [game...]` covers crux, emcee, garble, links, span, dating,
+  tally, suds, carve, circa, extra, outwit, outrank.
+- Standalone: `verify-alibi.mjs`, `verify-cipher.mjs`, `verify-jester.mjs`, `verify-ping.mjs`,
+  `verify-sworn.mjs`, `verify-stet.mjs`, `verify-tuck.mjs`, `verify-warmer.mjs`.
+
+GOTCHA - two verifiers hardcode the expected bank size: `verify-jester.mjs` and `verify-sworn.mjs`
+contain `if (PUZZLES.length !== N)`. When you add a board to jester or sworn you MUST bump that `N`
+in the SAME commit, or the verifier fails on an otherwise-correct board. The other verifiers count
+dynamically and need no bump.
+
+Deploy: dailies are NOT lists, so NO consensus-check cron and NO IndexNow ping. Ship the changed
+`app/<game>/puzzles.js` files (plus any verifier count bump) as ONE multi-file commit, spliced onto a
+fresh origin blob per the stale-base rule in the main CLAUDE.md.
+
+### 7f. Per-game creation reference (all 20 daily games)
+
+Each entry: concept | weekday shape (-> Sunday Edition variant, if any) | key authoring rules |
+verifier. All obey §7e (identity fields, append-before-`];`, sunday flag) and §7a-§7c.
+
+WORD / CROSSWORD
+- crux - clueless crossword: place category words into a grid. Weekday 8 hidden words -> Sunday 12
+  (27 guesses). Every grid answer a real word; EXACTLY ONE valid filing (the §7a double-solution trap
+  applies). verify-daily-banks crux (structure + crossings; the semantic double-solution audit is MANUAL).
+- emcee - daily mini crossword. Weekday 5x5 / 10 words -> Sunday 7x7 pinwheel / 22 words. `grid` uses
+  '#' for a block else the solution letter; `across`/`down` are {n,r,c,len,clue} with standard
+  numbering; EVERY across/down run must be a real, common (breakfast-table) word. verify-daily-banks emcee.
+- garble - unscramble five words; the letters at each answer's `marks`, concatenated in order,
+  anagram to `final`. Weekday five 5-letter answers + a 10-letter `final` -> Sunday six-letter answers.
+  Each `scramble` is a true anagram of its answer and NOT equal to it; NO answer may have an alternate
+  COMMON-word anagram (obscure ones are fine); `clue` riddles the `final`. verify-daily-banks garble.
+- links - Connections. Four groups of four, ordered easiest -> trickiest. Weekday >= 2 cross-category
+  collisions -> Sunday four. EXACTLY ONE valid grouping (pin every trap word: its decoy group must
+  already be full of true members). MANDATORY manual proof: build a generous membership matrix and
+  brute-force that the partition count == 1. verify-daily-banks links + manual audit.
+- tuck - tile-tucking: a 14-letter rack (Sunday 15), 4-6 vowels; `par` must be a score the ladder
+  solver actually achieves AND >= 45. verify-tuck.mjs (recomputes par from public/tuck-dict.txt).
+- warmer - semantic hotter/colder. `order` is a full permutation of the 32,300-word VOCAB by
+  GloVe-6B-100d cosine similarity to the secret word, most-similar first, so `order[0]` is the
+  answer's index. Weekday answer is a common word (historical vocab rank ~450-3500) -> Sunday a rarer
+  word (rank > 5000). No answer may repeat across the bank. Build `order` from REAL GloVe-6B-100d
+  vectors (npm `wink-embeddings-sg-100d`, or gensim `glove-wiki-gigaword-100`) - never a fake or
+  random order. verify-warmer.mjs.
+
+LOGIC (must be UNIQUE and human-deducible with NO trial-and-error; page.js strips the solution)
+- alibi - whodunit grid. Weekday 4 suspects/rooms/objects/times -> Sunday 5 (15 facts). 8-11 clues
+  (types: notRoom, notObj, roomObj, roomTime, before, beforeRoom, hasObj); stored `solution` matches
+  the unique, purely-deducible answer. Fresh suspects/venue/stolen. verify-alibi.mjs.
+- jester - Star Battle (one jester per row, column, and region). Weekday 8x8 -> Sunday 9x9 Jubilee.
+  `regions[r][c]` = region id; `solution[r]` = column; contiguous regions, EXACTLY ONE placement,
+  human-deducible. verify-jester.mjs. (Bump its hardcoded count per §7e.)
+- sworn - liars. Weekday 5 suspects -> Sunday 6. One statement per suspect (array position = speaker);
+  an honest speaker's statement is TRUE, a liar's is FALSE; EXACTLY ONE (thief, liar-set) world,
+  §7a-deducible. Fresh suspects/venue/stolen. verify-sworn.mjs. (Bump its hardcoded count per §7e.)
+- cipher - cryptarithm. Weekday 2 addends -> Sunday 3. `lhs` words + `rhs` sum; distinct digit per
+  letter, nonzero leading letters, EXACTLY ONE solution, <= 10 distinct letters, rhs length in
+  [max(lhs word length), that + 1]. Curate a THEMED equation, not letter soup. verify-cipher.mjs
+  (brute-forces every equation).
+
+NUMBERS (exactly one solution given the clues)
+- tally - balance the books: place the `bank` multiset to hit each `rowT`/`colT`. Weekday 5x5 ->
+  Sunday 6x6. verify-daily-banks tally (re-derives the unique solution).
+- suds - daily sudoku; the givens admit exactly one solution. Sunday harder, fewer givens.
+  verify-daily-banks suds.
+- carve - partition the grid into connected equal-sum regions, one `seed` each. Sunday 7x7 in nine
+  blocks. verify-daily-banks carve.
+
+GEOGRAPHY
+- span - cross the map by border hops. `start`/`end`/`par`/`note`; `par` = BFS-minimum border hops on
+  `app/span/borders.js` (COMPUTE it, never guess). Weekday no twist -> Sunday a `via`/`avoid` twist
+  scored by CONSTRAINED BFS. Every `note` claim must be checked against borders.js (list Y's full
+  neighbor set before any "only country bordering Y"). verify-daily-banks span.
+- ping - find the secret city. City drawn from `lib/ping-cities.js`; `lat`/`lng` MUST match that
+  file's entry (verifier enforces); never reuse a banked city. Weekday a well-known city -> Sunday a
+  trickier, out-of-the-way one. verify-ping.mjs.
+
+HISTORY
+- dating - order events in time. Five events (Sunday six) authored in TRUE ascending order (array
+  index is the answer key); `when` is the numeric year (negative = BC) and every year must be
+  WEB-VERIFIED; `theme` spoiler-free; per-event `d` story; end `note`. verify-daily-banks dating.
+- extra - name the story. Hidden specs resolve via the client's `resolveHidden`; every date
+  web-verified; Sunday a trickier story. verify-daily-banks extra.
+
+COPY-DESK
+- stet - spot the error. Five sentences (Sunday seven), 0-1 errors each (Sunday 0-2). Each error is a
+  REAL word so spellcheck passes (eggcorn, homophone, malaprop, grammar slip); `wrong` appears exactly
+  once; `fix` is a single token, != wrong, not already in the sentence; a clean sentence (errors: [])
+  carries a bait `cleanNote`; every `wrong`->`fix` pair is unique across the bank. verify-stet.mjs.
+
+CROWD PSYCHOLOGY (a pre-written house crowd seeds the pool until >10 real players; see main CLAUDE.md)
+- outwit - beat the crowd. Five prompts in FIXED order least, herd, match, unique, twothirds (Sunday
+  six, the extra a second Rare Bird). Each choice/unique prompt carries a ~48-index `house` crowd;
+  herd carries `truth`/`truthNote`; the twothirds "Undercut" runs LAST and carries the day's `frac`
+  + `fracLabel` (from 1/3, 2/5, 1/2, 3/5, 2/3, 7/10, 3/4, 4/5, never repeating on back-to-back days).
+  verify-daily-banks outwit.
+- outrank - call the crowd's order. Weekday 6 items -> Sunday 7. `house` = 40 favorite votes (item
+  indices); every item's vote count must be DISTINCT so the crowd order is unambiguous (§7a); themes
+  never reused. verify-daily-banks outrank.
+
+(circa is RETIRED - the archive stays playable, but no new drops are banked.)

@@ -458,4 +458,64 @@ export const PUZZLES = [
       },
     ],
   },
+  {
+    num: 15,
+    quizId: 'stet-7-31-26',
+    live: '2026-07-31',
+    dateLabel: 'July 31, 2026',
+    sunday: false,
+    items: [
+      {
+        text: 'The transit authority raised fares this week to insure the network stays solvent through 2030.',
+        errors: [{ wrong: 'insure', fix: 'ensure', note: 'Ensure: make certain. Insure: buy an insurance policy against loss.' }],
+      },
+      {
+        text: 'Officials warned the aging signal system could cause the agency to loose federal funding.',
+        errors: [{ wrong: 'loose', fix: 'lose', note: 'Lose is the verb (to lose funding); loose is the adjective, not tight.' }],
+      },
+      {
+        text: 'A hoard of commuters packed the downtown platform during the morning rush.',
+        errors: [{ wrong: 'hoard', fix: 'horde', note: 'A horde is a crowd; a hoard is a hidden stash of treasure.' }],
+      },
+      {
+        text: 'The new express line complements the existing bus network rather than replacing it.',
+        errors: [],
+        cleanNote: 'Clean copy — complements (completes, pairs with) is right; a compliment is praise.',
+      },
+      {
+        text: 'The chair promised farther study before any station is closed for good.',
+        errors: [{ wrong: 'farther', fix: 'further', note: 'Further for figurative or additional; farther is for physical distance.' }],
+      },
+    ],
+  },
+  {
+    num: 16,
+    quizId: 'stet-8-1-26',
+    live: '2026-08-01',
+    dateLabel: 'August 1, 2026',
+    sunday: false,
+    items: [
+      {
+        text: 'Engineers said the overnight fuel leak effected only the backup booster.',
+        errors: [{ wrong: 'effected', fix: 'affected', note: 'Affected: influenced. Effected would mean brought about, a different verb.' }],
+      },
+      {
+        text: 'Early attempts to restart the main engine proved all in vein.',
+        errors: [{ wrong: 'vein', fix: 'vain', note: 'In vain means to no avail; a vein carries blood.' }],
+      },
+      {
+        text: 'The recovery crew gave the returning capsule a hardy round of applause.',
+        errors: [{ wrong: 'hardy', fix: 'hearty', note: 'Hearty: warm and full. Hardy: tough, able to endure hardship.' }],
+      },
+      {
+        text: "The mission's principal investigator briefed reporters within the hour.",
+        errors: [],
+        cleanNote: 'Clean copy — the principal investigator is the lead; a principle is a rule.',
+      },
+      {
+        text: 'By Friday the launch window had went, and the flight slipped to autumn.',
+        errors: [{ wrong: 'went', fix: 'gone', note: 'Had gone: the participle after had is gone, never went.' }],
+      },
+    ],
+  },
 ];

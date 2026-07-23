@@ -178,4 +178,16 @@ export const PUZZLES = [
     lng: -123.1207,
     blurb: 'Ringed by the Coast Mountains and the Pacific, routinely ranked among the most livable cities.',
   },
+  {
+    num: 15,
+    quizId: 'ping-8-1-26',
+    live: '2026-08-01',
+    dateLabel: 'August 1, 2026',
+    sunday: false,
+    city: 'Rome',
+    country: 'Italy',
+    lat: 41.9028,
+    lng: 12.4964,
+    blurb: 'Vatican City, the smallest country on Earth, sits entirely within its walls.',
+  },
 ];
