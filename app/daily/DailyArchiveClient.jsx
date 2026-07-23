@@ -18,6 +18,7 @@
 
 import React, { useState, useEffect, useMemo } from 'react';
 import useDailyOrder, { sortByDailyOrder } from '../useDailyOrder';
+import DailyCombinedLeaderboard from '../quiz/[id]/DailyCombinedLeaderboard';
 
 const SANS = "'Manrope', system-ui, -apple-system, sans-serif";
 const MONO = "'DM Mono', ui-monospace, 'SFMono-Regular', monospace";
@@ -30,6 +31,9 @@ const NAVY = '#0e1d40';
 const GOLD = '#e8b43a';
 const GOLD_B = '#f5d878';
 const GREEN = '#16a34a';
+const BLUE = '#2563eb';
+const MONTH_NAMES = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
+const CAL_WD = ['S', 'M', 'T', 'W', 'T', 'F', 'S'];
 const SUN = '#b45309';
 const SUN_BG = '#fff7ed';
 
@@ -314,8 +318,59 @@ export default function DailyArchiveClient({ games = [], today = '' }) {
         .dl-glabel .k{font-family:${MONO};font-size:10.5px;letter-spacing:.14em;text-transform:uppercase;font-weight:500;color:${MUTED};}
         .dl-glabel .line{flex:1 1 auto;height:1px;background:${LINE};}
         .dl-glabel .ct{font-family:${MONO};font-size:10px;color:#9aa3b5;}
-        .dl-cards{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px;align-items:start;}
-        @media(max-width:820px){.dl-cards{grid-template-columns:1fr;}}
+        .dl-cards{display:flex;flex-direction:column;gap:10px;}
+
+        /* compact game ROW (owner rework 2026-07-23) */
+        .dl-row{border:1px solid ${LINE};border-radius:14px;background:#fff;transition:border-color .15s,box-shadow .15s;}
+        .dl-row:hover{box-shadow:0 3px 12px rgba(14,29,64,0.06);}
+        .dl-row.open{border-color:#c9d3e5;box-shadow:0 8px 26px rgba(14,29,64,0.09);}
+        .dl-rmain{display:grid;grid-template-columns:minmax(0,1fr) 104px 168px auto;gap:18px;align-items:center;padding:13px 16px;}
+        .dl-rid{display:flex;align-items:center;gap:12px;min-width:0;}
+        .dl-rbeat{font-size:11.5px;font-weight:600;color:${FADED};margin-top:4px;line-height:1.3;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+        .dl-rbeat b{color:${INK};font-weight:800;}
+        .dl-rstat{min-width:0;}
+        .dl-rlbl{font-family:${MONO};font-size:9px;font-weight:500;letter-spacing:.07em;text-transform:uppercase;color:${MUTED};margin-bottom:3px;}
+        .dl-rrk{font-size:21px;font-weight:900;letter-spacing:-.02em;color:${INK};line-height:1.05;font-variant-numeric:tabular-nums;}
+        .dl-rrk .of{font-size:11px;font-weight:600;color:${FADED};}
+        .dl-rrk.sub{font-size:13px;font-weight:800;color:#8a92a6;}
+        .dl-rprog{height:8px;border-radius:99px;background:#eef1f7;overflow:hidden;}
+        .dl-rprog div{height:100%;border-radius:99px;transition:width .3s;}
+        .dl-rprogt{font-size:11px;color:${FADED};margin-top:4px;}
+        .dl-rprogt b{color:${INK};font-weight:800;}
+        .dl-ract{display:flex;gap:7px;align-items:center;flex-wrap:wrap;justify-content:flex-end;}
+        .dl-ract .dl-btn{flex:0 0 auto;}
+        .dl-ico{padding:9px 11px;}
+        .dl-exp{padding:0 16px 15px;}
+        @media(max-width:760px){
+          .dl-rmain{grid-template-columns:1fr;gap:13px;}
+          .dl-rstat{display:flex;align-items:baseline;gap:9px;}
+          .dl-rlbl{margin-bottom:0;}
+          .dl-rprog{flex:1 1 auto;min-width:120px;}
+          .dl-rbeat{white-space:normal;}
+          .dl-ract{justify-content:stretch;}
+          .dl-ract .dl-play{flex:1 1 auto;}
+        }
+
+        /* archive calendar (matches game-page / end-card calendar) */
+        .dl-cal{border:1px solid ${LINE};border-radius:12px;padding:12px 13px;background:#fff;}
+        .dl-cal-hd{display:flex;align-items:center;justify-content:space-between;margin-bottom:9px;}
+        .dl-cal-mo{font-size:14px;font-weight:800;color:${INK};}
+        .dl-cal-nav{display:flex;gap:6px;}
+        .dl-cal-nav button{width:28px;height:28px;font-size:16px;line-height:1;display:flex;align-items:center;justify-content:center;border-radius:8px;border:1px solid ${LINE};background:#fff;color:${MUTED};cursor:pointer;}
+        .dl-cal-nav button:disabled{opacity:.4;cursor:default;}
+        .dl-cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:4px;}
+        .dl-cal-wd{font-family:${MONO};font-size:9.5px;color:${FADED};text-align:center;padding-bottom:2px;}
+        .dl-cal-cell{aspect-ratio:1;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;border-radius:8px;color:#c2c8d2;}
+        .dl-cal-cell.empty{background:transparent;}
+        .dl-cal-cell.none{color:#c9cdd6;}
+        a.dl-cal-cell{text-decoration:none;}
+        a.dl-cal-cell.played{background:#e8f5ec;color:#15803d;border:1px solid #bfe3ca;}
+        a.dl-cal-cell.unplayed{background:#fff;color:${MUTED};border:1px solid ${LINE};}
+        a.dl-cal-cell.unplayed:hover{border-color:${BLUE};color:${BLUE};}
+        a.dl-cal-cell.today{box-shadow:0 0 0 2px ${BLUE};}
+        .dl-cal-key{display:flex;flex-wrap:wrap;gap:10px 14px;margin-top:10px;font-size:11px;color:${FADED};}
+        .dl-cal-key span{display:inline-flex;align-items:center;gap:5px;}
+        .dl-cal-key .sw{width:11px;height:11px;border-radius:3px;flex-shrink:0;}
 
         .dl-card{border:1px solid ${LINE};border-radius:16px;background:#fff;transition:border-color .15s,box-shadow .15s;}
         .dl-card:hover{box-shadow:0 4px 16px rgba(14,29,64,0.06);}
@@ -470,6 +525,12 @@ export default function DailyArchiveClient({ games = [], today = '' }) {
           <span><span className="dl-sun-tag" style={{ marginRight: 5 }}>Sun</span> Sunday edition — bigger &amp; tougher</span>
         </div>
 
+        {/* Today's combined leaderboard: top 3 up front, expand to flip through
+            every game's board (compact DailyCombinedLeaderboard, light). */}
+        <div style={{ marginTop: 18 }}>
+          <DailyCombinedLeaderboard light compact allTimeToggle />
+        </div>
+
         <div className="dl-gaunt" role="group" aria-label="Today's gauntlet">
           <div className="dl-gaunt-h">
             <h2>Today&rsquo;s gauntlet</h2>
@@ -537,13 +598,10 @@ export default function DailyArchiveClient({ games = [], today = '' }) {
                   completed={completed}
                   progress={progress}
                   board={boardsByKey[g.key]}
-                  overall={combined ? combined.overall : null}
                   me={me}
                   myKey={myKey}
-                  maxTotal={combined ? combined.maxTotal : 75}
                   gameMax={combined ? combined.gameMax : 15}
-                  gameCount={combined ? combined.gameCount : null}
-                  combinedReady={!!combined}
+                  today={today}
                 />
               ))}
             </div>
@@ -572,74 +630,144 @@ function GameArt({ g, size = 52 }) {
 }
 
 // ---------------------------------------------------------------- one game card
-function GameCard({ g, ready, played, completed, progress, board, overall, me, myKey, maxTotal, gameMax, gameCount, combinedReady }) {
+function GameCard({ g, ready, played, completed, progress, board, me, myKey, gameMax, today }) {
   const [panel, setPanel] = useState(null); // null | 'standings' | 'archive'
-  const [tab, setTab] = useState('game');
   const toggle = (p) => setPanel((cur) => (cur === p ? null : p));
 
-  const navy = NAVY_ACCENT[g.key] || '#93a7cc';
+  const total = g.puzzles.length;
   const playedCount = g.puzzles.reduce((n, p) => n + (played.has(`${g.key}:${p.num}`) ? 1 : 0), 0);
+  const pct = total ? Math.round((playedCount / total) * 100) : 0;
   const todayN = g.puzzles[0] ? g.puzzles[0].num : null;
   const resumeToday = todayN != null && progress && progress.has(`${g.key}:${todayN}`) && !played.has(`${g.key}:${todayN}`);
   const leader = board && board.board && board.board[0];
   const myRow = myKey && board && board.board ? board.board.find((r) => r.userKey === myKey) : null;
   const todayQuiz = g.puzzles[0] && g.puzzles[0].quizId;
-  const chasePct = myRow && leader && leader.points > 0 ? Math.min(100, Math.round((myRow.points / leader.points) * 100)) : 0;
+  const field = board ? (board.field || (board.board ? board.board.length : 0)) : 0;
 
   return (
-    <section className={`dl-card${panel ? ' open' : ''}`}>
-      <div className="dl-chead">
-        <GameArt g={g} size={50} />
-        <div style={{ minWidth: 0, flex: '1 1 auto' }}>
-          <a className="dl-cname" href={g.path}>{g.name}</a>
-          <div className="dl-ctag">{g.tag}</div>
-        </div>
-      </div>
-
-      <div className="dl-cbody">
-        <div className="dl-cstat">
-          <span><b>{g.puzzles.length}</b> puzzles</span>
-          {ready && playedCount > 0 && <><span className="dot">·</span><span><b>{playedCount}</b> played</span></>}
-          {ready && resumeToday && <><span className="dot">·</span><span style={{ color: '#b9791a', fontWeight: 700 }}>resume today</span></>}
-          {leader && <><span className="dot">·</span><span><span className="dl-crown" aria-hidden="true">♛</span> led by <b>{leader.username}</b></span></>}
-        </div>
-
-        {leader && (
-          <div className="dl-chase">
-            <div className="dl-chase-t">
-              {myRow
-                ? (myRow.userKey === leader.userKey
-                  ? <>You lead with <b>{fmtPts(myRow.points)}</b> pts <span style={{ color: GOLD }} aria-hidden="true">♛</span> · defend it</>
-                  : <>You <b>{fmtPts(myRow.points)}</b> · leader <b>{fmtPts(leader.points)}</b> · {fmtPts(leader.points - myRow.points)} back</>)
-                : <>Top score to beat: <b>{fmtPts(leader.points)}</b>/{gameMax} pts</>}
+    <section className={`dl-row${panel ? ' open' : ''}`}>
+      <div className="dl-rmain">
+        {/* identity + what you're beating */}
+        <div className="dl-rid">
+          <GameArt g={g} size={44} />
+          <div style={{ minWidth: 0 }}>
+            <a className="dl-cname" href={g.path}>{g.name}</a>
+            <div className="dl-ctag">{g.tag}</div>
+            <div className="dl-rbeat">
+              {leader
+                ? (myRow
+                  ? (myRow.userKey === leader.userKey
+                    ? <>You lead with <b>{fmtPts(myRow.points)}</b> pts <span className="dl-crown" aria-hidden="true">♛</span></>
+                    : <>Top score to beat: <b>{fmtPts(leader.points)}</b>/{gameMax} · <span className="dl-crown" aria-hidden="true">♛</span> {leader.username}</>)
+                  : <>Top score to beat: <b>{fmtPts(leader.points)}</b>/{gameMax} · <span className="dl-crown" aria-hidden="true">♛</span> led by {leader.username}</>)
+                : <>{total} puzzles · be the first on today&rsquo;s board</>}
             </div>
-            <div className="dl-bar"><div style={{ width: `${chasePct}%`, background: g.accent }} /></div>
           </div>
-        )}
-
-        <div className="dl-actions">
-          <a className="dl-btn dl-play" href={g.path} style={{ background: g.accent }}>Play today →</a>
-          {todayQuiz && <a className="dl-btn dl-ghost" href={`/duel/new?quiz=${encodeURIComponent(todayQuiz)}`} aria-label={`Challenge a friend to today's ${g.name}`}>⚔ Challenge</a>}
-          <button type="button" className={`dl-btn dl-ghost${panel === 'standings' ? ' on' : ''}`} aria-expanded={panel === 'standings'} onClick={() => toggle('standings')}>Standings</button>
-          <button type="button" className={`dl-btn dl-ghost${panel === 'archive' ? ' on' : ''}`} data-arch={g.key} aria-expanded={panel === 'archive'} onClick={() => toggle('archive')}>Archive <span className="cnt">{g.puzzles.length}</span></button>
         </div>
 
-        {panel === 'standings' && (
-          <div className="dl-panel">
-            <StandingsPanel
-              g={g} navy={navy} tab={tab} setTab={setTab}
-              board={board} overall={overall} me={me} myKey={myKey}
-              maxTotal={maxTotal} gameMax={gameMax} gameCount={gameCount} ready={combinedReady}
-            />
-          </div>
-        )}
-        {panel === 'archive' && (
-          <div className="dl-panel">
-            <ArchivePanel g={g} ready={ready} played={played} completed={completed} />
-          </div>
-        )}
+        {/* your rank today */}
+        <div className="dl-rstat">
+          <div className="dl-rlbl">Your rank today</div>
+          {ready && myRow ? (
+            <div className="dl-rrk">#{myRow.rank}<span className="of"> of {field}</span></div>
+          ) : resumeToday ? (
+            <div className="dl-rrk sub" style={{ color: '#b9791a' }}>Resume →</div>
+          ) : (
+            <div className="dl-rrk sub">Play to rank</div>
+          )}
+        </div>
+
+        {/* archive completion */}
+        <div className="dl-rstat">
+          <div className="dl-rlbl">Archive done</div>
+          <div className="dl-rprog"><div style={{ width: `${pct}%`, background: g.accent }} /></div>
+          <div className="dl-rprogt"><b>{playedCount}</b> of {total} · {pct}%</div>
+        </div>
+
+        {/* actions */}
+        <div className="dl-ract">
+          <a className="dl-btn dl-play" href={g.path} style={{ background: g.accent }}>{resumeToday ? 'Resume →' : 'Play →'}</a>
+          {todayQuiz && <a className="dl-btn dl-ghost dl-ico" href={`/duel/new?quiz=${encodeURIComponent(todayQuiz)}`} aria-label={`Challenge a friend to today's ${g.name}`} title="Challenge a friend">⚔</a>}
+          <button type="button" className={`dl-btn dl-ghost${panel === 'standings' ? ' on' : ''}`} aria-expanded={panel === 'standings'} onClick={() => toggle('standings')}>Standings</button>
+          <button type="button" className={`dl-btn dl-ghost${panel === 'archive' ? ' on' : ''}`} data-arch={g.key} aria-expanded={panel === 'archive'} onClick={() => toggle('archive')}>Archive</button>
+        </div>
       </div>
+
+      {/* Standings expands to the game-page board: this-game (daily), Overall,
+          and the Today / All-time toggle — the exact DailyCombinedLeaderboard. */}
+      {panel === 'standings' && (
+        <div className="dl-exp">
+          <DailyCombinedLeaderboard todayKey={g.key} quizId={todayQuiz} light allTimeToggle embedded />
+        </div>
+      )}
+      {/* Archive expands to the same month calendar as the game page. */}
+      {panel === 'archive' && (
+        <div className="dl-exp">
+          <ArchiveCalendar g={g} played={played} today={today} />
+        </div>
+      )}
     </section>
+  );
+}
+
+// Month calendar of a game's past drops — matches the game-page / end-card
+// calendar (played = green, today ringed), built from g.puzzles (each carries a
+// `live` ISO date). Replaces the old date-chip archive.
+function ArchiveCalendar({ g, played, today }) {
+  const todayISO = today || (g.puzzles[0] && g.puzzles[0].live) || '';
+  const byISO = useMemo(() => {
+    const m = new Map();
+    for (const p of g.puzzles) if (p.live) m.set(p.live, p);
+    return m;
+  }, [g]);
+  const isos = g.puzzles.map((p) => p.live).filter(Boolean).sort();
+  const earliest = isos.length ? isos[0].slice(0, 7) : todayISO.slice(0, 7);
+  const latest = todayISO.slice(0, 7);
+  const [month, setMonth] = useState(latest); // 'YYYY-MM'
+  const [y, m] = month.split('-').map(Number);
+  const firstNum = g.puzzles[0] ? g.puzzles[0].num : null;
+  const firstWeekday = new Date(Date.UTC(y, m - 1, 1)).getUTCDay();
+  const daysInMonth = new Date(Date.UTC(y, m, 0)).getUTCDate();
+  const cells = [];
+  for (let k = 0; k < firstWeekday; k++) cells.push(null);
+  for (let d = 1; d <= daysInMonth; d++) cells.push(d);
+  const shift = (delta) => {
+    let yy = y, mm = m + delta;
+    while (mm < 1) { mm += 12; yy -= 1; }
+    while (mm > 12) { mm -= 12; yy += 1; }
+    setMonth(`${yy}-${String(mm).padStart(2, '0')}`);
+  };
+  const canPrev = month > earliest;
+  const canNext = month < latest;
+
+  return (
+    <div className="dl-cal">
+      <div className="dl-cal-hd">
+        <span className="dl-cal-mo">{MONTH_NAMES[(m - 1) % 12]} {y}</span>
+        <div className="dl-cal-nav">
+          <button type="button" onClick={() => shift(-1)} disabled={!canPrev} aria-label="Previous month">‹</button>
+          <button type="button" onClick={() => shift(1)} disabled={!canNext} aria-label="Next month">›</button>
+        </div>
+      </div>
+      <div className="dl-cal-grid">
+        {CAL_WD.map((w, i) => <div className="dl-cal-wd" key={`wd${i}`}>{w}</div>)}
+        {cells.map((d, i) => {
+          if (d == null) return <div className="dl-cal-cell empty" key={`e${i}`} />;
+          const iso = `${month}-${String(d).padStart(2, '0')}`;
+          const p = byISO.get(iso);
+          const isToday = iso === todayISO;
+          if (!p) return <div className={`dl-cal-cell none${isToday ? ' today' : ''}`} key={iso}>{d}</div>;
+          const isPlayed = played.has(`${g.key}:${p.num}`);
+          const href = p.num === firstNum ? g.path : `${g.path}?p=${p.num}`;
+          return <a className={`dl-cal-cell ${isPlayed ? 'played' : 'unplayed'}${isToday ? ' today' : ''}`} href={href} key={iso} title={isPlayed ? 'Played' : 'Play this drop'}>{d}</a>;
+        })}
+      </div>
+      <div className="dl-cal-key">
+        <span><span className="sw" style={{ background: '#e8f5ec', border: '1px solid #bfe3ca' }} />Played</span>
+        <span><span className="sw" style={{ background: '#fff', border: `1px solid ${LINE}` }} />Unplayed</span>
+        <span><span className="sw" style={{ background: '#fff', boxShadow: `0 0 0 2px ${BLUE}` }} />Today</span>
+      </div>
+    </div>
   );
 }
 
