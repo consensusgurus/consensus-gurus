@@ -793,7 +793,19 @@ export default function QuizHomeClient() {
   // already loads; the only extra fetch is /api/duel/latest (last few duels).
   useEffect(() => {
     let alive = true;
-    fetch('/api/quiz/daily-combined')
+    // Pass the viewer's identity so the payload's `me` block resolves and the
+    // strip can show per-game ranks on finished cells (same params as
+    // /api/quiz/daily-status; the API ignores them when absent).
+    let dcQs = '';
+    try {
+      const a = localStorage.getItem('sot_quiz_anon');
+      const id = JSON.parse(localStorage.getItem('sot_quiz_identity') || 'null');
+      const p = new URLSearchParams();
+      if (a) p.set('anonId', a);
+      if (id && id.email) p.set('email', id.email);
+      dcQs = p.toString();
+    } catch (e) {}
+    fetch('/api/quiz/daily-combined' + (dcQs ? `?${dcQs}` : ''))
       .then((r) => r.json())
       .then((d) => { if (!alive || !d || !Array.isArray(d.overall)) return; setDailyBoard(d); if (d.overall[0]) setDailyLead({ name: d.overall[0].username, total: d.overall[0].total, maxTotal: d.maxTotal }); })
       .catch(() => {});
