@@ -26,7 +26,7 @@ import JoinLeaderboardForm from '../quiz/[id]/JoinLeaderboardForm';
 import DailyGamesGrid from '../DailyGamesGrid';
 import DailyEndCard from '../DailyEndCard';
 import DailyTopNav from '../DailyTopNav';
-import DailyCombinedLeaderboard from '../quiz/[id]/DailyCombinedLeaderboard';
+import DailyBoardPanel from '../quiz/[id]/DailyBoardPanel';
 import { isMobileDevice } from '@/lib/is-mobile';
 import useAbandonFlush from '../quiz/[id]/useAbandonFlush';
 import { withRef } from '@/lib/referrals';
@@ -697,7 +697,9 @@ export default function TallyClient({ puzzles = [], forceNum = null }) {
             self="tally"
             maxWidth={620}
             challengeHref={`/duel/new?quiz=${encodeURIComponent(PUZZLE.quizId)}`}
-            share={{ label: copied ? 'Copied' : 'Share This Puzzle', onClick: copyShare }}
+            share={{ label: copied ? 'Copied' : 'Share', onClick: copyShare }}
+            light
+            boardSlot={<DailyBoardPanel self="tally" quizId={PUZZLE.quizId} maxWidth={620} streak={{ current: myStats.cur, best: myStats.max }} />}
             divider
           />
           {mobileUi && !standalone && (
@@ -726,34 +728,16 @@ export default function TallyClient({ puzzles = [], forceNum = null }) {
           </div>
         )}
         {!focusMode && !identity && (
-          <div style={{ margin: '18px auto 0' }}>
+          <div id="daily-join" style={{ margin: '18px auto 0' }}>
             <JoinLeaderboardForm hideIcon heading="See your stats and join the leaderboard" identity={identity} onJoined={(id) => { setIdentity(id); if (id && id.username) setPlayer((p) => p || { name: id.username, rank: null }); }} />
           </div>
         )}
         </div>
 
-        {/* your stats — sits directly above the leaderboard */}
-        {!focusMode && identity && (
-        <div style={{ maxWidth: 620, margin: '20px auto 0' }}>
-          <div style={{ fontFamily: MONO, fontSize: 10.5, fontWeight: 500, textTransform: 'uppercase', letterSpacing: '0.1em', color: COLORS.faded, marginBottom: 9 }}>Your stats</div>
-          <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
-            {[
-              { n: myStats.cur, l: 'Streak' },
-              { n: myStats.played, l: 'Played' },
-              { n: myStats.played ? `${Math.round((myStats.perfect / myStats.played) * 100)}%` : '—', l: 'Clean' },
-              { n: myStats.max, l: 'Best Streak' },
-            ].map((st, i) => (
-              <div key={i} style={{ flex: '1 1 0', minWidth: 54, background: '#fff', border: '1px solid rgba(28,30,36,0.12)', borderRadius: 7, padding: '6px 5px', textAlign: 'center' }}>
-                <div style={{ fontSize: 15, fontWeight: 800, color: COLORS.ink, lineHeight: 1.1, fontVariantNumeric: 'tabular-nums' }}>{st.n}</div>
-                <div style={{ fontSize: 9, fontWeight: 700, color: COLORS.faded, textTransform: 'uppercase', letterSpacing: '0.04em', marginTop: 2 }}>{st.l}</div>
-              </div>
-            ))}
-          </div>
-        </div>
-        )}
-        <div id="daily-leaderboard" style={{ display: focusMode ? 'none' : 'block', maxWidth: 620, margin: '26px auto 0', background: '#fff', border: '1.5px solid rgba(20,22,28,0.12)', borderRadius: 12, padding: '14px 16px' }}>
-          <DailyCombinedLeaderboard todayKey="tally" identity={identity} quizId={PUZZLE.quizId} />
-        </div>
+        {/* Personal stats wiring (myStats) is retained for the share string and
+            streak logic; the on-page "Your stats" tile row is no longer shown.
+            The daily leaderboard now renders in DailyGamesGrid's boardSlot,
+            directly under the Challenge / Share actions (owner, 2026-07-23). */}
       </div>
 
       {/* the end-of-game popup: the shared DailyEndCard as a dismissible modal (win or loss) */}
