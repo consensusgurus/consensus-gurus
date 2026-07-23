@@ -259,6 +259,8 @@ export default function DailyArchiveClient({ games = [], today = '' }) {
   }).filter((grp) => grp.games.length);
 
   const me = combined && combined.me;
+  const myRow = me && myKey ? (combined.overall || []).find((r) => r.userKey === myKey) : null;
+  const myName = myRow ? myRow.username : null;
 
   // Rival hook for the scoreboard card: the player directly ahead of you today.
   let rivalAv = '★';
@@ -274,7 +276,7 @@ export default function DailyArchiveClient({ games = [], today = '' }) {
         rivalAv = String(ahead.username || '?').trim().slice(0, 2).toUpperCase();
         rivalText = <><b>{ahead.username}</b> is {fmtPts(ahead.total - me.total)} pts ahead of you today</>;
       } else if (rows[9]) {
-        rivalAv = '10';
+        rivalAv = String(rows[9].username || '?').trim().slice(0, 2).toUpperCase();
         rivalText = <>{fmtPts(rows[9].total - me.total)} pts from today&rsquo;s top 10</>;
       }
     }
@@ -306,21 +308,25 @@ export default function DailyArchiveClient({ games = [], today = '' }) {
         .dl-nav a{font-family:${MONO};font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:${FADED};text-decoration:none;border-bottom:1px solid rgba(28,30,36,0.22);padding-bottom:1px;}
         .dl-nav a:hover{color:${INK};border-color:${INK};}
 
-        .dl-hero{display:flex;flex-wrap:wrap;gap:22px;align-items:center;justify-content:space-between;margin-top:16px;}
+        .dl-top{display:grid;grid-template-columns:minmax(0,1fr) 360px;gap:24px;align-items:stretch;margin-top:16px;}
+        .dl-top-l{display:flex;flex-direction:column;min-width:0;}
+        .dl-top-l .dl-gaunt{margin-top:auto;}
+        @media(max-width:860px){.dl-top{grid-template-columns:1fr;}.dl-top-l .dl-gaunt{margin-top:20px;}}
         .dl-kick{font-family:${MONO};font-size:11.5px;letter-spacing:.14em;text-transform:uppercase;color:${FADED};font-weight:500;}
         .dl-h1{margin:8px 0 7px;font-size:34px;font-weight:800;letter-spacing:-0.9px;color:${INK};line-height:1.0;}
-        .dl-sub{margin:0;font-size:14.5px;font-weight:500;color:${FADED};line-height:1.55;max-width:540px;}
-        .dl-day{display:flex;flex-direction:column;gap:13px;background:#fff;color:${INK};border:1px solid ${LINE};border-radius:16px;padding:16px 20px;box-shadow:0 6px 22px rgba(14,29,64,0.08);min-width:300px;}
-        .dl-day-top{display:flex;align-items:center;justify-content:space-between;gap:12px;}
+        .dl-sub{margin:0;font-size:14.5px;font-weight:500;color:${FADED};line-height:1.55;max-width:620px;}
+        .dl-day{display:flex;flex-direction:column;gap:13px;justify-content:space-between;background:#fff;color:${INK};border:1px solid ${LINE};border-radius:16px;padding:18px 20px;box-shadow:0 6px 22px rgba(14,29,64,0.08);min-width:300px;}
+        .dl-day-top{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;}
+        .dl-day-name{font-size:15px;font-weight:800;letter-spacing:-.2px;color:${INK};line-height:1.15;margin-top:3px;max-width:190px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
         .dl-day-kick{font-family:${MONO};font-size:9.5px;letter-spacing:.16em;text-transform:uppercase;color:${FADED};font-weight:500;}
         .dl-streak{display:inline-flex;align-items:center;gap:6px;background:rgba(232,180,58,0.15);border:1px solid rgba(232,180,58,0.42);border-radius:999px;padding:3px 10px;}
         .dl-streak b{color:#8a6d1f;font-size:13px;font-weight:900;line-height:1;}
         .dl-streak span{font-family:${MONO};font-size:8.5px;letter-spacing:.1em;text-transform:uppercase;color:#9a7c2e;}
         .dl-day-stats{display:flex;align-items:flex-end;gap:16px;}
-        .dl-hero{flex:1 1 auto;min-width:0;}
-        .dl-hero .n{font-size:34px;font-weight:900;letter-spacing:-1px;line-height:.9;color:${INK};}
-        .dl-hero .l{font-family:${MONO};font-size:9px;letter-spacing:.09em;text-transform:uppercase;color:${FADED};margin-top:6px;}
-        .dl-hero .l .of{color:#9aa3b5;}
+        .dl-rk{flex:1 1 auto;min-width:0;}
+        .dl-rk .n{font-size:36px;font-weight:900;letter-spacing:-1px;line-height:.9;color:${INK};}
+        .dl-rk .l{font-family:${MONO};font-size:9px;letter-spacing:.09em;text-transform:uppercase;color:${FADED};margin-top:6px;}
+        .dl-rk .l .of{color:#9aa3b5;}
         .dl-mini{text-align:center;padding-bottom:2px;}
         .dl-mini .n{font-size:24px;font-weight:800;line-height:1;color:${INK};}
         .dl-mini .l{font-family:${MONO};font-size:8.5px;letter-spacing:.09em;text-transform:uppercase;color:${FADED};margin-top:6px;}
@@ -550,22 +556,44 @@ export default function DailyArchiveClient({ games = [], today = '' }) {
           <a href="/lists">Top 10 Lists</a>
         </div>
 
-        <div className="dl-hero">
-          <div>
+        <div className="dl-top">
+          <div className="dl-top-l">
             <div className="dl-kick">Source of Truths · Daily · {dateHeadline(today)}</div>
             <h1 className="dl-h1">Daily Games</h1>
             <p className="dl-sub">
               {activeGames.length} original puzzles, a fresh one in each every day. Play today, chase the leaderboard,
               or replay any past drop — archive runs never touch your streak.
             </p>
+
+            <div className="dl-gaunt" role="group" aria-label="Today's gauntlet">
+              <div className="dl-gaunt-h">
+                <h2>Today&rsquo;s gauntlet</h2>
+                {ready && <span className="tease">{gauntTease}</span>}
+              </div>
+              <div className="dl-segs" aria-hidden="true">
+                {activeGames.map((g, i) => (
+                  <span key={g.key} className={`dl-seg${i < playedToday.length ? ' on' : ''}`} />
+                ))}
+              </div>
+              <div className="dl-gaunt-l">
+                <span style={{ color: INK }}>{ready ? `${playedToday.length}/${activeGames.length} played` : '…'}</span>
+                {activeGames.length >= 12 && <span><span style={{ color: '#9aa3b5' }}>●</span> 5 · warm-up</span>}
+                {activeGames.length >= 12 && <span><span style={{ color: '#c8814b' }}>●</span> 10 · grinder</span>}
+                <span style={{ color: '#8a6d1f' }}><span style={{ color: GOLD }}>★</span> {activeGames.length} · perfect day</span>
+              </div>
+            </div>
           </div>
+
           <div className="dl-day" role="group" aria-label="Your day">
             <div className="dl-day-top">
-              <div className="dl-day-kick">Your day</div>
+              <div>
+                <div className="dl-day-kick">Your day</div>
+                {myName ? <div className="dl-day-name">{myName}</div> : null}
+              </div>
               <div className="dl-streak"><b>{ready ? streak : '—'}</b><span>day streak</span></div>
             </div>
             <div className="dl-day-stats">
-              <div className="dl-hero">
+              <div className="dl-rk">
                 <div className="n">{me ? `#${me.rank}` : '—'}</div>
                 <div className="l">Today&rsquo;s rank{me ? <> <span className="of">· {fmtPts(me.total)}/{combined.maxTotal} pts</span></> : ''}</div>
               </div>
@@ -584,26 +612,6 @@ export default function DailyArchiveClient({ games = [], today = '' }) {
             ) : ready && activeGames.length ? (
               <span className="dl-cta done">★ Perfect day. Every game played.</span>
             ) : null}
-          </div>
-        </div>
-
-
-
-        <div className="dl-gaunt" role="group" aria-label="Today's gauntlet">
-          <div className="dl-gaunt-h">
-            <h2>Today&rsquo;s gauntlet</h2>
-            {ready && <span className="tease">{gauntTease}</span>}
-          </div>
-          <div className="dl-segs" aria-hidden="true">
-            {activeGames.map((g, i) => (
-              <span key={g.key} className={`dl-seg${i < playedToday.length ? ' on' : ''}`} />
-            ))}
-          </div>
-          <div className="dl-gaunt-l">
-            <span style={{ color: INK }}>{ready ? `${playedToday.length}/${activeGames.length} played` : '…'}</span>
-            {activeGames.length >= 12 && <span><span style={{ color: '#9aa3b5' }}>●</span> 5 · warm-up</span>}
-            {activeGames.length >= 12 && <span><span style={{ color: '#c8814b' }}>●</span> 10 · grinder</span>}
-            <span style={{ color: '#8a6d1f' }}><span style={{ color: GOLD }}>★</span> {activeGames.length} · perfect day</span>
           </div>
         </div>
 
