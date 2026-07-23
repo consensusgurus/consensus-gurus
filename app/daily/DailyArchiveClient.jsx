@@ -395,7 +395,7 @@ export default function DailyArchiveClient({ games = [], today = '' }) {
         }
 
         /* archive calendar (matches game-page / end-card calendar) */
-        .dl-cal{border:1px solid ${LINE};border-radius:12px;padding:12px 13px;background:#fff;}
+        .dl-cal{border:none;border-radius:0;padding:0;background:transparent;}
         .dl-cal-hd{display:flex;align-items:center;justify-content:space-between;margin-bottom:9px;}
         .dl-cal-mo{font-size:14px;font-weight:800;color:${INK};}
         .dl-cal-nav{display:flex;gap:6px;}
@@ -831,7 +831,6 @@ function ArchiveCalendar({ g, played, today }) {
 
   const [cy, cm] = month.split('-').map(Number);
   const prevYM = addMonths(month, -1);
-  const showFaded = prevYM >= earliest;
 
   return (
     <div className="dl-cal">
@@ -847,7 +846,8 @@ function ArchiveCalendar({ g, played, today }) {
         </div>
       </div>
       {monthGrid(month, false)}
-      {showFaded ? monthGrid(prevYM, true) : null}
+      {/* faded previous month fills the space beside the (taller) leaderboard */}
+      {monthGrid(prevYM, true)}
       <div className="dl-cal-key">
         <span><span className="sw" style={{ background: '#e8f5ec', border: '1px solid #bfe3ca' }} />Played</span>
         <span><span className="sw" style={{ background: '#fff', border: `1px solid ${LINE}` }} />Unplayed</span>
