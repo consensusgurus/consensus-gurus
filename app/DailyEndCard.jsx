@@ -38,7 +38,7 @@ import {
   Type, Clock, Globe, Hash, Share2, BarChart3, RotateCcw, Check, X,
   Trophy, Link2, Flag, CalendarCheck, Scale, Grid3x3, LayoutGrid, Newspaper, FlagTriangleRight,
   Pencil, Users, ArrowRight, Puzzle, Fingerprint, KeyRound, Thermometer, Crown, ListOrdered,
-  Maximize2, CalendarDays, ChevronLeft, ChevronRight, CheckCircle2,
+  CalendarDays, ChevronLeft, ChevronRight, ChevronDown, CheckCircle2,
 } from 'lucide-react';
 import { myRefCode } from '@/lib/referrals';
 import ReportIssue from './ReportIssue';
@@ -130,7 +130,8 @@ export const DAILY_GAMES = [
 ];
 
 const AUTO_SECONDS = 25;
-const REVEAL_MS = 2000; // win only: show the finished board + confetti this long before the popup
+const REVEAL_MS = 2000; // win only: MIN time the finished board + confetti shows before the popup
+const REVEAL_CAP_MS = 6500; // hard cap: reveal even if the card's data hasn't fully landed
 
 const MONTH_NAMES = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
 const WEEKDAYS = ['S', 'M', 'T', 'W', 'T', 'F', 'S'];
@@ -192,10 +193,30 @@ export default function DailyEndCard({
     } catch (e) {}
     return false;
   });
+  // Hold the reveal until the card's data has actually landed (the combined
+  // standing that fills the tiles, and the all-time board), so the player never
+  // sees the tiles pop in from "—" after the card appears. These refs are flipped
+  // by the fetch callbacks below; the reveal poller reads their latest values.
+  const standingReadyRef = React.useRef(false);
+  const allTimeReadyRef = React.useRef(false);
   useEffect(() => {
     if (revealed) return undefined;
-    const t = setTimeout(() => setRevealed(true), REVEAL_MS);
-    return () => clearTimeout(t);
+    const start = Date.now();
+    let alive = true;
+    let t = null;
+    const tick = () => {
+      if (!alive) return;
+      const el = Date.now() - start;
+      // Reveal once BOTH the minimum confetti window AND the data are ready, or at
+      // the hard cap so a slow/failed fetch can never leave the card hidden.
+      if ((el >= REVEAL_MS && standingReadyRef.current && allTimeReadyRef.current) || el >= REVEAL_CAP_MS) {
+        setRevealed(true);
+        return;
+      }
+      t = setTimeout(tick, 140);
+    };
+    t = setTimeout(tick, 140);
+    return () => { alive = false; if (t) clearTimeout(t); };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
@@ -252,12 +273,12 @@ export default function DailyEndCard({
             ? (!self || (d.me && d.me.perGame && d.me.perGame[self]))
             : !!d.meProvisional;
           if (reflectsSelf && !notified) { notified = true; notifyBoard(); setTimeout(notifyBoard, 600); }
-          if (reflectsSelf || i >= delays.length - 1) return;
+          if (reflectsSelf || i >= delays.length - 1) { standingReadyRef.current = true; return; }
           i += 1;
           timer = setTimeout(run, delays[i]);
         })
         .catch(() => {
-          if (!alive || i >= delays.length - 1) return;
+          if (!alive || i >= delays.length - 1) { standingReadyRef.current = true; return; }
           i += 1;
           timer = setTimeout(run, delays[i]);
         });
@@ -296,8 +317,8 @@ export default function DailyEndCard({
     let alive = true;
     fetch('/api/quiz/daily-game?' + qs.toString())
       .then((r) => r.json())
-      .then((d) => { if (!alive || !d) return; if (d.allTime) setAllTime(d.allTime); if (Array.isArray(d.drops)) setDrops(d.drops); })
-      .catch(() => {});
+      .then((d) => { if (alive && d) { if (d.allTime) setAllTime(d.allTime); if (Array.isArray(d.drops)) setDrops(d.drops); } allTimeReadyRef.current = true; })
+      .catch(() => { allTimeReadyRef.current = true; });
     return () => { alive = false; };
   }, [self]);
 
@@ -508,7 +529,7 @@ export default function DailyEndCard({
         aria-expanded={openTile === id}
         onClick={() => setOpenTile((o) => (o === id ? null : id))}
       >
-        <Maximize2 size={13} strokeWidth={2.2} />
+        <ChevronDown size={15} strokeWidth={2.4} style={{ transform: openTile === id ? 'rotate(180deg)' : 'none', transition: 'transform .15s ease' }} />
       </button>
     </div>
   );
@@ -532,8 +553,9 @@ export default function DailyEndCard({
         .dec-head-r{display:flex;flex-direction:column;align-items:flex-end;gap:7px;flex-shrink:0;}
         .dec-check{width:30px;height:30px;border-radius:50%;background:#e8f5ec;color:#15803d;display:inline-flex;align-items:center;justify-content:center;flex-shrink:0;}
         .dec-check.loss{background:#fdecec;color:${RUST};}
-        .dec-titlerow{display:flex;align-items:center;gap:10px;margin-bottom:5px;}
+        .dec-titlerow{display:flex;align-items:center;flex-wrap:wrap;gap:4px 10px;margin-bottom:5px;}
         .dec-title{font-size:25px;font-weight:800;letter-spacing:-.02em;color:${INK};}
+        .dec-detail{font-size:13px;font-weight:600;color:${SLATE};}
         .dec-sub{display:flex;align-items:center;gap:7px;font-size:13px;color:${SLATE};flex-wrap:wrap;}
         .dec-dot{width:9px;height:9px;border-radius:50%;flex-shrink:0;}
         .dec-sub b{font-weight:800;color:${INK};}
@@ -541,8 +563,9 @@ export default function DailyEndCard({
         .dec-answer{display:flex;align-items:baseline;gap:9px;margin:9px 0 0;}
         .dec-answer-lbl{font-family:${MONO};font-size:10px;font-weight:500;letter-spacing:.14em;text-transform:uppercase;color:${SLATE};flex-shrink:0;}
         .dec-answer-word{font-size:21px;font-weight:800;letter-spacing:-.02em;color:${RUST};}
-        .dec-user{font-size:13px;font-weight:800;color:${INK};max-width:180px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
-        .dec-signup{font-size:13px;font-weight:800;color:${BLUE};background:none;border:none;padding:0;text-decoration:underline;text-underline-offset:2px;cursor:pointer;}
+        .dec-user{font-family:${SANS};font-size:12.5px;font-weight:800;color:${INK};background:#fff;border:1px solid ${BORD};border-radius:10px;padding:9px 14px;max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+        .dec-signup{font-family:${SANS};font-size:12.5px;font-weight:800;color:${BLUE};background:#fff;border:1px solid #cfe0fb;border-radius:10px;padding:9px 14px;cursor:pointer;text-decoration:none;white-space:nowrap;}
+        .dec-signup:hover{background:#f2f7ff;}
         .dec-share{font-family:${SANS};font-weight:800;font-size:12.5px;color:#fff;background:${INK};border:1px solid ${INK};border-radius:10px;padding:9px 14px;cursor:pointer;display:inline-flex;align-items:center;gap:6px;white-space:nowrap;}
         .dec-share:hover{filter:brightness(1.12);}
 
@@ -554,8 +577,8 @@ export default function DailyEndCard({
         .dec-tile-rk .prov{font-size:11px;font-weight:700;color:${FADED};}
         .dec-tile-rk .dash{color:#c2c8d2;}
         .dec-tile-of{font-size:11.5px;color:${FADED};}
-        .dec-tile-mx{position:absolute;top:9px;right:9px;width:22px;height:22px;padding:0;display:flex;align-items:center;justify-content:center;border-radius:7px;background:#fff;border:1px solid ${BORD};color:${SLATE};cursor:pointer;}
-        .dec-tile-mx:hover{color:${BLUE};border-color:${BLUE};}
+        .dec-tile-mx{position:absolute;top:7px;right:6px;width:20px;height:20px;padding:0;display:flex;align-items:center;justify-content:center;border-radius:6px;background:transparent;border:none;color:${SLATE};cursor:pointer;}
+        .dec-tile-mx:hover{color:${BLUE};background:#eef2f8;}
 
         .dec-expand{border:1px solid ${BORD};border-radius:12px;padding:11px 13px 9px;margin:-2px 0 12px;background:#fff;}
         .dec-expand-hd{display:flex;align-items:baseline;justify-content:space-between;margin-bottom:6px;}
@@ -673,13 +696,8 @@ export default function DailyEndCard({
             <span className={`dec-check${won ? '' : ' loss'}`}>
               {won ? <CheckCircle2 size={19} strokeWidth={2.4} /> : <Flag size={17} strokeWidth={2.4} />}
             </span>
-            <span className="dec-title">{isCompleted ? 'Completed!' : 'Played'}</span>
-          </div>
-          <div className="dec-sub">
-            <span className="dec-dot" style={{ background: selfCatMeta.color }} />
-            <b>{selfName}</b>
-            <span className="sc">&middot; {selfCatMeta.name}</span>
-            {score ? <span className="sc">&middot; {score}</span> : null}
+            <span className="dec-title">{isCompleted ? <>Completed {selfName}!</> : <>Played {selfName}</>}</span>
+            {score ? <span className="dec-detail">{score}</span> : null}
           </div>
           {answer ? (
             <div className="dec-answer">
@@ -700,9 +718,9 @@ export default function DailyEndCard({
 
       {/* ---- 2. three rank tiles ---- */}
       <div className="dec-tiles">
-        {renderTile('today', `${selfName} today`, gameTodayRank, gameTodayField, false, provisional)}
-        {renderTile('alltime', `${selfName} all-time`, allTime ? allTime.myRank : null, allTime ? allTime.field : null, !(allTime && allTime.myRank != null), !!(allTime && allTime.provisional))}
-        {renderTile('combined', 'Combined today', combinedRank, combinedField, false, provisional)}
+        {renderTile('today', 'Today', gameTodayRank, gameTodayField, false, provisional)}
+        {renderTile('alltime', 'All-Time', allTime ? allTime.myRank : null, allTime ? allTime.field : null, !(allTime && allTime.myRank != null), !!(allTime && allTime.provisional))}
+        {renderTile('combined', 'Combined Today', combinedRank, combinedField, false, provisional)}
       </div>
       {openTile ? (() => {
         const rows = tileBoard(openTile);
