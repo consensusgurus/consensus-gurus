@@ -38,7 +38,7 @@ import {
   Type, Clock, Globe, Hash, Share2, BarChart3, RotateCcw, Check, X,
   Trophy, Link2, Flag, CalendarCheck, Scale, Grid3x3, LayoutGrid, Newspaper, FlagTriangleRight,
   Pencil, Users, ArrowRight, Puzzle, Fingerprint, KeyRound, Thermometer, Crown, ListOrdered,
-  CalendarDays, ChevronLeft, ChevronRight, ChevronDown, CheckCircle2,
+  CalendarDays, ChevronLeft, ChevronRight, ChevronDown, CheckCircle2, UserPlus,
 } from 'lucide-react';
 import { myRefCode } from '@/lib/referrals';
 import ReportIssue from './ReportIssue';
@@ -129,7 +129,7 @@ export const DAILY_GAMES = [
   { key: 'warmer', cat: 'word',      name: 'Warmer', tag: 'Hotter or colder',           href: '/warmer' },
 ];
 
-const AUTO_SECONDS = 25;
+const AUTO_SECONDS = 30;
 const REVEAL_MS = 2000; // win only: MIN time the finished board + confetti shows before the popup
 const REVEAL_CAP_MS = 6500; // hard cap: reveal even if the card's data hasn't fully landed
 
@@ -550,7 +550,7 @@ export default function DailyEndCard({
 
         .dec-head{display:flex;align-items:flex-start;justify-content:space-between;gap:14px;margin-bottom:12px;}
         .dec-head-l{min-width:0;flex:1;}
-        .dec-head-r{display:flex;flex-direction:column;align-items:stretch;gap:7px;flex-shrink:0;min-width:190px;}
+        .dec-head-r{display:flex;flex-shrink:0;align-items:flex-start;}
         .dec-check{width:30px;height:30px;border-radius:50%;background:#e8f5ec;color:#15803d;display:inline-flex;align-items:center;justify-content:center;flex-shrink:0;}
         .dec-check.loss{background:#fdecec;color:${RUST};}
         .dec-titlerow{display:flex;align-items:center;flex-wrap:wrap;gap:4px 10px;margin-bottom:5px;}
@@ -563,10 +563,12 @@ export default function DailyEndCard({
         .dec-answer{display:flex;align-items:baseline;gap:9px;margin:9px 0 0;}
         .dec-answer-lbl{font-family:${MONO};font-size:10px;font-weight:500;letter-spacing:.14em;text-transform:uppercase;color:${SLATE};flex-shrink:0;}
         .dec-answer-word{font-size:21px;font-weight:800;letter-spacing:-.02em;color:${RUST};}
-        .dec-user{font-family:${SANS};font-size:12.5px;font-weight:800;color:${INK};background:#fff;border:1px solid ${BORD};border-radius:10px;padding:9px 14px;text-align:center;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
-        .dec-signup{font-family:${SANS};font-size:12.5px;font-weight:800;color:${BLUE};background:#fff;border:1px solid #cfe0fb;border-radius:10px;padding:9px 14px;cursor:pointer;text-decoration:none;white-space:nowrap;text-align:center;}
-        .dec-signup:hover{background:#f2f7ff;}
-        .dec-share{font-family:${SANS};font-weight:800;font-size:12.5px;color:#fff;background:${INK};border:1px solid ${INK};border-radius:10px;padding:9px 14px;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;gap:6px;white-space:nowrap;}
+        .dec-idbox{display:inline-flex;align-items:center;gap:8px;margin-top:9px;font-family:${SANS};font-size:12.5px;font-weight:700;color:${INK};background:#f4f6fa;border:1px solid ${BORD};border-radius:999px;padding:5px 13px 5px 5px;max-width:100%;}
+        .dec-idbox .av{width:23px;height:23px;border-radius:50%;color:#fff;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:800;flex-shrink:0;}
+        .dec-idbox .nm{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+        button.dec-idbox{cursor:pointer;color:${BLUE};background:#eff4fd;border-color:#cfe0fb;padding:8px 15px;}
+        button.dec-idbox:hover{background:#e4eefc;}
+        .dec-share{font-family:${SANS};font-weight:800;font-size:12.5px;color:#fff;background:${INK};border:1px solid ${INK};border-radius:10px;padding:10px 16px;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;gap:6px;white-space:nowrap;}
         .dec-share:hover{filter:brightness(1.12);}
 
         .dec-tiles{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;margin-bottom:10px;}
@@ -621,7 +623,7 @@ export default function DailyEndCard({
         .dec-cal-sw{width:11px;height:11px;border-radius:3px;flex-shrink:0;}
 
         .dec-duo{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:4px;}
-        .dec-nx{border:1px solid #d7e3f8;background:#eff4fd;border-radius:14px;padding:13px 14px;display:flex;flex-direction:column;gap:11px;min-width:0;}
+        .dec-nx{border:1px solid #d7e3f8;background:#eff4fd;border-radius:14px;padding:13px 14px;display:flex;flex-direction:column;justify-content:space-between;gap:11px;min-width:0;}
         .dec-nx-top{display:flex;align-items:center;gap:12px;min-width:0;}
         .dec-ring{position:relative;width:50px;height:50px;flex-shrink:0;}
         .dec-ring .num{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:17px;font-weight:800;color:${INK};}
@@ -633,11 +635,11 @@ export default function DailyEndCard({
         .dec-nx-btns .b.primary{background:${BLUE};border-color:${BLUE};color:#fff;}
         .dec-nx-btns .b:hover{filter:brightness(0.98);}
 
-        .dec-ez{border:1px solid #f0e3bb;background:#fdf6e4;border-radius:14px;padding:13px 14px;display:flex;flex-direction:row;align-items:center;gap:12px;min-width:0;}
-        .dec-ez-top{display:flex;align-items:center;gap:11px;min-width:0;flex:1;}
+        .dec-ez{border:1px solid #f0e3bb;background:#fdf6e4;border-radius:14px;padding:13px 14px;display:flex;flex-direction:column;justify-content:space-between;gap:11px;min-width:0;}
+        .dec-ez-top{display:flex;align-items:center;gap:11px;min-width:0;}
         .dec-ez-name{font-size:18px;font-weight:800;letter-spacing:-.01em;color:${INK};display:flex;align-items:center;gap:7px;}
         .dec-ez-tag{font-size:12px;color:#8a6d1c;margin-top:1px;}
-        .dec-ez-btn{flex-shrink:0;font-family:${SANS};font-weight:800;font-size:12.5px;color:#5c4a06;background:${GOLD};border:none;border-radius:10px;padding:9px 15px;cursor:pointer;text-decoration:none;white-space:nowrap;}
+        .dec-ez-btn{display:block;width:100%;box-sizing:border-box;text-align:center;font-family:${SANS};font-weight:800;font-size:12.5px;color:#5c4a06;background:${GOLD};border:none;border-radius:10px;padding:10px 15px;cursor:pointer;text-decoration:none;white-space:nowrap;}
 
         .dec-morehd{display:flex;align-items:baseline;justify-content:space-between;margin:18px 2px 12px;}
         .dec-more-eye{font-family:${MONO};font-size:10.5px;font-weight:500;letter-spacing:.14em;text-transform:uppercase;color:${SLATE};}
@@ -671,8 +673,8 @@ export default function DailyEndCard({
         @media(max-width:640px){
           .dec-card{padding:18px 16px 14px;}
           .dec-head{flex-direction:column;gap:10px;}
-          .dec-head-r{flex-direction:row;align-items:stretch;align-self:stretch;gap:8px;min-width:0;}
-          .dec-head-r > *{flex:1;min-width:0;}
+          .dec-head-r{align-self:stretch;}
+          .dec-head-r .dec-share{width:100%;}
           /* Keep the three rank tiles side by side on mobile (minmax(0,1fr) stops
              overflow); just tighten the padding/type so they fit a phone width. */
           .dec-tiles{gap:7px;}
@@ -708,11 +710,18 @@ export default function DailyEndCard({
               <span className="dec-answer-word">{answer}</span>
             </div>
           ) : null}
+          {hasEmail && username ? (
+            <span className="dec-idbox">
+              <span className="av" style={{ background: meta.accent }}>{String(username).slice(0, 1).toUpperCase()}</span>
+              <span className="nm">{username}</span>
+            </span>
+          ) : (
+            <button type="button" className="dec-idbox guest" onClick={goRegister}>
+              <UserPlus size={15} strokeWidth={2.2} /> Sign up
+            </button>
+          )}
         </div>
         <div className="dec-head-r" style={modal ? { paddingRight: 26 } : undefined}>
-          {hasEmail && username
-            ? <span className="dec-user">{username}</span>
-            : <button type="button" className="dec-signup" onClick={goRegister}>Sign up</button>}
           <button type="button" className="dec-share" onClick={onShare}>
             <Share2 size={14} strokeWidth={2.2} /> Share result{forCredit && !/copied/i.test(shareLabel || '') ? ' (for credit)' : ''}
           </button>
@@ -808,7 +817,7 @@ export default function DailyEndCard({
                   <span className="num">{autoRun ? secs : <ArrowRight size={17} strokeWidth={2.4} color="#2563eb" />}</span>
                 </div>
                 <div style={{ minWidth: 0, flex: 1 }}>
-                  <div className="dec-eye" style={{ color: BLUE }}>Up next</div>
+                  <div className="dec-eye" style={{ color: BLUE }}>Up next &middot; most similar unplayed today</div>
                   <div className="dec-nx-name">{nextTarget.name}</div>
                   <div className="dec-nx-tag">{nextTarget.tag}{autoRun ? <> &middot; {secs > 0 ? `opens in ${secs}s` : 'opening…'}</> : null}</div>
                 </div>
@@ -824,7 +833,7 @@ export default function DailyEndCard({
               <div className="dec-ez-top">
                 <Trophy size={22} strokeWidth={2} color="#b7791f" style={{ flexShrink: 0 }} />
                 <div style={{ minWidth: 0, flex: 1 }}>
-                  <div className="dec-eye" style={{ color: '#b7791f' }}>Easiest leaderboard</div>
+                  <div className="dec-eye" style={{ color: '#b7791f' }}>Easiest leaderboard today</div>
                   <div className="dec-ez-name"><span className="dec-dot" style={{ background: (CAT_META[grab.cat] || CAT_META.word).color }} />{grab.name}</div>
                   <div className="dec-ez-tag">{grab.field > 0 ? <>Only {grab.field} player{grab.field === 1 ? '' : 's'} so far</> : <>No one&rsquo;s on the board yet</>}</div>
                 </div>
@@ -882,6 +891,8 @@ export default function DailyEndCard({
         ) : null}
       </div>
 
+      <a className="dec-land-btn" href="/daily">Daily game landing page &rarr;</a>
+
       {self ? (
         <ReportIssue
           self={self}
@@ -889,8 +900,6 @@ export default function DailyEndCard({
           accent={meta.accent}
         />
       ) : null}
-
-      <a className="dec-land-btn" href="/daily">Daily game landing page &rarr;</a>
     </div>
   );
 
