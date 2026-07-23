@@ -31,7 +31,11 @@ NAMES = ['alibi', 'carve', 'cipher', 'circa', 'crux', 'dating', 'emcee', 'extra'
 # filled half the frame and read as pixel mush at real tile size).
 W, H = 1280, 720
 NAVY = (14, 29, 64)         # #0e1d40, the exact .dstrip background
-ART_W, ART_H = 0.28, 0.30   # icon box, as a fraction of the canvas
+# Square art box (owner feedback 2026-07-23): every icon's larger dimension fills
+# the SAME box, so wide motifs (cipher, dating, span) no longer render markedly
+# wider than the square icons and sprawl across the hero card. Side = 30% of the
+# canvas height, matching the previous square-icon size.
+ART_BOX = 0.30              # icon box side, as a fraction of the canvas HEIGHT
 ART_Y = 0.38                # icon centre, above the tile's title scrim
 
 
@@ -51,7 +55,8 @@ def icon(name):
 
 def build(name):
     im = icon(name)
-    sc = min(int(W * ART_W) / im.width, int(H * ART_H) / im.height)
+    box = int(H * ART_BOX)
+    sc = min(box / im.width, box / im.height)
     art = im.resize((max(1, int(im.width * sc)), max(1, int(im.height * sc))), Image.LANCZOS)
     canvas = Image.new('RGBA', (W, H), NAVY + (255,))
     canvas.alpha_composite(art, (W // 2 - art.width // 2, int(H * ART_Y) - art.height // 2))
