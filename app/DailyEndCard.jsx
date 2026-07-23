@@ -531,7 +531,14 @@ export default function DailyEndCard({
   // Render one rank tile (plain helper, not a nested component). `prov` badges the
   // rank as provisional (a guest's would-be standing).
   const renderTile = (id, label, rank, field, dash, prov) => (
-    <div className={`dec-tile${openTile === id ? ' open' : ''}`} key={id}>
+    <button
+      type="button"
+      className={`dec-tile${openTile === id ? ' open' : ''}`}
+      key={id}
+      aria-label={`Expand ${label} leaderboard`}
+      aria-expanded={openTile === id}
+      onClick={() => setOpenTile((o) => (o === id ? null : id))}
+    >
       <div className="dec-tile-lbl">{label}</div>
       {dash ? (
         <div className="dec-tile-rk"><span className="dash">—</span></div>
@@ -541,16 +548,10 @@ export default function DailyEndCard({
         <div className="dec-tile-rk"><span className="dash">·</span></div>
       )}
       <div className="dec-tile-of">{field ? <>of {field}</> : (dash ? 'registered only' : ' ')}</div>
-      <button
-        type="button"
-        className="dec-tile-mx"
-        aria-label={`Expand ${label} leaderboard`}
-        aria-expanded={openTile === id}
-        onClick={() => setOpenTile((o) => (o === id ? null : id))}
-      >
+      <span className="dec-tile-mx">
         <ChevronDown size={15} strokeWidth={2.4} style={{ transform: openTile === id ? 'rotate(180deg)' : 'none', transition: 'transform .15s ease' }} />
-      </button>
-    </div>
+      </span>
+    </button>
   );
 
   // The month calendar, shared by the desktop archive TILE (expands in place) and
@@ -624,15 +625,16 @@ export default function DailyEndCard({
 
         .dec-tiles{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;margin-bottom:10px;}
         .dec-tile-cal{position:absolute;top:9px;right:8px;color:${SLATE};}
-        .dec-tile{position:relative;border:1px solid ${BORD};background:#f7f8fa;border-radius:12px;padding:11px 12px 10px;min-width:0;}
-        .dec-tile.open{border-color:${BLUE};box-shadow:0 0 0 1px ${BLUE};}
+        .dec-tile{position:relative;display:block;width:100%;text-align:left;font-family:inherit;cursor:pointer;border:1px solid ${BORD};background:#f7f8fa;border-radius:12px;padding:11px 12px 10px;min-width:0;transition:background .12s ease,border-color .12s ease;}
+        .dec-tile:hover{background:#fff;border-color:#cfd6e2;}
+        .dec-tile.open{border-color:${BLUE};box-shadow:0 0 0 1px ${BLUE};background:#fff;}
         .dec-tile-lbl{font-family:${MONO};font-size:9.5px;font-weight:500;letter-spacing:.1em;text-transform:uppercase;color:${SLATE};padding-right:22px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
         .dec-tile-rk{font-size:23px;font-weight:800;letter-spacing:-.02em;color:${INK};line-height:1.15;margin-top:3px;}
         .dec-tile-rk .prov{font-size:11px;font-weight:700;color:${FADED};}
         .dec-tile-rk .dash{color:#c2c8d2;}
         .dec-tile-of{font-size:11.5px;color:${FADED};}
-        .dec-tile-mx{position:absolute;top:7px;right:6px;width:20px;height:20px;padding:0;display:flex;align-items:center;justify-content:center;border-radius:6px;background:transparent;border:none;color:${SLATE};cursor:pointer;}
-        .dec-tile-mx:hover{color:${BLUE};background:#eef2f8;}
+        .dec-tile-mx{position:absolute;top:7px;right:6px;width:20px;height:20px;display:flex;align-items:center;justify-content:center;color:${SLATE};pointer-events:none;}
+        .dec-tile.open .dec-tile-mx,.dec-tile:hover .dec-tile-mx{color:${BLUE};}
 
         .dec-expand{border:1px solid ${BORD};border-radius:12px;padding:11px 13px 9px;margin:-2px 0 12px;background:#fff;}
         .dec-expand-hd{display:flex;align-items:baseline;justify-content:space-between;margin-bottom:6px;}
@@ -791,14 +793,14 @@ export default function DailyEndCard({
         {renderTile('combined', 'Combined Today', combinedRank, combinedField, false, provisional)}
         {/* Archive tile: desktop only (CSS-hidden on mobile, where the slip below
             handles it). Shows % of this game's drops played; opens the calendar. */}
-        <div className={`dec-tile dec-tile-archive${openTile === 'calendar' ? ' open' : ''}`} key="archive">
+        <button type="button" className={`dec-tile dec-tile-archive${openTile === 'calendar' ? ' open' : ''}`} key="archive" aria-label="Open archive calendar" aria-expanded={openTile === 'calendar'} onClick={() => setOpenTile((o) => (o === 'calendar' ? null : 'calendar'))}>
           <div className="dec-tile-lbl">{selfName} Archive</div>
           <div className="dec-tile-rk">{archivePct == null ? <span className="dash">&mdash;</span> : <>{archivePct}%</>}</div>
           <div className="dec-tile-of">{totalDrops ? <>{playedCount}/{totalDrops} played</> : ' '}</div>
-          <button type="button" className="dec-tile-mx" aria-label="Open archive calendar" aria-expanded={openTile === 'calendar'} onClick={() => setOpenTile((o) => (o === 'calendar' ? null : 'calendar'))}>
-            <CalendarDays size={14} strokeWidth={2} />
-          </button>
-        </div>
+          <span className="dec-tile-mx">
+            <ChevronDown size={15} strokeWidth={2.4} style={{ transform: openTile === 'calendar' ? 'rotate(180deg)' : 'none', transition: 'transform .15s ease' }} />
+          </span>
+        </button>
       </div>
       {openTile && openTile !== 'calendar' ? (() => {
         const rows = tileBoard(openTile);
