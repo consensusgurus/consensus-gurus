@@ -415,6 +415,20 @@ export default function DailyEndCard({
     }
   };
 
+  // "Full leaderboard": close the popup, tell the on-page DailyBoardPanel to
+  // unfurl to the SAME view (Today / All-time / Combined) via a window event, and
+  // scroll to it — so the reader lands on the full, expanded board, not the
+  // collapsed tiles.
+  const openPanel = (view) => {
+    if (onLeaderboard) { onLeaderboard(); return; }
+    if (onClose) onClose();
+    if (typeof window !== 'undefined') { try { window.dispatchEvent(new CustomEvent('sot:open-daily-board', { detail: { view } })); } catch (e) {} }
+    if (typeof document !== 'undefined') {
+      const el = document.getElementById(boardId);
+      if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+  };
+
   // Register CTA (guests): close the popup, then bring the on-page sign-up
   // form into view (falls back to the leaderboard, which sits just below it).
   const goRegister = () => {
@@ -486,6 +500,11 @@ export default function DailyEndCard({
   }
   const fmtPts = (x) => (x == null ? '' : `${Math.round(Number(x) * 10) / 10} pts`);
 
+  // --- archive completion (this game's drops played) ------------------------
+  const playedCount = (drops || []).filter((d) => d.played).length;
+  const totalDrops = (drops || []).length;
+  const archivePct = totalDrops ? Math.round((playedCount / totalDrops) * 100) : null;
+
   // --- calendar month cells -------------------------------------------------
   const dropByISO = new Map((drops || []).map((d) => [d.dateISO, d]));
   const todayISO = etTodayEC();
@@ -534,6 +553,39 @@ export default function DailyEndCard({
     </div>
   );
 
+  // The month calendar, shared by the desktop archive TILE (expands in place) and
+  // the mobile archive SLIP (expands below). Only one is ever active at a time,
+  // because the archive tile is hidden on mobile and the slip is hidden on
+  // desktop (so the other's toggle can never fire).
+  const calendarEl = (
+    <div className="dec-cal">
+      <div className="dec-cal-hd">
+        <span className="dec-cal-mo">{monthLabel}</span>
+        <div className="dec-cal-nav">
+          <button type="button" onClick={() => shiftMonth(-1)} disabled={!canPrev} aria-label="Previous month"><ChevronLeft size={16} strokeWidth={2.4} /></button>
+          <button type="button" onClick={() => shiftMonth(1)} disabled={!canNext} aria-label="Next month"><ChevronRight size={16} strokeWidth={2.4} /></button>
+        </div>
+      </div>
+      <div className="dec-cal-grid">
+        {WEEKDAYS.map((w, i) => <div className="dec-cal-wd" key={`wd${i}`}>{w}</div>)}
+        {calCells.map((d, i) => {
+          if (d == null) return <div className="dec-cal-cell empty" key={`e${i}`} />;
+          const iso = `${calMonth}-${String(d).padStart(2, '0')}`;
+          const drop = dropByISO.get(iso);
+          const isToday = iso === todayISO;
+          if (!drop) return <div className={`dec-cal-cell none${isToday ? ' today' : ''}`} key={iso}>{d}</div>;
+          const cls = drop.played ? 'played' : 'unplayed';
+          return <a className={`dec-cal-cell ${cls}${isToday ? ' today' : ''}`} href={drop.href} key={iso} title={drop.played ? 'Played' : 'Play this drop'}>{d}</a>;
+        })}
+      </div>
+      <div className="dec-cal-key">
+        <span><span className="dec-cal-sw" style={{ background: '#e8f5ec', border: '1px solid #bfe3ca' }} />Played</span>
+        <span><span className="dec-cal-sw" style={{ background: '#fff', border: `1px solid ${BORD}` }} />Unplayed</span>
+        <span><span className="dec-cal-sw" style={{ background: '#fff', boxShadow: `0 0 0 2px ${BLUE}` }} />Today</span>
+      </div>
+    </div>
+  );
+
   const inner = (
     <div className="dec-card" style={modal ? { position: 'relative', maxHeight: '92vh', overflowY: 'auto' } : undefined}>
       {modal && (
@@ -570,7 +622,8 @@ export default function DailyEndCard({
         .dec-share{font-family:${SANS};font-weight:800;font-size:12.5px;color:#fff;background:${INK};border:1px solid ${INK};border-radius:10px;padding:10px 16px;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;gap:6px;white-space:nowrap;}
         .dec-share:hover{filter:brightness(1.12);}
 
-        .dec-tiles{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;margin-bottom:10px;}
+        .dec-tiles{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;margin-bottom:10px;}
+        .dec-tile-cal{position:absolute;top:9px;right:8px;color:${SLATE};}
         .dec-tile{position:relative;border:1px solid ${BORD};background:#f7f8fa;border-radius:12px;padding:11px 12px 10px;min-width:0;}
         .dec-tile.open{border-color:${BLUE};box-shadow:0 0 0 1px ${BLUE};}
         .dec-tile-lbl{font-family:${MONO};font-size:9.5px;font-weight:500;letter-spacing:.1em;text-transform:uppercase;color:${SLATE};padding-right:22px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
@@ -600,6 +653,10 @@ export default function DailyEndCard({
         .dec-slip.neutral:hover{background:#eef0f4;}
         .dec-slip .clink{font:inherit;font-weight:800;color:${BLUE};background:none;border:none;padding:0;text-decoration:underline;text-underline-offset:2px;cursor:pointer;}
         .dec-slip .chev{margin-left:auto;display:inline-flex;color:${SLATE};}
+        .dec-slip-archive{display:none;}
+        .dec-slip-right{margin-left:auto;display:inline-flex;align-items:center;gap:9px;}
+        .dec-slip-archive .chev{margin-left:0;}
+        .dec-slip-pct{font-weight:800;color:${INK};white-space:nowrap;}
 
         .dec-cal{border:1px solid ${BORD};border-radius:12px;padding:12px 13px;margin:-2px 0 12px;background:#fff;}
         .dec-cal-hd{display:flex;align-items:center;justify-content:space-between;margin-bottom:9px;}
@@ -673,9 +730,11 @@ export default function DailyEndCard({
           .dec-card{padding:18px 16px 14px;}
           .dec-idrow{gap:8px;}
           .dec-idrow > *{flex:1;justify-content:center;}
-          /* Keep the three rank tiles side by side on mobile (minmax(0,1fr) stops
-             overflow); just tighten the padding/type so they fit a phone width. */
-          .dec-tiles{gap:7px;}
+          /* Mobile: drop the 4th Archive tile (the slip below handles the archive),
+             keep the three rank tiles side by side, and reveal the archive slip. */
+          .dec-tiles{grid-template-columns:repeat(3,minmax(0,1fr));gap:7px;}
+          .dec-tile-archive{display:none;}
+          .dec-slip-archive{display:flex;}
           .dec-tile{padding:9px 7px 8px;}
           .dec-tile-lbl{font-size:8px;letter-spacing:.03em;padding-right:15px;}
           .dec-tile-rk{font-size:18px;}
@@ -725,20 +784,30 @@ export default function DailyEndCard({
         </div>
       </div>
 
-      {/* ---- 2. three rank tiles ---- */}
+      {/* ---- 2. rank tiles (3 on mobile; a 4th Archive tile on desktop) ---- */}
       <div className="dec-tiles">
         {renderTile('today', 'Today', gameTodayRank, gameTodayField, false, provisional)}
         {renderTile('alltime', 'All-Time', allTime ? allTime.myRank : null, allTime ? allTime.field : null, !(allTime && allTime.myRank != null), !!(allTime && allTime.provisional))}
         {renderTile('combined', 'Combined Today', combinedRank, combinedField, false, provisional)}
+        {/* Archive tile: desktop only (CSS-hidden on mobile, where the slip below
+            handles it). Shows % of this game's drops played; opens the calendar. */}
+        <div className={`dec-tile dec-tile-archive${openTile === 'calendar' ? ' open' : ''}`} key="archive">
+          <div className="dec-tile-lbl">{selfName} Archive</div>
+          <div className="dec-tile-rk">{archivePct == null ? <span className="dash">&mdash;</span> : <>{archivePct}%</>}</div>
+          <div className="dec-tile-of">{totalDrops ? <>{playedCount}/{totalDrops} played</> : ' '}</div>
+          <button type="button" className="dec-tile-mx" aria-label="Open archive calendar" aria-expanded={openTile === 'calendar'} onClick={() => setOpenTile((o) => (o === 'calendar' ? null : 'calendar'))}>
+            <CalendarDays size={14} strokeWidth={2} />
+          </button>
+        </div>
       </div>
-      {openTile ? (() => {
+      {openTile && openTile !== 'calendar' ? (() => {
         const rows = tileBoard(openTile);
         const ti = openTile === 'today' ? `${selfName} · today` : openTile === 'alltime' ? `${selfName} · all-time` : 'Combined · today';
         return (
           <div className="dec-expand">
             <div className="dec-expand-hd">
               <span className="dec-expand-ti">{ti} &middot; top 10</span>
-              <button type="button" className="dec-expand-full" onClick={goBoard}>Full leaderboard <ArrowRight size={12} strokeWidth={2.4} /></button>
+              <button type="button" className="dec-expand-full" onClick={() => openPanel(openTile)}>Full leaderboard <ArrowRight size={12} strokeWidth={2.4} /></button>
             </div>
             {rows.length ? rows.map((r, idx) => (
               <div className={`dec-lbrow${r.me ? ' me' : ''}`} key={idx}>
@@ -750,6 +819,8 @@ export default function DailyEndCard({
           </div>
         );
       })() : null}
+      {/* desktop: archive tile expands the calendar in place */}
+      {openTile === 'calendar' ? calendarEl : null}
 
       {/* ---- 3. guest claim slip ---- */}
       {!hasEmail ? (
@@ -758,44 +829,18 @@ export default function DailyEndCard({
         </div>
       ) : null}
 
-      {/* ---- 4. calendar slip ---- */}
+      {/* ---- 4. archive slip (MOBILE ONLY; desktop uses the archive tile) ---- */}
       {drops && drops.length ? (
         <>
-          <button type="button" className="dec-slip neutral" onClick={() => setCalOpen((v) => !v)} aria-expanded={calOpen}>
+          <button type="button" className="dec-slip neutral dec-slip-archive" onClick={() => setCalOpen((v) => !v)} aria-expanded={calOpen}>
             <CalendarDays size={15} strokeWidth={2} />
-            See the full calendar of {selfName} games
-            <span className="chev">{calOpen ? <ChevronLeft size={15} strokeWidth={2.4} style={{ transform: 'rotate(90deg)' }} /> : <ChevronRight size={15} strokeWidth={2.4} style={{ transform: 'rotate(90deg)' }} />}</span>
+            See the full {selfName} archive
+            <span className="dec-slip-right">
+              {archivePct != null ? <span className="dec-slip-pct">{archivePct}% complete</span> : null}
+              <span className="chev">{calOpen ? <ChevronLeft size={15} strokeWidth={2.4} style={{ transform: 'rotate(90deg)' }} /> : <ChevronRight size={15} strokeWidth={2.4} style={{ transform: 'rotate(90deg)' }} />}</span>
+            </span>
           </button>
-          {calOpen ? (
-            <div className="dec-cal">
-              <div className="dec-cal-hd">
-                <span className="dec-cal-mo">{monthLabel}</span>
-                <div className="dec-cal-nav">
-                  <button type="button" onClick={() => shiftMonth(-1)} disabled={!canPrev} aria-label="Previous month"><ChevronLeft size={16} strokeWidth={2.4} /></button>
-                  <button type="button" onClick={() => shiftMonth(1)} disabled={!canNext} aria-label="Next month"><ChevronRight size={16} strokeWidth={2.4} /></button>
-                </div>
-              </div>
-              <div className="dec-cal-grid">
-                {WEEKDAYS.map((w, i) => <div className="dec-cal-wd" key={`wd${i}`}>{w}</div>)}
-                {calCells.map((d, i) => {
-                  if (d == null) return <div className="dec-cal-cell empty" key={`e${i}`} />;
-                  const iso = `${calMonth}-${String(d).padStart(2, '0')}`;
-                  const drop = dropByISO.get(iso);
-                  const isToday = iso === todayISO;
-                  if (!drop) return <div className={`dec-cal-cell none${isToday ? ' today' : ''}`} key={iso}>{d}</div>;
-                  const cls = drop.played ? 'played' : 'unplayed';
-                  return (
-                    <a className={`dec-cal-cell ${cls}${isToday ? ' today' : ''}`} href={drop.href} key={iso} title={drop.played ? 'Played' : 'Play this drop'}>{d}</a>
-                  );
-                })}
-              </div>
-              <div className="dec-cal-key">
-                <span><span className="dec-cal-sw" style={{ background: '#e8f5ec', border: '1px solid #bfe3ca' }} />Played</span>
-                <span><span className="dec-cal-sw" style={{ background: '#fff', border: `1px solid ${BORD}` }} />Unplayed</span>
-                <span><span className="dec-cal-sw" style={{ background: '#fff', boxShadow: `0 0 0 2px ${BLUE}` }} />Today</span>
-              </div>
-            </div>
-          ) : null}
+          {calOpen ? calendarEl : null}
         </>
       ) : null}
 
@@ -878,7 +923,7 @@ export default function DailyEndCard({
 
       {/* ---- 7. bottom actions ---- */}
       <div className="dec-foot">
-        <button type="button" className="dec-btn" onClick={goBoard}>
+        <button type="button" className="dec-btn" onClick={() => openPanel('today')}>
           <BarChart3 size={15} strokeWidth={2} /> Leaderboards
         </button>
         {pastHref ? (

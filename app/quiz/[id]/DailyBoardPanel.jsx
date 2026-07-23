@@ -63,6 +63,20 @@ export default function DailyBoardPanel({ self, quizId = null, maxWidth = 620, s
 
   useEffect(() => { try { setIdent(JSON.parse(localStorage.getItem('sot_quiz_identity') || 'null')); } catch (e) {} }, []);
 
+  // The end-game card's "Full leaderboard" / "Leaderboards" buttons dispatch this
+  // so we unfurl to the same view the reader was looking at (Today / All-time /
+  // Combined / archive), instead of just scrolling to the collapsed tiles.
+  useEffect(() => {
+    const onOpen = (e) => {
+      const v = e && e.detail && e.detail.view;
+      const valid = ['today', 'alltime', 'combined', 'archive'];
+      if (valid.includes(v)) { setSel(v); setOpen(true); }
+      else setOpen(true);
+    };
+    if (typeof window !== 'undefined') window.addEventListener('sot:open-daily-board', onOpen);
+    return () => { if (typeof window !== 'undefined') window.removeEventListener('sot:open-daily-board', onOpen); };
+  }, []);
+
   // Combined board (me + today's per-game boards). Reloads fresh when a game
   // finishes on this page (the end card dispatches sot:daily-updated).
   useEffect(() => {
