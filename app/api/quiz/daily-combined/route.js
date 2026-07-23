@@ -217,7 +217,7 @@ export async function GET(request) {
     const p = puzzleForSuffix(GAME_PUZZLES[key], key, suffix, today);
     if (!p) continue;
     const href = isToday ? `/${key}` : `/${key}?p=${p.num}`;
-    games.push({ key, quizId: p.quizId, num: p.num, href });
+    games.push({ key, quizId: p.quizId, num: p.num, rev: p.rev || null, href });
   }
   const wanted = new Set(games.map((g) => g.quizId));
   // Best-N and the ceiling scale to how many games existed that day (1..10).
@@ -275,17 +275,17 @@ export async function GET(request) {
 
     const gameResults = games.map((g) => {
       if (g.key === 'outwit' && outwitLive) {
-        return { key: g.key, quizId: g.quizId, href: g.href, field: outwitLive.field, plays: outwitLive.plays, players: outwitLive.players };
+        return { key: g.key, quizId: g.quizId, num: g.num, rev: g.rev, href: g.href, field: outwitLive.field, plays: outwitLive.plays, players: outwitLive.players };
       }
       if (g.key === 'outrank' && outrankLive) {
-        return { key: g.key, quizId: g.quizId, href: g.href, field: outrankLive.field, plays: outrankLive.plays, players: outrankLive.players };
+        return { key: g.key, quizId: g.quizId, num: g.num, rev: g.rev, href: g.href, field: outrankLive.field, plays: outrankLive.plays, players: outrankLive.players };
       }
       const gameRows = rowsByQuiz.get(g.quizId) || [];
       const gr = scoreGame(gameRows);
       // field = registered first-attempt players on the board; plays = EVERY
       // completion for that puzzle (guests + repeats included), so the header can
       // show both "X registered players · X total plays".
-      return { key: g.key, quizId: g.quizId, href: g.href, field: gr.field, plays: gameRows.length, players: gr.players };
+      return { key: g.key, quizId: g.quizId, num: g.num, rev: g.rev, href: g.href, field: gr.field, plays: gameRows.length, players: gr.players };
     });
 
     const overallFull = combineDaily(gameResults);
@@ -318,6 +318,8 @@ export async function GET(request) {
     const gameBoards = gameResults.map((g) => ({
       key: g.key,
       quizId: g.quizId,
+      num: g.num,
+      rev: g.rev,
       href: g.href,
       field: g.field,
       plays: g.plays,

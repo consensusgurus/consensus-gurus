@@ -213,6 +213,33 @@ export default function DailyStrip({ board = null }) {
     return i >= 0 ? i + 1 : null;
   };
 
+  // Same-device in-progress/finished detection for TODAY via each game's own
+  // per-puzzle save (sot_<key>_<num>, crux also _r<rev>), keyed by the puzzle
+  // nums the daily-combined payload now carries. Catches started-today games
+  // that the day-breadcrumb and server abandon rows miss (owner 2026-07-23:
+  // "bring back the in-progress icons").
+  useEffect(() => {
+    if (!bgames || !bgames.length) return;
+    const ip = new Set(); const dn = new Set();
+    for (const g of bgames) {
+      if (!g || g.num == null) continue;
+      const saveKeys = [`sot_${g.key}_${g.num}`];
+      if (g.key === 'crux' && g.rev) saveKeys.push(`sot_crux_${g.num}_r${g.rev}`);
+      let playing = false, finished = false;
+      for (const k of saveKeys) {
+        try {
+          const st = (JSON.parse(localStorage.getItem(k) || 'null') || {}).status;
+          if (st === 'playing') playing = true; else if (st) finished = true;
+        } catch (e) {}
+      }
+      if (finished) dn.add(g.key);
+      else if (playing) ip.add(g.key);
+    }
+    if (dn.size) setDone((cur) => new Set([...cur, ...dn]));
+    if (ip.size) setInprog((cur) => new Set([...cur, ...ip]));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [board]);
+
   // Recent champions are only needed once the board is expanded; fetch them
   // lazily on first open so a collapsed homepage visit never pays for it. Capped
   // at CHAMPION_DAYS entries (yesterday plus the two days before it) so the left
@@ -315,7 +342,7 @@ export default function DailyStrip({ board = null }) {
         .dstrip-lead.none{color:#6a80a8;font-weight:600;}
         /* active streak badge (2+ consecutive days), top-left corner; shifts
            below the Sunday chip when both render */
-        .dstrip-flame{position:absolute;top:5px;left:5px;display:flex;align-items:center;gap:1px;font-size:9px;font-weight:800;font-variant-numeric:tabular-nums;color:#f8b84a;background:rgba(232,180,58,0.13);border:1px solid rgba(232,180,58,0.35);border-radius:5px;padding:1px 4px 1px 2px;line-height:1.3;pointer-events:none;}
+        .dstrip-flame{position:absolute;top:7px;left:5px;height:16px;box-sizing:border-box;display:flex;align-items:center;gap:1px;font-size:9px;font-weight:800;font-variant-numeric:tabular-nums;color:#f8b84a;background:rgba(232,180,58,0.13);border:1px solid rgba(232,180,58,0.35);border-radius:5px;padding:0 4px 0 2px;line-height:1;pointer-events:none;}
         .dstrip-flame svg{flex:none;}
         .dstrip-flame.shift{top:24px;}
         /* finished cell: the player's rank in that game replaces the leader chip */
@@ -418,7 +445,9 @@ export default function DailyStrip({ board = null }) {
           .dstrip-hero .hd-ctas{flex:none;}
           .dstrip-hero .hd-play,.dstrip-hero .hd-all{flex:none;padding:7px 12px;}
           .dstrip-cells{overflow-x:auto;-webkit-overflow-scrolling:touch;grid-template-columns:none;grid-template-rows:repeat(2,1fr);grid-auto-flow:column;grid-auto-columns:minmax(76px,1fr);min-width:0;}
-          .dstrip-cell{border-top:none;border-left:1px solid rgba(255,255,255,0.055);padding:11px 5px 8px;}
+          .dstrip-cell{border-top:none;border-left:1px solid rgba(255,255,255,0.055);padding:15px 5px 8px;}
+          .dstrip-flame{height:14px;font-size:8.5px;padding:0 3px 0 2px;}
+          .dstrip-flame.shift{top:22px;}
           .dstrip-cell:nth-child(-n+2){border-left:none;}
           .dstrip-cell:nth-child(10n+1){border-left:1px solid rgba(255,255,255,0.055);}
           .dstrip-cell:first-child{border-left:none;}

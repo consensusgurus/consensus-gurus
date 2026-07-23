@@ -465,6 +465,16 @@ export default function DailyArchiveClient({ games = [], today = '' }) {
            + margin-left so it never shifts the icon, name, or Play button */
         .dl-gstreak{display:inline-flex;align-items:center;gap:3px;margin-left:8px;vertical-align:2px;background:rgba(232,180,58,0.15);border:1px solid rgba(232,180,58,0.42);border-radius:999px;padding:1.5px 7px 1.5px 5px;font-size:10.5px;font-weight:800;color:#8a6d1f;font-variant-numeric:tabular-nums;line-height:1.4;white-space:nowrap;}
         .dl-gstreak svg{flex:none;}
+        /* mobile: the pill moves out of the title line (which would wrap to an
+           extra row) and stacks under the Play button instead. display:contents
+           keeps the desktop flex row byte-identical. */
+        .dl-playwrap{display:contents;}
+        .dl-gstreak.mob{display:none;margin-left:0;}
+        @media(max-width:760px){
+          .dl-playwrap{display:flex;flex-direction:column;align-items:center;gap:4px;flex:0 0 auto;}
+          .dl-gstreak.inl{display:none;}
+          .dl-gstreak.mob{display:inline-flex;}
+        }
         .dl-cname:hover{text-decoration:underline;text-decoration-color:rgba(28,30,36,.3);text-underline-offset:2px;}
         .dl-ctag{font-size:12.5px;font-weight:500;color:${FADED};margin-top:3px;line-height:1.3;}
         .dl-cbody{padding:13px 18px 17px;}
@@ -733,14 +743,22 @@ function GameCard({ g, ready, played, progress, board, myKey, allTime, today, st
           <div className="dl-ridtext">
             <a className="dl-cname" href={g.path} onClick={(e) => e.stopPropagation()}>{g.name}</a>
             {streak >= 2 ? (
-              <span className="dl-gstreak" title={`${streak}-day streak`} aria-label={`${streak}-day streak`}>
+              <span className="dl-gstreak inl" title={`${streak}-day streak`} aria-label={`${streak}-day streak`}>
                 <svg viewBox="0 0 24 24" width="10" height="10" fill="none" aria-hidden="true"><path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.153.433-2.294 1-3a2.5 2.5 0 0 0 2.5 2.5z" stroke="#b9791a" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" /></svg>
                 {streak}
               </span>
             ) : null}
             <div className="dl-ctag">{g.tag}</div>
           </div>
-          <a className="dl-btn dl-play dl-rid-play" href={g.path} style={{ background: g.accent }} onClick={(e) => e.stopPropagation()}>{resumeToday ? 'Resume →' : 'Play →'}</a>
+          <div className="dl-playwrap">
+            <a className="dl-btn dl-play dl-rid-play" href={g.path} style={{ background: g.accent }} onClick={(e) => e.stopPropagation()}>{resumeToday ? 'Resume →' : 'Play →'}</a>
+            {streak >= 2 ? (
+              <span className="dl-gstreak mob" aria-hidden="true">
+                <svg viewBox="0 0 24 24" width="10" height="10" fill="none" aria-hidden="true"><path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.153.433-2.294 1-3a2.5 2.5 0 0 0 2.5 2.5z" stroke="#b9791a" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" /></svg>
+                {streak}
+              </span>
+            ) : null}
+          </div>
         </div>
 
         {/* rank today + who leads today */}
