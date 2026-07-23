@@ -13,8 +13,18 @@
 // pass apply:true to actually attribute. Optionally scope with quizPrefix
 // (e.g. "tuck-") to inspect a single game.
 //
-// POST { email?, username?, apply?, quizPrefix? }
-//  -> { account, browsers, orphanCount, orphans:[...], applied, updated }
+// Cross-device case: a player registered by email can play on a second device
+// (a phone) that never stored their identity, so that play posts with a NULL
+// user_id AND an anon_id the account has never been linked to. Those rows won't
+// appear under the account's known browsers, so two extra tools recover them:
+//   listQuiz:"tuck-7-22-26"  -> return the anonymous (null user_id) rows for one
+//                               quizId, so an operator can spot the player's own
+//                               result by score/time before touching anything.
+//   claimRowIds:[123,124]    -> attribute exactly those row ids to the resolved
+//                               account (only rows still null are written).
+//
+// POST { email?, username?, apply?, quizPrefix?, listQuiz?, claimRowIds? }
+//  -> { account, browsers, orphanCount, orphans:[...], anonRows?, claimed?, applied, updated }
 
 import { NextResponse } from 'next/server';
 import { isAdmin } from '@/lib/admin-auth';
@@ -39,6 +49,10 @@ export async function POST(request) {
     const username = typeof body.username === 'string' ? body.username.trim() : '';
     const apply = body.apply === true;
     const quizPrefix = typeof body.quizPrefix === 'string' ? body.quizPrefix.trim() : '';
+    const listQuiz = typeof body.listQuiz === 'string' ? body.listQuiz.trim() : '';
+    const claimRowIds = Array.isArray(body.claimRowIds)
+      ? body.claimRowIds.filter((n) => Number.isInteger(n)).slice(0, 200)
+      : [];
     if (!email && !username) {
       return NextResponse.json({ error: 'email or username required' }, { status: 400 });
     }
@@ -116,6 +130,43 @@ export async function POST(request) {
       updated: 0,
     };
 
+    // Optional: surface the anonymous rows for one quizId so an operator can
+    // identify a cross-device play (by score/time/mobile) that isn't on any
+    // browser we already know belongs to this account.
+    if (listQuiz) {
+      const { data } = await supabaseAdmin
+        .from('quiz_results')
+        .select('id, quiz_id, score, total, abandoned, anon_id, username, is_mobile, time_elapsed, created_at')
+        .eq('quiz_id', listQuiz)
+        .is('user_id', null)
+        .order('score', { ascending: false })
+        .limit(2000);
+      summary.anonRows = (data || []).map((r) => ({
+        id: r.id, quiz_id: r.quiz_id, score: r.score, total: r.total, abandoned: !!r.abandoned,
+        anon_id: r.anon_id, username: r.username, is_mobile: r.is_mobile ?? null,
+        time_elapsed: r.time_elapsed ?? null, created_at: r.created_at,
+      }));
+    }
+
+    // Explicit reclaim of specific rows (used for a confirmed cross-device play).
+    // Only rows that are STILL unattributed are written, so this can never steal
+    // a row already tied to another account.
+    if (apply && claimRowIds.length) {
+      const { data, error } = await supabaseAdmin
+        .from('quiz_results')
+        .update({ user_id: account.id, username: account.username })
+        .in('id', claimRowIds)
+        .is('user_id', null)
+        .select('id, quiz_id, score');
+      if (error) {
+        console.error('reattribute claim error', error);
+        return NextResponse.json({ ...summary, error: 'claim failed' }, { status: 500 });
+      }
+      summary.claimed = data || [];
+      summary.applied = true;
+      summary.updated += (data || []).length;
+    }
+
     if (apply && orphans.length) {
       const ids = orphans.map((r) => r.id);
       const { data, error } = await supabaseAdmin
@@ -129,7 +180,7 @@ export async function POST(request) {
         return NextResponse.json({ ...summary, error: 'update failed' }, { status: 500 });
       }
       summary.applied = true;
-      summary.updated = (data || []).length;
+      summary.updated += (data || []).length;
     }
 
     return NextResponse.json(summary);
