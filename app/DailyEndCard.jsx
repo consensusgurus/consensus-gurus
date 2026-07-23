@@ -550,7 +550,7 @@ export default function DailyEndCard({
 
         .dec-head{display:flex;align-items:flex-start;justify-content:space-between;gap:14px;margin-bottom:12px;}
         .dec-head-l{min-width:0;flex:1;}
-        .dec-head-r{display:flex;flex-direction:column;align-items:flex-end;gap:7px;flex-shrink:0;}
+        .dec-head-r{display:flex;flex-direction:column;align-items:stretch;gap:7px;flex-shrink:0;min-width:190px;}
         .dec-check{width:30px;height:30px;border-radius:50%;background:#e8f5ec;color:#15803d;display:inline-flex;align-items:center;justify-content:center;flex-shrink:0;}
         .dec-check.loss{background:#fdecec;color:${RUST};}
         .dec-titlerow{display:flex;align-items:center;flex-wrap:wrap;gap:4px 10px;margin-bottom:5px;}
@@ -563,10 +563,10 @@ export default function DailyEndCard({
         .dec-answer{display:flex;align-items:baseline;gap:9px;margin:9px 0 0;}
         .dec-answer-lbl{font-family:${MONO};font-size:10px;font-weight:500;letter-spacing:.14em;text-transform:uppercase;color:${SLATE};flex-shrink:0;}
         .dec-answer-word{font-size:21px;font-weight:800;letter-spacing:-.02em;color:${RUST};}
-        .dec-user{font-family:${SANS};font-size:12.5px;font-weight:800;color:${INK};background:#fff;border:1px solid ${BORD};border-radius:10px;padding:9px 14px;max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
-        .dec-signup{font-family:${SANS};font-size:12.5px;font-weight:800;color:${BLUE};background:#fff;border:1px solid #cfe0fb;border-radius:10px;padding:9px 14px;cursor:pointer;text-decoration:none;white-space:nowrap;}
+        .dec-user{font-family:${SANS};font-size:12.5px;font-weight:800;color:${INK};background:#fff;border:1px solid ${BORD};border-radius:10px;padding:9px 14px;text-align:center;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+        .dec-signup{font-family:${SANS};font-size:12.5px;font-weight:800;color:${BLUE};background:#fff;border:1px solid #cfe0fb;border-radius:10px;padding:9px 14px;cursor:pointer;text-decoration:none;white-space:nowrap;text-align:center;}
         .dec-signup:hover{background:#f2f7ff;}
-        .dec-share{font-family:${SANS};font-weight:800;font-size:12.5px;color:#fff;background:${INK};border:1px solid ${INK};border-radius:10px;padding:9px 14px;cursor:pointer;display:inline-flex;align-items:center;gap:6px;white-space:nowrap;}
+        .dec-share{font-family:${SANS};font-weight:800;font-size:12.5px;color:#fff;background:${INK};border:1px solid ${INK};border-radius:10px;padding:9px 14px;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;gap:6px;white-space:nowrap;}
         .dec-share:hover{filter:brightness(1.12);}
 
         .dec-tiles{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;margin-bottom:10px;}
@@ -633,11 +633,11 @@ export default function DailyEndCard({
         .dec-nx-btns .b.primary{background:${BLUE};border-color:${BLUE};color:#fff;}
         .dec-nx-btns .b:hover{filter:brightness(0.98);}
 
-        .dec-ez{border:1px solid #f0e3bb;background:#fdf6e4;border-radius:14px;padding:13px 14px;display:flex;flex-direction:column;gap:11px;min-width:0;}
-        .dec-ez-top{display:flex;align-items:center;gap:11px;min-width:0;}
+        .dec-ez{border:1px solid #f0e3bb;background:#fdf6e4;border-radius:14px;padding:13px 14px;display:flex;flex-direction:row;align-items:center;gap:12px;min-width:0;}
+        .dec-ez-top{display:flex;align-items:center;gap:11px;min-width:0;flex:1;}
         .dec-ez-name{font-size:18px;font-weight:800;letter-spacing:-.01em;color:${INK};display:flex;align-items:center;gap:7px;}
         .dec-ez-tag{font-size:12px;color:#8a6d1c;margin-top:1px;}
-        .dec-ez-btn{align-self:flex-start;font-family:${SANS};font-weight:800;font-size:12.5px;color:#5c4a06;background:${GOLD};border:none;border-radius:10px;padding:9px 15px;cursor:pointer;text-decoration:none;white-space:nowrap;}
+        .dec-ez-btn{flex-shrink:0;font-family:${SANS};font-weight:800;font-size:12.5px;color:#5c4a06;background:${GOLD};border:none;border-radius:10px;padding:9px 15px;cursor:pointer;text-decoration:none;white-space:nowrap;}
 
         .dec-morehd{display:flex;align-items:baseline;justify-content:space-between;margin:18px 2px 12px;}
         .dec-more-eye{font-family:${MONO};font-size:10.5px;font-weight:500;letter-spacing:.14em;text-transform:uppercase;color:${SLATE};}
@@ -659,17 +659,20 @@ export default function DailyEndCard({
         .dec-row .play.resume{color:#b9791a;}
         .dec-rz{display:inline-flex;align-items:center;margin-left:5px;vertical-align:-1px;}
 
-        .dec-foot{display:flex;flex-wrap:wrap;align-items:center;gap:8px;margin-top:16px;}
+        .dec-foot{display:flex;align-items:stretch;gap:8px;margin-top:16px;}
+        .dec-foot .dec-btn{flex:1;justify-content:center;}
         .dec-btn{font-family:${SANS};font-weight:700;font-size:12.5px;border:1px solid ${BORD};background:#fff;color:${SLATE};border-radius:10px;padding:9px 13px;cursor:pointer;display:inline-flex;align-items:center;gap:6px;text-decoration:none;}
         .dec-btn:hover{background:#f7f8fa;}
         .dec-btn.ink{background:${INK};border-color:${INK};color:#fff;font-weight:800;}
         .dec-btn.ink:hover{filter:brightness(1.12);background:${INK};}
-        .dec-land{margin-left:auto;font-family:${MONO};font-size:11px;letter-spacing:.06em;text-transform:uppercase;font-weight:500;color:${NAVY};text-decoration:none;border-bottom:1px solid rgba(14,29,64,0.5);padding-bottom:1px;}
+        .dec-land-btn{display:block;width:100%;box-sizing:border-box;text-align:center;margin-top:12px;padding:11px 14px;border:1px solid ${BORD};border-radius:10px;background:#fff;font-family:${MONO};font-size:11px;letter-spacing:.06em;text-transform:uppercase;font-weight:500;color:${NAVY};text-decoration:none;}
+        .dec-land-btn:hover{background:#f7f8fa;}
 
         @media(max-width:640px){
           .dec-card{padding:18px 16px 14px;}
           .dec-head{flex-direction:column;gap:10px;}
-          .dec-head-r{flex-direction:row;align-items:center;align-self:stretch;justify-content:space-between;}
+          .dec-head-r{flex-direction:row;align-items:stretch;align-self:stretch;gap:8px;min-width:0;}
+          .dec-head-r > *{flex:1;min-width:0;}
           /* Keep the three rank tiles side by side on mobile (minmax(0,1fr) stops
              overflow); just tighten the padding/type so they fit a phone width. */
           .dec-tiles{gap:7px;}
@@ -685,7 +688,7 @@ export default function DailyEndCard({
           .dec-rows.one{grid-template-columns:1fr;}
           .dec-row{margin-bottom:0;padding:8px 9px;}
           .dec-row .pl{display:none;}
-          .dec-land{margin-left:0;}
+          .dec-foot{flex-wrap:wrap;}
         }
       `}</style>
 
@@ -877,7 +880,6 @@ export default function DailyEndCard({
             <RotateCcw size={15} strokeWidth={2} /> Play a past {selfName}
           </a>
         ) : null}
-        <a className="dec-land" href="/daily">Daily game landing page &rarr;</a>
       </div>
 
       {self ? (
@@ -887,6 +889,8 @@ export default function DailyEndCard({
           accent={meta.accent}
         />
       ) : null}
+
+      <a className="dec-land-btn" href="/daily">Daily game landing page &rarr;</a>
     </div>
   );
 
