@@ -377,9 +377,9 @@ export default function DailyArchiveClient({ games = [], today = '' }) {
         .dl-ract .dl-play{min-width:104px;}
         .dl-ract .dl-ghost{min-width:92px;}
         .dl-exp{padding:0 16px 15px;}
-        .dl-exp.two{display:grid;grid-template-columns:1fr 1fr;gap:14px;align-items:start;}
-        @media(max-width:900px){.dl-exp.two{grid-template-columns:1fr;}}
-        .dl-exp-col{min-width:0;}
+        .dl-exp.two{display:grid;grid-template-columns:1fr 1fr;gap:14px;align-items:stretch;}
+        @media(max-width:900px){.dl-exp.two{grid-template-columns:1fr;} .dl-cal-fadewrap{display:none;}}
+        .dl-exp-col{min-width:0;display:flex;flex-direction:column;}
         @media(max-width:760px){
           .dl-rmain{grid-template-columns:1fr;gap:12px;}
           .dl-rstat{display:flex;align-items:baseline;gap:9px;flex-wrap:wrap;}
@@ -395,7 +395,9 @@ export default function DailyArchiveClient({ games = [], today = '' }) {
         }
 
         /* archive calendar (matches game-page / end-card calendar) */
-        .dl-cal{border:none;border-radius:0;padding:0;background:transparent;}
+        .dl-cal{border:none;border-radius:0;padding:0;background:transparent;flex:1 1 auto;display:flex;flex-direction:column;min-height:0;}
+        .dl-cal-fadewrap{flex:1 1 0;min-height:0;overflow:hidden;position:relative;margin-top:2px;}
+        .dl-cal-fadewrap::after{content:'';position:absolute;left:0;right:0;bottom:0;height:52px;background:linear-gradient(rgba(255,255,255,0),#fff);pointer-events:none;}
         .dl-cal-hd{display:flex;align-items:center;justify-content:space-between;margin-bottom:9px;}
         .dl-cal-mo{font-size:14px;font-weight:800;color:${INK};}
         .dl-cal-nav{display:flex;gap:6px;}
@@ -414,9 +416,9 @@ export default function DailyArchiveClient({ games = [], today = '' }) {
         .dl-cal-key{display:flex;flex-wrap:wrap;gap:10px 14px;margin-top:10px;font-size:11px;color:${FADED};}
         .dl-cal-key span{display:inline-flex;align-items:center;gap:5px;}
         .dl-cal-key .sw{width:11px;height:11px;border-radius:3px;flex-shrink:0;}
-        .dl-cal-header{display:flex;align-items:baseline;justify-content:space-between;gap:10px;margin-bottom:12px;}
-        .dl-cal-header .t{font-size:11px;letter-spacing:.16em;text-transform:uppercase;color:${MUTED};font-weight:800;}
-        .dl-cal-header .s{font-size:11px;letter-spacing:.04em;color:${FADED};font-weight:600;white-space:nowrap;}
+        .dl-cal-header{display:flex;align-items:baseline;justify-content:space-between;gap:10px;margin-bottom:13px;}
+        .dl-cal-header .t{font-size:11px;letter-spacing:.16em;text-transform:uppercase;color:#6b7280;font-weight:700;}
+        .dl-cal-header .s{font-size:11px;letter-spacing:.04em;color:#9aa0ab;font-weight:600;white-space:nowrap;}
         .dl-cal-mo2{font-size:12px;font-weight:800;color:${MUTED};margin:14px 0 8px;}
         .dl-cal-month.faded{opacity:.42;pointer-events:none;}
         .dl-cal-wd.sun{color:#b45309;font-weight:700;}
@@ -846,8 +848,12 @@ function ArchiveCalendar({ g, played, today }) {
         </div>
       </div>
       {monthGrid(month, false)}
-      {/* faded previous month fills the space beside the (taller) leaderboard */}
-      {monthGrid(prevYM, true)}
+      {/* faded prior months fill the space beside the (taller) leaderboard,
+          clipped to its height so no new dead space is created. */}
+      <div className="dl-cal-fadewrap">
+        {monthGrid(prevYM, true)}
+        {monthGrid(addMonths(prevYM, -1), true)}
+      </div>
       <div className="dl-cal-key">
         <span><span className="sw" style={{ background: '#e8f5ec', border: '1px solid #bfe3ca' }} />Played</span>
         <span><span className="sw" style={{ background: '#fff', border: `1px solid ${LINE}` }} />Unplayed</span>
