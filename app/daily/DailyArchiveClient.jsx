@@ -470,19 +470,6 @@ export default function DailyArchiveClient({ games = [], today = '' }) {
           <span><span className="dl-sun-tag" style={{ marginRight: 5 }}>Sun</span> Sunday edition — bigger &amp; tougher</span>
         </div>
 
-        {tickerItems.length >= 3 && (
-          <div className="dl-ticker" aria-label="Today's leaderboard activity">
-            <div className="dl-tickrow">
-              {[0, 1].map((rep2) => tickerItems.map((it, i) => (
-                <span key={`${rep2}-${i}`} aria-hidden={rep2 === 1 ? 'true' : undefined}>
-                  <span className="sw" style={{ background: it.accent }} aria-hidden="true" />
-                  <b>{it.name}</b>{it.post}
-                </span>
-              )))}
-            </div>
-          </div>
-        )}
-
         <div className="dl-gaunt" role="group" aria-label="Today's gauntlet">
           <div className="dl-gaunt-h">
             <h2>Today&rsquo;s gauntlet</h2>
