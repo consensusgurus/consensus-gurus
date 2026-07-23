@@ -350,6 +350,7 @@ export default function DailyArchiveClient({ games = [], today = '' }) {
         .dl-stbtn.on{border-color:${BLUE};color:${BLUE};}
         .dl-stbtn.on .cx{transform:rotate(180deg);color:${BLUE};}
         .dl-row:hover .dl-stbtn{border-color:#c9d3e5;}
+        .dl-rexpand{display:none;}
         .dl-rbeat{font-size:11.5px;font-weight:600;color:${FADED};margin-top:4px;line-height:1.3;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
         .dl-rbeat b{color:${INK};font-weight:800;}
         .dl-rstat{min-width:0;}
@@ -381,16 +382,17 @@ export default function DailyArchiveClient({ games = [], today = '' }) {
         @media(max-width:900px){.dl-exp.two{grid-template-columns:1fr;} .dl-cal-fadewrap{display:none;}}
         .dl-exp-col{min-width:0;display:flex;flex-direction:column;}
         @media(max-width:760px){
-          /* Two columns: identity spans the top, the ranks pair up, and the
-             Standings button + Archive tracker sit SIDE BY SIDE at equal height
-             (the progress bar is now one column wide, not full width). */
-          .dl-rmain{grid-template-columns:1fr 1fr;gap:12px;align-items:stretch;}
+          /* Compact mobile: identity on top; the two rank sections flank a central
+             expand chevron; the Archive tracker spans the full width below.
+             Standings is hidden (tapping the row / chevron expands). */
+          .dl-rmain{grid-template-columns:1fr auto 1fr;gap:10px 12px;align-items:center;}
           .dl-rid{grid-column:1 / -1;}
-          /* rank sections centered across their halves so they fill the width */
           .dl-rstat{text-align:center;}
           .dl-rled{white-space:normal;}
-          .dl-stbtn{width:100%;justify-content:center;align-self:stretch;height:100%;box-sizing:border-box;}
-          .dl-rarch{display:block;width:100%;box-sizing:border-box;align-self:stretch;height:100%;padding:11px 13px;border:1px solid ${LINE};border-radius:11px;background:#fafbfc;}
+          .dl-rexpand{display:flex;align-items:center;justify-content:center;color:${MUTED};font-size:15px;transition:transform .15s ease;}
+          .dl-row.open .dl-rexpand{transform:rotate(180deg);color:${BLUE};}
+          .dl-stbtn{display:none;}
+          .dl-rarch{grid-column:1 / -1;display:block;width:100%;box-sizing:border-box;padding:11px 13px;border:1px solid ${LINE};border-radius:11px;background:#fafbfc;}
           .dl-rarch.on{border-color:${BLUE};background:#f5f8ff;}
           .dl-rarch .dl-rlbl{margin-bottom:7px;}
           .dl-rprog{width:100%;}
@@ -734,6 +736,9 @@ function GameCard({ g, ready, played, progress, board, myKey, allTime, today }) 
           )}
           {leader ? <div className="dl-rled"><span className="dl-crown" aria-hidden="true">♛</span> {leader.username}</div> : <div className="dl-rled dim">no scores yet</div>}
         </div>
+
+        {/* mobile-only expand chevron, sits between the two rank sections */}
+        <span className="dl-rexpand" aria-hidden="true">&#9662;</span>
 
         {/* rank all-time + who leads all-time */}
         <div className="dl-rstat">
