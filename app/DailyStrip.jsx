@@ -20,9 +20,12 @@
 //   it flips to an all-done state. The hero's game is EXCLUDED from the cell
 //   grid so the grid stays 2 rows (its slot is taken by the trailing Play-all
 //   cell).
-// - Each cell carries a 3px top accent bar in the game's ACCENTS color. Every
-//   cell keeps its game-leader chip (owner ruling 2026-07-23: never swap it for
-//   the player's own score).
+// - Each cell carries a 3px top accent bar in the game's ACCENTS color. An
+//   UNPLAYED cell keeps its game-leader chip; a FINISHED cell swaps the chip
+//   for the player's RANK in that game ("You · #4", from their position in the
+//   daily-combined per-game board), never the raw score (owner ruling
+//   2026-07-23: rank after completion, leader before). If the player's row
+//   isn't in the board payload the leader chip stays.
 // - Mobile (<=1024px or short landscape): the strip stacks as rows — cap
 //   (wordmark + bar + count on line one; on line two ONLY the overall leader
 //   plate, given the full width, plus the Full board button — ranks 2-3 are
@@ -194,6 +197,16 @@ export default function DailyStrip({ board = null }) {
 
   const nextLead = nextGame && hasBoard && byKey[nextGame.key] && byKey[nextGame.key].board && byKey[nextGame.key].board[0] ? byKey[nextGame.key].board[0] : null;
 
+  // The player's rank on a game's board (1-based position in the sorted
+  // daily-combined per-game board), or null when they aren't in the payload.
+  const myRank = (key) => {
+    if (!meKey) return null;
+    const b = byKey[key] && byKey[key].board;
+    if (!b) return null;
+    const i = b.findIndex((x) => x && x.userKey === meKey);
+    return i >= 0 ? i + 1 : null;
+  };
+
   // Recent champions are only needed once the board is expanded; fetch them
   // lazily on first open so a collapsed homepage visit never pays for it. Capped
   // at CHAMPION_DAYS entries (yesterday plus the two days before it) so the left
@@ -291,6 +304,10 @@ export default function DailyStrip({ board = null }) {
         .dstrip-lead svg{color:#e8b43a;flex:none;}
         .dstrip-lead > span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
         .dstrip-lead.none{color:#6a80a8;font-weight:600;}
+        /* finished cell: the player's rank in that game replaces the leader chip */
+        .dstrip-you{margin-top:2px;font-size:10px;font-weight:700;color:#9fb0d4;white-space:nowrap;}
+        .dstrip-you b{color:#34d399;font-weight:800;}
+        .dstrip-you.first b{color:#f5d878;}
         /* trailing Play-all cell fills the slot freed by the promoted hero game */
         .dstrip-cell.playall .pa-ic{width:30px;height:30px;border-radius:99px;border:1.5px dashed #3a537f;color:#9fb0d4;display:flex;align-items:center;justify-content:center;}
         .dstrip-cell.playall .nm{color:#f5d878;font-size:10px;white-space:normal;text-align:center;line-height:1.3;}
@@ -464,6 +481,7 @@ export default function DailyStrip({ board = null }) {
           <div className="dstrip-cells">
             {cellGames.map((g) => {
               const lead = hasBoard && byKey[g.key] && byKey[g.key].board && byKey[g.key].board[0] ? byKey[g.key].board[0].username : null;
+              const rk = done.has(g.key) ? myRank(g.key) : null;
               return (
                 <a key={g.key} href={g.href} className={`dstrip-cell${done.has(g.key) ? ' done' : ''}`} title={`${g.name} — ${g.tag}`} aria-label={`${g.name} — ${g.tag}${isSunday && hasSundayEdition(g.key) ? ' — Sunday edition' : ''}${done.has(g.key) ? ' — done today' : ''}${!done.has(g.key) && inprog.has(g.key) ? ' — started, not finished' : ''} — daily game`}>
                   <span className="dstrip-acc" style={{ background: ACCENTS[g.key] || '#5b9bff' }} aria-hidden="true" />
@@ -487,7 +505,8 @@ export default function DailyStrip({ board = null }) {
                   <span className="nm">{g.name}</span>
                   <span className="dstrip-tip" aria-hidden="true">{g.tag}</span>
                   {hasBoard && !open ? (
-                    lead ? <span className="dstrip-lead"><Crown size={10} /><span>{lead}</span></span> : <span className="dstrip-lead none">—</span>
+                    rk ? <span className={`dstrip-you${rk === 1 ? ' first' : ''}`}>You · <b>#{rk}</b></span>
+                      : lead ? <span className="dstrip-lead"><Crown size={10} /><span>{lead}</span></span> : <span className="dstrip-lead none">—</span>
                   ) : null}
                 </a>
               );
