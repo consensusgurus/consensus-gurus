@@ -178,7 +178,9 @@ export default function DailyStrip({ board = null }) {
         .dstrip-cap.has-top3{min-width:168px;max-width:196px;}
         /* One-line wordmark: DAILY and GAMES share a size/weight (owner, 2026-07-20);
            the eyebrow is now just the gold half of the same line. */
-        .dstrip-cap .ttl{display:block;font-size:15px;font-weight:800;letter-spacing:-.1px;line-height:1;color:#fff;white-space:nowrap;}
+        .dstrip-cap .ttl{display:block;font-size:15px;font-weight:800;letter-spacing:-.1px;line-height:1;color:#fff;white-space:nowrap;text-decoration:none;cursor:pointer;}
+        a.dstrip-cap-ttl:hover .lab{color:#ffce6a;}
+        a.dstrip-cap-ttl:hover{color:#dfe7f7;}
         .dstrip-cap .ttl .lab{color:#f8b84a;}
         .dstrip-bar{display:block;height:9px;width:100%;border-radius:99px;background:rgba(255,255,255,0.14);overflow:hidden;margin-top:5px;box-shadow:inset 0 0 0 1px rgba(255,255,255,0.06);}
         .dstrip-fill{display:block;height:100%;width:0;background:#34d399;border-radius:99px;transition:width .4s ease;}
@@ -304,7 +306,7 @@ export default function DailyStrip({ board = null }) {
       <div className={`dstrip${hasBoard ? ' has-board' : ''}`} role="navigation" aria-label="Daily games">
         <div className="dstrip-main">
           <div className={`dstrip-cap${hasBoard ? ' has-top3' : ''}`}>
-            <span className="ttl"><span className="lab">Daily</span> Games</span>
+            <a href="/daily" className="ttl dstrip-cap-ttl" aria-label="All daily games"><span className="lab">Daily</span> Games</a>
             <span className="dstrip-bar"><span className="dstrip-fill" style={{ width: `${pct}%` }} /></span>
             {hasBoard ? (
               <span className="dstrip-t3">
