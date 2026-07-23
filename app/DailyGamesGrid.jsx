@@ -57,7 +57,7 @@ const CATEGORIES = [
   { key: 'logic', label: 'Logic', keys: ['alibi', 'jester', 'sworn'] },
 ];
 
-export default function DailyGamesGrid({ self, maxWidth = 640, challengeHref = null, share = null, divider = false, boardSlot = null }) {
+export default function DailyGamesGrid({ self, maxWidth = 640, challengeHref = null, share = null, divider = false, boardSlot = null, light = false }) {
   // "(for credit)" is appended only for a registered viewer: their share link
   // carries their referral code, so the share genuinely earns them credit. A
   // signed-out visitor sees the plain label rather than a promise we can't keep.
@@ -108,7 +108,7 @@ export default function DailyGamesGrid({ self, maxWidth = 640, challengeHref = n
   const actionCount = (challengeHref ? 1 : 0) + (share ? 1 : 0);
 
   return (
-    <div style={{ maxWidth, margin: '18px auto 0' }}>
+    <div className={light ? 'dgg-light' : undefined} style={{ maxWidth, margin: '18px auto 0' }}>
       <style>{`
         .dgg-actions{display:grid;gap:10px;margin-bottom:14px;}
         .dgg-grp{margin-bottom:14px;}
@@ -134,6 +134,24 @@ export default function DailyGamesGrid({ self, maxWidth = 640, challengeHref = n
         .dgg-act svg{flex:0 0 auto;}
         .dgg-act.dgg-challenge svg{color:#5b8bff;}
         .dgg-act.dgg-share svg{color:#f8b84a;}
+
+        /* Light theme (owner, 2026-07-23): drop the navy fill so the daily-game
+           bottom section matches the end-of-game card. Game icons are kept. */
+        .dgg-light .dgg-t{background:#fff;border-color:rgba(20,22,28,0.12);}
+        .dgg-light .dgg-t:hover{border-color:#5b8bff;}
+        .dgg-light .dgg-nm{color:#1c1e24;}
+        .dgg-light .dgg-p{color:#6b7280;}
+        .dgg-light .dgg-done{background:linear-gradient(0deg,rgba(22,163,74,0.10),rgba(22,163,74,0.10)),#fff;border-color:rgba(34,197,94,0.5);}
+        .dgg-light .dgg-done .dgg-art{opacity:.6;}
+        .dgg-light .dgg-done .dgg-nm{color:#15803d;}
+        .dgg-light .dgg-check{border-color:#fff;}
+        .dgg-light .dgg-sun{color:#04121f;background:#f0b23f;}
+        .dgg-light .dgg-act.dgg-challenge{background:#eff4fd;border-color:#d7e3f8;}
+        .dgg-light .dgg-act.dgg-challenge .dgg-act-l{color:#1e3a8a;}
+        .dgg-light .dgg-act.dgg-challenge svg{color:#2563eb;}
+        .dgg-light .dgg-act.dgg-share{background:#fdf6e4;border-color:#f0e3bb;}
+        .dgg-light .dgg-act.dgg-share .dgg-act-l{color:#5c4a06;}
+        .dgg-light .dgg-act.dgg-share svg{color:#c58a12;}
       `}</style>
       {self ? (
         <div style={{ marginBottom: 12 }}>

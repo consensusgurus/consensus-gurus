@@ -71,10 +71,10 @@ function tabAccent(th, key) { return th.light ? (key === 'overall' ? th.overallA
 function fmtTime(sec) { if (sec == null) return '—'; const m = Math.floor(sec / 60), s = sec % 60; return `${m}:${String(s).padStart(2, '0')}`; }
 function fmtPts(n) { const v = Math.round(Number(n) * 10) / 10; return Number.isInteger(v) ? String(v) : v.toFixed(1); }
 
-export default function DailyCombinedLeaderboard({ todayKey = null, identity = null, compact = false, quizId = null, light = false, allTimeToggle = false, embedded = false }) {
+export default function DailyCombinedLeaderboard({ todayKey = null, identity = null, compact = false, quizId = null, light = false, allTimeToggle = false, embedded = false, initialTab = null }) {
   const [data, setData] = useState(null);
   const [state, setState] = useState('loading'); // loading | ok | error
-  const [tab, setTab] = useState(todayKey || 'overall');
+  const [tab, setTab] = useState(initialTab || todayKey || 'overall');
   const [expanded, setExpanded] = useState(!compact);
   // Per-game "Today vs All-time" scope (only when allTimeToggle is on). The
   // Overall/combined board has no all-time dimension, so it always reads today.

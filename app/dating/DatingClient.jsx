@@ -803,8 +803,9 @@ export default function DatingClient({ puzzles = [], forceNum = null }) {
           <DailyGamesGrid
             self="dating"
             maxWidth={620}
+            light
             challengeHref={`/duel/new?quiz=${encodeURIComponent(PUZZLE.quizId)}`}
-            share={{ label: copied ? 'Copied' : 'Share This Puzzle', onClick: copyShare }}
+            share={{ label: copied ? 'Copied' : 'Share', onClick: copyShare }}
             boardSlot={<DailyBoardPanel self="dating" quizId={PUZZLE.quizId} maxWidth={620} />}
             divider
           />
@@ -834,7 +835,7 @@ export default function DatingClient({ puzzles = [], forceNum = null }) {
           </div>
         )}
         {!focusMode && !identity && (
-          <div style={{ margin: '18px auto 0' }}>
+          <div id="daily-join" style={{ margin: '18px auto 0' }}>
             <JoinLeaderboardForm hideIcon heading="See your stats and join the leaderboard" identity={identity} onJoined={(id) => { setIdentity(id); if (id && id.username) setPlayer((p) => p || { name: id.username, rank: null }); }} />
           </div>
         )}
