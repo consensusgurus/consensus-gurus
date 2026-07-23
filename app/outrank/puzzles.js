@@ -56,7 +56,7 @@ export const PUZZLES = [
     theme: "Fast food fries",
     flavor: "The order everybody claims to know cold.",
     items: ["Wendy's", "McDonald's", "Burger King", "Chick-fil-A", "Arby's curly fries", "Five Guys"],
-    house: [0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2, 2, 2, 3, 3, 3, 3, 3, 3, 3, 3, 3, 4, 4, 4, 4, 5, 5, 5, 5, 5, 5, 5, 5],
+    house: [0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2, 2, 3, 3, 3, 3, 3, 3, 3, 3, 3, 4, 4, 4, 4, 5, 5, 5, 5, 5, 5, 5, 5],
   },
   {
     num: 5,
@@ -78,7 +78,7 @@ export const PUZZLES = [
     theme: "The seven deadly sins",
     flavor: "Sunday Edition. Seven sins, one guilty favorite.",
     items: ["Wrath", "Sloth", "Pride", "Gluttony", "Envy", "Lust", "Greed"],
-    house: [0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2, 2, 2, 2, 2, 3, 3, 3, 3, 3, 3, 3, 3, 4, 4, 4, 5, 5, 5, 5, 5, 5, 5, 5, 6, 6, 6, 6],
+    house: [0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2, 2, 2, 2, 2, 3, 3, 3, 3, 3, 3, 3, 3, 4, 4, 5, 5, 5, 5, 5, 5, 5, 6, 6, 6, 6],
   },
   {
     num: 7,
@@ -89,7 +89,7 @@ export const PUZZLES = [
     theme: "Ice cream flavors",
     flavor: "The freezer-aisle pecking order.",
     items: ["Strawberry", "Cookie dough", "Vanilla", "Mint chocolate chip", "Coffee", "Chocolate"],
-    house: [0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2, 2, 2, 2, 2, 2, 3, 3, 3, 3, 3, 3, 3, 3, 4, 4, 4, 4, 5, 5, 5, 5, 5, 5, 5, 5],
+    house: [0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2, 2, 2, 2, 2, 2, 3, 3, 3, 3, 3, 3, 3, 3, 3, 4, 4, 4, 5, 5, 5, 5, 5, 5, 5, 5],
   },
   {
     num: 8,
@@ -100,7 +100,7 @@ export const PUZZLES = [
     theme: "Condiments",
     flavor: "What the crowd actually reaches for.",
     items: ["Mustard", "Ranch", "BBQ sauce", "Ketchup", "Mayo", "Hot sauce"],
-    house: [0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2, 2, 2, 2, 2, 2, 3, 3, 3, 3, 3, 3, 3, 3, 3, 4, 4, 4, 4, 5, 5, 5, 5, 5, 5],
+    house: [0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2, 2, 2, 2, 2, 2, 2, 3, 3, 3, 3, 3, 3, 3, 3, 3, 4, 4, 4, 5, 5, 5, 5, 5, 5],
   },
   {
     num: 9,
@@ -122,7 +122,7 @@ export const PUZZLES = [
     theme: "Superpowers",
     flavor: "One power, forever. The crowd has thoughts.",
     items: ["Super strength", "Flight", "Mind reading", "Teleportation", "Invisibility", "Time travel"],
-    house: [0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2, 2, 2, 2, 2, 2, 3, 3, 3, 3, 3, 3, 3, 3, 3, 4, 4, 4, 4, 4, 5, 5, 5, 5, 5, 5],
+    house: [0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2, 2, 2, 2, 2, 2, 2, 3, 3, 3, 3, 3, 3, 3, 3, 3, 4, 4, 4, 4, 4, 5, 5, 5, 5, 5, 5],
   },
   {
     num: 11,
@@ -144,7 +144,7 @@ export const PUZZLES = [
     theme: "Sandwiches",
     flavor: "The lunch counter's all-time starting six.",
     items: ["Peanut butter and jelly", "Grilled cheese", "Meatball sub", "Philly cheesesteak", "Turkey club", "BLT"],
-    house: [0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2, 2, 2, 2, 3, 3, 3, 3, 3, 3, 3, 3, 4, 4, 4, 4, 4, 4, 5, 5, 5, 5, 5, 5, 5],
+    house: [0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2, 2, 2, 2, 3, 3, 3, 3, 3, 3, 3, 3, 4, 4, 4, 4, 4, 5, 5, 5, 5, 5, 5, 5],
   },
   {
     num: 13,
@@ -155,7 +155,7 @@ export const PUZZLES = [
     theme: "Ways to spend a day off",
     flavor: "Sunday Edition. Seven perfect days, one winner.",
     items: ["Hiking", "Sleeping in", "Shopping spree", "Beach day", "Video games", "Netflix marathon", "Day drinking with friends"],
-    house: [0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 2, 2, 2, 2, 3, 3, 3, 3, 3, 3, 3, 3, 3, 4, 4, 4, 4, 4, 5, 5, 5, 5, 5, 5, 6, 6, 6],
+    house: [0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 2, 2, 2, 2, 3, 3, 3, 3, 3, 3, 3, 3, 3, 4, 4, 4, 4, 4, 5, 5, 5, 5, 5, 5, 5, 6],
   },
   {
     num: 14,
@@ -177,7 +177,7 @@ export const PUZZLES = [
     theme: "Cheeses",
     flavor: "The board the crowd would actually build.",
     items: ["Blue cheese", "Cheddar", "Brie", "Mozzarella", "Pepper jack", "Parmesan"],
-    house: [0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2, 2, 2, 2, 2, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 4, 4, 4, 4, 4, 4, 5, 5, 5, 5, 5, 5],
+    house: [0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2, 2, 2, 2, 2, 3, 3, 3, 3, 3, 3, 3, 3, 3, 4, 4, 4, 4, 4, 4, 4, 5, 5, 5, 5, 5, 5],
   },
   {
     num: 16,
@@ -188,7 +188,7 @@ export const PUZZLES = [
     theme: "Decades to live in",
     flavor: "Pick your era. The crowd picks the timeline.",
     items: ["The 2010s", "The '90s", "The '60s", "The '80s", "The 2000s", "The '70s"],
-    house: [0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2, 2, 2, 2, 3, 3, 3, 3, 3, 3, 3, 3, 3, 4, 4, 4, 4, 4, 4, 5, 5, 5, 5, 5, 5],
+    house: [0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2, 2, 2, 2, 3, 3, 3, 3, 3, 3, 3, 3, 3, 4, 4, 4, 4, 4, 4, 5, 5, 5, 5, 5],
   },
   {
     num: 17,
@@ -199,7 +199,7 @@ export const PUZZLES = [
     theme: "Movie theater snacks",
     flavor: "The concession stand, settled.",
     items: ["Twizzlers", "Buttered popcorn", "Sour Patch Kids", "Nachos", "Soft pretzel", "Peanut M&M's"],
-    house: [0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2, 2, 2, 2, 2, 2, 3, 3, 3, 3, 3, 3, 4, 4, 4, 4, 5, 5, 5, 5, 5, 5],
+    house: [0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2, 2, 2, 2, 2, 2, 2, 3, 3, 3, 3, 3, 3, 4, 4, 4, 4, 5, 5, 5, 5, 5],
   },
   {
     num: 18,
@@ -221,7 +221,7 @@ export const PUZZLES = [
     theme: "Salty snacks",
     flavor: "The bag the party finishes first.",
     items: ["Pretzels", "Doritos", "Popcorn", "Cheetos", "Lay's", "Pringles"],
-    house: [0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2, 2, 2, 2, 2, 2, 3, 3, 3, 3, 3, 3, 3, 3, 4, 4, 4, 4, 4, 4, 5, 5, 5, 5, 5, 5],
+    house: [0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2, 2, 2, 2, 2, 2, 2, 3, 3, 3, 3, 3, 3, 3, 3, 4, 4, 4, 4, 4, 4, 5, 5, 5, 5, 5],
   },
   {
     num: 20,
@@ -232,7 +232,7 @@ export const PUZZLES = [
     theme: "Wonders of the world",
     flavor: "Sunday Edition. Seven wonders, one bucket-list winner.",
     items: ["Chichen Itza", "Machu Picchu", "Christ the Redeemer", "The Great Wall of China", "The Colosseum", "Petra", "The Taj Mahal"],
-    house: [0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 2, 2, 2, 3, 3, 3, 3, 3, 3, 3, 3, 4, 4, 4, 4, 4, 4, 5, 5, 5, 5, 5, 5, 6, 6, 6, 6, 6],
+    house: [0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2, 3, 3, 3, 3, 3, 3, 3, 3, 4, 4, 4, 4, 4, 4, 4, 5, 5, 5, 5, 5, 5, 6, 6, 6, 6, 6],
   },
   {
     num: 21,
@@ -243,7 +243,7 @@ export const PUZZLES = [
     theme: "Pies",
     flavor: "The dessert table's oldest argument.",
     items: ["Cherry", "Apple", "Chocolate cream", "Key lime", "Pecan", "Pumpkin"],
-    house: [0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2, 2, 2, 2, 2, 3, 3, 3, 3, 3, 3, 3, 4, 4, 4, 4, 4, 4, 5, 5, 5, 5, 5, 5, 5],
+    house: [0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2, 2, 2, 2, 2, 3, 3, 3, 3, 3, 3, 3, 3, 4, 4, 4, 4, 4, 4, 5, 5, 5, 5, 5, 5, 5],
   },
   {
     num: 22,
@@ -254,7 +254,7 @@ export const PUZZLES = [
     theme: "Cookout plates",
     flavor: "What actually disappears first at the grill.",
     items: ["Potato salad", "Cheeseburger", "Grilled corn", "BBQ ribs", "Watermelon", "Hot dog"],
-    house: [0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2, 2, 2, 2, 2, 3, 3, 3, 3, 3, 3, 3, 3, 4, 4, 4, 4, 4, 5, 5, 5, 5, 5, 5, 5],
+    house: [0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2, 2, 2, 2, 2, 3, 3, 3, 3, 3, 3, 3, 3, 4, 4, 4, 4, 5, 5, 5, 5, 5, 5, 5],
   },
   {
     num: 23,
@@ -265,7 +265,7 @@ export const PUZZLES = [
     theme: "Sodas",
     flavor: "The fountain lineup, ranked by the room.",
     items: ["Pepsi", "Coca-Cola", "Root beer", "Dr Pepper", "Mountain Dew", "Sprite"],
-    house: [0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2, 2, 2, 2, 2, 3, 3, 3, 3, 3, 3, 3, 3, 3, 4, 4, 4, 4, 4, 5, 5, 5, 5, 5, 5],
+    house: [0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2, 2, 2, 2, 2, 3, 3, 3, 3, 3, 3, 3, 3, 3, 4, 4, 4, 4, 5, 5, 5, 5, 5, 5],
   },
   {
     num: 24,
@@ -276,7 +276,7 @@ export const PUZZLES = [
     theme: "Breakfast cereals",
     flavor: "Saturday morning royalty.",
     items: ["Cap'n Crunch", "Cinnamon Toast Crunch", "Honey Nut Cheerios", "Lucky Charms", "Fruity Pebbles", "Frosted Flakes"],
-    house: [0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2, 2, 2, 2, 2, 3, 3, 3, 3, 3, 3, 3, 4, 4, 4, 4, 4, 4, 5, 5, 5, 5, 5, 5, 5],
+    house: [0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2, 2, 2, 2, 2, 3, 3, 3, 3, 3, 3, 3, 3, 4, 4, 4, 4, 4, 4, 5, 5, 5, 5, 5, 5, 5],
   },
   {
     num: 25,
@@ -287,7 +287,7 @@ export const PUZZLES = [
     theme: "Pasta night",
     flavor: "Six plates, one table, no mercy.",
     items: ["Carbonara", "Mac and cheese", "Penne alla vodka", "Fettuccine Alfredo", "Lasagna", "Spaghetti and meatballs"],
-    house: [0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2, 2, 2, 2, 2, 3, 3, 3, 3, 3, 3, 3, 3, 4, 4, 4, 4, 4, 4, 5, 5, 5, 5, 5, 5, 5, 5],
+    house: [0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2, 2, 2, 2, 2, 3, 3, 3, 3, 3, 3, 3, 3, 4, 4, 4, 4, 4, 4, 5, 5, 5, 5, 5, 5, 5],
   },
   {
     num: 26,
@@ -298,7 +298,7 @@ export const PUZZLES = [
     theme: "Amusement park rides",
     flavor: "The line the crowd waits longest for.",
     items: ["Carousel", "Roller coaster", "Log flume", "Bumper cars", "Ferris wheel", "Haunted house"],
-    house: [0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2, 2, 2, 2, 2, 3, 3, 3, 3, 3, 3, 4, 4, 4, 4, 4, 5, 5, 5, 5, 5, 5],
+    house: [0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2, 2, 2, 2, 2, 3, 3, 3, 3, 3, 3, 3, 4, 4, 4, 4, 5, 5, 5, 5, 5, 5],
   },
   {
     num: 27,
@@ -309,7 +309,7 @@ export const PUZZLES = [
     theme: "Pixar movies",
     flavor: "Sunday Edition. Seven classics, one favorite. Good luck.",
     items: ["WALL-E", "Toy Story", "Coco", "Finding Nemo", "Monsters, Inc.", "The Incredibles", "Up"],
-    house: [0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2, 2, 2, 2, 2, 3, 3, 3, 3, 3, 3, 3, 4, 4, 4, 5, 5, 5, 5, 5, 5, 5, 6, 6, 6, 6, 6, 6],
+    house: [0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2, 2, 2, 2, 2, 3, 3, 3, 3, 3, 3, 3, 3, 4, 4, 4, 5, 5, 5, 5, 5, 5, 5, 6, 6, 6, 6, 6, 6],
   },
   {
     num: 28,
@@ -331,7 +331,7 @@ export const PUZZLES = [
     theme: "Coffee orders",
     flavor: "The line at the counter, ranked by the line.",
     items: ["Espresso", "Iced latte", "Cappuccino", "Cold brew", "Caramel macchiato", "Black coffee"],
-    house: [0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2, 2, 2, 2, 2, 2, 3, 3, 3, 3, 3, 3, 3, 3, 4, 4, 4, 4, 4, 4, 5, 5, 5, 5, 5, 5, 5],
+    house: [0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2, 2, 2, 2, 2, 2, 3, 3, 3, 3, 3, 3, 3, 3, 4, 4, 4, 4, 4, 5, 5, 5, 5, 5, 5, 5],
   },
   {
     num: 30,
@@ -342,6 +342,6 @@ export const PUZZLES = [
     theme: "Fruits",
     flavor: "Summer's produce aisle, settled by vote.",
     items: ["Pineapple", "Strawberries", "Peaches", "Watermelon", "Grapes", "Mango"],
-    house: [0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2, 2, 2, 2, 2, 3, 3, 3, 3, 3, 3, 3, 3, 3, 4, 4, 4, 4, 4, 5, 5, 5, 5, 5, 5, 5, 5],
+    house: [0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2, 2, 2, 2, 2, 3, 3, 3, 3, 3, 3, 3, 3, 3, 4, 4, 4, 4, 5, 5, 5, 5, 5, 5, 5, 5],
   },
 ];

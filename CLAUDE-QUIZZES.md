@@ -171,7 +171,9 @@ all of which "passed" structural checks).
   (slot/grid consistency + dictionary review), links/crux (mechanical structure +
   crossing consistency; the SEMANTIC double-solution audit below stays manual), span
   (par = BFS incl. Sunday via/avoid), dating (strict ascending), circa/extra/outwit
-  (structural; extra uses the client's own resolveHidden). ~6s for everything.
+  (structural; extra uses the client's own resolveHidden), outrank (structural PLUS
+  the crowd-order uniqueness check in §7a: all house favorite-vote counts must be
+  DISTINCT, hard-failed on editable boards). ~6s for everything.
 - `node scripts/verify-alibi.mjs` / `verify-cipher.mjs` / `verify-tuck.mjs` /
   `verify-stet.mjs` / `verify-ping.mjs` / `verify-warmer.mjs` / `verify-jester.mjs` /
   `verify-sworn.mjs` — the per-game verifiers for the newer dailies.
@@ -204,6 +206,17 @@ unique" or "the grid geometry is valid" does NOT prove this — you must solve i
   (eliminations, room↔object/time links, before-chain bounds, permutation singles/pairs) —
   9 of the first 14 Alibi cases were unique but guessy and 2 had to be regenerated. When
   banking a new logic game, build the equivalent no-guessing check FIRST.
+- **Outrank (crowd order):** the house crowd (40 favorite votes) IS the answer key — the
+  order the player must call. crowdOrderOf sorts `count desc, then DISPLAY INDEX`, and the
+  display order is hand-mixed and carries NO signal, so any TIE in the house vote counts
+  makes that boundary of the answer arbitrary: a pure-luck 2-point swing, the crowd analog
+  of a Links/Crux double solution. RULE: every item's house count must be DISTINCT (exactly
+  one unambiguous crowd order). `scripts/verify-daily-banks.mjs outrank` hard-fails a tie on
+  any EDITABLE (live >= today) board; an already-live FROZEN board with a tie is grandfathered
+  as a note (never edit a played day). Fix a tie by nudging single votes between the tied items
+  to break it while PRESERVING the intended order and keeping the house at 40 with no zero-vote
+  item. (23 of the first 30 boards shipped tied before this check existed; the 21 editable ones
+  were repaired 2026-07-23, the 2 past boards left frozen.)
 
 ### 7b. Factual accuracy — verify, never recall (extends §0)
 
@@ -249,7 +262,8 @@ unique" or "the grid geometry is valid" does NOT prove this — you must solve i
 ### 7d. Definition of done for a daily puzzle change
 
 - [ ] Ran the game's uniqueness/validity solver; every affected board returns exactly ONE
-      solution (logic games) or passes its content checks (word/anagram validity).
+      solution (logic games), all-distinct house counts / one unambiguous crowd order (Outrank),
+      or passes its content checks (word/anagram validity).
 - [ ] All facts (Span borders/pars/notes; Dating/Circa/Extra dates) verified against a real
       source or `borders.js`, never memory.
 - [ ] `quizId` matches `live`; `dateLabel` matches; the `sunday` flag matches the real weekday.

@@ -33,6 +33,11 @@
 //            (WORD#2 = 2nd occurrence); keys lowercase and >2 chars.
 //   outwit — 5 prompts in the fixed type order; ranges/options sane; herd has
 //            a truth; house arrays present.
+//   outrank — 6 items (7 Sunday), all distinct; house = 40 votes, no zero-vote
+//            item, AND all K favorite-vote counts DISTINCT so the crowd order is
+//            unambiguous (no reliance on the no-signal display-index tiebreak).
+//            A tie is a hard fail on any editable (live >= today) board; past
+//            frozen boards with a tie are grandfathered as a note.
 import { readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { dirname, join } from 'node:path';
@@ -482,7 +487,19 @@ if (RUN('outwit')) {
 }
 
 if (RUN('outrank')) {
+  // Structural + SEMANTIC. The house crowd is Outrank's answer key: its 40
+  // favorite votes define the crowd order the player must call. crowdOrderOf
+  // sorts by vote count desc, breaking ties by DISPLAY INDEX — and the display
+  // order is hand-mixed and 'carries no signal' (see the puzzle-file header),
+  // so any tie in the house counts makes that boundary of the answer key
+  // arbitrary: a pure-luck 2-point swing, the Outrank analog of a Links/Crux
+  // double solution (§7a). RULE: every item's house count must be DISTINCT,
+  // giving one unambiguous crowd order. Enforced as a hard fail on editable
+  // (live >= today) boards; a tie on an already-live frozen board can no longer
+  // be corrected without rewriting a played day, so it is grandfathered (note).
   const { PUZZLES } = await import('../app/outrank/puzzles.js');
+  const TODAY = new Date().toISOString().slice(0, 10);
+  const crowdCounts = (house, K) => { const c = new Array(K).fill(0); for (const v of house) if (Number.isInteger(v) && v >= 0 && v < K) c[v]++; return c; };
   const seenThemes = new Set();
   const seenIds = new Set();
   for (const p of PUZZLES) {
@@ -495,16 +512,27 @@ if (RUN('outrank')) {
     seenThemes.add(p.theme);
     if (seenIds.has(p.quizId)) errs.push('duplicate quizId');
     seenIds.add(p.quizId);
+    let tiedNote = null;
     if (!Array.isArray(p.house) || p.house.length !== 40) errs.push(`house has ${(p.house || []).length} votes (want 40)`);
     else {
-      const counts = new Array(K).fill(0);
-      for (const v of p.house) {
-        if (!Number.isInteger(v) || v < 0 || v >= K) { errs.push(`house vote out of range: ${v}`); break; }
-        counts[v]++;
+      const counts = crowdCounts(p.house, K);
+      let range = true;
+      for (const v of p.house) if (!Number.isInteger(v) || v < 0 || v >= K) { errs.push(`house vote out of range: ${v}`); range = false; break; }
+      if (range) {
+        if (counts.some((c) => c === 0)) errs.push('house leaves an item at zero votes');
+        // SEMANTIC: counts must be all-distinct so the crowd order is unambiguous.
+        if (new Set(counts).size !== K) {
+          const tied = [];
+          for (let i = 0; i < K; i++) for (let j = i + 1; j < K; j++) if (counts[i] === counts[j]) tied.push(`${p.items[i]}=${p.items[j]}@${counts[i]}`);
+          const msg = `ambiguous crowd order: tied house counts [${tied.join(', ')}] (display-index tiebreak carries no signal)`;
+          if (p.live >= TODAY) errs.push(msg);
+          else tiedNote = `FROZEN past board, tie grandfathered: ${tied.join(', ')}`;
+        }
       }
-      if (counts.some((c) => c === 0)) errs.push('house leaves an item at zero votes');
     }
-    errs.length ? fail(p.quizId, errs.join('; ')) : ok(p.quizId, `${K} items, house OK (${p.theme})`);
+    if (errs.length) fail(p.quizId, errs.join('; '));
+    else if (tiedNote) note(p.quizId, tiedNote);
+    else ok(p.quizId, `${K} items, distinct house crowd order OK (${p.theme})`);
   }
 }
 
