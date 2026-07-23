@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server';
 import { supabaseAdmin } from '@/lib/supabase-server';
 import { loadQuizResultsCached } from '@/lib/quiz-results-cache';
 import { findQuizIdentity } from '@/lib/quiz-identity';
-import { scoreGame, DAILY_KEYS } from '@/lib/daily-combined';
+import { scoreGame, guestGameResult, DAILY_KEYS } from '@/lib/daily-combined';
 
 // Each game's puzzle list is server-only (answers never ship to the client). We
 // read nothing but `quizId`, `num`, and `live` off it — the same fields the
@@ -53,6 +53,21 @@ function suffixOfDate(dateStr) { const [Y, M, D] = dateStr.split('-').map(Number
 function isoOfSuffix(suffix) {
   const [M, D, YY] = suffix.split('-').map(Number);
   return `${2000 + YY}-${String(M).padStart(2, '0')}-${String(D).padStart(2, '0')}`;
+}
+
+// The guest's single chosen row for one drop (their anon rows only), mirroring
+// scoreGame's selection: a completed attempt beats an abandoned one, then the
+// first attempt (lowest id) wins. Returns null when the guest has no row.
+function chooseGuestRow(rows, anonId) {
+  let chosen = null;
+  for (const r of (rows || [])) {
+    if (!r || r.user_id || r.anon_id !== anonId) continue;
+    if (!chosen) { chosen = r; continue; }
+    const rDone = !r.abandoned, cDone = !chosen.abandoned;
+    if (rDone !== cDone) { if (rDone) chosen = r; continue; }
+    if ((r.id || 0) < (chosen.id || 0)) chosen = r;
+  }
+  return chosen;
 }
 
 // GET /api/quiz/daily-game?game=<key>&anonId=&email=&fresh=
@@ -115,6 +130,13 @@ export async function GET(request) {
       if (pk && myKey && pk === myKey) played.add(qid);
     }
 
+    // A guest (anon viewer) is never on the registered cumulative board, but we
+    // can show a PROVISIONAL all-time rank: sum the points their own drops would
+    // earn (each inserted into that drop's registered field) and rank that total
+    // against the registered cumulative totals, mirroring the today/combined tiles.
+    const isGuestViewer = !!(myKey && myKey.indexOf('a:') === 0);
+    let guestPts = 0, guestDrops = 0;
+
     // Cumulative per-registered-player points across every drop. scoreGame handles
     // first-completion selection and the 0..15 per-drop daily scale; we just sum.
     const cum = new Map(); // userKey -> { userKey, username, points, drops }
@@ -126,6 +148,10 @@ export async function GET(request) {
         u.username = p.username; // keep the latest label
         u.points += p.points;
         u.drops += 1;
+      }
+      if (isGuestViewer) {
+        const grow = chooseGuestRow(rows, anonId);
+        if (grow) { const res = guestGameResult(grow, { field: gr.field, players: gr.players }); guestPts += res.points; guestDrops += 1; }
       }
     }
     const ranked = [...cum.values()].sort((a, b) =>
@@ -154,8 +180,17 @@ export async function GET(request) {
       field: ranked.length,
       myRank: meRow ? meRow.rank : null,
       myPoints: meRow ? Math.round(meRow.points * 10) / 10 : null,
+      provisional: false,
       board,
     };
+    // Guest provisional standing (only when the viewer isn't a registered board
+    // member and their own drops scored something). `provisional` tells the end
+    // card to badge the rank with "prov.", exactly like the today/combined tiles.
+    if (!meRow && isGuestViewer && guestDrops > 0) {
+      allTime.myRank = ranked.filter((r) => r.points > guestPts).length + 1;
+      allTime.myPoints = Math.round(guestPts * 10) / 10;
+      allTime.provisional = true;
+    }
 
     const drops = liveDrops.map((p) => {
       const m = p.quizId.match(DAILY_ONE_RE);

@@ -488,14 +488,15 @@ export default function DailyEndCard({
   const canPrev = calMonth > monthYMs.earliest;
   const canNext = calMonth < monthYMs.latest;
 
-  // Render one rank tile (plain helper, not a nested component).
-  const renderTile = (id, label, rank, field, dash) => (
+  // Render one rank tile (plain helper, not a nested component). `prov` badges the
+  // rank as provisional (a guest's would-be standing).
+  const renderTile = (id, label, rank, field, dash, prov) => (
     <div className={`dec-tile${openTile === id ? ' open' : ''}`} key={id}>
       <div className="dec-tile-lbl">{label}</div>
       {dash ? (
         <div className="dec-tile-rk"><span className="dash">—</span></div>
       ) : rank ? (
-        <div className="dec-tile-rk">#{rank}{provisional ? <span className="prov"> prov.</span> : null}</div>
+        <div className="dec-tile-rk">#{rank}{prov ? <span className="prov"> prov.</span> : null}</div>
       ) : (
         <div className="dec-tile-rk"><span className="dash">·</span></div>
       )}
@@ -646,7 +647,15 @@ export default function DailyEndCard({
           .dec-card{padding:18px 16px 14px;}
           .dec-head{flex-direction:column;gap:10px;}
           .dec-head-r{flex-direction:row;align-items:center;align-self:stretch;justify-content:space-between;}
-          .dec-tiles{grid-template-columns:1fr;}
+          /* Keep the three rank tiles side by side on mobile (minmax(0,1fr) stops
+             overflow); just tighten the padding/type so they fit a phone width. */
+          .dec-tiles{gap:7px;}
+          .dec-tile{padding:9px 7px 8px;}
+          .dec-tile-lbl{font-size:8px;letter-spacing:.03em;padding-right:15px;}
+          .dec-tile-rk{font-size:18px;}
+          .dec-tile-rk .prov{font-size:8.5px;}
+          .dec-tile-of{font-size:10px;}
+          .dec-tile-mx{top:6px;right:5px;width:17px;height:17px;border-radius:5px;}
           .dec-duo{grid-template-columns:1fr;}
           .dec-grid,.dec-grid.cols-1,.dec-grid.cols-2,.dec-grid.cols-3{grid-template-columns:1fr;}
           .dec-rows{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:6px;}
@@ -691,9 +700,9 @@ export default function DailyEndCard({
 
       {/* ---- 2. three rank tiles ---- */}
       <div className="dec-tiles">
-        {renderTile('today', `${selfName} today`, gameTodayRank, gameTodayField, false)}
-        {renderTile('alltime', `${selfName} all-time`, hasEmail ? (allTime ? allTime.myRank : null) : null, allTime ? allTime.field : null, !hasEmail)}
-        {renderTile('combined', 'Combined today', combinedRank, combinedField, false)}
+        {renderTile('today', `${selfName} today`, gameTodayRank, gameTodayField, false, provisional)}
+        {renderTile('alltime', `${selfName} all-time`, allTime ? allTime.myRank : null, allTime ? allTime.field : null, !(allTime && allTime.myRank != null), !!(allTime && allTime.provisional))}
+        {renderTile('combined', 'Combined today', combinedRank, combinedField, false, provisional)}
       </div>
       {openTile ? (() => {
         const rows = tileBoard(openTile);
