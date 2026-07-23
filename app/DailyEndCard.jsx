@@ -131,7 +131,7 @@ export const DAILY_GAMES = [
 
 const AUTO_SECONDS = 30;
 const REVEAL_MS = 2000; // win only: MIN time the finished board + confetti shows before the popup
-const REVEAL_CAP_MS = 6500; // hard cap: reveal even if the card's data hasn't fully landed
+const REVEAL_CAP_MS = 3000; // hard cap: pop even if data is slow (usually pops at REVEAL_MS = 2s)
 
 const MONTH_NAMES = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
 const WEEKDAYS = ['S', 'M', 'T', 'W', 'T', 'F', 'S'];
@@ -804,11 +804,11 @@ export default function DailyEndCard({
       </div>
       {openTile && openTile !== 'calendar' ? (() => {
         const rows = tileBoard(openTile);
-        const ti = openTile === 'today' ? `${selfName} · today` : openTile === 'alltime' ? `${selfName} · all-time` : 'Combined · today';
+        const ti = openTile === 'today' ? `${selfName} · today` : openTile === 'alltime' ? `${selfName} · all-time` : 'Combined Daily Games · Today';
         return (
           <div className="dec-expand">
             <div className="dec-expand-hd">
-              <span className="dec-expand-ti">{ti} &middot; top 10</span>
+              <span className="dec-expand-ti">{ti}</span>
               <button type="button" className="dec-expand-full" onClick={() => openPanel(openTile)}>Full leaderboard <ArrowRight size={12} strokeWidth={2.4} /></button>
             </div>
             {rows.length ? rows.map((r, idx) => (
