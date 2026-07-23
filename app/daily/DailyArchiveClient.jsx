@@ -350,6 +350,8 @@ export default function DailyArchiveClient({ games = [], today = '' }) {
         .dl-rrk{font-size:21px;font-weight:900;letter-spacing:-.02em;color:${INK};line-height:1.05;font-variant-numeric:tabular-nums;}
         .dl-rrk .of{font-size:11px;font-weight:600;color:${FADED};}
         .dl-rrk.sub{font-size:13px;font-weight:800;color:#8a92a6;}
+        .dl-rlink{text-decoration:none;cursor:pointer;}
+        .dl-rlink:hover{text-decoration:underline;}
         /* archive cell = calendar expander */
         .dl-rarch{display:block;text-align:left;background:none;border:none;padding:0;margin:0;font-family:inherit;cursor:pointer;min-width:0;width:100%;}
         .dl-rarch .cx{display:inline-block;color:${MUTED};transition:transform .15s ease;font-size:10px;vertical-align:1px;}
@@ -366,13 +368,19 @@ export default function DailyArchiveClient({ games = [], today = '' }) {
         .dl-ract .dl-ghost{min-width:92px;}
         .dl-exp{padding:0 16px 15px;}
         @media(max-width:760px){
-          .dl-rmain{grid-template-columns:1fr;gap:13px;}
-          .dl-rstat,.dl-rarch{display:flex;align-items:baseline;gap:9px;flex-wrap:wrap;}
-          .dl-rlbl{margin-bottom:0;}
-          .dl-rprog{flex:1 1 auto;min-width:120px;}
+          .dl-rmain{grid-template-columns:1fr;gap:12px;}
+          .dl-rstat{display:flex;align-items:baseline;gap:9px;flex-wrap:wrap;}
+          .dl-rstat .dl-rlbl{margin-bottom:0;}
           .dl-rbeat{white-space:normal;}
           .dl-ract{justify-content:stretch;}
           .dl-ract .dl-play,.dl-ract .dl-ghost{flex:1 1 auto;}
+          /* Archive: a full-width, comfortably tappable box on mobile (the inline
+             cell was too narrow to hit reliably). */
+          .dl-rarch{display:block;width:100%;padding:11px 13px;border:1px solid ${LINE};border-radius:11px;background:#fafbfc;}
+          .dl-rarch.on{border-color:${BLUE};background:#f5f8ff;}
+          .dl-rarch .dl-rlbl{margin-bottom:7px;}
+          .dl-rprog{width:100%;}
+          .dl-rprogt{margin-top:6px;}
         }
 
         /* archive calendar (matches game-page / end-card calendar) */
@@ -694,9 +702,9 @@ function GameCard({ g, ready, played, progress, board, myKey, allTime, today }) 
           {ready && myRow ? (
             <div className="dl-rrk">#{myRow.rank}<span className="of"> of {field}</span></div>
           ) : resumeToday ? (
-            <div className="dl-rrk sub" style={{ color: '#b9791a' }}>Resume &rarr;</div>
+            <a className="dl-rrk sub dl-rlink" href={g.path} style={{ color: '#b9791a' }}>Resume &rarr;</a>
           ) : (
-            <div className="dl-rrk sub">Play to rank</div>
+            <a className="dl-rrk sub dl-rlink" href={g.path}>Play to rank &rarr;</a>
           )}
         </div>
 

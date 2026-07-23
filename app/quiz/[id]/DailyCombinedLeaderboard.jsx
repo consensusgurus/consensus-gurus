@@ -127,10 +127,16 @@ export default function DailyCombinedLeaderboard({ todayKey = null, identity = n
   // All-time per game (opt-in via allTimeToggle): the game's OWN cumulative board
   // across every drop, from /api/quiz/daily-game. Fetched lazily the first time a
   // game is viewed all-time, then cached for the session.
+  // NOTE: allTimeCache is intentionally NOT a dependency. Setting it to 'loading'
+  // would otherwise re-run this effect, whose cleanup flips the in-flight fetch's
+  // `alive` to false and drops the result — leaving the board stuck on skeleton.
+  // A ref tracks which keys are already fetching so we never double-fetch.
+  const atFetchedRef = React.useRef({});
   useEffect(() => {
     if (!allTimeToggle || tab === 'overall' || gameScope !== 'alltime') return undefined;
     const key = tab;
-    if (allTimeCache[key]) return undefined; // already loaded or loading
+    if (atFetchedRef.current[key]) return undefined; // already fetching or fetched
+    atFetchedRef.current[key] = true;
     let anonId = null, email = null;
     try { anonId = localStorage.getItem('sot_quiz_anon'); } catch (e) {}
     try { const id = JSON.parse(localStorage.getItem('sot_quiz_identity') || 'null'); email = id && id.email; } catch (e) {}
@@ -142,9 +148,9 @@ export default function DailyCombinedLeaderboard({ todayKey = null, identity = n
     fetch('/api/quiz/daily-game?' + p.toString(), { cache: 'no-store' })
       .then((r) => r.json())
       .then((d) => { if (!alive) return; const at = d && d.allTime; setAllTimeCache((c) => ({ ...c, [key]: { board: (at && at.board) || [], field: (at && at.field) || 0 } })); })
-      .catch(() => { if (alive) setAllTimeCache((c) => { const n = { ...c }; delete n[key]; return n; }); });
+      .catch(() => { if (alive) { delete atFetchedRef.current[key]; setAllTimeCache((c) => { const n = { ...c }; delete n[key]; return n; }); } });
     return () => { alive = false; };
-  }, [allTimeToggle, tab, gameScope, allTimeCache]);
+  }, [allTimeToggle, tab, gameScope]);
 
   const myKey = data && data.me ? data.me.userKey : null;
   const maxTotal = (data && data.maxTotal) || 75;
