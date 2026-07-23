@@ -386,8 +386,11 @@ export default function DailyArchiveClient({ games = [], today = '' }) {
              (the progress bar is now one column wide, not full width). */
           .dl-rmain{grid-template-columns:1fr 1fr;gap:12px;align-items:stretch;}
           .dl-rid{grid-column:1 / -1;}
-          .dl-stbtn{width:auto;justify-content:center;align-self:stretch;height:100%;box-sizing:border-box;}
-          .dl-rarch{display:block;box-sizing:border-box;align-self:stretch;height:100%;padding:11px 13px;border:1px solid ${LINE};border-radius:11px;background:#fafbfc;}
+          /* rank sections centered across their halves so they fill the width */
+          .dl-rstat{text-align:center;}
+          .dl-rled{white-space:normal;}
+          .dl-stbtn{width:100%;justify-content:center;align-self:stretch;height:100%;box-sizing:border-box;}
+          .dl-rarch{display:block;width:100%;box-sizing:border-box;align-self:stretch;height:100%;padding:11px 13px;border:1px solid ${LINE};border-radius:11px;background:#fafbfc;}
           .dl-rarch.on{border-color:${BLUE};background:#f5f8ff;}
           .dl-rarch .dl-rlbl{margin-bottom:7px;}
           .dl-rprog{width:100%;}
