@@ -840,8 +840,8 @@ export default function OutrankClient({ puzzles = [], forceNum = null }) {
           modal
           self="outrank"
           won={sharp}
-          headline={sharp ? <>Nailed the ranking!</> : <>You scored {Math.round((score / TOTAL) * 100)}%</>}
-          subline={<>{score}/{TOTAL} &middot; crowd of {fmtBig(result.realCount != null ? result.realCount : result.poolSize)} &middot; {elapsed}</>}
+          completed
+          score={<>{score}/{TOTAL}</>}
           onShare={copyShare}
           shareLabel={copied ? 'Copied' : 'Share Result'}
           onReplay={resetGame}

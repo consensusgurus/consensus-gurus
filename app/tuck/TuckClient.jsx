@@ -304,54 +304,6 @@ export default function TuckClient({ puzzles = [], forceNum = null }) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  // One-time recovery resync: a scoring bug once REJECTED any Tuck submission
-  // whose score beat PAR (the server enforced score <= total, and total = par),
-  // so the best runs never reached the server even though the player saw a
-  // finish screen. The server now accepts them. On load, re-post any locally
-  // recorded FINISHED grid that beat par and has not yet been confirmed to the
-  // server, straight from this device's own record. Sub-par results always
-  // posted fine and are skipped (re-posting would double count). The per-puzzle
-  // `sot_tuck_synced_<num>` flag (also set on every fresh submit) keeps this to
-  // at most one post per grid.
-  const resyncRef = useRef(false);
-  useEffect(() => {
-    if (resyncRef.current) return;
-    resyncRef.current = true;
-    if (typeof window === 'undefined') return;
-    let email;
-    try { const id = JSON.parse(localStorage.getItem('sot_quiz_identity') || 'null'); email = id && id.email ? id.email : undefined; } catch (e) {}
-    const anon = getAnonId();
-    const today = etToday();
-    const byNum = new Map();
-    for (const p of (puzzles || [])) if (p && typeof p.num === 'number') byNum.set(p.num, p);
-    const keys = [];
-    for (let i = 0; i < localStorage.length; i++) { const k = localStorage.key(i); if (k && /^sot_tuck_\d+$/.test(k)) keys.push(k); }
-    for (const key of keys) {
-      const num = Number(key.slice('sot_tuck_'.length));
-      const pz = byNum.get(num);
-      if (!pz || !pz.quizId || (pz.live && pz.live > today)) continue;
-      if (localStorage.getItem(`sot_tuck_synced_${num}`)) continue;
-      let st;
-      try { st = JSON.parse(localStorage.getItem(key) || 'null'); } catch (e) { continue; }
-      if (!st || st.status !== 'done' || !st.submitted) continue;
-      const score = Number(st.submitted.score);
-      const par = Number(pz.par);
-      if (!Number.isInteger(score) || !Number.isInteger(par) || score <= par) continue; // only the dropped par-beaters
-      const placed = Number(st.submitted.placed) || 0;
-      const rack = (pz.letters || []).length;
-      const el = (st.t0 && st.tEnd) ? Math.min(36000, Math.max(1, Math.round((st.tEnd - st.t0) / 1000))) : 1;
-      try { localStorage.setItem(`sot_tuck_synced_${num}`, '1'); } catch (e) {}
-      fetch('/api/quiz/result', {
-        method: 'POST', keepalive: true, headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ quizId: pz.quizId, score, total: par, correct: 1, guessesUsed: Math.max(0, rack - placed), timeElapsed: el, email, anonId: anon, isMobile: isMobileDevice(), referrer: '' }),
-      })
-        .then((r) => r.json())
-        .then((d) => { if (d && d.error) { try { localStorage.removeItem(`sot_tuck_synced_${num}`); } catch (e) {} } })
-        .catch(() => { try { localStorage.removeItem(`sot_tuck_synced_${num}`); } catch (e) {} });
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
-
   function say(msg) {
     setToast(msg);
     if (toastTimer.current) clearTimeout(toastTimer.current);
@@ -575,7 +527,7 @@ export default function TuckClient({ puzzles = [], forceNum = null }) {
         body: JSON.stringify({ quizId: PUZZLE.quizId, score: sc, total: PAR, correct: sc >= PAR ? 1 : 0, guessesUsed: RACK - placed, timeElapsed: el, email: identity?.email || undefined, anonId: getAnonId(), isMobile: isMobileDevice(), referrer: (typeof document !== 'undefined' ? document.referrer : '') }),
       })
         .then((r) => r.json())
-        .then((d) => { if (d && !d.error) { setBoard({ ...EMPTY_BOARD, ...d }); try { localStorage.setItem(`sot_tuck_synced_${PUZZLE.num}`, '1'); } catch (e) {} } })
+        .then((d) => { if (d && !d.error) setBoard({ ...EMPTY_BOARD, ...d }); })
         .catch(() => {});
     } catch (e) {}
   }
@@ -949,8 +901,8 @@ export default function TuckClient({ puzzles = [], forceNum = null }) {
           modal
           self="tuck"
           won={won}
-          headline={won ? <>You beat the par</> : <>Grid submitted</>}
-          subline={<>Tuck #{PUZZLE.num} &middot; {finalScore} pts &middot; par {PAR} &middot; {g.submitted ? `${g.submitted.placed}/${RACK} tiles` : ''} &middot; {elapsed}</>}
+          completed
+          score={<>{finalScore} pts &middot; par {PAR}</>}
           onShare={copyShare}
           shareLabel={copied ? 'Copied' : 'Share Result'}
           onReplay={resetGame}

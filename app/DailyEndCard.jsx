@@ -5,9 +5,9 @@
 // Carve, Stet, Outwit, Tuck, Alibi, Cipher, Ping, Warmer, Jesters, Sworn).
 //
 // One component, used by all daily clients. It renders, top to bottom:
-//   1. a result header — the family type chip, "You finished <Game>", the
-//      score/time detail, and the player's standing (this game's rank today,
-//      the combined daily-board rank, and how many games are still left);
+//   1. a result header — the family type chip, "You completed <Game>!", and
+//      (for a variable-score game only) a clean score, plus the player's
+//      standing (rank today, combined daily-board rank, games still left);
 //   2. three result actions — Play a past <Game>, Leaderboard, and Share Result;
 //   3. an "Up next" auto-advance — a 25s countdown ring that opens the closest
 //      unplayed game of the SAME family (Crux -> Garble ...), cancelable;
@@ -17,11 +17,15 @@
 //      color-filled headers, plus a linked "Other quizzes" block.
 //
 // Each client passes only its result strings + handlers (unchanged API):
-//   <DailyEndCard modal self="garble"
-//     headline={`${pct}% Complete`}
-//     subline={<>Garble #{PUZZLE.num} &middot; {score}/10 &middot; {elapsed}</>}
+//   <DailyEndCard modal self="tuck" completed
+//     score={<>{finalScore} pts &middot; par {PAR}</>}
 //     onShare={copyShare} shareLabel={copied ? 'Copied' : 'Share Result'}
 //     onReplay={resetGame} onClose={() => setJustWon(false)} />
+// `completed` (default = `won`) drives the "You completed <Game>!" title;
+// pass a clean `score` node ONLY for variable-score games (Tuck/Outrank/Outwit)
+// so every other game just reads "You completed <Game>!" with the score, time,
+// and accuracy left to the leaderboard. `headline`/`subline` are deprecated and
+// no longer rendered (kept in the signature for call-site compat).
 // The finish accent comes from `self` via GAME_META. To add a game: add it to
 // GAME_META (accent) and to DAILY_GAMES (family + tile copy).
 
@@ -142,8 +146,10 @@ const REVEAL_MS = 2000; // win only: show the finished board + confetti this lon
 
 /**
  * @param self          game key, e.g. "garble"
- * @param headline      node/string, e.g. `${pct}% Complete` (client computes pct)
- * @param subline       node, e.g. <>Garble #{num} · {score}/10 · {elapsed}</>
+ * @param completed      bool; true => "You completed <Game>!" title (default = won)
+ * @param score          node; a clean score shown at top for variable-score games only
+ * @param headline       DEPRECATED, no longer rendered
+ * @param subline        DEPRECATED, no longer rendered
  * @param onShare / shareLabel   share handler + label
  * @param onReplay      replay handler (unused by the new layout, kept for API compat)
  * @param onClose       closes any celebration modal; run before scroll
@@ -153,9 +159,11 @@ const REVEAL_MS = 2000; // win only: show the finished board + confetti this lon
 export default function DailyEndCard({
   self,
   won = true,
+  completed = null,
   modal = false,
   headline = 'You scored 100%',
   subline = null,
+  score = null,
   answer = null,
   onShare, shareLabel = 'Share Result',
   onReplay,
@@ -283,21 +291,21 @@ export default function DailyEndCard({
   // Which daily games the viewer has completed today. The just-finished game is
   // always checked; dailyMe.perGame fills in every other game already played so
   // the whole day resolves, not just the leaf they came from.
-  const completed = new Set();
+  const doneKeys = new Set();
   const unfinished = new Set(); // started today but abandoned (not finished)
-  if (self) completed.add(self);
+  if (self) doneKeys.add(self);
   if (dailyMe && dailyMe.perGame) {
     for (const [k, v] of Object.entries(dailyMe.perGame)) {
       if (v && v.abandoned) unfinished.add(k);
-      else completed.add(k);
+      else doneKeys.add(k);
     }
   }
   if (self) unfinished.delete(self); // the game just finished is never unfinished
   const total = DAILY_GAMES.length;
-  const doneCount = DAILY_GAMES.filter((g) => completed.has(g.key)).length;
+  const doneCount = DAILY_GAMES.filter((g) => doneKeys.has(g.key)).length;
 
   // Still-to-play games, launch-pinned to the front during a new game's window.
-  let todo = DAILY_GAMES.filter((g) => !completed.has(g.key));
+  let todo = DAILY_GAMES.filter((g) => !doneKeys.has(g.key));
   if (etTodayEC() <= LAUNCH_PIN.until) {
     todo = [
       ...todo.filter((g) => LAUNCH_PIN.keys.includes(g.key)),
@@ -317,7 +325,7 @@ export default function DailyEndCard({
   // the viewer hasn't played). field = registered players; plays = total attempts.
   let grab = null;
   if (boardGames && boardGames.length) {
-    const unplayed = boardGames.filter((g) => !completed.has(g.key));
+    const unplayed = boardGames.filter((g) => !doneKeys.has(g.key));
     const pool = (unplayed.length ? unplayed : boardGames).slice();
     pool.sort((a, b) => (a.field - b.field) || (a.plays - b.plays));
     const g0 = pool[0];
@@ -517,12 +525,11 @@ export default function DailyEndCard({
       <div className="dec-eyebrow">
         <span className="dec-dot" style={{ background: selfCatMeta.color }} />
         <span className="dec-cat" style={{ color: selfCatMeta.color }}>{selfCatMeta.name}</span>
-        {headline ? <span className="dec-eb-sub">&middot; {headline}</span> : null}
         {selfGame ? <span className="dec-tagline">{selfGame.tag}</span> : null}
       </div>
       <div className="dec-titlerow">
-        <span className="dec-title">{won ? 'You finished' : 'You played'} {selfName}</span>
-        {subline ? <span className="dec-detail">{subline}</span> : null}
+        <span className="dec-title">{(completed == null ? won : completed) ? <>You completed {selfName}!</> : <>You played {selfName}</>}</span>
+        {score ? <span className="dec-detail">{score}</span> : null}
       </div>
       {answer ? (
         <div className="dec-answer">
