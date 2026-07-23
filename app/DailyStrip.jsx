@@ -441,20 +441,21 @@ export default function DailyStrip({ board = null }) {
           .dstrip-t1{margin:0;padding:5px 10px;flex:1 1 auto;min-width:0;}
           .dstrip-t1 .nm1{font-size:12.5px;}
           .dstrip-exp{margin:0;align-self:auto;width:auto;flex:none;}
-          /* mobile hero: a plain column stack, so the meta lines (leader, then
-             the streak "keep it alive") sit directly ABOVE the buttons row
-             (owner 2026-07-23). */
-          .dstrip-hero{flex:none;flex-direction:column;align-items:stretch;gap:6px;border-right:none;border-bottom:1px solid rgba(255,255,255,0.09);padding:10px 13px;}
+          /* mobile hero: TWO columns to keep it short (owner 2026-07-23) —
+             left: eyebrow, game identity, leader; right: streak line, then
+             Play now and See all stacked. */
+          .dstrip-hero{flex:none;display:grid;grid-template-columns:minmax(0,1fr) auto;gap:5px 12px;align-items:center;border-right:none;border-bottom:1px solid rgba(255,255,255,0.09);padding:10px 13px;}
+          .dstrip-hero .hd-eb{grid-column:1;grid-row:1;}
+          .dstrip-hero .hd-row{grid-column:1;grid-row:2;}
           .dstrip-hero .hd-row img{height:32px;}
           .dstrip-hero .hd-nm{font-size:16px;}
-          .dstrip-hero .hd-ctas{width:100%;}
-          .dstrip-hero .hd-play{flex:1.4;}
-          .dstrip-hero .hd-all{flex:1;}
+          .dstrip-hero .hd-meta{grid-column:1;grid-row:3;}
+          .dstrip-hero .hd-meta.hd-streak{grid-column:2;grid-row:1;justify-content:flex-end;}
+          .dstrip-hero .hd-ctas{grid-column:2;grid-row:2 / span 2;flex-direction:column;align-items:stretch;gap:6px;min-width:118px;}
+          .dstrip-hero .hd-play,.dstrip-hero .hd-all{flex:none;}
           .dstrip-cells{overflow-x:auto;-webkit-overflow-scrolling:touch;grid-template-columns:none;grid-template-rows:repeat(2,1fr);grid-auto-flow:column;grid-auto-columns:minmax(76px,1fr);min-width:0;}
           .dstrip-cell{border-top:none;border-left:1px solid rgba(255,255,255,0.055);padding:15px 5px 8px;}
-          .dstrip-flame{width:13px;height:13px;top:6px;left:4px;}
-          .dstrip-flame svg{width:8px;height:8px;}
-          .dstrip-flame.shift{top:22px;}
+          .dstrip-flame.shift{top:24px;}
           .dstrip-cell:nth-child(-n+2){border-left:none;}
           .dstrip-cell:nth-child(10n+1){border-left:1px solid rgba(255,255,255,0.055);}
           .dstrip-cell:first-child{border-left:none;}
