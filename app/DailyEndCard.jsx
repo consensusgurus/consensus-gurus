@@ -548,9 +548,8 @@ export default function DailyEndCard({
         .dec-x{position:absolute;top:12px;right:12px;width:30px;height:30px;padding:0;display:flex;align-items:center;justify-content:center;border-radius:9px;background:#fff;border:1px solid ${BORD};color:${SLATE};cursor:pointer;z-index:3;}
         .dec-x:hover{color:${INK};background:#f7f8fa;}
 
-        .dec-head{display:flex;align-items:flex-start;justify-content:space-between;gap:14px;margin-bottom:12px;}
-        .dec-head-l{min-width:0;flex:1;}
-        .dec-head-r{display:flex;flex-shrink:0;align-items:flex-start;}
+        .dec-head{margin-bottom:12px;}
+        .dec-idrow{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-top:12px;}
         .dec-check{width:30px;height:30px;border-radius:50%;background:#e8f5ec;color:#15803d;display:inline-flex;align-items:center;justify-content:center;flex-shrink:0;}
         .dec-check.loss{background:#fdecec;color:${RUST};}
         .dec-titlerow{display:flex;align-items:center;flex-wrap:wrap;gap:4px 10px;margin-bottom:5px;}
@@ -563,7 +562,7 @@ export default function DailyEndCard({
         .dec-answer{display:flex;align-items:baseline;gap:9px;margin:9px 0 0;}
         .dec-answer-lbl{font-family:${MONO};font-size:10px;font-weight:500;letter-spacing:.14em;text-transform:uppercase;color:${SLATE};flex-shrink:0;}
         .dec-answer-word{font-size:21px;font-weight:800;letter-spacing:-.02em;color:${RUST};}
-        .dec-idbox{display:inline-flex;align-items:center;gap:8px;margin-top:9px;font-family:${SANS};font-size:12.5px;font-weight:700;color:${INK};background:#f4f6fa;border:1px solid ${BORD};border-radius:999px;padding:5px 13px 5px 5px;max-width:100%;}
+        .dec-idbox{display:inline-flex;align-items:center;gap:8px;font-family:${SANS};font-size:12.5px;font-weight:700;color:${INK};background:#f4f6fa;border:1px solid ${BORD};border-radius:999px;padding:5px 13px 5px 5px;max-width:100%;}
         .dec-idbox .av{width:23px;height:23px;border-radius:50%;color:#fff;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:800;flex-shrink:0;}
         .dec-idbox .nm{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
         button.dec-idbox{cursor:pointer;color:${BLUE};background:#eff4fd;border-color:#cfe0fb;padding:8px 15px;}
@@ -672,9 +671,8 @@ export default function DailyEndCard({
 
         @media(max-width:640px){
           .dec-card{padding:18px 16px 14px;}
-          .dec-head{flex-direction:column;gap:10px;}
-          .dec-head-r{align-self:stretch;}
-          .dec-head-r .dec-share{width:100%;}
+          .dec-idrow{gap:8px;}
+          .dec-idrow > *{flex:1;justify-content:center;}
           /* Keep the three rank tiles side by side on mobile (minmax(0,1fr) stops
              overflow); just tighten the padding/type so they fit a phone width. */
           .dec-tiles{gap:7px;}
@@ -696,20 +694,24 @@ export default function DailyEndCard({
 
       {/* ---- 1. header ---- */}
       <div className="dec-head">
-        <div className="dec-head-l">
-          <div className="dec-titlerow">
-            <span className={`dec-check${won ? '' : ' loss'}`}>
-              {won ? <CheckCircle2 size={19} strokeWidth={2.4} /> : <Flag size={17} strokeWidth={2.4} />}
-            </span>
-            <span className="dec-title">{isCompleted ? <>Completed {selfName}!</> : <>Played {selfName}</>}</span>
-            {score ? <span className="dec-detail">{score}</span> : null}
+        <div className="dec-titlerow">
+          <span className={`dec-check${won ? '' : ' loss'}`}>
+            {won ? <CheckCircle2 size={19} strokeWidth={2.4} /> : <Flag size={17} strokeWidth={2.4} />}
+          </span>
+          <span className="dec-title">{isCompleted ? <>Completed {selfName}!</> : <>Played {selfName}</>}</span>
+          {score ? <span className="dec-detail">{score}</span> : null}
+        </div>
+        {answer ? (
+          <div className="dec-answer">
+            <span className="dec-answer-lbl">Answer</span>
+            <span className="dec-answer-word">{answer}</span>
           </div>
-          {answer ? (
-            <div className="dec-answer">
-              <span className="dec-answer-lbl">Answer</span>
-              <span className="dec-answer-word">{answer}</span>
-            </div>
-          ) : null}
+        ) : null}
+        {/* share (left) + identity (right) on one line; both fill width on mobile */}
+        <div className="dec-idrow">
+          <button type="button" className="dec-share" onClick={onShare}>
+            <Share2 size={14} strokeWidth={2.2} /> Share result{forCredit && !/copied/i.test(shareLabel || '') ? ' (for credit)' : ''}
+          </button>
           {hasEmail && username ? (
             <span className="dec-idbox">
               <span className="av" style={{ background: meta.accent }}>{String(username).slice(0, 1).toUpperCase()}</span>
@@ -720,11 +722,6 @@ export default function DailyEndCard({
               <UserPlus size={15} strokeWidth={2.2} /> Sign up
             </button>
           )}
-        </div>
-        <div className="dec-head-r" style={modal ? { paddingRight: 26 } : undefined}>
-          <button type="button" className="dec-share" onClick={onShare}>
-            <Share2 size={14} strokeWidth={2.2} /> Share result{forCredit && !/copied/i.test(shareLabel || '') ? ' (for credit)' : ''}
-          </button>
         </div>
       </div>
 
@@ -817,7 +814,7 @@ export default function DailyEndCard({
                   <span className="num">{autoRun ? secs : <ArrowRight size={17} strokeWidth={2.4} color="#2563eb" />}</span>
                 </div>
                 <div style={{ minWidth: 0, flex: 1 }}>
-                  <div className="dec-eye" style={{ color: BLUE }}>Up next &middot; most similar unplayed today</div>
+                  <div className="dec-eye" style={{ color: BLUE }}>Up next &middot; most similar unplayed</div>
                   <div className="dec-nx-name">{nextTarget.name}</div>
                   <div className="dec-nx-tag">{nextTarget.tag}{autoRun ? <> &middot; {secs > 0 ? `opens in ${secs}s` : 'opening…'}</> : null}</div>
                 </div>
