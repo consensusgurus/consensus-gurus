@@ -310,13 +310,21 @@ export default function DailyArchiveClient({ games = [], today = '' }) {
         .dl-kick{font-family:${MONO};font-size:11.5px;letter-spacing:.14em;text-transform:uppercase;color:${FADED};font-weight:500;}
         .dl-h1{margin:8px 0 7px;font-size:34px;font-weight:800;letter-spacing:-0.9px;color:${INK};line-height:1.0;}
         .dl-sub{margin:0;font-size:14.5px;font-weight:500;color:${FADED};line-height:1.55;max-width:540px;}
-        .dl-day{display:flex;flex-direction:column;gap:12px;background:linear-gradient(160deg,#16294f,#0c1a34);color:#fff;border-radius:16px;padding:16px 20px;box-shadow:0 6px 22px rgba(14,29,64,0.14);min-width:300px;}
-        .dl-day .row{display:flex;gap:15px;align-items:center;}
-        .dl-day .rn{font-size:25px;font-weight:800;letter-spacing:-.5px;line-height:1;}
-        .dl-day .rn b{color:${GOLD};}
-        .dl-day .rn .of{color:#8ea0c6;font-weight:700;font-size:15px;}
-        .dl-day .rt{font-family:${MONO};font-size:9.5px;letter-spacing:.09em;text-transform:uppercase;color:#9fb0d4;margin-top:5px;}
-        .dl-day .dv{width:1px;align-self:stretch;background:rgba(255,255,255,.16);}
+        .dl-day{display:flex;flex-direction:column;gap:13px;background:#fff;color:${INK};border:1px solid ${LINE};border-radius:16px;padding:16px 20px;box-shadow:0 6px 22px rgba(14,29,64,0.08);min-width:300px;}
+        .dl-day-top{display:flex;align-items:center;justify-content:space-between;gap:12px;}
+        .dl-day-kick{font-family:${MONO};font-size:9.5px;letter-spacing:.16em;text-transform:uppercase;color:${FADED};font-weight:500;}
+        .dl-streak{display:inline-flex;align-items:center;gap:6px;background:rgba(232,180,58,0.15);border:1px solid rgba(232,180,58,0.42);border-radius:999px;padding:3px 10px;}
+        .dl-streak b{color:#8a6d1f;font-size:13px;font-weight:900;line-height:1;}
+        .dl-streak span{font-family:${MONO};font-size:8.5px;letter-spacing:.1em;text-transform:uppercase;color:#9a7c2e;}
+        .dl-day-stats{display:flex;align-items:flex-end;gap:16px;}
+        .dl-hero{flex:1 1 auto;min-width:0;}
+        .dl-hero .n{font-size:34px;font-weight:900;letter-spacing:-1px;line-height:.9;color:${INK};}
+        .dl-hero .l{font-family:${MONO};font-size:9px;letter-spacing:.09em;text-transform:uppercase;color:${FADED};margin-top:6px;}
+        .dl-hero .l .of{color:#9aa3b5;}
+        .dl-mini{text-align:center;padding-bottom:2px;}
+        .dl-mini .n{font-size:24px;font-weight:800;line-height:1;color:${INK};}
+        .dl-mini .l{font-family:${MONO};font-size:8.5px;letter-spacing:.09em;text-transform:uppercase;color:${FADED};margin-top:6px;}
+        .dl-day .dv{width:1px;align-self:stretch;background:${LINE};}
 
         .dl-legend{display:flex;gap:18px;flex-wrap:wrap;margin-top:16px;font-family:${SANS};font-size:12.5px;font-weight:600;color:${FADED};}
         .dl-sun-tag{font-family:${MONO};font-size:9px;letter-spacing:.1em;text-transform:uppercase;font-weight:700;border-radius:4px;padding:1px 5px;color:${SUN};background:${SUN_BG};border:1px solid rgba(180,83,9,0.35);}
@@ -496,12 +504,19 @@ export default function DailyArchiveClient({ games = [], today = '' }) {
         @media(max-width:440px){.lb-g5{grid-template-columns:30px 1fr 44px 50px;}.lb-time{display:none;}}
 
         /* your-day extras: rival line + next-game CTA */
-        .dl-rival{display:flex;align-items:center;gap:8px;background:rgba(255,255,255,0.07);border-left:3px solid ${GOLD};border-radius:0 9px 9px 0;padding:7px 10px;font-size:12.5px;font-weight:500;color:#c9d3e5;}
-        .dl-rival b{color:#fff;font-weight:700;}
+        .dl-rival{display:flex;align-items:center;gap:9px;background:${BG};border-left:3px solid ${GOLD};border-radius:0 9px 9px 0;padding:8px 11px;font-size:12.5px;font-weight:500;color:${MUTED};}
+        .dl-rival b{color:${INK};font-weight:700;}
         .dl-rival .av{width:22px;height:22px;border-radius:50%;background:${GOLD};color:#0e1d40;display:inline-flex;align-items:center;justify-content:center;font-size:9.5px;font-weight:800;flex:0 0 auto;}
-        .dl-cta{display:block;text-align:center;background:${GOLD};color:#10203f;font-weight:800;font-size:13px;border-radius:10px;padding:10px 14px;text-decoration:none;}
+        .dl-cta{display:block;text-align:center;background:${GOLD};color:#10203f;font-weight:800;font-size:13px;border-radius:10px;padding:11px 14px;text-decoration:none;}
         .dl-cta:hover{filter:brightness(1.05);}
-        .dl-cta.done{background:rgba(232,180,58,0.16);color:${GOLD_B};cursor:default;}
+        .dl-cta.done{background:rgba(232,180,58,0.16);color:#8a6d1f;cursor:default;}
+        .dl-cattiles{display:flex;gap:9px;flex-wrap:wrap;margin-bottom:6px;}
+        .dl-cattile{display:inline-flex;align-items:center;gap:9px;text-decoration:none;background:#fff;border:1px solid ${LINE};border-radius:11px;padding:9px 13px;transition:border-color .15s,box-shadow .15s;}
+        .dl-cattile:hover{border-color:#c9d3e5;box-shadow:0 4px 14px rgba(14,29,64,0.07);}
+        .dl-cattile .dot{width:9px;height:9px;border-radius:3px;flex:0 0 auto;}
+        .dl-cattile .lbl{font-size:13.5px;font-weight:800;letter-spacing:-.2px;color:${INK};}
+        .dl-cattile .ct{font-family:${MONO};font-size:10px;color:#9aa3b5;}
+        .dl-cattile .jmp{color:#c2c8d2;font-size:12px;}
 
         /* live activity ticker */
         .dl-ticker{overflow:hidden;background:#fff;border:1px solid ${LINE};border-left:4px solid ${GOLD};border-radius:10px;padding:7px 0;margin-top:16px;}
@@ -545,25 +560,19 @@ export default function DailyArchiveClient({ games = [], today = '' }) {
             </p>
           </div>
           <div className="dl-day" role="group" aria-label="Your day">
-            <div className="row">
-              <div>
-                <div className="rn"><b>{ready ? streak : '—'}</b></div>
-                <div className="rt">Day streak</div>
+            <div className="dl-day-top">
+              <div className="dl-day-kick">Your day</div>
+              <div className="dl-streak"><b>{ready ? streak : '—'}</b><span>day streak</span></div>
+            </div>
+            <div className="dl-day-stats">
+              <div className="dl-hero">
+                <div className="n">{me ? `#${me.rank}` : '—'}</div>
+                <div className="l">Today&rsquo;s rank{me ? <> <span className="of">· {fmtPts(me.total)}/{combined.maxTotal} pts</span></> : ''}</div>
               </div>
               <div className="dv" />
-              <div>
-                <div className="rn">{ready ? playedToday.length : '—'}<span className="of"> / {activeGames.length}</span></div>
-                <div className="rt">Played today</div>
-              </div>
-              <div className="dv" />
-              <div>
-                <div className="rn">{ready ? doneToday.length : '—'}</div>
-                <div className="rt">Aced today</div>
-              </div>
-              <div className="dv" />
-              <div>
-                <div className="rn">{me ? <><b>#{me.rank}</b></> : '—'}</div>
-                <div className="rt">{me ? `${fmtPts(me.total)}/${combined.maxTotal} today` : 'Your rank'}</div>
+              <div className="dl-mini">
+                <div className="n">{ready ? doneToday.length : '—'}</div>
+                <div className="l">Aced today</div>
               </div>
             </div>
             <div className="dl-rival">
@@ -578,11 +587,6 @@ export default function DailyArchiveClient({ games = [], today = '' }) {
           </div>
         </div>
 
-        <div className="dl-legend">
-          <span><span style={{ color: GREEN, fontWeight: 900 }}>&#10003;</span> Played</span>
-          <span><span style={{ color: GOLD, fontWeight: 900 }}>&#9733;</span> Aced</span>
-          <span><span className="dl-sun-tag" style={{ marginRight: 5 }}>Sun</span> Sunday edition — bigger &amp; tougher</span>
-        </div>
 
 
         <div className="dl-gaunt" role="group" aria-label="Today's gauntlet">
@@ -631,12 +635,21 @@ export default function DailyArchiveClient({ games = [], today = '' }) {
           </div>
         )}
 
-        <div className="dl-sec-h" style={{ marginBottom: 6 }}>
+        <div className="dl-sec-h" style={{ marginBottom: 10 }}>
           <h2>All daily games</h2>
-          <span>play · standings · archive</span>
+        </div>
+        <div className="dl-cattiles">
+          {groups.map((grp) => (
+            <a key={grp.key} className="dl-cattile" href={`#cat-${grp.key}`}>
+              <span className="dot" style={{ background: grp.games[0].accent }} />
+              <span className="lbl">{grp.label}</span>
+              <span className="ct">{grp.games.length}</span>
+              <span className="jmp" aria-hidden="true">&#8595;</span>
+            </a>
+          ))}
         </div>
         {groups.map((grp) => (
-          <div key={grp.key}>
+          <div key={grp.key} id={`cat-${grp.key}`} style={{ scrollMarginTop: 14 }}>
             <div className="dl-glabel">
               <span className="k">{grp.label}</span>
               <span className="line" />
