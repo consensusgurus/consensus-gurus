@@ -475,12 +475,12 @@ export default function DailyEndCard({
         .dec-up-btns{display:flex;flex-direction:column;gap:7px;flex-shrink:0;}
         .dec-up-btns .dec-btn{justify-content:center;}
 
-        .dec-grab{display:flex;align-items:center;gap:12px;background:${NAVY};border-radius:16px;padding:13px 16px;margin-bottom:4px;}
+        .dec-grab{display:flex;align-items:center;gap:12px;background:#fdf6e4;border:1px solid #f0e3bb;border-radius:16px;padding:13px 16px;margin-bottom:4px;}
         .dec-grab-main{display:flex;align-items:center;gap:12px;flex:1;min-width:0;}
-        .dec-grab-eye{font-family:${MONO};font-size:10px;font-weight:500;letter-spacing:.12em;text-transform:uppercase;color:${GOLD};margin-bottom:2px;}
-        .dec-grab-txt{font-size:14px;color:#eef2f9;display:flex;align-items:center;gap:6px;}
+        .dec-grab-eye{font-family:${MONO};font-size:10px;font-weight:500;letter-spacing:.12em;text-transform:uppercase;color:#b7791f;margin-bottom:2px;}
+        .dec-grab-txt{font-size:14px;color:${INK};display:flex;align-items:center;gap:6px;}
         .dec-grab-txt b{font-weight:800;}
-        .dec-grab-btn{font-family:${SANS};font-weight:800;font-size:12.5px;color:${NAVY};background:${GOLD};border:none;border-radius:10px;padding:9px 15px;cursor:pointer;text-decoration:none;flex-shrink:0;white-space:nowrap;}
+        .dec-grab-btn{font-family:${SANS};font-weight:800;font-size:12.5px;color:#5c4a06;background:${GOLD};border:none;border-radius:10px;padding:9px 15px;cursor:pointer;text-decoration:none;flex-shrink:0;white-space:nowrap;}
 
         .dec-morehd{display:flex;align-items:baseline;justify-content:space-between;margin:18px 2px 12px;}
         .dec-more-eye{font-family:${MONO};font-size:10.5px;font-weight:500;letter-spacing:.14em;text-transform:uppercase;color:${SLATE};}
@@ -608,7 +608,7 @@ export default function DailyEndCard({
       {grab ? (
         <div className="dec-grab">
           <div className="dec-grab-main">
-            <Trophy size={22} strokeWidth={2} color={GOLD} style={{ flexShrink: 0 }} />
+            <Trophy size={22} strokeWidth={2} color="#b7791f" style={{ flexShrink: 0 }} />
             <div style={{ minWidth: 0, flex: 1 }}>
               <div className="dec-grab-eye">Leaderboard most up for grabs</div>
               <div className="dec-grab-txt">
