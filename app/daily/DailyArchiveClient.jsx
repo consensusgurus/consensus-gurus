@@ -381,13 +381,13 @@ export default function DailyArchiveClient({ games = [], today = '' }) {
         @media(max-width:900px){.dl-exp.two{grid-template-columns:1fr;} .dl-cal-fadewrap{display:none;}}
         .dl-exp-col{min-width:0;display:flex;flex-direction:column;}
         @media(max-width:760px){
-          .dl-rmain{grid-template-columns:1fr;gap:12px;}
-          .dl-rstat{display:flex;align-items:baseline;gap:9px;flex-wrap:wrap;}
-          .dl-rstat .dl-rlbl{margin-bottom:0;}
-          .dl-stbtn{width:100%;justify-content:center;}
-          .dl-rid-play{min-width:88px;}
-          /* Archive reads as a full-width box on mobile so the progress is clear. */
-          .dl-rarch{display:block;width:100%;padding:11px 13px;border:1px solid ${LINE};border-radius:11px;background:#fafbfc;}
+          /* Two columns: identity spans the top, the ranks pair up, and the
+             Standings button + Archive tracker sit SIDE BY SIDE at equal height
+             (the progress bar is now one column wide, not full width). */
+          .dl-rmain{grid-template-columns:1fr 1fr;gap:12px;align-items:stretch;}
+          .dl-rid{grid-column:1 / -1;}
+          .dl-stbtn{width:auto;justify-content:center;align-self:stretch;height:100%;box-sizing:border-box;}
+          .dl-rarch{display:block;box-sizing:border-box;align-self:stretch;height:100%;padding:11px 13px;border:1px solid ${LINE};border-radius:11px;background:#fafbfc;}
           .dl-rarch.on{border-color:${BLUE};background:#f5f8ff;}
           .dl-rarch .dl-rlbl{margin-bottom:7px;}
           .dl-rprog{width:100%;}
