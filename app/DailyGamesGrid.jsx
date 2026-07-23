@@ -57,7 +57,7 @@ const CATEGORIES = [
   { key: 'logic', label: 'Logic', keys: ['alibi', 'jester', 'sworn'] },
 ];
 
-export default function DailyGamesGrid({ self, maxWidth = 640, challengeHref = null, share = null, divider = false }) {
+export default function DailyGamesGrid({ self, maxWidth = 640, challengeHref = null, share = null, divider = false, boardSlot = null }) {
   // "(for credit)" is appended only for a registered viewer: their share link
   // carries their referral code, so the share genuinely earns them credit. A
   // signed-out visitor sees the plain label rather than a promise we can't keep.
@@ -156,6 +156,9 @@ export default function DailyGamesGrid({ self, maxWidth = 640, challengeHref = n
           ) : null}
         </div>
       ) : null}
+      {/* The daily-leaderboard panel sits directly under the Challenge / Share
+          actions, above the games grid (owner layout, 2026-07-23). */}
+      {boardSlot}
       {groups.map((grp) => (
         <div className="dgg-grp" key={grp.key}>
           <div className="dgg-glabel">

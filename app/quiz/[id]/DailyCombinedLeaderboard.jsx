@@ -71,11 +71,15 @@ function tabAccent(th, key) { return th.light ? (key === 'overall' ? th.overallA
 function fmtTime(sec) { if (sec == null) return '—'; const m = Math.floor(sec / 60), s = sec % 60; return `${m}:${String(s).padStart(2, '0')}`; }
 function fmtPts(n) { const v = Math.round(Number(n) * 10) / 10; return Number.isInteger(v) ? String(v) : v.toFixed(1); }
 
-export default function DailyCombinedLeaderboard({ todayKey = null, identity = null, compact = false, quizId = null, light = false }) {
+export default function DailyCombinedLeaderboard({ todayKey = null, identity = null, compact = false, quizId = null, light = false, allTimeToggle = false, embedded = false }) {
   const [data, setData] = useState(null);
   const [state, setState] = useState('loading'); // loading | ok | error
   const [tab, setTab] = useState(todayKey || 'overall');
   const [expanded, setExpanded] = useState(!compact);
+  // Per-game "Today vs All-time" scope (only when allTimeToggle is on). The
+  // Overall/combined board has no all-time dimension, so it always reads today.
+  const [gameScope, setGameScope] = useState('today'); // 'today' | 'alltime'
+  const [allTimeCache, setAllTimeCache] = useState({}); // gameKey -> { board, field } | 'loading'
   const th = useMemo(() => theme(light), [light]);
 
   useEffect(() => {
@@ -112,6 +116,32 @@ export default function DailyCombinedLeaderboard({ todayKey = null, identity = n
     return () => { alive = false; clearInterval(iv); if (typeof document !== 'undefined') document.removeEventListener('visibilitychange', onVis); if (typeof window !== 'undefined') { window.removeEventListener('focus', onVis); window.removeEventListener('sot:daily-updated', onUpdated); } };
   }, [quizId]);
 
+  // Switching to a different tab always returns to that game's Today board; the
+  // player opts back into All-time per game.
+  useEffect(() => { setGameScope('today'); }, [tab]);
+
+  // All-time per game (opt-in via allTimeToggle): the game's OWN cumulative board
+  // across every drop, from /api/quiz/daily-game. Fetched lazily the first time a
+  // game is viewed all-time, then cached for the session.
+  useEffect(() => {
+    if (!allTimeToggle || tab === 'overall' || gameScope !== 'alltime') return undefined;
+    const key = tab;
+    if (allTimeCache[key]) return undefined; // already loaded or loading
+    let anonId = null, email = null;
+    try { anonId = localStorage.getItem('sot_quiz_anon'); } catch (e) {}
+    try { const id = JSON.parse(localStorage.getItem('sot_quiz_identity') || 'null'); email = id && id.email; } catch (e) {}
+    const p = new URLSearchParams({ game: key, fresh: '1' });
+    if (anonId) p.set('anonId', anonId);
+    if (email) p.set('email', email);
+    let alive = true;
+    setAllTimeCache((c) => ({ ...c, [key]: 'loading' }));
+    fetch('/api/quiz/daily-game?' + p.toString(), { cache: 'no-store' })
+      .then((r) => r.json())
+      .then((d) => { if (!alive) return; const at = d && d.allTime; setAllTimeCache((c) => ({ ...c, [key]: { board: (at && at.board) || [], field: (at && at.field) || 0 } })); })
+      .catch(() => { if (alive) setAllTimeCache((c) => { const n = { ...c }; delete n[key]; return n; }); });
+    return () => { alive = false; };
+  }, [allTimeToggle, tab, gameScope, allTimeCache]);
+
   const myKey = data && data.me ? data.me.userKey : null;
   const maxTotal = (data && data.maxTotal) || 75;
   const gameMax = (data && data.gameMax) || 15;
@@ -145,7 +175,9 @@ export default function DailyCombinedLeaderboard({ todayKey = null, identity = n
     `}</style>
   );
 
-  const wrap = { fontFamily: FONT, background: th.card, border: `1px solid ${th.cardBorder}`, borderRadius: 16, padding: '18px 18px 16px', boxShadow: th.boxShadow };
+  const wrap = embedded
+    ? { fontFamily: FONT, background: 'transparent', border: 'none', borderRadius: 0, padding: 0, boxShadow: 'none' }
+    : { fontFamily: FONT, background: th.card, border: `1px solid ${th.cardBorder}`, borderRadius: 16, padding: '18px 18px 16px', boxShadow: th.boxShadow };
   const subtitle = (data && gameCount)
     ? (gameCount > 1 ? `Best ${bestN} of ${gameCount} · ${maxTotal} pts max` : `${maxTotal} pts max`)
     : 'Best 5 of 10';
@@ -217,13 +249,34 @@ export default function DailyCombinedLeaderboard({ todayKey = null, identity = n
     );
   }
 
+  const showScope = allTimeToggle && active !== 'overall';
+  const scopeToggle = showScope ? (
+    <div style={{ display: 'flex', gap: 4, marginBottom: 12, background: th.light ? '#f2f4f7' : 'rgba(255,255,255,0.06)', borderRadius: 999, padding: 3, width: 'fit-content' }}>
+      {[['today', 'Today'], ['alltime', 'All-time']].map(([k, lbl]) => {
+        const on = gameScope === k;
+        return (
+          <button key={k} onClick={() => setGameScope(k)}
+            style={{ padding: '5px 14px', borderRadius: 999, cursor: 'pointer', fontFamily: FONT, fontSize: 11.5, fontWeight: 800, whiteSpace: 'nowrap', border: 'none',
+              background: on ? (th.light ? '#fff' : 'rgba(255,255,255,0.16)') : 'transparent', color: on ? th.total : th.dim, boxShadow: on && th.light ? '0 1px 2px rgba(20,22,28,0.12)' : 'none' }}>
+            {lbl}
+          </button>
+        );
+      })}
+    </div>
+  ) : null;
+  const activeGame = (data.games || []).find((g) => g.key === active);
+  const gameView = active === 'overall'
+    ? <OverallBoard data={data} myKey={myKey} maxTotal={maxTotal} gameCount={gc} th={th} />
+    : (showScope && gameScope === 'alltime')
+      ? <AllTimeBoard game={activeGame} entry={allTimeCache[active]} myKey={myKey} th={th} />
+      : <GameBoard game={activeGame} myKey={myKey} gameMax={gameMax} th={th} />;
+
   return (
     <div style={wrap}>{chrome}
       {header}
       {tabBar}
-      {active === 'overall'
-        ? <OverallBoard data={data} myKey={myKey} maxTotal={maxTotal} gameCount={gc} th={th} />
-        : <GameBoard game={(data.games || []).find((g) => g.key === active)} myKey={myKey} gameMax={gameMax} th={th} />}
+      {scopeToggle}
+      {gameView}
       <p style={{ fontSize: 11, color: th.note, marginTop: 12, lineHeight: 1.5 }}>
         Each game is worth 15: up to 5 for how much you got right, up to 10 for where you placed against that day's field. {totalLine}
       </p>
@@ -330,6 +383,46 @@ function GameBoard({ game, myKey, gameMax, th }) {
             <span style={{ fontFamily: FONT, fontSize: 13.5, fontWeight: 600, textAlign: 'right', color: th.dim, fontVariantNumeric: 'tabular-nums' }}>{r.score}/{r.total}</span>
             <span className="dclb-time" style={{ fontFamily: FONT, fontSize: 13.5, fontWeight: 600, textAlign: 'right', color: th.dim, fontVariantNumeric: 'tabular-nums' }}>{fmtTime(r.timeElapsed)}</span>
             <span style={{ fontFamily: FONT, fontSize: 14.5, fontWeight: 800, textAlign: 'right', color: th.total, fontVariantNumeric: 'tabular-nums' }}>{fmtPts(r.points)}<span style={{ fontSize: 10.5, fontWeight: 600, color: th.unit }}>/{gameMax}</span></span>
+          </div>
+        );
+      })}
+    </div>
+  );
+}
+
+// The game's OWN cumulative all-time board: each registered player's per-drop
+// points summed across every drop of this game to date (from /api/quiz/daily-game).
+// Points are cumulative (no fixed max), so there is no /15 denominator or time.
+function AllTimeBoard({ game, entry, myKey, th }) {
+  const key = game ? game.key : null;
+  const acc = (key && th.accents[key]) || th.total;
+  const gameHeader = (
+    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: 10 }}>
+      <a href={(game && game.href) || `/${key || ''}`} style={{ fontFamily: FONT, fontSize: 12, fontWeight: 800, color: acc, textDecoration: 'none' }}>{(key && GAME_NAMES[key]) || key} <span style={{ fontWeight: 700, opacity: 0.85 }}>&rarr;</span></a>
+      <div style={{ fontFamily: FONT, fontSize: 11, color: th.dim }}>All-time · cumulative points</div>
+    </div>
+  );
+  if (entry === 'loading' || entry == null) {
+    return <div>{gameHeader}<div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>{[0, 1, 2].map((i) => <div key={i} style={{ height: 40, borderRadius: 11, background: th.skeleton, border: `1px solid ${th.line}` }} />)}</div></div>;
+  }
+  const rows = entry.board || [];
+  if (!rows.length) {
+    return <div>{gameHeader}<p style={{ fontFamily: FONT, fontStyle: 'italic', fontSize: 15, color: th.empty }}>No all-time scores here yet. Play a drop to get on the board.</p></div>;
+  }
+  const grid = { display: 'grid', gridTemplateColumns: '40px 1fr 84px', gap: 8 };
+  return (
+    <div>
+      {gameHeader}
+      <div style={{ ...grid, padding: '0 14px 8px', fontFamily: FONT, fontSize: 10, letterSpacing: '0.12em', textTransform: 'uppercase', color: th.dim }}>
+        <span>#</span><span>Player</span><span style={{ textAlign: 'right' }}>Points</span>
+      </div>
+      {rows.map((r) => {
+        const mine = !!(r.isMe || (myKey && r.userKey === myKey));
+        return (
+          <div key={r.userKey || r.rank} style={{ ...grid, ...rowStyle(th, mine, r.rank), alignItems: 'center', padding: '10px 14px', marginBottom: 6, borderRadius: 11 }}>
+            <RankNum n={r.rank} th={th} />
+            <PlayerName row={r} mine={mine} th={th} />
+            <span style={{ fontFamily: FONT, fontSize: 14.5, fontWeight: 800, textAlign: 'right', color: th.total, fontVariantNumeric: 'tabular-nums' }}>{fmtPts(r.points)}<span style={{ fontSize: 10.5, fontWeight: 600, color: th.unit }}> pts</span></span>
           </div>
         );
       })}
