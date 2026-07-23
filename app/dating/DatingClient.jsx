@@ -196,6 +196,22 @@ function freshState(num, n) {
   };
 }
 
+// A finished game synthesized from the server's stored result, so a completed
+// daily can be RESTORED on a second device. The board state lives only in the
+// first device's localStorage; the result row is the cross-device record. The
+// solved order is the correct chronological one (event index i belongs in slot
+// i), revealed on the board, and the win reveal + confetti fire as normal.
+function restoredStateFromServer(n, srv) {
+  const won = srv.correct === 1 || (Number(srv.score) || 0) >= 10;
+  const status = won ? 'won' : ((Number(srv.score) || 0) > 0 ? 'lost' : 'revealed');
+  const guesses = Math.max(1, Math.min(MAX_CHECKS, Number(srv.guessesUsed) || 1));
+  const rows = [];
+  for (let k = 0; k < guesses; k++) rows.push(Array(n).fill(k === guesses - 1 && won));
+  const el = Math.max(1, Number(srv.timeElapsed) || 1);
+  const now = Date.now();
+  return { v: 1, order: Array.from({ length: n }, (_, i) => i), rows, hintUsed: false, hintIdx: null, status, t0: now - el * 1000, tEnd: now, restored: true };
+}
+
 export default function DatingClient({ puzzles = [], forceNum = null }) {
   const PUZZLE = useMemo(() => pickPuzzle(puzzles, forceNum), [puzzles, forceNum]);
   const N = PUZZLE.events.length;
@@ -208,6 +224,8 @@ export default function DatingClient({ puzzles = [], forceNum = null }) {
   const [shake, setShake] = useState(false);
   const [armReveal, setArmReveal] = useState(false);
   const [justWon, setJustWon] = useState(false);
+  const [restoredScore, setRestoredScore] = useState(null);
+  const restoreRef = useRef(false);
   const [endClosed, setEndClosed] = useState(false);
   const [hydrated, setHydrated] = useState(false);
   const [board, setBoard] = useState(EMPTY_BOARD);
@@ -290,6 +308,36 @@ export default function DatingClient({ puzzles = [], forceNum = null }) {
     } catch (e) {}
   }, [g, hydrated, STORE_KEY, PUZZLE, puzzles]);
 
+  // Cross-device restore: this browser has no local game for the puzzle, but the
+  // signed-in player already finished it elsewhere. Rebuild the completed board
+  // from their stored result so the end-of-game card (and the win reveal) shows
+  // here too, instead of the Start tile pretending they never played. Never
+  // overwrites an in-progress or finished LOCAL game, and posts nothing (they
+  // did not play on this device).
+  useEffect(() => {
+    if (!hydrated || restoreRef.current) return;
+    if (g.status !== 'playing' || g.t0 || g.rows.length) return; // only a pristine board
+    restoreRef.current = true;
+    let cancelled = false;
+    try {
+      const anon = getAnonId();
+      let em = '';
+      try { const idj = JSON.parse(localStorage.getItem('sot_quiz_identity') || 'null'); if (idj && idj.email) em = idj.email; } catch (e) {}
+      if (!anon && !em) return undefined;
+      const qs = `quizId=${encodeURIComponent(PUZZLE.quizId)}&anonId=${encodeURIComponent(anon || '')}${em ? `&email=${encodeURIComponent(em)}` : ''}`;
+      fetch(`/api/quiz/result?${qs}`)
+        .then((r) => r.json())
+        .then((d) => {
+          if (cancelled || !d || !d.found) return;
+          setG((cur) => (cur.status !== 'playing' || cur.t0 || cur.rows.length) ? cur : restoredStateFromServer(N, d));
+          setRestoredScore(Number(d.score) || 0);
+        })
+        .catch(() => {});
+    } catch (e) {}
+    return () => { cancelled = true; };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [hydrated]);
+
   useEffect(() => {
     if (g.status === 'playing') return;
     const tick = () => setCountdown(fmtCountdown(msToMidnightET()));
@@ -355,7 +403,7 @@ export default function DatingClient({ puzzles = [], forceNum = null }) {
     const locked = last.filter(Boolean).length;
     return Math.max(0, Math.min(10, 10 - (rows.length - 1) - 2 * (N - locked)));
   }
-  const finalScore = playing ? 0 : scoreOf(g);
+  const finalScore = playing ? 0 : (restoredScore != null ? restoredScore : scoreOf(g));
 
   const REC_KEY = `sot_dating_rec_${PUZZLE.num}`;
   const abandon = useAbandonFlush(() => {

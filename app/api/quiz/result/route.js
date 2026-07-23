@@ -209,3 +209,69 @@ export async function POST(request) {
     return NextResponse.json({ error: 'invalid request' }, { status: 400 });
   }
 }
+
+// GET /api/quiz/result?quizId=&anonId=&email=
+// The caller's OWN best completed attempt for a quiz. Used to RESTORE a finished
+// daily board on a second device: the live board state lives only in the first
+// device's localStorage, but the stored result row is the cross-device record,
+// so a signed-in player can see their end-of-game card anywhere. Read-only; it
+// records nothing. { found:false } when the identity has no completed attempt.
+export async function GET(request) {
+  try {
+    const { searchParams } = new URL(request.url);
+    const quizId = (searchParams.get('quizId') || '').trim();
+    if (!quizId || quizId.length > 100) return NextResponse.json({ found: false });
+    const email = (searchParams.get('email') || '').trim() || null;
+    const anonId = (searchParams.get('anonId') || '').trim().slice(0, 64) || null;
+    if (!email && !anonId) return NextResponse.json({ found: false });
+
+    const ident = await findQuizIdentity(supabaseAdmin, { email, anonId });
+    const userId = ident ? ident.id : null;
+    // Match rows this identity owns (joined user_id) OR this browser posted (anon_id).
+    const ors = [];
+    if (userId) ors.push(`user_id.eq.${userId}`);
+    if (anonId) ors.push(`anon_id.eq.${anonId}`);
+    if (!ors.length) return NextResponse.json({ found: false });
+
+    // Drop optional columns a not-yet-applied migration may be missing, exactly
+    // as the POST insert/select does (abandoned/correct_count/guesses_used).
+    let cols = 'score, total, correct_count, guesses_used, time_elapsed, created_at, abandoned, user_id, anon_id';
+    let rows = null, error = null;
+    for (;;) {
+      ({ data: rows, error } = await supabaseAdmin
+        .from('quiz_results')
+        .select(cols)
+        .eq('quiz_id', quizId)
+        .or(ors.join(','))
+        .order('id', { ascending: false })
+        .limit(200));
+      if (!error) break;
+      const miss = error.code === '42703' || error.code === 'PGRST204' || /column|schema cache/i.test(error.message || '');
+      if (miss && cols.includes(', abandoned')) { cols = cols.replace(', abandoned', ''); continue; }
+      if (miss && cols.includes(', correct_count')) { cols = cols.replace(', correct_count', ''); continue; }
+      if (miss && cols.includes(', guesses_used')) { cols = cols.replace(', guesses_used', ''); continue; }
+      console.error('quiz_results restore select error', error);
+      return NextResponse.json({ found: false });
+    }
+
+    const all = rows || [];
+    // Prefer genuine completions over abandon-flush (0-score) rows when we can tell.
+    const completed = all.filter((r) => r.abandoned !== true);
+    const pool = completed.length ? completed : all;
+    if (!pool.length) return NextResponse.json({ found: false });
+    let best = pool[0];
+    for (const r of pool) if ((Number(r.score) || 0) > (Number(best.score) || 0)) best = r; // ties keep the newest (rows are id-desc)
+
+    return NextResponse.json({
+      found: true,
+      score: Number(best.score) || 0,
+      total: Number(best.total) || 0,
+      correct: best.correct_count == null ? null : Number(best.correct_count),
+      guessesUsed: best.guesses_used == null ? null : Number(best.guesses_used),
+      timeElapsed: best.time_elapsed == null ? null : Number(best.time_elapsed),
+      createdAt: best.created_at || null,
+    });
+  } catch (e) {
+    return NextResponse.json({ found: false });
+  }
+}
