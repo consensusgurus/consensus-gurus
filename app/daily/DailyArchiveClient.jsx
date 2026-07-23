@@ -259,8 +259,7 @@ export default function DailyArchiveClient({ games = [], today = '' }) {
   }).filter((grp) => grp.games.length);
 
   const me = combined && combined.me;
-  const myRow = me && myKey ? (combined.overall || []).find((r) => r.userKey === myKey) : null;
-  const myName = myRow ? myRow.username : null;
+  const myName = me ? me.username : null;
 
   // Rival hook for the scoreboard card: the player directly ahead of you today.
   let rivalAv = '★';
@@ -317,14 +316,16 @@ export default function DailyArchiveClient({ games = [], today = '' }) {
         .dl-sub{margin:0;font-size:14.5px;font-weight:500;color:${FADED};line-height:1.55;max-width:620px;}
         .dl-day{display:flex;flex-direction:column;gap:13px;justify-content:center;background:#fff;color:${INK};border:1px solid ${LINE};border-radius:16px;padding:18px 20px;box-shadow:0 6px 22px rgba(14,29,64,0.08);min-width:300px;}
         .dl-day-top{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;}
-        .dl-day-name{font-size:15px;font-weight:800;letter-spacing:-.2px;color:${INK};line-height:1.15;margin-top:3px;max-width:190px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
-        .dl-day-kick{font-family:${MONO};font-size:9.5px;letter-spacing:.16em;text-transform:uppercase;color:${FADED};font-weight:500;}
+        .dl-day-idrow{display:flex;align-items:baseline;gap:8px;min-width:0;}
+        .dl-day-name{font-size:14px;font-weight:800;letter-spacing:-.2px;color:${INK};line-height:1.1;max-width:160px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+        .dl-day-kick{font-family:${MONO};font-size:9.5px;letter-spacing:.16em;text-transform:uppercase;color:${FADED};font-weight:500;flex:0 0 auto;}
         .dl-streak{display:inline-flex;align-items:center;gap:6px;background:rgba(232,180,58,0.15);border:1px solid rgba(232,180,58,0.42);border-radius:999px;padding:3px 10px;}
         .dl-streak b{color:#8a6d1f;font-size:13px;font-weight:900;line-height:1;}
         .dl-streak span{font-family:${MONO};font-size:8.5px;letter-spacing:.1em;text-transform:uppercase;color:#9a7c2e;}
         .dl-day-stats{display:flex;align-items:flex-end;gap:16px;}
         .dl-rk{flex:1 1 auto;min-width:0;}
         .dl-rk .n{font-size:36px;font-weight:900;letter-spacing:-1px;line-height:.9;color:${INK};}
+        .dl-rk .n .ofn{font-size:15px;font-weight:700;letter-spacing:0;color:#9aa3b5;}
         .dl-rk .l{font-family:${MONO};font-size:9px;letter-spacing:.09em;text-transform:uppercase;color:${FADED};margin-top:6px;}
         .dl-rk .l .of{color:#9aa3b5;}
         .dl-mini{text-align:center;padding-bottom:2px;}
@@ -567,22 +568,22 @@ export default function DailyArchiveClient({ games = [], today = '' }) {
             <div className="dl-kick">Source of Truths · Daily · {dateHeadline(today)}</div>
             <h1 className="dl-h1">Daily Games</h1>
             <p className="dl-sub">
-              {activeGames.length} original puzzles, a fresh one in each every day. Play today, chase the leaderboard,
-              or replay any past drop — archive runs never touch your streak.
+              {activeGames.length} original puzzles, a fresh one each and every day. Play today, chase the leaderboard,
+              or replay any past drop. Archive runs never touch your streak.
             </p>
           </div>
 
           <div className="dl-day" role="group" aria-label="Your day">
             <div className="dl-day-top">
-              <div>
-                <div className="dl-day-kick">Your day</div>
-                {myName ? <div className="dl-day-name">{myName}</div> : null}
+              <div className="dl-day-idrow">
+                <span className="dl-day-kick">Your day</span>
+                {myName ? <span className="dl-day-name">{myName}</span> : null}
               </div>
               <div className="dl-streak"><b>{ready ? streak : '—'}</b><span>day streak</span></div>
             </div>
             <div className="dl-day-stats">
               <div className="dl-rk">
-                <div className="n">{me ? `#${me.rank}` : '—'}</div>
+                <div className="n">{me ? <>#{me.rank}{combined.overallField ? <span className="ofn"> of {combined.overallField}</span> : null}</> : '—'}</div>
                 <div className="l">Today&rsquo;s rank{me ? <> <span className="of">· {fmtPts(me.total)}/{combined.maxTotal} pts</span></> : ''}</div>
               </div>
               <div className="dv" />
