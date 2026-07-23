@@ -1,7 +1,6 @@
 'use client';
 import React, { useState, useEffect, useMemo } from 'react';
 import { ChevronDown, ChevronLeft, ChevronRight, UserPlus } from 'lucide-react';
-import DailyCombinedLeaderboard from './DailyCombinedLeaderboard';
 
 // DailyBoardPanel — the on-page "<player> Stats" section, in the light page
 // theme, placed directly under the Challenge / Share actions on every daily-game
@@ -13,9 +12,10 @@ import DailyCombinedLeaderboard from './DailyCombinedLeaderboard';
 //   3. Combined Today — my rank of today's combined (best-N) board
 //   4. <Game> Archive — % of this game's drops I've completed
 // The board area under the tiles is collapsed by default and defaults to Today's
-// daily board; clicking a tile switches the category. Combined Today is the only
-// view that opens a sub-category row (the per-game tabs), via the embedded
-// DailyCombinedLeaderboard. Archive opens this game's drop calendar.
+// daily board; clicking a tile flips the category. Today, All-time and Combined
+// Today all render the same condensed top-10 board style for consistency (the
+// Combined view carries the "best N of M / max pts" caption). Archive opens this
+// game's drop calendar.
 //
 // Self-contained: fetches /api/quiz/daily-combined (me + combined + today's
 // per-game boards) and /api/quiz/daily-game (this game's all-time board + drop
@@ -47,6 +47,7 @@ function etTodayEC() {
   catch (e) { return new Date().toISOString().slice(0, 10); }
 }
 function fmtPts(x) { return x == null ? '' : `${Math.round(Number(x) * 10) / 10} pts`; }
+function fmtNum(x) { return x == null ? '' : String(Math.round(Number(x) * 10) / 10); }
 
 export default function DailyBoardPanel({ self, quizId = null, maxWidth = 620 }) {
   const [ident, setIdent] = useState(null);        // { email, username } from localStorage
@@ -138,9 +139,11 @@ export default function DailyBoardPanel({ self, quizId = null, maxWidth = 620 })
   const totalDrops = drops.length;
   const pct = totalDrops ? Math.round((playedCount / totalDrops) * 100) : null;
 
-  // --- board rows for the simple (this-game) views --------------------------
+  // --- board rows for the condensed views -----------------------------------
   const todayRows = (todayGame && Array.isArray(todayGame.board)) ? todayGame.board : [];
   const allTimeRows = (allTime && Array.isArray(allTime.board)) ? allTime.board : [];
+  const combinedRows = Array.isArray(overallBoard) ? overallBoard : [];
+  const maxTotal = (combined && combined.maxTotal) || 75;
 
   // --- calendar month cells --------------------------------------------------
   const dropByISO = useMemo(() => new Map((drops || []).map((d) => [d.dateISO, d])), [drops]);
@@ -175,10 +178,6 @@ export default function DailyBoardPanel({ self, quizId = null, maxWidth = 620 })
     const el = document.getElementById('daily-join') || document.getElementById('daily-leaderboard');
     if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
   };
-
-  const subtitle = combined
-    ? (combined.gameCount > 1 ? `Best ${combined.bestN} of ${combined.gameCount} · ${combined.maxTotal || 75} pts` : `${combined.maxTotal || 75} pts max`)
-    : ' ';
 
   // A punchy selector tile. `dash` = no rank yet; `big` overrides the numeral
   // (the archive tile shows a percentage).
@@ -250,6 +249,7 @@ export default function DailyBoardPanel({ self, quizId = null, maxWidth = 620 })
         .dbp-lbrow .nm .you{color:${BLUE};font-weight:800;}
         .dbp-lbrow.me .nm{font-weight:800;}
         .dbp-lbrow .vl{font-family:${MONO};font-size:12px;color:${SLATE};flex-shrink:0;}
+        .dbp-lbrow .vl .u{color:#9aa0ab;}
         .dbp-lbempty{font-size:12.5px;color:${FADED};padding:6px 2px;}
 
         .dbp-cal-hd{display:flex;align-items:center;justify-content:space-between;margin-bottom:9px;}
@@ -289,7 +289,7 @@ export default function DailyBoardPanel({ self, quizId = null, maxWidth = 620 })
           <span className="nm">{registered && username ? `${username} Stats` : 'Your Stats'}</span>
         </span>
         {registered
-          ? <span className="s">{subtitle}</span>
+          ? null
           : <button type="button" className="dbp-signup" onClick={goRegister}><UserPlus size={13} strokeWidth={2.4} /> Sign up</button>}
       </div>
 
@@ -301,7 +301,7 @@ export default function DailyBoardPanel({ self, quizId = null, maxWidth = 620 })
       </div>
 
       {open ? (
-        <div className={`dbp-board${sel === 'combined' ? ' plain' : ''}`}>
+        <div className="dbp-board">
           {sel === 'today' ? (
             <>
               <div className="dbp-board-ti">{selfName} &middot; today &middot; top 10</div>
@@ -317,7 +317,10 @@ export default function DailyBoardPanel({ self, quizId = null, maxWidth = 620 })
           ) : null}
 
           {sel === 'combined' ? (
-            <DailyCombinedLeaderboard todayKey={self} quizId={quizId} light allTimeToggle embedded initialTab="overall" />
+            <>
+              <div className="dbp-board-ti">Combined today &middot; top 10{combined && combined.gameCount > 1 ? <> &middot; best {combined.bestN} of {combined.gameCount} &middot; {maxTotal} pts</> : null}</div>
+              {simpleBoard(combinedRows, (r) => <>{fmtNum(r.total)}<span className="u">/{maxTotal}</span></>, 'No combined scores yet. Play a game to get on the board.')}
+            </>
           ) : null}
 
           {sel === 'archive' ? (
@@ -353,8 +356,8 @@ export default function DailyBoardPanel({ self, quizId = null, maxWidth = 620 })
         </div>
       ) : null}
 
-      <button type="button" className="dbp-full" onClick={() => setOpen((v) => !v)} aria-expanded={open}>
-        {open ? 'Hide full standings' : 'Show full standings & every game'}
+      <button type="button" className="dbp-full" onClick={() => { if (open) { setOpen(false); } else { setSel('today'); setOpen(true); } }} aria-expanded={open}>
+        {open ? 'Hide leaderboard' : 'Show leaderboard'}
         <ChevronDown size={14} strokeWidth={2.6} style={{ transform: open ? 'rotate(180deg)' : 'none', transition: 'transform .15s ease' }} />
       </button>
     </div>

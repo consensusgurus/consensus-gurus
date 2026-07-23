@@ -141,6 +141,9 @@ export default function DailyGamesGrid({ self, maxWidth = 640, challengeHref = n
         .dgg-light .dgg-t:hover{border-color:#5b8bff;}
         .dgg-light .dgg-nm{color:#1c1e24;}
         .dgg-light .dgg-p{color:#6b7280;}
+        /* The letter-tile game icons are drawn for a dark ground and wash out on
+           white, so give the icon its own navy chip on the light tiles. */
+        .dgg-light .dgg-art{background:#0e1d40;border-radius:9px;padding:5px;box-sizing:border-box;}
         .dgg-light .dgg-done{background:linear-gradient(0deg,rgba(22,163,74,0.10),rgba(22,163,74,0.10)),#fff;border-color:rgba(34,197,94,0.5);}
         .dgg-light .dgg-done .dgg-art{opacity:.6;}
         .dgg-light .dgg-done .dgg-nm{color:#15803d;}
