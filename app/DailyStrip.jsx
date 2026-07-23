@@ -26,6 +26,9 @@
 //   daily-combined per-game board), never the raw score (owner ruling
 //   2026-07-23: rank after completion, leader before). If the player's row
 //   isn't in the board payload the leader chip stays.
+// - The cell streak badge is the FLAME ICON ONLY (owner 2026-07-23: a 100-day
+//   number would eat the cell); the streak NUMBER lives in the desktop hover
+//   tip, which also names the game's category above its tagline.
 // - Mobile (<=1024px or short landscape): the strip stacks as rows — cap
 //   (wordmark + bar + count on line one; on line two ONLY the overall leader
 //   plate, given the full width, plus the Full board button — ranks 2-3 are
@@ -53,26 +56,26 @@ import useDailyOrder, { sortByDailyOrder } from './useDailyOrder';
 import { hasSundayEdition, isSundayET, SUNDAY_SHORT } from '../lib/sunday-editions';
 
 const GAMES = [
-  { key: 'crux', href: '/crux', name: 'Crux', img: '/games/btn-crux.png', store: 'sot_crux_day', tag: "A clueless crossword" },
-  { key: 'emcee', href: '/emcee', name: 'Emcee', img: '/games/btn-emcee.png', store: 'sot_emcee_day', tag: "The daily mini crossword" },
-  { key: 'garble', href: '/garble', name: 'Garble', img: '/games/btn-garble.png', store: 'sot_garble_day', tag: "Untangle five words" },
-  { key: 'links', href: '/links', name: 'Links', img: '/games/btn-links.png', store: 'sot_links_day', tag: "Four hidden threads" },
-  { key: 'span', href: '/span', name: 'Span', img: '/games/btn-span.png', store: 'sot_span_day', tag: "Cross the map" },
-  { key: 'dating', href: '/dating', name: 'Dating', img: '/games/btn-dating.png', store: 'sot_dating_day', tag: "Put history in order" },
-  { key: 'tally', href: '/tally', name: 'Tally', img: '/games/btn-tally.png', store: 'sot_tally_day', tag: "Balance the books" },
-  { key: 'suds', href: '/suds', name: 'Suds', img: '/games/btn-suds.png', store: 'sot_suds_day', tag: "The daily sudoku" },
-  { key: 'carve', href: '/carve', name: 'Carve', img: '/games/btn-carve.png', store: 'sot_carve_day', tag: "Equal-sum blocks" },
-  { key: 'extra', href: '/extra', name: 'Extra', img: '/games/btn-extra.png', store: 'sot_extra_day', tag: "Name the story" },
-  { key: 'stet', href: '/stet', name: 'Stet', img: '/games/btn-stet.png', store: 'sot_stet_day', tag: "Spot the error, fix the copy" },
-  { key: 'outwit', href: '/outwit', name: 'Outwit', img: '/games/btn-outwit.png', store: 'sot_outwit_day', tag: "Beat the crowd" },
-  { key: 'outrank', href: '/outrank', name: 'Outrank', img: '/games/btn-outrank.png', store: 'sot_outrank_day', tag: "Call the crowd's order" },
-  { key: 'tuck', href: '/tuck', name: 'Tuck', img: '/games/btn-tuck.png', store: 'sot_tuck_day', tag: "Same letters, highest score wins" },
-  { key: 'alibi', href: '/alibi', name: 'Alibi', img: '/games/btn-alibi.png', store: 'sot_alibi_day', tag: "Solve the nightly whodunit" },
-  { key: 'cipher', href: '/cipher', name: 'Cipher', img: '/games/btn-cipher.png', store: 'sot_cipher_day', tag: "Crack the letter math" },
-  { key: 'ping', href: '/ping', name: 'Ping', img: '/games/btn-ping.png', store: 'sot_ping_day', tag: "Guess the secret city" },
-  { key: 'warmer', href: '/warmer', name: 'Warmer', img: '/games/btn-warmer.png', store: 'sot_warmer_day', tag: "Hotter or colder" },
-  { key: 'jester', href: '/jester', name: 'Jesters', img: '/games/btn-jester.png', store: 'sot_jester_day', tag: "Seat the court" },
-  { key: 'sworn', href: '/sworn', name: 'Sworn', img: '/games/btn-sworn.png', store: 'sot_sworn_day', tag: "Spot the liars" },
+  { key: 'crux', href: '/crux', name: 'Crux', img: '/games/btn-crux.png', store: 'sot_crux_day', tag: "A clueless crossword" , cat: 'Word' },
+  { key: 'emcee', href: '/emcee', name: 'Emcee', img: '/games/btn-emcee.png', store: 'sot_emcee_day', tag: "The daily mini crossword" , cat: 'Word' },
+  { key: 'garble', href: '/garble', name: 'Garble', img: '/games/btn-garble.png', store: 'sot_garble_day', tag: "Untangle five words" , cat: 'Word' },
+  { key: 'links', href: '/links', name: 'Links', img: '/games/btn-links.png', store: 'sot_links_day', tag: "Four hidden threads" , cat: 'Word' },
+  { key: 'span', href: '/span', name: 'Span', img: '/games/btn-span.png', store: 'sot_span_day', tag: "Cross the map" , cat: 'Geography' },
+  { key: 'dating', href: '/dating', name: 'Dating', img: '/games/btn-dating.png', store: 'sot_dating_day', tag: "Put history in order" , cat: 'History' },
+  { key: 'tally', href: '/tally', name: 'Tally', img: '/games/btn-tally.png', store: 'sot_tally_day', tag: "Balance the books" , cat: 'Numbers' },
+  { key: 'suds', href: '/suds', name: 'Suds', img: '/games/btn-suds.png', store: 'sot_suds_day', tag: "The daily sudoku" , cat: 'Numbers' },
+  { key: 'carve', href: '/carve', name: 'Carve', img: '/games/btn-carve.png', store: 'sot_carve_day', tag: "Equal-sum blocks" , cat: 'Numbers' },
+  { key: 'extra', href: '/extra', name: 'Extra', img: '/games/btn-extra.png', store: 'sot_extra_day', tag: "Name the story" , cat: 'History' },
+  { key: 'stet', href: '/stet', name: 'Stet', img: '/games/btn-stet.png', store: 'sot_stet_day', tag: "Spot the error, fix the copy" , cat: 'Word' },
+  { key: 'outwit', href: '/outwit', name: 'Outwit', img: '/games/btn-outwit.png', store: 'sot_outwit_day', tag: "Beat the crowd" , cat: 'Crowd Psychology' },
+  { key: 'outrank', href: '/outrank', name: 'Outrank', img: '/games/btn-outrank.png', store: 'sot_outrank_day', tag: "Call the crowd's order" , cat: 'Crowd Psychology' },
+  { key: 'tuck', href: '/tuck', name: 'Tuck', img: '/games/btn-tuck.png', store: 'sot_tuck_day', tag: "Same letters, highest score wins" , cat: 'Word' },
+  { key: 'alibi', href: '/alibi', name: 'Alibi', img: '/games/btn-alibi.png', store: 'sot_alibi_day', tag: "Solve the nightly whodunit" , cat: 'Logic' },
+  { key: 'cipher', href: '/cipher', name: 'Cipher', img: '/games/btn-cipher.png', store: 'sot_cipher_day', tag: "Crack the letter math" , cat: 'Numbers' },
+  { key: 'ping', href: '/ping', name: 'Ping', img: '/games/btn-ping.png', store: 'sot_ping_day', tag: "Guess the secret city" , cat: 'Geography' },
+  { key: 'warmer', href: '/warmer', name: 'Warmer', img: '/games/btn-warmer.png', store: 'sot_warmer_day', tag: "Hotter or colder" , cat: 'Word' },
+  { key: 'jester', href: '/jester', name: 'Jesters', img: '/games/btn-jester.png', store: 'sot_jester_day', tag: "Seat the court" , cat: 'Logic' },
+  { key: 'sworn', href: '/sworn', name: 'Sworn', img: '/games/btn-sworn.png', store: 'sot_sworn_day', tag: "Spot the liars" , cat: 'Logic' },
 ];
 
 const NAME_BY_KEY = GAMES.reduce((m, g) => { m[g.key] = g.name; return m; }, {});
@@ -342,7 +345,7 @@ export default function DailyStrip({ board = null }) {
         .dstrip-lead.none{color:#6a80a8;font-weight:600;}
         /* active streak badge (2+ consecutive days), top-left corner; shifts
            below the Sunday chip when both render */
-        .dstrip-flame{position:absolute;top:7px;left:5px;height:16px;box-sizing:border-box;display:flex;align-items:center;gap:1px;font-size:9px;font-weight:800;font-variant-numeric:tabular-nums;color:#f8b84a;background:rgba(232,180,58,0.13);border:1px solid rgba(232,180,58,0.35);border-radius:5px;padding:0 4px 0 2px;line-height:1;pointer-events:none;}
+        .dstrip-flame{position:absolute;top:7px;left:5px;width:16px;height:16px;box-sizing:border-box;display:flex;align-items:center;justify-content:center;color:#f8b84a;background:rgba(232,180,58,0.13);border:1px solid rgba(232,180,58,0.35);border-radius:99px;pointer-events:none;}
         .dstrip-flame svg{flex:none;}
         .dstrip-flame.shift{top:24px;}
         /* finished cell: the player's rank in that game replaces the leader chip */
@@ -353,7 +356,9 @@ export default function DailyStrip({ board = null }) {
         .dstrip-cell.playall .pa-ic{width:30px;height:30px;border-radius:99px;border:1.5px dashed #3a537f;color:#9fb0d4;display:flex;align-items:center;justify-content:center;}
         .dstrip-cell.playall .nm{color:#f5d878;font-size:10px;white-space:normal;text-align:center;line-height:1.3;}
         /* hover blurb: the one-line description fades in over the cell */
-        .dstrip-tip{position:absolute;inset:0;z-index:2;display:flex;align-items:center;justify-content:center;text-align:center;padding:6px 8px;background:rgba(11,23,51,0.96);color:#eaf0fb;font-size:10.5px;font-weight:700;line-height:1.4;opacity:0;transition:opacity .14s ease;pointer-events:none;}
+        .dstrip-tip{position:absolute;inset:0;z-index:2;display:flex;flex-direction:column;gap:2px;align-items:center;justify-content:center;text-align:center;padding:6px 8px;background:rgba(11,23,51,0.96);color:#eaf0fb;font-size:10.5px;font-weight:700;line-height:1.35;opacity:0;transition:opacity .14s ease;pointer-events:none;}
+        .dstrip-tip .tip-cat{font-size:8px;font-weight:800;letter-spacing:.12em;text-transform:uppercase;color:#8fa3cf;}
+        .dstrip-tip .tip-fl{display:flex;align-items:center;gap:3px;color:#f8b84a;font-size:9.5px;font-weight:800;}
         .dstrip-cell:hover .dstrip-tip,.dstrip-cell:focus-visible .dstrip-tip{opacity:1;}
         @media (hover:none){.dstrip-tip{display:none;}}
         /* expanded detail: attached inside the same pill */
@@ -436,17 +441,19 @@ export default function DailyStrip({ board = null }) {
           .dstrip-t1{margin:0;padding:5px 10px;flex:1 1 auto;min-width:0;}
           .dstrip-t1 .nm1{font-size:12.5px;}
           .dstrip-exp{margin:0;align-self:auto;width:auto;flex:none;}
-          .dstrip-hero{flex:none;flex-direction:row;flex-wrap:wrap;align-items:center;gap:6px 10px;border-right:none;border-bottom:1px solid rgba(255,255,255,0.09);padding:10px 13px;}
-          .dstrip-hero .hd-eb{flex:1 1 100%;}
-          .dstrip-hero .hd-row{flex:1 1 auto;}
+          /* mobile hero: a plain column stack, so the meta lines (leader, then
+             the streak "keep it alive") sit directly ABOVE the buttons row
+             (owner 2026-07-23). */
+          .dstrip-hero{flex:none;flex-direction:column;align-items:stretch;gap:6px;border-right:none;border-bottom:1px solid rgba(255,255,255,0.09);padding:10px 13px;}
           .dstrip-hero .hd-row img{height:32px;}
           .dstrip-hero .hd-nm{font-size:16px;}
-          .dstrip-hero .hd-meta{flex:1 1 100%;order:4;}
-          .dstrip-hero .hd-ctas{flex:none;}
-          .dstrip-hero .hd-play,.dstrip-hero .hd-all{flex:none;padding:7px 12px;}
+          .dstrip-hero .hd-ctas{width:100%;}
+          .dstrip-hero .hd-play{flex:1.4;}
+          .dstrip-hero .hd-all{flex:1;}
           .dstrip-cells{overflow-x:auto;-webkit-overflow-scrolling:touch;grid-template-columns:none;grid-template-rows:repeat(2,1fr);grid-auto-flow:column;grid-auto-columns:minmax(76px,1fr);min-width:0;}
           .dstrip-cell{border-top:none;border-left:1px solid rgba(255,255,255,0.055);padding:15px 5px 8px;}
-          .dstrip-flame{height:14px;font-size:8.5px;padding:0 3px 0 2px;}
+          .dstrip-flame{width:13px;height:13px;top:6px;left:4px;}
+          .dstrip-flame svg{width:8px;height:8px;}
           .dstrip-flame.shift{top:22px;}
           .dstrip-cell:nth-child(-n+2){border-left:none;}
           .dstrip-cell:nth-child(10n+1){border-left:1px solid rgba(255,255,255,0.055);}
@@ -514,7 +521,7 @@ export default function DailyStrip({ board = null }) {
               ) : null}
               <div className="hd-ctas">
                 <a href={nextGame.href} className="hd-play"><Play size={11} fill="#1c1e24" strokeWidth={0} />{inprog.has(nextGame.key) ? 'Resume' : 'Play now'}</a>
-                <a href="/daily" className="hd-all">Play all {left}</a>
+                <a href="/daily" className="hd-all">See all {left}</a>
               </div>
             </div>
           ) : (
@@ -550,11 +557,15 @@ export default function DailyStrip({ board = null }) {
                     <span className="dstrip-sun" aria-hidden="true">{SUNDAY_SHORT}</span>
                   ) : null}
                   {st ? (
-                    <span className={`dstrip-flame${sun ? ' shift' : ''}`} aria-hidden="true"><Flame size={9} strokeWidth={2.6} />{st}</span>
+                    <span className={`dstrip-flame${sun ? ' shift' : ''}`} aria-hidden="true"><Flame size={10} strokeWidth={2.6} /></span>
                   ) : null}
                   <img src={g.img} alt="" aria-hidden="true" />
                   <span className="nm">{g.name}</span>
-                  <span className="dstrip-tip" aria-hidden="true">{g.tag}</span>
+                  <span className="dstrip-tip" aria-hidden="true">
+                    <span className="tip-cat">{g.cat}</span>
+                    <span>{g.tag}</span>
+                    {st ? <span className="tip-fl"><Flame size={9} strokeWidth={2.6} />{st}-day streak</span> : null}
+                  </span>
                   {hasBoard && !open ? (
                     rk ? <span className={`dstrip-you${rk === 1 ? ' first' : ''}`}>You · <b>#{rk}</b></span>
                       : lead ? <span className="dstrip-lead"><Crown size={10} /><span>{lead}</span></span> : <span className="dstrip-lead none">—</span>
@@ -563,9 +574,9 @@ export default function DailyStrip({ board = null }) {
               );
             })}
             {nextGame ? (
-              <a href="/daily" className="dstrip-cell playall" aria-label={`Play all daily games — ${left} left today`}>
+              <a href="/daily" className="dstrip-cell playall" aria-label={`See all daily games — ${left} left today`}>
                 <span className="pa-ic" aria-hidden="true"><Play size={12} strokeWidth={2.2} /></span>
-                <span className="nm">Play all · {left} left</span>
+                <span className="nm">See all · {left} left</span>
               </a>
             ) : null}
           </div>
