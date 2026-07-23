@@ -221,7 +221,7 @@ export default function DailyArchiveClient({ games = [], today = '' }) {
     })).then((res) => {
       if (!alive) return;
       const m = {};
-      for (const it of res) m[it.k] = it.at ? { rank: it.at.myRank, field: it.at.field } : null;
+      for (const it of res) m[it.k] = it.at ? { rank: it.at.myRank, field: it.at.field, leader: (it.at.board && it.at.board[0] && it.at.board[0].username) || null } : null;
       setAllTimeByKey(m);
     });
 
@@ -341,7 +341,7 @@ export default function DailyArchiveClient({ games = [], today = '' }) {
         .dl-row{border:1px solid ${LINE};border-radius:14px;background:#fff;transition:border-color .15s,box-shadow .15s;}
         .dl-row:hover{box-shadow:0 3px 12px rgba(14,29,64,0.06);}
         .dl-row.open{border-color:#c9d3e5;box-shadow:0 8px 26px rgba(14,29,64,0.09);}
-        .dl-rmain{display:grid;grid-template-columns:minmax(0,1fr) 88px 88px 160px auto;gap:16px;align-items:center;padding:13px 16px;}
+        .dl-rmain{display:grid;grid-template-columns:minmax(0,1fr) 108px 108px 150px auto;gap:16px;align-items:center;padding:13px 16px;}
         .dl-rid{display:flex;align-items:center;gap:12px;min-width:0;}
         .dl-rbeat{font-size:11.5px;font-weight:600;color:${FADED};margin-top:4px;line-height:1.3;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
         .dl-rbeat b{color:${INK};font-weight:800;}
@@ -352,6 +352,9 @@ export default function DailyArchiveClient({ games = [], today = '' }) {
         .dl-rrk.sub{font-size:13px;font-weight:800;color:#8a92a6;}
         .dl-rlink{text-decoration:none;cursor:pointer;}
         .dl-rlink:hover{text-decoration:underline;}
+        .dl-rled{font-size:10.5px;font-weight:600;color:${MUTED};margin-top:5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+        .dl-rled .dl-crown{color:${GOLD};}
+        .dl-rled.dim{color:#9aa3b5;font-weight:500;}
         /* archive cell = calendar expander */
         .dl-rarch{display:block;text-align:left;background:none;border:none;padding:0;margin:0;font-family:inherit;cursor:pointer;min-width:0;width:100%;}
         .dl-rarch .cx{display:inline-block;color:${MUTED};transition:transform .15s ease;font-size:10px;vertical-align:1px;}
@@ -367,6 +370,9 @@ export default function DailyArchiveClient({ games = [], today = '' }) {
         .dl-ract .dl-play{min-width:104px;}
         .dl-ract .dl-ghost{min-width:92px;}
         .dl-exp{padding:0 16px 15px;}
+        .dl-exp.two{display:grid;grid-template-columns:1fr 1fr;gap:14px;align-items:start;}
+        @media(max-width:900px){.dl-exp.two{grid-template-columns:1fr;}}
+        .dl-exp-col{min-width:0;}
         @media(max-width:760px){
           .dl-rmain{grid-template-columns:1fr;gap:12px;}
           .dl-rstat{display:flex;align-items:baseline;gap:9px;flex-wrap:wrap;}
@@ -664,8 +670,10 @@ function GameArt({ g, size = 52 }) {
 
 // ---------------------------------------------------------------- one game card
 function GameCard({ g, ready, played, progress, board, myKey, allTime, today }) {
-  const [panel, setPanel] = useState(null); // null | 'standings' | 'archive'
-  const toggle = (p) => setPanel((cur) => (cur === p ? null : p));
+  // Standings and Archive open independently so they can sit side by side on a
+  // wide screen (each is too tall to be useful full-width).
+  const [openStandings, setOpenStandings] = useState(false);
+  const [openArch, setOpenArch] = useState(false);
 
   const total = g.puzzles.length;
   const playedCount = g.puzzles.reduce((n, p) => n + (played.has(`${g.key}:${p.num}`) ? 1 : 0), 0);
@@ -678,25 +686,21 @@ function GameCard({ g, ready, played, progress, board, myKey, allTime, today }) 
   const field = board ? (board.field || (board.board ? board.board.length : 0)) : 0;
   const atRank = allTime ? allTime.rank : null;
   const atField = allTime ? allTime.field : null;
+  const atLeader = allTime ? allTime.leader : null;
+  const anyOpen = openStandings || openArch;
 
   return (
-    <section className={`dl-row${panel ? ' open' : ''}`}>
+    <section className={`dl-row${anyOpen ? ' open' : ''}`}>
       <div className="dl-rmain">
-        {/* identity + who leads */}
         <div className="dl-rid">
           <GameArt g={g} size={44} />
           <div style={{ minWidth: 0 }}>
             <a className="dl-cname" href={g.path}>{g.name}</a>
             <div className="dl-ctag">{g.tag}</div>
-            <div className="dl-rbeat">
-              {leader
-                ? <><span className="dl-crown" aria-hidden="true">♛</span> led by <b>{leader.username}</b></>
-                : <>No scores yet &middot; be the first</>}
-            </div>
           </div>
         </div>
 
-        {/* rank today */}
+        {/* rank today + who leads today */}
         <div className="dl-rstat">
           <div className="dl-rlbl">Rank Today</div>
           {ready && myRow ? (
@@ -706,9 +710,10 @@ function GameCard({ g, ready, played, progress, board, myKey, allTime, today }) 
           ) : (
             <a className="dl-rrk sub dl-rlink" href={g.path}>Play to rank &rarr;</a>
           )}
+          {leader ? <div className="dl-rled"><span className="dl-crown" aria-hidden="true">♛</span> {leader.username}</div> : <div className="dl-rled dim">no scores yet</div>}
         </div>
 
-        {/* rank all-time (per-game cumulative) */}
+        {/* rank all-time + who leads all-time */}
         <div className="dl-rstat">
           <div className="dl-rlbl">Rank All-Time</div>
           {atRank ? (
@@ -716,10 +721,11 @@ function GameCard({ g, ready, played, progress, board, myKey, allTime, today }) 
           ) : (
             <div className="dl-rrk sub">{allTime === undefined ? '…' : '—'}</div>
           )}
+          {atLeader ? <div className="dl-rled"><span className="dl-crown" aria-hidden="true">♛</span> {atLeader}</div> : (allTime === undefined ? <div className="dl-rled dim">&nbsp;</div> : <div className="dl-rled dim">no scores yet</div>)}
         </div>
 
-        {/* archive completion — the whole cell is the calendar expander */}
-        <button type="button" className={`dl-rarch${panel === 'archive' ? ' on' : ''}`} aria-expanded={panel === 'archive'} onClick={() => toggle('archive')}>
+        {/* archive completion — expander */}
+        <button type="button" className={`dl-rarch${openArch ? ' on' : ''}`} aria-expanded={openArch} onClick={() => setOpenArch((v) => !v)}>
           <div className="dl-rlbl">Archive complete <span className="cx" aria-hidden="true">&#9662;</span></div>
           <div className="dl-rprog"><div style={{ width: `${pct}%`, background: g.accent }} /></div>
           <div className="dl-rprogt"><b>{playedCount}</b> of {total} &middot; {pct}%</div>
@@ -728,21 +734,24 @@ function GameCard({ g, ready, played, progress, board, myKey, allTime, today }) 
         {/* actions: Play/Resume (fixed width) + Standings */}
         <div className="dl-ract">
           <a className="dl-btn dl-play" href={g.path} style={{ background: g.accent }}>{resumeToday ? 'Resume →' : 'Play →'}</a>
-          <button type="button" className={`dl-btn dl-ghost${panel === 'standings' ? ' on' : ''}`} aria-expanded={panel === 'standings'} onClick={() => toggle('standings')}>Standings</button>
+          <button type="button" className={`dl-btn dl-ghost${openStandings ? ' on' : ''}`} aria-expanded={openStandings} onClick={() => setOpenStandings((v) => !v)}>Standings</button>
         </div>
       </div>
 
-      {/* Standings expands to the game-page board: this-game (daily), Overall,
-          and the Today / All-time toggle — the exact DailyCombinedLeaderboard. */}
-      {panel === 'standings' && (
-        <div className="dl-exp">
-          <DailyCombinedLeaderboard todayKey={g.key} quizId={todayQuiz} light allTimeToggle embedded />
-        </div>
-      )}
-      {/* Archive expands to the same month calendar as the game page. */}
-      {panel === 'archive' && (
-        <div className="dl-exp">
-          <ArchiveCalendar g={g} played={played} today={today} />
+      {/* Standings (game-page board: daily + Overall + Today/All-time) and the
+          Archive calendar. Side by side on widescreen when both are open. */}
+      {anyOpen && (
+        <div className={`dl-exp${openStandings && openArch ? ' two' : ''}`}>
+          {openStandings && (
+            <div className="dl-exp-col">
+              <DailyCombinedLeaderboard todayKey={g.key} quizId={todayQuiz} light allTimeToggle embedded />
+            </div>
+          )}
+          {openArch && (
+            <div className="dl-exp-col">
+              <ArchiveCalendar g={g} played={played} today={today} />
+            </div>
+          )}
         </div>
       )}
     </section>
