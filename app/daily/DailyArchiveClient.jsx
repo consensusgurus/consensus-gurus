@@ -341,11 +341,11 @@ export default function DailyArchiveClient({ games = [], today = '' }) {
         .dl-row{border:1px solid ${LINE};border-radius:14px;background:#fff;transition:border-color .15s,box-shadow .15s;}
         .dl-row:hover{box-shadow:0 3px 12px rgba(14,29,64,0.06);}
         .dl-row.open{border-color:#c9d3e5;box-shadow:0 8px 26px rgba(14,29,64,0.09);}
-        .dl-rmain{display:grid;grid-template-columns:minmax(0,1fr) 100px 100px auto 158px;gap:16px;align-items:center;padding:13px 16px;cursor:pointer;}
+        .dl-rmain{display:grid;grid-template-columns:minmax(0,1fr) 100px 100px auto auto;gap:16px;align-items:center;padding:13px 16px;cursor:pointer;}
         .dl-rid{display:flex;align-items:center;gap:12px;min-width:0;}
         .dl-ridtext{flex:1 1 auto;min-width:0;}
-        .dl-rid-play{flex:0 0 auto;min-width:96px;text-align:center;}
-        .dl-stbtn{justify-self:start;display:inline-flex;align-items:center;gap:6px;font-family:${SANS};font-weight:800;font-size:12.5px;color:${MUTED};background:#fff;border:1px solid ${LINE};border-radius:10px;padding:9px 13px;white-space:nowrap;}
+        .dl-rid .dl-rid-play{flex:0 0 auto;width:132px;box-sizing:border-box;text-align:center;}
+        .dl-stbtn{justify-self:start;width:132px;box-sizing:border-box;justify-content:center;display:inline-flex;align-items:center;gap:6px;font-family:${SANS};font-weight:800;font-size:12.5px;color:${MUTED};background:#fff;border:1px solid ${LINE};border-radius:10px;padding:9px 13px;white-space:nowrap;}
         .dl-stbtn .cx{font-size:10px;color:${MUTED};transition:transform .15s ease;}
         .dl-stbtn.on{border-color:${BLUE};color:${BLUE};}
         .dl-stbtn.on .cx{transform:rotate(180deg);color:${BLUE};}
@@ -414,6 +414,15 @@ export default function DailyArchiveClient({ games = [], today = '' }) {
         .dl-cal-key{display:flex;flex-wrap:wrap;gap:10px 14px;margin-top:10px;font-size:11px;color:${FADED};}
         .dl-cal-key span{display:inline-flex;align-items:center;gap:5px;}
         .dl-cal-key .sw{width:11px;height:11px;border-radius:3px;flex-shrink:0;}
+        .dl-cal-header{display:flex;align-items:baseline;justify-content:space-between;gap:10px;margin-bottom:12px;}
+        .dl-cal-header .t{font-size:11px;letter-spacing:.16em;text-transform:uppercase;color:${MUTED};font-weight:800;}
+        .dl-cal-header .s{font-size:11px;letter-spacing:.04em;color:${FADED};font-weight:600;white-space:nowrap;}
+        .dl-cal-mo2{font-size:12px;font-weight:800;color:${MUTED};margin:14px 0 8px;}
+        .dl-cal-month.faded{opacity:.42;pointer-events:none;}
+        .dl-cal-wd.sun{color:#b45309;font-weight:700;}
+        .dl-cal-cell.none.sun{background:#fdf7ee;color:#c8a24a;}
+        a.dl-cal-cell.unplayed.sun{background:#fdf3e0;border-color:rgba(180,83,9,0.28);color:#9a6a12;}
+        a.dl-cal-cell.played.sun{box-shadow:0 0 0 1.5px rgba(180,83,9,0.42);}
 
         .dl-card{border:1px solid ${LINE};border-radius:16px;background:#fff;transition:border-color .15s,box-shadow .15s;}
         .dl-card:hover{box-shadow:0 4px 16px rgba(14,29,64,0.06);}
@@ -748,7 +757,7 @@ function GameCard({ g, ready, played, progress, board, myKey, allTime, today }) 
       {open && (
         <div className="dl-exp two">
           <div className="dl-exp-col">
-            <DailyCombinedLeaderboard todayKey={g.key} quizId={todayQuiz} light allTimeToggle embedded />
+            <DailyCombinedLeaderboard todayKey={g.key} quizId={todayQuiz} light allTimeToggle embedded dense />
           </div>
           <div className="dl-exp-col">
             <ArchiveCalendar g={g} played={played} today={today} />
@@ -773,48 +782,77 @@ function ArchiveCalendar({ g, played, today }) {
   const earliest = isos.length ? isos[0].slice(0, 7) : todayISO.slice(0, 7);
   const latest = todayISO.slice(0, 7);
   const [month, setMonth] = useState(latest); // 'YYYY-MM'
-  const [y, m] = month.split('-').map(Number);
   const firstNum = g.puzzles[0] ? g.puzzles[0].num : null;
-  const firstWeekday = new Date(Date.UTC(y, m - 1, 1)).getUTCDay();
-  const daysInMonth = new Date(Date.UTC(y, m, 0)).getUTCDate();
-  const cells = [];
-  for (let k = 0; k < firstWeekday; k++) cells.push(null);
-  for (let d = 1; d <= daysInMonth; d++) cells.push(d);
-  const shift = (delta) => {
-    let yy = y, mm = m + delta;
+  const total = g.puzzles.length;
+  const playedCount = g.puzzles.reduce((n, p) => n + (played.has(`${g.key}:${p.num}`) ? 1 : 0), 0);
+  const pct = total ? Math.round((playedCount / total) * 100) : 0;
+  const addMonths = (ym, delta) => {
+    let [yy, mm] = ym.split('-').map(Number);
+    mm += delta;
     while (mm < 1) { mm += 12; yy -= 1; }
     while (mm > 12) { mm -= 12; yy += 1; }
-    setMonth(`${yy}-${String(mm).padStart(2, '0')}`);
+    return `${yy}-${String(mm).padStart(2, '0')}`;
   };
   const canPrev = month > earliest;
   const canNext = month < latest;
 
-  return (
-    <div className="dl-cal">
-      <div className="dl-cal-hd">
-        <span className="dl-cal-mo">{MONTH_NAMES[(m - 1) % 12]} {y}</span>
-        <div className="dl-cal-nav">
-          <button type="button" onClick={() => shift(-1)} disabled={!canPrev} aria-label="Previous month">‹</button>
-          <button type="button" onClick={() => shift(1)} disabled={!canNext} aria-label="Next month">›</button>
+  // Render one month's grid. `faded` = a non-interactive preview that fills the
+  // vertical space next to the (taller) leaderboard; its label shows so it reads
+  // as the month the back arrow rolls up to.
+  const monthGrid = (ym, faded) => {
+    const [yy, mm] = ym.split('-').map(Number);
+    const fw = new Date(Date.UTC(yy, mm - 1, 1)).getUTCDay();
+    const dim = new Date(Date.UTC(yy, mm, 0)).getUTCDate();
+    const cells = [];
+    for (let k = 0; k < fw; k++) cells.push(null);
+    for (let d = 1; d <= dim; d++) cells.push(d);
+    return (
+      <div className={`dl-cal-month${faded ? ' faded' : ''}`} key={ym + (faded ? 'f' : '')} aria-hidden={faded || undefined}>
+        {faded ? <div className="dl-cal-mo2">{MONTH_NAMES[(mm - 1) % 12]} {yy}</div> : null}
+        <div className="dl-cal-grid">
+          {CAL_WD.map((w, i) => <div className={`dl-cal-wd${i === 0 ? ' sun' : ''}`} key={`wd${i}`}>{w}</div>)}
+          {cells.map((d, i) => {
+            if (d == null) return <div className="dl-cal-cell empty" key={`e${i}`} />;
+            const iso = `${ym}-${String(d).padStart(2, '0')}`;
+            const p = byISO.get(iso);
+            const isToday = iso === todayISO;
+            const sun = new Date(Date.UTC(yy, mm - 1, d)).getUTCDay() === 0 ? ' sun' : '';
+            if (!p) return <div className={`dl-cal-cell none${isToday ? ' today' : ''}${sun}`} key={iso}>{d}</div>;
+            const isPlayed = played.has(`${g.key}:${p.num}`);
+            const cls = `dl-cal-cell ${isPlayed ? 'played' : 'unplayed'}${isToday ? ' today' : ''}${sun}`;
+            if (faded) return <div className={cls} key={iso}>{d}</div>;
+            const href = p.num === firstNum ? g.path : `${g.path}?p=${p.num}`;
+            return <a className={cls} href={href} key={iso} title={isPlayed ? 'Played' : 'Play this drop'}>{d}</a>;
+          })}
         </div>
       </div>
-      <div className="dl-cal-grid">
-        {CAL_WD.map((w, i) => <div className="dl-cal-wd" key={`wd${i}`}>{w}</div>)}
-        {cells.map((d, i) => {
-          if (d == null) return <div className="dl-cal-cell empty" key={`e${i}`} />;
-          const iso = `${month}-${String(d).padStart(2, '0')}`;
-          const p = byISO.get(iso);
-          const isToday = iso === todayISO;
-          if (!p) return <div className={`dl-cal-cell none${isToday ? ' today' : ''}`} key={iso}>{d}</div>;
-          const isPlayed = played.has(`${g.key}:${p.num}`);
-          const href = p.num === firstNum ? g.path : `${g.path}?p=${p.num}`;
-          return <a className={`dl-cal-cell ${isPlayed ? 'played' : 'unplayed'}${isToday ? ' today' : ''}`} href={href} key={iso} title={isPlayed ? 'Played' : 'Play this drop'}>{d}</a>;
-        })}
+    );
+  };
+
+  const [cy, cm] = month.split('-').map(Number);
+  const prevYM = addMonths(month, -1);
+  const showFaded = prevYM >= earliest;
+
+  return (
+    <div className="dl-cal">
+      <div className="dl-cal-header">
+        <span className="t">{g.name} Archive</span>
+        <span className="s">{playedCount} of {total} &middot; {pct}% complete</span>
       </div>
+      <div className="dl-cal-hd">
+        <span className="dl-cal-mo">{MONTH_NAMES[(cm - 1) % 12]} {cy}</span>
+        <div className="dl-cal-nav">
+          <button type="button" onClick={() => setMonth((v) => addMonths(v, -1))} disabled={!canPrev} aria-label="Previous month">‹</button>
+          <button type="button" onClick={() => setMonth((v) => addMonths(v, 1))} disabled={!canNext} aria-label="Next month">›</button>
+        </div>
+      </div>
+      {monthGrid(month, false)}
+      {showFaded ? monthGrid(prevYM, true) : null}
       <div className="dl-cal-key">
         <span><span className="sw" style={{ background: '#e8f5ec', border: '1px solid #bfe3ca' }} />Played</span>
         <span><span className="sw" style={{ background: '#fff', border: `1px solid ${LINE}` }} />Unplayed</span>
         <span><span className="sw" style={{ background: '#fff', boxShadow: `0 0 0 2px ${BLUE}` }} />Today</span>
+        <span><span className="sw" style={{ background: '#fdf3e0', border: '1px solid rgba(180,83,9,0.3)' }} />Sunday (bigger)</span>
       </div>
     </div>
   );

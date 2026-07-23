@@ -75,7 +75,7 @@ function tabAccent(th, key) { return th.light ? (key === 'overall' ? th.overallA
 function fmtTime(sec) { if (sec == null) return '—'; const m = Math.floor(sec / 60), s = sec % 60; return `${m}:${String(s).padStart(2, '0')}`; }
 function fmtPts(n) { const v = Math.round(Number(n) * 10) / 10; return Number.isInteger(v) ? String(v) : v.toFixed(1); }
 
-export default function DailyCombinedLeaderboard({ todayKey = null, identity = null, compact = false, quizId = null, light = false, allTimeToggle = false, embedded = false, initialTab = null }) {
+export default function DailyCombinedLeaderboard({ todayKey = null, identity = null, compact = false, quizId = null, light = false, allTimeToggle = false, embedded = false, initialTab = null, dense = false }) {
   const [data, setData] = useState(null);
   const [state, setState] = useState('loading'); // loading | ok | error
   const [tab, setTab] = useState(initialTab || todayKey || 'overall');
@@ -84,7 +84,7 @@ export default function DailyCombinedLeaderboard({ todayKey = null, identity = n
   // Overall/combined board has no all-time dimension, so it always reads today.
   const [gameScope, setGameScope] = useState('today'); // 'today' | 'alltime'
   const [allTimeCache, setAllTimeCache] = useState({}); // gameKey -> { board, field } | 'loading'
-  const th = useMemo(() => theme(light), [light]);
+  const th = useMemo(() => ({ ...theme(light), dense }), [light, dense]);
 
   useEffect(() => {
     let anonId = null, email = null;
@@ -305,19 +305,21 @@ function rowStyle(th, mine, rank) {
 }
 
 function RankNum({ n, th }) {
+  const d = th.dense;
   // Top three get a filled gold/silver/bronze medal badge (light theme).
   if (th.light && n >= 1 && n <= 3) {
+    const sz = d ? 19 : 23;
     return (
-      <span style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', width: 23, height: 23, borderRadius: '50%', background: MEDAL[n - 1], color: '#fff', fontFamily: FONT, fontWeight: 900, fontSize: 13, fontVariantNumeric: 'tabular-nums', boxShadow: '0 1px 2px rgba(20,22,28,0.18)' }}>{n}</span>
+      <span style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', width: sz, height: sz, borderRadius: '50%', background: MEDAL[n - 1], color: '#fff', fontFamily: FONT, fontWeight: 900, fontSize: d ? 11 : 13, fontVariantNumeric: 'tabular-nums', boxShadow: '0 1px 2px rgba(20,22,28,0.18)' }}>{n}</span>
     );
   }
-  return <span style={{ fontFamily: FONT, fontWeight: 800, fontSize: 17, color: n <= 3 ? th.rankTop : th.rankOther, fontVariantNumeric: 'tabular-nums' }}>{n}</span>;
+  return <span style={{ fontFamily: FONT, fontWeight: 800, fontSize: d ? 14 : 17, color: n <= 3 ? th.rankTop : th.rankOther, fontVariantNumeric: 'tabular-nums' }}>{n}</span>;
 }
 
 function PlayerName({ row, mine, th }) {
   const label = row.username;
   return (
-    <span style={{ minWidth: 0, fontFamily: FONT, fontSize: 16, fontWeight: 500, color: th.name, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+    <span style={{ minWidth: 0, fontFamily: FONT, fontSize: th.dense ? 13.5 : 16, fontWeight: 500, color: th.name, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
       {row.userKey ? <a href={`/quizzes/hub?player=${encodeURIComponent(row.userKey)}`} style={{ color: 'inherit', textDecoration: 'none', borderBottom: `1px dotted ${th.nameDot}` }}>{label}</a> : label}
       {mine ? <span style={{ color: th.you, fontWeight: 700 }}> (you)</span> : ''}
     </span>
@@ -332,7 +334,7 @@ function OverallBoard({ data, myKey, maxTotal, gameCount = 10, limit = 10, showM
     return <p style={{ fontFamily: FONT, fontStyle: 'italic', fontSize: 15, color: th.empty }}>No one has posted a daily score yet. Be the first.</p>;
   }
   const totalCell = (v) => (
-    <span style={{ fontFamily: FONT, fontSize: 15, fontWeight: 800, textAlign: 'right', color: th.total, fontVariantNumeric: 'tabular-nums' }}>{fmtPts(v)}<span style={{ fontSize: 11, fontWeight: 600, color: th.unit }}>/{maxTotal}</span></span>
+    <span style={{ fontFamily: FONT, fontSize: th.dense ? 13 : 15, fontWeight: 800, textAlign: 'right', color: th.total, fontVariantNumeric: 'tabular-nums' }}>{fmtPts(v)}<span style={{ fontSize: 11, fontWeight: 600, color: th.unit }}>/{maxTotal}</span></span>
   );
   return (
     <div>
@@ -342,20 +344,20 @@ function OverallBoard({ data, myKey, maxTotal, gameCount = 10, limit = 10, showM
       {rows.map((r) => {
         const mine = myKey && r.userKey === myKey;
         return (
-          <div key={r.userKey} style={{ ...grid, ...rowStyle(th, mine, r.rank), alignItems: 'center', padding: '10px 14px', marginBottom: 6, borderRadius: 11 }}>
+          <div key={r.userKey} style={{ ...grid, ...rowStyle(th, mine, r.rank), alignItems: 'center', padding: th.dense ? '7px 12px' : '10px 14px', marginBottom: th.dense ? 5 : 6, borderRadius: 10 }}>
             <RankNum n={r.rank} th={th} />
             <PlayerName row={r} mine={mine} th={th} />
-            <span style={{ fontFamily: FONT, fontSize: 13.5, fontWeight: 600, textAlign: 'right', color: th.dim, fontVariantNumeric: 'tabular-nums' }}>{r.gamesPlayed}/{gameCount}</span>
+            <span style={{ fontFamily: FONT, fontSize: th.dense ? 12 : 13.5, fontWeight: 600, textAlign: 'right', color: th.dim, fontVariantNumeric: 'tabular-nums' }}>{r.gamesPlayed}/{gameCount}</span>
             {totalCell(r.total)}
           </div>
         );
       })}
       {showMe && myKey && data.me && !meShown ? (
         <div style={{ marginTop: 10, paddingTop: 10, borderTop: `1px dashed ${th.line}` }}>
-          <div style={{ ...grid, ...rowStyle(th, true, data.me.rank), alignItems: 'center', padding: '10px 14px', borderRadius: 11 }}>
+          <div style={{ ...grid, ...rowStyle(th, true, data.me.rank), alignItems: 'center', padding: th.dense ? '7px 12px' : '10px 14px', borderRadius: 10 }}>
             <RankNum n={data.me.rank} th={th} />
             <PlayerName row={data.me} mine th={th} />
-            <span style={{ fontFamily: FONT, fontSize: 13.5, fontWeight: 600, textAlign: 'right', color: th.dim, fontVariantNumeric: 'tabular-nums' }}>{data.me.gamesPlayed}/{gameCount}</span>
+            <span style={{ fontFamily: FONT, fontSize: th.dense ? 12 : 13.5, fontWeight: 600, textAlign: 'right', color: th.dim, fontVariantNumeric: 'tabular-nums' }}>{data.me.gamesPlayed}/{gameCount}</span>
             {totalCell(data.me.total)}
           </div>
         </div>
@@ -396,12 +398,12 @@ function GameBoard({ game, myKey, gameMax, th }) {
       {rows.map((r) => {
         const mine = myKey && r.userKey === myKey;
         return (
-          <div key={r.userKey} className="dclb-g" style={{ display: 'grid', gap: 8, ...rowStyle(th, mine, r.rank), alignItems: 'center', padding: '10px 14px', marginBottom: 6, borderRadius: 11 }}>
+          <div key={r.userKey} className="dclb-g" style={{ display: 'grid', gap: 8, ...rowStyle(th, mine, r.rank), alignItems: 'center', padding: th.dense ? '7px 12px' : '10px 14px', marginBottom: th.dense ? 5 : 6, borderRadius: 10 }}>
             <RankNum n={r.rank} th={th} />
             <PlayerName row={r} mine={mine} th={th} />
-            <span style={{ fontFamily: FONT, fontSize: 13.5, fontWeight: 600, textAlign: 'right', color: th.dim, fontVariantNumeric: 'tabular-nums' }}>{r.score}/{r.total}</span>
-            <span className="dclb-time" style={{ fontFamily: FONT, fontSize: 13.5, fontWeight: 600, textAlign: 'right', color: th.dim, fontVariantNumeric: 'tabular-nums' }}>{fmtTime(r.timeElapsed)}</span>
-            <span style={{ fontFamily: FONT, fontSize: 14.5, fontWeight: 800, textAlign: 'right', color: th.total, fontVariantNumeric: 'tabular-nums' }}>{fmtPts(r.points)}<span style={{ fontSize: 10.5, fontWeight: 600, color: th.unit }}>/{gameMax}</span></span>
+            <span style={{ fontFamily: FONT, fontSize: th.dense ? 12 : 13.5, fontWeight: 600, textAlign: 'right', color: th.dim, fontVariantNumeric: 'tabular-nums' }}>{r.score}/{r.total}</span>
+            <span className="dclb-time" style={{ fontFamily: FONT, fontSize: th.dense ? 12 : 13.5, fontWeight: 600, textAlign: 'right', color: th.dim, fontVariantNumeric: 'tabular-nums' }}>{fmtTime(r.timeElapsed)}</span>
+            <span style={{ fontFamily: FONT, fontSize: th.dense ? 12.5 : 14.5, fontWeight: 800, textAlign: 'right', color: th.total, fontVariantNumeric: 'tabular-nums' }}>{fmtPts(r.points)}<span style={{ fontSize: 10.5, fontWeight: 600, color: th.unit }}>/{gameMax}</span></span>
           </div>
         );
       })}
@@ -438,10 +440,10 @@ function AllTimeBoard({ game, entry, myKey, th }) {
       {rows.map((r) => {
         const mine = !!(r.isMe || (myKey && r.userKey === myKey));
         return (
-          <div key={r.userKey || r.rank} style={{ ...grid, ...rowStyle(th, mine, r.rank), alignItems: 'center', padding: '10px 14px', marginBottom: 6, borderRadius: 11 }}>
+          <div key={r.userKey || r.rank} style={{ ...grid, ...rowStyle(th, mine, r.rank), alignItems: 'center', padding: th.dense ? '7px 12px' : '10px 14px', marginBottom: th.dense ? 5 : 6, borderRadius: 10 }}>
             <RankNum n={r.rank} th={th} />
             <PlayerName row={r} mine={mine} th={th} />
-            <span style={{ fontFamily: FONT, fontSize: 14.5, fontWeight: 800, textAlign: 'right', color: th.total, fontVariantNumeric: 'tabular-nums' }}>{fmtPts(r.points)}<span style={{ fontSize: 10.5, fontWeight: 600, color: th.unit }}> pts</span></span>
+            <span style={{ fontFamily: FONT, fontSize: th.dense ? 12.5 : 14.5, fontWeight: 800, textAlign: 'right', color: th.total, fontVariantNumeric: 'tabular-nums' }}>{fmtPts(r.points)}<span style={{ fontSize: 10.5, fontWeight: 600, color: th.unit }}> pts</span></span>
           </div>
         );
       })}
