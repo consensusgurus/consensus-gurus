@@ -806,7 +806,7 @@ export default function DatingClient({ puzzles = [], forceNum = null }) {
             light
             challengeHref={`/duel/new?quiz=${encodeURIComponent(PUZZLE.quizId)}`}
             share={{ label: copied ? 'Copied' : 'Share', onClick: copyShare }}
-            boardSlot={<DailyBoardPanel self="dating" quizId={PUZZLE.quizId} maxWidth={620} />}
+            boardSlot={<DailyBoardPanel self="dating" quizId={PUZZLE.quizId} maxWidth={620} streak={{ current: myStats.cur, best: myStats.max }} />}
             divider
           />
           {mobileUi && !standalone && (

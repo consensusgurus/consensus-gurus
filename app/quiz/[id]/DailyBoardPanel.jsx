@@ -48,8 +48,9 @@ function etTodayEC() {
 }
 function fmtPts(x) { return x == null ? '' : `${Math.round(Number(x) * 10) / 10} pts`; }
 function fmtNum(x) { return x == null ? '' : String(Math.round(Number(x) * 10) / 10); }
+function fmtTime(sec) { if (sec == null) return '—'; const m = Math.floor(sec / 60), s = sec % 60; return `${m}:${String(s).padStart(2, '0')}`; }
 
-export default function DailyBoardPanel({ self, quizId = null, maxWidth = 620 }) {
+export default function DailyBoardPanel({ self, quizId = null, maxWidth = 620, streak = null }) {
   const [ident, setIdent] = useState(null);        // { email, username } from localStorage
   const [combined, setCombined] = useState(null);  // /api/quiz/daily-combined payload
   const [gameData, setGameData] = useState(null);  // /api/quiz/daily-game payload (allTime + drops)
@@ -226,6 +227,9 @@ export default function DailyBoardPanel({ self, quizId = null, maxWidth = 620 })
         .dbp-hd .s{font-family:${MONO};font-size:10.5px;letter-spacing:.04em;color:${FADED};font-weight:500;white-space:nowrap;flex-shrink:0;}
         .dbp-signup{display:inline-flex;align-items:center;gap:6px;font-family:${SANS};font-size:12px;font-weight:800;color:${BLUE};background:#eff4fd;border:1px solid #cfe0fb;border-radius:999px;padding:6px 12px;cursor:pointer;white-space:nowrap;flex-shrink:0;}
         .dbp-signup:hover{background:#e4eefc;}
+        .dbp-streak{font-family:${SANS};font-size:11.5px;font-weight:600;color:${SLATE};white-space:nowrap;flex-shrink:0;}
+        .dbp-streak b{font-weight:800;color:${INK};}
+        .dbp-streak .best{color:${FADED};}
 
         .dbp-tiles{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px;}
         .dbp-tile{position:relative;overflow:hidden;text-align:left;border:1px solid ${BORD};background:#f7f8fa;border-radius:12px;padding:12px 12px 11px;min-width:0;cursor:pointer;font-family:${SANS};display:block;transition:background .12s ease,border-color .12s ease;}
@@ -251,6 +255,22 @@ export default function DailyBoardPanel({ self, quizId = null, maxWidth = 620 })
         .dbp-lbrow .vl{font-family:${MONO};font-size:12px;color:${SLATE};flex-shrink:0;}
         .dbp-lbrow .vl .u{color:#9aa0ab;}
         .dbp-lbempty{font-size:12.5px;color:${FADED};padding:6px 2px;}
+
+        /* Today board: richer per-attempt detail (score / time / mistakes / pts) */
+        .dbp-g{display:grid;grid-template-columns:30px 1fr 52px 54px 46px 46px;gap:8px;align-items:center;}
+        .dbp-gh{padding:0 8px 7px;}
+        .dbp-gh .h{font-family:${MONO};font-size:9px;letter-spacing:.09em;text-transform:uppercase;color:${FADED};}
+        .dbp-grow{padding:7px 8px;border-radius:8px;}
+        .dbp-grow.me{background:#eff4fd;}
+        .dbp-g .rk{font-family:${MONO};font-size:11.5px;color:${FADED};}
+        .dbp-g .nm{font-weight:700;color:${INK};font-size:13.5px;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+        .dbp-g .nm .you{color:${BLUE};font-weight:800;}
+        .dbp-g .num{font-family:${MONO};font-size:11.5px;color:${SLATE};text-align:right;font-variant-numeric:tabular-nums;}
+        .dbp-g .pts{font-weight:800;color:${INK};text-align:right;font-variant-numeric:tabular-nums;font-size:13px;}
+        @media(max-width:520px){
+          .dbp-g{grid-template-columns:26px 1fr 46px 44px;}
+          .dbp-ctime,.dbp-cmiss{display:none;}
+        }
 
         .dbp-cal-hd{display:flex;align-items:center;justify-content:space-between;margin-bottom:9px;}
         .dbp-cal-mo{font-size:14px;font-weight:800;color:${INK};}
@@ -289,7 +309,7 @@ export default function DailyBoardPanel({ self, quizId = null, maxWidth = 620 })
           <span className="nm">{registered && username ? `${username} Stats` : 'Your Stats'}</span>
         </span>
         {registered
-          ? null
+          ? (streak ? <span className="dbp-streak">Current {selfName} streak: <b>{streak.current || 0}</b> <span className="best">({streak.best || 0} best)</span></span> : null)
           : <button type="button" className="dbp-signup" onClick={goRegister}><UserPlus size={13} strokeWidth={2.4} /> Sign up</button>}
       </div>
 
@@ -305,7 +325,31 @@ export default function DailyBoardPanel({ self, quizId = null, maxWidth = 620 })
           {sel === 'today' ? (
             <>
               <div className="dbp-board-ti">{selfName} &middot; today &middot; top 10</div>
-              {simpleBoard(todayRows, (r) => fmtPts(r.points), 'No board yet. Be the first to post a score.')}
+              {todayRows.length ? (
+                <>
+                  <div className="dbp-g dbp-gh">
+                    <span className="h">#</span>
+                    <span className="h">Player</span>
+                    <span className="h" style={{ textAlign: 'right' }}>Score</span>
+                    <span className="h dbp-ctime" style={{ textAlign: 'right' }}>Time</span>
+                    <span className="h dbp-cmiss" style={{ textAlign: 'right' }}>Miss</span>
+                    <span className="h" style={{ textAlign: 'right' }}>Pts</span>
+                  </div>
+                  {todayRows.slice(0, 10).map((r, i) => {
+                    const mine = !!(myKey && r.userKey === myKey);
+                    return (
+                      <div className={`dbp-g dbp-grow${mine ? ' me' : ''}`} key={r.userKey || i}>
+                        <span className="rk">#{r.rank}</span>
+                        <span className="nm">{r.username || '—'}{mine ? <span className="you"> (you)</span> : null}</span>
+                        <span className="num">{r.score}/{r.total}</span>
+                        <span className="num dbp-ctime">{fmtTime(r.timeElapsed)}</span>
+                        <span className="num dbp-cmiss">{r.guessesUsed == null ? '—' : r.guessesUsed}</span>
+                        <span className="pts">{fmtNum(r.points)}</span>
+                      </div>
+                    );
+                  })}
+                </>
+              ) : <div className="dbp-lbempty">No board yet. Be the first to post a score.</div>}
             </>
           ) : null}
 
