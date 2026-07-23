@@ -309,13 +309,13 @@ export default function DailyArchiveClient({ games = [], today = '' }) {
         .dl-nav a:hover{color:${INK};border-color:${INK};}
 
         .dl-top{display:grid;grid-template-columns:minmax(0,1fr) 360px;gap:24px;align-items:stretch;margin-top:16px;}
-        .dl-top-l{display:flex;flex-direction:column;min-width:0;}
+        .dl-top-l{display:flex;flex-direction:column;justify-content:center;min-width:0;}
         .dl-top-l .dl-gaunt{margin-top:auto;}
         @media(max-width:860px){.dl-top{grid-template-columns:1fr;}.dl-top-l .dl-gaunt{margin-top:20px;}}
         .dl-kick{font-family:${MONO};font-size:11.5px;letter-spacing:.14em;text-transform:uppercase;color:${FADED};font-weight:500;}
         .dl-h1{margin:8px 0 7px;font-size:34px;font-weight:800;letter-spacing:-0.9px;color:${INK};line-height:1.0;}
         .dl-sub{margin:0;font-size:14.5px;font-weight:500;color:${FADED};line-height:1.55;max-width:620px;}
-        .dl-day{display:flex;flex-direction:column;gap:13px;justify-content:space-between;background:#fff;color:${INK};border:1px solid ${LINE};border-radius:16px;padding:18px 20px;box-shadow:0 6px 22px rgba(14,29,64,0.08);min-width:300px;}
+        .dl-day{display:flex;flex-direction:column;gap:13px;justify-content:center;background:#fff;color:${INK};border:1px solid ${LINE};border-radius:16px;padding:18px 20px;box-shadow:0 6px 22px rgba(14,29,64,0.08);min-width:300px;}
         .dl-day-top{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;}
         .dl-day-name{font-size:15px;font-weight:800;letter-spacing:-.2px;color:${INK};line-height:1.15;margin-top:3px;max-width:190px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
         .dl-day-kick{font-family:${MONO};font-size:9.5px;letter-spacing:.16em;text-transform:uppercase;color:${FADED};font-weight:500;}
@@ -344,6 +344,12 @@ export default function DailyArchiveClient({ games = [], today = '' }) {
         .dl-railcard:hover{border-color:#cdd6e6;box-shadow:0 4px 14px rgba(14,29,64,0.07);}
         .dl-alldone{border:1px dashed #cfd6e2;border-radius:13px;background:#fff;padding:15px 18px;font-size:13.5px;font-weight:600;color:${MUTED};}
         .dl-alldone b{color:${GREEN};}
+        .dl-stp{background:#fff;border:1px solid ${LINE};border-radius:16px;padding:15px 18px;margin-top:16px;display:grid;grid-template-columns:200px minmax(0,1fr);gap:20px;align-items:center;}
+        .dl-stp-l{border-right:1px solid #eef1f7;padding-right:18px;}
+        .dl-stp-l h2{margin:0 0 11px;font-size:15px;font-weight:800;letter-spacing:-.3px;color:${INK};}
+        .dl-stp-count{font-family:${MONO};font-size:9.5px;letter-spacing:.05em;text-transform:uppercase;color:${INK};margin-top:8px;}
+        .dl-stp-r{min-width:0;}
+        @media(max-width:820px){.dl-stp{grid-template-columns:1fr;}.dl-stp-l{border-right:none;padding-right:0;border-bottom:1px solid #eef1f7;padding-bottom:12px;}}
 
         .dl-glabel{display:flex;align-items:center;gap:12px;margin:28px 0 14px;}
         .dl-glabel .k{font-family:${MONO};font-size:10.5px;letter-spacing:.14em;text-transform:uppercase;font-weight:500;color:${MUTED};}
@@ -564,24 +570,6 @@ export default function DailyArchiveClient({ games = [], today = '' }) {
               {activeGames.length} original puzzles, a fresh one in each every day. Play today, chase the leaderboard,
               or replay any past drop — archive runs never touch your streak.
             </p>
-
-            <div className="dl-gaunt" role="group" aria-label="Today's gauntlet">
-              <div className="dl-gaunt-h">
-                <h2>Today&rsquo;s gauntlet</h2>
-                {ready && <span className="tease">{gauntTease}</span>}
-              </div>
-              <div className="dl-segs" aria-hidden="true">
-                {activeGames.map((g, i) => (
-                  <span key={g.key} className={`dl-seg${i < playedToday.length ? ' on' : ''}`} />
-                ))}
-              </div>
-              <div className="dl-gaunt-l">
-                <span style={{ color: INK }}>{ready ? `${playedToday.length}/${activeGames.length} played` : '…'}</span>
-                {activeGames.length >= 12 && <span><span style={{ color: '#9aa3b5' }}>●</span> 5 · warm-up</span>}
-                {activeGames.length >= 12 && <span><span style={{ color: '#c8814b' }}>●</span> 10 · grinder</span>}
-                <span style={{ color: '#8a6d1f' }}><span style={{ color: GOLD }}>★</span> {activeGames.length} · perfect day</span>
-              </div>
-            </div>
           </div>
 
           <div className="dl-day" role="group" aria-label="Your day">
@@ -603,45 +591,43 @@ export default function DailyArchiveClient({ games = [], today = '' }) {
                 <div className="l">Aced today</div>
               </div>
             </div>
-            <div className="dl-rival">
-              <span className="av" aria-hidden="true">{rivalAv}</span>
-              <span>{rivalText}</span>
-            </div>
-            {ready && stillToPlay[0] ? (
-              <a className="dl-cta" href={stillToPlay[0].path}>Play your next game · {stillToPlay[0].name} →</a>
-            ) : ready && activeGames.length ? (
-              <span className="dl-cta done">★ Perfect day. Every game played.</span>
-            ) : null}
           </div>
         </div>
 
-        <div className="dl-sec-h">
-          <h2>Still to play today</h2>
-          <span>{ready ? `${stillToPlay.length} left` : ''}</span>
-        </div>
-        {ready && stillToPlay.length === 0 ? (
-          <div className="dl-alldone"><b>&#9733; All caught up.</b> You&rsquo;ve played every game today. The archives below are always open.</div>
-        ) : (
-          <div className="dl-rail">
-            {/* Every unfinished game shows (no cap); resume (started, not
-                finished) games float to the FRONT of the rail. */}
-            {(ready ? [...stillToPlay].sort((a, b) => (isResumeToday(b) ? 1 : 0) - (isResumeToday(a) ? 1 : 0)) : activeGames).map((g) => {
-              const resume = ready && isResumeToday(g);
-              return (
-              <a key={g.key} className="dl-railcard" href={g.path} aria-label={`${resume ? 'Resume' : 'Play'} ${g.name} today`}>
-                <GameArt g={g} size={36} />
-                <span style={{ minWidth: 0 }}>
-                  <span style={{ display: 'block', fontSize: 14, fontWeight: 800, letterSpacing: '-0.3px', color: INK, lineHeight: 1.1 }}>{g.name}</span>
-                  <span style={{ display: 'flex', alignItems: 'center', gap: 4, fontFamily: MONO, fontSize: 9, letterSpacing: '0.05em', textTransform: 'uppercase', color: resume ? '#b9791a' : FADED, marginTop: 2 }}>
-                    {resume ? (
-                      <><svg viewBox="0 0 12 12" width="10" height="10" fill="none" style={{ flex: 'none' }} aria-hidden="true"><circle cx="6" cy="6" r="4" stroke="#e0b866" strokeWidth="1.8" /><path d="M6 2 A4 4 0 0 1 6 10" stroke="#d98a1f" strokeWidth="1.8" strokeLinecap="round" /></svg>Resume →</>
-                    ) : 'Play today →'}
-                  </span>
-                </span>
-              </a>
-            );})}
+        <div className="dl-stp">
+          <div className="dl-stp-l">
+            <h2>Still to play today</h2>
+            <div className="dl-segs" aria-hidden="true">
+              {activeGames.map((g, i) => (
+                <span key={g.key} className={`dl-seg${i < playedToday.length ? ' on' : ''}`} />
+              ))}
+            </div>
+            <div className="dl-stp-count">{ready ? `${playedToday.length}/${activeGames.length} played` : '…'}</div>
           </div>
-        )}
+          <div className="dl-stp-r">
+            {ready && stillToPlay.length === 0 ? (
+              <div className="dl-alldone"><b>&#9733; All caught up.</b> You&rsquo;ve played every game today. The archives below are always open.</div>
+            ) : (
+              <div className="dl-rail">
+                {(ready ? [...stillToPlay].sort((a, b) => (isResumeToday(b) ? 1 : 0) - (isResumeToday(a) ? 1 : 0)) : activeGames).map((g) => {
+                  const resume = ready && isResumeToday(g);
+                  return (
+                  <a key={g.key} className="dl-railcard" href={g.path} aria-label={`${resume ? 'Resume' : 'Play'} ${g.name} today`}>
+                    <GameArt g={g} size={36} />
+                    <span style={{ minWidth: 0 }}>
+                      <span style={{ display: 'block', fontSize: 14, fontWeight: 800, letterSpacing: '-0.3px', color: INK, lineHeight: 1.1 }}>{g.name}</span>
+                      <span style={{ display: 'flex', alignItems: 'center', gap: 4, fontFamily: MONO, fontSize: 9, letterSpacing: '0.05em', textTransform: 'uppercase', color: resume ? '#b9791a' : FADED, marginTop: 2 }}>
+                        {resume ? (
+                          <><svg viewBox="0 0 12 12" width="10" height="10" fill="none" style={{ flex: 'none' }} aria-hidden="true"><circle cx="6" cy="6" r="4" stroke="#e0b866" strokeWidth="1.8" /><path d="M6 2 A4 4 0 0 1 6 10" stroke="#d98a1f" strokeWidth="1.8" strokeLinecap="round" /></svg>Resume →</>
+                        ) : 'Play today →'}
+                      </span>
+                    </span>
+                  </a>
+                );})}
+              </div>
+            )}
+          </div>
+        </div>
 
         <div className="dl-sec-h" style={{ marginBottom: 10 }}>
           <h2>All daily games</h2>
