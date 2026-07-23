@@ -122,6 +122,7 @@ export default function DailyArchiveClient({ games = [], today = '' }) {
   const [progress, setProgress] = useState(() => new Set()); // started today, not finished
   const [ready, setReady] = useState(false);
   const [combined, setCombined] = useState(null);
+  const [gameStreaks, setGameStreaks] = useState({}); // per-game consecutive-day streaks, from daily-status
   const [allTimeByKey, setAllTimeByKey] = useState({}); // gameKey -> { rank, field } (per-game cumulative)
 
   const dailyOrder = useDailyOrder();
@@ -198,6 +199,7 @@ export default function DailyArchiveClient({ games = [], today = '' }) {
         for (const qid of (d.completed || [])) { const k = byQuiz[qid]; if (k) c2.add(k); }
         for (const qid of (d.abandoned || [])) { const k = byQuiz[qid]; if (k) g2.add(k); }
         for (const k of p2) g2.delete(k); // a finished game is never "in progress"
+        if (d.streaks && typeof d.streaks === 'object') setGameStreaks(d.streaks);
         setPlayed(p2);
         setCompleted(c2);
         setProgress(g2);
@@ -459,6 +461,10 @@ export default function DailyArchiveClient({ games = [], today = '' }) {
         .dl-art{box-sizing:border-box;border-radius:13px;display:flex;align-items:center;justify-content:center;flex:0 0 auto;overflow:hidden;}
         .dl-art img{width:78%;height:78%;object-fit:contain;}
         .dl-cname{font-size:17.5px;font-weight:800;letter-spacing:-.4px;line-height:1.05;color:${INK};text-decoration:none;}
+        /* per-game streak pill, inline after the name on the title row; inline-flex
+           + margin-left so it never shifts the icon, name, or Play button */
+        .dl-gstreak{display:inline-flex;align-items:center;gap:3px;margin-left:8px;vertical-align:2px;background:rgba(232,180,58,0.15);border:1px solid rgba(232,180,58,0.42);border-radius:999px;padding:1.5px 7px 1.5px 5px;font-size:10.5px;font-weight:800;color:#8a6d1f;font-variant-numeric:tabular-nums;line-height:1.4;white-space:nowrap;}
+        .dl-gstreak svg{flex:none;}
         .dl-cname:hover{text-decoration:underline;text-decoration-color:rgba(28,30,36,.3);text-underline-offset:2px;}
         .dl-ctag{font-size:12.5px;font-weight:500;color:${FADED};margin-top:3px;line-height:1.3;}
         .dl-cbody{padding:13px 18px 17px;}
@@ -660,6 +666,7 @@ export default function DailyArchiveClient({ games = [], today = '' }) {
                   myKey={myKey}
                   allTime={allTimeByKey[g.key]}
                   today={today}
+                  streak={gameStreaks[g.key] || 0}
                 />
               ))}
             </div>
@@ -696,7 +703,7 @@ function GameArt({ g, size = 52 }) {
 }
 
 // ---------------------------------------------------------------- one game card
-function GameCard({ g, ready, played, progress, board, myKey, allTime, today }) {
+function GameCard({ g, ready, played, progress, board, myKey, allTime, today, streak = 0 }) {
   // One expand for the row: Standings AND Archive open together, side by side on
   // a wide screen (each is too tall to be useful full-width), stacked below 900px.
   const [open, setOpen] = useState(false);
@@ -725,6 +732,12 @@ function GameCard({ g, ready, played, progress, board, myKey, allTime, today }) 
           <GameArt g={g} size={44} />
           <div className="dl-ridtext">
             <a className="dl-cname" href={g.path} onClick={(e) => e.stopPropagation()}>{g.name}</a>
+            {streak >= 2 ? (
+              <span className="dl-gstreak" title={`${streak}-day streak`} aria-label={`${streak}-day streak`}>
+                <svg viewBox="0 0 24 24" width="10" height="10" fill="none" aria-hidden="true"><path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.153.433-2.294 1-3a2.5 2.5 0 0 0 2.5 2.5z" stroke="#b9791a" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" /></svg>
+                {streak}
+              </span>
+            ) : null}
             <div className="dl-ctag">{g.tag}</div>
           </div>
           <a className="dl-btn dl-play dl-rid-play" href={g.path} style={{ background: g.accent }} onClick={(e) => e.stopPropagation()}>{resumeToday ? 'Resume →' : 'Play →'}</a>
