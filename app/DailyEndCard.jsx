@@ -2,30 +2,34 @@
 
 // DailyEndCard — the shared end-of-game result popup for every daily game
 // (Crux, Emcee, Garble, Links, Span, Dating, Tally, Suds, Circa, Extra,
-// Carve, Stet, Outwit, Tuck, Alibi, Cipher, Ping, Warmer, Jesters, Sworn).
+// Carve, Stet, Outwit, Tuck, Alibi, Cipher, Ping, Warmer, Jesters, Sworn,
+// Outrank). One component, used by all daily clients.
 //
-// One component, used by all daily clients. It renders, top to bottom:
-//   1. a result header — the family type chip, "You completed <Game>!", and
-//      (for a variable-score game only) a clean score, plus the player's
-//      standing (rank today, combined daily-board rank, games still left);
-//   2. three result actions — Play a past <Game>, Leaderboard, and Share Result;
-//   3. an "Up next" auto-advance — a 25s countdown ring that opens the closest
-//      unplayed game of the SAME family (Crux -> Garble ...), cancelable;
-//   4. a "Leaderboard most up for grabs" callout — the daily game with the
-//      thinnest field so far, where a podium is easiest today;
-//   5. "More of today's games" — the games still to play, grouped by family with
-//      color-filled headers, plus a linked "Other quizzes" block.
+// Layout, top to bottom (approved 2026-07 rework):
+//   1. header — the family chip + "Completed!" (loss: "Played") + a subline of
+//      "<Game> · <Family> · <score>", the answer, and a right-hand stack with the
+//      player's username (or a "Sign up" link for guests) and the "Share result
+//      (for credit)" button;
+//   2. three rank tiles — "<Game> today", "<Game> all-time" (cumulative points
+//      across every drop), and "Combined today" — each with a field size and an
+//      enlarge control that expands in place to that board's top 10;
+//   3. guest-only claim slip (ranks unclaimed until a username is chosen);
+//   4. calendar slip — expands to a month calendar of this game's past drops;
+//   5. a two-card row — "Up next" (25s auto-advance) and "Easiest leaderboard"
+//      (the thinnest field, a podium is easiest there);
+//   6. "More of today's games" — the still-to-play games grouped by family;
+//   7. a bottom actions row — Leaderboards, Play a past <Game>, and a right-hand
+//      "Daily game landing page" link.
 //
 // Each client passes only its result strings + handlers (unchanged API):
 //   <DailyEndCard modal self="tuck" completed
 //     score={<>{finalScore} pts &middot; par {PAR}</>}
 //     onShare={copyShare} shareLabel={copied ? 'Copied' : 'Share Result'}
 //     onReplay={resetGame} onClose={() => setJustWon(false)} />
-// `completed` (default = `won`) drives the "You completed <Game>!" title;
-// pass a clean `score` node ONLY for variable-score games (Tuck/Outrank/Outwit)
-// so every other game just reads "You completed <Game>!" with the score, time,
-// and accuracy left to the leaderboard. `headline`/`subline` are deprecated and
-// no longer rendered (kept in the signature for call-site compat).
+// `completed` (default = `won`) drives the "Completed!"/"Played" title; pass a
+// clean `score` node ONLY for variable-score games (Tuck/Outrank/Outwit) so every
+// other game just reads its title with score/time/accuracy left to the board.
+// `headline`/`subline` are deprecated and no longer rendered (kept for compat).
 // The finish accent comes from `self` via GAME_META. To add a game: add it to
 // GAME_META (accent) and to DAILY_GAMES (family + tile copy).
 
@@ -34,6 +38,7 @@ import {
   Type, Clock, Globe, Hash, Share2, BarChart3, RotateCcw, Check, X,
   Trophy, Link2, Flag, CalendarCheck, Scale, Grid3x3, LayoutGrid, Newspaper, FlagTriangleRight,
   Pencil, Users, ArrowRight, Puzzle, Fingerprint, KeyRound, Thermometer, Crown, ListOrdered,
+  Maximize2, CalendarDays, ChevronLeft, ChevronRight, CheckCircle2,
 } from 'lucide-react';
 import { myRefCode } from '@/lib/referrals';
 import ReportIssue from './ReportIssue';
@@ -59,6 +64,7 @@ const FADED = '#6b7280';
 const BORD = '#e7eaf1';
 const NAVY = '#0e1d40';
 const GOLD = '#e8b43a';
+const BLUE = '#2563eb';
 
 // ---- per-game finish accent (keyed by self) --------------------------------
 // accent = the game's brand color; used for the primary Share button.
@@ -123,30 +129,15 @@ export const DAILY_GAMES = [
   { key: 'warmer', cat: 'word',      name: 'Warmer', tag: 'Hotter or colder',           href: '/warmer' },
 ];
 
-// A small hand-picked set of popular quizzes to keep players on the site once
-// they finish the daily slate. Ids are real quiz slugs (/quiz/<id>).
-const OTHER_POOL = [
-  { id: 'europe-no-outline',               name: 'Countries of Europe',        tag: 'No outline' },
-  { id: 'erase-europe-no-outline',         name: 'Erase Europe',               tag: 'No outline, no skips' },
-  { id: 'find-the-lower-48-states',        name: 'US States',                  tag: 'No outline' },
-  { id: 'countries-by-population',         name: 'Most Populous Countries',    tag: 'Rank by population' },
-  { id: 'nyc-landmarks-geo-guesser',       name: 'NYC Landmarks',              tag: 'Geo Guesser' },
-  { id: 'largest-cities-world-population',  name: 'Largest Cities in the World', tag: 'By population' },
-  { id: 'africa-no-outline',               name: 'Countries of Africa',        tag: 'No outline' },
-  { id: 'asia-no-outline',                 name: 'Countries of Asia',          tag: 'No outline' },
-  { id: 'south-america-no-outline',        name: 'Countries of South America', tag: 'No outline' },
-  { id: 'north-america-no-outline',        name: 'Countries of North America', tag: 'No outline' },
-  { id: 'us-states-by-population',         name: 'Most Populous US States',    tag: 'Rank by population' },
-  { id: 'countries-of-the-world-no-outline', name: 'Countries of the World',   tag: 'No outline' },
-];
-const OTHER_COLOR = '#5b6472';
-
 const AUTO_SECONDS = 25;
 const REVEAL_MS = 2000; // win only: show the finished board + confetti this long before the popup
 
+const MONTH_NAMES = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
+const WEEKDAYS = ['S', 'M', 'T', 'W', 'T', 'F', 'S'];
+
 /**
  * @param self          game key, e.g. "garble"
- * @param completed      bool; true => "You completed <Game>!" title (default = won)
+ * @param completed      bool; true => "Completed!" title (default = won)
  * @param score          node; a clean score shown at top for variable-score games only
  * @param headline       DEPRECATED, no longer rendered
  * @param subline        DEPRECATED, no longer rendered
@@ -176,12 +167,20 @@ export default function DailyEndCard({
   // credit, while a signed-out one would be promised something they can't get.
   const [forCredit, setForCredit] = useState(false);
   useEffect(() => { setForCredit(!!myRefCode()); }, []);
+  const [ident, setIdent] = useState(null);          // { email, username } from localStorage
   const [dailyMe, setDailyMe] = useState(null);
   const [dailyGuest, setDailyGuest] = useState(null); // provisional standing for an unregistered player
-  const [boardGames, setBoardGames] = useState(null); // per-game field/plays for "most up for grabs"
+  const [boardGames, setBoardGames] = useState(null); // per-game field/plays/board for the day
+  const [overallBoard, setOverallBoard] = useState(null); // combined top-10
+  const [combinedField, setCombinedField] = useState(null); // full registered combined field
+  const [allTime, setAllTime] = useState(null);       // { field, myRank, myPoints, board } for `self`
+  const [drops, setDrops] = useState(null);           // this game's live drops (calendar)
   const [secs, setSecs] = useState(AUTO_SECONDS);
   const [autoCancel, setAutoCancel] = useState(false);
-  const [pastHref, setPastHref] = useState(null); // most-recent unplayed PAST drop of this game
+  const [pastHref, setPastHref] = useState(null);     // most-recent unplayed PAST drop of this game
+  const [openTile, setOpenTile] = useState(null);     // which rank tile is expanded: 'today'|'alltime'|'combined'|null
+  const [calOpen, setCalOpen] = useState(false);      // calendar slip expanded
+  const [calMonth, setCalMonth] = useState(() => etTodayEC().slice(0, 7)); // 'YYYY-MM'
 
   // Win reveal delay: on a win, hold the popup back ~2s so the player sees the
   // completed board with the confetti first (and the placement fetch has time to
@@ -198,6 +197,11 @@ export default function DailyEndCard({
     const t = setTimeout(() => setRevealed(true), REVEAL_MS);
     return () => clearTimeout(t);
     // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  // Identity (username / registered state) for the header right stack.
+  useEffect(() => {
+    try { setIdent(JSON.parse(localStorage.getItem('sot_quiz_identity') || 'null')); } catch (e) {}
   }, []);
 
   useEffect(() => {
@@ -239,6 +243,8 @@ export default function DailyEndCard({
           if (d.me) setDailyMe({ ...d.me, maxTotal: d.maxTotal, gameCount: d.gameCount });
           if (d.meProvisional) setDailyGuest(d.meProvisional);
           if (Array.isArray(d.games)) setBoardGames(d.games);
+          if (Array.isArray(d.overall)) setOverallBoard(d.overall);
+          if (typeof d.overallField === 'number') setCombinedField(d.overallField);
           // Does our standing already include the game we just finished? If so
           // (or we're a guest, or retries are exhausted), stop. Otherwise the
           // write hasn't propagated yet, so try again.
@@ -278,6 +284,23 @@ export default function DailyEndCard({
     return () => { alive = false; };
   }, [self]);
 
+  // The game's all-time (cumulative-points) leaderboard + its drop calendar.
+  useEffect(() => {
+    if (!self) return undefined;
+    let anonId = null, email = null;
+    try { anonId = localStorage.getItem('sot_quiz_anon'); } catch (e) {}
+    try { const id = JSON.parse(localStorage.getItem('sot_quiz_identity') || 'null'); email = id && id.email; } catch (e) {}
+    const qs = new URLSearchParams({ game: self, fresh: '1' });
+    if (anonId) qs.set('anonId', anonId);
+    if (email) qs.set('email', email);
+    let alive = true;
+    fetch('/api/quiz/daily-game?' + qs.toString())
+      .then((r) => r.json())
+      .then((d) => { if (!alive || !d) return; if (d.allTime) setAllTime(d.allTime); if (Array.isArray(d.drops)) setDrops(d.drops); })
+      .catch(() => {});
+    return () => { alive = false; };
+  }, [self]);
+
   const meta = GAME_META[self] || GAME_META.crux;
   const selfGame = DAILY_GAMES.find((g) => g.key === self) || null;
   // Sunday chip on the still-to-play rows; set after mount (SSR parity).
@@ -287,6 +310,10 @@ export default function DailyEndCard({
   const selfName = selfGame ? selfGame.name : (self || 'today’s game');
   const selfCatMeta = CAT_META[selfCat] || CAT_META.word;
   const headColor = won ? meta.accent : RUST;
+  const isCompleted = (completed == null ? won : completed);
+
+  const hasEmail = !!(ident && ident.email);
+  const username = ident && ident.username ? ident.username : null;
 
   // Which daily games the viewer has completed today. The just-finished game is
   // always checked; dailyMe.perGame fills in every other game already played so
@@ -316,10 +343,21 @@ export default function DailyEndCard({
   // Up next = the closest unplayed game of the SAME family, else the next unplayed.
   const nextTarget = todo.find((g) => g.cat === selfCat) || todo[0] || null;
 
-  // Standing figures (registered players only; guests see the subline instead).
-  const gameRank = dailyMe && dailyMe.perGame && dailyMe.perGame[self] ? dailyMe.perGame[self].rank : null;
-  const combinedRank = dailyMe ? dailyMe.rank : null;
-  const leftToPlay = dailyMe ? Math.max(0, (dailyMe.gameCount || 0) - (dailyMe.gamesFinished != null ? dailyMe.gamesFinished : (dailyMe.gamesPlayed || 0))) : Math.max(0, total - doneCount);
+  // --- rank-tile figures ----------------------------------------------------
+  // Today, this game: my rank of the game's registered field.
+  const todayGame = boardGames ? boardGames.find((g) => g.key === self) : null;
+  const gameTodayRank = (dailyMe && dailyMe.perGame && dailyMe.perGame[self] && dailyMe.perGame[self].rank)
+    || (dailyGuest && dailyGuest.perGame && dailyGuest.perGame[self] && dailyGuest.perGame[self].rank)
+    || null;
+  const gameTodayField = (todayGame && todayGame.field)
+    || (dailyGuest && dailyGuest.perGame && dailyGuest.perGame[self] && dailyGuest.perGame[self].field)
+    || null;
+  // Combined today: my combined-board rank of the registered field.
+  const combinedRank = (dailyMe && dailyMe.rank) || (dailyGuest && dailyGuest.rank) || null;
+  // Provisional (guest) standings are marked so the tile can say so.
+  const provisional = !dailyMe && !!dailyGuest;
+
+  const myKey = dailyMe ? dailyMe.userKey : null;
 
   // Most up for grabs = the daily game with the thinnest field so far (prefer one
   // the viewer hasn't played). field = registered players; plays = total attempts.
@@ -370,43 +408,23 @@ export default function DailyEndCard({
   const ringOffset = autoRun ? (RING_C * (AUTO_SECONDS - secs)) / AUTO_SECONDS : 0;
 
   // Build the "more games" family blocks (still-to-play), then bin-pack them into
-  // up to 3 columns with an adaptively-sized "Other quizzes" block so the grid
-  // fills evenly instead of leaving dead space under short families. Height is in
-  // tile-units (header = 1, each row = 1).
+  // up to 3 columns (greedy: each family, largest first, into the shortest column)
+  // so the grid fills evenly. The "Other quizzes" block was dropped from the popup.
   const famBlocks = CAT_ORDER
     .map((cat) => ({ type: 'fam', cat, cm: CAT_META[cat], items: todo.filter((g) => g.cat === cat) }))
     .filter((b) => b.items.length > 0)
     .map((b) => ({ ...b, h: 1 + b.items.length }));
-
-  // Reserve the "Other quizzes" block at the BOTTOM of the last column BEFORE
-  // packing the families, so the families spread across all three columns to fill
-  // them instead of piling onto whichever column Other happens to land in (which
-  // stranded a tall family alone in column one). For each candidate Other-quiz
-  // count we greedily drop each family (largest first) into the currently
-  // shortest column (ties -> the column holding fewer families, then leftmost),
-  // then keep the count that leaves the least dead space. Empty columns are
-  // dropped, so a nearly-finished slate collapses to one or two full columns, and
-  // Other always renders last (bottom-right on desktop, bottom on mobile).
   const showMore = famBlocks.length > 0;
   let packedCols = [];
   if (showMore) {
     const sorted = famBlocks.slice().sort((a, z) => z.h - a.h);
-    const maxQ = OTHER_POOL.length, minQ = Math.min(4, maxQ);
-    let best = null;
-    for (let Q = minQ; Q <= maxQ; Q++) {
-      const cols = [[], [], []], hs = [0, 0, 1 + Q], fc = [0, 0, 0];
-      for (const b of sorted) {
-        let i = 0;
-        for (let j = 1; j < 3; j++) {
-          if (hs[j] < hs[i] || (hs[j] === hs[i] && fc[j] < fc[i])) i = j;
-        }
-        cols[i].push(b); hs[i] += b.h; fc[i] += 1;
-      }
-      const dead = 3 * Math.max(hs[0], hs[1], hs[2]) - (hs[0] + hs[1] + hs[2]);
-      if (!best || dead < best.dead || (dead === best.dead && Q > best.Q)) best = { Q, dead, cols };
+    const cols = [[], [], []], hs = [0, 0, 0];
+    for (const b of sorted) {
+      let i = 0;
+      for (let j = 1; j < 3; j++) { if (hs[j] < hs[i]) i = j; }
+      cols[i].push(b); hs[i] += b.h;
     }
-    best.cols[2] = [...best.cols[2], { type: 'other', items: OTHER_POOL.slice(0, best.Q), h: 1 + best.Q }];
-    packedCols = best.cols.filter((c) => c.length > 0);
+    packedCols = cols.filter((c) => c.length > 0);
   }
 
   // Win-only celebratory confetti (fires when the player fully completes the
@@ -427,6 +445,73 @@ export default function DailyEndCard({
     });
   }, [won, meta.accent]);
 
+  // --- expanded-tile board rows ---------------------------------------------
+  // Each rank tile expands in place to its board's top 10, the viewer's own row
+  // highlighted, plus a "Full leaderboard" link to the on-page board below.
+  function tileBoard(which) {
+    if (which === 'today') {
+      const rows = (todayGame && Array.isArray(todayGame.board)) ? todayGame.board : [];
+      return rows.map((r) => ({ rank: r.rank, name: r.username, val: fmtPts(r.points), me: !!(myKey && r.userKey === myKey) }));
+    }
+    if (which === 'combined') {
+      const rows = Array.isArray(overallBoard) ? overallBoard : [];
+      return rows.map((r) => ({ rank: r.rank, name: r.username, val: fmtPts(r.total), me: !!(myKey && r.userKey === myKey) }));
+    }
+    if (which === 'alltime') {
+      const rows = (allTime && Array.isArray(allTime.board)) ? allTime.board : [];
+      return rows.map((r) => ({ rank: r.rank, name: r.username, val: fmtPts(r.points), me: !!r.isMe }));
+    }
+    return [];
+  }
+  const fmtPts = (x) => (x == null ? '' : `${Math.round(Number(x) * 10) / 10} pts`);
+
+  // --- calendar month cells -------------------------------------------------
+  const dropByISO = new Map((drops || []).map((d) => [d.dateISO, d]));
+  const todayISO = etTodayEC();
+  const monthYMs = (drops && drops.length) ? {
+    earliest: drops[0].dateISO.slice(0, 7),
+    latest: todayISO.slice(0, 7),
+  } : { earliest: todayISO.slice(0, 7), latest: todayISO.slice(0, 7) };
+  const [calY, calM] = calMonth.split('-').map(Number);
+  const monthLabel = `${MONTH_NAMES[(calM - 1) % 12]} ${calY}`;
+  const firstWeekday = new Date(Date.UTC(calY, calM - 1, 1)).getUTCDay();
+  const daysInMonth = new Date(Date.UTC(calY, calM, 0)).getUTCDate();
+  const calCells = [];
+  for (let k = 0; k < firstWeekday; k++) calCells.push(null);
+  for (let d = 1; d <= daysInMonth; d++) calCells.push(d);
+  const shiftMonth = (delta) => {
+    let y = calY, m = calM + delta;
+    while (m < 1) { m += 12; y -= 1; }
+    while (m > 12) { m -= 12; y += 1; }
+    setCalMonth(`${y}-${String(m).padStart(2, '0')}`);
+  };
+  const canPrev = calMonth > monthYMs.earliest;
+  const canNext = calMonth < monthYMs.latest;
+
+  // Render one rank tile (plain helper, not a nested component).
+  const renderTile = (id, label, rank, field, dash) => (
+    <div className={`dec-tile${openTile === id ? ' open' : ''}`} key={id}>
+      <div className="dec-tile-lbl">{label}</div>
+      {dash ? (
+        <div className="dec-tile-rk"><span className="dash">—</span></div>
+      ) : rank ? (
+        <div className="dec-tile-rk">#{rank}{provisional ? <span className="prov"> prov.</span> : null}</div>
+      ) : (
+        <div className="dec-tile-rk"><span className="dash">·</span></div>
+      )}
+      <div className="dec-tile-of">{field ? <>of {field}</> : (dash ? 'registered only' : ' ')}</div>
+      <button
+        type="button"
+        className="dec-tile-mx"
+        aria-label={`Expand ${label} leaderboard`}
+        aria-expanded={openTile === id}
+        onClick={() => setOpenTile((o) => (o === id ? null : id))}
+      >
+        <Maximize2 size={13} strokeWidth={2.2} />
+      </button>
+    </div>
+  );
+
   const inner = (
     <div className="dec-card" style={modal ? { position: 'relative', maxHeight: '92vh', overflowY: 'auto' } : undefined}>
       {modal && (
@@ -438,49 +523,97 @@ export default function DailyEndCard({
         .dec-sun{margin-left:6px;font-family:${MONO};font-size:9px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:#04121f;background:#f8b84a;border-radius:3px;padding:1px 4px;vertical-align:middle;}
         .dec-card{background:#fff;border:1px solid ${BORD};border-radius:16px;padding:20px 22px 16px;max-width:760px;width:100%;margin:0 auto;font-family:${SANS};color:${INK};}
         .dec-backdrop{position:fixed;inset:0;z-index:85;background:rgba(20,22,28,0.55);display:flex;align-items:flex-start;justify-content:center;padding:24px 16px;overflow-y:auto;}
-        .dec-x{position:absolute;top:12px;right:12px;width:30px;height:30px;padding:0;display:flex;align-items:center;justify-content:center;border-radius:9px;background:#fff;border:1px solid ${BORD};color:${SLATE};cursor:pointer;z-index:2;}
+        .dec-x{position:absolute;top:12px;right:12px;width:30px;height:30px;padding:0;display:flex;align-items:center;justify-content:center;border-radius:9px;background:#fff;border:1px solid ${BORD};color:${SLATE};cursor:pointer;z-index:3;}
         .dec-x:hover{color:${INK};background:#f7f8fa;}
 
-        .dec-eyebrow{display:flex;align-items:center;gap:8px;padding-right:34px;}
+        .dec-head{display:flex;align-items:flex-start;justify-content:space-between;gap:14px;margin-bottom:12px;}
+        .dec-head-l{min-width:0;flex:1;}
+        .dec-head-r{display:flex;flex-direction:column;align-items:flex-end;gap:7px;flex-shrink:0;}
+        .dec-check{width:30px;height:30px;border-radius:50%;background:#e8f5ec;color:#15803d;display:inline-flex;align-items:center;justify-content:center;flex-shrink:0;}
+        .dec-check.loss{background:#fdecec;color:${RUST};}
+        .dec-titlerow{display:flex;align-items:center;gap:10px;margin-bottom:5px;}
+        .dec-title{font-size:25px;font-weight:800;letter-spacing:-.02em;color:${INK};}
+        .dec-sub{display:flex;align-items:center;gap:7px;font-size:13px;color:${SLATE};flex-wrap:wrap;}
         .dec-dot{width:9px;height:9px;border-radius:50%;flex-shrink:0;}
-        .dec-cat{font-family:${MONO};font-size:10.5px;font-weight:500;letter-spacing:.14em;text-transform:uppercase;}
-        .dec-eb-sub{font-size:13px;color:${SLATE};}
-        .dec-tagline{font-size:12px;color:#8a92a6;margin-left:auto;}
-        .dec-titlerow{display:flex;align-items:baseline;flex-wrap:wrap;gap:3px 10px;margin:8px 0 6px;}
-        .dec-title{font-size:25px;font-weight:800;letter-spacing:-.02em;}
-        .dec-detail{font-size:13px;color:${SLATE};}
-        .dec-answer{display:flex;align-items:baseline;gap:9px;margin:2px 0 12px;}
+        .dec-sub b{font-weight:800;color:${INK};}
+        .dec-sub .sc{color:${SLATE};}
+        .dec-answer{display:flex;align-items:baseline;gap:9px;margin:9px 0 0;}
         .dec-answer-lbl{font-family:${MONO};font-size:10px;font-weight:500;letter-spacing:.14em;text-transform:uppercase;color:${SLATE};flex-shrink:0;}
-        .dec-answer-word{font-size:23px;font-weight:800;letter-spacing:-.02em;color:${RUST};}
-        .dec-rank{font-size:14.5px;font-weight:700;color:${SLATE};margin-bottom:14px;}
-        .dec-rank b{font-weight:800;color:${INK};text-decoration:underline;text-underline-offset:2px;}
-        .dec-rank .muted{color:#8a92a6;font-weight:600;}
-        .dec-reg{font-size:14px;font-weight:600;color:${SLATE};background:#eff4fd;border:1px solid #d7e3f8;border-radius:12px;padding:11px 14px;margin-bottom:14px;}
-        .dec-reg b{font-weight:800;color:${NAVY};}
-        .dec-reg-link{font:inherit;font-weight:800;color:#2563eb;background:none;border:none;padding:0;text-decoration:underline;text-underline-offset:2px;cursor:pointer;}
+        .dec-answer-word{font-size:21px;font-weight:800;letter-spacing:-.02em;color:${RUST};}
+        .dec-user{font-size:13px;font-weight:800;color:${INK};max-width:180px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+        .dec-signup{font-size:13px;font-weight:800;color:${BLUE};background:none;border:none;padding:0;text-decoration:underline;text-underline-offset:2px;cursor:pointer;}
+        .dec-share{font-family:${SANS};font-weight:800;font-size:12.5px;color:#fff;background:${INK};border:1px solid ${INK};border-radius:10px;padding:9px 14px;cursor:pointer;display:inline-flex;align-items:center;gap:6px;white-space:nowrap;}
+        .dec-share:hover{filter:brightness(1.12);}
 
-        .dec-actions{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:14px;}
-        .dec-btn{font-family:${SANS};font-weight:700;font-size:12.5px;border:1px solid ${BORD};background:#fff;color:${SLATE};border-radius:10px;padding:9px 13px;cursor:pointer;display:inline-flex;align-items:center;gap:6px;text-decoration:none;}
-        .dec-btn:hover{background:#f7f8fa;}
-        .dec-btn.primary{color:#fff;font-weight:800;border-color:transparent;}
-        .dec-btn.primary:hover{filter:brightness(0.96);}
+        .dec-tiles{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;margin-bottom:10px;}
+        .dec-tile{position:relative;border:1px solid ${BORD};background:#f7f8fa;border-radius:12px;padding:11px 12px 10px;min-width:0;}
+        .dec-tile.open{border-color:${BLUE};box-shadow:0 0 0 1px ${BLUE};}
+        .dec-tile-lbl{font-family:${MONO};font-size:9.5px;font-weight:500;letter-spacing:.1em;text-transform:uppercase;color:${SLATE};padding-right:22px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+        .dec-tile-rk{font-size:23px;font-weight:800;letter-spacing:-.02em;color:${INK};line-height:1.15;margin-top:3px;}
+        .dec-tile-rk .prov{font-size:11px;font-weight:700;color:${FADED};}
+        .dec-tile-rk .dash{color:#c2c8d2;}
+        .dec-tile-of{font-size:11.5px;color:${FADED};}
+        .dec-tile-mx{position:absolute;top:9px;right:9px;width:22px;height:22px;padding:0;display:flex;align-items:center;justify-content:center;border-radius:7px;background:#fff;border:1px solid ${BORD};color:${SLATE};cursor:pointer;}
+        .dec-tile-mx:hover{color:${BLUE};border-color:${BLUE};}
 
-        .dec-upnext{display:flex;align-items:center;gap:14px;border:1px solid #d7e3f8;background:#eff4fd;border-radius:16px;padding:14px 16px;margin-bottom:12px;}
-        .dec-up-main{display:flex;align-items:center;gap:14px;flex:1;min-width:0;}
-        .dec-ring{position:relative;width:56px;height:56px;flex-shrink:0;}
-        .dec-ring .num{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:18px;font-weight:800;color:${INK};}
-        .dec-up-eye{font-family:${MONO};font-size:10px;font-weight:500;letter-spacing:.12em;text-transform:uppercase;color:#2563eb;margin-bottom:2px;}
-        .dec-up-name{font-size:19px;font-weight:800;letter-spacing:-.01em;color:${INK};}
-        .dec-up-tag{font-size:12px;color:${SLATE};margin-top:1px;}
-        .dec-up-btns{display:flex;flex-direction:column;gap:7px;flex-shrink:0;}
-        .dec-up-btns .dec-btn{justify-content:center;}
+        .dec-expand{border:1px solid ${BORD};border-radius:12px;padding:11px 13px 9px;margin:-2px 0 12px;background:#fff;}
+        .dec-expand-hd{display:flex;align-items:baseline;justify-content:space-between;margin-bottom:6px;}
+        .dec-expand-ti{font-family:${MONO};font-size:10px;font-weight:500;letter-spacing:.12em;text-transform:uppercase;color:${SLATE};}
+        .dec-expand-full{font-size:11.5px;font-weight:800;color:${BLUE};background:none;border:none;padding:0;cursor:pointer;display:inline-flex;align-items:center;gap:3px;}
+        .dec-lbrow{display:flex;align-items:center;gap:9px;font-size:13px;padding:4px 7px;border-radius:7px;}
+        .dec-lbrow.me{background:#eff4fd;}
+        .dec-lbrow .rk{font-family:${MONO};font-size:11px;color:${FADED};width:26px;flex-shrink:0;}
+        .dec-lbrow .nm{font-weight:700;color:${INK};min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex:1;}
+        .dec-lbrow.me .nm{font-weight:800;}
+        .dec-lbrow .vl{font-family:${MONO};font-size:11.5px;color:${SLATE};flex-shrink:0;}
+        .dec-lbempty{font-size:12.5px;color:${FADED};padding:6px 2px;}
 
-        .dec-grab{display:flex;align-items:center;gap:12px;background:#fdf6e4;border:1px solid #f0e3bb;border-radius:16px;padding:13px 16px;margin-bottom:4px;}
-        .dec-grab-main{display:flex;align-items:center;gap:12px;flex:1;min-width:0;}
-        .dec-grab-eye{font-family:${MONO};font-size:10px;font-weight:500;letter-spacing:.12em;text-transform:uppercase;color:#b7791f;margin-bottom:2px;}
-        .dec-grab-txt{font-size:14px;color:${INK};display:flex;align-items:center;gap:6px;}
-        .dec-grab-txt b{font-weight:800;}
-        .dec-grab-btn{font-family:${SANS};font-weight:800;font-size:12.5px;color:#5c4a06;background:${GOLD};border:none;border-radius:10px;padding:9px 15px;cursor:pointer;text-decoration:none;flex-shrink:0;white-space:nowrap;}
+        .dec-slip{display:flex;align-items:center;gap:8px;font-size:12.5px;padding:9px 13px;border-radius:11px;margin-bottom:10px;width:100%;text-align:left;}
+        .dec-slip.info{background:#eff4fd;border:1px solid #d7e3f8;color:${SLATE};}
+        .dec-slip.info b{font-weight:800;color:${NAVY};}
+        .dec-slip.neutral{background:#f7f8fa;border:1px solid ${BORD};color:${SLATE};cursor:pointer;font-family:${SANS};font-weight:600;}
+        .dec-slip.neutral:hover{background:#eef0f4;}
+        .dec-slip .clink{font:inherit;font-weight:800;color:${BLUE};background:none;border:none;padding:0;text-decoration:underline;text-underline-offset:2px;cursor:pointer;}
+        .dec-slip .chev{margin-left:auto;display:inline-flex;color:${SLATE};}
+
+        .dec-cal{border:1px solid ${BORD};border-radius:12px;padding:12px 13px;margin:-2px 0 12px;background:#fff;}
+        .dec-cal-hd{display:flex;align-items:center;justify-content:space-between;margin-bottom:9px;}
+        .dec-cal-mo{font-size:14px;font-weight:800;color:${INK};}
+        .dec-cal-nav{display:flex;gap:6px;}
+        .dec-cal-nav button{width:28px;height:28px;display:flex;align-items:center;justify-content:center;border-radius:8px;border:1px solid ${BORD};background:#fff;color:${SLATE};cursor:pointer;}
+        .dec-cal-nav button:disabled{opacity:.4;cursor:default;}
+        .dec-cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:4px;}
+        .dec-cal-wd{font-family:${MONO};font-size:9.5px;color:${FADED};text-align:center;padding-bottom:2px;}
+        .dec-cal-cell{aspect-ratio:1;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;border-radius:8px;color:#c2c8d2;}
+        .dec-cal-cell.empty{background:transparent;}
+        .dec-cal-cell.none{color:#c9cdd6;}
+        a.dec-cal-cell{text-decoration:none;}
+        a.dec-cal-cell.played{background:#e8f5ec;color:#15803d;border:1px solid #bfe3ca;}
+        a.dec-cal-cell.unplayed{background:#fff;color:${SLATE};border:1px solid ${BORD};}
+        a.dec-cal-cell.unplayed:hover{border-color:${BLUE};color:${BLUE};}
+        a.dec-cal-cell.today{box-shadow:0 0 0 2px ${BLUE};}
+        .dec-cal-key{display:flex;flex-wrap:wrap;gap:10px 14px;margin-top:10px;font-size:11px;color:${FADED};}
+        .dec-cal-key span{display:inline-flex;align-items:center;gap:5px;}
+        .dec-cal-sw{width:11px;height:11px;border-radius:3px;flex-shrink:0;}
+
+        .dec-duo{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:4px;}
+        .dec-nx{border:1px solid #d7e3f8;background:#eff4fd;border-radius:14px;padding:13px 14px;display:flex;flex-direction:column;gap:11px;min-width:0;}
+        .dec-nx-top{display:flex;align-items:center;gap:12px;min-width:0;}
+        .dec-ring{position:relative;width:50px;height:50px;flex-shrink:0;}
+        .dec-ring .num{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:17px;font-weight:800;color:${INK};}
+        .dec-eye{font-family:${MONO};font-size:10px;font-weight:500;letter-spacing:.1em;text-transform:uppercase;margin-bottom:2px;}
+        .dec-nx-name{font-size:18px;font-weight:800;letter-spacing:-.01em;color:${INK};}
+        .dec-nx-tag{font-size:12px;color:${SLATE};margin-top:1px;}
+        .dec-nx-btns{display:flex;gap:7px;}
+        .dec-nx-btns .b{flex:1;justify-content:center;font-family:${SANS};font-weight:800;font-size:12.5px;border-radius:10px;padding:9px 12px;cursor:pointer;display:inline-flex;align-items:center;gap:6px;text-decoration:none;border:1px solid ${BORD};background:#fff;color:${SLATE};}
+        .dec-nx-btns .b.primary{background:${BLUE};border-color:${BLUE};color:#fff;}
+        .dec-nx-btns .b:hover{filter:brightness(0.98);}
+
+        .dec-ez{border:1px solid #f0e3bb;background:#fdf6e4;border-radius:14px;padding:13px 14px;display:flex;flex-direction:column;gap:11px;min-width:0;}
+        .dec-ez-top{display:flex;align-items:center;gap:11px;min-width:0;}
+        .dec-ez-name{font-size:18px;font-weight:800;letter-spacing:-.01em;color:${INK};display:flex;align-items:center;gap:7px;}
+        .dec-ez-tag{font-size:12px;color:#8a6d1c;margin-top:1px;}
+        .dec-ez-btn{align-self:flex-start;font-family:${SANS};font-weight:800;font-size:12.5px;color:#5c4a06;background:${GOLD};border:none;border-radius:10px;padding:9px 15px;cursor:pointer;text-decoration:none;white-space:nowrap;}
 
         .dec-morehd{display:flex;align-items:baseline;justify-content:space-between;margin:18px 2px 12px;}
         .dec-more-eye{font-family:${MONO};font-size:10.5px;font-weight:500;letter-spacing:.14em;text-transform:uppercase;color:${SLATE};}
@@ -502,126 +635,177 @@ export default function DailyEndCard({
         .dec-row .play.resume{color:#b9791a;}
         .dec-rz{display:inline-flex;align-items:center;margin-left:5px;vertical-align:-1px;}
 
-        .dec-foot{text-align:center;margin-top:14px;}
-        .dec-foot a{font-family:${MONO};font-size:11px;letter-spacing:.06em;text-transform:uppercase;font-weight:500;color:${NAVY};text-decoration:none;border-bottom:1px solid rgba(14,29,64,0.5);padding-bottom:1px;}
+        .dec-foot{display:flex;flex-wrap:wrap;align-items:center;gap:8px;margin-top:16px;}
+        .dec-btn{font-family:${SANS};font-weight:700;font-size:12.5px;border:1px solid ${BORD};background:#fff;color:${SLATE};border-radius:10px;padding:9px 13px;cursor:pointer;display:inline-flex;align-items:center;gap:6px;text-decoration:none;}
+        .dec-btn:hover{background:#f7f8fa;}
+        .dec-btn.ink{background:${INK};border-color:${INK};color:#fff;font-weight:800;}
+        .dec-btn.ink:hover{filter:brightness(1.12);background:${INK};}
+        .dec-land{margin-left:auto;font-family:${MONO};font-size:11px;letter-spacing:.06em;text-transform:uppercase;font-weight:500;color:${NAVY};text-decoration:none;border-bottom:1px solid rgba(14,29,64,0.5);padding-bottom:1px;}
 
         @media(max-width:640px){
           .dec-card{padding:18px 16px 14px;}
-          .dec-tagline{display:none;}
+          .dec-head{flex-direction:column;gap:10px;}
+          .dec-head-r{flex-direction:row;align-items:center;align-self:stretch;justify-content:space-between;}
+          .dec-tiles{grid-template-columns:1fr;}
+          .dec-duo{grid-template-columns:1fr;}
           .dec-grid,.dec-grid.cols-1,.dec-grid.cols-2,.dec-grid.cols-3{grid-template-columns:1fr;}
-          .dec-upnext{flex-direction:column;align-items:stretch;}
-          .dec-up-btns{flex-direction:row;width:100%;}
-          .dec-up-btns .dec-btn{flex:1;}
-          .dec-grab{flex-direction:column;align-items:stretch;}
-          .dec-grab-btn{text-align:center;}
           .dec-rows{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:6px;}
           .dec-rows.one{grid-template-columns:1fr;}
           .dec-row{margin-bottom:0;padding:8px 9px;}
           .dec-row .pl{display:none;}
+          .dec-land{margin-left:0;}
         }
       `}</style>
 
-      {/* ---- result header ---- */}
-      <div className="dec-eyebrow">
-        <span className="dec-dot" style={{ background: selfCatMeta.color }} />
-        <span className="dec-cat" style={{ color: selfCatMeta.color }}>{selfCatMeta.name}</span>
-        {selfGame ? <span className="dec-tagline">{selfGame.tag}</span> : null}
-      </div>
-      <div className="dec-titlerow">
-        <span className="dec-title">{(completed == null ? won : completed) ? <>You completed {selfName}!</> : <>You played {selfName}</>}</span>
-        {score ? <span className="dec-detail">{score}</span> : null}
-      </div>
-      {answer ? (
-        <div className="dec-answer">
-          <span className="dec-answer-lbl">Answer</span>
-          <span className="dec-answer-word">{answer}</span>
+      {/* ---- 1. header ---- */}
+      <div className="dec-head">
+        <div className="dec-head-l">
+          <div className="dec-titlerow">
+            <span className={`dec-check${won ? '' : ' loss'}`}>
+              {won ? <CheckCircle2 size={19} strokeWidth={2.4} /> : <Flag size={17} strokeWidth={2.4} />}
+            </span>
+            <span className="dec-title">{isCompleted ? 'Completed!' : 'Played'}</span>
+          </div>
+          <div className="dec-sub">
+            <span className="dec-dot" style={{ background: selfCatMeta.color }} />
+            <b>{selfName}</b>
+            <span className="sc">&middot; {selfCatMeta.name}</span>
+            {score ? <span className="sc">&middot; {score}</span> : null}
+          </div>
+          {answer ? (
+            <div className="dec-answer">
+              <span className="dec-answer-lbl">Answer</span>
+              <span className="dec-answer-word">{answer}</span>
+            </div>
+          ) : null}
         </div>
-      ) : null}
-      {dailyMe ? (
-        <div className="dec-rank">
-          {gameRank ? <>Rank <b>#{gameRank}</b> today in {selfName}</> : null}
-          {gameRank && combinedRank ? ' · ' : null}
-          {combinedRank ? <><b>#{combinedRank}</b> on the combined leaderboard</> : null}
-          {leftToPlay > 0 ? <span className="muted"> &middot; {leftToPlay} game{leftToPlay === 1 ? '' : 's'} left</span> : null}
+        <div className="dec-head-r" style={modal ? { paddingRight: 26 } : undefined}>
+          {hasEmail && username
+            ? <span className="dec-user">{username}</span>
+            : <button type="button" className="dec-signup" onClick={goRegister}>Sign up</button>}
+          <button type="button" className="dec-share" onClick={onShare}>
+            <Share2 size={14} strokeWidth={2.2} /> Share result{forCredit && !/copied/i.test(shareLabel || '') ? ' (for credit)' : ''}
+          </button>
         </div>
-      ) : null}
+      </div>
 
-      {!dailyMe && dailyGuest ? (() => {
-        const g = self && dailyGuest.perGame ? dailyGuest.perGame[self] : null;
-        const rk = g && g.rank ? g.rank : dailyGuest.rank;
-        if (!rk) return null;
-        const where = g ? <>{selfName} leaderboard</> : 'daily leaderboard';
+      {/* ---- 2. three rank tiles ---- */}
+      <div className="dec-tiles">
+        {renderTile('today', `${selfName} today`, gameTodayRank, gameTodayField, false)}
+        {renderTile('alltime', `${selfName} all-time`, hasEmail ? (allTime ? allTime.myRank : null) : null, allTime ? allTime.field : null, !hasEmail)}
+        {renderTile('combined', 'Combined today', combinedRank, combinedField, false)}
+      </div>
+      {openTile ? (() => {
+        const rows = tileBoard(openTile);
+        const ti = openTile === 'today' ? `${selfName} · today` : openTile === 'alltime' ? `${selfName} · all-time` : 'Combined · today';
         return (
-          <div className="dec-reg">
-            You would be <b>#{rk}</b> on the {where} if you{' '}
-            <button type="button" className="dec-reg-link" onClick={goRegister}>register</button>.
+          <div className="dec-expand">
+            <div className="dec-expand-hd">
+              <span className="dec-expand-ti">{ti} &middot; top 10</span>
+              <button type="button" className="dec-expand-full" onClick={goBoard}>Full leaderboard <ArrowRight size={12} strokeWidth={2.4} /></button>
+            </div>
+            {rows.length ? rows.map((r, idx) => (
+              <div className={`dec-lbrow${r.me ? ' me' : ''}`} key={idx}>
+                <span className="rk">#{r.rank}</span>
+                <span className="nm">{r.name || '—'}</span>
+                <span className="vl">{r.val}</span>
+              </div>
+            )) : <div className="dec-lbempty">No board yet. Be the first to post a score.</div>}
           </div>
         );
       })() : null}
 
-      {/* ---- result actions ---- */}
-      <div className="dec-actions">
-        {pastHref ? (
-          <a className="dec-btn primary" style={{ background: INK, borderColor: INK }} href={pastHref}>
-            <RotateCcw size={15} strokeWidth={2} /> Play a past {selfName}
-          </a>
-        ) : null}
-        <button type="button" className="dec-btn" onClick={goBoard}>
-          <BarChart3 size={15} strokeWidth={2} /> Leaderboard
-        </button>
-        <button type="button" className="dec-btn" onClick={onShare}>
-          <Share2 size={15} strokeWidth={2} /> {shareLabel}{forCredit && !/copied/i.test(shareLabel || '') ? ' (for credit)' : ''}
-        </button>
-      </div>
-
-      {/* ---- up next auto-advance ---- */}
-      {nextTarget ? (
-        <div className="dec-upnext">
-          <div className="dec-up-main">
-            <div className="dec-ring">
-              <svg width="56" height="56" viewBox="0 0 56 56" aria-hidden="true">
-                <circle cx="28" cy="28" r="24" fill="none" stroke="#dbe6f7" strokeWidth="5" />
-                <circle cx="28" cy="28" r="24" fill="none" stroke="#2563eb" strokeWidth="5" strokeLinecap="round"
-                  transform="rotate(-90 28 28)" strokeDasharray={RING_C} strokeDashoffset={ringOffset} />
-              </svg>
-              <span className="num">{autoRun ? secs : <ArrowRight size={18} strokeWidth={2.4} color="#2563eb" />}</span>
-            </div>
-            <div style={{ minWidth: 0, flex: 1 }}>
-              <div className="dec-up-eye">Up next &middot; closest unplayed</div>
-              <div className="dec-up-name">{nextTarget.name}</div>
-              <div className="dec-up-tag">
-                {nextTarget.tag}
-                {autoRun ? <> &middot; {secs > 0 ? `opens in ${secs}s` : 'opening…'}</> : null}
-              </div>
-            </div>
-          </div>
-          <div className="dec-up-btns">
-            <a className="dec-btn primary" style={{ background: '#dc2626' }} href={nextTarget.href}>Go to {nextTarget.name}</a>
-            {autoRun ? (
-              <button type="button" className="dec-btn" onClick={() => setAutoCancel(true)}>Not now</button>
-            ) : null}
-          </div>
+      {/* ---- 3. guest claim slip ---- */}
+      {!hasEmail ? (
+        <div className="dec-slip info">
+          Ranks are unclaimed &middot; <button type="button" className="clink" onClick={goRegister}>select a username to claim</button>
         </div>
       ) : null}
 
-      {/* ---- leaderboard most up for grabs ---- */}
-      {grab ? (
-        <div className="dec-grab">
-          <div className="dec-grab-main">
-            <Trophy size={22} strokeWidth={2} color="#b7791f" style={{ flexShrink: 0 }} />
-            <div style={{ minWidth: 0, flex: 1 }}>
-              <div className="dec-grab-eye">Leaderboard most up for grabs</div>
-              <div className="dec-grab-txt">
-                <span className="dec-dot" style={{ background: (CAT_META[grab.cat] || CAT_META.word).color }} />
-                <span><b>{grab.name}</b> &middot; {grab.field > 0 ? <>only {grab.field} player{grab.field === 1 ? '' : 's'} so far, the board&rsquo;s wide open</> : <>no one&rsquo;s on the board yet</>}</span>
+      {/* ---- 4. calendar slip ---- */}
+      {drops && drops.length ? (
+        <>
+          <button type="button" className="dec-slip neutral" onClick={() => setCalOpen((v) => !v)} aria-expanded={calOpen}>
+            <CalendarDays size={15} strokeWidth={2} />
+            See the full calendar of {selfName} games
+            <span className="chev">{calOpen ? <ChevronLeft size={15} strokeWidth={2.4} style={{ transform: 'rotate(90deg)' }} /> : <ChevronRight size={15} strokeWidth={2.4} style={{ transform: 'rotate(90deg)' }} />}</span>
+          </button>
+          {calOpen ? (
+            <div className="dec-cal">
+              <div className="dec-cal-hd">
+                <span className="dec-cal-mo">{monthLabel}</span>
+                <div className="dec-cal-nav">
+                  <button type="button" onClick={() => shiftMonth(-1)} disabled={!canPrev} aria-label="Previous month"><ChevronLeft size={16} strokeWidth={2.4} /></button>
+                  <button type="button" onClick={() => shiftMonth(1)} disabled={!canNext} aria-label="Next month"><ChevronRight size={16} strokeWidth={2.4} /></button>
+                </div>
+              </div>
+              <div className="dec-cal-grid">
+                {WEEKDAYS.map((w, i) => <div className="dec-cal-wd" key={`wd${i}`}>{w}</div>)}
+                {calCells.map((d, i) => {
+                  if (d == null) return <div className="dec-cal-cell empty" key={`e${i}`} />;
+                  const iso = `${calMonth}-${String(d).padStart(2, '0')}`;
+                  const drop = dropByISO.get(iso);
+                  const isToday = iso === todayISO;
+                  if (!drop) return <div className={`dec-cal-cell none${isToday ? ' today' : ''}`} key={iso}>{d}</div>;
+                  const cls = drop.played ? 'played' : 'unplayed';
+                  return (
+                    <a className={`dec-cal-cell ${cls}${isToday ? ' today' : ''}`} href={drop.href} key={iso} title={drop.played ? 'Played' : 'Play this drop'}>{d}</a>
+                  );
+                })}
+              </div>
+              <div className="dec-cal-key">
+                <span><span className="dec-cal-sw" style={{ background: '#e8f5ec', border: '1px solid #bfe3ca' }} />Played</span>
+                <span><span className="dec-cal-sw" style={{ background: '#fff', border: `1px solid ${BORD}` }} />Unplayed</span>
+                <span><span className="dec-cal-sw" style={{ background: '#fff', boxShadow: `0 0 0 2px ${BLUE}` }} />Today</span>
               </div>
             </div>
-          </div>
-          <a className="dec-grab-btn" href={grab.href}>Play {grab.name}</a>
+          ) : null}
+        </>
+      ) : null}
+
+      {/* ---- 5. up next + easiest leaderboard ---- */}
+      {(nextTarget || grab) ? (
+        <div className="dec-duo">
+          {nextTarget ? (
+            <div className="dec-nx">
+              <div className="dec-nx-top">
+                <div className="dec-ring">
+                  <svg width="50" height="50" viewBox="0 0 56 56" aria-hidden="true">
+                    <circle cx="28" cy="28" r="24" fill="none" stroke="#dbe6f7" strokeWidth="5" />
+                    <circle cx="28" cy="28" r="24" fill="none" stroke="#2563eb" strokeWidth="5" strokeLinecap="round"
+                      transform="rotate(-90 28 28)" strokeDasharray={RING_C} strokeDashoffset={ringOffset} />
+                  </svg>
+                  <span className="num">{autoRun ? secs : <ArrowRight size={17} strokeWidth={2.4} color="#2563eb" />}</span>
+                </div>
+                <div style={{ minWidth: 0, flex: 1 }}>
+                  <div className="dec-eye" style={{ color: BLUE }}>Up next</div>
+                  <div className="dec-nx-name">{nextTarget.name}</div>
+                  <div className="dec-nx-tag">{nextTarget.tag}{autoRun ? <> &middot; {secs > 0 ? `opens in ${secs}s` : 'opening…'}</> : null}</div>
+                </div>
+              </div>
+              <div className="dec-nx-btns">
+                <a className="b primary" href={nextTarget.href}>Play now</a>
+                {autoRun ? <button type="button" className="b" onClick={() => setAutoCancel(true)}>Not now</button> : null}
+              </div>
+            </div>
+          ) : null}
+          {grab ? (
+            <div className="dec-ez">
+              <div className="dec-ez-top">
+                <Trophy size={22} strokeWidth={2} color="#b7791f" style={{ flexShrink: 0 }} />
+                <div style={{ minWidth: 0, flex: 1 }}>
+                  <div className="dec-eye" style={{ color: '#b7791f' }}>Easiest leaderboard</div>
+                  <div className="dec-ez-name"><span className="dec-dot" style={{ background: (CAT_META[grab.cat] || CAT_META.word).color }} />{grab.name}</div>
+                  <div className="dec-ez-tag">{grab.field > 0 ? <>Only {grab.field} player{grab.field === 1 ? '' : 's'} so far</> : <>No one&rsquo;s on the board yet</>}</div>
+                </div>
+              </div>
+              <a className="dec-ez-btn" href={grab.href}>Play {grab.name}</a>
+            </div>
+          ) : null}
         </div>
       ) : null}
 
-      {/* ---- more of today's games ---- */}
+      {/* ---- 6. more of today's games ---- */}
       {showMore ? (
         <>
           <div className="dec-morehd">
@@ -631,25 +815,7 @@ export default function DailyEndCard({
           <div className={`dec-grid cols-${packedCols.length}`}>
             {packedCols.map((col, ci) => (
               <div className="dec-col" key={ci}>
-                {col.map((block) => block.type === 'other' ? (
-                  <div className="dec-group" key="other">
-                    <a className="dec-gh" style={{ background: OTHER_COLOR }} href="/quizzes">
-                      <span className="lbl">Other quizzes</span>
-                      <span className="cnt"><ArrowRight size={14} strokeWidth={2.4} color="#fff" /></span>
-                    </a>
-                    <div className="dec-rows one">
-                    {block.items.map((q) => (
-                      <a className="dec-row" href={`/quiz/${q.id}`} key={q.id}>
-                        <div style={{ minWidth: 0, flex: 1 }}>
-                          <div className="nm"><span className="t">{q.name}</span></div>
-                          <div className="tg">{q.tag}</div>
-                        </div>
-                        <span className="play"><span className="pl">Play</span><ArrowRight size={11} strokeWidth={2.6} /></span>
-                      </a>
-                    ))}
-                    </div>
-                  </div>
-                ) : (
+                {col.map((block) => (
                   <div className="dec-group" key={block.cat}>
                     <div className="dec-gh" style={{ background: block.cm.color }}>
                       <span className="lbl">{block.cm.name}</span>
@@ -674,7 +840,19 @@ export default function DailyEndCard({
         </>
       ) : null}
 
-      <div className="dec-foot"><a href="/daily">All daily games &amp; archive &rarr;</a></div>
+      {/* ---- 7. bottom actions ---- */}
+      <div className="dec-foot">
+        <button type="button" className="dec-btn" onClick={goBoard}>
+          <BarChart3 size={15} strokeWidth={2} /> Leaderboards
+        </button>
+        {pastHref ? (
+          <a className="dec-btn ink" href={pastHref}>
+            <RotateCcw size={15} strokeWidth={2} /> Play a past {selfName}
+          </a>
+        ) : null}
+        <a className="dec-land" href="/daily">Daily game landing page &rarr;</a>
+      </div>
+
       {self ? (
         <ReportIssue
           self={self}

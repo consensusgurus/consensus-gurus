@@ -345,6 +345,9 @@ export async function GET(request) {
       bestN: effBestN,
       gameCount,
       uniquePlayers,
+      // overallField = the full registered combined-board field (the end card's
+      // "Combined today · of <field>"); `overall` itself is capped at DISPLAY.
+      overallField: overallFull.length,
       games: gameBoards,
       overall: overallFull.slice(0, DISPLAY),
       me,
