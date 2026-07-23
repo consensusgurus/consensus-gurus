@@ -2,15 +2,36 @@
 
 // The unified daily-games tile: one horizontal strip that packages every daily
 // into a single card, each game still its own link. A fixed left cap carries the
-// DAILY GAMES label and a live progress bar; each cell shows the game's motif +
-// name, and a game finished TODAY gets a green check overlay that dims the cell
-// but never blocks the click (tap through to replay or review). Completion
-// follows the signed-in player across devices via /api/quiz/daily-status, with
-// the same-device localStorage breadcrumb (sot_<key>_day) driving the first
-// paint. Adding a game to GAMES adds it to the strip everywhere it's used.
+// DAILY GAMES label, a live progress bar with the played count and the ET reset
+// countdown; each cell shows the game's motif + name, and a game finished TODAY
+// gets a green check overlay that dims the cell but never blocks the click (tap
+// through to replay or review). Completion follows the signed-in player across
+// devices via /api/quiz/daily-status, with the same-device localStorage
+// breadcrumb (sot_<key>_day) driving the first paint. Adding a game to GAMES
+// adds it to the strip everywhere it's used.
+//
+// REDESIGN (owner-approved mockup, 2026-07-23):
+// - The cap gains a "You: n of N" count + "resets in Xh Ym" ET countdown under
+//   the progress bar. The Today's Top 3 mini-board and Full board expander are
+//   unchanged.
+// - An UP NEXT hero column sits between the cap and the cells: the player's
+//   first unfinished game (display order), its real /games icon, tag, today's
+//   leader for that game, and Play now / Play all CTAs. When every game is done
+//   it flips to an all-done state. The hero's game is EXCLUDED from the cell
+//   grid so the grid stays 2 rows (its slot is taken by the trailing Play-all
+//   cell).
+// - Each cell carries a 3px top accent bar in the game's ACCENTS color. Every
+//   cell keeps its game-leader chip (owner ruling 2026-07-23: never swap it for
+//   the player's own score).
+// - Mobile (<=1024px or short landscape): the strip stacks as rows — cap
+//   (wordmark + bar + count on line one; on line two ONLY the overall leader
+//   plate, given the full width, plus the Full board button — ranks 2-3 are
+//   desktop-only, owner ruling 2026-07-23), hero row, then the cells in a
+//   2-row horizontally scrolling rail. Streaks were considered and deferred:
+//   no API exposes per-day play history yet.
 //
 // TWO ROWS (owner ruling 2026-07-18, at 16 games): the cells lay out as a
-// 2-row × 8-column grid, and the fixed left cap spans both rows.
+// 2-row × 10-column grid, and the fixed left cap spans both rows.
 //
 // LEADERBOARD (optional): pass `board` (the /api/quiz/daily-combined payload)
 // and the left cap becomes today's board in miniature — the overall TOP 3
@@ -20,7 +41,7 @@
 // (owner: keep the game-specific leaders alongside the top-3 cap).
 
 import React, { useState, useEffect } from 'react';
-import { Crown, ChevronDown, Trophy } from 'lucide-react';
+import { Crown, ChevronDown, Trophy, Play } from 'lucide-react';
 import useDailyOrder, { sortByDailyOrder } from './useDailyOrder';
 import { hasSundayEdition, isSundayET, SUNDAY_SHORT } from '../lib/sunday-editions';
 
@@ -70,6 +91,24 @@ export default function DailyStrip({ board = null }) {
   // Edition. Set after mount so SSR and the first client render agree.
   const [isSunday, setIsSunday] = useState(false);
   useEffect(() => { setIsSunday(isSundayET()); }, []);
+  // "resets in Xh Ym" countdown to ET midnight; set after mount (SSR-safe) and
+  // refreshed each minute.
+  const [resetLbl, setResetLbl] = useState('');
+  useEffect(() => {
+    const tick = () => {
+      try {
+        const et = new Date(new Date().toLocaleString('en-US', { timeZone: 'America/New_York' }));
+        const mid = new Date(et); mid.setHours(24, 0, 0, 0);
+        const ms = Math.max(0, mid - et);
+        const h = Math.floor(ms / 3600000);
+        const m = Math.floor((ms % 3600000) / 60000);
+        setResetLbl(h > 0 ? `${h}h ${m}m` : `${m}m`);
+      } catch (e) { setResetLbl(''); }
+    };
+    tick();
+    const iv = setInterval(tick, 60000);
+    return () => clearInterval(iv);
+  }, []);
   // Display order = yesterday's popularity (canonical order until it loads).
   const dailyOrder = useDailyOrder();
   const games = sortByDailyOrder(GAMES, dailyOrder);
@@ -131,6 +170,12 @@ export default function DailyStrip({ board = null }) {
 
   const n = GAMES.filter((g) => done.has(g.key)).length;
   const pct = Math.round((n / GAMES.length) * 100);
+  const left = GAMES.length - n;
+  // Up Next = the first unfinished game in display order (an in-progress game
+  // counts as unfinished, so it becomes a Resume target). Its cell is pulled
+  // from the grid; the trailing Play-all cell keeps the grid at full slots.
+  const nextGame = games.find((g) => !done.has(g.key)) || null;
+  const cellGames = nextGame ? games.filter((g) => g.key !== nextGame.key) : games;
 
   // ── leaderboard wiring (only when a board payload is provided) ──
   const bgames = board && Array.isArray(board.games) ? board.games : null;
@@ -146,6 +191,8 @@ export default function DailyStrip({ board = null }) {
   const top3 = overall.slice(0, 3);
   const meShown = meKey && top3.some((r) => r.userKey === meKey);
   const uniquePlayers = board && typeof board.uniquePlayers === 'number' ? board.uniquePlayers : null;
+
+  const nextLead = nextGame && hasBoard && byKey[nextGame.key] && byKey[nextGame.key].board && byKey[nextGame.key].board[0] ? byKey[nextGame.key].board[0] : null;
 
   // Recent champions are only needed once the board is expanded; fetch them
   // lazily on first open so a collapsed homepage visit never pays for it. Capped
@@ -182,8 +229,12 @@ export default function DailyStrip({ board = null }) {
         a.dstrip-cap-ttl:hover .lab{color:#ffce6a;}
         a.dstrip-cap-ttl:hover{color:#dfe7f7;}
         .dstrip-cap .ttl .lab{color:#f8b84a;}
-        .dstrip-bar{display:block;height:9px;width:100%;border-radius:99px;background:rgba(255,255,255,0.14);overflow:hidden;margin-top:5px;box-shadow:inset 0 0 0 1px rgba(255,255,255,0.06);}
+        .dstrip-progrow{display:flex;flex-direction:column;gap:3px;margin-top:5px;}
+        .dstrip-bar{display:block;height:9px;width:100%;border-radius:99px;background:rgba(255,255,255,0.14);overflow:hidden;box-shadow:inset 0 0 0 1px rgba(255,255,255,0.06);}
         .dstrip-fill{display:block;height:100%;width:0;background:#34d399;border-radius:99px;transition:width .4s ease;}
+        .dstrip-count{display:flex;align-items:baseline;justify-content:space-between;gap:6px;font-size:9.5px;font-weight:700;color:#9fb0d4;}
+        .dstrip-count b{color:#34d399;font-weight:800;}
+        .dstrip-count .rst{color:#6a80a8;font-weight:600;}
         .dstrip-exp{margin-top:2px;align-self:stretch;width:100%;box-sizing:border-box;display:flex;align-items:center;justify-content:center;gap:4px;background:rgba(232,180,58,0.14);border:1px solid rgba(232,180,58,0.42);color:#f5d878;font-family:inherit;font-size:9.5px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;border-radius:7px;padding:3px 8px;cursor:pointer;transition:background .15s;}
         .dstrip-exp:hover{background:rgba(232,180,58,0.24);}
         /* the cap's miniature daily board: today's overall top 3 */
@@ -205,23 +256,44 @@ export default function DailyStrip({ board = null }) {
         .dstrip-t3r .pt{flex:0 0 auto;font-size:9.5px;color:#93a7cc;font-variant-numeric:tabular-nums;font-weight:600;}
         .dstrip-t3r.me .nm3{color:#f5d878;}
         .dstrip-t3 .t3none{font-size:10.5px;font-weight:600;color:#6a80a8;line-height:1.35;}
-        /* 16 games in a 2-row × 8-column grid; the cap spans both rows */
+        /* UP NEXT hero column: the player's next unfinished game, promoted. */
+        .dstrip-hero{flex:0 0 212px;display:flex;flex-direction:column;justify-content:center;gap:7px;padding:12px 15px;background:#13264b;border-right:1px solid rgba(255,255,255,0.09);min-width:0;}
+        .dstrip-hero .hd-eb{display:flex;align-items:center;gap:6px;font-size:9px;font-weight:800;letter-spacing:.1em;text-transform:uppercase;color:#f8b84a;}
+        .dstrip-hero .hd-eb .dstrip-sun{position:static;}
+        .dstrip-hero .hd-row{display:flex;align-items:center;gap:9px;min-width:0;text-decoration:none;}
+        .dstrip-hero .hd-row img{height:36px;width:auto;max-width:44px;object-fit:contain;flex:none;}
+        .dstrip-hero .hd-nm{display:block;font-size:18px;font-weight:800;color:#fff;line-height:1.1;letter-spacing:-.2px;}
+        .dstrip-hero .hd-tag{display:block;font-size:10px;font-weight:600;color:#9fb0d4;margin-top:2px;}
+        .dstrip-hero .hd-meta{display:flex;align-items:center;gap:4px;font-size:10px;font-weight:700;color:#93a7cc;min-width:0;}
+        .dstrip-hero .hd-meta svg{color:#e8b43a;flex:none;}
+        .dstrip-hero .hd-meta b{color:#eaf0fb;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+        .dstrip-hero .hd-ctas{display:flex;gap:6px;}
+        .dstrip-hero .hd-play{flex:1;display:flex;align-items:center;justify-content:center;gap:5px;background:#e8b43a;color:#1c1e24;font-size:11.5px;font-weight:800;border-radius:8px;padding:7px 6px;text-decoration:none;transition:background .12s;}
+        .dstrip-hero .hd-play:hover{background:#d49a2a;}
+        .dstrip-hero .hd-all{flex:1;display:flex;align-items:center;justify-content:center;gap:5px;border:1px solid #2b4270;color:#eaf0fb;font-size:10.5px;font-weight:800;border-radius:8px;padding:7px 6px;text-decoration:none;transition:background .12s;}
+        .dstrip-hero .hd-all:hover{background:rgba(91,139,255,0.14);}
+        /* 20 slots in a 2-row × 10-column grid; the cap and hero span both rows */
         .dstrip-cells{display:grid;grid-template-columns:repeat(10,minmax(72px,1fr));grid-auto-rows:1fr;flex:1 1 auto;min-width:0;}
-        .dstrip-cell{position:relative;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:5px;padding:11px 6px 9px;text-decoration:none;border-left:1px solid rgba(255,255,255,0.055);transition:background .12s;}
+        .dstrip-cell{position:relative;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:5px;padding:13px 6px 9px;text-decoration:none;border-left:1px solid rgba(255,255,255,0.055);transition:background .12s;}
         .dstrip-cell:nth-child(10n+1){border-left:none;}
         .dstrip-cell:nth-child(n+11){border-top:1px solid rgba(255,255,255,0.055);}
         .dstrip-cell:hover{background:rgba(91,139,255,0.14);}
+        .dstrip-acc{position:absolute;top:0;left:0;right:0;height:3px;opacity:.85;pointer-events:none;}
+        .dstrip-cell.done .dstrip-acc{opacity:.3;}
         .dstrip-cell img{height:30px;width:auto;max-width:38px;object-fit:contain;}
         .dstrip-cell .nm{font-size:11px;font-weight:800;color:#fff;letter-spacing:-.2px;white-space:nowrap;}
         .dstrip-cell.done img{opacity:.4;}
         .dstrip-cell.done .nm{color:#9fb0d4;}
-        .dstrip-sun{position:absolute;top:5px;left:5px;font-family:'DM Mono',ui-monospace,monospace;font-size:8.5px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:#04121f;background:#f8b84a;border-radius:3px;padding:0 3px;line-height:1.5;pointer-events:none;}
-        .dstrip-check{position:absolute;top:5px;right:5px;width:16px;height:16px;border-radius:99px;background:#34d399;display:flex;align-items:center;justify-content:center;box-shadow:0 0 0 2px #0e1d40;pointer-events:none;}
-        .dstrip-prog{position:absolute;top:5px;right:5px;width:16px;height:16px;border-radius:99px;background:#12233f;display:flex;align-items:center;justify-content:center;box-shadow:0 0 0 2px #0e1d40;pointer-events:none;}
+        .dstrip-sun{position:absolute;top:7px;left:5px;font-family:'DM Mono',ui-monospace,monospace;font-size:8.5px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:#04121f;background:#f8b84a;border-radius:3px;padding:0 3px;line-height:1.5;pointer-events:none;}
+        .dstrip-check{position:absolute;top:7px;right:5px;width:16px;height:16px;border-radius:99px;background:#34d399;display:flex;align-items:center;justify-content:center;box-shadow:0 0 0 2px #0e1d40;pointer-events:none;}
+        .dstrip-prog{position:absolute;top:7px;right:5px;width:16px;height:16px;border-radius:99px;background:#12233f;display:flex;align-items:center;justify-content:center;box-shadow:0 0 0 2px #0e1d40;pointer-events:none;}
         .dstrip-lead{margin-top:2px;display:flex;align-items:center;gap:3px;max-width:100%;min-width:0;font-size:10px;font-weight:700;color:#eaf0fb;}
         .dstrip-lead svg{color:#e8b43a;flex:none;}
         .dstrip-lead > span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
         .dstrip-lead.none{color:#6a80a8;font-weight:600;}
+        /* trailing Play-all cell fills the slot freed by the promoted hero game */
+        .dstrip-cell.playall .pa-ic{width:30px;height:30px;border-radius:99px;border:1.5px dashed #3a537f;color:#9fb0d4;display:flex;align-items:center;justify-content:center;}
+        .dstrip-cell.playall .nm{color:#f5d878;font-size:10px;white-space:normal;text-align:center;line-height:1.3;}
         /* hover blurb: the one-line description fades in over the cell */
         .dstrip-tip{position:absolute;inset:0;z-index:2;display:flex;align-items:center;justify-content:center;text-align:center;padding:6px 8px;background:rgba(11,23,51,0.96);color:#eaf0fb;font-size:10.5px;font-weight:700;line-height:1.4;opacity:0;transition:opacity .14s ease;pointer-events:none;}
         .dstrip-cell:hover .dstrip-tip,.dstrip-cell:focus-visible .dstrip-tip{opacity:1;}
@@ -284,21 +356,43 @@ export default function DailyStrip({ board = null }) {
         .dsd-n2 b{color:#e8b43a;font-weight:700;}
         .dsd-p{color:#93a7cc;font-variant-numeric:tabular-nums;font-weight:600;font-size:10.5px;}
         .dsd-none{color:#6a80a8;font-size:10.5px;padding:2px 0;}
-        /* Enable horizontal scroll whenever the 8 columns can't all fit: narrow widths
-           AND short landscape phones (which can be wider than 820 but still overflow).
-           Without this the strip's overflow:hidden clips the right-hand games and they
-           become unreachable (the "frozen strip" bug on landscape). Both rows scroll
-           together — the grid keeps a floor width and the cap stays sticky. */
+        /* Stacked layout whenever the wide strip can't fit: narrow widths AND
+           short landscape phones. The cap becomes a header row (wordmark + bar +
+           count on line one, top-3 chips + expander on line two), the hero
+           becomes a full-width row, and the cells keep BOTH rows inside one
+           horizontally scrolling rail (grid auto-flow column). This replaces the
+           old sticky-cap sideways-scroll layout, and keeps every game reachable
+           (the "frozen strip" bug on landscape). */
         @media (max-width:1024px), (max-height:600px){
-          .dstrip-main{overflow-x:auto;-webkit-overflow-scrolling:touch;}
-          .dstrip-cap{position:sticky;left:0;z-index:1;}
-          .dstrip-cells{min-width:560px;}
-        }
-        @media(max-width:560px){
-          .dstrip-cap{min-width:78px;padding:10px 11px;}
-          .dstrip-cap.has-top3{min-width:148px;max-width:164px;}
-          .dstrip-cells{grid-template-columns:repeat(10,minmax(62px,1fr));min-width:620px;}
-          .dstrip-cell{padding:9px 5px 8px;}
+          .dstrip-main{flex-direction:column;}
+          .dstrip-cap{flex-direction:row;flex-wrap:wrap;align-items:center;gap:7px 10px;border-right:none;border-bottom:1px solid rgba(255,255,255,0.07);padding:10px 13px;}
+          .dstrip-cap.has-top3{min-width:0;max-width:none;}
+          .dstrip-cap .ttl{font-size:14px;}
+          .dstrip-progrow{flex:1 1 140px;flex-direction:row;align-items:center;gap:8px;margin-top:0;}
+          .dstrip-bar{flex:1 1 auto;width:auto;height:8px;}
+          .dstrip-count{flex:none;gap:5px;}
+          .dstrip-count .rst{display:none;}
+          .dstrip-t3{flex:1 1 65%;flex-direction:row;align-items:center;gap:8px;margin-top:0;overflow:hidden;}
+          .dstrip-t3 .t3h{display:none;}
+          .dstrip-t3r{display:none;}
+          .dstrip-t1{margin:0;padding:5px 10px;flex:1 1 auto;min-width:0;}
+          .dstrip-t1 .nm1{font-size:12.5px;}
+          .dstrip-exp{margin:0;align-self:auto;width:auto;flex:none;}
+          .dstrip-hero{flex:none;flex-direction:row;flex-wrap:wrap;align-items:center;gap:6px 10px;border-right:none;border-bottom:1px solid rgba(255,255,255,0.09);padding:10px 13px;}
+          .dstrip-hero .hd-eb{flex:1 1 100%;}
+          .dstrip-hero .hd-row{flex:1 1 auto;}
+          .dstrip-hero .hd-row img{height:32px;}
+          .dstrip-hero .hd-nm{font-size:16px;}
+          .dstrip-hero .hd-meta{flex:1 1 100%;order:4;}
+          .dstrip-hero .hd-ctas{flex:none;}
+          .dstrip-hero .hd-play,.dstrip-hero .hd-all{flex:none;padding:7px 12px;}
+          .dstrip-cells{overflow-x:auto;-webkit-overflow-scrolling:touch;grid-template-columns:none;grid-template-rows:repeat(2,1fr);grid-auto-flow:column;grid-auto-columns:minmax(76px,1fr);min-width:0;}
+          .dstrip-cell{border-top:none;border-left:1px solid rgba(255,255,255,0.055);padding:11px 5px 8px;}
+          .dstrip-cell:nth-child(-n+2){border-left:none;}
+          .dstrip-cell:nth-child(10n+1){border-left:1px solid rgba(255,255,255,0.055);}
+          .dstrip-cell:first-child{border-left:none;}
+          .dstrip-cell:nth-child(n+11){border-top:none;}
+          .dstrip-cell:nth-child(2n){border-top:1px solid rgba(255,255,255,0.055);}
           .dstrip-cell img{height:26px;}
           .dstrip-cell .nm{font-size:10px;}
         }
@@ -307,7 +401,10 @@ export default function DailyStrip({ board = null }) {
         <div className="dstrip-main">
           <div className={`dstrip-cap${hasBoard ? ' has-top3' : ''}`}>
             <a href="/daily" className="ttl dstrip-cap-ttl" aria-label="All daily games"><span className="lab">Daily</span> Games</a>
-            <span className="dstrip-bar"><span className="dstrip-fill" style={{ width: `${pct}%` }} /></span>
+            <span className="dstrip-progrow">
+              <span className="dstrip-bar"><span className="dstrip-fill" style={{ width: `${pct}%` }} /></span>
+              <span className="dstrip-count"><span>You: <b>{n}</b> of {GAMES.length}</span>{resetLbl ? <span className="rst">resets {resetLbl}</span> : null}</span>
+            </span>
             {hasBoard ? (
               <span className="dstrip-t3">
                 <span className="t3h"><Crown size={8} style={{ display: 'inline', verticalAlign: '-1px', color: '#e8b43a' }} /> Today&rsquo;s Top 3</span>
@@ -339,11 +436,37 @@ export default function DailyStrip({ board = null }) {
               </button>
             ) : null}
           </div>
+          {nextGame ? (
+            <div className="dstrip-hero">
+              <div className="hd-eb">
+                {inprog.has(nextGame.key) ? 'Pick it back up' : 'Up next for you'}{left > 1 ? ` · ${left} left` : ''}
+                {isSunday && hasSundayEdition(nextGame.key) ? <span className="dstrip-sun">{SUNDAY_SHORT}</span> : null}
+              </div>
+              <a href={nextGame.href} className="hd-row" aria-label={`${nextGame.name} — ${nextGame.tag} — up next`}>
+                <img src={nextGame.img} alt="" aria-hidden="true" />
+                <span><span className="hd-nm">{nextGame.name}</span><span className="hd-tag">{nextGame.tag}</span></span>
+              </a>
+              {nextLead ? (
+                <div className="hd-meta"><Crown size={10} strokeWidth={2.4} /><span>Leader:</span><b>{nextLead.username || 'Player'} · {fmtPts(nextLead.points)}</b></div>
+              ) : null}
+              <div className="hd-ctas">
+                <a href={nextGame.href} className="hd-play"><Play size={11} fill="#1c1e24" strokeWidth={0} />{inprog.has(nextGame.key) ? 'Resume' : 'Play now'}</a>
+                <a href="/daily" className="hd-all">Play all {left}</a>
+              </div>
+            </div>
+          ) : (
+            <div className="dstrip-hero">
+              <div className="hd-eb">All {GAMES.length} done today</div>
+              <div className="hd-row"><span><span className="hd-nm">Clean sweep</span><span className="hd-tag">Fresh games at midnight ET</span></span></div>
+              <div className="hd-ctas"><a href="/daily" className="hd-play">See the board</a></div>
+            </div>
+          )}
           <div className="dstrip-cells">
-            {games.map((g) => {
+            {cellGames.map((g) => {
               const lead = hasBoard && byKey[g.key] && byKey[g.key].board && byKey[g.key].board[0] ? byKey[g.key].board[0].username : null;
               return (
                 <a key={g.key} href={g.href} className={`dstrip-cell${done.has(g.key) ? ' done' : ''}`} title={`${g.name} — ${g.tag}`} aria-label={`${g.name} — ${g.tag}${isSunday && hasSundayEdition(g.key) ? ' — Sunday edition' : ''}${done.has(g.key) ? ' — done today' : ''}${!done.has(g.key) && inprog.has(g.key) ? ' — started, not finished' : ''} — daily game`}>
+                  <span className="dstrip-acc" style={{ background: ACCENTS[g.key] || '#5b9bff' }} aria-hidden="true" />
                   {done.has(g.key) && (
                     <span className="dstrip-check" aria-hidden="true">
                       <svg viewBox="0 0 12 12" width="9" height="9" fill="none"><path d="M2.5 6.2 L5 8.6 L9.5 3.6" stroke="#04121f" strokeWidth="2.1" strokeLinecap="round" strokeLinejoin="round" /></svg>
@@ -369,6 +492,12 @@ export default function DailyStrip({ board = null }) {
                 </a>
               );
             })}
+            {nextGame ? (
+              <a href="/daily" className="dstrip-cell playall" aria-label={`Play all daily games — ${left} left today`}>
+                <span className="pa-ic" aria-hidden="true"><Play size={12} strokeWidth={2.2} /></span>
+                <span className="nm">Play all · {left} left</span>
+              </a>
+            ) : null}
           </div>
         </div>
         {hasBoard && open ? (
