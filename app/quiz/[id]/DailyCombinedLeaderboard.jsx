@@ -17,6 +17,10 @@ import React, { useEffect, useMemo, useState } from 'react';
 // where navy clashes with the surrounding light cards).
 
 const FONT = "'Manrope', system-ui, -apple-system, sans-serif";
+// gold / silver / bronze for the top-3 podium highlight (light theme)
+const MEDAL = ['#e8b43a', '#a9b0bd', '#c8814b'];
+const MEDAL_BG = ['#fdf8ec', '#f4f5f7', '#f8f1e9'];
+const MEDAL_BD = ['#f0e2ba', '#e3e5ea', '#e8d6c2'];
 
 const GAME_NAMES = {
   crux: 'Crux', emcee: 'Emcee', garble: 'Garble', links: 'Links', span: 'Span', dating: 'Dating',
@@ -286,12 +290,21 @@ export default function DailyCombinedLeaderboard({ todayKey = null, identity = n
 }
 
 function rowStyle(th, mine, rank) {
-  const bg = mine ? th.meRow : (rank <= 3 ? th.topRow : th.row);
-  const bd = mine ? th.meBorder : (rank <= 3 ? th.topBorder : th.line);
+  if (mine) return { background: th.meRow, border: `1px solid ${th.meBorder}` };
+  // Podium: gold / silver / bronze tint for the top three (light theme).
+  if (th.light && rank >= 1 && rank <= 3) return { background: MEDAL_BG[rank - 1], border: `1px solid ${MEDAL_BD[rank - 1]}` };
+  const bg = rank <= 3 ? th.topRow : th.row;
+  const bd = rank <= 3 ? th.topBorder : th.line;
   return { background: bg, border: `1px solid ${bd}` };
 }
 
 function RankNum({ n, th }) {
+  // Top three get a filled gold/silver/bronze medal badge (light theme).
+  if (th.light && n >= 1 && n <= 3) {
+    return (
+      <span style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', width: 23, height: 23, borderRadius: '50%', background: MEDAL[n - 1], color: '#fff', fontFamily: FONT, fontWeight: 900, fontSize: 13, fontVariantNumeric: 'tabular-nums', boxShadow: '0 1px 2px rgba(20,22,28,0.18)' }}>{n}</span>
+    );
+  }
   return <span style={{ fontFamily: FONT, fontWeight: 800, fontSize: 17, color: n <= 3 ? th.rankTop : th.rankOther, fontVariantNumeric: 'tabular-nums' }}>{n}</span>;
 }
 

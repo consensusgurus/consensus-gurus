@@ -122,6 +122,7 @@ export default function DailyArchiveClient({ games = [], today = '' }) {
   const [progress, setProgress] = useState(() => new Set()); // started today, not finished
   const [ready, setReady] = useState(false);
   const [combined, setCombined] = useState(null);
+  const [allTimeByKey, setAllTimeByKey] = useState({}); // gameKey -> { rank, field } (per-game cumulative)
 
   const dailyOrder = useDailyOrder();
 
@@ -207,6 +208,22 @@ export default function DailyArchiveClient({ games = [], today = '' }) {
       .then((r) => r.json())
       .then((d) => { if (alive && d && Array.isArray(d.overall)) setCombined(d); })
       .catch(() => {});
+
+    // Per-game all-time (cumulative) rank for each row's "Rank All-Time" stat.
+    // One /api/quiz/daily-game read per game; the rows show "…" until it lands.
+    Promise.all(games.map((g) => {
+      const p = new URLSearchParams(q);
+      p.set('game', g.key);
+      return fetch('/api/quiz/daily-game?' + p.toString())
+        .then((r) => r.json())
+        .then((d) => ({ k: g.key, at: d && d.allTime }))
+        .catch(() => ({ k: g.key, at: null }));
+    })).then((res) => {
+      if (!alive) return;
+      const m = {};
+      for (const it of res) m[it.k] = it.at ? { rank: it.at.myRank, field: it.at.field } : null;
+      setAllTimeByKey(m);
+    });
 
     return () => { alive = false; };
   }, [games]);
@@ -324,31 +341,38 @@ export default function DailyArchiveClient({ games = [], today = '' }) {
         .dl-row{border:1px solid ${LINE};border-radius:14px;background:#fff;transition:border-color .15s,box-shadow .15s;}
         .dl-row:hover{box-shadow:0 3px 12px rgba(14,29,64,0.06);}
         .dl-row.open{border-color:#c9d3e5;box-shadow:0 8px 26px rgba(14,29,64,0.09);}
-        .dl-rmain{display:grid;grid-template-columns:minmax(0,1fr) 104px 168px auto;gap:18px;align-items:center;padding:13px 16px;}
+        .dl-rmain{display:grid;grid-template-columns:minmax(0,1fr) 88px 88px 160px auto;gap:16px;align-items:center;padding:13px 16px;}
         .dl-rid{display:flex;align-items:center;gap:12px;min-width:0;}
         .dl-rbeat{font-size:11.5px;font-weight:600;color:${FADED};margin-top:4px;line-height:1.3;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
         .dl-rbeat b{color:${INK};font-weight:800;}
         .dl-rstat{min-width:0;}
-        .dl-rlbl{font-family:${MONO};font-size:9px;font-weight:500;letter-spacing:.07em;text-transform:uppercase;color:${MUTED};margin-bottom:3px;}
+        .dl-rlbl{font-family:${MONO};font-size:9px;font-weight:500;letter-spacing:.07em;text-transform:uppercase;color:${MUTED};margin-bottom:3px;white-space:nowrap;}
         .dl-rrk{font-size:21px;font-weight:900;letter-spacing:-.02em;color:${INK};line-height:1.05;font-variant-numeric:tabular-nums;}
         .dl-rrk .of{font-size:11px;font-weight:600;color:${FADED};}
         .dl-rrk.sub{font-size:13px;font-weight:800;color:#8a92a6;}
+        /* archive cell = calendar expander */
+        .dl-rarch{display:block;text-align:left;background:none;border:none;padding:0;margin:0;font-family:inherit;cursor:pointer;min-width:0;width:100%;}
+        .dl-rarch .cx{display:inline-block;color:${MUTED};transition:transform .15s ease;font-size:10px;vertical-align:1px;}
+        .dl-rarch:hover .dl-rlbl,.dl-rarch.on .dl-rlbl{color:${BLUE};}
+        .dl-rarch:hover .cx,.dl-rarch.on .cx{color:${BLUE};}
+        .dl-rarch.on .cx{transform:rotate(180deg);}
         .dl-rprog{height:8px;border-radius:99px;background:#eef1f7;overflow:hidden;}
         .dl-rprog div{height:100%;border-radius:99px;transition:width .3s;}
         .dl-rprogt{font-size:11px;color:${FADED};margin-top:4px;}
         .dl-rprogt b{color:${INK};font-weight:800;}
-        .dl-ract{display:flex;gap:7px;align-items:center;flex-wrap:wrap;justify-content:flex-end;}
+        .dl-ract{display:flex;gap:8px;align-items:center;justify-content:flex-end;}
         .dl-ract .dl-btn{flex:0 0 auto;}
-        .dl-ico{padding:9px 11px;}
+        .dl-ract .dl-play{min-width:104px;}
+        .dl-ract .dl-ghost{min-width:92px;}
         .dl-exp{padding:0 16px 15px;}
         @media(max-width:760px){
           .dl-rmain{grid-template-columns:1fr;gap:13px;}
-          .dl-rstat{display:flex;align-items:baseline;gap:9px;}
+          .dl-rstat,.dl-rarch{display:flex;align-items:baseline;gap:9px;flex-wrap:wrap;}
           .dl-rlbl{margin-bottom:0;}
           .dl-rprog{flex:1 1 auto;min-width:120px;}
           .dl-rbeat{white-space:normal;}
           .dl-ract{justify-content:stretch;}
-          .dl-ract .dl-play{flex:1 1 auto;}
+          .dl-ract .dl-play,.dl-ract .dl-ghost{flex:1 1 auto;}
         }
 
         /* archive calendar (matches game-page / end-card calendar) */
@@ -525,11 +549,6 @@ export default function DailyArchiveClient({ games = [], today = '' }) {
           <span><span className="dl-sun-tag" style={{ marginRight: 5 }}>Sun</span> Sunday edition — bigger &amp; tougher</span>
         </div>
 
-        {/* Today's combined leaderboard: top 3 up front, expand to flip through
-            every game's board (compact DailyCombinedLeaderboard, light). */}
-        <div style={{ marginTop: 18 }}>
-          <DailyCombinedLeaderboard light compact allTimeToggle />
-        </div>
 
         <div className="dl-gaunt" role="group" aria-label="Today's gauntlet">
           <div className="dl-gaunt-h">
@@ -595,18 +614,24 @@ export default function DailyArchiveClient({ games = [], today = '' }) {
                   g={g}
                   ready={ready}
                   played={played}
-                  completed={completed}
                   progress={progress}
                   board={boardsByKey[g.key]}
-                  me={me}
                   myKey={myKey}
-                  gameMax={combined ? combined.gameMax : 15}
+                  allTime={allTimeByKey[g.key]}
                   today={today}
                 />
               ))}
             </div>
           </div>
         ))}
+
+        {/* Today's combined leaderboard, at the foot of the page: top 3 up front,
+            expand to flip through every game's board (compact, light). */}
+        <div className="dl-sec-h" style={{ marginTop: 40 }}>
+          <h2>Today&rsquo;s combined leaderboard</h2>
+          <span>best 5 of 10 · 75 max</span>
+        </div>
+        <DailyCombinedLeaderboard light compact allTimeToggle />
 
         <p style={{ marginTop: 34, fontSize: 12.5, fontWeight: 500, color: FADED }}>
           Played &amp; aced marks are saved on this device (and follow your account when signed in). Leaderboards
@@ -630,7 +655,7 @@ function GameArt({ g, size = 52 }) {
 }
 
 // ---------------------------------------------------------------- one game card
-function GameCard({ g, ready, played, completed, progress, board, me, myKey, gameMax, today }) {
+function GameCard({ g, ready, played, progress, board, myKey, allTime, today }) {
   const [panel, setPanel] = useState(null); // null | 'standings' | 'archive'
   const toggle = (p) => setPanel((cur) => (cur === p ? null : p));
 
@@ -643,11 +668,13 @@ function GameCard({ g, ready, played, completed, progress, board, me, myKey, gam
   const myRow = myKey && board && board.board ? board.board.find((r) => r.userKey === myKey) : null;
   const todayQuiz = g.puzzles[0] && g.puzzles[0].quizId;
   const field = board ? (board.field || (board.board ? board.board.length : 0)) : 0;
+  const atRank = allTime ? allTime.rank : null;
+  const atField = allTime ? allTime.field : null;
 
   return (
     <section className={`dl-row${panel ? ' open' : ''}`}>
       <div className="dl-rmain">
-        {/* identity + what you're beating */}
+        {/* identity + who leads */}
         <div className="dl-rid">
           <GameArt g={g} size={44} />
           <div style={{ minWidth: 0 }}>
@@ -655,41 +682,45 @@ function GameCard({ g, ready, played, completed, progress, board, me, myKey, gam
             <div className="dl-ctag">{g.tag}</div>
             <div className="dl-rbeat">
               {leader
-                ? (myRow
-                  ? (myRow.userKey === leader.userKey
-                    ? <>You lead with <b>{fmtPts(myRow.points)}</b> pts <span className="dl-crown" aria-hidden="true">♛</span></>
-                    : <>Top score to beat: <b>{fmtPts(leader.points)}</b>/{gameMax} · <span className="dl-crown" aria-hidden="true">♛</span> {leader.username}</>)
-                  : <>Top score to beat: <b>{fmtPts(leader.points)}</b>/{gameMax} · <span className="dl-crown" aria-hidden="true">♛</span> led by {leader.username}</>)
-                : <>{total} puzzles · be the first on today&rsquo;s board</>}
+                ? <><span className="dl-crown" aria-hidden="true">♛</span> led by <b>{leader.username}</b></>
+                : <>No scores yet &middot; be the first</>}
             </div>
           </div>
         </div>
 
-        {/* your rank today */}
+        {/* rank today */}
         <div className="dl-rstat">
-          <div className="dl-rlbl">Your rank today</div>
+          <div className="dl-rlbl">Rank Today</div>
           {ready && myRow ? (
             <div className="dl-rrk">#{myRow.rank}<span className="of"> of {field}</span></div>
           ) : resumeToday ? (
-            <div className="dl-rrk sub" style={{ color: '#b9791a' }}>Resume →</div>
+            <div className="dl-rrk sub" style={{ color: '#b9791a' }}>Resume &rarr;</div>
           ) : (
             <div className="dl-rrk sub">Play to rank</div>
           )}
         </div>
 
-        {/* archive completion */}
+        {/* rank all-time (per-game cumulative) */}
         <div className="dl-rstat">
-          <div className="dl-rlbl">Archive done</div>
-          <div className="dl-rprog"><div style={{ width: `${pct}%`, background: g.accent }} /></div>
-          <div className="dl-rprogt"><b>{playedCount}</b> of {total} · {pct}%</div>
+          <div className="dl-rlbl">Rank All-Time</div>
+          {atRank ? (
+            <div className="dl-rrk">#{atRank}<span className="of"> of {atField}</span></div>
+          ) : (
+            <div className="dl-rrk sub">{allTime === undefined ? '…' : '—'}</div>
+          )}
         </div>
 
-        {/* actions */}
+        {/* archive completion — the whole cell is the calendar expander */}
+        <button type="button" className={`dl-rarch${panel === 'archive' ? ' on' : ''}`} aria-expanded={panel === 'archive'} onClick={() => toggle('archive')}>
+          <div className="dl-rlbl">Archive complete <span className="cx" aria-hidden="true">&#9662;</span></div>
+          <div className="dl-rprog"><div style={{ width: `${pct}%`, background: g.accent }} /></div>
+          <div className="dl-rprogt"><b>{playedCount}</b> of {total} &middot; {pct}%</div>
+        </button>
+
+        {/* actions: Play/Resume (fixed width) + Standings */}
         <div className="dl-ract">
           <a className="dl-btn dl-play" href={g.path} style={{ background: g.accent }}>{resumeToday ? 'Resume →' : 'Play →'}</a>
-          {todayQuiz && <a className="dl-btn dl-ghost dl-ico" href={`/duel/new?quiz=${encodeURIComponent(todayQuiz)}`} aria-label={`Challenge a friend to today's ${g.name}`} title="Challenge a friend">⚔</a>}
           <button type="button" className={`dl-btn dl-ghost${panel === 'standings' ? ' on' : ''}`} aria-expanded={panel === 'standings'} onClick={() => toggle('standings')}>Standings</button>
-          <button type="button" className={`dl-btn dl-ghost${panel === 'archive' ? ' on' : ''}`} data-arch={g.key} aria-expanded={panel === 'archive'} onClick={() => toggle('archive')}>Archive</button>
         </div>
       </div>
 
