@@ -54,7 +54,35 @@ export async function GET(request) {
     }
     // Report a game as abandoned only when the player never finished it.
     const abandoned = [...abandonedOnly].filter((q) => !played.has(q));
-    return NextResponse.json({ played: [...played], completed: [...completed], abandoned }, { headers: CACHE_HEADERS });
+    // Per-game consecutive-day streaks (ET days), counted back from today.
+    // Today is optional (a live streak shows before the player has played
+    // today's puzzle); any earlier missing day breaks the chain. Only finished
+    // games count (abandoned rows never reach `played`). Streaks under 2 are
+    // omitted; lookback capped so the loop stays trivial.
+    const streaks = {};
+    try {
+      const et = new Date(new Date().toLocaleString('en-US', { timeZone: 'America/New_York' }));
+      const byGame = new Map();
+      for (const qid of played) {
+        const m = /^([a-z]+)-(\d+)-(\d+)-(\d+)$/.exec(qid);
+        if (!m) continue;
+        if (!byGame.has(m[1])) byGame.set(m[1], new Set());
+        byGame.get(m[1]).add(`${m[2]}-${m[3]}-${m[4]}`);
+      }
+      const MAX_BACK = 120;
+      for (const [g, days] of byGame) {
+        let s = 0;
+        for (let i = 0; i < MAX_BACK; i++) {
+          const d = new Date(et); d.setDate(et.getDate() - i);
+          const key = `${d.getMonth() + 1}-${d.getDate()}-${d.getFullYear() % 100}`;
+          if (days.has(key)) s++;
+          else if (i === 0) continue;
+          else break;
+        }
+        if (s >= 2) streaks[g] = s;
+      }
+    } catch (e) {}
+    return NextResponse.json({ played: [...played], completed: [...completed], abandoned, streaks }, { headers: CACHE_HEADERS });
   } catch (e) {
     console.error('daily-status exception', e);
     return NextResponse.json({ played: [], completed: [], abandoned: [] });

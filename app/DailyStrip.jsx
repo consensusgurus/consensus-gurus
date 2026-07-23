@@ -30,8 +30,12 @@
 //   (wordmark + bar + count on line one; on line two ONLY the overall leader
 //   plate, given the full width, plus the Full board button — ranks 2-3 are
 //   desktop-only, owner ruling 2026-07-23), hero row, then the cells in a
-//   2-row horizontally scrolling rail. Streaks were considered and deferred:
-//   no API exposes per-day play history yet.
+//   2-row horizontally scrolling rail.
+// - STREAKS (owner request 2026-07-23): /api/quiz/daily-status now returns
+//   per-game consecutive-day streaks (2+ only, today optional so a live streak
+//   shows before today's play). Cells wear a small flame badge (top-left,
+//   shifting under the Sunday chip when both render) and the hero adds a
+//   "keep it alive" streak line for its game.
 //
 // TWO ROWS (owner ruling 2026-07-18, at 16 games): the cells lay out as a
 // 2-row × 10-column grid, and the fixed left cap spans both rows.
@@ -44,7 +48,7 @@
 // (owner: keep the game-specific leaders alongside the top-3 cap).
 
 import React, { useState, useEffect } from 'react';
-import { Crown, ChevronDown, Trophy, Play } from 'lucide-react';
+import { Crown, ChevronDown, Trophy, Play, Flame } from 'lucide-react';
 import useDailyOrder, { sortByDailyOrder } from './useDailyOrder';
 import { hasSundayEdition, isSundayET, SUNDAY_SHORT } from '../lib/sunday-editions';
 
@@ -88,6 +92,7 @@ function fmtPts(x) { const v = Math.round(Number(x) * 10) / 10; return Number.is
 export default function DailyStrip({ board = null }) {
   const [done, setDone] = useState(() => new Set());
   const [inprog, setInprog] = useState(() => new Set());
+  const [streaks, setStreaks] = useState({}); // per-game consecutive-day streaks, from daily-status
   const [open, setOpen] = useState(false);
   const [hist, setHist] = useState(null); // recent daily champions, from /api/quiz/daily-history
   // Sunday chip: Sundays (ET) only, and only on games that run a real Sunday
@@ -145,6 +150,7 @@ export default function DailyStrip({ board = null }) {
       .then((r) => r.json())
       .then((data) => {
         if (!alive || !data) return;
+        if (data.streaks && typeof data.streaks === 'object') setStreaks(data.streaks);
         const [Y, M, D] = etToday().split('-').map(Number);
         const yy = Y % 100;
         const completed = new Set(data.completed || []);
@@ -280,6 +286,9 @@ export default function DailyStrip({ board = null }) {
         .dstrip-hero .hd-meta{display:flex;align-items:center;gap:4px;font-size:10px;font-weight:700;color:#93a7cc;min-width:0;}
         .dstrip-hero .hd-meta svg{color:#e8b43a;flex:none;}
         .dstrip-hero .hd-meta b{color:#eaf0fb;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+        .dstrip-hero .hd-streak{color:#93a7cc;}
+        .dstrip-hero .hd-streak svg{color:#f8b84a;}
+        .dstrip-hero .hd-streak b{color:#f5d878;flex:none;}
         .dstrip-hero .hd-ctas{display:flex;gap:6px;}
         .dstrip-hero .hd-play{flex:1;display:flex;align-items:center;justify-content:center;gap:5px;background:#e8b43a;color:#1c1e24;font-size:11.5px;font-weight:800;border-radius:8px;padding:7px 6px;text-decoration:none;transition:background .12s;}
         .dstrip-hero .hd-play:hover{background:#d49a2a;}
@@ -304,6 +313,11 @@ export default function DailyStrip({ board = null }) {
         .dstrip-lead svg{color:#e8b43a;flex:none;}
         .dstrip-lead > span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
         .dstrip-lead.none{color:#6a80a8;font-weight:600;}
+        /* active streak badge (2+ consecutive days), top-left corner; shifts
+           below the Sunday chip when both render */
+        .dstrip-flame{position:absolute;top:5px;left:5px;display:flex;align-items:center;gap:1px;font-size:9px;font-weight:800;font-variant-numeric:tabular-nums;color:#f8b84a;background:rgba(232,180,58,0.13);border:1px solid rgba(232,180,58,0.35);border-radius:5px;padding:1px 4px 1px 2px;line-height:1.3;pointer-events:none;}
+        .dstrip-flame svg{flex:none;}
+        .dstrip-flame.shift{top:24px;}
         /* finished cell: the player's rank in that game replaces the leader chip */
         .dstrip-you{margin-top:2px;font-size:10px;font-weight:700;color:#9fb0d4;white-space:nowrap;}
         .dstrip-you b{color:#34d399;font-weight:800;}
@@ -466,6 +480,9 @@ export default function DailyStrip({ board = null }) {
               {nextLead ? (
                 <div className="hd-meta"><Crown size={10} strokeWidth={2.4} /><span>Leader:</span><b>{nextLead.username || 'Player'} · {fmtPts(nextLead.points)}</b></div>
               ) : null}
+              {streaks[nextGame.key] >= 2 ? (
+                <div className="hd-meta hd-streak"><Flame size={10} strokeWidth={2.4} /><b>{streaks[nextGame.key]}-day streak</b><span>keep it alive</span></div>
+              ) : null}
               <div className="hd-ctas">
                 <a href={nextGame.href} className="hd-play"><Play size={11} fill="#1c1e24" strokeWidth={0} />{inprog.has(nextGame.key) ? 'Resume' : 'Play now'}</a>
                 <a href="/daily" className="hd-all">Play all {left}</a>
@@ -482,8 +499,10 @@ export default function DailyStrip({ board = null }) {
             {cellGames.map((g) => {
               const lead = hasBoard && byKey[g.key] && byKey[g.key].board && byKey[g.key].board[0] ? byKey[g.key].board[0].username : null;
               const rk = done.has(g.key) ? myRank(g.key) : null;
+              const st = streaks[g.key] >= 2 ? streaks[g.key] : null;
+              const sun = isSunday && hasSundayEdition(g.key);
               return (
-                <a key={g.key} href={g.href} className={`dstrip-cell${done.has(g.key) ? ' done' : ''}`} title={`${g.name} — ${g.tag}`} aria-label={`${g.name} — ${g.tag}${isSunday && hasSundayEdition(g.key) ? ' — Sunday edition' : ''}${done.has(g.key) ? ' — done today' : ''}${!done.has(g.key) && inprog.has(g.key) ? ' — started, not finished' : ''} — daily game`}>
+                <a key={g.key} href={g.href} className={`dstrip-cell${done.has(g.key) ? ' done' : ''}`} title={`${g.name} — ${g.tag}`} aria-label={`${g.name} — ${g.tag}${sun ? ' — Sunday edition' : ''}${done.has(g.key) ? ' — done today' : ''}${!done.has(g.key) && inprog.has(g.key) ? ' — started, not finished' : ''}${st ? ` — ${st}-day streak` : ''} — daily game`}>
                   <span className="dstrip-acc" style={{ background: ACCENTS[g.key] || '#5b9bff' }} aria-hidden="true" />
                   {done.has(g.key) && (
                     <span className="dstrip-check" aria-hidden="true">
@@ -498,8 +517,11 @@ export default function DailyStrip({ board = null }) {
                       </svg>
                     </span>
                   )}
-                  {isSunday && hasSundayEdition(g.key) ? (
+                  {sun ? (
                     <span className="dstrip-sun" aria-hidden="true">{SUNDAY_SHORT}</span>
+                  ) : null}
+                  {st ? (
+                    <span className={`dstrip-flame${sun ? ' shift' : ''}`} aria-hidden="true"><Flame size={9} strokeWidth={2.6} />{st}</span>
                   ) : null}
                   <img src={g.img} alt="" aria-hidden="true" />
                   <span className="nm">{g.name}</span>
