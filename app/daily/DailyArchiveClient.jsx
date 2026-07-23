@@ -558,14 +558,12 @@ export default function DailyArchiveClient({ games = [], today = '' }) {
       `}</style>
 
       <div className="dl-wrap">
-        <div className="dl-nav" style={{ display: 'flex', alignItems: 'center', gap: 14, marginBottom: 6 }}>
-          <a href="/">Quizzes</a>
-          <a href="/lists">Top 10 Lists</a>
-        </div>
-
         <div className="dl-top">
           <div className="dl-top-l">
-            <div className="dl-kick">Source of Truths · Daily · {dateHeadline(today)}</div>
+            <div className="dl-nav" style={{ display: 'flex', alignItems: 'center', gap: 14, marginBottom: 10 }}>
+              <a href="/">Quizzes</a>
+              <a href="/lists">Top 10 Lists</a>
+            </div>
             <h1 className="dl-h1">Daily Games</h1>
             <p className="dl-sub">
               {activeGames.length} original puzzles, a fresh one each and every day. Play today, chase the leaderboard,
