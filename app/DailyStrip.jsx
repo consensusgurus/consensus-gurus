@@ -553,7 +553,7 @@ export default function DailyStrip({ board = null }) {
               <div className="hd-eb"><Trophy size={10} strokeWidth={2.4} /> All {GAMES.length} done today</div>
               <div className="hd-row"><span><span className="hd-nm">Clean sweep</span><span className="hd-tag">Fresh puzzles drop at midnight ET</span></span></div>
               <div className="hd-meta"><Clock size={10} strokeWidth={2.4} /><span>New games in</span><b>{resetLbl || 'midnight ET'}</b></div>
-              <div className="hd-ctas"><a href="/daily" className="hd-play">Daily games archive <ArrowRight size={12} strokeWidth={2.6} style={{ marginLeft: 1 }} /></a></div>
+              <div className="hd-ctas"><a href="/daily" className="hd-play">Daily games archive</a></div>
             </div>
           )}
           <div className="dstrip-cells">
@@ -608,7 +608,7 @@ export default function DailyStrip({ board = null }) {
                 slot (odd cell count); fill it with a Daily games archive button. */}
             {!nextGame && cellGames.length % 2 === 1 ? (
               <a href="/daily" className="dstrip-cell archivecell" aria-label="Daily games archive">
-                <span className="arch-btn">Daily games archive</span>
+                <span className="arch-btn">Daily games archive <ArrowRight size={11} strokeWidth={2.6} /></span>
               </a>
             ) : null}
           </div>

@@ -1353,7 +1353,7 @@ export default function QuizHomeClient() {
     @media(min-width:761px){.qzh .boards .daily-card{order:1;}.qzh .boards .lb-card{order:2;}.qzh .boards .live-card{display:none;}}
     .qzh .qcols{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(100%,300px),1fr));gap:12px;}
     /* Last Played fills better on phones with fewer, taller rows: show only the 3 most recent (owner 2026-07-24). */
-    @media(max-width:560px){.qzh .lp-mobhide{display:none !important;}}
+    @media(max-width:560px){.qzh .lp-mobhide{display:none !important;}.qzh .lp-row{flex:0 0 auto !important;min-height:56px !important;}}
     .qzh .qfull{column-count:2;column-gap:26px;}
     .qzh .qfull > a{display:flex;break-inside:avoid;-webkit-column-break-inside:avoid;}
     .qzh .qflow{column-width:310px;column-gap:26px;}
@@ -1942,7 +1942,7 @@ export default function QuizHomeClient() {
                       const ringCol = frac >= 0.8 ? '#16a34a' : (frac >= 0.4 ? C.cta : '#dc2626');
                       const good = frac >= 0.8;
                       return (
-                        <Link href={`/quiz/${f.quizId}`} className={`qrow${idx >= 3 ? ' lp-mobhide' : ''}`} key={f.quizId} title={f.title} style={{ alignItems: 'center', gap: 10, padding: '0 11px', flex: '1 1 0', minHeight: 0 }}>
+                        <Link href={`/quiz/${f.quizId}`} className={`qrow lp-row${idx >= 3 ? ' lp-mobhide' : ''}`} key={f.quizId} title={f.title} style={{ alignItems: 'center', gap: 10, padding: '0 11px', flex: '1 1 0', minHeight: 0 }}>
                           <span style={{ width: 30, height: 30, flex: 'none', borderRadius: 999, background: `conic-gradient(${ringCol} ${pctScore}%, #eef1f6 0)`, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                             <span style={{ width: 23, height: 23, borderRadius: 999, background: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 8, fontWeight: 800, color: C.ink }}>{pctScore}%</span>
                           </span>
