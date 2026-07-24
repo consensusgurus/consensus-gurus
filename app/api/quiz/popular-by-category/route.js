@@ -57,7 +57,21 @@ export async function GET() {
       .sort((a, z) => z.plays - a.plays || a.label.localeCompare(z.label))
       .slice(0, MAX_CATS);
 
-    const payload = { cats };
+    // Bonus 9th tile so the grid fills a tidy 3x3: the most-played Geo Guesser
+    // quiz NOT already picked above. Geo Guessers span several departments, so it
+    // gets its own "Geo Guesser" label rather than a department badge.
+    const used = new Set(cats.map((c) => c.id));
+    let geo = null;
+    for (const q of (QUIZZES || [])) {
+      if (!q || !q.id || q.unlisted || used.has(q.id)) continue;
+      if (!/geo-?guesser/i.test(q.id) && !/geo\s*guesser/i.test(q.title || '')) continue;
+      const plays = byQuiz[q.id] || 0;
+      const title = q.navTitle || cleanTitle(q.title) || q.id;
+      if (!geo || plays > geo.plays || (plays === geo.plays && title.localeCompare(geo.title) < 0)) {
+        geo = { dept: 'geoguesser', label: 'Geo Guesser', color: '#1f7a8c', tint: '#d4e9ee', id: q.id, title, href: `/quiz/${q.id}`, plays };
+      }
+    }
+    const payload = { cats: geo ? [...cats, geo] : cats };
     // Only cache a genuinely populated result so a transient read error doesn't
     // pin an empty block for 10 minutes.
     if (cats.length) CACHE = { at: Date.now(), payload };

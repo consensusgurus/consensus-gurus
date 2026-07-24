@@ -742,9 +742,10 @@ export default function DailyEndCard({
         .dec-fadein{animation:dec-fadein .32s ease both;}
         @keyframes dec-fadein{from{opacity:0;transform:translateY(3px);}to{opacity:1;transform:none;}}
         @media(prefers-reduced-motion:reduce){.dec-sk::after{animation:none;}.dec-fadein{animation:none;}}
-        /* All-clear popular-quiz rows only: let the full title wrap to a 2nd line
-           (daily-game rows keep their single-line ellipsis). */
-        .dec-row.dec-pop{align-items:flex-start;}
+        /* Popular-quiz suggestion rows only: let the full title wrap to a 2nd line
+           (daily-game rows keep their single-line ellipsis), and give every tile
+           the SAME height so the grid looks uniform regardless of title length. */
+        .dec-row.dec-pop{align-items:flex-start;min-height:72px;box-sizing:border-box;}
         .dec-row.dec-pop .nm{white-space:normal;}
         .dec-row.dec-pop .nm span.t{white-space:normal;overflow:visible;text-overflow:clip;}
         .dec-row.dec-pop .play{align-self:center;}
