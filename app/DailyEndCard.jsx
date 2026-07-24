@@ -735,6 +735,12 @@ export default function DailyEndCard({
         .dec-fadein{animation:dec-fadein .32s ease both;}
         @keyframes dec-fadein{from{opacity:0;transform:translateY(3px);}to{opacity:1;transform:none;}}
         @media(prefers-reduced-motion:reduce){.dec-sk::after{animation:none;}.dec-fadein{animation:none;}}
+        /* All-clear popular-quiz rows only: let the full title wrap to a 2nd line
+           (daily-game rows keep their single-line ellipsis). */
+        .dec-row.dec-pop{align-items:flex-start;}
+        .dec-row.dec-pop .nm{white-space:normal;}
+        .dec-row.dec-pop .nm span.t{white-space:normal;overflow:visible;text-overflow:clip;}
+        .dec-row.dec-pop .play{align-self:center;}
         .dec-nx{border:1px solid #d7e3f8;background:#eff4fd;border-radius:14px;padding:13px 14px;display:flex;flex-direction:column;justify-content:space-between;gap:11px;min-width:0;}
         .dec-nx-top{display:flex;align-items:center;gap:12px;min-width:0;}
         .dec-ring{position:relative;width:50px;height:50px;flex-shrink:0;}
@@ -1027,7 +1033,7 @@ export default function DailyEndCard({
                           <span className="lbl">{c.label}</span>
                         </div>
                         <div className="dec-rows one">
-                          <a className="dec-row dec-fadein" href={c.href}>
+                          <a className="dec-row dec-pop dec-fadein" href={c.href}>
                             <div style={{ minWidth: 0, flex: 1 }}>
                               <div className="nm"><span className="t">{c.title}</span></div>
                               <div className="tg">{c.plays ? `${c.plays.toLocaleString()} plays` : 'Popular quiz'}</div>
