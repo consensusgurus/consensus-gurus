@@ -53,79 +53,22 @@ function linearCount(words, signs, cap = 2) {
   return count;
 }
 
-// Multiplication A x B = C — enumerate every digit assignment to A's letters
-// (leading nonzero), then B's remaining letters, compute the product, and count
-// how many extend consistently to C (shared letters fixed, fresh letters
-// distinct and unused, no leading zero). Exactly the algorithm the client's
-// solveCipher mirrors for the mul branch.
-function mulCount(A, B, C, cap = 2) {
-  const all = [...new Set((A + B + C).split(''))];
-  if (all.length > 10) return -1;
-  const la = [...new Set(A.split(''))];
-  let count = 0;
-  const permA = (idx, map, usedA) => {
-    if (count >= cap) return;
-    if (idx === la.length) { withA(map, usedA); return; }
-    const ch = la[idx];
-    for (let d = 0; d < 10; d++) {
-      if (usedA.has(d) || (d === 0 && ch === A[0])) continue;
-      map[ch] = d; usedA.add(d);
-      permA(idx + 1, map, usedA);
-      usedA.delete(d); delete map[ch];
-      if (count >= cap) return;
-    }
-  };
-  const withA = (mapA, usedA) => {
-    let va = 0; for (const ch of A) va = va * 10 + mapA[ch];
-    const lb = [...new Set(B.split(''))].filter((c) => !(c in mapA));
-    const rem = []; for (let d = 0; d < 10; d++) if (!usedA.has(d)) rem.push(d);
-    const permB = (idx, map, usedB) => {
-      if (count >= cap) return;
-      if (idx === lb.length) {
-        if (map[B[0]] === 0) return;
-        let vb = 0; for (const ch of B) vb = vb * 10 + map[ch];
-        const p = va * vb; const sp = String(p);
-        if (sp.length !== C.length) return;
-        const m2 = { ...map }; const u2 = new Set(Object.values(m2));
-        for (let i = 0; i < C.length; i++) {
-          const ch = C[i]; const dc = sp.charCodeAt(i) - 48;
-          if (ch in m2) { if (m2[ch] !== dc) return; }
-          else { if (u2.has(dc)) return; m2[ch] = dc; u2.add(dc); }
-        }
-        if (m2[C[0]] === 0) return;
-        count++;
-        return;
-      }
-      const ch = lb[idx];
-      for (const d of rem) {
-        if (usedB.has(d)) continue;
-        map[ch] = d; usedB.add(d);
-        permB(idx + 1, map, usedB);
-        usedB.delete(d); delete map[ch];
-        if (count >= cap) return;
-      }
-    };
-    permB(0, { ...mapA }, new Set(usedA));
-  };
-  permA(0, {}, new Set());
-  return count;
-}
-
 function solveCount(p, cap = 2) {
   const op = p.op || 'add';
-  if (op === 'mul') return mulCount(p.lhs[0], p.lhs[1], p.rhs, cap);
-  if (op === 'sub') return linearCount([p.lhs[0], p.lhs[1], p.rhs], [1, -1, -1], cap);
+  // Subtraction A - B - ... = C is linear: minuend +1, each subtrahend -1, the
+  // difference -1. Two-term and three-term (Sunday) both fall out of this.
+  if (op === 'sub') return linearCount([...p.lhs, p.rhs], [1, ...p.lhs.slice(1).map(() => -1), -1], cap);
   return linearCount([...p.lhs, p.rhs], [...p.lhs.map(() => 1), -1], cap);
 }
 
 // Cipher's Sunday Edition (three addends) launched on this date. Earlier drops
 // are grandfathered: they are live, played, and on the leaderboard.
 const SUNDAY_FROM = '2026-07-26';
-// The subtraction/multiplication variety launched here. Before it every drop is
+// The subtraction variety launched here. Before it every drop is
 // addition, so the "op never repeats two days running" rule only applies from
 // this date on (the pre-launch addition run is grandfathered).
 const VARIETY_FROM = '2026-07-25';
-const OPS = new Set(['add', 'sub', 'mul']);
+const OPS = new Set(['add', 'sub']);  // multiplication is banned: it cannot be solved by pure column logic
 
 let bad = 0;
 const seen = new Set();
@@ -146,8 +89,7 @@ PUZZLES.forEach((p, i) => {
     const isSun = new Date(`${p.live}T12:00:00Z`).getUTCDay() === 0 && p.live >= SUNDAY_FROM;
     if (p.sunday !== isSun) errs.push(`sunday must be ${isSun} for ${p.live}`);
     if (isSun) {
-      if (op !== 'add') errs.push('Sunday Edition must be addition');
-      if (p.lhs.length !== 3) errs.push('Sunday Edition needs 3 addends');
+      if (p.lhs.length !== 3) errs.push('Sunday Edition needs 3 operands');
     } else {
       if (p.lhs.length !== 2) errs.push('weekday needs exactly 2 operands');
     }
@@ -158,10 +100,7 @@ PUZZLES.forEach((p, i) => {
   // Per-op length sanity: addition/subtraction produce a result no longer than
   // the longest operand (+1 carry for addition); a product spans lenA+lenB-1 or
   // lenA+lenB digits.
-  if (op === 'mul') {
-    const lo = p.lhs[0].length + p.lhs[1].length - 1, hi = p.lhs[0].length + p.lhs[1].length;
-    if (p.rhs.length < lo || p.rhs.length > hi) errs.push('product length impossible');
-  } else if (op === 'sub') {
+  if (op === 'sub') {
     if (p.rhs.length > p.lhs[0].length || p.rhs.length < 1) errs.push('difference length impossible');
   } else {
     const maxL = Math.max(...p.lhs.map((w) => w.length));
@@ -175,7 +114,7 @@ PUZZLES.forEach((p, i) => {
     const prev = PUZZLES[i - 1];
     if (p.live >= VARIETY_FROM && (prev.op || 'add') === op) errs.push(`op ${op} repeats the previous day (${prev.quizId})`);
   }
-  const sym = op === 'mul' ? ' x ' : op === 'sub' ? ' - ' : '+';
+  const sym = op === 'sub' ? ' - ' : '+';
   if (errs.length) { bad++; console.error(`✗ ${p.quizId}: ${errs.join('; ')}`); }
   else console.log(`✓ ${p.quizId}  [${op}] ${p.lhs.join(sym)}=${p.rhs}  unique`);
 });

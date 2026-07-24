@@ -101,9 +101,9 @@ const EMPTY_BOARD = { plays: 0, best: null, topTime: null, leaderboard: [], lead
 
 // ─── The unique solution, derived on demand (for Reveal only) ───────────────
 // Every banked equation is verified unique, so this returns THE solution.
-// Linear ops (add/sub) use the same signed-coefficient DFS the verifier uses;
-// multiplication enumerates the factors. `signs` gives the coefficient sign per
-// word: addition is [1,1,...,-1], subtraction A - B = C is [1,-1,-1].
+// Both ops are linear: the same signed-coefficient DFS the verifier uses.
+// `signs` gives the coefficient sign per word: addition is [1,1,...,-1],
+// subtraction A - B - ... = C is [1,-1,...,-1].
 function solveLinear(words, signs) {
   const letters = [...new Set(words.join(''))];
   const coef = Object.fromEntries(letters.map((c) => [c, 0]));
@@ -133,59 +133,8 @@ function solveLinear(words, signs) {
   dfs(0, 0);
   return found;
 }
-function solveMul(A, B, C) {
-  const la = [...new Set(A.split(''))];
-  let found = null;
-  const withA = (mapA, usedA) => {
-    let va = 0; for (const ch of A) va = va * 10 + mapA[ch];
-    const lb = [...new Set(B.split(''))].filter((c) => !(c in mapA));
-    const rem = []; for (let d = 0; d < 10; d++) if (!usedA.has(d)) rem.push(d);
-    const permB = (idx, map, usedB) => {
-      if (found) return;
-      if (idx === lb.length) {
-        if (map[B[0]] === 0) return;
-        let vb = 0; for (const ch of B) vb = vb * 10 + map[ch];
-        const p = va * vb; const sp = String(p);
-        if (sp.length !== C.length) return;
-        const m2 = { ...map }; const u2 = new Set(Object.values(m2));
-        for (let i = 0; i < C.length; i++) {
-          const ch = C[i]; const dc = sp.charCodeAt(i) - 48;
-          if (ch in m2) { if (m2[ch] !== dc) return; }
-          else { if (u2.has(dc)) return; m2[ch] = dc; u2.add(dc); }
-        }
-        if (m2[C[0]] === 0) return;
-        found = m2;
-        return;
-      }
-      const ch = lb[idx];
-      for (const d of rem) {
-        if (usedB.has(d)) continue;
-        map[ch] = d; usedB.add(d);
-        permB(idx + 1, map, usedB);
-        usedB.delete(d); delete map[ch];
-        if (found) return;
-      }
-    };
-    permB(0, { ...mapA }, new Set(usedA));
-  };
-  const permA = (idx, map, usedA) => {
-    if (found) return;
-    if (idx === la.length) { withA(map, usedA); return; }
-    const ch = la[idx];
-    for (let d = 0; d < 10; d++) {
-      if (usedA.has(d) || (d === 0 && ch === A[0])) continue;
-      map[ch] = d; usedA.add(d);
-      permA(idx + 1, map, usedA);
-      usedA.delete(d); delete map[ch];
-      if (found) return;
-    }
-  };
-  permA(0, {}, new Set());
-  return found;
-}
 function solveCipher(op, lhs, rhs) {
-  if (op === 'mul') return solveMul(lhs[0], lhs[1], rhs);
-  if (op === 'sub') return solveLinear([lhs[0], lhs[1], rhs], [1, -1, -1]);
+  if (op === 'sub') return solveLinear([...lhs, rhs], [1, ...lhs.slice(1).map(() => -1), -1]);
   return solveLinear([...lhs, rhs], [...lhs.map(() => 1), -1]);
 }
 
@@ -256,8 +205,8 @@ export default function CipherClient({ puzzles = [], forceNum = null }) {
   const FIRSTS = useMemo(() => new Set([...PUZZLE.lhs, PUZZLE.rhs].map((w) => w[0])), [PUZZLE]);
   const maxLen = Math.max(...PUZZLE.lhs.map((w) => w.length), PUZZLE.rhs.length);
   const OP = PUZZLE.op || 'add';
-  const opGlyph = OP === 'mul' ? '×' : OP === 'sub' ? '−' : '+';
-  const opWord = OP === 'mul' ? 'multiplication' : OP === 'sub' ? 'subtraction' : 'addition';
+  const opGlyph = OP === 'sub' ? '−' : '+';
+  const opWord = OP === 'sub' ? 'subtraction' : 'addition';
   const eqnText = `${PUZZLE.lhs.join(` ${opGlyph} `)} = ${PUZZLE.rhs}`;
 
   const [g, setG] = useState(freshState);
@@ -476,11 +425,10 @@ export default function CipherClient({ puzzles = [], forceNum = null }) {
     for (const f of FIRSTS) { if (g.assign[f] === 0) { setVerdict({ good: false, soft: true, msg: `${f} starts a word, so it can't be 0.` }); return; } }
     const num = (w) => [...w].reduce((acc, ch) => acc * 10 + g.assign[ch], 0);
     const rhsVal = num(PUZZLE.rhs);
-    const lhsVal = OP === 'mul' ? num(PUZZLE.lhs[0]) * num(PUZZLE.lhs[1])
-      : OP === 'sub' ? num(PUZZLE.lhs[0]) - num(PUZZLE.lhs[1])
+    const lhsVal = OP === 'sub' ? PUZZLE.lhs.slice(1).reduce((a, w) => a - num(w), num(PUZZLE.lhs[0]))
       : PUZZLE.lhs.reduce((a, w) => a + num(w), 0);
     if (lhsVal !== rhsVal) {
-      failIt(`${PUZZLE.lhs.map(num).join(` ${opGlyph} `)} = ${lhsVal}, not ${rhsVal}. ${OP === 'mul' ? 'Recheck the product…' : 'Back to the columns…'}`);
+      failIt(`${PUZZLE.lhs.map(num).join(` ${opGlyph} `)} = ${lhsVal}, not ${rhsVal}. Back to the columns…`);
       return;
     }
     const g2 = { ...g, status: 'done', tEnd: Date.now(), t0: g.t0 || Date.now() };
@@ -576,9 +524,7 @@ export default function CipherClient({ puzzles = [], forceNum = null }) {
   }
 
   // Shared rules body — rendered in both the how-to-play modal and the start gate.
-  const strategyLine = OP === 'mul'
-    ? (<>There is <b>exactly one solution</b>. This one is a multiplication: the last digit of each factor and the size of the answer narrow the numbers down fast.</>)
-    : (<>There is <b>exactly one solution</b>, and you can reach it by pure logic &mdash; start with the leftmost column of the answer, and let the carries do the talking. No guessing required.</>);
+  const strategyLine = (<>There is <b>exactly one solution</b>, and you can reach it by pure logic &mdash; start with the leftmost column of the answer, and let the carries do the talking. No guessing required.</>);
   const rulesBody = (
     <div style={{ fontSize: 14, lineHeight: 1.55, color: COLORS.ink, fontWeight: 600 }}>
       <p style={{ margin: '0 0 9px' }}>Today&rsquo;s equation is a <b>cryptarithm</b>: every letter stands for a different digit, 0&ndash;9, and the {opWord} must work out. Letters that start a word are never zero.</p>
@@ -630,7 +576,7 @@ export default function CipherClient({ puzzles = [], forceNum = null }) {
             <h1 style={{ margin: 0, fontFamily: MONO, fontSize: 14, letterSpacing: '0.06em', fontWeight: 500, color: COLORS.ink }}>No. {PUZZLE.num}</h1>
             <span style={{ color: COLORS.faded }}>&middot;</span>
             <span style={{ fontFamily: SANS, fontStyle: 'italic', fontSize: 15, color: COLORS.faded }}>{PUZZLE.dateLabel}</span>
-            {PUZZLE.sunday && <span style={{ fontFamily: MONO, fontSize: 9.5, letterSpacing: '0.1em', textTransform: 'uppercase', fontWeight: 500, color: '#fff', background: COLORS.accent, borderRadius: 4, padding: '2px 6px' }}>Sunday Edition &middot; Three addends</span>}
+            {PUZZLE.sunday && <span style={{ fontFamily: MONO, fontSize: 9.5, letterSpacing: '0.1em', textTransform: 'uppercase', fontWeight: 500, color: '#fff', background: COLORS.accent, borderRadius: 4, padding: '2px 6px' }}>Sunday Edition &middot; {OP === 'sub' ? 'Three-term subtraction' : 'Three addends'}</span>}
           </div>
           <button onClick={() => setShowHelp(true)} aria-label="How to play" title="How to play" style={{ position: 'absolute', top: 8, right: 2, background: 'none', border: 'none', cursor: 'pointer', color: COLORS.faded, padding: 0, display: 'flex' }}>
             <HelpCircle size={20} />
@@ -666,7 +612,7 @@ export default function CipherClient({ puzzles = [], forceNum = null }) {
             <span style={{ marginLeft: 'auto', whiteSpace: 'nowrap' }}>failed checks <b style={{ color: g.fails ? COLORS.rust : COLORS.ink, fontWeight: 500 }}>{g.fails}</b></span>
           </div>
           <div style={{ maxWidth: (maxLen + 1) * 50, margin: '0 auto' }}>
-            {PUZZLE.lhs.map((w, i) => renderRow(w, i === PUZZLE.lhs.length - 1 ? opGlyph : '', `l${i}`))}
+            {PUZZLE.lhs.map((w, i) => renderRow(w, (OP === 'sub' ? i > 0 : i === PUZZLE.lhs.length - 1) ? opGlyph : '', `l${i}`))}
             <div className="cf-rule" />
             {renderRow(PUZZLE.rhs, '', 'r')}
           </div>
@@ -842,7 +788,7 @@ export default function CipherClient({ puzzles = [], forceNum = null }) {
           The craft is in the columns. The leftmost letter of the answer is usually forced by a carry; from there each column narrows the field until the whole equation clicks open. A clean solve on the first check is a perfect 10 &mdash; every failed check costs a point, and the daily leaderboard breaks ties by fewer failed checks, then time.
         </p>
         <p style={{ margin: 0, fontSize: 13, lineHeight: 1.65, color: COLORS.faded, fontWeight: 600 }}>
-          A new equation drops every day at midnight Eastern, and the operation rotates so no two days repeat: addition, subtraction, and multiplication, with the Sunday Edition stacking three addends. No app, no signup &mdash; play free in your browser, keep a streak, and race the daily leaderboard. More dailies: <a href="/suds" style={{ color: COLORS.ink, fontWeight: 800 }}>Suds</a>, our daily sudoku, <a href="/tally" style={{ color: COLORS.ink, fontWeight: 800 }}>Tally</a>, our number-balancing game, and <a href="/alibi" style={{ color: COLORS.ink, fontWeight: 800 }}>Alibi</a>, our whodunit logic puzzle.
+          A new equation drops every day at midnight Eastern, and the operation rotates so no two days repeat: addition and subtraction, with a bigger three-term equation in the Sunday Edition. No app, no signup &mdash; play free in your browser, keep a streak, and race the daily leaderboard. More dailies: <a href="/suds" style={{ color: COLORS.ink, fontWeight: 800 }}>Suds</a>, our daily sudoku, <a href="/tally" style={{ color: COLORS.ink, fontWeight: 800 }}>Tally</a>, our number-balancing game, and <a href="/alibi" style={{ color: COLORS.ink, fontWeight: 800 }}>Alibi</a>, our whodunit logic puzzle.
         </p>
       </section>
 
