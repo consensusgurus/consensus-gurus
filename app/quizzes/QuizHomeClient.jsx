@@ -1873,68 +1873,99 @@ export default function QuizHomeClient() {
                 the list below it so nothing shows twice. Daily games resolve to
                 their icon banner via heroFor(). */}
             {(() => {
-              const lpHero = lpTop ? heroFor(lpTop.quizId, deptById[lpTop.quizId]) : null;
-              const heroUrl = lpHero ? lpHero.src : undefined;
-              const heroPos = lpHero ? lpHero.pos : undefined;
-              const heroPlaysN = lpTop ? plays(lpTop.quizId) : 0;
+              const nowMs = Date.now();
+              const dayStart = new Date(); dayStart.setHours(0, 0, 0, 0);
+              const tSt = dayStart.getTime();
+              const todays = recent.filter((p) => p && p.playedAt && Date.parse(p.playedAt) >= tSt);
+              const acesToday = todays.filter((p) => p.total > 0 && p.score === p.total).length;
+              const quizzesToday = Object.keys(totals.todayByQuiz || {}).length;
+              const HB = 11;
+              const bars = new Array(HB).fill(0);
+              for (const p of recent) { const tt = (p && p.playedAt) ? Date.parse(p.playedAt) : 0; if (!tt) continue; const hrsAgo = Math.floor((nowMs - tt) / 3600000); if (hrsAgo >= 0 && hrsAgo < HB) bars[HB - 1 - hrsAgo] += 1; }
+              const maxBar = Math.max(1, ...bars);
               const hot = trending;
               const tough = (totals.toughest && titleById[totals.toughest.quizId]) ? totals.toughest : null;
               const fmtT = (v) => { const x = Math.round(v || 0); const h = Math.floor(x / 3600); const m = Math.round((x % 3600) / 60); return h > 0 ? `${h}h ${m}m` : `${m}m`; };
-              const lpRows = lastPlayed.filter((f) => !lpTop || f.quizId !== lpTop.quizId).slice(0, 4);
+              const lpRows = lastPlayed.slice(0, 6);
               return (
-                <section className="mc-open catcard" style={{ minWidth: 0 }}>
-                  {heroUrl ? (
-                    <Link href={`/quiz/${lpTop.quizId}`} className="cc-hero" style={{ backgroundImage: `url("${heroUrl}")`, backgroundPosition: heroPos || 'center' }} title={lpTop.title}>
-                      <span className="cc-ov" />
-                      <span className="cc-stat">{heroPlaysN > 0 ? `${heroPlaysN.toLocaleString()} plays` : 'New quiz'}{lpTop && relTime(lpTop.playedAt) ? ` · played ${relTime(lpTop.playedAt)} ago` : ''}</span>
-                      <div className="cc-btm">
-                        <span className="cc-htitle">{stripVerb(lpTop.title)}</span>
-                        <span className="cc-play">Play <ArrowRight size={13} style={{ verticalAlign: -2 }} /></span>
+                <section className="mc-open catcard" style={{ minWidth: 0, display: 'flex', flexDirection: 'column' }}>
+                  <div style={{ background: C.accent, color: '#fff', padding: '11px 13px 12px', borderRadius: '8px 8px 0 0' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                      <span style={{ width: 24, height: 24, borderRadius: 7, background: 'rgba(255,255,255,0.16)', color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', flex: 'none' }}><Play size={13} /></span>
+                      <h3 style={{ fontSize: 16, fontWeight: 800, margin: 0, color: '#fff' }}>Last Played</h3>
+                      <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4, marginLeft: 4, fontSize: 9, fontWeight: 800, letterSpacing: '.06em', color: '#a7f3cf', background: 'rgba(16,185,129,0.16)', borderRadius: 999, padding: '2px 7px' }}><span style={{ width: 5, height: 5, borderRadius: 999, background: C.live }} />LIVE</span>
+                      <button type="button" onClick={() => setListMode('live')} style={{ marginLeft: 'auto', color: 'rgba(255,255,255,0.82)', background: 'none', border: 'none', padding: 0, cursor: 'pointer', fontFamily: 'inherit', fontSize: 10, fontWeight: 800, letterSpacing: '.04em', textTransform: 'uppercase' }}>View all ›</button>
+                    </div>
+                    <div style={{ display: 'flex', alignItems: 'flex-end', gap: 16, marginTop: 12 }}>
+                      <div style={{ flex: 'none' }}>
+                        <div style={{ fontSize: 27, fontWeight: 800, lineHeight: 1, letterSpacing: '-.02em' }}>{(playsToday || 0).toLocaleString()}</div>
+                        <div style={{ fontSize: 9, fontWeight: 700, letterSpacing: '.06em', color: 'rgba(255,255,255,0.5)', marginTop: 4, textTransform: 'uppercase' }}>plays today</div>
                       </div>
-                    </Link>
-                  ) : null}
-                  <div className="colhead cc-head cc-filled" style={{ borderColor: C.accent, background: C.accent }}>
-                    <span className="colicon" style={{ width: 24, height: 24, borderRadius: 7, background: 'rgba(255,255,255,0.22)', color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', flex: 'none' }}><Play size={14} /></span>
-                    <h3 style={{ fontSize: 17, fontWeight: 800, margin: 0, color: '#fff' }}>Last Played</h3>
-                    <button type="button" onClick={() => setListMode('live')} className="viewall vall" style={{ color: '#fff', background: 'none', border: 'none', padding: 0, cursor: 'pointer', fontFamily: 'inherit', fontSize: 10, fontWeight: 700 }}>View all ›</button>
-                  </div>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '5px 11px 4px', borderBottom: '1px solid rgba(20,22,28,0.07)' }}>
-                    <span style={{ width: 6, height: 6, borderRadius: 999, background: C.live, flex: 'none' }} />
-                    <span style={{ fontSize: 11, fontWeight: 800, color: C.ink }}>{(playsToday || 0).toLocaleString()} <span style={{ color: C.soft, fontWeight: 600 }}>plays</span></span>
-                    <span style={{ width: 1, height: 11, background: 'rgba(20,22,28,0.12)' }} />
-                    <span style={{ fontSize: 11, fontWeight: 800, color: C.ink }}>{fmtT(totals.todayTime)} <span style={{ color: C.soft, fontWeight: 600 }}>played today</span></span>
-                  </div>
-                  {(hot || tough) ? (
-                    <div style={{ display: 'flex', gap: 6, padding: '6px 11px' }}>
+                      <div style={{ flex: 'none' }}>
+                        <div style={{ fontSize: 18, fontWeight: 800, lineHeight: 1, letterSpacing: '-.01em', paddingBottom: 1 }}>{fmtT(totals.todayTime)}</div>
+                        <div style={{ fontSize: 9, fontWeight: 700, letterSpacing: '.06em', color: 'rgba(255,255,255,0.5)', marginTop: 5, textTransform: 'uppercase' }}>played today</div>
+                      </div>
+                      <div style={{ marginLeft: 'auto', display: 'flex', alignItems: 'flex-end', gap: 2, height: 32 }} title="plays per hour (last 11h)">
+                        {bars.map((b, i) => (
+                          <span key={i} style={{ width: 5, borderRadius: 2, height: `${Math.max(9, Math.round((b / maxBar) * 100))}%`, background: i >= HB - 2 ? C.live : 'rgba(255,255,255,0.22)' }} />
+                        ))}
+                      </div>
+                    </div>
+                    <div style={{ marginTop: 11, display: 'flex', gap: 6 }}>
                       {hot ? (
-                        <Link href={`/quiz/${hot.id}`} className="qlink" style={{ flex: '1 1 0', minWidth: 0, background: '#fff4e8', border: '1px solid #f6d9bf', borderRadius: 8, padding: '3px 8px' }}>
-                          <span style={{ fontSize: 9, fontWeight: 800, letterSpacing: '.03em', color: '#c2691c', textTransform: 'uppercase', display: 'block' }}>🔥 Hot now</span>
-                          <span style={{ fontSize: 11, fontWeight: 700, color: C.ink, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', display: 'block' }}>{stripVerb(titleById[hot.id] || hot.title)}</span>
-                        </Link>
+                        <a href={`/quiz/${hot.id}`} style={{ flex: '1 1 0', minWidth: 0, background: 'rgba(255,255,255,0.08)', border: '1px solid rgba(255,255,255,0.13)', borderRadius: 8, padding: '4px 8px', textDecoration: 'none', display: 'block' }}>
+                          <span style={{ fontSize: 8.5, fontWeight: 800, letterSpacing: '.04em', color: '#f4b183', textTransform: 'uppercase', display: 'block' }}>🔥 Hot now</span>
+                          <span style={{ fontSize: 11, fontWeight: 700, color: '#fff', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', display: 'block', marginTop: 1 }}>{stripVerb(titleById[hot.id] || hot.title)}</span>
+                        </a>
                       ) : null}
                       {tough ? (
-                        <Link href={`/quiz/${tough.quizId}`} className="qlink" style={{ flex: '1 1 0', minWidth: 0, background: '#eef2f7', border: '1px solid #d9e0ea', borderRadius: 8, padding: '3px 8px' }}>
-                          <span style={{ fontSize: 9, fontWeight: 800, letterSpacing: '.03em', color: '#4d6b8a', textTransform: 'uppercase', display: 'block' }}>🧠 Toughest · {Math.round((tough.aceRate || 0) * 100)}% ace</span>
-                          <span style={{ fontSize: 11, fontWeight: 700, color: C.ink, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', display: 'block' }}>{stripVerb(titleById[tough.quizId] || '')}</span>
-                        </Link>
+                        <a href={`/quiz/${tough.quizId}`} style={{ flex: '1 1 0', minWidth: 0, background: 'rgba(255,255,255,0.08)', border: '1px solid rgba(255,255,255,0.13)', borderRadius: 8, padding: '4px 8px', textDecoration: 'none', display: 'block' }}>
+                          <span style={{ fontSize: 8.5, fontWeight: 800, letterSpacing: '.04em', color: '#9ec5e8', textTransform: 'uppercase', display: 'block' }}>🧠 Toughest · {Math.round((tough.aceRate || 0) * 100)}% ace</span>
+                          <span style={{ fontSize: 11, fontWeight: 700, color: '#fff', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', display: 'block', marginTop: 1 }}>{stripVerb(titleById[tough.quizId] || '')}</span>
+                        </a>
                       ) : null}
                     </div>
-                  ) : null}
-                  {lpRows.map((f) => {
-                    const dc = DEPT_COLOR[deptById[f.quizId]] || DEPT_COLOR.misc;
-                    const good = f.total ? f.score / f.total >= 0.8 : false;
-                    return (
-                      <Link href={`/quiz/${f.quizId}`} className="qrow" key={f.quizId} title={f.title} style={{ alignItems: 'center' }}>
-                        <span style={{ width: 7, height: 7, borderRadius: 2, background: dc.c, flex: 'none' }} />
-                        <span className="qtitle">{stripVerb(f.title)}</span><DoneMark id={f.quizId} />
-                        <span className="qmeta">
-                          {typeof f.pct === 'number' ? <span style={{ fontSize: 9.5, fontWeight: 800, color: good ? '#16a34a' : '#b45309', background: good ? '#e7f7ed' : '#fef6e7', borderRadius: 999, padding: '1px 6px' }}>beat {f.pct}%</span> : null}
-                          <span className="score" style={{ fontSize: 11, fontWeight: 800, color: good ? '#16a34a' : C.soft }}>{f.score}/{f.total}</span>
-                          <span style={{ color: C.soft }}>{relTime(f.playedAt)}</span>
-                        </span>
-                      </Link>
-                    );
-                  })}
+                  </div>
+                  <div style={{ display: 'flex', alignItems: 'center', padding: '7px 12px 4px' }}>
+                    <span style={{ fontSize: 9.5, fontWeight: 800, letterSpacing: '.06em', color: C.soft, textTransform: 'uppercase' }}>Recent plays</span>
+                    <span style={{ marginLeft: 'auto', fontSize: 10, fontWeight: 700, color: C.soft }}>ring = score · beat = vs all</span>
+                  </div>
+                  <div style={{ flex: 1 }}>
+                    {lpRows.map((f) => {
+                      const dc = DEPT_COLOR[deptById[f.quizId]] || DEPT_COLOR.misc;
+                      const frac = f.total ? f.score / f.total : 0;
+                      const pctScore = Math.round(frac * 100);
+                      const ringCol = frac >= 0.8 ? '#16a34a' : (frac >= 0.4 ? C.cta : '#dc2626');
+                      const good = frac >= 0.8;
+                      return (
+                        <Link href={`/quiz/${f.quizId}`} className="qrow" key={f.quizId} title={f.title} style={{ alignItems: 'center', gap: 10 }}>
+                          <span style={{ width: 30, height: 30, flex: 'none', borderRadius: 999, background: `conic-gradient(${ringCol} ${pctScore}%, #eef1f6 0)`, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                            <span style={{ width: 23, height: 23, borderRadius: 999, background: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 8, fontWeight: 800, color: C.ink }}>{pctScore}%</span>
+                          </span>
+                          <span style={{ minWidth: 0, flex: 1 }}>
+                            <span style={{ display: 'block', fontSize: 12.5, fontWeight: 600, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', color: C.ink }}>{stripVerb(f.title)}</span>
+                            <span style={{ display: 'flex', alignItems: 'center', gap: 5, marginTop: 1 }}>
+                              <span style={{ width: 6, height: 6, borderRadius: 2, background: dc.c, flex: 'none' }} />
+                              <span style={{ fontSize: 10, color: C.soft, fontWeight: 600, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{DEPT_LABEL[deptById[f.quizId]] || 'Quiz'}</span>
+                            </span>
+                          </span>
+                          <span style={{ flex: 'none', display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 2 }}>
+                            <span style={{ fontSize: 12, fontWeight: 800, color: good ? '#16a34a' : C.ink, fontVariantNumeric: 'tabular-nums' }}>{f.score}/{f.total}</span>
+                            <span style={{ display: 'flex', alignItems: 'center', gap: 5 }}>
+                              {typeof f.pct === 'number' ? <span style={{ fontSize: 9, fontWeight: 800, color: good ? '#16a34a' : '#b45309', background: good ? '#e7f7ed' : '#fef6e7', borderRadius: 999, padding: '1px 6px' }}>beat {f.pct}%</span> : null}
+                              <span style={{ fontSize: 9.5, color: C.soft, fontWeight: 600 }}>{relTime(f.playedAt)}</span>
+                            </span>
+                          </span>
+                        </Link>
+                      );
+                    })}
+                  </div>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '9px 13px', borderTop: '1px solid rgba(20,22,28,0.09)', background: '#fafbfc' }}>
+                    <span style={{ fontSize: 11, fontWeight: 800, color: C.ink }}>🎯 {quizzesToday} <span style={{ color: C.soft, fontWeight: 600 }}>quizzes</span></span>
+                    <span style={{ width: 1, height: 11, background: 'rgba(20,22,28,0.12)' }} />
+                    <span style={{ fontSize: 11, fontWeight: 800, color: C.ink }}>⭐ {acesToday} <span style={{ color: C.soft, fontWeight: 600 }}>aces today</span></span>
+                    <button type="button" onClick={() => setListMode('live')} style={{ marginLeft: 'auto', color: C.accent, background: 'none', border: 'none', padding: 0, cursor: 'pointer', fontFamily: 'inherit', fontSize: 11, fontWeight: 800 }}>Full feed ›</button>
+                  </div>
                 </section>
               );
             })()}
