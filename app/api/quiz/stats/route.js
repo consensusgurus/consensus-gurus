@@ -47,7 +47,7 @@ export async function GET() {
       const total = Number(r.total) || 0;
       a.scoreSum += score;
       a.totalSum += total;
-      if (total > 0) a.pctSum += score / total;
+      if (total > 0) a.pctSum += Math.min(1, score / total);
       if (Number.isFinite(Number(r.time_elapsed))) { a.timeSum += Number(r.time_elapsed); a.timeN += 1; }
       if (score > a.bestScore) a.bestScore = score;
       if (total > 0 && score === total) a.perfect += 1;

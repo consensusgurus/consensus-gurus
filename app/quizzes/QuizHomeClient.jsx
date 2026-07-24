@@ -1936,7 +1936,7 @@ export default function QuizHomeClient() {
                       const catLabel = dgc ? dgc.name : (fam ? 'Daily Game' : (DEPT_LABEL[deptById[f.quizId]] || 'Quiz'));
                       const catColor = dgc ? dgc.color : (fam ? '#5b6472' : dc.c);
                       const frac = f.total ? f.score / f.total : 0;
-                      const pctScore = Math.round(frac * 100);
+                      const pctScore = Math.min(100, Math.round(frac * 100));
                       const ringCol = frac >= 0.8 ? '#16a34a' : (frac >= 0.4 ? C.cta : '#dc2626');
                       const good = frac >= 0.8;
                       return (

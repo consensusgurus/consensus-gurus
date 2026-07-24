@@ -53,7 +53,7 @@ export async function GET() {
         seen.set(k, n);
         priorCount.set(pk + '::' + r.quiz_id + '::' + r.id, n);
         const tot = Number(r.total) || 0;
-        if (tot > 0) { let arr = fracsByQuiz.get(r.quiz_id); if (!arr) { arr = []; fracsByQuiz.set(r.quiz_id, arr); } arr.push((Number(r.score) || 0) / tot); }
+        if (tot > 0) { let arr = fracsByQuiz.get(r.quiz_id); if (!arr) { arr = []; fracsByQuiz.set(r.quiz_id, arr); } arr.push(Math.min(1, (Number(r.score) || 0) / tot)); }
       }
       for (const arr of fracsByQuiz.values()) arr.sort((a, b) => a - b);
     }
@@ -85,7 +85,7 @@ export async function GET() {
         playedAt: r.created_at || null,
         isAnon,
         attempt,
-        pct: (Number(r.total) > 0) ? pctOf(r.quiz_id, (Number(r.score) || 0) / Number(r.total)) : null,
+        pct: (Number(r.total) > 0) ? pctOf(r.quiz_id, Math.min(1, (Number(r.score) || 0) / Number(r.total))) : null,
       };
     });
     return NextResponse.json({ plays }, { headers: CACHE_HEADERS });
