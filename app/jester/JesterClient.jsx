@@ -5,8 +5,8 @@
 // One board a day: seat exactly one jester in every row, every column, and
 // every colored court; no two jesters may touch, not even diagonally. Every
 // banked board is machine-verified to a UNIQUE solution and to fall to pure
-// deduction (see scripts/verify-jester.mjs). Tap a cell to cycle blank → ✗
-// (ruled out) → 🃏 (jester). The board solves itself the instant all jesters
+// deduction (see scripts/verify-jester.mjs). Tap a cell to toggle ✗ (ruled
+// out); long-press or right-click to seat a 🃏 (jester). The board solves itself the instant all jesters
 // are seated legally.
 //
 // The client never receives the solution over the wire: the server page
@@ -230,6 +230,10 @@ export default function JesterClient({ puzzles = [], forceNum = null }) {
   const [revealArmed, setRevealArmed] = useState(false);
   const histRef = useRef([]);
   const [canUndo, setCanUndo] = useState(false);
+  // Long-press plumbing: a held touch seats a jester; the flag suppresses the
+  // click/contextmenu that follows so the jester isn't immediately cleared.
+  const pressTimer = useRef(null);
+  const longFired = useRef(false);
   const [installEvt, setInstallEvt] = useState(null);
   const [showA2hsHelp, setShowA2hsHelp] = useState(false);
   const [standalone, setStandalone] = useState(false);
@@ -438,14 +442,29 @@ export default function JesterClient({ puzzles = [], forceNum = null }) {
     return g.locked.some(([lr, lc]) => lr === r && lc === c);
   }
 
+  // Tap toggles the ✗ (ruled out) mark: blank → ✗, ✗ → blank, and a tap on a
+  // seated jester clears it. Seating a jester is the deliberate long-press /
+  // right-click action below, so erasing an ✗ is a single tap, not a full cycle.
   function tapCell(r, c) {
     if (!playing) return;
     if (isLocked(r, c)) { say('The hint seated that jester — it stays.'); return; }
     pushHist(g.cells, g.placements);
     setG((cur) => {
       const cells = cur.cells.map((row) => row.slice());
-      const v = cells[r][c];
-      const next = (v + 1) % 3;
+      cells[r][c] = cells[r][c] === 0 ? 1 : 0;
+      return { ...cur, cells, t0: cur.t0 || Date.now() };
+    });
+  }
+
+  // Long-press (mobile) or right-click (desktop) toggles the jester: blank/✗ →
+  // 🃏, 🃏 → blank. Seating one counts a placement and fires the auto-✗ pencil-out.
+  function toggleJester(r, c) {
+    if (!playing) return;
+    if (isLocked(r, c)) { say('The hint seated that jester — it stays.'); return; }
+    pushHist(g.cells, g.placements);
+    setG((cur) => {
+      const cells = cur.cells.map((row) => row.slice());
+      const next = cells[r][c] === 2 ? 0 : 2;
       cells[r][c] = next;
       let placements = cur.placements;
       if (next === 2) {
@@ -465,6 +484,17 @@ export default function JesterClient({ puzzles = [], forceNum = null }) {
       return { ...cur, cells, placements, t0: cur.t0 || Date.now() };
     });
   }
+
+  function startPress(r, c) {
+    longFired.current = false;
+    clearTimeout(pressTimer.current);
+    pressTimer.current = setTimeout(() => {
+      longFired.current = true;
+      toggleJester(r, c);
+      try { if (navigator.vibrate) navigator.vibrate(15); } catch (e) {}
+    }, 420);
+  }
+  function endPress() { clearTimeout(pressTimer.current); }
 
   function clearBoard() {
     if (!playing) return;
@@ -524,7 +554,7 @@ export default function JesterClient({ puzzles = [], forceNum = null }) {
     <div style={{ fontSize: 14, lineHeight: 1.55, color: COLORS.ink, fontWeight: 600 }}>
       <p style={{ margin: '0 0 9px' }}>Seat exactly <b>one jester</b> in every row, every column, and every colored court.</p>
       <p style={{ margin: '0 0 9px' }}>Jesters are jealous: <b>no two may touch</b>, not even diagonally. Quarrelling jesters glow red.</p>
-      <p style={{ margin: '0 0 9px' }}>Tap a cell to cycle: blank &rarr; <b>✗</b> (ruled out) &rarr; <b>jester</b>. Leave auto-✗ on and seating a jester pencils out its row, column, court and neighbours for you. <b>Undo</b> rolls back a jester and the ✗ marks it penciled in.</p>
+      <p style={{ margin: '0 0 9px' }}>Tap a cell to toggle <b>✗</b> (ruled out); long-press it (right-click on a computer) to seat a <b>jester</b>. Leave auto-✗ on and seating a jester pencils out its row, column, court and neighbours for you. <b>Undo</b> rolls back your last move.</p>
       <p style={{ margin: 0 }}>Every board has exactly one legal seating, reachable by pure deduction &mdash; no guessing needed. The board completes itself the moment the last jester is seated legally. Ties on the daily board break by fewest placements, then fastest time. A bigger 9&times;9 Jubilee board runs on Sundays.</p>
     </div>
   );
@@ -618,10 +648,15 @@ export default function JesterClient({ puzzles = [], forceNum = null }) {
                     <div
                       key={c}
                       className="je-cell"
-                      onClick={() => tapCell(r, c)}
+                      onClick={() => { if (longFired.current) { longFired.current = false; return; } tapCell(r, c); }}
+                      onContextMenu={(e) => { e.preventDefault(); if (longFired.current) return; toggleJester(r, c); }}
+                      onTouchStart={() => startPress(r, c)}
+                      onTouchEnd={endPress}
+                      onTouchMove={endPress}
+                      onTouchCancel={endPress}
                       role="button"
-                      aria-label={`Row ${r + 1}, column ${c + 1}: ${v === 0 ? 'blank' : v === 1 ? 'ruled out' : 'jester'}${conflict ? ', quarrelling' : ''}`}
-                      style={{ width: cellPx, height: cellPx, background: conflict ? '#fecaca' : REGION_FILLS[id % REGION_FILLS.length], borderTop: bTop, borderLeft: bLeft, boxShadow: locked ? `inset 0 0 0 2px ${COLORS.accent}` : 'none' }}
+                      aria-label={`Row ${r + 1}, column ${c + 1}: ${v === 0 ? 'blank' : v === 1 ? 'ruled out' : 'jester'}${conflict ? ', quarrelling' : ''}. Tap to rule out; long-press or right-click to seat a jester.`}
+                      style={{ width: cellPx, height: cellPx, background: conflict ? '#fecaca' : REGION_FILLS[id % REGION_FILLS.length], borderTop: bTop, borderLeft: bLeft, boxShadow: locked ? `inset 0 0 0 2px ${COLORS.accent}` : 'none', WebkitTouchCallout: 'none', WebkitUserSelect: 'none', userSelect: 'none', touchAction: 'manipulation' }}
                     >
                       {v === 1 && <span className="je-x">✗</span>}
                       {v === 2 && <JesterMark size={Math.round(cellPx * 0.6)} conflict={conflict} />}
@@ -632,6 +667,12 @@ export default function JesterClient({ puzzles = [], forceNum = null }) {
             ))}
           </div>
         </div>
+        )}
+
+        {started && (
+          <div style={{ fontFamily: MONO, fontSize: 11, letterSpacing: '0.04em', color: COLORS.faded, textAlign: 'center', margin: '10px 0 0', lineHeight: 1.5 }}>
+            Tap a cell to rule it out. Hold it (or right-click) to seat a jester.
+          </div>
         )}
 
         {started && (

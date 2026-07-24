@@ -693,6 +693,12 @@ export default function AlibiClient({ puzzles = [], forceNum = null }) {
               ))}
             </div>
 
+            {started && (
+              <div style={{ fontFamily: MONO, fontSize: 11, letterSpacing: '0.04em', color: COLORS.faded, textAlign: 'center', margin: '10px 0 2px', lineHeight: 1.5 }}>
+                Tap a cell to cross it off. Hold it (or right-click) to confirm a &#9679;.
+              </div>
+            )}
+
             {verdict && (
               <div style={{ fontFamily: SANS, fontSize: 13, fontWeight: 700, color: verdict.soft ? COLORS.faded : COLORS.rust, marginBottom: 10, lineHeight: 1.45 }}>
                 {verdict.msg}
