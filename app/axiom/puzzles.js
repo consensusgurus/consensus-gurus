@@ -27,7 +27,7 @@
 // Validate with scripts/verify-axiom.mjs after ANY edit.
 export const PUZZLES = [
   {
-    num: 1, quizId: 'axiom-7-25-26', live: '2026-07-25', dateLabel: 'July 25, 2026', sunday: false,
+    num: 1, quizId: 'axiom-7-24-26', live: '2026-07-24', dateLabel: 'July 24, 2026', sunday: false,
     budget: 6,
     rules: [{ k: 'dbl' }, { k: 'len', n: 6 }, { k: 'startvowel' }, { k: 'vowels', n: 2 }, { k: 'alpha' }],
     tiles: [
@@ -40,34 +40,34 @@ export const PUZZLES = [
     ],
   },
   {
-    num: 2, quizId: 'axiom-7-26-26', live: '2026-07-26', dateLabel: 'July 26, 2026', sunday: true,
-    budget: 7,
-    rules: [{ k: 'onevowel' }, { k: 'alpha' }, { k: 'dbl' }, { k: 'nolet', c: 'A' }, { k: 'vowels', n: 2 }, { k: 'twinvowel' }, { k: 'hides', set: 'animal' }],
-    tiles: [
-      { w: 'DISPLAYS', t: 0 }, { w: 'HANDLES', t: 0 }, { w: 'STARRING', t: 0 }, { w: 'GLOBAL', t: 0 },
-      { w: 'ALGEBRA', t: 0 }, { w: 'BEEN', t: 1, g: 1 }, { w: 'BEST', t: 0 }, { w: 'NEWER', t: 1 },
-      { w: 'BEEF', t: 1, g: 1 }, { w: 'CLAUSES', t: 0 }, { w: 'MESSAGE', t: 0 }, { w: 'PEASANTS', t: 1 },
-      { w: 'INSANE', t: 0, g: 1 }, { w: 'EVILS', t: 0 }, { w: 'BEERS', t: 1 }, { w: 'ANTIQUE', t: 1 },
-      { w: 'CRAMP', t: 1 }, { w: 'WARRANTY', t: 1 }, { w: 'SMALLER', t: 0, g: 1 }, { w: 'CRIMINAL', t: 0 },
-      { w: 'SUBWAYS', t: 0 }, { w: 'DIAGRAM', t: 1 }, { w: 'CHANNELS', t: 0 }, { w: 'ASTERISK', t: 0 },
-      { w: 'DOGS', t: 1 }, { w: 'VARIANT', t: 1 }, { w: 'STUFFS', t: 0 }, { w: 'BEER', t: 1, g: 1 },
-    ],
-  },
-  {
-    num: 3, quizId: 'axiom-7-27-26', live: '2026-07-27', dateLabel: 'July 27, 2026', sunday: false,
+    num: 2, quizId: 'axiom-7-25-26', live: '2026-07-25', dateLabel: 'July 25, 2026', sunday: false,
     budget: 6,
-    rules: [{ k: 'alpha' }, { k: 'dbl' }, { k: 'onevowel' }, { k: 'nolet', c: 'A' }, { k: 'nolet', c: 'S' }],
+    rules: [{ k: 'nolet', c: 'E' }, { k: 'onevowel' }, { k: 'nolet', c: 'A' }, { k: 'hides', set: 'animal' }, { k: 'norepeat' }],
     tiles: [
-      { w: 'FALLS', t: 1 }, { w: 'PUZZLES', t: 1 }, { w: 'HAVE', t: 0, g: 1 }, { w: 'ORANGE', t: 0 },
-      { w: 'LACKED', t: 0 }, { w: 'ANNOY', t: 1 }, { w: 'JACKETS', t: 0 }, { w: 'TAKES', t: 0 },
-      { w: 'EARLIER', t: 0 }, { w: 'GLOSSY', t: 1 }, { w: 'BELL', t: 1, g: 1 }, { w: 'ENTRANCE', t: 0, g: 1 },
-      { w: 'EGOS', t: 0 }, { w: 'POWDER', t: 0 }, { w: 'SEPARATE', t: 0 }, { w: 'FALLACY', t: 1 },
-      { w: 'BEEF', t: 1, g: 1 }, { w: 'WAIT', t: 0 }, { w: 'RACES', t: 0 }, { w: 'DEAL', t: 0 },
-      { w: 'CUMMING', t: 1 }, { w: 'SUFFER', t: 1 }, { w: 'FLOOR', t: 1, g: 1 }, { w: 'FELT', t: 0 },
+      { w: 'FANTASY', t: 1 }, { w: 'NULL', t: 0 }, { w: 'DREADING', t: 0, g: 1 }, { w: 'OPTIONAL', t: 0 },
+      { w: 'IMAGINES', t: 0 }, { w: 'REPEATS', t: 0 }, { w: 'RELATED', t: 0 }, { w: 'RAPE', t: 1 },
+      { w: 'STARTLED', t: 0 }, { w: 'RAMPANT', t: 1 }, { w: 'DREADED', t: 0 }, { w: 'GLASSES', t: 0 },
+      { w: 'BOWL', t: 1, g: 1 }, { w: 'RATIOS', t: 1 }, { w: 'THEN', t: 1 }, { w: 'DISAGREE', t: 0 },
+      { w: 'PIGS', t: 1, g: 1 }, { w: 'NETWORK', t: 0 }, { w: 'HEAVEN', t: 0 }, { w: 'COWS', t: 1, g: 1 },
+      { w: 'CATS', t: 1 }, { w: 'TAPES', t: 1 }, { w: 'ATOM', t: 0 }, { w: 'CHANGING', t: 0, g: 1 },
     ],
   },
   {
-    num: 4, quizId: 'axiom-7-28-26', live: '2026-07-28', dateLabel: 'July 28, 2026', sunday: false,
+    num: 3, quizId: 'axiom-7-26-26', live: '2026-07-26', dateLabel: 'July 26, 2026', sunday: true,
+    budget: 7,
+    rules: [{ k: 'vowels', n: 2 }, { k: 'alpha' }, { k: 'dbl' }, { k: 'nolet', c: 'S' }, { k: 'onevowel' }, { k: 'nolet', c: 'A' }, { k: 'nolet', c: 'E' }],
+    tiles: [
+      { w: 'PASSWORD', t: 1 }, { w: 'HEAR', t: 0, g: 1 }, { w: 'INERTIA', t: 0 }, { w: 'LOOP', t: 1, g: 1 },
+      { w: 'WAIT', t: 0 }, { w: 'PROMPTED', t: 0 }, { w: 'REST', t: 0 }, { w: 'NEEDED', t: 1 },
+      { w: 'CORRIDOR', t: 1 }, { w: 'SOONEST', t: 1 }, { w: 'WHEREAS', t: 0 }, { w: 'FLOOR', t: 1, g: 1 },
+      { w: 'OFFICERS', t: 1 }, { w: 'WORRIED', t: 1 }, { w: 'AIMED', t: 0 }, { w: 'EGOS', t: 0 },
+      { w: 'MALES', t: 0 }, { w: 'ATTRACTS', t: 1 }, { w: 'SPEED', t: 1 }, { w: 'FLOPPY', t: 1 },
+      { w: 'READY', t: 0 }, { w: 'TAKEN', t: 0 }, { w: 'PLATE', t: 0 }, { w: 'CLAIMED', t: 0 },
+      { w: 'SMASHED', t: 0 }, { w: 'DOOR', t: 1, g: 1 }, { w: 'MEANT', t: 0 }, { w: 'ARGUED', t: 0, g: 1 },
+    ],
+  },
+  {
+    num: 4, quizId: 'axiom-7-27-26', live: '2026-07-27', dateLabel: 'July 27, 2026', sunday: false,
     budget: 6,
     rules: [{ k: 'nolet', c: 'A' }, { k: 'onevowel' }, { k: 'len', n: 5 }, { k: 'vowels', n: 2 }, { k: 'alpha' }],
     tiles: [
@@ -80,7 +80,7 @@ export const PUZZLES = [
     ],
   },
   {
-    num: 5, quizId: 'axiom-7-29-26', live: '2026-07-29', dateLabel: 'July 29, 2026', sunday: false,
+    num: 5, quizId: 'axiom-7-28-26', live: '2026-07-28', dateLabel: 'July 28, 2026', sunday: false,
     budget: 6,
     rules: [{ k: 'vowels', n: 3 }, { k: 'endvowel' }, { k: 'nolet', c: 'A' }, { k: 'sameends' }, { k: 'len', n: 7 }],
     tiles: [
@@ -93,7 +93,7 @@ export const PUZZLES = [
     ],
   },
   {
-    num: 6, quizId: 'axiom-7-30-26', live: '2026-07-30', dateLabel: 'July 30, 2026', sunday: false,
+    num: 6, quizId: 'axiom-7-29-26', live: '2026-07-29', dateLabel: 'July 29, 2026', sunday: false,
     budget: 6,
     rules: [{ k: 'len', n: 5 }, { k: 'hides', set: 'body' }, { k: 'startvowel' }, { k: 'nolet', c: 'S' }, { k: 'vowels', n: 2 }],
     tiles: [
@@ -106,7 +106,7 @@ export const PUZZLES = [
     ],
   },
   {
-    num: 7, quizId: 'axiom-7-31-26', live: '2026-07-31', dateLabel: 'July 31, 2026', sunday: false,
+    num: 7, quizId: 'axiom-7-30-26', live: '2026-07-30', dateLabel: 'July 30, 2026', sunday: false,
     budget: 6,
     rules: [{ k: 'dbl' }, { k: 'nolet', c: 'A' }, { k: 'sameends' }, { k: 'twinvowel' }, { k: 'len', n: 6 }],
     tiles: [
@@ -119,7 +119,7 @@ export const PUZZLES = [
     ],
   },
   {
-    num: 8, quizId: 'axiom-8-1-26', live: '2026-08-01', dateLabel: 'August 1, 2026', sunday: false,
+    num: 8, quizId: 'axiom-7-31-26', live: '2026-07-31', dateLabel: 'July 31, 2026', sunday: false,
     budget: 6,
     rules: [{ k: 'onevowel' }, { k: 'len', n: 5 }, { k: 'altvc' }, { k: 'vowels', n: 2 }, { k: 'nolet', c: 'A' }],
     tiles: [
@@ -132,34 +132,34 @@ export const PUZZLES = [
     ],
   },
   {
-    num: 9, quizId: 'axiom-8-2-26', live: '2026-08-02', dateLabel: 'August 2, 2026', sunday: true,
-    budget: 7,
-    rules: [{ k: 'twinvowel' }, { k: 'nolet', c: 'E' }, { k: 'len', n: 5 }, { k: 'nolet', c: 'S' }, { k: 'vowels', n: 3 }, { k: 'endvowel' }, { k: 'norepeat' }],
-    tiles: [
-      { w: 'STATES', t: 0 }, { w: 'GOTTEN', t: 0 }, { w: 'ARCANE', t: 0 }, { w: 'TYPED', t: 1 },
-      { w: 'NAIVE', t: 1 }, { w: 'LINED', t: 1 }, { w: 'MAKES', t: 1 }, { w: 'QUOTA', t: 1, g: 1 },
-      { w: 'OCCUPY', t: 0, g: 1 }, { w: 'EVENTS', t: 0, g: 1 }, { w: 'CHALK', t: 1 }, { w: 'LIKELY', t: 0 },
-      { w: 'EVOLVE', t: 0 }, { w: 'MERGED', t: 0 }, { w: 'SWING', t: 1 }, { w: 'WAKE', t: 1 },
-      { w: 'PSEUDO', t: 1 }, { w: 'DROPPING', t: 0 }, { w: 'ASSESS', t: 0 }, { w: 'DEALERS', t: 0 },
-      { w: 'PIANO', t: 1, g: 1 }, { w: 'FORMERLY', t: 0 }, { w: 'DOOMS', t: 0 }, { w: 'CRITIC', t: 0 },
-      { w: 'ENDING', t: 0 }, { w: 'WIDTH', t: 1 }, { w: 'RATIO', t: 1, g: 1 }, { w: 'SPOTTED', t: 0 },
-    ],
-  },
-  {
-    num: 10, quizId: 'axiom-8-3-26', live: '2026-08-03', dateLabel: 'August 3, 2026', sunday: false,
+    num: 9, quizId: 'axiom-8-1-26', live: '2026-08-01', dateLabel: 'August 1, 2026', sunday: false,
     budget: 6,
-    rules: [{ k: 'dbl' }, { k: 'nolet', c: 'A' }, { k: 'alpha' }, { k: 'nolet', c: 'S' }, { k: 'twinvowel' }],
+    rules: [{ k: 'norepeat' }, { k: 'nolet', c: 'E' }, { k: 'len', n: 5 }, { k: 'endvowel' }, { k: 'vowels', n: 3 }],
     tiles: [
-      { w: 'PHOENIX', t: 1 }, { w: 'BEER', t: 1 }, { w: 'AGREES', t: 1 }, { w: 'ADDS', t: 0 },
-      { w: 'FIRES', t: 0 }, { w: 'BALLET', t: 0 }, { w: 'FOOT', t: 1, g: 1 }, { w: 'REPLIED', t: 1 },
-      { w: 'EVIDENCE', t: 0 }, { w: 'DEDUCES', t: 0 }, { w: 'COMPARES', t: 0 }, { w: 'LOADED', t: 1 },
-      { w: 'VIRUSES', t: 0 }, { w: 'THESE', t: 0, g: 1 }, { w: 'DEEP', t: 1, g: 1 }, { w: 'SAND', t: 0 },
-      { w: 'SIGH', t: 0, g: 1 }, { w: 'DOOR', t: 1, g: 1 }, { w: 'DEALT', t: 1 }, { w: 'ALLIES', t: 1 },
-      { w: 'DESTROYS', t: 0 }, { w: 'RECIPES', t: 0 }, { w: 'SHELVES', t: 0 }, { w: 'NUNS', t: 0 },
+      { w: 'WESTERN', t: 0 }, { w: 'ASIDE', t: 1 }, { w: 'CRIME', t: 1 }, { w: 'PLEASANT', t: 0 },
+      { w: 'UNLIKE', t: 1 }, { w: 'LIFTING', t: 0 }, { w: 'REMEDY', t: 0 }, { w: 'CIRCLE', t: 0 },
+      { w: 'NAMELESS', t: 0, g: 1 }, { w: 'SUMMER', t: 0 }, { w: 'QUOTA', t: 1, g: 1 }, { w: 'ORTHODOX', t: 0, g: 1 },
+      { w: 'IGNORING', t: 0 }, { w: 'CONTAINS', t: 0 }, { w: 'PIANO', t: 1, g: 1 }, { w: 'PRESUMED', t: 0 },
+      { w: 'SPATIAL', t: 0 }, { w: 'SOUNDS', t: 0 }, { w: 'RATIO', t: 1, g: 1 }, { w: 'NURSE', t: 1 },
+      { w: 'NOTES', t: 1 }, { w: 'HILLS', t: 0 }, { w: 'FATE', t: 1 }, { w: 'PROUD', t: 1 },
     ],
   },
   {
-    num: 11, quizId: 'axiom-8-4-26', live: '2026-08-04', dateLabel: 'August 4, 2026', sunday: false,
+    num: 10, quizId: 'axiom-8-2-26', live: '2026-08-02', dateLabel: 'August 2, 2026', sunday: true,
+    budget: 7,
+    rules: [{ k: 'dbl' }, { k: 'nolet', c: 'E' }, { k: 'nolet', c: 'A' }, { k: 'nolet', c: 'S' }, { k: 'onevowel' }, { k: 'alpha' }, { k: 'twinvowel' }],
+    tiles: [
+      { w: 'SHEETS', t: 1 }, { w: 'FLOOR', t: 1, g: 1 }, { w: 'DESTINES', t: 0, g: 1 }, { w: 'INDEXES', t: 0 },
+      { w: 'NICE', t: 0 }, { w: 'DOOR', t: 1, g: 1 }, { w: 'FREEZING', t: 1 }, { w: 'TOUCHING', t: 1 },
+      { w: 'BURNED', t: 0 }, { w: 'FUNCTION', t: 1 }, { w: 'BOOT', t: 1 }, { w: 'FILMS', t: 0 },
+      { w: 'KEYWORD', t: 0 }, { w: 'COWS', t: 0 }, { w: 'MILE', t: 0 }, { w: 'AGREEING', t: 1 },
+      { w: 'WHALE', t: 0 }, { w: 'RAIL', t: 1 }, { w: 'SUCCEEDS', t: 1 }, { w: 'ABOVE', t: 0 },
+      { w: 'EXOTIC', t: 0 }, { w: 'ANGRY', t: 0 }, { w: 'CAKES', t: 0 }, { w: 'BEHAVES', t: 0 },
+      { w: 'SELLING', t: 0 }, { w: 'QUEEN', t: 1 }, { w: 'FOOT', t: 1, g: 1 }, { w: 'POLICE', t: 0, g: 1 },
+    ],
+  },
+  {
+    num: 11, quizId: 'axiom-8-3-26', live: '2026-08-03', dateLabel: 'August 3, 2026', sunday: false,
     budget: 6,
     rules: [{ k: 'nolet', c: 'E' }, { k: 'endvowel' }, { k: 'norepeat' }, { k: 'twinvowel' }, { k: 'len', n: 5 }],
     tiles: [
@@ -172,7 +172,7 @@ export const PUZZLES = [
     ],
   },
   {
-    num: 12, quizId: 'axiom-8-5-26', live: '2026-08-05', dateLabel: 'August 5, 2026', sunday: false,
+    num: 12, quizId: 'axiom-8-4-26', live: '2026-08-04', dateLabel: 'August 4, 2026', sunday: false,
     budget: 6,
     rules: [{ k: 'endvowel' }, { k: 'onevowel' }, { k: 'vowels', n: 2 }, { k: 'twinvowel' }, { k: 'nolet', c: 'A' }],
     tiles: [
@@ -185,7 +185,7 @@ export const PUZZLES = [
     ],
   },
   {
-    num: 13, quizId: 'axiom-8-6-26', live: '2026-08-06', dateLabel: 'August 6, 2026', sunday: false,
+    num: 13, quizId: 'axiom-8-5-26', live: '2026-08-05', dateLabel: 'August 5, 2026', sunday: false,
     budget: 6,
     rules: [{ k: 'vowels', n: 2 }, { k: 'nolet', c: 'A' }, { k: 'nolet', c: 'S' }, { k: 'hides', set: 'number' }, { k: 'norepeat' }],
     tiles: [
@@ -198,7 +198,7 @@ export const PUZZLES = [
     ],
   },
   {
-    num: 14, quizId: 'axiom-8-7-26', live: '2026-08-07', dateLabel: 'August 7, 2026', sunday: false,
+    num: 14, quizId: 'axiom-8-6-26', live: '2026-08-06', dateLabel: 'August 6, 2026', sunday: false,
     budget: 6,
     rules: [{ k: 'nolet', c: 'E' }, { k: 'startvowel' }, { k: 'vowels', n: 2 }, { k: 'len', n: 5 }, { k: 'nolet', c: 'S' }],
     tiles: [

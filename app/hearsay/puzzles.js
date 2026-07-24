@@ -25,7 +25,7 @@
 // final line, and to be unpinnable from any single attribute at the start.
 export const PUZZLES = [
   {
-    num: 1, quizId: 'hearsay-7-25-26', live: '2026-07-25', dateLabel: 'July 25, 2026', sunday: false,
+    num: 1, quizId: 'hearsay-7-24-26', live: '2026-07-24', dateLabel: 'July 24, 2026', sunday: false,
     noun: 'bottle', listLabel: 'the cellar list',
     attrs: ['region', 'year'],
     who: ['Odette', 'Rufus'],
@@ -41,16 +41,32 @@ export const PUZZLES = [
     ],
   },
   {
-    num: 2, quizId: 'hearsay-7-26-26', live: '2026-07-26', dateLabel: 'July 26, 2026', sunday: true,
+    num: 2, quizId: 'hearsay-7-25-26', live: '2026-07-25', dateLabel: 'July 25, 2026', sunday: false,
     noun: 'sailing', listLabel: 'the harbour board',
-    attrs: ['port', 'day', 'seal'],
-    who: ['Marisol', 'Ivo', 'Ottoline'],
+    attrs: ['port', 'day'],
+    who: ['Marisol', 'Ivo'],
     cards: [
-      { a: 'Cadiz', b: 'Monday', c: 'a blue seal' }, { a: 'Tangier', b: 'Tuesday', c: 'a blue seal' }, { a: 'Palermo', b: 'Thursday', c: 'a red seal' },
-      { a: 'Tangier', b: 'Thursday', c: 'a red seal' }, { a: 'Tangier', b: 'Friday', c: 'a red seal' }, { a: 'Palermo', b: 'Friday', c: 'a blue seal' },
-      { a: 'Tangier', b: 'Monday', c: 'a red seal' }, { a: 'Palermo', b: 'Monday', c: 'a blue seal' }, { a: 'Cadiz', b: 'Saturday', c: 'a blue seal' },
-      { a: 'Palermo', b: 'Tuesday', c: 'a red seal' }, { a: 'Tangier', b: 'Saturday', c: 'a green seal' }, { a: 'Cadiz', b: 'Friday', c: 'a blue seal' },
-      { a: 'Palermo', b: 'Saturday', c: 'a red seal' },
+      { a: 'Palermo', b: 'Saturday' }, { a: 'Cadiz', b: 'Saturday' }, { a: 'Tangier', b: 'Saturday' },
+      { a: 'Tangier', b: 'Friday' }, { a: 'Cadiz', b: 'Thursday' }, { a: 'Bergen', b: 'Friday' },
+      { a: 'Palermo', b: 'Monday' }, { a: 'Tangier', b: 'Monday' }, { a: 'Palermo', b: 'Tuesday' },
+    ],
+    script: [
+      { who: 'a', type: 'dontKnow' },
+      { who: 'b', type: 'dontKnow' },
+      { who: 'a', type: 'know' },
+    ],
+  },
+  {
+    num: 3, quizId: 'hearsay-7-26-26', live: '2026-07-26', dateLabel: 'July 26, 2026', sunday: true,
+    noun: 'painting', listLabel: 'the auction catalogue',
+    attrs: ['gallery', 'year', 'seal'],
+    who: ['Hester', 'Cato', 'Ottoline'],
+    cards: [
+      { a: 'Corvina', b: '1928', c: 'a black seal' }, { a: 'Everly', b: '1934', c: 'a black seal' }, { a: 'Ashcroft', b: '1911', c: 'a black seal' },
+      { a: 'Ashcroft', b: '1947', c: 'a black seal' }, { a: 'Everly', b: '1947', c: 'a black seal' }, { a: 'Corvina', b: '1934', c: 'a black seal' },
+      { a: 'Ashcroft', b: '1903', c: 'a black seal' }, { a: 'Corvina', b: '1947', c: 'a blue seal' }, { a: 'Everly', b: '1928', c: 'a blue seal' },
+      { a: 'Everly', b: '1911', c: 'a blue seal' }, { a: 'Corvina', b: '1903', c: 'a black seal' }, { a: 'Corvina', b: '1911', c: 'a black seal' },
+      { a: 'Everly', b: '1903', c: 'a green seal' },
     ],
     script: [
       { who: 'a', type: 'knowOtherDoesnt', other: 'c' },
@@ -60,23 +76,7 @@ export const PUZZLES = [
     ],
   },
   {
-    num: 3, quizId: 'hearsay-7-27-26', live: '2026-07-27', dateLabel: 'July 27, 2026', sunday: false,
-    noun: 'painting', listLabel: 'the auction catalogue',
-    attrs: ['gallery', 'year'],
-    who: ['Hester', 'Cato'],
-    cards: [
-      { a: 'Belvoir', b: '1934' }, { a: 'Belvoir', b: '1911' }, { a: 'Belvoir', b: '1903' },
-      { a: 'Duxley', b: '1928' }, { a: 'Everly', b: '1911' }, { a: 'Belvoir', b: '1947' },
-      { a: 'Duxley', b: '1947' }, { a: 'Everly', b: '1928' }, { a: 'Everly', b: '1903' },
-    ],
-    script: [
-      { who: 'a', type: 'knowOtherDoesnt', other: 'b' },
-      { who: 'b', type: 'know' },
-      { who: 'a', type: 'know' },
-    ],
-  },
-  {
-    num: 4, quizId: 'hearsay-7-28-26', live: '2026-07-28', dateLabel: 'July 28, 2026', sunday: false,
+    num: 4, quizId: 'hearsay-7-27-26', live: '2026-07-27', dateLabel: 'July 27, 2026', sunday: false,
     noun: 'train', listLabel: 'the departure board',
     attrs: ['platform', 'hour'],
     who: ['Nadia', 'Osric'],
@@ -92,7 +92,7 @@ export const PUZZLES = [
     ],
   },
   {
-    num: 5, quizId: 'hearsay-7-29-26', live: '2026-07-29', dateLabel: 'July 29, 2026', sunday: false,
+    num: 5, quizId: 'hearsay-7-28-26', live: '2026-07-28', dateLabel: 'July 28, 2026', sunday: false,
     noun: 'birthday', listLabel: 'the shortlist',
     attrs: ['month', 'day'],
     who: ['Delphine', 'Bram'],
@@ -108,7 +108,7 @@ export const PUZZLES = [
     ],
   },
   {
-    num: 6, quizId: 'hearsay-7-30-26', live: '2026-07-30', dateLabel: 'July 30, 2026', sunday: false,
+    num: 6, quizId: 'hearsay-7-29-26', live: '2026-07-29', dateLabel: 'July 29, 2026', sunday: false,
     noun: 'room', listLabel: 'the register',
     attrs: ['floor', 'suite'],
     who: ['Simone', 'Auberon'],
@@ -124,7 +124,7 @@ export const PUZZLES = [
     ],
   },
   {
-    num: 7, quizId: 'hearsay-7-31-26', live: '2026-07-31', dateLabel: 'July 31, 2026', sunday: false,
+    num: 7, quizId: 'hearsay-7-30-26', live: '2026-07-30', dateLabel: 'July 30, 2026', sunday: false,
     noun: 'lot', listLabel: 'the sale sheet',
     attrs: ['house', 'lot'],
     who: ['Perpetua', 'Casimir'],
@@ -140,7 +140,7 @@ export const PUZZLES = [
     ],
   },
   {
-    num: 8, quizId: 'hearsay-8-1-26', live: '2026-08-01', dateLabel: 'August 1, 2026', sunday: false,
+    num: 8, quizId: 'hearsay-7-31-26', live: '2026-07-31', dateLabel: 'July 31, 2026', sunday: false,
     noun: 'painting', listLabel: 'the auction catalogue',
     attrs: ['gallery', 'year'],
     who: ['Hester', 'Cato'],
@@ -157,15 +157,31 @@ export const PUZZLES = [
     ],
   },
   {
-    num: 9, quizId: 'hearsay-8-2-26', live: '2026-08-02', dateLabel: 'August 2, 2026', sunday: true,
+    num: 9, quizId: 'hearsay-8-1-26', live: '2026-08-01', dateLabel: 'August 1, 2026', sunday: false,
     noun: 'room', listLabel: 'the register',
-    attrs: ['floor', 'suite', 'seal'],
-    who: ['Simone', 'Auberon', 'Ottoline'],
+    attrs: ['floor', 'suite'],
+    who: ['Simone', 'Auberon'],
     cards: [
-      { a: '2nd floor', b: 'Suite C', c: 'a black seal' }, { a: '5th floor', b: 'Suite A', c: 'a black seal' }, { a: '2nd floor', b: 'Suite F', c: 'a black seal' },
-      { a: '3rd floor', b: 'Suite C', c: 'a black seal' }, { a: '2nd floor', b: 'Suite A', c: 'a blue seal' }, { a: '5th floor', b: 'Suite F', c: 'a red seal' },
-      { a: '3rd floor', b: 'Suite A', c: 'a black seal' }, { a: '5th floor', b: 'Suite C', c: 'a blue seal' }, { a: '2nd floor', b: 'Suite J', c: 'a black seal' },
-      { a: '5th floor', b: 'Suite M', c: 'a blue seal' }, { a: '5th floor', b: 'Suite J', c: 'a black seal' }, { a: '3rd floor', b: 'Suite M', c: 'a blue seal' },
+      { a: '6th floor', b: 'Suite M' }, { a: '6th floor', b: 'Suite F' }, { a: '2nd floor', b: 'Suite C' },
+      { a: '5th floor', b: 'Suite F' }, { a: '8th floor', b: 'Suite J' }, { a: '5th floor', b: 'Suite M' },
+      { a: '6th floor', b: 'Suite J' }, { a: '6th floor', b: 'Suite C' }, { a: '8th floor', b: 'Suite C' },
+    ],
+    script: [
+      { who: 'b', type: 'knowOtherDoesnt', other: 'a' },
+      { who: 'a', type: 'dontKnow' },
+      { who: 'b', type: 'know' },
+    ],
+  },
+  {
+    num: 10, quizId: 'hearsay-8-2-26', live: '2026-08-02', dateLabel: 'August 2, 2026', sunday: true,
+    noun: 'bottle', listLabel: 'the cellar list',
+    attrs: ['region', 'year', 'seal'],
+    who: ['Odette', 'Rufus', 'Ottoline'],
+    cards: [
+      { a: 'Douro', b: '2016', c: 'a green seal' }, { a: 'Rioja', b: '2016', c: 'a blue seal' }, { a: 'Douro', b: '2019', c: 'a blue seal' },
+      { a: 'Douro', b: '2011', c: 'a blue seal' }, { a: 'Rioja', b: '2021', c: 'a black seal' }, { a: 'Rioja', b: '2019', c: 'a black seal' },
+      { a: 'Chinon', b: '2021', c: 'a black seal' }, { a: 'Douro', b: '2014', c: 'a black seal' }, { a: 'Rioja', b: '2011', c: 'a black seal' },
+      { a: 'Douro', b: '2021', c: 'a black seal' }, { a: 'Chinon', b: '2019', c: 'a black seal' }, { a: 'Chinon', b: '2011', c: 'a blue seal' },
     ],
     script: [
       { who: 'a', type: 'knowOtherDoesnt', other: 'c' },
@@ -175,23 +191,7 @@ export const PUZZLES = [
     ],
   },
   {
-    num: 10, quizId: 'hearsay-8-3-26', live: '2026-08-03', dateLabel: 'August 3, 2026', sunday: false,
-    noun: 'bottle', listLabel: 'the cellar list',
-    attrs: ['region', 'year'],
-    who: ['Odette', 'Rufus'],
-    cards: [
-      { a: 'Douro', b: '2021' }, { a: 'Mosel', b: '2021' }, { a: 'Douro', b: '2016' },
-      { a: 'Rioja', b: '2016' }, { a: 'Chinon', b: '2021' }, { a: 'Mosel', b: '2019' },
-      { a: 'Chinon', b: '2011' }, { a: 'Mosel', b: '2016' }, { a: 'Mosel', b: '2014' },
-    ],
-    script: [
-      { who: 'a', type: 'dontKnow' },
-      { who: 'b', type: 'dontKnow' },
-      { who: 'a', type: 'know' },
-    ],
-  },
-  {
-    num: 11, quizId: 'hearsay-8-4-26', live: '2026-08-04', dateLabel: 'August 4, 2026', sunday: false,
+    num: 11, quizId: 'hearsay-8-3-26', live: '2026-08-03', dateLabel: 'August 3, 2026', sunday: false,
     noun: 'train', listLabel: 'the departure board',
     attrs: ['platform', 'hour'],
     who: ['Nadia', 'Osric'],
@@ -207,7 +207,7 @@ export const PUZZLES = [
     ],
   },
   {
-    num: 12, quizId: 'hearsay-8-5-26', live: '2026-08-05', dateLabel: 'August 5, 2026', sunday: false,
+    num: 12, quizId: 'hearsay-8-4-26', live: '2026-08-04', dateLabel: 'August 4, 2026', sunday: false,
     noun: 'lot', listLabel: 'the sale sheet',
     attrs: ['house', 'lot'],
     who: ['Perpetua', 'Casimir'],
@@ -223,7 +223,7 @@ export const PUZZLES = [
     ],
   },
   {
-    num: 13, quizId: 'hearsay-8-6-26', live: '2026-08-06', dateLabel: 'August 6, 2026', sunday: false,
+    num: 13, quizId: 'hearsay-8-5-26', live: '2026-08-05', dateLabel: 'August 5, 2026', sunday: false,
     noun: 'sailing', listLabel: 'the harbour board',
     attrs: ['port', 'day'],
     who: ['Marisol', 'Ivo'],
@@ -239,7 +239,7 @@ export const PUZZLES = [
     ],
   },
   {
-    num: 14, quizId: 'hearsay-8-7-26', live: '2026-08-07', dateLabel: 'August 7, 2026', sunday: false,
+    num: 14, quizId: 'hearsay-8-6-26', live: '2026-08-06', dateLabel: 'August 6, 2026', sunday: false,
     noun: 'birthday', listLabel: 'the shortlist',
     attrs: ['month', 'day'],
     who: ['Delphine', 'Bram'],
