@@ -162,6 +162,10 @@ function freshState() {
 
 const boxOf = (r, c) => Math.floor(r / 3) * 3 + Math.floor(c / 3);
 
+// Light haptics on supported devices (no-op on desktop / unsupported browsers).
+const HAPT = { ok: [8], wrong: [0, 26, 34, 26], win: [10, 40, 20, 40, 20, 60], note: [6] };
+function vibrate(p) { try { if (typeof navigator !== 'undefined' && navigator.vibrate) navigator.vibrate(p); } catch (e) {} }
+
 export default function SudsClient({ puzzles = [], forceNum = null }) {
   const PUZZLE = useMemo(() => pickPuzzle(puzzles, forceNum), [puzzles, forceNum]);
   const GIVEN = PUZZLE.given;
@@ -186,6 +190,8 @@ export default function SudsClient({ puzzles = [], forceNum = null }) {
 
   const [g, setG] = useState(freshState);
   const [sel, setSel] = useState(-1);          // selected cell index, -1 = none
+  const [armed, setArmed] = useState(0);       // digit-first: the "picked up" number (0 = none)
+  const [canUndo, setCanUndo] = useState(false);
   const [noteMode, setNoteMode] = useState(false);
   const [showHelp, setShowHelp] = useState(false);
   const [gateRules, setGateRules] = useState(false); // start tile: full rules (first-timer) vs compact card
@@ -208,6 +214,9 @@ export default function SudsClient({ puzzles = [], forceNum = null }) {
   const { duelToken, duelInfo, duelSubmitted } = useDuelContext(PUZZLE.quizId, searchParams);
   const toastTimer = useRef(null);
   const viewedRef = useRef(false);
+  const undoRef = useRef([]);      // stack of { cells, notes } snapshots
+  const longRef = useRef(false);   // true when the last cell interaction was a long-press
+  const longTimer = useRef(null);  // pending long-press timer
 
   const cells = g.cells;
   const notes = g.notes;
@@ -390,16 +399,42 @@ export default function SudsClient({ puzzles = [], forceNum = null }) {
     try { localStorage.setItem(HELP_KEY, '1'); } catch (e) {}
   }
 
-  function enterDigit(idx, d) {
+  // ---- undo (restores board positions only; committed errors/hint stay) ----
+  function pushUndo() {
+    undoRef.current = [...undoRef.current.slice(-49), { cells: cells.slice(), notes: notes.slice() }];
+    if (!canUndo) setCanUndo(true);
+  }
+  function undo() {
+    const st = undoRef.current;
+    if (!st.length || !playing) return;
+    const prev = st[st.length - 1];
+    undoRef.current = st.slice(0, -1);
+    setCanUndo(undoRef.current.length > 0);
+    setSel(-1);
+    setG((cur) => ({ ...cur, cells: prev.cells.slice(), notes: prev.notes.slice() }));
+  }
+
+  // next empty (non-given, unfilled) cell after `from`, wrapping around
+  const nextEmpty = (cs, from) => {
+    for (let k = 1; k <= 81; k++) { const i = (from + k) % 81; if (!givenFlat[i] && !cs[i]) return i; }
+    return -1;
+  };
+
+  function toggleNote(idx, d) {
+    if (!playing || idx < 0 || givenFlat[idx] || cells[idx]) return; // no notes on a filled/given cell
+    pushUndo();
+    const nextNotes = notes.slice();
+    nextNotes[idx] = nextNotes[idx] ^ (1 << d);
+    setG({ ...g, notes: nextNotes });
+  }
+
+  // core placement. `advance` moves the selection to the next empty cell — used
+  // for pad/keyboard fills of the selected cell, NOT for tap-to-place in
+  // digit-first mode (there the player is already choosing each cell).
+  function placeDigit(idx, d, advance) {
     if (!playing || idx < 0 || givenFlat[idx]) return;
-    if (noteMode) {
-      if (cells[idx]) return; // no notes on a filled cell
-      const nextNotes = notes.slice();
-      nextNotes[idx] = nextNotes[idx] ^ (1 << d);
-      setG({ ...g, notes: nextNotes });
-      return;
-    }
-    if (cells[idx] === d) { eraseCell(idx); return; } // re-tap the same digit to clear the cell
+    if (cells[idx] === d) { eraseCell(idx); return; } // re-tap the same digit clears the cell
+    pushUndo();
     const nextCells = cells.slice();
     const nextNotes = notes.slice();
     nextCells[idx] = d;
@@ -411,17 +446,37 @@ export default function SudsClient({ puzzles = [], forceNum = null }) {
     if (!wrong && isSolved(nextCells)) {
       g2.status = 'won';
       g2.tEnd = Date.now();
+      vibrate(HAPT.win);
       postResult(g2, Math.max(1, Math.min(10, 10 - Math.ceil(g2.errors / 2))));
       setG(g2);
       setJustWon(true);
       return;
     }
+    vibrate(wrong ? HAPT.wrong : HAPT.ok);
     setG(g2);
+    if (advance && !wrong) { const nx = nextEmpty(nextCells, idx); if (nx >= 0) setSel(nx); }
+  }
+
+  // keyboard dispatcher: honors the Notes toggle, advances on a pad-style fill
+  function enterDigit(idx, d) {
+    if (noteMode) { toggleNote(idx, d); return; }
+    placeDigit(idx, d, true);
+  }
+
+  // number pad: arms the digit (digit-first) and, when a cell is selected, acts
+  // on it immediately (cell-first). Re-tapping the armed digit disarms it.
+  function padTap(d) {
+    setArmed((a) => (a === d ? 0 : d));
+    if (sel >= 0 && !givenFlat[sel]) {
+      if (noteMode) toggleNote(sel, d);
+      else placeDigit(sel, d, true);
+    }
   }
 
   function eraseCell(idx) {
     if (!playing || idx < 0 || givenFlat[idx]) return;
     if (!cells[idx] && !notes[idx]) return;
+    pushUndo();
     const nextCells = cells.slice();
     const nextNotes = notes.slice();
     nextCells[idx] = 0;
@@ -430,8 +485,32 @@ export default function SudsClient({ puzzles = [], forceNum = null }) {
   }
 
   function cellClick(idx) {
+    if (longRef.current) { longRef.current = false; return; } // long-press already penciled
+    if (armed && !givenFlat[idx]) {
+      if (noteMode) { toggleNote(idx, armed); setSel(idx); return; }
+      placeDigit(idx, armed, false);
+      setSel(idx);
+      return;
+    }
     setSel(idx);
   }
+
+  // long-press a cell to pencil the armed digit as a note, without switching the
+  // global Notes mode. No-op when no digit is armed or the cell is filled/given.
+  function pencilCell(idx) {
+    if (!playing || idx < 0 || givenFlat[idx] || cells[idx] || !armed) return false;
+    toggleNote(idx, armed);
+    vibrate(HAPT.note);
+    return true;
+  }
+  const startLong = (idx) => {
+    longRef.current = false;
+    if (longTimer.current) clearTimeout(longTimer.current);
+    // longRef is set only if we actually penciled, so a hold with no armed digit
+    // still falls through to a normal tap (select the cell)
+    longTimer.current = setTimeout(() => { longRef.current = pencilCell(idx); }, 450);
+  };
+  const cancelLong = () => { if (longTimer.current) { clearTimeout(longTimer.current); longTimer.current = null; } };
 
   // one free hint: fill a correct digit into the selected empty cell, else the
   // first empty cell in reading order
@@ -451,11 +530,13 @@ export default function SudsClient({ puzzles = [], forceNum = null }) {
     setSel(idx);
     if (isSolved(nextCells)) {
       g2.status = 'won'; g2.tEnd = Date.now();
+      vibrate(HAPT.win);
       postResult(g2, Math.max(1, Math.min(10, 10 - Math.ceil(g2.errors / 2))));
       setG(g2); setJustWon(true); return;
     }
+    vibrate(HAPT.ok);
     setG(g2);
-    say('Hint placed — one square filled in.');
+    say('Hint placed, one square filled in.');
   }
 
   function revealEnd() {
@@ -469,14 +550,17 @@ export default function SudsClient({ puzzles = [], forceNum = null }) {
 
   function resetGame() {
     try { localStorage.removeItem(STORE_KEY); } catch (e) {}
-    setG(freshState()); setSel(-1); setJustWon(false); setNoteMode(false); setEndClosed(false);
+    undoRef.current = []; setCanUndo(false);
+    setG(freshState()); setSel(-1); setArmed(0); setJustWon(false); setNoteMode(false); setEndClosed(false);
   }
 
   // desktop keyboard: arrows move, 1–9 fill, 0/Backspace erase, N toggles notes
   const onKey = useCallback((e) => {
     if (!playing) return;
     const k = e.key;
+    if ((k === 'z' || k === 'Z') && (e.metaKey || e.ctrlKey)) { e.preventDefault(); undo(); return; }
     if (k === 'n' || k === 'N') { setNoteMode((m) => !m); return; }
+    if (k === 'Tab') { e.preventDefault(); const nx = nextEmpty(cells, sel < 0 ? 80 : sel); if (nx >= 0) setSel(nx); return; }
     if (sel < 0) return;
     const r = Math.floor(sel / 9), c = sel % 9;
     if (k === 'ArrowUp') { e.preventDefault(); setSel(((r + 8) % 9) * 9 + c); return; }
@@ -525,6 +609,7 @@ export default function SudsClient({ puzzles = [], forceNum = null }) {
 
   // ── selection-aware highlighting ──
   const selVal = sel >= 0 ? (givenFlat[sel] || cells[sel]) : 0;
+  const hlVal = armed || selVal; // an armed digit (digit-first) also lights up its matches
   const selR = sel >= 0 ? Math.floor(sel / 9) : -1;
   const selC = sel >= 0 ? sel % 9 : -1;
   const selB = sel >= 0 ? boxOf(selR, selC) : -1;
@@ -534,13 +619,15 @@ export default function SudsClient({ puzzles = [], forceNum = null }) {
     const isSel = idx === sel;
     const peer = sel >= 0 && !isSel && (r === selR || c === selC || b === selB);
     const val = givenFlat[idx] || cells[idx];
-    const sameVal = selVal && val === selVal && !isSel;
+    const sameVal = hlVal && val === hlVal && !isSel;
     let bg = '#fff';
     if (peer) bg = '#f3f5f8';
     if (sameVal) bg = '#ffe9d8';
     if (isSel) bg = '#ffd9bd';
     return {
       background: bg,
+      boxShadow: isSel ? `inset 0 0 0 2.5px ${COLORS.accent}` : undefined,
+      zIndex: isSel ? 1 : undefined,
       borderRight: `${c % 3 === 2 && c !== 8 ? 2.5 : 1}px solid ${c % 3 === 2 && c !== 8 ? 'rgba(28,30,36,0.85)' : 'rgba(28,30,36,0.18)'}`,
       borderBottom: `${r % 3 === 2 && r !== 8 ? 2.5 : 1}px solid ${r % 3 === 2 && r !== 8 ? 'rgba(28,30,36,0.85)' : 'rgba(28,30,36,0.18)'}`,
       borderLeft: c === 0 ? 'none' : undefined,
@@ -560,8 +647,8 @@ export default function SudsClient({ puzzles = [], forceNum = null }) {
   const rulesBody = (
     <div style={{ fontSize: 14, lineHeight: 1.55, color: COLORS.ink, fontWeight: 600 }}>
       <p style={{ margin: '0 0 9px' }}>Fill every empty square so that each <b>row</b>, each <b>column</b>, and each <b>3×3 box</b> contains the digits <b>1–9</b> with no repeats. Every board has exactly one solution.</p>
-      <p style={{ margin: '0 0 9px' }}>Tap a square, then tap a number to place it. A number that isn&rsquo;t part of the solution turns <b style={{ color: COLORS.rust }}>red</b> and counts as an error &mdash; fix it to keep going. On desktop you can also use the arrow keys and number keys.</p>
-      <p style={{ margin: '0 0 9px' }}>Turn on <b>Notes</b> (or press N) to pencil small candidates into a square. One free <b>hint</b> fills a correct number.</p>
+      <p style={{ margin: '0 0 9px' }}>Two ways to place a number: tap a square then tap a number, or pick a number first and tap every square it goes in. A number that isn&rsquo;t part of the solution turns <b style={{ color: COLORS.rust }}>red</b> and counts as an error, fix it to keep going. On desktop you can also use the arrow keys and number keys.</p>
+      <p style={{ margin: '0 0 9px' }}>Turn on <b>Notes</b> (or press N) to pencil candidates, or with a number picked just <b>long-press</b> a square to pencil it. <b>Undo</b> (or Ctrl+Z) takes back your last move, and one free <b>hint</b> fills a correct number.</p>
       <p style={{ margin: 0 }}>A clean solve with <b>no errors</b> scores a perfect 10 &mdash; every error costs a point. Ties break on fewest errors, then fastest time. Sundays are a harder Edition with fewer clues.</p>
     </div>
   );
@@ -587,6 +674,8 @@ export default function SudsClient({ puzzles = [], forceNum = null }) {
           .sd-pad{width:100%;aspect-ratio:1;border-radius:9px;border:1.5px solid rgba(28,30,36,0.5);background:#fff;font-family:${MONO};font-weight:500;color:${COLORS.ink};cursor:pointer;display:flex;align-items:center;justify-content:center;position:relative;box-shadow:0 2px 0 rgba(28,30,36,0.4);}
           .sd-pad:active{transform:translateY(1px);box-shadow:0 1px 0 rgba(28,30,36,0.4);}
           .sd-pad.done{color:#c3c8cf;box-shadow:none;background:#f4f5f7;cursor:default;}
+          .sd-pad.armed{background:${COLORS.accent};color:#fff;border-color:${COLORS.accent};box-shadow:0 2px 0 rgba(154,61,12,0.55);}
+          .sd-pad.armed .sd-pad-n{color:#ffe0cc;}
           .sd-pad .sd-pad-n{position:absolute;bottom:2px;right:4px;font-size:8px;color:#aab0bb;font-weight:500;}
           .sd-tool{font-family:${SANS};font-weight:800;font-size:12.5px;border:1.5px solid rgba(28,30,36,0.35);background:#fff;color:${COLORS.ink};border-radius:8px;padding:7px 11px;cursor:pointer;display:inline-flex;align-items:center;gap:6px;}
           .sd-tool.on{background:${COLORS.ink};color:#fff;border-color:${COLORS.ink};}
@@ -655,7 +744,12 @@ export default function SudsClient({ puzzles = [], forceNum = null }) {
                 const base = cellStyle(idx);
                 const cls = `sd-cell ${given ? 'sd-given' : wrong ? 'sd-wrong' : val ? 'sd-user' : ''}`;
                 return (
-                  <div key={idx} className={cls} style={base} onClick={() => cellClick(idx)}>
+                  <div key={idx} className={cls} style={base}
+                    onClick={() => cellClick(idx)}
+                    onPointerDown={() => startLong(idx)}
+                    onPointerUp={cancelLong}
+                    onPointerLeave={cancelLong}
+                    onPointerCancel={cancelLong}>
                     {val ? (
                       <span style={{ fontSize: 'clamp(16px, 5vw, 23px)' }}>{val}</span>
                     ) : notes[idx] ? (
@@ -679,7 +773,7 @@ export default function SudsClient({ puzzles = [], forceNum = null }) {
                   const d = k + 1;
                   const done = digitDone[d];
                   return (
-                    <button key={d} className={`sd-pad${done ? ' done' : ''}`} onClick={() => { if (!done) enterDigit(sel, d); }} aria-label={`enter ${d}`}>
+                    <button key={d} className={`sd-pad${done ? ' done' : ''}${armed === d ? ' armed' : ''}`} onClick={() => { if (!done) padTap(d); }} aria-label={`enter ${d}`}>
                       <span style={{ fontSize: 'clamp(15px, 4.5vw, 21px)' }}>{d}</span>
                       {!done && <span className="sd-pad-n">{9 - (padCounts[d] || 0)}</span>}
                     </button>
@@ -689,6 +783,9 @@ export default function SudsClient({ puzzles = [], forceNum = null }) {
               <div style={{ display: 'flex', alignItems: 'center', gap: 8, justifyContent: 'center', marginTop: 10, flexWrap: 'wrap' }}>
                 <button className={`sd-tool${noteMode ? ' on' : ''}`} onClick={() => setNoteMode((m) => !m)} title="Toggle pencil notes (N)">
                   <Pencil size={14} /> Notes {noteMode ? 'on' : 'off'}
+                </button>
+                <button className="sd-tool" onClick={undo} disabled={!canUndo} title="Undo (Ctrl+Z)" style={{ opacity: canUndo ? 1 : 0.4, cursor: canUndo ? 'pointer' : 'default' }}>
+                  <RotateCcw size={14} /> Undo
                 </button>
                 <button className="sd-tool" onClick={() => eraseCell(sel)} title="Erase selected cell (Backspace)">
                   <Eraser size={14} /> Erase
@@ -707,8 +804,12 @@ export default function SudsClient({ puzzles = [], forceNum = null }) {
         {/* controls */}
         {started && (
           <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 12, flexWrap: 'wrap' }}>
-            <span style={{ fontFamily: SANS, fontSize: 12, fontWeight: 700, color: COLORS.faded }}>
-              {sel >= 0 ? (noteMode ? 'Tap a number to pencil it in' : 'Tap a number to fill this square') : 'Tap a square, then a number. Toggle Notes to pencil.'}
+            <span style={{ fontFamily: SANS, fontSize: 12, fontWeight: 700, color: armed ? COLORS.accent : COLORS.faded }}>
+              {armed
+                ? `Placing ${armed}: tap squares to fill, long-press to pencil`
+                : sel >= 0
+                  ? (noteMode ? 'Tap a number to pencil it in' : 'Tap a number, or pick a number then tap squares')
+                  : 'Tap a square then a number, or pick a number then tap squares'}
             </span>
             {identity && (filledCount > 0 || errors > 0) && (
               <button onClick={() => { if (armReveal) { setArmReveal(false); revealEnd(); } else { setArmReveal(true); } }}
