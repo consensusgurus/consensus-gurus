@@ -425,12 +425,35 @@ export default function HearsayClient({ puzzles = [], forceNum = null }) {
   const ans = PUZZLE.cards[ANSWER] || PUZZLE.cards[0];
   const ansText = `${ans.a}, ${ans.b}${ans.c ? `, ${ans.c}` : ''}`;
 
+  // How to play. The old version buried the whole trick ("ignorance is the
+  // evidence") in the middle of a paragraph, so the rules now state the goal,
+  // show who knows what, and teach the trick with this board's own words.
   const rulesBody = (
-    <div style={{ fontSize: 14, lineHeight: 1.55, color: COLORS.ink, fontWeight: 600 }}>
-      <p style={{ margin: '0 0 9px' }}>One card on the list is the secret one. Each person has been told <b>one</b> of its details and nothing else: {PUZZLE.who.map((w, i) => <span key={w}><b>{w}</b> knows the {PUZZLE.attrs[i]}{i < PUZZLE.who.length - 1 ? ', ' : ''}</span>)}.</p>
-      <p style={{ margin: '0 0 9px' }}>Then they speak, in order. Every line is about what they <b>can and can&rsquo;t work out</b>, and each one narrows the list. &ldquo;I don&rsquo;t know&rdquo; is real evidence: it rules out every card whose detail would have told them the answer outright.</p>
-      <p style={{ margin: '0 0 9px' }}>Tap cards to cross them off as you eliminate them. When one card is left standing, hit <b>Name the {PUZZLE.noun}</b> and pick it.</p>
-      <p style={{ margin: 0 }}>A first-time pick scores 12; each wrong name costs 3. Everyone speaks truthfully, and exactly one card survives every line.</p>
+    <div style={{ fontSize: 14, lineHeight: 1.5, color: COLORS.ink, fontWeight: 600 }}>
+      <p style={{ margin: '0 0 10px', fontSize: 15.5, fontWeight: 800 }}>Work out which {PUZZLE.noun} is the secret one.</p>
+
+      <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', marginBottom: 12 }}>
+        {PUZZLE.who.map((w, i) => (
+          <span key={w} style={{ fontFamily: SANS, fontSize: 12.5, fontWeight: 800, borderRadius: 7, padding: '7px 10px', background: COLORS.accentSoft, border: '1.5px solid rgba(124,45,146,0.4)', color: COLORS.accentDeep }}>
+            {w} knows the {PUZZLE.attrs[i]}
+          </span>
+        ))}
+      </div>
+
+      <ol style={{ margin: '0 0 12px', paddingLeft: 19 }}>
+        <li style={{ marginBottom: 5 }}>Each of them knows <b>only</b> that one detail. Nobody lies.</li>
+        <li style={{ marginBottom: 5 }}>They speak in turn, and every line narrows the list.</li>
+        <li style={{ marginBottom: 5 }}>Tap cards to cross them off as you rule them out.</li>
+        <li>Hit <b>Name the {PUZZLE.noun}</b> and pick the last one standing.</li>
+      </ol>
+
+      <div style={{ background: '#fff', border: '1px solid rgba(28,30,36,0.12)', borderLeft: `3px solid ${COLORS.accent}`, borderRadius: 7, padding: '9px 11px', fontSize: 13, lineHeight: 1.45 }}>
+        <b>The knack:</b> &ldquo;I don&rsquo;t know&rdquo; is the evidence. If the secret {PUZZLE.noun} were the only one with its {PUZZLE.attrs[0]}, {PUZZLE.who[0]} would have known straight away. {PUZZLE.who[0]} did not, so every {PUZZLE.attrs[0]} that appears just once is out.
+      </div>
+
+      <p style={{ margin: '10px 0 0', fontSize: 12.5, fontWeight: 600, color: COLORS.faded }}>
+        12 points for a first-time pick, 3 off for each wrong name. Exactly one card survives every line.
+      </p>
     </div>
   );
 

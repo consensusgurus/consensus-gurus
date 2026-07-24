@@ -478,12 +478,43 @@ export default function AxiomClient({ puzzles = [], forceNum = null }) {
   const revealed = (i) => PUZZLE.tiles[i].g || g.tested.includes(i) || !playing;
   const answerLabel = ruleLabel(PUZZLE.rules[ANSWER]);
 
+  // How to play. Four dense paragraphs tested badly (owner, 2026-07-24), so the
+  // rules now lead with the goal, show the colours rather than describing them,
+  // and put the numbers in a footnote: a first-timer needs the loop, not the
+  // scoring table.
+  const legendChip = (word, kind) => (
+    <span style={{
+      fontFamily: SANS, fontWeight: 800, fontSize: 12, letterSpacing: '0.04em', borderRadius: 7, padding: '7px 10px',
+      background: kind === 'yes' ? COLORS.greenSoft : kind === 'no' ? COLORS.redSoft : '#fff',
+      border: `1.5px solid ${kind === 'yes' ? COLORS.green : kind === 'no' ? COLORS.redInk : 'rgba(28,30,36,0.2)'}`,
+      color: kind === 'yes' ? '#14532d' : kind === 'no' ? '#7f1d1d' : COLORS.ink,
+    }}>{word}</span>
+  );
   const rulesBody = (
-    <div style={{ fontSize: 14, lineHeight: 1.55, color: COLORS.ink, fontWeight: 600 }}>
-      <p style={{ margin: '0 0 9px' }}>One hidden rule is true of some words on this board and false of the rest. <b>Green</b> tiles obey it, <b>red</b> tiles break it. Three greens and two reds are on the house.</p>
-      <p style={{ margin: '0 0 9px' }}>The rule is one of the <b>{PUZZLE.rules.length} candidates</b> listed under the board, and exactly one of them fits every tile. Start by checking which candidates the two free reds already kill.</p>
-      <p style={{ margin: '0 0 9px' }}>Tap any grey tile to <b>test</b> it and flip its colour. You get <b>{PUZZLE.budget}</b>. Most tiles are traps that every surviving candidate agrees on, so they cost a test and teach nothing. Par is <b>{PAR}</b>: no single test can ever settle it.</p>
-      <p style={{ margin: 0 }}>Naming the rule at par scores 12. Every test over par costs 2, every wrong name costs 3. Vowels are A, E, I, O and U, never Y.</p>
+    <div style={{ fontSize: 14, lineHeight: 1.5, color: COLORS.ink, fontWeight: 600 }}>
+      <p style={{ margin: '0 0 10px', fontSize: 15.5, fontWeight: 800 }}>Work out the hidden rule.</p>
+
+      <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', marginBottom: 6 }}>
+        {legendChip('EFFORT', 'yes')}{legendChip('FALSE', 'no')}{legendChip('TRAIL', 'grey')}
+      </div>
+      <div style={{ fontSize: 12.5, fontWeight: 600, color: COLORS.faded, marginBottom: 12 }}>
+        Green: the rule is true of that word. Red: it is not. Grey: untested.
+      </div>
+
+      <ol style={{ margin: '0 0 12px', paddingLeft: 19 }}>
+        <li style={{ marginBottom: 5 }}>{PUZZLE.rules.length} candidate rules sit under the board. <b>Exactly one</b> fits every tile.</li>
+        <li style={{ marginBottom: 5 }}>Tap a grey tile to <b>test</b> it and flip its colour. You get <b>{PUZZLE.budget}</b>.</li>
+        <li style={{ marginBottom: 5 }}>Tap a rule to cross it out once the colours have killed it.</li>
+        <li>Hit <b>Name the rule</b> and pick the one still standing.</li>
+      </ol>
+
+      <div style={{ background: '#fff', border: '1px solid rgba(28,30,36,0.12)', borderLeft: `3px solid ${COLORS.accent}`, borderRadius: 7, padding: '9px 11px', fontSize: 13, lineHeight: 1.45 }}>
+        <b>The knack:</b> a rule dies the moment one tile contradicts it. FALSE above is red, so the rule cannot be &ldquo;has exactly two vowels&rdquo; &mdash; FALSE has two. Most tiles kill nothing, so spend tests where the surviving rules disagree.
+      </div>
+
+      <p style={{ margin: '10px 0 0', fontSize: 12.5, fontWeight: 600, color: COLORS.faded }}>
+        12 points at par ({PAR} tests). Each extra test costs 2, each wrong name costs 3. Vowels are A, E, I, O, U, never Y.
+      </p>
     </div>
   );
 
