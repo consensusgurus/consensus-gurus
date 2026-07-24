@@ -238,6 +238,7 @@ export default function OutrankClient({ puzzles = [], forceNum = null }) {
   const [toast, setToast] = useState(null);
   const [copied, setCopied] = useState(false);
   const [endClosed, setEndClosed] = useState(false);
+  const [endCardReady, setEndCardReady] = useState(false);
   const [hydrated, setHydrated] = useState(false);
   const [board, setBoard] = useState(EMPTY_BOARD);
   const [identity, setIdentity] = useState(null);
@@ -399,6 +400,17 @@ export default function OutrankClient({ puzzles = [], forceNum = null }) {
     return () => { alive = false; clearInterval(iv); if (typeof document !== 'undefined') document.removeEventListener('visibilitychange', onVis); };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [hydrated, g.status, PUZZLE.quizId, identity?.email]);
+
+  // Hold the end-of-game popup back a few seconds after the crowd is faced, so the
+  // player sees the reveal + live standings first and the fetched crowd data has
+  // time to settle before the modal covers the board. Wins are already held by
+  // DailyEndCard's own confetti reveal, so this outer hold only covers the other
+  // outcomes; it resets whenever the game returns to play (archive/replay).
+  useEffect(() => {
+    if (g.status !== 'done') { setEndCardReady(false); return undefined; }
+    const t = setTimeout(() => setEndCardReady(true), 3500);
+    return () => clearTimeout(t);
+  }, [g.status]);
 
   function say(msg) {
     setToast(msg);
@@ -656,11 +668,14 @@ export default function OutrankClient({ puzzles = [], forceNum = null }) {
         {/* the day's slate */}
         {!preStart && (
         <div style={{ background: COLORS.accentSoft, border: `2px solid ${COLORS.ink}`, borderRadius: 10, padding: '15px 17px 12px', boxShadow: '5px 5px 0 rgba(28,30,36,0.16)', marginBottom: 12 }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 12, fontFamily: MONO, fontSize: 11.5, letterSpacing: '0.1em', textTransform: 'uppercase', color: COLORS.faded, borderBottom: '1px solid rgba(28,30,36,0.18)', paddingBottom: 8, marginBottom: 12, flexWrap: 'wrap' }}>
-            <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6, whiteSpace: 'nowrap' }}><Users size={12} /> today&rsquo;s slate</span>
-            <span style={{ marginLeft: 'auto', whiteSpace: 'nowrap', fontWeight: 500, color: COLORS.ink }}>{PUZZLE.theme}</span>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 12, fontFamily: MONO, fontSize: 11.5, letterSpacing: '0.1em', textTransform: 'uppercase', color: COLORS.faded, marginBottom: 9, flexWrap: 'wrap' }}>
+            <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6, whiteSpace: 'nowrap' }}><Users size={12} /> today&rsquo;s category</span>
           </div>
-          <div style={{ fontFamily: SANS, fontSize: 13, fontWeight: 700, color: COLORS.faded, marginBottom: 12, lineHeight: 1.5 }}>{PUZZLE.flavor}</div>
+          <div style={{ display: 'flex', alignItems: 'stretch', gap: 10, borderBottom: '1px solid rgba(28,30,36,0.18)', paddingBottom: 12, marginBottom: 12 }}>
+            <span aria-hidden style={{ flex: '0 0 auto', width: 5, background: COLORS.accent, borderRadius: 3 }} />
+            <span style={{ fontFamily: SANS, fontSize: 23, fontWeight: 800, letterSpacing: '-0.02em', lineHeight: 1.12, color: COLORS.accent, textTransform: 'uppercase' }}>{PUZZLE.theme}</span>
+          </div>
+          <div style={{ fontFamily: SANS, fontSize: 13, fontWeight: 700, color: COLORS.faded, marginBottom: 12, lineHeight: 1.5 }}><b style={{ color: COLORS.ink }}>{PUZZLE.theme}:</b> {PUZZLE.flavor}</div>
 
           {playing ? (
             <>
@@ -819,7 +834,7 @@ export default function OutrankClient({ puzzles = [], forceNum = null }) {
       </div>
 
       {/* the end-of-game popup: the shared DailyEndCard as a dismissible modal */}
-      {!playing && result && !endClosed && (
+      {!playing && result && !endClosed && (sharp || endCardReady) && (
         <DailyEndCard
           modal
           self="outrank"
