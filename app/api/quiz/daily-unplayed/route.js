@@ -26,13 +26,15 @@ import { PUZZLES as P_jester } from '@/app/jester/puzzles';
 import { PUZZLES as P_sworn } from '@/app/sworn/puzzles';
 import { PUZZLES as P_outrank } from '@/app/outrank/puzzles';
 import { PUZZLES as P_shards } from '@/app/shards/puzzles';
+import { PUZZLES as P_axiom } from '@/app/axiom/puzzles';
+import { PUZZLES as P_hearsay } from '@/app/hearsay/puzzles';
 
 export const dynamic = 'force-dynamic';
 export const fetchCache = 'force-no-store';
 // Per-player answer, keep it fresh (a play should immediately drop that puzzle).
 const CACHE_HEADERS = { 'Cache-Control': 'private, no-store' };
 
-const GAME_PUZZLES = { crux: P_crux, emcee: P_emcee, garble: P_garble, links: P_links, span: P_span, dating: P_dating, tally: P_tally, suds: P_suds, circa: P_circa, extra: P_extra, carve: P_carve, stet: P_stet, outwit: P_outwit, tuck: P_tuck, alibi: P_alibi, cipher: P_cipher, ping: P_ping, warmer: P_warmer, jester: P_jester, sworn: P_sworn, outrank: P_outrank, shards: P_shards };
+const GAME_PUZZLES = { crux: P_crux, emcee: P_emcee, garble: P_garble, links: P_links, span: P_span, dating: P_dating, tally: P_tally, suds: P_suds, circa: P_circa, extra: P_extra, carve: P_carve, stet: P_stet, outwit: P_outwit, tuck: P_tuck, alibi: P_alibi, cipher: P_cipher, ping: P_ping, warmer: P_warmer, jester: P_jester, sworn: P_sworn, outrank: P_outrank, shards: P_shards, axiom: P_axiom, hearsay: P_hearsay };
 
 function etTodayServer() {
   try { return new Date().toLocaleDateString('en-CA', { timeZone: 'America/New_York' }); }

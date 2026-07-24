@@ -1,0 +1,29 @@
+{
+  "id": "/axiom",
+  "name": "Axiom — Daily Hidden-Rule Game",
+  "short_name": "Axiom",
+  "description": "One hidden rule splits the board. Five candidates, a handful of tests, and most tiles teach you nothing. A new board every day from Source of Truths.",
+  "start_url": "/axiom?src=pwa",
+  "scope": "/",
+  "display": "standalone",
+  "background_color": "#f7f8fa",
+  "theme_color": "#f7f8fa",
+  "icons": [
+    {
+      "src": "/axiom-icons/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "/axiom-icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    },
+    {
+      "src": "/axiom-icons/icon-512-maskable.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ]
+}

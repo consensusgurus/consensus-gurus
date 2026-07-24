@@ -78,6 +78,8 @@ const GAMES = [
   { key: 'warmer', href: '/warmer', name: 'Warmer', img: '/games/btn-warmer.png', store: 'sot_warmer_day', tag: "Hotter or colder" , cat: 'Word' },
   { key: 'jester', href: '/jester', name: 'Jesters', img: '/games/btn-jester.png', store: 'sot_jester_day', tag: "Seat the court" , cat: 'Logic' },
   { key: 'sworn', href: '/sworn', name: 'Sworn', img: '/games/btn-sworn.png', store: 'sot_sworn_day', tag: "Spot the liars" , cat: 'Logic' },
+  { key: 'axiom', href: '/axiom', name: 'Axiom', img: '/games/btn-axiom.png', store: 'sot_axiom_day', tag: "Find the hidden rule" , cat: 'Logic' },
+  { key: 'hearsay', href: '/hearsay', name: 'Hearsay', img: '/games/btn-hearsay.png', store: 'sot_hearsay_day', tag: "Deduce what they don't know" , cat: 'Logic' },
 ];
 
 const NAME_BY_KEY = GAMES.reduce((m, g) => { m[g.key] = g.name; return m; }, {});
@@ -273,8 +275,8 @@ export default function DailyStrip({ board = null }) {
         .dstrip-main::-webkit-scrollbar-thumb{background:rgba(159,176,212,0.4);border-radius:99px;border:2px solid #0b1733;}
         .dstrip-main::-webkit-scrollbar-thumb:hover{background:rgba(159,176,212,0.65);}
         .dstrip-main::-webkit-scrollbar-button{display:none;width:0;height:0;}
-        .dstrip-cap{flex:0 0 auto;display:flex;flex-direction:column;justify-content:center;gap:5px;padding:12px 16px;background:#0b1733;border-right:1px solid rgba(255,255,255,0.07);min-width:104px;}
-        .dstrip-cap.has-top3{min-width:168px;max-width:196px;}
+        .dstrip-cap{flex:0 0 auto;display:flex;flex-direction:column;justify-content:center;gap:5px;padding:12px 13px;background:#0b1733;border-right:1px solid rgba(255,255,255,0.07);min-width:88px;}
+        .dstrip-cap.has-top3{min-width:140px;max-width:156px;}
         /* One-line wordmark: DAILY and GAMES share a size/weight (owner, 2026-07-20);
            the eyebrow is now just the gold half of the same line. */
         .dstrip-cap .ttl{display:block;font-size:15px;font-weight:800;letter-spacing:-.1px;line-height:1;color:#fff;white-space:nowrap;text-decoration:none;cursor:pointer;}
@@ -286,7 +288,6 @@ export default function DailyStrip({ board = null }) {
         .dstrip-fill{display:block;height:100%;width:0;background:#34d399;border-radius:99px;transition:width .4s ease;}
         .dstrip-count{display:flex;align-items:baseline;justify-content:space-between;gap:6px;font-size:9.5px;font-weight:700;color:#9fb0d4;}
         .dstrip-count b{color:#34d399;font-weight:800;}
-        .dstrip-count .rst{color:#6a80a8;font-weight:600;}
         .dstrip-exp{margin-top:2px;align-self:stretch;width:100%;box-sizing:border-box;display:flex;align-items:center;justify-content:center;gap:4px;background:rgba(232,180,58,0.14);border:1px solid rgba(232,180,58,0.42);color:#f5d878;font-family:inherit;font-size:9.5px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;border-radius:7px;padding:3px 8px;cursor:pointer;transition:background .15s;}
         .dstrip-exp:hover{background:rgba(232,180,58,0.24);}
         /* the cap's miniature daily board: today's overall top 3 */
@@ -298,18 +299,18 @@ export default function DailyStrip({ board = null }) {
         /* Crown occupies the same 11px gutter the "2"/"3" numerals sit in, so the
            three rows share one left edge; the points share one right edge. */
         .dstrip-t1 svg{color:#e8b43a;flex:0 0 11px;}
-        .dstrip-t1 .nm1{flex:1 1 auto;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:13px;font-weight:800;color:#f5d878;letter-spacing:-.2px;line-height:1.2;}
-        .dstrip-t1 .pt1{flex:0 0 auto;font-size:11.5px;font-weight:800;color:#f5d878;font-variant-numeric:tabular-nums;}
+        .dstrip-t1 .nm1{flex:1 1 auto;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:11.5px;font-weight:800;color:#f5d878;letter-spacing:-.2px;line-height:1.2;}
+        .dstrip-t1 .pt1{flex:0 0 auto;font-size:10.5px;font-weight:800;color:#f5d878;font-variant-numeric:tabular-nums;}
         .dstrip-t1.me{background:rgba(232,180,58,0.28);border-color:rgba(232,180,58,0.72);}
         /* padding matches the #1 plate's 7px + 1px border so all three rows line up */
-        .dstrip-t3r{display:flex;align-items:baseline;gap:5px;min-width:0;padding:0 8px;font-size:10.5px;font-weight:700;color:#eaf0fb;line-height:1.4;}
+        .dstrip-t3r{display:flex;align-items:baseline;gap:4px;min-width:0;padding:0 6px;font-size:9.5px;font-weight:700;color:#eaf0fb;line-height:1.4;}
         .dstrip-t3r .rk{flex:0 0 11px;text-align:center;font-weight:800;color:#f5d878;font-variant-numeric:tabular-nums;}
         .dstrip-t3r .nm3{flex:1 1 auto;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
         .dstrip-t3r .pt{flex:0 0 auto;font-size:9.5px;color:#93a7cc;font-variant-numeric:tabular-nums;font-weight:600;}
         .dstrip-t3r.me .nm3{color:#f5d878;}
         .dstrip-t3 .t3none{font-size:10.5px;font-weight:600;color:#6a80a8;line-height:1.35;}
         /* UP NEXT hero column: the player's next unfinished game, promoted. */
-        .dstrip-hero{flex:0 0 212px;display:flex;flex-direction:column;justify-content:center;gap:7px;padding:12px 15px;background:#13264b;border-right:1px solid rgba(255,255,255,0.09);min-width:0;}
+        .dstrip-hero{flex:0 0 180px;display:flex;flex-direction:column;justify-content:center;gap:7px;padding:12px 12px;background:#13264b;border-right:1px solid rgba(255,255,255,0.09);min-width:0;}
         .dstrip-hero .hd-eb{display:flex;align-items:center;gap:6px;font-size:9px;font-weight:800;letter-spacing:.1em;text-transform:uppercase;color:#f8b84a;}
         .dstrip-hero .hd-eb .dstrip-sun{position:static;}
         .dstrip-hero .hd-row{display:flex;align-items:center;gap:9px;min-width:0;text-decoration:none;}
@@ -325,6 +326,9 @@ export default function DailyStrip({ board = null }) {
         .dstrip-hero .hd-ctas{display:flex;gap:6px;}
         .dstrip-hero .hd-play{flex:1;display:flex;align-items:center;justify-content:center;gap:5px;background:#e8b43a;color:#1c1e24;font-size:11.5px;font-weight:800;border-radius:8px;padding:7px 6px;text-decoration:none;transition:background .12s;}
         .dstrip-hero .hd-play:hover{background:#d49a2a;}
+        /* the clean-sweep archive button sizes to its label instead of
+           stretching the panel, which is width the game tiles get back */
+        .dstrip-hero .hd-play.arch{flex:0 0 auto;align-self:flex-start;padding:6px 11px;font-size:10.5px;}
         .dstrip-hero .hd-all{flex:1;display:flex;align-items:center;justify-content:center;gap:5px;border:1px solid #2b4270;color:#eaf0fb;font-size:10.5px;font-weight:800;border-radius:8px;padding:7px 6px;text-decoration:none;transition:background .12s;}
         .dstrip-hero .hd-all:hover{background:rgba(91,139,255,0.14);}
         /* game tiles in a 2-row grid; columns scale with the game count, the cap and hero span both rows */
@@ -457,7 +461,6 @@ export default function DailyStrip({ board = null }) {
           .dstrip-progrow{flex:1 1 140px;flex-direction:row;align-items:center;gap:8px;margin-top:0;}
           .dstrip-bar{flex:1 1 auto;width:auto;height:8px;}
           .dstrip-count{flex:none;gap:5px;}
-          .dstrip-count .rst{display:none;}
           .dstrip-t3{flex:1 1 65%;flex-direction:row;align-items:center;gap:8px;margin-top:0;overflow:hidden;}
           .dstrip-t3 .t3h{display:none;}
           .dstrip-t3r{display:none;}
@@ -496,7 +499,7 @@ export default function DailyStrip({ board = null }) {
             <a href="/daily" className="ttl dstrip-cap-ttl" aria-label="All daily games"><span className="lab">Daily</span> Games</a>
             <span className="dstrip-progrow">
               <span className="dstrip-bar"><span className="dstrip-fill" style={{ width: `${pct}%` }} /></span>
-              <span className="dstrip-count"><span>You: <b>{n}</b> of {GAMES.length}</span>{resetLbl ? <span className="rst">resets {resetLbl}</span> : null}</span>
+              <span className="dstrip-count"><span>You: <b>{n}</b> of {GAMES.length}</span></span>
             </span>
             {hasBoard ? (
               <span className="dstrip-t3">
@@ -555,7 +558,7 @@ export default function DailyStrip({ board = null }) {
               <div className="hd-eb"><Trophy size={10} strokeWidth={2.4} /> All {GAMES.length} done today</div>
               <div className="hd-row"><span><span className="hd-nm">Clean sweep</span><span className="hd-tag">Fresh puzzles drop at midnight ET</span></span></div>
               <div className="hd-meta"><Clock size={10} strokeWidth={2.4} /><span>New games in</span><b>{resetLbl || 'midnight ET'}</b></div>
-              <div className="hd-ctas"><a href="/daily" className="hd-play">Daily games archive</a></div>
+              <div className="hd-ctas"><a href="/daily" className="hd-play arch">Daily games archive</a></div>
             </div>
           )}
           <div className="dstrip-cells">

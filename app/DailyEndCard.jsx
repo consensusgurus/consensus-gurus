@@ -38,6 +38,7 @@ import {
   Type, Clock, Globe, Hash, Share2, BarChart3, RotateCcw, Check, X,
   Trophy, Link2, Flag, CalendarCheck, Scale, Grid3x3, LayoutGrid, Newspaper, FlagTriangleRight,
   Pencil, Users, ArrowRight, Puzzle, Blocks, Fingerprint, KeyRound, Thermometer, Crown, ListOrdered,
+  FlaskConical, Ear,
   CalendarDays, ChevronLeft, ChevronRight, ChevronDown, CheckCircle2, UserPlus,
 } from 'lucide-react';
 import { myRefCode } from '@/lib/referrals';
@@ -50,7 +51,7 @@ const RUST = '#c0392b';
 // "still to play" list for their first FOUR days so players actually meet
 // them; after `until` (ET, inclusive) the canonical order resumes. Keep in
 // sync with the same pin in app/api/quiz/daily-order/route.js.
-const LAUNCH_PIN = { keys: ['shards'], until: '2026-07-27' };
+const LAUNCH_PIN = { keys: ['axiom', 'hearsay'], until: '2026-07-29' };
 function etTodayEC() {
   try { return new Date().toLocaleDateString('en-CA', { timeZone: 'America/New_York' }); }
   catch (e) { return new Date().toISOString().slice(0, 10); }
@@ -91,6 +92,8 @@ export const GAME_META = {
   sworn:  { accent: '#be185d', badgeBg: '#be185d', badgeInk: '#fff', Fin: Scale },
   outrank: { accent: '#4338ca', badgeBg: '#4338ca', badgeInk: '#fff', Fin: ListOrdered },
   shards: { accent: '#0d9488', badgeBg: '#0d9488', badgeInk: '#fff', Fin: Blocks },
+  axiom:  { accent: '#0f766e', badgeBg: '#0f766e', badgeInk: '#fff', Fin: FlaskConical },
+  hearsay: { accent: '#7c2d92', badgeBg: '#7c2d92', badgeInk: '#fff', Fin: Ear },
 };
 
 // ---- the five families (type label + color shown on each tile/header) -------
@@ -129,6 +132,8 @@ export const DAILY_GAMES = [
   { key: 'jester', cat: 'logic',     name: 'Jesters', tag: 'Seat the court',             href: '/jester' },
   { key: 'sworn',  cat: 'logic',     name: 'Sworn',  tag: 'Spot the liars',             href: '/sworn' },
   { key: 'warmer', cat: 'word',      name: 'Warmer', tag: 'Hotter or colder',           href: '/warmer' },
+  { key: 'axiom',  cat: 'logic',     name: 'Axiom',  tag: 'Find the hidden rule',       href: '/axiom' },
+  { key: 'hearsay', cat: 'logic',    name: 'Hearsay', tag: "Deduce what they don't know", href: '/hearsay' },
 ];
 
 const AUTO_SECONDS = 30;
