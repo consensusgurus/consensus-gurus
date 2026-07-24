@@ -825,7 +825,7 @@ export default function QuizHomeClient() {
       return h < 24 ? `${h}h` : `${Math.round(h / 24)}d`;
     };
     const playRows = (recent || [])
-      .filter((p) => p && p.quizId && titleById[p.quizId])
+      .filter((p) => p && p.quizId && titleById[p.quizId] && !(p.total > 0 && p.score === p.total))
       .slice(0, 8)
       .map((p) => ({ type: 'play', href: `/quiz/${p.quizId}`, segs: [
         { text: p.name || 'Player', strong: true },
@@ -869,15 +869,56 @@ export default function QuizHomeClient() {
     const stat = playsToday > 0 ? [{ type: 'stat', href: '/quizzes/hub', segs: [
       { text: `${playsToday.toLocaleString()} plays today`, strong: true },
     ] }] : [];
-    const pools = [playRows, [...leads, ...stat], duelRows, fresh];
+    // Top community member: the #1 all-time XP player.
+    const topP = (xpBoard || []).find((p) => p && !p.isAnon);
+    const top = topP ? [{ type: 'top', href: '/quizzes/hub', segs: [
+      { text: topP.name || 'Player', strong: true },
+      { text: ' tops the community' },
+      { text: ` · Lvl ${topP.level} · ${(topP.xp || 0).toLocaleString()} XP`, dim: true },
+    ] }] : [];
+    // Category wins: the #1 player in a spread of departments.
+    const champCats = ['movies', 'music', 'sports', 'geography', 'history', 'science', 'gaming', 'food'];
+    const champs = champCats.map((k) => {
+      const b = catBoards[k];
+      if (!b || !b.length) return null;
+      const w = b.find((p) => p && !p.isAnon);
+      if (!w) return null;
+      return { type: 'champ', href: '/quizzes/hub', segs: [
+        { text: w.name || 'Player', strong: true },
+        { text: ` is #1 in ${DEPT_LABEL[k] || k}` },
+        ...(w.level ? [{ text: ` · Lvl ${w.level}`, dim: true }] : []),
+      ] };
+    }).filter(Boolean).slice(0, 6);
+    // Achievements: recent perfect scores (maxed the game).
+    const achRows = (recent || [])
+      .filter((p) => p && p.quizId && titleById[p.quizId] && !p.isAnon && p.total > 0 && p.score === p.total)
+      .slice(0, 4)
+      .map((p) => ({ type: 'ach', href: `/quiz/${p.quizId}`, segs: [
+        { text: p.name || 'Player', strong: true },
+        { text: ` aced ${titleById[p.quizId]}` },
+        { text: ` · perfect ${p.score}/${p.total}`, dim: true },
+        ...(ago(p.playedAt) ? [{ text: ` · ${ago(p.playedAt)}`, dim: true }] : []),
+      ] }));
+    // Streaks: the most consistent players by distinct days played.
+    const streakRows = (xpBoard || [])
+      .filter((p) => p && !p.isAnon && (p.daysPlayed || 0) >= 5)
+      .slice()
+      .sort((a, b) => (b.daysPlayed || 0) - (a.daysPlayed || 0))
+      .slice(0, 3)
+      .map((p) => ({ type: 'streak', href: '/quizzes/hub', segs: [
+        { text: p.name || 'Player', strong: true },
+        { text: ` has played ${p.daysPlayed} days` },
+        ...(p.accuracy != null ? [{ text: ` · ${p.accuracy}% accuracy`, dim: true }] : []),
+      ] }));
+    const pools = [playRows, [...top, ...champs], duelRows, achRows, [...leads, ...stat], streakRows, fresh];
     const out = [];
-    for (let i = 0; out.length < 24; i += 1) {
+    for (let i = 0; out.length < 28; i += 1) {
       const before = out.length;
       for (const pool of pools) { if (pool[i]) out.push(pool[i]); }
       if (out.length === before) break;
     }
     return out;
-  }, [recent, titleById, todayCorrectRows, dailyRows, dailyCat, duels, newest, playsToday, dailyLead]);
+  }, [recent, titleById, todayCorrectRows, dailyRows, dailyCat, duels, newest, playsToday, dailyLead, xpBoard, catBoards]);
   // Business News hub quizzes (market-moving recaps, earnings, sector updates),
   // newest first — shown inside the Business News promo tile.
   const businessNewsRows = useMemo(() => catalog.slice()

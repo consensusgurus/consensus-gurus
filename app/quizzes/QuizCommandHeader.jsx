@@ -48,6 +48,11 @@ const TICO = {
   duel: <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="#f08a8a" strokeWidth="2.2" aria-hidden="true"><path d="m4 4 16 16M20 4 4 20" /></svg>,
   new: <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="#9dbcf7" strokeWidth="2.4" aria-hidden="true"><path d="M12 5v14M5 12h14" /></svg>,
   stat: <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="#9dbcf7" strokeWidth="2.4" aria-hidden="true"><path d="M4 20V10M12 20V4M20 20v-7" /></svg>,
+  // Community leader (crown), category champion (trophy), achievement (star), streak (flame).
+  top: <svg width="11" height="11" viewBox="0 0 24 24" fill="#e8b43a" aria-hidden="true"><path d="M3 7l3.8 3.4L12 3l5.2 7.4L21 7l-1.7 12H4.7z" /></svg>,
+  champ: <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="#e8b43a" strokeWidth="2.1" aria-hidden="true"><path d="M6 4h12v3.5a6 6 0 0 1-12 0zM6 5H3.5v1.8a3 3 0 0 0 3 3M18 5h2.5v1.8a3 3 0 0 1-3 3M9.5 20h5M12 13.5V20" /></svg>,
+  ach: <svg width="11" height="11" viewBox="0 0 24 24" fill="#b79cf2" aria-hidden="true"><path d="M12 2.5l2.7 5.6 6.1.8-4.5 4.2 1.2 6.1L12 16.3 6.5 19.2l1.2-6.1L3.2 8.9l6.1-.8z" /></svg>,
+  streak: <svg width="11" height="11" viewBox="0 0 24 24" fill="#f5893e" aria-hidden="true"><path d="M12 2c1 4-2 5.2-2 8a2 2 0 0 0 4 0c2 2 3 4 3 6a5 5 0 0 1-10 0C7 12 11 10 12 2z" /></svg>,
 };
 
 function TickSet({ items, hidden }) {
@@ -174,6 +179,10 @@ export default function QuizCommandHeader({ search, onSearch, me, onSignup, tick
         .qch-tico-lead{background:rgba(232,180,58,0.2);}
         .qch-tico-duel{background:rgba(201,79,79,0.22);}
         .qch-tico-new,.qch-tico-stat{background:rgba(59,116,232,0.28);}
+        .qch-tico-top{background:rgba(232,180,58,0.22);}
+        .qch-tico-champ{background:rgba(232,180,58,0.16);}
+        .qch-tico-ach{background:rgba(183,156,242,0.24);}
+        .qch-tico-streak{background:rgba(245,137,62,0.22);}
         .qch-hub-me{margin-left:2px;}
         .qch-hidefit{display:none !important;}
         @media(max-width:1180px){.qch-src{display:none;}}
@@ -181,6 +190,7 @@ export default function QuizCommandHeader({ search, onSearch, me, onSignup, tick
         @media(max-width:980px){.qch-sub{display:none;}.qch-hubtxt{display:none;}.qch-hub{padding:8px 10px;}}
         @media(max-width:820px){.qch-wl{display:none;}.qch-ws{display:inline;}.qch-search{display:none;}.qch-searchbtn{display:inline-flex;margin-left:auto;}.qch-me{margin-left:0;}.qch-nm{max-width:none;}}
         @media(max-width:620px){.qch-rankm{display:block;}.qch-ava{display:none;}.qch-bar{gap:9px;padding-left:12px;padding-right:12px;}.qch-seg a{padding:6px 10px;font-size:11px;}.qch-tlabel{display:none;}.qch-word{font-size:17px;}}
+        @media(max-width:768px){.qch-tickwrap{display:none;}}
         @media(max-width:560px){.qch-bar{padding-top:calc(9px + env(safe-area-inset-top));}}
       `}</style>
       <div className="qch-bar" ref={barRef}>
