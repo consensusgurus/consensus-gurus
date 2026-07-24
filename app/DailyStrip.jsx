@@ -474,6 +474,8 @@ export default function DailyStrip({ board = null }) {
           .dstrip-hero .hd-meta.hd-streak{grid-column:2;grid-row:1;justify-content:flex-end;}
           .dstrip-hero .hd-ctas{grid-column:2;grid-row:2 / span 2;flex-direction:column;align-items:stretch;gap:6px;min-width:118px;}
           .dstrip-hero .hd-play,.dstrip-hero .hd-all{flex:none;}
+          /* no streak line: let the CTA fill the column height and center vertically */
+          .dstrip-hero.no-streak .hd-ctas{grid-row:1 / span 3;align-self:center;}
           .dstrip-cells{overflow-x:auto;-webkit-overflow-scrolling:touch;grid-template-columns:none;grid-template-rows:repeat(2,1fr);grid-auto-flow:column;grid-auto-columns:minmax(76px,1fr);min-width:0;}
           .dstrip-cell{border-top:none;border-left:1px solid rgba(255,255,255,0.055);padding:15px 5px 8px;}
           .dstrip-flame.shift{top:24px;}
@@ -526,7 +528,7 @@ export default function DailyStrip({ board = null }) {
             ) : null}
           </div>
           {nextGame ? (
-            <div className="dstrip-hero">
+            <div className={`dstrip-hero${streaks[nextGame.key] >= 2 ? '' : ' no-streak'}`}>
               <div className="hd-eb">
                 {inprog.has(nextGame.key) ? 'Pick it back up' : 'Up next for you'}{left > 1 ? ` · ${left} left` : ''}
                 {isSunday && hasSundayEdition(nextGame.key) ? <span className="dstrip-sun">{SUNDAY_SHORT}</span> : null}
@@ -547,7 +549,7 @@ export default function DailyStrip({ board = null }) {
               </div>
             </div>
           ) : (
-            <div className="dstrip-hero">
+            <div className="dstrip-hero no-streak">
               <div className="hd-eb"><Trophy size={10} strokeWidth={2.4} /> All {GAMES.length} done today</div>
               <div className="hd-row"><span><span className="hd-nm">Clean sweep</span><span className="hd-tag">Fresh puzzles drop at midnight ET</span></span></div>
               <div className="hd-meta"><Clock size={10} strokeWidth={2.4} /><span>New games in</span><b>{resetLbl || 'midnight ET'}</b></div>
@@ -606,7 +608,7 @@ export default function DailyStrip({ board = null }) {
                 slot (odd cell count); fill it with a Daily games archive button. */}
             {!nextGame && cellGames.length % 2 === 1 ? (
               <a href="/daily" className="dstrip-cell archivecell" aria-label="Daily games archive">
-                <span className="arch-btn">Daily games archive <ArrowRight size={11} strokeWidth={2.6} /></span>
+                <span className="arch-btn">Daily games archive</span>
               </a>
             ) : null}
           </div>
