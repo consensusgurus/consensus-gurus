@@ -323,13 +323,13 @@ export default function DailyStrip({ board = null }) {
         .dstrip-hero .hd-streak{color:#93a7cc;}
         .dstrip-hero .hd-streak svg{color:#f8b84a;}
         .dstrip-hero .hd-streak b{color:#f5d878;flex:none;}
-        .dstrip-hero .hd-ctas{display:flex;gap:6px;}
-        .dstrip-hero .hd-play{flex:1;display:flex;align-items:center;justify-content:center;gap:5px;background:#e8b43a;color:#1c1e24;font-size:11.5px;font-weight:800;border-radius:8px;padding:7px 6px;text-decoration:none;transition:background .12s;}
+        .dstrip-hero .hd-ctas{display:flex;flex-direction:column;align-items:stretch;gap:6px;}
+        .dstrip-hero .hd-play{flex:none;width:100%;box-sizing:border-box;display:flex;align-items:center;justify-content:center;gap:5px;background:#e8b43a;color:#1c1e24;font-size:11.5px;font-weight:800;border-radius:8px;padding:7px 6px;text-decoration:none;transition:background .12s;}
         .dstrip-hero .hd-play:hover{background:#d49a2a;}
         /* the clean-sweep archive button sizes to its label instead of
            stretching the panel, which is width the game tiles get back */
         .dstrip-hero .hd-play.arch{flex:0 0 auto;align-self:flex-start;padding:6px 11px;font-size:10.5px;}
-        .dstrip-hero .hd-all{flex:1;display:flex;align-items:center;justify-content:center;gap:5px;border:1px solid #2b4270;color:#eaf0fb;font-size:10.5px;font-weight:800;border-radius:8px;padding:7px 6px;text-decoration:none;transition:background .12s;}
+        .dstrip-hero .hd-all{flex:none;width:100%;box-sizing:border-box;display:flex;align-items:center;justify-content:center;gap:5px;border:1px solid #2b4270;color:#eaf0fb;font-size:10.5px;font-weight:800;border-radius:8px;padding:7px 6px;text-decoration:none;transition:background .12s;}
         .dstrip-hero .hd-all:hover{background:rgba(91,139,255,0.14);}
         /* game tiles in a 2-row grid; columns scale with the game count, the cap and hero span both rows */
         .dstrip-cells{display:grid;grid-template-columns:repeat(${cellCols},minmax(72px,1fr));grid-auto-rows:1fr;flex:1 1 auto;min-width:0;}
@@ -550,7 +550,7 @@ export default function DailyStrip({ board = null }) {
               ) : null}
               <div className="hd-ctas">
                 <a href={nextGame.href} className="hd-play"><Play size={11} fill="#1c1e24" strokeWidth={0} />{inprog.has(nextGame.key) ? 'Resume' : 'Play now'}</a>
-                <a href="/daily" className="hd-all">See all {left}</a>
+                <a href="/daily" className="hd-all">Games Archive</a>
               </div>
             </div>
           ) : (
