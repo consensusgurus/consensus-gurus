@@ -23,4 +23,6 @@ export const PUZZLES = [
   { num: 13, quizId: "tuck-7-30-26", live: "2026-07-30", dateLabel: "July 30, 2026", sunday: false, letters: ["I","I","I","U","B","I","W","A","T","M","H","C","H","Q"], par: 63 },
   { num: 14, quizId: "tuck-7-31-26", live: "2026-07-31", dateLabel: "July 31, 2026", sunday: false, letters: ["C","S","D","R","E","I","A","E","L","Q","G","H","E","G"], par: 52 },
   { num: 15, quizId: "tuck-8-1-26", live: "2026-08-01", dateLabel: "August 1, 2026", sunday: false, letters: ["T","O","E","S","M","A","H","S","U","E","Q","I","S","G"], par: 54 },
+  { num: 16, quizId: "tuck-8-2-26", live: "2026-08-02", dateLabel: "August 2, 2026", sunday: true, letters: ["R","E","T","A","I","L","S","O","N","D","B","U","C","G","E"], par: 38 },
+  { num: 17, quizId: "tuck-8-3-26", live: "2026-08-03", dateLabel: "August 3, 2026", sunday: false, letters: ["R","E","T","A","I","L","S","O","N","D","B","U","C","G"], par: 37 },
 ];

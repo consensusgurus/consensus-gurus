@@ -5114,5 +5114,160 @@ export const PUZZLES = [
         ]
       }
     ]
+  },
+  {
+    num: 17,
+    quizId: "outwit-8-2-26",
+    live: "2026-08-02",
+    dateLabel: "August 2, 2026",
+    sunday: true,
+    prompts: [
+      {
+        type: "least",
+        tag: "Road Less Traveled",
+        q: "A day at the beach. Which activity will the FEWEST players pick?",
+        options: [
+          "Swimming",
+          "Sunbathing",
+          "Building sandcastles",
+          "Metal detecting"
+        ],
+        house: [3, 1, 0, 2, 3, 1, 2, 0, 3, 2, 1, 3, 0, 2, 3, 1, 2, 0, 3, 1, 2, 3, 0, 1]
+      },
+      {
+        type: "herd",
+        tag: "Herd",
+        q: "How many pips (dots) are on a standard pair of dice, all six faces of both? Closest to the crowd’s MEDIAN guess wins, right or wrong.",
+        min: 1,
+        max: 100,
+        truth: 42,
+        truthNote: "A single die has 21 pips, so a pair has 42.",
+        house: [36, 42, 50, 28, 45, 60, 33, 42, 20, 55, 48, 40, 38, 42, 66, 30, 52, 44, 24, 42, 58, 35, 47, 41]
+      },
+      {
+        type: "match",
+        tag: "Meeting Point",
+        q: "Name one of the world’s oceans. Match the MOST-picked answer.",
+        options: [
+          "Pacific",
+          "Atlantic",
+          "Indian",
+          "Arctic"
+        ],
+        house: [0, 1, 0, 2, 3, 0, 1, 0, 2, 0, 1, 3, 0, 2, 0, 1, 0, 3, 2, 0, 1, 0, 2, 1]
+      },
+      {
+        type: "unique",
+        tag: "Rare Bird",
+        q: "Everyone collects one seashell. The RAREST pick wins.",
+        options: [
+          "Conch",
+          "Scallop",
+          "Sand dollar",
+          "Starfish",
+          "Nautilus",
+          "Cowrie",
+          "Clam",
+          "Whelk"
+        ],
+        house: [5, 2, 7, 0, 3, 6, 1, 4, 7, 2, 0, 5, 3, 6, 1, 7, 4, 2, 0, 5, 3, 7, 6, 1]
+      },
+      {
+        type: "unique",
+        tag: "Rarer Bird",
+        q: "Pack one thing for the beach. The RAREST pick wins.",
+        options: [
+          "Umbrella",
+          "Cooler",
+          "Frisbee",
+          "Snorkel",
+          "Beach ball",
+          "Kite",
+          "Paddleball",
+          "Boogie board"
+        ],
+        house: [6, 1, 4, 7, 2, 5, 0, 3, 7, 4, 1, 6, 2, 0, 5, 3, 7, 4, 1, 6, 2, 0, 5, 3]
+      },
+      {
+        type: "twothirds",
+        tag: "Undercut",
+        q: "Pick a number from 0 to 100. Closest to TWO-THIRDS of the crowd’s average pick wins.",
+        frac: 0.6666666666666666,
+        fracLabel: "two-thirds",
+        min: 0,
+        max: 100,
+        house: [30, 22, 35, 16, 28, 40, 12, 33, 25, 19, 37, 29, 21, 34, 26, 45, 18, 31, 24, 14, 38, 27, 20, 36]
+      }
+    ]
+  },
+  {
+    num: 18,
+    quizId: "outwit-8-3-26",
+    live: "2026-08-03",
+    dateLabel: "August 3, 2026",
+    sunday: false,
+    prompts: [
+      {
+        type: "least",
+        tag: "Road Less Traveled",
+        q: "Road trip snack run. Which will the FEWEST players pick?",
+        options: [
+          "Chips",
+          "Beef jerky",
+          "Trail mix",
+          "Sardines"
+        ],
+        house: [3, 2, 0, 1, 3, 2, 1, 0, 3, 1, 2, 0, 3, 2, 1, 0, 3, 2, 0, 1, 3, 2, 1, 0]
+      },
+      {
+        type: "herd",
+        tag: "Herd",
+        q: "How many teeth does a typical adult human have? Closest to the crowd’s MEDIAN guess wins, right or wrong.",
+        min: 1,
+        max: 100,
+        truth: 32,
+        truthNote: "32, including the four wisdom teeth.",
+        house: [28, 32, 40, 24, 36, 30, 32, 45, 20, 32, 38, 26, 34, 32, 50, 22, 42, 31, 33, 29, 32, 44, 27, 35]
+      },
+      {
+        type: "match",
+        tag: "Meeting Point",
+        q: "Name a pizza topping. Match the MOST-picked answer.",
+        options: [
+          "Pepperoni",
+          "Mushroom",
+          "Sausage",
+          "Onion",
+          "Extra cheese"
+        ],
+        house: [0, 1, 2, 0, 4, 3, 0, 1, 0, 2, 4, 0, 1, 3, 0, 2, 0, 1, 4, 0, 3, 2, 0, 1]
+      },
+      {
+        type: "unique",
+        tag: "Rare Bird",
+        q: "Everyone adopts a wild cat. The RAREST pick wins.",
+        options: [
+          "Lion",
+          "Tiger",
+          "Leopard",
+          "Cheetah",
+          "Jaguar",
+          "Cougar",
+          "Lynx",
+          "Ocelot"
+        ],
+        house: [4, 1, 6, 2, 7, 0, 5, 3, 6, 2, 1, 7, 4, 0, 5, 3, 7, 2, 6, 1, 4, 0, 5, 3]
+      },
+      {
+        type: "twothirds",
+        tag: "Undercut",
+        q: "Pick a number from 0 to 100. Closest to HALF of the crowd’s average pick wins.",
+        frac: 0.5,
+        fracLabel: "half",
+        min: 0,
+        max: 100,
+        house: [26, 18, 32, 10, 24, 38, 14, 30, 20, 28, 16, 34, 22, 12, 36, 25, 19, 31, 15, 29, 23, 40, 17, 27]
+      }
+    ]
   }
 ];

@@ -139,7 +139,7 @@ function contiguous(n, regions, id) {
   return seen.size === cells.length;
 }
 
-if (PUZZLES.length !== 15) fail(`expected 15 puzzles, got ${PUZZLES.length}`);
+if (PUZZLES.length !== 17) fail(`expected 17 puzzles, got ${PUZZLES.length}`);
 const seenLayouts = new Set();
 PUZZLES.forEach((p, i) => {
   const tag = `#${p.num} (${p.quizId})`;

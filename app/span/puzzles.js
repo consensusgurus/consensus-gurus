@@ -232,4 +232,26 @@ export const PUZZLES = [
     par: 4,
     note: 'No land road links Europe to Africa around the Mediterranean, so the way to Egypt bends east through Turkey and Syria, then crosses from Israel over the Sinai, the only land bridge between the two continents.',
   },
+  {
+    num: 22,
+    quizId: 'span-8-2-26',
+    live: '2026-08-02',
+    dateLabel: 'August 2, 2026',
+    start: 'Argentina',
+    end: 'Colombia',
+    sunday: true,
+    avoid: 'Brazil',
+    par: 3, // base par is 2 (Argentina-Brazil-Colombia); with Brazil closed the road climbs the Andes
+    note: 'With Brazil open this is two hops. Closed, the only way north hugs the Andes: up through Bolivia and Peru before crossing into Colombia.',
+  },
+  {
+    num: 23,
+    quizId: 'span-8-3-26',
+    live: '2026-08-03',
+    dateLabel: 'August 3, 2026',
+    start: 'Portugal',
+    end: 'Poland',
+    par: 4,
+    note: 'Portugal has only one neighbor, so every road out starts in Spain, then runs the width of the continent through France and Germany to reach Poland.',
+  },
 ];

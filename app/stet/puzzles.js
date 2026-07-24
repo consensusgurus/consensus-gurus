@@ -518,4 +518,78 @@ export const PUZZLES = [
       },
     ],
   },
+  {
+    num: 17,
+    quizId: 'stet-8-2-26',
+    live: '2026-08-02',
+    dateLabel: 'August 2, 2026',
+    sunday: true,
+    items: [
+      {
+        text: 'The negotiator tried a softer tact after the first round of talks collapsed.',
+        errors: [{ wrong: 'tact', fix: 'tack', note: 'The idiom is "change tack" (a sailing turn); tact is diplomacy.' }],
+      },
+      {
+        text: 'The chef plated each course with theatrical flare and a wink at the diners.',
+        errors: [{ wrong: 'flare', fix: 'flair', note: 'Flair is a knack or style; a flare is a burst of light or flame.' }],
+      },
+      {
+        text: "The thriller's plot stayed taut right up to the final page.",
+        errors: [],
+        cleanNote: 'Clean copy: taut (pulled tight) is correct; taught is the past tense of teach.',
+      },
+      {
+        text: 'The zoning counsel meets Tuesday to weigh the disputed permit.',
+        errors: [{ wrong: 'counsel', fix: 'council', note: 'A council is the governing body; counsel is advice or a lawyer.' }],
+      },
+      {
+        text: 'The couple refused to altar their vows, leaving guests to wander what went wrong.',
+        errors: [
+          { wrong: 'altar', fix: 'alter', note: 'To alter is to change; an altar is the ceremonial table.' },
+          { wrong: 'wander', fix: 'wonder', note: 'To wonder is to muse; to wander is to roam on foot.' },
+        ],
+      },
+      {
+        text: 'Auditors pour over the records at every construction cite before signing off.',
+        errors: [
+          { wrong: 'pour', fix: 'pore', note: 'You pore over documents (study them closely); you pour a drink.' },
+          { wrong: 'cite', fix: 'site', note: 'A site is a location; to cite is to quote a source.' },
+        ],
+      },
+      {
+        text: 'She answered the reporters with a rye smile and said nothing more.',
+        errors: [{ wrong: 'rye', fix: 'wry', note: 'A wry smile is dryly ironic; rye is a grain or a whiskey.' }],
+      },
+    ],
+  },
+  {
+    num: 18,
+    quizId: 'stet-8-3-26',
+    live: '2026-08-03',
+    dateLabel: 'August 3, 2026',
+    sunday: false,
+    items: [
+      {
+        text: 'Analysts named the young startup the dominate player in regional logistics.',
+        errors: [{ wrong: 'dominate', fix: 'dominant', note: 'Dominant is the adjective; dominate is the verb you do to rivals.' }],
+      },
+      {
+        text: "Investigators described the shell company's paperwork as bazaar and contradictory.",
+        errors: [{ wrong: 'bazaar', fix: 'bizarre', note: 'Bizarre means weird; a bazaar is a marketplace.' }],
+      },
+      {
+        text: 'The gallery offered longtime patrons an early peak at the restored mural.',
+        errors: [{ wrong: 'peak', fix: 'peek', note: 'A peek is a quick look; a peak is a mountain summit.' }],
+      },
+      {
+        text: 'Forecasters warned that lightening could ground flights through the evening.',
+        errors: [{ wrong: 'lightening', fix: 'lightning', note: 'Lightning is the bolt; lightening means making lighter.' }],
+      },
+      {
+        text: "The council praised the auditor's discreet handling of the quiet settlement.",
+        errors: [],
+        cleanNote: 'Clean copy: discreet (tactful) is right here; discrete would mean separate.',
+      },
+    ],
+  },
 ];

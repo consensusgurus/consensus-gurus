@@ -361,4 +361,48 @@ export const PUZZLES = [
       { word: 'ROSE', reads: 'Flowers' },
     ],
   },
+  {
+    num: 22,
+    quizId: 'links-8-2-26',
+    live: '2026-08-02',
+    dateLabel: 'August 2, 2026',
+    sunday: true,
+    // SUNDAY EDITION: four cross-category collisions. Every shade of green also
+    // reads as another group, but each tempted group is already full of its own
+    // members, so all four resolve back to green. Exactly one valid grouping.
+    //   EMERALD, JADE read gemstones (gems full: RUBY/SAPPHIRE/TOPAZ/OPAL)
+    //   MINT reads herbs (herbs full: BASIL/PARSLEY/THYME/DILL)
+    //   OLIVE reads pizza toppings (toppings full)
+    groups: [
+      { name: 'Pizza toppings', words: ['PEPPERONI', 'MUSHROOM', 'ONION', 'SAUSAGE'] },
+      { name: 'Herbs', words: ['BASIL', 'PARSLEY', 'THYME', 'DILL'] },
+      { name: 'Shades of green', words: ['OLIVE', 'JADE', 'EMERALD', 'MINT'] },
+      { name: 'Gemstones', words: ['RUBY', 'SAPPHIRE', 'TOPAZ', 'OPAL'] },
+    ],
+    collisions: [
+      { word: 'EMERALD', reads: 'Gemstones' },
+      { word: 'JADE', reads: 'Gemstones' },
+      { word: 'MINT', reads: 'Herbs' },
+      { word: 'OLIVE', reads: 'Pizza toppings' },
+    ],
+  },
+  {
+    num: 23,
+    quizId: 'links-8-3-26',
+    live: '2026-08-03',
+    dateLabel: 'August 3, 2026',
+    // collisions: PYTHON reads programming languages (languages full), COBRA and
+    // VIPER read muscle cars (cars full), so all three resolve back to snakes.
+    groups: [
+      { name: 'Board games', words: ['CHESS', 'RISK', 'CLUE', 'SORRY'] },
+      { name: 'Snakes', words: ['PYTHON', 'COBRA', 'VIPER', 'MAMBA'] },
+      { name: 'Programming languages', words: ['RUBY', 'JAVA', 'SWIFT', 'RUST'] },
+      { name: 'Muscle cars', words: ['MUSTANG', 'CORVETTE', 'CAMARO', 'CHARGER'] },
+    ],
+    collisions: [
+      { word: 'PYTHON', reads: 'Programming languages' },
+      { word: 'COBRA', reads: 'Muscle cars' },
+      { word: 'VIPER', reads: 'Muscle cars' },
+    ],
+  },
 ];
