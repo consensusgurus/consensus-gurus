@@ -1874,11 +1874,6 @@ export default function QuizHomeClient() {
                 their icon banner via heroFor(). */}
             {(() => {
               const nowMs = Date.now();
-              const dayStart = new Date(); dayStart.setHours(0, 0, 0, 0);
-              const tSt = dayStart.getTime();
-              const todays = recent.filter((p) => p && p.playedAt && Date.parse(p.playedAt) >= tSt);
-              const acesToday = todays.filter((p) => p.total > 0 && p.score === p.total).length;
-              const quizzesToday = Object.keys(totals.todayByQuiz || {}).length;
               const HB = 11;
               const bars = new Array(HB).fill(0);
               for (const p of recent) { const tt = (p && p.playedAt) ? Date.parse(p.playedAt) : 0; if (!tt) continue; const hrsAgo = Math.floor((nowMs - tt) / 3600000); if (hrsAgo >= 0 && hrsAgo < HB) bars[HB - 1 - hrsAgo] += 1; }
@@ -1886,7 +1881,7 @@ export default function QuizHomeClient() {
               const hot = trending;
               const tough = (totals.toughest && titleById[totals.toughest.quizId]) ? totals.toughest : null;
               const fmtT = (v) => { const x = Math.round(v || 0); const h = Math.floor(x / 3600); const m = Math.round((x % 3600) / 60); return h > 0 ? `${h}h ${m}m` : `${m}m`; };
-              const lpRows = lastPlayed.slice(0, 5);
+              const lpRows = lastPlayed.slice(0, 6);
               return (
                 <section className="mc-open catcard" style={{ minWidth: 0, display: 'flex', flexDirection: 'column' }}>
                   <div style={{ background: C.accent, color: '#fff', padding: '11px 13px 12px', borderRadius: '8px 8px 0 0' }}>
@@ -1898,7 +1893,7 @@ export default function QuizHomeClient() {
                     </div>
                     <div style={{ display: 'flex', alignItems: 'flex-end', gap: 16, marginTop: 12 }}>
                       <div style={{ flex: 'none' }}>
-                        <div style={{ fontSize: 27, fontWeight: 800, lineHeight: 1, letterSpacing: '-.02em' }}>{(playsToday || 0).toLocaleString()}</div>
+                        <div style={{ fontSize: 21, fontWeight: 800, lineHeight: 1, letterSpacing: '-.02em' }}>{(playsToday || 0).toLocaleString()}</div>
                         <div style={{ fontSize: 9, fontWeight: 700, letterSpacing: '.06em', color: 'rgba(255,255,255,0.5)', marginTop: 4, textTransform: 'uppercase' }}>plays today</div>
                       </div>
                       <div style={{ flex: 'none' }}>
@@ -1959,12 +1954,6 @@ export default function QuizHomeClient() {
                         </Link>
                       );
                     })}
-                  </div>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '9px 13px', borderTop: '1px solid rgba(20,22,28,0.09)', background: '#fafbfc' }}>
-                    <span style={{ fontSize: 11, fontWeight: 800, color: C.ink }}>🎯 {quizzesToday} <span style={{ color: C.soft, fontWeight: 600 }}>quizzes</span></span>
-                    <span style={{ width: 1, height: 11, background: 'rgba(20,22,28,0.12)' }} />
-                    <span style={{ fontSize: 11, fontWeight: 800, color: C.ink }}>⭐ {acesToday} <span style={{ color: C.soft, fontWeight: 600 }}>aces today</span></span>
-                    <button type="button" onClick={() => setListMode('live')} style={{ marginLeft: 'auto', color: C.accent, background: 'none', border: 'none', padding: 0, cursor: 'pointer', fontFamily: 'inherit', fontSize: 11, fontWeight: 800 }}>Full feed ›</button>
                   </div>
                 </section>
               );
