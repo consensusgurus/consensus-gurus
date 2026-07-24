@@ -51,7 +51,7 @@
 // (owner: keep the game-specific leaders alongside the top-3 cap).
 
 import React, { useState, useEffect } from 'react';
-import { Crown, ChevronDown, Trophy, Play, Flame } from 'lucide-react';
+import { Crown, ChevronDown, Trophy, Play, Flame, Clock } from 'lucide-react';
 import useDailyOrder, { sortByDailyOrder } from './useDailyOrder';
 import { hasSundayEdition, isSundayET, SUNDAY_SHORT } from '../lib/sunday-editions';
 
@@ -529,9 +529,10 @@ export default function DailyStrip({ board = null }) {
             </div>
           ) : (
             <div className="dstrip-hero">
-              <div className="hd-eb">All {GAMES.length} done today</div>
-              <div className="hd-row"><span><span className="hd-nm">Clean sweep</span><span className="hd-tag">Fresh games at midnight ET</span></span></div>
-              <div className="hd-ctas"><a href="/daily" className="hd-play">See the board</a></div>
+              <div className="hd-eb"><Trophy size={10} strokeWidth={2.4} /> All {GAMES.length} done today</div>
+              <div className="hd-row"><span><span className="hd-nm">Clean sweep</span><span className="hd-tag">Fresh puzzles drop at midnight ET</span></span></div>
+              <div className="hd-meta"><Clock size={10} strokeWidth={2.4} /><span>New games in</span><b>{resetLbl || 'midnight ET'}</b></div>
+              <div className="hd-ctas"><a href="/daily" className="hd-play">Daily games archive</a></div>
             </div>
           )}
           <div className="dstrip-cells">
