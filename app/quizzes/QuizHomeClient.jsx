@@ -18,6 +18,7 @@ import { KIDS_GAMES } from '@/lib/kids';
 import DailyStrip from '../DailyStrip';
 import XpTile from './XpTile';
 import { QUIZ_HEROES, qotdIdFor } from '@/lib/quiz-heroes';
+import { DAILY_GAMES, CAT_META } from '@/app/DailyEndCard';
 import {
   quizDept as deptOf, DEPT_COLOR, DEPT_LABEL, DEPT_NAV,
 } from '@/lib/quiz-departments';
@@ -119,6 +120,8 @@ function gameFamily(id) { const m = (id || '').match(DAILY_GAME_FAMILY_RE); retu
 // would monopolize the Newest tile. They have their own hub tiles, so the Newest
 // tile/list must never surface one. Keep this in sync with DAILY_GAME_FAMILY_RE.
 const isDailyGame = (id) => DAILY_GAME_FAMILY_RE.test(id || '');
+// Daily-game category (Word/Logic/Numbers/Geography/History) keyed by family.
+const DG_CAT = Object.fromEntries((DAILY_GAMES || []).map((g) => [g.key, CAT_META[g.cat] || null]));
 // Daily-game hero banners: /public/games/hero/<family>.png, the game's own icon
 // on a white app-icon plate over the site navy, built from /public/games/btn-*.png
 // by scripts/generate-game-heroes.py. The plate is load-bearing, the hero tile
@@ -1928,6 +1931,10 @@ export default function QuizHomeClient() {
                   <div style={{ flex: 1 }}>
                     {lpRows.map((f) => {
                       const dc = DEPT_COLOR[deptById[f.quizId]] || DEPT_COLOR.misc;
+                      const fam = gameFamily(f.quizId);
+                      const dgc = fam ? DG_CAT[fam] : null;
+                      const catLabel = dgc ? dgc.name : (fam ? 'Daily Game' : (DEPT_LABEL[deptById[f.quizId]] || 'Quiz'));
+                      const catColor = dgc ? dgc.color : (fam ? '#5b6472' : dc.c);
                       const frac = f.total ? f.score / f.total : 0;
                       const pctScore = Math.round(frac * 100);
                       const ringCol = frac >= 0.8 ? '#16a34a' : (frac >= 0.4 ? C.cta : '#dc2626');
@@ -1940,8 +1947,8 @@ export default function QuizHomeClient() {
                           <span style={{ minWidth: 0, flex: 1 }}>
                             <span style={{ display: 'block', fontSize: 12.5, fontWeight: 600, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', color: C.ink }}>{stripVerb(f.title)}</span>
                             <span style={{ display: 'flex', alignItems: 'center', gap: 5, marginTop: 1 }}>
-                              <span style={{ width: 6, height: 6, borderRadius: 2, background: dc.c, flex: 'none' }} />
-                              <span style={{ fontSize: 10, color: C.soft, fontWeight: 600, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{DEPT_LABEL[deptById[f.quizId]] || 'Quiz'}</span>
+                              <span style={{ width: 6, height: 6, borderRadius: 2, background: catColor, flex: 'none' }} />
+                              <span style={{ fontSize: 10, color: C.soft, fontWeight: 600, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{catLabel}</span>
                             </span>
                           </span>
                           <span style={{ flex: 'none', display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 2 }}>
