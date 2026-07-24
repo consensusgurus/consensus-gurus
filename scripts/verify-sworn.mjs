@@ -105,7 +105,7 @@ function branchCompletions(n, k, statements, thief, maxFanout = 4) {
   return completions;
 }
 
-if (PUZZLES.length !== 17) fail(`expected 17 puzzles, got ${PUZZLES.length}`);
+if (PUZZLES.length !== 24) fail(`expected 24 puzzles, got ${PUZZLES.length}`);
 const seenVenues = new Set(), seenStolen = new Set();
 PUZZLES.forEach((p, i) => {
   const tag = `#${p.num} (${p.quizId})`;

@@ -5269,5 +5269,511 @@ export const PUZZLES = [
         house: [26, 18, 32, 10, 24, 38, 14, 30, 20, 28, 16, 34, 22, 12, 36, 25, 19, 31, 15, 29, 23, 40, 17, 27]
       }
     ]
+  },
+  {
+    num: 19,
+    quizId: "outwit-8-4-26",
+    live: "2026-08-04",
+    dateLabel: "August 4, 2026",
+    sunday: false,
+    prompts: [
+      {
+        type: "least",
+        tag: "Road Less Traveled",
+        q: "Grabbing a morning drink at the coffeehouse. Which will the FEWEST players pick?",
+        options: [
+          "Latte",
+          "Black coffee",
+          "Cappuccino",
+          "Decaf herbal tea"
+        ],
+        house: [1, 0, 2, 1, 0, 2, 3, 1, 0, 2, 1, 0, 2, 3, 1, 0, 2, 1, 0, 2, 3, 1, 0, 2]
+      },
+      {
+        type: "herd",
+        tag: "Herd",
+        q: "How many keys are on a standard full-size piano? Closest to the crowd’s MEDIAN guess wins, right or wrong.",
+        min: 1,
+        max: 100,
+        truth: 88,
+        truthNote: "88 keys, 52 white and 36 black.",
+        house: [80, 88, 95, 72, 90, 100, 65, 88, 60, 92, 85, 88, 78, 88, 99, 70, 94, 88, 68, 88, 96, 82, 86, 88]
+      },
+      {
+        type: "match",
+        tag: "Meeting Point",
+        q: "Name a way to take your coffee. Match the MOST-picked answer.",
+        options: [
+          "Cream and sugar",
+          "Black",
+          "Just cream",
+          "Just sugar",
+          "Oat milk"
+        ],
+        house: [0, 1, 2, 0, 4, 3, 0, 1, 0, 2, 4, 0, 1, 3, 0, 2, 0, 1, 4, 0, 3, 2, 0, 1]
+      },
+      {
+        type: "unique",
+        tag: "Rare Bird",
+        q: "Everyone orders one pastry. The RAREST pick wins.",
+        options: [
+          "Croissant",
+          "Muffin",
+          "Scone",
+          "Bagel",
+          "Danish",
+          "Cinnamon roll",
+          "Biscotti",
+          "Cruller"
+        ],
+        house: [4, 1, 6, 2, 7, 0, 5, 3, 6, 2, 1, 7, 4, 0, 5, 3, 7, 2, 6, 1, 4, 0, 5, 3]
+      },
+      {
+        type: "twothirds",
+        tag: "Undercut",
+        q: "Pick a number from 0 to 100. Closest to THREE-FIFTHS of the crowd’s average pick wins.",
+        frac: 0.6,
+        fracLabel: "three-fifths",
+        min: 0,
+        max: 100,
+        house: [32, 24, 38, 18, 30, 42, 14, 35, 26, 20, 40, 31, 22, 36, 28, 48, 16, 33, 25, 15, 44, 29, 21, 37]
+      }
+    ]
+  },
+  {
+    num: 20,
+    quizId: "outwit-8-5-26",
+    live: "2026-08-05",
+    dateLabel: "August 5, 2026",
+    sunday: false,
+    prompts: [
+      {
+        type: "least",
+        tag: "Road Less Traveled",
+        q: "A day at the county fair. Which ride will the FEWEST players pick?",
+        options: [
+          "Ferris wheel",
+          "Carousel",
+          "Bumper cars",
+          "Tilt-A-Whirl"
+        ],
+        house: [0, 1, 2, 0, 1, 2, 3, 0, 1, 2, 0, 1, 2, 3, 0, 1, 2, 0, 1, 2, 3, 0, 1, 2]
+      },
+      {
+        type: "herd",
+        tag: "Herd",
+        q: "How many squares are on a standard chessboard? Closest to the crowd’s MEDIAN guess wins, right or wrong.",
+        min: 1,
+        max: 100,
+        truth: 64,
+        truthNote: "8 by 8 makes 64 squares.",
+        house: [60, 64, 72, 50, 66, 80, 48, 64, 40, 68, 56, 64, 58, 64, 90, 52, 70, 64, 44, 64, 76, 54, 62, 64]
+      },
+      {
+        type: "match",
+        tag: "Meeting Point",
+        q: "Name a classic fair food. Match the MOST-picked answer.",
+        options: [
+          "Funnel cake",
+          "Corn dog",
+          "Cotton candy",
+          "Caramel apple",
+          "Fried dough"
+        ],
+        house: [0, 1, 2, 0, 4, 3, 0, 1, 0, 2, 4, 0, 1, 3, 0, 2, 0, 1, 4, 0, 3, 2, 0, 1]
+      },
+      {
+        type: "unique",
+        tag: "Rare Bird",
+        q: "Everyone plays one carnival game. The RAREST pick wins.",
+        options: [
+          "Ring toss",
+          "Balloon darts",
+          "Milk bottle knockdown",
+          "Whac-A-Mole",
+          "Duck pond",
+          "Skee-ball",
+          "Basketball hoops",
+          "Strongman hammer"
+        ],
+        house: [5, 2, 7, 0, 3, 6, 1, 4, 7, 2, 0, 5, 3, 6, 1, 7, 4, 2, 0, 5, 3, 7, 6, 1]
+      },
+      {
+        type: "twothirds",
+        tag: "Undercut",
+        q: "Pick a number from 0 to 100. Closest to THREE-QUARTERS of the crowd’s average pick wins.",
+        frac: 0.75,
+        fracLabel: "three-quarters",
+        min: 0,
+        max: 100,
+        house: [40, 30, 48, 24, 38, 55, 20, 44, 33, 27, 50, 39, 28, 45, 35, 60, 22, 41, 31, 19, 52, 36, 26, 46]
+      }
+    ]
+  },
+  {
+    num: 21,
+    quizId: "outwit-8-6-26",
+    live: "2026-08-06",
+    dateLabel: "August 6, 2026",
+    sunday: false,
+    prompts: [
+      {
+        type: "least",
+        tag: "Road Less Traveled",
+        q: "Packing for a campsite. Which item will the FEWEST players pick?",
+        options: [
+          "Tent",
+          "Sleeping bag",
+          "Flashlight",
+          "Ukulele"
+        ],
+        house: [1, 0, 2, 1, 0, 2, 3, 1, 0, 2, 1, 0, 2, 3, 1, 0, 2, 1, 0, 2, 3, 1, 0, 2]
+      },
+      {
+        type: "herd",
+        tag: "Herd",
+        q: "How many stars are on the United States flag? Closest to the crowd’s MEDIAN guess wins, right or wrong.",
+        min: 1,
+        max: 100,
+        truth: 50,
+        truthNote: "50, one for each state.",
+        house: [45, 50, 60, 40, 52, 66, 35, 50, 30, 55, 48, 50, 42, 50, 72, 38, 58, 50, 33, 50, 62, 44, 47, 50]
+      },
+      {
+        type: "match",
+        tag: "Meeting Point",
+        q: "Name something you cook over a campfire. Match the MOST-picked answer.",
+        options: [
+          "S’mores",
+          "Hot dogs",
+          "Marshmallows",
+          "Foil packets",
+          "Bacon"
+        ],
+        house: [0, 1, 2, 0, 4, 3, 0, 1, 0, 2, 4, 0, 1, 3, 0, 2, 0, 1, 4, 0, 3, 2, 0, 1]
+      },
+      {
+        type: "unique",
+        tag: "Rare Bird",
+        q: "Everyone spots one forest animal. The RAREST pick wins.",
+        options: [
+          "Deer",
+          "Bear",
+          "Raccoon",
+          "Owl",
+          "Fox",
+          "Moose",
+          "Skunk",
+          "Beaver"
+        ],
+        house: [6, 1, 4, 7, 2, 5, 0, 3, 7, 4, 1, 6, 2, 0, 5, 3, 7, 4, 1, 6, 2, 0, 5, 3]
+      },
+      {
+        type: "twothirds",
+        tag: "Undercut",
+        q: "Pick a number from 0 to 100. Closest to TWO-FIFTHS of the crowd’s average pick wins.",
+        frac: 0.4,
+        fracLabel: "two-fifths",
+        min: 0,
+        max: 100,
+        house: [24, 16, 30, 10, 22, 36, 8, 28, 18, 14, 34, 25, 15, 31, 20, 42, 12, 27, 19, 11, 38, 23, 13, 29]
+      }
+    ]
+  },
+  {
+    num: 22,
+    quizId: "outwit-8-7-26",
+    live: "2026-08-07",
+    dateLabel: "August 7, 2026",
+    sunday: false,
+    prompts: [
+      {
+        type: "least",
+        tag: "Road Less Traveled",
+        q: "Stargazing tonight. Which will the FEWEST players look for?",
+        options: [
+          "The Moon",
+          "A shooting star",
+          "The Big Dipper",
+          "A passing satellite"
+        ],
+        house: [0, 1, 2, 0, 1, 2, 3, 0, 1, 2, 0, 1, 2, 3, 0, 1, 2, 0, 1, 2, 3, 0, 1, 2]
+      },
+      {
+        type: "herd",
+        tag: "Herd",
+        q: "How many planets orbit our Sun? Closest to the crowd’s MEDIAN guess wins, right or wrong.",
+        min: 1,
+        max: 100,
+        truth: 8,
+        truthNote: "8, since Pluto was reclassified in 2006.",
+        house: [6, 8, 10, 5, 9, 12, 4, 8, 3, 11, 7, 8, 9, 8, 15, 5, 10, 8, 6, 8, 13, 7, 9, 8]
+      },
+      {
+        type: "match",
+        tag: "Meeting Point",
+        q: "Name a planet in our solar system. Match the MOST-picked answer.",
+        options: [
+          "Mars",
+          "Jupiter",
+          "Saturn",
+          "Earth",
+          "Venus"
+        ],
+        house: [0, 1, 2, 0, 4, 3, 0, 1, 0, 2, 4, 0, 1, 3, 0, 2, 0, 1, 4, 0, 3, 2, 0, 1]
+      },
+      {
+        type: "unique",
+        tag: "Rare Bird",
+        q: "Everyone names one constellation. The RAREST pick wins.",
+        options: [
+          "Orion",
+          "Ursa Major",
+          "Cassiopeia",
+          "Scorpius",
+          "Leo",
+          "Cygnus",
+          "Draco",
+          "Lyra"
+        ],
+        house: [4, 1, 6, 2, 7, 0, 5, 3, 6, 2, 1, 7, 4, 0, 5, 3, 7, 2, 6, 1, 4, 0, 5, 3]
+      },
+      {
+        type: "twothirds",
+        tag: "Undercut",
+        q: "Pick a number from 0 to 100. Closest to SEVEN-TENTHS of the crowd’s average pick wins.",
+        frac: 0.7,
+        fracLabel: "seven-tenths",
+        min: 0,
+        max: 100,
+        house: [36, 28, 44, 20, 34, 50, 16, 40, 29, 23, 46, 35, 25, 42, 32, 56, 19, 37, 27, 17, 48, 33, 22, 41]
+      }
+    ]
+  },
+  {
+    num: 23,
+    quizId: "outwit-8-8-26",
+    live: "2026-08-08",
+    dateLabel: "August 8, 2026",
+    sunday: false,
+    prompts: [
+      {
+        type: "least",
+        tag: "Road Less Traveled",
+        q: "A quick grocery run. Which aisle will the FEWEST players visit?",
+        options: [
+          "Produce",
+          "Dairy",
+          "Bakery",
+          "Canned goods"
+        ],
+        house: [1, 0, 2, 1, 0, 2, 3, 1, 0, 2, 1, 0, 2, 3, 1, 0, 2, 1, 0, 2, 3, 1, 0, 2]
+      },
+      {
+        type: "herd",
+        tag: "Herd",
+        q: "How many cards are in a standard deck, jokers not included? Closest to the crowd’s MEDIAN guess wins, right or wrong.",
+        min: 1,
+        max: 100,
+        truth: 52,
+        truthNote: "52 cards in four suits of 13.",
+        house: [48, 52, 60, 40, 54, 66, 36, 52, 32, 56, 50, 52, 44, 52, 72, 38, 58, 52, 42, 52, 62, 46, 49, 52]
+      },
+      {
+        type: "match",
+        tag: "Meeting Point",
+        q: "Name a fruit. Match the MOST-picked answer.",
+        options: [
+          "Apple",
+          "Banana",
+          "Orange",
+          "Grape",
+          "Strawberry"
+        ],
+        house: [0, 1, 2, 0, 4, 3, 0, 1, 0, 2, 4, 0, 1, 3, 0, 2, 0, 1, 4, 0, 3, 2, 0, 1]
+      },
+      {
+        type: "unique",
+        tag: "Rare Bird",
+        q: "Everyone buys one vegetable. The RAREST pick wins.",
+        options: [
+          "Carrot",
+          "Broccoli",
+          "Kale",
+          "Beet",
+          "Turnip",
+          "Okra",
+          "Radish",
+          "Rutabaga"
+        ],
+        house: [5, 2, 7, 0, 3, 6, 1, 4, 7, 2, 0, 5, 3, 6, 1, 7, 4, 2, 0, 5, 3, 7, 6, 1]
+      },
+      {
+        type: "twothirds",
+        tag: "Undercut",
+        q: "Pick a number from 0 to 100. Closest to ONE-THIRD of the crowd’s average pick wins.",
+        frac: 0.3333333333333333,
+        fracLabel: "one-third",
+        min: 0,
+        max: 100,
+        house: [30, 22, 36, 14, 28, 44, 10, 33, 24, 18, 40, 29, 20, 35, 26, 50, 15, 31, 23, 13, 42, 27, 17, 34]
+      }
+    ]
+  },
+  {
+    num: 24,
+    quizId: "outwit-8-9-26",
+    live: "2026-08-09",
+    dateLabel: "August 9, 2026",
+    sunday: true,
+    prompts: [
+      {
+        type: "least",
+        tag: "Road Less Traveled",
+        q: "A weekend music festival. Which stage will the FEWEST players pick?",
+        options: [
+          "Main stage",
+          "Indie tent",
+          "EDM stage",
+          "Polka corner"
+        ],
+        house: [1, 0, 2, 1, 0, 2, 3, 1, 0, 2, 1, 0, 2, 3, 1, 0, 2, 1, 0, 2, 3, 1, 0, 2]
+      },
+      {
+        type: "herd",
+        tag: "Herd",
+        q: "How many notes are in a full chromatic scale over one octave? Closest to the crowd’s MEDIAN guess wins, right or wrong.",
+        min: 1,
+        max: 100,
+        truth: 12,
+        truthNote: "12 semitones make up the chromatic octave.",
+        house: [10, 12, 16, 8, 13, 20, 6, 12, 5, 15, 11, 12, 9, 12, 24, 7, 18, 12, 10, 12, 14, 9, 13, 12]
+      },
+      {
+        type: "match",
+        tag: "Meeting Point",
+        q: "Name a music genre. Match the MOST-picked answer.",
+        options: [
+          "Rock",
+          "Pop",
+          "Hip-hop",
+          "Country",
+          "Jazz"
+        ],
+        house: [0, 1, 2, 0, 4, 3, 0, 1, 0, 2, 4, 0, 1, 3, 0, 2, 0, 1, 4, 0, 3, 2, 0, 1]
+      },
+      {
+        type: "unique",
+        tag: "Rare Bird",
+        q: "Everyone picks one instrument to play. The RAREST pick wins.",
+        options: [
+          "Guitar",
+          "Drums",
+          "Bass",
+          "Keyboard",
+          "Saxophone",
+          "Violin",
+          "Trumpet",
+          "Accordion"
+        ],
+        house: [4, 1, 6, 2, 7, 0, 5, 3, 6, 2, 1, 7, 4, 0, 5, 3, 7, 2, 6, 1, 4, 0, 5, 3]
+      },
+      {
+        type: "unique",
+        tag: "Rarer Bird",
+        q: "Everyone grabs one festival snack. The RAREST pick wins.",
+        options: [
+          "Pretzel",
+          "Nachos",
+          "Corn dog",
+          "Churro",
+          "Kettle corn",
+          "Lemonade",
+          "Taco",
+          "Falafel"
+        ],
+        house: [6, 1, 4, 7, 2, 5, 0, 3, 7, 4, 1, 6, 2, 0, 5, 3, 7, 4, 1, 6, 2, 0, 5, 3]
+      },
+      {
+        type: "twothirds",
+        tag: "Undercut",
+        q: "Pick a number from 0 to 100. Closest to FOUR-FIFTHS of the crowd’s average pick wins.",
+        frac: 0.8,
+        fracLabel: "four-fifths",
+        min: 0,
+        max: 100,
+        house: [42, 32, 50, 26, 40, 58, 22, 46, 34, 28, 52, 41, 30, 47, 36, 62, 24, 43, 33, 20, 54, 38, 27, 48]
+      }
+    ]
+  },
+  {
+    num: 25,
+    quizId: "outwit-8-10-26",
+    live: "2026-08-10",
+    dateLabel: "August 10, 2026",
+    sunday: false,
+    prompts: [
+      {
+        type: "least",
+        tag: "Road Less Traveled",
+        q: "Board game night. Which will the FEWEST players want to play?",
+        options: [
+          "Monopoly",
+          "Scrabble",
+          "Catan",
+          "Snakes and Ladders"
+        ],
+        house: [0, 1, 2, 0, 1, 2, 3, 0, 1, 2, 0, 1, 2, 3, 0, 1, 2, 0, 1, 2, 3, 0, 1, 2]
+      },
+      {
+        type: "herd",
+        tag: "Herd",
+        q: "How many spaces are on a standard Monopoly board? Closest to the crowd’s MEDIAN guess wins, right or wrong.",
+        min: 1,
+        max: 100,
+        truth: 40,
+        truthNote: "40 spaces around the board.",
+        house: [36, 40, 48, 30, 42, 52, 26, 40, 24, 44, 38, 40, 34, 40, 60, 28, 50, 40, 32, 40, 46, 35, 37, 40]
+      },
+      {
+        type: "match",
+        tag: "Meeting Point",
+        q: "Name a classic board game. Match the MOST-picked answer.",
+        options: [
+          "Monopoly",
+          "Scrabble",
+          "Clue",
+          "Risk",
+          "Sorry!"
+        ],
+        house: [0, 1, 2, 0, 4, 3, 0, 1, 0, 2, 4, 0, 1, 3, 0, 2, 0, 1, 4, 0, 3, 2, 0, 1]
+      },
+      {
+        type: "unique",
+        tag: "Rare Bird",
+        q: "Everyone picks one Monopoly token. The RAREST pick wins.",
+        options: [
+          "Top hat",
+          "Thimble",
+          "Race car",
+          "Scottie dog",
+          "Battleship",
+          "Boot",
+          "Wheelbarrow",
+          "Cat"
+        ],
+        house: [5, 2, 7, 0, 3, 6, 1, 4, 7, 2, 0, 5, 3, 6, 1, 7, 4, 2, 0, 5, 3, 7, 6, 1]
+      },
+      {
+        type: "twothirds",
+        tag: "Undercut",
+        q: "Pick a number from 0 to 100. Closest to TWO-THIRDS of the crowd’s average pick wins.",
+        frac: 0.6666666666666666,
+        fracLabel: "two-thirds",
+        min: 0,
+        max: 100,
+        house: [30, 22, 35, 16, 28, 40, 12, 33, 25, 19, 37, 29, 21, 34, 26, 45, 18, 31, 24, 14, 38, 27, 20, 36]
+      }
+    ]
   }
 ];

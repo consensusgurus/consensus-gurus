@@ -405,4 +405,141 @@ export const PUZZLES = [
       { word: 'VIPER', reads: 'Muscle cars' },
     ],
   },
+  {
+    num: 24,
+    quizId: 'links-8-4-26',
+    live: '2026-08-04',
+    dateLabel: 'August 4, 2026',
+    // collisions: MARS, VENUS, SATURN all read Roman gods, but that group is
+    // full of its own members (JUPITER/APOLLO/JUNO/DIANA), so all stay planets.
+    groups: [
+      { name: 'Planets', words: ['MARS', 'VENUS', 'SATURN', 'NEPTUNE'] },
+      { name: 'Roman gods', words: ['JUPITER', 'APOLLO', 'JUNO', 'DIANA'] },
+      { name: 'Car brands', words: ['HONDA', 'TOYOTA', 'FORD', 'TESLA'] },
+      { name: 'Continents', words: ['ASIA', 'AFRICA', 'EUROPE', 'ANTARCTICA'] },
+    ],
+    collisions: [
+      { word: 'MARS', reads: 'Roman gods' },
+      { word: 'VENUS', reads: 'Roman gods' },
+      { word: 'SATURN', reads: 'Roman gods' },
+    ],
+  },
+  {
+    num: 25,
+    quizId: 'links-8-5-26',
+    live: '2026-08-05',
+    dateLabel: 'August 5, 2026',
+    // collisions: RUBY & GARNET read gemstones (gems full), PYTHON reads snakes
+    // (snakes full), so all resolve back to their home groups.
+    groups: [
+      { name: 'Shades of red', words: ['CRIMSON', 'SCARLET', 'RUBY', 'GARNET'] },
+      { name: 'Gemstones', words: ['EMERALD', 'SAPPHIRE', 'DIAMOND', 'OPAL'] },
+      { name: 'Programming languages', words: ['PYTHON', 'JAVA', 'SWIFT', 'RUST'] },
+      { name: 'Snakes', words: ['COBRA', 'VIPER', 'MAMBA', 'ADDER'] },
+    ],
+    collisions: [
+      { word: 'RUBY', reads: 'Gemstones' },
+      { word: 'GARNET', reads: 'Gemstones' },
+      { word: 'PYTHON', reads: 'Snakes' },
+    ],
+  },
+  {
+    num: 26,
+    quizId: 'links-8-6-26',
+    live: '2026-08-06',
+    dateLabel: 'August 6, 2026',
+    // collisions: ORANGE & LIME read colors (colors full), BASS reads fish
+    // (fish full), so each stays in its home group.
+    groups: [
+      { name: 'Citrus fruits', words: ['LEMON', 'LIME', 'ORANGE', 'TANGERINE'] },
+      { name: 'Colors', words: ['VIOLET', 'INDIGO', 'MAGENTA', 'CYAN'] },
+      { name: 'Types of guitar', words: ['ACOUSTIC', 'ELECTRIC', 'BASS', 'CLASSICAL'] },
+      { name: 'Fish', words: ['TROUT', 'SALMON', 'TUNA', 'COD'] },
+    ],
+    collisions: [
+      { word: 'ORANGE', reads: 'Colors' },
+      { word: 'LIME', reads: 'Colors' },
+      { word: 'BASS', reads: 'Fish' },
+    ],
+  },
+  {
+    num: 27,
+    quizId: 'links-8-7-26',
+    live: '2026-08-07',
+    dateLabel: 'August 7, 2026',
+    // collisions: TEMPEST reads weather (Shakespeare needs it, weather full),
+    // THUNDER reads NBA (NBA full), so both resolve to their home groups.
+    groups: [
+      { name: 'Shakespeare plays', words: ['HAMLET', 'MACBETH', 'OTHELLO', 'TEMPEST'] },
+      { name: 'Weather phenomena', words: ['STORM', 'THUNDER', 'FOG', 'MIST'] },
+      { name: 'NBA teams', words: ['HEAT', 'MAGIC', 'NETS', 'BUCKS'] },
+      { name: 'Music genres', words: ['JAZZ', 'BLUES', 'SOUL', 'FUNK'] },
+    ],
+    collisions: [
+      { word: 'TEMPEST', reads: 'Weather phenomena' },
+      { word: 'THUNDER', reads: 'NBA teams' },
+    ],
+  },
+  {
+    num: 28,
+    quizId: 'links-8-8-26',
+    live: '2026-08-08',
+    dateLabel: 'August 8, 2026',
+    // collisions: SLOTH reads sins (sins full), PRIDE & ENVY read emotions
+    // (emotions full), so each stays home.
+    groups: [
+      { name: 'Types of bears', words: ['POLAR', 'GRIZZLY', 'PANDA', 'SLOTH'] },
+      { name: 'Seven deadly sins', words: ['GREED', 'WRATH', 'PRIDE', 'ENVY'] },
+      { name: 'Ice cream flavors', words: ['VANILLA', 'CHOCOLATE', 'STRAWBERRY', 'PISTACHIO'] },
+      { name: 'Emotions', words: ['JOY', 'FEAR', 'ANGER', 'LOVE'] },
+    ],
+    collisions: [
+      { word: 'SLOTH', reads: 'Seven deadly sins' },
+      { word: 'PRIDE', reads: 'Emotions' },
+      { word: 'ENVY', reads: 'Emotions' },
+    ],
+  },
+  {
+    num: 29,
+    quizId: 'links-8-9-26',
+    live: '2026-08-09',
+    dateLabel: 'August 9, 2026',
+    sunday: true,
+    // SUNDAY EDITION: four cross-category collisions. Every shade of pink also
+    // reads as another group, but each tempted group is already full of its own
+    // members, so all four resolve back to pink. Exactly one valid grouping.
+    //   SALMON reads fish (fish full: TUNA/TROUT/BASS/COD)
+    //   CORAL reads snakes (snakes full)
+    //   BLUSH & ROUGE read makeup (makeup full)
+    groups: [
+      { name: 'Shades of pink', words: ['SALMON', 'CORAL', 'BLUSH', 'ROUGE'] },
+      { name: 'Fish', words: ['TUNA', 'TROUT', 'BASS', 'COD'] },
+      { name: 'Snakes', words: ['COBRA', 'VIPER', 'MAMBA', 'ADDER'] },
+      { name: 'Makeup products', words: ['MASCARA', 'BRONZER', 'LINER', 'CONCEALER'] },
+    ],
+    collisions: [
+      { word: 'SALMON', reads: 'Fish' },
+      { word: 'CORAL', reads: 'Snakes' },
+      { word: 'BLUSH', reads: 'Makeup products' },
+      { word: 'ROUGE', reads: 'Makeup products' },
+    ],
+  },
+  {
+    num: 30,
+    quizId: 'links-8-10-26',
+    live: '2026-08-10',
+    dateLabel: 'August 10, 2026',
+    // collisions: ASPEN reads Colorado ski towns (full), PINE reads candle
+    // scents (full), so both stay in trees.
+    groups: [
+      { name: 'Trees', words: ['OAK', 'MAPLE', 'ASPEN', 'PINE'] },
+      { name: 'Colorado ski towns', words: ['VAIL', 'BRECKENRIDGE', 'TELLURIDE', 'KEYSTONE'] },
+      { name: 'Candle scents', words: ['LAVENDER', 'VANILLA', 'CITRUS', 'OCEAN'] },
+      { name: 'Musical instruments', words: ['PIANO', 'VIOLIN', 'FLUTE', 'DRUMS'] },
+    ],
+    collisions: [
+      { word: 'ASPEN', reads: 'Colorado ski towns' },
+      { word: 'PINE', reads: 'Candle scents' },
+    ],
+  },
 ];

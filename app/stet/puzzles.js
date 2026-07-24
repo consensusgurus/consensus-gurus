@@ -592,4 +592,229 @@ export const PUZZLES = [
       },
     ],
   },
+  {
+    num: 19,
+    quizId: 'stet-8-4-26',
+    live: '2026-08-04',
+    dateLabel: 'August 4, 2026',
+    sunday: false,
+    items: [
+      {
+        text: 'The board voted to except the new bylaws at its meeting on Friday.',
+        errors: [{ wrong: 'except', fix: 'accept', note: 'To accept is to receive or approve; except means to leave out.' }],
+      },
+      {
+        text: 'By the third hour of testimony, several jurors looked visibly board.',
+        errors: [{ wrong: 'board', fix: 'bored', note: 'Bored means weary; a board is a plank or a governing body.' }],
+      },
+      {
+        text: 'Of coarse the deadline can move if the client agrees.',
+        errors: [{ wrong: 'coarse', fix: 'course', note: 'Of course uses course; coarse means rough in texture.' }],
+      },
+      {
+        text: 'The negotiators reached an amicable accord after weeks of quiet talks.',
+        errors: [],
+        cleanNote: 'Clean copy: accord and amicable are used correctly; no error here.',
+      },
+      {
+        text: 'Every peace of evidence pointed to the same conclusion.',
+        errors: [{ wrong: 'peace', fix: 'piece', note: 'A piece is a portion; peace is calm or the absence of war.' }],
+      },
+    ],
+  },
+  {
+    num: 20,
+    quizId: 'stet-8-5-26',
+    live: '2026-08-05',
+    dateLabel: 'August 5, 2026',
+    sunday: false,
+    items: [
+      {
+        text: 'The caterer forgot the desert, so the banquet ended without cake.',
+        errors: [{ wrong: 'desert', fix: 'dessert', note: 'Dessert is the sweet course; a desert is an arid land.' }],
+      },
+      {
+        text: 'The report called it a miner setback that would not delay the launch.',
+        errors: [{ wrong: 'miner', fix: 'minor', note: 'Minor means small; a miner digs for coal or ore.' }],
+      },
+      {
+        text: 'In years passed the festival drew crowds from across the county.',
+        errors: [{ wrong: 'passed', fix: 'past', note: 'Past refers to earlier time; passed is the verb, as in time passed.' }],
+      },
+      {
+        text: 'The understudy stepped into the leading roll on opening night.',
+        errors: [{ wrong: 'roll', fix: 'role', note: 'A role is a part played; a roll is a list or a small loaf.' }],
+      },
+      {
+        text: "The auditor's thorough review reassured the nervous shareholders.",
+        errors: [],
+        cleanNote: 'Clean copy: thorough and reassured are spelled and used correctly.',
+      },
+    ],
+  },
+  {
+    num: 21,
+    quizId: 'stet-8-6-26',
+    live: '2026-08-06',
+    dateLabel: 'August 6, 2026',
+    sunday: false,
+    items: [
+      {
+        text: 'They took a short brake before the second session began.',
+        errors: [{ wrong: 'brake', fix: 'break', note: 'A break is a pause; a brake stops a vehicle.' }],
+      },
+      {
+        text: 'The pilot guided the plain smoothly onto the rain-slicked runway.',
+        errors: [{ wrong: 'plain', fix: 'plane', note: 'A plane is an aircraft; plain means simple or a flat expanse.' }],
+      },
+      {
+        text: 'Critics hailed the novelist as a profit of the digital age.',
+        errors: [{ wrong: 'profit', fix: 'prophet', note: 'A prophet foretells the future; profit is financial gain.' }],
+      },
+      {
+        text: 'She gave the intruder a long, cold stair.',
+        errors: [{ wrong: 'stair', fix: 'stare', note: 'To stare is to gaze; a stair is a step in a staircase.' }],
+      },
+      {
+        text: 'The panel debated weather to publish the findings early.',
+        errors: [{ wrong: 'weather', fix: 'whether', note: 'Whether introduces a choice; weather is the state of the atmosphere.' }],
+      },
+    ],
+  },
+  {
+    num: 22,
+    quizId: 'stet-8-7-26',
+    live: '2026-08-07',
+    dateLabel: 'August 7, 2026',
+    sunday: false,
+    items: [
+      {
+        text: 'The tenants left there keys at the front desk overnight.',
+        errors: [{ wrong: 'there', fix: 'their', note: 'Their shows possession; there refers to a place.' }],
+      },
+      {
+        text: 'The board voted to censor the official for missing three hearings.',
+        errors: [{ wrong: 'censor', fix: 'censure', note: 'To censure is to formally rebuke; to censor is to suppress content.' }],
+      },
+      {
+        text: 'The author thanked her editor in the forward to the new edition.',
+        errors: [{ wrong: 'forward', fix: 'foreword', note: 'A foreword opens a book; forward means ahead or to send on.' }],
+      },
+      {
+        text: "The committee's recommendation was unanimous and remarkably concise.",
+        errors: [],
+        cleanNote: 'Clean copy: unanimous and concise are correct; nothing to change here.',
+      },
+      {
+        text: "The magician's final allusion left the audience gasping.",
+        errors: [{ wrong: 'allusion', fix: 'illusion', note: 'An illusion is a false impression; an allusion is an indirect reference.' }],
+      },
+    ],
+  },
+  {
+    num: 23,
+    quizId: 'stet-8-8-26',
+    live: '2026-08-08',
+    dateLabel: 'August 8, 2026',
+    sunday: false,
+    items: [
+      {
+        text: 'Forecasters warned that a storm was eminent along the coast.',
+        errors: [{ wrong: 'eminent', fix: 'imminent', note: 'Imminent means about to happen; eminent means distinguished.' }],
+      },
+      {
+        text: 'The critic argued the novel belongs in the literary cannon.',
+        errors: [{ wrong: 'cannon', fix: 'canon', note: 'A canon is an accepted body of works; a cannon is a heavy gun.' }],
+      },
+      {
+        text: 'Fans treated the aging quarterback as a national idle.',
+        errors: [{ wrong: 'idle', fix: 'idol', note: 'An idol is an object of devotion; idle means inactive.' }],
+      },
+      {
+        text: 'Officials accused the vendor of trying to pedal counterfeit tickets.',
+        errors: [{ wrong: 'pedal', fix: 'peddle', note: 'To peddle is to sell wares; a pedal is a foot lever.' }],
+      },
+      {
+        text: 'Villagers longed to throw off the yolk of foreign rule.',
+        errors: [{ wrong: 'yolk', fix: 'yoke', note: 'A yoke is a harness or burden; a yolk is the yellow of an egg.' }],
+      },
+    ],
+  },
+  {
+    num: 24,
+    quizId: 'stet-8-9-26',
+    live: '2026-08-09',
+    dateLabel: 'August 9, 2026',
+    sunday: true,
+    items: [
+      {
+        text: 'He poured his sole into the performance, moving the hole audience to tears.',
+        errors: [
+          { wrong: 'sole', fix: 'soul', note: 'The soul is the spirit; a sole is a fish or the bottom of a foot.' },
+          { wrong: 'hole', fix: 'whole', note: 'Whole means entire; a hole is an opening.' },
+        ],
+      },
+      {
+        text: 'The exhibit was vary popular with younger visitors.',
+        errors: [{ wrong: 'vary', fix: 'very', note: 'Very is an intensifier; to vary is to differ or change.' }],
+      },
+      {
+        text: 'She new the shortcut and led us threw the alley to the stage door.',
+        errors: [
+          { wrong: 'new', fix: 'knew', note: 'Knew is the past tense of know; new means recent.' },
+          { wrong: 'threw', fix: 'through', note: 'Through means in one side and out the other; threw is the past tense of throw.' },
+        ],
+      },
+      {
+        text: 'The heirs gathered at the family manner for the reading of the will.',
+        errors: [{ wrong: 'manner', fix: 'manor', note: 'A manor is a large country house; manner means a way of doing something.' }],
+      },
+      {
+        text: "The editor praised the reporter's diligent, well-sourced coverage.",
+        errors: [],
+        cleanNote: 'Clean copy: diligent and well-sourced are correct; nothing needs fixing.',
+      },
+      {
+        text: 'The hawk began to pray on the field mice, and farmers hated to waist a single trap.',
+        errors: [
+          { wrong: 'pray', fix: 'prey', note: 'Prey is a hunted animal; to pray is to worship or plead.' },
+          { wrong: 'waist', fix: 'waste', note: 'To waste is to squander; the waist is the midsection of the body.' },
+        ],
+      },
+      {
+        text: 'The tutor turned each mistake into a lasting lessen.',
+        errors: [{ wrong: 'lessen', fix: 'lesson', note: 'A lesson is something learned; to lessen is to reduce.' }],
+      },
+    ],
+  },
+  {
+    num: 25,
+    quizId: 'stet-8-10-26',
+    live: '2026-08-10',
+    dateLabel: 'August 10, 2026',
+    sunday: false,
+    items: [
+      {
+        text: 'She pressed a dried flour between the pages of the atlas.',
+        errors: [{ wrong: 'flour', fix: 'flower', note: 'A flower blossoms; flour is ground grain for baking.' }],
+      },
+      {
+        text: 'After the rally his voice was horse and barely audible.',
+        errors: [{ wrong: 'horse', fix: 'hoarse', note: 'Hoarse means rough or raspy of voice; a horse is the animal.' }],
+      },
+      {
+        text: 'Her essay offered real incite into the crisis.',
+        errors: [{ wrong: 'incite', fix: 'insight', note: 'Insight is deep understanding; to incite is to stir up.' }],
+      },
+      {
+        text: 'The startup revenue grew steadily despite the crowded market.',
+        errors: [],
+        cleanNote: 'Clean copy: steadily and crowded are used correctly; no change needed.',
+      },
+      {
+        text: "The school's principle addressed the assembly about the new schedule.",
+        errors: [{ wrong: 'principle', fix: 'principal', note: 'A principal leads a school; a principle is a rule or belief.' }],
+      },
+    ],
+  },
 ];

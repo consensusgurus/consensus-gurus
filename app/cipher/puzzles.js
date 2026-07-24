@@ -25,4 +25,11 @@ export const PUZZLES = [
   { num: 15, quizId: "cipher-8-1-26", live: "2026-08-01", dateLabel: "August 1, 2026", sunday: false, lhs: ["TUNE","SONG"], rhs: "NOTES" },
   { num: 16, quizId: "cipher-8-2-26", live: "2026-08-02", dateLabel: "August 2, 2026", sunday: true, lhs: ["MOON","COMET","ROSE"], rhs: "STONE" },
   { num: 17, quizId: "cipher-8-3-26", live: "2026-08-03", dateLabel: "August 3, 2026", sunday: false, lhs: ["STAR","MARS"], rhs: "SPACE" },
+  { num: 18, quizId: "cipher-8-4-26", live: "2026-08-04", dateLabel: "August 4, 2026", sunday: false, lhs: ["FROST","STORM"], rhs: "BREEZE" },
+  { num: 19, quizId: "cipher-8-5-26", live: "2026-08-05", dateLabel: "August 5, 2026", sunday: false, lhs: ["HONEY","MELON"], rhs: "CREAM" },
+  { num: 20, quizId: "cipher-8-6-26", live: "2026-08-06", dateLabel: "August 6, 2026", sunday: false, lhs: ["COMET","EARTH"], rhs: "METEOR" },
+  { num: 21, quizId: "cipher-8-7-26", live: "2026-08-07", dateLabel: "August 7, 2026", sunday: false, lhs: ["BEAR","OTTER"], rhs: "MOOSE" },
+  { num: 22, quizId: "cipher-8-8-26", live: "2026-08-08", dateLabel: "August 8, 2026", sunday: false, lhs: ["FIELD","HILL"], rhs: "MEADOW" },
+  { num: 23, quizId: "cipher-8-9-26", live: "2026-08-09", dateLabel: "August 9, 2026", sunday: true, lhs: ["SHORE","COAST","BEACH"], rhs: "OCEAN" },
+  { num: 24, quizId: "cipher-8-10-26", live: "2026-08-10", dateLabel: "August 10, 2026", sunday: false, lhs: ["DOOR","PORCH"], rhs: "GARDEN" },
 ];
