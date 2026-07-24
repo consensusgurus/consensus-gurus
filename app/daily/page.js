@@ -20,6 +20,7 @@ import { PUZZLES as PING } from '../ping/puzzles';
 import { PUZZLES as WARMER } from '../warmer/puzzles';
 import { PUZZLES as JESTER_FULL } from '../jester/puzzles';
 import { PUZZLES as SWORN_FULL } from '../sworn/puzzles';
+import { PUZZLES as SHARDS } from '../shards/puzzles';
 
 // Outwit's bank is server-only in a stronger sense than the others: its
 // `house` arrays and herd truths must never reach the client. This page only
@@ -42,12 +43,12 @@ const SWORN = SWORN_FULL.map(({ num, quizId, live, dateLabel, sunday }) => ({ nu
 export const metadata = {
   title: 'Daily Games — Crux, Emcee, Garble, Links, Span & More | Source of Truths',
   description:
-    "Every Source of Truths daily game in one place: today's puzzle and the full archive for Crux, Emcee, Garble, Links, Span, Dating, Tally, Suds, Circa, Extra, Carve, Stet, Outwit, Tuck, Alibi, Cipher, Ping, Warmer, Jesters, and Sworn. A new puzzle in each, every day.",
+    "Every Source of Truths daily game in one place: today's puzzle and the full archive for Crux, Emcee, Garble, Links, Span, Dating, Tally, Suds, Circa, Extra, Carve, Stet, Outwit, Tuck, Alibi, Cipher, Ping, Warmer, Jesters, Sworn, and Shards. A new puzzle in each, every day.",
   alternates: { canonical: '/daily' },
   openGraph: {
     title: 'Daily Games — Source of Truths',
     description:
-      "Today's puzzle and the full archive for every daily game: Crux, Emcee, Garble, Links, Span, Dating, Tally, Suds, Circa, Extra, Carve, Stet, Outwit, Tuck, Alibi, Cipher, Ping, Warmer, Jesters, and Sworn.",
+      "Today's puzzle and the full archive for every daily game: Crux, Emcee, Garble, Links, Span, Dating, Tally, Suds, Circa, Extra, Carve, Stet, Outwit, Tuck, Alibi, Cipher, Ping, Warmer, Jesters, Sworn, and Shards.",
     url: '/daily',
     type: 'website',
     siteName: 'Source of Truths',
@@ -78,6 +79,7 @@ function isSundayEdition(key, p) {
 const GAMES = [
   { key: 'crux', name: 'Crux', path: '/crux', tag: 'A clueless crossword', accent: '#2563eb', bg: '#eef4ff', border: 'rgba(37,99,235,0.35)', src: CRUX },
   { key: 'emcee', name: 'Emcee', path: '/emcee', tag: 'The daily mini crossword', accent: '#c026d3', bg: '#fbeefc', border: 'rgba(192,38,211,0.4)', src: EMCEE },
+  { key: 'shards', name: 'Shards', path: '/shards', tag: 'Reassemble the shattered crossword', accent: '#0d9488', bg: '#d9f0ee', border: 'rgba(13,148,136,0.4)', src: SHARDS },
   { key: 'garble', name: 'Garble', path: '/garble', tag: 'Five garbled words, one clued finale', accent: '#8a6d1a', bg: '#fdf6e3', border: 'rgba(230,185,63,0.6)', src: GARBLE },
   { key: 'links', name: 'Links', path: '/links', tag: 'Sixteen words, four hidden threads', accent: '#166534', bg: '#eefaf1', border: 'rgba(90,169,106,0.5)', src: LINKS },
   { key: 'span', name: 'Span', path: '/span', tag: 'Cross the map, border by border', accent: '#9d174d', bg: '#fdf0f6', border: 'rgba(217,99,153,0.45)', src: SPAN },

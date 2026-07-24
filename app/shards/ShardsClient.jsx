@@ -1,0 +1,962 @@
+'use client';
+
+// Shards - the daily jigsaw crossword.
+//
+// The grid arrives already solved but shattered into lettered polyomino shards.
+// Reassemble them so every across and down run of 2+ letters is a real word.
+// No clues; the letters are the clues. Each day's shard set has a VERIFIED
+// UNIQUE reassembly (proven offline + in scripts/verify-daily-banks.mjs), so
+// the one arrangement where every run is a dictionary word is the answer.
+//
+// Rules: shards are rigid (no rotation, no flip). Drag a shard onto the grid,
+// or tap a shard then tap a cell. Placed shards can be picked up and moved
+// freely; there is an Undo and a free Clear. The board auto-completes the
+// moment every shard is placed and every run is a valid word - no submit.
+//
+// Scoring (answer terms, like every daily): start at 100 (150 Sunday). Moving a
+// placed shard costs 5 (a "misplacement"). Three hints, in order, cost 10/15/20
+// (15/20/30 Sunday). Floor of 10 (15 Sunday). The dictionary is the shared
+// public/tuck-dict.txt, fetched once as a static asset.
+//
+// Same daily plumbing as Tuck/Emcee: banked puzzles gated by Eastern date on the
+// server (app/shards/page.js), per-puzzle localStorage saves, /shards?p=N archive
+// pinning, streaks + stats, and the shared /api/quiz/* board flow.
+
+import React, { useState, useEffect, useMemo, useRef } from 'react';
+import { useSearchParams } from 'next/navigation';
+import { HelpCircle, X, Smartphone, RotateCcw, Trash2, Lightbulb, CheckCircle2, Undo2 } from 'lucide-react';
+import Grain from '../Grain';
+import Footer from '../Footer';
+import useDuelContext, { DuelBanner } from '../quiz/[id]/useDuelContext';
+import JoinLeaderboardForm from '../quiz/[id]/JoinLeaderboardForm';
+import DailyGamesGrid from '../DailyGamesGrid';
+import DailyEndCard from '../DailyEndCard';
+import DailyTopNav from '../DailyTopNav';
+import DailyBoardPanel from '../quiz/[id]/DailyBoardPanel';
+import useAbandonFlush from '../quiz/[id]/useAbandonFlush';
+import { isMobileDevice } from '@/lib/is-mobile';
+import { withRef } from '@/lib/referrals';
+
+const COLORS = {
+  cream: '#f7f8fa',
+  paper: '#eceef1',
+  ink: '#1c1e24',
+  ember: '#0e1d40',
+  rust: '#c0392b',
+  faded: '#6b7280',
+  accent: '#0d9488',       // Shards identity - teal
+  accentDk: '#0b7c72',
+  accentSoft: '#d7f0ec',
+  green: '#15803d',
+};
+const SANS = "'Manrope', system-ui, -apple-system, sans-serif";
+const MONO = "'DM Mono', ui-monospace, 'SFMono-Regular', monospace";
+const HELP_KEY = 'sot_shards_help_seen';
+const STATS_KEY = 'sot_shards_stats';
+// Per-shard tray/board tints (spoiler-free, purely to tell pieces apart).
+const SHARD_TINTS = ['#0d9488', '#7c3aed', '#d97706', '#2563eb', '#c0392b', '#15803d', '#c026d3', '#0e7490', '#b45309', '#4338ca'];
+const SHARE_EMOJI = ['🟩', '🟪', '🟧', '🟦', '🟥', '🟫', '🟨', '⬛', '🟩', '🟪'];
+
+const isIosDevice = () =>
+  typeof navigator !== 'undefined' &&
+  (/iPad|iPhone|iPod/.test(navigator.userAgent || '') ||
+    (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1));
+
+function etToday() {
+  try { return new Date().toLocaleDateString('en-CA', { timeZone: 'America/New_York' }); }
+  catch (e) { return new Date().toISOString().slice(0, 10); }
+}
+function pickPuzzle(puzzles, forceNum) {
+  if (forceNum) { const p = puzzles.find((x) => x.num === forceNum); if (p) return p; }
+  const today = etToday();
+  const open = puzzles.filter((p) => p.live <= today);
+  return open.length ? open[open.length - 1] : puzzles[0];
+}
+function fmtTime(ms) {
+  const s = Math.max(0, Math.round(ms / 1000));
+  return `${Math.floor(s / 60)}:${String(s % 60).padStart(2, '0')}`;
+}
+function msToMidnightET() {
+  try {
+    const now = new Date();
+    const et = new Date(now.toLocaleString('en-US', { timeZone: 'America/New_York' }));
+    const next = new Date(et);
+    next.setHours(24, 0, 0, 0);
+    return next - et;
+  } catch (e) {
+    const now = new Date();
+    const next = new Date(now);
+    next.setHours(24, 0, 0, 0);
+    return next - now;
+  }
+}
+function fmtCountdown(ms) {
+  const s = Math.max(0, Math.floor(ms / 1000));
+  return `${Math.floor(s / 3600)}:${String(Math.floor((s % 3600) / 60)).padStart(2, '0')}:${String(s % 60).padStart(2, '0')}`;
+}
+function getAnonId() {
+  if (typeof window === 'undefined') return null;
+  try {
+    let a = localStorage.getItem('sot_quiz_anon');
+    if (!a) {
+      a = (window.crypto && crypto.randomUUID) ? crypto.randomUUID() : `a_${Date.now()}_${Math.random().toString(36).slice(2)}`;
+      localStorage.setItem('sot_quiz_anon', a);
+    }
+    return a;
+  } catch (e) { return null; }
+}
+const EMPTY_BOARD = { plays: 0, best: null, topTime: null, leaderboard: [], leaderboardAll: [], leaderboardMobile: [], leaderboardFirst: [], leaderboards: {} };
+
+// ---- personal stats + streak (localStorage), Tuck/Circa pattern ----
+function getStats() {
+  try { const s = JSON.parse(localStorage.getItem(STATS_KEY)); if (s && s.v === 1 && s.rec) return s; } catch (e) {}
+  return { v: 1, rec: {} };
+}
+function recordStat(num, entry) {
+  const s = getStats();
+  if (s.rec[num]) return s;
+  const s2 = { ...s, rec: { ...s.rec, [num]: entry } };
+  try { localStorage.setItem(STATS_KEY, JSON.stringify(s2)); } catch (e) {}
+  return s2;
+}
+function deriveStats(s, todayNum) {
+  const rec = s && s.rec ? s.rec : {};
+  const nums = Object.keys(rec).map(Number).sort((a, b) => a - b);
+  const played = nums.length;
+  const perfect = nums.filter((n) => rec[n].won).length;
+  let max = 0, run = 0, prev = null;
+  for (const n of nums) { run = prev != null && n === prev + 1 ? run + 1 : 1; if (run > max) max = run; prev = n; }
+  let cur = 0, at = rec[todayNum] ? todayNum : todayNum - 1;
+  while (rec[at]) { cur++; at--; }
+  return { played, perfect, cur, max };
+}
+
+// ---- shard geometry (derived once from PUZZLE) ----
+// Each shard: normalized offsets [{dr,dc,ch}], w/h of bounding box, solved anchor
+// (min row/col of its solved cells), a reading-order "handle" offset (used for
+// tap placement), and its solved cell key set.
+function deriveShards(PUZZLE) {
+  return (PUZZLE.shards || []).map((sh, id) => {
+    const rs = sh.cells.map((c) => c[0]);
+    const cs = sh.cells.map((c) => c[1]);
+    const minR = Math.min(...rs), minC = Math.min(...cs);
+    const offs = sh.cells.map(([r, c, ch]) => ({ dr: r - minR, dc: c - minC, ch }));
+    const h = Math.max(...offs.map((o) => o.dr)) + 1;
+    const w = Math.max(...offs.map((o) => o.dc)) + 1;
+    // handle = first cell in reading order (min dr, then min dc)
+    const sorted = [...offs].sort((a, b) => a.dr - b.dr || a.dc - b.dc);
+    return { id, offs, w, h, size: offs.length, minR, minC, handle: { dr: sorted[0].dr, dc: sorted[0].dc } };
+  });
+}
+
+function freshState(n) {
+  return { v: 1, placements: [], status: 'playing', t0: null, tEnd: null, misplaced: 0, hintsUsed: 0, locked: [] };
+}
+
+export default function ShardsClient({ puzzles = [], forceNum = null }) {
+  const PUZZLE = useMemo(() => pickPuzzle(puzzles, forceNum), [puzzles, forceNum]);
+  const N = PUZZLE.rows;
+  const STORE_KEY = `sot_shards_${PUZZLE.num}`;
+  const START = PUZZLE.start || 100;
+  const FLOOR = PUZZLE.floor || 10;
+  const HINTS = PUZZLE.hints || [10, 15, 20];
+  const SHARDS = useMemo(() => deriveShards(PUZZLE), [PUZZLE]);
+  const blockSet = useMemo(() => new Set((PUZZLE.blocks || []).map(([r, c]) => r * 100 + c)), [PUZZLE]);
+  const fillCount = N * N - blockSet.size;
+  // Tray order: a fixed, per-puzzle scramble so pieces aren't in solved order.
+  const trayOrder = useMemo(() => {
+    const idx = SHARDS.map((s) => s.id);
+    let seed = PUZZLE.num * 2654435761 % 2147483647;
+    const rnd = () => (seed = (seed * 48271) % 2147483647) / 2147483647;
+    for (let i = idx.length - 1; i > 0; i--) { const j = Math.floor(rnd() * (i + 1)); [idx[i], idx[j]] = [idx[j], idx[i]]; }
+    return idx;
+  }, [SHARDS, PUZZLE]);
+
+  const [g, setG] = useState(() => freshState(N));
+  const [dict, setDict] = useState(null);
+  const [dictErr, setDictErr] = useState(false);
+  const [armed, setArmed] = useState(null);       // shard id armed for tap-placement
+  const [drag, setDrag] = useState(null);         // { id, grab:{dr,dc}, x, y, from }
+  const [hoverCell, setHoverCell] = useState(null); // {r,c} preview anchor during drag
+  const [wrongHint, setWrongHint] = useState(null); // shard id flagged wrong by hint 1
+  const [homeHint, setHomeHint] = useState(null);  // shard id whose true home is outlined (hint 3)
+  const [showHelp, setShowHelp] = useState(false);
+  const [gateRules, setGateRules] = useState(false);
+  const [toast, setToast] = useState(null);
+  const [copied, setCopied] = useState(false);
+  const [endClosed, setEndClosed] = useState(false);
+  const [hydrated, setHydrated] = useState(false);
+  const [board, setBoard] = useState(EMPTY_BOARD);
+  const [identity, setIdentity] = useState(null);
+  const [stats, setStats] = useState(null);
+  const [player, setPlayer] = useState(null);
+  const [countdown, setCountdown] = useState('');
+  const [installEvt, setInstallEvt] = useState(null);
+  const [showA2hsHelp, setShowA2hsHelp] = useState(false);
+  const [standalone, setStandalone] = useState(false);
+  const [mobileUi, setMobileUi] = useState(false);
+  const [showChrome, setShowChrome] = useState(false);
+  const searchParams = useSearchParams();
+  const { duelToken, duelInfo, duelSubmitted } = useDuelContext(PUZZLE.quizId, searchParams);
+  const toastTimer = useRef(null);
+  const viewedRef = useRef(false);
+  const gridRef = useRef(null);
+  const histRef = useRef([]);       // undo stack of prior game states
+  const finishedRef = useRef(false);
+  const pendingRef = useRef(null);  // pointer-down candidate before it becomes a drag
+  const draggedRef = useRef(false); // suppresses the click that trails a real drag
+
+  const playing = g.status === 'playing';
+  const preStart = playing && !g.t0;
+  const started = playing && !!g.t0;
+  const focusMode = playing && !showChrome;
+
+  // ---- dictionary (static asset, fetched once) ----
+  useEffect(() => {
+    let alive = true;
+    fetch('/tuck-dict.txt')
+      .then((r) => { if (!r.ok) throw new Error('dict'); return r.text(); })
+      .then((t) => { if (alive) setDict(new Set(t.split('\n').map((w) => w.trim()).filter(Boolean))); })
+      .catch(() => { if (alive) setDictErr(true); });
+    return () => { alive = false; };
+  }, []);
+
+  useEffect(() => {
+    try {
+      setStandalone(window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true);
+      setMobileUi(isMobileDevice());
+    } catch {}
+    const onBip = (e) => { e.preventDefault(); setInstallEvt(e); };
+    const onInstalled = () => { setStandalone(true); setInstallEvt(null); };
+    window.addEventListener('beforeinstallprompt', onBip);
+    window.addEventListener('appinstalled', onInstalled);
+    return () => { window.removeEventListener('beforeinstallprompt', onBip); window.removeEventListener('appinstalled', onInstalled); };
+  }, []);
+  const a2hsClick = () => { const e = installEvt; if (e) { setInstallEvt(null); e.prompt(); } else { setShowA2hsHelp(true); } };
+
+  // ---- persistence ----
+  useEffect(() => {
+    try {
+      const raw = localStorage.getItem(STORE_KEY);
+      if (raw) {
+        const saved = JSON.parse(raw);
+        if (saved && saved.v === 1 && Array.isArray(saved.placements)) setG({ ...freshState(N), ...saved });
+      }
+      setGateRules(!localStorage.getItem(HELP_KEY));
+    } catch (e) {}
+    try { setStats(getStats()); } catch (e) {}
+    setHydrated(true);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+  useEffect(() => {
+    if (!hydrated) return;
+    try { localStorage.setItem(STORE_KEY, JSON.stringify(g)); } catch (e) {}
+    try {
+      if (PUZZLE.num === pickPuzzle(puzzles, null).num) {
+        const dn = g.status !== 'playing';
+        if (dn || g.t0) localStorage.setItem('sot_shards_day', JSON.stringify({ d: etToday(), done: dn }));
+        else localStorage.removeItem('sot_shards_day');
+      }
+    } catch (e) {}
+  }, [g, hydrated, STORE_KEY, PUZZLE, puzzles]);
+
+  useEffect(() => {
+    if (g.status === 'playing') return;
+    const tick = () => setCountdown(fmtCountdown(msToMidnightET()));
+    tick();
+    const iv = setInterval(tick, 1000);
+    return () => clearInterval(iv);
+  }, [g.status]);
+
+  // ---- metrics + leaderboard ----
+  useEffect(() => {
+    try { const id = JSON.parse(localStorage.getItem('sot_quiz_identity')); if (id && id.email) setIdentity(id); } catch (e) {}
+    try {
+      const anon = getAnonId();
+      let em = '';
+      try { const idj = JSON.parse(localStorage.getItem('sot_quiz_identity') || 'null'); if (idj && idj.email) em = `&email=${encodeURIComponent(idj.email)}`; } catch (e) {}
+      if (anon || em) {
+        fetch(`/api/quiz/me?anonId=${encodeURIComponent(anon || '')}${em}`)
+          .then((r) => r.json())
+          .then((d) => { if (d && d.found && d.name) setPlayer({ name: d.name, rank: (d.ranks && d.ranks.xp) || d.rank || null, key: d.userKey || null }); })
+          .catch(() => {});
+      }
+    } catch (e) {}
+    fetch(`/api/quiz/board?quizId=${encodeURIComponent(PUZZLE.quizId)}`)
+      .then((r) => r.json())
+      .then((d) => { if (d && !d.error) setBoard({ ...EMPTY_BOARD, ...d }); })
+      .catch(() => {});
+    if (!viewedRef.current) {
+      viewedRef.current = true;
+      fetch('/api/quiz/view', { method: 'POST', keepalive: true, headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ quizId: PUZZLE.quizId }) }).catch(() => {});
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  function say(msg) {
+    setToast(msg);
+    if (toastTimer.current) clearTimeout(toastTimer.current);
+    toastTimer.current = setTimeout(() => setToast(null), 2600);
+  }
+
+  const isTodays = PUZZLE.num === pickPuzzle(puzzles, null).num;
+  const prevPuzzle = puzzles.find((x) => x.num === PUZZLE.num - 1) || null;
+  const myStats = deriveStats(stats, pickPuzzle(puzzles, null).num);
+  const elapsed = g.t0 ? fmtTime((g.tEnd || Date.now()) - g.t0) : '0:00';
+
+  // ---- derived board occupancy ----
+  // occ[r*100+c] = shard id occupying that cell
+  const occ = useMemo(() => {
+    const m = new Map();
+    for (const s of SHARDS) {
+      const p = g.placements[s.id];
+      if (!p) continue;
+      for (const o of s.offs) m.set((p.r + o.dr) * 100 + (p.c + o.dc), { id: s.id, ch: o.ch });
+    }
+    return m;
+  }, [g.placements, SHARDS]);
+  const placedCount = useMemo(() => SHARDS.filter((s) => g.placements[s.id]).length, [g.placements, SHARDS]);
+  const trayShards = useMemo(() => trayOrder.filter((id) => !g.placements[id]), [trayOrder, g.placements]);
+
+  // fully-filled runs and which are valid words (for ticks + win)
+  const { runTicks, allValid, allCovered } = useMemo(() => {
+    const ticks = [];
+    let valid = true;
+    const get = (r, c) => (blockSet.has(r * 100 + c) ? '#' : (occ.get(r * 100 + c)?.ch || null));
+    const scan = (cells) => {
+      const filled = cells.every((k) => occ.has(k));
+      const word = cells.map((k) => occ.get(k)?.ch || '').join('');
+      if (cells.length >= 2) {
+        if (filled && dict) {
+          const ok = dict.has(word.toLowerCase());
+          if (ok) ticks.push(cells);
+          else valid = false;
+        } else valid = false;
+      }
+    };
+    // across
+    for (let r = 0; r < N; r++) {
+      let c = 0;
+      while (c < N) {
+        if (!blockSet.has(r * 100 + c)) { const cells = []; while (c < N && !blockSet.has(r * 100 + c)) { cells.push(r * 100 + c); c++; } if (cells.length >= 2) scan(cells); }
+        else c++;
+      }
+    }
+    for (let c = 0; c < N; c++) {
+      let r = 0;
+      while (r < N) {
+        if (!blockSet.has(r * 100 + c)) { const cells = []; while (r < N && !blockSet.has(r * 100 + c)) { cells.push(r * 100 + c); r++; } if (cells.length >= 2) scan(cells); }
+        else r++;
+      }
+    }
+    const covered = occ.size === fillCount;
+    return { runTicks: ticks, allValid: valid, allCovered: covered };
+  }, [occ, dict, N, blockSet, fillCount]);
+
+  const solved = placedCount === SHARDS.length && allCovered && allValid && !!dict;
+  const liveScore = Math.max(FLOOR, START - 5 * g.misplaced - hintsCost(g.hintsUsed, HINTS));
+
+  // ---- placement helpers ----
+  function canPlace(shard, ar, ac, ignoreId) {
+    for (const o of shard.offs) {
+      const r = ar + o.dr, c = ac + o.dc;
+      if (r < 0 || c < 0 || r >= N || c >= N) return false;
+      if (blockSet.has(r * 100 + c)) return false;
+      const cell = occ.get(r * 100 + c);
+      if (cell && cell.id !== ignoreId) return false;
+    }
+    return true;
+  }
+  function pushHistory(cur) { histRef.current.push(JSON.stringify({ placements: cur.placements, misplaced: cur.misplaced })); if (histRef.current.length > 60) histRef.current.shift(); }
+
+  function placeShard(id, ar, ac) {
+    const shard = SHARDS[id];
+    setG((cur) => {
+      if (cur.status !== 'playing') return cur;
+      const prev = cur.placements[id];
+      const samespot = prev && prev.r === ar && prev.c === ac;
+      if (samespot) return cur; // dropped back exactly where it was: no-op, no penalty
+      if (!canPlaceWith(cur, shard, ar, ac, id)) return cur;
+      pushHistory(cur);
+      const pl = cur.placements.slice();
+      pl[id] = { r: ar, c: ac };
+      return { ...cur, placements: pl, t0: cur.t0 || Date.now(), misplaced: cur.misplaced + (prev ? 1 : 0) };
+    });
+    setArmed(null); setWrongHint(null);
+  }
+  function canPlaceWith(cur, shard, ar, ac, ignoreId) {
+    const om = new Map();
+    for (const s of SHARDS) { const p = cur.placements[s.id]; if (!p || s.id === ignoreId) continue; for (const o of s.offs) om.set((p.r + o.dr) * 100 + (p.c + o.dc), s.id); }
+    for (const o of shard.offs) {
+      const r = ar + o.dr, c = ac + o.dc;
+      if (r < 0 || c < 0 || r >= N || c >= N) return false;
+      if (blockSet.has(r * 100 + c)) return false;
+      if (om.has(r * 100 + c)) return false;
+    }
+    return true;
+  }
+  function pickUp(id) {
+    if (g.locked.includes(id)) { say('That shard is locked by a hint.'); return; }
+    setG((cur) => {
+      if (cur.status !== 'playing' || !cur.placements[id]) return cur;
+      pushHistory(cur);
+      const pl = cur.placements.slice();
+      pl[id] = null;
+      return { ...cur, placements: pl, misplaced: cur.misplaced + 1 };
+    });
+    setWrongHint(null);
+  }
+  function undo() {
+    if (!histRef.current.length) return;
+    const snap = JSON.parse(histRef.current.pop());
+    setG((cur) => ({ ...cur, placements: snap.placements, misplaced: snap.misplaced }));
+    setArmed(null); setWrongHint(null);
+  }
+  function clearBoard() {
+    setG((cur) => (cur.status !== 'playing' ? cur : { ...cur, placements: [], misplaced: cur.misplaced, locked: cur.locked }));
+    // re-lock hinted shards at their true home so a Clear does not discard a paid hint
+    setTimeout(() => setG((cur) => {
+      if (cur.status !== 'playing' || !cur.locked.length) return cur;
+      const pl = cur.placements.slice();
+      for (const id of cur.locked) { const s = SHARDS[id]; pl[id] = { r: s.minR, c: s.minC }; }
+      return { ...cur, placements: pl };
+    }), 0);
+    histRef.current = [];
+    setArmed(null); setWrongHint(null);
+  }
+
+  // ---- pointer drag ----
+  function cellFromPoint(x, y) {
+    const el = typeof document !== 'undefined' ? document.elementFromPoint(x, y) : null;
+    if (!el) return null;
+    const cell = el.closest && el.closest('[data-cell]');
+    if (!cell) return null;
+    const r = Number(cell.getAttribute('data-r')), c = Number(cell.getAttribute('data-c'));
+    return { r, c };
+  }
+  // Pointer-down on a shard records a candidate; it only becomes a drag once the
+  // pointer moves past a small threshold, so a plain click stays a click (used
+  // for tap-to-arm / tap-to-pick-up) and never counts as a move.
+  function beginPointer(e, id, grab, from) {
+    if (!playing) return;
+    if (g.locked.includes(id)) return;
+    startClock();
+    const pt = 'touches' in e ? e.touches[0] : e;
+    pendingRef.current = { id, grab, from, startX: pt.clientX, startY: pt.clientY, activated: false };
+  }
+  useEffect(() => {
+    const move = (e) => {
+      const p = pendingRef.current;
+      if (!p) return;
+      const pt = 'touches' in e ? e.touches[0] : e;
+      const dx = pt.clientX - p.startX, dy = pt.clientY - p.startY;
+      if (!p.activated) {
+        if (Math.hypot(dx, dy) < 6) return;
+        p.activated = true;
+        setArmed(null);
+        setDrag({ id: p.id, grab: p.grab, x: pt.clientX, y: pt.clientY, from: p.from });
+      }
+      if (e.cancelable && 'touches' in e) e.preventDefault();
+      setDrag((d) => (d ? { ...d, x: pt.clientX, y: pt.clientY } : d));
+      const cell = cellFromPoint(pt.clientX, pt.clientY);
+      setHoverCell(cell ? { r: cell.r - p.grab.dr, c: cell.c - p.grab.dc } : null);
+    };
+    const up = (e) => {
+      const p = pendingRef.current;
+      pendingRef.current = null;
+      if (p && p.activated) {
+        draggedRef.current = true;
+        const pt = 'changedTouches' in e ? e.changedTouches[0] : e;
+        const cell = cellFromPoint(pt.clientX, pt.clientY);
+        if (cell) placeShard(p.id, cell.r - p.grab.dr, cell.c - p.grab.dc);
+        setDrag(null); setHoverCell(null);
+        setTimeout(() => { draggedRef.current = false; }, 0);
+      }
+    };
+    window.addEventListener('mousemove', move, { passive: false });
+    window.addEventListener('touchmove', move, { passive: false });
+    window.addEventListener('mouseup', up);
+    window.addEventListener('touchend', up);
+    return () => {
+      window.removeEventListener('mousemove', move);
+      window.removeEventListener('touchmove', move);
+      window.removeEventListener('mouseup', up);
+      window.removeEventListener('touchend', up);
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [SHARDS]);
+
+  // tap on a board cell: place the armed shard (handle lands on the cell)
+  function onCellTap(r, c) {
+    if (!playing) return;
+    if (armed != null) {
+      const s = SHARDS[armed];
+      const ar = r - s.handle.dr, ac = c - s.handle.dc;
+      if (canPlaceWith(g, s, ar, ac, armed)) { placeShard(armed, ar, ac); return; }
+      say('That shard will not fit there.');
+      return;
+    }
+    const cell = occ.get(r * 100 + c);
+    if (cell) {
+      if (g.locked.includes(cell.id)) { say('That shard is locked by a hint.'); return; }
+      setArmed(cell.id); // arm a placed shard so the next cell tap moves it; tap it again to pick up
+    }
+  }
+  function onShardTap(id) {
+    if (!playing) return;
+    startClock();
+    if (armed === id) {
+      // second tap: if it is placed, pick it up; if in tray, just disarm
+      if (g.placements[id]) pickUp(id);
+      setArmed(null);
+    } else setArmed(id);
+  }
+
+  function startClock() { setG((cur) => (cur.t0 ? cur : { ...cur, t0: Date.now() })); }
+  function startGame() { startClock(); try { localStorage.setItem(HELP_KEY, '1'); } catch (e) {} }
+
+  // ---- hints (in order, once each) ----
+  function useHint(which) {
+    if (!playing) return;
+    if (which !== g.hintsUsed + 1) return; // enforce order
+    if (which === 1) {
+      const wrong = SHARDS.find((s) => { const p = g.placements[s.id]; return p && (p.r !== s.minR || p.c !== s.minC); });
+      setG((cur) => ({ ...cur, hintsUsed: 1 }));
+      if (wrong) { setWrongHint(wrong.id); setArmed(null); say('The flagged shard is not in its true home.'); }
+      else say('Every placed shard is correct so far.');
+    } else if (which === 2) {
+      // lock the most clarifying UNPLACED shard into its true home (largest, then rarest letter)
+      const unplaced = SHARDS.filter((s) => !g.placements[s.id]);
+      if (!unplaced.length) { say('Every shard is already placed.'); return; }
+      const pick = unplaced.slice().sort((a, b) => b.size - a.size || rarity(b) - rarity(a))[0];
+      setG((cur) => {
+        pushHistory(cur);
+        const pl = cur.placements.slice();
+        pl[pick.id] = { r: pick.minR, c: pick.minC };
+        return { ...cur, placements: pl, hintsUsed: 2, locked: [...cur.locked, pick.id] };
+      });
+      setArmed(null); setWrongHint(null);
+      say('One shard has been locked into its true home.');
+    } else if (which === 3) {
+      if (armed == null) { say('Select a shard first, then use this hint to see its home.'); return; }
+      setHomeHint(armed);
+      setG((cur) => ({ ...cur, hintsUsed: 3 }));
+      say('Its true home is outlined on the board.');
+      setTimeout(() => setHomeHint(null), 6000);
+    }
+  }
+  function rarity(s) { const w = 'ZQXJKVBPYGFWMUCLDRHSNIOATE'; return s.offs.reduce((m, o) => Math.min(m, w.indexOf(o.ch)), 99); }
+
+  // ---- win detection ----
+  useEffect(() => {
+    if (solved && g.status === 'playing' && !finishedRef.current) {
+      finishedRef.current = true;
+      const sc = Math.max(FLOOR, START - 5 * g.misplaced - hintsCost(g.hintsUsed, HINTS));
+      const g2 = { ...g, status: 'done', tEnd: Date.now(), t0: g.t0 || Date.now() };
+      setG(g2);
+      setEndClosed(false);
+      abandon.markFlushed();
+      postResult(g2, sc);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [solved]);
+
+  const REC_KEY = `sot_shards_rec_${PUZZLE.num}`;
+  const abandon = useAbandonFlush(() => {
+    const acted = placedCount > 0;
+    if (!acted || g.status !== 'playing') return null;
+    try { if (localStorage.getItem(REC_KEY)) return null; } catch (e) {}
+    const el = Math.min(36000, Math.max(1, Math.round((Date.now() - (g.t0 || Date.now())) / 1000)));
+    try { localStorage.setItem(REC_KEY, '1'); } catch (e) {}
+    return { quizId: PUZZLE.quizId, score: liveScore, total: START, correct: 0, guessesUsed: g.misplaced + g.hintsUsed, timeElapsed: el, abandoned: true, email: identity?.email || undefined, anonId: getAnonId(), isMobile: isMobileDevice(), referrer: (typeof document !== 'undefined' ? document.referrer : '') };
+  });
+
+  function postResult(g2, sc) {
+    const el = g2.t0 ? Math.max(1, Math.round(((g2.tEnd || Date.now()) - g2.t0) / 1000)) : 1;
+    try { setStats(recordStat(PUZZLE.num, { s: sc, t: START, m: g2.misplaced, h: g2.hintsUsed, won: true })); } catch (e) {}
+    try {
+      fetch('/api/quiz/result', {
+        method: 'POST', keepalive: true, headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ quizId: PUZZLE.quizId, score: sc, total: START, correct: 1, guessesUsed: g2.misplaced + g2.hintsUsed, timeElapsed: el, email: identity?.email || undefined, anonId: getAnonId(), isMobile: isMobileDevice(), referrer: (typeof document !== 'undefined' ? document.referrer : '') }),
+      }).then((r) => r.json()).then((d) => { if (d && !d.error) setBoard({ ...EMPTY_BOARD, ...d }); }).catch(() => {});
+    } catch (e) {}
+  }
+
+  function resetGame() {
+    try { localStorage.removeItem(STORE_KEY); } catch (e) {}
+    finishedRef.current = false; histRef.current = [];
+    setG(freshState(N)); setArmed(null); setEndClosed(false);
+  }
+
+  const finalScore = g.status === 'done' ? Math.max(FLOOR, START - 5 * g.misplaced - hintsCost(g.hintsUsed, HINTS)) : liveScore;
+  const won = g.status === 'done';
+
+  // ---- spoiler-free share art: the shatter mosaic, colored by shard, no letters ----
+  function shareArt() {
+    let art = '';
+    for (let r = 0; r < N; r++) {
+      for (let c = 0; c < N; c++) {
+        if (blockSet.has(r * 100 + c)) { art += '⬛'; continue; }
+        const owner = SHARDS.find((s) => s.offs.some((o) => s.minR + o.dr === r && s.minC + o.dc === c));
+        art += SHARE_EMOJI[(owner ? owner.id : 0) % SHARE_EMOJI.length];
+      }
+      art += '\n';
+    }
+    return art;
+  }
+  function copyShare() {
+    const url = withRef(`sourceoftruths.com/shards${isTodays ? '' : `?p=${PUZZLE.num}`}`);
+    const text = playing
+      ? `Shards No. ${PUZZLE.num} - reassemble the shattered crossword.\n${url}`
+      : `Shards No. ${PUZZLE.num} - ${finalScore}/${START} · ${elapsed} · ${g.misplaced} misplacement${g.misplaced === 1 ? '' : 's'} · ${g.hintsUsed} hint${g.hintsUsed === 1 ? '' : 's'}\n${shareArt()}${url}`;
+    try { if (typeof navigator !== 'undefined' && navigator.share && isMobileDevice()) { navigator.share({ text }).catch(() => {}); return; } } catch (e) {}
+    try { navigator.clipboard?.writeText(text).then(() => { setCopied(true); setTimeout(() => setCopied(false), 1800); }); } catch (e) {}
+  }
+
+  const statusLine = (() => {
+    if (!dict && !dictErr) return { msg: 'Loading the dictionary...', cls: 'muted' };
+    if (dictErr) return { msg: 'Could not load the dictionary - refresh to try again.', cls: 'bad' };
+    if (placedCount === 0) return { msg: 'Drag a shard onto the grid, or tap a shard then tap a square.', cls: 'muted' };
+    if (placedCount < SHARDS.length) return { msg: `${placedCount} of ${SHARDS.length} shards placed. A tick marks each finished word.`, cls: 'muted' };
+    if (!allValid) return { msg: 'All placed, but some runs are not words yet. Rearrange the pieces.', cls: 'bad' };
+    return { msg: 'Solved!', cls: 'good' };
+  })();
+
+  const homeCells = homeHint != null ? new Set(SHARDS[homeHint].offs.map((o) => (SHARDS[homeHint].minR + o.dr) * 100 + (SHARDS[homeHint].minC + o.dc))) : null;
+  const tickCells = useMemo(() => { const s = new Set(); for (const cells of runTicks) { if (cells.length) s.add(cells[cells.length - 1]); } return s; }, [runTicks]);
+
+  const rulesBody = (
+    <div style={{ fontSize: 14, lineHeight: 1.55, color: COLORS.ink, fontWeight: 600 }}>
+      <p style={{ margin: '0 0 9px' }}>The grid arrives solved, then shattered into <b>lettered pieces</b>. Reassemble them so every across and down run of two or more letters is a real word. No clues, the letters are the clues.</p>
+      <p style={{ margin: '0 0 9px' }}>Pieces are rigid: no turning, no flipping. <b>Drag</b> a piece onto the grid, or <b>tap a piece then tap a square</b>. Placed pieces move freely, tap one to pick it up. There is an <b>Undo</b> and a free <b>Clear</b>. The board finishes itself the moment every piece is placed and every word checks out.</p>
+      <p style={{ margin: '0 0 9px' }}>There is exactly <b>one</b> correct reassembly. Start at <b>{START}</b>. Moving a placed piece costs 5. Three hints, in order, cost {HINTS[0]}, {HINTS[1]} and {HINTS[2]}. Score never drops below {FLOOR}.</p>
+      <p style={{ margin: 0 }}>A tick appears on each finished valid word. Ties on the leaderboard break by fewest moves, then fastest clock.</p>
+    </div>
+  );
+
+  const CELL = N === 5 ? 62 : N === 6 ? 54 : 46;
+  const TRAYCELL = N === 5 ? 30 : N === 6 ? 28 : 26;
+
+  return (
+    <div style={{ minHeight: '100vh', background: COLORS.cream, position: 'relative' }}>
+      <Grain />
+      <div className="sh-wrap" style={{ position: 'relative', zIndex: 2, maxWidth: 1180, margin: '0 auto', padding: '18px 38px 80px', fontFamily: SANS }}>
+        <style>{`
+          @media(max-width:560px){.sh-wrap{padding-left:10px !important;padding-right:10px !important;}}
+          .sh-btn{font-family:${SANS};font-weight:800;font-size:14px;border:2px solid ${COLORS.ink};background:#fff;color:${COLORS.ink};border-radius:8px;padding:9px 15px;cursor:pointer;display:inline-flex;align-items:center;gap:7px;}
+          .sh-btn:hover{background:${COLORS.paper};}
+          .sh-btn.primary{background:${COLORS.accent};border-color:${COLORS.accent};color:#fff;}
+          .sh-btn.primary:hover{background:${COLORS.accentDk};}
+          .sh-btn:disabled{opacity:0.4;cursor:default;}
+          .sh-board{display:grid;grid-template-columns:repeat(${N},${CELL}px);gap:0;background:#cfd8d6;border:2px solid ${COLORS.ink};border-radius:10px;padding:5px;box-shadow:5px 5px 0 rgba(28,30,36,0.14);width:max-content;touch-action:none;}
+          .sh-cell{position:relative;width:${CELL}px;height:${CELL}px;box-sizing:border-box;display:flex;align-items:center;justify-content:center;font-weight:900;font-size:${Math.round(CELL * 0.42)}px;color:${COLORS.ink};user-select:none;border:1px solid #b9c4c2;background:#fbfdfc;}
+          .sh-cell.block{background:${COLORS.ink};border-color:${COLORS.ink};}
+          .sh-cell.filled{background:var(--tint,#d7f0ec);border:1px solid rgba(0,0,0,0.14);color:#0b2b28;cursor:grab;}
+          .sh-cell.armed{outline:3px solid ${COLORS.accent};outline-offset:-3px;z-index:2;}
+          .sh-cell.wrong{outline:3px solid ${COLORS.rust};outline-offset:-3px;z-index:2;}
+          .sh-cell.home{box-shadow:inset 0 0 0 3px ${COLORS.accent};}
+          .sh-cell.hover{background:${COLORS.accentSoft};}
+          .sh-cell.hoverbad{background:#f6dcda;}
+          .sh-cell.locked::after{content:'';position:absolute;top:3px;right:3px;width:6px;height:6px;border-radius:50%;background:${COLORS.accent};}
+          .sh-tick{position:absolute;bottom:1px;right:2px;color:${COLORS.green};line-height:1;}
+          .sh-tray{display:flex;flex-wrap:wrap;gap:12px;justify-content:center;margin:16px auto 4px;max-width:520px;}
+          .sh-piece{position:relative;display:grid;gap:2px;padding:5px;border-radius:9px;background:#fff;border:1.5px solid rgba(28,30,36,0.16);box-shadow:0 2px 0 rgba(28,30,36,0.12);cursor:grab;touch-action:none;}
+          .sh-piece.armed{outline:3px solid ${COLORS.accent};outline-offset:1px;}
+          .sh-pc{width:${TRAYCELL}px;height:${TRAYCELL}px;display:flex;align-items:center;justify-content:center;font-weight:900;font-size:${Math.round(TRAYCELL * 0.5)}px;border-radius:4px;color:#fff;}
+          .sh-pc.empty{background:transparent;}
+          .sh-ghost{position:fixed;z-index:200;pointer-events:none;display:grid;gap:2px;opacity:0.92;filter:drop-shadow(0 6px 10px rgba(0,0,0,0.25));}
+          .sh-status{font-size:12.5px;font-weight:700;min-height:18px;text-align:center;}
+          .sh-status.bad{color:${COLORS.rust};}
+          .sh-status.good{color:${COLORS.green};}
+          .sh-status.muted{color:${COLORS.faded};}
+          .sh-hintbar{display:flex;gap:8px;flex-wrap:wrap;justify-content:center;margin-top:10px;}
+          .sh-hint{font-family:${SANS};font-weight:800;font-size:12.5px;border:1.5px solid ${COLORS.accent};color:${COLORS.accentDk};background:${COLORS.accentSoft};border-radius:999px;padding:7px 13px;cursor:pointer;display:inline-flex;align-items:center;gap:6px;}
+          .sh-hint:disabled{opacity:0.4;cursor:default;border-color:#cbd5d3;color:${COLORS.faded};background:#eef2f1;}
+        `}</style>
+
+        <div style={{ maxWidth: 700, margin: '0 auto' }}>
+          <div style={{ display: 'block' }}><DailyTopNav player={player} compact={playing} /></div>
+
+          {/* masthead */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: 14, flexWrap: 'wrap', position: 'relative', paddingRight: 28, marginBottom: 14, borderBottom: '2px solid rgba(28,30,36,0.8)', paddingBottom: 11 }}>
+            <div style={{ display: 'flex', gap: 5, alignItems: 'flex-end' }}>
+              {'SHARDS'.split('').map((ch, i) => (
+                <div key={i} style={{ width: 34, height: 40, borderRadius: 5, display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: SANS, fontWeight: 900, fontSize: 21, background: i % 2 === 0 ? COLORS.accent : COLORS.ink, color: '#fff', boxShadow: 'inset 0 2px 5px rgba(0,0,0,0.4), 0 1px 0 rgba(255,255,255,0.55)', transform: `rotate(${(i % 2 ? 1.5 : -1.5)}deg)` }}>{ch}</div>
+              ))}
+            </div>
+            <div style={{ display: 'flex', alignItems: 'baseline', gap: 9, flexWrap: 'wrap' }}>
+              <h1 style={{ margin: 0, fontFamily: MONO, fontSize: 14, letterSpacing: '0.06em', fontWeight: 500, color: COLORS.ink }}>No. {PUZZLE.num}</h1>
+              <span style={{ color: COLORS.faded }}>&middot;</span>
+              <span style={{ fontFamily: SANS, fontStyle: 'italic', fontSize: 15, color: COLORS.faded }}>{PUZZLE.dateLabel}</span>
+              {PUZZLE.sunday && <span style={{ fontFamily: MONO, fontSize: 9.5, letterSpacing: '0.1em', textTransform: 'uppercase', fontWeight: 500, color: '#fff', background: COLORS.accent, borderRadius: 4, padding: '2px 6px' }}>Sunday Edition &middot; 7x7</span>}
+            </div>
+            <button onClick={() => setShowHelp(true)} aria-label="How to play" title="How to play" style={{ position: 'absolute', top: 10, right: 2, background: 'none', border: 'none', cursor: 'pointer', color: COLORS.faded, padding: 0, display: 'flex' }}>
+              <HelpCircle size={20} />
+            </button>
+          </div>
+
+          {/* start tile */}
+          {preStart && (
+            <div style={{ background: '#fff', border: `2px solid ${COLORS.ink}`, borderRadius: 12, padding: '22px', maxWidth: 452, margin: '0 auto 4px' }}>
+              <div style={{ fontSize: 20, fontWeight: 800, color: COLORS.ink, marginBottom: 10 }}>{gateRules ? 'How to play' : 'Shards is ready'}</div>
+              {gateRules ? rulesBody : (
+                <div style={{ fontSize: 14, lineHeight: 1.55, color: COLORS.ink, fontWeight: 600 }}>
+                  <p style={{ margin: '0 0 6px' }}>A solved mini crossword, shattered into {SHARDS.length} lettered pieces. Reassemble it so every word reads true. Your grid waits until you begin.</p>
+                </div>
+              )}
+              <div style={{ marginTop: 18 }}>
+                <button className="sh-btn" onClick={startGame} style={{ background: COLORS.ink, color: '#fff', fontSize: 15, padding: '11px 22px' }}>Start</button>
+                <div style={{ marginTop: 10 }}>
+                  <button type="button" onClick={() => setGateRules((v) => !v)} style={{ background: 'none', border: 'none', padding: 0, cursor: 'pointer', fontFamily: SANS, fontSize: 13, fontWeight: 700, color: COLORS.faded, textDecoration: 'underline' }}>
+                    {gateRules ? 'Hide detailed instructions' : 'Show detailed instructions'}
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* score bar */}
+          {!preStart && (
+            <div style={{ display: 'flex', gap: 18, alignItems: 'baseline', flexWrap: 'wrap', marginBottom: 10, fontFamily: MONO, fontSize: 11.5, letterSpacing: '0.08em', textTransform: 'uppercase', color: COLORS.faded }}>
+              <span style={{ fontSize: 12 }}>score <b style={{ color: COLORS.accentDk, fontWeight: 500, fontSize: 20 }}>{playing ? liveScore : finalScore}</b><span style={{ fontSize: 11 }}>/{START}</span></span>
+              <span>placed <b style={{ color: COLORS.ink, fontWeight: 500 }}>{placedCount}</b>/{SHARDS.length}</span>
+              <span>moves <b style={{ color: COLORS.ink, fontWeight: 500 }}>{g.misplaced}</b></span>
+              <span>hints <b style={{ color: COLORS.ink, fontWeight: 500 }}>{g.hintsUsed}</b>/3</span>
+              {!playing && <span style={{ marginLeft: 'auto', color: COLORS.green }}>solved</span>}
+            </div>
+          )}
+
+          {!preStart && (
+            <div style={{ display: 'flex', gap: 26, flexWrap: 'wrap', alignItems: 'flex-start', justifyContent: 'center' }}>
+              <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+                {/* board */}
+                <div className="sh-board" ref={gridRef} role="grid" aria-label="Shards grid">
+                  {Array.from({ length: N * N }, (_, i) => {
+                    const r = Math.floor(i / N), c = i % N, k = r * 100 + c;
+                    const isBlock = blockSet.has(k);
+                    const cell = occ.get(k);
+                    const isHome = homeCells && homeCells.has(k);
+                    const isArmedCell = cell && armed === cell.id;
+                    const isWrong = cell && wrongHint === cell.id;
+                    const isLocked = cell && g.locked.includes(cell.id);
+                    // drag hover preview
+                    let hoverCls = '';
+                    if (drag && hoverCell) {
+                      const s = SHARDS[drag.id];
+                      const covers = s.offs.some((o) => hoverCell.r + o.dr === r && hoverCell.c + o.dc === c);
+                      if (covers) hoverCls = canPlaceWith(g, s, hoverCell.r, hoverCell.c, drag.id) ? ' hover' : ' hoverbad';
+                    }
+                    const tint = cell ? SHARD_TINTS[cell.id % SHARD_TINTS.length] : null;
+                    return (
+                      <div
+                        key={i}
+                        data-cell="1" data-r={r} data-c={c}
+                        className={`sh-cell${isBlock ? ' block' : ''}${cell ? ' filled' : ''}${isArmedCell ? ' armed' : ''}${isWrong ? ' wrong' : ''}${isHome ? ' home' : ''}${isLocked ? ' locked' : ''}${hoverCls}`}
+                        style={tint ? { '--tint': COLORS.accentSoft, background: tintBg(tint), color: '#12312e' } : undefined}
+                        onClick={() => { if (!draggedRef.current) onCellTap(r, c); }}
+                        onMouseDown={(e) => { if (cell && !isBlock) { const grab = { dr: r - g.placements[cell.id].r, dc: c - g.placements[cell.id].c }; beginPointer(e, cell.id, grab, 'board'); } }}
+                        onTouchStart={(e) => { if (cell && !isBlock) { const grab = { dr: r - g.placements[cell.id].r, dc: c - g.placements[cell.id].c }; beginPointer(e, cell.id, grab, 'board'); } }}
+                        role="gridcell"
+                      >
+                        {isBlock ? '' : (cell ? cell.ch : '')}
+                        {tickCells.has(k) ? <span className="sh-tick"><CheckCircle2 size={Math.round(CELL * 0.24)} strokeWidth={3} /></span> : null}
+                      </div>
+                    );
+                  })}
+                </div>
+                <div className="sh-status" style={{ marginTop: 12, maxWidth: CELL * N }}>
+                  <span className={`sh-status ${statusLine.cls}`}>{statusLine.msg}</span>
+                </div>
+              </div>
+
+              {/* tray + controls */}
+              <div style={{ display: 'flex', flexDirection: 'column', minWidth: 240, flex: '1 1 240px', maxWidth: 320 }}>
+                <div style={{ fontFamily: MONO, fontSize: 10.5, fontWeight: 500, textTransform: 'uppercase', letterSpacing: '0.1em', color: COLORS.faded, marginBottom: 8, textAlign: 'center' }}>Shards - {trayShards.length} to place</div>
+                <div className="sh-tray">
+                  {trayShards.map((id) => {
+                    const s = SHARDS[id];
+                    const tint = SHARD_TINTS[id % SHARD_TINTS.length];
+                    return (
+                      <div
+                        key={id}
+                        className={`sh-piece${armed === id ? ' armed' : ''}`}
+                        style={{ gridTemplateColumns: `repeat(${s.w}, ${TRAYCELL}px)`, gridTemplateRows: `repeat(${s.h}, ${TRAYCELL}px)` }}
+                        onClick={() => { if (!draggedRef.current) onShardTap(id); }}
+                        onMouseDown={(e) => beginPointer(e, id, { dr: 0, dc: 0 }, 'tray')}
+                        onTouchStart={(e) => beginPointer(e, id, { dr: 0, dc: 0 }, 'tray')}
+                        role="button" aria-label={`Shard ${id + 1}, ${s.size} cells`}
+                      >
+                        {Array.from({ length: s.w * s.h }, (_, i) => {
+                          const dr = Math.floor(i / s.w), dc = i % s.w;
+                          const o = s.offs.find((x) => x.dr === dr && x.dc === dc);
+                          return <div key={i} className={`sh-pc${o ? '' : ' empty'}`} style={o ? { background: tint, gridColumn: dc + 1, gridRow: dr + 1 } : { gridColumn: dc + 1, gridRow: dr + 1 }}>{o ? o.ch : ''}</div>;
+                        })}
+                      </div>
+                    );
+                  })}
+                  {trayShards.length === 0 && <div style={{ fontSize: 12.5, fontWeight: 600, color: COLORS.faded, padding: '8px 0' }}>All pieces are on the grid.</div>}
+                </div>
+
+                {playing && (
+                  <>
+                    <div style={{ display: 'flex', gap: 8, justifyContent: 'center', marginTop: 14, flexWrap: 'wrap' }}>
+                      <button type="button" className="sh-btn" onClick={undo} disabled={!histRef.current.length}><Undo2 size={14} /> Undo</button>
+                      <button type="button" className="sh-btn" onClick={clearBoard} disabled={placedCount === 0}><Trash2 size={14} /> Clear</button>
+                    </div>
+                    <div className="sh-hintbar">
+                      <button type="button" className="sh-hint" disabled={g.hintsUsed >= 1} onClick={() => useHint(1)}><Lightbulb size={13} /> Check placed (-{HINTS[0]})</button>
+                      <button type="button" className="sh-hint" disabled={g.hintsUsed !== 1} onClick={() => useHint(2)}><Lightbulb size={13} /> Lock a piece (-{HINTS[1]})</button>
+                      <button type="button" className="sh-hint" disabled={g.hintsUsed !== 2} onClick={() => useHint(3)}><Lightbulb size={13} /> Show home (-{HINTS[2]})</button>
+                    </div>
+                    <div style={{ fontSize: 11.5, fontWeight: 600, color: COLORS.faded, textAlign: 'center', marginTop: 10, lineHeight: 1.5 }}>
+                      Hints unlock in order. The board finishes itself when every word reads true.
+                    </div>
+                  </>
+                )}
+              </div>
+            </div>
+          )}
+
+          {/* result line */}
+          {!playing && (
+            <>
+              <div style={{ maxWidth: 472, margin: '18px auto 12px' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 14, background: '#fff', border: '1.5px solid rgba(28,30,36,0.18)', borderRadius: 10, padding: '12px 14px' }}>
+                  <span style={{ fontFamily: MONO, fontSize: 32, fontWeight: 500, color: COLORS.green, fontVariantNumeric: 'tabular-nums', letterSpacing: '0.04em', flex: '0 0 auto' }}>{finalScore}</span>
+                  <span style={{ fontFamily: SANS, fontSize: 13, fontWeight: 700, color: COLORS.ink, lineHeight: 1.45 }}>
+                    Reassembled, out of {START}. {g.misplaced} move{g.misplaced === 1 ? '' : 's'}, {g.hintsUsed} hint{g.hintsUsed === 1 ? '' : 's'}. <span style={{ color: COLORS.faded, fontWeight: 600 }}>{elapsed}</span>
+                  </span>
+                </div>
+              </div>
+              <p style={{ fontSize: 12, color: COLORS.faded, fontWeight: 600, margin: '12px auto 0', maxWidth: 472 }}>
+                {isTodays ? (
+                  <>
+                    {countdown ? <>A fresh grid in <b style={{ color: COLORS.ink, fontVariantNumeric: 'tabular-nums' }}>{countdown}</b>.</> : 'A fresh grid lands at midnight Eastern.'}
+                    {prevPuzzle && (<>{' '}Meanwhile:{' '}<a href={`/shards?p=${prevPuzzle.num}`} style={{ color: COLORS.ember, fontWeight: 800, textDecoration: 'underline' }}>play yesterday&rsquo;s grid &rarr;</a></>)}
+                  </>
+                ) : (
+                  <>You&rsquo;re playing the {PUZZLE.dateLabel.replace(', 2026', '')} archive.{' '}<a href="/shards" style={{ color: COLORS.ember, fontWeight: 800, textDecoration: 'underline' }}>Back to today&rsquo;s Shards &rarr;</a>{' · '}<a href="/daily" style={{ color: COLORS.faded, fontWeight: 700, textDecoration: 'underline' }}>All daily puzzles</a></>
+                )}
+              </p>
+            </>
+          )}
+
+          {focusMode && (
+            <div style={{ maxWidth: 640, margin: '30px auto 0', textAlign: 'center' }}>
+              <button onClick={() => setShowChrome(true)} style={{ fontFamily: SANS, fontWeight: 800, fontSize: 13, letterSpacing: '0.03em', color: COLORS.ink, background: 'none', border: '1.5px solid rgba(28,30,36,0.28)', borderRadius: 9, padding: '10px 20px', cursor: 'pointer' }}>Show leaderboard &amp; more</button>
+              <div style={{ fontFamily: SANS, fontSize: 11, color: COLORS.faded, fontWeight: 600, marginTop: 8 }}>Other games, challenge, share &amp; leaderboard</div>
+            </div>
+          )}
+          <div style={{ display: focusMode ? 'none' : 'block', margin: '30px auto 0', maxWidth: 640 }}>
+            <DailyGamesGrid
+              self="shards"
+              maxWidth={640}
+              challengeHref={`/duel/new?quiz=${encodeURIComponent(PUZZLE.quizId)}`}
+              share={{ label: copied ? 'Copied' : 'Share', onClick: copyShare }}
+              light
+              boardSlot={<DailyBoardPanel self="shards" quizId={PUZZLE.quizId} maxWidth={640} streak={{ current: myStats.cur, best: myStats.max }} />}
+              divider
+            />
+            {mobileUi && !standalone && (
+              <button onClick={a2hsClick} style={{ marginTop: 10, width: '100%', fontFamily: SANS, fontSize: 13.5, letterSpacing: '0.05em', textTransform: 'uppercase', fontWeight: 800, height: 54, borderRadius: 10, border: 'none', background: COLORS.accent, color: '#fff', cursor: 'pointer', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 9, whiteSpace: 'nowrap' }}>
+                <Smartphone size={15} strokeWidth={2.5} /> Add to Home Screen
+              </button>
+            )}
+          </div>
+          {!focusMode && !identity && (
+            <div id="daily-join" style={{ margin: '18px auto 0', maxWidth: 640 }}>
+              <JoinLeaderboardForm hideIcon heading="See your stats and join the leaderboard" identity={identity} onJoined={(id) => { setIdentity(id); if (id && id.username) setPlayer((p) => p || { name: id.username, rank: null }); }} />
+            </div>
+          )}
+        </div>
+      </div>
+
+      {/* dragging ghost */}
+      {drag && (() => {
+        const s = SHARDS[drag.id];
+        const tint = SHARD_TINTS[drag.id % SHARD_TINTS.length];
+        const gcell = started ? CELL : TRAYCELL;
+        return (
+          <div className="sh-ghost" style={{ left: drag.x - (drag.grab.dc + 0.5) * gcell, top: drag.y - (drag.grab.dr + 0.5) * gcell, gridTemplateColumns: `repeat(${s.w}, ${gcell}px)`, gridTemplateRows: `repeat(${s.h}, ${gcell}px)` }}>
+            {Array.from({ length: s.w * s.h }, (_, i) => {
+              const dr = Math.floor(i / s.w), dc = i % s.w;
+              const o = s.offs.find((x) => x.dr === dr && x.dc === dc);
+              return <div key={i} style={{ gridColumn: dc + 1, gridRow: dr + 1, width: gcell, height: gcell, display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 900, fontSize: Math.round(gcell * 0.44), color: '#fff', background: o ? tint : 'transparent', borderRadius: 4, border: o ? '1px solid rgba(0,0,0,0.15)' : 'none' }}>{o ? o.ch : ''}</div>;
+            })}
+          </div>
+        );
+      })()}
+
+      {!playing && !endClosed && (
+        <DailyEndCard
+          modal self="shards" won={won} completed
+          score={<>{finalScore}/{START} pts</>}
+          onShare={copyShare} shareLabel={copied ? 'Copied' : 'Share Result'}
+          onReplay={resetGame} onClose={() => setEndClosed(true)}
+        />
+      )}
+
+      <DuelBanner token={duelToken} info={duelInfo} submitted={duelSubmitted} />
+
+      {toast && (
+        <div style={{ position: 'fixed', left: '50%', bottom: 26, transform: 'translateX(-50%)', background: COLORS.ink, color: '#fff', fontFamily: SANS, fontWeight: 800, fontSize: 13.5, padding: '10px 18px', borderRadius: 9, zIndex: 60, boxShadow: '0 6px 18px rgba(20,22,28,0.25)', maxWidth: '86vw', textAlign: 'center' }}>{toast}</div>
+      )}
+
+      {showHelp && (
+        <div onClick={() => { setShowHelp(false); try { localStorage.setItem(HELP_KEY, '1'); } catch (e) {} }} style={{ position: 'fixed', inset: 0, background: 'rgba(20,22,28,0.55)', zIndex: 70, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16 }}>
+          <div onClick={(e) => e.stopPropagation()} style={{ width: '100%', maxWidth: 460, background: COLORS.cream, borderRadius: 12, border: `2px solid ${COLORS.ink}`, padding: '20px 22px', fontFamily: SANS, maxHeight: '86vh', overflowY: 'auto' }}>
+            <div style={{ display: 'flex', alignItems: 'center', marginBottom: 10 }}>
+              <div style={{ fontSize: 21, fontWeight: 800, color: COLORS.ink }}>How to play</div>
+              <button onClick={() => { setShowHelp(false); try { localStorage.setItem(HELP_KEY, '1'); } catch (e) {} }} aria-label="Close" style={{ marginLeft: 'auto', background: 'none', border: 'none', cursor: 'pointer', color: COLORS.faded }}><X size={20} /></button>
+            </div>
+            {rulesBody}
+            <button className="sh-btn" onClick={() => { setShowHelp(false); try { localStorage.setItem(HELP_KEY, '1'); } catch (e) {} }} style={{ marginTop: 14, background: COLORS.ink, color: '#fff' }}>Play</button>
+          </div>
+        </div>
+      )}
+
+      {showA2hsHelp && (
+        <div onClick={() => setShowA2hsHelp(false)} style={{ position: 'fixed', inset: 0, background: 'rgba(20,22,28,0.55)', zIndex: 90, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 18 }}>
+          <div onClick={(e) => e.stopPropagation()} style={{ background: '#fff', borderRadius: 14, maxWidth: 430, width: '100%', padding: '22px 22px 16px', fontFamily: SANS, border: '1.5px solid rgba(20,22,28,0.12)' }}>
+            <div style={{ fontSize: 17, fontWeight: 800, color: COLORS.ink, marginBottom: 8 }}>Add Shards to your Home Screen</div>
+            {isIosDevice() ? (
+              <ol style={{ margin: '0 0 4px', paddingLeft: 20, color: COLORS.ink, fontSize: 14, lineHeight: 1.7 }}>
+                <li>Tap the <b>Share</b> button in Safari&apos;s toolbar.</li>
+                <li>Scroll down and tap <b>Add to Home Screen</b>.</li>
+                <li>Tap <b>Add</b> - the tile opens today&apos;s grid, every day.</li>
+              </ol>
+            ) : (
+              <p style={{ margin: '0 0 4px', color: COLORS.ink, fontSize: 14, lineHeight: 1.7 }}>Open your browser&apos;s menu and choose <b>Add to Home Screen</b> (or <b>Install app</b>). The tile opens today&apos;s grid, every day.</p>
+            )}
+            <button onClick={() => setShowA2hsHelp(false)} style={{ marginTop: 10, fontFamily: SANS, fontSize: 12.5, letterSpacing: '0.05em', textTransform: 'uppercase', fontWeight: 700, height: 44, width: '100%', borderRadius: 10, border: 'none', background: COLORS.ink, color: '#fff', cursor: 'pointer' }}>Got it</button>
+          </div>
+        </div>
+      )}
+
+      {/* About Shards - crawlable prose */}
+      <section style={{ display: focusMode ? 'none' : 'block', position: 'relative', zIndex: 2, maxWidth: 640, margin: '0 auto', padding: '10px 24px 42px', fontFamily: SANS }}>
+        <h2 style={{ margin: '0 0 8px', fontSize: 15, fontWeight: 800, letterSpacing: '-0.01em', color: COLORS.ink }}>About Shards</h2>
+        <p style={{ margin: '0 0 8px', fontSize: 13, lineHeight: 1.65, color: COLORS.faded, fontWeight: 600 }}>
+          Shards is a free daily word game from Source of Truths, a jigsaw crossword. The grid arrives already solved but shattered into lettered puzzle pieces, and you reassemble it so that every across and down run of two or more letters is a real word. There are no clues. The letters are the clues, and the shapes are how you fit them back together.
+        </p>
+        <p style={{ margin: '0 0 8px', fontSize: 13, lineHeight: 1.65, color: COLORS.faded, fontWeight: 600 }}>
+          Every day&rsquo;s pieces have exactly one valid reassembly, checked by a solver before it ships, so there is always a single right answer to find. Pieces never rotate or flip. Drag them onto the grid or tap to place, move them as often as you like, and lean on three optional hints when you are stuck. You start at {START} and finish the moment the last word clicks into place.
+        </p>
+        <p style={{ margin: 0, fontSize: 13, lineHeight: 1.65, color: COLORS.faded, fontWeight: 600 }}>
+          A fresh grid lands every day at midnight Eastern, with a larger Sunday Edition. No app, no signup, play free in your browser, keep a streak, and race the daily leaderboard. More dailies: <a href="/emcee" style={{ color: COLORS.ink, fontWeight: 800 }}>Emcee</a>, our mini crossword, <a href="/tuck" style={{ color: COLORS.ink, fontWeight: 800 }}>Tuck</a>, our tile-tucking game, and <a href="/crux" style={{ color: COLORS.ink, fontWeight: 800 }}>Crux</a>, our clueless crossword.
+        </p>
+      </section>
+
+      <div style={{ display: focusMode ? 'none' : 'block', position: 'relative', zIndex: 2 }}><Footer /></div>
+    </div>
+  );
+}
+
+function hintsCost(used, HINTS) { let s = 0; for (let i = 0; i < used; i++) s += HINTS[i] || 0; return s; }
+function tintBg(hex) {
+  // soft tint of the shard color for a placed cell background
+  const h = hex.replace('#', '');
+  const r = parseInt(h.slice(0, 2), 16), g = parseInt(h.slice(2, 4), 16), b = parseInt(h.slice(4, 6), 16);
+  const mix = (x) => Math.round(x + (255 - x) * 0.72);
+  return `rgb(${mix(r)},${mix(g)},${mix(b)})`;
+}

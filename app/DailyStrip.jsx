@@ -58,6 +58,7 @@ import { hasSundayEdition, isSundayET, SUNDAY_SHORT } from '../lib/sunday-editio
 const GAMES = [
   { key: 'crux', href: '/crux', name: 'Crux', img: '/games/btn-crux.png', store: 'sot_crux_day', tag: "A clueless crossword" , cat: 'Word' },
   { key: 'emcee', href: '/emcee', name: 'Emcee', img: '/games/btn-emcee.png', store: 'sot_emcee_day', tag: "The daily mini crossword" , cat: 'Word' },
+  { key: 'shards', href: '/shards', name: 'Shards', img: '/games/btn-shards.png', store: 'sot_shards_day', tag: "Reassemble the crossword" , cat: 'Word' },
   { key: 'garble', href: '/garble', name: 'Garble', img: '/games/btn-garble.png', store: 'sot_garble_day', tag: "Untangle five words" , cat: 'Word' },
   { key: 'links', href: '/links', name: 'Links', img: '/games/btn-links.png', store: 'sot_links_day', tag: "Four hidden threads" , cat: 'Word' },
   { key: 'span', href: '/span', name: 'Span', img: '/games/btn-span.png', store: 'sot_span_day', tag: "Cross the map" , cat: 'Geography' },
@@ -83,7 +84,7 @@ const NAME_BY_KEY = GAMES.reduce((m, g) => { m[g.key] = g.name; return m; }, {})
 // Recent Champions list length (yesterday plus the prior days). Kept short so
 // the left column never runs past the per-game minis beside it.
 const CHAMPION_DAYS = 3;
-const ACCENTS = { crux: '#5b9bff', emcee: '#e879f9', garble: '#f0c95a', links: '#4ca878', span: '#e06aa0', dating: '#a483f0', tally: '#4cb377', suds: '#f0894c', circa: '#38b6cf', extra: '#e06a6a', carve: '#a483f0', stet: '#41b1e8', outwit: '#c3cfe3', tuck: '#e0a568', alibi: '#ef8896', cipher: '#3fc9b8', ping: '#4cb3f0', warmer: '#f3705c', jester: '#a78bfa', outrank: '#8b8af5', sworn: '#f472b6' };
+const ACCENTS = { crux: '#5b9bff', emcee: '#e879f9', garble: '#f0c95a', links: '#4ca878', span: '#e06aa0', dating: '#a483f0', tally: '#4cb377', suds: '#f0894c', circa: '#38b6cf', extra: '#e06a6a', carve: '#a483f0', stet: '#41b1e8', outwit: '#c3cfe3', tuck: '#e0a568', alibi: '#ef8896', cipher: '#3fc9b8', ping: '#4cb3f0', warmer: '#f3705c', jester: '#a78bfa', outrank: '#8b8af5', sworn: '#f472b6', shards: '#2dd4bf' };
 
 function etToday() {
   try { return new Date().toLocaleDateString('en-CA', { timeZone: 'America/New_York' }); }
@@ -188,6 +189,7 @@ export default function DailyStrip({ board = null }) {
   // from the grid; the trailing Play-all cell keeps the grid at full slots.
   const nextGame = games.find((g) => !done.has(g.key)) || null;
   const cellGames = nextGame ? games.filter((g) => g.key !== nextGame.key) : games;
+  const cellCols = Math.max(1, Math.ceil(cellGames.length / 2));
 
   // ── leaderboard wiring (only when a board payload is provided) ──
   const bgames = board && Array.isArray(board.games) ? board.games : null;
@@ -324,11 +326,11 @@ export default function DailyStrip({ board = null }) {
         .dstrip-hero .hd-play:hover{background:#d49a2a;}
         .dstrip-hero .hd-all{flex:1;display:flex;align-items:center;justify-content:center;gap:5px;border:1px solid #2b4270;color:#eaf0fb;font-size:10.5px;font-weight:800;border-radius:8px;padding:7px 6px;text-decoration:none;transition:background .12s;}
         .dstrip-hero .hd-all:hover{background:rgba(91,139,255,0.14);}
-        /* 20 slots in a 2-row × 10-column grid; the cap and hero span both rows */
-        .dstrip-cells{display:grid;grid-template-columns:repeat(10,minmax(72px,1fr));grid-auto-rows:1fr;flex:1 1 auto;min-width:0;}
+        /* game tiles in a 2-row grid; columns scale with the game count, the cap and hero span both rows */
+        .dstrip-cells{display:grid;grid-template-columns:repeat(${cellCols},minmax(72px,1fr));grid-auto-rows:1fr;flex:1 1 auto;min-width:0;}
         .dstrip-cell{position:relative;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:5px;padding:13px 6px 9px;text-decoration:none;border-left:1px solid rgba(255,255,255,0.055);transition:background .12s;}
-        .dstrip-cell:nth-child(10n+1){border-left:none;}
-        .dstrip-cell:nth-child(n+11){border-top:1px solid rgba(255,255,255,0.055);}
+        .dstrip-cell:nth-child(${cellCols}n+1){border-left:none;}
+        .dstrip-cell:nth-child(n+${cellCols + 1}){border-top:1px solid rgba(255,255,255,0.055);}
         .dstrip-cell:hover{background:rgba(91,139,255,0.14);}
         .dstrip-acc{position:absolute;top:0;left:0;right:0;height:3px;opacity:.85;pointer-events:none;}
         .dstrip-cell.done .dstrip-acc{opacity:.3;}
@@ -574,12 +576,7 @@ export default function DailyStrip({ board = null }) {
                 </a>
               );
             })}
-            {nextGame ? (
-              <a href="/daily" className="dstrip-cell playall" aria-label={`See all daily games — ${left} left today`}>
-                <span className="pa-ic" aria-hidden="true"><Play size={12} strokeWidth={2.2} /></span>
-                <span className="nm">See all · {left} left</span>
-              </a>
-            ) : null}
+            {/* The former "See all" tile is now a real game tile (Shards); every daily game renders in the grid. */}
           </div>
         </div>
         {hasBoard && open ? (

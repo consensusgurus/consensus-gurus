@@ -23,6 +23,7 @@ import { hasSundayEdition, isSundayET, SUNDAY_SHORT } from '../lib/sunday-editio
 const GAMES = [
   { key: 'crux', href: '/crux', name: 'Crux', tag: 'A clueless crossword', img: '/games/btn-crux.png' },
   { key: 'emcee', href: '/emcee', name: 'Emcee', tag: 'The daily mini crossword', img: '/games/btn-emcee.png' },
+  { key: 'shards', href: '/shards', name: 'Shards', tag: 'Reassemble the crossword', img: '/games/btn-shards.png' },
   { key: 'garble', href: '/garble', name: 'Garble', tag: 'Untangle five words', img: '/games/btn-garble.png' },
   { key: 'links', href: '/links', name: 'Links', tag: 'Four hidden threads', img: '/games/btn-links.png' },
   { key: 'span', href: '/span', name: 'Span', tag: 'Cross the map', img: '/games/btn-span.png' },
@@ -49,7 +50,7 @@ const GAMES_BY_KEY = Object.fromEntries(GAMES.map((g) => [g.key, g]));
 // Within each group the order is popularity (yesterday's plays), same as
 // everywhere else.
 const CATEGORIES = [
-  { key: 'word', label: 'Word', keys: ['crux', 'emcee', 'garble', 'links', 'stet', 'tuck', 'warmer'] },
+  { key: 'word', label: 'Word', keys: ['crux', 'emcee', 'shards', 'garble', 'links', 'stet', 'tuck', 'warmer'] },
   { key: 'history', label: 'History', keys: ['dating', 'extra'] },
   { key: 'geography', label: 'Geography', keys: ['span', 'ping'] },
   { key: 'numbers', label: 'Numbers', keys: ['tally', 'suds', 'carve', 'cipher'] },

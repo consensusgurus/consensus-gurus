@@ -15,6 +15,7 @@ const MONO = "'DM Mono', ui-monospace, 'SFMono-Regular', monospace";
 export const DAILY_GAMES = [
   { key: 'crux', href: '/crux', name: 'Crux', tag: 'a clueless crossword', store: 'sot_crux_day', accent: '#2563eb', bg: '#eef4ff', border: 'rgba(37,99,235,0.35)' },
   { key: 'emcee', href: '/emcee', name: 'Emcee', tag: 'the daily mini crossword', store: 'sot_emcee_day', accent: '#c026d3', bg: '#fbeefc', border: 'rgba(192,38,211,0.4)' },
+  { key: 'shards', href: '/shards', name: 'Shards', tag: 'reassemble the shattered crossword', store: 'sot_shards_day', accent: '#0d9488', bg: '#d9f0ee', border: 'rgba(13,148,136,0.4)' },
   { key: 'garble', href: '/garble', name: 'Garble', tag: 'five garbled words, one clued finale', store: 'sot_garble_day', accent: '#8a6d1a', bg: '#fdf6e3', border: 'rgba(230,185,63,0.6)' },
   { key: 'links', href: '/links', name: 'Links', tag: 'sixteen words, four hidden threads', store: 'sot_links_day', accent: '#166534', bg: '#eefaf1', border: 'rgba(90,169,106,0.5)' },
   { key: 'span', href: '/span', name: 'Span', tag: 'cross the map, border by border', store: 'sot_span_day', accent: '#9d174d', bg: '#fdf0f6', border: 'rgba(217,99,153,0.45)' },

@@ -536,5 +536,98 @@ if (RUN('outrank')) {
   }
 }
 
+
+// ─── SHARDS ───────────────────────────────────────────────────────────────────
+// Proves each daily jigsaw puzzle has EXACTLY ONE reassembly whose every across/
+// down run of 2+ letters is a dictionary word, and that the unique tiling equals
+// the intended solution encoded in the shard coordinates. Same dict the client
+// validates against (public/tuck-dict.txt). Structural checks: square grid,
+// shards tile the fillable cells exactly (no overlap, none on a block), each
+// shard 3-6 cells, 5-10 shards.
+if (RUN('shards')) {
+  const { PUZZLES } = await import('../app/shards/puzzles.js');
+  const enumerate = (shards, fillCells, n, cap = 3, nodecap = 3000000) => {
+    const fset = new Set(fillCells.map(([r, c]) => r * 100 + c));
+    const isFill = (r, c) => fset.has(r * 100 + c);
+    const order = [...fillCells].sort((a, b) => a[0] - b[0] || a[1] - b[1]);
+    const key = (r, c) => r * 100 + c;
+    const cover = new Map(); const used = new Array(shards.length).fill(false);
+    const valid = new Set(); const shape = new Set(); let nodes = 0;
+    const firstUncovered = () => { for (const [r, c] of order) if (!cover.has(key(r, c))) return [r, c]; return null; };
+    const runsValid = () => {
+      const G = Array.from({ length: n }, () => Array(n).fill('#'));
+      for (const [k, v] of cover) { G[Math.floor(k / 100)][k % 100] = v[1].toLowerCase(); }
+      const chk = (w) => w.length < 2 || dict.has(w.toLowerCase());
+      for (let r = 0; r < n; r++) { let c = 0; while (c < n) { if (G[r][c] !== '#') { let w = ''; while (c < n && G[r][c] !== '#') { w += G[r][c]; c++; } if (!chk(w)) return null; } else c++; } }
+      for (let c = 0; c < n; c++) { let r = 0; while (r < n) { if (G[r][c] !== '#') { let w = ''; while (r < n && G[r][c] !== '#') { w += G[r][c]; r++; } if (!chk(w)) return null; } else r++; } }
+      return G.map((row) => row.join('')).join('/');
+    };
+    const rec = () => {
+      if (valid.size >= cap && shape.size >= cap) return;
+      if (++nodes > nodecap) return;
+      const tgt = firstUncovered();
+      if (!tgt) {
+        let sg = ''; for (const [r, c] of order) sg += cover.get(key(r, c))[2] + ',';
+        shape.add(sg);
+        const g = runsValid(); if (g) valid.add(g);
+        return;
+      }
+      const [tr, tc] = tgt;
+      for (let i = 0; i < shards.length; i++) {
+        if (used[i]) continue;
+        for (const [dr, dc] of shards[i].offs) {
+          const otr = tr - dr, otc = tc - dc; const placed = []; let okp = true;
+          for (const [odr, odc, och] of shards[i].offs) {
+            const rr = otr + odr, cc = otc + odc;
+            if (!isFill(rr, cc) || cover.has(key(rr, cc))) { okp = false; break; }
+            placed.push([rr, cc, och]);
+          }
+          if (!okp) continue;
+          for (const [rr, cc, och] of placed) cover.set(key(rr, cc), [i, och, shards[i].sig]);
+          used[i] = true; rec(); used[i] = false;
+          for (const [rr, cc] of placed) cover.delete(key(rr, cc));
+          if (nodes > nodecap) return;
+        }
+      }
+    };
+    rec();
+    return { valid, shape, nodes };
+  };
+  for (const p of PUZZLES) {
+    const errs = []; const n = p.rows;
+    if (p.rows !== p.cols) errs.push('non-square grid');
+    const blockset = new Set((p.blocks || []).map(([r, c]) => r * 100 + c));
+    const intended = new Map(); const cov = new Set();
+    const shards = (p.shards || []).map((sh) => {
+      const rs = sh.cells.map((c) => c[0]), cs = sh.cells.map((c) => c[1]);
+      const mr = Math.min(...rs), mc = Math.min(...cs);
+      const offs = sh.cells.map(([r, c, ch]) => [r - mr, c - mc, ch]);
+      if (sh.cells.length < 3 || sh.cells.length > 6) errs.push(`shard of ${sh.cells.length} cells (want 3-6)`);
+      for (const [r, c, ch] of sh.cells) {
+        const k = r * 100 + c;
+        if (blockset.has(k)) errs.push(`shard cell on a block at ${r},${c}`);
+        if (cov.has(k)) errs.push(`shard overlap at ${r},${c}`);
+        cov.add(k); intended.set(k, ch.toLowerCase());
+      }
+      const sig = offs.map((o) => o[0] + ':' + o[1]).sort().join('|');
+      return { offs, sig };
+    });
+    const fillCells = [];
+    for (let r = 0; r < n; r++) for (let c = 0; c < n; c++) if (!blockset.has(r * 100 + c)) fillCells.push([r, c]);
+    if (fillCells.length !== cov.size) errs.push(`shards cover ${cov.size} of ${fillCells.length} fillable cells`);
+    if (p.shards.length < 5 || p.shards.length > 10) errs.push(`${p.shards.length} shards (want 5-10)`);
+    if (!errs.length) {
+      const { valid, shape, nodes } = enumerate(shards, fillCells, n);
+      const G = Array.from({ length: n }, () => Array(n).fill('#'));
+      for (const [k, v] of intended) G[Math.floor(k / 100)][k % 100] = v;
+      const intendedStr = G.map((r) => r.join('')).join('/');
+      if (valid.size !== 1) errs.push(`NOT UNIQUE: ${valid.size} valid reassemblies`);
+      else if (!valid.has(intendedStr)) errs.push('unique reassembly does not match the intended solution');
+      else { ok(p.quizId, `${p.shards.length} shards, unique reassembly${shape.size >= 2 ? ` (trap: ${shape.size} geometric tilings)` : ''}`); continue; }
+    }
+    fail(p.quizId, errs.join('; '));
+  }
+}
+
 console.log(BAD ? `\n${BAD} FAILURE(S)` : '\nAll requested banks verified.');
 process.exit(BAD ? 1 : 0);

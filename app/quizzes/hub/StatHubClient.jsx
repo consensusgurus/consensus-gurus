@@ -962,6 +962,7 @@ const DAILY_GAME_META = {
   warmer: { name: 'Warmer', c: '#dc2626', href: '/warmer', tag: 'Hotter or colder' },
   jester: { name: 'Jesters', c: '#7c3aed', href: '/jester', tag: 'Seat the court' },
   sworn: { name: 'Sworn', c: '#be185d', href: '/sworn', tag: 'Spot the liars' },
+  shards: { name: 'Shards', c: '#0d9488', href: '/shards', tag: 'Reassemble the crossword' },
 };
 
 function fmtPts1(n) {

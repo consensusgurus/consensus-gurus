@@ -37,7 +37,7 @@ import React, { useState, useEffect } from 'react';
 import {
   Type, Clock, Globe, Hash, Share2, BarChart3, RotateCcw, Check, X,
   Trophy, Link2, Flag, CalendarCheck, Scale, Grid3x3, LayoutGrid, Newspaper, FlagTriangleRight,
-  Pencil, Users, ArrowRight, Puzzle, Fingerprint, KeyRound, Thermometer, Crown, ListOrdered,
+  Pencil, Users, ArrowRight, Puzzle, Blocks, Fingerprint, KeyRound, Thermometer, Crown, ListOrdered,
   CalendarDays, ChevronLeft, ChevronRight, ChevronDown, CheckCircle2, UserPlus,
 } from 'lucide-react';
 import { myRefCode } from '@/lib/referrals';
@@ -50,7 +50,7 @@ const RUST = '#c0392b';
 // "still to play" list for their first FOUR days so players actually meet
 // them; after `until` (ET, inclusive) the canonical order resumes. Keep in
 // sync with the same pin in app/api/quiz/daily-order/route.js.
-const LAUNCH_PIN = { keys: ['outrank'], until: '2026-07-24' };
+const LAUNCH_PIN = { keys: ['shards'], until: '2026-07-27' };
 function etTodayEC() {
   try { return new Date().toLocaleDateString('en-CA', { timeZone: 'America/New_York' }); }
   catch (e) { return new Date().toISOString().slice(0, 10); }
@@ -90,6 +90,7 @@ export const GAME_META = {
   jester: { accent: '#7c3aed', badgeBg: '#7c3aed', badgeInk: '#fff', Fin: Crown },
   sworn:  { accent: '#be185d', badgeBg: '#be185d', badgeInk: '#fff', Fin: Scale },
   outrank: { accent: '#4338ca', badgeBg: '#4338ca', badgeInk: '#fff', Fin: ListOrdered },
+  shards: { accent: '#0d9488', badgeBg: '#0d9488', badgeInk: '#fff', Fin: Blocks },
 };
 
 // ---- the five families (type label + color shown on each tile/header) -------
@@ -104,11 +105,12 @@ export const CAT_META = {
 // Family render order for the "more games" grid.
 const CAT_ORDER = ['word', 'numbers', 'crowd', 'logic', 'history', 'geography'];
 
-// ---- the daily slate (20 games) --------------------------------------------
+// ---- the daily slate (21 games) --------------------------------------------
 // Canonical order = the order the "still to play" tiles appear in.
 export const DAILY_GAMES = [
   { key: 'crux',   cat: 'word',      name: 'Crux',   tag: 'A clueless crossword',      href: '/crux' },
   { key: 'emcee',  cat: 'word',      name: 'Emcee',  tag: 'The daily mini crossword',  href: '/emcee' },
+  { key: 'shards', cat: 'word',      name: 'Shards', tag: 'Reassemble the crossword',   href: '/shards' },
   { key: 'links',  cat: 'word',      name: 'Links',  tag: 'Four hidden threads',       href: '/links' },
   { key: 'garble', cat: 'word',      name: 'Garble', tag: 'Untangle five words',       href: '/garble' },
   { key: 'stet',   cat: 'word',      name: 'Stet',   tag: 'Spot the error, fix the copy',        href: '/stet' },

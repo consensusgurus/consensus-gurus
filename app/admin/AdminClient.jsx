@@ -2550,7 +2550,7 @@ function DailyGamesPanel({ data }) {
     <div>
       <SectionHeading>Daily games</SectionHeading>
       <p style={{ fontFamily: 'DM Mono, monospace', fontSize: 11, color: COLORS.faded, margin: '0 0 18px', lineHeight: 1.6 }}>
-        Every completed play of the 20 daily games (registered and anonymous), one tile per game, most-played first. Averages are per active puzzle day across all time.
+        Every completed play of the 21 daily games (registered and anonymous), one tile per game, most-played first. Averages are per active puzzle day across all time.
         {totals.today ? <span> Today is <span style={{ color: COLORS.ink }}>{dgDayLabel(totals.today)}</span>.</span> : null}
       </p>
 

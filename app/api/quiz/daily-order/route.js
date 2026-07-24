@@ -23,7 +23,7 @@ import { DAILY_KEYS } from '@/lib/daily-combined';
 // Pin these keys to the front of the order through the end date (ET,
 // inclusive). The 2026-07-18 launch wave (Jester/Sworn/Warmer/Ping/Tuck/
 // Alibi/Cipher) is pinned through 07-21.
-const LAUNCH_PIN = { keys: ['outrank'], until: '2026-07-24' };
+const LAUNCH_PIN = { keys: ['shards'], until: '2026-07-27' };
 
 export const dynamic = 'force-dynamic';
 export const fetchCache = 'force-no-store';

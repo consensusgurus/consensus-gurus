@@ -39,7 +39,7 @@ const SUN = '#b45309';
 const SUN_BG = '#fff7ed';
 
 const CATEGORIES = [
-  { key: 'word', label: 'Word', keys: ['crux', 'emcee', 'garble', 'links', 'stet', 'tuck', 'warmer'] },
+  { key: 'word', label: 'Word', keys: ['crux', 'emcee', 'shards', 'garble', 'links', 'stet', 'tuck', 'warmer'] },
   { key: 'history', label: 'History', keys: ['dating', 'extra'] },
   { key: 'geography', label: 'Geography', keys: ['span', 'ping'] },
   { key: 'numbers', label: 'Numbers', keys: ['tally', 'suds', 'carve', 'cipher'] },
@@ -55,7 +55,7 @@ const NAVY_ACCENT = {
   crux: '#5b9bff', emcee: '#e879f9', garble: '#f0c95a', links: '#4ca878', span: '#e06aa0', dating: '#a483f0',
   tally: '#4cb377', suds: '#f0894c', circa: '#38b6cf', extra: '#e06a6a', carve: '#a483f0', stet: '#41b1e8',
   outwit: '#c3cfe3', tuck: '#e0a568', alibi: '#ef8896', cipher: '#3fc9b8', ping: '#4cb3f0', warmer: '#f3705c',
-  jester: '#a78bfa', sworn: '#f472b6', outrank: '#8b8af5',
+  jester: '#a78bfa', sworn: '#f472b6', outrank: '#8b8af5', shards: '#2dd4bf',
 };
 
 const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
