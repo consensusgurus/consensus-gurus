@@ -244,7 +244,7 @@ export async function GET(request) {
 
     // Unique players who touched ANY of today's daily games, guests included:
     // distinct by account (u:<user_id>) or, for a guest, by browser (a:<anon_id>).
-    // A player who cleared five games counts once. This is the headline "N players
+    // A player who cleared ten games counts once. This is the headline "N players
     // today" number and intentionally includes non-registered guests.
     const uniqueSet = new Set();
     for (const arr of rowsByQuiz.values()) {
@@ -302,7 +302,7 @@ export async function GET(request) {
 
     // Provisional standing for a GUEST (anon browser, not on the registered
     // board): score their own anon rows into each game's field and rank the
-    // combined best-5 total against the registered board, so the end card can
+    // combined best-10 total against the registered board, so the end card can
     // tell them where they'd land if they registered. Null once registered.
     let meProvisional = null;
     if (!me && anonId) {

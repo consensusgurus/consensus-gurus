@@ -3,7 +3,7 @@ import React, { useEffect, useMemo, useState } from 'react';
 
 // Unified daily leaderboard (2026-07-16). Replaces the single-game
 // <QuizLeaderboard daily/> on every daily-game page. One "Overall" tab ranks
-// players by their best-5-of-10 daily total (0..75); one tab per game shows that
+// players by their best-10 daily total (0..150); one tab per game shows that
 // game's own board with the points it fed into the total (0..15 each).
 //
 // Self-contained: fetches /api/quiz/daily-combined itself using the identity the
@@ -153,7 +153,7 @@ export default function DailyCombinedLeaderboard({ todayKey = null, identity = n
   }, [allTimeToggle, tab, gameScope]);
 
   const myKey = data && data.me ? data.me.userKey : null;
-  const maxTotal = (data && data.maxTotal) || 75;
+  const maxTotal = (data && data.maxTotal) || 150;
   const gameMax = (data && data.gameMax) || 15;
   const gameCount = data ? (data.gameCount != null ? data.gameCount : (data.games || []).length) : null;
   const bestN = data && data.bestN != null ? data.bestN : null;
@@ -190,7 +190,7 @@ export default function DailyCombinedLeaderboard({ todayKey = null, identity = n
     : { fontFamily: FONT, background: th.card, border: `1px solid ${th.cardBorder}`, borderRadius: 16, padding: '18px 18px 16px', boxShadow: th.boxShadow };
   const subtitle = (data && gameCount)
     ? (gameCount > 1 ? `Best ${bestN} of ${gameCount} · ${maxTotal} pts max` : `${maxTotal} pts max`)
-    : 'Best 5 of 10';
+    : 'Best 10';
   const header = (
     <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', marginBottom: 13, gap: 10 }}>
       <div style={{ fontSize: 11, letterSpacing: '0.16em', textTransform: 'uppercase', color: th.label, fontWeight: th.labelWeight }}>Daily Leaderboard</div>

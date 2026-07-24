@@ -195,9 +195,9 @@ export default function DailyStrip({ board = null }) {
   if (bgames) for (const g of bgames) byKey[g.key] = g;
   const hasBoard = !!(bgames && bgames.length);
   const overall = board && Array.isArray(board.overall) ? board.overall : [];
-  const maxTotal = (board && board.maxTotal) || 75;
+  const maxTotal = (board && board.maxTotal) || 150;
   const gameCount = (board && board.gameCount) || (bgames ? bgames.length : 0);
-  const bestN = board && board.bestN != null ? board.bestN : Math.min(5, gameCount || 5);
+  const bestN = board && board.bestN != null ? board.bestN : Math.min(10, gameCount || 10);
   const meKey = board && board.me ? board.me.userKey : null;
   const top5 = overall.slice(0, 5);
   const top3 = overall.slice(0, 3);

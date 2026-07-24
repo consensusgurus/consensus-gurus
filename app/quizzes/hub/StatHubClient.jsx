@@ -1047,7 +1047,7 @@ function DailyGamesView({ onSelectPlayer }) {
                 <span style={{ textAlign: 'right', fontSize: 12.5, fontWeight: 600, color: C.muted, fontVariantNumeric: 'tabular-nums' }}>{h.field}</span>
               </div>
             ))}
-            <p style={{ fontSize: 11, color: C.soft, marginTop: 11, lineHeight: 1.5 }}>Each day{"'"}s champion is the #1 on that day{"'"}s combined board (best 5 of the day{"'"}s games). Today is still live, so it{"'"}s not crowned yet. Field is the registered players who played any daily game that day.</p>
+            <p style={{ fontSize: 11, color: C.soft, marginTop: 11, lineHeight: 1.5 }}>Each day{"'"}s champion is the #1 on that day{"'"}s combined board (best 10 of the day{"'"}s games). Today is still live, so it{"'"}s not crowned yet. Field is the registered players who played any daily game that day.</p>
           </div>
         )}
       </div>

@@ -704,7 +704,7 @@ export default function DailyArchiveClient({ games = [], today = '' }) {
             expand to flip through every game's board (compact, light). */}
         <div className="dl-sec-h" style={{ marginTop: 40 }}>
           <h2>Today&rsquo;s combined leaderboard</h2>
-          <span>best 5 of 10 · 75 max</span>
+          <span>best 10 · 150 max</span>
         </div>
         <DailyCombinedLeaderboard light compact allTimeToggle />
 

@@ -158,7 +158,7 @@ export default function DailyBoardPanel({ self, quizId = null, maxWidth = 620, s
   const todayRows = (todayGame && Array.isArray(todayGame.board)) ? todayGame.board : [];
   const allTimeRows = (allTime && Array.isArray(allTime.board)) ? allTime.board : [];
   const combinedRows = Array.isArray(overallBoard) ? overallBoard : [];
-  const maxTotal = (combined && combined.maxTotal) || 75;
+  const maxTotal = (combined && combined.maxTotal) || 150;
 
   // --- calendar month cells --------------------------------------------------
   const dropByISO = useMemo(() => new Map((drops || []).map((d) => [d.dateISO, d])), [drops]);
