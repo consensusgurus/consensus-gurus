@@ -330,7 +330,7 @@ export default function TallyClient({ puzzles = [], forceNum = null }) {
       if (v) sum += v; else empty += 1;
     }
     const tgt = isRow ? ROWT[i] : COLT[i];
-    return { sum, empty, full: empty === 0, ok: empty === 0 && sum === tgt };
+    return { sum, empty, tgt, full: empty === 0, ok: empty === 0 && sum === tgt };
   }
 
   const linesOk = (() => { let n = 0; for (let i = 0; i < N; i++) { if (lineState(i, true).ok) n++; if (lineState(i, false).ok) n++; } return n; })();
@@ -521,7 +521,7 @@ export default function TallyClient({ puzzles = [], forceNum = null }) {
     return (
       <div key={key} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', borderRadius: 13, border: `1.5px solid ${bd}`, background: bg, fontFamily: MONO, lineHeight: 1.02, padding: '2px 0', minHeight: 34 }}>
         <span style={{ fontSize: 15, fontWeight: 500, color: tc }}>{isRow ? ROWT[i] : COLT[i]}</span>
-        {!st.ok && <span style={{ fontSize: 8.5, color: '#9aa0ab' }}>{st.full ? 'over' : `now ${st.sum}`}</span>}
+        {!st.ok && <span style={{ fontSize: 8.5, color: st.full ? COLORS.amber : '#9aa0ab' }}>{st.full ? `${st.sum > st.tgt ? 'over' : 'under'} ${Math.abs(st.sum - st.tgt)}` : `now ${st.sum}`}</span>}
       </div>
     );
   }
