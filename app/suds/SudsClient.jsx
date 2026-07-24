@@ -463,14 +463,17 @@ export default function SudsClient({ puzzles = [], forceNum = null }) {
     placeDigit(idx, d, true);
   }
 
-  // number pad: arms the digit (digit-first) and, when a cell is selected, acts
-  // on it immediately (cell-first). Re-tapping the armed digit disarms it.
+  // number pad. With a cell selected it fills that cell (cell-first) and does
+  // NOT arm the digit, so classic tapping never leaves a number "stuck" active.
+  // With no cell selected it toggles the armed digit for digit-first placement,
+  // so tapping the same number again cleanly puts it down.
   function padTap(d) {
-    setArmed((a) => (a === d ? 0 : d));
     if (sel >= 0 && !givenFlat[sel]) {
       if (noteMode) toggleNote(sel, d);
       else placeDigit(sel, d, true);
+      return;
     }
+    setArmed((a) => (a === d ? 0 : d));
   }
 
   function eraseCell(idx) {
@@ -486,12 +489,15 @@ export default function SudsClient({ puzzles = [], forceNum = null }) {
 
   function cellClick(idx) {
     if (longRef.current) { longRef.current = false; return; } // long-press already penciled
-    if (armed && !givenFlat[idx]) {
-      if (noteMode) { toggleNote(idx, armed); setSel(idx); return; }
-      placeDigit(idx, armed, false);
-      setSel(idx);
+    if (armed) {
+      if (givenFlat[idx]) return; // stay in digit-first; ignore printed clues
+      // place without moving the selection, so the armed digit stays decoupled
+      // from any cell and re-tapping it on the pad puts it down cleanly
+      if (noteMode) toggleNote(idx, armed);
+      else placeDigit(idx, armed, false);
       return;
     }
+    if (idx === sel) { setSel(-1); return; } // tap the selected cell again to deselect
     setSel(idx);
   }
 
@@ -559,6 +565,7 @@ export default function SudsClient({ puzzles = [], forceNum = null }) {
     if (!playing) return;
     const k = e.key;
     if ((k === 'z' || k === 'Z') && (e.metaKey || e.ctrlKey)) { e.preventDefault(); undo(); return; }
+    if (k === 'Escape') { setArmed(0); setSel(-1); return; } // drop any picked-up number / selection
     if (k === 'n' || k === 'N') { setNoteMode((m) => !m); return; }
     if (k === 'Tab') { e.preventDefault(); const nx = nextEmpty(cells, sel < 0 ? 80 : sel); if (nx >= 0) setSel(nx); return; }
     if (sel < 0) return;
@@ -806,7 +813,7 @@ export default function SudsClient({ puzzles = [], forceNum = null }) {
           <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 12, flexWrap: 'wrap' }}>
             <span style={{ fontFamily: SANS, fontSize: 12, fontWeight: 700, color: armed ? COLORS.accent : COLORS.faded }}>
               {armed
-                ? `Placing ${armed}: tap squares to fill, long-press to pencil`
+                ? `Placing ${armed}: tap squares to fill, long-press to pencil. Tap ${armed} again to put it down.`
                 : sel >= 0
                   ? (noteMode ? 'Tap a number to pencil it in' : 'Tap a number, or pick a number then tap squares')
                   : 'Tap a square then a number, or pick a number then tap squares'}
