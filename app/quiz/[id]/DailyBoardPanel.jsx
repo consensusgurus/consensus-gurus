@@ -251,10 +251,12 @@ export default function DailyBoardPanel({ self, quizId = null, maxWidth = 620, s
         .dbp-tile.on{background:#fff;}
         .dbp-accent{position:absolute;left:0;top:0;bottom:0;width:3px;}
         .dbp-tile-lbl{font-family:${MONO};font-size:9.5px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:${SLATE};padding-right:18px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
-        .dbp-tile-rk{font-size:27px;font-weight:900;letter-spacing:-.03em;color:${INK};line-height:1.08;margin-top:4px;font-variant-numeric:tabular-nums;}
+        /* Rank number and "of N" share ONE baseline-aligned line (of N to the
+           right of the number) to reclaim vertical space and fill the tile width. */
+        .dbp-tile-rk{font-size:27px;font-weight:900;letter-spacing:-.03em;color:${INK};line-height:1.05;margin-top:4px;font-variant-numeric:tabular-nums;display:inline-block;vertical-align:baseline;}
         .dbp-tile-rk .prov{font-size:11px;font-weight:700;color:${FADED};}
         .dbp-tile-rk .dash{color:#c2c8d2;}
-        .dbp-tile-of{font-size:11px;color:${FADED};margin-top:1px;}
+        .dbp-tile-of{font-size:11px;color:${FADED};display:inline-block;vertical-align:baseline;margin-left:6px;}
         .dbp-tile-cx{position:absolute;top:11px;right:9px;color:${SLATE};transition:transform .15s ease;pointer-events:none;}
 
         .dbp-board{border:1px solid ${BORD};border-radius:12px;padding:11px 13px 10px;margin-top:11px;background:#fff;}
