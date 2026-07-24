@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server';
 import { supabaseAdmin } from '@/lib/supabase-server';
 import { loadQuizResultsCached } from '@/lib/quiz-results-cache';
 import { findQuizIdentity } from '@/lib/quiz-identity';
-import { scoreGame, combineDaily, guestProvisional, DAILY_KEYS, DAILY_MAX, GAME_MAX, BEST_N } from '@/lib/daily-combined';
+import { scoreGame, combineDaily, guestProvisional, DAILY_KEYS, DAILY_MAX, GAME_MAX, bestNForSuffix } from '@/lib/daily-combined';
 import { scoreOutwitGame } from '@/lib/outwit-score';
 import { scoreOutrankGame } from '@/lib/outrank-score';
 
@@ -222,7 +222,9 @@ export async function GET(request) {
   const wanted = new Set(games.map((g) => g.quizId));
   // Best-N and the ceiling scale to how many games existed that day (1..10).
   const gameCount = games.length;
-  const effBestN = gameCount ? Math.min(BEST_N, gameCount) : BEST_N;
+  // best-N is per-day: best 10 from the 2026-07-24 slate on, best 5 before.
+  const dayBestN = bestNForSuffix(suffix);
+  const effBestN = gameCount ? Math.min(dayBestN, gameCount) : dayBestN;
   const maxTotal = effBestN * GAME_MAX;
 
   const empty = { date: suffix, maxTotal, gameMax: GAME_MAX, bestN: effBestN, gameCount, uniquePlayers: 0, games: [], overall: [], me: null, meProvisional: null };
@@ -288,7 +290,7 @@ export async function GET(request) {
       return { key: g.key, quizId: g.quizId, num: g.num, rev: g.rev, href: g.href, field: gr.field, plays: gameRows.length, players: gr.players };
     });
 
-    const overallFull = combineDaily(gameResults);
+    const overallFull = combineDaily(gameResults, dayBestN);
 
     // Resolve the viewer so we can always surface THEIR standing, even outside
     // the top DISPLAY. email -> account, else this browser's anon.
@@ -311,7 +313,7 @@ export async function GET(request) {
         const gr = chooseGuestRow(rowsByQuiz.get(g.quizId) || [], anonId);
         if (gr) guestByGame.set(g.key, gr);
       }
-      if (guestByGame.size) meProvisional = guestProvisional(guestByGame, gameResults, overallFull);
+      if (guestByGame.size) meProvisional = guestProvisional(guestByGame, gameResults, overallFull, dayBestN);
     }
 
     // Per-game display boards (top BOARD by that game's own rank).

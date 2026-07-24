@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import { supabaseAdmin } from '@/lib/supabase-server';
 import { loadQuizResultsCached } from '@/lib/quiz-results-cache';
-import { scoreGame, combineDaily, DAILY_KEYS, GAME_MAX, BEST_N } from '@/lib/daily-combined';
+import { scoreGame, combineDaily, DAILY_KEYS, GAME_MAX, bestNForSuffix } from '@/lib/daily-combined';
 
 export const dynamic = 'force-dynamic';
 export const fetchCache = 'force-no-store';
@@ -90,10 +90,11 @@ export async function GET() {
         gameResults.push({ key, quizId: `${key}-${suffix}`, field: gr.field, players: gr.players });
       }
       if (!gameResults.length) continue;
-      const overall = combineDaily(gameResults);
+      const dayBestN = bestNForSuffix(suffix);
+      const overall = combineDaily(gameResults, dayBestN);
       if (!overall.length) continue;
       const gameCount = gameResults.length;
-      const maxTotal = Math.min(BEST_N, gameCount) * GAME_MAX;
+      const maxTotal = Math.min(dayBestN, gameCount) * GAME_MAX;
       const w = overall[0];
       const ru = overall[1] || null;
       const { iso, label } = parseSuffix(suffix);
