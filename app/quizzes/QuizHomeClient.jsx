@@ -1928,7 +1928,7 @@ export default function QuizHomeClient() {
                     <span style={{ fontSize: 9.5, fontWeight: 800, letterSpacing: '.06em', color: C.soft, textTransform: 'uppercase' }}>Recent plays</span>
                     <span style={{ marginLeft: 'auto', fontSize: 10, fontWeight: 700, color: C.soft }}>ring = score · beat = vs all</span>
                   </div>
-                  <div style={{ flex: 1 }}>
+                  <div style={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
                     {lpRows.map((f) => {
                       const dc = DEPT_COLOR[deptById[f.quizId]] || DEPT_COLOR.misc;
                       const fam = gameFamily(f.quizId);
@@ -1940,7 +1940,7 @@ export default function QuizHomeClient() {
                       const ringCol = frac >= 0.8 ? '#16a34a' : (frac >= 0.4 ? C.cta : '#dc2626');
                       const good = frac >= 0.8;
                       return (
-                        <Link href={`/quiz/${f.quizId}`} className="qrow" key={f.quizId} title={f.title} style={{ alignItems: 'center', gap: 10, padding: '4px 11px' }}>
+                        <Link href={`/quiz/${f.quizId}`} className="qrow" key={f.quizId} title={f.title} style={{ alignItems: 'center', gap: 10, padding: '0 11px', flex: '1 1 0', minHeight: 0 }}>
                           <span style={{ width: 30, height: 30, flex: 'none', borderRadius: 999, background: `conic-gradient(${ringCol} ${pctScore}%, #eef1f6 0)`, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                             <span style={{ width: 23, height: 23, borderRadius: 999, background: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 8, fontWeight: 800, color: C.ink }}>{pctScore}%</span>
                           </span>
