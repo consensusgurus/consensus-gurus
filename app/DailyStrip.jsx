@@ -381,6 +381,8 @@ export default function DailyStrip({ board = null }) {
         .dstrip-tip .tip-cat{font-size:8px;font-weight:800;letter-spacing:.12em;text-transform:uppercase;color:#8fa3cf;}
         .dstrip-tip .tip-fl{display:flex;align-items:center;gap:3px;color:#f8b84a;font-size:9.5px;font-weight:800;}
         .dstrip-cell:hover .dstrip-tip,.dstrip-cell:focus-visible .dstrip-tip{opacity:1;}
+        /* done tiles keep the rank/streak pill on hover, so top-align the tip text and reserve room below it to avoid colliding with the pill */
+        .dstrip-cell.done .dstrip-tip{justify-content:flex-start;padding-top:11px;padding-bottom:26px;}
         @media (hover:none){.dstrip-tip{display:none;}}
         /* expanded detail: attached inside the same pill */
         .dsd{border-top:1px solid rgba(232,180,58,0.28);background:#0b1733;padding:16px 16px 14px;}
