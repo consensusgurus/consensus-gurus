@@ -681,10 +681,12 @@ export default function DailyEndCard({
         .dec-tile:hover{background:#fff;border-color:#cfd6e2;}
         .dec-tile.open{border-color:${BLUE};box-shadow:0 0 0 1px ${BLUE};background:#fff;}
         .dec-tile-lbl{font-family:${MONO};font-size:9.5px;font-weight:500;letter-spacing:.1em;text-transform:uppercase;color:${SLATE};padding-right:22px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
-        .dec-tile-rk{font-size:23px;font-weight:800;letter-spacing:-.02em;color:${INK};line-height:1.15;margin-top:3px;}
+        /* Rank number and "of N" share ONE baseline-aligned line (of N to the
+           right of the number) to reclaim vertical space and fill the tile width. */
+        .dec-tile-rk{font-size:23px;font-weight:800;letter-spacing:-.02em;color:${INK};line-height:1.1;margin-top:3px;display:inline-block;vertical-align:baseline;}
         .dec-tile-rk .prov{font-size:11px;font-weight:700;color:${FADED};}
         .dec-tile-rk .dash{color:#c2c8d2;}
-        .dec-tile-of{font-size:11.5px;color:${FADED};}
+        .dec-tile-of{font-size:11.5px;color:${FADED};display:inline-block;vertical-align:baseline;margin-left:6px;}
         .dec-tile-mx{position:absolute;top:7px;right:6px;width:20px;height:20px;display:flex;align-items:center;justify-content:center;color:${SLATE};pointer-events:none;}
         .dec-tile.open .dec-tile-mx,.dec-tile:hover .dec-tile-mx{color:${BLUE};}
 
