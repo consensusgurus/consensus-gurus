@@ -60,6 +60,7 @@ export async function GET() {
     const recent7 = {};
     const recent12h = {};
     const todayByQuiz = {};
+    const todayAgg = {};
     const now = Date.now();
     const cutoff7 = now - 7 * 24 * 60 * 60 * 1000;
     const cutoff12h = now - 12 * 60 * 60 * 1000;
@@ -89,7 +90,7 @@ export async function GET() {
         const t = new Date(r.created_at).getTime();
         if (t >= cutoff7) recent7[r.quiz_id] = (recent7[r.quiz_id] || 0) + 1;
         if (t >= cutoff12h) recent12h[r.quiz_id] = (recent12h[r.quiz_id] || 0) + 1;
-        if (t >= cutoffToday) { today += 1; todayByQuiz[r.quiz_id] = (todayByQuiz[r.quiz_id] || 0) + 1; if (Number.isFinite(te) && te > 0) todayTime += te; }
+        if (t >= cutoffToday) { today += 1; todayByQuiz[r.quiz_id] = (todayByQuiz[r.quiz_id] || 0) + 1; if (Number.isFinite(te) && te > 0) todayTime += te; if (r.total > 0) { let a = todayAgg[r.quiz_id]; if (!a) { a = { plays: 0, sumFrac: 0, perfect: 0 }; todayAgg[r.quiz_id] = a; } a.plays += 1; a.sumFrac += (Number(r.score) || 0) / Number(r.total); if (Number(r.score) === Number(r.total)) a.perfect += 1; } }
         const idx = Math.floor((now - t) / bucketMs);
         if (idx >= 0 && idx < TREND_MAX_BUCKETS) {
           let arr = buckets.get(r.quiz_id);
@@ -147,7 +148,22 @@ export async function GET() {
         .slice(0, 3)
         .map(([name]) => name);
     }
-    return NextResponse.json({ total: rows.length, today, totalCorrect, totalPerfect, totalTime, todayTime, byQuiz, recent7, recent12h, todayByQuiz, trendingByQuiz, trendingWindowH, leaders, leaderKeys, topLeaders }, { headers: CACHE_HEADERS });
+    // Toughest quiz TODAY: lowest average score fraction among quizzes with a
+    // real sample of today's plays (>= 8, relax to 4, then 1). Anonymous.
+    let toughest = null;
+    for (const th of [8, 4, 1]) {
+      let best = null;
+      for (const qid of Object.keys(todayAgg)) {
+        const a = todayAgg[qid];
+        if (a.plays < th) continue;
+        const avgFrac = a.sumFrac / a.plays;
+        if (!best || avgFrac < best.avgFrac || (avgFrac === best.avgFrac && a.plays > best.plays)) {
+          best = { quizId: qid, avgFrac, aceRate: a.perfect / a.plays, plays: a.plays };
+        }
+      }
+      if (best) { toughest = best; break; }
+    }
+    return NextResponse.json({ total: rows.length, today, totalCorrect, totalPerfect, totalTime, todayTime, byQuiz, recent7, recent12h, todayByQuiz, trendingByQuiz, trendingWindowH, leaders, leaderKeys, topLeaders, toughest }, { headers: CACHE_HEADERS });
   } catch (e) {
     return NextResponse.json({ total: 0, byQuiz: {}, recent7: {}, recent12h: {}, trendingByQuiz: {}, trendingWindowH: 0, leaders: {} });
   }

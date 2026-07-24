@@ -361,7 +361,7 @@ export default function QuizHomeClient() {
     else { lastTapRef.current = { k, t: now }; }
   };
 
-  const [totals, setTotals] = useState({ byQuiz: {}, recent7: {}, leaders: {}, leaderKeys: {}, today: 0, todayByQuiz: {} });
+  const [totals, setTotals] = useState({ byQuiz: {}, recent7: {}, leaders: {}, leaderKeys: {}, today: 0, todayByQuiz: {}, todayTime: 0, toughest: null });
   const [xpBoard, setXpBoard] = useState([]); // [{rank,name,isAnon,userKey}]
   const [xpScope, setXpScope] = useState('all');
   const [catBoards, setCatBoards] = useState({}); // { dept: [{rank,name,isAnon,userKey,rating}] } for the "Top Rated <Category>" slides
@@ -523,7 +523,7 @@ export default function QuizHomeClient() {
   // ── data loads ──
   useEffect(() => {
     fetch('/api/quiz/totals').then((r) => r.json()).then((d) => {
-      if (d && !d.error) setTotals({ byQuiz: d.byQuiz || {}, recent7: d.recent7 || {}, leaders: d.leaders || {}, leaderKeys: d.leaderKeys || {}, today: d.today || 0, todayByQuiz: d.todayByQuiz || {} });
+      if (d && !d.error) setTotals({ byQuiz: d.byQuiz || {}, recent7: d.recent7 || {}, leaders: d.leaders || {}, leaderKeys: d.leaderKeys || {}, today: d.today || 0, todayByQuiz: d.todayByQuiz || {}, todayTime: d.todayTime || 0, toughest: d.toughest || null });
     }).catch(() => {});
     fetch('/api/quiz/recent').then((r) => r.json()).then((d) => {
       if (d && Array.isArray(d.plays)) setRecent(d.plays);
@@ -1874,12 +1874,68 @@ export default function QuizHomeClient() {
                 their icon banner via heroFor(). */}
             {(() => {
               const lpHero = lpTop ? heroFor(lpTop.quizId, deptById[lpTop.quizId]) : null;
+              const heroUrl = lpHero ? lpHero.src : undefined;
+              const heroPos = lpHero ? lpHero.pos : undefined;
+              const heroPlaysN = lpTop ? plays(lpTop.quizId) : 0;
+              const hot = trending;
+              const tough = (totals.toughest && titleById[totals.toughest.quizId]) ? totals.toughest : null;
+              const fmtT = (v) => { const x = Math.round(v || 0); const h = Math.floor(x / 3600); const m = Math.round((x % 3600) / 60); return h > 0 ? `${h}h ${m}m` : `${m}m`; };
+              const lpRows = lastPlayed.filter((f) => !lpTop || f.quizId !== lpTop.quizId).slice(0, 4);
               return (
-                <BrowseColumn label={<>Last Played{playsToday ? <span style={{ fontSize: 10.5, fontWeight: 700, color: 'rgba(255,255,255,0.82)' }}> · {playsToday.toLocaleString()} plays today</span> : null}</>} Icon={Play} color="#10b981" tint="#d8f3e6" filled fill baseCount={5}
-                  heroUrl={lpHero ? lpHero.src : undefined} heroPos={lpHero ? lpHero.pos : undefined}
-                  heroId={lpTop ? lpTop.quizId : undefined} heroTitle={lpTop ? lpTop.title : ''}
-                  heroPlays={lpTop ? plays(lpTop.quizId) : 0} heroLeader={lpTop ? leader(lpTop.quizId) : ''}
-                  rows={lastPlayed.filter((f) => !lpTop || f.quizId !== lpTop.quizId).map((f) => ({ q: { id: f.quizId, title: f.title, rawTitle: f.title }, right: (<>{todayPlays(f.quizId) > 0 ? <span style={{ fontSize: 10, fontWeight: 800, color: '#10b981', background: '#d8f3e6', borderRadius: 6, padding: '1px 6px' }}>+{todayPlays(f.quizId)}</span> : null}<span className="score" style={{ fontSize: 11, color: f.total && f.score / f.total >= 0.8 ? '#16a34a' : C.soft }}>{f.score}/{f.total}</span><span style={{ color: C.soft }}>{relTime(f.playedAt)}</span></>) }))} cta="View all ›" onCta={() => setListMode('live')} />
+                <section className="mc-open catcard" style={{ minWidth: 0 }}>
+                  {heroUrl ? (
+                    <Link href={`/quiz/${lpTop.quizId}`} className="cc-hero" style={{ backgroundImage: `url("${heroUrl}")`, backgroundPosition: heroPos || 'center' }} title={lpTop.title}>
+                      <span className="cc-ov" />
+                      <span className="cc-stat">{heroPlaysN > 0 ? `${heroPlaysN.toLocaleString()} plays` : 'New quiz'}{lpTop && relTime(lpTop.playedAt) ? ` · played ${relTime(lpTop.playedAt)} ago` : ''}</span>
+                      <div className="cc-btm">
+                        <span className="cc-htitle">{stripVerb(lpTop.title)}</span>
+                        <span className="cc-play">Play <ArrowRight size={13} style={{ verticalAlign: -2 }} /></span>
+                      </div>
+                    </Link>
+                  ) : null}
+                  <div className="colhead cc-head cc-filled" style={{ borderColor: C.accent, background: C.accent }}>
+                    <span className="colicon" style={{ width: 24, height: 24, borderRadius: 7, background: 'rgba(255,255,255,0.22)', color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', flex: 'none' }}><Play size={14} /></span>
+                    <h3 style={{ fontSize: 17, fontWeight: 800, margin: 0, color: '#fff' }}>Last Played</h3>
+                    <button type="button" onClick={() => setListMode('live')} className="viewall vall" style={{ color: '#fff', background: 'none', border: 'none', padding: 0, cursor: 'pointer', fontFamily: 'inherit', fontSize: 10, fontWeight: 700 }}>View all ›</button>
+                  </div>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '5px 11px 4px', borderBottom: '1px solid rgba(20,22,28,0.07)' }}>
+                    <span style={{ width: 6, height: 6, borderRadius: 999, background: C.live, flex: 'none' }} />
+                    <span style={{ fontSize: 11, fontWeight: 800, color: C.ink }}>{(playsToday || 0).toLocaleString()} <span style={{ color: C.soft, fontWeight: 600 }}>plays</span></span>
+                    <span style={{ width: 1, height: 11, background: 'rgba(20,22,28,0.12)' }} />
+                    <span style={{ fontSize: 11, fontWeight: 800, color: C.ink }}>{fmtT(totals.todayTime)} <span style={{ color: C.soft, fontWeight: 600 }}>played today</span></span>
+                  </div>
+                  {(hot || tough) ? (
+                    <div style={{ display: 'flex', gap: 6, padding: '6px 11px' }}>
+                      {hot ? (
+                        <Link href={`/quiz/${hot.id}`} className="qlink" style={{ flex: '1 1 0', minWidth: 0, background: '#fff4e8', border: '1px solid #f6d9bf', borderRadius: 8, padding: '3px 8px' }}>
+                          <span style={{ fontSize: 9, fontWeight: 800, letterSpacing: '.03em', color: '#c2691c', textTransform: 'uppercase', display: 'block' }}>🔥 Hot now</span>
+                          <span style={{ fontSize: 11, fontWeight: 700, color: C.ink, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', display: 'block' }}>{stripVerb(titleById[hot.id] || hot.title)}</span>
+                        </Link>
+                      ) : null}
+                      {tough ? (
+                        <Link href={`/quiz/${tough.quizId}`} className="qlink" style={{ flex: '1 1 0', minWidth: 0, background: '#eef2f7', border: '1px solid #d9e0ea', borderRadius: 8, padding: '3px 8px' }}>
+                          <span style={{ fontSize: 9, fontWeight: 800, letterSpacing: '.03em', color: '#4d6b8a', textTransform: 'uppercase', display: 'block' }}>🧠 Toughest · {Math.round((tough.aceRate || 0) * 100)}% ace</span>
+                          <span style={{ fontSize: 11, fontWeight: 700, color: C.ink, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', display: 'block' }}>{stripVerb(titleById[tough.quizId] || '')}</span>
+                        </Link>
+                      ) : null}
+                    </div>
+                  ) : null}
+                  {lpRows.map((f) => {
+                    const dc = DEPT_COLOR[deptById[f.quizId]] || DEPT_COLOR.misc;
+                    const good = f.total ? f.score / f.total >= 0.8 : false;
+                    return (
+                      <Link href={`/quiz/${f.quizId}`} className="qrow" key={f.quizId} title={f.title} style={{ alignItems: 'center' }}>
+                        <span style={{ width: 7, height: 7, borderRadius: 2, background: dc.c, flex: 'none' }} />
+                        <span className="qtitle">{stripVerb(f.title)}</span><DoneMark id={f.quizId} />
+                        <span className="qmeta">
+                          {typeof f.pct === 'number' ? <span style={{ fontSize: 9.5, fontWeight: 800, color: good ? '#16a34a' : '#b45309', background: good ? '#e7f7ed' : '#fef6e7', borderRadius: 999, padding: '1px 6px' }}>beat {f.pct}%</span> : null}
+                          <span className="score" style={{ fontSize: 11, fontWeight: 800, color: good ? '#16a34a' : C.soft }}>{f.score}/{f.total}</span>
+                          <span style={{ color: C.soft }}>{relTime(f.playedAt)}</span>
+                        </span>
+                      </Link>
+                    );
+                  })}
+                </section>
               );
             })()}
             {(() => {

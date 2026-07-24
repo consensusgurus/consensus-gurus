@@ -41,6 +41,7 @@ export async function GET() {
     // cached table (id order = chronological).
     const quizIds = [...new Set(recent.map((r) => r.quiz_id).filter(Boolean))];
     const priorCount = new Map(); // `${playerKey}::${quizId}::${rowId}` -> attempt
+    const fracsByQuiz = new Map(); // quiz_id -> score fractions (crowd distribution)
     if (quizIds.length) {
       const quizIdSet = new Set(quizIds);
       const all = (cached || []).filter((r) => quizIdSet.has(r.quiz_id));
@@ -51,8 +52,19 @@ export async function GET() {
         const n = (seen.get(k) || 0) + 1;
         seen.set(k, n);
         priorCount.set(pk + '::' + r.quiz_id + '::' + r.id, n);
+        const tot = Number(r.total) || 0;
+        if (tot > 0) { let arr = fracsByQuiz.get(r.quiz_id); if (!arr) { arr = []; fracsByQuiz.set(r.quiz_id, arr); } arr.push((Number(r.score) || 0) / tot); }
       }
+      for (const arr of fracsByQuiz.values()) arr.sort((a, b) => a - b);
     }
+    // Anonymous crowd percentile: % of a quiz's plays a given score beats.
+    // Needs a real sample (>= 5 plays) else null (the chip is hidden).
+    const pctOf = (qid, frac) => {
+      const arr = fracsByQuiz.get(qid);
+      if (!arr || arr.length < 5) return null;
+      let below = 0; for (const x of arr) { if (x < frac - 1e-9) below += 1; }
+      return Math.round((below / arr.length) * 100);
+    };
 
     const plays = recent.map((r) => {
       const pk = r.user_id ? `u:${r.user_id}` : (r.anon_id ? `a:${r.anon_id}` : `r:${r.id}`);
@@ -73,6 +85,7 @@ export async function GET() {
         playedAt: r.created_at || null,
         isAnon,
         attempt,
+        pct: (Number(r.total) > 0) ? pctOf(r.quiz_id, (Number(r.score) || 0) / Number(r.total)) : null,
       };
     });
     return NextResponse.json({ plays }, { headers: CACHE_HEADERS });
