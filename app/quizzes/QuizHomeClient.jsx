@@ -1886,7 +1886,7 @@ export default function QuizHomeClient() {
               const hot = trending;
               const tough = (totals.toughest && titleById[totals.toughest.quizId]) ? totals.toughest : null;
               const fmtT = (v) => { const x = Math.round(v || 0); const h = Math.floor(x / 3600); const m = Math.round((x % 3600) / 60); return h > 0 ? `${h}h ${m}m` : `${m}m`; };
-              const lpRows = lastPlayed.slice(0, 6);
+              const lpRows = lastPlayed.slice(0, 5);
               return (
                 <section className="mc-open catcard" style={{ minWidth: 0, display: 'flex', flexDirection: 'column' }}>
                   <div style={{ background: C.accent, color: '#fff', padding: '11px 13px 12px', borderRadius: '8px 8px 0 0' }}>
