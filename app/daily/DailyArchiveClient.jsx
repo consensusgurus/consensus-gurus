@@ -19,6 +19,7 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import useDailyOrder, { sortByDailyOrder } from '../useDailyOrder';
 import DailyCombinedLeaderboard from '../quiz/[id]/DailyCombinedLeaderboard';
+import { postView } from '@/lib/api';
 
 const SANS = "'Manrope', system-ui, -apple-system, sans-serif";
 const MONO = "'DM Mono', ui-monospace, 'SFMono-Regular', monospace";
@@ -142,6 +143,22 @@ export default function DailyArchiveClient({ games = [], today = '' }) {
     }, 200);
     return () => clearTimeout(t);
   }, [ready]);
+
+  // Log a /daily page view so the admin analytics ViewsPanel can see hub
+  // traffic. Mirrors the homepage pattern: a pseudo list id ('daily') in the
+  // views table, deduped to once per browser session via sessionStorage so
+  // reopening a tab or navigating back doesn't inflate the count. NOTE: never
+  // create a real list with id 'daily'; this id is reserved for hub traffic.
+  useEffect(() => {
+    let seen = false;
+    try {
+      seen = sessionStorage.getItem('sot-daily-viewed') === '1';
+      if (!seen) sessionStorage.setItem('sot-daily-viewed', '1');
+    } catch (e) {
+      // sessionStorage unavailable: fall through and count this load.
+    }
+    if (!seen) postView('daily');
+  }, []);
   const gamesByKey = useMemo(() => {
     const m = {};
     for (const g of games) m[g.key] = g;
