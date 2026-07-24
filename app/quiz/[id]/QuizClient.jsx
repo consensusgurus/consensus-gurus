@@ -138,6 +138,23 @@ function keyHit(g, key) {
 function anyKey(g, keys) {
   return (keys || []).some((k) => keyHit(g, k));
 }
+// Ordered same-label group match: in an ordered matched quiz, consecutive
+// slots that share a label (e.g. the same year) form a group that may be
+// answered in ANY order; sequence is enforced only ACROSS groups. Returns the
+// index of an unfound slot in the CURRENT group whose keys the guess hits, or
+// -1. With unique labels the group is a single slot, so existing ordered
+// quizzes behave exactly as before.
+function orderedGroupHit(g, answers, found, nameKeys) {
+  const first = found.findIndex((x) => !x);
+  if (first < 0) return -1;
+  const curLabel = answers[first].label;
+  for (let j = first; j < answers.length; j++) {
+    if (answers[j].label !== curLabel) break;
+    if (found[j]) continue;
+    if ((anyKey(g, answers[j].keys) || anyKey(g, (nameKeys || [])[j])) && !anyKey(g, answers[j].anti)) return j;
+  }
+  return -1;
+}
 // Sudden-death live helper: is the partial typed guess `g` still on track to
 // reach one of `keys`? True when `g` is a prefix of an accepted form, or when
 // the words of a multi-word key can still all be completed (any order). Used
@@ -1033,20 +1050,20 @@ export default function QuizClient({ quizId }) {
   function checkOrdered(raw) {
     const g = norm(raw);
     if (!g) return;
-    const i = found.findIndex((x) => !x);
-    if (i < 0) return;
-    const a = answers[i];
-    const hit = anyKey(g, a.keys) || anyKey(g, nameKeys[i]);
-    const blocked = anyKey(g, a.anti);
-    if (hit && !blocked) {
+    const first = found.findIndex((x) => !x);
+    if (first < 0) return;
+    const j = orderedGroupHit(g, answers, found, nameKeys);
+    if (j >= 0) {
+      const a = answers[j];
       const next = found.slice();
-      next[i] = true;
+      next[j] = true;
       setFound(next);
       setHint(`Correct — ${a.label != null ? a.label + ': ' : ''}${a.t}`);
       setHintBad(false);
       fireCue(true);
       if (next.every(Boolean)) endGame(true, next);
     } else {
+      const a = answers[first];
       fireCue(false);
       // Sudden-death ordered quiz (quiz.strike): a wrong Enter ends the run on
       // the spot. The live keystroke handler (autoOrdered) never strikes, so a
@@ -1057,7 +1074,7 @@ export default function QuizClient({ quizId }) {
         endGame(false);
         return;
       }
-      setHint(`Not the ${a.label != null ? a.label + ' ' : ''}answer. Work down in order, try again.`);
+      setHint(`Not ${a.label != null ? 'a ' + a.label : 'the'} answer. Work down in order, try again.`);
       setHintBad(true);
     }
   }
@@ -1093,12 +1110,13 @@ export default function QuizClient({ quizId }) {
   function autoOrdered(raw) {
     const g = norm(raw);
     if (!g) return false;
-    const i = found.findIndex((x) => !x);
-    if (i < 0) return false;
-    const a = answers[i];
-    if ((anyKey(g, a.keys) || anyKey(g, nameKeys[i])) && !anyKey(g, a.anti)) {
+    const first = found.findIndex((x) => !x);
+    if (first < 0) return false;
+    const j = orderedGroupHit(g, answers, found, nameKeys);
+    if (j >= 0) {
+      const a = answers[j];
       const next = found.slice();
-      next[i] = true;
+      next[j] = true;
       setFound(next);
       setHint(`Correct — ${a.label != null ? a.label + ': ' : ''}${a.t}`);
       setHintBad(false);
@@ -1107,14 +1125,25 @@ export default function QuizClient({ quizId }) {
       return true;
     }
     // Sudden-death ordered quiz (quiz.strike): end the run the instant the typed
-    // text can no longer reach the current target answer (a wrong character),
-    // without waiting for Enter. Non-strike ordered quizzes never strike here.
-    if (quiz.strike && !couldReach(g, [...(a.keys || []), ...(nameKeys[i] || [])])) {
-      fireCue(false);
-      setHint(`Struck out — ${a.label != null ? a.label + ': ' : ''}${a.t} was next.`);
-      setHintBad(true);
-      endGame(false);
-      return true;
+    // text can no longer reach ANY unfound slot in the current same-label group
+    // (a wrong character), without waiting for Enter. Non-strike ordered
+    // quizzes never strike here.
+    if (quiz.strike) {
+      const a = answers[first];
+      const curLabel = a.label;
+      let groupKeys = [];
+      for (let k = first; k < answers.length; k++) {
+        if (answers[k].label !== curLabel) break;
+        if (found[k]) continue;
+        groupKeys = groupKeys.concat(answers[k].keys || [], nameKeys[k] || []);
+      }
+      if (!couldReach(g, groupKeys)) {
+        fireCue(false);
+        setHint(`Struck out — ${a.label != null ? a.label + ': ' : ''}${a.t} was next.`);
+        setHintBad(true);
+        endGame(false);
+        return true;
+      }
     }
     return false;
   }
@@ -1919,7 +1948,7 @@ export default function QuizClient({ quizId }) {
               }
               const renderRow = (a, i) => {
                 const f = found[i];
-                const isActive = ordered && started && !ended && i === activeIdx;
+                const isActive = ordered && started && !ended && !f && answers[activeIdx] && a.label === answers[activeIdx].label;
                 const reveal = ended && revealed && !f; // a missed answer, now filled in
                 const nameWrap = /\s/.test(String(a.t || '').trim())
                   ? { whiteSpace: 'normal', overflowWrap: 'normal', wordBreak: 'normal' } // multi-word: wrap at spaces, never mid-word
