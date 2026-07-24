@@ -188,6 +188,7 @@ export default function DailyEndCard({
   const [autoCancel, setAutoCancel] = useState(false);
   const [combinedResolved, setCombinedResolved] = useState(false); // daily-combined answered => completion set is known
   const [skelTimedOut, setSkelTimedOut] = useState(false);          // collapse loading skeletons if the fetch is very slow
+  const [popularCats, setPopularCats] = useState(null);             // popular quiz per category, once every daily is done
   const [pastHref, setPastHref] = useState(null);     // most-recent unplayed PAST drop of this game
   const [openTile, setOpenTile] = useState(null);     // which rank tile is expanded: 'today'|'alltime'|'combined'|null
   const [calOpen, setCalOpen] = useState(false);      // calendar slip expanded
@@ -415,9 +416,26 @@ export default function DailyEndCard({
   // today (and the auto-advance would open it). Gate on combinedResolved, show a
   // skeleton meanwhile, and collapse the skeleton if the fetch is very slow.
   const completionKnown = combinedResolved;
-  const nextReal = completionKnown && !!nextTarget;      // trustworthy up-next
-  const nextSkel = !completionKnown && !skelTimedOut;    // still loading
-  const grabSkel = !boardGames && !skelTimedOut;         // easiest-board data still loading
+  // Every daily finished today (none unplayed, none abandoned). In this state the
+  // up-next / easiest-board duo has nothing to point at, so it collapses and the
+  // grid below becomes a "try a quiz" block instead.
+  const allDailiesDone = completionKnown && todo.length === 0;
+  const nextReal = !allDailiesDone && completionKnown && !!nextTarget; // trustworthy up-next
+  const nextSkel = !allDailiesDone && !completionKnown && !skelTimedOut; // still loading
+  const grabSkel = !allDailiesDone && !boardGames && !skelTimedOut;   // easiest-board data still loading
+
+  // Once every daily is done, pull the most-played quiz in each category to
+  // suggest in place of the (now empty) still-to-play grid. Fetched lazily, only
+  // when we reach that state, and once.
+  useEffect(() => {
+    if (!allDailiesDone || popularCats) return undefined;
+    let alive = true;
+    fetch('/api/quiz/popular-by-category')
+      .then((r) => r.json())
+      .then((d) => { if (alive && d && Array.isArray(d.cats)) setPopularCats(d.cats); })
+      .catch(() => {});
+    return () => { alive = false; };
+  }, [allDailiesDone, popularCats]);
 
   // 25s auto-advance to the next game (win only; a loss shows the block without
   // the ticking clock so the player can retry or read the board first).
@@ -886,7 +904,7 @@ export default function DailyEndCard({
       {/* Both cards are completion-derived, so each shows a shimmer skeleton until
           its data lands (never a guessed game), fades the real card in on arrival,
           and collapses if the fetch stalls past the skeleton timeout. */}
-      {(nextReal || nextSkel || grab || grabSkel) ? (
+      {(!allDailiesDone && (nextReal || nextSkel || grab || grabSkel)) ? (
         <div className="dec-duo">
           {nextSkel ? (
             <div className="dec-nx" aria-hidden="true">
@@ -985,6 +1003,56 @@ export default function DailyEndCard({
               </div>
             ))}
           </div>
+        </>
+      ) : null}
+
+      {/* ---- 6b. all dailies done: popular quizzes, one per category ---- */}
+      {allDailiesDone ? (
+        <>
+          <div className="dec-morehd">
+            <span className="dec-more-eye">You&rsquo;ve cleared today&rsquo;s dailies &middot; try a quiz</span>
+            <span className="dec-more-count">{popularCats && popularCats.length ? 'one per category' : ''}</span>
+          </div>
+          {popularCats && popularCats.length ? (
+            <div className={`dec-grid cols-${Math.min(3, popularCats.length)}`}>
+              {(() => {
+                const N = Math.min(3, popularCats.length);
+                const cols = Array.from({ length: N }, () => []);
+                popularCats.forEach((c, i) => cols[i % N].push(c));
+                return cols.map((col, ci) => (
+                  <div className="dec-col" key={ci}>
+                    {col.map((c) => (
+                      <div className="dec-group" key={c.dept}>
+                        <div className="dec-gh" style={{ background: c.color }}>
+                          <span className="lbl">{c.label}</span>
+                        </div>
+                        <div className="dec-rows one">
+                          <a className="dec-row dec-fadein" href={c.href}>
+                            <div style={{ minWidth: 0, flex: 1 }}>
+                              <div className="nm"><span className="t">{c.title}</span></div>
+                              <div className="tg">{c.plays ? `${c.plays.toLocaleString()} plays` : 'Popular quiz'}</div>
+                            </div>
+                            <span className="play"><span className="pl">Play</span><ArrowRight size={11} strokeWidth={2.6} /></span>
+                          </a>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                ));
+              })()}
+            </div>
+          ) : (
+            <div className="dec-grid cols-3" aria-hidden="true">
+              {[0, 1, 2].map((i) => (
+                <div className="dec-col" key={i}>
+                  <div className="dec-group">
+                    <div className="dec-sk" style={{ height: 34, borderRadius: 10, marginBottom: 8 }} />
+                    <div className="dec-sk" style={{ height: 48, borderRadius: 11 }} />
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
         </>
       ) : null}
 
