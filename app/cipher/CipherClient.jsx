@@ -414,8 +414,8 @@ export default function CipherClient({ puzzles = [], forceNum = null }) {
       setVerdict({ good: false, msg });
     };
     const digitsUsed = new Set(Object.values(g.assign));
-    if (digitsUsed.size !== LETTERS.length) { failIt('Two letters share a digit — every letter must be different.'); return; }
-    for (const f of FIRSTS) { if (g.assign[f] === 0) { failIt(`${f} starts a word, so it can't be 0.`); return; } }
+    if (digitsUsed.size !== LETTERS.length) { setVerdict({ good: false, soft: true, msg: 'Two letters share a digit, every letter must be different.' }); return; }
+    for (const f of FIRSTS) { if (g.assign[f] === 0) { setVerdict({ good: false, soft: true, msg: `${f} starts a word, so it can't be 0.` }); return; } }
     const num = (w) => [...w].reduce((acc, ch) => acc * 10 + g.assign[ch], 0);
     const sum = PUZZLE.lhs.reduce((a, w) => a + num(w), 0);
     if (sum !== num(PUZZLE.rhs)) {
