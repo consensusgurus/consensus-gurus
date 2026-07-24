@@ -72,7 +72,7 @@ const HIDDEN = {
   body: ['EAR', 'RIB', 'HIP', 'ARM', 'LIP', 'GUM', 'JAW', 'TOE', 'EYE', 'SHIN', 'HEEL', 'CHIN', 'LUNG', 'SKIN', 'NECK', 'BONE'],
   number: ['ONE', 'TWO', 'SIX', 'TEN', 'NINE', 'FOUR', 'FIVE'],
 };
-const HIDDEN_NAME = { animal: 'animal', body: 'body part', number: 'number' };
+const HIDDEN_NAME = { animal: 'an animal', body: 'a body part', number: 'a number' };
 const NUMWORD = ['zero', 'one', 'two', 'three', 'four', 'five', 'six', 'seven', 'eight', 'nine', 'ten'];
 
 function ruleFn(r) {
@@ -107,7 +107,7 @@ function ruleLabel(r) {
     case 'altvc': return 'Its consonants and vowels strictly alternate';
     case 'twinvowel': return 'It has two vowels side by side';
     case 'nolet': return `It contains no letter ${r.c}`;
-    case 'hides': return `It hides a smaller word for a ${HIDDEN_NAME[r.set]}`;
+    case 'hides': return `It hides a smaller word for ${HIDDEN_NAME[r.set]}`;
     default: return 'Unknown rule';
   }
 }

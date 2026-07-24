@@ -3,7 +3,7 @@
 // DailyEndCard — the shared end-of-game result popup for every daily game
 // (Crux, Emcee, Garble, Links, Span, Dating, Tally, Suds, Circa, Extra,
 // Carve, Stet, Outwit, Tuck, Alibi, Cipher, Ping, Warmer, Jesters, Sworn,
-// Outrank). One component, used by all daily clients.
+// Outrank, Axiom, Hearsay). One component, used by all daily clients.
 //
 // Layout, top to bottom (approved 2026-07 rework):
 //   1. header — the family chip + "Completed!" (loss: "Played") + a subline of
@@ -108,7 +108,7 @@ export const CAT_META = {
 // Family render order for the "more games" grid.
 const CAT_ORDER = ['word', 'numbers', 'crowd', 'logic', 'history', 'geography'];
 
-// ---- the daily slate (21 games) --------------------------------------------
+// ---- the daily slate (23 games) --------------------------------------------
 // Canonical order = the order the "still to play" tiles appear in.
 export const DAILY_GAMES = [
   { key: 'crux',   cat: 'word',      name: 'Crux',   tag: 'A clueless crossword',      href: '/crux' },
