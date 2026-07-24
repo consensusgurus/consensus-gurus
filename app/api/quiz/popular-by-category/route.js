@@ -36,7 +36,9 @@ export async function GET() {
     for (const q of (QUIZZES || [])) {
       if (!q || !q.id || q.unlisted) continue;
       const dept = quizDept(q);
-      if (!dept || dept === 'misc') continue;
+      // Skip 'misc', and skip 'word' (the daily games ARE word games, so a past
+      // daily Crux/Emcee is a redundant suggestion right after finishing one).
+      if (!dept || dept === 'misc' || dept === 'word') continue;
       const plays = byQuiz[q.id] || 0;
       const title = q.navTitle || cleanTitle(q.title) || q.id;
       const cur = best[dept];

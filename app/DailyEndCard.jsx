@@ -398,12 +398,16 @@ export default function DailyEndCard({
 
   const myKey = dailyMe ? dailyMe.userKey : null;
 
-  // Most up for grabs = the daily game with the thinnest field so far (prefer one
-  // the viewer hasn't played). field = registered players; plays = total attempts.
+  // Most open leaderboard = the thinnest-field daily among the REMAINING unplayed
+  // games, AFTER excluding the "closest" (up-next) pick. So the two cards are
+  // always distinct: with two games left, one is the closest and the other is the
+  // most-open of what's left (even if still fairly full). No fallback to
+  // already-played games, so with 0 or 1 remaining there is simply no second card.
+  // field = registered players; plays = total attempts.
   let grab = null;
   if (boardGames && boardGames.length) {
-    const unplayed = boardGames.filter((g) => !doneKeys.has(g.key));
-    const pool = (unplayed.length ? unplayed : boardGames).slice();
+    const nextKey = nextTarget ? nextTarget.key : null;
+    const pool = boardGames.filter((g) => !doneKeys.has(g.key) && g.key !== nextKey);
     pool.sort((a, b) => (a.field - b.field) || (a.plays - b.plays));
     const g0 = pool[0];
     const gm = g0 && DAILY_GAMES.find((x) => x.key === g0.key);
@@ -420,22 +424,25 @@ export default function DailyEndCard({
   // up-next / easiest-board duo has nothing to point at, so it collapses and the
   // grid below becomes a "try a quiz" block instead.
   const allDailiesDone = completionKnown && todo.length === 0;
+  // Suggest quizzes once the player is down to half (or fewer) of the day's
+  // puzzles, not only when they've cleared them all.
+  const showPopular = completionKnown && (total - doneCount) <= total / 2;
   const nextReal = !allDailiesDone && completionKnown && !!nextTarget; // trustworthy up-next
   const nextSkel = !allDailiesDone && !completionKnown && !skelTimedOut; // still loading
   const grabSkel = !allDailiesDone && !boardGames && !skelTimedOut;   // easiest-board data still loading
 
-  // Once every daily is done, pull the most-played quiz in each category to
-  // suggest in place of the (now empty) still-to-play grid. Fetched lazily, only
-  // when we reach that state, and once.
+  // Pull the most-played quiz in each category once the player is at half (or
+  // fewer) dailies remaining, to suggest alongside (or, when all are done, in
+  // place of) the still-to-play grid. Fetched lazily and once.
   useEffect(() => {
-    if (!allDailiesDone || popularCats) return undefined;
+    if (!showPopular || popularCats) return undefined;
     let alive = true;
     fetch('/api/quiz/popular-by-category')
       .then((r) => r.json())
       .then((d) => { if (alive && d && Array.isArray(d.cats)) setPopularCats(d.cats); })
       .catch(() => {});
     return () => { alive = false; };
-  }, [allDailiesDone, popularCats]);
+  }, [showPopular, popularCats]);
 
   // 25s auto-advance to the next game (win only; a loss shows the block without
   // the ticking clock so the player can retry or read the board first).
@@ -1012,11 +1019,11 @@ export default function DailyEndCard({
         </>
       ) : null}
 
-      {/* ---- 6b. all dailies done: popular quizzes, one per category ---- */}
-      {allDailiesDone ? (
+      {/* ---- 6b. half or fewer dailies left: popular quizzes, one per category ---- */}
+      {showPopular ? (
         <>
           <div className="dec-morehd">
-            <span className="dec-more-eye">You&rsquo;ve cleared today&rsquo;s dailies &middot; try a quiz</span>
+            <span className="dec-more-eye">{allDailiesDone ? <>You&rsquo;ve cleared today&rsquo;s dailies &middot; try a quiz</> : <>While you&rsquo;re here &middot; try a quiz</>}</span>
             <span className="dec-more-count">{popularCats && popularCats.length ? 'one per category' : ''}</span>
           </div>
           {popularCats && popularCats.length ? (
