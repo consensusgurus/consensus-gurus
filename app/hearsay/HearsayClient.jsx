@@ -60,15 +60,22 @@ const TOTAL = 12;
 // it to derive the answer, so no board file ever stores one.
 const countBy = (S, cards, attr, val) => S.filter((i) => cards[i][attr] === val).length;
 function applyStatement(S, cards, st) {
-  const a = st.who;
-  if (st.type === 'dontKnow') return S.filter((i) => countBy(S, cards, a, cards[i][a]) >= 2);
+  const a = st.who, b = st.other;
+  // dontKnow and stillDontKnow filter identically; they differ only in wording,
+  // because the second is said AFTER someone else has spoken and so carries
+  // fresh information about a smaller list.
+  if (st.type === 'dontKnow' || st.type === 'stillDontKnow') return S.filter((i) => countBy(S, cards, a, cards[i][a]) >= 2);
   if (st.type === 'know') return S.filter((i) => countBy(S, cards, a, cards[i][a]) === 1);
   if (st.type === 'knowOtherDoesnt') {
-    const b = st.other;
     return S.filter((i) => {
       if (countBy(S, cards, a, cards[i][a]) < 2) return false;
       return S.filter((j) => cards[j][a] === cards[i][a]).every((j) => countBy(S, cards, b, cards[j][b]) >= 2);
     });
+  }
+  // "I know now, but you still don't" cuts twice: it pins the speaker's value
+  // and rules out anything that would already have settled it for the other.
+  if (st.type === 'knowNowOtherStill') {
+    return S.filter((i) => countBy(S, cards, a, cards[i][a]) === 1 && countBy(S, cards, b, cards[i][b]) >= 2);
   }
   return S;
 }
@@ -91,8 +98,10 @@ function statementText(puzzle, st) {
   const me = speakerOf(puzzle, st.who);
   const n = puzzle.noun;
   if (st.type === 'dontKnow') return `${me}: “I don't know which ${n} it is.”`;
+  if (st.type === 'stillDontKnow') return `${me}: “I still don't know which ${n} it is.”`;
   if (st.type === 'know') return `${me}: “Now I know which ${n} it is.”`;
   if (st.type === 'knowOtherDoesnt') return `${me}: “I don't know which ${n} it is, and I know ${speakerOf(puzzle, st.other)} doesn't know either.”`;
+  if (st.type === 'knowNowOtherStill') return `${me}: “Now I know which ${n} it is, but ${speakerOf(puzzle, st.other)} still doesn't.”`;
   return '';
 }
 
@@ -448,7 +457,7 @@ export default function HearsayClient({ puzzles = [], forceNum = null }) {
       </ol>
 
       <div style={{ background: '#fff', border: '1px solid rgba(28,30,36,0.12)', borderLeft: `3px solid ${COLORS.accent}`, borderRadius: 7, padding: '9px 11px', fontSize: 13, lineHeight: 1.45 }}>
-        <b>The knack:</b> &ldquo;I don&rsquo;t know&rdquo; is the evidence. If the secret {PUZZLE.noun} were the only one with its {PUZZLE.attrs[0]}, {PUZZLE.who[0]} would have known straight away. {PUZZLE.who[0]} did not, so every {PUZZLE.attrs[0]} that appears just once is out.
+        <b>The knack:</b> &ldquo;I don&rsquo;t know&rdquo; is the evidence. If the secret {PUZZLE.noun} were the only one with its {PUZZLE.attrs[0]}, {PUZZLE.who[0]} would have known straight away. {PUZZLE.who[0]} did not, so every {PUZZLE.attrs[0]} that appears just once is out. A line said <i>later</i> is sharper still: &ldquo;I still don&rsquo;t know&rdquo; is about the list as it stands after everything already said.
       </div>
 
       <p style={{ margin: '10px 0 0', fontSize: 12.5, fontWeight: 600, color: COLORS.faded }}>

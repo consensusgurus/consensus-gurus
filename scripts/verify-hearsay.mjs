@@ -19,22 +19,29 @@ const fail = (msg) => { console.error('FAIL:', msg); fails++; };
 // maths.
 const countBy = (S, cards, attr, val) => S.filter((i) => cards[i][attr] === val).length;
 function applyStatement(S, cards, st) {
-  const a = st.who;
-  if (st.type === 'dontKnow') return S.filter((i) => countBy(S, cards, a, cards[i][a]) >= 2);
+  const a = st.who, b = st.other;
+  if (st.type === 'dontKnow' || st.type === 'stillDontKnow') return S.filter((i) => countBy(S, cards, a, cards[i][a]) >= 2);
   if (st.type === 'know') return S.filter((i) => countBy(S, cards, a, cards[i][a]) === 1);
   if (st.type === 'knowOtherDoesnt') {
-    const b = st.other;
     return S.filter((i) => {
       if (countBy(S, cards, a, cards[i][a]) < 2) return false;
       return S.filter((j) => cards[j][a] === cards[i][a]).every((j) => countBy(S, cards, b, cards[j][b]) >= 2);
     });
+  }
+  if (st.type === 'knowNowOtherStill') {
+    return S.filter((i) => countBy(S, cards, a, cards[i][a]) === 1 && countBy(S, cards, b, cards[i][b]) >= 2);
   }
   return null;
 }
 
 const MONTHS = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
 const KEYS = ['a', 'b', 'c'];
-const TYPES = new Set(['dontKnow', 'know', 'knowOtherDoesnt']);
+const TYPES = new Set(['dontKnow', 'stillDontKnow', 'know', 'knowOtherDoesnt', 'knowNowOtherStill']);
+const HIGHER = new Set(['knowOtherDoesnt', 'knowNowOtherStill']);
+// The difficulty step: cases from 25 July run longer chains with at least one
+// higher-order line. The launch case (24 July) shipped under the old ruleset
+// and was already in play when the change landed, so it keeps its own bar.
+const V2_FROM = '2026-07-25';
 const seenIds = new Set();
 
 PUZZLES.forEach((p, idx) => {
@@ -66,13 +73,23 @@ PUZZLES.forEach((p, idx) => {
   p.script.forEach((st, i) => {
     if (!TYPES.has(st.type)) fail(`${tag}: line ${i} has unknown type ${st.type}`);
     if (KEYS.indexOf(st.who) < 0 || KEYS.indexOf(st.who) >= nWho) fail(`${tag}: line ${i} is spoken by a character who does not exist`);
-    if (st.type === 'knowOtherDoesnt') {
+    // the two higher-order types name the person they are about
+    const aboutOther = st.type === 'knowOtherDoesnt' || st.type === 'knowNowOtherStill';
+    if (aboutOther) {
       if (KEYS.indexOf(st.other) < 0 || KEYS.indexOf(st.other) >= nWho) fail(`${tag}: line ${i} speaks about a character who does not exist`);
       if (st.other === st.who) fail(`${tag}: line ${i} speaks about itself`);
     }
-    if (st.type !== 'knowOtherDoesnt' && st.other) fail(`${tag}: line ${i} carries a stray other`);
+    if (!aboutOther && st.other) fail(`${tag}: line ${i} carries a stray other`);
   });
   if (p.script[p.script.length - 1].type !== 'know') fail(`${tag}: the last line should be the one that settles it`);
+  const v2 = p.live >= V2_FROM;
+  if (v2) {
+    const wantLines = p.sunday ? 5 : 4;
+    if (p.script.length < wantLines) fail(`${tag}: ${p.script.length} lines (want >= ${wantLines})`);
+    const higher = p.script.filter((st) => HIGHER.has(st.type)).length;
+    if (higher < (p.sunday ? 2 : 1)) fail(`${tag}: ${higher} higher-order lines (want >= ${p.sunday ? 2 : 1})`);
+    if (p.cards.length < (p.sunday ? 14 : 11)) fail(`${tag}: only ${p.cards.length} cards for the harder ruleset`);
+  }
 
   // simulate
   let S = p.cards.map((_, i) => i);
@@ -90,8 +107,9 @@ PUZZLES.forEach((p, idx) => {
     if (trace[i] >= trace[i - 1]) fail(`${tag}: line ${i - 1} narrows nothing (${trace[i - 1]} -> ${trace[i]})`);
     if (trace[i - 1] - trace[i] < 2) weak++;
   }
-  if (weak > (p.sunday ? 2 : 1)) fail(`${tag}: ${weak} lines shave only one card`);
-  if (trace[trace.length - 2] < 2) fail(`${tag}: the answer was already forced before the final line`);
+  if (weak > (p.sunday ? 3 : 1)) fail(`${tag}: ${weak} lines shave only one card`);
+  const minPenult = !v2 ? 2 : (p.sunday ? 4 : 3);
+  if (trace[trace.length - 2] < minPenult) fail(`${tag}: only ${trace[trace.length - 2]} alive before the final line (want >= ${minPenult})`);
 
   const ans = p.cards[S[0]];
   KEYS.slice(0, nWho).forEach((k, i) => {
