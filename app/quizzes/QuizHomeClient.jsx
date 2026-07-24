@@ -145,6 +145,7 @@ function heroFor(id, dept) {
   if (fam && DG_HERO_FAMS.has(fam)) return { src: `/games/hero/${fam}.png`, pos: 'center' };
   const qh = id ? QUIZ_HEROES[id] : null;
   if (qh && qh.src) return { src: qh.src, pos: qh.pos };
+  if (dept === 'sports') { const sh = sportHeroFor({ id }); if (sh) return { src: sh, pos: undefined }; }
   return { src: DEPT_HERO[dept] || FALLBACK_HERO, pos: undefined };
 }
 // Business News hub quizzes are normally kept out of the Newest tile/panel, but
@@ -972,14 +973,14 @@ export default function QuizHomeClient() {
   // Conditional navy backdrops for the hero-tile leader chips: probe the photo
   // behind each footer overlay (scrim folded in) and pill only when too light.
   const nQH = newest[0] ? QUIZ_HEROES[newest[0].id] : null;
-  const nHero = newest[0] ? ((nQH && nQH.src) || DEPT_HERO[newest[0].dept] || null) : null;
+  const nHero = newest[0] ? ((nQH && nQH.src) || (newest[0].dept === 'sports' ? sportHeroFor(newest[0]) : null) || DEPT_HERO[newest[0].dept] || null) : null;
   // Rule: the Trending tile may never repeat the Newest tile's hero image.
   // When both resolve to the same src, Trending swaps to the department's
   // alternate hero (DEPT_HERO_ALT), or to its category-color block if the
   // department has no alternate. Computed BEFORE the pill probe so the probe
   // samples the image actually rendered.
   const tQH = trending ? QUIZ_HEROES[trending.id] : null;
-  let tHero = trending ? ((tQH && tQH.src) || DEPT_HERO[trending.dept] || null) : null;
+  let tHero = trending ? ((tQH && tQH.src) || (trending.dept === 'sports' ? sportHeroFor(trending) : null) || DEPT_HERO[trending.dept] || null) : null;
   let tHeroPos = tQH ? tQH.pos : undefined;
   if (tHero && tHero === nHero) { tHero = DEPT_HERO_ALT[trending.dept] || FALLBACK_HERO; tHeroPos = undefined; }
   const [ttileProbeRef, ttilePill] = usePillProbe(tHero, PILL_REGION_FOOTER, 0.72, true);
