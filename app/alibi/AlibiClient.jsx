@@ -6,8 +6,8 @@
 // a different hour, each carrying one curious item. Every witness statement is
 // true; together they pin down exactly one arrangement (every banked case is
 // machine-verified unique, see scripts/verify-alibi.mjs). Work the three
-// deduction boards — tap a cell to cycle blank → ✗ (impossible) → ● (confirmed)
-// — then make your accusation.
+// deduction boards — tap a cell to toggle ✗ (impossible); long-press or right-click
+// to mark ● (confirmed) — then make your accusation.
 //
 // The client never receives the solution over the wire: the server page strips
 // it, and this component re-derives the unique arrangement from the clues with
@@ -258,6 +258,10 @@ export default function AlibiClient({ puzzles = [], forceNum = null }) {
   // the history clean. canUndo mirrors the stack depth so the button re-renders.
   const histRef = useRef([]);
   const [canUndo, setCanUndo] = useState(false);
+  // Long-press plumbing: a held touch places a ●; the flag suppresses the
+  // click/contextmenu that follows so the ● isn't immediately toggled back off.
+  const pressTimer = useRef(null);
+  const longFired = useRef(false);
 
   const [showChrome, setShowChrome] = useState(false);
   const playing = g.status === 'playing';
@@ -423,12 +427,28 @@ export default function AlibiClient({ puzzles = [], forceNum = null }) {
     try { localStorage.setItem(HELP_KEY, '1'); } catch (e) {}
   }
 
+  // Tap toggles the ✗ (impossible) mark: blank → ✗, ✗ → blank, and a tap on a
+  // ● clears it. Placing a ● is the deliberate long-press / right-click action
+  // below, so erasing an ✗ is now a single tap instead of a cycle through ●.
   function tapCell(cat, s, v) {
     if (!playing) return;
     pushHist(g.marks);
     setG((cur) => {
       const marks = { ...cur.marks, [cat]: cur.marks[cat].map((row) => row.slice()) };
-      const next = (marks[cat][s][v] + 1) % 3;
+      marks[cat][s][v] = marks[cat][s][v] === 0 ? 1 : 0;
+      return { ...cur, marks, t0: cur.t0 || Date.now() };
+    });
+    setVerdict(null);
+  }
+
+  // Long-press (mobile) or right-click (desktop) toggles the ● (confirmed) mark:
+  // blank/✗ → ●, ● → blank. Placing a ● fires the auto-✗ row/column cross-off.
+  function toggleDot(cat, s, v) {
+    if (!playing) return;
+    pushHist(g.marks);
+    setG((cur) => {
+      const marks = { ...cur.marks, [cat]: cur.marks[cat].map((row) => row.slice()) };
+      const next = marks[cat][s][v] === 2 ? 0 : 2;
       marks[cat][s][v] = next;
       if (next === 2 && autoX) {
         for (let v2 = 0; v2 < N; v2++) if (v2 !== v && marks[cat][s][v2] !== 2) marks[cat][s][v2] = 1;
@@ -438,6 +458,17 @@ export default function AlibiClient({ puzzles = [], forceNum = null }) {
     });
     setVerdict(null);
   }
+
+  function startPress(cat, s, v) {
+    longFired.current = false;
+    clearTimeout(pressTimer.current);
+    pressTimer.current = setTimeout(() => {
+      longFired.current = true;
+      toggleDot(cat, s, v);
+      try { if (navigator.vibrate) navigator.vibrate(15); } catch (e) {}
+    }, 420);
+  }
+  function endPress() { clearTimeout(pressTimer.current); }
   function toggleClue(i) {
     setG((cur) => {
       const struck = cur.struck.includes(i) ? cur.struck.filter((x) => x !== i) : [...cur.struck, i];
@@ -510,7 +541,7 @@ export default function AlibiClient({ puzzles = [], forceNum = null }) {
   const rulesBody = (
     <div style={{ fontSize: 14, lineHeight: 1.55, color: COLORS.ink, fontWeight: 600 }}>
       <p style={{ margin: '0 0 9px' }}>Four guests, four rooms, four departure times, four items. Every witness statement is <b>true</b>, and together they pin down exactly one arrangement.</p>
-      <p style={{ margin: '0 0 9px' }}>Work the three boards: tap a cell to cycle blank &rarr; <b>✗</b> (impossible) &rarr; <b>●</b> (confirmed). Each suspect gets exactly one ● per board. Leave auto-✗ on and marking a ● crosses off its row and column for you.</p>
+      <p style={{ margin: '0 0 9px' }}>Work the three boards: tap a cell to toggle <b>✗</b> (impossible), and long-press it (right-click on a computer) to mark <b>●</b> (confirmed). Each suspect gets exactly one ● per board. Leave auto-✗ on and marking a ● crosses off its row and column for you.</p>
       <p style={{ margin: '0 0 9px' }}>When all <b>{TOTAL} facts</b> are confirmed, check your accusation. A first-try accusation is a perfect {TOTAL} &mdash; each wrong accusation costs 2.</p>
       <p style={{ margin: 0 }}>Ties on the daily board break by fewest wrong accusations, then fastest time. A new case opens at midnight Eastern.</p>
     </div>
@@ -618,7 +649,7 @@ export default function AlibiClient({ puzzles = [], forceNum = null }) {
               </div>
             ))}
             <div style={{ fontSize: 11.5, fontWeight: 600, color: COLORS.faded, lineHeight: 1.5, marginTop: 8 }}>
-              Tap a statement to cross it off. Tap a board cell to cycle: blank &rarr; ✗ (impossible) &rarr; ● (confirmed). Each suspect gets exactly one ● per board.
+              Tap a statement to cross it off. Tap a board cell to toggle ✗ (impossible); long-press it (or right-click on a computer) to mark ● (confirmed). Each suspect gets exactly one ● per board.
             </div>
           </div>
 
@@ -643,9 +674,15 @@ export default function AlibiClient({ puzzles = [], forceNum = null }) {
                             <td
                               key={v}
                               className={`al-td${m === 1 ? ' x' : m === 2 ? ' dot' : ''}`}
-                              onClick={() => tapCell(cat.key, s, v)}
+                              onClick={() => { if (longFired.current) { longFired.current = false; return; } tapCell(cat.key, s, v); }}
+                              onContextMenu={(e) => { e.preventDefault(); if (longFired.current) return; toggleDot(cat.key, s, v); }}
+                              onTouchStart={() => startPress(cat.key, s, v)}
+                              onTouchEnd={endPress}
+                              onTouchMove={endPress}
+                              onTouchCancel={endPress}
+                              style={{ WebkitTouchCallout: 'none', WebkitUserSelect: 'none', userSelect: 'none', touchAction: 'manipulation' }}
                               role="button"
-                              aria-label={`${name} / ${cat.vals[v]}: ${m === 0 ? 'blank' : m === 1 ? 'impossible' : 'confirmed'}`}
+                              aria-label={`${name} / ${cat.vals[v]}: ${m === 0 ? 'blank' : m === 1 ? 'impossible' : 'confirmed'}. Tap to toggle impossible; long-press or right-click to confirm.`}
                             >{m === 1 ? '✗' : m === 2 ? '●' : ''}</td>
                           );
                         })}
