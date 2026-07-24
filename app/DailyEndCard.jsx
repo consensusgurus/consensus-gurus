@@ -170,6 +170,12 @@ export default function DailyEndCard({
   // credit, while a signed-out one would be promised something they can't get.
   const [forCredit, setForCredit] = useState(false);
   useEffect(() => { setForCredit(!!myRefCode()); }, []);
+  // If the completion fetch is very slow, stop showing the loading skeletons after
+  // a beat and collapse those slots rather than lingering on a shimmer.
+  useEffect(() => {
+    const t = setTimeout(() => setSkelTimedOut(true), 1500);
+    return () => clearTimeout(t);
+  }, []);
   const [ident, setIdent] = useState(null);          // { email, username } from localStorage
   const [dailyMe, setDailyMe] = useState(null);
   const [dailyGuest, setDailyGuest] = useState(null); // provisional standing for an unregistered player
@@ -180,6 +186,8 @@ export default function DailyEndCard({
   const [drops, setDrops] = useState(null);           // this game's live drops (calendar)
   const [secs, setSecs] = useState(AUTO_SECONDS);
   const [autoCancel, setAutoCancel] = useState(false);
+  const [combinedResolved, setCombinedResolved] = useState(false); // daily-combined answered => completion set is known
+  const [skelTimedOut, setSkelTimedOut] = useState(false);          // collapse loading skeletons if the fetch is very slow
   const [pastHref, setPastHref] = useState(null);     // most-recent unplayed PAST drop of this game
   const [openTile, setOpenTile] = useState(null);     // which rank tile is expanded: 'today'|'alltime'|'combined'|null
   const [calOpen, setCalOpen] = useState(false);      // calendar slip expanded
@@ -263,6 +271,7 @@ export default function DailyEndCard({
         .then((r) => r.json())
         .then((d) => {
           if (!alive || !d) return;
+          setCombinedResolved(true); // the completion set is now as complete as it will get
           if (d.me) setDailyMe({ ...d.me, maxTotal: d.maxTotal, gameCount: d.gameCount });
           if (d.meProvisional) setDailyGuest(d.meProvisional);
           if (Array.isArray(d.games)) setBoardGames(d.games);
@@ -280,7 +289,9 @@ export default function DailyEndCard({
           timer = setTimeout(run, delays[i]);
         })
         .catch(() => {
-          if (!alive || i >= delays.length - 1) { standingReadyRef.current = true; return; }
+          if (!alive) return;
+          setCombinedResolved(true); // don't leave the loading skeletons up on a failed read
+          if (i >= delays.length - 1) { standingReadyRef.current = true; return; }
           i += 1;
           timer = setTimeout(run, delays[i]);
         });
@@ -344,8 +355,12 @@ export default function DailyEndCard({
   const doneKeys = new Set();
   const unfinished = new Set(); // started today but abandoned (not finished)
   if (self) doneKeys.add(self);
-  if (dailyMe && dailyMe.perGame) {
-    for (const [k, v] of Object.entries(dailyMe.perGame)) {
+  // Registered players carry the day's completions on dailyMe.perGame; guests carry
+  // them on the provisional standing, so read whichever we have (else the guest's
+  // already-played games would look unplayed and skew "up next" / the grid).
+  const perGameDone = (dailyMe && dailyMe.perGame) || (dailyGuest && dailyGuest.perGame) || null;
+  if (perGameDone) {
+    for (const [k, v] of Object.entries(perGameDone)) {
       if (v && v.abandoned) unfinished.add(k);
       else doneKeys.add(k);
     }
@@ -394,9 +409,19 @@ export default function DailyEndCard({
     if (g0 && gm) grab = { ...gm, field: g0.field || 0, plays: g0.plays || 0, href: g0.href || gm.href };
   }
 
+  // Completion-derived UI (Up next, Easiest leaderboard, the still-to-play grid)
+  // must wait for the daily-combined fetch: before it lands the only finished game
+  // we know is `self`, so an ungated "up next" can point at a game already played
+  // today (and the auto-advance would open it). Gate on combinedResolved, show a
+  // skeleton meanwhile, and collapse the skeleton if the fetch is very slow.
+  const completionKnown = combinedResolved;
+  const nextReal = completionKnown && !!nextTarget;      // trustworthy up-next
+  const nextSkel = !completionKnown && !skelTimedOut;    // still loading
+  const grabSkel = !boardGames && !skelTimedOut;         // easiest-board data still loading
+
   // 25s auto-advance to the next game (win only; a loss shows the block without
   // the ticking clock so the player can retry or read the board first).
-  const autoRun = revealed && won && !!nextTarget && !autoCancel;
+  const autoRun = revealed && won && completionKnown && !!nextTarget && !autoCancel;
   useEffect(() => {
     if (!autoRun) return undefined;
     if (secs <= 0) {
@@ -683,6 +708,15 @@ export default function DailyEndCard({
         .dec-cal-sw{width:11px;height:11px;border-radius:3px;flex-shrink:0;}
 
         .dec-duo{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:4px;}
+        .dec-sk{position:relative;overflow:hidden;background:#dfe6f1;border-radius:6px;}
+        .dec-sk::after{content:'';position:absolute;inset:0;transform:translateX(-100%);background:linear-gradient(90deg,transparent,rgba(255,255,255,.7),transparent);animation:dec-shim 1.15s ease-in-out infinite;}
+        @keyframes dec-shim{100%{transform:translateX(100%);}}
+        .dec-sk-ring{width:50px;height:50px;border-radius:50%;flex-shrink:0;}
+        .dec-sk-line{height:11px;}
+        .dec-sk-btn{height:34px;border-radius:10px;}
+        .dec-fadein{animation:dec-fadein .32s ease both;}
+        @keyframes dec-fadein{from{opacity:0;transform:translateY(3px);}to{opacity:1;transform:none;}}
+        @media(prefers-reduced-motion:reduce){.dec-sk::after{animation:none;}.dec-fadein{animation:none;}}
         .dec-nx{border:1px solid #d7e3f8;background:#eff4fd;border-radius:14px;padding:13px 14px;display:flex;flex-direction:column;justify-content:space-between;gap:11px;min-width:0;}
         .dec-nx-top{display:flex;align-items:center;gap:12px;min-width:0;}
         .dec-ring{position:relative;width:50px;height:50px;flex-shrink:0;}
@@ -849,10 +883,25 @@ export default function DailyEndCard({
       ) : null}
 
       {/* ---- 5. up next + easiest leaderboard ---- */}
-      {(nextTarget || grab) ? (
+      {/* Both cards are completion-derived, so each shows a shimmer skeleton until
+          its data lands (never a guessed game), fades the real card in on arrival,
+          and collapses if the fetch stalls past the skeleton timeout. */}
+      {(nextReal || nextSkel || grab || grabSkel) ? (
         <div className="dec-duo">
-          {nextTarget ? (
-            <div className="dec-nx">
+          {nextSkel ? (
+            <div className="dec-nx" aria-hidden="true">
+              <div className="dec-nx-top">
+                <div className="dec-sk dec-sk-ring" />
+                <div style={{ minWidth: 0, flex: 1 }}>
+                  <div className="dec-sk dec-sk-line" style={{ width: '58%', marginBottom: 8 }} />
+                  <div className="dec-sk dec-sk-line" style={{ width: '82%', height: 15, marginBottom: 7 }} />
+                  <div className="dec-sk dec-sk-line" style={{ width: '66%' }} />
+                </div>
+              </div>
+              <div className="dec-nx-btns"><div className="dec-sk dec-sk-btn" style={{ flex: 1 }} /></div>
+            </div>
+          ) : nextReal ? (
+            <div className="dec-nx dec-fadein">
               <div className="dec-nx-top">
                 <div className="dec-ring">
                   <svg width="50" height="50" viewBox="0 0 56 56" aria-hidden="true">
@@ -874,8 +923,20 @@ export default function DailyEndCard({
               </div>
             </div>
           ) : null}
-          {grab ? (
-            <div className="dec-ez">
+          {grabSkel ? (
+            <div className="dec-ez" aria-hidden="true">
+              <div className="dec-ez-top">
+                <div className="dec-sk" style={{ width: 22, height: 22, borderRadius: 6, flexShrink: 0 }} />
+                <div style={{ minWidth: 0, flex: 1 }}>
+                  <div className="dec-sk dec-sk-line" style={{ width: '62%', marginBottom: 8 }} />
+                  <div className="dec-sk dec-sk-line" style={{ width: '46%', height: 15, marginBottom: 7 }} />
+                  <div className="dec-sk dec-sk-line" style={{ width: '72%' }} />
+                </div>
+              </div>
+              <div className="dec-sk dec-sk-btn" style={{ width: '100%' }} />
+            </div>
+          ) : grab ? (
+            <div className="dec-ez dec-fadein">
               <div className="dec-ez-top">
                 <Trophy size={22} strokeWidth={2} color="#b7791f" style={{ flexShrink: 0 }} />
                 <div style={{ minWidth: 0, flex: 1 }}>
@@ -891,7 +952,9 @@ export default function DailyEndCard({
       ) : null}
 
       {/* ---- 6. more of today's games ---- */}
-      {showMore ? (
+      {/* Held until the completion set is known so the grid never lists a game the
+          player already finished today (or shows a wrong "N of M played" count). */}
+      {completionKnown && showMore ? (
         <>
           <div className="dec-morehd">
             <span className="dec-more-eye">More of today&rsquo;s games</span>
