@@ -4,7 +4,7 @@
 // into a single card, each game still its own link. A fixed left cap carries the
 // DAILY GAMES label, a live progress bar with the played count and the ET reset
 // countdown; each cell shows the game's motif + name, and a game finished TODAY
-// gets a green check overlay that dims the cell but never blocks the click (tap
+// gets a green wash + a large check watermark but never blocks the click (tap
 // through to replay or review). Completion follows the signed-in player across
 // devices via /api/quiz/daily-status, with the same-device localStorage
 // breadcrumb (sot_<key>_day) driving the first paint. Adding a game to GAMES
@@ -22,10 +22,11 @@
 //   cell).
 // - Each cell carries a 3px top accent bar in the game's ACCENTS color. An
 //   UNPLAYED cell keeps its game-leader chip; a FINISHED cell swaps the chip
-//   for the player's RANK in that game ("You · #4", from their position in the
-//   daily-combined per-game board), never the raw score (owner ruling
-//   2026-07-23: rank after completion, leader before). If the player's row
-//   isn't in the board payload the leader chip stays.
+//   for a RANK-OR-STREAK pill: a green "You #N" when the player finished in that
+//   game's top 10 (trophy + "You #1" at the top), otherwise a muted flame
+//   "{n} day streak" pill (owner mockup 2026-07-24; streak floors at 1 since
+//   completing today always counts). Rank comes from the daily-combined per-game
+//   board; the leader chip stays on cells not yet finished.
 // - The cell streak badge is the FLAME ICON ONLY (owner 2026-07-23: a 100-day
 //   number would eat the cell); the streak NUMBER lives in the desktop hover
 //   tip, which also names the game's category above its tagline.
@@ -333,11 +334,23 @@ export default function DailyStrip({ board = null }) {
         .dstrip-cell:nth-child(n+${cellCols + 1}){border-top:1px solid rgba(255,255,255,0.055);}
         .dstrip-cell:hover{background:rgba(91,139,255,0.14);}
         .dstrip-acc{position:absolute;top:0;left:0;right:0;height:3px;opacity:.85;pointer-events:none;}
-        .dstrip-cell.done .dstrip-acc{opacity:.3;}
+        .dstrip-cell.done .dstrip-acc{opacity:0;}
         .dstrip-cell img{height:30px;width:auto;max-width:38px;object-fit:contain;}
         .dstrip-cell .nm{font-size:11px;font-weight:800;color:#fff;letter-spacing:-.2px;white-space:nowrap;}
-        .dstrip-cell.done img{opacity:.4;}
-        .dstrip-cell.done .nm{color:#9fb0d4;}
+        .dstrip-cell.done img{opacity:.85;}
+        .dstrip-cell.done .nm{color:#c9f2df;position:relative;z-index:2;}
+        /* completed cell: soft green wash + large check watermark + rank/streak pill (owner mockup 2026-07-24) */
+        .dstrip-cell.done{background:linear-gradient(180deg,rgba(52,211,153,0.15),rgba(52,211,153,0.05));}
+        .dstrip-cell.done:hover{background:linear-gradient(180deg,rgba(52,211,153,0.22),rgba(52,211,153,0.09));}
+        .dstrip-wm{position:absolute;top:9px;left:0;right:0;display:flex;justify-content:center;z-index:1;pointer-events:none;opacity:.9;filter:drop-shadow(0 1px 2px rgba(4,18,31,0.6));}
+        .dstrip-pill{margin-top:3px;position:relative;z-index:2;display:inline-flex;align-items:center;gap:3px;font-size:9.5px;font-weight:800;line-height:1;padding:3px 7px;border-radius:99px;white-space:nowrap;}
+        .dstrip-pill svg{flex:none;}
+        .dstrip-pill.rankp{background:rgba(52,211,153,0.2);border:1px solid rgba(52,211,153,0.5);color:#6ee7b7;}
+        .dstrip-pill.rankp svg{color:#6ee7b7;}
+        .dstrip-pill.rankp.first{background:rgba(245,216,120,0.18);border-color:rgba(245,216,120,0.55);color:#f5d878;}
+        .dstrip-pill.rankp.first svg{color:#f5d878;}
+        .dstrip-pill.streakp{background:rgba(148,167,204,0.12);border:1px solid rgba(148,167,204,0.3);color:#b9c6df;}
+        .dstrip-pill.streakp svg{color:#f8b84a;}
         .dstrip-sun{position:absolute;top:7px;left:5px;font-family:'DM Mono',ui-monospace,monospace;font-size:8.5px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:#04121f;background:#f8b84a;border-radius:3px;padding:0 3px;line-height:1.5;pointer-events:none;}
         .dstrip-check{position:absolute;top:7px;right:5px;width:16px;height:16px;border-radius:99px;background:#34d399;display:flex;align-items:center;justify-content:center;box-shadow:0 0 0 2px #0e1d40;pointer-events:none;}
         .dstrip-prog{position:absolute;top:7px;right:5px;width:16px;height:16px;border-radius:99px;background:#12233f;display:flex;align-items:center;justify-content:center;box-shadow:0 0 0 2px #0e1d40;pointer-events:none;}
@@ -545,8 +558,8 @@ export default function DailyStrip({ board = null }) {
                 <a key={g.key} href={g.href} className={`dstrip-cell${done.has(g.key) ? ' done' : ''}`} title={`${g.name} — ${g.tag}`} aria-label={`${g.name} — ${g.tag}${sun ? ' — Sunday edition' : ''}${done.has(g.key) ? ' — done today' : ''}${!done.has(g.key) && inprog.has(g.key) ? ' — started, not finished' : ''}${st ? ` — ${st}-day streak` : ''} — daily game`}>
                   <span className="dstrip-acc" style={{ background: ACCENTS[g.key] || '#5b9bff' }} aria-hidden="true" />
                   {done.has(g.key) && (
-                    <span className="dstrip-check" aria-hidden="true">
-                      <svg viewBox="0 0 12 12" width="9" height="9" fill="none"><path d="M2.5 6.2 L5 8.6 L9.5 3.6" stroke="#04121f" strokeWidth="2.1" strokeLinecap="round" strokeLinejoin="round" /></svg>
+                    <span className="dstrip-wm" aria-hidden="true">
+                      <svg viewBox="0 0 24 24" width="40" height="40" fill="none"><path d="M4 12.5 L10 18.5 L20 6" stroke="#34d399" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" /></svg>
                     </span>
                   )}
                   {!done.has(g.key) && inprog.has(g.key) && (
@@ -560,7 +573,7 @@ export default function DailyStrip({ board = null }) {
                   {sun ? (
                     <span className="dstrip-sun" aria-hidden="true">{SUNDAY_SHORT}</span>
                   ) : null}
-                  {st ? (
+                  {st && !done.has(g.key) ? (
                     <span className={`dstrip-flame${sun ? ' shift' : ''}`} aria-hidden="true"><Flame size={10} strokeWidth={2.6} /></span>
                   ) : null}
                   <img src={g.img} alt="" aria-hidden="true" />
@@ -570,9 +583,14 @@ export default function DailyStrip({ board = null }) {
                     <span>{g.tag}</span>
                     {st ? <span className="tip-fl"><Flame size={9} strokeWidth={2.6} />{st}-day streak</span> : null}
                   </span>
-                  {hasBoard && !open ? (
-                    rk ? <span className={`dstrip-you${rk === 1 ? ' first' : ''}`}>You · <b>#{rk}</b></span>
-                      : lead ? <span className="dstrip-lead"><Crown size={10} /><span>{lead}</span></span> : <span className="dstrip-lead none">—</span>
+                  {!open ? (
+                    done.has(g.key) ? (
+                      (rk && rk <= 10)
+                        ? <span className={`dstrip-pill rankp${rk === 1 ? ' first' : ''}`}>{rk === 1 ? <><Trophy size={9} strokeWidth={2.6} />You #1</> : `You #${rk}`}</span>
+                        : <span className="dstrip-pill streakp"><Flame size={9} strokeWidth={2.6} />{Math.max(1, streaks[g.key] || 1)} day streak</span>
+                    ) : hasBoard ? (
+                      lead ? <span className="dstrip-lead"><Crown size={10} /><span>{lead}</span></span> : <span className="dstrip-lead none">—</span>
+                    ) : null
                   ) : null}
                 </a>
               );
