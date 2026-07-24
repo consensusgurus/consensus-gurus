@@ -370,6 +370,12 @@ export default function DailyStrip({ board = null }) {
         /* trailing Play-all cell fills the slot freed by the promoted hero game */
         .dstrip-cell.playall .pa-ic{width:30px;height:30px;border-radius:99px;border:1.5px dashed #3a537f;color:#9fb0d4;display:flex;align-items:center;justify-content:center;}
         .dstrip-cell.playall .nm{color:#f5d878;font-size:10px;white-space:normal;text-align:center;line-height:1.3;}
+        /* archive button that fills the trailing empty grid slot when the whole set is done */
+        .dstrip-cell.archivecell{padding:9px 6px;}
+        .dstrip-cell.archivecell:hover{background:transparent;}
+        .dstrip-cell .arch-btn{display:inline-flex;align-items:center;gap:4px;text-align:center;background:rgba(232,180,58,0.14);border:1px solid rgba(232,180,58,0.42);color:#f5d878;font-size:10px;font-weight:800;line-height:1.25;border-radius:8px;padding:7px 8px;transition:background .15s;}
+        .dstrip-cell .arch-btn svg{flex:none;}
+        .dstrip-cell.archivecell:hover .arch-btn{background:rgba(232,180,58,0.24);}
         /* hover blurb: the one-line description fades in over the cell */
         .dstrip-tip{position:absolute;inset:0;z-index:2;display:flex;flex-direction:column;gap:2px;align-items:center;justify-content:center;text-align:center;padding:6px 8px;background:rgba(11,23,51,0.96);color:#eaf0fb;font-size:10.5px;font-weight:700;line-height:1.35;opacity:0;transition:opacity .14s ease;pointer-events:none;}
         .dstrip-tip .tip-cat{font-size:8px;font-weight:800;letter-spacing:.12em;text-transform:uppercase;color:#8fa3cf;}
@@ -596,6 +602,13 @@ export default function DailyStrip({ board = null }) {
               );
             })}
             {/* The former "See all" tile is now a real game tile (Shards); every daily game renders in the grid. */}
+            {/* When the whole set is done the 2-row grid leaves a trailing empty
+                slot (odd cell count); fill it with a Daily games archive button. */}
+            {!nextGame && cellGames.length % 2 === 1 ? (
+              <a href="/daily" className="dstrip-cell archivecell" aria-label="Daily games archive">
+                <span className="arch-btn">Daily games archive <ArrowRight size={11} strokeWidth={2.6} /></span>
+              </a>
+            ) : null}
           </div>
         </div>
         {hasBoard && open ? (
