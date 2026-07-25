@@ -143,7 +143,7 @@ export default function DailyCombinedLeaderboard({ todayKey = null, identity = n
     setAllTimeCache((c) => ({ ...c, [key]: 'loading' }));
     fetch('/api/quiz/daily-game?' + p.toString(), { cache: 'no-store' })
       .then((r) => r.json())
-      .then((d) => { if (!alive) return; const at = d && d.allTime; setAllTimeCache((c) => ({ ...c, [key]: { board: (at && at.board) || [], field: (at && at.field) || 0 } })); })
+      .then((d) => { if (!alive) { delete atFetchedRef.current[key]; setAllTimeCache((c) => { if (c[key] === 'loading') { const n = { ...c }; delete n[key]; return n; } return c; }); return; } const at = d && d.allTime; setAllTimeCache((c) => ({ ...c, [key]: { board: (at && at.board) || [], field: (at && at.field) || 0 } })); })
       .catch(() => { if (alive) { delete atFetchedRef.current[key]; setAllTimeCache((c) => { const n = { ...c }; delete n[key]; return n; }); } });
     return () => { alive = false; };
   }, [allTimeToggle, tab, gameScope]);
