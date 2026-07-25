@@ -207,8 +207,13 @@ const DAILY_GAMES = [
   { key: 'jester', title: 'Jesters' },
   { key: 'sworn', title: 'Sworn' },
   { key: 'shards', title: 'Shards' },
+  { key: 'axiom', title: 'Axiom' },
+  { key: 'hearsay', title: 'Hearsay' },
+  { key: 'venn', title: 'Venn' },
+  { key: 'stands', title: 'Stands' },
+  { key: 'bracket', title: 'Bracket' },
 ];
-const DAILY_PREFIX_RE = /^(links|span|crux|garble|dating|tally|suds|circa|extra|carve|emcee|stet|outwit|tuck|alibi|cipher|ping|warmer|jester|sworn|outrank|shards)-/;
+const DAILY_PREFIX_RE = /^(links|span|crux|garble|dating|tally|suds|circa|extra|carve|emcee|stet|outwit|tuck|alibi|cipher|ping|warmer|jester|sworn|outrank|shards|axiom|hearsay|venn|stands|bracket)-/;
 function buildDailyRetention(rows) {
   const perGame = new Map(DAILY_GAMES.map((g) => [g.key, new Map()])); // key -> (playerKey -> Set(quizId))
   const breadth = new Map(); // playerKey -> Set(gameKey)
@@ -316,8 +321,8 @@ function buildTimeByDay(rows) {
 // browsers (the bulk of daily-game players) are counted. time_elapsed is the
 // seconds from Play to finish; the average skips rows with no/blank time. Rows
 // whose id does not parse as a dated daily puzzle are ignored.
-const DAILY_DATED_RE = /^(links|span|crux|garble|dating|tally|suds|circa|extra|carve|emcee|stet|outwit|tuck|alibi|cipher|ping|warmer|jester|sworn|outrank|shards)-(\d{1,2})-(\d{1,2})-(\d{2})$/;
-// Per-game stats for the 21 daily games. Every completed play carries its own
+const DAILY_DATED_RE = /^(links|span|crux|garble|dating|tally|suds|circa|extra|carve|emcee|stet|outwit|tuck|alibi|cipher|ping|warmer|jester|sworn|outrank|shards|axiom|hearsay|venn|stands|bracket)-(\d{1,2})-(\d{1,2})-(\d{2})$/;
+// Per-game stats for the daily games. Every completed play carries its own
 // puzzle date in the quiz_id ('links-7-6-26'), so day counts come from the
 // quiz_id, not the row timestamp. Each game reports its all-time averages
 // (plays per active day, time per play), its unique-player count, and the same
@@ -782,7 +787,7 @@ export default async function AdminPage() {
   // history, gap-filled.
   const timeByDay = buildTimeByDay((quizResultsRes && quizResultsRes.data) || []);
 
-  // Daily Games tab: the 21 daily games' plays bucketed by puzzle date, with
+  // Daily Games tab: the daily games' plays bucketed by puzzle date, with
   // unique players / total plays / avg time per play, per day and per game.
   const dailyByGame = buildDailyByGame((quizResultsRes && quizResultsRes.data) || []);
 
