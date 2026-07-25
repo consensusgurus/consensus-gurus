@@ -39,7 +39,7 @@ const SUN = '#b45309';
 const SUN_BG = '#fff7ed';
 
 const CATEGORIES = [
-  { key: 'word', label: 'Word', keys: ['crux', 'emcee', 'shards', 'garble', 'links', 'stet', 'tuck', 'warmer'] },
+  { key: 'word', label: 'Word', keys: ['crux', 'lode', 'emcee', 'shards', 'garble', 'links', 'stet', 'tuck', 'warmer'] },
   { key: 'history', label: 'History', keys: ['dating', 'extra', 'bracket'] },
   { key: 'geography', label: 'Geography', keys: ['span', 'ping'] },
   { key: 'numbers', label: 'Numbers', keys: ['tally', 'suds', 'carve', 'cipher'] },

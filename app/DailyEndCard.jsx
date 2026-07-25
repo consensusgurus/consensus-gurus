@@ -51,7 +51,7 @@ const RUST = '#c0392b';
 // "still to play" list for their first FOUR days so players actually meet
 // them; after `until` (ET, inclusive) the canonical order resumes. Keep in
 // sync with the same pin in app/api/quiz/daily-order/route.js.
-const LAUNCH_PIN = { keys: ['bracket'], until: '2026-07-29' };
+const LAUNCH_PIN = { keys: ['lode'], until: '2026-08-08' };
 function etTodayEC() {
   try { return new Date().toLocaleDateString('en-CA', { timeZone: 'America/New_York' }); }
   catch (e) { return new Date().toISOString().slice(0, 10); }
@@ -97,6 +97,7 @@ export const GAME_META = {
   venn:   { accent: '#b45309', badgeBg: '#b45309', badgeInk: '#fff', Fin: CircleDot },
   stands:  { accent: '#1d4ed8', badgeBg: '#1d4ed8', badgeInk: '#fff', Fin: Table2 },
   bracket: { accent: '#c2410c', badgeBg: '#c2410c', badgeInk: '#fff', Fin: TrophyFin },
+  lode: { accent: '#a16207', badgeBg: '#a16207', badgeInk: '#fff', Fin: TrophyFin },
 };
 
 // ---- the five families (type label + color shown on each tile/header) -------
@@ -140,6 +141,7 @@ export const DAILY_GAMES = [
   { key: 'venn',   cat: 'logic',     name: 'Venn',   tag: 'Sort the overlaps',          href: '/venn' },
   { key: 'stands', cat: 'logic',     name: 'Stands', tag: 'Rebuild the results',       href: '/stands' },
   { key: 'bracket', cat: 'history',  name: 'Bracket', tag: 'Name every winner',        href: '/bracket' },
+  { key: 'lode',    cat: 'word',     name: 'Lode',    tag: 'Seven letters, rare words pay',     href: '/lode' },
 ];
 
 const AUTO_SECONDS = 30;

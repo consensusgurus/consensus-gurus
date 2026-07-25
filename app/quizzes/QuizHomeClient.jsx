@@ -114,7 +114,7 @@ function sportHeroFor(q) {
 // Daily-game quizzes are date/topic-stamped (crux-*, emcee-*, garble-*, links-*, span-*, dating-*,
 // tally-*, suds-*, circa-*, extra-*, carve-*, stet-*, outwit-*, tuck-*, alibi-*, cipher-*, ping-*, jester-*, sworn-*, closer-*) and every entry in a family shares ONE hero image, so the two hero
 // tiles (Newest + Trending) must never both draw from the same family.
-const DAILY_GAME_FAMILY_RE = /^(crux|emcee|garble|links|span|dating|tally|suds|circa|extra|carve|stet|outwit|tuck|alibi|cipher|ping|warmer|jester|sworn|closer|outrank|shards|axiom|hearsay|venn|stands|bracket)-/;
+const DAILY_GAME_FAMILY_RE = /^(crux|emcee|garble|links|span|dating|tally|suds|circa|extra|carve|stet|outwit|tuck|alibi|cipher|ping|warmer|jester|sworn|closer|outrank|shards|axiom|hearsay|venn|stands|bracket|lode)-/;
 function gameFamily(id) { const m = (id || '').match(DAILY_GAME_FAMILY_RE); return m ? m[1] : null; }
 // Rule: daily games (Crux, Emcee, Garble, Links, Span, Dating, Tally, Suds, Circa, Extra, Carve, Stet, Outwit, Tuck, Alibi, Cipher, Ping, Closer) publish a fresh
 // dated entry every day, so by publishedAt they are ALWAYS the "newest" quiz and
@@ -135,7 +135,7 @@ const DG_CAT = Object.fromEntries((DAILY_GAMES || []).map((g) => [g.key, CAT_MET
 // Checked BEFORE QUIZ_HEROES for exactly that reason (owner, 2026-07-20).
 // `closer` is deliberately absent: it has no btn art, so it keeps its promo card.
 const DG_HERO_FAMS = new Set(['alibi', 'axiom', 'bracket', 'carve', 'cipher', 'circa', 'crux', 'dating', 'emcee', 'extra',
-  'garble', 'hearsay', 'jester', 'links', 'outwit', 'outrank', 'ping', 'span', 'stands', 'stet', 'suds', 'sworn', 'tally', 'tuck', 'venn', 'warmer', 'shards']);
+  'garble', 'hearsay', 'jester', 'links', 'outwit', 'outrank', 'ping', 'span', 'stands', 'stet', 'suds', 'sworn', 'tally', 'tuck', 'venn', 'warmer', 'shards', 'lode']);
 // One resolver for every hero image on the page: a daily game's icon banner if it
 // has one, else the quiz's own photo, else the department hero, else the fallback.
 // `pos` is the background-position that goes with the chosen image.

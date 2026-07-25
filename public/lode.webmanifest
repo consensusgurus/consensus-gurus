@@ -1,0 +1,29 @@
+{
+  "id": "/lode",
+  "name": "Lode — Daily Letter-Mining Word Game",
+  "short_name": "Lode",
+  "description": "Seven letters, one core letter every word must use. Points come from how rare a word is, not how long — strike the vein, then dig for the Mother Lode. From Source of Truths.",
+  "start_url": "/lode?src=pwa",
+  "scope": "/",
+  "display": "standalone",
+  "background_color": "#f7f8fa",
+  "theme_color": "#f7f8fa",
+  "icons": [
+    {
+      "src": "/lode-icons/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "/lode-icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    },
+    {
+      "src": "/lode-icons/icon-512-maskable.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ]
+}

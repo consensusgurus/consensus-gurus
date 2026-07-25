@@ -39,6 +39,7 @@ export const DAILY_GAMES = [
   { key: 'venn', href: '/venn', name: 'Venn', tag: 'sort the overlaps', store: 'sot_venn_day', accent: '#b45309', bg: '#fdf0e3', border: 'rgba(180,83,9,0.35)' },
   { key: 'stands', href: '/stands', name: 'Stands', tag: 'rebuild the results', store: 'sot_stands_day', accent: '#1d4ed8', bg: '#e8effd', border: 'rgba(29,78,216,0.35)' },
   { key: 'bracket', href: '/bracket', name: 'Bracket', tag: 'name every winner', store: 'sot_bracket_day', accent: '#c2410c', bg: '#fdece3', border: 'rgba(196,65,12,0.35)' },
+  { key: 'lode', href: '/lode', name: 'Lode', tag: 'seven letters, rare words pay', store: 'sot_lode_day', accent: '#a16207', bg: '#fef7e0', border: 'rgba(161,98,7,0.35)' },
 ];
 
 function etToday() {
