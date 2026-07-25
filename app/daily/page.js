@@ -24,7 +24,7 @@ import { PUZZLES as SHARDS } from '../shards/puzzles';
 import { PUZZLES as AXIOM_FULL } from '../axiom/puzzles';
 import { PUZZLES as HEARSAY_FULL } from '../hearsay/puzzles';
 import { PUZZLES as VENN_FULL } from '../venn/puzzles';
-import { PUZZLES as BRACKET_FULL } from '../bracket/puzzles';
+import { PUZZLES as FORM_FULL } from '../form/puzzles';
 
 // Outwit's bank is server-only in a stronger sense than the others: its
 // `house` arrays and herd truths must never reach the client. This page only
@@ -43,7 +43,7 @@ const SWORN = SWORN_FULL.map(({ num, quizId, live, dateLabel, sunday }) => ({ nu
 const AXIOM = AXIOM_FULL.map(({ num, quizId, live, dateLabel, sunday }) => ({ num, quizId, live, dateLabel, sunday }));
 const HEARSAY = HEARSAY_FULL.map(({ num, quizId, live, dateLabel, sunday }) => ({ num, quizId, live, dateLabel, sunday }));
 const VENN = VENN_FULL.map(({ num, quizId, live, dateLabel, sunday }) => ({ num, quizId, live, dateLabel, sunday }));
-const BRACKET = BRACKET_FULL.map(({ num, quizId, live, dateLabel, sunday }) => ({ num, quizId, live, dateLabel, sunday }));
+const FORM = FORM_FULL.map(({ num, quizId, live, dateLabel, sunday }) => ({ num, quizId, live, dateLabel, sunday }));
 
 // The daily-games hub + archive. One page listing every daily game, each with
 // today's puzzle and its full back-catalog of past drops (live<=today only, so
@@ -53,12 +53,12 @@ const BRACKET = BRACKET_FULL.map(({ num, quizId, live, dateLabel, sunday }) => (
 export const metadata = {
   title: 'Daily Games — Crux, Emcee, Garble, Links, Span & More | Source of Truths',
   description:
-    "Every Source of Truths daily game in one place: today's puzzle and the full archive for Crux, Emcee, Garble, Links, Span, Dating, Tally, Suds, Circa, Extra, Carve, Stet, Outwit, Tuck, Alibi, Cipher, Ping, Warmer, Jesters, Sworn, Shards, Axiom, Hearsay, Venn, and Bracket. A new puzzle in each, every day.",
+    "Every Source of Truths daily game in one place: today's puzzle and the full archive for Crux, Emcee, Garble, Links, Span, Dating, Tally, Suds, Circa, Extra, Carve, Stet, Outwit, Tuck, Alibi, Cipher, Ping, Warmer, Jesters, Sworn, Shards, Axiom, Hearsay, Venn, and Form. A new puzzle in each, every day.",
   alternates: { canonical: '/daily' },
   openGraph: {
     title: 'Daily Games — Source of Truths',
     description:
-      "Today's puzzle and the full archive for every daily game: Crux, Emcee, Garble, Links, Span, Dating, Tally, Suds, Circa, Extra, Carve, Stet, Outwit, Tuck, Alibi, Cipher, Ping, Warmer, Jesters, Sworn, Shards, Axiom, Hearsay, Venn, and Bracket.",
+      "Today's puzzle and the full archive for every daily game: Crux, Emcee, Garble, Links, Span, Dating, Tally, Suds, Circa, Extra, Carve, Stet, Outwit, Tuck, Alibi, Cipher, Ping, Warmer, Jesters, Sworn, Shards, Axiom, Hearsay, Venn, and Form.",
     url: '/daily',
     type: 'website',
     siteName: 'Source of Truths',
@@ -112,7 +112,7 @@ const GAMES = [
   { key: 'axiom', name: 'Axiom', path: '/axiom', tag: 'Find the hidden rule', accent: '#0f766e', bg: '#ccfbf1', border: 'rgba(15,118,110,0.35)', src: AXIOM },
   { key: 'hearsay', name: 'Hearsay', path: '/hearsay', tag: "Deduce what they don't know", accent: '#7c2d92', bg: '#f5e8fb', border: 'rgba(124,45,146,0.35)', src: HEARSAY },
   { key: 'venn', name: 'Venn', path: '/venn', tag: 'Sort the overlaps', accent: '#b45309', bg: '#fef3c7', border: 'rgba(180,83,9,0.35)', src: VENN },
-  { key: 'bracket', name: 'Bracket', path: '/bracket', tag: 'Rebuild the results', accent: '#1d4ed8', bg: '#dbeafe', border: 'rgba(29,78,216,0.35)', src: BRACKET },
+  { key: 'form', name: 'Form', path: '/form', tag: 'Rebuild the results', accent: '#1d4ed8', bg: '#dbeafe', border: 'rgba(29,78,216,0.35)', src: FORM },
 ];
 
 const breadcrumbJsonLd = {

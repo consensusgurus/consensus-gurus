@@ -35,7 +35,7 @@ import { PUZZLES as P_shards } from '@/app/shards/puzzles';
 import { PUZZLES as P_axiom } from '@/app/axiom/puzzles';
 import { PUZZLES as P_hearsay } from '@/app/hearsay/puzzles';
 import { PUZZLES as P_venn } from '@/app/venn/puzzles';
-import { PUZZLES as P_bracket } from '@/app/bracket/puzzles';
+import { PUZZLES as P_form } from '@/app/form/puzzles';
 
 export const dynamic = 'force-dynamic';
 export const fetchCache = 'force-no-store';
@@ -51,7 +51,7 @@ const GAME_PUZZLES = {
   crux: P_crux, emcee: P_emcee, garble: P_garble, links: P_links, span: P_span, dating: P_dating,
   tally: P_tally, suds: P_suds, circa: P_circa, extra: P_extra, carve: P_carve, stet: P_stet, outwit: P_outwit,
   tuck: P_tuck, alibi: P_alibi, cipher: P_cipher, ping: P_ping, warmer: P_warmer,
-  jester: P_jester, sworn: P_sworn, outrank: P_outrank, shards: P_shards, axiom: P_axiom, hearsay: P_hearsay, venn: P_venn, bracket: P_bracket,
+  jester: P_jester, sworn: P_sworn, outrank: P_outrank, shards: P_shards, axiom: P_axiom, hearsay: P_hearsay, venn: P_venn, form: P_form,
 };
 
 function etTodayServer() {
