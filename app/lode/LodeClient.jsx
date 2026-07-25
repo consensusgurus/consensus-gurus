@@ -222,6 +222,10 @@ export default function LodeClient({ puzzles = [], forceNum = null }) {
   const [showA2hsHelp, setShowA2hsHelp] = useState(false);
   const [standalone, setStandalone] = useState(false);
   const [mobileUi, setMobileUi] = useState(false);
+  // Touch UI is tracked separately from mobileUi (which gates the Add to Home
+  // Screen button): it governs the on-screen KEYBOARD, and a touch laptop or an
+  // iPad reporting a desktop UA still wants the touch behaviour.
+  const [touchUi, setTouchUi] = useState(false);
   const searchParams = useSearchParams();
   const { duelToken, duelInfo, duelSubmitted } = useDuelContext(PUZZLE.quizId, searchParams);
   const toastTimer = useRef(null);
@@ -250,6 +254,7 @@ export default function LodeClient({ puzzles = [], forceNum = null }) {
     try {
       setStandalone(window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true);
       setMobileUi(isMobileDevice());
+      setTouchUi(isMobileDevice() || window.matchMedia('(pointer: coarse)').matches);
     } catch {}
     const onBip = (e) => { e.preventDefault(); setInstallEvt(e); };
     const onInstalled = () => { setStandalone(true); setInstallEvt(null); };
@@ -353,10 +358,19 @@ export default function LodeClient({ puzzles = [], forceNum = null }) {
     return { quizId: PUZZLE.quizId, score, total: VEIN, correct: score >= VEIN ? 1 : 0, guessesUsed: g.found.length, timeElapsed: el, abandoned: true, email: identity?.email || undefined, anonId: getAnonId(), isMobile: isMobileDevice(), referrer: (typeof document !== 'undefined' ? document.referrer : '') };
   });
 
+  // On a touch device the on-screen keyboard must only ever come up when the
+  // player taps the input itself (owner rule): a keyboard that springs open on
+  // Start, or on every letter tap, covers half the board. So autofocus is
+  // desktop-only, and the tiles/controls below suppress focus changes entirely.
+  function focusEntry() {
+    if (touchUi) return;
+    try { inputRef.current?.focus(); } catch (e) {}
+  }
+
   function startGame() {
     setG((cur) => (cur.t0 ? cur : { ...cur, t0: Date.now() }));
     try { localStorage.setItem(HELP_KEY, '1'); } catch (e) {}
-    setTimeout(() => { try { inputRef.current?.focus(); } catch (e) {} }, 30);
+    setTimeout(focusEntry, 30);
   }
 
   // ─── mining a word ───────────────────────────────────────────────────────
@@ -388,8 +402,14 @@ export default function LodeClient({ puzzles = [], forceNum = null }) {
   function tapLetter(ch) {
     if (!started) return;
     setEntry((e) => (e + ch).slice(0, 20));
-    try { inputRef.current?.focus(); } catch (e) {}
+    focusEntry();
   }
+
+  // Suppressing mousedown's default stops a tap from moving focus at all. That
+  // is what keeps the keyboard closed when the player is tapping tiles, AND
+  // keeps it OPEN when they have deliberately opened it and reach for Delete or
+  // Shuffle mid-word. Click still fires, and keyboard navigation is unaffected.
+  const keepFocus = (e) => e.preventDefault();
   function shuffleLetters() { setOrder((o) => { const a = o.slice(); for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; }); }
 
   function postResult(g2, sc, n) {
@@ -586,7 +606,7 @@ export default function LodeClient({ puzzles = [], forceNum = null }) {
                     disabled={!playing}
                     onChange={(e) => setEntry(e.target.value.replace(/[^a-zA-Z]/g, '').toUpperCase().slice(0, 20))}
                     onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); submitEntry(); } }}
-                    placeholder={playing ? 'Type a word, then Enter' : 'Day closed'}
+                    placeholder={!playing ? 'Day closed' : touchUi ? 'Tap the letters, or tap here to type' : 'Type a word, then Enter'}
                     aria-label="Your word"
                     autoComplete="off"
                     autoCapitalize="characters"
@@ -597,20 +617,20 @@ export default function LodeClient({ puzzles = [], forceNum = null }) {
                 {/* letter cluster: outer letters above and below the core */}
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 10, alignItems: 'center' }}>
                   <div className="ld-row">
-                    {topRow.map((ch, i) => <div key={`t${i}`} className="ld-tile" onClick={() => tapLetter(ch)} role="button" aria-label={`Letter ${ch}`}>{ch}</div>)}
+                    {topRow.map((ch, i) => <div key={`t${i}`} className="ld-tile" onMouseDown={keepFocus} onClick={() => tapLetter(ch)} role="button" aria-label={`Letter ${ch}`}>{ch}</div>)}
                   </div>
                   <div className="ld-row">
-                    <div className="ld-tile core" onClick={() => tapLetter(CORE)} role="button" aria-label={`Core letter ${CORE}, required in every word`}>{CORE}</div>
+                    <div className="ld-tile core" onMouseDown={keepFocus} onClick={() => tapLetter(CORE)} role="button" aria-label={`Core letter ${CORE}, required in every word`}>{CORE}</div>
                   </div>
                   <div className="ld-row">
-                    {botRow.map((ch, i) => <div key={`b${i}`} className="ld-tile" onClick={() => tapLetter(ch)} role="button" aria-label={`Letter ${ch}`}>{ch}</div>)}
+                    {botRow.map((ch, i) => <div key={`b${i}`} className="ld-tile" onMouseDown={keepFocus} onClick={() => tapLetter(ch)} role="button" aria-label={`Letter ${ch}`}>{ch}</div>)}
                   </div>
                 </div>
 
                 <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', justifyContent: 'center', marginTop: 16 }}>
-                  <button type="button" className="ld-btn" onClick={() => setEntry((e) => e.slice(0, -1))} disabled={!entry}><Delete size={14} /> Delete</button>
-                  <button type="button" className="ld-btn" onClick={shuffleLetters}><Shuffle size={14} /> Shuffle</button>
-                  <button type="button" className="ld-btn primary" onClick={submitEntry} disabled={!playing || !entry}>Mine</button>
+                  <button type="button" className="ld-btn" onMouseDown={keepFocus} onClick={() => setEntry((e) => e.slice(0, -1))} disabled={!entry}><Delete size={14} /> Delete</button>
+                  <button type="button" className="ld-btn" onMouseDown={keepFocus} onClick={shuffleLetters}><Shuffle size={14} /> Shuffle</button>
+                  <button type="button" className="ld-btn primary" onMouseDown={keepFocus} onClick={submitEntry} disabled={!playing || !entry}>Mine</button>
                 </div>
 
                 {playing && (
