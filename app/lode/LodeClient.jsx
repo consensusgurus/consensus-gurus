@@ -521,7 +521,7 @@ export default function LodeClient({ puzzles = [], forceNum = null }) {
             <h1 style={{ margin: 0, fontFamily: MONO, fontSize: 14, letterSpacing: '0.06em', fontWeight: 500, color: COLORS.ink }}>No. {PUZZLE.num}</h1>
             <span style={{ color: COLORS.faded }}>&middot;</span>
             <span style={{ fontFamily: SANS, fontStyle: 'italic', fontSize: 15, color: COLORS.faded }}>{PUZZLE.dateLabel}</span>
-            {PUZZLE.sunday && <span style={{ fontFamily: MONO, fontSize: 9.5, letterSpacing: '0.1em', textTransform: 'uppercase', fontWeight: 500, color: '#fff', background: COLORS.accent, borderRadius: 4, padding: '2px 6px' }}>Sunday Edition &middot; 8 letters</span>}
+            {PUZZLE.sunday && <span style={{ fontFamily: MONO, fontSize: 9.5, letterSpacing: '0.1em', textTransform: 'uppercase', fontWeight: 500, color: '#fff', background: COLORS.accent, borderRadius: 4, padding: '2px 6px' }}>Sunday Edition &middot; {ALL_LETTERS.length} letters</span>}
           </div>
           <button onClick={() => setShowHelp(true)} aria-label="How to play" title="How to play" style={{ position: 'absolute', top: 10, right: 2, background: 'none', border: 'none', cursor: 'pointer', color: COLORS.faded, padding: 0, display: 'flex' }}>
             <HelpCircle size={20} />
@@ -639,7 +639,8 @@ export default function LodeClient({ puzzles = [], forceNum = null }) {
                     const x = WORDS.get(w);
                     return (
                       <span key={w} className={`ld-wtag t${x?.t || 1}${x?.g ? ' pan' : ''}${flash === w ? ' new' : ''}`} title={x?.g ? 'Pangram' : TIERS[x?.t || 1].label}>
-                        {x?.g && <Gem size={10} strokeWidth={2.6} style={{ marginRight: 4 }} />}
+                        {/* Ternary, not &&: `g` is 0 or 1, and `0 && <Gem/>` renders a literal 0. */}
+                        {x?.g ? <Gem size={10} strokeWidth={2.6} style={{ marginRight: 4 }} /> : null}
                         {w.toLowerCase()}
                         <span style={{ marginLeft: 5, fontWeight: 800, fontSize: 10 }}>{x?.p}</span>
                       </span>
