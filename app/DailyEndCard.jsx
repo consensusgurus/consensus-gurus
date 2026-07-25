@@ -139,7 +139,7 @@ export const DAILY_GAMES = [
   { key: 'hearsay', cat: 'logic',    name: 'Hearsay', tag: "Deduce what they don't know", href: '/hearsay' },
   { key: 'venn',   cat: 'logic',     name: 'Venn',   tag: 'Sort the overlaps',          href: '/venn' },
   { key: 'stands', cat: 'logic',     name: 'Stands', tag: 'Rebuild the results',       href: '/stands' },
-  { key: 'bracket', cat: 'history',  name: 'Bracket', tag: 'Bust your bracket',        href: '/bracket' },
+  { key: 'bracket', cat: 'history',  name: 'Bracket', tag: 'Name every winner',        href: '/bracket' },
 ];
 
 const AUTO_SECONDS = 30;

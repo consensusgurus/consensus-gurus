@@ -115,7 +115,7 @@ const GAMES = [
   { key: 'hearsay', name: 'Hearsay', path: '/hearsay', tag: "Deduce what they don't know", accent: '#7c2d92', bg: '#f5e8fb', border: 'rgba(124,45,146,0.35)', src: HEARSAY },
   { key: 'venn', name: 'Venn', path: '/venn', tag: 'Sort the overlaps', accent: '#b45309', bg: '#fef3c7', border: 'rgba(180,83,9,0.35)', src: VENN },
   { key: 'stands', name: 'Stands', path: '/stands', tag: 'Rebuild the results', accent: '#1d4ed8', bg: '#dbeafe', border: 'rgba(29,78,216,0.35)', src: STANDS },
-  { key: 'bracket', name: 'Bracket', path: '/bracket', tag: 'Bust your bracket', accent: '#c2410c', bg: '#ffedd5', border: 'rgba(194,65,12,0.35)', src: BRACKET },
+  { key: 'bracket', name: 'Bracket', path: '/bracket', tag: 'Name every winner', accent: '#c2410c', bg: '#ffedd5', border: 'rgba(194,65,12,0.35)', src: BRACKET },
 ];
 
 const breadcrumbJsonLd = {
