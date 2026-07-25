@@ -95,7 +95,7 @@ export const GAME_META = {
   axiom:  { accent: '#0f766e', badgeBg: '#0f766e', badgeInk: '#fff', Fin: FlaskConical },
   hearsay: { accent: '#7c2d92', badgeBg: '#7c2d92', badgeInk: '#fff', Fin: Ear },
   venn:   { accent: '#b45309', badgeBg: '#b45309', badgeInk: '#fff', Fin: CircleDot },
-  form:    { accent: '#1d4ed8', badgeBg: '#1d4ed8', badgeInk: '#fff', Fin: Table2 },
+  tables:  { accent: '#1d4ed8', badgeBg: '#1d4ed8', badgeInk: '#fff', Fin: Table2 },
   bracket: { accent: '#c2410c', badgeBg: '#c2410c', badgeInk: '#fff', Fin: TrophyFin },
 };
 
@@ -138,7 +138,7 @@ export const DAILY_GAMES = [
   { key: 'axiom',  cat: 'logic',     name: 'Axiom',  tag: 'Find the hidden rule',       href: '/axiom' },
   { key: 'hearsay', cat: 'logic',    name: 'Hearsay', tag: "Deduce what they don't know", href: '/hearsay' },
   { key: 'venn',   cat: 'logic',     name: 'Venn',   tag: 'Sort the overlaps',          href: '/venn' },
-  { key: 'form',   cat: 'logic',     name: 'Form',   tag: 'Rebuild the results',       href: '/form' },
+  { key: 'tables', cat: 'logic',     name: 'Tables', tag: 'Rebuild the results',       href: '/tables' },
   { key: 'bracket', cat: 'history',  name: 'Bracket', tag: 'Bust your bracket',        href: '/bracket' },
 ];
 

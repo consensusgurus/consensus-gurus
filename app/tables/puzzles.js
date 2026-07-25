@@ -1,5 +1,5 @@
-// Puzzle data for Form, the daily round-robin reconstruction. Imported ONLY
-// by the server page (app/form/page.js), which filters live<=today before
+// Puzzle data for Tables, the daily round-robin reconstruction. Imported ONLY
+// by the server page (app/tables/page.js), which filters live<=today before
 // passing boards to the client.
 //
 // Everyone played everyone once. Win 3, draw 1, loss 0. The results sheet is
@@ -17,12 +17,12 @@
 //   totalDraws {n}  exactly n matches were drawn
 //
 // LEAK GUARD: the results are NOT stored. Every board is machine-verified
-// (scripts/verify-form.mjs) to admit exactly one table, and to carry a
+// (scripts/verify-tables.mjs) to admit exactly one table, and to carry a
 // MINIMAL clue set: drop any single clue and the table stops being unique. The
 // client re-derives the table with the same bounded search.
 export const PUZZLES = [
   {
-    num: 1, quizId: 'form-7-24-26', live: '2026-07-24', dateLabel: 'July 24, 2026', sunday: false,
+    num: 1, quizId: 'tables-7-24-26', live: '2026-07-24', dateLabel: 'July 24, 2026', sunday: false,
     teams: ['Alderton', 'Brackwell', 'Corvale', 'Dunmoor', 'Eastfield'],
     clues: [
       { type: 'points', x: 1, p: 2 },
@@ -35,7 +35,7 @@ export const PUZZLES = [
     ],
   },
   {
-    num: 2, quizId: 'form-7-25-26', live: '2026-07-25', dateLabel: 'July 25, 2026', sunday: false,
+    num: 2, quizId: 'tables-7-25-26', live: '2026-07-25', dateLabel: 'July 25, 2026', sunday: false,
     teams: ['Ashcombe', 'Bellhaven', 'Croftwood', 'Dalridge', 'Elmsworth'],
     clues: [
       { type: 'draws', x: 4, n: 1 },
@@ -49,7 +49,7 @@ export const PUZZLES = [
     ],
   },
   {
-    num: 3, quizId: 'form-7-26-26', live: '2026-07-26', dateLabel: 'July 26, 2026', sunday: true,
+    num: 3, quizId: 'tables-7-26-26', live: '2026-07-26', dateLabel: 'July 26, 2026', sunday: true,
     teams: ['Ardwick', 'Bexley Vale', 'Calderhurst', 'Draymoor', 'Endsleigh', 'Foxholm'],
     clues: [
       { type: 'points', x: 1, p: 6 },
@@ -64,7 +64,7 @@ export const PUZZLES = [
     ],
   },
   {
-    num: 4, quizId: 'form-7-27-26', live: '2026-07-27', dateLabel: 'July 27, 2026', sunday: false,
+    num: 4, quizId: 'tables-7-27-26', live: '2026-07-27', dateLabel: 'July 27, 2026', sunday: false,
     teams: ['Alderton', 'Brackwell', 'Corvale', 'Dunmoor', 'Eastfield'],
     clues: [
       { type: 'totalDraws', n: 2 },
@@ -76,7 +76,7 @@ export const PUZZLES = [
     ],
   },
   {
-    num: 5, quizId: 'form-7-28-26', live: '2026-07-28', dateLabel: 'July 28, 2026', sunday: false,
+    num: 5, quizId: 'tables-7-28-26', live: '2026-07-28', dateLabel: 'July 28, 2026', sunday: false,
     teams: ['Ashcombe', 'Bellhaven', 'Croftwood', 'Dalridge', 'Elmsworth'],
     clues: [
       { type: 'above', x: 2, y: 1 },
@@ -87,7 +87,7 @@ export const PUZZLES = [
     ],
   },
   {
-    num: 6, quizId: 'form-7-29-26', live: '2026-07-29', dateLabel: 'July 29, 2026', sunday: false,
+    num: 6, quizId: 'tables-7-29-26', live: '2026-07-29', dateLabel: 'July 29, 2026', sunday: false,
     teams: ['Ardwick', 'Bexley Vale', 'Calderhurst', 'Draymoor', 'Endsleigh'],
     clues: [
       { type: 'above', x: 2, y: 3 },
@@ -100,7 +100,7 @@ export const PUZZLES = [
     ],
   },
   {
-    num: 7, quizId: 'form-7-30-26', live: '2026-07-30', dateLabel: 'July 30, 2026', sunday: false,
+    num: 7, quizId: 'tables-7-30-26', live: '2026-07-30', dateLabel: 'July 30, 2026', sunday: false,
     teams: ['Alderton', 'Brackwell', 'Corvale', 'Dunmoor', 'Eastfield'],
     clues: [
       { type: 'drew', x: 0, y: 2 },
@@ -115,7 +115,7 @@ export const PUZZLES = [
     ],
   },
   {
-    num: 8, quizId: 'form-7-31-26', live: '2026-07-31', dateLabel: 'July 31, 2026', sunday: false,
+    num: 8, quizId: 'tables-7-31-26', live: '2026-07-31', dateLabel: 'July 31, 2026', sunday: false,
     teams: ['Ashcombe', 'Bellhaven', 'Croftwood', 'Dalridge', 'Elmsworth'],
     clues: [
       { type: 'beat', x: 3, y: 4 },
@@ -128,7 +128,7 @@ export const PUZZLES = [
     ],
   },
   {
-    num: 9, quizId: 'form-8-1-26', live: '2026-08-01', dateLabel: 'August 1, 2026', sunday: false,
+    num: 9, quizId: 'tables-8-1-26', live: '2026-08-01', dateLabel: 'August 1, 2026', sunday: false,
     teams: ['Ardwick', 'Bexley Vale', 'Calderhurst', 'Draymoor', 'Endsleigh'],
     clues: [
       { type: 'points', x: 3, p: 4 },
@@ -140,7 +140,7 @@ export const PUZZLES = [
     ],
   },
   {
-    num: 10, quizId: 'form-8-2-26', live: '2026-08-02', dateLabel: 'August 2, 2026', sunday: true,
+    num: 10, quizId: 'tables-8-2-26', live: '2026-08-02', dateLabel: 'August 2, 2026', sunday: true,
     teams: ['Alderton', 'Brackwell', 'Corvale', 'Dunmoor', 'Eastfield', 'Farrowgate'],
     clues: [
       { type: 'totalDraws', n: 3 },
@@ -154,7 +154,7 @@ export const PUZZLES = [
     ],
   },
   {
-    num: 11, quizId: 'form-8-3-26', live: '2026-08-03', dateLabel: 'August 3, 2026', sunday: false,
+    num: 11, quizId: 'tables-8-3-26', live: '2026-08-03', dateLabel: 'August 3, 2026', sunday: false,
     teams: ['Ashcombe', 'Bellhaven', 'Croftwood', 'Dalridge', 'Elmsworth'],
     clues: [
       { type: 'drew', x: 1, y: 3 },
@@ -167,7 +167,7 @@ export const PUZZLES = [
     ],
   },
   {
-    num: 12, quizId: 'form-8-4-26', live: '2026-08-04', dateLabel: 'August 4, 2026', sunday: false,
+    num: 12, quizId: 'tables-8-4-26', live: '2026-08-04', dateLabel: 'August 4, 2026', sunday: false,
     teams: ['Ardwick', 'Bexley Vale', 'Calderhurst', 'Draymoor', 'Endsleigh'],
     clues: [
       { type: 'above', x: 0, y: 1 },
@@ -180,7 +180,7 @@ export const PUZZLES = [
     ],
   },
   {
-    num: 13, quizId: 'form-8-5-26', live: '2026-08-05', dateLabel: 'August 5, 2026', sunday: false,
+    num: 13, quizId: 'tables-8-5-26', live: '2026-08-05', dateLabel: 'August 5, 2026', sunday: false,
     teams: ['Alderton', 'Brackwell', 'Corvale', 'Dunmoor', 'Eastfield'],
     clues: [
       { type: 'wins', x: 4, n: 2 },
@@ -193,7 +193,7 @@ export const PUZZLES = [
     ],
   },
   {
-    num: 14, quizId: 'form-8-6-26', live: '2026-08-06', dateLabel: 'August 6, 2026', sunday: false,
+    num: 14, quizId: 'tables-8-6-26', live: '2026-08-06', dateLabel: 'August 6, 2026', sunday: false,
     teams: ['Ashcombe', 'Bellhaven', 'Croftwood', 'Dalridge', 'Elmsworth'],
     clues: [
       { type: 'points', x: 1, p: 7 },

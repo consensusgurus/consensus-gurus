@@ -1,6 +1,6 @@
 'use client';
 
-// Form — the daily results-table reconstruction.
+// Tables — the daily results-table reconstruction.
 //
 // Everyone played everyone once. Win 3, draw 1, loss 0. The results sheet is
 // gone, a handful of facts survive, and exactly one set of results fits them.
@@ -8,7 +8,7 @@
 //
 // The client never receives the results. The board ships teams and clues, and
 // this component re-derives the unique table with the same bounded search the
-// generator used to prove it (scripts/verify-form.mjs), which also confirms
+// generator used to prove it (scripts/verify-tables.mjs), which also confirms
 // the clue set is minimal: drop any one clue and the table stops being unique.
 //
 // Scoring: 12 points, 3 off for each sheet handed in wrong, 2 for a nudge that
@@ -35,8 +35,8 @@ const COLORS = {
 };
 const SANS = "'Manrope', system-ui, -apple-system, sans-serif";
 const MONO = "'DM Mono', ui-monospace, 'SFMono-Regular', monospace";
-const HELP_KEY = 'sot_form_help_seen';
-const STATS_KEY = 'sot_form_stats';
+const HELP_KEY = 'sot_tables_help_seen';
+const STATS_KEY = 'sot_tables_stats';
 const TOTAL = 12;
 
 const pairsOf = (n) => { const p = []; for (let i = 0; i < n; i++) for (let j = i+1; j < n; j++) p.push([i,j]); return p; };
@@ -101,7 +101,7 @@ function search(n, pairs, clues, cap, collect) {
   return { count, first };
 }
 
-const isIosDevice = () => typeof navigator !== 'undefined' && (/iPad|iPhone|iPod/.test(navigator.userAgent || '') || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1));
+const isIosDevice = () => typeof navigator !== 'undefined' && (/iPad|iPhone|iPod/.test(navigator.userAgent || '') || (navigator.plattables === 'MacIntel' && navigator.maxTouchPoints > 1));
 function etToday() { try { return new Date().toLocaleDateString('en-CA', { timeZone: 'America/New_York' }); } catch (e) { return new Date().toISOString().slice(0,10); } }
 function pickPuzzle(puzzles, forceNum) {
   if (forceNum) { const p = puzzles.find((x) => x.num === forceNum); if (p) return p; }
@@ -153,11 +153,11 @@ function mergeServerStats(s, recent, puzzles) {
 
 function freshState(m) { return { v: 1, cells: Array(m).fill(-1), rejected: 0, hints: 0, status: 'playing', t0: null, tEnd: null }; }
 
-export default function FormClient({ puzzles = [], forceNum = null }) {
+export default function TablesClient({ puzzles = [], forceNum = null }) {
   const PUZZLE = useMemo(() => pickPuzzle(puzzles, forceNum), [puzzles, forceNum]);
   const N = PUZZLE.teams.length;
   const PAIRS = useMemo(() => pairsOf(N), [N]);
-  const STORE_KEY = `sot_form_${PUZZLE.num}`;
+  const STORE_KEY = `sot_tables_${PUZZLE.num}`;
   const SOLUTION = useMemo(() => search(N, PAIRS, PUZZLE.clues, 2, true).first, [N, PAIRS, PUZZLE]);
 
   const [g, setG] = useState(() => freshState(PAIRS.length));
@@ -230,7 +230,7 @@ export default function FormClient({ puzzles = [], forceNum = null }) {
     try { localStorage.setItem(STORE_KEY, JSON.stringify(g)); } catch (e) {}
     try {
       if (PUZZLE.num === pickPuzzle(puzzles, null).num) {
-        (function () { var _dn = g.status !== 'playing'; if (_dn || g.t0) localStorage.setItem('sot_form_day', JSON.stringify({ d: etToday(), done: _dn })); else localStorage.removeItem('sot_form_day'); })();
+        (function () { var _dn = g.status !== 'playing'; if (_dn || g.t0) localStorage.setItem('sot_tables_day', JSON.stringify({ d: etToday(), done: _dn })); else localStorage.removeItem('sot_tables_day'); })();
       }
     } catch (e) {}
   }, [g, hydrated, STORE_KEY, PUZZLE, puzzles]);
@@ -265,7 +265,7 @@ export default function FormClient({ puzzles = [], forceNum = null }) {
   const prevPuzzle = puzzles.find((x) => x.num === PUZZLE.num - 1) || null;
   const myStats = deriveStats(stats, pickPuzzle(puzzles, null).num);
 
-  const REC_KEY = `sot_form_rec_${PUZZLE.num}`;
+  const REC_KEY = `sot_tables_rec_${PUZZLE.num}`;
   const abandon = useAbandonFlush(() => {
     const acted = filled > 0 || g.rejected > 0 || g.hints > 0;
     if (!acted || g.status !== 'playing') return null;
@@ -401,7 +401,7 @@ export default function FormClient({ puzzles = [], forceNum = null }) {
 
         <div style={{ display: 'flex', alignItems: 'center', gap: 14, flexWrap: 'wrap', position: 'relative', paddingRight: 28, marginBottom: 14, borderBottom: '2px solid rgba(28,30,36,0.8)', paddingBottom: 11 }}>
           <div style={{ display: 'flex', gap: 4, alignItems: 'flex-end' }}>
-            {'FORM'.split('').map((ch, i) => (
+            {'TABLES'.split('').map((ch, i) => (
               <div key={i} style={{ width: 34, height: 40, borderRadius: 5, display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: SANS, fontWeight: 900, fontSize: 20, background: i === 0 ? COLORS.accent : COLORS.ink, color: '#fff', boxShadow: 'inset 0 2px 5px rgba(0,0,0,0.5), 0 1px 0 rgba(255,255,255,0.65)' }}>{ch}</div>
             ))}
           </div>
@@ -507,9 +507,9 @@ export default function FormClient({ puzzles = [], forceNum = null }) {
             <p style={{ fontSize: 12, color: COLORS.faded, fontWeight: 600, margin: '12px 0 0' }}>
               {isTodays ? (
                 <>{countdown ? <>A new season opens in <b style={{ color: COLORS.ink, fontVariantNumeric: 'tabular-nums' }}>{countdown}</b>.</> : 'A new season opens at midnight Eastern.'}
-                  {prevPuzzle && <>{' '}Meanwhile: <a href={`/form?p=${prevPuzzle.num}`} style={{ color: COLORS.ember, fontWeight: 800, textDecoration: 'underline' }}>yesterday&rsquo;s season &rarr;</a></>}</>
+                  {prevPuzzle && <>{' '}Meanwhile: <a href={`/tables?p=${prevPuzzle.num}`} style={{ color: COLORS.ember, fontWeight: 800, textDecoration: 'underline' }}>yesterday&rsquo;s season &rarr;</a></>}</>
               ) : (
-                <>You&rsquo;re playing the {PUZZLE.dateLabel.replace(', 2026','')} archive. <a href="/form" style={{ color: COLORS.ember, fontWeight: 800, textDecoration: 'underline' }}>Back to today&rsquo;s season &rarr;</a>{' · '}<a href="/daily" style={{ color: COLORS.faded, fontWeight: 700, textDecoration: 'underline' }}>All daily puzzles</a></>
+                <>You&rsquo;re playing the {PUZZLE.dateLabel.replace(', 2026','')} archive. <a href="/tables" style={{ color: COLORS.ember, fontWeight: 800, textDecoration: 'underline' }}>Back to today&rsquo;s season &rarr;</a>{' · '}<a href="/daily" style={{ color: COLORS.faded, fontWeight: 700, textDecoration: 'underline' }}>All daily puzzles</a></>
               )}
             </p>
           </>
@@ -522,7 +522,7 @@ export default function FormClient({ puzzles = [], forceNum = null }) {
           </div>
         )}
         <div style={{ display: focusMode ? 'none' : 'block', margin: '30px auto 0', maxWidth: 640 }}>
-          <DailyGamesGrid self="form" maxWidth={640} challengeHref={`/duel/new?quiz=${encodeURIComponent(PUZZLE.quizId)}`} share={{ label: copied ? 'Copied' : 'Share', onClick: copyShare }} light boardSlot={<DailyBoardPanel self="form" quizId={PUZZLE.quizId} maxWidth={640} streak={{ current: myStats.cur, best: myStats.max }} />} divider />
+          <DailyGamesGrid self="tables" maxWidth={640} challengeHref={`/duel/new?quiz=${encodeURIComponent(PUZZLE.quizId)}`} share={{ label: copied ? 'Copied' : 'Share', onClick: copyShare }} light boardSlot={<DailyBoardPanel self="tables" quizId={PUZZLE.quizId} maxWidth={640} streak={{ current: myStats.cur, best: myStats.max }} />} divider />
           {mobileUi && !standalone && (
             <button onClick={a2hsClick} style={{ marginTop: 10, width: '100%', fontFamily: SANS, fontSize: 13.5, letterSpacing: '0.05em', textTransform: 'uppercase', fontWeight: 800, height: 54, borderRadius: 10, border: 'none', background: COLORS.accent, color: '#fff', cursor: 'pointer', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 9, whiteSpace: 'nowrap' }}>
               <Smartphone size={15} strokeWidth={2.5} /> Add to Home Screen
@@ -532,7 +532,7 @@ export default function FormClient({ puzzles = [], forceNum = null }) {
         {showA2hsHelp && (
           <div onClick={() => setShowA2hsHelp(false)} style={{ position: 'fixed', inset: 0, background: 'rgba(20,22,28,0.55)', zIndex: 90, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 18 }}>
             <div onClick={(e) => e.stopPropagation()} style={{ background: '#fff', borderRadius: 14, maxWidth: 430, width: '100%', padding: '22px 22px 16px', fontFamily: SANS, border: '1.5px solid rgba(20,22,28,0.12)' }}>
-              <div style={{ fontSize: 17, fontWeight: 800, color: COLORS.ink, marginBottom: 8 }}>Add Form to your Home Screen</div>
+              <div style={{ fontSize: 17, fontWeight: 800, color: COLORS.ink, marginBottom: 8 }}>Add Tables to your Home Screen</div>
               {isIosDevice() ? (
                 <ol style={{ margin: '0 0 4px', paddingLeft: 20, color: COLORS.ink, fontSize: 14, lineHeight: 1.7 }}>
                   <li>Tap the <b>Share</b> button in Safari&apos;s toolbar.</li><li>Scroll down and tap <b>Add to Home Screen</b>.</li><li>Tap <b>Add</b> &mdash; the tile opens today&apos;s season, every day.</li>
@@ -553,9 +553,9 @@ export default function FormClient({ puzzles = [], forceNum = null }) {
       </div>
 
       {!playing && !endClosed && (
-        <DailyEndCard modal self="form" won={won}
+        <DailyEndCard modal self="tables" won={won}
           headline={g.status === 'done' ? <>The season is reconstructed</> : <>The record kept its secret</>}
-          subline={<>Form #{PUZZLE.num} &middot; {score}/{TOTAL} &middot; {g.rejected} rejected &middot; {elapsed}</>}
+          subline={<>Tables #{PUZZLE.num} &middot; {score}/{TOTAL} &middot; {g.rejected} rejected &middot; {elapsed}</>}
           onShare={copyShare} shareLabel={copied ? 'Copied' : 'Share Result'} onReplay={resetGame} onClose={() => setEndClosed(true)} />
       )}
       <DuelBanner token={duelToken} info={duelInfo} submitted={duelSubmitted} />
@@ -576,9 +576,9 @@ export default function FormClient({ puzzles = [], forceNum = null }) {
       )}
 
       <section style={{ display: focusMode ? 'none' : 'block', position: 'relative', zIndex: 2, maxWidth: 640, margin: '0 auto', padding: '10px 24px 42px', fontFamily: SANS }}>
-        <h2 style={{ margin: '0 0 8px', fontSize: 15, fontWeight: 800, letterSpacing: '-0.01em', color: COLORS.ink }}>About Form</h2>
+        <h2 style={{ margin: '0 0 8px', fontSize: 15, fontWeight: 800, letterSpacing: '-0.01em', color: COLORS.ink }}>About Tables</h2>
         <p style={{ margin: '0 0 8px', fontSize: 13, lineHeight: 1.65, color: COLORS.faded, fontWeight: 600 }}>
-          Form is a free daily logic puzzle from Source of Truths. A small league played a full round robin, the results sheet was lost, and a handful of facts survive: a points total here, an unbeaten run there, one remembered result. Rebuild every match.
+          Tables is a free daily logic puzzle from Source of Truths. A small league played a full round robin, the results sheet was lost, and a handful of facts survive: a points total here, an unbeaten run there, one remembered result. Rebuild every match.
         </p>
         <p style={{ margin: '0 0 8px', fontSize: 13, lineHeight: 1.65, color: COLORS.faded, fontWeight: 600 }}>
           No sport knowledge is needed and the clubs are invented. The reasoning is arithmetic under constraint: three points a win and one a draw means a points total is a tight little equation, and one solved row usually forces the next. Every board is generated with a constraint solver and machine-verified to admit exactly one table, from a clue set trimmed until nothing in it is redundant.
@@ -597,8 +597,8 @@ export default function FormClient({ puzzles = [], forceNum = null }) {
       ? (won ? `\u{1F3C6} Rebuilt clean in ${elapsed}` : `\u{1F3C6} Rebuilt in ${elapsed} · ${g.rejected} rejected${g.hints ? ` · ${g.hints} nudge${g.hints === 1 ? '' : 's'}` : ''}`)
       : g.status === 'lost' ? '\u{1F3C6} The record won' : '\u{1F3C6} Still reconstructing…';
     const text = playing
-      ? `Form #${PUZZLE.num} — the daily results-table reconstruction from Source of Truths.\n${withRef(`sourceoftruths.com/form${isTodays ? '' : `?p=${PUZZLE.num}`}`)}`
-      : `Form — Season #${PUZZLE.num}\n${solvedBit}${streakBit}\n${withRef(`sourceoftruths.com/form${isTodays ? '' : `?p=${PUZZLE.num}`}`)}`;
+      ? `Tables #${PUZZLE.num} — the daily results-table reconstruction from Source of Truths.\n${withRef(`sourceoftruths.com/tables${isTodays ? '' : `?p=${PUZZLE.num}`}`)}`
+      : `Tables — Season #${PUZZLE.num}\n${solvedBit}${streakBit}\n${withRef(`sourceoftruths.com/tables${isTodays ? '' : `?p=${PUZZLE.num}`}`)}`;
     try { if (typeof navigator !== 'undefined' && navigator.share && isMobileDevice()) { navigator.share({ text }).catch(() => {}); return; } } catch (e) {}
     try { navigator.clipboard?.writeText(text).then(() => { setCopied(true); setTimeout(() => setCopied(false), 1800); }); } catch (e) {}
   }
