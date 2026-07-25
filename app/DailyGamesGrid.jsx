@@ -46,6 +46,7 @@ const GAMES = [
   { key: 'hearsay', href: '/hearsay', name: 'Hearsay', tag: "Deduce what they don't know", img: '/games/btn-hearsay.png' },
   { key: 'venn', href: '/venn', name: 'Venn', tag: 'Sort the overlaps', img: '/games/btn-venn.png' },
   { key: 'form', href: '/form', name: 'Form', tag: 'Rebuild the results', img: '/games/btn-form.png' },
+  { key: 'bracket', href: '/bracket', name: 'Bracket', tag: 'Bust your bracket', img: '/games/btn-bracket.png' },
 ];
 const GAMES_BY_KEY = Object.fromEntries(GAMES.map((g) => [g.key, g]));
 
@@ -55,7 +56,7 @@ const GAMES_BY_KEY = Object.fromEntries(GAMES.map((g) => [g.key, g]));
 // everywhere else.
 const CATEGORIES = [
   { key: 'word', label: 'Word', keys: ['crux', 'emcee', 'shards', 'garble', 'links', 'stet', 'tuck', 'warmer'] },
-  { key: 'history', label: 'History', keys: ['dating', 'extra'] },
+  { key: 'history', label: 'History', keys: ['dating', 'extra', 'bracket'] },
   { key: 'geography', label: 'Geography', keys: ['span', 'ping'] },
   { key: 'numbers', label: 'Numbers', keys: ['tally', 'suds', 'carve', 'cipher'] },
   { key: 'crowd', label: 'Crowd Psychology', keys: ['outwit', 'outrank'] },

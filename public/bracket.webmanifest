@@ -1,0 +1,16 @@
+{
+  "id": "/bracket",
+  "name": "Bracket — Daily Bracket of Facts",
+  "short_name": "Bracket",
+  "description": "Sixteen contenders, one question, fifteen picks that propagate. A new field every day from Source of Truths.",
+  "start_url": "/bracket?src=pwa",
+  "scope": "/",
+  "display": "standalone",
+  "background_color": "#f7f8fa",
+  "theme_color": "#f7f8fa",
+  "icons": [
+    { "src": "/bracket-icons/icon-192.png", "sizes": "192x192", "type": "image/png" },
+    { "src": "/bracket-icons/icon-512.png", "sizes": "512x512", "type": "image/png" },
+    { "src": "/bracket-icons/icon-512-maskable.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ]
+}

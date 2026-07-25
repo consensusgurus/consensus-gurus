@@ -1,0 +1,84 @@
+import { Suspense } from 'react';
+import BracketClient from './BracketClient';
+import { PUZZLES } from './puzzles';
+
+// Bracket launched 2026-07-24: the game specced in game-spec-seeded.md. Sixteen
+// real things, one comparison metric a day, fifteen picks that propagate, and no
+// feedback until the reveal. Machine-verified (scripts/verify-bracket.mjs).
+//
+// LEAK GUARD: no board stores its winners. Every item ships with its real value
+// and the client recomputes each matchup, exactly as the verifier does.
+
+export const metadata = {
+  title: 'Bracket — Free Daily Game: Fill the Bracket of Facts | Source of Truths',
+  description:
+    'A free daily bracket game. Sixteen real things, one comparison question, fifteen picks, and no feedback until the end. Your picks propagate, so one bad call in round one busts everything downstream. New field every day.',
+  alternates: { canonical: '/bracket' },
+  manifest: '/bracket.webmanifest',
+  icons: {
+    icon: [{ url: '/bracket-icons/favicon-32.png', sizes: '32x32', type: 'image/png' }],
+    apple: [{ url: '/bracket-icons/apple-touch-icon.png', sizes: '180x180', type: 'image/png' }],
+  },
+  appleWebApp: { capable: true, statusBarStyle: 'black-translucent', title: 'Bracket' },
+  openGraph: {
+    title: 'Bracket — The Daily Bracket of Facts',
+    description: 'Sixteen contenders, one question, fifteen picks. Your winners carry forward, so a first-round mistake takes every later line down with it.',
+    url: '/bracket', type: 'website', siteName: 'Source of Truths',
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'Bracket — The Daily Bracket of Facts',
+    description: 'Sixteen contenders, one question, and a bracket that busts exactly like your Final Four.',
+  },
+};
+
+const gameJsonLd = {
+  '@context': 'https://schema.org', '@type': 'Game', name: 'Bracket',
+  url: 'https://sourceoftruths.com/bracket',
+  description: 'A free daily bracket game: sixteen real things seeded into a single-elimination draw, one comparison question for the day, and picks that propagate like a real pool sheet.',
+  genre: ['Trivia game', 'Bracket game', 'Puzzle'],
+  gamePlatform: 'Web browser', isAccessibleForFree: true, inLanguage: 'en',
+  numberOfPlayers: { '@type': 'QuantitativeValue', minValue: 1, maxValue: 1 },
+  image: 'https://sourceoftruths.com/quiz-heroes/bracket.png',
+  publisher: { '@type': 'Organization', name: 'Source of Truths', url: 'https://sourceoftruths.com' },
+};
+const breadcrumbJsonLd = {
+  '@context': 'https://schema.org', '@type': 'BreadcrumbList',
+  itemListElement: [
+    { '@type': 'ListItem', position: 1, name: 'Home', item: 'https://sourceoftruths.com' },
+    { '@type': 'ListItem', position: 2, name: 'Quizzes', item: 'https://sourceoftruths.com/quizzes' },
+    { '@type': 'ListItem', position: 3, name: 'Bracket' },
+  ],
+};
+
+export const dynamic = 'force-dynamic';
+function etTodayServer() {
+  try { return new Date().toLocaleDateString('en-CA', { timeZone: 'America/New_York' }); }
+  catch (e) { return new Date().toISOString().slice(0, 10); }
+}
+function ComingSoon({ first }) {
+  return (
+    <div style={{ minHeight: '100vh', background: '#f7f8fa', fontFamily: "'Manrope', system-ui, sans-serif", display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 24 }}>
+      <div style={{ textAlign: 'center', maxWidth: 420 }}>
+        <h1 style={{ fontSize: 24, fontWeight: 800, color: '#1c1e24', margin: '0 0 8px' }}>Bracket opens {first ? first.dateLabel : 'soon'}.</h1>
+        <a href="/daily" style={{ color: '#c2410c', fontWeight: 800, textDecoration: 'underline' }}>See the other daily games &rarr;</a>
+      </div>
+    </div>
+  );
+}
+export default function BracketPage({ searchParams }) {
+  const today = etTodayServer();
+  const visiblePuzzles = PUZZLES.filter((p) => p.live <= today);
+  if (!visiblePuzzles.length) return <ComingSoon first={PUZZLES[0]} />;
+  const n = Number(searchParams && searchParams.p);
+  const forceNum = Number.isInteger(n) && n > 0 ? n : null;
+  return (
+    <>
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(gameJsonLd) }} />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbJsonLd) }} />
+      <Suspense fallback={null}>
+        <BracketClient key={forceNum || 'today'} puzzles={visiblePuzzles} forceNum={forceNum} />
+      </Suspense>
+    </>
+  );
+}

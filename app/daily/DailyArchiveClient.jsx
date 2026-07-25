@@ -40,7 +40,7 @@ const SUN_BG = '#fff7ed';
 
 const CATEGORIES = [
   { key: 'word', label: 'Word', keys: ['crux', 'emcee', 'shards', 'garble', 'links', 'stet', 'tuck', 'warmer'] },
-  { key: 'history', label: 'History', keys: ['dating', 'extra'] },
+  { key: 'history', label: 'History', keys: ['dating', 'extra', 'bracket'] },
   { key: 'geography', label: 'Geography', keys: ['span', 'ping'] },
   { key: 'numbers', label: 'Numbers', keys: ['tally', 'suds', 'carve', 'cipher'] },
   { key: 'crowd', label: 'Crowd Psychology', keys: ['outwit', 'outrank'] },
@@ -56,7 +56,7 @@ const NAVY_ACCENT = {
   tally: '#4cb377', suds: '#f0894c', circa: '#38b6cf', extra: '#e06a6a', carve: '#a483f0', stet: '#41b1e8',
   outwit: '#c3cfe3', tuck: '#e0a568', alibi: '#ef8896', cipher: '#3fc9b8', ping: '#4cb3f0', warmer: '#f3705c',
   jester: '#a78bfa', sworn: '#f472b6', outrank: '#8b8af5', shards: '#2dd4bf',
-  axiom: '#5eead4', hearsay: '#d8b4fe', venn: '#fbbf24', form: '#93c5fd',
+  axiom: '#5eead4', hearsay: '#d8b4fe', venn: '#fbbf24', form: '#93c5fd', bracket: '#fb923c',
 };
 
 const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];

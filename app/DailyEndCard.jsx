@@ -38,7 +38,7 @@ import {
   Type, Clock, Globe, Hash, Share2, BarChart3, RotateCcw, Check, X,
   Trophy, Link2, Flag, CalendarCheck, Scale, Grid3x3, LayoutGrid, Newspaper, FlagTriangleRight,
   Pencil, Users, ArrowRight, Puzzle, Blocks, Fingerprint, KeyRound, Thermometer, Crown, ListOrdered,
-  FlaskConical, Ear, CircleDot, Table2,
+  FlaskConical, Ear, CircleDot, Table2, Trophy as TrophyFin,
   CalendarDays, ChevronLeft, ChevronRight, ChevronDown, CheckCircle2, UserPlus,
 } from 'lucide-react';
 import { myRefCode } from '@/lib/referrals';
@@ -51,7 +51,7 @@ const RUST = '#c0392b';
 // "still to play" list for their first FOUR days so players actually meet
 // them; after `until` (ET, inclusive) the canonical order resumes. Keep in
 // sync with the same pin in app/api/quiz/daily-order/route.js.
-const LAUNCH_PIN = { keys: ['venn', 'form'], until: '2026-07-28' };
+const LAUNCH_PIN = { keys: ['bracket'], until: '2026-07-29' };
 function etTodayEC() {
   try { return new Date().toLocaleDateString('en-CA', { timeZone: 'America/New_York' }); }
   catch (e) { return new Date().toISOString().slice(0, 10); }
@@ -96,6 +96,7 @@ export const GAME_META = {
   hearsay: { accent: '#7c2d92', badgeBg: '#7c2d92', badgeInk: '#fff', Fin: Ear },
   venn:   { accent: '#b45309', badgeBg: '#b45309', badgeInk: '#fff', Fin: CircleDot },
   form:    { accent: '#1d4ed8', badgeBg: '#1d4ed8', badgeInk: '#fff', Fin: Table2 },
+  bracket: { accent: '#c2410c', badgeBg: '#c2410c', badgeInk: '#fff', Fin: TrophyFin },
 };
 
 // ---- the five families (type label + color shown on each tile/header) -------
@@ -110,7 +111,7 @@ export const CAT_META = {
 // Family render order for the "more games" grid.
 const CAT_ORDER = ['word', 'numbers', 'crowd', 'logic', 'history', 'geography'];
 
-// ---- the daily slate (25 games) --------------------------------------------
+// ---- the daily slate (26 games) --------------------------------------------
 // Canonical order = the order the "still to play" tiles appear in.
 export const DAILY_GAMES = [
   { key: 'crux',   cat: 'word',      name: 'Crux',   tag: 'A clueless crossword',      href: '/crux' },
@@ -138,6 +139,7 @@ export const DAILY_GAMES = [
   { key: 'hearsay', cat: 'logic',    name: 'Hearsay', tag: "Deduce what they don't know", href: '/hearsay' },
   { key: 'venn',   cat: 'logic',     name: 'Venn',   tag: 'Sort the overlaps',          href: '/venn' },
   { key: 'form',   cat: 'logic',     name: 'Form',   tag: 'Rebuild the results',       href: '/form' },
+  { key: 'bracket', cat: 'history',  name: 'Bracket', tag: 'Bust your bracket',        href: '/bracket' },
 ];
 
 const AUTO_SECONDS = 30;
