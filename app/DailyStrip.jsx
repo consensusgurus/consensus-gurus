@@ -424,6 +424,7 @@ export default function DailyStrip({ board = null }) {
         /* done tiles keep the rank/streak pill on hover, so top-align the tip text and reserve room below it to avoid colliding with the pill */
         .dstrip-cell.done .dstrip-tip{justify-content:flex-start;padding-top:11px;padding-bottom:26px;}
         @media (hover:none){.dstrip-tip{display:none;}}
+        .dstrip-mob-board{display:none;}
         /* expanded detail: attached inside the same pill */
         .dsd{border-top:1px solid rgba(232,180,58,0.28);background:#0b1733;padding:16px 16px 14px;}
         .dsd-head{display:flex;align-items:baseline;justify-content:space-between;gap:10px;flex-wrap:wrap;margin-bottom:12px;}
@@ -527,6 +528,9 @@ export default function DailyStrip({ board = null }) {
           .dstrip-cell:nth-child(2n){border-top:1px solid rgba(255,255,255,0.055);}
           .dstrip-cell img{height:26px;}
           .dstrip-cell .nm{font-size:10px;}
+          .dstrip-cap .dstrip-t3{display:none;}
+          .dstrip-cap .dstrip-exp{display:none;}
+          .dstrip-mob-board{display:flex;align-items:center;gap:8px;padding:8px 13px 10px;border-top:1px solid rgba(255,255,255,0.07);}
         }
       `}</style>
       <div className={`dstrip${hasBoard ? ' has-board' : ''}`} role="navigation" aria-label="Daily games">
@@ -657,6 +661,22 @@ export default function DailyStrip({ board = null }) {
               </a>
             ) : null}
           </div>
+          {/* Mobile-only: leader row + Full board button below the game tiles */}
+          {hasBoard ? (
+            <div className="dstrip-mob-board">
+              {top5.length ? (
+                <span className={`dstrip-t1${meKey && top5[0].userKey === meKey ? ' me' : ''}`}>
+                  <Crown size={11} strokeWidth={2.4} />
+                  <span className="nm1">{top5[0].username || 'Player'}</span>
+                  <span className="pt1">{fmtPts(top5[0].total)}</span>
+                </span>
+              ) : <span className="t3none">No scores yet — be the first.</span>}
+              <button type="button" className="dstrip-exp" aria-expanded={open} onClick={() => setOpen((v) => !v)}>
+                <ChevronDown size={11} strokeWidth={2.6} style={{ transition: 'transform .2s', transform: open ? 'rotate(180deg)' : 'none' }} />
+                {open ? 'Hide' : 'Full board'}
+              </button>
+            </div>
+          ) : null}
         </div>
         {hasBoard && open ? (
           <div className="dsd">
