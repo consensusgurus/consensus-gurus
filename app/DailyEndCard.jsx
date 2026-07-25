@@ -38,7 +38,7 @@ import {
   Type, Clock, Globe, Hash, Share2, BarChart3, RotateCcw, Check, X,
   Trophy, Link2, Flag, CalendarCheck, Scale, Grid3x3, LayoutGrid, Newspaper, FlagTriangleRight,
   Pencil, Users, ArrowRight, Puzzle, Blocks, Fingerprint, KeyRound, Thermometer, Crown, ListOrdered,
-  FlaskConical, Ear,
+  FlaskConical, Ear, CircleDot, Table2,
   CalendarDays, ChevronLeft, ChevronRight, ChevronDown, CheckCircle2, UserPlus,
 } from 'lucide-react';
 import { myRefCode } from '@/lib/referrals';
@@ -51,7 +51,7 @@ const RUST = '#c0392b';
 // "still to play" list for their first FOUR days so players actually meet
 // them; after `until` (ET, inclusive) the canonical order resumes. Keep in
 // sync with the same pin in app/api/quiz/daily-order/route.js.
-const LAUNCH_PIN = { keys: ['axiom', 'hearsay'], until: '2026-07-29' };
+const LAUNCH_PIN = { keys: ['venn', 'bracket'], until: '2026-07-28' };
 function etTodayEC() {
   try { return new Date().toLocaleDateString('en-CA', { timeZone: 'America/New_York' }); }
   catch (e) { return new Date().toISOString().slice(0, 10); }
@@ -94,6 +94,8 @@ export const GAME_META = {
   shards: { accent: '#0d9488', badgeBg: '#0d9488', badgeInk: '#fff', Fin: Blocks },
   axiom:  { accent: '#0f766e', badgeBg: '#0f766e', badgeInk: '#fff', Fin: FlaskConical },
   hearsay: { accent: '#7c2d92', badgeBg: '#7c2d92', badgeInk: '#fff', Fin: Ear },
+  venn:   { accent: '#b45309', badgeBg: '#b45309', badgeInk: '#fff', Fin: CircleDot },
+  bracket: { accent: '#1d4ed8', badgeBg: '#1d4ed8', badgeInk: '#fff', Fin: Table2 },
 };
 
 // ---- the five families (type label + color shown on each tile/header) -------
@@ -108,7 +110,7 @@ export const CAT_META = {
 // Family render order for the "more games" grid.
 const CAT_ORDER = ['word', 'numbers', 'crowd', 'logic', 'history', 'geography'];
 
-// ---- the daily slate (23 games) --------------------------------------------
+// ---- the daily slate (25 games) --------------------------------------------
 // Canonical order = the order the "still to play" tiles appear in.
 export const DAILY_GAMES = [
   { key: 'crux',   cat: 'word',      name: 'Crux',   tag: 'A clueless crossword',      href: '/crux' },
@@ -134,6 +136,8 @@ export const DAILY_GAMES = [
   { key: 'warmer', cat: 'word',      name: 'Warmer', tag: 'Hotter or colder',           href: '/warmer' },
   { key: 'axiom',  cat: 'logic',     name: 'Axiom',  tag: 'Find the hidden rule',       href: '/axiom' },
   { key: 'hearsay', cat: 'logic',    name: 'Hearsay', tag: "Deduce what they don't know", href: '/hearsay' },
+  { key: 'venn',   cat: 'logic',     name: 'Venn',   tag: 'Sort the overlaps',          href: '/venn' },
+  { key: 'bracket', cat: 'logic',    name: 'Bracket', tag: 'Rebuild the results',       href: '/bracket' },
 ];
 
 const AUTO_SECONDS = 30;

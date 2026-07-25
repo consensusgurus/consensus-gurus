@@ -51,8 +51,8 @@
 // Each cell ALSO keeps its own game leader chip (crown + name) while collapsed
 // (owner: keep the game-specific leaders alongside the top-3 cap).
 
-import React, { useState, useEffect } from 'react';
-import { Crown, ChevronDown, Trophy, Play, Flame, Clock, ArrowRight } from 'lucide-react';
+import React, { useState, useEffect, useRef } from 'react';
+import { Crown, ChevronDown, ChevronRight, ChevronLeft, Trophy, Play, Flame, Clock, ArrowRight } from 'lucide-react';
 import useDailyOrder, { sortByDailyOrder } from './useDailyOrder';
 import { hasSundayEdition, isSundayET, SUNDAY_SHORT } from '../lib/sunday-editions';
 
@@ -80,6 +80,8 @@ const GAMES = [
   { key: 'sworn', href: '/sworn', name: 'Sworn', img: '/games/btn-sworn.png', store: 'sot_sworn_day', tag: "Spot the liars" , cat: 'Logic' },
   { key: 'axiom', href: '/axiom', name: 'Axiom', img: '/games/btn-axiom.png', store: 'sot_axiom_day', tag: "Find the hidden rule" , cat: 'Logic' },
   { key: 'hearsay', href: '/hearsay', name: 'Hearsay', img: '/games/btn-hearsay.png', store: 'sot_hearsay_day', tag: "Deduce what they don't know" , cat: 'Logic' },
+  { key: 'venn', href: '/venn', name: 'Venn', img: '/games/btn-venn.png', store: 'sot_venn_day', tag: "Sort the overlaps" , cat: 'Logic' },
+  { key: 'bracket', href: '/bracket', name: 'Bracket', img: '/games/btn-bracket.png', store: 'sot_bracket_day', tag: "Rebuild the results" , cat: 'Logic' },
 ];
 
 const NAME_BY_KEY = GAMES.reduce((m, g) => { m[g.key] = g.name; return m; }, {});
@@ -262,19 +264,46 @@ export default function DailyStrip({ board = null }) {
     return () => { alive = false; };
   }, [open, hasBoard, hist]);
 
+  // Scroll state for the far-right chevron: shown only when the slate really
+  // does overrun the bar, and flipped to point back once you hit the end.
+  const mainRef = useRef(null);
+  const [canScroll, setCanScroll] = useState(false);
+  const [atEnd, setAtEnd] = useState(false);
+  const measure = () => {
+    const el = mainRef.current;
+    if (!el) return;
+    const slack = el.scrollWidth - el.clientWidth;
+    setCanScroll(slack > 12);
+    setAtEnd(slack > 12 && el.scrollLeft >= slack - 12);
+  };
+  useEffect(() => {
+    measure();
+    window.addEventListener('resize', measure);
+    return () => window.removeEventListener('resize', measure);
+  });
+  const onScroll = () => measure();
+  const scrollOn = () => {
+    const el = mainRef.current;
+    if (!el) return;
+    if (atEnd) el.scrollTo({ left: 0 });
+    else el.scrollBy({ left: Math.max(180, Math.round(el.clientWidth * 0.6)) });
+  };
+
   return (
     <div className="dstrip-wrap">
       <style>{`
         .dstrip-wrap{margin-bottom:14px;}
-        .dstrip{display:flex;flex-direction:column;background:#0e1d40;border:1px solid rgba(20,22,28,0.14);border-radius:16px;overflow:hidden;}
+        .dstrip{position:relative;display:flex;flex-direction:column;background:#0e1d40;border:1px solid rgba(20,22,28,0.14);border-radius:16px;overflow:hidden;}
         .dstrip.has-board{border-color:rgba(232,180,58,0.4);}
         .dstrip-main{display:flex;}
-        .dstrip-main{scrollbar-width:thin;scrollbar-color:rgba(159,176,212,0.45) #0b1733;}
-        .dstrip-main::-webkit-scrollbar{height:9px;}
-        .dstrip-main::-webkit-scrollbar-track{background:#0b1733;}
-        .dstrip-main::-webkit-scrollbar-thumb{background:rgba(159,176,212,0.4);border-radius:99px;border:2px solid #0b1733;}
-        .dstrip-main::-webkit-scrollbar-thumb:hover{background:rgba(159,176,212,0.65);}
-        .dstrip-main::-webkit-scrollbar-button{display:none;width:0;height:0;}
+        /* The slate outgrew the bar, so it scrolls. No visible scrollbar:
+           one chevron on the far right pages it along, and flips back to the
+           start once you reach the end (owner, 2026-07-24). */
+        .dstrip-main{overflow-x:auto;scrollbar-width:none;-ms-overflow-style:none;scroll-behavior:smooth;}
+        .dstrip-main::-webkit-scrollbar{display:none;width:0;height:0;}
+        .dstrip-scroll{position:absolute;top:50%;right:8px;transform:translateY(-50%);z-index:4;display:flex;align-items:center;justify-content:center;width:32px;height:32px;border-radius:999px;border:1px solid rgba(232,180,58,0.5);background:rgba(11,23,51,0.92);color:#f5d878;cursor:pointer;padding:0;box-shadow:0 2px 10px rgba(8,14,30,0.55);}
+        .dstrip-scroll:hover{background:rgba(232,180,58,0.22);}
+        .dstrip-scroll[hidden]{display:none;}
         .dstrip-cap{flex:0 0 auto;display:flex;flex-direction:column;justify-content:center;gap:5px;padding:12px 13px;background:#0b1733;border-right:1px solid rgba(255,255,255,0.07);min-width:88px;}
         .dstrip-cap.has-top3{min-width:140px;max-width:156px;}
         /* One-line wordmark: DAILY and GAMES share a size/weight (owner, 2026-07-20);
@@ -494,7 +523,11 @@ export default function DailyStrip({ board = null }) {
         }
       `}</style>
       <div className={`dstrip${hasBoard ? ' has-board' : ''}`} role="navigation" aria-label="Daily games">
-        <div className="dstrip-main">
+        <button type="button" className="dstrip-scroll" hidden={!canScroll} onClick={scrollOn}
+          aria-label={atEnd ? 'Back to the first games' : 'More games'} title={atEnd ? 'Back to the start' : 'More games'}>
+          {atEnd ? <ChevronLeft size={18} strokeWidth={2.6} /> : <ChevronRight size={18} strokeWidth={2.6} />}
+        </button>
+        <div className="dstrip-main" ref={mainRef} onScroll={onScroll}>
           <div className={`dstrip-cap${hasBoard ? ' has-top3' : ''}`}>
             <a href="/daily" className="ttl dstrip-cap-ttl" aria-label="All daily games"><span className="lab">Daily</span> Games</a>
             <span className="dstrip-progrow">

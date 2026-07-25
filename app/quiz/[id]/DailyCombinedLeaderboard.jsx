@@ -31,7 +31,7 @@ const GAME_NAMES = {
 // Per-game accent for the game-board title. Light = the games' own (darker)
 // colors; navy = lightened for legibility on the dark card.
 const ACCENTS_LIGHT = { crux: '#0e1d40', emcee: '#c026d3', garble: '#8a6d1a', links: '#166534', span: '#9d174d', dating: '#6d28d9', tally: '#15803d', suds: '#ea580c', circa: '#0e7490', extra: '#b91c1c', carve: '#7c3aed', stet: '#0369a1', outwit: '#1f2937', tuck: '#92400e', alibi: '#8b1e2d', cipher: '#0f766e', ping: '#0284c7', warmer: '#dc2626', jester: '#7c3aed', sworn: '#be185d', outrank: '#4338ca', shards: '#0d9488' };
-const ACCENTS_NAVY = { crux: '#5b9bff', emcee: '#e879f9', garble: '#f0c95a', links: '#4ca878', span: '#e06aa0', dating: '#a483f0', tally: '#4cb377', suds: '#f0894c', circa: '#38b6cf', extra: '#e06a6a', carve: '#a483f0', stet: '#41b1e8', outwit: '#c3cfe3', tuck: '#e0a568', alibi: '#ef8896', cipher: '#3fc9b8', ping: '#4cb3f0', warmer: '#f3705c', jester: '#a78bfa', sworn: '#f472b6', outrank: '#818cf8', shards: '#2dd4bf', axiom: '#5eead4', hearsay: '#d8b4fe' };
+const ACCENTS_NAVY = { crux: '#5b9bff', emcee: '#e879f9', garble: '#f0c95a', links: '#4ca878', span: '#e06aa0', dating: '#a483f0', tally: '#4cb377', suds: '#f0894c', circa: '#38b6cf', extra: '#e06a6a', carve: '#a483f0', stet: '#41b1e8', outwit: '#c3cfe3', tuck: '#e0a568', alibi: '#ef8896', cipher: '#3fc9b8', ping: '#4cb3f0', warmer: '#f3705c', jester: '#a78bfa', sworn: '#f472b6', outrank: '#818cf8', shards: '#2dd4bf', axiom: '#5eead4', hearsay: '#d8b4fe', venn: '#fbbf24', bracket: '#93c5fd' };
 
 function theme(light) {
   if (light) return {
