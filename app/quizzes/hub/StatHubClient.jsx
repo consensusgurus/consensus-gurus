@@ -4,6 +4,7 @@ import Link from 'next/link';
 import {
   ArrowLeft, BadgeCheck, User, ListChecks, Flame, FunctionSquare, Clock, Trophy, RefreshCw, Share2, Download, UserPlus, Play, X, Check, Star, Swords, ChevronDown, Crown, Target, ArrowUpRight, CalendarDays,} from 'lucide-react';
 import { QUIZZES, getQuiz } from '@/lib/quizzes';
+import { DAILY_GAMES, dailyLabel } from '@/lib/daily-games';
 import { quizDept as deptOf, DEPT_COLOR, DEPT_LABEL, DEPT_NAV } from '@/lib/quiz-departments';
 import { CHALLENGES, getChallenge, DEFAULT_CHALLENGE_ID, challengeQuizIds, challengeColumns, dailyChallengeId, challengeMenu } from '@/lib/challenges';
 import QuizNavHeader from '../QuizNavHeader';
@@ -940,47 +941,9 @@ function PlayerPanel({ me, scope, cats, byKey, totalQuizzes, board, myName, myAn
 // champion history, and an all-time stat line for each daily game. Winner history
 // and per-game aggregates come from /api/quiz/daily-history; today's per-game
 // leaders come from /api/quiz/daily-combined (the same source the board uses).
-const DAILY_GAME_META = {
-  crux:   { name: 'Crux',   c: '#0e1d40', href: '/crux',   tag: 'Clueless crossword' },
-  emcee:  { name: 'Emcee',  c: '#c026d3', href: '/emcee',  tag: 'Mini crossword' },
-  garble: { name: 'Garble', c: '#8a6d1a', href: '/garble', tag: 'Untangle five words' },
-  links:  { name: 'Links',  c: '#166534', href: '/links',  tag: 'Four hidden threads' },
-  span:   { name: 'Span',   c: '#9d174d', href: '/span',   tag: 'Cross the map' },
-  dating: { name: 'Dating', c: '#6d28d9', href: '/dating', tag: 'History in order' },
-  tally:  { name: 'Tally',  c: '#15803d', href: '/tally',  tag: 'Balance the books' },
-  suds:   { name: 'Suds',   c: '#ea580c', href: '/suds',   tag: 'Daily sudoku' },
-  circa:  { name: 'Circa',  c: '#0e7490', href: '/circa',  tag: 'Guess the year' },
-  extra:  { name: 'Extra',  c: '#b91c1c', href: '/extra',  tag: 'Name the story' },
-  carve:  { name: 'Carve',  c: '#7c3aed', href: '/carve',  tag: 'Equal-sum blocks' },
-  stet:   { name: 'Stet',   c: '#0369a1', href: '/stet',   tag: 'Spot the error, fix the copy' },
-  outwit: { name: 'Outwit', c: '#1f2937', href: '/outwit', tag: 'Beat the crowd' },
-  outrank: { name: 'Outrank', c: '#4338ca', href: '/outrank', tag: "Call the crowd's order" },
-  tuck:   { name: 'Tuck',   c: '#92400e', href: '/tuck',   tag: 'Same letters, highest score wins' },
-  alibi:  { name: 'Alibi',  c: '#8b1e2d', href: '/alibi',  tag: 'Solve the nightly whodunit' },
-  cipher: { name: 'Cipher', c: '#0f766e', href: '/cipher', tag: 'Crack the letter math' },
-  ping: { name: 'Ping', c: '#0284c7', href: '/ping', tag: 'Guess the secret city' },
-  warmer: { name: 'Warmer', c: '#dc2626', href: '/warmer', tag: 'Hotter or colder' },
-  jester: { name: 'Jesters', c: '#7c3aed', href: '/jester', tag: 'Seat the court' },
-  sworn: { name: 'Sworn', c: '#be185d', href: '/sworn', tag: 'Spot the liars' },
-  shards: { name: 'Shards', c: '#0d9488', href: '/shards', tag: 'Reassemble the crossword' },
-  axiom:   { name: 'Axiom',   c: '#0f766e', href: '/axiom',   tag: 'Find the hidden rule' },
-  hearsay: { name: 'Hearsay', c: '#7c2d92', href: '/hearsay', tag: "Deduce what they don't know" },
-  venn:    { name: 'Venn',    c: '#b45309', href: '/venn',    tag: 'Sort the overlaps' },
-  stands:  { name: 'Stands',  c: '#1d4ed8', href: '/stands',  tag: 'Rebuild the results' },
-  bracket: { name: 'Bracket', c: '#c2410c', href: '/bracket', tag: 'Bust your bracket' },
-};
-
-// Daily-game plays are stored under a "<key>-M-D-YY" quiz_id. Most carry a
-// generated quizzes.js title ("Links: 7/12/26"), but newer games may not yet,
-// so derive the same "Name: M/D/YY" label from the id as a fallback.
-const DAILY_ID_RE = /^([a-z]+)-(\d{1,2})-(\d{1,2})-(\d{2})$/;
-function dailyLabel(id) {
-  const m = DAILY_ID_RE.exec(id || '');
-  if (!m) return null;
-  const meta = DAILY_GAME_META[m[1]];
-  const name = meta ? meta.name : m[1].charAt(0).toUpperCase() + m[1].slice(1);
-  return `${name}: ${Number(m[2])}/${Number(m[3])}/${m[4]}`;
-}
+const DAILY_GAME_META = Object.fromEntries(
+  DAILY_GAMES.map((g) => [g.key, { name: g.name, c: g.color, href: g.href, tag: g.tag }])
+);
 
 function fmtPts1(n) {
   const v = Math.round(Number(n) * 10) / 10;

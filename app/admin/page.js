@@ -8,6 +8,7 @@ import { QUIZZES } from '@/lib/quizzes';
 import { buildAnonPlayers } from '@/lib/quiz-anon';
 import { buildGeoMapData } from '@/lib/geo-locate';
 import { DESCRIPTIONS } from '@/lib/descriptions';
+import { DAILY_KEYS, DAILY_DATED_RE, dailyGameName } from '@/lib/daily-games';
 import { HERO_IMAGES } from '@/lib/hero-images';
 
 export const dynamic = 'force-dynamic';
@@ -184,36 +185,8 @@ function activePlayerCounts(rows) {
 // player has ever touched. Player identity is the same rule the active-user
 // counts use (registered user_id, else browser anon_id, else the lone row id),
 // so anonymous browsers — the bulk of daily-game players — are counted.
-const DAILY_GAMES = [
-  { key: 'links', title: 'Links' },
-  { key: 'span', title: 'Span' },
-  { key: 'crux', title: 'Crux' },
-  { key: 'emcee', title: 'Emcee' },
-  { key: 'garble', title: 'Garble' },
-  { key: 'dating', title: 'Dating' },
-  { key: 'tally', title: 'Tally' },
-  { key: 'suds', title: 'Suds' },
-  { key: 'carve', title: 'Carve' },
-  { key: 'circa', title: 'Circa' },
-  { key: 'outrank', title: 'Outrank' },
-  { key: 'extra', title: 'Extra' },
-  { key: 'stet', title: 'Stet' },
-  { key: 'outwit', title: 'Outwit' },
-  { key: 'tuck', title: 'Tuck' },
-  { key: 'alibi', title: 'Alibi' },
-  { key: 'cipher', title: 'Cipher' },
-  { key: 'ping', title: 'Ping' },
-  { key: 'warmer', title: 'Warmer' },
-  { key: 'jester', title: 'Jesters' },
-  { key: 'sworn', title: 'Sworn' },
-  { key: 'shards', title: 'Shards' },
-  { key: 'axiom', title: 'Axiom' },
-  { key: 'hearsay', title: 'Hearsay' },
-  { key: 'venn', title: 'Venn' },
-  { key: 'stands', title: 'Stands' },
-  { key: 'bracket', title: 'Bracket' },
-];
-const DAILY_PREFIX_RE = /^(links|span|crux|garble|dating|tally|suds|circa|extra|carve|emcee|stet|outwit|tuck|alibi|cipher|ping|warmer|jester|sworn|outrank|shards|axiom|hearsay|venn|stands|bracket)-/;
+const DAILY_GAMES = DAILY_KEYS.map((k) => ({ key: k, title: dailyGameName(k) }));
+const DAILY_PREFIX_RE = new RegExp('^(' + DAILY_KEYS.join('|') + ')-');
 function buildDailyRetention(rows) {
   const perGame = new Map(DAILY_GAMES.map((g) => [g.key, new Map()])); // key -> (playerKey -> Set(quizId))
   const breadth = new Map(); // playerKey -> Set(gameKey)
@@ -321,7 +294,6 @@ function buildTimeByDay(rows) {
 // browsers (the bulk of daily-game players) are counted. time_elapsed is the
 // seconds from Play to finish; the average skips rows with no/blank time. Rows
 // whose id does not parse as a dated daily puzzle are ignored.
-const DAILY_DATED_RE = /^(links|span|crux|garble|dating|tally|suds|circa|extra|carve|emcee|stet|outwit|tuck|alibi|cipher|ping|warmer|jester|sworn|outrank|shards|axiom|hearsay|venn|stands|bracket)-(\d{1,2})-(\d{1,2})-(\d{2})$/;
 // Per-game stats for the daily games. Every completed play carries its own
 // puzzle date in the quiz_id ('links-7-6-26'), so day counts come from the
 // quiz_id, not the row timestamp. Each game reports its all-time averages
