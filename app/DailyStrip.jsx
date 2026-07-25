@@ -300,6 +300,9 @@ export default function DailyStrip({ board = null }) {
            one chevron on the far right pages it along, and flips back to the
            start once you reach the end (owner, 2026-07-24). */
         .dstrip-main{overflow-x:auto;scrollbar-width:none;-ms-overflow-style:none;scroll-behavior:smooth;}
+        /* Tiles hold their width instead of shrinking as the slate grows, so
+           the bar genuinely overflows and the chevron has something to do. */
+        .dstrip-cells > *{min-width:84px;}
         .dstrip-main::-webkit-scrollbar{display:none;width:0;height:0;}
         .dstrip-scroll{position:absolute;top:50%;right:8px;transform:translateY(-50%);z-index:4;display:flex;align-items:center;justify-content:center;width:32px;height:32px;border-radius:999px;border:1px solid rgba(232,180,58,0.5);background:rgba(11,23,51,0.92);color:#f5d878;cursor:pointer;padding:0;box-shadow:0 2px 10px rgba(8,14,30,0.55);}
         .dstrip-scroll:hover{background:rgba(232,180,58,0.22);}
@@ -361,7 +364,7 @@ export default function DailyStrip({ board = null }) {
         .dstrip-hero .hd-all{flex:none;width:100%;box-sizing:border-box;display:flex;align-items:center;justify-content:center;gap:5px;border:1px solid #2b4270;color:#eaf0fb;font-size:10.5px;font-weight:800;border-radius:8px;padding:7px 6px;text-decoration:none;transition:background .12s;}
         .dstrip-hero .hd-all:hover{background:rgba(91,139,255,0.14);}
         /* game tiles in a 2-row grid; columns scale with the game count, the cap and hero span both rows */
-        .dstrip-cells{display:grid;grid-template-columns:repeat(${cellCols},minmax(72px,1fr));grid-auto-rows:1fr;flex:1 1 auto;min-width:0;}
+        .dstrip-cells{display:grid;grid-template-columns:repeat(${cellCols},minmax(84px,1fr));grid-auto-rows:1fr;flex:1 1 auto;min-width:min-content;}
         .dstrip-cell{position:relative;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:5px;padding:13px 6px 9px;text-decoration:none;border-left:1px solid rgba(255,255,255,0.055);transition:background .12s;}
         .dstrip-cell:nth-child(${cellCols}n+1){border-left:none;}
         .dstrip-cell:nth-child(n+${cellCols + 1}){border-top:1px solid rgba(255,255,255,0.055);}
