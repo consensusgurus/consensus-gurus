@@ -36,10 +36,10 @@ const GAME_NAMES = {
   tally: 'Tally', suds: 'Suds', circa: 'Circa', extra: 'Extra', carve: 'Carve', stet: 'Stet', outwit: 'Outwit',
   tuck: 'Tuck', alibi: 'Alibi', cipher: 'Cipher', ping: 'Ping', warmer: 'Warmer',
   jester: 'Jesters', sworn: 'Sworn', outrank: 'Outrank',
-  axiom: 'Axiom', hearsay: 'Hearsay', venn: 'Venn', tables: 'Tables', bracket: 'Bracket',
+  axiom: 'Axiom', hearsay: 'Hearsay', venn: 'Venn', stands: 'Stands', bracket: 'Bracket',
 };
 // Per-game brand accent (matches the end card / DailyCombinedLeaderboard).
-const ACCENTS = { crux: '#2563eb', emcee: '#c026d3', garble: '#b7791f', links: '#166534', span: '#9d174d', dating: '#6d28d9', tally: '#15803d', suds: '#ea580c', circa: '#0e7490', extra: '#b91c1c', carve: '#7c3aed', stet: '#0369a1', outwit: '#1f2937', tuck: '#92400e', alibi: '#8b1e2d', cipher: '#0f766e', ping: '#0284c7', warmer: '#dc2626', jester: '#7c3aed', sworn: '#be185d', outrank: '#4338ca', axiom: '#0f766e', hearsay: '#7c2d92', venn: '#b45309', tables: '#1d4ed8', bracket: '#c2410c' };
+const ACCENTS = { crux: '#2563eb', emcee: '#c026d3', garble: '#b7791f', links: '#166534', span: '#9d174d', dating: '#6d28d9', tally: '#15803d', suds: '#ea580c', circa: '#0e7490', extra: '#b91c1c', carve: '#7c3aed', stet: '#0369a1', outwit: '#1f2937', tuck: '#92400e', alibi: '#8b1e2d', cipher: '#0f766e', ping: '#0284c7', warmer: '#dc2626', jester: '#7c3aed', sworn: '#be185d', outrank: '#4338ca', axiom: '#0f766e', hearsay: '#7c2d92', venn: '#b45309', stands: '#1d4ed8', bracket: '#c2410c' };
 const MONTH_NAMES = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
 const WEEKDAYS = ['S', 'M', 'T', 'W', 'T', 'F', 'S'];
 

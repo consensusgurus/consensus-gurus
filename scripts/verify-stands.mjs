@@ -1,7 +1,7 @@
-// Verify the Tables bank (app/tables/puzzles.js) from scratch:
+// Verify the Stands bank (app/stands/puzzles.js) from scratch:
 //   - structural: nums sequential, quizId/live/dateLabel agree, sunday flag
 //     matches the real weekday, five teams on weekdays and six on Sundays,
-//     team names distinct, every clue well-tablesed and about real teams
+//     team names distinct, every clue well-standsed and about real teams
 //   - EXACTLY ONE set of results satisfies the clues, proved by an independent
 //     search (matches a clue names outright are fixed, the rest are walked with
 //     running per-team totals and bounded pruning)
@@ -9,8 +9,8 @@
 //     table standing, so no board ships with a redundant line
 //   - at least three kinds of clue, so a board is never eight "x beat y" lines
 // The board carries no answer: the client derives the unique table the same way.
-// Run: node scripts/verify-tables.mjs
-import { PUZZLES } from '../app/tables/puzzles.js';
+// Run: node scripts/verify-stands.mjs
+import { PUZZLES } from '../app/stands/puzzles.js';
 
 let fails = 0;
 const fail = (m) => { console.error('FAIL:', m); fails++; };
@@ -18,7 +18,7 @@ const MONTHS = ['January','February','March','April','May','June','July','August
 const TYPES = new Set(['beat','drew','points','wins','draws','unbeaten','winless','above','totalDraws']);
 const pairsOf = (n) => { const p = []; for (let i = 0; i < n; i++) for (let j = i+1; j < n; j++) p.push([i,j]); return p; };
 
-// kept byte-identical to the solver in app/tables/TablesClient.jsx
+// kept byte-identical to the solver in app/stands/StandsClient.jsx
 export function countSolutions(n, pairs, clues, cap) {
   const m = pairs.length;
   const fixed = Array(m).fill(-1);
@@ -83,7 +83,7 @@ PUZZLES.forEach((p, i) => {
   if (seen.has(p.quizId)) fail(`${tag}: duplicate quizId`);
   seen.add(p.quizId);
   const [y, m, d] = p.live.split('-').map(Number);
-  if (p.quizId !== `tables-${m}-${d}-${String(y).slice(2)}`) fail(`${tag}: quizId does not match live date`);
+  if (p.quizId !== `stands-${m}-${d}-${String(y).slice(2)}`) fail(`${tag}: quizId does not match live date`);
   if (p.dateLabel !== `${MONTHS[m-1]} ${d}, ${y}`) fail(`${tag}: dateLabel does not match live date`);
   if (!!p.sunday !== (new Date(Date.UTC(y, m-1, d)).getUTCDay() === 0)) fail(`${tag}: sunday flag wrong`);
 
@@ -102,12 +102,12 @@ PUZZLES.forEach((p, i) => {
   if (new Set(p.clues.map((c) => c.type)).size < 3) fail(`${tag}: fewer than three kinds of clue`);
 
   const sols = countSolutions(n, pairs, p.clues, 2);
-  if (sols !== 1) { fail(`${tag}: ${sols} tables satisfy the clues (need exactly 1)`); return; }
+  if (sols !== 1) { fail(`${tag}: ${sols} stands satisfy the clues (need exactly 1)`); return; }
   p.clues.forEach((c, k) => {
     const without = p.clues.filter((_, j) => j !== k);
     if (countSolutions(n, pairs, without, 2) === 1) fail(`${tag}: clue ${k} (${c.type}) is redundant`);
   });
 });
 
-if (fails) { console.error(`\nverify-tables: ${fails} FAILURE(S)`); process.exit(1); }
-console.log(`verify-tables: all ${PUZZLES.length} boards pass (unique table, minimal clue set, structure OK)`);
+if (fails) { console.error(`\nverify-stands: ${fails} FAILURE(S)`); process.exit(1); }
+console.log(`verify-stands: all ${PUZZLES.length} boards pass (unique table, minimal clue set, structure OK)`);

@@ -23,7 +23,7 @@ from PIL import Image
 SRC = 'public/games'
 OUT = 'public/games/hero'
 NAMES = ['alibi', 'axiom', 'carve', 'cipher', 'circa', 'crux', 'dating', 'emcee', 'extra',
-         'garble', 'hearsay', 'jester', 'links', 'outwit', 'outrank', 'ping', 'span', 'stet', 'suds', 'venn', 'tables', 'bracket',
+         'garble', 'hearsay', 'jester', 'links', 'outwit', 'outrank', 'ping', 'span', 'stet', 'suds', 'venn', 'stands', 'bracket',
          'sworn', 'tally', 'tuck', 'warmer']
 # 1280x720, not 640x360, so a retina browser DOWNSCALES this PNG into the ~280px
 # tile instead of upscaling it. And the art box is small on purpose: the source
