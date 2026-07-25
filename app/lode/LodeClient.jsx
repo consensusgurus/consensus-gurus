@@ -418,6 +418,7 @@ export default function LodeClient({ puzzles = [], forceNum = null }) {
     abandon.markFlushed();
     const g2 = { ...g, status: 'done', tEnd: Date.now(), t0: g.t0 || Date.now() };
     setG(g2);
+    setEntry('');            // otherwise the closed board keeps the last word typed
     setConfirming(false);
     setEndClosed(false);
     postResult(g2, score, g.found.length);
