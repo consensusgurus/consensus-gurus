@@ -35,7 +35,7 @@ const GAME_NAMES = {
   crux: 'Crux', emcee: 'Emcee', garble: 'Garble', links: 'Links', span: 'Span', dating: 'Dating',
   tally: 'Tally', suds: 'Suds', circa: 'Circa', extra: 'Extra', carve: 'Carve', stet: 'Stet', outwit: 'Outwit',
   tuck: 'Tuck', alibi: 'Alibi', cipher: 'Cipher', ping: 'Ping', warmer: 'Warmer',
-  jester: 'Jesters', sworn: 'Sworn', outrank: 'Outrank',
+  jester: 'Jesters', sworn: 'Sworn', outrank: 'Outrank', shards: 'Shards',
   axiom: 'Axiom', hearsay: 'Hearsay', venn: 'Venn', stands: 'Stands', bracket: 'Bracket',
 };
 // Per-game brand accent (matches the end card / DailyCombinedLeaderboard).

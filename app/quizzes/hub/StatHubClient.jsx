@@ -963,7 +963,24 @@ const DAILY_GAME_META = {
   jester: { name: 'Jesters', c: '#7c3aed', href: '/jester', tag: 'Seat the court' },
   sworn: { name: 'Sworn', c: '#be185d', href: '/sworn', tag: 'Spot the liars' },
   shards: { name: 'Shards', c: '#0d9488', href: '/shards', tag: 'Reassemble the crossword' },
+  axiom:   { name: 'Axiom',   c: '#0f766e', href: '/axiom',   tag: 'Find the hidden rule' },
+  hearsay: { name: 'Hearsay', c: '#7c2d92', href: '/hearsay', tag: "Deduce what they don't know" },
+  venn:    { name: 'Venn',    c: '#b45309', href: '/venn',    tag: 'Sort the overlaps' },
+  stands:  { name: 'Stands',  c: '#1d4ed8', href: '/stands',  tag: 'Rebuild the results' },
+  bracket: { name: 'Bracket', c: '#c2410c', href: '/bracket', tag: 'Bust your bracket' },
 };
+
+// Daily-game plays are stored under a "<key>-M-D-YY" quiz_id. Most carry a
+// generated quizzes.js title ("Links: 7/12/26"), but newer games may not yet,
+// so derive the same "Name: M/D/YY" label from the id as a fallback.
+const DAILY_ID_RE = /^([a-z]+)-(\d{1,2})-(\d{1,2})-(\d{2})$/;
+function dailyLabel(id) {
+  const m = DAILY_ID_RE.exec(id || '');
+  if (!m) return null;
+  const meta = DAILY_GAME_META[m[1]];
+  const name = meta ? meta.name : m[1].charAt(0).toUpperCase() + m[1].slice(1);
+  return `${name}: ${Number(m[2])}/${Number(m[3])}/${m[4]}`;
+}
 
 function fmtPts1(n) {
   const v = Math.round(Number(n) * 10) / 10;
@@ -1290,7 +1307,7 @@ function ActivityFeed({ recent, titleById, viewing }) {
   const hist = recent.slice().reverse();
   const bestByQuiz = new Map();
   const events = [];
-  const tOf = (id) => (titleById && titleById[id]) || id;
+  const tOf = (id) => (titleById && titleById[id]) || dailyLabel(id) || id;
   for (const m of hist) {
     const prevB = bestByQuiz.get(m.quizId);
     if (m.scorePct === 100 && (prevB == null || prevB < 100)) {
@@ -1369,7 +1386,7 @@ function ActivityFeed({ recent, titleById, viewing }) {
             </tr></thead>
             <tbody>
               {recent.map((m, i) => {
-                const title = (titleById && titleById[m.quizId]) || m.quizId;
+                const title = (titleById && titleById[m.quizId]) || dailyLabel(m.quizId) || m.quizId;
                 const when = m.createdAt ? new Date(m.createdAt).toLocaleString('en-US', { month: 'short', day: 'numeric', year: 'numeric', hour: 'numeric', minute: '2-digit' }) : '—';
                 return (
                   <tr key={i}>
@@ -2004,7 +2021,7 @@ function XpPanel({ me, titleById, viewing }) {
               {recent.slice(0, 40).map((m, i) => (
                 <tr key={i}>
                   <td style={{ fontWeight: 600, maxWidth: 260, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                    <Link href={`/quiz/${m.quizId}`} className="qlink">{titleById[m.quizId] || cleanTitle(m.quizId)}</Link>
+                    <Link href={`/quiz/${m.quizId}`} className="qlink">{titleById[m.quizId] || dailyLabel(m.quizId) || cleanTitle(m.quizId)}</Link>
                   </td>
                   <td style={{ textAlign: 'right' }}>{(m.dq || 0).toLocaleString()}</td>
                   <td style={{ textAlign: 'right' }}>{m.scorePct}%</td>
