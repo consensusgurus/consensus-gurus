@@ -21,6 +21,7 @@ import { HelpCircle, Share2, RotateCcw, X, ChevronLeft, ChevronRight, Swords, Sm
 import Grain from '../Grain';
 import Footer from '../Footer';
 import DailyGamesPromo from '../DailyGamesPromo';
+import DailyTopNav from '../DailyTopNav';
 import useDuelContext, { DuelBanner } from '../quiz/[id]/useDuelContext';
 import JoinLeaderboardForm from '../quiz/[id]/JoinLeaderboardForm';
 import DailyGamesGrid from '../DailyGamesGrid';
@@ -950,21 +951,7 @@ export default function CruxClient({ puzzles = [], forceNum = null }) {
             sizes to the board (Option A single-column layout) */}
         <div style={{ maxWidth: COLW, margin: '0 auto' }}>
 
-        {/* Crux-native top strip: quiet nav out to the rest of the site,
-            player name + rank on the right. The shared site header is gone —
-            Crux stands as its own identity (owner ruling 2026-07-12). */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: 18, marginBottom: 20, flexWrap: 'wrap' }}>
-          <a href="/" style={{ fontFamily: MONO, fontSize: 11, letterSpacing: '0.12em', textTransform: 'uppercase', color: COLORS.faded, textDecoration: 'none', borderBottom: '1px solid rgba(28,30,36,0.25)', paddingBottom: 1 }}>Daily Games</a>
-          <a href="/" style={{ fontFamily: MONO, fontSize: 11, letterSpacing: '0.12em', textTransform: 'uppercase', color: COLORS.faded, textDecoration: 'none', borderBottom: '1px solid rgba(28,30,36,0.25)', paddingBottom: 1 }}>Quizzes</a>
-          <a href="/lists" style={{ fontFamily: MONO, fontSize: 11, letterSpacing: '0.12em', textTransform: 'uppercase', color: COLORS.faded, textDecoration: 'none', borderBottom: '1px solid rgba(28,30,36,0.25)', paddingBottom: 1 }}>Top 10 Lists</a>
-          {player && (
-            <a href={player.key ? `/quizzes/hub?player=${encodeURIComponent(player.key)}` : '/quizzes/hub'} title="Your Stat Hub"
-              style={{ marginLeft: 'auto', display: 'inline-flex', alignItems: 'center', gap: 7, fontFamily: MONO, fontSize: 11, letterSpacing: '0.06em', color: COLORS.ink, background: PAPER, border: '1.5px solid rgba(28,30,36,0.35)', borderRadius: 5, padding: '4px 10px', textDecoration: 'none' }}>
-              <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', maxWidth: 150, fontWeight: 500 }}>{player.name}</span>
-              {player.rank ? <span style={{ color: COLORS.ember, fontWeight: 500 }}>Rank #{player.rank}</span> : null}
-            </a>
-          )}
-        </div>
+        <DailyTopNav player={player} />
 
         {/* masthead: pressed CRUX tiles with the issue no. + date on the same
             line, a single rule beneath (they stack on mobile) */}

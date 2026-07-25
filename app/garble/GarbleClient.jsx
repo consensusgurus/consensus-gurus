@@ -14,6 +14,7 @@ import React, { useState, useEffect, useMemo, useRef, useCallback } from 'react'
 import { HelpCircle, Share2, RotateCcw, X, Trophy, Eye, Smartphone } from 'lucide-react';
 import Grain from '../Grain';
 import DailyGamesPromo from '../DailyGamesPromo';
+import DailyTopNav from '../DailyTopNav';
 import Footer from '../Footer';
 import DailyBoardPanel from '../quiz/[id]/DailyBoardPanel';
 import JoinLeaderboardForm from '../quiz/[id]/JoinLeaderboardForm';
@@ -473,20 +474,7 @@ export default function GarbleClient({ puzzles = [], forceNum = null }) {
             @media(max-width:560px){.gb-ttl{flex-direction:column;align-items:flex-start;gap:1px;}.gb-ttl h1{font-size:21px;letter-spacing:0.02em;}.gb-ttl .gb-ttl-dt{font-size:15px;}.gb-ttl-dot{display:none;}}
           `}</style>
 
-          {/* game-native top strip: quiet nav out to the rest of the site,
-              player name + rank on the right — Garble stands as its own identity. */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: 18, marginBottom: 20, flexWrap: 'wrap' }}>
-            <a href="/" style={{ fontFamily: MONO, fontSize: 11, letterSpacing: '0.12em', textTransform: 'uppercase', color: COLORS.faded, textDecoration: 'none', borderBottom: '1px solid rgba(28,30,36,0.25)', paddingBottom: 1 }}>Daily Games</a>
-            <a href="/" style={{ fontFamily: MONO, fontSize: 11, letterSpacing: '0.12em', textTransform: 'uppercase', color: COLORS.faded, textDecoration: 'none', borderBottom: '1px solid rgba(28,30,36,0.25)', paddingBottom: 1 }}>Quizzes</a>
-            <a href="/lists" style={{ fontFamily: MONO, fontSize: 11, letterSpacing: '0.12em', textTransform: 'uppercase', color: COLORS.faded, textDecoration: 'none', borderBottom: '1px solid rgba(28,30,36,0.25)', paddingBottom: 1 }}>Top 10 Lists</a>
-            {player && (
-              <a href={player.key ? `/quizzes/hub?player=${encodeURIComponent(player.key)}` : '/quizzes/hub'} title="Your Stat Hub"
-                style={{ marginLeft: 'auto', display: 'inline-flex', alignItems: 'center', gap: 7, fontFamily: MONO, fontSize: 11, letterSpacing: '0.06em', color: COLORS.ink, background: PAPER, border: '1.5px solid rgba(28,30,36,0.35)', borderRadius: 5, padding: '4px 10px', textDecoration: 'none' }}>
-                <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', maxWidth: 150, fontWeight: 500 }}>{player.name}</span>
-                {player.rank ? <span style={{ color: COLORS.ember, fontWeight: 500 }}>Rank #{player.rank}</span> : null}
-              </a>
-            )}
-          </div>
+          <DailyTopNav player={player} />
 
           {/* masthead: pressed GARBLE tiles with No./date inline, one rule beneath */}
           <div className="gb-mh" style={{ display: 'flex', alignItems: 'center', gap: 14, flexWrap: 'wrap', position: 'relative', paddingRight: 28, marginBottom: 16, borderBottom: '2px solid rgba(28,30,36,0.8)', paddingBottom: 11 }}>
