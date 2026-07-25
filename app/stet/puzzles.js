@@ -290,8 +290,9 @@ export const PUZZLES = [
         errors: [{ wrong: 'medaling', fix: 'meddling', note: 'Meddle: interfere. Medal: what you win for it, presumably.' }],
       },
       {
-        text: "The intern spent a whole summer at the director's beckon call.",
-        errors: [{ wrong: 'beckon', fix: 'beck', note: '"Beck and call" — a beck is an old word for a summoning nod.' }],
+        text: "The intern spent a whole summer at the director's beck and call.",
+        errors: [],
+        cleanNote: "Clean copy: 'beck and call' is the idiom, from beck, an old word for a summoning nod. 'Beckon call' is the eggcorn.",
       },
       {
         text: 'Morale in the clubhouse has soared since the deadline trade.',
