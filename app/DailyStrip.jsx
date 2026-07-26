@@ -110,6 +110,8 @@ export default function DailyStrip({ board = null }) {
   // Edition. Set after mount so SSR and the first client render agree.
   const [isSunday, setIsSunday] = useState(false);
   useEffect(() => { setIsSunday(isSundayET()); }, []);
+  // Hide the SUN badge when every game is a Sunday edition (redundant on Sundays).
+  const allSundayEditions = isSunday && GAMES.every(g => hasSundayEdition(g.key));
   // "resets in Xh Ym" countdown to ET midnight; set after mount (SSR-safe) and
   // refreshed each minute.
   const [resetLbl, setResetLbl] = useState('');
@@ -580,7 +582,7 @@ export default function DailyStrip({ board = null }) {
             <div className={`dstrip-hero${streaks[nextGame.key] >= 2 ? '' : ' no-streak'}`}>
               <div className="hd-eb">
                 {inprog.has(nextGame.key) ? 'Pick it back up' : 'Up next for you'}{left > 1 ? ` · ${left} left` : ''}
-                {isSunday && hasSundayEdition(nextGame.key) ? <span className="dstrip-sun">{SUNDAY_SHORT}</span> : null}
+                {isSunday && !allSundayEditions && hasSundayEdition(nextGame.key) ? <span className="dstrip-sun">{SUNDAY_SHORT}</span> : null}
               </div>
               <a href={nextGame.href} className="hd-row" aria-label={`${nextGame.name} — ${nextGame.tag} — up next`}>
                 <img src={nextGame.img} alt="" aria-hidden="true" />
@@ -610,7 +612,7 @@ export default function DailyStrip({ board = null }) {
               const lead = hasBoard && byKey[g.key] && byKey[g.key].board && byKey[g.key].board[0] ? byKey[g.key].board[0].username : null;
               const rk = done.has(g.key) ? myRank(g.key) : null;
               const st = streaks[g.key] >= 2 ? streaks[g.key] : null;
-              const sun = isSunday && hasSundayEdition(g.key);
+              const sun = isSunday && !allSundayEditions && hasSundayEdition(g.key);
               return (
                 <a key={g.key} href={g.href} className={`dstrip-cell${done.has(g.key) ? ' done' : ''}`} title={`${g.name} — ${g.tag}`} aria-label={`${g.name} — ${g.tag}${sun ? ' — Sunday edition' : ''}${done.has(g.key) ? ' — done today' : ''}${!done.has(g.key) && inprog.has(g.key) ? ' — started, not finished' : ''}${st ? ` — ${st}-day streak` : ''} — daily game`}>
                   <span className="dstrip-acc" style={{ background: ACCENTS[g.key] || '#5b9bff' }} aria-hidden="true" />
