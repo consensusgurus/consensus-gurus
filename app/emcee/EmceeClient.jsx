@@ -336,6 +336,10 @@ export default function EmceeClient({ puzzles = [], forceNum = null }) {
   const isBlock = useCallback((i) => solFlat[i] === '#', [solFlat]);
   const curWordIdx = wordOf[dir][cur];
   const curWord = WORDS[curWordIdx] || WORDS[0];
+  // the perpendicular word passing through the selected cell — faintly lit too
+  const crossDir = dir === 'A' ? 'D' : 'A';
+  const crossWordIdx = wordOf[crossDir][cur];
+  const crossCells = crossWordIdx >= 0 ? WORDS[crossWordIdx].cells : [];
 
   const wordsCorrect = useCallback((ls) =>
     WORDS.reduce((k, w) => k + (w.cells.every((c) => ls[c] === solFlat[c]) ? 1 : 0), 0),
@@ -611,6 +615,7 @@ export default function EmceeClient({ puzzles = [], forceNum = null }) {
           @media(max-width:560px){.mc-ttl{flex-direction:column;align-items:flex-start;gap:1px;}.mc-ttl h1{font-size:21px;letter-spacing:0.02em;}.mc-ttl .mc-ttl-dt{font-size:15px;}.mc-ttl-dot{display:none;}}
           .mc-cell{display:flex;align-items:center;justify-content:center;font-family:${SANS};box-sizing:border-box;cursor:pointer;position:relative;user-select:none;-webkit-tap-highlight-color:transparent;min-width:0;min-height:0;overflow:hidden;background:#fff;}
           .mc-cell.mc-blk{background:${COLORS.ink};cursor:default;}
+          .mc-cell.mc-crossword{background:#fdf6fe;}
           .mc-cell.mc-inword{background:${COLORS.accentSoft};}
           .mc-cell.mc-sel{background:#f6d9f9;box-shadow:inset 0 0 0 2px ${COLORS.accent};}
           .mc-cell.mc-wrongmark span{color:${COLORS.rust};}
@@ -684,11 +689,12 @@ export default function EmceeClient({ puzzles = [], forceNum = null }) {
                 if (isBlock(idx)) return <div key={idx} className="mc-cell mc-blk" />;
                 const inWord = playing && curWord.cells.includes(idx);
                 const sel = playing && idx === cur;
+                const cross = playing && !inWord && !sel && crossCells.includes(idx);
                 const wrongMark = g.wrong.includes(idx);
                 const revealMiss = g.status === 'revealed';
                 return (
                   <div key={idx}
-                    className={`mc-cell${inWord && !sel ? ' mc-inword' : ''}${sel ? ' mc-sel' : ''}${wrongMark ? ' mc-wrongmark' : ''}`}
+                    className={`mc-cell${cross ? ' mc-crossword' : ''}${inWord && !sel ? ' mc-inword' : ''}${sel ? ' mc-sel' : ''}${wrongMark ? ' mc-wrongmark' : ''}`}
                     onClick={() => cellClick(idx)}>
                     {numAt[idx] != null && <span className="mc-num" style={{ fontSize: numPx }}>{numAt[idx]}</span>}
                     <span style={{ fontSize: cellPx, fontWeight: 800, color: revealMiss ? COLORS.faded : COLORS.ink }}>{letters[idx]}</span>
