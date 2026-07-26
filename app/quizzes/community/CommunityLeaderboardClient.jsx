@@ -20,12 +20,12 @@ const MEDAL = ['#e8b43a', '#b8bcc4', '#c8814b'];
 const FONT = "'Manrope', system-ui, -apple-system, sans-serif";
 
 const WINDOWS = [
-  { key: 30, label: 'Last 30 days' },
+  { key: 90, label: 'Last 90 days' },
   { key: 36500, label: 'All time' },
 ];
 
 export default function CommunityLeaderboardClient() {
-  const [days, setDays] = useState(30);
+  const [days, setDays] = useState(90);
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [copied, setCopied] = useState(false);

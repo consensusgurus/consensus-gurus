@@ -534,6 +534,29 @@ export default function DailyStrip({ board = null }) {
           .dstrip-cap .dstrip-exp{display:none;}
           .dstrip-mob-board{display:flex;align-items:center;gap:8px;padding:8px 13px 10px;border-top:1px solid rgba(255,255,255,0.07);}
         }
+        /* Mobile LANDSCAPE (short but wide): the block above matched on max-height,
+           which stacked the card and pushed the leaderboard out of the left column.
+           On a wide-enough landscape phone, restore the DESKTOP side-by-side layout
+           so the Today's Top 3 leaderboard sits back in the LEFT cap. The game cells
+           keep the two-row horizontal-scroll rail from the stacked rules (that is the
+           frozen-strip fix); they just sit to the RIGHT of the leaderboard again. */
+        @media (orientation:landscape) and (max-height:600px) and (min-width:620px){
+          .dstrip-main{flex-direction:row;}
+          .dstrip-cap{flex-direction:column;flex-wrap:nowrap;align-items:stretch;gap:5px;border-right:1px solid rgba(255,255,255,0.07);border-bottom:none;padding:12px 13px;}
+          .dstrip-cap.has-top3{min-width:140px;max-width:156px;}
+          .dstrip-cap .ttl{font-size:15px;}
+          .dstrip-progrow{flex:none;flex-direction:column;align-items:stretch;gap:3px;margin-top:5px;}
+          .dstrip-bar{flex:none;width:100%;height:9px;}
+          .dstrip-count{justify-content:space-between;gap:6px;}
+          .dstrip-cap .dstrip-t3{display:flex;flex:none;flex-direction:column;align-items:stretch;gap:2px;margin-top:2px;overflow:visible;}
+          .dstrip-cap .dstrip-t3 .t3h{display:block;}
+          .dstrip-cap .dstrip-t3r{display:flex;}
+          .dstrip-cap .dstrip-t1{margin:1px 0 4px;padding:5px 7px;flex:none;}
+          .dstrip-cap .dstrip-t1 .nm1{font-size:11.5px;}
+          .dstrip-cap .dstrip-exp{display:flex;margin-top:2px;align-self:stretch;width:auto;}
+          .dstrip-hero{flex:0 0 160px;display:flex;flex-direction:column;justify-content:center;gap:7px;border-right:1px solid rgba(255,255,255,0.09);border-bottom:none;padding:12px 12px;}
+          .dstrip-mob-board{display:none;}
+        }
       `}</style>
       <div className={`dstrip${hasBoard ? ' has-board' : ''}`} role="navigation" aria-label="Daily games">
         <button type="button" className="dstrip-scroll" hidden={!canScroll} onClick={scrollOn}
