@@ -228,6 +228,75 @@ function buildDailyRetention(rows) {
   return { games, breadth: { total: bTotal, histogram: bhist } };
 }
 
+
+// Analytics -> New Users. Two daily acquisition series, bucketed by calendar day
+// in US Eastern (matching the rest of the admin's clock):
+//   players  - distinct players whose FIRST recorded quiz play fell on that day.
+//              Identity is the same rule used everywhere else: registered
+//              user_id, else browser anon_id, else the lone row id. Counts
+//              registered and anonymous alike, over the full quiz_results
+//              history. This is "new players acquired" per day.
+//   signups  - quiz_users rows (the /quiz join-form email signups) created that
+//              day. A much smaller number, since most players never register.
+// The series is gap-filled across the union of both sources' date ranges, so a
+// quiet day still plots. Rows with no/unparseable timestamp are skipped.
+function buildNewUsersByDay(results, users) {
+  // Earliest play timestamp per player identity.
+  const firstMs = new Map(); // playerKey -> epoch ms of first play
+  for (const r of results || []) {
+    if (!r.created_at) continue;
+    const t = new Date(r.created_at).getTime();
+    if (Number.isNaN(t)) continue;
+    const key = r.user_id ? `u:${r.user_id}` : r.anon_id ? `a:${r.anon_id}` : `r:${r.id}`;
+    const prev = firstMs.get(key);
+    if (prev == null || t < prev) firstMs.set(key, t);
+  }
+  const playersByDay = new Map(); // 'YYYY-MM-DD' (ET) -> count
+  for (const ms of firstMs.values()) {
+    const day = etParts(new Date(ms)).day;
+    playersByDay.set(day, (playersByDay.get(day) || 0) + 1);
+  }
+  const signupsByDay = new Map();
+  for (const u of users || []) {
+    if (!u.created_at) continue;
+    const d = new Date(u.created_at);
+    if (Number.isNaN(d.getTime())) continue;
+    const day = etParts(d).day;
+    signupsByDay.set(day, (signupsByDay.get(day) || 0) + 1);
+  }
+  const allKeys = Array.from(new Set([...playersByDay.keys(), ...signupsByDay.keys()])).sort();
+  const series = [];
+  let totalPlayers = 0, totalSignups = 0, busiest = null;
+  if (allKeys.length) {
+    const cur = new Date(`${allKeys[0]}T00:00:00Z`);
+    const stop = new Date(`${allKeys[allKeys.length - 1]}T00:00:00Z`);
+    while (cur.getTime() <= stop.getTime()) {
+      const day = `${cur.getUTCFullYear()}-${String(cur.getUTCMonth() + 1).padStart(2, '0')}-${String(cur.getUTCDate()).padStart(2, '0')}`;
+      const players = playersByDay.get(day) || 0;
+      const signups = signupsByDay.get(day) || 0;
+      series.push({ day, players, signups });
+      totalPlayers += players;
+      totalSignups += signups;
+      if (players > 0 && (!busiest || players > busiest.players)) busiest = { day, players, signups };
+      cur.setUTCDate(cur.getUTCDate() + 1);
+    }
+  }
+  const activeDays = playersByDay.size;
+  return {
+    series,
+    totals: {
+      totalPlayers,
+      totalSignups,
+      activeDays,
+      daysTracked: series.length,
+      firstDay: allKeys[0] || null,
+      lastDay: allKeys.length ? allKeys[allKeys.length - 1] : null,
+      busiestDay: busiest,
+      avgActiveDayPlayers: activeDays ? Math.round((totalPlayers / activeDays) * 10) / 10 : 0,
+    },
+  };
+}
+
 // Analytics -> Time Played. Total wall-clock time players spent COMPLETING
 // quizzes, bucketed by calendar day in US Eastern (matching the rest of the
 // admin's clock), across the FULL quiz_results history — this is the earliest
@@ -759,6 +828,13 @@ export default async function AdminPage() {
   // history, gap-filled.
   const timeByDay = buildTimeByDay((quizResultsRes && quizResultsRes.data) || []);
 
+  // New users per day (Analytics -> Time Played, below the time chart): new
+  // first-play players and new registered signups, gap-filled ET series.
+  const newUsers = buildNewUsersByDay(
+    (quizResultsRes && quizResultsRes.data) || [],
+    (quizUsersRes && quizUsersRes.data) || [],
+  );
+
   // Daily Games tab: the daily games' plays bucketed by puzzle date, with
   // unique players / total plays / avg time per play, per day and per game.
   const dailyByGame = buildDailyByGame((quizResultsRes && quizResultsRes.data) || []);
@@ -781,6 +857,7 @@ export default async function AdminPage() {
       initialGeoMap={geoMap}
       initialDailyRetention={dailyRetention}
       initialTimeByDay={timeByDay}
+      initialNewUsers={newUsers}
       initialDailyByGame={dailyByGame}
     />
   );

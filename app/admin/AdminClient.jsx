@@ -373,7 +373,7 @@ function mapsPlaceUrl(name) {
   return `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(cleaned)}`;
 }
 
-export default function AdminClient({ initialLists, initialExtras = [], initialComplaints = [], initialVoteStandings = [], initialVoteEvents = [], initialComments = [], initialAlerts = [], initialViews24h = [], initialEditorNotes = [], initialQuizSignups = [], initialQuizStats = [], initialAnonPlayers = [], initialActiveUsers = { players: { dau: 0, wau: 0, mau: 0 }, visitors: null }, initialGeoMap = null, initialDailyRetention = { games: [], breadth: { total: 0, histogram: [] } }, initialTimeByDay = { series: [], totals: {} }, initialDailyByGame = { games: [], totals: {} } }) {
+export default function AdminClient({ initialLists, initialExtras = [], initialComplaints = [], initialVoteStandings = [], initialVoteEvents = [], initialComments = [], initialAlerts = [], initialViews24h = [], initialEditorNotes = [], initialQuizSignups = [], initialQuizStats = [], initialAnonPlayers = [], initialActiveUsers = { players: { dau: 0, wau: 0, mau: 0 }, visitors: null }, initialGeoMap = null, initialDailyRetention = { games: [], breadth: { total: 0, histogram: [] } }, initialTimeByDay = { series: [], totals: {} }, initialNewUsers = { series: [], totals: {} }, initialDailyByGame = { games: [], totals: {} } }) {
   const router = useRouter();
   const [lists, setLists] = useState(initialLists);
   const [extras, setExtras] = useState(initialExtras);
@@ -787,7 +787,7 @@ export default function AdminClient({ initialLists, initialExtras = [], initialC
         </div>
 
         {tab === 'analytics' ? (
-          <AnalyticsPanel views={views24h} viewsTotal={views24hTotal} quizStats={quizStats} quizPlaysTotal={quizPlaysTotal} signups={quizSignups} anonPlayers={anonPlayers} activeUsers={initialActiveUsers} geoMap={initialGeoMap} dailyRetention={initialDailyRetention} timeByDay={initialTimeByDay} />
+          <AnalyticsPanel views={views24h} viewsTotal={views24hTotal} quizStats={quizStats} quizPlaysTotal={quizPlaysTotal} signups={quizSignups} anonPlayers={anonPlayers} activeUsers={initialActiveUsers} geoMap={initialGeoMap} dailyRetention={initialDailyRetention} timeByDay={initialTimeByDay} newUsers={initialNewUsers} />
         ) : tab === 'daily' ? (
           <DailyGamesPanel data={initialDailyByGame} />
         ) : tab === 'research' ? (
@@ -2074,7 +2074,7 @@ function ActiveUsersStrip({ data }) {
   );
 }
 
-function AnalyticsPanel({ views, viewsTotal, quizStats, quizPlaysTotal, signups, anonPlayers, activeUsers, geoMap, dailyRetention = { games: [], breadth: { total: 0, histogram: [] } }, timeByDay = { series: [], totals: {} } }) {
+function AnalyticsPanel({ views, viewsTotal, quizStats, quizPlaysTotal, signups, anonPlayers, activeUsers, geoMap, dailyRetention = { games: [], breadth: { total: 0, histogram: [] } }, timeByDay = { series: [], totals: {} }, newUsers = { series: [], totals: {} } }) {
   const [view, setView] = useState('plays');
   const [playsView, setPlaysView] = useState('all');
   const [pvView, setPvView] = useState('all');
@@ -2190,7 +2190,12 @@ function AnalyticsPanel({ views, viewsTotal, quizStats, quizPlaysTotal, signups,
       ) : view === 'retention' ? (
         <RetentionPanel data={dailyRetention} />
       ) : view === 'time' ? (
-        <TimeByDayPanel data={timeByDay} />
+        <>
+          <TimeByDayPanel data={timeByDay} />
+          <div style={{ marginTop: 44 }}>
+            <NewUsersByDayPanel data={newUsers} />
+          </div>
+        </>
       ) : (
         <GeoMapPanel data={geoMap} />
       )}
@@ -2467,6 +2472,162 @@ function TimeByDayPanel({ data }) {
           })}
         </div>
         <div style={{ display: 'flex', gap: buckets.length > 60 ? 1 : 2, marginTop: 8, borderTop: `1px solid ${COLORS.line}`, paddingTop: 8 }}>
+          {buckets.map((b, i) => (
+            <div key={b.key} style={{ flex: '1 1 0', minWidth: 2, textAlign: 'center', overflow: 'visible' }}>
+              {i % labelStep === 0 ? (
+                <span style={{ fontFamily: 'DM Mono, monospace', fontSize: 9, color: COLORS.faded, whiteSpace: 'nowrap' }}>{b.label}</span>
+              ) : null}
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+
+// ---- Analytics -> New Users (below the Time Played chart) ---------------------
+// Two daily acquisition series plotted side by side: new first-play PLAYERS
+// (anonymous + registered, from quiz_results) and new registered SIGNUPS (the
+// /quiz join form). Server (buildNewUsersByDay) gap-fills the daily series; this
+// panel adds the same Day / Week / Month toggle, summary strip, grouped column
+// chart, and CSV export as the Time Played panel above it.
+function nubBucketize(series, gran) {
+  const rows = series || [];
+  if (gran === 'day') {
+    return rows.map((r) => ({
+      key: r.day,
+      label: `${TBD_MONTHS[tbdParseDay(r.day).getUTCMonth()]} ${tbdParseDay(r.day).getUTCDate()}`,
+      full: tbdLongDate(r.day),
+      players: r.players,
+      signups: r.signups,
+    }));
+  }
+  const map = new Map();
+  for (const r of rows) {
+    const d = tbdParseDay(r.day);
+    let key, label, full;
+    if (gran === 'week') {
+      const start = new Date(d.getTime());
+      start.setUTCDate(start.getUTCDate() - start.getUTCDay()); // back to Sunday
+      key = `${start.getUTCFullYear()}-${String(start.getUTCMonth() + 1).padStart(2, '0')}-${String(start.getUTCDate()).padStart(2, '0')}`;
+      label = `${TBD_MONTHS[start.getUTCMonth()]} ${start.getUTCDate()}`;
+      full = `Week of ${TBD_MONTHS[start.getUTCMonth()]} ${start.getUTCDate()}, ${start.getUTCFullYear()}`;
+    } else {
+      key = `${d.getUTCFullYear()}-${String(d.getUTCMonth() + 1).padStart(2, '0')}`;
+      label = `${TBD_MONTHS[d.getUTCMonth()]} '${String(d.getUTCFullYear()).slice(2)}`;
+      full = `${TBD_MONTHS[d.getUTCMonth()]} ${d.getUTCFullYear()}`;
+    }
+    const cur = map.get(key) || { key, label, full, players: 0, signups: 0 };
+    cur.players += r.players;
+    cur.signups += r.signups;
+    map.set(key, cur);
+  }
+  return Array.from(map.values()).sort((a, b) => a.key.localeCompare(b.key));
+}
+
+function NewUsersByDayPanel({ data }) {
+  const series = (data && data.series) || [];
+  const totals = (data && data.totals) || {};
+  const [gran, setGran] = useState('day');
+  const buckets = useMemo(() => nubBucketize(series, gran), [series, gran]);
+  // Shared y-scale across both series so the two bars are directly comparable.
+  const maxVal = useMemo(
+    () => buckets.reduce((m, b) => Math.max(m, b.players, b.signups), 0),
+    [buckets],
+  );
+
+  if (!series.length) {
+    return <p style={{ fontFamily: 'DM Mono, monospace', fontSize: 12, color: COLORS.faded, fontStyle: 'italic' }}>No players recorded yet.</p>;
+  }
+
+  const busiest = totals.busiestDay || null;
+  const labelStep = Math.max(1, Math.ceil(buckets.length / 9));
+
+  const granStyle = (on) => ({
+    padding: '6px 12px',
+    background: on ? `${COLORS.ember}1a` : 'transparent',
+    border: `1px solid ${on ? COLORS.ember : COLORS.line}`,
+    color: on ? COLORS.ember : COLORS.faded,
+    fontFamily: 'DM Mono, monospace',
+    fontSize: 10,
+    letterSpacing: '0.08em',
+    textTransform: 'uppercase',
+    fontWeight: 600,
+    cursor: 'pointer',
+  });
+
+  const exportCsv = () => {
+    const unitLabel = gran === 'day' ? 'Day' : gran === 'week' ? 'Week of' : 'Month';
+    const head = [unitLabel, 'New players', 'New signups'];
+    const rows = buckets.map((b) => [b.full, b.players, b.signups]);
+    downloadCsvFile(`sot-new-users-by-${gran}`, head, rows);
+  };
+
+  const LegendDot = ({ color, label }) => (
+    <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}>
+      <span style={{ width: 10, height: 10, borderRadius: 2, background: color, display: 'inline-block' }} />
+      <span style={{ fontFamily: 'DM Mono, monospace', fontSize: 10, letterSpacing: '0.06em', textTransform: 'uppercase', color: COLORS.faded }}>{label}</span>
+    </span>
+  );
+
+  return (
+    <div>
+      <SectionHeading>New users per day</SectionHeading>
+      <p style={{ fontFamily: 'DM Mono, monospace', fontSize: 11, color: COLORS.faded, margin: '0 0 18px', lineHeight: 1.6 }}>
+        New players (their first-ever recorded quiz play, anonymous and registered alike) and new registered signups from the join form, bucketed in US Eastern.
+        {totals.firstDay ? <span style={{ color: COLORS.ink }}> {tbdLongDate(totals.firstDay)}</span> : null}
+        {totals.lastDay ? <span> &rarr; <span style={{ color: COLORS.ink }}>{tbdLongDate(totals.lastDay)}</span></span> : null}.
+      </p>
+
+      <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap', marginBottom: 22 }}>
+        <TimeByDayStat value={(totals.totalPlayers || 0).toLocaleString()} unit="players" label="New players (all-time)" accent={COLORS.ember} />
+        <TimeByDayStat value={(totals.totalSignups || 0).toLocaleString()} unit="signups" label="New signups (all-time)" accent={COLORS.forest} />
+        <TimeByDayStat value={(totals.activeDays || 0).toLocaleString()} unit="days" label="Days with new players" accent={COLORS.ink} />
+        <TimeByDayStat value={(totals.avgActiveDayPlayers || 0).toLocaleString()} unit="/ day" label="Avg new players / active day" accent={COLORS.ink} />
+        <TimeByDayStat
+          value={busiest ? (busiest.players || 0).toLocaleString() : '—'}
+          unit={busiest ? 'players' : ''}
+          label={busiest ? `Busiest day · ${tbdLongDate(busiest.day)}` : 'Busiest day'}
+          accent={COLORS.rust}
+        />
+      </div>
+
+      <div style={{ display: 'flex', alignItems: 'center', gap: 6, flexWrap: 'wrap', marginBottom: 16 }}>
+        {[['day', 'Day'], ['week', 'Week'], ['month', 'Month']].map(([key, label]) => (
+          <button key={key} onClick={() => setGran(key)} style={granStyle(gran === key)}>{label}</button>
+        ))}
+        <div style={{ display: 'flex', gap: 14, marginLeft: 14 }}>
+          <LegendDot color={COLORS.ember} label="New players" />
+          <LegendDot color={COLORS.forest} label="New signups" />
+        </div>
+        <button
+          onClick={exportCsv}
+          title="Download the currently shown buckets (period, new players, new signups) as CSV"
+          style={{ marginLeft: 'auto', padding: '7px 12px', background: COLORS.ink, border: `1px solid ${COLORS.ink}`, color: COLORS.cream, fontFamily: 'DM Mono, monospace', fontSize: 10, letterSpacing: '0.08em', textTransform: 'uppercase', fontWeight: 600, cursor: 'pointer' }}
+        >
+          &darr; Users CSV
+        </button>
+      </div>
+
+      <div style={{ background: COLORS.paper, border: `1px solid ${COLORS.line}`, borderRadius: 8, padding: '18px 16px 10px' }}>
+        <div style={{ display: 'flex', alignItems: 'flex-end', gap: buckets.length > 60 ? 2 : 4, height: 190 }}>
+          {buckets.map((b) => {
+            const ph = maxVal ? Math.max(b.players > 0 ? 2 : 0, Math.round((b.players / maxVal) * 178)) : 0;
+            const sh = maxVal ? Math.max(b.signups > 0 ? 2 : 0, Math.round((b.signups / maxVal) * 178)) : 0;
+            return (
+              <div
+                key={b.key}
+                title={`${b.full}\n${b.players.toLocaleString()} new player${b.players === 1 ? '' : 's'} · ${b.signups.toLocaleString()} new signup${b.signups === 1 ? '' : 's'}`}
+                style={{ flex: '1 1 0', minWidth: 2, height: '100%', display: 'flex', alignItems: 'flex-end', justifyContent: 'center', gap: 1 }}
+              >
+                <div style={{ flex: '1 1 0', minWidth: 1, height: ph, background: COLORS.ember, opacity: 0.85, borderRadius: '3px 3px 0 0' }} />
+                <div style={{ flex: '1 1 0', minWidth: 1, height: sh, background: COLORS.forest, opacity: 0.85, borderRadius: '3px 3px 0 0' }} />
+              </div>
+            );
+          })}
+        </div>
+        <div style={{ display: 'flex', gap: buckets.length > 60 ? 2 : 4, marginTop: 8, borderTop: `1px solid ${COLORS.line}`, paddingTop: 8 }}>
           {buckets.map((b, i) => (
             <div key={b.key} style={{ flex: '1 1 0', minWidth: 2, textAlign: 'center', overflow: 'visible' }}>
               {i % labelStep === 0 ? (
