@@ -21,7 +21,7 @@ import { Zap, ArrowRight } from 'lucide-react';
 
 const C = { accent: '#0e1d40', cta: '#e8b43a', gold: '#ffd166' };
 // Gold / silver / bronze, matching the medal palette used on the ranking pages.
-const MEDAL = ['#e8b43a', '#b8bcc4', '#c8814b'];
+const MEDAL = ['#e8b43a', '#b8bcc4', '#c8814b', '#5f6f8f', '#5f6f8f'];
 
 // The leader's name is the tile's headline, so it is set as large as will fit
 // rather than at a fixed size. Same binary-search fitter as CommunityTile.
@@ -85,20 +85,20 @@ function XpBody({ face }) {
             <span className="xp-who" ref={textRef}>{leader.name}</span>
           </div>
           <div className="xp-sub">{num(leader.value)} XP earned {face.subWord}</div>
-          {/* Runners-up, so the tile reads as a podium rather than a single
-              name. Empty places render as "Open" on purpose: it shows the
-              spot is contested and reachable instead of hiding that it is free. */}
+          {/* Runners-up 2-5 as a 2x2 grid, so the tile reads as a podium
+              rather than a single name. Rendered 2, 4, 3, 5 so the grid places
+              4 to the right of 2 and 5 to the right of 3. To save the space, the
+              XP total is shown only for the leader above; the runners-up carry
+              the name alone. Empty places render as "Open" on purpose: it shows
+              the spot is contested and reachable instead of hiding that it is free. */}
           <div className="xp-podium">
-            {[1, 2].map((i) => {
+            {[1, 3, 2, 4].map((i) => {
               const r = top && top[i] ? top[i] : null;
               return (
                 <div className="xp-prow" key={i}>
                   <span className="xp-medal" style={{ background: MEDAL[i] }}>{i + 1}</span>
                   {r ? (
-                    <>
-                      <span className="xp-pname">{r.name}</span>
-                      <span className="xp-pn">{num(r.value)}</span>
-                    </>
+                    <span className="xp-pname">{r.name}</span>
                   ) : (
                     <span className="xp-pname xp-vacant">Open</span>
                   )}
@@ -135,7 +135,7 @@ export default function XpTile() {
       .then((r) => (r.ok ? r.json() : null))
       .then((d) => {
         if (dead || !d || !Array.isArray(d.players)) return;
-        setTop30(d.players.filter((p) => (p.xp30d || 0) > 0).slice(0, 3).map((p) => ({ name: p.name, value: p.xp30d })));
+        setTop30(d.players.filter((p) => (p.xp30d || 0) > 0).slice(0, 5).map((p) => ({ name: p.name, value: p.xp30d })));
       })
       .catch(() => { /* face falls back to its empty state */ });
     // All-time board (default sort is all-time XP).
@@ -143,7 +143,7 @@ export default function XpTile() {
       .then((r) => (r.ok ? r.json() : null))
       .then((d) => {
         if (dead || !d || !Array.isArray(d.players)) return;
-        setTopAll(d.players.filter((p) => (p.xp || 0) > 0).slice(0, 3).map((p) => ({ name: p.name, value: p.xp })));
+        setTopAll(d.players.filter((p) => (p.xp || 0) > 0).slice(0, 5).map((p) => ({ name: p.name, value: p.xp })));
       })
       .catch(() => { /* face falls back to its empty state */ });
     return () => { dead = true; };
@@ -204,7 +204,7 @@ export default function XpTile() {
         /* Auto-fitted: font-size is set inline by useFittedName. */
         .xptile .xp-who{display:block;white-space:nowrap;font-size:${NAME_MAX}px;font-weight:800;letter-spacing:-1.1px;line-height:1.02;color:#a9c6ff;text-shadow:0 2px 18px rgba(0,0,0,.55);}
         .xptile .xp-sub{font-size:12px;font-weight:600;color:rgba(214,228,255,.74);margin-top:5px;}
-        .xptile .xp-podium{margin-top:9px;display:flex;flex-direction:column;gap:3px;border-top:1px solid rgba(139,178,255,.18);padding-top:7px;}
+        .xptile .xp-podium{margin-top:9px;display:grid;grid-template-columns:1fr 1fr;gap:3px 12px;border-top:1px solid rgba(139,178,255,.18);padding-top:7px;}
         .xptile .xp-prow{display:flex;align-items:center;gap:7px;font-size:11.5px;line-height:1.25;min-width:0;}
         .xptile .xp-medal{flex:none;width:14px;height:14px;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;font-size:9px;font-weight:800;color:#12172a;}
         .xptile .xp-pname{flex:1 1 auto;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-weight:700;color:rgba(255,255,255,.82);}
