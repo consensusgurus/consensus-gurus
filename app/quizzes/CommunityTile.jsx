@@ -138,14 +138,13 @@ export default function CommunityTile() {
         .cmtile .cm-who{display:block;white-space:nowrap;font-size:${NAME_MAX}px;font-weight:800;letter-spacing:-1.1px;line-height:1.02;color:${C.gold};text-shadow:0 2px 18px rgba(0,0,0,.55);}
         .cmtile .cm-sub{font-size:12px;font-weight:600;color:rgba(255,236,200,.72);margin-top:5px;}
         /* Ranks 2-5 as a 2x2 grid: 2 | 4 on the top row, 3 | 5 below, so 4 and 5
-           sit to the right of 2 and 3. The rank rides in parentheses after the
-           name (no medal column) to keep each half-width cell compact. */
+           sit to the right of 2 and 3. Each cell reads "4. Alice (12)": rank on the
+           left, then the name, then the referral count in parentheses. */
         .cmtile .cm-podium{margin-top:9px;display:grid;grid-template-columns:1fr 1fr;gap:3px 12px;border-top:1px solid rgba(255,209,102,.16);padding-top:7px;}
-        .cmtile .cm-prow{display:flex;align-items:baseline;gap:6px;font-size:11.5px;line-height:1.25;min-width:0;}
-        .cmtile .cm-pname{flex:1 1 auto;min-width:0;display:flex;align-items:baseline;gap:4px;}
-        .cmtile .cm-nm{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-weight:700;color:rgba(255,255,255,.82);}
+        .cmtile .cm-prow{display:flex;align-items:baseline;gap:5px;font-size:11.5px;line-height:1.25;min-width:0;}
+        .cmtile .cm-prank{flex:none;font-weight:800;color:rgba(255,236,200,.55);font-variant-numeric:tabular-nums;}
+        .cmtile .cm-nm{flex:1 1 auto;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-weight:700;color:rgba(255,255,255,.82);}
         .cmtile .cm-nm.cm-vacant{color:rgba(255,255,255,.34);font-weight:600;font-style:italic;}
-        .cmtile .cm-prank{flex:none;font-size:10.5px;font-weight:800;color:rgba(255,236,200,.55);font-variant-numeric:tabular-nums;}
         .cmtile .cm-pn{flex:none;font-weight:800;color:rgba(255,236,200,.62);font-variant-numeric:tabular-nums;}
         .cmtile .cm-foot{display:flex;align-items:center;gap:6px;margin-top:9px;font-size:12px;font-weight:800;color:rgba(255,255,255,.9);}
         .cmtile .cm-panel{position:absolute;inset:0;z-index:4;background:rgba(24,18,8,.975);padding:13px 14px;display:flex;flex-direction:column;gap:5px;opacity:0;pointer-events:none;transition:opacity .16s ease;overflow:auto;}
@@ -186,19 +185,14 @@ export default function CommunityTile() {
                 const r = data?.top?.[i] || null;
                 return (
                   <div className="cm-prow" key={i}>
+                    <span className="cm-prank">{i + 1}.</span>
                     {r ? (
                       <>
-                        <span className="cm-pname">
-                          <span className="cm-nm">{r.username}</span>
-                          <span className="cm-prank">({i + 1})</span>
-                        </span>
-                        <span className="cm-pn">{r.credits}</span>
+                        <span className="cm-nm">{r.username}</span>
+                        <span className="cm-pn">({r.credits})</span>
                       </>
                     ) : (
-                      <span className="cm-pname">
-                        <span className="cm-nm cm-vacant">Open</span>
-                        <span className="cm-prank">({i + 1})</span>
-                      </span>
+                      <span className="cm-nm cm-vacant">Open</span>
                     )}
                   </div>
                 );
