@@ -35,8 +35,6 @@ const GREEN = '#16a34a';
 const BLUE = '#2563eb';
 const MONTH_NAMES = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
 const CAL_WD = ['S', 'M', 'T', 'W', 'T', 'F', 'S'];
-const SUN = '#b45309';
-const SUN_BG = '#fff7ed';
 
 const CATEGORIES = [
   { key: 'word', label: 'Word', keys: ['crux', 'lode', 'emcee', 'shards', 'garble', 'links', 'stet', 'tuck', 'warmer'] },
@@ -354,7 +352,6 @@ export default function DailyArchiveClient({ games = [], today = '' }) {
         .dl-day .dv{width:1px;align-self:stretch;background:${LINE};}
 
         .dl-legend{display:flex;gap:18px;flex-wrap:wrap;margin-top:16px;font-family:${SANS};font-size:12.5px;font-weight:600;color:${FADED};}
-        .dl-sun-tag{font-family:${MONO};font-size:9px;letter-spacing:.1em;text-transform:uppercase;font-weight:700;border-radius:4px;padding:1px 5px;color:${SUN};background:${SUN_BG};border:1px solid rgba(180,83,9,0.35);}
 
         .dl-sec-h{display:flex;align-items:baseline;gap:12px;margin:34px 0 14px;}
         .dl-sec-h h2{margin:0;font-size:18px;font-weight:800;letter-spacing:-.4px;color:${INK};}
@@ -953,7 +950,6 @@ function ArchivePanel({ g, ready, played, completed }) {
               aria-label={`${g.name} — ${shortDate(p.dateLabel)}${first ? ' (today)' : ''}${p.sunday ? ', Sunday edition' : ''}${isDone ? ', aced' : isPlayed ? ', played' : ''}`}
             >
               {first && <span className="dl-today-tag" style={{ background: g.accent }}>Today</span>}
-              {p.sunday && <span className="dl-sun-tag" title="Sunday edition — bigger &amp; tougher">Sun</span>}
               <span>{shortDate(p.dateLabel)}</span>
               {ready && isDone && <span className="dl-tick" style={{ color: GOLD }} aria-hidden="true">&#9733;</span>}
               {ready && !isDone && isPlayed && <span className="dl-tick" style={{ color: GREEN }} aria-hidden="true">&#10003;</span>}

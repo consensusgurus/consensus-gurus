@@ -291,9 +291,8 @@ export async function GET(request) {
       }
       const gameRows = rowsByQuiz.get(g.quizId) || [];
       const gr = scoreGame(gameRows);
-      // field = registered first-attempt players on the board; plays = EVERY
-      // completion for that puzzle (guests + repeats included), so the header can
-      // show both "X registered players · X total plays".
+      // field = all traceable first-attempt players (registered + guests); plays
+      // = EVERY completion for that puzzle (repeats included).
       return { key: g.key, quizId: g.quizId, num: g.num, rev: g.rev, href: g.href, field: gr.field, plays: gameRows.length, players: gr.players };
     });
 
@@ -305,14 +304,13 @@ export async function GET(request) {
     try {
       const ident = await findQuizIdentity(supabaseAdmin, { email, anonId });
       if (ident && ident.id) myKey = `u:${ident.id}`;
-      else if (anonId) myKey = `a:${anonId}`; // anon can't be on the registered board, but keep for parity
+      else if (anonId) myKey = `a:${anonId}`; // guests are scored into overallFull; myKey finds them directly
     } catch (e) { /* identity is best-effort */ }
     const me = myKey ? (overallFull.find((row) => row.userKey === myKey) || null) : null;
 
-    // Provisional standing for a GUEST (anon browser, not on the registered
-    // board): score their own anon rows into each game's field and rank the
-    // combined best-10 total against the registered board, so the end card can
-    // tell them where they'd land if they registered. Null once registered.
+    // Fallback provisional standing: only reached when a guest is absent from
+    // overallFull (e.g. no scored rows yet). After Part 3 guests appear in
+    // overallFull directly via scoreGame(), so me is non-null for them.
     let meProvisional = null;
     if (!me && anonId) {
       const guestByGame = new Map();
@@ -333,6 +331,7 @@ export async function GET(request) {
       field: g.field,
       plays: g.plays,
       board: [...g.players.values()]
+        .filter((p) => !!p.username)    // public board: named (registered) players only
         .sort((a, b) => a.rank - b.rank || b.points - a.points || String(a.username || '').localeCompare(String(b.username || '')))
         .slice(0, BOARD)
         .map((p) => ({
@@ -356,11 +355,12 @@ export async function GET(request) {
       bestN: effBestN,
       gameCount,
       uniquePlayers,
-      // overallField = the full registered combined-board field (the end card's
-      // "Combined today · of <field>"); `overall` itself is capped at DISPLAY.
+      // overallField = full combined field (all players) for the end card's
+      // "Combined today · of <field>". `overall` shows only named players but
+      // ranks reflect the full pool (guests included).
       overallField: overallFull.length,
       games: gameBoards,
-      overall: overallFull.slice(0, DISPLAY),
+      overall: overallFull.filter((r) => !!r.username).slice(0, DISPLAY),
       me,
       meProvisional,
     }, { headers: fresh ? NO_STORE_HEADERS : CACHE_HEADERS });

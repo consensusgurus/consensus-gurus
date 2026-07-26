@@ -194,7 +194,7 @@ export default function DailyEndCard({
   const [dailyGuest, setDailyGuest] = useState(null); // provisional standing for an unregistered player
   const [boardGames, setBoardGames] = useState(null); // per-game field/plays/board for the day
   const [overallBoard, setOverallBoard] = useState(null); // combined top-10
-  const [combinedField, setCombinedField] = useState(null); // full registered combined field
+  const [combinedField, setCombinedField] = useState(null); // full combined field (all players)
   const [allTime, setAllTime] = useState(null);       // { field, myRank, myPoints, board } for `self`
   const [drops, setDrops] = useState(null);           // this game's live drops (calendar)
   const [secs, setSecs] = useState(AUTO_SECONDS);
@@ -253,8 +253,8 @@ export default function DailyEndCard({
     let anonId = null, email = null;
     try { anonId = localStorage.getItem('sot_quiz_anon'); } catch (e) {}
     try { const id = JSON.parse(localStorage.getItem('sot_quiz_identity') || 'null'); email = id && id.email; } catch (e) {}
-    // A registered player has a combined-board standing; a guest does not (the
-    // `me` block is null for them), so only registered players need the retry.
+    // After Part 3 guests appear in d.me once their rows land, so the retry
+    // check covers both registered and guest players via d.me.perGame.
     const registered = !!email;
     let alive = true;
     let timer = null;
@@ -296,7 +296,7 @@ export default function DailyEndCard({
           // write hasn't propagated yet, so try again.
           const reflectsSelf = registered
             ? (!self || (d.me && d.me.perGame && d.me.perGame[self]))
-            : !!d.meProvisional;
+            : !!(d.me && d.me.perGame && d.me.perGame[self]) || !!d.meProvisional;
           if (reflectsSelf && !notified) { notified = true; notifyBoard(); setTimeout(notifyBoard, 600); }
           if (reflectsSelf || i >= delays.length - 1) { standingReadyRef.current = true; return; }
           i += 1;
