@@ -96,7 +96,7 @@ export async function GET(request) {
   const email = (searchParams.get('email') || '').trim() || null;
   const fresh = searchParams.get('fresh') === '1' || searchParams.get('fresh') === 'true';
 
-  const none = { game, allTime: { field: 0, myRank: null, myPoints: null, board: [] }, drops: [] };
+  const none = { game, allTime: { field: 0, plays: 0, myRank: null, myPoints: null, board: [] }, drops: [] };
   if (!DAILY_KEYS.includes(game)) return NextResponse.json(none, { headers: CACHE_HEADERS });
 
   const today = etTodayServer();
@@ -141,6 +141,14 @@ export async function GET(request) {
     // can show a PROVISIONAL all-time rank: sum the points their own drops would
     // earn (each inserted into that drop's registered field) and rank that total
     // against the registered cumulative totals, mirroring the today/combined tiles.
+    // Count unique all-time players (registered + guests) across all drops.
+    const uniqueAllTimePlayers = new Set();
+    for (const rows of byDrop.values()) {
+      for (const r of rows) {
+        const pk = r.user_id ? `u:${r.user_id}` : (r.anon_id ? `a:${r.anon_id}` : null);
+        if (pk) uniqueAllTimePlayers.add(pk);
+      }
+    }
     const isGuestViewer = !!(myKey && myKey.indexOf('a:') === 0);
     let guestPts = 0, guestDrops = 0;
 
@@ -185,6 +193,7 @@ export async function GET(request) {
     }));
     const allTime = {
       field: ranked.length,
+      plays: uniqueAllTimePlayers.size,
       myRank: meRow ? meRow.rank : null,
       myPoints: meRow ? Math.round(meRow.points * 10) / 10 : null,
       provisional: false,

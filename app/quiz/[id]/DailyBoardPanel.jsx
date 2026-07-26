@@ -141,9 +141,9 @@ export default function DailyBoardPanel({ self, quizId = null, maxWidth = 620, s
   const gameTodayField = (todayGame ? (todayGame.plays ?? todayGame.field) : null)
     || (guest && guest.perGame && guest.perGame[self] && guest.perGame[self].field) || null;
   const combinedRank = (me && me.rank) || (guest && guest.rank) || null;
-  const combinedField = (combined && typeof combined.overallField === 'number') ? combined.overallField : null;
+  const combinedField = (combined && (combined.uniquePlayers ?? combined.overallField) != null) ? (combined.uniquePlayers ?? combined.overallField) : null;
   const allTimeRank = allTime ? allTime.myRank : null;
-  const allTimeField = allTime ? allTime.field : null;
+  const allTimeField = allTime ? (allTime.plays ?? allTime.field) : null;
   const allTimeProv = !!(allTime && allTime.provisional);
 
   const playedCount = drops.filter((d) => d.played).length;

@@ -290,7 +290,7 @@ export default function DailyEndCard({
           if (d.meProvisional) setDailyGuest(d.meProvisional);
           if (Array.isArray(d.games)) setBoardGames(d.games);
           if (Array.isArray(d.overall)) setOverallBoard(d.overall);
-          if (typeof d.overallField === 'number') setCombinedField(d.overallField);
+          if (typeof d.overallField === 'number') setCombinedField(d.uniquePlayers ?? d.overallField);
           // Does our standing already include the game we just finished? If so
           // (or we're a guest, or retries are exhausted), stop. Otherwise the
           // write hasn't propagated yet, so try again.
@@ -872,7 +872,7 @@ export default function DailyEndCard({
       {/* ---- 2. rank tiles (3 on mobile; a 4th Archive tile on desktop) ---- */}
       <div className="dec-tiles">
         {renderTile('today', 'Today', gameTodayRank, gameTodayField, false, provisional)}
-        {renderTile('alltime', 'All-Time', allTime ? allTime.myRank : null, allTime ? allTime.field : null, !(allTime && allTime.myRank != null), !!(allTime && allTime.provisional))}
+        {renderTile('alltime', 'All-Time', allTime ? allTime.myRank : null, allTime ? (allTime.plays ?? allTime.field) : null, !(allTime && allTime.myRank != null), !!(allTime && allTime.provisional))}
         {renderTile('combined', 'Combined Today', combinedRank, combinedField, false, provisional)}
         {/* Archive tile: desktop only (CSS-hidden on mobile, where the slip below
             handles it). Shows % of this game's drops played; opens the calendar. */}
