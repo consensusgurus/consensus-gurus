@@ -401,7 +401,7 @@ export default function DailyEndCard({
   const gameTodayRank = (dailyMe && dailyMe.perGame && dailyMe.perGame[self] && dailyMe.perGame[self].rank)
     || (dailyGuest && dailyGuest.perGame && dailyGuest.perGame[self] && dailyGuest.perGame[self].rank)
     || null;
-  const gameTodayField = (todayGame && todayGame.field)
+  const gameTodayField = (todayGame ? (todayGame.plays ?? todayGame.field) : null)
     || (dailyGuest && dailyGuest.perGame && dailyGuest.perGame[self] && dailyGuest.perGame[self].field)
     || null;
   // Combined today: my combined-board rank of the registered field.

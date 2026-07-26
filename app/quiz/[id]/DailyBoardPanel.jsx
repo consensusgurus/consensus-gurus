@@ -138,7 +138,7 @@ export default function DailyBoardPanel({ self, quizId = null, maxWidth = 620, s
 
   const gameTodayRank = (me && me.perGame && me.perGame[self] && me.perGame[self].rank)
     || (guest && guest.perGame && guest.perGame[self] && guest.perGame[self].rank) || null;
-  const gameTodayField = (todayGame && todayGame.field)
+  const gameTodayField = (todayGame ? (todayGame.plays ?? todayGame.field) : null)
     || (guest && guest.perGame && guest.perGame[self] && guest.perGame[self].field) || null;
   const combinedRank = (me && me.rank) || (guest && guest.rank) || null;
   const combinedField = (combined && typeof combined.overallField === 'number') ? combined.overallField : null;
