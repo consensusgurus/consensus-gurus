@@ -23,7 +23,6 @@ export default function DailyTopNav({ player, compact = false }) {
   };
   return (
     <div style={{ display: 'flex', alignItems: 'center', gap: compact ? 12 : 18, marginBottom: compact ? 11 : 20, flexWrap: 'wrap' }}>
-      <a href="/" style={navStyle}>Daily Games</a>
       <a href="/" style={navStyle}>Quizzes</a>
       <a href="/lists" style={navStyle}>Top 10 Lists</a>
       {player && (
