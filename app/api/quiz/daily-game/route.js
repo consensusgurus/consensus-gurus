@@ -173,18 +173,22 @@ export async function GET(request) {
       b.points - a.points
       || b.drops - a.drops
       || String(a.username || '').localeCompare(String(b.username || '')));
-    // Shared competition rank on the cumulative total (ties share a rank), keyed
-    // to one-decimal points so float noise never splits a genuine tie.
+    // Registered (named) players only, renumbered with a FRESH sequential
+    // competition rank (ties share, keyed to one-decimal points). Anonymous
+    // guests are never shown and never occupy a visible rank slot, so the board
+    // reads 1,2,3... instead of gapping where a guest sits in the full order.
+    // `field` still counts the full all-time pool so the "of N" stays the full field.
+    const namedRanked = ranked.filter((r) => !!r.username);
     let rank = 0, prev = null, seen = 0;
-    for (const row of ranked) {
+    for (const row of namedRanked) {
       seen += 1;
       const p10 = Math.round(row.points * 10);
       if (prev === null || p10 !== prev) { rank = seen; prev = p10; }
       row.rank = rank;
     }
 
-    const meRow = myKey ? ranked.find((r) => r.userKey === myKey) : null;
-    const board = ranked.slice(0, BOARD).map((r) => ({
+    const meRow = myKey ? namedRanked.find((r) => r.userKey === myKey) : null;
+    const board = namedRanked.slice(0, BOARD).map((r) => ({
       userKey: r.userKey,
       username: r.username,
       points: Math.round(r.points * 10) / 10,
@@ -203,7 +207,7 @@ export async function GET(request) {
     // member and their own drops scored something). `provisional` tells the end
     // card to badge the rank with "prov.", exactly like the today/combined tiles.
     if (!meRow && isGuestViewer && guestDrops > 0) {
-      allTime.myRank = ranked.filter((r) => r.points > guestPts).length + 1;
+      allTime.myRank = namedRanked.filter((r) => r.points > guestPts).length + 1;
       allTime.myPoints = Math.round(guestPts * 10) / 10;
       allTime.provisional = true;
     }

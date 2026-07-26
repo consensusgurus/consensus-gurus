@@ -321,23 +321,38 @@ export async function GET(request) {
       if (guestByGame.size) meProvisional = guestProvisional(guestByGame, gameResults, overallFull, dayBestN);
     }
 
-    // Per-game display boards (top BOARD by that game's own rank).
-    const gameBoards = gameResults.map((g) => ({
-      key: g.key,
-      quizId: g.quizId,
-      num: g.num,
-      rev: g.rev,
-      href: g.href,
-      field: g.field,
-      plays: g.plays,
-      board: [...g.players.values()]
+    // Per-game display boards. Rows are the registered (named) players only, but
+    // they are renumbered with a FRESH sequential competition rank (1,2,3...) so
+    // the public board never shows gaps where unshown anonymous guests sit in the
+    // full-field order (that produced boards reading #3, #9, #14...). `field`/
+    // `plays` still count EVERYONE (guests included), so the "of today"
+    // denominator stays the full pool. (owner rule 2026-07-26)
+    const perGameRegRank = new Map(); // g.key -> Map(userKey -> registered board rank)
+    const gameBoards = gameResults.map((g) => {
+      const named = [...g.players.values()]
         .filter((p) => !!p.username)    // public board: named (registered) players only
-        .sort((a, b) => a.rank - b.rank || b.points - a.points || String(a.username || '').localeCompare(String(b.username || '')))
-        .slice(0, BOARD)
-        .map((p) => ({
+        .sort((a, b) => a.rank - b.rank || b.points - a.points || String(a.username || '').localeCompare(String(b.username || '')));
+      const rankByKey = new Map();
+      let dr = 0, prevPts = null, seenN = 0;
+      for (const p of named) {
+        seenN += 1;
+        const p10 = Math.round(p.points * 10); // one-decimal points; genuine ties share a rank
+        if (prevPts === null || p10 !== prevPts) { dr = seenN; prevPts = p10; }
+        rankByKey.set(p.userKey, dr);
+      }
+      perGameRegRank.set(g.key, rankByKey);
+      return {
+        key: g.key,
+        quizId: g.quizId,
+        num: g.num,
+        rev: g.rev,
+        href: g.href,
+        field: g.field,
+        plays: g.plays,
+        board: named.slice(0, BOARD).map((p) => ({
           userKey: p.userKey,
           username: p.username,
-          rank: p.rank,
+          rank: rankByKey.get(p.userKey),
           score: p.score,
           total: p.total,
           guessesUsed: p.guessesUsed,
@@ -346,7 +361,36 @@ export async function GET(request) {
           completion: Math.round(p.completion * 10) / 10,
           placement: Math.round(p.placement * 10) / 10,
         })),
-    }));
+      };
+    });
+
+    // Combined-today board: same treatment. Registered players only, renumbered
+    // sequentially by best-N total, with the full pool still behind the "of N".
+    const overallNamed = overallFull.filter((r) => !!r.username);
+    const overallRankByKey = new Map();
+    {
+      let dr = 0, prevT = null, seenN = 0;
+      for (const r of overallNamed) {
+        seenN += 1;
+        const t10 = Math.round((r.total || 0) * 10);
+        if (prevT === null || t10 !== prevT) { dr = seenN; prevT = t10; }
+        overallRankByKey.set(r.userKey, dr);
+      }
+    }
+    const overallBoardOut = overallNamed.slice(0, DISPLAY).map((r) => ({ ...r, rank: overallRankByKey.get(r.userKey) }));
+
+    // Personal rank tiles use the SAME registered board rank as the player's own
+    // row, while the denominator (field/plays/uniquePlayers) stays the full pool,
+    // so a registered player reads e.g. "#9 of 28" instead of a gappy "#23 of 28".
+    if (me) {
+      if (me.perGame) {
+        for (const key of Object.keys(me.perGame)) {
+          const rk = perGameRegRank.get(key);
+          if (rk && me.userKey && rk.has(me.userKey)) me.perGame[key].rank = rk.get(me.userKey);
+        }
+      }
+      if (me.userKey && overallRankByKey.has(me.userKey)) me.rank = overallRankByKey.get(me.userKey);
+    }
 
     return NextResponse.json({
       date: suffix,
@@ -360,7 +404,7 @@ export async function GET(request) {
       // ranks reflect the full pool (guests included).
       overallField: overallFull.length,
       games: gameBoards,
-      overall: overallFull.filter((r) => !!r.username).slice(0, DISPLAY),
+      overall: overallBoardOut,
       me,
       meProvisional,
     }, { headers: fresh ? NO_STORE_HEADERS : CACHE_HEADERS });
