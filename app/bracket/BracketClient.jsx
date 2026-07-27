@@ -320,13 +320,13 @@ export default function BracketClient({ puzzles = [], forceNum = null }) {
   return (
     <div style={{ minHeight: '100vh', background: '#f7f8fa', position: 'relative' }}>
       <Grain />
-      <div className="bk-wrap" style={{ position: 'relative', zIndex: 2, maxWidth: 1180, margin: '0 auto', padding: '18px 38px 80px', fontFamily: SANS }}>
+      <div className="bk-wrap" style={{ position: 'relative', zIndex: 2, maxWidth: 1180, margin: '0 auto', padding: '18px 24px 80px', fontFamily: SANS }}>
         <style>{`
           @media(max-width:560px){.bk-wrap{padding-left:12px !important;padding-right:12px !important;}}
           .bk-btn{font-family:${SANS};font-weight:800;font-size:14px;border:2px solid ${COLORS.ink};background:#fff;color:${COLORS.ink};border-radius:8px;padding:9px 16px;cursor:pointer;display:inline-flex;align-items:center;gap:7px;}
           .bk-btn:hover{background:${COLORS.paper};}
-          .bk-rounds{display:flex;gap:14px;align-items:flex-start;overflow-x:auto;padding-bottom:6px;scrollbar-width:thin;}
-          .bk-col{flex:0 0 auto;width:186px;display:flex;flex-direction:column;justify-content:space-around;gap:8px;min-height:100%;}
+          .bk-rounds{display:flex;gap:10px;align-items:flex-start;overflow-x:auto;padding-bottom:6px;scrollbar-width:thin;}
+          .bk-col{flex:0 0 auto;width:168px;display:flex;flex-direction:column;justify-content:space-around;gap:8px;min-height:100%;}
           .bk-rh{font-family:${MONO};font-size:9.5px;letter-spacing:.1em;text-transform:uppercase;color:${COLORS.faded};margin-bottom:2px;}
           .bk-m{border:1px solid rgba(28,30,36,0.14);border-radius:9px;overflow:hidden;background:#fff;}
           .bk-s{display:block;width:100%;text-align:left;font-family:${SANS};font-size:12.5px;font-weight:700;color:${COLORS.ink};background:#fff;border:none;border-bottom:1px solid rgba(28,30,36,0.08);padding:8px 9px;cursor:pointer;}
@@ -420,7 +420,7 @@ export default function BracketClient({ puzzles = [], forceNum = null }) {
                   </div>
                 );
               })}
-              <div className="bk-col" style={{ width: 150 }}>
+              <div className="bk-col" style={{ width: 132 }}>
                 <div className="bk-rh">Winner</div>
                 <div className="bk-m" style={{ borderColor: COLORS.gold, background: '#fffbeb' }}>
                   <div style={{ padding: '10px 9px', fontSize: 13, fontWeight: 800, color: playing ? COLORS.faded : COLORS.gold, display: 'flex', alignItems: 'center', gap: 6 }}>
