@@ -1351,6 +1351,7 @@ export default function QuizHomeClient() {
     .qzh .dtile-cta-go{display:inline-flex;align-items:center;gap:6px;flex:none;font-size:13.5px;font-weight:900;letter-spacing:0.01em;}
     .qzh .dtile-cta-ldr{display:inline-flex;align-items:center;gap:6px;min-width:0;flex:1;justify-content:center;padding:0 6px 0 10px;border-left:1px solid rgba(28,30,36,0.25);}
     .qzh .dtile-cta-nm{min-width:0;font-size:13.5px;font-weight:900;letter-spacing:0.01em;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+    .qzh .dtile-cta-unseat{flex:0 1 auto;min-width:0;gap:5px;}
     .qzh .lbtile{background:#fff;border:1px solid ${C.line};border-radius:14px;padding:12px 15px;flex:1;display:flex;flex-direction:column;min-height:132px;overflow:hidden;}
     .qzh .lbtile-head{display:flex;align-items:center;gap:7px;margin-bottom:6px;}
     .qzh .duelbtn{background:${C.cta};color:${C.ctaInk};border:none;border-radius:12px;padding:12px;font-weight:800;font-size:12px;font-family:inherit;display:flex;align-items:center;justify-content:center;gap:8px;cursor:pointer;flex:none;}
@@ -1674,7 +1675,7 @@ export default function QuizHomeClient() {
                       </Link>
                     ); })}
                   </div>
-                  <Link href={dailyAllDone ? `/challenge/${dailyId}?done=1` : dailyEntryUrl} className="dtile-cta"><span className="dtile-cta-go">{dailyAllDone ? 'Results' : dailyDoneCount > 0 ? 'Continue' : 'Play'}<ArrowRight size={14} strokeWidth={2.75} style={{ flex: 'none' }} /></span>{dailyRows && dailyRows.length ? (<span className="dtile-cta-ldr"><Crown size={14} fill="#7d5510" strokeWidth={0} style={{ flex: 'none' }} /><span className="dtile-cta-nm">{dailyRows[0].username || 'Player'}</span></span>) : null}</Link>
+                  <Link href={dailyAllDone ? `/challenge/${dailyId}?done=1` : dailyEntryUrl} className="dtile-cta">{dailyAllDone ? (<span className="dtile-cta-go">Results<ArrowRight size={14} strokeWidth={2.75} style={{ flex: 'none' }} /></span>) : (dailyRows && dailyRows.length) ? (<span className="dtile-cta-go dtile-cta-unseat">Unseat the leader<Crown size={14} fill="#7d5510" strokeWidth={0} style={{ flex: 'none' }} /><span className="dtile-cta-nm">{dailyRows[0].username || 'Player'}</span><ArrowRight size={14} strokeWidth={2.75} style={{ flex: 'none' }} /></span>) : (<span className="dtile-cta-go">{dailyDoneCount > 0 ? 'Continue' : 'Play'}<ArrowRight size={14} strokeWidth={2.75} style={{ flex: 'none' }} /></span>)}</Link>
                 </div>
               </div>
             ) : <div className="th-only-desk" />}
@@ -1710,7 +1711,7 @@ export default function QuizHomeClient() {
                       </Link>
                     ); })}
                   </div>
-                  <Link href={dailyAllDone ? `/challenge/${dailyId}?done=1` : dailyEntryUrl} className="dtile-cta"><span className="dtile-cta-go">{dailyAllDone ? 'Results' : dailyDoneCount > 0 ? 'Continue' : 'Play'}<ArrowRight size={14} strokeWidth={2.75} style={{ flex: 'none' }} /></span>{dailyRows && dailyRows.length ? (<span className="dtile-cta-ldr"><Crown size={14} fill="#7d5510" strokeWidth={0} style={{ flex: 'none' }} /><span className="dtile-cta-nm">{dailyRows[0].username || 'Player'}</span></span>) : null}</Link>
+                  <Link href={dailyAllDone ? `/challenge/${dailyId}?done=1` : dailyEntryUrl} className="dtile-cta">{dailyAllDone ? (<span className="dtile-cta-go">Results<ArrowRight size={14} strokeWidth={2.75} style={{ flex: 'none' }} /></span>) : (dailyRows && dailyRows.length) ? (<span className="dtile-cta-go dtile-cta-unseat">Unseat the leader<Crown size={14} fill="#7d5510" strokeWidth={0} style={{ flex: 'none' }} /><span className="dtile-cta-nm">{dailyRows[0].username || 'Player'}</span><ArrowRight size={14} strokeWidth={2.75} style={{ flex: 'none' }} /></span>) : (<span className="dtile-cta-go">{dailyDoneCount > 0 ? 'Continue' : 'Play'}<ArrowRight size={14} strokeWidth={2.75} style={{ flex: 'none' }} /></span>)}</Link>
                 </div>
               </div>
             ) : <div className="th-only-mob" />}
