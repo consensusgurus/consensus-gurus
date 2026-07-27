@@ -42,9 +42,15 @@ const here = dirname(fileURLToPath(import.meta.url));
 // arak, ecco, coll, comm, tung), because short strings pick up frequency from
 // proper nouns, brands and foreign words. Genuine rare words are long
 // (commode 2.30, granary 2.57, fandango 2.68, domicile 2.75). So four-letter
-// words must clear a high bar — which also makes them uniformly tier 1, the
-// board's chip shots — while length earns a word the benefit of the doubt.
-const FLOORS = { 4: 4.0, 5: 2.6, 6: 2.25 };
+// words must clear a higher bar than long ones — which also makes them
+// uniformly tier 1, the board's chip shots — while length earns a word the
+// benefit of the doubt. The four-letter floor was 4.0 at launch, but that was
+// too aggressive: it rejected hundreds of everyday words that sit just under it
+// (unto 3.96, oath 3.96, atom 3.72, barn, deaf, neat, halt, verb, idle...),
+// which players reasonably typed and got bounced. Lowered to 3.4 (2026-07-26):
+// real junk lives below ~3.3 at four letters, so 3.4 keeps the board clean
+// while accepting common vocabulary.
+const FLOORS = { 4: 3.4, 5: 2.6, 6: 2.25 };
 const FLOOR_LONG = 2.1;      // seven letters and up
 const floorFor = (n) => FLOORS[n] ?? FLOOR_LONG;
 const TIER_RARE = 2.9;       // < this (and above the floor) is RARE (x3)
