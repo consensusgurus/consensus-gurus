@@ -837,7 +837,7 @@ export default function DailyEndCard({
           <span className={`dec-check${won ? '' : ' loss'}`}>
             {won ? <CheckCircle2 size={19} strokeWidth={2.4} /> : <Flag size={17} strokeWidth={2.4} />}
           </span>
-          <span className="dec-title">{isCompleted ? <>Completed {selfName}!</> : <>Played {selfName}</>}</span>
+          <span className="dec-title">{isCompleted ? <>Completed {selfName}!</> : <>Not quite there for today</>}</span>
           {score ? <span className="dec-detail">{score}</span> : null}
         </div>
         {answer ? (
