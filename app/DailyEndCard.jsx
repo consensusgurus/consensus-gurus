@@ -138,7 +138,7 @@ export const DAILY_GAMES = [
   { key: 'jester', cat: 'logic',     name: 'Jesters', tag: 'Seat the court',             href: '/jester' },
   { key: 'sworn',  cat: 'logic',     name: 'Sworn',  tag: 'Spot the liars',             href: '/sworn' },
   { key: 'warmer', cat: 'word',      name: 'Warmer', tag: 'Hotter or colder',           href: '/warmer' },
-  { key: 'listed', cat: 'numbers',   name: 'Listed', tag: 'Rank the list, top to bottom', href: '/listed' },
+  { key: 'listed', cat: 'history',   name: 'Listed', tag: 'Rank the list, top to bottom', href: '/listed' },
   { key: 'axiom',  cat: 'logic',     name: 'Axiom',  tag: 'Find the hidden rule',       href: '/axiom' },
   { key: 'hearsay', cat: 'logic',    name: 'Hearsay', tag: "Deduce what they don't know", href: '/hearsay' },
   { key: 'venn',   cat: 'logic',     name: 'Venn',   tag: 'Sort the overlaps',          href: '/venn' },
