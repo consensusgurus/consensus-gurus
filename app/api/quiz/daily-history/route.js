@@ -99,10 +99,16 @@ export async function GET() {
       const dayBestN = bestNForSuffix(suffix);
       const overall = combineDaily(gameResults, dayBestN);
       if (!overall.length) continue;
+      // Crown only REGISTERED players. A guest (anon userKey 'a:...') has no
+      // account, profile, or stable identity, so it can't hold a Hall-of-Fame
+      // crown or link to a player page. Guests still count on the live combined
+      // board; they just aren't crowned as the day's champion here.
+      const registered = overall.filter((o) => String(o.userKey || '').startsWith('u:'));
+      if (!registered.length) continue; // no registered player that day -> no champion, skip the day
       const gameCount = gameResults.length;
       const maxTotal = Math.min(dayBestN, gameCount) * GAME_MAX;
-      const w = overall[0];
-      const ru = overall[1] || null;
+      const w = registered[0];
+      const ru = registered[1] || null;
       const { iso, label } = parseSuffix(suffix);
       history.push({
         date: suffix,
