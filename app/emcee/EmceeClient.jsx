@@ -576,11 +576,13 @@ export default function EmceeClient({ puzzles = [], forceNum = null }) {
   const filledWord = (w) => w.cells.every((c) => letters[c] !== '');
   const clueRow = (w, i) => {
     const active = i === curWordIdx && playing;
+    // the crossing clue through the selected square gets a faint secondary highlight
+    const cross = i === crossWordIdx && playing && !active;
     return (
       <button key={`${w.dir}${w.n}`} onClick={() => { if (playing) selectWord(i); }}
         className="mc-cluerow"
-        style={{ background: active ? COLORS.accentSoft : 'none', borderLeft: active ? `3px solid ${COLORS.accent}` : '3px solid transparent', opacity: !playing || !filledWord(w) ? 1 : 0.45 }}>
-        <span style={{ fontFamily: MONO, fontSize: 11.5, fontWeight: 500, color: active ? COLORS.accent : COLORS.faded, minWidth: 18, textAlign: 'right' }}>{w.n}</span>
+        style={{ background: active ? COLORS.accentSoft : (cross ? 'rgba(192,38,211,0.06)' : 'none'), borderLeft: active ? `3px solid ${COLORS.accent}` : (cross ? '3px solid rgba(192,38,211,0.35)' : '3px solid transparent'), opacity: active || cross || !playing || !filledWord(w) ? 1 : 0.45 }}>
+        <span style={{ fontFamily: MONO, fontSize: 11.5, fontWeight: 500, color: active ? COLORS.accent : (cross ? '#a21caf' : COLORS.faded), minWidth: 18, textAlign: 'right' }}>{w.n}</span>
         <span style={{ fontFamily: SANS, fontSize: 13, fontWeight: 600, color: COLORS.ink, lineHeight: 1.35, textAlign: 'left' }}>{w.clue}</span>
       </button>
     );
