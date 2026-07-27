@@ -668,7 +668,7 @@ export default function DailyStrip({ board = null }) {
                   <span className="dstrip-tip" aria-hidden="true">
                     <span className="tip-cat">{g.cat}</span>
                     <span>{g.tag}</span>
-                    {st ? <span className="tip-fl"><Flame size={9} strokeWidth={2.6} />{st}-day streak</span> : null}
+                    {st && !(rk && rk <= 10) ? <span className="tip-fl"><Flame size={9} strokeWidth={2.6} />{st}-day streak</span> : null}
                   </span>
                   {!open ? (
                     done.has(g.key) ? (
