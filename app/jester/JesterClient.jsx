@@ -567,7 +567,7 @@ export default function JesterClient({ puzzles = [], forceNum = null }) {
     <div style={{ fontSize: 14, lineHeight: 1.55, color: COLORS.ink, fontWeight: 600 }}>
       <p style={{ margin: '0 0 9px' }}>Seat exactly <b>one jester</b> in every row, every column, and every colored court.</p>
       <p style={{ margin: '0 0 9px' }}>Jesters are jealous: <b>no two may touch</b>, not even diagonally. Quarrelling jesters glow red.</p>
-      <p style={{ margin: '0 0 9px' }}>Tap a cell to seat a <b>jester</b>; tap again to rule it out (<b>✗</b>), once more to clear. Hold it (right-click on a computer) to seat a jester directly. Leave auto-✗ on and seating a jester pencils out its row, column, court and neighbours for you; lift the jester and those marks clear too. <b>Undo</b> rolls back your last move.</p>
+      <p style={{ margin: '0 0 9px' }}>Tap a cell to seat a <b>jester</b>; tap again to rule it out (<b>✗</b>), once more to clear. Hold it (right-click on a computer) to seat a jester directly, or hold a seated jester to lift it and its ✗’s. Leave auto-✗ on and seating a jester pencils out its row, column, court and neighbours for you; lift the jester and those marks clear too. <b>Undo</b> rolls back your last move.</p>
       <p style={{ margin: 0 }}>Every board has exactly one legal seating, reachable by pure deduction &mdash; no guessing needed. The board completes itself the moment the last jester is seated legally. Ties on the daily board break by fewest placements, then fastest time. A bigger 9&times;9 Jubilee board runs on Sundays.</p>
     </div>
   );
@@ -689,7 +689,7 @@ export default function JesterClient({ puzzles = [], forceNum = null }) {
 
         {started && (
           <div style={{ fontFamily: MONO, fontSize: 11, letterSpacing: '0.04em', color: COLORS.faded, textAlign: 'center', margin: '10px 0 0', lineHeight: 1.5 }}>
-            Tap a cell to seat a jester, tap again to rule it out. Hold or right-click also seats a jester.
+            Tap a cell to seat a jester, tap again to rule it out. Hold or right-click also seats a jester; hold a seated jester to lift it and its ✗’s.
           </div>
         )}
 
