@@ -123,6 +123,18 @@ function gameFamily(id) { const m = (id || '').match(DAILY_GAME_FAMILY_RE); retu
 const isDailyGame = (id) => DAILY_GAME_FAMILY_RE.test(id || '');
 // Daily-game category (Word/Logic/Numbers/Geography/History) keyed by family.
 const DG_CAT = Object.fromEntries((DAILY_GAMES || []).map((g) => [g.key, CAT_META[g.cat] || null]));
+// Daily games publish a fresh dated instance ('<key>-M-D-YY') each day that is
+// NOT a static QUIZZES entry, so titleById can't resolve it. Build a display
+// title from the roster so the live feed / Last Played tile still surface daily
+// plays; without this a whole daily game silently drops out of the feed (the
+// newer games were missing for exactly this reason).
+const DG_NAME = Object.fromEntries((DAILY_GAMES || []).map((g) => [g.key, g.name]));
+const DAILY_DATED_ID_RE = /^([a-z]+)-(\d{1,2})-(\d{1,2})-(\d{2})$/;
+function dailyTitleFor(id) {
+  const m = DAILY_DATED_ID_RE.exec(id || '');
+  if (!m || !DG_NAME[m[1]]) return null;
+  return `${DG_NAME[m[1]]}: ${m[2]}/${m[3]}/${m[4]}`;
+}
 // Daily-game hero banners: /public/games/hero/<family>.png, the game's own icon
 // on a white app-icon plate over the site navy, built from /public/games/btn-*.png
 // by scripts/generate-game-heroes.py. The plate is load-bearing, the hero tile
@@ -459,6 +471,9 @@ export default function QuizHomeClient() {
   })), []);
 
   const titleById = useMemo(() => Object.fromEntries(catalog.map((q) => [q.id, q.title])), [catalog]);
+  // Resolve a play row's title: static catalog first, then a generated daily
+  // title for dated daily instances that are not static QUIZZES entries.
+  const resolveTitle = (id) => titleById[id] || dailyTitleFor(id);
   // Play-feed rows carry only a quizId, so heroFor() needs a dept lookup.
   const deptById = useMemo(() => Object.fromEntries(catalog.map((q) => [q.id, q.dept])), [catalog]);
 
@@ -778,7 +793,7 @@ export default function QuizHomeClient() {
 
   // ── live feed (scoped by quiz department) ──
   const liveRows = useMemo(() => {
-    const rows = recent.filter((p) => p && p.quizId && titleById[p.quizId]).map((p) => ({ ...p, dept: deptOf({ id: p.quizId }), title: titleById[p.quizId] }));
+    const rows = recent.filter((p) => p && p.quizId && resolveTitle(p.quizId)).map((p) => ({ ...p, dept: deptOf({ id: p.quizId }), title: resolveTitle(p.quizId) }));
     const scoped = scope === 'all' ? rows : rows.filter((r) => r.dept === scope);
     return scoped.slice(0, boardsExpanded ? 10 : 4);
   }, [recent, scope, titleById, boardsExpanded]);
@@ -827,12 +842,12 @@ export default function QuizHomeClient() {
       return h < 24 ? `${h}h` : `${Math.round(h / 24)}d`;
     };
     const playRows = (recent || [])
-      .filter((p) => p && p.quizId && titleById[p.quizId] && !(p.total > 0 && p.score === p.total))
+      .filter((p) => p && p.quizId && resolveTitle(p.quizId) && !(p.total > 0 && p.score === p.total))
       .slice(0, 8)
       .map((p) => ({ type: 'play', href: `/quiz/${p.quizId}`, segs: [
         { text: p.name || 'Player', strong: true },
         { text: ` ${p.score}/${p.total} on ` },
-        { text: titleById[p.quizId], strong: true },
+        { text: resolveTitle(p.quizId), strong: true },
         ...(ago(p.playedAt) ? [{ text: ` · ${ago(p.playedAt)}`, dim: true }] : []),
       ] }));
     const leads = (todayCorrectRows || []).filter((r) => !r.isAnon).slice(0, 3).map((r, i) => ({
@@ -893,11 +908,11 @@ export default function QuizHomeClient() {
     }).filter(Boolean).slice(0, 6);
     // Achievements: recent perfect scores (maxed the game).
     const achRows = (recent || [])
-      .filter((p) => p && p.quizId && titleById[p.quizId] && !p.isAnon && p.total > 0 && p.score === p.total)
+      .filter((p) => p && p.quizId && resolveTitle(p.quizId) && !p.isAnon && p.total > 0 && p.score === p.total)
       .slice(0, 4)
       .map((p) => ({ type: 'ach', href: `/quiz/${p.quizId}`, segs: [
         { text: p.name || 'Player', strong: true },
-        { text: ` aced ${titleById[p.quizId]}` },
+        { text: ` aced ${resolveTitle(p.quizId)}` },
         { text: ` · perfect ${p.score}/${p.total}`, dim: true },
         ...(ago(p.playedAt) ? [{ text: ` · ${ago(p.playedAt)}`, dim: true }] : []),
       ] }));
@@ -1003,7 +1018,7 @@ export default function QuizHomeClient() {
     .sort((a, b) => (a.publishedAt < b.publishedAt ? 1 : a.publishedAt > b.publishedAt ? -1 : 0)), [catalog]);
   const mostPlayedAll = useMemo(() => catalog.slice()
     .sort((a, b) => plays(b.id) - plays(a.id) || a.title.localeCompare(b.title)), [catalog, totals]);
-  const liveAll = useMemo(() => recent.filter((p) => p && p.quizId && titleById[p.quizId]).map((p) => ({ ...p, title: titleById[p.quizId] })), [recent, titleById]);
+  const liveAll = useMemo(() => recent.filter((p) => p && p.quizId && resolveTitle(p.quizId)).map((p) => ({ ...p, title: resolveTitle(p.quizId) })), [recent, titleById]);
   // "Last Played" browse column: most recent plays, deduped to distinct quizzes
   // (the live feed relocated into the browse grid as the first column).
   const lastPlayed = useMemo(() => {
@@ -1928,7 +1943,7 @@ export default function QuizHomeClient() {
               for (const p of recent) { const tt = (p && p.playedAt) ? Date.parse(p.playedAt) : 0; if (!tt) continue; const hrsAgo = Math.floor((nowMs - tt) / 3600000); if (hrsAgo >= 0 && hrsAgo < HB) bars[HB - 1 - hrsAgo] += 1; }
               const maxBar = Math.max(1, ...bars);
               const hot = trending;
-              const tough = (totals.toughest && titleById[totals.toughest.quizId]) ? totals.toughest : null;
+              const tough = (totals.toughest && resolveTitle(totals.toughest.quizId)) ? totals.toughest : null;
               const fmtT = (v) => { const x = Math.round(v || 0); const h = Math.floor(x / 3600); const m = Math.round((x % 3600) / 60); return h > 0 ? `${h}h ${m}m` : `${m}m`; };
               const lpRows = lastPlayed.slice(0, 6);
               return (
@@ -1965,7 +1980,7 @@ export default function QuizHomeClient() {
                       {tough ? (
                         <a href={`/quiz/${tough.quizId}`} style={{ flex: '1 1 0', minWidth: 0, background: 'rgba(255,255,255,0.08)', border: '1px solid rgba(255,255,255,0.13)', borderRadius: 8, padding: '4px 8px', textDecoration: 'none', display: 'block' }}>
                           <span style={{ fontSize: 8.5, fontWeight: 800, letterSpacing: '.04em', color: '#9ec5e8', textTransform: 'uppercase', display: 'block' }}>🧠 Toughest · {Math.round((tough.aceRate || 0) * 100)}% ace</span>
-                          <span style={{ fontSize: 11, fontWeight: 700, color: '#fff', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', display: 'block', marginTop: 1 }}>{stripVerb(titleById[tough.quizId] || '')}</span>
+                          <span style={{ fontSize: 11, fontWeight: 700, color: '#fff', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', display: 'block', marginTop: 1 }}>{stripVerb(resolveTitle(tough.quizId) || '')}</span>
                         </a>
                       ) : null}
                     </div>
