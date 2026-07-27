@@ -7,9 +7,9 @@ import { PUZZLES } from './puzzles';
 // canonical, evergreen URL — the dated /quiz/listed-* stubs canonicalize here).
 
 export const metadata = {
-  title: 'Listed: Free Daily Ranking Game | Source of Truths',
+  title: 'Listed: Free Daily History and Geography Game | Source of Truths',
   description:
-    'A free daily ranking game. Eight real things, one measurable quantity, five submits. Green locks a row that is exactly right, amber means you are off by one place. New list every day, and nine items in the Sunday Edition.',
+    'A free daily history and geography game. Eight real things, one measurable quantity, five submits. Green locks a row that is exactly right, amber means you are off by one place. New list every day, and nine items in the Sunday Edition.',
   alternates: { canonical: '/listed' },
   manifest: '/listed.webmanifest',
   icons: {
@@ -20,7 +20,7 @@ export const metadata = {
   openGraph: {
     title: 'Listed: A Daily Ranking Game',
     description:
-      'Eight real things a day, shuffled. Rank them highest to lowest in five submits. Green locks, amber means you are one place off. A new daily game from Source of Truths.',
+      'Eight real things a day, shuffled. Rank them highest to lowest in five submits. Green locks, amber means you are one place off. History and geography, alternating daily, from Source of Truths.',
     url: '/listed',
     type: 'website',
     siteName: 'Source of Truths',
@@ -40,8 +40,8 @@ const gameJsonLd = {
   alternateName: 'Listed: Daily Ranking Game',
   url: 'https://sourceoftruths.com/listed',
   description:
-    'A free daily ranking game: eight real things and one measurable quantity, shuffled. Arrange them highest to lowest. Each of your five submits grades every row, green for exactly right, amber for off by one place, and every green locks in with its real figure revealed.',
-  genre: ['Puzzle', 'Trivia game'],
+    'A free daily history and geography game: eight real things and one measurable quantity, shuffled. Arrange them highest to lowest. Each of your five submits grades every row, green for exactly right, amber for off by one place, and every green locks in with its real figure revealed.',
+  genre: ['Puzzle', 'Trivia game', 'Educational game'],
   gamePlatform: 'Web browser',
   isAccessibleForFree: true,
   inLanguage: 'en',

@@ -644,7 +644,7 @@ export default function ListedClient({ puzzles = [], forceNum = null }) {
         <span style={{ display: 'flex', alignItems: 'center', gap: 8 }}><span style={{ flex: '0 0 auto', width: 15, height: 15, borderRadius: 4, background: '#d3d7de' }} /> two or more places away</span>
       </div>
       <p style={{ margin: '0 0 9px' }}>Rank the whole board on your first submit for a perfect 10. Each extra submit costs a point, and each item you never lock costs one more.</p>
-      <p style={{ margin: 0 }}>One free <b>hint</b> reveals the figure of whichever item sits furthest from home. Every ranking is a published number, never an opinion. New list every day at midnight Eastern.</p>
+      <p style={{ margin: 0 }}>One free <b>hint</b> reveals the figure of whichever item sits furthest from home. Every board is <b>history</b> or <b>geography</b>, and every ranking is a published number, never an opinion. New list every day at midnight Eastern.</p>
     </div>
   );
 
@@ -713,6 +713,11 @@ export default function ListedClient({ puzzles = [], forceNum = null }) {
         {/* the board */}
         {!preStart && (
         <div style={{ background: '#fff', border: `2px solid ${COLORS.ink}`, borderRadius: 10, padding: '13px 15px', boxShadow: '5px 5px 0 rgba(28,30,36,0.16)', marginBottom: 12 }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 7 }}>
+            {PUZZLE.cat ? (
+              <span style={{ fontFamily: MONO, fontSize: 9.5, letterSpacing: '0.12em', textTransform: 'uppercase', fontWeight: 500, color: COLORS.brandInk, background: COLORS.brandSoft, border: '1px solid rgba(134,25,143,0.35)', borderRadius: 5, padding: '2px 7px' }}>{PUZZLE.cat}</span>
+            ) : null}
+          </div>
           <div style={{ fontFamily: SANS, fontWeight: 800, fontSize: 15.5, lineHeight: 1.35, color: COLORS.ink, marginBottom: 9 }}>{PUZZLE.title}</div>
           <div style={{ display: 'flex', alignItems: 'center', gap: 12, fontFamily: MONO, fontSize: 11.5, letterSpacing: '0.1em', textTransform: 'uppercase', color: COLORS.faded, borderBottom: '1px solid rgba(28,30,36,0.18)', paddingBottom: 8, marginBottom: 12, flexWrap: 'wrap' }}>
             <span style={{ whiteSpace: 'nowrap' }}>by <b style={{ color: COLORS.ink, fontWeight: 500 }}>{PUZZLE.metric.toLowerCase()}</b></span>
@@ -925,13 +930,13 @@ export default function ListedClient({ puzzles = [], forceNum = null }) {
       <section style={{ position: 'relative', display: focusMode ? 'none' : 'block', zIndex: 2, maxWidth: 620, margin: '0 auto', padding: '10px 24px 42px', fontFamily: SANS }}>
         <h2 style={{ margin: '0 0 8px', fontSize: 15, fontWeight: 800, letterSpacing: '-0.01em', color: COLORS.ink }}>About Listed</h2>
         <p style={{ margin: '0 0 8px', fontSize: 13, lineHeight: 1.65, color: COLORS.faded, fontWeight: 600 }}>
-          Listed is a free daily ranking game from Source of Truths. Each day deals eight real things and one measurable quantity, shuffled out of order. Your job is to rank them. You get five submits, and every submit grades each row: green means exactly right and locks it in with the real figure revealed, amber means you are off by exactly one place, and grey means you are further away than that.
+          Listed is a free daily history and geography game from Source of Truths. Each day deals eight real things and one measurable quantity, shuffled out of order. Your job is to rank them. You get five submits, and every submit grades each row: green means exactly right and locks it in with the real figure revealed, amber means you are off by exactly one place, and grey means you are further away than that.
         </p>
         <p style={{ margin: '0 0 8px', fontSize: 13, lineHeight: 1.65, color: COLORS.faded, fontWeight: 600 }}>
           The amber tier is what makes it a deduction game rather than a quiz. Knowing a row is one place from home turns a wild guess into arithmetic, and a board that looks hopeless after one submit is usually two nudges from solved. Rank the whole list on your first submit and you score a perfect 10.
         </p>
         <p style={{ margin: 0, fontSize: 13, lineHeight: 1.65, color: COLORS.faded, fontWeight: 600 }}>
-          Every answer key is a published number from a named source, never an opinion and never a critics&rsquo; poll, so there is always exactly one right order. A new list drops every day at midnight Eastern, and the Sunday Edition adds a ninth item. No app, no signup: play free in your browser, keep a streak, and race the daily leaderboard. More dailies: <a href="/crux" style={{ color: COLORS.ink, fontWeight: 800 }}>Crux</a>, our clueless crossword, <a href="/dating" style={{ color: COLORS.ink, fontWeight: 800 }}>Dating</a>, our put-history-in-order game, <a href="/links" style={{ color: COLORS.ink, fontWeight: 800 }}>Links</a>, our word grouping game, and <a href="/outrank" style={{ color: COLORS.ink, fontWeight: 800 }}>Outrank</a>, where the crowd is the answer key.
+          Every board is either a history board or a geography board, and the two rotate through the week: box office and sports records and company milestones one day, deepest trenches or highest capitals the next. Every answer key is a published number from a named source, never an opinion and never a critics&rsquo; poll, so there is always exactly one right order. A new list drops every day at midnight Eastern, and the Sunday Edition adds a ninth item. No app, no signup: play free in your browser, keep a streak, and race the daily leaderboard. More dailies: <a href="/crux" style={{ color: COLORS.ink, fontWeight: 800 }}>Crux</a>, our clueless crossword, <a href="/dating" style={{ color: COLORS.ink, fontWeight: 800 }}>Dating</a>, our put-history-in-order game, <a href="/links" style={{ color: COLORS.ink, fontWeight: 800 }}>Links</a>, our word grouping game, and <a href="/outrank" style={{ color: COLORS.ink, fontWeight: 800 }}>Outrank</a>, where the crowd is the answer key.
         </p>
       </section>
 
