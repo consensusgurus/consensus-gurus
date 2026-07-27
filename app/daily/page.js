@@ -29,6 +29,7 @@ import { PUZZLES as BRACKET_FULL } from '../bracket/puzzles';
 import { PUZZLES as LODE_FULL } from '../lode/puzzles';
 import { PUZZLES as ETCH_FULL } from '../etch/puzzles';
 import { PUZZLES as HEDGE_FULL } from '../hedge/puzzles';
+import { PUZZLES as LISTED_FULL } from '../listed/puzzles';
 
 // Outwit's bank is server-only in a stronger sense than the others: its
 // `house` arrays and herd truths must never reach the client. This page only
@@ -52,6 +53,7 @@ const BRACKET = BRACKET_FULL.map(({ num, quizId, live, dateLabel, sunday }) => (
 const LODE = LODE_FULL.map(({ num, quizId, live, dateLabel, sunday }) => ({ num, quizId, live, dateLabel, sunday }));
 const ETCH = ETCH_FULL.map(({ num, quizId, live, dateLabel, sunday }) => ({ num, quizId, live, dateLabel, sunday }));
 const HEDGE = HEDGE_FULL.map(({ num, quizId, live, dateLabel, sunday }) => ({ num, quizId, live, dateLabel, sunday }));
+const LISTED = LISTED_FULL.map(({ num, quizId, live, dateLabel, sunday }) => ({ num, quizId, live, dateLabel, sunday }));
 
 // The daily-games hub + archive. One page listing every daily game, each with
 // today's puzzle and its full back-catalog of past drops (live<=today only, so
@@ -125,6 +127,7 @@ const GAMES = [
   { key: 'lode', name: 'Lode', path: '/lode', tag: 'Seven letters, rare words pay', accent: '#a16207', bg: '#fef7e0', border: 'rgba(161,98,7,0.35)', src: LODE },
   { key: 'etch', name: 'Etch', path: '/etch', tag: 'A picture in the numbers', accent: '#4d7c0f', bg: '#f3f8e8', border: 'rgba(77,124,15,0.35)', src: ETCH },
   { key: 'hedge', name: 'Hedge', path: '/hedge', tag: 'Draw one closed loop', accent: '#0891b2', bg: '#e6f6fa', border: 'rgba(8,145,178,0.35)', src: HEDGE },
+  { key: 'listed', name: 'Listed', path: '/listed', tag: 'Rank the list, top to bottom', accent: '#86198f', bg: '#fdf2fe', border: 'rgba(134,25,143,0.35)', src: LISTED },
 ];
 
 const breadcrumbJsonLd = {
