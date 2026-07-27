@@ -57,13 +57,21 @@ export async function GET() {
       }
       for (const arr of fracsByQuiz.values()) arr.sort((a, b) => a - b);
     }
-    // Anonymous crowd percentile: % of a quiz's plays a given score beats.
+    // Anonymous crowd percentile (midrank method): the share of a quiz's plays
+    // this score ranks above, counting tied scores as half. Ties count as half
+    // so a top score in an all-perfect field lands near 50% (you tied the field)
+    // instead of the old strict-below math, which showed a perfect run "beat 0%"
+    // whenever no one scored strictly lower.
     // Needs a real sample (>= 5 plays) else null (the chip is hidden).
     const pctOf = (qid, frac) => {
       const arr = fracsByQuiz.get(qid);
       if (!arr || arr.length < 5) return null;
-      let below = 0; for (const x of arr) { if (x < frac - 1e-9) below += 1; }
-      return Math.round((below / arr.length) * 100);
+      let below = 0, equal = 0;
+      for (const x of arr) {
+        if (x < frac - 1e-9) below += 1;
+        else if (x <= frac + 1e-9) equal += 1;
+      }
+      return Math.round(((below + 0.5 * equal) / arr.length) * 100);
     };
 
     const plays = recent.map((r) => {
