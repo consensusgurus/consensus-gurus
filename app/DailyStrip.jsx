@@ -530,6 +530,11 @@ export default function DailyStrip({ board = null }) {
           .dstrip-cell:nth-child(2n){border-top:1px solid rgba(255,255,255,0.055);}
           .dstrip-cell img{height:26px;}
           .dstrip-cell .nm{font-size:10px;}
+          /* streak/rank pill: drop the word "streak" and tighten so the
+             badge fits inside the narrow scroll-rail tile instead of
+             overrunning it and overlapping neighbors (owner 2026-07-26) */
+          .dstrip-pill{font-size:9px;padding:3px 6px;gap:2px;max-width:100%;}
+          .dstrip-pill.streakp .pill-sk{display:none;}
           .dstrip-cap .dstrip-t3{display:none;}
           .dstrip-cap .dstrip-exp{display:none;}
           .dstrip-mob-board{display:flex;align-items:center;gap:8px;padding:8px 13px 10px;border-top:1px solid rgba(255,255,255,0.07);}
@@ -669,7 +674,7 @@ export default function DailyStrip({ board = null }) {
                     done.has(g.key) ? (
                       (rk && rk <= 10)
                         ? <span className={`dstrip-pill rankp${rk === 1 ? ' first' : ''}`}>{rk === 1 ? <><Trophy size={9} strokeWidth={2.6} />You #1</> : `You #${rk}`}</span>
-                        : <span className="dstrip-pill streakp"><Flame size={9} strokeWidth={2.6} />{Math.max(1, streaks[g.key] || 1)} day streak</span>
+                        : <span className="dstrip-pill streakp"><Flame size={9} strokeWidth={2.6} />{Math.max(1, streaks[g.key] || 1)} day<span className="pill-sk"> streak</span></span>
                     ) : hasBoard ? (
                       lead ? <span className="dstrip-lead"><Crown size={10} /><span>{lead}</span></span> : <span className="dstrip-lead none">—</span>
                     ) : null
