@@ -38,7 +38,7 @@ import {
   Type, Clock, Globe, Hash, Share2, BarChart3, RotateCcw, Check, X,
   Trophy, Link2, Flag, CalendarCheck, Scale, Grid3x3, LayoutGrid, Newspaper, FlagTriangleRight,
   Pencil, Users, ArrowRight, Puzzle, Blocks, Fingerprint, KeyRound, Thermometer, Crown, ListOrdered,
-  FlaskConical, Ear, CircleDot, Table2, Trophy as TrophyFin,
+  FlaskConical, Ear, CircleDot, Table2, Trophy as TrophyFin, Image as ImageIcon, Route,
   CalendarDays, ChevronLeft, ChevronRight, ChevronDown, CheckCircle2, UserPlus,
 } from 'lucide-react';
 import { myRefCode } from '@/lib/referrals';
@@ -50,7 +50,7 @@ const RUST = '#c0392b';
 // "still to play" list for their first FOUR days so players actually meet
 // them; after `until` (ET, inclusive) the canonical order resumes. Keep in
 // sync with the same pin in app/api/quiz/daily-order/route.js.
-const LAUNCH_PIN = { keys: ['lode'], until: '2026-08-08' };
+const LAUNCH_PIN = { keys: ['etch', 'hedge', 'lode'], until: '2026-08-08' };
 function etTodayEC() {
   try { return new Date().toLocaleDateString('en-CA', { timeZone: 'America/New_York' }); }
   catch (e) { return new Date().toISOString().slice(0, 10); }
@@ -97,6 +97,8 @@ export const GAME_META = {
   stands:  { accent: '#1d4ed8', badgeBg: '#1d4ed8', badgeInk: '#fff', Fin: Table2 },
   bracket: { accent: '#c2410c', badgeBg: '#c2410c', badgeInk: '#fff', Fin: TrophyFin },
   lode: { accent: '#a16207', badgeBg: '#a16207', badgeInk: '#fff', Fin: TrophyFin },
+  etch: { accent: '#4d7c0f', badgeBg: '#4d7c0f', badgeInk: '#fff', Fin: ImageIcon },
+  hedge: { accent: '#0891b2', badgeBg: '#0891b2', badgeInk: '#fff', Fin: Route },
 };
 
 // ---- the five families (type label + color shown on each tile/header) -------
@@ -111,7 +113,7 @@ export const CAT_META = {
 // Family render order for the "more games" grid.
 const CAT_ORDER = ['word', 'numbers', 'crowd', 'logic', 'history', 'geography'];
 
-// ---- the daily slate (26 games) --------------------------------------------
+// ---- the daily slate (30 games) --------------------------------------------
 // Canonical order = the order the "still to play" tiles appear in.
 export const DAILY_GAMES = [
   { key: 'crux',   cat: 'word',      name: 'Crux',   tag: 'A clueless crossword',      href: '/crux' },
@@ -141,6 +143,8 @@ export const DAILY_GAMES = [
   { key: 'stands', cat: 'logic',     name: 'Stands', tag: 'Rebuild the results',       href: '/stands' },
   { key: 'bracket', cat: 'history',  name: 'Bracket', tag: 'Name every winner',        href: '/bracket' },
   { key: 'lode',    cat: 'word',     name: 'Lode',    tag: 'Seven letters, rare words pay',     href: '/lode' },
+  { key: 'etch',    cat: 'logic',    name: 'Etch',    tag: 'A picture in the numbers',   href: '/etch' },
+  { key: 'hedge',   cat: 'numbers',  name: 'Hedge',   tag: 'Draw one closed loop',       href: '/hedge' },
 ];
 
 const AUTO_SECONDS = 30;

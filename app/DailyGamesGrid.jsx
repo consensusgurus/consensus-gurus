@@ -47,6 +47,8 @@ const GAMES = [
   { key: 'stands', href: '/stands', name: 'Stands', tag: 'Rebuild the results', img: '/games/btn-stands.png' },
   { key: 'bracket', href: '/bracket', name: 'Bracket', tag: 'Name every winner', img: '/games/btn-bracket.png' },
   { key: 'lode', href: '/lode', name: 'Lode', tag: 'Seven letters, rare words pay', img: '/games/btn-lode.png' },
+  { key: 'etch', href: '/etch', name: 'Etch', tag: 'A picture in the numbers', img: '/games/btn-etch.png' },
+  { key: 'hedge', href: '/hedge', name: 'Hedge', tag: 'Draw one closed loop', img: '/games/btn-hedge.png' },
 ];
 const GAMES_BY_KEY = Object.fromEntries(GAMES.map((g) => [g.key, g]));
 
@@ -58,9 +60,9 @@ const CATEGORIES = [
   { key: 'word', label: 'Word', keys: ['crux', 'lode', 'emcee', 'shards', 'garble', 'links', 'stet', 'tuck', 'warmer'] },
   { key: 'history', label: 'History', keys: ['dating', 'extra', 'bracket'] },
   { key: 'geography', label: 'Geography', keys: ['span', 'ping'] },
-  { key: 'numbers', label: 'Numbers', keys: ['tally', 'suds', 'carve', 'cipher'] },
+  { key: 'numbers', label: 'Numbers', keys: ['tally', 'suds', 'carve', 'cipher', 'hedge'] },
   { key: 'crowd', label: 'Crowd Psychology', keys: ['outwit', 'outrank'] },
-  { key: 'logic', label: 'Logic', keys: ['alibi', 'jester', 'sworn', 'axiom', 'hearsay', 'venn', 'stands'] },
+  { key: 'logic', label: 'Logic', keys: ['alibi', 'jester', 'sworn', 'axiom', 'hearsay', 'venn', 'stands', 'etch'] },
 ];
 
 export default function DailyGamesGrid({ self, maxWidth = 640, challengeHref = null, share = null, divider = false, boardSlot = null, light = false }) {

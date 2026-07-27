@@ -27,6 +27,8 @@ import { PUZZLES as VENN_FULL } from '../venn/puzzles';
 import { PUZZLES as STANDS_FULL } from '../stands/puzzles';
 import { PUZZLES as BRACKET_FULL } from '../bracket/puzzles';
 import { PUZZLES as LODE_FULL } from '../lode/puzzles';
+import { PUZZLES as ETCH_FULL } from '../etch/puzzles';
+import { PUZZLES as HEDGE_FULL } from '../hedge/puzzles';
 
 // Outwit's bank is server-only in a stronger sense than the others: its
 // `house` arrays and herd truths must never reach the client. This page only
@@ -119,6 +121,8 @@ const GAMES = [
   { key: 'stands', name: 'Stands', path: '/stands', tag: 'Rebuild the results', accent: '#1d4ed8', bg: '#dbeafe', border: 'rgba(29,78,216,0.35)', src: STANDS },
   { key: 'bracket', name: 'Bracket', path: '/bracket', tag: 'Name every winner', accent: '#c2410c', bg: '#ffedd5', border: 'rgba(194,65,12,0.35)', src: BRACKET },
   { key: 'lode', name: 'Lode', path: '/lode', tag: 'Seven letters, rare words pay', accent: '#a16207', bg: '#fef7e0', border: 'rgba(161,98,7,0.35)', src: LODE },
+  { key: 'etch', name: 'Etch', path: '/etch', tag: 'A picture in the numbers', accent: '#4d7c0f', bg: '#f3f8e8', border: 'rgba(77,124,15,0.35)', src: ETCH },
+  { key: 'hedge', name: 'Hedge', path: '/hedge', tag: 'Draw one closed loop', accent: '#0891b2', bg: '#e6f6fa', border: 'rgba(8,145,178,0.35)', src: HEDGE },
 ];
 
 const breadcrumbJsonLd = {
