@@ -41,6 +41,12 @@ function parseSuffix(suffix) {
 // plus an all-time per-game stat line. Today is excluded (still in progress).
 export async function GET() {
   const todaySuffix = etTodaySuffix();
+  // Eastern "today" as an ISO date. Used to drop today (still in progress) AND
+  // any future-dated day, so a stray play on a pre-published future daily is
+  // never crowned a champion.
+  let todayISO;
+  try { todayISO = new Date().toLocaleDateString('en-CA', { timeZone: 'America/New_York' }); }
+  catch (e) { todayISO = new Date().toISOString().slice(0, 10); }
   try {
     const { data, error } = await loadQuizResultsCached(supabaseAdmin);
     if (error) {
@@ -72,7 +78,7 @@ export async function GET() {
       ga.totalDen += total;
       if (score > ga.best) ga.best = score;
 
-      if (suffix === todaySuffix) continue; // don't crown a day still in progress
+      if (parseSuffix(suffix).iso >= todayISO) continue; // skip today (in progress) and any future-dated day
       let dm = byDay.get(suffix);
       if (!dm) { dm = new Map(); byDay.set(suffix, dm); }
       let arr = dm.get(key);

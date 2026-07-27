@@ -90,9 +90,10 @@ const GAMES = [
 
 const NAME_BY_KEY = GAMES.reduce((m, g) => { m[g.key] = g.name; return m; }, {});
 // Navy-legible per-game accents for the mini-board titles (match DailyCombinedLeaderboard).
-// Recent Champions list length (yesterday plus the prior days). Kept short so
-// the left column never runs past the per-game minis beside it.
-const CHAMPION_DAYS = 3;
+// Recent Champions list length (yesterday plus the prior days). Sized to fill
+// the left column so it roughly matches the height of the per-game minis grid
+// beside it (about six rows of minis).
+const CHAMPION_DAYS = 8;
 const ACCENTS = { crux: '#5b9bff', emcee: '#e879f9', garble: '#f0c95a', links: '#4ca878', span: '#e06aa0', dating: '#a483f0', tally: '#4cb377', suds: '#f0894c', circa: '#38b6cf', extra: '#e06a6a', carve: '#a483f0', stet: '#41b1e8', outwit: '#c3cfe3', tuck: '#e0a568', alibi: '#ef8896', cipher: '#3fc9b8', ping: '#4cb3f0', warmer: '#f3705c', jester: '#a78bfa', outrank: '#8b8af5', sworn: '#f472b6', shards: '#2dd4bf' };
 
 function etToday() {
