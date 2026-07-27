@@ -31,6 +31,7 @@ import JoinLeaderboardForm from '../quiz/[id]/JoinLeaderboardForm';
 import DailyGamesGrid from '../DailyGamesGrid';
 import DailyEndCard from '../DailyEndCard';
 import DailyTopNav from '../DailyTopNav';
+import DailyMasthead from '../DailyMasthead';
 import DailyBoardPanel from '../quiz/[id]/DailyBoardPanel';
 import useAbandonFlush from '../quiz/[id]/useAbandonFlush';
 import { isMobileDevice } from '@/lib/is-mobile';
@@ -490,22 +491,21 @@ export default function HearsayClient({ puzzles = [], forceNum = null }) {
 
         <div style={{ display: 'block' }}><DailyTopNav player={player} compact={playing} /></div>
 
-        <div style={{ display: 'flex', alignItems: 'center', gap: 14, flexWrap: 'wrap', position: 'relative', paddingRight: 28, marginBottom: 14, borderBottom: '2px solid rgba(28,30,36,0.8)', paddingBottom: 11 }}>
-          <div style={{ display: 'flex', gap: 4, alignItems: 'flex-end' }}>
-            {'HEARSAY'.split('').map((ch, i) => (
-              <div key={i} style={{ width: 34, height: 40, borderRadius: 5, display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: SANS, fontWeight: 900, fontSize: 20, background: i === 0 ? COLORS.accent : COLORS.ink, color: '#fff', boxShadow: 'inset 0 2px 5px rgba(0,0,0,0.5), 0 1px 0 rgba(255,255,255,0.65)' }}>{ch}</div>
-            ))}
-          </div>
-          <div style={{ display: 'flex', alignItems: 'baseline', gap: 9, flexWrap: 'wrap' }}>
-            <h1 style={{ margin: 0, fontFamily: MONO, fontSize: 14, letterSpacing: '0.06em', fontWeight: 500, color: COLORS.ink }}>Case No. {PUZZLE.num}</h1>
-            <span style={{ color: COLORS.faded }}>&middot;</span>
-            <span style={{ fontFamily: SANS, fontStyle: 'italic', fontSize: 15, color: COLORS.faded }}>{PUZZLE.dateLabel}</span>
-            {PUZZLE.sunday && <span style={{ fontFamily: MONO, fontSize: 9.5, letterSpacing: '0.1em', textTransform: 'uppercase', fontWeight: 500, color: '#fff', background: COLORS.accent, borderRadius: 4, padding: '2px 6px' }}>Sunday Edition &middot; Three Voices</span>}
-          </div>
-          <button onClick={() => setShowHelp(true)} aria-label="How to play" title="How to play" style={{ position: 'absolute', top: 8, right: 2, background: 'none', border: 'none', cursor: 'pointer', color: COLORS.faded, padding: 0, display: 'flex' }}>
-            <HelpCircle size={20} />
-          </button>
-        </div>
+        <DailyMasthead
+          slug="hearsay"
+          num={PUZZLE.num}
+          dateLabel={PUZZLE.dateLabel}
+          accent={COLORS.accent}
+          blockGap={4}
+          helpTop={8}
+          onHelp={() => setShowHelp(true)}
+          sunday={PUZZLE.sunday ? (
+            <span style={{ fontFamily: MONO, fontSize: 9.5, letterSpacing: '0.1em', textTransform: 'uppercase', fontWeight: 500, color: '#fff', background: COLORS.accent, borderRadius: 4, padding: '2px 6px' }}>Sunday Edition &middot; Three Voices</span>
+          ) : null}
+          blocks={'HEARSAY'.split('').map((ch, i) => (
+            <div key={i} style={{ width: 34, height: 40, borderRadius: 5, display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: SANS, fontWeight: 900, fontSize: 20, background: i === 0 ? COLORS.accent : COLORS.ink, color: '#fff', boxShadow: 'inset 0 2px 5px rgba(0,0,0,0.5), 0 1px 0 rgba(255,255,255,0.65)' }}>{ch}</div>
+          ))}
+        />
 
         {!preStart && (
         <div style={{ fontFamily: 'Georgia, serif', fontStyle: 'italic', fontSize: 14.5, lineHeight: 1.6, background: '#fff', border: '1px solid rgba(28,30,36,0.14)', borderLeft: `4px solid ${COLORS.accent}`, borderRadius: 8, padding: '12px 16px', margin: '0 0 12px', color: COLORS.ink }}>
