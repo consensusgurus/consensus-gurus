@@ -23,6 +23,7 @@ import {
   quizDept as deptOf, DEPT_COLOR, DEPT_LABEL, DEPT_NAV,
 } from '@/lib/quiz-departments';
 import { getDailyChallenge, dailyChallengeId, openChallenges, challengeQuizIds, DAILY_CHALLENGE_ON, easternYmd } from '@/lib/challenges';
+import { hasSundayEdition, SUNDAY_LABEL } from '@/lib/sunday-editions';
 import { isBusinessNewsHubQuiz } from '@/lib/business-news-hub';
 import Grain from '../Grain';
 import Footer from '../Footer';
@@ -133,7 +134,15 @@ const DAILY_DATED_ID_RE = /^([a-z]+)-(\d{1,2})-(\d{1,2})-(\d{2})$/;
 function dailyTitleFor(id) {
   const m = DAILY_DATED_ID_RE.exec(id || '');
   if (!m || !DG_NAME[m[1]]) return null;
-  return `${DG_NAME[m[1]]}: ${m[2]}/${m[3]}/${m[4]}`;
+  const [, key, mo, da, yr] = m;
+  let t = `${DG_NAME[key]}: ${mo}/${da}/${yr}`;
+  // A dated daily instance whose own date is a Sunday shows the Sunday Edition
+  // suffix, but only for games that actually run a Sunday variant. getDay() on
+  // the calendar date is timezone-independent for the day-of-week.
+  if (hasSundayEdition(key) && new Date(2000 + Number(yr), Number(mo) - 1, Number(da)).getDay() === 0) {
+    t += ` (${SUNDAY_LABEL})`;
+  }
+  return t;
 }
 // Daily-game hero banners: /public/games/hero/<family>.png, the game's own icon
 // on a white app-icon plate over the site navy, built from /public/games/btn-*.png
