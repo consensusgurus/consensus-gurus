@@ -23,6 +23,7 @@ import DailyEndCard from '../DailyEndCard';
 import { isMobileDevice } from '@/lib/is-mobile';
 import useAbandonFlush from '../quiz/[id]/useAbandonFlush';
 import { withRef } from '@/lib/referrals';
+import DailyMasthead from '../DailyMasthead';
 
 const COLORS = {
   cream: '#f7f8fa',
@@ -477,25 +478,23 @@ export default function GarbleClient({ puzzles = [], forceNum = null }) {
           <DailyTopNav player={player} />
 
           {/* masthead: pressed GARBLE tiles with No./date inline, one rule beneath */}
-          <div className="gb-mh" style={{ display: 'flex', alignItems: 'center', gap: 14, flexWrap: 'wrap', position: 'relative', paddingRight: 28, marginBottom: 16, borderBottom: '2px solid rgba(28,30,36,0.8)', paddingBottom: 11 }}>
-            <div style={{ display: 'flex', gap: 5, alignItems: 'flex-end' }}>
-              {'GARBLE'.split('').map((ch, i) => {
+          <DailyMasthead
+            slug="garble"
+            num={PUZZLE.num}
+            dateLabel={PUZZLE.dateLabel}
+            accent={COLORS.goldInk}
+            blockGap={5}
+            helpTop={13}
+            marginBottom={16}
+            onHelp={() => setShowHelp(true)}
+            sunday={PUZZLE.sunday && <span style={{ fontFamily: MONO, fontSize: 9.5, letterSpacing: '0.1em', textTransform: 'uppercase', fontWeight: 500, color: '#fff', background: COLORS.ember, borderRadius: 4, padding: '2px 6px' }}>Sunday Edition &middot; 6 letters</span>}
+            blocks={'GARBLE'.split('').map((ch, i) => {
                 const gold = i === 0 || i === 5;
                 return (
                   <div key={i} style={{ width: 44, height: 44, borderRadius: 5, display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: SANS, fontWeight: 900, fontSize: 25, background: gold ? COLORS.gold : COLORS.ink, color: gold ? COLORS.goldInk : '#fff', boxShadow: 'inset 0 2px 5px rgba(0,0,0,0.5), 0 1px 0 rgba(255,255,255,0.65)' }}>{ch}</div>
                 );
               })}
-            </div>
-            <div className="gb-ttl" style={{ display: 'flex', alignItems: 'baseline', gap: 9 }}>
-              <h1 style={{ margin: 0, fontFamily: MONO, fontSize: 14, letterSpacing: '0.06em', fontWeight: 500, color: COLORS.ink }}>No. {PUZZLE.num}</h1>
-              <span className="gb-ttl-dot" style={{ color: COLORS.faded }}>&middot;</span>
-              <span className="gb-ttl-dt" style={{ fontFamily: SANS, fontStyle: 'italic', fontSize: 15, color: COLORS.faded }}>{PUZZLE.dateLabel}</span>
-              {PUZZLE.sunday && <span style={{ fontFamily: MONO, fontSize: 9.5, letterSpacing: '0.1em', textTransform: 'uppercase', fontWeight: 500, color: '#fff', background: COLORS.ember, borderRadius: 4, padding: '2px 6px' }}>Sunday Edition &middot; 6 letters</span>}
-            </div>
-            <button onClick={() => setShowHelp(true)} aria-label="How to play" title="How to play" style={{ position: 'absolute', top: 13, right: 2, background: 'none', border: 'none', cursor: 'pointer', color: COLORS.faded, padding: 0, display: 'flex' }}>
-              <HelpCircle size={20} />
-            </button>
-          </div>
+          />
 
           {/* start tile — the words stay sealed until Start begins the clock */}
           {preStart && (

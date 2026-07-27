@@ -42,6 +42,7 @@ import useAbandonFlush from '../quiz/[id]/useAbandonFlush';
 import { buildAdj, buildLookup, shortestRoute, viaRoute, distancesFrom, normName, COUNTRIES } from './borders';
 import { MAP } from './map-geo';
 import { withRef } from '@/lib/referrals';
+import DailyMasthead from '../DailyMasthead';
 
 const COLORS = {
   cream: '#f7f8fa',
@@ -722,21 +723,19 @@ export default function SpanClient({ puzzles = [], forceNum = null }) {
         <div style={{ display: 'block' }}><DailyTopNav player={player} compact={playing} /></div>
 
         {/* masthead: pressed SPAN tiles with No./date inline, one rule beneath */}
-        <div className="sp-mh" style={{ display: 'flex', alignItems: 'center', gap: 14, flexWrap: 'wrap', position: 'relative', paddingRight: 28, marginBottom: 16, borderBottom: '2px solid rgba(28,30,36,0.8)', paddingBottom: 11 }}>
-          <div style={{ display: 'flex', gap: 5, alignItems: 'flex-end' }}>
-            {'SPAN'.split('').map((ch, i) => (
+        <DailyMasthead
+          slug="span"
+          num={PUZZLE.num}
+          dateLabel={PUZZLE.dateLabel}
+          accent={COLORS.trail}
+          blockGap={5}
+          helpTop={13}
+          marginBottom={16}
+          onHelp={() => setShowHelp(true)}
+          blocks={'SPAN'.split('').map((ch, i) => (
               <div key={i} style={{ width: 46, height: 46, borderRadius: 5, display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: SANS, fontWeight: 900, fontSize: 28, background: i === 2 ? COLORS.trail : COLORS.ink, color: '#fff', boxShadow: 'inset 0 2px 5px rgba(0,0,0,0.5), 0 1px 0 rgba(255,255,255,0.65)' }}>{ch}</div>
             ))}
-          </div>
-          <div className="sp-ttl" style={{ display: 'flex', alignItems: 'baseline', gap: 9 }}>
-            <h1 style={{ margin: 0, fontFamily: MONO, fontSize: 14, letterSpacing: '0.06em', fontWeight: 500, color: COLORS.ink }}>No. {PUZZLE.num}</h1>
-            <span className="sp-ttl-dot" style={{ color: COLORS.faded }}>&middot;</span>
-            <span className="sp-ttl-dt" style={{ fontFamily: SANS, fontStyle: 'italic', fontSize: 15, color: COLORS.faded }}>{PUZZLE.dateLabel}</span>
-          </div>
-          <button onClick={() => setShowHelp(true)} aria-label="How to play" title="How to play" style={{ position: 'absolute', top: 13, right: 2, background: 'none', border: 'none', cursor: 'pointer', color: COLORS.faded, padding: 0, display: 'flex' }}>
-            <HelpCircle size={20} />
-          </button>
-        </div>
+        />
 
         {/* start tile — sits where the board goes until the player presses Start,
             which begins the clock. The assignment stays sealed until then. */}

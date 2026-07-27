@@ -30,6 +30,7 @@ import DailyBoardPanel from '../quiz/[id]/DailyBoardPanel';
 import { isMobileDevice } from '@/lib/is-mobile';
 import useAbandonFlush from '../quiz/[id]/useAbandonFlush';
 import { withRef } from '@/lib/referrals';
+import DailyMasthead from '../DailyMasthead';
 
 const COLORS = {
   cream: '#f7f8fa',
@@ -955,24 +956,22 @@ export default function CruxClient({ puzzles = [], forceNum = null }) {
 
         {/* masthead: pressed CRUX tiles with the issue no. + date on the same
             line, a single rule beneath (they stack on mobile) */}
-        <div className="cx-mh" style={{ display: 'flex', alignItems: 'center', gap: 14, flexWrap: 'wrap', position: 'relative', paddingRight: 28, marginBottom: 16, borderBottom: '2px solid rgba(28,30,36,0.8)', paddingBottom: 11 }}>
-          <div style={{ display: 'flex', gap: 5, alignItems: 'flex-end' }}>
-            {'CRUX'.split('').map((ch, i) => (
-              <div key={i} style={{ width: 46, height: 46, borderRadius: 5, display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: SERIF, fontWeight: 900, fontSize: 28, background: i === 2 ? COLORS.ember : COLORS.ink, color: '#fff', boxShadow: 'inset 0 2px 5px rgba(0,0,0,0.5), 0 1px 0 rgba(255,255,255,0.65)' }}>{ch}</div>
-            ))}
-          </div>
-          <div className="cx-ttl" style={{ display: 'flex', alignItems: 'baseline', gap: 9 }}>
-            <h1 style={{ margin: 0, fontFamily: MONO, fontSize: 14, letterSpacing: '0.06em', fontWeight: 500, color: COLORS.ink }}>No. {PUZZLE.num}</h1>
-            <span className="cx-ttl-dot" style={{ color: COLORS.faded }}>&middot;</span>
-            <span className="cx-ttl-dt" style={{ fontFamily: SERIF, fontStyle: 'italic', fontSize: 15, color: COLORS.faded }}>{PUZZLE.dateLabel}</span>
-            {PUZZLE.sunday && (
+        <DailyMasthead
+          slug="crux"
+          num={PUZZLE.num}
+          dateLabel={PUZZLE.dateLabel}
+          accent={COLORS.ember}
+          blockGap={5}
+          helpTop={13}
+          marginBottom={16}
+          onHelp={() => setShowHelp(true)}
+          sunday={PUZZLE.sunday && (
               <span style={{ fontFamily: MONO, fontSize: 10.5, letterSpacing: '0.12em', textTransform: 'uppercase', color: '#fff', background: COLORS.ink, borderRadius: 3, padding: '2px 7px' }}>Sunday Edition</span>
             )}
-          </div>
-          <button onClick={() => setShowHelp(true)} aria-label="How to play" title="How to play" style={{ position: 'absolute', top: 13, right: 2, background: 'none', border: 'none', cursor: 'pointer', color: COLORS.faded, padding: 0, display: 'flex' }}>
-            <HelpCircle size={20} />
-          </button>
-        </div>
+          blocks={'CRUX'.split('').map((ch, i) => (
+              <div key={i} style={{ width: 46, height: 46, borderRadius: 5, display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: SERIF, fontWeight: 900, fontSize: 28, background: i === 2 ? COLORS.ember : COLORS.ink, color: '#fff', boxShadow: 'inset 0 2px 5px rgba(0,0,0,0.5), 0 1px 0 rgba(255,255,255,0.65)' }}>{ch}</div>
+            ))}
+        />
 
         <div className="cx-a">
           {/* start tile — sits where the board goes; the puzzle stays sealed

@@ -48,6 +48,7 @@ import DailyBoardPanel from '../quiz/[id]/DailyBoardPanel';
 import useAbandonFlush from '../quiz/[id]/useAbandonFlush';
 import { isMobileDevice } from '@/lib/is-mobile';
 import { withRef } from '@/lib/referrals';
+import DailyMasthead from '../DailyMasthead';
 
 const COLORS = {
   cream: '#f7f8fa',
@@ -532,22 +533,19 @@ export default function LodeClient({ puzzles = [], forceNum = null }) {
         <div style={{ display: 'block' }}><DailyTopNav player={player} compact={playing} /></div>
 
         {/* masthead */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: 14, flexWrap: 'wrap', position: 'relative', paddingRight: 28, marginBottom: 14, borderBottom: '2px solid rgba(28,30,36,0.8)', paddingBottom: 11 }}>
-          <div style={{ display: 'flex', gap: 5, alignItems: 'flex-end' }}>
-            {'LODE'.split('').map((ch, i) => (
+        <DailyMasthead
+          slug="lode"
+          num={PUZZLE.num}
+          dateLabel={PUZZLE.dateLabel}
+          accent={COLORS.accent}
+          blockGap={5}
+          helpTop={10}
+          onHelp={() => setShowHelp(true)}
+          sunday={PUZZLE.sunday && <span style={{ fontFamily: MONO, fontSize: 9.5, letterSpacing: '0.1em', textTransform: 'uppercase', fontWeight: 500, color: '#fff', background: COLORS.accent, borderRadius: 4, padding: '2px 6px' }}>Sunday Edition &middot; {ALL_LETTERS.length} letters</span>}
+          blocks={'LODE'.split('').map((ch, i) => (
               <div key={i} style={{ width: 44, height: 44, borderRadius: 5, display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: SANS, fontWeight: 900, fontSize: 26, background: i === 0 ? COLORS.accent : COLORS.stone, color: '#fff', boxShadow: 'inset 0 2px 5px rgba(0,0,0,0.45), 0 1px 0 rgba(255,255,255,0.6)' }}>{ch}</div>
             ))}
-          </div>
-          <div style={{ display: 'flex', alignItems: 'baseline', gap: 9, flexWrap: 'wrap' }}>
-            <h1 style={{ margin: 0, fontFamily: MONO, fontSize: 14, letterSpacing: '0.06em', fontWeight: 500, color: COLORS.ink }}>No. {PUZZLE.num}</h1>
-            <span style={{ color: COLORS.faded }}>&middot;</span>
-            <span style={{ fontFamily: SANS, fontStyle: 'italic', fontSize: 15, color: COLORS.faded }}>{PUZZLE.dateLabel}</span>
-            {PUZZLE.sunday && <span style={{ fontFamily: MONO, fontSize: 9.5, letterSpacing: '0.1em', textTransform: 'uppercase', fontWeight: 500, color: '#fff', background: COLORS.accent, borderRadius: 4, padding: '2px 6px' }}>Sunday Edition &middot; {ALL_LETTERS.length} letters</span>}
-          </div>
-          <button onClick={() => setShowHelp(true)} aria-label="How to play" title="How to play" style={{ position: 'absolute', top: 10, right: 2, background: 'none', border: 'none', cursor: 'pointer', color: COLORS.faded, padding: 0, display: 'flex' }}>
-            <HelpCircle size={20} />
-          </button>
-        </div>
+        />
 
         {/* start tile — the seam stays sealed until the player begins */}
         {preStart && (
