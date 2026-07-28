@@ -582,8 +582,8 @@ export default function EmceeClient({ puzzles = [], forceNum = null }) {
     return (
       <button key={`${w.dir}${w.n}`} onClick={() => { if (playing) selectWord(i); }}
         className="mc-cluerow"
-        style={{ background: active ? COLORS.accentSoft : (cross ? 'rgba(192,38,211,0.06)' : 'none'), borderLeft: active ? `3px solid ${COLORS.accent}` : (cross ? '3px solid rgba(192,38,211,0.35)' : '3px solid transparent'), opacity: active || cross || !playing || !filledWord(w) ? 1 : 0.45 }}>
-        <span style={{ fontFamily: MONO, fontSize: 11.5, fontWeight: 500, color: active ? COLORS.accent : (cross ? '#a21caf' : COLORS.faded), minWidth: 18, textAlign: 'right' }}>{w.n}</span>
+        style={{ background: active ? COLORS.accentSoft : (cross ? 'rgba(192,38,211,0.025)' : 'none'), borderLeft: active ? `3px solid ${COLORS.accent}` : (cross ? '3px solid rgba(192,38,211,0.15)' : '3px solid transparent'), opacity: active || cross || !playing || !filledWord(w) ? 1 : 0.45 }}>
+        <span style={{ fontFamily: MONO, fontSize: 11.5, fontWeight: 500, color: active ? COLORS.accent : (cross ? 'rgba(162,28,175,0.5)' : COLORS.faded), minWidth: 18, textAlign: 'right' }}>{w.n}</span>
         <span style={{ fontFamily: SANS, fontSize: 13, fontWeight: 600, color: COLORS.ink, lineHeight: 1.35, textAlign: 'left' }}>{w.clue}</span>
       </button>
     );
@@ -690,12 +690,11 @@ export default function EmceeClient({ puzzles = [], forceNum = null }) {
                 if (isBlock(idx)) return <div key={idx} className="mc-cell mc-blk" />;
                 const inWord = playing && curWord.cells.includes(idx);
                 const sel = playing && idx === cur;
-                const cross = playing && !inWord && !sel && crossCells.includes(idx);
                 const wrongMark = g.wrong.includes(idx);
                 const revealMiss = g.status === 'revealed';
                 return (
                   <div key={idx}
-                    className={`mc-cell${cross ? ' mc-crossword' : ''}${inWord && !sel ? ' mc-inword' : ''}${sel ? ' mc-sel' : ''}${wrongMark ? ' mc-wrongmark' : ''}`}
+                    className={`mc-cell${inWord && !sel ? ' mc-inword' : ''}${sel ? ' mc-sel' : ''}${wrongMark ? ' mc-wrongmark' : ''}`}
                     onClick={() => cellClick(idx)}>
                     {numAt[idx] != null && <span className="mc-num" style={{ fontSize: numPx }}>{numAt[idx]}</span>}
                     <span style={{ fontSize: cellPx, fontWeight: 800, color: revealMiss ? COLORS.faded : COLORS.ink }}>{letters[idx]}</span>
