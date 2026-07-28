@@ -129,7 +129,7 @@ export default function ShareCreditPop() {
             onClick={copy}
             style={{ fontSize: 13, fontWeight: 800, color: '#fff', background: copied ? '#15803d' : INK, border: `1px solid ${copied ? '#15803d' : INK}`, borderRadius: 10, padding: '10px 18px', cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: 7 }}
           >
-            {copied ? <><Check size={15} strokeWidth={2.6} /> Copied</> : <><Copy size={15} strokeWidth={2.4} /> Copy link</>}
+            {copied ? <><Check size={15} strokeWidth={2.6} /> Copied</> : <><Copy size={15} strokeWidth={2.4} /> Copy</>}
           </button>
         </div>
       </div>
