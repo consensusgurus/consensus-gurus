@@ -201,6 +201,7 @@ export default function DailyEndCard({
   const [overallBoard, setOverallBoard] = useState(null); // combined top-10
   const [combinedField, setCombinedField] = useState(null); // full combined field (all players)
   const [allTime, setAllTime] = useState(null);       // { field, myRank, myPoints, board } for `self`
+  const [allTimeResolved, setAllTimeResolved] = useState(false); // daily-game answered => all-time tile known
   const [drops, setDrops] = useState(null);           // this game's live drops (calendar)
   const [secs, setSecs] = useState(AUTO_SECONDS);
   const [autoCancel, setAutoCancel] = useState(false);
@@ -349,8 +350,8 @@ export default function DailyEndCard({
     let alive = true;
     fetch('/api/quiz/daily-game?' + qs.toString())
       .then((r) => r.json())
-      .then((d) => { if (alive && d) { if (d.allTime) setAllTime(d.allTime); if (Array.isArray(d.drops)) setDrops(d.drops); } allTimeReadyRef.current = true; })
-      .catch(() => { allTimeReadyRef.current = true; });
+      .then((d) => { if (alive && d) { if (d.allTime) setAllTime(d.allTime); if (Array.isArray(d.drops)) setDrops(d.drops); } if (alive) setAllTimeResolved(true); allTimeReadyRef.current = true; })
+      .catch(() => { if (alive) setAllTimeResolved(true); allTimeReadyRef.current = true; });
     return () => { alive = false; };
   }, [self]);
 
@@ -410,6 +411,13 @@ export default function DailyEndCard({
   const combinedRank = (dailyMe && dailyMe.rank) || (dailyGuest && dailyGuest.rank) || null;
   // Provisional (guest) standings are marked so the tile can say so.
   const provisional = !dailyMe && !!dailyGuest;
+
+  // Rankings still loading: neither the combined standing nor the all-time board
+  // has answered yet. While loading, show a single "Loading your rankings…" banner
+  // spanning the tiles row instead of empty dash tiles. Both fetches always resolve
+  // or error (each sets its flag in .then AND .catch), so this can never spin
+  // forever — a guest with no rank resolves fast and falls through to the tiles.
+  const ranksLoading = !(combinedResolved && allTimeResolved);
 
   const myKey = dailyMe ? dailyMe.userKey : null;
 
@@ -690,6 +698,9 @@ export default function DailyEndCard({
         .dec-share:hover{filter:brightness(1.12);}
 
         .dec-tiles{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;margin-bottom:10px;}
+        .dec-tiles-loading{position:relative;overflow:hidden;display:flex;align-items:center;justify-content:center;height:74px;margin-bottom:10px;border:1px solid ${BORD};border-radius:12px;background:#f7f8fa;font-family:${MONO};font-size:11px;font-weight:500;letter-spacing:.12em;text-transform:uppercase;color:${SLATE};}
+        .dec-tiles-loading::after{content:'';position:absolute;inset:0;transform:translateX(-100%);background:linear-gradient(90deg,transparent,rgba(255,255,255,.7),transparent);animation:dec-shim 1.15s ease-in-out infinite;}
+        @media(prefers-reduced-motion:reduce){.dec-tiles-loading::after{animation:none;}}
         .dec-tile-cal{position:absolute;top:9px;right:8px;color:${SLATE};}
         .dec-tile{position:relative;display:block;width:100%;text-align:left;font-family:inherit;cursor:pointer;border:1px solid ${BORD};background:#f7f8fa;border-radius:12px;padding:11px 12px 10px;min-width:0;transition:background .12s ease,border-color .12s ease;}
         .dec-tile:hover{background:#fff;border-color:#cfd6e2;}
@@ -871,7 +882,10 @@ export default function DailyEndCard({
       </div>
 
       {/* ---- 2. rank tiles (3 on mobile; a 4th Archive tile on desktop) ---- */}
-      <div className="dec-tiles">
+      {ranksLoading ? (
+        <div className="dec-tiles-loading" role="status" aria-live="polite">Loading your rankings…</div>
+      ) : null}
+      <div className="dec-tiles" style={ranksLoading ? { display: 'none' } : undefined}>
         {renderTile('today', 'Today', gameTodayRank, gameTodayField, false, provisional)}
         {renderTile('alltime', 'All-Time', allTime ? allTime.myRank : null, allTime ? (allTime.plays ?? allTime.field) : null, !(allTime && allTime.myRank != null), !!(allTime && allTime.provisional))}
         {renderTile('combined', 'Combined Today', combinedRank, combinedField, false, provisional)}
