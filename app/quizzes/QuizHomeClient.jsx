@@ -2019,7 +2019,10 @@ export default function QuizHomeClient() {
                             <span style={{ width: 23, height: 23, borderRadius: 999, background: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 8, fontWeight: 800, color: C.ink }}>{pctScore}%</span>
                           </span>
                           <span style={{ minWidth: 0, flex: 1 }}>
-                            <span style={{ display: 'block', fontSize: 12.5, fontWeight: 600, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', color: C.ink }}>{stripVerb(f.title)}</span>
+                            <span style={{ display: 'flex', alignItems: 'baseline', gap: 5, minWidth: 0 }}>
+                              <span style={{ fontSize: 12.5, fontWeight: 600, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', color: C.ink, minWidth: 0 }}>{stripVerb(f.title)}</span>
+                              {todayPlays(f.quizId) > 0 ? <span style={{ flex: 'none', fontSize: 9.5, fontWeight: 700, color: C.soft, fontVariantNumeric: 'tabular-nums', whiteSpace: 'nowrap' }}>(x{todayPlays(f.quizId).toLocaleString()} today)</span> : null}
+                            </span>
                             <span style={{ display: 'flex', alignItems: 'center', gap: 5, marginTop: 1 }}>
                               <span style={{ width: 6, height: 6, borderRadius: 2, background: catColor, flex: 'none' }} />
                               <span style={{ fontSize: 10, color: C.soft, fontWeight: 600, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{catLabel}</span>
