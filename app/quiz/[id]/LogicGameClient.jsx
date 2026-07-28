@@ -29,6 +29,7 @@ import QuizNavHeader from '../../quizzes/QuizNavHeader';
 import QuizIdleActions from './QuizIdleActions';
 import Count from '../../Count';
 import { withRef } from '@/lib/referrals';
+import { notifyShareCredit } from '@/app/ShareCreditPop';
 
 const COLORS = {
   cream: '#f7f8fa',
@@ -271,7 +272,7 @@ export default function LogicGameClient({ quizId, mobile = false }) {
   const shareUrl = withRef(typeof window !== 'undefined' ? window.location.href : `https://sourceoftruths.com/quiz/${quiz.id}`);
   const resultMsg = phase === 'done' ? `I got ${correctCount}/${total} on "${quiz.title}". Can you beat me?` : `Can you crack this logic game? "${quiz.title}"`;
   function openShare(kind) { const u = encodeURIComponent(shareUrl); const t = encodeURIComponent(resultMsg); const url = kind === 'x' ? `https://twitter.com/intent/tweet?text=${t}&url=${u}` : kind === 'reddit' ? `https://www.reddit.com/submit?url=${u}&title=${t}` : kind === 'facebook' ? `https://www.facebook.com/sharer/sharer.php?u=${u}` : kind === 'whatsapp' ? `https://api.whatsapp.com/send?text=${t}%20${u}` : shareUrl; try { window.open(url, '_blank', 'noopener,noreferrer'); } catch (e) {} }
-  function copyResult() { try { navigator.clipboard?.writeText(`${resultMsg}\n${shareUrl}`).then(() => { setCopied(true); setTimeout(() => setCopied(false), 1800); }); } catch (e) {} }
+  function copyResult() { try { navigator.clipboard?.writeText(`${resultMsg}\n${shareUrl}`).then(() => { setCopied(true); setTimeout(() => setCopied(false), 1800); }); notifyShareCredit(); } catch (e) {} }
   function share() {
     const text = phase === 'done' ? resultMsg : 'Can you crack this logic game?';
     if (navigator.share) navigator.share({ title: quiz.title, text, url: shareUrl }).catch(() => {});
