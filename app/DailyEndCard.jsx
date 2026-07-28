@@ -427,15 +427,16 @@ export default function DailyEndCard({
   // always distinct: with two games left, one is the closest and the other is the
   // most-open of what's left (even if still fairly full). No fallback to
   // already-played games, so with 0 or 1 remaining there is simply no second card.
-  // field = registered players; plays = total attempts.
+  // field = full pool (registered + guests); registered = named/registered
+  // players only (what the public board shows); plays = total attempts.
   let grab = null;
   if (boardGames && boardGames.length) {
     const nextKey = nextTarget ? nextTarget.key : null;
     const pool = boardGames.filter((g) => !doneKeys.has(g.key) && g.key !== nextKey);
-    pool.sort((a, b) => (a.field - b.field) || (a.plays - b.plays));
+    pool.sort((a, b) => (a.registered - b.registered) || (a.field - b.field) || (a.plays - b.plays));
     const g0 = pool[0];
     const gm = g0 && DAILY_GAMES.find((x) => x.key === g0.key);
-    if (g0 && gm) grab = { ...gm, field: g0.field || 0, plays: g0.plays || 0, href: g0.href || gm.href };
+    if (g0 && gm) grab = { ...gm, field: g0.field || 0, plays: g0.plays || 0, registered: g0.registered || 0, href: g0.href || gm.href };
   }
 
   // Completion-derived UI (Up next, Easiest leaderboard, the still-to-play grid)
@@ -1005,7 +1006,7 @@ export default function DailyEndCard({
                 <div style={{ minWidth: 0, flex: 1 }}>
                   <div className="dec-eye" style={{ color: '#b7791f' }}>Easiest leaderboard today</div>
                   <div className="dec-ez-name"><span className="dec-dot" style={{ background: (CAT_META[grab.cat] || CAT_META.word).color }} />{grab.name}</div>
-                  <div className="dec-ez-tag">{grab.field > 0 ? <>Only {grab.field} player{grab.field === 1 ? '' : 's'} so far</> : <>No one&rsquo;s on the board yet</>}</div>
+                  <div className="dec-ez-tag">{grab.registered > 0 ? <>Only {grab.registered} player{grab.registered === 1 ? '' : 's'} so far</> : <>No one&rsquo;s on the board yet</>}</div>
                 </div>
               </div>
               <a className="dec-ez-btn" href={grab.href}>Play {grab.name}</a>

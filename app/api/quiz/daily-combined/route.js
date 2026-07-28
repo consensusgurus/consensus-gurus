@@ -352,6 +352,7 @@ export async function GET(request) {
         href: g.href,
         field: g.field,
         plays: g.plays,
+        registered: named.length,   // named (registered) players only, uncapped
         board: named.slice(0, BOARD).map((p) => ({
           userKey: p.userKey,
           username: p.username,
