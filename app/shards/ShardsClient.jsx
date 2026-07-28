@@ -609,7 +609,7 @@ export default function ShardsClient({ puzzles = [], forceNum = null }) {
     const url = withRef(`sourceoftruths.com/shards${isTodays ? '' : `?p=${PUZZLE.num}`}`);
     const text = playing
       ? `Shards No. ${PUZZLE.num} - reassemble the shattered crossword.\n${url}`
-      : `Shards No. ${PUZZLE.num} - ${finalScore}/${START} · ${elapsed} · ${g.misplaced} misplacement${g.misplaced === 1 ? '' : 's'} · ${g.hintsUsed} hint${g.hintsUsed === 1 ? '' : 's'}\n${shareArt()}${url}`;
+      : `Shards No. ${PUZZLE.num} - ${finalScore}/${START} · ${elapsed} · ${g.misplaced} miss${g.misplaced === 1 ? '' : 'es'} · ${g.hintsUsed} hint${g.hintsUsed === 1 ? '' : 's'}\n${shareArt()}${url}`;
     try { if (typeof navigator !== 'undefined' && navigator.share && isMobileDevice()) { navigator.share({ text }).catch(() => {}); return; } } catch (e) {}
     try { navigator.clipboard?.writeText(text).then(() => { setCopied(true); setTimeout(() => setCopied(false), 1800); }); } catch (e) {}
   }
@@ -630,8 +630,8 @@ export default function ShardsClient({ puzzles = [], forceNum = null }) {
     <div style={{ fontSize: 14, lineHeight: 1.55, color: COLORS.ink, fontWeight: 600 }}>
       <p style={{ margin: '0 0 9px' }}>The grid arrives solved, then shattered into <b>lettered pieces</b>. Reassemble them so every across and down run of two or more letters is a real word. No clues, the letters are the clues.</p>
       <p style={{ margin: '0 0 9px' }}>Pieces are rigid: no turning, no flipping. <b>Drag</b> a piece onto the grid, or <b>tap a piece then tap a square</b>. Placed pieces move freely, tap one to pick it up. There is an <b>Undo</b> and a free <b>Clear</b>. The board finishes itself the moment every piece is placed and every word checks out.</p>
-      <p style={{ margin: '0 0 9px' }}>There is exactly <b>one</b> correct reassembly. Start at <b>{START}</b>. Moving a placed piece costs 5. Three hints, in order, cost {HINTS[0]}, {HINTS[1]} and {HINTS[2]}. Score never drops below {FLOOR}.</p>
-      <p style={{ margin: 0 }}>A tick appears on each finished valid word. Ties on the leaderboard break by fewest moves, then fastest clock.</p>
+      <p style={{ margin: '0 0 9px' }}>There is exactly <b>one</b> correct reassembly. Start at <b>{START}</b>. Each move of a placed piece counts as a miss and costs 5. Three hints, in order, cost {HINTS[0]}, {HINTS[1]} and {HINTS[2]}. Score never drops below {FLOOR}.</p>
+      <p style={{ margin: 0 }}>A tick appears on each finished valid word. Ties on the leaderboard break by fewest misses, then fastest clock.</p>
     </div>
   );
 
@@ -718,7 +718,7 @@ export default function ShardsClient({ puzzles = [], forceNum = null }) {
             <div style={{ display: 'flex', gap: 18, alignItems: 'baseline', flexWrap: 'wrap', marginBottom: 10, fontFamily: MONO, fontSize: 11.5, letterSpacing: '0.08em', textTransform: 'uppercase', color: COLORS.faded }}>
               <span style={{ fontSize: 12 }}>score <b style={{ color: COLORS.accentDk, fontWeight: 500, fontSize: 20 }}>{playing ? liveScore : finalScore}</b><span style={{ fontSize: 11 }}>/{START}</span></span>
               <span>placed <b style={{ color: COLORS.ink, fontWeight: 500 }}>{placedCount}</b>/{SHARDS.length}</span>
-              <span>moves <b style={{ color: COLORS.ink, fontWeight: 500 }}>{g.misplaced}</b></span>
+              <span>misses <b style={{ color: COLORS.ink, fontWeight: 500 }}>{g.misplaced}</b></span>
               <span>hints <b style={{ color: COLORS.ink, fontWeight: 500 }}>{g.hintsUsed}</b>/3</span>
               {!playing && <span style={{ marginLeft: 'auto', color: COLORS.green }}>solved</span>}
             </div>
@@ -822,7 +822,7 @@ export default function ShardsClient({ puzzles = [], forceNum = null }) {
                 <div style={{ display: 'flex', alignItems: 'center', gap: 14, background: '#fff', border: '1.5px solid rgba(28,30,36,0.18)', borderRadius: 10, padding: '12px 14px' }}>
                   <span style={{ fontFamily: MONO, fontSize: 32, fontWeight: 500, color: COLORS.green, fontVariantNumeric: 'tabular-nums', letterSpacing: '0.04em', flex: '0 0 auto' }}>{finalScore}</span>
                   <span style={{ fontFamily: SANS, fontSize: 13, fontWeight: 700, color: COLORS.ink, lineHeight: 1.45 }}>
-                    Reassembled, out of {START}. {g.misplaced} move{g.misplaced === 1 ? '' : 's'}, {g.hintsUsed} hint{g.hintsUsed === 1 ? '' : 's'}. <span style={{ color: COLORS.faded, fontWeight: 600 }}>{elapsed}</span>
+                    Solved. {finalScore} of {START}, with {g.misplaced} miss{g.misplaced === 1 ? '' : 'es'} and {g.hintsUsed} hint{g.hintsUsed === 1 ? '' : 's'}. <span style={{ color: COLORS.faded, fontWeight: 600 }}>{elapsed}</span>
                   </span>
                 </div>
               </div>
