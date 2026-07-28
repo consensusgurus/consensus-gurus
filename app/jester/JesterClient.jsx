@@ -58,6 +58,7 @@ const SANS = "'Manrope', system-ui, -apple-system, sans-serif";
 const MONO = "'DM Mono', ui-monospace, 'SFMono-Regular', monospace";
 const HELP_KEY = 'sot_jester_help_seen';
 const STATS_KEY = 'sot_jester_stats';
+const TOOL_KEY = 'sot_jester_tool';   // remembered marking tool: 'x' | 'jester'
 const TOTAL = 10;
 const UNDO_MAX = 50;
 
@@ -219,6 +220,11 @@ export default function JesterClient({ puzzles = [], forceNum = null }) {
 
   const [g, setG] = useState(() => freshState(N));
   const [autoX, setAutoX] = useState(true);
+  // Which marker a tap places. Defaults to ✗ (the negative marker) — most
+  // players rule cells out far more than they seat jesters — and remembers the
+  // player's last choice across days. Hold / right-click always seats a jester
+  // regardless of the tool.
+  const [tool, setTool] = useState('x');   // 'x' | 'jester'
   const [showHelp, setShowHelp] = useState(false);
   const [gateRules, setGateRules] = useState(false);
   const [toast, setToast] = useState(null);
@@ -308,6 +314,8 @@ export default function JesterClient({ puzzles = [], forceNum = null }) {
         if (saved && saved.v === 1 && saved.cells && saved.cells.length === N) setG({ ...freshState(N), ...saved });
       }
       setGateRules(!localStorage.getItem(HELP_KEY));
+      const t = localStorage.getItem(TOOL_KEY);
+      if (t === 'x' || t === 'jester') setTool(t);
     } catch (e) {}
     try { setStats(getStats()); } catch (e) {}
     setHydrated(true);
@@ -322,6 +330,12 @@ export default function JesterClient({ puzzles = [], forceNum = null }) {
       }
     } catch (e) {}
   }, [g, hydrated, STORE_KEY, PUZZLE, puzzles]);
+
+  // remember the player's marking tool across days
+  useEffect(() => {
+    if (!hydrated) return;
+    try { localStorage.setItem(TOOL_KEY, tool); } catch (e) {}
+  }, [tool, hydrated]);
 
   useEffect(() => {
     if (g.status === 'playing') return;
@@ -462,12 +476,13 @@ export default function JesterClient({ puzzles = [], forceNum = null }) {
     return g.locked.some(([lr, lc]) => lr === r && lc === c);
   }
 
-  // A single tap cycles the cell: blank → 🃏 (seat a jester) → ✗ (rule out by
-  // hand) → blank. Seating counts a placement; with auto-✗ on it pencils out
-  // the whole row/column/court/neighbours for free (a derived overlay, not
-  // stored ✗'s), so lifting the jester — whether by the 🃏 → ✗ step here or by
-  // clearing it — takes those auto marks with it. Only 1 (a hand-placed ✗) is
-  // ever written to storage.
+  // A single tap places the currently selected tool. In ✗ mode (the default) it
+  // toggles a hand ✗ on a blank cell and clears any mark or jester already
+  // there; in 🃏 mode it seats/lifts a jester. Seating a jester counts a
+  // placement; with auto-✗ on it pencils out the whole row/column/court/
+  // neighbours for free (a derived overlay, not stored ✗'s), so lifting the
+  // jester takes those auto marks with it. Only 1 (a hand-placed ✗) or 2 (a
+  // jester) is ever written to storage.
   function tapCell(r, c) {
     if (!playing) return;
     if (isLocked(r, c)) { say('The hint seated that jester — it stays.'); return; }
@@ -475,7 +490,9 @@ export default function JesterClient({ puzzles = [], forceNum = null }) {
     setG((cur) => {
       const cells = cur.cells.map((row) => row.slice());
       const v = cells[r][c];
-      const next = v === 0 ? 2 : v === 2 ? 1 : 0;
+      const next = tool === 'jester'
+        ? (v === 2 ? 0 : 2)   // 🃏 mode: seat a jester / lift it
+        : (v === 0 ? 1 : 0);  // ✗ mode: mark a blank cell, or clear a mark/jester
       cells[r][c] = next;
       const placements = next === 2 ? cur.placements + 1 : cur.placements;
       return { ...cur, cells, placements, t0: cur.t0 || Date.now() };
@@ -568,7 +585,7 @@ export default function JesterClient({ puzzles = [], forceNum = null }) {
     <div style={{ fontSize: 14, lineHeight: 1.55, color: COLORS.ink, fontWeight: 600 }}>
       <p style={{ margin: '0 0 9px' }}>Seat exactly <b>one jester</b> in every row, every column, and every colored court.</p>
       <p style={{ margin: '0 0 9px' }}>Jesters are jealous: <b>no two may touch</b>, not even diagonally. Quarrelling jesters glow red.</p>
-      <p style={{ margin: '0 0 9px' }}>Tap a cell to seat a <b>jester</b>; tap again to rule it out (<b>✗</b>), once more to clear. Hold it (right-click on a computer) to seat a jester directly, or hold a seated jester to lift it and its ✗’s. Leave auto-✗ on and seating a jester pencils out its row, column, court and neighbours for you; lift the jester and those marks clear too. <b>Undo</b> rolls back your last move.</p>
+      <p style={{ margin: '0 0 9px' }}>Choose what a tap places with the <b>✗</b> / <b>🃏</b> buttons. It starts on <b>✗</b> (rule a cell out), the mark you reach for most, and remembers your choice next time. Switch to <b>🃏</b> to seat jesters, or just <b>hold</b> a cell (right-click on a computer) to seat one directly in either mode. Tap a seated jester to lift it. Leave auto-✗ on and seating a jester pencils out its row, column, court and neighbours for you; lift the jester and those marks clear too. <b>Undo</b> rolls back your last move.</p>
       <p style={{ margin: 0 }}>Every board has exactly one legal seating, reachable by pure deduction &mdash; no guessing needed. The board completes itself the moment the last jester is seated legally. Ties on the daily board break by fewest placements, then fastest time. A bigger 9&times;9 Jubilee board runs on Sundays.</p>
     </div>
   );
@@ -583,6 +600,8 @@ export default function JesterClient({ puzzles = [], forceNum = null }) {
           .je-btn:hover{background:${COLORS.paper};}
           .je-btn.primary{background:${COLORS.accent};border-color:${COLORS.accent};color:#fff;}
           .je-btn.primary:hover{background:${COLORS.accentDeep};}
+          .je-tool{font-family:${SANS};font-weight:800;font-size:12.5px;border:1.5px solid rgba(28,30,36,0.35);background:#fff;color:${COLORS.ink};border-radius:8px;padding:7px 11px;cursor:pointer;display:inline-flex;align-items:center;gap:6px;}
+          .je-tool.on{background:${COLORS.accent};color:#fff;border-color:${COLORS.accent};}
           .je-cell{position:relative;display:flex;align-items:center;justify-content:center;cursor:pointer;user-select:none;-webkit-tap-highlight-color:transparent;}
           .je-cell:hover::after{content:'';position:absolute;inset:0;background:rgba(28,30,36,0.07);}
           .je-x{color:rgba(28,30,36,0.45);font-size:15px;font-weight:800;}
@@ -672,7 +691,7 @@ export default function JesterClient({ puzzles = [], forceNum = null }) {
                       onTouchMove={endPress}
                       onTouchCancel={endPress}
                       role="button"
-                      aria-label={`Row ${r + 1}, column ${c + 1}: ${v === 2 ? 'jester' : showX ? 'ruled out' : 'blank'}${conflict ? ', quarrelling' : ''}. Tap to seat a jester, tap again to rule out; hold or right-click to seat a jester directly.`}
+                      aria-label={`Row ${r + 1}, column ${c + 1}: ${v === 2 ? 'jester' : showX ? 'ruled out' : 'blank'}${conflict ? ', quarrelling' : ''}. Tap to place the ${tool === 'jester' ? 'jester' : '✗ mark'}; hold or right-click to seat a jester directly.`}
                       style={{ width: cellPx, height: cellPx, background: conflict ? '#fecaca' : REGION_FILLS[id % REGION_FILLS.length], borderTop: bTop, borderLeft: bLeft, boxShadow: locked ? `inset 0 0 0 2px ${COLORS.accent}` : 'none', WebkitTouchCallout: 'none', WebkitUserSelect: 'none', userSelect: 'none', touchAction: 'manipulation' }}
                     >
                       {v !== 2 && showX && <span className="je-x" style={autoMark ? { opacity: 0.6 } : undefined}>✗</span>}
@@ -687,8 +706,22 @@ export default function JesterClient({ puzzles = [], forceNum = null }) {
         )}
 
         {started && (
-          <div style={{ fontFamily: MONO, fontSize: 11, letterSpacing: '0.04em', color: COLORS.faded, textAlign: 'center', margin: '10px 0 0', lineHeight: 1.5 }}>
-            Tap a cell to seat a jester, tap again to rule it out. Hold or right-click also seats a jester; hold a seated jester to lift it and its ✗’s.
+          <div style={{ display: 'flex', gap: 8, alignItems: 'center', justifyContent: 'center', flexWrap: 'wrap', margin: '12px 0 2px' }}>
+            <span style={{ fontFamily: MONO, fontSize: 10.5, letterSpacing: '0.08em', textTransform: 'uppercase', color: COLORS.faded }}>Tap places</span>
+            <button type="button" className={`je-tool${tool === 'x' ? ' on' : ''}`} onClick={() => setTool('x')} title="Rule cells out (default)" aria-pressed={tool === 'x'}>
+              <span style={{ fontWeight: 900, fontSize: 14, lineHeight: 1 }}>✗</span> Mark
+            </button>
+            <button type="button" className={`je-tool${tool === 'jester' ? ' on' : ''}`} onClick={() => setTool('jester')} title="Seat a jester" aria-pressed={tool === 'jester'}>
+              <JesterMark size={14} color={tool === 'jester' ? '#fff' : COLORS.accentDeep} /> Jester
+            </button>
+          </div>
+        )}
+
+        {started && (
+          <div style={{ fontFamily: MONO, fontSize: 11, letterSpacing: '0.04em', color: COLORS.faded, textAlign: 'center', margin: '6px 0 0', lineHeight: 1.5 }}>
+            {tool === 'jester'
+              ? 'Seating jesters: tap to seat one, tap again to lift it. Switch to ✗ to rule cells out.'
+              : 'Ruling out: tap to mark a cell ✗, tap again to clear it. Switch to 🃏 to seat jesters — or just hold / right-click any cell to seat one.'}
           </div>
         )}
 

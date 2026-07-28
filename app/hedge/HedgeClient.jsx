@@ -49,6 +49,7 @@ const SANS = "'Manrope', system-ui, -apple-system, sans-serif";
 const MONO = "'DM Mono', ui-monospace, 'SFMono-Regular', monospace";
 const HELP_KEY = 'sot_hedge_help_seen';
 const STATS_KEY = 'sot_hedge_stats';
+const TOOL_KEY = 'sot_hedge_tool';   // remembered drawing tool: 'x' | 'line'
 
 const isIosDevice = () =>
   typeof navigator !== 'undefined' &&
@@ -180,6 +181,13 @@ export default function HedgeClient({ puzzles = [], forceNum = null }) {
 
   const [g, setG] = useState(() => freshState(NH, NV));
   const gRef = useRef(g);
+  // Which mark a tap places. Defaults to × (the free "no line here" note) — you
+  // rule far more segments out than you draw — and remembers the last choice
+  // across days. Hold / right-click always draws the loop line, whatever the
+  // tool.
+  const [tool, setTool] = useState('x');   // 'x' | 'line'
+  const pressTimer = useRef(null);
+  const longFired = useRef(false);
   const [canUndo, setCanUndo] = useState(false);
   const [showHelp, setShowHelp] = useState(false);
   const [gateRules, setGateRules] = useState(false);
@@ -245,6 +253,8 @@ export default function HedgeClient({ puzzles = [], forceNum = null }) {
         }
       }
       setGateRules(!localStorage.getItem(HELP_KEY));
+      const t = localStorage.getItem(TOOL_KEY);
+      if (t === 'x' || t === 'line') setTool(t);
     } catch (e) {}
     try { setStats(getStats()); } catch (e) {}
     setHydrated(true);
@@ -261,6 +271,12 @@ export default function HedgeClient({ puzzles = [], forceNum = null }) {
       }
     } catch (e) {}
   }, [g, hydrated, STORE_KEY, PUZZLE, puzzles]);
+
+  // remember the player's drawing tool across days
+  useEffect(() => {
+    if (!hydrated) return;
+    try { localStorage.setItem(TOOL_KEY, tool); } catch (e) {}
+  }, [tool, hydrated]);
 
   useEffect(() => {
     if (g.status === 'playing') return;
@@ -395,14 +411,20 @@ export default function HedgeClient({ puzzles = [], forceNum = null }) {
     commit({ ...gRef.current, h: prev.h.slice(), vt: prev.vt.slice() });
   }
 
-  // click a segment: none -> line -> cross -> none
-  function tapSeg(kind, idx) {
+  // Place a mark on a segment according to `asTool`. In 'line' mode a tap
+  // toggles the loop line (drawing one that isn't part of the loop turns red and
+  // counts an error); in 'x' mode it toggles the free "no line here" note, which
+  // is never scored. A left-tap uses the selected tool; hold / right-click
+  // always draws the line via asTool='line'.
+  function applySeg(kind, idx, asTool) {
     const cur = gRef.current;
     if (cur.status !== 'playing') return;
     if (!cur.t0) startGame();
     const arr = kind === 'h' ? cur.h : cur.vt;
     const sol = kind === 'h' ? solH : solV;
-    const next = (arr[idx] + 1) % 3;
+    const next = asTool === 'line'
+      ? (arr[idx] === 1 ? 0 : 1)    // line: draw the loop line / lift it
+      : (arr[idx] === 2 ? 0 : 2);   // ×: toggle a no-line note (free, unscored)
     pushUndo(cur);
     const nh = kind === 'h' ? cur.h.slice() : cur.h;
     const nv = kind === 'v' ? cur.vt.slice() : cur.vt;
@@ -422,6 +444,21 @@ export default function HedgeClient({ puzzles = [], forceNum = null }) {
     vibrate(wrong ? HAPT.wrong : HAPT.ok);
     commit(g2);
   }
+  function tapSeg(kind, idx) { applySeg(kind, idx, tool); }
+  function drawLineSeg(kind, idx) { applySeg(kind, idx, 'line'); }
+
+  // hold (mobile) or right-click (desktop) draws the loop line directly; the
+  // longFired flag swallows the click/contextmenu that follows the long-press.
+  function startPress(kind, idx) {
+    longFired.current = false;
+    clearTimeout(pressTimer.current);
+    pressTimer.current = setTimeout(() => {
+      longFired.current = true;
+      drawLineSeg(kind, idx);
+      try { if (navigator.vibrate) navigator.vibrate(15); } catch (e) {}
+    }, 420);
+  }
+  function endPress() { clearTimeout(pressTimer.current); }
 
   function useHint() {
     const cur = gRef.current;
@@ -517,7 +554,7 @@ export default function HedgeClient({ puzzles = [], forceNum = null }) {
     <div style={{ fontSize: 14, lineHeight: 1.55, color: COLORS.ink, fontWeight: 600 }}>
       <p style={{ margin: '0 0 9px' }}>Draw <b>one single closed loop</b> along the grid lines. A number tells you exactly how many of that cell&rsquo;s four sides are part of the loop, so a <b>3</b> has three sides used and a <b>0</b> has none. Cells with no number are unconstrained.</p>
       <p style={{ margin: '0 0 9px' }}>The loop never branches and never crosses itself, so every corner it reaches has exactly two lines running out of it. That, plus the numbers, is enough to pin down a single answer.</p>
-      <p style={{ margin: '0 0 9px' }}>Tap a segment between two dots to draw a line. Tap it again for a <b>&times;</b>, your own note that no line goes there, which is free and never scored. Tap once more to clear it. A number dims when its sides are all accounted for. <b>Undo</b> (or Ctrl+Z) takes back your last move, and one free <b>hint</b> draws a correct segment.</p>
+      <p style={{ margin: '0 0 9px' }}>Choose what a tap places with the <b>&times;</b> / <b>Line</b> buttons. It starts on <b>&times;</b> (a free note that no line goes there, never scored), the mark you use most, and remembers your choice next time. Switch to <b>Line</b> to draw the loop, or just <b>hold</b> a segment (right-click on a computer) to draw a line in either mode. Tap again to lift a line or clear a &times;. A number dims when its sides are all accounted for. <b>Undo</b> (or Ctrl+Z) takes back your last move, and one free <b>hint</b> draws a correct segment.</p>
       <p style={{ margin: 0 }}>A line that isn&rsquo;t part of the loop turns <b style={{ color: COLORS.rust }}>red</b> and counts as an error. A clean solve with <b>no errors</b> scores a perfect 10, every two errors cost a point. Ties break on fewest errors, then fastest time. Sundays are a bigger 10&times;10 Edition.</p>
     </div>
   );
@@ -532,6 +569,7 @@ export default function HedgeClient({ puzzles = [], forceNum = null }) {
           .hg-btn:hover{background:${COLORS.paper};}
           @media(max-width:560px){.hg-ttl{flex-direction:column;align-items:flex-start;gap:1px;}.hg-ttl h1{font-size:21px;}.hg-ttl-dot{display:none;}}
           .hg-tool{font-family:${SANS};font-weight:800;font-size:12.5px;border:1.5px solid rgba(28,30,36,0.35);background:#fff;color:${COLORS.ink};border-radius:8px;padding:7px 11px;cursor:pointer;display:inline-flex;align-items:center;gap:6px;}
+          .hg-tool.on{background:${COLORS.accent};color:#fff;border-color:${COLORS.accent};}
           .hg-hit{stroke:transparent;fill:none;cursor:pointer;-webkit-tap-highlight-color:transparent;}
           .hg-svg{touch-action:manipulation;width:100%;height:auto;display:block;}
         `}</style>
@@ -626,13 +664,25 @@ export default function HedgeClient({ puzzles = [], forceNum = null }) {
               {/* invisible hit targets, drawn last so they always take the tap */}
               {playing && segs.map((s) => (
                 <line key={`h${s.kind}${s.idx}`} className="hg-hit" x1={s.x1} y1={s.y1} x2={s.x2} y2={s.y2}
-                  strokeWidth={HIT} onClick={() => tapSeg(s.kind, s.idx)} />
+                  strokeWidth={HIT}
+                  onClick={() => { if (longFired.current) { longFired.current = false; return; } tapSeg(s.kind, s.idx); }}
+                  onContextMenu={(e) => { e.preventDefault(); if (longFired.current) { longFired.current = false; return; } drawLineSeg(s.kind, s.idx); }}
+                  onPointerDown={(e) => { if (e.pointerType === 'touch') startPress(s.kind, s.idx); }}
+                  onPointerUp={endPress}
+                  onPointerLeave={endPress}
+                  onPointerCancel={endPress} />
               ))}
             </svg>
           </div>
 
           {playing && (
             <div style={{ display: 'flex', alignItems: 'center', gap: 8, justifyContent: 'center', marginTop: 12, flexWrap: 'wrap' }}>
+              <button className={`hg-tool${tool === 'x' ? ' on' : ''}`} onClick={() => setTool('x')} title="Mark no-line notes (default)" aria-pressed={tool === 'x'}>
+                <span style={{ fontWeight: 900, fontSize: 14, lineHeight: 1 }}>&times;</span> Mark
+              </button>
+              <button className={`hg-tool${tool === 'line' ? ' on' : ''}`} onClick={() => setTool('line')} title="Draw the loop line" aria-pressed={tool === 'line'}>
+                <span style={{ fontWeight: 900, fontSize: 14, lineHeight: 1 }}>&#9585;</span> Line
+              </button>
               <button className="hg-tool" onClick={undo} disabled={!canUndo} title="Undo (Ctrl+Z)" style={{ opacity: canUndo ? 1 : 0.4, cursor: canUndo ? 'pointer' : 'default' }}>
                 <RotateCcw size={14} /> Undo
               </button>
@@ -648,8 +698,10 @@ export default function HedgeClient({ puzzles = [], forceNum = null }) {
 
         {started && (
           <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 12, flexWrap: 'wrap' }}>
-            <span style={{ fontFamily: SANS, fontSize: 12, fontWeight: 700, color: COLORS.faded }}>
-              Tap between two dots: once for a line, again for a &times;, again to clear.
+            <span style={{ fontFamily: SANS, fontSize: 12, fontWeight: 700, color: tool === 'line' ? COLORS.accent : COLORS.faded }}>
+              {tool === 'line'
+                ? 'Drawing lines: tap a segment to draw the loop, tap again to lift it. Switch to × to mark segments off.'
+                : 'Marking: tap a segment for a × (no line here), tap again to clear. Switch to Line to draw — or hold / right-click any segment to draw one.'}
             </span>
             {identity && (rightDrawn > 0 || errors > 0) && (
               <button onClick={() => { if (armReveal) { setArmReveal(false); revealEnd(); } else { setArmReveal(true); } }}

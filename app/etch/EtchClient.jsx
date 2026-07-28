@@ -48,6 +48,7 @@ const SANS = "'Manrope', system-ui, -apple-system, sans-serif";
 const MONO = "'DM Mono', ui-monospace, 'SFMono-Regular', monospace";
 const HELP_KEY = 'sot_etch_help_seen';
 const STATS_KEY = 'sot_etch_stats';
+const TOOL_KEY = 'sot_etch_tool';   // remembered tool: 'fill' | 'mark'
 
 const isIosDevice = () =>
   typeof navigator !== 'undefined' &&
@@ -181,7 +182,10 @@ export default function EtchClient({ puzzles = [], forceNum = null }) {
 
   const [g, setG] = useState(() => freshState(N));
   const gRef = useRef(g);
-  const [mode, setMode] = useState('fill');   // 'fill' | 'mark'
+  // Defaults to Mark (×) — most solving is ruling squares out, and a wrong fill
+  // costs an error, so the safe default is the free mark. Remembers the last
+  // choice across days; right-click a square to fill it directly in either mode.
+  const [mode, setMode] = useState('mark');   // 'fill' | 'mark'
   const [canUndo, setCanUndo] = useState(false);
   const [showHelp, setShowHelp] = useState(false);
   const [gateRules, setGateRules] = useState(false);
@@ -249,6 +253,8 @@ export default function EtchClient({ puzzles = [], forceNum = null }) {
         }
       }
       setGateRules(!localStorage.getItem(HELP_KEY));
+      const t = localStorage.getItem(TOOL_KEY);
+      if (t === 'fill' || t === 'mark') setMode(t);
     } catch (e) {}
     try { setStats(getStats()); } catch (e) {}
     setHydrated(true);
@@ -265,6 +271,12 @@ export default function EtchClient({ puzzles = [], forceNum = null }) {
       }
     } catch (e) {}
   }, [g, hydrated, STORE_KEY, PUZZLE, puzzles]);
+
+  // remember the player's tool across days
+  useEffect(() => {
+    if (!hydrated) return;
+    try { localStorage.setItem(TOOL_KEY, mode); } catch (e) {}
+  }, [mode, hydrated]);
 
   useEffect(() => {
     if (g.status === 'playing') return;
@@ -423,6 +435,7 @@ export default function EtchClient({ puzzles = [], forceNum = null }) {
     } catch (e) { return -1; }
   }
   function onCellDown(e, idx) {
+    if (e.button === 2) return;   // right-click is handled by onContextMenu (fill)
     if (gRef.current.status !== 'playing') return;
     if (!gRef.current.t0) startGame();
     const cur = gRef.current.cells[idx];
@@ -431,6 +444,15 @@ export default function EtchClient({ puzzles = [], forceNum = null }) {
     paintRef.current = { val };
     applyPaint(idx, val);
     try { e.currentTarget.setPointerCapture(e.pointerId); } catch (err) {}
+  }
+  // right-click fills a square directly, whatever the selected tool
+  function fillDirect(idx) {
+    if (gRef.current.status !== 'playing') return;
+    if (!gRef.current.t0) startGame();
+    const cur = gRef.current.cells[idx];
+    const val = cur === 1 ? 0 : 1;
+    pushUndo(gRef.current.cells);
+    applyPaint(idx, val);
   }
   function onGridMove(e) {
     if (!paintRef.current) return;
@@ -479,7 +501,7 @@ export default function EtchClient({ puzzles = [], forceNum = null }) {
     try { localStorage.removeItem(STORE_KEY); } catch (e) {}
     undoRef.current = []; setCanUndo(false);
     commit(freshState(N));
-    setJustWon(false); setEndClosed(false); setMode('fill');
+    setJustWon(false); setEndClosed(false);
   }
 
   // desktop keyboard: F/M switch tools, Ctrl+Z undoes
@@ -533,7 +555,7 @@ export default function EtchClient({ puzzles = [], forceNum = null }) {
   const rulesBody = (
     <div style={{ fontSize: 14, lineHeight: 1.55, color: COLORS.ink, fontWeight: 600 }}>
       <p style={{ margin: '0 0 9px' }}>The numbers beside each <b>row</b> and above each <b>column</b> are the lengths of the filled runs in that line, in order, with at least one blank between them. A row clued <b>4 2</b> has four filled squares, then a gap, then two.</p>
-      <p style={{ margin: '0 0 9px' }}>Fill every square the clues force and a picture appears. Tap or click a square to fill it, and <b>drag</b> to fill a run. Switch to <b>Mark</b> (or press M) to pencil an × on a square you have proved is blank, which is free and never scored. A clue dims once its line matches.</p>
+      <p style={{ margin: '0 0 9px' }}>Pick what a tap places with the <b>Fill</b> / <b>Mark</b> buttons. It starts on <b>Mark</b> (press M), where a tap pencils a free × on a square you have ruled out, never scored, which is the safe way to work since a wrong fill costs an error. Switch to <b>Fill</b> (press F) to fill squares and <b>drag</b> to fill a run, or just <b>right-click</b> a square to fill it directly. Your choice is remembered next time, and a clue dims once its line matches.</p>
       <p style={{ margin: '0 0 9px' }}>Every board has exactly one solution and can be reached by pure logic, so you never have to guess. Filling a square that isn&rsquo;t part of the picture turns <b style={{ color: COLORS.rust }}>red</b> and counts as an error, clear it to carry on. <b>Undo</b> (or Ctrl+Z) takes back your last stroke, and one free <b>hint</b> fills a correct square.</p>
       <p style={{ margin: 0 }}>A clean solve with <b>no errors</b> scores a perfect 10, every two errors cost a point. Ties break on fewest errors, then fastest time. Sundays are a bigger 15&times;15 Edition.</p>
     </div>
@@ -642,6 +664,7 @@ export default function EtchClient({ puzzles = [], forceNum = null }) {
                     data-i={idx}
                     className="et-cell"
                     onPointerDown={(e) => onCellDown(e, idx)}
+                    onContextMenu={(e) => { e.preventDefault(); fillDirect(idx); }}
                     style={{
                       background: bg,
                       borderRight: `${c % 5 === 4 && c !== W - 1 ? 2 : 1}px solid ${c % 5 === 4 && c !== W - 1 ? 'rgba(28,30,36,0.75)' : 'rgba(28,30,36,0.22)'}`,
