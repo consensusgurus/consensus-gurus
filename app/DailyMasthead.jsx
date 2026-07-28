@@ -70,13 +70,13 @@ export default function DailyMasthead({
   }, [num, dateLabel, slug, accent]);
 
   const noEl = (
-    <h1 ref={noRef} style={{ margin: 0, fontFamily: MONO, fontSize: 14, letterSpacing: '0.05em', fontWeight: 500, color: INK, whiteSpace: 'nowrap' }}>No. {num}</h1>
+    <h1 ref={noRef} style={{ margin: 0, fontFamily: MONO, fontSize: 13, letterSpacing: '0.05em', fontWeight: 500, color: INK, whiteSpace: 'nowrap' }}>No. {num}</h1>
   );
   const dateEl = (
-    <span ref={dateRef} style={{ fontFamily: MONO, fontSize: 13, letterSpacing: '0.03em', color: FADED, whiteSpace: 'nowrap' }}>{dateLabel}</span>
+    <span ref={dateRef} style={{ fontFamily: MONO, fontSize: 12, letterSpacing: '0.03em', color: FADED, whiteSpace: 'nowrap' }}>{dateLabel}</span>
   );
   const urlEl = (
-    <span ref={urlRef} style={{ fontFamily: MONO, fontSize: 14.5, letterSpacing: '0.02em', color: accent, whiteSpace: 'nowrap' }}>sourceoftruths.com/{slug}</span>
+    <span ref={urlRef} style={{ fontFamily: MONO, fontSize: 13.5, letterSpacing: '0.02em', color: accent, whiteSpace: 'nowrap' }}>sourceoftruths.com/{slug}</span>
   );
 
   return (
