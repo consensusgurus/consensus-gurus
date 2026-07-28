@@ -117,6 +117,10 @@ function sportHeroFor(q) {
 // tiles (Newest + Trending) must never both draw from the same family.
 const DAILY_GAME_FAMILY_RE = /^(crux|emcee|garble|links|span|dating|tally|suds|circa|extra|carve|stet|outwit|tuck|alibi|cipher|ping|warmer|jester|sworn|closer|outrank|shards|axiom|hearsay|venn|stands|bracket|lode|etch|hedge|listed)-/;
 function gameFamily(id) { const m = (id || '').match(DAILY_GAME_FAMILY_RE); return m ? m[1] : null; }
+// A recorded PLAY carries the quiz's id, but a daily-game play id is date-stamped
+// ('<key>-M-D-YY') and has NO /quiz/<id> route -- its board lives at /<family>.
+// Route daily-game plays to the game; everything else to its quiz page.
+function playHref(id) { const fam = gameFamily(id); return fam ? `/${fam}` : `/quiz/${id}`; }
 // Rule: daily games (Crux, Emcee, Garble, Links, Span, Dating, Tally, Suds, Circa, Extra, Carve, Stet, Outwit, Tuck, Alibi, Cipher, Ping, Closer) publish a fresh
 // dated entry every day, so by publishedAt they are ALWAYS the "newest" quiz and
 // would monopolize the Newest tile. They have their own hub tiles, so the Newest
@@ -853,7 +857,7 @@ export default function QuizHomeClient() {
     const playRows = (recent || [])
       .filter((p) => p && p.quizId && resolveTitle(p.quizId) && !(p.total > 0 && p.score === p.total))
       .slice(0, 8)
-      .map((p) => ({ type: 'play', href: `/quiz/${p.quizId}`, segs: [
+      .map((p) => ({ type: 'play', href: playHref(p.quizId), segs: [
         { text: p.name || 'Player', strong: true },
         { text: ` ${p.score}/${p.total} on ` },
         { text: resolveTitle(p.quizId), strong: true },
@@ -919,7 +923,7 @@ export default function QuizHomeClient() {
     const achRows = (recent || [])
       .filter((p) => p && p.quizId && resolveTitle(p.quizId) && !p.isAnon && p.total > 0 && p.score === p.total)
       .slice(0, 4)
-      .map((p) => ({ type: 'ach', href: `/quiz/${p.quizId}`, segs: [
+      .map((p) => ({ type: 'ach', href: playHref(p.quizId), segs: [
         { text: p.name || 'Player', strong: true },
         { text: ` aced ${resolveTitle(p.quizId)}` },
         { text: ` · perfect ${p.score}/${p.total}`, dim: true },
@@ -1567,7 +1571,7 @@ export default function QuizHomeClient() {
     <>
       {liveRows.length === 0 && <div style={{ padding: '12px 13px', fontSize: 12, color: C.soft }}>No recent plays{scope === 'all' ? '' : ' in this category'} yet.</div>}
               {liveRows.map((f, i) => (
-                <Link href={`/quiz/${f.quizId}`} className="qlink" key={i}>
+                <Link href={playHref(f.quizId)} className="qlink" key={i}>
                   <div className="lrow" style={{ gap: 4, flexDirection: 'column', alignItems: 'stretch', padding: '7px 13px' }}>
                     <span style={{ display: 'flex', alignItems: 'center', gap: 6, minWidth: 0 }}>
                       <span className="qtitle" style={{ fontWeight: 600 }}>{f.title}</span>
@@ -1915,7 +1919,7 @@ export default function QuizHomeClient() {
             {liveAll.length === 0 ? (
               <div style={{ padding: '18px 2px', color: C.soft, fontSize: 14 }}>No recent plays yet.</div>
             ) : liveAll.map((f, i) => (
-              <Link href={`/quiz/${f.quizId}`} className="qrow" key={i} title={f.title}>
+              <Link href={playHref(f.quizId)} className="qrow" key={i} title={f.title}>
                 <span className="qtitle">{stripVerb(f.title)}</span>
                 <span className="qmeta" style={{ gap: 8 }}>
                   <span className="lf-extra scorebadge" style={{ flex: 'none', fontSize: 11, fontWeight: 700, padding: '2px 7px', borderRadius: 7, fontVariantNumeric: 'tabular-nums', background: f.total && f.score / f.total >= 0.8 ? '#e7f7ed' : '#eef1f6', color: f.total && f.score / f.total >= 0.8 ? '#16a34a' : C.soft }}>{f.score}/{f.total}</span>
@@ -1981,13 +1985,13 @@ export default function QuizHomeClient() {
                     </div>
                     <div style={{ marginTop: 11, display: 'flex', gap: 6 }}>
                       {hot ? (
-                        <a href={`/quiz/${hot.id}`} style={{ flex: '1 1 0', minWidth: 0, background: 'rgba(255,255,255,0.08)', border: '1px solid rgba(255,255,255,0.13)', borderRadius: 8, padding: '4px 8px', textDecoration: 'none', display: 'block' }}>
+                        <a href={playHref(hot.id)} style={{ flex: '1 1 0', minWidth: 0, background: 'rgba(255,255,255,0.08)', border: '1px solid rgba(255,255,255,0.13)', borderRadius: 8, padding: '4px 8px', textDecoration: 'none', display: 'block' }}>
                           <span style={{ fontSize: 8.5, fontWeight: 800, letterSpacing: '.04em', color: '#f4b183', textTransform: 'uppercase', display: 'block' }}>🔥 Hot now</span>
                           <span style={{ fontSize: 11, fontWeight: 700, color: '#fff', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', display: 'block', marginTop: 1 }}>{stripVerb(titleById[hot.id] || hot.title)}</span>
                         </a>
                       ) : null}
                       {tough ? (
-                        <a href={`/quiz/${tough.quizId}`} style={{ flex: '1 1 0', minWidth: 0, background: 'rgba(255,255,255,0.08)', border: '1px solid rgba(255,255,255,0.13)', borderRadius: 8, padding: '4px 8px', textDecoration: 'none', display: 'block' }}>
+                        <a href={playHref(tough.quizId)} style={{ flex: '1 1 0', minWidth: 0, background: 'rgba(255,255,255,0.08)', border: '1px solid rgba(255,255,255,0.13)', borderRadius: 8, padding: '4px 8px', textDecoration: 'none', display: 'block' }}>
                           <span style={{ fontSize: 8.5, fontWeight: 800, letterSpacing: '.04em', color: '#9ec5e8', textTransform: 'uppercase', display: 'block' }}>🧠 Toughest · {Math.round((tough.aceRate || 0) * 100)}% ace</span>
                           <span style={{ fontSize: 11, fontWeight: 700, color: '#fff', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', display: 'block', marginTop: 1 }}>{stripVerb(resolveTitle(tough.quizId) || '')}</span>
                         </a>
@@ -2010,7 +2014,7 @@ export default function QuizHomeClient() {
                       const ringCol = frac >= 0.8 ? '#16a34a' : (frac >= 0.4 ? C.cta : '#dc2626');
                       const good = frac >= 0.8;
                       return (
-                        <Link href={`/quiz/${f.quizId}`} className={`qrow lp-row${idx >= 3 ? ' lp-mobhide' : ''}`} key={f.quizId} title={f.title} style={{ alignItems: 'center', gap: 10, padding: '0 11px', flex: '1 1 0', minHeight: 0 }}>
+                        <Link href={playHref(f.quizId)} className={`qrow lp-row${idx >= 3 ? ' lp-mobhide' : ''}`} key={f.quizId} title={f.title} style={{ alignItems: 'center', gap: 10, padding: '0 11px', flex: '1 1 0', minHeight: 0 }}>
                           <span style={{ width: 30, height: 30, flex: 'none', borderRadius: 999, background: `conic-gradient(${ringCol} ${pctScore}%, #eef1f6 0)`, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                             <span style={{ width: 23, height: 23, borderRadius: 999, background: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 8, fontWeight: 800, color: C.ink }}>{pctScore}%</span>
                           </span>
