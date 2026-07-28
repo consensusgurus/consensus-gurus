@@ -15,7 +15,6 @@
 
 import React, { useState, useEffect } from 'react';
 import { myRefCode } from '@/lib/referrals';
-import { notifyShareCredit } from './ShareCreditPop';
 import { Swords, Share2, Check } from 'lucide-react';
 import useDailyOrder, { sortByDailyOrder } from './useDailyOrder';
 import ReportIssue from './ReportIssue';
@@ -172,7 +171,7 @@ export default function DailyGamesGrid({ self, maxWidth = 640, challengeHref = n
             </a>
           ) : null}
           {share ? (
-            <button type="button" onClick={() => { if (notifyShareCredit()) return; if (share.onClick) share.onClick(); }} className="dgg-t dgg-act dgg-share" aria-label="Share this puzzle">
+            <button type="button" onClick={share.onClick} className="dgg-t dgg-act dgg-share" aria-label="Share this puzzle">
               <Share2 size={20} strokeWidth={2.5} />
               <span className="dgg-act-l">{share.label}{forCredit && !/copied/i.test(share.label || '') ? ' (for credit)' : ''}</span>
             </button>

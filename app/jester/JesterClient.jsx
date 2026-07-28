@@ -39,6 +39,7 @@ import DailyBoardPanel from '../quiz/[id]/DailyBoardPanel';
 import useAbandonFlush from '../quiz/[id]/useAbandonFlush';
 import { isMobileDevice } from '@/lib/is-mobile';
 import { withRef } from '@/lib/referrals';
+import { notifyShareCredit } from '../ShareCreditPop';
 import DailyMasthead from '../DailyMasthead';
 
 const COLORS = {
@@ -897,6 +898,7 @@ export default function JesterClient({ puzzles = [], forceNum = null }) {
     const text = playing
       ? `Jesters #${PUZZLE.num} — the daily court-placement puzzle from Source of Truths.\n${withRef(`sourceoftruths.com/jester${isTodays ? '' : `?p=${PUZZLE.num}`}`)}`
       : `Jesters — Court #${PUZZLE.num}\n${solvedBit}${streakBit}\n${withRef(`sourceoftruths.com/jester${isTodays ? '' : `?p=${PUZZLE.num}`}`)}`;
+    if (notifyShareCredit(text)) return;
     try {
       if (typeof navigator !== 'undefined' && navigator.share && isMobileDevice()) {
         navigator.share({ text }).catch(() => {});

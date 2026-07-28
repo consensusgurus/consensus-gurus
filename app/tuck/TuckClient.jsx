@@ -34,6 +34,7 @@ import DailyBoardPanel from '../quiz/[id]/DailyBoardPanel';
 import useAbandonFlush from '../quiz/[id]/useAbandonFlush';
 import { isMobileDevice } from '@/lib/is-mobile';
 import { withRef } from '@/lib/referrals';
+import { notifyShareCredit } from '../ShareCreditPop';
 import DailyMasthead from '../DailyMasthead';
 
 const COLORS = {
@@ -565,6 +566,7 @@ export default function TuckClient({ puzzles = [], forceNum = null }) {
     const text = playing
       ? `Tuck #${PUZZLE.num} — tuck ${RACK} letters into one grid. Par is ${PAR}.\n${withRef(`sourceoftruths.com/tuck${isTodays ? '' : `?p=${PUZZLE.num}`}`)}`
       : `Tuck #${PUZZLE.num} · ${finalScore} pts (par ${PAR})${finalScore >= PAR ? ' · beat par' : ''}${streakBit}\n${shareArt()}${withRef(`sourceoftruths.com/tuck${isTodays ? '' : `?p=${PUZZLE.num}`}`)}`;
+    if (notifyShareCredit(text)) return;
     try {
       if (typeof navigator !== 'undefined' && navigator.share && isMobileDevice()) {
         navigator.share({ text }).catch(() => {});

@@ -34,6 +34,7 @@ import DailyBoardPanel from '../quiz/[id]/DailyBoardPanel';
 import { isMobileDevice } from '@/lib/is-mobile';
 import useAbandonFlush from '../quiz/[id]/useAbandonFlush';
 import { withRef } from '@/lib/referrals';
+import { notifyShareCredit } from '../ShareCreditPop';
 import DailyMasthead from '../DailyMasthead';
 
 const COLORS = {
@@ -459,6 +460,7 @@ export default function StetClient({ puzzles = [], forceNum = null }) {
     const text = playing
       ? `Stet #${PUZZLE.num} — the daily copy-desk game from Source of Truths.\n${shareUrl()}`
       : shareText();
+    if (notifyShareCredit(text)) return;
     try {
       if (typeof navigator !== 'undefined' && navigator.share && isMobileDevice()) {
         navigator.share({ text }).catch(() => {});

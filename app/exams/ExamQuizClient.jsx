@@ -147,11 +147,11 @@ export default function ExamQuizClient({ examKey }) {
   }
 
   function share() {
-    if (notifyShareCredit()) return;
     const url = withRef(typeof window !== 'undefined' ? window.location.href : `https://sourceoftruths.com/${examKey}`);
     const text = phase === 'done'
       ? `I got ${correctCount}/${total} on the ${exam.label} practice quiz. Where will you get in?`
       : `${exam.label} practice: 10 hard questions. Where will you get in?`;
+    if (notifyShareCredit(`${text} ${url}`)) return;
     if (typeof navigator !== 'undefined' && navigator.share) {
       navigator.share({ title: `${exam.label} Practice`, text, url }).catch(() => {});
     } else if (typeof navigator !== 'undefined' && navigator.clipboard) {

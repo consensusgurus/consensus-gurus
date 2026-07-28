@@ -42,6 +42,7 @@ import useAbandonFlush from '../quiz/[id]/useAbandonFlush';
 import { buildAdj, buildLookup, shortestRoute, viaRoute, distancesFrom, normName, COUNTRIES } from './borders';
 import { MAP } from './map-geo';
 import { withRef } from '@/lib/referrals';
+import { notifyShareCredit } from '../ShareCreditPop';
 import DailyMasthead from '../DailyMasthead';
 
 const COLORS = {
@@ -629,6 +630,7 @@ export default function SpanClient({ puzzles = [], forceNum = null }) {
     const text = playing
       ? `Span #${PUZZLE.num} — get from ${PUZZLE.start} to ${PUZZLE.end}, border by border.${VIA ? ` Sunday Edition: the road must pass through ${VIA}.` : AVOID ? ` Sunday Edition: ${AVOID} is closed.` : ''} Shortest path is ${PUZZLE.par}.\n${shareUrl()}`
       : shareText();
+    if (notifyShareCredit(text)) return;
     try {
       if (typeof navigator !== 'undefined' && navigator.share && isMobileDevice()) {
         navigator.share({ text }).catch(() => {});

@@ -36,6 +36,7 @@ import DailyBoardPanel from '../quiz/[id]/DailyBoardPanel';
 import useAbandonFlush from '../quiz/[id]/useAbandonFlush';
 import { isMobileDevice } from '@/lib/is-mobile';
 import { withRef } from '@/lib/referrals';
+import { notifyShareCredit } from '../ShareCreditPop';
 import DailyMasthead from '../DailyMasthead';
 
 const COLORS = {
@@ -610,6 +611,7 @@ export default function ShardsClient({ puzzles = [], forceNum = null }) {
     const text = playing
       ? `Shards No. ${PUZZLE.num} - reassemble the shattered crossword.\n${url}`
       : `Shards No. ${PUZZLE.num} - ${finalScore}/${START} · ${elapsed} · ${g.misplaced} miss${g.misplaced === 1 ? '' : 'es'} · ${g.hintsUsed} hint${g.hintsUsed === 1 ? '' : 's'}\n${shareArt()}${url}`;
+    if (notifyShareCredit(text)) return;
     try { if (typeof navigator !== 'undefined' && navigator.share && isMobileDevice()) { navigator.share({ text }).catch(() => {}); return; } } catch (e) {}
     try { navigator.clipboard?.writeText(text).then(() => { setCopied(true); setTimeout(() => setCopied(false), 1800); }); } catch (e) {}
   }

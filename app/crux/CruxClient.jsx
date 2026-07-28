@@ -30,6 +30,7 @@ import DailyBoardPanel from '../quiz/[id]/DailyBoardPanel';
 import { isMobileDevice } from '@/lib/is-mobile';
 import useAbandonFlush from '../quiz/[id]/useAbandonFlush';
 import { withRef } from '@/lib/referrals';
+import { notifyShareCredit } from '../ShareCreditPop';
 import DailyMasthead from '../DailyMasthead';
 
 const COLORS = {
@@ -767,6 +768,7 @@ export default function CruxClient({ puzzles = [], forceNum = null }) {
     // Mobile: native share sheet (like the big daily games) — the receiving
     // app gets the text directly, line breaks intact, no clipboard quirks.
     // Desktop: clipboard with the Copied flip.
+    if (notifyShareCredit(text)) return;
     try {
       if (typeof navigator !== 'undefined' && navigator.share && isMobileDevice()) {
         navigator.share({ text }).catch(() => {});

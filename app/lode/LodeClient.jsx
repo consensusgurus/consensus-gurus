@@ -48,6 +48,7 @@ import DailyBoardPanel from '../quiz/[id]/DailyBoardPanel';
 import useAbandonFlush from '../quiz/[id]/useAbandonFlush';
 import { isMobileDevice } from '@/lib/is-mobile';
 import { withRef } from '@/lib/referrals';
+import { notifyShareCredit } from '../ShareCreditPop';
 import DailyMasthead from '../DailyMasthead';
 
 const COLORS = {
@@ -467,6 +468,7 @@ export default function LodeClient({ puzzles = [], forceNum = null }) {
     const text = playing && !g.found.length
       ? `Lode No. ${PUZZLE.num} — seven letters, one core, dig for the rare ones.\n${url}`
       : `Lode No. ${PUZZLE.num} — ${rank.n}\n${score} pts · ${g.found.length} words${pangramsFound ? ` · ${pangramsFound} pangram${pangramsFound > 1 ? 's' : ''}` : ''}${streakBit}\n${assayBar()}\n${url}`;
+    if (notifyShareCredit(text)) return;
     try {
       if (typeof navigator !== 'undefined' && navigator.share && isMobileDevice()) {
         navigator.share({ text }).catch(() => {});

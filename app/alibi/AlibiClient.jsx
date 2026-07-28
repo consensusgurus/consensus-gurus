@@ -36,6 +36,7 @@ import DailyBoardPanel from '../quiz/[id]/DailyBoardPanel';
 import { isMobileDevice } from '@/lib/is-mobile';
 import useAbandonFlush from '../quiz/[id]/useAbandonFlush';
 import { withRef } from '@/lib/referrals';
+import { notifyShareCredit } from '../ShareCreditPop';
 import DailyMasthead from '../DailyMasthead';
 
 const COLORS = {
@@ -877,6 +878,7 @@ export default function AlibiClient({ puzzles = [], forceNum = null }) {
     const text = playing
       ? `Alibi #${PUZZLE.num} — the nightly whodunit from Source of Truths.\n${withRef(`sourceoftruths.com/alibi${isTodays ? '' : `?p=${PUZZLE.num}`}`)}`
       : `Alibi — Case #${PUZZLE.num}\n${solvedBit}${streakBit}\n${withRef(`sourceoftruths.com/alibi${isTodays ? '' : `?p=${PUZZLE.num}`}`)}`;
+    if (notifyShareCredit(text)) return;
     try {
       if (typeof navigator !== 'undefined' && navigator.share && isMobileDevice()) {
         navigator.share({ text }).catch(() => {});

@@ -36,6 +36,7 @@ import DailyBoardPanel from '../quiz/[id]/DailyBoardPanel';
 import useAbandonFlush from '../quiz/[id]/useAbandonFlush';
 import { isMobileDevice } from '@/lib/is-mobile';
 import { withRef } from '@/lib/referrals';
+import { notifyShareCredit } from '../ShareCreditPop';
 
 const COLORS = {
   cream: '#f7f8fa',
@@ -761,6 +762,7 @@ export default function HearsayClient({ puzzles = [], forceNum = null }) {
     const text = playing
       ? `Hearsay #${PUZZLE.num} — the daily puzzle of what other people don't know, from Source of Truths.\n${withRef(`sourceoftruths.com/hearsay${isTodays ? '' : `?p=${PUZZLE.num}`}`)}`
       : `Hearsay — Case #${PUZZLE.num}\n${solvedBit}${streakBit}\n${withRef(`sourceoftruths.com/hearsay${isTodays ? '' : `?p=${PUZZLE.num}`}`)}`;
+    if (notifyShareCredit(text)) return;
     try {
       if (typeof navigator !== 'undefined' && navigator.share && isMobileDevice()) {
         navigator.share({ text }).catch(() => {});

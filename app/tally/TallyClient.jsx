@@ -30,6 +30,7 @@ import DailyBoardPanel from '../quiz/[id]/DailyBoardPanel';
 import { isMobileDevice } from '@/lib/is-mobile';
 import useAbandonFlush from '../quiz/[id]/useAbandonFlush';
 import { withRef } from '@/lib/referrals';
+import { notifyShareCredit } from '../ShareCreditPop';
 import DailyMasthead from '../DailyMasthead';
 
 const COLORS = {
@@ -495,6 +496,7 @@ export default function TallyClient({ puzzles = [], forceNum = null }) {
     const text = playing
       ? `Tally #${PUZZLE.num} — balance every row and column from the rack. Fewest moves is ${FEWEST}.\n${shareUrl()}`
       : shareText();
+    if (notifyShareCredit(text)) return;
     try {
       if (typeof navigator !== 'undefined' && navigator.share && isMobileDevice()) {
         navigator.share({ text }).catch(() => {});

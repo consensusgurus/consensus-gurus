@@ -36,6 +36,7 @@ import DailyBoardPanel from '../quiz/[id]/DailyBoardPanel';
 import useAbandonFlush from '../quiz/[id]/useAbandonFlush';
 import { isMobileDevice } from '@/lib/is-mobile';
 import { withRef } from '@/lib/referrals';
+import { notifyShareCredit } from '../ShareCreditPop';
 import DailyMasthead from '../DailyMasthead';
 
 const COLORS = {
@@ -762,6 +763,7 @@ export default function SwornClient({ puzzles = [], forceNum = null }) {
     const text = playing
       ? `Sworn #${PUZZLE.num} — the daily liars puzzle from Source of Truths.\n${withRef(`sourceoftruths.com/sworn${isTodays ? '' : `?p=${PUZZLE.num}`}`)}`
       : `Sworn — Inquest #${PUZZLE.num}\n${solvedBit}${streakBit}\n${withRef(`sourceoftruths.com/sworn${isTodays ? '' : `?p=${PUZZLE.num}`}`)}`;
+    if (notifyShareCredit(text)) return;
     try {
       if (typeof navigator !== 'undefined' && navigator.share && isMobileDevice()) {
         navigator.share({ text }).catch(() => {});

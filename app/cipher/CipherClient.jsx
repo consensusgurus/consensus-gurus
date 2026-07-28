@@ -31,6 +31,7 @@ import DailyBoardPanel from '../quiz/[id]/DailyBoardPanel';
 import { isMobileDevice } from '@/lib/is-mobile';
 import useAbandonFlush from '../quiz/[id]/useAbandonFlush';
 import { withRef } from '@/lib/referrals';
+import { notifyShareCredit } from '../ShareCreditPop';
 import DailyMasthead from '../DailyMasthead';
 
 const COLORS = {
@@ -478,6 +479,7 @@ export default function CipherClient({ puzzles = [], forceNum = null }) {
     const text = playing
       ? `Cipher #${PUZZLE.num} — the daily cryptarithm from Source of Truths.\n${shareUrl()}`
       : shareText();
+    if (notifyShareCredit(text)) return;
     try {
       if (typeof navigator !== 'undefined' && navigator.share && isMobileDevice()) {
         navigator.share({ text }).catch(() => {});

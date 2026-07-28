@@ -32,6 +32,7 @@ import { isMobileDevice } from '@/lib/is-mobile';
 import useAbandonFlush from '../quiz/[id]/useAbandonFlush';
 import { CITIES, findCity, suggestCities, haversineMiles, continentOf, normCity } from '@/lib/ping-cities';
 import { withRef } from '@/lib/referrals';
+import { notifyShareCredit } from '../ShareCreditPop';
 import DailyMasthead from '../DailyMasthead';
 
 const COLORS = {
@@ -499,6 +500,7 @@ export default function PingClient({ puzzles = [], forceNum = null }) {
     const text = playing
       ? `Ping #${PUZZLE.num} — the daily city hunt from Source of Truths.\n${shareUrl()}`
       : shareText();
+    if (notifyShareCredit(text)) return;
     try {
       if (typeof navigator !== 'undefined' && navigator.share && isMobileDevice()) {
         navigator.share({ text }).catch(() => {});

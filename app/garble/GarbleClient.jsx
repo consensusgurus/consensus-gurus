@@ -23,6 +23,7 @@ import DailyEndCard from '../DailyEndCard';
 import { isMobileDevice } from '@/lib/is-mobile';
 import useAbandonFlush from '../quiz/[id]/useAbandonFlush';
 import { withRef } from '@/lib/referrals';
+import { notifyShareCredit } from '../ShareCreditPop';
 import DailyMasthead from '../DailyMasthead';
 
 const COLORS = {
@@ -376,6 +377,7 @@ export default function GarbleClient({ puzzles = [], forceNum = null }) {
     const text = playing
       ? `Garble #${PUZZLE.num} — five garbled words, one clued finale. Can you untangle it?\n${withRef('sourceoftruths.com/garble')}`
       : shareText();
+    if (notifyShareCredit(text)) return;
     try {
       if (typeof navigator !== 'undefined' && navigator.share && isMobileDevice()) {
         navigator.share({ text }).catch(() => {});

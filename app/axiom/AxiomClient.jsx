@@ -39,6 +39,7 @@ import DailyBoardPanel from '../quiz/[id]/DailyBoardPanel';
 import useAbandonFlush from '../quiz/[id]/useAbandonFlush';
 import { isMobileDevice } from '@/lib/is-mobile';
 import { withRef } from '@/lib/referrals';
+import { notifyShareCredit } from '../ShareCreditPop';
 import DailyMasthead from '../DailyMasthead';
 
 const COLORS = {
@@ -827,6 +828,7 @@ export default function AxiomClient({ puzzles = [], forceNum = null }) {
     const text = playing
       ? `Axiom #${PUZZLE.num} — the daily rule-induction game from Source of Truths.\n${withRef(`sourceoftruths.com/axiom${isTodays ? '' : `?p=${PUZZLE.num}`}`)}`
       : `Axiom — Board #${PUZZLE.num}\n${solvedBit}${streakBit}\n${pips}\n${withRef(`sourceoftruths.com/axiom${isTodays ? '' : `?p=${PUZZLE.num}`}`)}`;
+    if (notifyShareCredit(text)) return;
     try {
       if (typeof navigator !== 'undefined' && navigator.share && isMobileDevice()) {
         navigator.share({ text }).catch(() => {});
