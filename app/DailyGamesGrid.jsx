@@ -14,7 +14,6 @@
 // registry here adds it to every other game's page.
 
 import React, { useState, useEffect } from 'react';
-import { myRefCode } from '@/lib/referrals';
 import { Swords, Share2, Check } from 'lucide-react';
 import useDailyOrder, { sortByDailyOrder } from './useDailyOrder';
 import ReportIssue from './ReportIssue';
@@ -71,8 +70,6 @@ export default function DailyGamesGrid({ self, maxWidth = 640, challengeHref = n
   // carries their referral code, so the share genuinely earns them credit. A
   // signed-out visitor sees the plain label rather than a promise we can't keep.
   // Resolved in an effect so server and first client render agree.
-  const [forCredit, setForCredit] = useState(false);
-  useEffect(() => { setForCredit(!!myRefCode()); }, []);
   // Display order within each category = yesterday's popularity (canonical
   // until the order loads).
   const dailyOrder = useDailyOrder();
@@ -173,7 +170,7 @@ export default function DailyGamesGrid({ self, maxWidth = 640, challengeHref = n
           {share ? (
             <button type="button" onClick={share.onClick} className="dgg-t dgg-act dgg-share" aria-label="Share this puzzle">
               <Share2 size={20} strokeWidth={2.5} />
-              <span className="dgg-act-l">{share.label}{forCredit && !/copied/i.test(share.label || '') ? ' (for credit)' : ''}</span>
+              <span className="dgg-act-l">{share.label}{!/copied/i.test(share.label || '') ? ' (for credit)' : ''}</span>
             </button>
           ) : null}
         </div>

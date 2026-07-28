@@ -29,7 +29,7 @@ import SimilarQuizTiles from './SimilarQuizTiles';
 import UpNextCard from './UpNextCard';
 import ScrollToTopOnMount from './ScrollToTopOnMount';
 import { ArrowRight, Play } from 'lucide-react';
-import { withRef, myRefCode } from '@/lib/referrals';
+import { withRef } from '@/lib/referrals';
 import { notifyShareCredit } from '@/app/ShareCreditPop';
 
 const MapQuizBoard = dynamic(() => import('./MapQuizBoard'), { ssr: false, loading: () => null });
@@ -594,8 +594,6 @@ export default function QuizClient({ quizId }) {
   const [copied, setCopied] = useState(false);
   // Only promise credit to a viewer who actually has a referral code (see
   // DailyGamesGrid for the same rule).
-  const [refCredit, setRefCredit] = useState(false);
-  useEffect(() => { setRefCredit(!!myRefCode()); }, []);
   const [revealed, setRevealed] = useState(false); // non-list quizzes: misses shown after username gate
   const [gameOverDismissed, setGameOverDismissed] = useState(false); // hides the Game Over overlay once acknowledged
   const [celebration, setCelebration] = useState(null); // null | 'small' (perfect, not top) | 'big' (all-time top score)
@@ -1676,7 +1674,7 @@ export default function QuizClient({ quizId }) {
                     this link and finishes a game credits whoever shared it. */}
                 <div style={{ display: 'flex', flexWrap: 'wrap', gap: 9 }}>
                   <a href={`/duel/new?quiz=${encodeURIComponent(quiz.id)}`} style={{ ...stackBtn, flex: '1 1 190px', width: 'auto', background: COLORS.ink, color: '#fff', borderRadius: 10 }}><Swords size={15} strokeWidth={2.5} /> Challenge Someone</a>
-                  <button onClick={() => { if (!notifyShareCredit(`${resultMsg}\n${shareUrl}`)) share(); }} style={{ ...stackBtn, flex: '1 1 190px', width: 'auto', background: COLORS.ink, color: '#fff', borderRadius: 10 }}><Share2 size={15} strokeWidth={2.5} /> {copied ? 'Link copied' : (refCredit ? 'Share Quiz (for credit)' : 'Share Quiz')}</button>
+                  <button onClick={() => { if (!notifyShareCredit(`${resultMsg}\n${shareUrl}`)) share(); }} style={{ ...stackBtn, flex: '1 1 190px', width: 'auto', background: COLORS.ink, color: '#fff', borderRadius: 10 }}><Share2 size={15} strokeWidth={2.5} /> {copied ? 'Link copied' : 'Share Quiz (for credit)'}</button>
                 </div>
               </div>
               <div style={{ marginTop: 9 }}>

@@ -41,7 +41,6 @@ import {
   FlaskConical, Ear, CircleDot, Table2, Trophy as TrophyFin, Image as ImageIcon, Route,
   CalendarDays, ChevronLeft, ChevronRight, ChevronDown, CheckCircle2, UserPlus,
 } from 'lucide-react';
-import { myRefCode } from '@/lib/referrals';
 import ReportIssue from './ReportIssue';
 
 const RUST = '#c0392b';
@@ -186,8 +185,6 @@ export default function DailyEndCard({
   // "(for credit)" only for a registered viewer: every caller's share handler
   // builds its URL through withRef, so a registered sharer genuinely earns the
   // credit, while a signed-out one would be promised something they can't get.
-  const [forCredit, setForCredit] = useState(false);
-  useEffect(() => { setForCredit(!!myRefCode()); }, []);
   // If the completion fetch is very slow, stop showing the loading skeletons after
   // a beat and collapse those slots rather than lingering on a shimmer.
   useEffect(() => {
@@ -867,7 +864,7 @@ export default function DailyEndCard({
         {/* share (left) + identity (right) on one line; both fill width on mobile */}
         <div className="dec-idrow">
           <button type="button" className="dec-share" onClick={onShare}>
-            <Share2 size={14} strokeWidth={2.2} /> Share result{forCredit && !/copied/i.test(shareLabel || '') ? ' (for credit)' : ''}
+            <Share2 size={14} strokeWidth={2.2} /> Share result{!/copied/i.test(shareLabel || '') ? ' (for credit)' : ''}
           </button>
           {hasEmail && username ? (
             <span className="dec-idbox">
