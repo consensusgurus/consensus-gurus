@@ -866,7 +866,7 @@ export default function DailyEndCard({
         ) : null}
         {/* share (left) + identity (right) on one line; both fill width on mobile */}
         <div className="dec-idrow">
-          <button type="button" className="dec-share" onClick={() => { if (onShare) onShare(); notifyShareCredit(); }}>
+          <button type="button" className="dec-share" onClick={() => { if (notifyShareCredit()) return; if (onShare) onShare(); }}>
             <Share2 size={14} strokeWidth={2.2} /> Share result{forCredit && !/copied/i.test(shareLabel || '') ? ' (for credit)' : ''}
           </button>
           {hasEmail && username ? (

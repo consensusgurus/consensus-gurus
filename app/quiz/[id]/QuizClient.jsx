@@ -1327,7 +1327,7 @@ export default function QuizClient({ quizId }) {
     return shareUrl;
   }
   function openShare(kind) { try { window.open(platformShareUrl(kind), '_blank', 'noopener,noreferrer'); } catch (e) {} }
-  function copyResult() { try { navigator.clipboard?.writeText(`${resultMsg}\n${shareUrl}`).then(() => { setCopied(true); setTimeout(() => setCopied(false), 1800); }); notifyShareCredit(); } catch (e) {} }
+  function copyResult() { if (notifyShareCredit()) return; try { navigator.clipboard?.writeText(`${resultMsg}\n${shareUrl}`).then(() => { setCopied(true); setTimeout(() => setCopied(false), 1800); }); } catch (e) {} }
   async function downloadResultImage() { try { const r = await fetch(resultImgUrl); const b = await r.blob(); const u = URL.createObjectURL(b); const a = document.createElement('a'); a.href = u; a.download = `source-of-truths-${quiz.id}-score.png`; document.body.appendChild(a); a.click(); a.remove(); URL.revokeObjectURL(u); } catch (e) {} }
   async function downloadPromoImage() { try { const r = await fetch(promoImgUrl); const b = await r.blob(); const u = URL.createObjectURL(b); const a = document.createElement('a'); a.href = u; a.download = `source-of-truths-${quiz.id}.png`; document.body.appendChild(a); a.click(); a.remove(); URL.revokeObjectURL(u); } catch (e) {} }
 
@@ -1676,7 +1676,7 @@ export default function QuizClient({ quizId }) {
                     this link and finishes a game credits whoever shared it. */}
                 <div style={{ display: 'flex', flexWrap: 'wrap', gap: 9 }}>
                   <a href={`/duel/new?quiz=${encodeURIComponent(quiz.id)}`} style={{ ...stackBtn, flex: '1 1 190px', width: 'auto', background: COLORS.ink, color: '#fff', borderRadius: 10 }}><Swords size={15} strokeWidth={2.5} /> Challenge Someone</a>
-                  <button onClick={() => { share(); notifyShareCredit(); }} style={{ ...stackBtn, flex: '1 1 190px', width: 'auto', background: COLORS.ink, color: '#fff', borderRadius: 10 }}><Share2 size={15} strokeWidth={2.5} /> {copied ? 'Link copied' : (refCredit ? 'Share Quiz (for credit)' : 'Share Quiz')}</button>
+                  <button onClick={() => { if (!notifyShareCredit()) share(); }} style={{ ...stackBtn, flex: '1 1 190px', width: 'auto', background: COLORS.ink, color: '#fff', borderRadius: 10 }}><Share2 size={15} strokeWidth={2.5} /> {copied ? 'Link copied' : (refCredit ? 'Share Quiz (for credit)' : 'Share Quiz')}</button>
                 </div>
               </div>
               <div style={{ marginTop: 9 }}>

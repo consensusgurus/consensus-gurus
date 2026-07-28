@@ -252,7 +252,7 @@ export default function GeoClient() {
 
   const shareUrl = withRef(typeof window !== 'undefined' ? window.location.href : 'https://sourceoftruths.com/geo/nyc-restaurants');
   function share() {
-    notifyShareCredit();
+    if (notifyShareCredit()) return;
     const text = phase === 'done' ? `I scored ${points}/${MAX_POINTS} on Locate the Restaurant (NYC). Can you beat me?` : 'Locate the Restaurant — a NYC aerial geo game.';
     if (typeof navigator !== 'undefined' && navigator.share) { navigator.share({ title: 'Locate the Restaurant', text, url: shareUrl }).catch(() => {}); }
     else if (typeof navigator !== 'undefined' && navigator.clipboard) { navigator.clipboard.writeText(`${text} ${shareUrl}`).then(() => { setCopied(true); setTimeout(() => setCopied(false), 1800); }).catch(() => {}); }
