@@ -1,7 +1,7 @@
 import { renderAxiomCard } from '@/lib/og-brand-card'
 
 export const runtime = 'nodejs'
-export const alt = 'Axiom — the daily hidden-rule game from Source of Truths'
+export const alt = 'Axiom — the daily hidden-rule puzzle from Source of Truths'
 export { size, contentType } from '@/lib/og-brand-card'
 
 // Static route (one board a day, same look): render the Axiom snapshot card

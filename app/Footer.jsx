@@ -17,7 +17,7 @@ const COLS = [
   {
     head: 'Puzzles & Quizzes',
     links: [
-      { label: 'Browse Quizzes', href: '/' },
+      { label: 'Browse Puzzles & Quizzes', href: '/' },
       { label: 'Daily Puzzles & Archive', href: '/daily' },
       { label: 'Stat Hub', href: '/quizzes/hub' },
       { label: 'Community Leaderboard', href: '/quizzes/community' },
