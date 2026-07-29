@@ -1528,26 +1528,26 @@ export default function QuizHomeClient() {
       .qzh .lbtile.mc-closed .lbtile-head a{color:${C.ctaInk} !important;}
       .qzh .lbtile.mc-closed .lbtile-head .lchev{color:${C.ctaInk} !important;}
     }
-    /* Full-width tool row under the three-column daily section: search grows,
-       the three action buttons sit flush right. Wraps to its own line on
-       tablets; on phones the buttons go full width, two up then one. */
-    .qzh .qz-toolrow{display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin:2px 0 16px;}
-    .qzh .qz-toolsearch{position:relative;flex:1 1 320px;min-width:0;display:flex;align-items:center;gap:9px;background:#fff;border:1.5px solid #b8c0cc;border-radius:12px;padding:0 12px;height:46px;}
-    .qzh .qz-toolsearch:focus-within{border-color:${C.accent};box-shadow:0 0 0 3px rgba(14,29,64,0.08);}
+    /* Full-width tool row under the three-column daily section, styled as ONE
+       integrated element (owner 2026-07-29): a navy casing wraps the white search
+       field and the three white action buttons, all one uniform treatment. */
+    .qzh .qz-toolrow{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin:2px 0 16px;background:${C.accent};border:1.5px solid ${C.accent};border-radius:14px;padding:8px;box-shadow:0 1px 4px rgba(14,29,64,0.16);}
+    .qzh .qz-toolsearch{position:relative;flex:1 1 320px;min-width:0;display:flex;align-items:center;gap:9px;background:#fff;border:1.5px solid transparent;border-radius:10px;padding:0 12px;height:42px;}
+    .qzh .qz-toolsearch:focus-within{border-color:#fff;box-shadow:0 0 0 3px rgba(255,255,255,0.28);}
     .qzh .qz-toolsearch svg{flex:none;color:${C.soft};}
     .qzh .qz-toolsearch input{flex:1;min-width:0;border:none;outline:none;background:transparent;font-family:${FONT};font-size:14.5px;font-weight:600;color:${C.ink};}
     .qzh .qz-toolsearch input::placeholder{color:${C.soft};font-weight:500;}
     .qzh .qz-toolclear{flex:none;border:none;background:transparent;padding:0;cursor:pointer;color:${C.soft};display:flex;}
     .qzh .qz-toolclear:hover{color:${C.ink};}
     .qzh .qz-toolbtns{display:flex;align-items:center;gap:8px;flex:none;}
-    .qzh .qz-toolbtn{display:inline-flex;align-items:center;gap:7px;height:46px;padding:0 15px;border-radius:12px;border:1.5px solid #b8c0cc;background:#fff;color:${C.ink};font-family:${FONT};font-size:13px;font-weight:700;cursor:pointer;text-decoration:none;white-space:nowrap;}
-    .qzh .qz-toolbtn svg{flex:none;color:${C.soft};}
-    .qzh .qz-toolbtn:hover{border-color:${C.accent};color:${C.accent};}
+    .qzh .qz-toolbtn{display:inline-flex;align-items:center;gap:7px;height:42px;padding:0 15px;border-radius:10px;border:1.5px solid transparent;background:#fff;color:${C.accent};font-family:${FONT};font-size:13px;font-weight:700;cursor:pointer;text-decoration:none;white-space:nowrap;transition:background .14s ease;}
+    .qzh .qz-toolbtn svg{flex:none;color:${C.accent};}
+    .qzh .qz-toolbtn:hover{background:${C.accsoft};color:${C.accent};}
     .qzh .qz-toolbtn:hover svg{color:${C.accent};}
-    .qzh .qz-toolbtn-cta{background:${C.accent};border-color:${C.accent};color:#fff;}
-    .qzh .qz-toolbtn-cta svg{color:#fff;}
-    .qzh .qz-toolbtn-cta:hover{background:#0a1730;border-color:#0a1730;color:#fff;}
-    .qzh .qz-toolbtn-cta:hover svg{color:#fff;}
+    .qzh .qz-toolbtn-cta{background:#fff;border-color:transparent;color:${C.accent};}
+    .qzh .qz-toolbtn-cta svg{color:${C.accent};}
+    .qzh .qz-toolbtn-cta:hover{background:${C.accsoft};border-color:transparent;color:${C.accent};}
+    .qzh .qz-toolbtn-cta:hover svg{color:${C.accent};}
     @media(max-width:1024px){.qzh .qz-toolsearch{flex:1 1 100%;}.qzh .qz-toolbtns{flex:1 1 100%;}.qzh .qz-toolbtn{flex:1 1 0;justify-content:center;}}
     /* ONE search bar at every width. The browse row's own field is hidden from
        821px up (rule above), so this tool-row field is the desktop search; at
@@ -1555,7 +1555,7 @@ export default function QuizHomeClient() {
        tool-row one hides and only the three buttons remain here. Mobile layout
        is therefore exactly what it was, plus the buttons. */
     @media(max-width:820px){.qzh .qz-toolsearch{display:none !important;}.qzh .qz-toolrow{margin-top:0;}}
-    @media(max-width:560px){.qzh .qz-toolrow{gap:9px;margin-bottom:13px;}.qzh .qz-toolbtns{flex-wrap:wrap;}.qzh .qz-toolbtn{flex:1 1 calc(50% - 4px);height:42px;padding:0 10px;font-size:12px;}.qzh .qz-toolbtn-cta{flex:1 1 100%;}}
+    @media(max-width:560px){.qzh .qz-toolrow{gap:7px;padding:7px;margin-bottom:13px;}.qzh .qz-toolbtns{flex-wrap:wrap;gap:7px;}.qzh .qz-toolbtn{flex:1 1 calc(50% - 4px);height:40px;padding:0 10px;font-size:12px;}.qzh .qz-toolbtn-cta{flex:1 1 100%;}}
     .qzh .boards{display:grid;grid-template-columns:minmax(0,1.6fr) minmax(0,1fr);gap:12px;align-items:stretch;margin-bottom:12px;}
     .qzh .qz-mobtoggle{display:none;}
     /* Desktop: leaderboard LEFT (1fr), daily challenge WIDE MIDDLE (1.5fr),
