@@ -359,7 +359,7 @@ export default function DailyStrip({ board = null }) {
       <style>{`
         .dhome{margin-bottom:16px;font-family:'Manrope',system-ui,-apple-system,sans-serif;}
         /* ── stats bar, welded onto the grid ── */
-        .dh-sbar{display:flex;align-items:center;gap:10px;background:#0e1d40;border-radius:13px 13px 0 0;padding:10px 12px;color:#eef3fb;border-bottom:1px solid rgba(255,255,255,0.07);}
+        .dh-sbar{container-type:inline-size;display:flex;align-items:center;gap:10px;background:#0e1d40;border-radius:13px 13px 0 0;padding:10px 12px;color:#eef3fb;border-bottom:1px solid rgba(255,255,255,0.07);}
         .dh-bup{display:flex;align-items:center;gap:8px;flex:none;padding-right:10px;border-right:1px solid #223353;}
         .dh-bup>img{height:26px;width:auto;max-width:32px;object-fit:contain;}
         .dh-bupt{min-width:0;}
@@ -372,6 +372,8 @@ export default function DailyStrip({ board = null }) {
         .dh-stat span{font-family:'DM Mono',ui-monospace,monospace;font-size:8.5px;letter-spacing:.07em;text-transform:uppercase;color:#6c7e9b;white-space:nowrap;}
         .dh-stat.g b{color:#34d399;}
         .dh-stat.y b{color:#e8b43a;}
+        @container (max-width:900px){.dh-stat.opt{display:none;}}
+        @container (max-width:700px){.dh-stat.opt2{display:none;}}
         .dh-seg{display:flex;flex:none;background:rgba(255,255,255,0.06);border-radius:8px;padding:2px;}
         .dh-segb{border:none;background:transparent;color:#93a3bd;font-weight:800;font-size:10.5px;padding:5px 8px;border-radius:6px;cursor:pointer;font-family:inherit;white-space:nowrap;}
         .dh-segb:hover{color:#fff;}
@@ -463,7 +465,6 @@ export default function DailyStrip({ board = null }) {
         .dsd-p{color:#93a7cc;font-variant-numeric:tabular-nums;font-weight:600;font-size:10.5px;}
         .dsd-none{color:#6a80a8;font-size:10.5px;padding:2px 0;}
         /* ── responsive ── */
-        @media(max-width:1180px){.dh-stat.opt{display:none;}}
         @media(max-width:1080px){.dh-board{grid-template-columns:repeat(5,minmax(0,1fr));}}
         @media(max-width:940px){.dh-sbar{flex-wrap:wrap;}.dh-bup{border-right:none;}.dh-seg{margin-left:auto;}}
         @media(max-width:860px){.dh-board{grid-template-columns:repeat(4,minmax(0,1fr));}.dh-boardwrap.open{min-height:560px;}}
@@ -514,7 +515,7 @@ export default function DailyStrip({ board = null }) {
           {board && board.me ? <div className="dh-stat"><b>#{board.me.rank}</b><span>Daily rank</span></div> : null}
           {dayStreak >= 2 ? <div className="dh-stat y"><b>{dayStreak}</b><span>Day streak</span></div> : null}
           {uniquePlayers != null ? <div className="dh-stat opt"><b>{uniquePlayers.toLocaleString()}</b><span>Players</span></div> : null}
-          {resetLbl ? <div className="dh-stat opt"><b>{resetLbl}</b><span>Resets in</span></div> : null}
+          {resetLbl ? <div className="dh-stat opt2"><b>{resetLbl}</b><span>Resets in</span></div> : null}
         </div>
         <div className="dh-seg">
           {seg('all', `All ${GAMES.length}`)}
