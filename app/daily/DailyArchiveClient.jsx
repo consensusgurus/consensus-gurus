@@ -593,7 +593,7 @@ export default function DailyArchiveClient({ games = [], today = '' }) {
         <div className="dl-top">
           <div className="dl-top-l">
             <div className="dl-nav" style={{ display: 'flex', alignItems: 'center', gap: 14, marginBottom: 10 }}>
-              <a href="/">Quizzes</a>
+              <a href="/">Puzzles &amp; Quizzes</a>
               <a href="/lists">Top 10 Lists</a>
             </div>
             <h1 className="dl-h1">Daily Puzzles</h1>

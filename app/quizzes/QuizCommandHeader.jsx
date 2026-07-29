@@ -232,7 +232,7 @@ export default function QuizCommandHeader({ search, onSearch, me, onSignup, tick
           <span className="qch-hubtxt">Stat Hub</span>
         </Link>
         <nav className="qch-seg">
-          <Link href="/" className="on">Quizzes</Link>
+          <Link href="/" className="on">Puzzles &amp; Quizzes</Link>
           <Link href="/lists">Top 10 Lists</Link>
         </nav>
       </div>
